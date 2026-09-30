@@ -1,0 +1,12 @@
+<!-- PF-LOADER v1.0.0 — tiny bootstrap for Squarespace Footer Code Injection.
+     Loads the full footer bundle from CDN. To update the site: push to GitHub,
+     tag a new version, and change the version below. -->
+<script>(function(){var V='v1.0.0';var U='https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@'+V+'/dist/pf-footer.html';
+fetch(U).then(function(r){if(!r.ok)throw new Error('pf-loader '+r.status);return r.text();}).then(function(h){
+var d=document.createElement('div');d.innerHTML=h;
+var styles=d.querySelectorAll('style');for(var i=0;i<styles.length;i++){document.head.appendChild(styles[i]);}
+var scripts=d.querySelectorAll('script');var idx=0;
+(function next(){if(idx>=scripts.length)return;var s=document.createElement('script');var old=scripts[idx];
+var src=old.getAttribute('src');if(src){s.src=src;s.onload=s.onerror=function(){idx++;next();};document.body.appendChild(s);}
+else{s.textContent=old.textContent;document.body.appendChild(s);idx++;next();}})();
+}).catch(function(e){if(window.console&&console.warn)console.warn('[pf-loader]',e);});})();</script>

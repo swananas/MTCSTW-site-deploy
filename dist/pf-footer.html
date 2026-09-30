@@ -3331,3 +3331,47 @@ try{
 <!--PF-BRACKET-SHARE-END-->
 
 <!--PF-TOAST-HOTFIX-20260930-END-->
+<!--PF-CONTENT-CLEANUP-V1.0.2-20260930-START-->
+<script>
+/*PF-CONTENT-CLEANUP-V1.0.2: remove banned/dead page text the Squarespace editor
+  cannot currently delete (block editing non-responsive as of 2026-09-30).
+  1. The "AI crawlers & researchers" paragraph (banned AI-citation copy).
+  2. The empty THE ARSENAL heading (renamed from WHAT WE MAKE at runtime;
+     its media cards live in the separate ONE-STOP HUB block, so the lone
+     heading is dead text). Only removes the heading block when it is truly
+     empty, so a future content edit is never clobbered. */
+(function(){
+'use strict';
+if(window.pfContentCleanupV102)return;window.pfContentCleanupV102=true;
+var isEditor=false;
+try{isEditor=window.location.href.indexOf('/config/')!==-1||window.location.href.indexOf('squarespace.com')!==-1||(document.body&&(document.body.classList.contains('sqs-edit-mode')||document.body.classList.contains('sqs-editing')));}catch(e){}
+if(isEditor)return;
+function run(){
+  try{
+    var i,j,t,blk,hb,txt,hasMedia;
+    var ps=document.querySelectorAll('p');
+    for(i=0;i<ps.length;i++){
+      t=(ps[i].textContent||'');
+      if(/ai crawlers/i.test(t)&&/network dossier/i.test(t)){
+        blk=ps[i].closest('.fe-block')||ps[i].closest('div.sqs-block')||ps[i];
+        if(blk&&blk.parentNode)blk.parentNode.removeChild(blk);
+      }
+    }
+    var hs=document.querySelectorAll('h1,h2,h3,h4');
+    for(j=0;j<hs.length;j++){
+      t=(hs[j].textContent||'').trim();
+      if(t==='THE ARSENAL'||t==='WHAT WE MAKE'){
+        hb=hs[j].closest('.fe-block');
+        if(hb){
+          txt=(hb.textContent||'').replace(t,'').trim();
+          hasMedia=hb.querySelector('img,video,iframe,canvas,svg,a,button');
+          if(!txt&&!hasMedia&&hb.parentNode)hb.parentNode.removeChild(hb);
+        }
+      }
+    }
+  }catch(e){}
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
+})();
+</script>
+<!--PF-CONTENT-CLEANUP-V1.0.2-20260930-END-->

@@ -21,20 +21,20 @@
 '(function(){\n' +
 '  "use strict";\n' +
 '  var TARGETS=[\n' +
-'    {n:"Bona Bones",h:"@bona.bones",p:"TikTok",m:"Flood the latest stop-motion drop: like, comment, share."},\n' +
-'    {n:"Radically Sunny",h:"@radicallysunny",p:"everywhere",m:"Hit the newest post on every platform you have."},\n' +
-'    {n:"Dr. Taylor Andrew",h:"@docdrustudios",p:"TikTok",m:"Boost the latest breakdown. Comment with your take."},\n' +
-'    {n:"Kim Hunt",h:"@slaythegop",p:"TikTok",m:"Amplify the newest Portland dispatch. Share it out."},\n' +
-'    {n:"Voix Noire",h:"@voixnoire",p:"Instagram",m:"Boost the mutual-aid post. Comment, share to stories."},\n' +
-'    {n:"Joman",h:"@joman",p:"TikTok",m:"Hit the latest track/video. Like, comment, repost."},\n' +
-'    {n:"Hex Reject",h:"@hexreject",p:"TikTok",m:"Boost the newest art drop. Comment what it means to you."},\n' +
-'    {n:"Moreno Neurospicy News",h:"@adhd_pirate1",p:"TikTok",m:"Amplify the latest news hit. Share it wide."},\n' +
-'    {n:"Joey",h:"@joey_doesit",p:"TikTok",m:"Jump in the comments of the latest debate clip."},\n' +
-'    {n:"East Coast It Notes",h:"@eastcoastitnotes",p:"Instagram",m:"Boost the newest comic. Share it to your story."},\n' +
-'    {n:"Black NewsBeat",h:"@blacknewsbeat",p:"Facebook",m:"Hit the latest NewsBeat segment. Comment and share."},\n' +
-'    {n:"The Antifascist Frog",h:"@antifascistfrog",p:"TikTok",m:"Boost the frog\\u2019s latest. Ribbit in the comments."},\n' +
-'    {n:"Sex Drugs Rock n Roll",h:"@sexdrugsrocknroll",p:"TikTok",m:"Amplify the newest post. 9.8 energy only."},\n' +
-'    {n:"Minnesota Dept of Propaganda",h:"@minnesotadop",p:"TikTok",m:"Boost the Department\\u2019s latest bulletin."}\n' +
+'    {s:"bona-bones",m:"Flood the latest stop-motion drop: like, comment, share."},\n' +
+'    {s:"radically-sunny",m:"Hit the newest post on every platform you have."},\n' +
+'    {s:"dr-taylor-andrew",m:"Boost the latest breakdown. Comment with your take."},\n' +
+'    {s:"kim-hunt-slaythegop",label:"Kim Hunt",m:"Amplify the newest Portland dispatch. Share it out."},\n' +
+'    {s:"voix-noire",m:"Boost the mutual-aid post. Comment, share to stories."},\n' +
+'    {s:"joman",m:"Hit the latest track/video. Like, comment, repost."},\n' +
+'    {s:"hex-reject",m:"Boost the newest art drop. Comment what it means to you."},\n' +
+'    {s:"moreno-neurospicy-news",m:"Amplify the latest news hit. Share it wide."},\n' +
+'    {s:"joey",m:"Jump in the comments of the latest debate clip."},\n' +
+'    {s:"east-coast-it-notes",m:"Boost the newest comic. Share it to your story."},\n' +
+'    {s:"black-newsbeat-with-dr-kimeka-campbell",m:"Hit the latest NewsBeat segment. Comment and share."},\n' +
+'    {s:"the-antifascist-frog",m:"Boost the frog\\u2019s latest. Ribbit in the comments."},\n' +
+'    {s:"sex-drugs-rock-n-roll",m:"Amplify the newest post. 9.8 energy only."},\n' +
+'    {s:"minnesota-department-of-propaganda",m:"Boost the Department\\u2019s latest bulletin."}\n' +
 '  ];\n' +
 '  function dayNum(){try{var n=new Date();return Math.floor(Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate())/864e5);}catch(e){return 0;}}\n' +
 '  function todayStr(){try{return new Date().toISOString().slice(0,10);}catch(e){return"";}}\n' +
@@ -43,11 +43,13 @@
 '  function save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}\n' +
 '  function yesterday(t){try{var d=new Date(t+"T12:00:00Z");d.setUTCDate(d.getUTCDate()-1);return d.toISOString().slice(0,10);}catch(e){return"";}}\n' +
 '  var st=load(),t=todayStr(),tgt=TARGETS[dayNum()%TARGETS.length];\n' +
+'  var _rr=null;try{_rr=(window.PF&&PF.rosterBySlug)?PF.rosterBySlug(tgt.s):null;}catch(_e){}\n' +
+'  var tn=tgt.label||(_rr&&_rr.name)||tgt.s,th=(_rr&&_rr.handle)||"",tp=(_rr&&_rr.platform)||"";\n' +
 '  function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}\n' +
 '  document.getElementById("pf-raid-target").innerHTML=\n' +
 '    "<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\'>TODAY\\u2019S TARGET</div>"\n' +
 '    +"<div style=\'font-size:1.5rem;font-weight:900;margin:0.4rem 0;\'>"+esc(tgt.n)+"</div>"\n' +
-'    +"<div style=\'font-size:0.9rem;color:#b8ab8e;\'>"+esc(tgt.h)+" \\u00b7 "+esc(tgt.p)+"</div>"\n' +
+'    +"<div style=\'font-size:0.9rem;color:#b8ab8e;\'>"+esc(th)+(tp?" \\u00b7 "+esc(tp):"")+"</div>"\n' +
 '    +"<div style=\'font-size:0.95rem;margin:0.8rem 0;padding:0.8rem;border:2px dashed #c1121f;\'>"+esc(tgt.m)+"</div>";\n' +
 '  var sEl=document.getElementById("pf-raid-streak"),mEl=document.getElementById("pf-raid-msg"),btn=document.getElementById("pf-raid-report");\n' +
 '  function paintStreak(){sEl.textContent=st.streak>1?("\\uD83D\\uDD25 "+st.streak+"-DAY RAID STREAK"):"";}\n' +
@@ -70,7 +72,7 @@
 '    btn.disabled=true;btn.style.opacity="0.5";btn.textContent="REPORTED \\u2713";\n' +
 '    mEl.textContent="Hit confirmed. +15 XP. The target felt that.";\n' +
 '    paintStreak();\n' +
-'    try{document.dispatchEvent(new CustomEvent("pf-raid-report",{detail:{day:t,target:tgt.n}}));}catch(e){}\n' +
+'    try{document.dispatchEvent(new CustomEvent("pf-raid-report",{detail:{day:t,target:tn}}));}catch(e){}\n' +
 '  };\n' +
 '})();\n' +
 '<\/script>\n' +

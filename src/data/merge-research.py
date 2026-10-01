@@ -29,7 +29,6 @@ mtc = by_slug.get('mtcstw')
 if mtc:
     mtc['links'] = {
         'instagram': 'https://www.instagram.com/mtcstw',
-        'facebook': 'https://www.facebook.com/mtcstw',
     }
     mtc['followers'] = {'combined': 380000}
     mtc['followers_as_of'] = '2026-09-28'

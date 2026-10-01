@@ -3,12 +3,15 @@
   "name": "Sick Left Radicals creator database",
   "version": "0.1.0-draft",
   "built": "2026-10-01",
-  "status": "STAGING \u2014 not wired into the site. Feeds the planned SLR roster + catalog refresh.",
+  "status": "STAGING \u2014 research merged 40/41. Not wired into the site. DO NOT DEPLOY standalone.",
   "sources": [
    "PF.ROSTER (core/03-global.js, scores authoritative 2026-09-28)",
    "web research 2026-10-01 (links + follower counts)"
   ],
-  "deploy": "DO NOT DEPLOY standalone. Incorporate into the bigger SLR/catalog refresh first."
+  "deploy": "DO NOT DEPLOY standalone. Incorporate into the bigger SLR/catalog refresh first.",
+  "research_merged": 40,
+  "catalog_urls": "constructed as https://www.mtcstw.com/{slug}; NOT verified live \u2014 audit before use",
+  "pictures": "41/41 resolved (39 remote roster images + 2 local staging files, not hosted)"
  },
  "creators": [
   {
@@ -20,9 +23,9 @@
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/98feb69f-1dd8-4726-a377-5fa357f011fd/333410538_180133698048476_3682545244627213546_n.jpg?format=750w",
    "links": {},
    "followers": {},
-   "followers_as_of": null,
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/sex-drugs-rock-n-roll",
-   "notes": ""
+   "notes": "No matching social profile found in web search (TikTok search returned only music noise). User-verified 258,708 (2026-09-24) retained as stated but unverifiable here."
   },
   {
    "name": "MTCSTW",
@@ -31,11 +34,15 @@
    "handle": null,
    "primary_platform": null,
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/1810c8c9-3148-41f0-b03f-99e7cd29ff12/mtcstw.jpg?format=750w",
-   "links": {},
-   "followers": {},
-   "followers_as_of": null,
+   "links": {
+    "instagram": "https://www.instagram.com/mtcstw"
+   },
+   "followers": {
+    "combined": 380000
+   },
+   "followers_as_of": "2026-09-28",
    "catalog_url": "https://www.mtcstw.com/mtcstw",
-   "notes": ""
+   "notes": "User-confirmed 380K+ combined; real name never on site."
   },
   {
    "name": "Radically Sunny",
@@ -44,11 +51,15 @@
    "handle": "@radicallysunny",
    "primary_platform": null,
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/17574d4c-499d-4904-8fd6-1d37c1ec1565/sunny.jpg?format=750w",
-   "links": {},
-   "followers": {},
-   "followers_as_of": null,
+   "links": {
+    "tiktok": "https://www.tiktok.com/@radicallysunnycreations"
+   },
+   "followers": {
+    "tiktok": 2633
+   },
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/radically-sunny",
-   "notes": ""
+   "notes": "TikTok profile opened live 2026-10-01 (2,633 followers; not verified). DISCREPANCY: user stated 300K+ reach on 2026-09-28 - this handle does not match that figure."
   },
   {
    "name": "East Coast It Notes",
@@ -59,9 +70,9 @@
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/4c39a158-5fa1-4997-a70b-fd90646f3327/444136406_1004276784618065_4047333174202600285_n.jpg?format=750w",
    "links": {},
    "followers": {},
-   "followers_as_of": null,
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/east-coast-it-notes",
-   "notes": ""
+   "notes": "No Instagram profile link/count found in search; only Patreon and press (boredpanda/tvovermind). User-verified 84,755 (2026-09-24) retained as stated but unverifiable here."
   },
   {
    "name": "Joman",
@@ -72,9 +83,9 @@
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/93ba1214-8a77-401a-b925-d1aa204fcc25/joman.jpg?format=750w",
    "links": {},
    "followers": {},
-   "followers_as_of": null,
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/joman",
-   "notes": ""
+   "notes": "TikTok search returned unrelated accounts only. User-stated ~290K cross-platform (2026-09-24) retained as stated but unverifiable here."
   },
   {
    "name": "quietmayhem",
@@ -85,9 +96,9 @@
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/cbe3277c-eb76-481e-aea6-0650defeba71/IMG_9095.jpeg?format=750w",
    "links": {},
    "followers": {},
-   "followers_as_of": null,
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/quietmayhem",
-   "notes": ""
+   "notes": "Handles @QuietMayhem (TikTok, YouTube, Bluesky, Substack, X) and @Quiet.Mayhem (YouTube, Instagram) confirmed in creator's own Substack; direct profile URLs not captured in search results. Money Out of Politics Movement / 2M March on Washington. SLR roster (mtcstw.com) lists 10,700 followers - unverified."
   },
   {
    "name": "Dr. Taylor Andrew",
@@ -96,11 +107,15 @@
    "handle": "@docdrustudios",
    "primary_platform": "TikTok",
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/e0c85fe4-f2fd-431d-87ee-d1323181e7b2/drtaylor.jpg?format=750w",
-   "links": {},
-   "followers": {},
-   "followers_as_of": null,
+   "links": {
+    "tiktok": "https://www.tiktok.com/@docdrustudios"
+   },
+   "followers": {
+    "tiktok": 229600
+   },
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/dr-taylor-andrew",
-   "notes": ""
+   "notes": "TikTok profile opened live 2026-10-01 (229,600 followers, 6M total likes; not verified). Bio link https://linktr.ee/docdrustudios. User-stated ~357K cross-platform (2026-09-24) - the TikTok count is a single platform."
   },
   {
    "name": "The Atheist Socialist",
@@ -111,9 +126,9 @@
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/41d05b04-2f25-44fe-8c52-b100c31be1c4/Image+15.jpeg?format=750w",
    "links": {},
    "followers": {},
-   "followers_as_of": null,
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/the-atheist-socialist",
-   "notes": ""
+   "notes": "Facebook handle 'afpeofficial' attributed via YouTube collab description ('Ft: Tas (The Atheist Socialist)') and an embedded facebook.com/afpeofficial post URL; direct profile URL not captured. SLR roster (mtcstw.com) lists 28,537 followers - unverified."
   },
   {
    "name": "US Dept of Health and Human Shenanigans",
@@ -124,9 +139,9 @@
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/a72ddfa7-d761-42d7-a8c7-a06b6bb59e5f/92ED7C57-277B-452D-9361-D1F328033503.jpeg?format=750w",
    "links": {},
    "followers": {},
-   "followers_as_of": null,
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/us-department-of-health-and-human-shenanigans",
-   "notes": ""
+   "notes": "No public profile trace found in search. SLR roster (mtcstw.com) lists 13,468 followers - unverified."
   },
   {
    "name": "F this imperialistic bs",
@@ -137,9 +152,9 @@
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/a8617435-9f9e-41b1-9633-f6e1faad3b86/Image+12.jpeg?format=750w",
    "links": {},
    "followers": {},
-   "followers_as_of": null,
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/f-this-imperialistic-bs",
-   "notes": ""
+   "notes": "No public profile trace found in search. SLR roster (mtcstw.com) lists 35,340 followers - unverified."
   },
   {
    "name": "Guillotines For A Better America",
@@ -150,9 +165,9 @@
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/2bca2109-901d-4085-b5de-243ab0fd5cae/Image+3.jpeg?format=750w",
    "links": {},
    "followers": {},
-   "followers_as_of": null,
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/guillotines-for-a-better-america",
-   "notes": ""
+   "notes": "Page owner confirmed via Patreon (patreon.com/guillotinesforabetteramerica/about: 'I'm the page owner of Guillotines For A Better America on Facebook'); direct Facebook page URL not captured in search results. User-verified 63,970 (2026-09-24) retained as stated but unverifiable here."
   },
   {
    "name": "Guillotines For Billionares 2020",
@@ -163,9 +178,9 @@
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/a171e925-f264-4c9f-a02d-45126911f5d7/Image+4.jpeg?format=750w",
    "links": {},
    "followers": {},
-   "followers_as_of": null,
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/guillotines-for-billionares-2020",
-   "notes": ""
+   "notes": "No public trace found in search. User-stated ~56K (2026-09-24) retained as stated but unverifiable here."
   },
   {
    "name": "South Dakota Dept of Propaganda",
@@ -176,9 +191,9 @@
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/20a7a31c-ac26-464b-9b4d-91b9b9480a2d/F25BC730-04D2-4653-A308-1E8D3D96146F.jpeg?format=750w",
    "links": {},
    "followers": {},
-   "followers_as_of": null,
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/south-dakota-department-of-propaganda",
-   "notes": ""
+   "notes": "X handle @SoDakTruth confirmed in press coverage (conservativeinstitute.org); profile URL not captured in search results. Site southdakotatruth.com cited on SLR roster. SLR roster (mtcstw.com) lists 75K+ followers - unverified."
   },
   {
    "name": "Films For Action",
@@ -188,10 +203,15 @@
    "primary_platform": null,
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/39ac9f31-c3f6-4419-b9b4-c0552a8523d5/468674838_968765711953278_4106206849352114286_n.jpg?format=750w",
    "links": {},
-   "followers": {},
-   "followers_as_of": null,
+   "followers": {
+    "facebook": 800000,
+    "instagram": 7000,
+    "x": 14000,
+    "youtube": 8000
+   },
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/films-for-action",
-   "notes": ""
+   "notes": "Counts self-reported on filmsforaction.org/join-us/ ('800,000+ Facebook, 14,000+ Twitter, 8,000+ Youtube, 7,000+ Instagram') - page crawled ~2 months prior; treat as approximate. Direct profile URLs not captured. User-stated 1M+ likely a FB roundup."
   },
   {
    "name": "Voix Noire",
@@ -200,11 +220,13 @@
    "handle": "@voixnoire",
    "primary_platform": "Instagram",
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/b03798e0-9849-451d-878d-32637fb2e0a7/Image+16.jpeg?format=750w",
-   "links": {},
+   "links": {
+    "facebook": "https://www.facebook.com/VoixNoire"
+   },
    "followers": {},
-   "followers_as_of": null,
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/voix-noire",
-   "notes": ""
+   "notes": "FB page linked from the org's own Google Form in search results; no FB follower count publicly retrievable. User-confirmed 50K (2026-09-24) retained as stated but unverifiable here. Org site: voixnoire.com."
   },
   {
    "name": "Bona Bones",
@@ -213,11 +235,15 @@
    "handle": "@bona.bones",
    "primary_platform": "TikTok",
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/e3e41864-12b4-468b-9502-4af04d7dca32/bona-bones-new.jpg?format=750w",
-   "links": {},
-   "followers": {},
-   "followers_as_of": null,
+   "links": {
+    "tiktok": "https://www.tiktok.com/@bona.bones"
+   },
+   "followers": {
+    "tiktok": 158600
+   },
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/bona-bones",
-   "notes": ""
+   "notes": "TikTok profile opened live 2026-10-01 (158,600 followers, 10.7M total likes; not verified). Bio: 'Professional StopMo Animator', KCMO. Matches user-verified 158.5K (2026-09-26)."
   },
   {
    "name": "Black NewsBeat",
@@ -228,9 +254,9 @@
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/ce3e6160-d4a4-4f7b-960c-a2d52a3b00c2/blacknewsbeat.jpg?format=750w",
    "links": {},
    "followers": {},
-   "followers_as_of": null,
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/black-newsbeat-with-dr-kimeka-campbell",
-   "notes": ""
+   "notes": "No @blacknewsbeat Facebook profile link/count found in search; only kimeka.org/blacknewsbeat and YouTube clips. User-stated 44K on Facebook (2026-09-24) retained as stated but unverifiable here."
   },
   {
    "name": "Hex Reject",
@@ -239,11 +265,15 @@
    "handle": "@hexreject",
    "primary_platform": "TikTok",
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/f4aabf78-85f8-4753-a61a-a055255169ad/hexreject.jpg?format=750w",
-   "links": {},
-   "followers": {},
-   "followers_as_of": null,
+   "links": {
+    "tiktok": "https://www.tiktok.com/@hexreject"
+   },
+   "followers": {
+    "tiktok": 38200
+   },
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/hex-reject",
-   "notes": ""
+   "notes": "TikTok profile opened live 2026-10-01 (38,200 followers; not verified). Bio: 'US based Artist / Designer'. SLR roster lists 53K - likely cross-platform or older figure. Also on whatnot (hexreject) and hexreject.com."
   },
   {
    "name": "ipostwhenifeelhot",
@@ -254,9 +284,9 @@
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/58515df6-8c5c-44f0-a14d-a659467de64c/0cbc7aae323c3554a790c47e2a58ea85%7Etplv-tiktokx-cropcenter_1080_1080.jpeg?format=750w",
    "links": {},
    "followers": {},
-   "followers_as_of": null,
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/ipostwhenifeelhot",
-   "notes": ""
+   "notes": "No public profile trace found in search. SLR roster (mtcstw.com) lists 26K+ followers - unverified."
   },
   {
    "name": "Wisconsin Dept of Propaganda",
@@ -267,9 +297,9 @@
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/7cdd29fd-900f-47ba-91ec-e9ce2e30ab6d/Screenshot+2025-04-21+at+12.14.54%E2%80%AFPM.png?format=750w",
    "links": {},
    "followers": {},
-   "followers_as_of": null,
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/wisconsin-department-of-propaganda",
-   "notes": ""
+   "notes": "Facebook page existence confirmed (memes credited to it in tvovermind article); page URL and follower count not retrievable in search. SLR roster (mtcstw.com) lists 57K+ followers - unverified."
   },
   {
    "name": "The Antifascist Frog",
@@ -278,11 +308,15 @@
    "handle": "@antifascistfrog",
    "primary_platform": "TikTok",
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/ea682dd0-4794-424b-ad07-f8f590a13875/antifascist-frog.jpg?format=750w",
-   "links": {},
-   "followers": {},
-   "followers_as_of": null,
+   "links": {
+    "tiktok": "https://www.tiktok.com/@theantifascistfrog/video/7557153362249026846"
+   },
+   "followers": {
+    "tiktok": 56500
+   },
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/the-antifascist-frog",
-   "notes": ""
+   "notes": "TikTok @theantifascistfrog verified via Know Your Meme (Portland Frog meme entry), BuzzFeed explainer (\"TikTok: @theantifascistfrog\"), and Medium (Oct 2025). Portland ICE-protest frog costume viral Oct 2025. Profile-page URL not directly surfaced in search; link is the creator's own viral video (reposted Oct 3, 2025, 1.8M+ views). Instagram @TheAntiFascistFrog referenced in collab merch pages (chnge.com, keepface.com) but no profile URL found. Follower count 56.5K is from the SLR roster on mtcstw.com (page opened 2026-10-01, roster updated September 2026) \u2014 not independently verified."
   },
   {
    "name": "Jeanine Pirreaux Comedy",
@@ -291,11 +325,15 @@
    "handle": null,
    "primary_platform": null,
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/c5fe9f42-a07a-483b-844c-472d6f2c792b/moreno.jpg?format=750w",
-   "links": {},
-   "followers": {},
-   "followers_as_of": null,
+   "links": {
+    "tiktok": "https://www.tiktok.com/@jeaninepirreauxcomedy/video/7619800153091837197?_r=1&_d=secCgYIASAHKAESPgo8UAOWQZK75GCF3cRiUiSC%2B069hQhIT7I5Gv5IGIPjILRrDseN7bF8ctpDyUiiVxNlq25qGttAjCo7QYXLGgA%3D&_svg=3&checksum=a4fef0e4c64107ad6621aae4ff65f5a2346680f97e59824f8fe0d54761000da7&item_author_type=2&link_reflow_popup_it"
+   },
+   "followers": {
+    "tiktok": 48000
+   },
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/jeanine-pirreaux-comedy",
-   "notes": ""
+   "notes": "TikTok handle @jeaninepirreauxcomedy verified across many video search results (author shown as \"Jeanine Pirreaux (Satire)\"). Profile-page URL and exact count not directly surfaced; link is one of the account's videos (crawled 8 days ago). No Facebook/Instagram/YouTube/X profile links found. Follower count 48K is from the SLR roster on mtcstw.com (page opened 2026-10-01, roster updated September 2026) \u2014 matches the ~48K stated figure but not independently verified."
   },
   {
    "name": "Your Friendly Neighborhood Schizophrenic",
@@ -306,9 +344,9 @@
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/c6d5e34d-d2b8-44d5-b3d9-a74a244b1708/Image.jpeg?format=750w",
    "links": {},
    "followers": {},
-   "followers_as_of": null,
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/your-friendly-neighborhood-schizophrenic",
-   "notes": ""
+   "notes": "Still no publicly accessible profile page found in web search (same as before). Unrelated same-named X/Twitter accounts (e.g. @FriendlySchizox, @_TheShadowWolf_) exist but cannot be attributed to this creator. Roster on mtcstw.com lists 45k+ followers (Sept 2026 update) but no platform handle is identifiable."
   },
   {
    "name": "undraylowery",
@@ -317,11 +355,15 @@
    "handle": null,
    "primary_platform": null,
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/359534bb-e03e-4411-82d1-c391d1415550/IMG_9096.jpeg?format=750w",
-   "links": {},
-   "followers": {},
-   "followers_as_of": null,
+   "links": {
+    "tiktok": "https://www.tiktok.com/@undraylowery/live?_r=1&_svg=3&checksum=efa069ecd825824d84da280af382c5265b322e29c85dda5da8789a22d216b0ab&enter_from_merge=share&enter_method=share&sec_user_id=MS4wLjABAAAATsyHKylqdhRXKWKI0l06D6q5I6waE1pWgpoxrZxeUZrnqVc5K4pfJbfXlJ2MKzeH&share_app_id=1233&share_from_user_id=700045869803"
+   },
+   "followers": {
+    "tiktok": 16000
+   },
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/undraylowery",
-   "notes": ""
+   "notes": "TikTok handle @undraylowery verified via multiple \"Undray Lowery Vibe Show\" LIVE pages (3 separate crawls). Profile-page URL not directly surfaced; link is the handle's TikTok live page, which resolves to the account. No Facebook/Instagram/YouTube/X profile links found. @undrrly (542K on TikTok) is a different account and is NOT attributed here. Follower count 16K+ is from the SLR roster on mtcstw.com (opened 2026-10-01, roster updated September 2026) \u2014 not independently verified."
   },
   {
    "name": "Minnesota Dept of Propaganda",
@@ -331,10 +373,12 @@
    "primary_platform": "TikTok",
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/93204040-73a4-4d60-aee3-9dade8b2d8f6/Image+5.jpeg?format=750w",
    "links": {},
-   "followers": {},
-   "followers_as_of": null,
+   "followers": {
+    "tiktok": 166967
+   },
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/minnesota-department-of-propaganda",
-   "notes": ""
+   "notes": "Handle @minnesotadop (from task hint) was NOT independently surfaced in any search result or opened page, so no platform link is recorded. Strong identity lead: Threadless artist shop Brentiis Design sells a \"Minnesota Department of Propaganda 2024 Edition\" merch line (brentiisdesign.threadless.com), suggesting the creator is artist Brentiis Design \u2014 unverified. Follower count 166,967 is from the SLR roster on mtcstw.com (opened 2026-10-01, roster updated September 2026) \u2014 matches the ~167K stated figure but not independently verified."
   },
   {
    "name": "The Dr Greg Show",
@@ -343,11 +387,20 @@
    "handle": null,
    "primary_platform": null,
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/2fe8e3e6-ffbe-4b2c-8239-2509928cf636/drgreg.jpg?format=750w",
-   "links": {},
-   "followers": {},
-   "followers_as_of": null,
+   "links": {
+    "facebook": "https://www.facebook.com/drgregshow",
+    "instagram": "https://www.instagram.com/drgregshow",
+    "tiktok": "https://www.tiktok.com/@drgregshow",
+    "website": "https://www.drgregshow.com",
+    "x": "https://x.com/DrGregShow",
+    "youtube": "https://www.youtube.com/@drgregshow"
+   },
+   "followers": {
+    "combined": 35000
+   },
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/the-dr-greg-show",
-   "notes": ""
+   "notes": "PhD molecular biologist (UC Riverside), nightly science-debate livestreams. 35K+ is the creator's own media-kit total across platforms (drgregshow.com, Sept 2026, verified by opening the page). Profile handles are published verbatim by the creator in his official YouTube video descriptions (TikTok/Instagram/Twitch/YouTube @drgregshow, X @DrGregShow); URLs written in standard form from those stated handles. Matches the ~34K+ stated reach."
   },
   {
    "name": "thepamham",
@@ -356,11 +409,15 @@
    "handle": null,
    "primary_platform": null,
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/2dac9586-3b41-43d1-9ee0-750f074a4f19/IMG_9097.jpeg?format=750w",
-   "links": {},
-   "followers": {},
-   "followers_as_of": null,
+   "links": {
+    "tiktok": "https://www.tiktok.com/@thepamham"
+   },
+   "followers": {
+    "tiktok": 22600
+   },
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/damn-pam-ham-from-effingham",
-   "notes": ""
+   "notes": "TikTok profile found in search results as 'Damn Pam Ham from Effingham', @thepamham, 22.6k followers (TikTok search snippet, crawl ~Aug 2026). No Instagram/Facebook/YouTube/X profiles found. Matches the ~22.6K stated reach."
   },
   {
    "name": "Luigi's Mansion",
@@ -371,9 +428,9 @@
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/bb188351-bce4-430a-bc0f-0a954bca5b76/Screenshot+2025-04-21+at+2.56.42%E2%80%AFAM.png?format=750w",
    "links": {},
    "followers": {},
-   "followers_as_of": null,
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/luigis-mansion-socialist-shitposting",
-   "notes": ""
+   "notes": "No independent public trace found on any platform. Only mentions anywhere on the web are the mtcstw.com Sick Left Radicals roster entries, which state 22k+ followers (unverified; likely a private or defunct account)."
   },
   {
    "name": "Let the Revolution Begin",
@@ -384,9 +441,9 @@
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/dc47842f-21d9-4b1a-b322-09995c7fc1fc/Image+13.jpeg?format=750w",
    "links": {},
    "followers": {},
-   "followers_as_of": null,
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/let-the-revolution-begin-peacefully-of-course",
-   "notes": ""
+   "notes": "Described as a Facebook-based creator ('one of our Sick Left Radicals from Facebook', Propaganda Factory podcast ep. May 13, 2025), but no Facebook page URL surfaced in search results, so no link recorded. Follower count 109,815 is stated only on the mtcstw.com roster; not independently verifiable."
   },
   {
    "name": "SlayTheGOP",
@@ -394,12 +451,17 @@
    "propaganda_score": 8.2,
    "handle": "@slaythegop",
    "primary_platform": "TikTok",
-   "picture": null,
-   "links": {},
-   "followers": {},
-   "followers_as_of": null,
+   "picture": "STAGING: ~/workspace/goals/propaganda-factory-website-rebuild/files/catalog-photos/kim-hunt-slaythegop.jpg (not hosted)",
+   "links": {
+    "tiktok": "https://www.tiktok.com/@slaythegop"
+   },
+   "followers": {
+    "instagram": 330000,
+    "tiktok": 170000
+   },
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/kim-hunt-slaythegop",
-   "notes": ""
+   "notes": "TikTok handle @slaythegop confirmed via multiple TikTok video URLs with author 'slaythegop' (incl. duet link https://www.tiktok.com/@slaythegop in a YouTube description). 170K+ TikTok followers per WIRED reporting (Sept 2025, via bestintechnology.de); 330K+ Instagram followers per Famous Birthdays (crawled Sept 2026); 650K+ combined social following cited in Apr 2026 iHeart podcast interviews \u2014 matches the ~650K+ stated reach. No verifiable standalone Instagram profile URL found; IG count from FamousBirthdays only. Former HR official, went full-time creator after being fired/doxed following a Charlie Kirk post (Sept 2025)."
   },
   {
    "name": "Little Anarchist Brat",
@@ -408,11 +470,14 @@
    "handle": null,
    "primary_platform": null,
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/cc78e80e-5d40-4369-b277-49b85e4a6caf/Image+14.jpeg?format=750w",
-   "links": {},
+   "links": {
+    "ko-fi": "https://ko-fi.com/littleanarchistbrat",
+    "website": "https://littleanarchistbrat.ghost.io/"
+   },
    "followers": {},
-   "followers_as_of": null,
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/little-anarchist-brat",
-   "notes": ""
+   "notes": "mtcstw.com catalog page (opened 2026-10-01) lists Ghost blog, Bluesky, and Ko-fi under 'Find them here'. Ghost URL is the creator's long-form anarchist publication ('Anarchism as Practice'). Ko-fi URL verbatim from a Bluesky mutual-aid starter pack snippet (blueskypacks.com). Bluesky handle @littleanarchistbat.bsky.social appears in that same pack, but no full bsky.app profile URL was surfaced, so no Bluesky URL is recorded (a separate result mentioned @theorythot.bsky.social for a 'Little Anarchist Brat' Bluesky account \u2014 handle ambiguous). No TikTok/Instagram/Facebook/YouTube/X profiles found in search. Roster lists 9K+ followers (Sept 2026 update) with no per-platform breakdown \u2014 not independently verified."
   },
   {
    "name": "I'm that girl.",
@@ -421,11 +486,15 @@
    "handle": null,
    "primary_platform": null,
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/8c5e2e2b-1616-41a1-b8e7-09093a858938/imthatgirl.jpg?format=750w",
-   "links": {},
-   "followers": {},
-   "followers_as_of": null,
+   "links": {
+    "facebook": "https://www.facebook.com/ImThatGirl2017"
+   },
+   "followers": {
+    "facebook": 74681
+   },
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/im-that-girl",
-   "notes": ""
+   "notes": "Facebook page URL verbatim from the mtcstw.com catalog 'Follow them here' (opened 2026-10-01). Catalog key strengths: '74,681 verified followers'. Page body also cites 57K+ followers, 9.4% engagement, 4M reach, and the ImThatGirl365 movement (book/workbook, 3,600+ member Facebook group). No TikTok/Instagram/YouTube/X profile links found for this creator; catalog lists Facebook only."
   },
   {
    "name": "Joey",
@@ -434,11 +503,15 @@
    "handle": "@joey_doesit",
    "primary_platform": "TikTok",
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/f1a0c773-0ab7-4d33-837d-ac95db8d5079/joey.jpg?format=750w",
-   "links": {},
-   "followers": {},
-   "followers_as_of": null,
+   "links": {
+    "tiktok": "https://www.tiktok.com/@joey_doesit"
+   },
+   "followers": {
+    "tiktok": 55000
+   },
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/joey",
-   "notes": ""
+   "notes": "TikTok handle @joey_doesit verified via mtcstw.com catalog 'Follow them here' (opened 2026-10-01) and multiple TikTok LIVE share URLs in search results ('Joey is LIVE | TikTok', debate-themed descriptions, crawled as recently as ~14 days ago). Catalog: nightly live debates 9:30PM PST, Spanish-language backup, 1,000+ videos. Follower count 55K is from the catalog ('55K for open-mic combat', roster updated Sept 2026) \u2014 not independently verified; one older TikTok profile crawl (~208 days) showed 41.5K followers / 760.8K likes. No Facebook/Instagram/YouTube/X profile links found."
   },
   {
    "name": "The Political Feminist",
@@ -447,11 +520,15 @@
    "handle": null,
    "primary_platform": null,
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/42973f27-05d9-4fb4-add8-b2d250122635/Image+11.jpeg?format=750w",
-   "links": {},
-   "followers": {},
-   "followers_as_of": null,
+   "links": {
+    "facebook": "https://www.facebook.com/PoliticalFeminist"
+   },
+   "followers": {
+    "facebook": 55631
+   },
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/the-political-feminist",
-   "notes": ""
+   "notes": "Facebook page URL verbatim from the mtcstw.com catalog 'Follow them here' (opened 2026-10-01). Catalog key strengths: '55,631' followers; lanes are leftist politics, feminist science literacy, unfiltered humor. No TikTok/Instagram/YouTube/X profile links found for this creator; catalog lists Facebook only."
   },
   {
    "name": "US Federal Dept of Propaganda",
@@ -460,11 +537,15 @@
    "handle": null,
    "primary_platform": null,
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/078a027e-83ca-40f3-b4a2-4b18af237d39/DEBB08C7-0B3C-4AF4-A5FF-DCD9AABB1C5D.jpeg?format=750w",
-   "links": {},
-   "followers": {},
-   "followers_as_of": null,
+   "links": {
+    "facebook": "https://www.facebook.com/profile.php?id=100088623907567"
+   },
+   "followers": {
+    "facebook": 136178
+   },
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/us-federal-department-of-propaganda",
-   "notes": ""
+   "notes": "Facebook page URL verbatim from the mtcstw.com catalog 'Follow them here' (opened 2026-10-01); propaganda score 8.0/10, described as the HQ of the mock 'Departments' network (related: Minnesota/Wisconsin/South Dakota Departments). Catalog key strengths: '136,178 verified followers'. No TikTok/Instagram/YouTube/X profile links found; catalog lists Facebook only."
   },
   {
    "name": "deejay1.0",
@@ -473,11 +554,15 @@
    "handle": null,
    "primary_platform": null,
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/46250049-fb06-4100-9c96-e1cf1c311483/IMG_9094.jpeg?format=750w",
-   "links": {},
-   "followers": {},
-   "followers_as_of": null,
+   "links": {
+    "tiktok": "https://www.tiktok.com/@deejay1.0"
+   },
+   "followers": {
+    "tiktok": 18000
+   },
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/deejay10",
-   "notes": ""
+   "notes": "SLR Propagandist, Organizer, WE ARE ONE Movement Coordinator. 18K+ per live mtcstw.com roster/catalog pages (updated Sept 2026). Exact current count not indexed by public search; no other platforms linked."
   },
   {
    "name": "EAT THE RICH",
@@ -486,11 +571,15 @@
    "handle": null,
    "primary_platform": null,
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/1efc59a3-abeb-40a6-a142-eef5365c657a/0F1BBCA4-91AB-4AF5-B25B-67B63ADD44DB.jpeg?format=750w",
-   "links": {},
-   "followers": {},
-   "followers_as_of": null,
+   "links": {
+    "facebook": "https://www.facebook.com/EattherichStirfried"
+   },
+   "followers": {
+    "facebook": 54000
+   },
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/eat-the-rich",
-   "notes": ""
+   "notes": "Facebook page EattherichStirfried; 54K+ per roster. Catalog page reports the page currently returns nothing at its old address \u2014 possibly unpublished, renamed, or taken down; place held in network pending a lead."
   },
   {
    "name": "keithwashburn",
@@ -499,11 +588,15 @@
    "handle": null,
    "primary_platform": null,
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/3a9cf639-db15-4130-994f-18668106b4bc/IMG_9094.jpeg?format=750w",
-   "links": {},
-   "followers": {},
-   "followers_as_of": null,
+   "links": {
+    "tiktok": "https://www.tiktok.com/@keithwashburn"
+   },
+   "followers": {
+    "tiktok": 20000
+   },
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/keithwashburn",
-   "notes": ""
+   "notes": "20K+ TikTok followers per live roster/catalog; SLR Propagandist, Organizer, WE ARE ONE Member. Exact current count not indexed by public search; no other platforms linked."
   },
   {
    "name": "Moreno Neurospicy News",
@@ -512,11 +605,13 @@
    "handle": "@adhd_pirate1",
    "primary_platform": "TikTok",
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/c5fe9f42-a07a-483b-844c-472d6f2c792b/moreno.jpg?format=750w",
-   "links": {},
+   "links": {
+    "facebook": "https://www.facebook.com/share/19owNJnCKm/?mibextid=wwXIfr"
+   },
    "followers": {},
-   "followers_as_of": null,
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/moreno-neurospicy-news",
-   "notes": ""
+   "notes": "Roster shows 130K, but catalog page describes this as 130K+ COMBINED across TikTok, Facebook, Substack, and Patreon \u2014 not per-platform, so omitted from followers. TikTok handles @adhd_pirate1 and @neurospicy_news named on catalog page (no tiktok.com URL shown, so TikTok link omitted per no-guess rule). FB share link is the only verified URL."
   },
   {
    "name": "dogman_v1",
@@ -524,12 +619,16 @@
    "propaganda_score": 7.7,
    "handle": null,
    "primary_platform": null,
-   "picture": null,
-   "links": {},
-   "followers": {},
-   "followers_as_of": null,
+   "picture": "STAGING: ~/workspace/goals/propaganda-factory-website-rebuild/files/catalog-photos/dogman_v1.jpg (not hosted)",
+   "links": {
+    "tiktok": "https://www.tiktok.com/@dogman_v1"
+   },
+   "followers": {
+    "tiktok": 21900
+   },
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/dogman_v1",
-   "notes": ""
+   "notes": "Backup account (bio: 'TTBackup Dogman_v3'); catalog: 21,900 followers, 40,700 likes, 1,109 videos. Roster rounds to 22,000. Exact current count not indexed by public search."
   },
   {
    "name": "bitchysitch",
@@ -538,11 +637,15 @@
    "handle": null,
    "primary_platform": null,
    "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/fe64f79d-180f-4f57-ac52-fef5aa60d0f4/IMG_9099.jpeg?format=750w",
-   "links": {},
-   "followers": {},
-   "followers_as_of": null,
+   "links": {
+    "tiktok": "https://www.tiktok.com/@bitchysitch"
+   },
+   "followers": {
+    "tiktok": 9969
+   },
+   "followers_as_of": "2026-10-01",
    "catalog_url": "https://www.mtcstw.com/bitchysitch",
-   "notes": ""
+   "notes": "Live roster shows 9,969 TikTok followers (catalog page says 9,968, 171 videos, 1.3M likes, bio 'new found influencer'); SLR Propagandist and Organizer. No other platforms linked."
   }
  ]
 }

@@ -1,20 +1,23 @@
 <!-- PF FOOTER v1.4.1 — shell-aware loader. Pages carrying #pf-v2 (the v2 homepage)
-     load the 24-file v2 JS set + CSS pinned to 47cfafd (incl. games/cells.js —
-     the Cells silo directly under Daily Orders, the catalog-driven Boost Raid share card,
+     load the v1.4.1 JS set + CSS pinned to the V2 hash (incl. games/cells.js —
+     the Cells silo directly under Daily Orders, games/war-card.js — the HQ-only
+     Creator War Card silo, the catalog-driven Boost Raid share card,
      the randomized Guess-the-Creator pool, and the spread stamp on all share posters — core/share-image.js, which
-     guarantees SHARE IMAGE + SAVE IMAGE TO PHONE on all 16 game sections,
+     guarantees SHARE IMAGE + SAVE IMAGE TO PHONE on all game sections,
      unconditionally, core/06-pinups.js, the Layer-2 Pin-Up Wall, and the
      centralized PF.ROSTER in core/03-global.js). Scripts load in parallel
-     with async=false so they still execute in dependency order. Every
+     with async=false so they still execute in dependency order. Pages carrying
+     #pf-war-card (Creator HQ) also load the v1.4.1 set so the war-card silo can
+     mount; home-v2.js stays dormant there (no #pf-v2 shell). Every
      other page loads the v1.1.0 production set pinned to 6e8b9a4.
      Kill switches: ?pf_off=<silo> or ?pf_off=home-v2. -->
 <script>(function(){
 var V2='47cfafd9d39147ed0ec72cd680f4838e6011b766',V1='6e8b9a42397abc5b42f0ba6b123ec4bbdd7857de';
-var onV2=!!document.getElementById('pf-v2');
+var onV2=!!document.getElementById('pf-v2')||!!document.getElementById('pf-war-card');
 var VER=onV2?'v1.4.1':'v1.1.0';
 var BASE='https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@'+(onV2?V2:V1)+'/'+VER+'/';
 var CSS=onV2?["core/01-styles.css"]:["core/01-styles.css", "fixes/mobile.css"];
-var JS=onV2?["core/00-bus.js", "core/03-global.js", "core/04-ledger.js", "core/05-tally.js", "games/fan-vote.js", "games/slr-match-quiz.js", "games/creator-guess.js", "games/bracket-board.js", "games/daily-orders.js", "games/cells.js", "games/boost-raid.js", "games/do-meter.js", "games/daily-drop.js", "games/billionaire-supervillain.js", "games/daily-interrogation.js", "games/media-nuke.js", "games/caption-combat.js", "games/poster-forge.js", "games/enlistment-ranks.js", "games/war-bonds.js", "games/service-medals.js", "pages/home-v2.js", "core/06-pinups.js", "core/share-image.js"]:["core/00-bus.js", "core/03-global.js", "core/04-ledger.js", "core/05-tally.js", "games/caption-combat.js", "games/daily-orders.js", "games/fan-vote.js", "games/do-meter.js", "games/media-nuke.js", "games/poster-forge.js", "games/daily-drop.js", "games/service-medals.js", "games/liquidation-bracket.js", "core/06-override.js", "core/08-engage.js", "core/09-toast.js", "core/10-ticker.js", "fixes/homepage.js", "fixes/about.js", "fixes/faqs.js", "fixes/roster.js", "fixes/podcast.js", "fixes/tax.js", "fixes/terms.js", "fixes/schema.js"];
+var JS=onV2?["core/00-bus.js", "core/03-global.js", "core/04-ledger.js", "core/05-tally.js", "games/fan-vote.js", "games/slr-match-quiz.js", "games/creator-guess.js", "games/bracket-board.js", "games/daily-orders.js", "games/cells.js", "games/war-card.js", "games/boost-raid.js", "games/do-meter.js", "games/daily-drop.js", "games/billionaire-supervillain.js", "games/daily-interrogation.js", "games/media-nuke.js", "games/caption-combat.js", "games/poster-forge.js", "games/enlistment-ranks.js", "games/war-bonds.js", "games/service-medals.js", "pages/home-v2.js", "core/06-pinups.js", "core/share-image.js"]:["core/00-bus.js", "core/03-global.js", "core/04-ledger.js", "core/05-tally.js", "games/caption-combat.js", "games/daily-orders.js", "games/fan-vote.js", "games/do-meter.js", "games/media-nuke.js", "games/poster-forge.js", "games/daily-drop.js", "games/service-medals.js", "games/liquidation-bracket.js", "core/06-override.js", "core/08-engage.js", "core/09-toast.js", "core/10-ticker.js", "fixes/homepage.js", "fixes/about.js", "fixes/faqs.js", "fixes/roster.js", "fixes/podcast.js", "fixes/tax.js", "fixes/terms.js", "fixes/schema.js"];
 function siloFail(n,e){if(window.console)console.error('[PF SILO FAILED] '+n+' :: '+(e&&e.message||e||'load error'));}
 window.addEventListener('error',function(e){
   var f=e.filename||'',m=f.match(/v1\.(?:1\.0|4\.[01])\/([^?]+)/);

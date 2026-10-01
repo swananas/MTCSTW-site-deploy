@@ -18,6 +18,7 @@
 <div class="d-reset" id="dReset"></div>
 <div class="d-types" id="dTypes"></div>
 <div class="d-spark" id="dSpark" aria-hidden="true"></div>
+<div><button class="d-shareimg" id="dShareImg">Share network total</button><div class="d-sub" id="dShareCount" style="margin-top:6px"></div></div>
 
 <div class="d-boom" id="dBoom"><h3>&#128165; Target destroyed</h3><p>New orders incoming. The fuse is relit.</p></div>
 
@@ -26,7 +27,7 @@
 'use strict';
 var LS='pf_do_v1';
 var PTS={'pf-order-checkin':1,'pf-bracket-ballot':1,'pf-bracket-liquidated':2,'pf-vote-cast':1,'pf-quiz-done':1,'pf-guess-done':2,'pf-raid-report':2,'pf-traitor-vote':1,'pf-wb-buy':5,'pf-enlisted':3,'pf-caption-submit':2,'pf-poster-made':2,'pf-drop-claimed':2,'pf-billionaire-answered':1,'pf-interrogation-answered':1,'pf-share-image':2};
-var LABELS={'pf-order-checkin':'Orders','pf-bracket-ballot':'Brackets','pf-bracket-liquidated':'Liquidations','pf-vote-cast':'Votes','pf-quiz-done':'Quizzes','pf-traitor-vote':'Traitors','pf-wb-buy':'Bonds','pf-enlisted':'Enlisted','pf-caption-submit':'Captions','pf-poster-made':'Posters','pf-drop-claimed':'Drops','pf-billionaire-answered':'Billionaire','pf-interrogation-answered':'Interrogation','pf-share-image':'Shares'};
+var LABELS={'pf-order-checkin':'Orders','pf-bracket-ballot':'Brackets','pf-bracket-liquidated':'Liquidations','pf-vote-cast':'Votes','pf-quiz-done':'Quizzes','pf-raid-report':'Raids','pf-traitor-vote':'Traitors','pf-wb-buy':'Bonds','pf-enlisted':'Enlisted','pf-caption-submit':'Captions','pf-poster-made':'Posters','pf-drop-claimed':'Drops','pf-billionaire-answered':'Billionaire','pf-interrogation-answered':'Interrogation','pf-share-image':'Shares'};
 function load(){try{var s=JSON.parse(localStorage.getItem(LS)||'null');if(s&&s.w)return s;}catch(e){}return{w:PF.isoWeekKey(PF.chiNow()),total:0,byType:{},goal:1000,hits:0,hist:{},seen:[],boomed:false};}
 function save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}
 var S=load();
@@ -50,6 +51,7 @@ function render(){
   } catch(e){}
   var c=document.getElementById('dCount');if(c){c.textContent=fmt(unifiedTotal);c.classList.remove('d-flash');void c.offsetWidth;c.classList.add('d-flash');}
   var yl=document.getElementById('dYou');if(yl){yl.textContent=youLine;yl.style.display=youLine?'':'none';}
+  var dsc=document.getElementById('dShareCount');if(dsc)dsc.textContent='Your share card will read: '+fmt(unifiedTotal)+' TASKS COMPLETE \u2014 NETWORK-WIDE.';
   var pct=Math.min(100,Math.round(S.total/S.goal*100));
   var fill=document.getElementById('dFill');if(fill)fill.style.width=pct+'%';
   var keg=document.getElementById('dKeg');if(keg)keg.classList.toggle('hot',pct>=75);
@@ -112,6 +114,105 @@ function dollarPop(){
   var d=document.createElement('div');d.className='d-dollar';d.textContent='$';host.appendChild(d);
   setTimeout(function(){d.remove();},1400);
 }
+/* SHARE NETWORK TOTAL — renders the site-wide task count to a 1080x1350
+   propaganda card and shares it via the native share sheet (falls back to
+   PNG download). This is the global number: every comrade's tasks summed. */
+function dWrap(ctx,text,maxW){
+  var words=String(text).split(/\s+/),lines=[],line='';
+  words.forEach(function(w){var t=line?line+' '+w:w;
+    if(ctx.measureText(t).width>maxW&&line){lines.push(line);line=w;}else line=t;});
+  if(line)lines.push(line);return lines;
+}
+function doTotals(){
+  rollover();
+  var total=S.total,you='';
+  try{
+    if(window.PF_GLOBAL_TASKS>0){
+      total=window.PF_GLOBAL_TASKS;
+      var share=S.total/window.PF_GLOBAL_TASKS*100;
+      you='YOU THIS WEEK: '+fmt(S.total)+(S.total>0?' ('+(share<0.1?'<0.1':share.toFixed(1))+'% OF THE NETWORK)':'');
+    }
+  }catch(e){}
+  return {total:total,you:you};
+}
+function drawDoCard(){
+  var T=doTotals(),W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;
+  var x=cv.getContext('2d');
+  x.fillStyle='#0d0d0d';x.fillRect(0,0,W,H);
+  x.strokeStyle='#c1121f';x.lineWidth=16;x.strokeRect(14,14,W-28,H-28);
+  x.strokeStyle='#f5ead6';x.lineWidth=3;x.strokeRect(44,44,W-88,H-88);
+  x.textAlign='center';var y=150;
+  x.fillStyle='#f5ead6';x.font='900 74px "Arial Black",Arial,sans-serif';
+  x.fillText('\u2699 THE DO METER',W/2,y);y+=58;
+  x.fillStyle='#c1121f';x.font='700 32px Arial,sans-serif';
+  var mo=null;try{mo=PF.mondayOf(PF.chiNow());}catch(e){}
+  x.fillText(mo?('WEEK OF '+mo.toLocaleDateString('en-US',{month:'long',day:'numeric'}).toUpperCase()):'THIS WEEK',W/2,y);y+=30;
+  x.strokeStyle='#c1121f';x.lineWidth=4;
+  x.beginPath();x.moveTo(140,y);x.lineTo(W-140,y);x.stroke();y+=84;
+  x.fillStyle='#c1121f';x.font='900 150px "Arial Black",Arial,sans-serif';
+  x.fillText(fmt(T.total),W/2,y);y+=70;
+  x.fillStyle='#f5ead6';x.font='900 52px "Arial Black",Arial,sans-serif';
+  x.fillText('TASKS COMPLETE',W/2,y);y+=58;
+  x.fillStyle='#e8b923';x.font='900 36px "Arial Black",Arial,sans-serif';
+  x.fillText('NETWORK-WIDE',W/2,y);y+=66;
+  x.fillStyle='#c9bfa8';x.font='400 30px Arial,sans-serif';
+  x.fillText('Not followers. Not likes. Things done.',W/2,y);y+=64;
+  if(T.you){x.fillStyle='#f5ead6';x.font='700 34px Arial,sans-serif';x.fillText(T.you,W/2,y);y+=60;}
+  var tops=Object.keys(S.byType||{}).map(function(k){return[k,S.byType[k]];})
+    .sort(function(a,b){return b[1]-a[1];}).slice(0,4);
+  if(tops.length){
+    x.fillStyle='#c1121f';x.font='900 30px "Arial Black",Arial,sans-serif';
+    x.fillText('YOUR WEEK',W/2,y);y+=44;
+    x.fillStyle='#c9bfa8';x.font='400 30px Arial,sans-serif';
+    tops.forEach(function(p){x.fillText((LABELS[p[0]]||p[0]).toUpperCase()+' \u00D7 '+fmt(p[1]),W/2,y);y+=44;});
+    y+=16;
+  }
+  var gl=fmt(S.total)+' / '+fmt(S.goal)+' TO DETONATION'+(S.hits>0?' \u00B7 '+S.hits+' DESTROYED':'')+((S.streak||0)>0?' \u00B7 \uD83D\uDD25 '+S.streak+'-WK STREAK':'');
+  x.fillStyle='#e8b923';x.font='700 30px Arial,sans-serif';
+  dWrap(x,gl,W-240).forEach(function(ln){x.fillText(ln,W/2,y);y+=40;});
+  y+=20;
+  x.fillStyle='#f5ead6';x.font='900 62px "Arial Black",Arial,sans-serif';
+  x.fillText('MTCSTW.COM',W/2,H-170);
+  x.fillStyle='#c1121f';x.font='900 30px "Arial Black",Arial,sans-serif';
+  x.fillText('THE PROPAGANDA FACTORY',W/2,H-116);
+  x.fillStyle='#c9bfa8';x.font='400 26px Arial,sans-serif';
+  x.fillText('Do things. Post proof.',W/2,H-76);
+  return cv;
+}
+function shareDoImage(btn){
+  if(btn)btn.disabled=true;
+  try{
+    var cv=drawDoCard();
+    try{if(window.PFShare&&window.PFShare.stampCallsign){cv=window.PFShare.stampCallsign(cv)||cv;}}catch(e){}
+    var awardShare=function(){
+      /* Credit ONLY on a confirmed share or a completed download — never on
+         cancel. Routed through the shared once-per-day gate so a share here
+         plus a share from any other game can't credit the same day twice. */
+      if(btn)btn.disabled=false;
+      try{
+        if(window.PF&&typeof window.PF.creditShare==='function'){window.PF.creditShare('do-meter','share');}
+        else if(typeof window.pfCreditShare==='function'){window.pfCreditShare('do-meter','share');}
+        else{document.dispatchEvent(new CustomEvent('pf-share-image',{detail:{day:new Date().toISOString().slice(0,10)}}));}
+      }catch(e){}
+    };
+    var done=function(url,blob){
+      var file=new File([blob],'pfn-do-meter.png',{type:'image/png'});
+      var isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent||'');
+      if(navigator.canShare&&navigator.canShare({files:[file]})){
+        navigator.share({files:[file],title:'The Do Meter',text:'The network did '+fmt(doTotals().total)+' things this week. Join at mtcstw.com.'}).then(awardShare).catch(function(){
+          /* User cancelled the share sheet — NO credit. */
+          if(btn)btn.disabled=false;
+        });
+      }else{
+        var a=document.createElement('a');a.href=url;a.download='pfn-do-meter.png';
+        document.body.appendChild(a);a.click();a.remove();
+        awardShare();
+      }
+    };
+    if(cv.toBlob){cv.toBlob(function(b){done(URL.createObjectURL(b),b);},'image/png');}
+    else{var u=cv.toDataURL('image/png');fetch(u).then(function(r){return r.blob();}).then(function(b){done(URL.createObjectURL(b),b);});}
+  }catch(e){if(btn)btn.disabled=false;}
+}
 Object.keys(PTS).forEach(function(type){
   document.addEventListener(type,function(e){
     var d=(e&&e.detail)||{};var key=type+'|'+(d.day||d.week||'')+'|'+(d.mission!==undefined?d.mission:'')+'|'+(d.amt||'')+'|'+(d.archetype||'');
@@ -120,6 +221,8 @@ Object.keys(PTS).forEach(function(type){
 });
 document.addEventListener('pf-global-tasks',function(){ render(); });
 window.pfDoMeter={add:function(t){if(PTS[t])add(t,PTS[t],t+'|manual|'+Date.now());},total:function(){rollover();return S.total;}};
+var _dShareBtn=document.getElementById('dShareImg');
+if(_dShareBtn){_dShareBtn.addEventListener('click',function(){shareDoImage(_dShareBtn);});}
 render();
 })();
 </script>

@@ -2,7 +2,10 @@
    KILL: ?pf_off=05-tally  or  localStorage pf_disabled_v1='["05-tally"]' */
 (function(){ 'use strict'; if(window.PF&&window.PF.skip('05-tally'))return;
 if(window.pfTallyLoaded)return; window.pfTallyLoaded=true;
-var XP_DEFAULTS={ 'pf-order-checkin':10, 'pf-drop-claimed':15, 'pf-caption-submit':10, 'pf-poster-made':10, 'pf-quiz-done':5, 'pf-guess-done':10, 'pf-raid-report':15, 'pf-vote-cast':5, 'pf-bracket-ballot':5, 'pf-bracket-liquidated':10, 'pf-traitor-vote':5, 'pf-wb-buy':25, 'pf-enlisted':10, 'pf-billionaire-answered':5, 'pf-interrogation-answered':5, 'pf-share-image':5, 'pf-boost-tipped':0 };
+/* Mirrors the rank-XP economy: daily tasks sum to 50/day (PF.DAILY_XP_CAP);
+   weekly tasks keep their own values; tally-only events keep theirs.
+   detail.xp overrides when a game reports its actual capped award. */
+var XP_DEFAULTS={ 'pf-order-checkin':10, 'pf-drop-claimed':1, 'pf-caption-submit':10, 'pf-poster-made':1, 'pf-quiz-done':15, 'pf-guess-done':1, 'pf-raid-report':2, 'pf-vote-cast':10, 'pf-bracket-ballot':10, 'pf-bracket-liquidated':10, 'pf-traitor-vote':5, 'pf-wb-buy':25, 'pf-enlisted':20, 'pf-billionaire-answered':1, 'pf-interrogation-answered':1, 'pf-share-image':1, 'pf-boost-tipped':0 };
 /* Do-meter point scale — MUST match the PTS table in games/do-meter.js. */
 var PTS_DEFAULTS={ 'pf-order-checkin':1, 'pf-drop-claimed':2, 'pf-caption-submit':2, 'pf-poster-made':2, 'pf-quiz-done':1, 'pf-guess-done':2, 'pf-raid-report':2, 'pf-vote-cast':1, 'pf-bracket-ballot':1, 'pf-bracket-liquidated':2, 'pf-traitor-vote':1, 'pf-wb-buy':5, 'pf-enlisted':3, 'pf-billionaire-answered':1, 'pf-interrogation-answered':1, 'pf-share-image':2, 'pf-boost-tipped':1 };
 var TASKS=Object.keys(XP_DEFAULTS);

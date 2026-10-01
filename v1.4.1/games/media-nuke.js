@@ -24,7 +24,7 @@
 
 <details class="slr-nuke-math">
   <summary>The math</summary>
-  <p><strong>50,000 XP in one day = a media nuke.</strong> Daily Orders caps at 50 XP per comrade per day, so a full bar means roughly <strong>1,000 comrades running full missions</strong> &mdash; tens of thousands of coordinated likes, comments, shares, and watch-throughs landing inside the platforms' first-hour velocity window.</p>
+  <p><strong>50,000 XP in one day = a media nuke.</strong> Every comrade caps at 50 XP of daily tasks per day, so a full bar means roughly <strong>1,000 comrades running full missions</strong> &mdash; tens of thousands of coordinated likes, comments, shares, and watch-throughs landing inside the platforms' first-hour velocity window.</p>
   <p>That's the force it takes to push a hashtag onto the national trending page, get the TikTok/X trends desks buzzing, and force newsroom pickup. At 5M+ network reach, it only takes <strong>1% of the audience</strong> moving together.</p>
   <p>When the bar fills, command issues the target, the hashtag, and the go-time. Until then: run your missions, charge the blast.</p>
 </details>

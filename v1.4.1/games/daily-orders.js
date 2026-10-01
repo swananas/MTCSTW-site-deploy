@@ -27,7 +27,7 @@
 <div class="o-rankline" id="oRank"></div>
 <div class="o-loot" id="oLoot"></div>
 <div class="o-err" id="oErr"></div>
-<div class="o-note">3 orders + 1 field op per day. Missions cap at 50 XP &mdash; the field op (+10) and the full-deployment command bonus (+10) stack on top. Streak shields forgive a missed day. Today's Boost lets you tip earned XP to a creator at 1 XP = 2 signal.</div>
+<div class="o-note">3 orders (10 XP each) + 1 field op (+5) per day. Run all three plus the op for the +5 full-deployment command bonus. Every daily task on this page caps at 50 XP a day &mdash; your cell streak gets you there faster. Streak shields forgive a missed day. Today's Boost lets you tip earned XP to a creator at 1 XP = 2 signal.</div>
 <div><button class="o-shareimg" id="oShareImg">Share orders as image</button></div>
 <div class="o-claim" id="oClaimWrap">
   <a id="oClaimToggle">Claim your rank on every device</a>
@@ -75,7 +75,6 @@ var MISSIONS=[
 {t:"Rest. Like one SLR post, touch grass, come back tomorrow — the streak keeps."}
 ];
 var LOOT=["The machine sees you, agitator.","Another brick in the wall. Their wall. We're taking it apart.","Noted in the ledger. History will remember this one.","Discipline is propaganda too.","Small actions, compounded. That's the whole theory.","The algorithm didn't see it coming.","Report filed. The network grows.","You are the media now. Act like it."];
-var COMBO_LOOT={2:"Combo x2. The machine is warming up.",3:"COMBO x3. FULL AGITATION. Maximum pressure."};
 /* FIELD OPS — the lynchpin: one cross-game bonus mission per day, rotating.
    Doing the op in its home silo auto-completes it here and feeds the Do Meter. */
 var FIELD_OPS=[
@@ -88,11 +87,14 @@ var FIELD_OPS=[
  {game:"boost-raid",ev:"pf-raid-report",label:"Report back on today's Boost Raid"},
  {game:"daily-drop",ev:"pf-drop-claimed",label:"Claim today's Daily Drop"}
 ];
-var OP_XP=10, CMD_XP=10;
+var OP_XP=5, CMD_XP=5;
 function fieldOp(){ return FIELD_OPS[dayOfYear()%FIELD_OPS.length]; }
-/* economy */
-var PER_DAY=3, BASE_XP=10, COMBO_STEP=5, DAILY_MAX=50;
-var SPREAD_XP=5;
+/* economy — every daily task on the page draws from one 50 XP/day pool (PF.claimDayXp).
+   3 orders x 10 + field op 5 + command bonus 5 = 45; the last 5 come from the
+   satellite dailies (raid, check-in, share, guess, poster, drop, billionaire,
+   interrogation). A perfect day lands exactly on 50. Cell streaks multiply
+   mission XP but the pool still caps at 50 — the bonus gets you there faster. */
+var PER_DAY=3, BASE_XP=10, DAILY_MAX=50;
 var PLATFORMS=[["tiktok","TikTok"],["facebook","Facebook"],["instagram","Instagram"],["x","X"],["youtube","YouTube"]];
 var STREAK_BONUS={3:10,7:25,30:100};
 var TIERS=[["RECRUIT",0],["AGITATOR",25],["CADRE",75],["COMMISSAR",150],["ARCHITECT",300]];
@@ -115,7 +117,7 @@ function dayRec(){
   if(!r||!r.done) r={done:[],xp:0,bonusPaid:false};
   /* migrate old number-array format to {m,p,g} entries */
   if(r.done.length&&typeof r.done[0]==="number"){
-    r.done=r.done.map(function(m,ix){ return {m:m,p:null,g:Math.min(BASE_XP+COMBO_STEP*ix,DAILY_MAX)}; });
+    r.done=r.done.map(function(m,ix){ return {m:m,p:null,g:Math.min(10+5*ix,DAILY_MAX)}; });
   }
   if(typeof r.xp!=="number") r.xp=0;
   return {o:o, rec:r};
@@ -159,20 +161,17 @@ function checkin(mi,platform){
   var already=rec.done.some(function(x){ return x.m===mi; });
   if(already) return {ok:false, err:"already"};
   platform=platform||null;
-  var usedPlat={};
-  rec.done.forEach(function(x){ if(x.p) usedPlat[x.p]=1; });
-  var mission=MISSIONS[mi]||{};
   var firstToday=rec.done.length===0;
-  var combo=rec.done.length+1;                       /* 1,2,3 */
-  /* SPREAD COMBO: share mission on a platform not yet used today = +5 */
-  var spread=(mission.share&&platform&&!usedPlat[platform])?SPREAD_XP:0;
-  var comboXp=BASE_XP+COMBO_STEP*(combo-1);
-  var room=Math.max(0,DAILY_MAX-(rec.xp||0));        /* same 50 XP/day cap */
-  var gained=Math.min(comboXp+spread,room);
-  /* CELL BONUS: shared cell streaks juice Daily Orders XP. +5%/streak day, cap +50%. */
+  var reportNo=rec.done.length+1;                    /* 1,2,3 */
+  /* CELL BONUS: shared cell streaks juice mission XP. +5%/streak day, cap +50%.
+     The central 50/day pool (PF.claimDayXp) still holds — the bonus just gets
+     you to the cap faster instead of stacking above it. */
   var cellMult=(typeof window.pfCellMult==="function")?window.pfCellMult():1;
-  var cellBonus=0;
-  if(cellMult>1&&gained>0){ var boosted=Math.round(gained*cellMult); cellBonus=boosted-gained; gained=boosted; }
+  var want=Math.round(BASE_XP*Math.max(1,cellMult));
+  var gained=0;
+  try{ gained=(window.PF&&PF.claimDayXp)?PF.claimDayXp(want):Math.min(want,Math.max(0,DAILY_MAX-(rec.xp||0))); }
+  catch(e){ gained=Math.min(want,Math.max(0,DAILY_MAX-(rec.xp||0))); }
+  var cellBonus=(cellMult>1&&gained>BASE_XP)?gained-BASE_XP:0;
   var bonus=0, shieldUsed=false, shieldEarned=false;
   if(firstToday){
     if(o.last===yesterday()){ o.streak=(o.streak||0)+1; }
@@ -186,10 +185,10 @@ function checkin(mi,platform){
   rec.done.push({m:mi,p:platform,g:gained}); rec.xp=(rec.xp||0)+gained; saveDay(o,rec);
   var r=load(LS_R,{xp:0,got:{}}), key="order_"+t+"_"+mi;
   if(r.got[key]!==t){ r.got[key]=t; r.xp+=gained+bonus; save(LS_R,r); }
-  fireEvent(t,mi,combo,gained+bonus,o.streak,platform,spread);
+  fireEvent(t,mi,reportNo,gained+bonus,o.streak,platform);
   var id=ident();
   if(id.callsign){
-    apiPost({action:"checkin",callsign:id.callsign,day:t,mission:mi,platform:platform,spread:spread?1:0},function(j){
+    apiPost({action:"checkin",callsign:id.callsign,day:t,mission:mi,platform:platform,spread:0},function(j){
       if(j&&j.ok){
         var rr=load(LS_R,{xp:0,got:{}}); if(j.xp>rr.xp) rr.xp=j.xp; save(LS_R,rr);
         var dd=dayRec(); dd.o.streak=j.streak; dd.o.last=j.last_day;
@@ -204,19 +203,20 @@ function checkin(mi,platform){
       }
     });
   }
-  return {ok:true, combo:combo, gained:gained, bonus:bonus, spread:spread, platform:platform, streak:o.streak, xp:r.xp, tier:tierOf(r.xp)[0], shieldUsed:shieldUsed, shieldEarned:shieldEarned, cellBonus:cellBonus, cellMult:cellMult};
+  return {ok:true, reportNo:reportNo, gained:gained, bonus:bonus, platform:platform, streak:o.streak, xp:r.xp, tier:tierOf(r.xp)[0], shieldUsed:shieldUsed, shieldEarned:shieldEarned, cellBonus:cellBonus, cellMult:cellMult};
 }
-function fireEvent(t,mi,combo,xp,streak,platform,spread){
-  try{ document.dispatchEvent(new CustomEvent("pf-order-checkin",{detail:{day:t,mission:mi,combo:combo,xp:xp,streak:streak,platform:platform||null,spread:spread||0}})); }catch(e){}
+function fireEvent(t,mi,reportNo,xp,streak,platform){
+  try{ document.dispatchEvent(new CustomEvent("pf-order-checkin",{detail:{day:t,mission:mi,reportNo:reportNo,xp:xp,streak:streak,platform:platform||null}})); }catch(e){}
 }
-/* COMMAND BONUS: 3/3 missions + field op = FULL DEPLOYMENT, once per day. */
+/* COMMAND BONUS: 3/3 missions + field op = FULL DEPLOYMENT, once per day.
+   Draws from the same 50/day pool — it can clip to 0 if the pool is spent. */
 function maybeCommandBonus(){
   var d=dayRec(), t=today();
   if(d.rec.done.length>=3&&d.rec.opDone&&!d.rec.cmdPaid){
     d.rec.cmdPaid=true; saveDay(d.o,d.rec);
-    var r=load(LS_R,{xp:0,got:{}}), key="order_cmd_"+t;
-    if(r.got[key]!==t){ r.got[key]=t; r.xp+=CMD_XP; save(LS_R,r); }
-    return CMD_XP;
+    var r=load(LS_R,{xp:0,got:{}}), key="order_cmd_"+t, got=0;
+    if(r.got[key]!==t){ r.got[key]=t; got=PF.claimDayXp(CMD_XP); r.xp+=got; save(LS_R,r); }
+    return got;
   }
   return 0;
 }
@@ -230,13 +230,13 @@ function maybeCommandBonus(){
     var d=dayRec();
     if(d.rec.opDone) return;                /* counted exactly once */
     d.rec.opDone=true; saveDay(d.o,d.rec);
-    var r=load(LS_R,{xp:0,got:{}}), key="order_op_"+opDay;
-    if(r.got[key]!==opDay){ r.got[key]=opDay; r.xp+=OP_XP; save(LS_R,r); }
+    var r=load(LS_R,{xp:0,got:{}}), key="order_op_"+opDay, got=0;
+    if(r.got[key]!==opDay){ r.got[key]=opDay; got=PF.claimDayXp(OP_XP); r.xp+=got; save(LS_R,r); }
     /* feed the Do Meter + tally exactly once, like a normal check-in */
-    try{ document.dispatchEvent(new CustomEvent("pf-order-checkin",{detail:{day:opDay,mission:"field-op",combo:0,xp:OP_XP,streak:(d.o.streak||0),platform:null,spread:0}})); }catch(e){}
+    try{ document.dispatchEvent(new CustomEvent("pf-order-checkin",{detail:{day:opDay,mission:"field-op",reportNo:0,xp:got,streak:(d.o.streak||0),platform:null}})); }catch(e){}
     var cmd=maybeCommandBonus();
     var lootEl=document.getElementById("oLoot");
-    if(lootEl) lootEl.textContent="+"+(OP_XP+cmd)+" XP — FIELD OP COMPLETE: "+op.label+". The network runs through you."+(cmd?" FULL DEPLOYMENT command bonus!":"");
+    if(lootEl) lootEl.textContent="+"+(got+cmd)+" XP — FIELD OP COMPLETE: "+op.label+". The network runs through you."+(cmd?" FULL DEPLOYMENT command bonus!":"");
     render();
   });
 })();
@@ -472,23 +472,19 @@ function render(){
   });
   meter.innerHTML=mh;
   meter.className="o-meter"+(doneCount>=3?" maxed":doneCount>=2?" hot":"");
-  document.getElementById("oCombo").textContent=doneCount>=3?"FULL COMBO — MAXIMUM PRESSURE":doneCount===2?"COMBO x2 — one more. Chain it.":doneCount===1?"1 down. Chain the next for combo XP.":"";
-  var nextVal=Math.min(BASE_XP+COMBO_STEP*doneCount, Math.max(0,DAILY_MAX-(rec.xp||0))), html="";
+  document.getElementById("oCombo").textContent=doneCount>=3?"3/3 — ORDERS COMPLETE":doneCount===2?"2 down — one more for full deployment.":doneCount===1?"1 down — 2 to go.":"";
+  var html="";
   set.forEach(function(mi,slot){
     var m=MISSIONS[mi]||{t:""}, entry=null;
     rec.done.forEach(function(x){ if(x.m===mi) entry=x; });
     var isDone=!!entry;
-    var usedPlat={}; rec.done.forEach(function(x){ if(x.p) usedPlat[x.p]=1; });
-    var spreadHint=(m.share&&!isDone)?'<div class="o-spreadline">+'+SPREAD_XP+' spread combo on a new platform</div>':"";
-    var platTag=(isDone&&entry.p)?'<div><span class="o-ptag">Shared to '+platLabel(entry.p)+'</span></div>':"";
-    var xpLine='+'+(isDone?(typeof entry.g==="number"?entry.g:BASE_XP+COMBO_STEP*doneCount):nextVal)+' XP'+(isDone?"":" · report #"+(doneCount+1));
+    var xpLine='+'+(isDone?(typeof entry.g==="number"?entry.g:BASE_XP):BASE_XP)+' XP'+(isDone?"":" · report #"+(doneCount+1));
     var action;
     if(isDone){ action='<div><span class="o-donetag">Reported</span></div>'; }
     else if(m.share){
-      action='<div class="o-platpick" id="o-pick-'+mi+'"><div class="o-picklabel">Where did you share it? (+'+SPREAD_XP+' on a new platform)</div>'
+      action='<div class="o-platpick" id="o-pick-'+mi+'"><div class="o-picklabel">Where did you share it?</div>'
         +PLATFORMS.map(function(p){
-            var fresh=!usedPlat[p[0]];
-            return '<button class="o-platbtn" data-mi="'+mi+'" data-p="'+p[0]+'">'+p[1]+(fresh?" +"+SPREAD_XP:"")+'</button>';
+            return '<button class="o-platbtn" data-mi="'+mi+'" data-p="'+p[0]+'">'+p[1]+'</button>';
           }).join("")
         +'</div><button class="o-btn o-sharebtn" data-mi="'+mi+'">Report back</button>';
     }
@@ -496,7 +492,8 @@ function render(){
     html+='<div class="o-mission'+(isDone?" done":"")+'">'
       +'<div class="o-mtext">'+m.t+'</div>'
       +'<div class="o-xp">'+xpLine+'</div>'
-      +spreadHint+platTag+action
+      +(isDone&&entry.p?'<div><span class="o-ptag">Shared to '+platLabel(entry.p)+'</span></div>':"")
+      +action
       +'</div>';
   });
   /* FIELD OP card — the cross-game bonus mission. */
@@ -523,12 +520,12 @@ function render(){
     var box=document.getElementById("pf-orders");
     box.classList.remove("o-flash"); void box.offsetWidth; box.classList.add("o-flash");
     var loot=LOOT[Math.floor(Math.random()*LOOT.length)];
-        if(res.spread) loot="Spread combo +"+res.spread+" — "+platLabel(res.platform)+". "+loot;
-        if(COMBO_LOOT[res.combo]) loot=COMBO_LOOT[res.combo]+(res.spread?" (+"+res.spread+" spread)":"");
+        if(res.platform) loot="Reported via "+platLabel(res.platform)+". "+loot;
         if(res.shieldUsed) loot="STREAK SHIELD held the line — your streak survives. "+loot;
         if(res.shieldEarned) loot="STREAK SHIELD earned — one missed day forgiven. "+loot;
         if(res.cellBonus>0) loot="CELL BONUS +"+res.cellBonus+" XP ("+Math.round((res.cellMult-1)*100)+"% cell streak) — "+loot;
     var cmd=maybeCommandBonus();
+    if(cmd) loot="FULL DEPLOYMENT — COMMAND BONUS +"+cmd+". "+loot;
     if(cmd) loot="FULL DEPLOYMENT — COMMAND BONUS +"+cmd+". "+loot;
     document.getElementById("oLoot").textContent="+"+(res.gained+res.bonus+cmd)+" XP — "+loot+(res.bonus?" "+res.streak+"-day streak bonus!":"");
     document.getElementById("oErr").textContent="";

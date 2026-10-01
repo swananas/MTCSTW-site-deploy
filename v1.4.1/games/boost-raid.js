@@ -70,7 +70,7 @@
 '    st.streak=(st.last===yesterday(t))?st.streak+1:1;\n' +
 '    st.last=t;save(st);\n' +
 '    btn.disabled=true;btn.style.opacity="0.5";btn.textContent="REPORTED \\u2713";\n' +
-'    mEl.textContent="Hit confirmed. +15 XP. The target felt that.";\n' +
+'    mEl.textContent="Hit confirmed. +2 XP. The target felt that.";\n' +
 '    paintStreak();\n' +
 '    try{document.dispatchEvent(new CustomEvent("pf-raid-report",{detail:{day:t,target:tn}}));}catch(e){}\n' +
 '  };\n' +

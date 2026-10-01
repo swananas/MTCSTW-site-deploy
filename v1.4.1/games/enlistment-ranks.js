@@ -90,10 +90,18 @@ function today(){ return new Date().toISOString().slice(0,10); }
 function load(){ try{ return JSON.parse(localStorage.getItem(LS)||'{"xp":0,"got":{}}'); }catch(e){ return {xp:0,got:{}}; } }
 function save(s){ try{ localStorage.setItem(LS,JSON.stringify(s)); }catch(e){} }
 /* award(key, xp, rule): rule "once" | "daily" */
-function award(key,xp,rule){
+function award(key,xp,rule,opts){
+  /* opts.exempt: weekly / one-time / event rewards bypass the 50/day pool —
+     they're bounded by week or event already. Everything else draws from the
+     shared daily pool via PF.claimDayXp. Returns the XP actually granted. */
+  opts=opts||{};
   var s=load(), t=today(), stamp=rule==="daily" ? t : "x";
-  if(s.got[key]===stamp) return false;
-  s.got[key]=stamp; s.xp+=xp; save(s); render(); return true;
+  if(s.got[key]===stamp) return 0;
+  var gain=xp;
+  if(!opts.exempt){ try{ gain=(window.PF&&PF.claimDayXp)?PF.claimDayXp(xp):xp; }catch(e){ gain=xp; } }
+  s.got[key]=stamp; s.xp+=gain; save(s); render();
+  if(!opts.exempt&&gain<=0){ try{ if(window.PF&&PF.toast) PF.toast("Daily 50 XP pool spent — task logged. New pool at midnight."); }catch(e){} }
+  return gain;
 }
 function tierOf(xp){ var t=TIERS[0]; for(var i=0;i<TIERS.length;i++){ if(xp>=TIERS[i][1]) t=TIERS[i]; } return t; }
 
@@ -323,13 +331,15 @@ function renderUnlocks(){
 }
 
 var ACTIONS=[
- {id:"checkin", label:"Daily check-in", xp:5, rule:"daily", run:function(){ return award("checkin",5,"daily"); }},
+ /* Daily pool (50/day across the page): check-in 2, share 1.
+    Weekly tasks keep their own values and bypass the pool (exempt). */
+ {id:"checkin", label:"Daily check-in", xp:2, rule:"daily", run:function(){ return award("checkin",2,"daily"); }},
  {id:"bracket", label:"Vote in the bracket", xp:10, rule:"once", href:"#pf-bracket"},
  {id:"fanvote", label:"Vote propagandist of the week", xp:10, rule:"once", href:"#pf-vote"},
  {id:"quiz", label:"Find your SLR match", xp:15, rule:"once", href:"#slr-quiz"},
- {id:"enlisted", label:"Join the dispatch", xp:20, rule:"once", run:function(){ try{document.dispatchEvent(new CustomEvent("pf-enlisted"));}catch(e){} return award("enlisted",20,"once"); }},
- {id:"share", label:"Share the machine", xp:5, rule:"daily", run:function(){
-    var done=function(){ award("share",5,"daily"); };
+ {id:"enlisted", label:"Join the dispatch", xp:20, rule:"once", run:function(){ try{document.dispatchEvent(new CustomEvent("pf-enlisted"));}catch(e){} return award("enlisted",20,"once",{exempt:1}); }},
+ {id:"share", label:"Share the machine", xp:1, rule:"daily", run:function(){
+    var done=function(){ award("share",1,"daily"); };
     if(navigator.share){ navigator.share({title:"The Propaganda Factory",url:location.href}).then(done).catch(function(){}); }
     else if(navigator.clipboard){ navigator.clipboard.writeText(location.href).then(done).catch(function(){}); }
     return false;
@@ -383,18 +393,18 @@ function render(){
 }
 /* cross-widget events — document, not window: games dispatch non-bubbling
    CustomEvents on document, which never reach window listeners. */
-document.addEventListener("pf-bracket-ballot",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("bracket_"+w,10,"once"); });
-document.addEventListener("pf-quiz-done",function(){ award("quiz",15,"once"); });
-document.addEventListener("pf-guess-done",function(){ award("guess_"+today(),10,"once"); });
-document.addEventListener("pf-raid-report",function(){ award("raid",15,"daily"); });
-document.addEventListener("pf-vote-cast",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("fanvote_"+w,10,"once"); });
-document.addEventListener("pf-traitor-vote",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("traitor_"+w,5,"once"); });
-document.addEventListener("pf-caption-submit",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("caption_"+w,10,"once"); });
-document.addEventListener("pf-poster-made",function(){ award("poster_"+today(),5,"once"); });
-document.addEventListener("pf-share-image",function(){ award("share",5,"daily"); });
-document.addEventListener("pf-drop-claimed",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; award("drop_"+d,5,"once"); });
-document.addEventListener("pf-billionaire-answered",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; award("billionaire_"+d,5,"once"); });
-document.addEventListener("pf-interrogation-answered",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; award("interrogation_"+d,5,"once"); });
+document.addEventListener("pf-bracket-ballot",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("bracket_"+w,10,"once",{exempt:1}); });
+document.addEventListener("pf-quiz-done",function(){ award("quiz",15,"once",{exempt:1}); });
+document.addEventListener("pf-guess-done",function(){ award("guess_"+today(),1,"once"); });
+document.addEventListener("pf-raid-report",function(){ award("raid",2,"daily"); });
+document.addEventListener("pf-vote-cast",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("fanvote_"+w,10,"once",{exempt:1}); });
+document.addEventListener("pf-traitor-vote",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("traitor_"+w,5,"once",{exempt:1}); });
+document.addEventListener("pf-caption-submit",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("caption_"+w,10,"once",{exempt:1}); });
+document.addEventListener("pf-poster-made",function(){ award("poster_"+today(),1,"once"); });
+document.addEventListener("pf-share-image",function(){ award("share",1,"daily"); });
+document.addEventListener("pf-drop-claimed",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; award("drop_"+d,1,"once"); });
+document.addEventListener("pf-billionaire-answered",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; award("billionaire_"+d,1,"once"); });
+document.addEventListener("pf-interrogation-answered",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; award("interrogation_"+d,1,"once"); });
 /* Daily Orders writes the real combo XP into the shared pool itself — just re-render. */
 document.addEventListener("pf-order-checkin",function(){ render(); });
 render();

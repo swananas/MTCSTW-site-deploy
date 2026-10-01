@@ -3331,30 +3331,49 @@ try{
 <!--PF-BRACKET-SHARE-END-->
 
 <!--PF-TOAST-HOTFIX-20260930-END-->
-<!--PF-CONTENT-CLEANUP-V1.0.3-20260930-START-->
+<!--PF-CONTENT-CLEANUP-V1.0.4-20260930-START-->
 <script>
-/*PF-CONTENT-CLEANUP-V1.0.3: remove banned/dead page text the Squarespace editor
+/*PF-CONTENT-CLEANUP-V1.0.4: remove banned/dead page text the Squarespace editor
   cannot currently delete (block editing non-responsive as of 2026-09-30).
   1. The "AI crawlers & researchers" paragraph (banned AI-citation copy).
   2. The empty WHAT WE MAKE / THE ARSENAL heading (engage-copy renames it at
      runtime; its media cards live in the separate ONE-STOP HUB block, so the
      lone heading is dead text). Only removes the heading block when it is truly
      empty, so a future content edit is never clobbered.
+  v1.0.4 fix: v1.0.3 measured block.textContent, which includes the
+  <style id="container-styles"> CSS Squarespace injects inside the block
+  (~1678 chars), so a visibly-empty block was wrongly kept every pass.
+  Now measures VISIBLE text via innerText (fallback: clone minus
+  script/style/noscript/template), so only genuinely content-bearing blocks
+  are preserved.
   Multi-pass (up to 6 runs, ~7s) to win any race with other runtime rewrites.
   Diagnostics recorded on <html data-pf-cleanup="..."> for verification. */
 (function(){
 'use strict';
-if(window.pfContentCleanupV103)return;window.pfContentCleanupV103=true;
+if(window.pfContentCleanupV104)return;window.pfContentCleanupV104=true;
 var isEditor=false;
 try{isEditor=window.location.href.indexOf('/config/')!==-1||window.location.href.indexOf('squarespace.com')!==-1||(document.body&&(document.body.classList.contains('sqs-edit-mode')||document.body.classList.contains('sqs-editing')));}catch(e){}
 if(isEditor)return;
 function note(s){try{var d=document.documentElement;var cur=d.getAttribute('data-pf-cleanup')||'';d.setAttribute('data-pf-cleanup',cur+s+';');}catch(e){}}
 function norm(t){return (t||'').replace(/[\u200b-\u200d\ufeff]/g,'').trim().toUpperCase();}
+function visibleText(el){
+  var t='';
+  try{t=el.innerText||'';}catch(e){t='';}
+  if(!t){
+    try{
+      var c=el.cloneNode(true);
+      var bad=c.querySelectorAll('script,style,noscript,template');
+      for(var i=0;i<bad.length;i++){if(bad[i].parentNode)bad[i].parentNode.removeChild(bad[i]);}
+      t=c.textContent||'';
+    }catch(e2){t='';}
+  }
+  return t;
+}
 var MAXRUNS=6,runs=0;
 function run(){
   runs++;
   try{
-    var i,t,blk,hb,txt,hasMedia,el,lvl,seen;
+    var i,t,blk,hb,vt,hasMedia,el,lvl,seen;
     var ps=document.querySelectorAll('p');
     for(i=0;i<ps.length;i++){
       t=(ps[i].textContent||'');
@@ -3373,10 +3392,10 @@ function run(){
         while(el&&lvl<8){if(el.classList&&el.classList.contains('fe-block')){hb=el;break;}el=el.parentElement;lvl++;}
         if(!hb)hb=hs[i].parentElement;
         if(hb){
-          txt=norm(hb.textContent).replace(t,'').trim();
+          vt=norm(visibleText(hb)).replace(t,'').trim();
           hasMedia=hb.querySelector('img,video,iframe,canvas,svg,a,button');
-          if(!txt&&!hasMedia&&hb.parentNode){hb.parentNode.removeChild(hb);note('arsenal-removed');}
-          else{note('arsenal-kept(txtlen='+txt.length+',media='+(hasMedia?'y':'n')+')');}
+          if(!vt&&!hasMedia&&hb.parentNode){hb.parentNode.removeChild(hb);note('arsenal-removed');}
+          else{note('arsenal-kept(vtxtlen='+vt.length+',media='+(hasMedia?'y':'n')+')');}
         }else{note('arsenal-no-block');}
       }
     }
@@ -3388,5 +3407,5 @@ note('cleanup-loaded');
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
 })();
 </script>
-<!--PF-CONTENT-CLEANUP-V1.0.3-20260930-END-->
+<!--PF-CONTENT-CLEANUP-V1.0.4-20260930-END-->
 

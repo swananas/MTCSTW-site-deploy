@@ -43,10 +43,13 @@ OLD_TOTALS = {
 }
 
 def fmt(n):
-    # NOTE (2026-10-01): the f-string already contains the K/M suffix — do NOT
-    # append another one (that produced "751.8KK" on the live site).
-    if n >= 1_000_000: return f"{n/1_000_000:.1f}M".rstrip('0').rstrip('.')
-    if n >= 1000: return f"{n/1000:.1f}K".rstrip('0').rstrip('.')
+    # NOTE (2026-10-01): strip the ".0" BEFORE appending the suffix —
+    # rstrip after the suffix is a no-op (last char is K/M), which is why
+    # "55.0K" survived on the live site.
+    if n >= 1_000_000:
+        return f"{n/1_000_000:.1f}".rstrip('0').rstrip('.') + "M"
+    if n >= 1000:
+        return f"{n/1000:.1f}".rstrip('0').rstrip('.') + "K"
     return str(n)
 
 def parse_count(s):

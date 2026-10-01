@@ -93,14 +93,17 @@ for mem in db['members']:
         bad(f"catalog_path mismatch for {mem['slug']}")
 ok(f"all {len(slugs)} slugs in footer, catalog paths consistent")
 
-print("== 7. hardcoded quiz/guess slugs resolve in DB ==")
+print("== 7. games derive creators from the DB (no hardcoded pools) ==")
 have = set(slugs)
 for f in ('games/slr-match-quiz.js', 'games/creator-guess.js'):
     s = open(os.path.join(V142, f)).read()
-    found = set(re.findall(r'\{s:.([a-z0-9_-]+).', s)) | set(re.findall(r'a:"([a-z0-9_-]+)"', s))
-    missing = [x for x in found if x not in have]
-    if missing: bad(f"{f}: slugs not in DB: {missing}")
-ok("quiz/guess slugs resolve")
+    # strip block/line comments before scanning for literals
+    nc = re.sub(r'/\*[\s\S]*?\*/', '', s)
+    nc = re.sub(r'(^|\n)\s*//[^\n]*', r'\1', nc)
+    hard = sorted({slug for slug in have if re.search(r'["\']' + re.escape(slug) + r'["\']', nc)})
+    if hard: bad(f"{f}: hardcoded creator slugs (must come from PF.slrAll): {hard[:8]}")
+    if 'slrAll' not in nc: bad(f"{f}: does not read PF.slrAll — not DB-driven")
+ok("quiz/guess are DB-driven, zero hardcoded creator slugs")
 
 print("== 8. mount creation unique (reads are fine) ==")
 creators = {}

@@ -17,12 +17,20 @@
 '(function(){\n' +
 '  "use strict";\n' +
 '  var ARCH={\n' +
-'    agitator:{name:"THE AGITATOR",desc:"You start fights the ruling class finishes losing. Loud, relentless, allergic to civility politics.",mates:[{s:"kim-hunt-slaythegop",label:"Kim Hunt (@slaythegop)"},{s:"joey",label:"Joey (@joey_doesit)"},{s:"f-this-imperialistic-bs",label:"F this imperialistic bs"}]},\n' +
-'    meme:{name:"THE MEME SMITH",desc:"You forge jokes into weapons. One image from you does more damage than a thinkpiece.",mates:[{s:"bona-bones",label:"Bona Bones (@bona.bones)"},{s:"hex-reject",label:"Hex Reject (@hexreject)"},{s:"east-coast-it-notes",label:"East Coast It Notes"}]},\n' +
-'    organizer:{name:"THE ORGANIZER",desc:"You turn rage into rosters, marches, and mutual aid. The movement runs on people like you.",mates:[{s:"voix-noire",label:"Voix Noire"},{s:"deejay10",label:"deejay1.0"},{s:"minnesota-department-of-propaganda",label:"Minnesota Dept of Propaganda"}]},\n' +
-'    sniper:{name:"THE TRUTH SNIPER",desc:"One sourced thread from you ends careers. You read the footnotes so the timeline does not have to.",mates:[{s:"dr-taylor-andrew",label:"Dr. Taylor Andrew"},{s:"black-newsbeat-with-dr-kimeka-campbell",label:"Black NewsBeat (Dr. Kimeka Campbell)"},{s:"the-political-feminist",label:"The Political Feminist"}]},\n' +
-'    hype:{name:"THE HYPE ENGINE",desc:"You make the timeline move. Energy, reach, momentum. You are the algorithm\'s worst nightmare.",mates:[{s:"radically-sunny",label:"Radically Sunny"},{s:"joman",label:"Joman"},{s:"sex-drugs-rock-n-roll",label:"Sex Drugs Rock n Roll"}]}\n' +
+'    agitator:{name:"THE AGITATOR",desc:"You start fights the ruling class finishes losing. Loud, relentless, allergic to civility politics.",test:function(m){return (m.propaganda_score||0)>=9.0;}},\n' +
+'    meme:{name:"THE MEME SMITH",desc:"You forge jokes into weapons. One image from you does more damage than a thinkpiece.",test:function(m){return /meme|satire|comedy|animator|parody/i.test((m.content_focus||"")+" "+(m.bio||""));}},\n' +
+'    organizer:{name:"THE ORGANIZER",desc:"You turn rage into rosters, marches, and mutual aid. The movement runs on people like you.",test:function(m){return /mutual.aid|organizer|movement|nonprofit|organizing/i.test((m.content_focus||"")+" "+(m.bio||""));}},\n' +
+'    sniper:{name:"THE TRUTH SNIPER",desc:"One sourced thread from you ends careers. You read the footnotes so the timeline does not have to.",test:function(m){return /news|research|journal|document|analysis/i.test((m.content_focus||"")+" "+(m.bio||""));}},\n' +
+'    hype:{name:"THE HYPE ENGINE",desc:"You make the timeline move. Energy, reach, momentum. You are the algorithm\'s worst nightmare.",test:function(m){return (m.followers_total||0)>=200000;}}\n' +
 '  };\n' +
+'  function dbAll(){var a=[];try{if(window.PF){a=PF.slrAll?PF.slrAll():(PF.ROSTER||[]);}}catch(e){}return a||[];}\n' +
+'  function dbLabel(m){var h="";try{h=(m.handles&&(m.handles.primary||m.handles.tiktok||""))||"";}catch(e){}return m.name+(h?" ("+h+")":"");}\n' +
+'  function dbMates(A){var all=dbAll(),out=[],i;\n' +
+'    var ranked=all.filter(function(m){try{return A.test(m);}catch(e){return false;}}).sort(function(a,b){return (b.propaganda_score||0)-(a.propaganda_score||0);});\n' +
+'    for(i=0;i<ranked.length&&out.length<3;i++){out.push(ranked[i]);}\n' +
+'    if(out.length<3){var rest=all.filter(function(m){return out.indexOf(m)<0;}).sort(function(a,b){return (b.propaganda_score||0)-(a.propaganda_score||0);});\n' +
+'    for(i=0;i<rest.length&&out.length<3;i++){out.push(rest[i]);}}\n' +
+'    return out.map(function(m){return {s:m.slug,label:dbLabel(m)};});}\n' +
 '  var QS=[\n' +
 '    {q:"Pick your weapon.",a:[["Memes",["meme",2],["hype",1]],["Sourced mega-threads",["sniper",2],["agitator",1]],["Street organizing",["organizer",2],["agitator",1]],["Livestreams and debates",["hype",2],["sniper",1]],["Wheatpaste and posters",["meme",1],["organizer",1]]]},\n' +
 '    {q:"It is Friday night. You are...",a:[["Ratioing a senator",["agitator",2],["sniper",1]],["Editing video until 3am",["meme",2],["hype",1]],["At the mutual-aid distro",["organizer",2],["meme",1]],["Reading primary sources",["sniper",2],["organizer",1]],["Holding down the group chat",["hype",2],["agitator",1]]]},\n' +
@@ -51,7 +59,7 @@
 '  function renderR(){\n' +
 '    var top="agitator",tk=-1;\n' +
 '    for(var k in scores){if(scores[k]>tk){tk=scores[k];top=k;}}\n' +
-'    var A=ARCH[top],mh="";\n' +
+'    var A=ARCH[top];A.mates=dbMates(A);var mh="";\n' +
 '    for(var i=0;i<A.mates.length;i++){mh+="<div style=\'padding:0.5rem;border:1px solid #c1121f;margin:0.3rem 0;font-weight:700;\'>"+esc(A.mates[i].label||A.mates[i])+"</div>";}\n' +
 '    body.innerHTML="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\'>YOUR ARCHETYPE</div>"\n' +
 '      +"<div style=\'font-size:1.6rem;font-weight:900;margin:0.4rem 0;\'>"+A.name+"</div>"\n' +

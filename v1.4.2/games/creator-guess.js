@@ -17,20 +17,22 @@
 '<script>\n' +
 '(function(){\n' +
 '  "use strict";\n' +
-'  var BANK=[\n' +
-'    {q:"Stop-motion animator on TikTok, 158.5K followers. Who?",a:"bona-bones",w:["hex-reject","east-coast-it-notes","damn-pam-ham-from-effingham"]},\n' +
-'    {q:"A Jeanine Pirro satire/parody account. Who?",a:"jeanine-pirreaux-comedy",w:["the-political-feminist","im-that-girl","little-anarchist-brat"]},\n' +
-'    {q:"Portland leftist commentator, 650K+ reach. Who?",a:"kim-hunt-slaythegop",al:"Kim Hunt (@slaythegop)",w:["joey","deejay10","undraylowery"]},\n' +
-'    {q:"Hosts Black NewsBeat, 44K on Facebook. Who?",a:"black-newsbeat-with-dr-kimeka-campbell",al:"Dr. Kimeka Campbell",w:["dr-taylor-andrew","the-dr-greg-show","the-atheist-socialist"]},\n' +
-'    {q:"Mutual-aid organizer, 50K strong. Who?",a:"voix-noire",w:["films-for-action","eat-the-rich","guillotines-for-a-better-america"]},\n' +
-'    {q:"The 9.8 propaganda score is a TIE. Who shares the crown with MTCSTW?",a:"sex-drugs-rock-n-roll",w:["radically-sunny","joman","east-coast-it-notes"]},\n' +
-'    {q:"Nightly live debates, 55K. Who?",a:"joey",al:"Joey (@joey_doesit)",w:["moreno-neurospicy-news","ipostwhenifeelhot","let-the-revolution-begin-peacefully-of-course"]},\n' +
-'    {q:"1M+ followers. The biggest page on the whole roster. Who?",a:"films-for-action",w:["sex-drugs-rock-n-roll","radically-sunny","joman"]},\n' +
-'    {q:"Affiliate #41 \\u2014 the last one added to the roster. Who?",a:"the-antifascist-frog",w:["hex-reject","bona-bones","damn-pam-ham-from-effingham"]},\n' +
-'    {q:"TikTok creator at 22,600. Who?",a:"damn-pam-ham-from-effingham",w:["ipostwhenifeelhot","im-that-girl","minnesota-department-of-propaganda"]},\n' +
-'    {q:"166,967 verified. A whole Department of Propaganda. Which one?",a:"minnesota-department-of-propaganda",w:["wisconsin-department-of-propaganda","south-dakota-department-of-propaganda","luigis-mansion-socialist-shitposting"]},\n' +
-'    {q:"Covers queer, Indigenous, and ICE news. 130K+. Who?",a:"moreno-neurospicy-news",w:["voix-noire","black-newsbeat-with-dr-kimeka-campbell","the-political-feminist"]}\n' +
-'  ];\n' +
+'  function dbAll(){var a=[];try{if(window.PF){a=PF.slrAll?PF.slrAll():(PF.ROSTER||[]);}}catch(e){}return a||[];}\n' +
+'  function trunc(s,n){s=String(s||"");return s.length>n?s.slice(0,n-1)+"\\u2026":s;}\n' +
+'  function buildBank(){\n' +
+'    var all=dbAll();if(all.length<4)return [];\n' +
+'    var ms=shuffle(all.slice()).slice(0,12),bank=[];\n' +
+'    for(var i=0;i<ms.length;i++){\n' +
+'      var m=ms[i],others=shuffle(all.filter(function(x){return x.slug!==m.slug;})),w=[others[0].slug,others[1].slug,others[2].slug];\n' +
+'      var t=i%3,qq=null;\n' +
+'      if(t===0&&m.followers_display){qq={q:m.followers_display+" followers"+(m.primary_platform?" on "+m.primary_platform:"")+". Who?",a:m.slug,w:w};}\n' +
+'      else if(t===1&&m.key_strengths&&m.key_strengths[0]){qq={q:"\\u201C"+trunc(m.key_strengths[0],110)+"\\u201D \\u2014 whose key strength is this?",a:m.slug,w:w};}\n' +
+'      else{qq={q:"Content focus: "+trunc(m.content_focus||"leftist propaganda",110)+". Who?",a:m.slug,w:w};}\n' +
+'      if(qq)bank.push(qq);\n' +
+'    }\n' +
+'    return bank;\n' +
+'  }\n' +
+'  var BANK=buildBank();\n' +
 '  function dayNum(){try{var n=new Date();return Math.floor(Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate())/864e5);}catch(e){return 0;}}\n' +
 '  /* Randomized pool: 5 questions drawn from the bank in random order on every load/refresh. */\n' +
 '  function pick(){var pool=BANK.slice();shuffle(pool);return pool.slice(0,5);}\n' +
@@ -75,7 +77,7 @@
 '    document.getElementById("pf-guess-again").onclick=function(){qi=0;score=0;qs=pick();renderQ();};\n' +
 '  }\n' +
 '  function yesterday(t){try{var d=new Date(t+"T12:00:00Z");d.setUTCDate(d.getUTCDate()-1);return d.toISOString().slice(0,10);}catch(e){return"";}}\n' +
-'  paintStreak();renderQ();\n' +
+'  paintStreak();if(BANK.length){renderQ();}else{body.innerHTML="<div style=\'color:#c1121f;font-weight:900;padding:1rem;\'>ROSTER OFFLINE \\u2014 try again soon.</div>";}\n' +
 '})();\n' +
 '<\/script>\n' +
 '</div>\n' +

@@ -2,6 +2,8 @@
    One cell per callsign, max 5. All members checked in = +1 streak day =
    +5% XP on Daily Orders for everyone (cap +50%). A cellmate can cover one
    missed day per week. Recruit with your code: +25 XP when they check in.
+   Founder can set a custom cell name; the cell earns its VERIFIED badge
+   once 2+ callsigns are attached.
    All cell state lives in the tally backend (cross-device); the frontend
    only caches the display. Public weekly leaderboard.
    KILL: ?pf_off=cells  or  localStorage pf_disabled_v1='["cells"]' */
@@ -89,7 +91,8 @@ function loadBoard(){
     if(!j||!j.cells||!j.cells.length){ el.innerHTML='<div class="c-empty">No cells yet. Found the first one.</div>'; return; }
     var html=j.cells.map(function(c,i){
       return '<div class="c-brow'+(i===0?" c-btop":"")+'"><span class="c-brank">'+(i+1)+'</span>'+
-        '<span class="c-bname">'+esc(c.name)+'</span>'+
+        '<span class="c-bname">'+esc(c.name)+
+        (c.verified?'<span class="c-vfy" title="2+ callsigns strong">&#10003; VERIFIED</span>':'')+'</span>'+
         '<span class="c-bstat">'+c.streak+' streak &middot; '+c.members+'/5</span></div>';
     }).join("");
     el.innerHTML=html;
@@ -158,11 +161,18 @@ function renderCell(el,s){
   }).join("");
   var html='<div class="c-card">'+
     '<div class="c-chead"><span class="c-cname">'+esc(c.name)+'</span>'+
+    (c.verified
+      ? '<span class="c-vfy" title="2+ callsigns strong">&#10003; VERIFIED</span>'
+      : '<span class="c-unv" title="Recruit at least one more callsign to verify this cell">UNVERIFIED &mdash; RECRUIT TO VERIFY</span>')+
     '<span class="c-code" id="cCodeShow" title="Tap to copy">'+esc(c.invite_code)+'</span></div>'+
     '<div class="c-cstats"><span class="c-flame">&#128293; '+c.streak+'-day streak</span>'+
     '<span class="c-mult">+'+pct+'% XP on Daily Orders</span>'+
     '<span class="c-cov">Covers left this week: '+c.covers_left+'</span></div>'+
     '<div class="c-members">'+mems+'</div>';
+  if(s.is_founder){
+    html+='<div class="c-rename"><input id="cRename" maxlength="24" placeholder="RENAME CELL" value="'+esc(c.name)+'" autocomplete="off">'+
+      '<button class="c-btn" id="cRenameBtn">Rename</button></div>';
+  }
   if(!s.checked_today){
     html+='<button class="c-btn c-big" id="cCheckin">Orders done &mdash; check in</button>';
   } else {
@@ -174,6 +184,16 @@ function renderCell(el,s){
   html+='<div class="c-leave"><a id="cLeave">Leave cell</a></div><div class="c-err" id="cActErr"></div></div>';
   el.innerHTML=html;
   var id=ident(), errEl=document.getElementById("cActErr");
+  var rn=document.getElementById("cRenameBtn");
+  if(rn) rn.onclick=function(){
+    var nm=document.getElementById("cRename").value;
+    errEl.textContent="";
+    api("cell_rename",{callsign:id.callsign,device:id.device,name:nm},function(j){
+      if(!j||!j.ok){ errEl.textContent=(j&&j.err)||"Network error."; return; }
+      toast("Cell renamed to "+j.cell.name+(j.cell.verified?" \u2713 verified.":"."));
+      refresh();
+    });
+  };
   document.getElementById("cCodeShow").onclick=function(){
     var code=c.invite_code;
     try{
@@ -181,8 +201,7 @@ function renderCell(el,s){
       else { toast("Cell code: "+code); }
     }catch(e){ toast("Cell code: "+code); }
   };
-  var ci=document.getElementById("cCheckin");
-  if(ci) ci.onclick=function(){
+  var ci=document.getElementById("cCheckin");  if(ci) ci.onclick=function(){
     errEl.textContent="";
     api("cell_checkin",{callsign:id.callsign,device:id.device},function(j){
       if(!j||!j.ok){ errEl.textContent=(j&&j.err)||"Network error."; return; }

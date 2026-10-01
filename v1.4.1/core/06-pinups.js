@@ -157,6 +157,7 @@ function sharePinup(p){
         var cv=document.createElement('canvas'); cv.width=600; cv.height=800;
         var cx=cv.getContext('2d'); cx.fillStyle='#f5ead6'; cx.fillRect(0,0,600,800);
         cx.drawImage(img,0,0,600,800); URL.revokeObjectURL(url);
+        try{ if(window.PFShare&&window.PFShare.stampCallsign) window.PFShare.stampCallsign(cv); }catch(e){}
         cv.toBlob(function(b){
           if(!b){ credit(); return; }
           var file=new File([b],'pfn-pinup-'+p.id.replace(/[^a-z0-9]+/gi,'-')+'.png',{type:'image/png'});

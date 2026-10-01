@@ -240,6 +240,8 @@ window.pfShareAchievement = function(gameName, detailText){
     /* Footer. */
     x.fillStyle = '#c1121f'; x.font = '900 48px Arial Black, Arial, sans-serif';
     x.fillText('MTCSTW.COM', 540, 990);
+    /* Callsign attribution on every achievement image. */
+    try{ if(window.PFShare&&window.PFShare.stampCallsign) window.PFShare.stampCallsign(c); }catch(e){}
     /* Share or download. */
     c.toBlob(function(blob){
       if(!blob) return;

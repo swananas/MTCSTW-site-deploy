@@ -273,6 +273,11 @@ footer h1, footer h2, footer h3, footer h4{color:#f5ead6 !important;}
 #pf-cells .c-boardwrap h3{font-family:"Arial Black",Arial,sans-serif;color:#f5ead6;font-size:15px;margin:0 0 8px}
 #pf-cells .c-brow{display:flex;align-items:center;gap:10px;padding:6px 4px;font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;border-bottom:1px solid #2a2a2a}
 #pf-cells .c-brow.c-btop{color:#f5ead6}
+#pf-cells .c-vfy{display:inline-block;background:#c1121f;color:#f5ead6;font-family:"Arial Black",Arial,sans-serif;font-size:10px;font-weight:900;letter-spacing:1px;padding:3px 8px;margin-left:8px;vertical-align:middle;white-space:nowrap}
+#pf-cells .c-unv{display:inline-block;border:1px solid #777;color:#777;font-family:Arial,sans-serif;font-size:10px;letter-spacing:1px;padding:3px 8px;margin-left:8px;vertical-align:middle;white-space:nowrap}
+#pf-cells .c-rename{margin:10px 0 2px;display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+#pf-cells .c-rename input{margin:0}
+#pf-cells .c-rename .c-btn{margin-top:0}
 #pf-cells .c-brank{font-family:"Arial Black",Arial,sans-serif;color:#c1121f;min-width:22px}
 #pf-cells .c-bname{flex:1;font-weight:bold}
 #pf-cells .c-bstat{font-size:12px;color:#777}

@@ -400,6 +400,7 @@ function shareBoostCard(){
   };
   try{
     var cv=drawBoostCard(); if(!cv) return;
+    try{ if(window.PFShare&&window.PFShare.stampCallsign){ cv=window.PFShare.stampCallsign(cv)||cv; } }catch(e){}
     var go=function(url,blob){
       var file=new File([blob],"pfn-boost.png",{type:"image/png"});
       if(navigator.canShare&&navigator.canShare({files:[file]})){
@@ -638,7 +639,7 @@ function drawOrdersCard(){
   x.fillText(streak>0?('STREAK: '+streak+' DAY'+(streak===1?'':'S')):'DAY ONE. START THE STREAK.',W/2,y+20);y+=80;
   var id=ident(),cs='';
   try{cs=String(id.callsign||'').toUpperCase();}catch(e){}
-  if(cs){x.fillStyle='#c9bfa8';x.font='400 30px Arial,sans-serif';x.fillText('ORDERS FOR: '+cs,W/2,y+10);y+=56;}
+  if(cs){x.fillStyle='#c9bfa8';x.font='400 30px Arial,sans-serif';x.fillText('ORDERS FOR: '+cs,W/2,y+10);y+=56;try{cv._pfStamped=true;}catch(e){}}
   x.fillStyle='#f5ead6';x.font='900 62px "Arial Black",Arial,sans-serif';
   x.fillText('MTCSTW.COM',W/2,H-170);
   x.fillStyle='#c1121f';x.font='900 30px "Arial Black",Arial,sans-serif';

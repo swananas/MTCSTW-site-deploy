@@ -135,12 +135,18 @@
       return y + '-' + (m < 10 ? '0' : '') + m + '-' + (d < 10 ? '0' : '') + d;
     } catch (e) { return ''; }
   }
-  function spreadStamp() {
-    var cs = '', who = '';
+  /* The user's callsign: identity store first, PFCallsign() fallback. */
+  function callsignOf() {
+    var cs = '';
     try {
       var id = JSON.parse(localStorage.getItem('pf_identity_v1') || '{}');
       if (id && id.callsign) cs = String(id.callsign).toUpperCase();
     } catch (e) {}
+    if (!cs) { try { cs = String((window.PFCallsign && window.PFCallsign()) || '').toUpperCase(); } catch (e) {} }
+    return cs;
+  }
+  function spreadStamp() {
+    var cs = callsignOf(), who = '';
     try {
       var b = JSON.parse(localStorage.getItem('pf_boost_v1') || 'null');
       if (b && b.creator && b.date === chiDay()) {
@@ -152,6 +158,35 @@
     if (cs) return 'FIGHTING AS ' + cs;
     if (who) return 'SPREADING FOR ' + who;
     return '';
+  }
+  /* stampCallsign(cv): paint the "FIGHTING AS <CALLSIGN>" attribution strip
+     on ANY canvas. Idempotent via cv._pfStamped — painters that already
+     render the callsign set the flag themselves and are left alone. Every
+     image that leaves the site passes through here or a caller of it. */
+  function stampCallsign(cv) {
+    try {
+      if (!cv || cv._pfStamped) return cv;
+      cv._pfStamped = true;
+      var cs = callsignOf();
+      if (!cs) return cv;
+      var x = cv.getContext('2d');
+      if (!x) return cv;
+      var W = cv.width || 0, H = cv.height || 0;
+      if (W < 200 || H < 200) return cv;
+      var fs = Math.max(18, Math.round(W * 0.024));
+      var barH = Math.round(fs * 1.9);
+      x.save();
+      try { x.textAlign = 'center'; x.textBaseline = 'middle'; } catch (e) {}
+      x.fillStyle = 'rgba(10,10,10,0.9)';
+      x.fillRect(0, H - barH, W, barH);
+      x.fillStyle = '#c1121f';
+      x.fillRect(0, H - barH, W, Math.max(3, Math.round(fs * 0.14)));
+      x.fillStyle = '#f5ead6';
+      x.font = '700 ' + fs + 'px Arial,sans-serif';
+      x.fillText('FIGHTING AS ' + cs, W / 2, H - barH / 2);
+      x.restore();
+    } catch (e) {}
+    return cv;
   }
   function drawPoster(gameId) {
     var g = REG[gameId] || REG['daily-orders'];
@@ -185,6 +220,7 @@
     x.fillStyle = '#ffffff'; x.fillText(g.cta, W / 2, y + 8);
     var stamp = spreadStamp();
     if (stamp) {
+      cv._pfStamped = true; /* generic poster carries its own stamp */
       y += 92;
       x.fillStyle = '#c1121f'; x.font = '700 30px Arial,sans-serif';
       wrap(x, stamp, W - 170).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 42; });
@@ -245,6 +281,7 @@
   try { window.pfCreditShare = creditShare; } catch (e) {}
 
   function shareImage(cv, filename, title, gameId) {
+    try { cv = stampCallsign(cv) || cv; } catch (e) {}
     canvasBlob(cv, function (blob) {
       if (!blob) { toast('Poster failed \u2014 try again.'); return; }
       var file = null;
@@ -268,6 +305,7 @@
   }
 
   function saveImage(cv, filename, gameId) {
+    try { cv = stampCallsign(cv) || cv; } catch (e) {}
     canvasBlob(cv, function (blob) {
       if (!blob) { toast('Save failed \u2014 try again.'); return; }
       if (isIOS()) {
@@ -391,7 +429,8 @@
     saveImage: saveImage,
     ensureAll: ensureAll,
     setPoster: function (id, fn) { try { if (id && typeof fn === 'function') CUSTOM[id] = fn; } catch (e) {} },
-    spreadStamp: spreadStamp
+    spreadStamp: spreadStamp,
+    stampCallsign: stampCallsign
   };
 
   /* Run now (sections are mounted — this file loads after home-v2.js) and

@@ -144,6 +144,7 @@
 '        yy+=8;}\n' +
 '      x.fillStyle="#c1121f";x.font=\'900 40px \"Arial Black\",Arial,sans-serif\';\n' +
 '      x.fillText("MTCSTW.COM",W/2,H-64);\n' +
+'      try{cv._pfStamped=true;}catch(e){} /* raid card paints its own spread line */\n' +
 '      cb(cv);\n' +
 '    }\n' +
 '    var imgUrl=(_rr&&_rr.img)?String(_rr.img):"";\n' +

@@ -307,6 +307,7 @@
       say('Poster downloaded \\u2014 on iPhone open it from Files/Downloads, tap Share, then Save Image to put it in Photos.');
     }
     votePoster(c,mode).then(function(canvas){
+      try{ if(window.PFShare&&window.PFShare.stampCallsign){ canvas=window.PFShare.stampCallsign(canvas)||canvas; } }catch(e){}
       if(!canvas.toBlob){ say('Poster failed \\u2014 try again.');return; }
       canvas.toBlob(function(blob){
         if(!blob){ say('Poster failed \\u2014 try again.');return; }

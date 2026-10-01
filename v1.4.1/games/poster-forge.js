@@ -187,7 +187,16 @@ function stampPng(buf){
   return out.buffer;
 }
 function stampedBlob(cb){
-  cv.toBlob(function(blob){
+  /* Stamp the callsign on a throwaway copy — the forge canvas itself stays clean. */
+  var src=cv;
+  try{
+    if(window.PFShare&&window.PFShare.stampCallsign){
+      var c2=document.createElement('canvas');c2.width=cv.width;c2.height=cv.height;
+      c2.getContext('2d').drawImage(cv,0,0);
+      src=window.PFShare.stampCallsign(c2)||c2;
+    }
+  }catch(e){src=cv;}
+  src.toBlob(function(blob){
     if(blob.arrayBuffer){blob.arrayBuffer().then(function(buf){cb(new Blob([stampPng(buf)],{type:"image/png"}));});}
     else{cb(blob);}
   });

@@ -4,12 +4,29 @@
    Each widget calls pfReportAction('action_type') on completion.
    The total is fetched from the backend and displayed in #pf-global-total. */
 window.PF_BACKEND_URL = "https://script.google.com/macros/s/AKfycbzaqg3vIj1UnbHGJ82uti7yTdRpeR6PYMhoTne6LIL4kf1XjakrImMTHFwounaPrttl/exec";
+/* Per-device identity + callsign. Attached to every backend action report so
+   per-user rows in the Sheet key to the local device and the user's callsign.
+   Votes stay anonymous by design — no identity is ever sent on vote rows. */
+window.PFDeviceId = function(){
+  try{
+    var k='pf_device_v1', id=localStorage.getItem(k);
+    if(!id){ id='d-'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);
+      try{ localStorage.setItem(k,id); }catch(e){} }
+    return id;
+  }catch(e){ return ''; }
+};
+window.PFCallsign = function(){
+  try{ return String((JSON.parse(localStorage.getItem('pf_identity_v1')||'{}')).callsign||''); }
+  catch(e){ return ''; }
+};
 window.pfReportAction = function(actionType){
   if(!window.PF_BACKEND_URL) return;
   try {
+    var dev='',cs='';
+    try{ dev=window.PFDeviceId(); cs=window.PFCallsign(); }catch(e){}
     fetch(window.PF_BACKEND_URL, {method:'POST', mode:'no-cors',
       headers:{'Content-Type':'text/plain'},
-      body: JSON.stringify({type:'action', action_type: actionType})});
+      body: JSON.stringify({type:'action', action_type: actionType, device: dev, callsign: cs})});
   } catch(e){}
   /* Refresh the displayed total after reporting. */
   setTimeout(window.pfFetchGlobalTotal, 1500);

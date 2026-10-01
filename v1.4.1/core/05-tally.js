@@ -9,7 +9,9 @@ var TASKS=Object.keys(XP_DEFAULTS);
 function report(actionType, xp, pts){
   try{
     if(window.PF_BACKEND_URL){
-      fetch(window.PF_BACKEND_URL,{method:'POST',mode:'no-cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify({type:'action',action_type:actionType,xp:xp,pts:pts})}).catch(function(){});
+      var dev='',cs='';
+      try{ if(window.PFDeviceId) dev=window.PFDeviceId(); if(window.PFCallsign) cs=window.PFCallsign(); }catch(e){}
+      fetch(window.PF_BACKEND_URL,{method:'POST',mode:'no-cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify({type:'action',action_type:actionType,xp:xp,pts:pts,device:dev,callsign:cs})}).catch(function(){});
       if(typeof window.pfFetchGlobalTotal==='function'){ setTimeout(window.pfFetchGlobalTotal, 1500); }
       if(typeof window.pfFetchGlobalTasks==='function'){ setTimeout(window.pfFetchGlobalTasks, 1500); }
     }

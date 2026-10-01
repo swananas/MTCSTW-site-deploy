@@ -74,6 +74,104 @@
 '    paintStreak();\n' +
 '    try{document.dispatchEvent(new CustomEvent("pf-raid-report",{detail:{day:t,target:tn}}));}catch(e){}\n' +
 '  };\n' +
+'  /* RAID POSTER: pulls the creator catalog (roster record) and advertises\n' +
+'     the highlighted creator — photo, propaganda score, handle — with the\n' +
+'     spread stamp (callsign + today\u2019s boost pick) in the footer. */\n' +
+'  function spreadLine(){\n' +
+'    var cs="",who="";\n' +
+'    try{var id=JSON.parse(localStorage.getItem("pf_identity_v1")||"{}");if(id&&id.callsign)cs=String(id.callsign).toUpperCase();}catch(e){}\n' +
+'    try{\n' +
+'      var b=JSON.parse(localStorage.getItem("pf_boost_v1")||"null");\n' +
+'      var n=new Date();try{n=new Date(new Date().toLocaleString("en-US",{timeZone:"America/Chicago"}));}catch(_e){}\n' +
+'      var dy=n.getFullYear()+"-"+((n.getMonth()+1)<10?"0":"")+(n.getMonth()+1)+"-"+(n.getDate()<10?"0":"")+n.getDate();\n' +
+'      if(b&&b.creator&&b.date===dy){\n' +
+'        var r=null;try{r=(window.PF&&PF.rosterBySlug)?PF.rosterBySlug(b.creator):null;}catch(_e2){}\n' +
+'        who=((r&&r.name)?String(r.name):String(b.creator).replace(/-/g," ")).toUpperCase();\n' +
+'      }\n' +
+'    }catch(e){}\n' +
+'    if(cs&&who)return "FIGHTING AS "+cs+" \u00b7 SPREADING FOR "+who;\n' +
+'    if(cs)return "FIGHTING AS "+cs;\n' +
+'    if(who)return "SPREADING FOR "+who;\n' +
+'    return "";\n' +
+'  }\n' +
+'  function wrapC(x,text,maxW){\n' +
+'    var words=String(text).split(/\\s+/),lines=[],line="";\n' +
+'    words.forEach(function(w){var t=line?line+" "+w:w;\n' +
+'      if(x.measureText(t).width>maxW&&line){lines.push(line);line=w;}else{line=t;}});\n' +
+'    if(line)lines.push(line);return lines;\n' +
+'  }\n' +
+'  function drawRaidCard(cb){\n' +
+'    var W=1080,H=1350,cv=document.createElement("canvas");cv.width=W;cv.height=H;\n' +
+'    var x=cv.getContext("2d");if(!x){cb(null);return;}\n' +
+'    x.fillStyle="#0d0d0d";x.fillRect(0,0,W,H);\n' +
+'    x.strokeStyle="#c1121f";x.lineWidth=18;x.strokeRect(16,16,W-32,H-32);\n' +
+'    x.strokeStyle="#f5ead6";x.lineWidth=3;x.strokeRect(52,52,W-104,H-104);\n' +
+'    x.textAlign="center";\n' +
+'    var y=140;\n' +
+'    x.fillStyle="#f5ead6";x.font="700 32px Arial,sans-serif";\n' +
+'    x.fillText("\u2605 THE PROPAGANDA FACTORY \u2605",W/2,y);y+=90;\n' +
+'    x.fillStyle="#c1121f";x.font=\'900 68px \"Arial Black\",Arial,sans-serif\';\n' +
+'    x.fillText("\u2694 BOOST RAID \u2694",W/2,y);y+=78;\n' +
+'    x.fillStyle="#f5ead6";x.font="700 30px Arial,sans-serif";\n' +
+'    x.fillText("TODAY\u2019S TARGET",W/2,y);y+=48;\n' +
+'    x.fillStyle="#c1121f";x.font=\'900 64px \"Arial Black\",Arial,sans-serif\';\n' +
+'    wrapC(x,tn,W-170).slice(0,2).forEach(function(l){x.fillText(l,W/2,y);y+=72;});\n' +
+'    var sub=(th+(tp?" \u00b7 "+tp:"")).replace(/^\\s+|\\s+$/g,"");\n' +
+'    if(sub){y+=6;x.fillStyle="#f5ead6";x.font="700 34px Arial,sans-serif";\n' +
+'      wrapC(x,sub,W-170).slice(0,2).forEach(function(l){x.fillText(l,W/2,y);y+=46;});}\n' +
+'    if(_rr&&_rr.score){y+=10;x.fillStyle="#c1121f";x.font=\'900 34px \"Arial Black\",Arial,sans-serif\';\n' +
+'      x.fillText("PROPAGANDA SCORE "+_rr.score,W/2,y);y+=50;}\n' +
+'    var bw=340,bh=340,bx=W/2-bw/2,by=y+24;\n' +
+'    function paintGlyph(){\n' +
+'      x.fillStyle="#161616";x.fillRect(bx,by,bw,bh);\n' +
+'      x.strokeStyle="#c1121f";x.lineWidth=6;x.strokeRect(bx,by,bw,bh);\n' +
+'      x.fillStyle="#c1121f";x.font=\'900 150px \"Arial Black\",Arial,sans-serif\';\n' +
+'      x.fillText("\u2694",W/2,by+bh/2+52);\n' +
+'    }\n' +
+'    function finish(){\n' +
+'      var yy=by+bh+30;\n' +
+'      x.fillStyle="#c9bfa8";x.font="400 30px Arial,sans-serif";\n' +
+'      wrapC(x,tgt.m,W-210).slice(0,2).forEach(function(l){x.fillText(l,W/2,yy);yy+=42;});\n' +
+'      yy+=22;\n' +
+'      var cta="JOIN THE RAID";\n' +
+'      x.font=\'900 38px \"Arial Black\",Arial,sans-serif\';\n' +
+'      var tw=x.measureText(cta).width+100;\n' +
+'      x.fillStyle="#c1121f";x.fillRect(W/2-tw/2,yy-52,tw,80);\n' +
+'      x.fillStyle="#ffffff";x.fillText(cta,W/2,yy+8);yy+=66;\n' +
+'      var st=spreadLine();\n' +
+'      if(st){x.fillStyle="#c1121f";x.font="700 28px Arial,sans-serif";\n' +
+'        wrapC(x,st,W-170).slice(0,2).forEach(function(l){x.fillText(l,W/2,yy);yy+=38;});\n' +
+'        yy+=8;}\n' +
+'      x.fillStyle="#c1121f";x.font=\'900 40px \"Arial Black\",Arial,sans-serif\';\n' +
+'      x.fillText("MTCSTW.COM",W/2,H-64);\n' +
+'      cb(cv);\n' +
+'    }\n' +
+'    var imgUrl=(_rr&&_rr.img)?String(_rr.img):"";\n' +
+'    if(!imgUrl){paintGlyph();finish();return;}\n' +
+'    var done=false,img=new Image();\n' +
+'    function ok(){\n' +
+'      if(done)return;done=true;\n' +
+'      try{\n' +
+'        var iw=img.naturalWidth||img.width,ih=img.naturalHeight||img.height;\n' +
+'        if(iw&&ih){\n' +
+'          var sc=Math.max(bw/iw,bh/ih),dw=iw*sc,dh=ih*sc;\n' +
+'          x.save();x.beginPath();x.rect(bx,by,bw,bh);x.clip();\n' +
+'          x.drawImage(img,bx+(bw-dw)/2,by+(bh-dh)/2,dw,dh);x.restore();\n' +
+'          x.strokeStyle="#c1121f";x.lineWidth=6;x.strokeRect(bx,by,bw,bh);\n' +
+'        }else{paintGlyph();}\n' +
+'      }catch(e){paintGlyph();}\n' +
+'      finish();\n' +
+'    }\n' +
+'    function bad(){if(done)return;done=true;paintGlyph();finish();}\n' +
+'    setTimeout(bad,3500);\n' +
+'    img.onload=ok;img.onerror=bad;\n' +
+'    try{img.crossOrigin="anonymous";}catch(e){}\n' +
+'    try{img.src=imgUrl;}catch(e){bad();}\n' +
+'  }\n' +
+'  (function regRaidPoster(){\n' +
+'    try{if(window.PFShare&&PFShare.setPoster){PFShare.setPoster("boost-raid",drawRaidCard);return;}}catch(e){}\n' +
+'    setTimeout(regRaidPoster,600);\n' +
+'  })();\n' +
 '})();\n' +
 '<\/script>\n' +
 '</div>\n' +

@@ -32,7 +32,8 @@
 '    {q:"Covers queer, Indigenous, and ICE news. 130K+. Who?",a:"moreno-neurospicy-news",w:["voix-noire","black-newsbeat-with-dr-kimeka-campbell","the-political-feminist"]}\n' +
 '  ];\n' +
 '  function dayNum(){try{var n=new Date();return Math.floor(Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate())/864e5);}catch(e){return 0;}}\n' +
-'  function pick(){var d=dayNum(),out=[],n=BANK.length;for(var i=0;i<5;i++){out.push(BANK[(d*5+i)%n]);}return out;}\n' +
+'  /* Randomized pool: 5 questions drawn from the bank in random order on every load/refresh. */\n' +
+'  function pick(){var pool=BANK.slice();shuffle(pool);return pool.slice(0,5);}\n' +
 '  function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}\n' +
 '  var LS="pf_guess_v1";\n' +
 '  function load(){try{var s=JSON.parse(localStorage.getItem(LS)||"null");if(s&&typeof s.streak==="number")return s;}catch(e){}return{streak:0,last:""};}\n' +

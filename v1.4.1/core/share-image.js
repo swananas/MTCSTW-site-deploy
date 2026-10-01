@@ -93,6 +93,10 @@
                'media-nuke', 'caption-combat', 'poster-forge', 'enlistment-ranks', 'war-bonds'];
   var SHARE_LABEL = 'SHARE IMAGE';
   var SAVE_LABEL = 'SAVE IMAGE TO PHONE';
+  /* Custom per-game poster painters: silos register an async painter
+     fn(done) via PFShare.setPoster(gameId, fn). The share/save buttons
+     use it instead of the generic drawPoster when present. */
+  var CUSTOM = {};
 
   /* ------------------------------------------------------------------ */
   /* Platform detection                                                  */
@@ -121,6 +125,33 @@
     try {
       return new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase();
     } catch (e) { return ''; }
+  }
+  /* Spread stamp: every auto-shared poster carries the callsign and the
+     creator the user is spreading for (today's boost pick, Chicago day). */
+  function chiDay() {
+    try {
+      var n = (PF && PF.chiNow) ? PF.chiNow() : new Date();
+      var y = n.getFullYear(), m = n.getMonth() + 1, d = n.getDate();
+      return y + '-' + (m < 10 ? '0' : '') + m + '-' + (d < 10 ? '0' : '') + d;
+    } catch (e) { return ''; }
+  }
+  function spreadStamp() {
+    var cs = '', who = '';
+    try {
+      var id = JSON.parse(localStorage.getItem('pf_identity_v1') || '{}');
+      if (id && id.callsign) cs = String(id.callsign).toUpperCase();
+    } catch (e) {}
+    try {
+      var b = JSON.parse(localStorage.getItem('pf_boost_v1') || 'null');
+      if (b && b.creator && b.date === chiDay()) {
+        var r = (PF && PF.rosterBySlug) ? PF.rosterBySlug(b.creator) : null;
+        who = ((r && r.name) ? String(r.name) : String(b.creator).replace(/-/g, ' ')).toUpperCase();
+      }
+    } catch (e) {}
+    if (cs && who) return 'FIGHTING AS ' + cs + ' \u00b7 SPREADING FOR ' + who;
+    if (cs) return 'FIGHTING AS ' + cs;
+    if (who) return 'SPREADING FOR ' + who;
+    return '';
   }
   function drawPoster(gameId) {
     var g = REG[gameId] || REG['daily-orders'];
@@ -152,6 +183,12 @@
     var tw = x.measureText(g.cta).width + 100;
     x.fillStyle = '#c1121f'; x.fillRect(W / 2 - tw / 2, y - 56, tw, 92);
     x.fillStyle = '#ffffff'; x.fillText(g.cta, W / 2, y + 8);
+    var stamp = spreadStamp();
+    if (stamp) {
+      y += 92;
+      x.fillStyle = '#c1121f'; x.font = '700 30px Arial,sans-serif';
+      wrap(x, stamp, W - 170).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 42; });
+    }
     x.fillStyle = '#c1121f'; x.font = '900 46px "Arial Black",Arial,sans-serif';
     x.fillText('MTCSTW.COM', W / 2, H - 128);
     x.fillStyle = '#c9bfa8'; x.font = '400 30px Arial,sans-serif';
@@ -310,12 +347,28 @@
     row.style.cssText = 'text-align:center;margin:1.2rem 0 0.4rem;';
     var sb = mkBtn(SHARE_LABEL, true, gameId, 'share');
     sb.onclick = function () { busy(sb, function () {
+      var cp = CUSTOM[gameId];
+      if (cp) {
+        try { cp(function (cv) {
+          if (cv) shareImage(cv, 'pfn-' + gameId + '.png', g.title, gameId);
+          else toast('Poster failed \u2014 try again.');
+        }); } catch (e) { toast('Poster failed \u2014 try again.'); }
+        return;
+      }
       var cv = drawPoster(gameId);
       if (cv) shareImage(cv, 'pfn-' + gameId + '.png', g.title, gameId);
       else toast('Poster failed \u2014 try again.');
     }); };
     var vb = mkBtn(SAVE_LABEL, false, gameId, 'save');
     vb.onclick = function () { busy(vb, function () {
+      var cp2 = CUSTOM[gameId];
+      if (cp2) {
+        try { cp2(function (cv) {
+          if (cv) saveImage(cv, 'pfn-' + gameId + '.png', gameId);
+          else toast('Save failed \u2014 try again.');
+        }); } catch (e) { toast('Save failed \u2014 try again.'); }
+        return;
+      }
       var cv = drawPoster(gameId);
       if (cv) saveImage(cv, 'pfn-' + gameId + '.png', gameId);
       else toast('Save failed \u2014 try again.');
@@ -336,7 +389,9 @@
     poster: drawPoster,
     shareImage: shareImage,
     saveImage: saveImage,
-    ensureAll: ensureAll
+    ensureAll: ensureAll,
+    setPoster: function (id, fn) { try { if (id && typeof fn === 'function') CUSTOM[id] = fn; } catch (e) {} },
+    spreadStamp: spreadStamp
   };
 
   /* Run now (sections are mounted — this file loads after home-v2.js) and

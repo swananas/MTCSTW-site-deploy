@@ -44,6 +44,10 @@
 '      if(qi<QS.length){renderQ();}else{renderR();}\n' +
 '    };}\n' +
 '  }\n' +
+'  function mqLabels(A){var ml=[],i;for(i=0;i<A.mates.length&&i<3;i++){ml.push(A.mates[i].label||A.mates[i]);}return ml;}\n' +
+'  function mqApplyPoster(A){try{var PS=window.PFShare;if(!PS||!PS.REG||!PS.REG["slr-match-quiz"])return false;var ml=mqLabels(A);PS.REG["slr-match-quiz"]={title:A.name,tag:"YOUR PROPAGANDA ARCHETYPE",lines:["YOUR SLR MATCHES:"].concat(ml),cta:"FIND YOUR MATCH"};return true;}catch(e){return false;}}\n' +
+'  function mqPublish(A){try{localStorage.setItem("pf_mq_result_v1",JSON.stringify({name:A.name,mates:mqLabels(A)}));}catch(e){}mqApplyPoster(A);}\n' +
+'  function mqRestore(){try{var s=JSON.parse(localStorage.getItem("pf_mq_result_v1")||"null");if(s&&s.name&&s.mates&&s.mates.length){mqApplyPoster({name:s.name,mates:s.mates.map(function(m){return{label:m};})});}}catch(e){}}\n' +
 '  function renderR(){\n' +
 '    var top="agitator",tk=-1;\n' +
 '    for(var k in scores){if(scores[k]>tk){tk=scores[k];top=k;}}\n' +
@@ -58,6 +62,7 @@
 '      +"<div id=\'pf-mq-msg\' style=\'margin-top:0.6rem;font-size:0.85rem;color:#b8ab8e;min-height:1.2em;\'></div>"\n' +
 '      +"<div><button id=\'pf-mq-again\' style=\'margin-top:0.8rem;background:none;border:1px solid #b8ab8e;color:#b8ab8e;padding:0.5rem 1rem;cursor:pointer;font-family:inherit;font-size:0.8rem;\'>RETAKE QUIZ</button></div>";\n' +
 '    try{document.dispatchEvent(new CustomEvent("pf-quiz-done",{detail:{archetype:top}}));}catch(e){}\n' +
+'    mqPublish(A);\n' +
 '    document.getElementById("pf-mq-join").onclick=function(){\n' +
 '      var em=(document.getElementById("pf-mq-email").value||"").trim();\n' +
 '      var msg=document.getElementById("pf-mq-msg");\n' +
@@ -68,6 +73,8 @@
 '    document.getElementById("pf-mq-again").onclick=function(){qi=0;scores={agitator:0,meme:0,organizer:0,sniper:0,hype:0};renderQ();};\n' +
 '  }\n' +
 '  renderQ();\n' +
+'  setTimeout(mqRestore,1500);\n' +
+'  setTimeout(mqRestore,5000);\n' +
 '})();\n' +
 '<\/script>\n' +
 '</div>\n' +

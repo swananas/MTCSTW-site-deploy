@@ -76,10 +76,10 @@ html = """<!-- PF FOOTER v1.4.2 — shell-aware loader. Pages carrying #pf-v2 (t
      The old Squarespace-built roster/catalog content is replaced in-page; the
      v1.1.0 fixes/roster.js patch no longer loads on these pages. Every other
      page loads the v1.1.0 production set pinned to 6e8b9a4.
-     V2 pin: ' + V2_PIN + ' (from PF_V2_PIN env or git HEAD short SHA).
+     V2 pin: __V2_PIN__ (from PF_V2_PIN env or git HEAD short SHA).
      Kill switches: ?pf_off=<silo> or ?pf_off=home-v2. -->
 <script>(function(){
-var V2='" + V2_PIN + "',V1='6e8b9a42397abc5b42f0ba6b123ec4bbdd7857de';
+var V2='__V2_PIN__',V1='6e8b9a42397abc5b42f0ba6b123ec4bbdd7857de';
 var SLR_SLUGS='""" + slug_alt + """';
 var _p=location.pathname;
 function _seg(p){var s=p.charAt(0)==='/'?p.slice(1):p;return s.charAt(s.length-1)==='/'?s.slice(0,-1):s;}
@@ -107,5 +107,7 @@ CSS.forEach(css);jsAll();
 """
 
 out = os.path.join(HERE, 'footer_v142_final.html')
+html = html.replace('__V2_PIN__', V2_PIN)
+assert '__V2_PIN__' not in html and V2_PIN in html, 'pin substitution failed'
 open(out, 'w').write(html)
 print(f"wrote {out} ({len(html)//1024} KB), {len(V2_JS)} V2 silos, {len(V1_JS)} V1 silos, 62 slugs")

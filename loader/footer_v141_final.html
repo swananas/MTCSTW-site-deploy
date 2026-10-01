@@ -1,5 +1,5 @@
 <!-- PF FOOTER v1.4.1 — shell-aware loader. Pages carrying #pf-v2 (the v2 homepage)
-     load the 23-file v2 set pinned to 15b8122 (incl. core/share-image.js, which
+     load the 23-file v2 set pinned to df902b0 (incl. core/share-image.js, which
      guarantees SHARE IMAGE + SAVE IMAGE TO PHONE on all 15 game sections,
      unconditionally, core/06-pinups.js, the Layer-2 Pin-Up Wall, and the
      centralized PF.ROSTER in core/03-global.js). Scripts load in parallel
@@ -7,12 +7,12 @@
      other page loads the v1.1.0 production set pinned to 6e8b9a4.
      Kill switches: ?pf_off=<silo> or ?pf_off=home-v2. -->
 <script>(function(){
-var V2='15b81225aca89e66eb9353a6b3a75de5e3256832',V1='6e8b9a42397abc5b42f0ba6b123ec4bbdd7857de';
+var V2='df902b00101f176baf3ee3247d37ab486ea371fc',V1='6e8b9a42397abc5b42f0ba6b123ec4bbdd7857de';
 var onV2=!!document.getElementById('pf-v2');
 var VER=onV2?'v1.4.1':'v1.1.0';
 var BASE='https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@'+(onV2?V2:V1)+'/'+VER+'/';
 var CSS=onV2?["core/01-styles.css"]:["core/01-styles.css", "fixes/mobile.css"];
-var JS=onV2?["core/00-bus.js", "core/03-global.js", "core/04-ledger.js", "core/05-tally.js", "games/fan-vote.js", "games/slr-match-quiz.js", "games/creator-guess.js", "games/bracket-board.js", "games/daily-orders.js", "games/boost-raid.js", "games/do-meter.js", "games/daily-drop.js", "games/billionaire-supervillain.js", "games/daily-interrogation.js", "games/media-nuke.js", "games/caption-combat.js", "games/poster-forge.js", "games/enlistment-ranks.js", "games/war-bonds.js", "games/service-medals.js", "core/06-pinups.js", "pages/home-v2.js", "core/share-image.js"]:["core/00-bus.js", "core/03-global.js", "core/04-ledger.js", "core/05-tally.js", "games/caption-combat.js", "games/daily-orders.js", "games/fan-vote.js", "games/do-meter.js", "games/media-nuke.js", "games/poster-forge.js", "games/daily-drop.js", "games/service-medals.js", "games/liquidation-bracket.js", "core/06-override.js", "core/08-engage.js", "core/09-toast.js", "core/10-ticker.js", "fixes/homepage.js", "fixes/about.js", "fixes/faqs.js", "fixes/roster.js", "fixes/podcast.js", "fixes/tax.js", "fixes/terms.js", "fixes/schema.js"];
+var JS=onV2?["core/00-bus.js", "core/03-global.js", "core/04-ledger.js", "core/05-tally.js", "games/fan-vote.js", "games/slr-match-quiz.js", "games/creator-guess.js", "games/bracket-board.js", "games/daily-orders.js", "games/boost-raid.js", "games/do-meter.js", "games/daily-drop.js", "games/billionaire-supervillain.js", "games/daily-interrogation.js", "games/media-nuke.js", "games/caption-combat.js", "games/poster-forge.js", "games/enlistment-ranks.js", "games/war-bonds.js", "games/service-medals.js", "pages/home-v2.js", "core/06-pinups.js", "core/share-image.js"]:["core/00-bus.js", "core/03-global.js", "core/04-ledger.js", "core/05-tally.js", "games/caption-combat.js", "games/daily-orders.js", "games/fan-vote.js", "games/do-meter.js", "games/media-nuke.js", "games/poster-forge.js", "games/daily-drop.js", "games/service-medals.js", "games/liquidation-bracket.js", "core/06-override.js", "core/08-engage.js", "core/09-toast.js", "core/10-ticker.js", "fixes/homepage.js", "fixes/about.js", "fixes/faqs.js", "fixes/roster.js", "fixes/podcast.js", "fixes/tax.js", "fixes/terms.js", "fixes/schema.js"];
 function siloFail(n,e){if(window.console)console.error('[PF SILO FAILED] '+n+' :: '+(e&&e.message||e||'load error'));}
 window.addEventListener('error',function(e){
   var f=e.filename||'',m=f.match(/v1\.(?:1\.0|4\.[01])\/([^?]+)/);

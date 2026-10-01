@@ -11,6 +11,8 @@
 #pf-bracket h2{color:#c1121f;font-size:30px;margin:0 0 6px;letter-spacing:2px;text-transform:uppercase}
 #pf-bracket .b-sub{font-family:Arial,sans-serif;font-size:14px;color:#c9bfa8;margin-bottom:6px}
 #pf-bracket .b-week{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase;margin-bottom:18px}
+#pf-bracket .b-turnout{font-family:Arial,sans-serif;font-size:13px;letter-spacing:1px;color:#c9bfa8;margin:-10px 0 10px}
+#pf-bracket .b-turnout b{color:#ff5a00}
 #pf-bracket .b-round{margin:18px 0 6px;color:#f5ead6;font-size:18px;letter-spacing:2px;text-transform:uppercase;border-top:2px dashed #c1121f;padding-top:16px}
 #pf-bracket .b-round.live{color:#ff5a00}
 #pf-bracket .b-match{display:flex;align-items:stretch;gap:8px;margin:10px 0;background:#1a1a1a;border:2px solid #333;min-width:0}
@@ -64,6 +66,7 @@
 <h2>&#9760; The Liquidation Bracket</h2>
 <div class="b-sub">16 billionaires. Head-to-head. You decide who gets liquidated first.</div>
 <div class="b-week" id="bWeek"></div>
+<div class="b-turnout" id="bTurnout"></div>
 <div class="b-countdown" id="bCountdown"></div>
 <div class="b-oracle" id="bOracle"></div>
 <div class="b-feedwrap"><div class="b-feedtitle">&#9760; THE LIQUIDATION FEED</div><div class="b-feed" id="bFeed"></div></div>
@@ -198,7 +201,35 @@ function renderOracle(){
   var p=o.correct/o.total;
   var rank=p>=0.7?'PROPHET':p>=0.4?'ORACLE':'PUNDIT';
   el.innerHTML='&#128302; ORACLE SCORE <b>'+o.correct+'/'+o.total+'</b> &mdash; '+rank+
-    (o.upsets>0?' &nbsp;&middot;&nbsp; <b>&#127919; UPSET CALLER &times;'+o.upsets+'</b>':'');
+    (o.upsets>0?' &nbsp;&middot;&nbsp; <b>&#127919; UPSET CALLER &times;'+o.upsets+'</b>':'')+
+    '<br><button class="b-copy" id="bOracleShare" style="margin:8px 0 0;padding:7px 18px;font-size:11px;">Share oracle card</button>';
+  var sb=document.getElementById("bOracleShare");
+  if(sb){ sb.onclick=function(){
+    try{
+      var PS=window.PFShare;
+      if(PS&&PS.REG){ PS.REG["bracket-board"]={title:"ORACLE "+o.correct+"/"+o.total,tag:rank+" OF THE LIQUIDATION",
+        lines:["I called "+o.correct+" of "+o.total+" liquidations."+(o.upsets>0?" Upset caller x"+o.upsets+".":""),
+               "16 billionaires. You decide who gets liquidated first."],cta:"VOTE IN THE BRACKET"}; }
+      if(PS&&PS.poster&&PS.shareImage){ var cv=PS.poster("bracket-board");
+        if(cv){ PS.shareImage(cv,"oracle-score.png","My Liquidation Bracket oracle score: "+o.correct+"/"+o.total,"bracket-board"); return; } }
+    }catch(e){}
+  }; }
+}
+
+/* --- Voter turnout: site-wide ballot count, trailing 7 days (bracket_turnout). --- */
+var BRACKET_API="https://script.google.com/macros/s/AKfycbzaqg3vIj1UnbHGJ82uti7yTdRpeR6PYMhoTne6LIL4kf1XjakrImMTHFwounaPrttl/exec";
+function renderTurnout(){
+  var el=document.getElementById("bTurnout"); if(!el) return;
+  var paint=function(n){ if(n>0) el.innerHTML="&#9760; <b>"+Number(n).toLocaleString()+"</b> ballots cast this week &mdash; add yours"; };
+  try{ var c=JSON.parse(localStorage.getItem("pf_bracket_turnout_v1")||"null");
+    if(c&&Date.now()-c.at<6*3600000){ paint(c.d); return; } }catch(e){}
+  var name="pfBT"+Date.now(), fired=false;
+  window[name]=function(d){ if(fired) return; fired=true; try{delete window[name];}catch(e){}
+    var s=document.getElementById(name); if(s&&s.parentNode) s.parentNode.removeChild(s);
+    if(d&&typeof d.ballots==="number"){ try{localStorage.setItem("pf_bracket_turnout_v1",JSON.stringify({at:Date.now(),d:d.ballots}));}catch(e){} paint(d.ballots); } };
+  try{ var scr=document.createElement("script"); scr.id=name; scr.src=BRACKET_API+"?callback="+name+"&action=bracket_turnout";
+    scr.onerror=function(){ if(!fired){fired=true;} }; (document.head||document.documentElement).appendChild(scr); }catch(e){}
+  setTimeout(function(){ if(!fired){fired=true; try{delete window[name];}catch(e){} } },10000);
 }
 
 /* --- Upset bonus XP: correctly calling the lower seed pays +5 XP, once per matchup. --- */
@@ -262,14 +293,14 @@ var body=document.getElementById("bBody"), weekEl=document.getElementById("bWeek
 
 function render(){
   var wi=weekIndex(), votes=loadVotes();
-  if(wi<0){ weekEl.textContent="The bracket opens "+START_MONDAY+"."; body.innerHTML='<div class="b-locked">16 billionaires are warming up.</div>'; renderFeed(); renderOracle(); renderCountdown(); return; }
+  if(wi<0){ weekEl.textContent="The bracket opens "+START_MONDAY+"."; body.innerHTML='<div class="b-locked">16 billionaires are warming up.</div>'; renderFeed(); renderOracle(); renderCountdown(); renderTurnout(); return; }
   if(wi>3){
     weekEl.textContent="Season complete.";
     var champ=(ROUND_WINNERS["3"]||[])[0];
     body.innerHTML = champ
       ? '<div class="b-champ">Champion of the liquidation<span class="b-cname">'+CONTENDERS[champ].n+'</span><span style="font-family:Arial;font-size:13px;letter-spacing:1px;">liquidated by popular demand</span></div>'
       : '<div class="b-locked">The people have spoken. Champion announcement pending.</div>';
-    renderFeed(); renderOracle(); renderCountdown();
+    renderFeed(); renderOracle(); renderCountdown(); renderTurnout();
     return;
   }
   var wk=PF.mondayOf(PF.chiNow());
@@ -352,7 +383,7 @@ function render(){
       setTimeout(finish, 1700);
     };
   }
-  renderFeed(); renderOracle(); renderCountdown();
+  renderFeed(); renderOracle(); renderCountdown(); renderTurnout();
 }
 render();
 

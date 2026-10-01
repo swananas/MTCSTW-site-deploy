@@ -334,6 +334,26 @@ function doGet(e) {
     var tsheet = ensureActionsSheet(ss);
     return jsonOut({ total: sumColumn(tsheet, 3, LEGACY_PTS) }, cb);
   }
+  /* Bracket turnout: bracket_ballot rows over the trailing 7 Chicago days. */
+  if (action === "bracket_turnout") {
+    var bcount = 0;
+    var bcut = "";
+    try { bcut = Utilities.formatDate(new Date(Date.now() - 7 * 86400000), "America/Chicago", "yyyy-MM-dd"); } catch (be) {}
+    try {
+      var bsheet = ss.getSheetByName(ACTIONS_SHEET);
+      if (bsheet) {
+        var brows = bsheet.getDataRange().getValues();
+        for (var bgi = 1; bgi < brows.length; bgi++) {
+          if (String(brows[bgi][1]) !== "bracket_ballot") continue;
+          var bday = "";
+          try { bday = Utilities.formatDate(new Date(brows[bgi][0]), "America/Chicago", "yyyy-MM-dd"); } catch (be2) {}
+          if (!bday || bday < bcut) continue;
+          bcount++;
+        }
+      }
+    } catch (be3) {}
+    return jsonOut({ ballots: bcount }, cb);
+  }
   /* Guess score stats: guess_scored rows over the trailing 7 Chicago days.
      Powers the Guess the Creator social-proof line ("2,140 plays, avg 3.2/5"). */
   if (action === "guess_stats") {

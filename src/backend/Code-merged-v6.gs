@@ -41,6 +41,7 @@
  *   GET  ?action=action_totals                      -> {total: N}
  *   GET  ?action=action_totals&callback=cb           -> cb({total: N}) (JSONP)
  *   GET  ?action=xp_totals                          -> {xp_total: N} (site-wide XP, media-nuke meter)
+ *   GET  ?action=xp_today                           -> {ok:true, xp_today: N, comrades: M} (today's site-wide XP, Chicago day)
  *   GET  ?action=task_totals                        -> {total: N} (site-wide task points, do-meter)
  *   GET  ?action=user_totals&device=d-abc           -> {device, callsign, xp, pts, actions}
  *   GET  ?action=user_totals&callsign=Ghost&callback=cb -> cb({...}) (JSONP; callsign match is case-insensitive)
@@ -177,6 +178,29 @@ function doGet(e) {
       }
     } catch (err) {}
     return jsonOut({ device: qdev, callsign: seenCs, xp: uxp, pts: upts, actions: uacts }, cb);
+  }
+  /* Media Nuke: today's site-wide XP plus the count of distinct devices that
+     charged it. Day boundaries use America/Chicago, matching the site. */
+  if (action === "xp_today") {
+    var todayChi = "";
+    try { todayChi = Utilities.formatDate(new Date(), "America/Chicago", "yyyy-MM-dd"); } catch (e2) {}
+    var xpT = 0, comrades = {};
+    try {
+      var xsheet = ss.getSheetByName(ACTIONS_SHEET);
+      if (xsheet) {
+        var xrows = xsheet.getDataRange().getValues();
+        for (var xi = 1; xi < xrows.length; xi++) {
+          var xd = "";
+          try { xd = Utilities.formatDate(new Date(xrows[xi][0]), "America/Chicago", "yyyy-MM-dd"); } catch (e3) {}
+          if (!todayChi || xd !== todayChi) continue;
+          var xv = Number(xrows[xi][2]);
+          if (!isNaN(xv) && xv > 0) xpT += xv;
+          var xdev = String(xrows[xi][4] || "");
+          if (xdev) comrades[xdev] = 1;
+        }
+      }
+    } catch (err) {}
+    return jsonOut({ ok: true, xp_today: xpT, comrades: Object.keys(comrades).length }, cb);
   }
   /* Fan vote results (existing). Guarded: only runs for action=results or no
    * action, so unknown actions no longer return vote-shaped JSON. */

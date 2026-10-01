@@ -5,6 +5,8 @@
   'use strict';
   var PF = window.PF;
   if (PF.skip("media-nuke")) { return; }
+  /* PF-NUKE-LOOP-20261001: positioning for the detonation party + bar pulse. */
+  PF.holder().insertAdjacentHTML('beforeend', "<style>\n#slr-nuke{position:relative;overflow:hidden}\n#slr-nuke .slr-nuke-fill.pulse{filter:brightness(1.7)}\n#slr-nuke .nuke-confetti{position:absolute;top:-12px;width:10px;height:14px;z-index:6;pointer-events:none;animation:nukeconfetti linear forwards}\n@keyframes nukeconfetti{to{transform:translateY(620px) rotate(720deg);opacity:0}}\n#slr-nuke .nuke-ping{position:absolute;top:38%;left:50%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;letter-spacing:1px;padding:12px 20px;border:2px solid #f5ead6;z-index:11;pointer-events:none;white-space:nowrap;max-width:94%}\n@media (prefers-reduced-motion:reduce){#slr-nuke .slr-nuke-fill.pulse{filter:none}#slr-nuke .nuke-confetti{animation:none}}\n</style>");
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-nuke">
 <div class="fe-block pf-override-block" id="slr-nuke">
 
@@ -30,7 +32,11 @@
 <script>
 (function(){
 'use strict';
-var BACKEND_URL = "https://script.google.com/macros/s/AKfycbxKFGLAsEqn8msdaNSjML8yHNEHRvaI5drVzJQwMiaVbkhkMBlNoFq1M4hdJo33Usic5Q/exec"; /* ranks backend: live */
+/* Network sync: the live tally backend (same deployment as the Do Meter).
+   ?action=xp_today returns {ok, xp_today, comrades} — today's site-wide XP
+   plus the number of distinct devices that charged it. JSONP, like the other
+   global readers. Local event-sourced counter is the offline fallback. */
+var BACKEND_URL = window.PF_BACKEND_URL || "https://script.google.com/macros/s/AKfycbzaqg3vIj1UnbHGJ82uti7yTdRpeR6PYMhoTne6LIL4kf1XjakrImMTHFwounaPrttl/exec";
 var GOAL = 50000;
 
 function ready(fn){
@@ -56,9 +62,13 @@ function stateFor(pct){
    to lifetime o.xp when no today-field existed. This version increments exactly
    once per dispatched game event and resets at midnight. */
 var NUKE_LS='pf_nuke_local_v2';
-var NUKE_PTS={'pf-order-checkin':null,'pf-bracket-ballot':10,'pf-bracket-liquidated':10,
- 'pf-vote-cast':10,'pf-quiz-done':15,'pf-traitor-vote':10,'pf-caption-submit':10,
- 'pf-poster-made':5,'pf-drop-claimed':10,'pf-enlisted':20,'pf-wb-buy':25,'pf-creator-xp':null};
+/* Charge values mirror the XP table in core/05-tally.js so the local fallback
+   bar matches the backend's xp_today scale. null = take XP from event.detail.xp. */
+var NUKE_PTS={'pf-order-checkin':10,'pf-bracket-ballot':5,'pf-bracket-liquidated':10,
+ 'pf-vote-cast':5,'pf-quiz-done':5,'pf-guess-done':10,'pf-raid-report':15,
+ 'pf-traitor-vote':5,'pf-caption-submit':10,'pf-poster-made':10,
+ 'pf-drop-claimed':15,'pf-enlisted':10,'pf-wb-buy':25,'pf-billionaire-answered':5,
+ 'pf-interrogation-answered':5,'pf-share-image':5,'pf-creator-xp':null};
 function nukeDay(){return new Date().toISOString().slice(0,10);}
 function nukeLoad(){try{var s=JSON.parse(localStorage.getItem(NUKE_LS)||'null');if(s&&s.d)return s;}catch(e){}return{d:nukeDay(),xp:0};}
 function nukeSave(s){try{localStorage.setItem(NUKE_LS,JSON.stringify(s));}catch(e){}}
@@ -79,11 +89,30 @@ function render(root,xp,goal,mode,comrades){
   if(detail){
     detail.textContent = mode==='network'
       ? (comrades+' comrades in the fight today \\u2014 network sync live')
-      : 'network sync offline \\u2014 showing this device only (backend not deployed yet)';
+      : 'network sync offline \\u2014 showing this device only';
   }
   var mine=localXpToday();
   if(you)you.innerHTML='Your charge today: <strong>'+fmt(mine)+' XP</strong> \\u2014 run missions to push the bar';
   root.classList.toggle('armed',pct>=100);
+  /* Dopamine: pulse the bar whenever it grows; full detonation party the
+     first time the network bar arms each day. */
+  try{
+    var last=root._lastXp||0;
+    if(fill&&xp>last){fill.classList.remove('pulse');void fill.offsetWidth;fill.classList.add('pulse');}
+    root._lastXp=xp;
+    if(mode==='network'&&pct>=100){
+      var day=nukeDay(),shown=null;
+      try{shown=localStorage.getItem('pf_nuke_armed_v1');}catch(e){}
+      if(shown!==day){try{localStorage.setItem('pf_nuke_armed_v1',day);}catch(e){}nukeParty(root);}
+    }
+  }catch(e){}
+}
+
+function nukeParty(root){
+  var colors=['#c1121f','#f5ead6','#e8192f','#ffcc00'];
+  for(var i=0;i<60;i++){var p=document.createElement('div');p.className='nuke-confetti';p.style.left=(Math.random()*100)+'%';p.style.background=colors[i%4];p.style.animationDuration=(1.4+Math.random()*1.8)+'s';root.appendChild(p);(function(el){setTimeout(function(){el.remove();},3600);})(p);}
+  var t=document.createElement('div');t.className='nuke-ping';t.textContent='\\u2622 MEDIA NUKE ARMED \\u2014 command is issuing the target';
+  root.appendChild(t);setTimeout(function(){t.remove();},4200);
 }
 
 function init(){
@@ -91,11 +120,17 @@ function init(){
   if(!root)return;
   function tick(){
     if(BACKEND_URL){
-      var url=BACKEND_URL+(BACKEND_URL.indexOf('?')>=0?'&':'?')+'action=nuke';
-      fetch(url,{method:'GET'}).then(function(r){return r.json();}).then(function(d){
-        if(d&&d.ok){render(root,Number(d.xp_today)||0,Number(d.goal)||GOAL,'network',Number(d.comrades)||0);}
+      var cb='pfNukeCb'+Date.now()+Math.floor(Math.random()*1e6);
+      window[cb]=function(d){
+        try{delete window[cb];}catch(e){}
+        var sc=document.getElementById(cb);if(sc&&sc.parentNode)sc.parentNode.removeChild(sc);
+        if(d&&d.ok){render(root,Number(d.xp_today)||0,GOAL,'network',Number(d.comrades)||0);}
         else{render(root,localXpToday(),GOAL,'local');}
-      }).catch(function(){render(root,localXpToday(),GOAL,'local');});
+      };
+      var sc=document.createElement('script');sc.id=cb;
+      sc.src=BACKEND_URL+'?action=xp_today&callback='+cb;
+      sc.onerror=function(){try{delete window[cb];}catch(e){}if(sc.parentNode)sc.parentNode.removeChild(sc);render(root,localXpToday(),GOAL,'local');};
+      document.head.appendChild(sc);
     }else{
       render(root,localXpToday(),GOAL,'local');
     }

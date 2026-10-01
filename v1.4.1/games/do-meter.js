@@ -15,6 +15,7 @@
 <div class="d-keglabel">Weekly target</div>
 <div class="d-keg" id="dKeg"><div class="d-fill" id="dFill"></div></div>
 <div class="d-goal" id="dGoalLine"></div>
+<div class="d-reset" id="dReset"></div>
 <div class="d-types" id="dTypes"></div>
 <div class="d-spark" id="dSpark" aria-hidden="true"></div>
 
@@ -29,7 +30,8 @@ var LABELS={'pf-order-checkin':'Orders','pf-bracket-ballot':'Brackets','pf-brack
 function load(){try{var s=JSON.parse(localStorage.getItem(LS)||'null');if(s&&s.w)return s;}catch(e){}return{w:PF.isoWeekKey(PF.chiNow()),total:0,byType:{},goal:1000,hits:0,hist:{},seen:[],boomed:false};}
 function save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}
 var S=load();
-function rollover(){var wk=PF.isoWeekKey(PF.chiNow());if(S.w!==wk){S.hist[S.w]=S.total;var ks=Object.keys(S.hist).sort();while(ks.length>4){delete S.hist[ks.shift()];}S.w=wk;S.total=0;S.byType={};S.seen=[];S.boomed=false;save(S);}}
+if(!S.miles)S.miles=[];if(typeof S.streak!=='number')S.streak=0;
+function rollover(){var wk=PF.isoWeekKey(PF.chiNow());if(S.w!==wk){S.hist[S.w]=S.total;var ks=Object.keys(S.hist).sort();while(ks.length>4){delete S.hist[ks.shift()];}S.streak=S.hits>0?(S.streak||0)+1:0;S.w=wk;S.total=0;S.byType={};S.seen=[];S.boomed=false;S.miles=[];save(S);}}
 function fmt(n){return n.toLocaleString('en-US');}
 function render(){
   rollover();
@@ -41,7 +43,9 @@ function render(){
   try {
     if(window.PF_GLOBAL_TASKS > 0){
       unifiedTotal = window.PF_GLOBAL_TASKS;
-      youLine = 'SITE-WIDE TOTAL \u00B7 you this week: ' + fmt(S.total);
+      var share=S.total/window.PF_GLOBAL_TASKS*100;
+      youLine = 'SITE-WIDE TOTAL · you this week: ' + fmt(S.total) +
+        (S.total>0 ? ' (' + (share<0.1?'<0.1':share.toFixed(1)) + '% of the network)' : '');
     }
   } catch(e){}
   var c=document.getElementById('dCount');if(c){c.textContent=fmt(unifiedTotal);c.classList.remove('d-flash');void c.offsetWidth;c.classList.add('d-flash');}
@@ -49,19 +53,37 @@ function render(){
   var pct=Math.min(100,Math.round(S.total/S.goal*100));
   var fill=document.getElementById('dFill');if(fill)fill.style.width=pct+'%';
   var keg=document.getElementById('dKeg');if(keg)keg.classList.toggle('hot',pct>=75);
-  var gl=document.getElementById('dGoalLine');if(gl)gl.textContent=fmt(S.total)+' / '+fmt(S.goal)+' to detonation'+(S.hits>0?' \\u00B7 '+S.hits+' target'+(S.hits>1?'s':'')+' destroyed':'');
+  var gl=document.getElementById('dGoalLine');if(gl)gl.textContent=fmt(S.total)+' / '+fmt(S.goal)+' to detonation'+(S.hits>0?' \\u00B7 '+S.hits+' target'+(S.hits>1?'s':'')+' destroyed':'')+((S.streak||0)>0?' \\u00B7 \\uD83D\\uDD25 '+S.streak+'-week streak':'');
+  var rs=document.getElementById('dReset');
+  if(rs){try{var mo=PF.mondayOf(PF.chiNow());var ms=(mo.getTime()+7*864e5)-PF.chiNow().getTime();if(ms<0)ms=0;var dd=Math.floor(ms/864e5),hh=Math.floor(ms%864e5/36e5);rs.textContent='New targets in '+dd+'d '+hh+'h';}catch(e){}}
   var ty=document.getElementById('dTypes');
   if(ty){var h='';Object.keys(LABELS).forEach(function(k){var v=S.byType[k]||0;h+='<span class="d-type">'+LABELS[k]+' <b>'+fmt(v)+'</b></span>';});ty.innerHTML=h;}
   var sp=document.getElementById('dSpark');
   if(sp){var weeks=Object.keys(S.hist).sort();weeks.push(S.w);var vals=weeks.map(function(w){return w===S.w?S.total:(S.hist[w]||0);});var mx=Math.max.apply(null,vals.concat([1]));var hh='';weeks.forEach(function(w,i){var v=vals[i];var bh=Math.max(6,Math.round(v/mx*52));hh+='<div class="d-bar'+(w===S.w?' cur':'')+'" title="'+w+': '+fmt(v)+'"><span>'+fmt(v)+'</span><i style="height:'+bh+'px"></i></div>';});sp.innerHTML=hh;}
   try{document.dispatchEvent(new CustomEvent('pf-do-update',{detail:{total:S.total,week:S.w,goal:S.goal}}));}catch(e){}
 }
+function confetti(n){
+  var host=document.getElementById('pf-dometer2');if(!host)return;
+  var colors=['#c1121f','#c1121f','#f5ead6','#e8192f'];
+  for(var i=0;i<n;i++){var p=document.createElement('div');p.className='d-confetti';p.style.left=(Math.random()*100)+'%';p.style.background=colors[i%4];p.style.animationDuration=(1.2+Math.random()*1.6)+'s';host.appendChild(p);(function(el){setTimeout(function(){el.remove();},3200);})(p);}
+}
+function ping(msg){
+  var host=document.getElementById('pf-dometer2');if(!host)return;
+  var d=document.createElement('div');d.className='d-ping';d.textContent=msg;host.appendChild(d);
+  setTimeout(function(){d.remove();},2600);
+}
+/* Milestone dopamine: quarter/half/three-quarter hits ping once per week so
+   the loop closes long before detonation. */
+var MILES=[[25,'QUARTER DETONATED \\u2014 the machine warms up'],[50,'HALFWAY TO DETONATION \\u2014 keep pushing'],[75,'FINAL PUSH \\u2014 the target is in sight']];
+function milestones(){
+  var pct=S.total/S.goal*100;
+  MILES.forEach(function(m){
+    if(pct>=m[0]&&S.miles.indexOf(m[0])<0){S.miles.push(m[0]);save(S);ping(m[1]);confetti(14);}
+  });
+}
 function boom(){
   var b=document.getElementById('dBoom');if(!b)return;
-  b.classList.add('show');
-  var host=document.getElementById('pf-dometer2');
-  var colors=['#c1121f','#c1121f','#f5ead6','#e8192f'];
-  for(var i=0;i<46;i++){var p=document.createElement('div');p.className='d-confetti';p.style.left=(Math.random()*100)+'%';p.style.background=colors[i%4];p.style.animationDuration=(1.2+Math.random()*1.6)+'s';host.appendChild(p);(function(el){setTimeout(function(){el.remove();},3200);})(p);}
+  b.classList.add('show');confetti(46);
   setTimeout(function(){b.classList.remove('show');},3600);
 }
 function add(type,pts,seenKey){
@@ -78,6 +100,7 @@ function add(type,pts,seenKey){
   else{userDroveIt=(Date.now()-lastTap)<2500;}
   S.total+=pts;S.byType[type]=(S.byType[type]||0)+1;
   if(!S.boomed&&S.total>=S.goal){S.boomed=true;S.hits++;boom();S.goal=Math.ceil(S.goal*1.25/50)*50;}
+  milestones();
   save(S);render();
   if(userDroveIt)dollarPop();
 }
@@ -113,13 +136,14 @@ render();
 (function(){
 'use strict';
 var LS='pf_do_v1';
-function total(){try{var s=JSON.parse(localStorage.getItem(LS)||'null');if(s&&s.w===PF.isoWeekKey(PF.chiNow()))return s.total||0;}catch(e){}return 0;}
+function total(){try{if(window.PF_GLOBAL_TASKS>0)return window.PF_GLOBAL_TASKS;var s=JSON.parse(localStorage.getItem(LS)||'null');if(s&&s.w===PF.isoWeekKey(PF.chiNow()))return s.total||0;}catch(e){}return 0;}
 function paint(){var el=document.getElementById('pfDoMiniNum');if(el)el.textContent=(total()).toLocaleString('en-US');}
 document.addEventListener('pf-do-update',paint);
+document.addEventListener('pf-global-tasks',paint);
 paint();setInterval(paint,5000);
 })();
 </script>
 </div>
 </template>`);
-  PF.holder().insertAdjacentHTML('beforeend', "<style>/* PF-DOMETER-SPARK-FIX-20260930: the sparkline bars had no explicit height, so the\nabsolutely-positioned fill overflowed the collapsed bar and rendered as a stray floating\nred square. Give legacy page-level #pf-dometer the same 64px bar height as the template. */\n#pf-dometer .d-bar{height:64px}\n</style>");
+  PF.holder().insertAdjacentHTML('beforeend', "<style>/* PF-DOMETER-SPARK-FIX-20260930: the sparkline bars had no explicit height, so the\nabsolutely-positioned fill overflowed the collapsed bar and rendered as a stray floating\nred square. Give legacy page-level #pf-dometer the same 64px bar height as the template. */\n#pf-dometer .d-bar{height:64px}\n/* PF-DOMETER-LOOP-20261001: milestone toast + week-reset countdown for the dopamine loop. */\n#pf-dometer2 .d-reset{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#f5ead6;opacity:.65;text-transform:uppercase;margin-top:6px}\n#pf-dometer2 .d-ping{position:absolute;top:34%;left:50%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 14px monospace;letter-spacing:1px;padding:10px 18px;border:2px solid #f5ead6;z-index:11;pointer-events:none;white-space:nowrap;max-width:94%;animation:dpingshake .4s}\n@keyframes dpingshake{0%{transform:translateX(-50%) scale(.7)}60%{transform:translateX(-50%) scale(1.06)}100%{transform:translateX(-50%) scale(1)}}\n@media (prefers-reduced-motion:reduce){#pf-dometer2 .d-ping{animation:none}}\n</style>");
 })();

@@ -149,7 +149,8 @@ function ensureActionsSheet(ss) {
  * double-counted. */
 var CHECKINS_SHEET = "checkins";
 var POOL_TYPES = { order_checkin: 1, raid_report: 1, guess_done: 1, poster_made: 1,
-  drop_claimed: 1, billionaire_answered: 1, interrogation_answered: 1, share_image: 1 };
+  drop_claimed: 1, billionaire_answered: 1, interrogation_answered: 1, share_image: 1,
+  checkin: 1 };
 
 function ensureCheckinsSheet(ss) {
   var sh = ss.getSheetByName(CHECKINS_SHEET);

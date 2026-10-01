@@ -1,4 +1,4 @@
-/* pages/home-v2.js  |  PF v1.3.3 | Mounts 12 section templates wherever the <div id="pf-v2"></div> shell
+/* pages/home-v2.js  |  PF v1.4.1 | Mounts 12 section templates wherever the <div id="pf-v2"></div> shell
    KILL: ?pf_off=home-v2  or  localStorage pf_disabled_v1='["home-v2"]' */
 (function () {
   'use strict';

@@ -5,8 +5,9 @@
   'use strict';
   var PF = window.PF;
   if (PF.skip("media-nuke")) { return; }
-  /* PF-NUKE-LOOP-20261001: positioning for the detonation party + bar pulse. */
-  PF.holder().insertAdjacentHTML('beforeend', "<style>\n#slr-nuke{position:relative;overflow:hidden}\n#slr-nuke .slr-nuke-fill.pulse{filter:brightness(1.7)}\n#slr-nuke .nuke-confetti{position:absolute;top:-12px;width:10px;height:14px;z-index:6;pointer-events:none;animation:nukeconfetti linear forwards}\n@keyframes nukeconfetti{to{transform:translateY(620px) rotate(720deg);opacity:0}}\n#slr-nuke .nuke-ping{position:absolute;top:38%;left:50%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;letter-spacing:1px;padding:12px 20px;border:2px solid #f5ead6;z-index:11;pointer-events:none;white-space:nowrap;max-width:94%}\n@media (prefers-reduced-motion:reduce){#slr-nuke .slr-nuke-fill.pulse{filter:none}#slr-nuke .nuke-confetti{animation:none}}\n</style>");
+  /* PF-NUKE-DOPE-20261001: celebration migrated to shared PF.dope (core/08-dopamine.js).
+     Only bar positioning + the charge pulse remain bespoke. */
+  PF.holder().insertAdjacentHTML('beforeend', "<style>\n#slr-nuke{position:relative;overflow:hidden}\n#slr-nuke .slr-nuke-fill.pulse{filter:brightness(1.7)}\n@media (prefers-reduced-motion:reduce){#slr-nuke .slr-nuke-fill.pulse{filter:none}}\n</style>");
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-nuke">
 <div class="fe-block pf-override-block" id="slr-nuke">
 
@@ -75,6 +76,19 @@ function nukeSave(s){try{localStorage.setItem(NUKE_LS,JSON.stringify(s));}catch(
 function nukeAdd(n){var s=nukeLoad(),t=nukeDay();if(s.d!==t)s={d:t,xp:0};s.xp+=n;nukeSave(s);}
 function localXpToday(){var s=nukeLoad();if(s.d!==nukeDay())return 0;return s.xp;}
 
+/* Once-per-day milestone flags, persisted across reloads so a refresh never
+   re-fires a celebration. */
+function mileHit(key){
+  var day=nukeDay(),rec=null;
+  try{rec=JSON.parse(localStorage.getItem('pf_nuke_miles_v1')||'null');}catch(e){}
+  if(rec&&rec.d===day&&rec[key])return false;
+  var next={d:day};
+  if(rec&&rec.d===day){next.m25=rec.m25;next.m60=rec.m60;next.m100=rec.m100;}
+  next[key]=1;
+  try{localStorage.setItem('pf_nuke_miles_v1',JSON.stringify(next));}catch(e){}
+  return true;
+}
+
 function render(root,xp,goal,mode,comrades){
   var pct=Math.min(100,(xp/goal)*100);
   var st=stateFor(pct);
@@ -94,25 +108,32 @@ function render(root,xp,goal,mode,comrades){
   var mine=localXpToday();
   if(you)you.innerHTML='Your charge today: <strong>'+fmt(mine)+' XP</strong> \\u2014 run missions to push the bar';
   root.classList.toggle('armed',pct>=100);
-  /* Dopamine: pulse the bar whenever it grows; full detonation party the
-     first time the network bar arms each day. */
+  /* Dopamine via shared PF.dope: bar pulse + floating charge delta whenever the
+     bar grows; milestone pings at 25%/60%; full detonation party at 100% —
+     each fires once per day. Pure presentation; the XP accounting is untouched. */
   try{
-    var last=root._lastXp||0;
-    if(fill&&xp>last){fill.classList.remove('pulse');void fill.offsetWidth;fill.classList.add('pulse');}
+    var last=root._lastXp||0,dope=(window.PF&&PF.dope)?PF.dope:null,nowT=Date.now();
+    if(fill&&xp>last){
+      fill.classList.remove('pulse');void fill.offsetWidth;fill.classList.add('pulse');
+      if(dope&&last>0&&nowT-(root._nukeFloatAt||0)>2500){
+        root._nukeFloatAt=nowT;
+        dope.xpFloat(root,'+'+fmt(xp-last)+' XP');
+      }
+    }
     root._lastXp=xp;
-    if(mode==='network'&&pct>=100){
-      var day=nukeDay(),shown=null;
-      try{shown=localStorage.getItem('pf_nuke_armed_v1');}catch(e){}
-      if(shown!==day){try{localStorage.setItem('pf_nuke_armed_v1',day);}catch(e){}nukeParty(root);}
+    if(mode==='network'&&dope){
+      if(pct>=25&&mileHit('m25'))dope.ping(root,'CHARGING \\u2014 QUARTER TO DETONATION');
+      if(pct>=60&&mileHit('m60'))dope.ping(root,'CRITICAL MASS \\u2014 60% CHARGED');
+      if(pct>=100&&mileHit('m100'))nukeParty(root);
     }
   }catch(e){}
 }
 
 function nukeParty(root){
-  var colors=['#c1121f','#f5ead6','#e8192f','#ffcc00'];
-  for(var i=0;i<60;i++){var p=document.createElement('div');p.className='nuke-confetti';p.style.left=(Math.random()*100)+'%';p.style.background=colors[i%4];p.style.animationDuration=(1.4+Math.random()*1.8)+'s';root.appendChild(p);(function(el){setTimeout(function(){el.remove();},3600);})(p);}
-  var t=document.createElement('div');t.className='nuke-ping';t.textContent='\\u2622 MEDIA NUKE ARMED \\u2014 command is issuing the target';
-  root.appendChild(t);setTimeout(function(){t.remove();},4200);
+  var dope=(window.PF&&PF.dope)?PF.dope:null;
+  if(!dope)return;
+  dope.confetti(root,60);
+  dope.ping(root,'\\u2622 MEDIA NUKE ARMED \\u2014 command is issuing the target');
 }
 
 function init(){

@@ -3,7 +3,7 @@
 
 Reads the 62 member slugs from src/data/slr-master-db.json so the footer
 slug alternation always covers the whole roster. The V2 pin is left as
-__V2_SHA__ — replaced with the real commit SHA after push (see deploy
+c86cc9b — replaced with the real commit SHA after push (see deploy
 checklist); then committed so the repo file matches the deployed footer.
 """
 import json, os, re
@@ -51,8 +51,15 @@ if missing:
     raise SystemExit("MISSING FILES:\n" + "\n".join(missing))
 
 def js_arr(files):
-    return '[' + ', '.join('"%s"' % f for f in files) + ']'
+    return '[' + ', '.join("'%s'" % f for f in files) + ']'
 
+# NOTE: the footer JS below deliberately uses ONLY single quotes and contains
+# ZERO backslashes. Rationale (2026-10-01): the first deploy pasted a
+# JSON-escaped copy of this file (every " became \" and every \ became \\),
+# which is a fatal syntax error that kills all site JS. With no " or \
+# characters present, JSON-escaping is the identity function, so the footer
+# deploys correctly even through an escaping paste channel. Do NOT introduce
+# double quotes or backslashes (no regex literals!) into this template.
 html = """<!-- PF FOOTER v1.4.2 — shell-aware loader. Pages carrying #pf-v2 (the v2 homepage)
      load the v1.4.2 JS set + CSS pinned to the V2 hash. Pages carrying #pf-war-card
      (Creator HQ) also load the v1.4.2 set so the war-card silo can mount; home-v2.js
@@ -64,21 +71,24 @@ html = """<!-- PF FOOTER v1.4.2 — shell-aware loader. Pages carrying #pf-v2 (t
      The old Squarespace-built roster/catalog content is replaced in-page; the
      v1.1.0 fixes/roster.js patch no longer loads on these pages. Every other
      page loads the v1.1.0 production set pinned to 6e8b9a4.
-     V2 pin: __V2_SHA__ (replaced with the real commit SHA at deploy time).
+     V2 pin: c86cc9b (replaced with the real commit SHA at deploy time).
      Kill switches: ?pf_off=<silo> or ?pf_off=home-v2. -->
 <script>(function(){
-var V2='__V2_SHA__',V1='6e8b9a42397abc5b42f0ba6b123ec4bbdd7857de';
+var V2='c86cc9b',V1='6e8b9a42397abc5b42f0ba6b123ec4bbdd7857de';
 var SLR_SLUGS='""" + slug_alt + """';
 var _p=location.pathname;
-var onV2=!!document.getElementById('pf-v2')||!!document.getElementById('pf-war-card')||!!document.getElementById('pf-slr-roster')||!!document.getElementById('pf-catalog')||/^\\/sick-left-radicals\\/?$/.test(_p)||new RegExp('^/('+SLR_SLUGS+')/?$').test(_p);
+function _seg(p){var s=p.charAt(0)==='/'?p.slice(1):p;return s.charAt(s.length-1)==='/'?s.slice(0,-1):s;}
+var _isSlr=_p==='/sick-left-radicals'||_p==='/sick-left-radicals/'||('|'+SLR_SLUGS+'|').indexOf('|'+_seg(_p)+'|')>-1;
+var onV2=!!document.getElementById('pf-v2')||!!document.getElementById('pf-war-card')||!!document.getElementById('pf-slr-roster')||!!document.getElementById('pf-catalog')||_isSlr;
 var VER=onV2?'v1.4.2':'v1.1.0';
 var BASE='https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@'+(onV2?V2:V1)+'/'+VER+'/';
-var CSS=onV2?["core/01-styles.css"]:["core/01-styles.css", "fixes/mobile.css"];
+var CSS=onV2?['core/01-styles.css']:['core/01-styles.css', 'fixes/mobile.css'];
 var JS=onV2?""" + js_arr(V2_JS) + """:""" + js_arr(V1_JS) + """;
 function siloFail(n,e){if(window.console)console.error('[PF SILO FAILED] '+n+' :: '+(e&&e.message||e||'load error'));}
 window.addEventListener('error',function(e){
-  var f=e.filename||'',m=f.match(/v1\\.(?:1\\.0|4\\.[012])\\/([^?]+)/);
-  if(m)siloFail(m[1],e.message);
+  var f=e.filename||'',i=f.indexOf('/v1.1.0/'),rest='';
+  if(i<0)i=f.indexOf('/v1.4.2/');
+  if(i>-1){rest=f.slice(i+8);var q=rest.indexOf('?');if(q>-1)rest=rest.slice(0,q);siloFail(rest,e.message);}
 },true);
 function css(h){var l=document.createElement('link');l.rel='stylesheet';l.href=BASE+h;
 l.onerror=function(){siloFail(h);};document.head.appendChild(l);}

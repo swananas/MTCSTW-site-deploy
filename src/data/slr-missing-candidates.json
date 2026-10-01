@@ -9,7 +9,39 @@
       "strongest_platform": "TikTok 558.6K (1,168 videos, 8.3M likes)",
       "content_focus": "hard-left agitator \u2014 bio \"FDT, F*ck ICE, Free Palestine, BLM, \ud83d\udc97 immigrants, pro choice\"; Army veteran, lesbian, KY substance-abuse counselor",
       "why_slr_fit": "biggest reach of any true leftist in the pool; bio reads like an SLR affiliate page already",
-      "qualification": "YES \u2014 TikTok"
+      "qualification": "YES \u2014 TikTok",
+      "links": [
+        {
+          "platform": "tiktok",
+          "url": "https://www.tiktok.com/@nikalie.monroe",
+          "followers": "558,600 (2026-10-01)",
+          "status": "confirmed",
+          "source": "live TikTok profile fetch; bio 'FDT, F*ck ICE, Free Palestine, BLM, immigrants, pro choice; Army veteran, Lesbian, KY, Substance Abuse Counselor'"
+        },
+        {
+          "platform": "Bio link (GoFundMe fundraiser)",
+          "url": "https://gofund.me/cd1b825f7",
+          "followers": "",
+          "status": "confirmed",
+          "source": "TikTok bio link"
+        },
+        {
+          "platform": "other",
+          "url": "https://thetab.com/2025/11/10/churches-respond-as-influencer-exposes-them-for-ignoring-desperate-mother-in-43-part-series",
+          "followers": "",
+          "status": "confirmed",
+          "source": "press coverage of her viral 'testing your church' series"
+        },
+        {
+          "platform": "X",
+          "url": "no handle found; third-party writeup says she cross-posts on X",
+          "followers": "unknown",
+          "status": "unverified",
+          "source": "archyde.com writeup"
+        }
+      ],
+      "platform_summary": "TikTok-only footprint (558.6K). No own Instagram, YouTube, X, Facebook, Substack, podcast, merch, Patreon, or website discoverable \u2014 only TikTok plus third-party press/reactor coverage of her viral church social-experiment series.",
+      "enriched_at": "2026-10-01"
     },
     {
       "tiktok": "@progressively2026",
@@ -20,7 +52,32 @@
       "strongest_platform": "TikTok 332.4K (1,383 videos, 7.5M likes)",
       "content_focus": "daily progressive political news commentary with dated posts; TikTok LIVE streams",
       "why_slr_fit": "biggest progressive-Dem account in the pool; daily output, strong engagement (a video at 1.3M plays)",
-      "qualification": "YES \u2014 TikTok"
+      "qualification": "YES \u2014 TikTok",
+      "links": [
+        {
+          "platform": "tiktok",
+          "url": "https://www.tiktok.com/@progressively2026",
+          "followers": "332,400 (2026-10-01)",
+          "status": "confirmed",
+          "source": "live TikTok profile fetch; bio 'Retired Loud Mouth. If it's unjust, I'm talking about it.'; 7.5M likes, 1,383 videos"
+        },
+        {
+          "platform": "YouTube",
+          "url": "claimed on own TikTok ('follow me on Facebookie and Utube') but neither @realprogressive111 nor @progressively2026 resolves",
+          "followers": "unknown",
+          "status": "unverified",
+          "source": "creator's own TikTok video; do NOT confuse with unrelated MMT org 'Real Progressives'"
+        },
+        {
+          "platform": "Facebook",
+          "url": "claimed on own TikTok; no page/handle found",
+          "followers": "unknown",
+          "status": "unverified",
+          "source": "creator's own TikTok video"
+        }
+      ],
+      "platform_summary": "TikTok-dominant (332.4K, daily videos + LIVE); claims Facebook/YouTube presences on her own videos but neither is verifiable by handle. No bio link.",
+      "enriched_at": "2026-10-01"
     },
     {
       "tiktok": "@vandala_effect",
@@ -31,7 +88,40 @@
       "strongest_platform": "TikTok 176.6K (240 videos, 1.9M likes)",
       "content_focus": "leftist political commentary with viral takedown content (236.4K-likes \"How the mighty have fallen\" video), uses #generalstrike; bio \"Working on get banned again \u2764\ufe0f\"",
       "why_slr_fit": "proven leftist political creator with viral reach and high per-post engagement",
-      "qualification": "YES \u2014 TikTok"
+      "qualification": "YES \u2014 TikTok",
+      "links": [
+        {
+          "platform": "tiktok",
+          "url": "https://www.tiktok.com/@vandala_effect",
+          "followers": "176,600 (2026-10-01)",
+          "status": "confirmed",
+          "source": "live TikTok profile fetch; bio 'Working on get banned again'; 240 videos, 1.9M likes"
+        },
+        {
+          "platform": "tiktok",
+          "url": "https://www.tiktok.com/@bella_vandala",
+          "followers": "unknown",
+          "status": "confirmed",
+          "source": "previous TikTok handle per FamousBirthdays"
+        },
+        {
+          "platform": "youtube",
+          "url": "https://www.youtube.com/watch?v=fxWwuC57yjM",
+          "followers": "unknown",
+          "status": "probable",
+          "source": "video 'Vandala Effect Ep. 3' on YouTube channel 'Bella Vandala'; channel URL not directly verified"
+        },
+        {
+          "platform": "substack",
+          "url": "https://substack.com/@bellavandala",
+          "followers": "unknown",
+          "status": "probable",
+          "source": "multiple Substack notes under @bellavandala namespace; profile-root URL constructed from verified namespace"
+        }
+      ],
+      "platform_summary": "TikTok base (176.6K, rebuilt from a banned original @bella_vandala account), a 'Vandala Effect' podcast on YouTube (probable own channel), and a Substack presence under @bellavandala. No verified Instagram, X, Facebook, merch store, or link-in-bio URL found.",
+      "enriched_at": "2026-10-01",
+      "research_note": "2026-10-01 independent re-check found no verifiable YouTube channel or Substack and no link-in-bio; earlier probable YouTube-video and Substack entries retained pending verification."
     },
     {
       "tiktok": "@therevcoms",
@@ -42,7 +132,81 @@
       "strongest_platform": "TikTok 108K (984 videos, 1.3M likes)",
       "content_focus": "self-described \"Revolutionary Communists. Followers of @BobAvakianOfficial & the New Communism\"",
       "why_slr_fit": "strongest ideological alignment in the pool \u2014 explicitly communist propaganda, exactly the SLR lane",
-      "qualification": "YES \u2014 TikTok"
+      "qualification": "YES \u2014 TikTok",
+      "links": [
+        {
+          "platform": "tiktok",
+          "url": "https://www.tiktok.com/@therevcoms",
+          "followers": "108,000 (2026-10-01)",
+          "status": "confirmed",
+          "source": "TikTok profile page; bio 'Revolutionary Communists. Followers of @BobAvakianOfficial & the New Communism.'; 1.3M likes, 984 videos"
+        },
+        {
+          "platform": "linkinbio",
+          "url": "https://linktr.ee/therevcoms",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "TikTok bio link (linktr.ee contents unverifiable \u2014 domain blocked by fetch policy)"
+        },
+        {
+          "platform": "youtube",
+          "url": "https://www.youtube.com/@therevcoms",
+          "followers": "unknown",
+          "status": "probable",
+          "source": "org's own YouTube video descriptions: 'Like, Share, & SUBSCRIBE: / @therevcoms'; channel name 'The Revcoms'"
+        },
+        {
+          "platform": "instagram",
+          "url": "https://www.instagram.com/therevcoms/",
+          "followers": "~1.6K (third-party, Sep 2026)",
+          "status": "probable",
+          "source": "org's own YouTube video descriptions; count via instastatistics.com"
+        },
+        {
+          "platform": "x",
+          "url": "https://x.com/TheRevcoms",
+          "followers": "unknown",
+          "status": "confirmed",
+          "source": "org's own YouTube video descriptions: 'X: https://x.com/TheRevcoms'"
+        },
+        {
+          "platform": "facebook",
+          "url": "https://www.facebook.com/therevcoms",
+          "followers": "unknown",
+          "status": "probable",
+          "source": "org's own YouTube video descriptions ('Facebook: / therevcoms')"
+        },
+        {
+          "platform": "other",
+          "url": "https://bsky.app/profile/revcom.us",
+          "followers": "unknown",
+          "status": "confirmed",
+          "source": "Bluesky \u2014 named in org's own YouTube video descriptions"
+        },
+        {
+          "platform": "website",
+          "url": "https://revcom.us/en",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "org's official website \u2014 Bob Avakian's org"
+        },
+        {
+          "platform": "Podcast",
+          "url": "The RNL \u2014 Revolution, Nothing Less! Show (iHeart, TuneIn, ListenNotes; ~104+ weekly episodes since Sep 2023)",
+          "followers": "no per-episode counts",
+          "status": "confirmed",
+          "source": "multiple podcast directories"
+        },
+        {
+          "platform": "Patreon",
+          "url": "patreon.com/therevcoms",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "self-published in own YouTube descriptions"
+        }
+      ],
+      "platform_summary": "Multi-platform org account for Bob Avakian's Revolutionary Communists (revcom.us): strongest on TikTok (108K); IG ~1.6K, X ~5K, YouTube channel, Facebook, Bluesky, Linktree, Patreon, official site, and a weekly podcast (RNL Show); no Substack found.",
+      "enriched_at": "2026-10-01"
     },
     {
       "tiktok": "@itsdewberry",
@@ -53,7 +217,25 @@
       "strongest_platform": "TikTok 141.9K (1,190 videos, 1.7M likes)",
       "content_focus": "progressive political commentary from SE Texas \u2014 bio \"Don't be a bigot!\"",
       "why_slr_fit": "large, consistent progressive commentator; regional Texas voice",
-      "qualification": "YES \u2014 TikTok"
+      "qualification": "YES \u2014 TikTok",
+      "links": [
+        {
+          "platform": "tiktok",
+          "url": "https://www.tiktok.com/@itsdewberry",
+          "followers": "141,900 (2026-10-01)",
+          "status": "confirmed",
+          "source": "TikTok profile page; bio 'SETX / You get what you get. / Don't be a bigot!'; 1.7M likes, 1,190 videos"
+        },
+        {
+          "platform": "other",
+          "url": "PayPal + Cash App: itsdewberry",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "TikTok bio tip handles"
+        }
+      ],
+      "platform_summary": "TikTok-only footprint (141.9K): Dew, progressive commentator from SE Texas; only monetization trace is PayPal/Cash App tip handles; no IG/YouTube/X/FB/website/link-in-bio discoverable.",
+      "enriched_at": "2026-10-01"
     },
     {
       "tiktok": "@thatalabamafella",
@@ -64,7 +246,32 @@
       "strongest_platform": "TikTok 139.8K (1,603 videos, 1.9M likes)",
       "content_focus": "\"working class fella. it's cool to be anti racist and a feminist.\" \u2014 pro-working-class, anti-Trump, Gaza, Alabama utility corruption",
       "why_slr_fit": "big openly anti-racist/feminist pro-working-class Southern voice; strong SLR fit",
-      "qualification": "YES \u2014 TikTok"
+      "qualification": "YES \u2014 TikTok",
+      "links": [
+        {
+          "platform": "tiktok",
+          "url": "https://www.tiktok.com/@thatalabamafella",
+          "followers": "139,800 (2026-10-01)",
+          "status": "confirmed",
+          "source": "TikTok profile page; bio 'working class fella. it's cool to be anti racist and a feminist.'; 1.9M likes, 1,603 videos"
+        },
+        {
+          "platform": "linkinbio",
+          "url": "https://linktr.ee/alabamafella",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "TikTok bio link (contents unverifiable \u2014 domain blocked)"
+        },
+        {
+          "platform": "other",
+          "url": "https://www.youtube.com/watch?v=zf_yawHlpBs",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "guest (Jeff Alabama) on 'Raised Red, Living Blue' podcast: founding member of Mobile DSA, 'viral TikTok creator with over 100K followers'"
+        }
+      ],
+      "platform_summary": "TikTok-only footprint (139.8K): Jeff Alabama, Mobile DSA founder, pro-working-class/anti-racist/feminist Southern voice; linktr.ee bio link contents unverifiable; interview presence on Raised Red, Living Blue; no IG/YouTube/X/FB discoverable.",
+      "enriched_at": "2026-10-01"
     },
     {
       "tiktok": "@official.ghost.of.eli",
@@ -75,7 +282,46 @@
       "strongest_platform": "TikTok 73.9K (359 videos, 1.4M likes)",
       "content_focus": "trans military service member \u2014 viral \"placed on administrative leave\" video; bio \"Fuck \ud83e\uddca [ICE], Free \ud83c\uddf5\ud83c\uddf8\ud83c\udde8\ud83c\udde9\ud83c\uddf8\ud83c\udde9\"; boycotts, frequent LIVE",
       "why_slr_fit": "strong leftist profile with viral reach (one video 7.4M plays); trans-military angle is unique",
-      "qualification": "YES \u2014 TikTok"
+      "qualification": "YES \u2014 TikTok",
+      "links": [
+        {
+          "platform": "tiktok",
+          "url": "https://www.tiktok.com/@official.ghost.of.eli",
+          "followers": "73,900 (2026-10-01)",
+          "status": "confirmed",
+          "source": "TikTok profile page direct fetch"
+        },
+        {
+          "platform": "Bio link (GoFundMe \u2014 Gaza family fundraiser he is BOOSTING, not his own)",
+          "url": "https://gofund.me/c4df1f30",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "live bio-link resolution 2026-10-01; resolves to 'Joud family from Nuseirat camp' by Yousef Ali"
+        },
+        {
+          "platform": "other",
+          "url": "https://chuffed.org/project/lgbtqeastafrica",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "TikTok bio text (LGBTQ East Africa fundraiser he promotes)"
+        },
+        {
+          "platform": "other",
+          "url": "Venmo: EliOfficial13",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "TikTok bio text"
+        },
+        {
+          "platform": "GoFundMe (own)",
+          "url": "https://www.gofundme.com/f/help-eli-escape-and-rebuild",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "own fundraiser: 'Help Eli Escape Texas and Rebuild' (Eli Cane, 13-yr USAF medic)"
+        }
+      ],
+      "platform_summary": "TikTok-only creator footprint (73.9K, 359 videos, anti-ICE / Free Palestine content); no Instagram/YouTube/X/Facebook/Substack/podcast/merch/Patreon/website found \u2014 fundraising links in bio only. NOTE: 'A Ghost of Eli' (@aghostofeli) is an unrelated TTRPG creator; do not conflate.",
+      "enriched_at": "2026-10-01"
     },
     {
       "tiktok": "@combatvetsagainsttrump",
@@ -86,7 +332,39 @@
       "strongest_platform": "TikTok 50.7K (971 videos, 1.2M likes)",
       "content_focus": "combat veteran anti-Trump/anti-GOP content; regular TikTok LIVE streamer",
       "why_slr_fit": "large anti-Trump vet account, high engagement, live-streamer",
-      "qualification": "YES \u2014 TikTok"
+      "qualification": "YES \u2014 TikTok",
+      "links": [
+        {
+          "platform": "tiktok",
+          "url": "https://www.tiktok.com/@combatvetsagainsttrump",
+          "followers": "50,700 (2026-10-01)",
+          "status": "confirmed",
+          "source": "TikTok profile page direct fetch"
+        },
+        {
+          "platform": "linkinbio",
+          "url": "https://linktr.ee/tom_aka_drake161",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "TikTok bio text (contents unverifiable \u2014 domain blocked)"
+        },
+        {
+          "platform": "Bio link (Change.org petition)",
+          "url": "https://c.org/WQm2cnpvfs",
+          "followers": "'Free them all Shut down Delaney hall' (Delaney Hall ICE protests)",
+          "status": "confirmed",
+          "source": "TikTok bio_link field (change.org petition)"
+        },
+        {
+          "platform": "Org website",
+          "url": "https://www.fightagainstfascism.org",
+          "followers": "n/a",
+          "status": "probable",
+          "source": "Fight Against Fascism Organization; his TikTok nickname reads 'combatvetsagainsttrumpFAFOFndr'"
+        }
+      ],
+      "platform_summary": "TikTok-only footprint (50.7K, 971 videos, combat vet anti-Trump content, regular LIVE streamer); also affiliated with @combatvetsagainsttrumpFAFOFndr / @FAFOofficial on TikTok. No Instagram/YouTube/X/Facebook/Substack/podcast/merch/Patreon/website found.",
+      "enriched_at": "2026-10-01"
     },
     {
       "tiktok": "@_dofd",
@@ -97,7 +375,95 @@
       "strongest_platform": "TikTok 47.2K (1,421 videos, 551.6K likes); also Facebook/X/Instagram/YouTube + Buzzsprout podcast (105 episodes)",
       "content_focus": "anti-fascist org \u2014 resisting book bans, curriculum censorship, voter suppression; LGBTQ+ defense, ICE monitoring, school-board organizing",
       "why_slr_fit": "real leftist organization with consistent multi-platform output; recruit conversation would be with the org",
-      "qualification": "YES \u2014 TikTok"
+      "qualification": "YES \u2014 TikTok",
+      "links": [
+        {
+          "platform": "tiktok",
+          "url": "https://www.tiktok.com/@_dofd",
+          "followers": "47,200 (2026-10-01)",
+          "status": "confirmed",
+          "source": "TikTok profile page direct fetch"
+        },
+        {
+          "platform": "website",
+          "url": "https://defenseofdemocracy.org/",
+          "followers": "'Defense of Democracy Civic Action,' 501(c)(4)",
+          "status": "confirmed",
+          "source": "TikTok bio + site fetched (registered 501c(4), HQ Fishkill/Wappingers Falls NY)"
+        },
+        {
+          "platform": "podcast",
+          "url": "https://www.buzzsprout.com/2188992",
+          "followers": "122 episodes (2026-10-01)",
+          "status": "confirmed",
+          "source": "Buzzsprout show page; 'Defense of Democracy Podcast', hosted by Addison K. Witt"
+        },
+        {
+          "platform": "podcast",
+          "url": "https://www.iheart.com/podcast/269-defense-of-democracy-podca-116196255/",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "search result naming the podcast explicitly (iHeart syndication)"
+        },
+        {
+          "platform": "podcast",
+          "url": "https://www.listennotes.com/podcasts/defense-of-democracy-podcast-addison-k-witt-OdVxKzvIMAa/",
+          "followers": "n/a",
+          "status": "probable",
+          "source": "search result naming the podcast explicitly"
+        },
+        {
+          "platform": "linkinbio",
+          "url": "https://linktr.ee/defenseofdemocracy",
+          "followers": "n/a",
+          "status": "probable",
+          "source": "third-party page naming this as their Linktree; contents unverifiable"
+        },
+        {
+          "platform": "instagram",
+          "url": "https://www.instagram.com/dofdnational",
+          "followers": "~11.7K (Feedspot directory)",
+          "status": "probable",
+          "source": "third-party page naming this as their Instagram; not independently fetched"
+        },
+        {
+          "platform": "youtube",
+          "url": "https://www.youtube.com/shorts/pW5YHf3Q8XM",
+          "followers": "unknown",
+          "status": "probable",
+          "source": "search result titled 'Defense of Democracy' (Thank a Thon short); org channel URL not found"
+        },
+        {
+          "platform": "other",
+          "url": "https://givebutter.com/MvJX52",
+          "followers": "n/a",
+          "status": "probable",
+          "source": "Givebutter campaign organized by Defense of Democracy, Inc."
+        },
+        {
+          "platform": "X",
+          "url": "@_dofd",
+          "followers": "~4.4K (Feedspot)",
+          "status": "probable",
+          "source": "Feedspot podcast directory listing; profile URL not verified"
+        },
+        {
+          "platform": "Facebook",
+          "url": "page exists, URL not verified",
+          "followers": "~11.3K followers (Feedspot)",
+          "status": "probable",
+          "source": "Feedspot listing; org's own podcast descriptions confirm FB presence"
+        },
+        {
+          "platform": "YouTube",
+          "url": "https://www.youtube.com/watch?v=QJmZMcy38jE",
+          "followers": "n/a",
+          "status": "unverified",
+          "source": "'DofD Volunteer Training 2.3.26' tags @_dofd; channel ownership unverified"
+        }
+      ],
+      "platform_summary": "Org footprint: TikTok 47.2K + website (501c4) + Buzzsprout podcast (122 eps, syndicated) + IG ~11.7K / FB ~11.3K / X ~4.4K (all probable via Feedspot); exact FB/X/YT profile URLs not pinned down \u2014 needs one live-browser pass over defenseofdemocracy.org social icons.",
+      "enriched_at": "2026-10-01"
     },
     {
       "tiktok": "@mermaid.tm",
@@ -108,7 +474,74 @@
       "strongest_platform": "TikTok 85.6K (466 videos, ~998K likes); Patreon for behind-the-scenes political content",
       "content_focus": "\"Political Pink Princess\" \u2014 political commentary + regular political LIVE streams",
       "why_slr_fit": "established political commentator with monetized audience and live presence",
-      "qualification": "YES \u2014 TikTok"
+      "qualification": "YES \u2014 TikTok",
+      "links": [
+        {
+          "platform": "tiktok",
+          "url": "https://www.tiktok.com/@mermaid.tm",
+          "followers": "85,600 (2026-10-01)",
+          "status": "confirmed",
+          "source": "TikTok profile page direct fetch"
+        },
+        {
+          "platform": "tiktok",
+          "url": "https://www.tiktok.com/@NotMermaid",
+          "followers": "0 (empty placeholder, nickname '\ud83d\udc41\ud83d\udc44\ud83d\udc41')",
+          "status": "probable",
+          "source": "her own TikTok bio names @NotMermaid as backup; 0 followers/0 videos"
+        },
+        {
+          "platform": "linkinbio",
+          "url": "https://linktr.ee/mermaidtm",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "TikTok bio_link field (contents unverifiable \u2014 domain blocked)"
+        },
+        {
+          "platform": "patreon",
+          "url": "https://www.patreon.com/MermaidTM",
+          "followers": "unknown",
+          "status": "confirmed",
+          "source": "search result: Patreon page explicitly by 'Tatyana Najee (MermaidTM)'"
+        },
+        {
+          "platform": "Instagram",
+          "url": "@mermaid.tm (https://www.heepsy.com/instagram-profile/mermaid.tm)",
+          "followers": "~76.4K",
+          "status": "confirmed",
+          "source": "bio references linktr.ee/mermaidtm; profile mirror crawled 2026-09-27"
+        },
+        {
+          "platform": "X",
+          "url": "@TheMermaidTM",
+          "followers": "unknown",
+          "status": "probable",
+          "source": "xstalk mirror; posts match her content"
+        },
+        {
+          "platform": "Link-in-bio (alt)",
+          "url": "https://lnk.bio/MermaidTM",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "opened 2026-10-01; lists Venmo/CashApp/PayPal/Substack/BlueSky/X/TikTok \u2014 target URLs not extractable"
+        },
+        {
+          "platform": "Substack",
+          "url": "exists per her own lnk.bio",
+          "followers": "n/a",
+          "status": "unverified",
+          "source": "URL not captured"
+        },
+        {
+          "platform": "BlueSky",
+          "url": "exists per her own lnk.bio",
+          "followers": "n/a",
+          "status": "unverified",
+          "source": "handle not captured"
+        }
+      ],
+      "platform_summary": "TikTok-first (85.6K, daily LIVE, 'Political Pink Princess') with confirmed IG @mermaid.tm (~76.4K), Patreon, Linktree + lnk.bio hub (Substack/BlueSky exist there, URLs uncaptured), probable X @TheMermaidTM; no YouTube/Facebook/website found.",
+      "enriched_at": "2026-10-01"
     },
     {
       "tiktok": "@jessicacymone",
@@ -119,51 +552,591 @@
       "strongest_platform": "TikTok 58.5K (214 videos, 551K likes); daily LIVE",
       "content_focus": "progressive political talk + music, \"deep conversations\"; @WeAreWhatsLeft affiliation",
       "why_slr_fit": "progressive political creator with the batch's largest audience; left-coalition affiliation",
-      "qualification": "YES \u2014 TikTok"
-    },
-    {
-      "tiktok": "@reed_showalter",
-      "display_name": "Reed Showalter \u2713",
-      "followers_line": "23.5K TikTok (verified)",
-      "status": "approved_for_overhaul",
-      "source": "tiktok_following",
-      "strongest_platform": "TikTok 23.5K (245 videos, 459.3K likes); Substack",
-      "content_focus": "\"Progressive antimonopoly lawyer. Fighting oligarchs is my favorite pastime. \ud83c\udf49\"; anti-AIPAC, abolish-ICE messaging",
-      "why_slr_fit": "verified, openly progressive anti-oligarch lawyer with Substack; clean on-brand fit",
-      "qualification": "YES \u2014 TikTok"
+      "qualification": "YES \u2014 TikTok",
+      "links": [
+        {
+          "platform": "tiktok",
+          "url": "https://www.tiktok.com/@jessicacymone",
+          "followers": "58,500 (2026-10-01)",
+          "status": "confirmed",
+          "source": "TikTok profile page (bio: 'Girl's Girl who loves deep conversations, music & politics! ... LIVE Daily! @WeAreWhatsLeft')"
+        },
+        {
+          "platform": "linkinbio",
+          "url": "https://linktr.ee/jessicacymone",
+          "followers": "n/a",
+          "status": "probable",
+          "source": "TikTok bio link; linktr.ee blocked so contents unverified"
+        },
+        {
+          "platform": "website",
+          "url": "https://iamjessicacymone.com/",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "opened page titled 'Jessica Cymone \u2013 Actor/Model/Content Creator'"
+        },
+        {
+          "platform": "instagram",
+          "url": "https://www.instagram.com/jessicacymone",
+          "followers": "unknown",
+          "status": "probable",
+          "source": "ENSPIRE Magazine photo credit 'From Jessica Cymone's Instagram; @jessicacymone'"
+        },
+        {
+          "platform": "Website",
+          "url": "https://iamjessicacymone.com",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "official actor/model/creator site"
+        },
+        {
+          "platform": "YouTube",
+          "url": "https://www.youtube.com/watch?v=O-fhhR4kclE",
+          "followers": "unknown",
+          "status": "probable",
+          "source": "self-published #IMBAE web-series; channel URL not captured"
+        },
+        {
+          "platform": "X",
+          "url": "twitter.com/jessicacymone",
+          "followers": "unknown",
+          "status": "probable",
+          "source": "handle in her own video description"
+        },
+        {
+          "platform": "Facebook",
+          "url": "facebook.com/jessicacymone",
+          "followers": "unknown",
+          "status": "probable",
+          "source": "handle in her own video description"
+        },
+        {
+          "platform": "Bluesky",
+          "url": "@jessicacymone.bsky.social",
+          "followers": "unknown",
+          "status": "probable",
+          "source": "Bluesky starter-pack listings"
+        }
+      ],
+      "platform_summary": "Actor/model/livestreamer; TikTok (58.5K) is the hub with a Linktree in bio and a personal site; IG presence probable but uncounted; no discoverable YouTube, X, Facebook, Substack, podcast, merch, or Patreon.",
+      "enriched_at": "2026-10-01"
     },
     {
       "tiktok": "@mexiguerita22",
-      "display_name": "",
+      "display_name": "mexiguerita22",
       "followers_line": "498.8K TikTok (verified)",
       "strongest_platform": "TikTok 498.8K (2,195 videos, 5.8M likes)",
       "content_focus": "Mexican activist/author/creator \u2014 anti-Trump immigration solidarity, extremely consistent poster",
       "why_slr_fit": "near-500K activist; Spanish-language immigration-left lane adds roster diversity",
       "qualification": "YES \u2014 TikTok",
       "status": "approved_for_overhaul",
-      "source": "tiktok_following"
+      "source": "tiktok_following",
+      "links": [
+        {
+          "platform": "tiktok",
+          "url": "https://www.tiktok.com/@mexiguerita22",
+          "followers": "498,800 (2026-10-01)",
+          "status": "confirmed",
+          "source": "live TikTok profile fetch; bio 'Autora \u2022 Activista \u2022 Creadora; Melod\u00eda Moreno | Magic, Mayhem and Madness'"
+        },
+        {
+          "platform": "other",
+          "url": "https://gofund.me/637d758d0",
+          "followers": "",
+          "status": "confirmed",
+          "source": "TikTok bio link"
+        },
+        {
+          "platform": "YouTube",
+          "url": "https://www.youtube.com/@mexiguerita22",
+          "followers": "subs not publicly shown",
+          "status": "confirmed",
+          "source": "channel description verbatim-matches TikTok bio; Shorts under same name"
+        }
+      ],
+      "platform_summary": "Dual-platform (TikTok 498.8K + confirmed YouTube Shorts channel); self-described author/activist (book 'Magic, Mayhem and Madness' by Melodia Moreno) but no verifiable storefront, website, or other platforms.",
+      "enriched_at": "2026-10-01"
     },
     {
       "tiktok": "@mandifromtheinternet",
-      "display_name": "",
+      "display_name": "mandifromtheinternet",
       "followers_line": "182.9K TikTok (verified)",
       "strongest_platform": "TikTok 182.9K (5,718 videos, 14.5M likes)",
       "content_focus": "leftist internet commentary \u2014 openly leftist bio, anarchist-leaning",
       "why_slr_fit": "huge openly-leftist account with relentless posting cadence and massive engagement",
       "qualification": "YES \u2014 TikTok",
       "status": "approved_for_overhaul",
-      "source": "tiktok_following"
+      "source": "tiktok_following",
+      "links": [
+        {
+          "platform": "tiktok",
+          "url": "https://www.tiktok.com/@mandifromtheinternet",
+          "followers": "182,900 (2026-10-01)",
+          "status": "confirmed",
+          "source": "TikTok profile page; bio '\ud83c\udff3\ufe0f\u200d\ud83c\udf08\ud83c\udff3\ufe0f\u200d\u26a7\ufe0fBLM\ud83c\udff4\u24b6 / Obviously, I don't represent my school district.'; 14.5M likes, 5,718 videos"
+        },
+        {
+          "platform": "linkinbio",
+          "url": "https://linktr.ee/sabocat",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "TikTok bio link (contents unverifiable \u2014 domain blocked)"
+        },
+        {
+          "platform": "tiktok",
+          "url": "https://www.tiktok.com/@sabocat",
+          "followers": "unknown",
+          "status": "confirmed",
+          "source": "same person (Mandi Jung), aka Sabocat \u2014 named in podcast episode descriptions"
+        },
+        {
+          "platform": "x",
+          "url": "https://twitter.com/sabocat_teacher",
+          "followers": "unknown",
+          "status": "confirmed",
+          "source": "podcast 'Connect with Sabocat' link list (castbox.fm / listennotes.com)"
+        },
+        {
+          "platform": "instagram",
+          "url": "https://www.instagram.com/sabocat_teacher/",
+          "followers": "unknown",
+          "status": "confirmed",
+          "source": "podcast 'Connect with Sabocat' link list (castbox.fm / listennotes.com)"
+        },
+        {
+          "platform": "website",
+          "url": "https://www.sabocatteacher.com/",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "podcast 'Connect with Sabocat' link list (castbox.fm / listennotes.com)"
+        },
+        {
+          "platform": "substack",
+          "url": "https://sabocat612.substack.com",
+          "followers": "unknown",
+          "status": "confirmed",
+          "source": "search result showing her Substack Live ('I'm SaboCat612 here')"
+        }
+      ],
+      "platform_summary": "Mandi Jung, St. Paul public school teacher ('Sabocat'); core on TikTok (182.9K, anarchist-leaning bio markers); verified personal site, X, IG, and Substack under sabocat branding; no YouTube/FB/merch/Patreon found.",
+      "enriched_at": "2026-10-01"
     },
     {
       "tiktok": "@sajidahtalks2025",
-      "display_name": "",
+      "display_name": "sajidahtalks2025",
       "followers_line": "21.9K TikTok (verified)",
       "strongest_platform": "TikTok 21.9K (172 videos, 186.7K likes)",
       "content_focus": "political activist \u2014 Palestine, immigration, Sudan solidarity; live streams",
       "why_slr_fit": "explicit leftist solidarity content, active poster, well above minimum",
       "qualification": "YES \u2014 TikTok",
       "status": "approved_for_overhaul",
-      "source": "tiktok_following"
+      "source": "tiktok_following",
+      "links": [
+        {
+          "platform": "tiktok",
+          "url": "https://www.tiktok.com/@sajidahtalks2025",
+          "followers": "21,900 (2026-10-01)",
+          "status": "confirmed",
+          "source": "TikTok profile page (bio: 'We are not FREE until we are ALL free')"
+        },
+        {
+          "platform": "linkinbio",
+          "url": "https://linktr.ee/sajidahtalks2025",
+          "followers": "n/a",
+          "status": "probable",
+          "source": "TikTok bio link; linktr.ee blocked so contents unverified"
+        }
+      ],
+      "platform_summary": "TikTok-only footprint found (21.9K, Palestine/immigration/Sudan solidarity streams); no discoverable Instagram, YouTube, X, Facebook, Substack, podcast, merch, Patreon, or personal website \u2014 only the bio Linktree (contents unread).",
+      "enriched_at": "2026-10-01"
+    },
+    {
+      "tiktok": "@public_enlightenment",
+      "display_name": "public_enlightenment",
+      "followers_line": "30.2K TikTok (verified)",
+      "strongest_platform": "TikTok 30.2K",
+      "content_focus": "pro-democracy news aggregator, anti-disinformation; slightly liberal-institutional tone but on-mission",
+      "why_slr_fit": "news/propaganda lane fit; anti-disinformation work aligns with network mission",
+      "qualification": "YES \u2014 TikTok",
+      "status": "approved_for_overhaul",
+      "source": "tiktok_following",
+      "links": [
+        {
+          "platform": "TikTok",
+          "url": "https://www.tiktok.com/@public_enlightenment",
+          "followers": "30,200 followers",
+          "status": "confirmed",
+          "source": "tiktok profile fetch 2026-10-01"
+        },
+        {
+          "platform": "Substack",
+          "url": "https://publicenlightenment.com",
+          "followers": "~1K+ free subscribers",
+          "status": "confirmed",
+          "source": "official hub, Substack-hosted"
+        },
+        {
+          "platform": "Substack",
+          "url": "https://substack.com/@brianhansbury",
+          "followers": "~1K+ free subscribers",
+          "status": "confirmed",
+          "source": "linked from her own posts"
+        },
+        {
+          "platform": "Patreon",
+          "url": "https://www.patreon.com/PublicEnlightenment",
+          "followers": "42 members (~$28.8/mo)",
+          "status": "confirmed",
+          "source": "patreon page; includes Discord for $2/mo members"
+        },
+        {
+          "platform": "Website",
+          "url": "https://publicenlightenment.com",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "official hub"
+        },
+        {
+          "platform": "Instagram",
+          "url": "https://www.instagram.com/enlightened_public",
+          "followers": "unknown",
+          "status": "probable",
+          "source": "self-listed in creator's Bluesky bio; account not opened live"
+        },
+        {
+          "platform": "YouTube",
+          "url": "https://www.youtube.com/@public_enlightenment",
+          "followers": "unknown",
+          "status": "probable",
+          "source": "channel matches description + handle in Bluesky bio"
+        },
+        {
+          "platform": "Twitch",
+          "url": "https://www.twitch.tv/publicenlightenment",
+          "followers": "unknown",
+          "status": "probable",
+          "source": "self-listed in Bluesky bio"
+        },
+        {
+          "platform": "Bluesky",
+          "url": "@publicenlightenment.com / @brianhansbury.bsky.social",
+          "followers": "unknown",
+          "status": "probable",
+          "source": "starter-pack listings"
+        },
+        {
+          "platform": "Link-in-bio",
+          "url": "https://linktr.ee/public_enlightenment",
+          "followers": "n/a",
+          "status": "probable",
+          "source": "referenced in Bluesky starter-pack; contents blocked by fetch policy"
+        },
+        {
+          "platform": "Podcast",
+          "url": "audio podcast referenced on Substack (no verified URL)",
+          "followers": "n/a",
+          "status": "unverified",
+          "source": "Substack mentions 'Listen on Spotify or wherever'"
+        }
+      ],
+      "platform_summary": "Full multi-platform operation (TikTok + YouTube + Instagram + Substack 1K+ subs + Patreon + Bluesky + Twitch) run by Brian Hansbury with a real website and paid membership tier.",
+      "enriched_at": "2026-10-01"
+    },
+    {
+      "tiktok": "@love_and_molotov",
+      "display_name": "Randi Lisandro",
+      "followers_line": "28K TikTok (verified)",
+      "strongest_platform": "TikTok 28K",
+      "content_focus": "feminist call-out/critique content, links powerthepolls.org",
+      "why_slr_fit": "feminist agitator branding fits the network aesthetic; critique content is on-mission",
+      "qualification": "YES \u2014 TikTok",
+      "status": "approved_for_overhaul",
+      "source": "tiktok_following",
+      "links": [
+        {
+          "platform": "TikTok",
+          "url": "https://www.tiktok.com/@love_and_molotov",
+          "followers": "28,000 followers",
+          "status": "confirmed",
+          "source": "tiktok profile fetch 2026-10-01"
+        },
+        {
+          "platform": "Bio link",
+          "url": "https://www.powerthepolls.org/",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "URL in TikTok bio (external voter-registration org, not personal link-in-bio)"
+        }
+      ],
+      "platform_summary": "TikTok-only feminist call-out creator (Randi Misandry); only external link is powerthepolls.org; no verifiable off-TikTok presence of her own.",
+      "enriched_at": "2026-10-01"
+    },
+    {
+      "tiktok": "@thelastcookout",
+      "display_name": "Liv2bgr8",
+      "followers_line": "23.2K TikTok (verified)",
+      "strongest_platform": "TikTok 23.2K",
+      "content_focus": "Black community empowerment, self-ID'd social justice activist; runs podcast + newsletter",
+      "why_slr_fit": "PROMOTED from honorable mentions 2026-10-01 per Shane. Multi-platform (podcast + newsletter) plus community-organizing angle",
+      "qualification": "YES \u2014 TikTok",
+      "status": "approved_for_overhaul",
+      "source": "tiktok_following",
+      "links": [
+        {
+          "platform": "TikTok",
+          "url": "https://www.tiktok.com/@thelastcookout",
+          "followers": "23,200 followers",
+          "status": "confirmed",
+          "source": "tiktok profile (bio: Social Justice Activist)"
+        },
+        {
+          "platform": "Website",
+          "url": "https://www.thelastcookout.com",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "names host Liv2bgr8 / Mitch Carter, matches TikTok"
+        },
+        {
+          "platform": "Link-in-bio",
+          "url": "https://linktr.ee/Liv2bgr8",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "linked in TikTok bio (contents not inspectable)"
+        },
+        {
+          "platform": "Merch",
+          "url": "https://www.thelastcookout.com (limited-edition $200 art prints + solidarity hoodie)",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "on-site merch section"
+        },
+        {
+          "platform": "Newsletter",
+          "url": "https://www.thelastcookout.com (on-site email signup; not Substack)",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "on-site subscribe form"
+        },
+        {
+          "platform": "Podcast",
+          "url": "The Last Cookout Podcast (announced on website FAQs; no Spotify/Apple/RSS found)",
+          "followers": "n/a",
+          "status": "unverified",
+          "source": "website mentions, no platform feeds found"
+        }
+      ],
+      "platform_summary": "TikTok-led Black-community activist brand; owns thelastcookout.com with merch + email newsletter and a podcast that is announced but has no discoverable platform feeds.",
+      "enriched_at": "2026-10-01"
+    },
+    {
+      "tiktok": "@an_iowan",
+      "display_name": "An_Iowan",
+      "followers_line": "26.8K TikTok (verified)",
+      "strongest_platform": "TikTok 26.8K",
+      "content_focus": "Iowa progressive / Resistance circuit voice",
+      "why_slr_fit": "PROMOTED from honorable mentions 2026-10-01 per Shane. Highest remaining reach of the qualified pool",
+      "qualification": "YES \u2014 TikTok",
+      "status": "approved_for_overhaul",
+      "source": "tiktok_following",
+      "links": [
+        {
+          "platform": "TikTok",
+          "url": "https://www.tiktok.com/@an_iowan",
+          "followers": "26,800 followers",
+          "status": "confirmed",
+          "source": "tiktok profile (799 videos, 698.1K likes)"
+        }
+      ],
+      "platform_summary": "TikTok-only presence in the Iowa Resistance circuit; no other public platforms, website, or monetization discovered.",
+      "enriched_at": "2026-10-01"
+    },
+    {
+      "tiktok": "@splashofgenz",
+      "display_name": "Emily Ann Gregson",
+      "followers_line": "20K TikTok (verified)",
+      "strongest_platform": "TikTok 20K",
+      "content_focus": "Gen Z political commentary, viral-scale engagement (318K-play LEGO explainer)",
+      "why_slr_fit": "PROMOTED from honorable mentions 2026-10-01 per Shane. Youth lane + proven viral reach",
+      "qualification": "YES \u2014 TikTok",
+      "status": "approved_for_overhaul",
+      "source": "tiktok_following",
+      "links": [
+        {
+          "platform": "TikTok",
+          "url": "https://www.tiktok.com/@splashofgenz",
+          "followers": "20,000 followers",
+          "status": "confirmed",
+          "source": "live tiktok profile fetch 2026-10-01"
+        },
+        {
+          "platform": "Instagram",
+          "url": "instagram.com/splashofgenz",
+          "followers": "unknown",
+          "status": "confirmed",
+          "source": "handle self-published on creator's verified Snapchat profile (snapchat.com/@emagin); followers unverified"
+        },
+        {
+          "platform": "Facebook",
+          "url": "profile under name 'Emily Ann Gregson'",
+          "followers": "unknown",
+          "status": "confirmed",
+          "source": "self-published on creator's verified Snapchat profile; exact URL unverified"
+        },
+        {
+          "platform": "Link-in-bio",
+          "url": "https://linktr.ee/splashofgenz",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "from TikTok bio, verified live; contents blocked by fetch policy"
+        },
+        {
+          "platform": "OnlyFans",
+          "url": "anniesnotok (self-listed on Snapchat bio)",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "self-published on creator's verified Snapchat profile"
+        }
+      ],
+      "platform_summary": "TikTok-native political commentator (~20K) with linked Instagram and Facebook per her own bios, plus OnlyFans; no YouTube, X, Substack, podcast, or merch discoverable.",
+      "enriched_at": "2026-10-01"
+    },
+    {
+      "tiktok": "@sissyfits",
+      "display_name": "Sissyfits",
+      "followers_line": "16.5K TikTok (verified)",
+      "strongest_platform": "TikTok 16.5K (4,878 videos)",
+      "content_focus": "self-ID'd 'Annoying Leftist', prolific poster",
+      "why_slr_fit": "PROMOTED from honorable mentions 2026-10-01 per Shane. Explicit leftist identity + massive output",
+      "qualification": "YES \u2014 TikTok",
+      "status": "approved_for_overhaul",
+      "source": "tiktok_following",
+      "links": [
+        {
+          "platform": "TikTok",
+          "url": "https://www.tiktok.com/@sissyfits",
+          "followers": "16,500 followers",
+          "status": "confirmed",
+          "source": "live tiktok profile fetch 2026-10-01; bio 'Annoying Leftist', 4,878 videos, 1.9M likes"
+        },
+        {
+          "platform": "Link-in-bio",
+          "url": "https://linktr.ee/Sissyfits",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "from TikTok bio, verified live; contents blocked by fetch policy"
+        }
+      ],
+      "platform_summary": "TikTok-only creator ('Annoying Leftist', 4,878 videos) with no discoverable off-TikTok footprint beyond a link-in-bio whose contents could not be retrieved.",
+      "enriched_at": "2026-10-01"
+    },
+    {
+      "tiktok": "@tideandtruths",
+      "display_name": "Syd",
+      "followers_line": "6,524 TikTok (verified 2026-10-01)",
+      "strongest_platform": "TikTok (count unverified)",
+      "content_focus": "Gaza aid organizing \u2014 founder of Tide Mothers Collective (newborn care packages); bio: 'Neurospicy brain \u2022 Chronically ill body \u2022 Founder @Tide Mothers Collective'",
+      "why_slr_fit": "Added directly by Shane 2026-10-01 ('Syd'). Possible match to Sydney Touchstone (Messenger group DM) \u2014 verify identity and count",
+      "qualification": "BELOW MINIMUM \u2014 TikTok 6.5K is under the 10K SLR hard minimum; qualifies on no other platform",
+      "status": "approved_for_overhaul",
+      "source": "tiktok_following",
+      "links": [
+        {
+          "platform": "TikTok",
+          "url": "https://www.tiktok.com/@tideandtruths",
+          "followers": "6,524 followers",
+          "status": "confirmed",
+          "source": "live tiktok profile fetch 2026-10-01 (600 videos, 206.9K likes; nickname 'Syd\u00bf\ud83c\udf49')"
+        },
+        {
+          "platform": "X",
+          "url": "@TideAndTruths ('Tide & Truths', ~33-34 followers)",
+          "followers": "unknown",
+          "status": "probable",
+          "source": "seen on twstalker/instalker aggregators; bio themes match TikTok identity but direct URL unverified"
+        },
+        {
+          "platform": "Link-in-bio",
+          "url": "https://linktr.ee/TideAndTruths",
+          "followers": "n/a",
+          "status": "confirmed",
+          "source": "from her own TikTok bio; contents blocked by fetch policy"
+        },
+        {
+          "platform": "Chuffed fundraiser",
+          "url": "https://chuffed.org/project/155748-tide-mothers-collective-mother-led-relief-in-gaza",
+          "followers": "n/a",
+          "status": "probable",
+          "source": "her TikTok bio states she is founder of Tide Mothers Collective; organizer identity not independently verified"
+        }
+      ],
+      "platform_summary": "TikTok-first political creator (Syd, 6.5K followers, 600 videos) focused on Gaza aid organizing as founder of Tide Mothers Collective; Linktree in bio (contents blocked); probable same-branded X (~33 followers); no IG/YT/FB/Substack/podcast/merch/Patreon/website discoverable.",
+      "enriched_at": "2026-10-01"
+    },
+    {
+      "tiktok": "@worlds_strongest_mayo",
+      "display_name": "worlds_strongest_mayo",
+      "followers_line": "12,600 TikTok (verified 2026-10-01)",
+      "strongest_platform": "TikTok 12.6K",
+      "content_focus": "anti-MAGA political satirist, disproportionate engagement for size",
+      "why_slr_fit": "Added directly by Shane 2026-10-01 ('Worlds strongest mayo'). Satire lane + strong engagement",
+      "qualification": "YES \u2014 TikTok (12.6K clears the 10K minimum)",
+      "status": "approved_for_overhaul",
+      "source": "tiktok_following",
+      "links": [
+        {
+          "platform": "TikTok",
+          "url": "https://www.tiktok.com/@worlds_strongest_mayo",
+          "followers": "12,600 followers",
+          "status": "confirmed",
+          "source": "live tiktok profile fetch 2026-10-01 (730 videos, 2.6M likes; bio 'The 6th official mother sauce')"
+        }
+      ],
+      "platform_summary": "TikTok-only creator (12.6K, 730 videos, 2.6M likes, anti-MAGA political satire); no discoverable Instagram, YouTube, X, Facebook, Substack, podcast, link-in-bio, merch, Patreon, or website.",
+      "enriched_at": "2026-10-01"
+    },
+    {
+      "tiktok": "@edwardgonzales579",
+      "display_name": "Edward Gonzales",
+      "followers_line": "14,200 TikTok (verified 2026-10-01)",
+      "strongest_platform": "TikTok (count unverified)",
+      "content_focus": "FLAGGED: does NOT appear to be a leftist/political creator \u2014 Indigenous-culture/personal content (bio 'Yaqui Native American'; Mayan murals, personal posts). No political content or movement affiliation verifiable.",
+      "why_slr_fit": "Added directly by Shane 2026-10-01 ('Edward'). Verify content fit and count",
+      "qualification": "YES \u2014 TikTok (14.2K clears 10K) BUT FIT FLAGGED: no leftist/political identity verifiable",
+      "status": "approved_for_overhaul",
+      "source": "tiktok_following",
+      "links": [
+        {
+          "platform": "TikTok",
+          "url": "https://www.tiktok.com/@edwardgonzales579",
+          "followers": "14,200 followers",
+          "status": "confirmed",
+          "source": "live tiktok profile fetch 2026-10-01 (4,087 videos, 480.9K likes; bio 'Yaqui Native American')"
+        }
+      ],
+      "platform_summary": "TikTok-only personal creator (14.2K) with Yaqui Native American cultural content; no discoverable off-platform presence and no political/leftist identity verifiable.",
+      "enriched_at": "2026-10-01"
+    },
+    {
+      "tiktok": "@magaslayer2025",
+      "display_name": "magaslayer2025",
+      "followers_line": "8,969 TikTok (verified 2026-10-01)",
+      "strongest_platform": "TikTok 8.9K",
+      "content_focus": "anti-MAGA leftist content",
+      "why_slr_fit": "Added directly by Shane 2026-10-01 ('MAGA slayer'). Below the 10K TikTok minimum \u2014 flagged for Shane's call; may qualify on another platform",
+      "qualification": "BELOW MINIMUM \u2014 TikTok 8,969 is under the 10K SLR hard minimum; qualifies on no other platform (added per Shane's direct request)",
+      "status": "approved_for_overhaul",
+      "source": "tiktok_following",
+      "links": [
+        {
+          "platform": "TikTok",
+          "url": "https://www.tiktok.com/@magaslayer2025",
+          "followers": "8,969 followers",
+          "status": "confirmed",
+          "source": "live tiktok profile fetch 2026-10-01 (42 videos, 10.8K likes)"
+        }
+      ],
+      "platform_summary": "TikTok-only micro-creator (8,969); zero verifiable footprint on any other platform \u2014 no alternative qualification path. Do NOT conflate with lookalike 'Maga Slayer' accounts (@magaslayer.barbarian, @MagaSlayer47, @IAmMAGASlayer, @MAGACult2), which are distinct creators.",
+      "enriched_at": "2026-10-01"
     }
   ],
   "db_creators_matched": [
@@ -204,7 +1177,7 @@
       "source": "facebook_friend"
     }
   ],
-  "notes": "Messenger Companion is NOT connected (hatch_messenger_cli check: 'Messenger not connected yet'), so no Messenger contacts or DM participants could be pulled. That half of the cross-reference could not be run; connect Messenger to complete it. Facebook friends pull: 280 friends over 15 pages via facebook-cli me friends (personal profile of Shane Swan). The list is overwhelmingly personal Louisiana contacts (family, school, local friends, pawn shops, a wing restaurant) - almost no creator pages. Strict normalized matching (names + handles + vanity URLs, generic tokens like 'profilephp' excluded) found 1 confirmed DB match (Radically Sunny). Joey Morvant is a first-name-only possible match for DB creator Joey, unverified. Deduped against TikTok side (follow-crossref.json, 63 new_discoveries): zero overlap between Facebook friends and TikTok discoveries - no candidate appears in both sources. The strong SLR-fit accounts the TikTok cross-reference surfaced (@combatvetsagainsttrump, @therevcoms, @magaslayer2025, @_dofd, @attorneydeon, @lawyer_lisa, @theunscriptedrevolution, @octoquake, @love_and_molotov, @sentientdirtpress, @splashofgenz, @str8upshowpodcast, @ndreportpod, @progressively2026, @public_enlightenment, @skeptic.tik, @delanceythrone, @sissyfits, @avedeusmortis, @itssethshadows) are NOT in the Facebook friends list, so no multi-source confirmations exist yet. No strong new SLR candidates found in Facebook friends; the two low-signal leads above have unknown politics and should not be treated as candidates without further research. Read-only throughout: no messages sent, no friend/follow actions taken. | Messenger run 2026-10-01: Companion connected, 581 contacts pulled, 14 threads in the 30-day window. Only DB creator in Messenger is Radically Sunny (exact match, active in a recent group DM). No high-confidence multi-source confirmations: the 63 TikTok discoveries do not cleanly overlap Messenger contacts - only weak first-name/nickname overlaps (Jesse Hebert / @avedeusmortis 'Jesse'; Sydney Touchstone / @tideandtruths 'Syd'), both low-confidence leads. No new SLR candidates with real signals from Messenger contacts or recent DM participants - the contact list is overwhelmingly personal Louisiana contacts. | 2026-10-01: 15 TikTok candidates researched, ranked, and APPROVED by Shane for the pending SLR overhaul (status=approved_for_overhaul). @isaiahrmartin removed per user direction. Staging only.",
+  "notes": "Messenger Companion is NOT connected (hatch_messenger_cli check: 'Messenger not connected yet'), so no Messenger contacts or DM participants could be pulled. That half of the cross-reference could not be run; connect Messenger to complete it. Facebook friends pull: 280 friends over 15 pages via facebook-cli me friends (personal profile of Shane Swan). The list is overwhelmingly personal Louisiana contacts (family, school, local friends, pawn shops, a wing restaurant) - almost no creator pages. Strict normalized matching (names + handles + vanity URLs, generic tokens like 'profilephp' excluded) found 1 confirmed DB match (Radically Sunny). Joey Morvant is a first-name-only possible match for DB creator Joey, unverified. Deduped against TikTok side (follow-crossref.json, 63 new_discoveries): zero overlap between Facebook friends and TikTok discoveries - no candidate appears in both sources. The strong SLR-fit accounts the TikTok cross-reference surfaced (@combatvetsagainsttrump, @therevcoms, @magaslayer2025, @_dofd, @attorneydeon, @lawyer_lisa, @theunscriptedrevolution, @octoquake, @love_and_molotov, @sentientdirtpress, @splashofgenz, @str8upshowpodcast, @ndreportpod, @progressively2026, @public_enlightenment, @skeptic.tik, @delanceythrone, @sissyfits, @avedeusmortis, @itssethshadows) are NOT in the Facebook friends list, so no multi-source confirmations exist yet. No strong new SLR candidates found in Facebook friends; the two low-signal leads above have unknown politics and should not be treated as candidates without further research. Read-only throughout: no messages sent, no friend/follow actions taken. | Messenger run 2026-10-01: Companion connected, 581 contacts pulled, 14 threads in the 30-day window. Only DB creator in Messenger is Radically Sunny (exact match, active in a recent group DM). No high-confidence multi-source confirmations: the 63 TikTok discoveries do not cleanly overlap Messenger contacts - only weak first-name/nickname overlaps (Jesse Hebert / @avedeusmortis 'Jesse'; Sydney Touchstone / @tideandtruths 'Syd'), both low-confidence leads. No new SLR candidates with real signals from Messenger contacts or recent DM participants - the contact list is overwhelmingly personal Louisiana contacts. | 2026-10-01: 15 TikTok candidates researched, ranked, and APPROVED by Shane for the pending SLR overhaul (status=approved_for_overhaul). @isaiahrmartin removed per user direction. Staging only. | 2026-10-01: @campchelle and @annamae_16_2 removed per user direction.",
   "sources": {
     "facebook_friends_count": 280,
     "messenger_contacts_count": 581,

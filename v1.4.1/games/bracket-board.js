@@ -1,16 +1,9 @@
-/* ============================================================================
-   SILO: games/bracket-board.js  |  PF v1.3.0
-   WHAT: The Liquidation Bracket board (16-billionaire showdown widget, self-contained; ballot mode, no backend URL set)
-   PHASE: games: template now, mounted by pages/home-v2.js on /v2 only.
-          Inert on all other paths (staged inside <template>).
-   KILL: ?pf_off=bracket-board  or  localStorage pf_disabled_v1='["bracket-board"]'
-   SOURCE: verbatim extract from the live https://www.mtcstw.com/ homepage
-           (native Squarespace Code Block), bracket code block
-   ============================================================================ */
+/* games/bracket-board.js  |  PF v1.3.0 | The Liquidation Bracket board (16-billionaire showdown widget, self-contained; ballot mode
+   KILL: ?pf_off=bracket-board  or  localStorage pf_disabled_v1='["bracket-board"]' */
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("bracket-board")) { PF.log("bracket-board", "disabled via kill-switch"); return; }
+  if (PF.skip("bracket-board")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-bracket">
 <div id="pf-bracket">
 <style>
@@ -84,13 +77,11 @@ var CONTENDERS = {
 var R1 = [[1,16],[8,9],[5,12],[4,13],[3,14],[6,11],[7,10],[2,15]];
 var ROUND_NAMES = ["Round of 16","Quarterfinals","Semifinals","The Final Liquidation"];
 
-function chicagoNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"America/Chicago"})); }
-function mondayOf(d){ var x=new Date(d); var day=(x.getDay()+6)%7; x.setHours(0,0,0,0); x.setDate(x.getDate()-day); return x; }
-function weekKey(){ var m=mondayOf(chicagoNow()); return m.getFullYear()+"-"+(m.getMonth()+1)+"-"+m.getDate(); }
+function weekKey(){ var m=PF.mondayOf(PF.chiNow()); return m.getFullYear()+"-"+(m.getMonth()+1)+"-"+m.getDate(); }
 function weekIndex(){
   var s=new Date(START_MONDAY+"T00:00:00");
-  var now=chicagoNow();
-  return Math.floor((mondayOf(now)-mondayOf(s))/604800000);
+  var now=PF.chiNow();
+  return Math.floor((PF.mondayOf(now)-PF.mondayOf(s))/604800000);
 }
 function roundMatchups(r){
   if(r===0) return R1.map(function(m){return m.slice();});
@@ -117,7 +108,7 @@ function render(){
       : '<div class="b-locked">The people have spoken. Champion announcement pending.</div>';
     return;
   }
-  var wk=mondayOf(chicagoNow());
+  var wk=PF.mondayOf(PF.chiNow());
   weekEl.textContent="Week of "+wk.toLocaleDateString("en-US",{month:"long",day:"numeric"})+" — "+ROUND_NAMES[wi]+" — polls close Sunday night";
   var h="";
   for(var r=0;r<4;r++){
@@ -203,5 +194,4 @@ if(bCopyBtn){
 </div>
 <!-- BRACKET-EMBED-END -->
 </template>`);
-  PF.log("bracket-board", "silo loaded");
 })();

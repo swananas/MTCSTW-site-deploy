@@ -1,16 +1,10 @@
-/* ============================================================================
-   SILO: games/fan-vote.js  |  PF v1.1.0
-   WHAT: Fan Vote widget: template + voting logic
-   PHASE: games: template now, companions after mount
-   EVENTS SEEN: pf-ov-vote, pf-override-block, pf-vote, pf-vote-cast, pf-vote-copy, pf-vote-copymsg, pf-vote-list, pf-vote-msg, pf-vote-power, pf-vote-reset, pf-vote-share, pf-vote-sub
-   KILL: ?pf_off=fan-vote  or  localStorage pf_disabled_v1='["fan-vote"]'
-   SOURCE: verbatim extract from dist/pf-footer-v1.1.0.html
-   ============================================================================ */
+/* games/fan-vote.js  |  PF v1.4.1 | Fan Vote widget: template + voting logic
+   KILL: ?pf_off=fan-vote  or  localStorage pf_disabled_v1='["fan-vote"]' */
 
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("fan-vote")) { PF.log("fan-vote", "disabled via kill-switch"); return; }
+  if (PF.skip("fan-vote")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-vote">
 <div class="fe-block pf-override-block">
 <div id="pf-vote" style="max-width:640px;margin:2rem auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:'Helvetica Neue',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;text-align:center;">
@@ -122,14 +116,13 @@
   var _above = _sorted.filter(function(c){ return c.score > _cutoff; });
   var _tied = _sorted.filter(function(c){ return c.score === _cutoff; });
   var _spots = 10 - _above.length;
-  var _wk = isoWeek(chicagoNow());
+  var _wk = isoWeek(PF.chiNow());
   var _rotated = [];
   for(var _i = 0; _i < _tied.length; _i++){
     _rotated.push(_tied[(_wk - 1 + _i) % _tied.length]);
   }
   var CANDIDATES = _above.concat(_rotated.slice(0, _spots));
   CANDIDATES.sort(function(a,b){ return b.score - a.score; });
-  function chicagoNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"America/Chicago"})); }
   function isoWeek(d){
     var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
     var day = (t.getUTCDay() + 6) % 7;
@@ -139,7 +132,7 @@
     first.setUTCDate(first.getUTCDate() - fday + 3);
     return 1 + Math.round((t - first) / 6048e5);
   }
-  var now = chicagoNow();
+  var now = PF.chiNow();
   var weekKey = now.getFullYear() + "-W" + isoWeek(now);
   var storeKey = "slr-vote-" + weekKey;
   /* COMMISSAR unlock: vote counts double. Set by the Enlistment Ranks widget. */
@@ -379,5 +372,4 @@
 </script>
 </div>
 </template>`);
-  PF.log("fan-vote", "silo loaded");
 })();

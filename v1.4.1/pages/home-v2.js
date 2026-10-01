@@ -1,29 +1,10 @@
-/* ============================================================================
-   SILO: pages/home-v2.js  |  PF v1.3.3
-   WHAT: Mounts 12 section templates wherever the <div id="pf-v2"></div> shell
-         lives — the unlisted /v2-page scratch page today, the site homepage (/)
-         once /v2-page is set as homepage. Detection is shell-based, not
-         path-based, so the v2 set follows the shell wherever it goes.
-         Sections render in the exact order they appear on the production
-         homepage:
-           fan-vote -> bracket-board -> daily-orders -> do-meter ->
-           daily-drop -> billionaire-supervillain -> daily-interrogation ->
-           media-nuke -> caption-combat -> poster-forge ->
-           enlistment-ranks -> war-bonds
-         The shell page holds only the shell div — every visible section
-         renders from GitHub silos. No native Squarespace blocks.
-         Sections: the 7 games + Liquidation Bracket board, Enlistment Ranks
-         (with Service Medals rack), War Bonds directory. Comrades stays out
-         of the v2 set (silo exists in repo, unloaded on this page).
-   PHASE: mount (shell page only; loads LAST in the v2 file set).
-   KILL: ?pf_off=home-v2  or  localStorage pf_disabled_v1='["home-v2"]'
-         (per-section ?pf_off=<silo> also respected here)
-   ============================================================================ */
+/* pages/home-v2.js  |  PF v1.3.3 | Mounts 12 section templates wherever the <div id="pf-v2"></div> shell
+   KILL: ?pf_off=home-v2  or  localStorage pf_disabled_v1='["home-v2"]' */
 (function () {
   'use strict';
   var PF = window.PF;
   if (window.pfHomeV2Done) return;
-  if (PF && PF.skip('home-v2')) { PF.log('home-v2', 'disabled via kill-switch'); return; }
+  if (PF && PF.skip('home-v2')) { return; }
   var host = document.getElementById('pf-v2');
   if (!host) return; /* v2 mounts only where the shell lives — never on production pages */
   if (isEditor()) return; /* never mount inside the Squarespace editor */
@@ -67,7 +48,7 @@
 
   ORDER.forEach(function (pair) {
     var silo = pair[0], tplId = pair[1];
-    if (PF && PF.skip(silo)) { PF.log('home-v2', silo + ' skipped (disabled)'); return; }
+    if (PF && PF.skip(silo)) return;
     try {
       var tpl = document.getElementById(tplId);
       if (!tpl || !tpl.content) { err('staged template missing: ' + tplId + ' (was ' + silo + ' killed?)'); return; }
@@ -78,9 +59,7 @@
       section.appendChild(frag);
       host.appendChild(section);
       execScripts(section, tplId);
-      if (PF) PF.log('home-v2', 'mounted ' + silo);
     } catch (e) { err('mount failed: ' + silo, e); }
   });
 
-  if (PF) PF.log('home-v2', 'v2 mount complete — 12 sections, GitHub only');
 })();

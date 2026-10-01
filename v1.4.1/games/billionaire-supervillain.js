@@ -1,18 +1,9 @@
-/* ============================================================================
-   SILO: games/billionaire-supervillain.js  |  PF v1.4.1
-   WHAT: BILLIONAIRE OR SUPERVILLAIN — daily quote game. One real quote per
-         day (Chicago time); the player guesses whether a billionaire or a
-         comic-book supervillain said it. Reveal shows who + context, streak
-         tracked in localStorage, Wordle-style share grid, XP/medal/meter
-         events on every daily answer.
-   PHASE: games (stages template; pages/home-v2.js mounts it).
-   EVENTS: pf-billionaire-answered {day, correct, streak} on document.
-   KILL: ?pf_off=billionaire-supervillain  or  localStorage pf_disabled_v1='["billionaire-supervillain"]'
-   ============================================================================ */
+/* games/billionaire-supervillain.js  |  PF v1.4.1 | BILLIONAIRE OR SUPERVILLAIN — daily quote game. One real quote per
+   KILL: ?pf_off=billionaire-supervillain  or  localStorage pf_disabled_v1='["billionaire-supervillain"]' */
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("billionaire-supervillain")) { PF.log("billionaire-supervillain", "disabled via kill-switch"); return; }
+  if (PF.skip("billionaire-supervillain")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-billionaire">
 <div id="pf-billionaire">
 <style>
@@ -135,5 +126,4 @@ el('bvCopy').onclick=function(){
 </script>
 </div>
 </template>`);
-  PF.log("billionaire-supervillain", "silo loaded");
 })();

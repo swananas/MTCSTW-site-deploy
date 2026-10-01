@@ -1,20 +1,5 @@
-/* ============================================================================
-   SILO: core/05-tally.js  |  PF v1.4.1
-   WHAT: Site-wide tally: reports every counted game event to the backend so
-         per-user instances aggregate into SITE GLOBAL totals.
-         - xp  (site energy unit)  -> ?action=xp_totals / ?action=action_totals
-           feeds the Media Nuke 50,000 goal. Scale is historical — do NOT
-           rescale it; the nuke's goal pacing depends on it.
-         - pts (do-meter task points, same unit as the Do Meter's local count)
-           -> ?action=task_totals feeds the Do Meter's SITE-WIDE headline.
-           Legacy rows without pts are mapped server-side via the legacy table.
-   PHASE: core JS (loads early; listeners attach to document)
-   EVENTS SEEN: pf-billionaire-answered, pf-bracket-ballot, pf-bracket-liquidated,
-     pf-caption-submit, pf-drop-claimed, pf-enlisted, pf-interrogation-answered,
-     pf-order-checkin, pf-poster-made, pf-quiz-done, pf-share-image,
-     pf-traitor-vote, pf-vote-cast, pf-wb-buy
-   KILL: ?pf_off=05-tally  or  localStorage pf_disabled_v1='["05-tally"]'
-   ============================================================================ */
+/* core/05-tally.js  |  PF v1.4.1 | Site-wide tally: reports every counted game event to the backend so
+   KILL: ?pf_off=05-tally  or  localStorage pf_disabled_v1='["05-tally"]' */
 (function(){ 'use strict'; if(window.pfTallyLoaded)return; window.pfTallyLoaded=true;
 var XP_DEFAULTS={ 'pf-order-checkin':10, 'pf-drop-claimed':15, 'pf-caption-submit':10, 'pf-poster-made':10, 'pf-quiz-done':5, 'pf-vote-cast':5, 'pf-bracket-ballot':5, 'pf-bracket-liquidated':10, 'pf-traitor-vote':5, 'pf-wb-buy':25, 'pf-enlisted':10, 'pf-billionaire-answered':5, 'pf-interrogation-answered':5, 'pf-share-image':5 };
 /* Do-meter point scale — MUST match the PTS table in games/do-meter.js. */

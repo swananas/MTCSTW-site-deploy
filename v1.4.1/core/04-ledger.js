@@ -1,11 +1,5 @@
-/* ============================================================================
-   SILO: core/04-ledger.js  |  PF v1.1.0
-   WHAT: Shared ledger: storage helpers, toast, XP awards, r-act click handler
-   PHASE: core JS
-   EVENTS SEEN: pf-bracket, pf-bracket-ballot, pf-quiz-done, pf-vote, pf-vote-cast, pf-xp
-   KILL: ?pf_off=04-ledger  or  localStorage pf_disabled_v1='["04-ledger"]'
-   SOURCE: verbatim extract from dist/pf-footer-v1.1.0.html
-   ============================================================================ */
+/* core/04-ledger.js  |  PF v1.4.1 | Shared ledger: storage helpers, toast, XP awards, r-act click handler
+   KILL: ?pf_off=04-ledger  or  localStorage pf_disabled_v1='["04-ledger"]' */
 (function(){if(window.pfRx)return;window.pfRx=1;function G(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}function S(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}function T(m){var t=document.createElement('div');t.textContent=m;t.style.cssText='position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999';document.body.appendChild(t);setTimeout(function(){t.remove()},2600)}function A(k,x){var r=G('pf_ranks_v1')||{xp:0,got:{}};if(r.got[k])return false;r.got[k]=1;r.xp+=x;S('pf_ranks_v1',r);try{document.dispatchEvent(new CustomEvent('pf-xp',{detail:{gain:x,total:r.xp}}))}catch(e){}T('+'+x+' XP claimed!');return true}function C(e){var s=G('pf_do_v1');return s&&s.byType&&s.byType[e]||0}document.addEventListener('click',function(e){var a=e.target.closest('a.r-act');if(!a)return;var h=(a.getAttribute('href')||'').toLowerCase(),id,xp;if(h.indexOf('#pf-bracket')===0){id='b';xp=10}else if(h.indexOf('#pf-vote')===0){id='v';xp=10}else if(h.indexOf('#slr-quiz')===0){id='q';xp=15}else return;e.preventDefault();var k='pfx-'+id;var pre=id==='b'?'bracket_':id==='v'?'fanvote_':'quiz';
 /* Counted-once guard: the game silos auto-award XP when the action completes
    (got keys 'bracket_<week>', 'fanvote_<week>', 'quiz'). This claim link must

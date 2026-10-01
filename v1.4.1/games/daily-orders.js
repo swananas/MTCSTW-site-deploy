@@ -1,16 +1,10 @@
-/* ============================================================================
-   SILO: games/daily-orders.js  |  PF v1.1.0
-   WHAT: Daily Orders widget: template + 30 rotating missions
-   PHASE: games: template now, companions after mount
-   EVENTS SEEN: pf-callsign-claimed, pf-order-checkin, pf-orders, pf-ov-orders, pf-override-block, pf-share-image
-   KILL: ?pf_off=daily-orders  or  localStorage pf_disabled_v1='["daily-orders"]'
-   SOURCE: verbatim extract from dist/pf-footer-v1.1.0.html
-   ============================================================================ */
+/* games/daily-orders.js  |  PF v1.4.1 | Daily Orders widget: template + 30 rotating missions
+   KILL: ?pf_off=daily-orders  or  localStorage pf_disabled_v1='["daily-orders"]' */
 
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("daily-orders")) { PF.log("daily-orders", "disabled via kill-switch"); return; }
+  if (PF.skip("daily-orders")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-orders">
 <div class="fe-block pf-override-block" id="pf-orders">
 
@@ -86,10 +80,9 @@ var TIERS=[["RECRUIT",0],["AGITATOR",25],["CADRE",75],["COMMISSAR",150],["ARCHIT
 var LS_O="pf_orders_v1", LS_R="pf_ranks_v1", LS_I="pf_identity_v1";
 var BACKEND_URL="https://script.google.com/macros/s/AKfycbxKFGLAsEqn8msdaNSjML8yHNEHRvaI5drVzJQwMiaVbkhkMBlNoFq1M4hdJo33Usic5Q/exec";
 
-function chiNow(){ try{ return new Date(new Date().toLocaleString('en-US',{timeZone:'America/Chicago'})); }catch(e){ return new Date(); } }
 function ymd(d){ return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
-function today(){ return ymd(chiNow()); }
-function yesterday(){ var d=chiNow(); d.setDate(d.getDate()-1); return ymd(d); }
+function today(){ return ymd(PF.chiNow()); }
+function yesterday(){ var d=PF.chiNow(); d.setDate(d.getDate()-1); return ymd(d); }
 function load(k,fb){ try{ return JSON.parse(localStorage.getItem(k)||JSON.stringify(fb)); }catch(e){ return fb; } }
 function save(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
 function dayOfYear(){ var d=new Date(), s=new Date(d.getFullYear(),0,0); return Math.floor((d-s)/864e5); }
@@ -381,9 +374,15 @@ function shareOrdersImage(btn){
   try{
     var cv=drawOrdersCard();
     var awardShare=function(){
-      /* Credit ONLY on a confirmed share or a completed download — never on cancel. */
+      /* Credit ONLY on a confirmed share or a completed download — never on cancel.
+         Routed through the shared once-per-day gate (PF.creditShare) so a share
+         here plus a share from any other game can't credit the same day twice. */
       if(btn)btn.disabled=false;
-      try{document.dispatchEvent(new CustomEvent('pf-share-image',{detail:{day:new Date().toISOString().slice(0,10)}}));}catch(e){}
+      try{
+        if(PF && typeof PF.creditShare==='function'){ PF.creditShare('daily-orders','share'); }
+        else if(typeof window.pfCreditShare==='function'){ window.pfCreditShare('daily-orders','share'); }
+        else { document.dispatchEvent(new CustomEvent('pf-share-image',{detail:{day:new Date().toISOString().slice(0,10)}})); }
+      }catch(e){}
     };
     var done=function(url,blob){
       var file=new File([blob],'pfn-daily-orders.png',{type:'image/png'});
@@ -414,5 +413,4 @@ syncFromServer();
 </script>
 </div>
 </template>`);
-  PF.log("daily-orders", "silo loaded");
 })();

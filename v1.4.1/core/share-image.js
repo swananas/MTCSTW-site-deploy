@@ -1,27 +1,9 @@
-/* ============================================================================
-   SILO: core/share-image.js  |  PF v1.4.1
-   WHAT: THE SHARE/SAVE COMPANION. Guarantees EVERY v2 game section carries
-         exactly one standardized pair — SHARE IMAGE + SAVE IMAGE TO PHONE —
-         without editing the 10 verified game silos. No registry trust, no
-         DOM sniffing: the pair is injected unconditionally per section.
-         Existing rows from earlier versions (e.g. v1.4.0's "SAVE TO PHONE")
-         are normalized to the exact labels, never duplicated.
-         Renders a branded 1080x1350 propaganda poster per game (black/red/
-         cream), then routes it through the best path for the visitor's phone:
-           SHARE IMAGE -> Web Share API with files (share sheet); falls back
-                          to a download where sharing is unavailable.
-           SAVE IMAGE TO PHONE -> iPhone/iPad: share sheet (the only reliable
-                          route into Photos — "Save Image" is one tap);
-                          Android/desktop: direct PNG download.
-   PHASE: companion (loads LAST in the v2 set, after pages/home-v2.js mounts
-          the 10 sections; re-scans at 2s/6s for late-mounting silo buttons).
-   KILL: ?pf_off=share-image  or  localStorage pf_disabled_v1='["share-image"]'
-         (per-game ?pf_off=<silo> respected — killed games have no section).
-   ============================================================================ */
+/* core/share-image.js  |  PF v1.4.1 | THE SHARE/SAVE COMPANION. Guarantees EVERY v2 game section carries
+   KILL: ?pf_off=share-image  or  localStorage pf_disabled_v1='["share-image"]' */
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF && PF.skip('share-image')) { PF.log('share-image', 'disabled via kill-switch'); return; }
+  if (PF && PF.skip('share-image')) { return; }
   if (window.pfShareImageDone) return;
   window.pfShareImageDone = true;
 
@@ -204,6 +186,11 @@
       }));
     } catch (e) {}
   }
+  /* Expose the once-per-day share gate so game-local share buttons (e.g.
+     Daily Orders' own card button) credit through the same gate instead of
+     firing pf-share-image directly and double-counting the day. */
+  try { if (PF) PF.creditShare = creditShare; } catch (e) {}
+  try { window.pfCreditShare = creditShare; } catch (e) {}
 
   function shareImage(cv, filename, title, gameId) {
     canvasBlob(cv, function (blob) {
@@ -321,7 +308,6 @@
     row.appendChild(sb);
     row.appendChild(vb);
     sec.appendChild(row);
-    if (PF) PF.log('share-image', 'standard pair ensured for ' + gameId);
   }
 
   function ensureAll() {
@@ -343,5 +329,4 @@
   try { ensureAll(); } catch (e) { if (PF) PF.error('share-image', e); }
   setTimeout(function () { try { ensureAll(); } catch (e) {} }, 2000);
   setTimeout(function () { try { ensureAll(); } catch (e) {} }, 6000);
-  if (PF) PF.log('share-image', 'companion online — SHARE IMAGE + SAVE IMAGE TO PHONE on all 12 games');
 })();

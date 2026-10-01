@@ -1,16 +1,10 @@
-/* ============================================================================
-   SILO: games/media-nuke.js  |  PF v1.1.0
-   WHAT: Media Nuke widget: template + backend nuke sync
-   PHASE: games: template now, companions after mount
-   EVENTS SEEN: pf-bracket-ballot, pf-bracket-liquidated, pf-caption-submit, pf-creator-xp, pf-drop-claimed, pf-enlisted, pf-order-checkin, pf-ov-nuke, pf-override-block, pf-poster-made, pf-quiz-done, pf-traitor-vote, pf-vote-cast, pf-wb-buy
-   KILL: ?pf_off=media-nuke  or  localStorage pf_disabled_v1='["media-nuke"]'
-   SOURCE: verbatim extract from dist/pf-footer-v1.1.0.html
-   ============================================================================ */
+/* games/media-nuke.js  |  PF v1.4.1 | Media Nuke widget: template + backend nuke sync
+   KILL: ?pf_off=media-nuke  or  localStorage pf_disabled_v1='["media-nuke"]' */
 
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("media-nuke")) { PF.log("media-nuke", "disabled via kill-switch"); return; }
+  if (PF.skip("media-nuke")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-nuke">
 <div class="fe-block pf-override-block" id="slr-nuke">
 
@@ -134,9 +128,4 @@ function init(){
 </script>
 </div>
 </template>`);
-  PF.afterMount("media-nuke", function () {
-    /* --- companion 1/1 (verbatim) --- */
-    /*PF-NUKE-SYNC-V2*/ (function(){ 'use strict'; if(window.pfNukeSyncV2Loaded)return;window.pfNukeSyncV2Loaded=true; var GOAL=50000; var lastSiteXp=null; var lastRenderMode='site'; function fmt(n){return String(Math.floor(n)).replace(/\B(?=(\d{3})+(?!\d))/g,",");} function stateFor(pct){ if(pct>=100)return{cls:'st-armed',text:'\u2622 MEDIA NUKE ARMED \u2622'}; if(pct>=60)return{cls:'st-critical',text:'CRITICAL MASS \u2014 all hands on deck'}; if(pct>=25)return{cls:'st-charging',text:'CHARGING \u2014 spread the missions'}; return{cls:'st-dormant',text:'DORMANT \u2014 the network sleeps'}; } function localXpToday(){ var keys=['pf_orders_v1','pf_ranks_v1','pf_identity_v1','pfn_creator_xp_v1']; var total=0; for(var i=0;i<keys.length;i++){ try{ var raw=window.localStorage&&localStorage.getItem(keys[i]); if(!raw)continue; var o=JSON.parse(raw); var cands=[o.today_xp,o.todayXp,o.xpToday,o.xp_today]; var found=false; for(var j=0;j<cands.length;j++){ if(typeof cands[j]==='number'&&isFinite(cands[j])){total+=Math.max(0,cands[j]);found=true;break;} } if(!found&&typeof o.xp==='number'&&isFinite(o.xp))total+=Math.max(0,o.xp); }catch(e){} } return total; } function getNukeEls(){ var nuke=document.getElementById('slr-nuke')||document.querySelector('[id*="nuke"]'); if(!nuke)return null; var fill=nuke.querySelector('#slr-nuke-fill'); var label=nuke.querySelector('#slr-nuke-label'); if(!fill||!label)return null; return{ nuke:nuke, fill:fill, label:label, status:nuke.querySelector('#slr-nuke-status'), detail:nuke.querySelector('#slr-nuke-detail'), youEl:nuke.querySelector('#slr-nuke-you') }; } function render(xp, mode){ var els=getNukeEls(); if(!els)return; lastSiteXp=xp; lastRenderMode=mode; var pct=Math.min(100,(xp/GOAL)*100); var st=stateFor(pct); if(window._pfNukeObserver)window._pfNukeObserver.disconnect(); els.fill.style.width=pct+'%'; els.fill.className='slr-nuke-fill '+st.cls; els.label.textContent=st.text; if(els.status)els.status.textContent=fmt(xp)+' / '+fmt(GOAL)+' XP'; if(els.detail)els.detail.textContent=mode==='site'?'Network-wide XP from all comrades':'Your XP on this device'; if(els.youEl){ var local=localXpToday(); els.youEl.textContent='You: '+fmt(local)+' XP today'; } if(window._pfNukeObserver&&els.nuke){ try{window._pfNukeObserver.observe(els.nuke,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['style','class']});}catch(e){} } } function fetchSiteXp(){ if(!window.PF_BACKEND_URL){render(localXpToday(),'local');return;} var cb='pfNukeCb_'+Date.now(); window[cb]=function(d){ try{ if(d&&typeof d.xp_total==='number'){ render(d.xp_total,'site'); }else{ render(localXpToday(),'local'); } }catch(e){render(localXpToday(),'local');} try{delete window[cb];}catch(err){} var s=document.getElementById(cb);if(s)s.remove(); }; var s=document.createElement('script'); s.id=cb; s.src=window.PF_BACKEND_URL+'?action=xp_totals&callback='+cb; s.onerror=function(){render(localXpToday(),'local');}; document.head.appendChild(s); setTimeout(function(){var el=document.getElementById(cb);if(el)el.remove();},10000); } function init(){ var els=getNukeEls(); if(els&&window.MutationObserver){ var observer=new MutationObserver(function(mutations){ if(lastSiteXp!==null){ render(lastSiteXp,lastRenderMode); } }); window._pfNukeObserver=observer; try{observer.observe(els.nuke,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['style','class']});}catch(e){} } fetchSiteXp(); setInterval(fetchSiteXp,60000); var refresh=function(){setTimeout(fetchSiteXp,2000);}; document.addEventListener('pf-order-checkin',refresh); document.addEventListener('pf-caption-submit',refresh); document.addEventListener('pf-poster-made',refresh); document.addEventListener('pf-vote-cast',refresh); } if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded',function(){setTimeout(init,1500);}); }else{setTimeout(init,1500);} })();
-  });
-  PF.log("media-nuke", "silo loaded");
 })();

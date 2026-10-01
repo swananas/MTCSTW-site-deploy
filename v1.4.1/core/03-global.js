@@ -1,11 +1,5 @@
-/* ============================================================================
-   SILO: core/03-global.js  |  PF v1.1.0
-   WHAT: Backend URL, pfReportAction, global total fetch, achievement share image
-   PHASE: core JS
-   EVENTS SEEN: pf-bracket-ballot, pf-bracket-liquidated, pf-caption-submit, pf-enlisted, pf-global-total, pf-global-total-num, pf-order-checkin, pf-poster-made, pf-quiz-done, pf-traitor-vote, pf-vote-cast
-   KILL: ?pf_off=03-global  or  localStorage pf_disabled_v1='["03-global"]'
-   SOURCE: verbatim extract from dist/pf-footer-v1.1.0.html
-   ============================================================================ */
+/* core/03-global.js  |  PF v1.4.1 | Backend URL, pfReportAction, global total fetch, achievement share image
+   KILL: ?pf_off=03-global  or  localStorage pf_disabled_v1='["03-global"]' */
 /* PF GLOBAL ACTIONS: unified site-wide total, visible to everyone.
    Each widget calls pfReportAction('action_type') on completion.
    The total is fetched from the backend and displayed in #pf-global-total. */

@@ -1,16 +1,10 @@
-/* ============================================================================
-   SILO: games/service-medals.js  |  PF v1.1.0
-   WHAT: Service Medals sticky layer over all homepage games (event-driven)
-   PHASE: games: immediate, event-driven
-   EVENTS SEEN: pf-bracket-ballot, pf-bracket-liquidated, pf-callsign-claimed, pf-caption-submit, pf-do-update, pf-drop-claimed, pf-enlisted, pf-medals, pf-medals-css, pf-order-checkin, pf-poster-made, pf-quiz-done, pf-ranks, pf-ranks-sync...
-   KILL: ?pf_off=service-medals  or  localStorage pf_disabled_v1='["service-medals"]'
-   SOURCE: verbatim extract from dist/pf-footer-v1.1.0.html
-   ============================================================================ */
+/* games/service-medals.js  |  PF v1.4.1 | Service Medals sticky layer over all homepage games (event-driven)
+   KILL: ?pf_off=service-medals  or  localStorage pf_disabled_v1='["service-medals"]' */
 
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("service-medals")) { PF.log("service-medals", "disabled via kill-switch"); return; }
+  if (PF.skip("service-medals")) { return; }
   try {
     /* PF SERVICE MEDALS v2 — sticky collection layer over all 12 homepage games.
        Listens for pf-* CustomEvents. Awards one medal per game per week
@@ -37,9 +31,7 @@
      {id:'drop',    glyph:'\u25CF', name:'Supply Runner',   ev:'pf-drop-claimed'},
      {id:'enlisted',glyph:'\u2694', name:'Enlisted',        ev:'pf-enlisted'}
     ];
-    function chiNow(){try{return new Date(new Date().toLocaleString('en-US',{timeZone:'America/Chicago'}));}catch(e){return new Date();}}
-    function weekKey(d){var t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));var day=(t.getUTCDay()+6)%7;t.setUTCDate(t.getUTCDate()-day+3);var first=new Date(Date.UTC(t.getUTCFullYear(),0,4));var fday=(first.getUTCDay()+6)%7;first.setUTCDate(first.getUTCDate()-fday+3);var w=1+Math.round((t-first)/(7*864e5));return t.getUTCFullYear()+'-W'+String(w).padStart(2,'0');}
-    function load(){try{var s=JSON.parse(localStorage.getItem(LS)||'null');if(s&&s.w)return s;}catch(e){}return{w:weekKey(chiNow()),m:{},fd:false};}
+    function load(){try{var s=JSON.parse(localStorage.getItem(LS)||'null');if(s&&s.w)return s;}catch(e){}return{w:PF.isoWeekKey(PF.chiNow()),m:{},fd:false};}
     function save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}
     function callsign(){try{return String(JSON.parse(localStorage.getItem(LS_I)||'{}').callsign||'').toLowerCase();}catch(e){return '';}}
     /* JSONP GET (same pattern as ranks apiPost — avoids Apps Script POST redirect bug) */
@@ -117,7 +109,7 @@
     function renderRack(){
       ensureCss();
       var host=document.getElementById('pf-ranks');if(!host)return false;
-      var s=load(),wk=weekKey(chiNow());
+      var s=load(),wk=PF.isoWeekKey(PF.chiNow());
       if(s.w!==wk){s={w:wk,m:{},fd:false};save(s);}
       var el=document.getElementById('pf-medals');
       if(!el){
@@ -149,7 +141,7 @@
     
     MEDALS.forEach(function(md){
       document.addEventListener(md.ev,function(){
-        var s=load(),wk=weekKey(chiNow());
+        var s=load(),wk=PF.isoWeekKey(PF.chiNow());
         if(s.w!==wk){s={w:wk,m:{},fd:false};}
         if(!s.m[md.id]){s.m[md.id]=1;save(s);}
         checkFull(s);
@@ -159,7 +151,7 @@
     
     /* if the user enlists mid-week, award the Enlisted medal retroactively */
     document.addEventListener('pf-enlisted',function(){
-      var s=load(),wk=weekKey(chiNow());
+      var s=load(),wk=PF.isoWeekKey(PF.chiNow());
       if(s.w!==wk){s={w:wk,m:{},fd:false};}
       /* already handled by the MEDALS loop above; this is a no-op safeguard */
     });
@@ -174,5 +166,4 @@
     else document.addEventListener('DOMContentLoaded',mount);
     })();
   } catch (err) { PF.error("service-medals", err); }
-  PF.log("service-medals", "silo loaded");
 })();

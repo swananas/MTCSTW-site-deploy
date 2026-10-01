@@ -1,16 +1,9 @@
-/* ============================================================================
-   SILO: games/war-bonds.js  |  PF v1.3.0
-   WHAT: War Bonds fund-a-propagandist directory (tier buttons link to /store war-bond products; dispatches pf-wb-buy)
-   PHASE: games: template now, mounted by pages/home-v2.js on /v2 only.
-          Inert on all other paths (staged inside <template>).
-   KILL: ?pf_off=war-bonds  or  localStorage pf_disabled_v1='["war-bonds"]'
-   SOURCE: verbatim extract from the live https://www.mtcstw.com/ homepage
-           (native Squarespace Code Block), war bonds code block
-   ============================================================================ */
+/* games/war-bonds.js  |  PF v1.3.0 | War Bonds fund-a-propagandist directory (tier buttons link to /store war-bond products; di
+   KILL: ?pf_off=war-bonds  or  localStorage pf_disabled_v1='["war-bonds"]' */
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("war-bonds")) { PF.log("war-bonds", "disabled via kill-switch"); return; }
+  if (PF.skip("war-bonds")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-bonds">
 <div id="pf-warbonds" style="max-width:640px;margin:2rem auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:'Helvetica Neue',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;text-align:center;">
   <div style="font-size:1.6rem;font-weight:900;letter-spacing:0.18em;color:#c1121f;">&#9733; WAR BONDS &#9733;</div>
@@ -82,5 +75,4 @@
 })();
 </script>
 </template>`);
-  PF.log("war-bonds", "silo loaded");
 })();

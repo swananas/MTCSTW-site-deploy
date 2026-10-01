@@ -1,10 +1,10 @@
 /* ============================================================================
-   SILO: core/01-styles.css  |  PF v1.1.0
+   SILO: core/01-styles.css  |  PF v1.4.1
    WHAT: Document-wide widget + theme CSS
    PHASE: core CSS
    EVENTS SEEN: pf-caption, pf-do-mini, pf-dometer2, pf-orders, pf-poster
    KILL: ?pf_off=core-styles  or  localStorage pf_disabled_v1='["core-styles"]'
-   SOURCE: verbatim extract from dist/pf-footer-v1.1.0.html
+   SOURCE: verbatim extract from dist/pf-footer-v1.4.1.html
    ============================================================================ */
 /* PF-WIDGET-STYLES: document-wide, outside templates for reliability */
 

@@ -1,17 +1,9 @@
-/* ============================================================================
-   SILO: games/daily-interrogation.js  |  PF v1.4.1
-   WHAT: THE DAILY INTERROGATION — one propaganda-literacy trivia question
-         per day (Chicago time), 4 options, reveal with explainer, streak
-         tracked in localStorage, Wordle-style share grid, XP/medal/meter
-         events on every daily answer.
-   PHASE: games (stages template; pages/home-v2.js mounts it).
-   EVENTS: pf-interrogation-answered {day, correct, streak} on document.
-   KILL: ?pf_off=daily-interrogation  or  localStorage pf_disabled_v1='["daily-interrogation"]'
-   ============================================================================ */
+/* games/daily-interrogation.js  |  PF v1.4.1 | THE DAILY INTERROGATION — one propaganda-literacy trivia question
+   KILL: ?pf_off=daily-interrogation  or  localStorage pf_disabled_v1='["daily-interrogation"]' */
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("daily-interrogation")) { PF.log("daily-interrogation", "disabled via kill-switch"); return; }
+  if (PF.skip("daily-interrogation")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-interrogation">
 <div id="pf-interrogation">
 <style>
@@ -142,5 +134,4 @@ el('iqCopy').onclick=function(){
 </script>
 </div>
 </template>`);
-  PF.log("daily-interrogation", "silo loaded");
 })();

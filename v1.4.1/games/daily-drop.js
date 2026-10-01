@@ -1,16 +1,10 @@
-/* ============================================================================
-   SILO: games/daily-drop.js  |  PF v1.1.0
-   WHAT: Daily Drop widget: template + drops + image + medal retro
-   PHASE: games: template now, companions after mount
-   EVENTS SEEN: pf-drop, pf-drop-claimed, pf-ov-drop
-   KILL: ?pf_off=daily-drop  or  localStorage pf_disabled_v1='["daily-drop"]'
-   SOURCE: verbatim extract from dist/pf-footer-v1.1.0.html
-   ============================================================================ */
+/* games/daily-drop.js  |  PF v1.4.1 | Daily Drop widget: template + drops + image + medal retro
+   KILL: ?pf_off=daily-drop  or  localStorage pf_disabled_v1='["daily-drop"]' */
 
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("daily-drop")) { PF.log("daily-drop", "disabled via kill-switch"); return; }
+  if (PF.skip("daily-drop")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-drop">
 <div id="pf-drop">
 <style>
@@ -132,27 +126,4 @@ document.getElementById("dArchBtn").onclick=function(){
 </script>
 </div>
 </template>`);
-  PF.afterMount("daily-drop", function () {
-    /* --- companion 1/2 (verbatim) --- */
-    (function(){if(window.pfDropImg)return;window.pfDropImg=1;if(location.pathname!=='/'&&location.pathname!=='/home')return;function wl(ctx,t,mw){var w=String(t).split(/\s+/),ls=[],ln='';w.forEach(function(x){var s=ln?ln+' '+x:x;if(ctx.measureText(s).width>mw&&ln){ls.push(ln);ln=x}else ln=s});if(ln)ls.push(ln);return ls}function draw(){var W=1080,H=1080,cv=document.createElement('canvas');cv.width=W;cv.height=H;var x=cv.getContext('2d');x.fillStyle='#0d0d0d';x.fillRect(0,0,W,H);x.strokeStyle='#c1121f';x.lineWidth=16;x.strokeRect(14,14,W-28,H-28);x.strokeStyle='#f5ead6';x.lineWidth=3;x.strokeRect(44,44,W-88,H-88);x.textAlign='center';var g=function(id){var e=document.getElementById(id);return e?e.textContent:''};var day=g('dDay'),tag=g('dTag'),head=g('dHead'),body=g('dBody');var y=160;x.fillStyle='#f5ead6';x.font='900 62px "Arial Black",Arial,sans-serif';x.fillText('\u2605 THE DAILY DROP \u2605',W/2,y);y+=68;x.fillStyle='#ff5a00';x.font='700 32px Arial,sans-serif';x.fillText(day.toUpperCase(),W/2,y);y+=66;x.font='900 28px "Arial Black",Arial,sans-serif';var tw=x.measureText(tag).width+56;x.fillStyle='#c1121f';x.fillRect(W/2-tw/2,y-34,tw,48);x.fillStyle='#fff';x.fillText(tag,W/2,y);y+=86;x.fillStyle='#f5ead6';x.font='900 52px "Arial Black",Arial,sans-serif';var hl=wl(x,head,W-160);hl.slice(0,3).forEach(function(l){x.fillText(l,W/2,y);y+=64});y+=18;x.fillStyle='#c9bfa8';x.font='400 28px Arial,sans-serif';var bl=wl(x,body,W-160);bl.slice(0,4).forEach(function(l){x.fillText(l,W/2,y);y+=40});x.fillStyle='#c1121f';x.font='900 42px "Arial Black",Arial,sans-serif';x.fillText('MTCSTW.COM',W/2,H-64);return cv}function attach(){var b=document.getElementById('dShare');if(!b||b.dataset.pfImg)return;b.dataset.pfImg='1';b.onclick=function(){b.disabled=true;try{var cv=draw();var done=function(bl){b.disabled=false;if(!bl)return;var f=new File([bl],'pfn-daily-drop.png',{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:'The Daily Drop',text:'The Daily Drop via The Propaganda Factory'}).catch(function(){})}else{var a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download='pfn-daily-drop.png';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},2000)}};if(cv.toBlob)cv.toBlob(done,'image/png');else{var u=cv.toDataURL('image/png');fetch(u).then(function(r){return r.blob()}).then(done)}}catch(e){b.disabled=false}}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attach);else attach();setTimeout(attach,2000);setTimeout(attach,5000)})();
-    /* --- companion 2/2 (verbatim) --- */
-    /* PF-MEDAL-RETRO (2026-09-29): Daily Drop dispatches pf-drop-claimed during footer
-       execution, BEFORE the Service Medals listeners attach, so Supply Runner is missed.
-       If today's drop was already claimed, re-dispatch the identical event now that the
-       medal listeners exist. The medals listener awards Supply Runner, runs checkFull and
-       re-renders; other listeners dedupe it (do-meter seenKey, nuke 5s window). Fires once/day. */
-    (function(){
-    try{
-    var dr=JSON.parse(localStorage.getItem('pf_drop_v1')||'{}');
-    var cn=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Chicago'}));
-    var tk=cn.getFullYear()+'-'+(cn.getMonth()+1)+'-'+cn.getDate();
-    if(dr.last!==tk&&dr.lastClaim!==tk)return;
-    var f=null;try{f=JSON.parse(localStorage.getItem('pf_medal_retro_v1')||'null');}catch(e){}
-    if(f&&f.date===tk)return;
-    try{localStorage.setItem('pf_medal_retro_v1',JSON.stringify({date:tk}));}catch(e){}
-    document.dispatchEvent(new CustomEvent('pf-drop-claimed',{detail:{day:tk,streak:dr.streak||0}}));
-    }catch(e){}
-    })();
-  });
-  PF.log("daily-drop", "silo loaded");
 })();

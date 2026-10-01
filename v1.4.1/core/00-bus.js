@@ -1,11 +1,5 @@
-/* ============================================================================
-   SILO: core/00-bus.js  |  PF v1.1.0
-   WHAT: THE CONNECTOR LAYER. Loads first. Owns window.PF: the event bus every
-         silo talks through, per-silo error attribution, kill-switches, and the
-         post-mount queue that runs game companions after widgets are mounted.
-   WHY: one place to see which silo failed, and one switch to isolate it fast.
-   KILL: ?pf_off=game-id,other  or  localStorage pf_disabled_v1='["game-id"]'
-   ============================================================================ */
+/* core/00-bus.js  |  PF v1.4.1 | THE CONNECTOR LAYER. Loads first. Owns window.PF: the event bus every
+   KILL: ?pf_off=game-id,other  or  localStorage pf_disabled_v1='["game-id"]' */
 (function () {
   'use strict';
   if (window.PF && window.PF.v) return; /* never double-init */
@@ -15,10 +9,9 @@
     var m = location.search.match(/[?&]pf_off=([^&]+)/);
     if (m) disabled = disabled.concat(decodeURIComponent(m[1]).split(','));
   } catch (e) {}
-  var mountQueue = [];
   function tag(silo, msg) { return '[PF:' + silo + '] ' + msg; }
   window.PF = {
-    v: '1.1.0',
+    v: '1.4.1',
     disabled: disabled,
     skip: function (silo) { return disabled.indexOf(silo) !== -1; },
     log: function (silo, msg) { try { console.log(tag(silo, msg)); } catch (e) {} },
@@ -44,14 +37,6 @@
       }
       return h;
     },
-    afterMount: function (silo, fn) { mountQueue.push({ silo: silo, fn: fn }); },
-    flushMount: function () {
-      var q = mountQueue; mountQueue = [];
-      q.forEach(function (item) {
-        if (window.PF.skip(item.silo)) { window.PF.log(item.silo, 'skipped (disabled)'); return; }
-        try { item.fn(); } catch (err) { window.PF.error(item.silo, err); }
-      });
-    },
     toast: function (msg) {
       /* canonical toast; core/04-ledger.js upgrades this when it loads */
       try {
@@ -63,7 +48,12 @@
     report: function (action) {
       /* canonical backend report; core/03-global.js owns the transport */
       try { if (typeof window.pfReportAction === 'function') window.pfReportAction(action); } catch (e) {}
-    }
+    },
+    /* Shared date helpers (single copies; games must not redefine these).
+       chiNow: now in America/Chicago. mondayOf: Monday 00:00 of d's week.
+       isoWeekKey: 'YYYY-Www' ISO week key for weekly localStorage buckets. */
+    chiNow: function () { try { return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' })); } catch (e) { return new Date(); } },
+    mondayOf: function (d) { var x = new Date(d); var day = (x.getDay() + 6) % 7; x.setHours(0, 0, 0, 0); x.setDate(x.getDate() - day); return x; },
+    isoWeekKey: function (d) { var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); var day = (t.getUTCDay() + 6) % 7; t.setUTCDate(t.getUTCDate() - day + 3); var first = new Date(Date.UTC(t.getUTCFullYear(), 0, 4)); var fday = (first.getUTCDay() + 6) % 7; first.setUTCDate(first.getUTCDate() - fday + 3); var w = 1 + Math.round((t - first) / (7 * 864e5)); return t.getUTCFullYear() + '-W' + String(w).padStart(2, '0'); }
   };
-  window.PF.log('bus', 'connector online; disabled=[' + disabled.join(',') + ']');
 })();

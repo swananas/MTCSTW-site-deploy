@@ -1,16 +1,9 @@
-/* ============================================================================
-   SILO: games/enlistment-ranks.js  |  PF v1.3.0
-   WHAT: Enlistment Ranks loyalty ladder (XP ladder widget, self-contained)
-   PHASE: games: template now, mounted by pages/home-v2.js on /v2 only.
-          Inert on all other paths (staged inside <template>).
-   KILL: ?pf_off=enlistment-ranks  or  localStorage pf_disabled_v1='["enlistment-ranks"]'
-   SOURCE: verbatim extract from the live https://www.mtcstw.com/ homepage
-           (native Squarespace Code Block), ranks code block
-   ============================================================================ */
+/* games/enlistment-ranks.js  |  PF v1.3.0 | Enlistment Ranks loyalty ladder (XP ladder widget, self-contained)
+   KILL: ?pf_off=enlistment-ranks  or  localStorage pf_disabled_v1='["enlistment-ranks"]' */
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("enlistment-ranks")) { PF.log("enlistment-ranks", "disabled via kill-switch"); return; }
+  if (PF.skip("enlistment-ranks")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-ranks">
 <div id="pf-ranks">
 <style>
@@ -410,5 +403,4 @@ wallFromServer(function(j){ if(j&&j.ok&&j.wall) renderWall(j.wall); });
 </div>
 <!-- RANKS-EMBED-END -->
 </template>`);
-  PF.log("enlistment-ranks", "silo loaded");
 })();

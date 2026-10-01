@@ -52,6 +52,39 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hypeInit);
   else hypeInit();
 
+  /* Public: next/current battle info for cross-game tie-ins (quiz result card).
+     Deterministic — same seed scheme as the widget, so the matchup matches. */
+  function ifPad(n) { return (n < 10 ? '0' : '') + n; }
+  function ifRoundId(d) { return d.getFullYear() + '' + ifPad(d.getMonth() + 1) + ifPad(d.getDate()) + '-' + ifPad(d.getHours()) + ifPad(d.getMinutes()); }
+  function ifHash(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function ifRng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  PF.infightNext = function () {
+    try {
+      var now; try { now = PF.chiNow(); } catch (e) { now = new Date(); }
+      var slotMin = now.getMinutes() < 30 ? 0 : 30;
+      var start = new Date(now.getTime()); start.setMinutes(slotMin, 0, 0);
+      var end = new Date(start.getTime() + 10 * 60000), w;
+      if (now.getTime() >= end.getTime()) {
+        var ns = new Date(start.getTime() + 30 * 60000);
+        w = { live: false, start: ns, end: new Date(ns.getTime() + 10 * 60000), id: ifRoundId(ns) };
+      } else {
+        w = { live: true, start: start, end: end, id: ifRoundId(start) };
+      }
+      var roster = []; try { roster = PF.slrAll ? PF.slrAll() : (PF.ROSTER || []); } catch (e) {}
+      if (roster.length < 2) return null;
+      var rng = ifRng(ifHash('infight:' + w.id)), n = roster.length;
+      var a = Math.floor(rng() * n), b = Math.floor(rng() * n);
+      if (b === a) b = (b + 1 + Math.floor(rng() * (n - 1))) % n;
+      var ms = Math.max(0, (w.live ? w.end : w.start).getTime() - now.getTime());
+      return {
+        id: w.id, live: w.live,
+        clock: ifPad(Math.floor(ms / 60000)) + ':' + ifPad(Math.floor(ms % 60000 / 1000)),
+        a: { name: roster[a].name, slug: roster[a].slug },
+        b: { name: roster[b].name, slug: roster[b].slug }
+      };
+    } catch (e) { return null; }
+  };
+
   /* ---- homepage widget template (instantiated by pages/home-v2.js) ---- */
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-infight">
 <div class="fe-block pf-override-block" id="pf-infight-root"></div>

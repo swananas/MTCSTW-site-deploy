@@ -36,6 +36,7 @@ TASKS.forEach(function(ev){
     try{ if(e&&e.detail&&typeof e.detail.xp==='number'){ xp=Math.max(0,Math.floor(e.detail.xp)); } }catch(err){}
     var meta='';
     try{ if(e&&e.detail&&e.detail.creator){ meta=String(e.detail.creator)+':'+(Math.floor(Number(e.detail.tipped)||0)); } }catch(err){}
+    try{ if(e&&e.detail&&e.detail.archetype){ meta='archetype:'+String(e.detail.archetype).slice(0,24); } }catch(err){}
     var actionType=ev.replace(/^pf-/,'').replace(/-/g,'_');
     report(actionType, xp, PTS_DEFAULTS[ev]||1, meta);
   });

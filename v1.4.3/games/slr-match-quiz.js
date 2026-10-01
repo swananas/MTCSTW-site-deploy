@@ -1,4 +1,6 @@
-/* games/slr-match-quiz.js  |  PF v1.4.1 | SLR Match Quiz: 5 questions -> propaganda archetype + 3 creator matches
+/* games/slr-match-quiz.js  |  PF v1.4.3 | SLR Match Quiz: 5 questions -> propaganda archetype + 3 creator matches
+   v1.4.3 stickiness pass: daily-seeded question shuffle, streak counter, live tribe counts (quiz_tribes),
+   Infighting cross-game tie-in ("your match is fighting"), share-to-unlock 4th match.
    KILL: ?pf_off=slr-match-quiz  or  localStorage pf_disabled_v1='["slr-match-quiz"]' */
 
 (function () {
@@ -10,7 +12,7 @@
 '<div class="fe-block pf-override-block">\n' +
 '<div id="pf-matchquiz" style="max-width:640px;margin:2rem auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:\'Helvetica Neue\',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;text-align:center;">\n' +
 '  <div style="font-size:1.5rem;font-weight:900;letter-spacing:0.18em;color:#c1121f;">&#9873; FIND YOUR SLR MATCH &#9873;</div>\n' +
-'  <div style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;">Answer 5 questions. We name your propaganda archetype<br>and match you with 3 killers from the Sick Left Radicals roster.</div>\n' +
+'  <div style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;">Answer 5 questions. We name your propaganda archetype<br>and match you with killers from the Sick Left Radicals roster.</div>\n' +
 '  <div id="pf-mq-body"></div>\n' +
 '</div>\n' +
 '<script>\n' +
@@ -27,9 +29,9 @@
 '  function dbLabel(m){var h="";try{h=(m.handles&&(m.handles.primary||m.handles.tiktok||""))||"";}catch(e){}return m.name+(h?" ("+h+")":"");}\n' +
 '  function dbMates(A){var all=dbAll(),out=[],i;\n' +
 '    var ranked=all.filter(function(m){try{return A.test(m);}catch(e){return false;}}).sort(function(a,b){return (b.propaganda_score||0)-(a.propaganda_score||0);});\n' +
-'    for(i=0;i<ranked.length&&out.length<3;i++){out.push(ranked[i]);}\n' +
-'    if(out.length<3){var rest=all.filter(function(m){return out.indexOf(m)<0;}).sort(function(a,b){return (b.propaganda_score||0)-(a.propaganda_score||0);});\n' +
-'    for(i=0;i<rest.length&&out.length<3;i++){out.push(rest[i]);}}\n' +
+'    for(i=0;i<ranked.length&&out.length<4;i++){out.push(ranked[i]);}\n' +
+'    if(out.length<4){var rest=all.filter(function(m){return out.indexOf(m)<0;}).sort(function(a,b){return (b.propaganda_score||0)-(a.propaganda_score||0);});\n' +
+'    for(i=0;i<rest.length&&out.length<4;i++){out.push(rest[i]);}}\n' +
 '    return out.map(function(m){return {s:m.slug,label:dbLabel(m)};});}\n' +
 '  var QS=[\n' +
 '    {q:"Pick your weapon.",a:[["Memes",["meme",2],["hype",1]],["Sourced mega-threads",["sniper",2],["agitator",1]],["Street organizing",["organizer",2],["agitator",1]],["Livestreams and debates",["hype",2],["sniper",1]],["Wheatpaste and posters",["meme",1],["organizer",1]]]},\n' +
@@ -38,10 +40,42 @@
 '    {q:"Pick a battlefield.",a:[["The comments section",["agitator",2],["meme",1]],["The group chat",["meme",2],["hype",1]],["The picket line",["organizer",2],["agitator",1]],["The quote-tweet",["sniper",2],["hype",1]],["The For You page",["hype",2],["sniper",1]]]},\n' +
 '    {q:"Your comrades describe you as...",a:[["Fearless",["agitator",2],["hype",1]],["Funny",["meme",2],["agitator",1]],["Dependable",["organizer",2],["meme",1]],["Rigorous",["sniper",2],["organizer",1]],["Magnetic",["hype",2],["sniper",1]]]}\n' +
 '  ];\n' +
+'  /* Daily seed: question + answer order reshuffle every Chicago day. */\n' +
+'  function hashStr(s){var h=2166136261,i;for(i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}\n' +
+'  function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}\n' +
+'  function daySeed(){var n;try{n=window.PF?PF.chiNow():new Date();}catch(e){n=new Date();}return n.getFullYear()+"-"+(n.getMonth()+1)+"-"+n.getDate();}\n' +
+'  function shuffle(a,rng){var i,j,t;for(i=a.length-1;i>0;i--){j=Math.floor(rng()*(i+1));t=a[i];a[i]=a[j];a[j]=t;}return a;}\n' +
+'  var QUIZ=(function(){var ds=daySeed();var qs=shuffle(QS.slice(),mulberry32(hashStr("mq:"+ds)));return qs.map(function(q){return {q:q.q,a:shuffle(q.a.slice(),mulberry32(hashStr("mq:"+ds+":"+q.q)))};});})();\n' +
+'  /* Streak: consecutive Chicago days with a completed quiz. */\n' +
+'  function getStreak(){try{var s=JSON.parse(localStorage.getItem("pf_mq_streak_v1")||"null");if(s&&typeof s.n==="number")return s;}catch(e){}return {last:"",n:0};}\n' +
+'  function bumpStreak(){var s=getStreak(),t=daySeed();if(s.last===t)return s.n;var y;try{y=window.PF?PF.chiNow():new Date();}catch(e){y=new Date();}y=new Date(y.getTime()-86400000);var ys=y.getFullYear()+"-"+(y.getMonth()+1)+"-"+y.getDate();s.n=(s.last===ys)?s.n+1:1;s.last=t;try{localStorage.setItem("pf_mq_streak_v1",JSON.stringify(s));}catch(e){}return s.n;}\n' +
+'  /* Tribe counts: quiz_tribes over the trailing 7 days, cached 6h. */\n' +
+'  var API="https://script.google.com/macros/s/AKfycbzaqg3vIj1UnbHGJ82uti7yTdRpeR6PYMhoTne6LIL4kf1XjakrImMTHFwounaPrttl/exec";\n' +
+'  var TRIBES=null;\n' +
+'  function loadTribes(cb){var done=function(){if(cb)cb();};\n' +
+'    try{var c=JSON.parse(localStorage.getItem("pf_mq_tribes_v1")||"null");if(c&&Date.now()-c.at<6*3600000){TRIBES=c.d;done();return;}}catch(e){}\n' +
+'    var name="pfMqT"+Date.now(),fired=false;\n' +
+'    window[name]=function(d){if(fired)return;fired=true;try{delete window[name];}catch(e){}var s=document.getElementById(name);if(s&&s.parentNode)s.parentNode.removeChild(s);if(d&&d.tribes){TRIBES=d.tribes;try{localStorage.setItem("pf_mq_tribes_v1",JSON.stringify({at:Date.now(),d:d.tribes}));}catch(e){}}done();};\n' +
+'    try{var scr=document.createElement("script");scr.id=name;scr.src=API+"?callback="+name+"&action=quiz_tribes";scr.onerror=function(){if(!fired){fired=true;done();}};(document.head||document.documentElement).appendChild(scr);}catch(e){if(!fired){fired=true;done();}}\n' +
+'    setTimeout(function(){if(!fired){fired=true;done();}},10000);}\n' +
 '  var body=document.getElementById("pf-mq-body"),qi=0,scores={agitator:0,meme:0,organizer:0,sniper:0,hype:0};\n' +
 '  function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}\n' +
+'  function renderStart(){\n' +
+'    var st=getStreak();\n' +
+'    var h="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\'>DAILY MATCHUP</div>"\n' +
+'      +(st.n>0?"<div style=\'margin:0.5rem 0;font-size:0.95rem;\'>&#128293; <b>"+st.n+"-day streak</b> \\u2014 fresh shuffle every day, keep it burning</div>"\n' +
+'        :"<div style=\'margin:0.5rem 0;font-size:0.9rem;color:#b8ab8e;\'>New question shuffle every day. Play daily, build a streak.</div>")\n' +
+'      +"<div id=\'pf-mq-tribes\' style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:1rem;min-height:1.2em;\'></div>"\n' +
+'      +"<button id=\'pf-mq-start\' style=\'padding:0.8rem 2.2rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:900;font-size:1rem;letter-spacing:0.1em;cursor:pointer;font-family:inherit;\'>START</button>";\n' +
+'    body.innerHTML=h;\n' +
+'    document.getElementById("pf-mq-start").onclick=function(){qi=0;scores={agitator:0,meme:0,organizer:0,sniper:0,hype:0};renderQ();};\n' +
+'    loadTribes(function(){var t=document.getElementById("pf-mq-tribes");if(!t)return;\n' +
+'      if(!TRIBES){return;}\n' +
+'      var tot=0,bk="",bn=-1,k;for(k in TRIBES){if(k==="unknown")continue;tot+=Number(TRIBES[k])||0;if((Number(TRIBES[k])||0)>bn){bn=Number(TRIBES[k])||0;bk=k;}}\n' +
+'      if(tot>0&&ARCH[bk])t.innerHTML="<b style=\'color:#f5f0e1;\'>"+tot.toLocaleString()+"</b> comrades matched this week \\u2014 biggest tribe: <b style=\'color:#f5f0e1;\'>"+ARCH[bk].name+"</b> ("+bn.toLocaleString()+")";});\n' +
+'  }\n' +
 '  function renderQ(){\n' +
-'    var q=QS[qi],h="<div style=\'font-size:1.05rem;font-weight:700;margin-bottom:1rem;color:#f5f0e1;\'>"+(qi+1)+"/5 \\u2014 "+esc(q.q)+"</div>";\n' +
+'    var q=QUIZ[qi],h="<div style=\'font-size:1.05rem;font-weight:700;margin-bottom:1rem;color:#f5f0e1;\'>"+(qi+1)+"/5 \\u2014 "+esc(q.q)+"</div>";\n' +
 '    for(var i=0;i<q.a.length;i++){h+="<button data-mq=\'"+i+"\' style=\'display:block;width:100%;margin:0.4rem 0;padding:0.7rem;background:#141414;border:2px solid #c1121f;color:#f5f0e1;font-size:0.9rem;cursor:pointer;font-family:inherit;\'>"+esc(q.a[i][0])+"</button>";}\n' +
 '    body.innerHTML=h;\n' +
 '    var btns=body.querySelectorAll("[data-mq]");\n' +
@@ -49,7 +83,7 @@
 '      var opt=q.a[+this.getAttribute("data-mq")];\n' +
 '      for(var k=1;k<opt.length;k++){scores[opt[k][0]]+=opt[k][1];}\n' +
 '      qi++;\n' +
-'      if(qi<QS.length){renderQ();}else{renderR();}\n' +
+'      if(qi<QUIZ.length){renderQ();}else{renderR();}\n' +
 '    };}\n' +
 '  }\n' +
 '  function mqLabels(A){var ml=[],i;for(i=0;i<A.mates.length&&i<3;i++){ml.push(A.mates[i].label||A.mates[i]);}return ml;}\n' +
@@ -60,17 +94,51 @@
 '    var top="agitator",tk=-1;\n' +
 '    for(var k in scores){if(scores[k]>tk){tk=scores[k];top=k;}}\n' +
 '    var A=ARCH[top];A.mates=dbMates(A);var mh="";\n' +
-'    for(var i=0;i<A.mates.length;i++){mh+="<div style=\'padding:0.5rem;border:1px solid #c1121f;margin:0.3rem 0;font-weight:700;\'>"+esc(A.mates[i].label||A.mates[i])+"</div>";}\n' +
+'    for(var i=0;i<Math.min(3,A.mates.length);i++){mh+="<div style=\'padding:0.5rem;border:1px solid #c1121f;margin:0.3rem 0;font-weight:700;\'>"+esc(A.mates[i].label||A.mates[i])+"</div>";}\n' +
+'    var streakN=bumpStreak();\n' +
+'    var fourthHtml="<div id=\'pf-mq-fourth\' style=\'margin-top:0.6rem;\'><div style=\'padding:0.7rem;border:2px dashed #c1121f;color:#b8ab8e;font-size:0.85rem;\'>&#128274; <b style=\'color:#f5f0e1;\'>4TH MATCH LOCKED</b><br>Share your archetype card to unlock it.</div></div>";\n' +
+'    var infHtml="";\n' +
+'    try{\n' +
+'      var PFw=window.PF;\n' +
+'      if(PFw&&typeof PFw.infightNext==="function"){\n' +
+'        var nx=PFw.infightNext();\n' +
+'        if(nx&&nx.a&&nx.b){\n' +
+'          var myIn=null,mi,ms2;\n' +
+'          for(mi=0;mi<A.mates.length;mi++){ms2=(A.mates[mi].s||"");if(ms2&&ms2===nx.a.slug||ms2&&ms2===nx.b.slug){myIn=A.mates[mi];break;}}\n' +
+'          infHtml="<div style=\'margin-top:1.2rem;border:2px solid #c1121f;padding:0.8rem;\'>"\n' +
+'            +"<div style=\'font-size:0.8rem;letter-spacing:0.2em;color:#c1121f;\'>INFIGHTING \\u2014 "+(nx.live?"HAPPENING NOW":"NEXT BATTLE "+nx.clock)+"</div>"\n' +
+'            +"<div style=\'font-weight:800;margin:0.4rem 0;\'>"+esc(nx.a.name)+" <span style=\'color:#c1121f;\'>VS</span> "+esc(nx.b.name)+"</div>"\n' +
+'            +(myIn?"<div style=\'font-size:0.85rem;color:#f5f0e1;margin-bottom:0.6rem;\'>Your match <b>"+esc(myIn.label||myIn.s)+"</b> is fighting.</div>"\n' +
+'              :"<div style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:0.6rem;\'>Your tribe wants blood. Pick a fighter.</div>")\n' +
+'            +"<button id=\'pf-mq-infight\' style=\'padding:0.6rem 1.4rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>BACK YOUR FIGHTER</button></div>";\n' +
+'        }\n' +
+'      }\n' +
+'    }catch(e){}\n' +
 '    body.innerHTML="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\'>YOUR ARCHETYPE</div>"\n' +
 '      +"<div style=\'font-size:1.6rem;font-weight:900;margin:0.4rem 0;\'>"+A.name+"</div>"\n' +
 '      +"<div style=\'font-size:0.9rem;color:#b8ab8e;margin-bottom:1rem;\'>"+A.desc+"</div>"\n' +
-'      +"<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;margin-bottom:0.4rem;\'>YOUR SLR MATCHES</div>"+mh\n' +
+'      +"<div id=\'pf-mq-tribe\' style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:0.8rem;min-height:1.2em;\'></div>"\n' +
+'      +"<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;margin-bottom:0.4rem;\'>YOUR SLR MATCHES</div>"+mh+fourthHtml\n' +
+'      +"<div style=\'margin-top:1rem;\'><button id=\'pf-mq-share\' style=\'padding:0.7rem 1.6rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>SHARE ARCHETYPE CARD</button></div>"\n' +
+'      +(streakN>1?"<div style=\'margin-top:0.6rem;font-size:0.85rem;color:#b8ab8e;\'>&#128293; <b style=\'color:#f5f0e1;\'>"+streakN+"-day streak</b> \\u2014 see you tomorrow</div>":"")\n' +
+'      +infHtml\n' +
 '      +"<div style=\'margin-top:1.2rem;\'><input id=\'pf-mq-email\' type=\'email\' placeholder=\'Email for dispatch updates\' style=\'padding:0.6rem;width:70%;max-width:280px;background:#141414;border:2px solid #c1121f;color:#f5f0e1;font-family:inherit;\'>"\n' +
 '      +" <button id=\'pf-mq-join\' style=\'padding:0.6rem 1rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:700;cursor:pointer;font-family:inherit;\'>ENLIST</button></div>"\n' +
 '      +"<div id=\'pf-mq-msg\' style=\'margin-top:0.6rem;font-size:0.85rem;color:#b8ab8e;min-height:1.2em;\'></div>"\n' +
 '      +"<div><button id=\'pf-mq-again\' style=\'margin-top:0.8rem;background:none;border:1px solid #b8ab8e;color:#b8ab8e;padding:0.5rem 1rem;cursor:pointer;font-family:inherit;font-size:0.8rem;\'>RETAKE QUIZ</button></div>";\n' +
 '    try{document.dispatchEvent(new CustomEvent("pf-quiz-done",{detail:{archetype:top}}));}catch(e){}\n' +
 '    mqPublish(A);\n' +
+'    loadTribes(function(){var n=TRIBES?Number(TRIBES[top]||0):0;var t=document.getElementById("pf-mq-tribe");if(t&&n>0){t.innerHTML="<b style=\'color:#f5f0e1;\'>"+n.toLocaleString()+"</b> comrades landed <b style=\'color:#f5f0e1;\'>"+A.name+"</b> this week. The tribe grows.";}});\n' +
+'    var unlocked=false;\n' +
+'    function unlock4(){if(unlocked)return;unlocked=true;var f=document.getElementById("pf-mq-fourth");if(f&&A.mates[3]){f.innerHTML="<div style=\'padding:0.5rem;border:1px solid #c1121f;margin:0.3rem 0;font-weight:700;background:#1a0d0d;\'>"+esc(A.mates[3].label||A.mates[3])+"</div>";}}\n' +
+'    function mqShareH(e){try{if(e&&e.detail&&e.detail.game==="slr-match-quiz"){unlock4();document.removeEventListener("pf-share-image",mqShareH);}}catch(err){}}\n' +
+'    document.addEventListener("pf-share-image",mqShareH);\n' +
+'    document.getElementById("pf-mq-share").onclick=function(){\n' +
+'      try{var PS=window.PFShare;if(PS&&PS.poster&&PS.shareImage){var cv=PS.poster("slr-match-quiz");if(cv){PS.shareImage(cv,"slr-archetype.png",A.name+" \\u2014 my propaganda archetype","slr-match-quiz");setTimeout(unlock4,15000);return;}}}catch(e){}\n' +
+'      unlock4();\n' +
+'    };\n' +
+'    var ibf=document.getElementById("pf-mq-infight");\n' +
+'    if(ibf){ibf.onclick=function(){var t=document.getElementById("pf-infight-root");if(t){try{t.scrollIntoView({behavior:"smooth",block:"start"});}catch(e){t.scrollIntoView();}}};}\n' +
 '    document.getElementById("pf-mq-join").onclick=function(){\n' +
 '      var em=(document.getElementById("pf-mq-email").value||"").trim();\n' +
 '      var msg=document.getElementById("pf-mq-msg");\n' +
@@ -80,7 +148,7 @@
 '    };\n' +
 '    document.getElementById("pf-mq-again").onclick=function(){qi=0;scores={agitator:0,meme:0,organizer:0,sniper:0,hype:0};renderQ();};\n' +
 '  }\n' +
-'  renderQ();\n' +
+'  renderStart();\n' +
 '  setTimeout(mqRestore,1500);\n' +
 '  setTimeout(mqRestore,5000);\n' +
 '})();\n' +

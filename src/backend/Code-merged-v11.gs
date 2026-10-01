@@ -334,6 +334,31 @@ function doGet(e) {
     var tsheet = ensureActionsSheet(ss);
     return jsonOut({ total: sumColumn(tsheet, 3, LEGACY_PTS) }, cb);
   }
+  /* Quiz tribe counts: quiz_done rows over the trailing 7 Chicago days,
+     grouped by archetype from the meta column. Powers the SLR Match Quiz
+     social-proof line ("2,314 comrades got AGITATOR this week"). */
+  if (action === "quiz_tribes") {
+    var tribes = {}, qtotal = 0;
+    var qcut = "";
+    try { qcut = Utilities.formatDate(new Date(Date.now() - 7 * 86400000), "America/Chicago", "yyyy-MM-dd"); } catch (qe) {}
+    try {
+      var qsheet = ss.getSheetByName(ACTIONS_SHEET);
+      if (qsheet) {
+        var qrows = qsheet.getDataRange().getValues();
+        for (var qi = 1; qi < qrows.length; qi++) {
+          if (String(qrows[qi][1]) !== "quiz_done") continue;
+          var qday = "";
+          try { qday = Utilities.formatDate(new Date(qrows[qi][0]), "America/Chicago", "yyyy-MM-dd"); } catch (qe2) {}
+          if (!qday || qday < qcut) continue;
+          var qm = String(qrows[qi][6] || "");
+          var qarch = qm.indexOf("archetype:") === 0 ? qm.slice(10) : "unknown";
+          tribes[qarch] = (tribes[qarch] || 0) + 1;
+          qtotal++;
+        }
+      }
+    } catch (qe3) {}
+    return jsonOut({ total: qtotal, tribes: tribes }, cb);
+  }
   /* Site-wide action totals: single unified count for everyone. */
   if (action === "action_totals") {
     var total = 0;

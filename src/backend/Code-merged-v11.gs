@@ -334,6 +334,30 @@ function doGet(e) {
     var tsheet = ensureActionsSheet(ss);
     return jsonOut({ total: sumColumn(tsheet, 3, LEGACY_PTS) }, cb);
   }
+  /* Guess score stats: guess_scored rows over the trailing 7 Chicago days.
+     Powers the Guess the Creator social-proof line ("2,140 plays, avg 3.2/5"). */
+  if (action === "guess_stats") {
+    var gplays = 0, gsum = 0;
+    var gcut = "";
+    try { gcut = Utilities.formatDate(new Date(Date.now() - 7 * 86400000), "America/Chicago", "yyyy-MM-dd"); } catch (ge) {}
+    try {
+      var gsheet = ss.getSheetByName(ACTIONS_SHEET);
+      if (gsheet) {
+        var grows = gsheet.getDataRange().getValues();
+        for (var gi = 1; gi < grows.length; gi++) {
+          if (String(grows[gi][1]) !== "guess_scored") continue;
+          var gday = "";
+          try { gday = Utilities.formatDate(new Date(grows[gi][0]), "America/Chicago", "yyyy-MM-dd"); } catch (ge2) {}
+          if (!gday || gday < gcut) continue;
+          var gm = String(grows[gi][6] || "");
+          var gsc = gm.indexOf("score:") === 0 ? parseInt(gm.slice(6), 10) : NaN;
+          gplays++;
+          if (!isNaN(gsc) && gsc >= 0 && gsc <= 5) gsum += gsc;
+        }
+      }
+    } catch (ge3) {}
+    return jsonOut({ plays: gplays, avg: gplays ? Math.round(gsum / gplays * 10) / 10 : 0 }, cb);
+  }
   /* Quiz tribe counts: quiz_done rows over the trailing 7 Chicago days,
      grouped by archetype from the meta column. Powers the SLR Match Quiz
      social-proof line ("2,314 comrades got AGITATOR this week"). */

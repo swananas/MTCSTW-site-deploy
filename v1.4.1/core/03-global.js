@@ -73,6 +73,7 @@ if(document.readyState === 'loading'){
 /* Auto-report widget actions to the global backend.
    Listens for the CustomEvents each widget already fires. */
 (function(){
+if(window.PF&&window.PF.skip('03-global'))return;
   var MAP = {
     'pf-order-checkin': ['daily_orders', 'Daily Orders'],
     'pf-caption-submit': ['caption_combat', 'Caption Combat'],

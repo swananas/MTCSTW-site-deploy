@@ -23,6 +23,7 @@
     "games/enlistment-ranks.js",
     "games/war-bonds.js",
     "games/service-medals.js",
+    "core/06-pinups.js",
     "pages/home-v2.js",
     "core/share-image.js"
   ],

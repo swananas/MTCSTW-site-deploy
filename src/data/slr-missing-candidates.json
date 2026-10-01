@@ -1,101 +1,267 @@
 {
- "candidates": [],
- "db_creators_matched": [
-  {
-   "db_creator": "Radically Sunny",
-   "facebook_name": "Radically Sunny",
-   "facebook_url": "https://facebook.com/profile.php?id=100079870630797",
-   "match_confidence": "high",
-   "note": "Name matches DB creator exactly; DB holds verified Facebook page link for Radically Sunny."
+  "candidates": [
+    {
+      "tiktok": "@nikalie.monroe",
+      "display_name": "Nikalie \ud83c\udf08",
+      "followers_line": "558.6K TikTok (verified)",
+      "status": "approved_for_overhaul",
+      "source": "tiktok_following",
+      "strongest_platform": "TikTok 558.6K (1,168 videos, 8.3M likes)",
+      "content_focus": "hard-left agitator \u2014 bio \"FDT, F*ck ICE, Free Palestine, BLM, \ud83d\udc97 immigrants, pro choice\"; Army veteran, lesbian, KY substance-abuse counselor",
+      "why_slr_fit": "biggest reach of any true leftist in the pool; bio reads like an SLR affiliate page already",
+      "qualification": "YES \u2014 TikTok"
+    },
+    {
+      "tiktok": "@progressively2026",
+      "display_name": "realprogressive111",
+      "followers_line": "332.4K TikTok (verified)",
+      "status": "approved_for_overhaul",
+      "source": "tiktok_following",
+      "strongest_platform": "TikTok 332.4K (1,383 videos, 7.5M likes)",
+      "content_focus": "daily progressive political news commentary with dated posts; TikTok LIVE streams",
+      "why_slr_fit": "biggest progressive-Dem account in the pool; daily output, strong engagement (a video at 1.3M plays)",
+      "qualification": "YES \u2014 TikTok"
+    },
+    {
+      "tiktok": "@vandala_effect",
+      "display_name": "Bella Vandala",
+      "followers_line": "176.6K TikTok (verified)",
+      "status": "approved_for_overhaul",
+      "source": "tiktok_following",
+      "strongest_platform": "TikTok 176.6K (240 videos, 1.9M likes)",
+      "content_focus": "leftist political commentary with viral takedown content (236.4K-likes \"How the mighty have fallen\" video), uses #generalstrike; bio \"Working on get banned again \u2764\ufe0f\"",
+      "why_slr_fit": "proven leftist political creator with viral reach and high per-post engagement",
+      "qualification": "YES \u2014 TikTok"
+    },
+    {
+      "tiktok": "@therevcoms",
+      "display_name": "The Revcoms",
+      "followers_line": "108K TikTok (verified)",
+      "status": "approved_for_overhaul",
+      "source": "tiktok_following",
+      "strongest_platform": "TikTok 108K (984 videos, 1.3M likes)",
+      "content_focus": "self-described \"Revolutionary Communists. Followers of @BobAvakianOfficial & the New Communism\"",
+      "why_slr_fit": "strongest ideological alignment in the pool \u2014 explicitly communist propaganda, exactly the SLR lane",
+      "qualification": "YES \u2014 TikTok"
+    },
+    {
+      "tiktok": "@itsdewberry",
+      "display_name": "Dew",
+      "followers_line": "141.9K TikTok (verified)",
+      "status": "approved_for_overhaul",
+      "source": "tiktok_following",
+      "strongest_platform": "TikTok 141.9K (1,190 videos, 1.7M likes)",
+      "content_focus": "progressive political commentary from SE Texas \u2014 bio \"Don't be a bigot!\"",
+      "why_slr_fit": "large, consistent progressive commentator; regional Texas voice",
+      "qualification": "YES \u2014 TikTok"
+    },
+    {
+      "tiktok": "@thatalabamafella",
+      "display_name": "alabamafella",
+      "followers_line": "139.8K TikTok (verified)",
+      "status": "approved_for_overhaul",
+      "source": "tiktok_following",
+      "strongest_platform": "TikTok 139.8K (1,603 videos, 1.9M likes)",
+      "content_focus": "\"working class fella. it's cool to be anti racist and a feminist.\" \u2014 pro-working-class, anti-Trump, Gaza, Alabama utility corruption",
+      "why_slr_fit": "big openly anti-racist/feminist pro-working-class Southern voice; strong SLR fit",
+      "qualification": "YES \u2014 TikTok"
+    },
+    {
+      "tiktok": "@official.ghost.of.eli",
+      "display_name": "Eli Noah",
+      "followers_line": "73.9K TikTok (verified)",
+      "status": "approved_for_overhaul",
+      "source": "tiktok_following",
+      "strongest_platform": "TikTok 73.9K (359 videos, 1.4M likes)",
+      "content_focus": "trans military service member \u2014 viral \"placed on administrative leave\" video; bio \"Fuck \ud83e\uddca [ICE], Free \ud83c\uddf5\ud83c\uddf8\ud83c\udde8\ud83c\udde9\ud83c\uddf8\ud83c\udde9\"; boycotts, frequent LIVE",
+      "why_slr_fit": "strong leftist profile with viral reach (one video 7.4M plays); trans-military angle is unique",
+      "qualification": "YES \u2014 TikTok"
+    },
+    {
+      "tiktok": "@combatvetsagainsttrump",
+      "display_name": "Thomas Sidle",
+      "followers_line": "50.7K TikTok (verified)",
+      "status": "approved_for_overhaul",
+      "source": "tiktok_following",
+      "strongest_platform": "TikTok 50.7K (971 videos, 1.2M likes)",
+      "content_focus": "combat veteran anti-Trump/anti-GOP content; regular TikTok LIVE streamer",
+      "why_slr_fit": "large anti-Trump vet account, high engagement, live-streamer",
+      "qualification": "YES \u2014 TikTok"
+    },
+    {
+      "tiktok": "@_dofd",
+      "display_name": "Defense of Democracy",
+      "followers_line": "47.2K TikTok (verified)",
+      "status": "approved_for_overhaul",
+      "source": "tiktok_following",
+      "strongest_platform": "TikTok 47.2K (1,421 videos, 551.6K likes); also Facebook/X/Instagram/YouTube + Buzzsprout podcast (105 episodes)",
+      "content_focus": "anti-fascist org \u2014 resisting book bans, curriculum censorship, voter suppression; LGBTQ+ defense, ICE monitoring, school-board organizing",
+      "why_slr_fit": "real leftist organization with consistent multi-platform output; recruit conversation would be with the org",
+      "qualification": "YES \u2014 TikTok"
+    },
+    {
+      "tiktok": "@mermaid.tm",
+      "display_name": "MermaidTM",
+      "followers_line": "85.6K TikTok (verified)",
+      "status": "approved_for_overhaul",
+      "source": "tiktok_following",
+      "strongest_platform": "TikTok 85.6K (466 videos, ~998K likes); Patreon for behind-the-scenes political content",
+      "content_focus": "\"Political Pink Princess\" \u2014 political commentary + regular political LIVE streams",
+      "why_slr_fit": "established political commentator with monetized audience and live presence",
+      "qualification": "YES \u2014 TikTok"
+    },
+    {
+      "tiktok": "@jessicacymone",
+      "display_name": "Jessica Cymone",
+      "followers_line": "58.5K TikTok (verified)",
+      "status": "approved_for_overhaul",
+      "source": "tiktok_following",
+      "strongest_platform": "TikTok 58.5K (214 videos, 551K likes); daily LIVE",
+      "content_focus": "progressive political talk + music, \"deep conversations\"; @WeAreWhatsLeft affiliation",
+      "why_slr_fit": "progressive political creator with the batch's largest audience; left-coalition affiliation",
+      "qualification": "YES \u2014 TikTok"
+    },
+    {
+      "tiktok": "@reed_showalter",
+      "display_name": "Reed Showalter \u2713",
+      "followers_line": "23.5K TikTok (verified)",
+      "status": "approved_for_overhaul",
+      "source": "tiktok_following",
+      "strongest_platform": "TikTok 23.5K (245 videos, 459.3K likes); Substack",
+      "content_focus": "\"Progressive antimonopoly lawyer. Fighting oligarchs is my favorite pastime. \ud83c\udf49\"; anti-AIPAC, abolish-ICE messaging",
+      "why_slr_fit": "verified, openly progressive anti-oligarch lawyer with Substack; clean on-brand fit",
+      "qualification": "YES \u2014 TikTok"
+    },
+    {
+      "tiktok": "@mexiguerita22",
+      "display_name": "",
+      "followers_line": "498.8K TikTok (verified)",
+      "strongest_platform": "TikTok 498.8K (2,195 videos, 5.8M likes)",
+      "content_focus": "Mexican activist/author/creator \u2014 anti-Trump immigration solidarity, extremely consistent poster",
+      "why_slr_fit": "near-500K activist; Spanish-language immigration-left lane adds roster diversity",
+      "qualification": "YES \u2014 TikTok",
+      "status": "approved_for_overhaul",
+      "source": "tiktok_following"
+    },
+    {
+      "tiktok": "@mandifromtheinternet",
+      "display_name": "",
+      "followers_line": "182.9K TikTok (verified)",
+      "strongest_platform": "TikTok 182.9K (5,718 videos, 14.5M likes)",
+      "content_focus": "leftist internet commentary \u2014 openly leftist bio, anarchist-leaning",
+      "why_slr_fit": "huge openly-leftist account with relentless posting cadence and massive engagement",
+      "qualification": "YES \u2014 TikTok",
+      "status": "approved_for_overhaul",
+      "source": "tiktok_following"
+    },
+    {
+      "tiktok": "@sajidahtalks2025",
+      "display_name": "",
+      "followers_line": "21.9K TikTok (verified)",
+      "strongest_platform": "TikTok 21.9K (172 videos, 186.7K likes)",
+      "content_focus": "political activist \u2014 Palestine, immigration, Sudan solidarity; live streams",
+      "why_slr_fit": "explicit leftist solidarity content, active poster, well above minimum",
+      "qualification": "YES \u2014 TikTok",
+      "status": "approved_for_overhaul",
+      "source": "tiktok_following"
+    }
+  ],
+  "db_creators_matched": [
+    {
+      "db_creator": "Radically Sunny",
+      "facebook_name": "Radically Sunny",
+      "facebook_url": "https://facebook.com/profile.php?id=100079870630797",
+      "match_confidence": "high",
+      "note": "Name matches DB creator exactly; DB holds verified Facebook page link for Radically Sunny."
+    },
+    {
+      "db_creator": "Joey",
+      "facebook_name": "Joey Morvant",
+      "facebook_url": "https://facebook.com/joey.morvant.2025",
+      "match_confidence": "low",
+      "note": "First-name match only; DB has no confirmed Facebook for Joey (research 2026-09-24 found no Facebook). Personal profile from Houma, LA, now in California. Unverified - treat as lead, not confirmed."
+    },
+    {
+      "db_creator": "Radically Sunny",
+      "messenger_name": "Radically Sunny",
+      "match_confidence": "high",
+      "source": "messenger_contact",
+      "note": "Exact name match in Messenger contacts; also a participant in a recent (30-day) group DM thread, so this is an active DM relationship, not just a contact entry."
+    }
+  ],
+  "generated_at": "2026-10-01T10:53:00Z",
+  "leads_low_signal": [
+    {
+      "facebook_name": "Vee's Twitch",
+      "facebook_url": "https://facebook.com/TheVeeLovley",
+      "signals": "Profile bio lists a Twitch channel (Twitch.tv/VeeLovely) plus Instagram/Discord - runs a stream, but content/politics unknown. No follower count visible via CLI.",
+      "source": "facebook_friend"
+    },
+    {
+      "facebook_name": "Caglar Korkmaz",
+      "facebook_url": "https://facebook.com/ckmzmusic",
+      "signals": "Vanity URL suggests a music page (ckmzmusic); profile has no bio. Content/politics unknown.",
+      "source": "facebook_friend"
+    }
+  ],
+  "notes": "Messenger Companion is NOT connected (hatch_messenger_cli check: 'Messenger not connected yet'), so no Messenger contacts or DM participants could be pulled. That half of the cross-reference could not be run; connect Messenger to complete it. Facebook friends pull: 280 friends over 15 pages via facebook-cli me friends (personal profile of Shane Swan). The list is overwhelmingly personal Louisiana contacts (family, school, local friends, pawn shops, a wing restaurant) - almost no creator pages. Strict normalized matching (names + handles + vanity URLs, generic tokens like 'profilephp' excluded) found 1 confirmed DB match (Radically Sunny). Joey Morvant is a first-name-only possible match for DB creator Joey, unverified. Deduped against TikTok side (follow-crossref.json, 63 new_discoveries): zero overlap between Facebook friends and TikTok discoveries - no candidate appears in both sources. The strong SLR-fit accounts the TikTok cross-reference surfaced (@combatvetsagainsttrump, @therevcoms, @magaslayer2025, @_dofd, @attorneydeon, @lawyer_lisa, @theunscriptedrevolution, @octoquake, @love_and_molotov, @sentientdirtpress, @splashofgenz, @str8upshowpodcast, @ndreportpod, @progressively2026, @public_enlightenment, @skeptic.tik, @delanceythrone, @sissyfits, @avedeusmortis, @itssethshadows) are NOT in the Facebook friends list, so no multi-source confirmations exist yet. No strong new SLR candidates found in Facebook friends; the two low-signal leads above have unknown politics and should not be treated as candidates without further research. Read-only throughout: no messages sent, no friend/follow actions taken. | Messenger run 2026-10-01: Companion connected, 581 contacts pulled, 14 threads in the 30-day window. Only DB creator in Messenger is Radically Sunny (exact match, active in a recent group DM). No high-confidence multi-source confirmations: the 63 TikTok discoveries do not cleanly overlap Messenger contacts - only weak first-name/nickname overlaps (Jesse Hebert / @avedeusmortis 'Jesse'; Sydney Touchstone / @tideandtruths 'Syd'), both low-confidence leads. No new SLR candidates with real signals from Messenger contacts or recent DM participants - the contact list is overwhelmingly personal Louisiana contacts. | 2026-10-01: 15 TikTok candidates researched, ranked, and APPROVED by Shane for the pending SLR overhaul (status=approved_for_overhaul). @isaiahrmartin removed per user direction. Staging only.",
+  "sources": {
+    "facebook_friends_count": 280,
+    "messenger_contacts_count": 581,
+    "messenger_status": "connected",
+    "messenger_recent_threads_30d": 14
   },
-  {
-   "db_creator": "Joey",
-   "facebook_name": "Joey Morvant",
-   "facebook_url": "https://facebook.com/joey.morvant.2025",
-   "match_confidence": "low",
-   "note": "First-name match only; DB has no confirmed Facebook for Joey (research 2026-09-24 found no Facebook). Personal profile from Houma, LA, now in California. Unverified - treat as lead, not confirmed."
-  },
-  {
-   "db_creator": "Radically Sunny",
-   "messenger_name": "Radically Sunny",
-   "match_confidence": "high",
-   "source": "messenger_contact",
-   "note": "Exact name match in Messenger contacts; also a participant in a recent (30-day) group DM thread, so this is an active DM relationship, not just a contact entry."
+  "messenger": {
+    "status": "connected",
+    "contacts_pulled": 581,
+    "recent_threads_30d": 14,
+    "recent_dm_participants": [
+      "Heather Renfroe Champagne",
+      "Jenna Drozdz",
+      "Sydney Touchstone",
+      "Esmeray Ayla",
+      "Empa Nada",
+      "Sarah Hales",
+      "Radically Sunny",
+      "Adam Barr",
+      "David Koss",
+      "Tyrone Smith",
+      "Claude Verdin",
+      "Danielle Swan",
+      "Dylan Soudelier",
+      "Min Vig",
+      "Macy Elizabeth",
+      "Bradley Fanguy",
+      "Marco Posadas",
+      "Darin Mayo Jr.",
+      "Bryan Marie"
+    ],
+    "db_matches": [
+      {
+        "db_creator": "Radically Sunny",
+        "messenger_name": "Radically Sunny",
+        "match_confidence": "high",
+        "note": "Exact match; active in a recent group DM thread."
+      }
+    ],
+    "multi_source_confirmations": [],
+    "new_candidates": [],
+    "weak_leads": [
+      {
+        "messenger_name": "Jesse Hebert",
+        "tiktok": "@avedeusmortis",
+        "tiktok_display": "Jesse",
+        "match_confidence": "low",
+        "note": "First-name-only match between TikTok discovery display name 'Jesse' and Messenger contact 'Jesse Hebert'. Not confirmed same person; treat as lead only."
+      },
+      {
+        "messenger_name": "Sydney Touchstone",
+        "tiktok": "@tideandtruths",
+        "tiktok_display": "Syd",
+        "match_confidence": "low",
+        "note": "'Syd' could be short for Sydney; Sydney Touchstone is in a recent group DM thread with DB creator Radically Sunny. Speculative - treat as lead only."
+      }
+    ],
+    "method": "Normalized name matching (names + handles, substring on distinctive tokens, manual review of all fuzzy hits). Single common first-name overlaps (Emily, Jennifer, Jessica, Thomas, Lisa, Reed, Mayo) rejected as coincidental. Read-only: no messages sent, read, reacted to, or edited."
   }
- ],
- "generated_at": "2026-10-01T10:39:58Z",
- "leads_low_signal": [
-  {
-   "facebook_name": "Vee's Twitch",
-   "facebook_url": "https://facebook.com/TheVeeLovley",
-   "signals": "Profile bio lists a Twitch channel (Twitch.tv/VeeLovely) plus Instagram/Discord - runs a stream, but content/politics unknown. No follower count visible via CLI.",
-   "source": "facebook_friend"
-  },
-  {
-   "facebook_name": "Caglar Korkmaz",
-   "facebook_url": "https://facebook.com/ckmzmusic",
-   "signals": "Vanity URL suggests a music page (ckmzmusic); profile has no bio. Content/politics unknown.",
-   "source": "facebook_friend"
-  }
- ],
- "notes": "Messenger Companion is NOT connected (hatch_messenger_cli check: 'Messenger not connected yet'), so no Messenger contacts or DM participants could be pulled. That half of the cross-reference could not be run; connect Messenger to complete it. Facebook friends pull: 280 friends over 15 pages via facebook-cli me friends (personal profile of Shane Swan). The list is overwhelmingly personal Louisiana contacts (family, school, local friends, pawn shops, a wing restaurant) - almost no creator pages. Strict normalized matching (names + handles + vanity URLs, generic tokens like 'profilephp' excluded) found 1 confirmed DB match (Radically Sunny). Joey Morvant is a first-name-only possible match for DB creator Joey, unverified. Deduped against TikTok side (follow-crossref.json, 63 new_discoveries): zero overlap between Facebook friends and TikTok discoveries - no candidate appears in both sources. The strong SLR-fit accounts the TikTok cross-reference surfaced (@combatvetsagainsttrump, @therevcoms, @magaslayer2025, @_dofd, @attorneydeon, @lawyer_lisa, @theunscriptedrevolution, @octoquake, @love_and_molotov, @sentientdirtpress, @splashofgenz, @str8upshowpodcast, @ndreportpod, @progressively2026, @public_enlightenment, @skeptic.tik, @delanceythrone, @sissyfits, @avedeusmortis, @itssethshadows) are NOT in the Facebook friends list, so no multi-source confirmations exist yet. No strong new SLR candidates found in Facebook friends; the two low-signal leads above have unknown politics and should not be treated as candidates without further research. Read-only throughout: no messages sent, no friend/follow actions taken. | Messenger run 2026-10-01: Companion connected, 581 contacts pulled, 14 threads in the 30-day window. Only DB creator in Messenger is Radically Sunny (exact match, active in a recent group DM). No high-confidence multi-source confirmations: the 63 TikTok discoveries do not cleanly overlap Messenger contacts - only weak first-name/nickname overlaps (Jesse Hebert / @avedeusmortis 'Jesse'; Sydney Touchstone / @tideandtruths 'Syd'), both low-confidence leads. No new SLR candidates with real signals from Messenger contacts or recent DM participants - the contact list is overwhelmingly personal Louisiana contacts.",
- "sources": {
-  "facebook_friends_count": 280,
-  "messenger_contacts_count": 581,
-  "messenger_status": "connected",
-  "messenger_recent_threads_30d": 14
- },
- "messenger": {
-  "status": "connected",
-  "contacts_pulled": 581,
-  "recent_threads_30d": 14,
-  "recent_dm_participants": [
-   "Heather Renfroe Champagne",
-   "Jenna Drozdz",
-   "Sydney Touchstone",
-   "Esmeray Ayla",
-   "Empa Nada",
-   "Sarah Hales",
-   "Radically Sunny",
-   "Adam Barr",
-   "David Koss",
-   "Tyrone Smith",
-   "Claude Verdin",
-   "Danielle Swan",
-   "Dylan Soudelier",
-   "Min Vig",
-   "Macy Elizabeth",
-   "Bradley Fanguy",
-   "Marco Posadas",
-   "Darin Mayo Jr.",
-   "Bryan Marie"
-  ],
-  "db_matches": [
-   {
-    "db_creator": "Radically Sunny",
-    "messenger_name": "Radically Sunny",
-    "match_confidence": "high",
-    "note": "Exact match; active in a recent group DM thread."
-   }
-  ],
-  "multi_source_confirmations": [],
-  "new_candidates": [],
-  "weak_leads": [
-   {
-    "messenger_name": "Jesse Hebert",
-    "tiktok": "@avedeusmortis",
-    "tiktok_display": "Jesse",
-    "match_confidence": "low",
-    "note": "First-name-only match between TikTok discovery display name 'Jesse' and Messenger contact 'Jesse Hebert'. Not confirmed same person; treat as lead only."
-   },
-   {
-    "messenger_name": "Sydney Touchstone",
-    "tiktok": "@tideandtruths",
-    "tiktok_display": "Syd",
-    "match_confidence": "low",
-    "note": "'Syd' could be short for Sydney; Sydney Touchstone is in a recent group DM thread with DB creator Radically Sunny. Speculative - treat as lead only."
-   }
-  ],
-  "method": "Normalized name matching (names + handles, substring on distinctive tokens, manual review of all fuzzy hits). Single common first-name overlaps (Emily, Jennifer, Jessica, Thomas, Lisa, Reed, Mayo) rejected as coincidental. Read-only: no messages sent, read, reacted to, or edited."
- }
 }

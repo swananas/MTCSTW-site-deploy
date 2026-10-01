@@ -6,6 +6,17 @@
  *            (AKfycbzaqg3vIj1UnbHGJ82uti7yTdRpeR6PYMhoTne6LIL4kf1XjakrImMTHFwounaPrttl/exec).
  *            Paste this ENTIRE file over Code.gs. No duplicate doPost/doGet.
  *
+ * WHAT CHANGED in v13 vs the deployed v12 (prepared 2026-10-01 — Efficiency Index):
+ *  1. NEW doGet branch: ?action=pageview&slug=x -> {ok:true} (fire-and-forget
+ *     beacon from catalog pages; appends timestamp | slug to the new
+ *     "pageviews" tab, created on first use).
+ *  2. NEW doGet branch: ?action=pageview_totals&days=30[&callback=cb]
+ *     -> {days, views:{slug:count}} (trailing N days, America/Chicago).
+ *  3. NEW doGet branch: ?action=fan_history&weeks=2026-W40,2026-W39[&callback=cb]
+ *     -> {weeks, fans:{slug:{votes, tipped}}} — weighted votes for the given
+ *     ISO weeks + boost_tipped XP covering the same span. Powers the weekly
+ *     Efficiency Index (games/efficiency.js). No PII: slugs only.
+ *
  * WHAT CHANGED in v11 vs the deployed v10:
  *  1. NEW doGet branch: ?action=xp_today&callsign=X[&callback=cb]
  *     -> {ok, callsign, xp_today}: pool XP that callsign earned today
@@ -81,6 +92,10 @@
  *   GET  ?action=user_totals&callsign=Ghost&callback=cb -> cb({...}) (JSONP; callsign match is case-insensitive)
  *   GET  ?action=patron_totals&callback=cb          -> cb({patrons:[{callsign, tipped, signal}]}) (all-time top tippers)
  *   GET  ?action=boost_totals&callback=cb           -> cb({week, leaders:[{slug, tipped, signal}]}) (this week's per-creator tips, Chicago Mon-Sun)
+ *   GET  ?action=pageview&slug=joman                 -> {ok:true} (catalog pageview beacon)
+ *   GET  ?action=pageview_totals&days=30&callback=cb -> cb({days, views:{slug:count}})
+ *   GET  ?action=fan_history&weeks=2026-W40,2026-W39&callback=cb
+ *        -> cb({weeks, fans:{slug:{votes, tipped}}}) (Efficiency Index inputs)
  *
  * Retracts append a negative-weight row (same append-only model as votes).
  * Totals are floored at 0 so a retract can never drive a candidate negative
@@ -412,6 +427,82 @@ function doGet(e) {
     });
     bleaders.sort(function (a, b) { return b.tipped - a.tipped; });
     return jsonOut({ week: monStr, leaders: bleaders }, cb);
+  }
+  /* v13: Efficiency Index support — data-driven propaganda scores.
+   *   GET ?action=pageview&slug=x            -> {ok:true} (fire-and-forget beacon
+   *      from catalog pages; logs timestamp | slug to the "pageviews" tab.
+   *      One ping per slug per session is enforced client-side.)
+   *   GET ?action=pageview_totals&days=30    -> {days, views:{slug:count}}
+   *      (trailing N days, America/Chicago, clamped 1-90)
+   *   GET ?action=fan_history&weeks=2026-W40,2026-W39
+   *      -> {weeks:[...], fans:{slug:{votes, tipped}}} — weighted votes from the
+   *      votes sheet for the given ISO weeks + boost_tipped XP from the actions
+   *      sheet covering the same span (weeks*7 days back from today, Chicago).
+   *   The frontend (games/efficiency.js) combines these with roster follower
+   *   counts into the weekly Efficiency Index. No PII: slugs only. */
+  if (action === "pageview" || action === "pageview_totals" || action === "fan_history") {
+    var pvSheet = ss.getSheetByName("pageviews");
+    if (!pvSheet) {
+      pvSheet = ss.insertSheet("pageviews");
+      pvSheet.appendRow(["timestamp", "slug"]);
+    }
+    if (action === "pageview") {
+      var pslug = String(e.parameter.slug || "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 80);
+      if (pslug) pvSheet.appendRow([new Date(), pslug]);
+      return jsonOut({ ok: true }, cb);
+    }
+    if (action === "pageview_totals") {
+      var pdays = Math.max(1, Math.min(90, parseInt(e.parameter.days || "30", 10) || 30));
+      var pcut = "";
+      try { pcut = Utilities.formatDate(new Date(Date.now() - pdays * 86400000), "America/Chicago", "yyyy-MM-dd"); } catch (pe) {}
+      var pviews = {};
+      try {
+        var pvrows = pvSheet.getDataRange().getValues();
+        for (var pvi = 1; pvi < pvrows.length; pvi++) {
+          var pday = "";
+          try { pday = Utilities.formatDate(new Date(pvrows[pvi][0]), "America/Chicago", "yyyy-MM-dd"); } catch (pe2) {}
+          if (!pday || pday < pcut) continue;
+          var pvs = String(pvrows[pvi][1] || "");
+          if (!pvs) continue;
+          pviews[pvs] = (pviews[pvs] || 0) + 1;
+        }
+      } catch (pe3) {}
+      return jsonOut({ days: pdays, views: pviews }, cb);
+    }
+    /* fan_history */
+    var fweeks = String(e.parameter.weeks || "").split(",").map(function (w) { return w.trim(); })
+      .filter(function (w) { return /^\d{4}-W\d{1,2}$/.test(w); }).slice(0, 12);
+    var fcut = "";
+    try { fcut = Utilities.formatDate(new Date(Date.now() - fweeks.length * 7 * 86400000), "America/Chicago", "yyyy-MM-dd"); } catch (fe) {}
+    var fans = {};
+    function facc(slug) { if (!fans[slug]) fans[slug] = { votes: 0, tipped: 0 }; return fans[slug]; }
+    try {
+      var vrows = ss.getSheetByName(SHEET_NAME).getDataRange().getValues();
+      for (var fvi = 1; fvi < vrows.length; fvi++) {
+        if (fweeks.indexOf(String(vrows[fvi][1])) < 0) continue;
+        var fs = String(vrows[fvi][2] || "");
+        if (!fs) continue;
+        var fw = vrows[fvi].length > 3 ? (Number(vrows[fvi][3]) || 1) : 1;
+        facc(fs).votes = Math.max(0, facc(fs).votes + fw);  /* floor at 0, like results */
+      }
+    } catch (fe2) {}
+    try {
+      var asheet = ss.getSheetByName(ACTIONS_SHEET);
+      if (asheet) {
+        var arows = asheet.getDataRange().getValues();
+        for (var fai = 1; fai < arows.length; fai++) {
+          if (String(arows[fai][1]) !== "boost_tipped") continue;
+          var fday = "";
+          try { fday = Utilities.formatDate(new Date(arows[fai][0]), "America/Chicago", "yyyy-MM-dd"); } catch (fe3) {}
+          if (!fday || fday < fcut) continue;
+          var fparts = String(arows[fai][6] || "").split(":");
+          var fslug = fparts[0], ftip = Number(fparts[1]) || 0;
+          if (!fslug || ftip <= 0) continue;
+          facc(fslug).tipped += ftip;
+        }
+      }
+    } catch (fe4) {}
+    return jsonOut({ weeks: fweeks, fans: fans }, cb);
   }
   /* v11: per-callsign pool XP today (America/Chicago) — the cross-device seed
    * for the 50/day bucket. Counts ONLY pool-routed action_types (POOL_TYPES)

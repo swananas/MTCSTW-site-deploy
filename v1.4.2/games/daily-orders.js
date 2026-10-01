@@ -257,6 +257,8 @@ function maybeCommandBonus(){
     try{ var idf=ident(); if(idf.callsign){ apiPost({action:"checkin",callsign:idf.callsign,day:opDay,mission:"field-op",spread:0,gained:got+cmd},function(j){ mergeCheckinState(j); }); } }catch(e){}
     var lootEl=document.getElementById("oLoot");
     if(lootEl) lootEl.textContent="+"+(got+cmd)+" XP — FIELD OP COMPLETE: "+op.label+". The network runs through you."+(cmd?" FULL DEPLOYMENT command bonus!":"");
+    /* DOPAMINE: field-op celebration — confetti + floating XP over the orders widget. */
+    try{ if(window.PF&&PF.dope){ var ob=document.getElementById("pf-orders"); PF.dope.confetti(ob,30); PF.dope.xpFloat(ob,"+"+(got+cmd)+" XP"); } }catch(e){}
     render();
   });
 })();
@@ -523,7 +525,7 @@ function render(){
       if(sec&&sec.scrollIntoView){ try{ sec.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){} }
     };
   });
-  function doReport(mi,platform){
+  function doReport(mi,platform,btn){
     var res=checkin(mi,platform);
     if(!res.ok) return;
     var box=document.getElementById("pf-orders");
@@ -534,6 +536,15 @@ function render(){
         if(res.shieldEarned) loot="STREAK SHIELD earned — one missed day forgiven. "+loot;
         if(res.cellBonus>0) loot="CELL BONUS +"+res.cellBonus+" XP ("+Math.round((res.cellMult-1)*100)+"% cell streak) — "+loot;
     var cmd=res.cmd||maybeCommandBonus();
+    /* DOPAMINE: press bounce, floating XP, streak-milestone ping, mission-complete confetti.
+       Pure presentation — the economy already settled above; nothing here awards or tallies. */
+    try{ if(window.PF&&PF.dope){
+      if(btn) PF.dope.press(btn);
+      PF.dope.xpFloat(box,"+"+(res.gained+res.bonus+cmd)+" XP");
+      if(res.bonus>0) PF.dope.ping(box,res.streak+"-DAY STREAK BONUS");
+      PF.dope.confetti(box,res.reportNo>=3?60:18);
+      if(res.reportNo>=3) PF.dope.ping(box,"ALL ORDERS COMPLETE");
+    } }catch(e){}
     if(cmd) loot="FULL DEPLOYMENT — COMMAND BONUS +"+cmd+". "+loot;
     document.getElementById("oLoot").textContent="+"+(res.gained+res.bonus+cmd)+" XP — "+loot+(res.bonus?" "+res.streak+"-day streak bonus!":"");
     document.getElementById("oErr").textContent="";
@@ -547,12 +558,12 @@ function render(){
         if(pick) pick.style.display=pick.style.display==="block"?"none":"block";
         return;
       }
-      doReport(mi,null);
+      doReport(mi,null,b);
     };
   });
   z.querySelectorAll("button.o-platbtn").forEach(function(b){
     b.onclick=function(){
-      doReport(parseInt(b.getAttribute("data-mi"),10), b.getAttribute("data-p"));
+      doReport(parseInt(b.getAttribute("data-mi"),10), b.getAttribute("data-p"), b);
     };
   });
   document.getElementById("oProg").textContent=doneCount+"/"+PER_DAY+" orders complete";

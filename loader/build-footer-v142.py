@@ -24,6 +24,7 @@ slug_alt = '|'.join(slugs)
 
 V2_JS = ["core/00-bus.js", "core/07-slr-db-data.js", "core/07-slr-db.js",
          "core/03-global.js", "core/04-ledger.js", "core/05-tally.js",
+         "core/08-dopamine.js",
          "games/fan-vote.js", "games/slr-match-quiz.js", "games/creator-guess.js",
          "games/bracket-board.js", "games/daily-orders.js", "games/cells.js",
          "games/war-card.js", "games/boost-raid.js", "games/do-meter.js",

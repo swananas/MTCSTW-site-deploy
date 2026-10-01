@@ -7,7 +7,7 @@
   if (PF.skip("media-nuke")) { return; }
   /* PF-NUKE-DOPE-20261001: celebration migrated to shared PF.dope (core/08-dopamine.js).
      Only bar positioning + the charge pulse remain bespoke. */
-  PF.holder().insertAdjacentHTML('beforeend', "<style>\n#slr-nuke{position:relative;overflow:hidden}\n#slr-nuke .slr-nuke-fill.pulse{filter:brightness(1.7)}\n@media (prefers-reduced-motion:reduce){#slr-nuke .slr-nuke-fill.pulse{filter:none}}\n</style>");
+  PF.holder().insertAdjacentHTML('beforeend', "<style>\n#slr-nuke{position:relative;overflow:hidden}\n#slr-nuke .slr-nuke-fill.pulse{filter:brightness(1.7)}\n@media (prefers-reduced-motion:reduce){#slr-nuke .slr-nuke-fill.pulse{filter:none}}\n#pf-nuke-stick{position:fixed;left:0;right:0;bottom:0;z-index:9000;background:rgba(13,13,13,.97);border-top:2px solid #c1121f;color:#f5ead6;font-family:monospace;box-shadow:0 -4px 18px rgba(0,0,0,.5)}\n#pf-nuke-stick[hidden]{display:none!important}\n#pf-nuke-stick .pns-meter{height:6px;background:#2b2b2b}\n#pf-nuke-stick .pns-fill{height:100%;width:0;background:linear-gradient(90deg,#c1121f,#e8192f);transition:width .5s}\n#pf-nuke-stick .pns-row{display:flex;align-items:center;gap:8px;padding:5px 10px}\n#pf-nuke-stick .pns-tap{flex:1;display:flex;gap:10px;align-items:center;background:none;border:0;color:#f5ead6;font:inherit;font-size:12px;text-align:left;cursor:pointer;padding:4px 0;min-width:0}\n#pf-nuke-stick .pns-pct{font-weight:700;color:#ff4d5e;white-space:nowrap}\n#pf-nuke-stick .pns-you{color:#f5ead6;white-space:nowrap}\n#pf-nuke-stick .pns-cell{color:#c9bfa8;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n#pf-nuke-stick .pns-x{background:none;border:0;color:#c9bfa8;font-size:18px;line-height:1;cursor:pointer;padding:4px 6px}\n#pf-nuke-stick .pns-act{background:#c1121f;color:#fff;border:0;font:700 12px monospace;letter-spacing:1px;padding:9px 10px;cursor:pointer;white-space:nowrap;flex:1}\n#pf-nuke-stick .pns-act.rally{background:transparent;border:1px solid #c1121f;color:#f5ead6}\n#pf-nuke-stick.flash{animation:pnsflash .6s}\n@keyframes pnsflash{0%,100%{border-top-color:#c1121f}50%{border-top-color:#ffcc00;box-shadow:0 -4px 26px rgba(255,204,0,.35)}}\n@media (prefers-reduced-motion:reduce){#pf-nuke-stick .pns-fill{transition:none}#pf-nuke-stick.flash{animation:none}}\n</style>");
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-nuke">
 <div class="fe-block pf-override-block" id="slr-nuke">
 
@@ -39,6 +39,17 @@
    global readers. Local event-sourced counter is the offline fallback. */
 var BACKEND_URL = window.PF_BACKEND_URL || "https://script.google.com/macros/s/AKfycbzaqg3vIj1UnbHGJ82uti7yTdRpeR6PYMhoTne6LIL4kf1XjakrImMTHFwounaPrttl/exec";
 var GOAL = 50000;
+
+/* Sticky action bar assets — declared up here because ready() fires init()
+   immediately at line ~47, before any var initializer further down would run. */
+var STICK_HTML='<div id="pf-nuke-stick" hidden>'+
+'<div class="pns-meter"><div class="pns-fill" id="pnsFill"></div></div>'+
+'<div class="pns-row"><button class="pns-tap" id="pnsTap"><span class="pns-pct" id="pnsPct">NUKE --%</span>'+
+'<span class="pns-you" id="pnsYou"></span><span class="pns-cell" id="pnsCell"></span></button>'+
+'<button class="pns-x" id="pnsX" aria-label="Hide nuke bar">\\u00d7</button></div>'+
+'<div class="pns-row"><button class="pns-act" id="pnsMission">RUN MISSION</button>'+
+'<button class="pns-act rally" id="pnsRally">RALLY CELL</button></div></div>';
+var stickXp=0, stickPct=0, stickReady=false, stickCell=null, stickCellTried=false;
 
 function ready(fn){
   if(document.readyState==='complete'||document.readyState==='interactive'){fn();}
@@ -122,11 +133,12 @@ function render(root,xp,goal,mode,comrades){
     }
     root._lastXp=xp;
     if(mode==='network'&&dope){
-      if(pct>=25&&mileHit('m25'))dope.ping(root,'CHARGING \\u2014 QUARTER TO DETONATION');
-      if(pct>=60&&mileHit('m60'))dope.ping(root,'CRITICAL MASS \\u2014 60% CHARGED');
-      if(pct>=100&&mileHit('m100'))nukeParty(root);
+      if(pct>=25&&mileHit('m25')){dope.ping(root,'CHARGING \\u2014 QUARTER TO DETONATION');stickFlash();}
+      if(pct>=60&&mileHit('m60')){dope.ping(root,'CRITICAL MASS \\u2014 60% CHARGED');stickFlash();}
+      if(pct>=100&&mileHit('m100')){nukeParty(root);stickFlash();}
     }
   }catch(e){}
+  try{ updateStick(xp,pct); }catch(e){}
 }
 
 function nukeParty(root){
@@ -134,6 +146,159 @@ function nukeParty(root){
   if(!dope)return;
   dope.confetti(root,60);
   dope.ping(root,'\\u2622 MEDIA NUKE ARMED \\u2014 command is issuing the target');
+}
+
+/* ============ STICKY NUKE ACTION BAR ============
+   Slim persistent bar: live meter + your stake + cell pulse + two actions.
+   Appears once the main widget scrolls out of view; tap the meter row to jump
+   back. Pure presentation + navigation — all XP still flows through the normal
+   game events, counted once by the tally core. */
+function chiDay(){ try{ return new Date().toLocaleDateString('en-CA',{timeZone:'America/Chicago'}); }catch(e){ return nukeDay(); } }
+
+/* Mission button state, read live from Daily Orders local state. */
+function missionState(){
+  var done=0, op=false;
+  try{
+    var o=JSON.parse(localStorage.getItem('pf_orders_v1')||'null');
+    var rec=o&&o.days&&o.days[chiDay()];
+    if(rec&&rec.done){
+      rec.done.forEach(function(x){ if(x&&x.m==='field-op') op=true; else done++; });
+      if(rec.opDone) op=true;
+    }
+  }catch(e){}
+  return {left:Math.max(0,3-done), op:op};
+}
+
+function scrollToId(id){
+  try{ var el=document.getElementById(id); if(el&&el.scrollIntoView) el.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){}
+}
+
+/* This device's cell (invite code + member count), one JSONP per session. */
+function cellInfo(cb){
+  if(stickCellTried){ cb(stickCell); return; }
+  var cs='',dev='';
+  try{ cs=window.PFCallsign?window.PFCallsign():''; }catch(e){}
+  try{ dev=window.PFDeviceId?window.PFDeviceId():''; }catch(e){}
+  if(!cs||!BACKEND_URL){ stickCellTried=true; cb(null); return; }
+  try{
+    var cached=JSON.parse(localStorage.getItem('pf_nuke_cell_v1')||'null');
+    if(cached&&cached.t&&Date.now()-cached.t<600000&&cached.cs===cs){ stickCellTried=true; stickCell=cached.cell; cb(stickCell); return; }
+  }catch(e){}
+  var fn='pfNukeCellCb'+Date.now();
+  window[fn]=function(j){
+    try{delete window[fn];}catch(e){}
+    var sc=document.getElementById(fn); if(sc&&sc.parentNode)sc.parentNode.removeChild(sc);
+    stickCellTried=true;
+    if(j&&j.in_cell&&j.cell){
+      stickCell={name:j.cell.name||'YOUR CELL',code:j.cell.invite_code||'',members:(j.cell.members||[]).length};
+      try{ localStorage.setItem('pf_nuke_cell_v1',JSON.stringify({t:Date.now(),cs:cs,cell:stickCell})); }catch(e){}
+    } else stickCell=null;
+    cb(stickCell);
+  };
+  var sc=document.createElement('script'); sc.id=fn;
+  sc.src=BACKEND_URL+'?action=cell_mine&callsign='+encodeURIComponent(cs)+'&device='+encodeURIComponent(dev)+'&callback='+fn;
+  sc.onerror=function(){ try{delete window[fn];}catch(e){} if(sc.parentNode)sc.parentNode.removeChild(sc); stickCellTried=true; cb(null); };
+  document.head.appendChild(sc);
+}
+
+/* Rally / spread share card: live nuke % + cell invite, JOIN THE FIGHT CTA.
+   Sharing fires pf-share-image (+5 XP) — the share itself charges the blast. */
+function mintNukeCard(cell){
+  try{
+    if(!window.PFShare) return null;
+    var lines=['Nuke at '+Math.floor(stickPct)+'% \\u2014 '+fmt(stickXp)+' / 50,000 XP today.'];
+    if(cell&&cell.code) lines.push('Rally with '+cell.name+' \\u2014 invite code '+cell.code+'.');
+    else lines.push('Run missions. Charge the blast. Own the news cycle.');
+    PFShare.REG['nuke-rally']={
+      title:'\\u2622 MEDIA NUKE \\u2622',
+      tag:'The network is charging the blast',
+      lines:lines,
+      cta:'JOIN THE FIGHT'
+    };
+    return PFShare.poster('nuke-rally');
+  }catch(e){ return null; }
+}
+function rallyTap(){
+  cellInfo(function(cell){
+    if(cell&&cell.code){
+      var cv=mintNukeCard(cell);
+      if(cv&&window.PFShare){ PFShare.shareImage(cv,'nuke-rally.png','Media Nuke \\u2014 rally '+cell.name,'media-nuke'); return; }
+    }
+    scrollToId('pf-cells');
+  });
+}
+function spreadTap(){
+  var cv=mintNukeCard(null);
+  if(cv&&window.PFShare) PFShare.shareImage(cv,'nuke-charge.png','Media Nuke \\u2014 charge the blast','media-nuke');
+  else scrollToId('pf-orders');
+}
+function missionTap(){
+  var ms=missionState();
+  if(ms.left>0||!ms.op) scrollToId('pf-orders');
+  else spreadTap();
+}
+
+function stickFlash(){
+  try{
+    var bar=document.getElementById('pf-nuke-stick'); if(!bar||bar.hidden) return;
+    bar.classList.remove('flash'); void bar.offsetWidth; bar.classList.add('flash');
+    setTimeout(function(){ try{bar.classList.remove('flash');}catch(e){} },700);
+  }catch(e){}
+}
+
+function updateStick(xp,pct){
+  stickXp=xp; stickPct=pct; stickReady=true;
+  var bar=document.getElementById('pf-nuke-stick'); if(!bar) return;
+  var fill=document.getElementById('pnsFill'); if(fill) fill.style.width=Math.min(100,pct)+'%';
+  var p=document.getElementById('pnsPct'); if(p) p.textContent='NUKE '+Math.floor(Math.min(100,pct))+'%';
+  var y=document.getElementById('pnsYou'); if(y) y.textContent='YOU '+fmt(localXpToday())+' XP';
+  var ms=missionState(), mb=document.getElementById('pnsMission');
+  if(mb){
+    if(ms.left>0) mb.textContent='RUN MISSION ('+ms.left+' LEFT)';
+    else if(!ms.op) mb.textContent='FIELD OP OPEN';
+    else mb.textContent='SPREAD THE WORD';
+  }
+  var rb=document.getElementById('pnsRally'), c=document.getElementById('pnsCell');
+  cellInfo(function(cell){
+    if(!document.body.contains(bar)) return;
+    if(cell){
+      if(c){ c.textContent='CELL '+cell.members+'/5'; c.style.display=''; }
+      if(rb) rb.textContent='RALLY '+String(cell.name||'CELL').toUpperCase().slice(0,14);
+    }else{
+      if(c) c.style.display='none';
+      if(rb) rb.textContent='BUILD YOUR CELL';
+    }
+  });
+}
+
+function buildStick(root){
+  if(!root||document.getElementById('pf-nuke-stick')) return;
+  try{ if(sessionStorage.getItem('pf_nuke_stick_hide')) return; }catch(e){}
+  try{ document.body.insertAdjacentHTML('beforeend',STICK_HTML); }catch(e){ return; }
+  var bar=document.getElementById('pf-nuke-stick'); if(!bar) return;
+  document.getElementById('pnsX').addEventListener('click',function(){
+    bar.hidden=true; try{sessionStorage.setItem('pf_nuke_stick_hide','1');}catch(e){}
+  });
+  document.getElementById('pnsTap').addEventListener('click',function(){ scrollToId('slr-nuke'); });
+  document.getElementById('pnsMission').addEventListener('click',missionTap);
+  document.getElementById('pnsRally').addEventListener('click',rallyTap);
+  var setVis=function(show){
+    var hide=false;
+    try{ hide=!!sessionStorage.getItem('pf_nuke_stick_hide'); }catch(e){}
+    bar.hidden=hide||!(show&&stickReady);
+  };
+  try{
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(e){ setVis(!e.isIntersecting); });
+    },{threshold:0.02});
+    io.observe(root);
+  }catch(e){
+    var onScroll=function(){
+      try{ var r=root.getBoundingClientRect(); setVis(r.bottom<0||r.top>window.innerHeight); }catch(err){}
+    };
+    try{ window.addEventListener('scroll',onScroll,{passive:true}); }catch(err){}
+    onScroll();
+  }
 }
 
 function init(){
@@ -158,6 +323,7 @@ function init(){
   }
   tick();
   setInterval(tick,60000);
+  try{ buildStick(document.getElementById('slr-nuke')); }catch(e){}
   /* real-time refresh on any XP event from any game; each event also charges
      the event-sourced daily counter (null = take the XP from event.detail.xp) */
   var xpEvents=Object.keys(NUKE_PTS);

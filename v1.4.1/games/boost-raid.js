@@ -48,7 +48,7 @@
 '  function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}\n' +
 '  document.getElementById("pf-raid-target").innerHTML=\n' +
 '    "<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\'>TODAY\\u2019S TARGET</div>"\n' +
-'    +"<div style=\'font-size:1.5rem;font-weight:900;margin:0.4rem 0;\'>"+esc(tgt.n)+"</div>"\n' +
+'    +"<div style=\'font-size:1.5rem;font-weight:900;margin:0.4rem 0;\'>"+esc(tn)+"</div>"\n' +
 '    +"<div style=\'font-size:0.9rem;color:#b8ab8e;\'>"+esc(th)+(tp?" \\u00b7 "+esc(tp):"")+"</div>"\n' +
 '    +"<div style=\'font-size:0.95rem;margin:0.8rem 0;padding:0.8rem;border:2px dashed #c1121f;\'>"+esc(tgt.m)+"</div>";\n' +
 '  var sEl=document.getElementById("pf-raid-streak"),mEl=document.getElementById("pf-raid-msg"),btn=document.getElementById("pf-raid-report");\n' +

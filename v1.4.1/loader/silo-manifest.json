@@ -23,8 +23,8 @@
     "games/enlistment-ranks.js",
     "games/war-bonds.js",
     "games/service-medals.js",
-    "core/06-pinups.js",
     "pages/home-v2.js",
+    "core/06-pinups.js",
     "core/share-image.js"
   ],
   "non_v2": "Pages without <div id=\"pf-v2\"></div> load the frozen v1.1.0 production set pinned at 6e8b9a4 (list hardcoded in the Squarespace footer, not here).",

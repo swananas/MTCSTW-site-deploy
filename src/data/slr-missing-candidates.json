@@ -1030,49 +1030,6 @@
       "enriched_at": "2026-10-01"
     },
     {
-      "tiktok": "@tideandtruths",
-      "display_name": "Syd",
-      "followers_line": "6,524 TikTok (verified 2026-10-01)",
-      "strongest_platform": "TikTok (count unverified)",
-      "content_focus": "Gaza aid organizing \u2014 founder of Tide Mothers Collective (newborn care packages); bio: 'Neurospicy brain \u2022 Chronically ill body \u2022 Founder @Tide Mothers Collective'",
-      "why_slr_fit": "Added directly by Shane 2026-10-01 ('Syd'). Possible match to Sydney Touchstone (Messenger group DM) \u2014 verify identity and count",
-      "qualification": "BELOW MINIMUM \u2014 TikTok 6.5K is under the 10K SLR hard minimum; qualifies on no other platform",
-      "status": "approved_for_overhaul",
-      "source": "tiktok_following",
-      "links": [
-        {
-          "platform": "TikTok",
-          "url": "https://www.tiktok.com/@tideandtruths",
-          "followers": "6,524 followers",
-          "status": "confirmed",
-          "source": "live tiktok profile fetch 2026-10-01 (600 videos, 206.9K likes; nickname 'Syd\u00bf\ud83c\udf49')"
-        },
-        {
-          "platform": "X",
-          "url": "@TideAndTruths ('Tide & Truths', ~33-34 followers)",
-          "followers": "unknown",
-          "status": "probable",
-          "source": "seen on twstalker/instalker aggregators; bio themes match TikTok identity but direct URL unverified"
-        },
-        {
-          "platform": "Link-in-bio",
-          "url": "https://linktr.ee/TideAndTruths",
-          "followers": "n/a",
-          "status": "confirmed",
-          "source": "from her own TikTok bio; contents blocked by fetch policy"
-        },
-        {
-          "platform": "Chuffed fundraiser",
-          "url": "https://chuffed.org/project/155748-tide-mothers-collective-mother-led-relief-in-gaza",
-          "followers": "n/a",
-          "status": "probable",
-          "source": "her TikTok bio states she is founder of Tide Mothers Collective; organizer identity not independently verified"
-        }
-      ],
-      "platform_summary": "TikTok-first political creator (Syd, 6.5K followers, 600 videos) focused on Gaza aid organizing as founder of Tide Mothers Collective; Linktree in bio (contents blocked); probable same-branded X (~33 followers); no IG/YT/FB/Substack/podcast/merch/Patreon/website discoverable.",
-      "enriched_at": "2026-10-01"
-    },
-    {
       "tiktok": "@worlds_strongest_mayo",
       "display_name": "worlds_strongest_mayo",
       "followers_line": "12,600 TikTok (verified 2026-10-01)",
@@ -1092,50 +1049,6 @@
         }
       ],
       "platform_summary": "TikTok-only creator (12.6K, 730 videos, 2.6M likes, anti-MAGA political satire); no discoverable Instagram, YouTube, X, Facebook, Substack, podcast, link-in-bio, merch, Patreon, or website.",
-      "enriched_at": "2026-10-01"
-    },
-    {
-      "tiktok": "@edwardgonzales579",
-      "display_name": "Edward Gonzales",
-      "followers_line": "14,200 TikTok (verified 2026-10-01)",
-      "strongest_platform": "TikTok (count unverified)",
-      "content_focus": "FLAGGED: does NOT appear to be a leftist/political creator \u2014 Indigenous-culture/personal content (bio 'Yaqui Native American'; Mayan murals, personal posts). No political content or movement affiliation verifiable.",
-      "why_slr_fit": "Added directly by Shane 2026-10-01 ('Edward'). Verify content fit and count",
-      "qualification": "YES \u2014 TikTok (14.2K clears 10K) BUT FIT FLAGGED: no leftist/political identity verifiable",
-      "status": "approved_for_overhaul",
-      "source": "tiktok_following",
-      "links": [
-        {
-          "platform": "TikTok",
-          "url": "https://www.tiktok.com/@edwardgonzales579",
-          "followers": "14,200 followers",
-          "status": "confirmed",
-          "source": "live tiktok profile fetch 2026-10-01 (4,087 videos, 480.9K likes; bio 'Yaqui Native American')"
-        }
-      ],
-      "platform_summary": "TikTok-only personal creator (14.2K) with Yaqui Native American cultural content; no discoverable off-platform presence and no political/leftist identity verifiable.",
-      "enriched_at": "2026-10-01"
-    },
-    {
-      "tiktok": "@magaslayer2025",
-      "display_name": "magaslayer2025",
-      "followers_line": "8,969 TikTok (verified 2026-10-01)",
-      "strongest_platform": "TikTok 8.9K",
-      "content_focus": "anti-MAGA leftist content",
-      "why_slr_fit": "Added directly by Shane 2026-10-01 ('MAGA slayer'). Below the 10K TikTok minimum \u2014 flagged for Shane's call; may qualify on another platform",
-      "qualification": "BELOW MINIMUM \u2014 TikTok 8,969 is under the 10K SLR hard minimum; qualifies on no other platform (added per Shane's direct request)",
-      "status": "approved_for_overhaul",
-      "source": "tiktok_following",
-      "links": [
-        {
-          "platform": "TikTok",
-          "url": "https://www.tiktok.com/@magaslayer2025",
-          "followers": "8,969 followers",
-          "status": "confirmed",
-          "source": "live tiktok profile fetch 2026-10-01 (42 videos, 10.8K likes)"
-        }
-      ],
-      "platform_summary": "TikTok-only micro-creator (8,969); zero verifiable footprint on any other platform \u2014 no alternative qualification path. Do NOT conflate with lookalike 'Maga Slayer' accounts (@magaslayer.barbarian, @MagaSlayer47, @IAmMAGASlayer, @MAGACult2), which are distinct creators.",
       "enriched_at": "2026-10-01"
     }
   ],

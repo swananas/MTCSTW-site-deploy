@@ -127,26 +127,8 @@ SLR hard minimums: TikTok 10K | IG 10K | FB Page 25K | YT 5K | X 10K | Substack 
 - Why: PROMOTED from honorable mentions 2026-10-01 per Shane. Explicit leftist identity + massive output.
 - Qualification: YES — TikTok
 
-### 21. @tideandtruths — Syd — count unverified
-- Strongest platform: TikTok (count unverified)
-- Content: unverified — research pending
-- Why: Added directly by Shane 2026-10-01 ("Syd"). Possible match to Sydney Touchstone — verify identity and count.
-- Qualification: UNVERIFIED — confirm TikTok 10K+
-
-### 22. @worlds_strongest_mayo — worlds_strongest_mayo — 12.6K TikTok (verified)
+### 21. @worlds_strongest_mayo — worlds_strongest_mayo — 12.6K TikTok (verified)
 - Strongest platform: TikTok 12.6K
 - Content: anti-MAGA political satirist, disproportionate engagement for size
 - Why: Added directly by Shane 2026-10-01 ("Worlds strongest mayo"). Satire lane + strong engagement.
 - Qualification: YES — TikTok
-
-### 23. @edwardgonzales579 — Edward Gonzales — count unverified
-- Strongest platform: TikTok (count unverified)
-- Content: unverified — research pending
-- Why: Added directly by Shane 2026-10-01 ("Edward"). Verify content fit and count.
-- Qualification: UNVERIFIED — confirm TikTok 10K+
-
-### 24. @magaslayer2025 — magaslayer2025 — 8,969 TikTok (verified)
-- Strongest platform: TikTok 8.9K
-- Content: anti-MAGA leftist content
-- Why: Added directly by Shane 2026-10-01 ("MAGA slayer"). Below the 10K TikTok minimum — check other platforms.
-- Qualification: BELOW MINIMUM on TikTok — check other platforms

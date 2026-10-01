@@ -281,3 +281,15 @@ footer h1, footer h2, footer h3, footer h4{color:#f5ead6 !important;}
 #pf-cells .c-brank{font-family:"Arial Black",Arial,sans-serif;color:#c1121f;min-width:22px}
 #pf-cells .c-bname{flex:1;font-weight:bold}
 #pf-cells .c-bstat{font-size:12px;color:#777}
+/* CREATOR WAR CARD (2026-10-01): recruit-with-a-share builder. */
+#pf-cells .c-warwrap{margin-top:18px;border:2px solid #c1121f;background:#101012;padding:14px}
+#pf-cells .c-warwrap h3{font-family:"Arial Black",Arial,sans-serif;color:#f5ead6;font-size:15px;margin:0}
+#pf-cells .c-wgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+#pf-cells .c-wgrid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:0 0 10px}
+#pf-cells .c-warwrap label{display:block;font-family:monospace;font-size:11px;font-weight:bold;color:#c9bfa8;letter-spacing:1px}
+#pf-cells .c-warwrap select,#pf-cells .c-warwrap input{width:100%;box-sizing:border-box;margin-top:6px;background:#0b0b0c;border:1px solid #c1121f;color:#f5ead6;font-family:monospace;font-size:14px;padding:10px}
+#pf-cells .c-wmeta{display:flex;gap:18px;flex-wrap:wrap;font-family:monospace;font-size:12px;font-weight:bold;color:#f5ead6;margin:4px 0}
+#pf-cells .c-wmeta #wCode{color:#c1121f}
+#pf-cells .c-wbtns{display:flex;gap:10px;flex-wrap:wrap}
+#pf-cells .c-wbtns .c-big{flex:2;min-width:200px}
+@media (max-width:560px){#pf-cells .c-wgrid,#pf-cells .c-wgrid3{grid-template-columns:1fr}}

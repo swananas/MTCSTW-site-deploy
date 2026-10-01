@@ -3,7 +3,10 @@
    +5% XP on Daily Orders for everyone (cap +50%). A cellmate can cover one
    missed day per week. Recruit with your code: +25 XP when they check in.
    Founder can set a custom cell name; the cell earns its VERIFIED badge
-   once 2+ callsigns are attached.
+   once 2+ callsigns are attached. The Creator War Card builder lets roster
+   creators mint a shareable propaganda-poster card (callsign, propaganda
+   score, live cell count, followers, years active, key strengths, cell
+   invite code) — every share is a recruitment flyer.
    All cell state lives in the tally backend (cross-device); the frontend
    only caches the display. Public weekly leaderboard.
    KILL: ?pf_off=cells  or  localStorage pf_disabled_v1='["cells"]' */
@@ -18,6 +21,7 @@
 <div class="c-tag">Five callsigns. One streak. Nobody gets left behind.</div>
 <div id="cBody"><div class="c-load">Raising the cell network&hellip;</div></div>
 <div class="c-boardwrap"><h3>Cell leaderboard &mdash; this week</h3><div id="cBoard"><div class="c-load">Loading&hellip;</div></div></div>
+<div class="c-warwrap" id="cWar"></div>
 <div class="c-note">Check in here after your orders. Every day the whole cell checks in, the streak climbs and everyone earns +5% XP on Daily Orders &mdash; up to +50%. Miss a day and a cellmate can cover you once a week. Share your cell code: +25 XP when your recruit checks in.</div>
 </div>
 <script>
@@ -54,7 +58,7 @@ window.pfCellMult=function(){
 };
 function setCache(mult,cell_id,name){ save(LS_C,{mult:mult||1,cell_id:cell_id||"",name:name||"",t:Date.now()}); }
 
-var state=null, board=null, busy=false;
+var state=null, board=null, busy=false, warSyncMeta=null;
 function refresh(quiet){
   var id=ident();
   if(!id.callsign){ renderGate(); return; }
@@ -96,6 +100,7 @@ function loadBoard(){
         '<span class="c-bstat">'+c.streak+' streak &middot; '+c.members+'/5</span></div>';
     }).join("");
     el.innerHTML=html;
+    try{ if(warSyncMeta) warSyncMeta(); }catch(e){}
   });
 }
 function renderGate(){
@@ -112,6 +117,7 @@ function renderGate(){
 function render(){
   var el=document.getElementById("cBody");
   if(!el) return;
+  try{ if(warSyncMeta) warSyncMeta(); }catch(e){}
   var id=ident();
   if(!id.callsign){ renderGate(); return; }
   if(!state){ el.innerHTML='<div class="c-load">Raising the cell network&hellip;</div>'; return; }
@@ -227,6 +233,164 @@ function renderCell(el,s){
     });
   };
 }
+/* ---- Creator War Card: the recruit-with-a-share builder ----
+   A creator picks their roster profile, sets a war callsign, and mints a
+   propaganda-poster card carrying their propaganda score, live cell count,
+   followers, years active, key strengths, and their cell invite code.
+   The invite code on the card is the growth loop: every share is a
+   recruitment flyer, and every recruit who checks in pays +25 XP. */
+function warRoster(){ try{ return (window.PF&&PF.ROSTER)||[]; }catch(e){ return []; } }
+function warCellsLed(cs){
+  cs=String(cs||"").toLowerCase();
+  if(!cs) return 0;
+  var n=0;
+  try{ (board&&board.cells||[]).forEach(function(c){ if(String(c.founder||"").toLowerCase()===cs) n++; }); }catch(e){}
+  try{ if(state&&state.in_cell&&!state.is_founder) n++; }catch(e){}
+  return n;
+}
+function warData(){
+  var slug=""; try{ slug=document.getElementById("wRoster").value; }catch(e){}
+  var r=warRoster().filter(function(x){ return x.slug===slug; })[0]||null;
+  var cs=""; try{ cs=document.getElementById("wCall").value.trim(); }catch(e){}
+  if(!cs&&r) cs=r.name;
+  var g=function(id){ try{ return document.getElementById(id).value.trim(); }catch(e){ return ""; } };
+  return { roster:r, callsign:cs, followers:g("wFol"), years:g("wYrs"),
+    strengths:[g("wS1"),g("wS2"),g("wS3")].filter(Boolean),
+    cells:warCellsLed(cs),
+    code:(state&&state.in_cell&&state.cell)?state.cell.invite_code:"" };
+}
+function renderWarCard(){
+  var el=document.getElementById("cWar");
+  if(!el) return;
+  var opts=warRoster().map(function(r){
+    return '<option value="'+esc(r.slug)+'">'+esc(r.name)+' &mdash; '+r.score+'</option>';
+  }).join("");
+  el.innerHTML=
+    '<h3>Creator war card</h3>'+
+    '<div class="c-tag">Your cell doesn\'t build itself. Mint your war card, post it everywhere, turn followers into fighters.</div>'+
+    '<div class="c-wgrid">'+
+    '<label>WHICH CREATOR ARE YOU?<select id="wRoster"><option value="">&mdash; pick your profile &mdash;</option>'+opts+'</select></label>'+
+    '<label>YOUR WAR CALLSIGN<input id="wCall" maxlength="32" placeholder="e.g. NIGHT OWL" autocomplete="off"></label>'+
+    '<label>TOTAL FOLLOWERS<input id="wFol" maxlength="16" placeholder="e.g. 250K" autocomplete="off"></label>'+
+    '<label>YEARS IN THE FIGHT<input id="wYrs" maxlength="8" placeholder="e.g. 6" autocomplete="off"></label>'+
+    '</div>'+
+    '<div class="c-wgrid3">'+
+    '<label>STRENGTH 1<input id="wS1" maxlength="48" placeholder="e.g. Rapid-response memes" autocomplete="off"></label>'+
+    '<label>STRENGTH 2<input id="wS2" maxlength="48" placeholder="e.g. Street interviews" autocomplete="off"></label>'+
+    '<label>STRENGTH 3<input id="wS3" maxlength="48" placeholder="e.g. Mutual-aid drives" autocomplete="off"></label>'+
+    '</div>'+
+    '<div class="c-wmeta"><span id="wCells">CELLS: &mdash;</span><span id="wCode"></span></div>'+
+    '<div class="c-wbtns"><button class="c-btn c-big" id="wShare">Share war card</button>'+
+    '<button class="c-btn" id="wSave">Save image</button></div>'+
+    '<div class="c-err" id="wErr"></div>';
+  var rs=document.getElementById("wRoster"), cc=document.getElementById("wCall");
+  warSyncMeta=function(){
+    var d=warData(), cEl=document.getElementById("wCells"), kEl=document.getElementById("wCode");
+    if(cEl) cEl.textContent="CELLS: "+(board?d.cells:"\u2026");
+    if(kEl) kEl.textContent=d.code?("INVITE CODE ON CARD: "+d.code):"NO CELL YET \u2014 FORM ONE ABOVE TO STAMP YOUR INVITE CODE";
+  };
+  rs.onchange=function(){
+    var r=warRoster().filter(function(x){ return x.slug===rs.value; })[0];
+    if(r&&!cc.value) cc.value=r.name.toUpperCase().replace(/[^A-Z0-9 ]/g,"").slice(0,32);
+    warSyncMeta();
+  };
+  cc.oninput=function(){ warSyncMeta(); };
+  document.getElementById("wShare").onclick=function(){ warGo("share"); };
+  document.getElementById("wSave").onclick=function(){ warGo("save"); };
+  warSyncMeta();
+}
+function warGo(mode){
+  var err=document.getElementById("wErr"); if(err) err.textContent="";
+  var d=warData();
+  if(!d.roster){ if(err) err.textContent="Pick your creator profile first."; return; }
+  if(!d.callsign){ if(err) err.textContent="Give your war card a callsign."; return; }
+  toast("Minting your war card\u2026");
+  drawWarCard(d,function(cv){
+    if(!cv){ if(err) err.textContent="Card failed \u2014 try again."; return; }
+    var fn="war-card-"+String(d.callsign).replace(/[^a-z0-9]+/gi,"-").toLowerCase()+".png";
+    try{
+      if(!window.PFShare){ if(err) err.textContent="Share engine still loading."; return; }
+      if(mode==="share") PFShare.shareImage(cv,fn,d.callsign+" \u2014 Creator War Card","cells");
+      else PFShare.saveImage(cv,fn,"cells");
+    }catch(e){ if(err) err.textContent="Share unavailable here."; }
+  });
+}
+/* 1080x1350 propaganda-poster war card. Photo loads CORS-anonymous with a
+   star glyph fallback; layout is fixed-budget so long inputs can't overflow. */
+function drawWarCard(d,cb){
+  var W=1080,H=1350;
+  var cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+  var x=cv.getContext("2d");
+  function wrap(text,font,maxW,maxLines){
+    x.font=font; x.textAlign="center";
+    var words=String(text||"").split(/\s+/), lines=[], cur="";
+    words.forEach(function(w){
+      var t=cur?cur+" "+w:w;
+      if(x.measureText(t).width>maxW&&cur){ lines.push(cur); cur=w; } else cur=t;
+    });
+    if(cur) lines.push(cur);
+    return lines.slice(0,maxLines||2);
+  }
+  function center(t,y,font,fill){ x.font=font; x.fillStyle=fill; x.textAlign="center"; x.fillText(t,W/2,y); }
+  x.fillStyle="#0b0b0c"; x.fillRect(0,0,W,H);
+  x.strokeStyle="#c1121f"; x.lineWidth=14; x.strokeRect(20,20,W-40,H-40);
+  x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(44,44,W-88,H-88);
+  center("\u2605 SICK LEFT RADICALS \u2605",104,'700 30px Arial,sans-serif',"#c1121f");
+  center("CREATOR WAR CARD",160,'900 60px "Arial Black",Arial,sans-serif',"#f5ead6");
+  var bw=320,bh=320,bx=(W-bw)/2,by=190;
+  function glyph(){
+    x.fillStyle="#1a1a1c"; x.fillRect(bx,by,bw,bh);
+    center("\u2605",by+bh/2+72,'900 190px Arial,sans-serif',"#c1121f");
+  }
+  function paintRest(){
+    x.strokeStyle="#c1121f"; x.lineWidth=8; x.strokeRect(bx,by,bw,bh);
+    var yy=by+bh+86;
+    wrap(d.callsign,'900 72px "Arial Black",Arial,sans-serif',W-160,2).forEach(function(l){
+      center(l,yy,'900 72px "Arial Black",Arial,sans-serif',"#f5ead6"); yy+=84; });
+    if(d.roster&&d.roster.handle){ center(d.roster.handle,yy,'700 30px Arial,sans-serif',"#c1121f"); yy+=44; }
+    center("PROPAGANDA SCORE "+(d.roster?d.roster.score:"\u2014"),yy,'900 40px "Arial Black",Arial,sans-serif',"#c1121f"); yy+=66;
+    x.fillStyle="#c1121f"; x.fillRect(80,yy,W-160,96);
+    x.fillStyle="#f5ead6"; x.textAlign="center";
+    [[String(d.cells),"CELLS"],[d.followers||"\u2014","FOLLOWERS"],[d.years||"\u2014","YRS ACTIVE"]].forEach(function(s,i){
+      var cx=80+(W-160)*(i+0.5)/3;
+      x.font='900 42px "Arial Black",Arial,sans-serif'; x.fillText(s[0],cx,yy+44);
+      x.font='700 22px Arial,sans-serif'; x.fillText(s[1],cx,yy+80);
+    });
+    yy+=136;
+    if(d.strengths.length){
+      center("KEY STRENGTHS",yy,'900 32px "Arial Black",Arial,sans-serif',"#f5ead6"); yy+=48;
+      d.strengths.slice(0,3).forEach(function(s){
+        wrap("\u2605 "+s,'700 30px Arial,sans-serif',W-220,1).forEach(function(l){
+          center(l,yy,'700 30px Arial,sans-serif',"#f5ead6"); yy+=42; });
+      });
+      yy+=8;
+    }
+    center(d.code?("JOIN MY CELL: "+d.code):"BUILD YOUR CELL AT MTCSTW.COM",
+      H-128,'900 42px "Arial Black",Arial,sans-serif',"#c1121f");
+    center("EVERY RECRUIT WHO CHECKS IN EARNS +25 XP",H-82,'700 24px Arial,sans-serif',"#f5ead6");
+    cb(cv);
+  }
+  var imgUrl=(d.roster&&d.roster.img)?String(d.roster.img):"";
+  if(!imgUrl){ glyph(); paintRest(); return; }
+  var done=false,img=new Image();
+  function ok(){ if(done) return; done=true;
+    try{
+      var iw=img.naturalWidth||img.width, ih=img.naturalHeight||img.height;
+      if(iw&&ih){
+        var sc=Math.max(bw/iw,bh/ih), dw=iw*sc, dh=ih*sc;
+        x.save(); x.beginPath(); x.rect(bx,by,bw,bh); x.clip();
+        x.drawImage(img,bx+(bw-dw)/2,by+(bh-dh)/2,dw,dh); x.restore();
+      } else glyph();
+    }catch(e){ glyph(); }
+    paintRest();
+  }
+  function bad(){ if(done) return; done=true; glyph(); paintRest(); }
+  setTimeout(bad,3500);
+  img.onload=ok; img.onerror=bad;
+  try{ img.crossOrigin="anonymous"; }catch(e){}
+  try{ img.src=imgUrl; }catch(e){ bad(); }
+}
+renderWarCard();
 refresh();
 loadBoard();
 if(!window._pfCellsTick){ window._pfCellsTick=setInterval(function(){ loadBoard(); },5*60*1000); }

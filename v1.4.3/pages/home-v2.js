@@ -27,6 +27,7 @@
     ['daily-orders', 'pf-ov-orders'],
     ['cells', 'pf-ov-cells'],
     ['fan-vote', 'pf-ov-vote'],
+    ['infighting', 'pf-ov-infight'],
     ['slr-match-quiz', 'pf-ov-matchquiz'],
     ['creator-guess', 'pf-ov-guess'],
     ['bracket-board', 'pf-ov-bracket'],

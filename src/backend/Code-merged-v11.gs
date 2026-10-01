@@ -504,6 +504,54 @@ function doGet(e) {
     } catch (fe4) {}
     return jsonOut({ weeks: fweeks, fans: fans }, cb);
   }
+  /* v13.1: INFIGHTING — real-time creator battle rounds.
+   *   GET ?action=infight_fire&round=R&slug=S&amt=N&callsign=C -> {ok:true, logged:n}
+   *      Logs one fire row (timestamp | round | slug | amt | callsign) to the
+   *      "infight" tab (created on demand). Server enforces the per-callsign
+   *      per-round cap (200): overshoot rows are clamped, never rejected, so a
+   *      legit client racing the poll can't lose fire.
+   *   GET ?action=infight_totals&round=R -> {round:R, totals:{slug:n}}
+   *      Sums amt per slug for the round. No PII: slugs + callsign only. */
+  var INFIGHT_SHEET = "infight", INFIGHT_CAP = 200;
+  if (action === "infight_fire" || action === "infight_totals") {
+    var ifSheet = ss.getSheetByName(INFIGHT_SHEET);
+    if (!ifSheet) {
+      ifSheet = ss.insertSheet(INFIGHT_SHEET);
+      ifSheet.appendRow(["timestamp", "round", "slug", "amt", "callsign"]);
+    }
+    var iround = String(e.parameter.round || "").replace(/[^0-9-]/g, "").slice(0, 20);
+    if (action === "infight_fire") {
+      var islug = String(e.parameter.slug || "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 80);
+      var iamt = Math.max(1, Math.min(1000, parseInt(e.parameter.amt || "0", 10) || 0));
+      var ics = String(e.parameter.callsign || "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 40);
+      var logged = 0;
+      if (iround && islug && iamt > 0) {
+        if (ics) {
+          try {
+            var irows = ifSheet.getDataRange().getValues(), used = 0;
+            for (var ii = 1; ii < irows.length; ii++) {
+              if (String(irows[ii][1]) === iround && String(irows[ii][4]) === ics) used += Number(irows[ii][3]) || 0;
+            }
+            iamt = Math.max(0, Math.min(iamt, INFIGHT_CAP - used));
+          } catch (ie) {}
+        }
+        if (iamt > 0) { ifSheet.appendRow([new Date(), iround, islug, iamt, ics]); logged = iamt; }
+      }
+      return jsonOut({ ok: true, logged: logged }, cb);
+    }
+    /* infight_totals */
+    var itot = {};
+    try {
+      var trows = ifSheet.getDataRange().getValues();
+      for (var ti = 1; ti < trows.length; ti++) {
+        if (String(trows[ti][1]) !== iround) continue;
+        var ts = String(trows[ti][2] || "");
+        if (!ts) continue;
+        itot[ts] = (itot[ts] || 0) + (Number(trows[ti][3]) || 0);
+      }
+    } catch (ie2) {}
+    return jsonOut({ round: iround, totals: itot }, cb);
+  }
   /* v11: per-callsign pool XP today (America/Chicago) — the cross-device seed
    * for the 50/day bucket. Counts ONLY pool-routed action_types (POOL_TYPES)
    * so exempt bonuses never shrink anyone's pool room. Must come before the

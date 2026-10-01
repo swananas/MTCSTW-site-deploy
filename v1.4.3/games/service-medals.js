@@ -31,7 +31,8 @@
      {id:'drop',    glyph:'\u25CF', name:'Supply Runner',   ev:'pf-drop-claimed'},
      {id:'enlisted',glyph:'\u2694', name:'Enlisted',        ev:'pf-enlisted'},
      {id:'guess',   glyph:'\u25CE', name:'Profiler',        ev:'pf-guess-done'},
-     {id:'raid',    glyph:'\u26A1', name:'Raider',           ev:'pf-raid-report'}
+     {id:'raid',    glyph:'\u26A1', name:'Raider',           ev:'pf-raid-report'},
+     {id:'infight', glyph:'\uD83E\uDD4A', name:'Brawler',          ev:'pf-infight-fire'}
     ];
     function load(){try{var s=JSON.parse(localStorage.getItem(LS)||'null');if(s&&s.w)return s;}catch(e){}return{w:PF.isoWeekKey(PF.chiNow()),m:{},fd:false};}
     function save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}

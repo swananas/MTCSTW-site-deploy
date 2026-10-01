@@ -1,0 +1,23 @@
+<!-- PF LOADER v1.1.0 — modular silos. One file per game, connector bus on top.
+     Each silo loads in order; a failed silo is named in the console and the rest
+     keep going. Kill a single game fast: ?pf_off=do-meter (no redeploy).
+     To update: push silos to GitHub, set COMMIT below to the new immutable hash. -->
+<script>(function(){
+var COMMIT='COMMIT_PLACEHOLDER';
+var BASE='https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@'+COMMIT+'/v1.1.0/';
+var CSS=["core/01-styles.css", "fixes/mobile.css"];
+var JS=["core/00-bus.js", "core/03-global.js", "core/04-ledger.js", "core/05-tally.js", "games/caption-combat.js", "games/daily-orders.js", "games/fan-vote.js", "games/do-meter.js", "games/media-nuke.js", "games/poster-forge.js", "games/daily-drop.js", "games/service-medals.js", "games/liquidation-bracket.js", "core/06-override.js", "core/07-deadblocks.js", "core/08-engage.js", "core/09-toast.js", "core/10-ticker.js", "fixes/homepage.js", "fixes/about.js", "fixes/faqs.js", "fixes/roster.js", "fixes/podcast.js", "fixes/tax.js", "fixes/terms.js", "fixes/schema.js"];
+function siloFail(n,e){if(window.console)console.error('[PF SILO FAILED] '+n+' :: '+(e&&e.message||e||'load error'));}
+window.addEventListener('error',function(e){
+  var f=e.filename||'',m=f.match(/v1\.1\.0\/([^?]+)/);
+  if(m)siloFail(m[1],e.message);
+},true);
+function css(h){var l=document.createElement('link');l.rel='stylesheet';l.href=BASE+h;
+l.onerror=function(){siloFail(h);};document.head.appendChild(l);}
+function js(i){if(i>=JS.length){if(window.console)console.log('[PF] all '+JS.length+' silos loaded');return;}
+var s=document.createElement('script');s.src=BASE+JS[i];s.async=false;
+var done=false;function next(){if(done)return;done=true;js(i+1);}
+s.onload=next;s.onerror=function(){siloFail(JS[i]);next();};
+document.head.appendChild(s);}
+CSS.forEach(css);js(0);
+})();</script>

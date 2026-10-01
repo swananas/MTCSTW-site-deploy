@@ -10,11 +10,14 @@
 
 <h2>Daily Orders</h2>
 <div class="o-date" id="oDate"></div>
+<div class="o-dispatch" id="oDispatch"></div>
 <div class="o-meterwrap">
   
   <div class="o-meter" id="oMeter"></div>
   <div class="o-combo" id="oCombo"></div>
 </div>
+<div class="o-warpath" id="oWarPath"></div>
+<div class="o-reset" id="oReset"></div>
 <div id="oMissions"></div>
 <div class="o-prog" id="oProg"></div>
 <div class="o-streak" id="oStreak"></div>
@@ -22,7 +25,7 @@
 <div class="o-rankline" id="oRank"></div>
 <div class="o-loot" id="oLoot"></div>
 <div class="o-err" id="oErr"></div>
-<div class="o-note">3 orders per day. Chain them for combo XP. Share missions on a new platform: +5 spread combo each. Max 50 XP/day from missions.</div>
+<div class="o-note">3 orders + 1 field op per day. Missions cap at 50 XP &mdash; the field op (+10) and the full-deployment command bonus (+10) stack on top. Streak shields forgive a missed day.</div>
 <div><button class="o-shareimg" id="oShareImg">Share orders as image</button></div>
 <div class="o-claim" id="oClaimWrap">
   <a id="oClaimToggle">Claim your rank on every device</a>
@@ -71,6 +74,20 @@ var MISSIONS=[
 ];
 var LOOT=["The machine sees you, agitator.","Another brick in the wall. Their wall. We're taking it apart.","Noted in the ledger. History will remember this one.","Discipline is propaganda too.","Small actions, compounded. That's the whole theory.","The algorithm didn't see it coming.","Report filed. The network grows.","You are the media now. Act like it."];
 var COMBO_LOOT={2:"Combo x2. The machine is warming up.",3:"COMBO x3. FULL AGITATION. Maximum pressure."};
+/* FIELD OPS — the lynchpin: one cross-game bonus mission per day, rotating.
+   Doing the op in its home silo auto-completes it here and feeds the Do Meter. */
+var FIELD_OPS=[
+ {game:"fan-vote",ev:"pf-vote-cast",label:"Cast your Fan Vote ballot"},
+ {game:"bracket-board",ev:"pf-bracket-ballot",label:"Call a Liquidation Bracket matchup"},
+ {game:"caption-combat",ev:"pf-caption-submit",label:"Fire a caption in Caption Combat"},
+ {game:"poster-forge",ev:"pf-poster-made",label:"Forge a propaganda poster"},
+ {game:"slr-match-quiz",ev:"pf-quiz-done",label:"Find your SLR match"},
+ {game:"creator-guess",ev:"pf-guess-done",label:"Play Guess the Creator"},
+ {game:"boost-raid",ev:"pf-raid-report",label:"Report back on today's Boost Raid"},
+ {game:"daily-drop",ev:"pf-drop-claimed",label:"Claim today's Daily Drop"}
+];
+var OP_XP=10, CMD_XP=10;
+function fieldOp(){ return FIELD_OPS[dayOfYear()%FIELD_OPS.length]; }
 /* economy */
 var PER_DAY=3, BASE_XP=10, COMBO_STEP=5, DAILY_MAX=50;
 var SPREAD_XP=5;
@@ -150,10 +167,15 @@ function checkin(mi,platform){
   var comboXp=BASE_XP+COMBO_STEP*(combo-1);
   var room=Math.max(0,DAILY_MAX-(rec.xp||0));        /* same 50 XP/day cap */
   var gained=Math.min(comboXp+spread,room);
-  var bonus=0;
+  var bonus=0, shieldUsed=false, shieldEarned=false;
   if(firstToday){
-    o.streak=(o.last===yesterday())?(o.streak||0)+1:1; o.last=t;
+    if(o.last===yesterday()){ o.streak=(o.streak||0)+1; }
+    else if(o.last&&o.last!==t&&(o.shields||0)>0){ o.shields--; shieldUsed=true; /* streak holds */ }
+    else { o.streak=1; }
+    o.last=t;
     if(STREAK_BONUS[o.streak]&&!rec.bonusPaid){ bonus=STREAK_BONUS[o.streak]; rec.bonusPaid=true; }
+    /* every 7th streak day forges a shield: one missed day forgiven */
+    if(o.streak%7===0&&o.lastShieldAt!==o.streak){ o.shields=(o.shields||0)+1; o.lastShieldAt=o.streak; shieldEarned=true; }
   }
   rec.done.push({m:mi,p:platform,g:gained}); rec.xp=(rec.xp||0)+gained; saveDay(o,rec);
   var r=load(LS_R,{xp:0,got:{}}), key="order_"+t+"_"+mi;
@@ -176,11 +198,42 @@ function checkin(mi,platform){
       }
     });
   }
-  return {ok:true, combo:combo, gained:gained, bonus:bonus, spread:spread, platform:platform, streak:o.streak, xp:r.xp, tier:tierOf(r.xp)[0]};
+  return {ok:true, combo:combo, gained:gained, bonus:bonus, spread:spread, platform:platform, streak:o.streak, xp:r.xp, tier:tierOf(r.xp)[0], shieldUsed:shieldUsed, shieldEarned:shieldEarned};
 }
 function fireEvent(t,mi,combo,xp,streak,platform,spread){
   try{ document.dispatchEvent(new CustomEvent("pf-order-checkin",{detail:{day:t,mission:mi,combo:combo,xp:xp,streak:streak,platform:platform||null,spread:spread||0}})); }catch(e){}
 }
+/* COMMAND BONUS: 3/3 missions + field op = FULL DEPLOYMENT, once per day. */
+function maybeCommandBonus(){
+  var d=dayRec(), t=today();
+  if(d.rec.done.length>=3&&d.rec.opDone&&!d.rec.cmdPaid){
+    d.rec.cmdPaid=true; saveDay(d.o,d.rec);
+    var r=load(LS_R,{xp:0,got:{}}), key="order_cmd_"+t;
+    if(r.got[key]!==t){ r.got[key]=t; r.xp+=CMD_XP; save(LS_R,r); }
+    return CMD_XP;
+  }
+  return 0;
+}
+/* Field-op auto-complete: arm today's op event exactly once per page load. */
+(function armFieldOp(){
+  var opDay=today(), op=fieldOp();
+  if(window._pfOpKey===opDay+op.ev) return;
+  window._pfOpKey=opDay+op.ev;
+  document.addEventListener(op.ev,function(){
+    if(today()!==opDay) return;             /* stale listener from a past day */
+    var d=dayRec();
+    if(d.rec.opDone) return;                /* counted exactly once */
+    d.rec.opDone=true; saveDay(d.o,d.rec);
+    var r=load(LS_R,{xp:0,got:{}}), key="order_op_"+opDay;
+    if(r.got[key]!==opDay){ r.got[key]=opDay; r.xp+=OP_XP; save(LS_R,r); }
+    /* feed the Do Meter + tally exactly once, like a normal check-in */
+    try{ document.dispatchEvent(new CustomEvent("pf-order-checkin",{detail:{day:opDay,mission:"field-op",combo:0,xp:OP_XP,streak:(d.o.streak||0),platform:null,spread:0}})); }catch(e){}
+    var cmd=maybeCommandBonus();
+    var lootEl=document.getElementById("oLoot");
+    if(lootEl) lootEl.textContent="+"+(OP_XP+cmd)+" XP — FIELD OP COMPLETE: "+op.label+". The network runs through you."+(cmd?" FULL DEPLOYMENT command bonus!":"");
+    render();
+  });
+})();
 
 function syncFromServer(){
   var id=ident(); if(!id.callsign) return;
@@ -202,9 +255,34 @@ function syncFromServer(){
   });
 }
 
+function warPathHtml(o){
+  var h='<div class="o-wplabel">7-day war path</div><div class="o-wprow">', now=PF.chiNow();
+  for(var i=6;i>=0;i--){
+    var dt=new Date(now.getTime()); dt.setDate(dt.getDate()-i);
+    var k=ymd(dt), r=o.days&&o.days[k];
+    var hit=r&&r.done&&r.done.length>0;
+    h+='<div class="o-day'+(hit?' hit':'')+(i===0?' today':'')+'"><span>'+"SMTWTFS"[dt.getDay()]+'</span><em>'+(hit?'\u2713':'')+'</em></div>';
+  }
+  return h+'</div>';
+}
+function renderReset(){
+  var el=document.getElementById("oReset"); if(!el) return;
+  var now=PF.chiNow(), end=new Date(now.getTime()); end.setHours(24,0,0,0);
+  var ms=Math.max(0,end-now), h=Math.floor(ms/36e5), m=Math.floor(ms%36e5/6e4);
+  el.textContent="NEW ORDERS IN "+h+"H "+m+"M — streaks roll at midnight";
+}
+
 function render(){
   var set=missionSet(), d=dayRec(), rec=d.rec, t=today();
   document.getElementById("oDate").textContent=new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
+  /* DISPATCH CEREMONY: stamp slams in on the first view of the day. */
+  var firstView=!rec.dispatchShown;
+  if(firstView){ rec.dispatchShown=1; saveDay(d.o,rec); }
+  var disp=document.getElementById("oDispatch");
+  if(disp) disp.innerHTML=firstView?'<span class="o-stamp">\u25C8 ORDERS RECEIVED \u25C8</span>':"";
+  var wp=document.getElementById("oWarPath");
+  if(wp) wp.innerHTML=warPathHtml(d.o);
+  renderReset();
   var doneCount=rec.done.length;
   /* XP METER — 3 segments, flashes hotter with the combo */
   var meter=document.getElementById("oMeter"), mh="";
@@ -241,7 +319,24 @@ function render(){
       +spreadHint+platTag+action
       +'</div>';
   });
+  /* FIELD OP card — the cross-game bonus mission. */
+  var op=fieldOp(), opDone=!!rec.opDone;
+  html+='<div class="o-fieldop'+(opDone?' done':'')+'">'
+    +'<div class="o-fophead">\u2605 FIELD OP &mdash; CROSS-GAME BONUS</div>'
+    +'<div class="o-mtext">'+op.label+'</div>'
+    +'<div class="o-xp">+'+OP_XP+' XP'+(opDone?' &middot; complete':'')+'</div>'
+    +(opDone?'<div><span class="o-donetag">Op complete</span></div>'
+            :'<div class="o-fopsub">Deploy to its silo and complete it there &mdash; it auto-reports here.</div><button class="o-btn o-deploybtn" data-game="'+op.game+'">Deploy &rarr;</button>')
+    +'</div>';
   var z=document.getElementById("oMissions"); z.innerHTML=html;
+  z.className=firstView?"o-reveal":"";
+  z.querySelectorAll("button.o-deploybtn").forEach(function(b){
+    b.onclick=function(){
+      var g=b.getAttribute("data-game");
+      var sec=document.querySelector('section[data-game="'+g+'"]');
+      if(sec&&sec.scrollIntoView){ try{ sec.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){} }
+    };
+  });
   function doReport(mi,platform){
     var res=checkin(mi,platform);
     if(!res.ok) return;
@@ -250,7 +345,11 @@ function render(){
     var loot=LOOT[Math.floor(Math.random()*LOOT.length)];
         if(res.spread) loot="Spread combo +"+res.spread+" — "+platLabel(res.platform)+". "+loot;
         if(COMBO_LOOT[res.combo]) loot=COMBO_LOOT[res.combo]+(res.spread?" (+"+res.spread+" spread)":"");
-    document.getElementById("oLoot").textContent="+"+(res.gained+res.bonus)+" XP — "+loot+(res.bonus?" "+res.streak+"-day streak bonus!":"");
+        if(res.shieldUsed) loot="STREAK SHIELD held the line — your streak survives. "+loot;
+        if(res.shieldEarned) loot="STREAK SHIELD earned — one missed day forgiven. "+loot;
+    var cmd=maybeCommandBonus();
+    if(cmd) loot="FULL DEPLOYMENT — COMMAND BONUS +"+cmd+". "+loot;
+    document.getElementById("oLoot").textContent="+"+(res.gained+res.bonus+cmd)+" XP — "+loot+(res.bonus?" "+res.streak+"-day streak bonus!":"");
     document.getElementById("oErr").textContent="";
     render();
   }
@@ -271,7 +370,7 @@ function render(){
     };
   });
   document.getElementById("oProg").textContent=doneCount+"/"+PER_DAY+" orders complete";
-  document.getElementById("oStreak").innerHTML="Current streak: <b>"+(d.o.streak||0)+"</b> day"+((d.o.streak||0)===1?"":"s");
+  document.getElementById("oStreak").innerHTML="Current streak: <b>"+(d.o.streak||0)+"</b> day"+((d.o.streak||0)===1?"":"s")+((d.o.shields||0)>0?" &nbsp;\uD83D\uDEE1\uFE0F x"+d.o.shields:"");
   var s=d.o.streak||0;
   var nextMil=Object.keys(STREAK_BONUS).map(Number).filter(function(n){return n>s;}).sort(function(a,b){return a-b;})[0];
       document.getElementById("oNext").textContent=nextMil?("Streak bonus at "+nextMil+" days (+"+STREAK_BONUS[nextMil]+" XP)"):"Maximum streak bonus achieved. Legendary.";
@@ -346,6 +445,11 @@ function drawOrdersCard(){
     if(done){x.fillStyle='#c1121f';x.font='700 30px Arial,sans-serif';x.fillText('\\u2713 REPORTED',300,y-14+lines.length*48+6);}
     y+=Math.max(150,lines.length*48+86);
   });
+  x.textAlign='left';
+  var fop=fieldOp(), fopLines=wrapLines(x,'FIELD OP: '+fop.label+(rec.opDone?' \u2713':''),W-360);
+  x.fillStyle='#e8b923';x.font='900 30px "Arial Black",Arial,sans-serif';
+  fopLines.forEach(function(ln,i){x.fillText(ln,120,y+i*42);});
+  y+=fopLines.length*42+36;
   x.textAlign='center';
   var streak=(d.o&&d.o.streak)||0;
   x.fillStyle='#c1121f';x.font='900 40px "Arial Black",Arial,sans-serif';
@@ -407,6 +511,8 @@ function shareOrdersImage(btn){
 var _shareBtn=document.getElementById('oShareImg');
 if(_shareBtn){_shareBtn.addEventListener('click',function(){shareOrdersImage(_shareBtn);});}
 
+renderReset();
+if(!window._pfOrdersTick){ window._pfOrdersTick=setInterval(function(){ renderReset(); },60000); }
 render();
 syncFromServer();
 })();

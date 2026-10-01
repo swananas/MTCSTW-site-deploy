@@ -65,6 +65,34 @@
 #pf-orders .o-loot{font-size:15px;color:#f5ead6;margin-top:10px;min-height:22px;font-style:italic;font-family:Arial,sans-serif}
 #pf-orders .o-flash{animation:oflash .6s}
 @keyframes oflash{0%{background:#c1121f;color:#fff}100%{background:#0d0d0d}}
+/* ============ DOPAMINE LAYER: HQ dispatch lynchpin (2026-10-01) ============ */
+#pf-orders .o-dispatch{min-height:36px;margin-bottom:4px}
+#pf-orders .o-stamp{display:inline-block;border:3px solid #c1121f;color:#c1121f;font-size:18px;letter-spacing:4px;padding:6px 18px;transform:rotate(-6deg);animation:ostamp .45s cubic-bezier(.2,2.4,.4,1) backwards}
+@keyframes ostamp{from{opacity:0;transform:rotate(-6deg) scale(2.4)}to{opacity:1;transform:rotate(-6deg) scale(1)}}
+#pf-orders .o-warpath{margin:8px 0 4px}
+#pf-orders .o-wplabel{font-family:Arial,sans-serif;font-size:10px;letter-spacing:4px;color:#c9bfa8;text-transform:uppercase;margin-bottom:6px}
+#pf-orders .o-wprow{display:flex;gap:6px;justify-content:center}
+#pf-orders .o-day{width:36px;height:48px;border:2px solid #555;background:#1a1a1a;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Arial,sans-serif}
+#pf-orders .o-day span{font-size:11px;color:#777;letter-spacing:1px}
+#pf-orders .o-day em{font-style:normal;font-size:14px;color:#c1121f;min-height:18px}
+#pf-orders .o-day.hit{border-color:#c1121f;background:#2a0d0d}
+#pf-orders .o-day.hit span{color:#f5ead6}
+#pf-orders .o-day.today{outline:2px solid #f5ead6;outline-offset:2px}
+#pf-orders .o-reset{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c1121f;text-transform:uppercase;margin:6px 0 10px;animation:oflashseg 2s infinite}
+#pf-orders .o-fieldop{border:3px solid #e8b923;background:#221a08;padding:14px 12px;margin-bottom:10px}
+#pf-orders .o-fieldop.done{opacity:.75}
+#pf-orders .o-fophead{font-size:13px;letter-spacing:3px;color:#e8b923;margin-bottom:8px}
+#pf-orders .o-fieldop .o-xp{color:#e8b923}
+#pf-orders .o-fieldop .o-donetag{background:#e8b923}
+#pf-orders .o-fieldop .o-btn{background:#e8b923}
+#pf-orders .o-fieldop .o-btn:hover{background:#c1121f}
+#pf-orders .o-fopsub{font-family:Arial,sans-serif;font-size:11px;color:#c9bfa8;margin-top:8px}
+#pf-orders .o-reveal .o-mission{animation:ofadeup .45s backwards}
+#pf-orders .o-reveal .o-mission:nth-child(2){animation-delay:.12s}
+#pf-orders .o-reveal .o-mission:nth-child(3){animation-delay:.24s}
+#pf-orders .o-reveal .o-fieldop{animation:ofadeup .45s .36s backwards}
+@keyframes ofadeup{from{opacity:0;transform:translateY(14px)}}
+@media (prefers-reduced-motion:reduce){#pf-orders .o-stamp,#pf-orders .o-reset,#pf-orders .o-reveal .o-mission,#pf-orders .o-reveal .o-fieldop{animation:none}}
 #pf-orders .o-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:14px}
 #pf-orders .o-err{font-family:Arial,sans-serif;font-size:12px;color:#c1121f;letter-spacing:1px;margin-top:8px;min-height:16px}
 #pf-orders .o-claim{margin-top:14px;border-top:1px solid #333;padding-top:12px}

@@ -28,7 +28,7 @@
 <div class="o-loot" id="oLoot"></div>
 <div class="o-err" id="oErr"></div>
 <div class="o-note">3 orders (10 XP each) + 1 field op (+5) per day. Run all three plus the op for the +5 full-deployment command bonus. Every daily task on this page caps at 50 XP a day &mdash; your cell streak gets you there faster. Streak shields forgive a missed day. Today's Boost lets you tip earned XP to a creator at 1 XP = 2 signal.</div>
-<div><button class="o-shareimg" id="oShareImg">Share orders as image</button></div>
+<div><button class="o-shareimg" id="oShareImg">Share orders as image</button><div class="o-note" id="oShareCount"></div></div>
 <div class="o-claim" id="oClaimWrap">
   <a id="oClaimToggle">Claim your rank on every device</a>
   <div class="o-claimbox" id="oClaimBox">
@@ -473,6 +473,10 @@ function render(){
   meter.innerHTML=mh;
   meter.className="o-meter"+(doneCount>=3?" maxed":doneCount>=2?" hot":"");
   document.getElementById("oCombo").textContent=doneCount>=3?"3/3 — ORDERS COMPLETE":doneCount===2?"2 down — one more for full deployment.":doneCount===1?"1 down — 2 to go.":"";
+  /* Live preview of what the share card's completion headline will read. */
+  var sc=document.getElementById("oShareCount");
+  if(sc){ var td=doneCount+(rec.opDone?1:0);
+    sc.textContent=rec.cmdPaid?"Your share card reads: FULL DEPLOYMENT — all tasks complete.":"Your share card will read: "+td+" OF 4 TASKS COMPLETE."; }
   var html="";
   set.forEach(function(mi,slot){
     var m=MISSIONS[mi]||{t:""}, entry=null;
@@ -613,6 +617,13 @@ function drawOrdersCard(){
   x.strokeStyle='#c1121f';x.lineWidth=4;
   x.beginPath();x.moveTo(140,y);x.lineTo(W-140,y);x.stroke();y+=70;
   var set=missionSet(),d=dayRec(),rec=d.rec||{done:[]};
+  /* COMPLETION COUNT — the shareable headline: how many tasks got done. */
+  var mDone=set.filter(function(mi){return rec.done.some(function(e){return e.m===mi;});}).length;
+  var tDone=mDone+(rec.opDone?1:0), full=!!rec.cmdPaid;
+  x.fillStyle=full?'#e8b923':'#c1121f';x.font='900 50px "Arial Black",Arial,sans-serif';
+  x.fillText(full?'FULL DEPLOYMENT':(tDone+' OF 4 TASKS COMPLETE'),W/2,y);y+=64;
+  x.fillStyle='#c9bfa8';x.font='400 29px Arial,sans-serif';
+  x.fillText(mDone+' / 3 ORDERS'+(rec.opDone?'  •  FIELD OP DONE':'  •  FIELD OP OPEN'),W/2,y);y+=54;
   x.textAlign='left';
   set.forEach(function(mi,ix){
     var m=MISSIONS[mi]||{t:''};

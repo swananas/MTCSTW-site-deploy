@@ -99,7 +99,9 @@ var PLATFORMS=[["tiktok","TikTok"],["facebook","Facebook"],["instagram","Instagr
 var STREAK_BONUS={3:10,7:25,30:100};
 var TIERS=[["RECRUIT",0],["AGITATOR",25],["CADRE",75],["COMMISSAR",150],["ARCHITECT",300]];
 var LS_O="pf_orders_v1", LS_R="pf_ranks_v1", LS_I="pf_identity_v1";
-var BACKEND_URL="https://script.google.com/macros/s/AKfycbxKFGLAsEqn8msdaNSjML8yHNEHRvaI5drVzJQwMiaVbkhkMBlNoFq1M4hdJo33Usic5Q/exec";
+/* Single canonical backend: window.PF_BACKEND_URL (core/03-global.js). No hardcoded
+   exec URLs here — the old ranks-backend deployment this once pointed at is retired. */
+function beUrl(){ try{ return window.PF_BACKEND_URL||""; }catch(e){ return ""; } }
 
 function ymd(d){ return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
 function today(){ return ymd(PF.chiNow()); }
@@ -127,7 +129,7 @@ function saveDay(o,rec){ o.days[today()]=rec; save(LS_O,o); }
 function ident(){ return load(LS_I,{});  }
 
   function apiPost(obj,cb){
- if(!BACKEND_URL){ cb(null); return;}
+ if(!beUrl()){ cb(null); return;}
   var fn="pfPostCb"+Math.floor(Math.random()*1e9);
   var s=document.createElement("script");
   window[fn]=function(j){ try{delete window[fn];}catch(e){} if(s.parentNode) s.parentNode.removeChild(s); cb(j);};
@@ -139,22 +141,43 @@ function ident(){ return load(LS_I,{});  }
   if(obj.mission!=null) q+="&mission="+encodeURIComponent(obj.mission);
   if(obj.platform) q+="&platform="+encodeURIComponent(obj.platform);
   if(obj.spread!=null) q+="&spread="+encodeURIComponent(obj.spread);
+  if(obj.gained!=null) q+="&gained="+encodeURIComponent(obj.gained);
   q+="&callback="+fn;
-  s.src=BACKEND_URL+q;
+  s.src=beUrl()+q;
   document.head.appendChild(s);
 
 }
 function apiGet(callsign,cb){
-  if(!BACKEND_URL){ cb(null); return; }
+  if(!beUrl()){ cb(null); return; }
   var fn="pfRankCb"+Math.floor(Math.random()*1e9);
   window[fn]=function(j){ try{delete window[fn];}catch(e){} s.parentNode.removeChild(s); cb(j); };
   var s=document.createElement("script");
   s.onerror=function(){ cb(null); };
-  s.src=BACKEND_URL+"?action=get&callsign="+encodeURIComponent(callsign)+"&callback="+fn;
+  s.src=beUrl()+"?action=get&callsign="+encodeURIComponent(callsign)+"&callback="+fn;
   document.head.appendChild(s);
 }
 
 function platLabel(p){ var f=PLATFORMS.filter(function(x){return x[0]===p;})[0]; return f?f[1].toUpperCase():String(p||"").toUpperCase(); }
+
+/* Merge cross-device Daily Orders state from the backend: union today's
+   missions (never duplicates, never drops local progress), take the max
+   streak, adopt the later last_day, adopt op_done. Never regresses local. */
+function mergeCheckinState(j){
+  if(!j||!j.ok) return;
+  var r=load(LS_R,{xp:0,got:{}});
+  if(typeof j.xp==="number"&&j.xp>r.xp){ r.xp=j.xp; save(LS_R,r); }
+  var d=dayRec();
+  if(typeof j.streak==="number"&&j.streak>(d.o.streak||0)) d.o.streak=j.streak;
+  if(j.last_day&&(!d.o.last||j.last_day>d.o.last)) d.o.last=j.last_day;
+  var plats=j.today_platforms||[];
+  (j.today_done||[]).forEach(function(mm,ix){
+    var key=String(mm);
+    if(!d.rec.done.some(function(x){ return String(x.m)===key; })) d.rec.done.push({m:mm,p:plats[ix]||null,g:0});
+  });
+  if(j.op_done) d.rec.opDone=true;
+  saveDay(d.o,d.rec);
+  render();
+}
 
 function checkin(mi,platform){
   var d=dayRec(), o=d.o, rec=d.rec, t=today();
@@ -178,32 +201,26 @@ function checkin(mi,platform){
     else if(o.last&&o.last!==t&&(o.shields||0)>0){ o.shields--; shieldUsed=true; /* streak holds */ }
     else { o.streak=1; }
     o.last=t;
-    if(STREAK_BONUS[o.streak]&&!rec.bonusPaid){ bonus=STREAK_BONUS[o.streak]; rec.bonusPaid=true; }
+    /* Streak milestone bonus draws from the same 50/day pool — it gets you to
+       the cap faster, never stacks above it. */
+    if(STREAK_BONUS[o.streak]&&!rec.bonusPaid){ try{ bonus=(window.PF&&PF.claimDayXp)?PF.claimDayXp(STREAK_BONUS[o.streak]):STREAK_BONUS[o.streak]; }catch(e){ bonus=STREAK_BONUS[o.streak]; } rec.bonusPaid=true; }
     /* every 7th streak day forges a shield: one missed day forgiven */
     if(o.streak%7===0&&o.lastShieldAt!==o.streak){ o.shields=(o.shields||0)+1; o.lastShieldAt=o.streak; shieldEarned=true; }
   }
   rec.done.push({m:mi,p:platform,g:gained}); rec.xp=(rec.xp||0)+gained; saveDay(o,rec);
+  /* FULL DEPLOYMENT command bonus is claimed here so it lands inside the same
+     dispatched event — the tally records it exactly once, no phantom row. */
+  var cmd=maybeCommandBonus();
   var r=load(LS_R,{xp:0,got:{}}), key="order_"+t+"_"+mi;
   if(r.got[key]!==t){ r.got[key]=t; r.xp+=gained+bonus; save(LS_R,r); }
-  fireEvent(t,mi,reportNo,gained+bonus,o.streak,platform);
+  fireEvent(t,mi,reportNo,gained+bonus+cmd,o.streak,platform);
   var id=ident();
   if(id.callsign){
-    apiPost({action:"checkin",callsign:id.callsign,day:t,mission:mi,platform:platform,spread:0},function(j){
-      if(j&&j.ok){
-        var rr=load(LS_R,{xp:0,got:{}}); if(j.xp>rr.xp) rr.xp=j.xp; save(LS_R,rr);
-        var dd=dayRec(); dd.o.streak=j.streak; dd.o.last=j.last_day;
-        if(j.today_done&&j.today_done.length){
-          var plats=j.today_platforms||[];
-          dd.rec.done=j.today_done.map(function(mm,ix){ return {m:mm,p:plats[ix]||null,g:0}; });
-          dd.rec.xp=j.today_xp||dd.rec.xp;
-        }
-        saveDay(dd.o,dd.rec);
-
-        render();
-      }
+    apiPost({action:"checkin",callsign:id.callsign,day:t,mission:mi,platform:platform,spread:0,gained:gained+bonus+cmd},function(j){
+      mergeCheckinState(j);
     });
   }
-  return {ok:true, reportNo:reportNo, gained:gained, bonus:bonus, platform:platform, streak:o.streak, xp:r.xp, tier:tierOf(r.xp)[0], shieldUsed:shieldUsed, shieldEarned:shieldEarned, cellBonus:cellBonus, cellMult:cellMult};
+  return {ok:true, reportNo:reportNo, gained:gained, bonus:bonus, cmd:cmd, platform:platform, streak:o.streak, xp:r.xp, tier:tierOf(r.xp)[0], shieldUsed:shieldUsed, shieldEarned:shieldEarned, cellBonus:cellBonus, cellMult:cellMult};
 }
 function fireEvent(t,mi,reportNo,xp,streak,platform){
   try{ document.dispatchEvent(new CustomEvent("pf-order-checkin",{detail:{day:t,mission:mi,reportNo:reportNo,xp:xp,streak:streak,platform:platform||null}})); }catch(e){}
@@ -232,9 +249,12 @@ function maybeCommandBonus(){
     d.rec.opDone=true; saveDay(d.o,d.rec);
     var r=load(LS_R,{xp:0,got:{}}), key="order_op_"+opDay, got=0;
     if(r.got[key]!==opDay){ r.got[key]=opDay; got=PF.claimDayXp(OP_XP); r.xp+=got; save(LS_R,r); }
-    /* feed the Do Meter + tally exactly once, like a normal check-in */
-    try{ document.dispatchEvent(new CustomEvent("pf-order-checkin",{detail:{day:opDay,mission:"field-op",reportNo:0,xp:got,streak:(d.o.streak||0),platform:null}})); }catch(e){}
+    /* feed the Do Meter + tally exactly once, like a normal check-in —
+       command bonus folded into the same event so it's counted once */
     var cmd=maybeCommandBonus();
+    try{ document.dispatchEvent(new CustomEvent("pf-order-checkin",{detail:{day:opDay,mission:"field-op",reportNo:0,xp:got+cmd,streak:(d.o.streak||0),platform:null}})); }catch(e){}
+    /* sync the field-op completion so other devices see op_done */
+    try{ var idf=ident(); if(idf.callsign){ apiPost({action:"checkin",callsign:idf.callsign,day:opDay,mission:"field-op",spread:0,gained:got+cmd},function(j){ mergeCheckinState(j); }); } }catch(e){}
     var lootEl=document.getElementById("oLoot");
     if(lootEl) lootEl.textContent="+"+(got+cmd)+" XP — FIELD OP COMPLETE: "+op.label+". The network runs through you."+(cmd?" FULL DEPLOYMENT command bonus!":"");
     render();
@@ -279,12 +299,12 @@ function pumpBoost(kind){
   return {ok:true,signal:b.signal};
 }
 function apiAction(action,cb){
-  if(!BACKEND_URL){ cb(null); return; }
+  if(!beUrl()){ cb(null); return; }
   var fn="pfBoostCb"+Math.floor(Math.random()*1e9);
   window[fn]=function(j){ try{delete window[fn];}catch(e){} s.parentNode.removeChild(s); cb(j); };
   var s=document.createElement("script");
   s.onerror=function(){ cb(null); };
-  s.src=BACKEND_URL+"?action="+encodeURIComponent(action)+"&callback="+fn;
+  s.src=beUrl()+"?action="+encodeURIComponent(action)+"&callback="+fn;
   document.head.appendChild(s);
 }
 function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
@@ -417,22 +437,7 @@ function shareBoostCard(){
 
 function syncFromServer(){
   var id=ident(); if(!id.callsign) return;
-  apiGet(id.callsign,function(j){
-    if(!j||!j.ok) return;
-    var r=load(LS_R,{xp:0,got:{}});
-    if(j.xp>r.xp){ r.xp=j.xp; save(LS_R,r); }
-    var d=dayRec(), recent=(j.last_day===today()||j.last_day===yesterday());
-    if(recent&&j.streak>(d.o.streak||0)){ d.o.streak=j.streak; d.o.last=j.last_day; }
-    if(j.today_done&&j.today_done.length){
-      var plats=j.today_platforms||[];
-      j.today_done.forEach(function(mi,ix){
-        var has=d.rec.done.some(function(x){ return x.m===mi; });
-        if(!has) d.rec.done.push({m:mi,p:plats[ix]||null,g:0});
-      });
-      if(typeof j.today_xp==="number") d.rec.xp=j.today_xp;
-    }
-    saveDay(d.o,d.rec); render();
-  });
+  apiGet(id.callsign,function(j){ mergeCheckinState(j); });
 }
 
 function warPathHtml(o){
@@ -528,8 +533,7 @@ function render(){
         if(res.shieldUsed) loot="STREAK SHIELD held the line — your streak survives. "+loot;
         if(res.shieldEarned) loot="STREAK SHIELD earned — one missed day forgiven. "+loot;
         if(res.cellBonus>0) loot="CELL BONUS +"+res.cellBonus+" XP ("+Math.round((res.cellMult-1)*100)+"% cell streak) — "+loot;
-    var cmd=maybeCommandBonus();
-    if(cmd) loot="FULL DEPLOYMENT — COMMAND BONUS +"+cmd+". "+loot;
+    var cmd=res.cmd||maybeCommandBonus();
     if(cmd) loot="FULL DEPLOYMENT — COMMAND BONUS +"+cmd+". "+loot;
     document.getElementById("oLoot").textContent="+"+(res.gained+res.bonus+cmd)+" XP — "+loot+(res.bonus?" "+res.streak+"-day streak bonus!":"");
     document.getElementById("oErr").textContent="";
@@ -561,7 +565,7 @@ function render(){
   var r=load(LS_R,{xp:0});
   document.getElementById("oRank").textContent=r.xp>0?("Rank: "+tierOf(r.xp)[0]+" · "+r.xp+" XP"):"";
   var id=ident(), wrap=document.getElementById("oClaimWrap");
-  if(!BACKEND_URL){ wrap.style.display="none"; }
+  if(!beUrl()){ wrap.style.display="none"; }
   else if(id.callsign){
     document.getElementById("oClaimToggle").style.display="none";
     document.getElementById("oWho").textContent="Fighting as "+id.callsign.toUpperCase()+" — rank follows you everywhere.";

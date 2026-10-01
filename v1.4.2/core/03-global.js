@@ -56,6 +56,17 @@ if(document.readyState === 'loading'){
 } else {
   window.pfFetchGlobalTotal();
 }
+/* Cross-device daily-XP pool: seed the local 50/day bucket from the backend
+   once per day when the user has a callsign (and again if they claim one
+   mid-session). Silent no-op without a callsign or backend. */
+try{
+  if(window.PF && typeof PF.seedDayXp === 'function'){
+    if(document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', function(){ try{ PF.seedDayXp(); }catch(e){} });
+    } else { PF.seedDayXp(); }
+    document.addEventListener('pf-callsign-claimed', function(){ try{ PF.seedDayXp(true); }catch(e){} });
+  }
+}catch(e){}
 /* Site-wide TASK total (points-weighted, same unit as the Do Meter's local
    count): ?action=task_totals -> {total}. The Do Meter shows this as its
    headline number and falls back to the local week count until the tally

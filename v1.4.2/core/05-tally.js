@@ -4,7 +4,9 @@
 if(window.pfTallyLoaded)return; window.pfTallyLoaded=true;
 /* Mirrors the rank-XP economy: daily tasks sum to 50/day (PF.DAILY_XP_CAP);
    weekly tasks keep their own values; tally-only events keep theirs.
-   detail.xp overrides when a game reports its actual capped award. */
+   detail.xp overrides when a game reports its actual capped award — including
+   0 when the daily pool is spent (never fall back to the default then, or the
+   backend would record XP the user never earned). */
 var XP_DEFAULTS={ 'pf-order-checkin':10, 'pf-drop-claimed':1, 'pf-caption-submit':10, 'pf-poster-made':1, 'pf-quiz-done':15, 'pf-guess-done':1, 'pf-raid-report':2, 'pf-vote-cast':10, 'pf-bracket-ballot':10, 'pf-bracket-liquidated':10, 'pf-traitor-vote':5, 'pf-wb-buy':25, 'pf-enlisted':20, 'pf-billionaire-answered':1, 'pf-interrogation-answered':1, 'pf-share-image':1, 'pf-boost-tipped':0 };
 /* Do-meter point scale — MUST match the PTS table in games/do-meter.js. */
 var PTS_DEFAULTS={ 'pf-order-checkin':1, 'pf-drop-claimed':2, 'pf-caption-submit':2, 'pf-poster-made':2, 'pf-quiz-done':1, 'pf-guess-done':2, 'pf-raid-report':2, 'pf-vote-cast':1, 'pf-bracket-ballot':1, 'pf-bracket-liquidated':2, 'pf-traitor-vote':1, 'pf-wb-buy':5, 'pf-enlisted':3, 'pf-billionaire-answered':1, 'pf-interrogation-answered':1, 'pf-share-image':2, 'pf-boost-tipped':1 };
@@ -23,7 +25,7 @@ function report(actionType, xp, pts, meta){
 TASKS.forEach(function(ev){
   document.addEventListener(ev,function(e){
     var xp=XP_DEFAULTS[ev];
-    try{ if(e&&e.detail&&typeof e.detail.xp==='number'&&e.detail.xp>0){ xp=e.detail.xp; } }catch(err){}
+    try{ if(e&&e.detail&&typeof e.detail.xp==='number'){ xp=Math.max(0,Math.floor(e.detail.xp)); } }catch(err){}
     var meta='';
     try{ if(e&&e.detail&&e.detail.creator){ meta=String(e.detail.creator)+':'+(Math.floor(Number(e.detail.tipped)||0)); } }catch(err){}
     var actionType=ev.replace(/^pf-/,'').replace(/-/g,'_');

@@ -81,6 +81,46 @@
       s.xp = (s.xp || 0) + allow;
       try { localStorage.setItem(this._xpDayKey, JSON.stringify(s)); } catch (e) {}
       return allow;
+    },
+    seedDayXp: function (force) {
+      /* Cross-device 50/day: when the user has a callsign, ask the backend how
+         much pool XP that callsign already earned today (America/Chicago) and
+         raise the local bucket to match — so phone + laptop share one pool.
+         Once per day; silent on failure. The backend counts only pool-routed
+         action types, so exempt bonuses never shrink anyone's room. */
+      try {
+        var id = null;
+        try { id = JSON.parse(localStorage.getItem('pf_identity_v1') || '{}'); } catch (e) {}
+        var cs = id && id.callsign ? String(id.callsign) : '';
+        if (!cs || !window.PF_BACKEND_URL) return;
+        var t = this._xpDayStr(), flag = 'pf_xpseed_v1';
+        try { if (localStorage.getItem(flag) === t) return; } catch (e) {}
+        if (!force) {
+          try { if (window.sessionStorage && sessionStorage.getItem(flag) === t) return; } catch (e) {}
+          try { if (window.sessionStorage) sessionStorage.setItem(flag, t); } catch (e) {}
+        }
+        var self = this;
+        var fn = 'pfSeedCb' + Math.floor(Math.random() * 1e9);
+        window[fn] = function (j) {
+          try { delete window[fn]; } catch (e) {}
+          try {
+            if (j && j.ok && typeof j.xp_today === 'number' && j.xp_today > 0) {
+              var s = null;
+              try { s = JSON.parse(localStorage.getItem(self._xpDayKey) || 'null'); } catch (e) {}
+              if (!s || s.d !== t) s = { d: t, xp: 0 };
+              if (j.xp_today > (s.xp || 0)) {
+                s.xp = Math.min(self.DAILY_XP_CAP, Math.floor(j.xp_today));
+                try { localStorage.setItem(self._xpDayKey, JSON.stringify(s)); } catch (e) {}
+              }
+            }
+            try { localStorage.setItem(flag, t); } catch (e) {}
+          } catch (e) {}
+        };
+        var sc = document.createElement('script');
+        sc.onerror = function () { try { delete window[fn]; } catch (e) {} };
+        sc.src = window.PF_BACKEND_URL + '?action=xp_today&callsign=' + encodeURIComponent(cs) + '&callback=' + fn;
+        document.head.appendChild(sc);
+      } catch (e) {}
     }
   };
 })();

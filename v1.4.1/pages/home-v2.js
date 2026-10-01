@@ -21,13 +21,14 @@
     if(b&&(b.classList.contains('sqs-edit-mode')||b.classList.contains('sqs-editing'))) return true;
     return false; }catch(e){ return false; } }
 
-  /* Homepage order, verified against the live page's section roots. */
+  /* Homepage order, verified against the live page's section roots.
+     Daily Orders leads: it's the stickiest dopamine lynchpin. */
   var ORDER = [
+    ['daily-orders', 'pf-ov-orders'],
     ['fan-vote', 'pf-ov-vote'],
     ['slr-match-quiz', 'pf-ov-matchquiz'],
     ['creator-guess', 'pf-ov-guess'],
     ['bracket-board', 'pf-ov-bracket'],
-    ['daily-orders', 'pf-ov-orders'],
     ['boost-raid', 'pf-ov-raid'],
     ['do-meter', 'pf-ov-dometer'],
     ['daily-drop', 'pf-ov-drop'],

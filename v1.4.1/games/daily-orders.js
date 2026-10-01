@@ -19,13 +19,15 @@
 <div class="o-warpath" id="oWarPath"></div>
 <div class="o-reset" id="oReset"></div>
 <div id="oMissions"></div>
+<div class="o-boost" id="oBoost"></div>
+<div class="o-patrons" id="oPatrons"></div>
 <div class="o-prog" id="oProg"></div>
 <div class="o-streak" id="oStreak"></div>
 <div class="o-next" id="oNext"></div>
 <div class="o-rankline" id="oRank"></div>
 <div class="o-loot" id="oLoot"></div>
 <div class="o-err" id="oErr"></div>
-<div class="o-note">3 orders + 1 field op per day. Missions cap at 50 XP &mdash; the field op (+10) and the full-deployment command bonus (+10) stack on top. Streak shields forgive a missed day.</div>
+<div class="o-note">3 orders + 1 field op per day. Missions cap at 50 XP &mdash; the field op (+10) and the full-deployment command bonus (+10) stack on top. Streak shields forgive a missed day. Today's Boost lets you tip earned XP to a creator at 1 XP = 2 signal.</div>
 <div><button class="o-shareimg" id="oShareImg">Share orders as image</button></div>
 <div class="o-claim" id="oClaimWrap">
   <a id="oClaimToggle">Claim your rank on every device</a>
@@ -235,6 +237,179 @@ function maybeCommandBonus(){
   });
 })();
 
+/* ============ TODAY'S BOOST — tip earned XP to a creator, 1 XP = 2 signal ============
+   One boost per day. Tipped XP leaves your rank total (it becomes the creator's
+   signal) and feeds your lifetime patron record. The tip reports to the tally
+   backend with xp:0 and the amount in meta, so site-wide XP is never double-counted. */
+var LS_B="pf_boost_v1", LS_P="pf_patron_v1";
+var BOOST_RATIO=2;
+var PUMP_SIGNAL={profile:10, offsite:20, share:30};
+var PUMP_LABELS={profile:"Open their catalog profile", offsite:"Follow them off-site", share:"Share the boost card"};
+var TIP_PRESETS=[5,10,25];
+function boostRec(){ return load(LS_B,null); }
+function patronRec(){ return load(LS_P,{tipped:0,signal:0}); }
+function rosterBySlug(s){ var r=PF.ROSTER||[]; for(var i=0;i<r.length;i++){ if(r[i].slug===s) return r[i]; } return null; }
+function tipBoost(slug,xp){
+  xp=Math.floor(Number(xp)||0);
+  var entry=rosterBySlug(slug);
+  if(!entry) return {ok:false,err:"Pick a creator first."};
+  if(!(xp>=1)) return {ok:false,err:"Pick an XP amount."};
+  var b=boostRec();
+  if(b&&b.date===today()) return {ok:false,err:"Boost already deployed today — new orders at midnight."};
+  var r=load(LS_R,{xp:0,got:{}});
+  if(xp>r.xp) return {ok:false,err:"Not enough XP — earn it first, then tip it."};
+  r.xp-=xp; save(LS_R,r);
+  var signal=xp*BOOST_RATIO;
+  save(LS_B,{date:today(),creator:slug,tipped:xp,signal:signal,pumps:{}});
+  var p=patronRec(); p.tipped+=xp; p.signal+=signal; save(LS_P,p);
+  try{ document.dispatchEvent(new CustomEvent("pf-boost-tipped",{detail:{creator:slug,tipped:xp}})); }catch(e){}
+  try{ document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:-xp,total:r.xp}})); }catch(e){}
+  return {ok:true,name:entry.name,slug:slug,tipped:xp,signal:signal};
+}
+function pumpBoost(kind){
+  var b=boostRec();
+  if(!b||b.date!==today()) return {ok:false};
+  if(!PUMP_SIGNAL[kind]||b.pumps[kind]) return {ok:false};
+  b.pumps[kind]=1; b.signal+=PUMP_SIGNAL[kind]; save(LS_B,b);
+  var p=patronRec(); p.signal+=PUMP_SIGNAL[kind]; save(LS_P,p);
+  return {ok:true,signal:b.signal};
+}
+function apiAction(action,cb){
+  if(!BACKEND_URL){ cb(null); return; }
+  var fn="pfBoostCb"+Math.floor(Math.random()*1e9);
+  window[fn]=function(j){ try{delete window[fn];}catch(e){} s.parentNode.removeChild(s); cb(j); };
+  var s=document.createElement("script");
+  s.onerror=function(){ cb(null); };
+  s.src=BACKEND_URL+"?action="+encodeURIComponent(action)+"&callback="+fn;
+  document.head.appendChild(s);
+}
+function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+function renderBoost(){
+  var box=document.getElementById("oBoost"); if(!box) return;
+  var b=boostRec(), t=today(), r=load(LS_R,{xp:0,got:{}});
+  var h='<div class="o-bhead">\u{1F4E3} TODAY\u2019S BOOST &mdash; pump a creator with your XP</div>';
+  h+='<div class="o-bsub">1 XP = '+BOOST_RATIO+' signal. One boost per day. Tipped XP leaves your rank and becomes their signal.</div>';
+  if(!b||b.date!==t){
+    var opts=(PF.ROSTER||[]).map(function(x){ return '<option value="'+x.slug+'">'+x.name+'</option>'; }).join("");
+    h+='<div class="o-brow"><select id="oBoostSel" class="o-bsel"><option value="">\u2014 pick a creator \u2014</option>'+opts+'</select></div>';
+    h+='<div class="o-brow">'+TIP_PRESETS.map(function(x){ return '<button class="o-tipbtn" data-tip="'+x+'">'+x+' XP</button>'; }).join("")+'</div>';
+    h+='<button class="o-btn o-boostbtn" id="oBoostGo">DEPLOY BOOST &rarr;</button><div class="o-err" id="oBoostErr"></div>';
+    h+='<div class="o-bbal">Your rank XP available: <b>'+(r.xp||0)+'</b></div>';
+  } else {
+    var entry=rosterBySlug(b.creator);
+    h+='<div class="o-bdone">\u2713 Boost deployed: <b>'+(entry?entry.name:b.creator)+'</b> &mdash; '+b.tipped+' XP tipped &rarr; <b>'+b.signal+' signal</b> sent.</div>';
+    h+='<div class="o-bsub">Pump them up for bonus signal:</div><div class="o-brow">';
+    Object.keys(PUMP_SIGNAL).forEach(function(k){
+      h+='<button class="o-pumpbtn'+(b.pumps[k]?' done':'')+'" data-pump="'+k+'"'+(b.pumps[k]?' disabled':'')+'>'+(b.pumps[k]?'\u2713 ':'+'+PUMP_SIGNAL[k]+' ')+PUMP_LABELS[k]+'</button>';
+    });
+    h+='</div><button class="o-btn o-sharebtn" id="oBoostShare">Share boost card</button>';
+  }
+  h+='<div class="o-crown" id="oCrown"></div>';
+  box.innerHTML=h;
+  var sel=document.getElementById("oBoostSel"), amt=null;
+  if(sel){
+    box.querySelectorAll("button.o-tipbtn").forEach(function(btn){
+      btn.onclick=function(){ amt=parseInt(btn.getAttribute("data-tip"),10);
+        box.querySelectorAll("button.o-tipbtn").forEach(function(x){x.classList.remove("sel");});
+        btn.classList.add("sel"); };
+    });
+    document.getElementById("oBoostGo").onclick=function(){
+      var res=tipBoost(sel.value,amt);
+      var err=document.getElementById("oBoostErr");
+      if(!res.ok){ if(err) err.textContent=res.err; return; }
+      render(); renderBoost(); renderPatrons();
+    };
+  } else {
+    box.querySelectorAll("button.o-pumpbtn").forEach(function(btn){
+      btn.onclick=function(){
+        var k=btn.getAttribute("data-pump");
+        if(k==="profile"){ var e2=rosterBySlug(b.creator); if(e2){ try{ window.open("https://www.mtcstw.com/"+e2.slug,"_blank"); }catch(x){} } }
+        if(k==="share"){ shareBoostCard(); return; }
+        var res=pumpBoost(k);
+        if(res.ok){ renderBoost(); }
+      };
+    });
+    var sh=document.getElementById("oBoostShare");
+    if(sh) sh.onclick=function(){ shareBoostCard(); };
+  }
+  /* Weekly crown: most-boosted creator, from the backend. */
+  var crown=document.getElementById("oCrown");
+  if(crown){
+    if(_crownCache&&_crownCache.leaders&&_crownCache.leaders.length){
+      var top=_crownCache.leaders[0];
+      crown.innerHTML='\u{1F451} MOST BOOSTED THIS WEEK: <b>'+top.name+'</b> &mdash; '+top.signal+' signal';
+    } else {
+      apiAction("boost_totals",function(j){
+        if(j&&j.leaders&&j.leaders.length){ _crownCache=j; renderBoost(); }
+      });
+    }
+  }
+}
+/* Patrons strip: capped rotating sample of top tippers, reshuffled every render. */
+var _patronCache=null, _crownCache=null;
+function renderPatrons(){
+  var box=document.getElementById("oPatrons"); if(!box) return;
+  var show=function(list){
+    if(!list||!list.length){ box.innerHTML=""; return; }
+    var sample=shuffle(list.slice()).slice(0,5);
+    box.innerHTML='<div class="o-phead">\u2605 PATRONS IN THE FIELD</div><div class="o-prow">'
+      +sample.map(function(p){ return '<div class="o-patron"><b>'+String(p.callsign||"ghost").toUpperCase()+'</b><span>'+p.tipped+' XP tipped</span></div>'; }).join("")
+      +'</div>';
+  };
+  if(_patronCache){ show(_patronCache.patrons); return; }
+  apiAction("patron_totals",function(j){
+    if(j&&j.patrons&&j.patrons.length){ _patronCache=j; show(j.patrons); }
+    else {
+      /* Backend not yet serving patrons: show this device's own record if it exists. */
+      var p=patronRec(), id=ident();
+      if(p.tipped>0) show([{callsign:(id.callsign||"you"),tipped:p.tipped}]);
+      else box.innerHTML="";
+    }
+  });
+}
+/* Boost share card: 1080x1350 propaganda card for cross-platform pumping. */
+function drawBoostCard(){
+  var b=boostRec(); if(!b) return null;
+  var entry=rosterBySlug(b.creator)||{name:b.creator};
+  var cv=document.createElement("canvas"); cv.width=1080; cv.height=1350;
+  var ctx=cv.getContext("2d");
+  ctx.fillStyle="#0d0d0d"; ctx.fillRect(0,0,1080,1350);
+  ctx.fillStyle="#c1121f"; ctx.fillRect(0,0,1080,26); ctx.fillRect(0,1324,1080,26);
+  ctx.textAlign="center"; ctx.fillStyle="#f5f0e1";
+  ctx.font="bold 64px Arial"; ctx.fillText("I BOOSTED",540,220);
+  ctx.fillStyle="#ff5a00"; ctx.font="bold 88px Arial";
+  wrapLines(ctx,entry.name.toUpperCase(),900).slice(0,2).forEach(function(l,i){ ctx.fillText(l,540,340+i*100); });
+  ctx.fillStyle="#f5f0e1"; ctx.font="bold 120px Arial";
+  ctx.fillText(b.signal+" SIGNAL",540,640);
+  ctx.font="40px Arial"; ctx.fillStyle="#c1121f";
+  ctx.fillText(b.tipped+" XP TIPPED \u00b7 1 XP = "+BOOST_RATIO+" SIGNAL",540,730);
+  ctx.fillStyle="#f5f0e1"; ctx.font="36px Arial";
+  wrapLines(ctx,"Pump your creator. Daily Orders on mtcstw.com.",860).forEach(function(l,i){ ctx.fillText(l,540,880+i*52); });
+  ctx.fillStyle="#ff5a00"; ctx.font="bold 44px Arial";
+  ctx.fillText("MTCSTW.COM",540,1180);
+  return cv;
+}
+function shareBoostCard(){
+  var done2=function(){
+    var r=pumpBoost("share");
+    renderBoost();
+  };
+  try{
+    var cv=drawBoostCard(); if(!cv) return;
+    var go=function(url,blob){
+      var file=new File([blob],"pfn-boost.png",{type:"image/png"});
+      if(navigator.canShare&&navigator.canShare({files:[file]})){
+        navigator.share({files:[file],title:"Today's Boost",text:"I boosted "+(rosterBySlug((boostRec()||{}).creator)||{}).name+" on mtcstw.com — pump your creator."}).then(done2).catch(function(){});
+      }else{
+        var a=document.createElement("a"); a.href=url; a.download="pfn-boost.png";
+        document.body.appendChild(a); a.click(); a.remove(); done2();
+      }
+    };
+    if(cv.toBlob){ cv.toBlob(function(bl){ go(URL.createObjectURL(bl),bl); },"image/png"); }
+    else{ var u=cv.toDataURL("image/png"); fetch(u).then(function(r){return r.blob();}).then(function(bl){ go(URL.createObjectURL(bl),bl); }); }
+  }catch(e){}
+}
+
 function syncFromServer(){
   var id=ident(); if(!id.callsign) return;
   apiGet(id.callsign,function(j){
@@ -370,6 +545,8 @@ function render(){
     };
   });
   document.getElementById("oProg").textContent=doneCount+"/"+PER_DAY+" orders complete";
+  renderBoost();
+  renderPatrons();
   document.getElementById("oStreak").innerHTML="Current streak: <b>"+(d.o.streak||0)+"</b> day"+((d.o.streak||0)===1?"":"s")+((d.o.shields||0)>0?" &nbsp;\uD83D\uDEE1\uFE0F x"+d.o.shields:"");
   var s=d.o.streak||0;
   var nextMil=Object.keys(STREAK_BONUS).map(Number).filter(function(n){return n>s;}).sort(function(a,b){return a-b;})[0];

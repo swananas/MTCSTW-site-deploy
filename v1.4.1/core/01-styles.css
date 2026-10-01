@@ -91,6 +91,28 @@
 #pf-orders .o-reveal .o-mission:nth-child(2){animation-delay:.12s}
 #pf-orders .o-reveal .o-mission:nth-child(3){animation-delay:.24s}
 #pf-orders .o-reveal .o-fieldop{animation:ofadeup .45s .36s backwards}
+#pf-orders .o-boost{border:3px solid #ff5a00;background:#1d1006;padding:14px 12px;margin:12px 0}
+#pf-orders .o-bhead{font-size:13px;letter-spacing:3px;color:#ff5a00;margin-bottom:6px}
+#pf-orders .o-bsub{font-family:Arial,sans-serif;font-size:11px;color:#c9bfa8;margin-bottom:10px}
+#pf-orders .o-brow{margin:8px 0}
+#pf-orders .o-bsel{background:#0d0d0d;border:2px solid #ff5a00;color:#f5ead6;font-family:Arial,sans-serif;font-size:14px;padding:10px;width:100%;max-width:420px}
+#pf-orders .o-tipbtn{background:#0d0d0d;border:2px solid #f5ead6;color:#f5ead6;font-family:Arial,sans-serif;font-size:13px;letter-spacing:1px;padding:8px 16px;margin:3px;cursor:pointer}
+#pf-orders .o-tipbtn.sel{background:#ff5a00;border-color:#ff5a00;color:#0d0d0d;font-weight:700}
+#pf-orders .o-boostbtn{background:#ff5a00;margin-top:6px}
+#pf-orders .o-boostbtn:hover{background:#c1121f}
+#pf-orders .o-bbal{font-family:Arial,sans-serif;font-size:11px;color:#c9bfa8;margin-top:8px}
+#pf-orders .o-bdone{font-family:Arial,sans-serif;font-size:14px;color:#f5ead6;margin-bottom:6px}
+#pf-orders .o-bdone b{color:#ff5a00}
+#pf-orders .o-pumpbtn{background:#0d0d0d;border:2px solid #f5ead6;color:#f5ead6;font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;padding:8px 12px;margin:3px;cursor:pointer;text-transform:uppercase}
+#pf-orders .o-pumpbtn:hover:not(:disabled){background:#ff5a00;border-color:#ff5a00;color:#0d0d0d}
+#pf-orders .o-pumpbtn.done{background:#1d5c1d;border-color:#1d5c1d;color:#f5ead6;cursor:default}
+#pf-orders .o-crown{font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;color:#e8b923;margin-top:10px}
+#pf-orders .o-patrons{margin:10px 0}
+#pf-orders .o-phead{font-size:12px;letter-spacing:3px;color:#c1121f;margin-bottom:6px}
+#pf-orders .o-prow{display:flex;flex-wrap:wrap;gap:8px}
+#pf-orders .o-patron{background:#141414;border:1px solid #c1121f;padding:8px 12px;font-family:Arial,sans-serif}
+#pf-orders .o-patron b{display:block;font-size:13px;color:#f5ead6;letter-spacing:1px}
+#pf-orders .o-patron span{font-size:11px;color:#c9bfa8}
 @keyframes ofadeup{from{opacity:0;transform:translateY(14px)}}
 @media (prefers-reduced-motion:reduce){#pf-orders .o-stamp,#pf-orders .o-reset,#pf-orders .o-reveal .o-mission,#pf-orders .o-reveal .o-fieldop{animation:none}}
 #pf-orders .o-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:14px}

@@ -80,8 +80,8 @@ var START_MONDAY = "2026-09-28"; /* first Monday of Round of 16 (America/Chicago
 /* Weekly winners, filled in as rounds complete. Seeds in matchup order. */
 var ROUND_WINNERS = { "0": [], "1": [], "2": [], "3": [] };
 
-/* CONTENDERS — valuations in $B from the Forbes 400 (Sept 2026), shown as ~figures.
-   Murdoch family ~$25B and M. Adelson ~$32B per Forbes 2026 list. */
+/* CONTENDERS — valuations in $B, Forbes 400 (Sept 2026) via USA Today,
+   shown as ~figures. Murdoch family $25B and M. Adelson $33.5B→~$34B. */
 var CONTENDERS = {
  1:{n:"Elon Musk",b:"Bought the town square to burn it down.",w:908},
  2:{n:"Jeff Bezos",b:"Your packages arrive. Your wages don't.",w:378},
@@ -98,7 +98,7 @@ var CONTENDERS = {
  13:{n:"Peter Thiel",b:"Seasteading away from consequences.",w:35},
  14:{n:"Ken Griffin",b:"Bought the dip. You are the dip.",w:61},
  15:{n:"Stephen Schwarzman",b:"Your landlord's landlord.",w:46},
- 16:{n:"Miriam Adelson",b:"Cashed the chips, kept the casino.",w:32}
+ 16:{n:"Miriam Adelson",b:"Cashed the chips, kept the casino.",w:34}
 };
 function worth(s){ var w=CONTENDERS[s]&&CONTENDERS[s].w; return w?('~$'+w+'B'):''; }
 var R1 = [[1,16],[8,9],[5,12],[4,13],[3,14],[6,11],[7,10],[2,15]];
@@ -192,12 +192,41 @@ function oracleScore(){
 }
 function renderOracle(){
   var el=document.getElementById("bOracle"); if(!el) return;
+  awardUpsetBonus();
   var o=oracleScore();
   if(!o.total){ el.innerHTML=""; return; }
   var p=o.correct/o.total;
   var rank=p>=0.7?'PROPHET':p>=0.4?'ORACLE':'PUNDIT';
   el.innerHTML='&#128302; ORACLE SCORE <b>'+o.correct+'/'+o.total+'</b> &mdash; '+rank+
     (o.upsets>0?' &nbsp;&middot;&nbsp; <b>&#127919; UPSET CALLER &times;'+o.upsets+'</b>':'');
+}
+
+/* --- Upset bonus XP: correctly calling the lower seed pays +5 XP, once per matchup. --- */
+var UPSET_BONUS_XP=5;
+function bToast(m){ var t=document.createElement("div"); t.textContent=m; t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999"; document.body.appendChild(t); setTimeout(function(){t.remove();},2600); }
+function awardUpsetBonus(){
+  var wi=weekIndex(), paid=0, r=null;
+  try{ r=JSON.parse(localStorage.getItem("pf_ranks_v1")||"null")||{xp:0,got:{}}; }catch(e){ r={xp:0,got:{}}; }
+  if(!r.got) r.got={};
+  for(var rr=0; rr<Math.min(wi,4); rr++){
+    var w=ROUND_WINNERS[String(rr)]||[];
+    if(!w.length) continue;
+    var vv={}, up={};
+    try{ vv=JSON.parse(localStorage.getItem("pf_bracket_"+roundWeekKey(rr))||"{}"); }catch(e){}
+    try{ up=JSON.parse(localStorage.getItem("pf_bracket_upsets_"+roundWeekKey(rr))||"{}"); }catch(e){}
+    for(var i=0;i<w.length;i++){
+      if(vv["m"+i]!==undefined && vv["m"+i]===w[i] && up["m"+i]){
+        var key="bracket_upset_"+roundWeekKey(rr)+"_m"+i;
+        if(!r.got[key]){ r.got[key]=1; r.xp+=UPSET_BONUS_XP; paid++; }
+      }
+    }
+  }
+  if(paid>0){
+    try{ localStorage.setItem("pf_ranks_v1", JSON.stringify(r)); }catch(e){}
+    try{ document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:paid*UPSET_BONUS_XP,total:r.xp}})); }catch(e){}
+    bToast("+"+(paid*UPSET_BONUS_XP)+" XP — UPSET BONUS x"+paid);
+  }
+  return paid;
 }
 
 /* --- Next-liquidation countdown: winners announced Monday --- */
@@ -272,6 +301,7 @@ function render(){
     });
   }
   h+='<div class="b-note">One vote per matchup per week. Totals are never shown. Winners advance every Monday.</div>';
+  h+='<div class="b-attr">Valuations: Forbes 400, Sept 2026 &mdash; approximate.</div>';
   var voteCount=Object.keys(votes).length;
   var curMus=roundMatchups(wi);
   var totalMu=curMus?curMus.length:0;
@@ -327,7 +357,7 @@ function render(){
 render();
 
 /* COPY CRATE — pre-written promo text for sharing */
-var BCRATE="☠ THE LIQUIDATION BRACKET ☠\\n6 billionaires. Head-to-head. You decide who gets liquidated first.\\note: https://www.mtcstw.com\\nSickLeftRadicals #PropagandaFactory";
+var BCRATE="☠ THE LIQUIDATION BRACKET ☠\\n16 billionaires. Head-to-head. You decide who gets liquidated first.\\nVote: https://www.mtcstw.com\\n#SickLeftRadicals #PropagandaFactory";
 var bCopyBtn=document.getElementById("bCopyBtn");
 if(bCopyBtn){
   bCopyBtn.onclick=function(){

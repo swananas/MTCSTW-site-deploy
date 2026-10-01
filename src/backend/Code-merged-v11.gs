@@ -1,5 +1,5 @@
 /* ============================================================================
- * SLR FAN VOTE BACKEND — Google Apps Script (MERGED v11, prepared 2026-10-01 — XP economy: cross-device pool + orders sync)
+ * SLR FAN VOTE BACKEND — Google Apps Script (MERGED v12, prepared 2026-10-01 — Vanguard Wall API + unknown-action POST guard)
  *
  * TARGET PROJECT: "SLR Fan Vote Backend" (script id 1omY63JuIChFzQLsp6xPkbKmhhVtD2L3lfvfTj96STmwLgegmcXZKf8m0)
  * DEPLOY AS: new version of the existing "Anyone" web-app deployment
@@ -88,6 +88,7 @@
  */
 var SHEET_NAME = "votes";
 var ACTIONS_SHEET = "actions"; /* verified 2026-10-01: live tab is lowercase "actions" */
+var WALL_SHEET = "wall"; /* Vanguard Wall: etched callsigns, one row each (v12) */
 
 /* Legacy action_type -> task points, for rows written before the frontend
  * started sending pts (those rows have an empty pts cell). */
@@ -127,6 +128,16 @@ function ensureActionsSheet(ss) {
     if (String(headers[i] || "") !== want[i]) {
       sheet.getRange(1, i + 1).setValue(want[i]); /* extends the sheet if needed */
     }
+  }
+  return sheet;
+}
+
+/* Get the Vanguard Wall sheet, creating it with headers if missing (v12). */
+function ensureWallSheet(ss) {
+  var sheet = ss.getSheetByName(WALL_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(WALL_SHEET);
+    sheet.appendRow(["timestamp", "callsign"]);
   }
   return sheet;
 }
@@ -248,6 +259,27 @@ function doPost(e) {
     var cs = String(d.callsign || "").slice(0, 64);
     sheet.appendRow([new Date(), String(d.action_type), Number(d.xp) || 0, Number(d.pts) || 0, dev, cs, String(d.meta || "").slice(0, 128)]);
     return jsonOut({ ok: true });
+  }
+  /* Vanguard Wall etch (v12): one row per callsign, etched once. */
+  if (d.action === "wall" || d.action === "etch") {
+    var wcs = String(d.callsign || "").toLowerCase().trim().slice(0, 32);
+    if (wcs) {
+      var wsh = ensureWallSheet(SpreadsheetApp.getActiveSpreadsheet());
+      var seen = false;
+      try {
+        var wr = wsh.getDataRange().getValues();
+        for (var wqi = 1; wqi < wr.length; wqi++) {
+          if (String(wr[wqi][1]).toLowerCase() === wcs) { seen = true; break; }
+        }
+      } catch (we) {}
+      if (!seen) wsh.appendRow([new Date(), wcs]);
+    }
+    return jsonOut({ ok: true });
+  }
+  /* Unknown actions are rejected — they must never fall through into the
+   * fan-vote writer (that once polluted the vote sheet with junk rows). */
+  if (d.action && d.action !== "retract") {
+    return jsonOut({ ok: false, error: "unknown action: " + d.action });
   }
   /* Fan vote handling (existing). */
   var w = Math.min(2, Math.max(1, parseInt(d.weight, 10) || 1));
@@ -485,6 +517,21 @@ function doGet(e) {
       }
     }
     return jsonOut({ week: week, votes: totals }, cb);
+  }
+  /* Vanguard Wall (v12): public callsign wall for Enlistment Ranks unlocks.
+   * GET ?action=wall (or etch, the Daily Orders alias) returns every etched
+   * callsign so the wall is shared cross-device. */
+  if (action === "wall" || action === "etch") {
+    var wsheet = ensureWallSheet(ss);
+    var wall = [];
+    try {
+      var wrows = wsheet.getDataRange().getValues();
+      for (var wi = 1; wi < wrows.length; wi++) {
+        var wcs = String(wrows[wi][1] || "").trim();
+        if (wcs) wall.push({ callsign: wcs });
+      }
+    } catch (werr) {}
+    return jsonOut({ wall: wall }, cb);
   }
   return jsonOut({ error: "unknown action: " + action });
 }

@@ -20,8 +20,8 @@
 </div>
 
 <div class="c-form">
-  <label for="cName">Your name / handle</label>
-  <input id="cName" maxlength="40" placeholder="@yourhandle">
+  <label for="ccName">Your name / handle</label>
+  <input id="ccName" maxlength="40" placeholder="@yourhandle">
   <label for="cCap">Your caption</label>
   <textarea id="cCap" maxlength="280" placeholder="Make the machine laugh."></textarea>
   <a class="c-btn" id="cSubmit" href="#">Fire your caption</a>
@@ -62,7 +62,7 @@ var LS="pf_caption_v1";
 function capLoad(){ try{ var s=JSON.parse(localStorage.getItem(LS)||"null"); if(s&&typeof s==="object")return s; }catch(e){} return {handle:"",weeks:{}}; }
 function capSave(s){ try{ localStorage.setItem(LS,JSON.stringify(s)); }catch(e){} }
 var CS=capLoad();
-if(CS.handle){ document.getElementById("cName").value=CS.handle; }
+if(CS.handle){ document.getElementById("ccName").value=CS.handle; }
 
 function markSubmitted(){
   var btn=document.getElementById("cSubmit");
@@ -79,7 +79,7 @@ function markSubmitted(){
 if(CS.weeks[weekKey]){ markSubmitted(); }
 
 document.getElementById("cSubmit").onclick=function(){
-  var n=document.getElementById("cName").value.trim()||"anonymous comrade";
+  var n=document.getElementById("ccName").value.trim()||"anonymous comrade";
   var c=document.getElementById("cCap").value.trim();
   if(!c){ alert("Write a caption first."); return false; }
   /* save the handle, but DO NOT lock the week yet — the lock happens only

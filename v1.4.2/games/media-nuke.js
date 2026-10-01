@@ -138,7 +138,7 @@ function render(root,xp,goal,mode,comrades){
       if(pct>=100&&mileHit('m100')){nukeParty(root);stickFlash();}
     }
   }catch(e){}
-  try{ updateStick(xp,pct); }catch(e){}
+  try{ updateStick(xp,pct,root); }catch(e){}
 }
 
 function nukeParty(root){
@@ -246,7 +246,7 @@ function stickFlash(){
   }catch(e){}
 }
 
-function updateStick(xp,pct){
+function updateStick(xp,pct,root){
   stickXp=xp; stickPct=pct; stickReady=true;
   var bar=document.getElementById('pf-nuke-stick'); if(!bar) return;
   var fill=document.getElementById('pnsFill'); if(fill) fill.style.width=Math.min(100,pct)+'%';
@@ -269,6 +269,16 @@ function updateStick(xp,pct){
       if(rb) rb.textContent='BUILD YOUR CELL';
     }
   });
+  /* Visibility re-check: the IntersectionObserver's initial fire can run before
+     backend data arrives (stickReady false), leaving the bar hidden even when the
+     widget is out of view. Re-evaluate now that data is in. */
+  try{
+    var shide=false; try{shide=!!sessionStorage.getItem('pf_nuke_stick_hide');}catch(se){}
+    if(root&&document.body.contains(root)){
+      var rr=root.getBoundingClientRect();
+      bar.hidden=shide||!((rr.bottom<0||rr.top>window.innerHeight));
+    }
+  }catch(se2){}
 }
 
 function buildStick(root){

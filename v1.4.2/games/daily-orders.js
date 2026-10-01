@@ -363,7 +363,9 @@ function renderBoost(){
   if(crown){
     if(_crownCache&&_crownCache.leaders&&_crownCache.leaders.length){
       var top=_crownCache.leaders[0];
-      crown.innerHTML='\u{1F451} MOST BOOSTED THIS WEEK: <b>'+top.name+'</b> &mdash; '+top.signal+' signal';
+      /* Backend returns {slug,tipped,signal} — resolve the display name locally. */
+      var _tm=rosterBySlug(top.slug), _tn=(_tm&&_tm.name)?_tm.name:top.slug;
+      crown.innerHTML='\u{1F451} MOST BOOSTED THIS WEEK: <b>'+_tn+'</b> &mdash; '+top.signal+' signal';
     } else {
       apiAction("boost_totals",function(j){
         if(j&&j.leaders&&j.leaders.length){ _crownCache=j; renderBoost(); }

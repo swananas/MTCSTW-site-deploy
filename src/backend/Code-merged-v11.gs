@@ -157,7 +157,6 @@ function ensureCheckinsSheet(ss) {
   if (!sh) {
     sh = ss.insertSheet(CHECKINS_SHEET);
     sh.appendRow(["callsign", "day", "mission", "platform", "gained", "timestamp"]);
-    return sh;
   }
   var want = ["callsign", "day", "mission", "platform", "gained", "timestamp"];
   var lastCol = Math.max(sh.getLastColumn(), 1);
@@ -165,7 +164,20 @@ function ensureCheckinsSheet(ss) {
   for (var i = 0; i < want.length; i++) {
     if (String(headers[i] || "") !== want[i]) sh.getRange(1, i + 1).setValue(want[i]);
   }
+  /* Day column stays plain text: Sheets auto-converts "2026-10-01" to a Date
+     on appendRow, which would break day-string comparisons downstream. */
+  try { sh.getRange(2, 2, Math.max(sh.getMaxRows() - 1, 1), 1).setNumberFormat("@"); } catch (e) {}
   return sh;
+}
+/* Normalize a checkins day cell: Sheets may have stored it as a Date even
+   with the "@" format above (rows written before the format was set). */
+function checkinDayStr(v) {
+  try {
+    if (Object.prototype.toString.call(v) === "[object Date]" && !isNaN(v.getTime())) {
+      return Utilities.formatDate(v, "America/Chicago", "yyyy-MM-dd");
+    }
+  } catch (e) {}
+  return String(v == null ? "" : v);
 }
 function normCs11(cs) { return String(cs || "").toLowerCase().trim().slice(0, 32); }
 function shiftDayStr(dstr, off) {
@@ -188,7 +200,7 @@ function ordersState11(ss, cs) {
     var today = chiDayStr(0), days = {};
     for (var i = 1; i < vals.length; i++) {
       if (String(vals[i][0] || "").toLowerCase() !== cs) continue;
-      var d = String(vals[i][1] || "");
+      var d = checkinDayStr(vals[i][1]);
       if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) continue;
       days[d] = 1;
       if (d === today) {
@@ -418,7 +430,7 @@ function doGet(e) {
       var cvals = csh.getDataRange().getValues(), cdup = false;
       for (var ci = 1; ci < cvals.length; ci++) {
         if (String(cvals[ci][0] || "").toLowerCase() === ccs &&
-            String(cvals[ci][1] || "") === cday && String(cvals[ci][2]) === cm) { cdup = true; break; }
+            checkinDayStr(cvals[ci][1]) === cday && String(cvals[ci][2]) === cm) { cdup = true; break; }
       }
       if (!cdup) csh.appendRow([ccs, cday, cm,
         String(e.parameter.platform || "").toLowerCase().slice(0, 16), cgained, new Date()]);

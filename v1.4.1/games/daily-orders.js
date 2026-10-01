@@ -169,6 +169,10 @@ function checkin(mi,platform){
   var comboXp=BASE_XP+COMBO_STEP*(combo-1);
   var room=Math.max(0,DAILY_MAX-(rec.xp||0));        /* same 50 XP/day cap */
   var gained=Math.min(comboXp+spread,room);
+  /* CELL BONUS: shared cell streaks juice Daily Orders XP. +5%/streak day, cap +50%. */
+  var cellMult=(typeof window.pfCellMult==="function")?window.pfCellMult():1;
+  var cellBonus=0;
+  if(cellMult>1&&gained>0){ var boosted=Math.round(gained*cellMult); cellBonus=boosted-gained; gained=boosted; }
   var bonus=0, shieldUsed=false, shieldEarned=false;
   if(firstToday){
     if(o.last===yesterday()){ o.streak=(o.streak||0)+1; }
@@ -200,7 +204,7 @@ function checkin(mi,platform){
       }
     });
   }
-  return {ok:true, combo:combo, gained:gained, bonus:bonus, spread:spread, platform:platform, streak:o.streak, xp:r.xp, tier:tierOf(r.xp)[0], shieldUsed:shieldUsed, shieldEarned:shieldEarned};
+  return {ok:true, combo:combo, gained:gained, bonus:bonus, spread:spread, platform:platform, streak:o.streak, xp:r.xp, tier:tierOf(r.xp)[0], shieldUsed:shieldUsed, shieldEarned:shieldEarned, cellBonus:cellBonus, cellMult:cellMult};
 }
 function fireEvent(t,mi,combo,xp,streak,platform,spread){
   try{ document.dispatchEvent(new CustomEvent("pf-order-checkin",{detail:{day:t,mission:mi,combo:combo,xp:xp,streak:streak,platform:platform||null,spread:spread||0}})); }catch(e){}
@@ -522,6 +526,7 @@ function render(){
         if(COMBO_LOOT[res.combo]) loot=COMBO_LOOT[res.combo]+(res.spread?" (+"+res.spread+" spread)":"");
         if(res.shieldUsed) loot="STREAK SHIELD held the line — your streak survives. "+loot;
         if(res.shieldEarned) loot="STREAK SHIELD earned — one missed day forgiven. "+loot;
+        if(res.cellBonus>0) loot="CELL BONUS +"+res.cellBonus+" XP ("+Math.round((res.cellMult-1)*100)+"% cell streak) — "+loot;
     var cmd=maybeCommandBonus();
     if(cmd) loot="FULL DEPLOYMENT — COMMAND BONUS +"+cmd+". "+loot;
     document.getElementById("oLoot").textContent="+"+(res.gained+res.bonus+cmd)+" XP — "+loot+(res.bonus?" "+res.streak+"-day streak bonus!":"");

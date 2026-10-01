@@ -1,0 +1,10 @@
+/* ============================================================================
+   SILO: fixes/mobile.css  |  PF v1.1.0
+   WHAT: Mobile spacing fixes
+   PHASE: fixes (after mount)
+   EVENTS SEEN: (none)
+   KILL: ?pf_off=mobile  or  localStorage pf_disabled_v1='["mobile"]'
+   SOURCE: verbatim extract from dist/pf-footer-v1.1.0.html
+   ============================================================================ */
+
+/*PF-MOBILE-FIX*/@media(max-width:480px){.d-streak,.o-note{letter-spacing:0!important;font-size:12px!important;overflow-wrap:break-word!important;word-break:break-word!important;white-space:normal!important;max-width:100%!important;}}

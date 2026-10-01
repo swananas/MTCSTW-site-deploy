@@ -652,8 +652,8 @@ function drawOrdersCard(){
   x.fillText('MTCSTW.COM',W/2,H-170);
   x.fillStyle='#c1121f';x.font='900 30px "Arial Black",Arial,sans-serif';
   x.fillText('THE PROPAGANDA FACTORY',W/2,H-116);
-  x.fillStyle='#c9bfa8';x.font='400 26px Arial,sans-serif';
-  x.fillText('Do things. Post proof.',W/2,H-76);
+  x.fillStyle='#c1121f';x.font='900 30px "Arial Black",Arial,sans-serif';
+  x.fillText('JOIN THE FIGHT.',W/2,H-76);
   return cv;
 }
 function shareOrdersImage(btn){

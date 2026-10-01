@@ -157,6 +157,11 @@ function sharePinup(p){
         var cv=document.createElement('canvas'); cv.width=600; cv.height=800;
         var cx=cv.getContext('2d'); cx.fillStyle='#f5ead6'; cx.fillRect(0,0,600,800);
         cx.drawImage(img,0,0,600,800); URL.revokeObjectURL(url);
+        /* CTA strip: every pinup share recruits. */
+        cx.fillStyle='rgba(13,13,13,0.94)'; cx.fillRect(0,736,600,64);
+        cx.fillStyle='#c1121f'; cx.fillRect(0,736,600,4);
+        cx.fillStyle='#f5ead6'; cx.font='900 25px "Arial Black",Arial,sans-serif';
+        cx.textAlign='center'; cx.fillText('JOIN THE FIGHT \u2014 MTCSTW.COM',300,776);
         try{ if(window.PFShare&&window.PFShare.stampCallsign) window.PFShare.stampCallsign(cv); }catch(e){}
         cv.toBlob(function(b){
           if(!b){ credit(); return; }

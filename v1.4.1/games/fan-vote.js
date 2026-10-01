@@ -283,7 +283,7 @@
         if(c.score){ ct('PROPAGANDA SCORE '+c.score.toFixed(1),ty,32,'#b8ab8e','700',3); ty+=62; }
         var footY=Math.min(Math.max(ty+44,H-200),H-128);
         ct('MTCSTW.COM',footY,44,'#f5ead6','900',6);
-        ct('#SICKLEFTRADICALS',footY+58,28,'#c1121f','700',4);
+        ct('JOIN THE FIGHT.',footY+58,30,'#c1121f','900',4);
         resolve(canvas);
       }
       if(hasImg){

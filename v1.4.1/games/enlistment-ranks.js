@@ -176,6 +176,8 @@ function drawCert(cs){
   x.beginPath(); x.moveTo(250,1000); x.lineTo(650,1000); x.stroke();
   x.fillStyle="#f5ead6"; x.font="20px Arial,sans-serif";
   x.fillText("MTCSTW — NETWORK COMMAND",450,1040);
+  x.fillStyle="#c1121f"; x.font="900 26px 'Arial Black',Arial,sans-serif";
+  x.fillText("JOIN THE FIGHT.",450,1095);
   return c.toDataURL("image/png");
 }
 function drawPoster(n,cs){
@@ -206,8 +208,8 @@ function drawPoster(n,cs){
   x.fillStyle="#c1121f"; x.fillRect(140,1060,800,6);
   x.fillStyle="#f5ead6"; x.font="900 44px 'Arial Black',Arial,sans-serif";
   x.fillText(name+" — AGITATOR CLASS",540,1150);
-  x.fillStyle="#777"; x.font="28px Arial,sans-serif";
-  x.fillText("mtcstw.com",540,1215);
+  x.fillStyle="#c1121f"; x.font="900 32px 'Arial Black',Arial,sans-serif";
+  x.fillText("JOIN THE FIGHT AT MTCSTW.COM",540,1215);
   return c.toDataURL("image/png");
 }
 function drawFrame(){

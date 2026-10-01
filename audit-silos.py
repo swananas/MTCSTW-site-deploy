@@ -14,8 +14,8 @@ print("== 1. footer loader lists vs disk ==")
 footer = open(os.path.join(ROOT, 'loader', 'footer_v142_final.html')).read()
 v2 = re.search(r'var JS=onV2\?(\[.*?\])\:', footer, re.S).group(1)
 v1 = re.search(r'var JS=onV2\?\[.*?\]\:(\[.*?\]);', footer, re.S).group(1)
-v2_files = re.findall(r'"([^"]+)"', v2)
-v1_files = re.findall(r'"([^"]+)"', v1)
+v2_files = re.findall(r'"([^"]+)"', v2) or re.findall(r"'([^']+)'", v2)
+v1_files = re.findall(r'"([^"]+)"', v1) or re.findall(r"'([^']+)'", v1)
 for f in v2_files:
     p = os.path.join(V142, f)
     if not os.path.exists(p): bad(f"V2-listed file missing on disk: {f}")
@@ -45,9 +45,10 @@ print("== 3. load order ==")
 order = v2_files
 def idx(n): return order.index(n)
 checks = [
-    ('core/00-bus.js', 'core/03-global.js'),
-    ('core/03-global.js', 'core/07-slr-db-data.js'),
+    ('core/00-bus.js', 'core/07-slr-db-data.js'),
     ('core/07-slr-db-data.js', 'core/07-slr-db.js'),
+    ('core/07-slr-db.js', 'core/03-global.js'),
+    ('core/03-global.js', 'core/04-ledger.js'),
     ('core/07-slr-db.js', 'games/war-card.js'),
     ('core/07-slr-db.js', 'games/fan-vote.js'),
     ('core/07-slr-db.js', 'games/daily-orders.js'),

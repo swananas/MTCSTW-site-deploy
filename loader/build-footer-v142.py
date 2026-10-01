@@ -2,11 +2,16 @@
 """Generate loader/footer_v142_final.html for PF v1.4.2.
 
 Reads the 62 member slugs from src/data/slr-master-db.json so the footer
-slug alternation always covers the whole roster. The V2 pin is left as
-c86cc9b — replaced with the real commit SHA after push (see deploy
-checklist); then committed so the repo file matches the deployed footer.
+slug alternation always covers the whole roster. The V2 pin comes from the
+PF_V2_PIN env var, defaulting to the current git HEAD short SHA — so the
+footer always pins the code commit it was generated against.
 """
-import json, os, re
+import json, os, re, subprocess
+
+V2_PIN = os.environ.get('PF_V2_PIN') or subprocess.check_output(
+    ['git', 'rev-parse', '--short', 'HEAD'], cwd=os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), '..'),
+    text=True).strip()
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, '..'))
@@ -17,8 +22,8 @@ for s in slugs:
     assert re.match(r'^[a-z0-9_-]+$', s), f"bad slug for footer regex: {s}"
 slug_alt = '|'.join(slugs)
 
-V2_JS = ["core/00-bus.js", "core/03-global.js", "core/04-ledger.js",
-         "core/05-tally.js", "core/07-slr-db-data.js", "core/07-slr-db.js",
+V2_JS = ["core/00-bus.js", "core/07-slr-db-data.js", "core/07-slr-db.js",
+         "core/03-global.js", "core/04-ledger.js", "core/05-tally.js",
          "games/fan-vote.js", "games/slr-match-quiz.js", "games/creator-guess.js",
          "games/bracket-board.js", "games/daily-orders.js", "games/cells.js",
          "games/war-card.js", "games/boost-raid.js", "games/do-meter.js",
@@ -71,10 +76,10 @@ html = """<!-- PF FOOTER v1.4.2 — shell-aware loader. Pages carrying #pf-v2 (t
      The old Squarespace-built roster/catalog content is replaced in-page; the
      v1.1.0 fixes/roster.js patch no longer loads on these pages. Every other
      page loads the v1.1.0 production set pinned to 6e8b9a4.
-     V2 pin: c86cc9b (replaced with the real commit SHA at deploy time).
+     V2 pin: ' + V2_PIN + ' (from PF_V2_PIN env or git HEAD short SHA).
      Kill switches: ?pf_off=<silo> or ?pf_off=home-v2. -->
 <script>(function(){
-var V2='c86cc9b',V1='6e8b9a42397abc5b42f0ba6b123ec4bbdd7857de';
+var V2='" + V2_PIN + "',V1='6e8b9a42397abc5b42f0ba6b123ec4bbdd7857de';
 var SLR_SLUGS='""" + slug_alt + """';
 var _p=location.pathname;
 function _seg(p){var s=p.charAt(0)==='/'?p.slice(1):p;return s.charAt(s.length-1)==='/'?s.slice(0,-1):s;}

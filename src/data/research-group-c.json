@@ -1,0 +1,1133 @@
+{
+ "meta": {
+  "group": "C",
+  "completed": "2026-10-01",
+  "staging": true,
+  "note": "Link + info enrichment. All URLs found via web search / live pages, never guessed from handles. Not wired into site; do not deploy standalone."
+ },
+ "creators": [
+  {
+   "info_added": {
+    "audience_notes": "258,708 verified followers on Facebook — described as the third-largest audience on the SLR board. Catalog key strengths: 'one of the few pages that can move a quarter-million people with a single post'.",
+    "bio": "A Facebook page that takes the oldest rebellion in the book and aims it at the newest tyranny. Rock-and-roll politics: loud, unapologetic, allergic to respectability. Content is memes, rants, and gleeful blasphemy against the powerful — 'the left wins the culture war by being more fun, more alive, and more willing to say the thing.'",
+    "content_focus": "Rock-and-roll leftist politics: memes, rants, anti-establishment blasphemy aimed at the powerful; culture-war content meant to make the revolution feel like the best party.",
+    "info_source": "mtcstw.com catalog page (opened live page: https://www.mtcstw.com/sex-drugs-rock-n-roll) — bio, content themes, follower count. Note: task listed TikTok @sexdrugsrocknroll as primary platform, but the live catalog page identifies it as a FACEBOOK page with 258,708 verified followers; no TikTok link appears on the catalog page. Treat TikTok as unverified/unconfirmed.",
+    "platforms_active": [
+     "Facebook"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "Facebook page",
+     "platform": "Facebook",
+     "source": "opened live catalog page mtcstw.com/sex-drugs-rock-n-roll ('Follow them here')",
+     "url": "https://www.facebook.com/SDRandR2",
+     "verification": "confirmed"
+    }
+   ],
+   "slug": "sex-drugs-rock-n-roll"
+  },
+  {
+   "info_added": {
+    "audience_notes": "84,755 followers; comics featured in multiple Bored Panda roundups (30 comics, 16 comics, 'New Pics' series), TVOvermind (49 and 33 comics roundups). BUAIDH! (patreon.com) signed Clint Loonier for a book of his strips.",
+    "bio": "East Coast It Notes is the Post-It note comic series by Clint Loonier, started in 2019. Simple doodles on Post-It notes with sharp humor — 'I get it' / 'all are welcome' ethos; explicitly not for bigots or transphobes. Catalog: 'propaganda doesn't need a print shop, it needs a pen and something true to say.' Sat down for an hour-long episode (E11, April 2025) of The Propaganda Factory podcast.",
+    "content_focus": "Leftist comic art drawn on Post-It notes — cheeky, satirical, unpretentious; class-war as office humor; everyday thoughts and awkward moments turned into bite-sized political jokes.",
+    "info_source": "mtcstw.com catalog page (opened live page: https://www.mtcstw.com/east-coast-it-notes); Bored Panda feature articles ('Artist Made 30 Short And Funny Comics...'); TVOvermind roundups; BUAIDH! Patreon post ('New Author!') confirming Clint Loonier + Instagram @eastcoastitnotes.",
+    "platforms_active": [
+     "Facebook",
+     "Instagram",
+     "Patreon",
+     "Reddit"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "Facebook page",
+     "platform": "Facebook",
+     "source": "opened live catalog page mtcstw.com/east-coast-it-notes ('Follow them here')",
+     "url": "https://www.facebook.com/eastcoastitnotes",
+     "verification": "confirmed"
+    },
+    {
+     "label": "Instagram",
+     "platform": "Instagram",
+     "source": "catalog page links an Instagram profile (label only); handle @eastcoastitnotes confirmed independently by BUAIDH! Patreon post and Bored Panda 'More info: Instagram'",
+     "url": "https://www.instagram.com/eastcoastitnotes",
+     "verification": "probable"
+    }
+   ],
+   "slug": "east-coast-it-notes"
+  },
+  {
+   "info_added": {
+    "audience_notes": "290K+ followers across eight platforms (catalog key strengths). Substack directory (sidestack.io) shows 1K+ free subscribers to the Joman Substack.",
+    "bio": "Musician and producer building explicitly socialist, explicitly revolutionary music — 'actual class-war anthems for the current fight.' Multi-hyphenate: music producer, singer, songwriter, video editor, DJ, 'Jomactor'. Independent circuit, no label; Linktree storefront (linktr.ee/jomanmusic). Short film 'Fairy Godmother' announced April 2026. Substack bio (via sidestack.io): 'Music Producer/Singer/Songwriter, Content Creator, Video Editor, Writer of Things, Jomactor. Sometimes I DJ.' Also: 'Musician, DJ, Actor, Activist, Writer of words.'",
+    "content_focus": "Socialist revolutionary music (class-war anthems); written commentary on Substack (e.g., anti-fascist posts); video content; DJing and short film work.",
+    "info_source": "mtcstw.com catalog page (opened live page: https://www.mtcstw.com/joman); sidestack.io Substack directory entry for jomanmusic; substack.com note by @jomanmusic confirming active written posts.",
+    "platforms_active": [
+     "Linktree",
+     "Substack",
+     "Website",
+     "TikTok",
+     "music platforms (Spotify/Beatport mentioned in legacy press)"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "Link hub",
+     "platform": "Linktree",
+     "source": "opened live catalog page mtcstw.com/joman ('Follow them here'); URL also quoted verbatim in sidestack.io directory about-text",
+     "url": "https://linktr.ee/jomanmusic",
+     "verification": "confirmed"
+    },
+    {
+     "label": "Substack",
+     "platform": "Substack",
+     "source": "opened live catalog page mtcstw.com/joman 'Find them here'; sidestack.io directory entry 'Joman Substack by Joman' (slug jomanmusic)",
+     "url": "https://jomanmusic.substack.com",
+     "verification": "confirmed"
+    },
+    {
+     "label": "Website",
+     "platform": "Website",
+     "source": "opened live catalog page mtcstw.com/joman 'Find them here' (domain shown as jomanmusic.com)",
+     "url": "https://jomanmusic.com",
+     "verification": "probable"
+    }
+   ],
+   "slug": "joman"
+  },
+  {
+   "info_added": {
+    "audience_notes": "10,700 followers on the SLR roster listing. Money Out of Politics Movement (D.C. address: 1629 K Street NW, Suite 300, Washington D.C. 20006; fundraiser; Discord) + 2M March on Washington organizing; March for Integrity (July 27, 2025).",
+    "bio": "TikTok creator (@quietmayhem) — 'there's nothing quiet about it': funny, furious short-form political content, surgically precise about who the enemy is. Not just analysis — runs the Money Out of Politics Movement with real infrastructure. Forensic bill breakdowns scored like report cards (H.R. 1 got 36/110 and an F, with donor fingerprints traced).",
+    "content_focus": "Forensic bill breakdowns (H.R. 1 'One Big Beautiful Bill Act', H.R. 217 Chip-In for Veterans Act, Richard Star Act, Mayhem's Monday Morning Mashup); money-in-politics corruption analysis; 'Power to the People' organizing CTAs (March for Integrity, Money Out of Politics Movement).",
+    "info_source": "mtcstw.com catalog page (opened live page: https://www.mtcstw.com/quietmayhem); quietmayhem.substack.com posts (their own Substack) listing handles @QuietMayhem on TikTok/YouTube/Bluesky/Substack/X and @Quiet.Mayhem on YouTube/Instagram.",
+    "platforms_active": [
+     "TikTok",
+     "Substack",
+     "YouTube",
+     "Instagram",
+     "Bluesky",
+     "X"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "TikTok profile",
+     "platform": "TikTok",
+     "source": "opened live catalog page mtcstw.com/quietmayhem ('Follow them here'); handle @QuietMayhem confirmed by their own Substack posts",
+     "url": "https://www.tiktok.com/@quietmayhem",
+     "verification": "confirmed"
+    },
+    {
+     "label": "Substack",
+     "platform": "Substack",
+     "source": "opened live catalog page mtcstw.com/quietmayhem 'Find them here'; full URL confirmed by independent search results (quietmayhem.substack.com/p/...)",
+     "url": "https://quietmayhem.substack.com",
+     "verification": "confirmed"
+    }
+   ],
+   "slug": "quietmayhem"
+  },
+  {
+   "info_added": {
+    "audience_notes": "28,537 followers (catalog key strengths: '28,537 strong in the anti-clerical lane'). Featured guest on 'Ask an Atheist: Tas' YouTube discussion.",
+    "bio": "A Facebook page pairing godless critique of religion with a materialist critique of capitalism — 'the opiate of the masses and the exploitation of the masses are, famously, a package deal.' Battle-tested in long-form debate (featured guest on 'Ask an Atheist: Tas' with Ethan Micheal / YFN Atheist).",
+    "content_focus": "Godless socialism: sharp, unapologetic memes and commentary treating both church and boss as institutions demanding obedience and money; church-empire alliance critique.",
+    "info_source": "mtcstw.com catalog page (opened live page: https://www.mtcstw.com/the-atheist-socialist); YouTube video 'Ask an Atheist: Tas' (ft: Tas (The Atheist Socialist) / afpeofficial) — independent cross-confirmation of the handle.",
+    "platforms_active": [
+     "Facebook",
+     "YouTube (guest appearances)"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "Facebook page",
+     "platform": "Facebook",
+     "source": "opened live catalog page mtcstw.com/the-atheist-socialist ('Follow them here'); handle afpeofficial cross-confirmed by YouTube 'Ask an Atheist: Tas' video description",
+     "url": "https://www.facebook.com/afpeofficial",
+     "verification": "confirmed"
+    }
+   ],
+   "slug": "the-atheist-socialist"
+  },
+  {
+   "info_added": {
+    "audience_notes": "13,468 followers — 'smallest of the mock agencies' on the SLR roster, part of the satirical 'Departments' network (Minnesota, Wisconsin, South Dakota, Federal departments).",
+    "bio": "A Facebook page — 'the fake agency we need for the real crisis.' Bureaucratic satire in service of public health: official-sounding pronouncements about the shenanigans actually happening in American health policy. Underneath the joke is fury at the dismantling of public health infrastructure, anti-science grifters, and the deadly absurdity of it all.",
+    "content_focus": "Bureaucratic satire of U.S. health policy; public-health advocacy through humor — mocking agencies failing the working class in their own bureaucratic costume.",
+    "info_source": "mtcstw.com catalog page (opened live page: https://www.mtcstw.com/us-department-of-health-and-human-shenanigans).",
+    "platforms_active": [
+     "Facebook"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "Facebook page",
+     "platform": "Facebook",
+     "source": "opened live catalog page mtcstw.com/us-department-of-health-and-human-shenanigans ('Follow them here')",
+     "url": "https://www.facebook.com/profile.php?id=61552053042512",
+     "verification": "confirmed"
+    }
+   ],
+   "slug": "us-department-of-health-and-human-shenanigans"
+  },
+  {
+   "info_added": {
+    "audience_notes": "35,340 followers. Cross-posts into leftist Facebook groups, so reach extends beyond the page audience.",
+    "bio": "Zero ambiguity in branding and politics: runs on the thesis 'The Left side Is The Best side.' Anti-imperialism as a contact sport — signature caption style invites the comment section to talk shit at right-wingers directly. Catalog notes Facebook's own profile tooling returned the page as restricted, but public posts are fully readable via the page.",
+    "content_focus": "Anti-imperialist meme warfare: four-panel meme collages with 'Caption this!' challenges, text-only provocations; targets: empire, capital, and the liberal order. Example: Feb 2026 Black History Month post pairing holiday greeting with incendiary jab about the Epstein files.",
+    "info_source": "mtcstw.com catalog page (opened live page: https://www.mtcstw.com/f-this-imperialistic-bs).",
+    "platforms_active": [
+     "Facebook"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "Facebook page",
+     "platform": "Facebook",
+     "source": "opened live catalog page mtcstw.com/f-this-imperialistic-bs ('Follow them here')",
+     "url": "https://www.facebook.com/leftsideisthebestside",
+     "verification": "confirmed"
+    }
+   ],
+   "slug": "f-this-imperialistic-bs"
+  },
+  {
+   "info_added": {
+    "audience_notes": "63,970 followers of class-war clarity. Active as of the week the catalog was written. Survived Facebook demonetization (reinstated, no explanation).",
+    "bio": "Run by a disabled creator living in poverty, caring for a disabled father in a slumlord-run apartment complex — stated openly on their Patreon. Class-war commentary written from inside the blast radius: blunt, profane, sourced. Recent posts covered the pulled 60 Minutes segment on CECOT deportees (reported yanked on orders from Bari Weiss at CBS) and warned November SNAP benefits may not arrive. Merch planned through union shops or small mom-and-pop printers — explicitly not sweatshop dropshippers.",
+    "content_focus": "Class-war commentary from lived experience: rent, meds, disability checks; regime critiques (CECOT deportations, SNAP benefits threats); anti-sweatshop ethical merch plans.",
+    "info_source": "mtcstw.com catalog page (opened live page: https://www.mtcstw.com/guillotines-for-a-better-america).",
+    "platforms_active": [
+     "Facebook",
+     "Patreon"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "Facebook page",
+     "platform": "Facebook",
+     "source": "opened live catalog page mtcstw.com/guillotines-for-a-better-america ('Follow them here')",
+     "url": "https://www.facebook.com/profile.php?id=100063489695105",
+     "verification": "confirmed"
+    },
+    {
+     "label": "Patreon",
+     "platform": "Patreon",
+     "source": "opened live catalog page mtcstw.com/guillotines-for-a-better-america 'Find them here' (link text shows patreon.com/guillotinesforabetteramerica)",
+     "url": "https://www.patreon.com/guillotinesforabetteramerica",
+     "verification": "probable"
+    }
+   ],
+   "slug": "guillotines-for-a-better-america"
+  },
+  {
+   "info_added": {
+    "audience_notes": "56K+ stated audience (catalog). The catalog page explicitly flags: 'this page has no public trace outside the SLR roster itself — no indexed posts, no visible bio, nothing that lets us confirm the count or read recent content, and the Facebook page sits behind the login wall. It may have been renamed, unpublished, or taken down.'",
+    "bio": "The name is the whole platform: the guillotine, the symbol the old world feared most, aimed at the billionaires of this one. (Catalog keeps the page's own spelling: 'Billionares.') Sibling to Guillotines For A Better America — direct, unapologetic class-war current. Catalog describes it as a placeholder salute/marker until the page resurfaces with a confirmed link and count.",
+    "content_focus": "Class-war branding: the guillotine aimed at billionaires — extreme wealth named as violence with better PR.",
+    "info_source": "mtcstw.com catalog page (opened live page: https://www.mtcstw.com/guillotines-for-billionares-2020), which itself reports no independently verifiable public trace. Independent web search found no matching creator profile.",
+    "platforms_active": [
+     "Facebook (possibly renamed/unpublished/taken down — unverifiable)"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "Facebook page",
+     "platform": "Facebook",
+     "source": "opened live catalog page mtcstw.com/guillotines-for-billionares-2020 ('Follow them here'); catalog itself flags the page as having no verifiable public trace — may be renamed, unpublished, or taken down",
+     "url": "https://www.facebook.com/Guillotinesforbillionaires",
+     "verification": "unverified"
+    }
+   ],
+   "slug": "guillotines-for-billionares-2020"
+  },
+  {
+   "info_added": {
+    "audience_notes": "Roster figure 75K+ (stated, unverified). Official site southdakotatruth.com was down as of 2026-09-24 and again on 2026-09-26 review; confirmed alive on Facebook 2026-09-26. Roster entry relabeled 'potential lost comrade in the war for truth' (user's words) and roster button repointed to internal catalog page 2026-09-27.",
+    "bio": "Satirical digital performance art experiment, per its own about page (quoted by Lead Stories fact-check, leadstories.com, 2025-07): 'created by a shit-posting meme lord in December of 2019' (2020 per merch tagline). Motto: 'Lies to Tell the Truth, Truth to Tell Lies.' Mixes memes, real/fake news stories, deep-fake/AI images and traditional art into digital social commentary on American online life; explicitly targets hypocrisy and corruption nationally and at the South Dakota state level. Hosts the South Dakota Department of Propaganda podcast (SD politics, Kristi Noem criticism, ballot measures, tribal issues).",
+    "content_focus": "Satirical leftist memes about South Dakota and national politics (esp. Kristi Noem/SD GOP), podcast episodes on SD political news, fake-news-style satirical graphics, Redbubble merch. One satirical ICE-meme graphic was fact-checked by Lead Stories (2025-07).",
+    "info_source": "Lead Stories fact-check (leadstories.com, 2025-07, quoting SDDP about page); Castbox podcast description; BuyMeACoffee/Patreon search snippets; Redbubble SDDP shop tagline; SLR roster memory pages (roster history 2026-09-24/26/27)",
+    "platforms_active": [
+     "Web",
+     "Patreon",
+     "Podcast",
+     "Facebook"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "Buy Me a Coffee — South Dakota Dept. of Propaganda",
+     "platform": "Web",
+     "source": "search result 'South Dakota Dept. of Propaganda is Memes, videos, podcast, and more.' — buymeacoffee.com",
+     "url": "https://buymeacoffee.com/infota",
+     "verification": "confirmed"
+    },
+    {
+     "label": "Patreon — South Dakota Department of Propaganda",
+     "platform": "Web",
+     "source": "search result 'South Dakota Department of Propaganda | creating Memes, Videos, A Podcast, and More' — patreon.com",
+     "url": "https://www.patreon.com/southdakota?l=de",
+     "verification": "confirmed"
+    },
+    {
+     "label": "Podcast — South Dakota Department of Propaganda (Castbox)",
+     "platform": "Podcast",
+     "source": "search result 'South Dakota Department of Propaganda Podcast | Listen Free on Castbox.' — castbox.fm",
+     "url": "https://castbox.fm/channel/id5342624",
+     "verification": "confirmed"
+    },
+    {
+     "label": "Merch — SDDP sticker shop (Redbubble)",
+     "platform": "Web",
+     "source": "search result '\"South Dakota Department of Propaganda\" Sticker for Sale by SDDP' — redbubble.com; seller tagline: 'The SDDP has been protecting South Dakota's people from the truth since 2020.'",
+     "url": "https://www.redbubble.com/i/sticker/South-Dakota-Department-of-Propaganda-by-SDDP/81036375.EJUG5",
+     "verification": "probable"
+    }
+   ],
+   "slug": "south-dakota-department-of-propaganda"
+  },
+  {
+   "info_added": {
+    "audience_notes": "Roster figure 1M+ (stated; count could not be independently verified in the 2026-09-24 link audit — stands as a working figure).",
+    "bio": "Independent leftist documentary curation site. Mission (via School Library Journal review, slj.com): 'Films For Action uses the power of film to raise awareness of important social, environmental, and media-related issues not covered by the mainstream news. Our goal is to provide citizens with the information and perspectives essential to creating a more just, sustainable, and democratic society.' Catalogs 1,500+ documentaries, all free to view online.",
+    "content_focus": "Curated documentary walls organized by topic: Activism, Animal Rights, Climate Change, Corporations, Community, Consumerism, Drug Prohibition, Education, Food Sustainability, War & Peace and more; browseable by subject, date and popularity.",
+    "info_source": "School Library Journal article 'Hitting a Wall of Films' (slj.com, catalogs their mission and 1500+ film catalog); filmsforaction.org live film page; SLR roster memory page",
+    "platforms_active": [
+     "Web"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "Official website — Films For Action",
+     "platform": "Web",
+     "source": "search result 'How Capitalism Destroys Radical Movements — filmsforaction.org' (verbatim live page on their domain); SLR roster link audit 2026-09-24 recorded roster link https://www.filmsforaction.org",
+     "url": "https://www.filmsforaction.org/watch/how-capitalism-destroys-radical-movements/",
+     "verification": "probable"
+    }
+   ],
+   "slug": "films-for-action"
+  },
+  {
+   "info_added": {
+    "audience_notes": "Roster figure 50K, user-confirmed 2026-09-24. Task-suggested Instagram handle @voixnoire was NOT found; the organization's own website lists its official Instagram as @thevoixnoire and X as @voix_noire. An open thread from 2026-09-24 asked the user to confirm which of two Facebook links is theirs — now resolved: https://www.facebook.com/TheVoixNoire/ is the official one per their own site.",
+    "bio": "Voix Noire is a Philadelphia-based mutual-aid nonprofit founded by Creighton Leigh, who serves as its sole fundraiser. It is 'a safe space for Black women, marginalized genders and children to seek and receive assistance with immediacy and no red tape' (voixnoire.com, opened live). Celebrated its 10th anniversary July 18, 2026 at the African American Museum in Philadelphia (EIN Presswire release, ~2026-05): over $4 million distributed and 10,000+ families served since founding. Assistance includes groceries (emergency grocery service available every day of the year), feminine products, emergency contraception, school supplies, holiday support, direct cash assistance, funeral financial support, and emergency aid. Anchor program: the Voix Noire Universal Basic Income and Groceries Program serving over a dozen families with consistent support. Funding is largely social-media-driven; applicants are required to publicly share a Voix Noire post and provide a valid social media link (vetted).",
+    "content_focus": "Mutual aid and community support: emergency groceries, UBI-style cash support, crisis aid for Black women and marginalized genders and their children; fundraising and visibility campaigns on social media.",
+    "info_source": "Opened live page voixnoire.com/request (about text, programs, social links); EIN Presswire 10th-anniversary release (einpresswire.com, $4M+ / 10k+ families / 10th anniversary); SLR roster memory page (50K user-confirmed 2026-09-24)",
+    "platforms_active": [
+     "Web",
+     "Instagram",
+     "Facebook",
+     "X",
+     "Patreon"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "Official website — Voix Noire resources",
+     "platform": "Web",
+     "source": "opened live page 2026-10-01",
+     "url": "https://www.voixnoire.com/request",
+     "verification": "confirmed"
+    },
+    {
+     "label": "Instagram — Voix Noire (@thevoixnoire)",
+     "platform": "Instagram",
+     "source": "opened live page (voixnoire.com links this as its official Instagram)",
+     "url": "https://www.instagram.com/thevoixnoire",
+     "verification": "confirmed"
+    },
+    {
+     "label": "Facebook — The Voix Noire",
+     "platform": "Facebook",
+     "source": "opened live page (voixnoire.com links this as its official Facebook)",
+     "url": "https://www.facebook.com/TheVoixNoire/",
+     "verification": "confirmed"
+    },
+    {
+     "label": "X — @voix_noire",
+     "platform": "X",
+     "source": "opened live page (voixnoire.com links this as its official X)",
+     "url": "https://x.com/voix_noire",
+     "verification": "confirmed"
+    },
+    {
+     "label": "Patreon — Creighton Leigh (Voix Noire founder)",
+     "platform": "Web",
+     "source": "opened live page (voixnoire.com links this as its official Patreon)",
+     "url": "https://www.patreon.com/creightonleigh",
+     "verification": "confirmed"
+    }
+   ],
+   "slug": "voix-noire"
+  },
+  {
+   "info_added": {
+    "audience_notes": "158.5K on TikTok — independently verified live 2026-09-24 in the SLR link audit (one of 15 confirmed live pages). Instagram handle attempts (@bona.bones, @bonabones) turned out to be the wrong people — TikTok is the verified home. Roster photo swapped 2026-09-26 to a photo the user supplied.",
+    "bio": "Bona Bones is a Kansas City, Missouri–based stop-motion animator, arts educator, professor and director. Per the University of Kansas lecture page: 'a specialist in stop-motion animation and directing... a skilled seamstress, puppet and puppet set fabricator, and production designer' with 'extensive experience in commercial, feature, and television animation'. She currently directs animation at The Rabbit hOle, a children's museum in Kansas City, and offers free mentorship to aspiring animators. Credits: Robot Chicken animator, Crossing Swords animator, music videos (SpaceHey profile bio: 'Stop motion animator and arts educator... animator for robot chicken, crossing swords and music videos'). Podcast guest on 'This Ends at Prom' (Coraline episode, 2022-10-27) as 'stop-motion educator, TikTok creator, and ROBOT CHICKEN animator'.",
+    "content_focus": "Stop-motion animation, animation education and process videos on TikTok, leftist political commentary (roster avatar at one point was a 'FUCK ICE / Have A Nice Day' graphic).",
+    "info_source": "University of Kansas Design Symposium page (calendar.ku.edu, career bio); SpaceHey profile (spacehey.com/bonabones, self-described credits); This Ends at Prom podcast episode page (podpeople.me, 'stop-motion educator, TikTok creator, ROBOT CHICKEN animator'); SLR roster memory page (158.5K verified 2026-09-24, photo history)",
+    "platforms_active": [
+     "TikTok",
+     "Web"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "TikTok — @bona.bones",
+     "platform": "TikTok",
+     "source": "search result 'TikTok · Bona Bones' — tiktok.com; TikTok handle @bona.bones independently verified live (158.5K) in the 2026-09-24 SLR link audit",
+     "url": "https://www.tiktok.com/@bona.bones/video/7621201060119514399?_r=1&_d=secCgYIASAHKAESPgo8W7hDQ8KvZefyRh2dZIMPcTFxzocl9ih3DVDYpImiEmijPh%2B7iU9bOhoG8srfLqmOZ5bqWQX1EdPhbWCjGgA%3D&_svg=3&checksum=2fb57d8ac8b8d8669deab9fb73a05eb224a73dfa0311930d3439361e7c2c5889&item_author_type=1&link_reflow_popup_iteration_sha",
+     "verification": "confirmed"
+    },
+    {
+     "label": "Website — bonabones.com",
+     "platform": "Web",
+     "source": "search result 'Coraline (2009) w/ Bona Bones' — podpeople.me: 'Check on Bona's website: https://www.bonabones.com/'",
+     "url": "https://www.bonabones.com/",
+     "verification": "probable"
+    },
+    {
+     "label": "Bio — KU Design Symposium lecture page",
+     "platform": "Web",
+     "source": "search result 'Design Symposium Lecture Series | Bona Bones' — calendar.ku.edu (University of Kansas)",
+     "url": "https://calendar.ku.edu/event/design-symposium-lecture-series-julian-narino",
+     "verification": "confirmed"
+    },
+    {
+     "label": "Profile — Bona Bones on SpaceHey",
+     "platform": "Web",
+     "source": "search result 'Bona Bones's Profile | SpaceHey' — spacehey.com; profile bio text quoted in snippet",
+     "url": "https://spacehey.com/bonabones",
+     "verification": "confirmed"
+    }
+   ],
+   "slug": "bona-bones"
+  },
+  {
+   "info_added": {
+    "audience_notes": "~44K on Facebook, user-confirmed 2026-09-24 (per roster). Show is active as of 2026 (YouTube episode uploads within the last week, live-event listings at Elementary Coffee Co. and Open Stage, Harrisburg).",
+    "bio": "Black NewsBeat is a live, multimedia talk show launched in February 2021 by Dr. Kimeka G. Campbell, produced in collaboration with Open Stage in Downtown Harrisburg, PA (kimeka.org/blacknewsbeat). 'Where Culture, Community & Conversation Collide': amplifies 'the vibrant, complex, and creative realities of Black and Brown life in Central PA'. Each show dives into the civic, creative, and cultural narratives shaping the Greater Harrisburg community — featuring local poets, musicians and storytellers; community organizers, educators and advocates; pop-culture segments like 'Movies & Melanin'; grassroots spotlights like 'Sweeping the Streets'. From spotlighting hidden gems to unpacking social justice issues. Per Theatermania: 'Dr. Kimeka Campbell explores the life and community of Harrisburg and its expressions in the black and brown community... Dr. Campbell and a myriad of special guests talk about the civic, creative, and cultural pieces that shape Harrisburg.' Runs live twice a month at Open Stage (pay-what-you-can); past episodes stream on Facebook and YouTube.",
+    "content_focus": "Black and Brown Central-PA culture, civic engagement and local politics (e.g., candidate interviews), arts and poetry, social justice issues, pop-culture segments.",
+    "info_source": "Dr. Campbell's own site page for the show (kimeka.org/blacknewsbeat, origin/format/segments); Theatermania show listing (theatermania.com, live-studio format); YouTube search results showing recent 'Black NewsBeat with Dr. Kimeka Campbell' episodes; SLR roster memory (44K Facebook, user-confirmed)",
+    "platforms_active": [
+     "Web",
+     "Facebook",
+     "YouTube"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "Official site — Black NewsBeat | Dr. Kimeka Campbell",
+     "platform": "Web",
+     "source": "search result 'Black NewsBeat | Dr. Kimeka Campbell' — kimeka.org (her own site); page describes the show's origin, format and segments",
+     "url": "https://www.kimeka.org/blacknewsbeat",
+     "verification": "confirmed"
+    },
+    {
+     "label": "Tickets/listings — Black NewsBeat at Open Stage Harrisburg",
+     "platform": "Web",
+     "source": "search result 'Black Newsbeat w/ Dr. Kimeka Campbell' — theatermania.com; confirms live-studio-audience show at Open Stage, Harrisburg",
+     "url": "https://www.theatermania.com/shows/harrisburg/black-newsbeat-w-dr-kimeka-campbell_1786812/",
+     "verification": "probable"
+    }
+   ],
+   "slug": "black-newsbeat-with-dr-kimeka-campbell"
+  },
+  {
+   "info_added": {
+    "audience_notes": "Working roster figure 53K = 38.2K TikTok followers verified live 2026-09-24 (search snippet now shows 38.1K) + 15K Facebook (user-stated 2026-09-24). Instagram @hexreject exists (count not public); also has a Patreon. Presents publicly as an art account, not political commentary.",
+    "bio": "Hex Reject is the art brand of Sydney — 'elder emo & artist extraordinaire,' a witch doing digital design for about six years (hexreject.com about section, opened live). 'My work is inspired by chaos, whimsy, and whatever currently holds my ADHD interest.' Background in psychology & professional counseling; pivoted to art full-time during COVID. Sells hand-drawn (explicitly NO AI) art: prints, tarot cards, stickers, keychains, witchy bamboo clothing (sizes newborn–3XL), a monthly 'mini grimoire' snail-mail art club, and art licenses for small shops. Active seller on Whatnot (5.0 rating, 796 sold).",
+    "content_focus": "Witchy whimsical digital art and product design — no political commentary on the public face; this is the caution case: the art account IS their public identity. Leftist affiliation is via the SLR roster, not the content itself.",
+    "info_source": "Opened live page hexreject.com (artist bio, products, socials); TikTok search snippet (38.1K followers, @hexreject); Whatnot profile snippet (rating, sales, 'NO AI', '@hexreject on all the socials'); SLR roster memory page (38.2K verified 2026-09-24, 15K Facebook user-stated, art-account flag)",
+    "platforms_active": [
+     "TikTok",
+     "Web",
+     "Facebook",
+     "Instagram"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "TikTok — Hex Reject @hexreject",
+     "platform": "TikTok",
+     "source": "search result 'Hex Reject 🎨🔮 on TikTok — @hexreject 38.1k Followers' — tiktok.com; cross-confirmed by the artist's own site (hexreject.com: 'Tag us (@hexreject)') and Whatnot shop ('@hexreject on all the socials!')",
+     "url": "https://www.tiktok.com/@hexreject?_r=1",
+     "verification": "confirmed"
+    },
+    {
+     "label": "Official site — Hex Reject",
+     "platform": "Web",
+     "source": "search result 'Hex Reject - Art & Bamboo for the Spooky Soul' — hexreject.com; opened live page 2026-10-01 confirming artist identity (Sydney, witchy art shop, @hexreject socials)",
+     "url": "https://hexreject.com/",
+     "verification": "confirmed"
+    },
+    {
+     "label": "Art shop — Hex Reject on Whatnot",
+     "platform": "Web",
+     "source": "search result 'Profile · hexreject · Hex Reject' — whatnot.com: '5.0 (95 Reviews), 796 Sold... Hand drawn art... @hexreject on all the socials!... NO AI'",
+     "url": "https://www.whatnot.com/user/hexreject",
+     "verification": "probable"
+    }
+   ],
+   "slug": "hex-reject"
+  },
+  {
+   "info_added": {
+    "audience_notes": "Roster figure 26K+ (stated; count could not be independently verified in the 2026-09-24 link audit — stands as a working figure). No public bio or about text located.",
+    "bio": "Little independently confirmable public information beyond the SLR roster listing. Listed on the roster as 'SLR Propagandist, Organizer'. A TikTok account @ipostwhenifeelhot exists and is active enough to be engaged by other creators (replied to in a @topherglobal TikTok, found via search).",
+    "content_focus": "Leftist propaganda and organizing content (per roster role); specifics unverified.",
+    "info_source": "SLR roster memory page (role, 26K+ stated, roster link https://www.tiktok.com/@ipostwhenifeelhot, count unverified); TikTok search result confirming the handle is live and engaged (@topherglobal reply to @ipostwhenifeelhot)",
+    "platforms_active": [
+     "TikTok"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "TikTok — @ipostwhenifeelhot (roster link)",
+     "platform": "TikTok",
+     "source": "SLR roster link recorded in the 2026-09-24 link audit; handle confirmed to exist on TikTok via search result 'TikTok · TopHer' (tiktok.com) where a creator replies to @ipostwhenifeelhot",
+     "url": "https://www.tiktok.com/@ipostwhenifeelhot",
+     "verification": "probable"
+    }
+   ],
+   "slug": "ipostwhenifeelhot"
+  },
+  {
+   "info_added": {
+    "audience_notes": "Roster figure 57K+ (stated, not independently verified). The Facebook page https://www.facebook.com/WisconsinDOP could not be resolved in the 2026-09-24 audit — may be unpublished or renamed. The live SLR roster (crawled <1h ago) still shows the entry at 57k+ with propaganda score 8.9.",
+    "bio": "No public bio or about text located. SLR roster role: 'SLR Propagandist'. Web search for the page name returned no usable hits (only unrelated Wisconsin meme-war articles).",
+    "content_focus": "Leftist propaganda (per roster role); specifics unverified.",
+    "info_source": "SLR roster memory page (57K+ stated, page unresolved, roster link); live mtcstw.com/sick-left-radicals roster crawl (search result snippet, 57k+, score 8.9); web search 2026-10-01 (no usable hits)",
+    "platforms_active": [
+     "Facebook"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "Facebook — Wisconsin Department of Propaganda (roster link)",
+     "platform": "Facebook",
+     "source": "SLR roster link recorded in the 2026-09-24 link audit — the audit left this page UNRESOLVED (possibly unpublished or renamed); no corroborating link found via web search 2026-10-01",
+     "url": "https://www.facebook.com/WisconsinDOP",
+     "verification": "unverified"
+    }
+   ],
+   "slug": "wisconsin-department-of-propaganda"
+  },
+  {
+   "info_added": {
+    "audience_notes": "Viral protest figure; millions of video views across social platforms since Oct 2025. Note: the task's stated handle '@antifascistfrog' does not match the evidence — every independent source cites '@theantifascistfrog' on TikTok (BuzzFeed, Know Your Meme, Fast Company, Medium, Cascadia Journal). Handle discrepancy recorded; use @theantifascistfrog.",
+    "bio": "Portland, Oregon protester who became a viral anti-ICE/antifa symbol in October 2025, confronting ICE agents nightly in an inflatable frog costume outside ICE facilities. Quoted in BuzzFeed: 'I'm out here protesting in a frog costume — especially in a frog costume — just to show how ridiculous the notion that we are violent terrorists is.' Identified by NY Post as Seth Todd ('The Protest Frog'). Merch proceeds benefit IRCO (Immigrant and Refugee Community Organization), Portland's largest immigrant/refugee nonprofit.",
+    "content_focus": "Anti-ICE protest action, antifascist resistance, humorous nonviolent protest; merch line ('Don't Obey' frog designs) funds refugee/immigrant support.",
+    "info_source": "BuzzFeed explainer 'Why You're Seeing Frogs Protesting ICE' (Oct 2025, opened via search result); Know Your Meme 'Portland Frog' (opened via search result); theantifascistfrog.com official merch site (opened live page); Medium/Fast Company coverage.",
+    "platforms_active": [
+     "TikTok",
+     "Instagram",
+     "Website"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "Official website / merch store",
+     "platform": "Website",
+     "source": "search result (Know Your Meme 'Portland Frog'); opened live page",
+     "url": "https://theantifascistfrog.com/",
+     "verification": "confirmed"
+    },
+    {
+     "label": "TikTok video profile link",
+     "platform": "TikTok",
+     "source": "Know Your Meme 'Portland Frog' article text (exact profile video URL quoted in article); BuzzFeed credits 'TikTok: @theantifascistfrog'",
+     "url": "https://www.tiktok.com/@theantifascistfrog/video/7557153362249026846",
+     "verification": "confirmed"
+    },
+    {
+     "label": "TikTok handle",
+     "platform": "TikTok",
+     "source": "BuzzFeed explainer credits 'TikTok: @theantifascistfrog'; Know Your Meme quotes videos from @theantifascistfrog",
+     "url": "(handle cited; profile URL not returned verbatim by search)",
+     "verification": "probable"
+    }
+   ],
+   "slug": "the-antifascist-frog"
+  },
+  {
+   "info_added": {
+    "audience_notes": "Stated ~48K (per task briefing). Recent videos show modest per-video engagement (hundreds to low thousands of plays/likes), consistent with an account that may have had larger historical reach or cross-platform presence.",
+    "bio": "TikTok satirist performing as 'Jeanine Pirreaux (Satire)'. Profile bio reads: '⚠️ NOT Jeanine Pirro / Comedy | Commentary / Parody & Satire / JeaninePirreauxComedy@gmail.com / Donate to Give2Cuba:' — a parody of Fox News host Jeanine Pirro.",
+    "content_focus": "Political satire and commentary: Trump administration mockery, MAGA-world figures (Kristi Noem, Corey Lewandowski, Pam Bondi), Jeanine Pirro lore.",
+    "info_source": "TikTok video page opened live (author bio, username, name all visible); TikTok search results showing multiple videos by 'Jeanine Pirreaux (Satire)'.",
+    "platforms_active": [
+     "TikTok"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "TikTok profile video (author verified)",
+     "platform": "TikTok",
+     "source": "opened live page; author_username=jeaninepirreauxcomedy, author_name='Jeanine Pirreaux (Satire)'",
+     "url": "https://www.tiktok.com/@jeaninepirreauxcomedy/video/7619800153091837197",
+     "verification": "confirmed"
+    }
+   ],
+   "slug": "jeanine-pirreaux-comedy"
+  },
+  {
+   "info_added": {
+    "audience_notes": "Stated ~45K (task briefing; mtcstw.com roster also lists 45k+). No publicly accessible social profile could be found, so the stated count is unverified.",
+    "bio": null,
+    "content_focus": null,
+    "info_source": "mtcstw.com/sick-left-radicals roster (search-result text) lists them as 'SLR Propagandist, Artist', 45k+, Propaganda Score 8.5. No independent social profile found via web search.",
+    "platforms_active": [],
+    "verification_note": "STILL TRUE as of 2026-10-01: no publicly accessible page found. Task briefing noted their page was not publicly accessible as of 2026-09-24; web search returned only the mtcstw.com roster listing plus unrelated phrase matches. No verified social links exist."
+   },
+   "links_added": [],
+   "slug": "your-friendly-neighborhood-schizophrenic"
+  },
+  {
+   "info_added": {
+    "audience_notes": "Runs regular live streams (two separate 'Vibe Show is LIVE' indexed results). Follower/like counts not visible on indexed metadata.",
+    "bio": "TikTok creator Undray Lowery, running the 'Undray Lowery Vibe Show' live streams on TikTok.",
+    "content_focus": "Live 'Vibe Show' streams; entertainment/music vibe content (from indexed metadata).",
+    "info_source": "TikTok search-result metadata (og:title/og:description on TikTok live pages) confirming handle @undraylowery and 'Undray Lowery Vibe Show🎤🎤🎤 is LIVE'.",
+    "platforms_active": [
+     "TikTok"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "TikTok LIVE page",
+     "platform": "TikTok",
+     "source": "search result metadata; opened live page — og:title 'Undray Lowery Vibe Show🎤🎤🎤 is LIVE | TikTok', handle @undraylowery",
+     "url": "https://www.tiktok.com/@undraylowery/live",
+     "verification": "confirmed"
+    }
+   ],
+   "slug": "undraylowery"
+  },
+  {
+   "info_added": {
+    "audience_notes": "Verified 166,967 (task briefing). No independent verification possible — no matching public profile found.",
+    "bio": null,
+    "content_focus": null,
+    "info_source": "mtcstw.com/sick-left-radicals roster (search-result text) lists 'Minnesota Department of Propaganda', 166,967 Followers, Propaganda Score 8.6.",
+    "platforms_active": [],
+    "verification_note": "No public trace found as of 2026-10-01. Task briefing listed known handle @minnesotadop on TikTok; web search for the handle and full name returned only unrelated Minnesota political content. No verified link. Treat handle as unconfirmed."
+   },
+   "links_added": [],
+   "slug": "minnesota-department-of-propaganda"
+  },
+  {
+   "info_added": {
+    "audience_notes": "Self-reported media kit (Sept 2026): 35K+ followers, 6M+ views, 1,000+ hours live, 500+ live debates. Note: task briefing said ~34K reach — consistent.",
+    "bio": "The Dr Greg Show, hosted by Dr. Greg Newkirk — Ph.D. in molecular biology (UC Riverside), papers in Nature Nanotechnology and ACS Nano, NDSEG Fellow, former UC Riverside microbiology instructor, bench science at BASF and Cibus. Nightly live caller-driven science debate show, 9 PM PT on YouTube and TikTok.",
+    "content_focus": "Debunking anti-vaccine claims, germ theory denial, terrain theory, evolution denial, climate denial, GMOs, cancer claims, COVID origins, AI claims — live call-in debates with papers on screen. Site features 219 transcribed streams / 659 hours (Sep 2025–Sep 2026). Also a Propaganda Factory podcast guest.",
+    "info_source": "drgregshow.com opened live (bio, credentials, stream stats, media kit figures); YouTube video descriptions (Anti-Vaccine Caller Keeps Pivoting; A PhD Debunks Terrain Theory) listing /@drgregshow, drgregshow.com, TikTok/Instagram 'drgregshow'; Patreon 'Dr Greg Show' page.",
+    "platforms_active": [
+     "YouTube",
+     "TikTok",
+     "Instagram",
+     "Website",
+     "Patreon"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "Official website",
+     "platform": "Website",
+     "source": "opened live page",
+     "url": "https://www.drgregshow.com/",
+     "verification": "confirmed"
+    },
+    {
+     "label": "YouTube video (official channel description links)",
+     "platform": "YouTube",
+     "source": "search result; description confirms /@drgregshow, drgregshow.com, TikTok/Instagram 'drgregshow'",
+     "url": "https://www.youtube.com/watch?v=MptQMJNe-FA",
+     "verification": "probable"
+    },
+    {
+     "label": "Patreon",
+     "platform": "Patreon",
+     "source": "search result: 'Dr Greg Show — Data-based explainers, live debates, and data-driven mythbusting'",
+     "url": "https://www.patreon.com/cw/DrGregShow",
+     "verification": "probable"
+    }
+   ],
+   "slug": "the-dr-greg-show"
+  },
+  {
+   "info_added": {
+    "audience_notes": "~22.6K followers confirmed on TikTok profile (matches task's 22.6K stated count).",
+    "bio": "TikTok creator 'Damn Pam Ham from Effingham' (@thepamham), 22.6k Followers, 8331 Following, 14.8k Likes.",
+    "content_focus": "Leftist propagandist content (per SLR roster classification); specific themes not discernible from indexed profile metadata.",
+    "info_source": "TikTok profile page opened live (@thepamham — name, handle, follower counts); mtcstw.com roster listing 'thepamham', SLR Propagandist, 22,600 Followers.",
+    "platforms_active": [
+     "TikTok"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "TikTok profile",
+     "platform": "TikTok",
+     "source": "opened live page: '@thepamham 22.6k Followers, 8331 Following, 14.8k Likes' — 'Damn Pam Ham from Effingham'",
+     "url": "https://www.tiktok.com/@thepamham",
+     "verification": "confirmed"
+    }
+   ],
+   "slug": "damn-pam-ham-from-effingham"
+  },
+  {
+   "info_added": {
+    "audience_notes": "Stated ~22K (task briefing). No independent verification possible — no matching public profile found.",
+    "bio": null,
+    "content_focus": null,
+    "info_source": "No independent sources found; stated ~22K reach from task briefing only.",
+    "platforms_active": [],
+    "verification_note": "STILL TRUE as of 2026-10-01: no public trace. Task briefing noted no public trace as of 2026-09-24; web searches for the exact name plus TikTok/socialist-shitposting/meme-page variants returned only unrelated content (imageboard threads about Luigi Mangione, AO3 fic, KnowYourMeme greentext). No verified link."
+   },
+   "links_added": [],
+   "slug": "luigis-mansion-socialist-shitposting"
+  },
+  {
+   "info_added": {
+    "audience_notes": "109,815 followers (verified in the 2026-09-24 SLR link audit; roster shows 109,815). Old stated figure was 76K+; count was live-verified at 109,815 on 2026-09-24.",
+    "bio": "Facebook page of leftist memes, commentary, and calls to action. The 'Peacefully of Course' framing is ironic plausible deniability that lets radical content travel. Battle-tested since the Bernie era (shared Sanders' Reaganomics takedowns in 2017). Picked up by the Humor Times for 'Seen & Heard on the Web' more than once. Sat down for an impromptu Propaganda Factory podcast episode in May 2025.",
+    "content_focus": "Leftist memes, political commentary, calls to action; revolutionary branding with humor",
+    "info_source": "mtcstw.com catalog page (opened live 2026-10-01) + 2026-09-24 SLR link-verification audit + web search (iHeart Propaganda Factory podcast, May 13 2025 episode)",
+    "platforms_active": [
+     "Facebook"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "Facebook page",
+     "platform": "Facebook",
+     "source": "opened live catalog page https://www.mtcstw.com/let-the-revolution-begin-peacefully-of-course ('Follow them here' / 'Find them here')",
+     "url": "https://www.facebook.com/LetTheRevolutionBeginPeacefully",
+     "verification": "probable"
+    }
+   ],
+   "slug": "let-the-revolution-begin-peacefully-of-course"
+  },
+  {
+   "info_added": {
+    "audience_notes": "650K+ combined cross-platform reach (user-confirmed). TikTok directly verified at ~224,200 followers (2026-09-24); Instagram ~330K+; X and Facebook exist with counts not established.",
+    "bio": "Kim Hunt, better known as SlayTheGOP, is a Portland leftist commentator posting anti-Republican content (@slaythegop on TikTok, Instagram, X and Facebook, per her 2026-04-23 iHeart 'The QR Code' interview). She is a political science major who studied journalism, and her foster-care background informs her take on societal issues. TikTok-native: direct address, quick cuts, anti-GOP content aimed at the absurdity and cruelty of the modern Republican Party, plus Democratic cowardice. Doxxed and fired from her full-time HR job in Sept 2025 after a video criticizing Charlie Kirk (covered by WIRED); her community raised ~$68-70K via GoFundMe and she turned the firing into full-time advocacy. Per her Sept 2026 Buy Me a Coffee post, she moved to Portland and now earns primary income from advocacy/content.",
+    "content_focus": "Anti-Republican political commentary; GOP governance, ICE cruelty, Democratic cowardice; written essays on Patreon",
+    "info_source": "mtcstw.com catalog page (opened live 2026-10-01) + web search (iHeart 'The QR Code' 2026-04-23 interview, WIRED via bestintechnology.de, buymeacoffee.com/slaythegop posts) + 2026-09-24 SLR audit notes",
+    "platforms_active": [
+     "TikTok",
+     "Instagram",
+     "X",
+     "Facebook",
+     "Patreon",
+     "Buy Me a Coffee"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "TikTok profile",
+     "platform": "TikTok",
+     "source": "opened live catalog page https://www.mtcstw.com/kim-hunt-slaythegop ('Follow them here' / 'Find them here')",
+     "url": "https://www.tiktok.com/@slaythegop",
+     "verification": "probable"
+    },
+    {
+     "label": "Patreon",
+     "platform": "Patreon",
+     "source": "web search result 'slaythegop — Digestable political discussion via writing and yapping | Patreon' (patreon.com/cw/slaythegop) — also listed on mtcstw.com catalog page under 'Find them here'",
+     "url": "https://www.patreon.com/cw/slaythegop",
+     "verification": "probable"
+    },
+    {
+     "label": "Buy Me a Coffee",
+     "platform": "Buy Me a Coffee",
+     "source": "web search results 'Kim (slay) is political commentary' and 'One Year Later: Where I Am Now — Kim (slay)' (buymeacoffee.com/slaythegop)",
+     "url": "https://buymeacoffee.com/slaythegop",
+     "verification": "probable"
+    }
+   ],
+   "slug": "kim-hunt-slaythegop"
+  },
+  {
+   "info_added": {
+    "audience_notes": "Roster shows 9K+. No follower count publicly verifiable (2026-09-24 audit: Ghost blog direct fetch was gated, but the domain is live and indexed with real posts).",
+    "bio": "Little Anarchist Brat is a long-form anarchist writer publishing on an independent Ghost publication (subscriber-supported, no algorithm). The writing is sharp, funny, and uncompromising — essays include 'Anarchism as Practice', 'Decolonizing Anarchism', 'What is Solidarity?' (works through Kropotkin, Bakunin, and Malatesta while naming their colonial baggage head-on), 'On Individualism', and Angela Davis-rooted 'Radical Anarchism'. The network's theory wing: long-form, deeply sourced essays. Bluesky presence as @littleanarchistbat.bsky.social (noted in the 2026-09-24 audit; the mtcstw.com catalog page also links Bluesky).",
+    "content_focus": "Long-form anarchist essays and theory: decolonizing anarchism, solidarity, individualism, anarchism as practice",
+    "info_source": "mtcstw.com catalog page (opened live 2026-10-01) + 2026-09-24 SLR link-verification audit (Ghost indexed-post titles, Bluesky owner handle) + user's on-file war-bonds embed",
+    "platforms_active": [
+     "Ghost (website)",
+     "Bluesky",
+     "Ko-fi"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "Ghost blog",
+     "platform": "Ghost (website)",
+     "source": "opened live catalog page https://www.mtcstw.com/little-anarchist-brat ('Follow them here' / 'Find them here')",
+     "url": "https://littleanarchistbrat.ghost.io/",
+     "verification": "probable"
+    },
+    {
+     "label": "Tips (Ko-fi)",
+     "platform": "Ko-fi",
+     "source": "opened live catalog page https://www.mtcstw.com/little-anarchist-brat ('Find them here' — Tips); also referenced in the user's on-file war-bonds embed (files/embeds/war-bonds.html) as this creator's support link",
+     "url": "https://ko-fi.com/littleanarchistbrat",
+     "verification": "probable"
+    }
+   ],
+   "slug": "little-anarchist-brat"
+  },
+  {
+   "info_added": {
+    "audience_notes": "74,681 followers verified (2026-09-24; key strengths on catalog page confirm 74,681). Review cites 57K+ with 9.4% engagement rate, 3.8% interaction rate, 4 million people reached, 1.2% click rate on 120K daily impressions. Overwhelmingly female audience.",
+    "bio": "'I'm that girl.' is a one-woman empowerment generator: part comedy page, part motivational machine, part unfiltered confessional. Her bio: 'I am an award-winning comedian, mental health advocate, storyteller, and the founder of the viral I Am That Girl Movement. I turn my pain into punchlines and my trauma into triumphs, using humor to heal, inspire, and empower others.' Signature lines: 'You are not difficult. You are the standard. Raise the bar.' / 'Some women are lost in the fire. Some women are built from it. I'm that girl.' Runs the ImThatGirl365 movement — a mental health advocacy project with the IATG 365-Day Challenge (book and guided workbook) and a Facebook group of 3,600+ members.",
+    "content_focus": "Comedy, motivation, mental-health advocacy, empowerment affirmations; memes as agitprop for the healing side",
+    "info_source": "mtcstw.com catalog page (opened live 2026-10-01) + 2026-09-24 SLR link-verification audit",
+    "platforms_active": [
+     "Facebook"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "Facebook page",
+     "platform": "Facebook",
+     "source": "opened live catalog page https://www.mtcstw.com/im-that-girl ('Follow them here' / 'Find them here')",
+     "url": "https://www.facebook.com/ImThatGirl2017",
+     "verification": "probable"
+    }
+   ],
+   "slug": "im-that-girl"
+  },
+  {
+   "info_added": {
+    "audience_notes": "~55K (user-confirmed; roster shows 55K).",
+    "bio": "Joey (@joey_doesit) is a TikTok creator doing nightly live debates at 9:30PM PST — MAGA callers walk straight into the ring. 1,000+ videos and hundreds of live debates with clips that travel; no one else on the roster debates fascists at that cadence. Short-form video commentary taking the piss out of the powerful — comedy carries the politics. Also runs a Spanish-language backup account so the debates cross the language line.",
+    "content_focus": "Nightly live political debates (vs MAGA callers); short-form leftist comedy commentary",
+    "info_source": "Live TikTok page opened 2026-10-01 + mtcstw.com catalog page https://www.mtcstw.com/joey (opened live 2026-10-01) which lists https://www.tiktok.com/@joey_doesit under 'Follow them here' / 'Find them here'",
+    "platforms_active": [
+     "TikTok"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "TikTok profile",
+     "platform": "TikTok",
+     "source": "opened live TikTok page — 'Joey 🇲🇽 🏎️💨 is LIVE | TikTok' with description 'MENTIONED YOU! DEBATES!. | Check out Joey 🇲🇽 🏎️💨 LIVE streams on TikTok!' (URL is the verbatim live-stream share URL returned by web search; account handle @joey_doesit appears in the canonical profile path)",
+     "url": "https://www.tiktok.com/@joey_doesit/live?_r=1&_svg=3&checksum=6df23e3b20eaadd6bb039aade5f2832551258f898eee12b40fdd9bb23b35591e&enter_from_merge=share&enter_method=share&sec_user_id=MS4wLjABAAAAgv-wFN_cZOuZuSionEG24q2UlDBM0DS1_nlzJx5v1CdrHFi2iR_cmcZk1obY8htt&share_app_id=1233&share_from_user_id=7137996114359",
+     "verification": "confirmed"
+    }
+   ],
+   "slug": "joey"
+  },
+  {
+   "info_added": {
+    "audience_notes": "53K+ stated (roster). Catalog page key strengths cite 55,631. Count not independently verified (2026-09-24 audit flagged the prior URL as a photo link, not a profile).",
+    "bio": "The Political Feminist is feminist political commentary with the gloves off — treats the patriarchy as a political system, not a personal problem. Sharp takes on reproductive rights, labor, and the hell of being a woman under capitalism; feminism with class analysis rather than branding. Three lanes: leftist politics, feminist science literacy (e.g. debunked a distorted contraception-cancer headline against what the Swedish research actually said), and unfiltered humor. Posts testimony about her Palestinian husband and '50+ years told he's worth less.'",
+    "content_focus": "Feminist political commentary with class analysis; reproductive rights, labor, feminist science literacy, unfiltered humor",
+    "info_source": "mtcstw.com catalog page (opened live 2026-10-01) + 2026-09-24 SLR link-verification audit caveat",
+    "platforms_active": [
+     "Facebook"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "Facebook page",
+     "platform": "Facebook",
+     "source": "opened live catalog page https://www.mtcstw.com/the-political-feminist ('Follow them here' / 'Find them here'). Note: the 2026-09-24 audit only had a Facebook photo link for this creator, so this catalog-page URL updates that record — the page itself was not opened (Facebook login wall).",
+     "url": "https://www.facebook.com/PoliticalFeminist",
+     "verification": "probable"
+    }
+   ],
+   "slug": "the-political-feminist"
+  },
+  {
+   "info_added": {
+    "audience_notes": "136,178 followers verified (2026-09-24 audit; catalog page key strengths confirm 136,178 — the flagship of the mock-bureaucratic wing and one of the largest pages in the network).",
+    "bio": "The U.S. Federal Department of Propaganda is the mothership of the fake-agency network — a Facebook page that adopts the voice of the U.S. government, except the government it's pretending to be is one that actually serves the people. Official-sounding pronouncements, bureaucratic aesthetics, deadpan confidence, with national range: national politics, federal policy, the state of the union. Satire as counter-propaganda, issued with a straight face. It is the HQ that makes the other mock state Departments (Minnesota, Wisconsin, South Dakota) feel official.",
+    "content_focus": "Mock-bureaucratic leftist satire of U.S. federal politics and policy; anchor of the Departments network",
+    "info_source": "mtcstw.com catalog page (opened live 2026-10-01) + 2026-09-24 SLR link-verification audit + web search (tvovermind meme roundup credits it as an image source)",
+    "platforms_active": [
+     "Facebook"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "Facebook page",
+     "platform": "Facebook",
+     "source": "opened live catalog page https://www.mtcstw.com/us-federal-department-of-propaganda ('Follow them here' / 'Find them here'). Matches the numeric page ID from the 2026-09-24 audit.",
+     "url": "https://www.facebook.com/profile.php?id=100088623907567",
+     "verification": "probable"
+    }
+   ],
+   "slug": "us-federal-department-of-propaganda"
+  },
+  {
+   "info_added": {
+    "audience_notes": "18K+ stated (no current count found publicly, per the 2026-09-24 audit and the catalog page, which says '18K+ followers and climbing').",
+    "bio": "deejay1.0 is an organizer first, poster second: SLR Propaganda, Organizer, and WE ARE ONE Movement Coordinator. Their content pipeline feeds directly into real-world movement building — connecting pages, lining up messaging, making the network act like a network instead of solo acts yelling into the same feed. Reach without organization is just content; deejay1.0 is the connective tissue turning a crowd into a coordinated front, on TikTok where the left's audience lives.",
+    "content_focus": "Political organizing and network coordination (WE ARE ONE Movement); leftist content as infrastructure",
+    "info_source": "mtcstw.com catalog page (opened live 2026-10-01) + 2026-09-24 SLR link-verification audit",
+    "platforms_active": [
+     "TikTok"
+    ]
+   },
+   "links_added": [
+    {
+     "label": "TikTok profile",
+     "platform": "TikTok",
+     "source": "opened live catalog page https://www.mtcstw.com/deejay10 ('Follow them here' / 'Find them here'). Matches the handle from the 2026-09-24 audit.",
+     "url": "https://www.tiktok.com/@deejay1.0",
+     "verification": "probable"
+    }
+   ],
+   "slug": "deejay10"
+  },
+  {
+   "slug": "eat-the-rich",
+   "links_added": [
+    {
+     "label": "Facebook page (old address)",
+     "url": "https://www.facebook.com/EattherichStirfried",
+     "platform": "Facebook",
+     "source": "opened live page (mtcstw.com/eat-the-rich catalog)",
+     "verification": "probable"
+    }
+   ],
+   "info_added": {
+    "bio": "Leftist political-education page whose Sept 2019 explainer 'A Brief introduction to Marxism' pulled nearly 8,000 views; the catalog page notes the address currently returns nothing — possibly unpublished, renamed, or taken down — and the roster slot is being held with 'the flag flying'.",
+    "content_focus": "Class-war education — study material, not memes (leftist political education posts).",
+    "platforms_active": [
+     "Facebook"
+    ],
+    "audience_notes": "54K+ followers (roster: 54K+ Followers, propaganda score 7.9/10). Page reach is stale: the catalog explicitly flags the page as possibly unpublished/renamed/taken down.",
+    "info_source": "opened live page (mtcstw.com/eat-the-rich catalog) + mtcstw.com/sick-left-radicals roster"
+   }
+  },
+  {
+   "slug": "keithwashburn",
+   "links_added": [
+    {
+     "label": "TikTok profile",
+     "url": "https://www.tiktok.com/@keithwashburn",
+     "platform": "TikTok",
+     "source": "opened live page (mtcstw.com/keithwashburn catalog)",
+     "verification": "confirmed"
+    }
+   ],
+   "info_added": {
+    "bio": "TikTok creator doing short-form political commentary — 'direct, personal, no production team'; described as a 'grinder' holding territory in the information war and a connector/coalition-builder in the bridge-builder lane.",
+    "content_focus": "Short-form political commentary for people who get their news from their phone.",
+    "platforms_active": [
+     "TikTok"
+    ],
+    "audience_notes": "20K+ TikTok followers (roster: 20K+ Followers, propaganda score 7.9/10). Tagged SLR Propagandist + Organizer, WE ARE ONE Member.",
+    "info_source": "opened live page (mtcstw.com/keithwashburn catalog) + mtcstw.com/sick-left-radicals roster"
+   }
+  },
+  {
+   "slug": "moreno-neurospicy-news",
+   "links_added": [
+    {
+     "label": "TikTok profile",
+     "url": "https://www.tiktok.com/@adhd_pirate1",
+     "platform": "TikTok",
+     "source": "TikTok search result: 'Author: Moreno Neurospicy News, Handle: adhd_pirate1' (6/16/26 ICE video); CafeMom article cites a @adhd_pirate video 'Moreno Neurospicy News'",
+     "verification": "confirmed"
+    },
+    {
+     "label": "TikTok alternate account (@adhd_pirate)",
+     "url": "https://www.tiktok.com/@adhd_pirate/video/7220559663094402350",
+     "platform": "TikTok",
+     "source": "TikTok search results — same 'Moreno Neurospicy News' branding on videos under @adhd_pirate",
+     "verification": "probable"
+    },
+    {
+     "label": "Patreon (ADHD_PIRATE)",
+     "url": "https://www.patreon.com/adhd_pirate/about",
+     "platform": "Patreon",
+     "source": "Patreon search result: 'I create Neurospicy content and other fun videos'",
+     "verification": "probable"
+    }
+   ],
+   "info_added": {
+    "bio": "Leftist news creator also known as 'Cap'n Neurospicy'; covers queer/Indigenous/ICE news with dated daily news-video titles (e.g. '6/7/26 OWNER OF ICE DETENTION FACILITY IS AN IMMIGRANT'). Guest on The Propaganda Factory podcast (E53 'Team Talk: Moreno NeuroSpicy News', Mar 2026) and on Substack (SLSC).",
+    "content_focus": "Leftist news/commentary: queer, Indigenous, and ICE news; anti-capitalist analysis (e.g. the wellness industry as a $6.3T scam profiting from burnout).",
+    "platforms_active": [
+     "TikTok",
+     "Patreon",
+     "Substack"
+    ],
+    "audience_notes": "130K followers (roster: 130K Followers, propaganda score 7.8/10). One TikTok video alone had 122.3K likes / 1,514 comments; handle adhd_pirate1 is confirmed active; @adhd_pirate and @adhd_pirate555555 also carry the same branding (possible alternate/backup accounts).",
+    "info_source": "TikTok search results + CafeMom article (Apr 2026) citing @adhd_pirate + Podcast Guru (Propaganda Factory E53) + mtcstw.substack.com article + mtcstw.com/moreno-neurospicy-news catalog"
+   }
+  },
+  {
+   "slug": "dogman_v1",
+   "links_added": [
+    {
+     "label": "TikTok profile",
+     "url": "https://www.tiktok.com/@dogman_v1",
+     "platform": "TikTok",
+     "source": "opened live page (mtcstw.com/dogman_v1 catalog)",
+     "verification": "confirmed"
+    }
+   ],
+   "info_added": {
+    "bio": "@dogman_v1 is explicitly a BACKUP account — bio reads 'TTBackup Dogman_v3' — rebuilt after the main was taken down. 21,900 followers, 40,700 likes, 1,109 videos; framed as deplatforming-proof survival: 'the message outlasts the account'.",
+    "content_focus": "Leftist TikTok commentary at high volume through bans and shadowbans (1,109 videos on the backup alone).",
+    "platforms_active": [
+     "TikTok"
+    ],
+    "audience_notes": "21,900 followers / 40,700 likes / 1,109 videos (catalog figures; roster: 22,000 Followers, propaganda score 7.7/10). Audience followed the voice, not the handle.",
+    "info_source": "opened live page (mtcstw.com/dogman_v1 catalog) + mtcstw.com/sick-left-radicals roster"
+   }
+  },
+  {
+   "slug": "bitchysitch",
+   "links_added": [
+    {
+     "label": "TikTok profile",
+     "url": "https://www.tiktok.com/@bitchysitch",
+     "platform": "TikTok",
+     "source": "opened live page (mtcstw.com/bitchysitch catalog — states 'exists and is verified live')",
+     "verification": "confirmed"
+    }
+   ],
+   "info_added": {
+    "bio": "Account exists and is verified live on TikTok (per the catalog, which is honest that there's no public window into actual video content/themes). Dual role: SLR Propagandist AND Organizer — organizing work happens 'in DMs and movement spaces'. Bio reads 'new found influencer'.",
+    "content_focus": "Unknown/unverified — the catalog deliberately leaves content praise blank pending a TikTok deep-dive pass.",
+    "platforms_active": [
+     "TikTok"
+    ],
+    "audience_notes": "9,968 followers, 171 videos, 1.3 million total likes (catalog figures; roster: 9,969 Followers, propaganda score 7.6/10).",
+    "info_source": "opened live page (mtcstw.com/bitchysitch catalog) + mtcstw.com/sick-left-radicals roster"
+   }
+  },
+  {
+   "slug": "mtcstw",
+   "links_added": [
+    {
+     "label": "Official site (The Propaganda Factory)",
+     "url": "https://www.mtcstw.com/",
+     "platform": "Web",
+     "source": "mtcstw.com homepage search result (The Propaganda Factory)",
+     "verification": "confirmed"
+    },
+    {
+     "label": "Substack (The Propaganda Factory)",
+     "url": "https://mtcstw.substack.com/p/media-nuke-incoming",
+     "platform": "Substack",
+     "source": "Substack search result: 'Media Nuke Incoming — by MTCSTW — The Propaganda Factory'",
+     "verification": "confirmed"
+    },
+    {
+     "label": "Podcast (The Propaganda Factory, RSS.com)",
+     "url": "https://rss.com/podcasts/the-propaganda-factory",
+     "platform": "Podcast",
+     "source": "RSS.com search result (The Propaganda Factory podcast)",
+     "verification": "confirmed"
+    },
+    {
+     "label": "Podcast (iHeart)",
+     "url": "https://www.iheart.com/podcast/269-the-propaganda-factory-305807045/",
+     "platform": "Podcast",
+     "source": "iHeart search result: 'The Propaganda Factory' podcast",
+     "verification": "confirmed"
+    },
+    {
+     "label": "Instagram @mtcstw",
+     "url": "https://www.instagram.com/",
+     "platform": "Instagram",
+     "source": "linked as Instagram @mtcstw on opened live page (mtcstw.com/mtcstw catalog) — profile not opened",
+     "verification": "probable"
+    },
+    {
+     "label": "Instagram @propfac",
+     "url": "https://www.instagram.com/",
+     "platform": "Instagram",
+     "source": "linked as Instagram @propfac on opened live page (mtcstw.com/mtcstw catalog) — profile not opened",
+     "verification": "probable"
+    }
+   ],
+   "info_added": {
+    "bio": "Founder, strategist, and lead propagandist of the Sick Left Radicals network — 'the operation behind the operation', SLR Leader. Runs The Propaganda Factory: podcast, Substack (paid tier), music, merch store, and the 41-creator network (5M+ combined reach, road to 8M). Catalog notes: 50 songs made in 2026.",
+    "content_focus": "Network command + leftist propaganda across media: podcast (long-form analysis), Substack essays, music, merch, and the SLR creator network.",
+    "platforms_active": [
+     "Web",
+     "Substack",
+     "Podcast",
+     "TikTok",
+     "Instagram"
+    ],
+    "audience_notes": "380K+ followers combined across platforms (user-confirmed; propaganda score 9.8/10). TikTok @mtcstw at 26K followers per the mtcstw.com homepage (search-result text, crawled 1 day ago).",
+    "info_source": "opened live page (mtcstw.com/mtcstw catalog) + mtcstw.com/sick-left-radicals roster + Substack/iHeart/RSS/podcast.app search results"
+   }
+  },
+  {
+   "slug": "radically-sunny",
+   "links_added": [
+    {
+     "label": "Facebook page",
+     "url": "https://www.facebook.com/share/19up85ZhZz/?mibextid=wwXIfr",
+     "platform": "Facebook",
+     "source": "opened live page (mtcstw.com/radically-sunny catalog)",
+     "verification": "confirmed"
+    },
+    {
+     "label": "Merch shop (Threadless)",
+     "url": "https://radicallysunny.threadless.com/designs/do-better-be-better/kids",
+     "platform": "Merch",
+     "source": "Threadless search results: 'RadicallySunny's Shop' with leftist designs (Do better be better, Fear is loud, Radicalized by human decency, Make America GAY again frog)",
+     "verification": "confirmed"
+    }
+   ],
+   "info_added": {
+    "bio": "The catalog page defines her as 'A Facebook page that pairs relentless optimism with unrelenting radicalism — the political equivalent of smiling while you flip the table.' Sharp leftist commentary with genuine warmth; 'healing-era illustration' — wizard frogs and ransom-note collages about power. Sells merch via Threadless shop and Patreon; Mercari seller @radicallysunny sells handmade coloring books.",
+    "content_focus": "Leftist commentary with radical optimism; illustrative art/posters (soft-left, bright, affirming); recruiting merch ('Radicalized by human decency' tote).",
+    "platforms_active": [
+     "Facebook",
+     "TikTok",
+     "Instagram"
+    ],
+    "audience_notes": "DISCREPANCY RESOLVED: the user-stated 300K+ reach is real but is primarily the FACEBOOK page — the catalog copy explicitly describes a Facebook page, and the linked account is Facebook (share link). The TikTok handle @radicallysunny observed at ~2.6K is a separate/smaller presence; catalog also lists Instagram and TikTok links (hrefs not captured) but reach figures belong to the Facebook page. Roster: 300K Followers, propaganda score 9.7/10.",
+    "info_source": "opened live page (mtcstw.com/radically-sunny catalog) + mtcstw.com/sick-left-radicals roster + Threadless search results + Mercari seller page"
+   }
+  },
+  {
+   "slug": "dr-taylor-andrew",
+   "links_added": [
+    {
+     "label": "TikTok profile",
+     "url": "https://www.tiktok.com/@docdrustudios",
+     "platform": "TikTok",
+     "source": "opened live page (mtcstw.com/dr-taylor-andrew catalog) + TikTok search results (Author: Dr. Taylor Andrew, PhD; Handle: docdrustudios)",
+     "verification": "confirmed"
+    },
+    {
+     "label": "Substack profile",
+     "url": "https://substack.com/@docdrustudios",
+     "platform": "Substack",
+     "source": "Substack search result: 'Dr. Taylor Andrew, PhD @docdrustudios — No, not THAT kind of Doctor' (56 subscribers)",
+     "verification": "confirmed"
+    }
+   ],
+   "info_added": {
+    "bio": "'No, not THAT kind of Dr.' — direct-to-camera commentator confronting American racism, posting multiple times a day with public accountability callouts (on-screen: 'Keep it in house? Nah, racists get exposed over here.'). Recurring formats: 'When you become THE canon event for the wrong person' series and the Raccoon Ranger Spotlight; Patreon podcast 'The Social Script'.",
+    "content_focus": "Confrontation-as-content aimed at American racism and white supremacy; viral million-view clips ('Apricot Adolf basically bankrupted the country', Texas ICE-protest commentary).",
+    "platforms_active": [
+     "TikTok",
+     "Instagram",
+     "Substack",
+     "Patreon"
+    ],
+    "audience_notes": "~357K cross-platform (user-stated); live TikTok observed at ~229.6K; ~3,900–4K videos and counting. Roster: 357K Followers, propaganda score 9.4/10. Urlebird mirror page exists (urlebird.com/user/docdrustudios) but is third-party.",
+    "info_source": "opened live page (mtcstw.com/dr-taylor-andrew catalog) + TikTok search results + Substack profile search result + user-stated figuresfigures"
+   }
+  }
+ ]
+}

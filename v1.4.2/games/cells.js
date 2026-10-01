@@ -18,7 +18,6 @@
 <div class="c-tag">Five callsigns. One streak. Nobody gets left behind.</div>
 <div id="cBody"><div class="c-load">Raising the cell network&hellip;</div></div>
 <div class="c-boardwrap"><h3>Cell leaderboard &mdash; this week</h3><div id="cBoard"><div class="c-load">Loading&hellip;</div></div></div>
-<div class="c-note">Check in here after your orders. Every day the whole cell checks in, the streak climbs and everyone earns +5% XP on Daily Orders &mdash; up to +50%. Miss a day and a cellmate can cover you once a week. Share your cell code: +25 XP when your recruit checks in.</div>
 </div>
 <script>
 (function(){
@@ -32,13 +31,24 @@ function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign(
 function toast(m){ try{ var t=document.createElement("div"); t.textContent=m;
   t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
   document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e){} }
-/* JSONP, same pattern as the other games. */
+/* JSONP, same pattern as the other games. 12s timeout: a hung Apps Script
+   request must never wedge the section on its loading text. */
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
   var fn="pfCellCb"+Math.floor(Math.random()*1e9);
   var s=document.createElement("script");
-  window[fn]=function(j){ try{ delete window[fn]; }catch(e){} if(s.parentNode)s.parentNode.removeChild(s); cb(j); };
-  s.onerror=function(){ try{ delete window[fn]; }catch(e){} cb(null); };
+  var done=false, timer=null;
+  function finish(j){
+    if(done) return; done=true;
+    if(timer){ clearTimeout(timer); timer=null; }
+    window[fn]=function(){};
+    try{ delete window[fn]; }catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s);
+    cb(j);
+  }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  timer=setTimeout(function(){ finish(null); },12000);
   var q="?action="+encodeURIComponent(action);
   for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
   q+="&callback="+fn;
@@ -54,19 +64,33 @@ window.pfCellMult=function(){
 };
 function setCache(mult,cell_id,name){ save(LS_C,{mult:mult||1,cell_id:cell_id||"",name:name||"",t:Date.now()}); }
 
-var state=null, board=null, busy=false;
+var state=null, board=null, busy=false, netFailed=false;
 function refresh(quiet){
   var id=ident();
   if(!id.callsign){ renderGate(); return; }
-  if(busy) return; busy=true;
+  if(busy) return; busy=true; netFailed=false;
   api("cell_mine",{callsign:id.callsign,device:id.device},function(j){
     busy=false;
-    if(!j){ if(!quiet) toast("Cell network unreachable — cached display."); render(); return; }
+    if(!j){
+      netFailed=true;
+      if(!quiet){ renderNetErr(); }
+      else if(state){ render(); }
+      return;
+    }
     state=j;
     if(j.in_cell&&j.cell){ setCache(j.cell.mult,j.cell.id,j.cell.name); }
     claimBounties(j);
     render();
   });
+}
+/* The section is never allowed to die on its loading text: a failed
+   request renders an explicit error panel with a retry. */
+function renderNetErr(){
+  var el=document.getElementById("cBody");
+  if(!el) return;
+  el.innerHTML='<div class="c-neterr">The cell network is slow to answer. Your callsign is fine &mdash; the wire is not.'+
+    '<br><button class="c-btn" id="cRetry">Retry connection</button></div>';
+  document.getElementById("cRetry").onclick=function(){ refresh(); };
 }
 /* Recruit bounty: +25 XP per claimed recruit, exactly once each. */
 function claimBounties(j){
@@ -88,7 +112,7 @@ function loadBoard(){
     board=j;
     var el=document.getElementById("cBoard");
     if(!el) return;
-    if(!j||!j.cells||!j.cells.length){ el.innerHTML='<div class="c-empty">No cells yet. Found the first one.</div>'; return; }
+    if(!j||!j.cells||!j.cells.length){ el.innerHTML='<div class="c-empty">No cells on the board yet. The first founder&rsquo;s name goes here.</div>'; return; }
     var html=j.cells.map(function(c,i){
       return '<div class="c-brow'+(i===0?" c-btop":"")+'"><span class="c-brank">'+(i+1)+'</span>'+
         '<span class="c-bname">'+esc(c.name)+
@@ -114,13 +138,20 @@ function render(){
   if(!el) return;
   var id=ident();
   if(!id.callsign){ renderGate(); return; }
-  if(!state){ el.innerHTML='<div class="c-load">Raising the cell network&hellip;</div>'; return; }
+  if(!state){ if(netFailed){ renderNetErr(); return; } el.innerHTML='<div class="c-load">Raising the cell network&hellip;</div>'; return; }
   if(state.err&&!state.in_cell&&state.err!=="no_cell"){ el.innerHTML='<div class="c-err">'+esc(state.err)+'</div>'; return; }
   if(!state.in_cell){ renderLobby(el); return; }
   renderCell(el,state);
 }
 function renderLobby(el){
   el.innerHTML=
+    '<div class="c-pitch">No cells exist yet &mdash; <b>found the first one</b> and your name goes on the wall.'+
+    '<br>Five callsigns. One streak. Every day the whole cell checks in, the streak climbs and everyone banks <b>+5% XP on Daily Orders</b> &mdash; up to <b>+50%</b>.</div>'+
+    '<div class="c-steps">'+
+    '<div class="c-step"><span class="c-snum">1</span><span>Form your cell below, or join with a code.</span></div>'+
+    '<div class="c-step"><span class="c-snum">2</span><span>Check in daily after your orders.</span></div>'+
+    '<div class="c-step"><span class="c-snum">3</span><span>Streak climbs. Miss a day and a cellmate covers you once a week.</span></div>'+
+    '</div>'+
     '<div class="c-lobby">'+
     '<div class="c-pane"><h4>Form a cell</h4>'+
     '<input id="cName" maxlength="24" placeholder="CELL NAME" autocomplete="off">'+
@@ -131,7 +162,8 @@ function renderLobby(el){
     '<input id="cRef" maxlength="32" placeholder="WHO RECRUITED YOU (CALLSIGN)" autocomplete="off" style="text-transform:uppercase">'+
     '<br><button class="c-btn" id="cJoin">Join cell</button>'+
     '<div class="c-err" id="cJoinErr"></div></div>'+
-    '</div>';
+    '</div>'+
+    '<div class="c-bounty">Share your cell code: <b>+25 XP</b> every time your recruit checks in.</div>';
   document.getElementById("cCreate").onclick=function(){
     var nm=document.getElementById("cName").value, id=ident(), err=document.getElementById("cCreateErr");
     err.textContent="";

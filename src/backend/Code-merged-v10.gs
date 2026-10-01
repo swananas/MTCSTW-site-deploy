@@ -1,10 +1,21 @@
 /* ============================================================================
- * SLR FAN VOTE BACKEND — Google Apps Script (MERGED v9, prepared 2026-10-01 — cells date-normalization fix)
+ * SLR FAN VOTE BACKEND — Google Apps Script (MERGED v10, prepared 2026-10-01 — cell rename + verified badge)
  *
  * TARGET PROJECT: "SLR Fan Vote Backend" (script id 1omY63JuIChFzQLsp6xPkbKmhhVtD2L3lfvfTj96STmwLgegmcXZKf8m0)
  * DEPLOY AS: new version of the existing "Anyone" web-app deployment
  *            (AKfycbzaqg3vIj1UnbHGJ82uti7yTdRpeR6PYMhoTne6LIL4kf1XjakrImMTHFwounaPrttl/exec).
  *            Paste this ENTIRE file over Code.gs. No duplicate doPost/doGet.
+ *
+ * WHAT CHANGED in v10 vs the deployed v9:
+ *  1. NEW doGet branch: ?action=cell_rename {callsign, device, name}
+ *     -> renames the caller's cell. Founder-only (cell.founder must equal the
+ *     caller callsign); name is sanitized to 3-24 chars. Returns the updated
+ *     public cell object.
+ *  2. Cells now report "verified": true once 2+ callsigns are attached —
+ *     in the public cell object and on every leaderboard row. The frontend
+ *     shows a VERIFIED badge on verified cells.
+ *  3. ?action=cell_mine now also returns is_founder so the frontend can show
+ *     the rename control to the founder only.
  *
  * WHAT CHANGED vs the deployed v6:
  *  1. doPost: action rows accept an optional 7th column "meta". The frontend

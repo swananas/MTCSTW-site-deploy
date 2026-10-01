@@ -21,7 +21,7 @@
      (add the "pts" header to column D if the tab already exists).
    ============================================================================ */
 
-var SHEET_NAME = 'Actions'; // <-- change to your actions tab name if different
+var SHEET_NAME = 'actions'; // verified 2026-10-01: live SLR Fan Votes tab is lowercase
 
 /* Legacy frontend reported xp in the site-energy scale without pts.
    Map those action_types to do-meter task points so history stays balanced. */

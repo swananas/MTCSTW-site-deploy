@@ -8,7 +8,7 @@
   try {
     /* PF SERVICE MEDALS v2 — sticky collection layer over all 12 homepage games.
        Listens for pf-* CustomEvents. Awards one medal per game per week
-       (America/Chicago, Monday reset). All 12 in a week = FULL DEPLOYMENT:
+       (America/Chicago, Monday reset). All 14 in a week = FULL DEPLOYMENT:
        +50 XP via ranks backend (idempotent per week) + callsign etched on the
        Vanguard Wall. Device-local medal tracking (pf_medals_v2) + backend for XP. */
     (function(){
@@ -29,7 +29,9 @@
      {id:'interrogation', glyph:'\u2754', name:'Interrogator', ev:'pf-interrogation-answered'},
      {id:'orders',  glyph:'\u25B2', name:'Field Duty',      ev:'pf-order-checkin'},
      {id:'drop',    glyph:'\u25CF', name:'Supply Runner',   ev:'pf-drop-claimed'},
-     {id:'enlisted',glyph:'\u2694', name:'Enlisted',        ev:'pf-enlisted'}
+     {id:'enlisted',glyph:'\u2694', name:'Enlisted',        ev:'pf-enlisted'},
+     {id:'guess',   glyph:'\u25CE', name:'Profiler',        ev:'pf-guess-done'},
+     {id:'raid',    glyph:'\u26A1', name:'Raider',           ev:'pf-raid-report'}
     ];
     function load(){try{var s=JSON.parse(localStorage.getItem(LS)||'null');if(s&&s.w)return s;}catch(e){}return{w:PF.isoWeekKey(PF.chiNow()),m:{},fd:false};}
     function save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}
@@ -126,9 +128,9 @@
       });
       h+='</div>';
       if(s.fd){
-        h+='<div class=\"pm-fd\">\u2605 FULL DEPLOYMENT \u2605</div><div class=\"pm-note\">All 12 earned. <b>+50 XP</b> banked, name on the wall. See you Monday.</div>';
+        h+='<div class=\"pm-fd\">\u2605 FULL DEPLOYMENT \u2605</div><div class=\"pm-note\">All 14 earned. <b>+50 XP</b> banked, name on the wall. See you Monday.</div>';
       }else{
-        h+='<div class=\"pm-note\">Earn all <b>12</b> this week for <b>FULL DEPLOYMENT</b>: +50 XP + your callsign on the Vanguard Wall. <b>'+got+'/12</b> so far.</div>';
+        h+='<div class=\"pm-note\">Earn all <b>14</b> this week for <b>FULL DEPLOYMENT</b>: +50 XP + your callsign on the Vanguard Wall. <b>'+got+'/14</b> so far.</div>';
       }
       el.innerHTML=h;
       return true;

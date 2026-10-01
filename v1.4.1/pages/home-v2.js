@@ -24,8 +24,11 @@
   /* Homepage order, verified against the live page's section roots. */
   var ORDER = [
     ['fan-vote', 'pf-ov-vote'],
+    ['slr-match-quiz', 'pf-ov-matchquiz'],
+    ['creator-guess', 'pf-ov-guess'],
     ['bracket-board', 'pf-ov-bracket'],
     ['daily-orders', 'pf-ov-orders'],
+    ['boost-raid', 'pf-ov-raid'],
     ['do-meter', 'pf-ov-dometer'],
     ['daily-drop', 'pf-ov-drop'],
     ['billionaire-supervillain', 'pf-ov-billionaire'],

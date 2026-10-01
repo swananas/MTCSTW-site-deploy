@@ -385,6 +385,8 @@ function render(){
    CustomEvents on document, which never reach window listeners. */
 document.addEventListener("pf-bracket-ballot",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("bracket_"+w,10,"once"); });
 document.addEventListener("pf-quiz-done",function(){ award("quiz",15,"once"); });
+document.addEventListener("pf-guess-done",function(){ award("guess_"+today(),10,"once"); });
+document.addEventListener("pf-raid-report",function(){ award("raid",15,"daily"); });
 document.addEventListener("pf-vote-cast",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("fanvote_"+w,10,"once"); });
 document.addEventListener("pf-traitor-vote",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("traitor_"+w,5,"once"); });
 document.addEventListener("pf-caption-submit",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("caption_"+w,10,"once"); });

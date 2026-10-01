@@ -54,7 +54,7 @@ var LEGACY_PTS = {
   order_checkin: 15, drop_claimed: 10, caption_submit: 10, poster_made: 10,
   quiz_done: 10, vote_cast: 5, bracket_ballot: 10, bracket_liquidated: 10,
   traitor_vote: 5, wb_buy: 25, enlisted: 20, billionaire_answered: 10,
-  interrogation_answered: 10, share_image: 5,
+  interrogation_answered: 10, share_image: 5, guess_done: 10, raid_report: 15,
   /* older backend vocabulary observed in the live sheet */
   fan_vote: 5, daily_orders: 15, poster_forge: 10, enlistment: 20,
   bracket_liquidation: 10, quiz_complete: 10, bracket_vote: 5

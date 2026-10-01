@@ -71,9 +71,24 @@
       title: '\u2605 WAR BONDS \u2605', tag: 'Buy a bond. Fund the machine.',
       lines: ['War Bonds fund 60% of all PF operations.', 'Starting at $1. Every dollar is ammunition.'],
       cta: 'BUY WAR BONDS'
+    },
+    'slr-match-quiz': {
+      title: '\u2691 FIND YOUR SLR MATCH \u2691', tag: 'What kind of propagandist are you?',
+      lines: ['Take the 5-question quiz.', 'Get your archetype + 3 SLR matches.'],
+      cta: 'TAKE THE QUIZ'
+    },
+    'creator-guess': {
+      title: '\u25CE GUESS THE CREATOR \u25CE', tag: '5 questions. Zero mercy.',
+      lines: ['How well do you know the Sick Left Radicals?', 'New set every day. Streaks rewarded.'],
+      cta: 'PLAY NOW'
+    },
+    'boost-raid': {
+      title: '\u2694 BOOST RAID \u2694', tag: 'One target. One day. The whole network.',
+      lines: ['Like. Comment. Share. Report back.', 'Today\u2019s raid target is live now.'],
+      cta: 'JOIN THE RAID'
     }
   };
-  var ORDER = ['fan-vote', 'bracket-board', 'daily-orders', 'do-meter', 'daily-drop',
+  var ORDER = ['fan-vote', 'slr-match-quiz', 'creator-guess', 'bracket-board', 'daily-orders', 'boost-raid', 'do-meter', 'daily-drop',
                'billionaire-supervillain', 'daily-interrogation',
                'media-nuke', 'caption-combat', 'poster-forge', 'enlistment-ranks', 'war-bonds'];
   var SHARE_LABEL = 'SHARE IMAGE';

@@ -7,10 +7,27 @@
   if (PF.skip("fan-vote")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-vote">
 <div class="fe-block pf-override-block">
-<div id="pf-vote" style="max-width:640px;margin:2rem auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:'Helvetica Neue',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;text-align:center;">
+<style>
+#pf-vote .pfv-strip{font-size:0.8rem;letter-spacing:0.1em;color:#b8ab8e;margin:0.4rem 0;}
+#pf-vote-ceremony{position:absolute;inset:0;background:rgba(10,10,10,0.97);display:none;z-index:5;overflow:hidden;}
+#pf-vote .pfv-ballot{position:absolute;top:6%;left:50%;margin-left:-130px;width:260px;background:#f5ead6;color:#0d0d0d;border:3px solid #c1121f;padding:1.2rem 0.8rem;box-shadow:0 0 40px rgba(193,18,31,0.55);animation:pfvdrop 1.05s ease-in forwards;}
+@keyframes pfvdrop{0%{transform:translateY(-130%);}72%{transform:translateY(9%);}100%{transform:translateY(0);}}
+#pf-vote .pfv-ballot-name{font-weight:900;font-size:1.05rem;letter-spacing:0.06em;}
+#pf-vote .pfv-seal{display:inline-block;margin-top:0.7rem;background:#c1121f;color:#f5ead6;font-weight:900;font-size:0.8rem;letter-spacing:0.2em;padding:0.45rem 1.1rem;border-radius:50%;transform:rotate(-8deg);animation:pfvstamp 0.35s 0.8s ease-out backwards;}
+@keyframes pfvstamp{0%{transform:scale(2.6) rotate(-8deg);opacity:0;}60%{transform:scale(0.92) rotate(-8deg);opacity:1;}100%{transform:scale(1) rotate(-8deg);}}
+#pf-vote .pfv-boxlabel{position:absolute;bottom:12%;width:100%;text-align:center;color:#c1121f;font-weight:900;letter-spacing:0.22em;font-size:0.85rem;}
+#pf-vote .pfv-confetti{position:absolute;top:-12px;width:9px;height:13px;z-index:6;pointer-events:none;animation:pfvfall linear forwards;}
+@keyframes pfvfall{to{transform:translateY(480px) rotate(540deg);opacity:0;}}
+@media (prefers-reduced-motion:reduce){#pf-vote .pfv-ballot,#pf-vote .pfv-seal{animation:none;}}
+</style>
+<div id="pf-vote" style="position:relative;max-width:640px;margin:2rem auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:'Helvetica Neue',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;text-align:center;">
   <div style="font-size:1.5rem;font-weight:900;letter-spacing:0.18em;color:#c1121f;">&#9733; FAN VOTE &#9733;</div>
   <div id="pf-vote-sub" style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;">Who was the hardest-working propagandist this week?<br><span style="color:#c1121f;">This week's ballot: the 10 highest propaganda scores.</span><br>Polls close <b style="color:#f5f0e1;">Sunday night</b> &mdash; results Monday.</div>
+  <div id="pf-vote-urgency" class="pfv-strip">COUNTING BALLOTS&hellip;</div>
+  <div id="pf-vote-streak" class="pfv-strip"></div>
+  <div id="pf-vote-kingmaker"></div>
   <div id="pf-vote-power"></div>
+  <div id="pf-vote-ceremony"></div>
   <div id="pf-vote-list"></div>
   <div id="pf-vote-msg" style="margin-top:1rem;font-size:0.9rem;color:#b8ab8e;"></div>
   <div><button id="pf-vote-copy" style="background:#141414;border:2px solid #c1121f;color:#f5f0e1;padding:0.6rem 1.4rem;margin-top:1rem;font-size:0.85rem;font-weight:700;letter-spacing:0.1em;cursor:pointer;font-family:inherit;">COPY TO SHARE</button></div>
@@ -75,8 +92,13 @@
     var cb = 'pfVoteCb_' + Date.now();
     window[cb] = function(data){
       try {
-        if(data && data.votes) voteTotals = data.votes;
-        renderBallot();
+        if(data && data.votes){
+          voteTotals = data.votes;
+          var t=0,k; for(k in voteTotals){ t+=Number(voteTotals[k])||0; }
+          urgencyTotal=t; renderUrgency();
+        }
+        /* Never clobber the voted state when totals arrive. */
+        if(!voted()) renderBallot();
       } catch(e){}
       try { delete window[cb]; } catch(e){}
       var s = document.getElementById(cb);
@@ -102,6 +124,102 @@
     }
     return {name: raw, slug: '', weight: 1};
   }
+  /* ============ DOPAMINE LAYER (2026-10-01) ============
+     Sealed ballot ceremony, loyalist streaks, kingmaker Monday reveal,
+     campaign mode, live urgency. Tallies stay private; only the voter's
+     own pick is ever shown or shared. */
+  var urgencyTotal = 0;
+  function callsign(){ try{ return (window.PFCallsign && PFCallsign()) || ''; }catch(e){ return ''; } }
+  function esc(s){ return String(s).replace(/[&<>"']/g,function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; }); }
+  function weekKeyOf(d){ return d.getFullYear() + "-W" + isoWeek(d); }
+  /* --- Loyalist streak: consecutive weeks voted --- */
+  function getStreak(){ try{ return JSON.parse(localStorage.getItem('pf_votestreak_v1'))||{streak:0,lastWeek:''}; }catch(e){ return {streak:0,lastWeek:''}; } }
+  function streakRank(n){ return n>=8?'ZEALOT':n>=4?'LOYALIST':n>=2?'AGITATOR':n>=1?'VOTER':'NONE'; }
+  function bumpStreak(){
+    var st = getStreak();
+    if(st.lastWeek === weekKey) return st.streak;
+    var d = PF.chiNow(); d.setDate(d.getDate()-7);
+    st.streak = (st.lastWeek === weekKeyOf(d)) ? (st.streak+1) : 1;
+    st.lastWeek = weekKey;
+    try{ localStorage.setItem('pf_votestreak_v1', JSON.stringify(st)); }catch(e){}
+    return st.streak;
+  }
+  function renderStreak(){
+    var el = document.getElementById('pf-vote-streak');
+    if(!el) return;
+    var st = getStreak();
+    if(st.streak > 0){
+      el.innerHTML = '\\uD83D\\uDD25 <b style="color:#c1121f;">'+st.streak+'-WEEK STREAK</b> \\u2014 '+streakRank(st.streak)+' &nbsp;\\u00B7&nbsp; miss a week and it dies';
+    } else {
+      el.innerHTML = 'Cast your ballot to start a <b style="color:#f5f0e1;">voting streak</b>';
+    }
+  }
+  /* --- Sealed ballot ceremony: the vote drops into the box, wax-sealed --- */
+  function ballotCeremony(c, done){
+    var ov = document.getElementById('pf-vote-ceremony');
+    var reduce = false;
+    try{ reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+    if(!ov || reduce){ done(); return; }
+    var cs = callsign();
+    ov.innerHTML = '<div class="pfv-ballot"><div class="pfv-ballot-name">'+esc(c.name)+'</div>'+
+      '<div class="pfv-seal">'+(cs?esc(cs):'SEALED')+'</div></div>'+
+      '<div class="pfv-boxlabel">BALLOT CAST \\u2014 TALLY CLASSIFIED</div>';
+    ov.style.display = 'block';
+    var colors=['#c1121f','#f5ead6','#e8192f','#ffcc00'];
+    for(var i=0;i<36;i++){
+      var p=document.createElement('div'); p.className='pfv-confetti';
+      p.style.left=(Math.random()*100)+'%'; p.style.background=colors[i%4];
+      p.style.animationDuration=(0.9+Math.random()*1.2)+'s';
+      ov.appendChild(p);
+      (function(el){ setTimeout(function(){ el.remove(); },2400); })(p);
+    }
+    setTimeout(function(){ ov.style.display='none'; ov.innerHTML=''; done(); }, 1500);
+  }
+  /* --- Kingmaker: Monday reveal if your pick took last week --- */
+  function checkKingmaker(){
+    var now = PF.chiNow();
+    if(now.getDay() !== 1) return;
+    var d = new Date(now.getTime()); d.setDate(d.getDate()-7);
+    var lastWk = weekKeyOf(d);
+    var mySlug = null;
+    try{ var raw = localStorage.getItem('slr-vote-'+lastWk); if(raw){ mySlug = (JSON.parse(raw).slug)||null; } }catch(e){}
+    if(!mySlug || !VOTE_API_URL || VOTE_API_URL.indexOf('PASTE') === 0) return;
+    var cb='pfKingCb'+Date.now();
+    window[cb]=function(data){
+      try{ delete window[cb]; }catch(e){}
+      var s=document.getElementById(cb); if(s&&s.parentNode)s.parentNode.removeChild(s);
+      try{
+        var votes=(data&&data.votes)||{}, top=null, topN=-1, k;
+        for(k in votes){ if(Number(votes[k])>topN){ topN=Number(votes[k]); top=k; } }
+        if(top && top===mySlug){
+          var rec={count:0,weeks:[]};
+          try{ rec=JSON.parse(localStorage.getItem('pf_kingmaker_v1'))||rec; }catch(e){}
+          if(rec.weeks.indexOf(lastWk)<0){ rec.weeks.push(lastWk); rec.count++; }
+          try{ localStorage.setItem('pf_kingmaker_v1', JSON.stringify(rec)); }catch(e){}
+          var el=document.getElementById('pf-vote-kingmaker');
+          if(el) el.innerHTML='<div style="display:inline-block;background:#c1121f;color:#f5f0e1;font-weight:900;font-size:0.9rem;letter-spacing:0.14em;padding:0.5rem 1.3rem;margin:0.6rem 0;border:2px solid #f5f0e1;">\\uD83D\\uDC51 KINGMAKER \\u2014 your pick took last week'+(rec.count>1?' ('+rec.count+'\\u00D7)':'')+'</div>';
+        }
+      }catch(e){}
+    };
+    var s=document.createElement('script'); s.id=cb;
+    s.src=VOTE_API_URL+'?action=results&week='+encodeURIComponent(lastWk)+'&callback='+cb;
+    s.onerror=function(){ try{delete window[cb];}catch(e){} if(s.parentNode)s.parentNode.removeChild(s); };
+    document.head.appendChild(s);
+  }
+  /* --- Urgency: live ballots cast + polls-close countdown --- */
+  function pollsCloseIn(){
+    var now=PF.chiNow(), d=new Date(now.getTime());
+    d.setDate(d.getDate()+((7-d.getDay())%7)); d.setHours(23,59,0,0);
+    if(d<=now) d.setDate(d.getDate()+7);
+    var ms=d-now, h=Math.floor(ms/36e5), dd=Math.floor(h/24); h=h%24;
+    return dd>0 ? dd+'D '+h+'H' : h+'H '+Math.floor((ms%36e5)/6e4)+'M';
+  }
+  function renderUrgency(){
+    var el=document.getElementById('pf-vote-urgency');
+    if(!el) return;
+    el.innerHTML='<span style="color:#c1121f;">\\uD83D\\uDD34 '+urgencyTotal+' BALLOT'+(urgencyTotal===1?'':'S')+' CAST</span> &nbsp;\\u2014&nbsp; POLLS CLOSE IN <b style="color:#f5f0e1;">'+pollsCloseIn()+'</b>';
+  }
+  setInterval(function(){ var el=document.getElementById('pf-vote-urgency'); if(el && urgencyTotal>0) renderUrgency(); }, 60000);
   /* FAN VOTE SHARE POSTERS — canvas poster per candidate, Web Share API or PNG
      download ("save to Photos" path on iPhone). Privacy: only the voter's own pick
      is ever shared, never vote totals. */
@@ -194,7 +312,10 @@
         if(!blob){ say('Poster failed \\u2014 try again.');return; }
         var file=null;
         try{ file=new File([blob],'fan-vote-'+(c.slug||'pick')+'.png',{type:'image/png'}); }catch(e){}
-        var txt=(mode==='post'?'I voted for ':'Vote for ')+c.name+' for Propagandist of the Week! https://www.mtcstw.com #SickLeftRadicals';
+        var cs=''; try{ cs=(window.PFCallsign && PFCallsign())||''; }catch(e){}
+        var txt=(mode==='post'?'I voted for ':'Vote for ')+c.name+' for Propagandist of the Week! '+
+          (mode==='post'&&cs ? cs+' is campaigning \\u2014 join the operation: ' : 'Join the operation: ')+
+          'https://www.mtcstw.com #SickLeftRadicals';
         if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
           navigator.share({files:[file],title:'Fan Vote',text:txt}).then(
             function(){ say('Shared. Go spread the word.'); },
@@ -210,9 +331,10 @@
     list.innerHTML = '';
     var vc = candByName(name);
     var wtxt = (weight > 1) ? ' <b style="color:#c1121f;">&times;' + weight + '</b>' : '';
+    var first = String(name).split(' ')[0].toUpperCase();
     msg.innerHTML = 'Vote counted for <b style="color:#f5f0e1;">' + name + '</b>' + wtxt +
       '.<br>Results drop Monday morning on the reshuffle.<br>' +
-      '<button id="pf-vote-share" style="background:#c1121f;border:2px solid #c1121f;color:#f5f0e1;padding:0.6rem 1.4rem;margin-top:0.8rem;margin-right:0.5rem;font-size:0.85rem;font-weight:700;letter-spacing:0.1em;cursor:pointer;font-family:inherit;">SHARE YOUR VOTE</button>' +
+      '<button id="pf-vote-share" style="background:#c1121f;border:2px solid #c1121f;color:#f5f0e1;padding:0.6rem 1.4rem;margin-top:0.8rem;margin-right:0.5rem;font-size:0.85rem;font-weight:700;letter-spacing:0.1em;cursor:pointer;font-family:inherit;">CAMPAIGN FOR ' + esc(first) + '</button>' +
       '<button id="pf-vote-reset" style="background:transparent;border:2px solid #c1121f;color:#c1121f;padding:0.45rem 1.2rem;margin-top:0.8rem;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;cursor:pointer;font-family:inherit;">RESET VOTE</button>';
     var sb = document.getElementById('pf-vote-share');
     if(sb) sb.onclick = function(){ shareVotePoster(vc,'post'); };
@@ -262,6 +384,8 @@
   else { renderBallot(); }
   /* Load live totals on every page view — shared across all devices. */
   fetchTotals();
+  renderStreak();
+  checkKingmaker();
   function castVote(c){
     try { localStorage.setItem(storeKey, JSON.stringify({name: c.name, slug: c.slug, weight: VOTE_WEIGHT})); } catch(e){}
     if(VOTE_API_URL && VOTE_API_URL.indexOf('PASTE') !== 0){
@@ -271,8 +395,12 @@
           body: JSON.stringify({week: weekKey, slug: c.slug, weight: VOTE_WEIGHT})});
       } catch(e){}
     }
-    showVoted(c.name, VOTE_WEIGHT);
+    /* One vote, one streak bump, one tally event — counted exactly once. */
+    bumpStreak();
+    renderStreak();
     try { document.dispatchEvent(new CustomEvent("pf-vote-cast", {detail:{week: weekKey, weight: VOTE_WEIGHT}})); } catch(e){}
+    /* The sealed-ballot ceremony plays, then the voted state lands. */
+    ballotCeremony(c, function(){ showVoted(c.name, VOTE_WEIGHT); });
     /* Refresh the shared totals so the new vote appears on next render. */
     setTimeout(fetchTotals, 1500);
   }

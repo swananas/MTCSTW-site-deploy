@@ -1,0 +1,1838 @@
+<style>/* PF-WIDGET-STYLES: document-wide, outside templates for reliability */
+
+#pf-caption{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f}
+#pf-caption h2{color:#c1121f;font-size:28px;margin:0 0 6px;letter-spacing:2px;text-transform:uppercase}
+#pf-caption .c-sub{font-family:Arial,sans-serif;font-size:14px;color:#c9bfa8;margin-bottom:6px}
+#pf-caption .c-week{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c1121f;text-transform:uppercase;margin-bottom:16px}
+#pf-caption .c-template{background:#1a1a1a;border:2px dashed #555;min-height:200px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;overflow:hidden}
+#pf-caption .c-template img{max-width:100%;display:block}
+#pf-caption .c-template .c-ph{font-family:Arial,sans-serif;font-size:13px;color:#777;letter-spacing:2px;text-transform:uppercase;padding:40px 20px}
+#pf-caption .c-form{text-align:left;background:#1a1a1a;border:2px solid #333;padding:16px;margin-bottom:14px}
+#pf-caption .c-form label{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase;display:block;margin:10px 0 4px}
+#pf-caption .c-form label:first-child{margin-top:0}
+#pf-caption .c-form input,#pf-caption .c-form textarea{width:100%;box-sizing:border-box;background:#0d0d0d;border:1px solid #555;color:#f5ead6;font-family:Arial,sans-serif;font-size:14px;padding:10px}
+#pf-caption .c-form textarea{min-height:70px;resize:vertical}
+#pf-caption .c-btn{display:inline-block;background:#c1121f;color:#fff;border:0;padding:13px 26px;font-family:'Arial Black',Arial,sans-serif;font-size:14px;letter-spacing:2px;cursor:pointer;text-transform:uppercase;margin-top:12px;text-decoration:none}
+#pf-caption .c-btn:hover{background:#8f0d17}
+#pf-caption .c-btn.ghost{background:none;border:2px solid #f5ead6;color:#f5ead6;font-size:12px;padding:10px 20px}
+#pf-caption .c-winner{background:#f5ead6;color:#0d0d0d;padding:18px;margin:0 0 14px;text-align:left}
+#pf-caption .c-winner .c-wtag{font-size:11px;letter-spacing:3px;color:#c1121f;text-transform:uppercase}
+#pf-caption .c-winner .c-wcap{font-size:18px;margin:8px 0 4px;text-transform:uppercase;letter-spacing:1px}
+#pf-caption .c-winner .c-wauthor{font-family:Arial,sans-serif;font-size:12px;color:#555}
+#pf-caption .c-rules{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:12px;line-height:1.6}
+#pf-caption .c-div{border-top:2px dashed #c1121f;margin:18px 0;padding-top:16px}
+#pf-caption .c-div h3{color:#f5ead6;font-size:18px;letter-spacing:2px;margin:0 0 6px;text-transform:uppercase}
+#pf-caption .c-div p{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin:0 0 6px}
+
+#pf-orders{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f}
+#pf-orders h2{color:#c1121f;font-size:28px;margin:0 0 4px;letter-spacing:2px;text-transform:uppercase}
+#pf-orders .o-date{font-family:Arial,sans-serif;font-size:12px;letter-spacing:3px;color:#c9bfa8;text-transform:uppercase;margin-bottom:6px}
+#pf-orders .o-combo{font-size:16px;letter-spacing:3px;color:#c1121f;text-transform:uppercase;margin-bottom:12px;min-height:20px}
+#pf-orders .o-meterwrap{margin-bottom:12px}
+#pf-orders .o-meterlabel{font-family:Arial,sans-serif;font-size:11px;letter-spacing:5px;color:#c9bfa8;text-transform:uppercase;margin-bottom:6px}
+#pf-orders .o-meter{display:flex;gap:6px;justify-content:center}
+#pf-orders .o-seg{flex:1;max-width:110px;height:18px;background:#2a2a2a;border:2px solid #555;transition:all .3s}
+#pf-orders .o-seg.fill{background:#c1121f;border-color:#c1121f}
+#pf-orders .o-meter.hot .o-seg.fill{animation:oflashseg .7s infinite}
+#pf-orders .o-meter.maxed .o-seg.fill{background:#c1121f;border-color:#c1121f;animation:oflashseg .35s infinite}
+@keyframes oflashseg{0%,100%{box-shadow:0 0 4px #c1121f;transform:scale(1)}50%{box-shadow:0 0 20px #c1121f;transform:scale(1.08)}}
+#pf-orders .o-mission{background:#1a1a1a;border:2px dashed #c1121f;padding:14px 12px;margin-bottom:10px}
+#pf-orders .o-mission.done{border-style:solid;opacity:.75}
+#pf-orders .o-mtext{font-size:16px;line-height:1.5}
+#pf-orders .o-xp{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c1121f;margin-top:8px;text-transform:uppercase}
+#pf-orders .o-btn{background:#c1121f;color:#fff;border:none;font-family:'Arial Black',Arial,sans-serif;font-size:14px;letter-spacing:2px;padding:10px 28px;cursor:pointer;text-transform:uppercase;margin-top:10px}
+#pf-orders .o-btn:hover{transform:scale(1.04)}
+#pf-orders .o-donetag{display:inline-block;margin-top:10px;background:#c1121f;color:#fff;font-size:13px;letter-spacing:3px;padding:8px 22px;text-transform:uppercase}
+#pf-orders .o-platpick{display:none;margin-top:10px;border-top:1px dashed #555;padding-top:10px}
+#pf-orders .o-picklabel{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase;margin-bottom:8px}
+#pf-orders .o-platbtn{background:#1a1a1a;border:2px solid #f5ead6;color:#f5ead6;font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;padding:8px 12px;margin:3px;cursor:pointer;text-transform:uppercase}
+#pf-orders .o-platbtn:hover{background:#c1121f;border-color:#c1121f;color:#fff}
+#pf-orders .o-ptag{display:inline-block;margin-top:8px;background:#0d0d0d;border:2px solid #c1121f;color:#c1121f;font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;padding:6px 14px;text-transform:uppercase}
+#pf-orders .o-spreadline{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#c1121f;text-transform:uppercase;margin-top:6px}
+#pf-orders .o-prog{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase;margin:10px 0 4px}
+#pf-orders .o-streak{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#f5ead6;margin:6px 0 4px;text-transform:uppercase}
+#pf-orders .o-streak b{color:#c1121f;font-size:20px}
+#pf-orders .o-next{font-family:Arial,sans-serif;font-size:11px;color:#c9bfa8;letter-spacing:1px;margin-bottom:6px}
+#pf-orders .o-rankline{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c1121f;text-transform:uppercase;margin-top:10px}
+#pf-orders .o-loot{font-size:15px;color:#f5ead6;margin-top:10px;min-height:22px;font-style:italic;font-family:Arial,sans-serif}
+#pf-orders .o-flash{animation:oflash .6s}
+@keyframes oflash{0%{background:#c1121f;color:#fff}100%{background:#0d0d0d}}
+#pf-orders .o-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:14px}
+#pf-orders .o-err{font-family:Arial,sans-serif;font-size:12px;color:#c1121f;letter-spacing:1px;margin-top:8px;min-height:16px}
+#pf-orders .o-claim{margin-top:14px;border-top:1px solid #333;padding-top:12px}
+#pf-orders .o-claim a{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase;cursor:pointer;text-decoration:underline}
+#pf-orders .o-claimbox{display:none;margin-top:10px}
+#pf-orders .o-claimbox input{background:#0d0d0d;border:2px solid #f5ead6;color:#f5ead6;font-family:Arial,sans-serif;font-size:14px;letter-spacing:1px;padding:9px 10px;width:180px;margin:4px;text-align:center}
+#pf-orders .o-claimbox input::placeholder{color:#666}
+#pf-orders .o-claimbtn{background:#f5ead6;color:#0d0d0d;border:none;font-family:'Arial Black',Arial,sans-serif;font-size:13px;letter-spacing:2px;padding:10px 24px;cursor:pointer;text-transform:uppercase;margin-top:6px}
+#pf-orders .o-shareimg{background:#c1121f;color:#0d0d0d;border:none;font-family:'Arial Black',Arial,sans-serif;font-size:14px;letter-spacing:2px;padding:12px 28px;cursor:pointer;text-transform:uppercase;margin:14px 4px 0}
+#pf-orders .o-shareimg:hover{transform:scale(1.04)}
+#pf-orders .o-shareimg:disabled{opacity:.5;cursor:wait;transform:none}
+#pf-orders .o-who{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#c1121f;text-transform:uppercase;margin-top:10px}
+
+#pf-dometer2{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f;position:relative;overflow:hidden}
+#pf-dometer2 h2{color:#c1121f;font-size:30px;margin:0 0 6px;letter-spacing:3px;text-transform:uppercase}
+#pf-dometer2 .d-sub{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase;margin-bottom:14px;line-height:1.6}
+#pf-dometer2 .d-num{font-size:64px;color:#f5ead6;letter-spacing:2px;line-height:1;margin:6px 0}
+#pf-dometer2 .d-num small{font-size:16px;color:#c1121f;letter-spacing:3px;display:block;margin-top:6px}
+#pf-dometer2 .d-flash{animation:dflash .5s}
+@keyframes dflash{0%{color:#c1121f;transform:scale(1.12)}100%{color:#f5ead6;transform:scale(1)}}
+#pf-dometer2 .d-keglabel{font-family:Arial,sans-serif;font-size:11px;letter-spacing:5px;color:#c9bfa8;text-transform:uppercase;margin:14px 0 6px}
+#pf-dometer2 .d-keg{height:34px;background:#1a1a1a;border:3px solid #555;position:relative;overflow:hidden}
+#pf-dometer2 .d-fill{height:100%;width:0%;background:repeating-linear-gradient(-45deg,#c1121f,#c1121f 12px,#8f0d17 12px,#8f0d17 24px);transition:width .6s ease}
+#pf-dometer2 .d-keg.hot .d-fill{animation:dblazepulse .8s infinite}
+@keyframes dblazepulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.6)}}
+#pf-dometer2 .d-goal{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c1121f;text-transform:uppercase;margin-top:8px}
+#pf-dometer2 .d-types{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:14px}
+#pf-dometer2 .d-type{font-family:Arial,sans-serif;font-size:10px;letter-spacing:1px;color:#c9bfa8;border:1px solid #444;padding:4px 10px;text-transform:uppercase}
+#pf-dometer2 .d-type b{color:#f5ead6}
+#pf-dometer2 .d-spark{display:flex;gap:8px;justify-content:center;align-items:flex-end;height:64px;margin-top:18px}
+#pf-dometer2 .d-bar{width:44px;height:64px;background:#2a2a2a;border:2px solid #555;position:relative}
+#pf-dometer2 .d-bar i{position:absolute;bottom:0;left:0;right:0;background:#c1121f;display:block}
+#pf-dometer2 .d-bar.cur i{background:#c1121f}
+#pf-dometer2 .d-bar span{position:absolute;top:-18px;left:0;right:0;font-family:Arial,sans-serif;font-size:9px;color:#c9bfa8;letter-spacing:1px}
+#pf-dometer2 .d-note{font-family:Arial,sans-serif;font-size:10px;color:#777;margin-top:16px;letter-spacing:1px}
+#pf-dometer2 .d-boom{position:absolute;inset:0;background:rgba(13,13,13,.94);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:5}
+#pf-dometer2 .d-boom.show{display:flex}
+#pf-dometer2 .d-boom h3{color:#c1121f;font-size:34px;letter-spacing:3px;margin:0 0 8px;animation:dshake .5s}
+@keyframes dshake{0%,100%{transform:rotate(0)}25%{transform:rotate(-3deg) scale(1.05)}75%{transform:rotate(3deg) scale(1.05)}}
+#pf-dometer2 .d-boom p{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#f5ead6;text-transform:uppercase}
+#pf-dometer2 .d-confetti{position:absolute;top:-12px;width:10px;height:14px;z-index:6;pointer-events:none;animation:dconfetti linear forwards}
+@keyframes dconfetti{to{transform:translateY(560px) rotate(720deg);opacity:0}}
+#pf-dometer2 .d-dollar{position:absolute;top:38%;left:50%;transform:translate(-50%,-50%) scale(0);font-size:76px;color:#4dff4d;z-index:10;pointer-events:none;animation:ddollar 1.3s ease-out forwards;text-shadow:0 0 24px rgba(77,255,77,.6);font-family:'Arial Black',Arial,sans-serif}
+@keyframes ddollar{0%{transform:translate(-50%,-50%) scale(0);opacity:0}22%{transform:translate(-50%,-58%) scale(1.35);opacity:1}42%{transform:translate(-50%,-62%) scale(1);opacity:1}62%{transform:translate(-50%,-68%) scale(1.45);opacity:1}100%{transform:translate(-50%,-95%) scale(2.3);opacity:0}}
+@media (prefers-reduced-motion:reduce){#pf-dometer2 .d-keg.hot .d-fill,#pf-dometer2 .d-boom h3{animation:none}}
+
+#pf-do-mini{position:fixed;bottom:0;left:0;right:0;z-index:99998;pointer-events:none;text-align:center;font-family:Arial,sans-serif}
+#pf-do-mini .m-line{display:inline-block;margin-bottom:12px;background:#0d0d0d;border:2px solid #c1121f;color:#c9bfa8;font-size:10px;letter-spacing:3px;text-transform:uppercase;padding:5px 14px}
+#pf-do-mini .m-line b{color:#c1121f}
+@media (max-width:640px){#pf-do-mini .m-line{margin-bottom:8px;font-size:9px}}
+
+#slr-nuke{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:26px 22px;max-width:900px;margin:0 auto 24px;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f}
+#slr-nuke .slr-nuke-kicker{font-family:Arial,sans-serif;font-size:11px;letter-spacing:4px;color:#c1121f;text-transform:uppercase;margin-bottom:6px}
+#slr-nuke h2{color:#f5ead6;font-size:26px;margin:0 0 6px;letter-spacing:2px;text-transform:uppercase}
+#slr-nuke h2 .slr-red{color:#c1121f}
+#slr-nuke .slr-nuke-sub{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;letter-spacing:1px;margin:0 0 18px}
+#slr-nuke .slr-nuke-barwrap{position:relative;background:#1a1a1a;border:2px solid #c1121f;height:52px;overflow:hidden;margin-bottom:12px}
+#slr-nuke .slr-nuke-fill{position:absolute;top:0;left:0;bottom:0;width:0%;background:linear-gradient(90deg,#8f0d17,#c1121f,#dc143c);transition:width 1.2s ease}
+#slr-nuke.armed .slr-nuke-fill{animation:slr-nuke-glow 1.2s ease-in-out infinite}
+@keyframes slr-nuke-glow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.6)}}
+#slr-nuke .slr-nuke-label{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;font-size:15px;letter-spacing:2px;color:#f5ead6;text-shadow:0 1px 3px #000;pointer-events:none}
+#slr-nuke .slr-nuke-status{font-size:17px;letter-spacing:2px;text-transform:uppercase;margin:10px 0 4px;min-height:26px}
+#slr-nuke .slr-nuke-status .st-dormant{color:#8a8172}
+#slr-nuke .slr-nuke-status .st-charging{color:#f5ead6}
+#slr-nuke .slr-nuke-status .st-critical{color:#ff6b6b}
+#slr-nuke .slr-nuke-status .st-armed{color:#dc143c;animation:slr-nuke-blink 1s steps(2) infinite}
+@keyframes slr-nuke-blink{50%{opacity:.55}}
+#slr-nuke .slr-nuke-detail{font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;color:#8a8172;margin-bottom:6px}
+#slr-nuke .slr-nuke-you{font-family:Arial,sans-serif;font-size:13px;letter-spacing:1px;color:#c9bfa8;margin-bottom:4px}
+#slr-nuke .slr-nuke-you strong{color:#c1121f}
+#slr-nuke .slr-nuke-math{margin-top:14px;text-align:left;font-family:Arial,sans-serif;font-size:12.5px;color:#c9bfa8;line-height:1.55}
+#slr-nuke .slr-nuke-math summary{cursor:pointer;color:#f5ead6;letter-spacing:2px;text-transform:uppercase;font-size:12px;text-align:center;outline:none}
+#slr-nuke .slr-nuke-math p{margin:8px 0}
+#slr-nuke .slr-nuke-math strong{color:#f5ead6}
+@media (prefers-reduced-motion:reduce){#slr-nuke.armed .slr-nuke-fill{animation:none}#slr-nuke .slr-nuke-status .st-armed{animation:none}}
+
+#pf-poster{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f;box-sizing:border-box;overflow:hidden}
+#pf-poster h2{color:#c1121f;font-size:28px;margin:0 0 6px;letter-spacing:2px;text-transform:uppercase}
+#pf-poster .p-sub{font-family:Arial,sans-serif;font-size:14px;color:#c9bfa8;margin-bottom:14px}
+#pf-poster canvas{max-width:100%;height:auto;border:2px solid #f5ead6;display:block;margin:0 auto 16px;background:#f5ead6}
+#pf-poster .p-ctl{text-align:left;background:#1a1a1a;border:2px solid #333;padding:16px}
+#pf-poster .p-ctl label{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase;display:block;margin:10px 0 4px}
+#pf-poster .p-ctl label:first-child{margin-top:0}
+#pf-poster .p-ctl input{width:100%;box-sizing:border-box;background:#0d0d0d;border:1px solid #555;color:#f5ead6;font-family:Arial,sans-serif;font-size:14px;padding:10px}
+#pf-poster .p-styles{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+#pf-poster .p-style{flex:1;min-width:100px;background:#0d0d0d;border:2px solid #555;color:#f5ead6;font-family:'Arial Black',Arial,sans-serif;font-size:11px;letter-spacing:1px;padding:10px 6px;cursor:pointer;text-transform:uppercase}
+#pf-poster .p-style.on{border-color:#c1121f;background:#c1121f;color:#fff}
+#pf-poster .p-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+#pf-poster .p-btn{flex:1;min-width:140px;background:#c1121f;color:#fff;border:0;padding:13px 10px;font-family:'Arial Black',Arial,sans-serif;font-size:13px;letter-spacing:1px;cursor:pointer;text-transform:uppercase;text-decoration:none;text-align:center}
+#pf-poster .p-btn:hover{background:#8f0d17}
+#pf-poster .p-btn.ghost{background:none;border:2px solid #f5ead6;color:#f5ead6}
+#pf-poster .p-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:10px}
+
+/* HERO FIX: prevent title sliding under fixed nav */
+body.homepage .page-section:first-child .content-wrapper,
+body.homepage #page .page-section:first-child{
+  padding-top:80px !important;
+}
+
+/* TICKER FIX: dismissible, unified total, never blocks CTAs */
+#pf-do-mini .m-line{position:relative;pointer-events:auto;padding-right:28px}
+#pf-do-mini .m-x{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:#c9bfa8;font-size:14px;cursor:pointer;line-height:1;padding:2px 6px;font-family:Arial,sans-serif}
+#pf-do-mini .m-x:hover{color:#c1121f}
+#pf-do-mini.dismissed{display:none}
+
+</style>
+<script>
+/* PF GLOBAL ACTIONS: unified site-wide total, visible to everyone.
+   Each widget calls pfReportAction('action_type') on completion.
+   The total is fetched from the backend and displayed in #pf-global-total. */
+window.PF_BACKEND_URL = "https://script.google.com/macros/s/AKfycbzaqg3vIj1UnbHGJ82uti7yTdRpeR6PYMhoTne6LIL4kf1XjakrImMTHFwounaPrttl/exec";
+window.pfReportAction = function(actionType){
+  if(!window.PF_BACKEND_URL) return;
+  try {
+    fetch(window.PF_BACKEND_URL, {method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({type:'action', action_type: actionType})});
+  } catch(e){}
+  /* Refresh the displayed total after reporting. */
+  setTimeout(window.pfFetchGlobalTotal, 1500);
+};
+window.pfFetchGlobalTotal = function(){
+  if(!window.PF_BACKEND_URL) return;
+  var cb = 'pfGlobalCb_' + Date.now();
+  window[cb] = function(data){
+    try {
+      var total = (data && data.total) || 0;
+      var els = document.querySelectorAll('.pf-global-total-num');
+      for(var i=0; i<els.length; i++){ els[i].textContent = total; }
+    } catch(e){}
+    try { delete window[cb]; } catch(e){}
+    var s = document.getElementById(cb);
+    if(s && s.parentNode) s.parentNode.removeChild(s);
+  };
+  var s = document.createElement('script');
+  s.id = cb;
+  s.src = window.PF_BACKEND_URL + '?action=action_totals&callback=' + cb;
+  s.onerror = function(){ try{ delete window[cb]; }catch(e){} if(s.parentNode) s.parentNode.removeChild(s); };
+  document.head.appendChild(s);
+};
+/* Load the global total on page view. */
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', window.pfFetchGlobalTotal);
+} else {
+  window.pfFetchGlobalTotal();
+}
+/* Auto-report widget actions to the global backend.
+   Listens for the CustomEvents each widget already fires. */
+(function(){
+  var MAP = {
+    'pf-order-checkin': ['daily_orders', 'Daily Orders'],
+    'pf-caption-submit': ['caption_combat', 'Caption Combat'],
+    'pf-poster-made': ['poster_forge', 'Poster Forge'],
+    'pf-vote-cast': ['fan_vote', 'Fan Vote'],
+    'pf-bracket-ballot': ['bracket_vote', 'Bracket'],
+    'pf-bracket-liquidated': ['bracket_liquidation', 'Liquidation'],
+    'pf-quiz-done': ['quiz_complete', 'Quiz'],
+    'pf-traitor-vote': ['traitor_vote', 'Class Traitor'],
+    'pf-enlisted': ['enlistment', 'Enlistment']
+  };
+  /* Floating share button: appears after any action, shares an achievement image. */
+  var shareBtn = null;
+  function ensureShareBtn(){
+    if(shareBtn) return shareBtn;
+    shareBtn = document.createElement('button');
+    shareBtn.textContent = 'SHARE';
+    shareBtn.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:99999;background:#c1121f;color:#f5ead6;border:3px solid #f5ead6;font-family:"Arial Black",Arial,sans-serif;font-size:18px;font-weight:900;padding:14px 22px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.5);display:none;';
+    shareBtn.onclick = function(){
+      var g = window._pfLastGame || 'Mission';
+      var d = window._pfLastDetail || 'Task complete.';
+      if(window.pfShareAchievement) window.pfShareAchievement(g, d);
+      shareBtn.style.display = 'none';
+    };
+    document.body.appendChild(shareBtn);
+    return shareBtn;
+  }
+  for(var evt in MAP){
+    (function(eventName, info){
+      document.addEventListener(eventName, function(e){
+        if(window.pfReportAction) window.pfReportAction(info[0]);
+        /* Store for sharing. */
+        window._pfLastGame = info[1];
+        var det = '';
+        try { det = (e.detail && (e.detail.mission || e.detail.caption || e.detail.day || '')) || ''; } catch(x){}
+        window._pfLastDetail = (det ? det + ' \u2014 ' : '') + 'Task complete on mtcstw.com';
+        /* Show the share button for 30 seconds. */
+        var b = ensureShareBtn();
+        b.style.display = 'block';
+        setTimeout(function(){ b.style.display = 'none'; }, 30000);
+      });
+    })(evt, MAP[evt]);
+  }
+})();
+/* PF SHARE: generate a propaganda-styled achievement image and share it.
+   Called by each widget's Share button: pfShareAchievement('Daily Orders', 'Mission complete: ...'). */
+window.pfShareAchievement = function(gameName, detailText){
+  try {
+    var c = document.createElement('canvas');
+    c.width = 1080; c.height = 1080;
+    var x = c.getContext('2d');
+    /* Background: black with red border. */
+    x.fillStyle = '#0d0d0d'; x.fillRect(0,0,1080,1080);
+    x.strokeStyle = '#c1121f'; x.lineWidth = 24; x.strokeRect(24,24,1032,1032);
+    x.strokeStyle = '#f5ead6'; x.lineWidth = 4; x.strokeRect(60,60,960,960);
+    /* Header. */
+    x.fillStyle = '#c1121f'; x.font = '900 72px Arial Black, Arial, sans-serif';
+    x.textAlign = 'center';
+    x.fillText('THE PROPAGANDA FACTORY', 540, 160);
+    /* Game name. */
+    x.fillStyle = '#c1121f'; x.font = '900 96px Arial Black, Arial, sans-serif';
+    var gn = (gameName || 'MISSION').toUpperCase();
+    x.fillText(gn, 540, 320);
+    /* Star divider. */
+    x.fillStyle = '#f5ead6'; x.font = '64px Arial';
+    x.fillText('\u2605 \u2605 \u2605', 540, 420);
+    /* Detail text (wrapped). */
+    x.fillStyle = '#f5ead6'; x.font = '48px Arial, sans-serif';
+    var words = String(detailText || '').split(' ');
+    var lines = [], line = '';
+    for(var i=0; i<words.length; i++){
+      var t = line + words[i] + ' ';
+      if(x.measureText(t).width > 880 && line){ lines.push(line.trim()); line = words[i] + ' '; }
+      else { line = t; }
+    }
+    if(line.trim()) lines.push(line.trim());
+    var y = 520;
+    for(var j=0; j<Math.min(lines.length, 6); j++){ x.fillText(lines[j], 540, y); y += 70; }
+    /* Timestamp. */
+    x.fillStyle = '#b8ab8e'; x.font = '36px Arial, sans-serif';
+    var d = new Date();
+    x.fillText(d.toLocaleDateString() + ' ' + d.toLocaleTimeString(), 540, 920);
+    /* Footer. */
+    x.fillStyle = '#c1121f'; x.font = '900 48px Arial Black, Arial, sans-serif';
+    x.fillText('MTCSTW.COM', 540, 990);
+    /* Share or download. */
+    c.toBlob(function(blob){
+      if(!blob) return;
+      var file = new File([blob], 'propaganda-achievement.png', {type:'image/png'});
+      var shareData = {files:[file], title:'Propaganda Factory', text: gameName + ': ' + detailText};
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        navigator.share(shareData).catch(function(){});
+      } else {
+        /* Fallback: download. */
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'propaganda-achievement.png';
+        document.body.appendChild(a); a.click();
+        setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 1000);
+      }
+    }, 'image/png');
+  } catch(e){}
+};
+</script>
+<!-- PF GLOBAL TOTAL BANNER: unified site-wide actions, visible to everyone. -->
+<div id="pf-global-banner" style="max-width:640px;margin:1rem auto 80px;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:'Helvetica Neue',Arial,sans-serif;padding:1rem;text-align:center;box-sizing:border-box;">
+  <div style="font-size:1.1rem;font-weight:900;letter-spacing:0.15em;color:#c1121f;">&#9733; TASKS COMPLETE &#9733;</div>
+  <div style="font-size:2rem;font-weight:900;color:#f5f0e1;margin:0.5rem 0;"><span class="pf-global-total-num">0</span></div>
+  <div style="font-size:0.85rem;color:#b8ab8e;">actions taken by the network</div>
+</div>
+<template id="pf-ov-caption">
+<div class="fe-block pf-override-block" id="pf-caption">
+
+<h2>Caption Combat</h2>
+<div class="c-sub">One template. One week. Funniest caption wins the homepage.</div>
+<div class="c-week" id="cWeek"></div>
+<div class="c-template" id="cTemplate"></div>
+
+<div class="c-winner" id="cWinner" style="display:none">
+  <div class="c-wtag">&#9733; Last week's champion &#9733;</div>
+  <div class="c-wcap" id="cWCap"></div>
+  <div class="c-wauthor" id="cWAuthor"></div>
+</div>
+
+<div class="c-form">
+  <label for="cName">Your name / handle</label>
+  <input id="cName" maxlength="40" placeholder="@yourhandle">
+  <label for="cCap">Your caption</label>
+  <textarea id="cCap" maxlength="280" placeholder="Make the machine laugh."></textarea>
+  <a class="c-btn" id="cSubmit" href="#">Fire your caption</a>
+</div>
+
+<div class="c-div">
+  <h3>Got a template?</h3>
+  <p>The armory needs ammunition. Send meme templates and the network will battle over them.</p>
+  <a class="c-btn ghost" id="cTemplateBtn" href="#">Submit a template</a>
+</div>
+
+<div class="c-rules">One entry per person per week. Winner picked Sunday night, crowned Monday.<br>Keep it punchy. The machine reserves the right to laugh.</div>
+
+<script>
+(function(){
+/* CONFIG */
+var THIS_WEEK = { img: "https://static1.squarespace.com/static/6802d7140c0cc229f7f710a8/t/6abc47fc2bbe2e559f5c4cbb/1790724092899/ae317ea02163fa632ac65508167d2200e36a73d1e7a63cbd647de0e881395055.jpg", alt: "This week's combat template" }; /* paste template image URL when live */
+var WINNER = { caption: "", author: "" }; /* last week's winning caption + handle */
+var EMAIL = "mtcstw@gmail.com";
+
+function chicagoNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"America/Chicago"})); }
+function mondayOf(d){ var x=new Date(d); var day=(x.getDay()+6)%7; x.setHours(0,0,0,0); x.setDate(x.getDate()-day); return x; }
+var wk=mondayOf(chicagoNow());
+document.getElementById("cWeek").textContent="Week of "+wk.toLocaleDateString("en-US",{month:"long",day:"numeric"})+" — entries close Sunday night";
+
+var tpl=document.getElementById("cTemplate");
+if(THIS_WEEK.img){ var im=document.createElement("img"); im.src=THIS_WEEK.img; im.alt=THIS_WEEK.alt; tpl.appendChild(im); }
+else { tpl.innerHTML='<div class="c-ph">This week\u2019s template drops Monday.<br>Send yours below.</div>'; }
+
+if(WINNER.caption){
+  document.getElementById("cWinner").style.display="block";
+  document.getElementById("cWCap").textContent="\u201C"+WINNER.caption+"\u201D";
+  document.getElementById("cWAuthor").textContent="— "+WINNER.author;
+}
+var weekStr=wk.toLocaleDateString("en-US",{month:"short",day:"numeric"});
+var weekKey="cc_"+wk.toISOString().slice(0,10); /* unique per combat week */
+
+/* --- local storage: handle + weekly submission state --- */
+var LS="pf_caption_v1";
+function capLoad(){ try{ var s=JSON.parse(localStorage.getItem(LS)||"null"); if(s&&typeof s==="object")return s; }catch(e){} return {handle:"",weeks:{}}; }
+function capSave(s){ try{ localStorage.setItem(LS,JSON.stringify(s)); }catch(e){} }
+var CS=capLoad();
+if(CS.handle){ document.getElementById("cName").value=CS.handle; }
+
+function markSubmitted(){
+  var btn=document.getElementById("cSubmit");
+  btn.textContent="Caption fired \u2713";
+  btn.style.opacity="0.55";
+  btn.style.pointerEvents="none";
+  var note=document.createElement("div");
+  note.className="c-rules";
+  note.style.color="#c1121f";
+  note.style.marginTop="10px";
+  note.textContent="Entry logged for the week of "+weekStr+". One entry per person per week — see you Monday.";
+  btn.parentNode.appendChild(note);
+}
+if(CS.weeks[weekKey]){ markSubmitted(); }
+
+document.getElementById("cSubmit").onclick=function(){
+  var n=document.getElementById("cName").value.trim()||"anonymous comrade";
+  var c=document.getElementById("cCap").value.trim();
+  if(!c){ alert("Write a caption first."); return false; }
+  /* save the handle, but DO NOT lock the week yet — the lock happens only
+     after the mailto actually fires (see focus check below). This fixes the
+     bug where a failed/cancelled email still locked the user out for the week. */
+  CS.handle=n; capSave(CS);
+  /* NOTE: pf-caption-submit fires ONLY after the mailto focus check confirms
+     the mail client took over (below). A failed/cancelled email awards nothing. */
+  this.href="mailto:"+EMAIL+"?subject="+encodeURIComponent("Caption Combat entry — week of "+weekStr)+"&body="+encodeURIComponent("Handle: "+n+"\n\nCaption:\n"+c);
+  var self=this, capText=c;
+  setTimeout(function(){
+    if(!document.hasFocus()){
+      /* mail client took over — the entry is away, lock the week */
+      CS.weeks[weekKey]={caption:capText,at:Date.now()}; capSave(CS);
+      markSubmitted();
+      /* Single dispatch point: exactly one pf-caption-submit per successful send. */
+      try{ document.dispatchEvent(new CustomEvent("pf-caption-submit",{detail:{week:weekKey}})); }catch(e){}
+    }else{
+      /* mailto didn't fire (no email app / cancelled) — keep the entry open */
+      var warn=document.createElement("div");
+      warn.className="c-rules";warn.style.color="#c1121f";warn.style.marginTop="10px";
+      warn.textContent="Your email app didn't open — your caption is safe above. Tap SUBMIT again to retry sending (entry not locked yet).";
+      self.parentNode.appendChild(warn);
+      setTimeout(function(){warn.remove();},9000);
+    }
+    self.href="#";
+  },700);
+  return true;
+};
+document.getElementById("cTemplateBtn").href="mailto:"+EMAIL+"?subject="+encodeURIComponent("Meme template submission")+"&body="+encodeURIComponent("Template idea / image link:\n\nYour handle:\n");
+})();
+</script>
+</div>
+</template>
+<template id="pf-ov-orders">
+<div class="fe-block pf-override-block" id="pf-orders">
+
+<h2>Daily Orders</h2>
+<div class="o-date" id="oDate"></div>
+<div class="o-meterwrap">
+  
+  <div class="o-meter" id="oMeter"></div>
+  <div class="o-combo" id="oCombo"></div>
+</div>
+<div id="oMissions"></div>
+<div class="o-prog" id="oProg"></div>
+<div class="o-streak" id="oStreak"></div>
+<div class="o-next" id="oNext"></div>
+<div class="o-rankline" id="oRank"></div>
+<div class="o-loot" id="oLoot"></div>
+<div class="o-err" id="oErr"></div>
+<div class="o-note">3 orders per day. Chain them for combo XP. Share missions on a new platform: +5 spread combo each. Max 50 XP/day from missions.</div>
+<div><button class="o-shareimg" id="oShareImg">Share orders as image</button></div>
+<div class="o-claim" id="oClaimWrap">
+  <a id="oClaimToggle">Claim your rank on every device</a>
+  <div class="o-claimbox" id="oClaimBox">
+    <input id="oCallsign" maxlength="20" placeholder="CALLSIGN" autocomplete="off" style="text-transform:uppercase">
+    <input id="oEmail" type="email" placeholder="EMAIL (OPTIONAL)" autocomplete="off">
+    <br><button class="o-claimbtn" id="oClaimBtn">Claim</button>
+    <div class="o-err" id="oClaimErr"></div>
+  </div>
+  <div class="o-who" id="oWho"></div>
+</div>
+
+<script>
+(function(){
+var MISSIONS=[
+{t:"Like the latest post from 3 SLR creators you haven't engaged with this week."},
+{t:"Share one SLR creator's post to your story or feed. Pick your favorite.",share:1},
+{t:"Leave a genuine comment on a small SLR creator's latest video."},
+{t:"Like 5 SLR posts in a row. Speed round."},
+{t:"Comment one thoughtful question on any SLR creator's latest post."},
+{t:"Share any SLR creator's post — not mutual aid, just straight propaganda. Any post works, pick a banger.",share:1},
+{t:"Like and comment on the newest post from the lowest-ranked creator on the Ledger. Lift from the bottom."},
+{t:"Send one SLR creator's page to a group chat. Convert the group chat.",share:1},
+{t:"Quote-share an SLR post and add why it matters to you.",share:1},
+{t:"Drop a brick emoji in the comments of 3 SLR posts. Mark the territory."},
+{t:"Like every post from the last 7 days on one SLR creator's page. Deep like."},
+{t:"Share one SLR video to a group or community you're in.",share:1},
+{t:"Leave an encouraging comment on an SLR creator dealing with hate or burnout."},
+{t:"Like and comment on 2 SLR creators outside your usual niche."},
+{t:"Share the Liquidation Ledger and tag your #1 SLR creator.",share:1},
+{t:"Comment your favorite SLR creator's catchphrase under their latest post."},
+{t:"Like 3 SLR posts and reply to one commenter on each. Build the thread."},
+{t:"Share an old banger from an SLR creator's archive. Deep cut.",share:1},
+{t:"Comment on one SLR post with a class-first take that sharpens the argument."},
+{t:"Like and share one SLR creator's announcement — a show, a stream, a drop.",share:1},
+{t:"Duet or stitch one SLR creator's video with your own take.",share:1},
+{t:"Comment on 3 SLR posts from creators with different propaganda scores. Spread it around."},
+{t:"Share one SLR creator's post with someone who 'doesn't do politics'.",share:1},
+{t:"Like the latest 5 posts from today's Propagandist of the Week."},
+{t:"Leave a real comment — 3 sentences or more — on one SLR video."},
+{t:"Share one SLR creator's catalog profile from this site with a friend.",share:1},
+{t:"Comment on one SLR post tagging another SLR creator who'd vibe with it. Cross-pollinate."},
+{t:"Like and share a post from the newest SLR recruit. Welcome them in.",share:1},
+{t:"Post a screenshot of an SLR post you liked and say why it hit.",share:1},
+{t:"Rest. Like one SLR post, touch grass, come back tomorrow — the streak keeps."}
+];
+var LOOT=["The machine sees you, agitator.","Another brick in the wall. Their wall. We're taking it apart.","Noted in the ledger. History will remember this one.","Discipline is propaganda too.","Small actions, compounded. That's the whole theory.","The algorithm didn't see it coming.","Report filed. The network grows.","You are the media now. Act like it."];
+var COMBO_LOOT={2:"Combo x2. The machine is warming up.",3:"COMBO x3. FULL AGITATION. Maximum pressure."};
+/* economy */
+var PER_DAY=3, BASE_XP=10, COMBO_STEP=5, DAILY_MAX=50;
+var SPREAD_XP=5;
+var PLATFORMS=[["tiktok","TikTok"],["facebook","Facebook"],["instagram","Instagram"],["x","X"],["youtube","YouTube"]];
+var STREAK_BONUS={3:10,7:25,30:100};
+var TIERS=[["RECRUIT",0],["AGITATOR",25],["CADRE",75],["COMMISSAR",150],["ARCHITECT",300]];
+var LS_O="pf_orders_v1", LS_R="pf_ranks_v1", LS_I="pf_identity_v1";
+var BACKEND_URL="https://script.google.com/macros/s/AKfycbxKFGLAsEqn8msdaNSjML8yHNEHRvaI5drVzJQwMiaVbkhkMBlNoFq1M4hdJo33Usic5Q/exec";
+
+function chiNow(){ try{ return new Date(new Date().toLocaleString('en-US',{timeZone:'America/Chicago'})); }catch(e){ return new Date(); } }
+function ymd(d){ return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
+function today(){ return ymd(chiNow()); }
+function yesterday(){ var d=chiNow(); d.setDate(d.getDate()-1); return ymd(d); }
+function load(k,fb){ try{ return JSON.parse(localStorage.getItem(k)||JSON.stringify(fb)); }catch(e){ return fb; } }
+function save(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+function dayOfYear(){ var d=new Date(), s=new Date(d.getFullYear(),0,0); return Math.floor((d-s)/864e5); }
+function missionSet(){ var d=dayOfYear(), out=[]; for(var i=0;i<PER_DAY;i++) out.push((d*PER_DAY+i)%MISSIONS.length); return out; }
+function tierOf(xp){ var t=TIERS[0]; for(var i=0;i<TIERS.length;i++){ if(xp>=TIERS[i][1]) t=TIERS[i]; } return t; }
+
+/* today's record, with migration from v1 shape {days:{date:true}} */
+function dayRec(){
+  var o=load(LS_O,{streak:0,last:"",days:{}}), t=today(), r=o.days[t];
+  if(r===true) r={done:[{m:"legacy",p:null,g:0}],xp:0,bonusPaid:false};
+  if(!r||!r.done) r={done:[],xp:0,bonusPaid:false};
+  /* migrate old number-array format to {m,p,g} entries */
+  if(r.done.length&&typeof r.done[0]==="number"){
+    r.done=r.done.map(function(m,ix){ return {m:m,p:null,g:Math.min(BASE_XP+COMBO_STEP*ix,DAILY_MAX)}; });
+  }
+  if(typeof r.xp!=="number") r.xp=0;
+  return {o:o, rec:r};
+}
+function saveDay(o,rec){ o.days[today()]=rec; save(LS_O,o); }
+
+function ident(){ return load(LS_I,{});  }
+
+  function apiPost(obj,cb){
+ if(!BACKEND_URL){ cb(null); return;}
+  var fn="pfPostCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script");
+  window[fn]=function(j){ try{delete window[fn];}catch(e){} if(s.parentNode) s.parentNode.removeChild(s); cb(j);};
+  s.onerror=function(){ try{delete window[fn];}catch(e){} cb(null);};
+  var q="?action="+encodeURIComponent(obj.action==="wall"?"etch":obj.action);
+  q+="&callsign="+encodeURIComponent(obj.callsign||"");
+  if(obj.email) q+="&email="+encodeURIComponent(obj.email);
+  if(obj.day) q+="&day="+encodeURIComponent(obj.day);
+  if(obj.mission!=null) q+="&mission="+encodeURIComponent(obj.mission);
+  if(obj.platform) q+="&platform="+encodeURIComponent(obj.platform);
+  if(obj.spread!=null) q+="&spread="+encodeURIComponent(obj.spread);
+  q+="&callback="+fn;
+  s.src=BACKEND_URL+q;
+  document.head.appendChild(s);
+
+}
+function apiGet(callsign,cb){
+  if(!BACKEND_URL){ cb(null); return; }
+  var fn="pfRankCb"+Math.floor(Math.random()*1e9);
+  window[fn]=function(j){ try{delete window[fn];}catch(e){} s.parentNode.removeChild(s); cb(j); };
+  var s=document.createElement("script");
+  s.onerror=function(){ cb(null); };
+  s.src=BACKEND_URL+"?action=get&callsign="+encodeURIComponent(callsign)+"&callback="+fn;
+  document.head.appendChild(s);
+}
+
+function platLabel(p){ var f=PLATFORMS.filter(function(x){return x[0]===p;})[0]; return f?f[1].toUpperCase():String(p||"").toUpperCase(); }
+
+function checkin(mi,platform){
+  var d=dayRec(), o=d.o, rec=d.rec, t=today();
+  var already=rec.done.some(function(x){ return x.m===mi; });
+  if(already) return {ok:false, err:"already"};
+  platform=platform||null;
+  var usedPlat={};
+  rec.done.forEach(function(x){ if(x.p) usedPlat[x.p]=1; });
+  var mission=MISSIONS[mi]||{};
+  var firstToday=rec.done.length===0;
+  var combo=rec.done.length+1;                       /* 1,2,3 */
+  /* SPREAD COMBO: share mission on a platform not yet used today = +5 */
+  var spread=(mission.share&&platform&&!usedPlat[platform])?SPREAD_XP:0;
+  var comboXp=BASE_XP+COMBO_STEP*(combo-1);
+  var room=Math.max(0,DAILY_MAX-(rec.xp||0));        /* same 50 XP/day cap */
+  var gained=Math.min(comboXp+spread,room);
+  var bonus=0;
+  if(firstToday){
+    o.streak=(o.last===yesterday())?(o.streak||0)+1:1; o.last=t;
+    if(STREAK_BONUS[o.streak]&&!rec.bonusPaid){ bonus=STREAK_BONUS[o.streak]; rec.bonusPaid=true; }
+  }
+  rec.done.push({m:mi,p:platform,g:gained}); rec.xp=(rec.xp||0)+gained; saveDay(o,rec);
+  var r=load(LS_R,{xp:0,got:{}}), key="order_"+t+"_"+mi;
+  if(r.got[key]!==t){ r.got[key]=t; r.xp+=gained+bonus; save(LS_R,r); }
+  fireEvent(t,mi,combo,gained+bonus,o.streak,platform,spread);
+  var id=ident();
+  if(id.callsign){
+    apiPost({action:"checkin",callsign:id.callsign,day:t,mission:mi,platform:platform,spread:spread?1:0},function(j){
+      if(j&&j.ok){
+        var rr=load(LS_R,{xp:0,got:{}}); if(j.xp>rr.xp) rr.xp=j.xp; save(LS_R,rr);
+        var dd=dayRec(); dd.o.streak=j.streak; dd.o.last=j.last_day;
+        if(j.today_done&&j.today_done.length){
+          var plats=j.today_platforms||[];
+          dd.rec.done=j.today_done.map(function(mm,ix){ return {m:mm,p:plats[ix]||null,g:0}; });
+          dd.rec.xp=j.today_xp||dd.rec.xp;
+        }
+        saveDay(dd.o,dd.rec);
+
+        render();
+      }
+    });
+  }
+  return {ok:true, combo:combo, gained:gained, bonus:bonus, spread:spread, platform:platform, streak:o.streak, xp:r.xp, tier:tierOf(r.xp)[0]};
+}
+function fireEvent(t,mi,combo,xp,streak,platform,spread){
+  try{ document.dispatchEvent(new CustomEvent("pf-order-checkin",{detail:{day:t,mission:mi,combo:combo,xp:xp,streak:streak,platform:platform||null,spread:spread||0}})); }catch(e){}
+}
+
+function syncFromServer(){
+  var id=ident(); if(!id.callsign) return;
+  apiGet(id.callsign,function(j){
+    if(!j||!j.ok) return;
+    var r=load(LS_R,{xp:0,got:{}});
+    if(j.xp>r.xp){ r.xp=j.xp; save(LS_R,r); }
+    var d=dayRec(), recent=(j.last_day===today()||j.last_day===yesterday());
+    if(recent&&j.streak>(d.o.streak||0)){ d.o.streak=j.streak; d.o.last=j.last_day; }
+    if(j.today_done&&j.today_done.length){
+      var plats=j.today_platforms||[];
+      j.today_done.forEach(function(mi,ix){
+        var has=d.rec.done.some(function(x){ return x.m===mi; });
+        if(!has) d.rec.done.push({m:mi,p:plats[ix]||null,g:0});
+      });
+      if(typeof j.today_xp==="number") d.rec.xp=j.today_xp;
+    }
+    saveDay(d.o,d.rec); render();
+  });
+}
+
+function render(){
+  var set=missionSet(), d=dayRec(), rec=d.rec, t=today();
+  document.getElementById("oDate").textContent=new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
+  var doneCount=rec.done.length;
+  /* XP METER — 3 segments, flashes hotter with the combo */
+  var meter=document.getElementById("oMeter"), mh="";
+  set.forEach(function(mi){
+    var filled=rec.done.some(function(x){ return x.m===mi; });
+    mh+='<div class="o-seg'+(filled?" fill":"")+'"></div>';
+  });
+  meter.innerHTML=mh;
+  meter.className="o-meter"+(doneCount>=3?" maxed":doneCount>=2?" hot":"");
+  document.getElementById("oCombo").textContent=doneCount>=3?"FULL COMBO — MAXIMUM PRESSURE":doneCount===2?"COMBO x2 — one more. Chain it.":doneCount===1?"1 down. Chain the next for combo XP.":"";
+  var nextVal=Math.min(BASE_XP+COMBO_STEP*doneCount, Math.max(0,DAILY_MAX-(rec.xp||0))), html="";
+  set.forEach(function(mi,slot){
+    var m=MISSIONS[mi]||{t:""}, entry=null;
+    rec.done.forEach(function(x){ if(x.m===mi) entry=x; });
+    var isDone=!!entry;
+    var usedPlat={}; rec.done.forEach(function(x){ if(x.p) usedPlat[x.p]=1; });
+    var spreadHint=(m.share&&!isDone)?'<div class="o-spreadline">+'+SPREAD_XP+' spread combo on a new platform</div>':"";
+    var platTag=(isDone&&entry.p)?'<div><span class="o-ptag">Shared to '+platLabel(entry.p)+'</span></div>':"";
+    var xpLine='+'+(isDone?(typeof entry.g==="number"?entry.g:BASE_XP+COMBO_STEP*doneCount):nextVal)+' XP'+(isDone?"":" · report #"+(doneCount+1));
+    var action;
+    if(isDone){ action='<div><span class="o-donetag">Reported</span></div>'; }
+    else if(m.share){
+      action='<div class="o-platpick" id="o-pick-'+mi+'"><div class="o-picklabel">Where did you share it? (+'+SPREAD_XP+' on a new platform)</div>'
+        +PLATFORMS.map(function(p){
+            var fresh=!usedPlat[p[0]];
+            return '<button class="o-platbtn" data-mi="'+mi+'" data-p="'+p[0]+'">'+p[1]+(fresh?" +"+SPREAD_XP:"")+'</button>';
+          }).join("")
+        +'</div><button class="o-btn o-sharebtn" data-mi="'+mi+'">Report back</button>';
+    }
+    else { action='<button class="o-btn" data-mi="'+mi+'">Report back</button>'; }
+    html+='<div class="o-mission'+(isDone?" done":"")+'">'
+      +'<div class="o-mtext">'+m.t+'</div>'
+      +'<div class="o-xp">'+xpLine+'</div>'
+      +spreadHint+platTag+action
+      +'</div>';
+  });
+  var z=document.getElementById("oMissions"); z.innerHTML=html;
+  function doReport(mi,platform){
+    var res=checkin(mi,platform);
+    if(!res.ok) return;
+    var box=document.getElementById("pf-orders");
+    box.classList.remove("o-flash"); void box.offsetWidth; box.classList.add("o-flash");
+    var loot=LOOT[Math.floor(Math.random()*LOOT.length)];
+        if(res.spread) loot="Spread combo +"+res.spread+" — "+platLabel(res.platform)+". "+loot;
+        if(COMBO_LOOT[res.combo]) loot=COMBO_LOOT[res.combo]+(res.spread?" (+"+res.spread+" spread)":"");
+    document.getElementById("oLoot").textContent="+"+(res.gained+res.bonus)+" XP — "+loot+(res.bonus?" "+res.streak+"-day streak bonus!":"");
+    document.getElementById("oErr").textContent="";
+    render();
+  }
+  z.querySelectorAll("button.o-btn").forEach(function(b){
+    b.onclick=function(){
+      var mi=parseInt(b.getAttribute("data-mi"),10);
+      if(b.classList.contains("o-sharebtn")){
+        var pick=document.getElementById("o-pick-"+mi);
+        if(pick) pick.style.display=pick.style.display==="block"?"none":"block";
+        return;
+      }
+      doReport(mi,null);
+    };
+  });
+  z.querySelectorAll("button.o-platbtn").forEach(function(b){
+    b.onclick=function(){
+      doReport(parseInt(b.getAttribute("data-mi"),10), b.getAttribute("data-p"));
+    };
+  });
+  document.getElementById("oProg").textContent=doneCount+"/"+PER_DAY+" orders complete";
+  document.getElementById("oStreak").innerHTML="Current streak: <b>"+(d.o.streak||0)+"</b> day"+((d.o.streak||0)===1?"":"s");
+  var s=d.o.streak||0;
+  var nextMil=Object.keys(STREAK_BONUS).map(Number).filter(function(n){return n>s;}).sort(function(a,b){return a-b;})[0];
+      document.getElementById("oNext").textContent=nextMil?("Streak bonus at "+nextMil+" days (+"+STREAK_BONUS[nextMil]+" XP)"):"Maximum streak bonus achieved. Legendary.";
+  var r=load(LS_R,{xp:0});
+  document.getElementById("oRank").textContent=r.xp>0?("Rank: "+tierOf(r.xp)[0]+" · "+r.xp+" XP"):"";
+  var id=ident(), wrap=document.getElementById("oClaimWrap");
+  if(!BACKEND_URL){ wrap.style.display="none"; }
+  else if(id.callsign){
+    document.getElementById("oClaimToggle").style.display="none";
+    document.getElementById("oWho").textContent="Fighting as "+id.callsign.toUpperCase()+" — rank follows you everywhere.";
+  } else {
+    document.getElementById("oClaimToggle").onclick=function(){
+      var b=document.getElementById("oClaimBox");
+      b.style.display=b.style.display==="block"?"none":"block";
+    };
+    document.getElementById("oClaimBtn").onclick=function(){
+      var cs=document.getElementById("oCallsign").value.trim().toLowerCase();
+      var em=document.getElementById("oEmail").value.trim();
+      var errBox=document.getElementById("oClaimErr");
+      if(!/^[a-z0-9_]{3,20}$/.test(cs)){ errBox.textContent="Callsign: 3-20 chars, letters/numbers/underscore."; return; }
+      if(em&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){ errBox.textContent="That email doesn't look right — fix it or leave it blank."; return; }
+      errBox.textContent="Claiming…";
+      apiPost({action:"register",callsign:cs,email:em},function(j){
+        if(!j){ errBox.textContent="Network error. Try again."; return; }
+        if(!j.ok){ errBox.textContent=j.error==="taken"?"That callsign is taken.":"Bad callsign."; return; }
+        save(LS_I,{callsign:cs,email:em});
+        try{document.dispatchEvent(new CustomEvent('pf-callsign-claimed',{detail:{callsign:cs}}));}catch(e){}
+        var rr=load(LS_R,{xp:0,got:{}});
+        if(j.xp>rr.xp){ rr.xp=j.xp; save(LS_R,rr); }
+        render();
+      });
+    };
+  }
+}
+/* SHARE AS IMAGE — renders today's orders to a 1080x1350 propaganda card
+   and shares it via the native share sheet (falls back to PNG download). */
+function wrapLines(ctx,text,maxW){
+  var words=String(text).split(/\s+/),lines=[],line='';
+  words.forEach(function(w){
+    var t=line?line+' '+w:w;
+    if(ctx.measureText(t).width>maxW&&line){lines.push(line);line=w;}
+    else line=t;
+  });
+  if(line)lines.push(line);
+  return lines;
+}
+function drawOrdersCard(){
+  var W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;
+  var x=cv.getContext('2d');
+  x.fillStyle='#0d0d0d';x.fillRect(0,0,W,H);
+  x.strokeStyle='#c1121f';x.lineWidth=16;x.strokeRect(14,14,W-28,H-28);
+  x.strokeStyle='#f5ead6';x.lineWidth=3;x.strokeRect(44,44,W-88,H-88);
+  x.textAlign='center';
+  var y=150;
+  x.fillStyle='#f5ead6';x.font='900 78px "Arial Black",Arial,sans-serif';
+  x.fillText('\u2605 DAILY ORDERS \u2605',W/2,y);y+=58;
+  x.fillStyle='#c1121f';x.font='700 34px Arial,sans-serif';
+  var ds=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}).toUpperCase();
+  x.fillText(ds,W/2,y);y+=30;
+  x.strokeStyle='#c1121f';x.lineWidth=4;
+  x.beginPath();x.moveTo(140,y);x.lineTo(W-140,y);x.stroke();y+=70;
+  var set=missionSet(),d=dayRec(),rec=d.rec||{done:[]};
+  x.textAlign='left';
+  set.forEach(function(mi,ix){
+    var m=MISSIONS[mi]||{t:''};
+    var done=rec.done.some(function(e){return e.m===mi;});
+    x.fillStyle='#c1121f';x.font='900 60px "Arial Black",Arial,sans-serif';
+    x.fillText('0'+(ix+1),120,y);
+    x.fillStyle=done?'#c1121f':'#f5ead6';x.font='400 37px Arial,sans-serif';
+    var lines=wrapLines(x,m.t,W-360);
+    lines.forEach(function(ln,i){x.fillText(ln,300,y-14+i*48);});
+    if(done){x.fillStyle='#c1121f';x.font='700 30px Arial,sans-serif';x.fillText('\u2713 REPORTED',300,y-14+lines.length*48+6);}
+    y+=Math.max(150,lines.length*48+86);
+  });
+  x.textAlign='center';
+  var streak=(d.o&&d.o.streak)||0;
+  x.fillStyle='#c1121f';x.font='900 40px "Arial Black",Arial,sans-serif';
+  x.fillText(streak>0?('STREAK: '+streak+' DAY'+(streak===1?'':'S')):'DAY ONE. START THE STREAK.',W/2,y+20);y+=80;
+  var id=ident(),cs='';
+  try{cs=String(id.callsign||'').toUpperCase();}catch(e){}
+  if(cs){x.fillStyle='#c9bfa8';x.font='400 30px Arial,sans-serif';x.fillText('ORDERS FOR: '+cs,W/2,y+10);y+=56;}
+  x.fillStyle='#f5ead6';x.font='900 62px "Arial Black",Arial,sans-serif';
+  x.fillText('MTCSTW.COM',W/2,H-170);
+  x.fillStyle='#c1121f';x.font='900 30px "Arial Black",Arial,sans-serif';
+  x.fillText('THE PROPAGANDA FACTORY',W/2,H-116);
+  x.fillStyle='#c9bfa8';x.font='400 26px Arial,sans-serif';
+  x.fillText('Do things. Post proof.',W/2,H-76);
+  return cv;
+}
+function shareOrdersImage(btn){
+  if(btn)btn.disabled=true;
+  /* Remove any prior share note. */
+  var prior=document.getElementById('oShareNote');if(prior)prior.remove();
+  var note=function(msg,color){
+    var d=document.createElement('div');d.id='oShareNote';d.className='o-rules';
+    d.style.color=color||'#f5f0e1';d.style.marginTop='10px';d.textContent=msg;
+    if(btn&&btn.parentNode)btn.parentNode.appendChild(d);
+    setTimeout(function(){if(d.parentNode)d.remove();},9000);
+  };
+  try{
+    var cv=drawOrdersCard();
+    var awardShare=function(){
+      /* Credit ONLY on a confirmed share or a completed download — never on cancel. */
+      if(btn)btn.disabled=false;
+      try{document.dispatchEvent(new CustomEvent('pf-share-image',{detail:{day:new Date().toISOString().slice(0,10)}}));}catch(e){}
+    };
+    var done=function(url,blob){
+      var file=new File([blob],'pfn-daily-orders.png',{type:'image/png'});
+      var isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent||'');
+      if(navigator.canShare&&navigator.canShare({files:[file]})){
+        navigator.share({files:[file],title:'Daily Orders',text:'Today\u2019s orders from the Propaganda Factory.'}).then(awardShare).catch(function(){
+          /* User cancelled the share sheet — NO credit. */
+          if(btn)btn.disabled=false;
+          note('Share cancelled — no share credit. Tap the button again to share.','#c1121f');
+        });
+      }else{
+        var a=document.createElement('a');a.href=url;a.download='pfn-daily-orders.png';
+        document.body.appendChild(a);a.click();a.remove();
+        if(isIOS)note('Image downloaded — open Photos, tap the image, then Share to post it.','#f5f0e1');
+        awardShare();
+      }
+    };
+    if(cv.toBlob){cv.toBlob(function(b){done(URL.createObjectURL(b),b);},'image/png');}
+    else{var u=cv.toDataURL('image/png');fetch(u).then(function(r){return r.blob();}).then(function(b){done(URL.createObjectURL(b),b);});}
+  }catch(e){if(btn)btn.disabled=false;}
+}
+var _shareBtn=document.getElementById('oShareImg');
+if(_shareBtn){_shareBtn.addEventListener('click',function(){shareOrdersImage(_shareBtn);});}
+
+render();
+syncFromServer();
+})();
+</script>
+</div>
+</template>
+<template id="pf-ov-vote">
+<div class="fe-block pf-override-block">
+<div id="pf-vote" style="max-width:640px;margin:2rem auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:'Helvetica Neue',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;text-align:center;">
+  <div style="font-size:1.5rem;font-weight:900;letter-spacing:0.18em;color:#c1121f;">&#9733; FAN VOTE &#9733;</div>
+  <div id="pf-vote-sub" style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;">Who was the hardest-working propagandist this week?<br><span style="color:#c1121f;">This week's ballot: the 10 highest propaganda scores.</span><br>Polls close <b style="color:#f5f0e1;">Sunday night</b> &mdash; results Monday.</div>
+  <div id="pf-vote-power"></div>
+  <div id="pf-vote-list"></div>
+  <div id="pf-vote-msg" style="margin-top:1rem;font-size:0.9rem;color:#b8ab8e;"></div>
+  <div><button id="pf-vote-copy" style="background:#141414;border:2px solid #c1121f;color:#f5f0e1;padding:0.6rem 1.4rem;margin-top:1rem;font-size:0.85rem;font-weight:700;letter-spacing:0.1em;cursor:pointer;font-family:inherit;">COPY TO SHARE</button></div>
+  <div id="pf-vote-copymsg" style="margin-top:0.5rem;font-size:0.8rem;color:#c1121f;min-height:1.2em;"></div>
+</div>
+<script>
+(function(){
+  /* CONFIG: paste your deployed Apps Script web app URL here */
+  var VOTE_API_URL = "https://script.google.com/macros/s/AKfycbzaqg3vIj1UnbHGJ82uti7yTdRpeR6PYMhoTne6LIL4kf1XjakrImMTHFwounaPrttl/exec";
+  /* PROPAGANDA SCORES — authoritative roster scores (2026-09-28).
+     Ties pre-sorted by score desc. MTCSTW=9.8 and Sex Drugs=9.8 per user directive.
+     Frog=8.9, Wisconsin=8.9, US Federal=8.0 per corrections. */
+  var SCORES = [
+    {name:"Sex Drugs Rock n Roll", slug:"sex-drugs-rock-n-roll", score:9.8},
+    {name:"MTCSTW", slug:"mtcstw", score:9.8},
+    {name:"Radically Sunny", slug:"radically-sunny", score:9.7},
+    {name:"East Coast It Notes", slug:"east-coast-it-notes", score:9.6},
+    {name:"Joman", slug:"joman", score:9.6},
+    {name:"quietmayhem", slug:"quietmayhem", score:9.6},
+    {name:"Dr. Taylor Andrew", slug:"dr-taylor-andrew", score:9.4},
+    {name:"The Atheist Socialist", slug:"the-atheist-socialist", score:9.4},
+    {name:"US Dept of Health and Human Shenanigans", slug:"us-department-of-health-and-human-shenanigans", score:9.4},
+    {name:"F this imperialistic bs", slug:"f-this-imperialistic-bs", score:9.3},
+    {name:"Guillotines For A Better America", slug:"guillotines-for-a-better-america", score:9.3},
+    {name:"Guillotines For Billionares 2020", slug:"guillotines-for-billionares-2020", score:9.3},
+    {name:"South Dakota Dept of Propaganda", slug:"south-dakota-department-of-propaganda", score:9.3},
+    {name:"Films For Action", slug:"films-for-action", score:9.2},
+    {name:"Voix Noire", slug:"voix-noire", score:9.2},
+    {name:"Bona Bones", slug:"bona-bones", score:8.8},
+    {name:"Black NewsBeat", slug:"black-newsbeat-with-dr-kimeka-campbell", score:8.1},
+    {name:"Hex Reject", slug:"hex-reject", score:9.0},
+    {name:"ipostwhenifeelhot", slug:"ipostwhenifeelhot", score:9.0},
+    {name:"Wisconsin Dept of Propaganda", slug:"wisconsin-department-of-propaganda", score:8.9},
+    {name:"The Antifascist Frog", slug:"the-antifascist-frog", score:8.9},
+    {name:"Jeanine Pirreaux Comedy", slug:"jeanine-pirreaux-comedy", score:8.6},
+    {name:"Your Friendly Neighborhood Schizophrenic", slug:"your-friendly-neighborhood-schizophrenic", score:8.5},
+    {name:"undraylowery", slug:"undraylowery", score:8.7},
+    {name:"Minnesota Dept of Propaganda", slug:"minnesota-department-of-propaganda", score:8.6},
+    {name:"The Dr Greg Show", slug:"the-dr-greg-show", score:8.5},
+    {name:"thepamham", slug:"damn-pam-ham-from-effingham", score:8.5},
+    {name:"Luigi's Mansion", slug:"luigis-mansion-socialist-shitposting", score:8.4},
+    {name:"Let the Revolution Begin", slug:"let-the-revolution-begin-peacefully-of-course", score:8.3},
+    {name:"SlayTheGOP", slug:"kim-hunt-slaythegop", score:8.2},
+    {name:"Little Anarchist Brat", slug:"little-anarchist-brat", score:8.2},
+    {name:"I'm that girl.", slug:"im-that-girl", score:8.1},
+    {name:"Joey", slug:"joey", score:8.0},
+    {name:"The Political Feminist", slug:"the-political-feminist", score:8.0},
+    {name:"US Federal Dept of Propaganda", slug:"us-federal-department-of-propaganda", score:8.0},
+    {name:"deejay1.0", slug:"deejay10", score:8.0},
+    {name:"EAT THE RICH", slug:"eat-the-rich", score:7.9},
+    {name:"keithwashburn", slug:"keithwashburn", score:7.9},
+    {name:"Moreno Neurospicy News", slug:"moreno-neurospicy-news", score:7.8},
+    {name:"dogman_v1", slug:"dogman_v1", score:7.7},
+    {name:"bitchysitch", slug:"bitchysitch", score:7.6}
+  ];
+  var VOTE_IMGS = {
+    "bitchysitch": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/fe64f79d-180f-4f57-ac52-fef5aa60d0f4/IMG_9099.jpeg?format=750w",
+    "black-newsbeat-with-dr-kimeka-campbell": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/ce3e6160-d4a4-4f7b-960c-a2d52a3b00c2/blacknewsbeat.jpg?format=750w",
+    "bona-bones": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/e3e41864-12b4-468b-9502-4af04d7dca32/bona-bones-new.jpg?format=750w",
+    "damn-pam-ham-from-effingham": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/2dac9586-3b41-43d1-9ee0-750f074a4f19/IMG_9097.jpeg?format=750w",
+    "deejay10": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/46250049-fb06-4100-9c96-e1cf1c311483/IMG_9094.jpeg?format=750w",
+    "dr-taylor-andrew": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/e0c85fe4-f2fd-431d-87ee-d1323181e7b2/drtaylor.jpg?format=750w",
+    "east-coast-it-notes": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/4c39a158-5fa1-4997-a70b-fd90646f3327/444136406_1004276784618065_4047333174202600285_n.jpg?format=750w",
+    "eat-the-rich": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/1efc59a3-abeb-40a6-a142-eef5365c657a/0F1BBCA4-91AB-4AF5-B25B-67B63ADD44DB.jpeg?format=750w",
+    "f-this-imperialistic-bs": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/a8617435-9f9e-41b1-9633-f6e1faad3b86/Image+12.jpeg?format=750w",
+    "films-for-action": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/39ac9f31-c3f6-4419-b9b4-c0552a8523d5/468674838_968765711953278_4106206849352114286_n.jpg?format=750w",
+    "guillotines-for-a-better-america": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/2bca2109-901d-4085-b5de-243ab0fd5cae/Image+3.jpeg?format=750w",
+    "guillotines-for-billionares-2020": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/a171e925-f264-4c9f-a02d-45126911f5d7/Image+4.jpeg?format=750w",
+    "hex-reject": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/f4aabf78-85f8-4753-a61a-a055255169ad/hexreject.jpg?format=750w",
+    "im-that-girl": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/8c5e2e2b-1616-41a1-b8e7-09093a858938/imthatgirl.jpg?format=750w",
+    "ipostwhenifeelhot": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/58515df6-8c5c-44f0-a14d-a659467de64c/0cbc7aae323c3554a790c47e2a58ea85%7Etplv-tiktokx-cropcenter_1080_1080.jpeg?format=750w",
+    "jeanine-pirreaux-comedy": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/c5fe9f42-a07a-483b-844c-472d6f2c792b/moreno.jpg?format=750w",
+    "joey": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/f1a0c773-0ab7-4d33-837d-ac95db8d5079/joey.jpg?format=750w",
+    "joman": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/93ba1214-8a77-401a-b925-d1aa204fcc25/joman.jpg?format=750w",
+    "keithwashburn": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/3a9cf639-db15-4130-994f-18668106b4bc/IMG_9094.jpeg?format=750w",
+    "let-the-revolution-begin-peacefully-of-course": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/dc47842f-21d9-4b1a-b322-09995c7fc1fc/Image+13.jpeg?format=750w",
+    "little-anarchist-brat": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/cc78e80e-5d40-4369-b277-49b85e4a6caf/Image+14.jpeg?format=750w",
+    "luigis-mansion-socialist-shitposting": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/bb188351-bce4-430a-bc0f-0a954bca5b76/Screenshot+2025-04-21+at+2.56.42%E2%80%AFAM.png?format=750w",
+    "minnesota-department-of-propaganda": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/93204040-73a4-4d60-aee3-9dade8b2d8f6/Image+5.jpeg?format=750w",
+    "moreno-neurospicy-news": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/c5fe9f42-a07a-483b-844c-472d6f2c792b/moreno.jpg?format=750w",
+    "mtcstw": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/1810c8c9-3148-41f0-b03f-99e7cd29ff12/mtcstw.jpg?format=750w",
+    "quietmayhem": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/cbe3277c-eb76-481e-aea6-0650defeba71/IMG_9095.jpeg?format=750w",
+    "radically-sunny": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/17574d4c-499d-4904-8fd6-1d37c1ec1565/sunny.jpg?format=750w",
+    "sex-drugs-rock-n-roll": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/98feb69f-1dd8-4726-a377-5fa357f011fd/333410538_180133698048476_3682545244627213546_n.jpg?format=750w",
+    "south-dakota-department-of-propaganda": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/20a7a31c-ac26-464b-9b4d-91b9b9480a2d/F25BC730-04D2-4653-A308-1E8D3D96146F.jpeg?format=750w",
+    "the-antifascist-frog": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/ea682dd0-4794-424b-ad07-f8f590a13875/antifascist-frog.jpg?format=750w",
+    "the-atheist-socialist": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/41d05b04-2f25-44fe-8c52-b100c31be1c4/Image+15.jpeg?format=750w",
+    "the-dr-greg-show": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/2fe8e3e6-ffbe-4b2c-8239-2509928cf636/drgreg.jpg?format=750w",
+    "the-political-feminist": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/42973f27-05d9-4fb4-add8-b2d250122635/Image+11.jpeg?format=750w",
+    "undraylowery": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/359534bb-e03e-4411-82d1-c391d1415550/IMG_9096.jpeg?format=750w",
+    "us-department-of-health-and-human-shenanigans": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/a72ddfa7-d761-42d7-a8c7-a06b6bb59e5f/92ED7C57-277B-452D-9361-D1F328033503.jpeg?format=750w",
+    "us-federal-department-of-propaganda": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/078a027e-83ca-40f3-b4a2-4b18af237d39/DEBB08C7-0B3C-4AF4-A5FF-DCD9AABB1C5D.jpeg?format=750w",
+    "voix-noire": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/b03798e0-9849-451d-878d-32637fb2e0a7/Image+16.jpeg?format=750w",
+    "wisconsin-department-of-propaganda": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/7cdd29fd-900f-47ba-91ec-e9ce2e30ab6d/Screenshot+2025-04-21+at+12.14.54%E2%80%AFPM.png?format=750w",
+    "your-friendly-neighborhood-schizophrenic": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/c6d5e34d-d2b8-44d5-b3d9-a74a244b1708/Image.jpeg?format=750w"
+  };
+    /* THE BALLOT: the 10 highest propaganda scores.
+     9.3 TIE-BREAK (codified 2026-09-29): four creators tie at 9.3 for the 10th
+     spot. The tied creators rotate weekly by ISO week number, so each gets
+     the ballot spotlight over time. Higher scores are always seated first. */
+  var _sorted = SCORES.slice().sort(function(a,b){ return b.score - a.score; });
+  var _cutoff = _sorted[9].score;
+  var _above = _sorted.filter(function(c){ return c.score > _cutoff; });
+  var _tied = _sorted.filter(function(c){ return c.score === _cutoff; });
+  var _spots = 10 - _above.length;
+  var _wk = isoWeek(chicagoNow());
+  var _rotated = [];
+  for(var _i = 0; _i < _tied.length; _i++){
+    _rotated.push(_tied[(_wk - 1 + _i) % _tied.length]);
+  }
+  var CANDIDATES = _above.concat(_rotated.slice(0, _spots));
+  CANDIDATES.sort(function(a,b){ return b.score - a.score; });
+  function chicagoNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"America/Chicago"})); }
+  function isoWeek(d){
+    var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    var day = (t.getUTCDay() + 6) % 7;
+    t.setUTCDate(t.getUTCDate() - day + 3);
+    var first = new Date(Date.UTC(t.getUTCFullYear(), 0, 4));
+    var fday = (first.getUTCDay() + 6) % 7;
+    first.setUTCDate(first.getUTCDate() - fday + 3);
+    return 1 + Math.round((t - first) / 6048e5);
+  }
+  var now = chicagoNow();
+  var weekKey = now.getFullYear() + "-W" + isoWeek(now);
+  var storeKey = "slr-vote-" + weekKey;
+  /* COMMISSAR unlock: vote counts double. Set by the Enlistment Ranks widget. */
+  var VOTE_WEIGHT = 1;
+  try { VOTE_WEIGHT = parseInt(localStorage.getItem("pf_vote_weight") || "1", 10) || 1; } catch(e){}
+  if (VOTE_WEIGHT < 1 || VOTE_WEIGHT > 2) VOTE_WEIGHT = 1;
+  if (VOTE_WEIGHT > 1) {
+    document.getElementById('pf-vote-power').innerHTML =
+      '<div style="display:inline-block;background:#c1121f;color:#f5f0e1;font-weight:900;font-size:0.85rem;letter-spacing:0.14em;padding:0.4rem 1.2rem;margin-bottom:1rem;">&#9733; &times;2 VOTE POWER &mdash; COMMISSAR UNLOCK &#9733;</div>';
+  }
+  var list = document.getElementById('pf-vote-list');
+  var msg = document.getElementById('pf-vote-msg');
+  /* GLOBAL TOTALS: fetched from the backend via JSONP, shared across all devices.
+     Refresh on every page load so each user sees the live count. */
+  var voteTotals = {};
+  function fetchTotals(){
+    if(!VOTE_API_URL || VOTE_API_URL.indexOf('PASTE') === 0) return;
+    var cb = 'pfVoteCb_' + Date.now();
+    window[cb] = function(data){
+      try {
+        if(data && data.votes) voteTotals = data.votes;
+        renderBallot();
+      } catch(e){}
+      try { delete window[cb]; } catch(e){}
+      var s = document.getElementById(cb);
+      if(s && s.parentNode) s.parentNode.removeChild(s);
+    };
+    var s = document.createElement('script');
+    s.id = cb;
+    s.src = VOTE_API_URL + '?action=results&week=' + encodeURIComponent(weekKey) + '&callback=' + cb;
+    s.onerror = function(){ try{ delete window[cb]; }catch(e){} if(s.parentNode) s.parentNode.removeChild(s); };
+    document.head.appendChild(s);
+  }
+  /* Stored vote: JSON {name, slug, weight}. Older plain-name values still read. */
+  function voted(){
+    var raw = null;
+    try { raw = localStorage.getItem(storeKey); } catch(e){}
+    if(!raw) return null;
+    try {
+      var v = JSON.parse(raw);
+      if(v && v.slug) return {name: v.name, slug: v.slug, weight: v.weight || 1};
+    } catch(e){}
+    for(var i = 0; i < CANDIDATES.length; i++){
+      if(CANDIDATES[i].name === raw) return {name: raw, slug: CANDIDATES[i].slug, weight: 1};
+    }
+    return {name: raw, slug: '', weight: 1};
+  }
+  /* FAN VOTE SHARE POSTERS — canvas poster per candidate, Web Share API or PNG
+     download ("save to Photos" path on iPhone). Privacy: only the voter's own pick
+     is ever shared, never vote totals. */
+  function candByName(name){
+    for(var i=0;i<CANDIDATES.length;i++){ if(CANDIDATES[i].name===name) return CANDIDATES[i]; }
+    for(var j=0;j<SCORES.length;j++){ if(SCORES[j].name===name) return SCORES[j]; }
+    return {name:name, slug:'', score:0};
+  }
+  function votePoster(c, mode){
+    return new Promise(function(resolve){
+      var W=1080,H=1350,canvas=document.createElement('canvas');
+      canvas.width=W;canvas.height=H;
+      var x=canvas.getContext('2d');
+      x.fillStyle='#0d0d0d';x.fillRect(0,0,W,H);
+      x.strokeStyle='#c1121f';x.lineWidth=14;x.strokeRect(28,28,W-56,H-56);
+      x.lineWidth=3;x.strokeRect(58,58,W-116,H-116);
+      var cx=W/2;
+      function ct(t,y,size,color,weight,ls){
+        x.fillStyle=color;
+        x.font=weight+' '+size+'px "Arial Black",Arial,sans-serif';
+        x.textAlign='center';x.textBaseline='middle';
+        try{ x.letterSpacing=(ls||0)+'px'; }catch(e){}
+        x.fillText(t,cx,y);
+        try{ x.letterSpacing='0px'; }catch(e){}
+      }
+      function wrap(t,maxW,size){
+        x.font='900 '+size+'px "Arial Black",Arial,sans-serif';
+        var words=String(t).split(' '),lines=[],cur='',i,trial;
+        for(i=0;i<words.length;i++){
+          trial=cur?cur+' '+words[i]:words[i];
+          if(x.measureText(trial).width>maxW&&cur){ lines.push(cur);cur=words[i]; }
+          else cur=trial;
+        }
+        if(cur)lines.push(cur);
+        return lines;
+      }
+      ct('\u2605 FAN VOTE \u2605',150,54,'#c1121f','900',6);
+      ct(mode==='post'?'I VOTED FOR':'VOTE FOR',228,34,'#f5ead6','900',8);
+      /* Adaptive name size: shrink until the name fits maxLines. */
+      var hasImg=!!VOTE_IMGS[c.slug];
+      var maxLines=hasImg?2:3, nsize=72, lines=wrap(c.name.toUpperCase(),W-240,nsize), i;
+      while(lines.length>maxLines&&nsize>48){ nsize-=8; lines=wrap(c.name.toUpperCase(),W-240,nsize); }
+      var lh=Math.round(nsize*1.2), done=false;
+      function finish(img){
+        if(done)return;done=true;
+        var S=480,y;
+        if(img&&img.width>0){
+          var side=Math.min(img.width,img.height);
+          var sx=(img.width-side)/2,sy=(img.height-side)/2;
+          x.save();
+          x.beginPath();x.rect(cx-S/2,280,S,S);x.clip();
+          x.drawImage(img,sx,sy,side,side,cx-S/2,280,S,S);
+          x.restore();
+          x.strokeStyle='#c1121f';x.lineWidth=8;x.strokeRect(cx-S/2,280,S,S);
+          y=280+S+64;
+        } else { y=372; }
+        var ty=y+Math.round(lh/2);
+        for(i=0;i<lines.length;i++){ ct(lines[i],ty,nsize,'#f5ead6','900',2); ty+=lh; }
+        ty+=22;
+        ct('PROPAGANDIST OF THE WEEK',ty,40,'#c1121f','900',5); ty+=70;
+        if(c.score){ ct('PROPAGANDA SCORE '+c.score.toFixed(1),ty,32,'#b8ab8e','700',3); ty+=62; }
+        var footY=Math.min(Math.max(ty+44,H-200),H-128);
+        ct('MTCSTW.COM',footY,44,'#f5ead6','900',6);
+        ct('#SICKLEFTRADICALS',footY+58,28,'#c1121f','700',4);
+        resolve(canvas);
+      }
+      if(hasImg){
+        var img=new Image();img.crossOrigin='anonymous';
+        var to=setTimeout(function(){ finish(null); },9000);
+        img.onload=function(){ clearTimeout(to);finish(img); };
+        img.onerror=function(){ clearTimeout(to);finish(null); };
+        img.src=VOTE_IMGS[c.slug];
+      } else finish(null);
+    });
+  }
+  function shareVotePoster(c, mode){
+    var msgEl=document.getElementById('pf-vote-copymsg');
+    var say=function(t){ if(msgEl)msgEl.textContent=t; };
+    say('Building your poster\u2026');
+    function dl(blob){
+      var a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);a.download='fan-vote-'+(c.slug||'pick')+'.png';
+      document.body.appendChild(a);a.click();
+      setTimeout(function(){ try{URL.revokeObjectURL(a.href);}catch(e){} a.remove(); },4000);
+      say('Poster downloaded \u2014 on iPhone open it from Files/Downloads, tap Share, then Save Image to put it in Photos.');
+    }
+    votePoster(c,mode).then(function(canvas){
+      if(!canvas.toBlob){ say('Poster failed \u2014 try again.');return; }
+      canvas.toBlob(function(blob){
+        if(!blob){ say('Poster failed \u2014 try again.');return; }
+        var file=null;
+        try{ file=new File([blob],'fan-vote-'+(c.slug||'pick')+'.png',{type:'image/png'}); }catch(e){}
+        var txt=(mode==='post'?'I voted for ':'Vote for ')+c.name+' for Propagandist of the Week! https://www.mtcstw.com #SickLeftRadicals';
+        if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
+          navigator.share({files:[file],title:'Fan Vote',text:txt}).then(
+            function(){ say('Shared. Go spread the word.'); },
+            function(e){
+              if(e&&e.name==='AbortError'){ say('Share cancelled.'); }
+              else { dl(blob); }
+            });
+        } else dl(blob);
+      },'image/png');
+    });
+  }
+  function showVoted(name, weight){
+    list.innerHTML = '';
+    var vc = candByName(name);
+    var wtxt = (weight > 1) ? ' <b style="color:#c1121f;">&times;' + weight + '</b>' : '';
+    msg.innerHTML = 'Vote counted for <b style="color:#f5f0e1;">' + name + '</b>' + wtxt +
+      '.<br>Results drop Monday morning on the reshuffle.<br>' +
+      '<button id="pf-vote-share" style="background:#c1121f;border:2px solid #c1121f;color:#f5f0e1;padding:0.6rem 1.4rem;margin-top:0.8rem;margin-right:0.5rem;font-size:0.85rem;font-weight:700;letter-spacing:0.1em;cursor:pointer;font-family:inherit;">SHARE YOUR VOTE</button>' +
+      '<button id="pf-vote-reset" style="background:transparent;border:2px solid #c1121f;color:#c1121f;padding:0.45rem 1.2rem;margin-top:0.8rem;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;cursor:pointer;font-family:inherit;">RESET VOTE</button>';
+    var sb = document.getElementById('pf-vote-share');
+    if(sb) sb.onclick = function(){ shareVotePoster(vc,'post'); };
+    var rb = document.getElementById('pf-vote-reset');
+    if(rb) rb.onclick = resetVote;
+  }
+  function renderBallot(){
+    list.innerHTML = '';
+    CANDIDATES.forEach(function(c){
+      var row = document.createElement('div');
+      row.style.cssText = 'display:block;margin:0.25rem 0;';
+      var b = document.createElement('button');
+      b.textContent = c.name;
+      b.style.cssText = 'display:inline-block;background:#141414;border:2px solid #f5f0e1;color:#f5f0e1;padding:0.6rem 1rem;margin:0.15rem;font-size:0.9rem;font-weight:700;letter-spacing:0.04em;cursor:pointer;font-family:inherit;';
+      b.onmouseover = function(){ b.style.background='#c1121f'; b.style.borderColor='#c1121f'; };
+      b.onmouseout = function(){ b.style.background='#141414'; b.style.borderColor='#f5f0e1'; };
+      b.onclick = function(){ castVote(c); };
+      var s = document.createElement('button');
+      s.textContent = 'SHARE';
+      s.style.cssText = 'display:inline-block;background:transparent;border:2px solid #c1121f;color:#c1121f;padding:0.6rem 0.8rem;margin:0.15rem;font-size:0.75rem;font-weight:700;letter-spacing:0.12em;cursor:pointer;font-family:inherit;';
+      s.onclick = function(){ shareVotePoster(c,'pre'); };
+      row.appendChild(b); row.appendChild(s);
+      list.appendChild(row);
+    });
+  }
+  /* RESET VOTE: subtracts the vote's weight from the candidate's total, clears the
+     local ballot lock, and re-opens the ballot. Voting again adds it back. */
+  function resetVote(){
+    var v = voted();
+    if(v && v.slug && VOTE_API_URL && VOTE_API_URL.indexOf('PASTE') !== 0){
+      try {
+        fetch(VOTE_API_URL, {method:'POST', mode:'no-cors',
+          headers:{'Content-Type':'text/plain'},
+          body: JSON.stringify({week: weekKey, slug: v.slug, weight: v.weight, action:'retract'})});
+      } catch(e){}
+    }
+    try { localStorage.removeItem(storeKey); } catch(e){}
+    renderBallot();
+    msg.innerHTML = 'Vote reset &mdash; <b style="color:#c1121f;">-' + (v ? v.weight : 1) + '</b>' +
+      (v ? ' from <b style="color:#f5f0e1;">' + v.name + '</b>' : '') +
+      '.<br>Changed your mind? Pick again below.';
+    /* Refresh the shared totals after the retract posts. */
+    setTimeout(fetchTotals, 1500);
+  }
+  var existing = voted();
+  if(existing){ showVoted(existing.name, existing.weight); }
+  else { renderBallot(); }
+  /* Load live totals on every page view — shared across all devices. */
+  fetchTotals();
+  function castVote(c){
+    try { localStorage.setItem(storeKey, JSON.stringify({name: c.name, slug: c.slug, weight: VOTE_WEIGHT})); } catch(e){}
+    if(VOTE_API_URL && VOTE_API_URL.indexOf('PASTE') !== 0){
+      try {
+        fetch(VOTE_API_URL, {method:'POST', mode:'no-cors',
+          headers:{'Content-Type':'text/plain'},
+          body: JSON.stringify({week: weekKey, slug: c.slug, weight: VOTE_WEIGHT})});
+      } catch(e){}
+    }
+    showVoted(c.name, VOTE_WEIGHT);
+    try { document.dispatchEvent(new CustomEvent("pf-vote-cast", {detail:{week: weekKey, weight: VOTE_WEIGHT}})); } catch(e){}
+    /* Refresh the shared totals so the new vote appears on next render. */
+    setTimeout(fetchTotals, 1500);
+  }
+  /* COPY CRATE */
+  var VCRATE="\u2605 FAN VOTE: PROPAGANDIST OF THE WEEK \u2605\nWho was the hardest-working propagandist this week? You decide.\nVote: https://www.mtcstw.com\n#SickLeftRadicals #PropagandaFactory";
+  document.getElementById("pf-vote-copy").onclick=function(){
+    var cm=document.getElementById("pf-vote-copymsg");
+    var done=function(ok){ if(cm) cm.textContent=ok?"Copied. Go spread the word.":"Copy failed — long-press to copy manually."; };
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(VCRATE).then(function(){done(true);},function(){done(false);});
+    } else {
+      var ta=document.createElement("textarea");ta.value=VCRATE;ta.style.position="fixed";ta.style.opacity="0";
+      document.body.appendChild(ta);ta.select();
+      try{done(document.execCommand("copy"));}catch(e){done(false);}
+      document.body.removeChild(ta);
+    }
+  };
+})();
+</script>
+</div>
+</template>
+<template id="pf-ov-dometer">
+<div class="fe-block pf-override-block" id="pf-dometer2">
+
+<h2>&#9879; The Do Meter</h2>
+<div class="d-sub">Not followers. Not likes. Things <b style="color:#c1121f">done</b>.<br>Every mission reported, every vote cast, every bond bought &mdash; the machine keeps count.</div>
+<div class="d-num"><span id="dCount">0</span> <small>tasks complete</small></div>
+<div class="d-keglabel">Weekly target</div>
+<div class="d-keg" id="dKeg"><div class="d-fill" id="dFill"></div></div>
+<div class="d-goal" id="dGoalLine"></div>
+<div class="d-types" id="dTypes"></div>
+<div class="d-spark" id="dSpark" aria-hidden="true"></div>
+
+<div class="d-boom" id="dBoom"><h3>&#128165; Target destroyed</h3><p>New orders incoming. The fuse is relit.</p></div>
+
+<script>
+(function(){
+'use strict';
+var LS='pf_do_v1';
+var PTS={'pf-order-checkin':1,'pf-bracket-ballot':1,'pf-bracket-liquidated':2,'pf-vote-cast':1,'pf-quiz-done':1,'pf-traitor-vote':1,'pf-wb-buy':5,'pf-enlisted':3,'pf-caption-submit':2,'pf-poster-made':2,'pf-drop-claimed':2,'pf-share-image':2};
+var LABELS={'pf-order-checkin':'Orders','pf-bracket-ballot':'Brackets','pf-bracket-liquidated':'Liquidations','pf-vote-cast':'Votes','pf-quiz-done':'Quizzes','pf-traitor-vote':'Traitors','pf-wb-buy':'Bonds','pf-enlisted':'Enlisted','pf-caption-submit':'Captions','pf-poster-made':'Posters','pf-drop-claimed':'Drops','pf-share-image':'Shares'};
+function chiNow(){try{return new Date(new Date().toLocaleString('en-US',{timeZone:'America/Chicago'}));}catch(e){return new Date();}}
+function weekKey(d){var t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));var day=(t.getUTCDay()+6)%7;t.setUTCDate(t.getUTCDate()-day+3);var first=new Date(Date.UTC(t.getUTCFullYear(),0,4));var fday=(first.getUTCDay()+6)%7;first.setUTCDate(first.getUTCDate()-fday+3);var w=1+Math.round((t-first)/(7*864e5));return t.getUTCFullYear()+'-W'+String(w).padStart(2,'0');}
+function load(){try{var s=JSON.parse(localStorage.getItem(LS)||'null');if(s&&s.w)return s;}catch(e){}return{w:weekKey(chiNow()),total:0,byType:{},goal:1000,hits:0,hist:{},seen:[],boomed:false};}
+function save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}
+var S=load();
+function rollover(){var wk=weekKey(chiNow());if(S.w!==wk){S.hist[S.w]=S.total;var ks=Object.keys(S.hist).sort();while(ks.length>4){delete S.hist[ks.shift()];}S.w=wk;S.total=0;S.byType={};S.seen=[];S.boomed=false;save(S);}}
+function fmt(n){return n.toLocaleString('en-US');}
+function render(){
+  rollover();
+  /* UNIFIED TOTAL: prefer backend global over local week count */
+  var unifiedTotal = S.total;
+  try {
+    var gEls = document.querySelectorAll('.pf-global-total-num');
+    if(gEls.length && gEls[0].textContent && parseInt(gEls[0].textContent.replace(/,/g,''), 10) > 0){
+      unifiedTotal = parseInt(gEls[0].textContent.replace(/,/g,''), 10);
+    }
+  } catch(e){}
+  var c=document.getElementById('dCount');if(c){c.textContent=fmt(unifiedTotal);c.classList.remove('d-flash');void c.offsetWidth;c.classList.add('d-flash');}
+  var pct=Math.min(100,Math.round(S.total/S.goal*100));
+  var fill=document.getElementById('dFill');if(fill)fill.style.width=pct+'%';
+  var keg=document.getElementById('dKeg');if(keg)keg.classList.toggle('hot',pct>=75);
+  var gl=document.getElementById('dGoalLine');if(gl)gl.textContent=fmt(S.total)+' / '+fmt(S.goal)+' to detonation'+(S.hits>0?' \u00B7 '+S.hits+' target'+(S.hits>1?'s':'')+' destroyed':'');
+  var ty=document.getElementById('dTypes');
+  if(ty){var h='';Object.keys(LABELS).forEach(function(k){var v=S.byType[k]||0;h+='<span class="d-type">'+LABELS[k]+' <b>'+fmt(v)+'</b></span>';});ty.innerHTML=h;}
+  var sp=document.getElementById('dSpark');
+  if(sp){var weeks=Object.keys(S.hist).sort();weeks.push(S.w);var vals=weeks.map(function(w){return w===S.w?S.total:(S.hist[w]||0);});var mx=Math.max.apply(null,vals.concat([1]));var hh='';weeks.forEach(function(w,i){var v=vals[i];var bh=Math.max(6,Math.round(v/mx*52));hh+='<div class="d-bar'+(w===S.w?' cur':'')+'" title="'+w+': '+fmt(v)+'"><span>'+fmt(v)+'</span><i style="height:'+bh+'px"></i></div>';});sp.innerHTML=hh;}
+  try{document.dispatchEvent(new CustomEvent('pf-do-update',{detail:{total:S.total,week:S.w,goal:S.goal}}));}catch(e){}
+}
+function boom(){
+  var b=document.getElementById('dBoom');if(!b)return;
+  b.classList.add('show');
+  var host=document.getElementById('pf-dometer2');
+  var colors=['#c1121f','#c1121f','#f5ead6','#e8192f'];
+  for(var i=0;i<46;i++){var p=document.createElement('div');p.className='d-confetti';p.style.left=(Math.random()*100)+'%';p.style.background=colors[i%4];p.style.animationDuration=(1.2+Math.random()*1.6)+'s';host.appendChild(p);(function(el){setTimeout(function(){el.remove();},3200);})(p);}
+  setTimeout(function(){b.classList.remove('show');},3600);
+}
+function add(type,pts,seenKey){
+  rollover();
+  if(seenKey){if(S.seen.indexOf(seenKey)>=0)return;S.seen.push(seenKey);if(S.seen.length>300)S.seen=S.seen.slice(-300);}
+  /* The green $ pops only when the event was dispatched from a real user
+     gesture. navigator.userActivation.isActive is true when the dispatch runs
+     synchronously inside a click/tap handler, and false for async/backend
+     events. The 2.5s tap heuristic is used ONLY when navigator.userActivation
+     is unavailable — never to override an explicit false. */
+  var userDroveIt=false, hasUA=false;
+  try{hasUA=!!(navigator.userActivation&&('isActive' in navigator.userActivation));}catch(e){}
+  if(hasUA){try{userDroveIt=!!navigator.userActivation.isActive;}catch(e){}}
+  else{userDroveIt=(Date.now()-lastTap)<2500;}
+  S.total+=pts;S.byType[type]=(S.byType[type]||0)+1;
+  if(!S.boomed&&S.total>=S.goal){S.boomed=true;S.hits++;boom();S.goal=Math.ceil(S.goal*1.25/50)*50;}
+  save(S);render();
+  if(userDroveIt)dollarPop();
+}
+var lastTap=0;
+document.addEventListener('click',function(){lastTap=Date.now();},true);
+document.addEventListener('touchstart',function(){lastTap=Date.now();},true);
+function dollarPop(){
+  var host=document.getElementById('pf-dometer2');if(!host)return;
+  var d=document.createElement('div');d.className='d-dollar';d.textContent='$';host.appendChild(d);
+  setTimeout(function(){d.remove();},1400);
+}
+Object.keys(PTS).forEach(function(type){
+  document.addEventListener(type,function(e){
+    var d=(e&&e.detail)||{};var key=type+'|'+(d.day||d.week||'')+'|'+(d.mission!==undefined?d.mission:'')+'|'+(d.amt||'')+'|'+(d.archetype||'');
+    add(type,PTS[type],key);
+  });
+});
+window.pfDoMeter={add:function(t){if(PTS[t])add(t,PTS[t],t+'|manual|'+Date.now());},total:function(){rollover();return S.total;}};
+render();
+})();
+</script>
+</div>
+<!-- DO-METER-BIG-END -->
+
+<!-- DO-METER-MINI-START
+     Paste this block into footer code injection, UNDER the red banner block.
+     One live line: "THE NETWORK DID X THINGS THIS WEEK". Self-contained. -->
+<div id="pf-do-mini">
+
+<span class="m-line">&#9879; The network did <b id="pfDoMiniNum">0</b> things this week</span>
+<script>
+(function(){
+'use strict';
+var LS='pf_do_v1';
+function chiNow(){try{return new Date(new Date().toLocaleString('en-US',{timeZone:'America/Chicago'}));}catch(e){return new Date();}}
+function weekKey(d){var t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));var day=(t.getUTCDay()+6)%7;t.setUTCDate(t.getUTCDate()-day+3);var first=new Date(Date.UTC(t.getUTCFullYear(),0,4));var fday=(first.getUTCDay()+6)%7;first.setUTCDate(first.getUTCDate()-fday+3);var w=1+Math.round((t-first)/(7*864e5));return t.getUTCFullYear()+'-W'+String(w).padStart(2,'0');}
+function total(){try{var s=JSON.parse(localStorage.getItem(LS)||'null');if(s&&s.w===weekKey(chiNow()))return s.total||0;}catch(e){}return 0;}
+function paint(){var el=document.getElementById('pfDoMiniNum');if(el)el.textContent=(total()).toLocaleString('en-US');}
+document.addEventListener('pf-do-update',paint);
+paint();setInterval(paint,5000);
+})();
+</script>
+</div>
+</template>
+<template id="pf-ov-nuke">
+<div class="fe-block pf-override-block" id="slr-nuke">
+
+<div class="slr-nuke-kicker">Network Command</div>
+<h2>The <span class="slr-red">Media Nuke</span></h2>
+<p class="slr-nuke-sub">Master XP tracker &mdash; every mission charges the blast. When the bar fills, we own the news cycle.</p>
+
+<div class="slr-nuke-barwrap">
+  <div class="slr-nuke-fill" id="slr-nuke-fill"></div>
+  <div class="slr-nuke-label" id="slr-nuke-label">CHARGING&hellip;</div>
+</div>
+<div class="slr-nuke-status" id="slr-nuke-status"></div>
+<div class="slr-nuke-detail" id="slr-nuke-detail"></div>
+<div class="slr-nuke-you" id="slr-nuke-you"></div>
+
+<details class="slr-nuke-math">
+  <summary>The math</summary>
+  <p><strong>50,000 XP in one day = a media nuke.</strong> Daily Orders caps at 50 XP per comrade per day, so a full bar means roughly <strong>1,000 comrades running full missions</strong> &mdash; tens of thousands of coordinated likes, comments, shares, and watch-throughs landing inside the platforms' first-hour velocity window.</p>
+  <p>That's the force it takes to push a hashtag onto the national trending page, get the TikTok/X trends desks buzzing, and force newsroom pickup. At 5M+ network reach, it only takes <strong>1% of the audience</strong> moving together.</p>
+  <p>When the bar fills, command issues the target, the hashtag, and the go-time. Until then: run your missions, charge the blast.</p>
+</details>
+
+<script>
+(function(){
+'use strict';
+var BACKEND_URL = "https://script.google.com/macros/s/AKfycbxKFGLAsEqn8msdaNSjML8yHNEHRvaI5drVzJQwMiaVbkhkMBlNoFq1M4hdJo33Usic5Q/exec"; /* ranks backend: live */
+var GOAL = 50000;
+
+function ready(fn){
+  if(document.readyState==='complete'||document.readyState==='interactive'){fn();}
+  else{document.addEventListener('DOMContentLoaded',fn);}
+}
+ready(function(){
+  try{init();}catch(e){/* no-op: never break the page */}
+});
+
+function fmt(n){return String(Math.floor(n)).replace(/\B(?=(\d{3})+(?!\d))/g,",");}
+
+function stateFor(pct){
+  if(pct>=100)return {cls:'st-armed',text:'\u2622 MEDIA NUKE ARMED \u2622'};
+  if(pct>=60)return {cls:'st-critical',text:'CRITICAL MASS \u2014 all hands on deck'};
+  if(pct>=25)return {cls:'st-charging',text:'CHARGING \u2014 spread the missions'};
+  return {cls:'st-dormant',text:'DORMANT \u2014 the network sleeps'};
+}
+
+/* Event-sourced daily XP counter (single source of truth for "today").
+   The old version summed pf_orders_v1 + pf_ranks_v1, but Daily Orders XP also
+   flows INTO pf_ranks_v1 — so every order was counted twice. It also fell back
+   to lifetime o.xp when no today-field existed. This version increments exactly
+   once per dispatched game event and resets at midnight. */
+var NUKE_LS='pf_nuke_local_v2';
+var NUKE_PTS={'pf-order-checkin':null,'pf-bracket-ballot':10,'pf-bracket-liquidated':10,
+ 'pf-vote-cast':10,'pf-quiz-done':15,'pf-traitor-vote':10,'pf-caption-submit':10,
+ 'pf-poster-made':5,'pf-drop-claimed':10,'pf-enlisted':20,'pf-wb-buy':25,'pf-creator-xp':null};
+function nukeDay(){return new Date().toISOString().slice(0,10);}
+function nukeLoad(){try{var s=JSON.parse(localStorage.getItem(NUKE_LS)||'null');if(s&&s.d)return s;}catch(e){}return{d:nukeDay(),xp:0};}
+function nukeSave(s){try{localStorage.setItem(NUKE_LS,JSON.stringify(s));}catch(e){}}
+function nukeAdd(n){var s=nukeLoad(),t=nukeDay();if(s.d!==t)s={d:t,xp:0};s.xp+=n;nukeSave(s);}
+function localXpToday(){var s=nukeLoad();if(s.d!==nukeDay())return 0;return s.xp;}
+
+function render(root,xp,goal,mode,comrades){
+  var pct=Math.min(100,(xp/goal)*100);
+  var st=stateFor(pct);
+  var fill=root.querySelector('#slr-nuke-fill');
+  var label=root.querySelector('#slr-nuke-label');
+  var status=root.querySelector('#slr-nuke-status');
+  var detail=root.querySelector('#slr-nuke-detail');
+  var you=root.querySelector('#slr-nuke-you');
+  if(fill)fill.style.width=pct+'%';
+  if(label)label.textContent=fmt(xp)+' / '+fmt(goal)+' XP';
+  if(status)status.innerHTML='<span class="'+st.cls+'">'+st.text+'</span>';
+  if(detail){
+    detail.textContent = mode==='network'
+      ? (comrades+' comrades in the fight today \u2014 network sync live')
+      : 'network sync offline \u2014 showing this device only (backend not deployed yet)';
+  }
+  var mine=localXpToday();
+  if(you)you.innerHTML='Your charge today: <strong>'+fmt(mine)+' XP</strong> \u2014 run missions to push the bar';
+  root.classList.toggle('armed',pct>=100);
+}
+
+function init(){
+  var root=document.getElementById('slr-nuke');
+  if(!root)return;
+  function tick(){
+    if(BACKEND_URL){
+      var url=BACKEND_URL+(BACKEND_URL.indexOf('?')>=0?'&':'?')+'action=nuke';
+      fetch(url,{method:'GET'}).then(function(r){return r.json();}).then(function(d){
+        if(d&&d.ok){render(root,Number(d.xp_today)||0,Number(d.goal)||GOAL,'network',Number(d.comrades)||0);}
+        else{render(root,localXpToday(),GOAL,'local');}
+      }).catch(function(){render(root,localXpToday(),GOAL,'local');});
+    }else{
+      render(root,localXpToday(),GOAL,'local');
+    }
+  }
+  tick();
+  setInterval(tick,60000);
+  /* real-time refresh on any XP event from any game; each event also charges
+     the event-sourced daily counter (null = take the XP from event.detail.xp) */
+  var xpEvents=Object.keys(NUKE_PTS);
+  /* Deduplicate identical events: ignore a repeat of the exact same event
+     (type + detail) within 5 seconds — guards against double-dispatches
+     from rapid clicks or retried actions. One action = one charge. */
+  var _nukeSeen={};
+  xpEvents.forEach(function(ev){
+    try{document.addEventListener(ev,function(e){
+      var pts=NUKE_PTS[ev],d=(e&&e.detail)||{};
+      if(pts===null){pts=(typeof d.xp==='number'&&isFinite(d.xp))?Math.max(0,Math.round(d.xp)):0;}
+      if(pts>0){
+        var key=ev+'|'+JSON.stringify(d);
+        var now=Date.now();
+        if(_nukeSeen[key]&&now-_nukeSeen[key]<5000){setTimeout(tick,300);return;}
+        _nukeSeen[key]=now;
+        nukeAdd(pts);
+      }
+      setTimeout(tick,300);
+    });}catch(err){}
+  });
+}
+})();
+</script>
+</div>
+</template>
+<template id="pf-ov-poster">
+<div class="fe-block pf-override-block" id="pf-poster">
+
+<h2>The Poster Forge</h2>
+<div class="p-sub">Make propaganda. Download it. Plaster the internet.</div>
+<canvas id="pCanvas" width="1080" height="1350"></canvas>
+
+<div class="p-ctl">
+  <label for="pTop">Top line</label>
+  <input id="pTop" maxlength="40" value="THE PROPAGANDA FACTORY">
+  <label for="pHead">Headline</label>
+  <input id="pHead" maxlength="60" value="EAT THE RICH">
+  <label for="pBot">Bottom line</label>
+  <input id="pBot" maxlength="40" value="MT CSTW DOT COM">
+  <label>Style</label>
+  <div class="p-styles" id="pStyles">
+    <button class="p-style on" data-s="0">The Call</button>
+    <button class="p-style" data-s="1">Wanted</button>
+    <button class="p-style" data-s="2">Red Wave</button>
+    <button class="p-style" data-s="3">Strike!</button>
+  </div>
+  <div class="p-row">
+    <button class="p-btn ghost" id="pRandom">&#9873; Agitate me</button>
+    <a class="p-btn" id="pDownload" href="#" download="pfn-propaganda-poster.png">Download</a>
+    <button class="p-btn ghost" id="pShare">Share</button>
+  </div>
+  <div class="p-note">1080 &times; 1350 — made for the feed. Every download is stamped PFN: property of the working class.</div>
+</div>
+
+<script>
+(function(){
+var SLOGANS=[
+ ["SICK LEFT RADICALS","EAT THE RICH","SEIZE THE MEMES OF PRODUCTION"],
+ ["THE PROPAGANDA FACTORY","GENERAL STRIKE","OCTOBER 1ST. EVERYWHERE."],
+ ["COMRADES","HOUSING IS A HUMAN RIGHT","LANDLORDS ARE A POLICY CHOICE"],
+ ["THE PROPAGANDA FACTORY","TAX THE RICH","OR WE WILL"],
+ ["SICK LEFT RADICALS","UNIONIZE EVERYWHERE","YOUR BOSS IS SCARED. GOOD."],
+ ["COMRADES","MEDICARE FOR ALL","YOUR INSULIN COSTS $6 TO MAKE"],
+ ["THE PROPAGANDA FACTORY","ABOLISH BILLIONAIRES","NO ONE EARNS A BILLION"],
+ ["SICK LEFT RADICALS","THE RENT IS TOO DAMN HIGH","ORGANIZE YOUR BUILDING"],
+ ["COMRADES","YOUR BOSS NEEDS YOU","YOU DON'T NEED YOUR BOSS"],
+ ["THE PROPAGANDA FACTORY","READ THEORY","THEN TOUCH GRASS. THEN ORGANIZE."],
+ ["SICK LEFT RADICALS","STRIKE!","WITHHOLD YOUR LABOR"],
+ ["COMRADES","SOLIDARITY FOREVER","THE UNION MAKES US STRONG"]
+];
+var CREAM="#f5ead6",RED="#c1121f",BLACK="#0d0d0d";
+var cv=document.getElementById("pCanvas"),ctx=cv.getContext("2d");
+var state={top:"THE PROPAGANDA FACTORY",head:"EAT THE RICH",bot:"MT CSTW DOT COM",style:0};
+var W=1080,H=1350;
+
+function wrap(text,maxW,base){
+  var words=text.toUpperCase().split(/\s+/),lines=[],line="";
+  words.forEach(function(w){
+    var t=line?line+" "+w:w;
+    if(ctx.measureText(t).width>maxW&&line){lines.push(line);line=w;}else{line=t;}
+  });
+  if(line)lines.push(line);
+  var size=base;
+  ctx.font=size+"px 'Arial Black',Arial,sans-serif";
+  lines.forEach(function(l){ if(ctx.measureText(l).width>maxW){ var s=Math.floor(size*maxW/ctx.measureText(l).width); if(s<size)size=s; }});
+  if(size<40)size=40;
+  return {lines:lines,size:size};
+}
+function centerBlock(lines,size,y,lh,color){
+  ctx.fillStyle=color;ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.font=size+"px 'Arial Black',Arial,sans-serif";
+  lines.forEach(function(l,i){ctx.fillText(l,540,y+i*lh);});
+  return y+lines.length*lh;
+}
+function border(col,w,pad){ctx.strokeStyle=col;ctx.lineWidth=w;ctx.strokeRect(pad,pad,1080-2*pad,1350-2*pad);}
+function watermark(){
+  ctx.save();
+  var label="PFN";
+  ctx.font="34px 'Arial Black',Arial,sans-serif";
+  var tw=ctx.measureText(label).width,pad=16,bw=tw+pad*2,bh=48;
+  var bx=W-30-bw,by=H-30-bh;
+  ctx.globalAlpha=0.8;
+  ctx.fillStyle="rgba(13,13,13,0.65)";
+  if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bx,by,bw,bh,10);ctx.fill();ctx.strokeStyle=CREAM;ctx.lineWidth=2;ctx.stroke();}
+  else{ctx.fillRect(bx,by,bw,bh);}
+  ctx.globalAlpha=1;
+  ctx.fillStyle=CREAM;ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.fillText(label,bx+bw/2,by+bh/2+2);
+  ctx.restore();
+}
+
+function draw(){
+  var s=state.style;
+  ctx.textAlign="center";ctx.textBaseline="middle";
+  if(s===0){ /* THE CALL — cream, red headline */
+    ctx.fillStyle=CREAM;ctx.fillRect(0,0,W,H);border(BLACK,26,26);border(RED,6,60);
+    ctx.fillStyle=RED;ctx.font="64px 'Arial Black',Arial,sans-serif";ctx.fillText(state.top,540,170);
+    ctx.fillStyle=BLACK;ctx.fillRect(80,230,920,6);
+    var t=wrap(state.head,860,170);var y=centerBlock(t.lines,t.size,640,t.size*1.12,RED);
+    ctx.fillStyle=BLACK;ctx.fillRect(80,H-260,920,10);
+    ctx.fillStyle=CREAM;ctx.fillRect(0,H-220,W,220);ctx.fillStyle=BLACK;ctx.fillRect(0,H-220,W,220);
+    ctx.fillStyle=CREAM;ctx.font="56px 'Arial Black',Arial,sans-serif";ctx.fillText(state.bot,540,H-110);
+  }else if(s===1){ /* WANTED — black, cream/red */
+    ctx.fillStyle=BLACK;ctx.fillRect(0,0,W,H);border(RED,26,26);border(CREAM,6,60);
+    ctx.fillStyle=CREAM;ctx.font="150px 'Arial Black',Arial,sans-serif";ctx.fillText("WANTED",540,190);
+    ctx.fillStyle=RED;ctx.font="56px 'Arial Black',Arial,sans-serif";ctx.fillText(state.top,540,300);
+    var t=wrap(state.head,860,150);centerBlock(t.lines,t.size,700,t.size*1.12,CREAM);
+    ctx.fillStyle=RED;ctx.fillRect(80,H-280,920,8);
+    ctx.fillStyle=CREAM;ctx.font="52px 'Arial Black',Arial,sans-serif";ctx.fillText(state.bot,540,H-150);
+  }else if(s===2){ /* RED WAVE — red bg */
+    ctx.fillStyle=RED;ctx.fillRect(0,0,W,H);border(BLACK,26,26);border(CREAM,6,60);
+    ctx.fillStyle=BLACK;ctx.font="64px 'Arial Black',Arial,sans-serif";ctx.fillText(state.top,540,170);
+    var t=wrap(state.head,860,170);centerBlock(t.lines,t.size,640,t.size*1.12,CREAM);
+    ctx.fillStyle=BLACK;ctx.fillRect(0,H-220,W,220);
+    ctx.fillStyle=CREAM;ctx.font="56px 'Arial Black',Arial,sans-serif";ctx.fillText(state.bot,540,H-110);
+  }else{ /* STRIKE — diagonal stripes */
+    ctx.fillStyle=CREAM;ctx.fillRect(0,0,W,H);
+    ctx.save();ctx.beginPath();ctx.rect(0,0,W,300);ctx.clip();
+    for(var i=-8;i<24;i++){ctx.fillStyle=i%2?BLACK:RED;ctx.save();ctx.translate(i*90,0);ctx.rotate(-0.5);ctx.fillRect(0,-200,45,700);ctx.restore();}
+    ctx.restore();
+    ctx.fillStyle=CREAM;ctx.font="72px 'Arial Black',Arial,sans-serif";
+    ctx.save();ctx.shadowColor=BLACK;ctx.shadowOffsetX=6;ctx.shadowOffsetY=6;ctx.fillText("STRIKE!",540,150);ctx.restore();
+    border(BLACK,26,26);
+    ctx.fillStyle=BLACK;ctx.font="60px 'Arial Black',Arial,sans-serif";ctx.fillText(state.top,540,420);
+    var t=wrap(state.head,860,170);centerBlock(t.lines,t.size,760,t.size*1.12,RED);
+    ctx.fillStyle=BLACK;ctx.fillRect(80,H-260,920,10);
+    ctx.fillStyle=BLACK;ctx.font="56px 'Arial Black',Arial,sans-serif";ctx.fillText(state.bot,540,H-130);
+  }
+  watermark();
+}
+function sync(){state.top=document.getElementById("pTop").value||" ";state.head=document.getElementById("pHead").value||" ";state.bot=document.getElementById("pBot").value||" ";draw();}
+["pTop","pHead","pBot"].forEach(function(id){document.getElementById(id).addEventListener("input",sync);});
+document.getElementById("pStyles").addEventListener("click",function(e){
+  var b=e.target.closest(".p-style");if(!b)return;
+  this.querySelectorAll(".p-style").forEach(function(x){x.classList.remove("on");});
+  b.classList.add("on");state.style=+b.dataset.s;draw();
+});
+document.getElementById("pRandom").onclick=function(){
+  var p=SLOGANS[Math.floor(Math.random()*SLOGANS.length)];
+  document.getElementById("pTop").value=p[0];document.getElementById("pHead").value=p[1];document.getElementById("pBot").value=p[2];
+  sync();
+};
+/* PFN metadata stamping: inject tEXt chunks so every PNG traces to the network. */
+var CRC_T=(function(){var t=[],c;for(var n=0;n<256;n++){c=n;for(var k=0;k<8;k++){c=c&1?0xEDB88320^(c>>>1):c>>>1;}t[n]=c>>>0;}return t;})();
+function pngCrc(type,data){var crc=0xFFFFFFFF,i;for(i=0;i<4;i++){crc=CRC_T[(crc^type.charCodeAt(i))&255]^(crc>>>8);}for(i=0;i<data.length;i++){crc=CRC_T[(crc^data[i])&255]^(crc>>>8);}return (crc^0xFFFFFFFF)>>>0;}
+function textChunk(keyword,text){
+  var enc=new TextEncoder();
+  var kw=enc.encode(keyword),tx=enc.encode(text);
+  var data=new Uint8Array(kw.length+1+tx.length);
+  data.set(kw,0);data[kw.length]=0;data.set(tx,kw.length+1);
+  var out=new Uint8Array(12+data.length),dv=new DataView(out.buffer);
+  dv.setUint32(0,data.length);
+  out[4]=116;out[5]=69;out[6]=88;out[7]=116; /* "tEXt" */
+  out.set(data,8);
+  dv.setUint32(8+data.length,pngCrc("tEXt",data));
+  return out;
+}
+function stampPng(buf){
+  var bytes=new Uint8Array(buf);
+  var sig=[137,80,78,71,13,10,26,10],i;
+  for(i=0;i<8;i++){if(bytes[i]!==sig[i])return buf;}
+  var meta=[
+    ["Title","PFN Agitprop Poster"],
+    ["Author","Propaganda Factory Network"],
+    ["Description","Seize the memes of production. Forged at mtcstw.com - workers of the feed, unite."],
+    ["Copyright","Copyright 2026 Propaganda Factory Network. Property of the working class."],
+    ["Software","PFN Poster Forge"],
+    ["Source","https://www.mtcstw.com"],
+    ["Comment","EAT THE RICH - solidarity forever."]
+  ];
+  var chunks=[],total=0;
+  meta.forEach(function(m){var c=textChunk(m[0],m[1]);chunks.push(c);total+=c.length;});
+  var dv=new DataView(bytes.buffer),pos=8;
+  while(pos+8<bytes.length){
+    var len=dv.getUint32(pos);
+    var type=String.fromCharCode(bytes[pos+4],bytes[pos+5],bytes[pos+6],bytes[pos+7]);
+    if(type==="IEND")break;
+    pos+=12+len;
+  }
+  var out=new Uint8Array(bytes.length+total);
+  out.set(bytes.subarray(0,pos),0);
+  var o=pos;
+  chunks.forEach(function(c){out.set(c,o);o+=c.length;});
+  out.set(bytes.subarray(pos),o);
+  return out.buffer;
+}
+function stampedBlob(cb){
+  cv.toBlob(function(blob){
+    if(blob.arrayBuffer){blob.arrayBuffer().then(function(buf){cb(new Blob([stampPng(buf)],{type:"image/png"}));});}
+    else{cb(blob);}
+  });
+}
+document.getElementById("pDownload").onclick=function(e){
+  e.preventDefault();
+  /* award XP + ping the trackers — ONCE PER DAY max (anti-farming).
+     Repeated downloads of the same or different posters on the same day
+     do not re-fire pf-poster-made. */
+  try{
+    var today=new Date().toISOString().slice(0,10);
+    var pfKey='pf_poster_day_v1';
+    var last=null;try{last=localStorage.getItem(pfKey);}catch(err){}
+    if(last!==today){
+      try{localStorage.setItem(pfKey,today);}catch(err){}
+      document.dispatchEvent(new CustomEvent("pf-poster-made",{detail:{day:today}}));
+    }
+  }catch(err){}
+  stampedBlob(function(blob){
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement("a");
+    a.href=url;a.download="pfn-propaganda-poster.png";
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(function(){URL.revokeObjectURL(url);},4000);
+  });
+};
+document.getElementById("pShare").onclick=function(){
+  stampedBlob(function(blob){
+    var f=new File([blob],"pfn-propaganda-poster.png",{type:"image/png"});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:"PFN propaganda poster"}).catch(function(){});return;}
+    var url=URL.createObjectURL(blob);window.open(url,"_blank");
+  });
+};
+draw();
+window.__pfPoster={state:state,wrap:wrap,SLOGANS:SLOGANS,stampPng:stampPng};
+})();
+</script>
+</div>
+</template>
+
+<template id="pf-ov-drop">
+<div id="pf-drop">
+<style>
+#pf-drop{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f}
+#pf-drop h2{color:#c1121f;font-size:28px;margin:0 0 4px;letter-spacing:2px;text-transform:uppercase}
+#pf-drop .d-day{font-family:Arial,sans-serif;font-size:13px;letter-spacing:3px;color:#ff5a00;text-transform:uppercase;margin-bottom:16px}
+#pf-drop .d-card{background:#f5ead6;color:#0d0d0d;padding:22px 20px;margin:0 0 14px;text-align:left}
+#pf-drop .d-tag{display:inline-block;background:#c1121f;color:#fff;font-size:11px;letter-spacing:3px;padding:4px 12px;margin-bottom:10px;text-transform:uppercase}
+#pf-drop .d-head{font-size:21px;line-height:1.3;margin:0 0 8px;text-transform:uppercase;letter-spacing:1px}
+#pf-drop .d-body{font-family:Arial,sans-serif;font-size:14px;line-height:1.55;color:#333}
+#pf-drop .d-streak{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase;margin-bottom:14px}
+#pf-drop .d-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+#pf-drop .d-btn{background:#c1121f;color:#fff;border:0;padding:12px 22px;font-family:'Arial Black',Arial,sans-serif;font-size:13px;letter-spacing:2px;cursor:pointer;text-transform:uppercase}
+#pf-drop .d-btn:hover{background:#8f0d17}
+#pf-drop .d-btn.ghost{background:none;border:2px solid #f5ead6;color:#f5ead6}
+#pf-drop .d-btn.ghost:hover{background:#1a1a1a}
+#pf-drop .d-arch{display:none;margin-top:16px;text-align:left}
+#pf-drop .d-arch.open{display:block}
+#pf-drop .d-aitem{background:#1a1a1a;border-left:4px solid #c1121f;padding:10px 14px;margin:8px 0;font-family:Arial,sans-serif}
+#pf-drop .d-aitem .d-aday{font-size:11px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase}
+#pf-drop .d-aitem .d-ahead{font-family:'Arial Black',Arial,sans-serif;font-size:13px;text-transform:uppercase;margin:2px 0}
+#pf-drop .d-aitem .d-abody{font-size:12px;color:#c9bfa8}
+#pf-drop .d-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:12px}
+</style>
+
+<h2>The Daily Drop</h2>
+<div class="d-day" id="dDay"></div>
+<div class="d-card">
+  <span class="d-tag" id="dTag"></span>
+  <p class="d-head" id="dHead"></p>
+  <p class="d-body" id="dBody"></p>
+</div>
+<div class="d-streak" id="dStreak"></div>
+<div class="d-btns">
+  <button class="d-btn" id="dShare">Share this drop</button>
+  <button class="d-btn ghost" id="dArchBtn">Past drops</button>
+</div>
+<div class="d-arch" id="dArch"></div>
+<div class="d-note">One drop per day. Come back tomorrow &mdash; the offensive continues.</div>
+
+<script>
+(function(){
+var LAUNCH_DATE="2026-09-28";
+/* DROPS: 30 evergreen agitprop items, cycling. t = STAT | QUOTE | TRUTH | ORDER */
+var DROPS=[
+{t:"STAT",h:"8 men own more wealth than half of humanity.",b:"Not 8 percent. 8 men. Half the planet. This isn't an economy, it's a heist."},
+{t:"TRUTH",h:"Your boss needs you. You don't need your boss.",b:"Every dollar of profit is a wage that wasn't paid. Remember who makes the value."},
+  {t:"QUOTE",h:"\u201CThe ruling ideas of each age have ever been the ideas of its ruling class.\u201D \u2014 Karl Marx",b:"Read that again the next time the news tells you what's \u2018realistic.\u2019"},
+{t:"ORDER",h:"Talk to one coworker about pay today.",b:"Wage secrecy is a boss's best friend. One honest conversation is an act of war."},
+{t:"STAT",h:"American workers are 2.5x more productive than in 1979. Pay is up 15%.",b:"Productivity soared. Your paycheck didn't. The difference went to people who've never done your job."},
+{t:"TRUTH",h:"Billionaires don't create jobs. Workers create wealth; billionaires collect it.",b:"Nobody ever got rich from their own labor alone."},
+{t:"QUOTE",h:"\u201CIt is the job of thinking people not to be on the side of the executioners.\u201D \u2014 Albert Camus",b:"Pick a side. The machine already picked you."},
+{t:"ORDER",h:"Share one drop from this page today.",b:"Propaganda only works if it moves. Be the machine's distribution arm."},
+{t:"STAT",h:"The top 1% owns 32% of all wealth in America.",b:"The bottom 50% owns 2.5%. The game isn't rigged \u2014 rigged implies it was ever fair."},
+{t:"TRUTH",h:"\u2018Unskilled labor\u2019 is a myth invented to pay you less.",b:"Try running a restaurant, warehouse, or hospital with no \u2018unskilled\u2019 workers for one day."},
+{t:"QUOTE",h:"\u201CThe law, in its majestic equality, forbids rich and poor alike to sleep under bridges.\u201D \u2014 Anatole France",b:"Justice is blind. It just happens to only see one class."},
+{t:"ORDER",h:"Learn your rights at work tonight.",b:"15 minutes of reading. The boss hopes you never do it."},
+{t:"STAT",h:"CEOs now make 290x the average worker.",b:"In 1965 it was 21x. Nothing about leadership got 14 times better."},
+{t:"TRUTH",h:"The news calls it \u2018the economy.\u2019 They mean the stock market.",b:"Your rent went up and your pay didn't. That's the economy you live in."},
+{t:"QUOTE",h:"\u201CIf voting changed anything, they'd make it illegal.\u201D \u2014 Emma Goldman",b:"They're certainly trying."},
+{t:"ORDER",h:"Find one local mutual aid group and follow them.",b:"The revolution is also a food drive. Start where your feet are."},
+{t:"STAT",h:"Empty homes outnumber homeless people 28 to 1.",b:"There is no housing shortage. There's a profit shortage in housing people."},
+{t:"TRUTH",h:"They want you debating strangers online instead of organizing coworkers.",b:"The algorithm feeds you outrage because outrage doesn't unionize."},
+{t:"QUOTE",h:"\u201CThe only thing necessary for evil to triumph is for good people to do nothing.\u201D",b:"The machine prefers you tired, alone, and scrolling."},
+{t:"ORDER",h:"Cancel one subscription that funds the machine.",b:"Your money is a vote they actually count. Spend it like it."},
+{t:"STAT",h:"Medical debt is the #1 cause of bankruptcy in America.",b:"In every other rich country, getting sick doesn't mean going broke. Here it's a business model."},
+{t:"TRUTH",h:"Nobody is coming to save us. That's the good news.",b:"It means we get to save each other. That's what the network is for."},
+{t:"QUOTE",h:"\u201CFirst they ignore you, then they laugh at you, then they fight you, then you win.\u201D",b:"We're somewhere between laughing and fighting. Good."},
+{t:"ORDER",h:"Ask an elder what organizing looked like before the internet.",b:"The tactics are old. The tools are new. Learn both."},
+{t:"TRUTH",h:"Solidarity is a strategy, not a sentiment.",b:"Every strike won, every union formed, every right you have \u2014 won by people acting together."},
+  {t:"ORDER",h:"Put your politics in the group chat.",b:"One message. \u2018Did you know CEOs make 290x what we do?\u2019 Then watch."},
+{t:"TRUTH",h:"\u2018There is no alternative\u2019 is the most successful propaganda ever made.",b:"There are always alternatives. They just don't profit the people saying that."},
+{t:"ORDER",h:"Support one striking worker this week.",b:"Walk a picket line, contribute to a strike fund, or just bring coffee. Show up."},
+{t:"TRUTH",h:"The network is the message.",b:"41 creators. 5 million reach. One machine. You're already inside it \u2014 act like it."},
+{t:"ORDER",h:"Bring one friend into the ranks.",b:"Send them this page. The machine grows one recruit at a time."}
+];
+
+function chicagoToday(){ var d=new Date(new Date().toLocaleString("en-US",{timeZone:"America/Chicago"})); d.setHours(0,0,0,0); return d; }
+function dayNum(){ var l=new Date(LAUNCH_DATE+"T00:00:00"); var diff=chicagoToday()-l; return Math.max(1,Math.floor(diff/86400000)+1); }
+function dropFor(n){ return DROPS[(n-1)%DROPS.length]; }
+function dateKey(){ var d=chicagoToday(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
+function yesterdayKey(){ var d=chicagoToday(); d.setDate(d.getDate()-1); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
+
+var LS="pf_drop_v1";
+function load(){ try{return JSON.parse(localStorage.getItem(LS)||'{"last":"","streak":0}');}catch(e){return {last:"",streak:0};} }
+function save(s){ try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){} }
+
+var n=dayNum(), drop=dropFor(n), s=load(), tk=dateKey();
+if(s.last!==tk){
+  s.streak = (s.last===yesterdayKey()) ? s.streak+1 : 1; s.last=tk; save(s);
+  /* award XP + ping the trackers on new daily claim */
+  try{
+    document.dispatchEvent(new CustomEvent("pf-drop-claimed",{detail:{day:tk,streak:s.streak}}));
+  }catch(e){}
+}
+
+document.getElementById("dDay").textContent="Day "+n+" of the offensive";
+document.getElementById("dTag").textContent=drop.t;
+document.getElementById("dHead").textContent=drop.h;
+document.getElementById("dBody").textContent=drop.b;
+document.getElementById("dStreak").textContent="Your streak: "+s.streak+(s.streak===1?" day":" days")+" \u2014 come back tomorrow to keep it alive";
+
+document.getElementById("dShare").onclick=function(){
+  var text="Day "+n+" of the offensive: "+drop.h+" \u2014 via The Propaganda Factory "+location.href;
+  if(navigator.share){ navigator.share({title:"The Daily Drop",text:text,url:location.href}).catch(function(){}); }
+  else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(function(){ alert("Drop copied. Go spread it."); }).catch(function(){}); }
+};
+document.getElementById("dArchBtn").onclick=function(){
+  var arch=document.getElementById("dArch");
+  if(arch.classList.contains("open")){ arch.classList.remove("open"); return; }
+  var h="";
+  for(var i=1;i<=7;i++){ var dn=n-i; if(dn<1) break; var d=dropFor(dn);
+    h+='<div class="d-aitem"><div class="d-aday">Day '+dn+' \u00B7 '+d.t+'</div><div class="d-ahead">'+d.h+'</div><div class="d-abody">'+d.b+'</div></div>';
+  }
+  arch.innerHTML=h||'<div class="d-aitem"><div class="d-abody">The offensive just began. Check back tomorrow.</div></div>';
+  arch.classList.add("open");
+};
+})();
+</script>
+</div>
+</template>
+
+
+
+<script>
+(function(){
+  if(window.pfOverrideDone) return;
+  window.pfOverrideDone = true;
+  if(!/^\/(\?.*)?$/.test(location.pathname)) return;
+  try{
+    if(!localStorage.getItem('pf_nuke_local_v2')){
+      var v1=JSON.parse(localStorage.getItem('pf_nuke_local_v1')||'null');
+      var today=new Date().toISOString().slice(0,10);
+      if(v1&&v1.d===today)localStorage.setItem('pf_nuke_local_v2',JSON.stringify(v1));
+    }
+  }catch(e){}
+  var jobs=[
+    {old:'pf-caption', tpl:'pf-ov-caption'},
+    {old:'pf-orders', tpl:'pf-ov-orders'},
+    {old:'pf-vote', tpl:'pf-ov-vote'},
+    {old:'pf-dometer', tpl:'pf-ov-dometer'},
+    {old:'slr-nuke', tpl:'pf-ov-nuke'},
+    {old:'pf-poster', tpl:'pf-ov-poster'},
+    {old:'pf-drop', tpl:'pf-ov-drop'},
+  ];
+function execScripts(root){var scripts=root.querySelectorAll('script');for(var i=0;i<scripts.length;i++){try{(0,eval)(scripts[i].textContent);}catch(e){}scripts[i].remove();}}
+jobs.forEach(function(j){
+    try{
+      var tpl=document.getElementById(j.tpl);
+      if(!tpl||!tpl.content) return;
+      var frag=document.importNode(tpl.content,true);
+      var newBlock=frag.firstElementChild;
+      var oldEl=document.getElementById(j.old);
+      if(oldEl){
+        var oldBlock=oldEl.closest('.fe-block')||oldEl;
+        oldBlock.parentNode.insertBefore(frag,oldBlock);
+        oldBlock.remove();
+      }else{
+        /* Don't append if a widget with similar content already exists (avoid duplicates). */
+        var heading = newBlock.querySelector('h2');
+        var headingText = heading ? heading.textContent.trim() : '';
+        var exists = false;
+        if(headingText){
+          var allH2 = document.querySelectorAll('h2');
+          for(var h=0; h<allH2.length; h++){
+            if(allH2[h].textContent.trim() === headingText){ exists = true; break; }
+          }
+        }
+        if(!exists){
+          var art=document.querySelector('main article')||document.querySelector('article');
+          if(art)art.appendChild(frag); else return;
+        }
+      }
+      if(newBlock&&newBlock.parentNode)execScripts(newBlock);
+    }catch(err){}
+  });
+})();
+</script>

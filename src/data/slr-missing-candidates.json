@@ -1,1 +1,101 @@
-{"candidates":[],"db_creators_matched":[{"db_creator":"Radically Sunny","facebook_name":"Radically Sunny","facebook_url":"https://facebook.com/profile.php?id=100079870630797","match_confidence":"high","note":"Name matches DB creator exactly; DB holds verified Facebook page link for Radically Sunny."},{"db_creator":"Joey","facebook_name":"Joey Morvant","facebook_url":"https://facebook.com/joey.morvant.2025","match_confidence":"low","note":"First-name match only; DB has no confirmed Facebook for Joey (research 2026-09-24 found no Facebook). Personal profile from Houma, LA, now in California. Unverified - treat as lead, not confirmed."}],"generated_at":"2026-10-01T10:41:00Z","leads_low_signal":[{"facebook_name":"Vee's Twitch","facebook_url":"https://facebook.com/TheVeeLovley","signals":"Profile bio lists a Twitch channel (Twitch.tv/VeeLovely) plus Instagram/Discord - runs a stream, but content/politics unknown. No follower count visible via CLI.","source":"facebook_friend"},{"facebook_name":"Caglar Korkmaz","facebook_url":"https://facebook.com/ckmzmusic","signals":"Vanity URL suggests a music page (ckmzmusic); profile has no bio. Content/politics unknown.","source":"facebook_friend"}],"notes":"Messenger Companion is NOT connected (hatch_messenger_cli check: 'Messenger not connected yet'), so no Messenger contacts or DM participants could be pulled. That half of the cross-reference could not be run; connect Messenger to complete it. Facebook friends pull: 280 friends over 15 pages via facebook-cli me friends (personal profile of Shane Swan). The list is overwhelmingly personal Louisiana contacts (family, school, local friends, pawn shops, a wing restaurant) - almost no creator pages. Strict normalized matching (names + handles + vanity URLs, generic tokens like 'profilephp' excluded) found 1 confirmed DB match (Radically Sunny). Joey Morvant is a first-name-only possible match for DB creator Joey, unverified. Deduped against TikTok side (follow-crossref.json, 63 new_discoveries): zero overlap between Facebook friends and TikTok discoveries - no candidate appears in both sources. The strong SLR-fit accounts the TikTok cross-reference surfaced (@combatvetsagainsttrump, @therevcoms, @magaslayer2025, @_dofd, @attorneydeon, @lawyer_lisa, @theunscriptedrevolution, @octoquake, @love_and_molotov, @sentientdirtpress, @splashofgenz, @str8upshowpodcast, @ndreportpod, @progressively2026, @public_enlightenment, @skeptic.tik, @delanceythrone, @sissyfits, @avedeusmortis, @itssethshadows) are NOT in the Facebook friends list, so no multi-source confirmations exist yet. No strong new SLR candidates found in Facebook friends; the two low-signal leads above have unknown politics and should not be treated as candidates without further research. Read-only throughout: no messages sent, no friend/follow actions taken.","sources":{"facebook_friends_count":280,"messenger_contacts_count":0,"messenger_status":"not_connected"}}
+{
+ "candidates": [],
+ "db_creators_matched": [
+  {
+   "db_creator": "Radically Sunny",
+   "facebook_name": "Radically Sunny",
+   "facebook_url": "https://facebook.com/profile.php?id=100079870630797",
+   "match_confidence": "high",
+   "note": "Name matches DB creator exactly; DB holds verified Facebook page link for Radically Sunny."
+  },
+  {
+   "db_creator": "Joey",
+   "facebook_name": "Joey Morvant",
+   "facebook_url": "https://facebook.com/joey.morvant.2025",
+   "match_confidence": "low",
+   "note": "First-name match only; DB has no confirmed Facebook for Joey (research 2026-09-24 found no Facebook). Personal profile from Houma, LA, now in California. Unverified - treat as lead, not confirmed."
+  },
+  {
+   "db_creator": "Radically Sunny",
+   "messenger_name": "Radically Sunny",
+   "match_confidence": "high",
+   "source": "messenger_contact",
+   "note": "Exact name match in Messenger contacts; also a participant in a recent (30-day) group DM thread, so this is an active DM relationship, not just a contact entry."
+  }
+ ],
+ "generated_at": "2026-10-01T10:39:58Z",
+ "leads_low_signal": [
+  {
+   "facebook_name": "Vee's Twitch",
+   "facebook_url": "https://facebook.com/TheVeeLovley",
+   "signals": "Profile bio lists a Twitch channel (Twitch.tv/VeeLovely) plus Instagram/Discord - runs a stream, but content/politics unknown. No follower count visible via CLI.",
+   "source": "facebook_friend"
+  },
+  {
+   "facebook_name": "Caglar Korkmaz",
+   "facebook_url": "https://facebook.com/ckmzmusic",
+   "signals": "Vanity URL suggests a music page (ckmzmusic); profile has no bio. Content/politics unknown.",
+   "source": "facebook_friend"
+  }
+ ],
+ "notes": "Messenger Companion is NOT connected (hatch_messenger_cli check: 'Messenger not connected yet'), so no Messenger contacts or DM participants could be pulled. That half of the cross-reference could not be run; connect Messenger to complete it. Facebook friends pull: 280 friends over 15 pages via facebook-cli me friends (personal profile of Shane Swan). The list is overwhelmingly personal Louisiana contacts (family, school, local friends, pawn shops, a wing restaurant) - almost no creator pages. Strict normalized matching (names + handles + vanity URLs, generic tokens like 'profilephp' excluded) found 1 confirmed DB match (Radically Sunny). Joey Morvant is a first-name-only possible match for DB creator Joey, unverified. Deduped against TikTok side (follow-crossref.json, 63 new_discoveries): zero overlap between Facebook friends and TikTok discoveries - no candidate appears in both sources. The strong SLR-fit accounts the TikTok cross-reference surfaced (@combatvetsagainsttrump, @therevcoms, @magaslayer2025, @_dofd, @attorneydeon, @lawyer_lisa, @theunscriptedrevolution, @octoquake, @love_and_molotov, @sentientdirtpress, @splashofgenz, @str8upshowpodcast, @ndreportpod, @progressively2026, @public_enlightenment, @skeptic.tik, @delanceythrone, @sissyfits, @avedeusmortis, @itssethshadows) are NOT in the Facebook friends list, so no multi-source confirmations exist yet. No strong new SLR candidates found in Facebook friends; the two low-signal leads above have unknown politics and should not be treated as candidates without further research. Read-only throughout: no messages sent, no friend/follow actions taken. | Messenger run 2026-10-01: Companion connected, 581 contacts pulled, 14 threads in the 30-day window. Only DB creator in Messenger is Radically Sunny (exact match, active in a recent group DM). No high-confidence multi-source confirmations: the 63 TikTok discoveries do not cleanly overlap Messenger contacts - only weak first-name/nickname overlaps (Jesse Hebert / @avedeusmortis 'Jesse'; Sydney Touchstone / @tideandtruths 'Syd'), both low-confidence leads. No new SLR candidates with real signals from Messenger contacts or recent DM participants - the contact list is overwhelmingly personal Louisiana contacts.",
+ "sources": {
+  "facebook_friends_count": 280,
+  "messenger_contacts_count": 581,
+  "messenger_status": "connected",
+  "messenger_recent_threads_30d": 14
+ },
+ "messenger": {
+  "status": "connected",
+  "contacts_pulled": 581,
+  "recent_threads_30d": 14,
+  "recent_dm_participants": [
+   "Heather Renfroe Champagne",
+   "Jenna Drozdz",
+   "Sydney Touchstone",
+   "Esmeray Ayla",
+   "Empa Nada",
+   "Sarah Hales",
+   "Radically Sunny",
+   "Adam Barr",
+   "David Koss",
+   "Tyrone Smith",
+   "Claude Verdin",
+   "Danielle Swan",
+   "Dylan Soudelier",
+   "Min Vig",
+   "Macy Elizabeth",
+   "Bradley Fanguy",
+   "Marco Posadas",
+   "Darin Mayo Jr.",
+   "Bryan Marie"
+  ],
+  "db_matches": [
+   {
+    "db_creator": "Radically Sunny",
+    "messenger_name": "Radically Sunny",
+    "match_confidence": "high",
+    "note": "Exact match; active in a recent group DM thread."
+   }
+  ],
+  "multi_source_confirmations": [],
+  "new_candidates": [],
+  "weak_leads": [
+   {
+    "messenger_name": "Jesse Hebert",
+    "tiktok": "@avedeusmortis",
+    "tiktok_display": "Jesse",
+    "match_confidence": "low",
+    "note": "First-name-only match between TikTok discovery display name 'Jesse' and Messenger contact 'Jesse Hebert'. Not confirmed same person; treat as lead only."
+   },
+   {
+    "messenger_name": "Sydney Touchstone",
+    "tiktok": "@tideandtruths",
+    "tiktok_display": "Syd",
+    "match_confidence": "low",
+    "note": "'Syd' could be short for Sydney; Sydney Touchstone is in a recent group DM thread with DB creator Radically Sunny. Speculative - treat as lead only."
+   }
+  ],
+  "method": "Normalized name matching (names + handles, substring on distinctive tokens, manual review of all fuzzy hits). Single common first-name overlaps (Emily, Jennifer, Jessica, Thomas, Lisa, Reed, Mayo) rejected as coincidental. Read-only: no messages sent, read, reacted to, or edited."
+ }
+}

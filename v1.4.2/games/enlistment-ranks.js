@@ -104,6 +104,13 @@ function award(key,xp,rule,opts){
   return gain;
 }
 function tierOf(xp){ var t=TIERS[0]; for(var i=0;i<TIERS.length;i++){ if(xp>=TIERS[i][1]) t=TIERS[i]; } return t; }
+/* settle(ev, gain): forward the TRUE awarded XP (after 50/day pool clipping)
+   to the tally so the backend records exactly what the ledger granted —
+   including 0 when the pool is spent. The tally records pool-capped events
+   ONLY on settle, never on the raw game event. */
+function settle(ev,gain){
+  try{ document.dispatchEvent(new CustomEvent("pf-tally-settle",{detail:{ev:ev,xp:gain}})); }catch(e){}
+}
 
 /* ---------- UNLOCKS ---------- */
 var LS_U="pf_unlocks_seen_v1", LS_WALL="pf_wall_v1";
@@ -335,13 +342,13 @@ function renderUnlocks(){
 var ACTIONS=[
  /* Daily pool (50/day across the page): check-in 2, share 1.
     Weekly tasks keep their own values and bypass the pool (exempt). */
- {id:"checkin", label:"Daily check-in", xp:2, rule:"daily", run:function(){ return award("checkin",2,"daily"); }},
+ {id:"checkin", label:"Daily check-in", xp:2, rule:"daily", run:function(){ var g=award("checkin",2,"daily"); settle("pf-checkin",g); return g; }},
  {id:"bracket", label:"Vote in the bracket", xp:10, rule:"once", href:"#pf-bracket"},
  {id:"fanvote", label:"Vote propagandist of the week", xp:10, rule:"once", href:"#pf-vote"},
  {id:"quiz", label:"Find your SLR match", xp:15, rule:"once", href:"#slr-quiz"},
  {id:"enlisted", label:"Join the dispatch", xp:20, rule:"once", run:function(){ try{document.dispatchEvent(new CustomEvent("pf-enlisted"));}catch(e){} return award("enlisted",20,"once",{exempt:1}); }},
  {id:"share", label:"Share the machine", xp:1, rule:"daily", run:function(){
-    var done=function(){ award("share",1,"daily"); };
+    var done=function(){ settle("pf-share-image",award("share",1,"daily")); };
     if(navigator.share){ navigator.share({title:"The Propaganda Factory",url:location.href}).then(done).catch(function(){}); }
     else if(navigator.clipboard){ navigator.clipboard.writeText(location.href).then(done).catch(function(){}); }
     return false;
@@ -397,16 +404,16 @@ function render(){
    CustomEvents on document, which never reach window listeners. */
 document.addEventListener("pf-bracket-ballot",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("bracket_"+w,10,"once",{exempt:1}); });
 document.addEventListener("pf-quiz-done",function(){ award("quiz",15,"once",{exempt:1}); });
-document.addEventListener("pf-guess-done",function(){ award("guess_"+today(),1,"once"); });
-document.addEventListener("pf-raid-report",function(){ award("raid",2,"daily"); });
+document.addEventListener("pf-guess-done",function(){ settle("pf-guess-done",award("guess_"+today(),1,"once")); });
+document.addEventListener("pf-raid-report",function(){ settle("pf-raid-report",award("raid",2,"daily")); });
 document.addEventListener("pf-vote-cast",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("fanvote_"+w,10,"once",{exempt:1}); });
 document.addEventListener("pf-traitor-vote",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("traitor_"+w,5,"once",{exempt:1}); });
 document.addEventListener("pf-caption-submit",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("caption_"+w,10,"once",{exempt:1}); });
-document.addEventListener("pf-poster-made",function(){ award("poster_"+today(),1,"once"); });
-document.addEventListener("pf-share-image",function(){ award("share",1,"daily"); });
-document.addEventListener("pf-drop-claimed",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; award("drop_"+d,1,"once"); });
-document.addEventListener("pf-billionaire-answered",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; award("billionaire_"+d,1,"once"); });
-document.addEventListener("pf-interrogation-answered",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; award("interrogation_"+d,1,"once"); });
+document.addEventListener("pf-poster-made",function(){ settle("pf-poster-made",award("poster_"+today(),1,"once")); });
+document.addEventListener("pf-share-image",function(){ settle("pf-share-image",award("share",1,"daily")); });
+document.addEventListener("pf-drop-claimed",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; settle("pf-drop-claimed",award("drop_"+d,1,"once")); });
+document.addEventListener("pf-billionaire-answered",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; settle("pf-billionaire-answered",award("billionaire_"+d,1,"once")); });
+document.addEventListener("pf-interrogation-answered",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; settle("pf-interrogation-answered",award("interrogation_"+d,1,"once")); });
 /* Daily Orders writes the real combo XP into the shared pool itself — just re-render. */
 document.addEventListener("pf-order-checkin",function(){ render(); });
 render();

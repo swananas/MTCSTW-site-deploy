@@ -334,6 +334,25 @@ function doGet(e) {
     var tsheet = ensureActionsSheet(ss);
     return jsonOut({ total: sumColumn(tsheet, 3, LEGACY_PTS) }, cb);
   }
+  /* Raid turnout: raid_report rows stamped today (America/Chicago). */
+  if (action === "raid_turnout") {
+    var rcount = 0;
+    var rtoday = "";
+    try { rtoday = Utilities.formatDate(new Date(), "America/Chicago", "yyyy-MM-dd"); } catch (re) {}
+    try {
+      var rsheet = ss.getSheetByName(ACTIONS_SHEET);
+      if (rsheet) {
+        var rrows = rsheet.getDataRange().getValues();
+        for (var rgi = 1; rgi < rrows.length; rgi++) {
+          if (String(rrows[rgi][1]) !== "raid_report") continue;
+          var rday = "";
+          try { rday = Utilities.formatDate(new Date(rrows[rgi][0]), "America/Chicago", "yyyy-MM-dd"); } catch (re2) {}
+          if (rday === rtoday) rcount++;
+        }
+      }
+    } catch (re3) {}
+    return jsonOut({ raiders: rcount }, cb);
+  }
   /* Bracket turnout: bracket_ballot rows over the trailing 7 Chicago days. */
   if (action === "bracket_turnout") {
     var bcount = 0;

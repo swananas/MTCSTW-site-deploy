@@ -12,6 +12,7 @@
 '  <div style="font-size:1.5rem;font-weight:900;letter-spacing:0.18em;color:#c1121f;">&#9876; BOOST RAID &#9876;</div>\n' +
 '  <div style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;">One target. One day. The whole network hits it at once.<br>Like. Comment. Share. Report back.</div>\n' +
 '  <div id="pf-raid-target"></div>\n' +
+'  <div id="pf-raid-turnout" style="font-size:0.85rem;color:#b8ab8e;margin:0.6rem 0;min-height:1.2em;"></div>\n' +
 '  <div id="pf-raid-clock" style="font-size:0.85rem;color:#c1121f;letter-spacing:0.15em;margin:0.8rem 0;"></div>\n' +
 '  <div><button id="pf-raid-report" style="background:#c1121f;border:none;color:#f5f0e1;padding:0.8rem 2rem;font-size:1rem;font-weight:900;letter-spacing:0.1em;cursor:pointer;font-family:inherit;">REPORT BACK</button></div>\n' +
 '  <div id="pf-raid-msg" style="margin-top:0.8rem;font-size:0.9rem;color:#b8ab8e;min-height:1.4em;"></div>\n' +
@@ -64,6 +65,22 @@
 '  tick();setInterval(tick,1000);\n' +
 '  if(st.done===t){btn.disabled=true;btn.style.opacity="0.5";btn.textContent="REPORTED \\u2713";mEl.textContent="Raid logged. See you tomorrow, soldier.";}\n' +
 '  paintStreak();\n' +
+'  /* RAID TURNOUT: site-wide count of today\'s reports (raid_turnout, cached 1h). */\n' +
+'  var RAID_API="https://script.google.com/macros/s/AKfycbzaqg3vIj1UnbHGJ82uti7yTdRpeR6PYMhoTne6LIL4kf1XjakrImMTHFwounaPrttl/exec";\n' +
+'  function paintTurnout(){\n' +
+'    var el=document.getElementById("pf-raid-turnout");if(!el)return;\n' +
+'    var show=function(n){if(n>0)el.innerHTML="&#9876; <b style=\'color:#f5f0e1;\'>"+Number(n).toLocaleString()+"</b> raiders hit today\\u2019s target \\u2014 join them";};\n' +
+'    try{var c=JSON.parse(localStorage.getItem("pf_raid_turnout_v1")||"null");\n' +
+'      if(c&&Date.now()-c.at<3600000){show(c.d);return;}}catch(e){}\n' +
+'    var name="pfRT"+Date.now(),fired=false;\n' +
+'    window[name]=function(d){if(fired)return;fired=true;try{delete window[name];}catch(e){}\n' +
+'      var s=document.getElementById(name);if(s&&s.parentNode)s.parentNode.removeChild(s);\n' +
+'      if(d&&typeof d.raiders==="number"){try{localStorage.setItem("pf_raid_turnout_v1",JSON.stringify({at:Date.now(),d:d.raiders}));}catch(e){}show(d.raiders);}};\n' +
+'    try{var scr=document.createElement("script");scr.id=name;scr.src=RAID_API+"?callback="+name+"&action=raid_turnout";\n' +
+'      scr.onerror=function(){if(!fired){fired=true;}};(document.head||document.documentElement).appendChild(scr);}catch(e){}\n' +
+'    setTimeout(function(){if(!fired){fired=true;try{delete window[name];}catch(e){}}},10000);\n' +
+'  }\n' +
+'  paintTurnout();\n' +
 '  btn.onclick=function(){\n' +
 '    if(st.done===t){return;}\n' +
 '    st.done=t;\n' +

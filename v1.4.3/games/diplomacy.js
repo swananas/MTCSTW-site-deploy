@@ -9,7 +9,7 @@
   var PF = window.PF;
   if (!PF || PF.skip("diplo")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-diplo">
-<div class="fe-block pf-override-block" id="pf-diplo">
+<div class="fe-block pf-override-block pf-silo" id="pf-diplo">
 <h2>Cell Diplomacy</h2>
 <div class="c-tag">Cells are powers. Forge alliances. Build coalitions. Declare rivalries.</div>
 <div id="xDiplo"><div class="c-load">Reading the map&hellip;</div></div>

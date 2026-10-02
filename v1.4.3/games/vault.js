@@ -9,7 +9,7 @@
   var PF = window.PF;
   if (PF.skip("vault")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-vault">
-<div class="fe-block pf-override-block" id="pf-vault">
+<div class="fe-block pf-override-block pf-silo" id="pf-vault">
 <h2>Admin Vault</h2>
 <div class="c-tag">Financial control room. Restricted access.</div>
 <div id="xVault"><div class="c-load">Checking credentials&hellip;</div></div>
@@ -86,7 +86,7 @@ function renderGate(){
   var el=document.getElementById("xVault"); if(!el) return;
   el.innerHTML='<div class="x-pane"><h4>Restricted area</h4>'
     +'<div class="x-note">The Vault manages the XP financial system. Enter the admin secret to unlock.</div>'
-    +'<input id="vlSecret" type="password" class="c-input" placeholder="Admin secret" style="max-width:320px">'
+    +'<input id="vlSecret" type="password" class="c-input pf-input-lg" placeholder="Admin secret" >'
     +'<div style="margin-top:8px"><button class="c-btn" id="vlUnlock">UNLOCK VAULT</button></div>'
     +'<div class="c-err" id="vlGateErr"></div></div>';
   document.getElementById("vlUnlock").onclick=function(){
@@ -134,11 +134,11 @@ function render(){
   /* 3. WAGER MANAGEMENT */
   h+='<div class="x-pane"><h4>Wager management</h4>'
     +'<div class="vl-form">'
-    +'<input id="vlWKind" class="c-input" placeholder="Kind: battle | race | challenge" style="max-width:200px">'
-    +'<input id="vlWTid" class="c-input" placeholder="Target ID (battle/race/challenge)" style="max-width:260px">'
-    +'<input id="vlWDesc" class="c-input" placeholder="Description" style="max-width:320px">'
-    +'<input id="vlWSides" class="c-input" placeholder="Sides, comma-separated" style="max-width:320px">'
-    +'<input id="vlWClose" class="c-input" type="datetime-local" style="max-width:220px">'
+    +'<input id="vlWKind" class="c-input pf-input-md" placeholder="Kind: battle | race | challenge" >'
+    +'<input id="vlWTid" class="c-input pf-input-lg" placeholder="Target ID (battle/race/challenge)" >'
+    +'<input id="vlWDesc" class="c-input pf-input-lg" placeholder="Description" >'
+    +'<input id="vlWSides" class="c-input pf-input-lg" placeholder="Sides, comma-separated" >'
+    +'<input id="vlWClose" class="c-input pf-input-md" type="datetime-local" >'
     +'<button class="c-btn" id="vlWCreate">CREATE WAGER</button><div class="c-err" id="vlWErr"></div>'
     +'</div>';
   var ws=(WL&&WL.ok&&WL.wagers)||[];
@@ -148,7 +148,7 @@ function render(){
       h+='<div class="vl-row"><div><b>'+esc(w.description||w.id)+'</b>'
         +' <span class="x-note">'+esc(w.kind)+' &bull; pool '+Number(w.total_pool||0)+' XP &bull; '+(w.resolved?"RESOLVED: "+esc(w.outcome):"closes "+fmtDate(w.closes_at))+'</span></div>';
       if(!w.resolved){
-        h+='<div class="vl-form"><input id="vlWRes_'+esc(w.id)+'" class="c-input" placeholder="Winning side" style="max-width:200px">'
+        h+='<div class="vl-form"><input id="vlWRes_'+esc(w.id)+'" class="c-input pf-input-md" placeholder="Winning side" >'
           +'<button class="c-btn" data-wres="'+esc(w.id)+'">RESOLVE</button></div>';
       }
       h+='</div>';
@@ -168,8 +168,8 @@ function render(){
     for(var c=0;c<cs.length;c++){ var p=cs[c];
       h+='<div class="vl-row"><div><b>'+esc(p.name)+'</b> <span class="x-note">'+Number(p.balance||0)+' XP &bull; '+(p.donors||0)+' donors</span>'
         +'<div class="x-note">'+esc(p.description||"")+'</div></div>'
-        +'<div class="vl-form"><input id="vlCW_'+esc(p.id)+'" class="c-input" type="number" min="1" placeholder="Amount" style="max-width:140px">'
-        +'<input id="vlCWN_'+esc(p.id)+'" class="c-input" placeholder="Disbursement note" style="max-width:240px">'
+        +'<div class="vl-form"><input id="vlCW_'+esc(p.id)+'" class="c-input pf-input-sm" type="number" min="1" placeholder="Amount" >'
+        +'<input id="vlCWN_'+esc(p.id)+'" class="c-input pf-input-md" placeholder="Disbursement note" >'
         +'<button class="c-btn" data-cw="'+esc(p.id)+'">WITHDRAW</button></div></div>';
     }
     h+='<div class="c-err" id="vlCWErr"></div>';
@@ -178,8 +178,8 @@ function render(){
   /* 6. PRIZE AWARDS */
   h+='<div class="x-pane"><h4>Prize awards</h4>'
     +'<div class="x-note">Award a crowdfunded prize pool to its winner. Pool empties on award.</div>'
-    +'<div class="vl-form"><input id="vlPPool" class="c-input" placeholder="Pool ID" style="max-width:200px">'
-    +'<input id="vlPWin" class="c-input" placeholder="Winner callsign" style="max-width:200px">'
+    +'<div class="vl-form"><input id="vlPPool" class="c-input pf-input-md" placeholder="Pool ID" >'
+    +'<input id="vlPWin" class="c-input pf-input-md" placeholder="Winner callsign" >'
     +'<button class="c-btn" id="vlPAward">AWARD PRIZE</button><div class="c-err" id="vlPErr"></div></div></div>';
   /* 7. EVENT ATTENDANCE */
   h+='<div class="x-pane"><h4>Event attendance</h4>';
@@ -188,7 +188,7 @@ function render(){
     h+='<div class="vl-list">';
     for(var e=0;e<Math.min(ev.length,10);e++){ var ve=ev[e];
       h+='<div class="vl-row"><div><b>'+esc(ve.title)+'</b> <span class="x-note">'+esc(ve.type)+' &bull; '+fmtDate(ve.event_at)+' &bull; '+(ve.rsvp_count||0)+' RSVPs</span></div>'
-        +'<div class="vl-form"><input id="vlEA_'+esc(ve.id)+'" class="c-input" placeholder="Callsign" style="max-width:160px">'
+        +'<div class="vl-form"><input id="vlEA_'+esc(ve.id)+'" class="c-input pf-input-sm" placeholder="Callsign" >'
         +'<button class="c-btn" data-ea="'+esc(ve.id)+'">CONFIRM ATTENDANCE</button></div></div>';
     }
     h+='</div><div class="c-err" id="vlEAErr"></div>';
@@ -196,17 +196,17 @@ function render(){
   h+='</div>';
   /* 8. DROPS & ALERTS */
   h+='<div class="x-pane"><h4>Coordinated drops</h4>'
-    +'<div class="vl-form"><input id="vlDTitle" class="c-input" placeholder="Drop title" style="max-width:260px">'
-    +'<input id="vlDCid" class="c-input" placeholder="Content ID" style="max-width:200px">'
-    +'<input id="vlDAt" class="c-input" type="datetime-local" style="max-width:220px">'
+    +'<div class="vl-form"><input id="vlDTitle" class="c-input pf-input-lg" placeholder="Drop title" >'
+    +'<input id="vlDCid" class="c-input pf-input-md" placeholder="Content ID" >'
+    +'<input id="vlDAt" class="c-input pf-input-md" type="datetime-local" >'
     +'<button class="c-btn" id="vlDCreate">CREATE DROP</button><div class="c-err" id="vlDErr"></div></div>';
   var dp=(DL&&DL.ok&&DL.drops)||[];
   if(dp.length){ h+='<div class="x-note">'+dp.length+' scheduled drop(s). Latest: <b>'+esc(dp[0].title)+'</b> &mdash; '+esc(dp[0].commit_count||0)+' committed, drops '+fmtDate(dp[0].drop_at)+'</div>'; }
   h+='</div>';
   h+='<div class="x-pane"><h4>Rapid response alerts</h4>'
-    +'<div class="vl-form"><input id="vlAHead" class="c-input" placeholder="Headline" style="max-width:320px">'
-    +'<input id="vlACtx" class="c-input" placeholder="Context for creators" style="max-width:320px">'
-    +'<input id="vlATpl" class="c-input" placeholder="Template ID (optional)" style="max-width:200px">'
+    +'<div class="vl-form"><input id="vlAHead" class="c-input pf-input-lg" placeholder="Headline" >'
+    +'<input id="vlACtx" class="c-input pf-input-lg" placeholder="Context for creators" >'
+    +'<input id="vlATpl" class="c-input pf-input-md" placeholder="Template ID (optional)" >'
     +'<button class="c-btn" id="vlACreate">CREATE ALERT</button><div class="c-err" id="vlAErr"></div></div>';
   var ax=(AL&&AL.ok&&AL.alerts)||[];
   if(ax.length){ h+='<div class="x-note">'+ax.length+' active alert(s). Latest: <b>'+esc(ax[0].headline)+'</b> &mdash; '+esc(ax[0].response_count||0)+' responses</div>'; }

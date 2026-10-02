@@ -9,7 +9,7 @@
   var PF = window.PF;
   if (PF.skip("civic")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-civic">
-<div class="fe-block pf-override-block" id="pf-civic">
+<div class="fe-block pf-override-block pf-silo" id="pf-civic">
 <h2>Civic Action</h2>
 <div class="c-tag">Petitions, reps, voter registration. Power off the timeline.</div>
 <div id="xCivic"><div class="c-load">Mobilizing&hellip;</div></div>
@@ -88,11 +88,11 @@ function render(){
       +'<button class="c-btn cp-mbtn" data-pet-sign="'+esc(p.id)+'">SIGN (+10 XP)</button></div>';
   }
   if(CREATE_OPEN){
-    h+='<div class="x-pane" style="margin-top:8px"><h4>New petition</h4>'
-      +'<input class="c-in" style="width:100%;margin:4px 0" id="cvPetTitle" maxlength="140" placeholder="Title (e.g. Stop the rent gouging)">'
-      +'<input class="c-in" style="width:100%;margin:4px 0" id="cvPetTarget" maxlength="140" placeholder="Target (e.g. City Council)">'
-      +'<textarea class="c-in" style="width:100%;margin:4px 0" id="cvPetDesc" rows="3" maxlength="2000" placeholder="What are we demanding?"></textarea>'
-      +'<input class="c-in" style="width:100%;margin:4px 0" id="cvPetGoal" type="number" min="10" max="1000000" value="500" placeholder="Signature goal">'
+    h+='<div class="x-pane pf-mt" ><h4>New petition</h4>'
+      +'<input class="c-in"  id="cvPetTitle" maxlength="140" placeholder="Title (e.g. Stop the rent gouging)">'
+      +'<input class="c-in"  id="cvPetTarget" maxlength="140" placeholder="Target (e.g. City Council)">'
+      +'<textarea class="c-in"  id="cvPetDesc" rows="3" maxlength="2000" placeholder="What are we demanding?"></textarea>'
+      +'<input class="c-in"  id="cvPetGoal" type="number" min="10" max="1000000" value="500" placeholder="Signature goal">'
       +'<button class="c-btn" id="cvPetCreate">LAUNCH PETITION</button> '
       +'<button class="c-btn c-btn2" id="cvPetCancel">CANCEL</button><div class="c-err" id="cvPetErr"></div></div>';
   } else {
@@ -107,19 +107,19 @@ function render(){
   var scripts=(SCRIPTS&&SCRIPTS.scripts)||[];
   var topics={}, topts='<option value="">Pick a topic&hellip;</option>';
   for(var s2=0;s2<scripts.length;s2++){ if(!topics[scripts[s2].topic]){ topics[scripts[s2].topic]=1; topts+='<option value="'+esc(scripts[s2].topic)+'">'+esc(scripts[s2].topic)+'</option>'; } }
-  h+='<select class="c-in" style="width:100%;margin:4px 0" id="cvRepSel">'+ropts+'</select>'
-    +'<select class="c-in" style="width:100%;margin:4px 0" id="cvTopicSel">'+topts+'</select>'
+  h+='<select class="c-in"  id="cvRepSel">'+ropts+'</select>'
+    +'<select class="c-in"  id="cvTopicSel">'+topts+'</select>'
     +'<div id="cvScriptBox"></div>'
-    +'<input class="c-in" style="width:100%;margin:4px 0" id="cvMyName" maxlength="60" placeholder="Your name (for the script)">'
-    +'<select class="c-in" style="width:100%;margin:4px 0" id="cvMyState">'+stateOpts("")+'</select>'
+    +'<input class="c-in"  id="cvMyName" maxlength="60" placeholder="Your name (for the script)">'
+    +'<select class="c-in"  id="cvMyState">'+stateOpts("")+'</select>'
     +'<div class="x-note">Method:</div>'
-    +'<select class="c-in" style="width:100%;margin:4px 0" id="cvMethod"><option value="call">Call</option><option value="email">Email</option><option value="tweet">Tweet</option></select>'
+    +'<select class="c-in"  id="cvMethod"><option value="call">Call</option><option value="email">Email</option><option value="tweet">Tweet</option></select>'
     +'<button class="c-btn" id="cvLogContact">LOG CONTACT (+25 XP)</button><div class="c-err" id="cvRepErr"></div>';
   if(REPS&&REPS.note){ h+='<div class="x-note">'+esc(REPS.note)+'</div>'; }
   h+='</div>';
   /* --- voter registration --- */
   h+='<div class="x-pane"><h4>Voter registration</h4>'
-    +'<select class="c-in" style="width:100%;margin:4px 0" id="cvVoterState">'+stateOpts(VOTER&&VOTER.state?VOTER.state:"")+'</select>'
+    +'<select class="c-in"  id="cvVoterState">'+stateOpts(VOTER&&VOTER.state?VOTER.state:"")+'</select>'
     +'<div id="cvVoterBox">';
   if(VOTER&&VOTER.url){
     h+='<div class="x-note">Official registration for '+esc(VOTER.state)+':</div>'
@@ -135,9 +135,9 @@ function render(){
     +'<div class="x-note">Get drops, alerts, and battle calls by email or text. We never sell your info.</div>';
   var ce=CONTACT&&CONTACT.email?String(CONTACT.email).replace(/\*\*\*/g,""): "", cp=CONTACT&&CONTACT.phone?String(CONTACT.phone).replace(/\*\*\*/g,""):"";
   var eo=CONTACT&&CONTACT.email_optin?1:0, so=CONTACT&&CONTACT.sms_optin?1:0;
-  h+='<input class="c-in" style="width:100%;margin:4px 0" id="cvEmail" type="email" maxlength="120" placeholder="Email address" value="'+esc(ce)+'">'
+  h+='<input class="c-in"  id="cvEmail" type="email" maxlength="120" placeholder="Email address" value="'+esc(ce)+'">'
     +'<label style="display:block;margin:6px 0;font-size:13px"><input type="checkbox" id="cvEmailOpt"'+(eo?' checked':'')+'> Email me drops &amp; alerts</label>'
-    +'<input class="c-in" style="width:100%;margin:4px 0" id="cvPhone" type="tel" maxlength="20" placeholder="Phone (for texts)" value="'+esc(cp)+'">'
+    +'<input class="c-in"  id="cvPhone" type="tel" maxlength="20" placeholder="Phone (for texts)" value="'+esc(cp)+'">'
     +'<label style="display:block;margin:6px 0;font-size:13px"><input type="checkbox" id="cvSmsOpt"'+(so?' checked':'')+'> Text me urgent calls</label>'
     +'<button class="c-btn" id="cvContactSave">SAVE PREFERENCES</button><div class="c-err" id="cvContactErr"></div></div>';
   el.innerHTML=h;
@@ -182,7 +182,7 @@ function bind(){
     if(!sc){ box.innerHTML=""; return; }
     var name=gv("cvMyName")||"[YOUR NAME]", st=gv("cvMyState")||"[STATE]", rep=gv("cvRepSel")||"[REP]";
     var txt=sc.script.split("{NAME}").join(esc(name)).split("{STATE}").join(esc(st)).split("{REP}").join(esc(rep));
-    box.innerHTML='<div class="x-pane" style="margin-top:8px"><h4>'+esc(sc.title)+'</h4><div class="x-note" style="white-space:pre-wrap">'+txt+'</div></div>';
+    box.innerHTML='<div class="x-pane pf-mt" ><h4>'+esc(sc.title)+'</h4><div class="x-note" style="white-space:pre-wrap">'+txt+'</div></div>';
     box.setAttribute("data-script-id",sc.id);
   }
   if(ts) ts.onchange=showScript;

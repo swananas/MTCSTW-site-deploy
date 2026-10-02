@@ -8,7 +8,7 @@
   var PF = window.PF;
   if (PF.skip("dashboard")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-dash">
-<div class="fe-block pf-override-block" id="pf-dash">
+<div class="fe-block pf-override-block pf-silo" id="pf-dash">
 <h2>Command Center</h2>
 <div class="c-tag">Your numbers, one screen. Optimize what you can see.</div>
 <div id="xDash"><div class="c-load">Loading&hellip;</div></div>

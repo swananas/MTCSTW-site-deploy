@@ -9,7 +9,7 @@
   var PF = window.PF;
   if (PF.skip("earnings")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-earnings">
-<div class="fe-block pf-override-block" id="pf-earnings">
+<div class="fe-block pf-override-block pf-silo" id="pf-earnings">
 <h2>Creator Earnings</h2>
 <div class="c-tag">Your work pays. Track every stream.</div>
 <div id="xEarnings"><div class="c-load">Counting the money&hellip;</div></div>

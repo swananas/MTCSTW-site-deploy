@@ -11,7 +11,7 @@
   var PF = window.PF;
   if (PF.skip("movement")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-movement">
-<div class="fe-block pf-override-block" id="pf-movement">
+<div class="fe-block pf-override-block pf-silo" id="pf-movement">
 <h2>Movement Finance</h2>
 <div class="c-tag">Collective money for collective power. No billionaires on the board.</div>
 <div id="xMovement"><div class="c-load">Opening the war chest&hellip;</div></div>
@@ -93,7 +93,7 @@ function renderCauses(id){
     h+='<div class="cp-mission"><div class="cp-mtext"><b>'+esc(p.name)+'</b>'
       +'<div class="x-note">'+esc(p.description||"")+'</div>'
       +'<div class="x-note"><b>'+Number(p.balance||0).toLocaleString()+' XP</b> &bull; '+Number(p.donors||0)+' donors</div>'
-      +'<div style="margin-top:6px"><input class="c-in" data-causeamt="'+esc(p.id)+'" type="number" min="1" placeholder="XP" style="width:90px"/> '
+      +'<div style="margin-top:6px"><input class="c-in pf-input-sm" data-causeamt="'+esc(p.id)+'" type="number" min="1" placeholder="XP" /> '
       +'<button class="c-btn" data-causedonate="'+esc(p.id)+'">DONATE</button></div></div></div>';
   }
   h+='</div>';
@@ -132,9 +132,9 @@ function renderSubs(id){
       +'<button class="c-btn" data-unsub="'+esc(s.creator)+'">STOP</button></div>';
   }
   if(sup.length) h+='<div class="x-note"><b>'+total.toLocaleString()+' XP/week</b> flowing to creators.</div>';
-  h+='<div class="pb-sub" style="margin-top:8px">FIND CREATORS</div>'
-    +'<div><input class="c-in" id="mvSubCs" type="text" placeholder="creator callsign" style="width:170px"/> '
-    +'<input class="c-in" id="mvSubAmt" type="number" min="1" max="10000" placeholder="XP/week" style="width:110px"/> '
+  h+='<div class="pb-sub pf-mt" >FIND CREATORS</div>'
+    +'<div><input class="c-in pf-input-md" id="mvSubCs" type="text" placeholder="creator callsign" /> '
+    +'<input class="c-in pf-input-sm" id="mvSubAmt" type="number" min="1" max="10000" placeholder="XP/week" /> '
     +'<button class="c-btn" id="mvSubBtn">SUPPORT</button></div>'
     +'<div class="c-err" id="mvSubErr"></div>';
   h+='</div>';
@@ -174,8 +174,8 @@ function wireSubs(id,el){
 function renderPrizes(id){
   var h='<div class="x-pane"><div class="pb-bankhead">&#9670; PRIZE POOLS — CROWDFUNDED GLORY &#9670;</div>'
     +'<div class="x-note">The community puts up the stakes. Winners take all. Create a pool, fund it, fight for it.</div>'
-    +'<div><input class="c-in" id="mvPrizeTitle" type="text" maxlength="120" placeholder="pool title" style="width:220px"/> '
-    +'<input class="c-in" id="mvPrizeTarget" type="number" min="1" placeholder="target XP" style="width:110px"/> '
+    +'<div><input class="c-in pf-input-md" id="mvPrizeTitle" type="text" maxlength="120" placeholder="pool title" /> '
+    +'<input class="c-in pf-input-sm" id="mvPrizeTarget" type="number" min="1" placeholder="target XP" /> '
     +'<button class="c-btn" id="mvPrizeBtn">CREATE POOL</button></div>'
     +'<div class="c-err" id="mvPrizeErr"></div><div style="height:8px"></div>';
   var pools=(PRIZES&&PRIZES.ok&&PRIZES.pools)||[];
@@ -186,7 +186,7 @@ function renderPrizes(id){
       +'<div class="x-note">by '+esc(p.created_by||"")+'</div>'
       +'<div class="cp-barwrap"><div class="cp-bar" style="width:'+pct+'%"></div></div>'
       +'<div class="x-note">'+Number(p.raised||0).toLocaleString()+' / '+Number(p.target||0).toLocaleString()+' XP ('+pct+'%)</div>'
-      +'<div style="margin-top:6px"><input class="c-in" data-prizeamt="'+esc(p.id)+'" type="number" min="1" placeholder="XP" style="width:90px"/> '
+      +'<div style="margin-top:6px"><input class="c-in pf-input-sm" data-prizeamt="'+esc(p.id)+'" type="number" min="1" placeholder="XP" /> '
       +'<button class="c-btn" data-prizecon="'+esc(p.id)+'">CONTRIBUTE</button></div></div></div>';
   }
   h+='</div>';
@@ -230,8 +230,8 @@ function wirePrizes(id,el){
 function renderBurns(id){
   var h='<div class="x-pane"><div class="pb-bankhead">&#9670; THE FURNACE — PROVE COMMITMENT &#9670;</div>'
     +'<div class="x-note">Burn XP permanently. No refund, no takeback. 1,000+ XP earns the <b>TRUE BELIEVER</b> badge. The ultimate flex is setting money on fire for the cause.</div>'
-    +'<div><input class="c-in" id="mvBurnAmt" type="number" min="1" placeholder="XP to burn" style="width:130px"/> '
-    +'<input class="c-in" id="mvBurnWhy" type="text" maxlength="80" placeholder="reason (optional)" style="width:200px"/> '
+    +'<div><input class="c-in pf-input-sm" id="mvBurnAmt" type="number" min="1" placeholder="XP to burn" /> '
+    +'<input class="c-in pf-input-md" id="mvBurnWhy" type="text" maxlength="80" placeholder="reason (optional)" /> '
     +'<button class="c-btn" id="mvBurnBtn">BURN IT</button></div>'
     +'<div class="c-err" id="mvBurnErr"></div><div style="height:8px"></div>';
   var bs=(BURNS&&BURNS.ok&&BURNS.burners)||[];

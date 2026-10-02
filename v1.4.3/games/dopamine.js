@@ -19,7 +19,7 @@
   var PF = window.PF;
   if (PF.skip("dopa")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-dopa">
-<div class="fe-block pf-override-block" id="pf-dopa">
+<div class="fe-block pf-override-block pf-silo" id="pf-dopa">
 <h2>Daily Fire</h2>
 <div class="c-tag">Your daily habit loop. Open the crate. Protect the streak. Chase the flash.</div>
 <div id="xDopa"><div class="c-load">Stoking the fire&hellip;</div></div>

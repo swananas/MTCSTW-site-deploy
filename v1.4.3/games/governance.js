@@ -9,7 +9,7 @@
   var PF = window.PF;
   if (!PF || PF.skip("gov")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-gov">
-<div class="fe-block pf-override-block" id="pf-gov">
+<div class="fe-block pf-override-block pf-silo" id="pf-gov">
 <h2>The People&rsquo;s Assembly</h2>
 <div class="c-tag">The network governs itself. Propose. Vote. Delegate. Power from the ranks.</div>
 <div id="xGov"><div class="c-load">Convening the assembly&hellip;</div></div>

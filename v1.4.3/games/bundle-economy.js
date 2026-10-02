@@ -13,7 +13,7 @@
   var PF = window.PF;
   if (PF.skip("economy")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-economy">
-<div class="fe-block pf-override-block" id="pf-economy">
+<div class="fe-block pf-override-block pf-silo" id="pf-economy">
 <h2>XP Economy</h2>
 <div class="c-tag">Earn it. Spend it. Weaponize it. The loop that keeps the machine alive.</div>
 <div id="xEconomy"><div class="c-load">Counting the war chest&hellip;</div></div>
@@ -111,7 +111,7 @@ function renderAuctions(id){
     h+='<div class="cp-mission"><div class="cp-mtext"><b>'+esc(a.slot)+'</b>'
       +'<div class="x-note">Top bid: <b>'+Number(a.current_bid||0)+' XP</b> by '+esc(a.leader||"—")
       +' &bull; ends in '+esc(fmtDur(left))+'</div></div>'
-      +'<div><input class="c-in" id="ecBidAmt_'+esc(a.id)+'" type="number" min="1" placeholder="XP" style="width:90px"/> '
+      +'<div><input class="c-in pf-input-sm" id="ecBidAmt_'+esc(a.id)+'" type="number" min="1" placeholder="XP" /> '
       +'<button class="c-btn" data-aid="'+esc(a.id)+'">BID</button></div></div>';
   }
   h+='</div>'; return h;
@@ -164,7 +164,7 @@ function wireCosmetics(id,el){
 /* ---------- STAKING ---------- */
 function renderStaking(id){
   var h='<div class="x-pane"><h4>Staking</h4><div class="x-note">Lock XP. Earn yield. Commitment pays.</div>'
-    +'<div><input class="c-in" id="ecStakeAmt" type="number" min="1" placeholder="XP to lock" style="width:120px"/> '
+    +'<div><input class="c-in pf-input-sm" id="ecStakeAmt" type="number" min="1" placeholder="XP to lock" /> '
     +'<select class="c-in" id="ecStakeDur"><option value="7">7 days — 5%</option><option value="30">30 days — 15%</option><option value="90">90 days — 40%</option></select> '
     +'<button class="c-btn" id="ecStakeBtn">LOCK</button></div><div style="height:8px"></div>';
   var stakes=(ST&&ST.stakes)||[];
@@ -210,14 +210,14 @@ function wireStaking(id,el){
 /* ---------- TREASURY ---------- */
 function renderTreasury(id){
   var h='<div class="x-pane"><h4>Cell Treasury</h4><div class="x-note">Collective war chest. Donate XP; founders spend it on the cell.</div>'
-    +'<div><input class="c-in" id="ecTCell" type="text" placeholder="cell id" value="'+esc(TRCELL)+'" style="width:140px"/> '
+    +'<div><input class="c-in pf-input-sm" id="ecTCell" type="text" placeholder="cell id" value="'+esc(TRCELL)+'" /> '
     +'<button class="c-btn" id="ecTView">VIEW</button></div><div style="height:8px"></div>';
   if(TRB&&TRB.ok){
     h+='<div class="cp-mtext"><b>BALANCE: '+Number(TRB.balance||0)+' XP</b></div>'
-      +'<div><input class="c-in" id="ecTDonate" type="number" min="1" placeholder="XP" style="width:90px"/> '
+      +'<div><input class="c-in pf-input-sm" id="ecTDonate" type="number" min="1" placeholder="XP" /> '
       +'<button class="c-btn" id="ecTDonateBtn">DONATE</button></div>';
     var rec=TRB.recent||[];
-    if(rec.length){ h+='<div class="x-note" style="margin-top:6px">Recent:</div>';
+    if(rec.length){ h+='<div class="x-note pf-mt" >Recent:</div>';
       for(var i=0;i<Math.min(rec.length,5);i++) h+='<div class="x-note">'+esc(rec[i].callsign)+' '+esc(rec[i].kind||"donated")+' '+Number(rec[i].amount||0)+' XP</div>';
     }
   } else if(TRCELL){ h+='<div class="x-note">No treasury data for that cell.</div>'; }
@@ -247,7 +247,7 @@ function wireTreasury(id,el){
 function renderSponsor(id){
   return '<div class="x-pane"><h4>Sponsored Drops</h4>'
     +'<div class="x-note">Pay XP to push your poster. 100 XP = your cell sees it. 500 XP = the whole network sees it.</div>'
-    +'<div><input class="c-in" id="ecSpCid" type="text" placeholder="content id" style="width:160px"/> '
+    +'<div><input class="c-in pf-input-md" id="ecSpCid" type="text" placeholder="content id" /> '
     +'<select class="c-in" id="ecSpTier"><option value="100">CELL-WIDE — 100 XP</option><option value="500">NETWORK-WIDE — 500 XP</option></select> '
     +'<button class="c-btn" id="ecSpBtn">SPONSOR</button></div></div>';
 }
@@ -295,7 +295,7 @@ function wirePowerups(id,el){
 function renderTitles(id){
   return '<div class="x-pane"><h4>Custom Titles</h4>'
     +'<div class="x-note">500 XP. A title next to your callsign, forever. Status is the oldest currency.</div>'
-    +'<div><input class="c-in" id="ecTitle" type="text" maxlength="40" placeholder="e.g. STREET GENERAL" style="width:200px"/> '
+    +'<div><input class="c-in pf-input-md" id="ecTitle" type="text" maxlength="40" placeholder="e.g. STREET GENERAL" /> '
     +'<button class="c-btn" id="ecTitleBtn">BUY (500 XP)</button></div></div>';
 }
 function wireTitles(id,el){
@@ -363,7 +363,7 @@ setInterval(function(){ load(); },180000);
   var PF = window.PF;
   if (PF.skip("peoplesbank")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-peoplesbank">
-<div class="fe-block pf-override-block" id="pf-peoplesbank">
+<div class="fe-block pf-override-block pf-silo" id="pf-peoplesbank">
 <h2>The Peoples Bank of Propaganda</h2>
 <div class="c-tag">Your money. Your movement. No billionaires on the board.</div>
 <div id="xPBank"><div class="c-load">Opening the vault&hellip;</div></div>
@@ -510,9 +510,9 @@ function renderLobby(id){
 function renderTeller(id){
   var h='<div class="x-pane pb-pane"><div class="pb-bankhead">&#9670; TELLER WINDOW No. 2 — TRANSFERS &#9670;</div>'
     +'<div class="x-note">Send XP to any soldier. 2% fee funds the community lottery pot. No billionaires take a cut here.</div>'
-    +'<div><input class="c-in" id="pbToCs" type="text" placeholder="recipient callsign" style="width:170px"/> '
+    +'<div><input class="c-in pf-input-md" id="pbToCs" type="text" placeholder="recipient callsign" /> '
     +'<input class="c-in" id="pbToAmt" type="number" min="1" placeholder="XP" style="width:100px"/> '
-    +'<input class="c-in" id="pbToMsg" type="text" maxlength="80" placeholder="message (optional)" style="width:200px"/> '
+    +'<input class="c-in pf-input-md" id="pbToMsg" type="text" maxlength="80" placeholder="message (optional)" /> '
     +'<button class="c-btn" id="pbSendBtn">SEND</button></div>'
     +'<div class="c-err" id="pbSendErr"></div><div style="height:8px"></div>';
   var sent=(RH&&RH.ok&&RH.sent)||[], recv=(RH&&RH.ok&&RH.received)||[];
@@ -563,7 +563,7 @@ function renderSavings(id){
     +'<div class="pb-balrow"><span class="pb-blabel">SAVINGS BALANCE</span><span class="pb-bval">'+Math.round(bal).toLocaleString()+' XP</span></div>'
     +(acc>0?'<div class="x-note">+'+acc.toFixed(2)+' XP interest accrued since last visit. It compounds while you sleep.</div>':'')
     +'<div class="x-note">For the cautious. Staking (in XP Economy) pays more but locks your funds. Savings is always liquid.</div>'
-    +'<div><input class="c-in" id="pbSavAmt" type="number" min="1" placeholder="XP amount" style="width:130px"/> '
+    +'<div><input class="c-in pf-input-sm" id="pbSavAmt" type="number" min="1" placeholder="XP amount" /> '
     +'<button class="c-btn" id="pbSavDep">DEPOSIT</button> '
     +'<button class="c-btn" id="pbSavWdr">WITHDRAW</button></div>'
     +'<div class="c-err" id="pbSavErr"></div></div>';
@@ -610,9 +610,9 @@ function renderLoans(id){
     +'<div class="x-note">The bank doesn&rsquo;t lend. Soldiers lend to soldiers. Max 50% interest — no loan sharks in this branch.</div>';
   /* create offer */
   h+='<div class="pb-sub">MAKE A LOAN OFFER</div>'
-    +'<div><input class="c-in" id="pbLnTo" type="text" placeholder="borrower callsign" style="width:160px"/> '
-    +'<input class="c-in" id="pbLnAmt" type="number" min="1" placeholder="principal XP" style="width:120px"/> '
-    +'<input class="c-in" id="pbLnInt" type="number" min="0" max="50" placeholder="interest %" style="width:90px"/> '
+    +'<div><input class="c-in pf-input-md" id="pbLnTo" type="text" placeholder="borrower callsign" /> '
+    +'<input class="c-in pf-input-sm" id="pbLnAmt" type="number" min="1" placeholder="principal XP" /> '
+    +'<input class="c-in pf-input-sm" id="pbLnInt" type="number" min="0" max="50" placeholder="interest %" /> '
     +'<select class="c-in" id="pbLnDur"><option value="7">7 days</option><option value="14">14 days</option><option value="30">30 days</option></select> '
     +'<button class="c-btn" id="pbLnOffer">OFFER LOAN</button></div>'
     +'<div class="c-err" id="pbLnErr"></div><div style="height:10px"></div>';
@@ -679,7 +679,7 @@ function wireLoans(id,el){
 function renderBonds(id){
   var h='<div class="x-pane pb-pane"><div class="pb-bankhead">&#9670; BOND DESK — WAR BONDS, 20% IN 30 DAYS &#9670;</div>'
     +'<div class="x-note">Buy the war effort. Your XP funds the fight; in 30 days it comes back 20% heavier. The billionaires&rsquo; bonds fund yachts. Ours fund the revolution.</div>'
-    +'<div><input class="c-in" id="pbBondAmt" type="number" min="1" placeholder="XP to invest" style="width:140px"/> '
+    +'<div><input class="c-in pf-input-sm" id="pbBondAmt" type="number" min="1" placeholder="XP to invest" /> '
     +'<button class="c-btn" id="pbBondBuy">BUY BOND</button></div>'
     +'<div class="c-err" id="pbBondErr"></div><div style="height:8px"></div>';
   var bonds=(BND&&BND.ok&&BND.bonds)||[];
@@ -769,7 +769,7 @@ function renderHistory(id){
     if(shown>=60) break;
   }
   if(!shown) h+='<div class="x-note">No entries in this category. Yet.</div>';
-  h+='<div class="x-note" style="margin-top:6px">Showing '+shown+' of '+es.length+' entries.</div>';
+  h+='<div class="x-note pf-mt" >Showing '+shown+' of '+es.length+' entries.</div>';
   h+='</div>';
   return h;
 }
@@ -895,7 +895,7 @@ setInterval(function(){ load(); },180000);
   var PF = window.PF;
   if (PF.skip("movement")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-movement">
-<div class="fe-block pf-override-block" id="pf-movement">
+<div class="fe-block pf-override-block pf-silo" id="pf-movement">
 <h2>Movement Finance</h2>
 <div class="c-tag">Collective money for collective power. No billionaires on the board.</div>
 <div id="xMovement"><div class="c-load">Opening the war chest&hellip;</div></div>
@@ -977,7 +977,7 @@ function renderCauses(id){
     h+='<div class="cp-mission"><div class="cp-mtext"><b>'+esc(p.name)+'</b>'
       +'<div class="x-note">'+esc(p.description||"")+'</div>'
       +'<div class="x-note"><b>'+Number(p.balance||0).toLocaleString()+' XP</b> &bull; '+Number(p.donors||0)+' donors</div>'
-      +'<div style="margin-top:6px"><input class="c-in" data-causeamt="'+esc(p.id)+'" type="number" min="1" placeholder="XP" style="width:90px"/> '
+      +'<div style="margin-top:6px"><input class="c-in pf-input-sm" data-causeamt="'+esc(p.id)+'" type="number" min="1" placeholder="XP" /> '
       +'<button class="c-btn" data-causedonate="'+esc(p.id)+'">DONATE</button></div></div></div>';
   }
   h+='</div>';
@@ -1016,9 +1016,9 @@ function renderSubs(id){
       +'<button class="c-btn" data-unsub="'+esc(s.creator)+'">STOP</button></div>';
   }
   if(sup.length) h+='<div class="x-note"><b>'+total.toLocaleString()+' XP/week</b> flowing to creators.</div>';
-  h+='<div class="pb-sub" style="margin-top:8px">FIND CREATORS</div>'
-    +'<div><input class="c-in" id="mvSubCs" type="text" placeholder="creator callsign" style="width:170px"/> '
-    +'<input class="c-in" id="mvSubAmt" type="number" min="1" max="10000" placeholder="XP/week" style="width:110px"/> '
+  h+='<div class="pb-sub pf-mt" >FIND CREATORS</div>'
+    +'<div><input class="c-in pf-input-md" id="mvSubCs" type="text" placeholder="creator callsign" /> '
+    +'<input class="c-in pf-input-sm" id="mvSubAmt" type="number" min="1" max="10000" placeholder="XP/week" /> '
     +'<button class="c-btn" id="mvSubBtn">SUPPORT</button></div>'
     +'<div class="c-err" id="mvSubErr"></div>';
   h+='</div>';
@@ -1058,8 +1058,8 @@ function wireSubs(id,el){
 function renderPrizes(id){
   var h='<div class="x-pane"><div class="pb-bankhead">&#9670; PRIZE POOLS — CROWDFUNDED GLORY &#9670;</div>'
     +'<div class="x-note">The community puts up the stakes. Winners take all. Create a pool, fund it, fight for it.</div>'
-    +'<div><input class="c-in" id="mvPrizeTitle" type="text" maxlength="120" placeholder="pool title" style="width:220px"/> '
-    +'<input class="c-in" id="mvPrizeTarget" type="number" min="1" placeholder="target XP" style="width:110px"/> '
+    +'<div><input class="c-in pf-input-md" id="mvPrizeTitle" type="text" maxlength="120" placeholder="pool title" /> '
+    +'<input class="c-in pf-input-sm" id="mvPrizeTarget" type="number" min="1" placeholder="target XP" /> '
     +'<button class="c-btn" id="mvPrizeBtn">CREATE POOL</button></div>'
     +'<div class="c-err" id="mvPrizeErr"></div><div style="height:8px"></div>';
   var pools=(PRIZES&&PRIZES.ok&&PRIZES.pools)||[];
@@ -1070,7 +1070,7 @@ function renderPrizes(id){
       +'<div class="x-note">by '+esc(p.created_by||"")+'</div>'
       +'<div class="cp-barwrap"><div class="cp-bar" style="width:'+pct+'%"></div></div>'
       +'<div class="x-note">'+Number(p.raised||0).toLocaleString()+' / '+Number(p.target||0).toLocaleString()+' XP ('+pct+'%)</div>'
-      +'<div style="margin-top:6px"><input class="c-in" data-prizeamt="'+esc(p.id)+'" type="number" min="1" placeholder="XP" style="width:90px"/> '
+      +'<div style="margin-top:6px"><input class="c-in pf-input-sm" data-prizeamt="'+esc(p.id)+'" type="number" min="1" placeholder="XP" /> '
       +'<button class="c-btn" data-prizecon="'+esc(p.id)+'">CONTRIBUTE</button></div></div></div>';
   }
   h+='</div>';
@@ -1114,8 +1114,8 @@ function wirePrizes(id,el){
 function renderBurns(id){
   var h='<div class="x-pane"><div class="pb-bankhead">&#9670; THE FURNACE — PROVE COMMITMENT &#9670;</div>'
     +'<div class="x-note">Burn XP permanently. No refund, no takeback. 1,000+ XP earns the <b>TRUE BELIEVER</b> badge. The ultimate flex is setting money on fire for the cause.</div>'
-    +'<div><input class="c-in" id="mvBurnAmt" type="number" min="1" placeholder="XP to burn" style="width:130px"/> '
-    +'<input class="c-in" id="mvBurnWhy" type="text" maxlength="80" placeholder="reason (optional)" style="width:200px"/> '
+    +'<div><input class="c-in pf-input-sm" id="mvBurnAmt" type="number" min="1" placeholder="XP to burn" /> '
+    +'<input class="c-in pf-input-md" id="mvBurnWhy" type="text" maxlength="80" placeholder="reason (optional)" /> '
     +'<button class="c-btn" id="mvBurnBtn">BURN IT</button></div>'
     +'<div class="c-err" id="mvBurnErr"></div><div style="height:8px"></div>';
   var bs=(BURNS&&BURNS.ok&&BURNS.burners)||[];
@@ -1181,7 +1181,7 @@ setInterval(function(){ load(); },180000);
   var PF = window.PF;
   if (PF.skip("earnings")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-earnings">
-<div class="fe-block pf-override-block" id="pf-earnings">
+<div class="fe-block pf-override-block pf-silo" id="pf-earnings">
 <h2>Creator Earnings</h2>
 <div class="c-tag">Your work pays. Track every stream.</div>
 <div id="xEarnings"><div class="c-load">Counting the money&hellip;</div></div>
@@ -1381,7 +1381,7 @@ setInterval(function(){ load(); },180000);
   var PF = window.PF;
   if (PF.skip("dashboard")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-dash">
-<div class="fe-block pf-override-block" id="pf-dash">
+<div class="fe-block pf-override-block pf-silo" id="pf-dash">
 <h2>Command Center</h2>
 <div class="c-tag">Your numbers, one screen. Optimize what you can see.</div>
 <div id="xDash"><div class="c-load">Loading&hellip;</div></div>
@@ -1525,7 +1525,7 @@ setInterval(function(){ load(); },300000);
   var PF = window.PF;
   if (PF.skip("casino")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-casino">
-<div class="fe-block pf-override-block" id="pf-casino">
+<div class="fe-block pf-override-block pf-silo" id="pf-casino">
 <h2>XP Casino</h2>
 <div class="c-tag">Wager your XP. Winner takes the glory — and the pot.</div>
 <div id="xCasino"><div class="c-load">Rolling the dice&hellip;</div></div>
@@ -1618,7 +1618,7 @@ function renderWagers(id){
         +' <span class="cs-odds">'+esc(odds)+' ('+sb+' XP)</span>'
         +'<button class="c-btn cs-betbtn" data-wid="'+esc(w.id)+'" data-side="'+esc(sd.side)+'">BET</button></div>';
     }
-    h+='<div class="cs-betrow"><input class="c-input cs-amt" id="csAmt_'+esc(w.id)+'" type="number" min="1" placeholder="XP amount" style="width:120px">'
+    h+='<div class="cs-betrow"><input class="c-input cs-amt pf-input-sm" id="csAmt_'+esc(w.id)+'" type="number" min="1" placeholder="XP amount" >'
       +'<span class="x-note">Enter amount, then hit BET on your side.</span></div></div>';
   }
   h+='</div>';
@@ -1641,8 +1641,8 @@ function renderLottery(id){
 function renderFlip(id){
   var fl=(F&&F.flips)||[];
   var h='<div class="x-pane"><h4>Coin Flip</h4><div class="x-note">Heads or tails. Winner takes double. 5% rake feeds the lottery.</div>'
-    +'<div class="cs-betrow"><input class="c-input" id="csFlipAmt" type="number" min="1" placeholder="XP amount" style="width:110px">'
-    +'<select class="c-input" id="csFlipSide" style="width:110px"><option value="heads">HEADS</option><option value="tails">TAILS</option></select>'
+    +'<div class="cs-betrow"><input class="c-input pf-input-sm" id="csFlipAmt" type="number" min="1" placeholder="XP amount" >'
+    +'<select class="c-input pf-input-sm" id="csFlipSide" ><option value="heads">HEADS</option><option value="tails">TAILS</option></select>'
     +'<button class="c-btn" id="csFlipCreate">CREATE FLIP</button></div>'
     +'<div class="c-err" id="csFlipErr"></div>';
   h+='<h4 style="margin-top:8px">Open flips</h4>';
@@ -1670,7 +1670,7 @@ function renderCrash(id){
     h+='<div class="x-note">You\'re in for '+(Number(myBet.amount)||0)+' XP at '+mult.toFixed(2)+'x = '+Math.floor((Number(myBet.amount)||0)*mult)+' XP</div>'
       +'<button class="c-btn cs-cashout" id="csCashout">CASH OUT</button>';
   } else {
-    h+='<div class="cs-betrow"><input class="c-input" id="csCrashAmt" type="number" min="1" placeholder="XP amount" style="width:120px">'
+    h+='<div class="cs-betrow"><input class="c-input pf-input-sm" id="csCrashAmt" type="number" min="1" placeholder="XP amount" >'
       +'<button class="c-btn" id="csCrashBet">PLACE BET</button></div>';
   }
   h+='<div class="x-note">'+bets.length+' in this round</div><div class="c-err" id="csCrashErr"></div></div>';
@@ -1679,10 +1679,10 @@ function renderCrash(id){
 /* ============ ROULETTE ============ */
 function renderRoulette(id){
   var h='<div class="x-pane"><h4>Roulette</h4><div class="x-note">Red/black pays 2x. Single number pays 36x. 5% of losses feed the lottery.</div>'
-    +'<div class="cs-betrow"><select class="c-input" id="csRouType" style="width:120px">'
+    +'<div class="cs-betrow"><select class="c-input pf-input-sm" id="csRouType" >'
     +'<option value="red">RED</option><option value="black">BLACK</option><option value="number">NUMBER</option></select>'
     +'<input class="c-input" id="csRouVal" type="number" min="0" max="36" placeholder="0-36" style="width:80px">'
-    +'<input class="c-input" id="csRouAmt" type="number" min="1" placeholder="XP" style="width:90px">'
+    +'<input class="c-input pf-input-sm" id="csRouAmt" type="number" min="1" placeholder="XP" >'
     +'<button class="c-btn" id="csSpin">SPIN</button></div>'
     +'<div class="cs-roures" id="csRouRes"></div><div class="c-err" id="csRouErr"></div></div>';
   return h;
@@ -1854,7 +1854,7 @@ setInterval(function(){ load(); },120000);
   var PF = window.PF;
   if (PF.skip("vault")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-vault">
-<div class="fe-block pf-override-block" id="pf-vault">
+<div class="fe-block pf-override-block pf-silo" id="pf-vault">
 <h2>Admin Vault</h2>
 <div class="c-tag">Financial control room. Restricted access.</div>
 <div id="xVault"><div class="c-load">Checking credentials&hellip;</div></div>
@@ -1931,7 +1931,7 @@ function renderGate(){
   var el=document.getElementById("xVault"); if(!el) return;
   el.innerHTML='<div class="x-pane"><h4>Restricted area</h4>'
     +'<div class="x-note">The Vault manages the XP financial system. Enter the admin secret to unlock.</div>'
-    +'<input id="vlSecret" type="password" class="c-input" placeholder="Admin secret" style="max-width:320px">'
+    +'<input id="vlSecret" type="password" class="c-input pf-input-lg" placeholder="Admin secret" >'
     +'<div style="margin-top:8px"><button class="c-btn" id="vlUnlock">UNLOCK VAULT</button></div>'
     +'<div class="c-err" id="vlGateErr"></div></div>';
   document.getElementById("vlUnlock").onclick=function(){
@@ -1979,11 +1979,11 @@ function render(){
   /* 3. WAGER MANAGEMENT */
   h+='<div class="x-pane"><h4>Wager management</h4>'
     +'<div class="vl-form">'
-    +'<input id="vlWKind" class="c-input" placeholder="Kind: battle | race | challenge" style="max-width:200px">'
-    +'<input id="vlWTid" class="c-input" placeholder="Target ID (battle/race/challenge)" style="max-width:260px">'
-    +'<input id="vlWDesc" class="c-input" placeholder="Description" style="max-width:320px">'
-    +'<input id="vlWSides" class="c-input" placeholder="Sides, comma-separated" style="max-width:320px">'
-    +'<input id="vlWClose" class="c-input" type="datetime-local" style="max-width:220px">'
+    +'<input id="vlWKind" class="c-input pf-input-md" placeholder="Kind: battle | race | challenge" >'
+    +'<input id="vlWTid" class="c-input pf-input-lg" placeholder="Target ID (battle/race/challenge)" >'
+    +'<input id="vlWDesc" class="c-input pf-input-lg" placeholder="Description" >'
+    +'<input id="vlWSides" class="c-input pf-input-lg" placeholder="Sides, comma-separated" >'
+    +'<input id="vlWClose" class="c-input pf-input-md" type="datetime-local" >'
     +'<button class="c-btn" id="vlWCreate">CREATE WAGER</button><div class="c-err" id="vlWErr"></div>'
     +'</div>';
   var ws=(WL&&WL.ok&&WL.wagers)||[];
@@ -1993,7 +1993,7 @@ function render(){
       h+='<div class="vl-row"><div><b>'+esc(w.description||w.id)+'</b>'
         +' <span class="x-note">'+esc(w.kind)+' &bull; pool '+Number(w.total_pool||0)+' XP &bull; '+(w.resolved?"RESOLVED: "+esc(w.outcome):"closes "+fmtDate(w.closes_at))+'</span></div>';
       if(!w.resolved){
-        h+='<div class="vl-form"><input id="vlWRes_'+esc(w.id)+'" class="c-input" placeholder="Winning side" style="max-width:200px">'
+        h+='<div class="vl-form"><input id="vlWRes_'+esc(w.id)+'" class="c-input pf-input-md" placeholder="Winning side" >'
           +'<button class="c-btn" data-wres="'+esc(w.id)+'">RESOLVE</button></div>';
       }
       h+='</div>';
@@ -2013,8 +2013,8 @@ function render(){
     for(var c=0;c<cs.length;c++){ var p=cs[c];
       h+='<div class="vl-row"><div><b>'+esc(p.name)+'</b> <span class="x-note">'+Number(p.balance||0)+' XP &bull; '+(p.donors||0)+' donors</span>'
         +'<div class="x-note">'+esc(p.description||"")+'</div></div>'
-        +'<div class="vl-form"><input id="vlCW_'+esc(p.id)+'" class="c-input" type="number" min="1" placeholder="Amount" style="max-width:140px">'
-        +'<input id="vlCWN_'+esc(p.id)+'" class="c-input" placeholder="Disbursement note" style="max-width:240px">'
+        +'<div class="vl-form"><input id="vlCW_'+esc(p.id)+'" class="c-input pf-input-sm" type="number" min="1" placeholder="Amount" >'
+        +'<input id="vlCWN_'+esc(p.id)+'" class="c-input pf-input-md" placeholder="Disbursement note" >'
         +'<button class="c-btn" data-cw="'+esc(p.id)+'">WITHDRAW</button></div></div>';
     }
     h+='<div class="c-err" id="vlCWErr"></div>';
@@ -2023,8 +2023,8 @@ function render(){
   /* 6. PRIZE AWARDS */
   h+='<div class="x-pane"><h4>Prize awards</h4>'
     +'<div class="x-note">Award a crowdfunded prize pool to its winner. Pool empties on award.</div>'
-    +'<div class="vl-form"><input id="vlPPool" class="c-input" placeholder="Pool ID" style="max-width:200px">'
-    +'<input id="vlPWin" class="c-input" placeholder="Winner callsign" style="max-width:200px">'
+    +'<div class="vl-form"><input id="vlPPool" class="c-input pf-input-md" placeholder="Pool ID" >'
+    +'<input id="vlPWin" class="c-input pf-input-md" placeholder="Winner callsign" >'
     +'<button class="c-btn" id="vlPAward">AWARD PRIZE</button><div class="c-err" id="vlPErr"></div></div></div>';
   /* 7. EVENT ATTENDANCE */
   h+='<div class="x-pane"><h4>Event attendance</h4>';
@@ -2033,7 +2033,7 @@ function render(){
     h+='<div class="vl-list">';
     for(var e=0;e<Math.min(ev.length,10);e++){ var ve=ev[e];
       h+='<div class="vl-row"><div><b>'+esc(ve.title)+'</b> <span class="x-note">'+esc(ve.type)+' &bull; '+fmtDate(ve.event_at)+' &bull; '+(ve.rsvp_count||0)+' RSVPs</span></div>'
-        +'<div class="vl-form"><input id="vlEA_'+esc(ve.id)+'" class="c-input" placeholder="Callsign" style="max-width:160px">'
+        +'<div class="vl-form"><input id="vlEA_'+esc(ve.id)+'" class="c-input pf-input-sm" placeholder="Callsign" >'
         +'<button class="c-btn" data-ea="'+esc(ve.id)+'">CONFIRM ATTENDANCE</button></div></div>';
     }
     h+='</div><div class="c-err" id="vlEAErr"></div>';
@@ -2041,17 +2041,17 @@ function render(){
   h+='</div>';
   /* 8. DROPS & ALERTS */
   h+='<div class="x-pane"><h4>Coordinated drops</h4>'
-    +'<div class="vl-form"><input id="vlDTitle" class="c-input" placeholder="Drop title" style="max-width:260px">'
-    +'<input id="vlDCid" class="c-input" placeholder="Content ID" style="max-width:200px">'
-    +'<input id="vlDAt" class="c-input" type="datetime-local" style="max-width:220px">'
+    +'<div class="vl-form"><input id="vlDTitle" class="c-input pf-input-lg" placeholder="Drop title" >'
+    +'<input id="vlDCid" class="c-input pf-input-md" placeholder="Content ID" >'
+    +'<input id="vlDAt" class="c-input pf-input-md" type="datetime-local" >'
     +'<button class="c-btn" id="vlDCreate">CREATE DROP</button><div class="c-err" id="vlDErr"></div></div>';
   var dp=(DL&&DL.ok&&DL.drops)||[];
   if(dp.length){ h+='<div class="x-note">'+dp.length+' scheduled drop(s). Latest: <b>'+esc(dp[0].title)+'</b> &mdash; '+esc(dp[0].commit_count||0)+' committed, drops '+fmtDate(dp[0].drop_at)+'</div>'; }
   h+='</div>';
   h+='<div class="x-pane"><h4>Rapid response alerts</h4>'
-    +'<div class="vl-form"><input id="vlAHead" class="c-input" placeholder="Headline" style="max-width:320px">'
-    +'<input id="vlACtx" class="c-input" placeholder="Context for creators" style="max-width:320px">'
-    +'<input id="vlATpl" class="c-input" placeholder="Template ID (optional)" style="max-width:200px">'
+    +'<div class="vl-form"><input id="vlAHead" class="c-input pf-input-lg" placeholder="Headline" >'
+    +'<input id="vlACtx" class="c-input pf-input-lg" placeholder="Context for creators" >'
+    +'<input id="vlATpl" class="c-input pf-input-md" placeholder="Template ID (optional)" >'
     +'<button class="c-btn" id="vlACreate">CREATE ALERT</button><div class="c-err" id="vlAErr"></div></div>';
   var ax=(AL&&AL.ok&&AL.alerts)||[];
   if(ax.length){ h+='<div class="x-note">'+ax.length+' active alert(s). Latest: <b>'+esc(ax[0].headline)+'</b> &mdash; '+esc(ax[0].response_count||0)+' responses</div>'; }

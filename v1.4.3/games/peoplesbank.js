@@ -12,7 +12,7 @@
   var PF = window.PF;
   if (PF.skip("peoplesbank")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-peoplesbank">
-<div class="fe-block pf-override-block" id="pf-peoplesbank">
+<div class="fe-block pf-override-block pf-silo" id="pf-peoplesbank">
 <h2>The Peoples Bank of Propaganda</h2>
 <div class="c-tag">Your money. Your movement. No billionaires on the board.</div>
 <div id="xPBank"><div class="c-load">Opening the vault&hellip;</div></div>
@@ -159,9 +159,9 @@ function renderLobby(id){
 function renderTeller(id){
   var h='<div class="x-pane pb-pane"><div class="pb-bankhead">&#9670; TELLER WINDOW No. 2 — TRANSFERS &#9670;</div>'
     +'<div class="x-note">Send XP to any soldier. 2% fee funds the community lottery pot. No billionaires take a cut here.</div>'
-    +'<div><input class="c-in" id="pbToCs" type="text" placeholder="recipient callsign" style="width:170px"/> '
+    +'<div><input class="c-in pf-input-md" id="pbToCs" type="text" placeholder="recipient callsign" /> '
     +'<input class="c-in" id="pbToAmt" type="number" min="1" placeholder="XP" style="width:100px"/> '
-    +'<input class="c-in" id="pbToMsg" type="text" maxlength="80" placeholder="message (optional)" style="width:200px"/> '
+    +'<input class="c-in pf-input-md" id="pbToMsg" type="text" maxlength="80" placeholder="message (optional)" /> '
     +'<button class="c-btn" id="pbSendBtn">SEND</button></div>'
     +'<div class="c-err" id="pbSendErr"></div><div style="height:8px"></div>';
   var sent=(RH&&RH.ok&&RH.sent)||[], recv=(RH&&RH.ok&&RH.received)||[];
@@ -212,7 +212,7 @@ function renderSavings(id){
     +'<div class="pb-balrow"><span class="pb-blabel">SAVINGS BALANCE</span><span class="pb-bval">'+Math.round(bal).toLocaleString()+' XP</span></div>'
     +(acc>0?'<div class="x-note">+'+acc.toFixed(2)+' XP interest accrued since last visit. It compounds while you sleep.</div>':'')
     +'<div class="x-note">For the cautious. Staking (in XP Economy) pays more but locks your funds. Savings is always liquid.</div>'
-    +'<div><input class="c-in" id="pbSavAmt" type="number" min="1" placeholder="XP amount" style="width:130px"/> '
+    +'<div><input class="c-in pf-input-sm" id="pbSavAmt" type="number" min="1" placeholder="XP amount" /> '
     +'<button class="c-btn" id="pbSavDep">DEPOSIT</button> '
     +'<button class="c-btn" id="pbSavWdr">WITHDRAW</button></div>'
     +'<div class="c-err" id="pbSavErr"></div></div>';
@@ -259,9 +259,9 @@ function renderLoans(id){
     +'<div class="x-note">The bank doesn&rsquo;t lend. Soldiers lend to soldiers. Max 50% interest — no loan sharks in this branch.</div>';
   /* create offer */
   h+='<div class="pb-sub">MAKE A LOAN OFFER</div>'
-    +'<div><input class="c-in" id="pbLnTo" type="text" placeholder="borrower callsign" style="width:160px"/> '
-    +'<input class="c-in" id="pbLnAmt" type="number" min="1" placeholder="principal XP" style="width:120px"/> '
-    +'<input class="c-in" id="pbLnInt" type="number" min="0" max="50" placeholder="interest %" style="width:90px"/> '
+    +'<div><input class="c-in pf-input-md" id="pbLnTo" type="text" placeholder="borrower callsign" /> '
+    +'<input class="c-in pf-input-sm" id="pbLnAmt" type="number" min="1" placeholder="principal XP" /> '
+    +'<input class="c-in pf-input-sm" id="pbLnInt" type="number" min="0" max="50" placeholder="interest %" /> '
     +'<select class="c-in" id="pbLnDur"><option value="7">7 days</option><option value="14">14 days</option><option value="30">30 days</option></select> '
     +'<button class="c-btn" id="pbLnOffer">OFFER LOAN</button></div>'
     +'<div class="c-err" id="pbLnErr"></div><div style="height:10px"></div>';
@@ -328,7 +328,7 @@ function wireLoans(id,el){
 function renderBonds(id){
   var h='<div class="x-pane pb-pane"><div class="pb-bankhead">&#9670; BOND DESK — WAR BONDS, 20% IN 30 DAYS &#9670;</div>'
     +'<div class="x-note">Buy the war effort. Your XP funds the fight; in 30 days it comes back 20% heavier. The billionaires&rsquo; bonds fund yachts. Ours fund the revolution.</div>'
-    +'<div><input class="c-in" id="pbBondAmt" type="number" min="1" placeholder="XP to invest" style="width:140px"/> '
+    +'<div><input class="c-in pf-input-sm" id="pbBondAmt" type="number" min="1" placeholder="XP to invest" /> '
     +'<button class="c-btn" id="pbBondBuy">BUY BOND</button></div>'
     +'<div class="c-err" id="pbBondErr"></div><div style="height:8px"></div>';
   var bonds=(BND&&BND.ok&&BND.bonds)||[];
@@ -418,7 +418,7 @@ function renderHistory(id){
     if(shown>=60) break;
   }
   if(!shown) h+='<div class="x-note">No entries in this category. Yet.</div>';
-  h+='<div class="x-note" style="margin-top:6px">Showing '+shown+' of '+es.length+' entries.</div>';
+  h+='<div class="x-note pf-mt" >Showing '+shown+' of '+es.length+' entries.</div>';
   h+='</div>';
   return h;
 }

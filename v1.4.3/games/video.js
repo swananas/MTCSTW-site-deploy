@@ -14,7 +14,7 @@
   var PF = window.PF;
   if (PF.skip("video")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-video">
-<div class="fe-block pf-override-block" id="pf-video">
+<div class="fe-block pf-override-block pf-silo" id="pf-video">
 <h2>Video Forge</h2>
 <div class="c-tag">Slideshow &rarr; real video. Build it, preview it, record it.</div>
 <div id="xVideo"><div class="c-load">Loading the forge&hellip;</div></div>

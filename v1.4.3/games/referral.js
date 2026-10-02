@@ -1,0 +1,162 @@
+/* games/referral.js  |  PF v1.4.3 | REFERRAL WAR: copy-paste referral engine.
+   LAYERING: a game silo like campaign.js. Reads via JSONP (self-contained api()),
+   writes via CORS POST (self-contained post()). It never reaches into another
+   silo's internals. On load, captures ?ref= from the URL into localStorage
+   pf_pending_ref so the enlistment claim flow can attribute the recruit.
+   Framing: class warfare — every recruit is a soldier, build your army.
+   Backend actions (to be implemented): referral_status (GET), referral_leaders (GET).
+   KILL: ?pf_off=referral  or  localStorage pf_disabled_v1='["referral"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (PF.skip("referral")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-referral">
+<div class="fe-block pf-override-block" id="pf-referral">
+<h2>Referral War</h2>
+<div class="c-tag">Every recruit is a soldier. Build your army.</div>
+<div id="xReferral"><div class="c-load">Mustering&hellip;</div></div>
+</div>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+/* Tiers: recruits thresholds. */
+var TIERS=[
+  {min:100,name:"LEGEND",cls:"rf-t-legend"},
+  {min:25,name:"COMMANDER",cls:"rf-t-commander"},
+  {min:10,name:"CAPTAIN",cls:"rf-t-captain"},
+  {min:3,name:"ORGANIZER",cls:"rf-t-organizer"},
+  {min:0,name:"RECRUIT",cls:"rf-t-recruit"}
+];
+function tierFor(n){ n=Number(n)||0; for(var i=0;i<TIERS.length;i++){ if(n>=TIERS[i].min) return TIERS[i]; } return TIERS[TIERS.length-1]; }
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+/* JSONP GET for reads. */
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  var fn="pfRfCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+/* Capture ?ref= from URL for attribution on claim. */
+function captureRef(){
+  try{
+    var m=String(window.location.search||"").match(/[?&]ref=([a-z0-9_]{3,20})/i);
+    if(m&&m[1]){
+      var existing="";
+      try{ existing=window.PFCallsign?window.PFCallsign():""; }catch(e){}
+      if(!existing){ try{ localStorage.setItem("pf_pending_ref",m[1].toLowerCase()); }catch(e2){} }
+    }
+  }catch(e3){}
+}
+var S=null, L=null;
+function load(){
+  var id=ident(), done=false, n=0;
+  function fin(){ if(done)return; done=true; render(); }
+  function one(){ n++; if(n>=2) fin(); }
+  setTimeout(fin,15000);
+  api("referral_status",{callsign:id.callsign,device:id.device},function(j){ S=j; one(); });
+  api("referral_leaders",{},function(j){ L=j; one(); });
+}
+function refLink(cs){ return "https://www.mtcstw.com/?ref="+encodeURIComponent(cs||""); }
+function render(){
+  var el=document.getElementById("xReferral"); if(!el) return;
+  var id=ident(), h="";
+  h+='<div class="rf-frame">EVERY RECRUIT IS A SOLDIER. BUILD YOUR ARMY.</div>';
+  h+='<div class="rf-sub">Share your code. They claim a callsign. You both get XP. Climb the tiers.</div>';
+  if(!id.callsign){
+    h+='<div class="c-gate">Referral War runs on callsigns. Claim yours in Enlistment Ranks, then come back and recruit.</div>';
+    el.innerHTML=h; return;
+  }
+  var st=S||{}, recruits=Number(st.recruits)||0, xpEarned=Number(st.xp_earned)||0;
+  var tier=tierFor(recruits);
+  var myList=[]; try{ myList=st.recruits_list||st.recruitsList||[]; }catch(e){}
+  /* --- my code --- */
+  h+='<div class="x-pane"><h4>Your referral code</h4>'
+    +'<div class="rf-code">'+esc(id.callsign.toUpperCase())+'</div>'
+    +'<div class="rf-link">'+esc(refLink(id.callsign))+'</div>'
+    +'<div style="margin-top:8px"><button class="c-btn" id="rfCopy">COPY LINK</button> '
+    +'<button class="c-btn" id="rfShare">SHARE</button></div>'
+    +'<div class="c-err" id="rfCopyErr"></div></div>';
+  /* --- my stats --- */
+  h+='<div class="x-pane"><h4>Your army</h4>'
+    +'<div class="rf-tier '+tier.cls+'">'+esc(tier.name)+'</div>'
+    +'<div class="x-note">'+recruits+' recruits &bull; +'+xpEarned+' XP earned from referrals</div>';
+  var next=null; for(var ti=TIERS.length-1;ti>=0;ti--){ if(TIERS[ti].min>recruits){ next=TIERS[ti]; break; } }
+  if(next){ h+='<div class="x-note">Next tier: '+esc(next.name)+' at '+next.min+' recruits ('+(next.min-recruits)+' to go).</div>'; }
+  else { h+='<div class="x-note">Max tier reached. You are the war.</div>'; }
+  h+='</div>';
+  /* --- my recruits --- */
+  h+='<div class="x-pane"><h4>Your recruits</h4>';
+  if(!myList.length){ h+='<div class="x-note">No recruits yet. Share your code — every soldier counts.</div>'; }
+  else{
+    h+='<div class="rf-wall">';
+    for(var r=0;r<Math.min(myList.length,50);r++){ h+='<span class="rf-wname">'+esc(myList[r].callsign||myList[r])+'</span>'; }
+    h+='</div>';
+  }
+  h+='</div>';
+  /* --- leaderboard --- */
+  var ld=[]; try{ ld=(L&&L.leaders)||[]; }catch(e2){}
+  h+='<div class="x-pane"><h4>Top recruiters</h4>';
+  if(!ld.length){ h+='<div class="x-note">No standings yet. Be the first warlord.</div>'; }
+  for(var q=0;q<Math.min(ld.length,10);q++){
+    var lt=tierFor(ld[q].recruits);
+    h+='<div class="cp-lead"><span class="cp-lrank">'+(q+1)+'.</span> <span class="cp-lname">'+esc(ld[q].callsign)+'</span> '
+      +'<span class="rf-ltier '+lt.cls+'">'+esc(lt.name)+'</span> '
+      +'<span class="cp-lxp">'+(Number(ld[q].recruits)||0)+' recruits</span></div>';
+  }
+  h+='</div>';
+  /* --- how it works --- */
+  h+='<div class="x-pane"><h4>How it works</h4>'
+    +'<div class="x-note"><b>1.</b> Share your code or link anywhere.</div>'
+    +'<div class="x-note"><b>2.</b> They claim a callsign with your code attached.</div>'
+    +'<div class="x-note"><b>3.</b> You both get XP. They join your army. You climb the tiers.</div>'
+    +'<div class="x-note">Recruit 3 for ORGANIZER, 10 for CAPTAIN, 25 for COMMANDER, 100 for LEGEND.</div></div>';
+  h+='<div style="margin-top:10px"><button class="c-btn" id="rfRetry">Refresh</button></div>';
+  el.innerHTML=h;
+  /* wire copy */
+  var cp=document.getElementById("rfCopy");
+  if(cp) cp.onclick=function(){
+    var link=refLink(id.callsign);
+    function ok(){ toast("Link copied. Go recruit."); }
+    function fail(){ var e=document.getElementById("rfCopyErr"); if(e) e.textContent="Copy failed — long-press the link above."; }
+    try{
+      if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(link).then(ok,fail); }
+      else{
+        var ta=document.createElement("textarea"); ta.value=link; document.body.appendChild(ta);
+        ta.select(); var did=false; try{ did=document.execCommand("copy"); }catch(e){}
+        document.body.removeChild(ta); if(did) ok(); else fail();
+      }
+    }catch(e){ fail(); }
+  };
+  /* wire share */
+  var sh=document.getElementById("rfShare");
+  if(sh) sh.onclick=function(){
+    var link=refLink(id.callsign);
+    var txt="Join the fight. Claim your callsign with my code "+id.callsign.toUpperCase()+": "+link;
+    try{
+      if(navigator.share){ navigator.share({title:"Join the fight",text:txt,url:link}).catch(function(){}); }
+      else{ toast("Copy your link and spread it everywhere."); }
+    }catch(e){ toast("Copy your link and spread it everywhere."); }
+  };
+  var rb=document.getElementById("rfRetry");
+  if(rb) rb.onclick=function(){ S=L=null; el.innerHTML='<div class="c-load">Mustering&hellip;</div>'; load(); };
+}
+captureRef();
+load();
+setInterval(function(){ load(); },120000);
+})();
+</scr`+`ipt>
+</div>
+</template>`);
+})();

@@ -26,6 +26,7 @@
   var ORDER = [
     ['daily-orders', 'pf-ov-orders'],
     ['campaign', 'pf-ov-campaign'],
+    ['referral', 'pf-ov-referral'],
     ['cells', 'pf-ov-cells'],
     ['contracts', 'pf-ov-contracts'],
     ['fan-vote', 'pf-ov-vote'],

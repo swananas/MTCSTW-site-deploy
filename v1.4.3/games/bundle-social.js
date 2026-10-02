@@ -402,8 +402,9 @@ function api(action,params,cb){
   q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
   setTimeout(function(){ finish(null); },12000);
 }
-function post(type,aAction,params,cb){
+function post(type,actionKey,action,params,cb){
   var body=Object.assign({type:type},params);
+  body[actionKey]=action;
   if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
   var bodyStr=JSON.stringify(body);
   function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
@@ -516,7 +517,7 @@ function bind(){
     b.onclick=function(){
       var pid=b.getAttribute("data-pet-sign");
       b.disabled=true;
-      post("petition","petition_sign",{callsign:ident().callsign,petition_id:pid,pe_action:"petition_sign"},function(j){
+      post("petition","pe_action","petition_sign",{callsign:ident().callsign,petition_id:pid},function(j){
         if(j&&j.ok){ toast(j.dup?"Already signed.":"Signed. +10 XP."); load(); }
         else { toast((j&&j.err)||"Sign failed."); b.disabled=false; }
       });
@@ -532,7 +533,7 @@ function bind(){
     var title=gv("cvPetTitle").trim(), target=gv("cvPetTarget").trim();
     if(!title||!target){ err.textContent="Title and target are required."; return; }
     pcb.disabled=true;
-    post("petition","petition_create",{callsign:ident().callsign,title:title,description:gv("cvPetDesc"),target:target,goal:Number(gv("cvPetGoal"))||500,pe_action:"petition_create"},function(j){
+    post("petition","pe_action","petition_create",{callsign:ident().callsign,title:title,description:gv("cvPetDesc"),target:target,goal:Number(gv("cvPetGoal"))||500},function(j){
       if(j&&j.ok){ toast("Petition launched."); CREATE_OPEN=false; load(); }
       else { err.textContent=(j&&j.err)||"Create failed."; pcb.disabled=false; }
     });
@@ -561,7 +562,7 @@ function bind(){
     var box=document.getElementById("cvScriptBox");
     var sid=box?box.getAttribute("data-script-id"):"";
     lc.disabled=true;
-    post("rep","rep_contact",{callsign:ident().callsign,rep_name:rep,method:gv("cvMethod"),script_used:sid||"",r_action:"rep_contact"},function(j){
+    post("rep","r_action","rep_contact",{callsign:ident().callsign,rep_name:rep,method:gv("cvMethod"),script_used:sid||""},function(j){
       if(j&&j.ok){ toast("Contact logged. +25 XP."); }
       else { err.textContent=(j&&j.err)||"Log failed."; }
       lc.disabled=false;
@@ -576,7 +577,7 @@ function bind(){
   var pl=document.getElementById("cvPledge");
   if(pl) pl.onclick=function(){
     pl.disabled=true;
-    post("rep","voter_pledge",{callsign:ident().callsign,state:gv("cvVoterState"),r_action:"voter_pledge"},function(j){
+    post("rep","r_action","voter_pledge",{callsign:ident().callsign,state:gv("cvVoterState")},function(j){
       if(j&&j.ok){ toast(j.dup?"Already pledged.":"Pledged. +50 XP."); }
       else { toast((j&&j.err)||"Pledge failed."); }
       pl.disabled=false;
@@ -588,7 +589,7 @@ function bind(){
     var err=document.getElementById("cvContactErr");
     var eo=document.getElementById("cvEmailOpt"), so=document.getElementById("cvSmsOpt");
     cs2.disabled=true;
-    post("notifyq","contact_set",{callsign:ident().callsign,email:gv("cvEmail"),phone:gv("cvPhone"),email_optin:eo&&eo.checked?1:0,sms_optin:so&&so.checked?1:0,nq_action:"contact_set"},function(j){
+    post("notifyq","nq_action","contact_set",{callsign:ident().callsign,email:gv("cvEmail"),phone:gv("cvPhone"),email_optin:eo&&eo.checked?1:0,sms_optin:so&&so.checked?1:0},function(j){
       if(j&&j.ok){ toast("Preferences saved."); }
       else { err.textContent=(j&&j.err)||"Save failed."; }
       cs2.disabled=false;
@@ -1302,7 +1303,7 @@ function api(action,params,cb){
   setTimeout(function(){ finish(null); },12000);
 }
 function post(acAction,params,cb){
-  var body=Object.assign({type:"academy",academy_action:acAction},params);
+  var body=Object.assign({type:"academy",a_action:acAction},params);
   if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
   var bodyStr=JSON.stringify(body);
   function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
@@ -1999,7 +2000,7 @@ function api(action,params,cb){
   setTimeout(function(){ finish(null); },12000);
 }
 function post(cAction,params,cb){
-  var body=Object.assign({type:"irl",irl_action:cAction},params);
+  var body=Object.assign({type:"irl",i_action:cAction},params);
   if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
   var bodyStr=JSON.stringify(body);
   function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
@@ -2236,6 +2237,20 @@ function api(action,params,cb){
   q+="&callback="+fn;
   s.src=BACKEND+q;
   document.head.appendChild(s);
+}
+/* CORS POST for POST_ONLY actions (cell_promote, challenge_join). */
+function post(type,actionKey,action,params,cb){
+  var body=Object.assign({type:type},params||{});
+  body[actionKey]=action;
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr})
+      .then(function(r){ return r.json(); })
+      .then(function(j){ done(j); })
+      .catch(function(){ done(null); });
+  }catch(e){ done(null); }
 }
 /* Cached multiplier for Daily Orders. Refreshes in the background when stale. */
 function cache(){ return load(LS_C,{mult:1,cell_id:"",name:"",t:0}); }
@@ -2493,7 +2508,7 @@ function renderCell(el,s){
     btn.onclick=function(){
       var tgt=btn.getAttribute("data-cs"), id2=ident();
       errEl.textContent="";
-      api("cell_promote",{callsign:id2.callsign,device:id2.device,cell_id:c.id,target:tgt},function(j){
+      post("cell","cell_action","cell_promote",{callsign:id2.callsign,device:id2.device,cell_id:c.id,target:tgt},function(j){
         if(!j||!j.ok){ errEl.textContent=(j&&j.err)||"Network error."; return; }
         toast(tgt+" promoted to OFFICER.");
         refresh();
@@ -2570,7 +2585,7 @@ function renderCell(el,s){
         btn.onclick=function(){
           var chid=btn.getAttribute("data-ch"), id2=ident();
           var ee=document.getElementById("cChErr-"+chid); if(ee) ee.textContent="";
-          api("challenge_join",{callsign:id2.callsign,device:id2.device,cell_id:c.id,challenge_id:chid},function(r){
+          post("challenge","ch_action","challenge_join",{callsign:id2.callsign,device:id2.device,cell_id:c.id,challenge_id:chid},function(r){
             if(!r||!r.ok){ if(ee) ee.textContent=(r&&r.err)||"Network error."; return; }
             toast("Cell entered. Fight for the top.");
           });
@@ -2874,21 +2889,13 @@ function wire(){
     btn.onclick=function(){
       var id=ident(), cid=btn.getAttribute("data-id"), bnty=parseInt(btn.getAttribute("data-b"),10)||0;
       btn.disabled=true;
-      var fn="pfCxClaim"+Math.floor(Math.random()*1e9);
-      window[fn]=function(j){
-        try{delete window[fn];}catch(e){}
+      api("contract_claim",{callsign:id.callsign,device:id.device,contract_id:cid},function(j){
         if(j&&j.ok){
           try{ document.dispatchEvent(new CustomEvent("pf-contract-paid",{detail:{id:cid,bounty:bnty}})); }catch(e){}
           try{ document.dispatchEvent(new CustomEvent("pf-contract-claimed",{detail:{id:cid}})); }catch(e2){}
         } else { toast((j&&j.err)||"Claim failed."); btn.disabled=false; }
         setTimeout(load,1500);
-      };
-      var s=document.createElement("script");
-      s.src=BACKEND+"?action=contract_claim&callsign="+encodeURIComponent(id.callsign)+
-        "&device="+encodeURIComponent(id.device)+"&contract_id="+encodeURIComponent(cid)+"&callback="+fn;
-      s.onerror=function(){ try{delete window[fn];}catch(e){} toast("Network error."); btn.disabled=false; };
-      document.head.appendChild(s);
-      setTimeout(function(){ if(s.parentNode)s.parentNode.removeChild(s); },15000);
+      });
     };
   })(cl[k]);
   var cx=document.querySelectorAll(".x-cancel");
@@ -5639,7 +5646,7 @@ function pfLogShare(){
   pfLastShared=cid;
   if(pfRegistered[cid]){ pfDoShareLog(cid,id); return; }
   if(!id.callsign){ pfRenderSpread(); pfRenderImpact(); return; }
-  pfPost({type:"spread",sp_action:"content_register",id:cid,callsign:id.callsign,type:"poster",title:title},function(j){
+  pfPost({type:"spread",sp_action:"content_register",id:cid,callsign:id.callsign,kind:"poster",title:title},function(j){
     if(j&&j.ok) pfRegistered[cid]=1;
     pfDoShareLog(cid,id);
   });

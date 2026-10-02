@@ -236,21 +236,13 @@ function wire(){
     btn.onclick=function(){
       var id=ident(), cid=btn.getAttribute("data-id"), bnty=parseInt(btn.getAttribute("data-b"),10)||0;
       btn.disabled=true;
-      var fn="pfCxClaim"+Math.floor(Math.random()*1e9);
-      window[fn]=function(j){
-        try{delete window[fn];}catch(e){}
+      api("contract_claim",{callsign:id.callsign,device:id.device,contract_id:cid},function(j){
         if(j&&j.ok){
           try{ document.dispatchEvent(new CustomEvent("pf-contract-paid",{detail:{id:cid,bounty:bnty}})); }catch(e){}
           try{ document.dispatchEvent(new CustomEvent("pf-contract-claimed",{detail:{id:cid}})); }catch(e2){}
         } else { toast((j&&j.err)||"Claim failed."); btn.disabled=false; }
         setTimeout(load,1500);
-      };
-      var s=document.createElement("script");
-      s.src=BACKEND+"?action=contract_claim&callsign="+encodeURIComponent(id.callsign)+
-        "&device="+encodeURIComponent(id.device)+"&contract_id="+encodeURIComponent(cid)+"&callback="+fn;
-      s.onerror=function(){ try{delete window[fn];}catch(e){} toast("Network error."); btn.disabled=false; };
-      document.head.appendChild(s);
-      setTimeout(function(){ if(s.parentNode)s.parentNode.removeChild(s); },15000);
+      });
     };
   })(cl[k]);
   var cx=document.querySelectorAll(".x-cancel");

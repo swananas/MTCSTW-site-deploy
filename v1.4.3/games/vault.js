@@ -278,7 +278,7 @@ function wire(){
       var eid=btn.getAttribute("data-ea");
       var cs=val("vlEA_"+eid);
       if(!cs){ err("vlEAErr","Enter a callsign."); btn.disabled=false; return; }
-      post("irl","irl_action","event_attended",{event_id:eid,callsign:cs},function(j){
+      post("irl","i_action","event_attended",{event_id:eid,callsign:cs},function(j){
         btn.disabled=false;
         if(!j||!j.ok){ err("vlEAErr",(j&&j.err)||"Confirm failed."); return; }
         toast(j.dup?"Already confirmed.":"Attendance confirmed. +100 XP to "+cs+".");

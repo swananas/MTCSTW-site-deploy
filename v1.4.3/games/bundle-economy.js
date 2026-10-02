@@ -189,7 +189,7 @@ function wireStaking(id,el){
     var dur=Number(document.getElementById("ecStakeDur").value)||7;
     if(amt<=0){ toast("Enter an amount."); return; }
     b.disabled=true;
-    post("sink","s_action","stake_lock",{callsign:id.callsign,device:id.device,amount:amt,duration_days:dur},function(j){
+    post("stake","st_action","stake_lock",{callsign:id.callsign,device:id.device,amount:amt,duration_days:dur},function(j){
       if(!j||!j.ok){ toast((j&&j.err)||"Stake failed."); b.disabled=false; return; }
       toast("LOCKED. Patience is a weapon.");
       setTimeout(function(){ ST=null; load(); },800);
@@ -199,7 +199,7 @@ function wireStaking(id,el){
   for(var i=0;i<btns.length;i++){ (function(btn){
     btn.onclick=function(){
       var sid=btn.getAttribute("data-sid"); btn.disabled=true;
-      post("sink","s_action","stake_claim",{callsign:id.callsign,device:id.device,stake_id:sid},function(j){
+      post("stake","st_action","stake_claim",{callsign:id.callsign,device:id.device,stake_id:sid},function(j){
         if(!j||!j.ok){ toast((j&&j.err)||"Claim failed."); btn.disabled=false; return; }
         toast("+"+(j.payout||0)+" XP CLAIMED.");
         setTimeout(function(){ ST=null; load(); },800);
@@ -236,7 +236,7 @@ function wireTreasury(id,el){
     if(!TRCELL){ toast("Enter a cell id first."); return; }
     if(amt<=0){ toast("Enter an amount."); return; }
     d.disabled=true;
-    post("sink","s_action","treasury_donate",{callsign:id.callsign,device:id.device,cell_id:TRCELL,amount:amt},function(j){
+    post("treasury","t_action","treasury_donate",{callsign:id.callsign,device:id.device,cell_id:TRCELL,amount:amt},function(j){
       if(!j||!j.ok){ toast((j&&j.err)||"Donation failed."); d.disabled=false; return; }
       toast("DONATED "+amt+" XP to the war chest.");
       api("treasury_balance",{cell_id:TRCELL},function(jj){ TRB=jj; render(); });
@@ -258,7 +258,7 @@ function wireSponsor(id,el){
     var amt=Number(document.getElementById("ecSpTier").value)||100;
     if(!cid){ toast("Paste a content id (from Poster Forge share panel)."); return; }
     b.disabled=true;
-    post("sink","s_action","sponsor_buy",{callsign:id.callsign,device:id.device,content_id:cid,amount:amt},function(j){
+    post("sponsor","sp_action","sponsor_buy",{callsign:id.callsign,device:id.device,content_id:cid,amount:amt},function(j){
       if(!j||!j.ok){ toast((j&&j.err)||"Sponsor failed."); b.disabled=false; return; }
       toast("SPONSORED. Your poster rides the wire.");
       b.disabled=false;
@@ -283,7 +283,7 @@ function wirePowerups(id,el){
   for(var i=0;i<btns.length;i++){ (function(btn){
     btn.onclick=function(){
       var kind=btn.getAttribute("data-puk"); btn.disabled=true;
-      post("sink","s_action","powerup_buy",{callsign:id.callsign,device:id.device,kind:kind},function(j){
+      post("powerup","p_action","powerup_buy",{callsign:id.callsign,device:id.device,kind:kind},function(j){
         if(!j||!j.ok){ toast((j&&j.err)||"Purchase failed."); btn.disabled=false; return; }
         toast("POWERED UP. Grind twice as hard.");
         setTimeout(function(){ PU=null; load(); },800);
@@ -304,7 +304,7 @@ function wireTitles(id,el){
     var t=String(document.getElementById("ecTitle").value||"").trim();
     if(!t){ toast("Enter a title."); return; }
     b.disabled=true;
-    post("sink","s_action","title_buy",{callsign:id.callsign,device:id.device,title:t},function(j){
+    post("title","ti_action","title_buy",{callsign:id.callsign,device:id.device,title:t},function(j){
       if(!j||!j.ok){ toast((j&&j.err)||"Purchase failed."); b.disabled=false; return; }
       toast("TITLE SET: "+t);
       b.disabled=false;
@@ -2123,7 +2123,7 @@ function wire(){
       var eid=btn.getAttribute("data-ea");
       var cs=val("vlEA_"+eid);
       if(!cs){ err("vlEAErr","Enter a callsign."); btn.disabled=false; return; }
-      post("irl","irl_action","event_attended",{event_id:eid,callsign:cs},function(j){
+      post("irl","i_action","event_attended",{event_id:eid,callsign:cs},function(j){
         btn.disabled=false;
         if(!j||!j.ok){ err("vlEAErr",(j&&j.err)||"Confirm failed."); return; }
         toast(j.dup?"Already confirmed.":"Attendance confirmed. +100 XP to "+cs+".");

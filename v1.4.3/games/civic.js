@@ -36,8 +36,9 @@ function api(action,params,cb){
   q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
   setTimeout(function(){ finish(null); },12000);
 }
-function post(type,aAction,params,cb){
+function post(type,actionKey,action,params,cb){
   var body=Object.assign({type:type},params);
+  body[actionKey]=action;
   if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
   var bodyStr=JSON.stringify(body);
   function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
@@ -150,7 +151,7 @@ function bind(){
     b.onclick=function(){
       var pid=b.getAttribute("data-pet-sign");
       b.disabled=true;
-      post("petition","petition_sign",{callsign:ident().callsign,petition_id:pid,pe_action:"petition_sign"},function(j){
+      post("petition","pe_action","petition_sign",{callsign:ident().callsign,petition_id:pid},function(j){
         if(j&&j.ok){ toast(j.dup?"Already signed.":"Signed. +10 XP."); load(); }
         else { toast((j&&j.err)||"Sign failed."); b.disabled=false; }
       });
@@ -166,7 +167,7 @@ function bind(){
     var title=gv("cvPetTitle").trim(), target=gv("cvPetTarget").trim();
     if(!title||!target){ err.textContent="Title and target are required."; return; }
     pcb.disabled=true;
-    post("petition","petition_create",{callsign:ident().callsign,title:title,description:gv("cvPetDesc"),target:target,goal:Number(gv("cvPetGoal"))||500,pe_action:"petition_create"},function(j){
+    post("petition","pe_action","petition_create",{callsign:ident().callsign,title:title,description:gv("cvPetDesc"),target:target,goal:Number(gv("cvPetGoal"))||500},function(j){
       if(j&&j.ok){ toast("Petition launched."); CREATE_OPEN=false; load(); }
       else { err.textContent=(j&&j.err)||"Create failed."; pcb.disabled=false; }
     });
@@ -195,7 +196,7 @@ function bind(){
     var box=document.getElementById("cvScriptBox");
     var sid=box?box.getAttribute("data-script-id"):"";
     lc.disabled=true;
-    post("rep","rep_contact",{callsign:ident().callsign,rep_name:rep,method:gv("cvMethod"),script_used:sid||"",r_action:"rep_contact"},function(j){
+    post("rep","r_action","rep_contact",{callsign:ident().callsign,rep_name:rep,method:gv("cvMethod"),script_used:sid||""},function(j){
       if(j&&j.ok){ toast("Contact logged. +25 XP."); }
       else { err.textContent=(j&&j.err)||"Log failed."; }
       lc.disabled=false;
@@ -210,7 +211,7 @@ function bind(){
   var pl=document.getElementById("cvPledge");
   if(pl) pl.onclick=function(){
     pl.disabled=true;
-    post("rep","voter_pledge",{callsign:ident().callsign,state:gv("cvVoterState"),r_action:"voter_pledge"},function(j){
+    post("rep","r_action","voter_pledge",{callsign:ident().callsign,state:gv("cvVoterState")},function(j){
       if(j&&j.ok){ toast(j.dup?"Already pledged.":"Pledged. +50 XP."); }
       else { toast((j&&j.err)||"Pledge failed."); }
       pl.disabled=false;
@@ -222,7 +223,7 @@ function bind(){
     var err=document.getElementById("cvContactErr");
     var eo=document.getElementById("cvEmailOpt"), so=document.getElementById("cvSmsOpt");
     cs2.disabled=true;
-    post("notifyq","contact_set",{callsign:ident().callsign,email:gv("cvEmail"),phone:gv("cvPhone"),email_optin:eo&&eo.checked?1:0,sms_optin:so&&so.checked?1:0,nq_action:"contact_set"},function(j){
+    post("notifyq","nq_action","contact_set",{callsign:ident().callsign,email:gv("cvEmail"),phone:gv("cvPhone"),email_optin:eo&&eo.checked?1:0,sms_optin:so&&so.checked?1:0},function(j){
       if(j&&j.ok){ toast("Preferences saved."); }
       else { err.textContent=(j&&j.err)||"Save failed."; }
       cs2.disabled=false;

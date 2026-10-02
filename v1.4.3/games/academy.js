@@ -37,7 +37,7 @@ function api(action,params,cb){
   setTimeout(function(){ finish(null); },12000);
 }
 function post(acAction,params,cb){
-  var body=Object.assign({type:"academy",academy_action:acAction},params);
+  var body=Object.assign({type:"academy",a_action:acAction},params);
   if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
   var bodyStr=JSON.stringify(body);
   function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }

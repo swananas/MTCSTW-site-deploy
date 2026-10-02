@@ -45,9 +45,10 @@ function api(action,params,cb){
   q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
   setTimeout(function(){ finish(null); },12000);
 }
-/* CORS POST for writes. comeback_claim lives under the dopamine namespace. */
-function dopaPost(cAction,params,cb){
-  var body=Object.assign({type:"dopamine",do_action:cAction},params);
+/* CORS POST for writes. */
+function dopaPost(type,actionKey,action,params,cb){
+  var body=Object.assign({type:type},params);
+  body[actionKey]=action;
   if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
   var bodyStr=JSON.stringify(body);
   function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
@@ -245,7 +246,7 @@ function render(){
     (function(btn){ btn.onclick=function(){
       btn.disabled=true; btn.textContent="CLAIMING...";
       var id2=ident();
-      dopaPost("comeback_claim",{callsign:id2.callsign,device:id2.device},function(j){
+      dopaPost("comeback","cb_action","comeback_claim",{callsign:id2.callsign,device:id2.device},function(j){
         if(j&&j.ok){ toast("Welcome back. +"+Number(j.xp||50)+" XP."); }
         else { toast((j&&j.err)||"Claim failed."); btn.disabled=false; btn.textContent="CLAIM"; return; }
         load();

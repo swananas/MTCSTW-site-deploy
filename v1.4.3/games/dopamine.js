@@ -49,8 +49,9 @@ function api(action,params,cb){
 }
 /* CORS POST for writes — through the auth layer, backend verdict parsed.
    If the backend flags a lucky bonus (j.lucky), fire the toast. */
-function post(doAction,params,cb){
-  var body=Object.assign({type:"dopamine",do_action:doAction},params||{});
+function post(type,actionKey,action,params,cb){
+  var body=Object.assign({type:type},params||{});
+  body[actionKey]=action;
   function done(j){
     try{
       if(j&&j.lucky&&window.PF&&PF.dopaLucky){ PF.dopaLucky(j.lucky.xp||0,j.lucky.mult||0); }
@@ -282,7 +283,7 @@ function wire(){
     var crate=document.getElementById("dpCrate");
     ob.disabled=true; ob.textContent="CRACKING IT OPEN...";
     if(crate){ crate.classList.remove("dp-burst"); crate.classList.add("dp-shake"); }
-    post("loot_open",{callsign:id.callsign,device:id.device},function(j){
+    post("loot","l_action","loot_open",{callsign:id.callsign,device:id.device},function(j){
       if(crate){ crate.classList.remove("dp-shake"); }
       if(j&&j.ok&&j.reward){
         var r=j.reward, rk=RARITY[r.rarity]||RARITY.common;
@@ -315,7 +316,7 @@ function wire(){
   if(fb){ fb.onclick=function(){
     if(!confirm("Spend 100 XP on a streak freeze? It saves your streak if you miss a day.")) return;
     var err=document.getElementById("dpStreakErr"); fb.disabled=true;
-    post("streak_freeze",{callsign:id.callsign,device:id.device},function(j){
+    post("streak","str_action","streak_freeze_buy",{callsign:id.callsign,device:id.device},function(j){
       fb.disabled=false;
       if(j&&j.ok){ toast("Streak frozen. Sleep easy, soldier."); comboHit(); load(); }
       else if(err) err.textContent=(j&&j.err)||"Freeze failed.";
@@ -325,7 +326,7 @@ function wire(){
   if(rb){ rb.onclick=function(){
     if(!confirm("Spend 250 XP to relight your broken streak?")) return;
     var err=document.getElementById("dpStreakErr"); rb.disabled=true;
-    post("streak_repair",{callsign:id.callsign,device:id.device},function(j){
+    post("streak","str_action","streak_repair",{callsign:id.callsign,device:id.device},function(j){
       rb.disabled=false;
       if(j&&j.ok){ toast("Streak relit. Don't let it die twice."); comboHit(); load(); }
       else if(err) err.textContent=(j&&j.err)||"Repair failed.";
@@ -465,7 +466,7 @@ function comebackBanner(xp){
     if(b){ b.onclick=function(){
       b.disabled=true; b.textContent="CLAIMING...";
       var id=ident();
-      post("comeback_claim",{callsign:id.callsign,device:id.device},function(j){
+      post("comeback","cb_action","comeback_claim",{callsign:id.callsign,device:id.device},function(j){
         if(d.parentNode) d.parentNode.removeChild(d);
         if(j&&j.ok){ toast("Welcome back. +"+Number(j.xp||xp||50)+" XP."); comboHit(); }
       });

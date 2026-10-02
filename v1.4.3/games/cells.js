@@ -57,6 +57,20 @@ function api(action,params,cb){
   s.src=BACKEND+q;
   document.head.appendChild(s);
 }
+/* CORS POST for POST_ONLY actions (cell_promote, challenge_join). */
+function post(type,actionKey,action,params,cb){
+  var body=Object.assign({type:type},params||{});
+  body[actionKey]=action;
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr})
+      .then(function(r){ return r.json(); })
+      .then(function(j){ done(j); })
+      .catch(function(){ done(null); });
+  }catch(e){ done(null); }
+}
 /* Cached multiplier for Daily Orders. Refreshes in the background when stale. */
 function cache(){ return load(LS_C,{mult:1,cell_id:"",name:"",t:0}); }
 window.pfCellMult=function(){
@@ -313,7 +327,7 @@ function renderCell(el,s){
     btn.onclick=function(){
       var tgt=btn.getAttribute("data-cs"), id2=ident();
       errEl.textContent="";
-      api("cell_promote",{callsign:id2.callsign,device:id2.device,cell_id:c.id,target:tgt},function(j){
+      post("cell","cell_action","cell_promote",{callsign:id2.callsign,device:id2.device,cell_id:c.id,target:tgt},function(j){
         if(!j||!j.ok){ errEl.textContent=(j&&j.err)||"Network error."; return; }
         toast(tgt+" promoted to OFFICER.");
         refresh();
@@ -390,7 +404,7 @@ function renderCell(el,s){
         btn.onclick=function(){
           var chid=btn.getAttribute("data-ch"), id2=ident();
           var ee=document.getElementById("cChErr-"+chid); if(ee) ee.textContent="";
-          api("challenge_join",{callsign:id2.callsign,device:id2.device,cell_id:c.id,challenge_id:chid},function(r){
+          post("challenge","ch_action","challenge_join",{callsign:id2.callsign,device:id2.device,cell_id:c.id,challenge_id:chid},function(r){
             if(!r||!r.ok){ if(ee) ee.textContent=(r&&r.err)||"Network error."; return; }
             toast("Cell entered. Fight for the top.");
           });

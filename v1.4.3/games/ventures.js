@@ -40,13 +40,17 @@ function api(action,params,cb){
   q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
   setTimeout(function(){ finish(null); },12000);
 }
-function post(action,params){
+function post(action,params,cb){
   var body=Object.assign({type:"bank",b_action:action},params);
-  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,function(){}); return; }
+  function done(j){ try{ (cb||function(){})(j||{ok:false,err:"Network error."}); }catch(e){} }
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,done); return; }
   try{
-    fetch(BACKEND,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},
-      body:JSON.stringify(body)}).catch(function(){});
-  }catch(e){}
+    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(body)})
+      .then(function(r){ return r.json(); })
+      .then(function(j){ done(j); })
+      .catch(function(){ done(null); });
+  }catch(e){ done(null); }
 }
 var board=null, mine=null, busy=false;
 function load(){
@@ -159,7 +163,7 @@ function wire(){
       errEl.textContent="";
       if(!amt||amt<10||amt>500){ errEl.textContent="Pledge 10-500 XP from your War Chest."; return; }
       btn.disabled=true;
-      api("venture_pledge",{callsign:id.callsign,device:id.device,venture_id:vid,amount:amt,
+      post("venture_pledge",{callsign:id.callsign,device:id.device,venture_id:vid,amount:amt,
         side:sideEl?sideEl.value:"a",key:id.device+":"+Date.now()},function(j){
         btn.disabled=false;
         if(j&&j.ok){ toast("+"+j.shares+" shares"+(j.earlybird?" (early-bird!)":"")+"."); }
@@ -171,7 +175,7 @@ function wire(){
   document.querySelectorAll(".v-resolve").forEach(function(btn){
     btn.onclick=function(){
       btn.disabled=true; btn.textContent="Resolving…";
-      api("venture_resolve",{venture_id:btn.getAttribute("data-id"),callsign:id.callsign,device:id.device},function(j){
+      post("venture_resolve",{venture_id:btn.getAttribute("data-id"),callsign:id.callsign,device:id.device},function(j){
         if(j&&j.ok){ toast(j.result==="draw"?"Draw — pledges returned.":j.result==="missed"?"Goal missed — pledges returned.":"Resolved. Spoils paid."); }
         else { toast((j&&j.err)||"Resolve failed."); btn.disabled=false; btn.textContent="Resolve now"; }
         setTimeout(load,2000);

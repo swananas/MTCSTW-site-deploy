@@ -277,7 +277,7 @@ function pfLogShare(){
   pfLastShared=cid;
   if(pfRegistered[cid]){ pfDoShareLog(cid,id); return; }
   if(!id.callsign){ pfRenderSpread(); pfRenderImpact(); return; }
-  pfPost({type:"spread",sp_action:"content_register",id:cid,callsign:id.callsign,type:"poster",title:title},function(j){
+  pfPost({type:"spread",sp_action:"content_register",id:cid,callsign:id.callsign,kind:"poster",title:title},function(j){
     if(j&&j.ok) pfRegistered[cid]=1;
     pfDoShareLog(cid,id);
   });

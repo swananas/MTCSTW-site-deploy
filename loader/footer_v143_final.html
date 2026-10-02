@@ -21,7 +21,7 @@ var SLR_SLUGS='an-iowan|bitchysitch|black-newsbeat-with-dr-kimeka-campbell|bona-
 var _p=location.pathname;
 function _seg(p){var s=p.charAt(0)==='/'?p.slice(1):p;return s.charAt(s.length-1)==='/'?s.slice(0,-1):s;}
 var _isSlr=_p==='/sick-left-radicals'||_p==='/sick-left-radicals/'||('|'+SLR_SLUGS+'|').indexOf('|'+_seg(_p)+'|')>-1;
-var onV2=!!document.getElementById('pf-v2')||!!document.getElementById('pf-war-card')||!!document.getElementById('pf-slr-roster')||!!document.getElementById('pf-catalog')||_isSlr;
+var onV2=!!document.getElementById('pf-v2')||!!document.getElementById('pf-war-card')||!!document.getElementById('pf-slr-roster')||!!document.getElementById('pf-catalog')||_isSlr||!!document.getElementById('pf-political-hq');
 var VER=onV2?'v1.4.3':'v1.1.0';
 var BASE='https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@'+(onV2?V3:V1)+'/'+VER+'/';
 var CSS=onV2?['core/bundle-styles.css']:['core/01-styles.css','core/02-design-system.css','fixes/mobile.css'];

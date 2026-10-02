@@ -43,6 +43,7 @@ var BUNDLES = {
   ],
   'pages/bundle-pages': [
     'pages/home-v2.js',
+    'pages/political-hq.js',
     'pages/slr-roster.js',
     'pages/slr-catalog.js',
     'core/06-pinups.js',

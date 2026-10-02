@@ -573,7 +573,40 @@ var BY_ID = {}; PINUPS.forEach(function(p){ BY_ID[p.id]=p; });
 
 /* ---------------- storage ---------------- */
 var LS='pf_pinups_v1';
-function load(){ try{ var s=JSON.parse(localStorage.getItem(LS)||'null'); if(s&&s.got) return s; }catch(e){} return {got:{}}; }
+function weekKey(){
+  try{
+    if(window.PF&&PF.isoWeekKey&&PF.chiNow) return PF.isoWeekKey(PF.chiNow());
+  }catch(e){}
+  try{
+    var d=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Chicago'}));
+    var onejan=new Date(d.getFullYear(),0,1);
+    var w=Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7);
+    return d.getFullYear()+'-W'+w;
+  }catch(e2){ return 'wk'; }
+}
+function load(){
+  try{
+    var s=JSON.parse(localStorage.getItem(LS)||'null');
+    if(s&&s.got){
+      if(!s.shown){
+        /* One-time migration: everything already earned counts as shown, so the
+           reveal-once fix below never re-fires a backlog of popups on deploy. */
+        s.shown={};
+        var k;
+        for(k in s.got){ if(s.got.hasOwnProperty(k)) s.shown[k]=1; }
+        try{
+          var wk=weekKey(), i;
+          for(i=0;i<MEDALS.length;i++){ if(s.got['medal:'+MEDALS[i][0]]) s.shown['medal:'+MEDALS[i][0]+'|'+wk]=1; }
+          if(s.got['full:deployment']) s.shown['full:deployment|'+wk]=1;
+        }catch(e){}
+        save(s);
+      }
+      if(!s.shown) s.shown={};
+      return s;
+    }
+  }catch(e){}
+  return {got:{},shown:{}};
+}
 function save(s){ try{ localStorage.setItem(LS,JSON.stringify(s)); }catch(e){} }
 function ranksXP(){ try{ return JSON.parse(localStorage.getItem('pf_ranks_v1')||'{"xp":0}').xp||0; }catch(e){ return 0; } }
 function fullDeployed(){ try{ var s=JSON.parse(localStorage.getItem('pf_medals_v2')||'null'); return !!(s&&s.fd); }catch(e){ return false; } }
@@ -616,24 +649,34 @@ function art(p, locked){
 
 /* ---------------- unlock ---------------- */
 var queue=[], showing=false;
-function unlock(id, silent){
+/* unlock(id, silent, scope): records the unlock and queues the reveal overlay
+   ONLY the first time this id is unlocked within the scope. Tasks and tiers
+   are lifetime-first (scope omitted); medals and full-deployment are weekly
+   (scope = week key), so re-earning them in a new week celebrates again. */
+function unlock(id, silent, scope){
   var p=BY_ID[id]; if(!p) return false;
-  var s=load(), first=!s.got[id];
-  s.got[id]=(s.got[id]||0)+1; save(s);
+  var s=load();
+  var skey=scope?(id+'|'+scope):id;
+  var first=!s.shown[skey];
+  s.got[id]=(s.got[id]||0)+1;
+  if(first){ s.shown[skey]=1; }
+  save(s);
   renderWall();
-  if(!silent) reveal(p);
+  if(first&&!silent) reveal(p);
   return first;
 }
 function onTask(ev, detail){
   var silent = !!(detail && detail.game==='pinups'); /* our own share crediting back */
   unlock('task:'+ev, silent);
+  var wk=weekKey();
   for(var i=0;i<MEDALS.length;i++){
-    if(MEDAL_EV[MEDALS[i][0]]===ev){ unlock('medal:'+MEDALS[i][0], silent); break; }
+    if(MEDAL_EV[MEDALS[i][0]]===ev){ unlock('medal:'+MEDALS[i][0], silent, wk); break; }
   }
-  /* unlock every tier at/below current XP (handles XP jumps) */
+  /* unlock every tier at/below current XP (handles XP jumps) — but the popup
+     now fires only for newly reached tiers, never a replay of the ladder */
   var xp=ranksXP();
   for(var k=0;k<TIERS.length;k++){ if(xp>=TIERS[k][1]) unlock('tier:'+TIERS[k][0], silent); }
-  if(fullDeployed()) unlock('full:deployment', silent);
+  if(fullDeployed()) unlock('full:deployment', silent, wk);
 }
 
 /* ---------------- reveal overlay ---------------- */

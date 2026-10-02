@@ -92,7 +92,51 @@ var LS="pf_drop_v1";
 function load(){ try{return JSON.parse(localStorage.getItem(LS)||'{"last":"","streak":0}');}catch(e){return {last:"",streak:0};} }
 function save(s){ try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){} }
 
-var n=dayNum(), drop=dropFor(n), s=load(), tk=dateKey();
+var n=dayNum(), s=load(), tk=dateKey();
+
+/* Backend content: fetch today's drop from the server. The static DROPS
+   array below is the fallback — the widget renders identically either way. */
+function renderDrop(dayNum, tag, head, body){
+  document.getElementById("dDay").textContent="Day "+dayNum+" of the offensive";
+  document.getElementById("dTag").textContent=tag;
+  document.getElementById("dHead").textContent=head;
+  /* Dynamic network size: {N} pulls the live roster count from the database. */
+  var _nc=62;
+  try{ if(window.PF&&PF.slrAll){ var _a=PF.slrAll(); if(_a&&_a.length) _nc=_a.length; }
+  else if(window.PF&&PF.ROSTER&&PF.ROSTER.length){ _nc=PF.ROSTER.length; } }catch(_e){}
+  document.getElementById("dBody").textContent=String(body).replace("{N}",_nc);
+  return _nc;
+}
+function renderStatic(){
+  var drop=dropFor(n);
+  renderDrop(n, drop.t, drop.h, drop.b);
+}
+var _dropRendered=false;
+function tryBackend(){
+  try{
+    var burl=window.PF_BACKEND_URL;
+    if(!burl){ renderStatic(); return; }
+    var cb="pfDropCb"+Date.now();
+    window[cb]=function(j){
+      try{ delete window[cb]; }catch(e){}
+      if(_dropRendered) return;
+      _dropRendered=true;
+      if(j&&j.ok&&j.head){
+        renderDrop(j.day||n, j.tag||"TRUTH", j.head, j.body||"");
+      }else{
+        renderStatic();
+      }
+    };
+    var sc=document.createElement("script");
+    sc.src=burl+"?action=daily_content&callback="+cb;
+    sc.onerror=function(){ if(!_dropRendered){ _dropRendered=true; renderStatic(); } };
+    document.head.appendChild(sc);
+    setTimeout(function(){
+      if(!_dropRendered){ _dropRendered=true; renderStatic(); }
+      try{ sc.remove(); delete window[cb]; }catch(e){}
+    },8000);
+  }catch(e){ if(!_dropRendered){ _dropRendered=true; renderStatic(); } }
+}
 if(s.last!==tk){
   s.streak = (s.last===yesterdayKey()) ? s.streak+1 : 1; s.last=tk; save(s);
   /* award XP + ping the trackers on new daily claim */
@@ -112,18 +156,22 @@ if(s.last!==tk){
   }catch(e2){}
 }
 
-document.getElementById("dDay").textContent="Day "+n+" of the offensive";
-document.getElementById("dTag").textContent=drop.t;
-document.getElementById("dHead").textContent=drop.h;
-/* Dynamic network size: {N} pulls the live roster count from the database. */
-var _nc=62;
-try{ if(window.PF&&PF.slrAll){ var _a=PF.slrAll(); if(_a&&_a.length) _nc=_a.length; }
-else if(window.PF&&PF.ROSTER&&PF.ROSTER.length){ _nc=PF.ROSTER.length; } }catch(_e){}
-document.getElementById("dBody").textContent=String(drop.b).replace("{N}",_nc);
+/* Render today's content: backend first, static fallback. Streak + share +
+   archive wire up after the content lands. */
+var _shareText="";
+tryBackend();
+setTimeout(function(){
+  /* If backend hasn't rendered yet (slow), the 8s fallback in tryBackend
+     handles it. This just ensures streak/share/archive are wired. */
+},0);
 document.getElementById("dStreak").textContent="Your streak: "+s.streak+(s.streak===1?" day":" days")+" \\u2014 come back tomorrow to keep it alive";
 
+/* Share/archive need the rendered headline — read it from the DOM so they
+   work whether the content came from the backend or the static fallback. */
+function curHead(){ var el=document.getElementById("dHead"); return el?el.textContent:""; }
+
 document.getElementById("dShare").onclick=function(){
-  var text="Day "+n+" of the offensive: "+drop.h+" \\u2014 via The Propaganda Factory "+location.href;
+  var text="Day "+n+" of the offensive: "+curHead()+" \\u2014 via The Propaganda Factory "+location.href;
   if(navigator.share){ navigator.share({title:"The Daily Drop",text:text,url:location.href}).catch(function(){}); }
   else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(function(){ alert("Drop copied. Go spread it."); }).catch(function(){}); }
 };

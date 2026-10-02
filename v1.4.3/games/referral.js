@@ -31,13 +31,17 @@ var TIERS=[
 function tierFor(n){ n=Number(n)||0; for(var i=0;i<TIERS.length;i++){ if(n>=TIERS[i].min) return TIERS[i]; } return TIERS[TIERS.length-1]; }
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
-function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
-  try{ var t=document.createElement("div"); t.textContent=m;
-  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
-  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+function toast(m){ try{ PF.toast(m); }catch(e){} }
 /* JSONP GET for reads. */
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
+  /* IDOR fix: private referral reads require auth_secret. */
+  if(action==="referral_status"||action==="referral_tree"||action==="mentor_status"){
+    try{
+      var _sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : "";
+      if(_sec && params && !params.auth_secret) params.auth_secret=<redacted>
+    }catch(e){}
+  }
   var fn="pfRfCb"+Math.floor(Math.random()*1e9);
   var s=document.createElement("script"), done=false;
   function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}

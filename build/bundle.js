@@ -52,6 +52,7 @@ var BUNDLES = {
     'irl.js',
     'intel.js',
     'cells.js',
+    'cell-hq.js',
     'cell-war.js',
     'contracts.js',
     'fan-vote.js',

@@ -15,7 +15,7 @@
     'use strict';
     if(window.pfMedalsLoaded)return;window.pfMedalsLoaded=true;
     var LS='pf_medals_v2',LS_R='pf_ranks_v1',LS_I='pf_identity_v1';
-    var BACKEND_URL='https://pf-api.mtcstw.workers.dev';
+    var BACKEND_URL=(window.PF_BACKEND_URL||'https://pf-api.mtcstw.workers.dev');
     
     var MEDALS=[
      {id:'vote',    glyph:'\u2605', name:'Ballot',          ev:'pf-vote-cast'},

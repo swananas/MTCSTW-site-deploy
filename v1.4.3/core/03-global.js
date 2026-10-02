@@ -41,6 +41,96 @@ window.PFCallsign = function(){
   try{ return String((JSON.parse(localStorage.getItem('pf_identity_v1')||'{}')).callsign||''); }
   catch(e){ return ''; }
 };
+/* PF.requireCallsign(callback, opts) — reusable callsign claim gate.
+   If the user has a callsign, callback(callsign) fires immediately.
+   If not, an inline modal prompts them to claim one (same register flow as
+   Daily Orders: validate → POST register → save secret → localStorage →
+   'pf-callsign-claimed' event). On success, callback(newCallsign) fires.
+   If the user dismisses, a session flag prevents nagging and callback('')
+   fires once. opts.context: e.g. "to claim your War Bond XP" — shown in
+   the prompt copy. */
+window.PF.requireCallsign = function(callback, opts){
+  opts = opts || {};
+  var done = function(cs){ try{ callback(cs || ''); }catch(e){} };
+  var cs = '';
+  try{ cs = window.PFCallsign ? window.PFCallsign() : ''; }catch(e){}
+  if(cs){ done(cs); return; }
+  try{
+    if(sessionStorage.getItem('pf_cs_dismissed') === '1'){ done(''); return; }
+  }catch(e){}
+  pfClaimModal(done, opts);
+};
+function pfClaimModal(done, opts){
+  var context = String((opts && opts.context) || 'to continue');
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  var old = document.getElementById('pf-cs-modal');
+  if(old && old.parentNode){ try{ old.parentNode.removeChild(old); }catch(e){} }
+  var overlay = document.createElement('div');
+  overlay.id = 'pf-cs-modal';
+  overlay.setAttribute('role','dialog');
+  overlay.setAttribute('aria-label','Claim your callsign');
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:1rem;box-sizing:border-box;';
+  var box = document.createElement('div');
+  box.style.cssText = 'background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:"Helvetica Neue",Arial,sans-serif;padding:1.75rem;max-width:420px;width:100%;box-sizing:border-box;text-align:center;position:relative;';
+  box.innerHTML =
+    '<div id="pf-cs-x" role="button" tabindex="0" aria-label="Close" style="position:absolute;top:0.4rem;right:0.7rem;cursor:pointer;font-size:1.4rem;color:#b8ab8e;line-height:1;">&times;</div>' +
+    '<div style="font-size:1.25rem;font-weight:900;letter-spacing:0.14em;color:#c1121f;margin-bottom:0.6rem;">&#9733; CLAIM YOUR CALLSIGN &#9733;</div>' +
+    '<div style="font-size:0.9rem;color:#b8ab8e;line-height:1.55;margin-bottom:1rem;">You need a callsign ' + esc(context) + '. Pick one &mdash; it&rsquo;s your name in the fight, and your XP follows it everywhere.</div>' +
+    '<input id="pf-cs-input" maxlength="20" placeholder="your_callsign" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" style="width:100%;background:#141414;color:#f5f0e1;border:2px solid #c1121f;padding:0.7rem;font-size:1rem;font-family:inherit;box-sizing:border-box;margin-bottom:0.5rem;text-align:center;" />' +
+    '<div id="pf-cs-err" style="font-size:0.8rem;color:#ff6b6b;min-height:1.3em;margin-bottom:0.5rem;"></div>' +
+    '<button id="pf-cs-btn" style="display:inline-block;background:#c1121f;color:#f5f0e1;font-weight:900;letter-spacing:0.12em;border:none;padding:0.8rem 2.2rem;font-size:1rem;cursor:pointer;font-family:inherit;">CLAIM IT</button>';
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  var finished = false;
+  function finish(cs, dismissed){
+    if(finished) return; finished = true;
+    try{ if(overlay.parentNode) overlay.parentNode.removeChild(overlay); }catch(e){}
+    if(dismissed){ try{ sessionStorage.setItem('pf_cs_dismissed','1'); }catch(e){} }
+    done(cs || '');
+  }
+  var input = box.querySelector('#pf-cs-input');
+  var errBox = box.querySelector('#pf-cs-err');
+  var btn = box.querySelector('#pf-cs-btn');
+  function setErr(m){ if(errBox) errBox.textContent = m; }
+  function doClaim(){
+    var cs = String(input.value || '').trim().toLowerCase();
+    if(!/^[a-z0-9_]{3,20}$/.test(cs)){ setErr('Callsign: 3-20 chars, letters/numbers/underscore.'); return; }
+    setErr('Claiming\u2026'); btn.disabled = true;
+    var body = { action:'register', callsign:cs, device:'' };
+    try{ body.device = window.PFDeviceId ? window.PFDeviceId() : ''; }catch(e){}
+    try{ var prf = localStorage.getItem('pf_pending_ref'); if(prf && /^[a-z0-9_]{3,20}$/.test(prf)) body.ref = prf; }catch(e){}
+    var url = window.PF_BACKEND_URL;
+    if(!url){ setErr('Network error. Try again.'); btn.disabled = false; return; }
+    fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) })
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if(!j){ setErr('Network error. Try again.'); btn.disabled = false; return; }
+        if(!j.ok){ setErr(j.error === 'taken' ? 'That callsign is taken.' : 'Bad callsign.'); btn.disabled = false; return; }
+        try{ localStorage.removeItem('pf_pending_ref'); }catch(e2){}
+        try{
+          if(j.auth_secret && window.PF && PF.saveAuthSecret){ PF.saveAuthSecret(j.auth_secret); }
+          else if(window.PF && PF.claimAuthSecret){ PF.claimAuthSecret(cs, function(){}); }
+        }catch(e3){}
+        try{
+          var ik = 'pf_identity_v1', cur = {};
+          try{ cur = JSON.parse(localStorage.getItem(ik) || '{}'); }catch(e4){}
+          cur.callsign = cs;
+          localStorage.setItem(ik, JSON.stringify(cur));
+        }catch(e5){}
+        try{ document.dispatchEvent(new CustomEvent('pf-callsign-claimed', { detail:{ callsign: cs } })); }catch(e6){}
+        try{ if(window.PF && PF.toast) PF.toast('Callsign claimed. Welcome to the fight, ' + cs.toUpperCase() + '.'); }catch(e7){}
+        finish(cs, false);
+      })
+      .catch(function(){ setErr('Network error. Try again.'); btn.disabled = false; });
+  }
+  btn.onclick = doClaim;
+  input.onkeydown = function(e){ if(e.key === 'Enter'){ doClaim(); } };
+  var x = box.querySelector('#pf-cs-x');
+  function dismiss(){ finish('', true); }
+  if(x){ x.onclick = dismiss; x.onkeydown = function(e){ if(e.key==='Enter'||e.key===' '){ dismiss(); } }; }
+  overlay.onclick = function(e){ if(e.target === overlay) dismiss(); };
+  try{ input.focus(); }catch(e){}
+}
 window.pfReportAction = function(actionType){
   if(!window.PF_BACKEND_URL) return;
   try {

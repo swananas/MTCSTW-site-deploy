@@ -433,13 +433,15 @@ function acctNum(cs){
   return "PB-"+("000000"+(h%1000000)).slice(-6);
 }
 var BAL=null, SAV=null, STK=null, BND=null, LNS=null, RH=null, XH=null, MEMBER_SINCE=null;
+var BST=null, TAB="vault", VAULT_LAST="deposit";
 var HIST_FILTER="all";
 function load(){
-  var id=ident(), done=false, n=0, need=7;
+  var id=ident(), done=false, n=0, need=8;
   function fin(){ if(done)return; done=true; render(); }
   function one(){ n++; if(n>=need) fin(); }
   setTimeout(fin,15000);
   api("xp_balance",{callsign:id.callsign},function(j){ BAL=j; one(); });
+  api("bank_status",{callsign:id.callsign},function(j){ BST=j; one(); });
   api("savings_balance",{callsign:id.callsign},function(j){ SAV=j; one(); });
   api("stake_list",{callsign:id.callsign},function(j){ STK=j; one(); });
   api("bond_list",{callsign:id.callsign},function(j){ BND=j; one(); });
@@ -476,23 +478,149 @@ function netWorth(){
   return { liq:liq, sav:sav, stk:stk, bnd:bnd, lendOut:lendOut, owe:owe,
     total: Math.round(liq+sav+stk+bnd+lendOut-owe) };
 }
+var TABS=[["vault","VAULT"],["teller","TRANSFERS"],["savings","SAVINGS"],["loans","LOANS"],["bonds","BONDS"],["history","LEDGER"]];
+function renderTabs(){
+  var h='<div class="pb-tabs" style="display:flex;gap:6px;overflow-x:auto;margin:10px 0;padding-bottom:4px;">';
+  for(var i=0;i<TABS.length;i++){
+    var k=TABS[i][0], lbl=TABS[i][1];
+    h+='<button class="c-btn'+(TAB===k?"":" ghost")+' pf-btn-sm pb-tab" data-pbtab="'+k+'" style="white-space:nowrap;'+(TAB===k?"":"opacity:.75;")+'">'+lbl+'</button>';
+  }
+  h+='</div>';
+  return h;
+}
 function render(){
   var el=document.getElementById("xPBank"); if(!el) return;
   var id=ident(), h="", g=gate();
   if(g){ el.innerHTML=g; return; }
-  h+='<div class="pb-lobby">';
-  h+=renderLobby(id);
-  h+='</div>';
-  h+=renderTeller(id);
-  h+=renderSavings(id);
-  h+=renderLoans(id);
-  h+=renderBonds(id);
-  h+=renderHistory(id);
+  h+=renderTabs();
+  if(TAB==="vault") h+=renderVault(id);
+  else if(TAB==="teller") h+=renderTeller(id);
+  else if(TAB==="savings") h+=renderSavings(id);
+  else if(TAB==="loans") h+=renderLoans(id);
+  else if(TAB==="bonds") h+=renderBonds(id);
+  else if(TAB==="history") h+=renderHistory(id);
   h+='<div style="margin-top:10px"><button class="c-btn" id="pbRetry">Refresh</button></div>';
   el.innerHTML=h;
-  wireTeller(id,el); wireSavings(id,el); wireLoans(id,el); wireBonds(id,el); wireHistory(id,el);
+  var ts=el.querySelectorAll('button[data-pbtab]');
+  for(var i=0;i<ts.length;i++){ (function(btn){
+    btn.onclick=function(){ TAB=btn.getAttribute("data-pbtab"); render(); };
+  })(ts[i]); }
+  if(TAB==="vault") wireVault(id,el);
+  else if(TAB==="teller") wireTeller(id,el);
+  else if(TAB==="savings") wireSavings(id,el);
+  else if(TAB==="loans") wireLoans(id,el);
+  else if(TAB==="bonds") wireBonds(id,el);
+  else if(TAB==="history") wireHistory(id,el);
   var rb=document.getElementById("pbRetry");
-  if(rb) rb.onclick=function(){ BAL=SAV=STK=BND=LNS=RH=XH=null; el.innerHTML='<div class="c-load">Opening the vault&hellip;</div>'; load(); };
+  if(rb) rb.onclick=function(){ BAL=SAV=STK=BND=LNS=RH=XH=BST=null; el.innerHTML='<div class="c-load">Opening the vault&hellip;</div>'; load(); };
+}
+/* ---------- 0. VAULT — the clean default: balance, rate, deposit/withdraw, room, activity ---------- */
+var VAULT_KIND_LBL={overtime:"overtime kicker",deposit:"deposit",withdraw:"withdrawal",interest:"interest",pledge_out:"venture pledge",pledge_back:"pledge returned",dividend:"dividend"};
+function renderVault(id){
+  var h='<div class="x-pane pb-pane"><div class="pb-bankhead">&#9670; THE VAULT &#9670;</div>';
+  if(!BST||!BST.ok){
+    h+='<div class="c-load">Opening the vault&hellip;</div></div>';
+    return h;
+  }
+  var bal=Math.round(Number(BST.balance)||0);
+  var rate=Number(BST.rate_pct)||0;
+  var used=Math.round(Number(BST.deposit_week_used)||0), cap=Math.round(Number(BST.deposit_week_cap)||0);
+  var room=Math.max(0,cap-used), pct=cap>0?Math.min(100,Math.round(100*used/cap)):0;
+  var spendable=(BAL&&typeof BAL.balance==="number")?Math.round(BAL.balance):null;
+  /* big balance */
+  h+='<div style="text-align:center;padding:18px 8px 6px;">'
+    +'<div style="font-size:44px;line-height:1;color:#f5f0e6;">'+bal.toLocaleString()+' <span style="font-size:18px;color:#c1121f;">XP</span></div>'
+    +'<div class="x-note" style="margin:8px 0 0;">in the vault &middot; ACCT '+esc(acctNum(id.callsign))+'</div></div>';
+  /* interest rate */
+  h+='<div class="x-note" style="text-align:center;margin:6px 0 0;">Earning <b>'+rate+'%/week</b>';
+  if(BST.credit&&BST.credit.cell_name) h+=' &middot; cell <b>'+esc(BST.credit.cell_name)+'</b> boosts your rate';
+  else h+=' &middot; join a cell to raise it (up to 7%)';
+  h+='</div>';
+  if(Number(BST.interest_paid)>0) h+='<div class="x-note" style="text-align:center;color:#4caf50;">+'+Math.round(Number(BST.interest_paid))+' XP interest just landed.</div>';
+  /* weekly room */
+  h+='<div style="margin:12px 0 4px;"><div class="x-note" style="margin:0 0 6px;">Weekly deposit room: <b>'+room.toLocaleString()+' XP</b> left</div>'
+    +'<div style="background:#111;border:1px solid #333;height:10px;">'
+    +'<div style="background:#c1121f;height:100%;width:'+pct+'%;"></div></div></div>';
+  /* amount + chips + buttons (POST-only writes — never GET) */
+  h+='<div style="margin-top:10px;">'
+    +'<div class="x-note" style="margin:0 0 6px;">Spendable: <b>'+(spendable==null?"?":spendable.toLocaleString())+' XP</b></div>'
+    +'<input class="c-in" id="pbVltAmt" type="number" min="1" inputmode="numeric" placeholder="Amount" aria-label="XP amount" style="margin-bottom:8px;">'
+    +'<div style="margin-bottom:8px;">'
+    +'<button class="c-btn ghost pf-btn-sm" data-vchip="50">50</button> '
+    +'<button class="c-btn ghost pf-btn-sm" data-vchip="100">100</button> '
+    +'<button class="c-btn ghost pf-btn-sm" data-vchip="250">250</button> '
+    +'<button class="c-btn ghost pf-btn-sm" data-vchip="ALL">ALL</button>'
+    +'</div>'
+    +'<div style="display:flex;gap:8px;">'
+    +'<button class="c-btn" id="pbVltDep" style="flex:1;margin:0;">DEPOSIT</button>'
+    +'<button class="c-btn ghost" id="pbVltWdr" style="flex:1;margin:0;">WITHDRAW</button>'
+    +'</div>'
+    +'<div class="c-err" id="pbVltErr"></div>'
+    +'<div class="x-note" style="margin:8px 0 0;">Withdrawals are free — but XP pulled before Monday forfeits the week\'s interest on it.</div>'
+    +'</div>';
+  /* recent activity — last 5 */
+  var hist=(BST.history||[]).slice(0,5);
+  h+='<div style="margin-top:12px;"><div class="x-note" style="margin:0 0 6px;"><b style="letter-spacing:2px;">RECENT ACTIVITY</b></div>';
+  if(!hist.length) h+='<div class="x-note">Nothing yet. Make your first deposit.</div>';
+  for(var i=0;i<hist.length;i++){
+    var t=hist[i], d=Math.round(Number(t.delta)||0);
+    h+='<div class="pb-row"><span class="pb-'+(d>=0?"in":"out")+'">'+(d>=0?"+":"")+d.toLocaleString()+' XP</span>'
+      +' <span>'+esc(VAULT_KIND_LBL[t.kind]||t.kind||"")+'</span>'
+      +'<span class="x-note"> '+esc(fmtTime(t.ts))+'</span></div>';
+  }
+  h+='</div>';
+  /* net-worth strip — keeps the old account-overview functionality, compact */
+  var nw=netWorth();
+  h+='<div style="margin-top:12px;"><div class="x-note" style="margin:0 0 6px;"><b style="letter-spacing:2px;">FULL PICTURE</b> &middot; net worth '+nw.total.toLocaleString()+' XP</div>'
+    +'<div class="pb-cards">'
+    +'<div class="pb-card"><div class="pb-clabel">LIQUID</div><div class="pb-cval">'+Math.round(nw.liq).toLocaleString()+'</div></div>'
+    +'<div class="pb-card"><div class="pb-clabel">SAVINGS</div><div class="pb-cval">'+Math.round(nw.sav).toLocaleString()+'</div></div>'
+    +'<div class="pb-card"><div class="pb-clabel">STAKED</div><div class="pb-cval">'+Math.round(nw.stk).toLocaleString()+'</div></div>'
+    +'<div class="pb-card"><div class="pb-clabel">WAR BONDS</div><div class="pb-cval">'+Math.round(nw.bnd).toLocaleString()+'</div></div>'
+    +'<div class="pb-card"><div class="pb-clabel">LOANS OUT</div><div class="pb-cval">+'+Math.round(nw.lendOut).toLocaleString()+'</div></div>'
+    +'<div class="pb-card"><div class="pb-clabel">YOU OWE</div><div class="pb-cval pb-neg">-'+Math.round(nw.owe).toLocaleString()+'</div></div>'
+    +'</div></div>';
+  if(MEMBER_SINCE) h+='<div class="x-note" style="margin-top:8px;">MEMBER SINCE '+esc(fmtDate(MEMBER_SINCE))+'</div>';
+  h+='</div>';
+  return h;
+}
+function wireVault(id,el){
+  function balNow(){ return (BST&&BST.ok)?Math.round(Number(BST.balance)||0):0; }
+  function spendNow(){ return (BAL&&typeof BAL.balance==="number")?Math.round(BAL.balance):0; }
+  var chips=el.querySelectorAll('button[data-vchip]');
+  for(var i=0;i<chips.length;i++){ (function(ch){
+    ch.onclick=function(){
+      var v=ch.getAttribute("data-vchip"), inp=document.getElementById("pbVltAmt");
+      if(!inp) return;
+      if(v==="ALL"){
+        var max=VAULT_LAST==="withdraw"?balNow():spendNow();
+        inp.value=Math.max(0,max);
+      } else inp.value=v;
+    };
+  })(chips[i]); }
+  function doTransfer(isDep,btn){
+    var amt=Math.round(Number(document.getElementById("pbVltAmt").value)||0);
+    var err=document.getElementById("pbVltErr"), iid=ident();
+    if(err) err.textContent="";
+    if(!amt||amt<1){ if(err) err.textContent="Enter an amount."; return; }
+    VAULT_LAST=isDep?"deposit":"withdraw";
+    btn.disabled=true;
+    /* POST-only: backend rejects GET writes (CSRF defense). */
+    post("bank","b_action",isDep?"deposit":"withdraw",
+      {callsign:iid.callsign,device:iid.device,amount:amt,key:iid.device+":"+Date.now()},
+      function(j){
+        btn.disabled=false;
+        if(j&&j.ok){ toast(isDep?("+"+amt.toLocaleString()+" XP in the vault."):(amt.toLocaleString()+" XP withdrawn to spendable.")); }
+        else if(err){ err.textContent=(j&&(j.err||j.error))||"Transfer failed."; }
+        setTimeout(function(){
+          api("bank_status",{callsign:iid.callsign},function(jj){ BST=jj; render(); });
+          api("xp_balance",{callsign:iid.callsign},function(j2){ BAL=j2; render(); });
+        },1200);
+      });
+  }
+  var dep=document.getElementById("pbVltDep"), wd=document.getElementById("pbVltWdr");
+  if(dep) dep.onclick=function(){ doTransfer(true,dep); };
+  if(wd) wd.onclick=function(){ doTransfer(false,wd); };
 }
 /* ---------- 1. ACCOUNT OVERVIEW (the lobby) ---------- */
 function renderLobby(id){
@@ -812,6 +940,13 @@ setInterval(function(){ load(); },180000);
   <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:0.8rem;line-height:1.5;">One-time purchase, right here.<br><b style="color:#f5f0e1;">50%</b> funds the network &middot; <b style="color:#f5f0e1;">50%</b> goes into the creator pool, split equally among <b style="color:#f5f0e1;">every</b> creator on the roster.</div>
   <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:0.8rem;line-height:1.5;">The week&rsquo;s team-board winner takes an extra <b style="color:#f5f0e1;">5%</b> of the pool.</div>
   <div id="pf-wb-buy" style="margin-bottom:1.3rem;"></div>
+  <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:1.1rem;line-height:1.5;">Checkout opens the store in a new tab &mdash; your bond XP lands in the <b style="color:#f5f0e1;">Agitator&rsquo;s Ledger</b> automatically. Go check it.</div>
+  <div style="border-top:2px solid #c1121f;margin:1.3rem 0 1rem;"></div>
+  <div style="font-size:0.85rem;font-weight:900;letter-spacing:0.16em;color:#f5f0e1;margin-bottom:0.5rem;">ALREADY BOUGHT? CLAIM YOUR XP</div>
+  <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:0.8rem;line-height:1.5;">Bought a bond before you had a callsign? Enter the email you used at checkout to collect your thank-you XP.</div>
+  <input id="pf-wb-email" type="email" placeholder="checkout email" autocapitalize="off" autocomplete="email" spellcheck="false" style="width:100%;max-width:420px;background:#141414;color:#f5f0e1;border:2px solid #c1121f;padding:0.7rem;font-size:1rem;font-family:inherit;box-sizing:border-box;margin-bottom:0.6rem;text-align:center;" />
+  <div><button id="pf-wb-claim" style="display:inline-block;background:#c1121f;color:#f5f0e1;font-weight:900;letter-spacing:0.1em;border:none;padding:0.8rem 2rem;font-size:0.95rem;cursor:pointer;font-family:inherit;">CLAIM BOND XP</button></div>
+  <div id="pf-wb-claimmsg" style="font-size:0.85rem;color:#b8ab8e;margin-top:0.7rem;line-height:1.5;min-height:1.2em;"></div>
   <div style="font-size:0.8rem;color:#b8ab8e;letter-spacing:0.14em;margin-bottom:0.6rem;">OR FUND MONTHLY</div>
   <a href="https://mtcstw.substack.com" target="_blank" rel="noopener" style="display:inline-block;border:2px solid #c1121f;color:#f5f0e1;font-weight:700;letter-spacing:0.1em;text-decoration:none;padding:0.7rem 1.8rem;font-size:0.95rem;margin-bottom:1.1rem;">BECOME A PAID SUPPORTER &rarr;</a>
   <div style="font-size:0.8rem;color:#b8ab8e;letter-spacing:0.14em;margin-bottom:0.6rem;">OR BACK A PROPAGANDIST DIRECTLY</div>
@@ -881,6 +1016,46 @@ setInterval(function(){ load(); },180000);
     }
     out.innerHTML = h;
   };
+  /* BOND XP CLAIM: buyers who purchased before claiming a callsign collect
+     their thank-you XP here. The purchase flow itself stays frictionless —
+     this gate only guards the XP collection. */
+  var wbClaimBtn = document.getElementById('pf-wb-claim');
+  if(wbClaimBtn){
+    wbClaimBtn.onclick = function(){
+      var msgEl = document.getElementById('pf-wb-claimmsg');
+      function say(m){ if(msgEl) msgEl.textContent = m; }
+      if(!window.PF || !PF.requireCallsign){ say('Loading\u2026 try again in a moment.'); return; }
+      PF.requireCallsign(function(cs){
+        if(!cs){ say('Claim a callsign above to collect your bond XP.'); return; }
+        var emailEl = document.getElementById('pf-wb-email');
+        var email = emailEl ? String(emailEl.value || '').trim().toLowerCase() : '';
+        if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ say('Enter the email you used at checkout.'); return; }
+        say('Checking for unclaimed bonds\u2026');
+        wbClaimBtn.disabled = true;
+        var body = { type:'warbond', wb_action:'bond_claim', callsign:cs, email:email };
+        var url = window.PF_BACKEND_URL;
+        function postBody(b, cb){
+          if(window.PF && PF.authPost){ PF.authPost(url, b, cb); return; }
+          try{
+            fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(b) })
+              .then(function(r){ return r.json(); })
+              .then(function(j){ cb(j); })
+              .catch(function(){ cb(null); });
+          }catch(e){ cb(null); }
+        }
+        postBody(body, function(j){
+          wbClaimBtn.disabled = false;
+          if(!j || !j.ok){ say((j && (j.err || j.error)) || 'Claim failed. Try again.'); return; }
+          if(!j.claimed){
+            say(j.capped ? 'Daily XP cap reached \u2014 your bonds are still waiting. Come back tomorrow.' : 'No unclaimed bonds found for that email.');
+            return;
+          }
+          say('BOND XP CLAIMED: +' + (j.xp_granted || 0) + ' XP. Check your ledger.');
+          try{ if(window.PF && PF.toast) PF.toast('Bond XP claimed: +' + (j.xp_granted || 0) + ' XP.'); }catch(e){}
+        });
+      }, { context: 'to claim your War Bond XP' });
+    };
+  }
 })();
 </script>
 </template>`);

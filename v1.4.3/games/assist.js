@@ -1,4 +1,4 @@
-/* games/assist.js  |  PF v1.4.3 | CREATOR INTELLIGENCE: copy-paste headline
+/* games/assist.js  |  PF v1.4.3 | THE COPY ARSENAL: copy-paste headline
    formulas, caption packs, hashtag sets, AI prompt packs, cross-post
    formatter (reformats any image for TikTok/Twitter/IG/FB), and a network
    pulse dashboard. No backend needed — static library + canvas work.
@@ -10,17 +10,15 @@
   if (PF.skip("assist")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-assist">
 <div class="fe-block pf-override-block" id="pf-assist">
-<h2>Creator Intelligence</h2>
+<h2>The Copy Arsenal</h2>
 <div class="c-tag">Weapons-grade copy. Steal these formulas, pump them everywhere.</div>
+<div class="c-tag" style="margin-top:0.4rem;">Static offline toolkit &mdash; the <b>live</b> version with fresh backend-fed packs is <a href="https://www.mtcstw.com/request-access" style="color:#c1121f;font-weight:700;">Creator Assist in Creator HQ &rarr;</a></div>
 <div id="xAssist"><div class="c-load">Loading the arsenal&hellip;</div></div>
 </div>
 <script>
 (function(){
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
-function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
-  try{ var t=document.createElement("div"); t.textContent=m;
-  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
-  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2200); }catch(e2){} }
+function toast(m){ try{ PF.toast(m); }catch(e){} }
 function copyText(txt,btn){
   function ok(){ toast("Copied. Go pump it."); }
   try{

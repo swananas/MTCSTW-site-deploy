@@ -24,10 +24,7 @@
 var BACKEND=window.PF_BACKEND_URL;
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
-function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
-  try{ var t=document.createElement("div"); t.textContent=m;
-  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
-  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+function toast(m){ try{ PF.toast(m); }catch(e){} }
 function api(action,params,cb,isGet){
   if(!BACKEND){ cb(null); return; }
   if(isGet){

@@ -30,6 +30,13 @@
   /* JSONP, same pattern as the other games. */
   function api(action,params,cb){
     if(!BACKEND){ cb(null); return; }
+    /* IDOR fix: cell_mine is per-callsign private data — attach auth_secret. */
+    if(action==="cell_mine"){
+      try{
+        var _sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : "";
+        if(_sec && params && !params.auth_secret) params.auth_secret=_sec;
+      }catch(e){}
+    }
     var fn="pfWarCb"+Math.floor(Math.random()*1e9);
     var s=document.createElement("script");
     window[fn]=function(j){ try{ delete window[fn]; }catch(e){} if(s.parentNode)s.parentNode.removeChild(s); cb(j); };

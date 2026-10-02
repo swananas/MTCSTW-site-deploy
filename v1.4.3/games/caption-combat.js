@@ -45,6 +45,27 @@ var EMAIL = "mtcstw@gmail.com";
 var wk=PF.mondayOf(PF.chiNow());
 document.getElementById("cWeek").textContent="Week of "+wk.toLocaleDateString("en-US",{month:"long",day:"numeric"})+" — entries close Sunday night";
 
+/* Backend leaderboard: show this week's entry count. Fails silently —
+   the widget works fine without it. */
+try{
+  var bkUrl=window.PF_BACKEND_URL;
+  if(bkUrl){
+    var lbWeek=wk.toISOString().slice(0,10);
+    var lbs=document.createElement("script");
+    var lbCb="pfCapLb"+Date.now();
+    window[lbCb]=function(j){
+      try{ delete window[lbCb]; }catch(e){}
+      if(j&&j.ok&&typeof j.count==="number"&&j.count>0){
+        var el=document.getElementById("cWeek");
+        if(el){ el.textContent+=" · "+j.count+" "+(j.count===1?"entry":"entries")+" in the fight"; }
+      }
+    };
+    lbs.src=bkUrl+"?action=caption_leaderboard&week="+encodeURIComponent(lbWeek)+"&callback="+lbCb;
+    document.head.appendChild(lbs);
+    setTimeout(function(){ try{ lbs.remove(); delete window[lbCb]; }catch(e){} },10000);
+  }
+}catch(lbe){}
+
 var tpl=document.getElementById("cTemplate");
 if(THIS_WEEK.img){ var im=document.createElement("img"); im.src=THIS_WEEK.img; im.alt=THIS_WEEK.alt; tpl.appendChild(im); }
 else { tpl.innerHTML='<div class="c-ph">This week\\u2019s template drops Monday.<br>Send yours below.</div>'; }
@@ -95,6 +116,25 @@ document.getElementById("cSubmit").onclick=function(){
       /* mail client took over — the entry is away, lock the week */
       CS.weeks[weekKey]={caption:capText,at:Date.now()}; capSave(CS);
       markSubmitted();
+      /* Backend persistence: post the entry so it lands on the leaderboard.
+         Fire-and-forget — localStorage is the source of truth for the
+         week-lock; the backend enhances, never replaces. */
+      try{
+        var bkWeek=weekKey.replace(/^cc_/,"");
+        var bcs="",bdev="";
+        try{ bcs=window.PFCallsign?window.PFCallsign():""; }catch(be1){}
+        try{ bdev=window.PFDeviceId?window.PFDeviceId():""; }catch(be2){}
+        if(bcs){
+          var bbody={type:"caption",c_action:"caption_submit",callsign:bcs,device:bdev,
+            handle:n,caption:capText,week:bkWeek};
+          var burl=window.PF_BACKEND_URL;
+          if(burl){
+            if(window.PF&&PF.authPost){ PF.authPost(burl,bbody,function(){}); }
+            else{ try{ fetch(burl,{method:"POST",headers:{"Content-Type":"application/json"},
+              body:JSON.stringify(bbody)}).catch(function(){}); }catch(be3){} }
+          }
+        }
+      }catch(be0){}
       /* Single dispatch point: exactly one pf-caption-submit per successful send. */
       try{ document.dispatchEvent(new CustomEvent("pf-caption-submit",{detail:{week:weekKey}})); }catch(e){}
     }else{

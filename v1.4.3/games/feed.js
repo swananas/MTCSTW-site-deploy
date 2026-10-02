@@ -19,10 +19,7 @@
 var BACKEND=window.PF_BACKEND_URL;
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
-function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
-  try{ var t=document.createElement("div"); t.textContent=m;
-  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
-  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+function toast(m){ try{ PF.toast(m); }catch(e){} }
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
   var fn="pfFdCb"+Math.floor(Math.random()*1e9);
@@ -202,7 +199,7 @@ function render(){
         var cid=b.getAttribute("data-cid"), v=b.getAttribute("data-v");
         if(!id.callsign){ toast("Claim a callsign to vote."); return; }
         b.disabled=true;
-        postX("reputation","reputation_action","vote",{content_id:cid,callsign:id.callsign,device:id.device,vote:Number(v)},function(j){
+        postX("reputation","rep_action","vote",{content_id:cid,callsign:id.callsign,device:id.device,vote:Number(v)},function(j){
           b.disabled=false;
           toast(j&&j.ok?"Vote recorded.":"Vote failed.");
         });
@@ -220,7 +217,7 @@ function render(){
         amt=Math.round(Number(amt)||0);
         if(amt!==10&&amt!==25&&amt!==50){ toast("Pick 10, 25, or 50."); return; }
         b.disabled=true;
-        postX("tips","tip_action","send",{content_id:cid,from:id.callsign,to:creator,xp:amt,device:id.device},function(j){
+        postX("tip","t_action","tip_send",{content_id:cid,from:id.callsign,to:creator,xp:amt,device:id.device},function(j){
           b.disabled=false;
           toast(j&&j.ok?("Tipped "+amt+" XP to "+creator+"."):((j&&j.err)||"Tip failed."));
         });
@@ -238,7 +235,7 @@ function render(){
         var when=window.prompt("When? (YYYY-MM-DD HH:MM, Chicago time)", "");
         if(!when){ return; }
         b.disabled=true;
-        postX("schedule","schedule_action","add",{content_id:cid,title:title,callsign:id.callsign,device:id.device,platform:String(plat).toLowerCase().slice(0,16),send_at:String(when).slice(0,32)},function(j){
+        postX("schedule","s_action","add",{content_id:cid,title:title,callsign:id.callsign,device:id.device,platform:String(plat).toLowerCase().slice(0,16),send_at:String(when).slice(0,32)},function(j){
           b.disabled=false;
           if(j&&j.ok){ toast("Scheduled. It will fire from the queue."); load(); }
           else toast((j&&j.err)||"Schedule failed.");

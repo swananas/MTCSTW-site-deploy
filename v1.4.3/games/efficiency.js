@@ -26,7 +26,7 @@
   var PF = window.PF;
   if (!PF || PF.skip('efficiency')) { return; }
 
-  var API = 'https://pf-api.mtcstw.workers.dev';
+  var API = (window.PF_BACKEND_URL||'https://pf-api.mtcstw.workers.dev');
   PF.effApi = API; /* shared with the catalog pageview beacon */
   var FAN_WEEKS = 4, VIEW_DAYS = 30, COLD_START_ACTIONS = 5, RAMP_ACTIONS = 500;
 

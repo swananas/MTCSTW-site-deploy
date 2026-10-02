@@ -136,9 +136,9 @@ function claimBounties(j){
       var key="cell_bounty_"+b.from+"_"+b.day;
       if(rk.got[key]!==1){
         rk.got[key]=1; rk.xp+=each; n++;
-        /* Backend ledger mirror (core/11-xpledger): the local grant is instant
-           UX; this dispatch persists it server-side under an idempotent key. */
-        try{ document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:each,key:key,reason:"recruit bounty"}})); }catch(e){}
+        /* Backend already granted this XP in cell_bounty_claim (xpGrant with
+           key cellbounty_<cell>_<recruit>). Local ledger update is for instant
+           UX only — do NOT dispatch pf-xp or the backend gets it twice. */
       }
     });
     if(n>0){ save(LS_R,rk); toast("+"+(n*each)+" XP — recruit bounty! Your cell grows."); }

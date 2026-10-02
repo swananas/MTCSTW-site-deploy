@@ -12,6 +12,13 @@
   <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:0.8rem;line-height:1.5;">One-time purchase, right here.<br><b style="color:#f5f0e1;">50%</b> funds the network &middot; <b style="color:#f5f0e1;">50%</b> goes into the creator pool, split equally among <b style="color:#f5f0e1;">every</b> creator on the roster.</div>
   <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:0.8rem;line-height:1.5;">The week&rsquo;s team-board winner takes an extra <b style="color:#f5f0e1;">5%</b> of the pool.</div>
   <div id="pf-wb-buy" style="margin-bottom:1.3rem;"></div>
+  <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:1.1rem;line-height:1.5;">Checkout opens the store in a new tab &mdash; your bond XP lands in the <b style="color:#f5f0e1;">Agitator&rsquo;s Ledger</b> automatically. Go check it.</div>
+  <div style="border-top:2px solid #c1121f;margin:1.3rem 0 1rem;"></div>
+  <div style="font-size:0.85rem;font-weight:900;letter-spacing:0.16em;color:#f5f0e1;margin-bottom:0.5rem;">ALREADY BOUGHT? CLAIM YOUR XP</div>
+  <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:0.8rem;line-height:1.5;">Bought a bond before you had a callsign? Enter the email you used at checkout to collect your thank-you XP.</div>
+  <input id="pf-wb-email" type="email" placeholder="checkout email" autocapitalize="off" autocomplete="email" spellcheck="false" style="width:100%;max-width:420px;background:#141414;color:#f5f0e1;border:2px solid #c1121f;padding:0.7rem;font-size:1rem;font-family:inherit;box-sizing:border-box;margin-bottom:0.6rem;text-align:center;" />
+  <div><button id="pf-wb-claim" style="display:inline-block;background:#c1121f;color:#f5f0e1;font-weight:900;letter-spacing:0.1em;border:none;padding:0.8rem 2rem;font-size:0.95rem;cursor:pointer;font-family:inherit;">CLAIM BOND XP</button></div>
+  <div id="pf-wb-claimmsg" style="font-size:0.85rem;color:#b8ab8e;margin-top:0.7rem;line-height:1.5;min-height:1.2em;"></div>
   <div style="font-size:0.8rem;color:#b8ab8e;letter-spacing:0.14em;margin-bottom:0.6rem;">OR FUND MONTHLY</div>
   <a href="https://mtcstw.substack.com" target="_blank" rel="noopener" style="display:inline-block;border:2px solid #c1121f;color:#f5f0e1;font-weight:700;letter-spacing:0.1em;text-decoration:none;padding:0.7rem 1.8rem;font-size:0.95rem;margin-bottom:1.1rem;">BECOME A PAID SUPPORTER &rarr;</a>
   <div style="font-size:0.8rem;color:#b8ab8e;letter-spacing:0.14em;margin-bottom:0.6rem;">OR BACK A PROPAGANDIST DIRECTLY</div>
@@ -81,6 +88,46 @@
     }
     out.innerHTML = h;
   };
+  /* BOND XP CLAIM: buyers who purchased before claiming a callsign collect
+     their thank-you XP here. The purchase flow itself stays frictionless —
+     this gate only guards the XP collection. */
+  var wbClaimBtn = document.getElementById('pf-wb-claim');
+  if(wbClaimBtn){
+    wbClaimBtn.onclick = function(){
+      var msgEl = document.getElementById('pf-wb-claimmsg');
+      function say(m){ if(msgEl) msgEl.textContent = m; }
+      if(!window.PF || !PF.requireCallsign){ say('Loading\u2026 try again in a moment.'); return; }
+      PF.requireCallsign(function(cs){
+        if(!cs){ say('Claim a callsign above to collect your bond XP.'); return; }
+        var emailEl = document.getElementById('pf-wb-email');
+        var email = emailEl ? String(emailEl.value || '').trim().toLowerCase() : '';
+        if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ say('Enter the email you used at checkout.'); return; }
+        say('Checking for unclaimed bonds\u2026');
+        wbClaimBtn.disabled = true;
+        var body = { type:'warbond', wb_action:'bond_claim', callsign:cs, email:email };
+        var url = window.PF_BACKEND_URL;
+        function postBody(b, cb){
+          if(window.PF && PF.authPost){ PF.authPost(url, b, cb); return; }
+          try{
+            fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(b) })
+              .then(function(r){ return r.json(); })
+              .then(function(j){ cb(j); })
+              .catch(function(){ cb(null); });
+          }catch(e){ cb(null); }
+        }
+        postBody(body, function(j){
+          wbClaimBtn.disabled = false;
+          if(!j || !j.ok){ say((j && (j.err || j.error)) || 'Claim failed. Try again.'); return; }
+          if(!j.claimed){
+            say(j.capped ? 'Daily XP cap reached \u2014 your bonds are still waiting. Come back tomorrow.' : 'No unclaimed bonds found for that email.');
+            return;
+          }
+          say('BOND XP CLAIMED: +' + (j.xp_granted || 0) + ' XP. Check your ledger.');
+          try{ if(window.PF && PF.toast) PF.toast('Bond XP claimed: +' + (j.xp_granted || 0) + ' XP.'); }catch(e){}
+        });
+      }, { context: 'to claim your War Bond XP' });
+    };
+  }
 })();
 </script>
 </template>`);

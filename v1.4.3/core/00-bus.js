@@ -43,11 +43,13 @@
       return h;
     },
     toast: function (msg) {
-      /* canonical toast; core/04-ledger.js upgrades this when it loads */
+      /* canonical global toast — bottom-center, ~3s, propaganda poster
+         aesthetic (black bg, red border, cream text). Core loads before
+         every silo, so all games can call PF.toast directly. */
       try {
         var t = document.createElement('div'); t.textContent = msg;
-        t.style.cssText = 'position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999';
-        document.body.appendChild(t); setTimeout(function () { t.remove(); }, 2600);
+        t.style.cssText = 'position:fixed;left:50%;bottom:8%;transform:translateX(-50%);background:#0a0a0a;color:#f5f0e1;font:bold 15px monospace;padding:12px 22px;border:2px solid #c1121f;z-index:99999;max-width:90vw;text-align:center;box-sizing:border-box';
+        document.body.appendChild(t); setTimeout(function () { t.remove(); }, 3000);
       } catch (e) {}
     },
     report: function (action) {

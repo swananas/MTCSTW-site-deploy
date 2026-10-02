@@ -90,7 +90,7 @@
 <script>
 (function(){
 'use strict';
-var API='https://pf-api.mtcstw.workers.dev';
+var API=(window.PF_BACKEND_URL||'https://pf-api.mtcstw.workers.dev');
 var LS_R='pf_ranks_v1',LS_I='pf_identity_v1';
 var LS_OPS='pf_infight_ops_v1',LS_SPENT='pf_infight_spent_v1',LS_SEEN='pf_infight_seen_v1',LS_LAST='pf_infight_last_v1';
 var BATTLE_MIN=10,SLOT_MIN=30,CAP=200,AMMO_OP=25,AMMO_SHARE=15;

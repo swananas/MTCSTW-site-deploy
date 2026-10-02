@@ -1,1 +1,1109 @@
-!function(){"use strict";var e=window.PF;if(!window.pfHomeV2Done&&((!e||!e.skip("home-v2"))&&document.getElementById("pf-v2")&&!n())){window.pfHomeV2Done=!0;var t=[["brief","pf-ov-brief"],["daily-orders","pf-ov-orders"],["dopa","pf-ov-dopa"],["notify","pf-ov-notify"],["campaign","pf-ov-campaign"],["civic","pf-ov-civic"],["referral","pf-ov-referral"],["feed","pf-ov-feed"],["bounties","pf-ov-bounties"],["academy","pf-ov-academy"],["assist","pf-ov-assist"],["alerts","pf-ov-alerts"],["archive","pf-ov-archive"],["irl","pf-ov-irl"],["intel","pf-ov-intel"],["cells","pf-ov-cells"],["contracts","pf-ov-contracts"],["fan-vote","pf-ov-vote"],["infighting","pf-ov-infight"],["slr-match-quiz","pf-ov-matchquiz"],["creator-guess","pf-ov-guess"],["bracket-board","pf-ov-bracket"],["boost-raid","pf-ov-raid"],["do-meter","pf-ov-dometer"],["daily-drop","pf-ov-drop"],["billionaire-supervillain","pf-ov-billionaire"],["daily-interrogation","pf-ov-interrogation"],["media-nuke","pf-ov-nuke"],["caption-combat","pf-ov-caption"],["poster-forge","pf-ov-poster"],["battles","pf-ov-battles"],["video","pf-ov-video"],["gov","pf-ov-gov"],["diplo","pf-ov-diplo"],["economy","pf-ov-economy"],["peoplesbank","pf-ov-peoplesbank"],["movement","pf-ov-movement"],["earnings","pf-ov-earnings"],["dash","pf-ov-dash"],["casino","pf-ov-casino"],["enlistment-ranks","pf-ov-ranks"],["war-bonds","pf-ov-bonds"],["vault","pf-ov-vault"]],r={};e&&!e.mountSilos&&(e.mountSilos=i),i()}function a(t,r){e&&e.error("home-v2",t+" :: "+(r&&r.message||r))}function n(){try{if(-1!==(window.location.href||"").indexOf("/config/"))return!0;var e=document.body;return!(!e||!e.classList.contains("sqs-edit-mode")&&!e.classList.contains("sqs-editing"))}catch(e){return!1}}function i(){var i=document.getElementById("pf-v2");if(!i||n())return 0;var o=0;return t.forEach(function(t){var n=t[0],l=t[1];if(!r[n])if(e&&e.skip(n))r[n]=1;else try{var s=document.getElementById(l);if(!s||!s.content)return;var c=document.importNode(s.content,!0),d=document.createElement("section");d.className="pf-v2-game",d.setAttribute("data-game",n),d.appendChild(c),i.appendChild(d),function(e,t){for(var r=e.querySelectorAll("script"),n=0;n<r.length;n++){try{(0,eval)(r[n].textContent)}catch(e){a("inner script failed in "+t,e)}r[n].remove()}}(d,l),r[n]=1,o++}catch(e){a("mount failed: "+n,e),r[n]=1}}),o}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("slr-roster"))if(e.slrReady){var t="#c1121f",r="#f5f0e1",a="#b8ab8e";"loading"===document.readyState?document.addEventListener("DOMContentLoaded",s):s()}else e.error("slr-roster","slr-db not loaded");function n(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function i(e){var t=e.handles||{},r=[];return["tiktok","instagram","youtube","x"].forEach(function(e){t[e]&&r.push(t[e])}),!r.length&&t.primary&&r.push(t.primary),r.join(" · ")}function o(e){var o,l,s=e.picture?'<img src="'+n(e.picture)+'" alt="'+n(e.name)+'" loading="lazy" style="width:100%;height:180px;object-fit:cover;display:block;background:#1a1a1a;">':'<div style="width:100%;height:180px;display:flex;align-items:center;justify-content:center;background:#1a1a1a;border-bottom:3px solid '+t+';"><span style="font-size:3rem;font-weight:900;color:'+t+';">'+n((o=e.name,(((l=String(o||"?").split(/\s+/).filter(Boolean))[0]||"?").charAt(0)+(l[1]?l[1].charAt(0):"")).toUpperCase()))+"</span></div>";return'<div class="pf-slr-card" data-search="'+n((e.name+" "+i(e)+" "+(e.content_focus||"")).toLowerCase())+'" style="background:#0a0a0a;border:3px solid '+t+";color:"+r+";font-family:'Helvetica Neue',Arial,sans-serif;overflow:hidden;display:flex;flex-direction:column;\">"+s+'<div style="padding:0.9rem 1rem 1.1rem;display:flex;flex-direction:column;gap:0.35rem;flex:1;"><div style="font-size:1.05rem;font-weight:900;letter-spacing:0.02em;">'+n(e.name)+'</div><div style="font-size:0.8rem;color:'+a+';">'+n(i(e))+'</div><div style="display:flex;gap:0.6rem;align-items:baseline;margin-top:0.2rem;"><span style="font-size:1.3rem;font-weight:900;color:'+t+';">'+n(e.followers_display)+'</span><span style="font-size:0.75rem;color:'+a+';letter-spacing:0.08em;">FOLLOWERS'+(e.is_new?' · <span style="color:'+t+';font-weight:700;">NEW</span>':"")+'</span></div><div data-eff-score="'+n(e.slug)+'" style="font-size:0.8rem;color:'+a+';">Propaganda score <strong style="color:'+r+';">'+e.propaganda_score.toFixed(1)+'/10</strong></div><a href="'+n(e.catalog_path)+'" style="margin-top:auto;padding-top:0.6rem;display:block;text-align:center;background:'+t+';color:#fff;font-weight:900;letter-spacing:0.14em;font-size:0.85rem;padding:0.65rem;text-decoration:none;">VIEW PROFILE →</a></div></div>'}function l(e,n){var i=function(e){for(var t=(e=e.slice()).length-1;t>0;t--){var r=Math.floor(Math.random()*(t+1)),a=e[t];e[t]=e[r],e[r]=a}return e}(n);e.innerHTML='<div style="max-width:1200px;margin:0 auto;padding:2rem 1rem;box-sizing:border-box;"><div style="text-align:center;margin-bottom:0.4rem;font-size:0.8rem;letter-spacing:0.3em;color:'+t+';font-weight:700;">THE PROPAGANDA FACTORY</div><h1 style="text-align:center;color:'+r+';font-size:2.2rem;font-weight:900;letter-spacing:0.06em;margin:0 0 0.4rem;font-family:\'Helvetica Neue\',Arial,sans-serif;">SICK LEFT RADICALS</h1><div class="pf-slr-count" style="text-align:center;color:'+a+';font-size:0.95rem;margin-bottom:1.4rem;">'+n.length+' affiliated propagandists · <span style="color:'+r+';font-weight:700;">'+function(e){for(var t=0,r=0;r<e.length;r++)t+=e[r].followers_total||0;return t>=1e6?(t/1e6).toFixed(1)+"M":t>=1e3?Math.round(t/1e3)+"K":String(t)}(n)+'</span> combined reach</div><div style="max-width:520px;margin:0 auto 1.8rem;"><input id="pf-slr-search" type="search" placeholder="Search the roster…" autocomplete="off" style="width:100%;padding:0.8rem 1rem;background:#141414;border:2px solid '+t+";color:"+r+';font-size:1rem;font-family:inherit;box-sizing:border-box;"></div><div class="pf-slr-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.2rem;">'+i.map(o).join("")+'</div><div class="pf-slr-empty" style="display:none;text-align:center;color:'+a+';padding:3rem 1rem;font-size:1.05rem;">No comrades match that search. Try another name.</div><div style="text-align:center;margin-top:2.5rem;"><a href="/creator-onboard" style="color:'+t+";font-weight:900;letter-spacing:0.12em;text-decoration:none;border-bottom:2px solid "+t+';">WANT IN? JOIN THE SICK LEFT RADICALS →</a></div></div>';var l=e.querySelector("#pf-slr-search"),s=e.querySelectorAll(".pf-slr-card"),c=e.querySelector(".pf-slr-empty");l.addEventListener("input",function(){for(var e=l.value.trim().toLowerCase(),t=0,r=0;r<s.length;r++){var a=!e||-1!==s[r].getAttribute("data-search").indexOf(e);s[r].style.display=a?"":"none",a&&t++}c.style.display=t?"none":""})}function s(){var n=document.getElementById("pf-slr-roster"),i=/^\/sick-left-radicals\/?$/.test(location.pathname);(n||i)&&e.slrReady.then(function(i){if(i&&i.length){var o=n||function(){var e=document.querySelector("main#page")||document.getElementById("page"),t=document.createElement("div");return t.id="pf-slr-roster-root",t.style.cssText="background:#0a0a0a;",e&&e.parentNode?(e.parentNode.insertBefore(t,e),e.style.display="none"):document.body.insertBefore(t,document.body.firstChild),t}();l(o,i),e.log("slr-roster","rendered "+i.length+" members (shuffled)");try{window.PF&&e.efficiency?e.efficiency.paintScores(o):document.addEventListener("pf-efficiency",function t(){document.removeEventListener("pf-efficiency",t),window.PF&&e.efficiency&&e.efficiency.paintScores(o)})}catch(e){}}else n&&(n.innerHTML='<div style="max-width:640px;margin:2rem auto;text-align:center;color:'+r+';font-family:Arial,sans-serif;"><div style="font-weight:900;color:'+t+';">ROSTER OFFLINE</div><div style="color:'+a+';font-size:0.9rem;margin-top:0.5rem;">The roster database could not be reached. Reload to retry.</div></div>')})}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("slr-catalog"))if(e.slrReady){var t="#c1121f",r="#f5f0e1",a="#b8ab8e";"loading"===document.readyState?document.addEventListener("DOMContentLoaded",o):o()}else e.error("slr-catalog","slr-db not loaded");function n(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function i(e,i,o){var l,s,c=i.picture?'<img src="'+n(i.picture)+'" alt="'+n(i.name)+', SLR propagandist" style="width:100%;max-width:520px;height:auto;display:block;margin:0 auto;border:3px solid '+t+';">':'<div style="width:100%;max-width:520px;margin:0 auto;height:300px;display:flex;align-items:center;justify-content:center;background:#1a1a1a;border:3px solid '+t+';"><span style="font-size:4.5rem;font-weight:900;color:'+t+';">'+n((l=i.name,(((s=String(l||"?").split(/\s+/).filter(Boolean))[0]||"?").charAt(0)+(s[1]?s[1].charAt(0):"")).toUpperCase()))+"</span></div>",d=i.handles||{},f=[];["tiktok","instagram","youtube","x"].forEach(function(e){d[e]&&f.push(d[e])}),!f.length&&d.primary&&f.push(d.primary);var p=(i.offer||[]).map(function(e){return'<li style="color:'+r+';margin:0 0 0.6rem;line-height:1.55;">'+n(e)+"</li>"}).join(""),u=(i.key_strengths||[]).map(function(e){return'<li style="color:'+r+';margin:0 0 0.6rem;line-height:1.55;">'+n(e)+"</li>"}).join(""),m=(i.links||[]).map(function(e){return'<li style="margin:0 0 0.5rem;"><a href="'+n(e.url)+'" target="_blank" rel="noopener" style="color:'+t+";font-weight:700;text-decoration:none;border-bottom:2px solid "+t+';">'+n(e.platform)+"</a></li>"}).join(""),g=o.filter(function(e){return e.slug!==i.slug});g.sort(function(e,t){return Math.abs(e.propaganda_score-i.propaganda_score)-Math.abs(t.propaganda_score-i.propaganda_score)});var h,y=g.slice(0,3).map(function(e){return'<div><a href="'+n(e.catalog_path)+'" style="color:'+r+';text-decoration:none;font-weight:700;">• '+n(e.name)+'</a> <span style="color:'+a+';font-size:0.85rem;">— '+e.propaganda_score.toFixed(1)+"/10</span></div>"}).join("");e.innerHTML='<div style="background:#0a0a0a;padding:2.5rem 1rem 3rem;box-sizing:border-box;"><div style="max-width:720px;margin:0 auto;font-family:\'Helvetica Neue\',Arial,sans-serif;"><div style="text-align:center;margin-bottom:0.5rem;"><a href="/sick-left-radicals" style="color:'+a+';font-size:0.8rem;letter-spacing:0.2em;text-decoration:none;">← ALL SICK LEFT RADICALS</a></div>'+c+'<h1 style="text-align:center;color:'+r+';font-size:2rem;font-weight:900;margin:1.4rem 0 0.2rem;">'+n(i.name)+"</h1>"+(f.length?'<div style="text-align:center;color:'+a+';font-size:0.9rem;margin-bottom:0.6rem;">'+n(f.join(" · "))+"</div>":"")+'<div data-eff-score="'+n(i.slug)+'" style="text-align:center;margin-bottom:0.4rem;font-size:1.05rem;color:'+r+';">Propaganda Score: <strong style="color:'+t+';">'+i.propaganda_score.toFixed(1)+"/10</strong>"+(i.score_provisional?' <span style="font-size:0.7rem;color:'+a+';">(provisional)</span>':"")+'</div><div style="text-align:center;margin-bottom:1.6rem;font-size:1.1rem;"><strong style="color:'+t+';">'+n(i.followers_display)+'</strong> <span style="color:'+a+';font-size:0.85rem;letter-spacing:0.1em;">FOLLOWERS</span></div>'+(h=i.bio,String(h||"").split(/\n+/).filter(function(e){return e.trim()}).map(function(e){return'<p style="color:'+r+';line-height:1.65;font-size:1rem;margin:0 0 1rem;">'+n(e.trim())+"</p>"}).join(""))+(p?'<h2 style="color:'+t+';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;">What they offer</h2><ul style="padding-left:1.2rem;margin:0;">'+p+"</ul>":"")+(m?'<h2 style="color:'+t+';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;">Find them here</h2><ul style="list-style:none;padding:0;margin:0;">'+m+"</ul>":"")+(u?'<h2 style="color:'+t+';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;">Key strengths</h2><ul style="padding-left:1.2rem;margin:0;">'+u+"</ul>":"")+'<div style="text-align:center;margin-top:2.5rem;"><a href="/creator-onboard" style="color:'+t+";font-weight:900;letter-spacing:0.12em;text-decoration:none;border-bottom:2px solid "+t+';">WANT IN? JOIN THE SICK LEFT RADICALS →</a></div>'+(y?'<h2 style="color:'+a+';font-size:1rem;font-weight:700;letter-spacing:0.1em;margin:2.5rem 0 0.8rem;">RELATED CREATORS</h2><div style="display:flex;flex-direction:column;gap:0.5rem;">'+y+"</div>":"")+"</div></div>"}function o(){var t=document.getElementById("pf-catalog"),r=t&&t.getAttribute("data-slug");if(!r){var a=location.pathname.replace(/^\/|\/$/g,"");a&&-1===a.indexOf("/")&&(r=decodeURIComponent(a))}r&&e.slrReady.then(function(a){if(a&&a.length){for(var n=null,o=0;o<a.length;o++)if(a[o].slug===r){n=a[o];break}if(n){var l=t||function(){var e=document.querySelector("main#page")||document.getElementById("page"),t=document.createElement("div");return t.id="pf-catalog-root",e&&e.parentNode?(e.parentNode.insertBefore(t,e),e.style.display="none"):document.body.insertBefore(t,document.body.firstChild),t}();i(l,n,a),e.log("slr-catalog","rendered "+r);try{var s=window.__pfPvDone||(window.__pfPvDone={});if(!s[r]){s[r]=1;var c=window.PF&&e.effApi||"https://script.google.com/macros/s/AKfycbzaqg3vIj1UnbHGJ82uti7yTdRpeR6PYMhoTne6LIL4kf1XjakrImMTHFwounaPrttl/exec";(new Image).src=c+"?action=pageview&slug="+encodeURIComponent(r)}window.PF&&e.efficiency?e.efficiency.paintScores(l):document.addEventListener("pf-efficiency",function t(){document.removeEventListener("pf-efficiency",t),window.PF&&e.efficiency&&e.efficiency.paintScores(l)})}catch(e){}}}})}}(),function(){"use strict";var e=window.PF;if(!(e&&e.skip("pinups")||window.pfPinupsLoaded)){window.pfPinupsLoaded=!0;var t=[["vote","Ballot","★"],["ballot","Bracket Ballot","☢"],["bracket","Liquidator","☠"],["bonds","War Bonds","◆"],["caption","Word Warrior","✎"],["poster","Press Pass","◈"],["quiz","Intel Operative","◉"],["billionaire","Billionaire Spotter","＄"],["interrogation","Interrogator","❔"],["orders","Field Duty","▲"],["drop","Supply Runner","●"],["enlisted","Enlisted","⚔"],["guess","Profiler","◎"],["raid","Raider","⚡"]],r={vote:"pf-vote-cast",ballot:"pf-bracket-ballot",bracket:"pf-bracket-liquidated",bonds:"pf-wb-buy",caption:"pf-caption-submit",poster:"pf-poster-made",quiz:"pf-quiz-done",billionaire:"pf-billionaire-answered",interrogation:"pf-interrogation-answered",orders:"pf-order-checkin",drop:"pf-drop-claimed",enlisted:"pf-enlisted",guess:"pf-guess-done",raid:"pf-raid-report"},a=[["RECRUIT",0,"⚑"],["AGITATOR",25,"⚒"],["CADRE",75,"⚙"],["COMMISSAR",150,"✪"],["ARCHITECT",300,"♛"]],n=[];[["pf-order-checkin","ORDERS OBEYED","Daily Orders reported. The cadre moves.","📋"],["pf-drop-claimed","SUPPLY SECURED","Daily Drop claimed. Ammo up.","📦"],["pf-caption-submit","WORD WARRIOR","Caption Combat entry filed.","✍️"],["pf-poster-made","PRESSED & POSTED","Poster Forge creation off the press.","🖼️"],["pf-quiz-done","PROFILE COMPLETE","Find Your SLR Match finished.","🎯"],["pf-guess-done","CADRE EYE","Guess the Creator solved.","👁️"],["pf-raid-report","RAID REPORTED","Boost Raid complete. Target softened.","⚡"],["pf-vote-cast","BALLOT CAST","Fan Vote counted. Power exercised.","🗳️"],["pf-bracket-ballot","BRACKET SET","Ballot locked in. No take-backs.","🏆"],["pf-bracket-liquidated","LIQUIDATION DAY","Bracket liquidated. Billionaires weep.","💸"],["pf-wb-buy","WAR BOND SECURED","War Bonds funded. The war chest grows.","🏦"],["pf-enlisted","ENLISTED","Joined the ranks. Welcome, operative.","🎖️"],["pf-billionaire-answered","BILLIONAIRE DUNKED","Supervillain exposed.","🦹"],["pf-interrogation-answered","INTERROGATION SURVIVED","Daily Interrogation complete. Lips sealed.","🔍"],["pf-share-image","SIGNAL BOOSTED","Image shared to the network.","📣"]].forEach(function(e,t){n.push({id:"task:"+e[0],kind:"task",ev:e[0],title:e[1],sub:e[2],glyph:e[3],n:t+1})}),t.forEach(function(e,t){n.push({id:"medal:"+e[0],kind:"medal",ev:r[e[0]],title:"MEDAL: "+e[1].toUpperCase(),sub:"Service Medal earned. Wear it.",glyph:e[2],n:16+t})}),a.forEach(function(e,t){n.push({id:"tier:"+e[0],kind:"tier",title:"PROMOTED: "+e[0],sub:e[1]+" XP. The ladder climbs.",glyph:e[2],n:30+t})}),n.push({id:"full:deployment",kind:"full",title:"FULL DEPLOYMENT",sub:"All 14 medals in one week. Legend.",glyph:"★",n:35});var i={};n.forEach(function(e){i[e.id]=e});var o="pf_pinups_v1",l=[],s=!1;["pf-order-checkin","pf-drop-claimed","pf-caption-submit","pf-poster-made","pf-quiz-done","pf-guess-done","pf-raid-report","pf-vote-cast","pf-bracket-ballot","pf-bracket-liquidated","pf-wb-buy","pf-enlisted","pf-billionaire-answered","pf-interrogation-answered","pf-share-image"].forEach(function(e){document.addEventListener(e,function(t){try{u(e,t&&t.detail||{})}catch(e){}})}),"loading"===document.readyState?document.addEventListener("DOMContentLoaded",h):h(),window.pfPinups={count:function(){var e=c(),t=0;for(var r in e.got)e.got.hasOwnProperty(r)&&t++;return t},total:function(){return n.length},wall:g}}function c(){try{var e=JSON.parse(localStorage.getItem(o)||"null");if(e&&e.got)return e}catch(e){}return{got:{}}}function d(e){return String(e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function f(e,t){for(var r="",a=12+function(e){for(var t=0,r=0;r<e.length;r++)t=31*t+e.charCodeAt(r)|0;return Math.abs(t)}(e.id)%2*2,n=150,i=200,o=0;o<a;o++){var l=360/a*o,s=360/a*(o+.5),c=260,f=n+c*Math.cos(l*Math.PI/180),p=i+c*Math.sin(l*Math.PI/180),u=n+c*Math.cos(s*Math.PI/180),m=i+c*Math.sin(s*Math.PI/180);r+='<polygon points="150,200 '+f.toFixed(1)+","+p.toFixed(1)+" "+u.toFixed(1)+","+m.toFixed(1)+'" fill="'+(o%2?"#8f0d16":"#c1121f")+'"/>'}var g=function(e){if(e.length<=15)return[e];var t=e.split(" "),r=[""],a=0;return t.forEach(function(e){(r[a]+" "+e).trim().length>15&&(a++,r[a]=""),r[a]=(r[a]+" "+e).trim()}),r.slice(0,2)}(e.title),h=54-13*(g.length-1),y="";g.forEach(function(e,t){y+='<text x="150" y="'+(h+26*t)+'" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-size="21" font-weight="900" fill="#f5ead6" letter-spacing="1">'+d(e)+"</text>"});var v=t?"?":e.glyph;return'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 400" width="300" height="400"><rect x="0" y="0" width="300" height="400" fill="'+(t?"#1a1a1a":"#f5ead6")+'"/>'+(t?"":"<g>"+r+"</g>")+'<rect x="8" y="8" width="284" height="384" fill="none" stroke="#0d0d0d" stroke-width="6"/><rect x="18" y="18" width="264" height="364" fill="none" stroke="'+(t?"#444":"#c1121f")+'" stroke-width="2"/><rect x="18" y="18" width="264" height="86" fill="#0d0d0d"/>'+y+'<circle cx="'+n+'" cy="'+i+'" r="72" fill="'+(t?"#2a2a2a":"#f5ead6")+'" stroke="#0d0d0d" stroke-width="6"/><circle cx="'+n+'" cy="'+i+'" r="58" fill="none" stroke="#c1121f" stroke-width="3"/><text x="'+n+'" y="232" text-anchor="middle" font-size="76" fill="'+(t?"#555":"#c1121f")+'">'+d(v)+'</text><text x="'+n+'" y="312" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-style="italic" fill="'+(t?"#666":"#3a3a3a")+'">'+d(t?"Complete the task to pin it up.":e.sub)+'</text><rect x="18" y="336" width="264" height="30" fill="#c1121f"/><text x="'+n+'" y="357" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-size="13" font-weight="900" fill="#f5ead6" letter-spacing="2">★ PROPAGANDA FACTORY ★</text><text x="26" y="392" font-family="Arial,sans-serif" font-size="10" fill="'+(t?"#555":"#8a8171")+'">N№ '+e.n+"/35</text></svg>"}function p(e,t){var r=i[e];if(!r)return!1;var a=c(),n=!a.got[e];return a.got[e]=(a.got[e]||0)+1,function(e){try{localStorage.setItem(o,JSON.stringify(e))}catch(e){}}(a),g(),t||function(e){l.push(e),m()}(r),n}function u(e,n){var i=!(!n||"pinups"!==n.game);p("task:"+e,i);for(var o=0;o<t.length;o++)if(r[t[o][0]]===e){p("medal:"+t[o][0],i);break}for(var l=function(){try{return JSON.parse(localStorage.getItem("pf_ranks_v1")||'{"xp":0}').xp||0}catch(e){return 0}}(),s=0;s<a.length;s++)l>=a[s][1]&&p("tier:"+a[s][0],i);(function(){try{var e=JSON.parse(localStorage.getItem("pf_medals_v2")||"null");return!(!e||!e.fd)}catch(e){return!1}})()&&p("full:deployment",i)}function m(){if(!s&&l.length){s=!0;var t=l.shift(),r=document.getElementById("pf-pinup-ov");r&&r.remove(),(r=document.createElement("div")).id="pf-pinup-ov",r.style.cssText="position:fixed;inset:0;background:rgba(10,5,5,.92);z-index:99998;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;",r.innerHTML='<div style="font-family:\'Arial Black\',Arial,sans-serif;color:#f5ead6;letter-spacing:3px;font-size:15px;margin-bottom:10px;">★ PINUP UNLOCKED ★</div><div id="pf-pinup-art" style="box-shadow:0 0 40px rgba(193,18,31,.55);max-width:300px;width:100%;">'+f(t,!1)+'</div><div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;justify-content:center;"><button id="pf-pinup-share" style="background:#c1121f;color:#f5ead6;border:3px solid #f5ead6;font-family:\'Arial Black\',Arial,sans-serif;font-size:14px;font-weight:900;padding:10px 18px;cursor:pointer;letter-spacing:1px;">SHARE PINUP</button><button id="pf-pinup-close" style="background:#0d0d0d;color:#f5ead6;border:3px solid #f5ead6;font-family:\'Arial Black\',Arial,sans-serif;font-size:14px;font-weight:900;padding:10px 18px;cursor:pointer;letter-spacing:1px;">KEEP FIGHTING</button></div>',document.body.appendChild(r);var a=function(){try{r.remove()}catch(e){}s=!1,setTimeout(m,350)};document.getElementById("pf-pinup-close").onclick=a,document.getElementById("pf-pinup-share").onclick=function(){!function(t){try{var r=f(t,!1),a=new Blob([r],{type:"image/svg+xml;charset=utf-8"}),n=URL.createObjectURL(a),i=new Image;i.onload=function(){try{var e=document.createElement("canvas");e.width=600,e.height=800;var r=e.getContext("2d");r.fillStyle="#f5ead6",r.fillRect(0,0,600,800),r.drawImage(i,0,0,600,800),URL.revokeObjectURL(n),r.fillStyle="rgba(13,13,13,0.94)",r.fillRect(0,736,600,64),r.fillStyle="#c1121f",r.fillRect(0,736,600,4),r.fillStyle="#f5ead6",r.font='900 25px "Arial Black",Arial,sans-serif',r.textAlign="center",r.fillText("JOIN THE FIGHT — MTCSTW.COM",300,776);try{window.PFShare&&window.PFShare.stampCallsign&&window.PFShare.stampCallsign(e)}catch(e){}e.toBlob(function(e){if(e){var r=new File([e],"pfn-pinup-"+t.id.replace(/[^a-z0-9]+/gi,"-")+".png",{type:"image/png"}),a=function(){o()};if(navigator.canShare&&navigator.canShare({files:[r]}))navigator.share({files:[r],title:t.title+" — Propaganda Factory"}).then(a,a);else{var n=document.createElement("a");n.href=URL.createObjectURL(e),n.download=r.name,document.body.appendChild(n),n.click(),setTimeout(function(){try{URL.revokeObjectURL(n.href)}catch(e){}n.remove()},4e3),a()}}else o()},"image/png")}catch(e){o()}},i.onerror=function(){o()},i.src=n}catch(e){o()}function o(){try{e&&"function"==typeof e.creditShare&&e.creditShare("pinups","share")}catch(e){}}}(t)},r.onclick=function(e){e.target===r&&a()},setTimeout(function(){document.getElementById("pf-pinup-ov")&&a()},9e3)}}function g(){var e=document.getElementById("pf-ranks");if(!e)return!1;var t=document.getElementById("pf-pinup-wall");if(!t){(t=document.createElement("div")).id="pf-pinup-wall";var r=document.getElementById("pf-medals");r&&r.parentNode?r.parentNode.insertBefore(t,r.nextSibling):e.appendChild(t)}var a=c(),i=0,o="";return n.forEach(function(e){var t=!!a.got[e.id];t&&i++,o+='<div class="pp-cell'+(t?"":" locked")+'" title="'+d(e.title)+'"><div class="pp-art">'+f(e,!t)+'</div><div class="pp-t">'+(t?d(e.title):"???")+"</div></div>"}),t.innerHTML='<div class="pp-head">📌 PIN-UP WALL <span>— '+i+'/35 pinned</span></div><div class="pp-sub">Every task complete, every medal, every promotion earns its pinup.</div><div class="pp-grid">'+o+"</div>",function(){if(document.getElementById("pf-pinup-css"))return;var e=document.createElement("style");e.id="pf-pinup-css",e.textContent="#pf-pinup-wall{margin-top:18px;border-top:2px dashed #c1121f;padding-top:14px;}#pf-pinup-wall .pp-head{font-family:'Arial Black',Arial,sans-serif;color:#f5ead6;font-size:17px;letter-spacing:2px;margin-bottom:4px;}#pf-pinup-wall .pp-head span{color:#c9bfa8;font-size:12px;}#pf-pinup-wall .pp-sub{font-family:Arial,sans-serif;color:#c9bfa8;font-size:11px;letter-spacing:1px;margin-bottom:10px;}#pf-pinup-wall .pp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px;}#pf-pinup-wall .pp-cell{background:#141414;border:2px solid #c1121f;padding:4px;text-align:center;}#pf-pinup-wall .pp-cell.locked{border-color:#3a3a3a;opacity:.75;}#pf-pinup-wall .pp-art svg{width:100%;height:auto;display:block;}#pf-pinup-wall .pp-t{font-family:Arial,sans-serif;font-size:8px;letter-spacing:1px;color:#f5ead6;margin-top:3px;text-transform:uppercase;min-height:20px;}#pf-pinup-wall .pp-cell.locked .pp-t{color:#555;}",(document.head||document.documentElement).appendChild(e)}(),!0}function h(){g()}}(),function(){"use strict";var e=window.PF;if(!(e&&e.skip("share-image")||window.pfShareImageDone)){window.pfShareImageDone=!0;var t={"fan-vote":{title:"★ FAN VOTE ★",tag:"Propagandist of the Week",lines:["Vote for the week’s top propagandist.","Polls close Sunday night.","Results drop Monday."],cta:"VOTE NOW"},"bracket-board":{title:"☠ THE LIQUIDATION BRACKET ☠",tag:"16 billionaires. Head-to-head.",lines:["Your votes decide who gets liquidated.","Pick your winners. Advance the class war."],cta:"VOTE THE BRACKET"},"daily-orders":{title:"DAILY ORDERS",tag:"Today’s missions from the Factory",lines:["Do things. Post proof.","Check in daily. Stack your streak."],cta:"GET ORDERS"},"do-meter":{title:"⚗ THE DO METER ⚗",tag:"NOT FOLLOWERS. NOT LIKES. THINGS DONE.",lines:["The network counts every thing done.","Goal: 5 million things."],cta:"DO A THING"},"daily-drop":{title:"★ THE DAILY DROP ★",tag:"Fresh slop, daily",lines:["A new drop every day of the offensive.","Claim it. Share it. Spread it."],cta:"CLAIM THE DROP"},"billionaire-supervillain":{title:"BILLIONAIRE OR SUPERVILLAIN?",tag:"One quote. Two monsters. You decide.",lines:["A new quote every day.","Billionaire or supervillain — can you tell them apart?"],cta:"PLAY TODAY"},"daily-interrogation":{title:"THE DAILY INTERROGATION",tag:"One question. Every day. No mercy.",lines:["Test your propaganda literacy.","Streak or you’re a liberal."],cta:"ANSWER NOW"},"media-nuke":{title:"THE MEDIA NUKE",tag:"NETWORK COMMAND",lines:["Drop synchronized content bombs.","One message. Every platform. At once."],cta:"ARM THE NUKE"},"caption-combat":{title:"CAPTION COMBAT",tag:"One template. One week. Infinite psyops.",lines:["Caption the template. Funniest wins.","New round every week."],cta:"ENTER COMBAT"},"poster-forge":{title:"THE POSTER FORGE",tag:"Make propaganda. Download it.",lines:["Forge your own poster in seconds.","Plaster the timeline."],cta:"FORGE ONE"},"enlistment-ranks":{title:"ENLISTMENT RANKS",tag:"Every action for the machine earns XP",lines:["Climb from Sympathizer to Vanguard.","Earn weekly Service Medals."],cta:"ENLIST NOW"},"war-bonds":{title:"★ WAR BONDS ★",tag:"Buy a bond. Fund the machine.",lines:["War Bonds fund 60% of all PF operations.","Starting at $1. Every dollar is ammunition."],cta:"BUY WAR BONDS"},"slr-match-quiz":{title:"⚑ FIND YOUR SLR MATCH ⚑",tag:"What kind of propagandist are you?",lines:["Take the 5-question quiz.","Get your archetype + 3 SLR matches."],cta:"TAKE THE QUIZ"},"creator-guess":{title:"◎ GUESS THE CREATOR ◎",tag:"5 questions. Zero mercy.",lines:["How well do you know the Sick Left Radicals?","New set every day. Streaks rewarded."],cta:"PLAY NOW"},"boost-raid":{title:"⚔ BOOST RAID ⚔",tag:"One target. One day. The whole network.",lines:["Like. Comment. Share. Report back.","Today’s raid target is live now."],cta:"JOIN THE RAID"}},r=["fan-vote","slr-match-quiz","creator-guess","bracket-board","daily-orders","boost-raid","do-meter","daily-drop","billionaire-supervillain","daily-interrogation","media-nuke","caption-combat","poster-forge","enlistment-ranks","war-bonds"],a="SHARE IMAGE",n="SAVE IMAGE TO PHONE",i={};try{e&&(e.creditShare=h)}catch(e){}try{window.pfCreditShare=h}catch(e){}window.PFShare={REG:t,isIOS:o,poster:f,shareImage:y,saveImage:v,ensureAll:E,setPoster:function(e,t){try{e&&"function"==typeof t&&(i[e]=t)}catch(e){}},spreadStamp:c,stampCallsign:d};try{E()}catch(t){e&&e.error("share-image",t)}setTimeout(function(){try{E()}catch(e){}},2e3),setTimeout(function(){try{E()}catch(e){}},6e3)}function o(){try{return/iPad|iPhone|iPod/.test(navigator.userAgent||"")||"MacIntel"===navigator.platform&&navigator.maxTouchPoints>1}catch(e){return!1}}function l(e,t,r){var a=String(t).split(/\s+/),n=[],i="";return a.forEach(function(t){var a=i?i+" "+t:t;e.measureText(a).width>r&&i?(n.push(i),i=t):i=a}),i&&n.push(i),n}function s(){var e="";try{var t=JSON.parse(localStorage.getItem("pf_identity_v1")||"{}");t&&t.callsign&&(e=String(t.callsign).toUpperCase())}catch(e){}if(!e)try{e=String(window.PFCallsign&&window.PFCallsign()||"").toUpperCase()}catch(e){}return e}function c(){var t=s(),r="";try{var a=JSON.parse(localStorage.getItem("pf_boost_v1")||"null");if(a&&a.creator&&a.date===function(){try{var t=e&&e.chiNow?e.chiNow():new Date,r=t.getFullYear(),a=t.getMonth()+1,n=t.getDate();return r+"-"+(a<10?"0":"")+a+"-"+(n<10?"0":"")+n}catch(e){return""}}()){var n=e&&e.rosterBySlug?e.rosterBySlug(a.creator):null;r=(n&&n.name?String(n.name):String(a.creator).replace(/-/g," ")).toUpperCase()}}catch(e){}return t&&r?"FIGHTING AS "+t+" · SPREADING FOR "+r:t?"FIGHTING AS "+t:r?"SPREADING FOR "+r:""}function d(e){try{if(!e||e._pfStamped)return e;e._pfStamped=!0;var t=s();if(!t)return e;var r=e.getContext("2d");if(!r)return e;var a=e.width||0,n=e.height||0;if(a<200||n<200)return e;var i=Math.max(18,Math.round(.024*a)),o=Math.round(1.9*i);r.save();try{r.textAlign="center",r.textBaseline="middle"}catch(e){}r.fillStyle="rgba(10,10,10,0.9)",r.fillRect(0,n-o,a,o),r.fillStyle="#c1121f",r.fillRect(0,n-o,a,Math.max(3,Math.round(.14*i))),r.fillStyle="#f5ead6",r.font="700 "+i+"px Arial,sans-serif",r.fillText("FIGHTING AS "+t,a/2,n-o/2),r.restore()}catch(e){}return e}function f(e){var r=t[e]||t["daily-orders"],a=1080,n=1350,i=document.createElement("canvas");i.width=a,i.height=n;var o=i.getContext("2d");if(!o)return null;o.fillStyle="#0d0d0d",o.fillRect(0,0,a,n),o.strokeStyle="#c1121f",o.lineWidth=18,o.strokeRect(16,16,1048,1318),o.strokeStyle="#f5ead6",o.lineWidth=3,o.strokeRect(52,52,976,1246),o.textAlign="center";var s=160;o.fillStyle="#f5ead6",o.font="700 34px Arial,sans-serif",o.fillText("★ THE PROPAGANDA FACTORY ★",540,s),s+=120,o.fillStyle="#c1121f",o.font='900 86px "Arial Black",Arial,sans-serif',l(o,r.title,910).slice(0,3).forEach(function(e){o.fillText(e,540,s),s+=100}),s+=24,o.fillStyle="#f5ead6",o.font="700 42px Arial,sans-serif",l(o,r.tag,910).slice(0,2).forEach(function(e){o.fillText(e,540,s),s+=56}),s+=34,o.fillStyle="#c9bfa8",o.font="400 36px Arial,sans-serif",(r.lines||[]).slice(0,4).forEach(function(e){l(o,e,870).slice(0,2).forEach(function(e){o.fillText(e,540,s),s+=50}),s+=12}),s+=46,o.font='900 42px "Arial Black",Arial,sans-serif';var d=o.measureText(r.cta).width+100;o.fillStyle="#c1121f",o.fillRect(540-d/2,s-56,d,92),o.fillStyle="#ffffff",o.fillText(r.cta,540,s+8);var f=c();return f&&(i._pfStamped=!0,s+=92,o.fillStyle="#c1121f",o.font="700 30px Arial,sans-serif",l(o,f,910).slice(0,2).forEach(function(e){o.fillText(e,540,s),s+=42})),o.fillStyle="#c1121f",o.font='900 46px "Arial Black",Arial,sans-serif',o.fillText("MTCSTW.COM",540,1222),o.fillStyle="#c9bfa8",o.font="400 30px Arial,sans-serif",o.fillText(function(){try{return(new Date).toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}).toUpperCase()}catch(e){return""}}(),540,1274),i}function p(e,t){try{if(e.toBlob)return void e.toBlob(function(e){t(e)},"image/png");var r=e.toDataURL("image/png");fetch(r).then(function(e){return e.blob()}).then(t).catch(function(){t(null)})}catch(e){t(null)}}function u(e,t){var r=URL.createObjectURL(e),a=document.createElement("a");a.href=r,a.download=t,document.body.appendChild(a),a.click(),setTimeout(function(){try{URL.revokeObjectURL(r)}catch(e){}a.remove()},4e3)}function m(t){var r="https://www.mtcstw.com/";try{window.PF&&"function"==typeof e.shareUrl&&(r=e.shareUrl(r))}catch(e){}return t+" via The Propaganda Factory — "+r}function g(){try{return(new Date).toISOString().slice(0,10)}catch(e){return""}}function h(e,t){try{var r="pf_shareimg_"+g(),a=null;try{a=localStorage.getItem(r)}catch(e){}if(a)return;try{localStorage.setItem(r,"1")}catch(e){}}catch(e){}try{document.dispatchEvent(new CustomEvent("pf-share-image",{detail:{day:g(),game:e||"",kind:t||"share"}}))}catch(e){}}function y(e,t,r,a){try{e=d(e)||e}catch(e){}p(e,function(e){if(e){var n=null;try{n=new File([e],t,{type:"image/png"})}catch(e){}if(n&&navigator.canShare&&navigator.canShare({files:[n]}))try{navigator.share({files:[n],title:r,text:m(r)}).then(function(){h(a,"share"),w("Shared. Go spread the word.")},function(r){r&&"AbortError"===r.name?w("Share cancelled."):(h(a,"share"),u(e,t),w("Image downloaded."))})}catch(r){h(a,"share"),u(e,t),w("Image downloaded.")}else h(a,"share"),u(e,t),w(o()?"Image downloaded — open it, tap Share, then Save Image for Photos.":"Image downloaded.")}else w("Poster failed — try again.")})}function v(e,t,r){try{e=d(e)||e}catch(e){}p(e,function(e){if(e)if(o()){var a=null;try{a=new File([e],t,{type:"image/png"})}catch(e){}if(a&&navigator.canShare&&navigator.canShare({files:[a]})){try{navigator.share({files:[a],title:"Save to Photos"}).then(function(){h(r,"save"),w("Saved. Check your Photos.")},function(e){e&&"AbortError"===e.name||w("Save cancelled — try again.")})}catch(e){w("Could not open save sheet — try again.")}return}try{var n=URL.createObjectURL(e);window.open(n,"_blank"),h(r,"save"),w("Long-press the image → Save to Photos.")}catch(e){w("Save failed — try again.")}}else h(r,"save"),u(e,t),w("Image saved to your phone.");else w("Save failed — try again.")})}function w(t){try{e&&e.toast&&e.toast(t)}catch(e){}}function b(e,t,r,a){var n=document.createElement("button");return n.type="button",n.textContent=e,n.setAttribute("data-pfshare",r+"-"+a),n.style.cssText="display:inline-block;"+(t?"background:#c1121f;border:2px solid #c1121f;color:#f5f0e1;":"background:transparent;border:2px solid #f5ead6;color:#f5f0e1;")+"padding:0.7rem 1.3rem;margin:0.4rem;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;cursor:pointer;font-family:inherit;",n}function x(t,r){t.disabled=!0;try{r()}catch(t){e&&e.error("share-image",t)}setTimeout(function(){t.disabled=!1},1500)}function S(e){var r=t[e];if(r){var o=document.querySelector('section[data-game="'+e+'"]');if(o&&!function(e,t){var r=e.querySelector('[data-pfsharerow="'+t+'"]');if(!r)return!1;var i=r.querySelector('[data-pfshare="'+t+'-share"]'),o=r.querySelector('[data-pfshare="'+t+'-save"]');return!(!i||!o||i.textContent!==a||o.textContent!==n)}(o,e)){var l=o.querySelector('[data-pfsharerow="'+e+'"]');l&&l.remove();var s=document.createElement("div");s.setAttribute("data-pfsharerow",e),s.style.cssText="text-align:center;margin:1.2rem 0 0.4rem;";var c=b(a,!0,e,"share");c.onclick=function(){x(c,function(){var t=i[e];if(t)try{t(function(t){t?y(t,"pfn-"+e+".png",r.title,e):w("Poster failed — try again.")})}catch(e){w("Poster failed — try again.")}else{var a=f(e);a?y(a,"pfn-"+e+".png",r.title,e):w("Poster failed — try again.")}})};var d=b(n,!1,e,"save");d.onclick=function(){x(d,function(){var t=i[e];if(t)try{t(function(t){t?v(t,"pfn-"+e+".png",e):w("Save failed — try again.")})}catch(e){w("Save failed — try again.")}else{var r=f(e);r?v(r,"pfn-"+e+".png",e):w("Save failed — try again.")}})},s.appendChild(c),s.appendChild(d),o.appendChild(s)}}}function E(){r.forEach(S)}}();
+/* PF v1.4.3 pages/bundle-pages.js — concatenated bundle, generated by build/bundle-core.js.
+   DO NOT EDIT. Regenerate with: node build/bundle-core.js
+   Contains: pages/home-v2.js, pages/slr-roster.js, pages/slr-catalog.js, core/06-pinups.js, core/share-image.js
+   Each file keeps its own PF.skip() kill switch (?pf_off=<silo>). */
+
+/* ===== pages/home-v2.js ===== */
+/* pages/home-v2.js  |  PF v1.4.1 | Mounts 12 section templates wherever the <div id="pf-v2"></div> shell
+   KILL: ?pf_off=home-v2  or  localStorage pf_disabled_v1='["home-v2"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (window.pfHomeV2Done) return;
+  if (PF && PF.skip('home-v2')) { return; }
+  var host = document.getElementById('pf-v2');
+  if (!host) return; /* v2 mounts only where the shell lives — never on production pages */
+  if (isEditor()) return; /* never mount inside the Squarespace editor */
+  window.pfHomeV2Done = true;
+
+  function err(msg, e) {
+    if (PF) PF.error('home-v2', msg + ' :: ' + (e && e.message || e));
+  }
+
+  function isEditor(){ try{
+    var h=window.location.href||'';
+    if(h.indexOf('/config/')!==-1) return true;
+    var b=document.body;
+    if(b&&(b.classList.contains('sqs-edit-mode')||b.classList.contains('sqs-editing'))) return true;
+    return false; }catch(e){ return false; } }
+
+  /* Homepage order, verified against the live page's section roots.
+     Daily Orders leads: it's the stickiest dopamine lynchpin. */
+  var ORDER = [
+    ['brief', 'pf-ov-brief'],
+    ['daily-orders', 'pf-ov-orders'],
+    ['dopa', 'pf-ov-dopa'],
+    ['notify', 'pf-ov-notify'],
+    ['campaign', 'pf-ov-campaign'],
+    ['civic', 'pf-ov-civic'],
+    ['referral', 'pf-ov-referral'],
+    ['feed', 'pf-ov-feed'],
+    ['bounties', 'pf-ov-bounties'],
+    ['academy', 'pf-ov-academy'],
+    ['assist', 'pf-ov-assist'],
+    ['alerts', 'pf-ov-alerts'],
+    ['archive', 'pf-ov-archive'],
+    ['irl', 'pf-ov-irl'],
+    ['intel', 'pf-ov-intel'],
+    ['cells', 'pf-ov-cells'],
+    ['contracts', 'pf-ov-contracts'],
+    ['fan-vote', 'pf-ov-vote'],
+    ['infighting', 'pf-ov-infight'],
+    ['slr-match-quiz', 'pf-ov-matchquiz'],
+    ['creator-guess', 'pf-ov-guess'],
+    ['bracket-board', 'pf-ov-bracket'],
+    ['boost-raid', 'pf-ov-raid'],
+    ['do-meter', 'pf-ov-dometer'],
+    ['daily-drop', 'pf-ov-drop'],
+    ['billionaire-supervillain', 'pf-ov-billionaire'],
+    ['daily-interrogation', 'pf-ov-interrogation'],
+    ['media-nuke', 'pf-ov-nuke'],
+    ['caption-combat', 'pf-ov-caption'],
+    ['poster-forge', 'pf-ov-poster'],
+    ['battles', 'pf-ov-battles'],
+    ['video', 'pf-ov-video'],
+    ['gov', 'pf-ov-gov'],
+    ['diplo', 'pf-ov-diplo'],
+    ['economy', 'pf-ov-economy'],
+    ['peoplesbank', 'pf-ov-peoplesbank'],
+    ['movement', 'pf-ov-movement'],
+    ['earnings', 'pf-ov-earnings'],
+    ['dash', 'pf-ov-dash'],
+    ['casino', 'pf-ov-casino'],
+    ['enlistment-ranks', 'pf-ov-ranks'],
+    ['war-bonds', 'pf-ov-bonds'],
+    ['vault', 'pf-ov-vault']
+  ];
+
+  function execScripts(root, label) {
+    var scripts = root.querySelectorAll('script');
+    for (var i = 0; i < scripts.length; i++) {
+      try { (0, eval)(scripts[i].textContent); }
+      catch (e) { err('inner script failed in ' + label, e); }
+      scripts[i].remove();
+    }
+  }
+
+  /* Idempotent mounter — safe to call repeatedly. Lazy bundles call
+     PF.mountSilos() after staging their templates so newly-available
+     silos mount in ORDER without re-mounting existing ones.
+     Missing templates are normal (bundle not loaded yet / silo killed). */
+  var mounted = {};
+  function mountSilos() {
+    var h = document.getElementById('pf-v2');
+    if (!h || isEditor()) return 0;
+    var n = 0;
+    ORDER.forEach(function (pair) {
+      var silo = pair[0], tplId = pair[1];
+      if (mounted[silo]) return;
+      if (PF && PF.skip(silo)) { mounted[silo] = 1; return; }
+      try {
+        var tpl = document.getElementById(tplId);
+        if (!tpl || !tpl.content) return; /* bundle not staged yet — try next call */
+        var frag = document.importNode(tpl.content, true);
+        var section = document.createElement('section');
+        section.className = 'pf-v2-game';
+        section.setAttribute('data-game', silo);
+        section.appendChild(frag);
+        h.appendChild(section);
+        execScripts(section, tplId);
+        mounted[silo] = 1;
+        n++;
+      } catch (e) { err('mount failed: ' + silo, e); mounted[silo] = 1; }
+    });
+    return n;
+  }
+
+  /* Expose for lazy bundles. Guarded: only defined once. */
+  if (PF && !PF.mountSilos) PF.mountSilos = mountSilos;
+  mountSilos();
+
+})();
+
+;
+
+/* ===== pages/slr-roster.js ===== */
+/* pages/slr-roster.js  |  PF v1.4.2 | Sick Left Radicals roster, rebuilt from scratch.
+   Pulls the 62-member master database (core/07-slr-db.js), shuffles the grid on
+   every load, searchable by name/handle/focus. Each card: photo, name,
+   propaganda score, follow count, link to the member's catalog page.
+   Mounts on #pf-slr-roster, or auto-takes-over /sick-left-radicals (hides the
+   old Squarespace content ONLY after the DB loads — on DB failure the old
+   page stays up).
+   KILL: ?pf_off=slr-roster  or  localStorage pf_disabled_v1='["slr-roster"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('slr-roster')) { return; }
+  if (!PF.slrReady) { PF.error('slr-roster', 'slr-db not loaded'); return; }
+
+  var RED = '#c1121f', CREAM = '#f5f0e1', BLACK = '#0a0a0a', MUTED = '#b8ab8e';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function shuffle(a) {
+    a = a.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function initials(name) {
+    var w = String(name || '?').split(/\s+/).filter(Boolean);
+    return ((w[0] || '?').charAt(0) + (w[1] ? w[1].charAt(0) : '')).toUpperCase();
+  }
+  function handlesLine(m) {
+    var h = m.handles || {};
+    var bits = [];
+    ['tiktok', 'instagram', 'youtube', 'x'].forEach(function (p) {
+      if (h[p]) bits.push(h[p]);
+    });
+    if (!bits.length && h.primary) bits.push(h.primary);
+    return bits.join(' · ');
+  }
+
+  function cardHTML(m) {
+    var img = m.picture
+      ? '<img src="' + esc(m.picture) + '" alt="' + esc(m.name) + '" loading="lazy" style="width:100%;height:180px;object-fit:cover;display:block;background:#1a1a1a;">'
+      : '<div style="width:100%;height:180px;display:flex;align-items:center;justify-content:center;background:#1a1a1a;border-bottom:3px solid ' + RED + ';">'
+        + '<span style="font-size:3rem;font-weight:900;color:' + RED + ';">' + esc(initials(m.name)) + '</span></div>';
+    return '<div class="pf-slr-card" data-search="' + esc((m.name + ' ' + handlesLine(m) + ' ' + (m.content_focus || '')).toLowerCase()) + '"'
+      + ' style="background:' + BLACK + ';border:3px solid ' + RED + ';color:' + CREAM + ';font-family:\'Helvetica Neue\',Arial,sans-serif;overflow:hidden;display:flex;flex-direction:column;">'
+      + img
+      + '<div style="padding:0.9rem 1rem 1.1rem;display:flex;flex-direction:column;gap:0.35rem;flex:1;">'
+      + '<div style="font-size:1.05rem;font-weight:900;letter-spacing:0.02em;">' + esc(m.name) + '</div>'
+      + '<div style="font-size:0.8rem;color:' + MUTED + ';">' + esc(handlesLine(m)) + '</div>'
+      + '<div style="display:flex;gap:0.6rem;align-items:baseline;margin-top:0.2rem;">'
+      + '<span style="font-size:1.3rem;font-weight:900;color:' + RED + ';">' + esc(m.followers_display) + '</span>'
+      + '<span style="font-size:0.75rem;color:' + MUTED + ';letter-spacing:0.08em;">FOLLOWERS' + (m.is_new ? ' · <span style="color:' + RED + ';font-weight:700;">NEW</span>' : '') + '</span>'
+      + '</div>'
+      + '<div data-eff-score="' + esc(m.slug) + '" style="font-size:0.8rem;color:' + MUTED + ';">Propaganda score <strong style="color:' + CREAM + ';">' + m.propaganda_score.toFixed(1) + '/10</strong></div>'
+      + '<a href="' + esc(m.catalog_path) + '" style="margin-top:auto;padding-top:0.6rem;display:block;text-align:center;background:' + RED + ';color:#fff;font-weight:900;letter-spacing:0.14em;font-size:0.85rem;padding:0.65rem;text-decoration:none;">VIEW PROFILE →</a>'
+      + '</div></div>';
+  }
+
+  function render(root, members) {
+    var order = shuffle(members);
+    root.innerHTML =
+      '<div style="max-width:1200px;margin:0 auto;padding:2rem 1rem;box-sizing:border-box;">'
+      + '<div style="text-align:center;margin-bottom:0.4rem;font-size:0.8rem;letter-spacing:0.3em;color:' + RED + ';font-weight:700;">THE PROPAGANDA FACTORY</div>'
+      + '<h1 style="text-align:center;color:' + CREAM + ';font-size:2.2rem;font-weight:900;letter-spacing:0.06em;margin:0 0 0.4rem;font-family:\'Helvetica Neue\',Arial,sans-serif;">SICK LEFT RADICALS</h1>'
+      + '<div class="pf-slr-count" style="text-align:center;color:' + MUTED + ';font-size:0.95rem;margin-bottom:1.4rem;">'
+      + members.length + ' affiliated propagandists · <span style="color:' + CREAM + ';font-weight:700;">' + totalFollowers(members) + '</span> combined reach</div>'
+      + '<div style="max-width:520px;margin:0 auto 1.8rem;">'
+      + '<input id="pf-slr-search" type="search" placeholder="Search the roster…" autocomplete="off"'
+      + ' style="width:100%;padding:0.8rem 1rem;background:#141414;border:2px solid ' + RED + ';color:' + CREAM + ';font-size:1rem;font-family:inherit;box-sizing:border-box;">'
+      + '</div>'
+      + '<div class="pf-slr-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.2rem;">'
+      + order.map(cardHTML).join('')
+      + '</div>'
+      + '<div class="pf-slr-empty" style="display:none;text-align:center;color:' + MUTED + ';padding:3rem 1rem;font-size:1.05rem;">No comrades match that search. Try another name.</div>'
+      + '<div style="text-align:center;margin-top:2.5rem;"><a href="/creator-onboard" style="color:' + RED + ';font-weight:900;letter-spacing:0.12em;text-decoration:none;border-bottom:2px solid ' + RED + ';">WANT IN? JOIN THE SICK LEFT RADICALS →</a></div>'
+      + '</div>';
+    var input = root.querySelector('#pf-slr-search');
+    var cards = root.querySelectorAll('.pf-slr-card');
+    var empty = root.querySelector('.pf-slr-empty');
+    input.addEventListener('input', function () {
+      var q = input.value.trim().toLowerCase(), shown = 0;
+      for (var i = 0; i < cards.length; i++) {
+        var hit = !q || cards[i].getAttribute('data-search').indexOf(q) !== -1;
+        cards[i].style.display = hit ? '' : 'none';
+        if (hit) shown++;
+      }
+      empty.style.display = shown ? 'none' : '';
+    });
+  }
+
+  function totalFollowers(members) {
+    var t = 0;
+    for (var i = 0; i < members.length; i++) t += members[i].followers_total || 0;
+    if (t >= 1e6) return (t / 1e6).toFixed(1) + 'M';
+    if (t >= 1e3) return Math.round(t / 1e3) + 'K';
+    return String(t);
+  }
+
+  function mountTakeover() {
+    /* /sick-left-radicals with no #pf-slr-roster block: hide Squarespace
+       content, render the roster in its place. Only called after DB loads. */
+    var page = document.querySelector('main#page') || document.getElementById('page');
+    var root = document.createElement('div');
+    root.id = 'pf-slr-roster-root';
+    root.style.cssText = 'background:#0a0a0a;';
+    if (page && page.parentNode) {
+      page.parentNode.insertBefore(root, page);
+      page.style.display = 'none';
+    } else {
+      document.body.insertBefore(root, document.body.firstChild);
+    }
+    return root;
+  }
+
+  function boot() {
+    var el = document.getElementById('pf-slr-roster');
+    var isRosterPath = /^\/sick-left-radicals\/?$/.test(location.pathname);
+    if (!el && !isRosterPath) return; /* not our page */
+    PF.slrReady.then(function (members) {
+      if (!members || !members.length) {
+        /* DB failed: never hide existing content. Show a slim error only
+           when we own an explicit mount block. */
+        if (el) {
+          el.innerHTML = '<div style="max-width:640px;margin:2rem auto;text-align:center;color:' + CREAM + ';font-family:Arial,sans-serif;">'
+            + '<div style="font-weight:900;color:' + RED + ';">ROSTER OFFLINE</div>'
+            + '<div style="color:' + MUTED + ';font-size:0.9rem;margin-top:0.5rem;">The roster database could not be reached. Reload to retry.</div></div>';
+        }
+        return;
+      }
+      var root = el || mountTakeover();
+      render(root, members);
+      PF.log('slr-roster', 'rendered ' + members.length + ' members (shuffled)');
+      /* Efficiency Index: paint live computed scores into [data-eff-score] slots. */
+      try {
+        if (window.PF && PF.efficiency) PF.efficiency.paintScores(root);
+        else document.addEventListener('pf-efficiency', function h() {
+          document.removeEventListener('pf-efficiency', h);
+          if (window.PF && PF.efficiency) PF.efficiency.paintScores(root);
+        });
+      } catch (e2) {}
+    });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+;
+
+/* ===== pages/slr-catalog.js ===== */
+/* pages/slr-catalog.js  |  PF v1.4.2 | SLR catalog page renderer.
+   Renders any member's full catalog page from the master database
+   (core/07-slr-db.js): photo, propaganda score, bio, what-they-offer,
+   follow links, key strengths, related creators.
+   Mounts on #pf-catalog[data-slug], or auto-detects the member slug from the
+   URL path and takes over the page — hiding the old Squarespace-built content
+   ONLY after the DB loads and the slug resolves. On DB failure or unknown
+   slug it does nothing: the existing page stays up.
+   KILL: ?pf_off=slr-catalog  or  localStorage pf_disabled_v1='["slr-catalog"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('slr-catalog')) { return; }
+  if (!PF.slrReady) { PF.error('slr-catalog', 'slr-db not loaded'); return; }
+
+  var RED = '#c1121f', CREAM = '#f5f0e1', BLACK = '#0a0a0a', MUTED = '#b8ab8e';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function initials(name) {
+    var w = String(name || '?').split(/\s+/).filter(Boolean);
+    return ((w[0] || '?').charAt(0) + (w[1] ? w[1].charAt(0) : '')).toUpperCase();
+  }
+  function para(text) {
+    return String(text || '').split(/\n+/).filter(function (p) { return p.trim(); })
+      .map(function (p) { return '<p style="color:' + CREAM + ';line-height:1.65;font-size:1rem;margin:0 0 1rem;">' + esc(p.trim()) + '</p>'; })
+      .join('');
+  }
+
+  function render(root, m, all) {
+    var img = m.picture
+      ? '<img src="' + esc(m.picture) + '" alt="' + esc(m.name) + ', SLR propagandist" style="width:100%;max-width:520px;height:auto;display:block;margin:0 auto;border:3px solid ' + RED + ';">'
+      : '<div style="width:100%;max-width:520px;margin:0 auto;height:300px;display:flex;align-items:center;justify-content:center;background:#1a1a1a;border:3px solid ' + RED + ';">'
+        + '<span style="font-size:4.5rem;font-weight:900;color:' + RED + ';">' + esc(initials(m.name)) + '</span></div>';
+
+    var handles = m.handles || {};
+    var handleBits = [];
+    ['tiktok', 'instagram', 'youtube', 'x'].forEach(function (p) { if (handles[p]) handleBits.push(handles[p]); });
+    if (!handleBits.length && handles.primary) handleBits.push(handles.primary);
+
+    var offer = (m.offer || []).map(function (o) {
+      return '<li style="color:' + CREAM + ';margin:0 0 0.6rem;line-height:1.55;">' + esc(o) + '</li>';
+    }).join('');
+    var strengths = (m.key_strengths || []).map(function (s) {
+      return '<li style="color:' + CREAM + ';margin:0 0 0.6rem;line-height:1.55;">' + esc(s) + '</li>';
+    }).join('');
+    var links = (m.links || []).map(function (l) {
+      return '<li style="margin:0 0 0.5rem;"><a href="' + esc(l.url) + '" target="_blank" rel="noopener" style="color:' + RED + ';font-weight:700;text-decoration:none;border-bottom:2px solid ' + RED + ';">' + esc(l.platform) + '</a></li>';
+    }).join('');
+
+    /* 3 related creators: nearest scores, deterministic-ish pick */
+    var others = all.filter(function (x) { return x.slug !== m.slug; });
+    others.sort(function (a, b) { return Math.abs(a.propaganda_score - m.propaganda_score) - Math.abs(b.propaganda_score - m.propaganda_score); });
+    var related = others.slice(0, 3).map(function (x) {
+      return '<div><a href="' + esc(x.catalog_path) + '" style="color:' + CREAM + ';text-decoration:none;font-weight:700;">• ' + esc(x.name) + '</a>'
+        + ' <span style="color:' + MUTED + ';font-size:0.85rem;">— ' + x.propaganda_score.toFixed(1) + '/10</span></div>';
+    }).join('');
+
+    root.innerHTML =
+      '<div style="background:' + BLACK + ';padding:2.5rem 1rem 3rem;box-sizing:border-box;">'
+      + '<div style="max-width:720px;margin:0 auto;font-family:\'Helvetica Neue\',Arial,sans-serif;">'
+      + '<div style="text-align:center;margin-bottom:0.5rem;"><a href="/sick-left-radicals" style="color:' + MUTED + ';font-size:0.8rem;letter-spacing:0.2em;text-decoration:none;">← ALL SICK LEFT RADICALS</a></div>'
+      + img
+      + '<h1 style="text-align:center;color:' + CREAM + ';font-size:2rem;font-weight:900;margin:1.4rem 0 0.2rem;">' + esc(m.name) + '</h1>'
+      + (handleBits.length ? '<div style="text-align:center;color:' + MUTED + ';font-size:0.9rem;margin-bottom:0.6rem;">' + esc(handleBits.join(' · ')) + '</div>' : '')
+      + '<div data-eff-score="' + esc(m.slug) + '" style="text-align:center;margin-bottom:0.4rem;font-size:1.05rem;color:' + CREAM + ';">Propaganda Score: <strong style="color:' + RED + ';">' + m.propaganda_score.toFixed(1) + '/10</strong>'
+      + (m.score_provisional ? ' <span style="font-size:0.7rem;color:' + MUTED + ';">(provisional)</span>' : '') + '</div>'
+      + '<div style="text-align:center;margin-bottom:1.6rem;font-size:1.1rem;"><strong style="color:' + RED + ';">' + esc(m.followers_display) + '</strong> <span style="color:' + MUTED + ';font-size:0.85rem;letter-spacing:0.1em;">FOLLOWERS</span></div>'
+      + para(m.bio)
+      + (offer ? '<h2 style="color:' + RED + ';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;">What they offer</h2><ul style="padding-left:1.2rem;margin:0;">' + offer + '</ul>' : '')
+      + (links ? '<h2 style="color:' + RED + ';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;">Find them here</h2><ul style="list-style:none;padding:0;margin:0;">' + links + '</ul>' : '')
+      + (strengths ? '<h2 style="color:' + RED + ';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;">Key strengths</h2><ul style="padding-left:1.2rem;margin:0;">' + strengths + '</ul>' : '')
+      + '<div style="text-align:center;margin-top:2.5rem;"><a href="/creator-onboard" style="color:' + RED + ';font-weight:900;letter-spacing:0.12em;text-decoration:none;border-bottom:2px solid ' + RED + ';">WANT IN? JOIN THE SICK LEFT RADICALS →</a></div>'
+      + (related ? '<h2 style="color:' + MUTED + ';font-size:1rem;font-weight:700;letter-spacing:0.1em;margin:2.5rem 0 0.8rem;">RELATED CREATORS</h2><div style="display:flex;flex-direction:column;gap:0.5rem;">' + related + '</div>' : '')
+      + '</div></div>';
+  }
+
+  function takeoverMount() {
+    var page = document.querySelector('main#page') || document.getElementById('page');
+    var root = document.createElement('div');
+    root.id = 'pf-catalog-root';
+    if (page && page.parentNode) {
+      page.parentNode.insertBefore(root, page);
+      page.style.display = 'none';
+    } else {
+      document.body.insertBefore(root, document.body.firstChild);
+    }
+    return root;
+  }
+
+  function boot() {
+    var el = document.getElementById('pf-catalog');
+    var slug = el && el.getAttribute('data-slug');
+    if (!slug) {
+      var m = location.pathname.replace(/^\/|\/$/g, '');
+      if (m && m.indexOf('/') === -1) slug = decodeURIComponent(m);
+    }
+    if (!slug) return; /* not a catalog page */
+    PF.slrReady.then(function (members) {
+      if (!members || !members.length) return; /* DB failed: leave page alone */
+      var member = null;
+      for (var i = 0; i < members.length; i++) {
+        if (members[i].slug === slug) { member = members[i]; break; }
+      }
+      if (!member) return; /* unknown slug: not our page, leave it alone */
+      var root = el || takeoverMount();
+      render(root, member, members);
+      PF.log('slr-catalog', 'rendered ' + slug);
+      /* Efficiency Index: site-pull beacon (one ping per slug per session) +
+         paint the live computed score into the [data-eff-score] slot. */
+      try {
+        var pvDone = window.__pfPvDone || (window.__pfPvDone = {});
+        if (!pvDone[slug]) {
+          pvDone[slug] = 1;
+          var api = (window.PF && PF.effApi) || 'https://script.google.com/macros/s/AKfycbzaqg3vIj1UnbHGJ82uti7yTdRpeR6PYMhoTne6LIL4kf1XjakrImMTHFwounaPrttl/exec';
+          var im = new Image();
+          im.src = api + '?action=pageview&slug=' + encodeURIComponent(slug);
+        }
+        if (window.PF && PF.efficiency) PF.efficiency.paintScores(root);
+        else document.addEventListener('pf-efficiency', function h() {
+          document.removeEventListener('pf-efficiency', h);
+          if (window.PF && PF.efficiency) PF.efficiency.paintScores(root);
+        });
+      } catch (e2) {}
+    });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+;
+
+/* ===== core/06-pinups.js ===== */
+/* core/06-pinups.js  |  PF v1.4.1 | THE PIN-UP WALL — gamified pinup rewards for every achievement.
+   Layer 2: listens to every counted pf-* event, plus medal / rank-tier / full-deployment
+   state. Each achievement unlocks a propaganda-poster pinup: a reveal overlay celebrates
+   the moment, and the pin is added to the PIN-UP WALL gallery inside Enlistment Ranks.
+   Pure celebration layer — awards NOTHING to the economy and dispatches no counted
+   events itself (pinup shares route through the PF.creditShare once-per-day gate).
+   KILL: ?pf_off=pinups  or  localStorage pf_disabled_v1='["pinups"]' */
+(function(){
+'use strict';
+var PF = window.PF;
+if (PF && PF.skip('pinups')) return;
+if (window.pfPinupsLoaded) return; window.pfPinupsLoaded = true;
+
+/* ---------------- registry ---------------- */
+var TASKS = [
+  ['pf-order-checkin',        'ORDERS OBEYED',        'Daily Orders reported. The cadre moves.',      '\uD83D\uDCCB'],
+  ['pf-drop-claimed',         'SUPPLY SECURED',       'Daily Drop claimed. Ammo up.',                 '\uD83D\uDCE6'],
+  ['pf-caption-submit',       'WORD WARRIOR',         'Caption Combat entry filed.',                  '\u270D\uFE0F'],
+  ['pf-poster-made',          'PRESSED & POSTED',     'Poster Forge creation off the press.',          '🖼️'],
+  ['pf-quiz-done',            'PROFILE COMPLETE',     'Find Your SLR Match finished.',                '\uD83C\uDFAF'],
+  ['pf-guess-done',           'CADRE EYE',            'Guess the Creator solved.',                    '\uD83D\uDC41\uFE0F'],
+  ['pf-raid-report',          'RAID REPORTED',        'Boost Raid complete. Target softened.',        '\u26A1'],
+  ['pf-vote-cast',            'BALLOT CAST',          'Fan Vote counted. Power exercised.',            '\uD83D\uDDF3\uFE0F'],
+  ['pf-bracket-ballot',       'BRACKET SET',          'Ballot locked in. No take-backs.',              '\uD83C\uDFC6'],
+  ['pf-bracket-liquidated',   'LIQUIDATION DAY',      'Bracket liquidated. Billionaires weep.',       '\uD83D\uDCB8'],
+  ['pf-wb-buy',               'WAR BOND SECURED',     'War Bonds funded. The war chest grows.',       '\uD83C\uDFE6'],
+  ['pf-enlisted',             'ENLISTED',             'Joined the ranks. Welcome, operative.',        '\uD83C\uDF96\uFE0F'],
+  ['pf-billionaire-answered', 'BILLIONAIRE DUNKED',   'Supervillain exposed.',                        '\uD83E\uDDB9'],
+  ['pf-interrogation-answered','INTERROGATION SURVIVED','Daily Interrogation complete. Lips sealed.','\uD83D\uDD0D'],
+  ['pf-share-image',          'SIGNAL BOOSTED',       'Image shared to the network.',                 '\uD83D\uDCE3']
+];
+/* medal id -> [pinup title suffix, glyph] (mirrors games/service-medals.js MEDALS) */
+var MEDALS = [
+  ['vote',         'Ballot',            '\u2605'],
+  ['ballot',       'Bracket Ballot',    '\u2622'],
+  ['bracket',      'Liquidator',        '\u2620'],
+  ['bonds',        'War Bonds',         '\u25C6'],
+  ['caption',      'Word Warrior',      '\u270E'],
+  ['poster',       'Press Pass',        '\u25C8'],
+  ['quiz',         'Intel Operative',   '\u25C9'],
+  ['billionaire',  'Billionaire Spotter','\uFF04'],
+  ['interrogation','Interrogator',      '\u2754'],
+  ['orders',       'Field Duty',        '\u25B2'],
+  ['drop',         'Supply Runner',     '\u25CF'],
+  ['enlisted',     'Enlisted',          '\u2694'],
+  ['guess',        'Profiler',          '\u25CE'],
+  ['raid',         'Raider',            '\u26A1']
+];
+var MEDAL_EV = {vote:'pf-vote-cast',ballot:'pf-bracket-ballot',bracket:'pf-bracket-liquidated',bonds:'pf-wb-buy',caption:'pf-caption-submit',poster:'pf-poster-made',quiz:'pf-quiz-done',billionaire:'pf-billionaire-answered',interrogation:'pf-interrogation-answered',orders:'pf-order-checkin',drop:'pf-drop-claimed',enlisted:'pf-enlisted',guess:'pf-guess-done',raid:'pf-raid-report'};
+var TIERS = [['RECRUIT',0,'\u2691'],['AGITATOR',25,'\u2692'],['CADRE',75,'\u2699'],['COMMISSAR',150,'\u272A'],['ARCHITECT',300,'\u265B']];
+
+var PINUPS = [];
+TASKS.forEach(function(t,i){ PINUPS.push({id:'task:'+t[0], kind:'task', ev:t[0], title:t[1], sub:t[2], glyph:t[3], n:i+1}); });
+MEDALS.forEach(function(m,i){ PINUPS.push({id:'medal:'+m[0], kind:'medal', ev:MEDAL_EV[m[0]], title:'MEDAL: '+m[1].toUpperCase(), sub:'Service Medal earned. Wear it.', glyph:m[2], n:16+i}); });
+TIERS.forEach(function(t,i){ PINUPS.push({id:'tier:'+t[0], kind:'tier', title:'PROMOTED: '+t[0], sub:t[1]+' XP. The ladder climbs.', glyph:t[2], n:30+i}); });
+PINUPS.push({id:'full:deployment', kind:'full', title:'FULL DEPLOYMENT', sub:'All 14 medals in one week. Legend.', glyph:'\u2605', n:35});
+var BY_ID = {}; PINUPS.forEach(function(p){ BY_ID[p.id]=p; });
+
+/* ---------------- storage ---------------- */
+var LS='pf_pinups_v1';
+function load(){ try{ var s=JSON.parse(localStorage.getItem(LS)||'null'); if(s&&s.got) return s; }catch(e){} return {got:{}}; }
+function save(s){ try{ localStorage.setItem(LS,JSON.stringify(s)); }catch(e){} }
+function ranksXP(){ try{ return JSON.parse(localStorage.getItem('pf_ranks_v1')||'{"xp":0}').xp||0; }catch(e){ return 0; } }
+function fullDeployed(){ try{ var s=JSON.parse(localStorage.getItem('pf_medals_v2')||'null'); return !!(s&&s.fd); }catch(e){ return false; } }
+
+/* ---------------- procedural pinup art ---------------- */
+function hash(s){ var h=0; for(var i=0;i<s.length;i++){ h=(h*31+s.charCodeAt(i))|0; } return Math.abs(h); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function wrapTitle(t){
+  if(t.length<=15) return [t];
+  var words=t.split(' '), lines=[''], li=0;
+  words.forEach(function(w){ if((lines[li]+' '+w).trim().length>15){ li++; lines[li]=''; } lines[li]=(lines[li]+' '+w).trim(); });
+  return lines.slice(0,2);
+}
+function art(p, locked){
+  var W=300,H=400, rays='', n=12+(hash(p.id)%2)*2, cx=W/2, cy=200;
+  for(var i=0;i<n;i++){
+    var a1=(360/n)*i, a2=(360/n)*(i+0.5), r=260;
+    var x1=cx+r*Math.cos(a1*Math.PI/180), y1=cy+r*Math.sin(a1*Math.PI/180);
+    var x2=cx+r*Math.cos(a2*Math.PI/180), y2=cy+r*Math.sin(a2*Math.PI/180);
+    rays+='<polygon points="'+cx+','+cy+' '+x1.toFixed(1)+','+y1.toFixed(1)+' '+x2.toFixed(1)+','+y2.toFixed(1)+'" fill="'+(i%2?'#8f0d16':'#c1121f')+'"/>';
+  }
+  var title=wrapTitle(p.title), ty=54-(title.length-1)*13, th='';
+  title.forEach(function(line,i){ th+='<text x="'+cx+'" y="'+(ty+i*26)+'" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-size="21" font-weight="900" fill="#f5ead6" letter-spacing="1">'+esc(line)+'</text>'; });
+  var glyph = locked ? '?' : p.glyph;
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" width="300" height="400">'
+    +'<rect x="0" y="0" width="'+W+'" height="'+H+'" fill="'+(locked?'#1a1a1a':'#f5ead6')+'"/>'
+    +(locked?'':'<g>'+rays+'</g>')
+    +'<rect x="8" y="8" width="'+(W-16)+'" height="'+(H-16)+'" fill="none" stroke="#0d0d0d" stroke-width="6"/>'
+    +'<rect x="18" y="18" width="'+(W-36)+'" height="'+(H-36)+'" fill="none" stroke="'+(locked?'#444':'#c1121f')+'" stroke-width="2"/>'
+    +'<rect x="18" y="18" width="'+(W-36)+'" height="86" fill="#0d0d0d"/>'+th
+    +'<circle cx="'+cx+'" cy="'+cy+'" r="72" fill="'+(locked?'#2a2a2a':'#f5ead6')+'" stroke="#0d0d0d" stroke-width="6"/>'
+    +'<circle cx="'+cx+'" cy="'+cy+'" r="58" fill="none" stroke="#c1121f" stroke-width="3"/>'
+    +'<text x="'+cx+'" y="'+(cy+32)+'" text-anchor="middle" font-size="76" fill="'+(locked?'#555':'#c1121f')+'">'+esc(glyph)+'</text>'
+    +'<text x="'+cx+'" y="312" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-style="italic" fill="'+(locked?'#666':'#3a3a3a')+'">'+esc(locked?'Complete the task to pin it up.':p.sub)+'</text>'
+    +'<rect x="18" y="336" width="'+(W-36)+'" height="30" fill="#c1121f"/>'
+    +'<text x="'+cx+'" y="357" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-size="13" font-weight="900" fill="#f5ead6" letter-spacing="2">\u2605 PROPAGANDA FACTORY \u2605</text>'
+    +'<text x="26" y="392" font-family="Arial,sans-serif" font-size="10" fill="'+(locked?'#555':'#8a8171')+'">N\u2116 '+p.n+'/35</text>'
+    +'</svg>';
+}
+
+/* ---------------- unlock ---------------- */
+var queue=[], showing=false;
+function unlock(id, silent){
+  var p=BY_ID[id]; if(!p) return false;
+  var s=load(), first=!s.got[id];
+  s.got[id]=(s.got[id]||0)+1; save(s);
+  renderWall();
+  if(!silent) reveal(p);
+  return first;
+}
+function onTask(ev, detail){
+  var silent = !!(detail && detail.game==='pinups'); /* our own share crediting back */
+  unlock('task:'+ev, silent);
+  for(var i=0;i<MEDALS.length;i++){
+    if(MEDAL_EV[MEDALS[i][0]]===ev){ unlock('medal:'+MEDALS[i][0], silent); break; }
+  }
+  /* unlock every tier at/below current XP (handles XP jumps) */
+  var xp=ranksXP();
+  for(var k=0;k<TIERS.length;k++){ if(xp>=TIERS[k][1]) unlock('tier:'+TIERS[k][0], silent); }
+  if(fullDeployed()) unlock('full:deployment', silent);
+}
+
+/* ---------------- reveal overlay ---------------- */
+function reveal(p){
+  queue.push(p); pump();
+}
+function pump(){
+  if(showing || !queue.length) return;
+  showing=true;
+  var p=queue.shift();
+  var ov=document.getElementById('pf-pinup-ov');
+  if(ov) ov.remove();
+  ov=document.createElement('div'); ov.id='pf-pinup-ov';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(10,5,5,.92);z-index:99998;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;';
+  ov.innerHTML='<div style="font-family:\'Arial Black\',Arial,sans-serif;color:#f5ead6;letter-spacing:3px;font-size:15px;margin-bottom:10px;">\u2605 PINUP UNLOCKED \u2605</div>'
+    +'<div id="pf-pinup-art" style="box-shadow:0 0 40px rgba(193,18,31,.55);max-width:300px;width:100%;">'+art(p,false)+'</div>'
+    +'<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;justify-content:center;">'
+    +'<button id="pf-pinup-share" style="background:#c1121f;color:#f5ead6;border:3px solid #f5ead6;font-family:\'Arial Black\',Arial,sans-serif;font-size:14px;font-weight:900;padding:10px 18px;cursor:pointer;letter-spacing:1px;">SHARE PINUP</button>'
+    +'<button id="pf-pinup-close" style="background:#0d0d0d;color:#f5ead6;border:3px solid #f5ead6;font-family:\'Arial Black\',Arial,sans-serif;font-size:14px;font-weight:900;padding:10px 18px;cursor:pointer;letter-spacing:1px;">KEEP FIGHTING</button>'
+    +'</div>';
+  document.body.appendChild(ov);
+  var done=function(){ try{ ov.remove(); }catch(e){} showing=false; setTimeout(pump,350); };
+  document.getElementById('pf-pinup-close').onclick=done;
+  document.getElementById('pf-pinup-share').onclick=function(){ sharePinup(p); };
+  ov.onclick=function(e){ if(e.target===ov) done(); };
+  setTimeout(function(){ if(document.getElementById('pf-pinup-ov')) done(); }, 9000);
+}
+function sharePinup(p){
+  try{
+    var svgStr=art(p,false);
+    var blob=new Blob([svgStr],{type:'image/svg+xml;charset=utf-8'});
+    var url=URL.createObjectURL(blob);
+    var img=new Image();
+    img.onload=function(){
+      try{
+        var cv=document.createElement('canvas'); cv.width=600; cv.height=800;
+        var cx=cv.getContext('2d'); cx.fillStyle='#f5ead6'; cx.fillRect(0,0,600,800);
+        cx.drawImage(img,0,0,600,800); URL.revokeObjectURL(url);
+        /* CTA strip: every pinup share recruits. */
+        cx.fillStyle='rgba(13,13,13,0.94)'; cx.fillRect(0,736,600,64);
+        cx.fillStyle='#c1121f'; cx.fillRect(0,736,600,4);
+        cx.fillStyle='#f5ead6'; cx.font='900 25px "Arial Black",Arial,sans-serif';
+        cx.textAlign='center'; cx.fillText('JOIN THE FIGHT \u2014 MTCSTW.COM',300,776);
+        try{ if(window.PFShare&&window.PFShare.stampCallsign) window.PFShare.stampCallsign(cv); }catch(e){}
+        cv.toBlob(function(b){
+          if(!b){ credit(); return; }
+          var file=new File([b],'pfn-pinup-'+p.id.replace(/[^a-z0-9]+/gi,'-')+'.png',{type:'image/png'});
+          var credited=function(){ credit(); };
+          if(navigator.canShare && navigator.canShare({files:[file]})){
+            navigator.share({files:[file],title:p.title+' — Propaganda Factory'}).then(credited,credited);
+          }else{
+            var a=document.createElement('a'); a.href=URL.createObjectURL(b);
+            a.download=file.name; document.body.appendChild(a); a.click();
+            setTimeout(function(){ try{URL.revokeObjectURL(a.href);}catch(e){} a.remove(); },4000);
+            credited();
+          }
+        },'image/png');
+      }catch(e){ credit(); }
+    };
+    img.onerror=function(){ credit(); };
+    img.src=url;
+  }catch(e){ credit(); }
+  function credit(){
+    /* once-per-day share gate: a pinup share plus any game share can't double-count the day */
+    try{ if(PF && typeof PF.creditShare==='function') PF.creditShare('pinups','share'); }catch(e){}
+  }
+}
+
+/* ---------------- the wall ---------------- */
+function renderWall(){
+  var host=document.getElementById('pf-ranks'); if(!host) return false;
+  var el=document.getElementById('pf-pinup-wall');
+  if(!el){
+    el=document.createElement('div'); el.id='pf-pinup-wall';
+    var anchor=document.getElementById('pf-medals');
+    if(anchor&&anchor.parentNode) anchor.parentNode.insertBefore(el,anchor.nextSibling);
+    else host.appendChild(el);
+  }
+  var s=load(), got=0, cells='';
+  PINUPS.forEach(function(p){
+    var has=!!s.got[p.id]; if(has) got++;
+    cells+='<div class="pp-cell'+(has?'':' locked')+'" title="'+esc(p.title)+'">'
+      +'<div class="pp-art">'+art(p,!has)+'</div>'
+      +'<div class="pp-t">'+(has?esc(p.title):'???')+'</div></div>';
+  });
+  el.innerHTML='<div class="pp-head">\uD83D\uDCCC PIN-UP WALL <span>\u2014 '+got+'/35 pinned</span></div>'
+    +'<div class="pp-sub">Every task complete, every medal, every promotion earns its pinup.</div>'
+    +'<div class="pp-grid">'+cells+'</div>';
+  ensureCss();
+  return true;
+}
+function ensureCss(){
+  if(document.getElementById('pf-pinup-css')) return;
+  var st=document.createElement('style'); st.id='pf-pinup-css';
+  st.textContent='#pf-pinup-wall{margin-top:18px;border-top:2px dashed #c1121f;padding-top:14px;}'
+    +'#pf-pinup-wall .pp-head{font-family:\'Arial Black\',Arial,sans-serif;color:#f5ead6;font-size:17px;letter-spacing:2px;margin-bottom:4px;}'
+    +'#pf-pinup-wall .pp-head span{color:#c9bfa8;font-size:12px;}'
+    +'#pf-pinup-wall .pp-sub{font-family:Arial,sans-serif;color:#c9bfa8;font-size:11px;letter-spacing:1px;margin-bottom:10px;}'
+    +'#pf-pinup-wall .pp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px;}'
+    +'#pf-pinup-wall .pp-cell{background:#141414;border:2px solid #c1121f;padding:4px;text-align:center;}'
+    +'#pf-pinup-wall .pp-cell.locked{border-color:#3a3a3a;opacity:.75;}'
+    +'#pf-pinup-wall .pp-art svg{width:100%;height:auto;display:block;}'
+    +'#pf-pinup-wall .pp-t{font-family:Arial,sans-serif;font-size:8px;letter-spacing:1px;color:#f5ead6;margin-top:3px;text-transform:uppercase;min-height:20px;}'
+    +'#pf-pinup-wall .pp-cell.locked .pp-t{color:#555;}';
+  (document.head||document.documentElement).appendChild(st);
+}
+
+/* ---------------- wire up ---------------- */
+var EVENTS=['pf-order-checkin','pf-drop-claimed','pf-caption-submit','pf-poster-made','pf-quiz-done','pf-guess-done','pf-raid-report','pf-vote-cast','pf-bracket-ballot','pf-bracket-liquidated','pf-wb-buy','pf-enlisted','pf-billionaire-answered','pf-interrogation-answered','pf-share-image'];
+EVENTS.forEach(function(ev){
+  document.addEventListener(ev,function(e){ try{ onTask(ev,(e&&e.detail)||{}); }catch(err){} });
+});
+function init(){ renderWall(); }
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
+else init();
+
+window.pfPinups={
+  count:function(){ var s=load(),n=0; for(var k in s.got) if(s.got.hasOwnProperty(k)) n++; return n; },
+  total:function(){ return PINUPS.length; },
+  wall:renderWall
+};
+})();
+
+;
+
+/* ===== core/share-image.js ===== */
+/* core/share-image.js  |  PF v1.4.1 | THE SHARE/SAVE COMPANION. Guarantees EVERY v2 game section carries
+   KILL: ?pf_off=share-image  or  localStorage pf_disabled_v1='["share-image"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (PF && PF.skip('share-image')) { return; }
+  if (window.pfShareImageDone) return;
+  window.pfShareImageDone = true;
+
+  /* ------------------------------------------------------------------ */
+  /* Per-game poster content. (No share/save flags: the pair is          */
+  /* unconditional in v1.4.1 — every game gets both buttons.)             */
+  /* ------------------------------------------------------------------ */
+  var REG = {
+    'fan-vote': {
+      title: '\u2605 FAN VOTE \u2605', tag: 'Propagandist of the Week',
+      lines: ['Vote for the week\u2019s top propagandist.', 'Polls close Sunday night.', 'Results drop Monday.'],
+      cta: 'VOTE NOW'
+    },
+    'bracket-board': {
+      title: '\u2620 THE LIQUIDATION BRACKET \u2620', tag: '16 billionaires. Head-to-head.',
+      lines: ['Your votes decide who gets liquidated.', 'Pick your winners. Advance the class war.'],
+      cta: 'VOTE THE BRACKET'
+    },
+    'daily-orders': {
+      title: 'DAILY ORDERS', tag: 'Today\u2019s missions from the Factory',
+      lines: ['Do things. Post proof.', 'Check in daily. Stack your streak.'],
+      cta: 'GET ORDERS'
+    },
+    'do-meter': {
+      title: '\u2697 THE DO METER \u2697', tag: 'NOT FOLLOWERS. NOT LIKES. THINGS DONE.',
+      lines: ['The network counts every thing done.', 'Goal: 5 million things.'],
+      cta: 'DO A THING'
+    },
+    'daily-drop': {
+      title: '\u2605 THE DAILY DROP \u2605', tag: 'Fresh slop, daily',
+      lines: ['A new drop every day of the offensive.', 'Claim it. Share it. Spread it.'],
+      cta: 'CLAIM THE DROP'
+    },
+    'billionaire-supervillain': {
+      title: 'BILLIONAIRE OR SUPERVILLAIN?', tag: 'One quote. Two monsters. You decide.',
+      lines: ['A new quote every day.', 'Billionaire or supervillain \u2014 can you tell them apart?'],
+      cta: 'PLAY TODAY'
+    },
+    'daily-interrogation': {
+      title: 'THE DAILY INTERROGATION', tag: 'One question. Every day. No mercy.',
+      lines: ['Test your propaganda literacy.', 'Streak or you\u2019re a liberal.'],
+      cta: 'ANSWER NOW'
+    },
+    'media-nuke': {
+      title: 'THE MEDIA NUKE', tag: 'NETWORK COMMAND',
+      lines: ['Drop synchronized content bombs.', 'One message. Every platform. At once.'],
+      cta: 'ARM THE NUKE'
+    },
+    'caption-combat': {
+      title: 'CAPTION COMBAT', tag: 'One template. One week. Infinite psyops.',
+      lines: ['Caption the template. Funniest wins.', 'New round every week.'],
+      cta: 'ENTER COMBAT'
+    },
+    'poster-forge': {
+      title: 'THE POSTER FORGE', tag: 'Make propaganda. Download it.',
+      lines: ['Forge your own poster in seconds.', 'Plaster the timeline.'],
+      cta: 'FORGE ONE'
+    },
+    'enlistment-ranks': {
+      title: 'ENLISTMENT RANKS', tag: 'Every action for the machine earns XP',
+      lines: ['Climb from Sympathizer to Vanguard.', 'Earn weekly Service Medals.'],
+      cta: 'ENLIST NOW'
+    },
+    'war-bonds': {
+      title: '\u2605 WAR BONDS \u2605', tag: 'Buy a bond. Fund the machine.',
+      lines: ['War Bonds fund 60% of all PF operations.', 'Starting at $1. Every dollar is ammunition.'],
+      cta: 'BUY WAR BONDS'
+    },
+    'slr-match-quiz': {
+      title: '\u2691 FIND YOUR SLR MATCH \u2691', tag: 'What kind of propagandist are you?',
+      lines: ['Take the 5-question quiz.', 'Get your archetype + 3 SLR matches.'],
+      cta: 'TAKE THE QUIZ'
+    },
+    'creator-guess': {
+      title: '\u25CE GUESS THE CREATOR \u25CE', tag: '5 questions. Zero mercy.',
+      lines: ['How well do you know the Sick Left Radicals?', 'New set every day. Streaks rewarded.'],
+      cta: 'PLAY NOW'
+    },
+    'boost-raid': {
+      title: '\u2694 BOOST RAID \u2694', tag: 'One target. One day. The whole network.',
+      lines: ['Like. Comment. Share. Report back.', 'Today\u2019s raid target is live now.'],
+      cta: 'JOIN THE RAID'
+    }
+  };
+  var ORDER = ['fan-vote', 'slr-match-quiz', 'creator-guess', 'bracket-board', 'daily-orders', 'boost-raid', 'do-meter', 'daily-drop',
+               'billionaire-supervillain', 'daily-interrogation',
+               'media-nuke', 'caption-combat', 'poster-forge', 'enlistment-ranks', 'war-bonds'];
+  var SHARE_LABEL = 'SHARE IMAGE';
+  var SAVE_LABEL = 'SAVE IMAGE TO PHONE';
+  /* Custom per-game poster painters: silos register an async painter
+     fn(done) via PFShare.setPoster(gameId, fn). The share/save buttons
+     use it instead of the generic drawPoster when present. */
+  var CUSTOM = {};
+
+  /* ------------------------------------------------------------------ */
+  /* Platform detection                                                  */
+  /* ------------------------------------------------------------------ */
+  function isIOS() {
+    try {
+      return /iPad|iPhone|iPod/.test(navigator.userAgent || '') ||
+             (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    } catch (e) { return false; }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Branded poster renderer (1080x1350, black/red/cream)                */
+  /* ------------------------------------------------------------------ */
+  function wrap(x, text, maxW) {
+    var words = String(text).split(/\s+/), lines = [], line = '';
+    words.forEach(function (w) {
+      var t = line ? line + ' ' + w : w;
+      if (x.measureText(t).width > maxW && line) { lines.push(line); line = w; }
+      else { line = t; }
+    });
+    if (line) lines.push(line);
+    return lines;
+  }
+  function dateStr() {
+    try {
+      return new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase();
+    } catch (e) { return ''; }
+  }
+  /* Spread stamp: every auto-shared poster carries the callsign and the
+     creator the user is spreading for (today's boost pick, Chicago day). */
+  function chiDay() {
+    try {
+      var n = (PF && PF.chiNow) ? PF.chiNow() : new Date();
+      var y = n.getFullYear(), m = n.getMonth() + 1, d = n.getDate();
+      return y + '-' + (m < 10 ? '0' : '') + m + '-' + (d < 10 ? '0' : '') + d;
+    } catch (e) { return ''; }
+  }
+  /* The user's callsign: identity store first, PFCallsign() fallback. */
+  function callsignOf() {
+    var cs = '';
+    try {
+      var id = JSON.parse(localStorage.getItem('pf_identity_v1') || '{}');
+      if (id && id.callsign) cs = String(id.callsign).toUpperCase();
+    } catch (e) {}
+    if (!cs) { try { cs = String((window.PFCallsign && window.PFCallsign()) || '').toUpperCase(); } catch (e) {} }
+    return cs;
+  }
+  function spreadStamp() {
+    var cs = callsignOf(), who = '';
+    try {
+      var b = JSON.parse(localStorage.getItem('pf_boost_v1') || 'null');
+      if (b && b.creator && b.date === chiDay()) {
+        var r = (PF && PF.rosterBySlug) ? PF.rosterBySlug(b.creator) : null;
+        who = ((r && r.name) ? String(r.name) : String(b.creator).replace(/-/g, ' ')).toUpperCase();
+      }
+    } catch (e) {}
+    if (cs && who) return 'FIGHTING AS ' + cs + ' \u00b7 SPREADING FOR ' + who;
+    if (cs) return 'FIGHTING AS ' + cs;
+    if (who) return 'SPREADING FOR ' + who;
+    return '';
+  }
+  /* stampCallsign(cv): paint the "FIGHTING AS <CALLSIGN>" attribution strip
+     on ANY canvas. Idempotent via cv._pfStamped — painters that already
+     render the callsign set the flag themselves and are left alone. Every
+     image that leaves the site passes through here or a caller of it. */
+  function stampCallsign(cv) {
+    try {
+      if (!cv || cv._pfStamped) return cv;
+      cv._pfStamped = true;
+      var cs = callsignOf();
+      if (!cs) return cv;
+      var x = cv.getContext('2d');
+      if (!x) return cv;
+      var W = cv.width || 0, H = cv.height || 0;
+      if (W < 200 || H < 200) return cv;
+      var fs = Math.max(18, Math.round(W * 0.024));
+      var barH = Math.round(fs * 1.9);
+      x.save();
+      try { x.textAlign = 'center'; x.textBaseline = 'middle'; } catch (e) {}
+      x.fillStyle = 'rgba(10,10,10,0.9)';
+      x.fillRect(0, H - barH, W, barH);
+      x.fillStyle = '#c1121f';
+      x.fillRect(0, H - barH, W, Math.max(3, Math.round(fs * 0.14)));
+      x.fillStyle = '#f5ead6';
+      x.font = '700 ' + fs + 'px Arial,sans-serif';
+      x.fillText('FIGHTING AS ' + cs, W / 2, H - barH / 2);
+      x.restore();
+    } catch (e) {}
+    return cv;
+  }
+  function drawPoster(gameId) {
+    var g = REG[gameId] || REG['daily-orders'];
+    var W = 1080, H = 1350;
+    var cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    var x = cv.getContext('2d');
+    if (!x) return null;
+    x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, W, H);
+    x.strokeStyle = '#c1121f'; x.lineWidth = 18; x.strokeRect(16, 16, W - 32, H - 32);
+    x.strokeStyle = '#f5ead6'; x.lineWidth = 3; x.strokeRect(52, 52, W - 104, H - 104);
+    x.textAlign = 'center';
+    var y = 160;
+    x.fillStyle = '#f5ead6'; x.font = '700 34px Arial,sans-serif';
+    x.fillText('\u2605 THE PROPAGANDA FACTORY \u2605', W / 2, y); y += 120;
+    x.fillStyle = '#c1121f'; x.font = '900 86px "Arial Black",Arial,sans-serif';
+    wrap(x, g.title, W - 170).slice(0, 3).forEach(function (l) { x.fillText(l, W / 2, y); y += 100; });
+    y += 24;
+    x.fillStyle = '#f5ead6'; x.font = '700 42px Arial,sans-serif';
+    wrap(x, g.tag, W - 170).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 56; });
+    y += 34;
+    x.fillStyle = '#c9bfa8'; x.font = '400 36px Arial,sans-serif';
+    (g.lines || []).slice(0, 4).forEach(function (t) {
+      wrap(x, t, W - 210).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 50; });
+      y += 12;
+    });
+    y += 46;
+    x.font = '900 42px "Arial Black",Arial,sans-serif';
+    var tw = x.measureText(g.cta).width + 100;
+    x.fillStyle = '#c1121f'; x.fillRect(W / 2 - tw / 2, y - 56, tw, 92);
+    x.fillStyle = '#ffffff'; x.fillText(g.cta, W / 2, y + 8);
+    var stamp = spreadStamp();
+    if (stamp) {
+      cv._pfStamped = true; /* generic poster carries its own stamp */
+      y += 92;
+      x.fillStyle = '#c1121f'; x.font = '700 30px Arial,sans-serif';
+      wrap(x, stamp, W - 170).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 42; });
+    }
+    x.fillStyle = '#c1121f'; x.font = '900 46px "Arial Black",Arial,sans-serif';
+    x.fillText('MTCSTW.COM', W / 2, H - 128);
+    x.fillStyle = '#c9bfa8'; x.font = '400 30px Arial,sans-serif';
+    x.fillText(dateStr(), W / 2, H - 76);
+    return cv;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Blob + delivery                                                     */
+  /* ------------------------------------------------------------------ */
+  function canvasBlob(cv, cb) {
+    try {
+      if (cv.toBlob) { cv.toBlob(function (b) { cb(b); }, 'image/png'); return; }
+      var u = cv.toDataURL('image/png');
+      fetch(u).then(function (r) { return r.blob(); }).then(cb).catch(function () { cb(null); });
+    } catch (e) { cb(null); }
+  }
+  function downloadBlob(blob, filename) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { try { URL.revokeObjectURL(url); } catch (e) {} a.remove(); }, 4000);
+  }
+  function shareText(title){
+    var link='https://www.mtcstw.com/';
+    try{ if(window.PF&&typeof PF.shareUrl==='function') link=PF.shareUrl(link); }catch(e){}
+    return title + ' via The Propaganda Factory — ' + link;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Share credit: one share-task per day per device. Whichever button    */
+  /* (SHARE IMAGE or SAVE IMAGE TO PHONE) completes first credits the    */
+  /* day. Fires pf-share-image so the Do Meter, ranks XP, medals tally   */
+  /* and the site backend all count it exactly once. Never on cancel.    */
+  /* ------------------------------------------------------------------ */
+  function dayStr() {
+    try { return new Date().toISOString().slice(0, 10); } catch (e) { return ''; }
+  }
+  function creditShare(gameId, kind) {
+    try {
+      var k = 'pf_shareimg_' + dayStr();
+      var done = null;
+      try { done = localStorage.getItem(k); } catch (e) {}
+      if (done) return;
+      try { localStorage.setItem(k, '1'); } catch (e) {}
+    } catch (e) {}
+    try {
+      document.dispatchEvent(new CustomEvent('pf-share-image', {
+        detail: { day: dayStr(), game: gameId || '', kind: kind || 'share' }
+      }));
+    } catch (e) {}
+  }
+  /* Expose the once-per-day share gate so game-local share buttons (e.g.
+     Daily Orders' own card button) credit through the same gate instead of
+     firing pf-share-image directly and double-counting the day. */
+  try { if (PF) PF.creditShare = creditShare; } catch (e) {}
+  try { window.pfCreditShare = creditShare; } catch (e) {}
+
+  function shareImage(cv, filename, title, gameId) {
+    try { cv = stampCallsign(cv) || cv; } catch (e) {}
+    canvasBlob(cv, function (blob) {
+      if (!blob) { toast('Poster failed \u2014 try again.'); return; }
+      var file = null;
+      try { file = new File([blob], filename, { type: 'image/png' }); } catch (e) {}
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          navigator.share({ files: [file], title: title, text: shareText(title) }).then(
+            function () { creditShare(gameId, 'share'); toast('Shared. Go spread the word.'); },
+            function (err) {
+              if (err && err.name === 'AbortError') { toast('Share cancelled.'); }
+              else { creditShare(gameId, 'share'); downloadBlob(blob, filename); toast('Image downloaded.'); }
+            });
+        } catch (e) { creditShare(gameId, 'share'); downloadBlob(blob, filename); toast('Image downloaded.'); }
+      } else {
+        creditShare(gameId, 'share');
+        downloadBlob(blob, filename);
+        toast(isIOS() ? 'Image downloaded \u2014 open it, tap Share, then Save Image for Photos.'
+                      : 'Image downloaded.');
+      }
+    });
+  }
+
+  function saveImage(cv, filename, gameId) {
+    try { cv = stampCallsign(cv) || cv; } catch (e) {}
+    canvasBlob(cv, function (blob) {
+      if (!blob) { toast('Save failed \u2014 try again.'); return; }
+      if (isIOS()) {
+        /* iOS Safari ignores the download attribute — the share sheet is the
+           only reliable route into Photos ("Save Image" is one tap). */
+        var file = null;
+        try { file = new File([blob], filename, { type: 'image/png' }); } catch (e) {}
+        if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            navigator.share({ files: [file], title: 'Save to Photos' }).then(
+              function () { creditShare(gameId, 'save'); toast('Saved. Check your Photos.'); },
+              function (err) {
+                if (!(err && err.name === 'AbortError')) toast('Save cancelled \u2014 try again.');
+              });
+          } catch (e) { toast('Could not open save sheet \u2014 try again.'); }
+          return;
+        }
+        /* No share API: open the image so the user can long-press to save. */
+        try {
+          var url = URL.createObjectURL(blob);
+          window.open(url, '_blank');
+          creditShare(gameId, 'save');
+          toast('Long-press the image \u2192 Save to Photos.');
+        } catch (e) { toast('Save failed \u2014 try again.'); }
+        return;
+      }
+      creditShare(gameId, 'save');
+      downloadBlob(blob, filename);
+      toast('Image saved to your phone.');
+    });
+  }
+
+  function toast(msg) {
+    try { if (PF && PF.toast) PF.toast(msg); } catch (e) {}
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Button injection — unconditional pair per game section              */
+  /* ------------------------------------------------------------------ */
+  function mkBtn(label, solid, gameId, kind) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = label;
+    b.setAttribute('data-pfshare', gameId + '-' + kind);
+    b.style.cssText = 'display:inline-block;' +
+      (solid ? 'background:#c1121f;border:2px solid #c1121f;color:#f5f0e1;'
+             : 'background:transparent;border:2px solid #f5ead6;color:#f5f0e1;') +
+      'padding:0.7rem 1.3rem;margin:0.4rem;font-size:0.8rem;font-weight:700;' +
+      'letter-spacing:0.12em;cursor:pointer;font-family:inherit;';
+    return b;
+  }
+
+  function busy(b, fn) {
+    b.disabled = true;
+    try { fn(); } catch (e) { if (PF) PF.error('share-image', e); }
+    setTimeout(function () { b.disabled = false; }, 1500);
+  }
+
+  function rowIsCorrect(sec, gameId) {
+    var row = sec.querySelector('[data-pfsharerow="' + gameId + '"]');
+    if (!row) return false;
+    var sb = row.querySelector('[data-pfshare="' + gameId + '-share"]');
+    var vb = row.querySelector('[data-pfshare="' + gameId + '-save"]');
+    return !!(sb && vb && sb.textContent === SHARE_LABEL && vb.textContent === SAVE_LABEL);
+  }
+
+  function ensureGame(gameId) {
+    var g = REG[gameId];
+    if (!g) return;
+    var sec = document.querySelector('section[data-game="' + gameId + '"]');
+    if (!sec) return; /* killed via ?pf_off=<silo>, or not mounted */
+    if (rowIsCorrect(sec, gameId)) return; /* already has the exact pair — leave it */
+    var stale = sec.querySelector('[data-pfsharerow="' + gameId + '"]');
+    if (stale) stale.remove(); /* normalize: drop older rows (e.g. v1.4.0 labels) */
+    var row = document.createElement('div');
+    row.setAttribute('data-pfsharerow', gameId);
+    row.style.cssText = 'text-align:center;margin:1.2rem 0 0.4rem;';
+    var sb = mkBtn(SHARE_LABEL, true, gameId, 'share');
+    sb.onclick = function () { busy(sb, function () {
+      var cp = CUSTOM[gameId];
+      if (cp) {
+        try { cp(function (cv) {
+          if (cv) shareImage(cv, 'pfn-' + gameId + '.png', g.title, gameId);
+          else toast('Poster failed \u2014 try again.');
+        }); } catch (e) { toast('Poster failed \u2014 try again.'); }
+        return;
+      }
+      var cv = drawPoster(gameId);
+      if (cv) shareImage(cv, 'pfn-' + gameId + '.png', g.title, gameId);
+      else toast('Poster failed \u2014 try again.');
+    }); };
+    var vb = mkBtn(SAVE_LABEL, false, gameId, 'save');
+    vb.onclick = function () { busy(vb, function () {
+      var cp2 = CUSTOM[gameId];
+      if (cp2) {
+        try { cp2(function (cv) {
+          if (cv) saveImage(cv, 'pfn-' + gameId + '.png', gameId);
+          else toast('Save failed \u2014 try again.');
+        }); } catch (e) { toast('Save failed \u2014 try again.'); }
+        return;
+      }
+      var cv = drawPoster(gameId);
+      if (cv) saveImage(cv, 'pfn-' + gameId + '.png', gameId);
+      else toast('Save failed \u2014 try again.');
+    }); };
+    row.appendChild(sb);
+    row.appendChild(vb);
+    sec.appendChild(row);
+  }
+
+  function ensureAll() {
+    ORDER.forEach(ensureGame);
+  }
+
+  /* Public API — silos may override poster content later via PFShare.REG. */
+  window.PFShare = {
+    REG: REG,
+    isIOS: isIOS,
+    poster: drawPoster,
+    shareImage: shareImage,
+    saveImage: saveImage,
+    ensureAll: ensureAll,
+    setPoster: function (id, fn) { try { if (id && typeof fn === 'function') CUSTOM[id] = fn; } catch (e) {} },
+    spreadStamp: spreadStamp,
+    stampCallsign: stampCallsign
+  };
+
+  /* Run now (sections are mounted — this file loads after home-v2.js) and
+     re-scan for late-mounting sections. Idempotent: never duplicates. */
+  try { ensureAll(); } catch (e) { if (PF) PF.error('share-image', e); }
+  setTimeout(function () { try { ensureAll(); } catch (e) {} }, 2000);
+  setTimeout(function () { try { ensureAll(); } catch (e) {} }, 6000);
+})();
+
+;

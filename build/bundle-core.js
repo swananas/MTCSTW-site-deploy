@@ -38,6 +38,7 @@ var BUNDLES = {
     'core/11-xpledger.js',
     'core/12-notify.js',
     'core/13-flow.js',
+    'core/15-seo.js',
     'core/campaign-data.js'
   ],
   'pages/bundle-pages': [

@@ -215,7 +215,7 @@ for m in members:
 
 out = {
     "meta": {
-        "version": "2026-10-01",
+        "version": "2026-10-02",
         "total_members": 62,
         "existing": 41,
         "new": 21,
@@ -227,6 +227,25 @@ out = {
     },
     "members": members,
 }
+# ---- SEO enrichment (2026-10-02): titles, descriptions, alt text, freshness ----
+_seo_metas = {}
+try:
+    _seo_metas = {m['slug']: m['meta_description'] for m in
+                  json.load(open(os.path.join(os.path.dirname(HERE), '..', '..',
+                      'goals', 'propaganda-factory-website-rebuild', 'files',
+                      'meta_descriptions.json')))}
+except Exception:
+    pass
+for _m in members:
+    _name = _m.get('name', '')
+    _slug = _m.get('slug', '')
+    _m['seo_title'] = f"{_name} | Sick Left Radicals | MTCSTW"
+    _m['seo_description'] = _seo_metas.get(_slug, '')
+    _cf = (_m.get('content_focus') or '').strip()
+    if len(_cf) > 70:
+        _cf = _cf[:70].rsplit(' ', 1)[0] + '...'
+    _m['image_alt'] = f"{_name}, {_cf} — Sick Left Radicals" if _cf else f"{_name} — Sick Left Radicals creator"
+    _m['content_updated'] = '2026-10-02'
 out_path = os.path.join(HERE, 'slr-master-db.json')
 json.dump(out, open(out_path, 'w'), indent=2, ensure_ascii=False)
 print(f"wrote {out_path}: {len(members)} members, scrape overlay: {bool(scrape)}")

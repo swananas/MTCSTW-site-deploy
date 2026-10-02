@@ -20,7 +20,8 @@
     return {
       name: m.name, slug: m.slug, score: m.propaganda_score,
       handle: h.primary || h.tiktok || '', platform: m.primary_platform || '',
-      img: m.picture || ''
+      img: m.picture || '', imgAlt: m.image_alt || (m.name + ' — Sick Left Radicals'),
+      seoTitle: m.seo_title || '', seoDesc: m.seo_description || ''
     };
   }
 

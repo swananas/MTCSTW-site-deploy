@@ -158,6 +158,7 @@ function apiGet(callsign,cb){
 }
 
 function platLabel(p){ var f=PLATFORMS.filter(function(x){return x[0]===p;})[0]; var t=f?f[1].toUpperCase():String(p||"").toUpperCase(); return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function escHtml(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
 /* Merge cross-device Daily Orders state from the backend: union today's
    missions (never duplicates, never drops local progress), take the max
@@ -365,7 +366,7 @@ function renderBoost(){
       var top=_crownCache.leaders[0];
       /* Backend returns {slug,tipped,signal} — resolve the display name locally. */
       var _tm=rosterBySlug(top.slug), _tn=(_tm&&_tm.name)?_tm.name:top.slug;
-      crown.innerHTML='\u{1F451} MOST BOOSTED THIS WEEK: <b>'+_tn+'</b> &mdash; '+top.signal+' signal';
+      crown.innerHTML='\u{1F451} MOST BOOSTED THIS WEEK: <b>'+escHtml(_tn)+'</b> &mdash; '+top.signal+' signal';
     } else {
       apiAction("boost_totals",function(j){
         if(j&&j.leaders&&j.leaders.length){ _crownCache=j; renderBoost(); }
@@ -381,7 +382,7 @@ function renderPatrons(){
     if(!list||!list.length){ box.innerHTML=""; return; }
     var sample=shuffle(list.slice()).slice(0,5);
     box.innerHTML='<div class="o-phead">\u2605 PATRONS IN THE FIELD</div><div class="o-prow">'
-      +sample.map(function(p){ return '<div class="o-patron"><b>'+String(p.callsign||"ghost").toUpperCase()+'</b><span>'+p.tipped+' XP tipped</span></div>'; }).join("")
+      +sample.map(function(p){ return '<div class="o-patron"><b>'+escHtml(String(p.callsign||"ghost")).toUpperCase()+'</b><span>'+p.tipped+' XP tipped</span></div>'; }).join("")
       +'</div>';
   };
   if(_patronCache){ show(_patronCache.patrons); return; }

@@ -39,11 +39,16 @@ function api(action,params,cb){
   q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
   setTimeout(function(){ finish(null); },12000);
 }
-function post(action,params){
+function postOvertime(params,cb){
+  /* Real CORS fetch so the backend verdict is visible. The kicker is only
+     counted locally when the vault confirms the credit. */
   try{
-    fetch(BACKEND,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},
-      body:JSON.stringify(Object.assign({type:"bank",b_action:action},params))}).catch(function(){});
-  }catch(e){}
+    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(Object.assign({type:"bank",b_action:"overtime"},params))})
+      .then(function(r){ return r.json(); })
+      .then(function(j){ cb(j); })
+      .catch(function(){ cb(null); });
+  }catch(e){ cb(null); }
 }
 var OT_KEY="pf_bank_ot_v1", THRESH=60, RATE=0.25, LOCAL_CAP=10;
 function chiDay(){ try{ return new Date().toLocaleDateString("en-CA",{timeZone:"America/Chicago"}); }catch(e){
@@ -61,9 +66,19 @@ document.addEventListener("pf-xp", function(e){
   var kick=Math.floor((overNew-overPrev)*RATE);
   if(kick>0 && s.sent<LOCAL_CAP){
     kick=Math.min(kick, LOCAL_CAP-s.sent);
-    s.n++; s.sent+=kick; otSave(s);
-    post("overtime",{callsign:id.callsign,device:id.device,amount:kick,key:id.device+":"+s.day+":"+s.n});
-    setTimeout(load,4000);
+    /* n is committed now so the idempotency key stays unique per attempt;
+       s.sent (the meter + cap driver) advances ONLY on confirmed credit. */
+    s.n++; var key=id.device+":"+s.day+":"+s.n; otSave(s);
+    postOvertime({callsign:id.callsign,device:id.device,amount:kick,key:key},function(j){
+      if(j&&j.ok){
+        var s2=otState(); s2.sent+=kick; otSave(s2);
+        setTimeout(load,4000);
+      } else if(j&&j.err==="cap"){
+        /* Backend streak-scaled cap hit — local counter stays honest. */
+      } else {
+        toast("Overtime kicker missed the vault (network). Your XP is safe — it retries on your next gain.");
+      }
+    });
   } else otSave(s);
 });
 var st=null, busy=false, spendable=null;

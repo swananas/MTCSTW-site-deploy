@@ -23,6 +23,7 @@
 </div>
 <script>
 (function(){
+  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
   /* WAR BOND CHECKOUT: Squarespace product URLs, one per denomination
      (products created 2026-09-26; "Unnamed Product" stray removed). */
   var WAR_BOND_URLS = {
@@ -66,16 +67,17 @@
     if(!name){ out.innerHTML=''; return; }
     var c = null;
     ALL_CREATORS.forEach(function(x){ if(x.name===name) c=x; });
+    if(!c){ out.innerHTML=''; return; }
     var w = WARCHEST[name];
-    var h = '<div style="font-size:1.25rem;font-weight:900;margin-bottom:0.8rem;">' + name + '</div>';
+    var h = '<div style="font-size:1.25rem;font-weight:900;margin-bottom:0.8rem;">' + esc(name) + '</div>';
     if(w){
       h += '<div style="font-size:0.8rem;letter-spacing:0.12em;color:#c1121f;font-weight:900;margin-bottom:0.8rem;">\u2605 WAR CHEST ACTIVE \u2605</div>';
       w.pay.forEach(function(p){
-        h += '<a href="' + p.url + '" target="_blank" rel="noopener" style="display:inline-block;background:#c1121f;color:#f5f0e1;font-weight:900;letter-spacing:0.1em;text-decoration:none;padding:0.8rem 1.6rem;margin:0.3rem;font-size:0.95rem;">' + p.label.toUpperCase() + ' &rarr;</a>';
+        h += '<a href="' + esc(p.url) + '" target="_blank" rel="noopener" style="display:inline-block;background:#c1121f;color:#f5f0e1;font-weight:900;letter-spacing:0.1em;text-decoration:none;padding:0.8rem 1.6rem;margin:0.3rem;font-size:0.95rem;">' + esc(String(p.label).toUpperCase()) + ' &rarr;</a>';
       });
     } else {
       h += '<div style="font-size:0.95rem;color:#b8ab8e;margin-bottom:0.8rem;">No war chest on file yet.</div>';
-      h += '<a href="' + c.catalog + '" style="display:inline-block;border:2px solid #c1121f;color:#f5f0e1;font-weight:700;letter-spacing:0.08em;text-decoration:none;padding:0.7rem 1.4rem;font-size:0.9rem;">FULL PROFILE &rarr;</a>';
+      h += '<a href="' + esc(c.catalog) + '" style="display:inline-block;border:2px solid #c1121f;color:#f5f0e1;font-weight:700;letter-spacing:0.08em;text-decoration:none;padding:0.7rem 1.4rem;font-size:0.9rem;">FULL PROFILE &rarr;</a>';
     }
     out.innerHTML = h;
   };

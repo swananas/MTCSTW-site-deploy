@@ -113,7 +113,12 @@ function claimBounties(j){
     var rk=load(LS_R,{xp:0,got:{}}), n=0, each=r.xp_each||BOUNTY_FALLBACK;
     r.claimed.forEach(function(b){
       var key="cell_bounty_"+b.from+"_"+b.day;
-      if(rk.got[key]!==1){ rk.got[key]=1; rk.xp+=each; n++; }
+      if(rk.got[key]!==1){
+        rk.got[key]=1; rk.xp+=each; n++;
+        /* Backend ledger mirror (core/11-xpledger): the local grant is instant
+           UX; this dispatch persists it server-side under an idempotent key. */
+        try{ document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:each,key:key,reason:"recruit bounty"}})); }catch(e){}
+      }
     });
     if(n>0){ save(LS_R,rk); toast("+"+(n*each)+" XP — recruit bounty! Your cell grows."); }
   });

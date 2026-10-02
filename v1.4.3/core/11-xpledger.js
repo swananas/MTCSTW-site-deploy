@@ -101,24 +101,7 @@ PF.xpBalance=function(cb){
     setTimeout(function(){ if(s.parentNode)s.parentNode.removeChild(s); },15000);
   }catch(e){ if(cb)cb(null); }
 };
-PF.xpSpend=function(amount, key, reason, cb){
-  /* JSONP spend: the caller gets the real verdict (ok / insufficient). */
-  try{
-    var cs=callsign(), a=Math.abs(Math.round(Number(amount)||0));
-    if(!cs||!a||!key||!window.PF_BACKEND_URL){ if(cb)cb({ok:false}); return; }
-    var fn='pfxs_'+Math.floor(Math.random()*1e9);
-    window[fn]=function(j){
-      try{ delete window[fn]; }catch(e){}
-      if(cb)cb(j||{ok:false});
-    };
-    var s=document.createElement('script');
-    s.src=window.PF_BACKEND_URL+'?action=xp_spend&callsign='+encodeURIComponent(cs)+
-      '&device='+encodeURIComponent(device())+'&amount='+a+
-      '&key='+encodeURIComponent('lx:'+device()+':'+String(key).slice(0,80))+
-      '&reason='+encodeURIComponent(String(reason||'').slice(0,128))+'&callback='+fn;
-    s.onerror=function(){ try{ delete window[fn]; }catch(e){} if(cb)cb({ok:false}); };
-    document.head.appendChild(s);
-    setTimeout(function(){ if(s.parentNode)s.parentNode.removeChild(s); },15000);
-  }catch(e){ if(cb)cb({ok:false}); }
-};
+/* xp_spend removed 2026-10-02: the backend deleted the unauthenticated
+   xp_spend action (pure attack surface), and nothing in the frontend calls
+   PF.xpSpend. Escrow-style spends go through the contract POST actions. */
 })();

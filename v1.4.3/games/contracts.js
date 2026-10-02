@@ -43,11 +43,22 @@ function api(action,params,cb,isGet){
     setTimeout(function(){ finish(null); },12000);
     return;
   }
+  /* POST: real CORS fetch (worker sends Access-Control-Allow-Origin: *).
+     The backend verdict is parsed and passed to cb — wire() shows j.err
+     ("not enough XP", "board full", ...) instead of failing silently.
+     Fire-and-forget no-cors is kept ONLY as a last resort if the real
+     fetch itself throws (network down). */
+  var body=JSON.stringify(Object.assign({type:"contract",c_action:action},params));
+  function posted(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} setTimeout(function(){ load(); },1500); }
   try{
-    fetch(BACKEND,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},
-      body:JSON.stringify(Object.assign({type:"contract",c_action:action},params))}).catch(function(){});
-  }catch(e){}
-  setTimeout(function(){ load(); },1800);
+    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:body})
+      .then(function(r){ return r.json(); })
+      .then(function(j){ posted(j); })
+      .catch(function(){
+        try{ fetch(BACKEND,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:body}).catch(function(){}); }catch(e2){}
+        posted(null);
+      });
+  }catch(e){ posted(null); }
 }
 var GOAL_UNITS={share_raid:"shares",recruit_drive:"recruits",perfect_week:"days"};
 var board=null, mine=null, busy=false, loadTries=0;

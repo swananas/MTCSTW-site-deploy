@@ -24,10 +24,10 @@ var _isSlr=_p==='/sick-left-radicals'||_p==='/sick-left-radicals/'||('|'+SLR_SLU
 var onV2=!!document.getElementById('pf-v2')||!!document.getElementById('pf-war-card')||!!document.getElementById('pf-slr-roster')||!!document.getElementById('pf-catalog')||_isSlr;
 var VER=onV2?'v1.4.3':'v1.1.0';
 var BASE='https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@'+(onV2?V3:V1)+'/'+VER+'/';
-var CSS=onV2?['core/01-styles.css','core/02-design-system.css']:['core/01-styles.css','core/02-design-system.css','fixes/mobile.css'];
+var CSS=onV2?['core/bundle-styles.css']:['core/01-styles.css','core/02-design-system.css','fixes/mobile.css'];
 var isHome=!!document.getElementById('pf-v2');
-var CORE_V2=['core/00-bus.js', 'core/07-slr-db-data.js', 'core/07-slr-db.js', 'core/03-global.js', 'core/14-auth.js', 'pwa/install.js', 'core/04-ledger.js', 'core/05-tally.js', 'core/08-dopamine.js', 'core/09-referral.js', 'core/10-convert.js', 'core/11-xpledger.js', 'core/12-notify.js', 'core/13-flow.js', 'core/campaign-data.js'];
-var PAGES_V2=['pages/home-v2.js', 'pages/slr-roster.js', 'pages/slr-catalog.js', 'core/06-pinups.js', 'core/share-image.js'];
+var CORE_V2=['core/bundle-core.js'];
+var PAGES_V2=['pages/bundle-pages.js'];
 /* Bundles (build/bundle.js): 48 game silos in 3 files. Critical loads now;
    social + economy lazy-load on scroll (homepage) or sequentially (other v2 pages). */
 var JS_SEQ=onV2?CORE_V2.concat(['games/bundle-critical.js']).concat(isHome?[]:['games/bundle-social.js','games/bundle-economy.js']).concat(PAGES_V2):['core/00-bus.js', 'core/03-global.js', 'core/14-auth.js', 'core/04-ledger.js', 'core/05-tally.js', 'games/caption-combat.js', 'games/daily-orders.js', 'games/fan-vote.js', 'games/do-meter.js', 'games/media-nuke.js', 'games/poster-forge.js', 'games/daily-drop.js', 'games/service-medals.js', 'games/liquidation-bracket.js', 'core/06-override.js', 'core/08-engage.js', 'core/09-toast.js', 'core/10-ticker.js', 'fixes/homepage.js', 'fixes/about.js', 'fixes/faqs.js', 'fixes/roster.js', 'fixes/podcast.js', 'fixes/tax.js', 'fixes/terms.js', 'fixes/schema.js'];

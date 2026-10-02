@@ -41,7 +41,7 @@
       if (!src) {
         var ss = document.getElementsByTagName('script');
         for (var i = ss.length - 1; i >= 0; i--) {
-          if (ss[i].src && ss[i].src.indexOf('07-slr-db') !== -1) { src = ss[i].src; break; }
+          if (ss[i].src && (ss[i].src.indexOf('07-slr-db') !== -1 || ss[i].src.indexOf('bundle-core') !== -1)) { src = ss[i].src; break; }
         }
       }
       var m = src.match(/^(https:\/\/cdn\.jsdelivr\.net\/gh\/[^@]+@[^\/]+)\//);

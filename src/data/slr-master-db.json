@@ -1337,7 +1337,7 @@
         }
       },
       "followers_as_of": "2026-10-01",
-      "picture": "STAGING: ~/workspace/goals/propaganda-factory-website-rebuild/files/catalog-photos/kim-hunt-slaythegop.jpg (not hosted)",
+      "picture": "https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@d516e50/v1.4.3/assets/roster-photos/kim-hunt-slaythegop.jpg",
       "catalog_path": "/kim-hunt-slaythegop",
       "links": [
         {
@@ -1774,7 +1774,7 @@
         }
       },
       "followers_as_of": "2026-10-01",
-      "picture": "STAGING: ~/workspace/goals/propaganda-factory-website-rebuild/files/catalog-photos/dogman_v1.jpg (not hosted)",
+      "picture": "https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@d516e50/v1.4.3/assets/roster-photos/dogman_v1.jpg",
       "catalog_path": "/dogman_v1",
       "links": [
         {

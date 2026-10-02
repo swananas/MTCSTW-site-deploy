@@ -203,16 +203,16 @@ function wireStaking(id,el){
 }
 /* ---------- TREASURY ---------- */
 function renderTreasury(id){
-  var h='<div class="x-pane"><h4>Cell Treasury</h4><div class="x-note">Collective war chest. Donate XP; founders spend it on the cell.</div>'
+  var h='<div class="x-pane"><h4>Cell Treasury</h4><div class="x-note">Collective war chest. Throw XP in; founders spend it on the cell.</div>'
     +'<div><input class="c-in pf-input-sm" id="ecTCell" type="text" placeholder="cell id" value="'+esc(TRCELL)+'" /> '
     +'<button class="c-btn" id="ecTView">VIEW</button></div><div style="height:8px"></div>';
   if(TRB&&TRB.ok){
     h+='<div class="cp-mtext"><b>BALANCE: '+Number(TRB.balance||0)+' XP</b></div>'
-      +'<div><input class="c-in pf-input-sm" id="ecTDonate" type="number" min="1" placeholder="XP" /> '
-      +'<button class="c-btn" id="ecTDonateBtn">DONATE</button></div>';
+      +'<div><input class="c-in pf-input-sm" id="ecTFund" type="number" min="1" placeholder="XP" /> '
+      +'<button class="c-btn" id="ecTFundBtn">THROW DOWN</button></div>';
     var rec=TRB.recent||[];
     if(rec.length){ h+='<div class="x-note pf-mt" >Recent:</div>';
-      for(var i=0;i<Math.min(rec.length,5);i++) h+='<div class="x-note">'+esc(rec[i].callsign)+' '+esc(rec[i].kind||"donated")+' '+Number(rec[i].amount||0)+' XP</div>';
+      for(var i=0;i<Math.min(rec.length,5);i++) h+='<div class="x-note">'+esc(rec[i].callsign)+' '+esc(rec[i].kind||"threw down")+' '+Number(rec[i].amount||0)+' XP</div>';
     }
   } else if(TRCELL){ h+='<div class="x-note">No treasury data for that cell.</div>'; }
   h+='</div>'; return h;
@@ -224,15 +224,15 @@ function wireTreasury(id,el){
     TRB=null; render();
     if(TRCELL) api("treasury_balance",{cell_id:TRCELL},function(j){ TRB=j; render(); });
   };
-  var d=document.getElementById("ecTDonateBtn");
+  var d=document.getElementById("ecTFundBtn");
   if(d) d.onclick=function(){
-    var amt=Math.round(Number(document.getElementById("ecTDonate").value)||0);
+    var amt=Math.round(Number(document.getElementById("ecTFund").value)||0);
     if(!TRCELL){ toast("Enter a cell id first."); return; }
     if(amt<=0){ toast("Enter an amount."); return; }
     d.disabled=true;
     post("treasury","t_action","treasury_donate",{callsign:id.callsign,device:id.device,cell_id:TRCELL,amount:amt},function(j){
       if(!j||!j.ok){ toast((j&&j.err)||"Donation failed."); d.disabled=false; return; }
-      toast("DONATED "+amt+" XP to the war chest.");
+      toast("THREW DOWN "+amt+" XP to the war chest.");
       api("treasury_balance",{cell_id:TRCELL},function(jj){ TRB=jj; render(); });
     });
   };

@@ -94,16 +94,16 @@ function renderCauses(id){
       +'<div class="x-note">'+esc(p.description||"")+'</div>'
       +'<div class="x-note"><b>'+Number(p.balance||0).toLocaleString()+' XP</b> &bull; '+Number(p.donors||0)+' donors</div>'
       +'<div style="margin-top:6px"><input class="c-in pf-input-sm" data-causeamt="'+esc(p.id)+'" type="number" min="1" placeholder="XP" /> '
-      +'<button class="c-btn" data-causedonate="'+esc(p.id)+'">DONATE</button></div></div></div>';
+      +'<button class="c-btn" data-causefund="'+esc(p.id)+'">FUND</button></div></div></div>';
   }
   h+='</div>';
   return h;
 }
 function wireCauses(id,el){
-  var bs=el.querySelectorAll('button[data-causedonate]');
+  var bs=el.querySelectorAll('button[data-causefund]');
   for(var i=0;i<bs.length;i++){ (function(btn){
     btn.onclick=function(){
-      var pid=btn.getAttribute("data-causedonate");
+      var pid=btn.getAttribute("data-causefund");
       var inp=el.querySelector('input[data-causeamt="'+pid+'"]');
       var amt=Math.round(Number(inp?inp.value:0)||0);
       if(amt<=0){ toast("Enter an amount."); return; }
@@ -111,7 +111,7 @@ function wireCauses(id,el){
       post("finance","f_action","cause_donate",{callsign:id.callsign,device:id.device,pool_id:pid,amount:amt},function(j){
         btn.disabled=false;
         if(!j||!j.ok){ toast((j&&j.err)||"Donation failed."); return; }
-        toast("DONATED "+amt+" XP. The movement thanks you.");
+        toast("FUNDED "+amt+" XP. The movement thanks you.");
         api("cause_list",{},function(jj){ CAUSES=jj; render(); });
       });
     };

@@ -239,7 +239,9 @@ except Exception:
 for _m in members:
     _name = _m.get('name', '')
     _slug = _m.get('slug', '')
-    _m['seo_title'] = f"{_name} | Sick Left Radicals | MTCSTW"
+    _full_title = f"{_name} | Sick Left Radicals | MTCSTW"
+    # Keep titles <=60 chars for SERP display: drop the middle segment for long names
+    _m['seo_title'] = _full_title if len(_full_title) <= 60 else f"{_name} | MTCSTW"
     _m['seo_description'] = _seo_metas.get(_slug, '')
     _cf = (_m.get('content_focus') or '').strip()
     if len(_cf) > 70:

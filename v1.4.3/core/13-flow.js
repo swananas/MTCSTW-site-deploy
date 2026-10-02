@@ -17,7 +17,8 @@ function callsign(){
   var cs='';
   try{ if(typeof window.PFCallsign==='function') cs=window.PFCallsign()||''; }catch(e){}
   if(!cs){ try{ cs=String((JSON.parse(localStorage.getItem('pf_identity_v1')||'{}')).callsign||''); }catch(e){} }
-  return String(cs||'').toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,32);
+  /* Match backend norm(): lowercase, trim, 32 chars. Underscores significant. */
+  return String(cs==null?'':cs).toLowerCase().trim().slice(0,32);
 }
 function chiDay(){ try{ return new Date().toLocaleDateString('en-CA',{timeZone:'America/Chicago'}); }catch(e){
   var d=new Date(); return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); } }
@@ -50,8 +51,7 @@ function nextStep(cb){
   if(!cs){ cb({silo:'ranks',label:'Enlist for a callsign'}); return; }
   inCell(function(inc){
     if(!inc){ cb({silo:'cells',label:'Join a cell'}); return; }
-    if(!seen('pf_bank_seen_v1')){ cb({silo:'bank',label:'Open your War Chest'}); return; }
-    if(!seen('pf_venture_seen_v1')){ cb({silo:'ventures',label:'Buy into a venture'}); return; }
+    if(!seen('pf_peoplesbank_seen_v1')){ cb({silo:'peoplesbank',label:'Open your War Chest'}); return; }
     var r=ROTATE[Math.floor(Date.now()/86400000)%ROTATE.length];
     cb({silo:r[0],label:r[1]});
   });
@@ -64,7 +64,7 @@ function scrollToSilo(silo){
   return false;
 }
 var PANEL_SILO={ 'pf-ranks':'ranks','pf-vote':'vote','pf-cells':'cells','pf-contracts':'contracts',
-  'pf-bank':'bank','pf-ventures':'ventures' };
+  'pf-peoplesbank':'peoplesbank' };
 function stripFor(block){
   if(!block||block.dataset.pfFlow)return;
   var pid='';
@@ -78,10 +78,10 @@ function stripFor(block){
   strip.onclick=function(){ nextStep(function(st){ scrollToSilo(st.silo); }); };
   nextStep(function(st){
     if(st.silo===PANEL_SILO[pid]){ /* suggest the step AFTER this panel instead */
-      var order=['ranks','vote','cells','bank','ventures'];
+      var order=['ranks','vote','cells','peoplesbank'];
       var ix=order.indexOf(st.silo);
       var nx=order[(ix+1)%order.length];
-      var lbl={ranks:'Enlist for a callsign',vote:'Cast a fan vote',cells:'Join a cell',bank:'Open your War Chest',ventures:'Buy into a venture'}[nx];
+      var lbl={ranks:'Enlist for a callsign',vote:'Cast a fan vote',cells:'Join a cell',peoplesbank:'Open your War Chest'}[nx];
       st={silo:nx,label:lbl};
     }
     try{ strip.querySelector('.pf-flow-next').innerHTML='◈ NEXT UP: <b>'+String(st.label).replace(/</g,'&lt;')+'</b> →'; }catch(e){}

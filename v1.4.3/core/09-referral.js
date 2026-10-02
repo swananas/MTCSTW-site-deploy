@@ -11,8 +11,9 @@ var PF=window.PF||(window.PF={});
 var LS_REF='pf_ref_v1', LS_SEEN='pf_recruits_seen_v1', LS_DIS='pf_ref_dismissed_v1';
 
 function clean(s){
-  s=String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,24);
-  return s;
+  /* Match backend norm() exactly: lowercase, trim, 32 chars. Underscores are
+     significant — stripping them forks the economy per spelling. */
+  return String(s==null?'':s).toLowerCase().trim().slice(0,32);
 }
 function myCallsign(){
   var cs='';

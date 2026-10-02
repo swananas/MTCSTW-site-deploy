@@ -112,8 +112,8 @@ function tierOf(xp){ var t=TIERS[0]; for(var i=0;i<TIERS.length;i++){ if(xp>=TIE
    to the tally so the backend records exactly what the ledger granted —
    including 0 when the pool is spent. The tally records pool-capped events
    ONLY on settle, never on the raw game event. */
-function settle(ev,gain){
-  try{ document.dispatchEvent(new CustomEvent("pf-tally-settle",{detail:{ev:ev,xp:gain}})); }catch(e){}
+function settle(ev,gain,score){
+  try{ var d={ev:ev,xp:gain}; if(typeof score==='number') d.score=score; document.dispatchEvent(new CustomEvent("pf-tally-settle",{detail:d})); }catch(e){}
 }
 
 /* ---------- UNLOCKS ---------- */
@@ -422,6 +422,9 @@ function render(){
 document.addEventListener("pf-bracket-ballot",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("bracket_"+w,10,"once",{exempt:1}); });
 document.addEventListener("pf-quiz-done",function(){ award("quiz",15,"once",{exempt:1}); });
 document.addEventListener("pf-guess-done",function(){ settle("pf-guess-done",award("guess_"+today(),1,"once")); });
+/* Guess scores: forward the score to the tally so the backend records it.
+   No XP (pf-guess-done already awarded) — xp=0, score in meta. */
+document.addEventListener("pf-guess-scored",function(e){ var s=0; try{ if(e&&e.detail&&typeof e.detail.score==='number') s=Math.floor(e.detail.score); }catch(err){} settle("pf-guess-scored",0,s); });
 document.addEventListener("pf-raid-report",function(){ settle("pf-raid-report",award("raid",2,"daily")); });
 document.addEventListener("pf-vote-cast",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("fanvote_"+w,10,"once",{exempt:1}); });
 document.addEventListener("pf-traitor-vote",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("traitor_"+w,5,"once",{exempt:1}); });

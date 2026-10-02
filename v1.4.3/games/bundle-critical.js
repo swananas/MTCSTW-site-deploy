@@ -1652,7 +1652,8 @@ function comebackBanner(xp){
 (function(){
 'use strict';
 var LS='pf_do_v1';
-var PTS={'pf-order-checkin':1,'pf-bracket-ballot':1,'pf-bracket-liquidated':2,'pf-vote-cast':1,'pf-quiz-done':1,'pf-guess-done':2,'pf-raid-report':2,'pf-infight-fire':3,'pf-traitor-vote':1,'pf-wb-buy':5,'pf-enlisted':3,'pf-caption-submit':2,'pf-poster-made':2,'pf-drop-claimed':2,'pf-billionaire-answered':1,'pf-interrogation-answered':1,'pf-share-image':2,'pf-checkin':1};
+/* PTS table — MUST match PTS_DEFAULTS in core/05-tally.js (the backend source of truth). */
+var PTS={'pf-order-checkin':1,'pf-bracket-ballot':1,'pf-bracket-liquidated':2,'pf-vote-cast':1,'pf-quiz-done':1,'pf-guess-done':2,'pf-raid-report':2,'pf-infight-fire':3,'pf-traitor-vote':1,'pf-wb-buy':5,'pf-enlisted':3,'pf-caption-submit':2,'pf-poster-made':2,'pf-drop-claimed':2,'pf-billionaire-answered':1,'pf-interrogation-answered':1,'pf-share-image':2,'pf-checkin':1,'pf-boost-tipped':1,'pf-guess-scored':0};
 var LABELS={'pf-order-checkin':'Orders','pf-bracket-ballot':'Brackets','pf-bracket-liquidated':'Liquidations','pf-vote-cast':'Votes','pf-quiz-done':'Quizzes','pf-raid-report':'Raids','pf-infight-fire':'Infighting','pf-traitor-vote':'Traitors','pf-wb-buy':'Bonds','pf-enlisted':'Enlisted','pf-caption-submit':'Captions','pf-poster-made':'Posters','pf-drop-claimed':'Drops','pf-billionaire-answered':'Billionaire','pf-interrogation-answered':'Interrogation','pf-share-image':'Shares'};
 function load(){try{var s=JSON.parse(localStorage.getItem(LS)||'null');if(s&&s.w)return s;}catch(e){}return{w:PF.isoWeekKey(PF.chiNow()),total:0,byType:{},goal:1000,hits:0,hist:{},seen:[],boomed:false};}
 function save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}
@@ -2258,8 +2259,8 @@ function tierOf(xp){ var t=TIERS[0]; for(var i=0;i<TIERS.length;i++){ if(xp>=TIE
    to the tally so the backend records exactly what the ledger granted —
    including 0 when the pool is spent. The tally records pool-capped events
    ONLY on settle, never on the raw game event. */
-function settle(ev,gain){
-  try{ document.dispatchEvent(new CustomEvent("pf-tally-settle",{detail:{ev:ev,xp:gain}})); }catch(e){}
+function settle(ev,gain,score){
+  try{ var d={ev:ev,xp:gain}; if(typeof score==='number') d.score=score; document.dispatchEvent(new CustomEvent("pf-tally-settle",{detail:d})); }catch(e){}
 }
 
 /* ---------- UNLOCKS ---------- */
@@ -2568,6 +2569,9 @@ function render(){
 document.addEventListener("pf-bracket-ballot",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("bracket_"+w,10,"once",{exempt:1}); });
 document.addEventListener("pf-quiz-done",function(){ award("quiz",15,"once",{exempt:1}); });
 document.addEventListener("pf-guess-done",function(){ settle("pf-guess-done",award("guess_"+today(),1,"once")); });
+/* Guess scores: forward the score to the tally so the backend records it.
+   No XP (pf-guess-done already awarded) — xp=0, score in meta. */
+document.addEventListener("pf-guess-scored",function(e){ var s=0; try{ if(e&&e.detail&&typeof e.detail.score==='number') s=Math.floor(e.detail.score); }catch(err){} settle("pf-guess-scored",0,s); });
 document.addEventListener("pf-raid-report",function(){ settle("pf-raid-report",award("raid",2,"daily")); });
 document.addEventListener("pf-vote-cast",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("fanvote_"+w,10,"once",{exempt:1}); });
 document.addEventListener("pf-traitor-vote",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("traitor_"+w,5,"once",{exempt:1}); });
@@ -2717,27 +2721,36 @@ wallFromServer(function(j){ if(j&&j.ok&&j.wall) renderWall(j.wall); });
           renderRack();
         });
       }else{
-        /* no callsign yet — bank XP locally, mark pending; backend deploy fires on claim */
-        s.fd_pending=true;save(s);
+        /* no callsign yet — bank XP locally, mark pending; backend deploy fires on claim.
+           The pending key is stored so the flush can reverse the local +50
+           exactly-once (the backend grant mirrors back via the ledger). */
+        var pkey='medal_fd_'+s.w;
+        s.fd_pending=pkey;save(s);
         try{
           var r=JSON.parse(localStorage.getItem(LS_R)||'{"xp":0,"got":{}}');
           if(!r.got)r.got={};
-          var key='medal_fd_'+s.w;
-          if(!r.got[key]){r.got[key]=1;r.xp+=50;localStorage.setItem(LS_R,JSON.stringify(r));}
+          if(!r.got[pkey]){r.got[pkey]=1;r.xp+=50;localStorage.setItem(LS_R,JSON.stringify(r));}
         }catch(e){}
       }
       renderRack();
       try{document.dispatchEvent(new CustomEvent('pf-do-update'));}catch(e){}
     }
-    /* flush a pending Full Deployment once the user claims a callsign */
+    /* flush a pending Full Deployment once the user claims a callsign.
+       Exactly-once: reverse the local +50 banked earlier, because the backend
+       deploy grant mirrors back via the ledger. Keeping both = +100. */
     function flushPendingDeploy(cs){
       var s=load();
       if(!s.fd_pending||s.fd)return;
+      var pkey=typeof s.fd_pending==='string'?s.fd_pending:('medal_fd_'+s.w);
       apiPostDeploy(cs,function(j){
         if(!(j&&j.ok))return; /* keep fd_pending so a later claim retries */
         var s2=load();
         s2.fd=true;s2.fd_pending=false;save(s2);
-                try{document.dispatchEvent(new CustomEvent('pf-do-update'));}catch(e){}
+        try{
+          var r=JSON.parse(localStorage.getItem(LS_R)||'{"xp":0,"got":{}}');
+          if(r.got&&r.got[pkey]){ delete r.got[pkey]; r.xp=Math.max(0,(r.xp||0)-50); localStorage.setItem(LS_R,JSON.stringify(r)); }
+        }catch(e){}
+        try{document.dispatchEvent(new CustomEvent('pf-do-update'));}catch(e){}
         renderRack();
       });
     }

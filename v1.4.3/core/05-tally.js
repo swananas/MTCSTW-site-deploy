@@ -7,16 +7,17 @@ if(window.pfTallyLoaded)return; window.pfTallyLoaded=true;
    detail.xp overrides when a game reports its actual capped award — including
    0 when the daily pool is spent (never fall back to the default then, or the
    backend would record XP the user never earned). */
-var XP_DEFAULTS={ 'pf-order-checkin':10, 'pf-drop-claimed':1, 'pf-caption-submit':10, 'pf-poster-made':1, 'pf-quiz-done':15, 'pf-guess-done':1, 'pf-raid-report':2, 'pf-vote-cast':10, 'pf-bracket-ballot':10, 'pf-bracket-liquidated':10, 'pf-traitor-vote':5, 'pf-wb-buy':25, 'pf-enlisted':20, 'pf-billionaire-answered':1, 'pf-interrogation-answered':1, 'pf-share-image':1, 'pf-boost-tipped':0, 'pf-checkin':2, 'pf-guess-scored':0 };
-/* Do-meter point scale — MUST match the PTS table in games/do-meter.js. */
-var PTS_DEFAULTS={ 'pf-order-checkin':1, 'pf-drop-claimed':2, 'pf-caption-submit':2, 'pf-poster-made':2, 'pf-quiz-done':1, 'pf-guess-done':2, 'pf-raid-report':2, 'pf-vote-cast':1, 'pf-bracket-ballot':1, 'pf-bracket-liquidated':2, 'pf-traitor-vote':1, 'pf-wb-buy':5, 'pf-enlisted':3, 'pf-billionaire-answered':1, 'pf-interrogation-answered':1, 'pf-share-image':2, 'pf-boost-tipped':1, 'pf-checkin':1, 'pf-guess-scored':0 };
+var XP_DEFAULTS={ 'pf-order-checkin':10, 'pf-drop-claimed':1, 'pf-caption-submit':10, 'pf-poster-made':1, 'pf-quiz-done':15, 'pf-guess-done':1, 'pf-raid-report':2, 'pf-infight-fire':0, 'pf-vote-cast':10, 'pf-bracket-ballot':10, 'pf-bracket-liquidated':10, 'pf-traitor-vote':5, 'pf-wb-buy':25, 'pf-enlisted':20, 'pf-billionaire-answered':1, 'pf-interrogation-answered':1, 'pf-share-image':1, 'pf-boost-tipped':0, 'pf-checkin':2, 'pf-guess-scored':0, 'pf-do-challenge-done':15, 'pf-do-fullspectrum':20 };
+/* Do-meter point scale — MUST match the PTS table in games/do-meter.js.
+   Single source of truth: this table is what the backend records. */
+var PTS_DEFAULTS={ 'pf-order-checkin':1, 'pf-drop-claimed':2, 'pf-caption-submit':2, 'pf-poster-made':2, 'pf-quiz-done':1, 'pf-guess-done':2, 'pf-raid-report':2, 'pf-infight-fire':3, 'pf-vote-cast':1, 'pf-bracket-ballot':1, 'pf-bracket-liquidated':2, 'pf-traitor-vote':1, 'pf-wb-buy':5, 'pf-enlisted':3, 'pf-billionaire-answered':1, 'pf-interrogation-answered':1, 'pf-share-image':2, 'pf-boost-tipped':1, 'pf-checkin':1, 'pf-guess-scored':0, 'pf-do-challenge-done':3, 'pf-do-fullspectrum':5 };
 /* Pool-capped events whose TRUE award is forwarded by enlistment-ranks via
    pf-tally-settle. The raw game event fires BEFORE the award is computed, so
    recording the default here would over-record whenever the 50/day pool is
    spent (or under-record the rank-panel check-in/share, which award without
    dispatching a game event at all). The tally records these ONLY on settle —
    never on the raw event — so the backend always matches the user's ledger. */
-var POOL_SETTLED={ 'pf-guess-done':1, 'pf-raid-report':1, 'pf-poster-made':1, 'pf-share-image':1, 'pf-drop-claimed':1, 'pf-billionaire-answered':1, 'pf-interrogation-answered':1, 'pf-checkin':1, 'pf-guess-scored':0 };
+var POOL_SETTLED={ 'pf-guess-done':1, 'pf-raid-report':1, 'pf-poster-made':1, 'pf-share-image':1, 'pf-drop-claimed':1, 'pf-billionaire-answered':1, 'pf-interrogation-answered':1, 'pf-checkin':1, 'pf-guess-scored':1, 'pf-do-challenge-done':1, 'pf-do-fullspectrum':1 };
 var TASKS=Object.keys(XP_DEFAULTS);
 function report(actionType, xp, pts, meta){
   try{
@@ -42,12 +43,16 @@ TASKS.forEach(function(ev){
     report(actionType, xp, PTS_DEFAULTS[ev]||1, meta);
   });
 });
-/* True-award settlement from enlistment-ranks (pool-capped events only). */
+/* True-award settlement from enlistment-ranks (pool-capped events only).
+   Score-bearing events (pf-guess-scored) forward their score in meta so the
+   backend records the actual score, not just the completion. */
 document.addEventListener("pf-tally-settle",function(e){
   var ev=e&&e.detail&&e.detail.ev;
   if(!ev||!POOL_SETTLED[ev]) return;
   var xp=XP_DEFAULTS[ev];
   try{ if(e&&e.detail&&typeof e.detail.xp==='number'){ xp=Math.max(0,Math.floor(e.detail.xp)); } }catch(err){}
-  report(ev.replace(/^pf-/,'').replace(/-/g,'_'), xp, PTS_DEFAULTS[ev]||1, '');
+  var meta='';
+  try{ if(e&&e.detail&&typeof e.detail.score==='number'){ meta='score:'+Math.max(0,Math.min(5,Math.floor(e.detail.score))); } }catch(err){}
+  report(ev.replace(/^pf-/,'').replace(/-/g,'_'), xp, PTS_DEFAULTS[ev]||1, meta);
 });
 })();

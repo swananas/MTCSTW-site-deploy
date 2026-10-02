@@ -78,27 +78,36 @@
           renderRack();
         });
       }else{
-        /* no callsign yet — bank XP locally, mark pending; backend deploy fires on claim */
-        s.fd_pending=true;save(s);
+        /* no callsign yet — bank XP locally, mark pending; backend deploy fires on claim.
+           The pending key is stored so the flush can reverse the local +50
+           exactly-once (the backend grant mirrors back via the ledger). */
+        var pkey='medal_fd_'+s.w;
+        s.fd_pending=pkey;save(s);
         try{
           var r=JSON.parse(localStorage.getItem(LS_R)||'{"xp":0,"got":{}}');
           if(!r.got)r.got={};
-          var key='medal_fd_'+s.w;
-          if(!r.got[key]){r.got[key]=1;r.xp+=50;localStorage.setItem(LS_R,JSON.stringify(r));}
+          if(!r.got[pkey]){r.got[pkey]=1;r.xp+=50;localStorage.setItem(LS_R,JSON.stringify(r));}
         }catch(e){}
       }
       renderRack();
       try{document.dispatchEvent(new CustomEvent('pf-do-update'));}catch(e){}
     }
-    /* flush a pending Full Deployment once the user claims a callsign */
+    /* flush a pending Full Deployment once the user claims a callsign.
+       Exactly-once: reverse the local +50 banked earlier, because the backend
+       deploy grant mirrors back via the ledger. Keeping both = +100. */
     function flushPendingDeploy(cs){
       var s=load();
       if(!s.fd_pending||s.fd)return;
+      var pkey=typeof s.fd_pending==='string'?s.fd_pending:('medal_fd_'+s.w);
       apiPostDeploy(cs,function(j){
         if(!(j&&j.ok))return; /* keep fd_pending so a later claim retries */
         var s2=load();
         s2.fd=true;s2.fd_pending=false;save(s2);
-                try{document.dispatchEvent(new CustomEvent('pf-do-update'));}catch(e){}
+        try{
+          var r=JSON.parse(localStorage.getItem(LS_R)||'{"xp":0,"got":{}}');
+          if(r.got&&r.got[pkey]){ delete r.got[pkey]; r.xp=Math.max(0,(r.xp||0)-50); localStorage.setItem(LS_R,JSON.stringify(r)); }
+        }catch(e){}
+        try{document.dispatchEvent(new CustomEvent('pf-do-update'));}catch(e){}
         renderRack();
       });
     }

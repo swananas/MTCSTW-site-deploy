@@ -21,7 +21,7 @@ function callsign(){
   var cs='';
   try{ if(typeof window.PFCallsign==='function') cs=window.PFCallsign()||''; }catch(e){}
   if(!cs){ try{ cs=String((JSON.parse(localStorage.getItem('pf_identity_v1')||'{}')).callsign||''); }catch(e){} }
-  return String(cs||'').toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,32);
+  return String(cs==null?'':cs).toLowerCase().trim().slice(0,32);
 }
 function queue(){ try{ return JSON.parse(localStorage.getItem(LS_Q)||'[]'); }catch(e){ return []; } }
 function saveQ(q){ try{ localStorage.setItem(LS_Q,JSON.stringify(q.slice(-50))); }catch(e){} }

@@ -8074,6 +8074,26 @@ function fmtDate(t){ try{ var d=new Date(Number(t)||0); if(isNaN(d.getTime())) r
   var mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   return mo[d.getMonth()]+" "+d.getDate(); }catch(e){ return "?"; } }
 var BL=null, BB=null, TR=null;
+function loadMyProposals(){
+  var box=document.getElementById("btMyProps");
+  if(!box) return;
+  var id=ident();
+  if(!id.callsign){ box.innerHTML='<div class="x-note">Claim a callsign to track proposals.</div>'; return; }
+  api("battle_proposals",{callsign:id.callsign,mine:1},function(j){
+    if(!j||!j.ok||!j.proposals||!j.proposals.length){
+      box.innerHTML='<div class="x-note">No proposals yet. Pitch the first battle.</div>'; return;
+    }
+    var h="";
+    for(var i=0;i<j.proposals.length;i++){
+      var pr=j.proposals[i];
+      var st=String(pr.status||"pending").toUpperCase();
+      h+='<div class="bt-prop"><b>'+esc(pr.title)+'</b> <span class="bt-st bt-st-'+esc(pr.status)+'">'+st+'</span>';
+      if(pr.status==="rejected"&&pr.reason) h+=' <span class="x-note">'+esc(pr.reason)+'</span>';
+      h+=' <span class="x-note">'+fmtDate(pr.created_at)+'</span></div>';
+    }
+    box.innerHTML=h;
+  });
+}
 function load(){
   var done=false,n=0;
   function fin(){ if(done)return; done=true; render(); }
@@ -8136,12 +8156,13 @@ function render(){
     h+='<div class="x-note">Entries are closed right now — battles open for entry before voting starts.</div>';
   }
   h+='</div>';
-  /* start a battle — battle_create (admin-gated server-side; title + ends_at) */
-  h+='<div class="x-pane"><h4>Start a battle</h4>'
-    +'<div class="x-note">Launch a new tournament. The crowd votes, winner takes +100 XP. Contenders enter with a content ID after launch.</div>'
+  /* propose a battle — battle_propose (user-facing; goes live after approval) */
+  h+='<div class="x-pane"><h4>Propose a battle</h4>'
+    +'<div class="x-note">Pitch a new tournament. The crowd votes, winner takes +100 XP. Goes live after approval.</div>'
     +'<input aria-label="BATTLE TITLE" id="btNewTitle" maxlength="120" placeholder="BATTLE TITLE"> '
     +'<input aria-label="ENDS ON" id="btNewEnds" type="date"> '
-    +'<button class="c-btn" id="btCreateBtn">CREATE BATTLE</button><div class="c-err" id="btCreateErr"></div></div>';
+    +'<button class="c-btn" id="btCreateBtn">PROPOSE BATTLE</button><div class="c-err" id="btCreateErr"></div></div>';
+  h+='<div class="x-pane"><h4>Your proposals</h4><div id="btMyProps"><div class="x-note">Loading&hellip;</div></div></div>';
   /* most boosted */
   var board=(BB&&BB.ok&&BB.board)||[];
   h+='<div class="x-pane"><h4>Most boosted this week</h4>';
@@ -8233,13 +8254,13 @@ function render(){
     if(title.length<4){ if(errEl)errEl.textContent="Title needs 4+ characters."; return; }
     var endsAt=0;
     if(ends){ var ddt=new Date(ends+"T23:59:59"); if(!isNaN(ddt.getTime())) endsAt=ddt.getTime(); }
-    if(!window.confirm("Launch battle \""+title+"\"?")) return;
+    if(!window.confirm("Propose battle \""+title+"\"? It goes live after approval.")) return;
     cb2.disabled=true;
-    post({type:"battle",b_action:"battle_create",title:title,ends_at:endsAt},function(j){
+    post({type:"battle",b_action:"battle_propose",title:title,ends_at:endsAt},function(j){
       cb2.disabled=false;
-      if(!j||!j.ok){ if(errEl)errEl.textContent=(j&&j.err)||"Creation failed."; return; }
-      toast("BATTLE LIVE. Get entries in.");
-      load();
+      if(!j||!j.ok){ if(errEl)errEl.textContent=(j&&j.err)||"Proposal failed."; return; }
+      toast("Battle proposed! Awaiting approval.");
+      load(); loadMyProposals();
     });
   };
   var rb=document.getElementById("btRetry");

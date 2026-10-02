@@ -80,15 +80,16 @@ function render(j){
     }
     h+='</div></div>';
   }
-  /* file intel — intel_add (admin-gated server-side; target+activity+source
-     required, every item must cite a checkable source) */
+  /* file intel — intel_submit (user-facing; goes live after approval.
+     target+activity+source required, every item must cite a checkable source) */
   h+='<div class="x-pane"><h4>File intel</h4>'
-    +'<div class="x-note">What are they funding? Every submission needs a checkable source.</div>'
+    +'<div class="x-note">What are they funding? Every submission needs a checkable source. Goes live after review.</div>'
     +'<input aria-label="TARGET" id="inTarget" maxlength="120" placeholder="TARGET — who / what org"> '
     +'<input aria-label="ACTIVITY" id="inActivity" maxlength="400" placeholder="ACTIVITY — what are they doing"> '
     +'<input aria-label="MONEY" id="inAmount" maxlength="80" placeholder="MONEY (optional) — e.g. $2M"> '
     +'<input aria-label="SOURCE" id="inSource" maxlength="200" placeholder="SOURCE (required) — link or citation"> '
     +'<button class="c-btn" id="inFileBtn">SUBMIT INTEL</button><div class="c-err" id="inFileErr"></div></div>';
+  h+='<div class="x-pane"><h4>Your submissions</h4><div id="inMySubs"><div class="x-note">Loading&hellip;</div></div></div>';
   h+='<div style="margin-top:10px"><button class="c-btn" id="inRetry">Refresh</button></div>';
   el.innerHTML=h;
   var fb=document.getElementById("inFileBtn");
@@ -104,13 +105,13 @@ function render(j){
     if(!target){ if(errEl)errEl.textContent="Target is required."; return; }
     if(!activity){ if(errEl)errEl.textContent="Describe the activity."; return; }
     if(!source){ if(errEl)errEl.textContent="Source is required — every intel item must cite a checkable source."; return; }
-    if(!window.confirm("File intel on \""+target+"\"?")) return;
+    if(!window.confirm("Submit intel on \""+target+"\" for review?")) return;
     fb.disabled=true;
-    post({type:"intel",i_action:"intel_add",target:target,activity:activity,amount:amount,source:source},function(j){
+    post({type:"intel",i_action:"intel_submit",target:target,activity:activity,amount:amount,source:source},function(j){
       fb.disabled=false;
       if(!j||!j.ok){ if(errEl)errEl.textContent=(j&&j.err)||"Submission failed."; return; }
-      toast("INTEL FILED. The war room sees it.");
-      load();
+      toast("Intel submitted for review.");
+      load(); loadMySubs();
     });
   };
   var rb=document.getElementById("inRetry");

@@ -32,6 +32,8 @@
     <button class="p-btn ghost" id="pShare">Share</button>
   </div>
   <div class="p-note">1080 &times; 1350 — made for the feed. Every download is stamped PFN: property of the working class.</div>
+  <div id="pSpread"></div>
+  <div id="pImpact"></div>
 </div>
 
 <script>
@@ -215,6 +217,7 @@ document.getElementById("pDownload").onclick=function(e){
       document.dispatchEvent(new CustomEvent("pf-poster-made",{detail:{day:today}}));
     }
   }catch(err){}
+  pfLogShare();
   stampedBlob(function(blob){
     var url=URL.createObjectURL(blob);
     var a=document.createElement("a");
@@ -224,13 +227,149 @@ document.getElementById("pDownload").onclick=function(e){
   });
 };
 document.getElementById("pShare").onclick=function(){
+  pfLogShare();
   stampedBlob(function(blob){
     var f=new File([blob],"pfn-propaganda-poster.png",{type:"image/png"});
     if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:"PFN propaganda poster"}).catch(function(){});return;}
     var url=URL.createObjectURL(blob);window.open(url,"_blank");
   });
 };
+/* ---- Spread tracking + creator dashboard + boost economy ---- */
+var PFBE=window.PF_BACKEND_URL;
+function pfEsc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function pfIdent(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function pfToast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+function pfApi(action,params,cb){
+  if(!PFBE){ cb(null); return; }
+  var fn="pfPfCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"),done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=PFBE+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function pfPost(body,cb){
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    fetch(PFBE,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+      .then(function(r){ return r.json(); }).then(function(j){ done(j); }).catch(function(){ done(null); });
+  }catch(e){ done(null); }
+}
+/* One content id per unique poster design. Same design = same id. */
+var pfContentIds={}, pfRegistered={}, pfLastShared=null;
+function pfContentId(){
+  var sig=[state.top,state.head,state.bot,state.style].join("|");
+  if(!pfContentIds[sig]) pfContentIds[sig]="pf-"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+  return pfContentIds[sig];
+}
+function pfLogShare(){
+  var id=pfIdent();
+  var cid=pfContentId(), title=state.head||"untitled";
+  try{ localStorage.setItem("pf_last_content_id",cid); }catch(e){}
+  pfLastShared=cid;
+  if(pfRegistered[cid]){ pfDoShareLog(cid,id); return; }
+  if(!id.callsign){ pfRenderSpread(); pfRenderImpact(); return; }
+  pfPost({type:"spread",sp_action:"content_register",id:cid,callsign:id.callsign,type:"poster",title:title},function(j){
+    if(j&&j.ok) pfRegistered[cid]=1;
+    pfDoShareLog(cid,id);
+  });
+}
+function pfDoShareLog(cid,id){
+  if(id.callsign){
+    pfPost({type:"spread",sp_action:"share_log",content_id:cid,sharer:id.callsign},function(){ pfRenderSpread(); });
+  } else { pfRenderSpread(); }
+  pfRenderImpact();
+  try{ document.dispatchEvent(new CustomEvent("pf-content-shared",{detail:{content_id:cid}})); }catch(e){}
+}
+function pfBoostRow(cid,xpTotal){
+  return '<div class="p-boostrow"><span class="p-boosttotal">BOOSTED '+xpTotal+' XP</span> '
+    +[10,25,50].map(function(a){
+      return '<button class="p-btn ghost p-boostbtn" data-cid="'+pfEsc(cid)+'" data-amt="'+a+'">+'+a+' XP</button>';
+    }).join(" ")+'</div>';
+}
+function pfWireBoosts(root){
+  var btns=(root||document).querySelectorAll("button.p-boostbtn");
+  for(var i=0;i<btns.length;i++){
+    (function(btn){
+      if(btn._pfWired) return; btn._pfWired=1;
+      btn.onclick=function(){
+        var id=pfIdent();
+        if(!id.callsign){ pfToast("Claim a callsign first."); return; }
+        btn.disabled=true;
+        pfPost({type:"spread",sp_action:"boost_give",content_id:btn.getAttribute("data-cid"),booster:id.callsign,device:id.device,xp:btn.getAttribute("data-amt")},function(j){
+          btn.disabled=false;
+          if(!j||!j.ok){ pfToast((j&&j.err)||"Boost failed."); return; }
+          pfToast("BOOSTED — "+j.total_boosts+" XP total on this piece.");
+          pfRenderSpread(); pfRenderImpact();
+          try{ document.dispatchEvent(new CustomEvent("pf-boost-given",{detail:{content_id:btn.getAttribute("data-cid")}})); }catch(e){}
+        });
+      };
+    })(btns[i]);
+  }
+}
+function pfRenderSpread(){
+  var el=document.getElementById("pSpread"); if(!el) return;
+  var cid=pfLastShared||pfContentId();
+  pfApi("spread_stats",{content_id:cid},function(j){
+    var h='<div class="x-pane"><h4>Spread — this poster</h4>';
+    if(j&&j.ok&&(j.total_shares>0||pfLastShared)){
+      h+='<div class="p-spreadnums"><span>'+j.total_shares+' SHARES</span><span>'+j.unique_sharers+' SHARERS</span><span>'+j.cells_reached+' CELLS</span><span>DEPTH '+j.max_depth+'</span></div>';
+      var tl=j.timeline||[], mx=1, ti;
+      for(ti=0;ti<tl.length;ti++){ if(tl[ti].shares>mx) mx=tl[ti].shares; }
+      if(tl.length){
+        h+='<div class="p-timeline">';
+        for(ti=0;ti<tl.length;ti++){
+          var ph=Math.max(2,Math.round(tl[ti].shares/mx*36));
+          h+='<div class="p-tbar" title="'+pfEsc(tl[ti].day)+': '+tl[ti].shares+'" style="height:'+ph+'px"></div>';
+        }
+        h+='</div><div class="x-note">Shares per day, last 14 days. Watch it travel.</div>';
+      }
+      h+=pfBoostRow(cid,0);
+      h+='<div class="x-note">Content ID: <span class="p-cid">'+pfEsc(cid)+'</span> — paste it into Poster Battles to enter.</div>';
+    } else {
+      h+='<div class="x-note">Download or share this poster and its spread stats appear here — shares, cells reached, depth.</div>';
+    }
+    h+='</div>';
+    el.innerHTML=h; pfWireBoosts(el);
+  });
+}
+function pfRenderImpact(){
+  var el=document.getElementById("pImpact"); if(!el) return;
+  var id=pfIdent();
+  if(!id.callsign){ el.innerHTML='<div class="x-pane"><h4>My impact</h4><div class="x-note">Claim a callsign to track your propaganda footprint.</div></div>'; return; }
+  pfApi("creator_dashboard",{callsign:id.callsign},function(j){
+    pfApi("boost_board",{},function(b){
+      var bmap={};
+      try{ ((b&&b.ok&&b.board)||[]).forEach(function(r){ bmap[r.id]=r.xp||0; }); }catch(e){}
+      var h='<div class="x-pane"><h4>My impact</h4>';
+      if(j&&j.ok){
+        h+='<div class="p-spreadnums"><span>'+j.total_content+' PIECES</span><span>'+j.total_shares+' SHARES</span><span>'+j.total_reach+' REACH</span></div>';
+        var top=j.top_content||[];
+        if(top.length){
+          h+='<div class="x-note">Your top propaganda, ranked by spread:</div>';
+          for(var i=0;i<Math.min(top.length,10);i++){
+            var t=top[i];
+            h+='<div class="p-toprow"><div class="p-toptitle">'+pfEsc(t.title||t.id)+'</div>'
+              +'<div class="x-note">'+t.shares+' shares &bull; '+t.sharers+' sharers &bull; '+t.cells+' cells</div>'
+              +pfBoostRow(t.id,bmap[t.id]||0)+'</div>';
+          }
+        } else { h+='<div class="x-note">No tracked pieces yet. Forge, share, and watch the numbers climb.</div>'; }
+      } else { h+='<div class="x-note">Impact data loading&hellip;</div>'; }
+      h+='</div>';
+      el.innerHTML=h; pfWireBoosts(el);
+    });
+  });
+}
 draw();
+pfRenderSpread();
+pfRenderImpact();
 window.__pfPoster={state:state,wrap:wrap,SLOGANS:SLOGANS,stampPng:stampPng};
 })();
 </script>

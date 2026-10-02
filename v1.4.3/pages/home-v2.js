@@ -45,6 +45,7 @@
     ['media-nuke', 'pf-ov-nuke'],
     ['caption-combat', 'pf-ov-caption'],
     ['poster-forge', 'pf-ov-poster'],
+    ['battles', 'pf-ov-battles'],
     ['enlistment-ranks', 'pf-ov-ranks'],
     ['war-bonds', 'pf-ov-bonds']
   ];

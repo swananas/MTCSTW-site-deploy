@@ -298,6 +298,11 @@ function doPost(e) {
       d.callsign, d.device, d.delta, d.key, d.reason);
     return jsonOut(xg);
   }
+  /* Discord relay (v1.4.3): server-side forward to the webhook in Script Properties. */
+  if (d.type === "discord" && d.d_action === "notify") {
+    var dp = discordPing(String(d.kind || "").slice(0, 32), String(d.text || ""));
+    return jsonOut({ ok: dp });
+  }
   /* Mercenary contracts (v1.4.3): camps, contract board, escrow, payouts. */
   if (d.type === "contract" && d.c_action) {
     return contractDispatch(d.c_action, d, null);
@@ -1368,7 +1373,10 @@ function contractDispatch(action, p, cb) {
       }
       if (ct.status === "accepted") {
         var pr = cxProgress(ss, ct, cxMemsOf(mems, ct.cell_id));
-        if (pr.done) setStatus(ct, "complete");
+        if (pr.done) {
+          setStatus(ct, "complete");
+          try { discordPing("contract", "\u2705 CONTRACT COMPLETE: **" + ct.cell_name + "** cleared **" + ct.camp + "'s** " + ct.goal + " — payouts unlocked. Claim your XP: https://www.mtcstw.com/"); } catch (e) {}
+        }
       }
     });
   }
@@ -1436,6 +1444,7 @@ function contractDispatch(action, p, cb) {
     if (!nm) return jsonOut({ ok: false, err: "Camp name needs 3-24 characters." }, cb);
     if (findCamp(camps, nm)) return jsonOut({ ok: false, err: "That camp name is taken." }, cb);
     sh.camps.appendRow([cs, nm, new Date()]);
+    try { discordPing("camp", "\uD83C\uDF34 New camp founded: **" + nm + "** — cells, come get hired."); } catch (e) {}
     return jsonOut({ ok: true, camp: nm }, cb);
   }
 
@@ -1471,6 +1480,10 @@ function contractDispatch(action, p, cb) {
     var id = "cx-" + Math.random().toString(36).slice(2, 10);
     var exp = new Date(nowMs + CONTRACT_DAYS * 86400000);
     sh.contracts.appendRow([id, mcamp.name, cs, goal, tgt, bnty, "open", "", "", "", exp]);
+    try {
+      var gd2 = CONTRACT_GOALS[goal];
+      discordPing("contract", "\uD83D\uDCDC NEW CONTRACT: **" + mcamp.name + "** offers **" + bnty + " XP** per member — " + gd2.label + " (" + tgt + " " + gd2.unit + "). Cells, come and get it: https://www.mtcstw.com/");
+    } catch (e) {}
     return jsonOut({ ok: true, id: id }, cb);
   }
 
@@ -1497,6 +1510,7 @@ function contractDispatch(action, p, cb) {
     sh.contracts.getRange(ct._row, 8).setValue(cell3.id);
     sh.contracts.getRange(ct._row, 9).setValue(cell3.name);
     sh.contracts.getRange(ct._row, 10).setValue(new Date());
+    try { discordPing("contract", "\u2694\uFE0F **" + cell3.name + "** accepted **" + ct.camp + "'s** contract — " + escrow + " XP escrowed. Go earn it."); } catch (e) {}
     return jsonOut({ ok: true, escrow: escrow }, cb);
   }
 
@@ -1538,4 +1552,34 @@ function contractDispatch(action, p, cb) {
   }
 
   return jsonOut({ ok: false, error: "unknown contract action" }, cb);
+}
+
+/* ================= DISCORD RELAY (v1.4.3) =================
+   Server-side only. The webhook URL lives in Script Properties as
+   DISCORD_WEBHOOK — never in code, never client-side. The site calls
+   {type:"discord", d_action:"notify"} and this relays it. Server-side
+   events (contracts, camps) ping directly. */
+function discordPing(kind, content) {
+  var url = "";
+  try { url = PropertiesService.getScriptProperties().getProperty("DISCORD_WEBHOOK") || ""; } catch (e) {}
+  if (!url || !kind || !content) return false;
+  /* Throttle noisy kinds; rare events (contracts, camps) always go through. */
+  var throttleMin = { detonation: 60, raid: 30 };
+  var wait = (throttleMin[kind] || 0) * 60000;
+  try {
+    var props = PropertiesService.getScriptProperties();
+    var lk = "discord_last_" + kind;
+    var last = Number(props.getProperty(lk) || 0);
+    if (wait && Date.now() - last < wait) return false;
+    props.setProperty(lk, String(Date.now()));
+  } catch (e2) {}
+  try {
+    UrlFetchApp.fetch(url, {
+      method: "post",
+      contentType: "application/json",
+      payload: JSON.stringify({ content: String(content).slice(0, 1800) }),
+      muteHttpExceptions: true
+    });
+    return true;
+  } catch (e3) { return false; }
 }

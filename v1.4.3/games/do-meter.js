@@ -191,6 +191,13 @@ function milestones(){
 function boom(){
   var b=document.getElementById('dBoom');if(!b)return;
   b.classList.add('show');confetti(46);
+  /* Detonation -> Discord war room (throttled server-side, 1/hour). */
+  try{
+    if(window.PF&&typeof PF.notify==='function'){
+      var dt=0; try{ dt=doTotals().total; }catch(e){}
+      PF.notify('detonation','\uD83D\uDCA5 DO METER DETONATION — the network cleared '+dt.toLocaleString()+' tasks this week. Fuel the next one: https://www.mtcstw.com/');
+    }
+  }catch(e2){}
   /* Detonation -> war chest: convert peak hype into a War Bonds visit. */
   try{
     if(!document.getElementById('dBoomChest')){

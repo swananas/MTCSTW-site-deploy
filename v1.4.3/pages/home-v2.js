@@ -53,6 +53,8 @@
     ['poster-forge', 'pf-ov-poster'],
     ['battles', 'pf-ov-battles'],
     ['video', 'pf-ov-video'],
+    ['gov', 'pf-ov-gov'],
+    ['diplo', 'pf-ov-diplo'],
     ['economy', 'pf-ov-economy'],
     ['peoplesbank', 'pf-ov-peoplesbank'],
     ['movement', 'pf-ov-movement'],

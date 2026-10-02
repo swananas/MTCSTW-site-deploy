@@ -456,10 +456,10 @@ function render(){
   }
   if(CREATE_OPEN){
     h+='<div class="x-pane pf-mt" ><h4>New petition</h4>'
-      +'<input class="c-in"  id="cvPetTitle" maxlength="140" placeholder="Title (e.g. Stop the rent gouging)">'
-      +'<input class="c-in"  id="cvPetTarget" maxlength="140" placeholder="Target (e.g. City Council)">'
+      +'<input aria-label="Title (e.g. Stop the rent gouging)" class="c-in"  id="cvPetTitle" maxlength="140" placeholder="Title (e.g. Stop the rent gouging)">'
+      +'<input aria-label="Target (e.g. City Council)" class="c-in"  id="cvPetTarget" maxlength="140" placeholder="Target (e.g. City Council)">'
       +'<textarea class="c-in"  id="cvPetDesc" rows="3" maxlength="2000" placeholder="What are we demanding?"></textarea>'
-      +'<input class="c-in"  id="cvPetGoal" type="number" min="10" max="1000000" value="500" placeholder="Signature goal">'
+      +'<input aria-label="Signature goal" class="c-in"  id="cvPetGoal" type="number" min="10" max="1000000" value="500" placeholder="Signature goal">'
       +'<button class="c-btn" id="cvPetCreate">LAUNCH PETITION</button> '
       +'<button class="c-btn c-btn2" id="cvPetCancel">CANCEL</button><div class="c-err" id="cvPetErr"></div></div>';
   } else {
@@ -477,7 +477,7 @@ function render(){
   h+='<select class="c-in"  id="cvRepSel">'+ropts+'</select>'
     +'<select class="c-in"  id="cvTopicSel">'+topts+'</select>'
     +'<div id="cvScriptBox"></div>'
-    +'<input class="c-in"  id="cvMyName" maxlength="60" placeholder="Your name (for the script)">'
+    +'<input aria-label="Your name (for the script)" class="c-in"  id="cvMyName" maxlength="60" placeholder="Your name (for the script)">'
     +'<select class="c-in"  id="cvMyState">'+stateOpts("")+'</select>'
     +'<div class="x-note">Method:</div>'
     +'<select class="c-in"  id="cvMethod"><option value="call">Call</option><option value="email">Email</option><option value="tweet">Tweet</option></select>'
@@ -502,9 +502,9 @@ function render(){
     +'<div class="x-note">Get drops, alerts, and battle calls by email or text. We never sell your info.</div>';
   var ce=CONTACT&&CONTACT.email?String(CONTACT.email).replace(/\*\*\*/g,""): "", cp=CONTACT&&CONTACT.phone?String(CONTACT.phone).replace(/\*\*\*/g,""):"";
   var eo=CONTACT&&CONTACT.email_optin?1:0, so=CONTACT&&CONTACT.sms_optin?1:0;
-  h+='<input class="c-in"  id="cvEmail" type="email" maxlength="120" placeholder="Email address" value="'+esc(ce)+'">'
+  h+='<input aria-label="Email address" class="c-in"  id="cvEmail" type="email" maxlength="120" placeholder="Email address" value="'+esc(ce)+'">'
     +'<label style="display:block;margin:6px 0;font-size:13px"><input type="checkbox" id="cvEmailOpt"'+(eo?' checked':'')+'> Email me drops &amp; alerts</label>'
-    +'<input class="c-in"  id="cvPhone" type="tel" maxlength="20" placeholder="Phone (for texts)" value="'+esc(cp)+'">'
+    +'<input aria-label="Phone (for texts)" class="c-in"  id="cvPhone" type="tel" maxlength="20" placeholder="Phone (for texts)" value="'+esc(cp)+'">'
     +'<label style="display:block;margin:6px 0;font-size:13px"><input type="checkbox" id="cvSmsOpt"'+(so?' checked':'')+'> Text me urgent calls</label>'
     +'<button class="c-btn" id="cvContactSave">SAVE PREFERENCES</button><div class="c-err" id="cvContactErr"></div></div>';
   el.innerHTML=h;
@@ -1198,7 +1198,7 @@ function render(){
       +'<div class="bn-meta">'+(Number(b.xp)||0)+' XP &bull; posted by '+esc(b.requester||"anon")
       +(b.status==='claimed'?' &bull; CLAIMED':'')+'</div>';
     if(b.status!=='claimed'&&b.status!=='done'){
-      h+='<div class="bn-claimrow"><input class="bn-input" id="bnSub_'+esc(b.id)+'" placeholder="Your content ID (from Poster Forge)" maxlength="64">'
+      h+='<div class="bn-claimrow"><input aria-label="Your content ID (from Poster Forge)" class="bn-input" id="bnSub_'+esc(b.id)+'" placeholder="Your content ID (from Poster Forge)" maxlength="64">'
         +'<button class="c-btn bn-claim" data-bid="'+esc(b.id)+'">CLAIM</button></div>'
         +'<div class="c-err" id="bnErr_'+esc(b.id)+'"></div>';
     }
@@ -1208,9 +1208,9 @@ function render(){
   /* --- post a bounty --- */
   h+='<div class="x-pane"><h4>Post a bounty</h4>'
     +'<div class="x-note">Need propaganda? Put XP on it. A creator claims it, submits, gets paid.</div>'
-    +'<input class="bn-input" id="bnTitle" placeholder="BOUNTY TITLE — e.g. Poster: Ohio Senate race" maxlength="80"><br>'
-    +'<input class="bn-input" id="bnDetail" placeholder="Detail — what should it say? who is it for?" maxlength="200"><br>'
-    +'<input class="bn-input" id="bnXp" placeholder="XP reward (10-100)" maxlength="3" inputmode="numeric"><br>'
+    +'<input aria-label="BOUNTY TITLE — e.g. Poster: Ohio Senate race" class="bn-input" id="bnTitle" placeholder="BOUNTY TITLE — e.g. Poster: Ohio Senate race" maxlength="80"><br>'
+    +'<input aria-label="Detail — what should it say? who is it for?" class="bn-input" id="bnDetail" placeholder="Detail — what should it say? who is it for?" maxlength="200"><br>'
+    +'<input aria-label="XP reward (10-100)" class="bn-input" id="bnXp" placeholder="XP reward (10-100)" maxlength="3" inputmode="numeric"><br>'
     +'<button class="c-btn" id="bnPostBtn">POST BOUNTY</button><div class="c-err" id="bnPostErr"></div></div>';
   h+='<div style="margin-top:10px"><button class="c-btn" id="bnRetry">Refresh</button></div>';
   el.innerHTML=h;
@@ -1903,7 +1903,7 @@ function render(){
   var id=ident(), h="";
   /* search bar */
   h+='<div class="x-pane"><h4>Search the vault</h4>'
-    +'<input id="arQ" type="text" placeholder="healthcare, wages, rent&hellip;" value="'+esc(lastQ)+'" style="width:70%;padding:8px;font:14px monospace"/>'
+    +'<input aria-label="healthcare, wages, rent&hellip;" id="arQ" type="text" placeholder="healthcare, wages, rent&hellip;" value="'+esc(lastQ)+'" style="width:70%;padding:8px;font:14px monospace"/>'
     +'<button class="c-btn" id="arSearch">SEARCH</button>'
     +'<div id="arResults" style="margin-top:10px"></div></div>';
   /* evergreen */
@@ -2365,17 +2365,17 @@ function renderLobby(el){
     '</div>'+
     '<div class="c-lobby">'+
     '<div class="c-pane"><h4>Form a cell</h4>'+
-    '<input id="cName" maxlength="24" placeholder="CELL NAME" autocomplete="off">'+
+    '<input aria-label="CELL NAME" id="cName" maxlength="24" placeholder="CELL NAME" autocomplete="off">'+
     '<br><button class="c-btn" id="cCreate">Form cell</button>'+
     '<div class="c-err" id="cCreateErr"></div></div>'+
     '<div class="c-pane"><h4>Join a cell</h4>'+
-    '<input id="cCode" maxlength="6" placeholder="INVITE CODE" autocomplete="off" style="text-transform:uppercase">'+
-    '<input id="cRef" maxlength="32" placeholder="WHO RECRUITED YOU (CALLSIGN)" autocomplete="off" style="text-transform:uppercase">'+
+    '<input aria-label="INVITE CODE" id="cCode" maxlength="6" placeholder="INVITE CODE" autocomplete="off" style="text-transform:uppercase">'+
+    '<input aria-label="WHO RECRUITED YOU (CALLSIGN)" id="cRef" maxlength="32" placeholder="WHO RECRUITED YOU (CALLSIGN)" autocomplete="off" style="text-transform:uppercase">'+
     '<br><button class="c-btn" id="cJoin">Join cell</button>'+
     '<div class="c-err" id="cJoinErr"></div></div>'+
     '</div>'+
     '<div class="c-pane"><h4>Find a cell</h4>'+
-    '<input id="cSearch" maxlength="32" placeholder="NAME OR STATE" autocomplete="off">'+
+    '<input aria-label="NAME OR STATE" id="cSearch" maxlength="32" placeholder="NAME OR STATE" autocomplete="off">'+
     ' <button class="c-btn" id="cSearchBtn">Search</button>'+
     '<div class="c-err" id="cSearchErr"></div>'+
     '<div id="cSearchRes"></div></div>'+
@@ -2458,7 +2458,7 @@ function renderCell(el,s){
     linkBar='<div class="c-linkbar"><div class="c-lhead">&#9939; CHAINLINK — you wire '+myCells.length+'/3 cells</div>'+
       '<div class="c-lrows">'+rows+'</div>'+
       (myCells.length<3
-        ? '<div class="c-ljoin"><input id="cLinkCode" maxlength="6" placeholder="INVITE CODE" autocomplete="off" style="text-transform:uppercase"> '+
+        ? '<div class="c-ljoin"><input aria-label="INVITE CODE" id="cLinkCode" maxlength="6" placeholder="INVITE CODE" autocomplete="off" style="text-transform:uppercase"> '+
           '<button class="c-btn" id="cLinkJoin">Wire another cell</button><div class="c-err" id="cLinkErr"></div></div>'
         : '<div class="c-lcap">Cap reached — three cells is the whole wire.</div>')+
       '<div class="c-lnet" id="cLinkNet">Mapping the network&hellip;</div>'+
@@ -2475,7 +2475,7 @@ function renderCell(el,s){
     '<span class="c-cov">Covers left this week: '+c.covers_left+'</span></div>'+
     '<div class="c-members">'+mems+'</div>';
   if(s.is_founder){
-    html+='<div class="c-rename"><input id="cRename" maxlength="24" placeholder="RENAME CELL" value="'+esc(c.name)+'" autocomplete="off">'+
+    html+='<div class="c-rename"><input aria-label="RENAME CELL" id="cRename" maxlength="24" placeholder="RENAME CELL" value="'+esc(c.name)+'" autocomplete="off">'+
       '<button class="c-btn" id="cRenameBtn">Rename</button></div>';
   }
   if(!s.checked_today){
@@ -2767,7 +2767,7 @@ function render(){
     h+='<div class="x-note">Post a contract and the escrow comes out of this chest. Earn more XP anywhere on the site to grow it.</div>';
   } else {
     h+='<div class="x-note">Found a camp to hire cells. One camp per callsign.</div>';
-    h+='<input id="xCampName" maxlength="24" placeholder="CAMP NAME" autocomplete="off">';
+    h+='<input aria-label="CAMP NAME" id="xCampName" maxlength="24" placeholder="CAMP NAME" autocomplete="off">';
     h+='<br><button class="c-btn" id="xFound">Found camp</button><div class="c-err" id="xFoundErr"></div>';
   }
   h+='</div>';
@@ -2799,8 +2799,8 @@ function render(){
   if(camp){
     h+='<div class="x-pane"><h4>Post a contract</h4><div class="x-note">One live contract per camp. Escrow is locked when a cell accepts.</div>';
     h+='<select id="xGoal"><option value="share_raid">SHARE RAID (5-500 shares / 7d)</option><option value="recruit_drive">RECRUIT DRIVE (1-50 recruits / 7d)</option><option value="perfect_week">PERFECT WEEK (3-7 check-in days)</option></select> ';
-    h+='<input id="xTarget" type="number" min="1" max="500" placeholder="TARGET" style="width:90px"> ';
-    h+='<input id="xBounty" type="number" min="5" max="25" placeholder="BOUNTY XP" style="width:110px"> ';
+    h+='<input aria-label="TARGET" id="xTarget" type="number" min="1" max="500" placeholder="TARGET" style="width:90px"> ';
+    h+='<input aria-label="BOUNTY XP" id="xBounty" type="number" min="5" max="25" placeholder="BOUNTY XP" style="width:110px"> ';
     h+='<button class="c-btn" id="xPost">Post</button><div class="c-err" id="xPostErr"></div></div>';
   }
   /* --- my contracts + claimable --- */
@@ -5269,7 +5269,7 @@ function init(){
 
 <div class="c-form">
   <label for="ccName">Your name / handle</label>
-  <input id="ccName" maxlength="40" placeholder="@yourhandle">
+  <input aria-label="@yourhandle" id="ccName" maxlength="40" placeholder="@yourhandle">
   <label for="cCap">Your caption</label>
   <textarea id="cCap" maxlength="280" placeholder="Make the machine laugh."></textarea>
   <a class="c-btn" id="cSubmit" href="#">Fire your caption</a>
@@ -5856,7 +5856,7 @@ function render(){
     var lastCid=""; try{ lastCid=localStorage.getItem("pf_last_content_id")||""; }catch(e){}
     h+='<select id="btBattleSel">'+open.map(function(b){
       return '<option value="'+esc(b.id)+'">'+esc(b.title)+'</option>'; }).join("")+'</select> '
-      +'<input id="btContentId" maxlength="64" placeholder="CONTENT ID" value="'+esc(lastCid)+'"> '
+      +'<input aria-label="CONTENT ID" id="btContentId" maxlength="64" placeholder="CONTENT ID" value="'+esc(lastCid)+'"> '
       +'<button class="c-btn" id="btEnterBtn">ENTER BATTLE</button><div class="c-err" id="btEnterErr"></div>';
   } else {
     h+='<div class="x-note">Entries are closed right now — battles open for entry before voting starts.</div>';
@@ -6157,7 +6157,7 @@ function renderBuilder(){
     h+='<div class="vd-frame" data-i="'+i+'">'
       +'<div class="vd-fhead"><b>#'+(i+1)+'</b> '+(f.img?'<span class="vd-hasimg">IMG</span>':'<span class="vd-noimg">TEXT CARD</span>')
       +' <span class="vd-flabel">'+esc(f.label)+'</span></div>'
-      +'<input class="vd-ftext" data-k="text" data-i="'+i+'" value="'+esc(f.text)+'" placeholder="Text overlay (punchy)" maxlength="140">'
+      +'<input aria-label="Text overlay (punchy)" class="vd-ftext" data-k="text" data-i="'+i+'" value="'+esc(f.text)+'" placeholder="Text overlay (punchy)" maxlength="140">'
       +'<div class="vd-frow"><label>secs <input class="vd-fdur" data-i="'+i+'" type="number" min="1" max="10" step="0.5" value="'+(frameDur(f)/1000)+'"></label>'
       +'<button class="c-btn vd-up" data-i="'+i+'">&uarr;</button>'
       +'<button class="c-btn vd-down" data-i="'+i+'">&darr;</button>'
@@ -6356,7 +6356,7 @@ function render(){
     +'</div>'
     +'<div class="x-note">RECORD plays the full sequence and captures it as a WebM video. Works in Chrome, Edge, Firefox.</div></div>';
   h+='<div class="x-pane"><h4>4 &mdash; Save &amp; share</h4>'
-    +'<input id="vdTitle" placeholder="Video title" maxlength="120" style="width:100%;max-width:420px;padding:8px;margin-bottom:8px">'
+    +'<input aria-label="Video title" id="vdTitle" placeholder="Video title" maxlength="120" style="width:100%;max-width:420px;padding:8px;margin-bottom:8px">'
     +'<div><button class="c-btn" id="vdSaveBtn">SAVE SEQUENCE (+15 XP)</button></div>'
     +'<div class="x-note">Saves the slide definitions to the network. Images stay on your device; anyone loading your video re-attaches their own.</div>'
     +'<div id="vdLib" style="margin-top:10px"></div></div>';
@@ -6489,7 +6489,7 @@ function render(){
   /* --- new proposal --- */
   h+='<div class="x-pane"><h4>New proposal</h4>'
     +'<div class="x-note">Costs <b>100 XP</b> to put on the floor &mdash; keeps the spam out. Duration 1&ndash;30 days.</div>'
-    +'<input class="c-in" id="gvTitle" maxlength="120" placeholder="Proposal title">'
+    +'<input aria-label="Proposal title" class="c-in" id="gvTitle" maxlength="120" placeholder="Proposal title">'
     +'<textarea class="c-in" id="gvDesc" maxlength="2000" rows="3" placeholder="What are you proposing, and why?"></textarea>'
     +'<div class="x-note">Duration: <input class="c-in gv-dur" id="gvDays" type="number" min="1" max="30" value="7"> days</div>'
     +'<button class="c-btn" id="gvCreateBtn">PUT IT TO A VOTE (100 XP)</button><div class="c-err" id="gvCreateErr"></div></div>';
@@ -6500,7 +6500,7 @@ function render(){
   if(cur){ h+='<div class="x-note">Your vote is delegated to <b>'+esc(cur)+'</b>.</div>'
     +'<button class="c-btn" id="gvUndelegate">TAKE MY VOTE BACK</button>'; }
   else { h+='<div class="x-note">You hold your own vote.</div>'
-    +'<input class="c-in" id="gvDel" maxlength="20" placeholder="Delegate callsign">'
+    +'<input aria-label="Delegate callsign" class="c-in" id="gvDel" maxlength="20" placeholder="Delegate callsign">'
     +'<button class="c-btn" id="gvDelegateBtn">DELEGATE MY VOTE</button>'; }
   if(toMe.length){ h+='<div class="x-note">'+toMe.length+' soldier'+(toMe.length>1?'s':'')+' trust'+(toMe.length>1?'':'s')+' your judgment: '+toMe.map(function(x){return esc(x);}).join(", ")+'</div>'; }
   h+='<div class="c-err" id="gvDelErr"></div></div>';
@@ -6673,7 +6673,7 @@ function render(){
   /* --- propose --- */
   h+='<div class="x-pane"><h4>Open an embassy</h4>'
     +'<div class="x-note">Only cell founders and officers can propose. Choose the target cell and the kind of relation.</div>'
-    +'<input class="c-in" id="dpTarget" maxlength="64" placeholder="Target cell ID or name">'
+    +'<input aria-label="Target cell ID or name" class="c-in" id="dpTarget" maxlength="64" placeholder="Target cell ID or name">'
     +'<select class="c-in" id="dpKind">'
     +'<option value="alliance">ALLIANCE &mdash; fight together, share the spoils</option>'
     +'<option value="coalition">COALITION &mdash; coordinate across many cells</option>'
@@ -7054,14 +7054,14 @@ setInterval(function(){ load(); },120000);
       '<div class="c-tag">Your cell doesn\'t build itself. Mint your war card, post it everywhere, turn followers into fighters.</div>'+
       '<div class="c-wgrid">'+
       '<label>WHICH CREATOR ARE YOU?<select id="wRoster"><option value="">&mdash; pick your profile &mdash;</option>'+opts+'</select></label>'+
-      '<label>YOUR WAR CALLSIGN<input id="wCall" maxlength="32" placeholder="e.g. NIGHT OWL" autocomplete="off"></label>'+
-      '<label>TOTAL FOLLOWERS<input id="wFol" maxlength="16" placeholder="e.g. 250K" autocomplete="off"></label>'+
-      '<label>YEARS IN THE FIGHT<input id="wYrs" maxlength="8" placeholder="e.g. 6" autocomplete="off"></label>'+
+      '<label>YOUR WAR CALLSIGN<input aria-label="e.g. NIGHT OWL" id="wCall" maxlength="32" placeholder="e.g. NIGHT OWL" autocomplete="off"></label>'+
+      '<label>TOTAL FOLLOWERS<input aria-label="e.g. 250K" id="wFol" maxlength="16" placeholder="e.g. 250K" autocomplete="off"></label>'+
+      '<label>YEARS IN THE FIGHT<input aria-label="e.g. 6" id="wYrs" maxlength="8" placeholder="e.g. 6" autocomplete="off"></label>'+
       '</div>'+
       '<div class="c-wgrid3">'+
-      '<label>STRENGTH 1<input id="wS1" maxlength="48" placeholder="e.g. Rapid-response memes" autocomplete="off"></label>'+
-      '<label>STRENGTH 2<input id="wS2" maxlength="48" placeholder="e.g. Street interviews" autocomplete="off"></label>'+
-      '<label>STRENGTH 3<input id="wS3" maxlength="48" placeholder="e.g. Mutual-aid drives" autocomplete="off"></label>'+
+      '<label>STRENGTH 1<input aria-label="e.g. Rapid-response memes" id="wS1" maxlength="48" placeholder="e.g. Rapid-response memes" autocomplete="off"></label>'+
+      '<label>STRENGTH 2<input aria-label="e.g. Street interviews" id="wS2" maxlength="48" placeholder="e.g. Street interviews" autocomplete="off"></label>'+
+      '<label>STRENGTH 3<input aria-label="e.g. Mutual-aid drives" id="wS3" maxlength="48" placeholder="e.g. Mutual-aid drives" autocomplete="off"></label>'+
       '</div>'+
       '<div class="c-wmeta"><span id="wCells">CELLS: &hellip;</span><span id="wCode"></span></div>'+
       '<div class="c-wbtns"><button class="c-btn c-big" id="wShare">Share war card</button>'+

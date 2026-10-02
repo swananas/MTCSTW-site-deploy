@@ -104,7 +104,7 @@ function render(){
     var lastCid=""; try{ lastCid=localStorage.getItem("pf_last_content_id")||""; }catch(e){}
     h+='<select id="btBattleSel">'+open.map(function(b){
       return '<option value="'+esc(b.id)+'">'+esc(b.title)+'</option>'; }).join("")+'</select> '
-      +'<input id="btContentId" maxlength="64" placeholder="CONTENT ID" value="'+esc(lastCid)+'"> '
+      +'<input aria-label="CONTENT ID" id="btContentId" maxlength="64" placeholder="CONTENT ID" value="'+esc(lastCid)+'"> '
       +'<button class="c-btn" id="btEnterBtn">ENTER BATTLE</button><div class="c-err" id="btEnterErr"></div>';
   } else {
     h+='<div class="x-note">Entries are closed right now — battles open for entry before voting starts.</div>';

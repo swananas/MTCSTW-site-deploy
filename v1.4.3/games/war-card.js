@@ -79,14 +79,14 @@
       '<div class="c-tag">Your cell doesn\'t build itself. Mint your war card, post it everywhere, turn followers into fighters.</div>'+
       '<div class="c-wgrid">'+
       '<label>WHICH CREATOR ARE YOU?<select id="wRoster"><option value="">&mdash; pick your profile &mdash;</option>'+opts+'</select></label>'+
-      '<label>YOUR WAR CALLSIGN<input id="wCall" maxlength="32" placeholder="e.g. NIGHT OWL" autocomplete="off"></label>'+
-      '<label>TOTAL FOLLOWERS<input id="wFol" maxlength="16" placeholder="e.g. 250K" autocomplete="off"></label>'+
-      '<label>YEARS IN THE FIGHT<input id="wYrs" maxlength="8" placeholder="e.g. 6" autocomplete="off"></label>'+
+      '<label>YOUR WAR CALLSIGN<input aria-label="e.g. NIGHT OWL" id="wCall" maxlength="32" placeholder="e.g. NIGHT OWL" autocomplete="off"></label>'+
+      '<label>TOTAL FOLLOWERS<input aria-label="e.g. 250K" id="wFol" maxlength="16" placeholder="e.g. 250K" autocomplete="off"></label>'+
+      '<label>YEARS IN THE FIGHT<input aria-label="e.g. 6" id="wYrs" maxlength="8" placeholder="e.g. 6" autocomplete="off"></label>'+
       '</div>'+
       '<div class="c-wgrid3">'+
-      '<label>STRENGTH 1<input id="wS1" maxlength="48" placeholder="e.g. Rapid-response memes" autocomplete="off"></label>'+
-      '<label>STRENGTH 2<input id="wS2" maxlength="48" placeholder="e.g. Street interviews" autocomplete="off"></label>'+
-      '<label>STRENGTH 3<input id="wS3" maxlength="48" placeholder="e.g. Mutual-aid drives" autocomplete="off"></label>'+
+      '<label>STRENGTH 1<input aria-label="e.g. Rapid-response memes" id="wS1" maxlength="48" placeholder="e.g. Rapid-response memes" autocomplete="off"></label>'+
+      '<label>STRENGTH 2<input aria-label="e.g. Street interviews" id="wS2" maxlength="48" placeholder="e.g. Street interviews" autocomplete="off"></label>'+
+      '<label>STRENGTH 3<input aria-label="e.g. Mutual-aid drives" id="wS3" maxlength="48" placeholder="e.g. Mutual-aid drives" autocomplete="off"></label>'+
       '</div>'+
       '<div class="c-wmeta"><span id="wCells">CELLS: &hellip;</span><span id="wCode"></span></div>'+
       '<div class="c-wbtns"><button class="c-btn c-big" id="wShare">Share war card</button>'+

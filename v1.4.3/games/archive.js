@@ -103,7 +103,7 @@ function render(){
   var id=ident(), h="";
   /* search bar */
   h+='<div class="x-pane"><h4>Search the vault</h4>'
-    +'<input id="arQ" type="text" placeholder="healthcare, wages, rent&hellip;" value="'+esc(lastQ)+'" style="width:70%;padding:8px;font:14px monospace"/>'
+    +'<input aria-label="healthcare, wages, rent&hellip;" id="arQ" type="text" placeholder="healthcare, wages, rent&hellip;" value="'+esc(lastQ)+'" style="width:70%;padding:8px;font:14px monospace"/>'
     +'<button class="c-btn" id="arSearch">SEARCH</button>'
     +'<div id="arResults" style="margin-top:10px"></div></div>';
   /* evergreen */

@@ -114,7 +114,7 @@ function render(){
     h+='<div class="x-note">Post a contract and the escrow comes out of this chest. Earn more XP anywhere on the site to grow it.</div>';
   } else {
     h+='<div class="x-note">Found a camp to hire cells. One camp per callsign.</div>';
-    h+='<input id="xCampName" maxlength="24" placeholder="CAMP NAME" autocomplete="off">';
+    h+='<input aria-label="CAMP NAME" id="xCampName" maxlength="24" placeholder="CAMP NAME" autocomplete="off">';
     h+='<br><button class="c-btn" id="xFound">Found camp</button><div class="c-err" id="xFoundErr"></div>';
   }
   h+='</div>';
@@ -146,8 +146,8 @@ function render(){
   if(camp){
     h+='<div class="x-pane"><h4>Post a contract</h4><div class="x-note">One live contract per camp. Escrow is locked when a cell accepts.</div>';
     h+='<select id="xGoal"><option value="share_raid">SHARE RAID (5-500 shares / 7d)</option><option value="recruit_drive">RECRUIT DRIVE (1-50 recruits / 7d)</option><option value="perfect_week">PERFECT WEEK (3-7 check-in days)</option></select> ';
-    h+='<input id="xTarget" type="number" min="1" max="500" placeholder="TARGET" style="width:90px"> ';
-    h+='<input id="xBounty" type="number" min="5" max="25" placeholder="BOUNTY XP" style="width:110px"> ';
+    h+='<input aria-label="TARGET" id="xTarget" type="number" min="1" max="500" placeholder="TARGET" style="width:90px"> ';
+    h+='<input aria-label="BOUNTY XP" id="xBounty" type="number" min="5" max="25" placeholder="BOUNTY XP" style="width:110px"> ';
     h+='<button class="c-btn" id="xPost">Post</button><div class="c-err" id="xPostErr"></div></div>';
   }
   /* --- my contracts + claimable --- */

@@ -98,7 +98,7 @@ function render(){
   /* --- new proposal --- */
   h+='<div class="x-pane"><h4>New proposal</h4>'
     +'<div class="x-note">Costs <b>100 XP</b> to put on the floor &mdash; keeps the spam out. Duration 1&ndash;30 days.</div>'
-    +'<input class="c-in" id="gvTitle" maxlength="120" placeholder="Proposal title">'
+    +'<input aria-label="Proposal title" class="c-in" id="gvTitle" maxlength="120" placeholder="Proposal title">'
     +'<textarea class="c-in" id="gvDesc" maxlength="2000" rows="3" placeholder="What are you proposing, and why?"></textarea>'
     +'<div class="x-note">Duration: <input class="c-in gv-dur" id="gvDays" type="number" min="1" max="30" value="7"> days</div>'
     +'<button class="c-btn" id="gvCreateBtn">PUT IT TO A VOTE (100 XP)</button><div class="c-err" id="gvCreateErr"></div></div>';
@@ -109,7 +109,7 @@ function render(){
   if(cur){ h+='<div class="x-note">Your vote is delegated to <b>'+esc(cur)+'</b>.</div>'
     +'<button class="c-btn" id="gvUndelegate">TAKE MY VOTE BACK</button>'; }
   else { h+='<div class="x-note">You hold your own vote.</div>'
-    +'<input class="c-in" id="gvDel" maxlength="20" placeholder="Delegate callsign">'
+    +'<input aria-label="Delegate callsign" class="c-in" id="gvDel" maxlength="20" placeholder="Delegate callsign">'
     +'<button class="c-btn" id="gvDelegateBtn">DELEGATE MY VOTE</button>'; }
   if(toMe.length){ h+='<div class="x-note">'+toMe.length+' soldier'+(toMe.length>1?'s':'')+' trust'+(toMe.length>1?'':'s')+' your judgment: '+toMe.map(function(x){return esc(x);}).join(", ")+'</div>'; }
   h+='<div class="c-err" id="gvDelErr"></div></div>';

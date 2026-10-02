@@ -120,9 +120,9 @@ function render(){
   /* deposit / withdraw */
   h+='<div class="x-pane"><h4>Move XP</h4>';
   h+='<div class="x-note">Spendable balance: <b>'+(spendable==null?"?":spendable)+' XP</b> &middot; weekly deposit room: <b>'+Math.max(0,st.deposit_week_cap-st.deposit_week_used)+' XP</b></div>';
-  h+='<input id="bDepAmt" type="number" min="1" max="40" placeholder="DEPOSIT XP" style="width:120px"> ';
+  h+='<input aria-label="DEPOSIT XP" id="bDepAmt" type="number" min="1" max="40" placeholder="DEPOSIT XP" style="width:120px"> ';
   h+='<button class="c-btn" id="bDeposit">Deposit</button> ';
-  h+='<input id="bWdAmt" type="number" min="1" placeholder="WITHDRAW XP" style="width:130px"> ';
+  h+='<input aria-label="WITHDRAW XP" id="bWdAmt" type="number" min="1" placeholder="WITHDRAW XP" style="width:130px"> ';
   h+='<button class="c-btn" id="bWithdraw">Withdraw</button><div class="c-err" id="bErr"></div>';
   h+='<div class="x-note">Deposits come from your spendable XP. Withdrawals are free — but XP pulled before Monday forfeits the week\'s interest on it.</div></div>';
   /* credit score */

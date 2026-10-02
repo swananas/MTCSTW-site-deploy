@@ -107,7 +107,7 @@ function render(){
     h+='<div class="x-csub">by <b>'+esc(v.founder)+'</b> &middot; goal '+esc(v.goal)+' '+v.target+(v.kind==="clash"?" &middot; A vs <b>"+esc(v.side_b)+"</b>":"")+(v.sponsor_bounty>0?" &middot; bounty <b>"+v.sponsor_bounty+" XP</b>":"")+'</div>';
     h+='<div class="x-pool"><span class="x-poolnum" data-pool="'+v.pool+'">'+v.pool+'</span> XP pooled &middot; '+v.holders+' shareholders &middot; closes in '+countdown(msLeft)+'</div>';
     if(v.kind==="clash") h+='<div class="x-sides"><span class="x-sideA">A: '+v.pool_a+' XP</span> vs <span class="x-sideB">B: '+v.pool_b+' XP</span></div>';
-    h+='<div class="x-pledge"><input class="v-amt" data-id="'+esc(v.id)+'" type="number" min="10" max="500" placeholder="XP (10-500)" style="width:110px"> ';
+    h+='<div class="x-pledge"><input aria-label="XP (10-500)" class="v-amt" data-id="'+esc(v.id)+'" type="number" min="10" max="500" placeholder="XP (10-500)" style="width:110px"> ';
     if(v.kind==="clash") h+='<select class="v-side" data-id="'+esc(v.id)+'"><option value="a">SIDE A</option><option value="b">SIDE B</option></select> ';
     h+='<button class="c-btn v-pledgebtn" data-id="'+esc(v.id)+'">Buy shares</button>';
     if(!v.extended) h+=' <button class="c-btn v-extend" data-id="'+esc(v.id)+'">Vote extend</button>';
@@ -140,13 +140,13 @@ function render(){
   }
   /* --- propose --- */
   h+='<div class="x-pane"><h4>Propose a venture</h4><div class="x-note">Pledges come from shareholders\' War Chests. You need banked XP to buy in — fund yours first.</div>';
-  h+='<input id="vName" maxlength="40" placeholder="OPERATION NAME" autocomplete="off"> ';
+  h+='<input aria-label="OPERATION NAME" id="vName" maxlength="40" placeholder="OPERATION NAME" autocomplete="off"> ';
   h+='<select id="vKind"><option value="campaign">CAMPAIGN (co-op)</option><option value="clash">CLASH (PvP)</option></select><br>';
   h+='<select id="vGoal"><option value="share_raid">SHARE RAID</option><option value="recruit_drive">RECRUIT DRIVE</option></select> ';
-  h+='<input id="vTarget" type="number" min="1" placeholder="TARGET" style="width:90px"> ';
-  h+='<input id="vFDays" type="number" min="1" max="7" placeholder="FUND DAYS" style="width:100px" value="3"><br>';
-  h+='<input id="vBounty" type="number" min="0" placeholder="SPONSOR BOUNTY XP" style="width:150px"> ';
-  h+='<input id="vSideB" maxlength="24" placeholder="SIDE B NAME (clash)" style="width:170px"> ';
+  h+='<input aria-label="TARGET" id="vTarget" type="number" min="1" placeholder="TARGET" style="width:90px"> ';
+  h+='<input aria-label="FUND DAYS" id="vFDays" type="number" min="1" max="7" placeholder="FUND DAYS" style="width:100px" value="3"><br>';
+  h+='<input aria-label="SPONSOR BOUNTY XP" id="vBounty" type="number" min="0" placeholder="SPONSOR BOUNTY XP" style="width:150px"> ';
+  h+='<input aria-label="SIDE B NAME (clash)" id="vSideB" maxlength="24" placeholder="SIDE B NAME (clash)" style="width:170px"> ';
   h+='<button class="c-btn" id="vPropose">Propose</button><div class="c-err" id="vProposeErr"></div></div>';
   el.innerHTML=h;
   wire();

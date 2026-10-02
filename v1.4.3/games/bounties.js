@@ -76,7 +76,7 @@ function render(){
       +'<div class="bn-meta">'+(Number(b.xp)||0)+' XP &bull; posted by '+esc(b.requester||"anon")
       +(b.status==='claimed'?' &bull; CLAIMED':'')+'</div>';
     if(b.status!=='claimed'&&b.status!=='done'){
-      h+='<div class="bn-claimrow"><input class="bn-input" id="bnSub_'+esc(b.id)+'" placeholder="Your content ID (from Poster Forge)" maxlength="64">'
+      h+='<div class="bn-claimrow"><input aria-label="Your content ID (from Poster Forge)" class="bn-input" id="bnSub_'+esc(b.id)+'" placeholder="Your content ID (from Poster Forge)" maxlength="64">'
         +'<button class="c-btn bn-claim" data-bid="'+esc(b.id)+'">CLAIM</button></div>'
         +'<div class="c-err" id="bnErr_'+esc(b.id)+'"></div>';
     }
@@ -86,9 +86,9 @@ function render(){
   /* --- post a bounty --- */
   h+='<div class="x-pane"><h4>Post a bounty</h4>'
     +'<div class="x-note">Need propaganda? Put XP on it. A creator claims it, submits, gets paid.</div>'
-    +'<input class="bn-input" id="bnTitle" placeholder="BOUNTY TITLE — e.g. Poster: Ohio Senate race" maxlength="80"><br>'
-    +'<input class="bn-input" id="bnDetail" placeholder="Detail — what should it say? who is it for?" maxlength="200"><br>'
-    +'<input class="bn-input" id="bnXp" placeholder="XP reward (10-100)" maxlength="3" inputmode="numeric"><br>'
+    +'<input aria-label="BOUNTY TITLE — e.g. Poster: Ohio Senate race" class="bn-input" id="bnTitle" placeholder="BOUNTY TITLE — e.g. Poster: Ohio Senate race" maxlength="80"><br>'
+    +'<input aria-label="Detail — what should it say? who is it for?" class="bn-input" id="bnDetail" placeholder="Detail — what should it say? who is it for?" maxlength="200"><br>'
+    +'<input aria-label="XP reward (10-100)" class="bn-input" id="bnXp" placeholder="XP reward (10-100)" maxlength="3" inputmode="numeric"><br>'
     +'<button class="c-btn" id="bnPostBtn">POST BOUNTY</button><div class="c-err" id="bnPostErr"></div></div>';
   h+='<div style="margin-top:10px"><button class="c-btn" id="bnRetry">Refresh</button></div>';
   el.innerHTML=h;

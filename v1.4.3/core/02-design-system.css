@@ -31,10 +31,13 @@
   box-sizing:border-box; overflow:hidden;
 }
 .pf-silo h2,.pf-silo-title{
-  color:var(--pf-red); font-size:28px; margin:0 0 6px;
+  color:var(--pf-red-bright); font-size:28px; margin:0 0 6px;
   letter-spacing:2px; text-transform:uppercase;
   font-family:var(--pf-font-display);
 }
+/* Accessibility: visible focus for keyboard users */
+.pf-silo :focus-visible{outline:2px solid var(--pf-gold);outline-offset:2px;}
+.pf-btn:focus-visible,.pf-btn-ghost:focus-visible{outline:2px solid var(--pf-gold);outline-offset:3px;}
 .pf-silo-sub{
   font-family:var(--pf-font-body); font-size:14px;
   color:var(--pf-muted); margin:0 0 14px; line-height:1.5;

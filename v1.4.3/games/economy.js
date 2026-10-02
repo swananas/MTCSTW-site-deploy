@@ -105,7 +105,7 @@ function renderAuctions(id){
     h+='<div class="cp-mission"><div class="cp-mtext"><b>'+esc(a.slot)+'</b>'
       +'<div class="x-note">Top bid: <b>'+Number(a.current_bid||0)+' XP</b> by '+esc(a.leader||"—")
       +' &bull; ends in '+esc(fmtDur(left))+'</div></div>'
-      +'<div><input class="c-in pf-input-sm" id="ecBidAmt_'+esc(a.id)+'" type="number" min="1" placeholder="XP" /> '
+      +'<div><input aria-label="XP" class="c-in pf-input-sm" id="ecBidAmt_'+esc(a.id)+'" type="number" min="1" placeholder="XP" /> '
       +'<button class="c-btn" data-aid="'+esc(a.id)+'">BID</button></div></div>';
   }
   h+='</div>'; return h;
@@ -158,7 +158,7 @@ function wireCosmetics(id,el){
 /* ---------- STAKING ---------- */
 function renderStaking(id){
   var h='<div class="x-pane"><h4>Staking</h4><div class="x-note">Lock XP. Earn yield. Commitment pays.</div>'
-    +'<div><input class="c-in pf-input-sm" id="ecStakeAmt" type="number" min="1" placeholder="XP to lock" /> '
+    +'<div><input aria-label="XP to lock" class="c-in pf-input-sm" id="ecStakeAmt" type="number" min="1" placeholder="XP to lock" /> '
     +'<select class="c-in" id="ecStakeDur"><option value="7">7 days — 5%</option><option value="30">30 days — 15%</option><option value="90">90 days — 40%</option></select> '
     +'<button class="c-btn" id="ecStakeBtn">LOCK</button></div><div style="height:8px"></div>';
   var stakes=(ST&&ST.stakes)||[];
@@ -204,11 +204,11 @@ function wireStaking(id,el){
 /* ---------- TREASURY ---------- */
 function renderTreasury(id){
   var h='<div class="x-pane"><h4>Cell Treasury</h4><div class="x-note">Collective war chest. Throw XP in; founders spend it on the cell.</div>'
-    +'<div><input class="c-in pf-input-sm" id="ecTCell" type="text" placeholder="cell id" value="'+esc(TRCELL)+'" /> '
+    +'<div><input aria-label="cell id" class="c-in pf-input-sm" id="ecTCell" type="text" placeholder="cell id" value="'+esc(TRCELL)+'" /> '
     +'<button class="c-btn" id="ecTView">VIEW</button></div><div style="height:8px"></div>';
   if(TRB&&TRB.ok){
     h+='<div class="cp-mtext"><b>BALANCE: '+Number(TRB.balance||0)+' XP</b></div>'
-      +'<div><input class="c-in pf-input-sm" id="ecTFund" type="number" min="1" placeholder="XP" /> '
+      +'<div><input aria-label="XP" class="c-in pf-input-sm" id="ecTFund" type="number" min="1" placeholder="XP" /> '
       +'<button class="c-btn" id="ecTFundBtn">THROW DOWN</button></div>';
     var rec=TRB.recent||[];
     if(rec.length){ h+='<div class="x-note pf-mt" >Recent:</div>';
@@ -241,7 +241,7 @@ function wireTreasury(id,el){
 function renderSponsor(id){
   return '<div class="x-pane"><h4>Sponsored Drops</h4>'
     +'<div class="x-note">Pay XP to push your poster. 100 XP = your cell sees it. 500 XP = the whole network sees it.</div>'
-    +'<div><input class="c-in pf-input-md" id="ecSpCid" type="text" placeholder="content id" /> '
+    +'<div><input aria-label="content id" class="c-in pf-input-md" id="ecSpCid" type="text" placeholder="content id" /> '
     +'<select class="c-in" id="ecSpTier"><option value="100">CELL-WIDE — 100 XP</option><option value="500">NETWORK-WIDE — 500 XP</option></select> '
     +'<button class="c-btn" id="ecSpBtn">SPONSOR</button></div></div>';
 }
@@ -289,7 +289,7 @@ function wirePowerups(id,el){
 function renderTitles(id){
   return '<div class="x-pane"><h4>Custom Titles</h4>'
     +'<div class="x-note">500 XP. A title next to your callsign, forever. Status is the oldest currency.</div>'
-    +'<div><input class="c-in pf-input-md" id="ecTitle" type="text" maxlength="40" placeholder="e.g. STREET GENERAL" /> '
+    +'<div><input aria-label="e.g. STREET GENERAL" class="c-in pf-input-md" id="ecTitle" type="text" maxlength="40" placeholder="e.g. STREET GENERAL" /> '
     +'<button class="c-btn" id="ecTitleBtn">BUY (500 XP)</button></div></div>';
 }
 function wireTitles(id,el){

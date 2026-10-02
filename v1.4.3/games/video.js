@@ -200,7 +200,7 @@ function renderBuilder(){
     h+='<div class="vd-frame" data-i="'+i+'">'
       +'<div class="vd-fhead"><b>#'+(i+1)+'</b> '+(f.img?'<span class="vd-hasimg">IMG</span>':'<span class="vd-noimg">TEXT CARD</span>')
       +' <span class="vd-flabel">'+esc(f.label)+'</span></div>'
-      +'<input class="vd-ftext" data-k="text" data-i="'+i+'" value="'+esc(f.text)+'" placeholder="Text overlay (punchy)" maxlength="140">'
+      +'<input aria-label="Text overlay (punchy)" class="vd-ftext" data-k="text" data-i="'+i+'" value="'+esc(f.text)+'" placeholder="Text overlay (punchy)" maxlength="140">'
       +'<div class="vd-frow"><label>secs <input class="vd-fdur" data-i="'+i+'" type="number" min="1" max="10" step="0.5" value="'+(frameDur(f)/1000)+'"></label>'
       +'<button class="c-btn vd-up" data-i="'+i+'">&uarr;</button>'
       +'<button class="c-btn vd-down" data-i="'+i+'">&darr;</button>'
@@ -399,7 +399,7 @@ function render(){
     +'</div>'
     +'<div class="x-note">RECORD plays the full sequence and captures it as a WebM video. Works in Chrome, Edge, Firefox.</div></div>';
   h+='<div class="x-pane"><h4>4 &mdash; Save &amp; share</h4>'
-    +'<input id="vdTitle" placeholder="Video title" maxlength="120" style="width:100%;max-width:420px;padding:8px;margin-bottom:8px">'
+    +'<input aria-label="Video title" id="vdTitle" placeholder="Video title" maxlength="120" style="width:100%;max-width:420px;padding:8px;margin-bottom:8px">'
     +'<div><button class="c-btn" id="vdSaveBtn">SAVE SEQUENCE (+15 XP)</button></div>'
     +'<div class="x-note">Saves the slide definitions to the network. Images stay on your device; anyone loading your video re-attaches their own.</div>'
     +'<div id="vdLib" style="margin-top:10px"></div></div>';

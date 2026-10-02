@@ -32,8 +32,8 @@
 <div class="o-claim" id="oClaimWrap">
   <a id="oClaimToggle">Claim your rank on every device</a>
   <div class="o-claimbox" id="oClaimBox">
-    <input id="oCallsign" maxlength="20" placeholder="CALLSIGN" autocomplete="off" style="text-transform:uppercase">
-    <input id="oEmail" type="email" placeholder="EMAIL (OPTIONAL)" autocomplete="off">
+    <input aria-label="CALLSIGN" id="oCallsign" maxlength="20" placeholder="CALLSIGN" autocomplete="off" style="text-transform:uppercase">
+    <input aria-label="EMAIL (OPTIONAL)" id="oEmail" type="email" placeholder="EMAIL (OPTIONAL)" autocomplete="off">
     <br><button class="o-claimbtn" id="oClaimBtn">Claim</button>
     <div class="o-err" id="oClaimErr"></div>
   </div>

@@ -21,7 +21,7 @@
 
 <div class="c-form">
   <label for="ccName">Your name / handle</label>
-  <input id="ccName" maxlength="40" placeholder="@yourhandle">
+  <input aria-label="@yourhandle" id="ccName" maxlength="40" placeholder="@yourhandle">
   <label for="cCap">Your caption</label>
   <textarea id="cCap" maxlength="280" placeholder="Make the machine laugh."></textarea>
   <a class="c-btn" id="cSubmit" href="#">Fire your caption</a>

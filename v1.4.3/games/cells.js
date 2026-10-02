@@ -184,17 +184,17 @@ function renderLobby(el){
     '</div>'+
     '<div class="c-lobby">'+
     '<div class="c-pane"><h4>Form a cell</h4>'+
-    '<input id="cName" maxlength="24" placeholder="CELL NAME" autocomplete="off">'+
+    '<input aria-label="CELL NAME" id="cName" maxlength="24" placeholder="CELL NAME" autocomplete="off">'+
     '<br><button class="c-btn" id="cCreate">Form cell</button>'+
     '<div class="c-err" id="cCreateErr"></div></div>'+
     '<div class="c-pane"><h4>Join a cell</h4>'+
-    '<input id="cCode" maxlength="6" placeholder="INVITE CODE" autocomplete="off" style="text-transform:uppercase">'+
-    '<input id="cRef" maxlength="32" placeholder="WHO RECRUITED YOU (CALLSIGN)" autocomplete="off" style="text-transform:uppercase">'+
+    '<input aria-label="INVITE CODE" id="cCode" maxlength="6" placeholder="INVITE CODE" autocomplete="off" style="text-transform:uppercase">'+
+    '<input aria-label="WHO RECRUITED YOU (CALLSIGN)" id="cRef" maxlength="32" placeholder="WHO RECRUITED YOU (CALLSIGN)" autocomplete="off" style="text-transform:uppercase">'+
     '<br><button class="c-btn" id="cJoin">Join cell</button>'+
     '<div class="c-err" id="cJoinErr"></div></div>'+
     '</div>'+
     '<div class="c-pane"><h4>Find a cell</h4>'+
-    '<input id="cSearch" maxlength="32" placeholder="NAME OR STATE" autocomplete="off">'+
+    '<input aria-label="NAME OR STATE" id="cSearch" maxlength="32" placeholder="NAME OR STATE" autocomplete="off">'+
     ' <button class="c-btn" id="cSearchBtn">Search</button>'+
     '<div class="c-err" id="cSearchErr"></div>'+
     '<div id="cSearchRes"></div></div>'+
@@ -277,7 +277,7 @@ function renderCell(el,s){
     linkBar='<div class="c-linkbar"><div class="c-lhead">&#9939; CHAINLINK — you wire '+myCells.length+'/3 cells</div>'+
       '<div class="c-lrows">'+rows+'</div>'+
       (myCells.length<3
-        ? '<div class="c-ljoin"><input id="cLinkCode" maxlength="6" placeholder="INVITE CODE" autocomplete="off" style="text-transform:uppercase"> '+
+        ? '<div class="c-ljoin"><input aria-label="INVITE CODE" id="cLinkCode" maxlength="6" placeholder="INVITE CODE" autocomplete="off" style="text-transform:uppercase"> '+
           '<button class="c-btn" id="cLinkJoin">Wire another cell</button><div class="c-err" id="cLinkErr"></div></div>'
         : '<div class="c-lcap">Cap reached — three cells is the whole wire.</div>')+
       '<div class="c-lnet" id="cLinkNet">Mapping the network&hellip;</div>'+
@@ -294,7 +294,7 @@ function renderCell(el,s){
     '<span class="c-cov">Covers left this week: '+c.covers_left+'</span></div>'+
     '<div class="c-members">'+mems+'</div>';
   if(s.is_founder){
-    html+='<div class="c-rename"><input id="cRename" maxlength="24" placeholder="RENAME CELL" value="'+esc(c.name)+'" autocomplete="off">'+
+    html+='<div class="c-rename"><input aria-label="RENAME CELL" id="cRename" maxlength="24" placeholder="RENAME CELL" value="'+esc(c.name)+'" autocomplete="off">'+
       '<button class="c-btn" id="cRenameBtn">Rename</button></div>';
   }
   if(!s.checked_today){

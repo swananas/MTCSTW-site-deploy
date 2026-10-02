@@ -102,7 +102,7 @@ function renderWagers(id){
         +' <span class="cs-odds">'+esc(odds)+' ('+sb+' XP)</span>'
         +'<button class="c-btn cs-betbtn" data-wid="'+esc(w.id)+'" data-side="'+esc(sd.side)+'">BET</button></div>';
     }
-    h+='<div class="cs-betrow"><input class="c-input cs-amt pf-input-sm" id="csAmt_'+esc(w.id)+'" type="number" min="1" placeholder="XP amount" >'
+    h+='<div class="cs-betrow"><input aria-label="XP amount" class="c-input cs-amt pf-input-sm" id="csAmt_'+esc(w.id)+'" type="number" min="1" placeholder="XP amount" >'
       +'<span class="x-note">Enter amount, then hit BET on your side.</span></div></div>';
   }
   h+='</div>';
@@ -125,7 +125,7 @@ function renderLottery(id){
 function renderFlip(id){
   var fl=(F&&F.flips)||[];
   var h='<div class="x-pane"><h4>Coin Flip</h4><div class="x-note">Heads or tails. Winner takes double. 5% rake feeds the lottery.</div>'
-    +'<div class="cs-betrow"><input class="c-input pf-input-sm" id="csFlipAmt" type="number" min="1" placeholder="XP amount" >'
+    +'<div class="cs-betrow"><input aria-label="XP amount" class="c-input pf-input-sm" id="csFlipAmt" type="number" min="1" placeholder="XP amount" >'
     +'<select class="c-input pf-input-sm" id="csFlipSide" ><option value="heads">HEADS</option><option value="tails">TAILS</option></select>'
     +'<button class="c-btn" id="csFlipCreate">CREATE FLIP</button></div>'
     +'<div class="c-err" id="csFlipErr"></div>';
@@ -154,7 +154,7 @@ function renderCrash(id){
     h+='<div class="x-note">You\'re in for '+(Number(myBet.amount)||0)+' XP at '+mult.toFixed(2)+'x = '+Math.floor((Number(myBet.amount)||0)*mult)+' XP</div>'
       +'<button class="c-btn cs-cashout" id="csCashout">CASH OUT</button>';
   } else {
-    h+='<div class="cs-betrow"><input class="c-input pf-input-sm" id="csCrashAmt" type="number" min="1" placeholder="XP amount" >'
+    h+='<div class="cs-betrow"><input aria-label="XP amount" class="c-input pf-input-sm" id="csCrashAmt" type="number" min="1" placeholder="XP amount" >'
       +'<button class="c-btn" id="csCrashBet">PLACE BET</button></div>';
   }
   h+='<div class="x-note">'+bets.length+' in this round</div><div class="c-err" id="csCrashErr"></div></div>';
@@ -165,8 +165,8 @@ function renderRoulette(id){
   var h='<div class="x-pane"><h4>Roulette</h4><div class="x-note">Red/black pays 2x. Single number pays 36x. 5% of losses feed the lottery.</div>'
     +'<div class="cs-betrow"><select class="c-input pf-input-sm" id="csRouType" >'
     +'<option value="red">RED</option><option value="black">BLACK</option><option value="number">NUMBER</option></select>'
-    +'<input class="c-input" id="csRouVal" type="number" min="0" max="36" placeholder="0-36" style="width:80px">'
-    +'<input class="c-input pf-input-sm" id="csRouAmt" type="number" min="1" placeholder="XP" >'
+    +'<input aria-label="0-36" class="c-input" id="csRouVal" type="number" min="0" max="36" placeholder="0-36" style="width:80px">'
+    +'<input aria-label="XP" class="c-input pf-input-sm" id="csRouAmt" type="number" min="1" placeholder="XP" >'
     +'<button class="c-btn" id="csSpin">SPIN</button></div>'
     +'<div class="cs-roures" id="csRouRes"></div><div class="c-err" id="csRouErr"></div></div>';
   return h;

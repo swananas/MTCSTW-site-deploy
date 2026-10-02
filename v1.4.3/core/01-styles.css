@@ -303,3 +303,7 @@ footer h1, footer h2, footer h3, footer h4{color:#f5ead6 !important;}
 #pf-war-card .c-wbtns{display:flex;gap:10px;flex-wrap:wrap}
 #pf-war-card .c-wbtns .c-big{flex:2;min-width:200px}
 @media (max-width:560px){#pf-war-card .c-wgrid,#pf-war-card .c-wgrid3{grid-template-columns:1fr}}
+#pf-cells .c-prb{display:inline-block;color:#ffb703;font-weight:900;font-size:12px;margin-left:6px;vertical-align:middle}
+#pf-cells .c-prestige .c-prben{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin:3px 0}
+#pf-cells .c-prestige .c-prprog{height:10px;background:#2a2a2a;border:1px solid #555;margin:10px auto 4px;max-width:320px}
+#pf-cells .c-prestige .c-prfill{display:block;height:100%;background:linear-gradient(90deg,#c1121f,#ffb703)}

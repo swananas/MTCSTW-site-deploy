@@ -151,8 +151,9 @@ function loadBoard(){
     if(!el) return;
     if(!j||!j.cells||!j.cells.length){ el.innerHTML='<div class="c-empty">No cells on the board yet. The first founder&rsquo;s name goes here.</div>'; return; }
     var html=j.cells.map(function(c,i){
+      var pfl=c.prestige_flame?' <span class="c-prb" style="margin-left:4px;" title="'+esc(c.prestige_tier||"")+' cell">'+c.prestige_flame+'</span>':"";
       return '<div class="c-brow'+(i===0?" c-btop":"")+'"><span class="c-brank">'+(i+1)+'</span>'+
-        '<span class="c-bname">'+esc(c.name)+
+        '<span class="c-bname">'+esc(c.name)+pfl+
         (c.verified?'<span class="c-vfy" title="2+ callsigns strong">&#10003; VERIFIED</span>':'')+'</span>'+
         '<span class="c-bstat">'+c.streak+' streak &middot; '+c.members+'/5</span></div>';
     }).join("");
@@ -266,12 +267,36 @@ function renderCell(el,s){
     var role=String(m.role||"member").toUpperCase();
     var badge=role==="FOUNDER"?'<span class="c-role c-rfounder">FOUNDER</span>'
       :role==="OFFICER"?'<span class="c-role c-rofficer">OFFICER</span>':"";
+    var prb=(Number(m.prestige_level)||0)>0
+      ?' <span class="c-prb" title="Prestige '+esc(m.prestige_badge||"")+'">&#9733;'+esc(m.prestige_badge||"")+'</span>':"";
     var prom=(s.is_founder&&role!=="FOUNDER"&&role!=="OFFICER")
       ?' <button class="c-btn c-sm c-prom" data-cs="'+esc(m.callsign)+'">PROMOTE</button>':"";
     return '<div class="c-mrow"><span class="c-dot'+(m.checked_today?" c-on":"")+'"></span>'+
-      '<span class="c-mname">'+esc(m.callsign)+'</span>'+badge+
+      '<span class="c-mname">'+esc(m.callsign)+'</span>'+prb+badge+
       (m.checked_today?'<span class="c-mok">IN</span>':'<span class="c-mno">OUT</span>')+prom+'</div>';
   }).join("");
+  /* CELL PRESTIGE panel: tier badge, power, benefits, progress, recruit nudge. */
+  var pr=c.prestige||null, prHtml="";
+  if(pr&&pr.tier){
+    var benHtml=(pr.benefits||[]).map(function(b){
+      return '<div class="c-prben">&#10003; '+esc(b)+'</div>'; }).join("");
+    var progHtml="";
+    if(pr.next_tier){
+      var pw=Math.min(100,Math.round(pr.power/pr.next_tier.min*100));
+      progHtml='<div class="c-prprog"><div class="c-prfill" style="width:'+pw+'%"></div></div>'+
+        '<div class="x-note">'+pr.next_tier.need+' more power to reach '+esc(pr.next_tier.name)+'</div>';
+    } else {
+      progHtml='<div class="x-note">MAX TIER &mdash; the cell burns at full power.</div>';
+    }
+    prHtml='<div class="c-prestige" style="background:#120404;border:2px solid #c1121f;margin:12px 0;padding:14px;text-align:center;">'+
+      '<div style="font-size:22px;letter-spacing:2px;">'+pr.flame+'</div>'+
+      '<div style="color:#c1121f;font-weight:900;font-size:18px;letter-spacing:3px;">'+esc(pr.tier.name)+'</div>'+
+      '<div class="x-note" style="margin-bottom:8px;">'+pr.power+' prestige power &middot; '+pr.prestiged_count+' prestiged '+(pr.prestiged_count===1?"fighter":"fighters")+'</div>'+
+      benHtml+progHtml+'</div>';
+  } else {
+    prHtml='<div class="c-prestige" style="background:#0d0d0d;border:1px dashed #555;margin:12px 0;padding:12px;text-align:center;">'+
+      '<div class="x-note">&#128293; No prestige power yet. <b>Recruit prestiged fighters</b> to ignite cell bonuses &mdash; EMBER at 1 power (+5% XP for everyone).</div></div>';
+  }
   /* CHAINLINK bar: every cell this callsign wires, the cap, the network stat. */
   var myCells=s.cells||[], linkBar='';
   if(myCells.length){
@@ -299,6 +324,7 @@ function renderCell(el,s){
     '<div class="c-cstats"><span class="c-flame">&#128293; '+c.streak+'-day streak</span>'+
     '<span class="c-mult">+'+pct+'% XP on Daily Orders</span>'+
     '<span class="c-cov">Covers left this week: '+c.covers_left+'</span></div>'+
+    prHtml+
     '<div class="c-members">'+mems+'</div>';
   if(s.is_founder){
     html+='<div class="c-rename"><input aria-label="RENAME CELL" id="cRename" maxlength="24" placeholder="RENAME CELL" value="'+esc(c.name)+'" autocomplete="off">'+

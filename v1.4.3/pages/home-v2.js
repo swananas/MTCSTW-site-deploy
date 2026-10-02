@@ -167,15 +167,36 @@
     'fan-vote': [['See live activity \u2192', 'socialproof'], ['Back your pick in battle \u2192', 'infighting']]
   };
 
-  /* Inject section headers before each section's first widget.
-     Idempotent: skips sections that already have a header. */
-  function mountHeaders() {
+  /* Silo -> section id. Used to insert each widget's <section> in funnel
+     order even as bundles arrive out of order, and to map lazy bundles. */
+  var SILO_SEC = {
+    'brief':'start-here','do-meter':'start-here','daily-orders':'start-here',
+    'dopa':'start-here','enlistment-ranks':'start-here','notify':'start-here',
+    'socialproof':'start-here',
+    'caption-combat':'play','creator-guess':'play','slr-match-quiz':'play',
+    'daily-interrogation':'play','billionaire-supervillain':'play',
+    'bracket-board':'play','boost-raid':'play','daily-drop':'play',
+    'battles':'play','infighting':'play','media-nuke':'play','casino':'play',
+    'cells':'belong','cell-war':'belong','diplo':'belong','contracts':'belong',
+    'referral':'belong','governance':'belong',
+    'academy':'create','assist':'create','poster-forge':'create','video':'create',
+    'feed':'create','amplify':'create','hq-nudge':'create','armory':'create',
+    'peoplesbank':'fund','economy':'fund','war-bonds':'fund','movement':'fund',
+    'earnings':'fund','bounties':'fund','ventures':'fund',
+    'campaign':'act','alerts':'act','irl':'act','intel':'act','archive':'act',
+    'civic':'act',
+    'fan-vote':'proof'
+  };
+
+  /* Build the 7 section blocks at init: header + lazy-load anchor each.
+     Widgets mount BETWEEN their section's anchor and the next section's
+     anchor, so funnel order holds no matter what order bundles arrive in.
+     Idempotent: skips if sections already exist (re-init safe). */
+  function initSections() {
     var h = document.getElementById('pf-v2');
     if (!h || isEditor()) return;
+    if (h.querySelector('.pf-section-head')) return;
     SECTIONS.forEach(function (s) {
-      if (h.querySelector('.pf-section-head[data-sec="' + s.id + '"]')) return;
-      var anchor = h.querySelector('section[data-game="' + s.first + '"]');
-      if (!anchor) return; /* first widget not mounted yet — try next pass */
       var div = document.createElement('div');
       div.className = 'pf-section-head';
       div.setAttribute('data-sec', s.id);
@@ -196,9 +217,21 @@
       sub.textContent = s.sub;
       div.appendChild(kicker); div.appendChild(title);
       div.appendChild(rule); div.appendChild(sub);
-      h.insertBefore(div, anchor);
+      h.appendChild(div);
+      /* Lazy-load anchor: the loader observes these and fetches each
+         section's bundle as the user scrolls near it. data-bundle names
+         the bundle file; sec1 is already in the critical path. */
+      var a = document.createElement('div');
+      a.className = 'pf-sec-anchor';
+      a.setAttribute('data-sec', s.id);
+      a.setAttribute('data-bundle', 'games/bundle-sec' + s.num + '.js');
+      a.style.cssText = 'height:1px;width:1px;';
+      h.appendChild(a);
     });
   }
+
+  /* Kept for the retry loop's call signature; headers now build at init. */
+  function mountHeaders() { try { initSections(); } catch (e) {} }
 
   /* Inject "Next up" companion links into each mounted widget.
      Idempotent: skips widgets that already have .pf-next. */
@@ -265,6 +298,24 @@
      silos mount in ORDER without re-mounting existing ones.
      Missing templates are normal (bundle not loaded yet / silo killed). */
   var mounted = {};
+  /* Insert a widget <section> in funnel order: right after its own
+     section anchor (and its section's already-mounted widgets), i.e.
+     before the NEXT section's header. Falls back to appendChild. */
+  function placeWidget(h, section, silo) {
+    try {
+      var secId = SILO_SEC[silo];
+      var idx = -1;
+      for (var i = 0; i < SECTIONS.length; i++) {
+        if (SECTIONS[i].id === secId) { idx = i; break; }
+      }
+      if (idx >= 0 && idx + 1 < SECTIONS.length) {
+        var nextHead = h.querySelector('.pf-section-head[data-sec="' +
+          SECTIONS[idx + 1].id + '"]');
+        if (nextHead) { h.insertBefore(section, nextHead); return; }
+      }
+      h.appendChild(section);
+    } catch (e) { try { h.appendChild(section); } catch (e2) {} }
+  }
   function mountSilos() {
     var h = document.getElementById('pf-v2');
     if (!h || isEditor()) return 0;
@@ -281,7 +332,7 @@
         section.className = 'pf-v2-game';
         section.setAttribute('data-game', silo);
         section.appendChild(frag);
-        h.appendChild(section);
+        placeWidget(h, section, silo);
         execScripts(section, tplId);
         mounted[silo] = 1;
         n++;
@@ -292,8 +343,9 @@
 
   /* Expose for lazy bundles. Guarded: only defined once. */
   if (PF && !PF.mountSilos) PF.mountSilos = mountSilos;
+  try { initSections(); } catch (e) {}
   mountSilos();
-  try { bindNextLinks(); mountHeaders(); mountNextLinks(); } catch (e) {}
+  try { bindNextLinks(); mountNextLinks(); } catch (e) {}
 
   /* Race-condition guard: if lazy bundles staged templates before this file
      defined PF.mountSilos, the loader's onload skipped the mount. Retry until

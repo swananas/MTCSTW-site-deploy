@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* build/bundle.js — Concatenate v1.4.3 game silos into 3 lazy-loadable bundles.
+/* build/bundle.js — Concatenate v1.4.3 game silos into 7 section bundles.
  *
  * WHY WHOLE-FILE CONCAT: each game file is a self-contained IIFE that (1)
  * checks PF.skip() for its kill switch, then (2) stages a <template> into
@@ -7,13 +7,16 @@
  * Extracting inner scripts would break the staging mechanism. Each file is
  * its own namespace guard (IIFE) so concatenation is collision-safe.
  *
- * BUNDLES:
- *   bundle-critical.js — habit loop, loads immediately (blocking)
- *   bundle-social.js    — community/content, lazy via IntersectionObserver
- *   bundle-economy.js   — money systems, lazy via IntersectionObserver
+ * BUNDLES (2026-10-02): one per homepage funnel section (see
+ * pages/home-v2.js SECTIONS). The loader fetches sec1 with the critical
+ * path and lazy-loads sec2..sec7 per section as the user scrolls.
+ * Cache win: change one widget → only its section bundle invalidates.
  *
- * Usage: node build/bundle.js
- * Output: v1.4.3/games/bundle-{critical,social,economy}.js
+ * Minification: terser (node_modules) with --compress --mangle. Falls back
+ * to raw on error. Pass --debug to write unminified bundles instead.
+ *
+ * Usage: node build/bundle.js [--debug]
+ * Output: v1.4.3/games/bundle-sec1.js … bundle-sec7.js
  */
 'use strict';
 var fs = require('fs');
@@ -21,94 +24,130 @@ var path = require('path');
 var cp = require('child_process');
 
 var ROOT = path.join(__dirname, '..', 'v1.4.3', 'games');
+var DEBUG = process.argv.indexOf('--debug') !== -1;
 
-var BUNDLES = {
-  'bundle-critical': [
-    /* Habit loop — above the fold. Loads immediately. */
+/* Section -> silo files. Mirrors pages/home-v2.js SECTIONS/ORDER.
+   Non-ORDER silos get a home by affinity:
+   - service-medals: hooks into #pf-ranks (sec1)
+   - notify-prefs: used by political-hq page (sec1, always available early)
+   - cell-hq, war-card: Creator HQ mounts (sec3, cell affinity)
+   - creator-assist: creator tooling (sec4)
+   - efficiency: background service painting roster scores (sec7) */
+var SECTIONS = {
+  'bundle-sec1': [
+    /* START HERE — hook & daily loop. In critical path (loads blocking). */
     'briefing.js',
+    'do-meter.js',
     'daily-orders.js',
     'dopamine.js',
-    'do-meter.js',
-    'daily-drop.js',
     'enlistment-ranks.js',
     'service-medals.js',
-    'political-hq-nudge.js',
+    'notify.js',
+    'notify-prefs.js',
     'social-proof.js'
   ],
-  'bundle-social': [
-    /* Community + content. Lazy-loaded on scroll. */
-    'notify.js',
-    'campaign.js',
-    'civic.js',
-    'notify-prefs.js',
-    'referral.js',
-    'feed.js',
-    'amplify.js',
-    'bounties.js',
-    'academy.js',
-    'assist.js',
-    'creator-assist.js',
-    'alerts.js',
-    'archive.js',
-    'irl.js',
-    'intel.js',
+  'bundle-sec2': [
+    /* PLAY — games arcade. */
+    'caption-combat.js',
+    'creator-guess.js',
+    'slr-match-quiz.js',
+    'daily-interrogation.js',
+    'billionaire-supervillain.js',
+    'bracket-board.js',
+    'boost-raid.js',
+    'daily-drop.js',
+    'battles.js',
+    'infighting.js',
+    'media-nuke.js',
+    'casino.js'
+  ],
+  'bundle-sec3': [
+    /* BELONG — cells & squads. */
     'cells.js',
     'cell-hq.js',
     'cell-war.js',
-    'contracts.js',
-    'fan-vote.js',
-    'infighting.js',
-    'slr-match-quiz.js',
-    'creator-guess.js',
-    'bracket-board.js',
-    'boost-raid.js',
-    'billionaire-supervillain.js',
-    'daily-interrogation.js',
-    'media-nuke.js',
-    'caption-combat.js',
-    'poster-forge.js',
-    'battles.js',
-    'video.js',
-    'governance.js',
     'diplomacy.js',
-    'efficiency.js',
-    'war-card.js',
-    'armory.js'
+    'contracts.js',
+    'referral.js',
+    'governance.js',
+    'war-card.js'
   ],
-  'bundle-economy': [
-    /* Money systems. Lazy-loaded on scroll. */
-    'economy.js',
+  'bundle-sec4': [
+    /* CREATE — creator tools. */
+    'academy.js',
+    'assist.js',
+    'creator-assist.js',
+    'poster-forge.js',
+    'video.js',
+    'feed.js',
+    'amplify.js',
+    'political-hq-nudge.js',
+    'armory.js',
+    'dashboard.js'
+  ],
+  'bundle-sec5': [
+    /* FUND — economy & money. */
     'peoplesbank.js',
+    'economy.js',
     'war-bonds.js',
     'movement.js',
     'earnings.js',
-    'dashboard.js',
-    'casino.js',
-    'vault.js',
-    'ventures.js'
+    'bounties.js',
+    'ventures.js',
+    'vault.js'
+  ],
+  'bundle-sec6': [
+    /* ACT — action & intel. */
+    'campaign.js',
+    'alerts.js',
+    'irl.js',
+    'intel.js',
+    'archive.js',
+    'civic.js'
+  ],
+  'bundle-sec7': [
+    /* PROOF — social validation. */
+    'fan-vote.js',
+    'efficiency.js'
   ]
 };
 
 function fail(msg) { console.error('BUNDLE FAIL: ' + msg); process.exit(1); }
 
+/* Every game .js file must live in exactly one section bundle. */
 var allFiles = fs.readdirSync(ROOT).filter(function (f) { return f.slice(-3) === '.js'; });
 var bundled = [];
-Object.keys(BUNDLES).forEach(function (b) {
-  BUNDLES[b].forEach(function (f) { bundled.push(f); });
-});
-var unbundled = allFiles.filter(function (f) {
-  return bundled.indexOf(f) === -1 && f.indexOf('bundle-') !== 0;
+Object.keys(SECTIONS).forEach(function (b) {
+  SECTIONS[b].forEach(function (f) {
+    if (bundled.indexOf(f) !== -1) fail('file in two bundles: ' + f);
+    bundled.push(f);
+  });
 });
 /* Dead code: bank.js superseded by peoplesbank.js, intentionally excluded. */
 var DEAD = ['bank.js'];
-unbundled = unbundled.filter(function (f) { return DEAD.indexOf(f) === -1; });
+var unbundled = allFiles.filter(function (f) {
+  return bundled.indexOf(f) === -1 && f.indexOf('bundle-') !== 0 && DEAD.indexOf(f) === -1;
+});
 if (unbundled.length) fail('unbundled game files: ' + unbundled.join(', '));
 
-Object.keys(BUNDLES).forEach(function (name) {
-  var files = BUNDLES[name];
+/* Resolve terser: local node_modules first, then global, then give up. */
+function terserBin() {
+  var local = path.join(__dirname, '..', 'node_modules', '.bin', 'terser');
+  if (fs.existsSync(local)) return local;
+  try { cp.execSync('which terser', { stdio: 'pipe' }); return 'terser'; } catch (e) {}
+  return null;
+}
+var TERSER = DEBUG ? null : terserBin();
+if (!DEBUG && !TERSER) {
+  console.error('BUNDLE WARN: terser not found — writing unminified bundles. Run: npm install terser');
+}
+
+var totalRaw = 0, totalOut = 0;
+Object.keys(SECTIONS).forEach(function (name) {
+  var files = SECTIONS[name];
   var out = [];
   out.push('/* PF v1.4.3 ' + name + '.js — concatenated bundle, generated by build/bundle.js.');
-  out.push('   DO NOT EDIT. Regenerate with: node build/bundle.js');
+  out.push('   DO NOT EDIT. Regenerate with: node build/bundle.js [--debug]');
   out.push('   Contains: ' + files.join(', '));
   out.push('   Each silo keeps its own PF.skip() kill switch (?pf_off=<silo>). */');
   files.forEach(function (f) {
@@ -122,13 +161,20 @@ Object.keys(BUNDLES).forEach(function (name) {
   });
   var dest = path.join(ROOT, name + '.js');
   var raw = out.join('\n');
-  /* Minify with terser for production (P0 perf fix). Falls back to raw on error. */
-  try {
-    var minified = cp.execSync('terser --compress --mangle --toplevel', { input: raw, maxBuffer: 50 * 1024 * 1024 }).toString();
-    fs.writeFileSync(dest, minified);
-  } catch (e) {
-    fs.writeFileSync(dest, raw);
+  totalRaw += raw.length;
+  var final = raw;
+  if (TERSER) {
+    try {
+      final = cp.execSync(TERSER + ' --compress --mangle --toplevel', {
+        input: raw, maxBuffer: 100 * 1024 * 1024
+      }).toString();
+    } catch (e) {
+      console.error('BUNDLE WARN: terser failed on ' + name + ' — writing raw. ' + (e.message || e));
+      final = raw;
+    }
   }
+  fs.writeFileSync(dest, final);
+  totalOut += final.length;
   var bytes = fs.statSync(dest).size;
 
   /* Validate: node --check + new Function parse. */
@@ -136,10 +182,13 @@ Object.keys(BUNDLES).forEach(function (name) {
     cp.execSync('node --check ' + dest, { stdio: 'pipe' });
   } catch (e) { fail(name + ' failed node --check'); }
   try {
-    /* new Function wraps in a function scope — validates syntax without executing. */
     new Function(fs.readFileSync(dest, 'utf8'));
   } catch (e) { fail(name + ' failed new Function parse: ' + e.message); }
 
-  console.log(name + '.js: ' + files.length + ' files, ' + (bytes / 1024).toFixed(1) + ' KB — OK');
+  var saved = raw.length ? Math.round((1 - final.length / raw.length) * 100) : 0;
+  console.log(name + '.js: ' + files.length + ' files, ' + (bytes / 1024).toFixed(1) +
+    ' KB (' + saved + '% smaller than raw) — OK');
 });
-console.log('All bundles built and validated.');
+console.log('All section bundles built and validated.' +
+  (totalRaw ? ' Total: ' + (totalRaw / 1024).toFixed(0) + ' KB raw -> ' +
+  (totalOut / 1024).toFixed(0) + ' KB shipped.' : ''));

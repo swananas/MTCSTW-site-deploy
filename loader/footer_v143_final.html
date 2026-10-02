@@ -28,10 +28,12 @@ var CSS=onV2?['core/bundle-styles.css']:['core/01-styles.css','core/02-design-sy
 var isHome=!!document.getElementById('pf-v2');
 var CORE_V2=['core/bundle-core.js'];
 var PAGES_V2=['pages/bundle-pages.js'];
-/* Bundles (build/bundle.js): 48 game silos in 3 files. Critical loads now;
-   social + economy lazy-load on scroll (homepage) or sequentially (other v2 pages). */
-var JS_SEQ=onV2?CORE_V2.concat(['games/bundle-critical.js']).concat(isHome?[]:['games/bundle-social.js','games/bundle-economy.js']).concat(PAGES_V2):['core/00-bus.js', 'core/03-global.js', 'core/14-auth.js', 'core/04-ledger.js', 'core/05-tally.js', 'games/caption-combat.js', 'games/daily-orders.js', 'games/fan-vote.js', 'games/do-meter.js', 'games/media-nuke.js', 'games/poster-forge.js', 'games/daily-drop.js', 'games/service-medals.js', 'games/liquidation-bracket.js', 'core/06-override.js', 'core/08-engage.js', 'core/09-toast.js', 'core/10-ticker.js', 'fixes/homepage.js', 'fixes/about.js', 'fixes/faqs.js', 'fixes/roster.js', 'fixes/podcast.js', 'fixes/tax.js', 'fixes/terms.js', 'fixes/schema.js'];
-var JS_LAZY=(onV2&&isHome)?['games/bundle-social.js','games/bundle-economy.js']:[];
+/* Section bundles (build/bundle.js): one per homepage funnel section.
+   sec1 rides the critical path (above the fold); sec2..sec7 lazy-load
+   per section as the user scrolls. Cache win: change one widget and only
+   its section bundle invalidates. Non-home v2 pages load all sequentially. */
+var JS_SEC=['games/bundle-sec1.js','games/bundle-sec2.js','games/bundle-sec3.js','games/bundle-sec4.js','games/bundle-sec5.js','games/bundle-sec6.js','games/bundle-sec7.js'];
+var JS_SEQ=onV2?CORE_V2.concat(isHome?['games/bundle-sec1.js']:JS_SEC).concat(PAGES_V2):['core/00-bus.js', 'core/03-global.js', 'core/14-auth.js', 'core/04-ledger.js', 'core/05-tally.js', 'games/caption-combat.js', 'games/daily-orders.js', 'games/fan-vote.js', 'games/do-meter.js', 'games/media-nuke.js', 'games/poster-forge.js', 'games/daily-drop.js', 'games/service-medals.js', 'games/liquidation-bracket.js', 'core/06-override.js', 'core/08-engage.js', 'core/09-toast.js', 'core/10-ticker.js', 'fixes/homepage.js', 'fixes/about.js', 'fixes/faqs.js', 'fixes/roster.js', 'fixes/podcast.js', 'fixes/tax.js', 'fixes/terms.js', 'fixes/schema.js'];
 function siloFail(n,e){if(window.console)console.error('[PF SILO FAILED] '+n+' :: '+(e&&e.message||e||'load error'));}
 window.addEventListener('error',function(e){
   var f=e.filename||'',i=f.indexOf('/v1.1.0/'),rest='';
@@ -54,28 +56,41 @@ function loadBundle(n,cb){
   s.onerror=function(){siloFail(n);if(cb)cb();};
   document.head.appendChild(s);
 }
-/* Lazy bundles: IntersectionObserver on a sentinel 500px before viewport.
-   Safety nets: 10s timeout, no-IO fallback, non-homepage loads sequentially above. */
+/* Lazy section bundles: each .pf-sec-anchor (injected by home-v2.js)
+   names its bundle in data-bundle. Observe per section — a bundle loads
+   when its section scrolls near the viewport. sec1 is already in JS_SEQ.
+   Safety nets: 15s timeout loads everything; no-IO fallback loads all. */
 function jsLazy(){
-  if(!JS_LAZY.length)return;
-  var fired=false;
-  function fire(){
-    if(fired)return;fired=true;
-    /* 2026-10-02: load lazy bundles in parallel instead of sequentially —
-       economy no longer waits for the 480KB social bundle to parse. */
-    loadBundle(JS_LAZY[0]); loadBundle(JS_LAZY[1]);
-  }
   var host=document.getElementById('pf-v2');
-  if(!host){fire();return;}
-  var sentinel=document.createElement('div');
-  sentinel.id='pf-lazy-sentinel';sentinel.style.cssText='height:1px;width:1px;';
-  host.appendChild(sentinel);
-  var obs=null;
+  if(!host){return;}
+  var anchors=host.querySelectorAll('.pf-sec-anchor[data-bundle]');
+  var pending={};
+  var list=[];
+  for(var i=0;i<anchors.length;i++){
+    var b=anchors[i].getAttribute('data-bundle');
+    if(b&&b!=='games/bundle-sec1.js'&&!pending[b]){pending[b]=1;list.push({a:anchors[i],b:b,done:false});}
+  }
+  if(!list.length)return;
+  function fireOne(it){
+    if(it.done)return;it.done=true;
+    loadBundle(it.b);
+  }
+  function fireAll(){for(var k=0;k<list.length;k++)fireOne(list[k]);}
   if('IntersectionObserver' in window){
-    obs=new IntersectionObserver(function(es){if(es&&es[0]&&es[0].isIntersecting){try{obs.disconnect();}catch(e){} fire();}},{rootMargin:'500px'});
-    try{obs.observe(sentinel);}catch(e){fire();return;}
-  }else{fire();return;}
-  setTimeout(function(){fire();},10000);
+    var obs=new IntersectionObserver(function(es){
+      for(var k=0;k<es.length;k++){
+        if(es[k]&&es[k].isIntersecting){
+          for(var j=0;j<list.length;j++){
+            if(list[j].a===es[k].target)fireOne(list[j]);
+          }
+        }
+      }
+    },{rootMargin:'800px'});
+    try{
+      for(var m=0;m<list.length;m++)obs.observe(list[m].a);
+    }catch(e){fireAll();return;}
+  }else{fireAll();return;}
+  setTimeout(function(){fireAll();},15000);
 }
 CSS.forEach(css);jsSeq();
 })();</script>

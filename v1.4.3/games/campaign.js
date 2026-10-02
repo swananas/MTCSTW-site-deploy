@@ -28,16 +28,10 @@ function toast(m){ try{ PF.toast(m); }catch(e){} }
    The backend already granted this XP via xpGrant — do NOT dispatch pf-xp
    (that would trigger the xpledger mirror with a different key and
    double-grant). This is the nolx pattern from enlistment-ranks. */
+/* Delegates to the global layer: PF.creditLocal owns the pf_ranks_v1
+   ledger so all writers share one format (see core/00-bus.js). */
 function creditLocal(key, xp){
-  try{
-    var r=null;
-    try{ r=JSON.parse(localStorage.getItem('pf_ranks_v1')||'null'); }catch(e){}
-    if(!r||typeof r!=='object') r={xp:0,got:{}};
-    if(!r.got) r.got={};
-    if(r.got[key]) return;
-    r.got[key]=1; r.xp+=xp;
-    try{ localStorage.setItem('pf_ranks_v1', JSON.stringify(r)); }catch(e){}
-  }catch(e){}
+  try{ if(window.PF&&PF.creditLocal) return PF.creditLocal(key, xp); }catch(e){}
 }
 function chiDay(){ try{ return new Date().toLocaleDateString("en-CA",{timeZone:"America/Chicago"}); }catch(e){ var d=new Date(); return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2); } }
 /* JSONP GET for reads. */

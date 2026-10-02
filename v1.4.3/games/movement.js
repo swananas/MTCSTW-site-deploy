@@ -282,8 +282,17 @@ function renderRemitLink(){
     +'<div class="x-note">Cross-cell XP transfers live at the <b>Peoples Bank of Propaganda</b> — Teller Window No. 2. '
     +'2% fee funds the community lottery. One bank, one ledger, no duplication.</div></div>';
 }
-load();
-setInterval(function(){ load(); },180000);
+/* On-demand data (2026-10-02): fetch only when the widget is actually
+   seen (or touched). The template above already renders a skeleton.
+   In-memory vars keep the session cache — no refetch on scroll. */
+(function(){
+  var sec=null;
+  try{ sec=document.querySelector('section[data-game="movement"]'); }catch(e){}
+  var start=(window.PF&&PF.whenVisible)?PF.whenVisible(sec,function(){load();}):null;
+  if(start){ try{ if(sec) sec.addEventListener('pointerdown',start,{once:true}); }catch(e){} }
+  else load();
+})();
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },180000);
 })();
 </scr`+`ipt>
 </div>

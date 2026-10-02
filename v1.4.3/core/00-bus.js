@@ -100,6 +100,43 @@
     hidden: function () {
       try { return !!(document.hidden || document.webkitHidden); } catch (e) { return false; }
     },
+    /* whenVisible(el, fn) — run fn once when el scrolls into view.
+       Returns a trigger function: calling it fires fn immediately (also once).
+       Use for on-demand data: skeleton renders at mount, backend fetch waits
+       until the widget is actually seen (or the user interacts with it).
+       Backstop: fires after 15s regardless so slow IO never strands a widget. */
+    whenVisible: function (el, fn) {
+      var done = false;
+      function go() {
+        if (done) return; done = true;
+        try { fn(); } catch (e) {}
+      }
+      try {
+        if (!el || !('IntersectionObserver' in window)) { go(); return go; }
+        var ob = new IntersectionObserver(function (es) {
+          if (es && es[0] && es[0].isIntersecting) { try { ob.disconnect(); } catch (e) {} go(); }
+        }, { rootMargin: '200px' });
+        ob.observe(el);
+        setTimeout(go, 15000);
+      } catch (e) { go(); }
+      return go;
+    },
+    /* creditLocal(key, xp) — the ONE writer for the local XP ledger
+       (localStorage pf_ranks_v1). Idempotent per key: repeat calls with the
+       same key are no-ops. Widgets must not hand-roll this; the global layer
+       owns the ledger so concurrent writers can't drift the format. */
+    creditLocal: function (key, xp) {
+      try {
+        var r = null;
+        try { r = JSON.parse(localStorage.getItem('pf_ranks_v1') || 'null'); } catch (e) {}
+        if (!r || typeof r !== 'object') r = { xp: 0, got: {} };
+        if (!r.got) r.got = {};
+        if (r.got[key]) return false;
+        r.got[key] = 1; r.xp += (Number(xp) || 0);
+        try { localStorage.setItem('pf_ranks_v1', JSON.stringify(r)); } catch (e) {}
+        return true;
+      } catch (e) { return false; }
+    },
     /* Shared date helpers (single copies; games must not redefine these).
        chiNow: now in America/Chicago. mondayOf: Monday 00:00 of d's week.
        isoWeekKey: 'YYYY-Www' ISO week key for weekly localStorage buckets. */

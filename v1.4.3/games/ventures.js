@@ -243,7 +243,16 @@ function mintCertificate(vid){
     else done(cv.toDataURL("image/png"));
   }catch(e){ toast("Mint failed."); }
 }
-load();
+/* On-demand data (2026-10-02): fetch only when the widget is actually
+   seen (or touched). The template above already renders a skeleton.
+   In-memory vars keep the session cache — no refetch on scroll. */
+(function(){
+  var sec=null;
+  try{ sec=document.querySelector('section[data-game="ventures"]'); }catch(e){}
+  var start=(window.PF&&PF.whenVisible)?PF.whenVisible(sec,function(){load();}):null;
+  if(start){ try{ if(sec) sec.addEventListener('pointerdown',start,{once:true}); }catch(e){} }
+  else load();
+})();
 setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} if(!busy) load(); }, 60000);
 })();
 </scr`+`ipt>

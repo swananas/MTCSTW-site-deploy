@@ -20,16 +20,10 @@
      The backend already granted this XP via xpGrant — do NOT dispatch pf-xp
      (that would trigger the xpledger mirror with a different key and
      double-grant). This is the nolx pattern from enlistment-ranks. */
+  /* Delegates to the global layer: PF.creditLocal owns the pf_ranks_v1
+     ledger so all writers share one format (see core/00-bus.js). */
   function creditLocal(lid, xp){
-    try{
-      var k='academy_lesson_'+lid, r=null;
-      try{ r=JSON.parse(localStorage.getItem('pf_ranks_v1')||'null'); }catch(e){}
-      if(!r||typeof r!=='object') r={xp:0,got:{}};
-      if(!r.got) r.got={};
-      if(r.got[k]) return;
-      r.got[k]=1; r.xp+=xp;
-      try{ localStorage.setItem('pf_ranks_v1', JSON.stringify(r)); }catch(e){}
-    }catch(e){}
+    try{ if(window.PF&&PF.creditLocal) PF.creditLocal('academy_lesson_'+lid, xp); }catch(e){}
   }
 
   /* JSONP GET with 12s timeout — same pattern as the other game silos. */

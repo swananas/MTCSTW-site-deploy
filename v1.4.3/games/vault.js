@@ -69,10 +69,10 @@ function fmtDur(ms){
 }
 function val(id){ var el=document.getElementById(id); return el?String(el.value||"").trim():""; }
 function err(id,m){ var el=document.getElementById(id); if(el) el.textContent=m||""; }
-var NH=null, LS=null, WL=null, CL=null, EL=null, DL=null, AL=null;
+var NH=null, LS=null, WL=null, CL=null, EL=null, DL=null, AL=null, BP=null, IS=null;
 function load(){
   var n=0;
-  function one(){ n++; if(n>=7) render(); }
+  function one(){ n++; if(n>=9) render(); }
   setTimeout(render,15000);
   apiAdmin("network_health",function(j){ NH=j; one(); });
   api("lottery_status",{callsign:"x"},function(j){ LS=j; one(); });
@@ -81,6 +81,8 @@ function load(){
   api("event_list",{},function(j){ EL=j; one(); });
   api("drop_list",{},function(j){ DL=j; one(); });
   api("alert_list",{},function(j){ AL=j; one(); });
+  apiAdmin("battle_proposals",function(j){ BP=j; one(); });
+  apiAdmin("intel_submissions",function(j){ IS=j; one(); });
 }
 function renderGate(){
   var el=document.getElementById("xVault"); if(!el) return;
@@ -211,6 +213,28 @@ function render(){
   var ax=(AL&&AL.ok&&AL.alerts)||[];
   if(ax.length){ h+='<div class="x-note">'+ax.length+' active alert(s). Latest: <b>'+esc(ax[0].headline)+'</b> &mdash; '+esc(ax[0].response_count||0)+' responses</div>'; }
   h+='</div>';
+  /* MODERATION QUEUE — battle proposals + intel submissions */
+  h+='<div class="x-pane"><h4>Moderation queue</h4>';
+  var bpl=(BP&&BP.ok&&BP.proposals)||[];
+  h+='<div class="x-note"><b>Battle proposals ('+bpl.length+' pending)</b></div>';
+  if(!bpl.length){ h+='<div class="x-note">No pending battle proposals.</div>'; }
+  for(var mi=0;mi<bpl.length;mi++){
+    var mp=bpl[mi];
+    h+='<div class="vl-mod"><b>'+esc(mp.title)+'</b> <span class="x-note">by '+esc(mp.proposer)+' &mdash; '+fmtDate(mp.created_at)+'</span> '
+      +'<button class="c-btn c-btn-sm" data-bap="'+mp.id+'">APPROVE</button> '
+      +'<button class="c-btn c-btn-dim c-btn-sm" data-brj="'+mp.id+'">REJECT</button></div>';
+  }
+  var isl=(IS&&IS.ok&&IS.submissions)||[];
+  h+='<div class="x-note" style="margin-top:8px"><b>Intel submissions ('+isl.length+' pending)</b></div>';
+  if(!isl.length){ h+='<div class="x-note">No pending intel submissions.</div>'; }
+  for(var mj=0;mj<isl.length;mj++){
+    var ms=isl[mj];
+    h+='<div class="vl-mod"><b>'+esc(ms.target)+'</b> <span class="x-note">by '+esc(ms.submitter)+' &mdash; '+esc(String(ms.activity||"").slice(0,80))+'</span><br>'
+      +'<span class="x-note">Source: '+esc(ms.source)+'</span> '
+      +'<button class="c-btn c-btn-sm" data-iap="'+ms.id+'">APPROVE</button> '
+      +'<button class="c-btn c-btn-dim c-btn-sm" data-irj="'+ms.id+'">REJECT</button></div>';
+  }
+  h+='</div>';
   el.innerHTML=h;
   wire();
 }
@@ -299,6 +323,48 @@ function wire(){
       if(!j||!j.ok){ err("vlAErr",(j&&j.err)||"Create failed."); return; }
       toast("Alert created: "+j.id); AL=null; load();
     }); };
+  /* moderation queue: battle proposals */
+  var baps=document.querySelectorAll("[data-bap]");
+  for(var bi=0;bi<baps.length;bi++){ (function(btn){
+    btn.onclick=function(){ btn.disabled=true;
+      post("battle","b_action","battle_approve",{proposal_id:btn.getAttribute("data-bap")},function(j){
+        btn.disabled=false;
+        if(!j||!j.ok){ toast("Approve failed: "+((j&&j.err)||"error")); return; }
+        toast("Battle approved and live: "+j.id); BP=null; load();
+      }); };
+  })(baps[bi]); }
+  var brjs=document.querySelectorAll("[data-brj]");
+  for(var bj=0;bj<brjs.length;bj++){ (function(btn){
+    btn.onclick=function(){
+      var reason=window.prompt("Rejection reason (optional):")||"";
+      btn.disabled=true;
+      post("battle","b_action","battle_reject",{proposal_id:btn.getAttribute("data-brj"),reason:reason},function(j){
+        btn.disabled=false;
+        if(!j||!j.ok){ toast("Reject failed: "+((j&&j.err)||"error")); return; }
+        toast("Proposal rejected."); BP=null; load();
+      }); };
+  })(brjs[bj]); }
+  /* moderation queue: intel submissions */
+  var iaps=document.querySelectorAll("[data-iap]");
+  for(var ii=0;ii<iaps.length;ii++){ (function(btn){
+    btn.onclick=function(){ btn.disabled=true;
+      post("intel","i_action","intel_approve",{submission_id:btn.getAttribute("data-iap")},function(j){
+        btn.disabled=false;
+        if(!j||!j.ok){ toast("Approve failed: "+((j&&j.err)||"error")); return; }
+        toast("Intel published: "+j.id); IS=null; load();
+      }); };
+  })(iaps[ii]); }
+  var irjs=document.querySelectorAll("[data-irj]");
+  for(var ij=0;ij<irjs.length;ij++){ (function(btn){
+    btn.onclick=function(){
+      var reason=window.prompt("Rejection reason (optional):")||"";
+      btn.disabled=true;
+      post("intel","i_action","intel_reject",{submission_id:btn.getAttribute("data-irj"),reason:reason},function(j){
+        btn.disabled=false;
+        if(!j||!j.ok){ toast("Reject failed: "+((j&&j.err)||"error")); return; }
+        toast("Submission rejected."); IS=null; load();
+      }); };
+  })(irjs[ij]); }
 }
 renderGate();
 setInterval(function(){ if(getSecret()) load(); },300000);

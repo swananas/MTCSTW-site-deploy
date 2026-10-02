@@ -50,6 +50,26 @@ function fmtTs(t){
     return mo[d.getMonth()]+" "+d.getDate();
   }catch(e){ return ""; }
 }
+function loadMySubs(){
+  var box=document.getElementById("inMySubs");
+  if(!box) return;
+  var me=ident();
+  if(!me.callsign){ box.innerHTML='<div class="x-note">Claim a callsign to track submissions.</div>'; return; }
+  api("intel_submissions",{callsign:me.callsign,mine:1},function(j){
+    if(!j||!j.ok||!j.submissions||!j.submissions.length){
+      box.innerHTML='<div class="x-note">No submissions yet.</div>'; return;
+    }
+    var h="";
+    for(var i=0;i<j.submissions.length;i++){
+      var s=j.submissions[i];
+      var st=String(s.status||"pending").toUpperCase();
+      h+='<div class="in-sub"><b>'+esc(s.target)+'</b> <span class="bt-st bt-st-'+esc(s.status)+'">'+st+'</span>';
+      if(s.status==="rejected"&&s.reason) h+=' <span class="x-note">'+esc(s.reason)+'</span>';
+      h+=' <span class="x-note">'+fmtTs(s.created_at)+'</span></div>';
+    }
+    box.innerHTML=h;
+  });
+}
 function load(){
   var el=document.getElementById("xIntel"); if(!el) return;
   api("intel_list",{},function(j){ render(j); });

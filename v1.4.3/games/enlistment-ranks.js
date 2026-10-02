@@ -371,6 +371,16 @@ function doneFor(a){
 }
 function render(){
   var s=load(), tier=tierOf(s.xp), idx=TIERS.indexOf(tier);
+  /* Promotion fanfare: crossing a tier threshold gets a celebration, once. */
+  try{
+    var seenT=parseInt(localStorage.getItem("pf_tier_seen_v1")||"0",10)||0;
+    if(idx>seenT){
+      try{ localStorage.setItem("pf_tier_seen_v1",String(idx)); }catch(e2){}
+      var host=document.getElementById("pf-ranks")||document.body;
+      if(window.PF&&PF.dope){ PF.dope.confetti(host,60); PF.dope.ping(host,"PROMOTED TO "+tier[0]); }
+      try{ document.dispatchEvent(new CustomEvent("pf-promoted",{detail:{tier:tier[0]}})); }catch(e3){}
+    }
+  }catch(e){}
   document.getElementById("rBadge").textContent=tier[0];
   var who=""; try{ var id=JSON.parse(localStorage.getItem(LS_I)||"{}"); if(id.callsign) who="Fighting as "+id.callsign.toUpperCase(); }catch(e){}
   document.getElementById("rWho").innerHTML=who+(idx>=2&&who?' <span class="gold">&#9733;</span>':"");
@@ -426,6 +436,30 @@ document.addEventListener("pf-recruit-credited",function(e){
   if(!fresh||!total) return;
   var gain=award("recruits_"+total,25*fresh,"once",{exempt:1});
   if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("RECRUIT CHECKED IN — +"+gain+" XP"); }catch(e2){} }
+});
+/* Dopamine loops: combo (2 games/day), first blood (day's first task),
+   golden drop (rare drop bonus), chainlink (multi-cell bridge, weekly).
+   All exempt — bounded by day/week already. */
+document.addEventListener("pf-combo",function(e){
+  var d=(e&&e.detail&&e.detail.day)||"day";
+  var g=award("combo_"+d,8,"once",{exempt:1});
+  if(g>0){ try{ if(window.PF&&PF.toast) PF.toast("COMBO x2 — two games deep. +8 XP"); }catch(e2){} }
+});
+document.addEventListener("pf-first-blood",function(e){
+  var d=(e&&e.detail&&e.detail.day)||"day";
+  award("firstblood_"+d,2,"once",{exempt:1});
+});
+document.addEventListener("pf-drop-golden",function(e){
+  var d=(e&&e.detail&&e.detail.day)||"day";
+  var g=award("dropgold_"+d,9,"once",{exempt:1});
+  if(g>0){ try{ if(window.PF&&PF.toast) PF.toast("GOLDEN DROP — +9 XP bonus"); }catch(e2){} }
+});
+document.addEventListener("pf-chainlink",function(e){
+  var w=(e&&e.detail&&e.detail.week)||"wk";
+  var n=Math.max(0,Math.min(2,parseInt((e&&e.detail&&e.detail.cells)||0,10)-1));
+  if(!n) return;
+  var g=award("chainlink_"+w,10*n,"once",{exempt:1});
+  if(g>0){ try{ if(window.PF&&PF.toast) PF.toast("CHAINLINK — bridging "+(n+1)+" cells. +"+g+" XP"); }catch(e2){} }
 });
 /* Daily Orders writes the real combo XP into the shared pool itself — just re-render. */
 document.addEventListener("pf-order-checkin",function(){ render(); });

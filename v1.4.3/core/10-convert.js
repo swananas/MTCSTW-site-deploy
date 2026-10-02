@@ -45,13 +45,38 @@ function markPlayed(key){
   try{ localStorage.setItem('pf_played_'+weekKey()+'_'+key,'1'); }catch(e){}
 }
 Object.keys(EV2GAME).forEach(function(ev){
-  document.addEventListener(ev,function(){ markPlayed(EV2GAME[ev]); afterGame(EV2GAME[ev]); });
+  document.addEventListener(ev,function(){ markPlayed(EV2GAME[ev]); comboTrack(EV2GAME[ev]); firstBlood(); afterGame(EV2GAME[ev]); });
 });
 function nextMission(){
   for(var i=0;i<MISSIONS.length;i++){ if(!played(MISSIONS[i].key)) return MISSIONS[i]; }
   return null;
 }
 PF.nextMission=nextMission;
+
+/* COMBO: two different games in one day fires pf-combo once (the ledger pays
+   +8 XP, exempt). Distinct-game days are the habit we're building. */
+function dayStr(){ try{ return new Date().toISOString().slice(0,10); }catch(e){ return 'd0'; } }
+function comboTrack(key){
+  var k='pf_combo_'+dayStr(), arr=[];
+  try{ arr=JSON.parse(localStorage.getItem(k)||'[]'); }catch(e){ arr=[]; }
+  if(arr.indexOf(key)<0){ arr.push(key); try{ localStorage.setItem(k,JSON.stringify(arr)); }catch(e){} }
+  if(arr.length===2){
+    var fk=k+'_fired', fired=false;
+    try{ fired=localStorage.getItem(fk)==='1'; }catch(e){}
+    if(fired) return;
+    try{ localStorage.setItem(fk,'1'); }catch(e){}
+    try{ document.dispatchEvent(new CustomEvent('pf-combo',{detail:{day:dayStr(),games:arr}})); }catch(e){}
+  }
+}
+/* FIRST BLOOD: the day's first logged task gets a callout + tiny award. */
+function firstBlood(){
+  var k='pf_firstblood_'+dayStr(), done=false;
+  try{ done=localStorage.getItem(k)==='1'; }catch(e){}
+  if(done) return;
+  try{ localStorage.setItem(k,'1'); }catch(e){}
+  try{ if(window.PF&&PF.dope) PF.dope.ping(document.body,'FIRST BLOOD \u2014 first strike of the day'); }catch(e){}
+  try{ document.dispatchEvent(new CustomEvent('pf-first-blood',{detail:{day:dayStr()}})); }catch(e){}
+}
 
 /* ---- floating card primitives ---- */
 var lapCount=0, lastLap=0;

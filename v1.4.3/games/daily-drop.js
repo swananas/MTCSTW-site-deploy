@@ -99,6 +99,17 @@ if(s.last!==tk){
   try{
     document.dispatchEvent(new CustomEvent("pf-drop-claimed",{detail:{day:tk,streak:s.streak}}));
   }catch(e){}
+  /* GOLDEN DROP: 1-in-20 claims hit the motherlode — special art + bonus XP. */
+  try{
+    if(Math.random()<0.05){
+      document.dispatchEvent(new CustomEvent("pf-drop-golden",{detail:{day:tk}}));
+      var tag=document.getElementById("dTag");
+      if(tag){ tag.textContent="\u2605 GOLDEN DROP \u2605"; tag.style.color="#e8b10c"; }
+      var head=document.getElementById("dHead");
+      if(head){ head.innerHTML="THE MOTHERLODE<br><span style='font-size:0.9rem;'>Today the machine smiles on you.</span>"; }
+      if(window.PF&&PF.dope){ var hb=document.getElementById("dDay"); PF.dope.confetti(hb?hb.parentNode:document.body,40); }
+    }
+  }catch(e2){}
 }
 
 document.getElementById("dDay").textContent="Day "+n+" of the offensive";

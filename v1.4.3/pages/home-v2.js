@@ -29,6 +29,7 @@
     ['referral', 'pf-ov-referral'],
     ['feed', 'pf-ov-feed'],
     ['bounties', 'pf-ov-bounties'],
+    ['academy', 'pf-ov-academy'],
     ['cells', 'pf-ov-cells'],
     ['contracts', 'pf-ov-contracts'],
     ['fan-vote', 'pf-ov-vote'],

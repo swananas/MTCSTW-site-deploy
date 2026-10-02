@@ -46,14 +46,37 @@ function post(spAction,params,cb){
       .catch(function(){ done(null); });
   }catch(e){ done(null); }
 }
-var tab="trending", T=null, N=null;
+function postX(type,typeAction,action,params,cb){
+  var b={type:type}; b[typeAction]=action;
+  var body=JSON.stringify(Object.assign(b,params));
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:body})
+      .then(function(r){ return r.json(); })
+      .then(function(j){ done(j); })
+      .catch(function(){ done(null); });
+  }catch(e){ done(null); }
+}
+function isTrusted(creator){
+  try{
+    if(REP&&REP.ok&&REP.trusted){
+      for(var i=0;i<REP.trusted.length;i++) if(String(REP.trusted[i]).toLowerCase()===String(creator||"").toLowerCase()) return true;
+    }
+  }catch(e){}
+  return false;
+}
+var tab="trending", T=null, N=null, REP=null, SCHED=null, TIPS=null;
 function load(){
   var done=false, n=0;
   function fin(){ if(done)return; done=true; render(); }
-  function one(){ n++; if(n>=2) fin(); }
+  function one(){ n++; if(n>=4) fin(); }
   setTimeout(fin,15000);
   api("boost_board",{},function(j){ T=j; one(); });
   api("content_list",{sort:"new",limit:25},function(j){ N=j; one(); });
+  api("reputation_get",{},function(j){ REP=j; one(); });
+  var id0=ident();
+  if(id0.callsign) api("schedule_list",{callsign:id0.callsign},function(j){ SCHED=j; one(); });
+  else { SCHED={ok:true,queue:[]}; one(); }
 }
 function items(){
   var out=[];
@@ -78,12 +101,29 @@ function render(){
     h+='<div class="x-pane"><div class="x-note">Nothing here yet. Be the first to forge propaganda in Poster Forge &mdash; it lands here.</div></div>';
   }
   for(var i=0;i<Math.min(list.length,25);i++){
-    var it=list[i];
+    var it=list[i], cid=esc(it.id||""), trusted=isTrusted(it.creator);
     h+='<div class="x-pane fd-item">'
-      +'<div class="fd-title">'+esc(it.title||it.id||"Untitled")+'</div>'
+      +'<div class="fd-title">'+esc(it.title||it.id||"Untitled")
+      +(trusted?' <span class="fd-trusted" title="Trusted creator" style="color:#7CFC00;font-size:12px">&#10003; TRUSTED</span>':"")
+      +'</div>'
       +'<div class="x-note">by '+esc(it.creator||"anon")+' &bull; '+(Number(it.shares)||0)+' shares &bull; '+(Number(it.boosts)||0)+' boosts</div>'
-      +'<button class="c-btn fd-share" data-cid="'+esc(it.id||"")+'" data-title="'+esc(it.title||"")+'">SHARE &amp; PUMP</button>'
-      +'</div>';
+      +'<div class="fd-actions" style="margin-top:6px">'
+      +'<button class="c-btn fd-share" data-cid="'+cid+'" data-title="'+esc(it.title||"")+'">SHARE &amp; PUMP</button> '
+      +'<button class="c-btn fd-vote" data-cid="'+cid+'" data-v="1">&#9650;</button>'
+      +'<button class="c-btn fd-vote" data-cid="'+cid+'" data-v="-1">&#9660;</button> '
+      +'<button class="c-btn fd-tip" data-cid="'+cid+'" data-creator="'+esc(it.creator||"")+'">TIP</button> '
+      +'<button class="c-btn fd-sched" data-cid="'+cid+'" data-title="'+esc(it.title||"")+'">SCHEDULE</button>'
+      +'</div></div>';
+  }
+  /* Scheduled queue. */
+  var q=[]; try{ if(SCHED&&SCHED.ok&&SCHED.queue) q=SCHED.queue; }catch(e){}
+  if(q.length){
+    h+='<div class="x-pane"><div class="fd-title">SCHEDULED QUEUE ('+q.length+')</div>';
+    for(var qi=0;qi<q.length;qi++){
+      var sq=q[qi];
+      h+='<div class="x-note">'+esc(sq.title||sq.content_id||"")+' &mdash; '+esc(sq.platform||"")+' at '+esc(sq.send_at||"")+'</div>';
+    }
+    h+='</div>';
   }
   h+='<div style="margin-top:10px"><button class="c-btn" id="fdRetry">Refresh</button></div>';
   el.innerHTML=h;
@@ -112,7 +152,59 @@ function render(){
     })(sh[s2]);
   }
   var rb=document.getElementById("fdRetry");
-  if(rb) rb.onclick=function(){ T=N=null; el.innerHTML='<div class="c-load">Loading the feed&hellip;</div>'; load(); };
+  if(rb) rb.onclick=function(){ T=N=null; REP=null; SCHED=null; el.innerHTML='<div class="c-load">Loading the feed&hellip;</div>'; load(); };
+  /* Up/down votes. */
+  var vs=el.querySelectorAll("button.fd-vote");
+  for(var vi=0;vi<vs.length;vi++){
+    (function(b){
+      b.onclick=function(){
+        var cid=b.getAttribute("data-cid"), v=b.getAttribute("data-v");
+        if(!id.callsign){ toast("Claim a callsign to vote."); return; }
+        b.disabled=true;
+        postX("reputation","reputation_action","vote",{content_id:cid,callsign:id.callsign,device:id.device,vote:Number(v)},function(j){
+          b.disabled=false;
+          toast(j&&j.ok?"Vote recorded.":"Vote failed.");
+        });
+      };
+    })(vs[vi]);
+  }
+  /* Tips: 10/25/50 XP to the creator. */
+  var ts=el.querySelectorAll("button.fd-tip");
+  for(var ti=0;ti<ts.length;ti++){
+    (function(b){
+      b.onclick=function(){
+        if(!id.callsign){ toast("Claim a callsign to tip."); return; }
+        var creator=b.getAttribute("data-creator"), cid=b.getAttribute("data-cid");
+        var amt=window.prompt("Tip "+creator+" how much XP? (10 / 25 / 50)", "25");
+        amt=Math.round(Number(amt)||0);
+        if(amt!==10&&amt!==25&&amt!==50){ toast("Pick 10, 25, or 50."); return; }
+        b.disabled=true;
+        postX("tips","tip_action","send",{content_id:cid,from:id.callsign,to:creator,xp:amt,device:id.device},function(j){
+          b.disabled=false;
+          toast(j&&j.ok?("Tipped "+amt+" XP to "+creator+"."):((j&&j.err)||"Tip failed."));
+        });
+      };
+    })(ts[ti]);
+  }
+  /* Schedule a share. */
+  var ss=el.querySelectorAll("button.fd-sched");
+  for(var si=0;si<ss.length;si++){
+    (function(b){
+      b.onclick=function(){
+        if(!id.callsign){ toast("Claim a callsign to schedule."); return; }
+        var cid=b.getAttribute("data-cid"), title=b.getAttribute("data-title");
+        var plat=window.prompt("Platform? (twitter / tiktok / facebook / instagram)", "twitter")||"twitter";
+        var when=window.prompt("When? (YYYY-MM-DD HH:MM, Chicago time)", "");
+        if(!when){ return; }
+        b.disabled=true;
+        postX("schedule","schedule_action","add",{content_id:cid,title:title,callsign:id.callsign,device:id.device,platform:String(plat).toLowerCase().slice(0,16),send_at:String(when).slice(0,32)},function(j){
+          b.disabled=false;
+          if(j&&j.ok){ toast("Scheduled. It will fire from the queue."); load(); }
+          else toast((j&&j.err)||"Schedule failed.");
+        });
+      };
+    })(ss[si]);
+  }
 }
 load();
 setInterval(function(){ load(); },180000);

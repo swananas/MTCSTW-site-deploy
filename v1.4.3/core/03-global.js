@@ -26,7 +26,7 @@ window.pfReportAction = function(actionType){
     try{ dev=window.PFDeviceId(); cs=window.PFCallsign(); }catch(e){}
     fetch(window.PF_BACKEND_URL, {method:'POST', mode:'no-cors',
       headers:{'Content-Type':'text/plain'},
-      body: JSON.stringify({type:'action', action_type: actionType, device: dev, callsign: cs})});
+      body: JSON.stringify({type:'action', action_type: actionType, device: dev, callsign: cs, auth_secret:(window.PF&&PF.getAuthSecret?PF.getAuthSecret():'')})});
   } catch(e){}
   /* Refresh the displayed total after reporting. */
   setTimeout(window.pfFetchGlobalTotal, 1500);

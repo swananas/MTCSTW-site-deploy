@@ -11,10 +11,12 @@ var PF=window.PF||(window.PF={});
 PF.notify=function(kind, text){
   try{
     if(!window.PF_BACKEND_URL||!kind||!text) return;
+    var body={type:'discord',d_action:'notify',
+        kind:String(kind).slice(0,32), text:String(text).slice(0,1800)};
+    try{ var sec=window.PF&&PF.getAuthSecret?PF.getAuthSecret():''; if(sec) body.auth_secret=sec; }catch(e2){}
     fetch(window.PF_BACKEND_URL,{method:'POST',mode:'no-cors',
       headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({type:'discord',d_action:'notify',
-        kind:String(kind).slice(0,32), text:String(text).slice(0,1800)})}).catch(function(){});
+      body:JSON.stringify(body)}).catch(function(){});
   }catch(e){}
 };
 })();

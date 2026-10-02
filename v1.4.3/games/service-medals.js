@@ -49,12 +49,30 @@
       setTimeout(function(){if(window[cbn]){try{delete window[cbn];}catch(e){}cb(null);}},15000);
     }
     
+    /* Deploy medal is POST-only (backend auth layer). No type field. */
+    function apiPostDeploy(cs,cb){
+      var backend='';
+      try{ backend=window.PF_BACKEND_URL||BACKEND_URL||''; }catch(e){ backend=BACKEND_URL||''; }
+      if(!backend){ cb(null); return; }
+      var body={action:'deploy',callsign:cs};
+      try{ if(window.PFDeviceId) body.device=window.PFDeviceId()||''; }catch(e){}
+      if(window.PF&&PF.authPost){ PF.authPost(backend,body,cb); return; }
+      /* Fallback: raw POST with secret if available. */
+      try{ var sec=window.PF&&PF.getAuthSecret?PF.getAuthSecret():''; if(sec) body.auth_secret=sec; }catch(e2){}
+      try{
+        fetch(backend,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+          .then(function(r){ return r.json(); })
+          .then(function(j){ cb(j); })
+          .catch(function(){ cb(null); });
+      }catch(e3){ cb(null); }
+    }
+
     function fullDeployment(s){
       if(s.fd||s.fd_pending)return;
       var cs=callsign();
       if(cs){
         /* backend: +50 XP (once/week, idempotent) + wall etch; fd=true only on confirmed success */
-        apiGet({action:'deploy',callsign:cs},function(j){
+        apiPostDeploy(cs,function(j){
           if(j&&j.ok){s.fd=true;save(s);}
           try{document.dispatchEvent(new CustomEvent('pf-ranks-sync'));}catch(e){}
           try{document.dispatchEvent(new CustomEvent('pf-do-update'));}catch(e){}
@@ -77,7 +95,7 @@
     function flushPendingDeploy(cs){
       var s=load();
       if(!s.fd_pending||s.fd)return;
-      apiGet({action:'deploy',callsign:cs},function(j){
+      apiPostDeploy(cs,function(j){
         if(!(j&&j.ok))return; /* keep fd_pending so a later claim retries */
         var s2=load();
         s2.fd=true;s2.fd_pending=false;save(s2);

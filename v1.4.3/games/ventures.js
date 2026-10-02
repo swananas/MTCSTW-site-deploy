@@ -41,9 +41,11 @@ function api(action,params,cb){
   setTimeout(function(){ finish(null); },12000);
 }
 function post(action,params){
+  var body=Object.assign({type:"bank",b_action:action},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,function(){}); return; }
   try{
     fetch(BACKEND,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},
-      body:JSON.stringify(Object.assign({type:"bank",b_action:action},params))}).catch(function(){});
+      body:JSON.stringify(body)}).catch(function(){});
   }catch(e){}
 }
 var board=null, mine=null, busy=false;

@@ -37,10 +37,12 @@ function api(action,params,cb){
   setTimeout(function(){ finish(null); },12000);
 }
 function post(spAction,params,cb){
-  var body=JSON.stringify(Object.assign({type:"spread",sp_action:spAction},params));
+  var body=Object.assign({type:"spread",sp_action:spAction},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
   function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
   try{
-    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:body})
+    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr})
       .then(function(r){ return r.json(); })
       .then(function(j){ done(j); })
       .catch(function(){ done(null); });
@@ -51,7 +53,7 @@ function postX(type,typeAction,action,params,cb){
   var body=JSON.stringify(Object.assign(b,params));
   function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
   try{
-    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:body})
+    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr})
       .then(function(r){ return r.json(); })
       .then(function(j){ done(j); })
       .catch(function(){ done(null); });

@@ -35,10 +35,12 @@ function api(action,params,cb){
   setTimeout(function(){ finish(null); },12000);
 }
 function post(cAction,params,cb){
-  var body=JSON.stringify(Object.assign({type:"irl",irl_action:cAction},params));
+  var body=Object.assign({type:"irl",irl_action:cAction},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
   function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
   try{
-    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:body})
+    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr})
       .then(function(r){ return r.json(); })
       .then(function(j){ done(j); })
       .catch(function(){ done(null); });

@@ -29,11 +29,22 @@ function saveQ(q){ try{ localStorage.setItem(LS_Q,JSON.stringify(q.slice(-50)));
 function postGrant(item, cb){
   try{
     if(!window.PF_BACKEND_URL){ if(cb)cb(null); return; }
+    var body={type:'xp',xp_action:'grant',
+        callsign:item.cs, device:item.dev, delta:item.delta,
+        key:item.key, reason:item.reason||''};
+    /* Use authenticated POST (CORS, not no-cors) so 401s are visible and
+       trigger the auth_claim retry. Falls back to no-cors fire-and-forget
+       only if the auth layer failed to load. */
+    if(window.PF&&PF.authPost){
+      PF.authPost(window.PF_BACKEND_URL, body, function(j){
+        if(cb)cb(j&&j.ok?true:false);
+      });
+      return;
+    }
+    try{ var sec=window.PF&&PF.getAuthSecret?PF.getAuthSecret():''; if(sec) body.auth_secret=sec; }catch(e2){}
     fetch(window.PF_BACKEND_URL,{method:'POST',mode:'no-cors',
       headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({type:'xp',xp_action:'grant',
-        callsign:item.cs, device:item.dev, delta:item.delta,
-        key:item.key, reason:item.reason||''})})
+      body:JSON.stringify(body)})
       .then(function(){ if(cb)cb(true); })
       .catch(function(){ if(cb)cb(false); });
   }catch(e){ if(cb)cb(false); }

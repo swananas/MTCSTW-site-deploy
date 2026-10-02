@@ -39,20 +39,24 @@ function api(action,params,cb){
 }
 /* CORS POST for writes — real fetch, backend verdict parsed. */
 function postW(wAction,params,cb){
-  var body=JSON.stringify(Object.assign({type:"wager",w_action:wAction},params));
+  var body=Object.assign({type:"wager",w_action:wAction},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
   function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
   try{
-    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:body})
+    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr})
       .then(function(r){ return r.json(); })
       .then(function(j){ done(j); })
       .catch(function(){ done(null); });
   }catch(e){ done(null); }
 }
 function postG(gAction,params,cb){
-  var body=JSON.stringify(Object.assign({type:"gamble",g_action:gAction},params));
+  var body=Object.assign({type:"gamble",g_action:gAction},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
   function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
   try{
-    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:body})
+    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr})
       .then(function(r){ return r.json(); })
       .then(function(j){ done(j); })
       .catch(function(){ done(null); });

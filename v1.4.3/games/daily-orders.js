@@ -632,11 +632,17 @@ function render(){
       if(em&&!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(em)){ errBox.textContent="That email doesn't look right — fix it or leave it blank."; return; }
       errBox.textContent="Claiming…";
       var regParams={action:"register",callsign:cs,email:em};
+      try{ var _dev=window.PFDeviceId?window.PFDeviceId():""; if(_dev) regParams.device=_dev; }catch(e){}
       try{ var prf=localStorage.getItem("pf_pending_ref"); if(prf&&/^[a-z0-9_]{3,20}$/.test(prf)) regParams.ref=prf; }catch(e){}
       apiPost(regParams,function(j){
         if(!j){ errBox.textContent="Network error. Try again."; return; }
         if(!j.ok){ errBox.textContent=j.error==="taken"?"That callsign is taken.":"Bad callsign."; return; }
         try{ localStorage.removeItem("pf_pending_ref"); }catch(e2){}
+        /* Per-callsign auth: capture the secret from enlistment, or claim it for existing users. */
+        try{
+          if(j.auth_secret&&window.PF&&PF.saveAuthSecret){ PF.saveAuthSecret(j.auth_secret); }
+          else if(window.PF&&PF.claimAuthSecret){ PF.claimAuthSecret(cs,function(){}); }
+        }catch(e3){}
         save(LS_I,{callsign:cs,email:em});
         try{document.dispatchEvent(new CustomEvent('pf-callsign-claimed',{detail:{callsign:cs}}));}catch(e){}
         var rr=load(LS_R,{xp:0,got:{}});

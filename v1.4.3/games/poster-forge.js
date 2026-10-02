@@ -256,6 +256,7 @@ function pfApi(action,params,cb){
   setTimeout(function(){ finish(null); },12000);
 }
 function pfPost(body,cb){
+  if(window.PF&&PF.authPost){ PF.authPost(PFBE,body,cb); return; }
   function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
   try{
     fetch(PFBE,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})

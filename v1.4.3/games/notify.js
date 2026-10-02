@@ -37,6 +37,7 @@ function api(action,params,cb){
 function post(type,key,cAction,params,cb){
   var body={type:type}; body[key]=cAction;
   for(var k in params) body[k]=params[k];
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
   function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
   try{
     fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})

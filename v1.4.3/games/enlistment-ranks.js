@@ -263,9 +263,11 @@ function doUnlock(id,cs){
 function getWall(){ try{ return JSON.parse(localStorage.getItem(LS_WALL)||"[]"); }catch(e){ return []; } }
 function apiPostWall(cs){
   if(!BACKEND_URL) return;
+  var body={action:"wall",callsign:cs};
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND_URL,body,function(){}); return; }
   try{
     fetch(BACKEND_URL,{method:"POST",headers:{"Content-Type":"text/plain"},
-      body:JSON.stringify({action:"wall",callsign:cs})}).catch(function(){});
+      body:JSON.stringify(body)}).catch(function(){});
   }catch(e){}
 }
 function etchWall(){

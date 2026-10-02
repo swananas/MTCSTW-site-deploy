@@ -48,14 +48,16 @@ function api(action,params,cb,isGet){
      ("not enough XP", "board full", ...) instead of failing silently.
      Fire-and-forget no-cors is kept ONLY as a last resort if the real
      fetch itself throws (network down). */
-  var body=JSON.stringify(Object.assign({type:"contract",c_action:action},params));
+  var body=Object.assign({type:"contract",c_action:action},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
   function posted(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} setTimeout(function(){ load(); },1500); }
   try{
-    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:body})
+    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr})
       .then(function(r){ return r.json(); })
       .then(function(j){ posted(j); })
       .catch(function(){
-        try{ fetch(BACKEND,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:body}).catch(function(){}); }catch(e2){}
+        try{ fetch(BACKEND,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:bodyStr}).catch(function(){}); }catch(e2){}
         posted(null);
       });
   }catch(e){ posted(null); }

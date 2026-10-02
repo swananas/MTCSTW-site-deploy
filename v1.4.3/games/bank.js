@@ -42,9 +42,11 @@ function api(action,params,cb){
 function postOvertime(params,cb){
   /* Real CORS fetch so the backend verdict is visible. The kicker is only
      counted locally when the vault confirms the credit. */
+  var body=Object.assign({type:"bank",b_action:"overtime"},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
   try{
     fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify(Object.assign({type:"bank",b_action:"overtime"},params))})
+      body:JSON.stringify(body)})
       .then(function(r){ return r.json(); })
       .then(function(j){ cb(j); })
       .catch(function(){ cb(null); });

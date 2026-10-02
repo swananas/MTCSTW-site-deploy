@@ -56,7 +56,7 @@ function logRecruit(recruiter){
       headers:{'Content-Type':'text/plain'},
       body:JSON.stringify({type:'action',action_type:'recruit_log',xp:0,pts:0,
         device:String(dev||'').slice(0,64),callsign:String(cs||'').slice(0,64),
-        meta:'recruiter:'+String(recruiter||'').slice(0,32)})}).catch(function(){});
+        meta:'recruiter:'+String(recruiter||'').slice(0,32),auth_secret:(window.PF&&PF.getAuthSecret?PF.getAuthSecret():'')})}).catch(function(){});
   }catch(e){}
 }
 

@@ -50,14 +50,24 @@ function api(action,params,cb,isGet){
   setTimeout(function(){ load(); },1800);
 }
 var GOAL_UNITS={share_raid:"shares",recruit_drive:"recruits",perfect_week:"days"};
-var board=null, mine=null, busy=false;
+var board=null, mine=null, busy=false, loadTries=0;
 function load(){
   var id=ident();
   if(!id.callsign){ renderGate(); return; }
-  if(busy) return; busy=true;
+  if(busy) return; busy=true; loadTries++;
+  var done=false;
+  function fin(){
+    if(done) return; done=true; busy=false;
+    render();
+  }
+  /* Safety: if JSONP hangs, unstick and show retry. */
+  setTimeout(function(){ if(!done){ done=true; busy=false; render(); } },15000);
   api("contract_list",{},function(b){
+    if(done) return;
+    board=b;
     api("contract_mine",{callsign:id.callsign},function(m){
-      busy=false; board=b; mine=m; render();
+      if(done) return;
+      mine=m; fin();
     },true);
   },true);
 }
@@ -74,7 +84,13 @@ function render(){
   var el=document.getElementById("xBody"); if(!el) return;
   var id=ident();
   if(!id.callsign){ renderGate(); return; }
-  if(!board||!mine){ el.innerHTML='<div class="c-load">Opening the contract board&hellip;</div>'; return; }
+  if(!board||!mine){
+    el.innerHTML='<div class="c-load">Opening the contract board&hellip;</div>'
+      +'<div style="margin-top:8px"><button class="c-btn" id="xRetry">Retry</button></div>';
+    var rb=document.getElementById("xRetry");
+    if(rb) rb.onclick=function(){ board=null; mine=null; load(); };
+    return;
+  }
   var h='';
   /* --- camp panel --- */
   var camp=(mine&&mine.my_camp)||null, bal=(mine&&typeof mine.balance==="number")?mine.balance:null;

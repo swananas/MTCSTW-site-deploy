@@ -526,8 +526,26 @@ function render(){
       var sec=document.querySelector('section[data-game="'+g+'"]')
         ||document.getElementById('pf-'+g)||document.getElementById('pf-ov-'+g);
       if(sec){
-        try{ sec.scrollIntoView({behavior:"smooth",block:"start"}); }
-        catch(e){ try{ sec.scrollIntoView(); }catch(e2){} }
+        var scrolled=false;
+        try{ sec.scrollIntoView({behavior:"smooth",block:"start"}); scrolled=true; }
+        catch(e){ try{ sec.scrollIntoView(); scrolled=true; }catch(e2){} }
+        if(!scrolled){
+          try{
+            var r=sec.getBoundingClientRect();
+            var top=r.top+(window.pageYOffset||document.documentElement.scrollTop||0);
+            window.scrollTo(0,Math.max(0,top-20)); scrolled=true;
+          }catch(e3){}
+        }
+        /* Fallback: if still at top after 600ms, force-jump. */
+        setTimeout(function(){
+          try{
+            var r2=sec.getBoundingClientRect();
+            if(r2.top<-10||r2.top>window.innerHeight+10){
+              var t2=r2.top+(window.pageYOffset||document.documentElement.scrollTop||0);
+              window.scrollTo(0,Math.max(0,t2-20));
+            }
+          }catch(e4){}
+        },650);
         try{
           sec.classList.add("pf-flash");
           setTimeout(function(){ try{sec.classList.remove("pf-flash");}catch(e){} },1400);

@@ -1521,12 +1521,15 @@ function doAmplify(){
   var id=ident();
   var useAmt=amt;
   if(!confirm("Spend "+useAmt+" XP to amplify \u201c"+sel.title+"\u201d?")) return;
+  var goBtn=document.getElementById('amGo');
+  if(goBtn) goBtn.disabled=true;
   toast("Amplifying\u2026");
   function give(){
     post('boost_give',{content_id:sel.id,booster:id.callsign,callsign:id.callsign,device:id.device,xp:useAmt},function(j){
+      if(goBtn) goBtn.disabled=false;
       if(j&&j.ok){
         toast("Amplified! "+useAmt+" XP behind \u201c"+sel.title+"\u201d.");
-        try{ document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:-useAmt,key:"amplify_"+sel.id+"_"+Date.now(),reason:"amplify: "+sel.title}})); }catch(e){}
+        try{ document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:-useAmt,key:"amplify_"+sel.id+"_"+useAmt,reason:"amplify: "+sel.title}})); }catch(e){}
         var mine=loadMine();
         mine.unshift({id:sel.id,title:sel.title,kind:sel.kind,xp:useAmt,ts:Date.now()});
         saveMine(mine);
@@ -9542,7 +9545,7 @@ setInterval(function(){ load(); },120000);
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("armory")) { return; }
+  if (!PF || PF.skip("armory")) { return; }
 
   var BACKEND = (window.PF_BACKEND_URL || "https://pf-api.mtcstw.workers.dev");
   var LS_I = "pf_identity_v1";

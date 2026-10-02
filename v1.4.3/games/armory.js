@@ -7,7 +7,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("armory")) { return; }
+  if (!PF || PF.skip("armory")) { return; }
 
   var BACKEND = (window.PF_BACKEND_URL || "https://pf-api.mtcstw.workers.dev");
   var LS_I = "pf_identity_v1";

@@ -303,6 +303,10 @@ footer h1, footer h2, footer h3, footer h4{color:#f5ead6 !important;}
 #pf-war-card .c-wbtns{display:flex;gap:10px;flex-wrap:wrap}
 #pf-war-card .c-wbtns .c-big{flex:2;min-width:200px}
 @media (max-width:560px){#pf-war-card .c-wgrid,#pf-war-card .c-wgrid3{grid-template-columns:1fr}}
+#pf-cells .c-prb{display:inline-block;color:#ffb703;font-weight:900;font-size:12px;margin-left:6px;vertical-align:middle}
+#pf-cells .c-prestige .c-prben{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin:3px 0}
+#pf-cells .c-prestige .c-prprog{height:10px;background:#2a2a2a;border:1px solid #555;margin:10px auto 4px;max-width:320px}
+#pf-cells .c-prestige .c-prfill{display:block;height:100%;background:linear-gradient(90deg,#c1121f,#ffb703)}
 /* ============================================================================
    PF DESIGN SYSTEM  |  v1.4.3
    WHAT: Shared design tokens + component classes for all v1.4.3 silos.
@@ -587,10 +591,6 @@ footer h1, footer h2, footer h3, footer h4{color:#f5ead6 !important;}
 .dp-rframe,.dp-acc,.dp-dec{margin:4px;}
 /* Reduced motion */
 @media (prefers-reduced-motion:reduce){.dp-risk{animation:none;}}
-#pf-cells .c-prb{display:inline-block;color:#ffb703;font-weight:900;font-size:12px;margin-left:6px;vertical-align:middle}
-#pf-cells .c-prestige .c-prben{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin:3px 0}
-#pf-cells .c-prestige .c-prprog{height:10px;background:#2a2a2a;border:1px solid #555;margin:10px auto 4px;max-width:320px}
-#pf-cells .c-prestige .c-prfill{display:block;height:100%;background:linear-gradient(90deg,#c1121f,#ffb703)}
 
 /* === HOMEPAGE BREATHING ROOM (2026-10-02) === */
 /* Each mounted widget gets its own space. The section wrapper is the
@@ -643,10 +643,49 @@ footer h1, footer h2, footer h3, footer h4{color:#f5ead6 !important;}
   color:var(--pf-dim); text-transform:uppercase; margin-bottom:8px;
 }
 .pf-next-link{
-  display:inline-block; margin:4px 6px; padding:8px 16px;
+  display:inline-block; margin:4px 6px; padding:12px 16px; min-height:44px;
   border:2px solid var(--pf-red); color:var(--pf-cream);
   font-family:var(--pf-font-body); font-size:13px; letter-spacing:1px;
   text-decoration:none; text-transform:uppercase; cursor:pointer;
-  background:transparent;
+  background:transparent; box-sizing:border-box;
 }
 .pf-next-link:hover{background:var(--pf-red); color:#fff;}
+
+/* ---------- AMPLIFY ---------- */
+#pf-amplify .am-tabs{display:flex;gap:8px;margin-bottom:12px;}
+#pf-amplify .am-tab{flex:1;padding:10px;background:transparent;border:2px solid var(--pf-border-light);
+  color:var(--pf-cream);font-family:var(--pf-font-body);font-size:13px;letter-spacing:2px;
+  text-transform:uppercase;cursor:pointer;}
+#pf-amplify .am-tab.on{border-color:var(--pf-red);background:rgba(200,30,30,.15);}
+#pf-amplify .am-row{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:8px;
+  border:1px solid var(--pf-border-light);cursor:pointer;}
+#pf-amplify .am-row:hover{border-color:var(--pf-red);}
+#pf-amplify .am-row.sel{border-color:var(--pf-red);background:rgba(200,30,30,.12);}
+#pf-amplify .am-rowmain{flex:1;min-width:0;}
+#pf-amplify .am-rowt{font-weight:700;color:var(--pf-cream);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#pf-amplify .am-rowsub{font-size:12px;color:var(--pf-dim);}
+#pf-amplify .am-badge{display:inline-block;padding:4px 10px;background:var(--pf-red);color:#fff;
+  font-size:11px;letter-spacing:1px;font-weight:700;white-space:nowrap;}
+#pf-amplify .am-xp{font-weight:700;color:var(--pf-gold);font-size:13px;white-space:nowrap;}
+#pf-amplify .am-rank{font-weight:700;color:var(--pf-dim);font-size:14px;min-width:32px;}
+#pf-amplify .am-brow{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:8px;
+  border:1px solid var(--pf-border-light);}
+#pf-amplify .am-amtrow{display:flex;align-items:center;gap:8px;margin:14px 0;flex-wrap:wrap;}
+#pf-amplify .am-label{font-size:12px;letter-spacing:2px;color:var(--pf-dim);text-transform:uppercase;}
+#pf-amplify .am-chip{padding:8px 14px;background:transparent;border:2px solid var(--pf-border-light);
+  color:var(--pf-cream);font-weight:700;cursor:pointer;}
+#pf-amplify .am-chip.on{border-color:var(--pf-gold);color:var(--pf-gold);}
+#pf-amplify .am-custom{width:90px;padding:8px;background:#111;border:2px solid var(--pf-border-light);color:var(--pf-cream);}
+#pf-amplify .am-go{display:block;width:100%;padding:14px;margin:6px 0 18px;background:var(--pf-red);
+  color:#fff;border:none;font-family:var(--pf-font-body);font-size:15px;letter-spacing:2px;
+  text-transform:uppercase;cursor:pointer;font-weight:700;}
+#pf-amplify .am-go:disabled{background:#333;color:#888;cursor:default;}
+#pf-amplify .am-h3{font-size:13px;letter-spacing:3px;color:var(--pf-dim);text-transform:uppercase;
+  margin:18px 0 10px;border-bottom:1px solid var(--pf-border-light);padding-bottom:6px;}
+
+/* Status badges — battle proposals, intel submissions */
+.bt-st{display:inline-block;padding:2px 8px;font-size:11px;font-weight:700;letter-spacing:1px;
+  text-transform:uppercase;border:1px solid var(--pf-border-light);}
+.bt-st-pending{color:#fc0;border-color:#fc0;}
+.bt-st-approved{color:#0c6;border-color:#0c6;}
+.bt-st-rejected{color:#c33;border-color:#c33;}

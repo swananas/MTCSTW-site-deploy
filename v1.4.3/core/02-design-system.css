@@ -334,11 +334,11 @@
   color:var(--pf-dim); text-transform:uppercase; margin-bottom:8px;
 }
 .pf-next-link{
-  display:inline-block; margin:4px 6px; padding:8px 16px;
+  display:inline-block; margin:4px 6px; padding:12px 16px; min-height:44px;
   border:2px solid var(--pf-red); color:var(--pf-cream);
   font-family:var(--pf-font-body); font-size:13px; letter-spacing:1px;
   text-decoration:none; text-transform:uppercase; cursor:pointer;
-  background:transparent;
+  background:transparent; box-sizing:border-box;
 }
 .pf-next-link:hover{background:var(--pf-red); color:#fff;}
 
@@ -373,3 +373,10 @@
 #pf-amplify .am-go:disabled{background:#333;color:#888;cursor:default;}
 #pf-amplify .am-h3{font-size:13px;letter-spacing:3px;color:var(--pf-dim);text-transform:uppercase;
   margin:18px 0 10px;border-bottom:1px solid var(--pf-border-light);padding-bottom:6px;}
+
+/* Status badges — battle proposals, intel submissions */
+.bt-st{display:inline-block;padding:2px 8px;font-size:11px;font-weight:700;letter-spacing:1px;
+  text-transform:uppercase;border:1px solid var(--pf-border-light);}
+.bt-st-pending{color:#fc0;border-color:#fc0;}
+.bt-st-approved{color:#0c6;border-color:#0c6;}
+.bt-st-rejected{color:#c33;border-color:#c33;}

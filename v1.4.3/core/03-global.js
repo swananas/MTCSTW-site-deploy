@@ -4,6 +4,28 @@
    Each widget calls pfReportAction('action_type') on completion.
    The total is fetched from the backend and displayed in #pf-global-total. */
 window.PF_BACKEND_URL = "https://pf-api.mtcstw.workers.dev";
+/* P0 (2026-10-02): shared POST helper for POST_ONLY actions.
+   Usage: PF.postAction('cell','cell_action','cell_create',{callsign:cs},cb)
+   Attaches auth_secret automatically. Falls back to PF.authPost (with
+   claim/retry) when available. Network fail -> cb(null). */
+window.PF = window.PF || {};
+window.PF.postAction = function(type, actionKey, action, params, cb){
+  var url = window.PF_BACKEND_URL;
+  if(!url){ try{ cb(null); }catch(e){} return; }
+  var body = Object.assign({type:type}, params||{});
+  body[actionKey] = action;
+  if(window.PF && window.PF.authPost){ window.PF.authPost(url, body, cb); return; }
+  var secret = '';
+  try{ secret = (window.PF && window.PF.getAuthSecret) ? window.PF.getAuthSecret() : ''; }catch(e){}
+  if(secret) body.auth_secret = secret;
+  function done(j){ try{ cb(j); }catch(e){} }
+  try{
+    fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)})
+      .then(function(r){ return r.json(); })
+      .then(function(j){ done(j); })
+      .catch(function(){ done(null); });
+  }catch(e){ done(null); }
+};
 /* Per-device identity + callsign. Attached to every backend action report so
    per-user rows in the Sheet key to the local device and the user's callsign.
    Votes stay anonymous by design — no identity is ever sent on vote rows. */

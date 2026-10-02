@@ -237,7 +237,7 @@ function wireTreasury(id,el){
     if(amt<=0){ toast("Enter an amount."); return; }
     d.disabled=true;
     post("treasury","t_action","treasury_donate",{callsign:id.callsign,device:id.device,cell_id:TRCELL,amount:amt},function(j){
-      if(!j||!j.ok){ toast((j&&j.err)||"Donation failed."); d.disabled=false; return; }
+      if(!j||!j.ok){ toast((j&&j.err)||"Transfer failed."); d.disabled=false; return; }
       toast("THREW DOWN "+amt+" XP to the war chest.");
       api("treasury_balance",{cell_id:TRCELL},function(jj){ TRB=jj; render(); });
     });
@@ -976,7 +976,7 @@ function renderCauses(id){
     var p=pools[i];
     h+='<div class="cp-mission"><div class="cp-mtext"><b>'+esc(p.name)+'</b>'
       +'<div class="x-note">'+esc(p.description||"")+'</div>'
-      +'<div class="x-note"><b>'+Number(p.balance||0).toLocaleString()+' XP</b> &bull; '+Number(p.donors||0)+' donors</div>'
+      +'<div class="x-note"><b>'+Number(p.balance||0).toLocaleString()+' XP</b> &bull; '+Number(p.donors||0)+' backers</div>'
       +'<div style="margin-top:6px"><input aria-label="XP" class="c-in pf-input-sm" data-causeamt="'+esc(p.id)+'" type="number" min="1" placeholder="XP" /> '
       +'<button class="c-btn" data-causefund="'+esc(p.id)+'">FUND</button></div></div></div>';
   }
@@ -994,7 +994,7 @@ function wireCauses(id,el){
       btn.disabled=true;
       post("finance","f_action","cause_donate",{callsign:id.callsign,device:id.device,pool_id:pid,amount:amt},function(j){
         btn.disabled=false;
-        if(!j||!j.ok){ toast((j&&j.err)||"Donation failed."); return; }
+        if(!j||!j.ok){ toast((j&&j.err)||"Transfer failed."); return; }
         toast("FUNDED "+amt+" XP. The movement thanks you.");
         api("cause_list",{},function(jj){ CAUSES=jj; render(); });
       });

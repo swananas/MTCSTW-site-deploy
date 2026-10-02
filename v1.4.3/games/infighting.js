@@ -104,6 +104,12 @@ function xp(){try{return Number(JSON.parse(localStorage.getItem(LS_R)||'{"xp":0}
 function setXp(v){try{var s=JSON.parse(localStorage.getItem(LS_R)||'{"xp":0,"got":{}}');s.xp=Math.max(0,Math.round(v));localStorage.setItem(LS_R,JSON.stringify(s));}catch(e){}}
 function callsign(){try{return String(JSON.parse(localStorage.getItem(LS_I)||'{}').callsign||'').toLowerCase();}catch(e){return '';}}
 function apiGet(params,cb,timeoutMs){
+  /* P0 (2026-10-02): infight_fire is POST-only (was CSRF-able via GET). */
+  if(params && params.action==='infight_fire' && window.PF && PF.postAction){
+    PF.postAction('stats','s_action','infight_fire',
+      {callsign:params.callsign,round:params.round,slug:params.slug,amt:params.amt},cb);
+    return;
+  }
   var done=false,name='pfIfCb'+Date.now()+Math.floor(Math.random()*1e6);
   function fin(v){if(done)return;done=true;try{delete window[name];}catch(e){}var s=document.getElementById(name);if(s&&s.parentNode)s.parentNode.removeChild(s);cb(v);}
   window[name]=function(d){fin(d);};

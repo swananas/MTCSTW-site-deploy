@@ -35,7 +35,14 @@ function toast(m){ try{ var t=document.createElement("div"); t.textContent=m;
   document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e){} }
 /* JSONP, same pattern as the other games. 12s timeout: a hung Apps Script
    request must never wedge the section on its loading text. */
+/* P0 (2026-10-02): cell mutations are POST-only (CSRF-able via GET).
+   Route them through the POST helper; read-only actions stay on JSONP. */
+var POST_CELL_ACTIONS = {cell_create:1,cell_join:1,cell_checkin:1,cell_cover:1,cell_leave:1,cell_rename:1,cell_bounty_claim:1};
 function api(action,params,cb){
+  if(POST_CELL_ACTIONS[action]){
+    if(window.PF && PF.postAction){ PF.postAction('cell','cell_action',action,params,cb); return; }
+    post('cell','cell_action',action,params,cb); return;
+  }
   if(!BACKEND){ cb(null); return; }
   var fn="pfCellCb"+Math.floor(Math.random()*1e9);
   var s=document.createElement("script");

@@ -231,7 +231,7 @@ function wireTreasury(id,el){
     if(amt<=0){ toast("Enter an amount."); return; }
     d.disabled=true;
     post("treasury","t_action","treasury_donate",{callsign:id.callsign,device:id.device,cell_id:TRCELL,amount:amt},function(j){
-      if(!j||!j.ok){ toast((j&&j.err)||"Donation failed."); d.disabled=false; return; }
+      if(!j||!j.ok){ toast((j&&j.err)||"Transfer failed."); d.disabled=false; return; }
       toast("THREW DOWN "+amt+" XP to the war chest.");
       api("treasury_balance",{cell_id:TRCELL},function(jj){ TRB=jj; render(); });
     });

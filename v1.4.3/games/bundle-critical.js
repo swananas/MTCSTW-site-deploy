@@ -479,6 +479,13 @@ function ident(){ return load(LS_I,{});  }
 
   function apiPost(obj,cb){
  if(!beUrl()){ cb(null); return;}
+  /* P0 (2026-10-02): checkin is POST-only (was CSRF-able via GET).
+     Route through the shared POST helper with auth_secret. */
+  if(obj.action==="checkin" && window.PF && PF.postAction){
+    var sp = {callsign:obj.callsign, device:obj.device, day:obj.day, mission:obj.mission,
+              platform:obj.platform, spread:obj.spread, gained:obj.gained};
+    PF.postAction('stats','s_action','checkin',sp,cb); return;
+  }
   var fn="pfPostCb"+Math.floor(Math.random()*1e9);
   var s=document.createElement("script");
   window[fn]=function(j){ try{delete window[fn];}catch(e){} if(s.parentNode) s.parentNode.removeChild(s); cb(j);};

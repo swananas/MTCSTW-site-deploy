@@ -51,6 +51,7 @@
     ['caption-combat', 'pf-ov-caption'],
     ['poster-forge', 'pf-ov-poster'],
     ['battles', 'pf-ov-battles'],
+    ['casino', 'pf-ov-casino'],
     ['enlistment-ranks', 'pf-ov-ranks'],
     ['war-bonds', 'pf-ov-bonds']
   ];

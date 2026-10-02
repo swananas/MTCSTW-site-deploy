@@ -19,12 +19,12 @@
 <script>
 (function(){
 var BACKEND=window.PF_BACKEND_URL;
-/* Tiers: recruits thresholds. */
+/* Tiers: recruits thresholds. Matches backend src/referral.js. */
 var TIERS=[
-  {min:100,name:"LEGEND",cls:"rf-t-legend"},
-  {min:25,name:"COMMANDER",cls:"rf-t-commander"},
-  {min:10,name:"CAPTAIN",cls:"rf-t-captain"},
+  {min:25,name:"WARLORD",cls:"rf-t-legend"},
+  {min:10,name:"COMMANDER",cls:"rf-t-commander"},
   {min:3,name:"ORGANIZER",cls:"rf-t-organizer"},
+  {min:1,name:"SCOUT",cls:"rf-t-captain"},
   {min:0,name:"RECRUIT",cls:"rf-t-recruit"}
 ];
 function tierFor(n){ n=Number(n)||0; for(var i=0;i<TIERS.length;i++){ if(n>=TIERS[i].min) return TIERS[i]; } return TIERS[TIERS.length-1]; }
@@ -121,7 +121,7 @@ function render(){
     +'<div class="x-note"><b>1.</b> Share your code or link anywhere.</div>'
     +'<div class="x-note"><b>2.</b> They claim a callsign with your code attached.</div>'
     +'<div class="x-note"><b>3.</b> You both get XP. They join your army. You climb the tiers.</div>'
-    +'<div class="x-note">Recruit 3 for ORGANIZER, 10 for CAPTAIN, 25 for COMMANDER, 100 for LEGEND.</div></div>';
+    +'<div class="x-note">Recruit 1 for SCOUT, 3 for ORGANIZER, 10 for COMMANDER, 25 for WARLORD.</div></div>';
   h+='<div style="margin-top:10px"><button class="c-btn" id="rfRetry">Refresh</button></div>';
   el.innerHTML=h;
   /* wire copy */

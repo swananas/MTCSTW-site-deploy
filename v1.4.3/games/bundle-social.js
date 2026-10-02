@@ -3396,7 +3396,6 @@ setInterval(function(){ if(!busy) load(); }, 120000);
     applyHype();
     setInterval(applyHype, 30000);
     document.addEventListener('pf-efficiency', applyHype);
-    document.addEventListener('pf-infight', applyHype);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hypeInit);
   else hypeInit();
@@ -3583,7 +3582,6 @@ function doFire(idx,amt){
   pending[f.slug]=(pending[f.slug]||0)+amt;
   apiGet({action:'infight_fire',round:cur.id,slug:f.slug,amt:amt,callsign:callsign()},function(){pollTotals();});
   dispatch('pf-infight-fire',{slug:f.slug,amt:amt,round:cur.id});
-  try{document.dispatchEvent(new CustomEvent('pf-ranks-sync'));}catch(e){}
   updateBars();
   var x=root.querySelector('[data-if-xp]');if(x)x.textContent=xp().toLocaleString();
 }

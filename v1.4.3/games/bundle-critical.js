@@ -1265,9 +1265,29 @@ function load(){
   setTimeout(fin,15000);
   var p={callsign:id.callsign,device:id.device};
   api("dopamine_status",p,function(j){
-    if(j&&j.ok){ ST=j; } else { WARM=true; }
+    if(j&&j.ok){ ST=j; checkStreakMilestone(j); } else { WARM=true; }
     one();
   });
+}
+/* Streak milestones (7/14/30/60/100) trigger the level-up celebration overlay.
+   Celebrates once per milestone per callsign — tracked in localStorage. */
+function checkStreakMilestone(j){
+  try{
+    var count=Number((j&&j.streak&&j.streak.count)||0);
+    if(!count) return;
+    var seen={};
+    try{ seen=JSON.parse(localStorage.getItem("pf_streak_ms_v1")||"{}"); }catch(e){}
+    for(var i=0;i<MILESTONES.length;i++){
+      var m=MILESTONES[i];
+      if(count>=m&&!seen["m"+m]){
+        seen["m"+m]=1;
+        try{ localStorage.setItem("pf_streak_ms_v1",JSON.stringify(seen)); }catch(e2){}
+        levelUpOverlay(m+"-DAY STREAK");
+        try{ if(window.PF&&PF.emit) PF.emit("pf:streak:milestone",{days:m,count:count}); }catch(e3){}
+        break;
+      }
+    }
+  }catch(e){}
 }
 function fmtLeft(ms){
   ms=Math.max(0,ms);
@@ -1400,7 +1420,15 @@ function wire(){
           slot.innerHTML='<div class="dp-reward" style="border-color:'+rk.c+'">'
             +'<div class="dp-rlabel" style="color:'+rk.c+'">'+rk.label+'</div>'
             +'<div class="dp-rxp">+'+Number(r.xp||0)+' XP</div>'
-            +'<div class="dp-rname">'+esc(r.label||"Supply drop")+'</div></div>';
+            +'<div class="dp-rname">'+esc(r.label||"Supply drop")+'</div>'
+            +(((r.rarity==="epic")||(r.rarity==="legendary"))
+              ?'<div style="margin-top:10px"><button class="c-btn" id="dpSharePull">SHARE YOUR PULL</button></div>':"")
+            +'</div>';
+          /* Epic/legendary pulls get a share prompt — dopamine peak meets social outlet. */
+          var spb=document.getElementById("dpSharePull");
+          if(spb){ (function(rw,rkk){ spb.onclick=function(){ shareLoot(rw,rkk); }; })(r,rk); }
+          /* Emit namespaced event for any other consumer (cell brag, feed, etc). */
+          try{ if(window.PF&&PF.emit) PF.emit("pf:loot:opened",{rarity:r.rarity,xp:r.xp||0,label:r.label||""}); }catch(ee){}
         }
         if(crate){ crate.classList.add("dp-burst"); }
         try{ if(window.PF&&PF.dope){ PF.dope.confetti(document.getElementById("pf-dopa"),40); PF.dope.xpFloat(document.getElementById("pf-dopa"),"+"+Number(r.xp||0)+" XP"); } }catch(e){}
@@ -1445,6 +1473,15 @@ setInterval(tick,1000);
 setInterval(function(){ load(); },120000);
 /* combo events from anywhere on the page */
 try{ document.addEventListener("pf-combo-hit",function(){ comboHit(); }); }catch(e){}
+try{ document.addEventListener("pf-content-shared",function(){ comboHit(); }); }catch(e){}
+/* Orphan producers get a home: creation actions feed the combo meter.
+   pf-alert-forge (alerts), pf-boost-given (forge), pf-campaign-act/pledge (campaign)
+   previously fired with no consumer — now they stoke the session combo. */
+try{
+  ["pf-alert-forge","pf-boost-given","pf-campaign-act","pf-campaign-pledge"].forEach(function(ev){
+    document.addEventListener(ev,function(){ comboHit(); });
+  });
+}catch(e){}
 load();
 /* ---- global overlays (site-wide, injected once) ---- */
 function ovCss(){ dpCss(); }
@@ -1489,6 +1526,35 @@ function sharePromotion(rankName){
     var a=document.createElement("a");
     a.download="promotion-"+rn.toLowerCase().replace(/[^a-z0-9]+/g,"-")+".png";
     a.href=c.toDataURL("image/png"); a.click();
+  }catch(e){}
+}
+function shareLoot(reward,rk){
+  try{
+    var c=document.createElement("canvas"); c.width=1080; c.height=1080;
+    var g=c.getContext("2d");
+    g.fillStyle="#160b0b"; g.fillRect(0,0,1080,1080);
+    g.strokeStyle=(rk&&rk.c)||"#e8b10c"; g.lineWidth=24; g.strokeRect(24,24,1032,1032);
+    g.fillStyle=(rk&&rk.c)||"#e8b10c"; g.font="bold 54px monospace"; g.textAlign="center";
+    g.fillText(((rk&&rk.label)||"LEGENDARY").toUpperCase()+" PULL",540,300);
+    g.fillStyle="#f5ead6"; g.font="bold 88px monospace";
+    var lb=String((reward&&reward.label)||"SUPPLY DROP").toUpperCase().slice(0,22);
+    g.fillText(lb,540,470);
+    if(reward&&reward.xp){
+      g.fillStyle="#e8b10c"; g.font="bold 72px monospace";
+      g.fillText("+"+Number(reward.xp)+" XP",540,600);
+    }
+    var cs=""; try{ cs=String(window.PFCallsign?window.PFCallsign():"").toUpperCase(); }catch(e2){}
+    g.fillStyle="#c9bfa8"; g.font="bold 44px monospace";
+    if(cs) g.fillText("PULLED BY "+cs,540,700);
+    g.fillStyle="#c1121f"; g.font="bold 72px monospace";
+    g.fillText("JOIN THE FIGHT.",540,840);
+    g.fillStyle="#f5ead6"; g.font="bold 48px monospace";
+    g.fillText("MTCSTW.COM",540,940);
+    var a=document.createElement("a");
+    a.download="loot-pull-"+Date.now()+".png";
+    a.href=c.toDataURL("image/png"); a.click();
+    /* Firing the share counts as content shared — feeds the combo meter. */
+    try{ document.dispatchEvent(new CustomEvent("pf-content-shared",{detail:{kind:"loot"}})); }catch(e3){}
   }catch(e){}
 }
 function levelUpOverlay(rankName){
@@ -2646,8 +2712,7 @@ wallFromServer(function(j){ if(j&&j.ok&&j.wall) renderWall(j.wall); });
         /* backend: +50 XP (once/week, idempotent) + wall etch; fd=true only on confirmed success */
         apiPostDeploy(cs,function(j){
           if(j&&j.ok){s.fd=true;save(s);}
-          try{document.dispatchEvent(new CustomEvent('pf-ranks-sync'));}catch(e){}
-          try{document.dispatchEvent(new CustomEvent('pf-do-update'));}catch(e){}
+                    try{document.dispatchEvent(new CustomEvent('pf-do-update'));}catch(e){}
           renderRack();
         });
       }else{
@@ -2671,8 +2736,7 @@ wallFromServer(function(j){ if(j&&j.ok&&j.wall) renderWall(j.wall); });
         if(!(j&&j.ok))return; /* keep fd_pending so a later claim retries */
         var s2=load();
         s2.fd=true;s2.fd_pending=false;save(s2);
-        try{document.dispatchEvent(new CustomEvent('pf-ranks-sync'));}catch(e){}
-        try{document.dispatchEvent(new CustomEvent('pf-do-update'));}catch(e){}
+                try{document.dispatchEvent(new CustomEvent('pf-do-update'));}catch(e){}
         renderRack();
       });
     }

@@ -74,8 +74,7 @@
         /* backend: +50 XP (once/week, idempotent) + wall etch; fd=true only on confirmed success */
         apiPostDeploy(cs,function(j){
           if(j&&j.ok){s.fd=true;save(s);}
-          try{document.dispatchEvent(new CustomEvent('pf-ranks-sync'));}catch(e){}
-          try{document.dispatchEvent(new CustomEvent('pf-do-update'));}catch(e){}
+                    try{document.dispatchEvent(new CustomEvent('pf-do-update'));}catch(e){}
           renderRack();
         });
       }else{
@@ -99,8 +98,7 @@
         if(!(j&&j.ok))return; /* keep fd_pending so a later claim retries */
         var s2=load();
         s2.fd=true;s2.fd_pending=false;save(s2);
-        try{document.dispatchEvent(new CustomEvent('pf-ranks-sync'));}catch(e){}
-        try{document.dispatchEvent(new CustomEvent('pf-do-update'));}catch(e){}
+                try{document.dispatchEvent(new CustomEvent('pf-do-update'));}catch(e){}
         renderRack();
       });
     }

@@ -34,7 +34,7 @@ function inCell(cb){
   window[fn]=function(j){
     try{ delete window[fn]; }catch(e){}
     var v=false;
-    try{ v=!!(j&&j.my_cells&&j.my_cells.length); }catch(e2){}
+    try{ v=!!(j&&(j.in_cell||(j.cells&&j.cells.length))); }catch(e2){}
     try{ localStorage.setItem(LS_CELL,JSON.stringify({day:chiDay(),inCell:v})); }catch(e3){}
     cb(v);
   };

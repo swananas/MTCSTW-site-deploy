@@ -264,7 +264,7 @@ function renderCell(el,s){
   };
   var ci=document.getElementById("cCheckin");  if(ci) ci.onclick=function(){
     errEl.textContent="";
-    api("cell_checkin",{callsign:id.callsign,device:id.device},function(j){
+    api("cell_checkin",{callsign:id.callsign,device:id.device,cell_id:c.id},function(j){
       if(!j||!j.ok){ errEl.textContent=(j&&j.err)||"Network error."; return; }
       if(j.already){ toast("Already checked in."); }
       else { toast("Checked in. Streak: "+j.cell.streak+"."); try{ if(window.pfReportAction) window.pfReportAction("cell_checkin"); }catch(e){} }
@@ -274,7 +274,7 @@ function renderCell(el,s){
   var cv=document.getElementById("cCover");
   if(cv) cv.onclick=function(){
     errEl.textContent="";
-    api("cell_cover",{callsign:id.callsign,device:id.device},function(j){
+    api("cell_cover",{callsign:id.callsign,device:id.device,cell_id:c.id},function(j){
       if(!j||!j.ok){ errEl.textContent=(j&&j.err)||"No cover to play."; return; }
       toast("Cover played — "+j.covered+" is saved. Streak: "+j.streak+".");
       refresh();

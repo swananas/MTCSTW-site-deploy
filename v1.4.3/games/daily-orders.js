@@ -157,7 +157,7 @@ function apiGet(callsign,cb){
   document.head.appendChild(s);
 }
 
-function platLabel(p){ var f=PLATFORMS.filter(function(x){return x[0]===p;})[0]; return f?f[1].toUpperCase():String(p||"").toUpperCase(); }
+function platLabel(p){ var f=PLATFORMS.filter(function(x){return x[0]===p;})[0]; var t=f?f[1].toUpperCase():String(p||"").toUpperCase(); return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
 /* Merge cross-device Daily Orders state from the backend: union today's
    missions (never duplicates, never drops local progress), take the max

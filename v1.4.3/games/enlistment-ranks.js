@@ -288,9 +288,10 @@ function wallFromServer(cb){
 }
 function renderWall(serverWall){
   var el=document.getElementById("uWall");
+  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
   var names=getWall();
-  if(serverWall&&serverWall.length){ names=serverWall.map(function(w){return String(w.callsign).toUpperCase();}); }
-  else { names=names.map(function(w){return String(w).toUpperCase();}); }
+  if(serverWall&&serverWall.length){ names=serverWall.map(function(w){return esc(String(w.callsign).toUpperCase());}); }
+  else { names=names.map(function(w){return esc(String(w).toUpperCase());}); }
   if(!names.length){ el.innerHTML='<div class="u-wempty">No architects yet. The wall waits.</div>'; return; }
   el.innerHTML=names.slice(-24).map(function(n){ return '<span class="u-wname">'+n+'</span>'; }).join("");
 }

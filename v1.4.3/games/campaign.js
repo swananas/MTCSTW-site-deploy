@@ -52,17 +52,18 @@ function post(cAction,params,cb){
       .catch(function(){ done(null); });
   }catch(e){ done(null); }
 }
-var S=null, M=null, W=null, L=null;
+var S=null, M=null, W=null, L=null, R=null;
 function daysLeft(){ var ms=ELECTION-Date.now(); return Math.max(0,Math.ceil(ms/86400000)); }
 function load(){
   var id=ident(), done=false, n=0;
   function fin(){ if(done)return; done=true; render(); }
-  function one(){ n++; if(n>=4) fin(); }
+  function one(){ n++; if(n>=5) fin(); }
   setTimeout(fin,15000);
   api("campaign_status",{},function(j){ S=j; one(); });
   api("campaign_missions",{callsign:id.callsign,device:id.device},function(j){ M=j; one(); });
   api("campaign_wall",{},function(j){ W=j; one(); });
   api("campaign_leaders",{},function(j){ L=j; one(); });
+  api("race_list",{},function(j){ R=j; one(); });
 }
 function isPledged(){
   var id=ident(); if(!id.callsign) return false;
@@ -158,14 +159,39 @@ function render(){
     })(btns[b]);
   }
   var rb=document.getElementById("cpRetry");
-  if(rb) rb.onclick=function(){ S=M=W=L=null; el.innerHTML='<div class="c-load">Mobilizing&hellip;</div>'; load(); };
+  if(rb) rb.onclick=function(){ S=M=W=L=R=null; el.innerHTML='<div class="c-load">Mobilizing&hellip;</div>'; load(); };
+}
+function normRace(r){
+  var c=r.candidates;
+  if(typeof c==="string"){ try{ c=JSON.parse(c); }catch(e){ c=[]; } }
+  return { id:r.id, state:r.state, office:r.office, candidates:c||[], rating:r.rating, stakes:r.stakes };
+}
+function fmtUpd(t){
+  try{
+    var d=new Date(typeof t==="number"?t:String(t));
+    if(isNaN(d.getTime())) return String(t||"");
+    var mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return mo[d.getMonth()]+" "+d.getDate();
+  }catch(e){ return String(t||""); }
 }
 function renderBattlegrounds(){
-  var races=[], meas=[];
-  try{ races=window.PF_CAMPAIGN_RACES||[]; }catch(e){}
-  try{ meas=window.PF_CAMPAIGN_MEASURES||[]; }catch(e){}
+  var races=[], meas=[], updated=null, fromLive=false;
+  /* Prefer live backend data; fall back to the static file. */
+  try{
+    if(R&&R.ok&&R.races&&R.races.length){
+      races=R.races.map(normRace); fromLive=true;
+      if(R.measures&&R.measures.length) meas=R.measures;
+      updated=R.updated_at||null;
+    }
+  }catch(e){}
+  if(!races.length){
+    try{ races=window.PF_CAMPAIGN_RACES||[]; }catch(e){}
+    try{ meas=window.PF_CAMPAIGN_MEASURES||[]; }catch(e){}
+  }
   var h='<div class="x-pane"><h4>Battlegrounds</h4>'
-    +'<div class="x-note">Real races, real candidates &mdash; scored on class lines. Who funds them. Who they answer to.</div>';
+    +'<div class="x-note">Real races, real candidates &mdash; scored on class lines. Who funds them. Who they answer to.'
+    +(fromLive&&updated?' <span class="cp-upd">Data updated: '+esc(fmtUpd(updated))+'</span>':'')
+    +'</div>';
   for(var i=0;i<races.length;i++){
     var r=races[i];
     h+='<div class="cp-race"><div class="cp-rtitle">'+esc(r.state)+' &mdash; '+esc(r.office)+'</div>'

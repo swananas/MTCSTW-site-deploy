@@ -25,6 +25,7 @@
      Daily Orders leads: it's the stickiest dopamine lynchpin. */
   var ORDER = [
     ['daily-orders', 'pf-ov-orders'],
+    ['dopa', 'pf-ov-dopa'],
     ['notify', 'pf-ov-notify'],
     ['campaign', 'pf-ov-campaign'],
     ['civic', 'pf-ov-civic'],

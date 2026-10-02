@@ -37,7 +37,7 @@
    ?action=xp_today returns {ok, xp_today, comrades} — today's site-wide XP
    plus the number of distinct devices that charged it. JSONP, like the other
    global readers. Local event-sourced counter is the offline fallback. */
-var BACKEND_URL = window.PF_BACKEND_URL || "https://script.google.com/macros/s/AKfycbzaqg3vIj1UnbHGJ82uti7yTdRpeR6PYMhoTne6LIL4kf1XjakrImMTHFwounaPrttl/exec";
+var BACKEND_URL = window.PF_BACKEND_URL || "https://pf-api.mtcstw.workers.dev";
 var GOAL = 50000;
 
 /* Sticky action bar assets — declared up here because ready() fires init()

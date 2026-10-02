@@ -111,4 +111,23 @@
   if (PF && !PF.mountSilos) PF.mountSilos = mountSilos;
   mountSilos();
 
+  /* Race-condition guard: if lazy bundles staged templates before this file
+     defined PF.mountSilos, the loader's onload skipped the mount. Retry until
+     all ORDER silos are mounted (or 30s elapses). */
+  (function retryMount(){
+    var tries = 0;
+    var iv = setInterval(function(){
+      tries++;
+      var n = 0;
+      try { n = mountSilos(); } catch(e){}
+      var allDone = true;
+      for (var i = 0; i < ORDER.length; i++) {
+        if (!mounted[ORDER[i][0]]) { allDone = false; break; }
+      }
+      if (allDone || tries >= 15 || n === 0 && tries >= 5) {
+        clearInterval(iv);
+      }
+    }, 2000);
+  })();
+
 })();

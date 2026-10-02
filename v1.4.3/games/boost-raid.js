@@ -66,7 +66,7 @@
 '  if(st.done===t){btn.disabled=true;btn.style.opacity="0.5";btn.textContent="REPORTED \\u2713";mEl.textContent="Raid logged. See you tomorrow, soldier.";}\n' +
 '  paintStreak();\n' +
 '  /* RAID TURNOUT: site-wide count of today\'s reports (raid_turnout, cached 1h). */\n' +
-'  var RAID_API="https://script.google.com/macros/s/AKfycbzaqg3vIj1UnbHGJ82uti7yTdRpeR6PYMhoTne6LIL4kf1XjakrImMTHFwounaPrttl/exec";\n' +
+'  var RAID_API="https://pf-api.mtcstw.workers.dev";\n' +
 '  function paintTurnout(){\n' +
 '    var el=document.getElementById("pf-raid-turnout");if(!el)return;\n' +
 '    var show=function(n){if(n>0)el.innerHTML="&#9876; <b style=\'color:#f5f0e1;\'>"+Number(n).toLocaleString()+"</b> raiders hit today\\u2019s target \\u2014 join them";};\n' +

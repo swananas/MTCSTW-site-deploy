@@ -27,6 +27,13 @@ function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e
   document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
+  /* Private reads require auth_secret (IDOR fix). Auto-attach for gated actions. */
+  if(action==="xp_history"||action==="subscription_list"||action==="commission_earnings"){
+    try{
+      var _sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : "";
+      if(_sec && params && !params.auth_secret) params.auth_secret = _sec;
+    }catch(e){}
+  }
   var fn="pfMvCb"+Math.floor(Math.random()*1e9);
   var s=document.createElement("script"), done=false;
   function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}

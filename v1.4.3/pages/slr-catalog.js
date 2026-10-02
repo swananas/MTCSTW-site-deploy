@@ -109,14 +109,20 @@
       render(root, member, members);
       PF.log('slr-catalog', 'rendered ' + slug);
       /* Efficiency Index: site-pull beacon (one ping per slug per session) +
-         paint the live computed score into the [data-eff-score] slot. */
+         paint the live computed score into the [data-eff-score] slot.
+         P0: pageview is POST-only — use fetch, not image beacon. */
       try {
         var pvDone = window.__pfPvDone || (window.__pfPvDone = {});
         if (!pvDone[slug]) {
           pvDone[slug] = 1;
-          var api = (window.PF && PF.effApi) || 'https://script.google.com/macros/s/AKfycbzaqg3vIj1UnbHGJ82uti7yTdRpeR6PYMhoTne6LIL4kf1XjakrImMTHFwounaPrttl/exec';
-          var im = new Image();
-          im.src = api + '?action=pageview&slug=' + encodeURIComponent(slug);
+          var api = (window.PF_BACKEND_URL || 'https://pf-api.mtcstw.workers.dev');
+          try {
+            fetch(api, {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({type: 'stats', s_action: 'pageview', slug: slug})
+            }).catch(function(){});
+          } catch (e3) {}
         }
         if (window.PF && PF.efficiency) PF.efficiency.paintScores(root);
         else document.addEventListener('pf-efficiency', function h() {

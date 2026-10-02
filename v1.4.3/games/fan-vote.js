@@ -36,7 +36,7 @@
 <script>
 (function(){
   /* CONFIG: paste your deployed Apps Script web app URL here */
-  var VOTE_API_URL = "https://script.google.com/macros/s/AKfycbzaqg3vIj1UnbHGJ82uti7yTdRpeR6PYMhoTne6LIL4kf1XjakrImMTHFwounaPrttl/exec";
+  var VOTE_API_URL = "https://pf-api.mtcstw.workers.dev";
   /* ROSTER: the ballot reads from the canonical PF.ROSTER
      (core/03-global.js) — authoritative scores 2026-09-28. Do NOT
      hardcode a second copy here. */

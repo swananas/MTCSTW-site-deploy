@@ -117,6 +117,25 @@
   if (PF && !PF.mountSilos) PF.mountSilos = mountSilos;
   mountSilos();
 
+  /* Race-condition guard: if lazy bundles staged templates before this file
+     defined PF.mountSilos, the loader's onload skipped the mount. Retry until
+     all ORDER silos are mounted (or 30s elapses). */
+  (function retryMount(){
+    var tries = 0;
+    var iv = setInterval(function(){
+      tries++;
+      var n = 0;
+      try { n = mountSilos(); } catch(e){}
+      var allDone = true;
+      for (var i = 0; i < ORDER.length; i++) {
+        if (!mounted[ORDER[i][0]]) { allDone = false; break; }
+      }
+      if (allDone || tries >= 15 || n === 0 && tries >= 5) {
+        clearInterval(iv);
+      }
+    }, 2000);
+  })();
+
 })();
 
 ;
@@ -460,14 +479,20 @@
       render(root, member, members);
       PF.log('slr-catalog', 'rendered ' + slug);
       /* Efficiency Index: site-pull beacon (one ping per slug per session) +
-         paint the live computed score into the [data-eff-score] slot. */
+         paint the live computed score into the [data-eff-score] slot.
+         P0: pageview is POST-only — use fetch, not image beacon. */
       try {
         var pvDone = window.__pfPvDone || (window.__pfPvDone = {});
         if (!pvDone[slug]) {
           pvDone[slug] = 1;
-          var api = (window.PF && PF.effApi) || 'https://script.google.com/macros/s/AKfycbzaqg3vIj1UnbHGJ82uti7yTdRpeR6PYMhoTne6LIL4kf1XjakrImMTHFwounaPrttl/exec';
-          var im = new Image();
-          im.src = api + '?action=pageview&slug=' + encodeURIComponent(slug);
+          var api = (window.PF_BACKEND_URL || 'https://pf-api.mtcstw.workers.dev');
+          try {
+            fetch(api, {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({type: 'stats', s_action: 'pageview', slug: slug})
+            }).catch(function(){});
+          } catch (e3) {}
         }
         if (window.PF && PF.efficiency) PF.efficiency.paintScores(root);
         else document.addEventListener('pf-efficiency', function h() {

@@ -50,7 +50,7 @@
 '  function getStreak(){try{var s=JSON.parse(localStorage.getItem("pf_mq_streak_v1")||"null");if(s&&typeof s.n==="number")return s;}catch(e){}return {last:"",n:0};}\n' +
 '  function bumpStreak(){var s=getStreak(),t=daySeed();if(s.last===t)return s.n;var y;try{y=window.PF?PF.chiNow():new Date();}catch(e){y=new Date();}y=new Date(y.getTime()-86400000);var ys=y.getFullYear()+"-"+(y.getMonth()+1)+"-"+y.getDate();s.n=(s.last===ys)?s.n+1:1;s.last=t;try{localStorage.setItem("pf_mq_streak_v1",JSON.stringify(s));}catch(e){}return s.n;}\n' +
 '  /* Tribe counts: quiz_tribes over the trailing 7 days, cached 6h. */\n' +
-'  var API="https://script.google.com/macros/s/AKfycbzaqg3vIj1UnbHGJ82uti7yTdRpeR6PYMhoTne6LIL4kf1XjakrImMTHFwounaPrttl/exec";\n' +
+'  var API="https://pf-api.mtcstw.workers.dev";\n' +
 '  var TRIBES=null;\n' +
 '  function loadTribes(cb){var done=function(){if(cb)cb();};\n' +
 '    try{var c=JSON.parse(localStorage.getItem("pf_mq_tribes_v1")||"null");if(c&&Date.now()-c.at<6*3600000){TRIBES=c.d;done();return;}}catch(e){}\n' +

@@ -136,6 +136,25 @@ function ident(){ return load(LS_I,{});  }
               platform:obj.platform, spread:obj.spread, gained:obj.gained};
     PF.postAction('stats','s_action','checkin',sp,cb); return;
   }
+  /* P0: register is a mutation — use POST, not JSONP GET. The GET endpoint
+     is fragile (no timeout, adblockers kill script tags). */
+  if(obj.action==="register" && window.PF && PF.postAction){
+    var rp = {callsign:obj.callsign, device:obj.device};
+    if(obj.ref) rp.ref = obj.ref;
+    /* register has no type/actionKey wrapper in the backend — it's a top-level action */
+    (function(){
+      var url = beUrl();
+      var body = {action:"register", callsign:obj.callsign, device:obj.device||""};
+      if(obj.ref) body.ref = obj.ref;
+      try{
+        fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)})
+          .then(function(r){ return r.json(); })
+          .then(function(j){ try{ cb(j); }catch(e){} })
+          .catch(function(){ try{ cb(null); }catch(e){} });
+      }catch(e){ try{ cb(null); }catch(e2){} }
+    })();
+    return;
+  }
   var fn="pfPostCb"+Math.floor(Math.random()*1e9);
   var s=document.createElement("script");
   window[fn]=function(j){ try{delete window[fn];}catch(e){} if(s.parentNode) s.parentNode.removeChild(s); cb(j);};
@@ -532,15 +551,44 @@ function render(){
   z.querySelectorAll("button.o-deploybtn").forEach(function(b){
     b.onclick=function(){
       var g=b.getAttribute("data-game");
-      var sec=document.querySelector('section[data-game="'+g+'"]')
-        ||document.getElementById('pf-'+g)||document.getElementById('pf-ov-'+g);
-      if(sec){
+      /* Ensure lazy bundles are mounted before scrolling. If the target
+         section isn't in the DOM yet, force-mount staged templates and retry. */
+      function findSec(){
+        /* Skip the hidden template — only match the mounted section. */
+        var s=document.querySelector('section[data-game="'+g+'"]');
+        if(s) return s;
+        var inner=document.getElementById('pf-'+g);
+        if(inner){
+          var sec=inner;
+          while(sec && sec.tagName!=="SECTION"){ sec=sec.parentElement; }
+          if(sec && sec.tagName==="SECTION") return sec;
+          return inner;
+        }
+        return null;
+      }
+      /* Try to mount any staged-but-unmounted templates first. */
+      try{ if(window.PF&&PF.mountSilos) PF.mountSilos(); }catch(e){}
+      var sec=findSec();
+      if(!sec){
+        /* Bundle may not have loaded yet — wait and retry up to 5s. */
+        var tries=0;
+        var iv=setInterval(function(){
+          tries++;
+          try{ if(window.PF&&PF.mountSilos) PF.mountSilos(); }catch(e){}
+          var s2=findSec();
+          if(s2){ clearInterval(iv); doScroll(s2); }
+          else if(tries>=10){ clearInterval(iv); }
+        },500);
+        return;
+      }
+      doScroll(sec);
+      function doScroll(target){
         var scrolled=false;
-        try{ sec.scrollIntoView({behavior:"smooth",block:"start"}); scrolled=true; }
-        catch(e){ try{ sec.scrollIntoView(); scrolled=true; }catch(e2){} }
+        try{ target.scrollIntoView({behavior:"smooth",block:"start"}); scrolled=true; }
+        catch(e){ try{ target.scrollIntoView(); scrolled=true; }catch(e2){} }
         if(!scrolled){
           try{
-            var r=sec.getBoundingClientRect();
+            var r=target.getBoundingClientRect();
             var top=r.top+(window.pageYOffset||document.documentElement.scrollTop||0);
             window.scrollTo(0,Math.max(0,top-20)); scrolled=true;
           }catch(e3){}
@@ -548,7 +596,7 @@ function render(){
         /* Fallback: if still at top after 600ms, force-jump. */
         setTimeout(function(){
           try{
-            var r2=sec.getBoundingClientRect();
+            var r2=target.getBoundingClientRect();
             if(r2.top<-10||r2.top>window.innerHeight+10){
               var t2=r2.top+(window.pageYOffset||document.documentElement.scrollTop||0);
               window.scrollTo(0,Math.max(0,t2-20));
@@ -556,8 +604,8 @@ function render(){
           }catch(e4){}
         },650);
         try{
-          sec.classList.add("pf-flash");
-          setTimeout(function(){ try{sec.classList.remove("pf-flash");}catch(e){} },1400);
+          target.classList.add("pf-flash");
+          setTimeout(function(){ try{target.classList.remove("pf-flash");}catch(e){} },1400);
         }catch(e){}
       }
     };

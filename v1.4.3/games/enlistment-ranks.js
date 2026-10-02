@@ -417,6 +417,16 @@ document.addEventListener("pf-interrogation-answered",function(e){ var d=(e&&e.d
 /* Do Meter Game-8 expansion bonuses: weekly-op completion + full-spectrum week. Exempt (bounded by week). */
 document.addEventListener("pf-do-challenge-done",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; settle("pf-do-challenge-done",award("dochall_"+w,15,"once",{exempt:1})); });
 document.addEventListener("pf-do-fullspectrum",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; settle("pf-do-fullspectrum",award("dospec_"+w,20,"once",{exempt:1})); });
+/* Recruit rewards: +25 XP per new recruit (War Card promise), exempt from the
+   daily pool. Keyed on the running recruit total so the 6h poll can never
+   double-pay — repeats hit the same key and award 0. */
+document.addEventListener("pf-recruit-credited",function(e){
+  var fresh=Math.max(0,parseInt((e&&e.detail&&e.detail.recruits)||0,10)||0);
+  var total=Math.max(0,parseInt((e&&e.detail&&e.detail.total)||0,10)||0);
+  if(!fresh||!total) return;
+  var gain=award("recruits_"+total,25*fresh,"once",{exempt:1});
+  if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("RECRUIT CHECKED IN — +"+gain+" XP"); }catch(e2){} }
+});
 /* Daily Orders writes the real combo XP into the shared pool itself — just re-render. */
 document.addEventListener("pf-order-checkin",function(){ render(); });
 render();

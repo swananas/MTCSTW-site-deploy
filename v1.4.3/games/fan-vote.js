@@ -284,6 +284,7 @@
         var footY=Math.min(Math.max(ty+44,H-200),H-128);
         ct('MTCSTW.COM',footY,44,'#f5ead6','900',6);
         ct('JOIN THE FIGHT.',footY+58,30,'#c1121f','900',4);
+        ct('VOTING ENDS SUNDAY',footY+102,24,'#b8ab8e','700',4);
         resolve(canvas);
       }
       if(hasImg){
@@ -314,9 +315,11 @@
         var file=null;
         try{ file=new File([blob],'fan-vote-'+(c.slug||'pick')+'.png',{type:'image/png'}); }catch(e){}
         var cs=''; try{ cs=(window.PFCallsign && PFCallsign())||''; }catch(e){}
+        var vlink='https://www.mtcstw.com';
+        try{ if(window.PF&&typeof PF.shareUrl==='function') vlink=PF.shareUrl(vlink); }catch(e){}
         var txt=(mode==='post'?'I voted for ':'Vote for ')+c.name+' for Propagandist of the Week! '+
           (mode==='post'&&cs ? cs+' is campaigning \\u2014 join the operation: ' : 'Join the operation: ')+
-          'https://www.mtcstw.com #SickLeftRadicals';
+          vlink+' #SickLeftRadicals';
         if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
           navigator.share({files:[file],title:'Fan Vote',text:txt}).then(
             function(){ say('Shared. Go spread the word.'); },

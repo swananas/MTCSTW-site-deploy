@@ -1,0 +1,138 @@
+/* core/10-convert.js  |  PF v1.4.3 | Onsite conversion loops.
+   1) Victory lap: after any game completion, a floating "NEXT MISSION" card
+      points the player at one game they haven't touched this week — sessions
+      keep moving across games instead of ending.
+   2) Enlistment nudge: the first game a callsign-less visitor completes shows
+      a one-a-day prompt to claim a callsign so the XP banks.
+   Pure presentation + event listeners; awards NOTHING itself.
+   KILL: ?pf_off=10-convert  or  localStorage pf_disabled_v1='["10-convert"]' */
+(function(){ 'use strict';
+if(window.PF&&window.PF.skip('10-convert'))return;
+if(window.pfConvertLoaded)return; window.pfConvertLoaded=true;
+var PF=window.PF||(window.PF={});
+
+/* Completion events -> game keys. */
+var EV2GAME={
+  'pf-order-checkin':'orders','pf-drop-claimed':'drop','pf-quiz-done':'quiz',
+  'pf-guess-done':'guess','pf-bracket-ballot':'bracket','pf-raid-report':'raid',
+  'pf-vote-cast':'vote','pf-poster-made':'forge','pf-caption-submit':'caption',
+  'pf-do-challenge-done':'dometer','pf-billionaire-answered':'billionaire',
+  'pf-interrogation-answered':'interrogation','pf-infight-fire':'infight'
+};
+var MISSIONS=[
+  {key:'orders',  label:'Daily Orders',    blurb:'Report in. 30 seconds.',        anchor:'#pf-orders'},
+  {key:'vote',    label:'Fan Vote',        blurb:'Crown this week\u2019s propagandist.', anchor:'#pf-vote'},
+  {key:'quiz',    label:'SLR Match Quiz',  blurb:'Find your fighter archetype.',  anchor:'#pf-matchquiz'},
+  {key:'guess',   label:'Guess the Creator', blurb:'Name that propagandist.',     anchor:'#pf-guess'},
+  {key:'bracket', label:'Liquidation Bracket', blurb:'Pick the bracket. Win glory.', anchor:'#pf-bracket'},
+  {key:'raid',    label:'Boost Raid',      blurb:'Storm a target together.',     anchor:'#pf-raid'},
+  {key:'dometer', label:'Do Meter',        blurb:'Log a task. Fuel the meter.',   anchor:'#pf-dometer2'},
+  {key:'forge',   label:'Poster Forge',    blurb:'Mint a propaganda poster.',    anchor:'#pf-poster'},
+  {key:'caption', label:'Caption Combat',  blurb:'Write the winning caption.',   anchor:'#pf-caption'},
+  {key:'drop',    label:'Daily Drop',      blurb:'Claim today\u2019s drop.',       anchor:'#pf-drop'}
+];
+function weekKey(){
+  try{
+    var d=new Date(), onejan=new Date(d.getFullYear(),0,1);
+    var w=Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7);
+    return d.getFullYear()+'-W'+w;
+  }catch(e){ return 'W0'; }
+}
+function played(key){
+  try{ return localStorage.getItem('pf_played_'+weekKey()+'_'+key)==='1'; }catch(e){ return false; }
+}
+function markPlayed(key){
+  try{ localStorage.setItem('pf_played_'+weekKey()+'_'+key,'1'); }catch(e){}
+}
+Object.keys(EV2GAME).forEach(function(ev){
+  document.addEventListener(ev,function(){ markPlayed(EV2GAME[ev]); afterGame(EV2GAME[ev]); });
+});
+function nextMission(){
+  for(var i=0;i<MISSIONS.length;i++){ if(!played(MISSIONS[i].key)) return MISSIONS[i]; }
+  return null;
+}
+PF.nextMission=nextMission;
+
+/* ---- floating card primitives ---- */
+var lapCount=0, lastLap=0;
+function cardShell(id){
+  var d=document.createElement('div');
+  d.id=id;
+  d.style.cssText='position:fixed;right:12px;bottom:12px;z-index:9991;max-width:290px;'+
+    'background:#0d0d0d;border:3px solid #c1121f;color:#f5ead6;padding:14px 14px 12px;'+
+    'font-family:monospace;box-shadow:0 4px 30px rgba(193,18,31,.45);';
+  var x=document.createElement('span');
+  x.textContent='\u00d7';
+  x.style.cssText='position:absolute;top:4px;right:10px;font-size:18px;cursor:pointer;color:#b8ab8e;';
+  x.onclick=function(){ d.remove(); };
+  d.appendChild(x);
+  document.body.appendChild(d);
+  return d;
+}
+function goBtn(label, anchor, dismiss){
+  var b=document.createElement('button');
+  b.textContent=label;
+  b.style.cssText='background:#c1121f;border:none;color:#f5f0e1;font:bold 13px monospace;'+
+    'letter-spacing:2px;padding:9px 18px;margin-top:10px;cursor:pointer;width:100%;';
+  b.onclick=function(){
+    var t=document.querySelector(anchor);
+    if(t){ try{ t.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){} }
+    dismiss();
+  };
+  return b;
+}
+
+/* Victory lap: once per 10 min, max 3 per session, only when a mission is open. */
+function afterGame(justPlayed){
+  /* Enlistment nudge takes precedence for callsign-less visitors. */
+  if(nudge()) return;
+  var now=Date.now();
+  if(lapCount>=3||now-lastLap<10*60*1000) return;
+  var m=nextMission();
+  if(!m||m.key===justPlayed) return;
+  lastLap=now; lapCount++;
+  var d=cardShell('pf-next-mission');
+  var h=document.createElement('div');
+  h.style.cssText='color:#c1121f;font-weight:900;letter-spacing:2px;font-size:12px;margin-bottom:6px;';
+  h.textContent='\u2691 NEXT MISSION';
+  var t=document.createElement('div');
+  t.style.cssText='font-size:15px;font-weight:900;margin-bottom:2px;';
+  t.textContent=m.label;
+  var b=document.createElement('div');
+  b.style.cssText='font-size:12px;color:#b8ab8e;';
+  b.textContent=m.blurb;
+  d.appendChild(h); d.appendChild(t); d.appendChild(b);
+  d.appendChild(goBtn('DEPLOY \u2192', m.anchor, function(){ d.remove(); }));
+  setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); }, 25000);
+}
+
+/* Enlistment nudge: first completion of the session without a callsign.
+   Once per day. Returns true when it showed (so the victory lap yields). */
+var nudged=false;
+function nudge(){
+  if(nudged) return false;
+  var has=false;
+  try{ has=PF.hasCallsign&&PF.hasCallsign(); }catch(e){}
+  if(has) return false;
+  var today=''; try{ today=new Date().toISOString().slice(0,10); }catch(e){}
+  try{ if(localStorage.getItem('pf_enlist_nudge_v1')===today) return false; }catch(e){}
+  nudged=true;
+  try{ localStorage.setItem('pf_enlist_nudge_v1',today); }catch(e){}
+  var d=cardShell('pf-enlist-nudge');
+  var h=document.createElement('div');
+  h.style.cssText='color:#c1121f;font-weight:900;letter-spacing:2px;font-size:12px;margin-bottom:6px;';
+  h.textContent='\u2691 BANK THIS XP';
+  var t=document.createElement('div');
+  t.style.cssText='font-size:13px;margin-bottom:2px;';
+  t.textContent='Claim a callsign and every point you earn follows you across devices.';
+  d.appendChild(h); d.appendChild(t);
+  d.appendChild(goBtn('CLAIM CALLSIGN \u2192', '#pf-orders', function(){ d.remove(); }));
+  /* Expand the claim box on arrival. */
+  var iv=setInterval(function(){
+    var tg=document.getElementById('oClaimToggle');
+    if(tg){ try{ tg.click(); }catch(e){} clearInterval(iv); }
+  },1200);
+  setTimeout(function(){ clearInterval(iv); if(d.parentNode) d.parentNode.removeChild(d); }, 30000);
+  return true;
+}
+})();

@@ -249,7 +249,11 @@
     document.body.appendChild(a); a.click();
     setTimeout(function () { try { URL.revokeObjectURL(url); } catch (e) {} a.remove(); }, 4000);
   }
-  function shareText(title) { return title + ' via The Propaganda Factory \u2014 mtcstw.com'; }
+  function shareText(title){
+    var link='https://www.mtcstw.com/';
+    try{ if(window.PF&&typeof PF.shareUrl==='function') link=PF.shareUrl(link); }catch(e){}
+    return title + ' via The Propaganda Factory — ' + link;
+  }
 
   /* ------------------------------------------------------------------ */
   /* Share credit: one share-task per day per device. Whichever button    */

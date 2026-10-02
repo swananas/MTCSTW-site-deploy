@@ -353,6 +353,28 @@ function doGet(e) {
     } catch (re3) {}
     return jsonOut({ raiders: rcount }, cb);
   }
+  /* Recruit count: distinct devices whose recruit_log row names this callsign
+     as recruiter. Powers the +25 XP/recruit War Card promise (v1.4.3). */
+  if (action === "recruit_count") {
+    var rcount = 0;
+    var rcs = String(e.parameter.callsign || "").toLowerCase().trim();
+    try {
+      var rsheet = ss.getSheetByName(ACTIONS_SHEET);
+      if (rsheet && rcs) {
+        var rrows = rsheet.getDataRange().getValues();
+        var rseen = {};
+        for (var rqi = 1; rqi < rrows.length; rqi++) {
+          if (String(rrows[rqi][1]) !== "recruit_log") continue;
+          if (String(rrows[rqi][6] || "").toLowerCase().indexOf("recruiter:" + rcs) !== 0) continue;
+          var rdev = String(rrows[rqi][4] || "");
+          if (!rdev || rseen[rdev]) continue;
+          rseen[rdev] = 1;
+          rcount++;
+        }
+      }
+    } catch (re4) {}
+    return jsonOut({ recruits: rcount }, cb);
+  }
   /* Bracket turnout: bracket_ballot rows over the trailing 7 Chicago days. */
   if (action === "bracket_turnout") {
     var bcount = 0;

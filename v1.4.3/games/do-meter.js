@@ -191,6 +191,18 @@ function milestones(){
 function boom(){
   var b=document.getElementById('dBoom');if(!b)return;
   b.classList.add('show');confetti(46);
+  /* Detonation -> war chest: convert peak hype into a War Bonds visit. */
+  try{
+    if(!document.getElementById('dBoomChest')){
+      var c=document.createElement('div');
+      c.id='dBoomChest';
+      c.style.cssText='margin-top:0.8rem;font-size:0.95rem;color:#b8ab8e;';
+      c.innerHTML='Target destroyed. <a href="#pf-warbonds" style="color:#e8b10c;font-weight:900;">FUEL THE NEXT ONE &rarr;</a>';
+      b.appendChild(c);
+      var a=c.querySelector('a');
+      if(a) a.onclick=function(){ setTimeout(function(){ var t=document.getElementById('pf-warbonds'); if(t){ try{t.scrollIntoView({behavior:'smooth'});}catch(e){} } },60); };
+    }
+  }catch(e){}
   setTimeout(function(){b.classList.remove('show');},3600);
 }
 function add(type,pts,seenKey){
@@ -304,7 +316,9 @@ function shareDoImage(btn){
       var file=new File([blob],'pfn-do-meter.png',{type:'image/png'});
       var isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent||'');
       if(navigator.canShare&&navigator.canShare({files:[file]})){
-        navigator.share({files:[file],title:'The Do Meter',text:'The network did '+fmt(doTotals().total)+' things this week. Join at mtcstw.com.'}).then(awardShare).catch(function(){
+        var dlink='https://www.mtcstw.com/';
+        try{ if(window.PF&&typeof PF.shareUrl==='function') dlink=PF.shareUrl(dlink); }catch(e){}
+        navigator.share({files:[file],title:'The Do Meter',text:'The network did '+fmt(doTotals().total)+' things this week. Join at '+dlink}).then(awardShare).catch(function(){
           /* User cancelled the share sheet — NO credit. */
           if(btn)btn.disabled=false;
         });

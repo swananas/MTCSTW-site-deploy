@@ -7,6 +7,8 @@
     "core/03-global.js",
     "core/04-ledger.js",
     "core/05-tally.js",
+    "core/09-referral.js",
+    "core/10-convert.js",
     "games/fan-vote.js",
     "games/slr-match-quiz.js",
     "games/creator-guess.js",

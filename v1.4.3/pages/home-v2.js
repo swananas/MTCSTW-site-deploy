@@ -24,6 +24,7 @@
   /* Homepage order, verified against the live page's section roots.
      Daily Orders leads: it's the stickiest dopamine lynchpin. */
   var ORDER = [
+    ['brief', 'pf-ov-brief'],
     ['daily-orders', 'pf-ov-orders'],
     ['dopa', 'pf-ov-dopa'],
     ['notify', 'pf-ov-notify'],

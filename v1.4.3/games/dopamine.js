@@ -6,7 +6,7 @@
      streak:{count,at_risk,risk_ends_at,longest,broken_at}, flash:[{id,label,multiplier,ends_at}],
      combo:{count,multiplier}, records:{best_day_xp,longest_streak},
      nearrank:{position,above:{callsign,xp_gap},below:{callsign,xp_gap}}}
-   POST {type:"dopamine",do_action:"loot_open"|"streak_freeze"|"streak_repair"|"comeback_claim"}
+   POST {type:"loot",l_action:"loot_open"} | {type:"streak",str_action:"streak_freeze_buy"|"streak_repair"} | {type:"comeback",cb_action:"comeback_claim"}
    GET comeback_check -> {ok, eligible, xp}
    Until the backend lands, every section degrades to a "warming up" state.
    Site-wide overlays (injected to body): level-up celebration (listens for the

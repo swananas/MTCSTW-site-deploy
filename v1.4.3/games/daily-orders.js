@@ -141,6 +141,8 @@ function ident(){ return load(LS_I,{});  }
   if(obj.platform) q+="&platform="+encodeURIComponent(obj.platform);
   if(obj.spread!=null) q+="&spread="+encodeURIComponent(obj.spread);
   if(obj.gained!=null) q+="&gained="+encodeURIComponent(obj.gained);
+  if(obj.device) q+="&device="+encodeURIComponent(obj.device);
+  if(obj.ref) q+="&ref="+encodeURIComponent(obj.ref);
   q+="&callback="+fn;
   s.src=beUrl()+q;
   document.head.appendChild(s);

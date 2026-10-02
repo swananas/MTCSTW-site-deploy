@@ -33,7 +33,6 @@
   <a id="oClaimToggle">Claim your rank on every device</a>
   <div class="o-claimbox" id="oClaimBox">
     <input aria-label="CALLSIGN" id="oCallsign" maxlength="20" placeholder="CALLSIGN" autocomplete="off" style="text-transform:uppercase">
-    <input aria-label="EMAIL (OPTIONAL)" id="oEmail" type="email" placeholder="EMAIL (OPTIONAL)" autocomplete="off">
     <br><button class="o-claimbtn" id="oClaimBtn">Claim</button>
     <div class="o-err" id="oClaimErr"></div>
   </div>
@@ -626,12 +625,10 @@ function render(){
     };
     document.getElementById("oClaimBtn").onclick=function(){
       var cs=document.getElementById("oCallsign").value.trim().toLowerCase();
-      var em=document.getElementById("oEmail").value.trim();
       var errBox=document.getElementById("oClaimErr");
       if(!/^[a-z0-9_]{3,20}$/.test(cs)){ errBox.textContent="Callsign: 3-20 chars, letters/numbers/underscore."; return; }
-      if(em&&!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(em)){ errBox.textContent="That email doesn't look right — fix it or leave it blank."; return; }
       errBox.textContent="Claiming…";
-      var regParams={action:"register",callsign:cs,email:em};
+      var regParams={action:"register",callsign:cs};
       try{ var _dev=window.PFDeviceId?window.PFDeviceId():""; if(_dev) regParams.device=_dev; }catch(e){}
       try{ var prf=localStorage.getItem("pf_pending_ref"); if(prf&&/^[a-z0-9_]{3,20}$/.test(prf)) regParams.ref=prf; }catch(e){}
       apiPost(regParams,function(j){
@@ -643,7 +640,7 @@ function render(){
           if(j.auth_secret&&window.PF&&PF.saveAuthSecret){ PF.saveAuthSecret(j.auth_secret); }
           else if(window.PF&&PF.claimAuthSecret){ PF.claimAuthSecret(cs,function(){}); }
         }catch(e3){}
-        save(LS_I,{callsign:cs,email:em});
+        save(LS_I,{callsign:cs});
         try{document.dispatchEvent(new CustomEvent('pf-callsign-claimed',{detail:{callsign:cs}}));}catch(e){}
         var rr=load(LS_R,{xp:0,got:{}});
         if(j.xp>rr.xp){ rr.xp=j.xp; save(LS_R,rr); }

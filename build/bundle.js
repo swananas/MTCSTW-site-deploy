@@ -32,7 +32,8 @@ var BUNDLES = {
     'daily-drop.js',
     'enlistment-ranks.js',
     'service-medals.js',
-    'political-hq-nudge.js'
+    'political-hq-nudge.js',
+    'social-proof.js'
   ],
   'bundle-social': [
     /* Community + content. Lazy-loaded on scroll. */

@@ -33,6 +33,7 @@
     ['brief', 'pf-ov-brief'],
     ['daily-orders', 'pf-ov-orders'],
     ['hq-nudge', 'pf-ov-hq-nudge'],
+    ['socialproof', 'pf-ov-socialproof'],
     ['dopa', 'pf-ov-dopa'],
     ['notify', 'pf-ov-notify'],
     ['campaign', 'pf-ov-campaign'],

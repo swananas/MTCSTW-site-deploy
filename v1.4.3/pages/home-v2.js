@@ -57,6 +57,7 @@
     ['diplo', 'pf-ov-diplo'],
     ['contracts', 'pf-ov-contracts'],
     ['referral', 'pf-ov-referral'],
+    ['governance', 'pf-ov-gov'],
     /* ——— SECTION 4: CREATE — creator tools journey ——— */
     ['academy', 'pf-ov-academy'],
     ['assist', 'pf-ov-assist'],
@@ -71,12 +72,14 @@
     ['movement', 'pf-ov-movement'],
     ['earnings', 'pf-ov-earnings'],
     ['bounties', 'pf-ov-bounties'],
+    ['ventures', 'pf-ov-ventures'],
     /* ——— SECTION 6: ACT — action & intel ——— */
     ['campaign', 'pf-ov-campaign'],
     ['alerts', 'pf-ov-alerts'],
     ['irl', 'pf-ov-irl'],
     ['intel', 'pf-ov-intel'],
     ['archive', 'pf-ov-archive'],
+    ['civic', 'pf-ov-civic'],
     /* ——— SECTION 7: PROOF — social validation closer ——— */
     ['fan-vote', 'pf-ov-vote']
   ];

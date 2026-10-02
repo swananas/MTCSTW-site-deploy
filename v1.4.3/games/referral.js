@@ -32,6 +32,25 @@ function tierFor(n){ n=Number(n)||0; for(var i=0;i<TIERS.length;i++){ if(n>=TIER
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
 function toast(m){ try{ PF.toast(m); }catch(e){} }
+function doXp(n,key,reason){
+  try{
+    var id2=ident();
+    document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:n,key:key,reason:reason||"referral"}}));
+  }catch(e){}
+}
+/* CORS POST for writes (referral_claim, referral_activate). */
+function post(rAction,params,cb){
+  var body=Object.assign({type:"referral",r_action:rAction},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr})
+      .then(function(r){ return r.json(); })
+      .then(function(j){ done(j); })
+      .catch(function(){ done(null); });
+  }catch(e){ done(null); }
+}
 /* JSONP GET for reads. */
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
@@ -101,7 +120,47 @@ function render(){
   h+='<div class="rf-sub">Share your code. They claim a callsign. You both get XP. Climb the tiers.</div>';
   if(!id.callsign){
     h+='<div class="c-gate">Referral War runs on callsigns. Claim yours in Enlistment Ranks, then come back and recruit.</div>';
-    el.innerHTML=h; return;
+    el.innerHTML=h;
+  /* --- recruit activation list: one ACTIVATE button per recruit --- */
+  (function(){
+    var box=document.getElementById("rfActivateList"); if(!box) return;
+    var list=[]; try{ list=myList.slice(0,50); }catch(e){}
+    if(!list.length){ box.innerHTML='<div class="x-note">No recruits yet — nothing to activate.</div>'; return; }
+    var bh="";
+    for(var ai=0;ai<list.length;ai++){
+      var rcs=String((list[ai]&&list[ai].callsign)||list[ai]||"");
+      if(!rcs) continue;
+      bh+='<div class="cp-lead"><span class="cp-lname">'+esc(rcs)+'</span> '
+        +'<button class="c-btn rf-act" data-rc="'+esc(rcs)+'">ACTIVATE +50 XP</button></div>';
+    }
+    if(!bh){ box.innerHTML='<div class="x-note">No recruits yet — nothing to activate.</div>'; return; }
+    box.innerHTML=bh;
+    var btns=box.querySelectorAll("button.rf-act");
+    for(var bi=0;bi<btns.length;bi++)(function(btn){
+      btn.onclick=function(){
+        var rcs=btn.getAttribute("data-rc"); if(!rcs) return;
+        btn.disabled=true; btn.textContent="ACTIVATING\u2026";
+        post("referral_activate",{recruit_callsign:rcs,callsign:id.callsign,device:id.device},function(j){
+          if(j&&j.ok&&(j.xp||j.recruiter)){
+            var amt=Number(j.xp)||50;
+            toast("RECRUIT ACTIVE. +"+amt+" XP — "+rcs+" fights under your banner.");
+            try{ doXp(amt,"ref_bonus_"+id.callsign+"_"+rcs,"recruit activated: "+rcs); }catch(e){}
+            btn.textContent="COLLECTED"; btn.disabled=true;
+            S=null; load();
+          } else if(j&&j.ok&&j.already){
+            toast(rcs+" already activated.");
+            btn.textContent="COLLECTED"; btn.disabled=true;
+          } else if(j&&j.err==="not active yet"){
+            toast(rcs+" needs 3+ actions first. Nudge them.");
+            btn.disabled=false; btn.textContent="ACTIVATE +50 XP";
+          } else {
+            toast("Activation failed: "+((j&&j.err)||"try again."));
+            btn.disabled=false; btn.textContent="ACTIVATE +50 XP";
+          }
+        });
+      };
+    })(btns[bi]);
+  })(); return;
   }
   var st=S||{}, recruits=Number(st.recruits)||0, xpEarned=Number(st.xp_earned)||0;
   var tier=tierFor(recruits);
@@ -122,6 +181,10 @@ function render(){
   if(next){ h+='<div class="x-note">Next tier: '+esc(next.name)+' at '+next.min+' recruits ('+(next.min-recruits)+' to go).</div>'; }
   else { h+='<div class="x-note">Max tier reached. You are the war.</div>'; }
   h+='</div>';
+  /* --- claim recruit bonuses: +50 XP each once a recruit completes 3+ actions --- */
+  h+='<div class="x-pane"><h4>Claim recruit bonuses</h4>'
+    +'<div class="x-note">Each recruit pays <b>+50 XP</b> once they complete 3+ actions. Hit ACTIVATE to collect.</div>'
+    +'<div id="rfActivateList"><div class="c-load">Checking recruits&hellip;</div></div></div>';
   /* --- my recruits --- */
   h+='<div class="x-pane"><h4>Your recruits</h4>';
   if(!myList.length){ h+='<div class="x-note">No recruits yet. Share your code — every soldier counts.</div>'; }

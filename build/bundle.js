@@ -82,7 +82,8 @@ var BUNDLES = {
     'earnings.js',
     'dashboard.js',
     'casino.js',
-    'vault.js'
+    'vault.js',
+    'ventures.js'
   ]
 };
 
@@ -96,8 +97,8 @@ Object.keys(BUNDLES).forEach(function (b) {
 var unbundled = allFiles.filter(function (f) {
   return bundled.indexOf(f) === -1 && f.indexOf('bundle-') !== 0;
 });
-/* Dead code: superseded by peoplesbank.js, intentionally excluded from bundles. */
-var DEAD = ['bank.js', 'ventures.js'];
+/* Dead code: bank.js superseded by peoplesbank.js, intentionally excluded. */
+var DEAD = ['bank.js'];
 unbundled = unbundled.filter(function (f) { return DEAD.indexOf(f) === -1; });
 if (unbundled.length) fail('unbundled game files: ' + unbundled.join(', '));
 

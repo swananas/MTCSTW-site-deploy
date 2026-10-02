@@ -808,6 +808,25 @@ function tierFor(n){ n=Number(n)||0; for(var i=0;i<TIERS.length;i++){ if(n>=TIER
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
 function toast(m){ try{ PF.toast(m); }catch(e){} }
+function doXp(n,key,reason){
+  try{
+    var id2=ident();
+    document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:n,key:key,reason:reason||"referral"}}));
+  }catch(e){}
+}
+/* CORS POST for writes (referral_claim, referral_activate). */
+function post(rAction,params,cb){
+  var body=Object.assign({type:"referral",r_action:rAction},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr})
+      .then(function(r){ return r.json(); })
+      .then(function(j){ done(j); })
+      .catch(function(){ done(null); });
+  }catch(e){ done(null); }
+}
 /* JSONP GET for reads. */
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
@@ -898,6 +917,10 @@ function render(){
   if(next){ h+='<div class="x-note">Next tier: '+esc(next.name)+' at '+next.min+' recruits ('+(next.min-recruits)+' to go).</div>'; }
   else { h+='<div class="x-note">Max tier reached. You are the war.</div>'; }
   h+='</div>';
+  /* --- claim recruit bonuses: +50 XP each once a recruit completes 3+ actions --- */
+  h+='<div class="x-pane"><h4>Claim recruit bonuses</h4>'
+    +'<div class="x-note">Each recruit pays <b>+50 XP</b> once they complete 3+ actions. Hit ACTIVATE to collect.</div>'
+    +'<div id="rfActivateList"><div class="c-load">Checking recruits&hellip;</div></div></div>';
   /* --- my recruits --- */
   h+='<div class="x-pane"><h4>Your recruits</h4>';
   if(!myList.length){ h+='<div class="x-note">No recruits yet. Share your code — every soldier counts.</div>'; }

@@ -43,6 +43,7 @@ var BUNDLES = {
     'notify-prefs.js',
     'referral.js',
     'feed.js',
+    'amplify.js',
     'bounties.js',
     'academy.js',
     'assist.js',

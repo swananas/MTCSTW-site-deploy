@@ -341,3 +341,35 @@
   background:transparent;
 }
 .pf-next-link:hover{background:var(--pf-red); color:#fff;}
+
+/* ---------- AMPLIFY ---------- */
+#pf-amplify .am-tabs{display:flex;gap:8px;margin-bottom:12px;}
+#pf-amplify .am-tab{flex:1;padding:10px;background:transparent;border:2px solid var(--pf-border-light);
+  color:var(--pf-cream);font-family:var(--pf-font-body);font-size:13px;letter-spacing:2px;
+  text-transform:uppercase;cursor:pointer;}
+#pf-amplify .am-tab.on{border-color:var(--pf-red);background:rgba(200,30,30,.15);}
+#pf-amplify .am-row{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:8px;
+  border:1px solid var(--pf-border-light);cursor:pointer;}
+#pf-amplify .am-row:hover{border-color:var(--pf-red);}
+#pf-amplify .am-row.sel{border-color:var(--pf-red);background:rgba(200,30,30,.12);}
+#pf-amplify .am-rowmain{flex:1;min-width:0;}
+#pf-amplify .am-rowt{font-weight:700;color:var(--pf-cream);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#pf-amplify .am-rowsub{font-size:12px;color:var(--pf-dim);}
+#pf-amplify .am-badge{display:inline-block;padding:4px 10px;background:var(--pf-red);color:#fff;
+  font-size:11px;letter-spacing:1px;font-weight:700;white-space:nowrap;}
+#pf-amplify .am-xp{font-weight:700;color:var(--pf-gold);font-size:13px;white-space:nowrap;}
+#pf-amplify .am-rank{font-weight:700;color:var(--pf-dim);font-size:14px;min-width:32px;}
+#pf-amplify .am-brow{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:8px;
+  border:1px solid var(--pf-border-light);}
+#pf-amplify .am-amtrow{display:flex;align-items:center;gap:8px;margin:14px 0;flex-wrap:wrap;}
+#pf-amplify .am-label{font-size:12px;letter-spacing:2px;color:var(--pf-dim);text-transform:uppercase;}
+#pf-amplify .am-chip{padding:8px 14px;background:transparent;border:2px solid var(--pf-border-light);
+  color:var(--pf-cream);font-weight:700;cursor:pointer;}
+#pf-amplify .am-chip.on{border-color:var(--pf-gold);color:var(--pf-gold);}
+#pf-amplify .am-custom{width:90px;padding:8px;background:#111;border:2px solid var(--pf-border-light);color:var(--pf-cream);}
+#pf-amplify .am-go{display:block;width:100%;padding:14px;margin:6px 0 18px;background:var(--pf-red);
+  color:#fff;border:none;font-family:var(--pf-font-body);font-size:15px;letter-spacing:2px;
+  text-transform:uppercase;cursor:pointer;font-weight:700;}
+#pf-amplify .am-go:disabled{background:#333;color:#888;cursor:default;}
+#pf-amplify .am-h3{font-size:13px;letter-spacing:3px;color:var(--pf-dim);text-transform:uppercase;
+  margin:18px 0 10px;border-bottom:1px solid var(--pf-border-light);padding-bottom:6px;}

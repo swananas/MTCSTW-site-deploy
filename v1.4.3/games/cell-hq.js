@@ -42,10 +42,12 @@
 
   /* JSONP GET — read-only cell actions. 12s timeout, same as every silo. */
   var READ = { cell_mine:1, cell_prestige:1, cell_health:1, cell_search:1,
-    cell_leaderboard:1, cell_links:1, cellwar_standings:1, cellwar_history:1 };
+    cell_leaderboard:1, cell_links:1, cellwar_standings:1, cellwar_history:1,
+    warchest_status:1 };
   /* Mutations go through POST (CSRF-able via GET otherwise). */
   var WRITE = { cell_create:1, cell_join:1, cell_checkin:1, cell_cover:1,
-    cell_leave:1, cell_rename:1, cell_promote:1, cell_bounty_claim:1 };
+    cell_leave:1, cell_rename:1, cell_promote:1, cell_bounty_claim:1,
+    cell_contribute:1 };
 
   function api(action, params, cb){
     if (WRITE[action]) { postMut(action, params, cb); return; }
@@ -605,9 +607,9 @@
     h += '<div id="hqTreasBody">'+loading('Opening the vault&hellip;')+'</div>';
     p.innerHTML = h;
     var body = document.getElementById('hqTreasBody');
-    /* Parallel reads: bank, loans, prizes, bonds, campaign. */
+    /* Parallel reads: bank, loans, prizes, bonds, campaign, warchest. */
     var R = {};
-    var need = ['bank','loans','prizes','bonds','camp'];
+    var need = ['bank','loans','prizes','bonds','camp','wchest'];
     var done = 0;
     function each(){ done++; if (done >= need.length) paintTreasury(body, R, isFounder); }
     finGet('bank_status', {}, function(j){ R.bank=j; each(); });
@@ -615,10 +617,47 @@
     finGet('prize_list', {}, function(j){ R.prizes=j; each(); });
     finGet('bond_list', {}, function(j){ R.bonds=j; each(); });
     finGet('campaign_status', {}, function(j){ R.camp=j; each(); });
+    var wcid = (S.mine && S.mine.cell && S.mine.cell.id) || '';
+    if (wcid) api('warchest_status', {cell_id: wcid}, function(j){ R.wchest=j; each(); });
+    else { R.wchest = null; each(); }
   }
 
   function paintTreasury(body, R, isFounder){
     var h = '';
+    /* --- 0. CELL WAR CHEST (pooled XP contributions) --- */
+    var w = R.wchest;
+    var wcid = (S.mine && S.mine.cell && S.mine.cell.id) || '';
+    var wcname = (S.mine && S.mine.cell && S.mine.cell.name) || 'your cell';
+    if (w && w.ok){
+      var pct = Math.min(100, Math.round((w.total / w.goal) * 100));
+      h += '<div class="hq-card" style="border-color:#c9a227"><h3>&#9876;&#65039; Cell War Chest <span class="hq-note">'+esc(wcname)+'</span></h3>';
+      if (w.boost_active){
+        h += '<div class="hq-note" style="color:#c9a227;font-weight:bold">&#9889; BOOST ACTIVE — +5 XP on every member checkin until boost expires.</div>';
+      }
+      h += '<div style="margin:8px 0"><div style="background:#222;border-radius:6px;height:14px;overflow:hidden">' +
+        '<div style="width:'+pct+'%;height:100%;background:linear-gradient(90deg,#c9a227,#f5d76e)"></div></div>' +
+        '<div class="hq-note" style="margin-top:4px"><b>'+esc(String(w.total))+' / '+esc(String(w.goal))+' XP</b> ('+pct+'%)' +
+        (w.goal_hit ? ' — <b style="color:#c9a227">GOAL HIT</b>' : ' — hit '+esc(String(w.goal))+' XP to unlock +5 XP checkin boost for 24h') + '</div></div>';
+      h += '<div class="hq-row" style="margin:8px 0;flex-wrap:wrap;gap:6px">' +
+        [25,50,100,250].map(function(a){ return '<button class="hq-btn sm" data-hq="warchest" data-amt="'+a+'">+'+a+' XP</button>'; }).join('') +
+        '<input class="hq-in sm" id="hqWarchestCustom" type="number" min="10" max="10000" placeholder="Custom" style="width:90px">' +
+        '<button class="hq-btn sm" data-hq="warchest-custom">Give</button></div>';
+      var lb = w.leaderboard || [];
+      if (lb.length){
+        h += '<div class="hq-note"><b>Top contributors:</b> ' +
+          lb.slice(0,5).map(function(x,i){ return (i+1)+'. '+esc(x.callsign)+' ('+esc(String(x.xp))+' XP)'; }).join(' &middot; ') + '</div>';
+      }
+      var hist = w.history || [];
+      if (hist.length){
+        h += '<div class="hq-note" style="margin-top:6px"><b>Recent:</b> ' +
+          hist.slice(0,5).map(function(x){ return esc(x.callsign)+' +'+esc(String(x.xp)); }).join(' &middot; ') + '</div>';
+      }
+      h += '</div>';
+    } else if (wcid){
+      h += '<div class="hq-card"><h3>&#9876;&#65039; Cell War Chest</h3>'+netErr()+'</div>';
+    } else {
+      h += '<div class="hq-card"><h3>&#9876;&#65039; Cell War Chest</h3><div class="hq-note">Join a cell to contribute XP to its war chest.</div></div>';
+    }
     /* --- 1. WAR CHEST (personal bank) --- */
     var b = R.bank;
     if (b && b.ok){
@@ -821,6 +860,27 @@
       api('cell_bounty_claim', withIdent({}), function(j){
         busy(false);
         if (j && j.ok){ toast('Bounties claimed: +'+(j.xp||0)+' XP.'); refreshMineThen('mine'); }
+        else toast(friendlyErr(j));
+      });
+    }
+    else if (a==='warchest' || a==='warchest-custom'){
+      if(!needCs()) return;
+      var wcid2 = (S.mine && S.mine.cell && S.mine.cell.id) || '';
+      if (!wcid2){ toast('Join a cell first.'); return; }
+      var wamt = a==='warchest' ? Number(t.getAttribute('data-amt')) : Number(strIn('hqWarchestCustom'));
+      if (!wamt || wamt < 10 || wamt > 10000){ toast('Amount must be 10–10000 XP.'); return; }
+      if (!confirm('Contribute '+wamt+' XP to the cell war chest? This is spent, not a loan.')) return;
+      busy(true);
+      api('cell_contribute', withIdent({cell_id: wcid2, xp: wamt}), function(j){
+        busy(false);
+        if (j && j.ok){
+          /* Backend debited via xpGrant; mirror to local ledger for instant HUD. */
+          try{ document.dispatchEvent(new CustomEvent('pf-xp',{detail:{gain:-wamt,key:'warchest_spend_'+Date.now(),reason:'war chest contribution',nolx:1}})); }catch(e){}
+          var msg = 'War chest +'+wamt+' XP. Total: '+(j.total||0)+'/'+(j.goal||1000)+'.';
+          if (j.milestone_unlocked) msg += ' GOAL HIT — +5 XP checkin boost active 24h!';
+          toast(msg);
+          S.tab='treasury'; render();
+        }
         else toast(friendlyErr(j));
       });
     }

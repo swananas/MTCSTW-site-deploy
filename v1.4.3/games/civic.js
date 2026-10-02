@@ -168,7 +168,7 @@ function bind(){
     if(!title||!target){ err.textContent="Title and target are required."; return; }
     pcb.disabled=true;
     post("petition","pe_action","petition_create",{callsign:ident().callsign,title:title,description:gv("cvPetDesc"),target:target,goal:Number(gv("cvPetGoal"))||500},function(j){
-      if(j&&j.ok){ toast("Petition launched."); CREATE_OPEN=false; load(); }
+      if(j&&j.ok){ toast("Petition launched. +25 XP."); CREATE_OPEN=false; load(); }
       else { err.textContent=(j&&j.err)||"Create failed."; pcb.disabled=false; }
     });
   };

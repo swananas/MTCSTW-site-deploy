@@ -10,7 +10,7 @@
   if (PF.skip("civic")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-civic">
 <div class="fe-block pf-override-block pf-silo" id="pf-civic">
-<h2>Civic Action</h2>
+<h2>Wage Civic Warfare</h2>
 <div class="c-tag">Petitions, reps, voter registration. Power off the timeline.</div>
 <div id="xCivic"><div class="c-load">Mobilizing&hellip;</div></div>
 </div>

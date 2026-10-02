@@ -16,7 +16,7 @@
   if (PF.skip("cells")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-cells">
 <div class="fe-block pf-override-block" id="pf-cells">
-<h2>Cells</h2>
+<h2>Build Your Cell</h2>
 <div class="c-tag">Five callsigns. One streak. Nobody gets left behind.</div>
 <div id="cBody"><div class="c-load">Raising the cell network&hellip;</div></div>
 <div class="c-boardwrap"><h3>Cell leaderboard &mdash; this week</h3><div id="cBoard"><div class="c-load">Loading&hellip;</div></div></div>

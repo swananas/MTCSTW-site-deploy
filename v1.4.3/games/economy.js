@@ -8,7 +8,7 @@
   if (PF.skip("economy")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-economy">
 <div class="fe-block pf-override-block pf-silo" id="pf-economy">
-<h2>XP Economy</h2>
+<h2>Run the Economy</h2>
 <div class="c-tag">Earn it. Spend it. Weaponize it. The loop that keeps the machine alive.</div>
 <div id="xEconomy"><div class="c-load">Counting the war chest&hellip;</div></div>
 </div>

@@ -49,7 +49,7 @@
 #pf-ranks .u-wempty{font-family:Arial,sans-serif;font-size:12px;color:#777;text-align:center;width:100%}
 </style>
 
-<h2>Enlistment Ranks</h2>
+<h2>Climb the Ranks</h2>
 <div class="r-sub">Every action for the machine earns XP. Climb the ranks.</div>
 <div class="r-badge" id="rBadge">Recruit</div>
 <div class="r-who" id="rWho"></div>

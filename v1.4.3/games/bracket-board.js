@@ -217,7 +217,7 @@ function renderOracle(){
 }
 
 /* --- Voter turnout: site-wide ballot count, trailing 7 days (bracket_turnout). --- */
-var BRACKET_API="https://pf-api.mtcstw.workers.dev";
+var BRACKET_API=(window.PF_BACKEND_URL||"https://pf-api.mtcstw.workers.dev");
 function renderTurnout(){
   var el=document.getElementById("bTurnout"); if(!el) return;
   var paint=function(n){ if(n>0) el.innerHTML="&#9760; <b>"+Number(n).toLocaleString()+"</b> ballots cast this week &mdash; add yours"; };
@@ -248,13 +248,18 @@ function awardUpsetBonus(){
     for(var i=0;i<w.length;i++){
       if(vv["m"+i]!==undefined && vv["m"+i]===w[i] && up["m"+i]){
         var key="bracket_upset_"+roundWeekKey(rr)+"_m"+i;
-        if(!r.got[key]){ r.got[key]=1; r.xp+=UPSET_BONUS_XP; paid++; }
+        if(!r.got[key]){
+          r.got[key]=1; r.xp+=UPSET_BONUS_XP; paid++;
+          /* Each upset gets its own keyed pf-xp so the xpledger mirrors it
+             to the backend (the old batch dispatch had no key and was
+             silently dropped — backend never saw this XP). */
+          try{ document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:UPSET_BONUS_XP,total:r.xp,key:key,reason:'bracket upset'}})); }catch(e2){}
+        }
       }
     }
   }
   if(paid>0){
     try{ localStorage.setItem("pf_ranks_v1", JSON.stringify(r)); }catch(e){}
-    try{ document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:paid*UPSET_BONUS_XP,total:r.xp}})); }catch(e){}
     bToast("+"+(paid*UPSET_BONUS_XP)+" XP — UPSET BONUS x"+paid);
   }
   return paid;

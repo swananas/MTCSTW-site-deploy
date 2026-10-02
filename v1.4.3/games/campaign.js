@@ -23,10 +23,23 @@ var BACKEND=window.PF_BACKEND_URL;
 var ELECTION=new Date(2026,10,3,0,0,0,0).getTime();
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
-function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
-  try{ var t=document.createElement("div"); t.textContent=m;
-  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
-  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+function toast(m){ try{ PF.toast(m); }catch(e){} }
+/* Credit backend grants into the local ledger for instant HUD display.
+   The backend already granted this XP via xpGrant — do NOT dispatch pf-xp
+   (that would trigger the xpledger mirror with a different key and
+   double-grant). This is the nolx pattern from enlistment-ranks. */
+function creditLocal(key, xp){
+  try{
+    var r=null;
+    try{ r=JSON.parse(localStorage.getItem('pf_ranks_v1')||'null'); }catch(e){}
+    if(!r||typeof r!=='object') r={xp:0,got:{}};
+    if(!r.got) r.got={};
+    if(r.got[key]) return;
+    r.got[key]=1; r.xp+=xp;
+    try{ localStorage.setItem('pf_ranks_v1', JSON.stringify(r)); }catch(e){}
+  }catch(e){}
+}
+function chiDay(){ try{ return new Date().toLocaleDateString("en-CA",{timeZone:"America/Chicago"}); }catch(e){ var d=new Date(); return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2); } }
 /* JSONP GET for reads. */
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
@@ -141,6 +154,10 @@ function render(){
         pb.disabled=false; return;
       }
       toast("PLEDGED. Your callsign is on the wall.");
+      /* Backend granted 25 XP via xpGrant — mirror locally for instant HUD
+         (nolx: no pf-xp dispatch, no double-grant). pf-campaign-pledge now
+         feeds Do Meter (was a dead event with zero listeners). */
+      creditLocal("campaign_pledge", 25);
       try{ document.dispatchEvent(new CustomEvent("pf-campaign-pledge",{detail:{callsign:id.callsign}})); }catch(e2){}
       load();
     });
@@ -153,8 +170,13 @@ function render(){
         btn.disabled=true;
         post("campaign_act",{callsign:id.callsign,device:id.device,mission_id:btn.getAttribute("data-mid")},function(j){
           if(!j||!j.ok){ toast((j&&j.err)||"Mission failed."); btn.disabled=false; return; }
-          toast("+"+((j&&j.xp)||10)+" XP — mission complete.");
-          try{ document.dispatchEvent(new CustomEvent("pf-campaign-act",{detail:{mission:btn.getAttribute("data-mid")}})); }catch(e3){}
+          var mxp=((j&&j.xp)||10), mid=btn.getAttribute("data-mid");
+          toast("+"+mxp+" XP — mission complete.");
+          /* Backend granted the XP via xpGrant — mirror locally for instant HUD
+             (nolx: no pf-xp dispatch, no double-grant). pf-campaign-act now
+             feeds Do Meter (was a dead event with zero listeners). */
+          creditLocal("campaign_act_"+mid+"_"+chiDay(), mxp);
+          try{ document.dispatchEvent(new CustomEvent("pf-campaign-act",{detail:{mission:mid}})); }catch(e3){}
           load();
         });
       };

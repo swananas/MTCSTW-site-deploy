@@ -14,10 +14,23 @@
 
   function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
   function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
-  function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
-    try{ var t=document.createElement("div"); t.textContent=m;
-    t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
-    document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+  function toast(m){ try{ PF.toast(m); }catch(e){} }
+
+  /* Credit the backend grant into the local ledger for instant HUD display.
+     The backend already granted this XP via xpGrant — do NOT dispatch pf-xp
+     (that would trigger the xpledger mirror with a different key and
+     double-grant). This is the nolx pattern from enlistment-ranks. */
+  function creditLocal(lid, xp){
+    try{
+      var k='academy_lesson_'+lid, r=null;
+      try{ r=JSON.parse(localStorage.getItem('pf_ranks_v1')||'null'); }catch(e){}
+      if(!r||typeof r!=='object') r={xp:0,got:{}};
+      if(!r.got) r.got={};
+      if(r.got[k]) return;
+      r.got[k]=1; r.xp+=xp;
+      try{ localStorage.setItem('pf_ranks_v1', JSON.stringify(r)); }catch(e){}
+    }catch(e){}
+  }
 
   /* JSONP GET with 12s timeout — same pattern as the other game silos. */
   function api(action,params,cb){
@@ -111,6 +124,10 @@
           post("lesson_complete",{callsign:id.callsign,device:id.device,lesson_id:lid},function(j){
             if(j&&j.ok){
               var gained=(j.xp!=null?j.xp:Number(btn.getAttribute("data-xp"))||0);
+              /* Backend granted the XP — mirror it locally for instant HUD
+                 (nolx: no pf-xp dispatch, no double-grant). Count it in Do Meter. */
+              if(gained>0) creditLocal(lid, gained);
+              try{ document.dispatchEvent(new CustomEvent("pf-lesson-complete",{detail:{lesson:lid,xp:gained}})); }catch(e2){}
               toast(j.dup?"Already banked. No double pay.":"Lesson complete. +"+gained+" XP.");
               for(var k=0;k<lessons.length;k++){ if(lessons[k].id===lid) lessons[k].done=1; }
               render(el,lessons);

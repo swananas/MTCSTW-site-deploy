@@ -667,7 +667,11 @@ function tipBoost(slug,xp){
   save(LS_B,{date:today(),creator:slug,tipped:xp,signal:signal,pumps:{}});
   var p=patronRec(); p.tipped+=xp; p.signal+=signal; save(LS_P,p);
   try{ document.dispatchEvent(new CustomEvent("pf-boost-tipped",{detail:{creator:slug,tipped:xp}})); }catch(e){}
-  try{ document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:-xp,total:r.xp}})); }catch(e){}
+  /* Keyed pf-xp so the xpledger mirrors the debit to the backend (the old
+     keyless dispatch was silently dropped — backend balance stayed inflated).
+     tip_ prefix skips referral commissions (it's a spend, not earnings).
+     One boost per day makes this key naturally idempotent. */
+  try{ document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:-xp,total:r.xp,key:'tip_boost_'+today(),reason:'boost tip'}})); }catch(e){}
   return {ok:true,name:entry.name,slug:slug,tipped:xp,signal:signal};
 }
 function pumpBoost(kind){
@@ -1708,8 +1712,8 @@ function comebackBanner(xp){
 'use strict';
 var LS='pf_do_v1';
 /* PTS table — MUST match PTS_DEFAULTS in core/05-tally.js (the backend source of truth). */
-var PTS={'pf-order-checkin':1,'pf-bracket-ballot':1,'pf-bracket-liquidated':2,'pf-vote-cast':1,'pf-quiz-done':1,'pf-guess-done':2,'pf-raid-report':2,'pf-infight-fire':3,'pf-traitor-vote':1,'pf-wb-buy':5,'pf-enlisted':3,'pf-caption-submit':2,'pf-poster-made':2,'pf-drop-claimed':2,'pf-billionaire-answered':1,'pf-interrogation-answered':1,'pf-share-image':2,'pf-checkin':1,'pf-boost-tipped':1,'pf-guess-scored':0};
-var LABELS={'pf-order-checkin':'Orders','pf-bracket-ballot':'Brackets','pf-bracket-liquidated':'Liquidations','pf-vote-cast':'Votes','pf-quiz-done':'Quizzes','pf-raid-report':'Raids','pf-infight-fire':'Infighting','pf-traitor-vote':'Traitors','pf-wb-buy':'Bonds','pf-enlisted':'Enlisted','pf-caption-submit':'Captions','pf-poster-made':'Posters','pf-drop-claimed':'Drops','pf-billionaire-answered':'Billionaire','pf-interrogation-answered':'Interrogation','pf-share-image':'Shares'};
+var PTS={'pf-order-checkin':1,'pf-bracket-ballot':1,'pf-bracket-liquidated':2,'pf-vote-cast':1,'pf-quiz-done':1,'pf-guess-done':2,'pf-raid-report':2,'pf-infight-fire':3,'pf-traitor-vote':1,'pf-wb-buy':5,'pf-enlisted':3,'pf-caption-submit':2,'pf-poster-made':2,'pf-drop-claimed':2,'pf-billionaire-answered':1,'pf-interrogation-answered':1,'pf-share-image':2,'pf-checkin':1,'pf-boost-tipped':1,'pf-guess-scored':0,'pf-lesson-complete':3,'pf-campaign-pledge':3,'pf-campaign-act':2};
+var LABELS={'pf-order-checkin':'Orders','pf-bracket-ballot':'Brackets','pf-bracket-liquidated':'Liquidations','pf-vote-cast':'Votes','pf-quiz-done':'Quizzes','pf-raid-report':'Raids','pf-infight-fire':'Infighting','pf-traitor-vote':'Traitors','pf-wb-buy':'Bonds','pf-enlisted':'Enlisted','pf-caption-submit':'Captions','pf-poster-made':'Posters','pf-drop-claimed':'Drops','pf-billionaire-answered':'Billionaire','pf-interrogation-answered':'Interrogation','pf-share-image':'Shares','pf-lesson-complete':'Lessons','pf-campaign-pledge':'Pledges','pf-campaign-act':'Missions'};
 function load(){try{var s=JSON.parse(localStorage.getItem(LS)||'null');if(s&&s.w)return s;}catch(e){}return{w:PF.isoWeekKey(PF.chiNow()),total:0,byType:{},goal:1000,hits:0,hist:{},seen:[],boomed:false};}
 function save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}
 var S=load();
@@ -2150,7 +2154,51 @@ var LS="pf_drop_v1";
 function load(){ try{return JSON.parse(localStorage.getItem(LS)||'{"last":"","streak":0}');}catch(e){return {last:"",streak:0};} }
 function save(s){ try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){} }
 
-var n=dayNum(), drop=dropFor(n), s=load(), tk=dateKey();
+var n=dayNum(), s=load(), tk=dateKey();
+
+/* Backend content: fetch today's drop from the server. The static DROPS
+   array below is the fallback — the widget renders identically either way. */
+function renderDrop(dayNum, tag, head, body){
+  document.getElementById("dDay").textContent="Day "+dayNum+" of the offensive";
+  document.getElementById("dTag").textContent=tag;
+  document.getElementById("dHead").textContent=head;
+  /* Dynamic network size: {N} pulls the live roster count from the database. */
+  var _nc=62;
+  try{ if(window.PF&&PF.slrAll){ var _a=PF.slrAll(); if(_a&&_a.length) _nc=_a.length; }
+  else if(window.PF&&PF.ROSTER&&PF.ROSTER.length){ _nc=PF.ROSTER.length; } }catch(_e){}
+  document.getElementById("dBody").textContent=String(body).replace("{N}",_nc);
+  return _nc;
+}
+function renderStatic(){
+  var drop=dropFor(n);
+  renderDrop(n, drop.t, drop.h, drop.b);
+}
+var _dropRendered=false;
+function tryBackend(){
+  try{
+    var burl=window.PF_BACKEND_URL;
+    if(!burl){ renderStatic(); return; }
+    var cb="pfDropCb"+Date.now();
+    window[cb]=function(j){
+      try{ delete window[cb]; }catch(e){}
+      if(_dropRendered) return;
+      _dropRendered=true;
+      if(j&&j.ok&&j.head){
+        renderDrop(j.day||n, j.tag||"TRUTH", j.head, j.body||"");
+      }else{
+        renderStatic();
+      }
+    };
+    var sc=document.createElement("script");
+    sc.src=burl+"?action=daily_content&callback="+cb;
+    sc.onerror=function(){ if(!_dropRendered){ _dropRendered=true; renderStatic(); } };
+    document.head.appendChild(sc);
+    setTimeout(function(){
+      if(!_dropRendered){ _dropRendered=true; renderStatic(); }
+      try{ sc.remove(); delete window[cb]; }catch(e){}
+    },8000);
+  }catch(e){ if(!_dropRendered){ _dropRendered=true; renderStatic(); } }
+}
 if(s.last!==tk){
   s.streak = (s.last===yesterdayKey()) ? s.streak+1 : 1; s.last=tk; save(s);
   /* award XP + ping the trackers on new daily claim */
@@ -2170,18 +2218,22 @@ if(s.last!==tk){
   }catch(e2){}
 }
 
-document.getElementById("dDay").textContent="Day "+n+" of the offensive";
-document.getElementById("dTag").textContent=drop.t;
-document.getElementById("dHead").textContent=drop.h;
-/* Dynamic network size: {N} pulls the live roster count from the database. */
-var _nc=62;
-try{ if(window.PF&&PF.slrAll){ var _a=PF.slrAll(); if(_a&&_a.length) _nc=_a.length; }
-else if(window.PF&&PF.ROSTER&&PF.ROSTER.length){ _nc=PF.ROSTER.length; } }catch(_e){}
-document.getElementById("dBody").textContent=String(drop.b).replace("{N}",_nc);
+/* Render today's content: backend first, static fallback. Streak + share +
+   archive wire up after the content lands. */
+var _shareText="";
+tryBackend();
+setTimeout(function(){
+  /* If backend hasn't rendered yet (slow), the 8s fallback in tryBackend
+     handles it. This just ensures streak/share/archive are wired. */
+},0);
 document.getElementById("dStreak").textContent="Your streak: "+s.streak+(s.streak===1?" day":" days")+" \\u2014 come back tomorrow to keep it alive";
 
+/* Share/archive need the rendered headline — read it from the DOM so they
+   work whether the content came from the backend or the static fallback. */
+function curHead(){ var el=document.getElementById("dHead"); return el?el.textContent:""; }
+
 document.getElementById("dShare").onclick=function(){
-  var text="Day "+n+" of the offensive: "+drop.h+" \\u2014 via The Propaganda Factory "+location.href;
+  var text="Day "+n+" of the offensive: "+curHead()+" \\u2014 via The Propaganda Factory "+location.href;
   if(navigator.share){ navigator.share({title:"The Daily Drop",text:text,url:location.href}).catch(function(){}); }
   else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(function(){ alert("Drop copied. Go spread it."); }).catch(function(){}); }
 };
@@ -2867,7 +2919,7 @@ wallFromServer(function(j){ if(j&&j.ok&&j.wall) renderWall(j.wall); });
     'use strict';
     if(window.pfMedalsLoaded)return;window.pfMedalsLoaded=true;
     var LS='pf_medals_v2',LS_R='pf_ranks_v1',LS_I='pf_identity_v1';
-    var BACKEND_URL='https://pf-api.mtcstw.workers.dev';
+    var BACKEND_URL=(window.PF_BACKEND_URL||'https://pf-api.mtcstw.workers.dev');
     
     var MEDALS=[
      {id:'vote',    glyph:'\u2605', name:'Ballot',          ev:'pf-vote-cast'},

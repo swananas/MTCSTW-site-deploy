@@ -317,7 +317,11 @@ function tipBoost(slug,xp){
   save(LS_B,{date:today(),creator:slug,tipped:xp,signal:signal,pumps:{}});
   var p=patronRec(); p.tipped+=xp; p.signal+=signal; save(LS_P,p);
   try{ document.dispatchEvent(new CustomEvent("pf-boost-tipped",{detail:{creator:slug,tipped:xp}})); }catch(e){}
-  try{ document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:-xp,total:r.xp}})); }catch(e){}
+  /* Keyed pf-xp so the xpledger mirrors the debit to the backend (the old
+     keyless dispatch was silently dropped — backend balance stayed inflated).
+     tip_ prefix skips referral commissions (it's a spend, not earnings).
+     One boost per day makes this key naturally idempotent. */
+  try{ document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:-xp,total:r.xp,key:'tip_boost_'+today(),reason:'boost tip'}})); }catch(e){}
   return {ok:true,name:entry.name,slug:slug,tipped:xp,signal:signal};
 }
 function pumpBoost(kind){

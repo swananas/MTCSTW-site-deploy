@@ -25,6 +25,7 @@
      Daily Orders leads: it's the stickiest dopamine lynchpin. */
   var ORDER = [
     ['daily-orders', 'pf-ov-orders'],
+    ['notify', 'pf-ov-notify'],
     ['campaign', 'pf-ov-campaign'],
     ['referral', 'pf-ov-referral'],
     ['feed', 'pf-ov-feed'],
@@ -51,6 +52,7 @@
     ['caption-combat', 'pf-ov-caption'],
     ['poster-forge', 'pf-ov-poster'],
     ['battles', 'pf-ov-battles'],
+    ['economy', 'pf-ov-economy'],
     ['casino', 'pf-ov-casino'],
     ['enlistment-ranks', 'pf-ov-ranks'],
     ['war-bonds', 'pf-ov-bonds']

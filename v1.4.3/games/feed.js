@@ -112,8 +112,9 @@ function render(){
       +'<button class="c-btn fd-vote" data-cid="'+cid+'" data-v="1">&#9650;</button>'
       +'<button class="c-btn fd-vote" data-cid="'+cid+'" data-v="-1">&#9660;</button> '
       +'<button class="c-btn fd-tip" data-cid="'+cid+'" data-creator="'+esc(it.creator||"")+'">TIP</button> '
-      +'<button class="c-btn fd-sched" data-cid="'+cid+'" data-title="'+esc(it.title||"")+'">SCHEDULE</button>'
-      +'</div></div>';
+      +'<button class="c-btn fd-sched" data-cid="'+cid+'" data-title="'+esc(it.title||"")+'">SCHEDULE</button> '
+      +'<button class="c-btn fd-intel" data-cid="'+cid+'">WHO&#39;S SHARING</button>'
+      +'</div><div class="fd-intelbox" data-cid="'+cid+'" style="display:none;margin-top:6px"></div></div>';
   }
   /* Scheduled queue. */
   var q=[]; try{ if(SCHED&&SCHED.ok&&SCHED.queue) q=SCHED.queue; }catch(e){}
@@ -150,6 +151,44 @@ function render(){
         });
       };
     })(sh[s2]);
+  }
+  /* Who's sharing: spread_stats breakdown per content item. */
+  var ib=el.querySelectorAll("button.fd-intel");
+  for(var ii=0;ii<ib.length;ii++){
+    (function(b){
+      b.onclick=function(){
+        var cid=b.getAttribute("data-cid");
+        var box=el.querySelector('div.fd-intelbox[data-cid="'+cid+'"]');
+        if(!box) return;
+        if(box.style.display!=="none"){ box.style.display="none"; return; }
+        box.style.display="block";
+        box.innerHTML='<div class="x-note">Reading the spread&hellip;</div>';
+        api("spread_stats",{content_id:cid},function(j){
+          if(!j||!j.ok){ box.innerHTML='<div class="x-note">No spread data yet.</div>'; return; }
+          var h='<div class="x-note">'
+            +'<b>'+(Number(j.total_shares)||0)+'</b> shares &bull; '
+            +'<b>'+(Number(j.unique_sharers)||0)+'</b> sharers &bull; '
+            +'<b>'+(Number(j.cells_reached)||0)+'</b> cells &bull; '
+            +'depth <b>'+(Number(j.max_depth)||0)+'</b>';
+          var tl=[]; try{ if(j.timeline) tl=j.timeline; }catch(e){}
+          if(tl.length){
+            h+='<br>14d: ';
+            var bars=[];
+            for(var d=0;d<tl.length;d++){ bars.push(Number(tl[d])||0); }
+            h+=esc(bars.join(" / "));
+          }
+          var tops=[]; try{ if(j.top_sharers) tops=j.top_sharers; }catch(e){}
+          if(tops.length){
+            h+='<br>Top pumpers: ';
+            var tn=[];
+            for(var t2=0;t2<Math.min(tops.length,5);t2++){ tn.push(esc(String(tops[t2].sharer||tops[t2]))); }
+            h+=tn.join(", ");
+          }
+          h+='</div>';
+          box.innerHTML=h;
+        });
+      };
+    })(ib[ii]);
   }
   var rb=document.getElementById("fdRetry");
   if(rb) rb.onclick=function(){ T=N=null; REP=null; SCHED=null; el.innerHTML='<div class="c-load">Loading the feed&hellip;</div>'; load(); };

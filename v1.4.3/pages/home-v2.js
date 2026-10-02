@@ -30,6 +30,7 @@
     ['feed', 'pf-ov-feed'],
     ['bounties', 'pf-ov-bounties'],
     ['academy', 'pf-ov-academy'],
+    ['assist', 'pf-ov-assist'],
     ['cells', 'pf-ov-cells'],
     ['contracts', 'pf-ov-contracts'],
     ['fan-vote', 'pf-ov-vote'],

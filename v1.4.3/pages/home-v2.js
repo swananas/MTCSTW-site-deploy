@@ -23,53 +23,62 @@
 
   /* Homepage order, verified against the live page's section roots.
      Daily Orders leads: it's the stickiest dopamine lynchpin. */
+  /* 2026-10-02: homepage reorganized into 7 funnel sections —
+     START HERE (hook→daily loop→identity) → PLAY (games) → BELONG (cells) →
+     CREATE (creator tools) → FUND (economy) → ACT (action/intel) → PROOF.
+     Each section flows into the next; related products stay together.
+     vault (admin) and dash (creator analytics) removed from homepage —
+     vault via direct URL, dash belongs in Creator HQ. */
   var ORDER = [
+    /* ——— SECTION 1: START HERE — hook & daily loop ——— */
     ['brief', 'pf-ov-brief'],
-    ['daily-orders', 'pf-ov-orders'],
-    /* 2026-10-02: high-impact widgets mount first — live totals, rank
-       identity, weekly vote, revenue, and top games lead the page. */
     ['do-meter', 'pf-ov-dometer'],
-    ['enlistment-ranks', 'pf-ov-ranks'],
-    ['fan-vote', 'pf-ov-vote'],
-    ['war-bonds', 'pf-ov-bonds'],
-    ['caption-combat', 'pf-ov-caption'],
-    ['academy', 'pf-ov-academy'],
-    ['hq-nudge', 'pf-ov-hq-nudge'],
-    ['socialproof', 'pf-ov-socialproof'],
+    ['daily-orders', 'pf-ov-orders'],
     ['dopa', 'pf-ov-dopa'],
+    ['enlistment-ranks', 'pf-ov-ranks'],
     ['notify', 'pf-ov-notify'],
-    ['campaign', 'pf-ov-campaign'],
-    ['referral', 'pf-ov-referral'],
-    ['feed', 'pf-ov-feed'],
-    ['bounties', 'pf-ov-bounties'],
-    ['assist', 'pf-ov-assist'],
-    ['alerts', 'pf-ov-alerts'],
-    ['archive', 'pf-ov-archive'],
-    ['irl', 'pf-ov-irl'],
-    ['intel', 'pf-ov-intel'],
-    ['cells', 'pf-ov-cells'],
-    ['cell-war', 'pf-ov-cellwar'],
-    ['contracts', 'pf-ov-contracts'],
-    ['infighting', 'pf-ov-infight'],
-    ['slr-match-quiz', 'pf-ov-matchquiz'],
+    ['socialproof', 'pf-ov-socialproof'],
+    /* ——— SECTION 2: PLAY — games arcade, quick wins first ——— */
+    ['caption-combat', 'pf-ov-caption'],
     ['creator-guess', 'pf-ov-guess'],
+    ['slr-match-quiz', 'pf-ov-matchquiz'],
+    ['daily-interrogation', 'pf-ov-interrogation'],
+    ['billionaire-supervillain', 'pf-ov-billionaire'],
     ['bracket-board', 'pf-ov-bracket'],
     ['boost-raid', 'pf-ov-raid'],
     ['daily-drop', 'pf-ov-drop'],
-    ['billionaire-supervillain', 'pf-ov-billionaire'],
-    ['daily-interrogation', 'pf-ov-interrogation'],
-    ['media-nuke', 'pf-ov-nuke'],
-    ['poster-forge', 'pf-ov-poster'],
     ['battles', 'pf-ov-battles'],
-    ['video', 'pf-ov-video'],
+    ['infighting', 'pf-ov-infight'],
+    ['media-nuke', 'pf-ov-nuke'],
+    ['casino', 'pf-ov-casino'],
+    /* ——— SECTION 3: BELONG — cells & squads lifecycle ——— */
+    ['cells', 'pf-ov-cells'],
+    ['cell-war', 'pf-ov-cellwar'],
     ['diplo', 'pf-ov-diplo'],
-    ['economy', 'pf-ov-economy'],
+    ['contracts', 'pf-ov-contracts'],
+    ['referral', 'pf-ov-referral'],
+    /* ——— SECTION 4: CREATE — creator tools journey ——— */
+    ['academy', 'pf-ov-academy'],
+    ['assist', 'pf-ov-assist'],
+    ['poster-forge', 'pf-ov-poster'],
+    ['video', 'pf-ov-video'],
+    ['feed', 'pf-ov-feed'],
+    ['hq-nudge', 'pf-ov-hq-nudge'],
+    /* ——— SECTION 5: FUND — economy & money ——— */
     ['peoplesbank', 'pf-ov-peoplesbank'],
+    ['economy', 'pf-ov-economy'],
+    ['war-bonds', 'pf-ov-bonds'],
     ['movement', 'pf-ov-movement'],
     ['earnings', 'pf-ov-earnings'],
-    ['dash', 'pf-ov-dash'],
-    ['casino', 'pf-ov-casino'],
-    ['vault', 'pf-ov-vault']
+    ['bounties', 'pf-ov-bounties'],
+    /* ——— SECTION 6: ACT — action & intel ——— */
+    ['campaign', 'pf-ov-campaign'],
+    ['alerts', 'pf-ov-alerts'],
+    ['irl', 'pf-ov-irl'],
+    ['intel', 'pf-ov-intel'],
+    ['archive', 'pf-ov-archive'],
+    /* ——— SECTION 7: PROOF — social validation closer ——— */
+    ['fan-vote', 'pf-ov-vote']
   ];
 
   function execScripts(root, label) {

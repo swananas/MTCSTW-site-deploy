@@ -33,6 +33,15 @@ function api(action,params,cb){
   q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
   setTimeout(function(){ finish(null); },12000);
 }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function post(body,cb){
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+      .then(function(r){ return r.json(); }).then(function(j){ done(j); }).catch(function(){ done(null); });
+  }catch(e){ done(null); }
+}
 function fmtTs(t){
   try{
     var ms=Number(t); if(ms<1e12) ms=ms*1000;
@@ -71,8 +80,39 @@ function render(j){
     }
     h+='</div></div>';
   }
+  /* file intel — intel_add (admin-gated server-side; target+activity+source
+     required, every item must cite a checkable source) */
+  h+='<div class="x-pane"><h4>File intel</h4>'
+    +'<div class="x-note">What are they funding? Every submission needs a checkable source.</div>'
+    +'<input aria-label="TARGET" id="inTarget" maxlength="120" placeholder="TARGET — who / what org"> '
+    +'<input aria-label="ACTIVITY" id="inActivity" maxlength="400" placeholder="ACTIVITY — what are they doing"> '
+    +'<input aria-label="MONEY" id="inAmount" maxlength="80" placeholder="MONEY (optional) — e.g. $2M"> '
+    +'<input aria-label="SOURCE" id="inSource" maxlength="200" placeholder="SOURCE (required) — link or citation"> '
+    +'<button class="c-btn" id="inFileBtn">SUBMIT INTEL</button><div class="c-err" id="inFileErr"></div></div>';
   h+='<div style="margin-top:10px"><button class="c-btn" id="inRetry">Refresh</button></div>';
   el.innerHTML=h;
+  var fb=document.getElementById("inFileBtn");
+  if(fb) fb.onclick=function(){
+    var me=ident();
+    if(!me.callsign){ toast("Claim a callsign first."); return; }
+    var tg=document.getElementById("inTarget"), ac=document.getElementById("inActivity"),
+        am=document.getElementById("inAmount"), sc=document.getElementById("inSource");
+    var target=tg?tg.value.trim():"", activity=ac?ac.value.trim():"",
+        amount=am?am.value.trim():"", source=sc?sc.value.trim():"";
+    var errEl=document.getElementById("inFileErr");
+    if(errEl) errEl.textContent="";
+    if(!target){ if(errEl)errEl.textContent="Target is required."; return; }
+    if(!activity){ if(errEl)errEl.textContent="Describe the activity."; return; }
+    if(!source){ if(errEl)errEl.textContent="Source is required — every intel item must cite a checkable source."; return; }
+    if(!window.confirm("File intel on \""+target+"\"?")) return;
+    fb.disabled=true;
+    post({type:"intel",i_action:"intel_add",target:target,activity:activity,amount:amount,source:source},function(j){
+      fb.disabled=false;
+      if(!j||!j.ok){ if(errEl)errEl.textContent=(j&&j.err)||"Submission failed."; return; }
+      toast("INTEL FILED. The war room sees it.");
+      load();
+    });
+  };
   var rb=document.getElementById("inRetry");
   if(rb) rb.onclick=function(){ el.innerHTML='<div class="c-load">Reading their mail&hellip;</div>'; load(); };
 }

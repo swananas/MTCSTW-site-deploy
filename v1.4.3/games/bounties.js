@@ -22,6 +22,13 @@ function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign(
 function toast(m){ try{ PF.toast(m); }catch(e){} }
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
+  /* IDOR fix: bounty_mine is per-callsign private data — attach auth_secret. */
+  if(action==="bounty_mine"){
+    try{
+      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+    }catch(e){}
+  }
   var fn="pfBnCb"+Math.floor(Math.random()*1e9);
   var s=document.createElement("script"), done=false;
   function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
@@ -45,12 +52,20 @@ function post(bAction,params,cb){
       .catch(function(){ done(null); });
   }catch(e){ done(null); }
 }
-var B=null;
+var B=null, BM=null;
 function load(){
-  var done=false;
+  var done=false, n=0;
   function fin(){ if(done)return; done=true; render(); }
+  function one(){ n++; if(n>=2) fin(); }
   setTimeout(fin,15000);
-  api("bounty_list",{},function(j){ B=j; fin(); });
+  var id0=ident();
+  api("bounty_list",{},function(j){ B=j; one(); });
+  api("bounty_mine",{callsign:id0.callsign},function(j){ BM=j; one(); });
+}
+function doXp(n,key,reason){
+  try{
+    document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:n,key:key,reason:reason||"bounty"}}));
+  }catch(e){}
 }
 function render(){
   var el=document.getElementById("xBounty"); if(!el) return;
@@ -76,6 +91,26 @@ function render(){
       h+='<div class="bn-claimrow"><input aria-label="Your content ID (from Poster Forge)" class="bn-input" id="bnSub_'+esc(b.id)+'" placeholder="Your content ID (from Poster Forge)" maxlength="64">'
         +'<button class="c-btn bn-claim" data-bid="'+esc(b.id)+'">CLAIM</button></div>'
         +'<div class="c-err" id="bnErr_'+esc(b.id)+'"></div>';
+    }
+    h+='</div>';
+  }
+  h+='</div>';
+  /* --- my bounties: posted by me, with CLOSE for open ones --- */
+  var mine=[];
+  try{ if(BM&&BM.ok&&BM.bounties) mine=BM.bounties; }catch(e){}
+  h+='<div class="x-pane"><h4>My bounties</h4>';
+  if(!mine.length){
+    h+='<div class="x-note">You haven\u2019t posted any bounties yet.</div>';
+  }
+  for(var mi=0;mi<mine.length;mi++){
+    var mb=mine[mi]||{};
+    var mst=String(mb.status||"open");
+    h+='<div class="bn-item"><div class="bn-title">'+esc(mb.title||"Untitled")+'</div>'
+      +'<div class="bn-meta">'+(Number(mb.xp_reward)||0)+' XP &bull; '+esc(mst.toUpperCase())
+      +(mb.claimed_by?' &bull; claimed by '+esc(mb.claimed_by):'')+'</div>';
+    if(mst==="open"){
+      h+='<div style="margin-top:6px"><button class="c-btn bn-close" data-bid="'+esc(mb.id)+'">CLOSE BOUNTY</button></div>'
+        +'<div class="c-err" id="bnCloseErr_'+esc(mb.id)+'"></div>';
     }
     h+='</div>';
   }
@@ -126,7 +161,30 @@ function render(){
     });
   };
   var rb=document.getElementById("bnRetry");
-  if(rb) rb.onclick=function(){ B=null; el.innerHTML='<div class="c-load">Loading bounties&hellip;</div>'; load(); };
+  if(rb) rb.onclick=function(){ B=null; BM=null; el.innerHTML='<div class="c-load">Loading bounties&hellip;</div>'; load(); };
+  /* wire close-my-bounty */
+  var cb2=el.querySelectorAll("button.bn-close");
+  for(var k=0;k<cb2.length;k++){
+    (function(btn){
+      btn.onclick=function(){
+        var bid=btn.getAttribute("data-bid"); if(!bid) return;
+        if(!window.confirm("Close this bounty? The escrowed XP returns to you.")) return;
+        btn.disabled=true; btn.textContent="CLOSING\u2026";
+        post("bounty_close",{bounty_id:bid,callsign:id.callsign,device:id.device},function(j){
+          if(j&&j.ok){
+            var rf=Number(j.refunded)||0;
+            toast("BOUNTY CLOSED. +"+rf+" XP escrow refunded.");
+            try{ if(rf>0) doXp(rf,"bounty_refund_"+bid,"bounty closed: escrow refund"); }catch(e){}
+            B=null; BM=null; load();
+          } else {
+            var er=document.getElementById("bnCloseErr_"+bid);
+            if(er) er.textContent=(j&&j.err)||"Close failed.";
+            btn.disabled=false; btn.textContent="CLOSE BOUNTY";
+          }
+        });
+      };
+    })(cb2[k]);
+  }
 }
 load();
 setInterval(function(){ load(); },180000);

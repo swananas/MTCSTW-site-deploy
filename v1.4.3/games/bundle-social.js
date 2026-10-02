@@ -896,7 +896,8 @@ function render(){
   h+='<div class="rf-sub">Share your code. They claim a callsign. You both get XP. Climb the tiers.</div>';
   if(!id.callsign){
     h+='<div class="c-gate">Referral War runs on callsigns. Claim yours in Enlistment Ranks, then come back and recruit.</div>';
-    el.innerHTML=h; return;
+    el.innerHTML=h;
+    return;
   }
   var st=S||{}, recruits=Number(st.recruits)||0, xpEarned=Number(st.xp_earned)||0;
   var tier=tierFor(recruits);
@@ -971,6 +972,46 @@ function render(){
     +'<div class="x-note">Recruit 1 for SCOUT, 3 for ORGANIZER, 10 for COMMANDER, 25 for WARLORD.</div></div>';
   h+='<div style="margin-top:10px"><button class="c-btn" id="rfRetry">Refresh</button></div>';
   el.innerHTML=h;
+  /* --- recruit activation list: one ACTIVATE button per recruit --- */
+  (function(){
+    var box=document.getElementById("rfActivateList"); if(!box) return;
+    var list=[]; try{ list=myList.slice(0,50); }catch(e){}
+    if(!list.length){ box.innerHTML='<div class="x-note">No recruits yet — nothing to activate.</div>'; return; }
+    var bh="";
+    for(var ai=0;ai<list.length;ai++){
+      var rcs=String((list[ai]&&list[ai].callsign)||list[ai]||"");
+      if(!rcs) continue;
+      bh+='<div class="cp-lead"><span class="cp-lname">'+esc(rcs)+'</span> '
+        +'<button class="c-btn rf-act" data-rc="'+esc(rcs)+'">ACTIVATE +50 XP</button></div>';
+    }
+    if(!bh){ box.innerHTML='<div class="x-note">No recruits yet — nothing to activate.</div>'; return; }
+    box.innerHTML=bh;
+    var btns=box.querySelectorAll("button.rf-act");
+    for(var bi=0;bi<btns.length;bi++)(function(btn){
+      btn.onclick=function(){
+        var rcs=btn.getAttribute("data-rc"); if(!rcs) return;
+        btn.disabled=true; btn.textContent="ACTIVATING\u2026";
+        post("referral_activate",{recruit_callsign:rcs,callsign:id.callsign,device:id.device},function(j){
+          if(j&&j.ok&&(j.xp||j.recruiter)){
+            var amt=Number(j.xp)||50;
+            toast("RECRUIT ACTIVE. +"+amt+" XP — "+rcs+" fights under your banner.");
+            try{ doXp(amt,"ref_bonus_"+id.callsign+"_"+rcs,"recruit activated: "+rcs); }catch(e){}
+            btn.textContent="COLLECTED"; btn.disabled=true;
+            S=null; load();
+          } else if(j&&j.ok&&j.already){
+            toast(rcs+" already activated.");
+            btn.textContent="COLLECTED"; btn.disabled=true;
+          } else if(j&&j.err==="not active yet"){
+            toast(rcs+" needs 3+ actions first. Nudge them.");
+            btn.disabled=false; btn.textContent="ACTIVATE +50 XP";
+          } else {
+            toast("Activation failed: "+((j&&j.err)||"try again."));
+            btn.disabled=false; btn.textContent="ACTIVATE +50 XP";
+          }
+        });
+      };
+    })(btns[bi]);
+  })();
   /* wire copy */
   var cp=document.getElementById("rfCopy");
   if(cp) cp.onclick=function(){
@@ -1359,12 +1400,20 @@ function post(bAction,params,cb){
       .catch(function(){ done(null); });
   }catch(e){ done(null); }
 }
-var B=null;
+var B=null, BM=null;
 function load(){
-  var done=false;
+  var done=false, n=0;
   function fin(){ if(done)return; done=true; render(); }
+  function one(){ n++; if(n>=2) fin(); }
   setTimeout(fin,15000);
-  api("bounty_list",{},function(j){ B=j; fin(); });
+  var id0=ident();
+  api("bounty_list",{},function(j){ B=j; one(); });
+  api("bounty_mine",{callsign:id0.callsign},function(j){ BM=j; one(); });
+}
+function doXp(n,key,reason){
+  try{
+    document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:n,key:key,reason:reason||"bounty"}}));
+  }catch(e){}
 }
 function render(){
   var el=document.getElementById("xBounty"); if(!el) return;
@@ -1390,6 +1439,26 @@ function render(){
       h+='<div class="bn-claimrow"><input aria-label="Your content ID (from Poster Forge)" class="bn-input" id="bnSub_'+esc(b.id)+'" placeholder="Your content ID (from Poster Forge)" maxlength="64">'
         +'<button class="c-btn bn-claim" data-bid="'+esc(b.id)+'">CLAIM</button></div>'
         +'<div class="c-err" id="bnErr_'+esc(b.id)+'"></div>';
+    }
+    h+='</div>';
+  }
+  h+='</div>';
+  /* --- my bounties: posted by me, with CLOSE for open ones --- */
+  var mine=[];
+  try{ if(BM&&BM.ok&&BM.bounties) mine=BM.bounties; }catch(e){}
+  h+='<div class="x-pane"><h4>My bounties</h4>';
+  if(!mine.length){
+    h+='<div class="x-note">You haven\u2019t posted any bounties yet.</div>';
+  }
+  for(var mi=0;mi<mine.length;mi++){
+    var mb=mine[mi]||{};
+    var mst=String(mb.status||"open");
+    h+='<div class="bn-item"><div class="bn-title">'+esc(mb.title||"Untitled")+'</div>'
+      +'<div class="bn-meta">'+(Number(mb.xp_reward)||0)+' XP &bull; '+esc(mst.toUpperCase())
+      +(mb.claimed_by?' &bull; claimed by '+esc(mb.claimed_by):'')+'</div>';
+    if(mst==="open"){
+      h+='<div style="margin-top:6px"><button class="c-btn bn-close" data-bid="'+esc(mb.id)+'">CLOSE BOUNTY</button></div>'
+        +'<div class="c-err" id="bnCloseErr_'+esc(mb.id)+'"></div>';
     }
     h+='</div>';
   }
@@ -1440,7 +1509,30 @@ function render(){
     });
   };
   var rb=document.getElementById("bnRetry");
-  if(rb) rb.onclick=function(){ B=null; el.innerHTML='<div class="c-load">Loading bounties&hellip;</div>'; load(); };
+  if(rb) rb.onclick=function(){ B=null; BM=null; el.innerHTML='<div class="c-load">Loading bounties&hellip;</div>'; load(); };
+  /* wire close-my-bounty */
+  var cb2=el.querySelectorAll("button.bn-close");
+  for(var k=0;k<cb2.length;k++){
+    (function(btn){
+      btn.onclick=function(){
+        var bid=btn.getAttribute("data-bid"); if(!bid) return;
+        if(!window.confirm("Close this bounty? The escrowed XP returns to you.")) return;
+        btn.disabled=true; btn.textContent="CLOSING\u2026";
+        post("bounty_close",{bounty_id:bid,callsign:id.callsign,device:id.device},function(j){
+          if(j&&j.ok){
+            var rf=Number(j.refunded)||0;
+            toast("BOUNTY CLOSED. +"+rf+" XP escrow refunded.");
+            try{ if(rf>0) doXp(rf,"bounty_refund_"+bid,"bounty closed: escrow refund"); }catch(e){}
+            B=null; BM=null; load();
+          } else {
+            var er=document.getElementById("bnCloseErr_"+bid);
+            if(er) er.textContent=(j&&j.err)||"Close failed.";
+            btn.disabled=false; btn.textContent="CLOSE BOUNTY";
+          }
+        });
+      };
+    })(cb2[k]);
+  }
 }
 load();
 setInterval(function(){ load(); },180000);
@@ -2588,6 +2680,15 @@ function api(action,params,cb){
   q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
   setTimeout(function(){ finish(null); },12000);
 }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function post(body,cb){
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+      .then(function(r){ return r.json(); }).then(function(j){ done(j); }).catch(function(){ done(null); });
+  }catch(e){ done(null); }
+}
 function fmtTs(t){
   try{
     var ms=Number(t); if(ms<1e12) ms=ms*1000;
@@ -2626,8 +2727,39 @@ function render(j){
     }
     h+='</div></div>';
   }
+  /* file intel — intel_add (admin-gated server-side; target+activity+source
+     required, every item must cite a checkable source) */
+  h+='<div class="x-pane"><h4>File intel</h4>'
+    +'<div class="x-note">What are they funding? Every submission needs a checkable source.</div>'
+    +'<input aria-label="TARGET" id="inTarget" maxlength="120" placeholder="TARGET — who / what org"> '
+    +'<input aria-label="ACTIVITY" id="inActivity" maxlength="400" placeholder="ACTIVITY — what are they doing"> '
+    +'<input aria-label="MONEY" id="inAmount" maxlength="80" placeholder="MONEY (optional) — e.g. $2M"> '
+    +'<input aria-label="SOURCE" id="inSource" maxlength="200" placeholder="SOURCE (required) — link or citation"> '
+    +'<button class="c-btn" id="inFileBtn">SUBMIT INTEL</button><div class="c-err" id="inFileErr"></div></div>';
   h+='<div style="margin-top:10px"><button class="c-btn" id="inRetry">Refresh</button></div>';
   el.innerHTML=h;
+  var fb=document.getElementById("inFileBtn");
+  if(fb) fb.onclick=function(){
+    var me=ident();
+    if(!me.callsign){ toast("Claim a callsign first."); return; }
+    var tg=document.getElementById("inTarget"), ac=document.getElementById("inActivity"),
+        am=document.getElementById("inAmount"), sc=document.getElementById("inSource");
+    var target=tg?tg.value.trim():"", activity=ac?ac.value.trim():"",
+        amount=am?am.value.trim():"", source=sc?sc.value.trim():"";
+    var errEl=document.getElementById("inFileErr");
+    if(errEl) errEl.textContent="";
+    if(!target){ if(errEl)errEl.textContent="Target is required."; return; }
+    if(!activity){ if(errEl)errEl.textContent="Describe the activity."; return; }
+    if(!source){ if(errEl)errEl.textContent="Source is required — every intel item must cite a checkable source."; return; }
+    if(!window.confirm("File intel on \""+target+"\"?")) return;
+    fb.disabled=true;
+    post({type:"intel",i_action:"intel_add",target:target,activity:activity,amount:amount,source:source},function(j){
+      fb.disabled=false;
+      if(!j||!j.ok){ if(errEl)errEl.textContent=(j&&j.err)||"Submission failed."; return; }
+      toast("INTEL FILED. The war room sees it.");
+      load();
+    });
+  };
   var rb=document.getElementById("inRetry");
   if(rb) rb.onclick=function(){ el.innerHTML='<div class="c-load">Reading their mail&hellip;</div>'; load(); };
 }
@@ -3056,52 +3188,96 @@ function renderCell(el,s){
     });
   };
   /* CHAINLINK wiring: per-cell leave + wire-another join + network stat. */
-  /* CELL CHALLENGES: active challenges, join for your cell, leaderboard. */
+  /* CELL CHALLENGES: active challenges, join for your cell, leaderboard,
+     plus CREATE CHALLENGE (challenge_create: title 4-48 chars, metric
+     checkins|recruits|xp, days 1-30). */
   (function(){
     var host=document.createElement("div");
     host.className="c-chalwrap"; host.id="cChal";
     host.innerHTML='<h3>Cell challenges</h3><div class="c-load">Loading challenges&hellip;</div>';
     el.appendChild(host);
-    api("challenge_list",{},function(j){
-      if(!j||!j.ok||!(j.challenges&&j.challenges.length)){
-        host.innerHTML='<h3>Cell challenges</h3><div class="x-note">No active challenges. The war council will announce the next one.</div>';
-        return;
-      }
-      var h='<h3>Cell challenges</h3>';
-      for(var i=0;i<j.challenges.length;i++){
-        var ch=j.challenges[i]||{};
-        h+='<div class="x-pane"><h4>'+esc(ch.title)+'</h4>'
-          +'<div class="x-note">'+esc(ch.detail||"")+'</div>'
-          +'<div class="x-note">Ends: '+esc(ch.ends||"soon")+'</div>'
-          +'<button class="c-btn c-chjoin" data-ch="'+esc(ch.id)+'">ENTER MY CELL</button>'
-          +'<div class="c-err" id="cChErr-'+esc(ch.id)+'"></div></div>';
-      }
-      h+='<div id="cChBoard"><div class="c-load">Loading standings&hellip;</div></div>';
-      host.innerHTML=h;
-      var jbs=host.querySelectorAll(".c-chjoin");
-      for(var b=0;b<jbs.length;b++)(function(btn){
-        btn.onclick=function(){
-          var chid=btn.getAttribute("data-ch"), id2=ident();
-          var ee=document.getElementById("cChErr-"+chid); if(ee) ee.textContent="";
-          post("challenge","ch_action","challenge_join",{callsign:id2.callsign,device:id2.device,cell_id:c.id,challenge_id:chid},function(r){
+    function createFormHtml(){
+      return '<div class="x-pane"><h4>Propose a challenge</h4>'
+        +'<div class="x-note">Cells compete on your metric for 1-30 days. Title needs 4+ characters.</div>'
+        +'<input id="cChTitle" maxlength="48" placeholder="CHALLENGE TITLE" aria-label="Challenge title"> '
+        +'<select id="cChMetric" aria-label="Metric">'
+        +'<option value="checkins">Daily check-ins</option>'
+        +'<option value="recruits">Recruits</option>'
+        +'<option value="xp">XP earned</option></select> '
+        +'<input id="cChDays" type="number" min="1" max="30" value="7" style="width:64px" aria-label="Days"> '
+        +'<button class="c-btn" id="cChCreateBtn">CREATE CHALLENGE</button>'
+        +'<div class="c-err" id="cChCreateErr"></div></div>';
+    }
+    function wireCreate(){
+      var btn=host.querySelector("#cChCreateBtn"); if(!btn) return;
+      btn.onclick=function(){
+        var id3=ident();
+        if(!id3.callsign){ toast("Claim a callsign first."); return; }
+        var tEl=host.querySelector("#cChTitle"), mEl=host.querySelector("#cChMetric"),
+            dEl=host.querySelector("#cChDays"), ee=host.querySelector("#cChCreateErr");
+        var title=tEl?tEl.value.trim():"", metric=mEl?mEl.value:"checkins",
+            days=dEl?(parseInt(dEl.value,10)||7):7;
+        if(ee) ee.textContent="";
+        if(title.length<4){ if(ee) ee.textContent="Title needs 4+ characters."; return; }
+        if(days<1) days=1; if(days>30) days=30;
+        if(!window.confirm("Launch challenge \""+title+"\" for "+days+" days?")) return;
+        btn.disabled=true;
+        post("challenge","ch_action","challenge_create",
+          {callsign:id3.callsign,device:id3.device,title:title,metric:metric,days:days},
+          function(r){
+            btn.disabled=false;
             if(!r||!r.ok){ if(ee) ee.textContent=(r&&r.err)||"Network error."; return; }
-            toast("Cell entered. Fight for the top.");
+            toast("CHALLENGE LIVE. Get your cell in.");
+            loadCh();
           });
-        };
-      })(jbs[b]);
-      api("challenge_board",{},function(b2){
-        var bh=document.getElementById("cChBoard"); if(!bh) return;
-        var rows=(b2&&b2.board)||[];
-        if(!rows.length){ bh.innerHTML='<div class="x-note">No standings yet.</div>'; return; }
-        var hh="";
-        for(var q=0;q<Math.min(rows.length,10);q++){
-          hh+='<div class="cp-lead"><span class="cp-lrank">'+(q+1)+'.</span> '
-            +'<span class="cp-lname">'+esc(rows[q].cell||rows[q].cell_name)+'</span> '
-            +'<span class="cp-lxp">'+(Number(rows[q].score)||0)+' pts</span></div>';
+      };
+    }
+    function loadCh(){
+      host.innerHTML='<h3>Cell challenges</h3><div class="c-load">Loading challenges&hellip;</div>';
+      api("challenge_list",{},function(j){
+        var h='<h3>Cell challenges</h3>';
+        var list=(j&&j.ok&&j.challenges)||[];
+        if(!list.length){
+          h+='<div class="x-pane"><div class="x-note">No active challenges. The war council will announce the next one — or propose your own below.</div></div>';
         }
-        bh.innerHTML=hh;
+        for(var i=0;i<list.length;i++){
+          var ch=list[i]||{};
+          h+='<div class="x-pane"><h4>'+esc(ch.title)+'</h4>'
+            +'<div class="x-note">'+esc(ch.detail||"")+'</div>'
+            +'<div class="x-note">Ends: '+esc(ch.ends||"soon")+'</div>'
+            +'<button class="c-btn c-chjoin" data-ch="'+esc(ch.id)+'">ENTER MY CELL</button>'
+            +'<div class="c-err" id="cChErr-'+esc(ch.id)+'"></div></div>';
+        }
+        h+=createFormHtml();
+        h+='<div id="cChBoard"><div class="c-load">Loading standings&hellip;</div></div>';
+        host.innerHTML=h;
+        wireCreate();
+        var jbs=host.querySelectorAll(".c-chjoin");
+        for(var b=0;b<jbs.length;b++)(function(btn){
+          btn.onclick=function(){
+            var chid=btn.getAttribute("data-ch"), id2=ident();
+            var ee=document.getElementById("cChErr-"+chid); if(ee) ee.textContent="";
+            post("challenge","ch_action","challenge_join",{callsign:id2.callsign,device:id2.device,cell_id:c.id,challenge_id:chid},function(r){
+              if(!r||!r.ok){ if(ee) ee.textContent=(r&&r.err)||"Network error."; return; }
+              toast("Cell entered. Fight for the top.");
+            });
+          };
+        })(jbs[b]);
+        api("challenge_board",{},function(b2){
+          var bh=document.getElementById("cChBoard"); if(!bh) return;
+          var rows=(b2&&b2.board)||[];
+          if(!rows.length){ bh.innerHTML='<div class="x-note">No standings yet.</div>'; return; }
+          var hh="";
+          for(var q=0;q<Math.min(rows.length,10);q++){
+            hh+='<div class="cp-lead"><span class="cp-lrank">'+(q+1)+'.</span> '
+              +'<span class="cp-lname">'+esc(rows[q].cell||rows[q].cell_name)+'</span> '
+              +'<span class="cp-lxp">'+(Number(rows[q].score)||0)+' pts</span></div>';
+          }
+          bh.innerHTML=hh;
+        });
       });
-    });
+    }
+    loadCh();
   })();
   var lleaves=document.querySelectorAll(".c-lleave");
   for(var li2=0;li2<lleaves.length;li2++)(function(a){
@@ -7633,6 +7809,12 @@ function render(){
     h+='<div class="x-note">Entries are closed right now — battles open for entry before voting starts.</div>';
   }
   h+='</div>';
+  /* start a battle — battle_create (admin-gated server-side; title + ends_at) */
+  h+='<div class="x-pane"><h4>Start a battle</h4>'
+    +'<div class="x-note">Launch a new tournament. The crowd votes, winner takes +100 XP. Contenders enter with a content ID after launch.</div>'
+    +'<input aria-label="BATTLE TITLE" id="btNewTitle" maxlength="120" placeholder="BATTLE TITLE"> '
+    +'<input aria-label="ENDS ON" id="btNewEnds" type="date"> '
+    +'<button class="c-btn" id="btCreateBtn">CREATE BATTLE</button><div class="c-err" id="btCreateErr"></div></div>';
   /* most boosted */
   var board=(BB&&BB.ok&&BB.board)||[];
   h+='<div class="x-pane"><h4>Most boosted this week</h4>';
@@ -7709,6 +7891,27 @@ function render(){
       eb.disabled=false;
       if(!j||!j.ok){ if(errEl)errEl.textContent=(j&&j.err)||"Entry failed."; return; }
       toast("ENTERED. Now get your cell to vote.");
+      load();
+    });
+  };
+  /* wire create */
+  var cb2=document.getElementById("btCreateBtn");
+  if(cb2) cb2.onclick=function(){
+    var me=ident();
+    if(!me.callsign){ toast("Claim a callsign first."); return; }
+    var ti=document.getElementById("btNewTitle"), de=document.getElementById("btNewEnds");
+    var title=ti?ti.value.trim():"", ends=de?de.value:"";
+    var errEl=document.getElementById("btCreateErr");
+    if(errEl) errEl.textContent="";
+    if(title.length<4){ if(errEl)errEl.textContent="Title needs 4+ characters."; return; }
+    var endsAt=0;
+    if(ends){ var ddt=new Date(ends+"T23:59:59"); if(!isNaN(ddt.getTime())) endsAt=ddt.getTime(); }
+    if(!window.confirm("Launch battle \""+title+"\"?")) return;
+    cb2.disabled=true;
+    post({type:"battle",b_action:"battle_create",title:title,ends_at:endsAt},function(j){
+      cb2.disabled=false;
+      if(!j||!j.ok){ if(errEl)errEl.textContent=(j&&j.err)||"Creation failed."; return; }
+      toast("BATTLE LIVE. Get entries in.");
       load();
     });
   };

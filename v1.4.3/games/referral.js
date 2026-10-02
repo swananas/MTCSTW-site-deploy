@@ -121,46 +121,7 @@ function render(){
   if(!id.callsign){
     h+='<div class="c-gate">Referral War runs on callsigns. Claim yours in Enlistment Ranks, then come back and recruit.</div>';
     el.innerHTML=h;
-  /* --- recruit activation list: one ACTIVATE button per recruit --- */
-  (function(){
-    var box=document.getElementById("rfActivateList"); if(!box) return;
-    var list=[]; try{ list=myList.slice(0,50); }catch(e){}
-    if(!list.length){ box.innerHTML='<div class="x-note">No recruits yet — nothing to activate.</div>'; return; }
-    var bh="";
-    for(var ai=0;ai<list.length;ai++){
-      var rcs=String((list[ai]&&list[ai].callsign)||list[ai]||"");
-      if(!rcs) continue;
-      bh+='<div class="cp-lead"><span class="cp-lname">'+esc(rcs)+'</span> '
-        +'<button class="c-btn rf-act" data-rc="'+esc(rcs)+'">ACTIVATE +50 XP</button></div>';
-    }
-    if(!bh){ box.innerHTML='<div class="x-note">No recruits yet — nothing to activate.</div>'; return; }
-    box.innerHTML=bh;
-    var btns=box.querySelectorAll("button.rf-act");
-    for(var bi=0;bi<btns.length;bi++)(function(btn){
-      btn.onclick=function(){
-        var rcs=btn.getAttribute("data-rc"); if(!rcs) return;
-        btn.disabled=true; btn.textContent="ACTIVATING\u2026";
-        post("referral_activate",{recruit_callsign:rcs,callsign:id.callsign,device:id.device},function(j){
-          if(j&&j.ok&&(j.xp||j.recruiter)){
-            var amt=Number(j.xp)||50;
-            toast("RECRUIT ACTIVE. +"+amt+" XP — "+rcs+" fights under your banner.");
-            try{ doXp(amt,"ref_bonus_"+id.callsign+"_"+rcs,"recruit activated: "+rcs); }catch(e){}
-            btn.textContent="COLLECTED"; btn.disabled=true;
-            S=null; load();
-          } else if(j&&j.ok&&j.already){
-            toast(rcs+" already activated.");
-            btn.textContent="COLLECTED"; btn.disabled=true;
-          } else if(j&&j.err==="not active yet"){
-            toast(rcs+" needs 3+ actions first. Nudge them.");
-            btn.disabled=false; btn.textContent="ACTIVATE +50 XP";
-          } else {
-            toast("Activation failed: "+((j&&j.err)||"try again."));
-            btn.disabled=false; btn.textContent="ACTIVATE +50 XP";
-          }
-        });
-      };
-    })(btns[bi]);
-  })(); return;
+    return;
   }
   var st=S||{}, recruits=Number(st.recruits)||0, xpEarned=Number(st.xp_earned)||0;
   var tier=tierFor(recruits);
@@ -235,6 +196,46 @@ function render(){
     +'<div class="x-note">Recruit 1 for SCOUT, 3 for ORGANIZER, 10 for COMMANDER, 25 for WARLORD.</div></div>';
   h+='<div style="margin-top:10px"><button class="c-btn" id="rfRetry">Refresh</button></div>';
   el.innerHTML=h;
+  /* --- recruit activation list: one ACTIVATE button per recruit --- */
+  (function(){
+    var box=document.getElementById("rfActivateList"); if(!box) return;
+    var list=[]; try{ list=myList.slice(0,50); }catch(e){}
+    if(!list.length){ box.innerHTML='<div class="x-note">No recruits yet — nothing to activate.</div>'; return; }
+    var bh="";
+    for(var ai=0;ai<list.length;ai++){
+      var rcs=String((list[ai]&&list[ai].callsign)||list[ai]||"");
+      if(!rcs) continue;
+      bh+='<div class="cp-lead"><span class="cp-lname">'+esc(rcs)+'</span> '
+        +'<button class="c-btn rf-act" data-rc="'+esc(rcs)+'">ACTIVATE +50 XP</button></div>';
+    }
+    if(!bh){ box.innerHTML='<div class="x-note">No recruits yet — nothing to activate.</div>'; return; }
+    box.innerHTML=bh;
+    var btns=box.querySelectorAll("button.rf-act");
+    for(var bi=0;bi<btns.length;bi++)(function(btn){
+      btn.onclick=function(){
+        var rcs=btn.getAttribute("data-rc"); if(!rcs) return;
+        btn.disabled=true; btn.textContent="ACTIVATING\u2026";
+        post("referral_activate",{recruit_callsign:rcs,callsign:id.callsign,device:id.device},function(j){
+          if(j&&j.ok&&(j.xp||j.recruiter)){
+            var amt=Number(j.xp)||50;
+            toast("RECRUIT ACTIVE. +"+amt+" XP — "+rcs+" fights under your banner.");
+            try{ doXp(amt,"ref_bonus_"+id.callsign+"_"+rcs,"recruit activated: "+rcs); }catch(e){}
+            btn.textContent="COLLECTED"; btn.disabled=true;
+            S=null; load();
+          } else if(j&&j.ok&&j.already){
+            toast(rcs+" already activated.");
+            btn.textContent="COLLECTED"; btn.disabled=true;
+          } else if(j&&j.err==="not active yet"){
+            toast(rcs+" needs 3+ actions first. Nudge them.");
+            btn.disabled=false; btn.textContent="ACTIVATE +50 XP";
+          } else {
+            toast("Activation failed: "+((j&&j.err)||"try again."));
+            btn.disabled=false; btn.textContent="ACTIVATE +50 XP";
+          }
+        });
+      };
+    })(btns[bi]);
+  })();
   /* wire copy */
   var cp=document.getElementById("rfCopy");
   if(cp) cp.onclick=function(){

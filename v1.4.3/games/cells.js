@@ -412,52 +412,96 @@ function renderCell(el,s){
     });
   };
   /* CHAINLINK wiring: per-cell leave + wire-another join + network stat. */
-  /* CELL CHALLENGES: active challenges, join for your cell, leaderboard. */
+  /* CELL CHALLENGES: active challenges, join for your cell, leaderboard,
+     plus CREATE CHALLENGE (challenge_create: title 4-48 chars, metric
+     checkins|recruits|xp, days 1-30). */
   (function(){
     var host=document.createElement("div");
     host.className="c-chalwrap"; host.id="cChal";
     host.innerHTML='<h3>Cell challenges</h3><div class="c-load">Loading challenges&hellip;</div>';
     el.appendChild(host);
-    api("challenge_list",{},function(j){
-      if(!j||!j.ok||!(j.challenges&&j.challenges.length)){
-        host.innerHTML='<h3>Cell challenges</h3><div class="x-note">No active challenges. The war council will announce the next one.</div>';
-        return;
-      }
-      var h='<h3>Cell challenges</h3>';
-      for(var i=0;i<j.challenges.length;i++){
-        var ch=j.challenges[i]||{};
-        h+='<div class="x-pane"><h4>'+esc(ch.title)+'</h4>'
-          +'<div class="x-note">'+esc(ch.detail||"")+'</div>'
-          +'<div class="x-note">Ends: '+esc(ch.ends||"soon")+'</div>'
-          +'<button class="c-btn c-chjoin" data-ch="'+esc(ch.id)+'">ENTER MY CELL</button>'
-          +'<div class="c-err" id="cChErr-'+esc(ch.id)+'"></div></div>';
-      }
-      h+='<div id="cChBoard"><div class="c-load">Loading standings&hellip;</div></div>';
-      host.innerHTML=h;
-      var jbs=host.querySelectorAll(".c-chjoin");
-      for(var b=0;b<jbs.length;b++)(function(btn){
-        btn.onclick=function(){
-          var chid=btn.getAttribute("data-ch"), id2=ident();
-          var ee=document.getElementById("cChErr-"+chid); if(ee) ee.textContent="";
-          post("challenge","ch_action","challenge_join",{callsign:id2.callsign,device:id2.device,cell_id:c.id,challenge_id:chid},function(r){
+    function createFormHtml(){
+      return '<div class="x-pane"><h4>Propose a challenge</h4>'
+        +'<div class="x-note">Cells compete on your metric for 1-30 days. Title needs 4+ characters.</div>'
+        +'<input id="cChTitle" maxlength="48" placeholder="CHALLENGE TITLE" aria-label="Challenge title"> '
+        +'<select id="cChMetric" aria-label="Metric">'
+        +'<option value="checkins">Daily check-ins</option>'
+        +'<option value="recruits">Recruits</option>'
+        +'<option value="xp">XP earned</option></select> '
+        +'<input id="cChDays" type="number" min="1" max="30" value="7" style="width:64px" aria-label="Days"> '
+        +'<button class="c-btn" id="cChCreateBtn">CREATE CHALLENGE</button>'
+        +'<div class="c-err" id="cChCreateErr"></div></div>';
+    }
+    function wireCreate(){
+      var btn=host.querySelector("#cChCreateBtn"); if(!btn) return;
+      btn.onclick=function(){
+        var id3=ident();
+        if(!id3.callsign){ toast("Claim a callsign first."); return; }
+        var tEl=host.querySelector("#cChTitle"), mEl=host.querySelector("#cChMetric"),
+            dEl=host.querySelector("#cChDays"), ee=host.querySelector("#cChCreateErr");
+        var title=tEl?tEl.value.trim():"", metric=mEl?mEl.value:"checkins",
+            days=dEl?(parseInt(dEl.value,10)||7):7;
+        if(ee) ee.textContent="";
+        if(title.length<4){ if(ee) ee.textContent="Title needs 4+ characters."; return; }
+        if(days<1) days=1; if(days>30) days=30;
+        if(!window.confirm("Launch challenge \""+title+"\" for "+days+" days?")) return;
+        btn.disabled=true;
+        post("challenge","ch_action","challenge_create",
+          {callsign:id3.callsign,device:id3.device,title:title,metric:metric,days:days},
+          function(r){
+            btn.disabled=false;
             if(!r||!r.ok){ if(ee) ee.textContent=(r&&r.err)||"Network error."; return; }
-            toast("Cell entered. Fight for the top.");
+            toast("CHALLENGE LIVE. Get your cell in.");
+            loadCh();
           });
-        };
-      })(jbs[b]);
-      api("challenge_board",{},function(b2){
-        var bh=document.getElementById("cChBoard"); if(!bh) return;
-        var rows=(b2&&b2.board)||[];
-        if(!rows.length){ bh.innerHTML='<div class="x-note">No standings yet.</div>'; return; }
-        var hh="";
-        for(var q=0;q<Math.min(rows.length,10);q++){
-          hh+='<div class="cp-lead"><span class="cp-lrank">'+(q+1)+'.</span> '
-            +'<span class="cp-lname">'+esc(rows[q].cell||rows[q].cell_name)+'</span> '
-            +'<span class="cp-lxp">'+(Number(rows[q].score)||0)+' pts</span></div>';
+      };
+    }
+    function loadCh(){
+      host.innerHTML='<h3>Cell challenges</h3><div class="c-load">Loading challenges&hellip;</div>';
+      api("challenge_list",{},function(j){
+        var h='<h3>Cell challenges</h3>';
+        var list=(j&&j.ok&&j.challenges)||[];
+        if(!list.length){
+          h+='<div class="x-pane"><div class="x-note">No active challenges. The war council will announce the next one — or propose your own below.</div></div>';
         }
-        bh.innerHTML=hh;
+        for(var i=0;i<list.length;i++){
+          var ch=list[i]||{};
+          h+='<div class="x-pane"><h4>'+esc(ch.title)+'</h4>'
+            +'<div class="x-note">'+esc(ch.detail||"")+'</div>'
+            +'<div class="x-note">Ends: '+esc(ch.ends||"soon")+'</div>'
+            +'<button class="c-btn c-chjoin" data-ch="'+esc(ch.id)+'">ENTER MY CELL</button>'
+            +'<div class="c-err" id="cChErr-'+esc(ch.id)+'"></div></div>';
+        }
+        h+=createFormHtml();
+        h+='<div id="cChBoard"><div class="c-load">Loading standings&hellip;</div></div>';
+        host.innerHTML=h;
+        wireCreate();
+        var jbs=host.querySelectorAll(".c-chjoin");
+        for(var b=0;b<jbs.length;b++)(function(btn){
+          btn.onclick=function(){
+            var chid=btn.getAttribute("data-ch"), id2=ident();
+            var ee=document.getElementById("cChErr-"+chid); if(ee) ee.textContent="";
+            post("challenge","ch_action","challenge_join",{callsign:id2.callsign,device:id2.device,cell_id:c.id,challenge_id:chid},function(r){
+              if(!r||!r.ok){ if(ee) ee.textContent=(r&&r.err)||"Network error."; return; }
+              toast("Cell entered. Fight for the top.");
+            });
+          };
+        })(jbs[b]);
+        api("challenge_board",{},function(b2){
+          var bh=document.getElementById("cChBoard"); if(!bh) return;
+          var rows=(b2&&b2.board)||[];
+          if(!rows.length){ bh.innerHTML='<div class="x-note">No standings yet.</div>'; return; }
+          var hh="";
+          for(var q=0;q<Math.min(rows.length,10);q++){
+            hh+='<div class="cp-lead"><span class="cp-lrank">'+(q+1)+'.</span> '
+              +'<span class="cp-lname">'+esc(rows[q].cell||rows[q].cell_name)+'</span> '
+              +'<span class="cp-lxp">'+(Number(rows[q].score)||0)+' pts</span></div>';
+          }
+          bh.innerHTML=hh;
+        });
       });
-    });
+    }
+    loadCh();
   })();
   var lleaves=document.querySelectorAll(".c-lleave");
   for(var li2=0;li2<lleaves.length;li2++)(function(a){

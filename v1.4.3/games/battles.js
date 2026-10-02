@@ -110,6 +110,12 @@ function render(){
     h+='<div class="x-note">Entries are closed right now — battles open for entry before voting starts.</div>';
   }
   h+='</div>';
+  /* start a battle — battle_create (admin-gated server-side; title + ends_at) */
+  h+='<div class="x-pane"><h4>Start a battle</h4>'
+    +'<div class="x-note">Launch a new tournament. The crowd votes, winner takes +100 XP. Contenders enter with a content ID after launch.</div>'
+    +'<input aria-label="BATTLE TITLE" id="btNewTitle" maxlength="120" placeholder="BATTLE TITLE"> '
+    +'<input aria-label="ENDS ON" id="btNewEnds" type="date"> '
+    +'<button class="c-btn" id="btCreateBtn">CREATE BATTLE</button><div class="c-err" id="btCreateErr"></div></div>';
   /* most boosted */
   var board=(BB&&BB.ok&&BB.board)||[];
   h+='<div class="x-pane"><h4>Most boosted this week</h4>';
@@ -186,6 +192,27 @@ function render(){
       eb.disabled=false;
       if(!j||!j.ok){ if(errEl)errEl.textContent=(j&&j.err)||"Entry failed."; return; }
       toast("ENTERED. Now get your cell to vote.");
+      load();
+    });
+  };
+  /* wire create */
+  var cb2=document.getElementById("btCreateBtn");
+  if(cb2) cb2.onclick=function(){
+    var me=ident();
+    if(!me.callsign){ toast("Claim a callsign first."); return; }
+    var ti=document.getElementById("btNewTitle"), de=document.getElementById("btNewEnds");
+    var title=ti?ti.value.trim():"", ends=de?de.value:"";
+    var errEl=document.getElementById("btCreateErr");
+    if(errEl) errEl.textContent="";
+    if(title.length<4){ if(errEl)errEl.textContent="Title needs 4+ characters."; return; }
+    var endsAt=0;
+    if(ends){ var ddt=new Date(ends+"T23:59:59"); if(!isNaN(ddt.getTime())) endsAt=ddt.getTime(); }
+    if(!window.confirm("Launch battle \""+title+"\"?")) return;
+    cb2.disabled=true;
+    post({type:"battle",b_action:"battle_create",title:title,ends_at:endsAt},function(j){
+      cb2.disabled=false;
+      if(!j||!j.ok){ if(errEl)errEl.textContent=(j&&j.err)||"Creation failed."; return; }
+      toast("BATTLE LIVE. Get entries in.");
       load();
     });
   };

@@ -199,7 +199,7 @@ function render(){
         var cid=b.getAttribute("data-cid"), v=b.getAttribute("data-v");
         if(!id.callsign){ toast("Claim a callsign to vote."); return; }
         b.disabled=true;
-        postX("reputation","rep_action","vote",{content_id:cid,callsign:id.callsign,device:id.device,vote:Number(v)},function(j){
+        postX("reputation","rep_action","reputation_vote",{content_id:cid,callsign:id.callsign,device:id.device,vote:Number(v)},function(j){
           b.disabled=false;
           toast(j&&j.ok?"Vote recorded.":"Vote failed.");
         });
@@ -235,7 +235,7 @@ function render(){
         var when=window.prompt("When? (YYYY-MM-DD HH:MM, Chicago time)", "");
         if(!when){ return; }
         b.disabled=true;
-        postX("schedule","s_action","add",{content_id:cid,title:title,callsign:id.callsign,device:id.device,platform:String(plat).toLowerCase().slice(0,16),send_at:String(when).slice(0,32)},function(j){
+        postX("schedule","s_action","schedule_add",{content_id:cid,title:title,callsign:id.callsign,device:id.device,platform:String(plat).toLowerCase().slice(0,16),send_at:String(when).slice(0,32)},function(j){
           b.disabled=false;
           if(j&&j.ok){ toast("Scheduled. It will fire from the queue."); load(); }
           else toast((j&&j.err)||"Schedule failed.");

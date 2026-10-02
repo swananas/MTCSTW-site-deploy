@@ -71,8 +71,6 @@ var BUNDLES = {
     /* Money systems. Lazy-loaded on scroll. */
     'economy.js',
     'peoplesbank.js',
-    'bank.js',
-    'ventures.js',
     'war-bonds.js',
     'movement.js',
     'earnings.js',
@@ -92,6 +90,9 @@ Object.keys(BUNDLES).forEach(function (b) {
 var unbundled = allFiles.filter(function (f) {
   return bundled.indexOf(f) === -1 && f.indexOf('bundle-') !== 0;
 });
+/* Dead code: superseded by peoplesbank.js, intentionally excluded from bundles. */
+var DEAD = ['bank.js', 'ventures.js'];
+unbundled = unbundled.filter(function (f) { return DEAD.indexOf(f) === -1; });
 if (unbundled.length) fail('unbundled game files: ' + unbundled.join(', '));
 
 Object.keys(BUNDLES).forEach(function (name) {

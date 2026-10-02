@@ -6,7 +6,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("dash")) { return; }
+  if (PF.skip("dashboard")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-dash">
 <div class="fe-block pf-override-block" id="pf-dash">
 <h2>Command Center</h2>

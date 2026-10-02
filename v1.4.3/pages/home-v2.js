@@ -52,6 +52,7 @@
     ['caption-combat', 'pf-ov-caption'],
     ['poster-forge', 'pf-ov-poster'],
     ['battles', 'pf-ov-battles'],
+    ['video', 'pf-ov-video'],
     ['economy', 'pf-ov-economy'],
     ['peoplesbank', 'pf-ov-peoplesbank'],
     ['movement', 'pf-ov-movement'],

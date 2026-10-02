@@ -47,6 +47,29 @@
 #pf-ranks .u-wall{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 #pf-ranks .u-wname{background:#1a1a1a;border:2px solid #ff5a00;color:#f5ead6;font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;padding:6px 12px;text-transform:uppercase}
 #pf-ranks .u-wempty{font-family:Arial,sans-serif;font-size:12px;color:#777;text-align:center;width:100%}
+/* ---------- PRESTIGE ---------- */
+#pf-ranks .p-wrap{margin-top:22px;border-top:2px solid #ff5a00;padding-top:18px;text-align:center}
+#pf-ranks .p-head{font-size:22px;letter-spacing:4px;color:#ff5a00;text-transform:uppercase;margin-bottom:4px}
+#pf-ranks .p-sub{font-family:Arial,sans-serif;font-size:12px;color:#c9bfa8;margin-bottom:14px;letter-spacing:1px}
+#pf-ranks .p-load{font-family:Arial,sans-serif;font-size:12px;color:#777;padding:12px}
+#pf-ranks .p-badge{display:inline-block;background:#1a1a1a;border:3px solid #ff5a00;color:#ff5a00;font-size:32px;letter-spacing:4px;padding:10px 26px;margin-bottom:10px}
+#pf-ranks .p-rankline{font-family:Arial,sans-serif;font-size:14px;letter-spacing:2px;color:#f5ead6;text-transform:uppercase;margin-bottom:12px}
+#pf-ranks .p-req{background:#1a1a1a;border:2px solid #333;padding:12px;margin-bottom:10px;text-align:left}
+#pf-ranks .p-req.ok{border-color:#4caf50}
+#pf-ranks .p-req.no{border-color:#c1121f}
+#pf-ranks .p-reqt{font-size:13px;letter-spacing:1px;color:#f5ead6;text-transform:uppercase;margin-bottom:6px}
+#pf-ranks .p-reqd{font-family:Arial,sans-serif;font-size:12px;color:#c9bfa8;line-height:1.5}
+#pf-ranks .p-reqd .yes{color:#4caf50;font-weight:bold}
+#pf-ranks .p-reqd .no{color:#c1121f;font-weight:bold}
+#pf-ranks .p-bar{height:10px;background:#2a2a2a;border:1px solid #555;margin:6px 0}
+#pf-ranks .p-bar i{display:block;height:100%;background:#ff5a00;width:0;transition:width .4s}
+#pf-ranks .p-benefits{background:#141414;border:1px dashed #555;padding:10px 12px;margin:12px 0;text-align:left}
+#pf-ranks .p-benefits div{font-family:Arial,sans-serif;font-size:12px;color:#c9bfa8;line-height:1.7}
+#pf-ranks .p-benefits b{color:#ff5a00}
+#pf-ranks .p-btn{background:#ff5a00;color:#0d0d0d;border:none;font-family:'Arial Black',Arial,sans-serif;font-size:16px;letter-spacing:3px;padding:14px 40px;cursor:pointer;text-transform:uppercase;margin-top:8px}
+#pf-ranks .p-btn:disabled{background:#333;color:#777;cursor:default}
+#pf-ranks .p-warn{font-family:Arial,sans-serif;font-size:11px;color:#c1121f;margin-top:10px;line-height:1.5}
+#pf-ranks .p-max{font-family:Arial,sans-serif;font-size:14px;color:#ff5a00;letter-spacing:2px;text-transform:uppercase;padding:16px}
 </style>
 
 <h2>Climb the Ranks</h2>
@@ -64,6 +87,11 @@
   <div class="u-msg" id="uMsg"></div>
   <div class="u-walltitle">Vanguard Wall</div>
   <div class="u-wall" id="uWall"><div class="u-wempty">No architects yet. The wall waits.</div></div>
+</div>
+<div class="p-wrap">
+  <div class="p-head">&#9733; Prestige &#9733;</div>
+  <div class="p-sub">Reset to zero. Rise again, stronger.</div>
+  <div id="pBody"><div class="p-load">Consulting command&hellip;</div></div>
 </div>
 <div class="r-note">Ranks live on this device. Screenshot your rank and share it &mdash; propaganda loves a leaderboard.</div>
 
@@ -479,8 +507,127 @@ document.addEventListener("pf-contract-paid",function(e){
   var g=award("contractpay_"+id,bnty,"once",{exempt:1,nolx:1});
   if(g>0){ try{ if(window.PF&&PF.toast) PF.toast("CONTRACT PAID — +"+g+" XP. Pleasure doing business."); }catch(e2){} }
 });
+/* ---------- PRESTIGE ---------- */
+function pBackend(){ return (window.PF_BACKEND_URL||"")+""; }
+function pCallsign(){ try{ return String(JSON.parse(localStorage.getItem(LS_I)||"{}").callsign||"").toLowerCase(); }catch(e){ return ""; } }
+function pApiGet(action,cb){
+  var url=pBackend(); if(!url||!pCallsign()){ cb(null); return; }
+  var fn="pfPrestigeCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function fin(j){ if(done)return; done=true; try{delete window[fn];}catch(e){} try{ if(s.parentNode)s.parentNode.removeChild(s);}catch(e2){} cb(j); }
+  window[fn]=function(j){ fin(j); };
+  s.onerror=function(){ fin(null); };
+  s.src=url+"?action="+encodeURIComponent(action)+"&callsign="+encodeURIComponent(pCallsign())+"&callback="+fn;
+  document.head.appendChild(s);
+  setTimeout(function(){ fin(null); },12000);
+}
+function pPost(cb){
+  var url=pBackend(); if(!url){ cb({ok:false,err:"no backend"}); return; }
+  var body={type:"prestige",pr_action:"prestige_reset",callsign:pCallsign()};
+  if(window.PF&&PF.authPost){ PF.authPost(url,body,cb); return; }
+  try{
+    var sec=""; try{ sec=window.PF&&PF.getAuthSecret?PF.getAuthSecret():""; }catch(e){}
+    if(sec) body.auth_secret=sec;
+    fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+      .then(function(r){ return r.json(); }).then(function(j){ cb(j||{ok:false,err:"bad response"}); })
+      .catch(function(){ cb({ok:false,err:"network error"}); });
+  }catch(e){ cb({ok:false,err:"network error"}); }
+}
+function escH(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function renderPrestige(st){
+  var el=document.getElementById("pBody"); if(!el) return;
+  var cs=pCallsign();
+  if(!cs){ el.innerHTML='<div class="p-load">Claim a callsign first (Daily Orders widget) — prestige needs a name.</div>'; return; }
+  if(!st||!st.ok){ el.innerHTML='<div class="p-load">Command is silent. Try again soon.</div>'; return; }
+  var h="";
+  /* Prestige badge */
+  if(st.prestige_level>0){
+    h+='<div class="p-badge">&#9733;'+escH(st.badge)+'&#9733;</div>';
+    h+='<div class="p-rankline">Prestige '+st.prestige_level+' operative</div>';
+  } else {
+    h+='<div class="p-badge" style="border-color:#555;color:#777;font-size:20px;">NO PRESTIGE</div>';
+  }
+  h+='<div class="p-rankline">Network rank: '+escH(st.rank_display)+' &middot; '+Number(st.xp||0).toLocaleString()+' XP</div>';
+  if(st.max_prestige){
+    h+='<div class="p-max">&#9733;&#9733;&#9733; Maximum prestige achieved. Legend status. &#9733;&#9733;&#9733;</div>';
+  } else {
+    var rq=st.requirements, pct=0;
+    /* Rank requirement */
+    var rankPct=rq.rank_ok?100:Math.min(100,Math.round(rq.xp_have/rq.xp_needed*100));
+    h+='<div class="p-req '+(rq.rank_ok?"ok":"no")+'">'
+      +'<div class="p-reqt">Requirement 1: '+escH(rq.rank_needed)+'</div>'
+      +'<div class="p-bar"><i style="width:'+rankPct+'%"></i></div>'
+      +'<div class="p-reqd">'+(rq.rank_ok?'<span class="yes">MET</span> — VANGUARD confirmed.'
+        :'<span class="no">NOT MET</span> — '+Number(rq.xp_have).toLocaleString()+' / 25,000 XP')+'</div></div>';
+    /* Streak requirement */
+    var sk=Math.max(rq.streak_best||0,rq.streak_current||0);
+    var streakPct=rq.streak_ok?100:Math.min(100,Math.round(sk/rq.streak_needed*100));
+    h+='<div class="p-req '+(rq.streak_ok?"ok":"no")+'">'
+      +'<div class="p-reqt">Requirement 2: '+rq.streak_needed+'-day max-XP streak</div>'
+      +'<div class="p-bar"><i style="width:'+streakPct+'%"></i></div>'
+      +'<div class="p-reqd">'+(rq.streak_ok?'<span class="yes">MET</span> — streak verified.'
+        :'<span class="no">NOT MET</span> — best '+sk+' / '+rq.streak_needed+' days. Hit the '+Number(st.benefits.daily_cap).toLocaleString()+' XP daily cap '+rq.streak_needed+' days straight.')+'</div></div>';
+    /* Benefits */
+    var b=st.benefits;
+    h+='<div class="p-benefits">'
+      +'<div><b>Current:</b> '+Number(b.daily_cap).toLocaleString()+' XP/day cap &middot; bank deposits &times;'+b.bank_deposit_mult+'</div>'
+      +'<div><b>Prestige '+st.next_prestige+' ('+escH(st.next_badge)+'):</b> '+Number(b.daily_cap_next).toLocaleString()+' XP/day cap &middot; bank deposits &times;'+b.bank_deposit_mult_next+'</div>'
+      +'<div>Each prestige resets you to SYMPATHIZER at 0 XP. You keep your streaks, your unlocks, and your name on the wall.</div>'
+      +'</div>';
+    /* Prestige button */
+    if(st.eligible){
+      h+='<button class="p-btn" id="pGo">Prestige &#9733;'+escH(st.next_badge)+'</button>';
+      h+='<div class="p-warn">WARNING: This resets your XP to 0 and your rank to SYMPATHIZER. Your prestige level becomes '+st.next_prestige+'. This cannot be undone.</div>';
+    } else {
+      h+='<button class="p-btn" disabled>Prestige locked</button>';
+    }
+  }
+  el.innerHTML=h;
+  var go=document.getElementById("pGo");
+  if(go) go.onclick=function(){ pConfirm(st); };
+}
+function pConfirm(st){
+  var old=document.getElementById("pf-prestige-modal"); if(old) old.remove();
+  var m=document.createElement("div"); m.id="pf-prestige-modal";
+  m.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;";
+  var box=document.createElement("div");
+  box.style.cssText="background:#0d0d0d;border:4px solid #ff5a00;max-width:440px;width:100%;padding:28px 24px;text-align:center;font-family:Arial,sans-serif;";
+  box.innerHTML='<div style="color:#ff5a00;font-family:\'Arial Black\',Arial,sans-serif;font-size:22px;letter-spacing:3px;margin-bottom:12px;">PRESTIGE &#9733;'+escH(st.next_badge)+'</div>'
+    +'<div style="color:#f5ead6;font-size:14px;line-height:1.6;margin-bottom:8px;">You are about to burn <b>'+Number(st.xp||0).toLocaleString()+' XP</b> and fall from <b>'+escH(st.rank)+'</b> back to <b>SYMPATHIZER</b>.</div>'
+    +'<div style="color:#c9bfa8;font-size:13px;line-height:1.6;margin-bottom:20px;">In return: <b style="color:#ff5a00">'+Number(st.benefits.daily_cap_next).toLocaleString()+' XP/day</b> cap, <b style="color:#ff5a00">&times;'+st.benefits.bank_deposit_mult_next+'</b> bank deposits, and the <b style="color:#ff5a00">&#9733;'+escH(st.next_badge)+'</b> badge next to your name. Forever.</div>'
+    +'<div style="display:flex;gap:12px;justify-content:center;">'
+    +'<button id="pCancel" style="background:#333;color:#f5ead6;border:none;font-family:\'Arial Black\',Arial,sans-serif;font-size:14px;letter-spacing:2px;padding:12px 24px;cursor:pointer;">STAND DOWN</button>'
+    +'<button id="pConfirm" style="background:#ff5a00;color:#0d0d0d;border:none;font-family:\'Arial Black\',Arial,sans-serif;font-size:14px;letter-spacing:2px;padding:12px 24px;cursor:pointer;">BURN IT</button>'
+    +'</div>';
+  m.appendChild(box);
+  m.onclick=function(e){ if(e.target===m) m.remove(); };
+  document.body.appendChild(m);
+  document.getElementById("pCancel").onclick=function(){ m.remove(); };
+  document.getElementById("pConfirm").onclick=function(){
+    var cBtn=document.getElementById("pConfirm");
+    cBtn.disabled=true; cBtn.textContent="BURNING...";
+    pPost(function(j){
+      m.remove();
+      var el=document.getElementById("pBody");
+      if(j&&j.ok){
+        try{ if(window.PF&&PF.toast) PF.toast("PRESTIGE "+j.new_prestige_level+" — reborn at zero. Climb again."); }catch(e){}
+        /* Reset the device-local widget XP too (fresh climb). */
+        try{ var s=load(); s.xp=0; s.got={}; save(s); }catch(e2){}
+        loadPrestige(); render();
+      } else {
+        try{ if(window.PF&&PF.toast) PF.toast("Prestige failed: "+((j&&j.err)||"unknown")); }catch(e){}
+        loadPrestige();
+      }
+    });
+  };
+}
+function loadPrestige(){
+  var el=document.getElementById("pBody"); if(!el) return;
+  pApiGet("prestige_status",function(j){ renderPrestige(j); });
+}
 /* Daily Orders writes the real combo XP into the shared pool itself — just re-render. */
 document.addEventListener("pf-order-checkin",function(){ render(); });
+loadPrestige();
 render();
 syncFromServer();
 wallFromServer(function(j){ if(j&&j.ok&&j.wall) renderWall(j.wall); });

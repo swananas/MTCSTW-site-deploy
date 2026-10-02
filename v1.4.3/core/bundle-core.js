@@ -76,6 +76,29 @@
       /* canonical backend report; core/03-global.js owns the transport */
       try { if (typeof window.pfReportAction === 'function') window.pfReportAction(action); } catch (e) {}
     },
+    gotoSilo: function (silo) {
+      /* PF.gotoSilo('poster-forge') — smooth-scroll to any homepage widget.
+         Used by .pf-next companion links (2026-10-02). If the target isn't
+         mounted yet (lazy bundle), retry for up to 5s. */
+      var tries = 0;
+      function find() {
+        try {
+          return document.querySelector('section[data-game="' + silo + '"]');
+        } catch (e) { return null; }
+      }
+      function scroll(el) {
+        try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+        catch (e) { try { el.scrollIntoView(); } catch (e2) {} }
+      }
+      var el = find();
+      if (el) { scroll(el); return; }
+      var iv = setInterval(function () {
+        tries++;
+        var s2 = find();
+        if (s2) { clearInterval(iv); scroll(s2); }
+        else if (tries >= 10) { clearInterval(iv); }
+      }, 500);
+    },
     /* Visibility helper (2026-10-02): aggressive pollers should skip backend
        calls when the tab is hidden. PF.hidden() returns true when the page
        is not visible. Usage in a poller:

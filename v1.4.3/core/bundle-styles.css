@@ -591,3 +591,62 @@ footer h1, footer h2, footer h3, footer h4{color:#f5ead6 !important;}
 #pf-cells .c-prestige .c-prben{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin:3px 0}
 #pf-cells .c-prestige .c-prprog{height:10px;background:#2a2a2a;border:1px solid #555;margin:10px auto 4px;max-width:320px}
 #pf-cells .c-prestige .c-prfill{display:block;height:100%;background:linear-gradient(90deg,#c1121f,#ffb703)}
+
+/* === HOMEPAGE BREATHING ROOM (2026-10-02) === */
+/* Each mounted widget gets its own space. The section wrapper is the
+   <section class="pf-v2-game"> that home-v2.js creates per silo. */
+#pf-v2 .pf-v2-game{
+  margin:0 auto var(--pf-space-2xl);  /* 32px below every widget */
+  max-width:680px;                     /* consistent column, slightly wider than 640px cards */
+  padding:0 var(--pf-space-md);        /* 12px gutters on mobile */
+}
+#pf-v2 .pf-v2-game:last-child{margin-bottom:0;}
+/* First widget after a section header gets extra top room */
+#pf-v2 .pf-section-head + .pf-v2-game{margin-top:var(--pf-space-lg);}
+
+/* Section headers — rendered between funnel sections */
+#pf-v2 .pf-section-head{
+  max-width:680px; margin:var(--pf-space-2xl) auto var(--pf-space-lg);
+  padding:0 var(--pf-space-md); text-align:center;
+}
+#pf-v2 .pf-section-head:first-child{margin-top:0;}
+.pf-section-head .pf-sh-kicker{
+  font-family:var(--pf-font-body); font-size:11px; letter-spacing:5px;
+  color:var(--pf-muted); text-transform:uppercase; margin-bottom:6px;
+}
+.pf-section-head .pf-sh-title{
+  font-family:var(--pf-font-display); font-size:26px; letter-spacing:3px;
+  color:var(--pf-cream); text-transform:uppercase; margin:0 0 8px;
+}
+.pf-section-head .pf-sh-title .pf-sh-ico{margin-right:8px;}
+.pf-section-head .pf-sh-rule{
+  height:3px; background:linear-gradient(90deg,transparent,var(--pf-red),transparent);
+  margin:0 auto; max-width:320px;
+}
+.pf-section-head .pf-sh-sub{
+  font-family:var(--pf-font-body); font-size:13px; color:var(--pf-muted);
+  margin:8px 0 0; line-height:1.5;
+}
+/* Section anchor — first widget after each header gets a gold top border
+   to signal "you are entering a new zone" */
+#pf-v2 .pf-section-head + .pf-v2-game > *:first-child{
+  border-top:4px solid var(--pf-gold);
+}
+
+/* Companion links — "Next up" footer inside every widget */
+.pf-next{
+  margin-top:var(--pf-space-lg); padding-top:var(--pf-space-md);
+  border-top:1px dashed var(--pf-border-light); text-align:center;
+}
+.pf-next-label{
+  font-family:var(--pf-font-body); font-size:10px; letter-spacing:4px;
+  color:var(--pf-dim); text-transform:uppercase; margin-bottom:8px;
+}
+.pf-next-link{
+  display:inline-block; margin:4px 6px; padding:8px 16px;
+  border:2px solid var(--pf-red); color:var(--pf-cream);
+  font-family:var(--pf-font-body); font-size:13px; letter-spacing:1px;
+  text-decoration:none; text-transform:uppercase; cursor:pointer;
+  background:transparent;
+}
+.pf-next-link:hover{background:var(--pf-red); color:#fff;}

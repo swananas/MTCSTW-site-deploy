@@ -53,6 +53,7 @@
     ['poster-forge', 'pf-ov-poster'],
     ['battles', 'pf-ov-battles'],
     ['economy', 'pf-ov-economy'],
+    ['peoplesbank', 'pf-ov-peoplesbank'],
     ['casino', 'pf-ov-casino'],
     ['enlistment-ranks', 'pf-ov-ranks'],
     ['war-bonds', 'pf-ov-bonds']

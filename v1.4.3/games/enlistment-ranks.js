@@ -100,6 +100,10 @@ function award(key,xp,rule,opts){
   var gain=xp;
   if(!opts.exempt){ try{ gain=(window.PF&&PF.claimDayXp)?PF.claimDayXp(xp):xp; }catch(e){ gain=xp; } }
   s.got[key]=stamp; s.xp+=gain; save(s); render();
+  /* Backend XP mirror (core/11-xpledger): every granted delta, keyed.
+     opts.nolx: the backend already granted this exact delta (contract payouts)
+     — mirroring it would double the backend balance. */
+  if(gain>0&&!opts.nolx){ try{ document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:gain,key:key,reason:rule}})); }catch(e2){} }
   if(!opts.exempt&&gain<=0){ try{ if(window.PF&&PF.toast) PF.toast("Daily 50 XP pool spent — task logged. New pool at midnight."); }catch(e){} }
   return gain;
 }
@@ -460,6 +464,14 @@ document.addEventListener("pf-chainlink",function(e){
   if(!n) return;
   var g=award("chainlink_"+w,10*n,"once",{exempt:1});
   if(g>0){ try{ if(window.PF&&PF.toast) PF.toast("CHAINLINK — bridging "+(n+1)+" cells. +"+g+" XP"); }catch(e2){} }
+});
+/* Mercenary payout: the backend already granted this delta via xpGrant —
+   the device award is display-only (nolx) so the mirror never doubles it. */
+document.addEventListener("pf-contract-paid",function(e){
+  var id=String((e&&e.detail&&e.detail.id)||"cx"), bnty=Math.max(0,parseInt((e&&e.detail&&e.detail.bounty)||0,10)||0);
+  if(!bnty) return;
+  var g=award("contractpay_"+id,bnty,"once",{exempt:1,nolx:1});
+  if(g>0){ try{ if(window.PF&&PF.toast) PF.toast("CONTRACT PAID — +"+g+" XP. Pleasure doing business."); }catch(e2){} }
 });
 /* Daily Orders writes the real combo XP into the shared pool itself — just re-render. */
 document.addEventListener("pf-order-checkin",function(){ render(); });

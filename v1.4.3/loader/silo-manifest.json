@@ -9,6 +9,7 @@
     "core/05-tally.js",
     "core/09-referral.js",
     "core/10-convert.js",
+    "core/11-xpledger.js",
     "games/fan-vote.js",
     "games/slr-match-quiz.js",
     "games/creator-guess.js",

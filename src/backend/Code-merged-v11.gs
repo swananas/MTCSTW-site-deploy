@@ -291,6 +291,17 @@ function doPost(e) {
     }
     return jsonOut({ ok: true });
   }
+  /* Backend XP ledger (v1.4.3): idempotent XP grants mirrored from the
+     device ledger. Contracts escrow and spend against these balances. */
+  if (d.type === "xp" && d.xp_action === "grant") {
+    var xg = xpGrant(SpreadsheetApp.getActiveSpreadsheet(),
+      d.callsign, d.device, d.delta, d.key, d.reason);
+    return jsonOut(xg);
+  }
+  /* Mercenary contracts (v1.4.3): camps, contract board, escrow, payouts. */
+  if (d.type === "contract" && d.c_action) {
+    return contractDispatch(d.c_action, d, null);
+  }
   /* Unknown actions are rejected — they must never fall through into the
    * fan-vote writer (that once polluted the vote sheet with junk rows). */
   if (d.action && d.action !== "retract") {
@@ -374,6 +385,32 @@ function doGet(e) {
       }
     } catch (re4) {}
     return jsonOut({ recruits: rcount }, cb);
+  }
+  /* Backend XP balance (v1.4.3). */
+  if (action === "xp_balance") {
+    var xcs = String(e.parameter.callsign || "").toLowerCase().trim();
+    var xbal = 0;
+    try { xbal = xpBalanceOf(ensureXpSheet(ss), xcs); } catch (xe) {}
+    return jsonOut({ balance: xbal }, cb);
+  }
+  /* Readable spend (v1.4.3): JSONP so the caller sees insufficient-funds.
+     Mirrors use the fire-and-forget POST; spends need the verdict. */
+  if (action === "xp_spend") {
+    var sg = xpGrant(ss, e.parameter.callsign, e.parameter.device,
+      -Math.abs(Math.round(Number(e.parameter.amount) || 0)),
+      String(e.parameter.key || "").slice(0, 96), String(e.parameter.reason || "").slice(0, 128));
+    return jsonOut(sg, cb);
+  }
+  /* Mercenary contracts: public board + per-callsign status (v1.4.3). */
+  if (action === "contract_list") {
+    return contractDispatch("contract_list", e.parameter || {}, cb);
+  }
+  if (action === "contract_mine") {
+    return contractDispatch("contract_mine", e.parameter || {}, cb);
+  }
+  if (action === "contract_claim") {
+    /* Claim is idempotent (payout row + xpGrant key), so a readable GET is safe. */
+    return contractDispatch("contract_claim", e.parameter || {}, cb);
   }
   /* Bracket turnout: bracket_ballot rows over the trailing 7 Chicago days. */
   if (action === "bracket_turnout") {
@@ -1061,4 +1098,387 @@ function cellDispatch(action, p, cb) {
     checked_today: me.last_checkin === today,
     cover_for: coverFor,
     bounties_pending: pending, bounty_xp: CELL_BOUNTY_XP }, cb);
+}
+
+/* ================= BACKEND XP LEDGER + MERCENARY CONTRACTS (v1.4.3) ================
+   LAYERING: the device-local pf_ranks_v1 ledger stays the instant UX layer.
+   core/11-xpledger.js mirrors every granted delta here with an idempotency
+   key. Contracts escrow and pay out against these backend balances, so camp
+   founders spend REAL XP they earned — the mercenary economy balances.
+   Sheets:
+     xp_ledger       [ts, callsign, device, delta, key, reason]
+     camps           [callsign, name, created]
+     contracts       [id, camp, founder, goal, target, bounty, status,
+                      cell_id, cell_name, accepted_at, expires_at]
+     contract_payouts[contract_id, callsign, paid_at]
+   cells.camp (col 10, appended — loadCells ignores extra columns) records
+   which camp a cell is pledged to. */
+var XP_SHEET = "xp_ledger";
+var CAMPS_SHEET = "camps";
+var CONTRACTS_SHEET = "contracts";
+var PAYOUTS_SHEET = "contract_payouts";
+var CONTRACT_BOUNTY_MIN = 5, CONTRACT_BOUNTY_MAX = 25;
+var CONTRACT_MAX_ACTIVE = 3;
+var CONTRACT_DAYS = 7;
+
+function ensureXpSheet(ss) {
+  var s = ss.getSheetByName(XP_SHEET);
+  if (!s) {
+    s = ss.insertSheet(XP_SHEET);
+    s.appendRow(["ts", "callsign", "device", "delta", "key", "reason"]);
+  }
+  return s;
+}
+function xpBalanceOf(s, cs) {
+  var total = 0;
+  try {
+    var v = s.getDataRange().getValues();
+    for (var i = 1; i < v.length; i++) {
+      if (String(v[i][1]).toLowerCase() === cs) total += Number(v[i][3]) || 0;
+    }
+  } catch (e) {}
+  return total;
+}
+function xpKeySeen(s, cs, key) {
+  try {
+    var v = s.getDataRange().getValues();
+    for (var i = 1; i < v.length; i++) {
+      if (String(v[i][1]).toLowerCase() === cs && String(v[i][4]) === key) return true;
+    }
+  } catch (e) {}
+  return false;
+}
+/* Idempotent grant. Negative deltas are spends — rejected when the balance
+   can't cover them. Every grant carries a caller-chosen key; replays of the
+   same (callsign, key) return the existing balance without double-applying. */
+function xpGrant(ss, cs, dev, delta, key, reason) {
+  cs = String(cs || "").toLowerCase().trim().slice(0, 32);
+  key = String(key || "").slice(0, 96);
+  delta = Math.round(Number(delta) || 0);
+  if (!cs || !key || !delta || Math.abs(delta) > 100000)
+    return { ok: false, error: "bad grant" };
+  var s = ensureXpSheet(ss);
+  if (xpKeySeen(s, cs, key))
+    return { ok: true, dup: true, balance: xpBalanceOf(s, cs) };
+  var bal = xpBalanceOf(s, cs);
+  if (delta < 0 && bal + delta < 0)
+    return { ok: false, error: "insufficient XP" };
+  s.appendRow([new Date(), cs, String(dev || "").slice(0, 64), delta, key,
+    String(reason || "").slice(0, 128)]);
+  return { ok: true, balance: bal + delta };
+}
+
+function ensureContractSheets(ss) {
+  var c = ss.getSheetByName(CAMPS_SHEET);
+  if (!c) { c = ss.insertSheet(CAMPS_SHEET); c.appendRow(["callsign", "name", "created"]); }
+  var t = ss.getSheetByName(CONTRACTS_SHEET);
+  if (!t) {
+    t = ss.insertSheet(CONTRACTS_SHEET);
+    t.appendRow(["id", "camp", "founder", "goal", "target", "bounty", "status",
+      "cell_id", "cell_name", "accepted_at", "expires_at"]);
+  }
+  var p = ss.getSheetByName(PAYOUTS_SHEET);
+  if (!p) { p = ss.insertSheet(PAYOUTS_SHEET); p.appendRow(["contract_id", "callsign", "paid_at"]); }
+  return { camps: c, contracts: t, payouts: p };
+}
+function cleanCampName(n) {
+  n = String(n || "").replace(/[^a-zA-Z0-9 '\-]/g, "").trim().slice(0, 24);
+  return n.length >= 3 ? n : "";
+}
+var CONTRACT_GOALS = {
+  share_raid:    { label: "SHARE RAID",   unit: "shares",  min: 5, max: 500 },
+  recruit_drive: { label: "RECRUIT DRIVE", unit: "recruits", min: 1, max: 50 },
+  perfect_week:  { label: "PERFECT WEEK", unit: "days",    min: 3, max: 7 }
+};
+
+/* Standalone cell/member loaders for the contracts module (cellDispatch
+   keeps its own nested copies). */
+function cxLoadCells(ss) {
+  var sh = ensureCellsSheets(ss), v = sh.cells.getDataRange().getValues(), out = [];
+  for (var i = 1; i < v.length; i++) out.push({
+    _row: i + 1, id: String(v[i][0]), name: String(v[i][1]), founder: String(v[i][3]),
+    camp: String(v[i][9] || "").toLowerCase()
+  });
+  return out;
+}
+function cxLoadMems(ss) {
+  var sh = ensureCellsSheets(ss), v = sh.members.getDataRange().getValues(), out = [];
+  for (var i = 1; i < v.length; i++) out.push({
+    cell_id: String(v[i][0]), callsign: String(v[i][1]).toLowerCase()
+  });
+  return out;
+}
+function cxMemsOf(mems, id) {
+  return mems.filter(function (m) { return m.cell_id === id; })
+             .map(function (m) { return m.callsign; });
+}
+
+/* Goal verification against the actions sheet. progress >= target => done.
+   actions columns: [ts, action, xp, pts, device, callsign, meta] */
+function cxProgress(ss, ct, members) {
+  var target = Number(ct.target) || 0, prog = 0;
+  try {
+    var sh = ensureActionsSheet(ss), v = sh.getDataRange().getValues();
+    var since = 0;
+    try { since = new Date(ct.accepted_at).getTime() || 0; } catch (e) {}
+    var cut = "";
+    try { cut = Utilities.formatDate(new Date(Date.now() - 7 * 86400000), "America/Chicago", "yyyy-MM-dd"); } catch (e2) {}
+    if (ct.goal === "share_raid") {
+      for (var i = 1; i < v.length; i++) {
+        if (String(v[i][1]) !== "share_image") continue;
+        var ts = 0;
+        try { ts = new Date(v[i][0]).getTime(); } catch (e3) {}
+        if (ts < since) continue;
+        if (members.indexOf(String(v[i][5]).toLowerCase()) >= 0) prog++;
+      }
+    } else if (ct.goal === "recruit_drive") {
+      for (var j = 1; j < v.length; j++) {
+        if (String(v[j][1]) !== "recruit_log") continue;
+        var ts2 = 0;
+        try { ts2 = new Date(v[j][0]).getTime(); } catch (e4) {}
+        if (ts2 < since) continue;
+        var meta = String(v[j][6] || "").toLowerCase();
+        for (var k = 0; k < members.length; k++) {
+          if (meta.indexOf("recruiter:" + members[k]) === 0) { prog++; break; }
+        }
+      }
+    } else if (ct.goal === "perfect_week") {
+      var per = {}, m;
+      for (m = 0; m < members.length; m++) per[members[m]] = {};
+      for (var q = 1; q < v.length; q++) {
+        if (String(v[q][1]) !== "cell_checkin") continue;
+        var d = "";
+        try { d = Utilities.formatDate(new Date(v[q][0]), "America/Chicago", "yyyy-MM-dd"); } catch (e5) {}
+        if (!d || d < cut) continue;
+        var cm = String(v[q][5]).toLowerCase();
+        if (per[cm]) per[cm][d] = 1;
+      }
+      prog = target;
+      for (m = 0; m < members.length; m++) {
+        var days = Object.keys(per[members[m]]).length;
+        if (days < prog) prog = days;
+      }
+    }
+  } catch (e6) {}
+  return { progress: prog, target: target, done: prog >= target && target > 0 };
+}
+
+function contractDispatch(action, p, cb) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ensureContractSheets(ss);
+  var cs = String(p.callsign || "").toLowerCase().trim().slice(0, 32);
+  var dev = String(p.device || "").slice(0, 64);
+  var nowMs = Date.now();
+
+  function loadContracts() {
+    var v = sh.contracts.getDataRange().getValues(), out = [];
+    for (var i = 1; i < v.length; i++) out.push({
+      _row: i + 1, id: String(v[i][0]), camp: String(v[i][1]), founder: String(v[i][2]),
+      goal: String(v[i][3]), target: Number(v[i][4]) || 0, bounty: Number(v[i][5]) || 0,
+      status: String(v[i][6]), cell_id: String(v[i][7]), cell_name: String(v[i][8]),
+      accepted_at: String(v[i][9] || ""), expires_at: String(v[i][10] || "")
+    });
+    return out;
+  }
+  function findCamp(camps, name) {
+    name = String(name || "").toLowerCase();
+    for (var i = 1; i < camps.length; i++)
+      if (String(camps[i][1]).toLowerCase() === name) return { _row: i + 1, name: String(camps[i][1]), founder: String(camps[i][0]).toLowerCase() };
+    return null;
+  }
+  function myCamp(camps) {
+    for (var i = 1; i < camps.length; i++)
+      if (String(camps[i][0]).toLowerCase() === cs) return { _row: i + 1, name: String(camps[i][1]) };
+    return null;
+  }
+  function setStatus(ct, st) {
+    sh.contracts.getRange(ct._row, 7).setValue(st);
+    ct.status = st;
+  }
+  /* Expire + verify sweep: runs on every read so the board is always honest. */
+  function sweep(cts, cells, mems) {
+    cts.forEach(function (ct) {
+      if (ct.status !== "open" && ct.status !== "accepted") return;
+      var exp = 0;
+      try { exp = new Date(ct.expires_at).getTime(); } catch (e) {}
+      if (exp && nowMs > exp) {
+        if (ct.status === "accepted") {
+          var mc = cxMemsOf(mems, ct.cell_id).length;
+          xpGrant(ss, ct.founder, "", ct.bounty * mc, "contract_refund_" + ct.id, "contract expired — escrow refunded");
+        }
+        setStatus(ct, "expired");
+        return;
+      }
+      if (ct.status === "accepted") {
+        var pr = cxProgress(ss, ct, cxMemsOf(mems, ct.cell_id));
+        if (pr.done) setStatus(ct, "complete");
+      }
+    });
+  }
+  function pubContract(ct) {
+    return { id: ct.id, camp: ct.camp, founder: ct.founder, goal: ct.goal,
+      goal_label: (CONTRACT_GOALS[ct.goal] || {}).label || ct.goal,
+      target: ct.target, bounty: ct.bounty, status: ct.status,
+      cell_name: ct.cell_name, expires_at: ct.expires_at };
+  }
+
+  var camps = sh.camps.getDataRange().getValues();
+  var cts = loadContracts();
+
+  /* ---- public reads ---- */
+  if (action === "contract_list" || action === "contract_mine") {
+    var cells = cxLoadCells(ss), mems = cxLoadMems(ss);
+    sweep(cts, cells, mems);
+    var campRows = [];
+    for (var ci = 1; ci < camps.length; ci++) {
+      var cn = String(camps[ci][1]), pledged = cells.filter(function (c) { return c.camp === cn.toLowerCase(); });
+      var headcount = 0;
+      pledged.forEach(function (c) { headcount += cxMemsOf(mems, c.id).length; });
+      campRows.push({ name: cn, founder: String(camps[ci][0]),
+        cells: pledged.map(function (c) { return { id: c.id, name: c.name, members: cxMemsOf(mems, c.id).length }; }),
+        members: headcount });
+    }
+    var open = cts.filter(function (t) { return t.status === "open" || t.status === "accepted"; }).map(pubContract);
+    var recent = cts.filter(function (t) { return t.status === "complete"; }).slice(-5).map(pubContract);
+    var out = { ok: true, camps: campRows, contracts: open.concat(recent) };
+    if (action === "contract_mine" && cs) {
+      var mine = cts.filter(function (t) { return t.founder === cs; }).map(pubContract);
+      var myCells = [];
+      mems.forEach(function (m) { if (m.callsign === cs && myCells.indexOf(m.cell_id) < 0) myCells.push(m.cell_id); });
+      var claimable = [];
+      cts.forEach(function (t) {
+        if (t.status !== "complete" || !t.cell_id || myCells.indexOf(t.cell_id) < 0) return;
+        var paid = false;
+        try {
+          var pv = sh.payouts.getDataRange().getValues();
+          for (var pi = 1; pi < pv.length; pi++) {
+            if (String(pv[pi][0]) === t.id && String(pv[pi][1]).toLowerCase() === cs) { paid = true; break; }
+          }
+        } catch (e) {}
+        if (!paid) claimable.push({ id: t.id, bounty: t.bounty, camp: t.camp });
+      });
+      var bal = 0;
+      try { bal = xpBalanceOf(ensureXpSheet(ss), cs); } catch (e2) {}
+      out.mine = mine; out.claimable = claimable; out.balance = bal;
+      out.my_camp = myCamp(camps);
+      out.my_cells = myCells.map(function (id) {
+        for (var q = 0; q < cells.length; q++)
+          if (cells[q].id === id) return { id: id, name: cells[q].name, founder: cells[q].founder, camp: cells[q].camp };
+        return { id: id };
+      });
+    }
+    return jsonOut(out, cb);
+  }
+
+  if (!cs) return jsonOut({ ok: false, err: "Claim a callsign first." }, cb);
+
+  /* ---- writes ---- */
+  if (action === "camp_found") {
+    if (myCamp(camps)) return jsonOut({ ok: false, err: "You already run a camp." }, cb);
+    var nm = cleanCampName(p.name);
+    if (!nm) return jsonOut({ ok: false, err: "Camp name needs 3-24 characters." }, cb);
+    if (findCamp(camps, nm)) return jsonOut({ ok: false, err: "That camp name is taken." }, cb);
+    sh.camps.appendRow([cs, nm, new Date()]);
+    return jsonOut({ ok: true, camp: nm }, cb);
+  }
+
+  if (action === "camp_pledge") {
+    var cells2 = cxLoadCells(ss), target2 = null;
+    for (var q2 = 0; q2 < cells2.length; q2++) if (cells2[q2].id === String(p.cell_id)) target2 = cells2[q2];
+    if (!target2) return jsonOut({ ok: false, err: "Cell not found." }, cb);
+    if (target2.founder !== cs) return jsonOut({ ok: false, err: "Only the cell founder can pledge it." }, cb);
+    var camp2 = findCamp(camps, p.camp);
+    if (!camp2) return jsonOut({ ok: false, err: "Camp not found." }, cb);
+    var col = sh.cells.getRange(target2._row, 10);
+    col.setValue(camp2.name);
+    return jsonOut({ ok: true, camp: camp2.name }, cb);
+  }
+
+  if (action === "contract_post") {
+    var mcamp = myCamp(camps);
+    if (!mcamp) return jsonOut({ ok: false, err: "Found a camp first." }, cb);
+    var goal = String(p.goal || ""), gd = CONTRACT_GOALS[goal];
+    if (!gd) return jsonOut({ ok: false, err: "Unknown goal." }, cb);
+    var tgt = Math.round(Number(p.target) || 0), bnty = Math.round(Number(p.bounty) || 0);
+    if (tgt < gd.min || tgt > gd.max) return jsonOut({ ok: false, err: gd.label + " needs " + gd.min + "-" + gd.max + " " + gd.unit + "." }, cb);
+    if (bnty < CONTRACT_BOUNTY_MIN || bnty > CONTRACT_BOUNTY_MAX)
+      return jsonOut({ ok: false, err: "Bounty must be " + CONTRACT_BOUNTY_MIN + "-" + CONTRACT_BOUNTY_MAX + " XP." }, cb);
+    for (var i3 = 0; i3 < cts.length; i3++) {
+      if (cts[i3].camp.toLowerCase() === mcamp.name.toLowerCase() &&
+          (cts[i3].status === "open" || cts[i3].status === "accepted"))
+        return jsonOut({ ok: false, err: "Your camp already has a live contract." }, cb);
+    }
+    var active = cts.filter(function (t) { return t.status === "open" || t.status === "accepted"; }).length;
+    if (active >= CONTRACT_MAX_ACTIVE)
+      return jsonOut({ ok: false, err: "The board is full (3 live contracts)." }, cb);
+    var id = "cx-" + Math.random().toString(36).slice(2, 10);
+    var exp = new Date(nowMs + CONTRACT_DAYS * 86400000);
+    sh.contracts.appendRow([id, mcamp.name, cs, goal, tgt, bnty, "open", "", "", "", exp]);
+    return jsonOut({ ok: true, id: id }, cb);
+  }
+
+  if (action === "contract_accept") {
+    var cts2 = loadContracts(), ct = null;
+    for (var i4 = 0; i4 < cts2.length; i4++) if (cts2[i4].id === String(p.contract_id)) ct = cts2[i4];
+    if (!ct || ct.status !== "open") return jsonOut({ ok: false, err: "Contract isn't open." }, cb);
+    var exp2 = 0;
+    try { exp2 = new Date(ct.expires_at).getTime(); } catch (e3) {}
+    if (exp2 && nowMs > exp2) { setStatus(ct, "expired"); return jsonOut({ ok: false, err: "Contract expired." }, cb); }
+    var cells3 = cxLoadCells(ss), mems3 = cxLoadMems(ss), cell3 = null;
+    for (var q3 = 0; q3 < cells3.length; q3++) if (cells3[q3].id === String(p.cell_id)) cell3 = cells3[q3];
+    if (!cell3) return jsonOut({ ok: false, err: "Cell not found." }, cb);
+    if (cell3.founder !== cs) return jsonOut({ ok: false, err: "Only the cell founder can accept." }, cb);
+    for (var i5 = 0; i5 < cts2.length; i5++) {
+      if (cts2[i5].cell_id === cell3.id && (cts2[i5].status === "open" || cts2[i5].status === "accepted"))
+        return jsonOut({ ok: false, err: "This cell already holds a contract." }, cb);
+    }
+    var nmems = cxMemsOf(mems3, cell3.id), escrow = ct.bounty * nmems.length;
+    var g = xpGrant(ss, ct.founder, dev, -escrow, "contract_escrow_" + ct.id,
+      "escrow: " + ct.bounty + " XP x " + nmems.length + " for " + cell3.name);
+    if (!g.ok) return jsonOut({ ok: false, err: "Camp founder lacks the XP (" + escrow + " needed)." }, cb);
+    sh.contracts.getRange(ct._row, 7).setValue("accepted");
+    sh.contracts.getRange(ct._row, 8).setValue(cell3.id);
+    sh.contracts.getRange(ct._row, 9).setValue(cell3.name);
+    sh.contracts.getRange(ct._row, 10).setValue(new Date());
+    return jsonOut({ ok: true, escrow: escrow }, cb);
+  }
+
+  if (action === "contract_cancel") {
+    var cts4 = loadContracts(), ct4 = null;
+    for (var i6 = 0; i6 < cts4.length; i6++) if (cts4[i6].id === String(p.contract_id)) ct4 = cts4[i6];
+    if (!ct4 || ct4.founder !== cs) return jsonOut({ ok: false, err: "Not your contract." }, cb);
+    if (ct4.status !== "open" && ct4.status !== "accepted")
+      return jsonOut({ ok: false, err: "Contract is already settled." }, cb);
+    if (ct4.status === "accepted") {
+      var mems4 = cxLoadMems(ss), n4 = cxMemsOf(mems4, ct4.cell_id).length;
+      xpGrant(ss, ct4.founder, dev, ct4.bounty * n4, "contract_refund_" + ct4.id, "contract cancelled — escrow refunded");
+    }
+    setStatus(ct4, "cancelled");
+    return jsonOut({ ok: true }, cb);
+  }
+
+  if (action === "contract_claim") {
+    var cts5 = loadContracts(), ct5 = null;
+    for (var i7 = 0; i7 < cts5.length; i7++) if (cts5[i7].id === String(p.contract_id)) ct5 = cts5[i7];
+    if (!ct5 || ct5.status !== "complete") return jsonOut({ ok: false, err: "Contract isn't complete." }, cb);
+    var mems5 = cxLoadMems(ss), inCell = false;
+    for (var i8 = 0; i8 < mems5.length; i8++)
+      if (mems5[i8].cell_id === ct5.cell_id && mems5[i8].callsign === cs) inCell = true;
+    if (!inCell) return jsonOut({ ok: false, err: "You're not on the contracted cell." }, cb);
+    var paid5 = false;
+    try {
+      var pv5 = sh.payouts.getDataRange().getValues();
+      for (var pi5 = 1; pi5 < pv5.length; pi5++) {
+        if (String(pv5[pi5][0]) === ct5.id && String(pv5[pi5][1]).toLowerCase() === cs) { paid5 = true; break; }
+      }
+    } catch (e4) {}
+    if (paid5) return jsonOut({ ok: false, err: "Already paid." }, cb);
+    var g5 = xpGrant(ss, cs, dev, ct5.bounty, "contract_pay_" + ct5.id + "_" + cs,
+      "mercenary payout: " + ct5.camp);
+    if (!g5.ok) return jsonOut({ ok: false, err: "Payout failed." }, cb);
+    sh.payouts.appendRow([ct5.id, cs, new Date()]);
+    return jsonOut({ ok: true, bounty: ct5.bounty, balance: g5.balance }, cb);
+  }
+
+  return jsonOut({ ok: false, error: "unknown contract action" }, cb);
 }

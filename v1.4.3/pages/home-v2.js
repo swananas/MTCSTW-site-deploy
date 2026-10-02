@@ -26,6 +26,7 @@
   var ORDER = [
     ['daily-orders', 'pf-ov-orders'],
     ['cells', 'pf-ov-cells'],
+    ['contracts', 'pf-ov-contracts'],
     ['fan-vote', 'pf-ov-vote'],
     ['infighting', 'pf-ov-infight'],
     ['slr-match-quiz', 'pf-ov-matchquiz'],

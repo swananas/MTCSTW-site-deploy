@@ -56,7 +56,8 @@
     ['peoplesbank', 'pf-ov-peoplesbank'],
     ['casino', 'pf-ov-casino'],
     ['enlistment-ranks', 'pf-ov-ranks'],
-    ['war-bonds', 'pf-ov-bonds']
+    ['war-bonds', 'pf-ov-bonds'],
+    ['vault', 'pf-ov-vault']
   ];
 
   function execScripts(root, label) {

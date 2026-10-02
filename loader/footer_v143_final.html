@@ -25,7 +25,13 @@ var onV2=!!document.getElementById('pf-v2')||!!document.getElementById('pf-war-c
 var VER=onV2?'v1.4.3':'v1.1.0';
 var BASE='https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@'+(onV2?V3:V1)+'/'+VER+'/';
 var CSS=onV2?['core/01-styles.css']:['core/01-styles.css', 'fixes/mobile.css'];
-var JS=onV2?['core/00-bus.js', 'core/07-slr-db-data.js', 'core/07-slr-db.js', 'core/03-global.js', 'core/14-auth.js', 'pwa/install.js', 'core/04-ledger.js', 'core/05-tally.js', 'core/08-dopamine.js', 'core/09-referral.js', 'core/10-convert.js', 'core/11-xpledger.js', 'core/12-notify.js', 'core/13-flow.js', 'games/efficiency.js', 'games/fan-vote.js', 'games/slr-match-quiz.js', 'games/creator-guess.js', 'games/bracket-board.js', 'games/briefing.js', 'games/daily-orders.js', 'games/dopamine.js', 'games/cells.js', 'games/contracts.js', 'games/bank.js', 'games/ventures.js', 'games/war-card.js', 'games/boost-raid.js', 'games/do-meter.js', 'games/daily-drop.js', 'games/billionaire-supervillain.js', 'games/daily-interrogation.js', 'games/media-nuke.js', 'games/caption-combat.js', 'games/poster-forge.js', 'games/battles.js', 'games/casino.js', 'games/enlistment-ranks.js', 'games/war-bonds.js', 'games/service-medals.js', 'games/infighting.js', 'core/campaign-data.js', 'games/campaign.js', 'games/civic.js', 'games/referral.js', 'games/feed.js', 'games/bounties.js', 'games/academy.js', 'games/assist.js', 'games/alerts.js', 'games/archive.js', 'games/irl.js', 'games/intel.js', 'games/economy.js', 'games/peoplesbank.js', 'games/movement.js', 'games/earnings.js', 'games/dashboard.js', 'games/notify.js', 'games/vault.js', 'games/video.js', 'games/governance.js', 'games/diplomacy.js', 'pages/home-v2.js', 'pages/slr-roster.js', 'pages/slr-catalog.js', 'core/06-pinups.js', 'core/share-image.js']:['core/00-bus.js', 'core/03-global.js', 'core/14-auth.js', 'core/04-ledger.js', 'core/05-tally.js', 'games/caption-combat.js', 'games/daily-orders.js', 'games/fan-vote.js', 'games/do-meter.js', 'games/media-nuke.js', 'games/poster-forge.js', 'games/daily-drop.js', 'games/service-medals.js', 'games/liquidation-bracket.js', 'core/06-override.js', 'core/08-engage.js', 'core/09-toast.js', 'core/10-ticker.js', 'fixes/homepage.js', 'fixes/about.js', 'fixes/faqs.js', 'fixes/roster.js', 'fixes/podcast.js', 'fixes/tax.js', 'fixes/terms.js', 'fixes/schema.js'];
+var isHome=!!document.getElementById('pf-v2');
+var CORE_V2=['core/00-bus.js', 'core/07-slr-db-data.js', 'core/07-slr-db.js', 'core/03-global.js', 'core/14-auth.js', 'pwa/install.js', 'core/04-ledger.js', 'core/05-tally.js', 'core/08-dopamine.js', 'core/09-referral.js', 'core/10-convert.js', 'core/11-xpledger.js', 'core/12-notify.js', 'core/13-flow.js', 'core/campaign-data.js'];
+var PAGES_V2=['pages/home-v2.js', 'pages/slr-roster.js', 'pages/slr-catalog.js', 'core/06-pinups.js', 'core/share-image.js'];
+/* Bundles (build/bundle.js): 48 game silos in 3 files. Critical loads now;
+   social + economy lazy-load on scroll (homepage) or sequentially (other v2 pages). */
+var JS_SEQ=onV2?CORE_V2.concat(['games/bundle-critical.js']).concat(isHome?[]:['games/bundle-social.js','games/bundle-economy.js']).concat(PAGES_V2):['core/00-bus.js', 'core/03-global.js', 'core/14-auth.js', 'core/04-ledger.js', 'core/05-tally.js', 'games/caption-combat.js', 'games/daily-orders.js', 'games/fan-vote.js', 'games/do-meter.js', 'games/media-nuke.js', 'games/poster-forge.js', 'games/daily-drop.js', 'games/service-medals.js', 'games/liquidation-bracket.js', 'core/06-override.js', 'core/08-engage.js', 'core/09-toast.js', 'core/10-ticker.js', 'fixes/homepage.js', 'fixes/about.js', 'fixes/faqs.js', 'fixes/roster.js', 'fixes/podcast.js', 'fixes/tax.js', 'fixes/terms.js', 'fixes/schema.js'];
+var JS_LAZY=(onV2&&isHome)?['games/bundle-social.js','games/bundle-economy.js']:[];
 function siloFail(n,e){if(window.console)console.error('[PF SILO FAILED] '+n+' :: '+(e&&e.message||e||'load error'));}
 window.addEventListener('error',function(e){
   var f=e.filename||'',i=f.indexOf('/v1.1.0/'),rest='';
@@ -34,10 +40,40 @@ window.addEventListener('error',function(e){
 },true);
 function css(h){var l=document.createElement('link');l.rel='stylesheet';l.href=BASE+h;
 l.onerror=function(){siloFail(h);};document.head.appendChild(l);}
-function jsAll(){var pending=JS.length;
-function oneDone(){if(--pending===0&&window.console)console.log('[PF] '+VER+' all '+JS.length+' silos loaded');}
-JS.forEach(function(n){var s=document.createElement('script');s.src=BASE+n;s.async=false;
-s.onload=oneDone;s.onerror=function(){siloFail(n);oneDone();};
-document.head.appendChild(s);});}
-CSS.forEach(css);jsAll();
+function jsSeq(){
+  var pending=JS_SEQ.length;
+  function oneDone(){if(--pending===0){if(window.console)console.log('[PF] '+VER+' critical '+JS_SEQ.length+' files loaded');jsLazy();}}
+  if(pending===0){jsLazy();return;}
+  JS_SEQ.forEach(function(n){var s=document.createElement('script');s.src=BASE+n;s.async=false;
+  s.onload=oneDone;s.onerror=function(){siloFail(n);oneDone();};
+  document.head.appendChild(s);});
+}
+function loadBundle(n,cb){
+  var s=document.createElement('script');s.src=BASE+n;s.async=true;
+  s.onload=function(){try{if(window.PF&&PF.mountSilos)PF.mountSilos();}catch(e){} if(cb)cb();};
+  s.onerror=function(){siloFail(n);if(cb)cb();};
+  document.head.appendChild(s);
+}
+/* Lazy bundles: IntersectionObserver on a sentinel 500px before viewport.
+   Safety nets: 10s timeout, no-IO fallback, non-homepage loads sequentially above. */
+function jsLazy(){
+  if(!JS_LAZY.length)return;
+  var fired=false;
+  function fire(){
+    if(fired)return;fired=true;
+    loadBundle(JS_LAZY[0],function(){loadBundle(JS_LAZY[1]);});
+  }
+  var host=document.getElementById('pf-v2');
+  if(!host){fire();return;}
+  var sentinel=document.createElement('div');
+  sentinel.id='pf-lazy-sentinel';sentinel.style.cssText='height:1px;width:1px;';
+  host.appendChild(sentinel);
+  var obs=null;
+  if('IntersectionObserver' in window){
+    obs=new IntersectionObserver(function(es){if(es&&es[0]&&es[0].isIntersecting){try{obs.disconnect();}catch(e){} fire();}},{rootMargin:'500px'});
+    try{obs.observe(sentinel);}catch(e){fire();return;}
+  }else{fire();return;}
+  setTimeout(function(){fire();},10000);
+}
+CSS.forEach(css);jsSeq();
 })();</script>

@@ -78,20 +78,38 @@
     }
   }
 
-  ORDER.forEach(function (pair) {
-    var silo = pair[0], tplId = pair[1];
-    if (PF && PF.skip(silo)) return;
-    try {
-      var tpl = document.getElementById(tplId);
-      if (!tpl || !tpl.content) { err('staged template missing: ' + tplId + ' (was ' + silo + ' killed?)'); return; }
-      var frag = document.importNode(tpl.content, true);
-      var section = document.createElement('section');
-      section.className = 'pf-v2-game';
-      section.setAttribute('data-game', silo);
-      section.appendChild(frag);
-      host.appendChild(section);
-      execScripts(section, tplId);
-    } catch (e) { err('mount failed: ' + silo, e); }
-  });
+  /* Idempotent mounter — safe to call repeatedly. Lazy bundles call
+     PF.mountSilos() after staging their templates so newly-available
+     silos mount in ORDER without re-mounting existing ones.
+     Missing templates are normal (bundle not loaded yet / silo killed). */
+  var mounted = {};
+  function mountSilos() {
+    var h = document.getElementById('pf-v2');
+    if (!h || isEditor()) return 0;
+    var n = 0;
+    ORDER.forEach(function (pair) {
+      var silo = pair[0], tplId = pair[1];
+      if (mounted[silo]) return;
+      if (PF && PF.skip(silo)) { mounted[silo] = 1; return; }
+      try {
+        var tpl = document.getElementById(tplId);
+        if (!tpl || !tpl.content) return; /* bundle not staged yet — try next call */
+        var frag = document.importNode(tpl.content, true);
+        var section = document.createElement('section');
+        section.className = 'pf-v2-game';
+        section.setAttribute('data-game', silo);
+        section.appendChild(frag);
+        h.appendChild(section);
+        execScripts(section, tplId);
+        mounted[silo] = 1;
+        n++;
+      } catch (e) { err('mount failed: ' + silo, e); mounted[silo] = 1; }
+    });
+    return n;
+  }
+
+  /* Expose for lazy bundles. Guarded: only defined once. */
+  if (PF && !PF.mountSilos) PF.mountSilos = mountSilos;
+  mountSilos();
 
 })();

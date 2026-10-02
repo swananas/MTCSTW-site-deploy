@@ -112,7 +112,14 @@ Object.keys(BUNDLES).forEach(function (name) {
     out.push(';');
   });
   var dest = path.join(ROOT, name + '.js');
-  fs.writeFileSync(dest, out.join('\n'));
+  var raw = out.join('\n');
+  /* Minify with terser for production (P0 perf fix). Falls back to raw on error. */
+  try {
+    var minified = cp.execSync('terser --compress --mangle --toplevel', { input: raw, maxBuffer: 50 * 1024 * 1024 }).toString();
+    fs.writeFileSync(dest, minified);
+  } catch (e) {
+    fs.writeFileSync(dest, raw);
+  }
   var bytes = fs.statSync(dest).size;
 
   /* Validate: node --check + new Function parse. */

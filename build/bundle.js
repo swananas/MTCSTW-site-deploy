@@ -31,7 +31,8 @@ var BUNDLES = {
     'do-meter.js',
     'daily-drop.js',
     'enlistment-ranks.js',
-    'service-medals.js'
+    'service-medals.js',
+    'political-hq-nudge.js'
   ],
   'bundle-social': [
     /* Community + content. Lazy-loaded on scroll. */

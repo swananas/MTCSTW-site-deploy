@@ -32,6 +32,7 @@
   var ORDER = [
     ['brief', 'pf-ov-brief'],
     ['daily-orders', 'pf-ov-orders'],
+    ['hq-nudge', 'pf-ov-hq-nudge'],
     ['dopa', 'pf-ov-dopa'],
     ['notify', 'pf-ov-notify'],
     ['campaign', 'pf-ov-campaign'],

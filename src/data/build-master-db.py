@@ -192,7 +192,7 @@ for c in cands['candidates']:
         "followers_display": fmt(total),
         "followers_by_platform": plat_counts,
         "followers_as_of": "2026-10-01",
-        "picture": None,
+        "picture": c.get('picture'),
         "catalog_path": "/" + slug,
         "links": links,
         "key_strengths": strengths,

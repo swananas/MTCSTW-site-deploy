@@ -244,7 +244,7 @@ function mintCertificate(vid){
   }catch(e){ toast("Mint failed."); }
 }
 load();
-setInterval(function(){ if(!busy) load(); }, 60000);
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} if(!busy) load(); }, 60000);
 })();
 </scr`+`ipt>
 </div>

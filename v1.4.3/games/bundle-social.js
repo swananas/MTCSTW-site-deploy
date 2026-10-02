@@ -3048,7 +3048,7 @@ function render(j){
   if(rb) rb.onclick=function(){ el.innerHTML='<div class="c-load">Reading their mail&hellip;</div>'; load(); };
 }
 load();
-setInterval(function(){ load(); },300000);
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },300000);
 })();
 </scr`+`ipt>
 </div>
@@ -8904,7 +8904,7 @@ function render(){
   }); }
 }
 load();
-setInterval(function(){ load(); },120000);
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },120000);
 })();
 </scr`+`ipt>
 </div>

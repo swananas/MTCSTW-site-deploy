@@ -87,10 +87,11 @@
 .dp-frame input,.dp-frame select{
   width:100%; box-sizing:border-box; background:var(--pf-dark);
   border:1px solid var(--pf-border-light); color:var(--pf-cream);
-  font-family:var(--pf-font-body); font-size:14px; padding:10px;
+  font-family:var(--pf-font-body); font-size:16px; padding:10px; /* 16px prevents iOS auto-zoom */
 }
 .pf-input:focus,.c-input:focus{border-color:var(--pf-red);outline:none;}
 .pf-input::placeholder{color:var(--pf-dim);}
+#pCanvas{max-width:100%;height:auto;display:block;margin:0 auto;}
 .pf-input-sm{max-width:140px;}
 .pf-input-md{max-width:220px;}
 .pf-input-lg{max-width:320px;}

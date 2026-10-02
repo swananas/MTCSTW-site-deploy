@@ -22,6 +22,7 @@
   /* Political HQ order: civic action first, then governance */
   var ORDER = [
     ['civic', 'pf-ov-civic'],
+    ['notify-prefs', 'pf-ov-notify-prefs'],
     ['gov', 'pf-ov-gov']
   ];
 

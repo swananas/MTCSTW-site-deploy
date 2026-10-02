@@ -40,6 +40,7 @@ var BUNDLES = {
     'notify.js',
     'campaign.js',
     'civic.js',
+    'notify-prefs.js',
     'referral.js',
     'feed.js',
     'bounties.js',

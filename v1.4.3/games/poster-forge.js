@@ -31,7 +31,7 @@
     <a class="p-btn" id="pDownload" href="#" download="pfn-propaganda-poster.png">Download</a>
     <button class="p-btn ghost" id="pShare">Share</button>
   </div>
-  <div class="p-note">1080 &times; 1350 — made for the feed. Every download is stamped PFN: property of the working class.</div>
+  <div class="p-note">1080 &times; 1350 — made for the feed. Every download carries JOIN THE FIGHT. + MTCSTW.COM.</div>
   <div id="pSpread"></div>
   <div id="pImpact"></div>
 </div>
@@ -79,16 +79,26 @@ function centerBlock(lines,size,y,lh,color){
 function border(col,w,pad){ctx.strokeStyle=col;ctx.lineWidth=w;ctx.strokeRect(pad,pad,1080-2*pad,1350-2*pad);}
 function watermark(){
   ctx.save();
+  /* Bottom CTA bar: JOIN THE FIGHT. + MTCSTW.COM (site CTA standard) */
+  var barH=90, barY=H-barH;
+  ctx.fillStyle="#c1121f";
+  ctx.fillRect(0,barY,W,barH);
+  ctx.fillStyle="#f5f0e6";ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.font="bold 44px 'Arial Black',Arial,sans-serif";
+  ctx.fillText("JOIN THE FIGHT.",W/2,barY+32);
+  ctx.font="28px Arial,sans-serif";
+  ctx.fillText("MTCSTW.COM",W/2,barY+68);
+  /* PFN watermark (top-right, smaller) */
   var label="PFN";
-  ctx.font="34px 'Arial Black',Arial,sans-serif";
-  var tw=ctx.measureText(label).width,pad=16,bw=tw+pad*2,bh=48;
-  var bx=W-30-bw,by=H-30-bh;
+  ctx.font="28px 'Arial Black',Arial,sans-serif";
+  var tw=ctx.measureText(label).width,pad=12,bw=tw+pad*2,bh=40;
+  var bx=W-20-bw,by=20;
   ctx.globalAlpha=0.8;
   ctx.fillStyle="rgba(13,13,13,0.65)";
-  if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bx,by,bw,bh,10);ctx.fill();ctx.strokeStyle=CREAM;ctx.lineWidth=2;ctx.stroke();}
+  if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bx,by,bw,bh,8);ctx.fill();ctx.strokeStyle="#f5f0e6";ctx.lineWidth=2;ctx.stroke();}
   else{ctx.fillRect(bx,by,bw,bh);}
   ctx.globalAlpha=1;
-  ctx.fillStyle=CREAM;ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.fillStyle="#f5f0e6";ctx.textAlign="center";ctx.textBaseline="middle";
   ctx.fillText(label,bx+bw/2,by+bh/2+2);
   ctx.restore();
 }

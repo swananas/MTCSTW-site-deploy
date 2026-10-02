@@ -128,6 +128,12 @@ NEW_SCORES = {
  "@worlds_strongest_mayo": 7.6,
 }
 
+# Manual follower total overrides (verified combined reach from user research,
+# where URL-backed platform sums undercount). Format: tiktok_handle -> total.
+FOLLOWER_OVERRIDES = {
+ "@_dofd": 74600,  # 2026-10-01: TikTok 47.2K + IG ~11.7K + FB ~11.3K + X ~4.4K
+}
+
 def slugify(handle):
     s = handle.lower().lstrip('@').replace('.', '-').replace('_', '-')
     s = re.sub(r'-+', '-', s).strip('-')
@@ -153,6 +159,10 @@ for c in cands['candidates']:
         if mm and plat in ('tiktok', 'instagram', 'youtube') and plat not in handles:
             handles[plat] = '@' + mm.group(1)
     total = sum(v['count'] for v in plat_counts.values())
+    # Apply manual override if present (verified combined reach)
+    t_handle = c.get('tiktok', '')
+    if t_handle in FOLLOWER_OVERRIDES:
+        total = FOLLOWER_OVERRIDES[t_handle]
     primary = 'tiktok' if 'tiktok' in plat_counts else (next(iter(plat_counts), 'tiktok'))
     cf = c.get('content_focus', '')
     wsf = c.get('why_slr_fit', '')
@@ -161,9 +171,19 @@ for c in cands['candidates']:
         cf[:160],
         wsf[:160],
     ]
+    # Generate "What they offer" showcase from content focus and strengths
+    disp_name = NEW_NAMES.get(t, c.get('display_name', t))
+    offer_items = []
+    if cf:
+        offer_items.append(cf[:200])
+    if len(strengths) > 1 and strengths[1] and strengths[1][:200] not in offer_items:
+        offer_items.append(strengths[1][:200])
+    if len(strengths) > 2 and strengths[2] and strengths[2][:200] not in offer_items and len(offer_items) < 2:
+        offer_items.append(strengths[2][:200])
+    offer_items.append(f"{fmt(total)} audience in the Sick Left Radicals amplifier — {primary.capitalize()} native, leftist to the bone")
     members.append({
         "slug": slug,
-        "name": NEW_NAMES.get(t, c.get('display_name', t)),
+        "name": disp_name,
         "handles": handles or {"primary": t},
         "primary_platform": primary.capitalize(),
         "propaganda_score": NEW_SCORES[t],
@@ -176,7 +196,7 @@ for c in cands['candidates']:
         "catalog_path": "/" + slug,
         "links": links,
         "key_strengths": strengths,
-        "offer": [],
+        "offer": offer_items[:3],
         "bio": (c.get('platform_summary', '') + ' ' + cf).strip(),
         "content_focus": cf,
         "is_new": True,

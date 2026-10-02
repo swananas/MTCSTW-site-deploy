@@ -31,6 +31,6 @@
     "core/share-image.js"
   ],
   "non_v2": "Pages without <div id=\"pf-v2\"></div> load the frozen v1.1.0 production set pinned at 6e8b9a4 (list hardcoded in the Squarespace footer, not here).",
-  "note": "Shell-based v2 detection: wherever <div id=\"pf-v2\"></div> lives, that page loads this 22-file v2 set in live-homepage order \u2014 15 game silos (fan-vote, slr-match-quiz, creator-guess, bracket-board, daily-orders, boost-raid, do-meter, daily-drop, billionaire-supervillain, daily-interrogation, media-nuke, caption-combat, poster-forge, enlistment-ranks, war-bonds) plus the service-medals cross-game layer, the home-v2 section mounter, and the share-image companion. core/share-image.js guarantees SHARE IMAGE + SAVE IMAGE TO PHONE on all 15 game sections. This manifest documents the footer loader; the footer hardcodes the same lists.",
+  "note": "Shell-based v2 detection: wherever <div id=\"pf-v2\"></div> lives, that page loads the v2 set in live-homepage order \u2014 game silos (fan-vote, slr-match-quiz, creator-guess, bracket-board, daily-orders, boost-raid, do-meter, daily-drop, billionaire-supervillain, daily-interrogation, media-nuke, caption-combat, poster-forge, enlistment-ranks, war-bonds, cells, contracts) plus the service-medals cross-game layer and core layers (bus, ledger, tally, dopamine, referral, convert, xpledger). This manifest documents the footer loader; the footer hardcodes the same lists.",
   "version": "1.4.1"
 }

@@ -782,11 +782,12 @@ function doGet(e) {
   }
   /* CELLS — callsign squads: shared streaks, covers, recruit bounties, public
    * weekly leaderboard. All cell state lives here (cross-device by design);
-   * the frontend only caches the display. One cell per callsign, max 5. */
+   * the frontend only caches the display. Chainlink: up to 3 cells per
+   * callsign, max 5 members per cell. */
   if (action === "cell_create" || action === "cell_join" || action === "cell_checkin" ||
       action === "cell_cover" || action === "cell_leave" || action === "cell_mine" ||
       action === "cell_bounty_claim" || action === "cell_leaderboard" ||
-      action === "cell_rename") {
+      action === "cell_rename" || action === "cell_links") {
     return cellDispatch(action, e.parameter, cb);
   }
   /* Fan vote results (existing). Guarded: only runs for action=results or no
@@ -833,6 +834,8 @@ var CELLS_SHEET = "cells";
 var CELL_MEMBERS_SHEET = "cell_members";
 var CELL_MAX = 5;
 var CELL_BOUNTY_XP = 25;
+var CHAINLINK_CAP = 3; /* v1.4.3: a callsign may wire up to 3 cells — chainlinks
+   connect the network so every cell is reachable by direct contact. */
 
 function ensureCellsSheets(ss) {
   var c = ss.getSheetByName(CELLS_SHEET);
@@ -953,6 +956,11 @@ function cellDispatch(action, p, cb) {
     for (var i = 0; i < mems.length; i++) if (mems[i].callsign === cs) return mems[i];
     return null;
   }
+  /* CHAINLINK: all memberships for this callsign. myMember (primary) is the
+     first-joined; everything streak/multiplier-related stays on primary. */
+  function myMembers(mems) {
+    return mems.filter(function (m) { return m.callsign === cs; });
+  }
   function memsOf(mems, id) { return mems.filter(function (m) { return m.cell_id === id; }); }
   function writeCell(c) {
     sh.cells.getRange(c._row, 5).setValue(c.streak);
@@ -973,6 +981,32 @@ function cellDispatch(action, p, cb) {
 
   var cells = loadCells(), mems = loadMems();
 
+  /* Chainlink stats (v1.4.3, public): union-find over cells joined by shared
+     members — how much of the network sits in one connected chain. */
+  if (action === "cell_links") {
+    var lkParent = {};
+    cells.forEach(function (lc) { lkParent[lc.id] = lc.id; });
+    function lkFind(x) { while (lkParent[x] !== x) { lkParent[x] = lkParent[lkParent[x]]; x = lkParent[x]; } return x; }
+    function lkUnion(a, b) { a = lkFind(a); b = lkFind(b); if (a !== b) lkParent[a] = b; }
+    var lkByCs = {};
+    mems.forEach(function (lm) {
+      if (!lkByCs[lm.callsign]) lkByCs[lm.callsign] = [];
+      lkByCs[lm.callsign].push(lm.cell_id);
+    });
+    var lkLinks = 0;
+    Object.keys(lkByCs).forEach(function (k) {
+      var lst = lkByCs[k];
+      if (lst.length >= 2) lkLinks++;
+      for (var li = 1; li < lst.length; li++) lkUnion(lst[0], lst[li]);
+    });
+    var lkComp = {};
+    cells.forEach(function (lc2) { var r = lkFind(lc2.id); lkComp[r] = (lkComp[r] || 0) + 1; });
+    var lkBig = 0;
+    Object.keys(lkComp).forEach(function (k2) { if (lkComp[k2] > lkBig) lkBig = lkComp[k2]; });
+    return jsonOut({ chainlinkers: lkLinks, cells: cells.length, main_chain: lkBig,
+      main_pct: cells.length ? Math.round(lkBig / cells.length * 100) : 0 }, cb);
+  }
+
   /* Public weekly leaderboard — no callsign needed. */
   if (action === "cell_leaderboard") {
     var lb = cells.map(function (c) {
@@ -989,7 +1023,7 @@ function cellDispatch(action, p, cb) {
     if (!cs) return jsonOut({ ok: false, err: "Claim a callsign first." }, cb);
     var name = cleanCellName(p.name);
     if (!name) return jsonOut({ ok: false, err: "Cell name needs 3-24 characters." }, cb);
-    if (myMember(mems)) return jsonOut({ ok: false, err: "You're already in a cell." }, cb);
+    if (myMembers(mems).length >= CHAINLINK_CAP) return jsonOut({ ok: false, err: "Chainlink cap reached — you're already wiring " + CHAINLINK_CAP + " cells." }, cb);
     var code = makeInviteCode(), guard = 0;
     while (findCellByCode(cells, code) && guard++ < 20) code = makeInviteCode();
     var id = "c-" + Math.random().toString(36).slice(2, 10);
@@ -1002,9 +1036,11 @@ function cellDispatch(action, p, cb) {
 
   if (action === "cell_join") {
     if (!cs) return jsonOut({ ok: false, err: "Claim a callsign first." }, cb);
-    if (myMember(mems)) return jsonOut({ ok: false, err: "You're already in a cell." }, cb);
+    var jMine = myMembers(mems);
+    if (jMine.length >= CHAINLINK_CAP) return jsonOut({ ok: false, err: "Chainlink cap reached — you're already wiring " + CHAINLINK_CAP + " cells." }, cb);
     var jc = findCellByCode(cells, p.code);
     if (!jc) return jsonOut({ ok: false, err: "No cell found with that code." }, cb);
+    for (var jji = 0; jji < jMine.length; jji++) if (jMine[jji].cell_id === jc.id) return jsonOut({ ok: false, err: "You're already in that cell." }, cb);
     var jm = memsOf(mems, jc.id);
     if (jm.length >= CELL_MAX) return jsonOut({ ok: false, err: "That cell is full (5/5)." }, cb);
     var ref = String(p.ref || "").toLowerCase().trim().slice(0, 32);
@@ -1045,13 +1081,24 @@ function cellDispatch(action, p, cb) {
   }
 
   if (action === "cell_leave") {
-    sh.members.deleteRow(me._row);
-    var rest = memsOf(mems, cell.id).filter(function (m) { return m.callsign !== cs; });
+    /* Chainlink: leave one specific cell (cell_id) or default to primary. */
+    var lvTarget = me, lvCell = cell;
+    var lvId = String(p.cell_id || "");
+    if (lvId) {
+      lvTarget = null;
+      var lvAll = myMembers(mems);
+      for (var lvi = 0; lvi < lvAll.length; lvi++) if (lvAll[lvi].cell_id === lvId) lvTarget = lvAll[lvi];
+      if (!lvTarget) return jsonOut({ ok: false, err: "Not in that cell." }, cb);
+      lvCell = findCell(cells, lvId);
+      if (!lvCell) return jsonOut({ ok: false, err: "Cell not found." }, cb);
+    }
+    sh.members.deleteRow(lvTarget._row);
+    var rest = memsOf(mems, lvCell.id).filter(function (m) { return m.callsign !== cs; });
     if (rest.length === 0) {
-      sh.cells.deleteRow(cell._row);
-    } else if (cell.founder === cs) {
+      sh.cells.deleteRow(lvCell._row);
+    } else if (lvCell.founder === cs) {
       rest.sort(function (a, b) { return String(a.joined_day) < String(b.joined_day) ? -1 : 1; });
-      sh.cells.getRange(cell._row, 4).setValue(rest[0].callsign);
+      sh.cells.getRange(lvCell._row, 4).setValue(rest[0].callsign);
     }
     return jsonOut({ ok: true }, cb);
   }
@@ -1092,6 +1139,16 @@ function cellDispatch(action, p, cb) {
   }
   return jsonOut({ ok: true, in_cell: true, cell: pubCell(cell, cmems),
     is_founder: cell.founder === cs,
+    /* CHAINLINK: every cell this callsign wires (cap 3). Primary stays `cell`. */
+    cells: myMembers(mems).map(function (mm) {
+      var cc = findCell(cells, mm.cell_id);
+      if (!cc) return null;
+      var ccm = memsOf(mems, cc.id);
+      return { id: cc.id, name: cc.name, invite_code: cc.code, streak: cc.streak,
+        mult: cellMult(cc.streak), members: ccm.length, active_week: ccm.filter(function (m) { return String(m.last_checkin || "") >= wk; }).length,
+        verified: cellVerified(ccm), is_founder: cc.founder === cs,
+        checked_today: mm.last_checkin === today };
+    }).filter(function (x) { return !!x; }),
     members: cmems.map(function (m) {
       return { callsign: m.callsign, checked_today: m.last_checkin === today, joined_day: m.joined_day };
     }),

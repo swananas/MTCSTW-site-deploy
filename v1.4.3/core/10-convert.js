@@ -17,7 +17,8 @@ var EV2GAME={
   'pf-guess-done':'guess','pf-bracket-ballot':'bracket','pf-raid-report':'raid',
   'pf-vote-cast':'vote','pf-poster-made':'forge','pf-caption-submit':'caption',
   'pf-do-challenge-done':'dometer','pf-billionaire-answered':'billionaire',
-  'pf-interrogation-answered':'interrogation','pf-infight-fire':'infight'
+  'pf-interrogation-answered':'interrogation','pf-infight-fire':'infight',
+  'pf-contract-claimed':'contracts'
 };
 var MISSIONS=[
   {key:'orders',  label:'Daily Orders',    blurb:'Report in. 30 seconds.',        anchor:'#pf-orders'},
@@ -29,7 +30,8 @@ var MISSIONS=[
   {key:'dometer', label:'Do Meter',        blurb:'Log a task. Fuel the meter.',   anchor:'#pf-dometer2'},
   {key:'forge',   label:'Poster Forge',    blurb:'Mint a propaganda poster.',    anchor:'#pf-poster'},
   {key:'caption', label:'Caption Combat',  blurb:'Write the winning caption.',   anchor:'#pf-caption'},
-  {key:'drop',    label:'Daily Drop',      blurb:'Claim today\u2019s drop.',       anchor:'#pf-drop'}
+  {key:'drop',    label:'Daily Drop',      blurb:'Claim today\u2019s drop.',       anchor:'#pf-drop'},
+  {key:'contracts', label:'Mercenary Contracts', blurb:'Take a contract. Get paid.', anchor:'#pf-contracts'}
 ];
 function weekKey(){
   try{

@@ -1,9 +1,11 @@
 /* games/cells.js  |  PF v1.4.1 | CELLS: callsign squads with shared streaks
-   One cell per callsign, max 5. All members checked in = +1 streak day =
-   +5% XP on Daily Orders for everyone (cap +50%). A cellmate can cover one
-   missed day per week. Recruit with your code: +25 XP when they check in.
-   Founder can set a custom cell name; the cell earns its VERIFIED badge
-   once 2+ callsigns are attached.
+   CHAINLINK (v1.4.3): up to 3 cells per callsign, max 5 members per cell.
+   All members checked in = +1 streak day = +5% XP on Daily Orders for
+   everyone (cap +50%, primary cell). A cellmate can cover one missed day
+   per week. Recruit with your code: +25 XP when they check in.
+   Chainlinks (2+ cells) stitch the network together: +10 XP per extra cell,
+   weekly. Founder can set a custom cell name; the cell earns its VERIFIED
+   badge once 2+ callsigns are attached.
    All cell state lives in the tally backend (cross-device); the frontend
    only caches the display. Public weekly leaderboard.
    KILL: ?pf_off=cells  or  localStorage pf_disabled_v1='["cells"]' */
@@ -80,6 +82,15 @@ function refresh(quiet){
     state=j;
     if(j.in_cell&&j.cell){ setCache(j.cell.mult,j.cell.id,j.cell.name); }
     claimBounties(j);
+    /* CHAINLINK: 2+ cells wired -> weekly bridge bonus via the ledger. */
+    try{
+      var nCells=(j.cells&&j.cells.length)||0;
+      if(nCells>=2){
+        var _d=new Date(),_o=new Date(_d.getFullYear(),0,1);
+        var _wk=_d.getFullYear()+"-W"+Math.ceil((((_d-_o)/86400000)+_o.getDay()+1)/7);
+        document.dispatchEvent(new CustomEvent("pf-chainlink",{detail:{cells:nCells,week:_wk}}));
+      }
+    }catch(e){}
     render();
   });
 }
@@ -191,7 +202,25 @@ function renderCell(el,s){
       '<span class="c-mname">'+esc(m.callsign)+'</span>'+
       (m.checked_today?'<span class="c-mok">IN</span>':'<span class="c-mno">OUT</span>')+'</div>';
   }).join("");
-  var html='<div class="c-card">'+
+  /* CHAINLINK bar: every cell this callsign wires, the cap, the network stat. */
+  var myCells=s.cells||[], linkBar='';
+  if(myCells.length){
+    var rows=myCells.map(function(mc){
+      return '<div class="c-lrow"><span class="c-lname">'+esc(mc.name)+'</span>'+
+        '<span class="c-lstat">'+mc.streak+' streak &middot; '+(mc.checked_today?'checked in':'not in today')+'</span>'+
+        (mc.id!==c.id?'':' <span class="c-lprim">PRIMARY</span>')+
+        ' <a class="c-lleave" data-id="'+esc(mc.id)+'" data-nm="'+esc(mc.name)+'">leave</a></div>';
+    }).join("");
+    linkBar='<div class="c-linkbar"><div class="c-lhead">&#9939; CHAINLINK — you wire '+myCells.length+'/3 cells</div>'+
+      '<div class="c-lrows">'+rows+'</div>'+
+      (myCells.length<3
+        ? '<div class="c-ljoin"><input id="cLinkCode" maxlength="6" placeholder="INVITE CODE" autocomplete="off" style="text-transform:uppercase"> '+
+          '<button class="c-btn" id="cLinkJoin">Wire another cell</button><div class="c-err" id="cLinkErr"></div></div>'
+        : '<div class="c-lcap">Cap reached — three cells is the whole wire.</div>')+
+      '<div class="c-lnet" id="cLinkNet">Mapping the network&hellip;</div>'+
+      '<div class="c-lwhy">Chainlinks belong to 2+ cells and stitch the network together — so every cell on earth is reachable by direct contact. +10 XP per extra cell, weekly.</div></div>';
+  }
+  var html=linkBar+'<div class="c-card">'+
     '<div class="c-chead"><span class="c-cname">'+esc(c.name)+'</span>'+
     (c.verified
       ? '<span class="c-vfy" title="2+ callsigns strong">&#10003; VERIFIED</span>'
@@ -258,6 +287,40 @@ function renderCell(el,s){
       setCache(1,"",""); state=null; refresh();
     });
   };
+  /* CHAINLINK wiring: per-cell leave + wire-another join + network stat. */
+  var lleaves=document.querySelectorAll(".c-lleave");
+  for(var li2=0;li2<lleaves.length;li2++)(function(a){
+    a.onclick=function(){
+      if(!window.confirm("Leave "+a.getAttribute("data-nm")+"?")) return;
+      api("cell_leave",{callsign:id.callsign,device:id.device,cell_id:a.getAttribute("data-id")},function(){
+        state=null; refresh();
+      });
+    };
+  })(lleaves[li2]);
+  var lj=document.getElementById("cLinkJoin");
+  if(lj) lj.onclick=function(){
+    var code=document.getElementById("cLinkCode").value, err=document.getElementById("cLinkErr");
+    errEl.textContent=""; err.textContent="";
+    api("cell_join",{callsign:id.callsign,device:id.device,code:code},function(j){
+      if(!j||!j.ok){ err.textContent=(j&&j.err)||"Network error."; return; }
+      toast("Wired into "+j.cell.name+". The chain grows.");
+      refresh();
+    });
+  };
+  paintLinkNet();
+}
+/* Chainlink network stat: cached 5 min. */
+var _linkNetAt=0, _linkNetHtml="";
+function paintLinkNet(){
+  var el=document.getElementById("cLinkNet");
+  if(!el) return;
+  if(Date.now()-_linkNetAt<5*60*1000&&_linkNetHtml){ el.innerHTML=_linkNetHtml; return; }
+  api("cell_links",{},function(j){
+    if(!j){ el.innerHTML=""; return; }
+    _linkNetAt=Date.now();
+    _linkNetHtml='<b>'+j.chainlinkers+'</b> chainlinkers wiring <b>'+j.cells+'</b> cells — <b>'+j.main_pct+'%</b> in the main chain';
+    el.innerHTML=_linkNetHtml;
+  },true);
 }
 refresh();
 loadBoard();

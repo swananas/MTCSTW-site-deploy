@@ -212,6 +212,7 @@ function wire(){
         try{delete window[fn];}catch(e){}
         if(j&&j.ok){
           try{ document.dispatchEvent(new CustomEvent("pf-contract-paid",{detail:{id:cid,bounty:bnty}})); }catch(e){}
+          try{ document.dispatchEvent(new CustomEvent("pf-contract-claimed",{detail:{id:cid}})); }catch(e2){}
         } else { toast((j&&j.err)||"Claim failed."); btn.disabled=false; }
         setTimeout(load,1500);
       };

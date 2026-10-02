@@ -1,0 +1,283 @@
+/* games/movement.js  |  PF v1.4.3 | MOVEMENT FINANCE.
+   The movement's collective financial layer: cause pools (strike/bail/mutual
+   aid), creator subscriptions, crowdfunded prize pools, and the XP burn
+   leaderboard. Reads via JSONP (self-contained api()), writes via CORS POST
+   (self-contained post()). It never reaches into another silo's internals.
+   Does NOT duplicate peoplesbank.js (transfers, savings, loans, bonds,
+   history) — remittances link there instead.
+   KILL: ?pf_off=movement  or  localStorage pf_disabled_v1='["movement"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (PF.skip("movement")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-movement">
+<div class="fe-block pf-override-block" id="pf-movement">
+<h2>Movement Finance</h2>
+<div class="c-tag">Collective money for collective power. No billionaires on the board.</div>
+<div id="xMovement"><div class="c-load">Opening the war chest&hellip;</div></div>
+</div>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  var fn="pfMvCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function post(type,key,cAction,params,cb){
+  var body={type:type}; body[key]=cAction;
+  for(var k in params) body[k]=params[k];
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+      .then(function(r){ return r.json(); }).then(function(j){ done(j); }).catch(function(){ done(null); });
+  }catch(e){ done(null); }
+}
+function fmtDate(t){
+  try{ var d=new Date(Number(t)); if(isNaN(d.getTime())) return "";
+    var mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return mo[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear(); }catch(e){ return ""; }
+}
+var CAUSES=null, SUBS=null, PRIZES=null, BURNS=null;
+function load(){
+  var id=ident(), done=false, n=0, need=4;
+  function fin(){ if(done)return; done=true; render(); }
+  function one(){ n++; if(n>=need) fin(); }
+  setTimeout(fin,15000);
+  api("cause_list",{},function(j){ CAUSES=j; one(); });
+  api("subscription_list",{callsign:id.callsign},function(j){ SUBS=j; one(); });
+  api("prize_list",{},function(j){ PRIZES=j; one(); });
+  api("burn_leaderboard",{},function(j){ BURNS=j; one(); });
+}
+function render(){
+  var el=document.getElementById("xMovement"); if(!el) return;
+  var id=ident(), h="";
+  if(!id.callsign){
+    el.innerHTML='<div class="c-gate">Movement finance runs on callsigns. Claim yours in Enlistment Ranks, then come fund the fight.</div>';
+    return;
+  }
+  h+=renderCauses(id);
+  h+=renderSubs(id);
+  h+=renderPrizes(id);
+  h+=renderBurns(id);
+  h+=renderRemitLink();
+  h+='<div style="margin-top:10px"><button class="c-btn" id="mvRetry">Refresh</button></div>';
+  el.innerHTML=h;
+  wireCauses(id,el); wireSubs(id,el); wirePrizes(id,el); wireBurns(id,el);
+  var rb=document.getElementById("mvRetry");
+  if(rb) rb.onclick=function(){ CAUSES=SUBS=PRIZES=BURNS=null; el.innerHTML='<div class="c-load">Opening the war chest&hellip;</div>'; load(); };
+}
+/* ---------- 1. CAUSE POOLS ---------- */
+function renderCauses(id){
+  var h='<div class="x-pane"><div class="pb-bankhead">&#9670; CAUSE POOLS — MONEY FOR THE FIGHT &#9670;</div>'
+    +'<div class="x-note">Strike funds. Bail funds. Mutual aid. When the movement needs money fast, it comes from here — not from billionaires with strings attached.</div>';
+  var pools=(CAUSES&&CAUSES.ok&&CAUSES.pools)||[];
+  if(!pools.length) h+='<div class="x-note">No cause pools yet.</div>';
+  for(var i=0;i<pools.length;i++){
+    var p=pools[i];
+    h+='<div class="cp-mission"><div class="cp-mtext"><b>'+esc(p.name)+'</b>'
+      +'<div class="x-note">'+esc(p.description||"")+'</div>'
+      +'<div class="x-note"><b>'+Number(p.balance||0).toLocaleString()+' XP</b> &bull; '+Number(p.donors||0)+' donors</div>'
+      +'<div style="margin-top:6px"><input class="c-in" data-causeamt="'+esc(p.id)+'" type="number" min="1" placeholder="XP" style="width:90px"/> '
+      +'<button class="c-btn" data-causedonate="'+esc(p.id)+'">DONATE</button></div></div></div>';
+  }
+  h+='</div>';
+  return h;
+}
+function wireCauses(id,el){
+  var bs=el.querySelectorAll('button[data-causedonate]');
+  for(var i=0;i<bs.length;i++){ (function(btn){
+    btn.onclick=function(){
+      var pid=btn.getAttribute("data-causedonate");
+      var inp=el.querySelector('input[data-causeamt="'+pid+'"]');
+      var amt=Math.round(Number(inp?inp.value:0)||0);
+      if(amt<=0){ toast("Enter an amount."); return; }
+      btn.disabled=true;
+      post("finance","f_action","cause_donate",{callsign:id.callsign,device:id.device,pool_id:pid,amount:amt},function(j){
+        btn.disabled=false;
+        if(!j||!j.ok){ toast((j&&j.err)||"Donation failed."); return; }
+        toast("DONATED "+amt+" XP. The movement thanks you.");
+        api("cause_list",{},function(jj){ CAUSES=jj; render(); });
+      });
+    };
+  })(bs[i]); }
+}
+/* ---------- 2. SUBSCRIPTIONS ---------- */
+function renderSubs(id){
+  var h='<div class="x-pane"><div class="pb-bankhead">&#9670; CREATOR SUBSCRIPTIONS — PATRONAGE, MOVEMENT-STYLE &#9670;</div>'
+    +'<div class="x-note">Weekly recurring XP to the creators who arm you. Cancel anytime. No platform takes a cut.</div>';
+  var sup=(SUBS&&SUBS.ok&&SUBS.supporting)||[];
+  h+='<div class="pb-sub">YOU SUPPORT ('+sup.length+')</div>';
+  if(!sup.length) h+='<div class="x-note">You don&rsquo;t support anyone yet. Find a creator worth funding below.</div>';
+  var total=0;
+  for(var i=0;i<sup.length;i++){
+    var s=sup[i]; total+=Number(s.amount_per_week||0);
+    h+='<div class="cp-mission"><div class="cp-mtext"><b>'+esc(s.creator)+'</b>'
+      +'<div class="x-note">'+Number(s.amount_per_week).toLocaleString()+' XP/week &bull; since '+esc(fmtDate(s.started_at))+'</div></div>'
+      +'<button class="c-btn" data-unsub="'+esc(s.creator)+'">STOP</button></div>';
+  }
+  if(sup.length) h+='<div class="x-note"><b>'+total.toLocaleString()+' XP/week</b> flowing to creators.</div>';
+  h+='<div class="pb-sub" style="margin-top:8px">FIND CREATORS</div>'
+    +'<div><input class="c-in" id="mvSubCs" type="text" placeholder="creator callsign" style="width:170px"/> '
+    +'<input class="c-in" id="mvSubAmt" type="number" min="1" max="10000" placeholder="XP/week" style="width:110px"/> '
+    +'<button class="c-btn" id="mvSubBtn">SUPPORT</button></div>'
+    +'<div class="c-err" id="mvSubErr"></div>';
+  h+='</div>';
+  return h;
+}
+function wireSubs(id,el){
+  var b=document.getElementById("mvSubBtn");
+  if(b) b.onclick=function(){
+    var cr=String(document.getElementById("mvSubCs").value||"").trim().toLowerCase().replace(/[^a-z0-9_]/g,"");
+    var amt=Math.round(Number(document.getElementById("mvSubAmt").value)||0);
+    var e=document.getElementById("mvSubErr"); e.textContent="";
+    if(!cr||cr.length<3){ e.textContent="Enter a creator callsign."; return; }
+    if(cr===id.callsign){ e.textContent="Cannot support yourself."; return; }
+    if(amt<=0||amt>10000){ e.textContent="Amount must be 1–10,000 XP/week."; return; }
+    b.disabled=true;
+    post("finance","f_action","subscribe",{callsign:id.callsign,device:id.device,subscriber:id.callsign,creator:cr,amount_per_week:amt},function(j){
+      b.disabled=false;
+      if(!j||!j.ok){ e.textContent=(j&&j.err)||"Failed."; return; }
+      toast("SUPPORTING "+cr+" at "+amt+" XP/week.");
+      document.getElementById("mvSubCs").value=""; document.getElementById("mvSubAmt").value="";
+      api("subscription_list",{callsign:id.callsign},function(jj){ SUBS=jj; render(); });
+    });
+  };
+  var us=el.querySelectorAll('button[data-unsub]');
+  for(var i=0;i<us.length;i++){ (function(btn){
+    btn.onclick=function(){
+      var cr=btn.getAttribute("data-unsub"); btn.disabled=true;
+      post("finance","f_action","unsubscribe",{callsign:id.callsign,device:id.device,subscriber:id.callsign,creator:cr},function(j){
+        if(!j||!j.ok){ toast((j&&j.err)||"Failed."); btn.disabled=false; return; }
+        toast("Stopped supporting "+cr+".");
+        api("subscription_list",{callsign:id.callsign},function(jj){ SUBS=jj; render(); });
+      });
+    };
+  })(us[i]); }
+}
+/* ---------- 3. PRIZE POOLS ---------- */
+function renderPrizes(id){
+  var h='<div class="x-pane"><div class="pb-bankhead">&#9670; PRIZE POOLS — CROWDFUNDED GLORY &#9670;</div>'
+    +'<div class="x-note">The community puts up the stakes. Winners take all. Create a pool, fund it, fight for it.</div>'
+    +'<div><input class="c-in" id="mvPrizeTitle" type="text" maxlength="120" placeholder="pool title" style="width:220px"/> '
+    +'<input class="c-in" id="mvPrizeTarget" type="number" min="1" placeholder="target XP" style="width:110px"/> '
+    +'<button class="c-btn" id="mvPrizeBtn">CREATE POOL</button></div>'
+    +'<div class="c-err" id="mvPrizeErr"></div><div style="height:8px"></div>';
+  var pools=(PRIZES&&PRIZES.ok&&PRIZES.pools)||[];
+  if(!pools.length) h+='<div class="x-note">No open pools. Start one.</div>';
+  for(var i=0;i<pools.length;i++){
+    var p=pools[i], pct=Math.min(100,Math.round(Number(p.raised||0)/Math.max(1,Number(p.target||1))*100));
+    h+='<div class="cp-mission"><div class="cp-mtext"><b>'+esc(p.title)+'</b>'
+      +'<div class="x-note">by '+esc(p.created_by||"")+'</div>'
+      +'<div class="cp-barwrap"><div class="cp-bar" style="width:'+pct+'%"></div></div>'
+      +'<div class="x-note">'+Number(p.raised||0).toLocaleString()+' / '+Number(p.target||0).toLocaleString()+' XP ('+pct+'%)</div>'
+      +'<div style="margin-top:6px"><input class="c-in" data-prizeamt="'+esc(p.id)+'" type="number" min="1" placeholder="XP" style="width:90px"/> '
+      +'<button class="c-btn" data-prizecon="'+esc(p.id)+'">CONTRIBUTE</button></div></div></div>';
+  }
+  h+='</div>';
+  return h;
+}
+function wirePrizes(id,el){
+  var c=document.getElementById("mvPrizeBtn");
+  if(c) c.onclick=function(){
+    var t=String(document.getElementById("mvPrizeTitle").value||"").trim().slice(0,120);
+    var tg=Math.round(Number(document.getElementById("mvPrizeTarget").value)||0);
+    var e=document.getElementById("mvPrizeErr"); e.textContent="";
+    if(!t){ e.textContent="Enter a title."; return; }
+    if(tg<=0){ e.textContent="Enter a target."; return; }
+    c.disabled=true;
+    post("prize","p_action","prize_create",{callsign:id.callsign,device:id.device,title:t,target:tg},function(j){
+      c.disabled=false;
+      if(!j||!j.ok){ e.textContent=(j&&j.err)||"Failed."; return; }
+      toast("POOL CREATED. Now fund it.");
+      document.getElementById("mvPrizeTitle").value=""; document.getElementById("mvPrizeTarget").value="";
+      api("prize_list",{},function(jj){ PRIZES=jj; render(); });
+    });
+  };
+  var bs=el.querySelectorAll('button[data-prizecon]');
+  for(var i=0;i<bs.length;i++){ (function(btn){
+    btn.onclick=function(){
+      var pid=btn.getAttribute("data-prizecon");
+      var inp=el.querySelector('input[data-prizeamt="'+pid+'"]');
+      var amt=Math.round(Number(inp?inp.value:0)||0);
+      if(amt<=0){ toast("Enter an amount."); return; }
+      btn.disabled=true;
+      post("prize","p_action","prize_contribute",{callsign:id.callsign,device:id.device,pool_id:pid,amount:amt},function(j){
+        btn.disabled=false;
+        if(!j||!j.ok){ toast((j&&j.err)||"Failed."); return; }
+        toast("CONTRIBUTED "+amt+" XP to the pool.");
+        api("prize_list",{},function(jj){ PRIZES=jj; render(); });
+      });
+    };
+  })(bs[i]); }
+}
+/* ---------- 4. BURN LEADERBOARD ---------- */
+function renderBurns(id){
+  var h='<div class="x-pane"><div class="pb-bankhead">&#9670; THE FURNACE — PROVE COMMITMENT &#9670;</div>'
+    +'<div class="x-note">Burn XP permanently. No refund, no takeback. 1,000+ XP earns the <b>TRUE BELIEVER</b> badge. The ultimate flex is setting money on fire for the cause.</div>'
+    +'<div><input class="c-in" id="mvBurnAmt" type="number" min="1" placeholder="XP to burn" style="width:130px"/> '
+    +'<input class="c-in" id="mvBurnWhy" type="text" maxlength="80" placeholder="reason (optional)" style="width:200px"/> '
+    +'<button class="c-btn" id="mvBurnBtn">BURN IT</button></div>'
+    +'<div class="c-err" id="mvBurnErr"></div><div style="height:8px"></div>';
+  var bs=(BURNS&&BURNS.ok&&BURNS.burners)||[];
+  h+='<div class="pb-sub">HALL OF THE COMMITTED</div>';
+  if(!bs.length) h+='<div class="x-note">Nobody has burned yet. Be the first to prove it.</div>';
+  var me=null;
+  for(var i=0;i<Math.min(bs.length,20);i++){
+    var b=bs[i];
+    if(b.callsign===id.callsign) me=b;
+    h+='<div class="cp-lead"><span class="cp-lrank">'+(i+1)+'.</span> <span class="cp-lname">'+esc(b.callsign)+'</span> '
+      +'<span class="cp-lxp">'+Number(b.total_burned||0).toLocaleString()+' XP</span>'
+      +(Number(b.total_burned||0)>=1000?' <span class="cp-mdone">TRUE BELIEVER</span>':'')+'</div>';
+  }
+  if(me&&Number(me.total_burned||0)>=1000)
+    h+='<div class="cp-pledged">&#9733; TRUE BELIEVER — you have burned '+Number(me.total_burned).toLocaleString()+' XP.</div>';
+  h+='</div>';
+  return h;
+}
+function wireBurns(id,el){
+  var b=document.getElementById("mvBurnBtn");
+  if(!b) return;
+  b.onclick=function(){
+    var amt=Math.round(Number(document.getElementById("mvBurnAmt").value)||0);
+    var why=String(document.getElementById("mvBurnWhy").value||"").trim().slice(0,80);
+    var e=document.getElementById("mvBurnErr"); e.textContent="";
+    if(amt<=0){ e.textContent="Enter an amount."; return; }
+    if(!confirm("Burn "+amt+" XP forever? This cannot be undone.")) return;
+    b.disabled=true;
+    post("finance","f_action","xp_burn",{callsign:id.callsign,device:id.device,amount:amt,reason:why},function(j){
+      b.disabled=false;
+      if(!j||!j.ok){ e.textContent=(j&&j.err)||"Burn failed."; return; }
+      toast("BURNED "+amt+" XP."+(j.badge?" TRUE BELIEVER badge earned.":""));
+      document.getElementById("mvBurnAmt").value=""; document.getElementById("mvBurnWhy").value="";
+      api("burn_leaderboard",{},function(jj){ BURNS=jj; render(); });
+    });
+  };
+}
+/* ---------- 5. REMITTANCES — link to the Bank ---------- */
+function renderRemitLink(){
+  return '<div class="x-pane"><div class="pb-bankhead">&#9670; TRANSFERS &#9670;</div>'
+    +'<div class="x-note">Cross-cell XP transfers live at the <b>Peoples Bank of Propaganda</b> — Teller Window No. 2. '
+    +'2% fee funds the community lottery. One bank, one ledger, no duplication.</div></div>';
+}
+load();
+setInterval(function(){ load(); },180000);
+})();
+</scr`+`ipt>
+</div>
+</template>`);
+})();

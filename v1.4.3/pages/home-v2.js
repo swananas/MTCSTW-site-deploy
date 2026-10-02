@@ -54,6 +54,8 @@
     ['battles', 'pf-ov-battles'],
     ['economy', 'pf-ov-economy'],
     ['peoplesbank', 'pf-ov-peoplesbank'],
+    ['movement', 'pf-ov-movement'],
+    ['earnings', 'pf-ov-earnings'],
     ['casino', 'pf-ov-casino'],
     ['enlistment-ranks', 'pf-ov-ranks'],
     ['war-bonds', 'pf-ov-bonds'],

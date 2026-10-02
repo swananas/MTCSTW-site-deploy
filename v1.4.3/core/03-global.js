@@ -3,7 +3,7 @@
 /* PF GLOBAL ACTIONS: unified site-wide total, visible to everyone.
    Each widget calls pfReportAction('action_type') on completion.
    The total is fetched from the backend and displayed in #pf-global-total. */
-window.PF_BACKEND_URL = "https://script.google.com/macros/s/AKfycbzaqg3vIj1UnbHGJ82uti7yTdRpeR6PYMhoTne6LIL4kf1XjakrImMTHFwounaPrttl/exec";
+window.PF_BACKEND_URL = "https://pf-api.mtcstw.workers.dev";
 /* Per-device identity + callsign. Attached to every backend action report so
    per-user rows in the Sheet key to the local device and the user's callsign.
    Votes stay anonymous by design — no identity is ever sent on vote rows. */

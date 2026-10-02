@@ -181,7 +181,7 @@ function mergeCheckinState(j){
 
 function checkin(mi,platform){
   var d=dayRec(), o=d.o, rec=d.rec, t=today();
-  var already=rec.done.some(function(x){ return x.m===mi; });
+  var already=rec.done.some(function(x){ return String(x.m)===String(mi); });
   if(already) return {ok:false, err:"already"};
   platform=platform||null;
   var firstToday=rec.done.length===0;
@@ -207,7 +207,7 @@ function checkin(mi,platform){
     /* every 7th streak day forges a shield: one missed day forgiven */
     if(o.streak%7===0&&o.lastShieldAt!==o.streak){ o.shields=(o.shields||0)+1; o.lastShieldAt=o.streak; shieldEarned=true; }
   }
-  rec.done.push({m:mi,p:platform,g:gained}); rec.xp=(rec.xp||0)+gained; saveDay(o,rec);
+  rec.done.push({m:String(mi),p:platform,g:gained}); rec.xp=(rec.xp||0)+gained; saveDay(o,rec);
   /* FULL DEPLOYMENT command bonus is claimed here so it lands inside the same
      dispatched event — the tally records it exactly once, no phantom row. */
   var cmd=maybeCommandBonus();
@@ -476,7 +476,7 @@ function render(){
   /* XP METER — 3 segments, flashes hotter with the combo */
   var meter=document.getElementById("oMeter"), mh="";
   set.forEach(function(mi){
-    var filled=rec.done.some(function(x){ return x.m===mi; });
+    var filled=rec.done.some(function(x){ return String(x.m)===String(mi); });
     mh+='<div class="o-seg'+(filled?" fill":"")+'"></div>';
   });
   meter.innerHTML=mh;
@@ -489,7 +489,7 @@ function render(){
   var html="";
   set.forEach(function(mi,slot){
     var m=MISSIONS[mi]||{t:""}, entry=null;
-    rec.done.forEach(function(x){ if(x.m===mi) entry=x; });
+    rec.done.forEach(function(x){ if(String(x.m)===String(mi)) entry=x; });
     var isDone=!!entry;
     var xpLine='+'+(isDone?(typeof entry.g==="number"?entry.g:BASE_XP):BASE_XP)+' XP'+(isDone?"":" · report #"+(doneCount+1));
     var action;
@@ -523,8 +523,16 @@ function render(){
   z.querySelectorAll("button.o-deploybtn").forEach(function(b){
     b.onclick=function(){
       var g=b.getAttribute("data-game");
-      var sec=document.querySelector('section[data-game="'+g+'"]');
-      if(sec&&sec.scrollIntoView){ try{ sec.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){} }
+      var sec=document.querySelector('section[data-game="'+g+'"]')
+        ||document.getElementById('pf-'+g)||document.getElementById('pf-ov-'+g);
+      if(sec){
+        try{ sec.scrollIntoView({behavior:"smooth",block:"start"}); }
+        catch(e){ try{ sec.scrollIntoView(); }catch(e2){} }
+        try{
+          sec.classList.add("pf-flash");
+          setTimeout(function(){ try{sec.classList.remove("pf-flash");}catch(e){} },1400);
+        }catch(e){}
+      }
     };
   });
   function doReport(mi,platform,btn){
@@ -568,7 +576,7 @@ function render(){
       doReport(parseInt(b.getAttribute("data-mi"),10), b.getAttribute("data-p"), b);
     };
   });
-  document.getElementById("oProg").textContent=doneCount+"/"+PER_DAY+" orders complete";
+  document.getElementById("oProg").textContent=Math.min(doneCount,PER_DAY)+"/"+PER_DAY+" orders complete";
   renderBoost();
   renderPatrons();
   document.getElementById("oStreak").innerHTML="Current streak: <b>"+(d.o.streak||0)+"</b> day"+((d.o.streak||0)===1?"":"s")+((d.o.shields||0)>0?" &nbsp;\uD83D\uDEE1\uFE0F x"+d.o.shields:"");
@@ -576,8 +584,18 @@ function render(){
   var nextMil=Object.keys(STREAK_BONUS).map(Number).filter(function(n){return n>s;}).sort(function(a,b){return a-b;})[0];
       document.getElementById("oNext").textContent=nextMil?("Streak bonus at "+nextMil+" days (+"+STREAK_BONUS[nextMil]+" XP)"):"Maximum streak bonus achieved. Legendary.";
   var r=load(LS_R,{xp:0});
-  document.getElementById("oRank").textContent=r.xp>0?("Rank: "+tierOf(r.xp)[0]+" · "+r.xp+" XP"):"";
+  function paintRank(xp){ var el=document.getElementById("oRank"); if(el) el.textContent=xp>0?("Rank: "+tierOf(xp)[0]+" · "+xp+" XP"):""; }
+  paintRank(r.xp);
   var id=ident(), wrap=document.getElementById("oClaimWrap");
+  /* Prefer the backend ledger balance when a callsign exists — keeps the rank
+     line consistent with every other XP readout on the page. */
+  try{
+    if(id.callsign&&window.PF&&PF.xpBalance){
+      PF.xpBalance(function(bal){
+        if(typeof bal==="number"&&bal>r.xp){ r.xp=bal; save(LS_R,r); paintRank(bal); }
+      });
+    }
+  }catch(e){}
   if(!beUrl()){ wrap.style.display="none"; }
   else if(id.callsign){
     document.getElementById("oClaimToggle").style.display="none";

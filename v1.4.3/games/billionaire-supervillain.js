@@ -86,7 +86,7 @@ function load(){try{return JSON.parse(localStorage.getItem(LS)||'{"last":"","str
 function save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}
 var n=dayNum(),Q=QUOTES[(n-1)%QUOTES.length],s=load(),tk=dayKey();
 function el(id){return document.getElementById(id);}
-el('bvDay').textContent='Day '+n+' of the interrogation';
+el('bvDay').textContent='Day '+n+' of the lineup';
 el('bvQuote').textContent='\u201C'+Q.q+'\u201D';
 function streakTxt(){return 'Your streak: '+s.streak+(s.streak===1?' day':' days')+' \u2014 keep it alive tomorrow';}
 function grid(){return 'BILLIONAIRE OR SUPERVILLAIN\\nDay '+n+': '+(s.played[tk].correct?'\\uD83D\\uDFE9':'\\uD83D\\uDFE5')+'\\nStreak: '+s.streak+' \\uD83D\\uDD25 \\u2014 can you tell them apart?\\nmtcstw.com';}

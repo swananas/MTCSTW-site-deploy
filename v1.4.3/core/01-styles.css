@@ -7,6 +7,8 @@
    SOURCE: verbatim extract from dist/pf-footer-v1.4.1.html
    ============================================================================ */
 /* PF-WIDGET-STYLES: document-wide, outside templates for reliability */
+.pf-flash{animation:pfFlash 1.4s ease-out}
+@keyframes pfFlash{0%,100%{box-shadow:none}25%{box-shadow:0 0 0 4px #c1121f,0 0 24px #c1121f}}
 
 #pf-caption{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f}
 #pf-caption h2{color:#c1121f;font-size:28px;margin:0 0 6px;letter-spacing:2px;text-transform:uppercase}

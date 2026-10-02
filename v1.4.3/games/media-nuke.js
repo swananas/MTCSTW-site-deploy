@@ -251,7 +251,7 @@ function updateStick(xp,pct,root){
   var bar=document.getElementById('pf-nuke-stick'); if(!bar) return;
   var fill=document.getElementById('pnsFill'); if(fill) fill.style.width=Math.min(100,pct)+'%';
   var p=document.getElementById('pnsPct'); if(p) p.textContent='NUKE '+Math.floor(Math.min(100,pct))+'%';
-  var y=document.getElementById('pnsYou'); if(y) y.textContent='YOU '+fmt(localXpToday())+' XP';
+  var y=document.getElementById('pnsYou'); if(y) y.textContent='YOU '+fmt(localXpToday())+' XP TODAY';
   var ms=missionState(), mb=document.getElementById('pnsMission');
   if(mb){
     if(ms.left>0) mb.textContent='RUN MISSION ('+ms.left+' LEFT)';

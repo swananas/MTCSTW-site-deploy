@@ -32,6 +32,7 @@ V3_JS = ["core/00-bus.js", "core/07-slr-db-data.js", "core/07-slr-db.js",
          "games/daily-interrogation.js", "games/media-nuke.js",
          "games/caption-combat.js", "games/poster-forge.js",
          "games/enlistment-ranks.js", "games/war-bonds.js",
+         "games/creator-assist.js",
          "games/service-medals.js", "games/infighting.js", "pages/home-v2.js",
          "pages/slr-roster.js", "pages/slr-catalog.js",
          "core/06-pinups.js", "core/share-image.js"]

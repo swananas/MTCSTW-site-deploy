@@ -46,6 +46,7 @@ var BUNDLES = {
     'bounties.js',
     'academy.js',
     'assist.js',
+    'creator-assist.js',
     'alerts.js',
     'archive.js',
     'irl.js',

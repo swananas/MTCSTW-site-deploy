@@ -1,120 +1,154 @@
 /* games/academy.js  |  PF v1.4.3 | PROPAGANDA ACADEMY: onboarding/training track.
-   LAYERING: a game silo like feed.js. New propagandists learn to pump:
-   guided lessons, XP for completing them, progress bar. Reads via JSONP
-   (self-contained api()), lesson completion via CORS POST.
-   It never reaches into another silo's internals.
+   Lessons are served by the backend (lesson_list) — no static catalog here.
+   Completion posts lesson_complete; the backend grants real XP through the
+   ledger (idempotent per callsign+lesson). Progress comes from the same call.
+   Mounts two ways: (1) homepage via the pf-ov-academy template in the v2
+   ORDER list; (2) Creator HQ (/request-access) direct into
+   <div id="pf-academy-hq"></div>. It never reaches into another silo's internals.
    KILL: ?pf_off=academy  or  localStorage pf_disabled_v1='["academy"]' */
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("academy")) { return; }
-  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-academy">
-<div class="fe-block pf-override-block" id="pf-academy">
-<h2>Propaganda Academy</h2>
-<div class="c-tag">Learn the craft. Earn your stripes. Pump with purpose.</div>
-<div id="xAcademy"><div class="c-load">Loading the academy&hellip;</div></div>
-</div>
-<script>
-(function(){
-var BACKEND=window.PF_BACKEND_URL;
-function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
-function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
-function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
-  try{ var t=document.createElement("div"); t.textContent=m;
-  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
-  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
-function api(action,params,cb){
-  if(!BACKEND){ cb(null); return; }
-  var fn="pfAcCb"+Math.floor(Math.random()*1e9);
-  var s=document.createElement("script"), done=false;
-  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
-    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
-  window[fn]=function(j){ finish(j); };
-  s.onerror=function(){ finish(null); };
-  var q="?action="+encodeURIComponent(action);
-  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
-  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
-  setTimeout(function(){ finish(null); },12000);
-}
-function post(acAction,params,cb){
-  var body=Object.assign({type:"academy",a_action:acAction},params);
-  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
-  var bodyStr=JSON.stringify(body);
-  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  if (!PF || PF.skip("academy")) { return; }
+  var BACKEND = window.PF_BACKEND_URL;
+
+  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+  function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+    try{ var t=document.createElement("div"); t.textContent=m;
+    t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+    document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+
+  /* JSONP GET with 12s timeout — same pattern as the other game silos. */
+  function api(action,params,cb){
+    if(!BACKEND){ cb(null); return; }
+    var fn="pfAcCb"+Math.floor(Math.random()*1e9);
+    var s=document.createElement("script"), done=false;
+    function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+      if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+    window[fn]=function(j){ finish(j); };
+    s.onerror=function(){ finish(null); };
+    var q="?action="+encodeURIComponent(action);
+    for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+    q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+    setTimeout(function(){ finish(null); },12000);
+  }
+
+  /* POST: real CORS fetch (worker sends Access-Control-Allow-Origin: *),
+     PF.authPost first when available (attaches the callsign secret). */
+  function post(aAction,params,cb){
+    var body=Object.assign({type:"academy",a_action:aAction},params);
+    if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+    var bodyStr=JSON.stringify(body);
+    function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+    try{
+      fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr})
+        .then(function(r){ return r.json(); })
+        .then(function(j){ done(j); })
+        .catch(function(){ done(null); });
+    }catch(e){ done(null); }
+  }
+
+  function load(el){
+    var id=ident(), finished=false;
+    function fin(lessons){ if(finished)return; finished=true; render(el,lessons||[]); }
+    /* Safety: if JSONP hangs, unstick and show retry. */
+    setTimeout(function(){ fin(null); },15000);
+    var p={};
+    if(id.callsign) p.callsign=id.callsign;
+    api("lesson_list",p,function(j){
+      if(j&&j.ok&&j.lessons&&j.lessons.length) fin(j.lessons);
+      else fin(null);
+    });
+  }
+
+  function render(el,lessons){
+    var id=ident(), h="";
+    if(!lessons.length){
+      el.innerHTML='<div class="fe-block pf-override-block" id="pf-academy">'
+        +'<h2>Propaganda Academy</h2>'
+        +'<div class="c-tag">Learn the craft. Earn your stripes. Pump with purpose.</div>'
+        +'<div class="x-pane"><div class="x-note">The academy is mustering its instructors.</div>'
+        +'<div style="margin-top:8px"><button class="c-btn" id="acRetry">Retry</button></div></div></div>';
+      var rb=document.getElementById("acRetry");
+      if(rb) rb.onclick=function(){ el.innerHTML='<div class="c-load">Loading the academy&hellip;</div>'; load(el); };
+      return;
+    }
+    lessons=lessons.slice().sort(function(a,b){ return (a.order_num||0)-(b.order_num||0); });
+    var n=0,i,L;
+    for(i=0;i<lessons.length;i++){ if(lessons[i].done) n++; }
+    var pct=Math.round(n/lessons.length*100);
+    h+='<div class="fe-block pf-override-block" id="pf-academy">'
+      +'<h2>Propaganda Academy</h2>'
+      +'<div class="c-tag">Learn the craft. Earn your stripes. Pump with purpose.</div>';
+    if(!id.callsign){
+      h+='<div class="x-pane"><div class="x-note">Claim a callsign in Enlistment Ranks to enroll in the Academy and bank XP for every lesson.</div></div>';
+    } else {
+      h+='<div class="x-pane"><div class="x-note">PROGRESS: '+n+'/'+lessons.length+' lessons &mdash; '+pct+'%</div>'
+        +'<div style="background:#222;border:1px solid #555;height:14px;margin-top:6px"><div style="background:#c1121f;height:12px;width:'+pct+'%"></div></div></div>';
+    }
+    for(i=0;i<lessons.length;i++){
+      L=lessons[i];
+      var isDone=!!L.done, xp=Number(L.xp_reward)||0;
+      h+='<div class="x-pane">'
+        +'<div class="fd-title">'+(i+1)+'. '+esc(L.title)+(isDone?' <span style="color:#7CFC00">&#10003;</span>':"")+'</div>'
+        +'<div class="x-note">'+esc(L.content)+'</div>'
+        +'<div class="x-note">+'+xp+' XP</div>';
+      if(id.callsign&&!isDone){
+        h+='<button class="c-btn ac-done" data-lid="'+esc(L.id)+'" data-xp="'+xp+'">MARK COMPLETE</button>';
+      }
+      h+='</div>';
+    }
+    h+='<div style="margin-top:10px"><button class="c-btn" id="acRetry">Refresh</button></div>';
+    h+='</div>';
+    el.innerHTML=h;
+    var bs=el.querySelectorAll("button.ac-done"), b;
+    for(b=0;b<bs.length;b++){
+      (function(btn){
+        btn.onclick=function(){
+          var lid=btn.getAttribute("data-lid");
+          btn.disabled=true; btn.textContent="RECORDING...";
+          post("lesson_complete",{callsign:id.callsign,device:id.device,lesson_id:lid},function(j){
+            if(j&&j.ok){
+              var gained=(j.xp!=null?j.xp:Number(btn.getAttribute("data-xp"))||0);
+              toast(j.dup?"Already banked. No double pay.":"Lesson complete. +"+gained+" XP.");
+              for(var k=0;k<lessons.length;k++){ if(lessons[k].id===lid) lessons[k].done=1; }
+              render(el,lessons);
+            } else {
+              btn.disabled=false; btn.textContent="MARK COMPLETE";
+              toast((j&&j.err)||"Could not record. Try again.");
+            }
+          });
+        };
+      })(bs[b]);
+    }
+    var rb2=document.getElementById("acRetry");
+    if(rb2) rb2.onclick=function(){ el.innerHTML='<div class="c-load">Loading the academy&hellip;</div>'; load(el); };
+  }
+
+  /* Idempotent mount into any container element. Exposed for the homepage
+     template's inner script (eval'd on mount by the v2 mounter). */
+  function mount(el){
+    if(!el||el.getAttribute("data-pf-academy-mounted")) return;
+    el.setAttribute("data-pf-academy-mounted","1");
+    el.innerHTML='<div class="c-load">Loading the academy&hellip;</div>';
+    load(el);
+  }
+  window.PFAcademy={mount:mount};
+
+  /* (1) Homepage: stage the template; the v2 ORDER list mounts it into #pf-v2. */
   try{
-    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr})
-      .then(function(r){ return r.json(); })
-      .then(function(j){ done(j); })
-      .catch(function(){ done(null); });
-  }catch(e){ done(null); }
-}
-/* Static lesson catalog — backend tracks completion only. */
-var LESSONS=[
-  {id:"ac-01",title:"Forge your first poster",detail:"Open Poster Forge, pick a template, add a headline. Share it to the feed.",xp:25},
-  {id:"ac-02",title:"Pump your first share",detail:"Find a poster in the Propaganda Feed and hit SHARE & PUMP. Spread is the weapon.",xp:15},
-  {id:"ac-03",title:"Claim your callsign",detail:"Claim a callsign in Enlistment Ranks so your work carries your name.",xp:20},
-  {id:"ac-04",title:"Join a cell",detail:"Find a cell in the Cells lobby and join. Lone wolves starve; packs eat.",xp:20},
-  {id:"ac-05",title:"Enter a poster battle",detail:"Submit one of your posters to an active battle. Let the crowd judge.",xp:30},
-  {id:"ac-06",title:"Boost a comrade",detail:"Spend XP to boost someone else's poster. Investment builds the network.",xp:15},
-  {id:"ac-07",title:"Recruit one soldier",detail:"Share your referral link and bring one person into the fight.",xp:50},
-  {id:"ac-08",title:"Complete a campaign mission",detail:"Run one mission in the 32-Day Offensive. Elections are won daily.",xp:25}
-];
-var done={};
-function load(){
-  var id=ident(), finished=false;
-  function fin(){ if(finished)return; finished=true; render(); }
-  setTimeout(fin,15000);
-  if(!id.callsign){ fin(); return; }
-  api("academy_progress",{callsign:id.callsign},function(j){
-    if(j&&j.ok&&j.done){ for(var i=0;i<j.done.length;i++) done[j.done[i]]=1; }
-    fin();
-  });
-}
-function progress(){
-  var n=0; for(var i=0;i<LESSONS.length;i++) if(done[LESSONS[i].id]) n++;
-  return {n:n,total:LESSONS.length,pct:Math.round(n/LESSONS.length*100)};
-}
-function render(){
-  var el=document.getElementById("xAcademy"); if(!el) return;
-  var id=ident(), h="", p=progress();
-  if(!id.callsign){
-    el.innerHTML='<div class="x-pane"><div class="x-note">Claim a callsign in Enlistment Ranks to enroll in the Academy.</div></div>';
-    return;
-  }
-  h+='<div class="x-pane"><div class="x-note">PROGRESS: '+p.n+'/'+p.total+' lessons &mdash; '+p.pct+'%</div>'
-    +'<div style="background:#222;border:1px solid #555;height:14px;margin-top:6px"><div style="background:#c1121f;height:12px;width:'+p.pct+'%"></div></div></div>';
-  for(var i=0;i<LESSONS.length;i++){
-    var L=LESSONS[i], isDone=!!done[L.id];
-    h+='<div class="x-pane">'
-      +'<div class="fd-title">'+(i+1)+'. '+esc(L.title)+(isDone?' <span style="color:#7CFC00">&#10003;</span>':"")+'</div>'
-      +'<div class="x-note">'+esc(L.detail)+'</div>'
-      +'<div class="x-note">+'+L.xp+' XP</div>'
-      +(isDone?"":'<button class="c-btn ac-done" data-lid="'+esc(L.id)+'" data-xp="'+L.xp+'">MARK COMPLETE</button>')
-      +'</div>';
-  }
-  h+='<div style="margin-top:10px"><button class="c-btn" id="acRetry">Refresh</button></div>';
-  el.innerHTML=h;
-  var bs=el.querySelectorAll("button.ac-done");
-  for(var b=0;b<bs.length;b++){
-    (function(btn){
-      btn.onclick=function(){
-        var lid=btn.getAttribute("data-lid"), xp=Number(btn.getAttribute("data-xp"))||0;
-        btn.disabled=true;
-        post("lesson_done",{callsign:id.callsign,device:id.device,lesson_id:lid,xp:xp},function(j){
-          btn.disabled=false;
-          if(j&&j.ok){ done[lid]=1; toast("Lesson complete. +"+xp+" XP."); render(); }
-          else toast((j&&j.err)||"Could not record. Try again.");
-        });
-      };
-    })(bs[b]);
-  }
-  var rb=document.getElementById("acRetry");
-  if(rb) rb.onclick=function(){ el.innerHTML='<div class="c-load">Loading the academy&hellip;</div>'; load(); };
-}
-load();
-setInterval(function(){ load(); },300000);
-})();
-</scr`+`ipt>
-</div>
-</template>`);
+    PF.holder().insertAdjacentHTML("beforeend",
+      '<template id="pf-ov-academy">'
+      +'<div id="pf-academy-slot"></div>'
+      +'<scr'+'ipt>window.PFAcademy.mount(document.getElementById("pf-academy-slot"));</scr'+'ipt>'
+      +'</template>');
+  }catch(e){}
+
+  /* (2) Creator HQ (/request-access): direct mount where the page provides
+     <div id="pf-academy-hq"></div>. Add that div to the page as a code block. */
+  try{
+    var hq=document.getElementById("pf-academy-hq");
+    if(hq) mount(hq);
+  }catch(e2){}
 })();

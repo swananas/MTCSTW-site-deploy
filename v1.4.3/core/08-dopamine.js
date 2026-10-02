@@ -4,6 +4,7 @@
  * Pure presentation layer: awards NOTHING, dispatches no economy events,
  * never touches the tally. Safe to call anywhere; no-ops gracefully when
  * PF.dope is missing (games must guard with window.PF&&PF.dope).
+ * KILL: ?pf_off=dopamine  or  localStorage pf_disabled_v1='["dopamine"]'
  * Usage:
  *   PF.dope.confetti(hostEl, 24)    — burst of n confetti pieces over hostEl
  *   PF.dope.xpFloat(hostEl, '+15 XP') — floating XP text that rises and fades
@@ -43,6 +44,7 @@
 
   function confetti(el,n){
     if(reduced) return;
+    try{ if(window.PF&&PF.skip&&PF.skip('dopamine')) return; }catch(e){}
     style();
     var h=host(el), count=Math.max(0,Math.min(120,n|0||20)), i, p;
     for(i=0;i<count;i++){
@@ -58,6 +60,7 @@
 
   function xpFloat(el,text){
     if(reduced||!text) return;
+    try{ if(window.PF&&PF.skip&&PF.skip('dopamine')) return; }catch(e){}
     style();
     var h=host(el), d=document.createElement('div');
     d.className='pf-dope-xpf';
@@ -68,6 +71,7 @@
 
   function ping(el,text){
     if(reduced||!text) return;
+    try{ if(window.PF&&PF.skip&&PF.skip('dopamine')) return; }catch(e){}
     style();
     var h=host(el), d=document.createElement('div');
     d.className='pf-dope-ping';
@@ -78,6 +82,7 @@
 
   function press(el){
     if(reduced||!el||!el.classList) return;
+    try{ if(window.PF&&PF.skip&&PF.skip('dopamine')) return; }catch(e){}
     style();
     el.classList.remove('pf-dope-press');
     void el.offsetWidth;

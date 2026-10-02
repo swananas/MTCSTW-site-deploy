@@ -305,6 +305,9 @@ function wire(id){
 function startCrashPoll(){
   if(crashTimer) return;
   crashTimer=setInterval(function(){
+    /* 2026-10-02: 5s cadence (was 2s) + skip when tab hidden — 30 req/min
+       per user was the heaviest poller on the site. */
+    try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){}
     var el=document.getElementById("csMult"); if(!el) return;
     api("crash_status",{},function(j){
       if(!j||!j.ok) return;
@@ -314,7 +317,7 @@ function startCrashPoll(){
         if(j.crashed){ m.className="cs-crashmult cs-crashed"; }
       }
     });
-  },2000);
+  },5000);
 }
 load();
 setInterval(function(){ load(); },120000);

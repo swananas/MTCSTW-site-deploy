@@ -51,16 +51,37 @@
     toast: function (msg) {
       /* canonical global toast — bottom-center, ~3s, propaganda poster
          aesthetic (black bg, red border, cream text). Core loads before
-         every silo, so all games can call PF.toast directly. */
+         every silo, so all games can call PF.toast directly.
+         Queued (2026-10-02): rapid messages stack sequentially instead of
+         overlapping — one visible at a time, FIFO. */
       try {
+        PF._toastQ = PF._toastQ || [];
+        PF._toastQ.push(String(msg));
+        if (!PF._toastBusy) PF._toastNext();
+      } catch (e) {}
+    },
+    _toastNext: function () {
+      try {
+        var q = PF._toastQ || [];
+        if (!q.length) { PF._toastBusy = false; return; }
+        PF._toastBusy = true;
+        var msg = q.shift();
         var t = document.createElement('div'); t.textContent = msg;
         t.style.cssText = 'position:fixed;left:50%;bottom:8%;transform:translateX(-50%);background:#0a0a0a;color:#f5f0e1;font:bold 15px monospace;padding:12px 22px;border:2px solid #c1121f;z-index:99999;max-width:90vw;text-align:center;box-sizing:border-box';
-        document.body.appendChild(t); setTimeout(function () { t.remove(); }, 3000);
-      } catch (e) {}
+        document.body.appendChild(t);
+        setTimeout(function () { try { t.remove(); } catch (e) {} PF._toastNext(); }, 3000);
+      } catch (e) { try { PF._toastBusy = false; } catch (e2) {} }
     },
     report: function (action) {
       /* canonical backend report; core/03-global.js owns the transport */
       try { if (typeof window.pfReportAction === 'function') window.pfReportAction(action); } catch (e) {}
+    },
+    /* Visibility helper (2026-10-02): aggressive pollers should skip backend
+       calls when the tab is hidden. PF.hidden() returns true when the page
+       is not visible. Usage in a poller:
+         setInterval(function(){ if(PF.hidden()) return; ...poll...; }, 5000); */
+    hidden: function () {
+      try { return !!(document.hidden || document.webkitHidden); } catch (e) { return false; }
     },
     /* Shared date helpers (single copies; games must not redefine these).
        chiNow: now in America/Chicago. mondayOf: Monday 00:00 of d's week.
@@ -974,6 +995,7 @@ document.addEventListener("pf-tally-settle",function(e){
  * Pure presentation layer: awards NOTHING, dispatches no economy events,
  * never touches the tally. Safe to call anywhere; no-ops gracefully when
  * PF.dope is missing (games must guard with window.PF&&PF.dope).
+ * KILL: ?pf_off=dopamine  or  localStorage pf_disabled_v1='["dopamine"]'
  * Usage:
  *   PF.dope.confetti(hostEl, 24)    — burst of n confetti pieces over hostEl
  *   PF.dope.xpFloat(hostEl, '+15 XP') — floating XP text that rises and fades
@@ -1013,6 +1035,7 @@ document.addEventListener("pf-tally-settle",function(e){
 
   function confetti(el,n){
     if(reduced) return;
+    try{ if(window.PF&&PF.skip&&PF.skip('dopamine')) return; }catch(e){}
     style();
     var h=host(el), count=Math.max(0,Math.min(120,n|0||20)), i, p;
     for(i=0;i<count;i++){
@@ -1028,6 +1051,7 @@ document.addEventListener("pf-tally-settle",function(e){
 
   function xpFloat(el,text){
     if(reduced||!text) return;
+    try{ if(window.PF&&PF.skip&&PF.skip('dopamine')) return; }catch(e){}
     style();
     var h=host(el), d=document.createElement('div');
     d.className='pf-dope-xpf';
@@ -1038,6 +1062,7 @@ document.addEventListener("pf-tally-settle",function(e){
 
   function ping(el,text){
     if(reduced||!text) return;
+    try{ if(window.PF&&PF.skip&&PF.skip('dopamine')) return; }catch(e){}
     style();
     var h=host(el), d=document.createElement('div');
     d.className='pf-dope-ping';
@@ -1048,6 +1073,7 @@ document.addEventListener("pf-tally-settle",function(e){
 
   function press(el){
     if(reduced||!el||!el.classList) return;
+    try{ if(window.PF&&PF.skip&&PF.skip('dopamine')) return; }catch(e){}
     style();
     el.classList.remove('pf-dope-press');
     void el.offsetWidth;

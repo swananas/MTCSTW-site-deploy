@@ -1197,10 +1197,11 @@ syncFromServer();
    POST {type:"loot",l_action:"loot_open"} | {type:"streak",str_action:"streak_freeze_buy"|"streak_repair"} | {type:"comeback",cb_action:"comeback_claim"}
    GET comeback_check -> {ok, eligible, xp}
    Until the backend lands, every section degrades to a "warming up" state.
-   Site-wide overlays (injected to body): level-up celebration (listens for the
-   pf-promoted event the ranks silo already dispatches), lucky-bonus toast
+   Site-wide overlays (injected to body): lucky-bonus toast
    (listens for pf:lucky; also fires when any post() response carries j.lucky),
    comeback banner. Combo meter listens for pf-combo-hit events.
+   (2026-10-02: the pf-promoted level-up modal was removed — the pinup poster
+   in core/06-pinups.js is the canonical rank-up celebration.)
    KILL: ?pf_off=dopa  or  localStorage pf_disabled_v1='["dopa"]' */
 (function () {
   'use strict';
@@ -1564,30 +1565,6 @@ try{
     luckyToast(d.xp||0,d.mult||0);
   });
 }catch(e){}
-function sharePromotion(rankName){
-  try{
-    var c=document.createElement("canvas"); c.width=1080; c.height=1080;
-    var g=c.getContext("2d");
-    g.fillStyle="#160b0b"; g.fillRect(0,0,1080,1080);
-    g.strokeStyle="#c1121f"; g.lineWidth=24; g.strokeRect(24,24,1032,1032);
-    g.fillStyle="#e8b10c"; g.font="bold 54px monospace"; g.textAlign="center";
-    g.fillText("PROMOTED",540,300);
-    g.fillStyle="#f5ead6"; g.font="bold 110px monospace";
-    var rn=String(rankName||"VANGUARD").toUpperCase();
-    if(rn.length>10){ g.font="bold 78px monospace"; }
-    g.fillText(rn,540,480);
-    var cs=""; try{ cs=String(window.PFCallsign?window.PFCallsign():"").toUpperCase(); }catch(e2){}
-    g.fillStyle="#c9bfa8"; g.font="bold 44px monospace";
-    if(cs) g.fillText("FIGHTING AS "+cs,540,600);
-    g.fillStyle="#c1121f"; g.font="bold 72px monospace";
-    g.fillText("JOIN THE FIGHT.",540,780);
-    g.fillStyle="#f5ead6"; g.font="bold 48px monospace";
-    g.fillText("MTCSTW.COM",540,880);
-    var a=document.createElement("a");
-    a.download="promotion-"+rn.toLowerCase().replace(/[^a-z0-9]+/g,"-")+".png";
-    a.href=c.toDataURL("image/png"); a.click();
-  }catch(e){}
-}
 function shareLoot(reward,rk){
   try{
     var c=document.createElement("canvas"); c.width=1080; c.height=1080;
@@ -1617,30 +1594,6 @@ function shareLoot(reward,rk){
     try{ document.dispatchEvent(new CustomEvent("pf-content-shared",{detail:{kind:"loot"}})); }catch(e3){}
   }catch(e){}
 }
-function levelUpOverlay(rankName){
-  ovCss();
-  try{
-    if(document.getElementById("dpLvlOv")) return;
-    var d=document.createElement("div");
-    d.id="dpLvlOv"; d.className="dp-overlay";
-    d.innerHTML='<div class="dp-lvlup"><h1>&#9733; PROMOTION &#9733;</h1>'
-      +'<div class="dp-rankname">'+esc(String(rankName||"VANGUARD"))+'</div>'
-      +'<div class="dp-sub">The movement sees you. Keep climbing.</div>'
-      +'<div><button class="c-btn" id="dpSharePromo">SHARE YOUR PROMOTION</button> '
-      +'<button class="c-btn" id="dpLvlClose">KEEP FIGHTING</button></div></div>';
-    document.body.appendChild(d);
-    try{ if(window.PF&&PF.dope){ PF.dope.confetti(d,90); } }catch(e){}
-    var sp=document.getElementById("dpSharePromo");
-    if(sp){ sp.onclick=function(){ sharePromotion(rankName); }; }
-    var cl=document.getElementById("dpLvlClose");
-    if(cl){ cl.onclick=function(){ if(d.parentNode) d.parentNode.removeChild(d); }; }
-  }catch(e){}
-}
-try{
-  document.addEventListener("pf-promoted",function(e){
-    var t=(e&&e.detail&&e.detail.tier)||"VANGUARD";
-    levelUpOverlay(t);
-  });
 }catch(e){}
 function comebackBanner(xp){
   ovCss();
@@ -2667,14 +2620,17 @@ function doneFor(a){
 }
 function render(){
   var s=load(), tier=tierOf(s.xp), idx=TIERS.indexOf(tier);
-  /* Promotion fanfare: crossing a tier threshold gets a celebration, once. */
+  /* Promotion fanfare: crossing a tier threshold gets a celebration, once.
+     2026-10-02 unification: the pinup poster (core/06-pinups.js) is the
+     canonical rank-up celebration (queued, shareable). This keeps only the
+     lightweight confetti burst; the redundant dopamine full-screen modal
+     was removed. The pf-promoted dispatch is retired with it. */
   try{
     var seenT=parseInt(localStorage.getItem("pf_tier_seen_v1")||"0",10)||0;
     if(idx>seenT){
       try{ localStorage.setItem("pf_tier_seen_v1",String(idx)); }catch(e2){}
       var host=document.getElementById("pf-ranks")||document.body;
       if(window.PF&&PF.dope){ PF.dope.confetti(host,60); PF.dope.ping(host,"PROMOTED TO "+tier[0]); }
-      try{ document.dispatchEvent(new CustomEvent("pf-promoted",{detail:{tier:tier[0]}})); }catch(e3){}
     }
   }catch(e){}
   document.getElementById("rBadge").textContent=tier[0];

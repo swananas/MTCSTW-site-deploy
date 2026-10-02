@@ -277,6 +277,7 @@ function flashXp(){
 }
 function pollTotals(){
   if(!cur||!cur.live)return;
+  try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){}
   apiGet({action:'infight_totals',round:cur.id},function(j){
     if(j&&j.ok&&j.round===cur.id&&j.totals){totals=j.totals;pending={};updateBars();}
   },8000);

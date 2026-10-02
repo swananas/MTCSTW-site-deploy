@@ -61,7 +61,9 @@ function jsLazy(){
   var fired=false;
   function fire(){
     if(fired)return;fired=true;
-    loadBundle(JS_LAZY[0],function(){loadBundle(JS_LAZY[1]);});
+    /* 2026-10-02: load lazy bundles in parallel instead of sequentially —
+       economy no longer waits for the 480KB social bundle to parse. */
+    loadBundle(JS_LAZY[0]); loadBundle(JS_LAZY[1]);
   }
   var host=document.getElementById('pf-v2');
   if(!host){fire();return;}

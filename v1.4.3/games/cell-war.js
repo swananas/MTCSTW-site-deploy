@@ -136,7 +136,7 @@ function load(){
   api("cellwar_standings",{callsign:id.callsign},render);
 }
 load();
-setInterval(load,60000);
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },60000);
 })();
 <\/script>
 </template>`);

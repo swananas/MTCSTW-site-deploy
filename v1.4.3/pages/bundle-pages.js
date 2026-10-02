@@ -32,6 +32,14 @@
   var ORDER = [
     ['brief', 'pf-ov-brief'],
     ['daily-orders', 'pf-ov-orders'],
+    /* 2026-10-02: high-impact widgets mount first — live totals, rank
+       identity, weekly vote, revenue, and top games lead the page. */
+    ['do-meter', 'pf-ov-dometer'],
+    ['enlistment-ranks', 'pf-ov-ranks'],
+    ['fan-vote', 'pf-ov-vote'],
+    ['war-bonds', 'pf-ov-bonds'],
+    ['caption-combat', 'pf-ov-caption'],
+    ['academy', 'pf-ov-academy'],
     ['hq-nudge', 'pf-ov-hq-nudge'],
     ['socialproof', 'pf-ov-socialproof'],
     ['dopa', 'pf-ov-dopa'],
@@ -40,7 +48,6 @@
     ['referral', 'pf-ov-referral'],
     ['feed', 'pf-ov-feed'],
     ['bounties', 'pf-ov-bounties'],
-    ['academy', 'pf-ov-academy'],
     ['assist', 'pf-ov-assist'],
     ['alerts', 'pf-ov-alerts'],
     ['archive', 'pf-ov-archive'],
@@ -49,18 +56,15 @@
     ['cells', 'pf-ov-cells'],
     ['cell-war', 'pf-ov-cellwar'],
     ['contracts', 'pf-ov-contracts'],
-    ['fan-vote', 'pf-ov-vote'],
     ['infighting', 'pf-ov-infight'],
     ['slr-match-quiz', 'pf-ov-matchquiz'],
     ['creator-guess', 'pf-ov-guess'],
     ['bracket-board', 'pf-ov-bracket'],
     ['boost-raid', 'pf-ov-raid'],
-    ['do-meter', 'pf-ov-dometer'],
     ['daily-drop', 'pf-ov-drop'],
     ['billionaire-supervillain', 'pf-ov-billionaire'],
     ['daily-interrogation', 'pf-ov-interrogation'],
     ['media-nuke', 'pf-ov-nuke'],
-    ['caption-combat', 'pf-ov-caption'],
     ['poster-forge', 'pf-ov-poster'],
     ['battles', 'pf-ov-battles'],
     ['video', 'pf-ov-video'],
@@ -71,8 +75,6 @@
     ['earnings', 'pf-ov-earnings'],
     ['dash', 'pf-ov-dash'],
     ['casino', 'pf-ov-casino'],
-    ['enlistment-ranks', 'pf-ov-ranks'],
-    ['war-bonds', 'pf-ov-bonds'],
     ['vault', 'pf-ov-vault']
   ];
 

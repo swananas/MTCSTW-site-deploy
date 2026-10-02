@@ -1233,7 +1233,7 @@ function render(){
         var cid=b.getAttribute("data-cid"), v=b.getAttribute("data-v");
         if(!id.callsign){ toast("Claim a callsign to vote."); return; }
         b.disabled=true;
-        postX("reputation","rep_action","vote",{content_id:cid,callsign:id.callsign,device:id.device,vote:Number(v)},function(j){
+        postX("reputation","rep_action","reputation_vote",{content_id:cid,callsign:id.callsign,device:id.device,vote:Number(v)},function(j){
           b.disabled=false;
           toast(j&&j.ok?"Vote recorded.":"Vote failed.");
         });
@@ -1269,7 +1269,7 @@ function render(){
         var when=window.prompt("When? (YYYY-MM-DD HH:MM, Chicago time)", "");
         if(!when){ return; }
         b.disabled=true;
-        postX("schedule","s_action","add",{content_id:cid,title:title,callsign:id.callsign,device:id.device,platform:String(plat).toLowerCase().slice(0,16),send_at:String(when).slice(0,32)},function(j){
+        postX("schedule","s_action","schedule_add",{content_id:cid,title:title,callsign:id.callsign,device:id.device,platform:String(plat).toLowerCase().slice(0,16),send_at:String(when).slice(0,32)},function(j){
           b.disabled=false;
           if(j&&j.ok){ toast("Scheduled. It will fire from the queue."); load(); }
           else toast((j&&j.err)||"Schedule failed.");
@@ -2651,9 +2651,11 @@ function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,
 function load(k,fb){ try{ return JSON.parse(localStorage.getItem(k)||JSON.stringify(fb)); }catch(e){ return fb; } }
 function save(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
 function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
-function toast(m){ try{ var t=document.createElement("div"); t.textContent=m;
-  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
-  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e){} }
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  /* Fallback only if core hasn't loaded yet — matches PF.toast styling. */
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;bottom:8%;transform:translateX(-50%);background:#0a0a0a;color:#f5f0e1;font:bold 15px monospace;padding:12px 22px;border:2px solid #c1121f;z-index:99999;max-width:90vw;text-align:center;box-sizing:border-box";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
 /* JSONP, same pattern as the other games. 12s timeout: a hung Apps Script
    request must never wedge the section on its loading text. */
 /* P0 (2026-10-02): cell mutations are POST-only (CSRF-able via GET).
@@ -4329,7 +4331,7 @@ function load(){
   api("cellwar_standings",{callsign:id.callsign},render);
 }
 load();
-setInterval(load,60000);
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },60000);
 })();
 <\/script>
 </template>`);
@@ -5317,6 +5319,7 @@ function flashXp(){
 }
 function pollTotals(){
   if(!cur||!cur.live)return;
+  try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){}
   apiGet({action:'infight_totals',round:cur.id},function(j){
     if(j&&j.ok&&j.round===cur.id&&j.totals){totals=j.totals;pending={};updateBars();}
   },8000);

@@ -406,14 +406,17 @@ function doneFor(a){
 }
 function render(){
   var s=load(), tier=tierOf(s.xp), idx=TIERS.indexOf(tier);
-  /* Promotion fanfare: crossing a tier threshold gets a celebration, once. */
+  /* Promotion fanfare: crossing a tier threshold gets a celebration, once.
+     2026-10-02 unification: the pinup poster (core/06-pinups.js) is the
+     canonical rank-up celebration (queued, shareable). This keeps only the
+     lightweight confetti burst; the redundant dopamine full-screen modal
+     was removed. The pf-promoted dispatch is retired with it. */
   try{
     var seenT=parseInt(localStorage.getItem("pf_tier_seen_v1")||"0",10)||0;
     if(idx>seenT){
       try{ localStorage.setItem("pf_tier_seen_v1",String(idx)); }catch(e2){}
       var host=document.getElementById("pf-ranks")||document.body;
       if(window.PF&&PF.dope){ PF.dope.confetti(host,60); PF.dope.ping(host,"PROMOTED TO "+tier[0]); }
-      try{ document.dispatchEvent(new CustomEvent("pf-promoted",{detail:{tier:tier[0]}})); }catch(e3){}
     }
   }catch(e){}
   document.getElementById("rBadge").textContent=tier[0];

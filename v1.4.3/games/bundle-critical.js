@@ -1,1 +1,3148 @@
-!function(){"use strict";var e=window.PF;e.skip("brief")||e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-brief">\n<div class="fe-block pf-override-block pf-silo" id="pf-brief">\n<h2>Morning Briefing</h2>\n<div class="c-tag">Your war, at a glance. Thirty seconds, then move.</div>\n<div id="xBrief"><div class="c-load">Assembling your briefing&hellip;</div></div>\n</div>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\n/* Election Day fallback for the season frame. Local midnight. */\nvar ELECTION=new Date(2026,10,3,0,0,0,0).getTime();\n/* Rank tiers mirror games/enlistment-ranks.js. */\nvar TIERS=[["RECRUIT",0],["AGITATOR",25],["CADRE",75],["COMMISSAR",150],["ARCHITECT",300]];\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}\n  try{ var t=document.createElement("div"); t.textContent=m;\n  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";\n  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }\n/* JSONP GET for reads. */\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  var fn="pfBrCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\n/* CORS POST for writes. */\nfunction dopaPost(type,actionKey,action,params,cb){\n  var body=Object.assign({type:type},params);\n  body[actionKey]=action;\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }\n  var bodyStr=JSON.stringify(body);\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr})\n      .then(function(r){ return r.json(); })\n      .then(function(j){ done(j); })\n      .catch(function(){ done(null); });\n  }catch(e){ done(null); }\n}\n/* CORS POST for writes. */\nfunction post(cAction,params,cb){\n  var body=Object.assign({type:"brief",b_action:cAction},params);\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }\n  var bodyStr=JSON.stringify(body);\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr})\n      .then(function(r){ return r.json(); })\n      .then(function(j){ done(j); })\n      .catch(function(){ done(null); });\n  }catch(e){ done(null); }\n}\nfunction go(siloId){\n  try{\n    var el=document.getElementById(siloId);\n    if(el){ el.scrollIntoView({behavior:"smooth",block:"start"}); return; }\n  }catch(e){}\n}\nfunction tierOf(xp){\n  var t=TIERS[0], next=null;\n  for(var i=0;i<TIERS.length;i++){ if(xp>=TIERS[i][1]){ t=TIERS[i]; next=TIERS[i+1]||null; } }\n  return {cur:t,next:next};\n}\nfunction fmtCountdown(ms){\n  if(ms<=0) return "NOW";\n  var s=Math.floor(ms/1000), h=Math.floor(s/3600), m=Math.floor((s%3600)/60), ss=s%60;\n  function p(n){ return (n<10?"0":"")+n; }\n  if(h>48) return Math.floor(h/24)+"D "+(h%24)+"H";\n  return h+"H "+p(m)+"M "+p(ss)+"S";\n}\nfunction fmtHours(ms){\n  if(ms<=0) return "NOW";\n  var h=Math.floor(ms/3600000), m=Math.floor((ms%3600000)/60000);\n  return h+"H "+(m<10?"0":"")+m+"M";\n}\nvar BAL=null,STREAK=null,LOOT=null,FLASH=null,COMEBACK=null,PROP=null,CELL=null,MISS=null,STAT=null,SEASON=null,BRIEF=null;\nvar N_CALLS=11;\nfunction load(){\n  var id=ident(), done=false, n=0;\n  function fin(){ if(done)return; done=true; render(); }\n  function one(){ n++; if(n>=N_CALLS) fin(); }\n  setTimeout(fin,15000);\n  /* Dedicated endpoints first (no-ops until the backend ships). */\n  api("briefing",{callsign:id.callsign,device:id.device},function(j){ BRIEF=(j&&j.ok)?j:null; one(); });\n  api("season_current",{},function(j){ SEASON=(j&&j.ok)?j.season:null; one(); });\n  /* Aggregate the silos directly — this is the cement. */\n  api("xp_balance",{callsign:id.callsign},function(j){ BAL=j; one(); });\n  api("streak_status",{callsign:id.callsign,device:id.device},function(j){ STREAK=(j&&j.ok)?j:null; one(); });\n  api("loot_status",{callsign:id.callsign,device:id.device},function(j){ LOOT=(j&&j.ok)?j:null; one(); });\n  api("flash_active",{},function(j){ FLASH=j; one(); });\n  api("comeback_check",{callsign:id.callsign,device:id.device},function(j){ COMEBACK=(j&&j.ok&&j.eligible)?j:null; one(); });\n  api("proposal_list",{},function(j){ PROP=j; one(); });\n  api("cell_mine",{callsign:id.callsign,device:id.device},function(j){ CELL=(j&&j.ok)?j:null; one(); });\n  api("campaign_missions",{callsign:id.callsign,device:id.device},function(j){ MISS=j; one(); });\n  api("campaign_status",{},function(j){ STAT=j; one(); });\n}\nfunction seasonInfo(){\n  if(SEASON){\n    return { name:String(SEASON.name||"THE 32-DAY OFFENSIVE"),\n      endsAt:Number(SEASON.ends_at||ELECTION),\n      goal:Number(SEASON.goal||1000), progress:Number(SEASON.progress||0) };\n  }\n  var pledges=0,acts=0,goal=1000;\n  try{\n    if(STAT){ pledges=Number(STAT.pledges)||0; acts=Number(STAT.actions)||0; goal=Number(STAT.goal)||1000; }\n  }catch(e){}\n  return { name:"THE 32-DAY OFFENSIVE", endsAt:ELECTION, goal:goal, progress:pledges+acts };\n}\nfunction render(){\n  var el=document.getElementById("xBrief"); if(!el) return;\n  var id=ident(), h="";\n  if(!id.callsign){\n    el.innerHTML=\'<div class="br-gate">Briefings run on callsigns. Claim yours in Enlistment Ranks, then report back here.</div>\'\n      +\'<div style="margin-top:10px"><button class="c-btn" onclick="document.getElementById(\'pf-ranks\')&&document.getElementById(\'pf-ranks\').scrollIntoView({behavior:\'smooth\'})">ENLIST</button></div>\';\n    renderSeasonBanner();\n    return;\n  }\n  var xp=0;\n  try{ xp=Number((BAL&&(BAL.balance!=null?BAL.balance:BAL.xp))||0); }catch(e){}\n  var t=tierOf(xp);\n  var streakN=0, streakRisk=false, streakHrs="";\n  try{\n    if(STREAK){ streakN=Number(STREAK.count)||0; streakRisk=!!STREAK.at_risk;\n      if(streakRisk&&STREAK.hours_left) streakHrs=fmtHours(Number(STREAK.hours_left)*3600000); }\n  }catch(e){}\n  /* ---------- 1. SOLDIER HEADER ---------- */\n  h+=\'<div class="br-head"><div class="br-id"><div class="br-cs">\'+esc(id.callsign)+\'</div>\'\n    +\'<div class="br-rank">\'+esc(t.cur[0])+\'</div></div>\'\n    +\'<div class="br-stats"><div class="br-stat"><span class="br-v">\'+xp+\'</span><span class="br-l">XP</span></div>\'\n    +\'<div class="br-stat"><span class="br-v">\'+(streakN>0?("🔥"+streakN):"—")+\'</span><span class="br-l">STREAK</span></div></div></div>\';\n  if(t.next){\n    var lo=t.cur[1], hi=t.next[1], pct=Math.min(100,Math.max(0,Math.round((xp-lo)/Math.max(1,hi-lo)*100)));\n    h+=\'<div class="br-tierwrap"><div class="br-tierbar"><div class="br-tierfill" style="width:\'+pct+\'%"></div></div>\'\n      +\'<div class="x-note">\'+(hi-xp)+\' XP to \'+esc(t.next[0])+\' &mdash; \'+pct+\'%</div></div>\';\n  } else {\n    h+=\'<div class="br-tierwrap"><div class="x-note">MAX RANK. You are the vanguard.</div></div>\';\n  }\n  /* ---------- 2. URGENT ---------- */\n  var urg=[];\n  if(streakRisk){\n    urg.push({t:"STREAK AT RISK",d:"Your "+streakN+"-day streak dies in "+streakHrs+". Check in or lose it.",\n      btn:"SAVE STREAK",go:"pf-dopa"});\n  }\n  try{\n    if(LOOT&&LOOT.can_claim) urg.push({t:"LOOT CRATE READY",d:"Today\'s crate is unopened. Something\'s inside.",\n      btn:"OPEN CRATE",go:"pf-dopa"});\n  }catch(e){}\n  try{\n    var ps=(PROP&&PROP.proposals)||[], now=Date.now(), closing=0;\n    for(var pi=0;pi<ps.length;pi++){ var p=ps[pi];\n      if(String(p.status||"open")==="open"&&Number(p.closes_at||0)>now&&Number(p.closes_at||0)-now<86400000) closing++; }\n    if(closing>0) urg.push({t:closing+" VOTE"+(closing>1?"S":"")+" CLOSING",d:"Assembly proposals close within 24 hours. Your weight matters.",\n      btn:"VOTE NOW",go:"pf-gov"});\n  }catch(e){}\n  if(COMEBACK){\n    urg.push({t:"XP WAITING",d:"We saved "+Number(COMEBACK.xp||50)+" XP for your return.",\n      btn:"CLAIM",act:"comeback"});\n  }\n  if(urg.length){\n    h+=\'<div class="br-sec"><div class="br-sect">⚠ URGENT</div>\';\n    for(var u=0;u<urg.length;u++){ var ug=urg[u];\n      h+=\'<div class="br-urg"><div class="br-ut">\'+esc(ug.t)+\'</div><div class="x-note">\'+esc(ug.d)+\'</div>\'\n        +\'<button class="c-btn br-ubtn"\'+(ug.go?(\' data-go="\'+ug.go+\'"\'):\'\')+(ug.act?(\' data-act="\'+ug.act+\'"\'):\'\')+\'>\'+esc(ug.btn)+\'</button></div>\';\n    }\n    h+=\'</div>\';\n  }\n  /* ---------- 3. TODAY\'S ORDERS ---------- */\n  h+=\'<div class="br-sec"><div class="br-sect">TODAY&rsquo;S ORDERS</div>\';\n  var ms=[]; try{ ms=((MISS&&MISS.missions)||[]).filter(function(m){ return !m.done; }); }catch(e){}\n  var shown=0;\n  for(var mi=0;mi<ms.length&&shown<4;mi++,shown++){ var m=ms[mi];\n    h+=\'<div class="br-order"><span class="br-oname">\'+esc(m.label||m.id)+\'</span>\'\n      +\'<span class="br-oxp">+\'+(Number(m.xp)||10)+\' XP</span></div>\';\n  }\n  var fe=[]; try{ fe=(FLASH&&(FLASH.events||[]))||[]; }catch(e){}\n  for(var fi=0;fi<fe.length;fi++){ var f=fe[fi];\n    var endsMs=Number(f.ends_in||0)*1000;\n    h+=\'<div class="br-order br-flash"><span class="br-oname">⚡ \'+esc(f.title||"FLASH EVENT")+\' &mdash; \'+esc(String(f.multiplier||"2"))+\'X XP</span>\'\n      +\'<span class="br-oxp br-tick" data-ends="\'+(Date.now()+endsMs)+\'">\'+fmtCountdown(endsMs)+\'</span></div>\';\n  }\n  if(!ms.length&&!fe.length){ h+=\'<div class="x-note">Orders incoming. Check Daily Orders for the full board.</div>\'; }\n  h+=\'<div style="margin-top:8px"><button class="c-btn" data-go="pf-orders">FULL ORDER BOARD</button></div></div>\';\n  /* ---------- 4. YOUR CELL ---------- */\n  h+=\'<div class="br-sec"><div class="br-sect">YOUR CELL</div>\';\n  try{\n    if(CELL&&CELL.in_cell){\n      var cl=(CELL.cells&&CELL.cells[0])||null;\n      var cname=cl?cl.name:((CELL.cell&&CELL.cell.name)||"YOUR CELL");\n      var mems=cl?Number(cl.members)||0:0, act=cl?Number(cl.active_week)||0:0;\n      h+=\'<div class="br-cell"><span class="br-cname">\'+esc(cname)+\'</span>\'\n        +\'<span class="x-note">\'+mems+\' soldiers &bull; \'+act+\' active this week</span></div>\'\n        +\'<div style="margin-top:8px"><button class="c-btn" data-go="pf-cells">RALLY THE CELL</button></div>\';\n    } else {\n      h+=\'<div class="x-note">No cell. Soldiers fight together or not at all.</div>\'\n        +\'<div style="margin-top:8px"><button class="c-btn" data-go="pf-cells">FIND YOUR CELL</button></div>\';\n    }\n  }catch(e){ h+=\'<div class="x-note">Cell intel unavailable.</div>\'; }\n  h+=\'</div>\';\n  /* ---------- 5. SEASON PROGRESS ---------- */\n  var sn=seasonInfo();\n  var dl=Math.max(0,Math.ceil((sn.endsAt-Date.now())/86400000));\n  var spct=Math.min(100,Math.round(sn.progress/Math.max(1,sn.goal)*100));\n  h+=\'<div class="br-sec"><div class="br-sect">\'+esc(sn.name)+\'</div>\'\n    +\'<div class="br-seasonline"><span>\'+dl+\' DAYS LEFT</span><span>\'+spct+\'% OF GOAL</span></div>\'\n    +\'<div class="br-tierwrap"><div class="br-tierbar"><div class="br-tierfill br-war" style="width:\'+spct+\'%"></div></div></div>\'\n    +\'<div class="x-note">Day \'+(32-dl)+\' of 32 &mdash; \'+sn.progress+\' / \'+sn.goal+\' actions</div></div>\';\n  /* ---------- 6. UNCLAIMED ---------- */\n  var un=[];\n  try{ if(LOOT&&LOOT.can_claim) un.push("Loot crate (today)"); }catch(e){}\n  if(COMEBACK) un.push(Number(COMEBACK.xp||50)+" XP comeback bonus");\n  if(un.length){\n    h+=\'<div class="br-sec"><div class="br-sect">UNCLAIMED</div><div class="x-note">You have \'+un.length+\' thing\'+(un.length>1?"s":"")+\' waiting:</div>\';\n    for(var ui=0;ui<un.length;ui++){ h+=\'<div class="br-order"><span class="br-oname">\'+esc(un[ui])+\'</span></div>\'; }\n    h+=\'<div style="margin-top:8px"><button class="c-btn" data-go="pf-dopa">COLLECT</button></div></div>\';\n  }\n  el.innerHTML=h;\n  /* wire nav buttons */\n  var btns=el.querySelectorAll("button[data-go]");\n  for(var b=0;b<btns.length;b++){\n    (function(btn){ btn.onclick=function(){ go(btn.getAttribute("data-go")); }; })(btns[b]);\n  }\n  var acts=el.querySelectorAll("button[data-act=\'comeback\']");\n  for(var a=0;a<acts.length;a++){\n    (function(btn){ btn.onclick=function(){\n      btn.disabled=true; btn.textContent="CLAIMING...";\n      var id2=ident();\n      dopaPost("comeback","cb_action","comeback_claim",{callsign:id2.callsign,device:id2.device},function(j){\n        if(j&&j.ok){ toast("Welcome back. +"+Number(j.xp||50)+" XP."); }\n        else { toast((j&&j.err)||"Claim failed."); btn.disabled=false; btn.textContent="CLAIM"; return; }\n        load();\n      });\n    }; })(acts[a]);\n  }\n  renderSeasonBanner();\n  tick();\n}\n/* per-second countdowns for flash timers */\nfunction tick(){\n  try{\n    var els=document.querySelectorAll("#xBrief .br-tick");\n    for(var i=0;i<els.length;i++){\n      var ends=Number(els[i].getAttribute("data-ends")||0);\n      els[i].textContent=fmtCountdown(ends-Date.now());\n    }\n  }catch(e){}\n}\n/* ---------- season banner: thin fixed strip, always visible ---------- */\nfunction bannerCss(){\n  if(document.getElementById("pf-brief-css")) return;\n  var s=document.createElement("style"); s.id="pf-brief-css";\n  s.textContent=\n    "#pf-brief .br-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:6px 0 10px}"\n    +"#pf-brief .br-cs{font:bold 22px monospace;color:#fff;letter-spacing:1px}"\n    +"#pf-brief .br-rank{display:inline-block;margin-top:4px;font:bold 11px monospace;color:#0a0a0a;background:#e8b64c;padding:3px 10px;border-radius:2px}"\n    +"#pf-brief .br-stats{display:flex;gap:14px}"\n    +"#pf-brief .br-stat{display:flex;flex-direction:column;align-items:center}"\n    +"#pf-brief .br-v{font:bold 20px monospace;color:#e8b64c}"\n    +"#pf-brief .br-l{font:10px monospace;color:#888;letter-spacing:1px}"\n    +"#pf-brief .br-tierwrap{margin:0 0 12px}"\n    +"#pf-brief .br-tierbar{height:8px;background:#222;border:1px solid #444;border-radius:4px;overflow:hidden}"\n    +"#pf-brief .br-tierfill{height:100%;background:#e8b64c;transition:width .5s}"\n    +"#pf-brief .br-tierfill.br-war{background:#c1121f}"\n    +"#pf-brief .br-sec{margin:14px 0;padding:12px;border:1px solid #333;background:#101010}"\n    +"#pf-brief .br-sect{font:bold 13px monospace;color:#c1121f;letter-spacing:2px;margin-bottom:10px}"\n    +"#pf-brief .br-urg{border:2px solid #c1121f;background:#1a0505;padding:10px;margin-bottom:8px}"\n    +"#pf-brief .br-ut{font:bold 13px monospace;color:#ff6b6b;margin-bottom:4px}"\n    +"#pf-brief .br-ubtn{margin-top:8px}"\n    +"#pf-brief .br-order{display:flex;justify-content:space-between;align-items:center;padding:8px 4px;border-bottom:1px solid #222;font:13px monospace;color:#ddd}"\n    +"#pf-brief .br-oxp{color:#e8b64c;font-weight:bold;white-space:nowrap;margin-left:10px}"\n    +"#pf-brief .br-flash{border:1px solid #e8b64c;background:#141003;padding:8px}"\n    +"#pf-brief .br-cell .br-cname{font:bold 16px monospace;color:#fff}"\n    +"#pf-brief .br-seasonline{display:flex;justify-content:space-between;font:bold 12px monospace;color:#ff6b6b;margin-bottom:8px}"\n    +"#pf-brief .br-gate{font:14px monospace;color:#ccc;padding:16px;border:1px dashed #666}"\n    +"#pf-seasonbar{position:fixed;top:0;left:0;right:0;z-index:99990;background:#0a0a0a;border-bottom:2px solid #c1121f;color:#fff;font:bold 12px monospace;padding:7px 12px;display:flex;align-items:center;gap:10px;letter-spacing:1px}"\n    +"#pf-seasonbar .sb-name{color:#ff6b6b;white-space:nowrap}"\n    +"#pf-seasonbar .sb-bar{flex:1;height:6px;background:#222;border-radius:3px;overflow:hidden;min-width:60px}"\n    +"#pf-seasonbar .sb-fill{height:100%;background:#c1121f}"\n    +"#pf-seasonbar .sb-days{color:#e8b64c;white-space:nowrap}";\n  document.head.appendChild(s);\n}\nfunction renderSeasonBanner(){\n  bannerCss();\n  try{\n    var sn=seasonInfo();\n    var dl=Math.max(0,Math.ceil((sn.endsAt-Date.now())/86400000));\n    var pct=Math.min(100,Math.round(sn.progress/Math.max(1,sn.goal)*100));\n    var bar=document.getElementById("pf-seasonbar");\n    if(!bar){\n      bar=document.createElement("div"); bar.id="pf-seasonbar";\n      document.body.appendChild(bar);\n    }\n    bar.innerHTML=\'<span class="sb-name">⚔ \'+esc(sn.name)+\'</span>\'\n      +\'<span class="sb-bar"><span class="sb-fill" style="display:block;width:\'+pct+\'%"></span></span>\'\n      +\'<span class="sb-days">\'+dl+\'D LEFT &bull; \'+pct+\'%</span>\';\n    /* keep clear of the dopamine comeback banner if it appears */\n    var top=0;\n    try{ if(document.getElementById("dpComeback")) top=42; }catch(e){}\n    bar.style.top=top+"px";\n    document.body.style.paddingTop=(36+top)+"px";\n  }catch(e){}\n}\nbannerCss();\nload();\nsetInterval(function(){ load(); },180000);\nsetInterval(tick,1000);\n/* keep the banner clear if the comeback banner mounts later */\nsetInterval(function(){\n  try{\n    var bar=document.getElementById("pf-seasonbar"); if(!bar) return;\n    var top=document.getElementById("dpComeback")?42:0;\n    if(bar.style.top!==top+"px"){ bar.style.top=top+"px"; document.body.style.paddingTop=(36+top)+"px"; }\n  }catch(e){}\n},2000);\n})();\n<\/script>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;e.skip("daily-orders")||e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-orders">\n<div class="fe-block pf-override-block" id="pf-orders">\n\n<h2>Daily Orders</h2>\n<div class="o-date" id="oDate"></div>\n<div class="o-dispatch" id="oDispatch"></div>\n<div class="o-meterwrap">\n  \n  <div class="o-meter" id="oMeter"></div>\n  <div class="o-combo" id="oCombo"></div>\n</div>\n<div class="o-warpath" id="oWarPath"></div>\n<div class="o-reset" id="oReset"></div>\n<div id="oMissions"></div>\n<div class="o-boost" id="oBoost"></div>\n<div class="o-patrons" id="oPatrons"></div>\n<div class="o-prog" id="oProg"></div>\n<div class="o-streak" id="oStreak"></div>\n<div class="o-next" id="oNext"></div>\n<div class="o-rankline" id="oRank"></div>\n<div class="o-loot" id="oLoot"></div>\n<div class="o-err" id="oErr"></div>\n<div class="o-note">3 orders (10 XP each) + 1 field op (+5) per day. Run all three plus the op for the +5 full-deployment command bonus. Every daily task on this page caps at 50 XP a day &mdash; your cell streak gets you there faster. Streak shields forgive a missed day. Today\'s Boost lets you tip earned XP to a creator at 1 XP = 2 signal.</div>\n<div><button class="o-shareimg" id="oShareImg">Share orders as image</button><div class="o-note" id="oShareCount"></div></div>\n<div class="o-claim" id="oClaimWrap">\n  <a id="oClaimToggle">Claim your rank on every device</a>\n  <div class="o-claimbox" id="oClaimBox">\n    <input aria-label="CALLSIGN" id="oCallsign" maxlength="20" placeholder="CALLSIGN" autocomplete="off" style="text-transform:uppercase">\n    <br><button class="o-claimbtn" id="oClaimBtn">Claim</button>\n    <div class="o-err" id="oClaimErr"></div>\n  </div>\n  <div class="o-who" id="oWho"></div>\n</div>\n\n<script>\n(function(){\nvar MISSIONS=[\n{t:"Like the latest post from 3 SLR creators you haven\'t engaged with this week."},\n{t:"Share one SLR creator\'s post to your story or feed. Pick your favorite.",share:1},\n{t:"Leave a genuine comment on a small SLR creator\'s latest video."},\n{t:"Like 5 SLR posts in a row. Speed round."},\n{t:"Comment one thoughtful question on any SLR creator\'s latest post."},\n{t:"Share any SLR creator\'s post — not mutual aid, just straight propaganda. Any post works, pick a banger.",share:1},\n{t:"Like and comment on the newest post from the lowest-ranked creator on the Ledger. Lift from the bottom."},\n{t:"Send one SLR creator\'s page to a group chat. Convert the group chat.",share:1},\n{t:"Quote-share an SLR post and add why it matters to you.",share:1},\n{t:"Drop a brick emoji in the comments of 3 SLR posts. Mark the territory."},\n{t:"Like every post from the last 7 days on one SLR creator\'s page. Deep like."},\n{t:"Share one SLR video to a group or community you\'re in.",share:1},\n{t:"Leave an encouraging comment on an SLR creator dealing with hate or burnout."},\n{t:"Like and comment on 2 SLR creators outside your usual niche."},\n{t:"Share the Liquidation Ledger and tag your #1 SLR creator.",share:1},\n{t:"Comment your favorite SLR creator\'s catchphrase under their latest post."},\n{t:"Like 3 SLR posts and reply to one commenter on each. Build the thread."},\n{t:"Share an old banger from an SLR creator\'s archive. Deep cut.",share:1},\n{t:"Comment on one SLR post with a class-first take that sharpens the argument."},\n{t:"Like and share one SLR creator\'s announcement — a show, a stream, a drop.",share:1},\n{t:"Duet or stitch one SLR creator\'s video with your own take.",share:1},\n{t:"Comment on 3 SLR posts from creators with different propaganda scores. Spread it around."},\n{t:"Share one SLR creator\'s post with someone who \'doesn\'t do politics\'.",share:1},\n{t:"Like the latest 5 posts from today\'s Propagandist of the Week."},\n{t:"Leave a real comment — 3 sentences or more — on one SLR video."},\n{t:"Share one SLR creator\'s catalog profile from this site with a friend.",share:1},\n{t:"Comment on one SLR post tagging another SLR creator who\'d vibe with it. Cross-pollinate."},\n{t:"Like and share a post from the newest SLR recruit. Welcome them in.",share:1},\n{t:"Post a screenshot of an SLR post you liked and say why it hit.",share:1},\n{t:"Rest. Like one SLR post, touch grass, come back tomorrow — the streak keeps."}\n];\nvar LOOT=["The machine sees you, agitator.","Another brick in the wall. Their wall. We\'re taking it apart.","Noted in the ledger. History will remember this one.","Discipline is propaganda too.","Small actions, compounded. That\'s the whole theory.","The algorithm didn\'t see it coming.","Report filed. The network grows.","You are the media now. Act like it."];\n/* FIELD OPS — the lynchpin: one cross-game bonus mission per day, rotating.\n   Doing the op in its home silo auto-completes it here and feeds the Do Meter. */\nvar FIELD_OPS=[\n {game:"fan-vote",ev:"pf-vote-cast",label:"Cast your Fan Vote ballot"},\n {game:"bracket-board",ev:"pf-bracket-ballot",label:"Call a Liquidation Bracket matchup"},\n {game:"caption-combat",ev:"pf-caption-submit",label:"Fire a caption in Caption Combat"},\n {game:"poster-forge",ev:"pf-poster-made",label:"Forge a propaganda poster"},\n {game:"slr-match-quiz",ev:"pf-quiz-done",label:"Find your SLR match"},\n {game:"creator-guess",ev:"pf-guess-done",label:"Play Guess the Creator"},\n {game:"boost-raid",ev:"pf-raid-report",label:"Report back on today\'s Boost Raid"},\n {game:"daily-drop",ev:"pf-drop-claimed",label:"Claim today\'s Daily Drop"}\n];\nvar OP_XP=5, CMD_XP=5;\nfunction fieldOp(){ return FIELD_OPS[dayOfYear()%FIELD_OPS.length]; }\n/* economy — every daily task on the page draws from one 50 XP/day pool (PF.claimDayXp).\n   3 orders x 10 + field op 5 + command bonus 5 = 45; the last 5 come from the\n   satellite dailies (raid, check-in, share, guess, poster, drop, billionaire,\n   interrogation). A perfect day lands exactly on 50. Cell streaks multiply\n   mission XP but the pool still caps at 50 — the bonus gets you there faster. */\nvar PER_DAY=3, BASE_XP=10, DAILY_MAX=50;\nvar PLATFORMS=[["tiktok","TikTok"],["facebook","Facebook"],["instagram","Instagram"],["x","X"],["youtube","YouTube"]];\nvar STREAK_BONUS={3:10,7:25,30:100};\nvar TIERS=[["RECRUIT",0],["AGITATOR",25],["CADRE",75],["COMMISSAR",150],["ARCHITECT",300]];\nvar LS_O="pf_orders_v1", LS_R="pf_ranks_v1", LS_I="pf_identity_v1";\n/* Single canonical backend: window.PF_BACKEND_URL (core/03-global.js). No hardcoded\n   exec URLs here — the old ranks-backend deployment this once pointed at is retired. */\nfunction beUrl(){ try{ return window.PF_BACKEND_URL||""; }catch(e){ return ""; } }\n\nfunction ymd(d){ return d.getFullYear()+\'-\'+(\'0\'+(d.getMonth()+1)).slice(-2)+\'-\'+(\'0\'+d.getDate()).slice(-2); }\nfunction today(){ return ymd(PF.chiNow()); }\nfunction yesterday(){ var d=PF.chiNow(); d.setDate(d.getDate()-1); return ymd(d); }\nfunction load(k,fb){ try{ return JSON.parse(localStorage.getItem(k)||JSON.stringify(fb)); }catch(e){ return fb; } }\nfunction save(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }\nfunction dayOfYear(){ var d=new Date(), s=new Date(d.getFullYear(),0,0); return Math.floor((d-s)/864e5); }\nfunction missionSet(){ var d=dayOfYear(), out=[]; for(var i=0;i<PER_DAY;i++) out.push((d*PER_DAY+i)%MISSIONS.length); return out; }\nfunction tierOf(xp){ var t=TIERS[0]; for(var i=0;i<TIERS.length;i++){ if(xp>=TIERS[i][1]) t=TIERS[i]; } return t; }\n\n/* today\'s record, with migration from v1 shape {days:{date:true}} */\nfunction dayRec(){\n  var o=load(LS_O,{streak:0,last:"",days:{}}), t=today(), r=o.days[t];\n  if(r===true) r={done:[{m:"legacy",p:null,g:0}],xp:0,bonusPaid:false};\n  if(!r||!r.done) r={done:[],xp:0,bonusPaid:false};\n  /* migrate old number-array format to {m,p,g} entries */\n  if(r.done.length&&typeof r.done[0]==="number"){\n    r.done=r.done.map(function(m,ix){ return {m:m,p:null,g:Math.min(10+5*ix,DAILY_MAX)}; });\n  }\n  if(typeof r.xp!=="number") r.xp=0;\n  return {o:o, rec:r};\n}\nfunction saveDay(o,rec){ o.days[today()]=rec; save(LS_O,o); }\n\nfunction ident(){ return load(LS_I,{});  }\n\n  function apiPost(obj,cb){\n if(!beUrl()){ cb(null); return;}\n  /* P0 (2026-10-02): checkin is POST-only (was CSRF-able via GET).\n     Route through the shared POST helper with auth_secret. */\n  if(obj.action==="checkin" && window.PF && PF.postAction){\n    var sp = {callsign:obj.callsign, device:obj.device, day:obj.day, mission:obj.mission,\n              platform:obj.platform, spread:obj.spread, gained:obj.gained};\n    PF.postAction(\'stats\',\'s_action\',\'checkin\',sp,cb); return;\n  }\n  /* P0: register is a mutation — use POST, not JSONP GET. The GET endpoint\n     is fragile (no timeout, adblockers kill script tags). */\n  if(obj.action==="register" && window.PF && PF.postAction){\n    var rp = {callsign:obj.callsign, device:obj.device};\n    if(obj.ref) rp.ref = obj.ref;\n    /* register has no type/actionKey wrapper in the backend — it\'s a top-level action */\n    (function(){\n      var url = beUrl();\n      var body = {action:"register", callsign:obj.callsign, device:obj.device||""};\n      if(obj.ref) body.ref = obj.ref;\n      try{\n        fetch(url, {method:\'POST\', headers:{\'Content-Type\':\'application/json\'}, body: JSON.stringify(body)})\n          .then(function(r){ return r.json(); })\n          .then(function(j){ try{ cb(j); }catch(e){} })\n          .catch(function(){ try{ cb(null); }catch(e){} });\n      }catch(e){ try{ cb(null); }catch(e2){} }\n    })();\n    return;\n  }\n  var fn="pfPostCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script");\n  window[fn]=function(j){ try{delete window[fn];}catch(e){} if(s.parentNode) s.parentNode.removeChild(s); cb(j);};\n  s.onerror=function(){ try{delete window[fn];}catch(e){} cb(null);};\n  var q="?action="+encodeURIComponent(obj.action==="wall"?"etch":obj.action);\n  q+="&callsign="+encodeURIComponent(obj.callsign||"");\n  if(obj.email) q+="&email="+encodeURIComponent(obj.email);\n  if(obj.day) q+="&day="+encodeURIComponent(obj.day);\n  if(obj.mission!=null) q+="&mission="+encodeURIComponent(obj.mission);\n  if(obj.platform) q+="&platform="+encodeURIComponent(obj.platform);\n  if(obj.spread!=null) q+="&spread="+encodeURIComponent(obj.spread);\n  if(obj.gained!=null) q+="&gained="+encodeURIComponent(obj.gained);\n  if(obj.device) q+="&device="+encodeURIComponent(obj.device);\n  if(obj.ref) q+="&ref="+encodeURIComponent(obj.ref);\n  q+="&callback="+fn;\n  s.src=beUrl()+q;\n  document.head.appendChild(s);\n\n}\nfunction apiGet(callsign,cb){\n  if(!beUrl()){ cb(null); return; }\n  var fn="pfRankCb"+Math.floor(Math.random()*1e9);\n  window[fn]=function(j){ try{delete window[fn];}catch(e){} s.parentNode.removeChild(s); cb(j); };\n  var s=document.createElement("script");\n  s.onerror=function(){ cb(null); };\n  s.src=beUrl()+"?action=get&callsign="+encodeURIComponent(callsign)+"&callback="+fn;\n  document.head.appendChild(s);\n}\n\nfunction platLabel(p){ var f=PLATFORMS.filter(function(x){return x[0]===p;})[0]; var t=f?f[1].toUpperCase():String(p||"").toUpperCase(); return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction escHtml(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\n\n/* Merge cross-device Daily Orders state from the backend: union today\'s\n   missions (never duplicates, never drops local progress), take the max\n   streak, adopt the later last_day, adopt op_done. Never regresses local. */\nfunction mergeCheckinState(j){\n  if(!j||!j.ok) return;\n  var r=load(LS_R,{xp:0,got:{}});\n  if(typeof j.xp==="number"&&j.xp>r.xp){ r.xp=j.xp; save(LS_R,r); }\n  var d=dayRec();\n  if(typeof j.streak==="number"&&j.streak>(d.o.streak||0)) d.o.streak=j.streak;\n  if(j.last_day&&(!d.o.last||j.last_day>d.o.last)) d.o.last=j.last_day;\n  var plats=j.today_platforms||[];\n  (j.today_done||[]).forEach(function(mm,ix){\n    var key=String(mm);\n    if(!d.rec.done.some(function(x){ return String(x.m)===key; })) d.rec.done.push({m:mm,p:plats[ix]||null,g:0});\n  });\n  if(j.op_done) d.rec.opDone=true;\n  saveDay(d.o,d.rec);\n  render();\n}\n\nfunction checkin(mi,platform){\n  var d=dayRec(), o=d.o, rec=d.rec, t=today();\n  var already=rec.done.some(function(x){ return String(x.m)===String(mi); });\n  if(already) return {ok:false, err:"already"};\n  platform=platform||null;\n  var firstToday=rec.done.length===0;\n  var reportNo=rec.done.length+1;                    /* 1,2,3 */\n  /* CELL BONUS: shared cell streaks juice mission XP. +5%/streak day, cap +50%.\n     The central 50/day pool (PF.claimDayXp) still holds — the bonus just gets\n     you to the cap faster instead of stacking above it. */\n  var cellMult=(typeof window.pfCellMult==="function")?window.pfCellMult():1;\n  var want=Math.round(BASE_XP*Math.max(1,cellMult));\n  var gained=0;\n  try{ gained=(window.PF&&PF.claimDayXp)?PF.claimDayXp(want):Math.min(want,Math.max(0,DAILY_MAX-(rec.xp||0))); }\n  catch(e){ gained=Math.min(want,Math.max(0,DAILY_MAX-(rec.xp||0))); }\n  var cellBonus=(cellMult>1&&gained>BASE_XP)?gained-BASE_XP:0;\n  var bonus=0, shieldUsed=false, shieldEarned=false;\n  if(firstToday){\n    if(o.last===yesterday()){ o.streak=(o.streak||0)+1; }\n    else if(o.last&&o.last!==t&&(o.shields||0)>0){ o.shields--; shieldUsed=true; /* streak holds */ }\n    else { o.streak=1; }\n    o.last=t;\n    /* Streak milestone bonus draws from the same 50/day pool — it gets you to\n       the cap faster, never stacks above it. */\n    if(STREAK_BONUS[o.streak]&&!rec.bonusPaid){ try{ bonus=(window.PF&&PF.claimDayXp)?PF.claimDayXp(STREAK_BONUS[o.streak]):STREAK_BONUS[o.streak]; }catch(e){ bonus=STREAK_BONUS[o.streak]; } rec.bonusPaid=true; }\n    /* every 7th streak day forges a shield: one missed day forgiven */\n    if(o.streak%7===0&&o.lastShieldAt!==o.streak){ o.shields=(o.shields||0)+1; o.lastShieldAt=o.streak; shieldEarned=true; }\n  }\n  rec.done.push({m:String(mi),p:platform,g:gained}); rec.xp=(rec.xp||0)+gained; saveDay(o,rec);\n  /* FULL DEPLOYMENT command bonus is claimed here so it lands inside the same\n     dispatched event — the tally records it exactly once, no phantom row. */\n  var cmd=maybeCommandBonus();\n  var r=load(LS_R,{xp:0,got:{}}), key="order_"+t+"_"+mi;\n  if(r.got[key]!==t){ r.got[key]=t; r.xp+=gained+bonus; save(LS_R,r); }\n  fireEvent(t,mi,reportNo,gained+bonus+cmd,o.streak,platform);\n  var id=ident();\n  if(id.callsign){\n    apiPost({action:"checkin",callsign:id.callsign,day:t,mission:mi,platform:platform,spread:0,gained:gained+bonus+cmd},function(j){\n      mergeCheckinState(j);\n    });\n  }\n  return {ok:true, reportNo:reportNo, gained:gained, bonus:bonus, cmd:cmd, platform:platform, streak:o.streak, xp:r.xp, tier:tierOf(r.xp)[0], shieldUsed:shieldUsed, shieldEarned:shieldEarned, cellBonus:cellBonus, cellMult:cellMult};\n}\nfunction fireEvent(t,mi,reportNo,xp,streak,platform){\n  try{ document.dispatchEvent(new CustomEvent("pf-order-checkin",{detail:{day:t,mission:mi,reportNo:reportNo,xp:xp,streak:streak,platform:platform||null}})); }catch(e){}\n}\n/* COMMAND BONUS: 3/3 missions + field op = FULL DEPLOYMENT, once per day.\n   Draws from the same 50/day pool — it can clip to 0 if the pool is spent. */\nfunction maybeCommandBonus(){\n  var d=dayRec(), t=today();\n  if(d.rec.done.length>=3&&d.rec.opDone&&!d.rec.cmdPaid){\n    d.rec.cmdPaid=true; saveDay(d.o,d.rec);\n    var r=load(LS_R,{xp:0,got:{}}), key="order_cmd_"+t, got=0;\n    if(r.got[key]!==t){ r.got[key]=t; got=PF.claimDayXp(CMD_XP); r.xp+=got; save(LS_R,r); }\n    return got;\n  }\n  return 0;\n}\n/* Field-op auto-complete: arm today\'s op event exactly once per page load. */\n(function armFieldOp(){\n  var opDay=today(), op=fieldOp();\n  if(window._pfOpKey===opDay+op.ev) return;\n  window._pfOpKey=opDay+op.ev;\n  document.addEventListener(op.ev,function(){\n    if(today()!==opDay) return;             /* stale listener from a past day */\n    var d=dayRec();\n    if(d.rec.opDone) return;                /* counted exactly once */\n    d.rec.opDone=true; saveDay(d.o,d.rec);\n    var r=load(LS_R,{xp:0,got:{}}), key="order_op_"+opDay, got=0;\n    if(r.got[key]!==opDay){ r.got[key]=opDay; got=PF.claimDayXp(OP_XP); r.xp+=got; save(LS_R,r); }\n    /* feed the Do Meter + tally exactly once, like a normal check-in —\n       command bonus folded into the same event so it\'s counted once */\n    var cmd=maybeCommandBonus();\n    try{ document.dispatchEvent(new CustomEvent("pf-order-checkin",{detail:{day:opDay,mission:"field-op",reportNo:0,xp:got+cmd,streak:(d.o.streak||0),platform:null}})); }catch(e){}\n    /* sync the field-op completion so other devices see op_done */\n    try{ var idf=ident(); if(idf.callsign){ apiPost({action:"checkin",callsign:idf.callsign,day:opDay,mission:"field-op",spread:0,gained:got+cmd},function(j){ mergeCheckinState(j); }); } }catch(e){}\n    var lootEl=document.getElementById("oLoot");\n    if(lootEl) lootEl.textContent="+"+(got+cmd)+" XP — FIELD OP COMPLETE: "+op.label+". The network runs through you."+(cmd?" FULL DEPLOYMENT command bonus!":"");\n    /* DOPAMINE: field-op celebration — confetti + floating XP over the orders widget. */\n    try{ if(window.PF&&PF.dope){ var ob=document.getElementById("pf-orders"); PF.dope.confetti(ob,30); PF.dope.xpFloat(ob,"+"+(got+cmd)+" XP"); } }catch(e){}\n    render();\n  });\n})();\n\n/* ============ TODAY\'S BOOST — tip earned XP to a creator, 1 XP = 2 signal ============\n   One boost per day. Tipped XP leaves your rank total (it becomes the creator\'s\n   signal) and feeds your lifetime patron record. The tip reports to the tally\n   backend with xp:0 and the amount in meta, so site-wide XP is never double-counted. */\nvar LS_B="pf_boost_v1", LS_P="pf_patron_v1";\nvar BOOST_RATIO=2;\nvar PUMP_SIGNAL={profile:10, offsite:20, share:30};\nvar PUMP_LABELS={profile:"Open their catalog profile", offsite:"Follow them off-site", share:"Share the boost card"};\nvar TIP_PRESETS=[5,10,25];\nfunction boostRec(){ return load(LS_B,null); }\nfunction patronRec(){ return load(LS_P,{tipped:0,signal:0}); }\nfunction rosterBySlug(s){ var r=PF.ROSTER||[]; for(var i=0;i<r.length;i++){ if(r[i].slug===s) return r[i]; } return null; }\nfunction tipBoost(slug,xp){\n  xp=Math.floor(Number(xp)||0);\n  var entry=rosterBySlug(slug);\n  if(!entry) return {ok:false,err:"Pick a creator first."};\n  if(!(xp>=1)) return {ok:false,err:"Pick an XP amount."};\n  var b=boostRec();\n  if(b&&b.date===today()) return {ok:false,err:"Boost already deployed today — new orders at midnight."};\n  var r=load(LS_R,{xp:0,got:{}});\n  if(xp>r.xp) return {ok:false,err:"Not enough XP — earn it first, then tip it."};\n  r.xp-=xp; save(LS_R,r);\n  var signal=xp*BOOST_RATIO;\n  save(LS_B,{date:today(),creator:slug,tipped:xp,signal:signal,pumps:{}});\n  var p=patronRec(); p.tipped+=xp; p.signal+=signal; save(LS_P,p);\n  try{ document.dispatchEvent(new CustomEvent("pf-boost-tipped",{detail:{creator:slug,tipped:xp}})); }catch(e){}\n  try{ document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:-xp,total:r.xp}})); }catch(e){}\n  return {ok:true,name:entry.name,slug:slug,tipped:xp,signal:signal};\n}\nfunction pumpBoost(kind){\n  var b=boostRec();\n  if(!b||b.date!==today()) return {ok:false};\n  if(!PUMP_SIGNAL[kind]||b.pumps[kind]) return {ok:false};\n  b.pumps[kind]=1; b.signal+=PUMP_SIGNAL[kind]; save(LS_B,b);\n  var p=patronRec(); p.signal+=PUMP_SIGNAL[kind]; save(LS_P,p);\n  return {ok:true,signal:b.signal};\n}\nfunction apiAction(action,cb){\n  if(!beUrl()){ cb(null); return; }\n  var fn="pfBoostCb"+Math.floor(Math.random()*1e9);\n  window[fn]=function(j){ try{delete window[fn];}catch(e){} s.parentNode.removeChild(s); cb(j); };\n  var s=document.createElement("script");\n  s.onerror=function(){ cb(null); };\n  s.src=beUrl()+"?action="+encodeURIComponent(action)+"&callback="+fn;\n  document.head.appendChild(s);\n}\nfunction shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }\nfunction renderBoost(){\n  var box=document.getElementById("oBoost"); if(!box) return;\n  var b=boostRec(), t=today(), r=load(LS_R,{xp:0,got:{}});\n  var h=\'<div class="o-bhead">📣 TODAY’S BOOST &mdash; pump a creator with your XP</div>\';\n  h+=\'<div class="o-bsub">1 XP = \'+BOOST_RATIO+\' signal. One boost per day. Tipped XP leaves your rank and becomes their signal.</div>\';\n  if(!b||b.date!==t){\n    var opts=(PF.ROSTER||[]).map(function(x){ return \'<option value="\'+x.slug+\'">\'+x.name+\'</option>\'; }).join("");\n    h+=\'<div class="o-brow"><select id="oBoostSel" class="o-bsel"><option value="">— pick a creator —</option>\'+opts+\'</select></div>\';\n    h+=\'<div class="o-brow">\'+TIP_PRESETS.map(function(x){ return \'<button class="o-tipbtn" data-tip="\'+x+\'">\'+x+\' XP</button>\'; }).join("")+\'</div>\';\n    h+=\'<button class="o-btn o-boostbtn" id="oBoostGo">DEPLOY BOOST &rarr;</button><div class="o-err" id="oBoostErr"></div>\';\n    h+=\'<div class="o-bbal">Your rank XP available: <b>\'+(r.xp||0)+\'</b></div>\';\n  } else {\n    var entry=rosterBySlug(b.creator);\n    h+=\'<div class="o-bdone">✓ Boost deployed: <b>\'+(entry?entry.name:b.creator)+\'</b> &mdash; \'+b.tipped+\' XP tipped &rarr; <b>\'+b.signal+\' signal</b> sent.</div>\';\n    h+=\'<div class="o-bsub">Pump them up for bonus signal:</div><div class="o-brow">\';\n    Object.keys(PUMP_SIGNAL).forEach(function(k){\n      h+=\'<button class="o-pumpbtn\'+(b.pumps[k]?\' done\':\'\')+\'" data-pump="\'+k+\'"\'+(b.pumps[k]?\' disabled\':\'\')+\'>\'+(b.pumps[k]?\'✓ \':\'+\'+PUMP_SIGNAL[k]+\' \')+PUMP_LABELS[k]+\'</button>\';\n    });\n    h+=\'</div><button class="o-btn o-sharebtn" id="oBoostShare">Share boost card</button>\';\n  }\n  h+=\'<div class="o-crown" id="oCrown"></div>\';\n  box.innerHTML=h;\n  var sel=document.getElementById("oBoostSel"), amt=null;\n  if(sel){\n    box.querySelectorAll("button.o-tipbtn").forEach(function(btn){\n      btn.onclick=function(){ amt=parseInt(btn.getAttribute("data-tip"),10);\n        box.querySelectorAll("button.o-tipbtn").forEach(function(x){x.classList.remove("sel");});\n        btn.classList.add("sel"); };\n    });\n    document.getElementById("oBoostGo").onclick=function(){\n      var res=tipBoost(sel.value,amt);\n      var err=document.getElementById("oBoostErr");\n      if(!res.ok){ if(err) err.textContent=res.err; return; }\n      render(); renderBoost(); renderPatrons();\n    };\n  } else {\n    box.querySelectorAll("button.o-pumpbtn").forEach(function(btn){\n      btn.onclick=function(){\n        var k=btn.getAttribute("data-pump");\n        if(k==="profile"){ var e2=rosterBySlug(b.creator); if(e2){ try{ window.open("https://www.mtcstw.com/"+e2.slug,"_blank"); }catch(x){} } }\n        if(k==="share"){ shareBoostCard(); return; }\n        var res=pumpBoost(k);\n        if(res.ok){ renderBoost(); }\n      };\n    });\n    var sh=document.getElementById("oBoostShare");\n    if(sh) sh.onclick=function(){ shareBoostCard(); };\n  }\n  /* Weekly crown: most-boosted creator, from the backend. */\n  var crown=document.getElementById("oCrown");\n  if(crown){\n    if(_crownCache&&_crownCache.leaders&&_crownCache.leaders.length){\n      var top=_crownCache.leaders[0];\n      /* Backend returns {slug,tipped,signal} — resolve the display name locally. */\n      var _tm=rosterBySlug(top.slug), _tn=(_tm&&_tm.name)?_tm.name:top.slug;\n      crown.innerHTML=\'👑 MOST BOOSTED THIS WEEK: <b>\'+escHtml(_tn)+\'</b> &mdash; \'+top.signal+\' signal\';\n    } else {\n      apiAction("boost_totals",function(j){\n        if(j&&j.leaders&&j.leaders.length){ _crownCache=j; renderBoost(); }\n      });\n    }\n  }\n}\n/* Patrons strip: capped rotating sample of top tippers, reshuffled every render. */\nvar _patronCache=null, _crownCache=null;\nfunction renderPatrons(){\n  var box=document.getElementById("oPatrons"); if(!box) return;\n  var show=function(list){\n    if(!list||!list.length){ box.innerHTML=""; return; }\n    var sample=shuffle(list.slice()).slice(0,5);\n    box.innerHTML=\'<div class="o-phead">★ PATRONS IN THE FIELD</div><div class="o-prow">\'\n      +sample.map(function(p){ return \'<div class="o-patron"><b>\'+escHtml(String(p.callsign||"ghost")).toUpperCase()+\'</b><span>\'+p.tipped+\' XP tipped</span></div>\'; }).join("")\n      +\'</div>\';\n  };\n  if(_patronCache){ show(_patronCache.patrons); return; }\n  apiAction("patron_totals",function(j){\n    if(j&&j.patrons&&j.patrons.length){ _patronCache=j; show(j.patrons); }\n    else {\n      /* Backend not yet serving patrons: show this device\'s own record if it exists. */\n      var p=patronRec(), id=ident();\n      if(p.tipped>0) show([{callsign:(id.callsign||"you"),tipped:p.tipped}]);\n      else box.innerHTML="";\n    }\n  });\n}\n/* Boost share card: 1080x1350 propaganda card for cross-platform pumping. */\nfunction drawBoostCard(){\n  var b=boostRec(); if(!b) return null;\n  var entry=rosterBySlug(b.creator)||{name:b.creator};\n  var cv=document.createElement("canvas"); cv.width=1080; cv.height=1350;\n  var ctx=cv.getContext("2d");\n  ctx.fillStyle="#0d0d0d"; ctx.fillRect(0,0,1080,1350);\n  ctx.fillStyle="#c1121f"; ctx.fillRect(0,0,1080,26); ctx.fillRect(0,1324,1080,26);\n  ctx.textAlign="center"; ctx.fillStyle="#f5f0e1";\n  ctx.font="bold 64px Arial"; ctx.fillText("I BOOSTED",540,220);\n  ctx.fillStyle="#ff5a00"; ctx.font="bold 88px Arial";\n  wrapLines(ctx,entry.name.toUpperCase(),900).slice(0,2).forEach(function(l,i){ ctx.fillText(l,540,340+i*100); });\n  ctx.fillStyle="#f5f0e1"; ctx.font="bold 120px Arial";\n  ctx.fillText(b.signal+" SIGNAL",540,640);\n  ctx.font="40px Arial"; ctx.fillStyle="#c1121f";\n  ctx.fillText(b.tipped+" XP TIPPED · 1 XP = "+BOOST_RATIO+" SIGNAL",540,730);\n  ctx.fillStyle="#f5f0e1"; ctx.font="36px Arial";\n  wrapLines(ctx,"Pump your creator. Daily Orders on mtcstw.com.",860).forEach(function(l,i){ ctx.fillText(l,540,880+i*52); });\n  ctx.fillStyle="#ff5a00"; ctx.font="bold 44px Arial";\n  ctx.fillText("MTCSTW.COM",540,1180);\n  return cv;\n}\nfunction shareBoostCard(){\n  var done2=function(){\n    var r=pumpBoost("share");\n    renderBoost();\n  };\n  try{\n    var cv=drawBoostCard(); if(!cv) return;\n    try{ if(window.PFShare&&window.PFShare.stampCallsign){ cv=window.PFShare.stampCallsign(cv)||cv; } }catch(e){}\n    var go=function(url,blob){\n      var file=new File([blob],"pfn-boost.png",{type:"image/png"});\n      if(navigator.canShare&&navigator.canShare({files:[file]})){\n        navigator.share({files:[file],title:"Today\'s Boost",text:"I boosted "+(rosterBySlug((boostRec()||{}).creator)||{}).name+" on mtcstw.com — pump your creator."}).then(done2).catch(function(){});\n      }else{\n        var a=document.createElement("a"); a.href=url; a.download="pfn-boost.png";\n        document.body.appendChild(a); a.click(); a.remove(); done2();\n      }\n    };\n    if(cv.toBlob){ cv.toBlob(function(bl){ go(URL.createObjectURL(bl),bl); },"image/png"); }\n    else{ var u=cv.toDataURL("image/png"); fetch(u).then(function(r){return r.blob();}).then(function(bl){ go(URL.createObjectURL(bl),bl); }); }\n  }catch(e){}\n}\n\nfunction syncFromServer(){\n  var id=ident(); if(!id.callsign) return;\n  apiGet(id.callsign,function(j){ mergeCheckinState(j); });\n}\n\nfunction warPathHtml(o){\n  var h=\'<div class="o-wplabel">7-day war path</div><div class="o-wprow">\', now=PF.chiNow();\n  for(var i=6;i>=0;i--){\n    var dt=new Date(now.getTime()); dt.setDate(dt.getDate()-i);\n    var k=ymd(dt), r=o.days&&o.days[k];\n    var hit=r&&r.done&&r.done.length>0;\n    h+=\'<div class="o-day\'+(hit?\' hit\':\'\')+(i===0?\' today\':\'\')+\'"><span>\'+"SMTWTFS"[dt.getDay()]+\'</span><em>\'+(hit?\'✓\':\'\')+\'</em></div>\';\n  }\n  return h+\'</div>\';\n}\nfunction renderReset(){\n  var el=document.getElementById("oReset"); if(!el) return;\n  var now=PF.chiNow(), end=new Date(now.getTime()); end.setHours(24,0,0,0);\n  var ms=Math.max(0,end-now), h=Math.floor(ms/36e5), m=Math.floor(ms%36e5/6e4);\n  el.textContent="NEW ORDERS IN "+h+"H "+m+"M — streaks roll at midnight";\n}\n\nfunction render(){\n  var set=missionSet(), d=dayRec(), rec=d.rec, t=today();\n  document.getElementById("oDate").textContent=new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});\n  /* DISPATCH CEREMONY: stamp slams in on the first view of the day. */\n  var firstView=!rec.dispatchShown;\n  if(firstView){ rec.dispatchShown=1; saveDay(d.o,rec); }\n  var disp=document.getElementById("oDispatch");\n  if(disp) disp.innerHTML=firstView?\'<span class="o-stamp">◈ ORDERS RECEIVED ◈</span>\':"";\n  var wp=document.getElementById("oWarPath");\n  if(wp) wp.innerHTML=warPathHtml(d.o);\n  renderReset();\n  var doneCount=rec.done.length;\n  /* XP METER — 3 segments, flashes hotter with the combo */\n  var meter=document.getElementById("oMeter"), mh="";\n  set.forEach(function(mi){\n    var filled=rec.done.some(function(x){ return String(x.m)===String(mi); });\n    mh+=\'<div class="o-seg\'+(filled?" fill":"")+\'"></div>\';\n  });\n  meter.innerHTML=mh;\n  meter.className="o-meter"+(doneCount>=3?" maxed":doneCount>=2?" hot":"");\n  document.getElementById("oCombo").textContent=doneCount>=3?"3/3 — ORDERS COMPLETE":doneCount===2?"2 down — one more for full deployment.":doneCount===1?"1 down — 2 to go.":"";\n  /* Live preview of what the share card\'s completion headline will read. */\n  var sc=document.getElementById("oShareCount");\n  if(sc){ var td=doneCount+(rec.opDone?1:0);\n    sc.textContent=rec.cmdPaid?"Your share card reads: FULL DEPLOYMENT — all tasks complete.":"Your share card will read: "+td+" OF 4 TASKS COMPLETE."; }\n  var html="";\n  set.forEach(function(mi,slot){\n    var m=MISSIONS[mi]||{t:""}, entry=null;\n    rec.done.forEach(function(x){ if(String(x.m)===String(mi)) entry=x; });\n    var isDone=!!entry;\n    var xpLine=\'+\'+(isDone?(typeof entry.g==="number"?entry.g:BASE_XP):BASE_XP)+\' XP\'+(isDone?"":" · report #"+(doneCount+1));\n    var action;\n    if(isDone){ action=\'<div><span class="o-donetag">Reported</span></div>\'; }\n    else if(m.share){\n      action=\'<div class="o-platpick" id="o-pick-\'+mi+\'"><div class="o-picklabel">Where did you share it?</div>\'\n        +PLATFORMS.map(function(p){\n            return \'<button class="o-platbtn" data-mi="\'+mi+\'" data-p="\'+p[0]+\'">\'+p[1]+\'</button>\';\n          }).join("")\n        +\'</div><button class="o-btn o-sharebtn" data-mi="\'+mi+\'">Report back</button>\';\n    }\n    else { action=\'<button class="o-btn" data-mi="\'+mi+\'">Report back</button>\'; }\n    html+=\'<div class="o-mission\'+(isDone?" done":"")+\'">\'\n      +\'<div class="o-mtext">\'+m.t+\'</div>\'\n      +\'<div class="o-xp">\'+xpLine+\'</div>\'\n      +(isDone&&entry.p?\'<div><span class="o-ptag">Shared to \'+platLabel(entry.p)+\'</span></div>\':"")\n      +action\n      +\'</div>\';\n  });\n  /* FIELD OP card — the cross-game bonus mission. */\n  var op=fieldOp(), opDone=!!rec.opDone;\n  html+=\'<div class="o-fieldop\'+(opDone?\' done\':\'\')+\'">\'\n    +\'<div class="o-fophead">★ FIELD OP &mdash; CROSS-GAME BONUS</div>\'\n    +\'<div class="o-mtext">\'+op.label+\'</div>\'\n    +\'<div class="o-xp">+\'+OP_XP+\' XP\'+(opDone?\' &middot; complete\':\'\')+\'</div>\'\n    +(opDone?\'<div><span class="o-donetag">Op complete</span></div>\'\n            :\'<div class="o-fopsub">Deploy to its silo and complete it there &mdash; it auto-reports here.</div><button class="o-btn o-deploybtn" data-game="\'+op.game+\'">Deploy &rarr;</button>\')\n    +\'</div>\';\n  var z=document.getElementById("oMissions"); z.innerHTML=html;\n  z.className=firstView?"o-reveal":"";\n  z.querySelectorAll("button.o-deploybtn").forEach(function(b){\n    b.onclick=function(){\n      var g=b.getAttribute("data-game");\n      /* Ensure lazy bundles are mounted before scrolling. If the target\n         section isn\'t in the DOM yet, force-mount staged templates and retry. */\n      function findSec(){\n        /* Skip the hidden template — only match the mounted section. */\n        var s=document.querySelector(\'section[data-game="\'+g+\'"]\');\n        if(s) return s;\n        var inner=document.getElementById(\'pf-\'+g);\n        if(inner){\n          var sec=inner;\n          while(sec && sec.tagName!=="SECTION"){ sec=sec.parentElement; }\n          if(sec && sec.tagName==="SECTION") return sec;\n          return inner;\n        }\n        return null;\n      }\n      /* Try to mount any staged-but-unmounted templates first. */\n      try{ if(window.PF&&PF.mountSilos) PF.mountSilos(); }catch(e){}\n      var sec=findSec();\n      if(!sec){\n        /* Bundle may not have loaded yet — wait and retry up to 5s. */\n        var tries=0;\n        var iv=setInterval(function(){\n          tries++;\n          try{ if(window.PF&&PF.mountSilos) PF.mountSilos(); }catch(e){}\n          var s2=findSec();\n          if(s2){ clearInterval(iv); doScroll(s2); }\n          else if(tries>=10){ clearInterval(iv); }\n        },500);\n        return;\n      }\n      doScroll(sec);\n      function doScroll(target){\n        var scrolled=false;\n        try{ target.scrollIntoView({behavior:"smooth",block:"start"}); scrolled=true; }\n        catch(e){ try{ target.scrollIntoView(); scrolled=true; }catch(e2){} }\n        if(!scrolled){\n          try{\n            var r=target.getBoundingClientRect();\n            var top=r.top+(window.pageYOffset||document.documentElement.scrollTop||0);\n            window.scrollTo(0,Math.max(0,top-20)); scrolled=true;\n          }catch(e3){}\n        }\n        /* Fallback: if still at top after 600ms, force-jump. */\n        setTimeout(function(){\n          try{\n            var r2=target.getBoundingClientRect();\n            if(r2.top<-10||r2.top>window.innerHeight+10){\n              var t2=r2.top+(window.pageYOffset||document.documentElement.scrollTop||0);\n              window.scrollTo(0,Math.max(0,t2-20));\n            }\n          }catch(e4){}\n        },650);\n        try{\n          target.classList.add("pf-flash");\n          setTimeout(function(){ try{target.classList.remove("pf-flash");}catch(e){} },1400);\n        }catch(e){}\n      }\n    };\n  });\n  function doReport(mi,platform,btn){\n    var res=checkin(mi,platform);\n    if(!res.ok) return;\n    var box=document.getElementById("pf-orders");\n    box.classList.remove("o-flash"); void box.offsetWidth; box.classList.add("o-flash");\n    var loot=LOOT[Math.floor(Math.random()*LOOT.length)];\n        if(res.platform) loot="Reported via "+platLabel(res.platform)+". "+loot;\n        if(res.shieldUsed) loot="STREAK SHIELD held the line — your streak survives. "+loot;\n        if(res.shieldEarned) loot="STREAK SHIELD earned — one missed day forgiven. "+loot;\n        if(res.cellBonus>0) loot="CELL BONUS +"+res.cellBonus+" XP ("+Math.round((res.cellMult-1)*100)+"% cell streak) — "+loot;\n    var cmd=res.cmd||maybeCommandBonus();\n    /* DOPAMINE: press bounce, floating XP, streak-milestone ping, mission-complete confetti.\n       Pure presentation — the economy already settled above; nothing here awards or tallies. */\n    try{ if(window.PF&&PF.dope){\n      if(btn) PF.dope.press(btn);\n      PF.dope.xpFloat(box,"+"+(res.gained+res.bonus+cmd)+" XP");\n      if(res.bonus>0) PF.dope.ping(box,res.streak+"-DAY STREAK BONUS");\n      PF.dope.confetti(box,res.reportNo>=3?60:18);\n      if(res.reportNo>=3) PF.dope.ping(box,"ALL ORDERS COMPLETE");\n    } }catch(e){}\n    if(cmd) loot="FULL DEPLOYMENT — COMMAND BONUS +"+cmd+". "+loot;\n    document.getElementById("oLoot").textContent="+"+(res.gained+res.bonus+cmd)+" XP — "+loot+(res.bonus?" "+res.streak+"-day streak bonus!":"");\n    document.getElementById("oErr").textContent="";\n    render();\n  }\n  z.querySelectorAll("button.o-btn").forEach(function(b){\n    b.onclick=function(){\n      var mi=parseInt(b.getAttribute("data-mi"),10);\n      if(b.classList.contains("o-sharebtn")){\n        var pick=document.getElementById("o-pick-"+mi);\n        if(pick) pick.style.display=pick.style.display==="block"?"none":"block";\n        return;\n      }\n      doReport(mi,null,b);\n    };\n  });\n  z.querySelectorAll("button.o-platbtn").forEach(function(b){\n    b.onclick=function(){\n      doReport(parseInt(b.getAttribute("data-mi"),10), b.getAttribute("data-p"), b);\n    };\n  });\n  document.getElementById("oProg").textContent=Math.min(doneCount,PER_DAY)+"/"+PER_DAY+" orders complete";\n  renderBoost();\n  renderPatrons();\n  document.getElementById("oStreak").innerHTML="Current streak: <b>"+(d.o.streak||0)+"</b> day"+((d.o.streak||0)===1?"":"s")+((d.o.shields||0)>0?" &nbsp;🛡️ x"+d.o.shields:"");\n  var s=d.o.streak||0;\n  var nextMil=Object.keys(STREAK_BONUS).map(Number).filter(function(n){return n>s;}).sort(function(a,b){return a-b;})[0];\n      document.getElementById("oNext").textContent=nextMil?("Streak bonus at "+nextMil+" days (+"+STREAK_BONUS[nextMil]+" XP)"):"Maximum streak bonus achieved. Legendary.";\n  var r=load(LS_R,{xp:0});\n  function paintRank(xp){ var el=document.getElementById("oRank"); if(el) el.textContent=xp>0?("Rank: "+tierOf(xp)[0]+" · "+xp+" XP"):""; }\n  paintRank(r.xp);\n  var id=ident(), wrap=document.getElementById("oClaimWrap");\n  /* Prefer the backend ledger balance when a callsign exists — keeps the rank\n     line consistent with every other XP readout on the page. */\n  try{\n    if(id.callsign&&window.PF&&PF.xpBalance){\n      PF.xpBalance(function(bal){\n        if(typeof bal==="number"&&bal>r.xp){ r.xp=bal; save(LS_R,r); paintRank(bal); }\n      });\n    }\n  }catch(e){}\n  if(!beUrl()){ wrap.style.display="none"; }\n  else if(id.callsign){\n    document.getElementById("oClaimToggle").style.display="none";\n    document.getElementById("oWho").textContent="Fighting as "+id.callsign.toUpperCase()+" — rank follows you everywhere.";\n  } else {\n    document.getElementById("oClaimToggle").onclick=function(){\n      var b=document.getElementById("oClaimBox");\n      b.style.display=b.style.display==="block"?"none":"block";\n    };\n    document.getElementById("oClaimBtn").onclick=function(){\n      var cs=document.getElementById("oCallsign").value.trim().toLowerCase();\n      var errBox=document.getElementById("oClaimErr");\n      if(!/^[a-z0-9_]{3,20}$/.test(cs)){ errBox.textContent="Callsign: 3-20 chars, letters/numbers/underscore."; return; }\n      errBox.textContent="Claiming…";\n      var regParams={action:"register",callsign:cs};\n      try{ var _dev=window.PFDeviceId?window.PFDeviceId():""; if(_dev) regParams.device=_dev; }catch(e){}\n      try{ var prf=localStorage.getItem("pf_pending_ref"); if(prf&&/^[a-z0-9_]{3,20}$/.test(prf)) regParams.ref=prf; }catch(e){}\n      apiPost(regParams,function(j){\n        if(!j){ errBox.textContent="Network error. Try again."; return; }\n        if(!j.ok){ errBox.textContent=j.error==="taken"?"That callsign is taken.":"Bad callsign."; return; }\n        try{ localStorage.removeItem("pf_pending_ref"); }catch(e2){}\n        /* Per-callsign auth: capture the secret from enlistment, or claim it for existing users. */\n        try{\n          if(j.auth_secret&&window.PF&&PF.saveAuthSecret){ PF.saveAuthSecret(j.auth_secret); }\n          else if(window.PF&&PF.claimAuthSecret){ PF.claimAuthSecret(cs,function(){}); }\n        }catch(e3){}\n        save(LS_I,{callsign:cs});\n        try{document.dispatchEvent(new CustomEvent(\'pf-callsign-claimed\',{detail:{callsign:cs}}));}catch(e){}\n        var rr=load(LS_R,{xp:0,got:{}});\n        if(j.xp>rr.xp){ rr.xp=j.xp; save(LS_R,rr); }\n        render();\n      });\n    };\n  }\n}\n/* SHARE AS IMAGE — renders today\'s orders to a 1080x1350 propaganda card\n   and shares it via the native share sheet (falls back to PNG download). */\nfunction wrapLines(ctx,text,maxW){\n  var words=String(text).split(/\\s+/),lines=[],line=\'\';\n  words.forEach(function(w){\n    var t=line?line+\' \'+w:w;\n    if(ctx.measureText(t).width>maxW&&line){lines.push(line);line=w;}\n    else line=t;\n  });\n  if(line)lines.push(line);\n  return lines;\n}\nfunction drawOrdersCard(){\n  var W=1080,H=1350,cv=document.createElement(\'canvas\');cv.width=W;cv.height=H;\n  var x=cv.getContext(\'2d\');\n  x.fillStyle=\'#0d0d0d\';x.fillRect(0,0,W,H);\n  x.strokeStyle=\'#c1121f\';x.lineWidth=16;x.strokeRect(14,14,W-28,H-28);\n  x.strokeStyle=\'#f5ead6\';x.lineWidth=3;x.strokeRect(44,44,W-88,H-88);\n  x.textAlign=\'center\';\n  var y=150;\n  x.fillStyle=\'#f5ead6\';x.font=\'900 78px "Arial Black",Arial,sans-serif\';\n  x.fillText(\'\\u2605 DAILY ORDERS \\u2605\',W/2,y);y+=58;\n  x.fillStyle=\'#c1121f\';x.font=\'700 34px Arial,sans-serif\';\n  var ds=new Date().toLocaleDateString(\'en-US\',{weekday:\'long\',month:\'long\',day:\'numeric\'}).toUpperCase();\n  x.fillText(ds,W/2,y);y+=30;\n  x.strokeStyle=\'#c1121f\';x.lineWidth=4;\n  x.beginPath();x.moveTo(140,y);x.lineTo(W-140,y);x.stroke();y+=70;\n  var set=missionSet(),d=dayRec(),rec=d.rec||{done:[]};\n  /* COMPLETION COUNT — the shareable headline: how many tasks got done. */\n  var mDone=set.filter(function(mi){return rec.done.some(function(e){return e.m===mi;});}).length;\n  var tDone=mDone+(rec.opDone?1:0), full=!!rec.cmdPaid;\n  x.fillStyle=full?\'#e8b923\':\'#c1121f\';x.font=\'900 50px "Arial Black",Arial,sans-serif\';\n  x.fillText(full?\'FULL DEPLOYMENT\':(tDone+\' OF 4 TASKS COMPLETE\'),W/2,y);y+=64;\n  x.fillStyle=\'#c9bfa8\';x.font=\'400 29px Arial,sans-serif\';\n  x.fillText(mDone+\' / 3 ORDERS\'+(rec.opDone?\'  •  FIELD OP DONE\':\'  •  FIELD OP OPEN\'),W/2,y);y+=54;\n  x.textAlign=\'left\';\n  set.forEach(function(mi,ix){\n    var m=MISSIONS[mi]||{t:\'\'};\n    var done=rec.done.some(function(e){return e.m===mi;});\n    x.fillStyle=\'#c1121f\';x.font=\'900 60px "Arial Black",Arial,sans-serif\';\n    x.fillText(\'0\'+(ix+1),120,y);\n    x.fillStyle=done?\'#c1121f\':\'#f5ead6\';x.font=\'400 37px Arial,sans-serif\';\n    var lines=wrapLines(x,m.t,W-360);\n    lines.forEach(function(ln,i){x.fillText(ln,300,y-14+i*48);});\n    if(done){x.fillStyle=\'#c1121f\';x.font=\'700 30px Arial,sans-serif\';x.fillText(\'\\u2713 REPORTED\',300,y-14+lines.length*48+6);}\n    y+=Math.max(150,lines.length*48+86);\n  });\n  x.textAlign=\'left\';\n  var fop=fieldOp(), fopLines=wrapLines(x,\'FIELD OP: \'+fop.label+(rec.opDone?\' ✓\':\'\'),W-360);\n  x.fillStyle=\'#e8b923\';x.font=\'900 30px "Arial Black",Arial,sans-serif\';\n  fopLines.forEach(function(ln,i){x.fillText(ln,120,y+i*42);});\n  y+=fopLines.length*42+36;\n  x.textAlign=\'center\';\n  var streak=(d.o&&d.o.streak)||0;\n  x.fillStyle=\'#c1121f\';x.font=\'900 40px "Arial Black",Arial,sans-serif\';\n  x.fillText(streak>0?(\'STREAK: \'+streak+\' DAY\'+(streak===1?\'\':\'S\')):\'DAY ONE. START THE STREAK.\',W/2,y+20);y+=80;\n  var id=ident(),cs=\'\';\n  try{cs=String(id.callsign||\'\').toUpperCase();}catch(e){}\n  if(cs){x.fillStyle=\'#c9bfa8\';x.font=\'400 30px Arial,sans-serif\';x.fillText(\'ORDERS FOR: \'+cs,W/2,y+10);y+=56;try{cv._pfStamped=true;}catch(e){}}\n  x.fillStyle=\'#f5ead6\';x.font=\'900 62px "Arial Black",Arial,sans-serif\';\n  x.fillText(\'MTCSTW.COM\',W/2,H-170);\n  x.fillStyle=\'#c1121f\';x.font=\'900 30px "Arial Black",Arial,sans-serif\';\n  x.fillText(\'THE PROPAGANDA FACTORY\',W/2,H-116);\n  x.fillStyle=\'#c1121f\';x.font=\'900 30px "Arial Black",Arial,sans-serif\';\n  x.fillText(\'JOIN THE FIGHT.\',W/2,H-76);\n  return cv;\n}\nfunction shareOrdersImage(btn){\n  if(btn)btn.disabled=true;\n  /* Remove any prior share note. */\n  var prior=document.getElementById(\'oShareNote\');if(prior)prior.remove();\n  var note=function(msg,color){\n    var d=document.createElement(\'div\');d.id=\'oShareNote\';d.className=\'o-rules\';\n    d.style.color=color||\'#f5f0e1\';d.style.marginTop=\'10px\';d.textContent=msg;\n    if(btn&&btn.parentNode)btn.parentNode.appendChild(d);\n    setTimeout(function(){if(d.parentNode)d.remove();},9000);\n  };\n  try{\n    var cv=drawOrdersCard();\n    var awardShare=function(){\n      /* Credit ONLY on a confirmed share or a completed download — never on cancel.\n         Routed through the shared once-per-day gate (PF.creditShare) so a share\n         here plus a share from any other game can\'t credit the same day twice. */\n      if(btn)btn.disabled=false;\n      try{\n        if(PF && typeof PF.creditShare===\'function\'){ PF.creditShare(\'daily-orders\',\'share\'); }\n        else if(typeof window.pfCreditShare===\'function\'){ window.pfCreditShare(\'daily-orders\',\'share\'); }\n        else { document.dispatchEvent(new CustomEvent(\'pf-share-image\',{detail:{day:new Date().toISOString().slice(0,10)}})); }\n      }catch(e){}\n    };\n    var done=function(url,blob){\n      var file=new File([blob],\'pfn-daily-orders.png\',{type:\'image/png\'});\n      var isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent||\'\');\n      if(navigator.canShare&&navigator.canShare({files:[file]})){\n        navigator.share({files:[file],title:\'Daily Orders\',text:\'Today\\u2019s orders from the Propaganda Factory.\'}).then(awardShare).catch(function(){\n          /* User cancelled the share sheet — NO credit. */\n          if(btn)btn.disabled=false;\n          note(\'Share cancelled — no share credit. Tap the button again to share.\',\'#c1121f\');\n        });\n      }else{\n        var a=document.createElement(\'a\');a.href=url;a.download=\'pfn-daily-orders.png\';\n        document.body.appendChild(a);a.click();a.remove();\n        if(isIOS)note(\'Image downloaded — open Photos, tap the image, then Share to post it.\',\'#f5f0e1\');\n        awardShare();\n      }\n    };\n    if(cv.toBlob){cv.toBlob(function(b){done(URL.createObjectURL(b),b);},\'image/png\');}\n    else{var u=cv.toDataURL(\'image/png\');fetch(u).then(function(r){return r.blob();}).then(function(b){done(URL.createObjectURL(b),b);});}\n  }catch(e){if(btn)btn.disabled=false;}\n}\nvar _shareBtn=document.getElementById(\'oShareImg\');\nif(_shareBtn){_shareBtn.addEventListener(\'click\',function(){shareOrdersImage(_shareBtn);});}\n\nrenderReset();\nif(!window._pfOrdersTick){ window._pfOrdersTick=setInterval(function(){ renderReset(); },60000); }\nrender();\nsyncFromServer();\n})();\n<\/script>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;e.skip("dopa")||e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-dopa">\n<div class="fe-block pf-override-block pf-silo" id="pf-dopa">\n<h2>Daily Fire</h2>\n<div class="c-tag">Your daily habit loop. Open the crate. Protect the streak. Chase the flash.</div>\n<div id="xDopa"><div class="c-load">Stoking the fire&hellip;</div></div>\n</div>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}\n  try{ var t=document.createElement("div"); t.textContent=m;\n  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";\n  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }\n/* JSONP GET for reads. */\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  var fn="pfDpCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\n/* CORS POST for writes — through the auth layer, backend verdict parsed.\n   If the backend flags a lucky bonus (j.lucky), fire the toast. */\nfunction post(type,actionKey,action,params,cb){\n  var body=Object.assign({type:type},params||{});\n  body[actionKey]=action;\n  function done(j){\n    try{\n      if(j&&j.lucky&&window.PF&&PF.dopaLucky){ PF.dopaLucky(j.lucky.xp||0,j.lucky.mult||0); }\n      else if(j&&j.lucky){ luckyToast(j.lucky.xp||0,j.lucky.mult||0); }\n    }catch(e){}\n    try{ cb(j||{ok:false,err:"Network error."}); }catch(e2){}\n  }\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,done); return; }\n  var bodyStr=JSON.stringify(body);\n  try{\n    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr})\n      .then(function(r){ return r.json(); })\n      .then(function(j){ done(j); })\n      .catch(function(){ done(null); });\n  }catch(e){ done(null); }\n}\n/* ---- dopamine silo styles ---- */\nfunction dpCss(){\n  if(document.getElementById("pf-dopa-css")) return;\n  var s=document.createElement("style"); s.id="pf-dopa-css";\n  s.textContent=\n    ".dp-pane{margin:14px 0;padding:14px;border:1px solid #5a1a1a;background:#160b0b}"\n    +".dp-pane h4{margin:0 0 8px;color:#f5ead6;letter-spacing:2px;font-size:13px}"\n    +".dp-cratewrap{text-align:center;padding:10px 0}"\n    +".dp-crate{font-size:96px;line-height:1;filter:drop-shadow(0 0 18px #e8b10c);display:inline-block}"\n    +".dp-shake{animation:dpshake .6s ease-in-out}"\n    +"@keyframes dpshake{0%,100%{transform:rotate(0)}15%{transform:rotate(-14deg) translateX(-8px)}35%{transform:rotate(12deg) translateX(8px)}55%{transform:rotate(-9deg) translateX(-6px)}75%{transform:rotate(7deg) translateX(6px)}}"\n    +".dp-burst{animation:dpburst .5s ease-out}"\n    +"@keyframes dpburst{0%{transform:scale(.6)}55%{transform:scale(1.35)}100%{transform:scale(1)}}"\n    +".dp-reward{margin:10px auto 0;max-width:320px;padding:12px;border:3px solid #9aa0a6;background:#0d0d0d;text-align:center;animation:dpburst .5s ease-out}"\n    +".dp-reward .dp-rlabel{font:bold 12px monospace;letter-spacing:3px;margin-bottom:6px}"\n    +".dp-reward .dp-rxp{font:bold 34px monospace;color:#f5ead6}"\n    +".dp-reward .dp-rname{font:13px monospace;color:#c9bfa8;margin-top:4px}"\n    +".dp-flame{font-size:64px;line-height:1;filter:drop-shadow(0 0 14px #ff6a00)}"\n    +".dp-streakn{font:bold 44px monospace;color:#f5ead6}"\n    +".dp-risk{margin:10px 0;padding:10px;border:2px solid #ff3b30;background:#2a0d0d;color:#ffb3ab;font:bold 13px monospace;letter-spacing:1px}"\n    +".dp-barwrap{height:10px;background:#2a1414;border:1px solid #5a1a1a;margin:8px 0}"\n    +".dp-bar{height:100%;background:linear-gradient(90deg,#c1121f,#e8b10c);transition:width .4s}"\n    +".dp-flash{margin:8px 0;padding:10px;border:1px solid #e8b10c;background:#1c1408}"\n    +".dp-mult{display:inline-block;background:#e8b10c;color:#000;font:bold 12px monospace;padding:2px 8px;margin-right:8px}"\n    +".dp-count{font:bold 16px monospace;color:#e8b10c;letter-spacing:2px}"\n    +".dp-combo{font:bold 52px monospace;color:#f5ead6;text-shadow:0 0 16px #c1121f}"\n    +".dp-trophy{font-size:30px;margin-right:10px}"\n    +".dp-rec{display:flex;align-items:center;margin:6px 0;font:14px monospace;color:#c9bfa8}"\n    +".dp-rankbig{font:bold 30px monospace;color:#f5ead6}"\n    +".dp-gap{font:14px monospace;color:#e8b10c}"\n    +".dp-overlay{position:fixed;inset:0;z-index:100000;background:rgba(8,2,2,.94);display:flex;align-items:center;justify-content:center;text-align:center}"\n    +".dp-lvlup h1{font:bold 22px monospace;letter-spacing:6px;color:#e8b10c;margin:0 0 10px}"\n    +".dp-lvlup .dp-rankname{font:bold 64px monospace;color:#f5ead6;text-shadow:0 0 30px #c1121f;margin:10px 0;animation:dpburst .6s ease-out}"\n    +".dp-lvlup .dp-sub{font:14px monospace;color:#c9bfa8;margin-bottom:18px}"\n    +".dp-lucky{position:fixed;top:14%;left:50%;transform:translateX(-50%);z-index:100001;background:#0d2a0d;border:3px solid #4caf50;color:#d6f5d6;font:bold 16px monospace;letter-spacing:1px;padding:14px 26px;animation:dpburst .4s ease-out;box-shadow:0 0 30px #4caf50}"\n    +".dp-comeback{position:fixed;top:0;left:0;right:0;z-index:99998;background:#c1121f;color:#fff;font:bold 14px monospace;padding:10px;text-align:center;border-bottom:2px solid #fff}"\n    +".dp-comeback button{margin-left:12px;background:#fff;color:#c1121f;border:none;font:bold 13px monospace;padding:6px 16px;cursor:pointer}"\n    +"@media (prefers-reduced-motion: reduce){.dp-shake,.dp-burst,.dp-reward,.dp-lucky{animation:none!important}}";\n  document.head.appendChild(s);\n}\nvar RARITY={\n  common:{c:"#9aa0a6",label:"COMMON"},\n  rare:{c:"#4da3ff",label:"RARE"},\n  epic:{c:"#b45cff",label:"EPIC"},\n  legendary:{c:"#e8b10c",label:"LEGENDARY"}\n};\nvar MILESTONES=[7,14,30,60,100];\nvar ST=null, CB=null, WARM=false;\n/* ---- combo meter (session-local) ---- */\nfunction comboGet(){\n  try{\n    var c=JSON.parse(localStorage.getItem("pf_combo_v1")||\'{"n":0,"ts":0}\');\n    if(Date.now()-(c.ts||0)>30*60*1000) c={n:0,ts:Date.now()};\n    return c;\n  }catch(e){ return {n:0,ts:Date.now()}; }\n}\nfunction comboMult(n){ return 1+Math.min(8,Math.floor(n/3))*0.25; }\nfunction comboHit(){\n  var c=comboGet(); c.n=(c.n||0)+1; c.ts=Date.now();\n  try{ localStorage.setItem("pf_combo_v1",JSON.stringify(c)); }catch(e){}\n  renderCombo();\n}\nfunction load(){\n  var id=ident(), n=0, done=false;\n  function fin(){ if(done)return; done=true; render(); }\n  function one(){ n++; if(n>=1) fin(); }\n  setTimeout(fin,15000);\n  var p={callsign:id.callsign,device:id.device};\n  api("dopamine_status",p,function(j){\n    if(j&&j.ok){ ST=j; checkStreakMilestone(j); } else { WARM=true; }\n    one();\n  });\n}\n/* Streak milestones (7/14/30/60/100) trigger the level-up celebration overlay.\n   Celebrates once per milestone per callsign — tracked in localStorage. */\nfunction checkStreakMilestone(j){\n  try{\n    var count=Number((j&&j.streak&&j.streak.count)||0);\n    if(!count) return;\n    var seen={};\n    try{ seen=JSON.parse(localStorage.getItem("pf_streak_ms_v1")||"{}"); }catch(e){}\n    for(var i=0;i<MILESTONES.length;i++){\n      var m=MILESTONES[i];\n      if(count>=m&&!seen["m"+m]){\n        seen["m"+m]=1;\n        try{ localStorage.setItem("pf_streak_ms_v1",JSON.stringify(seen)); }catch(e2){}\n        levelUpOverlay(m+"-DAY STREAK");\n        try{ if(window.PF&&PF.emit) PF.emit("pf:streak:milestone",{days:m,count:count}); }catch(e3){}\n        break;\n      }\n    }\n  }catch(e){}\n}\nfunction fmtLeft(ms){\n  ms=Math.max(0,ms);\n  var s=Math.floor(ms/1000), h=Math.floor(s/3600), m=Math.floor((s%3600)/60), ss=s%60;\n  function p2(x){ return (x<10?"0":"")+x; }\n  return p2(h)+":"+p2(m)+":"+p2(ss);\n}\nfunction render(){\n  var el=document.getElementById("xDopa"); if(!el) return;\n  var id=ident(), h="";\n  if(!id.callsign){\n    el.innerHTML=\'<div class="c-gate">Daily Fire runs on callsigns. Claim yours in Enlistment Ranks, then come back and stoke it.</div>\';\n    return;\n  }\n  if(WARM||!ST){\n    el.innerHTML=\'<div class="x-pane"><h4>The forge is warming up</h4>\'\n      +\'<div class="x-note">Loot crates, streak shields and flash events are being wired into the backend. Your fire is safe &mdash; check back soon.</div></div>\'\n      +\'<div class="x-pane"><h4>Session combo</h4><div id="dpComboBox"></div></div>\';\n    renderCombo();\n    return;\n  }\n  h+=renderLoot();\n  h+=renderStreak();\n  h+=renderFlash();\n  h+=\'<div class="x-pane"><h4>Session combo</h4><div id="dpComboBox"></div></div>\';\n  h+=renderRecords();\n  h+=renderNearRank();\n  el.innerHTML=h;\n  wire();\n  renderCombo();\n}\nfunction renderLoot(){\n  var loot=(ST&&ST.loot)||{}, claimed=!!loot.claimed_today;\n  var h=\'<div class="x-pane dp-pane"><h4>Supply crate</h4><div class="dp-cratewrap">\';\n  h+=\'<div class="dp-crate" id="dpCrate">&#128230;</div>\';\n  h+=\'<div id="dpRewardSlot"></div>\';\n  if(claimed){\n    h+=\'<div class="x-note">Crate claimed. Next drop \'+(loot.next_reset_in?esc(loot.next_reset_in):"tomorrow")+\'.</div>\';\n  } else {\n    h+=\'<div style="margin-top:10px"><button class="c-btn" id="dpOpenBtn">OPEN THE CRATE</button></div>\'\n      +\'<div class="x-note">One free crate a day. Rarity decides the payload.</div>\'\n      +\'<div class="c-err" id="dpLootErr"></div>\';\n  }\n  h+=\'</div></div>\';\n  return h;\n}\nfunction renderStreak(){\n  var sk=(ST&&ST.streak)||{}, count=Number(sk.count)||0, longest=Number(sk.longest)||count;\n  var h=\'<div class="x-pane dp-pane"><h4>Detonation streak</h4><div style="text-align:center">\';\n  h+=\'<div class="dp-flame">&#128293;</div>\';\n  h+=\'<div class="dp-streakn">\'+count+\' DAY\'+(count===1?"":"S")+\'</div>\';\n  if(sk.at_risk&&sk.risk_ends_at){\n    h+=\'<div class="dp-risk">&#9888; STREAK AT RISK &mdash; dies in <span class="dp-count" data-until="\'+Number(sk.risk_ends_at)+\'">--:--:--</span><br>Check in or buy a freeze.</div>\';\n  }\n  if(sk.broken_recent){\n    h+=\'<div class="dp-risk">STREAK BROKEN &mdash; repair window closing. 250 XP to relight it.</div>\';\n  }\n  var next=null;\n  for(var i=0;i<MILESTONES.length;i++){ if(count<MILESTONES[i]){ next=MILESTONES[i]; break; } }\n  var prev=0;\n  for(var j=MILESTONES.length-1;j>=0;j--){ if(count>=MILESTONES[j]){ prev=MILESTONES[j]; break; } }\n  var target=next||100, pct=Math.min(100,Math.round((count-prev)/Math.max(1,target-prev)*100));\n  h+=\'<div class="dp-barwrap"><div class="dp-bar" style="width:\'+pct+\'%"></div></div>\';\n  h+=\'<div class="x-note">\'+(next?count+" / "+next+" days to the next milestone":"MAXIMUM STREAK. You are the fire.")+\' &bull; longest: \'+longest+\'</div>\';\n  h+=\'<div style="margin-top:8px">\'\n    +\'<button class="c-btn" id="dpFreezeBtn">BUY FREEZE &mdash; 100 XP</button> \';\n  if(sk.broken_recent){ h+=\'<button class="c-btn" id="dpRepairBtn">REPAIR &mdash; 250 XP</button>\'; }\n  h+=\'</div><div class="c-err" id="dpStreakErr"></div>\';\n  h+=\'</div></div>\';\n  return h;\n}\nfunction renderFlash(){\n  var fl=(ST&&ST.flash)||[];\n  var h=\'<div class="x-pane dp-pane"><h4>Flash events</h4>\';\n  if(!fl.length){\n    h+=\'<div class="x-note">No flash events live. When one drops, the clock starts ticking.</div>\';\n  }\n  for(var i=0;i<fl.length;i++){\n    var f=fl[i], mult=Number(f.multiplier)||2;\n    h+=\'<div class="dp-flash"><span class="dp-mult">\'+mult+\'X XP</span>\'\n      +\'<b>\'+esc(f.label||"Flash event")+\'</b><br>\'\n      +\'<span class="dp-count" data-until="\'+Number(f.ends_at)+\'">--:--:--</span> remaining</div>\';\n  }\n  h+=\'</div>\';\n  return h;\n}\nfunction renderCombo(){\n  var box=document.getElementById("dpComboBox"); if(!box) return;\n  var c=comboGet(), m=comboMult(c.n);\n  box.innerHTML=\'<div class="dp-combo">x\'+m.toFixed(2)+\'</div>\'\n    +\'<div class="x-note">\'+(c.n||0)+\' chained actions this session. Every 3 actions raises the multiplier (cap x3.00).</div>\';\n}\nfunction renderRecords(){\n  var rc=(ST&&ST.records)||{};\n  if(!rc.best_day_xp&&!rc.longest_streak) return "";\n  var h=\'<div class="x-pane dp-pane"><h4>Personal records</h4>\';\n  if(rc.best_day_xp){ h+=\'<div class="dp-rec"><span class="dp-trophy">&#127942;</span><span>Best day: <b>\'+Number(rc.best_day_xp)+\' XP</b></span></div>\'; }\n  if(rc.longest_streak){ h+=\'<div class="dp-rec"><span class="dp-trophy">&#128293;</span><span>Longest streak: <b>\'+Number(rc.longest_streak)+\' days</b></span></div>\'; }\n  h+=\'</div>\';\n  return h;\n}\nfunction renderNearRank(){\n  var nr=(ST&&ST.nearrank)||{};\n  if(!nr.position) return "";\n  var h=\'<div class="x-pane dp-pane"><h4>The hunt</h4><div style="text-align:center">\';\n  h+=\'<div class="dp-rankbig">YOU ARE #\'+Number(nr.position)+\'</div>\';\n  if(nr.above&&nr.above.callsign){\n    h+=\'<div class="dp-gap">\'+Number(nr.above.xp_gap||0)+\' XP behind #\'+(Number(nr.position)-1)+\' \'+esc(String(nr.above.callsign).toUpperCase())+\'</div>\';\n  }\n  if(nr.below&&nr.below.callsign){\n    h+=\'<div class="x-note">#\'+(Number(nr.position)+1)+\' \'+esc(String(nr.below.callsign).toUpperCase())+\' is \'+Number(nr.below.xp_gap||0)+\' XP behind YOU. Don&rsquo;t get caught.</div>\';\n  }\n  h+=\'</div></div>\';\n  return h;\n}\nfunction wire(){\n  var id=ident();\n  var ob=document.getElementById("dpOpenBtn");\n  if(ob){ ob.onclick=function(){\n    var err=document.getElementById("dpLootErr");\n    var crate=document.getElementById("dpCrate");\n    ob.disabled=true; ob.textContent="CRACKING IT OPEN...";\n    if(crate){ crate.classList.remove("dp-burst"); crate.classList.add("dp-shake"); }\n    post("loot","l_action","loot_open",{callsign:id.callsign,device:id.device},function(j){\n      if(crate){ crate.classList.remove("dp-shake"); }\n      if(j&&j.ok&&j.reward){\n        var r=j.reward, rk=RARITY[r.rarity]||RARITY.common;\n        var slot=document.getElementById("dpRewardSlot");\n        if(slot){\n          slot.innerHTML=\'<div class="dp-reward" style="border-color:\'+rk.c+\'">\'\n            +\'<div class="dp-rlabel" style="color:\'+rk.c+\'">\'+rk.label+\'</div>\'\n            +\'<div class="dp-rxp">+\'+Number(r.xp||0)+\' XP</div>\'\n            +\'<div class="dp-rname">\'+esc(r.label||"Supply drop")+\'</div>\'\n            +(((r.rarity==="epic")||(r.rarity==="legendary"))\n              ?\'<div style="margin-top:10px"><button class="c-btn" id="dpSharePull">SHARE YOUR PULL</button></div>\':"")\n            +\'</div>\';\n          /* Epic/legendary pulls get a share prompt — dopamine peak meets social outlet. */\n          var spb=document.getElementById("dpSharePull");\n          if(spb){ (function(rw,rkk){ spb.onclick=function(){ shareLoot(rw,rkk); }; })(r,rk); }\n          /* Emit namespaced event for any other consumer (cell brag, feed, etc). */\n          try{ if(window.PF&&PF.emit) PF.emit("pf:loot:opened",{rarity:r.rarity,xp:r.xp||0,label:r.label||""}); }catch(ee){}\n        }\n        if(crate){ crate.classList.add("dp-burst"); }\n        try{ if(window.PF&&PF.dope){ PF.dope.confetti(document.getElementById("pf-dopa"),40); PF.dope.xpFloat(document.getElementById("pf-dopa"),"+"+Number(r.xp||0)+" XP"); } }catch(e){}\n        ob.textContent="CLAIMED"; comboHit();\n        try{ document.dispatchEvent(new CustomEvent("pf-combo-hit")); }catch(e2){}\n      } else {\n        ob.disabled=false; ob.textContent="OPEN THE CRATE";\n        if(err) err.textContent=(j&&j.err)||"The crate jammed. Try again.";\n      }\n    });\n  }; }\n  var fb=document.getElementById("dpFreezeBtn");\n  if(fb){ fb.onclick=function(){\n    if(!confirm("Spend 100 XP on a streak freeze? It saves your streak if you miss a day.")) return;\n    var err=document.getElementById("dpStreakErr"); fb.disabled=true;\n    post("streak","str_action","streak_freeze_buy",{callsign:id.callsign,device:id.device},function(j){\n      fb.disabled=false;\n      if(j&&j.ok){ toast("Streak frozen. Sleep easy, soldier."); comboHit(); load(); }\n      else if(err) err.textContent=(j&&j.err)||"Freeze failed.";\n    });\n  }; }\n  var rb=document.getElementById("dpRepairBtn");\n  if(rb){ rb.onclick=function(){\n    if(!confirm("Spend 250 XP to relight your broken streak?")) return;\n    var err=document.getElementById("dpStreakErr"); rb.disabled=true;\n    post("streak","str_action","streak_repair",{callsign:id.callsign,device:id.device},function(j){\n      rb.disabled=false;\n      if(j&&j.ok){ toast("Streak relit. Don\'t let it die twice."); comboHit(); load(); }\n      else if(err) err.textContent=(j&&j.err)||"Repair failed.";\n    });\n  }; }\n}\n/* ---- ticking countdowns ---- */\nfunction tick(){\n  var now=Date.now(), els=document.querySelectorAll("#pf-dopa [data-until]");\n  for(var i=0;i<els.length;i++){\n    var until=Number(els[i].getAttribute("data-until"))||0;\n    els[i].textContent=fmtLeft(until-now);\n  }\n}\nsetInterval(tick,1000);\nsetInterval(function(){ load(); },120000);\n/* combo events from anywhere on the page */\ntry{ document.addEventListener("pf-combo-hit",function(){ comboHit(); }); }catch(e){}\ntry{ document.addEventListener("pf-content-shared",function(){ comboHit(); }); }catch(e){}\n/* Orphan producers get a home: creation actions feed the combo meter.\n   pf-alert-forge (alerts), pf-boost-given (forge), pf-campaign-act/pledge (campaign)\n   previously fired with no consumer — now they stoke the session combo. */\ntry{\n  ["pf-alert-forge","pf-boost-given","pf-campaign-act","pf-campaign-pledge"].forEach(function(ev){\n    document.addEventListener(ev,function(){ comboHit(); });\n  });\n}catch(e){}\nload();\n/* ---- global overlays (site-wide, injected once) ---- */\nfunction ovCss(){ dpCss(); }\nfunction luckyToast(xp,mult){\n  try{\n    var old=document.getElementById("dpLuckyOv");\n    if(old&&old.parentNode) old.parentNode.removeChild(old);\n    var d=document.createElement("div");\n    d.id="dpLuckyOv"; d.className="dp-lucky";\n    d.textContent="LUCKY! +"+Number(xp||0)+" XP"+(mult?"  (x"+mult+" bonus)":"");\n    document.body.appendChild(d);\n    try{ if(window.PF&&PF.dope){ PF.dope.confetti(d,24); } }catch(e){}\n    setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); },3200);\n  }catch(e){}\n}\nif(window.PF&&!PF.dopaLucky){ PF.dopaLucky=function(xp,mult){ luckyToast(xp,mult); }; }\ntry{\n  document.addEventListener("pf:lucky",function(e){\n    var d=(e&&e.detail)||{};\n    luckyToast(d.xp||0,d.mult||0);\n  });\n}catch(e){}\nfunction sharePromotion(rankName){\n  try{\n    var c=document.createElement("canvas"); c.width=1080; c.height=1080;\n    var g=c.getContext("2d");\n    g.fillStyle="#160b0b"; g.fillRect(0,0,1080,1080);\n    g.strokeStyle="#c1121f"; g.lineWidth=24; g.strokeRect(24,24,1032,1032);\n    g.fillStyle="#e8b10c"; g.font="bold 54px monospace"; g.textAlign="center";\n    g.fillText("PROMOTED",540,300);\n    g.fillStyle="#f5ead6"; g.font="bold 110px monospace";\n    var rn=String(rankName||"VANGUARD").toUpperCase();\n    if(rn.length>10){ g.font="bold 78px monospace"; }\n    g.fillText(rn,540,480);\n    var cs=""; try{ cs=String(window.PFCallsign?window.PFCallsign():"").toUpperCase(); }catch(e2){}\n    g.fillStyle="#c9bfa8"; g.font="bold 44px monospace";\n    if(cs) g.fillText("FIGHTING AS "+cs,540,600);\n    g.fillStyle="#c1121f"; g.font="bold 72px monospace";\n    g.fillText("JOIN THE FIGHT.",540,780);\n    g.fillStyle="#f5ead6"; g.font="bold 48px monospace";\n    g.fillText("MTCSTW.COM",540,880);\n    var a=document.createElement("a");\n    a.download="promotion-"+rn.toLowerCase().replace(/[^a-z0-9]+/g,"-")+".png";\n    a.href=c.toDataURL("image/png"); a.click();\n  }catch(e){}\n}\nfunction shareLoot(reward,rk){\n  try{\n    var c=document.createElement("canvas"); c.width=1080; c.height=1080;\n    var g=c.getContext("2d");\n    g.fillStyle="#160b0b"; g.fillRect(0,0,1080,1080);\n    g.strokeStyle=(rk&&rk.c)||"#e8b10c"; g.lineWidth=24; g.strokeRect(24,24,1032,1032);\n    g.fillStyle=(rk&&rk.c)||"#e8b10c"; g.font="bold 54px monospace"; g.textAlign="center";\n    g.fillText(((rk&&rk.label)||"LEGENDARY").toUpperCase()+" PULL",540,300);\n    g.fillStyle="#f5ead6"; g.font="bold 88px monospace";\n    var lb=String((reward&&reward.label)||"SUPPLY DROP").toUpperCase().slice(0,22);\n    g.fillText(lb,540,470);\n    if(reward&&reward.xp){\n      g.fillStyle="#e8b10c"; g.font="bold 72px monospace";\n      g.fillText("+"+Number(reward.xp)+" XP",540,600);\n    }\n    var cs=""; try{ cs=String(window.PFCallsign?window.PFCallsign():"").toUpperCase(); }catch(e2){}\n    g.fillStyle="#c9bfa8"; g.font="bold 44px monospace";\n    if(cs) g.fillText("PULLED BY "+cs,540,700);\n    g.fillStyle="#c1121f"; g.font="bold 72px monospace";\n    g.fillText("JOIN THE FIGHT.",540,840);\n    g.fillStyle="#f5ead6"; g.font="bold 48px monospace";\n    g.fillText("MTCSTW.COM",540,940);\n    var a=document.createElement("a");\n    a.download="loot-pull-"+Date.now()+".png";\n    a.href=c.toDataURL("image/png"); a.click();\n    /* Firing the share counts as content shared — feeds the combo meter. */\n    try{ document.dispatchEvent(new CustomEvent("pf-content-shared",{detail:{kind:"loot"}})); }catch(e3){}\n  }catch(e){}\n}\nfunction levelUpOverlay(rankName){\n  ovCss();\n  try{\n    if(document.getElementById("dpLvlOv")) return;\n    var d=document.createElement("div");\n    d.id="dpLvlOv"; d.className="dp-overlay";\n    d.innerHTML=\'<div class="dp-lvlup"><h1>&#9733; PROMOTION &#9733;</h1>\'\n      +\'<div class="dp-rankname">\'+esc(String(rankName||"VANGUARD"))+\'</div>\'\n      +\'<div class="dp-sub">The movement sees you. Keep climbing.</div>\'\n      +\'<div><button class="c-btn" id="dpSharePromo">SHARE YOUR PROMOTION</button> \'\n      +\'<button class="c-btn" id="dpLvlClose">KEEP FIGHTING</button></div></div>\';\n    document.body.appendChild(d);\n    try{ if(window.PF&&PF.dope){ PF.dope.confetti(d,90); } }catch(e){}\n    var sp=document.getElementById("dpSharePromo");\n    if(sp){ sp.onclick=function(){ sharePromotion(rankName); }; }\n    var cl=document.getElementById("dpLvlClose");\n    if(cl){ cl.onclick=function(){ if(d.parentNode) d.parentNode.removeChild(d); }; }\n  }catch(e){}\n}\ntry{\n  document.addEventListener("pf-promoted",function(e){\n    var t=(e&&e.detail&&e.detail.tier)||"VANGUARD";\n    levelUpOverlay(t);\n  });\n}catch(e){}\nfunction comebackBanner(xp){\n  ovCss();\n  try{\n    if(document.getElementById("dpComeback")) return;\n    var d=document.createElement("div");\n    d.id="dpComeback"; d.className="dp-comeback";\n    d.innerHTML=\'WE MISSED YOU, SOLDIER. We saved \'+Number(xp||50)+\' XP &mdash; <button id="dpCbClaim">CLAIM</button>\';\n    document.body.appendChild(d);\n    var b=document.getElementById("dpCbClaim");\n    if(b){ b.onclick=function(){\n      b.disabled=true; b.textContent="CLAIMING...";\n      var id=ident();\n      post("comeback","cb_action","comeback_claim",{callsign:id.callsign,device:id.device},function(j){\n        if(d.parentNode) d.parentNode.removeChild(d);\n        if(j&&j.ok){ toast("Welcome back. +"+Number(j.xp||xp||50)+" XP."); comboHit(); }\n      });\n    }; }\n  }catch(e){}\n}\n/* comeback check runs site-wide on homepage load */\n(function(){\n  var id=ident(); if(!id.callsign) return;\n  api("comeback_check",{callsign:id.callsign,device:id.device},function(j){\n    if(j&&j.ok&&j.eligible){ comebackBanner(j.xp||50); }\n  });\n})();\n})();\n<\/script>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;e.skip("do-meter")||(e.holder().insertAdjacentHTML("beforeend","<template id=\"pf-ov-dometer\">\n<div class=\"fe-block pf-override-block\" id=\"pf-dometer2\">\n\n<h2>&#9879; The Do Meter</h2>\n<div class=\"d-sub\">Not followers. Not likes. Things <b style=\"color:#c1121f\">done</b>.<br>Every mission reported, every vote cast, every bond bought &mdash; the machine keeps count.</div>\n<div class=\"d-num\"><span id=\"dCount\">0</span> <small>tasks complete</small></div>\n<div class=\"d-you\" id=\"dYou\" style=\"display:none\"></div>\n<div class=\"d-pulse\" id=\"dPulse\" style=\"display:none\"></div>\n<div class=\"d-keglabel\">Weekly target</div>\n<div class=\"d-keg\" id=\"dKeg\"><div class=\"d-fill\" id=\"dFill\"></div></div>\n<div class=\"d-goal\" id=\"dGoalLine\"></div>\n<div class=\"d-reset\" id=\"dReset\"></div>\n<div class=\"d-saver\" id=\"dSaver\" style=\"display:none\"></div>\n<div class=\"d-challenge\" id=\"dChallenge\"></div>\n<div class=\"d-badges\" id=\"dBadges\" style=\"display:none\"></div>\n<div class=\"d-rank\" id=\"dRank\" style=\"display:none\"></div>\n<div class=\"d-fire\" id=\"dFire\" style=\"display:none\"></div>\n<div class=\"d-types\" id=\"dTypes\"></div>\n<div class=\"d-spark\" id=\"dSpark\" aria-hidden=\"true\"></div>\n<div><button class=\"d-shareimg\" id=\"dShareImg\">Share network total</button><div class=\"d-sub\" id=\"dShareCount\" style=\"margin-top:6px\"></div></div>\n\n<div class=\"d-boom\" id=\"dBoom\"><h3>&#128165; Target destroyed</h3><p>New orders incoming. The fuse is relit.</p></div>\n\n<script>\n(function(){\n'use strict';\nvar LS='pf_do_v1';\n/* PTS table — MUST match PTS_DEFAULTS in core/05-tally.js (the backend source of truth). */\nvar PTS={'pf-order-checkin':1,'pf-bracket-ballot':1,'pf-bracket-liquidated':2,'pf-vote-cast':1,'pf-quiz-done':1,'pf-guess-done':2,'pf-raid-report':2,'pf-infight-fire':3,'pf-traitor-vote':1,'pf-wb-buy':5,'pf-enlisted':3,'pf-caption-submit':2,'pf-poster-made':2,'pf-drop-claimed':2,'pf-billionaire-answered':1,'pf-interrogation-answered':1,'pf-share-image':2,'pf-checkin':1,'pf-boost-tipped':1,'pf-guess-scored':0};\nvar LABELS={'pf-order-checkin':'Orders','pf-bracket-ballot':'Brackets','pf-bracket-liquidated':'Liquidations','pf-vote-cast':'Votes','pf-quiz-done':'Quizzes','pf-raid-report':'Raids','pf-infight-fire':'Infighting','pf-traitor-vote':'Traitors','pf-wb-buy':'Bonds','pf-enlisted':'Enlisted','pf-caption-submit':'Captions','pf-poster-made':'Posters','pf-drop-claimed':'Drops','pf-billionaire-answered':'Billionaire','pf-interrogation-answered':'Interrogation','pf-share-image':'Shares'};\nfunction load(){try{var s=JSON.parse(localStorage.getItem(LS)||'null');if(s&&s.w)return s;}catch(e){}return{w:PF.isoWeekKey(PF.chiNow()),total:0,byType:{},goal:1000,hits:0,hist:{},seen:[],boomed:false};}\nfunction save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}\nvar S=load();\nif(!S.miles)S.miles=[];if(typeof S.streak!=='number')S.streak=0;\nif(!S.badges)S.badges=[];if(!S.rankUp)S.rankUp={};if(!S.fireUp)S.fireUp={};if(!S.challDone)S.challDone={};\nvar baseG=0,sessAdds=0;\nfunction rollover(){var wk=PF.isoWeekKey(PF.chiNow());if(S.w!==wk){S.hist[S.w]=S.total;var ks=Object.keys(S.hist).sort();while(ks.length>4){delete S.hist[ks.shift()];}S.streak=S.hits>0?(S.streak||0)+1:0;S.w=wk;S.total=0;S.byType={};S.seen=[];S.boomed=false;S.miles=[];S.badges=[];S.rankUp={};S.fireUp={};save(S);}}\nfunction fmt(n){return n.toLocaleString('en-US');}\nfunction render(){\n  rollover();\n  /* UNIFIED TOTAL: the site-wide task total (every user's instances summed by\n     the tally backend via ?action=task_totals) is the headline number; the\n     local week count stays visible underneath so personal progress never\n     disappears. Falls back to local until the backend ships the endpoint. */\n  var unifiedTotal = S.total, youLine = '';\n  try {\n    if(window.PF_GLOBAL_TASKS > 0){\n      unifiedTotal = window.PF_GLOBAL_TASKS;\n      var share=S.total/window.PF_GLOBAL_TASKS*100;\n      youLine = 'SITE-WIDE TOTAL · you this week: ' + fmt(S.total) +\n        (S.total>0 ? ' (' + (share<0.1?'<0.1':share.toFixed(1)) + '% of the network)' : '');\n    }\n  } catch(e){}\n  var c=document.getElementById('dCount');if(c){c.textContent=fmt(unifiedTotal);c.classList.remove('d-flash');void c.offsetWidth;c.classList.add('d-flash');}\n  var yl=document.getElementById('dYou');if(yl){yl.textContent=youLine;yl.style.display=youLine?'':'none';}\n  /* network pulse ticker: network delta since arrival, or this-visit count */\n  var pl=document.getElementById('dPulse');\n  if(pl){var ptxt='';\n    try{if(window.PF_GLOBAL_TASKS>0){if(!baseG)baseG=window.PF_GLOBAL_TASKS;var pd=window.PF_GLOBAL_TASKS-baseG;if(pd>0)ptxt='+'+fmt(pd)+' network tasks since you arrived';}}catch(e){}\n    if(!ptxt&&sessAdds>0)ptxt='+'+sessAdds+' task'+(sessAdds>1?'s':'')+' logged this visit';\n    pl.textContent=ptxt;pl.style.display=ptxt?'':'none';}\n  var dsc=document.getElementById('dShareCount');if(dsc)dsc.textContent='Your share card will read: '+fmt(unifiedTotal)+' TASKS COMPLETE — NETWORK-WIDE.';\n  var pct=Math.min(100,Math.round(S.total/S.goal*100));\n  var fill=document.getElementById('dFill');if(fill)fill.style.width=pct+'%';\n  var keg=document.getElementById('dKeg');if(keg){keg.classList.toggle('hot',pct>=75);keg.classList.toggle('critical',pct>=90);}\n  var gl=document.getElementById('dGoalLine');if(gl)gl.textContent=(pct>=90?'🚨 TARGET ALMOST DESTROYED — ':'')+fmt(S.total)+' / '+fmt(S.goal)+' to detonation'+(S.hits>0?' \\u00B7 '+S.hits+' target'+(S.hits>1?'s':'')+' destroyed':'')+((S.streak||0)>0?' \\u00B7 \\uD83D\\uDD25 '+S.streak+'-week streak':'');\n  var rs=document.getElementById('dReset');\n  if(rs){try{var mo=PF.mondayOf(PF.chiNow());var ms=(mo.getTime()+7*864e5)-PF.chiNow().getTime();if(ms<0)ms=0;var dd=Math.floor(ms/864e5),hh=Math.floor(ms%864e5/36e5);rs.textContent='New targets in '+dd+'d '+hh+'h';}catch(e){}}\n  /* streak-saver: Sunday, streak alive, nothing logged yet — warn once per day */\n  var sv=document.getElementById('dSaver');\n  if(sv){var showSv=false;\n    try{var nowD=PF.chiNow();showSv=(S.streak||0)>0&&nowD.getDay()===0&&S.total===0;}catch(e){}\n    sv.textContent=showSv?('⚠ STREAK ON THE LINE — log one task before midnight to keep your '+S.streak+'-week streak alive'):'';\n    sv.style.display=showSv?'':'none';\n    if(showSv){var sdk='saver|'+S.w+'|'+new Date().toISOString().slice(0,10);\n      if(S.seen.indexOf(sdk)<0){S.seen.push(sdk);if(S.seen.length>300)S.seen=S.seen.slice(-300);save(S);ping('⚠ STREAK ON THE LINE');}}}\n  /* weekly op challenge panel */\n  var dc=document.getElementById('dChallenge');\n  if(dc){var ch=challPick(),pr=sumTypes(ch.types),pdone=pr>=ch.n;\n    dc.innerHTML='<div class=\"d-chl-head\">🎯 WEEKLY OP: '+ch.label+'</div>'+\n      '<div class=\"d-chl-bar\"><i style=\"width:'+Math.min(100,Math.round(pr/ch.n*100))+'%\"></i></div>'+\n      '<div class=\"d-chl-prog\">'+Math.min(pr,ch.n)+'/'+ch.n+(pdone?' — COMPLETE':'')+'</div>';}\n  /* earned type badges */\n  var bd=document.getElementById('dBadges');\n  if(bd){var bh='';BADGES.forEach(function(b){if(S.badges.indexOf(b.id)>=0)bh+='<span class=\"d-badge\">🎖 '+b.name+'</span>';});\n    bd.innerHTML=bh;bd.style.display=bh?'':'none';}\n  /* dissemination rank */\n  var rk=document.getElementById('dRank');\n  if(rk){var sh=S.byType['pf-share-image']||0,rn='',nx='',ri;\n    for(ri=0;ri<SHARE_RANKS.length;ri++){if(sh>=SHARE_RANKS[ri][0])rn=SHARE_RANKS[ri][1];}\n    for(ri=0;ri<SHARE_RANKS.length;ri++){if(sh<SHARE_RANKS[ri][0]){nx=' · '+(SHARE_RANKS[ri][0]-sh)+' to '+SHARE_RANKS[ri][1];break;}}\n    rk.textContent=sh>0?('📶 '+fmt(sh)+' share'+(sh>1?'s':'')+' this week'+(rn?' — '+rn:'')+nx):'';\n    rk.style.display=sh>0?'':'none';}\n  /* fan-fire support line */\n  var fr=document.getElementById('dFire');\n  if(fr){var fire=sumTypes(['pf-vote-cast','pf-infight-fire','pf-traitor-vote','pf-bracket-ballot']),fn='',fi;\n    for(fi=0;fi<FIRE_MILES.length;fi++){if(fire>=FIRE_MILES[fi][0])fn=FIRE_MILES[fi][1];}\n    fr.textContent=fire>0?('⚔ '+fmt(fire)+' strike'+(fire>1?'s':'')+' for your creators this week'+(fn?' — '+fn:'')):'';\n    fr.style.display=fire>0?'':'none';}\n  var ty=document.getElementById('dTypes');\n  if(ty){var h='';Object.keys(LABELS).forEach(function(k){var v=S.byType[k]||0;h+='<span class=\"d-type\">'+LABELS[k]+' <b>'+fmt(v)+'</b></span>';});ty.innerHTML=h;}\n  var sp=document.getElementById('dSpark');\n  if(sp){var weeks=Object.keys(S.hist).sort();weeks.push(S.w);var vals=weeks.map(function(w){return w===S.w?S.total:(S.hist[w]||0);});var mx=Math.max.apply(null,vals.concat([1]));var hh='';weeks.forEach(function(w,i){var v=vals[i];var bh=Math.max(6,Math.round(v/mx*52));hh+='<div class=\"d-bar'+(w===S.w?' cur':'')+'\" title=\"'+w+': '+fmt(v)+'\"><span>'+fmt(v)+'</span><i style=\"height:'+bh+'px\"></i></div>';});sp.innerHTML=hh;}\n  try{document.dispatchEvent(new CustomEvent('pf-do-update',{detail:{total:S.total,week:S.w,goal:S.goal}}));}catch(e){}\n}\n/* ---- GAME 8 EXPANSION: type badges, weekly creation challenge, dissemination\n   rank, fan-fire support line, full-spectrum week. All progress is derived from\n   the same byType counts the meter already keeps; XP bonuses are dispatched as\n   events and awarded by the enlistment ledger (never here). ---- */\nvar BADGES=[\n {id:'voter',name:'VOTER',types:['pf-vote-cast'],n:3},\n {id:'poster',name:'POSTER SMITH',types:['pf-poster-made'],n:2},\n {id:'caption',name:'CAPTION COMMANDO',types:['pf-caption-submit'],n:3},\n {id:'brawler',name:'PIT BRAWLER',types:['pf-infight-fire'],n:5},\n {id:'raider',name:'RAID LEADER',types:['pf-raid-report'],n:3},\n {id:'matcher',name:'MATCH MAKER',types:['pf-quiz-done'],n:3}\n];\nvar CHALLENGES=[\n {id:'forge',label:'Forge 2 posters',types:['pf-poster-made'],n:2},\n {id:'captions',label:'Drop 3 captions',types:['pf-caption-submit'],n:3},\n {id:'drops',label:'Claim 2 supply drops',types:['pf-drop-claimed'],n:2},\n {id:'make4',label:'Create 4 propaganda pieces',types:['pf-poster-made','pf-caption-submit','pf-drop-claimed'],n:4}\n];\nvar SHARE_RANKS=[[3,'AMPLIFIER'],[6,'SIGNAL BOOSTER'],[10,'BROADCAST TOWER']];\nvar FIRE_MILES=[[5,'SUPPORTER'],[15,'HYPE SQUAD'],[30,'RIGHT HAND OF THE NETWORK']];\nfunction sumTypes(types){var t=0;(types||[]).forEach(function(k){t+=(S.byType[k]||0);});return t;}\nfunction challPick(){var wk=S.w,m=0;for(var i=0;i<wk.length;i++)m=(m*31+wk.charCodeAt(i))%997;return CHALLENGES[m%CHALLENGES.length];}\nfunction checkExpansion(){\n  rollover();\n  var i;\n  /* type badges — one ping each, once per week */\n  for(i=0;i<BADGES.length;i++){var b=BADGES[i];\n    if(S.badges.indexOf(b.id)<0&&sumTypes(b.types)>=b.n){\n      S.badges.push(b.id);save(S);ping('🎖 '+b.name+' BADGE EARNED');confetti(18);\n    }}\n  /* weekly creation challenge — deterministic per ISO week, XP via ledger */\n  var ch=challPick(),prog=sumTypes(ch.types);\n  if(prog>=ch.n&&S.challDone[S.w]!==ch.id){\n    S.challDone[S.w]=ch.id;save(S);\n    ping('🎯 WEEKLY OP COMPLETE: '+ch.label.toUpperCase());confetti(30);\n    try{document.dispatchEvent(new CustomEvent('pf-do-challenge-done',{detail:{week:S.w,challenge:ch.id}}));}catch(e){}\n  }\n  /* dissemination rank — shares this week */\n  var sh=S.byType['pf-share-image']||0,rank=0;\n  for(i=0;i<SHARE_RANKS.length;i++){if(sh>=SHARE_RANKS[i][0])rank=i+1;}\n  if(rank>0&&S.rankUp[S.w]!==rank){\n    S.rankUp[S.w]=rank;save(S);\n    ping('📶 DISSEMINATION RANK: '+SHARE_RANKS[rank-1][1]);confetti(22);\n  }\n  /* fan fire — votes + fires + traitor votes + ballots = strikes for creators */\n  var fire=sumTypes(['pf-vote-cast','pf-infight-fire','pf-traitor-vote','pf-bracket-ballot']);\n  for(i=0;i<FIRE_MILES.length;i++){var fm=FIRE_MILES[i];\n    if(fire>=fm[0]&&(S.fireUp[S.w]||[]).indexOf(fm[0])<0){\n      (S.fireUp[S.w]=S.fireUp[S.w]||[]).push(fm[0]);save(S);\n      ping('🔥 '+fm[1]+' — '+fire+' strikes for your creators');confetti(18);\n    }}\n  /* full spectrum — at least one task in 6+ distinct activity types */\n  var distinct=Object.keys(S.byType).filter(function(k){return S.byType[k]>0;}).length;\n  if(!S.specWeek)S.specWeek='';\n  if(distinct>=6&&S.specWeek!==S.w){\n    S.specWeek=S.w;save(S);\n    ping('🌌 FULL SPECTRUM WEEK — every front of the war');confetti(46);\n    try{document.dispatchEvent(new CustomEvent('pf-do-fullspectrum',{detail:{week:S.w,types:distinct}}));}catch(e){}\n  }\n}\nfunction confetti(n){\n  var host=document.getElementById('pf-dometer2');if(!host)return;\n  var colors=['#c1121f','#c1121f','#f5ead6','#e8192f'];\n  for(var i=0;i<n;i++){var p=document.createElement('div');p.className='d-confetti';p.style.left=(Math.random()*100)+'%';p.style.background=colors[i%4];p.style.animationDuration=(1.2+Math.random()*1.6)+'s';host.appendChild(p);(function(el){setTimeout(function(){el.remove();},3200);})(p);}\n}\nfunction ping(msg){\n  var host=document.getElementById('pf-dometer2');if(!host)return;\n  var d=document.createElement('div');d.className='d-ping';d.textContent=msg;host.appendChild(d);\n  setTimeout(function(){d.remove();},2600);\n}\n/* Milestone dopamine: quarter/half/three-quarter hits ping once per week so\n   the loop closes long before detonation. */\nvar MILES=[[25,'QUARTER DETONATED \\u2014 the machine warms up'],[50,'HALFWAY TO DETONATION \\u2014 keep pushing'],[75,'FINAL PUSH \\u2014 the target is in sight']];\nfunction milestones(){\n  var pct=S.total/S.goal*100;\n  MILES.forEach(function(m){\n    if(pct>=m[0]&&S.miles.indexOf(m[0])<0){S.miles.push(m[0]);save(S);ping(m[1]);confetti(14);}\n  });\n}\nfunction boom(){\n  var b=document.getElementById('dBoom');if(!b)return;\n  b.classList.add('show');confetti(46);\n  /* Detonation -> Discord war room (throttled server-side, 1/hour). */\n  try{\n    if(window.PF&&typeof PF.notify==='function'){\n      var dt=0; try{ dt=doTotals().total; }catch(e){}\n      PF.notify('detonation','💥 DO METER DETONATION — the network cleared '+dt.toLocaleString()+' tasks this week. Fuel the next one: https://www.mtcstw.com/');\n    }\n  }catch(e2){}\n  /* Detonation -> war chest: convert peak hype into a War Bonds visit. */\n  try{\n    if(!document.getElementById('dBoomChest')){\n      var c=document.createElement('div');\n      c.id='dBoomChest';\n      c.style.cssText='margin-top:0.8rem;font-size:0.95rem;color:#b8ab8e;';\n      c.innerHTML='Target destroyed. <a href=\"#pf-warbonds\" style=\"color:#e8b10c;font-weight:900;\">FUEL THE NEXT ONE &rarr;</a>';\n      b.appendChild(c);\n      var a=c.querySelector('a');\n      if(a) a.onclick=function(){ setTimeout(function(){ var t=document.getElementById('pf-warbonds'); if(t){ try{t.scrollIntoView({behavior:'smooth'});}catch(e){} } },60); };\n    }\n  }catch(e){}\n  setTimeout(function(){b.classList.remove('show');},3600);\n}\nfunction add(type,pts,seenKey){\n  rollover();\n  if(seenKey){if(S.seen.indexOf(seenKey)>=0)return;S.seen.push(seenKey);if(S.seen.length>300)S.seen=S.seen.slice(-300);}\n  /* The green $ pops only when the event was dispatched from a real user\n     gesture. navigator.userActivation.isActive is true when the dispatch runs\n     synchronously inside a click/tap handler, and false for async/backend\n     events. The 2.5s tap heuristic is used ONLY when navigator.userActivation\n     is unavailable — never to override an explicit false. */\n  var userDroveIt=false, hasUA=false;\n  try{hasUA=!!(navigator.userActivation&&('isActive' in navigator.userActivation));}catch(e){}\n  if(hasUA){try{userDroveIt=!!navigator.userActivation.isActive;}catch(e){}}\n  else{userDroveIt=(Date.now()-lastTap)<2500;}\n  S.total+=pts;S.byType[type]=(S.byType[type]||0)+1;\n  if(!S.boomed&&S.total>=S.goal){S.boomed=true;S.hits++;boom();S.goal=Math.ceil(S.goal*1.25/50)*50;}\n  milestones();checkExpansion();sessAdds++;\n  save(S);render();\n  if(userDroveIt)dollarPop();\n}\nvar lastTap=0;\ndocument.addEventListener('click',function(){lastTap=Date.now();},true);\ndocument.addEventListener('touchstart',function(){lastTap=Date.now();},true);\nfunction dollarPop(){\n  var host=document.getElementById('pf-dometer2');if(!host)return;\n  var d=document.createElement('div');d.className='d-dollar';d.textContent='$';host.appendChild(d);\n  setTimeout(function(){d.remove();},1400);\n}\n/* SHARE NETWORK TOTAL — renders the site-wide task count to a 1080x1350\n   propaganda card and shares it via the native share sheet (falls back to\n   PNG download). This is the global number: every comrade's tasks summed. */\nfunction dWrap(ctx,text,maxW){\n  var words=String(text).split(/s+/),lines=[],line='';\n  words.forEach(function(w){var t=line?line+' '+w:w;\n    if(ctx.measureText(t).width>maxW&&line){lines.push(line);line=w;}else line=t;});\n  if(line)lines.push(line);return lines;\n}\nfunction doTotals(){\n  rollover();\n  var total=S.total,you='';\n  try{\n    if(window.PF_GLOBAL_TASKS>0){\n      total=window.PF_GLOBAL_TASKS;\n      var share=S.total/window.PF_GLOBAL_TASKS*100;\n      you='YOU THIS WEEK: '+fmt(S.total)+(S.total>0?' ('+(share<0.1?'<0.1':share.toFixed(1))+'% OF THE NETWORK)':'');\n    }\n  }catch(e){}\n  return {total:total,you:you};\n}\nfunction drawDoCard(){\n  var T=doTotals(),W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;\n  var x=cv.getContext('2d');\n  x.fillStyle='#0d0d0d';x.fillRect(0,0,W,H);\n  x.strokeStyle='#c1121f';x.lineWidth=16;x.strokeRect(14,14,W-28,H-28);\n  x.strokeStyle='#f5ead6';x.lineWidth=3;x.strokeRect(44,44,W-88,H-88);\n  x.textAlign='center';var y=150;\n  x.fillStyle='#f5ead6';x.font='900 74px \"Arial Black\",Arial,sans-serif';\n  x.fillText('⚙ THE DO METER',W/2,y);y+=58;\n  x.fillStyle='#c1121f';x.font='700 32px Arial,sans-serif';\n  var mo=null;try{mo=PF.mondayOf(PF.chiNow());}catch(e){}\n  x.fillText(mo?('WEEK OF '+mo.toLocaleDateString('en-US',{month:'long',day:'numeric'}).toUpperCase()):'THIS WEEK',W/2,y);y+=30;\n  x.strokeStyle='#c1121f';x.lineWidth=4;\n  x.beginPath();x.moveTo(140,y);x.lineTo(W-140,y);x.stroke();y+=84;\n  x.fillStyle='#c1121f';x.font='900 150px \"Arial Black\",Arial,sans-serif';\n  x.fillText(fmt(T.total),W/2,y);y+=70;\n  x.fillStyle='#f5ead6';x.font='900 52px \"Arial Black\",Arial,sans-serif';\n  x.fillText('TASKS COMPLETE',W/2,y);y+=58;\n  x.fillStyle='#e8b923';x.font='900 36px \"Arial Black\",Arial,sans-serif';\n  x.fillText('NETWORK-WIDE',W/2,y);y+=66;\n  x.fillStyle='#c9bfa8';x.font='400 30px Arial,sans-serif';\n  x.fillText('Not followers. Not likes. Things done.',W/2,y);y+=64;\n  if(T.you){x.fillStyle='#f5ead6';x.font='700 34px Arial,sans-serif';x.fillText(T.you,W/2,y);y+=60;}\n  var tops=Object.keys(S.byType||{}).map(function(k){return[k,S.byType[k]];})\n    .sort(function(a,b){return b[1]-a[1];}).slice(0,4);\n  if(tops.length){\n    x.fillStyle='#c1121f';x.font='900 30px \"Arial Black\",Arial,sans-serif';\n    x.fillText('YOUR WEEK',W/2,y);y+=44;\n    x.fillStyle='#c9bfa8';x.font='400 30px Arial,sans-serif';\n    tops.forEach(function(p){x.fillText((LABELS[p[0]]||p[0]).toUpperCase()+' × '+fmt(p[1]),W/2,y);y+=44;});\n    y+=16;\n  }\n  var gl=fmt(S.total)+' / '+fmt(S.goal)+' TO DETONATION'+(S.hits>0?' · '+S.hits+' DESTROYED':'')+((S.streak||0)>0?' · 🔥 '+S.streak+'-WK STREAK':'');\n  x.fillStyle='#e8b923';x.font='700 30px Arial,sans-serif';\n  dWrap(x,gl,W-240).forEach(function(ln){x.fillText(ln,W/2,y);y+=40;});\n  y+=20;\n  x.fillStyle='#f5ead6';x.font='900 62px \"Arial Black\",Arial,sans-serif';\n  x.fillText('MTCSTW.COM',W/2,H-170);\n  x.fillStyle='#c1121f';x.font='900 30px \"Arial Black\",Arial,sans-serif';\n  x.fillText('THE PROPAGANDA FACTORY',W/2,H-116);\n  x.fillStyle='#c1121f';x.font='900 30px \"Arial Black\",Arial,sans-serif';\n  x.fillText('JOIN THE FIGHT.',W/2,H-76);\n  return cv;\n}\nfunction shareDoImage(btn){\n  if(btn)btn.disabled=true;\n  try{\n    var cv=drawDoCard();\n    try{if(window.PFShare&&window.PFShare.stampCallsign){cv=window.PFShare.stampCallsign(cv)||cv;}}catch(e){}\n    var awardShare=function(){\n      /* Credit ONLY on a confirmed share or a completed download — never on\n         cancel. Routed through the shared once-per-day gate so a share here\n         plus a share from any other game can't credit the same day twice. */\n      if(btn)btn.disabled=false;\n      try{\n        if(window.PF&&typeof window.PF.creditShare==='function'){window.PF.creditShare('do-meter','share');}\n        else if(typeof window.pfCreditShare==='function'){window.pfCreditShare('do-meter','share');}\n        else{document.dispatchEvent(new CustomEvent('pf-share-image',{detail:{day:new Date().toISOString().slice(0,10)}}));}\n      }catch(e){}\n    };\n    var done=function(url,blob){\n      var file=new File([blob],'pfn-do-meter.png',{type:'image/png'});\n      var isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent||'');\n      if(navigator.canShare&&navigator.canShare({files:[file]})){\n        var dlink='https://www.mtcstw.com/';\n        try{ if(window.PF&&typeof PF.shareUrl==='function') dlink=PF.shareUrl(dlink); }catch(e){}\n        navigator.share({files:[file],title:'The Do Meter',text:'The network did '+fmt(doTotals().total)+' things this week. Join at '+dlink}).then(awardShare).catch(function(){\n          /* User cancelled the share sheet — NO credit. */\n          if(btn)btn.disabled=false;\n        });\n      }else{\n        var a=document.createElement('a');a.href=url;a.download='pfn-do-meter.png';\n        document.body.appendChild(a);a.click();a.remove();\n        awardShare();\n      }\n    };\n    if(cv.toBlob){cv.toBlob(function(b){done(URL.createObjectURL(b),b);},'image/png');}\n    else{var u=cv.toDataURL('image/png');fetch(u).then(function(r){return r.blob();}).then(function(b){done(URL.createObjectURL(b),b);});}\n  }catch(e){if(btn)btn.disabled=false;}\n}\nObject.keys(PTS).forEach(function(type){\n  document.addEventListener(type,function(e){\n    var d=(e&&e.detail)||{};var key=type+'|'+(d.day||d.week||'')+'|'+(d.mission!==undefined?d.mission:'')+'|'+(d.amt||'')+'|'+(d.archetype||'');\n    add(type,PTS[type],key);\n  });\n});\ndocument.addEventListener('pf-global-tasks',function(){ render(); });\nwindow.pfDoMeter={add:function(t){if(PTS[t])add(t,PTS[t],t+'|manual|'+Date.now());},total:function(){rollover();return S.total;}};\nvar _dShareBtn=document.getElementById('dShareImg');\nif(_dShareBtn){_dShareBtn.addEventListener('click',function(){shareDoImage(_dShareBtn);});}\nrender();\n})();\n<\/script>\n</div>\n\x3c!-- DO-METER-BIG-END --\x3e\n\n\x3c!-- DO-METER-MINI-START\n     Paste this block into footer code injection, UNDER the red banner block.\n     One live line: \"THE NETWORK DID X THINGS THIS WEEK\". Self-contained. --\x3e\n<div id=\"pf-do-mini\">\n\n<span class=\"m-line\">&#9879; The network did <b id=\"pfDoMiniNum\">0</b> things this week</span>\n<script>\n(function(){\n'use strict';\nvar LS='pf_do_v1';\nfunction total(){try{if(window.PF_GLOBAL_TASKS>0)return window.PF_GLOBAL_TASKS;var s=JSON.parse(localStorage.getItem(LS)||'null');if(s&&s.w===PF.isoWeekKey(PF.chiNow()))return s.total||0;}catch(e){}return 0;}\nfunction paint(){var el=document.getElementById('pfDoMiniNum');if(el)el.textContent=(total()).toLocaleString('en-US');}\ndocument.addEventListener('pf-do-update',paint);\ndocument.addEventListener('pf-global-tasks',paint);\npaint();setInterval(paint,5000);\n})();\n<\/script>\n</div>\n</template>"),e.holder().insertAdjacentHTML("beforeend","<style>/* PF-DOMETER-SPARK-FIX-20260930: the sparkline bars had no explicit height, so the\nabsolutely-positioned fill overflowed the collapsed bar and rendered as a stray floating\nred square. Give legacy page-level #pf-dometer the same 64px bar height as the template. */\n#pf-dometer .d-bar{height:64px}\n/* PF-DOMETER-LOOP-20261001: milestone toast + week-reset countdown for the dopamine loop. */\n#pf-dometer2 .d-reset{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#f5ead6;opacity:.65;text-transform:uppercase;margin-top:6px}\n#pf-dometer2 .d-ping{position:absolute;top:34%;left:50%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 14px monospace;letter-spacing:1px;padding:10px 18px;border:2px solid #f5ead6;z-index:11;pointer-events:none;white-space:nowrap;max-width:94%;animation:dpingshake .4s}\n@keyframes dpingshake{0%{transform:translateX(-50%) scale(.7)}60%{transform:translateX(-50%) scale(1.06)}100%{transform:translateX(-50%) scale(1)}}\n@media (prefers-reduced-motion:reduce){#pf-dometer2 .d-ping{animation:none}}\n/* PF-DOMETER-G8-20261001: expansion panels — pulse ticker, streak saver, weekly op, badges, dissemination rank, fan fire, 90% critical keg. */\n#pf-dometer2 .d-pulse{font:bold 12px monospace;color:#e8b923;letter-spacing:1px;margin:4px 0}\n#pf-dometer2 .d-saver{background:#3a0d0d;border:2px solid #c1121f;color:#f5ead6;font:bold 12px Arial,sans-serif;letter-spacing:1px;padding:8px 12px;margin-top:8px}\n#pf-dometer2 .d-challenge{border:2px dashed #e8b923;padding:10px 12px;margin-top:10px;text-align:left}\n#pf-dometer2 .d-chl-head{font:bold 13px Arial,sans-serif;color:#e8b923;letter-spacing:1px}\n#pf-dometer2 .d-chl-bar{height:10px;background:#2a2a2a;margin:8px 0 4px}\n#pf-dometer2 .d-chl-bar i{display:block;height:100%;background:#e8b923}\n#pf-dometer2 .d-chl-prog{font:11px monospace;color:#f5ead6;opacity:.8}\n#pf-dometer2 .d-badges{margin-top:8px}\n#pf-dometer2 .d-badge{display:inline-block;background:#c1121f;color:#fff;font:bold 10px monospace;letter-spacing:1px;padding:4px 8px;margin:2px 3px;border:1px solid #f5ead6}\n#pf-dometer2 .d-rank{font:bold 12px Arial,sans-serif;color:#7fd4ff;letter-spacing:1px;margin-top:8px}\n#pf-dometer2 .d-fire{font:bold 12px Arial,sans-serif;color:#ff9d5c;letter-spacing:1px;margin-top:6px}\n#pf-dometer2 .d-keg.critical{animation:dkegpulse 1s infinite}\n@keyframes dkegpulse{0%,100%{box-shadow:0 0 0 0 rgba(193,18,31,.7)}50%{box-shadow:0 0 18px 4px rgba(193,18,31,.9)}}\n@media (prefers-reduced-motion:reduce){#pf-dometer2 .d-keg.critical{animation:none}}\n</style>"))}(),function(){"use strict";var e=window.PF;e.skip("daily-drop")||e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-drop">\n<div id="pf-drop">\n<style>\n#pf-drop{font-family:\'Arial Black\',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f}\n#pf-drop h2{color:#c1121f;font-size:28px;margin:0 0 4px;letter-spacing:2px;text-transform:uppercase}\n#pf-drop .d-day{font-family:Arial,sans-serif;font-size:13px;letter-spacing:3px;color:#ff5a00;text-transform:uppercase;margin-bottom:16px}\n#pf-drop .d-card{background:#f5ead6;color:#0d0d0d;padding:22px 20px;margin:0 0 14px;text-align:left}\n#pf-drop .d-tag{display:inline-block;background:#c1121f;color:#fff;font-size:11px;letter-spacing:3px;padding:4px 12px;margin-bottom:10px;text-transform:uppercase}\n#pf-drop .d-head{font-size:21px;line-height:1.3;margin:0 0 8px;text-transform:uppercase;letter-spacing:1px}\n#pf-drop .d-body{font-family:Arial,sans-serif;font-size:14px;line-height:1.55;color:#333}\n#pf-drop .d-streak{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase;margin-bottom:14px}\n#pf-drop .d-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}\n#pf-drop .d-btn{background:#c1121f;color:#fff;border:0;padding:12px 22px;font-family:\'Arial Black\',Arial,sans-serif;font-size:13px;letter-spacing:2px;cursor:pointer;text-transform:uppercase}\n#pf-drop .d-btn:hover{background:#8f0d17}\n#pf-drop .d-btn.ghost{background:none;border:2px solid #f5ead6;color:#f5ead6}\n#pf-drop .d-btn.ghost:hover{background:#1a1a1a}\n#pf-drop .d-arch{display:none;margin-top:16px;text-align:left}\n#pf-drop .d-arch.open{display:block}\n#pf-drop .d-aitem{background:#1a1a1a;border-left:4px solid #c1121f;padding:10px 14px;margin:8px 0;font-family:Arial,sans-serif}\n#pf-drop .d-aitem .d-aday{font-size:11px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase}\n#pf-drop .d-aitem .d-ahead{font-family:\'Arial Black\',Arial,sans-serif;font-size:13px;text-transform:uppercase;margin:2px 0}\n#pf-drop .d-aitem .d-abody{font-size:12px;color:#c9bfa8}\n#pf-drop .d-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:12px}\n</style>\n\n<h2>The Daily Drop</h2>\n<div class="d-day" id="dDay"></div>\n<div class="d-card">\n  <span class="d-tag" id="dTag"></span>\n  <p class="d-head" id="dHead"></p>\n  <p class="d-body" id="dBody"></p>\n</div>\n<div class="d-streak" id="dStreak"></div>\n<div class="d-btns">\n  <button class="d-btn" id="dShare">Share this drop</button>\n  <button class="d-btn ghost" id="dArchBtn">Past drops</button>\n</div>\n<div class="d-arch" id="dArch"></div>\n<div class="d-note">One drop per day. Come back tomorrow &mdash; the offensive continues.</div>\n\n<script>\n(function(){\nvar LAUNCH_DATE="2026-09-28";\n/* DROPS: 30 evergreen agitprop items, cycling. t = STAT | QUOTE | TRUTH | ORDER */\nvar DROPS=[\n{t:"STAT",h:"8 men own more wealth than half of humanity.",b:"Not 8 percent. 8 men. Half the planet. This isn\'t an economy, it\'s a heist."},\n{t:"TRUTH",h:"Your boss needs you. You don\'t need your boss.",b:"Every dollar of profit is a wage that wasn\'t paid. Remember who makes the value."},\n  {t:"QUOTE",h:"\\u201CThe ruling ideas of each age have ever been the ideas of its ruling class.\\u201D \\u2014 Karl Marx",b:"Read that again the next time the news tells you what\'s \\u2018realistic.\\u2019"},\n{t:"ORDER",h:"Talk to one coworker about pay today.",b:"Wage secrecy is a boss\'s best friend. One honest conversation is an act of war."},\n{t:"STAT",h:"American workers are 2.5x more productive than in 1979. Pay is up 15%.",b:"Productivity soared. Your paycheck didn\'t. The difference went to people who\'ve never done your job."},\n{t:"TRUTH",h:"Billionaires don\'t create jobs. Workers create wealth; billionaires collect it.",b:"Nobody ever got rich from their own labor alone."},\n{t:"QUOTE",h:"\\u201CIt is the job of thinking people not to be on the side of the executioners.\\u201D \\u2014 Albert Camus",b:"Pick a side. The machine already picked you."},\n{t:"ORDER",h:"Share one drop from this page today.",b:"Propaganda only works if it moves. Be the machine\'s distribution arm."},\n{t:"STAT",h:"The top 1% owns 32% of all wealth in America.",b:"The bottom 50% owns 2.5%. The game isn\'t rigged \\u2014 rigged implies it was ever fair."},\n{t:"TRUTH",h:"\\u2018Unskilled labor\\u2019 is a myth invented to pay you less.",b:"Try running a restaurant, warehouse, or hospital with no \\u2018unskilled\\u2019 workers for one day."},\n{t:"QUOTE",h:"\\u201CThe law, in its majestic equality, forbids rich and poor alike to sleep under bridges.\\u201D \\u2014 Anatole France",b:"Justice is blind. It just happens to only see one class."},\n{t:"ORDER",h:"Learn your rights at work tonight.",b:"15 minutes of reading. The boss hopes you never do it."},\n{t:"STAT",h:"CEOs now make 290x the average worker.",b:"In 1965 it was 21x. Nothing about leadership got 14 times better."},\n{t:"TRUTH",h:"The news calls it \\u2018the economy.\\u2019 They mean the stock market.",b:"Your rent went up and your pay didn\'t. That\'s the economy you live in."},\n{t:"QUOTE",h:"\\u201CIf voting changed anything, they\'d make it illegal.\\u201D \\u2014 Emma Goldman",b:"They\'re certainly trying."},\n{t:"ORDER",h:"Find one local mutual aid group and follow them.",b:"The revolution is also a food drive. Start where your feet are."},\n{t:"STAT",h:"Empty homes outnumber homeless people 28 to 1.",b:"There is no housing shortage. There\'s a profit shortage in housing people."},\n{t:"TRUTH",h:"They want you debating strangers online instead of organizing coworkers.",b:"The algorithm feeds you outrage because outrage doesn\'t unionize."},\n{t:"QUOTE",h:"\\u201CThe only thing necessary for evil to triumph is for good people to do nothing.\\u201D",b:"The machine prefers you tired, alone, and scrolling."},\n{t:"ORDER",h:"Cancel one subscription that funds the machine.",b:"Your money is a vote they actually count. Spend it like it."},\n{t:"STAT",h:"Medical debt is the #1 cause of bankruptcy in America.",b:"In every other rich country, getting sick doesn\'t mean going broke. Here it\'s a business model."},\n{t:"TRUTH",h:"Nobody is coming to save us. That\'s the good news.",b:"It means we get to save each other. That\'s what the network is for."},\n{t:"QUOTE",h:"\\u201CFirst they ignore you, then they laugh at you, then they fight you, then you win.\\u201D",b:"We\'re somewhere between laughing and fighting. Good."},\n{t:"ORDER",h:"Ask an elder what organizing looked like before the internet.",b:"The tactics are old. The tools are new. Learn both."},\n{t:"TRUTH",h:"Solidarity is a strategy, not a sentiment.",b:"Every strike won, every union formed, every right you have \\u2014 won by people acting together."},\n  {t:"ORDER",h:"Put your politics in the group chat.",b:"One message. \\u2018Did you know CEOs make 290x what we do?\\u2019 Then watch."},\n{t:"TRUTH",h:"\\u2018There is no alternative\\u2019 is the most successful propaganda ever made.",b:"There are always alternatives. They just don\'t profit the people saying that."},\n{t:"ORDER",h:"Support one striking worker this week.",b:"Walk a picket line, contribute to a strike fund, or just bring coffee. Show up."},\n{t:"TRUTH",h:"The network is the message.",b:"{N} creators. 5 million reach. One machine. You\'re already inside it \\u2014 act like it."},\n{t:"ORDER",h:"Bring one friend into the ranks.",b:"Send them this page. The machine grows one recruit at a time."}\n];\n\nfunction chicagoToday(){ var d=new Date(new Date().toLocaleString("en-US",{timeZone:"America/Chicago"})); d.setHours(0,0,0,0); return d; }\nfunction dayNum(){ var l=new Date(LAUNCH_DATE+"T00:00:00"); var diff=chicagoToday()-l; return Math.max(1,Math.floor(diff/86400000)+1); }\nfunction dropFor(n){ return DROPS[(n-1)%DROPS.length]; }\nfunction dateKey(){ var d=chicagoToday(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }\nfunction yesterdayKey(){ var d=chicagoToday(); d.setDate(d.getDate()-1); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }\n\nvar LS="pf_drop_v1";\nfunction load(){ try{return JSON.parse(localStorage.getItem(LS)||\'{"last":"","streak":0}\');}catch(e){return {last:"",streak:0};} }\nfunction save(s){ try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){} }\n\nvar n=dayNum(), drop=dropFor(n), s=load(), tk=dateKey();\nif(s.last!==tk){\n  s.streak = (s.last===yesterdayKey()) ? s.streak+1 : 1; s.last=tk; save(s);\n  /* award XP + ping the trackers on new daily claim */\n  try{\n    document.dispatchEvent(new CustomEvent("pf-drop-claimed",{detail:{day:tk,streak:s.streak}}));\n  }catch(e){}\n  /* GOLDEN DROP: 1-in-20 claims hit the motherlode — special art + bonus XP. */\n  try{\n    if(Math.random()<0.05){\n      document.dispatchEvent(new CustomEvent("pf-drop-golden",{detail:{day:tk}}));\n      var tag=document.getElementById("dTag");\n      if(tag){ tag.textContent="★ GOLDEN DROP ★"; tag.style.color="#e8b10c"; }\n      var head=document.getElementById("dHead");\n      if(head){ head.innerHTML="THE MOTHERLODE<br><span style=\'font-size:0.9rem;\'>Today the machine smiles on you.</span>"; }\n      if(window.PF&&PF.dope){ var hb=document.getElementById("dDay"); PF.dope.confetti(hb?hb.parentNode:document.body,40); }\n    }\n  }catch(e2){}\n}\n\ndocument.getElementById("dDay").textContent="Day "+n+" of the offensive";\ndocument.getElementById("dTag").textContent=drop.t;\ndocument.getElementById("dHead").textContent=drop.h;\n/* Dynamic network size: {N} pulls the live roster count from the database. */\nvar _nc=62;\ntry{ if(window.PF&&PF.slrAll){ var _a=PF.slrAll(); if(_a&&_a.length) _nc=_a.length; }\nelse if(window.PF&&PF.ROSTER&&PF.ROSTER.length){ _nc=PF.ROSTER.length; } }catch(_e){}\ndocument.getElementById("dBody").textContent=String(drop.b).replace("{N}",_nc);\ndocument.getElementById("dStreak").textContent="Your streak: "+s.streak+(s.streak===1?" day":" days")+" \\u2014 come back tomorrow to keep it alive";\n\ndocument.getElementById("dShare").onclick=function(){\n  var text="Day "+n+" of the offensive: "+drop.h+" \\u2014 via The Propaganda Factory "+location.href;\n  if(navigator.share){ navigator.share({title:"The Daily Drop",text:text,url:location.href}).catch(function(){}); }\n  else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(function(){ alert("Drop copied. Go spread it."); }).catch(function(){}); }\n};\ndocument.getElementById("dArchBtn").onclick=function(){\n  var arch=document.getElementById("dArch");\n  if(arch.classList.contains("open")){ arch.classList.remove("open"); return; }\n  var _nc2=62;\n  try{ if(window.PF&&PF.slrAll){ var _a2=PF.slrAll(); if(_a2&&_a2.length) _nc2=_a2.length; }\n  else if(window.PF&&PF.ROSTER&&PF.ROSTER.length){ _nc2=PF.ROSTER.length; } }catch(_e2){}\n  var h="";\n  for(var i=1;i<=7;i++){ var dn=n-i; if(dn<1) break; var d=dropFor(dn);\n    h+=\'<div class="d-aitem"><div class="d-aday">Day \'+dn+\' \\u00B7 \'+d.t+\'</div><div class="d-ahead">\'+d.h+\'</div><div class="d-abody">\'+String(d.b).replace("{N}",_nc2)+\'</div></div>\';\n  }\n  arch.innerHTML=h||\'<div class="d-aitem"><div class="d-abody">The offensive just began. Check back tomorrow.</div></div>\';\n  arch.classList.add("open");\n};\n})();\n<\/script>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;e.skip("enlistment-ranks")||e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-ranks">\n<div id="pf-ranks">\n<style>\n#pf-ranks{font-family:\'Arial Black\',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f}\n#pf-ranks h2{color:#c1121f;font-size:28px;margin:0 0 6px;letter-spacing:2px;text-transform:uppercase}\n#pf-ranks .r-sub{font-family:Arial,sans-serif;font-size:14px;color:#c9bfa8;margin-bottom:18px}\n#pf-ranks .r-badge{display:inline-block;background:#c1121f;color:#fff;font-size:24px;letter-spacing:3px;padding:12px 30px;text-transform:uppercase;margin-bottom:10px}\n#pf-ranks .r-xp{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase;margin-bottom:8px}\n#pf-ranks .r-bar{height:14px;background:#2a2a2a;border:1px solid #555;margin:0 0 6px}\n#pf-ranks .r-bar i{display:block;height:100%;background:#c1121f;width:0;transition:width .4s}\n#pf-ranks .r-next{font-family:Arial,sans-serif;font-size:12px;color:#c9bfa8;margin-bottom:18px;letter-spacing:1px}\n#pf-ranks .r-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}\n@media(max-width:520px){#pf-ranks .r-grid{grid-template-columns:1fr}}\n#pf-ranks .r-act{background:#1a1a1a;border:2px solid #f5ead6;color:#f5ead6;padding:12px 8px;cursor:pointer;font-family:Arial,sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:1px;transition:all .15s;text-decoration:none;display:block}\n#pf-ranks .r-act small{display:block;font-size:11px;color:#ff5a00;letter-spacing:2px;margin-top:4px}\n#pf-ranks .r-act:hover{background:#c1121f;border-color:#c1121f;color:#fff}\n#pf-ranks .r-act:hover small{color:#fff}\n#pf-ranks .r-act.done{opacity:.4;cursor:default;border-style:dashed}\n#pf-ranks .r-act.done:hover{background:#1a1a1a;color:#f5ead6}\n#pf-ranks .r-act.done:hover small{color:#ff5a00}\n#pf-ranks .r-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:14px}\n#pf-ranks .r-who{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase;margin-bottom:8px}\n#pf-ranks .r-who .gold{color:#ff5a00;font-size:16px}\n#pf-ranks .u-wrap{margin-top:22px;border-top:2px solid #c1121f;padding-top:18px;text-align:left}\n#pf-ranks .u-head{font-size:20px;letter-spacing:3px;color:#f5ead6;text-transform:uppercase;text-align:center;margin-bottom:4px}\n#pf-ranks .u-sub2{font-family:Arial,sans-serif;font-size:12px;color:#c9bfa8;text-align:center;margin-bottom:14px;letter-spacing:1px}\n#pf-ranks .u-row{display:flex;gap:12px;align-items:center;background:#1a1a1a;border:2px solid #333;padding:12px;margin-bottom:10px}\n#pf-ranks .u-row.open{border-color:#c1121f}\n#pf-ranks .u-row.fresh{animation:ufresh 1.2s 3}\n@keyframes ufresh{0%,100%{box-shadow:none}50%{box-shadow:0 0 24px #ff5a00;border-color:#ff5a00}}\n#pf-ranks .u-licon{font-size:28px;min-width:36px;text-align:center}\n#pf-ranks .u-row.open .u-licon{color:#ff5a00}\n#pf-ranks .u-body{flex:1;min-width:0}\n#pf-ranks .u-title{font-size:15px;letter-spacing:1px;color:#f5ead6;text-transform:uppercase}\n#pf-ranks .u-desc{font-family:Arial,sans-serif;font-size:12px;color:#c9bfa8;margin:4px 0;line-height:1.5}\n#pf-ranks .u-state{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase}\n#pf-ranks .u-state.lock{color:#777}\n#pf-ranks .u-btn{background:#c1121f;color:#fff;border:none;font-family:\'Arial Black\',Arial,sans-serif;font-size:12px;letter-spacing:2px;padding:10px 16px;cursor:pointer;text-transform:uppercase;white-space:nowrap;margin:2px}\n#pf-ranks .u-msg{font-family:Arial,sans-serif;font-size:13px;letter-spacing:1px;color:#ff5a00;text-align:center;margin-top:10px;min-height:20px;text-transform:uppercase}\n#pf-ranks .u-walltitle{font-size:16px;letter-spacing:3px;color:#c1121f;text-transform:uppercase;text-align:center;margin:16px 0 8px}\n#pf-ranks .u-wall{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}\n#pf-ranks .u-wname{background:#1a1a1a;border:2px solid #ff5a00;color:#f5ead6;font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;padding:6px 12px;text-transform:uppercase}\n#pf-ranks .u-wempty{font-family:Arial,sans-serif;font-size:12px;color:#777;text-align:center;width:100%}\n/* ---------- PRESTIGE ---------- */\n#pf-ranks .p-wrap{margin-top:22px;border-top:2px solid #ff5a00;padding-top:18px;text-align:center}\n#pf-ranks .p-head{font-size:22px;letter-spacing:4px;color:#ff5a00;text-transform:uppercase;margin-bottom:4px}\n#pf-ranks .p-sub{font-family:Arial,sans-serif;font-size:12px;color:#c9bfa8;margin-bottom:14px;letter-spacing:1px}\n#pf-ranks .p-load{font-family:Arial,sans-serif;font-size:12px;color:#777;padding:12px}\n#pf-ranks .p-badge{display:inline-block;background:#1a1a1a;border:3px solid #ff5a00;color:#ff5a00;font-size:32px;letter-spacing:4px;padding:10px 26px;margin-bottom:10px}\n#pf-ranks .p-rankline{font-family:Arial,sans-serif;font-size:14px;letter-spacing:2px;color:#f5ead6;text-transform:uppercase;margin-bottom:12px}\n#pf-ranks .p-req{background:#1a1a1a;border:2px solid #333;padding:12px;margin-bottom:10px;text-align:left}\n#pf-ranks .p-req.ok{border-color:#4caf50}\n#pf-ranks .p-req.no{border-color:#c1121f}\n#pf-ranks .p-reqt{font-size:13px;letter-spacing:1px;color:#f5ead6;text-transform:uppercase;margin-bottom:6px}\n#pf-ranks .p-reqd{font-family:Arial,sans-serif;font-size:12px;color:#c9bfa8;line-height:1.5}\n#pf-ranks .p-reqd .yes{color:#4caf50;font-weight:bold}\n#pf-ranks .p-reqd .no{color:#c1121f;font-weight:bold}\n#pf-ranks .p-bar{height:10px;background:#2a2a2a;border:1px solid #555;margin:6px 0}\n#pf-ranks .p-bar i{display:block;height:100%;background:#ff5a00;width:0;transition:width .4s}\n#pf-ranks .p-benefits{background:#141414;border:1px dashed #555;padding:10px 12px;margin:12px 0;text-align:left}\n#pf-ranks .p-benefits div{font-family:Arial,sans-serif;font-size:12px;color:#c9bfa8;line-height:1.7}\n#pf-ranks .p-benefits b{color:#ff5a00}\n#pf-ranks .p-btn{background:#ff5a00;color:#0d0d0d;border:none;font-family:\'Arial Black\',Arial,sans-serif;font-size:16px;letter-spacing:3px;padding:14px 40px;cursor:pointer;text-transform:uppercase;margin-top:8px}\n#pf-ranks .p-btn:disabled{background:#333;color:#777;cursor:default}\n#pf-ranks .p-warn{font-family:Arial,sans-serif;font-size:11px;color:#c1121f;margin-top:10px;line-height:1.5}\n#pf-ranks .p-max{font-family:Arial,sans-serif;font-size:14px;color:#ff5a00;letter-spacing:2px;text-transform:uppercase;padding:16px}\n</style>\n\n<h2>Climb the Ranks</h2>\n<div class="r-sub">Every action for the machine earns XP. Climb the ranks.</div>\n<div class="r-badge" id="rBadge">Recruit</div>\n<div class="r-who" id="rWho"></div>\n<div class="r-xp" id="rXp">0 XP</div>\n<div class="r-bar"><i id="rBar"></i></div>\n<div class="r-next" id="rNext"></div>\n<div class="r-grid" id="rGrid"></div>\n<div class="u-wrap">\n  <div class="u-head">&#9733; Unlocks &#9733;</div>\n  <div class="u-sub2">Ranks aren\'t just a number. Every tier opens something real.</div>\n  <div id="uList"></div>\n  <div class="u-msg" id="uMsg"></div>\n  <div class="u-walltitle">Vanguard Wall</div>\n  <div class="u-wall" id="uWall"><div class="u-wempty">No architects yet. The wall waits.</div></div>\n</div>\n<div class="p-wrap">\n  <div class="p-head">&#9733; Prestige &#9733;</div>\n  <div class="p-sub">Reset to zero. Rise again, stronger.</div>\n  <div id="pBody"><div class="p-load">Consulting command&hellip;</div></div>\n</div>\n<div class="r-note">Ranks live on this device. Screenshot your rank and share it &mdash; propaganda loves a leaderboard.</div>\n\n<script>\n(function(){\nvar TIERS=[["RECRUIT",0],["AGITATOR",25],["CADRE",75],["COMMISSAR",150],["ARCHITECT",300]];\nvar LS="pf_ranks_v1", LS_I="pf_identity_v1";\n/* Central backend: paste the /exec URL from the ranks-backend deploy to make\n   ranks follow users across devices. Empty = device-local mode. */\nvar BACKEND_URL="";\nfunction syncFromServer(){\n  var id={}; try{ id=JSON.parse(localStorage.getItem(LS_I)||"{}"); }catch(e){}\n  if(!BACKEND_URL||!id.callsign) return;\n  var fn="pfRankCb"+Math.floor(Math.random()*1e9);\n  window[fn]=function(j){\n    try{delete window[fn];}catch(e){} s.parentNode.removeChild(s);\n    if(j&&j.ok){ var st=load(); if(j.xp>st.xp){ st.xp=j.xp; save(st); render(); } }\n  };\n  var s=document.createElement("script");\n  s.src=BACKEND_URL+"?action=get&callsign="+encodeURIComponent(id.callsign)+"&callback="+fn;\n  document.head.appendChild(s);\n}\nfunction today(){ return new Date().toISOString().slice(0,10); }\nfunction load(){ try{ return JSON.parse(localStorage.getItem(LS)||\'{"xp":0,"got":{}}\'); }catch(e){ return {xp:0,got:{}}; } }\nfunction save(s){ try{ localStorage.setItem(LS,JSON.stringify(s)); }catch(e){} }\n/* award(key, xp, rule): rule "once" | "daily" */\nfunction award(key,xp,rule,opts){\n  /* opts.exempt: weekly / one-time / event rewards bypass the 50/day pool —\n     they\'re bounded by week or event already. Everything else draws from the\n     shared daily pool via PF.claimDayXp. Returns the XP actually granted. */\n  opts=opts||{};\n  var s=load(), t=today(), stamp=rule==="daily" ? t : "x";\n  if(s.got[key]===stamp) return 0;\n  var gain=xp;\n  if(!opts.exempt){ try{ gain=(window.PF&&PF.claimDayXp)?PF.claimDayXp(xp):xp; }catch(e){ gain=xp; } }\n  s.got[key]=stamp; s.xp+=gain; save(s); render();\n  /* Backend XP mirror (core/11-xpledger): every granted delta, keyed.\n     opts.nolx: the backend already granted this exact delta (contract payouts)\n     — mirroring it would double the backend balance. */\n  if(gain>0&&!opts.nolx){ try{ document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:gain,key:key,reason:rule}})); }catch(e2){} }\n  if(!opts.exempt&&gain<=0){ try{ if(window.PF&&PF.toast) PF.toast("Daily 50 XP pool spent — task logged. New pool at midnight."); }catch(e){} }\n  return gain;\n}\nfunction tierOf(xp){ var t=TIERS[0]; for(var i=0;i<TIERS.length;i++){ if(xp>=TIERS[i][1]) t=TIERS[i]; } return t; }\n/* settle(ev, gain): forward the TRUE awarded XP (after 50/day pool clipping)\n   to the tally so the backend records exactly what the ledger granted —\n   including 0 when the pool is spent. The tally records pool-capped events\n   ONLY on settle, never on the raw game event. */\nfunction settle(ev,gain,score){\n  try{ var d={ev:ev,xp:gain}; if(typeof score===\'number\') d.score=score; document.dispatchEvent(new CustomEvent("pf-tally-settle",{detail:d})); }catch(e){}\n}\n\n/* ---------- UNLOCKS ---------- */\nvar LS_U="pf_unlocks_seen_v1", LS_WALL="pf_wall_v1";\nvar UNLOCKS=[\n {tier:0,id:"papers",btn:"Download",title:"Enlistment Papers",\n  desc:"Your official certificate of enlistment, personalized with your callsign. Download it, print it, post it."},\n {tier:1,id:"posters",btn:"Get pack",title:"Classified Poster Pack",\n  desc:"3 exclusive propaganda posters stamped with your callsign. Agitator-class material, never public."},\n {tier:2,id:"frame",btn:"Download",title:"Operative Frame + Gold Star",\n  desc:"A profile-pic frame marking you as cadre — plus a permanent gold star next to your name on this board."},\n {tier:3,id:"votex2",btn:"Arm ×2",title:"Vote Power ×2",\n  desc:"Your Propagandist of the Week vote counts DOUBLE. Real, measurable power over the leaderboard."},\n {tier:4,id:"wall",btn:"Etch it",title:"Vanguard Wall + Design an Order",\n  desc:"Your callsign etched on the public Vanguard Wall — and the right to submit Daily Orders missions for the whole network."}\n];\nfunction seenUnlocks(){ try{ return JSON.parse(localStorage.getItem(LS_U)||"[]"); }catch(e){ return []; } }\nfunction markSeen(ids){ try{ localStorage.setItem(LS_U,JSON.stringify(ids)); }catch(e){} }\nfunction setVoteWeight(w){ try{ localStorage.setItem("pf_vote_weight",String(w)); }catch(e){} }\nfunction mkCanvas(w,h){ var c=document.createElement("canvas"); c.width=w; c.height=h; return c; }\nfunction isIOS(){ return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1); }\nfunction showImgModal(items){\n  var old=document.getElementById("pf-img-modal"); if(old) old.remove();\n  var m=document.createElement("div"); m.id="pf-img-modal";\n  m.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;overflow-y:auto;";\n  var label=document.createElement("div");\n  label.style.cssText="color:#f5ead6;font-family:Arial,sans-serif;font-size:16px;margin:0 0 12px;text-align:center;letter-spacing:1px;font-weight:bold;";\n  label.textContent="LONG-PRESS AN IMAGE → SAVE TO PHOTOS";\n  m.appendChild(label);\n  items.forEach(function(it){\n    var img=document.createElement("img"); img.src=it.url;\n    img.style.cssText="max-width:88%;max-height:52vh;border:3px solid #c1121f;margin:8px 0;";\n    m.appendChild(img);\n    var cap=document.createElement("div");\n    cap.style.cssText="color:#c9bfa8;font-family:Arial,sans-serif;font-size:12px;margin-bottom:8px;";\n    cap.textContent=it.name; m.appendChild(cap);\n  });\n  var close=document.createElement("button"); close.textContent="CLOSE";\n  close.style.cssText="background:#c1121f;color:#f5ead6;border:none;padding:12px 36px;font-family:\'Arial Black\',Arial,sans-serif;font-size:16px;letter-spacing:2px;cursor:pointer;margin-top:12px;";\n  close.onclick=function(){ m.remove(); }; m.appendChild(close);\n  m.onclick=function(e){ if(e.target===m) m.remove(); };\n  document.body.appendChild(m);\n}\nfunction dl(url,name){\n  if(isIOS()){ showImgModal([{url:url,name:name}]); return; }\n  var a=document.createElement("a"); a.href=url; a.download=name; document.body.appendChild(a); a.click(); setTimeout(function(){ a.remove(); },600);\n}\n\nfunction drawCert(cs){\n  var c=mkCanvas(900,1200), x=c.getContext("2d");\n  x.fillStyle="#0d0d0d"; x.fillRect(0,0,900,1200);\n  x.strokeStyle="#c1121f"; x.lineWidth=12; x.strokeRect(30,30,840,1140);\n  x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(60,60,780,1080);\n  x.textAlign="center";\n  x.fillStyle="#c1121f"; x.font="900 64px \'Arial Black\',Arial,sans-serif";\n  x.fillText("ENLISTMENT",450,220); x.fillText("PAPERS",450,300);\n  x.fillStyle="#f5ead6"; x.font="28px Arial,sans-serif";\n  x.fillText("THE PROPAGANDA FACTORY",450,380);\n  x.fillStyle="#c9bfa8"; x.font="24px Arial,sans-serif";\n  x.fillText("This certifies that",450,480);\n  x.fillStyle="#f5ead6"; x.font="900 64px \'Arial Black\',Arial,sans-serif";\n  x.fillText((cs||"RECRUIT").slice(0,16),450,600);\n  x.fillStyle="#c9bfa8"; x.font="24px Arial,sans-serif";\n  x.fillText("has enlisted in the",450,680);\n  x.fillStyle="#c1121f"; x.font="900 40px \'Arial Black\',Arial,sans-serif";\n  x.fillText("SICK LEFT RADICALS",450,740);\n  x.fillStyle="#c9bfa8"; x.font="22px Arial,sans-serif";\n  x.fillText("Enlisted "+new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}),450,830);\n  x.fillText("Rank: RECRUIT",450,880);\n  x.strokeStyle="#c1121f"; x.lineWidth=2;\n  x.beginPath(); x.moveTo(250,1000); x.lineTo(650,1000); x.stroke();\n  x.fillStyle="#f5ead6"; x.font="20px Arial,sans-serif";\n  x.fillText("MTCSTW — NETWORK COMMAND",450,1040);\n  x.fillStyle="#c1121f"; x.font="900 26px \'Arial Black\',Arial,sans-serif";\n  x.fillText("JOIN THE FIGHT.",450,1095);\n  return c.toDataURL("image/png");\n}\nfunction drawPoster(n,cs){\n  var c=mkCanvas(1080,1350), x=c.getContext("2d");\n  x.fillStyle="#0d0d0d"; x.fillRect(0,0,1080,1350);\n  x.strokeStyle="#c1121f"; x.lineWidth=20; x.strokeRect(40,40,1000,1270);\n  x.textAlign="center";\n  var name=(cs||"AGITATOR").slice(0,18);\n  if(n===0){\n    x.font="900 118px \'Arial Black\',Arial,sans-serif";\n    x.fillStyle="#c1121f"; x.fillText("AGITATE",540,480);\n    x.fillStyle="#f5ead6"; x.fillText("EDUCATE",540,640);\n    x.fillStyle="#c1121f"; x.fillText("ORGANIZE",540,800);\n  } else if(n===1){\n    x.font="900 96px \'Arial Black\',Arial,sans-serif";\n    x.fillStyle="#f5ead6"; x.fillText("ANOTHER BRICK",540,420);\n    x.fillText("IN THEIR WALL.",540,545);\n    x.fillStyle="#c1121f"; x.fillText("WE\'RE TAKING",540,720);\n    x.fillText("IT APART.",540,845);\n  } else {\n    x.fillStyle="#c1121f"; x.font="900 150px \'Arial Black\',Arial,sans-serif";\n    x.fillText("5M+",540,450);\n    x.fillStyle="#f5ead6"; x.font="900 84px \'Arial Black\',Arial,sans-serif";\n    x.fillText("NETWORK",540,585); x.fillText("REACH",540,695);\n    x.fillStyle="#c9bfa8"; x.font="36px Arial,sans-serif";\n    x.fillText("You are the media now.",540,820);\n  }\n  x.fillStyle="#c1121f"; x.fillRect(140,1060,800,6);\n  x.fillStyle="#f5ead6"; x.font="900 44px \'Arial Black\',Arial,sans-serif";\n  x.fillText(name+" — AGITATOR CLASS",540,1150);\n  x.fillStyle="#c1121f"; x.font="900 32px \'Arial Black\',Arial,sans-serif";\n  x.fillText("JOIN THE FIGHT AT MTCSTW.COM",540,1215);\n  return c.toDataURL("image/png");\n}\nfunction drawFrame(){\n  var c=mkCanvas(512,512), x=c.getContext("2d");\n  x.clearRect(0,0,512,512);\n  x.strokeStyle="#c1121f"; x.lineWidth=26;\n  x.beginPath(); x.arc(256,256,228,0,Math.PI*2); x.stroke();\n  x.strokeStyle="#ff5a00"; x.lineWidth=8;\n  x.beginPath(); x.arc(256,256,198,0,Math.PI*2); x.stroke();\n  x.textAlign="center";\n  x.fillStyle="#c1121f"; x.font="900 46px \'Arial Black\',Arial,sans-serif";\n  x.fillText("SLR",256,62);\n  x.fillStyle="#f5ead6"; x.font="900 40px \'Arial Black\',Arial,sans-serif";\n  x.fillText("OPERATIVE",256,482);\n  return c.toDataURL("image/png");\n}\nfunction doUnlock(id,cs){\n  var msg=document.getElementById("uMsg");\n  if(id==="papers"){ dl(drawCert(cs),"pfn-enlistment-papers.png"); }\n  else if(id==="posters"){\n    if(isIOS()){\n      showImgModal([{url:drawPoster(0,cs),name:"pfn-poster-agitate.png"},{url:drawPoster(1,cs),name:"pfn-poster-brick.png"},{url:drawPoster(2,cs),name:"pfn-poster-5m.png"}]);\n    } else {\n      dl(drawPoster(0,cs),"pfn-poster-agitate.png");\n      setTimeout(function(){ dl(drawPoster(1,cs),"pfn-poster-brick.png"); },700);\n      setTimeout(function(){ dl(drawPoster(2,cs),"pfn-poster-5m.png"); },1400);\n    }\n    if(msg) msg.textContent="3 posters incoming. Agitator-class material.";\n  }\n  else if(id==="frame"){\n    dl(drawFrame(),"pfn-operative-frame.png");\n    if(msg) msg.textContent="Frame downloaded. Layer it over your profile pic — and check your gold star above.";\n  }\n  else if(id==="votex2"){\n    setVoteWeight(2);\n    if(msg) msg.textContent="Vote power ×2 armed. Your next Fan Vote counts double.";\n  }\n  else if(id==="wall"){ etchWall(); }\n}\nfunction getWall(){ try{ return JSON.parse(localStorage.getItem(LS_WALL)||"[]"); }catch(e){ return []; } }\nfunction apiPostWall(cs){\n  if(!BACKEND_URL) return;\n  var body={action:"wall",callsign:cs};\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND_URL,body,function(){}); return; }\n  try{\n    fetch(BACKEND_URL,{method:"POST",headers:{"Content-Type":"text/plain"},\n      body:JSON.stringify(body)}).catch(function(){});\n  }catch(e){}\n}\nfunction etchWall(){\n  var cs=""; try{ cs=String(JSON.parse(localStorage.getItem(LS_I)||"{}").callsign||"").toLowerCase(); }catch(e){}\n  var wall=getWall(), msg=document.getElementById("uMsg");\n  if(!cs){ if(msg) msg.textContent="Claim a callsign first (Daily Orders widget) — the wall needs a name."; return; }\n  if(wall.indexOf(cs)<0){ wall.push(cs); try{ localStorage.setItem(LS_WALL,JSON.stringify(wall)); }catch(e){} }\n  apiPostWall(cs);\n  if(msg) msg.textContent="Etched. Your name is on the wall.";\n  render();\n}\nfunction wallFromServer(cb){\n  if(!BACKEND_URL){ cb(null); return; }\n  var fn="pfWallCb"+Math.floor(Math.random()*1e9);\n  window[fn]=function(j){ try{delete window[fn];}catch(e){} try{s.parentNode.removeChild(s);}catch(e2){} cb(j); };\n  var s=document.createElement("script");\n  s.onerror=function(){ cb(null); };\n  s.src=BACKEND_URL+"?action=wall&callback="+fn;\n  document.head.appendChild(s);\n}\nfunction renderWall(serverWall){\n  var el=document.getElementById("uWall");\n  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\n  var names=getWall();\n  if(serverWall&&serverWall.length){ names=serverWall.map(function(w){return esc(String(w.callsign).toUpperCase());}); }\n  else { names=names.map(function(w){return esc(String(w).toUpperCase());}); }\n  if(!names.length){ el.innerHTML=\'<div class="u-wempty">No architects yet. The wall waits.</div>\'; return; }\n  el.innerHTML=names.slice(-24).map(function(n){ return \'<span class="u-wname">\'+n+\'</span>\'; }).join("");\n}\nfunction renderUnlocks(){\n  var s=load(), idx=TIERS.indexOf(tierOf(s.xp));\n  var cs=""; try{ cs=String(JSON.parse(localStorage.getItem(LS_I)||"{}").callsign||"").toUpperCase(); }catch(e){}\n  if(idx>=3) setVoteWeight(2);   /* COMMISSAR perk persists */\n  var el=document.getElementById("uList"), h="", openIds=[];\n  UNLOCKS.forEach(function(u){\n    var open=idx>=u.tier;\n    if(open) openIds.push(u.id);\n    h+=\'<div class="u-row\'+(open?" open":"")+\'" id="urow-\'+u.id+\'">\'\n      +\'<div class="u-licon">\'+(open?"&#9733;":"&#128274;")+\'</div>\'\n      +\'<div class="u-body"><div class="u-title">\'+u.title+\'</div>\'\n      +\'<div class="u-desc">\'+u.desc+\'</div>\'\n      +\'<div class="u-state\'+(open?"":" lock")+\'">\'+(open?"UNLOCKED":"Unlocks at "+TIERS[u.tier][0]+" · "+TIERS[u.tier][1]+" XP")+\'</div>\'\n      +\'</div>\'\n      +(open?\'<button class="u-btn" data-u="\'+u.id+\'">\'+u.btn+\'</button>\':"")\n      +\'</div>\';\n  });\n  el.innerHTML=h;\n  el.querySelectorAll("button.u-btn").forEach(function(b){\n    b.onclick=function(){ doUnlock(b.getAttribute("data-u"),cs); };\n  });\n  /* fresh-unlock dopamine flash */\n  var seen=seenUnlocks(), fresh=openIds.filter(function(id){ return seen.indexOf(id)<0; });\n  if(fresh.length){\n    fresh.forEach(function(id){\n      var row=document.getElementById("urow-"+id);\n      if(row) row.classList.add("fresh");\n    });\n    var names=fresh.map(function(id){\n      var u=UNLOCKS.filter(function(x){return x.id===id;})[0]; return u?u.title:"";\n    }).join(" + ");\n    var msg=document.getElementById("uMsg");\n    if(msg) msg.textContent="NEW UNLOCK: "+names;\n    markSeen(openIds);\n  }\n  /* Design-an-Order link for architects */\n  if(idx>=4){\n    var wallBtn=document.querySelector(\'button.u-btn[data-u="wall"]\');\n    if(wallBtn && !document.getElementById("uDesign")){\n      var a=document.createElement("a");\n      a.id="uDesign"; a.className="u-btn";\n      a.style.cssText="text-decoration:none;display:inline-block;background:#f5ead6;color:#0d0d0d;";\n      a.href="mailto:mtcstw@gmail.com?subject="+encodeURIComponent("DAILY ORDER MISSION IDEA")+"&body="+encodeURIComponent("My mission idea: ");\n      a.textContent="Design an order";\n      wallBtn.parentNode.insertBefore(a,wallBtn.nextSibling);\n    }\n  }\n}\n\nvar ACTIONS=[\n /* Daily pool (50/day across the page): check-in 2, share 1.\n    Weekly tasks keep their own values and bypass the pool (exempt). */\n {id:"checkin", label:"Daily check-in", xp:2, rule:"daily", run:function(){ var g=award("checkin",2,"daily"); settle("pf-checkin",g); return g; }},\n {id:"bracket", label:"Vote in the bracket", xp:10, rule:"once", href:"#pf-bracket"},\n {id:"fanvote", label:"Vote propagandist of the week", xp:10, rule:"once", href:"#pf-vote"},\n {id:"quiz", label:"Find your SLR match", xp:15, rule:"once", href:"#slr-quiz"},\n {id:"enlisted", label:"Join the dispatch", xp:20, rule:"once", run:function(){ try{document.dispatchEvent(new CustomEvent("pf-enlisted"));}catch(e){} return award("enlisted",20,"once",{exempt:1}); }},\n {id:"share", label:"Share the machine", xp:1, rule:"daily", run:function(){\n    var done=function(){ settle("pf-share-image",award("share",1,"daily")); };\n    if(navigator.share){ navigator.share({title:"The Propaganda Factory",url:location.href}).then(done).catch(function(){}); }\n    else if(navigator.clipboard){ navigator.clipboard.writeText(location.href).then(done).catch(function(){}); }\n    return false;\n }}\n];\n\nfunction doneFor(a){\n  var s=load(), t=today();\n  if(a.rule==="daily") return s.got[a.id]===t;\n  if(a.href){\n    /* href actions complete inside their game silos, which auto-award under\n       week-scoped keys (bracket_<week>, fanvote_<week>, quiz); the claim link\n       awards under pfx-* keys. Done = either key present. Counted once. */\n    var map={bracket:["pfx-b","bracket_"],fanvote:["pfx-v","fanvote_"],quiz:["pfx-q","quiz"]}[a.id]||[];\n    for(var k in s.got){ if(!s.got.hasOwnProperty(k))continue;\n      if(k===map[0]||(map[1]&&k.indexOf(map[1])===0)) return true; }\n    return false;\n  }\n  return !!s.got[a.id];\n}\nfunction render(){\n  var s=load(), tier=tierOf(s.xp), idx=TIERS.indexOf(tier);\n  /* Promotion fanfare: crossing a tier threshold gets a celebration, once. */\n  try{\n    var seenT=parseInt(localStorage.getItem("pf_tier_seen_v1")||"0",10)||0;\n    if(idx>seenT){\n      try{ localStorage.setItem("pf_tier_seen_v1",String(idx)); }catch(e2){}\n      var host=document.getElementById("pf-ranks")||document.body;\n      if(window.PF&&PF.dope){ PF.dope.confetti(host,60); PF.dope.ping(host,"PROMOTED TO "+tier[0]); }\n      try{ document.dispatchEvent(new CustomEvent("pf-promoted",{detail:{tier:tier[0]}})); }catch(e3){}\n    }\n  }catch(e){}\n  document.getElementById("rBadge").textContent=tier[0];\n  var who=""; try{ var id=JSON.parse(localStorage.getItem(LS_I)||"{}"); if(id.callsign) who="Fighting as "+id.callsign.toUpperCase(); }catch(e){}\n  document.getElementById("rWho").innerHTML=who+(idx>=2&&who?\' <span class="gold">&#9733;</span>\':"");\n  document.getElementById("rXp").textContent=s.xp+" XP";\n  var next=TIERS[idx+1];\n  if(next){\n    var pct=Math.min(100,Math.round((s.xp-tier[1])/(next[1]-tier[1])*100));\n    document.getElementById("rBar").style.width=pct+"%";\n    document.getElementById("rNext").textContent=(next[1]-s.xp)+" XP to "+next[0];\n  } else {\n    document.getElementById("rBar").style.width="100%";\n    document.getElementById("rNext").textContent="Maximum rank achieved. The machine salutes you.";\n  }\n  var g=document.getElementById("rGrid"), h="";\n  ACTIONS.forEach(function(a){\n    var d=doneFor(a), tag=a.rule==="daily"?"daily":"one-time";\n    if(a.href){ h+=\'<a class="r-act\'+(d?" done":"")+\'" href="\'+a.href+\'">\'+a.label+\'<small>+\'+a.xp+\' XP · \'+tag+\'</small></a>\'; }\n    else { h+=\'<button class="r-act\'+(d?" done":"")+\'" data-a="\'+a.id+\'">\'+a.label+\'<small>+\'+a.xp+\' XP · \'+tag+\'</small></button>\'; }\n  });\n  g.innerHTML=h;\n  g.querySelectorAll("button.r-act").forEach(function(b){\n    b.onclick=function(){\n      var a=ACTIONS.filter(function(x){return x.id===b.getAttribute("data-a");})[0];\n      if(a&&a.run) a.run();\n    };\n  });\n  renderUnlocks();\n  renderWall();\n}\n/* cross-widget events — document, not window: games dispatch non-bubbling\n   CustomEvents on document, which never reach window listeners. */\ndocument.addEventListener("pf-bracket-ballot",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("bracket_"+w,10,"once",{exempt:1}); });\ndocument.addEventListener("pf-quiz-done",function(){ award("quiz",15,"once",{exempt:1}); });\ndocument.addEventListener("pf-guess-done",function(){ settle("pf-guess-done",award("guess_"+today(),1,"once")); });\n/* Guess scores: forward the score to the tally so the backend records it.\n   No XP (pf-guess-done already awarded) — xp=0, score in meta. */\ndocument.addEventListener("pf-guess-scored",function(e){ var s=0; try{ if(e&&e.detail&&typeof e.detail.score===\'number\') s=Math.floor(e.detail.score); }catch(err){} settle("pf-guess-scored",0,s); });\ndocument.addEventListener("pf-raid-report",function(){ settle("pf-raid-report",award("raid",2,"daily")); });\ndocument.addEventListener("pf-vote-cast",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("fanvote_"+w,10,"once",{exempt:1}); });\ndocument.addEventListener("pf-traitor-vote",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("traitor_"+w,5,"once",{exempt:1}); });\ndocument.addEventListener("pf-caption-submit",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("caption_"+w,10,"once",{exempt:1}); });\ndocument.addEventListener("pf-poster-made",function(){ settle("pf-poster-made",award("poster_"+today(),1,"once")); });\ndocument.addEventListener("pf-share-image",function(){ settle("pf-share-image",award("share",1,"daily")); });\ndocument.addEventListener("pf-drop-claimed",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; settle("pf-drop-claimed",award("drop_"+d,1,"once")); });\ndocument.addEventListener("pf-billionaire-answered",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; settle("pf-billionaire-answered",award("billionaire_"+d,1,"once")); });\ndocument.addEventListener("pf-interrogation-answered",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; settle("pf-interrogation-answered",award("interrogation_"+d,1,"once")); });\n/* Do Meter Game-8 expansion bonuses: weekly-op completion + full-spectrum week. Exempt (bounded by week). */\ndocument.addEventListener("pf-do-challenge-done",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; settle("pf-do-challenge-done",award("dochall_"+w,15,"once",{exempt:1})); });\ndocument.addEventListener("pf-do-fullspectrum",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; settle("pf-do-fullspectrum",award("dospec_"+w,20,"once",{exempt:1})); });\n/* Recruit rewards: +25 XP per new recruit (War Card promise), exempt from the\n   daily pool. Keyed on the running recruit total so the 6h poll can never\n   double-pay — repeats hit the same key and award 0. */\ndocument.addEventListener("pf-recruit-credited",function(e){\n  var fresh=Math.max(0,parseInt((e&&e.detail&&e.detail.recruits)||0,10)||0);\n  var total=Math.max(0,parseInt((e&&e.detail&&e.detail.total)||0,10)||0);\n  if(!fresh||!total) return;\n  var gain=award("recruits_"+total,25*fresh,"once",{exempt:1});\n  if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("RECRUIT CHECKED IN — +"+gain+" XP"); }catch(e2){} }\n});\n/* Dopamine loops: combo (2 games/day), first blood (day\'s first task),\n   golden drop (rare drop bonus), chainlink (multi-cell bridge, weekly).\n   All exempt — bounded by day/week already. */\ndocument.addEventListener("pf-combo",function(e){\n  var d=(e&&e.detail&&e.detail.day)||"day";\n  var g=award("combo_"+d,8,"once",{exempt:1});\n  if(g>0){ try{ if(window.PF&&PF.toast) PF.toast("COMBO x2 — two games deep. +8 XP"); }catch(e2){} }\n});\ndocument.addEventListener("pf-first-blood",function(e){\n  var d=(e&&e.detail&&e.detail.day)||"day";\n  award("firstblood_"+d,2,"once",{exempt:1});\n});\ndocument.addEventListener("pf-drop-golden",function(e){\n  var d=(e&&e.detail&&e.detail.day)||"day";\n  var g=award("dropgold_"+d,9,"once",{exempt:1});\n  if(g>0){ try{ if(window.PF&&PF.toast) PF.toast("GOLDEN DROP — +9 XP bonus"); }catch(e2){} }\n});\ndocument.addEventListener("pf-chainlink",function(e){\n  var w=(e&&e.detail&&e.detail.week)||"wk";\n  var n=Math.max(0,Math.min(2,parseInt((e&&e.detail&&e.detail.cells)||0,10)-1));\n  if(!n) return;\n  var g=award("chainlink_"+w,10*n,"once",{exempt:1});\n  if(g>0){ try{ if(window.PF&&PF.toast) PF.toast("CHAINLINK — bridging "+(n+1)+" cells. +"+g+" XP"); }catch(e2){} }\n});\n/* Mercenary payout: the backend already granted this delta via xpGrant —\n   the device award is display-only (nolx) so the mirror never doubles it. */\ndocument.addEventListener("pf-contract-paid",function(e){\n  var id=String((e&&e.detail&&e.detail.id)||"cx"), bnty=Math.max(0,parseInt((e&&e.detail&&e.detail.bounty)||0,10)||0);\n  if(!bnty) return;\n  var g=award("contractpay_"+id,bnty,"once",{exempt:1,nolx:1});\n  if(g>0){ try{ if(window.PF&&PF.toast) PF.toast("CONTRACT PAID — +"+g+" XP. Pleasure doing business."); }catch(e2){} }\n});\n/* ---------- PRESTIGE ---------- */\nfunction pBackend(){ return (window.PF_BACKEND_URL||"")+""; }\nfunction pCallsign(){ try{ return String(JSON.parse(localStorage.getItem(LS_I)||"{}").callsign||"").toLowerCase(); }catch(e){ return ""; } }\nfunction pApiGet(action,cb){\n  var url=pBackend(); if(!url||!pCallsign()){ cb(null); return; }\n  var fn="pfPrestigeCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function fin(j){ if(done)return; done=true; try{delete window[fn];}catch(e){} try{ if(s.parentNode)s.parentNode.removeChild(s);}catch(e2){} cb(j); }\n  window[fn]=function(j){ fin(j); };\n  s.onerror=function(){ fin(null); };\n  s.src=url+"?action="+encodeURIComponent(action)+"&callsign="+encodeURIComponent(pCallsign())+"&callback="+fn;\n  document.head.appendChild(s);\n  setTimeout(function(){ fin(null); },12000);\n}\nfunction pPost(cb){\n  var url=pBackend(); if(!url){ cb({ok:false,err:"no backend"}); return; }\n  var body={type:"prestige",pr_action:"prestige_reset",callsign:pCallsign()};\n  if(window.PF&&PF.authPost){ PF.authPost(url,body,cb); return; }\n  try{\n    var sec=""; try{ sec=window.PF&&PF.getAuthSecret?PF.getAuthSecret():""; }catch(e){}\n    if(sec) body.auth_secret=sec;\n    fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})\n      .then(function(r){ return r.json(); }).then(function(j){ cb(j||{ok:false,err:"bad response"}); })\n      .catch(function(){ cb({ok:false,err:"network error"}); });\n  }catch(e){ cb({ok:false,err:"network error"}); }\n}\nfunction escH(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction renderPrestige(st){\n  var el=document.getElementById("pBody"); if(!el) return;\n  var cs=pCallsign();\n  if(!cs){ el.innerHTML=\'<div class="p-load">Claim a callsign first (Daily Orders widget) — prestige needs a name.</div>\'; return; }\n  if(!st||!st.ok){ el.innerHTML=\'<div class="p-load">Command is silent. Try again soon.</div>\'; return; }\n  var h="";\n  /* Prestige badge */\n  if(st.prestige_level>0){\n    h+=\'<div class="p-badge">&#9733;\'+escH(st.badge)+\'&#9733;</div>\';\n    h+=\'<div class="p-rankline">Prestige \'+st.prestige_level+\' operative</div>\';\n  } else {\n    h+=\'<div class="p-badge" style="border-color:#555;color:#777;font-size:20px;">NO PRESTIGE</div>\';\n  }\n  h+=\'<div class="p-rankline">Network rank: \'+escH(st.rank_display)+\' &middot; \'+Number(st.xp||0).toLocaleString()+\' XP</div>\';\n  if(st.max_prestige){\n    h+=\'<div class="p-max">&#9733;&#9733;&#9733; Maximum prestige achieved. Legend status. &#9733;&#9733;&#9733;</div>\';\n  } else {\n    var rq=st.requirements, pct=0;\n    /* Rank requirement */\n    var rankPct=rq.rank_ok?100:Math.min(100,Math.round(rq.xp_have/rq.xp_needed*100));\n    h+=\'<div class="p-req \'+(rq.rank_ok?"ok":"no")+\'">\'\n      +\'<div class="p-reqt">Requirement 1: \'+escH(rq.rank_needed)+\'</div>\'\n      +\'<div class="p-bar"><i style="width:\'+rankPct+\'%"></i></div>\'\n      +\'<div class="p-reqd">\'+(rq.rank_ok?\'<span class="yes">MET</span> — VANGUARD confirmed.\'\n        :\'<span class="no">NOT MET</span> — \'+Number(rq.xp_have).toLocaleString()+\' / 25,000 XP\')+\'</div></div>\';\n    /* Streak requirement */\n    var sk=Math.max(rq.streak_best||0,rq.streak_current||0);\n    var streakPct=rq.streak_ok?100:Math.min(100,Math.round(sk/rq.streak_needed*100));\n    h+=\'<div class="p-req \'+(rq.streak_ok?"ok":"no")+\'">\'\n      +\'<div class="p-reqt">Requirement 2: \'+rq.streak_needed+\'-day max-XP streak</div>\'\n      +\'<div class="p-bar"><i style="width:\'+streakPct+\'%"></i></div>\'\n      +\'<div class="p-reqd">\'+(rq.streak_ok?\'<span class="yes">MET</span> — streak verified.\'\n        :\'<span class="no">NOT MET</span> — best \'+sk+\' / \'+rq.streak_needed+\' days. Hit the \'+Number(st.benefits.daily_cap).toLocaleString()+\' XP daily cap \'+rq.streak_needed+\' days straight.\')+\'</div></div>\';\n    /* Benefits */\n    var b=st.benefits;\n    h+=\'<div class="p-benefits">\'\n      +\'<div><b>Current:</b> \'+Number(b.daily_cap).toLocaleString()+\' XP/day cap &middot; bank deposits &times;\'+b.bank_deposit_mult+\'</div>\'\n      +\'<div><b>Prestige \'+st.next_prestige+\' (\'+escH(st.next_badge)+\'):</b> \'+Number(b.daily_cap_next).toLocaleString()+\' XP/day cap &middot; bank deposits &times;\'+b.bank_deposit_mult_next+\'</div>\'\n      +\'<div>Each prestige resets you to SYMPATHIZER at 0 XP. You keep your streaks, your unlocks, and your name on the wall.</div>\'\n      +\'</div>\';\n    /* Prestige button */\n    if(st.eligible){\n      h+=\'<button class="p-btn" id="pGo">Prestige &#9733;\'+escH(st.next_badge)+\'</button>\';\n      h+=\'<div class="p-warn">WARNING: This resets your XP to 0 and your rank to SYMPATHIZER. Your prestige level becomes \'+st.next_prestige+\'. This cannot be undone.</div>\';\n    } else {\n      h+=\'<button class="p-btn" disabled>Prestige locked</button>\';\n    }\n  }\n  el.innerHTML=h;\n  var go=document.getElementById("pGo");\n  if(go) go.onclick=function(){ pConfirm(st); };\n}\nfunction pConfirm(st){\n  var old=document.getElementById("pf-prestige-modal"); if(old) old.remove();\n  var m=document.createElement("div"); m.id="pf-prestige-modal";\n  m.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;";\n  var box=document.createElement("div");\n  box.style.cssText="background:#0d0d0d;border:4px solid #ff5a00;max-width:440px;width:100%;padding:28px 24px;text-align:center;font-family:Arial,sans-serif;";\n  box.innerHTML=\'<div style="color:#ff5a00;font-family:\'Arial Black\',Arial,sans-serif;font-size:22px;letter-spacing:3px;margin-bottom:12px;">PRESTIGE &#9733;\'+escH(st.next_badge)+\'</div>\'\n    +\'<div style="color:#f5ead6;font-size:14px;line-height:1.6;margin-bottom:8px;">You are about to burn <b>\'+Number(st.xp||0).toLocaleString()+\' XP</b> and fall from <b>\'+escH(st.rank)+\'</b> back to <b>SYMPATHIZER</b>.</div>\'\n    +\'<div style="color:#c9bfa8;font-size:13px;line-height:1.6;margin-bottom:20px;">In return: <b style="color:#ff5a00">\'+Number(st.benefits.daily_cap_next).toLocaleString()+\' XP/day</b> cap, <b style="color:#ff5a00">&times;\'+st.benefits.bank_deposit_mult_next+\'</b> bank deposits, and the <b style="color:#ff5a00">&#9733;\'+escH(st.next_badge)+\'</b> badge next to your name. Forever.</div>\'\n    +\'<div style="display:flex;gap:12px;justify-content:center;">\'\n    +\'<button id="pCancel" style="background:#333;color:#f5ead6;border:none;font-family:\'Arial Black\',Arial,sans-serif;font-size:14px;letter-spacing:2px;padding:12px 24px;cursor:pointer;">STAND DOWN</button>\'\n    +\'<button id="pConfirm" style="background:#ff5a00;color:#0d0d0d;border:none;font-family:\'Arial Black\',Arial,sans-serif;font-size:14px;letter-spacing:2px;padding:12px 24px;cursor:pointer;">BURN IT</button>\'\n    +\'</div>\';\n  m.appendChild(box);\n  m.onclick=function(e){ if(e.target===m) m.remove(); };\n  document.body.appendChild(m);\n  document.getElementById("pCancel").onclick=function(){ m.remove(); };\n  document.getElementById("pConfirm").onclick=function(){\n    var cBtn=document.getElementById("pConfirm");\n    cBtn.disabled=true; cBtn.textContent="BURNING...";\n    pPost(function(j){\n      m.remove();\n      var el=document.getElementById("pBody");\n      if(j&&j.ok){\n        try{ if(window.PF&&PF.toast) PF.toast("PRESTIGE "+j.new_prestige_level+" — reborn at zero. Climb again."); }catch(e){}\n        /* Reset the device-local widget XP too (fresh climb). */\n        try{ var s=load(); s.xp=0; s.got={}; save(s); }catch(e2){}\n        loadPrestige(); render();\n      } else {\n        try{ if(window.PF&&PF.toast) PF.toast("Prestige failed: "+((j&&j.err)||"unknown")); }catch(e){}\n        loadPrestige();\n      }\n    });\n  };\n}\nfunction loadPrestige(){\n  var el=document.getElementById("pBody"); if(!el) return;\n  pApiGet("prestige_status",function(j){ renderPrestige(j); });\n}\n/* Daily Orders writes the real combo XP into the shared pool itself — just re-render. */\ndocument.addEventListener("pf-order-checkin",function(){ render(); });\nloadPrestige();\nrender();\nsyncFromServer();\nwallFromServer(function(j){ if(j&&j.ok&&j.wall) renderWall(j.wall); });\n})();\n<\/script>\n</div>\n\x3c!-- RANKS-EMBED-END --\x3e\n</template>')}(),function(){"use strict";var e=window.PF;if(!e.skip("service-medals"))try{!function(){if(!window.pfMedalsLoaded){window.pfMedalsLoaded=!0;var n="pf_medals_v2",t="pf_ranks_v1",a="https://pf-api.mtcstw.workers.dev",o=[{id:"vote",glyph:"★",name:"Ballot",ev:"pf-vote-cast"},{id:"ballot",glyph:"☢",name:"Bracket Ballot",ev:"pf-bracket-ballot"},{id:"bracket",glyph:"☠",name:"Liquidator",ev:"pf-bracket-liquidated"},{id:"bonds",glyph:"◆",name:"War Bonds",ev:"pf-wb-buy"},{id:"caption",glyph:"✎",name:"Word Warrior",ev:"pf-caption-submit"},{id:"poster",glyph:"◈",name:"Press Pass",ev:"pf-poster-made"},{id:"quiz",glyph:"◉",name:"Intel Operative",ev:"pf-quiz-done"},{id:"billionaire",glyph:"＄",name:"Billionaire Spotter",ev:"pf-billionaire-answered"},{id:"interrogation",glyph:"❔",name:"Interrogator",ev:"pf-interrogation-answered"},{id:"orders",glyph:"▲",name:"Field Duty",ev:"pf-order-checkin"},{id:"drop",glyph:"●",name:"Supply Runner",ev:"pf-drop-claimed"},{id:"enlisted",glyph:"⚔",name:"Enlisted",ev:"pf-enlisted"},{id:"guess",glyph:"◎",name:"Profiler",ev:"pf-guess-done"},{id:"raid",glyph:"⚡",name:"Raider",ev:"pf-raid-report"},{id:"infight",glyph:"🥊",name:"Brawler",ev:"pf-infight-fire"}];document.addEventListener("pf-callsign-claimed",function(e){var n=e&&e.detail&&e.detail.callsign?String(e.detail.callsign).toLowerCase():"";n&&function(e){var n=s();if(n.fd_pending&&!n.fd){var a="string"==typeof n.fd_pending?n.fd_pending:"medal_fd_"+n.w;d(e,function(e){if(e&&e.ok){var n=s();n.fd=!0,n.fd_pending=!1,l(n);try{var o=JSON.parse(localStorage.getItem(t)||'{"xp":0,"got":{}}');o.got&&o.got[a]&&(delete o.got[a],o.xp=Math.max(0,(o.xp||0)-50),localStorage.setItem(t,JSON.stringify(o)))}catch(e){}try{document.dispatchEvent(new CustomEvent("pf-do-update"))}catch(e){}p()}})}}(n)});var r="#pf-medals{margin:18px 0 4px;padding:14px 10px;border:2px dashed #c1121f;background:#141414}#pf-medals .pm-title{font-family:'Arial Black',Arial,sans-serif;color:#ff5a00;font-size:14px;letter-spacing:3px;text-transform:uppercase;margin-bottom:10px}#pf-medals .pm-title span{color:#c9bfa8;font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px}#pf-medals .pm-rack{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:10px}#pf-medals .pm-m{width:62px;text-align:center;font-family:Arial,sans-serif}#pf-medals .pm-g{font-size:24px;line-height:1;display:block;margin-bottom:4px}#pf-medals .pm-m.got .pm-g{color:#ff5a00;text-shadow:0 0 8px rgba(255,90,0,.6)}#pf-medals .pm-m.miss .pm-g{color:#3a3a3a}#pf-medals .pm-n{font-size:8px;letter-spacing:1px;text-transform:uppercase;color:#c9bfa8}#pf-medals .pm-m.miss .pm-n{color:#555}#pf-medals .pm-note{font-family:Arial,sans-serif;font-size:11px;color:#c9bfa8;letter-spacing:1px}#pf-medals .pm-note b{color:#ff5a00}#pf-medals .pm-fd{font-family:'Arial Black',Arial,sans-serif;color:#f5ead6;background:#c1121f;display:inline-block;padding:6px 14px;margin-top:8px;font-size:13px;letter-spacing:2px}";o.forEach(function(n){document.addEventListener(n.ev,function(){var t=s(),a=e.isoWeekKey(e.chiNow());t.w!==a&&(t={w:a,m:{},fd:!1}),t.m[n.id]||(t.m[n.id]=1,l(t)),function(e){if(!e.fd&&!e.fd_pending){for(var n=0;n<o.length;n++)if(!e.m[o[n].id])return;c(e)}}(t),p()})}),document.addEventListener("pf-enlisted",function(){var n=s(),t=e.isoWeekKey(e.chiNow());n.w!==t&&(n={w:t,m:{},fd:!1})});var i=0;"complete"===document.readyState||"interactive"===document.readyState?f():document.addEventListener("DOMContentLoaded",f)}function s(){try{var t=JSON.parse(localStorage.getItem(n)||"null");if(t&&t.w)return t}catch(e){}return{w:e.isoWeekKey(e.chiNow()),m:{},fd:!1}}function l(e){try{localStorage.setItem(n,JSON.stringify(e))}catch(e){}}function d(n,t){var o="";try{o=window.PF_BACKEND_URL||a||""}catch(e){o=a||""}if(o){var r={action:"deploy",callsign:n};try{window.PFDeviceId&&(r.device=window.PFDeviceId()||"")}catch(e){}if(window.PF&&e.authPost)e.authPost(o,r,t);else{try{var i=window.PF&&e.getAuthSecret?e.getAuthSecret():"";i&&(r.auth_secret=i)}catch(e){}try{fetch(o,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(r)}).then(function(e){return e.json()}).then(function(e){t(e)}).catch(function(){t(null)})}catch(e){t(null)}}}else t(null)}function c(e){if(!e.fd&&!e.fd_pending){var n=function(){try{return String(JSON.parse(localStorage.getItem("pf_identity_v1")||"{}").callsign||"").toLowerCase()}catch(e){return""}}();if(n)d(n,function(n){n&&n.ok&&(e.fd=!0,l(e));try{document.dispatchEvent(new CustomEvent("pf-do-update"))}catch(e){}p()});else{var a="medal_fd_"+e.w;e.fd_pending=a,l(e);try{var o=JSON.parse(localStorage.getItem(t)||'{"xp":0,"got":{}}');o.got||(o.got={}),o.got[a]||(o.got[a]=1,o.xp+=50,localStorage.setItem(t,JSON.stringify(o)))}catch(e){}}p();try{document.dispatchEvent(new CustomEvent("pf-do-update"))}catch(e){}}}function p(){!function(){if(!document.getElementById("pf-medals-css")){var e=document.createElement("style");e.id="pf-medals-css",e.textContent=r,(document.head||document.documentElement).appendChild(e)}}();var n=document.getElementById("pf-ranks");if(!n)return!1;var t=s(),a=e.isoWeekKey(e.chiNow());t.w!==a&&l(t={w:a,m:{},fd:!1});var i=document.getElementById("pf-medals");if(!i){(i=document.createElement("div")).id="pf-medals";var d=document.getElementById("rNext");d&&d.parentNode?d.parentNode.insertBefore(i,d.nextSibling):n.appendChild(i)}var c='<div class="pm-title">⚔ Service Medals <span>— this week</span></div><div class="pm-rack">',p=0;return o.forEach(function(e){var n=!!t.m[e.id];n&&p++,c+='<div class="pm-m '+(n?"got":"miss")+'"><span class="pm-g">'+e.glyph+'</span><span class="pm-n">'+e.name+"</span></div>"}),c+="</div>",t.fd?c+='<div class="pm-fd">★ FULL DEPLOYMENT ★</div><div class="pm-note">All 14 earned. <b>+50 XP</b> banked, name on the wall. See you Monday.</div>':c+='<div class="pm-note">Earn all <b>14</b> this week for <b>FULL DEPLOYMENT</b>: +50 XP + your callsign on the Vanguard Wall. <b>'+p+"/14</b> so far.</div>",i.innerHTML=c,!0}function f(){p()||++i<20&&setTimeout(f,1e3)}}()}catch(n){e.error("service-medals",n)}}(),function(){"use strict";var e=window.PF;e.skip("hq-nudge")||e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-hq-nudge">\n<div class="fe-block pf-override-block pf-silo" id="pf-hq-nudge">\n<div class="pf-hq-nudge-card" style="background:linear-gradient(135deg,#0a0a0a 0%,#1a0505 100%);border:2px solid #c1121f;padding:28px 24px;text-align:center;margin:16px 0;">\n<div style="font-size:13px;letter-spacing:3px;color:#c1121f;font-weight:800;margin-bottom:8px;">NEW BATTLEGROUND</div>\n<h2 style="color:#f5ead6;font-size:28px;margin:0 0 12px 0;letter-spacing:1px;">POLITICAL HQ</h2>\n<p style="color:#ccc;font-size:15px;max-width:520px;margin:0 auto 20px auto;line-height:1.5;">Petitions. Rep contact. Voter registration. The People\'s Assembly. Wage civic warfare off the timeline.</p>\n<a href="/political-hq" class="pf-btn" style="display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:16px;padding:14px 36px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;">ENTER THE HQ →</a>\n</div>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;if(!e.skip("social-proof")){try{if("1"===sessionStorage.getItem("pf_sp_dismissed"))return}catch(e){}e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-socialproof">\n<div class="fe-block pf-override-block pf-silo" id="pf-socialproof">\n<style>\n#pf-sp-bar{display:flex;align-items:center;gap:14px;background:#0a0a0a;border-left:4px solid #c1121f;padding:10px 14px;font-family:Arial,sans-serif;font-size:13px;color:#f5ead6;flex-wrap:wrap}\n#pf-sp-bar .sp-stat{white-space:nowrap}\n#pf-sp-bar .sp-stat b{color:#c1121f;font-size:15px}\n#pf-sp-bar .sp-live{display:inline-block;width:8px;height:8px;border-radius:50%;background:#4caf50;animation:spPulse 2s infinite}\n@keyframes spPulse{0%,100%{opacity:1}50%{opacity:.35}}\n#pf-sp-x{margin-left:auto;background:none;border:1px solid #555;color:#888;cursor:pointer;font-size:14px;line-height:1;padding:4px 8px}\n#pf-sp-x:hover{color:#fff;border-color:#c1121f}\n@media(max-width:520px){#pf-sp-bar{font-size:12px;gap:10px}}\n@media(prefers-reduced-motion:reduce){#pf-sp-bar .sp-live{animation:none}}\n</style>\n<div id="pf-sp-bar" role="status" aria-live="polite">\n<span class="sp-live" aria-hidden="true"></span>\n<span class="sp-stat" id="pf-sp-checkins">Loading network pulse&hellip;</span>\n<span class="sp-stat" id="pf-sp-xp" style="display:none"></span>\n<span class="sp-stat" id="pf-sp-cells" style="display:none"></span>\n<span class="sp-stat" id="pf-sp-online" style="display:none"></span>\n<button id="pf-sp-x" aria-label="Dismiss">&times;</button>\n</div>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nfunction $(id){ return document.getElementById(id); }\nfunction fmt(n){ n=Math.round(Number(n)||0); return n>=1000?(n/1000).toFixed(1).replace(/.0$/,\'\')+\'K\':String(n); }\nfunction api(cb){\n  if(!BACKEND){ cb(null); return; }\n  var fn="pfSpCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  s.src=BACKEND+"?action=social_proof&callback="+fn; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },10000);\n}\nfunction paint(j){\n  if(!j||!j.ok) return;\n  var bar=$("pf-sp-bar"); if(!bar) return;\n  var ci=$("pf-sp-checkins"), xp=$("pf-sp-xp"), cells=$("pf-sp-cells"), on=$("pf-sp-online");\n  var n=Number(j.checkins_today)||0;\n  ci.innerHTML="<b>"+fmt(n)+"</b> soldier"+(n===1?"":"s")+" checked in today";\n  if(j.xp_earned_today>0){ xp.style.display=""; xp.innerHTML="⚡ <b>"+fmt(j.xp_earned_today)+"</b> XP earned"; }\n  if(j.active_cells>0){ cells.style.display=""; cells.innerHTML="🏠 <b>"+fmt(j.active_cells)+"</b> active cells"; }\n  if(j.online_now>0){ on.style.display=""; on.innerHTML="<b>"+fmt(j.online_now)+"</b> online now"; }\n}\nfunction tick(){ api(paint); }\nvar x=$("pf-sp-x");\nif(x) x.onclick=function(){\n  try{ sessionStorage.setItem(\'pf_sp_dismissed\',\'1\'); }catch(e){}\n  var bar=$("pf-sp-bar"); if(bar) bar.style.display="none";\n};\ntick();\nsetInterval(tick, 300000);\n})();\n<\/script>\n</div>\n</template>')}}();
+/* PF v1.4.3 bundle-critical.js — concatenated bundle, generated by build/bundle.js.
+   DO NOT EDIT. Regenerate with: node build/bundle.js
+   Contains: briefing.js, daily-orders.js, dopamine.js, do-meter.js, daily-drop.js, enlistment-ranks.js, service-medals.js, political-hq-nudge.js, social-proof.js
+   Each silo keeps its own PF.skip() kill switch (?pf_off=<silo>). */
+
+/* ===== briefing.js ===== */
+/* games/briefing.js  |  PF v1.4.3 | MORNING BRIEFING.
+   The cement: one scannable briefing that pulls every silo together into a
+   single soldier identity + daily orders. First thing a soldier sees.
+   Reads via JSONP (self-contained api()), writes via CORS POST (self-contained
+   post() -> PF.authPost). Aggregates existing endpoints; degrades per-section
+   if the dedicated `briefing` / `season_current` backends are not deployed yet.
+   Also injects the site-wide season banner (thin fixed strip: season name,
+   days left, goal progress).
+   Framing: military briefing. Dark, urgent, scannable in 30 seconds.
+   KILL: ?pf_off=brief  or  localStorage pf_disabled_v1='["brief"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (PF.skip("brief")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-brief">
+<div class="fe-block pf-override-block pf-silo" id="pf-brief">
+<h2>Morning Briefing</h2>
+<div class="c-tag">Your war, at a glance. Thirty seconds, then move.</div>
+<div id="xBrief"><div class="c-load">Assembling your briefing&hellip;</div></div>
+</div>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+/* Election Day fallback for the season frame. Local midnight. */
+var ELECTION=new Date(2026,10,3,0,0,0,0).getTime();
+/* Rank tiers mirror games/enlistment-ranks.js. */
+var TIERS=[["RECRUIT",0],["AGITATOR",25],["CADRE",75],["COMMISSAR",150],["ARCHITECT",300]];
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+/* JSONP GET for reads. */
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  var fn="pfBrCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+/* CORS POST for writes. */
+function dopaPost(type,actionKey,action,params,cb){
+  var body=Object.assign({type:type},params);
+  body[actionKey]=action;
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr})
+      .then(function(r){ return r.json(); })
+      .then(function(j){ done(j); })
+      .catch(function(){ done(null); });
+  }catch(e){ done(null); }
+}
+/* CORS POST for writes. */
+function post(cAction,params,cb){
+  var body=Object.assign({type:"brief",b_action:cAction},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr})
+      .then(function(r){ return r.json(); })
+      .then(function(j){ done(j); })
+      .catch(function(){ done(null); });
+  }catch(e){ done(null); }
+}
+function go(siloId){
+  try{
+    var el=document.getElementById(siloId);
+    if(el){ el.scrollIntoView({behavior:"smooth",block:"start"}); return; }
+  }catch(e){}
+}
+function tierOf(xp){
+  var t=TIERS[0], next=null;
+  for(var i=0;i<TIERS.length;i++){ if(xp>=TIERS[i][1]){ t=TIERS[i]; next=TIERS[i+1]||null; } }
+  return {cur:t,next:next};
+}
+function fmtCountdown(ms){
+  if(ms<=0) return "NOW";
+  var s=Math.floor(ms/1000), h=Math.floor(s/3600), m=Math.floor((s%3600)/60), ss=s%60;
+  function p(n){ return (n<10?"0":"")+n; }
+  if(h>48) return Math.floor(h/24)+"D "+(h%24)+"H";
+  return h+"H "+p(m)+"M "+p(ss)+"S";
+}
+function fmtHours(ms){
+  if(ms<=0) return "NOW";
+  var h=Math.floor(ms/3600000), m=Math.floor((ms%3600000)/60000);
+  return h+"H "+(m<10?"0":"")+m+"M";
+}
+var BAL=null,STREAK=null,LOOT=null,FLASH=null,COMEBACK=null,PROP=null,CELL=null,MISS=null,STAT=null,SEASON=null,BRIEF=null;
+var N_CALLS=11;
+function load(){
+  var id=ident(), done=false, n=0;
+  function fin(){ if(done)return; done=true; render(); }
+  function one(){ n++; if(n>=N_CALLS) fin(); }
+  setTimeout(fin,15000);
+  /* Dedicated endpoints first (no-ops until the backend ships). */
+  api("briefing",{callsign:id.callsign,device:id.device},function(j){ BRIEF=(j&&j.ok)?j:null; one(); });
+  api("season_current",{},function(j){ SEASON=(j&&j.ok)?j.season:null; one(); });
+  /* Aggregate the silos directly — this is the cement. */
+  api("xp_balance",{callsign:id.callsign},function(j){ BAL=j; one(); });
+  api("streak_status",{callsign:id.callsign,device:id.device},function(j){ STREAK=(j&&j.ok)?j:null; one(); });
+  api("loot_status",{callsign:id.callsign,device:id.device},function(j){ LOOT=(j&&j.ok)?j:null; one(); });
+  api("flash_active",{},function(j){ FLASH=j; one(); });
+  api("comeback_check",{callsign:id.callsign,device:id.device},function(j){ COMEBACK=(j&&j.ok&&j.eligible)?j:null; one(); });
+  api("proposal_list",{},function(j){ PROP=j; one(); });
+  api("cell_mine",{callsign:id.callsign,device:id.device},function(j){ CELL=(j&&j.ok)?j:null; one(); });
+  api("campaign_missions",{callsign:id.callsign,device:id.device},function(j){ MISS=j; one(); });
+  api("campaign_status",{},function(j){ STAT=j; one(); });
+}
+function seasonInfo(){
+  if(SEASON){
+    return { name:String(SEASON.name||"THE 32-DAY OFFENSIVE"),
+      endsAt:Number(SEASON.ends_at||ELECTION),
+      goal:Number(SEASON.goal||1000), progress:Number(SEASON.progress||0) };
+  }
+  var pledges=0,acts=0,goal=1000;
+  try{
+    if(STAT){ pledges=Number(STAT.pledges)||0; acts=Number(STAT.actions)||0; goal=Number(STAT.goal)||1000; }
+  }catch(e){}
+  return { name:"THE 32-DAY OFFENSIVE", endsAt:ELECTION, goal:goal, progress:pledges+acts };
+}
+function render(){
+  var el=document.getElementById("xBrief"); if(!el) return;
+  var id=ident(), h="";
+  if(!id.callsign){
+    el.innerHTML='<div class="br-gate">Briefings run on callsigns. Claim yours in Enlistment Ranks, then report back here.</div>'
+      +'<div style="margin-top:10px"><button class="c-btn" onclick="document.getElementById(\'pf-ranks\')&&document.getElementById(\'pf-ranks\').scrollIntoView({behavior:\'smooth\'})">ENLIST</button></div>';
+    renderSeasonBanner();
+    return;
+  }
+  var xp=0;
+  try{ xp=Number((BAL&&(BAL.balance!=null?BAL.balance:BAL.xp))||0); }catch(e){}
+  var t=tierOf(xp);
+  var streakN=0, streakRisk=false, streakHrs="";
+  try{
+    if(STREAK){ streakN=Number(STREAK.count)||0; streakRisk=!!STREAK.at_risk;
+      if(streakRisk&&STREAK.hours_left) streakHrs=fmtHours(Number(STREAK.hours_left)*3600000); }
+  }catch(e){}
+  /* ---------- 1. SOLDIER HEADER ---------- */
+  h+='<div class="br-head"><div class="br-id"><div class="br-cs">'+esc(id.callsign)+'</div>'
+    +'<div class="br-rank">'+esc(t.cur[0])+'</div></div>'
+    +'<div class="br-stats"><div class="br-stat"><span class="br-v">'+xp+'</span><span class="br-l">XP</span></div>'
+    +'<div class="br-stat"><span class="br-v">'+(streakN>0?("\uD83D\uDD25"+streakN):"—")+'</span><span class="br-l">STREAK</span></div></div></div>';
+  if(t.next){
+    var lo=t.cur[1], hi=t.next[1], pct=Math.min(100,Math.max(0,Math.round((xp-lo)/Math.max(1,hi-lo)*100)));
+    h+='<div class="br-tierwrap"><div class="br-tierbar"><div class="br-tierfill" style="width:'+pct+'%"></div></div>'
+      +'<div class="x-note">'+(hi-xp)+' XP to '+esc(t.next[0])+' &mdash; '+pct+'%</div></div>';
+  } else {
+    h+='<div class="br-tierwrap"><div class="x-note">MAX RANK. You are the vanguard.</div></div>';
+  }
+  /* ---------- 2. URGENT ---------- */
+  var urg=[];
+  if(streakRisk){
+    urg.push({t:"STREAK AT RISK",d:"Your "+streakN+"-day streak dies in "+streakHrs+". Check in or lose it.",
+      btn:"SAVE STREAK",go:"pf-dopa"});
+  }
+  try{
+    if(LOOT&&LOOT.can_claim) urg.push({t:"LOOT CRATE READY",d:"Today's crate is unopened. Something's inside.",
+      btn:"OPEN CRATE",go:"pf-dopa"});
+  }catch(e){}
+  try{
+    var ps=(PROP&&PROP.proposals)||[], now=Date.now(), closing=0;
+    for(var pi=0;pi<ps.length;pi++){ var p=ps[pi];
+      if(String(p.status||"open")==="open"&&Number(p.closes_at||0)>now&&Number(p.closes_at||0)-now<86400000) closing++; }
+    if(closing>0) urg.push({t:closing+" VOTE"+(closing>1?"S":"")+" CLOSING",d:"Assembly proposals close within 24 hours. Your weight matters.",
+      btn:"VOTE NOW",go:"pf-gov"});
+  }catch(e){}
+  if(COMEBACK){
+    urg.push({t:"XP WAITING",d:"We saved "+Number(COMEBACK.xp||50)+" XP for your return.",
+      btn:"CLAIM",act:"comeback"});
+  }
+  if(urg.length){
+    h+='<div class="br-sec"><div class="br-sect">\u26A0 URGENT</div>';
+    for(var u=0;u<urg.length;u++){ var ug=urg[u];
+      h+='<div class="br-urg"><div class="br-ut">'+esc(ug.t)+'</div><div class="x-note">'+esc(ug.d)+'</div>'
+        +'<button class="c-btn br-ubtn"'+(ug.go?(' data-go="'+ug.go+'"'):'')+(ug.act?(' data-act="'+ug.act+'"'):'')+'>'+esc(ug.btn)+'</button></div>';
+    }
+    h+='</div>';
+  }
+  /* ---------- 3. TODAY'S ORDERS ---------- */
+  h+='<div class="br-sec"><div class="br-sect">TODAY&rsquo;S ORDERS</div>';
+  var ms=[]; try{ ms=((MISS&&MISS.missions)||[]).filter(function(m){ return !m.done; }); }catch(e){}
+  var shown=0;
+  for(var mi=0;mi<ms.length&&shown<4;mi++,shown++){ var m=ms[mi];
+    h+='<div class="br-order"><span class="br-oname">'+esc(m.label||m.id)+'</span>'
+      +'<span class="br-oxp">+'+(Number(m.xp)||10)+' XP</span></div>';
+  }
+  var fe=[]; try{ fe=(FLASH&&(FLASH.events||[]))||[]; }catch(e){}
+  for(var fi=0;fi<fe.length;fi++){ var f=fe[fi];
+    var endsMs=Number(f.ends_in||0)*1000;
+    h+='<div class="br-order br-flash"><span class="br-oname">\u26A1 '+esc(f.title||"FLASH EVENT")+' &mdash; '+esc(String(f.multiplier||"2"))+'X XP</span>'
+      +'<span class="br-oxp br-tick" data-ends="'+(Date.now()+endsMs)+'">'+fmtCountdown(endsMs)+'</span></div>';
+  }
+  if(!ms.length&&!fe.length){ h+='<div class="x-note">Orders incoming. Check Daily Orders for the full board.</div>'; }
+  h+='<div style="margin-top:8px"><button class="c-btn" data-go="pf-orders">FULL ORDER BOARD</button></div></div>';
+  /* ---------- 4. YOUR CELL ---------- */
+  h+='<div class="br-sec"><div class="br-sect">YOUR CELL</div>';
+  try{
+    if(CELL&&CELL.in_cell){
+      var cl=(CELL.cells&&CELL.cells[0])||null;
+      var cname=cl?cl.name:((CELL.cell&&CELL.cell.name)||"YOUR CELL");
+      var mems=cl?Number(cl.members)||0:0, act=cl?Number(cl.active_week)||0:0;
+      h+='<div class="br-cell"><span class="br-cname">'+esc(cname)+'</span>'
+        +'<span class="x-note">'+mems+' soldiers &bull; '+act+' active this week</span></div>'
+        +'<div style="margin-top:8px"><button class="c-btn" data-go="pf-cells">RALLY THE CELL</button></div>';
+    } else {
+      h+='<div class="x-note">No cell. Soldiers fight together or not at all.</div>'
+        +'<div style="margin-top:8px"><button class="c-btn" data-go="pf-cells">FIND YOUR CELL</button></div>';
+    }
+  }catch(e){ h+='<div class="x-note">Cell intel unavailable.</div>'; }
+  h+='</div>';
+  /* ---------- 5. SEASON PROGRESS ---------- */
+  var sn=seasonInfo();
+  var dl=Math.max(0,Math.ceil((sn.endsAt-Date.now())/86400000));
+  var spct=Math.min(100,Math.round(sn.progress/Math.max(1,sn.goal)*100));
+  h+='<div class="br-sec"><div class="br-sect">'+esc(sn.name)+'</div>'
+    +'<div class="br-seasonline"><span>'+dl+' DAYS LEFT</span><span>'+spct+'% OF GOAL</span></div>'
+    +'<div class="br-tierwrap"><div class="br-tierbar"><div class="br-tierfill br-war" style="width:'+spct+'%"></div></div></div>'
+    +'<div class="x-note">Day '+(32-dl)+' of 32 &mdash; '+sn.progress+' / '+sn.goal+' actions</div></div>';
+  /* ---------- 6. UNCLAIMED ---------- */
+  var un=[];
+  try{ if(LOOT&&LOOT.can_claim) un.push("Loot crate (today)"); }catch(e){}
+  if(COMEBACK) un.push(Number(COMEBACK.xp||50)+" XP comeback bonus");
+  if(un.length){
+    h+='<div class="br-sec"><div class="br-sect">UNCLAIMED</div><div class="x-note">You have '+un.length+' thing'+(un.length>1?"s":"")+' waiting:</div>';
+    for(var ui=0;ui<un.length;ui++){ h+='<div class="br-order"><span class="br-oname">'+esc(un[ui])+'</span></div>'; }
+    h+='<div style="margin-top:8px"><button class="c-btn" data-go="pf-dopa">COLLECT</button></div></div>';
+  }
+  el.innerHTML=h;
+  /* wire nav buttons */
+  var btns=el.querySelectorAll("button[data-go]");
+  for(var b=0;b<btns.length;b++){
+    (function(btn){ btn.onclick=function(){ go(btn.getAttribute("data-go")); }; })(btns[b]);
+  }
+  var acts=el.querySelectorAll("button[data-act='comeback']");
+  for(var a=0;a<acts.length;a++){
+    (function(btn){ btn.onclick=function(){
+      btn.disabled=true; btn.textContent="CLAIMING...";
+      var id2=ident();
+      dopaPost("comeback","cb_action","comeback_claim",{callsign:id2.callsign,device:id2.device},function(j){
+        if(j&&j.ok){ toast("Welcome back. +"+Number(j.xp||50)+" XP."); }
+        else { toast((j&&j.err)||"Claim failed."); btn.disabled=false; btn.textContent="CLAIM"; return; }
+        load();
+      });
+    }; })(acts[a]);
+  }
+  renderSeasonBanner();
+  tick();
+}
+/* per-second countdowns for flash timers */
+function tick(){
+  try{
+    var els=document.querySelectorAll("#xBrief .br-tick");
+    for(var i=0;i<els.length;i++){
+      var ends=Number(els[i].getAttribute("data-ends")||0);
+      els[i].textContent=fmtCountdown(ends-Date.now());
+    }
+  }catch(e){}
+}
+/* ---------- season banner: thin fixed strip, always visible ---------- */
+function bannerCss(){
+  if(document.getElementById("pf-brief-css")) return;
+  var s=document.createElement("style"); s.id="pf-brief-css";
+  s.textContent=
+    "#pf-brief .br-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:6px 0 10px}"
+    +"#pf-brief .br-cs{font:bold 22px monospace;color:#fff;letter-spacing:1px}"
+    +"#pf-brief .br-rank{display:inline-block;margin-top:4px;font:bold 11px monospace;color:#0a0a0a;background:#e8b64c;padding:3px 10px;border-radius:2px}"
+    +"#pf-brief .br-stats{display:flex;gap:14px}"
+    +"#pf-brief .br-stat{display:flex;flex-direction:column;align-items:center}"
+    +"#pf-brief .br-v{font:bold 20px monospace;color:#e8b64c}"
+    +"#pf-brief .br-l{font:10px monospace;color:#888;letter-spacing:1px}"
+    +"#pf-brief .br-tierwrap{margin:0 0 12px}"
+    +"#pf-brief .br-tierbar{height:8px;background:#222;border:1px solid #444;border-radius:4px;overflow:hidden}"
+    +"#pf-brief .br-tierfill{height:100%;background:#e8b64c;transition:width .5s}"
+    +"#pf-brief .br-tierfill.br-war{background:#c1121f}"
+    +"#pf-brief .br-sec{margin:14px 0;padding:12px;border:1px solid #333;background:#101010}"
+    +"#pf-brief .br-sect{font:bold 13px monospace;color:#c1121f;letter-spacing:2px;margin-bottom:10px}"
+    +"#pf-brief .br-urg{border:2px solid #c1121f;background:#1a0505;padding:10px;margin-bottom:8px}"
+    +"#pf-brief .br-ut{font:bold 13px monospace;color:#ff6b6b;margin-bottom:4px}"
+    +"#pf-brief .br-ubtn{margin-top:8px}"
+    +"#pf-brief .br-order{display:flex;justify-content:space-between;align-items:center;padding:8px 4px;border-bottom:1px solid #222;font:13px monospace;color:#ddd}"
+    +"#pf-brief .br-oxp{color:#e8b64c;font-weight:bold;white-space:nowrap;margin-left:10px}"
+    +"#pf-brief .br-flash{border:1px solid #e8b64c;background:#141003;padding:8px}"
+    +"#pf-brief .br-cell .br-cname{font:bold 16px monospace;color:#fff}"
+    +"#pf-brief .br-seasonline{display:flex;justify-content:space-between;font:bold 12px monospace;color:#ff6b6b;margin-bottom:8px}"
+    +"#pf-brief .br-gate{font:14px monospace;color:#ccc;padding:16px;border:1px dashed #666}"
+    +"#pf-seasonbar{position:fixed;top:0;left:0;right:0;z-index:99990;background:#0a0a0a;border-bottom:2px solid #c1121f;color:#fff;font:bold 12px monospace;padding:7px 12px;display:flex;align-items:center;gap:10px;letter-spacing:1px}"
+    +"#pf-seasonbar .sb-name{color:#ff6b6b;white-space:nowrap}"
+    +"#pf-seasonbar .sb-bar{flex:1;height:6px;background:#222;border-radius:3px;overflow:hidden;min-width:60px}"
+    +"#pf-seasonbar .sb-fill{height:100%;background:#c1121f}"
+    +"#pf-seasonbar .sb-days{color:#e8b64c;white-space:nowrap}";
+  document.head.appendChild(s);
+}
+function renderSeasonBanner(){
+  bannerCss();
+  try{
+    var sn=seasonInfo();
+    var dl=Math.max(0,Math.ceil((sn.endsAt-Date.now())/86400000));
+    var pct=Math.min(100,Math.round(sn.progress/Math.max(1,sn.goal)*100));
+    var bar=document.getElementById("pf-seasonbar");
+    if(!bar){
+      bar=document.createElement("div"); bar.id="pf-seasonbar";
+      document.body.appendChild(bar);
+    }
+    bar.innerHTML='<span class="sb-name">\u2694 '+esc(sn.name)+'</span>'
+      +'<span class="sb-bar"><span class="sb-fill" style="display:block;width:'+pct+'%"></span></span>'
+      +'<span class="sb-days">'+dl+'D LEFT &bull; '+pct+'%</span>';
+    /* keep clear of the dopamine comeback banner if it appears */
+    var top=0;
+    try{ if(document.getElementById("dpComeback")) top=42; }catch(e){}
+    bar.style.top=top+"px";
+    document.body.style.paddingTop=(36+top)+"px";
+  }catch(e){}
+}
+bannerCss();
+load();
+setInterval(function(){ load(); },180000);
+setInterval(tick,1000);
+/* keep the banner clear if the comeback banner mounts later */
+setInterval(function(){
+  try{
+    var bar=document.getElementById("pf-seasonbar"); if(!bar) return;
+    var top=document.getElementById("dpComeback")?42:0;
+    if(bar.style.top!==top+"px"){ bar.style.top=top+"px"; document.body.style.paddingTop=(36+top)+"px"; }
+  }catch(e){}
+},2000);
+})();
+</scr`+`ipt>
+</div>
+</template>`);
+})();
+
+;
+
+/* ===== daily-orders.js ===== */
+/* games/daily-orders.js  |  PF v1.4.1 | Daily Orders widget: template + 30 rotating missions
+   KILL: ?pf_off=daily-orders  or  localStorage pf_disabled_v1='["daily-orders"]' */
+
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (PF.skip("daily-orders")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-orders">
+<div class="fe-block pf-override-block" id="pf-orders">
+
+<h2>Daily Orders</h2>
+<div class="o-date" id="oDate"></div>
+<div class="o-dispatch" id="oDispatch"></div>
+<div class="o-meterwrap">
+  
+  <div class="o-meter" id="oMeter"></div>
+  <div class="o-combo" id="oCombo"></div>
+</div>
+<div class="o-warpath" id="oWarPath"></div>
+<div class="o-reset" id="oReset"></div>
+<div id="oMissions"></div>
+<div class="o-boost" id="oBoost"></div>
+<div class="o-patrons" id="oPatrons"></div>
+<div class="o-prog" id="oProg"></div>
+<div class="o-streak" id="oStreak"></div>
+<div class="o-next" id="oNext"></div>
+<div class="o-rankline" id="oRank"></div>
+<div class="o-loot" id="oLoot"></div>
+<div class="o-err" id="oErr"></div>
+<div class="o-note">3 orders (10 XP each) + 1 field op (+5) per day. Run all three plus the op for the +5 full-deployment command bonus. Every daily task on this page caps at 50 XP a day &mdash; your cell streak gets you there faster. Streak shields forgive a missed day. Today's Boost lets you tip earned XP to a creator at 1 XP = 2 signal.</div>
+<div><button class="o-shareimg" id="oShareImg">Share orders as image</button><div class="o-note" id="oShareCount"></div></div>
+<div class="o-claim" id="oClaimWrap">
+  <a id="oClaimToggle">Claim your rank on every device</a>
+  <div class="o-claimbox" id="oClaimBox">
+    <input aria-label="CALLSIGN" id="oCallsign" maxlength="20" placeholder="CALLSIGN" autocomplete="off" style="text-transform:uppercase">
+    <br><button class="o-claimbtn" id="oClaimBtn">Claim</button>
+    <div class="o-err" id="oClaimErr"></div>
+  </div>
+  <div class="o-who" id="oWho"></div>
+</div>
+
+<script>
+(function(){
+var MISSIONS=[
+{t:"Like the latest post from 3 SLR creators you haven't engaged with this week."},
+{t:"Share one SLR creator's post to your story or feed. Pick your favorite.",share:1},
+{t:"Leave a genuine comment on a small SLR creator's latest video."},
+{t:"Like 5 SLR posts in a row. Speed round."},
+{t:"Comment one thoughtful question on any SLR creator's latest post."},
+{t:"Share any SLR creator's post — not mutual aid, just straight propaganda. Any post works, pick a banger.",share:1},
+{t:"Like and comment on the newest post from the lowest-ranked creator on the Ledger. Lift from the bottom."},
+{t:"Send one SLR creator's page to a group chat. Convert the group chat.",share:1},
+{t:"Quote-share an SLR post and add why it matters to you.",share:1},
+{t:"Drop a brick emoji in the comments of 3 SLR posts. Mark the territory."},
+{t:"Like every post from the last 7 days on one SLR creator's page. Deep like."},
+{t:"Share one SLR video to a group or community you're in.",share:1},
+{t:"Leave an encouraging comment on an SLR creator dealing with hate or burnout."},
+{t:"Like and comment on 2 SLR creators outside your usual niche."},
+{t:"Share the Liquidation Ledger and tag your #1 SLR creator.",share:1},
+{t:"Comment your favorite SLR creator's catchphrase under their latest post."},
+{t:"Like 3 SLR posts and reply to one commenter on each. Build the thread."},
+{t:"Share an old banger from an SLR creator's archive. Deep cut.",share:1},
+{t:"Comment on one SLR post with a class-first take that sharpens the argument."},
+{t:"Like and share one SLR creator's announcement — a show, a stream, a drop.",share:1},
+{t:"Duet or stitch one SLR creator's video with your own take.",share:1},
+{t:"Comment on 3 SLR posts from creators with different propaganda scores. Spread it around."},
+{t:"Share one SLR creator's post with someone who 'doesn't do politics'.",share:1},
+{t:"Like the latest 5 posts from today's Propagandist of the Week."},
+{t:"Leave a real comment — 3 sentences or more — on one SLR video."},
+{t:"Share one SLR creator's catalog profile from this site with a friend.",share:1},
+{t:"Comment on one SLR post tagging another SLR creator who'd vibe with it. Cross-pollinate."},
+{t:"Like and share a post from the newest SLR recruit. Welcome them in.",share:1},
+{t:"Post a screenshot of an SLR post you liked and say why it hit.",share:1},
+{t:"Rest. Like one SLR post, touch grass, come back tomorrow — the streak keeps."}
+];
+var LOOT=["The machine sees you, agitator.","Another brick in the wall. Their wall. We're taking it apart.","Noted in the ledger. History will remember this one.","Discipline is propaganda too.","Small actions, compounded. That's the whole theory.","The algorithm didn't see it coming.","Report filed. The network grows.","You are the media now. Act like it."];
+/* FIELD OPS — the lynchpin: one cross-game bonus mission per day, rotating.
+   Doing the op in its home silo auto-completes it here and feeds the Do Meter. */
+var FIELD_OPS=[
+ {game:"fan-vote",ev:"pf-vote-cast",label:"Cast your Fan Vote ballot"},
+ {game:"bracket-board",ev:"pf-bracket-ballot",label:"Call a Liquidation Bracket matchup"},
+ {game:"caption-combat",ev:"pf-caption-submit",label:"Fire a caption in Caption Combat"},
+ {game:"poster-forge",ev:"pf-poster-made",label:"Forge a propaganda poster"},
+ {game:"slr-match-quiz",ev:"pf-quiz-done",label:"Find your SLR match"},
+ {game:"creator-guess",ev:"pf-guess-done",label:"Play Guess the Creator"},
+ {game:"boost-raid",ev:"pf-raid-report",label:"Report back on today's Boost Raid"},
+ {game:"daily-drop",ev:"pf-drop-claimed",label:"Claim today's Daily Drop"}
+];
+var OP_XP=5, CMD_XP=5;
+function fieldOp(){ return FIELD_OPS[dayOfYear()%FIELD_OPS.length]; }
+/* economy — every daily task on the page draws from one 50 XP/day pool (PF.claimDayXp).
+   3 orders x 10 + field op 5 + command bonus 5 = 45; the last 5 come from the
+   satellite dailies (raid, check-in, share, guess, poster, drop, billionaire,
+   interrogation). A perfect day lands exactly on 50. Cell streaks multiply
+   mission XP but the pool still caps at 50 — the bonus gets you there faster. */
+var PER_DAY=3, BASE_XP=10, DAILY_MAX=50;
+var PLATFORMS=[["tiktok","TikTok"],["facebook","Facebook"],["instagram","Instagram"],["x","X"],["youtube","YouTube"]];
+var STREAK_BONUS={3:10,7:25,30:100};
+var TIERS=[["RECRUIT",0],["AGITATOR",25],["CADRE",75],["COMMISSAR",150],["ARCHITECT",300]];
+var LS_O="pf_orders_v1", LS_R="pf_ranks_v1", LS_I="pf_identity_v1";
+/* Single canonical backend: window.PF_BACKEND_URL (core/03-global.js). No hardcoded
+   exec URLs here — the old ranks-backend deployment this once pointed at is retired. */
+function beUrl(){ try{ return window.PF_BACKEND_URL||""; }catch(e){ return ""; } }
+
+function ymd(d){ return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
+function today(){ return ymd(PF.chiNow()); }
+function yesterday(){ var d=PF.chiNow(); d.setDate(d.getDate()-1); return ymd(d); }
+function load(k,fb){ try{ return JSON.parse(localStorage.getItem(k)||JSON.stringify(fb)); }catch(e){ return fb; } }
+function save(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+function dayOfYear(){ var d=new Date(), s=new Date(d.getFullYear(),0,0); return Math.floor((d-s)/864e5); }
+function missionSet(){ var d=dayOfYear(), out=[]; for(var i=0;i<PER_DAY;i++) out.push((d*PER_DAY+i)%MISSIONS.length); return out; }
+function tierOf(xp){ var t=TIERS[0]; for(var i=0;i<TIERS.length;i++){ if(xp>=TIERS[i][1]) t=TIERS[i]; } return t; }
+
+/* today's record, with migration from v1 shape {days:{date:true}} */
+function dayRec(){
+  var o=load(LS_O,{streak:0,last:"",days:{}}), t=today(), r=o.days[t];
+  if(r===true) r={done:[{m:"legacy",p:null,g:0}],xp:0,bonusPaid:false};
+  if(!r||!r.done) r={done:[],xp:0,bonusPaid:false};
+  /* migrate old number-array format to {m,p,g} entries */
+  if(r.done.length&&typeof r.done[0]==="number"){
+    r.done=r.done.map(function(m,ix){ return {m:m,p:null,g:Math.min(10+5*ix,DAILY_MAX)}; });
+  }
+  if(typeof r.xp!=="number") r.xp=0;
+  return {o:o, rec:r};
+}
+function saveDay(o,rec){ o.days[today()]=rec; save(LS_O,o); }
+
+function ident(){ return load(LS_I,{});  }
+
+  function apiPost(obj,cb){
+ if(!beUrl()){ cb(null); return;}
+  /* P0 (2026-10-02): checkin is POST-only (was CSRF-able via GET).
+     Route through the shared POST helper with auth_secret. */
+  if(obj.action==="checkin" && window.PF && PF.postAction){
+    var sp = {callsign:obj.callsign, device:obj.device, day:obj.day, mission:obj.mission,
+              platform:obj.platform, spread:obj.spread, gained:obj.gained};
+    PF.postAction('stats','s_action','checkin',sp,cb); return;
+  }
+  /* P0: register is a mutation — use POST, not JSONP GET. The GET endpoint
+     is fragile (no timeout, adblockers kill script tags). */
+  if(obj.action==="register" && window.PF && PF.postAction){
+    var rp = {callsign:obj.callsign, device:obj.device};
+    if(obj.ref) rp.ref = obj.ref;
+    /* register has no type/actionKey wrapper in the backend — it's a top-level action */
+    (function(){
+      var url = beUrl();
+      var body = {action:"register", callsign:obj.callsign, device:obj.device||""};
+      if(obj.ref) body.ref = obj.ref;
+      try{
+        fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)})
+          .then(function(r){ return r.json(); })
+          .then(function(j){ try{ cb(j); }catch(e){} })
+          .catch(function(){ try{ cb(null); }catch(e){} });
+      }catch(e){ try{ cb(null); }catch(e2){} }
+    })();
+    return;
+  }
+  var fn="pfPostCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script");
+  window[fn]=function(j){ try{delete window[fn];}catch(e){} if(s.parentNode) s.parentNode.removeChild(s); cb(j);};
+  s.onerror=function(){ try{delete window[fn];}catch(e){} cb(null);};
+  var q="?action="+encodeURIComponent(obj.action==="wall"?"etch":obj.action);
+  q+="&callsign="+encodeURIComponent(obj.callsign||"");
+  if(obj.email) q+="&email="+encodeURIComponent(obj.email);
+  if(obj.day) q+="&day="+encodeURIComponent(obj.day);
+  if(obj.mission!=null) q+="&mission="+encodeURIComponent(obj.mission);
+  if(obj.platform) q+="&platform="+encodeURIComponent(obj.platform);
+  if(obj.spread!=null) q+="&spread="+encodeURIComponent(obj.spread);
+  if(obj.gained!=null) q+="&gained="+encodeURIComponent(obj.gained);
+  if(obj.device) q+="&device="+encodeURIComponent(obj.device);
+  if(obj.ref) q+="&ref="+encodeURIComponent(obj.ref);
+  q+="&callback="+fn;
+  s.src=beUrl()+q;
+  document.head.appendChild(s);
+
+}
+function apiGet(callsign,cb){
+  if(!beUrl()){ cb(null); return; }
+  var fn="pfRankCb"+Math.floor(Math.random()*1e9);
+  window[fn]=function(j){ try{delete window[fn];}catch(e){} s.parentNode.removeChild(s); cb(j); };
+  var s=document.createElement("script");
+  s.onerror=function(){ cb(null); };
+  s.src=beUrl()+"?action=get&callsign="+encodeURIComponent(callsign)+"&callback="+fn;
+  document.head.appendChild(s);
+}
+
+function platLabel(p){ var f=PLATFORMS.filter(function(x){return x[0]===p;})[0]; var t=f?f[1].toUpperCase():String(p||"").toUpperCase(); return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function escHtml(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+/* Merge cross-device Daily Orders state from the backend: union today's
+   missions (never duplicates, never drops local progress), take the max
+   streak, adopt the later last_day, adopt op_done. Never regresses local. */
+function mergeCheckinState(j){
+  if(!j||!j.ok) return;
+  var r=load(LS_R,{xp:0,got:{}});
+  if(typeof j.xp==="number"&&j.xp>r.xp){ r.xp=j.xp; save(LS_R,r); }
+  var d=dayRec();
+  if(typeof j.streak==="number"&&j.streak>(d.o.streak||0)) d.o.streak=j.streak;
+  if(j.last_day&&(!d.o.last||j.last_day>d.o.last)) d.o.last=j.last_day;
+  var plats=j.today_platforms||[];
+  (j.today_done||[]).forEach(function(mm,ix){
+    var key=String(mm);
+    if(!d.rec.done.some(function(x){ return String(x.m)===key; })) d.rec.done.push({m:mm,p:plats[ix]||null,g:0});
+  });
+  if(j.op_done) d.rec.opDone=true;
+  saveDay(d.o,d.rec);
+  render();
+}
+
+function checkin(mi,platform){
+  var d=dayRec(), o=d.o, rec=d.rec, t=today();
+  var already=rec.done.some(function(x){ return String(x.m)===String(mi); });
+  if(already) return {ok:false, err:"already"};
+  platform=platform||null;
+  var firstToday=rec.done.length===0;
+  var reportNo=rec.done.length+1;                    /* 1,2,3 */
+  /* CELL BONUS: shared cell streaks juice mission XP. +5%/streak day, cap +50%.
+     The central 50/day pool (PF.claimDayXp) still holds — the bonus just gets
+     you to the cap faster instead of stacking above it. */
+  var cellMult=(typeof window.pfCellMult==="function")?window.pfCellMult():1;
+  var want=Math.round(BASE_XP*Math.max(1,cellMult));
+  var gained=0;
+  try{ gained=(window.PF&&PF.claimDayXp)?PF.claimDayXp(want):Math.min(want,Math.max(0,DAILY_MAX-(rec.xp||0))); }
+  catch(e){ gained=Math.min(want,Math.max(0,DAILY_MAX-(rec.xp||0))); }
+  var cellBonus=(cellMult>1&&gained>BASE_XP)?gained-BASE_XP:0;
+  var bonus=0, shieldUsed=false, shieldEarned=false;
+  if(firstToday){
+    if(o.last===yesterday()){ o.streak=(o.streak||0)+1; }
+    else if(o.last&&o.last!==t&&(o.shields||0)>0){ o.shields--; shieldUsed=true; /* streak holds */ }
+    else { o.streak=1; }
+    o.last=t;
+    /* Streak milestone bonus draws from the same 50/day pool — it gets you to
+       the cap faster, never stacks above it. */
+    if(STREAK_BONUS[o.streak]&&!rec.bonusPaid){ try{ bonus=(window.PF&&PF.claimDayXp)?PF.claimDayXp(STREAK_BONUS[o.streak]):STREAK_BONUS[o.streak]; }catch(e){ bonus=STREAK_BONUS[o.streak]; } rec.bonusPaid=true; }
+    /* every 7th streak day forges a shield: one missed day forgiven */
+    if(o.streak%7===0&&o.lastShieldAt!==o.streak){ o.shields=(o.shields||0)+1; o.lastShieldAt=o.streak; shieldEarned=true; }
+  }
+  rec.done.push({m:String(mi),p:platform,g:gained}); rec.xp=(rec.xp||0)+gained; saveDay(o,rec);
+  /* FULL DEPLOYMENT command bonus is claimed here so it lands inside the same
+     dispatched event — the tally records it exactly once, no phantom row. */
+  var cmd=maybeCommandBonus();
+  var r=load(LS_R,{xp:0,got:{}}), key="order_"+t+"_"+mi;
+  if(r.got[key]!==t){ r.got[key]=t; r.xp+=gained+bonus; save(LS_R,r); }
+  fireEvent(t,mi,reportNo,gained+bonus+cmd,o.streak,platform);
+  var id=ident();
+  if(id.callsign){
+    apiPost({action:"checkin",callsign:id.callsign,day:t,mission:mi,platform:platform,spread:0,gained:gained+bonus+cmd},function(j){
+      mergeCheckinState(j);
+    });
+  }
+  return {ok:true, reportNo:reportNo, gained:gained, bonus:bonus, cmd:cmd, platform:platform, streak:o.streak, xp:r.xp, tier:tierOf(r.xp)[0], shieldUsed:shieldUsed, shieldEarned:shieldEarned, cellBonus:cellBonus, cellMult:cellMult};
+}
+function fireEvent(t,mi,reportNo,xp,streak,platform){
+  try{ document.dispatchEvent(new CustomEvent("pf-order-checkin",{detail:{day:t,mission:mi,reportNo:reportNo,xp:xp,streak:streak,platform:platform||null}})); }catch(e){}
+}
+/* COMMAND BONUS: 3/3 missions + field op = FULL DEPLOYMENT, once per day.
+   Draws from the same 50/day pool — it can clip to 0 if the pool is spent. */
+function maybeCommandBonus(){
+  var d=dayRec(), t=today();
+  if(d.rec.done.length>=3&&d.rec.opDone&&!d.rec.cmdPaid){
+    d.rec.cmdPaid=true; saveDay(d.o,d.rec);
+    var r=load(LS_R,{xp:0,got:{}}), key="order_cmd_"+t, got=0;
+    if(r.got[key]!==t){ r.got[key]=t; got=PF.claimDayXp(CMD_XP); r.xp+=got; save(LS_R,r); }
+    return got;
+  }
+  return 0;
+}
+/* Field-op auto-complete: arm today's op event exactly once per page load. */
+(function armFieldOp(){
+  var opDay=today(), op=fieldOp();
+  if(window._pfOpKey===opDay+op.ev) return;
+  window._pfOpKey=opDay+op.ev;
+  document.addEventListener(op.ev,function(){
+    if(today()!==opDay) return;             /* stale listener from a past day */
+    var d=dayRec();
+    if(d.rec.opDone) return;                /* counted exactly once */
+    d.rec.opDone=true; saveDay(d.o,d.rec);
+    var r=load(LS_R,{xp:0,got:{}}), key="order_op_"+opDay, got=0;
+    if(r.got[key]!==opDay){ r.got[key]=opDay; got=PF.claimDayXp(OP_XP); r.xp+=got; save(LS_R,r); }
+    /* feed the Do Meter + tally exactly once, like a normal check-in —
+       command bonus folded into the same event so it's counted once */
+    var cmd=maybeCommandBonus();
+    try{ document.dispatchEvent(new CustomEvent("pf-order-checkin",{detail:{day:opDay,mission:"field-op",reportNo:0,xp:got+cmd,streak:(d.o.streak||0),platform:null}})); }catch(e){}
+    /* sync the field-op completion so other devices see op_done */
+    try{ var idf=ident(); if(idf.callsign){ apiPost({action:"checkin",callsign:idf.callsign,day:opDay,mission:"field-op",spread:0,gained:got+cmd},function(j){ mergeCheckinState(j); }); } }catch(e){}
+    var lootEl=document.getElementById("oLoot");
+    if(lootEl) lootEl.textContent="+"+(got+cmd)+" XP — FIELD OP COMPLETE: "+op.label+". The network runs through you."+(cmd?" FULL DEPLOYMENT command bonus!":"");
+    /* DOPAMINE: field-op celebration — confetti + floating XP over the orders widget. */
+    try{ if(window.PF&&PF.dope){ var ob=document.getElementById("pf-orders"); PF.dope.confetti(ob,30); PF.dope.xpFloat(ob,"+"+(got+cmd)+" XP"); } }catch(e){}
+    render();
+  });
+})();
+
+/* ============ TODAY'S BOOST — tip earned XP to a creator, 1 XP = 2 signal ============
+   One boost per day. Tipped XP leaves your rank total (it becomes the creator's
+   signal) and feeds your lifetime patron record. The tip reports to the tally
+   backend with xp:0 and the amount in meta, so site-wide XP is never double-counted. */
+var LS_B="pf_boost_v1", LS_P="pf_patron_v1";
+var BOOST_RATIO=2;
+var PUMP_SIGNAL={profile:10, offsite:20, share:30};
+var PUMP_LABELS={profile:"Open their catalog profile", offsite:"Follow them off-site", share:"Share the boost card"};
+var TIP_PRESETS=[5,10,25];
+function boostRec(){ return load(LS_B,null); }
+function patronRec(){ return load(LS_P,{tipped:0,signal:0}); }
+function rosterBySlug(s){ var r=PF.ROSTER||[]; for(var i=0;i<r.length;i++){ if(r[i].slug===s) return r[i]; } return null; }
+function tipBoost(slug,xp){
+  xp=Math.floor(Number(xp)||0);
+  var entry=rosterBySlug(slug);
+  if(!entry) return {ok:false,err:"Pick a creator first."};
+  if(!(xp>=1)) return {ok:false,err:"Pick an XP amount."};
+  var b=boostRec();
+  if(b&&b.date===today()) return {ok:false,err:"Boost already deployed today — new orders at midnight."};
+  var r=load(LS_R,{xp:0,got:{}});
+  if(xp>r.xp) return {ok:false,err:"Not enough XP — earn it first, then tip it."};
+  r.xp-=xp; save(LS_R,r);
+  var signal=xp*BOOST_RATIO;
+  save(LS_B,{date:today(),creator:slug,tipped:xp,signal:signal,pumps:{}});
+  var p=patronRec(); p.tipped+=xp; p.signal+=signal; save(LS_P,p);
+  try{ document.dispatchEvent(new CustomEvent("pf-boost-tipped",{detail:{creator:slug,tipped:xp}})); }catch(e){}
+  try{ document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:-xp,total:r.xp}})); }catch(e){}
+  return {ok:true,name:entry.name,slug:slug,tipped:xp,signal:signal};
+}
+function pumpBoost(kind){
+  var b=boostRec();
+  if(!b||b.date!==today()) return {ok:false};
+  if(!PUMP_SIGNAL[kind]||b.pumps[kind]) return {ok:false};
+  b.pumps[kind]=1; b.signal+=PUMP_SIGNAL[kind]; save(LS_B,b);
+  var p=patronRec(); p.signal+=PUMP_SIGNAL[kind]; save(LS_P,p);
+  return {ok:true,signal:b.signal};
+}
+function apiAction(action,cb){
+  if(!beUrl()){ cb(null); return; }
+  var fn="pfBoostCb"+Math.floor(Math.random()*1e9);
+  window[fn]=function(j){ try{delete window[fn];}catch(e){} s.parentNode.removeChild(s); cb(j); };
+  var s=document.createElement("script");
+  s.onerror=function(){ cb(null); };
+  s.src=beUrl()+"?action="+encodeURIComponent(action)+"&callback="+fn;
+  document.head.appendChild(s);
+}
+function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+function renderBoost(){
+  var box=document.getElementById("oBoost"); if(!box) return;
+  var b=boostRec(), t=today(), r=load(LS_R,{xp:0,got:{}});
+  var h='<div class="o-bhead">\u{1F4E3} TODAY\u2019S BOOST &mdash; pump a creator with your XP</div>';
+  h+='<div class="o-bsub">1 XP = '+BOOST_RATIO+' signal. One boost per day. Tipped XP leaves your rank and becomes their signal.</div>';
+  if(!b||b.date!==t){
+    var opts=(PF.ROSTER||[]).map(function(x){ return '<option value="'+x.slug+'">'+x.name+'</option>'; }).join("");
+    h+='<div class="o-brow"><select id="oBoostSel" class="o-bsel"><option value="">\u2014 pick a creator \u2014</option>'+opts+'</select></div>';
+    h+='<div class="o-brow">'+TIP_PRESETS.map(function(x){ return '<button class="o-tipbtn" data-tip="'+x+'">'+x+' XP</button>'; }).join("")+'</div>';
+    h+='<button class="o-btn o-boostbtn" id="oBoostGo">DEPLOY BOOST &rarr;</button><div class="o-err" id="oBoostErr"></div>';
+    h+='<div class="o-bbal">Your rank XP available: <b>'+(r.xp||0)+'</b></div>';
+  } else {
+    var entry=rosterBySlug(b.creator);
+    h+='<div class="o-bdone">\u2713 Boost deployed: <b>'+(entry?entry.name:b.creator)+'</b> &mdash; '+b.tipped+' XP tipped &rarr; <b>'+b.signal+' signal</b> sent.</div>';
+    h+='<div class="o-bsub">Pump them up for bonus signal:</div><div class="o-brow">';
+    Object.keys(PUMP_SIGNAL).forEach(function(k){
+      h+='<button class="o-pumpbtn'+(b.pumps[k]?' done':'')+'" data-pump="'+k+'"'+(b.pumps[k]?' disabled':'')+'>'+(b.pumps[k]?'\u2713 ':'+'+PUMP_SIGNAL[k]+' ')+PUMP_LABELS[k]+'</button>';
+    });
+    h+='</div><button class="o-btn o-sharebtn" id="oBoostShare">Share boost card</button>';
+  }
+  h+='<div class="o-crown" id="oCrown"></div>';
+  box.innerHTML=h;
+  var sel=document.getElementById("oBoostSel"), amt=null;
+  if(sel){
+    box.querySelectorAll("button.o-tipbtn").forEach(function(btn){
+      btn.onclick=function(){ amt=parseInt(btn.getAttribute("data-tip"),10);
+        box.querySelectorAll("button.o-tipbtn").forEach(function(x){x.classList.remove("sel");});
+        btn.classList.add("sel"); };
+    });
+    document.getElementById("oBoostGo").onclick=function(){
+      var res=tipBoost(sel.value,amt);
+      var err=document.getElementById("oBoostErr");
+      if(!res.ok){ if(err) err.textContent=res.err; return; }
+      render(); renderBoost(); renderPatrons();
+    };
+  } else {
+    box.querySelectorAll("button.o-pumpbtn").forEach(function(btn){
+      btn.onclick=function(){
+        var k=btn.getAttribute("data-pump");
+        if(k==="profile"){ var e2=rosterBySlug(b.creator); if(e2){ try{ window.open("https://www.mtcstw.com/"+e2.slug,"_blank"); }catch(x){} } }
+        if(k==="share"){ shareBoostCard(); return; }
+        var res=pumpBoost(k);
+        if(res.ok){ renderBoost(); }
+      };
+    });
+    var sh=document.getElementById("oBoostShare");
+    if(sh) sh.onclick=function(){ shareBoostCard(); };
+  }
+  /* Weekly crown: most-boosted creator, from the backend. */
+  var crown=document.getElementById("oCrown");
+  if(crown){
+    if(_crownCache&&_crownCache.leaders&&_crownCache.leaders.length){
+      var top=_crownCache.leaders[0];
+      /* Backend returns {slug,tipped,signal} — resolve the display name locally. */
+      var _tm=rosterBySlug(top.slug), _tn=(_tm&&_tm.name)?_tm.name:top.slug;
+      crown.innerHTML='\u{1F451} MOST BOOSTED THIS WEEK: <b>'+escHtml(_tn)+'</b> &mdash; '+top.signal+' signal';
+    } else {
+      apiAction("boost_totals",function(j){
+        if(j&&j.leaders&&j.leaders.length){ _crownCache=j; renderBoost(); }
+      });
+    }
+  }
+}
+/* Patrons strip: capped rotating sample of top tippers, reshuffled every render. */
+var _patronCache=null, _crownCache=null;
+function renderPatrons(){
+  var box=document.getElementById("oPatrons"); if(!box) return;
+  var show=function(list){
+    if(!list||!list.length){ box.innerHTML=""; return; }
+    var sample=shuffle(list.slice()).slice(0,5);
+    box.innerHTML='<div class="o-phead">\u2605 PATRONS IN THE FIELD</div><div class="o-prow">'
+      +sample.map(function(p){ return '<div class="o-patron"><b>'+escHtml(String(p.callsign||"ghost")).toUpperCase()+'</b><span>'+p.tipped+' XP tipped</span></div>'; }).join("")
+      +'</div>';
+  };
+  if(_patronCache){ show(_patronCache.patrons); return; }
+  apiAction("patron_totals",function(j){
+    if(j&&j.patrons&&j.patrons.length){ _patronCache=j; show(j.patrons); }
+    else {
+      /* Backend not yet serving patrons: show this device's own record if it exists. */
+      var p=patronRec(), id=ident();
+      if(p.tipped>0) show([{callsign:(id.callsign||"you"),tipped:p.tipped}]);
+      else box.innerHTML="";
+    }
+  });
+}
+/* Boost share card: 1080x1350 propaganda card for cross-platform pumping. */
+function drawBoostCard(){
+  var b=boostRec(); if(!b) return null;
+  var entry=rosterBySlug(b.creator)||{name:b.creator};
+  var cv=document.createElement("canvas"); cv.width=1080; cv.height=1350;
+  var ctx=cv.getContext("2d");
+  ctx.fillStyle="#0d0d0d"; ctx.fillRect(0,0,1080,1350);
+  ctx.fillStyle="#c1121f"; ctx.fillRect(0,0,1080,26); ctx.fillRect(0,1324,1080,26);
+  ctx.textAlign="center"; ctx.fillStyle="#f5f0e1";
+  ctx.font="bold 64px Arial"; ctx.fillText("I BOOSTED",540,220);
+  ctx.fillStyle="#ff5a00"; ctx.font="bold 88px Arial";
+  wrapLines(ctx,entry.name.toUpperCase(),900).slice(0,2).forEach(function(l,i){ ctx.fillText(l,540,340+i*100); });
+  ctx.fillStyle="#f5f0e1"; ctx.font="bold 120px Arial";
+  ctx.fillText(b.signal+" SIGNAL",540,640);
+  ctx.font="40px Arial"; ctx.fillStyle="#c1121f";
+  ctx.fillText(b.tipped+" XP TIPPED \u00b7 1 XP = "+BOOST_RATIO+" SIGNAL",540,730);
+  ctx.fillStyle="#f5f0e1"; ctx.font="36px Arial";
+  wrapLines(ctx,"Pump your creator. Daily Orders on mtcstw.com.",860).forEach(function(l,i){ ctx.fillText(l,540,880+i*52); });
+  ctx.fillStyle="#ff5a00"; ctx.font="bold 44px Arial";
+  ctx.fillText("MTCSTW.COM",540,1180);
+  return cv;
+}
+function shareBoostCard(){
+  var done2=function(){
+    var r=pumpBoost("share");
+    renderBoost();
+  };
+  try{
+    var cv=drawBoostCard(); if(!cv) return;
+    try{ if(window.PFShare&&window.PFShare.stampCallsign){ cv=window.PFShare.stampCallsign(cv)||cv; } }catch(e){}
+    var go=function(url,blob){
+      var file=new File([blob],"pfn-boost.png",{type:"image/png"});
+      if(navigator.canShare&&navigator.canShare({files:[file]})){
+        navigator.share({files:[file],title:"Today's Boost",text:"I boosted "+(rosterBySlug((boostRec()||{}).creator)||{}).name+" on mtcstw.com — pump your creator."}).then(done2).catch(function(){});
+      }else{
+        var a=document.createElement("a"); a.href=url; a.download="pfn-boost.png";
+        document.body.appendChild(a); a.click(); a.remove(); done2();
+      }
+    };
+    if(cv.toBlob){ cv.toBlob(function(bl){ go(URL.createObjectURL(bl),bl); },"image/png"); }
+    else{ var u=cv.toDataURL("image/png"); fetch(u).then(function(r){return r.blob();}).then(function(bl){ go(URL.createObjectURL(bl),bl); }); }
+  }catch(e){}
+}
+
+function syncFromServer(){
+  var id=ident(); if(!id.callsign) return;
+  apiGet(id.callsign,function(j){ mergeCheckinState(j); });
+}
+
+function warPathHtml(o){
+  var h='<div class="o-wplabel">7-day war path</div><div class="o-wprow">', now=PF.chiNow();
+  for(var i=6;i>=0;i--){
+    var dt=new Date(now.getTime()); dt.setDate(dt.getDate()-i);
+    var k=ymd(dt), r=o.days&&o.days[k];
+    var hit=r&&r.done&&r.done.length>0;
+    h+='<div class="o-day'+(hit?' hit':'')+(i===0?' today':'')+'"><span>'+"SMTWTFS"[dt.getDay()]+'</span><em>'+(hit?'\u2713':'')+'</em></div>';
+  }
+  return h+'</div>';
+}
+function renderReset(){
+  var el=document.getElementById("oReset"); if(!el) return;
+  var now=PF.chiNow(), end=new Date(now.getTime()); end.setHours(24,0,0,0);
+  var ms=Math.max(0,end-now), h=Math.floor(ms/36e5), m=Math.floor(ms%36e5/6e4);
+  el.textContent="NEW ORDERS IN "+h+"H "+m+"M — streaks roll at midnight";
+}
+
+function render(){
+  var set=missionSet(), d=dayRec(), rec=d.rec, t=today();
+  document.getElementById("oDate").textContent=new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
+  /* DISPATCH CEREMONY: stamp slams in on the first view of the day. */
+  var firstView=!rec.dispatchShown;
+  if(firstView){ rec.dispatchShown=1; saveDay(d.o,rec); }
+  var disp=document.getElementById("oDispatch");
+  if(disp) disp.innerHTML=firstView?'<span class="o-stamp">\u25C8 ORDERS RECEIVED \u25C8</span>':"";
+  var wp=document.getElementById("oWarPath");
+  if(wp) wp.innerHTML=warPathHtml(d.o);
+  renderReset();
+  var doneCount=rec.done.length;
+  /* XP METER — 3 segments, flashes hotter with the combo */
+  var meter=document.getElementById("oMeter"), mh="";
+  set.forEach(function(mi){
+    var filled=rec.done.some(function(x){ return String(x.m)===String(mi); });
+    mh+='<div class="o-seg'+(filled?" fill":"")+'"></div>';
+  });
+  meter.innerHTML=mh;
+  meter.className="o-meter"+(doneCount>=3?" maxed":doneCount>=2?" hot":"");
+  document.getElementById("oCombo").textContent=doneCount>=3?"3/3 — ORDERS COMPLETE":doneCount===2?"2 down — one more for full deployment.":doneCount===1?"1 down — 2 to go.":"";
+  /* Live preview of what the share card's completion headline will read. */
+  var sc=document.getElementById("oShareCount");
+  if(sc){ var td=doneCount+(rec.opDone?1:0);
+    sc.textContent=rec.cmdPaid?"Your share card reads: FULL DEPLOYMENT — all tasks complete.":"Your share card will read: "+td+" OF 4 TASKS COMPLETE."; }
+  var html="";
+  set.forEach(function(mi,slot){
+    var m=MISSIONS[mi]||{t:""}, entry=null;
+    rec.done.forEach(function(x){ if(String(x.m)===String(mi)) entry=x; });
+    var isDone=!!entry;
+    var xpLine='+'+(isDone?(typeof entry.g==="number"?entry.g:BASE_XP):BASE_XP)+' XP'+(isDone?"":" · report #"+(doneCount+1));
+    var action;
+    if(isDone){ action='<div><span class="o-donetag">Reported</span></div>'; }
+    else if(m.share){
+      action='<div class="o-platpick" id="o-pick-'+mi+'"><div class="o-picklabel">Where did you share it?</div>'
+        +PLATFORMS.map(function(p){
+            return '<button class="o-platbtn" data-mi="'+mi+'" data-p="'+p[0]+'">'+p[1]+'</button>';
+          }).join("")
+        +'</div><button class="o-btn o-sharebtn" data-mi="'+mi+'">Report back</button>';
+    }
+    else { action='<button class="o-btn" data-mi="'+mi+'">Report back</button>'; }
+    html+='<div class="o-mission'+(isDone?" done":"")+'">'
+      +'<div class="o-mtext">'+m.t+'</div>'
+      +'<div class="o-xp">'+xpLine+'</div>'
+      +(isDone&&entry.p?'<div><span class="o-ptag">Shared to '+platLabel(entry.p)+'</span></div>':"")
+      +action
+      +'</div>';
+  });
+  /* FIELD OP card — the cross-game bonus mission. */
+  var op=fieldOp(), opDone=!!rec.opDone;
+  html+='<div class="o-fieldop'+(opDone?' done':'')+'">'
+    +'<div class="o-fophead">\u2605 FIELD OP &mdash; CROSS-GAME BONUS</div>'
+    +'<div class="o-mtext">'+op.label+'</div>'
+    +'<div class="o-xp">+'+OP_XP+' XP'+(opDone?' &middot; complete':'')+'</div>'
+    +(opDone?'<div><span class="o-donetag">Op complete</span></div>'
+            :'<div class="o-fopsub">Deploy to its silo and complete it there &mdash; it auto-reports here.</div><button class="o-btn o-deploybtn" data-game="'+op.game+'">Deploy &rarr;</button>')
+    +'</div>';
+  var z=document.getElementById("oMissions"); z.innerHTML=html;
+  z.className=firstView?"o-reveal":"";
+  z.querySelectorAll("button.o-deploybtn").forEach(function(b){
+    b.onclick=function(){
+      var g=b.getAttribute("data-game");
+      /* Ensure lazy bundles are mounted before scrolling. If the target
+         section isn't in the DOM yet, force-mount staged templates and retry. */
+      function findSec(){
+        /* Skip the hidden template — only match the mounted section. */
+        var s=document.querySelector('section[data-game="'+g+'"]');
+        if(s) return s;
+        var inner=document.getElementById('pf-'+g);
+        if(inner){
+          var sec=inner;
+          while(sec && sec.tagName!=="SECTION"){ sec=sec.parentElement; }
+          if(sec && sec.tagName==="SECTION") return sec;
+          return inner;
+        }
+        return null;
+      }
+      /* Try to mount any staged-but-unmounted templates first. */
+      try{ if(window.PF&&PF.mountSilos) PF.mountSilos(); }catch(e){}
+      var sec=findSec();
+      if(!sec){
+        /* Bundle may not have loaded yet — wait and retry up to 5s. */
+        var tries=0;
+        var iv=setInterval(function(){
+          tries++;
+          try{ if(window.PF&&PF.mountSilos) PF.mountSilos(); }catch(e){}
+          var s2=findSec();
+          if(s2){ clearInterval(iv); doScroll(s2); }
+          else if(tries>=10){ clearInterval(iv); }
+        },500);
+        return;
+      }
+      doScroll(sec);
+      function doScroll(target){
+        var scrolled=false;
+        try{ target.scrollIntoView({behavior:"smooth",block:"start"}); scrolled=true; }
+        catch(e){ try{ target.scrollIntoView(); scrolled=true; }catch(e2){} }
+        if(!scrolled){
+          try{
+            var r=target.getBoundingClientRect();
+            var top=r.top+(window.pageYOffset||document.documentElement.scrollTop||0);
+            window.scrollTo(0,Math.max(0,top-20)); scrolled=true;
+          }catch(e3){}
+        }
+        /* Fallback: if still at top after 600ms, force-jump. */
+        setTimeout(function(){
+          try{
+            var r2=target.getBoundingClientRect();
+            if(r2.top<-10||r2.top>window.innerHeight+10){
+              var t2=r2.top+(window.pageYOffset||document.documentElement.scrollTop||0);
+              window.scrollTo(0,Math.max(0,t2-20));
+            }
+          }catch(e4){}
+        },650);
+        try{
+          target.classList.add("pf-flash");
+          setTimeout(function(){ try{target.classList.remove("pf-flash");}catch(e){} },1400);
+        }catch(e){}
+      }
+    };
+  });
+  function doReport(mi,platform,btn){
+    var res=checkin(mi,platform);
+    if(!res.ok) return;
+    var box=document.getElementById("pf-orders");
+    box.classList.remove("o-flash"); void box.offsetWidth; box.classList.add("o-flash");
+    var loot=LOOT[Math.floor(Math.random()*LOOT.length)];
+        if(res.platform) loot="Reported via "+platLabel(res.platform)+". "+loot;
+        if(res.shieldUsed) loot="STREAK SHIELD held the line — your streak survives. "+loot;
+        if(res.shieldEarned) loot="STREAK SHIELD earned — one missed day forgiven. "+loot;
+        if(res.cellBonus>0) loot="CELL BONUS +"+res.cellBonus+" XP ("+Math.round((res.cellMult-1)*100)+"% cell streak) — "+loot;
+    var cmd=res.cmd||maybeCommandBonus();
+    /* DOPAMINE: press bounce, floating XP, streak-milestone ping, mission-complete confetti.
+       Pure presentation — the economy already settled above; nothing here awards or tallies. */
+    try{ if(window.PF&&PF.dope){
+      if(btn) PF.dope.press(btn);
+      PF.dope.xpFloat(box,"+"+(res.gained+res.bonus+cmd)+" XP");
+      if(res.bonus>0) PF.dope.ping(box,res.streak+"-DAY STREAK BONUS");
+      PF.dope.confetti(box,res.reportNo>=3?60:18);
+      if(res.reportNo>=3) PF.dope.ping(box,"ALL ORDERS COMPLETE");
+    } }catch(e){}
+    if(cmd) loot="FULL DEPLOYMENT — COMMAND BONUS +"+cmd+". "+loot;
+    document.getElementById("oLoot").textContent="+"+(res.gained+res.bonus+cmd)+" XP — "+loot+(res.bonus?" "+res.streak+"-day streak bonus!":"");
+    document.getElementById("oErr").textContent="";
+    render();
+  }
+  z.querySelectorAll("button.o-btn").forEach(function(b){
+    b.onclick=function(){
+      var mi=parseInt(b.getAttribute("data-mi"),10);
+      if(b.classList.contains("o-sharebtn")){
+        var pick=document.getElementById("o-pick-"+mi);
+        if(pick) pick.style.display=pick.style.display==="block"?"none":"block";
+        return;
+      }
+      doReport(mi,null,b);
+    };
+  });
+  z.querySelectorAll("button.o-platbtn").forEach(function(b){
+    b.onclick=function(){
+      doReport(parseInt(b.getAttribute("data-mi"),10), b.getAttribute("data-p"), b);
+    };
+  });
+  document.getElementById("oProg").textContent=Math.min(doneCount,PER_DAY)+"/"+PER_DAY+" orders complete";
+  renderBoost();
+  renderPatrons();
+  document.getElementById("oStreak").innerHTML="Current streak: <b>"+(d.o.streak||0)+"</b> day"+((d.o.streak||0)===1?"":"s")+((d.o.shields||0)>0?" &nbsp;\uD83D\uDEE1\uFE0F x"+d.o.shields:"");
+  var s=d.o.streak||0;
+  var nextMil=Object.keys(STREAK_BONUS).map(Number).filter(function(n){return n>s;}).sort(function(a,b){return a-b;})[0];
+      document.getElementById("oNext").textContent=nextMil?("Streak bonus at "+nextMil+" days (+"+STREAK_BONUS[nextMil]+" XP)"):"Maximum streak bonus achieved. Legendary.";
+  var r=load(LS_R,{xp:0});
+  function paintRank(xp){ var el=document.getElementById("oRank"); if(el) el.textContent=xp>0?("Rank: "+tierOf(xp)[0]+" · "+xp+" XP"):""; }
+  paintRank(r.xp);
+  var id=ident(), wrap=document.getElementById("oClaimWrap");
+  /* Prefer the backend ledger balance when a callsign exists — keeps the rank
+     line consistent with every other XP readout on the page. */
+  try{
+    if(id.callsign&&window.PF&&PF.xpBalance){
+      PF.xpBalance(function(bal){
+        if(typeof bal==="number"&&bal>r.xp){ r.xp=bal; save(LS_R,r); paintRank(bal); }
+      });
+    }
+  }catch(e){}
+  if(!beUrl()){ wrap.style.display="none"; }
+  else if(id.callsign){
+    document.getElementById("oClaimToggle").style.display="none";
+    document.getElementById("oWho").textContent="Fighting as "+id.callsign.toUpperCase()+" — rank follows you everywhere.";
+  } else {
+    document.getElementById("oClaimToggle").onclick=function(){
+      var b=document.getElementById("oClaimBox");
+      b.style.display=b.style.display==="block"?"none":"block";
+    };
+    document.getElementById("oClaimBtn").onclick=function(){
+      var cs=document.getElementById("oCallsign").value.trim().toLowerCase();
+      var errBox=document.getElementById("oClaimErr");
+      if(!/^[a-z0-9_]{3,20}$/.test(cs)){ errBox.textContent="Callsign: 3-20 chars, letters/numbers/underscore."; return; }
+      errBox.textContent="Claiming…";
+      var regParams={action:"register",callsign:cs};
+      try{ var _dev=window.PFDeviceId?window.PFDeviceId():""; if(_dev) regParams.device=_dev; }catch(e){}
+      try{ var prf=localStorage.getItem("pf_pending_ref"); if(prf&&/^[a-z0-9_]{3,20}$/.test(prf)) regParams.ref=prf; }catch(e){}
+      apiPost(regParams,function(j){
+        if(!j){ errBox.textContent="Network error. Try again."; return; }
+        if(!j.ok){ errBox.textContent=j.error==="taken"?"That callsign is taken.":"Bad callsign."; return; }
+        try{ localStorage.removeItem("pf_pending_ref"); }catch(e2){}
+        /* Per-callsign auth: capture the secret from enlistment, or claim it for existing users. */
+        try{
+          if(j.auth_secret&&window.PF&&PF.saveAuthSecret){ PF.saveAuthSecret(j.auth_secret); }
+          else if(window.PF&&PF.claimAuthSecret){ PF.claimAuthSecret(cs,function(){}); }
+        }catch(e3){}
+        save(LS_I,{callsign:cs});
+        try{document.dispatchEvent(new CustomEvent('pf-callsign-claimed',{detail:{callsign:cs}}));}catch(e){}
+        var rr=load(LS_R,{xp:0,got:{}});
+        if(j.xp>rr.xp){ rr.xp=j.xp; save(LS_R,rr); }
+        render();
+      });
+    };
+  }
+}
+/* SHARE AS IMAGE — renders today's orders to a 1080x1350 propaganda card
+   and shares it via the native share sheet (falls back to PNG download). */
+function wrapLines(ctx,text,maxW){
+  var words=String(text).split(/\\s+/),lines=[],line='';
+  words.forEach(function(w){
+    var t=line?line+' '+w:w;
+    if(ctx.measureText(t).width>maxW&&line){lines.push(line);line=w;}
+    else line=t;
+  });
+  if(line)lines.push(line);
+  return lines;
+}
+function drawOrdersCard(){
+  var W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;
+  var x=cv.getContext('2d');
+  x.fillStyle='#0d0d0d';x.fillRect(0,0,W,H);
+  x.strokeStyle='#c1121f';x.lineWidth=16;x.strokeRect(14,14,W-28,H-28);
+  x.strokeStyle='#f5ead6';x.lineWidth=3;x.strokeRect(44,44,W-88,H-88);
+  x.textAlign='center';
+  var y=150;
+  x.fillStyle='#f5ead6';x.font='900 78px "Arial Black",Arial,sans-serif';
+  x.fillText('\\u2605 DAILY ORDERS \\u2605',W/2,y);y+=58;
+  x.fillStyle='#c1121f';x.font='700 34px Arial,sans-serif';
+  var ds=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}).toUpperCase();
+  x.fillText(ds,W/2,y);y+=30;
+  x.strokeStyle='#c1121f';x.lineWidth=4;
+  x.beginPath();x.moveTo(140,y);x.lineTo(W-140,y);x.stroke();y+=70;
+  var set=missionSet(),d=dayRec(),rec=d.rec||{done:[]};
+  /* COMPLETION COUNT — the shareable headline: how many tasks got done. */
+  var mDone=set.filter(function(mi){return rec.done.some(function(e){return e.m===mi;});}).length;
+  var tDone=mDone+(rec.opDone?1:0), full=!!rec.cmdPaid;
+  x.fillStyle=full?'#e8b923':'#c1121f';x.font='900 50px "Arial Black",Arial,sans-serif';
+  x.fillText(full?'FULL DEPLOYMENT':(tDone+' OF 4 TASKS COMPLETE'),W/2,y);y+=64;
+  x.fillStyle='#c9bfa8';x.font='400 29px Arial,sans-serif';
+  x.fillText(mDone+' / 3 ORDERS'+(rec.opDone?'  •  FIELD OP DONE':'  •  FIELD OP OPEN'),W/2,y);y+=54;
+  x.textAlign='left';
+  set.forEach(function(mi,ix){
+    var m=MISSIONS[mi]||{t:''};
+    var done=rec.done.some(function(e){return e.m===mi;});
+    x.fillStyle='#c1121f';x.font='900 60px "Arial Black",Arial,sans-serif';
+    x.fillText('0'+(ix+1),120,y);
+    x.fillStyle=done?'#c1121f':'#f5ead6';x.font='400 37px Arial,sans-serif';
+    var lines=wrapLines(x,m.t,W-360);
+    lines.forEach(function(ln,i){x.fillText(ln,300,y-14+i*48);});
+    if(done){x.fillStyle='#c1121f';x.font='700 30px Arial,sans-serif';x.fillText('\\u2713 REPORTED',300,y-14+lines.length*48+6);}
+    y+=Math.max(150,lines.length*48+86);
+  });
+  x.textAlign='left';
+  var fop=fieldOp(), fopLines=wrapLines(x,'FIELD OP: '+fop.label+(rec.opDone?' \u2713':''),W-360);
+  x.fillStyle='#e8b923';x.font='900 30px "Arial Black",Arial,sans-serif';
+  fopLines.forEach(function(ln,i){x.fillText(ln,120,y+i*42);});
+  y+=fopLines.length*42+36;
+  x.textAlign='center';
+  var streak=(d.o&&d.o.streak)||0;
+  x.fillStyle='#c1121f';x.font='900 40px "Arial Black",Arial,sans-serif';
+  x.fillText(streak>0?('STREAK: '+streak+' DAY'+(streak===1?'':'S')):'DAY ONE. START THE STREAK.',W/2,y+20);y+=80;
+  var id=ident(),cs='';
+  try{cs=String(id.callsign||'').toUpperCase();}catch(e){}
+  if(cs){x.fillStyle='#c9bfa8';x.font='400 30px Arial,sans-serif';x.fillText('ORDERS FOR: '+cs,W/2,y+10);y+=56;try{cv._pfStamped=true;}catch(e){}}
+  x.fillStyle='#f5ead6';x.font='900 62px "Arial Black",Arial,sans-serif';
+  x.fillText('MTCSTW.COM',W/2,H-170);
+  x.fillStyle='#c1121f';x.font='900 30px "Arial Black",Arial,sans-serif';
+  x.fillText('THE PROPAGANDA FACTORY',W/2,H-116);
+  x.fillStyle='#c1121f';x.font='900 30px "Arial Black",Arial,sans-serif';
+  x.fillText('JOIN THE FIGHT.',W/2,H-76);
+  return cv;
+}
+function shareOrdersImage(btn){
+  if(btn)btn.disabled=true;
+  /* Remove any prior share note. */
+  var prior=document.getElementById('oShareNote');if(prior)prior.remove();
+  var note=function(msg,color){
+    var d=document.createElement('div');d.id='oShareNote';d.className='o-rules';
+    d.style.color=color||'#f5f0e1';d.style.marginTop='10px';d.textContent=msg;
+    if(btn&&btn.parentNode)btn.parentNode.appendChild(d);
+    setTimeout(function(){if(d.parentNode)d.remove();},9000);
+  };
+  try{
+    var cv=drawOrdersCard();
+    var awardShare=function(){
+      /* Credit ONLY on a confirmed share or a completed download — never on cancel.
+         Routed through the shared once-per-day gate (PF.creditShare) so a share
+         here plus a share from any other game can't credit the same day twice. */
+      if(btn)btn.disabled=false;
+      try{
+        if(PF && typeof PF.creditShare==='function'){ PF.creditShare('daily-orders','share'); }
+        else if(typeof window.pfCreditShare==='function'){ window.pfCreditShare('daily-orders','share'); }
+        else { document.dispatchEvent(new CustomEvent('pf-share-image',{detail:{day:new Date().toISOString().slice(0,10)}})); }
+      }catch(e){}
+    };
+    var done=function(url,blob){
+      var file=new File([blob],'pfn-daily-orders.png',{type:'image/png'});
+      var isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent||'');
+      if(navigator.canShare&&navigator.canShare({files:[file]})){
+        navigator.share({files:[file],title:'Daily Orders',text:'Today\\u2019s orders from the Propaganda Factory.'}).then(awardShare).catch(function(){
+          /* User cancelled the share sheet — NO credit. */
+          if(btn)btn.disabled=false;
+          note('Share cancelled — no share credit. Tap the button again to share.','#c1121f');
+        });
+      }else{
+        var a=document.createElement('a');a.href=url;a.download='pfn-daily-orders.png';
+        document.body.appendChild(a);a.click();a.remove();
+        if(isIOS)note('Image downloaded — open Photos, tap the image, then Share to post it.','#f5f0e1');
+        awardShare();
+      }
+    };
+    if(cv.toBlob){cv.toBlob(function(b){done(URL.createObjectURL(b),b);},'image/png');}
+    else{var u=cv.toDataURL('image/png');fetch(u).then(function(r){return r.blob();}).then(function(b){done(URL.createObjectURL(b),b);});}
+  }catch(e){if(btn)btn.disabled=false;}
+}
+var _shareBtn=document.getElementById('oShareImg');
+if(_shareBtn){_shareBtn.addEventListener('click',function(){shareOrdersImage(_shareBtn);});}
+
+renderReset();
+if(!window._pfOrdersTick){ window._pfOrdersTick=setInterval(function(){ renderReset(); },60000); }
+render();
+syncFromServer();
+})();
+</script>
+</div>
+</template>`);
+})();
+
+;
+
+/* ===== dopamine.js ===== */
+/* games/dopamine.js  |  PF v1.4.3 | DAILY FIRE — the habit loop hub.
+   LAYERING: a game silo like campaign.js. Reads via JSONP (self-contained api()),
+   writes via CORS POST through PF.authPost (self-contained post()). It never
+   reaches into another silo's internals.
+   Backend contract (new): GET dopamine_status -> {ok, loot:{claimed_today,next_reset_in},
+     streak:{count,at_risk,risk_ends_at,longest,broken_at}, flash:[{id,label,multiplier,ends_at}],
+     combo:{count,multiplier}, records:{best_day_xp,longest_streak},
+     nearrank:{position,above:{callsign,xp_gap},below:{callsign,xp_gap}}}
+   POST {type:"loot",l_action:"loot_open"} | {type:"streak",str_action:"streak_freeze_buy"|"streak_repair"} | {type:"comeback",cb_action:"comeback_claim"}
+   GET comeback_check -> {ok, eligible, xp}
+   Until the backend lands, every section degrades to a "warming up" state.
+   Site-wide overlays (injected to body): level-up celebration (listens for the
+   pf-promoted event the ranks silo already dispatches), lucky-bonus toast
+   (listens for pf:lucky; also fires when any post() response carries j.lucky),
+   comeback banner. Combo meter listens for pf-combo-hit events.
+   KILL: ?pf_off=dopa  or  localStorage pf_disabled_v1='["dopa"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (PF.skip("dopa")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-dopa">
+<div class="fe-block pf-override-block pf-silo" id="pf-dopa">
+<h2>Daily Fire</h2>
+<div class="c-tag">Your daily habit loop. Open the crate. Protect the streak. Chase the flash.</div>
+<div id="xDopa"><div class="c-load">Stoking the fire&hellip;</div></div>
+</div>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+/* JSONP GET for reads. */
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  var fn="pfDpCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+/* CORS POST for writes — through the auth layer, backend verdict parsed.
+   If the backend flags a lucky bonus (j.lucky), fire the toast. */
+function post(type,actionKey,action,params,cb){
+  var body=Object.assign({type:type},params||{});
+  body[actionKey]=action;
+  function done(j){
+    try{
+      if(j&&j.lucky&&window.PF&&PF.dopaLucky){ PF.dopaLucky(j.lucky.xp||0,j.lucky.mult||0); }
+      else if(j&&j.lucky){ luckyToast(j.lucky.xp||0,j.lucky.mult||0); }
+    }catch(e){}
+    try{ cb(j||{ok:false,err:"Network error."}); }catch(e2){}
+  }
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,done); return; }
+  var bodyStr=JSON.stringify(body);
+  try{
+    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr})
+      .then(function(r){ return r.json(); })
+      .then(function(j){ done(j); })
+      .catch(function(){ done(null); });
+  }catch(e){ done(null); }
+}
+/* ---- dopamine silo styles ---- */
+function dpCss(){
+  if(document.getElementById("pf-dopa-css")) return;
+  var s=document.createElement("style"); s.id="pf-dopa-css";
+  s.textContent=
+    ".dp-pane{margin:14px 0;padding:14px;border:1px solid #5a1a1a;background:#160b0b}"
+    +".dp-pane h4{margin:0 0 8px;color:#f5ead6;letter-spacing:2px;font-size:13px}"
+    +".dp-cratewrap{text-align:center;padding:10px 0}"
+    +".dp-crate{font-size:96px;line-height:1;filter:drop-shadow(0 0 18px #e8b10c);display:inline-block}"
+    +".dp-shake{animation:dpshake .6s ease-in-out}"
+    +"@keyframes dpshake{0%,100%{transform:rotate(0)}15%{transform:rotate(-14deg) translateX(-8px)}35%{transform:rotate(12deg) translateX(8px)}55%{transform:rotate(-9deg) translateX(-6px)}75%{transform:rotate(7deg) translateX(6px)}}"
+    +".dp-burst{animation:dpburst .5s ease-out}"
+    +"@keyframes dpburst{0%{transform:scale(.6)}55%{transform:scale(1.35)}100%{transform:scale(1)}}"
+    +".dp-reward{margin:10px auto 0;max-width:320px;padding:12px;border:3px solid #9aa0a6;background:#0d0d0d;text-align:center;animation:dpburst .5s ease-out}"
+    +".dp-reward .dp-rlabel{font:bold 12px monospace;letter-spacing:3px;margin-bottom:6px}"
+    +".dp-reward .dp-rxp{font:bold 34px monospace;color:#f5ead6}"
+    +".dp-reward .dp-rname{font:13px monospace;color:#c9bfa8;margin-top:4px}"
+    +".dp-flame{font-size:64px;line-height:1;filter:drop-shadow(0 0 14px #ff6a00)}"
+    +".dp-streakn{font:bold 44px monospace;color:#f5ead6}"
+    +".dp-risk{margin:10px 0;padding:10px;border:2px solid #ff3b30;background:#2a0d0d;color:#ffb3ab;font:bold 13px monospace;letter-spacing:1px}"
+    +".dp-barwrap{height:10px;background:#2a1414;border:1px solid #5a1a1a;margin:8px 0}"
+    +".dp-bar{height:100%;background:linear-gradient(90deg,#c1121f,#e8b10c);transition:width .4s}"
+    +".dp-flash{margin:8px 0;padding:10px;border:1px solid #e8b10c;background:#1c1408}"
+    +".dp-mult{display:inline-block;background:#e8b10c;color:#000;font:bold 12px monospace;padding:2px 8px;margin-right:8px}"
+    +".dp-count{font:bold 16px monospace;color:#e8b10c;letter-spacing:2px}"
+    +".dp-combo{font:bold 52px monospace;color:#f5ead6;text-shadow:0 0 16px #c1121f}"
+    +".dp-trophy{font-size:30px;margin-right:10px}"
+    +".dp-rec{display:flex;align-items:center;margin:6px 0;font:14px monospace;color:#c9bfa8}"
+    +".dp-rankbig{font:bold 30px monospace;color:#f5ead6}"
+    +".dp-gap{font:14px monospace;color:#e8b10c}"
+    +".dp-overlay{position:fixed;inset:0;z-index:100000;background:rgba(8,2,2,.94);display:flex;align-items:center;justify-content:center;text-align:center}"
+    +".dp-lvlup h1{font:bold 22px monospace;letter-spacing:6px;color:#e8b10c;margin:0 0 10px}"
+    +".dp-lvlup .dp-rankname{font:bold 64px monospace;color:#f5ead6;text-shadow:0 0 30px #c1121f;margin:10px 0;animation:dpburst .6s ease-out}"
+    +".dp-lvlup .dp-sub{font:14px monospace;color:#c9bfa8;margin-bottom:18px}"
+    +".dp-lucky{position:fixed;top:14%;left:50%;transform:translateX(-50%);z-index:100001;background:#0d2a0d;border:3px solid #4caf50;color:#d6f5d6;font:bold 16px monospace;letter-spacing:1px;padding:14px 26px;animation:dpburst .4s ease-out;box-shadow:0 0 30px #4caf50}"
+    +".dp-comeback{position:fixed;top:0;left:0;right:0;z-index:99998;background:#c1121f;color:#fff;font:bold 14px monospace;padding:10px;text-align:center;border-bottom:2px solid #fff}"
+    +".dp-comeback button{margin-left:12px;background:#fff;color:#c1121f;border:none;font:bold 13px monospace;padding:6px 16px;cursor:pointer}"
+    +"@media (prefers-reduced-motion: reduce){.dp-shake,.dp-burst,.dp-reward,.dp-lucky{animation:none!important}}";
+  document.head.appendChild(s);
+}
+var RARITY={
+  common:{c:"#9aa0a6",label:"COMMON"},
+  rare:{c:"#4da3ff",label:"RARE"},
+  epic:{c:"#b45cff",label:"EPIC"},
+  legendary:{c:"#e8b10c",label:"LEGENDARY"}
+};
+var MILESTONES=[7,14,30,60,100];
+var ST=null, CB=null, WARM=false;
+/* ---- combo meter (session-local) ---- */
+function comboGet(){
+  try{
+    var c=JSON.parse(localStorage.getItem("pf_combo_v1")||'{"n":0,"ts":0}');
+    if(Date.now()-(c.ts||0)>30*60*1000) c={n:0,ts:Date.now()};
+    return c;
+  }catch(e){ return {n:0,ts:Date.now()}; }
+}
+function comboMult(n){ return 1+Math.min(8,Math.floor(n/3))*0.25; }
+function comboHit(){
+  var c=comboGet(); c.n=(c.n||0)+1; c.ts=Date.now();
+  try{ localStorage.setItem("pf_combo_v1",JSON.stringify(c)); }catch(e){}
+  renderCombo();
+}
+function load(){
+  var id=ident(), n=0, done=false;
+  function fin(){ if(done)return; done=true; render(); }
+  function one(){ n++; if(n>=1) fin(); }
+  setTimeout(fin,15000);
+  var p={callsign:id.callsign,device:id.device};
+  api("dopamine_status",p,function(j){
+    if(j&&j.ok){ ST=j; checkStreakMilestone(j); } else { WARM=true; }
+    one();
+  });
+}
+/* Streak milestones (7/14/30/60/100) trigger the level-up celebration overlay.
+   Celebrates once per milestone per callsign — tracked in localStorage. */
+function checkStreakMilestone(j){
+  try{
+    var count=Number((j&&j.streak&&j.streak.count)||0);
+    if(!count) return;
+    var seen={};
+    try{ seen=JSON.parse(localStorage.getItem("pf_streak_ms_v1")||"{}"); }catch(e){}
+    for(var i=0;i<MILESTONES.length;i++){
+      var m=MILESTONES[i];
+      if(count>=m&&!seen["m"+m]){
+        seen["m"+m]=1;
+        try{ localStorage.setItem("pf_streak_ms_v1",JSON.stringify(seen)); }catch(e2){}
+        levelUpOverlay(m+"-DAY STREAK");
+        try{ if(window.PF&&PF.emit) PF.emit("pf:streak:milestone",{days:m,count:count}); }catch(e3){}
+        break;
+      }
+    }
+  }catch(e){}
+}
+function fmtLeft(ms){
+  ms=Math.max(0,ms);
+  var s=Math.floor(ms/1000), h=Math.floor(s/3600), m=Math.floor((s%3600)/60), ss=s%60;
+  function p2(x){ return (x<10?"0":"")+x; }
+  return p2(h)+":"+p2(m)+":"+p2(ss);
+}
+function render(){
+  var el=document.getElementById("xDopa"); if(!el) return;
+  var id=ident(), h="";
+  if(!id.callsign){
+    el.innerHTML='<div class="c-gate">Daily Fire runs on callsigns. Claim yours in Enlistment Ranks, then come back and stoke it.</div>';
+    return;
+  }
+  if(WARM||!ST){
+    el.innerHTML='<div class="x-pane"><h4>The forge is warming up</h4>'
+      +'<div class="x-note">Loot crates, streak shields and flash events are being wired into the backend. Your fire is safe &mdash; check back soon.</div></div>'
+      +'<div class="x-pane"><h4>Session combo</h4><div id="dpComboBox"></div></div>';
+    renderCombo();
+    return;
+  }
+  h+=renderLoot();
+  h+=renderStreak();
+  h+=renderFlash();
+  h+='<div class="x-pane"><h4>Session combo</h4><div id="dpComboBox"></div></div>';
+  h+=renderRecords();
+  h+=renderNearRank();
+  el.innerHTML=h;
+  wire();
+  renderCombo();
+}
+function renderLoot(){
+  var loot=(ST&&ST.loot)||{}, claimed=!!loot.claimed_today;
+  var h='<div class="x-pane dp-pane"><h4>Supply crate</h4><div class="dp-cratewrap">';
+  h+='<div class="dp-crate" id="dpCrate">&#128230;</div>';
+  h+='<div id="dpRewardSlot"></div>';
+  if(claimed){
+    h+='<div class="x-note">Crate claimed. Next drop '+(loot.next_reset_in?esc(loot.next_reset_in):"tomorrow")+'.</div>';
+  } else {
+    h+='<div style="margin-top:10px"><button class="c-btn" id="dpOpenBtn">OPEN THE CRATE</button></div>'
+      +'<div class="x-note">One free crate a day. Rarity decides the payload.</div>'
+      +'<div class="c-err" id="dpLootErr"></div>';
+  }
+  h+='</div></div>';
+  return h;
+}
+function renderStreak(){
+  var sk=(ST&&ST.streak)||{}, count=Number(sk.count)||0, longest=Number(sk.longest)||count;
+  var h='<div class="x-pane dp-pane"><h4>Detonation streak</h4><div style="text-align:center">';
+  h+='<div class="dp-flame">&#128293;</div>';
+  h+='<div class="dp-streakn">'+count+' DAY'+(count===1?"":"S")+'</div>';
+  if(sk.at_risk&&sk.risk_ends_at){
+    h+='<div class="dp-risk">&#9888; STREAK AT RISK &mdash; dies in <span class="dp-count" data-until="'+Number(sk.risk_ends_at)+'">--:--:--</span><br>Check in or buy a freeze.</div>';
+  }
+  if(sk.broken_recent){
+    h+='<div class="dp-risk">STREAK BROKEN &mdash; repair window closing. 250 XP to relight it.</div>';
+  }
+  var next=null;
+  for(var i=0;i<MILESTONES.length;i++){ if(count<MILESTONES[i]){ next=MILESTONES[i]; break; } }
+  var prev=0;
+  for(var j=MILESTONES.length-1;j>=0;j--){ if(count>=MILESTONES[j]){ prev=MILESTONES[j]; break; } }
+  var target=next||100, pct=Math.min(100,Math.round((count-prev)/Math.max(1,target-prev)*100));
+  h+='<div class="dp-barwrap"><div class="dp-bar" style="width:'+pct+'%"></div></div>';
+  h+='<div class="x-note">'+(next?count+" / "+next+" days to the next milestone":"MAXIMUM STREAK. You are the fire.")+' &bull; longest: '+longest+'</div>';
+  h+='<div style="margin-top:8px">'
+    +'<button class="c-btn" id="dpFreezeBtn">BUY FREEZE &mdash; 100 XP</button> ';
+  if(sk.broken_recent){ h+='<button class="c-btn" id="dpRepairBtn">REPAIR &mdash; 250 XP</button>'; }
+  h+='</div><div class="c-err" id="dpStreakErr"></div>';
+  h+='</div></div>';
+  return h;
+}
+function renderFlash(){
+  var fl=(ST&&ST.flash)||[];
+  var h='<div class="x-pane dp-pane"><h4>Flash events</h4>';
+  if(!fl.length){
+    h+='<div class="x-note">No flash events live. When one drops, the clock starts ticking.</div>';
+  }
+  for(var i=0;i<fl.length;i++){
+    var f=fl[i], mult=Number(f.multiplier)||2;
+    h+='<div class="dp-flash"><span class="dp-mult">'+mult+'X XP</span>'
+      +'<b>'+esc(f.label||"Flash event")+'</b><br>'
+      +'<span class="dp-count" data-until="'+Number(f.ends_at)+'">--:--:--</span> remaining</div>';
+  }
+  h+='</div>';
+  return h;
+}
+function renderCombo(){
+  var box=document.getElementById("dpComboBox"); if(!box) return;
+  var c=comboGet(), m=comboMult(c.n);
+  box.innerHTML='<div class="dp-combo">x'+m.toFixed(2)+'</div>'
+    +'<div class="x-note">'+(c.n||0)+' chained actions this session. Every 3 actions raises the multiplier (cap x3.00).</div>';
+}
+function renderRecords(){
+  var rc=(ST&&ST.records)||{};
+  if(!rc.best_day_xp&&!rc.longest_streak) return "";
+  var h='<div class="x-pane dp-pane"><h4>Personal records</h4>';
+  if(rc.best_day_xp){ h+='<div class="dp-rec"><span class="dp-trophy">&#127942;</span><span>Best day: <b>'+Number(rc.best_day_xp)+' XP</b></span></div>'; }
+  if(rc.longest_streak){ h+='<div class="dp-rec"><span class="dp-trophy">&#128293;</span><span>Longest streak: <b>'+Number(rc.longest_streak)+' days</b></span></div>'; }
+  h+='</div>';
+  return h;
+}
+function renderNearRank(){
+  var nr=(ST&&ST.nearrank)||{};
+  if(!nr.position) return "";
+  var h='<div class="x-pane dp-pane"><h4>The hunt</h4><div style="text-align:center">';
+  h+='<div class="dp-rankbig">YOU ARE #'+Number(nr.position)+'</div>';
+  if(nr.above&&nr.above.callsign){
+    h+='<div class="dp-gap">'+Number(nr.above.xp_gap||0)+' XP behind #'+(Number(nr.position)-1)+' '+esc(String(nr.above.callsign).toUpperCase())+'</div>';
+  }
+  if(nr.below&&nr.below.callsign){
+    h+='<div class="x-note">#'+(Number(nr.position)+1)+' '+esc(String(nr.below.callsign).toUpperCase())+' is '+Number(nr.below.xp_gap||0)+' XP behind YOU. Don&rsquo;t get caught.</div>';
+  }
+  h+='</div></div>';
+  return h;
+}
+function wire(){
+  var id=ident();
+  var ob=document.getElementById("dpOpenBtn");
+  if(ob){ ob.onclick=function(){
+    var err=document.getElementById("dpLootErr");
+    var crate=document.getElementById("dpCrate");
+    ob.disabled=true; ob.textContent="CRACKING IT OPEN...";
+    if(crate){ crate.classList.remove("dp-burst"); crate.classList.add("dp-shake"); }
+    post("loot","l_action","loot_open",{callsign:id.callsign,device:id.device},function(j){
+      if(crate){ crate.classList.remove("dp-shake"); }
+      if(j&&j.ok&&j.reward){
+        var r=j.reward, rk=RARITY[r.rarity]||RARITY.common;
+        var slot=document.getElementById("dpRewardSlot");
+        if(slot){
+          slot.innerHTML='<div class="dp-reward" style="border-color:'+rk.c+'">'
+            +'<div class="dp-rlabel" style="color:'+rk.c+'">'+rk.label+'</div>'
+            +'<div class="dp-rxp">+'+Number(r.xp||0)+' XP</div>'
+            +'<div class="dp-rname">'+esc(r.label||"Supply drop")+'</div>'
+            +(((r.rarity==="epic")||(r.rarity==="legendary"))
+              ?'<div style="margin-top:10px"><button class="c-btn" id="dpSharePull">SHARE YOUR PULL</button></div>':"")
+            +'</div>';
+          /* Epic/legendary pulls get a share prompt — dopamine peak meets social outlet. */
+          var spb=document.getElementById("dpSharePull");
+          if(spb){ (function(rw,rkk){ spb.onclick=function(){ shareLoot(rw,rkk); }; })(r,rk); }
+          /* Emit namespaced event for any other consumer (cell brag, feed, etc). */
+          try{ if(window.PF&&PF.emit) PF.emit("pf:loot:opened",{rarity:r.rarity,xp:r.xp||0,label:r.label||""}); }catch(ee){}
+        }
+        if(crate){ crate.classList.add("dp-burst"); }
+        try{ if(window.PF&&PF.dope){ PF.dope.confetti(document.getElementById("pf-dopa"),40); PF.dope.xpFloat(document.getElementById("pf-dopa"),"+"+Number(r.xp||0)+" XP"); } }catch(e){}
+        ob.textContent="CLAIMED"; comboHit();
+        try{ document.dispatchEvent(new CustomEvent("pf-combo-hit")); }catch(e2){}
+      } else {
+        ob.disabled=false; ob.textContent="OPEN THE CRATE";
+        if(err) err.textContent=(j&&j.err)||"The crate jammed. Try again.";
+      }
+    });
+  }; }
+  var fb=document.getElementById("dpFreezeBtn");
+  if(fb){ fb.onclick=function(){
+    if(!confirm("Spend 100 XP on a streak freeze? It saves your streak if you miss a day.")) return;
+    var err=document.getElementById("dpStreakErr"); fb.disabled=true;
+    post("streak","str_action","streak_freeze_buy",{callsign:id.callsign,device:id.device},function(j){
+      fb.disabled=false;
+      if(j&&j.ok){ toast("Streak frozen. Sleep easy, soldier."); comboHit(); load(); }
+      else if(err) err.textContent=(j&&j.err)||"Freeze failed.";
+    });
+  }; }
+  var rb=document.getElementById("dpRepairBtn");
+  if(rb){ rb.onclick=function(){
+    if(!confirm("Spend 250 XP to relight your broken streak?")) return;
+    var err=document.getElementById("dpStreakErr"); rb.disabled=true;
+    post("streak","str_action","streak_repair",{callsign:id.callsign,device:id.device},function(j){
+      rb.disabled=false;
+      if(j&&j.ok){ toast("Streak relit. Don't let it die twice."); comboHit(); load(); }
+      else if(err) err.textContent=(j&&j.err)||"Repair failed.";
+    });
+  }; }
+}
+/* ---- ticking countdowns ---- */
+function tick(){
+  var now=Date.now(), els=document.querySelectorAll("#pf-dopa [data-until]");
+  for(var i=0;i<els.length;i++){
+    var until=Number(els[i].getAttribute("data-until"))||0;
+    els[i].textContent=fmtLeft(until-now);
+  }
+}
+setInterval(tick,1000);
+setInterval(function(){ load(); },120000);
+/* combo events from anywhere on the page */
+try{ document.addEventListener("pf-combo-hit",function(){ comboHit(); }); }catch(e){}
+try{ document.addEventListener("pf-content-shared",function(){ comboHit(); }); }catch(e){}
+/* Orphan producers get a home: creation actions feed the combo meter.
+   pf-alert-forge (alerts), pf-boost-given (forge), pf-campaign-act/pledge (campaign)
+   previously fired with no consumer — now they stoke the session combo. */
+try{
+  ["pf-alert-forge","pf-boost-given","pf-campaign-act","pf-campaign-pledge"].forEach(function(ev){
+    document.addEventListener(ev,function(){ comboHit(); });
+  });
+}catch(e){}
+load();
+/* ---- global overlays (site-wide, injected once) ---- */
+function ovCss(){ dpCss(); }
+function luckyToast(xp,mult){
+  try{
+    var old=document.getElementById("dpLuckyOv");
+    if(old&&old.parentNode) old.parentNode.removeChild(old);
+    var d=document.createElement("div");
+    d.id="dpLuckyOv"; d.className="dp-lucky";
+    d.textContent="LUCKY! +"+Number(xp||0)+" XP"+(mult?"  (x"+mult+" bonus)":"");
+    document.body.appendChild(d);
+    try{ if(window.PF&&PF.dope){ PF.dope.confetti(d,24); } }catch(e){}
+    setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); },3200);
+  }catch(e){}
+}
+if(window.PF&&!PF.dopaLucky){ PF.dopaLucky=function(xp,mult){ luckyToast(xp,mult); }; }
+try{
+  document.addEventListener("pf:lucky",function(e){
+    var d=(e&&e.detail)||{};
+    luckyToast(d.xp||0,d.mult||0);
+  });
+}catch(e){}
+function sharePromotion(rankName){
+  try{
+    var c=document.createElement("canvas"); c.width=1080; c.height=1080;
+    var g=c.getContext("2d");
+    g.fillStyle="#160b0b"; g.fillRect(0,0,1080,1080);
+    g.strokeStyle="#c1121f"; g.lineWidth=24; g.strokeRect(24,24,1032,1032);
+    g.fillStyle="#e8b10c"; g.font="bold 54px monospace"; g.textAlign="center";
+    g.fillText("PROMOTED",540,300);
+    g.fillStyle="#f5ead6"; g.font="bold 110px monospace";
+    var rn=String(rankName||"VANGUARD").toUpperCase();
+    if(rn.length>10){ g.font="bold 78px monospace"; }
+    g.fillText(rn,540,480);
+    var cs=""; try{ cs=String(window.PFCallsign?window.PFCallsign():"").toUpperCase(); }catch(e2){}
+    g.fillStyle="#c9bfa8"; g.font="bold 44px monospace";
+    if(cs) g.fillText("FIGHTING AS "+cs,540,600);
+    g.fillStyle="#c1121f"; g.font="bold 72px monospace";
+    g.fillText("JOIN THE FIGHT.",540,780);
+    g.fillStyle="#f5ead6"; g.font="bold 48px monospace";
+    g.fillText("MTCSTW.COM",540,880);
+    var a=document.createElement("a");
+    a.download="promotion-"+rn.toLowerCase().replace(/[^a-z0-9]+/g,"-")+".png";
+    a.href=c.toDataURL("image/png"); a.click();
+  }catch(e){}
+}
+function shareLoot(reward,rk){
+  try{
+    var c=document.createElement("canvas"); c.width=1080; c.height=1080;
+    var g=c.getContext("2d");
+    g.fillStyle="#160b0b"; g.fillRect(0,0,1080,1080);
+    g.strokeStyle=(rk&&rk.c)||"#e8b10c"; g.lineWidth=24; g.strokeRect(24,24,1032,1032);
+    g.fillStyle=(rk&&rk.c)||"#e8b10c"; g.font="bold 54px monospace"; g.textAlign="center";
+    g.fillText(((rk&&rk.label)||"LEGENDARY").toUpperCase()+" PULL",540,300);
+    g.fillStyle="#f5ead6"; g.font="bold 88px monospace";
+    var lb=String((reward&&reward.label)||"SUPPLY DROP").toUpperCase().slice(0,22);
+    g.fillText(lb,540,470);
+    if(reward&&reward.xp){
+      g.fillStyle="#e8b10c"; g.font="bold 72px monospace";
+      g.fillText("+"+Number(reward.xp)+" XP",540,600);
+    }
+    var cs=""; try{ cs=String(window.PFCallsign?window.PFCallsign():"").toUpperCase(); }catch(e2){}
+    g.fillStyle="#c9bfa8"; g.font="bold 44px monospace";
+    if(cs) g.fillText("PULLED BY "+cs,540,700);
+    g.fillStyle="#c1121f"; g.font="bold 72px monospace";
+    g.fillText("JOIN THE FIGHT.",540,840);
+    g.fillStyle="#f5ead6"; g.font="bold 48px monospace";
+    g.fillText("MTCSTW.COM",540,940);
+    var a=document.createElement("a");
+    a.download="loot-pull-"+Date.now()+".png";
+    a.href=c.toDataURL("image/png"); a.click();
+    /* Firing the share counts as content shared — feeds the combo meter. */
+    try{ document.dispatchEvent(new CustomEvent("pf-content-shared",{detail:{kind:"loot"}})); }catch(e3){}
+  }catch(e){}
+}
+function levelUpOverlay(rankName){
+  ovCss();
+  try{
+    if(document.getElementById("dpLvlOv")) return;
+    var d=document.createElement("div");
+    d.id="dpLvlOv"; d.className="dp-overlay";
+    d.innerHTML='<div class="dp-lvlup"><h1>&#9733; PROMOTION &#9733;</h1>'
+      +'<div class="dp-rankname">'+esc(String(rankName||"VANGUARD"))+'</div>'
+      +'<div class="dp-sub">The movement sees you. Keep climbing.</div>'
+      +'<div><button class="c-btn" id="dpSharePromo">SHARE YOUR PROMOTION</button> '
+      +'<button class="c-btn" id="dpLvlClose">KEEP FIGHTING</button></div></div>';
+    document.body.appendChild(d);
+    try{ if(window.PF&&PF.dope){ PF.dope.confetti(d,90); } }catch(e){}
+    var sp=document.getElementById("dpSharePromo");
+    if(sp){ sp.onclick=function(){ sharePromotion(rankName); }; }
+    var cl=document.getElementById("dpLvlClose");
+    if(cl){ cl.onclick=function(){ if(d.parentNode) d.parentNode.removeChild(d); }; }
+  }catch(e){}
+}
+try{
+  document.addEventListener("pf-promoted",function(e){
+    var t=(e&&e.detail&&e.detail.tier)||"VANGUARD";
+    levelUpOverlay(t);
+  });
+}catch(e){}
+function comebackBanner(xp){
+  ovCss();
+  try{
+    if(document.getElementById("dpComeback")) return;
+    var d=document.createElement("div");
+    d.id="dpComeback"; d.className="dp-comeback";
+    d.innerHTML='WE MISSED YOU, SOLDIER. We saved '+Number(xp||50)+' XP &mdash; <button id="dpCbClaim">CLAIM</button>';
+    document.body.appendChild(d);
+    var b=document.getElementById("dpCbClaim");
+    if(b){ b.onclick=function(){
+      b.disabled=true; b.textContent="CLAIMING...";
+      var id=ident();
+      post("comeback","cb_action","comeback_claim",{callsign:id.callsign,device:id.device},function(j){
+        if(d.parentNode) d.parentNode.removeChild(d);
+        if(j&&j.ok){ toast("Welcome back. +"+Number(j.xp||xp||50)+" XP."); comboHit(); }
+      });
+    }; }
+  }catch(e){}
+}
+/* comeback check runs site-wide on homepage load */
+(function(){
+  var id=ident(); if(!id.callsign) return;
+  api("comeback_check",{callsign:id.callsign,device:id.device},function(j){
+    if(j&&j.ok&&j.eligible){ comebackBanner(j.xp||50); }
+  });
+})();
+})();
+</scr`+`ipt>
+</div>
+</template>`);
+})();
+
+;
+
+/* ===== do-meter.js ===== */
+/* games/do-meter.js  |  PF v1.4.1 | Do Meter widget: template + points + share/sparkline
+   KILL: ?pf_off=do-meter  or  localStorage pf_disabled_v1='["do-meter"]' */
+
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (PF.skip("do-meter")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-dometer">
+<div class="fe-block pf-override-block" id="pf-dometer2">
+
+<h2>&#9879; The Do Meter</h2>
+<div class="d-sub">Not followers. Not likes. Things <b style="color:#c1121f">done</b>.<br>Every mission reported, every vote cast, every bond bought &mdash; the machine keeps count.</div>
+<div class="d-num"><span id="dCount">0</span> <small>tasks complete</small></div>
+<div class="d-you" id="dYou" style="display:none"></div>
+<div class="d-pulse" id="dPulse" style="display:none"></div>
+<div class="d-keglabel">Weekly target</div>
+<div class="d-keg" id="dKeg"><div class="d-fill" id="dFill"></div></div>
+<div class="d-goal" id="dGoalLine"></div>
+<div class="d-reset" id="dReset"></div>
+<div class="d-saver" id="dSaver" style="display:none"></div>
+<div class="d-challenge" id="dChallenge"></div>
+<div class="d-badges" id="dBadges" style="display:none"></div>
+<div class="d-rank" id="dRank" style="display:none"></div>
+<div class="d-fire" id="dFire" style="display:none"></div>
+<div class="d-types" id="dTypes"></div>
+<div class="d-spark" id="dSpark" aria-hidden="true"></div>
+<div><button class="d-shareimg" id="dShareImg">Share network total</button><div class="d-sub" id="dShareCount" style="margin-top:6px"></div></div>
+
+<div class="d-boom" id="dBoom"><h3>&#128165; Target destroyed</h3><p>New orders incoming. The fuse is relit.</p></div>
+
+<script>
+(function(){
+'use strict';
+var LS='pf_do_v1';
+/* PTS table — MUST match PTS_DEFAULTS in core/05-tally.js (the backend source of truth). */
+var PTS={'pf-order-checkin':1,'pf-bracket-ballot':1,'pf-bracket-liquidated':2,'pf-vote-cast':1,'pf-quiz-done':1,'pf-guess-done':2,'pf-raid-report':2,'pf-infight-fire':3,'pf-traitor-vote':1,'pf-wb-buy':5,'pf-enlisted':3,'pf-caption-submit':2,'pf-poster-made':2,'pf-drop-claimed':2,'pf-billionaire-answered':1,'pf-interrogation-answered':1,'pf-share-image':2,'pf-checkin':1,'pf-boost-tipped':1,'pf-guess-scored':0};
+var LABELS={'pf-order-checkin':'Orders','pf-bracket-ballot':'Brackets','pf-bracket-liquidated':'Liquidations','pf-vote-cast':'Votes','pf-quiz-done':'Quizzes','pf-raid-report':'Raids','pf-infight-fire':'Infighting','pf-traitor-vote':'Traitors','pf-wb-buy':'Bonds','pf-enlisted':'Enlisted','pf-caption-submit':'Captions','pf-poster-made':'Posters','pf-drop-claimed':'Drops','pf-billionaire-answered':'Billionaire','pf-interrogation-answered':'Interrogation','pf-share-image':'Shares'};
+function load(){try{var s=JSON.parse(localStorage.getItem(LS)||'null');if(s&&s.w)return s;}catch(e){}return{w:PF.isoWeekKey(PF.chiNow()),total:0,byType:{},goal:1000,hits:0,hist:{},seen:[],boomed:false};}
+function save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}
+var S=load();
+if(!S.miles)S.miles=[];if(typeof S.streak!=='number')S.streak=0;
+if(!S.badges)S.badges=[];if(!S.rankUp)S.rankUp={};if(!S.fireUp)S.fireUp={};if(!S.challDone)S.challDone={};
+var baseG=0,sessAdds=0;
+function rollover(){var wk=PF.isoWeekKey(PF.chiNow());if(S.w!==wk){S.hist[S.w]=S.total;var ks=Object.keys(S.hist).sort();while(ks.length>4){delete S.hist[ks.shift()];}S.streak=S.hits>0?(S.streak||0)+1:0;S.w=wk;S.total=0;S.byType={};S.seen=[];S.boomed=false;S.miles=[];S.badges=[];S.rankUp={};S.fireUp={};save(S);}}
+function fmt(n){return n.toLocaleString('en-US');}
+function render(){
+  rollover();
+  /* UNIFIED TOTAL: the site-wide task total (every user's instances summed by
+     the tally backend via ?action=task_totals) is the headline number; the
+     local week count stays visible underneath so personal progress never
+     disappears. Falls back to local until the backend ships the endpoint. */
+  var unifiedTotal = S.total, youLine = '';
+  try {
+    if(window.PF_GLOBAL_TASKS > 0){
+      unifiedTotal = window.PF_GLOBAL_TASKS;
+      var share=S.total/window.PF_GLOBAL_TASKS*100;
+      youLine = 'SITE-WIDE TOTAL · you this week: ' + fmt(S.total) +
+        (S.total>0 ? ' (' + (share<0.1?'<0.1':share.toFixed(1)) + '% of the network)' : '');
+    }
+  } catch(e){}
+  var c=document.getElementById('dCount');if(c){c.textContent=fmt(unifiedTotal);c.classList.remove('d-flash');void c.offsetWidth;c.classList.add('d-flash');}
+  var yl=document.getElementById('dYou');if(yl){yl.textContent=youLine;yl.style.display=youLine?'':'none';}
+  /* network pulse ticker: network delta since arrival, or this-visit count */
+  var pl=document.getElementById('dPulse');
+  if(pl){var ptxt='';
+    try{if(window.PF_GLOBAL_TASKS>0){if(!baseG)baseG=window.PF_GLOBAL_TASKS;var pd=window.PF_GLOBAL_TASKS-baseG;if(pd>0)ptxt='+'+fmt(pd)+' network tasks since you arrived';}}catch(e){}
+    if(!ptxt&&sessAdds>0)ptxt='+'+sessAdds+' task'+(sessAdds>1?'s':'')+' logged this visit';
+    pl.textContent=ptxt;pl.style.display=ptxt?'':'none';}
+  var dsc=document.getElementById('dShareCount');if(dsc)dsc.textContent='Your share card will read: '+fmt(unifiedTotal)+' TASKS COMPLETE \u2014 NETWORK-WIDE.';
+  var pct=Math.min(100,Math.round(S.total/S.goal*100));
+  var fill=document.getElementById('dFill');if(fill)fill.style.width=pct+'%';
+  var keg=document.getElementById('dKeg');if(keg){keg.classList.toggle('hot',pct>=75);keg.classList.toggle('critical',pct>=90);}
+  var gl=document.getElementById('dGoalLine');if(gl)gl.textContent=(pct>=90?'\uD83D\uDEA8 TARGET ALMOST DESTROYED \u2014 ':'')+fmt(S.total)+' / '+fmt(S.goal)+' to detonation'+(S.hits>0?' \\u00B7 '+S.hits+' target'+(S.hits>1?'s':'')+' destroyed':'')+((S.streak||0)>0?' \\u00B7 \\uD83D\\uDD25 '+S.streak+'-week streak':'');
+  var rs=document.getElementById('dReset');
+  if(rs){try{var mo=PF.mondayOf(PF.chiNow());var ms=(mo.getTime()+7*864e5)-PF.chiNow().getTime();if(ms<0)ms=0;var dd=Math.floor(ms/864e5),hh=Math.floor(ms%864e5/36e5);rs.textContent='New targets in '+dd+'d '+hh+'h';}catch(e){}}
+  /* streak-saver: Sunday, streak alive, nothing logged yet — warn once per day */
+  var sv=document.getElementById('dSaver');
+  if(sv){var showSv=false;
+    try{var nowD=PF.chiNow();showSv=(S.streak||0)>0&&nowD.getDay()===0&&S.total===0;}catch(e){}
+    sv.textContent=showSv?('\u26A0 STREAK ON THE LINE \u2014 log one task before midnight to keep your '+S.streak+'-week streak alive'):'';
+    sv.style.display=showSv?'':'none';
+    if(showSv){var sdk='saver|'+S.w+'|'+new Date().toISOString().slice(0,10);
+      if(S.seen.indexOf(sdk)<0){S.seen.push(sdk);if(S.seen.length>300)S.seen=S.seen.slice(-300);save(S);ping('\u26A0 STREAK ON THE LINE');}}}
+  /* weekly op challenge panel */
+  var dc=document.getElementById('dChallenge');
+  if(dc){var ch=challPick(),pr=sumTypes(ch.types),pdone=pr>=ch.n;
+    dc.innerHTML='<div class="d-chl-head">\uD83C\uDFAF WEEKLY OP: '+ch.label+'</div>'+
+      '<div class="d-chl-bar"><i style="width:'+Math.min(100,Math.round(pr/ch.n*100))+'%"></i></div>'+
+      '<div class="d-chl-prog">'+Math.min(pr,ch.n)+'/'+ch.n+(pdone?' \u2014 COMPLETE':'')+'</div>';}
+  /* earned type badges */
+  var bd=document.getElementById('dBadges');
+  if(bd){var bh='';BADGES.forEach(function(b){if(S.badges.indexOf(b.id)>=0)bh+='<span class="d-badge">\uD83C\uDF96 '+b.name+'</span>';});
+    bd.innerHTML=bh;bd.style.display=bh?'':'none';}
+  /* dissemination rank */
+  var rk=document.getElementById('dRank');
+  if(rk){var sh=S.byType['pf-share-image']||0,rn='',nx='',ri;
+    for(ri=0;ri<SHARE_RANKS.length;ri++){if(sh>=SHARE_RANKS[ri][0])rn=SHARE_RANKS[ri][1];}
+    for(ri=0;ri<SHARE_RANKS.length;ri++){if(sh<SHARE_RANKS[ri][0]){nx=' \u00B7 '+(SHARE_RANKS[ri][0]-sh)+' to '+SHARE_RANKS[ri][1];break;}}
+    rk.textContent=sh>0?('\uD83D\uDCF6 '+fmt(sh)+' share'+(sh>1?'s':'')+' this week'+(rn?' \u2014 '+rn:'')+nx):'';
+    rk.style.display=sh>0?'':'none';}
+  /* fan-fire support line */
+  var fr=document.getElementById('dFire');
+  if(fr){var fire=sumTypes(['pf-vote-cast','pf-infight-fire','pf-traitor-vote','pf-bracket-ballot']),fn='',fi;
+    for(fi=0;fi<FIRE_MILES.length;fi++){if(fire>=FIRE_MILES[fi][0])fn=FIRE_MILES[fi][1];}
+    fr.textContent=fire>0?('\u2694 '+fmt(fire)+' strike'+(fire>1?'s':'')+' for your creators this week'+(fn?' \u2014 '+fn:'')):'';
+    fr.style.display=fire>0?'':'none';}
+  var ty=document.getElementById('dTypes');
+  if(ty){var h='';Object.keys(LABELS).forEach(function(k){var v=S.byType[k]||0;h+='<span class="d-type">'+LABELS[k]+' <b>'+fmt(v)+'</b></span>';});ty.innerHTML=h;}
+  var sp=document.getElementById('dSpark');
+  if(sp){var weeks=Object.keys(S.hist).sort();weeks.push(S.w);var vals=weeks.map(function(w){return w===S.w?S.total:(S.hist[w]||0);});var mx=Math.max.apply(null,vals.concat([1]));var hh='';weeks.forEach(function(w,i){var v=vals[i];var bh=Math.max(6,Math.round(v/mx*52));hh+='<div class="d-bar'+(w===S.w?' cur':'')+'" title="'+w+': '+fmt(v)+'"><span>'+fmt(v)+'</span><i style="height:'+bh+'px"></i></div>';});sp.innerHTML=hh;}
+  try{document.dispatchEvent(new CustomEvent('pf-do-update',{detail:{total:S.total,week:S.w,goal:S.goal}}));}catch(e){}
+}
+/* ---- GAME 8 EXPANSION: type badges, weekly creation challenge, dissemination
+   rank, fan-fire support line, full-spectrum week. All progress is derived from
+   the same byType counts the meter already keeps; XP bonuses are dispatched as
+   events and awarded by the enlistment ledger (never here). ---- */
+var BADGES=[
+ {id:'voter',name:'VOTER',types:['pf-vote-cast'],n:3},
+ {id:'poster',name:'POSTER SMITH',types:['pf-poster-made'],n:2},
+ {id:'caption',name:'CAPTION COMMANDO',types:['pf-caption-submit'],n:3},
+ {id:'brawler',name:'PIT BRAWLER',types:['pf-infight-fire'],n:5},
+ {id:'raider',name:'RAID LEADER',types:['pf-raid-report'],n:3},
+ {id:'matcher',name:'MATCH MAKER',types:['pf-quiz-done'],n:3}
+];
+var CHALLENGES=[
+ {id:'forge',label:'Forge 2 posters',types:['pf-poster-made'],n:2},
+ {id:'captions',label:'Drop 3 captions',types:['pf-caption-submit'],n:3},
+ {id:'drops',label:'Claim 2 supply drops',types:['pf-drop-claimed'],n:2},
+ {id:'make4',label:'Create 4 propaganda pieces',types:['pf-poster-made','pf-caption-submit','pf-drop-claimed'],n:4}
+];
+var SHARE_RANKS=[[3,'AMPLIFIER'],[6,'SIGNAL BOOSTER'],[10,'BROADCAST TOWER']];
+var FIRE_MILES=[[5,'SUPPORTER'],[15,'HYPE SQUAD'],[30,'RIGHT HAND OF THE NETWORK']];
+function sumTypes(types){var t=0;(types||[]).forEach(function(k){t+=(S.byType[k]||0);});return t;}
+function challPick(){var wk=S.w,m=0;for(var i=0;i<wk.length;i++)m=(m*31+wk.charCodeAt(i))%997;return CHALLENGES[m%CHALLENGES.length];}
+function checkExpansion(){
+  rollover();
+  var i;
+  /* type badges — one ping each, once per week */
+  for(i=0;i<BADGES.length;i++){var b=BADGES[i];
+    if(S.badges.indexOf(b.id)<0&&sumTypes(b.types)>=b.n){
+      S.badges.push(b.id);save(S);ping('\uD83C\uDF96 '+b.name+' BADGE EARNED');confetti(18);
+    }}
+  /* weekly creation challenge — deterministic per ISO week, XP via ledger */
+  var ch=challPick(),prog=sumTypes(ch.types);
+  if(prog>=ch.n&&S.challDone[S.w]!==ch.id){
+    S.challDone[S.w]=ch.id;save(S);
+    ping('\uD83C\uDFAF WEEKLY OP COMPLETE: '+ch.label.toUpperCase());confetti(30);
+    try{document.dispatchEvent(new CustomEvent('pf-do-challenge-done',{detail:{week:S.w,challenge:ch.id}}));}catch(e){}
+  }
+  /* dissemination rank — shares this week */
+  var sh=S.byType['pf-share-image']||0,rank=0;
+  for(i=0;i<SHARE_RANKS.length;i++){if(sh>=SHARE_RANKS[i][0])rank=i+1;}
+  if(rank>0&&S.rankUp[S.w]!==rank){
+    S.rankUp[S.w]=rank;save(S);
+    ping('\uD83D\uDCF6 DISSEMINATION RANK: '+SHARE_RANKS[rank-1][1]);confetti(22);
+  }
+  /* fan fire — votes + fires + traitor votes + ballots = strikes for creators */
+  var fire=sumTypes(['pf-vote-cast','pf-infight-fire','pf-traitor-vote','pf-bracket-ballot']);
+  for(i=0;i<FIRE_MILES.length;i++){var fm=FIRE_MILES[i];
+    if(fire>=fm[0]&&(S.fireUp[S.w]||[]).indexOf(fm[0])<0){
+      (S.fireUp[S.w]=S.fireUp[S.w]||[]).push(fm[0]);save(S);
+      ping('\uD83D\uDD25 '+fm[1]+' \u2014 '+fire+' strikes for your creators');confetti(18);
+    }}
+  /* full spectrum — at least one task in 6+ distinct activity types */
+  var distinct=Object.keys(S.byType).filter(function(k){return S.byType[k]>0;}).length;
+  if(!S.specWeek)S.specWeek='';
+  if(distinct>=6&&S.specWeek!==S.w){
+    S.specWeek=S.w;save(S);
+    ping('\uD83C\uDF0C FULL SPECTRUM WEEK \u2014 every front of the war');confetti(46);
+    try{document.dispatchEvent(new CustomEvent('pf-do-fullspectrum',{detail:{week:S.w,types:distinct}}));}catch(e){}
+  }
+}
+function confetti(n){
+  var host=document.getElementById('pf-dometer2');if(!host)return;
+  var colors=['#c1121f','#c1121f','#f5ead6','#e8192f'];
+  for(var i=0;i<n;i++){var p=document.createElement('div');p.className='d-confetti';p.style.left=(Math.random()*100)+'%';p.style.background=colors[i%4];p.style.animationDuration=(1.2+Math.random()*1.6)+'s';host.appendChild(p);(function(el){setTimeout(function(){el.remove();},3200);})(p);}
+}
+function ping(msg){
+  var host=document.getElementById('pf-dometer2');if(!host)return;
+  var d=document.createElement('div');d.className='d-ping';d.textContent=msg;host.appendChild(d);
+  setTimeout(function(){d.remove();},2600);
+}
+/* Milestone dopamine: quarter/half/three-quarter hits ping once per week so
+   the loop closes long before detonation. */
+var MILES=[[25,'QUARTER DETONATED \\u2014 the machine warms up'],[50,'HALFWAY TO DETONATION \\u2014 keep pushing'],[75,'FINAL PUSH \\u2014 the target is in sight']];
+function milestones(){
+  var pct=S.total/S.goal*100;
+  MILES.forEach(function(m){
+    if(pct>=m[0]&&S.miles.indexOf(m[0])<0){S.miles.push(m[0]);save(S);ping(m[1]);confetti(14);}
+  });
+}
+function boom(){
+  var b=document.getElementById('dBoom');if(!b)return;
+  b.classList.add('show');confetti(46);
+  /* Detonation -> Discord war room (throttled server-side, 1/hour). */
+  try{
+    if(window.PF&&typeof PF.notify==='function'){
+      var dt=0; try{ dt=doTotals().total; }catch(e){}
+      PF.notify('detonation','\uD83D\uDCA5 DO METER DETONATION — the network cleared '+dt.toLocaleString()+' tasks this week. Fuel the next one: https://www.mtcstw.com/');
+    }
+  }catch(e2){}
+  /* Detonation -> war chest: convert peak hype into a War Bonds visit. */
+  try{
+    if(!document.getElementById('dBoomChest')){
+      var c=document.createElement('div');
+      c.id='dBoomChest';
+      c.style.cssText='margin-top:0.8rem;font-size:0.95rem;color:#b8ab8e;';
+      c.innerHTML='Target destroyed. <a href="#pf-warbonds" style="color:#e8b10c;font-weight:900;">FUEL THE NEXT ONE &rarr;</a>';
+      b.appendChild(c);
+      var a=c.querySelector('a');
+      if(a) a.onclick=function(){ setTimeout(function(){ var t=document.getElementById('pf-warbonds'); if(t){ try{t.scrollIntoView({behavior:'smooth'});}catch(e){} } },60); };
+    }
+  }catch(e){}
+  setTimeout(function(){b.classList.remove('show');},3600);
+}
+function add(type,pts,seenKey){
+  rollover();
+  if(seenKey){if(S.seen.indexOf(seenKey)>=0)return;S.seen.push(seenKey);if(S.seen.length>300)S.seen=S.seen.slice(-300);}
+  /* The green $ pops only when the event was dispatched from a real user
+     gesture. navigator.userActivation.isActive is true when the dispatch runs
+     synchronously inside a click/tap handler, and false for async/backend
+     events. The 2.5s tap heuristic is used ONLY when navigator.userActivation
+     is unavailable — never to override an explicit false. */
+  var userDroveIt=false, hasUA=false;
+  try{hasUA=!!(navigator.userActivation&&('isActive' in navigator.userActivation));}catch(e){}
+  if(hasUA){try{userDroveIt=!!navigator.userActivation.isActive;}catch(e){}}
+  else{userDroveIt=(Date.now()-lastTap)<2500;}
+  S.total+=pts;S.byType[type]=(S.byType[type]||0)+1;
+  if(!S.boomed&&S.total>=S.goal){S.boomed=true;S.hits++;boom();S.goal=Math.ceil(S.goal*1.25/50)*50;}
+  milestones();checkExpansion();sessAdds++;
+  save(S);render();
+  if(userDroveIt)dollarPop();
+}
+var lastTap=0;
+document.addEventListener('click',function(){lastTap=Date.now();},true);
+document.addEventListener('touchstart',function(){lastTap=Date.now();},true);
+function dollarPop(){
+  var host=document.getElementById('pf-dometer2');if(!host)return;
+  var d=document.createElement('div');d.className='d-dollar';d.textContent='$';host.appendChild(d);
+  setTimeout(function(){d.remove();},1400);
+}
+/* SHARE NETWORK TOTAL — renders the site-wide task count to a 1080x1350
+   propaganda card and shares it via the native share sheet (falls back to
+   PNG download). This is the global number: every comrade's tasks summed. */
+function dWrap(ctx,text,maxW){
+  var words=String(text).split(/\s+/),lines=[],line='';
+  words.forEach(function(w){var t=line?line+' '+w:w;
+    if(ctx.measureText(t).width>maxW&&line){lines.push(line);line=w;}else line=t;});
+  if(line)lines.push(line);return lines;
+}
+function doTotals(){
+  rollover();
+  var total=S.total,you='';
+  try{
+    if(window.PF_GLOBAL_TASKS>0){
+      total=window.PF_GLOBAL_TASKS;
+      var share=S.total/window.PF_GLOBAL_TASKS*100;
+      you='YOU THIS WEEK: '+fmt(S.total)+(S.total>0?' ('+(share<0.1?'<0.1':share.toFixed(1))+'% OF THE NETWORK)':'');
+    }
+  }catch(e){}
+  return {total:total,you:you};
+}
+function drawDoCard(){
+  var T=doTotals(),W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;
+  var x=cv.getContext('2d');
+  x.fillStyle='#0d0d0d';x.fillRect(0,0,W,H);
+  x.strokeStyle='#c1121f';x.lineWidth=16;x.strokeRect(14,14,W-28,H-28);
+  x.strokeStyle='#f5ead6';x.lineWidth=3;x.strokeRect(44,44,W-88,H-88);
+  x.textAlign='center';var y=150;
+  x.fillStyle='#f5ead6';x.font='900 74px "Arial Black",Arial,sans-serif';
+  x.fillText('\u2699 THE DO METER',W/2,y);y+=58;
+  x.fillStyle='#c1121f';x.font='700 32px Arial,sans-serif';
+  var mo=null;try{mo=PF.mondayOf(PF.chiNow());}catch(e){}
+  x.fillText(mo?('WEEK OF '+mo.toLocaleDateString('en-US',{month:'long',day:'numeric'}).toUpperCase()):'THIS WEEK',W/2,y);y+=30;
+  x.strokeStyle='#c1121f';x.lineWidth=4;
+  x.beginPath();x.moveTo(140,y);x.lineTo(W-140,y);x.stroke();y+=84;
+  x.fillStyle='#c1121f';x.font='900 150px "Arial Black",Arial,sans-serif';
+  x.fillText(fmt(T.total),W/2,y);y+=70;
+  x.fillStyle='#f5ead6';x.font='900 52px "Arial Black",Arial,sans-serif';
+  x.fillText('TASKS COMPLETE',W/2,y);y+=58;
+  x.fillStyle='#e8b923';x.font='900 36px "Arial Black",Arial,sans-serif';
+  x.fillText('NETWORK-WIDE',W/2,y);y+=66;
+  x.fillStyle='#c9bfa8';x.font='400 30px Arial,sans-serif';
+  x.fillText('Not followers. Not likes. Things done.',W/2,y);y+=64;
+  if(T.you){x.fillStyle='#f5ead6';x.font='700 34px Arial,sans-serif';x.fillText(T.you,W/2,y);y+=60;}
+  var tops=Object.keys(S.byType||{}).map(function(k){return[k,S.byType[k]];})
+    .sort(function(a,b){return b[1]-a[1];}).slice(0,4);
+  if(tops.length){
+    x.fillStyle='#c1121f';x.font='900 30px "Arial Black",Arial,sans-serif';
+    x.fillText('YOUR WEEK',W/2,y);y+=44;
+    x.fillStyle='#c9bfa8';x.font='400 30px Arial,sans-serif';
+    tops.forEach(function(p){x.fillText((LABELS[p[0]]||p[0]).toUpperCase()+' \u00D7 '+fmt(p[1]),W/2,y);y+=44;});
+    y+=16;
+  }
+  var gl=fmt(S.total)+' / '+fmt(S.goal)+' TO DETONATION'+(S.hits>0?' \u00B7 '+S.hits+' DESTROYED':'')+((S.streak||0)>0?' \u00B7 \uD83D\uDD25 '+S.streak+'-WK STREAK':'');
+  x.fillStyle='#e8b923';x.font='700 30px Arial,sans-serif';
+  dWrap(x,gl,W-240).forEach(function(ln){x.fillText(ln,W/2,y);y+=40;});
+  y+=20;
+  x.fillStyle='#f5ead6';x.font='900 62px "Arial Black",Arial,sans-serif';
+  x.fillText('MTCSTW.COM',W/2,H-170);
+  x.fillStyle='#c1121f';x.font='900 30px "Arial Black",Arial,sans-serif';
+  x.fillText('THE PROPAGANDA FACTORY',W/2,H-116);
+  x.fillStyle='#c1121f';x.font='900 30px "Arial Black",Arial,sans-serif';
+  x.fillText('JOIN THE FIGHT.',W/2,H-76);
+  return cv;
+}
+function shareDoImage(btn){
+  if(btn)btn.disabled=true;
+  try{
+    var cv=drawDoCard();
+    try{if(window.PFShare&&window.PFShare.stampCallsign){cv=window.PFShare.stampCallsign(cv)||cv;}}catch(e){}
+    var awardShare=function(){
+      /* Credit ONLY on a confirmed share or a completed download — never on
+         cancel. Routed through the shared once-per-day gate so a share here
+         plus a share from any other game can't credit the same day twice. */
+      if(btn)btn.disabled=false;
+      try{
+        if(window.PF&&typeof window.PF.creditShare==='function'){window.PF.creditShare('do-meter','share');}
+        else if(typeof window.pfCreditShare==='function'){window.pfCreditShare('do-meter','share');}
+        else{document.dispatchEvent(new CustomEvent('pf-share-image',{detail:{day:new Date().toISOString().slice(0,10)}}));}
+      }catch(e){}
+    };
+    var done=function(url,blob){
+      var file=new File([blob],'pfn-do-meter.png',{type:'image/png'});
+      var isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent||'');
+      if(navigator.canShare&&navigator.canShare({files:[file]})){
+        var dlink='https://www.mtcstw.com/';
+        try{ if(window.PF&&typeof PF.shareUrl==='function') dlink=PF.shareUrl(dlink); }catch(e){}
+        navigator.share({files:[file],title:'The Do Meter',text:'The network did '+fmt(doTotals().total)+' things this week. Join at '+dlink}).then(awardShare).catch(function(){
+          /* User cancelled the share sheet — NO credit. */
+          if(btn)btn.disabled=false;
+        });
+      }else{
+        var a=document.createElement('a');a.href=url;a.download='pfn-do-meter.png';
+        document.body.appendChild(a);a.click();a.remove();
+        awardShare();
+      }
+    };
+    if(cv.toBlob){cv.toBlob(function(b){done(URL.createObjectURL(b),b);},'image/png');}
+    else{var u=cv.toDataURL('image/png');fetch(u).then(function(r){return r.blob();}).then(function(b){done(URL.createObjectURL(b),b);});}
+  }catch(e){if(btn)btn.disabled=false;}
+}
+Object.keys(PTS).forEach(function(type){
+  document.addEventListener(type,function(e){
+    var d=(e&&e.detail)||{};var key=type+'|'+(d.day||d.week||'')+'|'+(d.mission!==undefined?d.mission:'')+'|'+(d.amt||'')+'|'+(d.archetype||'');
+    add(type,PTS[type],key);
+  });
+});
+document.addEventListener('pf-global-tasks',function(){ render(); });
+window.pfDoMeter={add:function(t){if(PTS[t])add(t,PTS[t],t+'|manual|'+Date.now());},total:function(){rollover();return S.total;}};
+var _dShareBtn=document.getElementById('dShareImg');
+if(_dShareBtn){_dShareBtn.addEventListener('click',function(){shareDoImage(_dShareBtn);});}
+render();
+})();
+</script>
+</div>
+<!-- DO-METER-BIG-END -->
+
+<!-- DO-METER-MINI-START
+     Paste this block into footer code injection, UNDER the red banner block.
+     One live line: "THE NETWORK DID X THINGS THIS WEEK". Self-contained. -->
+<div id="pf-do-mini">
+
+<span class="m-line">&#9879; The network did <b id="pfDoMiniNum">0</b> things this week</span>
+<script>
+(function(){
+'use strict';
+var LS='pf_do_v1';
+function total(){try{if(window.PF_GLOBAL_TASKS>0)return window.PF_GLOBAL_TASKS;var s=JSON.parse(localStorage.getItem(LS)||'null');if(s&&s.w===PF.isoWeekKey(PF.chiNow()))return s.total||0;}catch(e){}return 0;}
+function paint(){var el=document.getElementById('pfDoMiniNum');if(el)el.textContent=(total()).toLocaleString('en-US');}
+document.addEventListener('pf-do-update',paint);
+document.addEventListener('pf-global-tasks',paint);
+paint();setInterval(paint,5000);
+})();
+</script>
+</div>
+</template>`);
+  PF.holder().insertAdjacentHTML('beforeend', "<style>/* PF-DOMETER-SPARK-FIX-20260930: the sparkline bars had no explicit height, so the\nabsolutely-positioned fill overflowed the collapsed bar and rendered as a stray floating\nred square. Give legacy page-level #pf-dometer the same 64px bar height as the template. */\n#pf-dometer .d-bar{height:64px}\n/* PF-DOMETER-LOOP-20261001: milestone toast + week-reset countdown for the dopamine loop. */\n#pf-dometer2 .d-reset{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#f5ead6;opacity:.65;text-transform:uppercase;margin-top:6px}\n#pf-dometer2 .d-ping{position:absolute;top:34%;left:50%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 14px monospace;letter-spacing:1px;padding:10px 18px;border:2px solid #f5ead6;z-index:11;pointer-events:none;white-space:nowrap;max-width:94%;animation:dpingshake .4s}\n@keyframes dpingshake{0%{transform:translateX(-50%) scale(.7)}60%{transform:translateX(-50%) scale(1.06)}100%{transform:translateX(-50%) scale(1)}}\n@media (prefers-reduced-motion:reduce){#pf-dometer2 .d-ping{animation:none}}\n/* PF-DOMETER-G8-20261001: expansion panels — pulse ticker, streak saver, weekly op, badges, dissemination rank, fan fire, 90% critical keg. */\n#pf-dometer2 .d-pulse{font:bold 12px monospace;color:#e8b923;letter-spacing:1px;margin:4px 0}\n#pf-dometer2 .d-saver{background:#3a0d0d;border:2px solid #c1121f;color:#f5ead6;font:bold 12px Arial,sans-serif;letter-spacing:1px;padding:8px 12px;margin-top:8px}\n#pf-dometer2 .d-challenge{border:2px dashed #e8b923;padding:10px 12px;margin-top:10px;text-align:left}\n#pf-dometer2 .d-chl-head{font:bold 13px Arial,sans-serif;color:#e8b923;letter-spacing:1px}\n#pf-dometer2 .d-chl-bar{height:10px;background:#2a2a2a;margin:8px 0 4px}\n#pf-dometer2 .d-chl-bar i{display:block;height:100%;background:#e8b923}\n#pf-dometer2 .d-chl-prog{font:11px monospace;color:#f5ead6;opacity:.8}\n#pf-dometer2 .d-badges{margin-top:8px}\n#pf-dometer2 .d-badge{display:inline-block;background:#c1121f;color:#fff;font:bold 10px monospace;letter-spacing:1px;padding:4px 8px;margin:2px 3px;border:1px solid #f5ead6}\n#pf-dometer2 .d-rank{font:bold 12px Arial,sans-serif;color:#7fd4ff;letter-spacing:1px;margin-top:8px}\n#pf-dometer2 .d-fire{font:bold 12px Arial,sans-serif;color:#ff9d5c;letter-spacing:1px;margin-top:6px}\n#pf-dometer2 .d-keg.critical{animation:dkegpulse 1s infinite}\n@keyframes dkegpulse{0%,100%{box-shadow:0 0 0 0 rgba(193,18,31,.7)}50%{box-shadow:0 0 18px 4px rgba(193,18,31,.9)}}\n@media (prefers-reduced-motion:reduce){#pf-dometer2 .d-keg.critical{animation:none}}\n</style>");
+})();
+
+;
+
+/* ===== daily-drop.js ===== */
+/* games/daily-drop.js  |  PF v1.4.1 | Daily Drop widget: template + drops + image + medal retro
+   KILL: ?pf_off=daily-drop  or  localStorage pf_disabled_v1='["daily-drop"]' */
+
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (PF.skip("daily-drop")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-drop">
+<div id="pf-drop">
+<style>
+#pf-drop{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f}
+#pf-drop h2{color:#c1121f;font-size:28px;margin:0 0 4px;letter-spacing:2px;text-transform:uppercase}
+#pf-drop .d-day{font-family:Arial,sans-serif;font-size:13px;letter-spacing:3px;color:#ff5a00;text-transform:uppercase;margin-bottom:16px}
+#pf-drop .d-card{background:#f5ead6;color:#0d0d0d;padding:22px 20px;margin:0 0 14px;text-align:left}
+#pf-drop .d-tag{display:inline-block;background:#c1121f;color:#fff;font-size:11px;letter-spacing:3px;padding:4px 12px;margin-bottom:10px;text-transform:uppercase}
+#pf-drop .d-head{font-size:21px;line-height:1.3;margin:0 0 8px;text-transform:uppercase;letter-spacing:1px}
+#pf-drop .d-body{font-family:Arial,sans-serif;font-size:14px;line-height:1.55;color:#333}
+#pf-drop .d-streak{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase;margin-bottom:14px}
+#pf-drop .d-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+#pf-drop .d-btn{background:#c1121f;color:#fff;border:0;padding:12px 22px;font-family:'Arial Black',Arial,sans-serif;font-size:13px;letter-spacing:2px;cursor:pointer;text-transform:uppercase}
+#pf-drop .d-btn:hover{background:#8f0d17}
+#pf-drop .d-btn.ghost{background:none;border:2px solid #f5ead6;color:#f5ead6}
+#pf-drop .d-btn.ghost:hover{background:#1a1a1a}
+#pf-drop .d-arch{display:none;margin-top:16px;text-align:left}
+#pf-drop .d-arch.open{display:block}
+#pf-drop .d-aitem{background:#1a1a1a;border-left:4px solid #c1121f;padding:10px 14px;margin:8px 0;font-family:Arial,sans-serif}
+#pf-drop .d-aitem .d-aday{font-size:11px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase}
+#pf-drop .d-aitem .d-ahead{font-family:'Arial Black',Arial,sans-serif;font-size:13px;text-transform:uppercase;margin:2px 0}
+#pf-drop .d-aitem .d-abody{font-size:12px;color:#c9bfa8}
+#pf-drop .d-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:12px}
+</style>
+
+<h2>The Daily Drop</h2>
+<div class="d-day" id="dDay"></div>
+<div class="d-card">
+  <span class="d-tag" id="dTag"></span>
+  <p class="d-head" id="dHead"></p>
+  <p class="d-body" id="dBody"></p>
+</div>
+<div class="d-streak" id="dStreak"></div>
+<div class="d-btns">
+  <button class="d-btn" id="dShare">Share this drop</button>
+  <button class="d-btn ghost" id="dArchBtn">Past drops</button>
+</div>
+<div class="d-arch" id="dArch"></div>
+<div class="d-note">One drop per day. Come back tomorrow &mdash; the offensive continues.</div>
+
+<script>
+(function(){
+var LAUNCH_DATE="2026-09-28";
+/* DROPS: 30 evergreen agitprop items, cycling. t = STAT | QUOTE | TRUTH | ORDER */
+var DROPS=[
+{t:"STAT",h:"8 men own more wealth than half of humanity.",b:"Not 8 percent. 8 men. Half the planet. This isn't an economy, it's a heist."},
+{t:"TRUTH",h:"Your boss needs you. You don't need your boss.",b:"Every dollar of profit is a wage that wasn't paid. Remember who makes the value."},
+  {t:"QUOTE",h:"\\u201CThe ruling ideas of each age have ever been the ideas of its ruling class.\\u201D \\u2014 Karl Marx",b:"Read that again the next time the news tells you what's \\u2018realistic.\\u2019"},
+{t:"ORDER",h:"Talk to one coworker about pay today.",b:"Wage secrecy is a boss's best friend. One honest conversation is an act of war."},
+{t:"STAT",h:"American workers are 2.5x more productive than in 1979. Pay is up 15%.",b:"Productivity soared. Your paycheck didn't. The difference went to people who've never done your job."},
+{t:"TRUTH",h:"Billionaires don't create jobs. Workers create wealth; billionaires collect it.",b:"Nobody ever got rich from their own labor alone."},
+{t:"QUOTE",h:"\\u201CIt is the job of thinking people not to be on the side of the executioners.\\u201D \\u2014 Albert Camus",b:"Pick a side. The machine already picked you."},
+{t:"ORDER",h:"Share one drop from this page today.",b:"Propaganda only works if it moves. Be the machine's distribution arm."},
+{t:"STAT",h:"The top 1% owns 32% of all wealth in America.",b:"The bottom 50% owns 2.5%. The game isn't rigged \\u2014 rigged implies it was ever fair."},
+{t:"TRUTH",h:"\\u2018Unskilled labor\\u2019 is a myth invented to pay you less.",b:"Try running a restaurant, warehouse, or hospital with no \\u2018unskilled\\u2019 workers for one day."},
+{t:"QUOTE",h:"\\u201CThe law, in its majestic equality, forbids rich and poor alike to sleep under bridges.\\u201D \\u2014 Anatole France",b:"Justice is blind. It just happens to only see one class."},
+{t:"ORDER",h:"Learn your rights at work tonight.",b:"15 minutes of reading. The boss hopes you never do it."},
+{t:"STAT",h:"CEOs now make 290x the average worker.",b:"In 1965 it was 21x. Nothing about leadership got 14 times better."},
+{t:"TRUTH",h:"The news calls it \\u2018the economy.\\u2019 They mean the stock market.",b:"Your rent went up and your pay didn't. That's the economy you live in."},
+{t:"QUOTE",h:"\\u201CIf voting changed anything, they'd make it illegal.\\u201D \\u2014 Emma Goldman",b:"They're certainly trying."},
+{t:"ORDER",h:"Find one local mutual aid group and follow them.",b:"The revolution is also a food drive. Start where your feet are."},
+{t:"STAT",h:"Empty homes outnumber homeless people 28 to 1.",b:"There is no housing shortage. There's a profit shortage in housing people."},
+{t:"TRUTH",h:"They want you debating strangers online instead of organizing coworkers.",b:"The algorithm feeds you outrage because outrage doesn't unionize."},
+{t:"QUOTE",h:"\\u201CThe only thing necessary for evil to triumph is for good people to do nothing.\\u201D",b:"The machine prefers you tired, alone, and scrolling."},
+{t:"ORDER",h:"Cancel one subscription that funds the machine.",b:"Your money is a vote they actually count. Spend it like it."},
+{t:"STAT",h:"Medical debt is the #1 cause of bankruptcy in America.",b:"In every other rich country, getting sick doesn't mean going broke. Here it's a business model."},
+{t:"TRUTH",h:"Nobody is coming to save us. That's the good news.",b:"It means we get to save each other. That's what the network is for."},
+{t:"QUOTE",h:"\\u201CFirst they ignore you, then they laugh at you, then they fight you, then you win.\\u201D",b:"We're somewhere between laughing and fighting. Good."},
+{t:"ORDER",h:"Ask an elder what organizing looked like before the internet.",b:"The tactics are old. The tools are new. Learn both."},
+{t:"TRUTH",h:"Solidarity is a strategy, not a sentiment.",b:"Every strike won, every union formed, every right you have \\u2014 won by people acting together."},
+  {t:"ORDER",h:"Put your politics in the group chat.",b:"One message. \\u2018Did you know CEOs make 290x what we do?\\u2019 Then watch."},
+{t:"TRUTH",h:"\\u2018There is no alternative\\u2019 is the most successful propaganda ever made.",b:"There are always alternatives. They just don't profit the people saying that."},
+{t:"ORDER",h:"Support one striking worker this week.",b:"Walk a picket line, contribute to a strike fund, or just bring coffee. Show up."},
+{t:"TRUTH",h:"The network is the message.",b:"{N} creators. 5 million reach. One machine. You're already inside it \\u2014 act like it."},
+{t:"ORDER",h:"Bring one friend into the ranks.",b:"Send them this page. The machine grows one recruit at a time."}
+];
+
+function chicagoToday(){ var d=new Date(new Date().toLocaleString("en-US",{timeZone:"America/Chicago"})); d.setHours(0,0,0,0); return d; }
+function dayNum(){ var l=new Date(LAUNCH_DATE+"T00:00:00"); var diff=chicagoToday()-l; return Math.max(1,Math.floor(diff/86400000)+1); }
+function dropFor(n){ return DROPS[(n-1)%DROPS.length]; }
+function dateKey(){ var d=chicagoToday(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
+function yesterdayKey(){ var d=chicagoToday(); d.setDate(d.getDate()-1); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
+
+var LS="pf_drop_v1";
+function load(){ try{return JSON.parse(localStorage.getItem(LS)||'{"last":"","streak":0}');}catch(e){return {last:"",streak:0};} }
+function save(s){ try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){} }
+
+var n=dayNum(), drop=dropFor(n), s=load(), tk=dateKey();
+if(s.last!==tk){
+  s.streak = (s.last===yesterdayKey()) ? s.streak+1 : 1; s.last=tk; save(s);
+  /* award XP + ping the trackers on new daily claim */
+  try{
+    document.dispatchEvent(new CustomEvent("pf-drop-claimed",{detail:{day:tk,streak:s.streak}}));
+  }catch(e){}
+  /* GOLDEN DROP: 1-in-20 claims hit the motherlode — special art + bonus XP. */
+  try{
+    if(Math.random()<0.05){
+      document.dispatchEvent(new CustomEvent("pf-drop-golden",{detail:{day:tk}}));
+      var tag=document.getElementById("dTag");
+      if(tag){ tag.textContent="\u2605 GOLDEN DROP \u2605"; tag.style.color="#e8b10c"; }
+      var head=document.getElementById("dHead");
+      if(head){ head.innerHTML="THE MOTHERLODE<br><span style='font-size:0.9rem;'>Today the machine smiles on you.</span>"; }
+      if(window.PF&&PF.dope){ var hb=document.getElementById("dDay"); PF.dope.confetti(hb?hb.parentNode:document.body,40); }
+    }
+  }catch(e2){}
+}
+
+document.getElementById("dDay").textContent="Day "+n+" of the offensive";
+document.getElementById("dTag").textContent=drop.t;
+document.getElementById("dHead").textContent=drop.h;
+/* Dynamic network size: {N} pulls the live roster count from the database. */
+var _nc=62;
+try{ if(window.PF&&PF.slrAll){ var _a=PF.slrAll(); if(_a&&_a.length) _nc=_a.length; }
+else if(window.PF&&PF.ROSTER&&PF.ROSTER.length){ _nc=PF.ROSTER.length; } }catch(_e){}
+document.getElementById("dBody").textContent=String(drop.b).replace("{N}",_nc);
+document.getElementById("dStreak").textContent="Your streak: "+s.streak+(s.streak===1?" day":" days")+" \\u2014 come back tomorrow to keep it alive";
+
+document.getElementById("dShare").onclick=function(){
+  var text="Day "+n+" of the offensive: "+drop.h+" \\u2014 via The Propaganda Factory "+location.href;
+  if(navigator.share){ navigator.share({title:"The Daily Drop",text:text,url:location.href}).catch(function(){}); }
+  else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(function(){ alert("Drop copied. Go spread it."); }).catch(function(){}); }
+};
+document.getElementById("dArchBtn").onclick=function(){
+  var arch=document.getElementById("dArch");
+  if(arch.classList.contains("open")){ arch.classList.remove("open"); return; }
+  var _nc2=62;
+  try{ if(window.PF&&PF.slrAll){ var _a2=PF.slrAll(); if(_a2&&_a2.length) _nc2=_a2.length; }
+  else if(window.PF&&PF.ROSTER&&PF.ROSTER.length){ _nc2=PF.ROSTER.length; } }catch(_e2){}
+  var h="";
+  for(var i=1;i<=7;i++){ var dn=n-i; if(dn<1) break; var d=dropFor(dn);
+    h+='<div class="d-aitem"><div class="d-aday">Day '+dn+' \\u00B7 '+d.t+'</div><div class="d-ahead">'+d.h+'</div><div class="d-abody">'+String(d.b).replace("{N}",_nc2)+'</div></div>';
+  }
+  arch.innerHTML=h||'<div class="d-aitem"><div class="d-abody">The offensive just began. Check back tomorrow.</div></div>';
+  arch.classList.add("open");
+};
+})();
+</script>
+</div>
+</template>`);
+})();
+
+;
+
+/* ===== enlistment-ranks.js ===== */
+/* games/enlistment-ranks.js  |  PF v1.3.0 | Enlistment Ranks loyalty ladder (XP ladder widget, self-contained)
+   KILL: ?pf_off=enlistment-ranks  or  localStorage pf_disabled_v1='["enlistment-ranks"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (PF.skip("enlistment-ranks")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-ranks">
+<div id="pf-ranks">
+<style>
+#pf-ranks{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f}
+#pf-ranks h2{color:#c1121f;font-size:28px;margin:0 0 6px;letter-spacing:2px;text-transform:uppercase}
+#pf-ranks .r-sub{font-family:Arial,sans-serif;font-size:14px;color:#c9bfa8;margin-bottom:18px}
+#pf-ranks .r-badge{display:inline-block;background:#c1121f;color:#fff;font-size:24px;letter-spacing:3px;padding:12px 30px;text-transform:uppercase;margin-bottom:10px}
+#pf-ranks .r-xp{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase;margin-bottom:8px}
+#pf-ranks .r-bar{height:14px;background:#2a2a2a;border:1px solid #555;margin:0 0 6px}
+#pf-ranks .r-bar i{display:block;height:100%;background:#c1121f;width:0;transition:width .4s}
+#pf-ranks .r-next{font-family:Arial,sans-serif;font-size:12px;color:#c9bfa8;margin-bottom:18px;letter-spacing:1px}
+#pf-ranks .r-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:520px){#pf-ranks .r-grid{grid-template-columns:1fr}}
+#pf-ranks .r-act{background:#1a1a1a;border:2px solid #f5ead6;color:#f5ead6;padding:12px 8px;cursor:pointer;font-family:Arial,sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:1px;transition:all .15s;text-decoration:none;display:block}
+#pf-ranks .r-act small{display:block;font-size:11px;color:#ff5a00;letter-spacing:2px;margin-top:4px}
+#pf-ranks .r-act:hover{background:#c1121f;border-color:#c1121f;color:#fff}
+#pf-ranks .r-act:hover small{color:#fff}
+#pf-ranks .r-act.done{opacity:.4;cursor:default;border-style:dashed}
+#pf-ranks .r-act.done:hover{background:#1a1a1a;color:#f5ead6}
+#pf-ranks .r-act.done:hover small{color:#ff5a00}
+#pf-ranks .r-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:14px}
+#pf-ranks .r-who{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase;margin-bottom:8px}
+#pf-ranks .r-who .gold{color:#ff5a00;font-size:16px}
+#pf-ranks .u-wrap{margin-top:22px;border-top:2px solid #c1121f;padding-top:18px;text-align:left}
+#pf-ranks .u-head{font-size:20px;letter-spacing:3px;color:#f5ead6;text-transform:uppercase;text-align:center;margin-bottom:4px}
+#pf-ranks .u-sub2{font-family:Arial,sans-serif;font-size:12px;color:#c9bfa8;text-align:center;margin-bottom:14px;letter-spacing:1px}
+#pf-ranks .u-row{display:flex;gap:12px;align-items:center;background:#1a1a1a;border:2px solid #333;padding:12px;margin-bottom:10px}
+#pf-ranks .u-row.open{border-color:#c1121f}
+#pf-ranks .u-row.fresh{animation:ufresh 1.2s 3}
+@keyframes ufresh{0%,100%{box-shadow:none}50%{box-shadow:0 0 24px #ff5a00;border-color:#ff5a00}}
+#pf-ranks .u-licon{font-size:28px;min-width:36px;text-align:center}
+#pf-ranks .u-row.open .u-licon{color:#ff5a00}
+#pf-ranks .u-body{flex:1;min-width:0}
+#pf-ranks .u-title{font-size:15px;letter-spacing:1px;color:#f5ead6;text-transform:uppercase}
+#pf-ranks .u-desc{font-family:Arial,sans-serif;font-size:12px;color:#c9bfa8;margin:4px 0;line-height:1.5}
+#pf-ranks .u-state{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase}
+#pf-ranks .u-state.lock{color:#777}
+#pf-ranks .u-btn{background:#c1121f;color:#fff;border:none;font-family:'Arial Black',Arial,sans-serif;font-size:12px;letter-spacing:2px;padding:10px 16px;cursor:pointer;text-transform:uppercase;white-space:nowrap;margin:2px}
+#pf-ranks .u-msg{font-family:Arial,sans-serif;font-size:13px;letter-spacing:1px;color:#ff5a00;text-align:center;margin-top:10px;min-height:20px;text-transform:uppercase}
+#pf-ranks .u-walltitle{font-size:16px;letter-spacing:3px;color:#c1121f;text-transform:uppercase;text-align:center;margin:16px 0 8px}
+#pf-ranks .u-wall{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+#pf-ranks .u-wname{background:#1a1a1a;border:2px solid #ff5a00;color:#f5ead6;font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;padding:6px 12px;text-transform:uppercase}
+#pf-ranks .u-wempty{font-family:Arial,sans-serif;font-size:12px;color:#777;text-align:center;width:100%}
+/* ---------- PRESTIGE ---------- */
+#pf-ranks .p-wrap{margin-top:22px;border-top:2px solid #ff5a00;padding-top:18px;text-align:center}
+#pf-ranks .p-head{font-size:22px;letter-spacing:4px;color:#ff5a00;text-transform:uppercase;margin-bottom:4px}
+#pf-ranks .p-sub{font-family:Arial,sans-serif;font-size:12px;color:#c9bfa8;margin-bottom:14px;letter-spacing:1px}
+#pf-ranks .p-load{font-family:Arial,sans-serif;font-size:12px;color:#777;padding:12px}
+#pf-ranks .p-badge{display:inline-block;background:#1a1a1a;border:3px solid #ff5a00;color:#ff5a00;font-size:32px;letter-spacing:4px;padding:10px 26px;margin-bottom:10px}
+#pf-ranks .p-rankline{font-family:Arial,sans-serif;font-size:14px;letter-spacing:2px;color:#f5ead6;text-transform:uppercase;margin-bottom:12px}
+#pf-ranks .p-req{background:#1a1a1a;border:2px solid #333;padding:12px;margin-bottom:10px;text-align:left}
+#pf-ranks .p-req.ok{border-color:#4caf50}
+#pf-ranks .p-req.no{border-color:#c1121f}
+#pf-ranks .p-reqt{font-size:13px;letter-spacing:1px;color:#f5ead6;text-transform:uppercase;margin-bottom:6px}
+#pf-ranks .p-reqd{font-family:Arial,sans-serif;font-size:12px;color:#c9bfa8;line-height:1.5}
+#pf-ranks .p-reqd .yes{color:#4caf50;font-weight:bold}
+#pf-ranks .p-reqd .no{color:#c1121f;font-weight:bold}
+#pf-ranks .p-bar{height:10px;background:#2a2a2a;border:1px solid #555;margin:6px 0}
+#pf-ranks .p-bar i{display:block;height:100%;background:#ff5a00;width:0;transition:width .4s}
+#pf-ranks .p-benefits{background:#141414;border:1px dashed #555;padding:10px 12px;margin:12px 0;text-align:left}
+#pf-ranks .p-benefits div{font-family:Arial,sans-serif;font-size:12px;color:#c9bfa8;line-height:1.7}
+#pf-ranks .p-benefits b{color:#ff5a00}
+#pf-ranks .p-btn{background:#ff5a00;color:#0d0d0d;border:none;font-family:'Arial Black',Arial,sans-serif;font-size:16px;letter-spacing:3px;padding:14px 40px;cursor:pointer;text-transform:uppercase;margin-top:8px}
+#pf-ranks .p-btn:disabled{background:#333;color:#777;cursor:default}
+#pf-ranks .p-warn{font-family:Arial,sans-serif;font-size:11px;color:#c1121f;margin-top:10px;line-height:1.5}
+#pf-ranks .p-max{font-family:Arial,sans-serif;font-size:14px;color:#ff5a00;letter-spacing:2px;text-transform:uppercase;padding:16px}
+</style>
+
+<h2>Climb the Ranks</h2>
+<div class="r-sub">Every action for the machine earns XP. Climb the ranks.</div>
+<div class="r-badge" id="rBadge">Recruit</div>
+<div class="r-who" id="rWho"></div>
+<div class="r-xp" id="rXp">0 XP</div>
+<div class="r-bar"><i id="rBar"></i></div>
+<div class="r-next" id="rNext"></div>
+<div class="r-grid" id="rGrid"></div>
+<div class="u-wrap">
+  <div class="u-head">&#9733; Unlocks &#9733;</div>
+  <div class="u-sub2">Ranks aren't just a number. Every tier opens something real.</div>
+  <div id="uList"></div>
+  <div class="u-msg" id="uMsg"></div>
+  <div class="u-walltitle">Vanguard Wall</div>
+  <div class="u-wall" id="uWall"><div class="u-wempty">No architects yet. The wall waits.</div></div>
+</div>
+<div class="p-wrap">
+  <div class="p-head">&#9733; Prestige &#9733;</div>
+  <div class="p-sub">Reset to zero. Rise again, stronger.</div>
+  <div id="pBody"><div class="p-load">Consulting command&hellip;</div></div>
+</div>
+<div class="r-note">Ranks live on this device. Screenshot your rank and share it &mdash; propaganda loves a leaderboard.</div>
+
+<script>
+(function(){
+var TIERS=[["RECRUIT",0],["AGITATOR",25],["CADRE",75],["COMMISSAR",150],["ARCHITECT",300]];
+var LS="pf_ranks_v1", LS_I="pf_identity_v1";
+/* Central backend: paste the /exec URL from the ranks-backend deploy to make
+   ranks follow users across devices. Empty = device-local mode. */
+var BACKEND_URL="";
+function syncFromServer(){
+  var id={}; try{ id=JSON.parse(localStorage.getItem(LS_I)||"{}"); }catch(e){}
+  if(!BACKEND_URL||!id.callsign) return;
+  var fn="pfRankCb"+Math.floor(Math.random()*1e9);
+  window[fn]=function(j){
+    try{delete window[fn];}catch(e){} s.parentNode.removeChild(s);
+    if(j&&j.ok){ var st=load(); if(j.xp>st.xp){ st.xp=j.xp; save(st); render(); } }
+  };
+  var s=document.createElement("script");
+  s.src=BACKEND_URL+"?action=get&callsign="+encodeURIComponent(id.callsign)+"&callback="+fn;
+  document.head.appendChild(s);
+}
+function today(){ return new Date().toISOString().slice(0,10); }
+function load(){ try{ return JSON.parse(localStorage.getItem(LS)||'{"xp":0,"got":{}}'); }catch(e){ return {xp:0,got:{}}; } }
+function save(s){ try{ localStorage.setItem(LS,JSON.stringify(s)); }catch(e){} }
+/* award(key, xp, rule): rule "once" | "daily" */
+function award(key,xp,rule,opts){
+  /* opts.exempt: weekly / one-time / event rewards bypass the 50/day pool —
+     they're bounded by week or event already. Everything else draws from the
+     shared daily pool via PF.claimDayXp. Returns the XP actually granted. */
+  opts=opts||{};
+  var s=load(), t=today(), stamp=rule==="daily" ? t : "x";
+  if(s.got[key]===stamp) return 0;
+  var gain=xp;
+  if(!opts.exempt){ try{ gain=(window.PF&&PF.claimDayXp)?PF.claimDayXp(xp):xp; }catch(e){ gain=xp; } }
+  s.got[key]=stamp; s.xp+=gain; save(s); render();
+  /* Backend XP mirror (core/11-xpledger): every granted delta, keyed.
+     opts.nolx: the backend already granted this exact delta (contract payouts)
+     — mirroring it would double the backend balance. */
+  if(gain>0&&!opts.nolx){ try{ document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:gain,key:key,reason:rule}})); }catch(e2){} }
+  if(!opts.exempt&&gain<=0){ try{ if(window.PF&&PF.toast) PF.toast("Daily 50 XP pool spent — task logged. New pool at midnight."); }catch(e){} }
+  return gain;
+}
+function tierOf(xp){ var t=TIERS[0]; for(var i=0;i<TIERS.length;i++){ if(xp>=TIERS[i][1]) t=TIERS[i]; } return t; }
+/* settle(ev, gain): forward the TRUE awarded XP (after 50/day pool clipping)
+   to the tally so the backend records exactly what the ledger granted —
+   including 0 when the pool is spent. The tally records pool-capped events
+   ONLY on settle, never on the raw game event. */
+function settle(ev,gain,score){
+  try{ var d={ev:ev,xp:gain}; if(typeof score==='number') d.score=score; document.dispatchEvent(new CustomEvent("pf-tally-settle",{detail:d})); }catch(e){}
+}
+
+/* ---------- UNLOCKS ---------- */
+var LS_U="pf_unlocks_seen_v1", LS_WALL="pf_wall_v1";
+var UNLOCKS=[
+ {tier:0,id:"papers",btn:"Download",title:"Enlistment Papers",
+  desc:"Your official certificate of enlistment, personalized with your callsign. Download it, print it, post it."},
+ {tier:1,id:"posters",btn:"Get pack",title:"Classified Poster Pack",
+  desc:"3 exclusive propaganda posters stamped with your callsign. Agitator-class material, never public."},
+ {tier:2,id:"frame",btn:"Download",title:"Operative Frame + Gold Star",
+  desc:"A profile-pic frame marking you as cadre — plus a permanent gold star next to your name on this board."},
+ {tier:3,id:"votex2",btn:"Arm ×2",title:"Vote Power ×2",
+  desc:"Your Propagandist of the Week vote counts DOUBLE. Real, measurable power over the leaderboard."},
+ {tier:4,id:"wall",btn:"Etch it",title:"Vanguard Wall + Design an Order",
+  desc:"Your callsign etched on the public Vanguard Wall — and the right to submit Daily Orders missions for the whole network."}
+];
+function seenUnlocks(){ try{ return JSON.parse(localStorage.getItem(LS_U)||"[]"); }catch(e){ return []; } }
+function markSeen(ids){ try{ localStorage.setItem(LS_U,JSON.stringify(ids)); }catch(e){} }
+function setVoteWeight(w){ try{ localStorage.setItem("pf_vote_weight",String(w)); }catch(e){} }
+function mkCanvas(w,h){ var c=document.createElement("canvas"); c.width=w; c.height=h; return c; }
+function isIOS(){ return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1); }
+function showImgModal(items){
+  var old=document.getElementById("pf-img-modal"); if(old) old.remove();
+  var m=document.createElement("div"); m.id="pf-img-modal";
+  m.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;overflow-y:auto;";
+  var label=document.createElement("div");
+  label.style.cssText="color:#f5ead6;font-family:Arial,sans-serif;font-size:16px;margin:0 0 12px;text-align:center;letter-spacing:1px;font-weight:bold;";
+  label.textContent="LONG-PRESS AN IMAGE \u2192 SAVE TO PHOTOS";
+  m.appendChild(label);
+  items.forEach(function(it){
+    var img=document.createElement("img"); img.src=it.url;
+    img.style.cssText="max-width:88%;max-height:52vh;border:3px solid #c1121f;margin:8px 0;";
+    m.appendChild(img);
+    var cap=document.createElement("div");
+    cap.style.cssText="color:#c9bfa8;font-family:Arial,sans-serif;font-size:12px;margin-bottom:8px;";
+    cap.textContent=it.name; m.appendChild(cap);
+  });
+  var close=document.createElement("button"); close.textContent="CLOSE";
+  close.style.cssText="background:#c1121f;color:#f5ead6;border:none;padding:12px 36px;font-family:'Arial Black',Arial,sans-serif;font-size:16px;letter-spacing:2px;cursor:pointer;margin-top:12px;";
+  close.onclick=function(){ m.remove(); }; m.appendChild(close);
+  m.onclick=function(e){ if(e.target===m) m.remove(); };
+  document.body.appendChild(m);
+}
+function dl(url,name){
+  if(isIOS()){ showImgModal([{url:url,name:name}]); return; }
+  var a=document.createElement("a"); a.href=url; a.download=name; document.body.appendChild(a); a.click(); setTimeout(function(){ a.remove(); },600);
+}
+
+function drawCert(cs){
+  var c=mkCanvas(900,1200), x=c.getContext("2d");
+  x.fillStyle="#0d0d0d"; x.fillRect(0,0,900,1200);
+  x.strokeStyle="#c1121f"; x.lineWidth=12; x.strokeRect(30,30,840,1140);
+  x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(60,60,780,1080);
+  x.textAlign="center";
+  x.fillStyle="#c1121f"; x.font="900 64px 'Arial Black',Arial,sans-serif";
+  x.fillText("ENLISTMENT",450,220); x.fillText("PAPERS",450,300);
+  x.fillStyle="#f5ead6"; x.font="28px Arial,sans-serif";
+  x.fillText("THE PROPAGANDA FACTORY",450,380);
+  x.fillStyle="#c9bfa8"; x.font="24px Arial,sans-serif";
+  x.fillText("This certifies that",450,480);
+  x.fillStyle="#f5ead6"; x.font="900 64px 'Arial Black',Arial,sans-serif";
+  x.fillText((cs||"RECRUIT").slice(0,16),450,600);
+  x.fillStyle="#c9bfa8"; x.font="24px Arial,sans-serif";
+  x.fillText("has enlisted in the",450,680);
+  x.fillStyle="#c1121f"; x.font="900 40px 'Arial Black',Arial,sans-serif";
+  x.fillText("SICK LEFT RADICALS",450,740);
+  x.fillStyle="#c9bfa8"; x.font="22px Arial,sans-serif";
+  x.fillText("Enlisted "+new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}),450,830);
+  x.fillText("Rank: RECRUIT",450,880);
+  x.strokeStyle="#c1121f"; x.lineWidth=2;
+  x.beginPath(); x.moveTo(250,1000); x.lineTo(650,1000); x.stroke();
+  x.fillStyle="#f5ead6"; x.font="20px Arial,sans-serif";
+  x.fillText("MTCSTW — NETWORK COMMAND",450,1040);
+  x.fillStyle="#c1121f"; x.font="900 26px 'Arial Black',Arial,sans-serif";
+  x.fillText("JOIN THE FIGHT.",450,1095);
+  return c.toDataURL("image/png");
+}
+function drawPoster(n,cs){
+  var c=mkCanvas(1080,1350), x=c.getContext("2d");
+  x.fillStyle="#0d0d0d"; x.fillRect(0,0,1080,1350);
+  x.strokeStyle="#c1121f"; x.lineWidth=20; x.strokeRect(40,40,1000,1270);
+  x.textAlign="center";
+  var name=(cs||"AGITATOR").slice(0,18);
+  if(n===0){
+    x.font="900 118px 'Arial Black',Arial,sans-serif";
+    x.fillStyle="#c1121f"; x.fillText("AGITATE",540,480);
+    x.fillStyle="#f5ead6"; x.fillText("EDUCATE",540,640);
+    x.fillStyle="#c1121f"; x.fillText("ORGANIZE",540,800);
+  } else if(n===1){
+    x.font="900 96px 'Arial Black',Arial,sans-serif";
+    x.fillStyle="#f5ead6"; x.fillText("ANOTHER BRICK",540,420);
+    x.fillText("IN THEIR WALL.",540,545);
+    x.fillStyle="#c1121f"; x.fillText("WE'RE TAKING",540,720);
+    x.fillText("IT APART.",540,845);
+  } else {
+    x.fillStyle="#c1121f"; x.font="900 150px 'Arial Black',Arial,sans-serif";
+    x.fillText("5M+",540,450);
+    x.fillStyle="#f5ead6"; x.font="900 84px 'Arial Black',Arial,sans-serif";
+    x.fillText("NETWORK",540,585); x.fillText("REACH",540,695);
+    x.fillStyle="#c9bfa8"; x.font="36px Arial,sans-serif";
+    x.fillText("You are the media now.",540,820);
+  }
+  x.fillStyle="#c1121f"; x.fillRect(140,1060,800,6);
+  x.fillStyle="#f5ead6"; x.font="900 44px 'Arial Black',Arial,sans-serif";
+  x.fillText(name+" — AGITATOR CLASS",540,1150);
+  x.fillStyle="#c1121f"; x.font="900 32px 'Arial Black',Arial,sans-serif";
+  x.fillText("JOIN THE FIGHT AT MTCSTW.COM",540,1215);
+  return c.toDataURL("image/png");
+}
+function drawFrame(){
+  var c=mkCanvas(512,512), x=c.getContext("2d");
+  x.clearRect(0,0,512,512);
+  x.strokeStyle="#c1121f"; x.lineWidth=26;
+  x.beginPath(); x.arc(256,256,228,0,Math.PI*2); x.stroke();
+  x.strokeStyle="#ff5a00"; x.lineWidth=8;
+  x.beginPath(); x.arc(256,256,198,0,Math.PI*2); x.stroke();
+  x.textAlign="center";
+  x.fillStyle="#c1121f"; x.font="900 46px 'Arial Black',Arial,sans-serif";
+  x.fillText("SLR",256,62);
+  x.fillStyle="#f5ead6"; x.font="900 40px 'Arial Black',Arial,sans-serif";
+  x.fillText("OPERATIVE",256,482);
+  return c.toDataURL("image/png");
+}
+function doUnlock(id,cs){
+  var msg=document.getElementById("uMsg");
+  if(id==="papers"){ dl(drawCert(cs),"pfn-enlistment-papers.png"); }
+  else if(id==="posters"){
+    if(isIOS()){
+      showImgModal([{url:drawPoster(0,cs),name:"pfn-poster-agitate.png"},{url:drawPoster(1,cs),name:"pfn-poster-brick.png"},{url:drawPoster(2,cs),name:"pfn-poster-5m.png"}]);
+    } else {
+      dl(drawPoster(0,cs),"pfn-poster-agitate.png");
+      setTimeout(function(){ dl(drawPoster(1,cs),"pfn-poster-brick.png"); },700);
+      setTimeout(function(){ dl(drawPoster(2,cs),"pfn-poster-5m.png"); },1400);
+    }
+    if(msg) msg.textContent="3 posters incoming. Agitator-class material.";
+  }
+  else if(id==="frame"){
+    dl(drawFrame(),"pfn-operative-frame.png");
+    if(msg) msg.textContent="Frame downloaded. Layer it over your profile pic — and check your gold star above.";
+  }
+  else if(id==="votex2"){
+    setVoteWeight(2);
+    if(msg) msg.textContent="Vote power ×2 armed. Your next Fan Vote counts double.";
+  }
+  else if(id==="wall"){ etchWall(); }
+}
+function getWall(){ try{ return JSON.parse(localStorage.getItem(LS_WALL)||"[]"); }catch(e){ return []; } }
+function apiPostWall(cs){
+  if(!BACKEND_URL) return;
+  var body={action:"wall",callsign:cs};
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND_URL,body,function(){}); return; }
+  try{
+    fetch(BACKEND_URL,{method:"POST",headers:{"Content-Type":"text/plain"},
+      body:JSON.stringify(body)}).catch(function(){});
+  }catch(e){}
+}
+function etchWall(){
+  var cs=""; try{ cs=String(JSON.parse(localStorage.getItem(LS_I)||"{}").callsign||"").toLowerCase(); }catch(e){}
+  var wall=getWall(), msg=document.getElementById("uMsg");
+  if(!cs){ if(msg) msg.textContent="Claim a callsign first (Daily Orders widget) — the wall needs a name."; return; }
+  if(wall.indexOf(cs)<0){ wall.push(cs); try{ localStorage.setItem(LS_WALL,JSON.stringify(wall)); }catch(e){} }
+  apiPostWall(cs);
+  if(msg) msg.textContent="Etched. Your name is on the wall.";
+  render();
+}
+function wallFromServer(cb){
+  if(!BACKEND_URL){ cb(null); return; }
+  var fn="pfWallCb"+Math.floor(Math.random()*1e9);
+  window[fn]=function(j){ try{delete window[fn];}catch(e){} try{s.parentNode.removeChild(s);}catch(e2){} cb(j); };
+  var s=document.createElement("script");
+  s.onerror=function(){ cb(null); };
+  s.src=BACKEND_URL+"?action=wall&callback="+fn;
+  document.head.appendChild(s);
+}
+function renderWall(serverWall){
+  var el=document.getElementById("uWall");
+  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  var names=getWall();
+  if(serverWall&&serverWall.length){ names=serverWall.map(function(w){return esc(String(w.callsign).toUpperCase());}); }
+  else { names=names.map(function(w){return esc(String(w).toUpperCase());}); }
+  if(!names.length){ el.innerHTML='<div class="u-wempty">No architects yet. The wall waits.</div>'; return; }
+  el.innerHTML=names.slice(-24).map(function(n){ return '<span class="u-wname">'+n+'</span>'; }).join("");
+}
+function renderUnlocks(){
+  var s=load(), idx=TIERS.indexOf(tierOf(s.xp));
+  var cs=""; try{ cs=String(JSON.parse(localStorage.getItem(LS_I)||"{}").callsign||"").toUpperCase(); }catch(e){}
+  if(idx>=3) setVoteWeight(2);   /* COMMISSAR perk persists */
+  var el=document.getElementById("uList"), h="", openIds=[];
+  UNLOCKS.forEach(function(u){
+    var open=idx>=u.tier;
+    if(open) openIds.push(u.id);
+    h+='<div class="u-row'+(open?" open":"")+'" id="urow-'+u.id+'">'
+      +'<div class="u-licon">'+(open?"&#9733;":"&#128274;")+'</div>'
+      +'<div class="u-body"><div class="u-title">'+u.title+'</div>'
+      +'<div class="u-desc">'+u.desc+'</div>'
+      +'<div class="u-state'+(open?"":" lock")+'">'+(open?"UNLOCKED":"Unlocks at "+TIERS[u.tier][0]+" · "+TIERS[u.tier][1]+" XP")+'</div>'
+      +'</div>'
+      +(open?'<button class="u-btn" data-u="'+u.id+'">'+u.btn+'</button>':"")
+      +'</div>';
+  });
+  el.innerHTML=h;
+  el.querySelectorAll("button.u-btn").forEach(function(b){
+    b.onclick=function(){ doUnlock(b.getAttribute("data-u"),cs); };
+  });
+  /* fresh-unlock dopamine flash */
+  var seen=seenUnlocks(), fresh=openIds.filter(function(id){ return seen.indexOf(id)<0; });
+  if(fresh.length){
+    fresh.forEach(function(id){
+      var row=document.getElementById("urow-"+id);
+      if(row) row.classList.add("fresh");
+    });
+    var names=fresh.map(function(id){
+      var u=UNLOCKS.filter(function(x){return x.id===id;})[0]; return u?u.title:"";
+    }).join(" + ");
+    var msg=document.getElementById("uMsg");
+    if(msg) msg.textContent="NEW UNLOCK: "+names;
+    markSeen(openIds);
+  }
+  /* Design-an-Order link for architects */
+  if(idx>=4){
+    var wallBtn=document.querySelector('button.u-btn[data-u="wall"]');
+    if(wallBtn && !document.getElementById("uDesign")){
+      var a=document.createElement("a");
+      a.id="uDesign"; a.className="u-btn";
+      a.style.cssText="text-decoration:none;display:inline-block;background:#f5ead6;color:#0d0d0d;";
+      a.href="mailto:mtcstw@gmail.com?subject="+encodeURIComponent("DAILY ORDER MISSION IDEA")+"&body="+encodeURIComponent("My mission idea: ");
+      a.textContent="Design an order";
+      wallBtn.parentNode.insertBefore(a,wallBtn.nextSibling);
+    }
+  }
+}
+
+var ACTIONS=[
+ /* Daily pool (50/day across the page): check-in 2, share 1.
+    Weekly tasks keep their own values and bypass the pool (exempt). */
+ {id:"checkin", label:"Daily check-in", xp:2, rule:"daily", run:function(){ var g=award("checkin",2,"daily"); settle("pf-checkin",g); return g; }},
+ {id:"bracket", label:"Vote in the bracket", xp:10, rule:"once", href:"#pf-bracket"},
+ {id:"fanvote", label:"Vote propagandist of the week", xp:10, rule:"once", href:"#pf-vote"},
+ {id:"quiz", label:"Find your SLR match", xp:15, rule:"once", href:"#slr-quiz"},
+ {id:"enlisted", label:"Join the dispatch", xp:20, rule:"once", run:function(){ try{document.dispatchEvent(new CustomEvent("pf-enlisted"));}catch(e){} return award("enlisted",20,"once",{exempt:1}); }},
+ {id:"share", label:"Share the machine", xp:1, rule:"daily", run:function(){
+    var done=function(){ settle("pf-share-image",award("share",1,"daily")); };
+    if(navigator.share){ navigator.share({title:"The Propaganda Factory",url:location.href}).then(done).catch(function(){}); }
+    else if(navigator.clipboard){ navigator.clipboard.writeText(location.href).then(done).catch(function(){}); }
+    return false;
+ }}
+];
+
+function doneFor(a){
+  var s=load(), t=today();
+  if(a.rule==="daily") return s.got[a.id]===t;
+  if(a.href){
+    /* href actions complete inside their game silos, which auto-award under
+       week-scoped keys (bracket_<week>, fanvote_<week>, quiz); the claim link
+       awards under pfx-* keys. Done = either key present. Counted once. */
+    var map={bracket:["pfx-b","bracket_"],fanvote:["pfx-v","fanvote_"],quiz:["pfx-q","quiz"]}[a.id]||[];
+    for(var k in s.got){ if(!s.got.hasOwnProperty(k))continue;
+      if(k===map[0]||(map[1]&&k.indexOf(map[1])===0)) return true; }
+    return false;
+  }
+  return !!s.got[a.id];
+}
+function render(){
+  var s=load(), tier=tierOf(s.xp), idx=TIERS.indexOf(tier);
+  /* Promotion fanfare: crossing a tier threshold gets a celebration, once. */
+  try{
+    var seenT=parseInt(localStorage.getItem("pf_tier_seen_v1")||"0",10)||0;
+    if(idx>seenT){
+      try{ localStorage.setItem("pf_tier_seen_v1",String(idx)); }catch(e2){}
+      var host=document.getElementById("pf-ranks")||document.body;
+      if(window.PF&&PF.dope){ PF.dope.confetti(host,60); PF.dope.ping(host,"PROMOTED TO "+tier[0]); }
+      try{ document.dispatchEvent(new CustomEvent("pf-promoted",{detail:{tier:tier[0]}})); }catch(e3){}
+    }
+  }catch(e){}
+  document.getElementById("rBadge").textContent=tier[0];
+  var who=""; try{ var id=JSON.parse(localStorage.getItem(LS_I)||"{}"); if(id.callsign) who="Fighting as "+id.callsign.toUpperCase(); }catch(e){}
+  document.getElementById("rWho").innerHTML=who+(idx>=2&&who?' <span class="gold">&#9733;</span>':"");
+  document.getElementById("rXp").textContent=s.xp+" XP";
+  var next=TIERS[idx+1];
+  if(next){
+    var pct=Math.min(100,Math.round((s.xp-tier[1])/(next[1]-tier[1])*100));
+    document.getElementById("rBar").style.width=pct+"%";
+    document.getElementById("rNext").textContent=(next[1]-s.xp)+" XP to "+next[0];
+  } else {
+    document.getElementById("rBar").style.width="100%";
+    document.getElementById("rNext").textContent="Maximum rank achieved. The machine salutes you.";
+  }
+  var g=document.getElementById("rGrid"), h="";
+  ACTIONS.forEach(function(a){
+    var d=doneFor(a), tag=a.rule==="daily"?"daily":"one-time";
+    if(a.href){ h+='<a class="r-act'+(d?" done":"")+'" href="'+a.href+'">'+a.label+'<small>+'+a.xp+' XP · '+tag+'</small></a>'; }
+    else { h+='<button class="r-act'+(d?" done":"")+'" data-a="'+a.id+'">'+a.label+'<small>+'+a.xp+' XP · '+tag+'</small></button>'; }
+  });
+  g.innerHTML=h;
+  g.querySelectorAll("button.r-act").forEach(function(b){
+    b.onclick=function(){
+      var a=ACTIONS.filter(function(x){return x.id===b.getAttribute("data-a");})[0];
+      if(a&&a.run) a.run();
+    };
+  });
+  renderUnlocks();
+  renderWall();
+}
+/* cross-widget events — document, not window: games dispatch non-bubbling
+   CustomEvents on document, which never reach window listeners. */
+document.addEventListener("pf-bracket-ballot",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("bracket_"+w,10,"once",{exempt:1}); });
+document.addEventListener("pf-quiz-done",function(){ award("quiz",15,"once",{exempt:1}); });
+document.addEventListener("pf-guess-done",function(){ settle("pf-guess-done",award("guess_"+today(),1,"once")); });
+/* Guess scores: forward the score to the tally so the backend records it.
+   No XP (pf-guess-done already awarded) — xp=0, score in meta. */
+document.addEventListener("pf-guess-scored",function(e){ var s=0; try{ if(e&&e.detail&&typeof e.detail.score==='number') s=Math.floor(e.detail.score); }catch(err){} settle("pf-guess-scored",0,s); });
+document.addEventListener("pf-raid-report",function(){ settle("pf-raid-report",award("raid",2,"daily")); });
+document.addEventListener("pf-vote-cast",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("fanvote_"+w,10,"once",{exempt:1}); });
+document.addEventListener("pf-traitor-vote",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("traitor_"+w,5,"once",{exempt:1}); });
+document.addEventListener("pf-caption-submit",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("caption_"+w,10,"once",{exempt:1}); });
+document.addEventListener("pf-poster-made",function(){ settle("pf-poster-made",award("poster_"+today(),1,"once")); });
+document.addEventListener("pf-share-image",function(){ settle("pf-share-image",award("share",1,"daily")); });
+document.addEventListener("pf-drop-claimed",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; settle("pf-drop-claimed",award("drop_"+d,1,"once")); });
+document.addEventListener("pf-billionaire-answered",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; settle("pf-billionaire-answered",award("billionaire_"+d,1,"once")); });
+document.addEventListener("pf-interrogation-answered",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; settle("pf-interrogation-answered",award("interrogation_"+d,1,"once")); });
+/* Do Meter Game-8 expansion bonuses: weekly-op completion + full-spectrum week. Exempt (bounded by week). */
+document.addEventListener("pf-do-challenge-done",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; settle("pf-do-challenge-done",award("dochall_"+w,15,"once",{exempt:1})); });
+document.addEventListener("pf-do-fullspectrum",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; settle("pf-do-fullspectrum",award("dospec_"+w,20,"once",{exempt:1})); });
+/* Recruit rewards: +25 XP per new recruit (War Card promise), exempt from the
+   daily pool. Keyed on the running recruit total so the 6h poll can never
+   double-pay — repeats hit the same key and award 0. */
+document.addEventListener("pf-recruit-credited",function(e){
+  var fresh=Math.max(0,parseInt((e&&e.detail&&e.detail.recruits)||0,10)||0);
+  var total=Math.max(0,parseInt((e&&e.detail&&e.detail.total)||0,10)||0);
+  if(!fresh||!total) return;
+  var gain=award("recruits_"+total,25*fresh,"once",{exempt:1});
+  if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("RECRUIT CHECKED IN — +"+gain+" XP"); }catch(e2){} }
+});
+/* Dopamine loops: combo (2 games/day), first blood (day's first task),
+   golden drop (rare drop bonus), chainlink (multi-cell bridge, weekly).
+   All exempt — bounded by day/week already. */
+document.addEventListener("pf-combo",function(e){
+  var d=(e&&e.detail&&e.detail.day)||"day";
+  var g=award("combo_"+d,8,"once",{exempt:1});
+  if(g>0){ try{ if(window.PF&&PF.toast) PF.toast("COMBO x2 — two games deep. +8 XP"); }catch(e2){} }
+});
+document.addEventListener("pf-first-blood",function(e){
+  var d=(e&&e.detail&&e.detail.day)||"day";
+  award("firstblood_"+d,2,"once",{exempt:1});
+});
+document.addEventListener("pf-drop-golden",function(e){
+  var d=(e&&e.detail&&e.detail.day)||"day";
+  var g=award("dropgold_"+d,9,"once",{exempt:1});
+  if(g>0){ try{ if(window.PF&&PF.toast) PF.toast("GOLDEN DROP — +9 XP bonus"); }catch(e2){} }
+});
+document.addEventListener("pf-chainlink",function(e){
+  var w=(e&&e.detail&&e.detail.week)||"wk";
+  var n=Math.max(0,Math.min(2,parseInt((e&&e.detail&&e.detail.cells)||0,10)-1));
+  if(!n) return;
+  var g=award("chainlink_"+w,10*n,"once",{exempt:1});
+  if(g>0){ try{ if(window.PF&&PF.toast) PF.toast("CHAINLINK — bridging "+(n+1)+" cells. +"+g+" XP"); }catch(e2){} }
+});
+/* Mercenary payout: the backend already granted this delta via xpGrant —
+   the device award is display-only (nolx) so the mirror never doubles it. */
+document.addEventListener("pf-contract-paid",function(e){
+  var id=String((e&&e.detail&&e.detail.id)||"cx"), bnty=Math.max(0,parseInt((e&&e.detail&&e.detail.bounty)||0,10)||0);
+  if(!bnty) return;
+  var g=award("contractpay_"+id,bnty,"once",{exempt:1,nolx:1});
+  if(g>0){ try{ if(window.PF&&PF.toast) PF.toast("CONTRACT PAID — +"+g+" XP. Pleasure doing business."); }catch(e2){} }
+});
+/* ---------- PRESTIGE ---------- */
+function pBackend(){ return (window.PF_BACKEND_URL||"")+""; }
+function pCallsign(){ try{ return String(JSON.parse(localStorage.getItem(LS_I)||"{}").callsign||"").toLowerCase(); }catch(e){ return ""; } }
+function pApiGet(action,cb){
+  var url=pBackend(); if(!url||!pCallsign()){ cb(null); return; }
+  var fn="pfPrestigeCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function fin(j){ if(done)return; done=true; try{delete window[fn];}catch(e){} try{ if(s.parentNode)s.parentNode.removeChild(s);}catch(e2){} cb(j); }
+  window[fn]=function(j){ fin(j); };
+  s.onerror=function(){ fin(null); };
+  s.src=url+"?action="+encodeURIComponent(action)+"&callsign="+encodeURIComponent(pCallsign())+"&callback="+fn;
+  document.head.appendChild(s);
+  setTimeout(function(){ fin(null); },12000);
+}
+function pPost(cb){
+  var url=pBackend(); if(!url){ cb({ok:false,err:"no backend"}); return; }
+  var body={type:"prestige",pr_action:"prestige_reset",callsign:pCallsign()};
+  if(window.PF&&PF.authPost){ PF.authPost(url,body,cb); return; }
+  try{
+    var sec=""; try{ sec=window.PF&&PF.getAuthSecret?PF.getAuthSecret():""; }catch(e){}
+    if(sec) body.auth_secret=sec;
+    fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+      .then(function(r){ return r.json(); }).then(function(j){ cb(j||{ok:false,err:"bad response"}); })
+      .catch(function(){ cb({ok:false,err:"network error"}); });
+  }catch(e){ cb({ok:false,err:"network error"}); }
+}
+function escH(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function renderPrestige(st){
+  var el=document.getElementById("pBody"); if(!el) return;
+  var cs=pCallsign();
+  if(!cs){ el.innerHTML='<div class="p-load">Claim a callsign first (Daily Orders widget) — prestige needs a name.</div>'; return; }
+  if(!st||!st.ok){ el.innerHTML='<div class="p-load">Command is silent. Try again soon.</div>'; return; }
+  var h="";
+  /* Prestige badge */
+  if(st.prestige_level>0){
+    h+='<div class="p-badge">&#9733;'+escH(st.badge)+'&#9733;</div>';
+    h+='<div class="p-rankline">Prestige '+st.prestige_level+' operative</div>';
+  } else {
+    h+='<div class="p-badge" style="border-color:#555;color:#777;font-size:20px;">NO PRESTIGE</div>';
+  }
+  h+='<div class="p-rankline">Network rank: '+escH(st.rank_display)+' &middot; '+Number(st.xp||0).toLocaleString()+' XP</div>';
+  if(st.max_prestige){
+    h+='<div class="p-max">&#9733;&#9733;&#9733; Maximum prestige achieved. Legend status. &#9733;&#9733;&#9733;</div>';
+  } else {
+    var rq=st.requirements, pct=0;
+    /* Rank requirement */
+    var rankPct=rq.rank_ok?100:Math.min(100,Math.round(rq.xp_have/rq.xp_needed*100));
+    h+='<div class="p-req '+(rq.rank_ok?"ok":"no")+'">'
+      +'<div class="p-reqt">Requirement 1: '+escH(rq.rank_needed)+'</div>'
+      +'<div class="p-bar"><i style="width:'+rankPct+'%"></i></div>'
+      +'<div class="p-reqd">'+(rq.rank_ok?'<span class="yes">MET</span> — VANGUARD confirmed.'
+        :'<span class="no">NOT MET</span> — '+Number(rq.xp_have).toLocaleString()+' / 25,000 XP')+'</div></div>';
+    /* Streak requirement */
+    var sk=Math.max(rq.streak_best||0,rq.streak_current||0);
+    var streakPct=rq.streak_ok?100:Math.min(100,Math.round(sk/rq.streak_needed*100));
+    h+='<div class="p-req '+(rq.streak_ok?"ok":"no")+'">'
+      +'<div class="p-reqt">Requirement 2: '+rq.streak_needed+'-day max-XP streak</div>'
+      +'<div class="p-bar"><i style="width:'+streakPct+'%"></i></div>'
+      +'<div class="p-reqd">'+(rq.streak_ok?'<span class="yes">MET</span> — streak verified.'
+        :'<span class="no">NOT MET</span> — best '+sk+' / '+rq.streak_needed+' days. Hit the '+Number(st.benefits.daily_cap).toLocaleString()+' XP daily cap '+rq.streak_needed+' days straight.')+'</div></div>';
+    /* Benefits */
+    var b=st.benefits;
+    h+='<div class="p-benefits">'
+      +'<div><b>Current:</b> '+Number(b.daily_cap).toLocaleString()+' XP/day cap &middot; bank deposits &times;'+b.bank_deposit_mult+'</div>'
+      +'<div><b>Prestige '+st.next_prestige+' ('+escH(st.next_badge)+'):</b> '+Number(b.daily_cap_next).toLocaleString()+' XP/day cap &middot; bank deposits &times;'+b.bank_deposit_mult_next+'</div>'
+      +'<div>Each prestige resets you to SYMPATHIZER at 0 XP. You keep your streaks, your unlocks, and your name on the wall.</div>'
+      +'</div>';
+    /* Prestige button */
+    if(st.eligible){
+      h+='<button class="p-btn" id="pGo">Prestige &#9733;'+escH(st.next_badge)+'</button>';
+      h+='<div class="p-warn">WARNING: This resets your XP to 0 and your rank to SYMPATHIZER. Your prestige level becomes '+st.next_prestige+'. This cannot be undone.</div>';
+    } else {
+      h+='<button class="p-btn" disabled>Prestige locked</button>';
+    }
+  }
+  el.innerHTML=h;
+  var go=document.getElementById("pGo");
+  if(go) go.onclick=function(){ pConfirm(st); };
+}
+function pConfirm(st){
+  var old=document.getElementById("pf-prestige-modal"); if(old) old.remove();
+  var m=document.createElement("div"); m.id="pf-prestige-modal";
+  m.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;";
+  var box=document.createElement("div");
+  box.style.cssText="background:#0d0d0d;border:4px solid #ff5a00;max-width:440px;width:100%;padding:28px 24px;text-align:center;font-family:Arial,sans-serif;";
+  box.innerHTML='<div style="color:#ff5a00;font-family:\'Arial Black\',Arial,sans-serif;font-size:22px;letter-spacing:3px;margin-bottom:12px;">PRESTIGE &#9733;'+escH(st.next_badge)+'</div>'
+    +'<div style="color:#f5ead6;font-size:14px;line-height:1.6;margin-bottom:8px;">You are about to burn <b>'+Number(st.xp||0).toLocaleString()+' XP</b> and fall from <b>'+escH(st.rank)+'</b> back to <b>SYMPATHIZER</b>.</div>'
+    +'<div style="color:#c9bfa8;font-size:13px;line-height:1.6;margin-bottom:20px;">In return: <b style="color:#ff5a00">'+Number(st.benefits.daily_cap_next).toLocaleString()+' XP/day</b> cap, <b style="color:#ff5a00">&times;'+st.benefits.bank_deposit_mult_next+'</b> bank deposits, and the <b style="color:#ff5a00">&#9733;'+escH(st.next_badge)+'</b> badge next to your name. Forever.</div>'
+    +'<div style="display:flex;gap:12px;justify-content:center;">'
+    +'<button id="pCancel" style="background:#333;color:#f5ead6;border:none;font-family:\'Arial Black\',Arial,sans-serif;font-size:14px;letter-spacing:2px;padding:12px 24px;cursor:pointer;">STAND DOWN</button>'
+    +'<button id="pConfirm" style="background:#ff5a00;color:#0d0d0d;border:none;font-family:\'Arial Black\',Arial,sans-serif;font-size:14px;letter-spacing:2px;padding:12px 24px;cursor:pointer;">BURN IT</button>'
+    +'</div>';
+  m.appendChild(box);
+  m.onclick=function(e){ if(e.target===m) m.remove(); };
+  document.body.appendChild(m);
+  document.getElementById("pCancel").onclick=function(){ m.remove(); };
+  document.getElementById("pConfirm").onclick=function(){
+    var cBtn=document.getElementById("pConfirm");
+    cBtn.disabled=true; cBtn.textContent="BURNING...";
+    pPost(function(j){
+      m.remove();
+      var el=document.getElementById("pBody");
+      if(j&&j.ok){
+        try{ if(window.PF&&PF.toast) PF.toast("PRESTIGE "+j.new_prestige_level+" — reborn at zero. Climb again."); }catch(e){}
+        /* Reset the device-local widget XP too (fresh climb). */
+        try{ var s=load(); s.xp=0; s.got={}; save(s); }catch(e2){}
+        loadPrestige(); render();
+      } else {
+        try{ if(window.PF&&PF.toast) PF.toast("Prestige failed: "+((j&&j.err)||"unknown")); }catch(e){}
+        loadPrestige();
+      }
+    });
+  };
+}
+function loadPrestige(){
+  var el=document.getElementById("pBody"); if(!el) return;
+  pApiGet("prestige_status",function(j){ renderPrestige(j); });
+}
+/* Daily Orders writes the real combo XP into the shared pool itself — just re-render. */
+document.addEventListener("pf-order-checkin",function(){ render(); });
+loadPrestige();
+render();
+syncFromServer();
+wallFromServer(function(j){ if(j&&j.ok&&j.wall) renderWall(j.wall); });
+})();
+</script>
+</div>
+<!-- RANKS-EMBED-END -->
+</template>`);
+})();
+
+;
+
+/* ===== service-medals.js ===== */
+/* games/service-medals.js  |  PF v1.4.1 | Service Medals sticky layer over all homepage games (event-driven)
+   KILL: ?pf_off=service-medals  or  localStorage pf_disabled_v1='["service-medals"]' */
+
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (PF.skip("service-medals")) { return; }
+  try {
+    /* PF SERVICE MEDALS v2 — sticky collection layer over all 12 homepage games.
+       Listens for pf-* CustomEvents. Awards one medal per game per week
+       (America/Chicago, Monday reset). All 14 in a week = FULL DEPLOYMENT:
+       +50 XP via ranks backend (idempotent per week) + callsign etched on the
+       Vanguard Wall. Device-local medal tracking (pf_medals_v2) + backend for XP. */
+    (function(){
+    'use strict';
+    if(window.pfMedalsLoaded)return;window.pfMedalsLoaded=true;
+    var LS='pf_medals_v2',LS_R='pf_ranks_v1',LS_I='pf_identity_v1';
+    var BACKEND_URL='https://pf-api.mtcstw.workers.dev';
+    
+    var MEDALS=[
+     {id:'vote',    glyph:'\u2605', name:'Ballot',          ev:'pf-vote-cast'},
+     {id:'ballot',  glyph:'\u2622', name:'Bracket Ballot',  ev:'pf-bracket-ballot'},
+     {id:'bracket', glyph:'\u2620', name:'Liquidator',      ev:'pf-bracket-liquidated'},
+     {id:'bonds',   glyph:'\u25C6', name:'War Bonds',       ev:'pf-wb-buy'},
+     {id:'caption', glyph:'\u270E', name:'Word Warrior',    ev:'pf-caption-submit'},
+     {id:'poster',  glyph:'\u25C8', name:'Press Pass',      ev:'pf-poster-made'},
+     {id:'quiz',    glyph:'\u25C9', name:'Intel Operative', ev:'pf-quiz-done'},
+     {id:'billionaire', glyph:'\uFF04', name:'Billionaire Spotter', ev:'pf-billionaire-answered'},
+     {id:'interrogation', glyph:'\u2754', name:'Interrogator', ev:'pf-interrogation-answered'},
+     {id:'orders',  glyph:'\u25B2', name:'Field Duty',      ev:'pf-order-checkin'},
+     {id:'drop',    glyph:'\u25CF', name:'Supply Runner',   ev:'pf-drop-claimed'},
+     {id:'enlisted',glyph:'\u2694', name:'Enlisted',        ev:'pf-enlisted'},
+     {id:'guess',   glyph:'\u25CE', name:'Profiler',        ev:'pf-guess-done'},
+     {id:'raid',    glyph:'\u26A1', name:'Raider',           ev:'pf-raid-report'},
+     {id:'infight', glyph:'\uD83E\uDD4A', name:'Brawler',          ev:'pf-infight-fire'}
+    ];
+    function load(){try{var s=JSON.parse(localStorage.getItem(LS)||'null');if(s&&s.w)return s;}catch(e){}return{w:PF.isoWeekKey(PF.chiNow()),m:{},fd:false};}
+    function save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}
+    function callsign(){try{return String(JSON.parse(localStorage.getItem(LS_I)||'{}').callsign||'').toLowerCase();}catch(e){return '';}}
+    /* JSONP GET (same pattern as ranks apiPost — avoids Apps Script POST redirect bug) */
+    function apiGet(params,cb){
+      if(!BACKEND_URL){cb(null);return;}
+      var cbn='pfm'+Date.now()+Math.floor(Math.random()*1e6);
+      window[cbn]=function(d){try{delete window[cbn];}catch(e){}try{scr.parentNode.removeChild(scr);}catch(e){}cb(d);};
+      var q='?callback='+encodeURIComponent(cbn);
+      for(var k in params){if(params.hasOwnProperty(k))q+='&'+encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}
+      var scr=document.createElement('script');scr.src=BACKEND_URL+q;scr.onerror=function(){cb(null);};
+      (document.head||document.documentElement).appendChild(scr);
+      setTimeout(function(){if(window[cbn]){try{delete window[cbn];}catch(e){}cb(null);}},15000);
+    }
+    
+    /* Deploy medal is POST-only (backend auth layer). No type field. */
+    function apiPostDeploy(cs,cb){
+      var backend='';
+      try{ backend=window.PF_BACKEND_URL||BACKEND_URL||''; }catch(e){ backend=BACKEND_URL||''; }
+      if(!backend){ cb(null); return; }
+      var body={action:'deploy',callsign:cs};
+      try{ if(window.PFDeviceId) body.device=window.PFDeviceId()||''; }catch(e){}
+      if(window.PF&&PF.authPost){ PF.authPost(backend,body,cb); return; }
+      /* Fallback: raw POST with secret if available. */
+      try{ var sec=window.PF&&PF.getAuthSecret?PF.getAuthSecret():''; if(sec) body.auth_secret=sec; }catch(e2){}
+      try{
+        fetch(backend,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+          .then(function(r){ return r.json(); })
+          .then(function(j){ cb(j); })
+          .catch(function(){ cb(null); });
+      }catch(e3){ cb(null); }
+    }
+
+    function fullDeployment(s){
+      if(s.fd||s.fd_pending)return;
+      var cs=callsign();
+      if(cs){
+        /* backend: +50 XP (once/week, idempotent) + wall etch; fd=true only on confirmed success */
+        apiPostDeploy(cs,function(j){
+          if(j&&j.ok){s.fd=true;save(s);}
+                    try{document.dispatchEvent(new CustomEvent('pf-do-update'));}catch(e){}
+          renderRack();
+        });
+      }else{
+        /* no callsign yet — bank XP locally, mark pending; backend deploy fires on claim.
+           The pending key is stored so the flush can reverse the local +50
+           exactly-once (the backend grant mirrors back via the ledger). */
+        var pkey='medal_fd_'+s.w;
+        s.fd_pending=pkey;save(s);
+        try{
+          var r=JSON.parse(localStorage.getItem(LS_R)||'{"xp":0,"got":{}}');
+          if(!r.got)r.got={};
+          if(!r.got[pkey]){r.got[pkey]=1;r.xp+=50;localStorage.setItem(LS_R,JSON.stringify(r));}
+        }catch(e){}
+      }
+      renderRack();
+      try{document.dispatchEvent(new CustomEvent('pf-do-update'));}catch(e){}
+    }
+    /* flush a pending Full Deployment once the user claims a callsign.
+       Exactly-once: reverse the local +50 banked earlier, because the backend
+       deploy grant mirrors back via the ledger. Keeping both = +100. */
+    function flushPendingDeploy(cs){
+      var s=load();
+      if(!s.fd_pending||s.fd)return;
+      var pkey=typeof s.fd_pending==='string'?s.fd_pending:('medal_fd_'+s.w);
+      apiPostDeploy(cs,function(j){
+        if(!(j&&j.ok))return; /* keep fd_pending so a later claim retries */
+        var s2=load();
+        s2.fd=true;s2.fd_pending=false;save(s2);
+        try{
+          var r=JSON.parse(localStorage.getItem(LS_R)||'{"xp":0,"got":{}}');
+          if(r.got&&r.got[pkey]){ delete r.got[pkey]; r.xp=Math.max(0,(r.xp||0)-50); localStorage.setItem(LS_R,JSON.stringify(r)); }
+        }catch(e){}
+        try{document.dispatchEvent(new CustomEvent('pf-do-update'));}catch(e){}
+        renderRack();
+      });
+    }
+    document.addEventListener('pf-callsign-claimed',function(e){
+      var cs=e&&e.detail&&e.detail.callsign?String(e.detail.callsign).toLowerCase():'';
+      if(cs)flushPendingDeploy(cs);
+    });
+    var CSS='#pf-medals{margin:18px 0 4px;padding:14px 10px;border:2px dashed #c1121f;background:#141414}'+
+    '#pf-medals .pm-title{font-family:\'Arial Black\',Arial,sans-serif;color:#ff5a00;font-size:14px;letter-spacing:3px;text-transform:uppercase;margin-bottom:10px}'+
+    '#pf-medals .pm-title span{color:#c9bfa8;font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px}'+
+    '#pf-medals .pm-rack{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:10px}'+
+    '#pf-medals .pm-m{width:62px;text-align:center;font-family:Arial,sans-serif}'+
+    '#pf-medals .pm-g{font-size:24px;line-height:1;display:block;margin-bottom:4px}'+
+    '#pf-medals .pm-m.got .pm-g{color:#ff5a00;text-shadow:0 0 8px rgba(255,90,0,.6)}'+
+    '#pf-medals .pm-m.miss .pm-g{color:#3a3a3a}'+
+    '#pf-medals .pm-n{font-size:8px;letter-spacing:1px;text-transform:uppercase;color:#c9bfa8}'+
+    '#pf-medals .pm-m.miss .pm-n{color:#555}'+
+    '#pf-medals .pm-note{font-family:Arial,sans-serif;font-size:11px;color:#c9bfa8;letter-spacing:1px}'+
+    '#pf-medals .pm-note b{color:#ff5a00}'+
+    '#pf-medals .pm-fd{font-family:\'Arial Black\',Arial,sans-serif;color:#f5ead6;background:#c1121f;display:inline-block;padding:6px 14px;margin-top:8px;font-size:13px;letter-spacing:2px}';
+    function ensureCss(){
+      if(document.getElementById('pf-medals-css'))return;
+      var st=document.createElement('style');st.id='pf-medals-css';st.textContent=CSS;
+      (document.head||document.documentElement).appendChild(st);
+    }
+    
+    function renderRack(){
+      ensureCss();
+      var host=document.getElementById('pf-ranks');if(!host)return false;
+      var s=load(),wk=PF.isoWeekKey(PF.chiNow());
+      if(s.w!==wk){s={w:wk,m:{},fd:false};save(s);}
+      var el=document.getElementById('pf-medals');
+      if(!el){
+        el=document.createElement('div');el.id='pf-medals';
+        var anchor=document.getElementById('rNext');
+        if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(el,anchor.nextSibling);
+        else host.appendChild(el);
+      }
+      var h='<div class=\"pm-title\">\u2694 Service Medals <span>\u2014 this week</span></div><div class=\"pm-rack\">';
+      var got=0;
+      MEDALS.forEach(function(md){
+        var has=!!s.m[md.id];if(has)got++;
+        h+='<div class=\"pm-m '+(has?'got':'miss')+'\"><span class=\"pm-g\">'+md.glyph+'</span><span class=\"pm-n\">'+md.name+'</span></div>';
+      });
+      h+='</div>';
+      if(s.fd){
+        h+='<div class=\"pm-fd\">\u2605 FULL DEPLOYMENT \u2605</div><div class=\"pm-note\">All 14 earned. <b>+50 XP</b> banked, name on the wall. See you Monday.</div>';
+      }else{
+        h+='<div class=\"pm-note\">Earn all <b>14</b> this week for <b>FULL DEPLOYMENT</b>: +50 XP + your callsign on the Vanguard Wall. <b>'+got+'/14</b> so far.</div>';
+      }
+      el.innerHTML=h;
+      return true;
+    }
+    function checkFull(s){
+      if(s.fd||s.fd_pending)return;
+      for(var i=0;i<MEDALS.length;i++){if(!s.m[MEDALS[i].id])return;}
+      fullDeployment(s);
+    }
+    
+    MEDALS.forEach(function(md){
+      document.addEventListener(md.ev,function(){
+        var s=load(),wk=PF.isoWeekKey(PF.chiNow());
+        if(s.w!==wk){s={w:wk,m:{},fd:false};}
+        if(!s.m[md.id]){s.m[md.id]=1;save(s);}
+        checkFull(s);
+        renderRack();
+      });
+    });
+    
+    /* if the user enlists mid-week, award the Enlisted medal retroactively */
+    document.addEventListener('pf-enlisted',function(){
+      var s=load(),wk=PF.isoWeekKey(PF.chiNow());
+      if(s.w!==wk){s={w:wk,m:{},fd:false};}
+      /* already handled by the MEDALS loop above; this is a no-op safeguard */
+    });
+    
+    /* mount the rack once the ranks widget exists */
+    var tries=0;
+    function mount(){
+      if(renderRack())return;
+      if(++tries<20)setTimeout(mount,1000);
+    }
+    if(document.readyState==='complete'||document.readyState==='interactive')mount();
+    else document.addEventListener('DOMContentLoaded',mount);
+    })();
+  } catch (err) { PF.error("service-medals", err); }
+})();
+
+;
+
+/* ===== political-hq-nudge.js ===== */
+/* games/political-hq-nudge.js  |  PF v1.4.3 | Front-door nudge to Political HQ.
+   A punchy CTA card on the homepage driving traffic to /political-hq.
+   KILL: ?pf_off=hq-nudge  or  localStorage pf_disabled_v1='["hq-nudge"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (PF.skip("hq-nudge")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-hq-nudge">
+<div class="fe-block pf-override-block pf-silo" id="pf-hq-nudge">
+<div class="pf-hq-nudge-card" style="background:linear-gradient(135deg,#0a0a0a 0%,#1a0505 100%);border:2px solid #c1121f;padding:28px 24px;text-align:center;margin:16px 0;">
+<div style="font-size:13px;letter-spacing:3px;color:#c1121f;font-weight:800;margin-bottom:8px;">NEW BATTLEGROUND</div>
+<h2 style="color:#f5ead6;font-size:28px;margin:0 0 12px 0;letter-spacing:1px;">POLITICAL HQ</h2>
+<p style="color:#ccc;font-size:15px;max-width:520px;margin:0 auto 20px auto;line-height:1.5;">Petitions. Rep contact. Voter registration. The People's Assembly. Wage civic warfare off the timeline.</p>
+<a href="/political-hq" class="pf-btn" style="display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:16px;padding:14px 36px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;">ENTER THE HQ →</a>
+</div>
+</div>
+</template>`);
+})();
+
+;
+
+/* ===== social-proof.js ===== */
+/* games/social-proof.js  |  PF v1.4.3 | Live social proof ticker.
+   Slim bar near the top of the homepage showing the network is alive:
+   "127 soldiers checked in today". Refreshes every 5 min. Session-dismissible.
+   KILL: ?pf_off=social-proof  or  localStorage pf_disabled_v1='["social-proof"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (PF.skip("social-proof")) { return; }
+  try {
+    if (sessionStorage.getItem('pf_sp_dismissed') === '1') return;
+  } catch (e) {}
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-socialproof">
+<div class="fe-block pf-override-block pf-silo" id="pf-socialproof">
+<style>
+#pf-sp-bar{display:flex;align-items:center;gap:14px;background:#0a0a0a;border-left:4px solid #c1121f;padding:10px 14px;font-family:Arial,sans-serif;font-size:13px;color:#f5ead6;flex-wrap:wrap}
+#pf-sp-bar .sp-stat{white-space:nowrap}
+#pf-sp-bar .sp-stat b{color:#c1121f;font-size:15px}
+#pf-sp-bar .sp-live{display:inline-block;width:8px;height:8px;border-radius:50%;background:#4caf50;animation:spPulse 2s infinite}
+@keyframes spPulse{0%,100%{opacity:1}50%{opacity:.35}}
+#pf-sp-x{margin-left:auto;background:none;border:1px solid #555;color:#888;cursor:pointer;font-size:14px;line-height:1;padding:4px 8px}
+#pf-sp-x:hover{color:#fff;border-color:#c1121f}
+@media(max-width:520px){#pf-sp-bar{font-size:12px;gap:10px}}
+@media(prefers-reduced-motion:reduce){#pf-sp-bar .sp-live{animation:none}}
+</style>
+<div id="pf-sp-bar" role="status" aria-live="polite">
+<span class="sp-live" aria-hidden="true"></span>
+<span class="sp-stat" id="pf-sp-checkins">Loading network pulse&hellip;</span>
+<span class="sp-stat" id="pf-sp-xp" style="display:none"></span>
+<span class="sp-stat" id="pf-sp-cells" style="display:none"></span>
+<span class="sp-stat" id="pf-sp-online" style="display:none"></span>
+<button id="pf-sp-x" aria-label="Dismiss">&times;</button>
+</div>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+function $(id){ return document.getElementById(id); }
+function fmt(n){ n=Math.round(Number(n)||0); return n>=1000?(n/1000).toFixed(1).replace(/\.0$/,'')+'K':String(n); }
+function api(cb){
+  if(!BACKEND){ cb(null); return; }
+  var fn="pfSpCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  s.src=BACKEND+"?action=social_proof&callback="+fn; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },10000);
+}
+function paint(j){
+  if(!j||!j.ok) return;
+  var bar=$("pf-sp-bar"); if(!bar) return;
+  var ci=$("pf-sp-checkins"), xp=$("pf-sp-xp"), cells=$("pf-sp-cells"), on=$("pf-sp-online");
+  var n=Number(j.checkins_today)||0;
+  ci.innerHTML="<b>"+fmt(n)+"</b> soldier"+(n===1?"":"s")+" checked in today";
+  if(j.xp_earned_today>0){ xp.style.display=""; xp.innerHTML="\u26A1 <b>"+fmt(j.xp_earned_today)+"</b> XP earned"; }
+  if(j.active_cells>0){ cells.style.display=""; cells.innerHTML="\uD83C\uDFE0 <b>"+fmt(j.active_cells)+"</b> active cells"; }
+  if(j.online_now>0){ on.style.display=""; on.innerHTML="<b>"+fmt(j.online_now)+"</b> online now"; }
+}
+function tick(){ api(paint); }
+var x=$("pf-sp-x");
+if(x) x.onclick=function(){
+  try{ sessionStorage.setItem('pf_sp_dismissed','1'); }catch(e){}
+  var bar=$("pf-sp-bar"); if(bar) bar.style.display="none";
+};
+tick();
+setInterval(tick, 300000);
+})();
+</scr`+`ipt>
+</div>
+</template>`);
+})();
+
+;

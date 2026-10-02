@@ -179,6 +179,11 @@ function renderLobby(el){
     '<br><button class="c-btn" id="cJoin">Join cell</button>'+
     '<div class="c-err" id="cJoinErr"></div></div>'+
     '</div>'+
+    '<div class="c-pane"><h4>Find a cell</h4>'+
+    '<input id="cSearch" maxlength="32" placeholder="NAME OR STATE" autocomplete="off">'+
+    ' <button class="c-btn" id="cSearchBtn">Search</button>'+
+    '<div class="c-err" id="cSearchErr"></div>'+
+    '<div id="cSearchRes"></div></div>'+
     '<div class="c-bounty">Share your cell code: <b>+25 XP</b> every time your recruit checks in.</div>';
   document.getElementById("cCreate").onclick=function(){
     var nm=document.getElementById("cName").value, id=ident(), err=document.getElementById("cCreateErr");
@@ -199,13 +204,52 @@ function renderLobby(el){
       refresh();
     });
   };
+  /* FIND A CELL: search by name/state, join from results. */
+  var sb=document.getElementById("cSearchBtn");
+  if(sb) sb.onclick=function(){
+    var q=document.getElementById("cSearch").value,
+        id=ident(), err=document.getElementById("cSearchErr"),
+        res=document.getElementById("cSearchRes");
+    err.textContent=""; res.innerHTML='<div class="c-load">Searching&hellip;</div>';
+    api("cell_search",{q:q},function(j){
+      if(!j||!j.ok){ err.textContent=(j&&j.err)||"Network error."; res.innerHTML=""; return; }
+      var list=j.cells||[];
+      if(!list.length){ res.innerHTML='<div class="x-note">No cells match. Found the first one above.</div>'; return; }
+      var h="";
+      for(var i=0;i<Math.min(list.length,10);i++){
+        var cc=list[i]||{};
+        h+='<div class="cp-lead"><span class="cp-lname">'+esc(cc.name)+'</span> '
+          +'<span class="cp-lxp">'+(Number(cc.members)||0)+'/5'
+          +(cc.verified?' \u2713':'')+'</span> '
+          +'<button class="c-btn c-sm" data-code="'+esc(cc.invite_code||"")+'">JOIN</button></div>';
+      }
+      res.innerHTML=h;
+      var btns=res.querySelectorAll("button[data-code]");
+      for(var b=0;b<btns.length;b++)(function(btn){
+        btn.onclick=function(){
+          var code=btn.getAttribute("data-code"), id2=ident();
+          err.textContent="";
+          api("cell_join",{callsign:id2.callsign,device:id2.device,code:code},function(j2){
+            if(!j2||!j2.ok){ err.textContent=(j2&&j2.err)||"Network error."; return; }
+            toast("Welcome to "+j2.cell.name+". Check in daily.");
+            refresh();
+          });
+        };
+      })(btns[b]);
+    });
+  };
 }
 function renderCell(el,s){
   var c=s.cell, pct=Math.round((c.mult-1)*100);
   var mems=(s.members||[]).map(function(m){
+    var role=String(m.role||"member").toUpperCase();
+    var badge=role==="FOUNDER"?'<span class="c-role c-rfounder">FOUNDER</span>'
+      :role==="OFFICER"?'<span class="c-role c-rofficer">OFFICER</span>':"";
+    var prom=(s.is_founder&&role!=="FOUNDER"&&role!=="OFFICER")
+      ?' <button class="c-btn c-sm c-prom" data-cs="'+esc(m.callsign)+'">PROMOTE</button>':"";
     return '<div class="c-mrow"><span class="c-dot'+(m.checked_today?" c-on":"")+'"></span>'+
-      '<span class="c-mname">'+esc(m.callsign)+'</span>'+
-      (m.checked_today?'<span class="c-mok">IN</span>':'<span class="c-mno">OUT</span>')+'</div>';
+      '<span class="c-mname">'+esc(m.callsign)+'</span>'+badge+
+      (m.checked_today?'<span class="c-mok">IN</span>':'<span class="c-mno">OUT</span>')+prom+'</div>';
   }).join("");
   /* CHAINLINK bar: every cell this callsign wires, the cap, the network stat. */
   var myCells=s.cells||[], linkBar='';
@@ -247,9 +291,35 @@ function renderCell(el,s){
   if(s.cover_for){
     html+='<button class="c-btn c-cover" id="cCover">Cover '+esc(s.cover_for)+' &mdash; save the streak</button>';
   }
+  html+='<div class="c-health" id="cHealth"><div class="c-load">Reading cell health&hellip;</div></div>';
   html+='<div class="c-leave"><a id="cLeave">Leave cell</a></div><div class="c-err" id="cActErr"></div></div>';
   el.innerHTML=html;
   var id=ident(), errEl=document.getElementById("cActErr");
+  /* Cell health: members, 7d checkins, 30d recruits. */
+  (function(){
+    var hel=document.getElementById("cHealth"); if(!hel) return;
+    api("cell_health",{cell_id:c.id},function(j){
+      if(!j||!j.ok){ hel.innerHTML=""; return; }
+      var mem=Number(j.members)||0, ci=Number(j.checkins_7d)||0, rc=Number(j.recruits_30d)||0;
+      var score=Math.min(100,Math.round(mem*8+ci*2+rc*5));
+      hel.innerHTML='<div class="c-hhead">CELL HEALTH</div>'
+        +'<div class="c-hbar"><div class="c-hfill" style="width:'+score+'%"></div></div>'
+        +'<div class="x-note">'+mem+'/5 members &bull; '+ci+' check-ins (7d) &bull; '+rc+' recruits (30d)</div>';
+    });
+  })();
+  /* Promote buttons (founder only). */
+  var prs=el.querySelectorAll(".c-prom");
+  for(var pi=0;pi<prs.length;pi++)(function(btn){
+    btn.onclick=function(){
+      var tgt=btn.getAttribute("data-cs"), id2=ident();
+      errEl.textContent="";
+      api("cell_promote",{callsign:id2.callsign,device:id2.device,cell_id:c.id,target:tgt},function(j){
+        if(!j||!j.ok){ errEl.textContent=(j&&j.err)||"Network error."; return; }
+        toast(tgt+" promoted to OFFICER.");
+        refresh();
+      });
+    };
+  })(prs[pi]);
   var rn=document.getElementById("cRenameBtn");
   if(rn) rn.onclick=function(){
     var nm=document.getElementById("cRename").value;
@@ -293,6 +363,53 @@ function renderCell(el,s){
     });
   };
   /* CHAINLINK wiring: per-cell leave + wire-another join + network stat. */
+  /* CELL CHALLENGES: active challenges, join for your cell, leaderboard. */
+  (function(){
+    var host=document.createElement("div");
+    host.className="c-chalwrap"; host.id="cChal";
+    host.innerHTML='<h3>Cell challenges</h3><div class="c-load">Loading challenges&hellip;</div>';
+    el.appendChild(host);
+    api("challenge_list",{},function(j){
+      if(!j||!j.ok||!(j.challenges&&j.challenges.length)){
+        host.innerHTML='<h3>Cell challenges</h3><div class="x-note">No active challenges. The war council will announce the next one.</div>';
+        return;
+      }
+      var h='<h3>Cell challenges</h3>';
+      for(var i=0;i<j.challenges.length;i++){
+        var ch=j.challenges[i]||{};
+        h+='<div class="x-pane"><h4>'+esc(ch.title)+'</h4>'
+          +'<div class="x-note">'+esc(ch.detail||"")+'</div>'
+          +'<div class="x-note">Ends: '+esc(ch.ends||"soon")+'</div>'
+          +'<button class="c-btn c-chjoin" data-ch="'+esc(ch.id)+'">ENTER MY CELL</button>'
+          +'<div class="c-err" id="cChErr-'+esc(ch.id)+'"></div></div>';
+      }
+      h+='<div id="cChBoard"><div class="c-load">Loading standings&hellip;</div></div>';
+      host.innerHTML=h;
+      var jbs=host.querySelectorAll(".c-chjoin");
+      for(var b=0;b<jbs.length;b++)(function(btn){
+        btn.onclick=function(){
+          var chid=btn.getAttribute("data-ch"), id2=ident();
+          var ee=document.getElementById("cChErr-"+chid); if(ee) ee.textContent="";
+          api("challenge_join",{callsign:id2.callsign,device:id2.device,cell_id:c.id,challenge_id:chid},function(r){
+            if(!r||!r.ok){ if(ee) ee.textContent=(r&&r.err)||"Network error."; return; }
+            toast("Cell entered. Fight for the top.");
+          });
+        };
+      })(jbs[b]);
+      api("challenge_board",{},function(b2){
+        var bh=document.getElementById("cChBoard"); if(!bh) return;
+        var rows=(b2&&b2.board)||[];
+        if(!rows.length){ bh.innerHTML='<div class="x-note">No standings yet.</div>'; return; }
+        var hh="";
+        for(var q=0;q<Math.min(rows.length,10);q++){
+          hh+='<div class="cp-lead"><span class="cp-lrank">'+(q+1)+'.</span> '
+            +'<span class="cp-lname">'+esc(rows[q].cell||rows[q].cell_name)+'</span> '
+            +'<span class="cp-lxp">'+(Number(rows[q].score)||0)+' pts</span></div>';
+        }
+        bh.innerHTML=hh;
+      });
+    });
+  })();
   var lleaves=document.querySelectorAll(".c-lleave");
   for(var li2=0;li2<lleaves.length;li2++)(function(a){
     a.onclick=function(){

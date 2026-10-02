@@ -4,7 +4,8 @@
    silo's internals. On load, captures ?ref= from the URL into localStorage
    pf_pending_ref so the enlistment claim flow can attribute the recruit.
    Framing: class warfare — every recruit is a soldier, build your army.
-   Backend actions (to be implemented): referral_status (GET), referral_leaders (GET).
+   Backend actions: referral_status (GET), referral_leaders (GET), referral_tree (GET),
+   mentor_status (GET). Chainlink optimizations: army tree, mentor panel, share-my-code card.
    KILL: ?pf_off=referral  or  localStorage pf_disabled_v1='["referral"]' */
 (function () {
   'use strict';
@@ -59,16 +60,36 @@ function captureRef(){
     }
   }catch(e3){}
 }
-var S=null, L=null;
+var S=null, L=null, T=null, M=null;
 function load(){
   var id=ident(), done=false, n=0;
   function fin(){ if(done)return; done=true; render(); }
-  function one(){ n++; if(n>=2) fin(); }
+  function one(){ n++; if(n>=4) fin(); }
   setTimeout(fin,15000);
   api("referral_status",{callsign:id.callsign,device:id.device},function(j){ S=j; one(); });
   api("referral_leaders",{},function(j){ L=j; one(); });
+  api("referral_tree",{callsign:id.callsign},function(j){ T=j; one(); });
+  api("mentor_status",{callsign:id.callsign,device:id.device},function(j){ M=j; one(); });
 }
 function refLink(cs){ return "https://www.mtcstw.com/?ref="+encodeURIComponent(cs||""); }
+/* Army tree: nested, collapsible, max 3 levels deep. */
+function treeHtml(nodes,depth){
+  if(!nodes||!nodes.length||depth>2) return "";
+  var h='<ul class="rf-tree rf-depth'+depth+'">';
+  for(var i=0;i<nodes.length;i++){
+    var nd=nodes[i]||{}, t=tierFor(nd.recruits);
+    var kids=(nd.children&&nd.children.length)?' <span class="rf-tkids">'+nd.children.length+' under command</span>':"";
+    h+='<li><span class="rf-tnode">'
+      +'<span class="rf-tog">'+(nd.children&&nd.children.length?"[+]":"&bull;")+'</span> '
+      +'<span class="rf-tname">'+esc(nd.callsign)+'</span> '
+      +'<span class="rf-ltier '+t.cls+'">'+esc(t.name)+'</span>'+kids+'</span>';
+    if(nd.children&&nd.children.length){
+      h+='<div class="rf-tkidsbox" style="display:none">'+treeHtml(nd.children,depth+1)+'</div>';
+    }
+    h+='</li>';
+  }
+  return h+'</ul>';
+}
 function render(){
   var el=document.getElementById("xReferral"); if(!el) return;
   var id=ident(), h="";
@@ -86,7 +107,8 @@ function render(){
     +'<div class="rf-code">'+esc(id.callsign.toUpperCase())+'</div>'
     +'<div class="rf-link">'+esc(refLink(id.callsign))+'</div>'
     +'<div style="margin-top:8px"><button class="c-btn" id="rfCopy">COPY LINK</button> '
-    +'<button class="c-btn" id="rfShare">SHARE</button></div>'
+    +'<button class="c-btn" id="rfShare">SHARE</button> '
+    +'<button class="c-btn" id="rfCard">SHARE MY CODE</button></div>'
     +'<div class="c-err" id="rfCopyErr"></div></div>';
   /* --- my stats --- */
   h+='<div class="x-pane"><h4>Your army</h4>'
@@ -103,6 +125,28 @@ function render(){
     h+='<div class="rf-wall">';
     for(var r=0;r<Math.min(myList.length,50);r++){ h+='<span class="rf-wname">'+esc(myList[r].callsign||myList[r])+'</span>'; }
     h+='</div>';
+  }
+  h+='</div>';
+  /* --- army tree --- */
+  h+='<div class="x-pane"><h4>My army tree</h4>';
+  var tree=[]; try{ tree=(T&&T.tree)||[]; }catch(e3){}
+  if(!tree.length){ h+='<div class="x-note">Your tree grows as your recruits recruit. Depth wins wars.</div>'; }
+  else{ h+=treeHtml(tree,0); }
+  h+='</div>';
+  /* --- mentor --- */
+  h+='<div class="x-pane"><h4>Mentor</h4>';
+  var mm=M||{};
+  if(mm.mentor){
+    h+='<div class="x-note">Your mentor: <b>'+esc(mm.mentor)+'</b> — learn the ropes, then take command.</div>';
+  } else if(mm.mentees&&mm.mentees.length){
+    h+='<div class="x-note">You mentor '+mm.mentees.length+' soldier(s). Their progress is your legacy.</div>';
+    for(var mi=0;mi<Math.min(mm.mentees.length,20);mi++){
+      var me=mm.mentees[mi]||{};
+      h+='<div class="cp-lead"><span class="cp-lname">'+esc(me.callsign)+'</span> '
+        +'<span class="cp-lxp">'+(Number(me.actions)||0)+' actions</span></div>';
+    }
+  } else {
+    h+='<div class="x-note">No mentor assigned yet. Recruit, rise, and the network will match you.</div>';
   }
   h+='</div>';
   /* --- leaderboard --- */
@@ -150,7 +194,51 @@ function render(){
     }catch(e){ toast("Copy your link and spread it everywhere."); }
   };
   var rb=document.getElementById("rfRetry");
-  if(rb) rb.onclick=function(){ S=L=null; el.innerHTML='<div class="c-load">Mustering&hellip;</div>'; load(); };
+  if(rb) rb.onclick=function(){ S=L=T=M=null; el.innerHTML='<div class="c-load">Mustering&hellip;</div>'; load(); };
+  /* tree toggles */
+  try{
+    var tnodes=el.querySelectorAll(".rf-tnode");
+    for(var tn=0;tn<tnodes.length;tn++)(function(nd){
+      nd.onclick=function(){
+        var box=nd.parentNode.querySelector(".rf-tkidsbox");
+        if(!box) return;
+        var open=box.style.display!=="none";
+        box.style.display=open?"none":"";
+        var tg=nd.querySelector(".rf-tog");
+        if(tg) tg.textContent=open?"[+]":"[-]";
+      };
+    })(tnodes[tn]);
+  }catch(e){}
+  /* share-my-code card */
+  var rc=document.getElementById("rfCard");
+  if(rc) rc.onclick=function(){
+    try{
+      if(!window.PFShare||!PFShare.shareImage){ toast("Share engine loading — try again in a moment."); return; }
+      var cs=id.callsign.toUpperCase(), link=refLink(id.callsign);
+      var W=1080,H=1350,cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+      var x=cv.getContext("2d"); if(!x){ toast("Canvas unavailable."); return; }
+      x.fillStyle="#0d0d0d"; x.fillRect(0,0,W,H);
+      x.strokeStyle="#c1121f"; x.lineWidth=18; x.strokeRect(16,16,W-32,H-32);
+      x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(52,52,W-104,H-104);
+      x.textAlign="center";
+      x.fillStyle="#f5ead6"; x.font="700 40px Arial,sans-serif";
+      x.fillText("\u2605 REFERRAL WAR \u2605",W/2,170);
+      x.fillStyle="#c1121f"; x.font="900 92px \"Arial Black\",Arial,sans-serif";
+      x.fillText("JOIN THE FIGHT.",W/2,330);
+      x.fillStyle="#f5ead6"; x.font="700 44px Arial,sans-serif";
+      x.fillText("Claim your callsign with my code:",W/2,470);
+      x.fillStyle="#c1121f"; x.font="900 120px \"Arial Black\",Arial,sans-serif";
+      x.fillText(cs,W/2,660);
+      x.fillStyle="#c9bfa8"; x.font="400 38px Arial,sans-serif";
+      x.fillText(link,W/2,780);
+      x.fillStyle="#f5ead6"; x.font="700 40px Arial,sans-serif";
+      x.fillText("We both get XP. You join my army.",W/2,920);
+      x.fillStyle="#c1121f"; x.font="900 64px \"Arial Black\",Arial,sans-serif";
+      x.fillText("MTCSTW.COM",W/2,H-140);
+      try{ cv._pfStamped=true; }catch(e2){}
+      PFShare.shareImage(cv,"referral-"+cs.toLowerCase()+".png","Referral War","referral");
+    }catch(e3){ toast("Card failed — copy your link instead."); }
+  };
 }
 captureRef();
 load();

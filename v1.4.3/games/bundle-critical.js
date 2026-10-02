@@ -2636,6 +2636,8 @@ function render(){
   document.getElementById("rBadge").textContent=tier[0];
   var who=""; try{ var id=JSON.parse(localStorage.getItem(LS_I)||"{}"); if(id.callsign) who="Fighting as "+id.callsign.toUpperCase(); }catch(e){}
   document.getElementById("rWho").innerHTML=who+(idx>=2&&who?' <span class="gold">&#9733;</span>':"");
+  /* Armory: apply equipped frame + flair to the callsign display. */
+  try{ if(window.PF&&PF.armoryStyle) PF.armoryStyle(document.getElementById("rWho")); }catch(e){}
   document.getElementById("rXp").textContent=s.xp+" XP";
   var next=TIERS[idx+1];
   if(next){

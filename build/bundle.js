@@ -72,7 +72,8 @@ var BUNDLES = {
     'governance.js',
     'diplomacy.js',
     'efficiency.js',
-    'war-card.js'
+    'war-card.js',
+    'armory.js'
   ],
   'bundle-economy': [
     /* Money systems. Lazy-loaded on scroll. */

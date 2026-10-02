@@ -874,8 +874,15 @@
       api('cell_contribute', withIdent({cell_id: wcid2, xp: wamt}), function(j){
         busy(false);
         if (j && j.ok){
-          /* Backend debited via xpGrant; mirror to local ledger for instant HUD. */
-          try{ document.dispatchEvent(new CustomEvent('pf-xp',{detail:{gain:-wamt,key:'warchest_spend_'+Date.now(),reason:'war chest contribution',nolx:1}})); }catch(e){}
+          /* Backend already debited via xpGrant in cell_contribute.
+             Update local ledger directly (no pf-xp dispatch — that would
+             mirror to backend and double-debit). */
+          try{
+            var rk = JSON.parse(localStorage.getItem('pf_ranks_v1')||'{"xp":0,"got":{}}');
+            rk.xp = Math.max(0, (Number(rk.xp)||0) - wamt);
+            rk.got['warchest_'+Date.now()] = 1;
+            localStorage.setItem('pf_ranks_v1', JSON.stringify(rk));
+          }catch(e){}
           var msg = 'War chest +'+wamt+' XP. Total: '+(j.total||0)+'/'+(j.goal||1000)+'.';
           if (j.milestone_unlocked) msg += ' GOAL HIT — +5 XP checkin boost active 24h!';
           toast(msg);

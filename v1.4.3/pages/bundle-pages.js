@@ -167,6 +167,9 @@
     'irl': [['Log it for XP \u2192', 'daily-orders'], ['Report back \u2192', 'feed']],
     'intel': [['Act on it \u2192', 'alerts'], ['Brief your cell \u2192', 'cells']],
     'archive': [['Remix one \u2192', 'poster-forge'], ['Nuke a classic \u2192', 'media-nuke']],
+    'civic': [['Take it to the streets \u2192', 'irl'], ['Get the alert \u2192', 'alerts']],
+    'governance': [['Bring it to your cell \u2192', 'cells'], ['Fund the decision \u2192', 'ventures']],
+    'ventures': [['Check your balance \u2192', 'peoplesbank'], ['Back the movement \u2192', 'movement']],
     'fan-vote': [['See live activity \u2192', 'socialproof'], ['Back your pick in battle \u2192', 'infighting']]
   };
 

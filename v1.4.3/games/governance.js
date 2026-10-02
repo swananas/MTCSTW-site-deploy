@@ -7,7 +7,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (!PF || PF.skip("gov")) { return; }
+  if (!PF || PF.skip("governance")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-gov">
 <div class="fe-block pf-override-block pf-silo" id="pf-gov">
 <h2>The People&rsquo;s Assembly</h2>

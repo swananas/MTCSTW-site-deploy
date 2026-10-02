@@ -173,6 +173,8 @@ function get(action,params,cb){
   window[fn]=function(j){finish(j);};
   var q='?action='+encodeURIComponent(action);
   for(var k in params){if(params[k]!=null&&params[k]!=='')q+='&'+encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}
+  /* Attach auth_secret for authenticated GETs (cosmetic_list IDOR fix) */
+  try{ var sec=(window.PF&&PF.getAuthSecret?PF.getAuthSecret():''); if(sec) q+='&auth_secret='+encodeURIComponent(sec); }catch(e){}
   var s=document.createElement('script');s.id=fn;s.src=BACKEND+q+'&callback='+fn;
   s.onerror=function(){finish(null);};document.head.appendChild(s);
   setTimeout(function(){finish(null);},12000);

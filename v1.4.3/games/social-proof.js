@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("social-proof")) { return; }
+  if (PF.skip("socialproof")) { return; }
   try {
     if (sessionStorage.getItem('pf_sp_dismissed') === '1') return;
   } catch (e) {}

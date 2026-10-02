@@ -78,7 +78,7 @@ var DROPS=[
   {t:"ORDER",h:"Put your politics in the group chat.",b:"One message. \\u2018Did you know CEOs make 290x what we do?\\u2019 Then watch."},
 {t:"TRUTH",h:"\\u2018There is no alternative\\u2019 is the most successful propaganda ever made.",b:"There are always alternatives. They just don't profit the people saying that."},
 {t:"ORDER",h:"Support one striking worker this week.",b:"Walk a picket line, contribute to a strike fund, or just bring coffee. Show up."},
-{t:"TRUTH",h:"The network is the message.",b:"41 creators. 5 million reach. One machine. You're already inside it \\u2014 act like it."},
+{t:"TRUTH",h:"The network is the message.",b:"{N} creators. 5 million reach. One machine. You're already inside it \\u2014 act like it."},
 {t:"ORDER",h:"Bring one friend into the ranks.",b:"Send them this page. The machine grows one recruit at a time."}
 ];
 
@@ -115,7 +115,11 @@ if(s.last!==tk){
 document.getElementById("dDay").textContent="Day "+n+" of the offensive";
 document.getElementById("dTag").textContent=drop.t;
 document.getElementById("dHead").textContent=drop.h;
-document.getElementById("dBody").textContent=drop.b;
+/* Dynamic network size: {N} pulls the live roster count from the database. */
+var _nc=62;
+try{ if(window.PF&&PF.slrAll){ var _a=PF.slrAll(); if(_a&&_a.length) _nc=_a.length; }
+else if(window.PF&&PF.ROSTER&&PF.ROSTER.length){ _nc=PF.ROSTER.length; } }catch(_e){}
+document.getElementById("dBody").textContent=String(drop.b).replace("{N}",_nc);
 document.getElementById("dStreak").textContent="Your streak: "+s.streak+(s.streak===1?" day":" days")+" \\u2014 come back tomorrow to keep it alive";
 
 document.getElementById("dShare").onclick=function(){
@@ -126,9 +130,12 @@ document.getElementById("dShare").onclick=function(){
 document.getElementById("dArchBtn").onclick=function(){
   var arch=document.getElementById("dArch");
   if(arch.classList.contains("open")){ arch.classList.remove("open"); return; }
+  var _nc2=62;
+  try{ if(window.PF&&PF.slrAll){ var _a2=PF.slrAll(); if(_a2&&_a2.length) _nc2=_a2.length; }
+  else if(window.PF&&PF.ROSTER&&PF.ROSTER.length){ _nc2=PF.ROSTER.length; } }catch(_e2){}
   var h="";
   for(var i=1;i<=7;i++){ var dn=n-i; if(dn<1) break; var d=dropFor(dn);
-    h+='<div class="d-aitem"><div class="d-aday">Day '+dn+' \\u00B7 '+d.t+'</div><div class="d-ahead">'+d.h+'</div><div class="d-abody">'+d.b+'</div></div>';
+    h+='<div class="d-aitem"><div class="d-aday">Day '+dn+' \\u00B7 '+d.t+'</div><div class="d-ahead">'+d.h+'</div><div class="d-abody">'+String(d.b).replace("{N}",_nc2)+'</div></div>';
   }
   arch.innerHTML=h||'<div class="d-aitem"><div class="d-abody">The offensive just began. Check back tomorrow.</div></div>';
   arch.classList.add("open");

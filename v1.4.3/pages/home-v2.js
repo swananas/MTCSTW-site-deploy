@@ -41,6 +41,7 @@
     ['irl', 'pf-ov-irl'],
     ['intel', 'pf-ov-intel'],
     ['cells', 'pf-ov-cells'],
+    ['cell-war', 'pf-ov-cellwar'],
     ['contracts', 'pf-ov-contracts'],
     ['fan-vote', 'pf-ov-vote'],
     ['infighting', 'pf-ov-infight'],

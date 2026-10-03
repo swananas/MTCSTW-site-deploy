@@ -21,17 +21,17 @@ var EV2GAME={
   'pf-contract-claimed':'contracts'
 };
 var MISSIONS=[
-  {key:'orders',  label:'Daily Orders',    blurb:'Report in. 30 seconds.',        anchor:'#pf-orders'},
-  {key:'vote',    label:'Fan Vote',        blurb:'Crown this week\u2019s propagandist.', anchor:'#pf-vote'},
-  {key:'quiz',    label:'SLR Match Quiz',  blurb:'Find your fighter archetype.',  anchor:'#pf-matchquiz'},
-  {key:'guess',   label:'Guess the Creator', blurb:'Name that propagandist.',     anchor:'#pf-guess'},
-  {key:'bracket', label:'Liquidation Bracket', blurb:'Pick the bracket. Win glory.', anchor:'#pf-bracket'},
-  {key:'raid',    label:'Boost Raid',      blurb:'Storm a target together.',     anchor:'#pf-raid'},
-  {key:'dometer', label:'Do Meter',        blurb:'Log a task. Fuel the meter.',   anchor:'#pf-dometer2'},
-  {key:'forge',   label:'Poster Forge',    blurb:'Mint a propaganda poster.',    anchor:'#pf-poster'},
-  {key:'caption', label:'Caption Combat',  blurb:'Write the winning caption.',   anchor:'#pf-caption'},
-  {key:'drop',    label:'Daily Drop',      blurb:'Claim today\u2019s drop.',       anchor:'#pf-drop'},
-  {key:'contracts', label:'Mercenary Contracts', blurb:'Take a contract. Get paid.', anchor:'#pf-contracts'}
+  {key:'orders',  label:'Daily Orders',    blurb:'Report in. 30 seconds.',        anchor:'#pf-orders',  page:'/'},
+  {key:'vote',    label:'Fan Vote',        blurb:'Crown this week\u2019s propagandist.', anchor:'#pf-vote',    page:'/'},
+  {key:'quiz',    label:'SLR Match Quiz',  blurb:'Find your fighter archetype.',  anchor:'#pf-matchquiz', page:'/'},
+  {key:'guess',   label:'Guess the Creator', blurb:'Name that propagandist.',     anchor:'#pf-guess',    page:'/arcade'},
+  {key:'bracket', label:'Liquidation Bracket', blurb:'Pick the bracket. Win glory.', anchor:'#pf-bracket', page:'/arcade'},
+  {key:'raid',    label:'Boost Raid',      blurb:'Storm a target together.',     anchor:'#pf-orders',  page:'/'},
+  {key:'dometer', label:'Do Meter',        blurb:'Log a task. Fuel the meter.',   anchor:'#pf-dometer2', page:'/'},
+  {key:'forge',   label:'Poster Forge',    blurb:'Mint a propaganda poster.',    anchor:'#pf-poster',   page:'/'},
+  {key:'caption', label:'Caption Combat',  blurb:'Write the winning caption.',   anchor:'#pf-caption',  page:'/arcade'},
+  {key:'drop',    label:'Daily Drop',      blurb:'Claim today\u2019s drop.',       anchor:'#pf-brief',    page:'/'},
+  {key:'contracts', label:'Mercenary Contracts', blurb:'Take a contract. Get paid.', anchor:'#pf-contracts', page:'/cells'}
 ];
 function weekKey(){
   try{
@@ -96,7 +96,8 @@ function cardShell(id){
   document.body.appendChild(d);
   return d;
 }
-function goBtn(label, anchor, dismiss){
+function goBtn(label, mission, dismiss){
+  var anchor=mission.anchor, page=mission.page||'/';
   var b=document.createElement('button');
   b.textContent=label;
   b.style.cssText='background:#c1121f;border:none;color:#f5f0e1;font:bold 13px monospace;'+
@@ -104,6 +105,8 @@ function goBtn(label, anchor, dismiss){
   b.onclick=function(){
     var t=document.querySelector(anchor);
     if(t){ try{ t.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){} }
+    else if(page&&window.location.pathname!==page){ try{ window.location.href=page+anchor; }catch(e){} }
+    /* else: right page but widget not mounted — nothing to scroll to. */
     dismiss();
   };
   return b;
@@ -129,7 +132,7 @@ function afterGame(justPlayed){
   b.style.cssText='font-size:12px;color:#b8ab8e;';
   b.textContent=m.blurb;
   d.appendChild(h); d.appendChild(t); d.appendChild(b);
-  d.appendChild(goBtn('DEPLOY \u2192', m.anchor, function(){ d.remove(); }));
+  d.appendChild(goBtn('DEPLOY \u2192', m, function(){ d.remove(); }));
   setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); }, 25000);
 }
 
@@ -153,7 +156,7 @@ function nudge(){
   t.style.cssText='font-size:13px;margin-bottom:2px;';
   t.textContent='Claim a callsign and every point you earn follows you across devices.';
   d.appendChild(h); d.appendChild(t);
-  d.appendChild(goBtn('CLAIM CALLSIGN \u2192', '#pf-orders', function(){ d.remove(); }));
+  d.appendChild(goBtn('CLAIM CALLSIGN \u2192', {anchor:'#pf-orders',page:'/'}, function(){ d.remove(); }));
   /* Expand the claim box on arrival. */
   var iv=setInterval(function(){
     var tg=document.getElementById('oClaimToggle');

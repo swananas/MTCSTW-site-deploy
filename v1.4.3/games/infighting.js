@@ -306,8 +306,62 @@ function settleLastBattle(prevId,roster){
     }
   },8000);
 }
-render();
-setInterval(function(){
+/* Display modes (2026-10-03 homepage slimming): slim live-status strip on the
+   homepage (pf-v2) — countdown + matchup only; the full arena on /arcade
+   (pf-arcade). Template id unchanged. Both modes carry loading/error states. */
+var SLIM=(function(){try{if(document.getElementById('pf-arcade')||document.getElementById('pf-cells-page'))return false;}catch(e){}return true;})();
+var stripW=null;
+function renderStrip(){
+  var roster=dbAll();
+  if(!roster||roster.length<2){
+    root.innerHTML=
+      '<div style="background:#0a0a0a;border:2px solid #e10600;padding:14px;font-family:inherit;color:#fff;">'+
+      '<div style="font-weight:900;font-size:16px;letter-spacing:1px;">INFIGHTING</div>'+
+      '<div style="font-size:13px;color:#999;margin-top:8px;" data-if-stripmsg>Loading the battle\u2026</div></div>';
+    var tries=0;
+    var iv=setInterval(function(){
+      tries++;
+      var r=dbAll();
+      if(r&&r.length>=2){ clearInterval(iv); paintStrip(); }
+      else if(tries>=15){
+        clearInterval(iv);
+        var m=root.querySelector('[data-if-stripmsg]');
+        if(m) m.innerHTML='The battle feed went dark. <button data-if-stripretry style="background:#e10600;color:#fff;border:0;font-weight:800;padding:6px 12px;cursor:pointer;">RETRY</button>';
+        var b=root.querySelector('[data-if-stripretry]');
+        if(b) b.onclick=function(){ renderStrip(); };
+      }
+    },2000);
+    return;
+  }
+  paintStrip();
+}
+function paintStrip(){
+  var now=chiNow(),w=battleWindow(now),roster=dbAll();
+  var mm=matchup(w.id,roster);
+  if(!mm[0]||!mm[1]) return;
+  stripW=w;
+  var msLeft=(w.live?w.end:w.start).getTime()-now.getTime();
+  var badge=w.live
+    ?'<span style="background:#e10600;color:#fff;font-weight:800;font-size:12px;padding:3px 10px;">\u25CF LIVE <span data-if-clock>'+fmtClock(msLeft)+'</span></span>'
+    :'<span style="background:#333;color:#fff;font-weight:800;font-size:12px;padding:3px 10px;">NEXT BATTLE <span data-if-clock>'+fmtClock(msLeft)+'</span></span>';
+  root.innerHTML=
+    '<div style="background:#0a0a0a;border:2px solid #e10600;padding:14px;font-family:inherit;color:#fff;">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;">'+
+    '<div style="font-weight:900;font-size:16px;letter-spacing:1px;">INFIGHTING</div>'+badge+'</div>'+
+    '<div style="font-weight:800;font-size:15px;line-height:1.3;">'+esc(mm[0].name)+' <span style="color:#e10600;">VS</span> '+esc(mm[1].name)+'</div>'+
+    '<div style="margin-top:10px;"><a href="/arcade" style="display:inline-block;background:#e10600;color:#fff;font-weight:800;padding:8px 18px;text-decoration:none;">ENTER THE ARENA \u2192</a></div>'+
+    '</div>';
+}
+function stripTick(){
+  try{
+    var w=battleWindow(chiNow());
+    if(!stripW||w.id!==stripW.id){ paintStrip(); return; }
+    var msLeft=(w.live?w.end:w.start).getTime()-chiNow().getTime();
+    var c=root.querySelector('[data-if-clock]');
+    if(c) c.textContent=fmtClock(msLeft);
+  }catch(e){}
+}
+function arenaTick(){
   var w=battleWindow(chiNow());
   if(w.id!==lastRound){render();}
   else{
@@ -316,7 +370,9 @@ setInterval(function(){
     if(c)c.textContent=fmtClock(msLeft);
     if(cur)cur.live=w.live;
   }
-},1000);
+}
+if(SLIM){ renderStrip(); setInterval(stripTick,1000); }
+else{ render(); setInterval(arenaTick,1000); }
 })();
 <\/script>
 </template>`);

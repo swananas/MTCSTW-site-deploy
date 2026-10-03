@@ -77,9 +77,18 @@ function tick(){
       m=Math.floor(ms%3600000/60000), s=Math.floor(ms%60000/1000);
   el.textContent=d+"d "+h+"h "+m+"m "+s+"s REMAINING";
 }
-function scrollToCells(){
-  try{ var t=document.getElementById("pf-cells"); if(t){ t.scrollIntoView({behavior:"smooth",block:"start"}); return; } }catch(e){}
-  try{ window.location.hash="#pf-cells"; }catch(e2){}
+function goCells(){
+  /* 2026-10-03: the cells lobby lives at /cells now (was a homepage
+     scroll target). On /cells, smooth-scroll to the cells widget;
+     from anywhere else, navigate there. */
+  try{
+    var onCells=/\\/cells\\/?$/.test(window.location.pathname||'');
+    if(onCells){
+      var t=document.getElementById("pf-cells");
+      if(t){ t.scrollIntoView({behavior:"smooth",block:"start"}); return; }
+    }
+  }catch(e){}
+  try{ window.location.href="/cells"; }catch(e2){}
 }
 function render(j){
   var host=document.getElementById("xCellWar"); if(!host) return;
@@ -127,9 +136,9 @@ function render(j){
   if(TICK) clearInterval(TICK);
   tick(); TICK=setInterval(tick,1000);
   var jb=document.getElementById("cwJoinCell"), bb=document.getElementById("cwBuildCell"), vb=document.getElementById("cwViewCell");
-  if(jb) jb.onclick=scrollToCells;
-  if(bb) bb.onclick=scrollToCells;
-  if(vb) vb.onclick=scrollToCells;
+  if(jb) jb.onclick=goCells;
+  if(bb) bb.onclick=goCells;
+  if(vb) vb.onclick=goCells;
 }
 function load(){
   var id=ident();

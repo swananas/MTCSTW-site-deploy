@@ -1,4 +1,7 @@
-/* pages/home-v2.js  |  PF v1.4.1 | Mounts 12 section templates wherever the <div id="pf-v2"></div> shell
+/* pages/home-v2.js  |  PF v1.4.3 | Mounts the slimmed homepage (2026-10-03):
+   18 widgets across the 7 funnel sections wherever the <div id="pf-v2"></div>
+   shell lives. The rest of the library moved to dedicated pages
+   (see pages/page-mount.js). Notify lives in the site header now (games/notify.js).
    KILL: ?pf_off=home-v2  or  localStorage pf_disabled_v1='["home-v2"]' */
 (function () {
   'use strict';
@@ -22,168 +25,107 @@
     return false; }catch(e){ return false; } }
 
   /* Homepage order, verified against the live page's section roots.
-     Daily Orders leads: it's the stickiest dopamine lynchpin. */
-  /* 2026-10-02: homepage reorganized into 7 funnel sections —
-     START HERE (hook→daily loop→identity) → PLAY (games) → BELONG (cells) →
-     CREATE (creator tools) → FUND (economy) → ACT (action/intel) → PROOF.
-     Each section flows into the next; related products stay together.
-     vault (admin) and dash (creator analytics) removed from homepage —
-     vault via direct URL, dash belongs in Creator HQ. */
+     Daily Orders leads the habit loop: it's the stickiest dopamine lynchpin. */
+  /* 2026-10-03: homepage slimmed to 18 widgets across the same 7 funnel
+     sections — START HERE (hook→daily loop→identity) → PLAY (arcade
+     teasers) → BELONG → CREATE → FUND → ACT → PROOF. Full versions live
+     on dedicated pages: /arcade, /cells, /create, /bank, /economy,
+     /war-chest, /ventures, /events, /war-report. Notify moved to the
+     site header (games/notify.js); intel moved to /political-hq. */
   var ORDER = [
     /* ——— SECTION 1: START HERE — hook & daily loop ——— */
+    ['socialproof', 'pf-ov-socialproof'],
     ['brief', 'pf-ov-brief'],
-    ['do-meter', 'pf-ov-dometer'],
     ['daily-orders', 'pf-ov-orders'],
     ['dopa', 'pf-ov-dopa'],
+    ['do-meter', 'pf-ov-dometer'],
     ['enlistment-ranks', 'pf-ov-ranks'],
-    ['notify', 'pf-ov-notify'],
-    ['socialproof', 'pf-ov-socialproof'],
-    /* ——— SECTION 2: PLAY — games arcade, quick wins first ——— */
-    ['caption-combat', 'pf-ov-caption'],
-    ['creator-guess', 'pf-ov-guess'],
+    /* ——— SECTION 2: PLAY — arcade teasers; the full arcade lives at /arcade ——— */
+    ['spotlight', 'pf-ov-spotlight'],
     ['slr-match-quiz', 'pf-ov-matchquiz'],
-    ['daily-interrogation', 'pf-ov-interrogation'],
-    ['billionaire-supervillain', 'pf-ov-billionaire'],
-    ['bracket-board', 'pf-ov-bracket'],
-    ['boost-raid', 'pf-ov-raid'],
-    ['daily-drop', 'pf-ov-drop'],
-    ['battles', 'pf-ov-battles'],
     ['infighting', 'pf-ov-infight'],
-    ['media-nuke', 'pf-ov-nuke'],
-    ['casino', 'pf-ov-casino'],
-    /* ——— SECTION 3: BELONG — cells & squads lifecycle ——— */
+    /* ——— SECTION 3: BELONG — cells & squads ——— */
     ['cells', 'pf-ov-cells'],
-    ['cell-war', 'pf-ov-cellwar'],
-    ['diplo', 'pf-ov-diplo'],
-    ['contracts', 'pf-ov-contracts'],
     ['referral', 'pf-ov-referral'],
-    /* ——— SECTION 4: CREATE — creator tools journey ——— */
-    ['academy', 'pf-ov-academy'],
-    ['assist', 'pf-ov-assist'],
+    /* ——— SECTION 4: CREATE — creator tools ——— */
     ['poster-forge', 'pf-ov-poster'],
-    ['video', 'pf-ov-video'],
     ['feed', 'pf-ov-feed'],
-    ['amplify', 'pf-ov-amplify'],
     ['hq-nudge', 'pf-ov-hq-nudge'],
-    ['armory', 'pf-ov-armory'],
-    ['archive', 'pf-ov-archive'],
-    /* ——— SECTION 5: FUND — economy & money ——— */
-    ['peoplesbank', 'pf-ov-peoplesbank'],
-    ['economy', 'pf-ov-economy'],
+    /* ——— SECTION 5: FUND — economy ——— */
     ['war-bonds', 'pf-ov-bonds'],
-    ['movement', 'pf-ov-movement'],
-    ['earnings', 'pf-ov-earnings'],
-    ['bounties', 'pf-ov-bounties'],
-    ['ventures', 'pf-ov-ventures'],
-    /* ——— SECTION 6: ACT — action & intel ——— */
+    /* ——— SECTION 6: ACT — action ——— */
     ['campaign', 'pf-ov-campaign'],
     ['alerts', 'pf-ov-alerts'],
-    ['irl', 'pf-ov-irl'],
-    ['intel', 'pf-ov-intel'],
     /* ——— SECTION 7: PROOF — social validation closer ——— */
-    ['fan-vote', 'pf-ov-vote'],
-    ['war-report', 'pf-ov-warreport']
+    ['fan-vote', 'pf-ov-vote']
   ];
 
-  /* === SECTION HEADERS (2026-10-02) ===
+  /* === SECTION HEADERS (2026-10-03) ===
      The 7 funnel sections, rendered as visible headers. Each entry names
-     the first widget silo of its section; the header is injected before it. */
+     the first widget silo of its section; the header is injected before it.
+     bundle = the lazy bundle the footer loader fetches for the section
+     (bundle-sec1.js is already in the critical path). */
   var SECTIONS = [
-    { id: 'start-here', num: 1, ico: '\uD83D\uDD30', title: 'START HERE',
+    { id: 'start-here', num: 1, ico: '🔰', title: 'START HERE',
       sub: 'Your daily briefing, missions, and rank. Begin here every day.',
-      first: 'brief' },
-    { id: 'play', num: 2, ico: '\uD83C\uDFAE', title: 'PLAY',
-      sub: 'Twelve games. Quick wins first, rabbit holes last.',
-      first: 'caption-combat' },
-    { id: 'belong', num: 3, ico: '\uD83C\uDFF4', title: 'BELONG',
+      first: 'socialproof', bundle: 'games/bundle-sec1.js' },
+    { id: 'play', num: 2, ico: '🎮', title: 'PLAY',
+      sub: 'A taste of the arcade — the full nine-game lineup lives at /arcade.',
+      first: 'spotlight', bundle: 'games/bundle-home.js' },
+    { id: 'belong', num: 3, ico: '🏴', title: 'BELONG',
       sub: 'Join a cell. Fight the war. Recruit your friends.',
-      first: 'cells' },
-    { id: 'create', num: 4, ico: '\uD83D\uDEE0\uFE0F', title: 'CREATE',
+      first: 'cells', bundle: 'games/bundle-home.js' },
+    { id: 'create', num: 4, ico: '🛠️', title: 'CREATE',
       sub: 'Learn, build, publish. The propaganda workshop.',
-      first: 'academy' },
-    { id: 'fund', num: 5, ico: '\uD83D\uDCB0', title: 'FUND',
+      first: 'poster-forge', bundle: 'games/bundle-home.js' },
+    { id: 'fund', num: 5, ico: '💰', title: 'FUND',
       sub: 'The people\u2019s economy. Fund the fight, see where it goes.',
-      first: 'peoplesbank' },
-    { id: 'act', num: 6, ico: '\u26A1', title: 'ACT',
-      sub: 'Campaigns, alerts, and intel. The fight off-screen.',
-      first: 'campaign' },
-    { id: 'proof', num: 7, ico: '\uD83D\uDCE3', title: 'PROOF',
+      first: 'war-bonds', bundle: 'games/bundle-home.js' },
+    { id: 'act', num: 6, ico: '⚡', title: 'ACT',
+      sub: 'Campaigns, alerts, and boots on the ground.',
+      first: 'campaign', bundle: 'games/bundle-home.js' },
+    { id: 'proof', num: 7, ico: '📣', title: 'PROOF',
       sub: 'The network is real. Vote, and see it move.',
-      first: 'fan-vote' }
+      first: 'fan-vote', bundle: 'games/bundle-home.js' }
   ];
 
-  /* === COMPANION LINKS (2026-10-02) ===
+  /* === COMPANION LINKS (2026-10-03) ===
      "Next up" cross-links per widget: silo -> [[link text, target silo], ...].
      Injected centrally so no widget file needs editing. Targets are silo keys
-     (smooth-scrolled via PF.gotoSilo); a target starting with '/' is a URL. */
+     (smooth-scrolled via PF.gotoSilo); a target starting with '/' is a URL.
+     Silos that moved to dedicated pages point at their page URL. */
   var NEXT_LINKS = {
+    'socialproof': [['Vote for your favorite \u2192', 'fan-vote'], ['Join the action \u2192', 'daily-orders']],
     'brief': [['Get your missions \u2192', 'daily-orders'], ['See the network total \u2192', 'do-meter']],
-    'do-meter': [['Add to the total \u2192', 'daily-orders'], ['See who\u2019s moving \u2192', 'socialproof']],
     'daily-orders': [['Claim your loot \u2192', 'dopa']],
     'dopa': [['Protect the streak \u2192', 'daily-orders'], ['Check your rank \u2192', 'enlistment-ranks']],
-    'enlistment-ranks': [['Recruit and rank up faster \u2192', 'referral'], ['Join a cell \u2192', 'cells'], ['Gear up in the Armory \u2192', 'armory']],
-    'notify': [['Set your missions \u2192', 'daily-orders']],
-    'socialproof': [['Vote for your favorite \u2192', 'fan-vote'], ['Join the action \u2192', 'daily-orders']],
-    'caption-combat': [['Turn it into a meme \u2192', 'poster-forge'], ['Battle it head-to-head \u2192', 'battles']],
-    'creator-guess': [['Find your match \u2192', 'slr-match-quiz'], ['Test your knowledge \u2192', 'daily-interrogation']],
-    'slr-match-quiz': [['Meet your match \u2192', 'fan-vote'], ['Follow them off-site \u2192', 'feed']],
-    'daily-interrogation': [['Level up \u2192', 'academy'], ['Guess the creator \u2192', 'creator-guess']],
-    'billionaire-supervillain': [['Liquidate one \u2192', 'bracket-board'], ['Share the verdict \u2192', 'media-nuke']],
-    'bracket-board': [['Raid for your pick \u2192', 'boost-raid'], ['Vote daily \u2192', 'fan-vote']],
-    'boost-raid': [['Make a poster for the raid \u2192', 'poster-forge'], ['Nuke it across platforms \u2192', 'media-nuke']],
-    'daily-drop': [['Discuss the drop \u2192', 'feed'], ['Forge a response \u2192', 'poster-forge']],
-    'battles': [['Forge a better poster \u2192', 'poster-forge'], ['Make it a video \u2192', 'video']],
-    'infighting': [['Back your fighter \u2192', 'fan-vote'], ['Boost the signal \u2192', 'boost-raid']],
-    'media-nuke': [['Track the blast \u2192', 'do-meter'], ['Make more ammo \u2192', 'poster-forge']],
-    'casino': [['Deposit your winnings \u2192', 'peoplesbank'], ['Take a break, do a mission \u2192', 'daily-orders']],
-    'cells': [['See the war \u2192', 'cell-war'], ['Find allies \u2192', 'diplo']],
-    'cell-war': [['Coordinate with allies \u2192', 'diplo'], ['Recruit fighters \u2192', 'referral']],
-    'diplo': [['Back it with a contract \u2192', 'contracts'], ['Return to your cell \u2192', 'cells']],
-    'contracts': [['Get paid \u2192', 'peoplesbank'], ['Post a bounty \u2192', 'bounties']],
-    'referral': [['Watch them rank up \u2192', 'enlistment-ranks'], ['Bring them to your cell \u2192', 'cells']],
-    'academy': [['Use what you learned \u2192', 'assist'], ['Test yourself \u2192', 'daily-interrogation']],
-    'assist': [['Forge a poster \u2192', 'poster-forge'], ['Plan your week \u2192', 'feed']],
-    'poster-forge': [['Battle it \u2192', 'battles'], ['Amplify it \u2192', 'amplify']],
-    'video': [['Share the cut \u2192', 'media-nuke'], ['Post it \u2192', 'feed']],
-    'feed': [['Amplify a post \u2192', 'amplify'], ['Boost the raid \u2192', 'boost-raid']],
-    'amplify': [['Forge something to boost \u2192', 'poster-forge'], ['Check the economy \u2192', 'economy']],
+    'do-meter': [['Add to the total \u2192', 'daily-orders'], ['See who\u2019s moving \u2192', 'socialproof']],
+    'enlistment-ranks': [['Recruit and rank up faster \u2192', 'referral'], ['Join a cell \u2192', '/cells'], ['See what you\u2019d unlock \u2192', '/request-access']],
+    'spotlight': [['Play it full-size \u2192', '/arcade'], ['Find your match \u2192', 'slr-match-quiz']],
+    'slr-match-quiz': [['Meet your match \u2192', 'fan-vote'], ['Play the full arcade \u2192', '/arcade']],
+    'infighting': [['Back your fighter \u2192', 'fan-vote'], ['Enter the arena \u2192', '/arcade']],
+    'cells': [['Manage your cell \u2192', '/cells'], ['Recruit fighters \u2192', 'referral']],
+    'referral': [['Watch them rank up \u2192', 'enlistment-ranks'], ['Bring them to your cell \u2192', '/cells']],
+    'poster-forge': [['Publish it to the feed \u2192', 'feed'], ['Open the full workshop \u2192', '/create']],
+    'feed': [['Forge a response \u2192', 'poster-forge'], ['Open the full workshop \u2192', '/create']],
     'hq-nudge': [['See what you\u2019d unlock \u2192', '/request-access']],
-    'armory': [['Forge a poster to match \u2192', 'poster-forge'], ['Check your rank \u2192', 'enlistment-ranks']],
-    'peoplesbank': [['Fund the fight \u2192', 'war-bonds'], ['Back a venture \u2192', 'movement']],
-    'economy': [['Gear up in the Armory \u2192', 'armory'], ['Check your balance \u2192', 'peoplesbank']],
-    'war-bonds': [['Manage your bonds \u2192', 'peoplesbank'], ['See where it goes \u2192', 'movement']],
-    'movement': [['Buy a bond \u2192', 'war-bonds'], ['Earn by doing \u2192', 'bounties']],
-    'earnings': [['Start earning \u2192', 'bounties'], ['Open a bank account \u2192', 'peoplesbank']],
-    'bounties': [['Get paid \u2192', 'peoplesbank'], ['Bigger jobs \u2192', 'contracts']],
-    'campaign': [['Get the alert \u2192', 'alerts'], ['Take it to the streets \u2192', 'irl']],
-    'alerts': [['Know the terrain \u2192', 'intel'], ['Make a poster \u2192', 'poster-forge']],
-    'irl': [['Log it for XP \u2192', 'daily-orders'], ['Report back \u2192', 'feed']],
-    'intel': [['Act on it \u2192', 'alerts'], ['Brief your cell \u2192', 'cells']],
-    'archive': [['Remix one \u2192', 'poster-forge'], ['Nuke a classic \u2192', 'media-nuke']],
-    'ventures': [['Check your balance \u2192', 'peoplesbank'], ['Back the movement \u2192', 'movement']],
-    'fan-vote': [['See live activity \u2192', 'socialproof'], ['Back your pick in battle \u2192', 'infighting']],
-    'war-report': [['Vote for your favorite \u2192', 'fan-vote'], ['Protect your streak \u2192', 'daily-orders']]
+    'war-bonds': [['Manage your bonds \u2192', '/bank'], ['See where it goes \u2192', '/war-chest']],
+    'campaign': [['Get the alert \u2192', 'alerts'], ['Take it to the streets \u2192', '/events']],
+    'alerts': [['Know the terrain \u2192', '/political-hq'], ['Make a poster \u2192', 'poster-forge']],
+    'fan-vote': [['See live activity \u2192', 'socialproof'], ['Back your pick in battle \u2192', '/arcade']]
   };
 
   /* Silo -> section id. Used to insert each widget's <section> in funnel
      order even as bundles arrive out of order, and to map lazy bundles. */
   var SILO_SEC = {
-    'brief':'start-here','do-meter':'start-here','daily-orders':'start-here',
-    'dopa':'start-here','enlistment-ranks':'start-here','notify':'start-here',
-    'socialproof':'start-here',
-    'caption-combat':'play','creator-guess':'play','slr-match-quiz':'play',
-    'daily-interrogation':'play','billionaire-supervillain':'play',
-    'bracket-board':'play','boost-raid':'play','daily-drop':'play',
-    'battles':'play','infighting':'play','media-nuke':'play','casino':'play',
-    'cells':'belong','cell-war':'belong','diplo':'belong','contracts':'belong',
-    'referral':'belong',
-    'academy':'create','assist':'create','poster-forge':'create','video':'create',
-    'feed':'create','amplify':'create','hq-nudge':'create','armory':'create',
-    'archive':'create',
-    'peoplesbank':'fund','economy':'fund','war-bonds':'fund','movement':'fund',
-    'earnings':'fund','bounties':'fund','ventures':'fund',
-    'campaign':'act','alerts':'act','irl':'act','intel':'act',
-    'fan-vote':'proof','war-report':'proof'
+    'socialproof':'start-here','brief':'start-here','daily-orders':'start-here',
+    'dopa':'start-here','do-meter':'start-here','enlistment-ranks':'start-here',
+    'spotlight':'play','slr-match-quiz':'play','infighting':'play',
+    'cells':'belong','referral':'belong',
+    'poster-forge':'create','feed':'create','hq-nudge':'create',
+    'war-bonds':'fund',
+    'campaign':'act','alerts':'act',
+    'fan-vote':'proof'
   };
 
   /* Build the 7 section blocks at init: header + lazy-load anchor each.
@@ -222,10 +164,38 @@
       var a = document.createElement('div');
       a.className = 'pf-sec-anchor';
       a.setAttribute('data-sec', s.id);
-      a.setAttribute('data-bundle', 'games/bundle-sec' + s.num + '.js');
+      a.setAttribute('data-bundle', s.bundle);
       a.style.cssText = 'height:1px;width:1px;';
       h.appendChild(a);
     });
+  }
+
+  /* Boots-on-the-Ground nudge card (2026-10-03): the homepage keeps only a
+     static nudge — the full event board moved to /events (games/irl.js).
+     Injected at the end of the ACT section, after alerts. Idempotent. */
+  function mountEventsNudge() {
+    var h = document.getElementById('pf-v2');
+    if (!h || isEditor()) return;
+    if (h.querySelector('.pf-events-nudge')) return;
+    var card = document.createElement('div');
+    card.className = 'pf-events-nudge';
+    card.style.cssText = 'max-width:680px;margin:18px auto;padding:26px 22px;text-align:center;' +
+      'background:linear-gradient(160deg,#0d0d0d 0%,#1c0707 60%,#0d0d0d 100%);' +
+      'border:3px solid #c1121f;color:#f5ead6;font-family:Arial,sans-serif;';
+    card.innerHTML =
+      '<div style="font-size:12px;letter-spacing:4px;color:#c1121f;font-weight:800;margin-bottom:6px;">BOOTS ON THE GROUND</div>' +
+      '<div style="font-family:\'Arial Black\',Arial,sans-serif;font-size:24px;letter-spacing:2px;margin:0 0 8px;text-transform:uppercase;">Take it to the streets.</div>' +
+      '<div style="font-size:14px;color:#a89e88;line-height:1.5;margin-bottom:14px;">Phonebanks, canvasses, protests, meetups — the fight isn\u2019t only online. +50 XP per RSVP.</div>' +
+      '<a href="/events" style="display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:15px;padding:13px 30px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;">SEE WHAT\u2019S HAPPENING \u2192</a>';
+    var alertsSec = h.querySelector('section[data-game="alerts"]');
+    if (alertsSec && alertsSec.parentNode === h) {
+      alertsSec.parentNode.insertBefore(card, alertsSec.nextSibling);
+    } else {
+      /* alerts not mounted (or killed) — pin to the end of the ACT section. */
+      var proofHead = h.querySelector('.pf-section-head[data-sec="proof"]');
+      if (proofHead) h.insertBefore(card, proofHead);
+      else h.appendChild(card);
+    }
   }
 
   /* Kept for the retry loop's call signature; headers now build at init. */
@@ -343,7 +313,7 @@
   if (PF && !PF.mountSilos) PF.mountSilos = mountSilos;
   try { initSections(); } catch (e) {}
   mountSilos();
-  try { bindNextLinks(); mountNextLinks(); } catch (e) {}
+  try { bindNextLinks(); mountNextLinks(); mountEventsNudge(); } catch (e) {}
 
   /* Race-condition guard: if lazy bundles staged templates before this file
      defined PF.mountSilos, the loader's onload skipped the mount. Retry until
@@ -354,7 +324,7 @@
       tries++;
       var n = 0;
       try { n = mountSilos(); } catch(e){}
-      try { mountHeaders(); mountNextLinks(); } catch(e){}
+      try { mountHeaders(); mountNextLinks(); mountEventsNudge(); } catch(e){}
       var allDone = true;
       for (var i = 0; i < ORDER.length; i++) {
         if (!mounted[ORDER[i][0]]) { allDone = false; break; }

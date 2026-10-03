@@ -21,6 +21,24 @@
 var BACKEND=window.PF_BACKEND_URL;
 /* Nov 3, 2026 — Election Day. Local midnight. */
 var ELECTION=new Date(2026,10,3,0,0,0,0).getTime();
+/* 32-Day Offensive sunset (2026-10-03): the campaign hard-expires at
+   Nov 3, 2026 23:59 America/Chicago. After that the widget renders a
+   CAMPAIGN COMPLETE state with final backend totals instead of the pledge
+   form. Never pulled early — the check is wall-clock, not deploy time. */
+function cpChiParts(){
+  try{
+    var ps=new Intl.DateTimeFormat("en-US",{timeZone:"America/Chicago",year:"numeric",month:"numeric",day:"numeric",hour:"numeric",minute:"numeric",hour12:false}).formatToParts(new Date());
+    var o={}; for(var i=0;i<ps.length;i++){ o[ps[i].type]=+ps[i].value; } return o;
+  }catch(e){ return null; }
+}
+function campaignOver(){
+  var p=cpChiParts();
+  if(!p){ return Date.now()>Date.UTC(2026,10,4,5,59,0); } /* CST = UTC-6 fallback */
+  var ymd=p.year*10000+p.month*100+p.day;
+  if(ymd>20261103) return true;
+  if(ymd<20261103) return false;
+  return (p.hour%24)*60+p.minute>=23*60+59;
+}
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
 function toast(m){ try{ PF.toast(m); }catch(e){} }
@@ -85,8 +103,43 @@ function isPledged(){
   try{ var pl=(W&&W.pledges)||[]; for(var i=0;i<pl.length;i++){ if(String(pl[i].callsign||"").toUpperCase()===id.callsign.toUpperCase()) return true; } }catch(e){}
   return false;
 }
+function renderComplete(){
+  var el=document.getElementById("xCampaign"); if(!el) return;
+  var h='<div class="cp-count">CAMPAIGN COMPLETE</div>'
+    +'<div class="cp-frame">THE OFFENSIVE IS OVER. THE FIGHT IS NOT.</div>'
+    +'<div class="cp-sub">Final results from the 32-Day Offensive &mdash; the pledge form is retired, the wall stands.</div>';
+  if(!S&&!W&&!L){
+    h+='<div class="c-neterr">The wire didn&rsquo;t answer with final results.'
+      +'<br><button class="c-btn" id="cpRetry">Retry connection</button></div>';
+    el.innerHTML=h;
+    document.getElementById("cpRetry").onclick=function(){ S=M=W=L=R=null; el.innerHTML='<div class="c-load">Mobilizing&hellip;</div>'; load(); };
+    return;
+  }
+  var pledges=(S&&S.pledges)||0, acts=(S&&S.actions)||0, goal=(S&&S.goal)||1000;
+  var pct=Math.min(100,Math.round((pledges+acts)/Math.max(1,goal)*100));
+  h+='<div class="x-pane"><h4>Final results</h4>'
+    +'<div class="cp-barwrap"><div class="cp-bar" style="width:'+pct+'%"></div></div>'
+    +'<div class="x-note">'+pledges+' pledges &bull; '+acts+' actions &bull; '+pct+'% of '+goal+' goal</div></div>';
+  var pl=(W&&W.pledges)||[];
+  h+='<div class="x-pane"><h4>Pledge wall &mdash; honor roll</h4><div class="cp-wall">';
+  if(!pl.length){ h+='<div class="x-note">No pledges recorded.</div>'; }
+  for(var w=0;w<Math.min(pl.length,40);w++){ h+='<span class="cp-wname">'+esc(pl[w].callsign)+'</span>'; }
+  h+='</div></div>';
+  var ld=(L&&L.leaders)||[];
+  h+='<div class="x-pane"><h4>Top fighters</h4>';
+  if(!ld.length){ h+='<div class="x-note">No standings recorded.</div>'; }
+  for(var q=0;q<Math.min(ld.length,10);q++){
+    h+='<div class="cp-lead"><span class="cp-lrank">'+(q+1)+'.</span> <span class="cp-lname">'+esc(ld[q].callsign)+'</span> <span class="cp-lxp">'+(Number(ld[q].xp)||0)+' XP</span></div>';
+  }
+  h+='</div>';
+  h+='<div style="margin-top:10px"><button class="c-btn" id="cpRetry">Refresh</button></div>';
+  el.innerHTML=h;
+  var rb=document.getElementById("cpRetry");
+  if(rb) rb.onclick=function(){ S=M=W=L=R=null; el.innerHTML='<div class="c-load">Mobilizing&hellip;</div>'; load(); };
+}
 function render(){
   var el=document.getElementById("xCampaign"); if(!el) return;
+  if(campaignOver()){ renderComplete(); return; }
   var id=ident(), dl=daysLeft(), h="";
   /* --- countdown + framing --- */
   h+='<div class="cp-count">'+(dl>0?dl+" DAYS TO ELECTION DAY":(dl===0?"ELECTION DAY IS HERE":"THE FIGHT CONTINUES"))+'</div>';

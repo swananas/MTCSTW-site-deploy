@@ -1,6 +1,6 @@
 /* games/peoplesbank.js  |  PF v1.4.3 | THE PEOPLES BANK OF PROPAGANDA.
    A virtual bank branch: the everyday financial institution where soldiers
-   manage their XP. Account overview, transfers, savings, loans, war bonds,
+   manage their XP. Account overview, transfers, savings, loans, liberty bonds,
    full transaction history. Reads via JSONP (self-contained api()), writes
    via CORS POST (self-contained post()). It never reaches into another
    silo's internals. Does NOT duplicate economy.js (staking, auctions,
@@ -257,7 +257,7 @@ function renderVault(id){
     +'<div class="pb-card"><div class="pb-clabel">LIQUID</div><div class="pb-cval">'+Math.round(nw.liq).toLocaleString()+'</div></div>'
     +'<div class="pb-card"><div class="pb-clabel">SAVINGS</div><div class="pb-cval">'+Math.round(nw.sav).toLocaleString()+'</div></div>'
     +'<div class="pb-card"><div class="pb-clabel">STAKED</div><div class="pb-cval">'+Math.round(nw.stk).toLocaleString()+'</div></div>'+pbAuthHint(STK)
-    +'<div class="pb-card"><div class="pb-clabel">WAR BONDS</div><div class="pb-cval">'+Math.round(nw.bnd).toLocaleString()+'</div></div>'
+    +'<div class="pb-card"><div class="pb-clabel">LIBERTY BONDS</div><div class="pb-cval">'+Math.round(nw.bnd).toLocaleString()+'</div></div>'
     +'<div class="pb-card"><div class="pb-clabel">LOANS OUT</div><div class="pb-cval">+'+Math.round(nw.lendOut).toLocaleString()+'</div></div>'
     +'<div class="pb-card"><div class="pb-clabel">YOU OWE</div><div class="pb-cval pb-neg">-'+Math.round(nw.owe).toLocaleString()+'</div></div>'
     +'</div></div>';
@@ -334,7 +334,7 @@ function renderLobby(id){
     +'<div class="pb-card"><div class="pb-clabel">LIQUID</div><div class="pb-cval">'+Math.round(nw.liq).toLocaleString()+'</div></div>'
     +'<div class="pb-card"><div class="pb-clabel">SAVINGS</div><div class="pb-cval">'+Math.round(nw.sav).toLocaleString()+'</div></div>'
     +'<div class="pb-card"><div class="pb-clabel">STAKED</div><div class="pb-cval">'+Math.round(nw.stk).toLocaleString()+'</div></div>'+pbAuthHint(STK)
-    +'<div class="pb-card"><div class="pb-clabel">WAR BONDS</div><div class="pb-cval">'+Math.round(nw.bnd).toLocaleString()+'</div></div>'
+    +'<div class="pb-card"><div class="pb-clabel">LIBERTY BONDS</div><div class="pb-cval">'+Math.round(nw.bnd).toLocaleString()+'</div></div>'
     +'<div class="pb-card"><div class="pb-clabel">LOANS OUT</div><div class="pb-cval">+'+Math.round(nw.lendOut).toLocaleString()+'</div></div>'
     +'<div class="pb-card"><div class="pb-clabel">YOU OWE</div><div class="pb-cval pb-neg">-'+Math.round(nw.owe).toLocaleString()+'</div></div>'
     +'</div></div>';
@@ -527,7 +527,7 @@ function wireLoans(id,el){
 }
 /* ---------- 5. BOND DESK ---------- */
 function renderBonds(id){
-  var h='<div class="x-pane pb-pane"><div class="pb-bankhead">&#9670; BOND DESK — WAR BONDS, 20% IN 30 DAYS &#9670;</div>'
+  var h='<div class="x-pane pb-pane"><div class="pb-bankhead">&#9670; BOND DESK — LIBERTY BONDS, 20% IN 30 DAYS &#9670;</div>'
     +'<div class="x-note">Buy the war effort. Your XP funds the fight; in 30 days it comes back 20% heavier. The billionaires&rsquo; bonds fund yachts. Ours fund the revolution.</div>'
     +'<div><input aria-label="XP to invest" class="c-in pf-input-sm" id="pbBondAmt" type="number" min="1" placeholder="XP to invest" /> '
     +'<button class="c-btn" id="pbBondBuy">BUY BOND</button></div>'

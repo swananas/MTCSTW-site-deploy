@@ -6,6 +6,9 @@
    if the dedicated `briefing` / `season_current` backends are not deployed yet.
    Also injects the site-wide season banner (thin fixed strip: season name,
    days left, goal progress).
+   2026-10-03: Daily Drop consolidated here as the FEATURED DROP slot
+   (games/daily-drop.js deleted). Streak/day-count logic preserved verbatim;
+   streak key pf_drop_v1 unchanged so existing streaks carry over.
    Framing: military briefing. Dark, urgent, scannable in 30 seconds.
    KILL: ?pf_off=brief  or  localStorage pf_disabled_v1='["brief"]' */
 (function () {
@@ -230,6 +233,8 @@ function render(){
   }
   if(!ms.length&&!fe.length){ h+='<div class="x-note">Orders incoming. Check Daily Orders for the full board.</div>'; }
   h+='<div style="margin-top:8px"><button class="c-btn" data-go="pf-orders">FULL ORDER BOARD</button></div></div>';
+  /* ---------- 3.5 FEATURED DROP (Daily Drop slot) ---------- */
+  h+=dropSectionHtml();
   /* ---------- 4. YOUR CELL ---------- */
   h+='<div class="br-sec"><div class="br-sect">YOUR CELL</div>';
   try{
@@ -312,6 +317,7 @@ function render(){
       });
     }; })(acts[a]);
   }
+  dropWire();
   renderSeasonBanner();
   tick();
 }
@@ -356,7 +362,23 @@ function bannerCss(){
     +"#pf-seasonbar .sb-name{color:#ff6b6b;white-space:nowrap}"
     +"#pf-seasonbar .sb-bar{flex:1;height:6px;background:#222;border-radius:3px;overflow:hidden;min-width:60px}"
     +"#pf-seasonbar .sb-fill{height:100%;background:#c1121f}"
-    +"#pf-seasonbar .sb-days{color:#e8b64c;white-space:nowrap}";
+    +"#pf-seasonbar .sb-days{color:#e8b64c;white-space:nowrap}"
+    /* 2026-10-03: FEATURED DROP slot (Daily Drop consolidation) — the drop's
+       own styles, rescoped from #pf-drop to #pf-brief.br-*. */
+    +"#pf-brief .br-dday{font-family:Arial,sans-serif;font-size:13px;letter-spacing:3px;color:#ff5a00;text-transform:uppercase;margin-bottom:12px}"
+    +"#pf-brief .br-dcard{background:#f5ead6;color:#0d0d0d;padding:18px 16px;margin:0 0 12px;text-align:left}"
+    +"#pf-brief .br-dtag{display:inline-block;background:#c1121f;color:#fff;font-family:Arial,sans-serif;font-size:11px;letter-spacing:3px;padding:4px 12px;margin-bottom:10px;text-transform:uppercase}"
+    +"#pf-brief .br-dhead{font-family:'Arial Black',Arial,sans-serif;font-size:19px;line-height:1.3;margin:0 0 8px;text-transform:uppercase;letter-spacing:1px;color:#0d0d0d}"
+    +"#pf-brief .br-dbody{font-family:Arial,sans-serif;font-size:14px;line-height:1.55;color:#333;margin:0}"
+    +"#pf-brief .br-dstreak{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase;margin-bottom:12px}"
+    +"#pf-brief .br-dbtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:4px}"
+    +"#pf-brief .br-darch{display:none;margin-top:12px;text-align:left}"
+    +"#pf-brief .br-darch.open{display:block}"
+    +"#pf-brief .br-daitem{background:#1a1a1a;border-left:4px solid #c1121f;padding:10px 14px;margin:8px 0;font-family:Arial,sans-serif}"
+    +"#pf-brief .br-daday{font-size:11px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase}"
+    +"#pf-brief .br-dahead{font-family:'Arial Black',Arial,sans-serif;font-size:13px;text-transform:uppercase;margin:2px 0;color:#f5ead6}"
+    +"#pf-brief .br-dabody{font-size:12px;color:#c9bfa8}"
+    +"#pf-brief .br-dnote{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:10px}";
   document.head.appendChild(s);
 }
 function renderSeasonBanner(){
@@ -380,7 +402,129 @@ function renderSeasonBanner(){
     document.body.style.paddingTop=(36+top)+"px";
   }catch(e){}
 }
+/* ---------- FEATURED DROP (Daily Drop consolidation, 2026-10-03) ----------
+   The Daily Drop's content, streak/day-count logic, and backend hook, folded
+   into the Briefing as a featured-content slot. Copy and streak mechanics are
+   verbatim from games/daily-drop.js (deleted); the streak key pf_drop_v1 is
+   unchanged so existing streaks carry over. Fires pf-drop-claimed (Do Meter
+   +2, field-op auto-complete) and pf-drop-golden exactly as before. */
+var DROP_LS="pf_drop_v1", DROP_LAUNCH="2026-09-28";
+/* DROPS: 30 evergreen agitprop items, cycling. t = STAT | QUOTE | TRUTH | ORDER */
+var DROPS=[
+{t:"STAT",h:"8 men own more wealth than half of humanity.",b:"Not 8 percent. 8 men. Half the planet. This isn't an economy, it's a heist."},
+{t:"TRUTH",h:"Your boss needs you. You don't need your boss.",b:"Every dollar of profit is a wage that wasn't paid. Remember who makes the value."},
+{t:"QUOTE",h:"\u201CThe ruling ideas of each age have ever been the ideas of its ruling class.\u201D \u2014 Karl Marx",b:"Read that again the next time the news tells you what's \u2018realistic.\u2019"},
+{t:"ORDER",h:"Talk to one coworker about pay today.",b:"Wage secrecy is a boss's best friend. One honest conversation is an act of war."},
+{t:"STAT",h:"American workers are 2.5x more productive than in 1979. Pay is up 15%.",b:"Productivity soared. Your paycheck didn't. The difference went to people who've never done your job."},
+{t:"TRUTH",h:"Billionaires don't create jobs. Workers create wealth; billionaires collect it.",b:"Nobody ever got rich from their own labor alone."},
+{t:"QUOTE",h:"\u201CIt is the job of thinking people not to be on the side of the executioners.\u201D \u2014 Albert Camus",b:"Pick a side. The machine already picked you."},
+{t:"ORDER",h:"Share one drop from this page today.",b:"Propaganda only works if it moves. Be the machine's distribution arm."},
+{t:"STAT",h:"The top 1% owns 32% of all wealth in America.",b:"The bottom 50% owns 2.5%. The game isn't rigged \u2014 rigged implies it was ever fair."},
+{t:"TRUTH",h:"\u2018Unskilled labor\u2019 is a myth invented to pay you less.",b:"Try running a restaurant, warehouse, or hospital with no \u2018unskilled\u2019 workers for one day."},
+{t:"QUOTE",h:"\u201CThe law, in its majestic equality, forbids rich and poor alike to sleep under bridges.\u201D \u2014 Anatole France",b:"Justice is blind. It just happens to only see one class."},
+{t:"ORDER",h:"Learn your rights at work tonight.",b:"15 minutes of reading. The boss hopes you never do it."},
+{t:"STAT",h:"CEOs now make 290x the average worker.",b:"In 1965 it was 21x. Nothing about leadership got 14 times better."},
+{t:"TRUTH",h:"The news calls it \u2018the economy.\u2019 They mean the stock market.",b:"Your rent went up and your pay didn't. That's the economy you live in."},
+{t:"QUOTE",h:"\u201CIf voting changed anything, they'd make it illegal.\u201D \u2014 Emma Goldman",b:"They're certainly trying."},
+{t:"ORDER",h:"Find one local mutual aid group and follow them.",b:"The revolution is also a food drive. Start where your feet are."},
+{t:"STAT",h:"Empty homes outnumber homeless people 28 to 1.",b:"There is no housing shortage. There's a profit shortage in housing people."},
+{t:"TRUTH",h:"They want you debating strangers online instead of organizing coworkers.",b:"The algorithm feeds you outrage because outrage doesn't unionize."},
+{t:"QUOTE",h:"\u201CThe only thing necessary for evil to triumph is for good people to do nothing.\u201D",b:"The machine prefers you tired, alone, and scrolling."},
+{t:"ORDER",h:"Cancel one subscription that funds the machine.",b:"Your money is a vote they actually count. Spend it like it."},
+{t:"STAT",h:"Medical debt is the #1 cause of bankruptcy in America.",b:"In every other rich country, getting sick doesn't mean going broke. Here it's a business model."},
+{t:"TRUTH",h:"Nobody is coming to save us. That's the good news.",b:"It means we get to save each other. That's what the network is for."},
+{t:"QUOTE",h:"\u201CFirst they ignore you, then they laugh at you, then they fight you, then you win.\u201D",b:"We're somewhere between laughing and fighting. Good."},
+{t:"ORDER",h:"Ask an elder what organizing looked like before the internet.",b:"The tactics are old. The tools are new. Learn both."},
+{t:"TRUTH",h:"Solidarity is a strategy, not a sentiment.",b:"Every strike won, every union formed, every right you have \u2014 won by people acting together."},
+{t:"ORDER",h:"Put your politics in the group chat.",b:"One message. \u2018Did you know CEOs make 290x what we do?\u2019 Then watch."},
+{t:"TRUTH",h:"\u2018There is no alternative\u2019 is the most successful propaganda ever made.",b:"There are always alternatives. They just don't profit the people saying that."},
+{t:"ORDER",h:"Support one striking worker this week.",b:"Walk a picket line, contribute to a strike fund, or just bring coffee. Show up."},
+{t:"TRUTH",h:"The network is the message.",b:"{N} creators. 5 million reach. One machine. You're already inside it \u2014 act like it."},
+{t:"ORDER",h:"Bring one friend into the ranks.",b:"Send them this page. The machine grows one recruit at a time."}
+];
+function dropChi(){ var d=new Date(new Date().toLocaleString("en-US",{timeZone:"America/Chicago"})); d.setHours(0,0,0,0); return d; }
+function dropDayNum(){ var l=new Date(DROP_LAUNCH+"T00:00:00"); return Math.max(1,Math.floor((dropChi()-l)/86400000)+1); }
+function dropFor(n){ return DROPS[(n-1)%DROPS.length]; }
+function dropKey(d){ return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
+function dropLoad(){ try{ return JSON.parse(localStorage.getItem(DROP_LS)||'{"last":"","streak":0}'); }catch(e){ return {last:"",streak:0}; } }
+function dropSave(s){ try{ localStorage.setItem(DROP_LS,JSON.stringify(s)); }catch(e){} }
+function dropNetCount(){ var nc=62; try{ if(window.PF&&PF.slrAll){ var a=PF.slrAll(); if(a&&a.length) nc=a.length; } else if(window.PF&&PF.ROSTER&&PF.ROSTER.length){ nc=PF.ROSTER.length; } }catch(e){} return nc; }
+var DROP_N=dropDayNum(), DROP_S=dropLoad(), DROP_TK=dropKey(dropChi());
+var DROP_NET={tag:null,head:null,body:null}, DROP_GOLDEN=false, _dropRendered=false, _dropGoldFired=false;
+/* New-day claim: streak advance, pf-drop-claimed event, golden roll. */
+(function dropClaim(){
+  if(DROP_S.last===DROP_TK) return;
+  var y=dropChi(); y.setDate(y.getDate()-1);
+  DROP_S.streak=(DROP_S.last===dropKey(y))?DROP_S.streak+1:1; DROP_S.last=DROP_TK; dropSave(DROP_S);
+  try{ document.dispatchEvent(new CustomEvent("pf-drop-claimed",{detail:{day:DROP_TK,streak:DROP_S.streak}})); }catch(e){}
+  /* GOLDEN DROP: 1-in-20 claims hit the motherlode — special art + bonus XP. */
+  try{ if(Math.random()<0.05){ DROP_GOLDEN=true; document.dispatchEvent(new CustomEvent("pf-drop-golden",{detail:{day:DROP_TK}})); } }catch(e2){}
+})();
+function dropPaint(){
+  var ddp=dropFor(DROP_N);
+  var tag=DROP_NET.tag||ddp.t, head=DROP_NET.head||ddp.h, body=DROP_NET.body||ddp.b;
+  var d=document.getElementById("brDropDay"); if(d) d.textContent="Day "+DROP_N+" of the offensive";
+  var t=document.getElementById("brDropTag");
+  if(t){ if(DROP_GOLDEN){ t.textContent="\u2605 GOLDEN DROP \u2605"; t.style.color="#e8b10c"; } else t.textContent=tag; }
+  var h=document.getElementById("brDropHead");
+  if(h){ if(DROP_GOLDEN){ h.innerHTML="THE MOTHERLODE<br><span style='font-size:0.9rem;'>Today the machine smiles on you.</span>"; } else h.textContent=head; }
+  var b=document.getElementById("brDropBody"); if(b) b.textContent=String(body).replace("{N}",dropNetCount());
+  var s2=document.getElementById("brDropStreak");
+  if(s2) s2.textContent="Your streak: "+DROP_S.streak+(DROP_S.streak===1?" day":" days")+" \u2014 come back tomorrow to keep it alive";
+}
+/* Backend content: today's drop from the server (?action=daily_content).
+   The static DROPS array is the fallback — the slot renders identically. */
+function dropTryBackend(){
+  api("daily_content",{},function(j){
+    if(_dropRendered) return; _dropRendered=true;
+    if(j&&j.ok&&j.head){ DROP_NET={tag:j.tag||"TRUTH",head:j.head,body:j.body||""}; }
+    dropPaint();
+  });
+  setTimeout(function(){ if(!_dropRendered){ _dropRendered=true; dropPaint(); } },8000);
+}
+function dropSectionHtml(){
+  var ddp=dropFor(DROP_N);
+  var tag=DROP_NET.tag||ddp.t, head=DROP_NET.head||ddp.h, body=String(DROP_NET.body||ddp.b).replace("{N}",dropNetCount());
+  return '<div class="br-sec"><div class="br-sect">\u26A1 FEATURED DROP</div>'
+    +'<div class="br-dday" id="brDropDay">Day '+DROP_N+' of the offensive</div>'
+    +'<div class="br-dcard"><span class="br-dtag" id="brDropTag"'+(DROP_GOLDEN?' style="color:#e8b10c"':'')+'>'+(DROP_GOLDEN?'\u2605 GOLDEN DROP \u2605':esc(tag))+'</span>'
+    +'<p class="br-dhead" id="brDropHead">'+(DROP_GOLDEN?"THE MOTHERLODE<br><span style='font-size:0.9rem;'>Today the machine smiles on you.</span>":esc(head))+'</p>'
+    +'<p class="br-dbody" id="brDropBody">'+esc(body)+'</p></div>'
+    +'<div class="br-dstreak" id="brDropStreak">Your streak: '+DROP_S.streak+(DROP_S.streak===1?" day":" days")+' \u2014 come back tomorrow to keep it alive</div>'
+    +'<div class="br-dbtns"><button class="c-btn" id="brDropShare">SHARE THIS DROP</button>'
+    +'<button class="c-btn" id="brDropArchBtn">PAST DROPS</button></div>'
+    +'<div class="br-darch" id="brDropArch"></div>'
+    +'<div class="br-dnote">One drop per day. Come back tomorrow &mdash; the offensive continues.</div></div>';
+}
+function dropWire(){
+  var sh=document.getElementById("brDropShare");
+  if(sh) sh.onclick=function(){
+    var hd=document.getElementById("brDropHead"), cur=hd?hd.textContent:"";
+    /* Share reads the rendered headline from the DOM so it works whether the
+       content came from the backend or the static fallback. */
+    var text="Day "+DROP_N+" of the offensive: "+cur+" \u2014 via The Propaganda Factory "+location.href;
+    if(navigator.share){ navigator.share({title:"The Daily Drop",text:text,url:location.href}).catch(function(){}); }
+    else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(function(){ toast("Drop copied. Go spread it."); }).catch(function(){}); }
+  };
+  var ab=document.getElementById("brDropArchBtn");
+  if(ab) ab.onclick=function(){
+    var arch=document.getElementById("brDropArch"); if(!arch) return;
+    if(arch.classList.contains("open")){ arch.classList.remove("open"); return; }
+    var nc=dropNetCount(), hh="";
+    for(var i=1;i<=7;i++){ var dn=DROP_N-i; if(dn<1) break; var d=dropFor(dn);
+      hh+='<div class="br-daitem"><div class="br-daday">Day '+dn+' \u00B7 '+esc(d.t)+'</div><div class="br-dahead">'+esc(d.h)+'</div><div class="br-dabody">'+esc(String(d.b).replace("{N}",nc))+'</div></div>';
+    }
+    arch.innerHTML=hh||'<div class="br-daitem"><div class="br-dabody">The offensive just began. Check back tomorrow.</div></div>';
+    arch.classList.add("open");
+  };
+  /* Golden-drop celebration, once the slot is on the page. */
+  if(DROP_GOLDEN&&!_dropGoldFired){
+    _dropGoldFired=true;
+    try{ if(window.PF&&PF.dope){ var hb=document.getElementById("brDropDay"); PF.dope.confetti(hb?hb.parentNode:document.body,40); } }catch(e){}
+  }
+}
 bannerCss();
+dropTryBackend();
 load();
 setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },180000);
 setInterval(tick,1000);

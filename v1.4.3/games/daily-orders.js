@@ -1,4 +1,8 @@
 /* games/daily-orders.js  |  PF v1.4.1 | Daily Orders widget: template + 30 rotating missions
+   2026-10-03: Boost Raid consolidated here as the HEADLINE MISSION section
+   (games/boost-raid.js deleted). Raid target rotation, streak key pf_raid_v1,
+   turnout, and pf-raid-report event preserved verbatim. Loot/streak reward row
+   was already native to this block (daily-fire.js never existed in this repo).
    KILL: ?pf_off=daily-orders  or  localStorage pf_disabled_v1='["daily-orders"]' */
 
 (function () {
@@ -19,6 +23,7 @@
 <div class="o-warpath" id="oWarPath"></div>
 <div class="o-reset" id="oReset"></div>
 <div id="oMissions"></div>
+<div class="o-raid" id="oRaid"></div>
 <div class="o-boost" id="oBoost"></div>
 <div class="o-patrons" id="oPatrons"></div>
 <div class="o-prog" id="oProg"></div>
@@ -84,8 +89,8 @@ var FIELD_OPS=[
  {game:"poster-forge",ev:"pf-poster-made",label:"Forge a propaganda poster"},
  {game:"slr-match-quiz",ev:"pf-quiz-done",label:"Find your SLR match"},
  {game:"creator-guess",ev:"pf-guess-done",label:"Play Guess the Creator"},
- {game:"boost-raid",ev:"pf-raid-report",label:"Report back on today's Boost Raid"},
- {game:"daily-drop",ev:"pf-drop-claimed",label:"Claim today's Daily Drop"}
+ {game:"daily-orders",ev:"pf-raid-report",label:"Report back on today's headline mission"},
+ {game:"brief",ev:"pf-drop-claimed",label:"Claim today's Daily Drop"}
 ];
 var OP_XP=5, CMD_XP=5;
 function fieldOp(){ return FIELD_OPS[dayOfYear()%FIELD_OPS.length]; }
@@ -484,6 +489,204 @@ function shareBoostCard(){
   }catch(e){}
 }
 
+/* ============ HEADLINE MISSION (Boost Raid consolidation, 2026-10-03) ============
+   Today's coordinated engagement raid, folded into Daily Orders as the daily
+   habit's headline mission. Target rotation, streak key pf_raid_v1, turnout
+   (?action=raid_turnout), and the pf-raid-report event (Do Meter +2, field-op
+   auto-complete) are verbatim from games/boost-raid.js (deleted). */
+var RAID_TARGETS=[
+ {s:"bona-bones",m:"Flood the latest stop-motion drop: like, comment, share."},
+ {s:"radically-sunny",m:"Hit the newest post on every platform you have."},
+ {s:"dr-taylor-andrew",m:"Boost the latest breakdown. Comment with your take."},
+ {s:"kim-hunt-slaythegop",label:"Kim Hunt",m:"Amplify the newest Portland dispatch. Share it out."},
+ {s:"voix-noire",m:"Boost the mutual-aid post. Comment, share to stories."},
+ {s:"joman",m:"Hit the latest track/video. Like, comment, repost."},
+ {s:"hex-reject",m:"Boost the newest art drop. Comment what it means to you."},
+ {s:"moreno-neurospicy-news",m:"Amplify the latest news hit. Share it wide."},
+ {s:"joey",m:"Jump in the comments of the latest debate clip."},
+ {s:"east-coast-it-notes",m:"Boost the newest comic. Share it to your story."},
+ {s:"black-newsbeat-with-dr-kimeka-campbell",m:"Hit the latest NewsBeat segment. Comment and share."},
+ {s:"the-antifascist-frog",m:"Boost the frog\u2019s latest. Ribbit in the comments."},
+ {s:"sex-drugs-rock-n-roll",m:"Amplify the newest post. 9.8 energy only."},
+ {s:"minnesota-department-of-propaganda",m:"Boost the Department\u2019s latest bulletin."}
+];
+var RAID_LS="pf_raid_v1";
+function raidDayNum(){ try{ var n=new Date(); return Math.floor(Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate())/864e5); }catch(e){ return 0; } }
+function raidToday(){ try{ return new Date().toISOString().slice(0,10); }catch(e){ return ""; } }
+function raidYesterday(t){ try{ var d=new Date(t+"T12:00:00Z"); d.setUTCDate(d.getUTCDate()-1); return d.toISOString().slice(0,10); }catch(e){ return ""; } }
+function raidLoad(){ try{ var s=JSON.parse(localStorage.getItem(RAID_LS)||"null"); if(s&&typeof s.streak==="number") return s; }catch(e){} return {streak:0,last:"",done:""}; }
+function raidSave(s){ try{ localStorage.setItem(RAID_LS,JSON.stringify(s)); }catch(e){} }
+function raidCurrent(){
+  var tgt=RAID_TARGETS[raidDayNum()%RAID_TARGETS.length];
+  var rr=rosterBySlug(tgt.s);
+  return {tgt:tgt, rr:rr, tn:tgt.label||(rr&&rr.name)||tgt.s, th:(rr&&rr.handle)||"", tp:(rr&&rr.platform)||""};
+}
+function paintRaidStreak(){
+  var sEl=document.getElementById("oRaidStreak"); if(!sEl) return;
+  var st=raidLoad();
+  sEl.textContent=st.streak>1?("\uD83D\uDD25 "+st.streak+"-DAY RAID STREAK"):"";
+}
+function raidTick(){
+  try{
+    var el=document.getElementById("oRaidClock"); if(!el) return;
+    var now=new Date(), mid=new Date(now); mid.setHours(24,0,0,0);
+    var s=Math.max(0,Math.floor((mid-now)/1000));
+    var h=Math.floor(s/3600), m=Math.floor(s%3600/60), ss=s%60;
+    el.textContent="RAID ENDS IN "+h+"H "+(m<10?"0":"")+m+"M "+(ss<10?"0":"")+ss+"S";
+  }catch(e){}
+}
+/* RAID TURNOUT: site-wide count of today's reports (?action=raid_turnout, cached 1h). */
+function paintRaidTurnout(){
+  var el=document.getElementById("oRaidTurnout"); if(!el) return;
+  var show=function(n){ if(n>0) el.innerHTML="&#9876; <b style='color:#f5f0e1;'>"+Number(n).toLocaleString()+"</b> raiders hit today\u2019s target \u2014 join them"; };
+  try{ var c=JSON.parse(localStorage.getItem("pf_raid_turnout_v1")||"null");
+    if(c&&Date.now()-c.at<3600000){ show(c.d); return; } }catch(e){}
+  var RAID_API=beUrl()||"https://pf-api.mtcstw.workers.dev";
+  var name="pfRT"+Date.now(), fired=false;
+  window[name]=function(d){ if(fired) return; fired=true; try{ delete window[name]; }catch(e){}
+    var s=document.getElementById(name); if(s&&s.parentNode) s.parentNode.removeChild(s);
+    if(d&&typeof d.raiders==="number"){ try{ localStorage.setItem("pf_raid_turnout_v1",JSON.stringify({at:Date.now(),d:d.raiders})); }catch(e){} show(d.raiders); } };
+  try{ var scr=document.createElement("script"); scr.id=name; scr.src=RAID_API+"?callback="+name+"&action=raid_turnout";
+    scr.onerror=function(){ if(!fired){ fired=true; } }; (document.head||document.documentElement).appendChild(scr); }catch(e){}
+  setTimeout(function(){ if(!fired){ fired=true; try{ delete window[name]; }catch(e){} } },10000);
+}
+function renderRaid(){
+  var box=document.getElementById("oRaid"); if(!box) return;
+  var cur=raidCurrent(), st=raidLoad(), t=raidToday(), done=st.done===t;
+  box.innerHTML=
+   '<div id="pf-raid" style="max-width:640px;margin:0 auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:\\\'Helvetica Neue\\\',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;text-align:center;">'
+  +'<div style="font-size:1.15rem;font-weight:900;letter-spacing:0.18em;color:#c1121f;">&#9876; TODAY\u2019S HEADLINE MISSION &#9876;</div>'
+  +'<div style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;">One target. One day. The whole network hits it at once.<br>Like. Comment. Share. Report back.</div>'
+  +'<div><div style=\"font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\">TODAY\u2019S TARGET</div>'
+  +'<div style=\"font-size:1.5rem;font-weight:900;margin:0.4rem 0;\">'+escHtml(cur.tn)+'</div>'
+  +'<div style=\"font-size:0.9rem;color:#b8ab8e;\">'+escHtml(cur.th)+(cur.tp?' \u00b7 '+escHtml(cur.tp):'')+'</div>'
+  +'<div style=\"font-size:0.95rem;margin:0.8rem 0;padding:0.8rem;border:2px dashed #c1121f;\">'+escHtml(cur.tgt.m)+'</div></div>'
+  +'<div id="oRaidTurnout" style="font-size:0.85rem;color:#b8ab8e;margin:0.6rem 0;min-height:1.2em;"></div>'
+  +'<div id="oRaidClock" style="font-size:0.85rem;color:#c1121f;letter-spacing:0.15em;margin:0.8rem 0;"></div>'
+  +'<div><button id="oRaidReport" style="background:#c1121f;border:none;color:#f5f0e1;padding:0.8rem 2rem;font-size:1rem;font-weight:900;letter-spacing:0.1em;cursor:pointer;font-family:inherit;">'+(done?"REPORTED \u2713":"REPORT BACK")+'</button></div>'
+  +'<div id="oRaidMsg" style="margin-top:0.8rem;font-size:0.9rem;color:#b8ab8e;min-height:1.4em;">'+(done?"Raid logged. See you tomorrow, soldier.":"")+'</div>'
+  +'<div id="oRaidStreak" style="font-size:0.85rem;color:#c1121f;margin-top:0.4rem;letter-spacing:0.1em;"></div>'
+  +'</div>';
+  var btn=document.getElementById("oRaidReport");
+  if(done){ btn.disabled=true; btn.style.opacity="0.5"; }
+  paintRaidStreak();
+  paintRaidTurnout();
+  raidTick();
+  btn.onclick=function(){
+    var st2=raidLoad(), t2=raidToday();
+    if(st2.done===t2) return;
+    st2.done=t2;
+    st2.streak=(st2.last===raidYesterday(t2))?st2.streak+1:1;
+    st2.last=t2; raidSave(st2);
+    btn.disabled=true; btn.style.opacity="0.5"; btn.textContent="REPORTED \u2713";
+    var mEl=document.getElementById("oRaidMsg");
+    if(mEl) mEl.textContent="Hit confirmed. +2 XP. The target felt that.";
+    paintRaidStreak();
+    try{ document.dispatchEvent(new CustomEvent("pf-raid-report",{detail:{day:t2,target:cur.tn}})); }catch(e){}
+    /* M1 dopamine: reporting the hit should land with feeling. */
+    try{ if(window.PF&&PF.dope){ var rd=document.getElementById("pf-raid")||document.body; PF.dope.confetti(rd,35); PF.dope.xpFloat(rd,"+2 XP"); PF.dope.ping(rd,"HIT CONFIRMED"); } }catch(e){}
+  };
+}
+/* RAID POSTER: keeps the share-image registry key "boost-raid" alive so the
+   raid share card still paints from the roster record. */
+function raidSpreadLine(){
+  var cs="", who="";
+  try{ var id=JSON.parse(localStorage.getItem("pf_identity_v1")||"{}"); if(id&&id.callsign) cs=String(id.callsign).toUpperCase(); }catch(e){}
+  try{
+    var b=JSON.parse(localStorage.getItem("pf_boost_v1")||"null");
+    var n=new Date(); try{ n=new Date(new Date().toLocaleString("en-US",{timeZone:"America/Chicago"})); }catch(_e){}
+    var dy=n.getFullYear()+"-"+((n.getMonth()+1)<10?"0":"")+(n.getMonth()+1)+"-"+(n.getDate()<10?"0":"")+n.getDate();
+    if(b&&b.creator&&b.date===dy){
+      var r=rosterBySlug(b.creator);
+      who=((r&&r.name)?String(r.name):String(b.creator).replace(/-/g," ")).toUpperCase();
+    }
+  }catch(e){}
+  if(cs&&who) return "FIGHTING AS "+cs+" \u00b7 SPREADING FOR "+who;
+  if(cs) return "FIGHTING AS "+cs;
+  if(who) return "SPREADING FOR "+who;
+  return "";
+}
+function raidWrapC(x,text,maxW){
+  var words=String(text).split(/\s+/), lines=[], line="";
+  words.forEach(function(w){ var t=line?line+" "+w:w;
+    if(x.measureText(t).width>maxW&&line){ lines.push(line); line=w; } else { line=t; } });
+  if(line) lines.push(line); return lines;
+}
+function drawRaidCard(cb){
+  var cur=raidCurrent(), tn=cur.tn, th=cur.th, tp=cur.tp, rr=cur.rr, tgt=cur.tgt;
+  var W=1080, H=1350, cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+  var x=cv.getContext("2d"); if(!x){ cb(null); return; }
+  x.fillStyle="#0d0d0d"; x.fillRect(0,0,W,H);
+  x.strokeStyle="#c1121f"; x.lineWidth=18; x.strokeRect(16,16,W-32,H-32);
+  x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(52,52,W-104,H-104);
+  x.textAlign="center";
+  var y=140;
+  x.fillStyle="#f5ead6"; x.font="700 32px Arial,sans-serif";
+  x.fillText("\u2605 THE PROPAGANDA FACTORY \u2605",W/2,y); y+=90;
+  x.fillStyle="#c1121f"; x.font='900 68px "Arial Black",Arial,sans-serif';
+  x.fillText("\u2694 BOOST RAID \u2694",W/2,y); y+=78;
+  x.fillStyle="#f5ead6"; x.font="700 30px Arial,sans-serif";
+  x.fillText("TODAY\u2019S TARGET",W/2,y); y+=48;
+  x.fillStyle="#c1121f"; x.font='900 64px "Arial Black",Arial,sans-serif';
+  raidWrapC(x,tn,W-170).slice(0,2).forEach(function(l){ x.fillText(l,W/2,y); y+=72; });
+  var sub=(th+(tp?" \u00b7 "+tp:"")).replace(/^\s+|\s+$/g,"");
+  if(sub){ y+=6; x.fillStyle="#f5ead6"; x.font="700 34px Arial,sans-serif";
+    raidWrapC(x,sub,W-170).slice(0,2).forEach(function(l){ x.fillText(l,W/2,y); y+=46; }); }
+  if(rr&&rr.score){ y+=10; x.fillStyle="#c1121f"; x.font='900 34px "Arial Black",Arial,sans-serif';
+    x.fillText("PROPAGANDA SCORE "+rr.score,W/2,y); y+=50; }
+  var bw=340, bh=340, bx=W/2-bw/2, by=y+24;
+  function paintGlyph(){
+    x.fillStyle="#161616"; x.fillRect(bx,by,bw,bh);
+    x.strokeStyle="#c1121f"; x.lineWidth=6; x.strokeRect(bx,by,bw,bh);
+    x.fillStyle="#c1121f"; x.font='900 150px "Arial Black",Arial,sans-serif';
+    x.fillText("\u2694",W/2,by+bh/2+52);
+  }
+  function finish(){
+    var yy=by+bh+30;
+    x.fillStyle="#c9bfa8"; x.font="400 30px Arial,sans-serif";
+    raidWrapC(x,tgt.m,W-210).slice(0,2).forEach(function(l){ x.fillText(l,W/2,yy); yy+=42; });
+    yy+=22;
+    var cta="JOIN THE RAID";
+    x.font='900 38px "Arial Black",Arial,sans-serif';
+    var tw=x.measureText(cta).width+100;
+    x.fillStyle="#c1121f"; x.fillRect(W/2-tw/2,yy-52,tw,80);
+    x.fillStyle="#ffffff"; x.fillText(cta,W/2,yy+8); yy+=66;
+    var st=raidSpreadLine();
+    if(st){ x.fillStyle="#c1121f"; x.font="700 28px Arial,sans-serif";
+      raidWrapC(x,st,W-170).slice(0,2).forEach(function(l){ x.fillText(l,W/2,yy); yy+=38; });
+      yy+=8; }
+    x.fillStyle="#c1121f"; x.font='900 40px "Arial Black",Arial,sans-serif';
+    x.fillText("MTCSTW.COM",W/2,H-64);
+    try{ cv._pfStamped=true; }catch(e){} /* raid card paints its own spread line */
+    cb(cv);
+  }
+  var imgUrl=(rr&&rr.img)?String(rr.img):"";
+  if(!imgUrl){ paintGlyph(); finish(); return; }
+  var done2=false, img=new Image();
+  function ok(){
+    if(done2) return; done2=true;
+    try{
+      var iw=img.naturalWidth||img.width, ih=img.naturalHeight||img.height;
+      if(iw&&ih){
+        var sc=Math.max(bw/iw,bh/ih), dw=iw*sc, dh=ih*sc;
+        x.save(); x.beginPath(); x.rect(bx,by,bw,bh); x.clip();
+        x.drawImage(img,bx+(bw-dw)/2,by+(bh-dh)/2,dw,dh); x.restore();
+        x.strokeStyle="#c1121f"; x.lineWidth=6; x.strokeRect(bx,by,bw,bh);
+      } else { paintGlyph(); }
+    }catch(e){ paintGlyph(); }
+    finish();
+  }
+  function bad(){ if(done2) return; done2=true; paintGlyph(); finish(); }
+  setTimeout(bad,3500);
+  img.onload=ok; img.onerror=bad;
+  try{ img.crossOrigin="anonymous"; }catch(e){}
+  try{ img.src=imgUrl; }catch(e){ bad(); }
+}
+(function regRaidPoster(){
+  try{ if(window.PFShare&&PFShare.setPoster){ PFShare.setPoster("boost-raid",drawRaidCard); return; } }catch(e){}
+  setTimeout(regRaidPoster,600);
+})();
+
 function syncFromServer(){
   var id=ident(); if(!id.callsign) return;
   apiGet(id.callsign,function(j){ mergeCheckinState(j); });
@@ -671,6 +874,7 @@ function render(){
   document.getElementById("oProg").textContent=Math.min(doneCount,PER_DAY)+"/"+PER_DAY+" orders complete";
   renderBoost();
   renderPatrons();
+  renderRaid();
   document.getElementById("oStreak").innerHTML="Current streak: <b>"+(d.o.streak||0)+"</b> day"+((d.o.streak||0)===1?"":"s")+((d.o.shields||0)>0?" &nbsp;\uD83D\uDEE1\uFE0F x"+d.o.shields:"");
   var s=d.o.streak||0;
   var nextMil=Object.keys(STREAK_BONUS).map(Number).filter(function(n){return n>s;}).sort(function(a,b){return a-b;})[0];
@@ -841,6 +1045,7 @@ if(_shareBtn){_shareBtn.addEventListener('click',function(){shareOrdersImage(_sh
 
 renderReset();
 if(!window._pfOrdersTick){ window._pfOrdersTick=setInterval(function(){ renderReset(); },60000); }
+if(!window._pfRaidTick){ window._pfRaidTick=setInterval(function(){ raidTick(); },1000); }
 render();
 syncFromServer();
 })();

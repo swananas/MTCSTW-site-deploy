@@ -1,4 +1,9 @@
 /* games/do-meter.js  |  PF v1.4.1 | Do Meter widget: template + points + share/sparkline
+   2026-10-03: Media Nuke main block folded in as the network blast meter
+   (games/media-nuke.js deleted; its sticky strip moved to core/17-nuke-strip.js).
+   This section is display-only: the canonical sync + event-sourced counter live
+   in the strip module (window.pfNukeStrip, "pf-nuke-update" events); it degrades
+   to a read-only xp_today poll if the strip module is killed.
    KILL: ?pf_off=do-meter  or  localStorage pf_disabled_v1='["do-meter"]' */
 
 (function () {
@@ -24,6 +29,24 @@
 <div class="d-fire" id="dFire" style="display:none"></div>
 <div class="d-types" id="dTypes"></div>
 <div class="d-spark" id="dSpark" aria-hidden="true"></div>
+<div id="slr-nuke">
+<div class="slr-nuke-kicker">Network Command</div>
+<h2>The <span class="slr-red">Media Nuke</span></h2>
+<p class="slr-nuke-sub">Master XP tracker &mdash; every mission charges the blast. When the bar fills, we own the news cycle.</p>
+<div class="slr-nuke-barwrap">
+  <div class="slr-nuke-fill" id="slr-nuke-fill"></div>
+  <div class="slr-nuke-label" id="slr-nuke-label">CHARGING&hellip;</div>
+</div>
+<div class="slr-nuke-status" id="slr-nuke-status"></div>
+<div class="slr-nuke-detail" id="slr-nuke-detail"></div>
+<div class="slr-nuke-you" id="slr-nuke-you"></div>
+<details class="slr-nuke-math">
+  <summary>The math</summary>
+  <p><strong>50,000 XP in one day = a media nuke.</strong> Every comrade caps at 50 XP of daily tasks per day, so a full bar means roughly <strong>1,000 comrades running full missions</strong> &mdash; tens of thousands of coordinated likes, comments, shares, and watch-throughs landing inside the platforms' first-hour velocity window.</p>
+  <p>That's the force it takes to push a hashtag onto the national trending page, get the TikTok/X trends desks buzzing, and force newsroom pickup. At 5M+ network reach, it only takes <strong>1% of the audience</strong> moving together.</p>
+  <p>When the bar fills, command issues the target, the hashtag, and the go-time. Until then: run your missions, charge the blast.</p>
+</details>
+</div>
 <div><button class="d-shareimg" id="dShareImg">Share network total</button><div class="d-sub" id="dShareCount" style="margin-top:6px"></div></div>
 
 <div class="d-boom" id="dBoom"><h3>&#128165; Target destroyed</h3><p>New orders incoming. The fuse is relit.</p></div>
@@ -340,6 +363,65 @@ function shareDoImage(btn){
     else{var u=cv.toDataURL('image/png');fetch(u).then(function(r){return r.blob();}).then(function(b){done(URL.createObjectURL(b),b);});}
   }catch(e){if(btn)btn.disabled=false;}
 }
+/* ---- MEDIA NUKE METER (folded 2026-10-03): the one network progress meter.
+   Display-only. The canonical sync + event-sourced daily-XP counter live in
+   core/17-nuke-strip.js (window.pfNukeStrip + "pf-nuke-update" events).
+   Degrades to a read-only xp_today poll when the strip module is killed. ---- */
+var NUKE_GOAL=50000;
+function nukeStateFor(pct){
+  if(pct>=100) return {cls:"st-armed",text:"\u2622 MEDIA NUKE ARMED \u2622"};
+  if(pct>=60) return {cls:"st-critical",text:"CRITICAL MASS \u2014 all hands on deck"};
+  if(pct>=25) return {cls:"st-charging",text:"CHARGING \u2014 spread the missions"};
+  return {cls:"st-dormant",text:"DORMANT \u2014 the network sleeps"};
+}
+/* Read-only peek at the strip module's event-sourced counter (owned there —
+   never written from here, so a task can never charge the blast twice). */
+function nukeLocalRead(){
+  try{ var s=JSON.parse(localStorage.getItem("pf_nuke_local_v2")||"null");
+    var t=new Date().toISOString().slice(0,10);
+    if(s&&s.d===t) return Number(s.xp)||0; }catch(e){}
+  return 0;
+}
+function nukePoll(cb){
+  var done=false, burl="";
+  try{ burl=window.PF_BACKEND_URL||"https://pf-api.mtcstw.workers.dev"; }catch(e){}
+  function fin(st){ if(done) return; done=true; try{ cb(st); }catch(e){} }
+  try{
+    var cbn="pfNukeDoCb"+Date.now();
+    window[cbn]=function(d){ try{delete window[cbn];}catch(e){}
+      var sc=document.getElementById(cbn); if(sc&&sc.parentNode) sc.parentNode.removeChild(sc);
+      if(d&&d.ok) fin({xp:Number(d.xp_today)||0,comrades:Number(d.comrades)||0,mode:"network"});
+      else fin({xp:0,comrades:0,mode:"local"}); };
+    var sc=document.createElement("script"); sc.id=cbn;
+    sc.src=burl+"?action=xp_today&callback="+cbn;
+    sc.onerror=function(){ try{delete window[cbn];}catch(e){} fin({xp:0,comrades:0,mode:"local"}); };
+    document.head.appendChild(sc);
+    /* 12s backstop — a hung request must not freeze the headline bar. */
+    setTimeout(function(){ if(window[cbn]){ try{delete window[cbn];}catch(e){} if(sc.parentNode) sc.parentNode.removeChild(sc); fin({xp:0,comrades:0,mode:"local"}); } },12000);
+  }catch(e){ fin({xp:0,comrades:0,mode:"local"}); }
+}
+function nukeState(cb){
+  try{ if(window.pfNukeStrip&&window.pfNukeStrip.state){ cb(window.pfNukeStrip.state()); return; } }catch(e){}
+  nukePoll(function(st){ if(st.mode==="local") st.xp=nukeLocalRead(); cb(st); });
+}
+function paintNuke(st){
+  var root=document.getElementById("slr-nuke"); if(!root) return;
+  st=st||{};
+  var xp=Number(st.xp)||0, goal=Number(st.goal)||NUKE_GOAL, comrades=Number(st.comrades)||0;
+  var pct=Math.min(100,(xp/goal)*100), nst=nukeStateFor(pct);
+  var fill=document.getElementById("slr-nuke-fill"); if(fill) fill.style.width=pct+"%";
+  var label=document.getElementById("slr-nuke-label"); if(label) label.textContent=fmt(xp)+" / "+fmt(goal)+" XP";
+  var status=document.getElementById("slr-nuke-status"); if(status) status.innerHTML='<span class="'+nst.cls+'">'+nst.text+'</span>';
+  var detail=document.getElementById("slr-nuke-detail");
+  if(detail) detail.textContent=(st.mode==="network")?(comrades+" comrades in the fight today \u2014 network sync live"):"network sync offline \u2014 showing this device only";
+  var you=document.getElementById("slr-nuke-you");
+  if(you) you.innerHTML="Your charge today: <strong>"+fmt(nukeLocalRead())+" XP</strong> \u2014 run missions to push the bar";
+  root.classList.toggle("armed",pct>=100);
+}
+function refreshNuke(){ nukeState(paintNuke); }
+document.addEventListener("pf-nuke-update",function(e){ try{ paintNuke((e&&e.detail)||{}); }catch(err){} });
+refreshNuke();
+if(!window._pfNukeDoTick){ window._pfNukeDoTick=setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} refreshNuke(); },90000); }
 Object.keys(PTS).forEach(function(type){
   document.addEventListener(type,function(e){
     var d=(e&&e.detail)||{};var key=type+'|'+(d.day||d.week||'')+'|'+(d.mission!==undefined?d.mission:'')+'|'+(d.amt||'')+'|'+(d.archetype||'');

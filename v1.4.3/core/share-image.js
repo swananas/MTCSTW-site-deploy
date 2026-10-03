@@ -32,11 +32,6 @@
       lines: ['The network counts every thing done.', 'Goal: 5 million things.'],
       cta: 'DO A THING'
     },
-    'daily-drop': {
-      title: '\u2605 THE DAILY DROP \u2605', tag: 'Fresh slop, daily',
-      lines: ['A new drop every day of the offensive.', 'Claim it. Share it. Spread it.'],
-      cta: 'CLAIM THE DROP'
-    },
     'billionaire-supervillain': {
       title: 'BILLIONAIRE OR SUPERVILLAIN?', tag: 'One quote. Two monsters. You decide.',
       lines: ['A new quote every day.', 'Billionaire or supervillain \u2014 can you tell them apart?'],
@@ -46,11 +41,6 @@
       title: 'THE DAILY INTERROGATION', tag: 'One question. Every day. No mercy.',
       lines: ['Test your propaganda literacy.', 'Streak or you\u2019re a liberal.'],
       cta: 'ANSWER NOW'
-    },
-    'media-nuke': {
-      title: 'THE MEDIA NUKE', tag: 'NETWORK COMMAND',
-      lines: ['Drop synchronized content bombs.', 'One message. Every platform. At once.'],
-      cta: 'ARM THE NUKE'
     },
     'caption-combat': {
       title: 'CAPTION COMBAT', tag: 'One template. One week. Infinite psyops.',
@@ -88,9 +78,9 @@
       cta: 'JOIN THE RAID'
     }
   };
-  var ORDER = ['fan-vote', 'slr-match-quiz', 'creator-guess', 'bracket-board', 'daily-orders', 'boost-raid', 'do-meter', 'daily-drop',
+  var ORDER = ['fan-vote', 'slr-match-quiz', 'creator-guess', 'bracket-board', 'daily-orders', 'boost-raid', 'do-meter',
                'billionaire-supervillain', 'daily-interrogation',
-               'media-nuke', 'caption-combat', 'poster-forge', 'enlistment-ranks', 'war-bonds'];
+               'caption-combat', 'poster-forge', 'enlistment-ranks', 'war-bonds'];
   var SHARE_LABEL = 'SHARE IMAGE';
   var SAVE_LABEL = 'SAVE IMAGE TO PHONE';
   /* Custom per-game poster painters: silos register an async painter

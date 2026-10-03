@@ -41,6 +41,7 @@ var BUNDLES = {
     'core/13-flow.js',
     'core/15-seo.js',
     'core/campaign-data.js',
+    'core/17-nuke-strip.js',
     'core/16-footer.js'
   ],
   'pages/bundle-pages': [
@@ -48,6 +49,8 @@ var BUNDLES = {
     'pages/political-hq.js',
     'pages/slr-roster.js',
     'pages/slr-catalog.js',
+    'pages/page-mount.js',
+    'games/notify.js',
     'core/06-pinups.js',
     'core/share-image.js'
   ]

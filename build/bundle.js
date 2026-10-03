@@ -1,24 +1,29 @@
 #!/usr/bin/env node
-/* build/bundle.js — Concatenate v1.4.3 game silos into 7 section bundles.
+/* build/bundle.js — Concatenate v1.4.3 game silos into per-page bundles.
  *
  * WHY WHOLE-FILE CONCAT: each game file is a self-contained IIFE that (1)
  * checks PF.skip() for its kill switch, then (2) stages a <template> into
- * PF.holder(). Concatenating whole files preserves both behaviors exactly.
- * Extracting inner scripts would break the staging mechanism. Each file is
- * its own namespace guard (IIFE) so concatenation is collision-safe.
+ * PF.holder() (or self-mounts). Concatenating whole files preserves both
+ * behaviors exactly. Extracting inner scripts would break the staging
+ * mechanism. Each file is its own namespace guard (IIFE) so concatenation
+ * is collision-safe.
  *
- * BUNDLES (2026-10-02): one per homepage funnel section (see
- * pages/home-v2.js SECTIONS). The loader fetches sec1 with the critical
- * path and lazy-loads sec2..sec7 per section as the user scrolls.
- * Cache win: change one widget → only its section bundle invalidates.
+ * BUNDLES (2026-10-03): one per page/destination after the homepage
+ * slimming (see pages/home-v2.js ORDER + pages/page-mount.js PAGE_ORDERS).
+ * Homepage = bundle-sec1 in the critical path + bundle-home lazy-loaded
+ * as ONE bundle for the PLAY/BELONG/CREATE/FUND/ACT/PROOF sections.
+ * Dedicated pages (/arcade, /cells, /create, /bank, /economy, /war-chest,
+ * /ventures, /events, /war-report, SLR roster/catalog) fetch only the
+ * bundle(s) they mount. /political-hq fetches bundle-hq.
+ * Cache win: change one widget → only its page bundle invalidates.
  *
  * Minification: terser (node_modules) with --compress --mangle. Falls back
  * to raw on error. Pass --debug to write unminified bundles instead.
  *
  * Usage: node build/bundle.js [--debug]
- * Output: v1.4.3/games/bundle-sec1.js … bundle-sec7.js + bundle-hq.js
- * (bundle-hq.js = HQ-only silos for /political-hq; loaded on demand by the
- *  footer loader, never in the homepage critical path or lazy set.)
+ * Output: v1.4.3/games/bundle-*.js (one per page/destination; bundle-hq.js
+ * = HQ-only silos for /political-hq, loaded on demand by the footer
+ * loader, never in the homepage critical path or lazy set.)
  */
 'use strict';
 var fs = require('fs');
@@ -28,100 +33,107 @@ var cp = require('child_process');
 var ROOT = path.join(__dirname, '..', 'v1.4.3', 'games');
 var DEBUG = process.argv.indexOf('--debug') !== -1;
 
-/* Section -> silo files. Mirrors pages/home-v2.js SECTIONS/ORDER.
-   Non-ORDER silos get a home by affinity:
-   - service-medals: hooks into #pf-ranks (sec1)
-   - cell-hq, war-card: Creator HQ mounts (sec3, cell affinity)
-   - creator-assist: creator tooling (sec4)
-   - efficiency: background service painting roster scores (sec7)
-   HQ silos (civic, governance, notify-prefs) mount ONLY on /political-hq and
-   live in the separate HQ_BUNDLES set below — never in the homepage
-   section bundles (~31KB saved per homepage visit). */
+/* Bundle -> silo files. Mirrors pages/home-v2.js ORDER (homepage) and
+   pages/page-mount.js PAGE_ORDERS (dedicated pages). Every game .js file
+   lives in exactly one bundle — the build enforces this below. */
 var SECTIONS = {
   'bundle-sec1': [
-    /* START HERE — hook & daily loop. In critical path (loads blocking). */
+    /* HOMEPAGE START HERE — hook & daily loop. In critical path (blocking). */
     'briefing.js',
     'do-meter.js',
     'daily-orders.js',
     'dopamine.js',
     'enlistment-ranks.js',
     'service-medals.js',
-    'notify.js',
     'social-proof.js'
+    /* notify.js is global chrome (header bell) — it ships in
+       pages/bundle-pages.js via build/bundle-core.js, not a page bundle. */
   ],
-  'bundle-sec2': [
-    /* PLAY — games arcade. */
-    'caption-combat.js',
+  'bundle-home': [
+    /* HOMEPAGE PLAY/BELONG/CREATE/FUND/ACT/PROOF — lazy-loaded as one bundle
+       when those sections scroll near. Also fetched BLOCKING on /arcade (5
+       of its 9 games live here) and /create (poster-forge, feed). */
+    'spotlight.js',
     'creator-guess.js',
-    'slr-match-quiz.js',
     'daily-interrogation.js',
     'billionaire-supervillain.js',
-    'bracket-board.js',
-    'boost-raid.js',
-    'daily-drop.js',
-    'battles.js',
+    'slr-match-quiz.js',
     'infighting.js',
-    'media-nuke.js',
+    'cells.js',
+    'referral.js',
+    'poster-forge.js',
+    'feed.js',
+    'political-hq-nudge.js',
+    'war-bonds.js',
+    'campaign.js',
+    'alerts.js',
+    'fan-vote.js'
+  ],
+  'bundle-arcade': [
+    /* /arcade — the 4 arcade games not already in bundle-home. */
+    'caption-combat.js',
+    'bracket-board.js',
+    'battles.js',
     'casino.js'
   ],
-  'bundle-sec3': [
-    /* BELONG — cells & squads. */
-    'cells.js',
+  'bundle-cells': [
+    /* /cells (+ Creator HQ) — the cell lifecycle. */
     'cell-hq.js',
     'cell-war.js',
     'diplomacy.js',
     'contracts.js',
-    'referral.js',
     'war-card.js'
   ],
-  'bundle-sec4': [
-    /* CREATE — creator tools. */
+  'bundle-create': [
+    /* /create (+ Creator HQ) — creator tooling. */
     'academy.js',
-    'assist.js',
     'creator-assist.js',
-    'poster-forge.js',
-    'video.js',
-    'feed.js',
-    'amplify.js',
-    'political-hq-nudge.js',
     'armory.js',
-    'archive.js',
-    'dashboard.js'
+    'dashboard.js',
+    'earnings.js'
   ],
-  'bundle-sec5': [
-    /* FUND — economy & money. */
+  'bundle-bank': [
+    /* /bank — the People's Bank. */
     'peoplesbank.js',
-    'economy.js',
-    'war-bonds.js',
-    'movement.js',
-    'earnings.js',
-    'bounties.js',
-    'ventures.js',
     'vault.js'
   ],
-  'bundle-sec6': [
-    /* ACT — action & intel. */
-    'campaign.js',
-    'alerts.js',
-    'irl.js',
-    'intel.js'
+  'bundle-economy': [
+    /* /economy — Run the Economy. */
+    'economy.js'
   ],
-  'bundle-sec7': [
-    /* PROOF — social validation. */
-    'fan-vote.js',
-    'efficiency.js',
+  'bundle-warchest': [
+    /* /war-chest — Movement Finance. */
+    'movement.js'
+  ],
+  'bundle-ventures': [
+    /* /ventures — Joint Ventures. */
+    'ventures.js'
+  ],
+  'bundle-events': [
+    /* /events — Boots on the Ground. */
+    'irl.js'
+  ],
+  'bundle-warreport': [
+    /* /war-report — the weekly digest. */
     'war-report.js'
+  ],
+  'bundle-roster': [
+    /* SLR roster/catalog pages — the live Efficiency Index painter. */
+    'efficiency.js'
   ]
 };
 
-/* HQ-only bundle: civic, governance, notify-prefs mount ONLY on /political-hq
-   (pages/political-hq.js). Loaded by the footer loader only when
-   #pf-political-hq is present — NOT on the homepage or other pages. */
+/* HQ bundle: civic, governance, notify-prefs mount ONLY on /political-hq
+   (pages/political-hq.js) — plus Know Your Enemy (intel.js), moved here
+   2026-10-03 from the homepage ACT section. Loaded by the footer loader
+   only when #pf-political-hq is present — never on the homepage or other
+   pages. */
 var HQ_BUNDLES = {
   'bundle-hq': [
     'civic.js',
     'governance.js',
-    'notify-prefs.js'
+    'notify-prefs.js',
+    'intel.js'
   ]
 };
 
@@ -131,7 +143,9 @@ Object.keys(HQ_BUNDLES).forEach(function (k) { ALL[k] = HQ_BUNDLES[k]; });
 
 function fail(msg) { console.error('BUNDLE FAIL: ' + msg); process.exit(1); }
 
-/* Every game .js file must live in exactly one section or HQ bundle. */
+/* Every game .js file must live in exactly one page or HQ bundle — or in
+   GLOBAL_CHROME, which ships via build/bundle-core.js (pages/bundle-pages.js
+   loads on every v2 page) instead of a page bundle. */
 var allFiles = fs.readdirSync(ROOT).filter(function (f) { return f.slice(-3) === '.js'; });
 var bundled = [];
 Object.keys(ALL).forEach(function (b) {
@@ -140,10 +154,21 @@ Object.keys(ALL).forEach(function (b) {
     bundled.push(f);
   });
 });
-/* Dead code: bank.js superseded by peoplesbank.js, intentionally excluded. */
-var DEAD = ['bank.js'];
+/* Dead code, intentionally excluded from every bundle:
+   - bank.js superseded by peoplesbank.js.
+   - 2026-10-03 homepage slimming consolidated daily-drop, daily-fire,
+     boost-raid, media-nuke, video, amplify, archive, bounties, assist into
+     other silos — their files are being deleted; the build must not fail
+     on their absence (or their presence, mid-migration). */
+var DEAD = ['bank.js', 'daily-drop.js', 'daily-fire.js', 'boost-raid.js',
+  'media-nuke.js', 'video.js', 'amplify.js', 'archive.js', 'bounties.js',
+  'assist.js'];
+/* Global chrome: notify.js (header bell) is bundled by build/bundle-core.js
+   into pages/bundle-pages.js — intentionally excluded from page bundles. */
+var GLOBAL_CHROME = ['notify.js'];
 var unbundled = allFiles.filter(function (f) {
-  return bundled.indexOf(f) === -1 && f.indexOf('bundle-') !== 0 && DEAD.indexOf(f) === -1;
+  return bundled.indexOf(f) === -1 && f.indexOf('bundle-') !== 0 &&
+    DEAD.indexOf(f) === -1 && GLOBAL_CHROME.indexOf(f) === -1;
 });
 if (unbundled.length) fail('unbundled game files: ' + unbundled.join(', '));
 
@@ -206,6 +231,6 @@ Object.keys(ALL).forEach(function (name) {
   console.log(name + '.js: ' + files.length + ' files, ' + (bytes / 1024).toFixed(1) +
     ' KB (' + saved + '% smaller than raw) — OK');
 });
-console.log('All section bundles built and validated.' +
+console.log('All game bundles built and validated.' +
   (totalRaw ? ' Total: ' + (totalRaw / 1024).toFixed(0) + ' KB raw -> ' +
   (totalOut / 1024).toFixed(0) + ' KB shipped.' : ''));

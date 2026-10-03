@@ -109,6 +109,13 @@ window.pfCellMult=function(){
 function setCache(mult,cell_id,name){ save(LS_C,{mult:mult||1,cell_id:cell_id||"",name:name||"",t:Date.now()}); }
 
 var state=null, board=null, busy=false, netFailed=false;
+/* Display modes (2026-10-03 homepage slimming): full management depth on
+   /cells (pf-cells-page) and /arcade (pf-arcade); slim on the homepage
+   (pf-v2) — pitch + join form + leaderboard teaser + check-in. */
+var PF_MODE=(function(){ try{
+  if(document.getElementById('pf-arcade')||document.getElementById('pf-cells-page')) return 'full';
+}catch(e){} return 'slim'; })();
+var SLIM=PF_MODE==='slim';
 function refresh(quiet){
   var id=ident();
   if(!id.callsign){ renderGate(); return; }
@@ -172,7 +179,9 @@ function loadBoard(){
     var el=document.getElementById("cBoard");
     if(!el) return;
     if(!j||!j.cells||!j.cells.length){ el.innerHTML='<div class="c-empty">No cells on the board yet. The first founder&rsquo;s name goes here.</div>'; return; }
-    var html=j.cells.map(function(c,i){
+    /* SLIM: leaderboard teaser — top 3 + link to the full board on /cells. */
+    var rows=SLIM?j.cells.slice(0,3):j.cells;
+    var html=rows.map(function(c,i){
       var pfl=c.prestige_flame?' <span class="c-prb" style="margin-left:4px;" title="'+esc(c.prestige_tier||"")+' cell">'+c.prestige_flame+'</span>':"";
       return '<div class="c-brow'+(i===0?" c-btop":"")+'"><span class="c-brank">'+(i+1)+'</span>'+
         '<span class="c-bname">'+esc(c.name)+pfl+
@@ -180,6 +189,7 @@ function loadBoard(){
         '<span class="c-bstat">'+c.streak+' streak &middot; '+c.members+'/5</span></div>';
     }).join("");
     el.innerHTML=html;
+    if(SLIM){ el.insertAdjacentHTML('beforeend','<div class="x-note"><a href="/cells" style="color:#c1121f;">Full cell leaderboard &rarr;</a></div>'); }
   });
 }
 function renderGate(){
@@ -214,14 +224,24 @@ function render(){
   renderCell(el,state);
 }
 function renderLobby(el){
-  el.innerHTML=
-    '<div class="c-pitch">No cells exist yet &mdash; <b>found the first one</b> and your name goes on the wall.'+
-    '<br>Five callsigns. One streak. Every day the whole cell checks in, the streak climbs and everyone banks <b>+5% XP on Daily Orders</b> &mdash; up to <b>+50%</b>.</div>'+
+  /* SLIM (homepage): pitch + join form only. Steps + search are full-mode
+     depth for /cells. */
+  var stepsHtml=SLIM?"":
     '<div class="c-steps">'+
     '<div class="c-step"><span class="c-snum">1</span><span>Form your cell below, or join with a code.</span></div>'+
     '<div class="c-step"><span class="c-snum">2</span><span>Check in daily after your orders.</span></div>'+
     '<div class="c-step"><span class="c-snum">3</span><span>Streak climbs. Miss a day and a cellmate covers you once a week.</span></div>'+
-    '</div>'+
+    '</div>';
+  var searchHtml=SLIM?"":
+    '<div class="c-pane"><h4>Find a cell</h4>'+
+    '<input aria-label="NAME OR STATE" id="cSearch" maxlength="32" placeholder="NAME OR STATE" autocomplete="off">'+
+    ' <button class="c-btn" id="cSearchBtn">Search</button>'+
+    '<div class="c-err" id="cSearchErr"></div>'+
+    '<div id="cSearchRes"></div></div>';
+  el.innerHTML=
+    '<div class="c-pitch">No cells exist yet &mdash; <b>found the first one</b> and your name goes on the wall.'+
+    '<br>Five callsigns. One streak. Every day the whole cell checks in, the streak climbs and everyone banks <b>+5% XP on Daily Orders</b> &mdash; up to <b>+50%</b>.</div>'+
+    stepsHtml+
     '<div class="c-lobby">'+
     '<div class="c-pane"><h4>Form a cell</h4>'+
     '<input aria-label="CELL NAME" id="cName" maxlength="24" placeholder="CELL NAME" autocomplete="off">'+
@@ -233,12 +253,9 @@ function renderLobby(el){
     '<br><button class="c-btn" id="cJoin">Join cell</button>'+
     '<div class="c-err" id="cJoinErr"></div></div>'+
     '</div>'+
-    '<div class="c-pane"><h4>Find a cell</h4>'+
-    '<input aria-label="NAME OR STATE" id="cSearch" maxlength="32" placeholder="NAME OR STATE" autocomplete="off">'+
-    ' <button class="c-btn" id="cSearchBtn">Search</button>'+
-    '<div class="c-err" id="cSearchErr"></div>'+
-    '<div id="cSearchRes"></div></div>'+
-    '<div class="c-bounty">Share your cell code: <b>+25 XP</b> every time your recruit checks in.</div>';
+    searchHtml+
+    '<div class="c-bounty">Share your cell code: <b>+25 XP</b> every time your recruit checks in.</div>'+
+    (SLIM?'<div class="x-note">Full cell management &mdash; search, prestige, challenges &mdash; lives at <a href="/cells" style="color:#c1121f;">/cells</a>.</div>':'');
   document.getElementById("cCreate").onclick=function(){
     var nm=document.getElementById("cName").value, id=ident(), err=document.getElementById("cCreateErr");
     err.textContent="";
@@ -293,7 +310,57 @@ function renderLobby(el){
     });
   };
 }
+/* SLIM (homepage): the check-in card only. Members list, prestige, chainlink
+   bar, challenges, health, rename, leave — all full-mode depth on /cells. */
+function renderCellSlim(el,s){
+  var c=s.cell, pct=Math.round((c.mult-1)*100), id=ident();
+  var html='<div class="c-card">'+
+    '<div class="c-chead"><span class="c-cname">'+esc(c.name)+'</span>'+
+    (c.verified?'<span class="c-vfy" title="2+ callsigns strong">&#10003; VERIFIED</span>':'')+
+    '<span class="c-code" id="cCodeShow" title="Tap to copy">'+esc(c.invite_code)+'</span></div>'+
+    '<div class="c-cstats"><span class="c-flame">&#128293; '+c.streak+'-day streak</span>'+
+    '<span class="c-mult">+'+pct+'% XP on Daily Orders</span></div>';
+  if(!s.checked_today){
+    html+='<button class="c-btn c-big" id="cCheckin">Orders done &mdash; check in</button>';
+  } else {
+    html+='<div class="c-done">Checked in today. The streak holds because of you.</div>';
+  }
+  if(s.cover_for){
+    html+='<button class="c-btn c-cover" id="cCover">Cover '+esc(s.cover_for)+' &mdash; save the streak</button>';
+  }
+  html+='<div class="x-note"><a href="/cells" style="color:#c1121f;">Manage your cell &rarr;</a> members, prestige, challenges, the full board.</div>';
+  html+='<div class="c-err" id="cActErr"></div></div>';
+  el.innerHTML=html;
+  var errEl=document.getElementById("cActErr");
+  document.getElementById("cCodeShow").onclick=function(){
+    var code=c.invite_code;
+    try{
+      if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(code); toast("Code copied: "+code); }
+      else { toast("Cell code: "+code); }
+    }catch(e){ toast("Cell code: "+code); }
+  };
+  var ci=document.getElementById("cCheckin");
+  if(ci) ci.onclick=function(){
+    errEl.textContent="";
+    api("cell_checkin",{callsign:id.callsign,device:id.device,cell_id:c.id},function(j){
+      if(!j||!j.ok){ errEl.textContent=(j&&j.err)||"Network error."; return; }
+      if(j.already){ toast("Already checked in."); }
+      else { toast("Checked in. Streak: "+j.cell.streak+"."); try{ if(window.pfReportAction) window.pfReportAction("cell_checkin"); }catch(e){} }
+      refresh();
+    });
+  };
+  var cv=document.getElementById("cCover");
+  if(cv) cv.onclick=function(){
+    errEl.textContent="";
+    api("cell_cover",{callsign:id.callsign,device:id.device,cell_id:c.id},function(j){
+      if(!j||!j.ok){ errEl.textContent=(j&&j.err)||"No cover to play."; return; }
+      toast("Cover played — "+j.covered+" is saved. Streak: "+j.streak+".");
+      refresh();
+    });
+  };
+}
 function renderCell(el,s){
+  if(SLIM){ renderCellSlim(el,s); return; }
   var c=s.cell, pct=Math.round((c.mult-1)*100);
   var mems=(s.members||[]).map(function(m){
     var role=String(m.role||"member").toUpperCase();

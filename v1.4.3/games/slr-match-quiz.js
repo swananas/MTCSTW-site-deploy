@@ -18,6 +18,9 @@
 '<script>\n' +
 '(function(){\n' +
 '  "use strict";\n' +
+'  /* Display modes (2026-10-03): slim compact card on the homepage (pf-v2);\n' +
+'     full quiz on /arcade (pf-arcade). Template id unchanged. */\n' +
+'  var PF_MODE=(function(){try{if(document.getElementById("pf-arcade")||document.getElementById("pf-cells-page"))return"full";}catch(e){}return"slim";})();\n' +
 '  var ARCH={\n' +
 '    agitator:{name:"THE AGITATOR",desc:"You start fights the ruling class finishes losing. Loud, relentless, allergic to civility politics.",test:function(m){return (m.propaganda_score||0)>=9.0;}},\n' +
 '    meme:{name:"THE MEME SMITH",desc:"You forge jokes into weapons. One image from you does more damage than a thinkpiece.",test:function(m){return /meme|satire|comedy|animator|parody/i.test((m.content_focus||"")+" "+(m.bio||""));}},\n' +
@@ -71,6 +74,20 @@
 '    document.getElementById("pf-mq-start").onclick=function(){qi=0;scores={agitator:0,meme:0,organizer:0,sniper:0,hype:0};renderQ();};\n' +
 '    loadTribes(function(){var t=document.getElementById("pf-mq-tribes");if(!t)return;\n' +
 '      if(!TRIBES){return;}\n' +
+'      var tot=0,bk="",bn=-1,k;for(k in TRIBES){if(k==="unknown")continue;tot+=Number(TRIBES[k])||0;if((Number(TRIBES[k])||0)>bn){bn=Number(TRIBES[k])||0;bk=k;}}\n' +
+'      if(tot>0&&ARCH[bk])t.innerHTML="<b style=\'color:#f5f0e1;\'>"+tot.toLocaleString()+"</b> comrades matched this week \\u2014 biggest tribe: <b style=\'color:#f5f0e1;\'>"+ARCH[bk].name+"</b> ("+bn.toLocaleString()+")";});\n' +
+'  }\n' +
+'  /* SLIM: compact homepage card — the full quiz lives on /arcade. */\n' +
+'  function renderCompact(){\n' +
+'    var st=getStreak();\n' +
+'    var h="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\'>DAILY MATCHUP</div>"\n' +
+'      +(st.n>0?"<div style=\'margin:0.5rem 0;font-size:0.95rem;\'>&#128293; <b>"+st.n+"-day streak</b> \\u2014 keep it burning</div>"\n' +
+'        :"<div style=\'margin:0.5rem 0;font-size:0.9rem;color:#b8ab8e;\'>New question shuffle every day. Play daily, build a streak.</div>")\n' +
+'      +"<div id=\'pf-mq-tribes\' style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:1rem;min-height:1.2em;\'>Loading today\\u2019s tribes\\u2026</div>"\n' +
+'      +"<a href=\'/arcade\' style=\'display:inline-block;padding:0.8rem 2.2rem;background:#c1121f;color:#f5f0e1;font-weight:900;font-size:1rem;letter-spacing:0.1em;text-decoration:none;\'>PLAY THE QUIZ \\u2192</a>";\n' +
+'    body.innerHTML=h;\n' +
+'    loadTribes(function(){var t=document.getElementById("pf-mq-tribes");if(!t)return;\n' +
+'      if(!TRIBES){t.innerHTML="The tribes are quiet today \\u2014 be the first to play.";return;}\n' +
 '      var tot=0,bk="",bn=-1,k;for(k in TRIBES){if(k==="unknown")continue;tot+=Number(TRIBES[k])||0;if((Number(TRIBES[k])||0)>bn){bn=Number(TRIBES[k])||0;bk=k;}}\n' +
 '      if(tot>0&&ARCH[bk])t.innerHTML="<b style=\'color:#f5f0e1;\'>"+tot.toLocaleString()+"</b> comrades matched this week \\u2014 biggest tribe: <b style=\'color:#f5f0e1;\'>"+ARCH[bk].name+"</b> ("+bn.toLocaleString()+")";});\n' +
 '  }\n' +
@@ -150,9 +167,8 @@
 '    };\n' +
 '    document.getElementById("pf-mq-again").onclick=function(){qi=0;scores={agitator:0,meme:0,organizer:0,sniper:0,hype:0};renderQ();};\n' +
 '  }\n' +
-'  renderStart();\n' +
-'  setTimeout(mqRestore,1500);\n' +
-'  setTimeout(mqRestore,5000);\n' +
+'  if(PF_MODE==="slim"){ renderCompact(); }\n' +
+'  else { renderStart(); setTimeout(mqRestore,1500); setTimeout(mqRestore,5000); }\n' +
 '})();\n' +
 '<\/script>\n' +
 '</div>\n' +

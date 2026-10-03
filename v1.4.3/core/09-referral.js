@@ -96,8 +96,6 @@ function pollCount(){
     if(fresh>0){
       try{ document.dispatchEvent(new CustomEvent('pf-recruit-credited',
         {detail:{recruits:fresh,total:total}})); }catch(e4){}
-      /* Namespaced form for the event bus — producer never knows the consumer. */
-      try{ if(window.PF&&PF.emit) PF.emit('pf:recruit:activated',{recruits:fresh,total:total,recruiter:me}); }catch(e5){}
     }
   };
   var s=document.createElement('script');

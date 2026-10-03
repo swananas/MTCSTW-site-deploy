@@ -59,14 +59,12 @@
       .then(function (r) { if (!r.ok) throw new Error('slr-db HTTP ' + r.status); return r.json(); })
       .then(function (d) {
         if (!apply(d)) throw new Error('slr-db bad payload');
-        PF.emit('pf:slr-db-ready', { count: MEMBERS.length, fetched: true });
         return MEMBERS;
       })
       .catch(function (err) {
         MEMBERS = [];
         try { PF.slrLegacy = []; } catch (e) {}
         PF.error('slr-db', err);
-        PF.emit('pf:slr-db-ready', { count: 0, failed: true });
         return MEMBERS;
       });
   }

@@ -156,7 +156,6 @@ function checkStreakMilestone(j){
         seen["m"+m]=1;
         try{ localStorage.setItem("pf_streak_ms_v1",JSON.stringify(seen)); }catch(e2){}
         levelUpOverlay(m+"-DAY STREAK");
-        try{ if(window.PF&&PF.emit) PF.emit("pf:streak:milestone",{days:m,count:count}); }catch(e3){}
         break;
       }
     }
@@ -300,8 +299,6 @@ function wire(){
           /* Epic/legendary pulls get a share prompt — dopamine peak meets social outlet. */
           var spb=document.getElementById("dpSharePull");
           if(spb){ (function(rw,rkk){ spb.onclick=function(){ shareLoot(rw,rkk); }; })(r,rk); }
-          /* Emit namespaced event for any other consumer (cell brag, feed, etc). */
-          try{ if(window.PF&&PF.emit) PF.emit("pf:loot:opened",{rarity:r.rarity,xp:r.xp||0,label:r.label||""}); }catch(ee){}
         }
         if(crate){ crate.classList.add("dp-burst"); }
         try{ if(window.PF&&PF.dope){ PF.dope.confetti(document.getElementById("pf-dopa"),40); PF.dope.xpFloat(document.getElementById("pf-dopa"),"+"+Number(r.xp||0)+" XP"); } }catch(e){}

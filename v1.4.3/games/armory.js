@@ -35,7 +35,6 @@
   function armState() {
     try { return JSON.parse(localStorage.getItem(LS_ARM) || '{}'); } catch (e) { return {}; }
   }
-  function saveArm(s) { try { localStorage.setItem(LS_ARM, JSON.stringify(s)); } catch (e) {} }
 
   /* Global helper: apply equipped frame + flair to any callsign element.
      Used by the armory preview and patched into enlistment-ranks. */
@@ -61,46 +60,6 @@
       '<span' + (color ? ' style="color:' + color + ';font-weight:bold"' : '') + '>' +
       (cs ? 'FIGHTING AS ' + name : name) + '</span></span>';
   };
-
-  function ident() {
-    try {
-      var id = JSON.parse(localStorage.getItem(LS_I) || '{}');
-      return { callsign: String(id.callsign || '').toLowerCase(), device: String(id.device || '') };
-    } catch (e) { return { callsign: '', device: '' }; }
-  }
-  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
-    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-
-  function get(action, params, cb) {
-    var fn = 'pfArm' + Math.random().toString(36).slice(2);
-    var done = false;
-    function finish(j) { if (done) return; done = true;
-      try { delete window[fn]; } catch (e) {}
-      var s = document.getElementById(fn); if (s && s.parentNode) s.parentNode.removeChild(s);
-      cb(j); }
-    window[fn] = function (j) { finish(j); };
-    var q = '?action=' + encodeURIComponent(action);
-    for (var k in params) { if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }
-    var s = document.createElement('script');
-    s.id = fn; s.src = BACKEND + q + '&callback=' + fn;
-    s.onerror = function () { finish(null); };
-    document.head.appendChild(s);
-    setTimeout(function () { finish(null); }, 12000);
-  }
-  function post(sAction, params, cb) {
-    var body = Object.assign({ type: 'sink', s_action: sAction }, params);
-    if (window.PF && PF.authPost) { PF.authPost(BACKEND, body, cb); return; }
-    fetch(BACKEND, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-      .then(function (r) { return r.json(); })
-      .then(function (j) { cb(j); })
-      .catch(function () { cb(null); });
-  }
-  function toast(m) { try { if (window.PF && PF.toast) PF.toast(m); } catch (e) {} }
-  function xpDebit(cost) {
-    try {
-      document.dispatchEvent(new CustomEvent('pf-xp', { detail: { gain: -cost, key: 'armory_' + Date.now(), reason: 'armory purchase', nolx: false } }));
-    } catch (e) {}
-  }
 
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-armory">
 <div id="pf-armory">

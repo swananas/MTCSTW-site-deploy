@@ -19,20 +19,12 @@
       var msg = err && err.message ? err.message : String(err);
       try { console.error(tag(silo, 'ERROR: ' + msg)); } catch (e) {}
     },
-    on: function (evt, fn) {
-      document.addEventListener(evt, function (e) {
-        try { fn(e.detail, e); } catch (err) { window.PF.error('bus:on:' + evt, err); }
-      });
-    },
-    emit: function (evt, detail) {
-      try { document.dispatchEvent(new CustomEvent(evt, { detail: detail || {} })); }
-      catch (e) { window.PF.error('bus:emit:' + evt, e); }
-    },
     /* Event naming: legacy flat names ('pf-share-image') keep working.
        New cross-silo events use namespaced form 'pf:domain:action'
        (pf:battle:won, pf:loot:opened, pf:streak:milestone, pf:recruit:activated).
-       Rules: producers fire-and-forget, consumers fail silently (see on/emit
-       above), no consumer touches financial settlement or auth. */
+       Rules: producers fire-and-forget, consumers fail silently
+       (document.addEventListener / dispatchEvent), no consumer touches
+       financial settlement or auth. */
     holder: function () {
       var h = document.getElementById('pf-silo-holder');
       if (!h) {

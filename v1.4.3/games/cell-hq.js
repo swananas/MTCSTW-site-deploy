@@ -52,6 +52,14 @@
   function api(action, params, cb){
     if (WRITE[action]) { postMut(action, params, cb); return; }
     if(!BACKEND){ cb(null); return; }
+    /* Private reads require auth_secret (IDOR fix). Auto-attach for the
+       auth-gated cell_mine — same PF.getAuthSecret() pattern as briefing.js. */
+    if(action==="cell_mine"){
+      try{
+        var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+        if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+      }catch(e){}
+    }
     var fn="pfHqCb"+Math.floor(Math.random()*1e9);
     var s=document.createElement("script"), done=false;
     function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
@@ -345,6 +353,14 @@
     if (S.loading.mine){ p.innerHTML = loading('Raising the cell network&hellip;'); return; }
     loadMine(function(j){
       if (!j){ p.innerHTML = netErr(); wireRetries(p); return; }
+      /* C3 (2026-10-03): no/invalid auth_secret means the callsign session
+         isn't authenticated — show the logged-out state, not a raw
+         "missing credentials" error (a wrong state). */
+      if (j && (j.err==="missing credentials"||j.err==="unauthorized")){
+        p.innerHTML = '<div class="hq-card"><h3>Session check needed</h3>' +
+          '<div class="hq-note">Your callsign session needs a refresh. Re-enlist in Daily Orders, then come back &mdash; your HQ will be waiting.</div></div>';
+        return;
+      }
       if (j.err || j.ok === false){ p.innerHTML = '<div class="hq-err"><b>'+esc(friendlyErr(j))+'</b></div>'; return; }
       var h = '';
       if (!j.in_cell){

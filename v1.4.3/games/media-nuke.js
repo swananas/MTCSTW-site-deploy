@@ -196,7 +196,12 @@ function cellInfo(cb){
     cb(stickCell);
   };
   var sc=document.createElement('script'); sc.id=fn;
-  sc.src=BACKEND_URL+'?action=cell_mine&callsign='+encodeURIComponent(cs)+'&device='+encodeURIComponent(dev)+'&callback='+fn;
+  /* C3 (2026-10-03): cell_mine is auth-gated — attach PF.getAuthSecret()
+     (briefing.js pattern). Logged-out (!cs) already returns cb(null) above;
+     an auth failure yields stickCell=null, which mintNukeCard handles. */
+  var _nsrc=BACKEND_URL+'?action=cell_mine&callsign='+encodeURIComponent(cs)+'&device='+encodeURIComponent(dev);
+  try{ var _nsec=(window.PF&&window.PF.getAuthSecret)?window.PF.getAuthSecret():''; if(_nsec) _nsrc+='&auth_secret='+encodeURIComponent(_nsec); }catch(e){}
+  sc.src=_nsrc+'&callback='+fn;
   sc.onerror=function(){ try{delete window[fn];}catch(e){} if(sc.parentNode)sc.parentNode.removeChild(sc); stickCellTried=true; cb(null); };
   document.head.appendChild(sc);
 }

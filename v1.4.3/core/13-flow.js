@@ -42,7 +42,12 @@ function inCell(cb){
     cb(v);
   };
   var s=document.createElement('script');
-  s.src=window.PF_BACKEND_URL+'?action=cell_mine&callsign='+encodeURIComponent(cs)+'&callback='+fn;
+  /* C3 (2026-10-03): cell_mine is auth-gated — attach PF.getAuthSecret()
+     (briefing.js pattern). No callsign already returns cb(false) above;
+     an auth failure just yields no cell data, which is the safe default. */
+  var _fsrc=window.PF_BACKEND_URL+'?action=cell_mine&callsign='+encodeURIComponent(cs);
+  try{ var _fsec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():''; if(_fsec) _fsrc+='&auth_secret='+encodeURIComponent(_fsec); }catch(e){}
+  s.src=_fsrc+'&callback='+fn;
   s.onerror=function(){ if(fired) return; fired=true;
     try{ delete window[fn]; }catch(e){}
     if(s.parentNode)s.parentNode.removeChild(s);

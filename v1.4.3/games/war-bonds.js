@@ -135,16 +135,19 @@
      this gate only guards the XP collection. */
   var wbClaimBtn = document.getElementById('pf-wb-claim');
   if(wbClaimBtn){
-    wbClaimBtn.onclick = function(){
-      var msgEl = document.getElementById('pf-wb-claimmsg');
-      function say(m){ if(msgEl) msgEl.textContent = m; }
-      if(!window.PF || !PF.requireCallsign){ say('Loading\u2026 try again in a moment.'); return; }
+    /* C2a (2026-10-03): claim attempts are retryable. When the backend
+       reports the store webhook has NEVER fired, show an honest "not yet"
+       state with a RETRY button instead of dead-ending. */
+    var wbMsgEl = document.getElementById('pf-wb-claimmsg');
+    function wbSay(m){ if(wbMsgEl) wbMsgEl.textContent = m; }
+    function attemptClaim(){
+      if(!window.PF || !PF.requireCallsign){ wbSay('Loading\u2026 try again in a moment.'); return; }
       PF.requireCallsign(function(cs){
-        if(!cs){ say('Claim a callsign above to collect your bond XP.'); return; }
+        if(!cs){ wbSay('Claim a callsign above to collect your bond XP.'); return; }
         var emailEl = document.getElementById('pf-wb-email');
         var email = emailEl ? String(emailEl.value || '').trim().toLowerCase() : '';
-        if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ say('Enter the email you used at checkout.'); return; }
-        say('Checking for unclaimed bonds\u2026');
+        if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ wbSay('Enter the email you used at checkout.'); return; }
+        wbSay('Checking for unclaimed bonds\u2026');
         wbClaimBtn.disabled = true;
         var body = { type:'warbond', wb_action:'bond_claim', callsign:cs, email:email };
         /* Device id for backend dedupe/anti-abuse (same ident() pattern as
@@ -162,16 +165,30 @@
         }
         postBody(body, function(j){
           wbClaimBtn.disabled = false;
-          if(!j || !j.ok){ say((j && (j.err || j.error)) || 'Claim failed. Try again.'); return; }
+          if(!j || !j.ok){ wbSay((j && (j.err || j.error)) || 'Claim failed. Try again.'); return; }
           if(!j.claimed){
-            say(j.capped ? 'Daily XP cap reached \u2014 your bonds are still waiting. Come back tomorrow.' : 'No unclaimed bonds found for that email.');
+            if(j.no_webhooks_received){
+              /* The Squarespace webhook has never fired — the buyer isn't at
+                 fault. Honest state + RETRY, never a dead end. */
+              if(wbMsgEl){
+                wbMsgEl.innerHTML = 'No purchase detected yet \u2014 if you just bought, allow a few minutes, then retry. '
+                  + '<button id="pf-wb-retry" style="display:inline-block;background:transparent;border:2px solid #c1121f;color:#c1121f;font-weight:700;letter-spacing:0.1em;padding:0.4rem 1.2rem;font-size:0.85rem;cursor:pointer;font-family:inherit;margin-left:0.4rem;">RETRY</button>';
+                var rbt = document.getElementById('pf-wb-retry');
+                if(rbt) rbt.onclick = function(){ attemptClaim(); };
+              } else {
+                wbSay('No purchase detected yet \u2014 if you just bought, allow a few minutes, then retry.');
+              }
+            } else {
+              wbSay(j.capped ? 'Daily XP cap reached \u2014 your bonds are still waiting. Come back tomorrow.' : 'No unclaimed bonds found for that email.');
+            }
             return;
           }
-          say('BOND XP CLAIMED: +' + (j.xp_granted || 0) + ' XP. Check your ledger.');
+          wbSay('BOND XP CLAIMED: +' + (j.xp_granted || 0) + ' XP. Check your ledger.');
           try{ if(window.PF && PF.toast) PF.toast('Bond XP claimed: +' + (j.xp_granted || 0) + ' XP.'); }catch(e){}
         });
       }, { context: 'to claim your War Bond XP' });
-    };
+    }
+    wbClaimBtn.onclick = function(){ attemptClaim(); };
   }
 })();
 </script>

@@ -25,6 +25,14 @@ function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e
   document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
+  /* Private reads require auth_secret (IDOR fix). Auto-attach for the
+     auth-gated cell_mine — same PF.getAuthSecret() pattern as briefing.js. */
+  if(action==="cell_mine"){
+    try{
+      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+    }catch(e){}
+  }
   var fn="pfDpCb"+Math.floor(Math.random()*1e9);
   var s=document.createElement("script"), done=false;
   function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
@@ -48,14 +56,19 @@ function post(dAction,params,cb){
       .catch(function(){ done(null); });
   }catch(e){ done(null); }
 }
-var CELL=null, RELS=null, REQ=null;
+var CELL=null, RELS=null, REQ=null, AUTHFAIL=false;
 var KINDS={alliance:"ALLIANCE",coalition:"COALITION",rivalry:"RIVALRY",merger_proposal:"MERGER"};
 function load(){
   var id=ident(), done=false;
   function fin(){ if(done)return; done=true; render(); }
   setTimeout(fin,15000);
+  AUTHFAIL=false;
   if(!id.callsign){ CELL=null; RELS=null; REQ=null; fin(); return; }
   api("cell_mine",{callsign:id.callsign,device:id.device},function(j){
+    /* C3 (2026-10-03): no/invalid auth_secret — the callsign session isn't
+       authenticated. Flag it so render() shows the logged-out gate, not the
+       wrong "not in a cell yet" state. */
+    if(j&&(j.err==="missing credentials"||j.err==="unauthorized")){ AUTHFAIL=true; CELL=null; RELS=null; REQ=null; fin(); return; }
     CELL=(j&&j.cell)||null;
     if(!CELL){ RELS=null; REQ=null; fin(); return; }
     var n=0;
@@ -70,6 +83,10 @@ function render(){
   var id=ident(), h="";
   if(!id.callsign){
     el.innerHTML='<div class="c-gate">Diplomacy is conducted between cells. Enlist, join a cell, then come shape the map.</div>';
+    return;
+  }
+  if(AUTHFAIL){
+    el.innerHTML='<div class="c-gate">Your callsign session needs a refresh. Re-enlist in Daily Orders, then come shape the map.</div>';
     return;
   }
   if(!CELL){

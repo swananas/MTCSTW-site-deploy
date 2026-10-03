@@ -364,24 +364,37 @@
       list.appendChild(row);
     });
   }
-  /* RESET VOTE: subtracts the vote's weight from the candidate's total, clears the
-     local ballot lock, and re-opens the ballot. Voting again adds it back. */
+  /* RESET VOTE: retracts the vote server-side, then clears the local ballot
+     lock and re-opens the ballot. The retract goes through PF.authPost with
+     callsign + secret — the backend's bare:retract auth gate 400s without
+     them (2026-10-03 C4). On failure the local state is KEPT and the error
+     is shown honestly — never a silent local-only reset. Voting again adds
+     the weight back. */
   function resetVote(){
     var v = voted();
-    if(v && v.slug && VOTE_API_URL && VOTE_API_URL.indexOf('PASTE') !== 0){
-      try {
-        fetch(VOTE_API_URL, {method:'POST', mode:'no-cors',
-          headers:{'Content-Type':'text/plain'},
-          body: JSON.stringify({week: weekKey, slug: v.slug, weight: v.weight, action:'retract'})});
-      } catch(e){}
+    if(!v || !v.slug){ renderBallot(); return; }
+    var cs = callsign();
+    if(!cs || !PF || !PF.authPost || !VOTE_API_URL || VOTE_API_URL.indexOf('PASTE') === 0){
+      msg.innerHTML = 'Couldn&rsquo;t reach the ballot box &mdash; your vote is still counted. Try again in a moment.';
+      return;
     }
-    try { localStorage.removeItem(storeKey); } catch(e){}
-    renderBallot();
-    msg.innerHTML = 'Vote reset &mdash; <b style="color:#c1121f;">-' + (v ? v.weight : 1) + '</b>' +
-      (v ? ' from <b style="color:#f5f0e1;">' + v.name + '</b>' : '') +
-      '.<br>Changed your mind? Pick again below.';
-    /* Refresh the shared totals after the retract posts. */
-    setTimeout(fetchTotals, 1500);
+    var dev = '';
+    try { dev = (window.PFDeviceId && PFDeviceId()) || ''; } catch(e){}
+    msg.innerHTML = 'Retracting your vote&hellip;';
+    PF.authPost(VOTE_API_URL, {week: weekKey, slug: v.slug, weight: v.weight, action:'retract', callsign: cs, device: dev}, function(j){
+      if(!j || !j.ok){
+        /* Failure: do NOT clear local state — show the error honestly. */
+        msg.innerHTML = 'Retract failed (' + esc((j && (j.err || j.error)) || 'network error') + ') &mdash; your vote is still counted. Try again.';
+        return;
+      }
+      try { localStorage.removeItem(storeKey); } catch(e){}
+      renderBallot();
+      msg.innerHTML = 'Vote reset &mdash; <b style="color:#c1121f;">-' + (v ? v.weight : 1) + '</b>' +
+        (v ? ' from <b style="color:#f5f0e1;">' + v.name + '</b>' : '') +
+        '.<br>Changed your mind? Pick again below.';
+      /* Refresh the shared totals after the retract lands. */
+      setTimeout(fetchTotals, 1500);
+    });
   }
   var existing = voted();
   if(existing){ showVoted(existing.name, existing.weight); }

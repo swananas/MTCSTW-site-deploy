@@ -3,6 +3,10 @@
    prizes, events, drops, alerts. Public reads via JSONP, admin reads via fetch
    GET with X-Admin-Secret, admin writes via CORS POST with X-Admin-Secret.
    Secret is prompted once per session and kept in sessionStorage only.
+   NOT in the homepage ORDER (see pages/home-v2.js) — it mounts ONLY on a
+   direct URL carrying ?vault=1 (or #vault). Without the flag nothing mounts.
+   Every data read/write inside is X-Admin-Secret gated, so a visitor without
+   the secret sees only the locked gate, never vault data.
    KILL: ?pf_off=vault  or  localStorage pf_disabled_v1='["vault"]' */
 (function () {
   'use strict';
@@ -69,10 +73,10 @@ function fmtDur(ms){
 }
 function val(id){ var el=document.getElementById(id); return el?String(el.value||"").trim():""; }
 function err(id,m){ var el=document.getElementById(id); if(el) el.textContent=m||""; }
-var NH=null, LS=null, WL=null, CL=null, EL=null, DL=null, AL=null, BP=null, IS=null;
+var NH=null, LS=null, WL=null, CL=null, EL=null, DL=null, AL=null, BP=null, IS=null, WH=null;
 function load(){
   var n=0;
-  function one(){ n++; if(n>=9) render(); }
+  function one(){ n++; if(n>=10) render(); }
   setTimeout(render,15000);
   apiAdmin("network_health",function(j){ NH=j; one(); });
   api("lottery_status",{callsign:"x"},function(j){ LS=j; one(); });
@@ -83,6 +87,7 @@ function load(){
   api("alert_list",{},function(j){ AL=j; one(); });
   apiAdmin("battle_proposals",function(j){ BP=j; one(); });
   apiAdmin("intel_submissions",function(j){ IS=j; one(); });
+  apiAdmin("webhook_health",function(j){ WH=j; one(); });
 }
 function renderGate(){
   var el=document.getElementById("xVault"); if(!el) return;
@@ -243,6 +248,23 @@ function render(){
       +'<button class="c-btn c-btn-dim c-btn-sm" data-irj="'+ms.id+'">REJECT</button></div>';
   }
   h+='</div>';
+  /* WEBHOOK HEALTH — War Bond commerce pipeline (2026-10-03 C2b).
+     Admin-only: reveals whether the Squarespace order webhook has ever
+     fired. "Never" means the webhook URL was never pasted — the reason
+     bond_claim finds nothing. */
+  h+='<div class="x-pane"><h4>War Bond webhook</h4>';
+  if(WH&&WH.ok){
+    if(WH.webhook_live){
+      h+='<div class="x-note">Webhook LIVE. Last order received: <b>'+esc(WH.last_webhook)+'</b> &bull; '
+        +Number(WH.purchases||0)+' purchase(s) recorded ('+Number(WH.manual_records||0)+' manual).</div>';
+    } else {
+      h+='<div class="c-err">NO WEBHOOK EVER RECEIVED. Paste the webhook URL in Squarespace '
+        +'(WAR_BOND_WEBHOOK_SETUP.md) or record sales manually via bond_record.</div>';
+    }
+  } else {
+    h+='<div class="x-note">Webhook health unavailable ('+esc((WH&&WH.err)||"loading")+').</div>';
+  }
+  h+='</div>';
   el.innerHTML=h;
   wire();
 }
@@ -390,4 +412,55 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
 </scr`+`ipt>
 </div>
 </template>`);
+
+/* ---- DIRECT-URL MOUNT (2026-10-03, gap C1) ----
+   The vault template is staged above but NOT in the homepage ORDER — this
+   is what makes the Battle/Intel moderation queue reachable again.
+   Mount rule: ONLY when the page URL carries ?vault=1 (or #vault).
+   Without the flag, nothing mounts: no template, no error leak.
+   Admin gate: the vault's own inner gate (renderGate) prompts for the admin
+   secret (sessionStorage 'pf_admin_secret', same key as dashboard.js) and
+   every data read/write rides on X-Admin-Secret — a visitor without the
+   secret sees only the locked gate, never vault data.
+   Never mounts inside the Squarespace editor. Idempotent. */
+try {
+  var _vhref = String((window.location && window.location.href) || '');
+  var _vhash = String((window.location && window.location.hash) || '');
+  var _vwant = /[?&]vault=1(?:[&#]|$)/.test(_vhref) || _vhash === '#vault';
+  if (_vwant && !window.pfVaultMounted) {
+    var _ved = _vhref.indexOf('/config/') !== -1;
+    try {
+      var _vb = document.body;
+      if (_vb && (_vb.classList.contains('sqs-edit-mode') || _vb.classList.contains('sqs-editing'))) _ved = true;
+    } catch (_ve0) {}
+    if (!_ved) {
+      var _vtpl = document.getElementById('pf-ov-vault');
+      if (_vtpl && _vtpl.content && !document.getElementById('pf-vault')) {
+        window.pfVaultMounted = true;
+        var _vfrag = document.importNode(_vtpl.content, true);
+        var _vss = _vfrag.querySelectorAll ? _vfrag.querySelectorAll('script') : [];
+        var _vcode = [];
+        for (var _vi = 0; _vi < _vss.length; _vi++) {
+          try { _vcode.push(_vss[_vi].textContent); } catch (_ve1) {}
+          try { _vss[_vi].remove(); } catch (_ve2) {}
+        }
+        /* Homepage shell (#pf-v2) keeps funnel styling; any other page gets
+           a visible mount at the top of the body. PF.holder() is display:none
+           (staging only) — never mount there. */
+        var _vhost = document.getElementById('pf-v2') || document.body;
+        var _vsec = document.createElement('section');
+        _vsec.className = 'pf-v2-game';
+        _vsec.setAttribute('data-game', 'vault');
+        _vsec.appendChild(_vfrag);
+        if (_vhost === document.body && _vhost.firstChild) _vhost.insertBefore(_vsec, _vhost.firstChild);
+        else _vhost.appendChild(_vsec);
+        for (var _vj = 0; _vj < _vcode.length; _vj++) {
+          try { (0, eval)(_vcode[_vj]); }
+          catch (_ve3) { if (PF && PF.error) PF.error('vault', 'inner script failed :: ' + (_ve3 && _ve3.message || _ve3)); }
+        }
+      }
+    }
+  }
+} catch (_ve4) {}
+
 })();

@@ -92,7 +92,7 @@ function render(j){
       +'<div class="in-meta">'+esc(fmtTs(it.ts));
     if(it.source){
       var src=String(it.source);
-      if(/^https?:\/\//i.test(src)){
+      if(/^https?:\\/\\//i.test(src)){
         h+=' &bull; <a href="'+esc(src)+'" target="_blank" rel="noopener">source</a>';
       } else {
         h+=' &bull; source: '+esc(src);
@@ -125,7 +125,7 @@ function render(j){
     if(!target){ if(errEl)errEl.textContent="Target is required."; return; }
     if(!activity){ if(errEl)errEl.textContent="Describe the activity."; return; }
     if(!source){ if(errEl)errEl.textContent="Source is required — every intel item must cite a checkable source."; return; }
-    if(!window.confirm("Submit intel on \""+target+"\" for review?")) return;
+    if(!window.confirm("Submit intel on \\\""+target+"\\\" for review?")) return;
     fb.disabled=true;
     post({type:"intel",i_action:"intel_submit",target:target,activity:activity,amount:amount,source:source},function(j){
       fb.disabled=false;

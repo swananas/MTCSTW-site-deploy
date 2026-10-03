@@ -410,7 +410,6 @@ function shareLoot(reward,rk){
     try{ document.dispatchEvent(new CustomEvent("pf-content-shared",{detail:{kind:"loot"}})); }catch(e3){}
   }catch(e){}
 }
-}catch(e){}
 function comebackBanner(xp){
   ovCss();
   try{

@@ -125,7 +125,7 @@ function render(){
   /* --- pledge panel (cell founders) --- */
   var fc=founderCells();
   if(fc.length){
-    h+='<div class="x-pane"><h4>Pledge a cell</h4><div class="x-note">Point one of your cells at a camp. Pledged cells can take that camp\'s contracts.</div>';
+    h+='<div class="x-pane"><h4>Pledge a cell</h4><div class="x-note">Point one of your cells at a camp. Pledged cells can take that camp\\\'s contracts.</div>';
     h+='<select id="xPledgeCell">'+fc.map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.name)+'</option>';}).join("")+'</select> ';
     h+='<select id="xPledgeCamp">'+((board.camps||[]).map(function(c){return '<option value="'+esc(c.name)+'">'+esc(c.name)+'</option>';}).join("")||'<option value="">— no camps yet —</option>')+'</select> ';
     h+='<button class="c-btn" id="xPledge">Pledge</button><div class="c-err" id="xPledgeErr"></div></div>';
@@ -224,7 +224,7 @@ function wire(){
     btn.onclick=function(){
       var fcs=founderCells();
       if(!fcs.length){ toast("Found or join a cell first."); return; }
-      var pick=fcs.length===1?fcs[0].id:prompt("Accept for which cell? (1-"+fcs.length+")\n"+fcs.map(function(c,ix){return (ix+1)+". "+c.name;}).join("\n"));
+      var pick=fcs.length===1?fcs[0].id:prompt("Accept for which cell? (1-"+fcs.length+")\\n"+fcs.map(function(c,ix){return (ix+1)+". "+c.name;}).join("\\n"));
       var cellId=fcs.length===1?fcs[0].id:(fcs[parseInt(pick,10)-1]||{}).id;
       if(!cellId) return;
       var id=ident();

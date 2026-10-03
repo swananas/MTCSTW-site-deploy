@@ -85,7 +85,13 @@ function render(){
   var el=document.getElementById("vBody"); if(!el) return;
   var id=ident();
   if(!id.callsign){ renderGate(); return; }
-  if(!board||!mine){ el.innerHTML='<div class="c-load">Opening the war room&hellip;</div>'; return; }
+  if(!board||!mine){
+    el.innerHTML='<div class="c-neterr">The war room did not answer. Your shares are safe &mdash; the wire is not.'
+      +'<br><button class="c-btn" id="vRetry">Retry connection</button></div>';
+    var vr=document.getElementById("vRetry");
+    if(vr) vr.onclick=function(){ busy=false; board=null; mine=null; el.innerHTML='<div class="c-load">Opening the war room&hellip;</div>'; load(); };
+    return;
+  }
   var now=Date.now(), h="";
   var vs=board.ventures||[];
   var funding=vs.filter(function(v){return v.phase==="funding";});
@@ -143,7 +149,7 @@ function render(){
     h+='</div>';
   }
   /* --- propose --- */
-  h+='<div class="x-pane"><h4>Propose a venture</h4><div class="x-note">Pledges come from shareholders\' War Chests. You need banked XP to buy in — fund yours first.</div>';
+  h+='<div class="x-pane"><h4>Propose a venture</h4><div class="x-note">Pledges come from shareholders\\\' War Chests. You need banked XP to buy in — fund yours first.</div>';
   h+='<input aria-label="OPERATION NAME" id="vName" maxlength="40" placeholder="OPERATION NAME" autocomplete="off"> ';
   h+='<select id="vKind"><option value="campaign">CAMPAIGN (co-op)</option><option value="clash">CLASH (PvP)</option></select><br>';
   h+='<select id="vGoal"><option value="share_raid">SHARE RAID</option><option value="recruit_drive">RECRUIT DRIVE</option></select> ';

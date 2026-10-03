@@ -99,9 +99,19 @@
     var secret = PF.getAuthSecret();
     if (secret) body.auth_secret = secret;
     rawPost(backendUrl, body, function (j) {
-      var needClaim = j && !j.ok &&
-        (j.err === 'unauthorized' || String(j.err || '').indexOf('no secret issued') !== -1) &&
-        !_retried && !authDisabled;
+      /* Claim-retry: fire when the callsign has no usable secret. Covers
+         'unauthorized' (wrong secret), 'no secret issued' (never claimed),
+         AND 'missing credentials' (nothing stored locally yet — the case
+         for every pre-auth user, where no claim would ever otherwise fire,
+         e.g. Armory buy/equip from a fresh browser). One attempt, then the
+         original error stands. */
+      var noStored = !PF.getAuthSecret();
+      var needClaim = j && !j.ok && (
+        j.err === 'unauthorized' ||
+        String(j.err || '').indexOf('no secret issued') !== -1 ||
+        (noStored && (j.err === 'missing credentials' ||
+          String(j.err || '').indexOf('missing credentials') !== -1))
+      ) && !_retried && !authDisabled;
       if (needClaim) {
         var cs = actorFromBody(body);
         if (cs) {

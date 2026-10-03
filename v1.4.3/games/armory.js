@@ -241,6 +241,17 @@ function load(){
     renderPreview();
     return;
   }
+  /* Pre-auth users have no stored auth_secret yet: claim one first so the
+     list GET can return owned/equipped state. Claim is best-effort — the
+     catalog is public, so the shop renders either way. */
+  var noSec=true;
+  try{ noSec=!(window.PF&&PF.getAuthSecret&&PF.getAuthSecret()); }catch(e){ noSec=true; }
+  if(noSec&&window.PF&&PF.claimAuthSecret){
+    PF.claimAuthSecret(idn.callsign,function(){ doList(); });
+  }else{ doList(); }
+}
+function doList(){
+  var idn=ident();
   get('cosmetic_list',{callsign:idn.callsign},function(j){
     if(j&&j.ok){
       items=j.items||[]; equipped=j.equipped||{};

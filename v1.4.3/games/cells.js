@@ -46,6 +46,13 @@ function api(action,params,cb){
     post('cell','cell_action',action,params,cb); return;
   }
   if(!BACKEND){ cb(null); return; }
+  /* Private reads require auth_secret (IDOR fix). Auto-attach for gated actions. */
+  if(action==="cell_mine"){
+    try{
+      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+    }catch(e){}
+  }
   /* Callback nonce: crypto-random where available (invite codes themselves
      are issued server-side by cell_create; this is just the JSONP name). */
   var _cr=new Uint32Array(1);
@@ -449,7 +456,7 @@ function renderCell(el,s){
         if(ee) ee.textContent="";
         if(title.length<4){ if(ee) ee.textContent="Title needs 4+ characters."; return; }
         if(days<1) days=1; if(days>30) days=30;
-        if(!window.confirm("Launch challenge \""+title+"\" for "+days+" days?")) return;
+        if(!window.confirm("Launch challenge \\\"+title+\\\" for "+days+" days?")) return;
         btn.disabled=true;
         post("challenge","ch_action","challenge_create",
           {callsign:id3.callsign,device:id3.device,title:title,metric:metric,days:days},
@@ -544,7 +551,7 @@ function paintLinkNet(){
 }
 refresh();
 loadBoard();
-if(!window._pfCellsTick){ window._pfCellsTick=setInterval(function(){ loadBoard(); },5*60*1000); }
+if(!window._pfCellsTick){ window._pfCellsTick=setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} loadBoard(); },5*60*1000); }
 })();
 </script>
 </div>

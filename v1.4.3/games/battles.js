@@ -228,7 +228,7 @@ function render(){
     if(title.length<4){ if(errEl)errEl.textContent="Title needs 4+ characters."; return; }
     var endsAt=0;
     if(ends){ var ddt=new Date(ends+"T23:59:59"); if(!isNaN(ddt.getTime())) endsAt=ddt.getTime(); }
-    if(!window.confirm("Propose battle \""+title+"\"? It goes live after approval.")) return;
+    if(!window.confirm("Propose battle \\\""+title+"\\\"? It goes live after approval.")) return;
     cb2.disabled=true;
     post({type:"battle",b_action:"battle_propose",title:title,ends_at:endsAt},function(j){
       cb2.disabled=false;

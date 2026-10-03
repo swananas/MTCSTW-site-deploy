@@ -58,7 +58,7 @@ function api(action,params,cb){
   if(action==="referral_status"||action==="referral_tree"||action==="mentor_status"){
     try{
       var _sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : "";
-      if(_sec && params && !params.auth_secret) params.auth_secret=<redacted>
+      if(_sec && params && !params.auth_secret) params.auth_secret=_sec;
     }catch(e){}
   }
   var fn="pfRfCb"+Math.floor(Math.random()*1e9);
@@ -291,17 +291,17 @@ function render(){
       x.textAlign="center";
       x.fillStyle="#f5ead6"; x.font="700 40px Arial,sans-serif";
       x.fillText("\u2605 REFERRAL WAR \u2605",W/2,170);
-      x.fillStyle="#c1121f"; x.font="900 92px \"Arial Black\",Arial,sans-serif";
+      x.fillStyle="#c1121f"; x.font="900 92px \\\"Arial Black\\\",Arial,sans-serif";
       x.fillText("JOIN THE FIGHT.",W/2,330);
       x.fillStyle="#f5ead6"; x.font="700 44px Arial,sans-serif";
       x.fillText("Claim your callsign with my code:",W/2,470);
-      x.fillStyle="#c1121f"; x.font="900 120px \"Arial Black\",Arial,sans-serif";
+      x.fillStyle="#c1121f"; x.font="900 120px \\\"Arial Black\\\",Arial,sans-serif";
       x.fillText(cs,W/2,660);
       x.fillStyle="#c9bfa8"; x.font="400 38px Arial,sans-serif";
       x.fillText(link,W/2,780);
       x.fillStyle="#f5ead6"; x.font="700 40px Arial,sans-serif";
       x.fillText("We both get XP. You join my army.",W/2,920);
-      x.fillStyle="#c1121f"; x.font="900 64px \"Arial Black\",Arial,sans-serif";
+      x.fillStyle="#c1121f"; x.font="900 64px \\\"Arial Black\\\",Arial,sans-serif";
       x.fillText("MTCSTW.COM",W/2,H-140);
       try{ cv._pfStamped=true; }catch(e2){}
       PFShare.shareImage(cv,"referral-"+cs.toLowerCase()+".png","Referral War","referral");

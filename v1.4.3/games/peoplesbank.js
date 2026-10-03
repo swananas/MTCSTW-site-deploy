@@ -162,13 +162,16 @@ function render(){
   else if(TAB==="history") wireHistory(id,el);
   var rb=document.getElementById("pbRetry");
   if(rb) rb.onclick=function(){ BAL=SAV=STK=BND=LNS=RH=XH=BST=null; el.innerHTML='<div class="c-load">Opening the vault&hellip;</div>'; load(); };
+  var vr=document.getElementById("pbVaultRetry");
+  if(vr) vr.onclick=function(){ BAL=SAV=STK=BND=LNS=RH=XH=BST=null; el.innerHTML='<div class="c-load">Opening the vault&hellip;</div>'; load(); };
 }
 /* ---------- 0. VAULT — the clean default: balance, rate, deposit/withdraw, room, activity ---------- */
 var VAULT_KIND_LBL={overtime:"overtime kicker",deposit:"deposit",withdraw:"withdrawal",interest:"interest",pledge_out:"venture pledge",pledge_back:"pledge returned",dividend:"dividend"};
 function renderVault(id){
   var h='<div class="x-pane pb-pane"><div class="pb-bankhead">&#9670; THE VAULT &#9670;</div>';
   if(!BST||!BST.ok){
-    h+='<div class="c-load">Opening the vault&hellip;</div></div>';
+    h+='<div class="c-neterr">The vault did not answer. Your XP is safe &mdash; the wire is not.'
+      +'<br><button class="c-btn" id="pbVaultRetry">Retry connection</button></div></div>';
     return h;
   }
   var bal=Math.round(Number(BST.balance)||0);
@@ -205,7 +208,7 @@ function renderVault(id){
     +'<button class="c-btn ghost" id="pbVltWdr" style="flex:1;margin:0;">WITHDRAW</button>'
     +'</div>'
     +'<div class="c-err" id="pbVltErr"></div>'
-    +'<div class="x-note" style="margin:8px 0 0;">Withdrawals are free — but XP pulled before Monday forfeits the week\'s interest on it.</div>'
+    +'<div class="x-note" style="margin:8px 0 0;">Withdrawals are free — but XP pulled before Monday forfeits the week\\\'s interest on it.</div>'
     +'</div>';
   /* recent activity — last 5 */
   var hist=(BST.history||[]).slice(0,5);

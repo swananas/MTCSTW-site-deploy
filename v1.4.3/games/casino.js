@@ -151,7 +151,7 @@ function renderCrash(id){
   h+='<div class="cs-crashmult'+(crashed?' cs-crashed':'')+'" id="csMult">'+mult.toFixed(2)+'x</div>';
   if(crashed){ h+='<div class="cs-crashmsg">CRASHED. Next round starting.</div>'; }
   else if(myBet&&!myBet.cashed_out){
-    h+='<div class="x-note">You\'re in for '+(Number(myBet.amount)||0)+' XP at '+mult.toFixed(2)+'x = '+Math.floor((Number(myBet.amount)||0)*mult)+' XP</div>'
+    h+='<div class="x-note">You\\\'re in for '+(Number(myBet.amount)||0)+' XP at '+mult.toFixed(2)+'x = '+Math.floor((Number(myBet.amount)||0)*mult)+' XP</div>'
       +'<button class="c-btn cs-cashout" id="csCashout">CASH OUT</button>';
   } else {
     h+='<div class="cs-betrow"><input aria-label="XP amount" class="c-input pf-input-sm" id="csCrashAmt" type="number" min="1" placeholder="XP amount" >'

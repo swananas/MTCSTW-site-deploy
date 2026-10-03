@@ -599,12 +599,12 @@ function pConfirm(st){
   m.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;";
   var box=document.createElement("div");
   box.style.cssText="background:#0d0d0d;border:4px solid #ff5a00;max-width:440px;width:100%;padding:28px 24px;text-align:center;font-family:Arial,sans-serif;";
-  box.innerHTML='<div style="color:#ff5a00;font-family:\'Arial Black\',Arial,sans-serif;font-size:22px;letter-spacing:3px;margin-bottom:12px;">PRESTIGE &#9733;'+escH(st.next_badge)+'</div>'
+  box.innerHTML='<div style="color:#ff5a00;font-family:\\'Arial Black\\',Arial,sans-serif;font-size:22px;letter-spacing:3px;margin-bottom:12px;">PRESTIGE &#9733;'+escH(st.next_badge)+'</div>'
     +'<div style="color:#f5ead6;font-size:14px;line-height:1.6;margin-bottom:8px;">You are about to burn <b>'+Number(st.xp||0).toLocaleString()+' XP</b> and fall from <b>'+escH(st.rank)+'</b> back to <b>SYMPATHIZER</b>.</div>'
     +'<div style="color:#c9bfa8;font-size:13px;line-height:1.6;margin-bottom:20px;">In return: <b style="color:#ff5a00">'+Number(st.benefits.daily_cap_next).toLocaleString()+' XP/day</b> cap, <b style="color:#ff5a00">&times;'+st.benefits.bank_deposit_mult_next+'</b> bank deposits, and the <b style="color:#ff5a00">&#9733;'+escH(st.next_badge)+'</b> badge next to your name. Forever.</div>'
     +'<div style="display:flex;gap:12px;justify-content:center;">'
-    +'<button id="pCancel" style="background:#333;color:#f5ead6;border:none;font-family:\'Arial Black\',Arial,sans-serif;font-size:14px;letter-spacing:2px;padding:12px 24px;cursor:pointer;">STAND DOWN</button>'
-    +'<button id="pConfirm" style="background:#ff5a00;color:#0d0d0d;border:none;font-family:\'Arial Black\',Arial,sans-serif;font-size:14px;letter-spacing:2px;padding:12px 24px;cursor:pointer;">BURN IT</button>'
+    +'<button id="pCancel" style="background:#333;color:#f5ead6;border:none;font-family:\\'Arial Black\\',Arial,sans-serif;font-size:14px;letter-spacing:2px;padding:12px 24px;cursor:pointer;">STAND DOWN</button>'
+    +'<button id="pConfirm" style="background:#ff5a00;color:#0d0d0d;border:none;font-family:\\'Arial Black\\',Arial,sans-serif;font-size:14px;letter-spacing:2px;padding:12px 24px;cursor:pointer;">BURN IT</button>'
     +'</div>';
   m.appendChild(box);
   m.onclick=function(e){ if(e.target===m) m.remove(); };

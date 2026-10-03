@@ -35,7 +35,7 @@ function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
   /* Private reads require auth_secret (IDOR fix). Auto-attach for gated actions. */
-  if(action==="loot_status"||action==="streak_status"){
+  if(action==="loot_status"||action==="streak_status"||action==="cell_mine"){
     try{
       var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
       if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
@@ -140,7 +140,7 @@ function render(){
   var id=ident(), h="";
   if(!id.callsign){
     el.innerHTML='<div class="br-gate">Briefings run on callsigns. Claim yours in Enlistment Ranks, then report back here.</div>'
-      +'<div style="margin-top:10px"><button class="c-btn" onclick="document.getElementById(\'pf-ranks\')&&document.getElementById(\'pf-ranks\').scrollIntoView({behavior:\'smooth\'})">ENLIST</button></div>';
+      +'<div style="margin-top:10px"><button class="c-btn" onclick="document.getElementById(\\\'pf-ranks\\\')&&document.getElementById(\\\'pf-ranks\\\').scrollIntoView({behavior:\\\'smooth\\\'})">ENLIST</button></div>';
     renderSeasonBanner();
     return;
   }

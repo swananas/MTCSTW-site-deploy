@@ -25,7 +25,7 @@ function api(action,params,cb){
   if(action==="warreport_latest"){
     try{
       var _sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : "";
-      if(_sec && params && !params.auth_secret) params.auth_secret=<redacted>
+      if(_sec && params && !params.auth_secret) params.auth_secret=_sec;
     }catch(e){}
   }
   var fn="pfWrCb"+Math.floor(Math.random()*1e9);

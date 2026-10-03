@@ -49,11 +49,16 @@ function post(action,params,cb){
   function done(j){ try{ (cb||function(){})(j||{ok:false,err:"Network error."}); }catch(e){} }
   if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,done); return; }
   try{
-    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify(body)})
+    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(body)},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
       .then(function(r){ return r.json(); })
-      .then(function(j){ done(j); })
-      .catch(function(){ done(null); });
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
   }catch(e){ done(null); }
 }
 var board=null, mine=null, busy=false;

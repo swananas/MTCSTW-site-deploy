@@ -51,8 +51,13 @@ function post(type,key,cAction,params,cb){
   if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
   function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
   try{
-    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
-      .then(function(r){ return r.json(); }).then(function(j){ done(j); }).catch(function(){ done(null); });
+    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); }).then(function(j){ _po._pfClear(); done(j); }).catch(function(){ _po._pfClear(); done(null); });
   }catch(e){ done(null); }
 }
 function fmtDate(t){

@@ -146,12 +146,22 @@ function ident(){ return load(LS_I,{});  }
       var url = beUrl();
       var body = {action:"register", callsign:obj.callsign, device:obj.device||""};
       if(obj.ref) body.ref = obj.ref;
+      /* M1 (2026-10-03): 15s abort — a hung register POST wedged the modal on
+         "Claiming..." with no retry. Same pattern as PF.authPost's rawPost. */
+      var ctl=null, timer=null;
       try{
-        fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)})
+        if(window.AbortController){ ctl=new AbortController();
+          timer=setTimeout(function(){ try{ ctl.abort(); }catch(e){} },15000); }
+      }catch(e){ ctl=null; timer=null; }
+      var opts={method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)};
+      if(ctl) opts.signal=ctl.signal;
+      function clearT(){ if(timer){ clearTimeout(timer); timer=null; } }
+      try{
+        fetch(url, opts)
           .then(function(r){ return r.json(); })
-          .then(function(j){ try{ cb(j); }catch(e){} })
-          .catch(function(){ try{ cb(null); }catch(e){} });
-      }catch(e){ try{ cb(null); }catch(e2){} }
+          .then(function(j){ clearT(); try{ cb(j); }catch(e){} })
+          .catch(function(){ clearT(); try{ cb(null); }catch(e){} });
+      }catch(e){ clearT(); try{ cb(null); }catch(e2){} }
     })();
     return;
   }

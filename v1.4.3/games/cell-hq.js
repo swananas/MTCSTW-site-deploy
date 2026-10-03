@@ -77,10 +77,15 @@
     if (window.PF && PF.postAction) { PF.postAction('cell','cell_action',action,params,cb); return; }
     if(!BACKEND){ done(null); return; }
     try{
-      fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+      /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+      var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)},c=null,t=null;
+        try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+          t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+        o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+      fetch(BACKEND,_po)
         .then(function(r){ return r.json(); })
-        .then(function(j){ done(j); })
-        .catch(function(){ done(null); });
+        .then(function(j){ _po._pfClear(); done(j); })
+        .catch(function(){ _po._pfClear(); done(null); });
     }catch(e){ done(null); }
   }
   function withIdent(params){
@@ -98,10 +103,15 @@
     if (window.PF && PF.postAction) { PF.postAction('finance','f_action',fAction,withIdent(params),cb); return; }
     if(!BACKEND){ done(null); return; }
     try{
-      fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+      /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+      var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)},c=null,t=null;
+        try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+          t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+        o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+      fetch(BACKEND,_po)
         .then(function(r){ return r.json(); })
-        .then(function(j){ done(j); })
-        .catch(function(){ done(null); });
+        .then(function(j){ _po._pfClear(); done(j); })
+        .catch(function(){ _po._pfClear(); done(null); });
     }catch(e){ done(null); }
   }
   function postCamp(cAction, params, cb){
@@ -110,10 +120,15 @@
     if (window.PF && PF.postAction) { PF.postAction('campaign','c_action',cAction,withIdent(params),cb); return; }
     if(!BACKEND){ done(null); return; }
     try{
-      fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+      /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+      var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)},c=null,t=null;
+        try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+          t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+        o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+      fetch(BACKEND,_po)
         .then(function(r){ return r.json(); })
-        .then(function(j){ done(j); })
-        .catch(function(){ done(null); });
+        .then(function(j){ _po._pfClear(); done(j); })
+        .catch(function(){ _po._pfClear(); done(null); });
     }catch(e){ done(null); }
   }
   /* Finance reads available over JSONP GET. */

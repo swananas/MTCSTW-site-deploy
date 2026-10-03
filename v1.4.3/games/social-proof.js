@@ -47,8 +47,15 @@ function api(cb){
   setTimeout(function(){ finish(null); },10000);
 }
 function paint(j){
-  if(!j||!j.ok) return;
   var bar=$("pf-sp-bar"); if(!bar) return;
+  /* L1 (2026-10-03): honest error state — don't leave "Loading network pulse…"
+     forever when the backend is unreachable. The 5-minute poller self-heals
+     on the next tick. */
+  if(!j||!j.ok){
+    var ci0=$("pf-sp-checkins");
+    if(ci0) ci0.innerHTML="Network pulse unreachable \u2014 retrying";
+    return;
+  }
   var ci=$("pf-sp-checkins"), xp=$("pf-sp-xp"), cells=$("pf-sp-cells"), on=$("pf-sp-online");
   var n=Number(j.checkins_today)||0;
   ci.innerHTML="<b>"+fmt(n)+"</b> soldier"+(n===1?"":"s")+" checked in today";

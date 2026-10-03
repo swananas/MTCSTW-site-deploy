@@ -18,12 +18,18 @@ window.PF.postAction = function(type, actionKey, action, params, cb){
   var secret = '';
   try{ secret = (window.PF && window.PF.getAuthSecret) ? window.PF.getAuthSecret() : ''; }catch(e){}
   if(secret) body.auth_secret = secret;
+  /* L2 (2026-10-03): 15s abort on this fallback too (was: hung POST spins forever). */
+  var _po=(function(){ var o={method:'POST', headers:{'Content-Type':'application/json'}, body:''},c=null,t=null;
+    try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+      t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+    o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+  _po.body = JSON.stringify(body);
   function done(j){ try{ cb(j); }catch(e){} }
   try{
-    fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)})
+    fetch(url, _po)
       .then(function(r){ return r.json(); })
-      .then(function(j){ done(j); })
-      .catch(function(){ done(null); });
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
   }catch(e){ done(null); }
 };
 /* Per-device identity + callsign. Attached to every backend action report so
@@ -101,9 +107,19 @@ function pfClaimModal(done, opts){
     try{ var prf = localStorage.getItem('pf_pending_ref'); if(prf && /^[a-z0-9_]{3,20}$/.test(prf)) body.ref = prf; }catch(e){}
     var url = window.PF_BACKEND_URL;
     if(!url){ setErr('Network error. Try again.'); btn.disabled = false; return; }
-    fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) })
+    /* 15s abort: a hung register POST must wedge-proof the modal — same
+       pattern as PF.authPost's rawPost (core/14-auth.js). */
+    var ctl=null, timer=null;
+    try{
+      if(window.AbortController){ ctl=new AbortController();
+        timer=setTimeout(function(){ try{ ctl.abort(); }catch(e){} },15000); }
+    }catch(e){ ctl=null; timer=null; }
+    var opts={ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) };
+    if(ctl) opts.signal=ctl.signal;
+    fetch(url, opts)
       .then(function(r){ return r.json(); })
       .then(function(j){
+        if(timer){ clearTimeout(timer); timer=null; }
         if(!j){ setErr('Network error. Try again.'); btn.disabled = false; return; }
         if(!j.ok){ setErr(j.error === 'taken' ? 'That callsign is taken.' : 'Bad callsign.'); btn.disabled = false; return; }
         try{ localStorage.removeItem('pf_pending_ref'); }catch(e2){}
@@ -121,7 +137,7 @@ function pfClaimModal(done, opts){
         try{ if(window.PF && PF.toast) PF.toast('Callsign claimed. Welcome to the fight, ' + cs.toUpperCase() + '.'); }catch(e7){}
         finish(cs, false);
       })
-      .catch(function(){ setErr('Network error. Try again.'); btn.disabled = false; });
+      .catch(function(){ if(timer){ clearTimeout(timer); timer=null; } setErr('Network error. Try again.'); btn.disabled = false; });
   }
   btn.onclick = doClaim;
   input.onkeydown = function(e){ if(e.key === 'Enter'){ doClaim(); } };

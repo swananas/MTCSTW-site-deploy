@@ -57,10 +57,16 @@ function api(action,params,cb,isGet){
   var bodyStr=JSON.stringify(body);
   function posted(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} setTimeout(function(){ load(); },1500); }
   try{
-    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr})
+    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
       .then(function(r){ return r.json(); })
-      .then(function(j){ posted(j); })
+      .then(function(j){ _po._pfClear(); posted(j); })
       .catch(function(){
+        _po._pfClear();
         try{ fetch(BACKEND,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:bodyStr}).catch(function(){}); }catch(e2){}
         posted(null);
       });
@@ -151,7 +157,7 @@ function render(){
     h+='<div class="x-pane"><h4>Post a contract</h4><div class="x-note">One live contract per camp. Escrow is locked when a cell accepts.</div>';
     h+='<select id="xGoal"><option value="share_raid">SHARE RAID (5-500 shares / 7d)</option><option value="recruit_drive">RECRUIT DRIVE (1-50 recruits / 7d)</option><option value="perfect_week">PERFECT WEEK (3-7 check-in days)</option></select> ';
     h+='<input aria-label="TARGET" id="xTarget" type="number" min="1" max="500" placeholder="TARGET" style="width:90px"> ';
-    h+='<input aria-label="BOUNTY XP" id="xBounty" type="number" min="5" max="25" placeholder="BOUNTY XP" style="width:110px"> ';
+    h+='<input aria-label="BOUNTY XP" id="xContractBounty" type="number" min="5" max="25" placeholder="BOUNTY XP" style="width:110px"> ';
     h+='<button class="c-btn" id="xPost">Post</button><div class="c-err" id="xPostErr"></div></div>';
   }
   /* --- my contracts + claimable --- */
@@ -214,7 +220,7 @@ function wire(){
     api("contract_post",{callsign:id.callsign,device:id.device,
       goal:document.getElementById("xGoal").value,
       target:document.getElementById("xTarget").value,
-      bounty:document.getElementById("xBounty").value},function(j){
+      bounty:document.getElementById("xContractBounty").value},function(j){
       if(!j||!j.ok){ err.textContent=(j&&j.err)||"Network error."; load(); return; }
       toast("Contract posted. Cells, come and get it.");
     });

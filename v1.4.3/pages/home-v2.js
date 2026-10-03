@@ -81,7 +81,8 @@
     ['irl', 'pf-ov-irl'],
     ['intel', 'pf-ov-intel'],
     /* ——— SECTION 7: PROOF — social validation closer ——— */
-    ['fan-vote', 'pf-ov-vote']
+    ['fan-vote', 'pf-ov-vote'],
+    ['war-report', 'pf-ov-warreport']
   ];
 
   /* === SECTION HEADERS (2026-10-02) ===
@@ -160,7 +161,8 @@
     'intel': [['Act on it \u2192', 'alerts'], ['Brief your cell \u2192', 'cells']],
     'archive': [['Remix one \u2192', 'poster-forge'], ['Nuke a classic \u2192', 'media-nuke']],
     'ventures': [['Check your balance \u2192', 'peoplesbank'], ['Back the movement \u2192', 'movement']],
-    'fan-vote': [['See live activity \u2192', 'socialproof'], ['Back your pick in battle \u2192', 'infighting']]
+    'fan-vote': [['See live activity \u2192', 'socialproof'], ['Back your pick in battle \u2192', 'infighting']],
+    'war-report': [['Vote for your favorite \u2192', 'fan-vote'], ['Protect your streak \u2192', 'daily-orders']]
   };
 
   /* Silo -> section id. Used to insert each widget's <section> in funnel
@@ -181,7 +183,7 @@
     'peoplesbank':'fund','economy':'fund','war-bonds':'fund','movement':'fund',
     'earnings':'fund','bounties':'fund','ventures':'fund',
     'campaign':'act','alerts':'act','irl':'act','intel':'act',
-    'fan-vote':'proof'
+    'fan-vote':'proof','war-report':'proof'
   };
 
   /* Build the 7 section blocks at init: header + lazy-load anchor each.

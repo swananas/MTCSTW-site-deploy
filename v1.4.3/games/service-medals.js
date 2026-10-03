@@ -8,7 +8,7 @@
   try {
     /* PF SERVICE MEDALS v2 — sticky collection layer over all 12 homepage games.
        Listens for pf-* CustomEvents. Awards one medal per game per week
-       (America/Chicago, Monday reset). All 14 in a week = FULL DEPLOYMENT:
+       (America/Chicago, Monday reset). All 15 in a week = FULL DEPLOYMENT:
        +50 XP via ranks backend (idempotent per week) + callsign etched on the
        Vanguard Wall. Device-local medal tracking (pf_medals_v2) + backend for XP. */
     (function(){
@@ -150,9 +150,9 @@
       });
       h+='</div>';
       if(s.fd){
-        h+='<div class=\"pm-fd\">\u2605 FULL DEPLOYMENT \u2605</div><div class=\"pm-note\">All 14 earned. <b>+50 XP</b> banked, name on the wall. See you Monday.</div>';
+        h+='<div class=\"pm-fd\">\u2605 FULL DEPLOYMENT \u2605</div><div class=\"pm-note\">All 15 earned. <b>+50 XP</b> banked, name on the wall. See you Monday.</div>';
       }else{
-        h+='<div class=\"pm-note\">Earn all <b>14</b> this week for <b>FULL DEPLOYMENT</b>: +50 XP + your callsign on the Vanguard Wall. <b>'+got+'/14</b> so far.</div>';
+        h+='<div class=\"pm-note\">Earn all <b>15</b> this week for <b>FULL DEPLOYMENT</b>: +50 XP + your callsign on the Vanguard Wall. <b>'+got+'/15</b> so far.</div>';
       }
       el.innerHTML=h;
       return true;

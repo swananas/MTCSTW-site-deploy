@@ -213,6 +213,14 @@ function render(){
   var ax=(AL&&AL.ok&&AL.alerts)||[];
   if(ax.length){ h+='<div class="x-note">'+ax.length+' active alert(s). Latest: <b>'+esc(ax[0].headline)+'</b> &mdash; '+esc(ax[0].response_count||0)+' responses</div>'; }
   h+='</div>';
+  /* FLASH BROADCAST (2026-10-03): the producer behind the 'Flash events'
+     notification preference. Fires a broadcast email (type='flash_events')
+     to every email-opted-in user; drainQueue respects per-type prefs. */
+  h+='<div class="x-pane"><h4>Flash broadcast</h4>'
+    +'<div class="x-note">Enqueues a broadcast email to everyone opted in to Flash events. No sender configured yet? The row waits in the queue — no flood.</div>'
+    +'<div class="vl-form"><input aria-label="Flash title" id="vlFBTitle" class="c-input pf-input-lg" placeholder="Flash title" >'
+    +'<input aria-label="Flash message" id="vlFBMsg" class="c-input pf-input-lg" placeholder="Message (goes to email + in-app)" >'
+    +'<button class="c-btn" id="vlFBFire">FIRE BROADCAST</button><div class="c-err" id="vlFBErr"></div></div></div>';
   /* MODERATION QUEUE — battle proposals + intel submissions */
   h+='<div class="x-pane"><h4>Moderation queue</h4>';
   var bpl=(BP&&BP.ok&&BP.proposals)||[];
@@ -322,6 +330,16 @@ function wire(){
       b.disabled=false;
       if(!j||!j.ok){ err("vlAErr",(j&&j.err)||"Create failed."); return; }
       toast("Alert created: "+j.id); AL=null; load();
+    }); };
+  /* flash broadcast: the producer for the 'Flash events' email pref */
+  b=document.getElementById("vlFBFire");
+  if(b) b.onclick=function(){ b.disabled=true;
+    var ft=val("vlFBTitle"), fm=val("vlFBMsg");
+    if(!ft||!fm){ err("vlFBErr","Title and message required."); b.disabled=false; return; }
+    post("flash","fl_action","flash_broadcast",{title:ft,message:fm},function(j){
+      b.disabled=false;
+      if(!j||!j.ok){ err("vlFBErr",(j&&j.err)||"Broadcast failed."); return; }
+      toast("Flash broadcast queued (row "+j.id+"). It drains with the hourly queue.");
     }); };
   /* moderation queue: battle proposals */
   var baps=document.querySelectorAll("[data-bap]");

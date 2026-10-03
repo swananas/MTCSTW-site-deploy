@@ -109,7 +109,8 @@ var SECTIONS = {
   'bundle-sec7': [
     /* PROOF — social validation. */
     'fan-vote.js',
-    'efficiency.js'
+    'efficiency.js',
+    'war-report.js'
   ]
 };
 

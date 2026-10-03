@@ -143,4 +143,55 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
 </scr`+`ipt>
 </div>
 </template>`);
+  /* H6 (2026-10-03): Creator HQ mount. dash belongs in Creator HQ — the HQ page
+     (#pf-war-card) loads bundle-sec4 (which stages pf-ov-dash above) but nothing
+     mounted it. Mount here, admin-gated: full render only for holders of the
+     admin secret (sessionStorage 'pf_admin_secret', same key as the vault),
+     verified against the backend (funnel_stats requires a valid X-Admin-Secret);
+     everyone else gets a locked note. */
+  try {
+    var href6 = window.location.href || '';
+    if (href6.indexOf('/config/') === -1) {
+      var hq6 = document.getElementById('pf-war-card');
+      var bd6 = null;
+      try { bd6 = document.body; } catch (e0) {}
+      if (hq6 && bd6 && !bd6.classList.contains('sqs-edit-mode') &&
+          !bd6.classList.contains('sqs-editing') && !document.getElementById('pf-dash-hq')) {
+        var tpl6 = document.getElementById('pf-ov-dash');
+        if (tpl6 && tpl6.content) {
+          var wrap6 = document.createElement('div');
+          wrap6.id = 'pf-dash-hq';
+          wrap6.className = 'fe-block pf-override-block pf-silo';
+          if (hq6.parentNode) hq6.parentNode.insertBefore(wrap6, hq6.nextSibling);
+          else hq6.appendChild(wrap6);
+          var frag6 = document.importNode(tpl6.content, true);
+          wrap6.appendChild(frag6);
+          var sec6 = '';
+          try { sec6 = sessionStorage.getItem('pf_admin_secret') || ''; } catch (e1) {}
+          var backend6 = window.PF_BACKEND_URL || '';
+          function locked6() {
+            var x = document.getElementById('xDash');
+            if (x) x.innerHTML = '<div class="x-note">Command Center is admin-only. Unlock the Admin Vault to view it.</div>';
+          }
+          if (sec6 && backend6) {
+            /* Verify the secret is real before rendering (same pattern as the vault). */
+            try {
+              fetch(backend6 + '?action=funnel_stats', { method: 'GET', headers: { 'X-Admin-Secret': sec6 } })
+                .then(function (r) { return r.json(); })
+                .then(function (j) {
+                  if (j && j.ok) {
+                    var sc = wrap6.querySelectorAll('script');
+                    for (var i = 0; i < sc.length; i++) {
+                      try { (0, eval)(sc[i].textContent); } catch (e2) { if (window.PF && PF.error) PF.error('dashboard-hq', e2); }
+                      sc[i].remove();
+                    }
+                  } else locked6();
+                })
+                .catch(function () { locked6(); });
+            } catch (e3) { locked6(); }
+          } else locked6();
+        }
+      }
+    }
+  } catch (e4) { if (window.PF && PF.error) PF.error('dashboard-hq-mount', e4); }
 })();

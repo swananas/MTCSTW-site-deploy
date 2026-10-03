@@ -404,22 +404,36 @@
   renderStreak();
   checkKingmaker();
   function castVote(c){
-    try { localStorage.setItem(storeKey, JSON.stringify({name: c.name, slug: c.slug, weight: VOTE_WEIGHT})); } catch(e){}
-    if(VOTE_API_URL && VOTE_API_URL.indexOf('PASTE') !== 0){
-      try {
-        fetch(VOTE_API_URL, {method:'POST', mode:'no-cors',
-          headers:{'Content-Type':'text/plain'},
-          body: JSON.stringify({week: weekKey, slug: c.slug, weight: VOTE_WEIGHT})});
-      } catch(e){}
-    }
-    /* One vote, one streak bump, one tally event — counted exactly once. */
-    bumpStreak();
-    renderStreak();
-    try { document.dispatchEvent(new CustomEvent("pf-vote-cast", {detail:{week: weekKey, weight: VOTE_WEIGHT}})); } catch(e){}
-    /* The sealed-ballot ceremony plays, then the voted state lands. */
-    ballotCeremony(c, function(){ showVoted(c.name, VOTE_WEIGHT); });
-    /* Refresh the shared totals so the new vote appears on next render. */
-    setTimeout(fetchTotals, 1500);
+    var dev=''; try { dev=(window.PFDeviceId&&PFDeviceId())||''; }catch(e){}
+    if(!dev){ try{ if(window.PF&&PF.toast) PF.toast('Could not identify this device — vote not cast.'); }catch(e){} return; }
+    /* 2026-10-03: explicit vote route (backend M6 closed the bare-POST
+       fall-through). CORS so we read the verdict — no more false success. */
+    var ctrl=null; try{ ctrl=new AbortController(); }catch(e){}
+    var to=setTimeout(function(){ try{ if(ctrl) ctrl.abort(); }catch(e){} },15000);
+    fetch(VOTE_API_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({type:'vote',v_action:'vote_cast',device:dev,slug:c.slug,weight:VOTE_WEIGHT}),
+      signal:ctrl?ctrl.signal:undefined})
+      .then(function(r){ clearTimeout(to); return r.json(); })
+      .then(function(j){
+        if(j&&j.ok){
+          try { localStorage.setItem(storeKey, JSON.stringify({name:c.name,slug:c.slug,weight:VOTE_WEIGHT})); }catch(e){}
+          /* One vote, one streak bump, one tally event — counted exactly once. */
+          bumpStreak();
+          renderStreak();
+          try { document.dispatchEvent(new CustomEvent("pf-vote-cast",{detail:{week:weekKey,weight:VOTE_WEIGHT}})); }catch(e){}
+          /* The sealed-ballot ceremony plays, then the voted state lands. */
+          ballotCeremony(c,function(){ showVoted(c.name,VOTE_WEIGHT); });
+          /* Refresh the shared totals so the new vote appears on next render. */
+          setTimeout(fetchTotals,1500);
+        } else {
+          var msg=(j&&(j.err||j.error))||'Vote rejected.';
+          try{ if(window.PF&&PF.toast) PF.toast(msg+' Not counted — try again.'); }catch(e){}
+        }
+      })
+      .catch(function(){
+        clearTimeout(to);
+        try{ if(window.PF&&PF.toast) PF.toast('Network error — vote not counted. Try again.'); }catch(e){}
+      });
   }
   /* COPY CRATE */
   var VCRATE="\\u2605 FAN VOTE: PROPAGANDIST OF THE WEEK \\u2605\\nWho was the hardest-working propagandist this week? You decide.\\nVote: https://www.mtcstw.com\\n#SickLeftRadicals #PropagandaFactory";

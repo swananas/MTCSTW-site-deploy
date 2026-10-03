@@ -177,13 +177,8 @@ function loadBoard(){
 function renderGate(){
   var el=document.getElementById("cBody");
   if(!el) return;
-  el.innerHTML='<div class="c-gate">Cells run on callsigns. Claim yours in Enlistment Ranks, then come back and form your cell.'+
-    '<br><button class="c-btn" id="cGoRanks">Claim a callsign</button></div>';
-  var b=document.getElementById("cGoRanks");
-  if(b) b.onclick=function(){
-    var sec=document.querySelector('section[data-game="enlistment-ranks"]');
-    if(sec&&sec.scrollIntoView){ try{ sec.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){} }
-  };
+  /* 2026-10-03 H8: active in-place claim (was: scroll away to Enlistment Ranks). */
+  el.innerHTML=PF.gateHTML('Cells run on callsigns.','to form your cell');
 }
 function render(){
   var el=document.getElementById("cBody");

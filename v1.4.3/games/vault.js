@@ -53,6 +53,13 @@ function apiAdmin(action,cb){
 function post(type,key,cAction,params,cb){
   var body={type:type}; body[key]=cAction;
   for(var k in params) body[k]=params[k];
+  /* 2026-10-03 H7: admin posts ride X-Admin-Secret, but callsign-gated admin
+     actions (auction_cancel, prize_award) also need the callsign auth the
+     authGate demands — attach the admin's own identity when available. */
+  try{
+    if(!body.callsign&&window.PFCallsign){ var _cs=window.PFCallsign(); if(_cs) body.callsign=_cs; }
+    if(!body.auth_secret&&window.PF&&PF.getAuthSecret){ var _s=PF.getAuthSecret(); if(_s) body.auth_secret=_s; }
+  }catch(e){}
   function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
   try{
     fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json","X-Admin-Secret":getSecret()},body:JSON.stringify(body)})
@@ -73,10 +80,10 @@ function fmtDur(ms){
 }
 function val(id){ var el=document.getElementById(id); return el?String(el.value||"").trim():""; }
 function err(id,m){ var el=document.getElementById(id); if(el) el.textContent=m||""; }
-var NH=null, LS=null, WL=null, CL=null, EL=null, DL=null, AL=null, BP=null, IS=null, WH=null;
+var NH=null, LS=null, WL=null, CL=null, EL=null, DL=null, AL=null, BP=null, IS=null, WH=null, BTL=null, AUL=null;
 function load(){
   var n=0;
-  function one(){ n++; if(n>=10) render(); }
+  function one(){ n++; if(n>=12) render(); }
   setTimeout(render,15000);
   apiAdmin("network_health",function(j){ NH=j; one(); });
   api("lottery_status",{callsign:"x"},function(j){ LS=j; one(); });
@@ -87,6 +94,8 @@ function load(){
   api("alert_list",{},function(j){ AL=j; one(); });
   apiAdmin("battle_proposals",function(j){ BP=j; one(); });
   apiAdmin("intel_submissions",function(j){ IS=j; one(); });
+  api("battle_list",{},function(j){ BTL=j; one(); });
+  api("auction_list",{},function(j){ AUL=j; one(); });
   apiAdmin("webhook_health",function(j){ WH=j; one(); });
 }
 function renderGate(){
@@ -265,6 +274,49 @@ function render(){
     h+='<div class="x-note">Webhook health unavailable ('+esc((WH&&WH.err)||"loading")+').</div>';
   }
   h+='</div>';
+  /* BATTLE CONTROL — direct create/close/voting control (2026-10-03 H7).
+     Proposals still flow through the moderation queue above; these are the
+     admin-only battle_create / battle_create_staked / battle_open_voting /
+     battle_close actions. Admin writes ride X-Admin-Secret like everything
+     else in the vault. */
+  h+='<div class="x-pane"><h4>Battle control</h4>'
+    +'<div class="vl-form">'
+    +'<input aria-label="Battle title" id="vlBT" class="c-input pf-input-lg" placeholder="Battle title" >'
+    +'<input id="vlBEnds" class="c-input pf-input-md" type="datetime-local" >'
+    +'<button class="c-btn" id="vlBCreate">CREATE BATTLE</button><div class="c-err" id="vlBErr"></div>'
+    +'</div>'
+    +'<div class="vl-form" style="margin-top:6px">'
+    +'<input aria-label="Staked battle title" id="vlBST" class="c-input pf-input-lg" placeholder="Staked battle title" >'
+    +'<input aria-label="Entry fee XP" id="vlBFee" class="c-input pf-input-sm" type="number" min="1" placeholder="Fee XP" >'
+    +'<input aria-label="Prize pool XP" id="vlBPool" class="c-input pf-input-sm" type="number" min="0" placeholder="Pool XP" >'
+    +'<button class="c-btn" id="vlBSCreate">CREATE STAKED</button><div class="c-err" id="vlBSErr"></div>'
+    +'</div>';
+  var vbl=(BTL&&BTL.ok&&BTL.battles)||[];
+  if(!vbl.length){ h+='<div class="x-note">No battles on record.</div>'; }
+  for(var vbi=0;vbi<vbl.length;vbi++){
+    var vb=vbl[vbi], vst=String(vb.status||"").toUpperCase();
+    h+='<div class="vl-row"><div><b>'+esc(vb.title||vb.id)+'</b> '
+      +' <span class="x-note">'+vst+' &bull; ends '+fmtDate(vb.ends_at)
+      +(Number(vb.entry_fee)>0?(' &bull; STAKED '+Number(vb.entry_fee)+' XP in / '+Number(vb.prize_pool||0)+' pool'):'')
+      +'</span></div><div class="vl-form">'
+      +(vb.status==="open"?'<button class="c-btn c-btn-sm" data-bvote="'+esc(vb.id)+'">OPEN VOTING</button> ':'')
+      +(vb.status!=="closed"?'<button class="c-btn c-btn-dim c-btn-sm" data-bclose="'+esc(vb.id)+'">CLOSE &amp; SETTLE</button>':'')
+      +'</div></div>';
+  }
+  h+='<div class="c-err" id="vlBCErr"></div>';
+  /* Auctions are admin-seeded; the seller-cancel lives here (admin rail).
+     Only pre-bid auctions can be cancelled — the backend enforces it. */
+  var vaul=(AUL&&AUL.ok&&AUL.auctions)||[];
+  h+='<div class="x-note" style="margin-top:8px"><b>Auctions</b></div>';
+  if(!vaul.length){ h+='<div class="x-note">No auctions running.</div>'; }
+  for(var vai=0;vai<vaul.length;vai++){
+    var va=vaul[vai];
+    h+='<div class="vl-row"><div><b>'+esc(va.slot||va.id)+'</b> '
+      +' <span class="x-note">top bid '+Number(va.current_bid||0)+' XP &bull; '+(Number(va.bid_count||0))+' bid(s) &bull; ends '+fmtDate(va.ends_at)+'</span></div>'
+      +((Number(va.bid_count||0)===0)?'<button class="c-btn c-btn-dim c-btn-sm" data-acancel="'+esc(va.id)+'">CANCEL AUCTION</button>':'<span class="x-note">has bids — close instead</span>')
+      +'</div>';
+  }
+  h+='<div class="c-err" id="vlACErr"></div></div>';
   el.innerHTML=h;
   wire();
 }
@@ -405,6 +457,54 @@ function wire(){
         toast("Submission rejected."); IS=null; load();
       }); };
   })(irjs[ij]); }
+  /* battle control: create / create staked / open voting / close & settle */
+  b=document.getElementById("vlBCreate");
+  if(b) b.onclick=function(){ b.disabled=true;
+    var ends=val("vlBEnds"); var ts=ends?new Date(ends).getTime():0;
+    post("battle","b_action","battle_create",{title:val("vlBT"),ends_at:ts},function(j){
+      b.disabled=false;
+      if(!j||!j.ok){ err("vlBErr",(j&&j.err)||"Create failed."); return; }
+      toast("Battle created: "+j.id); BTL=null; load();
+    }); };
+  b=document.getElementById("vlBSCreate");
+  if(b) b.onclick=function(){ b.disabled=true;
+    post("battle","b_action","battle_create_staked",{title:val("vlBST"),entry_fee:Number(val("vlBFee"))||0,prize_pool:Number(val("vlBPool"))||0},function(j){
+      b.disabled=false;
+      if(!j||!j.ok){ err("vlBSErr",(j&&j.err)||"Create failed."); return; }
+      toast("Staked battle created: "+j.id); BTL=null; load();
+    }); };
+  var bvts=document.querySelectorAll("[data-bvote]");
+  for(var vi=0;vi<bvts.length;vi++){ (function(btn){
+    btn.onclick=function(){ btn.disabled=true;
+      post("battle","b_action","battle_open_voting",{battle_id:btn.getAttribute("data-bvote")},function(j){
+        btn.disabled=false;
+        if(!j||!j.ok){ err("vlBCErr",(j&&j.err)||"Open voting failed."); return; }
+        toast("Voting open."); BTL=null; load();
+      }); };
+  })(bvts[vi]); }
+  var bcls=document.querySelectorAll("[data-bclose]");
+  for(var ci=0;ci<bcls.length;ci++){ (function(btn){
+    btn.onclick=function(){
+      if(!window.confirm("Close and settle this battle? Winner takes +100 XP.")) return;
+      btn.disabled=true;
+      post("battle","b_action","battle_close",{battle_id:btn.getAttribute("data-bclose")},function(j){
+        btn.disabled=false;
+        if(!j||!j.ok){ err("vlBCErr",(j&&j.err)||"Close failed."); return; }
+        toast("Battle settled. Winner: "+(j.winner||"?")); BTL=null; load();
+      }); };
+  })(bcls[ci]); }
+  /* auction cancel (admin): only pre-bid auctions can be cancelled */
+  var acs=document.querySelectorAll("[data-acancel]");
+  for(var ai2=0;ai2<acs.length;ai2++){ (function(btn){
+    btn.onclick=function(){
+      if(!window.confirm("Cancel this auction? It must have no bids.")) return;
+      btn.disabled=true;
+      post("sink","s_action","auction_cancel",{auction_id:btn.getAttribute("data-acancel")},function(j){
+        btn.disabled=false;
+        if(!j||!j.ok){ err("vlACErr",(j&&j.err)||"Cancel failed."); return; }
+        toast("Auction cancelled."); AUL=null; load();
+      }); };
+  })(acs[ai2]); }
 }
 renderGate();
 setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} if(getSecret()) load(); },300000);

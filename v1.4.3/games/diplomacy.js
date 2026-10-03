@@ -82,7 +82,7 @@ function render(){
   var el=document.getElementById("xDiplo"); if(!el) return;
   var id=ident(), h="";
   if(!id.callsign){
-    el.innerHTML='<div class="c-gate">Diplomacy is conducted between cells. Enlist, join a cell, then come shape the map.</div>';
+    el.innerHTML=PF.gateHTML('Diplomacy is conducted between cells.','to enlist and shape the map');
     return;
   }
   if(AUTHFAIL){

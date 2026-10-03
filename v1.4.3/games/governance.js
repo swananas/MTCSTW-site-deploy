@@ -75,7 +75,7 @@ function render(){
   var el=document.getElementById("xGov"); if(!el) return;
   var id=ident(), h="";
   if(!id.callsign){
-    el.innerHTML='<div class="c-gate">The Assembly votes on callsigns. Claim yours in Enlistment Ranks, then come back and take your seat.</div>';
+    el.innerHTML=PF.gateHTML('The Assembly votes on callsigns.','to take your seat');
     return;
   }
   var props=(PL&&PL.proposals)||[];

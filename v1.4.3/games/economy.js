@@ -80,7 +80,7 @@ function load(){
 }
 function gate(){
   var id=ident();
-  if(!id.callsign) return '<div class="c-gate">The economy runs on callsigns. Claim yours in Enlistment Ranks, then come back and spend.</div>';
+  if(!id.callsign) return PF.gateHTML('The economy runs on callsigns.','to spend');
   return "";
 }
 function render(){
@@ -109,11 +109,15 @@ function renderAuctions(id){
   if(!list.length) h+='<div class="x-note">No auctions running.</div>';
   for(var i=0;i<list.length;i++){
     var a=list[i], left=Number(a.ends_at)-Date.now();
+    var mine=a.seller&&id.callsign&&String(a.seller).toLowerCase()===String(id.callsign).toLowerCase();
+    var noBids=(Number(a.bid_count)||0)===0;
     h+='<div class="cp-mission"><div class="cp-mtext"><b>'+esc(a.slot)+'</b>'
       +'<div class="x-note">Top bid: <b>'+Number(a.current_bid||0)+' XP</b> by '+esc(a.leader||"—")
       +' &bull; ends in '+esc(fmtDur(left))+'</div></div>'
       +'<div><input aria-label="XP" class="c-in pf-input-sm" id="ecBidAmt_'+esc(a.id)+'" type="number" min="1" placeholder="XP" /> '
-      +'<button class="c-btn" data-aid="'+esc(a.id)+'">BID</button></div></div>';
+      +'<button class="c-btn" data-aid="'+esc(a.id)+'">BID</button>'
+      +(mine&&noBids?' <button class="c-btn ghost" data-acancel="'+esc(a.id)+'">CANCEL</button>':"")
+      +'</div></div>';
   }
   h+='</div>'; return h;
 }
@@ -133,6 +137,20 @@ function wireAuctions(id,el){
       });
     };
   })(btns[i]); }
+  /* seller cancel: only the seller, only before any bids (2026-10-03 H7) */
+  var cbs=el.querySelectorAll('button[data-acancel]');
+  for(var c2=0;c2<cbs.length;c2++){ (function(btn){
+    btn.onclick=function(){
+      var aid=btn.getAttribute("data-acancel");
+      if(!window.confirm("Cancel this auction? It must have no bids.")) return;
+      btn.disabled=true;
+      post("sink","s_action","auction_cancel",{callsign:id.callsign,device:id.device,auction_id:aid},function(j){
+        if(!j||!j.ok){ toast((j&&j.err)||"Cancel failed."); btn.disabled=false; return; }
+        toast("AUCTION CANCELLED.");
+        setTimeout(function(){ AU=null; load(); },800);
+      });
+    };
+  })(cbs[c2]); }
 }
 /* ---------- COSMETICS ---------- */
 function renderCosmetics(id){

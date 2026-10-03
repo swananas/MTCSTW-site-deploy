@@ -69,7 +69,7 @@ function load(){
 }
 function renderGate(){
   var el=document.getElementById("vBody"); if(!el) return;
-  el.innerHTML='<div class="c-gate">Ventures run on callsigns. Claim yours in Enlistment Ranks, fund your War Chest, then come back and buy in.</div>';
+  el.innerHTML=PF.gateHTML('Ventures run on callsigns.','to buy in');
 }
 function countdown(ms){
   if(ms<=0) return "closed";

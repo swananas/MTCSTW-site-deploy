@@ -73,7 +73,7 @@ function render(){
   var el=document.getElementById("xCivic"); if(!el) return;
   var id=ident(), h="";
   if(!id.callsign){
-    h+='<div class="c-gate">Civic action runs on callsigns. Claim yours in Enlistment Ranks, then come back and deploy.</div>';
+    h+=PF.gateHTML('Civic action runs on callsigns.','to take civic action');
     el.innerHTML=h; return;
   }
   /* --- petitions --- */

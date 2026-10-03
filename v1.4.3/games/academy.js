@@ -89,7 +89,7 @@
       +'<h2>Propaganda Academy</h2>'
       +'<div class="c-tag">Learn the craft. Earn your stripes. Pump with purpose.</div>';
     if(!id.callsign){
-      h+='<div class="x-pane"><div class="x-note">Claim a callsign in Enlistment Ranks to enroll in the Academy and bank XP for every lesson.</div></div>';
+      h+=PF.gateHTML('The Academy enrolls callsign holders.','to enroll and bank XP');
     } else {
       h+='<div class="x-pane"><div class="x-note">PROGRESS: '+n+'/'+lessons.length+' lessons &mdash; '+pct+'%</div>'
         +'<div style="background:#222;border:1px solid #555;height:14px;margin-top:6px"><div style="background:#c1121f;height:12px;width:'+pct+'%"></div></div></div>';
@@ -123,6 +123,8 @@
               if(gained>0) creditLocal(lid, gained);
               try{ document.dispatchEvent(new CustomEvent("pf-lesson-complete",{detail:{lesson:lid,xp:gained}})); }catch(e2){}
               toast(j.dup?"Already banked. No double pay.":"Lesson complete. +"+gained+" XP.");
+              /* M1 dopamine: banking a lesson should feel earned. */
+              try{ if(window.PF&&PF.dope){ var ah=document.getElementById("pf-academy")||document.body; PF.dope.press(btn); PF.dope.confetti(ah,35); if(gained>0) PF.dope.xpFloat(ah,"+"+gained+" XP"); } }catch(dpe){}
               for(var k=0;k<lessons.length;k++){ if(lessons[k].id===lid) lessons[k].done=1; }
               render(el,lessons);
             } else {

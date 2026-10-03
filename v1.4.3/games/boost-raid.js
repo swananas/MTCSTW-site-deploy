@@ -90,6 +90,8 @@
 '    mEl.textContent="Hit confirmed. +2 XP. The target felt that.";\n' +
 '    paintStreak();\n' +
 '    try{document.dispatchEvent(new CustomEvent("pf-raid-report",{detail:{day:t,target:tn}}));}catch(e){}\n' +
+'    /* M1 dopamine: reporting the hit should land with feeling. */\n' +
+'    try{if(window.PF&&PF.dope){var rd=document.getElementById("pf-raid")||document.body;PF.dope.confetti(rd,35);PF.dope.xpFloat(rd,"+2 XP");PF.dope.ping(rd,"HIT CONFIRMED");}}catch(e){}\n' +
 '  };\n' +
 '  /* RAID POSTER: pulls the creator catalog (roster record) and advertises\n' +
 '     the highlighted creator — photo, propaganda score, handle — with the\n' +

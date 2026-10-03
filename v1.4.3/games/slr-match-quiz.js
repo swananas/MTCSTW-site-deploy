@@ -127,6 +127,8 @@
 '      +"<div id=\'pf-mq-msg\' style=\'margin-top:0.6rem;font-size:0.85rem;color:#b8ab8e;min-height:1.2em;\'></div>"\n' +
 '      +"<div><button id=\'pf-mq-again\' style=\'margin-top:0.8rem;background:none;border:1px solid #b8ab8e;color:#b8ab8e;padding:0.5rem 1rem;cursor:pointer;font-family:inherit;font-size:0.8rem;\'>RETAKE QUIZ</button></div>";\n' +
 '    try{document.dispatchEvent(new CustomEvent("pf-quiz-done",{detail:{archetype:top}}));}catch(e){}\n' +
+'    /* M1 dopamine: archetype reveal is the payoff — celebrate it. */\n' +
+'    try{if(window.PF&&PF.dope){var dq=document.getElementById("pf-matchquiz")||document.body;PF.dope.confetti(dq,50);PF.dope.ping(dq,"ARCHETYPE LOCKED");}}catch(e){}\n' +
 '    mqPublish(A);\n' +
 '    loadTribes(function(){var n=TRIBES?Number(TRIBES[top]||0):0;var t=document.getElementById("pf-mq-tribe");if(t&&n>0){t.innerHTML="<b style=\'color:#f5f0e1;\'>"+n.toLocaleString()+"</b> comrades landed <b style=\'color:#f5f0e1;\'>"+A.name+"</b> this week. The tribe grows.";}});\n' +
 '    var unlocked=false;\n' +

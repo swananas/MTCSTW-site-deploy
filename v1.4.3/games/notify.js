@@ -70,7 +70,7 @@ function load(){
 function render(){
   var el=document.getElementById("xNotify"); if(!el) return;
   var id=ident();
-  if(!id.callsign){ el.innerHTML='<div class="c-gate">Notifications need a callsign. Claim yours in Enlistment Ranks.</div>'; return; }
+  if(!id.callsign){ el.innerHTML=PF.gateHTML('Notifications need a callsign.','to get dispatches'); return; }
   var list=(N&&N.notifications)||[];
   var unread=0, i;
   for(i=0;i<list.length;i++){ if(!list[i].read) unread++; }

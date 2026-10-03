@@ -227,6 +227,8 @@ function doFire(idx,amt){
   apiGet({action:'infight_fire',round:cur.id,slug:f.slug,amt:amt,callsign:callsign()},function(){pollTotals();});
   dispatch('pf-infight-fire',{slug:f.slug,amt:amt,round:cur.id});
   updateBars();
+  /* M1 dopamine: firing ammo should feel like firing ammo. */
+  try{ if(window.PF&&PF.dope){ PF.dope.xpFloat(root,'+'+amt+' FIRE'); } }catch(e){}
   var x=root.querySelector('[data-if-xp]');if(x)x.textContent=xp().toLocaleString();
 }
 function doOp(key){

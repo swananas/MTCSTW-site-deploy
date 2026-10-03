@@ -107,7 +107,7 @@ function load(){
 }
 function gate(){
   var id=ident();
-  if(!id.callsign) return '<div class="c-gate">The Bank serves callsign holders. Claim yours in Enlistment Ranks, then come open an account.</div>';
+  if(!id.callsign) return PF.gateHTML('The Bank serves callsign holders.','to open an account');
   return "";
 }
 function netWorth(){
@@ -210,6 +210,15 @@ function renderVault(id){
     +'<div class="c-err" id="pbVltErr"></div>'
     +'<div class="x-note" style="margin:8px 0 0;">Withdrawals are free — but XP pulled before Monday forfeits the week\\\'s interest on it.</div>'
     +'</div>';
+  /* overtime kicker (2026-10-03 H7): log a shift, bank XP up to the daily cap */
+  var otUsed=Math.round(Number(BST.overtime_today)||0), otCap=Math.round(Number(BST.overtime_cap)||0);
+  var otRoom=Math.max(0,otCap-otUsed);
+  h+='<div style="margin-top:12px;border-top:1px solid #333;padding-top:10px;">'
+    +'<div class="x-note" style="margin:0 0 6px;"><b style="letter-spacing:2px;">OVERTIME KICKER</b> &mdash; worked a shift? Bank it: <b>'+otUsed+'/'+otCap+' XP</b> today'+(otRoom>0?(' ('+otRoom+' room)'):(' (capped)'))+'</div>'
+    +'<div style="display:flex;gap:8px;">'
+    +'<input class="c-in" id="pbOtAmt" type="number" min="1" max="50" inputmode="numeric" placeholder="XP" aria-label="Overtime XP" style="flex:1;margin:0;">'
+    +'<button class="c-btn" id="pbOtLog" style="flex:2;margin:0;">LOG OVERTIME</button>'
+    +'</div><div class="c-err" id="pbOtErr"></div></div>';
   /* recent activity — last 5 */
   var hist=(BST.history||[]).slice(0,5);
   h+='<div style="margin-top:12px;"><div class="x-note" style="margin:0 0 6px;"><b style="letter-spacing:2px;">RECENT ACTIVITY</b></div>';
@@ -273,6 +282,24 @@ function wireVault(id,el){
   var dep=document.getElementById("pbVltDep"), wd=document.getElementById("pbVltWdr");
   if(dep) dep.onclick=function(){ doTransfer(true,dep); };
   if(wd) wd.onclick=function(){ doTransfer(false,wd); };
+  /* overtime kicker: POST-only bank write (2026-10-03 H7) */
+  var otb=document.getElementById("pbOtLog");
+  if(otb) otb.onclick=function(){
+    var amtEl=document.getElementById("pbOtAmt");
+    var amt=Math.round(Number(amtEl&&amtEl.value)||0);
+    var err=document.getElementById("pbOtErr"), iid=ident();
+    if(err) err.textContent="";
+    if(!amt||amt<1){ if(err) err.textContent="Enter an amount."; return; }
+    otb.disabled=true;
+    post("bank","b_action","overtime",{callsign:iid.callsign,device:iid.device,amount:amt,key:iid.device+":"+Date.now()},function(j){
+      otb.disabled=false;
+      if(j&&j.ok){ toast("OVERTIME LOGGED. +"+amt+" XP in the vault."); }
+      else if(err){ err.textContent=(j&&(j.err||j.error))||"Log failed."; }
+      setTimeout(function(){
+        api("bank_status",{callsign:iid.callsign},function(jj){ BST=jj; render(); });
+      },1200);
+    });
+  };
 }
 /* ---------- 1. ACCOUNT OVERVIEW (the lobby) ---------- */
 function renderLobby(id){
@@ -423,7 +450,9 @@ function renderLoans(id){
     h+='<div class="cp-mission"><div class="cp-mtext"><b>'+Number(l2.principal).toLocaleString()+' XP</b> to '+esc(l2.borrower)
       +'<div class="x-note">Interest: '+Number(l2.interest_pct||0)+'% &bull; owed '+t2.toLocaleString()+' XP &bull; '
       +(l2.repaid?'<span class="cp-mdone">REPAID</span>':(d2>0?('due in '+esc(fmtDur(d2))):'<b>OVERDUE</b>'))+'</div></div>'
-      +(l2.repaid?'<div class="cp-mdone">CLOSED</div>':'<div class="x-note">AWAITING REPAYMENT</div>')
+      +(l2.repaid?'<div class="cp-mdone">CLOSED</div>'
+        :l2.cancelled?'<div class="x-note">CANCELLED &mdash; principal refunded</div>'
+        :'<div><div class="x-note">AWAITING REPAYMENT</div><button class="c-btn ghost" data-lncancel="'+esc(l2.id)+'">CANCEL OFFER</button></div>')
       +'</div>';
   }
   h+='</div>';
@@ -461,6 +490,20 @@ function wireLoans(id,el){
       });
     };
   })(rps[i]); }
+  /* lender cancel: kill your own unaccepted offer, principal refunded (2026-10-03 H7) */
+  var lcs=el.querySelectorAll('button[data-lncancel]');
+  for(var li=0;li<lcs.length;li++){ (function(btn){
+    btn.onclick=function(){
+      var lid=btn.getAttribute("data-lncancel");
+      if(!window.confirm("Cancel this loan offer? The principal returns to you.")) return;
+      btn.disabled=true;
+      post("finance","f_action","loan_cancel",{callsign:id.callsign,device:id.device,loan_id:lid},function(j){
+        if(!j||!j.ok){ toast((j&&j.err)||"Cancel failed."); btn.disabled=false; return; }
+        toast("OFFER CANCELLED. Principal refunded.");
+        api("loan_list",{callsign:id.callsign},function(jj){ LNS=jj; render(); });
+      });
+    };
+  })(lcs[li]); }
 }
 /* ---------- 5. BOND DESK ---------- */
 function renderBonds(id){

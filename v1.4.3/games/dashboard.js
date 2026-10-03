@@ -110,7 +110,7 @@ function render(){
   var el=document.getElementById("xDash"); if(!el) return;
   var id=ident(), h="";
   if(!id.callsign){
-    h+='<div class="c-gate">Command Center runs on callsigns. Claim yours in Enlistment Ranks, then come back.</div>';
+    h+=PF.gateHTML('Command Center runs on callsigns.','to command');
     el.innerHTML=h; return;
   }
   /* --- your numbers --- */

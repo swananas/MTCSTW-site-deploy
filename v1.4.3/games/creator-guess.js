@@ -119,6 +119,8 @@
 '      +"<div><button id=\'pf-guess-again\' style=\'margin-top:1rem;background:none;border:1px solid #b8ab8e;color:#b8ab8e;padding:0.5rem 1rem;cursor:pointer;font-family:inherit;font-size:0.8rem;\'>PLAY AGAIN</button></div>";\n' +
 '    try{document.dispatchEvent(new CustomEvent("pf-guess-done",{detail:{score:score,day:t}}));}catch(e){}\n' +
 '    try{document.dispatchEvent(new CustomEvent("pf-guess-scored",{detail:{score:score}}));}catch(e){}\n' +
+'    /* M1 dopamine: the score card lands with feeling. Perfect game gets the big one. */\n' +
+'    try{if(window.PF&&PF.dope){var gd=document.getElementById("pf-guess")||document.body;var gp=perfect?80:(score>=3?45:25);PF.dope.confetti(gd,gp);if(perfect){PF.dope.ping(gd,"PERFECT 5/5");}else{PF.dope.xpFloat(gd,score+"/5");}}}catch(e){}\n' +
 '    try{var PS0=window.PFShare;if(PS0&&PS0.REG){PS0.REG["creator-guess"]={title:score+"/5",tag:"GUESS THE CREATOR",lines:[verdict],cta:"TEST YOURSELF"};}}catch(e){}\n' +
 '    document.getElementById("pf-guess-share").onclick=function(){\n' +
 '      try{var PS=window.PFShare;if(PS&&PS.poster&&PS.shareImage){var cv=PS.poster("creator-guess");if(cv){PS.shareImage(cv,"guess-score.png","I scored "+score+"/5 on Guess the Creator","creator-guess");return;}}}catch(e){}\n' +

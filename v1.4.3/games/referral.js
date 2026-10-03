@@ -119,7 +119,7 @@ function render(){
   h+='<div class="rf-frame">EVERY RECRUIT IS A SOLDIER. BUILD YOUR ARMY.</div>';
   h+='<div class="rf-sub">Share your code. They claim a callsign. You both get XP. Climb the tiers.</div>';
   if(!id.callsign){
-    h+='<div class="c-gate">Referral War runs on callsigns. Claim yours in Enlistment Ranks, then come back and recruit.</div>';
+    h+=PF.gateHTML('Referral War runs on callsigns.','to recruit');
     el.innerHTML=h;
     return;
   }
@@ -166,15 +166,21 @@ function render(){
   var mm=M||{};
   if(mm.mentor){
     h+='<div class="x-note">Your mentor: <b>'+esc(mm.mentor)+'</b> — learn the ropes, then take command.</div>';
-  } else if(mm.mentees&&mm.mentees.length){
-    h+='<div class="x-note">You mentor '+mm.mentees.length+' soldier(s). Their progress is your legacy.</div>';
-    for(var mi=0;mi<Math.min(mm.mentees.length,20);mi++){
-      var me=mm.mentees[mi]||{};
-      h+='<div class="cp-lead"><span class="cp-lname">'+esc(me.callsign)+'</span> '
-        +'<span class="cp-lxp">'+(Number(me.actions)||0)+' actions</span></div>';
-    }
   } else {
-    h+='<div class="x-note">No mentor assigned yet. Recruit, rise, and the network will match you.</div>';
+    h+='<div class="x-note">No mentor assigned yet. The network will match you with a veteran.</div>'
+      +'<div style="margin-top:8px"><button class="c-btn" id="rfPairBtn">FIND ME A MENTOR</button></div>';
+  }
+  var mtes=(mm.mentees)||[];
+  if(mtes.length){
+    h+='<div class="x-note" style="margin-top:8px">You mentor '+mtes.length+' soldier(s). Claim <b>+10 XP</b> for each once they complete 5+ actions.</div>';
+    for(var mi=0;mi<Math.min(mtes.length,20);mi++){
+      var me=mtes[mi]||{}, mcs=String(me.mentee||"");
+      if(!mcs) continue;
+      h+='<div class="cp-lead"><span class="cp-lname">'+esc(mcs)+'</span> '
+        +(me.paid?'<span class="cp-mdone">CLAIMED</span>'
+          :'<button class="c-btn rf-mclaim" data-mentee="'+esc(mcs)+'">CLAIM +10 XP</button>')
+        +'</div>';
+    }
   }
   h+='</div>';
   /* --- leaderboard --- */
@@ -218,8 +224,12 @@ function render(){
         post("referral_activate",{recruit_callsign:rcs,callsign:id.callsign,device:id.device},function(j){
           if(j&&j.ok&&(j.xp||j.recruiter)){
             var amt=Number(j.xp)||50;
+            /* 2026-10-03: same double-grant class as the bounty-refund fix —
+               the backend already granted this bonus via xpGrant
+               ('ref_bonus_'+recruiter+'_'+rcs); dispatching pf-xp here made
+               the xpledger mirror it a second time under an lx: key.
+               Backend is the source of truth; toast only. */
             toast("RECRUIT ACTIVE. +"+amt+" XP — "+rcs+" fights under your banner.");
-            try{ doXp(amt,"ref_bonus_"+id.callsign+"_"+rcs,"recruit activated: "+rcs); }catch(e){}
             btn.textContent="COLLECTED"; btn.disabled=true;
             S=null; load();
           } else if(j&&j.ok&&j.already){
@@ -263,6 +273,40 @@ function render(){
   };
   var rb=document.getElementById("rfRetry");
   if(rb) rb.onclick=function(){ S=L=T=M=null; el.innerHTML='<div class="c-load">Mustering&hellip;</div>'; load(); };
+  /* mentor: pair with a veteran + claim +10 XP per active mentee (2026-10-03 H7).
+     Backend grants via xpGrant — backend is the source of truth, toast only. */
+  var mpb=document.getElementById("rfPairBtn");
+  if(mpb) mpb.onclick=function(){
+    mpb.disabled=true; mpb.textContent="MATCHING…";
+    post("mentor_pair",{mentee:id.callsign,callsign:id.callsign,device:id.device},function(j){
+      if(j&&j.ok&&(j.mentor)){
+        toast(j.already?("You already have a mentor: "+j.mentor+"."):("Mentor assigned: "+j.mentor+". Learn the ropes."));
+        M=null; load();
+      } else {
+        toast((j&&j.err)||"No mentor available right now.");
+        mpb.disabled=false; mpb.textContent="FIND ME A MENTOR";
+      }
+    });
+  };
+  var mcb=el.querySelectorAll("button.rf-mclaim");
+  for(var mci=0;mci<mcb.length;mci++)(function(btn){
+    btn.onclick=function(){
+      var rcs=btn.getAttribute("data-mentee"); if(!rcs) return;
+      btn.disabled=true; btn.textContent="CLAIMING…";
+      post("mentor_claim",{mentor:id.callsign,mentee:rcs},function(j){
+        if(j&&j.ok&&j.paid){
+          toast("MENTOR BONUS. +10 XP — "+rcs+" is putting in work.");
+          M=null; load();
+        } else if(j&&j.ok){
+          toast(rcs+" has "+(j.actions||0)+"/5 actions. Nudge them.");
+          btn.disabled=false; btn.textContent="CLAIM +10 XP";
+        } else {
+          toast((j&&j.err)||"Claim failed.");
+          btn.disabled=false; btn.textContent="CLAIM +10 XP";
+        }
+      });
+    };
+  })(mcb[mci]);
   /* tree toggles */
   try{
     var tnodes=el.querySelectorAll(".rf-tnode");

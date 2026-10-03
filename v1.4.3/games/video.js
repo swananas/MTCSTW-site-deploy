@@ -373,7 +373,7 @@ function render(){
   var el=$("xVideo"); if(!el) return;
   var id=ident();
   var h="";
-  if(!id.callsign) h+='<div class="c-gate">Video Forge runs on callsigns. Claim yours in Enlistment Ranks, then come back and build.</div>';
+  if(!id.callsign) h+=PF.gateHTML('Video Forge runs on callsigns.','to forge video');
   h+='<div class="x-pane"><h4>1 &mdash; Templates</h4>'
     +'<div class="x-note">Start from a proven sequence, then edit every slide.</div>'
     +'<div class="vd-tpls">'

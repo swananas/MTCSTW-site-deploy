@@ -87,6 +87,8 @@
         try{ if(window.PF&&PF.creditLocal) PF.creditLocal(pkey,50); }catch(e){}
       }
       renderRack();
+      /* M1 dopamine: the full weekly set is the crown — biggest celebration on the site. */
+      try{ if(window.PF&&PF.dope){ var fdh=document.getElementById('pf-medals')||document.body; PF.dope.confetti(fdh,110); PF.dope.ping(fdh,'FULL DEPLOYMENT'); PF.dope.xpFloat(fdh,'+50 XP'); } }catch(dpe2){}
       try{document.dispatchEvent(new CustomEvent('pf-do-update'));}catch(e){}
     }
     /* flush a pending Full Deployment once the user claims a callsign.
@@ -167,7 +169,10 @@
       document.addEventListener(md.ev,function(){
         var s=load(),wk=PF.isoWeekKey(PF.chiNow());
         if(s.w!==wk){s={w:wk,m:{},fd:false};}
-        if(!s.m[md.id]){s.m[md.id]=1;save(s);}
+        var fresh=!s.m[md.id];
+        if(fresh){s.m[md.id]=1;save(s);}
+        /* M1 dopamine: earning a medal should feel earned. */
+        try{ if(fresh&&window.PF&&PF.dope){ var mh=document.getElementById('pf-medals')||document.body; PF.dope.confetti(mh,40); PF.dope.ping(mh,'MEDAL EARNED: '+String(md.name||'').toUpperCase()); } }catch(dpe){}
         checkFull(s);
         renderRack();
       });

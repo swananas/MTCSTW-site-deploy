@@ -75,7 +75,7 @@ function render(){
   var el=document.getElementById("xMovement"); if(!el) return;
   var id=ident(), h="";
   if(!id.callsign){
-    el.innerHTML='<div class="c-gate">Movement finance runs on callsigns. Claim yours in Enlistment Ranks, then come fund the fight.</div>';
+    el.innerHTML=PF.gateHTML('Movement finance runs on callsigns.','to fund the fight');
     return;
   }
   h+=renderCauses(id);

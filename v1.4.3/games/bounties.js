@@ -71,7 +71,7 @@ function render(){
   var el=document.getElementById("xBounty"); if(!el) return;
   var id=ident(), h="";
   if(!id.callsign){
-    h+='<div class="c-gate">Bounties run on callsigns. Claim yours in Enlistment Ranks, then come back and get paid.</div>';
+    h+=PF.gateHTML('Bounties run on callsigns.','to claim bounties');
     el.innerHTML=h; return;
   }
   /* --- open bounties --- */
@@ -173,8 +173,12 @@ function render(){
         post("bounty_close",{bounty_id:bid,callsign:id.callsign,device:id.device},function(j){
           if(j&&j.ok){
             var rf=Number(j.refunded)||0;
+            /* 2026-10-03 fix M2: the backend already granted this refund via
+               xpGrant ('bounty_refund_'+bid) — dispatching pf-xp here made
+               the xpledger mirror it a SECOND time under a different key
+               ('lx:<device>:bounty_refund_'+bid), double-paying the refund.
+               Backend is the source of truth; toast only. */
             toast("BOUNTY CLOSED. +"+rf+" XP escrow refunded.");
-            try{ if(rf>0) doXp(rf,"bounty_refund_"+bid,"bounty closed: escrow refund"); }catch(e){}
             B=null; BM=null; load();
           } else {
             var er=document.getElementById("bnCloseErr_"+bid);

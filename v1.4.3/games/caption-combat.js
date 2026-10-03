@@ -118,6 +118,8 @@ document.getElementById("cSubmit").onclick=function(){
       /* mail client took over — the entry is away, lock the week */
       CS.weeks[weekKey]={caption:capText,at:Date.now()}; capSave(CS);
       markSubmitted();
+      /* M1 dopamine: caption away — celebrate the send. */
+      try{ if(window.PF&&PF.dope){ var dd=document.getElementById("pf-caption")||document.body; PF.dope.confetti(dd,40); PF.dope.ping(dd,"CAPTION FIRED"); } }catch(dpe){}
       /* Backend persistence: post the entry so it lands on the leaderboard.
          Fire-and-forget — localStorage is the source of truth for the
          week-lock; the backend enhances, never replaces. */

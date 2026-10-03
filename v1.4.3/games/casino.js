@@ -176,7 +176,7 @@ function render(){
   var id=ident();
   var h='<div class="cs-frame">THE HOUSE ALWAYS WINS? NOT WHEN THE HOUSE IS US.</div>';
   if(!id.callsign){
-    h+='<div class="c-gate">Casino runs on callsigns. Claim yours in Enlistment Ranks, then come back and play.</div>';
+    h+=PF.gateHTML('The casino runs on callsigns.','to play');
     el.innerHTML=h; return;
   }
   h+=renderWagers(id)+renderLottery(id)+renderFlip(id)+renderCrash(id)+renderRoulette(id);
@@ -247,7 +247,10 @@ function wire(id){
         postG("flip_join",{callsign:id.callsign,flip_id:btn.getAttribute("data-fid")},function(j){
           btn.disabled=false;
           if(!j||!j.ok){ toast((j&&j.err)||"Join failed."); return; }
-          toast(j.winner?(String(j.winner).toUpperCase()===String(id.callsign).toUpperCase()?"YOU WIN THE FLIP!":"Flip lost. Winner: "+j.winner):"Flip resolved.");
+          var iWon=j.winner&&(String(j.winner).toUpperCase()===String(id.callsign).toUpperCase());
+          toast(j.winner?(iWon?"YOU WIN THE FLIP!":"Flip lost. Winner: "+j.winner):"Flip resolved.");
+          /* M1 dopamine: winning the flip gets the big one. */
+          try{ if(iWon&&window.PF&&PF.dope){ var fh=document.getElementById("xCasino")||document.body; PF.dope.confetti(fh,80); PF.dope.ping(fh,"YOU WIN THE FLIP"); } }catch(dpe){}
           load();
         });
       };
@@ -274,6 +277,8 @@ function wire(id){
     postG("crash_cashout",{callsign:id.callsign},function(j){
       if(!j||!j.ok){ toast((j&&j.err)||"Cashout failed."); load(); return; }
       toast("CASHED OUT: +"+(j.payout||0)+" XP!");
+      /* M1 dopamine: cashing out before the crash is the skill moment. */
+      try{ if(window.PF&&PF.dope){ var ch=document.getElementById("xCasino")||document.body; PF.dope.confetti(ch,50); PF.dope.xpFloat(ch,"+"+(j.payout||0)+" XP"); } }catch(dpe){}
       load();
     });
   };
@@ -295,6 +300,8 @@ function wire(id){
       var pay=Number(j.payout)||0;
       if(r) r.innerHTML='<div class="cs-rounum">'+esc(res)+'</div><div class="'+(pay>0?"cs-win":"cs-lose")+'">'
         +(pay>0?("WON +"+pay+" XP"):("LOST "+amt+" XP"))+'</div>';
+      /* M1 dopamine: a winning spin should feel like winning. Jackpot = big one. */
+      try{ if(pay>0&&window.PF&&PF.dope){ var rh=document.getElementById("xCasino")||document.body; var big=pay>=amt*5; PF.dope.confetti(rh,big?100:45); if(big) PF.dope.ping(rh,"JACKPOT +"+pay+" XP"); else PF.dope.xpFloat(rh,"+"+pay+" XP"); } }catch(dpe){}
       load();
     });
   };

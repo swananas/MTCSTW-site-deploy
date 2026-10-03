@@ -18,6 +18,8 @@
 (function(){
 var BACKEND=window.PF_BACKEND_URL;
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function fmtSched(t){ try{ var d=new Date(Number(t)||0); if(isNaN(d.getTime())) return "?";
+  return (d.getMonth()+1)+"/"+d.getDate()+" "+d.getHours()+":"+String(d.getMinutes()).padStart(2,"0"); }catch(e){ return "?"; } }
 function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
 function toast(m){ try{ PF.toast(m); }catch(e){} }
 function api(action,params,cb){
@@ -125,9 +127,10 @@ function render(){
     h+='<div class="x-pane"><div class="fd-title">SCHEDULED QUEUE ('+q.length+')</div>';
     for(var qi=0;qi<q.length;qi++){
       var sq=q[qi];
-      h+='<div class="x-note">'+esc(sq.title||sq.content_id||"")+' &mdash; '+esc(sq.platform||"")+' at '+esc(sq.send_at||"")+'</div>';
+      h+='<div class="x-note">'+esc(sq.content_id||"")+' &mdash; '+esc(sq.platform||"")+' at '+esc(fmtSched(sq.scheduled_for))
+        +(sq.posted?' <span class="cp-mdone">FIRED</span>':' <button class="c-btn ghost" data-sqc="'+sq.id+'">CANCEL</button>')+'</div>';
     }
-    h+='</div>';
+    h+='</div><div class="c-err" id="fdSchedErr"></div>';
   }
   h+='<div style="margin-top:10px"><button class="c-btn" id="fdRetry">Refresh</button></div>';
   el.innerHTML=h;
@@ -246,6 +249,24 @@ function render(){
         });
       };
     })(ss[si]);
+  }
+  /* Cancel a scheduled share (2026-10-03 H7). */
+  var scs=el.querySelectorAll("button[data-sqc]");
+  for(var sci=0;sci<scs.length;sci++){
+    (function(b){
+      b.onclick=function(){
+        var qid=b.getAttribute("data-sqc"); if(!qid) return;
+        b.disabled=true;
+        postX("schedule","s_action","schedule_cancel",{id:Number(qid),callsign:id.callsign,device:id.device},function(j){
+          if(j&&j.ok){ toast("Schedule cancelled."); SCHED=null; load(); }
+          else{
+            b.disabled=false;
+            var e2=document.getElementById("fdSchedErr");
+            if(e2) e2.textContent=(j&&j.err)||"Cancel failed.";
+          }
+        });
+      };
+    })(scs[sci]);
   }
 }
 load();

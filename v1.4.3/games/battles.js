@@ -47,6 +47,15 @@ function post(body,cb){
 function fmtDate(t){ try{ var d=new Date(Number(t)||0); if(isNaN(d.getTime())) return "?";
   var mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   return mo[d.getMonth()]+" "+d.getDate(); }catch(e){ return "?"; } }
+/* 2026-10-03 H8: active callsign gate — opens the claim modal in place and
+   retries the pending action after a successful claim (was: dead-end toast). */
+function needCs(retry,ctx){
+  var me=ident();
+  if(me.callsign) return me;
+  if(window.PF&&PF.requireCallsign){ PF.requireCallsign(function(cs){ if(cs){ try{ retry(); }catch(e){} } },{context:ctx||"to battle"}); }
+  else toast("Claim a callsign first.");
+  return null;
+}
 var BL=null, BB=null, TR=null;
 function loadMyProposals(){
   var box=document.getElementById("btMyProps");
@@ -123,9 +132,11 @@ function render(){
   if(open.length){
     var lastCid=""; try{ lastCid=localStorage.getItem("pf_last_content_id")||""; }catch(e){}
     h+='<select id="btBattleSel">'+open.map(function(b){
-      return '<option value="'+esc(b.id)+'">'+esc(b.title)+'</option>'; }).join("")+'</select> '
+      var fee=Math.round(Number(b.entry_fee)||0);
+      return '<option value="'+esc(b.id)+'" data-fee="'+fee+'">'+esc(b.title)+(fee>0?(" [STAKED: "+fee+" XP]"):"")+'</option>'; }).join("")+'</select> '
       +'<input aria-label="CONTENT ID" id="btContentId" maxlength="64" placeholder="CONTENT ID" value="'+esc(lastCid)+'"> '
-      +'<button class="c-btn" id="btEnterBtn">ENTER BATTLE</button><div class="c-err" id="btEnterErr"></div>';
+      +'<button class="c-btn" id="btEnterBtn">ENTER BATTLE</button><div class="c-err" id="btEnterErr"></div>'
+      +'<div class="x-note" id="btStakeNote" style="display:none">Staked battle: the entry fee goes to the prize pool. Winner takes it all.</div>';
   } else {
     h+='<div class="x-note">Entries are closed right now — battles open for entry before voting starts.</div>';
   }
@@ -172,14 +183,15 @@ function render(){
   /* wire votes */
   var vbs=el.querySelectorAll("button.bt-votebtn");
   for(var v=0;v<vbs.length;v++){ (function(btn){
-    btn.onclick=function(){
-      var me=ident();
-      if(!me.callsign){ toast("Claim a callsign first."); return; }
+    btn.onclick=function fireVote(){
+      var me=needCs(fireVote,"to vote in battles");
+      if(!me) return;
       btn.disabled=true;
       post({type:"battle",b_action:"battle_vote",battle_id:btn.getAttribute("data-bid"),content_id:btn.getAttribute("data-cid"),voter:me.callsign,device:me.device},function(j){
         btn.disabled=false;
         if(!j||!j.ok){ toast((j&&j.err)||"Vote failed."); return; }
         toast("VOTE COUNTED. May the best propaganda win.");
+        try{ if(window.PF&&PF.dope){ PF.dope.press(btn); var vh=document.getElementById("xBattles")||document.body; PF.dope.xpFloat(vh,"VOTE COUNTED"); } }catch(e2){}
         load();
       });
     };
@@ -187,40 +199,60 @@ function render(){
   /* wire boosts */
   var bbs=el.querySelectorAll("button.bt-boostbtn");
   for(var x=0;x<bbs.length;x++){ (function(btn){
-    btn.onclick=function(){
-      var me=ident();
-      if(!me.callsign){ toast("Claim a callsign first."); return; }
+    btn.onclick=function fireBoost(){
+      var me=needCs(fireBoost,"to boost propaganda");
+      if(!me) return;
       btn.disabled=true;
       post({type:"spread",sp_action:"boost_give",content_id:btn.getAttribute("data-cid"),booster:me.callsign,device:me.device,xp:btn.getAttribute("data-amt")},function(j){
         btn.disabled=false;
         if(!j||!j.ok){ toast((j&&j.err)||"Boost failed."); return; }
         toast("BOOSTED — "+j.total_boosts+" XP total on this piece.");
+        try{ if(window.PF&&PF.dope){ PF.dope.press(btn); var bh=document.getElementById("xBattles")||document.body; PF.dope.xpFloat(bh,"+"+btn.getAttribute("data-amt")+" XP BOOST"); } }catch(e2){}
         load();
       });
     };
   })(bbs[x]); }
   /* wire enter */
+  /* enter-button label + stake note follow the selected battle (2026-10-03 H7) */
+  function paintEnterBtn(){
+    var sel=document.getElementById("btBattleSel"), eb2=document.getElementById("btEnterBtn"),
+        note=document.getElementById("btStakeNote");
+    if(!sel||!eb2) return;
+    var fee=0;
+    try{ fee=Math.round(Number(sel.options[sel.selectedIndex].getAttribute("data-fee"))||0); }catch(e){}
+    eb2.textContent=fee>0?("ENTER STAKED ("+fee+" XP)"):("ENTER BATTLE");
+    if(note) note.style.display=fee>0?"":"none";
+  }
+  var bsel=document.getElementById("btBattleSel");
+  if(bsel) bsel.onchange=paintEnterBtn;
+  paintEnterBtn();
   var eb=document.getElementById("btEnterBtn");
-  if(eb) eb.onclick=function(){
-    var me=ident();
-    if(!me.callsign){ toast("Claim a callsign first."); return; }
+  if(eb) eb.onclick=function fireEnter(){
+    var me=needCs(fireEnter,"to enter the arena");
+    if(!me) return;
     var sel=document.getElementById("btBattleSel"), inp=document.getElementById("btContentId");
     var bid=sel?sel.value:"", cid=inp?inp.value.trim():"";
+    var fee=0;
+    try{ fee=Math.round(Number(sel.options[sel.selectedIndex].getAttribute("data-fee"))||0); }catch(e){}
     var errEl=document.getElementById("btEnterErr");
     if(!bid||!cid){ if(errEl)errEl.textContent="Pick a battle and paste a content ID."; return; }
     eb.disabled=true;
-    post({type:"battle",b_action:"battle_enter",battle_id:bid,content_id:cid,creator:me.callsign},function(j){
+    /* Staked battles: entry fee deducted, added to the prize pool. */
+    var act=fee>0?"battle_enter_staked":"battle_enter";
+    post({type:"battle",b_action:act,battle_id:bid,content_id:cid,creator:me.callsign},function(j){
       eb.disabled=false;
       if(!j||!j.ok){ if(errEl)errEl.textContent=(j&&j.err)||"Entry failed."; return; }
-      toast("ENTERED. Now get your cell to vote.");
+      toast(fee>0?("ENTERED STAKED. "+fee+" XP in the pool — now get your cell to vote."):"ENTERED. Now get your cell to vote.");
+      /* M1 dopamine: entering the arena should feel like something. */
+      try{ if(window.PF&&PF.dope){ var dh=document.getElementById("xBattles")||document.body; PF.dope.confetti(dh,fee>0?60:30); PF.dope.ping(dh,fee>0?"STAKED ENTRY CONFIRMED":"ENTERED THE ARENA"); } }catch(e2){}
       load();
     });
   };
   /* wire create */
   var cb2=document.getElementById("btCreateBtn");
-  if(cb2) cb2.onclick=function(){
-    var me=ident();
-    if(!me.callsign){ toast("Claim a callsign first."); return; }
+  if(cb2) cb2.onclick=function firePropose(){
+    var me=needCs(firePropose,"to propose battles");
+    if(!me) return;
     var ti=document.getElementById("btNewTitle"), de=document.getElementById("btNewEnds");
     var title=ti?ti.value.trim():"", ends=de?de.value:"";
     var errEl=document.getElementById("btCreateErr");
@@ -234,6 +266,7 @@ function render(){
       cb2.disabled=false;
       if(!j||!j.ok){ if(errEl)errEl.textContent=(j&&j.err)||"Proposal failed."; return; }
       toast("Battle proposed! Awaiting approval.");
+      try{ if(window.PF&&PF.dope){ var ph=document.getElementById("xBattles")||document.body; PF.dope.confetti(ph,30); PF.dope.ping(ph,"BATTLE PROPOSED"); } }catch(e2){}
       load(); loadMyProposals();
     });
   };

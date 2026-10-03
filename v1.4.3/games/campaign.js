@@ -88,7 +88,7 @@ function render(){
   h+='<div class="cp-frame">THEY HAVE TWO PARTIES. WE&rsquo;RE BUILDING OUR OWN POWER.</div>';
   h+='<div class="cp-sub">Every pledge, every mission, every recruit feeds the war effort &mdash; not the Democrats, not the Republicans. Us.</div>';
   if(!id.callsign){
-    h+='<div class="c-gate">Campaign runs on callsigns. Claim yours in Enlistment Ranks, then come back and deploy.</div>';
+    h+=PF.gateHTML('Campaigns run on callsigns.','to deploy');
     el.innerHTML=h; return;
   }
   /* --- pledge --- */

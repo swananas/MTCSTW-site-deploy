@@ -90,7 +90,7 @@ function load(){
 }
 function renderGate(){
   var el=document.getElementById("xBody"); if(!el) return;
-  el.innerHTML='<div class="c-gate">Contracts run on callsigns. Claim yours in Enlistment Ranks, then come back and get paid.</div>';
+  el.innerHTML=PF.gateHTML('Contracts run on callsigns.','to take contracts');
 }
 function founderCells(){
   var out=[];

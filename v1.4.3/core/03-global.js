@@ -131,6 +131,30 @@ function pfClaimModal(done, opts){
   overlay.onclick = function(e){ if(e.target === overlay) dismiss(); };
   try{ input.focus(); }catch(e){}
 }
+/* PF.gateHTML(msg, ctx) — 2026-10-03 H8: the ACTIVE callsign gate.
+   Replaces every passive "claim yours in Enlistment Ranks" banner. Renders
+   the standard c-gate div with an in-place CLAIM A CALLSIGN button wired to
+   PF.requireCallsign (no more scrolling away to another widget). On a
+   successful claim the page reloads so every silo unlocks at once.
+   ctx: short purpose string for the modal, e.g. 'to enter battles'. */
+window.PF.gateHTML = function(msg, ctx){
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  return '<div class="c-gate">'+String(msg||'This runs on callsigns.')
+    +'<br><button class="c-btn" data-pf-claim-cs="1"'
+    +(ctx?(' data-pf-claim-ctx="'+esc(ctx)+'"'):'')
+    +'>CLAIM A CALLSIGN</button></div>';
+};
+document.addEventListener('click', function(e){
+  var t = null;
+  try{ t = (e.target && e.target.closest) ? e.target.closest('[data-pf-claim-cs]') : null; }catch(_e){}
+  if(!t || !window.PF || !PF.requireCallsign) return;
+  try{ e.preventDefault(); }catch(_e2){}
+  var ctx = 'to continue';
+  try{ ctx = t.getAttribute('data-pf-claim-ctx') || ctx; }catch(_e3){}
+  PF.requireCallsign(function(cs){
+    if(cs){ try{ location.reload(); }catch(_e4){} }
+  }, { context: ctx });
+});
 window.pfReportAction = function(actionType){
   if(!window.PF_BACKEND_URL) return;
   try {

@@ -74,7 +74,7 @@ function render(){
   var el=document.getElementById("xEarnings"); if(!el) return;
   var id=ident(), h="";
   if(!id.callsign){
-    el.innerHTML='<div class="c-gate">Earnings run on callsigns. Claim yours in Enlistment Ranks, then come get paid.</div>';
+    el.innerHTML=PF.gateHTML('Earnings run on callsigns.','to see your earnings');
     return;
   }
   h+=renderSummary(id);

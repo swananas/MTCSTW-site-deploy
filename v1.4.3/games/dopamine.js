@@ -136,7 +136,29 @@ function comboMult(n){ return 1+Math.min(8,Math.floor(n/3))*0.25; }
 function comboHit(){
   var c=comboGet(); c.n=(c.n||0)+1; c.ts=Date.now();
   try{ localStorage.setItem("pf_combo_v1",JSON.stringify(c)); }catch(e){}
+  /* 2026-10-03 H7: feed the SERVER combo too. The backend consumes it on the
+     next positive xpGrant (up to +300 XP bonus) — the local meter was the
+     only half. Fire-and-forget, auth-attached. */
+  try{
+    var id=ident();
+    if(id.callsign&&BACKEND) post("combo","co_action","combo_hit",{callsign:id.callsign,device:id.device},function(){});
+  }catch(e){}
+  refreshServerCombo();
   renderCombo();
+}
+/* Server combo status (combo_status GET, public): shows the armed multiplier
+   the next XP grant will consume. Throttled to 60s. */
+var SRV_COMBO=null, SRV_COMBO_AT=0;
+function refreshServerCombo(){
+  try{
+    var id=ident();
+    if(!id.callsign||!BACKEND) return;
+    if(Date.now()-SRV_COMBO_AT<60000) return;
+    SRV_COMBO_AT=Date.now();
+    api("combo_status",{callsign:id.callsign},function(j){
+      SRV_COMBO=(j&&j.ok)?j:null; renderCombo();
+    });
+  }catch(e){}
 }
 function load(){
   var id=ident(), n=0, done=false;
@@ -148,6 +170,7 @@ function load(){
     if(j&&j.ok){ ST=j; checkStreakMilestone(j); } else { WARM=true; }
     one();
   });
+  refreshServerCombo();
 }
 /* Streak milestones (7/14/30/60/100) trigger the level-up celebration overlay.
    Celebrates once per milestone per callsign — tracked in localStorage. */
@@ -178,7 +201,7 @@ function render(){
   var el=document.getElementById("xDopa"); if(!el) return;
   var id=ident(), h="";
   if(!id.callsign){
-    el.innerHTML='<div class="c-gate">Daily Fire runs on callsigns. Claim yours in Enlistment Ranks, then come back and stoke it.</div>';
+    el.innerHTML=PF.gateHTML('Daily Fire runs on callsigns.','to stoke the fire');
     return;
   }
   if(WARM||!ST){
@@ -257,7 +280,10 @@ function renderCombo(){
   var box=document.getElementById("dpComboBox"); if(!box) return;
   var c=comboGet(), m=comboMult(c.n);
   box.innerHTML='<div class="dp-combo">x'+m.toFixed(2)+'</div>'
-    +'<div class="x-note">'+(c.n||0)+' chained actions this session. Every 3 actions raises the multiplier (cap x3.00).</div>';
+    +'<div class="x-note">'+(c.n||0)+' chained actions this session. Every 3 actions raises the multiplier (cap x3.00).</div>'
+    +((SRV_COMBO&&Number(SRV_COMBO.multiplier)>1)
+      ?'<div class="x-note" style="color:#e8b10c"><b>WAR COMBO ARMED x'+Number(SRV_COMBO.multiplier)+'</b> — your next XP grant hits harder ('+(Number(SRV_COMBO.combo_count)||0)+' backend actions banked).</div>'
+      :'');
 }
 function renderRecords(){
   var rc=(ST&&ST.records)||{};

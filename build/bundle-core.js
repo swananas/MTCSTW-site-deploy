@@ -40,7 +40,8 @@ var BUNDLES = {
     'core/12-notify.js',
     'core/13-flow.js',
     'core/15-seo.js',
-    'core/campaign-data.js'
+    'core/campaign-data.js',
+    'core/16-footer.js'
   ],
   'pages/bundle-pages': [
     'pages/home-v2.js',

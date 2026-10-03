@@ -84,6 +84,8 @@ function pfClaimModal(done, opts){
     '<div style="font-size:0.9rem;color:#b8ab8e;line-height:1.55;margin-bottom:1rem;">You need a callsign ' + esc(context) + '. Pick one &mdash; it&rsquo;s your name in the fight, and your XP follows it everywhere.</div>' +
     '<input id="pf-cs-input" maxlength="20" placeholder="your_callsign" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" style="width:100%;background:#141414;color:#f5f0e1;border:2px solid #c1121f;padding:0.7rem;font-size:1rem;font-family:inherit;box-sizing:border-box;margin-bottom:0.5rem;text-align:center;" />' +
     '<div id="pf-cs-err" style="font-size:0.8rem;color:#ff6b6b;min-height:1.3em;margin-bottom:0.5rem;"></div>' +
+    /* 2026-10-03 privacy/terms: 13+ self-certification (COPPA/GDPR-K). */
+    '<label style="display:block;margin:0 0 0.7rem;font-size:0.8rem;color:#b8ab8e;cursor:pointer;text-align:left;"><input type="checkbox" id="pf-cs-age13" style="vertical-align:middle;margin-right:6px;transform:scale(1.2);">I confirm I am 13 or older.</label>' +
     '<button id="pf-cs-btn" style="display:inline-block;background:#c1121f;color:#f5f0e1;font-weight:900;letter-spacing:0.12em;border:none;padding:0.8rem 2.2rem;font-size:1rem;cursor:pointer;font-family:inherit;">CLAIM IT</button>';
   overlay.appendChild(box);
   document.body.appendChild(overlay);
@@ -101,8 +103,11 @@ function pfClaimModal(done, opts){
   function doClaim(){
     var cs = String(input.value || '').trim().toLowerCase();
     if(!/^[a-z0-9_]{3,20}$/.test(cs)){ setErr('Callsign: 3-20 chars, letters/numbers/underscore.'); return; }
+    /* 2026-10-03 privacy/terms: 13+ self-certification (COPPA/GDPR-K). */
+    var ageBox = box.querySelector('#pf-cs-age13');
+    if(!(ageBox && ageBox.checked)){ setErr('Please confirm you are 13 or older.'); return; }
     setErr('Claiming\u2026'); btn.disabled = true;
-    var body = { action:'register', callsign:cs, device:'' };
+    var body = { action:'register', callsign:cs, device:'', age13:1 };
     try{ body.device = window.PFDeviceId ? window.PFDeviceId() : ''; }catch(e){}
     try{ var prf = localStorage.getItem('pf_pending_ref'); if(prf && /^[a-z0-9_]{3,20}$/.test(prf)) body.ref = prf; }catch(e){}
     var url = window.PF_BACKEND_URL;
@@ -386,3 +391,34 @@ window.pfShareAchievement = function(gameName, detailText){
     }, 'image/png');
   } catch(e){}
 };
+
+/* PF STORAGE NOTICE (2026-10-03 privacy/terms): the site keeps XP, streaks,
+   vote flags and callsigns in the browser's local storage, loads code from
+   the jsDelivr CDN, and runs on Squarespace (standard Squarespace cookies).
+   One dismissible notice — never a blocking banner. Dismissal persists in
+   localStorage 'pf_storage_notice_v1'.
+   KILL: ?pf_off=03-global */
+(function(){
+  try{
+    if(window.PF && window.PF.skip && window.PF.skip('03-global')) return;
+    try{ if(localStorage.getItem('pf_storage_notice_v1')==='1') return; }catch(e){}
+    function show(){
+      try{
+        if(document.getElementById('pf-storage-notice')) return;
+        var bar=document.createElement('div');
+        bar.id='pf-storage-notice';
+        bar.setAttribute('role','note');
+        bar.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:99990;background:#0a0a0a;border-top:3px solid #c1121f;color:#f5f0e1;font-family:"Helvetica Neue",Arial,sans-serif;font-size:12px;line-height:1.5;padding:10px 52px 10px 16px;box-sizing:border-box;text-align:left;';
+        bar.innerHTML='<b style="color:#c1121f;letter-spacing:0.08em;">HEADS UP, SOLDIER</b> &mdash; this site remembers you in your own browser: XP, streaks, vote flags and your callsign live in local storage (clear your browser data and it&rsquo;s gone). Our code loads from the jsDelivr CDN and Squarespace hosts the site &mdash; standard Squarespace cookies apply. We never sell your data. Ever.' +
+          '<button id="pf-storage-x" aria-label="Dismiss" style="position:absolute;top:8px;right:12px;background:#c1121f;color:#f5f0e1;border:none;font-weight:900;font-size:11px;letter-spacing:0.1em;padding:6px 12px;cursor:pointer;font-family:inherit;">GOT IT</button>';
+        document.body.appendChild(bar);
+        document.getElementById('pf-storage-x').onclick=function(){
+          try{ localStorage.setItem('pf_storage_notice_v1','1'); }catch(e){}
+          try{ bar.parentNode.removeChild(bar); }catch(e2){}
+        };
+      }catch(e){}
+    }
+    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',show);
+    else show();
+  }catch(e){}
+})();

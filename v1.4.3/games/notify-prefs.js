@@ -81,7 +81,10 @@ function render(){
   h+='<div style="display:flex;gap:8px;margin-top:6px;">';
   h+='<input id="npEmail" type="email" placeholder="new email address" style="flex:1;max-width:280px;padding:8px;" />';
   h+='<button class="c-btn" id="npEmailBtn" type="button">Update</button>';
-  h+='</div></div>';
+  h+='</div>';
+  /* 2026-10-03 privacy/terms: 13+ self-certification (COPPA/GDPR-K). */
+  h+='<label style="display:block;margin:6px 0;font-size:12px;cursor:pointer;"><input type="checkbox" id="npAge13" style="vertical-align:middle;margin-right:6px;">I confirm I am 13 or older</label>';
+  h+='</div>';
   h+='<div class="c-sub">MESSAGE TYPES</div>';
   TYPES.forEach(function(t){
     var k=t[0], on=PREFS&&PREFS[k]?1:0;
@@ -105,10 +108,14 @@ function render(){
   h+='<button class="c-btn" id="npRotate" type="button">ROTATE SECRET</button>';
   h+='<span id="npRotMsg" style="font-size:12px;"></span>';
   h+='</div></div>';
+  /* 2026-10-03 privacy/terms: self-serve data rights (privacy_export /
+     privacy_erase in the backend). */
+  h+=privacyPanelHTML();
   el.innerHTML=h;
   document.getElementById("npSave").addEventListener("click",save);
   document.getElementById("npEmailBtn").addEventListener("click",updateEmail);
   document.getElementById("npRotate").addEventListener("click",rotateSecret);
+  bindPrivacyPanel();
   document.getElementById("npUnsubAll").addEventListener("click",function(e){
     e.preventDefault();
     if(!confirm("Mute every email from the Propaganda Factory?")) return;
@@ -120,6 +127,68 @@ function render(){
   });
 }
 function msg(t){ var m=document.getElementById("npMsg"); if(m){ m.textContent=t; } }
+/* 2026-10-03 privacy/terms: self-serve data rights. privacyPanelHTML works
+   with or without a callsign — callsign-less visitors still get device-only
+   export/erase (covers anonymous fan votes). */
+function privacyPanelHTML(){
+  var h='<div class="c-box" style="margin-top:12px;">';
+  h+='<div class="c-sub">YOUR DATA</div>';
+  h+='<div style="font-size:12px;margin:6px 0;">Download everything we hold on you, or erase it. Erasing your email removes you from The Dispatch and detaches callsign recovery; your callsign can stay on the public leaderboard or go too &mdash; your call. Questions: email mtcstw@gmail.com.</div>';
+  h+='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px;">';
+  h+='<button class="c-btn" id="npExport" type="button">DOWNLOAD MY DATA</button>';
+  if(CS) h+='<label style="font-size:12px;cursor:pointer;"><input type="checkbox" id="npEraseFull" checked style="vertical-align:middle;margin-right:4px;">Erase my callsign too (not just email)</label>';
+  h+='<button class="c-btn" id="npErase" type="button" style="border-color:#c1121f;color:#c1121f;">ERASE MY DATA</button>';
+  h+='<span id="npPrivMsg" style="font-size:12px;"></span>';
+  h+='</div></div>';
+  return h;
+}
+function privMsg(t){ var m=document.getElementById("npPrivMsg"); if(m){ m.textContent=t; } }
+function bindPrivacyPanel(){
+  var ex=document.getElementById("npExport");
+  if(ex) ex.addEventListener("click",exportData);
+  var er=document.getElementById("npErase");
+  if(er) er.addEventListener("click",eraseData);
+}
+function exportData(){
+  privMsg("Assembling\u2026");
+  post("privacy","p_action","privacy_export",{callsign:CS,device:ident().device},function(j){
+    privMsg("");
+    if(!(j&&j.ok)){ toast("Export failed. "+((j&&j.err)||"")); return; }
+    try{
+      var blob=new Blob([JSON.stringify(j,null,2)],{type:"application/json"});
+      var a=document.createElement("a");
+      a.href=URL.createObjectURL(blob);
+      a.download="pf-my-data-"+(CS||"browser")+".json";
+      document.body.appendChild(a); a.click();
+      setTimeout(function(){ try{ document.body.removeChild(a); }catch(e){} try{ URL.revokeObjectURL(a.href); }catch(e2){} },1000);
+      toast("Your data is downloaded.");
+    }catch(e){ toast("Export failed."); }
+  });
+}
+function eraseData(){
+  var scope="device", warn="Erase this browser\u2019s server-side rows (e.g. fan votes)? This cannot be undone.";
+  if(CS){
+    var full=document.getElementById("npEraseFull");
+    scope=(full&&full.checked)?"full":"email";
+    warn=scope==="full"
+      ? "Erase EVERYTHING we hold on this callsign \u2014 XP, streaks, votes, contact info, the callsign itself? This cannot be undone."
+      : "Erase your email and phone, unsubscribe, detach callsign recovery? Your callsign stays on the public boards.";
+  }
+  if(!window.confirm(warn)) return;
+  privMsg("Erasing\u2026");
+  post("privacy","p_action","privacy_erase",{callsign:CS,device:ident().device,scope:scope},function(j){
+    privMsg("");
+    if(!(j&&j.ok)){ toast("Erase failed. "+((j&&j.err)||"")); return; }
+    toast((j&&j.note)||"Erased.");
+    if(scope==="full"){
+      /* The identity is gone server-side — drop the local keys too so the
+         UI stops fighting as the deleted callsign. */
+      try{ localStorage.removeItem("pf_identity_v1"); }catch(e){}
+      try{ localStorage.removeItem("pf_auth_secret"); }catch(e){}
+      setTimeout(function(){ try{ location.reload(); }catch(e2){} },2200);
+    }
+  });
+}
 function save(){
   var prefs={};
   var togs=document.querySelectorAll(".npTog");
@@ -133,8 +202,12 @@ function save(){
 function updateEmail(){
   var em=document.getElementById("npEmail").value.trim();
   if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(em)){ msg("Enter a valid email."); return; }
+  /* 2026-10-03 privacy/terms: 13+ self-certification (COPPA/GDPR-K). The
+     backend enforces it too. */
+  var age13=document.getElementById("npAge13");
+  if(!(age13&&age13.checked)){ msg("Please confirm you are 13 or older."); return; }
   msg("Saving\u2026");
-  post("notifyq","nq_action","contact_set",{callsign:CS,email:em,email_optin:1},function(j){
+  post("notifyq","nq_action","contact_set",{callsign:CS,email:em,email_optin:1,age13:1},function(j){
     if(j&&j.ok){ MASKED=em; toast("Email updated."); msg(""); render(); }
     else msg("Could not save. "+((j&&j.err)||""));
   });
@@ -164,7 +237,12 @@ function load(){
   CS=ident().callsign||"";
   if(!CS){
     var el=document.getElementById("xNotifyPrefs");
-    if(el) el.innerHTML='<div class="c-box">Enlist first (pick a callsign) to manage notification preferences.</div>';
+    if(el){
+      /* 2026-10-03 privacy/terms: no callsign yet, but this browser may still
+         hold server-side rows (e.g. fan votes) — device-only data rights. */
+      el.innerHTML='<div class="c-box">Enlist first (pick a callsign) to manage notification preferences.</div>'+privacyPanelHTML();
+      bindPrivacyPanel();
+    }
     return;
   }
   /* contact_get is per-callsign auth-gated (rectify pass): route through the

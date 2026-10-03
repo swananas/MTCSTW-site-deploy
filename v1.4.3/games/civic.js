@@ -175,6 +175,8 @@ function render(){
     +'<label style="display:block;margin:6px 0;font-size:13px"><input type="checkbox" id="cvEmailOpt"'+(eo?' checked':'')+'> Email me drops &amp; alerts</label>'
     +'<input aria-label="Phone (for texts)" class="c-in"  id="cvPhone" type="tel" maxlength="20" placeholder="Phone (for texts)" value="'+esc(cp)+'">'
     +'<label style="display:block;margin:6px 0;font-size:13px"><input type="checkbox" id="cvSmsOpt"'+(so?' checked':'')+'> Text me urgent calls</label>'
+    /* 2026-10-03 privacy/terms: 13+ self-certification (COPPA/GDPR-K). */
+    +'<label style="display:block;margin:6px 0;font-size:13px"><input type="checkbox" id="cvAge13"> I confirm I am 13 or older</label>'
     +'<button class="c-btn" id="cvContactSave">SAVE PREFERENCES</button><div class="c-err" id="cvContactErr"></div></div>';
   el.innerHTML=h;
   bind();
@@ -279,8 +281,13 @@ function bind(){
   if(cs2) cs2.onclick=function(){
     var err=document.getElementById("cvContactErr");
     var eo=document.getElementById("cvEmailOpt"), so=document.getElementById("cvSmsOpt");
+    /* 2026-10-03 privacy/terms: 13+ self-certification (COPPA/GDPR-K) whenever
+       contact PII is captured. The backend enforces it too. */
+    var age13=document.getElementById("cvAge13");
+    var em=gv("cvEmail").trim(), ph=gv("cvPhone").trim();
+    if((em||ph)&&!(age13&&age13.checked)){ err.textContent="Please confirm you are 13 or older."; return; }
     cs2.disabled=true;
-    post("notifyq","nq_action","contact_set",{callsign:ident().callsign,email:gv("cvEmail"),phone:gv("cvPhone"),email_optin:eo&&eo.checked?1:0,sms_optin:so&&so.checked?1:0},function(j){
+    post("notifyq","nq_action","contact_set",{callsign:ident().callsign,email:em,phone:ph,email_optin:eo&&eo.checked?1:0,sms_optin:so&&so.checked?1:0,age13:(age13&&age13.checked)?1:0},function(j){
       if(j&&j.ok){ toast("Preferences saved."); }
       else { err.textContent=(j&&j.err)||"Save failed."; }
       cs2.disabled=false;

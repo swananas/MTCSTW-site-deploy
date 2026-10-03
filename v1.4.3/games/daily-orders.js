@@ -33,6 +33,7 @@
   <a id="oClaimToggle">Claim your rank on every device</a>
   <div class="o-claimbox" id="oClaimBox">
     <input aria-label="CALLSIGN" id="oCallsign" maxlength="20" placeholder="CALLSIGN" autocomplete="off" style="text-transform:uppercase">
+    <label style="display:block;margin:8px 0;font-size:12px;color:#b8ab8e;cursor:pointer;"><input type="checkbox" id="oAge13" style="vertical-align:middle;margin-right:6px;">I confirm I am 13 or older.</label>
     <br><button class="o-claimbtn" id="oClaimBtn">Claim</button>
     <div class="o-err" id="oClaimErr"></div>
   </div>
@@ -146,6 +147,7 @@ function ident(){ return load(LS_I,{});  }
       var url = beUrl();
       var body = {action:"register", callsign:obj.callsign, device:obj.device||""};
       if(obj.ref) body.ref = obj.ref;
+      if(obj.age13) body.age13 = 1; /* 2026-10-03 privacy/terms: 13+ flag */
       /* M1 (2026-10-03): 15s abort — a hung register POST wedged the modal on
          "Claiming..." with no retry. Same pattern as PF.authPost's rawPost. */
       var ctl=null, timer=null;
@@ -179,6 +181,7 @@ function ident(){ return load(LS_I,{});  }
   if(obj.gained!=null) q+="&gained="+encodeURIComponent(obj.gained);
   if(obj.device) q+="&device="+encodeURIComponent(obj.device);
   if(obj.ref) q+="&ref="+encodeURIComponent(obj.ref);
+  if(obj.age13) q+="&age13=1"; /* 2026-10-03 privacy/terms: 13+ flag */
   q+="&callback="+fn;
   s.src=beUrl()+q;
   document.head.appendChild(s);
@@ -698,8 +701,11 @@ function render(){
       var cs=document.getElementById("oCallsign").value.trim().toLowerCase();
       var errBox=document.getElementById("oClaimErr");
       if(!/^[a-z0-9_]{3,20}$/.test(cs)){ errBox.textContent="Callsign: 3-20 chars, letters/numbers/underscore."; return; }
+      /* 2026-10-03 privacy/terms: 13+ self-certification (COPPA/GDPR-K). */
+      var oAge=document.getElementById("oAge13");
+      if(!(oAge&&oAge.checked)){ errBox.textContent="Please confirm you are 13 or older."; return; }
       errBox.textContent="Claiming…";
-      var regParams={action:"register",callsign:cs};
+      var regParams={action:"register",callsign:cs,age13:1};
       try{ var _dev=window.PFDeviceId?window.PFDeviceId():""; if(_dev) regParams.device=_dev; }catch(e){}
       try{ var prf=localStorage.getItem("pf_pending_ref"); if(prf&&/^[a-z0-9_]{3,20}$/.test(prf)) regParams.ref=prf; }catch(e){}
       apiPost(regParams,function(j){

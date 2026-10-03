@@ -1,7 +1,15 @@
 <!-- PF FOOTER v1.4.3 — shell-aware loader. Pages carrying #pf-v2 (the v2 homepage)
      load the v1.4.3 JS set + CSS pinned to the V2 hash. Pages carrying #pf-war-card
      (Creator HQ) also load the v1.4.3 set so the war-card silo can mount; home-v2.js
-     stays dormant there (no #pf-v2 shell). NEW in v1.4.3: the Efficiency Index (games/efficiency.js) — weekly data-driven
+     stays dormant there (no #pf-v2 shell). NEW in v1.4.3: the homepage slimming —
+     the homepage mounts a tight 18-widget lineup (#pf-v2): bundle-sec1.js in the
+     critical path + bundle-home.js lazy-loaded as one bundle for the
+     PLAY/BELONG/CREATE/FUND/ACT/PROOF sections. The rest of the library moved
+     to dedicated pages, each with its own mount div and per-page game bundles
+     (mounted by pages/page-mount.js): /arcade (#pf-arcade), /cells (#pf-cells-page),
+     /create (#pf-create), /bank (#pf-bank), /economy (#pf-economy),
+     /war-chest (#pf-warchest), /ventures (#pf-ventures), /events (#pf-events),
+     /war-report (#pf-warreport). NEW in v1.4.3: the Efficiency Index (games/efficiency.js) — weekly data-driven
      propaganda scores from reach, fan efficiency, and site pull. NEW in v1.4.3: the War Chest
      (games/peoplesbank.js) — personal XP bank with overtime kickers, weekly deposits, cell-rate
      interest — plus Joint Ventures (games/ventures.js) — creator/cell shareholder war funds —
@@ -13,14 +21,17 @@
      The old Squarespace-built roster/catalog content is replaced in-page; the
      v1.1.0 fixes/roster.js patch no longer loads on these pages. Every other
      page loads the v1.1.0 production set pinned to 6e8b9a4.
-     V3 pin: 164c9dc. -->
+     V3 pin: 410991b. -->
 <script>(function(){
-var V3='164c9dc',V1='6e8b9a42397abc5b42f0ba6b123ec4bbdd7857de';
+var V3='410991b',V1='6e8b9a42397abc5b42f0ba6b123ec4bbdd7857de';
 var SLR_SLUGS='an-iowan|bitchysitch|black-newsbeat-with-dr-kimeka-campbell|bona-bones|combatvetsagainsttrump|damn-pam-ham-from-effingham|deejay10|dofd|dogman_v1|dr-taylor-andrew|east-coast-it-notes|eat-the-rich|f-this-imperialistic-bs|films-for-action|guillotines-for-a-better-america|guillotines-for-billionares-2020|hex-reject|im-that-girl|ipostwhenifeelhot|itsdewberry|jeanine-pirreaux-comedy|jessicacymone|joey|joman|keithwashburn|kim-hunt-slaythegop|let-the-revolution-begin-peacefully-of-course|little-anarchist-brat|love-and-molotov|luigis-mansion-socialist-shitposting|mandifromtheinternet|mermaid-tm|mexiguerita22|minnesota-department-of-propaganda|moreno-neurospicy-news|mtcstw|nikalie-monroe|official-ghost-of-eli|progressively2026|public-enlightenment|quietmayhem|radically-sunny|sajidahtalks2025|sex-drugs-rock-n-roll|sissyfits|south-dakota-department-of-propaganda|splashofgenz|thatalabamafella|the-antifascist-frog|the-atheist-socialist|the-dr-greg-show|the-political-feminist|thelastcookout|therevcoms|undraylowery|us-department-of-health-and-human-shenanigans|us-federal-department-of-propaganda|vandala-effect|voix-noire|wisconsin-department-of-propaganda|worlds-strongest-mayo|your-friendly-neighborhood-schizophrenic';
 var _p=location.pathname;
 function _seg(p){var s=p.charAt(0)==='/'?p.slice(1):p;return s.charAt(s.length-1)==='/'?s.slice(0,-1):s;}
 var _isSlr=_p==='/sick-left-radicals'||_p==='/sick-left-radicals/'||('|'+SLR_SLUGS+'|').indexOf('|'+_seg(_p)+'|')>-1;
-var onV2=!!document.getElementById('pf-v2')||!!document.getElementById('pf-war-card')||!!document.getElementById('pf-slr-roster')||!!document.getElementById('pf-catalog')||_isSlr||!!document.getElementById('pf-political-hq');
+/* Dedicated-page mount divs (2026-10-03 homepage slimming): each new page
+   carries one of these in a Code block; pages/page-mount.js mounts there. */
+var isArcade=!!document.getElementById('pf-arcade'), isCellsPage=!!document.getElementById('pf-cells-page'), isCreate=!!document.getElementById('pf-create'), isBank=!!document.getElementById('pf-bank'), isEconomy=!!document.getElementById('pf-economy'), isWarchest=!!document.getElementById('pf-warchest'), isVentures=!!document.getElementById('pf-ventures'), isEvents=!!document.getElementById('pf-events'), isWarReport=!!document.getElementById('pf-warreport');
+var onV2=!!document.getElementById('pf-v2')||!!document.getElementById('pf-war-card')||!!document.getElementById('pf-slr-roster')||!!document.getElementById('pf-catalog')||_isSlr||!!document.getElementById('pf-political-hq')||isArcade||isCellsPage||isCreate||isBank||isEconomy||isWarchest||isVentures||isEvents||isWarReport;
 var VER=onV2?'v1.4.3':'v1.1.0';
 var BASE='https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@'+(onV2?V3:V1)+'/'+VER+'/';
 var CSS=onV2?['core/bundle-styles.css']:['core/01-styles.css','fixes/mobile.css'];
@@ -29,15 +40,23 @@ var isHQ=!!document.getElementById('pf-political-hq');
 var isWarCard=!!document.getElementById('pf-war-card');
 var CORE_V2=['core/bundle-core.js'];
 var PAGES_V2=['pages/bundle-pages.js'];
-/* Per-page section map: non-home v2 pages fetch only the game bundles they
-   actually mount. Homepage = sec1 blocking + sec2..7 lazy (jsLazy).
+/* Per-page game map: each v2 page fetches only the game bundles it mounts
+   (mounted by pages/page-mount.js PAGE_ORDERS, or home-v2.js on #pf-v2).
+   Homepage = bundle-sec1 blocking + bundle-home lazy (the .pf-sec-anchor
+   mechanism in jsLazy(): PLAY/BELONG/CREATE/FUND/ACT/PROOF anchors all name
+   games/bundle-home.js, loaded once when the first scrolls near).
+   /arcade = bundle-home (5 of its 9 games) + bundle-arcade (the other 4).
+   /cells = bundle-cells. /create = bundle-home (poster-forge, feed) +
+   bundle-create. /bank, /economy, /war-chest, /ventures, /events,
+   /war-report = their single bundle each.
    /political-hq = core + bundle-hq + pages. Creator HQ (#pf-war-card) =
-   core + sec3 (war-card, cell-hq) + sec4 (creator-assist, dashboard) + pages.
-   SLR roster/catalog = core + sec7 (efficiency.js paints the live Efficiency
-   Index into their [data-eff-score] slots; fan-vote in sec7 is inert there)
-   + pages. */
+   core + bundle-create (academy, creator-assist, armory, dashboard) +
+   bundle-cells (cell-hq, war-card) + pages.
+   SLR roster/catalog = core + bundle-roster (efficiency.js paints the live
+   Efficiency Index into their [data-eff-score] slots; nothing else in the
+   bundle mounts there) + pages. */
 var isSlrPage=!!document.getElementById('pf-slr-roster')||!!document.getElementById('pf-catalog')||_isSlr;
-var JS_GAMES=isHome?['games/bundle-sec1.js']:isHQ?[]:isWarCard?['games/bundle-sec3.js','games/bundle-sec4.js']:isSlrPage?['games/bundle-sec7.js']:[];
+var JS_GAMES=isHome?['games/bundle-sec1.js']:isArcade?['games/bundle-home.js','games/bundle-arcade.js']:isCellsPage?['games/bundle-cells.js']:isCreate?['games/bundle-home.js','games/bundle-create.js']:isBank?['games/bundle-bank.js']:isEconomy?['games/bundle-economy.js']:isWarchest?['games/bundle-warchest.js']:isVentures?['games/bundle-ventures.js']:isEvents?['games/bundle-events.js']:isWarReport?['games/bundle-warreport.js']:isHQ?[]:isWarCard?['games/bundle-create.js','games/bundle-cells.js']:isSlrPage?['games/bundle-roster.js']:[];
 var JS_HQ=isHQ?['games/bundle-hq.js']:[];
 var JS_SEQ=onV2?CORE_V2.concat(JS_GAMES).concat(JS_HQ).concat(PAGES_V2):['core/00-bus.js', 'core/03-global.js', 'core/04-ledger.js', 'core/05-tally.js', 'games/caption-combat.js', 'games/daily-orders.js', 'games/fan-vote.js', 'games/do-meter.js', 'games/media-nuke.js', 'games/poster-forge.js', 'games/daily-drop.js', 'games/service-medals.js', 'games/liquidation-bracket.js', 'core/06-override.js', 'core/08-engage.js', 'core/09-toast.js', 'core/10-ticker.js', 'fixes/homepage.js', 'fixes/about.js', 'fixes/faqs.js', 'fixes/roster.js', 'fixes/podcast.js', 'fixes/tax.js', 'fixes/terms.js', 'fixes/schema.js'];
 function siloFail(n,e){if(window.console)console.error('[PF SILO FAILED] '+n+' :: '+(e&&e.message||e||'load error'));}

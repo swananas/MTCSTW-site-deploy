@@ -290,8 +290,14 @@ function pfPost(body,cb){
   if(window.PF&&PF.authPost){ PF.authPost(PFBE,body,cb); return; }
   function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
   try{
-    fetch(PFBE,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
-      .then(function(r){ return r.json(); }).then(function(j){ done(j); }).catch(function(){ done(null); });
+    /* 2026-10-03 L6: abort backstop — a hung fallback POST previously left
+       boost buttons stuck disabled. */
+    var ctl2=null;
+    try{ ctl2=new AbortController(); }catch(e){}
+    var hung2=setTimeout(function(){ try{ if(ctl2) ctl2.abort(); }catch(e){} },15000);
+    fetch(PFBE,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body),signal:ctl2?ctl2.signal:undefined})
+      .then(function(r){ return r.json(); }).then(function(j){ try{clearTimeout(hung2);}catch(e){} done(j); })
+      .catch(function(){ try{clearTimeout(hung2);}catch(e){} done(null); });
   }catch(e){ done(null); }
 }
 /* One content id per unique poster design. Same design = same id. */

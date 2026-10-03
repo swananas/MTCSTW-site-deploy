@@ -107,7 +107,10 @@
     var s = document.createElement('script');
     s.id = cb;
     s.src = VOTE_API_URL + '?action=results&week=' + encodeURIComponent(weekKey) + '&callback=' + cb;
-    s.onerror = function(){ try{ delete window[cb]; }catch(e){} if(s.parentNode) s.parentNode.removeChild(s); };
+    /* 2026-10-03 M2: 12s backstop — a hung request previously leaked
+       window[cb] and left the urgency totals stale forever. */
+    var hung=setTimeout(function(){ if(window[cb]){ try{delete window[cb];}catch(e){} var s2=document.getElementById(cb); if(s2&&s2.parentNode)s2.parentNode.removeChild(s2); } },12000);
+    s.onerror = function(){ try{clearTimeout(hung);}catch(e){} try{ delete window[cb]; }catch(e){} if(s.parentNode) s.parentNode.removeChild(s); };
     document.head.appendChild(s);
   }
   /* Stored vote: JSON {name, slug, weight}. Older plain-name values still read. */

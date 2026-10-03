@@ -535,9 +535,14 @@ function pPost(cb){
   try{
     var sec=""; try{ sec=window.PF&&PF.getAuthSecret?PF.getAuthSecret():""; }catch(e){}
     if(sec) body.auth_secret=sec;
-    fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
-      .then(function(r){ return r.json(); }).then(function(j){ cb(j||{ok:false,err:"bad response"}); })
-      .catch(function(){ cb({ok:false,err:"network error"}); });
+    /* 2026-10-03 M5: AbortController backstop — a hung fallback request
+       previously left the prestige modal on "BURNING..." forever. */
+    var ctl=null;
+    try{ ctl=new AbortController(); }catch(e){}
+    var hung=setTimeout(function(){ try{ if(ctl) ctl.abort(); }catch(e){} },15000);
+    fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body),signal:ctl?ctl.signal:undefined})
+      .then(function(r){ return r.json(); }).then(function(j){ try{clearTimeout(hung);}catch(e){} cb(j||{ok:false,err:"bad response"}); })
+      .catch(function(){ try{clearTimeout(hung);}catch(e){} cb({ok:false,err:"network error"}); });
   }catch(e){ cb({ok:false,err:"network error"}); }
 }
 function escH(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }

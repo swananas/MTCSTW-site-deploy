@@ -82,9 +82,14 @@ function loadMyProposals(){
   }
   to=setTimeout(showErr,15000);
   api("battle_proposals",{callsign:id.callsign,mine:1},function(j){
-    if(done) return; done=true;
+    if(done) return;
     try{ if(to) clearTimeout(to); }catch(e){}
+    /* 2026-10-03: done is set by showErr() on the failure path and here on
+       success — same fix as intel.js loadMySubs. Setting done=true before the
+       failure branch made showErr() bail on its own if(done) guard for every
+       failed fetch, stranding "Loading…" forever with no retry. */
     if(!j||!j.ok){ showErr(); return; }
+    done=true;
     if(!j.proposals||!j.proposals.length){
       paintMyProps('<div class="x-note">No proposals yet. Pitch the first battle.</div>'); return;
     }

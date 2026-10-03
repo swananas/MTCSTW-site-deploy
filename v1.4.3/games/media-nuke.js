@@ -202,7 +202,10 @@ function cellInfo(cb){
   var _nsrc=BACKEND_URL+'?action=cell_mine&callsign='+encodeURIComponent(cs)+'&device='+encodeURIComponent(dev);
   try{ var _nsec=(window.PF&&window.PF.getAuthSecret)?window.PF.getAuthSecret():''; if(_nsec) _nsrc+='&auth_secret='+encodeURIComponent(_nsec); }catch(e){}
   sc.src=_nsrc+'&callback='+fn;
-  sc.onerror=function(){ try{delete window[fn];}catch(e){} if(sc.parentNode)sc.parentNode.removeChild(sc); stickCellTried=true; cb(null); };
+  /* 2026-10-03 M3: 12s backstop — a hung request previously left rally taps
+     silently dead with no feedback, no error, no retry. */
+  var hung2=setTimeout(function(){ if(window[fn]){ try{delete window[fn];}catch(e){} var sc2=document.getElementById(fn); if(sc2&&sc2.parentNode)sc2.parentNode.removeChild(sc2); stickCellTried=true; cb(null); } },12000);
+  sc.onerror=function(){ try{clearTimeout(hung2);}catch(e){} try{delete window[fn];}catch(e){} if(sc.parentNode)sc.parentNode.removeChild(sc); stickCellTried=true; cb(null); };
   document.head.appendChild(sc);
 }
 
@@ -330,7 +333,10 @@ function init(){
       };
       var sc=document.createElement('script');sc.id=cb;
       sc.src=BACKEND_URL+'?action=xp_today&callback='+cb;
-      sc.onerror=function(){try{delete window[cb];}catch(e){}if(sc.parentNode)sc.parentNode.removeChild(sc);render(root,localXpToday(),GOAL,'local');};
+      /* 2026-10-03 M1: 12s backstop — a hung request previously froze the
+         headline network bar at the local value and leaked window[cb]. */
+      var hung=setTimeout(function(){ if(window[cb]){ try{delete window[cb];}catch(e){} if(sc.parentNode)sc.parentNode.removeChild(sc); render(root,localXpToday(),GOAL,'local'); } },12000);
+      sc.onerror=function(){ try{clearTimeout(hung);}catch(e){} try{delete window[cb];}catch(e){}if(sc.parentNode)sc.parentNode.removeChild(sc);render(root,localXpToday(),GOAL,'local');};
       document.head.appendChild(sc);
     }else{
       render(root,localXpToday(),GOAL,'local');

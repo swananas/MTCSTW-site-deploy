@@ -56,10 +56,15 @@ function load(){
 function loadFunnel(){
   var sec=adminSecret(); if(!sec){ FUNNEL_DONE=true; return; }
   try{
-    fetch(BACKEND+"?action=funnel_stats",{method:"GET",headers:{"X-Admin-Secret":sec}})
+    /* 2026-10-03 M4: AbortController backstop — a hung request previously
+       left the admin funnel on "Checking admin access…" forever. */
+    var ctl=null;
+    try{ ctl=new AbortController(); }catch(e){}
+    var hung=setTimeout(function(){ try{ if(ctl) ctl.abort(); }catch(e){} },15000);
+    fetch(BACKEND+"?action=funnel_stats",{method:"GET",headers:{"X-Admin-Secret":sec},signal:ctl?ctl.signal:undefined})
       .then(function(r){ return r.json(); })
-      .then(function(j){ FUNNEL=j; FUNNEL_DONE=true; render(); })
-      .catch(function(){ FUNNEL_DONE=true; });
+      .then(function(j){ try{clearTimeout(hung);}catch(e){} FUNNEL=j; FUNNEL_DONE=true; render(); })
+      .catch(function(){ try{clearTimeout(hung);}catch(e){} FUNNEL_DONE=true; });
   }catch(e){ FUNNEL_DONE=true; }
 }
 function dayKey(ts){ var d=new Date(ts); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }

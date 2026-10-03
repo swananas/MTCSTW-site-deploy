@@ -95,9 +95,15 @@ function loadMySubs(){
   }
   to=setTimeout(showErr,15000);
   api("intel_submissions",{callsign:me.callsign,mine:1},function(j){
-    if(done) return; done=true;
+    if(done) return;
     try{ if(to) clearTimeout(to); }catch(e){}
+    /* 2026-10-03: done is set by showErr() on the failure path and here on
+       success. Setting done=true before the failure branch (as before) made
+       showErr() bail on its own if(done) guard for EVERY failed fetch —
+       the timer was already cleared, so nothing painted and "Loading…"
+       stuck forever with no retry. */
     if(!j||!j.ok){ showErr(j); return; }
+    done=true;
     if(!j.submissions||!j.submissions.length){
       paintMySubs('<div class="x-note">No submissions yet.</div>'); return;
     }

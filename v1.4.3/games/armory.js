@@ -141,8 +141,14 @@ function get(action,params,cb){
 function post(sAction,params,cb){
   var body=Object.assign({type:'sink',s_action:sAction},params);
   if(window.PF&&PF.authPost){PF.authPost(BACKEND,body,cb);return;}
-  fetch(BACKEND,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
-    .then(function(r){return r.json();}).then(function(j){cb(j);}).catch(function(){cb(null);});
+  /* 2026-10-03 L5: abort backstop — a hung fallback POST previously left
+     buy/equip buttons stuck disabled. */
+  var ctl=null;
+  try{ ctl=new AbortController(); }catch(e){}
+  var hung=setTimeout(function(){ try{ if(ctl) ctl.abort(); }catch(e){} },15000);
+  fetch(BACKEND,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:ctl?ctl.signal:undefined})
+    .then(function(r){return r.json();}).then(function(j){ try{clearTimeout(hung);}catch(e){} cb(j); })
+    .catch(function(){ try{clearTimeout(hung);}catch(e){} cb(null); });
 }
 var items=[], equipped={}, balance=null;
 

@@ -83,6 +83,7 @@ var SECTIONS = {
     'amplify.js',
     'political-hq-nudge.js',
     'armory.js',
+    'archive.js',
     'dashboard.js'
   ],
   'bundle-sec5': [
@@ -102,7 +103,6 @@ var SECTIONS = {
     'alerts.js',
     'irl.js',
     'intel.js',
-    'archive.js',
     'civic.js'
   ],
   'bundle-sec7': [

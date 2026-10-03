@@ -23,7 +23,7 @@
   var ORDER = [
     ['civic', 'pf-ov-civic'],
     ['notify-prefs', 'pf-ov-notify-prefs'],
-    ['gov', 'pf-ov-gov']
+    ['governance', 'pf-ov-gov']
   ];
 
   function execScripts(root, label) {

@@ -57,7 +57,6 @@
     ['diplo', 'pf-ov-diplo'],
     ['contracts', 'pf-ov-contracts'],
     ['referral', 'pf-ov-referral'],
-    ['governance', 'pf-ov-gov'],
     /* ——— SECTION 4: CREATE — creator tools journey ——— */
     ['academy', 'pf-ov-academy'],
     ['assist', 'pf-ov-assist'],
@@ -67,6 +66,7 @@
     ['amplify', 'pf-ov-amplify'],
     ['hq-nudge', 'pf-ov-hq-nudge'],
     ['armory', 'pf-ov-armory'],
+    ['archive', 'pf-ov-archive'],
     /* ——— SECTION 5: FUND — economy & money ——— */
     ['peoplesbank', 'pf-ov-peoplesbank'],
     ['economy', 'pf-ov-economy'],
@@ -80,8 +80,6 @@
     ['alerts', 'pf-ov-alerts'],
     ['irl', 'pf-ov-irl'],
     ['intel', 'pf-ov-intel'],
-    ['archive', 'pf-ov-archive'],
-    ['civic', 'pf-ov-civic'],
     /* ——— SECTION 7: PROOF — social validation closer ——— */
     ['fan-vote', 'pf-ov-vote']
   ];
@@ -178,13 +176,13 @@
     'bracket-board':'play','boost-raid':'play','daily-drop':'play',
     'battles':'play','infighting':'play','media-nuke':'play','casino':'play',
     'cells':'belong','cell-war':'belong','diplo':'belong','contracts':'belong',
-    'referral':'belong','governance':'belong',
+    'referral':'belong',
     'academy':'create','assist':'create','poster-forge':'create','video':'create',
     'feed':'create','amplify':'create','hq-nudge':'create','armory':'create',
+    'archive':'create',
     'peoplesbank':'fund','economy':'fund','war-bonds':'fund','movement':'fund',
     'earnings':'fund','bounties':'fund','ventures':'fund',
-    'campaign':'act','alerts':'act','irl':'act','intel':'act','archive':'act',
-    'civic':'act',
+    'campaign':'act','alerts':'act','irl':'act','intel':'act',
     'fan-vote':'proof'
   };
 

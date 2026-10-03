@@ -171,6 +171,8 @@
     if (!state.ready) return;
     var els = (root || document).querySelectorAll('[data-eff-score]');
     for (var i = 0; i < els.length; i++) {
+      /* Hype-painted slots are final — never overwrite the badge on refresh. */
+      if (els[i].getAttribute('data-infight-hype')) continue;
       var slug = els[i].getAttribute('data-eff-score');
       var rec = state.map[slug];
       if (!rec) continue;
@@ -180,6 +182,35 @@
       els[i].setAttribute('title', 'Efficiency Index — week of ' + state.week +
         ' (data weight ' + rec.dataWeight + '; reach ' + rec.reach +
         ', fan ' + rec.fanEff + ', site ' + rec.sitePull + ')');
+    }
+    try { paintHype(root); } catch (e) {}
+  }
+
+  /* HYPE overlay — owned by efficiency.js (layering contract documented in
+     games/infighting.js). infighting.js only publishes the hype record
+     (last battle's winner) via PF.infightHype() + the 'pf-hype' /
+     'pf-infight' events; it never touches these slots. This paint applies
+     the +0.2 hype bump badge on top of whatever score is displayed. */
+  var HYPE_BUMP = 0.2, SCORE_MAX = 9.8;
+  function paintHype(root) {
+    var hr = null;
+    try { hr = (window.PF && PF.infightHype) ? PF.infightHype() : null; } catch (e) { hr = null; }
+    if (!hr || !hr.slug) return;
+    var els = (root || document).querySelectorAll('[data-eff-score="' + hr.slug + '"]');
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      if (el.getAttribute('data-infight-hype')) continue;
+      var base = null, rec = state.map[hr.slug];
+      if (rec && typeof rec.score === 'number') base = rec.score;
+      else {
+        var cur = parseFloat((el.textContent || '').replace(/[^0-9.]/g, ''));
+        if (!isNaN(cur)) base = cur;
+      }
+      if (base == null) continue;
+      var bumped = Math.min(SCORE_MAX, Math.round((base + HYPE_BUMP) * 10) / 10);
+      el.setAttribute('data-infight-hype', '1');
+      el.innerHTML = bumped.toFixed(1) +
+        ' <span style="font-size:.65em;color:#e10600;font-weight:800;">&#128293; HYPE</span>';
     }
   }
 
@@ -229,4 +260,13 @@
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', refresh);
   } else { refresh(); }
+
+  /* Hype paint triggers: a new battle settles ('pf-hype'/'pf-infight') or
+     new score slots render later (roster/catalog lazy paint). The 30s
+     re-check preserves the old infighting-owned cadence. */
+  try {
+    document.addEventListener('pf-hype', function () { try { paintHype(document); } catch (e) {} });
+    document.addEventListener('pf-infight', function () { try { paintHype(document); } catch (e) {} });
+    setInterval(function () { try { paintHype(document); } catch (e) {} }, 30000);
+  } catch (e) {}
 })();

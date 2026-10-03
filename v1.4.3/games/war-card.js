@@ -39,13 +39,19 @@
     }
     var fn="pfWarCb"+Math.floor(Math.random()*1e9);
     var s=document.createElement("script");
-    window[fn]=function(j){ try{ delete window[fn]; }catch(e){} if(s.parentNode)s.parentNode.removeChild(s); cb(j); };
-    s.onerror=function(){ try{ delete window[fn]; }catch(e){} cb(null); };
+    var done=false;
+    function finish(j){ if(done) return; done=true;
+      try{ delete window[fn]; }catch(e){}
+      if(s.parentNode)s.parentNode.removeChild(s);
+      cb(j); }
+    window[fn]=function(j){ finish(j); };
+    s.onerror=function(){ finish(null); };
     var q="?action="+encodeURIComponent(action);
     for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
     q+="&callback="+fn;
     s.src=BACKEND+q;
     document.head.appendChild(s);
+    setTimeout(function(){ finish(null); },12000);
   }
 
   var board=null, state=null;

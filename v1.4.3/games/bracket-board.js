@@ -3,7 +3,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("bracket-board")) { return; }
+  if (!PF || PF.skip("bracket-board")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-bracket">
 <div id="pf-bracket">
 <style>
@@ -236,9 +236,7 @@ function renderTurnout(){
 var UPSET_BONUS_XP=5;
 function bToast(m){ var t=document.createElement("div"); t.textContent=m; t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999"; document.body.appendChild(t); setTimeout(function(){t.remove();},2600); }
 function awardUpsetBonus(){
-  var wi=weekIndex(), paid=0, r=null;
-  try{ r=JSON.parse(localStorage.getItem("pf_ranks_v1")||"null")||{xp:0,got:{}}; }catch(e){ r={xp:0,got:{}}; }
-  if(!r.got) r.got={};
+  var wi=weekIndex(), paid=0;
   for(var rr=0; rr<Math.min(wi,4); rr++){
     var w=ROUND_WINNERS[String(rr)]||[];
     if(!w.length) continue;
@@ -248,18 +246,21 @@ function awardUpsetBonus(){
     for(var i=0;i<w.length;i++){
       if(vv["m"+i]!==undefined && vv["m"+i]===w[i] && up["m"+i]){
         var key="bracket_upset_"+roundWeekKey(rr)+"_m"+i;
-        if(!r.got[key]){
-          r.got[key]=1; r.xp+=UPSET_BONUS_XP; paid++;
-          /* Each upset gets its own keyed pf-xp so the xpledger mirrors it
-             to the backend (the old batch dispatch had no key and was
-             silently dropped — backend never saw this XP). */
-          try{ document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:UPSET_BONUS_XP,total:r.xp,key:key,reason:'bracket upset'}})); }catch(e2){}
+        /* Each upset gets its own keyed pf-xp so the xpledger mirrors it
+           to the backend (the old batch dispatch had no key and was
+           silently dropped — backend never saw this XP). */
+        var credited=false;
+        try{ credited=(window.PF&&PF.creditLocal)?PF.creditLocal(key,UPSET_BONUS_XP):false; }catch(e2){}
+        if(credited){
+          paid++;
+          var total=0;
+          try{ total=Number((JSON.parse(localStorage.getItem("pf_ranks_v1")||"null")||{xp:0}).xp)||0; }catch(e3){}
+          try{ document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:UPSET_BONUS_XP,total:total,key:key,reason:'bracket upset'}})); }catch(e4){}
         }
       }
     }
   }
   if(paid>0){
-    try{ localStorage.setItem("pf_ranks_v1", JSON.stringify(r)); }catch(e){}
     bToast("+"+(paid*UPSET_BONUS_XP)+" XP — UPSET BONUS x"+paid);
   }
   return paid;

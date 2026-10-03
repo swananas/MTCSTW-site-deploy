@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("alerts")) { return; }
+  if (!PF || PF.skip("alerts")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-alerts">
 <div class="fe-block pf-override-block" id="pf-alerts">
 <h2>Rapid Response</h2>
@@ -124,7 +124,7 @@ function render(j){
   if(rb) rb.onclick=function(){ el.innerHTML='<div class="c-load">Scanning the wire&hellip;</div>'; load(); };
 }
 load();
-setInterval(function(){ load(); },180000);
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },180000);
 })();
 </scr`+`ipt>
 </div>

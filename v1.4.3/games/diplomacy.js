@@ -157,7 +157,7 @@ function render(){
   }); }
 }
 load();
-setInterval(function(){ load(); },120000);
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },120000);
 })();
 </scr`+`ipt>
 </div>

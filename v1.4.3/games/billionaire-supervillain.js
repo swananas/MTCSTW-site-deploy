@@ -3,7 +3,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("billionaire-supervillain")) { return; }
+  if (!PF || PF.skip("billionaire-supervillain")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-billionaire">
 <div id="pf-billionaire">
 <style>

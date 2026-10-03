@@ -4,7 +4,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("daily-orders")) { return; }
+  if (!PF || PF.skip("daily-orders")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-orders">
 <div class="fe-block pf-override-block" id="pf-orders">
 

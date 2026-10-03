@@ -7,7 +7,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("civic")) { return; }
+  if (!PF || PF.skip("civic")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-civic">
 <div class="fe-block pf-override-block pf-silo" id="pf-civic">
 <h2>Wage Civic Warfare</h2>
@@ -182,7 +182,11 @@ function bind(){
     for(var i=0;i<scripts.length;i++){ if(scripts[i].topic===topic){ sc=scripts[i]; break; } }
     if(!sc){ box.innerHTML=""; return; }
     var name=gv("cvMyName")||"[YOUR NAME]", st=gv("cvMyState")||"[STATE]", rep=gv("cvRepSel")||"[REP]";
-    var txt=sc.script.split("{NAME}").join(esc(name)).split("{STATE}").join(esc(st)).split("{REP}").join(esc(rep));
+    /* Escape the backend-supplied script BEFORE substitution (stored-XSS
+       hardening — a malformed script row must not execute in visitors'
+       browsers). The {NAME}/{STATE}/{REP} tokens are replaced with the
+       already-escaped user inputs afterwards. */
+    var txt=esc(sc.script).split("{NAME}").join(esc(name)).split("{STATE}").join(esc(st)).split("{REP}").join(esc(rep));
     box.innerHTML='<div class="x-pane pf-mt" ><h4>'+esc(sc.title)+'</h4><div class="x-note" style="white-space:pre-wrap">'+txt+'</div></div>';
     box.setAttribute("data-script-id",sc.id);
   }

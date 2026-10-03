@@ -9,7 +9,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("movement")) { return; }
+  if (!PF || PF.skip("movement")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-movement">
 <div class="fe-block pf-override-block pf-silo" id="pf-movement">
 <h2>Movement Finance</h2>

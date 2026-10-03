@@ -7,7 +7,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("earnings")) { return; }
+  if (!PF || PF.skip("earnings")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-earnings">
 <div class="fe-block pf-override-block pf-silo" id="pf-earnings">
 <h2>Get Paid to Agitate</h2>

@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("irl")) { return; }
+  if (!PF || PF.skip("irl")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-irl">
 <div class="fe-block pf-override-block" id="pf-irl">
 <h2>Boots on the Ground</h2>
@@ -115,7 +115,7 @@ function render(j){
   if(rb) rb.onclick=function(){ el.innerHTML='<div class="c-load">Finding the fight near you&hellip;</div>'; load(); };
 }
 load();
-setInterval(function(){ load(); },300000);
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },300000);
 })();
 </scr`+`ipt>
 </div>

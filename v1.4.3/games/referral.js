@@ -10,7 +10,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("referral")) { return; }
+  if (!PF || PF.skip("referral")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-referral">
 <div class="fe-block pf-override-block" id="pf-referral">
 <h2>Referral War</h2>
@@ -310,7 +310,7 @@ function render(){
 }
 captureRef();
 load();
-setInterval(function(){ load(); },120000);
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },120000);
 })();
 </scr`+`ipt>
 </div>

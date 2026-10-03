@@ -32,7 +32,9 @@ function inCell(cb){
   }catch(e){}
   if(!window.PF_BACKEND_URL){ cb(false); return; }
   var fn='pffl_'+Math.floor(Math.random()*1e9);
+  var fired=false;
   window[fn]=function(j){
+    if(fired) return; fired=true;
     try{ delete window[fn]; }catch(e){}
     var v=false;
     try{ v=!!(j&&(j.in_cell||(j.cells&&j.cells.length))); }catch(e2){}
@@ -41,9 +43,20 @@ function inCell(cb){
   };
   var s=document.createElement('script');
   s.src=window.PF_BACKEND_URL+'?action=cell_mine&callsign='+encodeURIComponent(cs)+'&callback='+fn;
-  s.onerror=function(){ try{ delete window[fn]; }catch(e){} cb(false); };
+  s.onerror=function(){ if(fired) return; fired=true;
+    try{ delete window[fn]; }catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s);
+    cb(false); };
   document.head.appendChild(s);
-  setTimeout(function(){ if(s.parentNode)s.parentNode.removeChild(s); },12000);
+  /* Timeout: clean up the global callback AND the tag, then render the
+     error state via cb(false) — a hung backend must not stall the flow
+     strip forever. */
+  setTimeout(function(){
+    if(fired) return; fired=true;
+    try{ delete window[fn]; }catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s);
+    cb(false);
+  },12000);
 }
 function seen(key){ try{ return localStorage.getItem(key)==='1'; }catch(e){ return false; } }
 function nextStep(cb){

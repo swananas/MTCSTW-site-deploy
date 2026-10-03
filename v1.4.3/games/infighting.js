@@ -25,31 +25,18 @@
   var PF = window.PF;
   if (!PF || PF.skip('infighting')) { return; }
 
-  /* ---- HYPE overlay (global, display-only, localStorage-driven) ---- */
-  var LS_HYPE = 'pf_infight_hype_v1', HYPE_BUMP = 0.2, SCORE_MAX = 9.8;
-  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  /* ---- HYPE overlay (publisher, display-agnostic) ----
+     Layering contract (see games/efficiency.js): infighting OWNS the hype
+     record (who won the last battle) but NEVER paints another silo's DOM.
+     The [data-eff-score="slug"] slots are owned by efficiency.js (rendered
+     by slr-roster.js / slr-catalog.js). efficiency.js applies the HYPE badge
+     when it paints scores, reading the record via PF.infightHype() and
+     re-checking on the 'pf-hype' / 'pf-infight' events. This silo only
+     publishes. */
+  var LS_HYPE = 'pf_infight_hype_v1';
   function hype() { try { var h = JSON.parse(localStorage.getItem(LS_HYPE) || 'null'); if (h && h.until > Date.now() && h.slug) return h; } catch (e) {} return null; }
-  function applyHype() {
-    var h = hype(); if (!h) return;
-    var slots = document.querySelectorAll('[data-eff-score="' + h.slug + '"]');
-    for (var i = 0; i < slots.length; i++) {
-      (function (el) {
-        if (el.getAttribute('data-infight-hype')) return;
-        var cur = parseFloat((el.textContent || '').replace(/[^0-9.]/g, ''));
-        if (isNaN(cur)) return;
-        var bumped = Math.min(SCORE_MAX, Math.round((cur + HYPE_BUMP) * 10) / 10);
-        el.setAttribute('data-infight-hype', '1');
-        el.innerHTML = esc(bumped.toFixed(1)) + ' <span style="font-size:.65em;color:#e10600;font-weight:800;">&#128293; HYPE</span>';
-      })(slots[i]);
-    }
-  }
-  function hypeInit() {
-    applyHype();
-    setInterval(applyHype, 30000);
-    document.addEventListener('pf-efficiency', applyHype);
-  }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hypeInit);
-  else hypeInit();
+  /* Public reader for the hype-paint owner (efficiency.js). */
+  PF.infightHype = hype;
 
   /* Public: next/current battle info for cross-game tie-ins (quiz result card).
      Deterministic — same seed scheme as the widget, so the matchup matches. */
@@ -101,7 +88,6 @@ function hashStr(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 function dbAll(){try{return PF.slrAll?PF.slrAll():(PF.ROSTER||[]);}catch(e){return[];}}
 function xp(){try{return Number(JSON.parse(localStorage.getItem(LS_R)||'{"xp":0}').xp)||0;}catch(e){return 0;}}
-function setXp(v){try{var s=JSON.parse(localStorage.getItem(LS_R)||'{"xp":0,"got":{}}');s.xp=Math.max(0,Math.round(v));localStorage.setItem(LS_R,JSON.stringify(s));}catch(e){}}
 function callsign(){try{return String(JSON.parse(localStorage.getItem(LS_I)||'{}').callsign||'').toLowerCase();}catch(e){return '';}}
 function apiGet(params,cb,timeoutMs){
   /* P0 (2026-10-02): infight_fire is POST-only (was CSRF-able via GET). */
@@ -234,7 +220,8 @@ function doFire(idx,amt){
   var bal=xp();
   if(amt>bal)amt=bal;
   if(amt<=0){flashXp();return;}
-  setXp(bal-amt);
+  /* Spend from the shared local ledger (backend settles via infight_fire). */
+  try{ if(window.PF&&PF.debitLocal) PF.debitLocal(null,amt); }catch(e){}
   addSpent(cur.id,amt);
   pending[f.slug]=(pending[f.slug]||0)+amt;
   apiGet({action:'infight_fire',round:cur.id,slug:f.slug,amt:amt,callsign:callsign()},function(){pollTotals();});
@@ -311,6 +298,8 @@ function settleLastBattle(prevId,roster){
           localStorage.setItem(LS_LAST,JSON.stringify({winner:w.name,loser:l.name,wa:Math.max(a,b),wb:Math.min(a,b),a:1}));
         }catch(e){}
         dispatch('pf-infight',{winner:w.slug,round:prevId});
+        /* New hype record: tell the paint owner (efficiency.js) to re-check. */
+        dispatch('pf-hype',{slug:w.slug,round:prevId});
       }
     }
   },8000);

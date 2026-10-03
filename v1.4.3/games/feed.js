@@ -7,7 +7,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("feed")) { return; }
+  if (!PF || PF.skip("feed")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-feed">
 <div class="fe-block pf-override-block" id="pf-feed">
 <h2>Propaganda Feed</h2>
@@ -245,7 +245,7 @@ function render(){
   }
 }
 load();
-setInterval(function(){ load(); },180000);
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },180000);
 })();
 </scr`+`ipt>
 </div>

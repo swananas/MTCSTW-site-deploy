@@ -6,7 +6,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("dashboard")) { return; }
+  if (!PF || PF.skip("dashboard")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-dash">
 <div class="fe-block pf-override-block pf-silo" id="pf-dash">
 <h2>Command Center</h2>
@@ -138,7 +138,7 @@ function render(){
   el.innerHTML=h;
 }
 load();
-setInterval(function(){ load(); },300000);
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },300000);
 })();
 </scr`+`ipt>
 </div>

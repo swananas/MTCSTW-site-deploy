@@ -13,7 +13,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("cells")) { return; }
+  if (!PF || PF.skip("cells")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-cells">
 <div class="fe-block pf-override-block" id="pf-cells">
 <h2>Build Your Cell</h2>
@@ -24,7 +24,7 @@
 <script>
 (function(){
 var BACKEND=window.PF_BACKEND_URL;
-var LS_C="pf_cells_v1", LS_R="pf_ranks_v1";
+var LS_C="pf_cells_v1";
 var BOUNTY_FALLBACK=25;
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function load(k,fb){ try{ return JSON.parse(localStorage.getItem(k)||JSON.stringify(fb)); }catch(e){ return fb; } }
@@ -46,7 +46,11 @@ function api(action,params,cb){
     post('cell','cell_action',action,params,cb); return;
   }
   if(!BACKEND){ cb(null); return; }
-  var fn="pfCellCb"+Math.floor(Math.random()*1e9);
+  /* Callback nonce: crypto-random where available (invite codes themselves
+     are issued server-side by cell_create; this is just the JSONP name). */
+  var _cr=new Uint32Array(1);
+  try{ if(window.crypto&&crypto.getRandomValues) crypto.getRandomValues(_cr); else _cr[0]=Math.floor(Math.random()*4294967295); }catch(e){ _cr[0]=Math.floor(Math.random()*4294967295); }
+  var fn="pfCellCb"+_cr[0];
   var s=document.createElement("script");
   var done=false, timer=null;
   function finish(j){
@@ -133,17 +137,18 @@ function claimBounties(j){
   var id=ident();
   api("cell_bounty_claim",{callsign:id.callsign,device:id.device},function(r){
     if(!r||!r.ok||!r.claimed||!r.claimed.length) return;
-    var rk=load(LS_R,{xp:0,got:{}}), n=0, each=r.xp_each||BOUNTY_FALLBACK;
+    var n=0, each=r.xp_each||BOUNTY_FALLBACK;
     r.claimed.forEach(function(b){
       var key="cell_bounty_"+b.from+"_"+b.day;
-      if(rk.got[key]!==1){
-        rk.got[key]=1; rk.xp+=each; n++;
-        /* Backend already granted this XP in cell_bounty_claim (xpGrant with
-           key cellbounty_<cell>_<recruit>). Local ledger update is for instant
-           UX only — do NOT dispatch pf-xp or the backend gets it twice. */
-      }
+      /* The shared ledger owns idempotency now (exactly-once per key).
+         Backend already granted this XP in cell_bounty_claim (xpGrant with
+         key cellbounty_<cell>_<recruit>). Local ledger update is for instant
+         UX only — do NOT dispatch pf-xp or the backend gets it twice. */
+      var credited=false;
+      try{ credited=(window.PF&&PF.creditLocal)?PF.creditLocal(key,each):false; }catch(e){}
+      if(credited) n++;
     });
-    if(n>0){ save(LS_R,rk); toast("+"+(n*each)+" XP — recruit bounty! Your cell grows."); }
+    if(n>0){ toast("+"+(n*each)+" XP — recruit bounty! Your cell grows."); }
   });
 }
 function loadBoard(){

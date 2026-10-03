@@ -4,7 +4,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("hq-nudge")) { return; }
+  if (!PF || PF.skip("hq-nudge")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-hq-nudge">
 <div class="fe-block pf-override-block pf-silo" id="pf-hq-nudge">
 <div class="pf-hq-nudge-card" style="background:linear-gradient(135deg,#0a0a0a 0%,#1a0505 100%);border:2px solid #c1121f;padding:28px 24px;text-align:center;margin:16px 0;">

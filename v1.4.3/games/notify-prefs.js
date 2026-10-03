@@ -7,7 +7,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("notify-prefs")) { return; }
+  if (!PF || PF.skip("notify-prefs")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-notify-prefs">
 <div class="fe-block pf-override-block pf-silo" id="pf-notify-prefs">
 <a id="notifications" style="display:block;position:relative;top:-80px;"></a>

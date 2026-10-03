@@ -10,7 +10,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("ventures")) { return; }
+  if (!PF || PF.skip("ventures")) { return; }
   try { localStorage.setItem("pf_venture_seen_v1", "1"); } catch (e) {}
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-ventures">
 <div class="fe-block pf-override-block" id="pf-ventures">

@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("cell-war")) { return; }
+  if (!PF || PF.skip("cell-war")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-cellwar">
 <div class="fe-block pf-override-block pf-silo" id="pf-cell-war">
 <div id="xCellWar"><div class="cw-load">Mustering the armies&hellip;</div></div>

@@ -51,10 +51,24 @@
   function rawPost(backendUrl, bodyObj, cb) {
     function done(j) { try { cb(j || { ok: false, err: 'Network error.' }); } catch (e) {} }
     try {
-      fetch(backendUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(bodyObj) })
+      /* 15s timeout: a hung POST must fail closed (done(null)) rather than
+         hang the UI forever (e.g. the War Bonds claim button). */
+      var ctl = null, timer = null, settled = false;
+      function finish(j) { if (settled) return; settled = true;
+        if (timer) { clearTimeout(timer); timer = null; }
+        done(j); }
+      try {
+        if (window.AbortController) {
+          ctl = new AbortController();
+          timer = setTimeout(function () { try { ctl.abort(); } catch (e) {} }, 15000);
+        }
+      } catch (e) { ctl = null; timer = null; }
+      var opts = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(bodyObj) };
+      if (ctl) opts.signal = ctl.signal;
+      fetch(backendUrl, opts)
         .then(function (r) { return r.json(); })
-        .then(function (j) { done(j); })
-        .catch(function () { done(null); });
+        .then(function (j) { finish(j); })
+        .catch(function () { finish(null); });
     } catch (e) { done(null); }
   }
 
@@ -79,20 +93,22 @@
      callsign and retries the original request once. */
   PF.authPost = function (backendUrl, bodyObj, cb, _retried) {
     if (!backendUrl) { try { cb({ ok: false, err: 'no backend' }); } catch (e) {} return; }
-    bodyObj = bodyObj || {};
+    /* Clone the caller's object — the secret is written into the clone, never
+       the input (a silo may reuse or inspect its body object afterwards). */
+    var body = Object.assign({}, bodyObj || {});
     var secret = PF.getAuthSecret();
-    if (secret) bodyObj.auth_secret = secret;
-    rawPost(backendUrl, bodyObj, function (j) {
+    if (secret) body.auth_secret = secret;
+    rawPost(backendUrl, body, function (j) {
       var needClaim = j && !j.ok &&
         (j.err === 'unauthorized' || String(j.err || '').indexOf('no secret issued') !== -1) &&
         !_retried && !authDisabled;
       if (needClaim) {
-        var cs = actorFromBody(bodyObj);
+        var cs = actorFromBody(body);
         if (cs) {
           PF.claimAuthSecret(cs, function (cj) {
             if (cj && cj.ok && cj.auth_secret) {
               /* Retry once with the fresh secret. */
-              PF.authPost(backendUrl, bodyObj, cb, true);
+              PF.authPost(backendUrl, body, cb, true);
             } else {
               try { cb(j); } catch (e) {}
             }

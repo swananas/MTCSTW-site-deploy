@@ -4,7 +4,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("media-nuke")) { return; }
+  if (!PF || PF.skip("media-nuke")) { return; }
   /* PF-NUKE-DOPE-20261001: celebration migrated to shared PF.dope (core/08-dopamine.js).
      Only bar positioning + the charge pulse remain bespoke. */
   PF.holder().insertAdjacentHTML('beforeend', "<style>\n#slr-nuke{position:relative;overflow:hidden}\n#slr-nuke .slr-nuke-fill.pulse{filter:brightness(1.7)}\n@media (prefers-reduced-motion:reduce){#slr-nuke .slr-nuke-fill.pulse{filter:none}}\n#pf-nuke-stick{position:fixed;left:0;right:0;bottom:0;z-index:9000;background:rgba(13,13,13,.97);border-top:2px solid #c1121f;color:#f5ead6;font-family:monospace;box-shadow:0 -4px 18px rgba(0,0,0,.5)}\n#pf-nuke-stick[hidden]{display:none!important}\n#pf-nuke-stick .pns-meter{height:6px;background:#2b2b2b}\n#pf-nuke-stick .pns-fill{height:100%;width:0;background:linear-gradient(90deg,#c1121f,#e8192f);transition:width .5s}\n#pf-nuke-stick .pns-row{display:flex;align-items:center;gap:8px;padding:5px 10px}\n#pf-nuke-stick .pns-tap{flex:1;display:flex;gap:10px;align-items:center;background:none;border:0;color:#f5ead6;font:inherit;font-size:12px;text-align:left;cursor:pointer;padding:4px 0;min-width:0}\n#pf-nuke-stick .pns-pct{font-weight:700;color:#ff4d5e;white-space:nowrap}\n#pf-nuke-stick .pns-you{color:#f5ead6;white-space:nowrap}\n#pf-nuke-stick .pns-cell{color:#c9bfa8;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n#pf-nuke-stick .pns-x{background:none;border:0;color:#c9bfa8;font-size:18px;line-height:1;cursor:pointer;padding:4px 6px}\n#pf-nuke-stick .pns-act{background:#c1121f;color:#fff;border:0;font:700 12px monospace;letter-spacing:1px;padding:9px 10px;cursor:pointer;white-space:nowrap;flex:1}\n#pf-nuke-stick .pns-act.rally{background:transparent;border:1px solid #c1121f;color:#f5ead6}\n#pf-nuke-stick.flash{animation:pnsflash .6s}\n@keyframes pnsflash{0%,100%{border-top-color:#c1121f}50%{border-top-color:#ffcc00;box-shadow:0 -4px 26px rgba(255,204,0,.35)}}\n@media (prefers-reduced-motion:reduce){#pf-nuke-stick .pns-fill{transition:none}#pf-nuke-stick.flash{animation:none}}\n</style>");
@@ -332,7 +332,7 @@ function init(){
     }
   }
   tick();
-  setInterval(tick,60000);
+  setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} tick(); },60000);
   try{ buildStick(document.getElementById('slr-nuke')); }catch(e){}
   /* real-time refresh on any XP event from any game; each event also charges
      the event-sourced daily counter (null = take the XP from event.detail.xp) */

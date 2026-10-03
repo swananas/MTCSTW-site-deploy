@@ -7,7 +7,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("bounties")) { return; }
+  if (!PF || PF.skip("bounties")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-bounties">
 <div class="fe-block pf-override-block" id="pf-bounties">
 <h2>Propaganda Bounties</h2>

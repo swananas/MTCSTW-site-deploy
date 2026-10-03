@@ -3,7 +3,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("enlistment-ranks")) { return; }
+  if (!PF || PF.skip("enlistment-ranks")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-ranks">
 <div id="pf-ranks">
 <style>

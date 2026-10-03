@@ -3,7 +3,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("daily-interrogation")) { return; }
+  if (!PF || PF.skip("daily-interrogation")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-interrogation">
 <div id="pf-interrogation">
 <style>

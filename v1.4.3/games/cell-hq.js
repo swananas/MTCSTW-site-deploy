@@ -875,14 +875,10 @@
         busy(false);
         if (j && j.ok){
           /* Backend already debited via xpGrant in cell_contribute.
-             Update local ledger directly (no pf-xp dispatch — that would
-             mirror to backend and double-debit). */
-          try{
-            var rk = JSON.parse(localStorage.getItem('pf_ranks_v1')||'{"xp":0,"got":{}}');
-            rk.xp = Math.max(0, (Number(rk.xp)||0) - wamt);
-            rk.got['warchest_'+Date.now()] = 1;
-            localStorage.setItem('pf_ranks_v1', JSON.stringify(rk));
-          }catch(e){}
+             Mirror the spend on the local ledger for instant UX
+             (no pf-xp dispatch — that would mirror to backend and
+             double-debit). */
+          try{ if(window.PF&&PF.debitLocal) PF.debitLocal(null,wamt); }catch(e){}
           var msg = 'War chest +'+wamt+' XP. Total: '+(j.total||0)+'/'+(j.goal||1000)+'.';
           if (j.milestone_unlocked) msg += ' GOAL HIT — +5 XP checkin boost active 24h!';
           toast(msg);

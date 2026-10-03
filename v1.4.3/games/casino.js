@@ -7,7 +7,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("casino")) { return; }
+  if (!PF || PF.skip("casino")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-casino">
 <div class="fe-block pf-override-block pf-silo" id="pf-casino">
 <h2>XP Casino</h2>
@@ -320,7 +320,7 @@ function startCrashPoll(){
   },5000);
 }
 load();
-setInterval(function(){ load(); },120000);
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },120000);
 })();
 </scr`+`ipt>
 </div>

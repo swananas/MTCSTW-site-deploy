@@ -7,7 +7,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("vault")) { return; }
+  if (!PF || PF.skip("vault")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-vault">
 <div class="fe-block pf-override-block pf-silo" id="pf-vault">
 <h2>Admin Vault</h2>
@@ -367,7 +367,7 @@ function wire(){
   })(irjs[ij]); }
 }
 renderGate();
-setInterval(function(){ if(getSecret()) load(); },300000);
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} if(getSecret()) load(); },300000);
 })();
 </scr`+`ipt>
 </div>

@@ -9,7 +9,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("campaign")) { return; }
+  if (!PF || PF.skip("campaign")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-campaign">
 <div class="fe-block pf-override-block" id="pf-campaign">
 <h2>The 32-Day Offensive</h2>
@@ -235,7 +235,7 @@ function renderBattlegrounds(){
   return h;
 }
 load();
-setInterval(function(){ load(); },120000);
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },120000);
 })();
 </scr`+`ipt>
 </div>

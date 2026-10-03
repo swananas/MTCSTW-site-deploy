@@ -12,7 +12,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("contracts")) { return; }
+  if (!PF || PF.skip("contracts")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-contracts">
 <div class="fe-block pf-override-block" id="pf-contracts">
 <h2>Mercenary Contracts</h2>
@@ -255,7 +255,7 @@ function wire(){
   })(cx[m]);
 }
 load();
-setInterval(function(){ if(!busy) load(); }, 120000);
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} if(!busy) load(); }, 120000);
 })();
 </scr`+`ipt>
 </div>

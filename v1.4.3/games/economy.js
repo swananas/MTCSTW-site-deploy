@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("economy")) { return; }
+  if (!PF || PF.skip("economy")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-economy">
 <div class="fe-block pf-override-block pf-silo" id="pf-economy">
 <h2>Run the Economy</h2>

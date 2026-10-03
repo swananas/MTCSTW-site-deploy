@@ -3,7 +3,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("war-bonds")) { return; }
+  if (!PF || PF.skip("war-bonds")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-bonds">
 <div id="pf-warbonds" style="max-width:640px;margin:2rem auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:'Helvetica Neue',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;text-align:center;">
   <div style="font-size:1.6rem;font-weight:900;letter-spacing:0.18em;color:#c1121f;">&#9733; WAR BONDS &#9733;</div>
@@ -47,7 +47,49 @@
       ALL_CREATORS.push({ name: m.name, catalog: 'https://www.mtcstw.com' + (m.catalog_path || ('/' + m.slug)) });
     });
   } catch(e) {}
-  var WARCHEST = {"The Dr Greg Show": {"catalog": "https://www.mtcstw.com/the-dr-greg-show", "pay": [{"label": "Merch store", "url": "https://dr-greg-shop.fourthwall.com/"}]}, "Guillotines For A Better America": {"catalog": "https://www.mtcstw.com/guillotines-for-a-better-america", "pay": [{"label": "Patreon", "url": "https://www.patreon.com/GuillotinesForABetterAmerica"}]}, "Little Anarchist Brat": {"catalog": "https://www.mtcstw.com/little-anarchist-brat", "pay": [{"label": "Tips", "url": "https://ko-fi.com/littleanarchistbrat"}]}, "Kim Hunt (SlayTheGOP)": {"catalog": "https://www.mtcstw.com/kim-hunt-slaythegop", "pay": [{"label": "Patreon", "url": "https://www.patreon.com/cw/slaythegop"}]}};
+  /* WAR CHEST links: data-driven from the SLR master database. Each member's
+     links array (platform/url/status) feeds the picker; links on tip platforms
+     render as war-chest pay buttons. WARCHEST_SEED covers creators whose tip
+     links aren't in the master DB yet (unioned with DB links, deduped by
+     URL). When the backend ships a warchest_links read, wire it here and
+     this file needs no further edits. */
+  var TIP_PLATFORMS = { 'patreon':1, 'ko-fi':1, 'kofi':1, 'cashapp':1, 'venmo':1,
+    'paypal':1, 'buymeacoffee':1, 'buy me a coffee':1, 'merch':1, 'store':1,
+    'merch store':1, 'tips':1, 'tip jar':1, 'gofundme':1 };
+  function tipLinks(m){
+    var out=[], seen={};
+    ((m&&m.links)||[]).forEach(function(l){
+      if(!l||!l.url) return;
+      var p=String(l.platform||'').toLowerCase().trim(), isTip=false, k;
+      for(k in TIP_PLATFORMS){ if(p.indexOf(k)>-1){ isTip=true; break; } }
+      if(!isTip||seen[l.url]) return;
+      seen[l.url]=1;
+      out.push({label:l.platform||'Support', url:l.url});
+    });
+    return out;
+  }
+  var WARCHEST = {};
+  try{
+    _roster.forEach(function(m){
+      var pay=tipLinks(m);
+      if(pay.length) WARCHEST[m.name]={
+        catalog:'https://www.mtcstw.com'+(m.catalog_path||('/'+m.slug)),
+        pay:pay };
+    });
+  }catch(e){}
+  /* Seed: per-creator tip links not yet in the master DB. Unioned with the
+     DB-derived entries above (DB wins on URL conflicts). */
+  var WARCHEST_SEED = {"The Dr Greg Show": {"catalog": "https://www.mtcstw.com/the-dr-greg-show", "pay": [{"label": "Merch store", "url": "https://dr-greg-shop.fourthwall.com/"}]}, "Guillotines For A Better America": {"catalog": "https://www.mtcstw.com/guillotines-for-a-better-america", "pay": [{"label": "Patreon", "url": "https://www.patreon.com/GuillotinesForABetterAmerica"}]}, "Little Anarchist Brat": {"catalog": "https://www.mtcstw.com/little-anarchist-brat", "pay": [{"label": "Tips", "url": "https://ko-fi.com/littleanarchistbrat"}]}, "Kim Hunt (SlayTheGOP)": {"catalog": "https://www.mtcstw.com/kim-hunt-slaythegop", "pay": [{"label": "Patreon", "url": "https://www.patreon.com/cw/slaythegop"}]}};
+  try{
+    for(var _sn in WARCHEST_SEED){
+      if(!WARCHEST[_sn]){ WARCHEST[_sn]=WARCHEST_SEED[_sn]; continue; }
+      var _have={};
+      WARCHEST[_sn].pay.forEach(function(p){ _have[p.url]=1; });
+      WARCHEST_SEED[_sn].pay.forEach(function(p){
+        if(!_have[p.url]) WARCHEST[_sn].pay.push(p);
+      });
+    }
+  }catch(e){}
   var pick = document.getElementById('pf-wb-pick');
   var out = document.getElementById('pf-wb-out');
   ALL_CREATORS.forEach(function(c){
@@ -105,6 +147,9 @@
         say('Checking for unclaimed bonds\u2026');
         wbClaimBtn.disabled = true;
         var body = { type:'warbond', wb_action:'bond_claim', callsign:cs, email:email };
+        /* Device id for backend dedupe/anti-abuse (same ident() pattern as
+           the other claim-type calls). */
+        try{ body.device = window.PFDeviceId ? window.PFDeviceId() : ''; }catch(e){ body.device=''; }
         var url = window.PF_BACKEND_URL;
         function postBody(b, cb){
           if(window.PF && PF.authPost){ PF.authPost(url, b, cb); return; }

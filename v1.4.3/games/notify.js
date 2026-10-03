@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("notify")) { return; }
+  if (!PF || PF.skip("notify")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-notify">
 <div class="fe-block pf-override-block" id="pf-notify">
 <h2><span id="ntBell">&#128276;</span> Notifications <span id="ntBadge"></span></h2>
@@ -124,7 +124,7 @@ function render(){
   if(rb) rb.onclick=function(){ N=PR=null; el.innerHTML='<div class="c-load">Tuning&hellip;</div>'; load(); };
 }
 load();
-setInterval(function(){ load(); },90000);
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },90000);
 })();
 </scr`+`ipt>
 </div>

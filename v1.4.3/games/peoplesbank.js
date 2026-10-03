@@ -10,7 +10,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("peoplesbank")) { return; }
+  if (!PF || PF.skip("peoplesbank")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-peoplesbank">
 <div class="fe-block pf-override-block pf-silo" id="pf-peoplesbank">
 <h2>The Peoples Bank of Propaganda</h2>

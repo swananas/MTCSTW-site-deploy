@@ -4,7 +4,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("caption-combat")) { return; }
+  if (!PF || PF.skip("caption-combat")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-caption">
 <div class="fe-block pf-override-block" id="pf-caption">
 
@@ -37,6 +37,8 @@
 
 <script>
 (function(){
+/* Toast via PF (fallback: silent) — matches the site-wide PF.toast standard. */
+function pfToast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){} }
 /* CONFIG */
 var THIS_WEEK = { img: "https://static1.squarespace.com/static/6802d7140c0cc229f7f710a8/t/6abc47fc2bbe2e559f5c4cbb/1790724092899/ae317ea02163fa632ac65508167d2200e36a73d1e7a63cbd647de0e881395055.jpg", alt: "This week's combat template" }; /* paste template image URL when live */
 var WINNER = { caption: "", author: "" }; /* last week's winning caption + handle */
@@ -102,7 +104,7 @@ if(CS.weeks[weekKey]){ markSubmitted(); }
 document.getElementById("cSubmit").onclick=function(){
   var n=document.getElementById("ccName").value.trim()||"anonymous comrade";
   var c=document.getElementById("cCap").value.trim();
-  if(!c){ alert("Write a caption first."); return false; }
+  if(!c){ pfToast("Write a caption first."); return false; }
   /* save the handle, but DO NOT lock the week yet — the lock happens only
      after the mailto actually fires (see focus check below). This fixes the
      bug where a failed/cancelled email still locked the user out for the week. */

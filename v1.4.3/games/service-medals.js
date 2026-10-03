@@ -4,7 +4,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("service-medals")) { return; }
+  if (!PF || PF.skip("service-medals")) { return; }
   try {
     /* PF SERVICE MEDALS v2 — sticky collection layer over all 12 homepage games.
        Listens for pf-* CustomEvents. Awards one medal per game per week
@@ -14,7 +14,7 @@
     (function(){
     'use strict';
     if(window.pfMedalsLoaded)return;window.pfMedalsLoaded=true;
-    var LS='pf_medals_v2',LS_R='pf_ranks_v1',LS_I='pf_identity_v1';
+    var LS='pf_medals_v2',LS_I='pf_identity_v1';
     var BACKEND_URL=(window.PF_BACKEND_URL||'https://pf-api.mtcstw.workers.dev');
     
     var MEDALS=[
@@ -83,11 +83,8 @@
            exactly-once (the backend grant mirrors back via the ledger). */
         var pkey='medal_fd_'+s.w;
         s.fd_pending=pkey;save(s);
-        try{
-          var r=JSON.parse(localStorage.getItem(LS_R)||'{"xp":0,"got":{}}');
-          if(!r.got)r.got={};
-          if(!r.got[pkey]){r.got[pkey]=1;r.xp+=50;localStorage.setItem(LS_R,JSON.stringify(r));}
-        }catch(e){}
+        /* Bank XP locally via the shared ledger (exactly-once per pkey). */
+        try{ if(window.PF&&PF.creditLocal) PF.creditLocal(pkey,50); }catch(e){}
       }
       renderRack();
       try{document.dispatchEvent(new CustomEvent('pf-do-update'));}catch(e){}
@@ -103,10 +100,9 @@
         if(!(j&&j.ok))return; /* keep fd_pending so a later claim retries */
         var s2=load();
         s2.fd=true;s2.fd_pending=false;save(s2);
-        try{
-          var r=JSON.parse(localStorage.getItem(LS_R)||'{"xp":0,"got":{}}');
-          if(r.got&&r.got[pkey]){ delete r.got[pkey]; r.xp=Math.max(0,(r.xp||0)-50); localStorage.setItem(LS_R,JSON.stringify(r)); }
-        }catch(e){}
+        /* Exactly-once reversal of the banked +50: only debits if pkey was
+           previously credited (mirrors the old got-key check). */
+        try{ if(window.PF&&PF.debitLocal) PF.debitLocal(pkey,50); }catch(e){}
         try{document.dispatchEvent(new CustomEvent('pf-do-update'));}catch(e){}
         renderRack();
       });

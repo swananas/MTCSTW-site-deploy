@@ -4,7 +4,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("do-meter")) { return; }
+  if (!PF || PF.skip("do-meter")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-dometer">
 <div class="fe-block pf-override-block" id="pf-dometer2">
 

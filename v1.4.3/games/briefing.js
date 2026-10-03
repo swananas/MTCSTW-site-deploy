@@ -11,7 +11,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("brief")) { return; }
+  if (!PF || PF.skip("brief")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-brief">
 <div class="fe-block pf-override-block pf-silo" id="pf-brief">
 <h2>Morning Briefing</h2>
@@ -323,7 +323,7 @@ function renderSeasonBanner(){
 }
 bannerCss();
 load();
-setInterval(function(){ load(); },180000);
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },180000);
 setInterval(tick,1000);
 /* keep the banner clear if the comeback banner mounts later */
 setInterval(function(){

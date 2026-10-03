@@ -4,7 +4,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("fan-vote")) { return; }
+  if (!PF || PF.skip("fan-vote")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-vote">
 <div class="fe-block pf-override-block">
 <style>

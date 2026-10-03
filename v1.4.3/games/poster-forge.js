@@ -4,7 +4,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("poster-forge")) { return; }
+  if (!PF || PF.skip("poster-forge")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-poster">
 <div class="fe-block pf-override-block" id="pf-poster">
 

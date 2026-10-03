@@ -18,7 +18,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("dopa")) { return; }
+  if (!PF || PF.skip("dopa")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-dopa">
 <div class="fe-block pf-override-block pf-silo" id="pf-dopa">
 <h2>Daily Fire</h2>
@@ -340,7 +340,7 @@ function tick(){
   }
 }
 setInterval(tick,1000);
-setInterval(function(){ load(); },120000);
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },120000);
 /* combo events from anywhere on the page */
 try{ document.addEventListener("pf-combo-hit",function(){ comboHit(); }); }catch(e){}
 try{ document.addEventListener("pf-content-shared",function(){ comboHit(); }); }catch(e){}

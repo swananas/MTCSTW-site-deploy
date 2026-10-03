@@ -4,7 +4,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("daily-drop")) { return; }
+  if (!PF || PF.skip("daily-drop")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-drop">
 <div id="pf-drop">
 <style>
@@ -47,6 +47,8 @@
 
 <script>
 (function(){
+/* Toast via PF (fallback: silent) — matches the site-wide PF.toast standard. */
+function pfToast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){} }
 var LAUNCH_DATE="2026-09-28";
 /* DROPS: 30 evergreen agitprop items, cycling. t = STAT | QUOTE | TRUTH | ORDER */
 var DROPS=[
@@ -173,7 +175,7 @@ function curHead(){ var el=document.getElementById("dHead"); return el?el.textCo
 document.getElementById("dShare").onclick=function(){
   var text="Day "+n+" of the offensive: "+curHead()+" \\u2014 via The Propaganda Factory "+location.href;
   if(navigator.share){ navigator.share({title:"The Daily Drop",text:text,url:location.href}).catch(function(){}); }
-  else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(function(){ alert("Drop copied. Go spread it."); }).catch(function(){}); }
+  else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(function(){ pfToast("Drop copied. Go spread it."); }).catch(function(){}); }
 };
 document.getElementById("dArchBtn").onclick=function(){
   var arch=document.getElementById("dArch");

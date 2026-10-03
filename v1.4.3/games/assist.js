@@ -7,7 +7,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("assist")) { return; }
+  if (!PF || PF.skip("assist")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-assist">
 <div class="fe-block pf-override-block" id="pf-assist">
 <h2>The Copy Arsenal</h2>

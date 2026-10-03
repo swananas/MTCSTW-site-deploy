@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("socialproof")) { return; }
+  if (!PF || PF.skip("socialproof")) { return; }
   try {
     if (sessionStorage.getItem('pf_sp_dismissed') === '1') return;
   } catch (e) {}
@@ -63,7 +63,7 @@ if(x) x.onclick=function(){
   var bar=$("pf-sp-bar"); if(bar) bar.style.display="none";
 };
 tick();
-setInterval(tick, 300000);
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} tick(); },300000);
 })();
 </scr`+`ipt>
 </div>

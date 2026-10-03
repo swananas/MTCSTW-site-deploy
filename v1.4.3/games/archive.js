@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("archive")) { return; }
+  if (!PF || PF.skip("archive")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-archive">
 <div class="fe-block pf-override-block" id="pf-archive">
 <h2>The Vault</h2>

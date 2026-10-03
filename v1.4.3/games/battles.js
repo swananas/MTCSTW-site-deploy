@@ -7,7 +7,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("battles")) { return; }
+  if (!PF || PF.skip("battles")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-battles">
 <div class="fe-block pf-override-block" id="pf-battles">
 <h2>Poster Battles</h2>
@@ -241,7 +241,7 @@ function render(){
   if(rb) rb.onclick=function(){ BL=BB=TR=null; el.innerHTML='<div class="c-load">Loading the arena&hellip;</div>'; load(); };
 }
 load();
-setInterval(function(){ load(); },180000);
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },180000);
 })();
 </scr`+`ipt>
 </div>

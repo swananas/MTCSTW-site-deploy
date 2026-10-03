@@ -129,6 +129,31 @@
         return true;
       } catch (e) { return false; }
     },
+    /* debitLocal(key, xp) — the ONE writer for local XP spends, mirroring
+       creditLocal. Two modes:
+       - key provided: exactly-once REVERSAL of that specific credit. Only
+         debits when the key was previously credited (got[key] set), then
+         removes the key. Returns true when XP was actually removed.
+       - key falsy: unconditional spend from the general balance (the backend
+         already settled it — the local ledger mirrors it for instant UX,
+         never dispatch pf-xp for these). Always returns true on success.
+       Widgets must not hand-roll pf_ranks_v1 writes. */
+    debitLocal: function (key, xp) {
+      try {
+        var r = null;
+        try { r = JSON.parse(localStorage.getItem('pf_ranks_v1') || 'null'); } catch (e) {}
+        if (!r || typeof r !== 'object') r = { xp: 0, got: {} };
+        if (!r.got) r.got = {};
+        var amt = Math.max(0, Number(xp) || 0);
+        if (key) {
+          if (!r.got[key]) return false;
+          delete r.got[key];
+        }
+        r.xp = Math.max(0, (Number(r.xp) || 0) - amt);
+        try { localStorage.setItem('pf_ranks_v1', JSON.stringify(r)); } catch (e) {}
+        return true;
+      } catch (e) { return false; }
+    },
     /* Shared date helpers (single copies; games must not redefine these).
        chiNow: now in America/Chicago. mondayOf: Monday 00:00 of d's week.
        isoWeekKey: 'YYYY-Www' ISO week key for weekly localStorage buckets. */

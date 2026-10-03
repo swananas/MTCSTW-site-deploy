@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("intel")) { return; }
+  if (!PF || PF.skip("intel")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-intel">
 <div class="fe-block pf-override-block" id="pf-intel">
 <h2>Know Your Enemy</h2>

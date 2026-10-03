@@ -12,7 +12,7 @@
 (function () {
   'use strict';
   var PF = window.PF;
-  if (PF.skip("video")) { return; }
+  if (!PF || PF.skip("video")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-video">
 <div class="fe-block pf-override-block pf-silo" id="pf-video">
 <h2>Video Forge</h2>

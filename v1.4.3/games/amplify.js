@@ -170,7 +170,7 @@ function doAmplify(){
   if(goBtn) goBtn.disabled=true;
   toast("Amplifying\u2026");
   function give(){
-    post('boost_give',{content_id:sel.id,booster:id.callsign,callsign:id.callsign,device:id.device,xp:useAmt},function(j){
+    post('boost_give',{content_id:sel.id,booster:id.callsign,device:id.device,xp:useAmt},function(j){
       if(goBtn) goBtn.disabled=false;
       if(j&&j.ok){
         toast("Amplified! "+useAmt+" XP behind \u201c"+sel.title+"\u201d.");

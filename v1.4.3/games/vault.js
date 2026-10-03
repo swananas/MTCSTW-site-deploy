@@ -91,7 +91,10 @@ function load(){
   function one(){ n++; if(n>=12) render(); }
   setTimeout(render,15000);
   apiAdmin("network_health",function(j){ NH=j; one(); });
-  api("lottery_status",{callsign:"x"},function(j){ LS=j; one(); });
+  /* 2026-10-03 conn fix: was hardcoded callsign:"x". Use the admin's own
+     callsign when known; the read is public so no param is fine too. */
+  var _vcs=""; try{ if(window.PFCallsign) _vcs=window.PFCallsign()||""; }catch(e){}
+  api("lottery_status",_vcs?{callsign:_vcs}:{},function(j){ LS=j; one(); });
   api("wager_list",{},function(j){ WL=j; one(); });
   api("cause_list",{},function(j){ CL=j; one(); });
   api("event_list",{},function(j){ EL=j; one(); });

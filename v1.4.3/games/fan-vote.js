@@ -368,23 +368,36 @@
     });
   }
   /* RESET VOTE: retracts the vote server-side, then clears the local ballot
-     lock and re-opens the ballot. The retract goes through PF.authPost with
-     callsign + secret — the backend's bare:retract auth gate 400s without
-     them (2026-10-03 C4). On failure the local state is KEPT and the error
-     is shown honestly — never a silent local-only reset. Voting again adds
-     the weight back. */
+     lock and re-opens the ballot. 2026-10-03 conn fix: symmetric with cast —
+     the typed vote:vote_retract path (PUBLIC, device-gated) replaces the
+     deprecated bare typeless 'retract'. On failure the local state is KEPT
+     and the error is shown honestly — never a silent local-only reset.
+     Voting again adds the weight back. */
   function resetVote(){
     var v = voted();
     if(!v || !v.slug){ renderBallot(); return; }
-    var cs = callsign();
-    if(!cs || !PF || !PF.authPost || !VOTE_API_URL || VOTE_API_URL.indexOf('PASTE') === 0){
+    if(!VOTE_API_URL || VOTE_API_URL.indexOf('PASTE') === 0){
       msg.innerHTML = 'Couldn&rsquo;t reach the ballot box &mdash; your vote is still counted. Try again in a moment.';
       return;
     }
     var dev = '';
     try { dev = (window.PFDeviceId && PFDeviceId()) || ''; } catch(e){}
+    if(!dev){
+      msg.innerHTML = 'Couldn&rsquo;t identify this device &mdash; your vote is still counted. Try again in a moment.';
+      return;
+    }
     msg.innerHTML = 'Retracting your vote&hellip;';
-    PF.authPost(VOTE_API_URL, {week: weekKey, slug: v.slug, weight: v.weight, action:'retract', callsign: cs, device: dev}, function(j){
+    /* Symmetric with castVote: explicit vote route (PUBLIC, device-gated),
+       CORS so we read the verdict — no more false success. */
+    var ctrl=null; try{ ctrl=new AbortController(); }catch(e){}
+    var to=setTimeout(function(){ try{ if(ctrl) ctrl.abort(); }catch(e){} },15000);
+    fetch(VOTE_API_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({type:'vote',v_action:'vote_retract',device:dev,slug:v.slug,weight:v.weight}),
+      signal:ctrl?ctrl.signal:undefined})
+      .then(function(r){ clearTimeout(to); return r.json(); })
+      .then(function(j){ retractDone(j); })
+      .catch(function(){ retractDone(null); });
+    function retractDone(j){
       if(!j || !j.ok){
         /* Failure: do NOT clear local state — show the error honestly. */
         msg.innerHTML = 'Retract failed (' + esc((j && (j.err || j.error)) || 'network error') + ') &mdash; your vote is still counted. Try again.';
@@ -397,7 +410,7 @@
         '.<br>Changed your mind? Pick again below.';
       /* Refresh the shared totals after the retract lands. */
       setTimeout(fetchTotals, 1500);
-    });
+    }
   }
   var existing = voted();
   if(existing){ showVoted(existing.name, existing.weight); }

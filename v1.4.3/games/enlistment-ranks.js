@@ -291,7 +291,9 @@ function doUnlock(id,cs){
 function getWall(){ try{ return JSON.parse(localStorage.getItem(LS_WALL)||"[]"); }catch(e){ return []; } }
 function apiPostWall(cs){
   if(!BACKEND_URL) return;
-  var body={action:"wall",callsign:cs};
+  /* 2026-10-03 conn fix: attach device like every other identity-bearing write. */
+  var dev=''; try{ dev=(window.PFDeviceId&&PFDeviceId())||''; }catch(e){}
+  var body={action:"wall",callsign:cs,device:dev};
   if(window.PF&&PF.authPost){ PF.authPost(BACKEND_URL,body,function(){}); return; }
   try{
     fetch(BACKEND_URL,{method:"POST",headers:{"Content-Type":"text/plain"},

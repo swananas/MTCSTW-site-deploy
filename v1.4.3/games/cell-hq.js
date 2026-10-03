@@ -114,6 +114,36 @@
         .catch(function(){ _po._pfClear(); done(null); });
     }catch(e){ done(null); }
   }
+  /* Prize mutations: {type:'prize', p_action}. 2026-10-03 conn fix: these were
+     posted via postFin as {type:'finance',f_action:'prize_*'} — dead
+     "unknown finance action" (backend routes prizes under type:'prize'). */
+  function postPrize(pAction, params, cb, opts){
+    var admin = opts && opts.admin;
+    var body = Object.assign({ type:'prize', p_action:pAction }, withIdent(params));
+    function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+    if (window.PF && PF.postAction && !admin) { PF.postAction('prize','p_action',pAction,withIdent(params),cb); return; }
+    if(!BACKEND){ done(null); return; }
+    try{
+      var headers = { "Content-Type":"application/json" };
+      /* prize_award is backend ADMIN-class: needs the vault's session secret
+         or the router 403s. Fail closed without it. */
+      if (admin){ var _s = adminSecret(); if(_s) headers["X-Admin-Secret"]=_s; }
+      /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+      var _po=(function(){ var o={method:"POST",headers:headers,body:JSON.stringify(body)},c=null,t=null;
+        try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+          t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+        o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+      fetch(BACKEND,_po)
+        .then(function(r){ return r.json(); })
+        .then(function(j){ _po._pfClear(); done(j); })
+        .catch(function(){ _po._pfClear(); done(null); });
+    }catch(e){ done(null); }
+  }
+  /* Admin gate for prize_award: the vault prompts for the admin secret once
+     per session and keeps it in sessionStorage ("pf_admin_secret"). No
+     secret in this session = no admin path from this page, so the Award
+     control stays hidden and the click fails closed. */
+  function adminSecret(){ try{ return sessionStorage.getItem("pf_admin_secret")||""; }catch(e){ return ""; } }
   function postCamp(cAction, params, cb){
     var body = Object.assign({ type:'campaign', c_action:cAction }, withIdent(params));
     function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
@@ -754,13 +784,18 @@
     } else {
       pools.slice(0,6).forEach(function(pl){
         var pct = pl.target ? Math.min(100, Math.round((pl.raised||0)/pl.target*100)) : 0;
+        /* 2026-10-03: Award is admin-only (backend ADMIN-gated; the vault
+           holds the secret). Hide the control for non-admins — it 403s anyway. */
+        var awardCtl = adminSecret()
+          ? '<input class="hq-in" id="hqPa_'+esc(pl.id)+'" placeholder="winner callsign" style="width:140px">' +
+            '<button class="hq-btn sm ghost" data-hq="prize-award" data-pool="'+esc(pl.id)+'">AWARD</button>'
+          : '';
         h += '<div style="margin-top:10px"><b>'+esc(pl.title)+'</b> <span class="hq-note">by '+esc(pl.created_by||'?')+'</span>' +
           '<div class="hq-note">'+esc(String(pl.raised||0))+' / '+esc(String(pl.target||0))+' XP</div>' +
           '<div class="hq-bar"><div style="width:'+pct+'%"></div></div>' +
           '<div class="hq-row"><input class="hq-in" id="hqPc_'+esc(pl.id)+'" type="number" min="1" placeholder="XP" style="width:90px">' +
           '<button class="hq-btn sm" data-hq="prize-contribute" data-pool="'+esc(pl.id)+'">CONTRIBUTE</button>' +
-          '<input class="hq-in" id="hqPa_'+esc(pl.id)+'" placeholder="winner callsign" style="width:140px">' +
-          '<button class="hq-btn sm ghost" data-hq="prize-award" data-pool="'+esc(pl.id)+'">AWARD</button></div></div>';
+          awardCtl + '</div></div>';
       });
     }
     h += '<div id="hqPrizeMsg"></div></div>';
@@ -1050,7 +1085,7 @@
       if (!target){ treasMsg('hqPrizeMsg', false, 'Set a target XP amount.'); return; }
       if(!moneyConfirm('Create prize pool "'+title+'" with a '+target+' XP target?')) return;
       busy(true);
-      postFin('prize_create', {title:title, target:target}, function(j){
+      postPrize('prize_create', {title:title, target:target}, function(j){
         busy(false);
         if (j && j.ok){ treasMsg('hqPrizeMsg', true, 'Pool created.'); toast('Prize pool live.'); S.tab='treasury'; render(); }
         else treasMsg('hqPrizeMsg', false, friendlyErr(j));
@@ -1063,7 +1098,7 @@
       if (!camt){ treasMsg('hqPrizeMsg', false, 'Enter an XP amount to contribute.'); return; }
       if(!moneyConfirm('Contribute '+camt+' XP to this prize pool?')) return;
       busy(true);
-      postFin('prize_contribute', {pool_id:pool, amount:camt}, function(j){
+      postPrize('prize_contribute', {pool_id:pool, amount:camt}, function(j){
         busy(false);
         if (j && j.ok){ treasMsg('hqPrizeMsg', true, 'Contributed. Pool now at '+j.raised+' XP.'); toast('Contribution locked in.'); S.tab='treasury'; render(); }
         else treasMsg('hqPrizeMsg', false, friendlyErr(j));
@@ -1071,16 +1106,19 @@
     }
     else if (a==='prize-award'){
       if(!needCs()) return;
+      /* Admin-only: prize_award is backend ADMIN-gated. Without the vault's
+         session secret the router 403s, so fail closed here too. */
+      if(!adminSecret()){ treasMsg('hqPrizeMsg', false, 'Awarding is admin-only — open the Vault to award prize pools.'); return; }
       var pool2 = t.getAttribute('data-pool');
       var winner = strIn('hqPa_'+pool2).toLowerCase();
       if (!winner){ treasMsg('hqPrizeMsg', false, 'Enter the winner\'s callsign.'); return; }
       if(!moneyConfirm('Award this pool to '+winner+'? The full pool pays out. This cannot be undone.')) return;
       busy(true);
-      postFin('prize_award', {pool_id:pool2, winner:winner}, function(j){
+      postPrize('prize_award', {pool_id:pool2, winner:winner}, function(j){
         busy(false);
         if (j && j.ok){ treasMsg('hqPrizeMsg', true, 'Awarded to '+winner+'.'); toast('Prize awarded.'); S.tab='treasury'; render(); }
         else treasMsg('hqPrizeMsg', false, friendlyErr(j));
-      });
+      }, {admin:true});
     }
     else if (a==='loan-offer'){
       if(!needCs()) return;

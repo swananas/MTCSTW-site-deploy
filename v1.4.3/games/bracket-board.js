@@ -78,7 +78,8 @@
 <script>
 (function(){
 /* CONFIG — edit when needed */
-var BRACKET_BACKEND_URL = ""; /* paste the Apps Script /exec URL when deployed; empty = ballot mode */
+/* Picks post to the live backend via the tally wildcard (action:* /
+   action_type:'bracket_ballot' — real route). No separate ballot URL needed. */
 var START_MONDAY = "2026-09-28"; /* first Monday of Round of 16 (America/Chicago) */
 /* Weekly winners, filled in as rounds complete. Seeds in matchup order. */
 var ROUND_WINNERS = { "0": [], "1": [], "2": [], "3": [] };
@@ -358,9 +359,19 @@ function render(){
         var opp=mus[m][0]===s?mus[m][1]:mus[m][0];
         if(s>opp){ var up=loadUpsets(); up["m"+m]=1; saveUpsets(up); }
       }
-      if(BRACKET_BACKEND_URL){
-        try{ fetch(BRACKET_BACKEND_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({kind:"bracket",week:weekKey(),matchup:m,pick:s})}); }catch(e){}
-      }
+      /* 2026-10-03 conn fix: report the pick to the real backend via the
+         tally wildcard (action_type 'bracket_ballot' — real route). The old
+         BRACKET_BACKEND_URL was always empty, so picks were silently dropped. */
+      try{
+        if(window.PF_BACKEND_URL){
+          var _dev='',_cs='',_sec='';
+          try{ if(window.PFDeviceId) _dev=window.PFDeviceId(); if(window.PFCallsign) _cs=window.PFCallsign();
+               if(window.PF&&PF.getAuthSecret) _sec=PF.getAuthSecret(); }catch(_e){}
+          fetch(window.PF_BACKEND_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},
+            body:JSON.stringify({type:"action",action_type:"bracket_ballot",device:_dev,callsign:_cs,auth_secret:_sec,
+              meta:weekKey()+":m"+m+"=s"+s})});
+        }
+      }catch(e){}
       try{ document.dispatchEvent(new CustomEvent("pf-bracket-ballot",{detail:{week:weekKey(),mission:m}})); }catch(e){}
       render();
     };

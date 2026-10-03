@@ -26,6 +26,13 @@ function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign(
 function toast(m){ try{ PF.toast(m); }catch(e){} }
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
+  /* Private reads require auth_secret (IDOR fix). Auto-attach for gated actions. */
+  if(action==="venture_mine"){
+    try{
+      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+    }catch(e){}
+  }
   var fn="pfVnCb"+Math.floor(Math.random()*1e9);
   var s=document.createElement("script"), done=false;
   function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}

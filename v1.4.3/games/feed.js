@@ -47,8 +47,12 @@ function post(spAction,params,cb){
 }
 function postX(type,typeAction,action,params,cb){
   var b={type:type}; b[typeAction]=action;
-  var body=JSON.stringify(Object.assign(b,params));
+  var body=Object.assign(b,params);
   function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  /* Writes that require auth (e.g. reputation_vote) must carry auth_secret.
+     Route through PF.authPost like caption-combat's caption_submit. */
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,function(j){ done(j); }); return; }
+  var bodyStr=JSON.stringify(body);
   try{
     fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr})
       .then(function(r){ return r.json(); })
@@ -199,7 +203,7 @@ function render(){
         var cid=b.getAttribute("data-cid"), v=b.getAttribute("data-v");
         if(!id.callsign){ toast("Claim a callsign to vote."); return; }
         b.disabled=true;
-        postX("reputation","rep_action","reputation_vote",{content_id:cid,callsign:id.callsign,device:id.device,vote:Number(v)},function(j){
+        postX("reputation","rep_action","reputation_vote",{content_id:cid,voter:id.callsign,callsign:id.callsign,device:id.device,vote:Number(v)},function(j){
           b.disabled=false;
           toast(j&&j.ok?"Vote recorded.":"Vote failed.");
         });

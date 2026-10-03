@@ -522,7 +522,9 @@ function pApiGet(action,cb){
   function fin(j){ if(done)return; done=true; try{delete window[fn];}catch(e){} try{ if(s.parentNode)s.parentNode.removeChild(s);}catch(e2){} cb(j); }
   window[fn]=function(j){ fin(j); };
   s.onerror=function(){ fin(null); };
-  s.src=url+"?action="+encodeURIComponent(action)+"&callsign="+encodeURIComponent(pCallsign())+"&callback="+fn;
+  /* prestige_status is a gated per-callsign read: attach auth_secret. */
+  var sec=""; try{ sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():""; }catch(e){}
+  s.src=url+"?action="+encodeURIComponent(action)+"&callsign="+encodeURIComponent(pCallsign())+(sec?"&auth_secret="+encodeURIComponent(sec):"")+"&callback="+fn;
   document.head.appendChild(s);
   setTimeout(function(){ fin(null); },12000);
 }

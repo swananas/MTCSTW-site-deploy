@@ -112,6 +112,13 @@
   var FIN_READ = { bond_list:1, loan_list:1, prize_list:1, prize_contrib_list:1, bank_status:1, campaign_status:1 };
   function finGet(action, params, cb){
     if(!BACKEND){ cb(null); return; }
+    /* Private reads require auth_secret (IDOR fix). Auto-attach for gated actions. */
+    if(action==="bank_status"){
+      try{
+        var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+        if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+      }catch(e){}
+    }
     var fn="pfHqFin"+Math.floor(Math.random()*1e9);
     var s=document.createElement("script"), done=false;
     function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}

@@ -26,7 +26,7 @@ function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
   /* Private reads require auth_secret (IDOR fix). Auto-attach for gated actions. */
-  if(action==="xp_history"||action==="subscription_list"||action==="commission_earnings"){
+  if(action==="xp_history"||action==="subscription_list"||action==="commission_earnings"||action==="tip_history"){
     try{
       var _sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : "";
       if(_sec && params && !params.auth_secret) params.auth_secret = _sec;

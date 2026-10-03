@@ -48,19 +48,22 @@
     setTimeout(function(){ finish(null); },12000);
   }
 
-  /* Fire-and-forget copy tracking. Silent on failure — never block the UX. */
+  /* Fire-and-forget copy tracking. Silent on failure — never block the UX.
+     Routed through the auth layer: claimed users carry their real stored
+     auth_secret and their rows land; anonymous users have no secret to send
+     (none is fabricated) — their rows 401 and are dropped silently. */
   function trackCopy(templateId){
     try{
       if(!BACKEND) return;
       var id = ident();
-      var body = "type=action&action_type=assist_copy" +
-        "&callsign="+encodeURIComponent(id.callsign||"") +
-        "&device="+encodeURIComponent(id.device||"") +
-        "&meta="+encodeURIComponent(String(templateId||"").slice(0,128));
+      var body={type:"action",action_type:"assist_copy",
+        callsign:id.callsign||"",device:id.device||"",
+        meta:String(templateId||"").slice(0,128)};
+      if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,function(){}); return; }
       if(window.fetch){
         fetch(BACKEND, {method:"POST", mode:"cors",
-          headers:{"Content-Type":"application/x-www-form-urlencoded"},
-          body:body}).catch(function(){});
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify(body)}).catch(function(){});
       }
     }catch(e){}
   }

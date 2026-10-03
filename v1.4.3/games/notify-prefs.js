@@ -95,9 +95,20 @@ function render(){
   h+='<a href="#" id="npUnsubAll" style="font-size:12px;color:#c1121f;">Unsubscribe from all</a>';
   h+='<span id="npMsg" style="font-size:12px;"></span>';
   h+='</div>';
+  /* 2026-10-03: auth_rotate (AUTH) — the orphaned auth hygiene action.
+     Lets users rotate their auth_secret from a settings surface. The current
+     secret rides along via PF.authPost, exactly what the backend requires. */
+  h+='<div class="c-box" style="margin-top:12px;">';
+  h+='<div class="c-sub">SECURITY</div>';
+  h+='<div style="font-size:12px;margin:6px 0;">Your auth secret signs every action. Rotate it if a device is lost or you suspect compromise &mdash; this device gets the new secret automatically; other devices will need to re-claim your callsign.</div>';
+  h+='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">';
+  h+='<button class="c-btn" id="npRotate" type="button">ROTATE SECRET</button>';
+  h+='<span id="npRotMsg" style="font-size:12px;"></span>';
+  h+='</div></div>';
   el.innerHTML=h;
   document.getElementById("npSave").addEventListener("click",save);
   document.getElementById("npEmailBtn").addEventListener("click",updateEmail);
+  document.getElementById("npRotate").addEventListener("click",rotateSecret);
   document.getElementById("npUnsubAll").addEventListener("click",function(e){
     e.preventDefault();
     if(!confirm("Mute every email from the Propaganda Factory?")) return;
@@ -126,6 +137,27 @@ function updateEmail(){
   post("notifyq","nq_action","contact_set",{callsign:CS,email:em,email_optin:1},function(j){
     if(j&&j.ok){ MASKED=em; toast("Email updated."); msg(""); render(); }
     else msg("Could not save. "+((j&&j.err)||""));
+  });
+}
+/* auth:auth_rotate (AUTH) — requires the CURRENT secret, which PF.authPost
+   attaches. The new secret is saved straight into localStorage via
+   PF.saveAuthSecret; the value is never displayed. */
+function rotateSecret(){
+  var b=document.getElementById("npRotate");
+  var m=document.getElementById("npRotMsg");
+  if(!CS){ if(m) m.textContent="Enlist first (pick a callsign)."; return; }
+  if(!window.confirm("Rotate your auth secret? This device gets the new one automatically. Other devices will need to re-claim your callsign.")) return;
+  if(b) b.disabled=true;
+  if(m) m.textContent="Rotating\u2026";
+  post("auth","auth_action","auth_rotate",{callsign:CS},function(j){
+    if(b) b.disabled=false;
+    if(j&&j.ok&&j.auth_secret){
+      try{ if(window.PF&&PF.saveAuthSecret) PF.saveAuthSecret(j.auth_secret); }catch(e){}
+      toast("Secret rotated. This device is re-keyed.");
+      if(m) m.textContent="Rotated.";
+    } else {
+      if(m) m.textContent="Rotate failed. "+((j&&j.err)||"");
+    }
   });
 }
 function load(){

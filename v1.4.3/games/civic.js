@@ -55,15 +55,17 @@ function post(type,actionKey,action,params,cb){
   }catch(e){ done(null); }
 }
 var STATES=[["AL","Alabama"],["AK","Alaska"],["AZ","Arizona"],["AR","Arkansas"],["CA","California"],["CO","Colorado"],["CT","Connecticut"],["DE","Delaware"],["FL","Florida"],["GA","Georgia"],["HI","Hawaii"],["ID","Idaho"],["IL","Illinois"],["IN","Indiana"],["IA","Iowa"],["KS","Kansas"],["KY","Kentucky"],["LA","Louisiana"],["ME","Maine"],["MD","Maryland"],["MA","Massachusetts"],["MI","Michigan"],["MN","Minnesota"],["MS","Mississippi"],["MO","Missouri"],["MT","Montana"],["NE","Nebraska"],["NV","Nevada"],["NH","New Hampshire"],["NJ","New Jersey"],["NM","New Mexico"],["NY","New York"],["NC","North Carolina"],["ND","North Dakota"],["OH","Ohio"],["OK","Oklahoma"],["OR","Oregon"],["PA","Pennsylvania"],["RI","Rhode Island"],["SC","South Carolina"],["SD","South Dakota"],["TN","Tennessee"],["TX","Texas"],["UT","Utah"],["VT","Vermont"],["VA","Virginia"],["WA","Washington"],["WV","West Virginia"],["WI","Wisconsin"],["WY","Wyoming"]];
-var P=null, REPS=null, SCRIPTS=null, VOTER=null, CONTACT=null, CREATE_OPEN=false;
+var P=null, REPS=null, SCRIPTS=null, VOTER=null, CONTACT=null, CREATE_OPEN=false, VSTATS=null;
 function load(){
   var done=false, n=0;
   function fin(){ if(done)return; done=true; render(); }
-  function one(){ n++; if(n>=5) fin(); }
+  function one(){ n++; if(n>=6) fin(); }
   setTimeout(fin,15000);
   api("petition_list",{},function(j){ P=j; one(); });
   api("rep_list",{},function(j){ REPS=j; one(); });
   api("rep_scripts",{},function(j){ SCRIPTS=j; one(); });
+  /* 2026-10-03: voter_pledge_stats (public) — aggregate pledge counts. */
+  api("voter_pledge_stats",{},function(j){ VSTATS=j; one(); });
   /* contact_get is per-callsign auth-gated (rectify pass): route through the
      shared claim-retry GET so a missing secret becomes one auth_claim attempt
      with a friendly message, not a silent empty prefill. */
@@ -98,7 +100,10 @@ function render(){
       +'<div class="x-note">Target: '+esc(p.target)+' &bull; by '+esc(p.creator)+'</div>'
       +'<div class="cp-barwrap"><div class="cp-bar" style="width:'+(p.pct||0)+'%"></div></div>'
       +'<div class="x-note">'+(p.sig_count||0)+' / '+p.goal+' signatures ('+(p.pct||0)+'%)</div>'
-      +'<button class="c-btn cp-mbtn" data-pet-sign="'+esc(p.id)+'">SIGN (+10 XP)</button></div>';
+      +'<button class="c-btn cp-mbtn" data-pet-sign="'+esc(p.id)+'">SIGN (+10 XP)</button> '
+      /* 2026-10-03: petition_sigs (public) — who signed, per card. */
+      +'<button class="c-btn c-btn2 cp-mbtn" data-pet-sigs="'+esc(p.id)+'">WHO SIGNED</button>'
+      +'<div class="x-note" data-pet-sigs-out="'+esc(p.id)+'" style="display:none"></div></div>';
   }
   if(CREATE_OPEN){
     h+='<div class="x-pane pf-mt" ><h4>New petition</h4>'
@@ -127,11 +132,21 @@ function render(){
     +'<select class="c-in"  id="cvMyState">'+stateOpts("")+'</select>'
     +'<div class="x-note">Method:</div>'
     +'<select class="c-in"  id="cvMethod"><option value="call">Call</option><option value="email">Email</option><option value="tweet">Tweet</option></select>'
-    +'<button class="c-btn" id="cvLogContact">LOG CONTACT (+25 XP)</button><div class="c-err" id="cvRepErr"></div>';
+    +'<button class="c-btn" id="cvLogContact">LOG CONTACT (+25 XP)</button><div class="c-err" id="cvRepErr"></div>'
+    /* 2026-10-03: rep_contact_history (AUTH) — the caller's own contact log. */
+    +'<div id="cvHistBox" style="margin-top:8px"><div class="x-note">Reading your contact log&hellip;</div></div>';
   if(REPS&&REPS.note){ h+='<div class="x-note">'+esc(REPS.note)+'</div>'; }
   h+='</div>';
   /* --- voter registration --- */
   h+='<div class="x-pane"><h4>Voter registration</h4>'
+    /* 2026-10-03: voter_pledge_stats (public) — movement social proof. */
+    +(function(){
+      if(!(VSTATS&&VSTATS.ok)) return "";
+      var total=Number(VSTATS.total_pledges)||0;
+      var bs=(VSTATS.by_state)||[], top=[];
+      for(var vi=0;vi<Math.min(bs.length,5);vi++){ top.push(esc(bs[vi].state)+": "+Number(bs[vi].pledges||0)); }
+      return '<div class="x-note"><b>'+total+'</b> pledged network-wide'+(top.length?" — top states: "+top.join(", "):"")+'.</div>';
+    })()
     +'<select class="c-in"  id="cvVoterState">'+stateOpts(VOTER&&VOTER.state?VOTER.state:"")+'</select>'
     +'<div id="cvVoterBox">';
   if(VOTER&&VOTER.url){
@@ -179,6 +194,24 @@ function bind(){
   });
   var po=document.getElementById("cvPetOpen");
   if(po) po.onclick=function(){ CREATE_OPEN=true; render(); };
+  /* WHO SIGNED toggle (petition_sigs, public): per-card signature list. */
+  qsa("[data-pet-sigs]").forEach(function(b){
+    b.onclick=function(){
+      var pid=b.getAttribute("data-pet-sigs");
+      var out=document.querySelector('[data-pet-sigs-out="'+pid+'"]');
+      if(!out) return;
+      if(out.style.display!=="none"){ out.style.display="none"; out.innerHTML=""; return; }
+      out.style.display="block";
+      out.innerHTML='<div class="x-note">Reading signatures&hellip;</div>';
+      api("petition_sigs",{petition_id:pid},function(j){
+        var sigs=(j&&j.ok&&j.sigs)||[];
+        if(!sigs.length){ out.innerHTML='<div class="x-note">No signatures yet. Be the first.</div>'; return; }
+        var names=[];
+        for(var i=0;i<Math.min(sigs.length,10);i++){ names.push(esc(sigs[i].callsign)); }
+        out.innerHTML='<div class="x-note"><b>'+sigs.length+'</b> signed: '+names.join(", ")+(sigs.length>10?" &hellip;":"")+'</div>';
+      });
+    };
+  });
   var pc=document.getElementById("cvPetCancel");
   if(pc) pc.onclick=function(){ CREATE_OPEN=false; render(); };
   var pcb=document.getElementById("cvPetCreate");
@@ -253,6 +286,27 @@ function bind(){
       cs2.disabled=false;
     });
   };
+  /* rep contact history (rep_contact_history, AUTH): the caller's own log.
+     Auth-gated — route through claim-retry like contact_get above. */
+  (function(){
+    var box=document.getElementById("cvHistBox"); if(!box) return;
+    var id2=ident(); if(!id2.callsign){ box.innerHTML=""; return; }
+    var pp={callsign:id2.callsign};
+    function cb2(j){
+      var b2=document.getElementById("cvHistBox"); if(!b2) return;
+      var hist=(j&&j.ok&&j.history)||[];
+      if(!hist.length){ b2.innerHTML='<div class="x-note">No contacts logged yet. Your first call is +25 XP.</div>'; return; }
+      var hh='<div class="x-note" style="margin-top:6px"><b>Your contact log:</b></div>';
+      for(var i=0;i<Math.min(hist.length,5);i++){
+        var e=hist[i], dt="";
+        try{ dt=new Date(Number(e.ts)).toLocaleDateString(); }catch(ee){}
+        hh+='<div class="x-note">'+esc(e.rep_name||"rep")+' — '+esc(e.method||"")+(dt?" — "+esc(dt):"")+'</div>';
+      }
+      b2.innerHTML=hh;
+    }
+    try{ if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,"rep_contact_history",pp,cb2); return; } }catch(e){}
+    api("rep_contact_history",pp,cb2);
+  })();
 }
 load();
 })();

@@ -88,16 +88,18 @@ function captureRef(){
     }
   }catch(e3){}
 }
-var S=null, L=null, T=null, M=null;
+var S=null, L=null, T=null, M=null, RS=null;
 function load(){
   var id=ident(), done=false, n=0;
   function fin(){ if(done)return; done=true; render(); }
-  function one(){ n++; if(n>=4) fin(); }
+  function one(){ n++; if(n>=5) fin(); }
   setTimeout(fin,15000);
   api("referral_status",{callsign:id.callsign,device:id.device},function(j){ S=j; one(); });
   api("referral_leaders",{},function(j){ L=j; one(); });
   api("referral_tree",{callsign:id.callsign},function(j){ T=j; one(); });
   api("mentor_status",{callsign:id.callsign,device:id.device},function(j){ M=j; one(); });
+  /* 2026-10-03: surface referral_stats (public) — authoritative tier/recruit/XP. */
+  api("referral_stats",{callsign:id.callsign},function(j){ RS=j; one(); });
 }
 function refLink(cs){ return "https://www.mtcstw.com/?ref="+encodeURIComponent(cs||""); }
 /* Army tree: nested, collapsible, max 3 levels deep. */
@@ -146,6 +148,22 @@ function render(){
   var next=null; for(var ti=TIERS.length-1;ti>=0;ti--){ if(TIERS[ti].min>recruits){ next=TIERS[ti]; break; } }
   if(next){ h+='<div class="x-note">Next tier: '+esc(next.name)+' at '+next.min+' recruits ('+(next.min-recruits)+' to go).</div>'; }
   else { h+='<div class="x-note">Max tier reached. You are the war.</div>'; }
+  /* 2026-10-03: referral_stats (public) — HQ-authoritative tier line. */
+  if(RS&&RS.ok&&RS.tier){ h+='<div class="x-note">HQ-verified: <b>'+esc(String(RS.tier).toUpperCase())+'</b> tier &mdash; '+(Number(RS.recruits)||0)+' recruits &bull; +'+(Number(RS.xp_earned)||0)+' XP banked.</div>'; }
+  h+='</div>';
+  /* --- recruit-side claim: +25 XP welcome bonus (referral_claim, AUTH).
+     The recruiter side (referral_activate) already exists below; this is the
+     recruit's own button — the half that was never wired. --- */
+  var prc=""; try{ prc=String(localStorage.getItem("pf_pending_ref")||"").toLowerCase().replace(/[^a-z0-9_]/g,""); }catch(epr){}
+  h+='<div class="x-pane"><h4>Claim your recruit bonus</h4>'
+    +'<div class="x-note">Were you recruited by someone? Claim your <b>+25 XP</b> welcome bonus right now. They get paid when you activate.</div>';
+  if(prc){
+    h+='<div class="x-note">Recruiter code on file: <b>'+esc(prc.toUpperCase())+'</b></div>'
+      +'<div style="margin-top:8px"><button class="c-btn" id="rfClaimBtn">CLAIM +25 XP</button></div><div class="c-err" id="rfClaimErr"></div>';
+  } else {
+    h+='<div style="margin-top:8px"><input aria-label="Recruiter callsign" class="c-in pf-input-md" id="rfClaimCode" maxlength="20" placeholder="recruiter callsign" /> '
+      +'<button class="c-btn" id="rfClaimBtn">CLAIM +25 XP</button></div><div class="c-err" id="rfClaimErr"></div>';
+  }
   h+='</div>';
   /* --- claim recruit bonuses: +50 XP each once a recruit completes 3+ actions --- */
   h+='<div class="x-pane"><h4>Claim recruit bonuses</h4>'
@@ -277,7 +295,38 @@ function render(){
     }catch(e){ toast("Copy your link and spread it everywhere."); }
   };
   var rb=document.getElementById("rfRetry");
-  if(rb) rb.onclick=function(){ S=L=T=M=null; el.innerHTML='<div class="c-load">Mustering&hellip;</div>'; load(); };
+  if(rb) rb.onclick=function(){ S=L=T=M=RS=null; el.innerHTML='<div class="c-load">Mustering&hellip;</div>'; load(); };
+  /* recruit-side claim (referral_claim, AUTH) — the recruit's own button. */
+  var rcb=document.getElementById("rfClaimBtn");
+  if(rcb) rcb.onclick=function(){
+    var err=document.getElementById("rfClaimErr");
+    var code=prc;
+    if(!code){ var ci=document.getElementById("rfClaimCode"); code=ci?String(ci.value||"").toLowerCase().replace(/[^a-z0-9_]/g,""):""; }
+    if(err) err.textContent="";
+    if(!code){ if(err) err.textContent="Enter your recruiter's callsign."; return; }
+    rcb.disabled=true; rcb.textContent="CLAIMING\u2026";
+    post("referral_claim",{callsign:id.callsign,device:id.device,ref_code:code},function(j){
+      if(j&&j.ok&&!j.noref){
+        var amt=Number(j.recruit_xp)||25;
+        try{ localStorage.removeItem("pf_pending_ref"); }catch(e){}
+        toast("WELCOME TO THE ARMY. +"+amt+" XP — "+code.toUpperCase()+" gets paid when you activate.");
+        S=null; RS=null; load();
+      } else if(j&&j.ok&&j.already){
+        try{ localStorage.removeItem("pf_pending_ref"); }catch(e2){}
+        rcb.textContent="CLAIMED";
+        if(err) err.textContent="Already claimed. Nothing left to collect.";
+      } else if(j&&j.ok&&j.self){
+        if(err) err.textContent="You can't claim your own code.";
+        rcb.disabled=false; rcb.textContent="CLAIM +25 XP";
+      } else if(j&&j.ok&&(j.unknown||j.invalid)){
+        if(err) err.textContent="That recruiter code doesn't exist. Check the spelling.";
+        rcb.disabled=false; rcb.textContent="CLAIM +25 XP";
+      } else {
+        if(err) err.textContent=(j&&j.err)||"Claim failed. Try again.";
+        rcb.disabled=false; rcb.textContent="CLAIM +25 XP";
+      }
+    });
+  };
   /* mentor: pair with a veteran + claim +10 XP per active mentee (2026-10-03 H7).
      Backend grants via xpGrant — backend is the source of truth, toast only. */
   var mpb=document.getElementById("rfPairBtn");

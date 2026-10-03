@@ -51,7 +51,7 @@ function api(action,params,cb){
      through the shared claim-retry GET (2026-10-03): pre-auth callsign
      holders with no stored secret get one auth_claim attempt instead of
      failing 'missing credentials' forever. */
-  if(action==="dopamine_status"||action==="combo_status"||action==="comeback_check"){
+  if(action==="dopamine_status"||action==="combo_status"||action==="comeback_check"||action==="loot_history"){
     try{
       if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
       var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
@@ -239,6 +239,7 @@ function render(){
   el.innerHTML=h;
   wire();
   renderCombo();
+  fillLootHistory();
 }
 function renderLoot(){
   var loot=(ST&&ST.loot)||{}, claimed=!!loot.claimed_today;
@@ -252,8 +253,27 @@ function renderLoot(){
       +'<div class="x-note">One free crate a day. Rarity decides the payload.</div>'
       +'<div class="c-err" id="dpLootErr"></div>';
   }
+  /* 2026-10-03: loot_history (AUTH) — what the crate paid out before. */
+  h+='<div id="dpLootHist"><div class="x-note">Reading crate history&hellip;</div></div>';
   h+='</div></div>';
   return h;
+}
+/* Loot history fill (loot_history, AUTH read). Called after every render. */
+function fillLootHistory(){
+  var box=document.getElementById("dpLootHist"); if(!box) return;
+  var id=ident(); if(!id.callsign){ box.innerHTML=""; return; }
+  api("loot_history",{callsign:id.callsign,device:id.device},function(j){
+    if(!document.getElementById("dpLootHist")) return;
+    var hist=(j&&j.ok&&j.history)||[];
+    if(!hist.length){ box.innerHTML='<div class="x-note">No crate history yet. Open your first crate.</div>'; return; }
+    var hh='<div class="x-note" style="margin-top:8px"><b>RECENT PULLS:</b></div>';
+    for(var i=0;i<Math.min(hist.length,5);i++){
+      var e=hist[i], rk=RARITY[e.rarity]||RARITY.common;
+      var dt=""; try{ dt=new Date(Number(e.ts)).toLocaleDateString(); }catch(e2){}
+      hh+='<div class="x-note">['+esc(rk.label)+'] '+esc(e.type||"pull")+' +'+Number(e.amount||0)+' XP'+(dt?" — "+esc(dt):"")+'</div>';
+    }
+    box.innerHTML=hh;
+  });
 }
 function renderStreak(){
   var sk=(ST&&ST.streak)||{}, count=Number(sk.count)||0, longest=Number(sk.longest)||count;
@@ -274,6 +294,9 @@ function renderStreak(){
   h+='<div class="dp-barwrap"><div class="dp-bar" style="width:'+pct+'%"></div></div>';
   h+='<div class="x-note">'+(next?count+" / "+next+" days to the next milestone":"MAXIMUM STREAK. You are the fire.")+' &bull; longest: '+longest+'</div>';
   h+='<div style="margin-top:8px">'
+    /* 2026-10-03: streak_checkin (AUTH) — the plain daily check-in was never
+       wired; only freeze/repair had buttons. */
+    +'<button class="c-btn" id="dpCheckinBtn">CHECK IN</button> '
     +'<button class="c-btn" id="dpFreezeBtn">BUY FREEZE &mdash; 100 XP</button> ';
   if(sk.broken_recent){ h+='<button class="c-btn" id="dpRepairBtn">REPAIR &mdash; 250 XP</button>'; }
   h+='</div><div class="c-err" id="dpStreakErr"></div>';
@@ -370,6 +393,20 @@ function wire(){
       fb.disabled=false;
       if(j&&j.ok){ toast("Streak frozen. Sleep easy, soldier."); comboHit(); load(); }
       else if(err) err.textContent=(j&&j.err)||"Freeze failed.";
+    });
+  }; }
+  /* 2026-10-03: plain daily check-in (streak_checkin, AUTH). */
+  var cib=document.getElementById("dpCheckinBtn");
+  if(cib){ cib.onclick=function(){
+    var err=document.getElementById("dpStreakErr");
+    cib.disabled=true; cib.textContent="CHECKING IN\u2026";
+    post("streak","str_action","streak_checkin",{callsign:id.callsign,device:id.device},function(j){
+      cib.disabled=false; cib.textContent="CHECK IN";
+      if(j&&j.ok){
+        toast(j.dup?("Already checked in — day "+(Number(j.count)||"")+" holds."):("Checked in. Day "+(Number(j.count)||"")+" of the fire."));
+        comboHit(); load();
+      }
+      else if(err) err.textContent=(j&&j.err)||"Check-in failed.";
     });
   }; }
   var rb=document.getElementById("dpRepairBtn");
@@ -469,7 +506,17 @@ function comebackBanner(xp){
       var id=ident();
       post("comeback","cb_action","comeback_claim",{callsign:id.callsign,device:id.device},function(j){
         if(d.parentNode) d.parentNode.removeChild(d);
-        if(j&&j.ok){ toast("Welcome back. +"+Number(j.xp||xp||50)+" XP."); comboHit(); }
+        if(j&&j.ok){
+          var got=Number(j.xp||xp||50);
+          toast("Welcome back. +"+got+" XP."); comboHit();
+          /* 2026-10-03: comeback:record_check (AUTH) — check the day's haul
+             against the personal best right in the comeback flow. */
+          try{
+            post("comeback","cb_action","record_check",{callsign:id.callsign,device:id.device,day_xp:got},function(rj){
+              if(rj&&rj.ok&&rj.is_record){ toast("NEW PERSONAL RECORD: "+got+" XP in a day."); }
+            });
+          }catch(e){}
+        }
       });
     }; }
   }catch(e){}

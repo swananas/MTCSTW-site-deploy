@@ -116,8 +116,8 @@ function fmtHours(ms){
   var h=Math.floor(ms/3600000), m=Math.floor((ms%3600000)/60000);
   return h+"H "+(m<10?"0":"")+m+"M";
 }
-var BAL=null,STREAK=null,LOOT=null,FLASH=null,COMEBACK=null,COMEBACK_ERR=null,PROP=null,CELL=null,MISS=null,STAT=null,SEASON=null,BRIEF=null;
-var N_CALLS=11;
+var BAL=null,STREAK=null,LOOT=null,FLASH=null,COMEBACK=null,COMEBACK_ERR=null,PROP=null,CELL=null,MISS=null,STAT=null,SEASON=null,BRIEF=null,SEASHIST=null;
+var N_CALLS=12;
 function load(){
   var id=ident(), done=false, n=0;
   function fin(){ if(done)return; done=true; render(); }
@@ -136,6 +136,8 @@ function load(){
   api("cell_mine",{callsign:id.callsign,device:id.device},function(j){ CELL=(j&&j.ok)?j:null; one(); });
   api("campaign_missions",{callsign:id.callsign,device:id.device},function(j){ MISS=j; one(); });
   api("campaign_status",{},function(j){ STAT=j; one(); });
+  /* 2026-10-03: season_history (public) — past seasons surface in §5. */
+  api("season_history",{},function(j){ SEASHIST=(j&&j.ok&&j.seasons)||null; one(); });
 }
 function seasonInfo(){
   if(SEASON){
@@ -251,7 +253,28 @@ function render(){
   h+='<div class="br-sec"><div class="br-sect">'+esc(sn.name)+'</div>'
     +'<div class="br-seasonline"><span>'+dl+' DAYS LEFT</span><span>'+spct+'% OF GOAL</span></div>'
     +'<div class="br-tierwrap"><div class="br-tierbar"><div class="br-tierfill br-war" style="width:'+spct+'%"></div></div></div>'
-    +'<div class="x-note">Day '+(32-dl)+' of 32 &mdash; '+sn.progress+' / '+sn.goal+' actions</div></div>';
+    +'<div class="x-note">Day '+(32-dl)+' of 32 &mdash; '+sn.progress+' / '+sn.goal+' actions</div>';
+  /* 2026-10-03: season_history (public) — past seasons, degrade silently. */
+  (function(){
+    var past=[];
+    try{
+      var all=SEASHIST||[];
+      for(var si=0;si<all.length;si++){
+        var s=all[si];
+        if(String(s.status)==="active") continue;
+        if(SEASON&&String(s.id)===String(SEASON.id)) continue;
+        past.push(s);
+      }
+    }catch(e){}
+    if(past.length){
+      h+='<div class="x-note" style="margin-top:8px"><b>PAST SEASONS:</b></div>';
+      for(var pi2=0;pi2<Math.min(past.length,5);pi2++){
+        var ps2=past[pi2];
+        h+='<div class="x-note">'+esc(ps2.name||"season")+' — '+Number(ps2.pct||0)+'% of '+esc(ps2.goal_type||"goal")+'</div>';
+      }
+    }
+  })();
+  h+='</div>';
   /* ---------- 6. UNCLAIMED ---------- */
   var un=[];
   try{ if(LOOT&&LOOT.can_claim) un.push("Loot crate (today)"); }catch(e){}
@@ -273,7 +296,17 @@ function render(){
       btn.disabled=true; btn.textContent="CLAIMING...";
       var id2=ident();
       dopaPost("comeback","cb_action","comeback_claim",{callsign:id2.callsign,device:id2.device},function(j){
-        if(j&&j.ok){ toast("Welcome back. +"+Number(j.xp||50)+" XP."); }
+        if(j&&j.ok){
+          var got=Number(j.xp||50);
+          toast("Welcome back. +"+got+" XP.");
+          /* 2026-10-03: comeback:record_check (AUTH) — the comeback flow
+             checks the day's haul against the personal best. */
+          try{
+            dopaPost("comeback","cb_action","record_check",{callsign:id2.callsign,device:id2.device,day_xp:got},function(rj){
+              if(rj&&rj.ok&&rj.is_record){ toast("NEW PERSONAL RECORD: "+got+" XP in a day."); }
+            });
+          }catch(e){}
+        }
         else { toast((j&&j.err)||"Claim failed."); btn.disabled=false; btn.textContent="CLAIM"; return; }
         load();
       });

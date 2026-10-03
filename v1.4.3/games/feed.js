@@ -101,15 +101,20 @@ function isTrusted(creator){
   }catch(e){}
   return false;
 }
-var tab="trending", T=null, N=null, REP=null, SCHED=null, TIPS=null;
+var tab="trending", T=null, N=null, REP=null, SCHED=null, TIPS=null, FN=null, DUE=null;
 function load(){
   var done=false, n=0;
   function fin(){ if(done)return; done=true; render(); }
-  function one(){ n++; if(n>=4) fin(); }
+  function one(){ n++; if(n>=7) fin(); }
   setTimeout(fin,15000);
   api("boost_board",{},function(j){ T=j; one(); });
   api("content_list",{sort:"new",limit:25},function(j){ N=j; one(); });
   api("reputation_get",{},function(j){ REP=j; one(); });
+  /* 2026-10-03: NEW tab gets its own backend feed (feed_new) instead of the
+     client-side re-sort of content_list; plus tip leaderboard + due queue. */
+  api("feed_new",{},function(j){ FN=j; one(); });
+  api("tip_leaderboard",{},function(j){ TIPS=j; one(); });
+  api("schedule_due",{},function(j){ DUE=j; one(); });
   var id0=ident();
   if(id0.callsign) api("schedule_list",{callsign:id0.callsign},function(j){ SCHED=j; one(); });
   else { SCHED={ok:true,queue:[]}; one(); }
@@ -119,6 +124,7 @@ function items(){
   try{
     if(tab==="trending"&&T&&T.ok&&T.board) out=T.board;
     else if(tab==="top"&&T&&T.ok&&T.board) out=T.board.slice().sort(function(a,b){ return (b.boosts||0)-(a.boosts||0); });
+    else if(tab==="new"&&FN&&FN.ok&&FN.feed) out=FN.feed;
     else if(tab==="new"&&N&&N.ok&&N.items) out=N.items;
     else if(N&&N.ok&&N.items) out=N.items;
   }catch(e){}
@@ -152,6 +158,17 @@ function render(){
       +'<button class="c-btn fd-intel" data-cid="'+cid+'">WHO&#39;S SHARING</button>'
       +'</div><div class="fd-intelbox" data-cid="'+cid+'" style="display:none;margin-top:6px"></div></div>';
   }
+  /* Due now (2026-10-03: schedule_due, public) — network-wide firing queue. */
+  var due=[]; try{ if(DUE&&DUE.ok&&DUE.due) due=DUE.due; }catch(e){}
+  if(due.length){
+    h+='<div class="x-pane"><div class="fd-title">DUE NOW — FIRING ('+due.length+')</div>';
+    for(var di=0;di<Math.min(due.length,5);di++){
+      var dd=due[di];
+      h+='<div class="x-note">'+esc(dd.content_id||"")+' &mdash; '+esc(dd.platform||"")+' &mdash; queued by '+esc(dd.callsign||"anon")+'</div>';
+    }
+    if(due.length>5) h+='<div class="x-note">&hellip;and '+(due.length-5)+' more in the queue.</div>';
+    h+='</div>';
+  }
   /* Scheduled queue. */
   var q=[]; try{ if(SCHED&&SCHED.ok&&SCHED.queue) q=SCHED.queue; }catch(e){}
   if(q.length){
@@ -164,6 +181,17 @@ function render(){
     h+='</div><div class="c-err" id="fdSchedErr"></div>';
   }
   else if(SCHED&&!SCHED.ok){ h+=fdAuthHint(SCHED); }
+  /* Tip leaderboard (2026-10-03: tip_leaderboard, public) — tips were flowing
+     through tip_send, but nobody ever saw who the network backs. */
+  var tl=[]; try{ if(TIPS&&TIPS.ok&&TIPS.leaders) tl=TIPS.leaders; }catch(e2){}
+  if(tl.length){
+    h+='<div class="x-pane"><div class="fd-title">TOP TIPPED</div>';
+    for(var ti2=0;ti2<Math.min(tl.length,10);ti2++){
+      h+='<div class="cp-mission"><div class="cp-mtext">'+esc(tl[ti2].callsign)+'</div>'
+        +'<div class="cp-mxp">'+Number(tl[ti2].total||0)+' XP ('+Number(tl[ti2].n||0)+')</div></div>';
+    }
+    h+='</div>';
+  }
   h+='<div style="margin-top:10px"><button class="c-btn" id="fdRetry">Refresh</button></div>';
   el.innerHTML=h;
   var tabs=el.querySelectorAll("button.fd-tab");
@@ -229,7 +257,7 @@ function render(){
     })(ib[ii]);
   }
   var rb=document.getElementById("fdRetry");
-  if(rb) rb.onclick=function(){ T=N=null; REP=null; SCHED=null; el.innerHTML='<div class="c-load">Loading the feed&hellip;</div>'; load(); };
+  if(rb) rb.onclick=function(){ T=N=null; REP=null; SCHED=null; TIPS=null; FN=null; DUE=null; el.innerHTML='<div class="c-load">Loading the feed&hellip;</div>'; load(); };
   /* Up/down votes. */
   var vs=el.querySelectorAll("button.fd-vote");
   for(var vi=0;vi<vs.length;vi++){
@@ -238,7 +266,10 @@ function render(){
         var cid=b.getAttribute("data-cid"), v=b.getAttribute("data-v");
         if(!id.callsign){ toast("Claim a callsign to vote."); return; }
         b.disabled=true;
-        postX("reputation","rep_action","reputation_vote",{content_id:cid,voter:id.callsign,callsign:id.callsign,device:id.device,vote:Number(v)},function(j){
+        /* 2026-10-03: param normalization — the backend reads "voter"
+           (p.voter || p.callsign) and the auth gate checks voter first, so
+           the duplicate "callsign" is dropped. */
+        postX("reputation","rep_action","reputation_vote",{content_id:cid,voter:id.callsign,device:id.device,vote:Number(v)},function(j){
           b.disabled=false;
           toast(j&&j.ok?"Vote recorded.":"Vote failed.");
         });

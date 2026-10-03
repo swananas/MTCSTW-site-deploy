@@ -43,14 +43,17 @@ function api(action,params,cb){
   setTimeout(function(){ finish(null); },12000);
 }
 function adminSecret(){ try{ return sessionStorage.getItem("pf_admin_secret")||""; }catch(e){ return ""; } }
-var CS=null, HIST=null, FUNNEL=null, FUNNEL_DONE=false;
+var CS=null, HIST=null, FUNNEL=null, FUNNEL_DONE=false, UTOT=null;
 function load(){
   var id=ident(), done=false, n=0;
   function fin(){ if(done)return; done=true; render(); }
-  function one(){ n++; if(n>=2) fin(); }
+  function one(){ n++; if(n>=3) fin(); }
   setTimeout(fin,15000);
   api("creator_stats",{callsign:id.callsign},function(j){ CS=j; one(); });
   api("xp_history",{callsign:id.callsign,limit:100},function(j){ HIST=j; one(); });
+  /* 2026-10-03: user_totals (public) — device/callsign action totals.
+     Note: this read returns no ok field ({device,callsign,xp,pts,actions}). */
+  api("user_totals",{device:id.device,callsign:id.callsign},function(j){ UTOT=j; one(); });
   loadFunnel();
 }
 function loadFunnel(){
@@ -134,6 +137,16 @@ function render(){
       h+='<div class="cp-mission"><div class="cp-mtext">'+esc(tc[t].title||tc[t].content_id)+'</div>'
         +'<div class="cp-mxp">'+num(tc[t].shares)+' shares</div></div>';
     }
+  }
+  h+='</div>';
+  /* --- your footprint (2026-10-03: user_totals, public) — device-verified
+     social proof of the work you've put in. --- */
+  h+='<div class="x-pane"><h4>Your footprint</h4>';
+  if(UTOT&&(UTOT.actions!=null||UTOT.xp!=null)){
+    h+='<div class="cp-mission"><div class="cp-mtext">Actions logged on this device</div><div class="cp-mxp">'+Number(UTOT.actions||0)+'</div></div>'
+      +'<div class="cp-mission"><div class="cp-mtext">XP from logged actions</div><div class="cp-mxp">'+Number(UTOT.xp||0)+'</div></div>';
+  } else {
+    h+='<div class="x-note">Footprint unreadable right now. The wire will catch up.</div>';
   }
   h+='</div>';
   /* --- weekly activity --- */

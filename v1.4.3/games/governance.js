@@ -53,6 +53,29 @@ function post(gAction,params,cb){
       .catch(function(){ _po._pfClear(); done(null); });
   }catch(e){ done(null); }
 }
+/* Admin gate for AUTH+ADMIN dual-gated actions (admin early proposal close).
+   Same key as vault.js / dashboard.js: sessionStorage 'pf_admin_secret'. */
+function isAdmin(){ try{ return !!sessionStorage.getItem("pf_admin_secret"); }catch(e){ return false; } }
+/* Admin-write POST: rides X-Admin-Secret like vault.js (AUTH+ADMIN dual gates
+   need the header; the plain post() doesn't carry it). Carries auth_secret
+   too so the AUTH half of the gate passes. */
+function adminPost(gAction,params,cb){
+  var secret=""; try{ secret=sessionStorage.getItem("pf_admin_secret")||""; }catch(e){}
+  if(!secret){ post(gAction,params,cb); return; }
+  var body=Object.assign({type:"gov",g_action:gAction},params);
+  try{ var s2=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():""; if(s2) body.auth_secret=s2; }catch(e2){}
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e3){} }
+  try{
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json","X-Admin-Secret":secret},body:JSON.stringify(body)},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e4){} },15000); }catch(e5){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e6){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
+  }catch(e7){ done(null); }
+}
 var PL=null, DG=null;
 function load(){
   var id=ident(), done=false, n=0;
@@ -92,12 +115,19 @@ function render(){
   if(!open.length){ h+='<div class="x-note">No open proposals. The floor is yours &mdash; put one up.</div>'; }
   for(var o=0;o<open.length;o++){
     var p=open[o];
+    /* 2026-10-03: proposal_close (AUTH+ADMIN). Past the deadline anyone can
+       settle; early close is admin-only (backend enforces). */
+    var pastDue=Number(p.closes_at||0)<=Date.now();
+    var closeBtn=pastDue
+      ?'<button class="c-btn gv-close" data-pid="'+esc(p.id)+'">CLOSE &amp; SETTLE</button>'
+      :(isAdmin()?'<button class="c-btn ghost gv-close-early" data-pid="'+esc(p.id)+'">CLOSE EARLY (ADMIN)</button>':"");
     h+='<div class="gv-prop"><div class="gv-ptitle">'+esc(p.title)+'</div>'
       +'<div class="x-note">'+esc(p.description||"")+'</div>'
       +'<div class="x-note">By <b>'+esc(p.proposer)+'</b> &bull; '+fmtLeft(p.closes_at-Date.now())+' &bull; '+(Number(p.voter_count)||0)+' voters</div>'
       +bar(Number(p.yes_weight)||0,Number(p.no_weight)||0)
       +'<button class="c-btn gv-vote" data-pid="'+esc(p.id)+'" data-ch="yes">VOTE YES</button>'
-      +'<button class="c-btn gv-vote gv-no-btn" data-pid="'+esc(p.id)+'" data-ch="no">VOTE NO</button></div>';
+      +'<button class="c-btn gv-vote gv-no-btn" data-pid="'+esc(p.id)+'" data-ch="no">VOTE NO</button>'
+      +closeBtn+'</div>';
   }
   h+='</div>';
   /* --- new proposal --- */
@@ -137,6 +167,31 @@ function render(){
       else { toast((r&&r.err)||"Vote failed."); }
     });
   }); })(vbs[v]); }
+  /* close & settle (proposal_close, AUTH+ADMIN). Past-due: any authed user.
+     Early: admin only — rides the X-Admin-Secret header via adminPost. */
+  function closeProposal(pid,early,btn){
+    if(!window.confirm(early?"Close this proposal EARLY as admin? The result stands.":"Close and settle this proposal? The result stands.")) return;
+    var id2=ident();
+    btn.disabled=true; btn.textContent="CLOSING\u2026";
+    var send=early?adminPost:post;
+    send("proposal_close",{callsign:id2.callsign,device:id2.device,proposal_id:pid},function(r){
+      if(r&&r.ok){
+        toast("Closed. Result: "+String(r.result||"settled").toUpperCase()+" — yes "+(Number(r.yes_weight)||0)+", no "+(Number(r.no_weight)||0)+".");
+        load();
+      } else {
+        toast((r&&r.err)||"Close failed.");
+        btn.disabled=false; btn.textContent=early?"CLOSE EARLY (ADMIN)":"CLOSE & SETTLE";
+      }
+    });
+  }
+  var cbs=el.querySelectorAll(".gv-close");
+  for(var c=0;c<cbs.length;c++){ (function(b){ b.addEventListener("click",function(){
+    closeProposal(b.getAttribute("data-pid"),false,b);
+  }); })(cbs[c]); }
+  var ebs=el.querySelectorAll(".gv-close-early");
+  for(var e=0;e<ebs.length;e++){ (function(b){ b.addEventListener("click",function(){
+    closeProposal(b.getAttribute("data-pid"),true,b);
+  }); })(ebs[e]); }
   var cb=el.querySelector("#gvCreateBtn");
   if(cb){ cb.addEventListener("click",function(){
     var t=document.getElementById("gvTitle").value.trim(), d=document.getElementById("gvDesc").value.trim();

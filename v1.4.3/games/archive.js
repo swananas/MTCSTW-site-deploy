@@ -51,7 +51,7 @@ function post(cAction,params,cb){
       .catch(function(){ _po._pfClear(); done(null); });
   }catch(e){ done(null); }
 }
-var EV=null, results=null, lastQ="";
+var EV=null, results=null, lastQ="", lastSort="top";
 function card(r,showResurface,showAttr){
   var h='<div class="x-pane ar-card">'
     +'<div class="ar-headline">'+esc(r.headline||r.content_id)+'</div>'
@@ -106,10 +106,13 @@ function wireCards(el){
 function render(){
   var el=document.getElementById("xArchive"); if(!el) return;
   var id=ident(), h="";
-  /* search bar */
+  /* search bar — 2026-10-03: archive_search (public) with TOP/RECENT sort;
+     falls back to content_search if the dedicated search fails. */
   h+='<div class="x-pane"><h4>Search the vault</h4>'
-    +'<input aria-label="healthcare, wages, rent&hellip;" id="arQ" type="text" placeholder="healthcare, wages, rent&hellip;" value="'+esc(lastQ)+'" style="width:70%;padding:8px;font:14px monospace"/>'
-    +'<button class="c-btn" id="arSearch">SEARCH</button>'
+    +'<input aria-label="healthcare, wages, rent&hellip;" id="arQ" type="text" placeholder="healthcare, wages, rent&hellip;" value="'+esc(lastQ)+'" style="width:60%;padding:8px;font:14px monospace"/>'
+    +'<button class="c-btn" id="arSearch">SEARCH</button> '
+    +'<button class="c-btn ghost" id="arSortTop"'+(lastSort==="top"?' disabled':"")+'>TOP</button>'
+    +'<button class="c-btn ghost" id="arSortRecent"'+(lastSort==="recent"?' disabled':"")+'>RECENT</button>'
     +'<div id="arResults" style="margin-top:10px"></div></div>';
   /* evergreen */
   h+='<div class="x-pane"><h4>Evergreen winners</h4>'
@@ -123,16 +126,30 @@ function render(){
     lastQ=q;
     var ro=document.getElementById("arResults");
     ro.innerHTML='<div class="c-load">Searching&hellip;</div>';
-    api("content_search",{q:q},function(j){
-      var rs=(j&&j.ok&&j.results)||[];
+    function paint(rs){
       var rh="";
       if(!rs.length){ rh='<div class="x-note">Nothing in the vault matches "'+esc(q)+'". Forge it yourself.</div>'; }
       for(var i=0;i<Math.min(rs.length,20);i++){ rh+=card(rs[i],true,true); }
       ro.innerHTML=rh; wireCards(ro);
+    }
+    api("archive_search",{q:q,sort:lastSort},function(j){
+      var rs=(j&&j.ok&&j.results)||[];
+      if(!j||!j.ok){
+        /* Fallback: the older content_search path. */
+        api("content_search",{q:q},function(j2){
+          paint((j2&&j2.ok&&j2.results)||[]);
+        });
+        return;
+      }
+      paint(rs);
     });
   }
   sb.onclick=doSearch;
   qi.onkeydown=function(e){ if(e.key==="Enter") doSearch(); };
+  var st=document.getElementById("arSortTop");
+  if(st) st.onclick=function(){ lastSort="top"; render(); };
+  var sr=document.getElementById("arSortRecent");
+  if(sr) sr.onclick=function(){ lastSort="recent"; render(); };
   if(lastQ&&results){
     var ro2=document.getElementById("arResults");
     var rh2="";

@@ -82,10 +82,34 @@ function fmtDate(t){
     var mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
     return mo[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear(); }catch(e){ return ""; }
 }
-var AU=null,CO=null,ST=null,PU=null,DR=null,TRB=null,TRCELL="";
+/* Admin gate for AUTH+ADMIN dual-gated actions (seller-or-admin closes).
+   Same key as vault.js / dashboard.js: sessionStorage 'pf_admin_secret'. */
+function isAdmin(){ try{ return !!sessionStorage.getItem("pf_admin_secret"); }catch(e){ return false; } }
+/* Admin-write POST: rides X-Admin-Secret like vault.js (AUTH+ADMIN dual gates
+   need the header; PF.authPost doesn't carry it). Carries auth_secret too so
+   the AUTH half of the gate passes. Falls back to the normal authed post
+   when no admin secret is stored. */
+function adminPost(type,key,cAction,params,cb){
+  var secret=""; try{ secret=sessionStorage.getItem("pf_admin_secret")||""; }catch(e){}
+  if(!secret){ post(type,key,cAction,params,cb); return; }
+  var body={type:type}; body[key]=cAction;
+  for(var k in params) body[k]=params[k];
+  try{ var s2=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():""; if(s2) body.auth_secret=s2; }catch(e2){}
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e3){} }
+  try{
+    /* 15s abort on the admin POST (same L2 backstop as the fallback). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json","X-Admin-Secret":secret},body:JSON.stringify(body)},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e4){} },15000); }catch(e5){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e6){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); }).then(function(j){ _po._pfClear(); done(j); }).catch(function(){ _po._pfClear(); done(null); });
+  }catch(e7){ done(null); }
+}
+var AU=null,CO=null,ST=null,PU=null,DR=null,TRB=null,SP=null,TRCELL="";
 var STAKE_YIELDS={7:5,30:15,90:40};
 function load(){
-  var id=ident(), done=false, n=0, need=6;
+  var id=ident(), done=false, n=0, need=7;
   function fin(){ if(done)return; done=true; render(); }
   function one(){ n++; if(n>=need) fin(); }
   setTimeout(fin,15000);
@@ -94,6 +118,7 @@ function load(){
   api("stake_list",{callsign:id.callsign},function(j){ ST=j; one(); });
   api("powerup_status",{callsign:id.callsign},function(j){ PU=j; one(); });
   api("drop_list",{},function(j){ DR=j; one(); });
+  api("sponsor_active",{},function(j){ SP=j; one(); });
   if(TRCELL) api("treasury_balance",{cell_id:TRCELL},function(j){ TRB=j; one(); });
   else one();
 }
@@ -114,12 +139,14 @@ function render(){
   h+=renderPowerups(id);
   h+=renderTitles(id);
   h+=renderDrops(id);
+  h+=renderPrizes(id);
   h+='<div style="margin-top:10px"><button class="c-btn" id="ecRetry">Refresh</button></div>';
   el.innerHTML=h;
   wireAuctions(id,el); wireCosmetics(id,el); wireStaking(id,el); wireTreasury(id,el);
   wireSponsor(id,el); wirePowerups(id,el); wireTitles(id,el); wireDrops(id,el);
+  wirePrizes(id,el);
   var rb=document.getElementById("ecRetry");
-  if(rb) rb.onclick=function(){ AU=CO=ST=PU=DR=TRB=null; el.innerHTML='<div class="c-load">Counting&hellip;</div>'; load(); };
+  if(rb) rb.onclick=function(){ AU=CO=ST=PU=DR=TRB=SP=null; el.innerHTML='<div class="c-load">Counting&hellip;</div>'; load(); };
 }
 /* ---------- AUCTIONS ---------- */
 function renderAuctions(id){
@@ -130,12 +157,16 @@ function renderAuctions(id){
     var a=list[i], left=Number(a.ends_at)-Date.now();
     var mine=a.seller&&id.callsign&&String(a.seller).toLowerCase()===String(id.callsign).toLowerCase();
     var noBids=(Number(a.bid_count)||0)===0;
+    /* 2026-10-03: auction_close (AUTH+ADMIN, seller-or-admin). Shown to the
+       seller and to admins (vault key); the backend enforces either way. */
+    var canClose=(mine||isAdmin())&&!Number(a.settled||0);
     h+='<div class="cp-mission"><div class="cp-mtext"><b>'+esc(a.slot)+'</b>'
       +'<div class="x-note">Top bid: <b>'+Number(a.current_bid||0)+' XP</b> by '+esc(a.leader||"—")
       +' &bull; ends in '+esc(fmtDur(left))+'</div></div>'
       +'<div><input aria-label="XP" class="c-in pf-input-sm" id="ecBidAmt_'+esc(a.id)+'" type="number" min="1" placeholder="XP" /> '
       +'<button class="c-btn" data-aid="'+esc(a.id)+'">BID</button>'
       +(mine&&noBids?' <button class="c-btn ghost" data-acancel="'+esc(a.id)+'">CANCEL</button>':"")
+      +(canClose?' <button class="c-btn ghost" data-aclose="'+esc(a.id)+'">CLOSE</button>':"")
       +'</div></div>';
   }
   h+='</div>'; return h;
@@ -170,6 +201,24 @@ function wireAuctions(id,el){
       });
     };
   })(cbs[c2]); }
+  /* seller/admin close (2026-10-03): settles the auction — winner's bid goes
+     to the pot, losers are refunded. AUTH+ADMIN dual gate, enforced backend. */
+  var cls=el.querySelectorAll('button[data-aclose]');
+  for(var c3=0;c3<cls.length;c3++){ (function(btn){
+    btn.onclick=function(){
+      var aid=btn.getAttribute("data-aclose");
+      if(!window.confirm("Close this auction and settle it? Losers are refunded; the winner's bid goes to the pot.")) return;
+      btn.disabled=true;
+      adminPost("sink","s_action","auction_close",{callsign:id.callsign,device:id.device,auction_id:aid},function(j){
+        if(!j||!j.ok){
+          toast((j&&j.err)==="seller or admin only"?"Only the seller or an admin can close this.":((j&&j.err)||"Close failed."));
+          btn.disabled=false; return;
+        }
+        toast("AUCTION CLOSED — winner "+(j.winner||"none")+" at "+(Number(j.winning_bid)||0)+" XP; "+(Number(j.losers_refunded)||0)+" loser(s) refunded.");
+        setTimeout(function(){ AU=null; load(); },800);
+      });
+    };
+  })(cls[c3]); }
 }
 /* ---------- COSMETICS ---------- */
 function renderCosmetics(id){
@@ -253,7 +302,12 @@ function renderTreasury(id){
   if(TRB&&TRB.ok){
     h+='<div class="cp-mtext"><b>BALANCE: '+Number(TRB.balance||0)+' XP</b></div>'
       +'<div><input aria-label="XP" class="c-in pf-input-sm" id="ecTFund" type="number" min="1" placeholder="XP" /> '
-      +'<button class="c-btn" id="ecTFundBtn">THROW DOWN</button></div>';
+      +'<button class="c-btn" id="ecTFundBtn">THROW DOWN</button></div>'
+      /* 2026-10-03: treasury_spend (AUTH, officers-only — backend enforces). */
+      +'<div style="margin-top:10px"><div class="x-note"><b>Officers:</b> spend from the war chest.</div>'
+      +'<input aria-label="XP" class="c-in pf-input-sm" id="ecTSAmt" type="number" min="1" placeholder="XP" /> '
+      +'<input aria-label="purpose" class="c-in pf-input-md" id="ecTSPurp" type="text" maxlength="200" placeholder="purpose (e.g. poster prize)" /> '
+      +'<button class="c-btn" id="ecTSBtn">SPEND</button><div class="c-err" id="ecTSErr"></div></div>';
     var rec=TRB.recent||[];
     if(rec.length){ h+='<div class="x-note pf-mt" >Recent:</div>';
       for(var i=0;i<Math.min(rec.length,5);i++) h+='<div class="x-note">'+esc(rec[i].callsign)+' '+esc(rec[i].kind||"threw down")+' '+Number(rec[i].amount||0)+' XP</div>';
@@ -280,10 +334,47 @@ function wireTreasury(id,el){
       api("treasury_balance",{cell_id:TRCELL},function(jj){ TRB=jj; render(); });
     });
   };
+  /* treasury spend (2026-10-03): officers-only per backend; the UI lets any
+     officer attempt it and shows the backend's verdict honestly. */
+  var sp=document.getElementById("ecTSBtn");
+  if(sp) sp.onclick=function(){
+    var err=document.getElementById("ecTSErr");
+    var amt=Math.round(Number(document.getElementById("ecTSAmt").value)||0);
+    var purp=String(document.getElementById("ecTSPurp").value||"").trim();
+    if(err) err.textContent="";
+    if(!TRCELL){ toast("Enter a cell id first."); return; }
+    if(amt<=0){ if(err) err.textContent="Enter an amount."; return; }
+    if(!purp){ if(err) err.textContent="Give the spend a purpose."; return; }
+    if(!window.confirm("Spend "+amt+" XP from the war chest on: "+purp+"?")) return;
+    sp.disabled=true; sp.textContent="SPENDING\u2026";
+    post("treasury","t_action","treasury_spend",{callsign:id.callsign,device:id.device,cell_id:TRCELL,amount:amt,purpose:purp},function(j){
+      sp.disabled=false; sp.textContent="SPEND";
+      if(!j||!j.ok){
+        var e=String((j&&j.err)||"");
+        if(err) err.textContent=(e==="officers only")?"Officers only — the backend said no.":(e||"Spend failed.");
+        return;
+      }
+      toast("SPENT "+amt+" XP — "+purp+".");
+      api("treasury_balance",{cell_id:TRCELL},function(jj){ TRB=jj; render(); });
+    });
+  };
 }
 /* ---------- SPONSOR ---------- */
 function renderSponsor(id){
+  /* 2026-10-03: sponsor_active (public) — show what's riding the wire now. */
+  var live="";
+  var items=(SP&&SP.ok&&SP.sponsored)||[];
+  if(items.length){
+    live='<div class="x-note" style="margin-bottom:8px"><b>LIVE NOW ('+items.length+'):</b></div>';
+    for(var i=0;i<Math.min(items.length,10);i++){
+      var s=items[i], left=Number(s.expires_at)-Date.now();
+      live+='<div class="x-note">'+esc(s.content_id||"")+' &bull; <b>'+esc(String(s.tier||"").toUpperCase())+'</b>-WIDE'
+        +' &bull; expires in '+esc(fmtDur(left))+'</div>';
+    }
+    live+='<div style="height:8px"></div>';
+  }
   return '<div class="x-pane"><h4>Sponsored Drops</h4>'
+    +live
     +'<div class="x-note">Pay XP to push your poster. 100 XP = your cell sees it. 500 XP = the whole network sees it.</div>'
     +'<div><input aria-label="content id" class="c-in pf-input-md" id="ecSpCid" type="text" placeholder="content id" /> '
     +'<select class="c-in" id="ecSpTier"><option value="100">CELL-WIDE — 100 XP</option><option value="500">NETWORK-WIDE — 500 XP</option></select> '
@@ -362,6 +453,42 @@ function renderDrops(id){
       +'<button class="c-btn" data-did="'+esc(d.id)+'">COMMIT</button></div>';
   }
   h+='</div>'; return h;
+}
+/* ---------- PRIZE POOLS (read-only) ----------
+   2026-10-03: prize_contrib_list (public) — per-pool contribution breakdown.
+   Prize creation lives in movement.js; this is the ledger view. */
+function renderPrizes(id){
+  return '<div class="x-pane"><h4>Prize Pools</h4>'
+    +'<div class="x-note">Who bankrolled the prize pools. Paste a pool id (see Movement).</div>'
+    +'<div><input aria-label="pool id" class="c-in pf-input-md" id="ecPoolId" type="text" placeholder="pool id" /> '
+    +'<button class="c-btn" id="ecPoolBtn">VIEW CONTRIBUTORS</button></div>'
+    +'<div id="ecPoolOut" style="margin-top:8px"></div></div>';
+}
+function wirePrizes(id,el){
+  var b=document.getElementById("ecPoolBtn");
+  if(b) b.onclick=function(){
+    var out=document.getElementById("ecPoolOut");
+    var pid=String(document.getElementById("ecPoolId").value||"").trim().slice(0,64);
+    if(!pid){ if(out) out.innerHTML='<div class="x-note">Enter a pool id.</div>'; return; }
+    b.disabled=true;
+    if(out) out.innerHTML='<div class="c-load">Reading the pool&hellip;</div>';
+    api("prize_contrib_list",{pool_id:pid},function(j){
+      b.disabled=false;
+      if(!j||!j.ok){
+        if(out) out.innerHTML='<div class="x-note">'+esc((j&&j.err)||"No data for that pool.")+'</div>';
+        return;
+      }
+      var h='<div class="cp-mtext"><b>POOL TOTAL: '+Number(j.total||0)+' XP</b></div>';
+      var cs=(j.contributors)||[];
+      if(!cs.length) h+='<div class="x-note">No contributions yet. Be the first to throw down.</div>';
+      for(var i=0;i<Math.min(cs.length,20);i++){
+        var c=cs[i];
+        h+='<div class="cp-mission"><div class="cp-mtext">'+esc(c.contributor)+'</div>'
+          +'<div class="cp-mxp">'+Number(c.total||0)+' XP ('+Number(c.contributions||0)+')</div></div>';
+      }
+      if(out) out.innerHTML=h;
+    });
+  };
 }
 function wireDrops(id,el){
   var btns=el.querySelectorAll('button[data-did]');

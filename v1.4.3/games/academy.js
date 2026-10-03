@@ -29,6 +29,15 @@
   /* JSONP GET with 12s timeout — same pattern as the other game silos. */
   function api(action,params,cb){
     if(!BACKEND){ cb(null); return; }
+    /* academy_progress is AUTH-gated (IDOR fix): route through the shared
+       claim-retry GET like the other per-callsign reads. */
+    if(action==="academy_progress"){
+      try{
+        if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
+        var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+        if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+      }catch(e){}
+    }
     var fn="pfAcCb"+Math.floor(Math.random()*1e9);
     var s=document.createElement("script"), done=false;
     function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
@@ -62,19 +71,28 @@
   }
 
   function load(el){
-    var id=ident(), finished=false;
-    function fin(lessons){ if(finished)return; finished=true; render(el,lessons||[]); }
+    var id=ident(), finished=false, lessonsArr=null, apArr=null, calls=0;
+    /* 2026-10-03: also pull academy_progress (AUTH) — the HQ-authoritative
+       per-callsign completion map that feeds the progress bar. Falls back to
+       the lesson_list done flags if it fails, so no stuck loader. */
+    function fin(){ if(finished)return; finished=true; render(el,lessonsArr||[],apArr); }
+    function maybe(){ calls++; if(calls>=2) fin(); }
     /* Safety: if JSONP hangs, unstick and show retry. */
-    setTimeout(function(){ fin(null); },15000);
+    setTimeout(function(){ fin(); },15000);
     var p={};
     if(id.callsign) p.callsign=id.callsign;
     api("lesson_list",p,function(j){
-      if(j&&j.ok&&j.lessons&&j.lessons.length) fin(j.lessons);
-      else fin(null);
+      if(j&&j.ok&&j.lessons&&j.lessons.length) lessonsArr=j.lessons;
+      maybe();
     });
+    if(id.callsign) api("academy_progress",{callsign:id.callsign},function(j){
+      if(j&&j.ok&&j.lessons) apArr=j.lessons;
+      maybe();
+    });
+    else maybe();
   }
 
-  function render(el,lessons){
+  function render(el,lessons,apLessons){
     var id=ident(), h="";
     if(!lessons.length){
       el.innerHTML='<div class="fe-block pf-override-block" id="pf-academy">'
@@ -87,16 +105,20 @@
       return;
     }
     lessons=lessons.slice().sort(function(a,b){ return (a.order_num||0)-(b.order_num||0); });
+    /* Progress bar is fed by academy_progress (AUTH, HQ-authoritative) when it
+       landed; falls back to the lesson_list done flags. */
+    var src=(apLessons&&apLessons.length)?apLessons:lessons;
     var n=0,i,L;
-    for(i=0;i<lessons.length;i++){ if(lessons[i].done) n++; }
-    var pct=Math.round(n/lessons.length*100);
+    for(i=0;i<src.length;i++){ if(src[i].done) n++; }
+    var pct=src.length?Math.round(n/src.length*100):0;
+    var hqSynced=!!(apLessons&&apLessons.length);
     h+='<div class="fe-block pf-override-block" id="pf-academy">'
       +'<h2>Propaganda Academy</h2>'
       +'<div class="c-tag">Learn the craft. Earn your stripes. Pump with purpose.</div>';
     if(!id.callsign){
       h+=PF.gateHTML('The Academy enrolls callsign holders.','to enroll and bank XP');
     } else {
-      h+='<div class="x-pane"><div class="x-note">PROGRESS: '+n+'/'+lessons.length+' lessons &mdash; '+pct+'%</div>'
+      h+='<div class="x-pane"><div class="x-note">PROGRESS: '+n+'/'+src.length+' lessons &mdash; '+pct+'%'+(hqSynced?' <span style="color:#7CFC00">&#10003; HQ-synced</span>':"")+'</div>'
         +'<div style="background:#222;border:1px solid #555;height:14px;margin-top:6px"><div style="background:#c1121f;height:12px;width:'+pct+'%"></div></div></div>';
     }
     for(i=0;i<lessons.length;i++){

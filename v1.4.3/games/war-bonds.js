@@ -31,6 +31,34 @@
 <script>
 (function(){
   function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  /* 2026-10-03: bond_stats (public GET) — war bond aggregates, rendered as a
+     ledger strip under the buy buttons. No PII, public by backend design. */
+  (function(){
+    var box=document.getElementById('pf-wb-buy'); if(!box) return;
+    var BACKEND=(window.PF_BACKEND_URL||""); if(!BACKEND) return;
+    var stats=document.createElement('div');
+    stats.id='pf-wb-stats';
+    stats.style.cssText='font-size:0.8rem;color:#b8ab8e;margin-bottom:1.1rem;line-height:1.5;';
+    stats.textContent='Reading the war ledger\u2026';
+    box.parentNode.insertBefore(stats, box.nextSibling);
+    var fn='pfWbCb'+Math.floor(Math.random()*1e9);
+    var s=document.createElement('script'), done=false;
+    function finish(j){
+      if(done) return; done=true;
+      try{ delete window[fn]; }catch(e){}
+      if(s.parentNode) s.parentNode.removeChild(s);
+      if(!j||!j.ok){ if(stats.parentNode) stats.parentNode.removeChild(stats); return; }
+      var rev=Number(j.total_revenue)||0, n=Number(j.purchases)||0;
+      var net=Number(j.network_share)||0, pool=Number(j.creator_pool)||0;
+      stats.innerHTML='\u2605 WAR LEDGER: <b style="color:#f5f0e1;">$'+rev.toFixed(2)+'</b> raised from <b style="color:#f5f0e1;">'+n+'</b> bond'+(n===1?'':'s')
+        +' &mdash; $'+net.toFixed(2)+' to the network, $'+pool.toFixed(2)+' to the creator pool.';
+    }
+    window[fn]=function(j){ finish(j); };
+    s.onerror=function(){ finish(null); };
+    s.src=BACKEND+'?action=bond_stats&callback='+fn;
+    document.head.appendChild(s);
+    setTimeout(function(){ finish(null); },12000);
+  })();
   /* WAR BOND CHECKOUT: Squarespace product URLs, one per denomination
      (products created 2026-09-26; "Unnamed Product" stray removed). */
   var WAR_BOND_URLS = {

@@ -4,6 +4,9 @@
      On 401/unauthorized with no stored secret, tries auth_claim once for the
      stored callsign, saves the secret, and retries the original request once.
    - PF.claimAuthSecret(callsign, cb): one-time claim for pre-auth users.
+   - PF.authGetJSONP(backendUrl, action, params, cb, opts): authenticated JSONP
+     GET with the same claim-retry self-heal as authPost (plus a 12s timeout).
+     Legacy callsigns that cannot be claimed surface err:'legacy_callsign'.
    Backend contract: ~/workspace/mtcstw-api/src/auth.js
    KILL: ?pf_off=auth (disables the 401 auto-claim; secrets still attach) */
 (function () {
@@ -85,8 +88,74 @@
     });
   };
 
+  /* M1 (2026-10-03): honor the KILL via PF.skip — it covers both the
+     ?pf_off=auth query param and localStorage pf_disabled_v1. */
   var authDisabled = false;
-  try { authDisabled = (PF.disabled || []).indexOf('auth') !== -1; } catch (e) {}
+  try { authDisabled = PF.skip("auth"); } catch (e) {}
+
+  /* Authenticated JSONP GET with claim-retry (2026-10-03). Mirrors the
+     PF.authPost self-heal for read paths: attaches callsign/device/secret
+     when available; on 'missing credentials' with no stored secret, performs
+     a one-time auth_claim, stores the secret, and retries the read once.
+     Legacy callsigns that cannot be claimed surface err:'legacy_callsign'
+     (distinct code, no loop). 12s timeout so reads can't hang forever. */
+  PF.authGetJSONP = function (backendUrl, action, params, cb, opts) {
+    opts = opts || {};
+    var timeoutMs = opts.timeout || 12000;
+    function done(j) { try { cb(j || { ok: false, err: 'Network error.' }); } catch (e) {} }
+    if (!backendUrl || !action) { done(null); return; }
+    function fire(p, cb2) {
+      var q = "?action=" + encodeURIComponent(action);
+      for (var k in p) { if (p[k] != null && p[k] !== "") q += "&" + encodeURIComponent(k) + "=" + encodeURIComponent(p[k]); }
+      var fn = "pfAJP" + Math.floor(Math.random() * 1e9);
+      var s = document.createElement("script"), settled = false;
+      function finish(j) {
+        if (settled) return; settled = true;
+        try { delete window[fn]; } catch (e) {}
+        if (s.parentNode) s.parentNode.removeChild(s);
+        cb2(j);
+      }
+      window[fn] = function (j) { finish(j); };
+      s.onerror = function () { finish(null); };
+      s.src = backendUrl + q + "&callback=" + fn;
+      document.head.appendChild(s);
+      setTimeout(function () { finish(null); }, timeoutMs);
+    }
+    var p = Object.assign({}, params || {});
+    var cs = callsign();
+    if (cs && !p.callsign) p.callsign = cs;
+    var dev = deviceId();
+    if (dev && !p.device) p.device = dev;
+    var sec = PF.getAuthSecret();
+    if (sec && !p.auth_secret) p.auth_secret = sec;
+    fire(p, function (j) {
+      /* Claim-retry: the backend said 'missing credentials' because this
+         browser never stored a secret. One claim attempt, then one retry.
+         Never loops: _retried is set on the retry, and a 'claim
+         unavailable' claim response surfaces a distinct code instead. */
+      var needClaim = j && !j.ok && !opts._retried && !authDisabled && !PF.getAuthSecret() &&
+        (j.err === 'missing credentials' || String(j.err || '').indexOf('missing credentials') !== -1);
+      if (needClaim) {
+        var claimCs = String(p.callsign || cs || '').toLowerCase();
+        if (claimCs) {
+          PF.claimAuthSecret(claimCs, function (cj) {
+            if (cj && cj.ok && cj.auth_secret) {
+              var o2 = Object.assign({}, opts); o2._retried = true;
+              PF.authGetJSONP(backendUrl, action, params, cb, o2);
+            } else if (cj && String(cj.err || '').indexOf('claim unavailable') !== -1) {
+              /* Legacy callsign: no secret can ever be issued for it —
+                 distinct code so callers can show recovery copy, no loop. */
+              done({ ok: false, err: 'legacy_callsign' });
+            } else {
+              done(j);
+            }
+          });
+          return;
+        }
+      }
+      done(j);
+    });
+  };
 
   /* Canonical authenticated POST. Attaches auth_secret; on 401/unauthorized
      with no stored secret, attempts a one-time auth_claim for the acting

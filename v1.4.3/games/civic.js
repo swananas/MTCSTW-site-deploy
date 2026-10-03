@@ -64,7 +64,14 @@ function load(){
   api("petition_list",{},function(j){ P=j; one(); });
   api("rep_list",{},function(j){ REPS=j; one(); });
   api("rep_scripts",{},function(j){ SCRIPTS=j; one(); });
-  api("contact_get",{callsign:ident().callsign},function(j){ CONTACT=j; one(); });
+  /* contact_get is per-callsign auth-gated (rectify pass): route through the
+     shared claim-retry GET so a missing secret becomes one auth_claim attempt
+     with a friendly message, not a silent empty prefill. */
+  (function(){
+    var p={callsign:ident().callsign};
+    try{ if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,"contact_get",p,function(j){ CONTACT=j; one(); }); return; } }catch(e){}
+    api("contact_get",p,function(j){ CONTACT=j; one(); });
+  })();
   one();
 }
 function stateOpts(sel){
@@ -139,6 +146,14 @@ function render(){
   /* --- notification preferences --- */
   h+='<div class="x-pane"><h4>Notification preferences</h4>'
     +'<div class="x-note">Get drops, alerts, and battle calls by email or text. We never sell your info.</div>';
+  /* Auth-gating fallout (2026-10-03): contact_get is per-callsign. If the
+     claim-retry self-heal couldn't get credentials (legacy callsign, secret
+     lost), say so plainly instead of rendering empty fields that look
+     saved-but-blank. */
+  if(CONTACT&&CONTACT.ok===false&&/missing credentials|unauthorized|claim unavailable/i.test(String(CONTACT.err||""))){
+    h+='<div class="c-err">Your contact prefs wouldn&rsquo;t load &mdash; your callsign needs to reconnect. Re-claim it in Enlistment Ranks (one tap), then reload this page.</div></div>';
+    el.innerHTML=h; bind(); return;
+  }
   var ce=CONTACT&&CONTACT.email?String(CONTACT.email).replace(/\*\*\*/g,""): "", cp=CONTACT&&CONTACT.phone?String(CONTACT.phone).replace(/\*\*\*/g,""):"";
   var eo=CONTACT&&CONTACT.email_optin?1:0, so=CONTACT&&CONTACT.sms_optin?1:0;
   h+='<input aria-label="Email address" class="c-in"  id="cvEmail" type="email" maxlength="120" placeholder="Email address" value="'+esc(ce)+'">'

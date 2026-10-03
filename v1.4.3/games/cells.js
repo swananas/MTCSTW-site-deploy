@@ -46,9 +46,12 @@ function api(action,params,cb){
     post('cell','cell_action',action,params,cb); return;
   }
   if(!BACKEND){ cb(null); return; }
-  /* Private reads require auth_secret (IDOR fix). Auto-attach for gated actions. */
+  /* Private reads require auth_secret (IDOR fix). Route cell_mine through
+     the shared claim-retry GET (2026-10-03): pre-auth callsign holders get
+     one auth_claim attempt instead of 'missing credentials' forever. */
   if(action==="cell_mine"){
     try{
+      if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
       var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
       if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
     }catch(e){}
@@ -185,13 +188,28 @@ function renderGate(){
   /* 2026-10-03 H8: active in-place claim (was: scroll away to Enlistment Ranks). */
   el.innerHTML=PF.gateHTML('Cells run on callsigns.','to form your cell');
 }
+/* Friendly copy for cell_mine read failures (2026-10-03): raw backend
+   strings like 'missing credentials' are never rendered as UI copy. */
+function cellErrCopy(e){
+  e=String(e||"");
+  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")
+    return "The cell network couldn't verify this callsign — it predates the new auth system. Contact MTCSTW to recover it.";
+  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)
+    return "The cell network couldn't verify your callsign. Re-claim it in Enlistment Ranks (one tap), then retry.";
+  return "The cell network didn't answer. Your callsign is fine — the wire is not.";
+}
 function render(){
   var el=document.getElementById("cBody");
   if(!el) return;
   var id=ident();
   if(!id.callsign){ renderGate(); return; }
   if(!state){ if(netFailed){ renderNetErr(); return; } el.innerHTML='<div class="c-load">Raising the cell network&hellip;</div>'; return; }
-  if(state.err&&!state.in_cell&&state.err!=="no_cell"){ el.innerHTML='<div class="c-err">'+esc(state.err)+'</div>'; return; }
+  if(state.err&&!state.in_cell&&state.err!=="no_cell"){
+    el.innerHTML='<div class="c-neterr">'+esc(cellErrCopy(state.err))
+      +'<br><button class="c-btn" id="cErrRetry">Retry connection</button></div>';
+    document.getElementById("cErrRetry").onclick=function(){ refresh(); };
+    return;
+  }
   if(!state.in_cell){ renderLobby(el); return; }
   renderCell(el,state);
 }

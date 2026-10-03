@@ -21,11 +21,25 @@ function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e
   try{ var t=document.createElement("div"); t.textContent=m;
   t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
   document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+/* Friendly copy for gated read failures (2026-10-03): raw backend strings
+   like 'missing credentials' are never shown as UI copy. */
+function ntAuthHint(j){
+  var e=String((j&&j.err)||"");
+  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")
+    return '<br><span class="x-note">This callsign predates the new auth system and can&rsquo;t reconnect on its own &mdash; contact MTCSTW to recover it.</span>';
+  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)
+    return '<br><span class="x-note">Your callsign needs to reconnect &mdash; re-claim it in Enlistment Ranks (one tap), then retry.</span>';
+  return "";
+}
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
-  /* Private reads require auth_secret (IDOR fix). Auto-attach for gated actions. */
-  if(action==="notification_list"){
+  /* Private reads require auth_secret (IDOR fix). Route gated actions
+     through the shared claim-retry GET (2026-10-03): pre-auth callsign
+     holders with no stored secret get one auth_claim attempt instead of
+     failing 'missing credentials' forever. */
+  if(action==="notification_list"||action==="notification_prefs"){
     try{
+      if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
       var _sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : "";
       if(_sec && params && !params.auth_secret) params.auth_secret = _sec;
     }catch(e){}
@@ -94,7 +108,7 @@ function render(){
   h+='</div>';
   /* prefs */
   var p=(PR&&PR.prefs)||{battles:true,boosts:true,recruits:true,tips:true};
-  h+='<div class="x-pane"><h4>Alert preferences</h4><div class="x-note">Choose what pings you.</div>';
+  h+='<div class="x-pane"><h4>Alert preferences</h4><div class="x-note">Choose what pings you.</div>'+ntAuthHint(PR);
   var keys=[["battles","Battle results"],["boosts","Boosts on my work"],["recruits","Recruit activations"],["tips","Tips received"]];
   for(i=0;i<keys.length;i++){
     var k=keys[i][0];

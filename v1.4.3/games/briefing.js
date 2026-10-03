@@ -34,9 +34,13 @@ function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e
 /* JSONP GET for reads. */
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
-  /* Private reads require auth_secret (IDOR fix). Auto-attach for gated actions. */
-  if(action==="loot_status"||action==="streak_status"||action==="cell_mine"){
+  /* Private reads require auth_secret (IDOR fix). Route gated actions
+     through the shared claim-retry GET (2026-10-03): pre-auth callsign
+     holders with no stored secret get one auth_claim attempt instead of
+     failing 'missing credentials' forever. */
+  if(action==="loot_status"||action==="streak_status"||action==="cell_mine"||action==="comeback_check"){
     try{
+      if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
       var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
       if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
     }catch(e){}
@@ -112,7 +116,7 @@ function fmtHours(ms){
   var h=Math.floor(ms/3600000), m=Math.floor((ms%3600000)/60000);
   return h+"H "+(m<10?"0":"")+m+"M";
 }
-var BAL=null,STREAK=null,LOOT=null,FLASH=null,COMEBACK=null,PROP=null,CELL=null,MISS=null,STAT=null,SEASON=null,BRIEF=null;
+var BAL=null,STREAK=null,LOOT=null,FLASH=null,COMEBACK=null,COMEBACK_ERR=null,PROP=null,CELL=null,MISS=null,STAT=null,SEASON=null,BRIEF=null;
 var N_CALLS=11;
 function load(){
   var id=ident(), done=false, n=0;
@@ -127,7 +131,7 @@ function load(){
   api("streak_status",{callsign:id.callsign,device:id.device},function(j){ STREAK=(j&&j.ok)?j:null; one(); });
   api("loot_status",{callsign:id.callsign,device:id.device},function(j){ LOOT=(j&&j.ok)?j:null; one(); });
   api("flash_active",{},function(j){ FLASH=j; one(); });
-  api("comeback_check",{callsign:id.callsign,device:id.device},function(j){ COMEBACK=(j&&j.ok&&j.eligible)?j:null; one(); });
+  api("comeback_check",{callsign:id.callsign,device:id.device},function(j){ COMEBACK=(j&&j.ok&&j.eligible)?j:null; COMEBACK_ERR=(j&&!j.ok)?j:null; one(); });
   api("proposal_list",{},function(j){ PROP=j; one(); });
   api("cell_mine",{callsign:id.callsign,device:id.device},function(j){ CELL=(j&&j.ok)?j:null; one(); });
   api("campaign_missions",{callsign:id.callsign,device:id.device},function(j){ MISS=j; one(); });
@@ -194,6 +198,11 @@ function render(){
   if(COMEBACK){
     urg.push({t:"XP WAITING",d:"We saved "+Number(COMEBACK.xp||50)+" XP for your return.",
       btn:"CLAIM",act:"comeback"});
+  } else if(COMEBACK_ERR&&/missing credentials|unauthorized|claim unavailable|legacy_callsign/.test(String(COMEBACK_ERR.err||""))){
+    /* Auth-gated read failed (2026-10-03): friendly reconnect nudge, never
+       the raw backend string. */
+    urg.push({t:"RECONNECT NEEDED",d:"Your callsign lost its handshake with HQ. Re-claim it in Enlistment Ranks (one tap), then reload.",
+      btn:"RECONNECT",go:"pf-ranks"});
   }
   if(urg.length){
     h+='<div class="br-sec"><div class="br-sect">\u26A0 URGENT</div>';

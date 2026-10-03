@@ -252,8 +252,29 @@ function pfToast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch
   try{ var t=document.createElement("div"); t.textContent=m;
   t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
   document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+/* Friendly copy for gated read failures (2026-10-03): raw backend strings
+   like 'missing credentials' are never shown as UI copy. */
+function pfAuthHint(j){
+  var e=String((j&&j.err)||"");
+  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")
+    return '<br><span class="x-note">This callsign predates the new auth system and can&rsquo;t reconnect on its own &mdash; contact MTCSTW to recover it.</span>';
+  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)
+    return '<br><span class="x-note">Your callsign needs to reconnect &mdash; re-claim it in Enlistment Ranks (one tap), then retry.</span>';
+  return "";
+}
 function pfApi(action,params,cb){
   if(!PFBE){ cb(null); return; }
+  /* Private reads require auth_secret (IDOR fix). Route gated actions
+     through the shared claim-retry GET (2026-10-03): pre-auth callsign
+     holders with no stored secret get one auth_claim attempt instead of
+     failing 'missing credentials' forever. */
+  if(action==="creator_dashboard"){
+    try{
+      if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(PFBE,action,params,cb); return; }
+      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+    }catch(e){}
+  }
   var fn="pfPfCb"+Math.floor(Math.random()*1e9);
   var s=document.createElement("script"),done=false;
   function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
@@ -372,7 +393,7 @@ function pfRenderImpact(){
               +pfBoostRow(t.id,bmap[t.id]||0)+'</div>';
           }
         } else { h+='<div class="x-note">No tracked pieces yet. Forge, share, and watch the numbers climb.</div>'; }
-      } else { h+='<div class="x-note">Impact data loading&hellip;</div>'; }
+      } else { h+='<div class="x-note">'+(pfAuthHint(j)||'Impact data loading&hellip;')+'</div>'; }
       h+='</div>';
       el.innerHTML=h; pfWireBoosts(el);
     });

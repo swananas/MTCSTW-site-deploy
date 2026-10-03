@@ -22,8 +22,29 @@ function fmtSched(t){ try{ var d=new Date(Number(t)||0); if(isNaN(d.getTime())) 
   return (d.getMonth()+1)+"/"+d.getDate()+" "+d.getHours()+":"+String(d.getMinutes()).padStart(2,"0"); }catch(e){ return "?"; } }
 function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
 function toast(m){ try{ PF.toast(m); }catch(e){} }
+/* Friendly copy for gated read failures (2026-10-03): raw backend strings
+   like 'missing credentials' are never shown as UI copy. */
+function fdAuthHint(j){
+  var e=String((j&&j.err)||"");
+  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")
+    return '<div class="x-note">This callsign predates the new auth system and can&rsquo;t reconnect on its own &mdash; contact MTCSTW to recover it.</div>';
+  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)
+    return '<div class="x-note">Your scheduled queue is behind a handshake. Re-claim your callsign in Enlistment Ranks (one tap), then refresh.</div>';
+  return "";
+}
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
+  /* Private reads require auth_secret (IDOR fix). Route gated actions
+     through the shared claim-retry GET (2026-10-03): pre-auth callsign
+     holders with no stored secret get one auth_claim attempt instead of
+     failing 'missing credentials' forever. */
+  if(action==="schedule_list"){
+    try{
+      if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
+      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+    }catch(e){}
+  }
   var fn="pfFdCb"+Math.floor(Math.random()*1e9);
   var s=document.createElement("script"), done=false;
   function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
@@ -142,6 +163,7 @@ function render(){
     }
     h+='</div><div class="c-err" id="fdSchedErr"></div>';
   }
+  else if(SCHED&&!SCHED.ok){ h+=fdAuthHint(SCHED); }
   h+='<div style="margin-top:10px"><button class="c-btn" id="fdRetry">Refresh</button></div>';
   el.innerHTML=h;
   var tabs=el.querySelectorAll("button.fd-tab");

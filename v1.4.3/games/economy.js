@@ -21,11 +21,25 @@ function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e
   try{ var t=document.createElement("div"); t.textContent=m;
   t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
   document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+/* Friendly copy for gated read failures (2026-10-03): raw backend strings
+   like 'missing credentials' are never shown as UI copy. */
+function ecAuthHint(j){
+  var e=String((j&&j.err)||"");
+  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")
+    return '<br><span class="x-note">This callsign predates the new auth system and can&rsquo;t reconnect on its own &mdash; contact MTCSTW to recover it.</span>';
+  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)
+    return '<br><span class="x-note">Your callsign needs to reconnect &mdash; re-claim it in Enlistment Ranks (one tap), then retry.</span>';
+  return "";
+}
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
-  /* Private reads require auth_secret (IDOR fix). Auto-attach for gated actions. */
-  if(action==="cosmetic_list"){
+  /* Private reads require auth_secret (IDOR fix). Route gated actions
+     through the shared claim-retry GET (2026-10-03): pre-auth callsign
+     holders with no stored secret get one auth_claim attempt instead of
+     failing 'missing credentials' forever. */
+  if(action==="cosmetic_list"||action==="stake_list"||action==="powerup_status"){
     try{
+      if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
       var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
       if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
     }catch(e){}
@@ -192,7 +206,7 @@ function renderStaking(id){
     +'<select class="c-in" id="ecStakeDur"><option value="7">7 days — 5%</option><option value="30">30 days — 15%</option><option value="90">90 days — 40%</option></select> '
     +'<button class="c-btn" id="ecStakeBtn">LOCK</button></div><div style="height:8px"></div>';
   var stakes=(ST&&ST.stakes)||[];
-  if(!stakes.length) h+='<div class="x-note">No active stakes. Your XP is doing nothing. Fix that.</div>';
+  if(!stakes.length) h+='<div class="x-note">No active stakes. Your XP is doing nothing. Fix that.'+ecAuthHint(ST)+'</div>';
   for(var i=0;i<stakes.length;i++){
     var s=stakes[i], now=Date.now(), unlocked=now>=Number(s.unlocks_at);
     var yld=STAKE_YIELDS[s.duration_days]||0;
@@ -291,7 +305,7 @@ function wireSponsor(id,el){
 }
 /* ---------- POWER-UPS ---------- */
 function renderPowerups(id){
-  var h='<div class="x-pane"><h4>Power-Ups</h4><div class="x-note">Spend XP to earn XP faster. The engine feeds itself.</div>';
+  var h='<div class="x-pane"><h4>Power-Ups</h4><div class="x-note">Spend XP to earn XP faster. The engine feeds itself.</div>'+ecAuthHint(PU);
   var act=(PU&&PU.active)||[];
   if(act.length){ h+='<div class="x-note">Active:</div>';
     for(var i=0;i<act.length;i++) h+='<div class="cp-mdone">'+esc(act[i].kind)+' — expires in '+esc(fmtDur(Number(act[i].expires_at)-Date.now()))+'</div>';

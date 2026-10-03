@@ -62,14 +62,31 @@ function needCs(retry,ctx){
   return null;
 }
 var BL=null, BB=null, TR=null;
+/* 2026-10-03 C2: own 15s timeout + error/retry — api()'s failsafe reports
+   null but cannot distinguish a failed fetch from an empty list, so success
+   is tracked locally. Paints the live node (re-resolved by id) so a
+   mid-flight re-render cannot strand results on a detached node. */
 function loadMyProposals(){
-  var box=document.getElementById("btMyProps");
-  if(!box) return;
+  if(!document.getElementById("btMyProps")) return;
   var id=ident();
-  if(!id.callsign){ box.innerHTML='<div class="x-note">Claim a callsign to track proposals.</div>'; return; }
+  function paintMyProps(html){ var live=document.getElementById("btMyProps"); if(live) live.innerHTML=html; }
+  if(!id.callsign){ paintMyProps('<div class="x-note">Claim a callsign to track proposals.</div>'); return; }
+  var done=false, to=null;
+  function showErr(){
+    if(done) return; done=true;
+    try{ if(to) clearTimeout(to); }catch(e){}
+    paintMyProps('<div class="x-note c-err">Could not load your proposals. '
+      +'<button class="c-btn" id="btPropsRetry">RETRY</button></div>');
+    var r=document.getElementById("btPropsRetry");
+    if(r) r.onclick=function(){ loadMyProposals(); };
+  }
+  to=setTimeout(showErr,15000);
   api("battle_proposals",{callsign:id.callsign,mine:1},function(j){
-    if(!j||!j.ok||!j.proposals||!j.proposals.length){
-      box.innerHTML='<div class="x-note">No proposals yet. Pitch the first battle.</div>'; return;
+    if(done) return; done=true;
+    try{ if(to) clearTimeout(to); }catch(e){}
+    if(!j||!j.ok){ showErr(); return; }
+    if(!j.proposals||!j.proposals.length){
+      paintMyProps('<div class="x-note">No proposals yet. Pitch the first battle.</div>'); return;
     }
     var h="";
     for(var i=0;i<j.proposals.length;i++){
@@ -79,12 +96,15 @@ function loadMyProposals(){
       if(pr.status==="rejected"&&pr.reason) h+=' <span class="x-note">'+esc(pr.reason)+'</span>';
       h+=' <span class="x-note">'+fmtDate(pr.created_at)+'</span></div>';
     }
-    box.innerHTML=h;
+    paintMyProps(h);
   });
 }
 function load(){
   var done=false,n=0;
-  function fin(){ if(done)return; done=true; render(); }
+  /* 2026-10-03 C2: proposals load AFTER render() completes — render builds
+     the fresh #btMyProps node, so the fetch targets the live node. This
+     wires the never-fired initial load and removes the post-submit race. */
+  function fin(){ if(done)return; done=true; render(); loadMyProposals(); }
   function one(){ n++; if(n>=3) fin(); }
   setTimeout(fin,15000);
   api("battle_list",{},function(j){ BL=j; one(); });
@@ -272,7 +292,10 @@ function render(){
       if(!j||!j.ok){ if(errEl)errEl.textContent=(j&&j.err)||"Proposal failed."; return; }
       toast("Battle proposed! Awaiting approval.");
       try{ if(window.PF&&PF.dope){ var ph=document.getElementById("xBattles")||document.body; PF.dope.confetti(ph,30); PF.dope.ping(ph,"BATTLE PROPOSED"); } }catch(e2){}
-      load(); loadMyProposals();
+      /* 2026-10-03 C2: load()'s fin() sequences render -> loadMyProposals(),
+         so the proposals fetch targets the fresh node (was: load() +
+         loadMyProposals() raced, fetch captured the pre-render node). */
+      load();
     });
   };
   var rb=document.getElementById("btRetry");

@@ -34,12 +34,26 @@ function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e
   try{ var t=document.createElement("div"); t.textContent=m;
   t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
   document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+/* Friendly copy for gated read failures (2026-10-03): raw backend strings
+   like 'missing credentials' are never shown as UI copy. */
+function dpAuthHint(j){
+  var e=String((j&&j.err)||"");
+  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")
+    return '<br><span class="x-note">This callsign predates the new auth system and can&rsquo;t reconnect on its own &mdash; contact MTCSTW to recover it.</span>';
+  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)
+    return '<br><span class="x-note">Your callsign needs to reconnect &mdash; re-claim it in Enlistment Ranks (one tap), then retry.</span>';
+  return "";
+}
 /* JSONP GET for reads. */
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
-  /* Private reads require auth_secret (IDOR fix). Auto-attach for gated actions. */
-  if(action==="dopamine_status"){
+  /* Private reads require auth_secret (IDOR fix). Route gated actions
+     through the shared claim-retry GET (2026-10-03): pre-auth callsign
+     holders with no stored secret get one auth_claim attempt instead of
+     failing 'missing credentials' forever. */
+  if(action==="dopamine_status"||action==="combo_status"||action==="comeback_check"){
     try{
+      if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
       var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
       if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
     }catch(e){}
@@ -153,7 +167,7 @@ function comboHit(){
 }
 /* Server combo status (combo_status GET, public): shows the armed multiplier
    the next XP grant will consume. Throttled to 60s. */
-var SRV_COMBO=null, SRV_COMBO_AT=0;
+var SRV_COMBO=null, SRV_COMBO_AT=0, SRV_COMBO_ERR=null;
 function refreshServerCombo(){
   try{
     var id=ident();
@@ -161,7 +175,7 @@ function refreshServerCombo(){
     if(Date.now()-SRV_COMBO_AT<60000) return;
     SRV_COMBO_AT=Date.now();
     api("combo_status",{callsign:id.callsign},function(j){
-      SRV_COMBO=(j&&j.ok)?j:null; renderCombo();
+      SRV_COMBO=(j&&j.ok)?j:null; SRV_COMBO_ERR=(j&&!j.ok)?j:null; renderCombo();
     });
   }catch(e){}
 }
@@ -288,7 +302,7 @@ function renderCombo(){
     +'<div class="x-note">'+(c.n||0)+' chained actions this session. Every 3 actions raises the multiplier (cap x3.00).</div>'
     +((SRV_COMBO&&Number(SRV_COMBO.multiplier)>1)
       ?'<div class="x-note" style="color:#e8b10c"><b>WAR COMBO ARMED x'+Number(SRV_COMBO.multiplier)+'</b> — your next XP grant hits harder ('+(Number(SRV_COMBO.combo_count)||0)+' backend actions banked).</div>'
-      :'');
+      :(SRV_COMBO_ERR?dpAuthHint(SRV_COMBO_ERR):''));
 }
 function renderRecords(){
   var rc=(ST&&ST.records)||{};

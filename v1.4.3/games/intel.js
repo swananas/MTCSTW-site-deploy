@@ -20,8 +20,28 @@ function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e
   try{ var t=document.createElement("div"); t.textContent=m;
   t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
   document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+/* Friendly copy for gated read failures (2026-10-03): raw backend strings
+   like 'missing credentials' are never shown as UI copy. */
+function inAuthHint(j){
+  var e=String((j&&j.err)||"");
+  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")
+    return '<br><span class="x-note">This callsign predates the new auth system and can&rsquo;t reconnect on its own &mdash; contact MTCSTW to recover it.</span>';
+  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)
+    return '<br><span class="x-note">Your callsign needs to reconnect &mdash; re-claim it in Enlistment Ranks (one tap), then retry.</span>';
+  return "";
+}
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
+  /* Private reads require auth_secret (IDOR fix). intel_submissions is
+     gated ONLY in mine mode (2026-10-03): the admin pending-queue view
+     (vault.js apiAdmin, X-Admin-Secret) is deliberately left ungated. */
+  if(action==="intel_submissions"&&params&&params.mine){
+    try{
+      if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
+      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+    }catch(e){}
+  }
   var fn="pfInCb"+Math.floor(Math.random()*1e9);
   var s=document.createElement("script"), done=false;
   function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
@@ -55,14 +75,31 @@ function fmtTs(t){
     return mo[d.getMonth()]+" "+d.getDate();
   }catch(e){ return ""; }
 }
+/* 2026-10-03 C2: own 15s timeout + error/retry — api()'s failsafe reports
+   null but cannot distinguish a failed fetch from an empty list, so success
+   is tracked locally. Paints the live node (re-resolved by id) so a
+   mid-flight re-render cannot strand results on a detached node. */
 function loadMySubs(){
-  var box=document.getElementById("inMySubs");
-  if(!box) return;
+  if(!document.getElementById("inMySubs")) return;
   var me=ident();
-  if(!me.callsign){ box.innerHTML='<div class="x-note">Claim a callsign to track submissions.</div>'; return; }
+  function paintMySubs(html){ var live=document.getElementById("inMySubs"); if(live) live.innerHTML=html; }
+  if(!me.callsign){ paintMySubs('<div class="x-note">Claim a callsign to track submissions.</div>'); return; }
+  var done=false, to=null;
+  function showErr(j){
+    if(done) return; done=true;
+    try{ if(to) clearTimeout(to); }catch(e){}
+    paintMySubs('<div class="x-note c-err">Could not load your submissions. '+inAuthHint(j)
+      +'<button class="c-btn" id="inSubsRetry">RETRY</button></div>');
+    var r=document.getElementById("inSubsRetry");
+    if(r) r.onclick=function(){ loadMySubs(); };
+  }
+  to=setTimeout(showErr,15000);
   api("intel_submissions",{callsign:me.callsign,mine:1},function(j){
-    if(!j||!j.ok||!j.submissions||!j.submissions.length){
-      box.innerHTML='<div class="x-note">No submissions yet.</div>'; return;
+    if(done) return; done=true;
+    try{ if(to) clearTimeout(to); }catch(e){}
+    if(!j||!j.ok){ showErr(j); return; }
+    if(!j.submissions||!j.submissions.length){
+      paintMySubs('<div class="x-note">No submissions yet.</div>'); return;
     }
     var h="";
     for(var i=0;i<j.submissions.length;i++){
@@ -72,13 +109,17 @@ function loadMySubs(){
       if(s.status==="rejected"&&s.reason) h+=' <span class="x-note">'+esc(s.reason)+'</span>';
       h+=' <span class="x-note">'+fmtTs(s.created_at)+'</span></div>';
     }
-    box.innerHTML=h;
+    paintMySubs(h);
   });
 }
 function load(){
   var el=document.getElementById("xIntel"); if(!el) return;
-  api("intel_list",{},function(j){ render(j); });
-  setTimeout(function(){ if(el.innerHTML.indexOf("c-load")>=0) render(null); },15000);
+  /* 2026-10-03 C2: submissions load AFTER render() completes — render builds
+     the fresh #inMySubs node, so the fetch targets the live node. This wires
+     the never-fired initial load and removes the post-submit race. */
+  function got(j){ render(j); loadMySubs(); }
+  api("intel_list",{},got);
+  setTimeout(function(){ if(el.innerHTML.indexOf("c-load")>=0) got(null); },15000);
 }
 function render(j){
   var el=document.getElementById("xIntel"); if(!el) return;
@@ -136,7 +177,10 @@ function render(j){
       fb.disabled=false;
       if(!j||!j.ok){ if(errEl)errEl.textContent=(j&&j.err)||"Submission failed."; return; }
       toast("Intel submitted for review.");
-      load(); loadMySubs();
+      /* 2026-10-03 C2: load() sequences render -> loadMySubs(), so the
+         submissions fetch targets the fresh node (was: load() +
+         loadMySubs() raced, fetch captured the pre-render node). */
+      load();
     });
   };
   var rb=document.getElementById("inRetry");

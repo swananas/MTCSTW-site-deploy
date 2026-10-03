@@ -63,10 +63,18 @@ var TYPES=[
   ["civic_alerts","Civic alerts","Petition wins, action calls"],
   ["marketing","Promotional","Occasional announcements (rare)"]
 ];
-var PREFS=null, MASKED="", CS="";
+var PREFS=null, MASKED="", CS="", CONTACT_ERR="";
 function render(){
   var el=document.getElementById("xNotifyPrefs"); if(!el) return;
   var h="";
+  /* Auth-gating fallout (2026-10-03): contact_get is per-callsign. If the
+     claim-retry self-heal couldn't get credentials (legacy callsign, secret
+     lost), say so plainly instead of rendering empty defaults that look
+     saved-but-blank. */
+  if(CONTACT_ERR){
+    el.innerHTML='<div class="c-box c-err">'+CONTACT_ERR+'</div>';
+    return;
+  }
   h+='<div class="c-box" style="margin-bottom:12px;">';
   h+='<div class="c-sub">EMAIL</div>';
   h+='<div style="margin:6px 0;">'+(MASKED?esc(MASKED):"<i>no email on file</i>")+'</div>';
@@ -127,11 +135,24 @@ function load(){
     if(el) el.innerHTML='<div class="c-box">Enlist first (pick a callsign) to manage notification preferences.</div>';
     return;
   }
-  api("contact_get",{callsign:CS},function(j){
+  /* contact_get is per-callsign auth-gated (rectify pass): route through the
+     shared claim-retry GET so a missing secret becomes one auth_claim attempt
+     with a friendly message, not a silent empty prefill. */
+  var params={callsign:CS};
+  var cb=function(j){
     if(j&&j.ok){ PREFS=j.prefs||{}; MASKED=j.email||""; }
-    else { PREFS={}; MASKED=""; }
+    else {
+      PREFS={}; MASKED="";
+      var e=String((j&&j.err)||"");
+      if(/missing credentials|unauthorized|claim unavailable/i.test(e))
+        CONTACT_ERR="Your preferences wouldn&rsquo;t load &mdash; your callsign needs to reconnect. Re-claim it in Enlistment Ranks (one tap), then reload this page.";
+      else
+        CONTACT_ERR="Could not reach Command to load your preferences. The wire is down &mdash; retry in a bit.";
+    }
     render();
-  });
+  };
+  try{ if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,"contact_get",params,cb); return; } }catch(e){}
+  api("contact_get",params,cb);
 }
 load();
 })();

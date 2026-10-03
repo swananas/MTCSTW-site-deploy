@@ -22,15 +22,29 @@
 var BACKEND=window.PF_BACKEND_URL;
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+/* Friendly copy for vault read failures (2026-10-03): raw backend strings
+   like 'missing credentials' are never shown as UI copy. */
+function pbAuthHint(j){
+  var e=String((j&&j.err)||"");
+  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")
+    return '<br><span class="x-note">This callsign predates the new auth system and can&rsquo;t reconnect on its own &mdash; contact MTCSTW to recover it.</span>';
+  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)
+    return '<br><span class="x-note">Your callsign needs to reconnect &mdash; re-claim it in Enlistment Ranks (one tap), then retry.</span>';
+  return "";
+}
 function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
   try{ var t=document.createElement("div"); t.textContent=m;
   t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
   document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
-  /* Private reads require auth_secret (IDOR fix). Auto-attach for gated actions. */
-  if(action==="xp_history"||action==="subscription_list"||action==="commission_earnings"||action==="bank_status"||action==="tip_history"){
+  /* Private reads require auth_secret (IDOR fix). Route gated actions
+     through the shared claim-retry GET (2026-10-03): pre-auth callsign
+     holders with no stored secret get one auth_claim attempt instead of
+     failing 'missing credentials' forever. */
+  if(action==="xp_history"||action==="subscription_list"||action==="commission_earnings"||action==="bank_status"||action==="tip_history"||action==="savings_balance"||action==="remit_history"||action==="stake_list"){
     try{
+      if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
       var _sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : "";
       if(_sec && params && !params.auth_secret) params.auth_secret = _sec;
     }catch(e){}
@@ -176,6 +190,7 @@ function renderVault(id){
   var h='<div class="x-pane pb-pane"><div class="pb-bankhead">&#9670; THE VAULT &#9670;</div>';
   if(!BST||!BST.ok){
     h+='<div class="c-neterr">The vault did not answer. Your XP is safe &mdash; the wire is not.'
+      +pbAuthHint(BST)
       +'<br><button class="c-btn" id="pbVaultRetry">Retry connection</button></div></div>';
     return h;
   }
@@ -241,7 +256,7 @@ function renderVault(id){
     +'<div class="pb-cards">'
     +'<div class="pb-card"><div class="pb-clabel">LIQUID</div><div class="pb-cval">'+Math.round(nw.liq).toLocaleString()+'</div></div>'
     +'<div class="pb-card"><div class="pb-clabel">SAVINGS</div><div class="pb-cval">'+Math.round(nw.sav).toLocaleString()+'</div></div>'
-    +'<div class="pb-card"><div class="pb-clabel">STAKED</div><div class="pb-cval">'+Math.round(nw.stk).toLocaleString()+'</div></div>'
+    +'<div class="pb-card"><div class="pb-clabel">STAKED</div><div class="pb-cval">'+Math.round(nw.stk).toLocaleString()+'</div></div>'+pbAuthHint(STK)
     +'<div class="pb-card"><div class="pb-clabel">WAR BONDS</div><div class="pb-cval">'+Math.round(nw.bnd).toLocaleString()+'</div></div>'
     +'<div class="pb-card"><div class="pb-clabel">LOANS OUT</div><div class="pb-cval">+'+Math.round(nw.lendOut).toLocaleString()+'</div></div>'
     +'<div class="pb-card"><div class="pb-clabel">YOU OWE</div><div class="pb-cval pb-neg">-'+Math.round(nw.owe).toLocaleString()+'</div></div>'
@@ -318,7 +333,7 @@ function renderLobby(id){
     +'<div class="pb-cards">'
     +'<div class="pb-card"><div class="pb-clabel">LIQUID</div><div class="pb-cval">'+Math.round(nw.liq).toLocaleString()+'</div></div>'
     +'<div class="pb-card"><div class="pb-clabel">SAVINGS</div><div class="pb-cval">'+Math.round(nw.sav).toLocaleString()+'</div></div>'
-    +'<div class="pb-card"><div class="pb-clabel">STAKED</div><div class="pb-cval">'+Math.round(nw.stk).toLocaleString()+'</div></div>'
+    +'<div class="pb-card"><div class="pb-clabel">STAKED</div><div class="pb-cval">'+Math.round(nw.stk).toLocaleString()+'</div></div>'+pbAuthHint(STK)
     +'<div class="pb-card"><div class="pb-clabel">WAR BONDS</div><div class="pb-cval">'+Math.round(nw.bnd).toLocaleString()+'</div></div>'
     +'<div class="pb-card"><div class="pb-clabel">LOANS OUT</div><div class="pb-cval">+'+Math.round(nw.lendOut).toLocaleString()+'</div></div>'
     +'<div class="pb-card"><div class="pb-clabel">YOU OWE</div><div class="pb-cval pb-neg">-'+Math.round(nw.owe).toLocaleString()+'</div></div>'
@@ -340,7 +355,7 @@ function renderTeller(id){
   for(var i=0;i<sent.length;i++) all.push({dir:"out",other:sent[i].other,amount:sent[i].amount,fee:sent[i].fee,ts:sent[i].ts});
   for(var q=0;q<recv.length;q++) all.push({dir:"in",other:recv[q].other,amount:recv[q].amount,fee:recv[q].fee,ts:recv[q].ts});
   all.sort(function(a,b){ return Number(b.ts)-Number(a.ts); });
-  if(!all.length) h+='<div class="x-note">No transfers yet. Money that doesn&rsquo;t move doesn&rsquo;t fight.</div>';
+  if(!all.length) h+='<div class="x-note">No transfers yet. Money that doesn&rsquo;t move doesn&rsquo;t fight.'+pbAuthHint(RH)+'</div>';
   for(var w=0;w<Math.min(all.length,10);w++){
     var t=all[w];
     h+='<div class="pb-row"><span class="pb-'+(t.dir==="in"?"in":"out")+'">'+(t.dir==="in"?"+":"-")+Number(t.amount).toLocaleString()+' XP</span>'
@@ -378,7 +393,7 @@ function wireTeller(id,el){
 function renderSavings(id){
   var bal=(SAV&&SAV.ok)?Number(SAV.balance||0):0;
   var acc=(SAV&&SAV.ok)?Number(SAV.accrued||0):0;
-  var h='<div class="x-pane pb-pane"><div class="pb-bankhead">&#9670; SAVINGS DESK — 2% APY, NO LOCK-UP &#9670;</div>'
+  var h='<div class="x-pane pb-pane"><div class="pb-bankhead">&#9670; SAVINGS DESK — 2% APY, NO LOCK-UP &#9670;</div>'+pbAuthHint(SAV)
     +'<div class="pb-balrow"><span class="pb-blabel">SAVINGS BALANCE</span><span class="pb-bval">'+Math.round(bal).toLocaleString()+' XP</span></div>'
     +(acc>0?'<div class="x-note">+'+acc.toFixed(2)+' XP interest accrued since last visit. It compounds while you sleep.</div>':'')
     +'<div class="x-note">For the cautious. Staking (in XP Economy) pays more but locks your funds. Savings is always liquid.</div>'

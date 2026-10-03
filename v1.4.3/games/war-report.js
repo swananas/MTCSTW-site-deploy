@@ -19,11 +19,24 @@
 var BACKEND=window.PF_BACKEND_URL;
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+/* Friendly copy for read failures (2026-10-03): raw backend strings like
+   'missing credentials' are never shown as UI copy. */
+function wrErrCopy(e){
+  e=String(e||"");
+  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")
+    return "Could not reach Command. This callsign predates the new auth system and can't reconnect on its own — contact MTCSTW to recover it.";
+  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)
+    return "Could not reach Command — your callsign needs to reconnect. Re-claim it in Enlistment Ranks (one tap), then retry.";
+  return "Could not reach Command. The wire is down — retry in a bit.";
+}
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
-  /* Private read: warreport_latest is per-callsign (IDOR fix). */
+  /* Private read: warreport_latest is per-callsign (IDOR fix). Route through
+     the shared claim-retry GET (2026-10-03) so pre-auth callsign holders get
+     one auth_claim attempt instead of 'missing credentials' forever. */
   if(action==="warreport_latest"){
     try{
+      if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
       var _sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : "";
       if(_sec && params && !params.auth_secret) params.auth_secret=_sec;
     }catch(e){}
@@ -46,8 +59,9 @@ function paint(el,j){
     return;
   }
   if(!j||!j.ok){
-    el.innerHTML='<div class="c-err">Could not reach Command. '+
-      esc((j&&j.err)||"Network error.")+'</div>';
+    el.innerHTML='<div class="c-err">'+esc(wrErrCopy(j&&j.err))
+      +'<br><button class="c-btn" id="wrRetry">Retry connection</button></div>';
+    var rb=document.getElementById("wrRetry"); if(rb) rb.onclick=function(){ load(); };
     return;
   }
   if(!j.report){

@@ -68,7 +68,7 @@ function adminPost(gAction,params,cb){
   try{
     var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json","X-Admin-Secret":secret},body:JSON.stringify(body)},c=null,t=null;
       try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
-        t=setTimeout(function(){ try{ c.abort(); }catch(e4){} },15000); }catch(e5){}
+        t=setTimeout(function(){ try{ c.abort(); }catch(e4){} },15000); } }catch(e5){}
       o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e6){} } }; return o; })();
     fetch(BACKEND,_po)
       .then(function(r){ return r.json(); })

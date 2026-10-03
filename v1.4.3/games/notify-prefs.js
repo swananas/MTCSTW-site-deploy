@@ -254,7 +254,10 @@ function load(){
     else {
       PREFS={}; MASKED="";
       var e=String((j&&j.err)||"");
-      if(/missing credentials|unauthorized|claim unavailable/i.test(e))
+      /* 2026-10-03: also match the 'legacy_callsign' code from the 14-auth.js
+         claim-retry path — legacy callsigns need recovery copy here, not the
+         misleading "wire is down" message. */
+      if(/missing credentials|unauthorized|claim unavailable|legacy_callsign/i.test(e))
         CONTACT_ERR="Your preferences wouldn&rsquo;t load &mdash; your callsign needs to reconnect. Re-claim it in Enlistment Ranks (one tap), then reload this page.";
       else
         CONTACT_ERR="Could not reach Command to load your preferences. The wire is down &mdash; retry in a bit.";

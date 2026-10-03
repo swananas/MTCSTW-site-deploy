@@ -43,21 +43,58 @@
   }
 
   /* ---- footer injection ---- */
-  var FOOTER_SELS = 'footer, .Footer, #footer, [role="contentinfo"], .site-footer';
+  /* Store/product/privacy/terms pages render footers late and/or under
+     different markup (Squarespace commerce + system pages), so the selector
+     list is deliberately broad. */
+  var FOOTER_SEL_ARR = [
+    'footer',
+    '.Footer',
+    '#footer',
+    '#footer-sections',
+    '.Footer-inner',
+    '.Footer-blocks',
+    '.Footer-nav',
+    '[role="contentinfo"]',
+    '.site-footer',
+    '#site-footer',
+    '.footer-inner',
+    'section[class*="footer"]',
+    'section[class*="Footer"]',
+    'div[class*="Footer"]',
+    '[data-section-id*="footer" i]',
+    'section[data-section-theme] footer',
+    'section[data-section-theme][class*="footer" i]',
+    'div[data-section-theme][class*="footer" i]'
+  ];
+  /* One bad selector in a comma list makes querySelectorAll throw and kills
+     the whole lookup, so validate each selector once and keep only the
+     ones this browser accepts (guards against Selectors-4 `i`-flag or
+     quirks in older engines). */
+  var FOOTER_SELS = FOOTER_SEL_ARR.filter(function (sel) {
+    try { document.querySelectorAll(sel); return true; } catch (e) { return false; }
+  }).join(', ');
   function findFooter() {
-    try { return document.querySelector(FOOTER_SELS); } catch (e) { return null; }
+    var footers;
+    try { footers = document.querySelectorAll(FOOTER_SELS); } catch (e) { return null; }
+    if (footers && footers.length) return footers[0];
+    return null;
   }
-  function injectLink() {
-    if (document.getElementById('pf-delete-data-link')) return;
-    var footer = findFooter();
-    if (!footer) return;
+  var LINK_STYLE = 'color:#c1121f;font-weight:900;letter-spacing:0.12em;font-size:11px;text-decoration:underline;cursor:pointer;margin-left:14px;white-space:nowrap;';
+  function makeLink() {
     var a = document.createElement('a');
     a.id = 'pf-delete-data-link';
     a.href = '#';
     a.textContent = 'DELETE MY DATA';
     a.setAttribute('aria-label', 'Delete my data');
-    a.style.cssText = 'color:#c1121f;font-weight:900;letter-spacing:0.12em;font-size:11px;text-decoration:underline;cursor:pointer;margin-left:14px;white-space:nowrap;';
+    a.style.cssText = LINK_STYLE;
     a.addEventListener('click', function (e) { e.preventDefault(); openDialog(); });
+    return a;
+  }
+  function injectLink() {
+    if (done()) return;
+    var footer = findFooter();
+    if (!footer) return;
+    var a = makeLink();
     /* Append at the end of the footer content, next to the other footer links. */
     var nav = null;
     try { nav = footer.querySelector('nav, .footer-nav, .Footer-nav, [class*="nav"]'); } catch (e2) {}
@@ -143,16 +180,75 @@
     } catch (e2) {}
   }
 
-  /* ---- boot: inject now or when the footer lands ---- */
+  /* ---- boot: inject now, keep trying, watch the DOM, never be absent ----
+     Squarespace lazy-renders footers (commerce + system pages render them
+     last and sometimes very late), so:
+       1. try immediately,
+       2. poll every 500ms for up to 60s (120 tries),
+       3. watch document.body with a MutationObserver for footer nodes added
+          later (also moves the last-resort link INTO a footer if one lands),
+       4. after the poll window, if no footer ever appeared, drop the link
+          in a fixed bottom-corner position so the control is never missing.
+     All paths converge on injectLink()/placeFixed(): a single link element
+     (id pf-delete-data-link) is created once and moved, never duplicated. */
   function boot() {
     injectLink();
-    /* Squarespace lazy-renders footers; retry a few times. */
     var tries = 0;
     var iv = setInterval(function () {
       tries++;
       injectLink();
-      if (document.getElementById('pf-delete-data-link') || tries > 20) clearInterval(iv);
+      if (done() || tries >= 120) {
+        clearInterval(iv);
+        if (!done()) placeFixed();
+      }
     }, 500);
+    /* MutationObserver: catch footers added after the poll (SPA navigations,
+       lazy commerce footers, deferred system-page chrome). */
+    var obs = null;
+    try {
+      obs = new MutationObserver(function () {
+        /* If the fixed fallback is on screen and a real footer lands, move
+           the link into the footer. Otherwise just retry the injection. */
+        var f = findFooter();
+        if (f && f.id !== 'pf-delete-fixed') {
+          var link = document.getElementById('pf-delete-data-link');
+          if (link && link.parentNode && link.parentNode.id === 'pf-delete-fixed') {
+            moveIntoFooter(link, f);
+          } else {
+            injectLink();
+          }
+        } else if (!f) {
+          injectLink();
+        }
+      });
+      if (document.body) obs.observe(document.body, { childList: true, subtree: true });
+    } catch (e) {}
+  }
+  function done() {
+    return !!document.getElementById('pf-delete-data-link');
+  }
+  /* Last resort: fixed bottom-corner control, same look/behavior. */
+  function placeFixed() {
+    if (done()) return;
+    try {
+      var wrap = document.createElement('div');
+      wrap.id = 'pf-delete-fixed';
+      wrap.style.cssText = 'position:fixed;right:14px;bottom:14px;z-index:99998;background:#0a0a0a;border:1px solid #c1121f;padding:8px 10px;';
+      var a = makeLink();
+      wrap.appendChild(a);
+      document.body.appendChild(wrap);
+    } catch (e) {}
+  }
+  /* Move the fixed fallback link into a real footer when one appears. */
+  function moveIntoFooter(link, footer) {
+    try {
+      var wrap = document.getElementById('pf-delete-fixed');
+      var nav = null;
+      try { nav = footer.querySelector('nav, .footer-nav, .Footer-nav, [class*="nav"]'); } catch (e2) {}
+      if (nav) nav.appendChild(link); else footer.appendChild(link);
+      link.style.cssText = LINK_STYLE;
+      if (wrap && wrap.parentNode) wrap.parentNode.removeChild(wrap);
+    } catch (e) {}
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);

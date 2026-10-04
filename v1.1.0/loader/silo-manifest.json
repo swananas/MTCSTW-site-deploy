@@ -30,6 +30,7 @@
   "fixes/podcast.js",
   "fixes/tax.js",
   "fixes/terms.js",
-  "fixes/schema.js"
+  "fixes/schema.js",
+  "fixes/article-visibility.js"
  ]
 }

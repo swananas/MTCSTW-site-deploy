@@ -32,6 +32,7 @@ One file per game. `core/00-bus.js` is the connector layer on top.
 - JS `fixes/tax.js`
 - JS `fixes/terms.js`
 - JS `fixes/schema.js`
+- JS `fixes/article-visibility.js`
 
 ## Kill-switches
 

@@ -380,3 +380,20 @@
 .bt-st-pending{color:#fc0;border-color:#fc0;}
 .bt-st-approved{color:#0c6;border-color:#0c6;}
 .bt-st-rejected{color:#c33;border-color:#c33;}
+
+/* === KNOW YOUR ENEMY intel readability (2026-10-03) ===
+   #pf-intel was the only HQ silo whose template lacked .pf-silo, so its
+   dark .x-pane cards inherited Squarespace's dark body text (dark-on-dark
+   body copy) and its .c-tag subtitle sat in muted tan on the page's light
+   section background (washed out). The template now carries .pf-silo like
+   its siblings (dark bg + cream text); the rules below lock the in-item
+   hierarchy explicitly instead of relying on inheritance. Red/black
+   propaganda aesthetic kept — this is legibility, not a redesign. */
+#pf-intel .x-pane{color:var(--pf-cream);}
+#pf-intel .in-frame{color:var(--pf-red-bright);font-weight:700;letter-spacing:2px;margin-bottom:10px;}
+#pf-intel .in-target{color:var(--pf-cream);font-weight:700;font-size:16px;letter-spacing:1px;margin-bottom:6px;}
+#pf-intel .in-activity{color:var(--pf-cream);line-height:1.55;}
+#pf-intel .in-amount{color:var(--pf-gold);font-weight:700;letter-spacing:1px;margin-top:8px;}
+#pf-intel .in-meta{color:var(--pf-muted);font-size:12px;margin-top:6px;}
+#pf-intel .in-meta a{color:var(--pf-red-bright);font-weight:700;}
+#pf-intel .in-sub{color:var(--pf-cream);}

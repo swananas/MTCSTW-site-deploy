@@ -69,4 +69,29 @@
   if (PF && !PF.mountPoliticalHq) PF.mountPoliticalHq = mountSilos;
   mountSilos();
 
+  /* EMPTY-BOX SWEEP (2026-10-03): a content-less .pf-silo renders as a dead
+     empty black box with a red border. Collapse any .pf-silo under
+     #pf-political-hq that is PROVABLY empty — no text and no media/form/
+     interactive children. Runs after mount + late paints; every legitimate
+     silo carries its h2/c-tag/loader text from t=0, so this can only ever
+     remove a genuinely dead container, never real content. */
+  function sweepEmptySilos(){
+    try{
+      var h=document.getElementById('pf-political-hq'); if(!h) return;
+      var silos=h.querySelectorAll('.pf-silo'), n=0;
+      for(var i=0;i<silos.length;i++){
+        var s=silos[i];
+        var hasText=s.textContent.replace(/\s+/g,'').length>0;
+        var hasContent=s.querySelector('img,iframe,canvas,video,input,textarea,select,button,a')!==null;
+        if(!hasText&&!hasContent){
+          var sec=s.closest?s.closest('section'):null;
+          if(sec) sec.style.display='none'; else s.style.display='none';
+          n++;
+        }
+      }
+      if(n&&PF) PF.error('political-hq','swept '+n+' empty silo container(s)');
+    }catch(e){}
+  }
+  setTimeout(sweepEmptySilos,5000);
+
 })();

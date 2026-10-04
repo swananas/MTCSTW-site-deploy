@@ -9,9 +9,37 @@ Rules:
 - Never invent URLs. Links carry their verified status.
 - New members get provisional propaganda scores (7.6-9.8, no 10s), flagged.
 """
-import json, re, os
+import json, re, os, sys, argparse
+
+# ---- Regen safety (2026-10-04, creator audit): this script REGENERATES the
+# master from scratch. Hand-patches applied directly to slr-master-db.json
+# (e.g. ipostwhenifeelhot 26K bio, MTCSTW 62/8M+ copy, instagram.com/propfac,
+# SD Patreon retagged unverified, thelastcookout clean URLs) are REVERTED by
+# a regen. The diff gate at the bottom refuses to write when the regen
+# differs from the committed master unless --force (explicit approval).
+ap = argparse.ArgumentParser(description='Build src/data/slr-master-db.json')
+ap.add_argument('--force', '-y', action='store_true',
+                help='explicit approval: overwrite the committed master even when the regen diffs')
+ap.add_argument('--allow-missing-seo', action='store_true',
+                help='explicit approval: proceed when the out-of-repo SEO meta file is absent '
+                     '(seo_description left empty for all members)')
+ARGS = ap.parse_args()
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+
+# Served frontend version — the generated DB snapshot must land in the
+# SERVED tree. (Was: stale v1.4.2/ path; the site serves v1.4.3/.)
+# Bump together with the site version.
+SERVED_VERSION = 'v1.4.3'
+
+# Out-of-repo SEO enrichment source. Deliberately outside the repo
+# (produced by the meta-description workflow). A missing file used to fail
+# SILENTLY (empty seo_description for all 62) — now it fails LOUDLY unless
+# --allow-missing-seo is passed (explicit, logged).
+SEO_META_PATH = os.path.normpath(os.path.join(
+    HERE, '..', '..', '..',
+    'goals', 'propaganda-factory-website-rebuild', 'files',
+    'meta_descriptions.json'))
 db41 = json.load(open(os.path.join(HERE, 'creators-db.json')))
 cands = json.load(open(os.path.join(HERE, 'slr-missing-candidates.json')))
 scrape_path = os.path.join(HERE, 'catalog-scrape.json')
@@ -228,14 +256,25 @@ out = {
     "members": members,
 }
 # ---- SEO enrichment (2026-10-02): titles, descriptions, alt text, freshness ----
+# NOTE: meta_descriptions.json lives OUTSIDE the repo (see SEO_META_PATH).
+# A missing file used to fail SILENTLY — every member got an empty
+# seo_description and nobody noticed. Now: LOUD failure by default;
+# --allow-missing-seo documents the fallback (explicit, logged).
 _seo_metas = {}
-try:
-    _seo_metas = {m['slug']: m['meta_description'] for m in
-                  json.load(open(os.path.join(os.path.dirname(HERE), '..', '..',
-                      'goals', 'propaganda-factory-website-rebuild', 'files',
-                      'meta_descriptions.json')))}
-except Exception:
-    pass
+if os.path.exists(SEO_META_PATH):
+    try:
+        _seo_metas = {m['slug']: m['meta_description'] for m in
+                      json.load(open(SEO_META_PATH))}
+    except Exception as e:
+        sys.exit("FATAL: could not parse SEO meta file %s: %s" % (SEO_META_PATH, e))
+elif ARGS.allow_missing_seo:
+    print("WARNING: SEO meta file missing (%s); proceeding with EMPTY "
+          "seo_description for all members (--allow-missing-seo)." % SEO_META_PATH)
+else:
+    sys.exit(
+        "FATAL: SEO meta file not found: %s\n"
+        "  A regen without it would silently blank seo_description for all 62 members.\n"
+        "  Pass --allow-missing-seo to proceed anyway (explicit, logged)." % SEO_META_PATH)
 for _m in members:
     _name = _m.get('name', '')
     _slug = _m.get('slug', '')
@@ -248,7 +287,65 @@ for _m in members:
         _cf = _cf[:70].rsplit(' ', 1)[0] + '...'
     _m['image_alt'] = f"{_name}, {_cf} — Sick Left Radicals" if _cf else f"{_name} — Sick Left Radicals creator"
     _m['content_updated'] = '2026-10-02'
+# ---- DIFF GATE (2026-10-04): the regen must produce zero unexpected diffs
+# vs the committed master. Any diff is treated as a probable hand-patch
+# that the regen would revert — the script prints a per-field summary and
+# refuses to write. --force / -y is the explicit-approval escape hatch. ----
+def _norm(o):
+    return json.dumps(o, ensure_ascii=False, sort_keys=True)
+
+def _diff_summary(regen, committed, limit=25):
+    """Per-field diff of regen vs committed master. Returns (lines, n_members)."""
+    lines, n = [], 0
+    cm = {m['slug']: m for m in committed.get('members', [])}
+    rm = {m['slug']: m for m in regen.get('members', [])}
+    if set(cm) != set(rm):
+        lines.append("  slug set changed: only-in-committed=%s only-in-regen=%s"
+                     % (sorted(set(cm) - set(rm)), sorted(set(rm) - set(cm))))
+    for slug in sorted(set(cm) & set(rm)):
+        a, b = cm[slug], rm[slug]
+        if a == b:
+            continue
+        n += 1
+        if n > limit:
+            continue
+        lines.append("  [%s]" % slug)
+        for k in sorted(set(a) | set(b)):
+            if a.get(k) != b.get(k):
+                va = json.dumps(a.get(k), ensure_ascii=False)[:160]
+                vb = json.dumps(b.get(k), ensure_ascii=False)[:160]
+                lines.append("    %s:\n      committed: %s\n      regen:     %s" % (k, va, vb))
+    if n > limit:
+        lines.append("  ... and %d more member(s) with diffs" % (n - limit))
+    if committed.get('meta') != regen.get('meta'):
+        lines.append("  meta committed: %s"
+                     % json.dumps(committed.get('meta'), ensure_ascii=False)[:200])
+        lines.append("  meta regen:     %s"
+                     % json.dumps(regen.get('meta'), ensure_ascii=False)[:200])
+    return lines, n
+
 out_path = os.path.join(HERE, 'slr-master-db.json')
+if os.path.exists(out_path):
+    committed = json.load(open(out_path))
+    if _norm(committed) != _norm(out):
+        diff_lines, n_members = _diff_summary(out, committed)
+        print("DIFF GATE: regen differs from the committed master "
+              "(%d member record(s) + meta check). REFUSING TO WRITE." % n_members)
+        print("  These diffs are probably hand-patches a regen would revert:")
+        for dl in diff_lines:
+            print(dl)
+        if not ARGS.force:
+            print("\n  No files were written. Re-run with --force / -y for EXPLICIT "
+                  "APPROVAL to overwrite, or sync the hand-patches into this "
+                  "script's source inputs first.")
+            sys.exit(1)
+        print("\n  --force given: EXPLICIT APPROVAL recorded — overwriting the "
+              "committed master.")
+    else:
+        print("DIFF GATE: regen is identical to the committed master. Writing.")
+else:
+    print("DIFF GATE: no committed master found (first build) — writing initial output.")
+
 json.dump(out, open(out_path, 'w'), indent=2, ensure_ascii=False)
 print(f"wrote {out_path}: {len(members)} members, scrape overlay: {bool(scrape)}")
 print("new slugs:", ", ".join(sorted(slugify(c.get('tiktok','')) for c in cands['candidates'])))
@@ -258,9 +355,11 @@ print("new slugs:", ", ".join(sorted(slugify(c.get('tiktok','')) for c in cands[
 # populate PF.ROSTER / PF.slrAll() synchronously at load (no async race for
 # the existing synchronous game consumers). The JSON above stays the source
 # of truth; rebuild after any edit.
+# 2026-10-04: writes to the SERVED tree (was: stale v1.4.2/ path). Both
+# writes are covered by the diff gate above — a gated regen never half-writes.
 data_js = ("/* GENERATED by src/data/build-master-db.py — do not hand-edit. "
            "Rebuild after editing slr-master-db.json. */\n"
            "window.PF_SLR_DB_SNAPSHOT = " + json.dumps(out, ensure_ascii=False) + ";\n")
-data_path = os.path.normpath(os.path.join(HERE, '..', '..', 'v1.4.2', 'core', '07-slr-db-data.js'))
+data_path = os.path.normpath(os.path.join(HERE, '..', '..', SERVED_VERSION, 'core', '07-slr-db-data.js'))
 open(data_path, 'w').write(data_js)
 print(f"wrote {data_path} ({len(data_js)//1024} KB)")

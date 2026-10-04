@@ -57,7 +57,9 @@ var CORE_FILES = [
   'core/15-seo.js',
   'core/campaign-data.js',
   'core/17-nuke-strip.js',
-  'core/16-footer.js'
+  'core/16-footer.js',
+  /* crossnav: persistent 9-page cross-link strip + page CTAs (all pages). */
+  'core/19-crossnav.js'
 ];
 
 var BUNDLES = {
@@ -92,7 +94,9 @@ var BUNDLES = {
     'core/18-footer-deps.js',
     'core/14-auth.js',
     'core/17-nuke-strip.js',
-    'core/16-footer.js'
+    'core/16-footer.js',
+    /* crossnav: persistent 9-page strip on v1.1.0-branch pages too. */
+    'core/19-crossnav.js'
   ]
 };
 

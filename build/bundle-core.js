@@ -75,6 +75,21 @@ var BUNDLES = {
     'games/notify.js',
     'core/06-pinups.js',
     'core/share-image.js'
+  ],
+  /* DEFECT 1 (2026-10-03): /store, /privacy, /terms and every other non-v2
+     page route to the v1.1.0 silo set, which carries no footer chrome — the
+     DELETE MY DATA link (16-footer) and the NUKE meter / RUN MISSION bar
+     (17-nuke-strip) shipped only inside bundle-core.js (v2 pages). This slim
+     bundle carries just the chrome plus its minimum runtime (PF bus, backend
+     URL + identity helpers, authPost) so the loader can append it to the
+     v1.1.0 branch. Double-load safe on v2 pages (00-bus/14-auth/16/17 all
+     guard on existing state), but the loader only requests it off-v2. */
+  'core/bundle-footer-chrome': [
+    'core/00-bus.js',
+    'core/18-footer-deps.js',
+    'core/14-auth.js',
+    'core/17-nuke-strip.js',
+    'core/16-footer.js'
   ]
 };
 

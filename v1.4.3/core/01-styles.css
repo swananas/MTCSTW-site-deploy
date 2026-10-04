@@ -373,8 +373,9 @@ body:has(#pf-nuke-stick:not([hidden])) #pf-do-mini{bottom:calc(56px + env(safe-a
    which spans the block across the full grid and beats the static grid-area
    rule. The editor is off-limits, so pages/page-mount.js stamps .pf-fe-full
    on the block's .fe-block wrapper ancestor; this rule forces it to full
-   content width. Scoped: the class is only ever stamped on /economy's
-   mount — no other page's layout is touched.
+   content width. Generalized 2026-10-04: stamped on EVERY v2 page's PF mount
+   divs (FE_MOUNT_IDS registry in pages/page-mount.js) — any current or
+   future page with a narrow Code block. KILL: ?pf_off=fe-widen.
    ============================================================================ */
 .pf-fe-full{width:100%!important;max-width:none!important;left:0!important;grid-column:1/-1!important;}
 

@@ -33,6 +33,26 @@ try{
   }
 }catch(e){}
 
+/* First-touch CREATOR attribution: ?creator=<slug> from the SLR catalog
+   "COPY ENLIST LINK" / BRING THEM IN links. Kept in its own key with its own
+   first-touch semantics — the ?ref=<callsign> leg above is untouched and both
+   params can coexist on one device (enlistUrl appends both). Slugs are
+   validated to the roster charset so a junk param can never poison storage. */
+var LS_CREATOR='pf_creator_ref_v1';
+function storedCreatorRef(){
+  try{ return String(localStorage.getItem(LS_CREATOR)||'').toLowerCase().trim(); }catch(e){ return ''; }
+}
+try{
+  var cq=(location.search||'').match(/[?&]creator=([^&]+)/);
+  if(cq&&cq[1]){
+    var cr=decodeURIComponent(cq[1].replace(/\+/g,' ')).toLowerCase().trim();
+    if(/^[a-z0-9_-]{1,40}$/.test(cr)&&!storedCreatorRef()){
+      try{ localStorage.setItem(LS_CREATOR,cr); }catch(e){}
+    }
+  }
+}catch(e){}
+PF.storedCreatorRef=storedCreatorRef;
+
 /* PF.shareUrl(url) — every shared link carries the sharer's callsign so
    arrivals attribute back. Used by share-image.js, do-meter, vote cards. */
 PF.shareUrl=function(url){
@@ -75,6 +95,69 @@ document.addEventListener('pf-callsign-claimed',function(e){
   }
   setTimeout(pollCount, 4000); /* the claimer may also be a recruiter — refresh */
 });
+
+/* Creator attribution: when a creator-referred visitor enlists, log a
+   recruit_log row with meta 'recruiter:creator:<slug>' — pre-attributing the
+   referral the BRING THEM IN / COPY ENLIST LINK flow promised. Separate
+   once-flag from the callsign leg; the 'creator:' prefix means backend
+   recruit_count polls (which match 'recruiter:<callsign>' from the start)
+   never credit it to a callsign, and the callsign leg above is untouched. */
+var creatorLoggedOnce=false;
+try{ creatorLoggedOnce=!!localStorage.getItem('pf_creator_recruit_logged_v1'); }catch(e){}
+document.addEventListener('pf-callsign-claimed',function(){
+  var slug=storedCreatorRef();
+  if(slug&&!creatorLoggedOnce){
+    creatorLoggedOnce=true;
+    try{ localStorage.setItem('pf_creator_recruit_logged_v1','1'); }catch(e2){}
+    logRecruit('creator:'+slug);
+    try{ document.dispatchEvent(new CustomEvent('pf-creator-referred',{detail:{creator:slug}})); }catch(e3){}
+  }
+});
+
+/* /request-access: a creator-referred arrival sees their reference confirmed
+   ("with <name> as your reference"). Name resolves from the SLR roster —
+   synchronously when the snapshot is bundled, or via the lazy loader on
+   slim-core pages (falls back to the raw slug if the DB never resolves). */
+function onRequestAccess(){
+  try{ return /(^|\/)request-access(\/|$)/.test(location.pathname||''); }catch(e){ return false; }
+}
+function creatorNotice(){
+  if(!onRequestAccess()) return;
+  var slug=storedCreatorRef();
+  if(!slug||document.getElementById('pf-creator-ref')) return;
+  function escH(s){
+    return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function paint(name){
+    if(document.getElementById('pf-creator-ref')) return;
+    try{
+      var label=String(name||slug), d=document.createElement('div');
+      d.id='pf-creator-ref';
+      var top='0px';
+      try{ if(document.getElementById('pf-ref-banner')) top='38px'; }catch(e){}
+      d.style.cssText='position:fixed;top:'+top+';left:0;right:0;z-index:9989;'+
+        'background:#0d0d0d;color:#f5ead6;border-bottom:3px solid #c1121f;'+
+        'font:bold 13px/1.4 monospace;letter-spacing:1px;text-align:center;'+
+        'padding:10px 12px;box-shadow:0 2px 18px rgba(0,0,0,.5);';
+      d.innerHTML='&#9873; RECRUITED BY '+escH(label.toUpperCase())+' &mdash; '+
+        'enlist with '+escH(label)+' as your reference.';
+      document.body.appendChild(d);
+    }catch(e2){}
+  }
+  var m=null;
+  try{ m=(PF&&typeof PF.slrMember==='function')?PF.slrMember(slug):null; }catch(e){}
+  if(m&&m.name){ paint(m.name); return; }
+  try{
+    if(PF&&typeof PF.ensureSLRDB==='function'){
+      PF.ensureSLRDB().then(function(){
+        var m2=null;
+        try{ m2=PF.slrMember(slug); }catch(e){}
+        paint((m2&&m2.name)||null);
+      });
+    } else { paint(null); }
+  }catch(e){ paint(null); }
+}
 
 /* Recruit-count poll: JSONP recruit_count -> dispatch pf-recruit-credited
    with the NEW recruits only. Cached 6h; the ledger keys the award on the
@@ -127,14 +210,43 @@ function banner(){
   document.getElementById('pf-ref-go').onclick=function(ev){
     ev.preventDefault();
     var t=document.getElementById('pf-orders');
-    if(t){ t.scrollIntoView({behavior:'smooth',block:'start'}); }
-    setTimeout(function(){
-      var tg=document.getElementById('oClaimToggle');
-      if(tg){ try{ tg.click(); }catch(e){} }
-    },900);
+    var tg=document.getElementById('oClaimToggle');
+    if(t&&tg){
+      t.scrollIntoView({behavior:'smooth',block:'start'});
+      setTimeout(function(){
+        var tg2=document.getElementById('oClaimToggle');
+        if(tg2){ try{ tg2.click(); }catch(e){} }
+      },900);
+    } else {
+      /* Off-homepage: the enlist widget (#pf-orders / #oClaimToggle) only
+         exists on the homepage, so a tap here was a dead click. Route to
+         the homepage enlist section and auto-open the claim UI on arrival —
+         the stored ref survives in localStorage, so attribution is intact. */
+      try{ sessionStorage.setItem('pf_ref_autoclaim','1'); }catch(e2){}
+      try{ location.href=new URL('/#pf-orders',location.origin).toString(); }
+      catch(e3){ location.href='/#pf-orders'; }
+    }
     return false;
   };
 }
-if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',banner);
-else setTimeout(banner,800);
+
+/* Off-homepage ENLIST routing, arrival leg: set by the banner above before
+   navigating to /#pf-orders. Auto-opens the claim UI once the homepage
+   widget mounts (single-use, same tab, ~20s backstop). */
+try{
+  if(sessionStorage.getItem('pf_ref_autoclaim')==='1'){
+    sessionStorage.removeItem('pf_ref_autoclaim');
+    var _acTries=0;
+    (function _autoClaim(){
+      var tg=null;
+      try{ tg=document.getElementById('oClaimToggle'); }catch(e){}
+      if(tg){ try{ tg.click(); }catch(e2){} return; }
+      if(++_acTries<40) setTimeout(_autoClaim,500);
+    })();
+  }
+}catch(e){}
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',banner);
+  document.addEventListener('DOMContentLoaded',creatorNotice);
+} else { setTimeout(banner,800); setTimeout(creatorNotice,800); }
 })();

@@ -446,7 +446,7 @@ var DROPS=[
 {t:"ORDER",h:"Put your politics in the group chat.",b:"One message. \u2018Did you know CEOs make 290x what we do?\u2019 Then watch."},
 {t:"TRUTH",h:"\u2018There is no alternative\u2019 is the most successful propaganda ever made.",b:"There are always alternatives. They just don't profit the people saying that."},
 {t:"ORDER",h:"Support one striking worker this week.",b:"Walk a picket line, contribute to a strike fund, or just bring coffee. Show up."},
-{t:"TRUTH",h:"The network is the message.",b:"{N} creators. 5 million reach. One machine. You're already inside it \u2014 act like it."},
+{t:"TRUTH",h:"The network is the message.",b:"8M+ reach. One machine. You're already inside it \u2014 act like it."},
 {t:"ORDER",h:"Bring one friend into the ranks.",b:"Send them this page. The machine grows one recruit at a time."}
 ];
 function dropChi(){ var d=new Date(new Date().toLocaleString("en-US",{timeZone:"America/Chicago"})); d.setHours(0,0,0,0); return d; }
@@ -531,7 +531,7 @@ function dropPaintPoster(done){
     var y=170;
     x.fillStyle="#f5ead6"; x.font="700 34px Arial,sans-serif";
     x.fillText("\u2605 THE PROPAGANDA FACTORY \u2605",W/2,y); y+=108;
-    x.fillStyle="#c1121f"; x.font="900 60px \"Arial Black\",Arial,sans-serif";
+    x.fillStyle="#c1121f"; x.font="900 60px \\\"Arial Black\\\",Arial,sans-serif";
     x.fillText("\u2605 THE DAILY DROP \u2605",W/2,y); y+=92;
     x.fillStyle="#f5ead6"; x.font="700 38px Arial,sans-serif";
     x.fillText("DAY "+DROP_N+" OF THE 32-DAY OFFENSIVE",W/2,y); y+=84;
@@ -539,7 +539,7 @@ function dropPaintPoster(done){
     var tw=x.measureText(tag).width+80;
     x.fillStyle="#c1121f"; x.fillRect(W/2-tw/2,y-46,tw,66);
     x.fillStyle="#ffffff"; x.fillText(tag,W/2,y); y+=104;
-    x.fillStyle="#f5ead6"; x.font="900 52px \"Arial Black\",Arial,sans-serif";
+    x.fillStyle="#f5ead6"; x.font="900 52px \\\"Arial Black\\\",Arial,sans-serif";
     dropWrap(x,head,W-170).slice(0,5).forEach(function(l){ x.fillText(l,W/2,y); y+=64; });
     y+=22;
     x.fillStyle="#c9bfa8"; x.font="400 38px Arial,sans-serif";
@@ -550,9 +550,9 @@ function dropPaintPoster(done){
       x.fillText("YOUR STREAK: "+DROP_S.streak+(DROP_S.streak===1?" DAY":" DAYS"),W/2,y);
     }
     /* Footer: MTCSTW.COM + JOIN THE FIGHT. (red, bold) — the share-image CTA standard. */
-    x.fillStyle="#c1121f"; x.font="900 46px \"Arial Black\",Arial,sans-serif";
+    x.fillStyle="#c1121f"; x.font="900 46px \\\"Arial Black\\\",Arial,sans-serif";
     x.fillText("MTCSTW.COM",W/2,H-168);
-    x.font="900 44px \"Arial Black\",Arial,sans-serif";
+    x.font="900 44px \\\"Arial Black\\\",Arial,sans-serif";
     x.fillText("JOIN THE FIGHT.",W/2,H-108);
     x.fillStyle="#c9bfa8"; x.font="400 30px Arial,sans-serif";
     try{ x.fillText(new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}).toUpperCase(),W/2,H-58); }catch(e){}

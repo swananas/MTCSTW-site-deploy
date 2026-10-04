@@ -375,11 +375,24 @@ function renderCellSlim(el,s){
   el.innerHTML=html;
   var errEl=document.getElementById("cActErr");
   document.getElementById("cCodeShow").onclick=function(){
-    var code=c.invite_code;
+    var code=String(c.invite_code||"");
+    function fallback(){
+      /* Clipboard write blocked (permissions / non-secure context): render
+         the code as selectable text instead of a false "copied" toast. */
+      try{
+        errEl.innerHTML="";
+        var sp=document.createElement("span");
+        sp.textContent="Copy blocked \u2014 long-press to copy your code: "+code;
+        sp.style.cssText="user-select:all;-webkit-user-select:all;cursor:text;";
+        errEl.appendChild(sp);
+      }catch(e2){ toast("Cell code: "+code); }
+    }
     try{
-      if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(code); toast("Code copied: "+code); }
-      else { toast("Cell code: "+code); }
-    }catch(e){ toast("Cell code: "+code); }
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(code).then(function(){ toast("Code copied: "+code); },fallback);
+      }
+      else { fallback(); }
+    }catch(e){ fallback(); }
   };
   var ci=document.getElementById("cCheckin");
   if(ci) ci.onclick=function(){
@@ -430,7 +443,7 @@ function drawRecruitPoster(c){
   x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(44,44,W-88,H-88);
   var y=118;
   center("\u2605 THE PROPAGANDA FACTORY \u2605",y,"700 32px Arial,sans-serif","#c1121f"); y+=76;
-  var nameF="900 82px \"Arial Black\",Arial,sans-serif";
+  var nameF='900 82px "Arial Black",Arial,sans-serif';
   wrapLines(String(c.name||"MY CELL").toUpperCase(),nameF,W-170,2).forEach(function(l){
     center(l,y,nameF,"#c1121f"); y+=96; });
   y+=18;
@@ -439,13 +452,13 @@ function drawRecruitPoster(c){
     center(l,y,tagF,"#f5ead6"); y+=48; });
   var streak=Number(c.streak)||0;
   y+=26;
-  center("\u26A1 "+streak+"-DAY STREAK \u26A1",y,"900 40px \"Arial Black\",Arial,sans-serif","#c1121f"); y+=74;
+  center("\u26A1 "+streak+"-DAY STREAK \u26A1",y,'900 40px "Arial Black",Arial,sans-serif',"#c1121f"); y+=74;
   center("INVITE CODE",y,"700 30px Arial,sans-serif","#c9bfa8"); y+=16;
   var code=String(c.invite_code||"").toUpperCase()||"???";
   x.strokeStyle="#c1121f"; x.lineWidth=6;
   x.strokeRect(W/2-280,y,560,150);
   x.fillStyle="#141010"; x.fillRect(W/2-280,y,560,150);
-  center(code,y+106,"900 96px \"Arial Black\",Arial,sans-serif","#c1121f");
+  center(code,y+106,'900 96px "Arial Black",Arial,sans-serif',"#c1121f");
   y+=150+52;
   var lnF="400 34px Arial,sans-serif";
   wrapLines("Enter this code on mtcstw.com/cells to wire in.",lnF,W-210,2).forEach(function(l){
@@ -454,12 +467,12 @@ function drawRecruitPoster(c){
     center(l,y,lnF,"#c9bfa8"); y+=50; });
   y+=44;
   var cta="JOIN MY CELL";
-  x.font="900 44px \"Arial Black\",Arial,sans-serif";
+  x.font='900 44px "Arial Black",Arial,sans-serif';
   var tw=x.measureText(cta).width+110;
   x.fillStyle="#c1121f"; x.fillRect(W/2-tw/2,y-58,tw,94);
-  center(cta,y+8,"900 44px \"Arial Black\",Arial,sans-serif","#ffffff");
+  center(cta,y+8,'900 44px "Arial Black",Arial,sans-serif',"#ffffff");
   y=H-160;
-  center("MTCSTW.COM",y,"900 48px \"Arial Black\",Arial,sans-serif","#c1121f");
+  center("MTCSTW.COM",y,'900 48px "Arial Black",Arial,sans-serif',"#c1121f");
   return cv;
 }
 function renderCell(el,s){
@@ -606,11 +619,24 @@ function renderCell(el,s){
     }catch(e){ errEl.textContent="Share unavailable here."; }
   };
   document.getElementById("cCodeShow").onclick=function(){
-    var code=c.invite_code;
+    var code=String(c.invite_code||"");
+    function fallback(){
+      /* Clipboard write blocked (permissions / non-secure context): render
+         the code as selectable text instead of a false "copied" toast. */
+      try{
+        errEl.innerHTML="";
+        var sp=document.createElement("span");
+        sp.textContent="Copy blocked \u2014 long-press to copy your code: "+code;
+        sp.style.cssText="user-select:all;-webkit-user-select:all;cursor:text;";
+        errEl.appendChild(sp);
+      }catch(e2){ toast("Cell code: "+code); }
+    }
     try{
-      if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(code); toast("Code copied: "+code); }
-      else { toast("Cell code: "+code); }
-    }catch(e){ toast("Cell code: "+code); }
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(code).then(function(){ toast("Code copied: "+code); },fallback);
+      }
+      else { fallback(); }
+    }catch(e){ fallback(); }
   };
   var ci=document.getElementById("cCheckin");  if(ci) ci.onclick=function(){
     errEl.textContent="";

@@ -256,7 +256,22 @@
     var scripts = root.querySelectorAll('script');
     for (var i = 0; i < scripts.length; i++) {
       try { (0, eval)(scripts[i].textContent); }
-      catch (e) { err('inner script failed in ' + label, e); }
+      catch (e) {
+        err('inner script failed in ' + label, e);
+        /* TERMINAL STATE (2026-10-04): a dead inner script must never leave
+           its loading skeleton spinning forever (see the cells.js 'Arial'
+           syntax error). Swap loading placeholders for an explicit error. */
+        try {
+          var loads = root.querySelectorAll('.c-load,.hq-load');
+          for (var j = 0; j < loads.length; j++) {
+            var d = document.createElement('div');
+            d.style.cssText = 'border:2px solid #c1121f;background:#1a0505;color:#f5f0e1;padding:12px;margin:8px 0;font-family:Arial,sans-serif;font-size:14px;';
+            d.innerHTML = 'This widget failed to start. ' +
+              '<button style="background:#c1121f;color:#fff;border:0;font-weight:700;padding:8px 14px;cursor:pointer;" onclick="location.reload()">Reload</button>';
+            if (loads[j].parentNode) loads[j].parentNode.replaceChild(d, loads[j]);
+          }
+        } catch (e2) {}
+      }
       scripts[i].remove();
     }
   }

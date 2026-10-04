@@ -600,12 +600,27 @@ function renderPrestige(st){
   var go=document.getElementById("pGo");
   if(go) go.onclick=function(){ pConfirm(st); };
 }
+/* In-modal error line for the prestige confirm: the modal must stay open
+   until the backend verdict arrives, so failures render here instead of a
+   toast after the modal is gone. */
+function prestigeErrEl(){
+  var e=document.getElementById("pErr");
+  if(!e){
+    e=document.createElement("div"); e.id="pErr";
+    e.style.cssText="color:#ff8080;font-size:13px;line-height:1.5;margin:0 0 16px;display:none;";
+    var cf=document.getElementById("pConfirm");
+    if(cf&&cf.parentNode&&cf.parentNode.parentNode) cf.parentNode.parentNode.insertBefore(e,cf.parentNode);
+  }
+  return e;
+}
+function showPrestigeErr(msg){ var e=prestigeErrEl(); if(e){ e.textContent=msg; e.style.display="block"; } }
+function hidePrestigeErr(){ var e=document.getElementById("pErr"); if(e) e.style.display="none"; }
 function pConfirm(st){
   var old=document.getElementById("pf-prestige-modal"); if(old) old.remove();
   var m=document.createElement("div"); m.id="pf-prestige-modal";
   m.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;";
   var box=document.createElement("div");
-  box.style.cssText="background:#0d0d0d;border:4px solid #ff5a00;max-width:440px;width:100%;padding:28px 24px;text-align:center;font-family:Arial,sans-serif;";
+  box.style.cssText="background:#0d0d0d;border:4px solid #ff5a00;max-width:440px;width:100%;box-sizing:border-box;padding:28px 24px;text-align:center;font-family:Arial,sans-serif;";
   box.innerHTML='<div style="color:#ff5a00;font-family:\\'Arial Black\\',Arial,sans-serif;font-size:22px;letter-spacing:3px;margin-bottom:12px;">PRESTIGE &#9733;'+escH(st.next_badge)+'</div>'
     +'<div style="color:#f5ead6;font-size:14px;line-height:1.6;margin-bottom:8px;">You are about to burn <b>'+Number(st.xp||0).toLocaleString()+' XP</b> and fall from <b>'+escH(st.rank)+'</b> back to <b>SYMPATHIZER</b>.</div>'
     +'<div style="color:#c9bfa8;font-size:13px;line-height:1.6;margin-bottom:20px;">In return: <b style="color:#ff5a00">'+Number(st.benefits.daily_cap_next).toLocaleString()+' XP/day</b> cap, <b style="color:#ff5a00">&times;'+st.benefits.bank_deposit_mult_next+'</b> bank deposits, and the <b style="color:#ff5a00">&#9733;'+escH(st.next_badge)+'</b> badge next to your name. Forever.</div>'
@@ -614,22 +629,28 @@ function pConfirm(st){
     +'<button id="pConfirm" style="background:#ff5a00;color:#0d0d0d;border:none;font-family:\\'Arial Black\\',Arial,sans-serif;font-size:14px;letter-spacing:2px;padding:12px 24px;cursor:pointer;">BURN IT</button>'
     +'</div>';
   m.appendChild(box);
-  m.onclick=function(e){ if(e.target===m) m.remove(); };
+  var burning=false; /* while the burn is in flight the modal cannot be dismissed */
+  m.onclick=function(e){ if(e.target===m&&!burning) m.remove(); };
   document.body.appendChild(m);
-  document.getElementById("pCancel").onclick=function(){ m.remove(); };
+  document.getElementById("pCancel").onclick=function(){ if(!burning) m.remove(); };
   document.getElementById("pConfirm").onclick=function(){
     var cBtn=document.getElementById("pConfirm");
-    cBtn.disabled=true; cBtn.textContent="BURNING...";
+    burning=true; cBtn.disabled=true; cBtn.textContent="BURNING...";
+    hidePrestigeErr();
     pPost(function(j){
-      m.remove();
-      var el=document.getElementById("pBody");
+      burning=false;
       if(j&&j.ok){
+        /* Success: only NOW may the modal close. */
+        m.remove();
         try{ if(window.PF&&PF.toast) PF.toast("PRESTIGE "+j.new_prestige_level+" — reborn at zero. Climb again."); }catch(e){}
         /* Reset the device-local widget XP too (fresh climb). */
         try{ var s=load(); s.xp=0; s.got={}; save(s); }catch(e2){}
         loadPrestige(); render();
       } else {
-        try{ if(window.PF&&PF.toast) PF.toast("Prestige failed: "+((j&&j.err)||"unknown")); }catch(e){}
+        /* Failure: keep the modal open and show the error in-modal — the
+           user must not have to re-do an irreversible XP burn. */
+        showPrestigeErr("Prestige failed: "+((j&&j.err)||"unknown")+" — your XP is untouched. Check the connection and hit BURN IT again.");
+        cBtn.disabled=false; cBtn.textContent="BURN IT";
         loadPrestige();
       }
     });

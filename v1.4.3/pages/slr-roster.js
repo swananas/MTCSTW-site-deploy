@@ -67,7 +67,7 @@
       + '<div style="text-align:center;margin-bottom:0.4rem;font-size:0.8rem;letter-spacing:0.3em;color:' + RED + ';font-weight:700;">THE PROPAGANDA FACTORY</div>'
       + '<h1 style="text-align:center;color:' + CREAM + ';font-size:2.2rem;font-weight:900;letter-spacing:0.06em;margin:0 0 0.4rem;font-family:\'Helvetica Neue\',Arial,sans-serif;">SICK LEFT RADICALS</h1>'
       + '<div class="pf-slr-count" style="text-align:center;color:' + MUTED + ';font-size:0.95rem;margin-bottom:1.4rem;">'
-      + members.length + ' affiliated propagandists · <span style="color:' + CREAM + ';font-weight:700;">' + totalFollowers(members) + '</span> combined reach</div>'
+      + members.length + ' affiliated propagandists · <span style="color:' + CREAM + ';font-weight:700;">' + totalFollowers(members) + '</span>&nbsp;combined reach</div>'
       + '<div style="max-width:520px;margin:0 auto 1.8rem;">'
       + '<input id="pf-slr-search" type="search" placeholder="Search the roster…" autocomplete="off"'
       + ' style="width:100%;padding:0.8rem 1rem;background:#141414;border:2px solid ' + RED + ';color:' + CREAM + ';font-size:1rem;font-family:inherit;box-sizing:border-box;">'

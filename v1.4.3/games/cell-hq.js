@@ -214,7 +214,7 @@
     '.hq-btn.ghost{background:#1c1c1c;border:2px solid #c1121f}' +
     '.hq-btn.sm{padding:6px 10px;font-size:12px}' +
     '.hq-btn:disabled{opacity:.45;cursor:default}' +
-    '.hq-in{background:#0a0a0a;color:#f5f0e6;border:2px solid #444;padding:9px 10px;font-size:14px;margin:4px 4px 4px 0;max-width:100%}' +
+    '.hq-in{background:#0a0a0a;color:#f5f0e6;border:2px solid #444;padding:9px 10px;font-size:16px;margin:4px 4px 4px 0;max-width:100%}' +
     '.hq-load{padding:22px;text-align:center;opacity:.75;font-style:italic}' +
     '.hq-err{border:2px solid #c1121f;background:#1a0505;padding:12px;margin:8px 0}' +
     '.hq-err .hq-btn{margin-top:8px}' +
@@ -1198,5 +1198,14 @@
   });
 
   /* ---------- boot ---------- */
-  render();
+  /* TERMINAL STATE (2026-10-04): the pane must never sit on its loading
+     text if boot throws — render the explicit HQ error panel instead. */
+  try { render(); }
+  catch (be) {
+    try {
+      var bp = pane();
+      if (bp) bp.innerHTML = netErr();
+      if (window.PF) PF.error('cell-hq', 'boot failed :: ' + (be && be.message || be));
+    } catch (be2) {}
+  }
 })();

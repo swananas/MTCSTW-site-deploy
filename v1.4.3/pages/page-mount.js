@@ -124,7 +124,24 @@
     var scripts = root.querySelectorAll('script');
     for (var i = 0; i < scripts.length; i++) {
       try { (0, eval)(scripts[i].textContent); }
-      catch (e) { err('inner script failed in ' + label, e); }
+      catch (e) {
+        err('inner script failed in ' + label, e);
+        /* TERMINAL STATE (2026-10-04): a dead inner script must never leave
+           its loading skeleton spinning forever — e.g. the cells.js 'Arial'
+           syntax error froze "Raising the cell network…" and the cell
+           leaderboard on "Loading…" with no error path. Swap any loading
+           placeholders in this section for an explicit error + reload. */
+        try {
+          var loads = root.querySelectorAll('.c-load,.hq-load');
+          for (var j = 0; j < loads.length; j++) {
+            var d = document.createElement('div');
+            d.style.cssText = 'border:2px solid #c1121f;background:#1a0505;color:#f5f0e1;padding:12px;margin:8px 0;font-family:Arial,sans-serif;font-size:14px;';
+            d.innerHTML = 'This widget failed to start. ' +
+              '<button style="background:#c1121f;color:#fff;border:0;font-weight:700;padding:8px 14px;cursor:pointer;" onclick="location.reload()">Reload</button>';
+            if (loads[j].parentNode) loads[j].parentNode.replaceChild(d, loads[j]);
+          }
+        } catch (e2) {}
+      }
       scripts[i].remove();
     }
   }
@@ -173,34 +190,64 @@
   }
 
   var mounted = {};
-  /* DEFECT 3 (2026-10-03; root cause corrected 2026-10-04): force a page's
-     Fluid Engine block wrapper to full content width. TRUE mechanism
-     (verified against live /economy HTML): Squarespace emits a static
-     <style> tag per FE section with per-block grid placement, e.g.
-     .fe-block-yui_..._431{grid-area:1/2/7/6} on desktop — 4 of 24 grid
-     columns. There are NO inline layout styles and FE JS does not rewrite
-     geometry at runtime; the 2026-10-03 width-only fix failed because a grid
-     item's size comes from grid-area/grid-column, not width. The editor is
-     off-limits, so the mount stamps .pf-fe-full (see core/01-styles.css,
-     which now sets grid-column:1/-1!important) on the block's .fe-block
-     ancestor. Best-effort: never throws, never breaks the mount. */
-  function widenFeBlock(host) {
+  /* DEFECT 3 (2026-10-03; root cause corrected 2026-10-04; generalized
+     2026-10-04): force PF mount points' Fluid Engine block wrappers to full
+     content width — on EVERY v2 page, not just /economy.
+     TRUE mechanism (verified against live /economy, /cells, /request-access
+     HTML): Squarespace emits a static <style> tag per FE section with
+     per-block grid placement, e.g. .fe-block-yui_...{grid-area:1/2/7/10} —
+     a narrow column span. There are NO inline layout styles and FE JS does
+     not rewrite geometry at runtime; the 2026-10-03 width-only fix failed
+     because a grid item's size comes from grid-area/grid-column, not width.
+     grid-column:1/-1!important (see .pf-fe-full in core/01-styles.css) spans
+     the block across the full grid and beats the static grid-area rule.
+     The editor is off-limits, so the mount stamps .pf-fe-full on the
+     .fe-block ancestor of every PF mount div.
+     FE_MOUNT_IDS is the single registry: PAGE_ORDERS page mounts, the
+     self-mount HQ divs, and the homepage / political-hq / SLR mounts. A new
+     page or silo adds its mount div id here — no per-page ifs, no
+     whack-a-mole. (war-card.js / academy.js keep their own .pf-fe-hq
+     stamping: that class also carries height:auto and the /request-access
+     row-overlap fix, which .pf-fe-full must not subsume.)
+     KILL: ?pf_off=fe-widen or localStorage pf_disabled_v1='["fe-widen"]'.
+     Best-effort: never throws, never breaks the mount. */
+  var FE_MOUNT_IDS = [
+    'pf-v2',
+    'pf-cells-page', 'pf-cell-hq',
+    'pf-arcade', 'pf-create', 'pf-bank', 'pf-economy',
+    'pf-warchest', 'pf-ventures', 'pf-events', 'pf-warreport',
+    'pf-war-card', 'pf-academy-hq', 'pf-dash-hq',
+    'pf-political-hq', 'pf-slr-roster', 'pf-catalog'
+  ];
+  function feWiden(host) {
     try {
+      if (PF && PF.skip('fe-widen')) return;
       var b = host && host.closest ? host.closest('.fe-block') : null;
       if (b && b.classList && !b.classList.contains('pf-fe-full')) {
         b.classList.add('pf-fe-full');
       }
     } catch (e) { /* layout best-effort only */ }
   }
+  function feWidenAll() {
+    try {
+      for (var i = 0; i < FE_MOUNT_IDS.length; i++) {
+        var el = document.getElementById(FE_MOUNT_IDS[i]);
+        if (el) feWiden(el);
+      }
+    } catch (e) { /* layout best-effort only */ }
+  }
+  /* Exposed for silos / debugging. Guarded: only defined once. */
+  if (PF && !PF.feWiden) PF.feWiden = feWiden;
   function mountPage(pageId) {
     var cfg = PAGE_ORDERS[pageId];
     if (!cfg) return 0;
     var h = document.getElementById(pageId);
     if (!h || isEditor()) return 0;
     try { mountHeader(h, cfg); } catch (e) {}
-    /* DEFECT 3: /economy only — widen its narrow FE Code block. Scoped by
-       pageId so no other page's layout is touched. */
-    if (pageId === 'pf-economy') widenFeBlock(h);
+    /* DEFECT 3 (generalized 2026-10-04): every dedicated page's mount block
+       goes full width — same narrow-column root cause as /economy's
+       incident, now handled by the shared registry above. */
+    feWiden(h);
     var n = 0;
     cfg.order.forEach(function (entry) {
       var silo = entry[0], tplId = entry[1];
@@ -245,6 +292,11 @@
   if (PF && !PF.mountPageSilos) PF.mountPageSilos = mountAll;
 
   mountAll();
+
+  /* DEFECT 3 (generalized): widen every PF mount div present on this page —
+     covers mounts outside PAGE_ORDERS (homepage #pf-v2, HQ #pf-war-card,
+     /political-hq, SLR roster/catalog) in the same blocking sequence. */
+  try { feWidenAll(); } catch (e) {}
 
   /* Race-condition guard: if a game bundle staged its templates after this
      file ran (shouldn't happen — games load blocking before pages — but

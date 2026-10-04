@@ -230,9 +230,34 @@
     } catch (e) {}
   }
 
+  /* The share engine (core/share-image.js) normally loads in the core
+     bundle; if it isn't up yet, poll a few times before declaring a REAL
+     failure. 2026-10-04: terminal state is a retry button on the RECRUIT
+     button itself — not an eternal "tap again" toast. */
+  function shareEngineWait(btn, member, attempt) {
+    if (window.PFShare && typeof window.PFShare.shareImage === 'function') {
+      handleRecruit(btn, member);
+      return;
+    }
+    if (attempt < 4) {
+      busyOn(btn, 'LOADING\u2026');
+      setTimeout(function () { shareEngineWait(btn, member, attempt + 1); }, 700);
+      return;
+    }
+    busyOff(btn);
+    try {
+      btn.disabled = false;
+      btn.textContent = 'SHARE ENGINE FAILED \u2014 TAP TO RETRY';
+      btn.onclick = function () {
+        try { btn._pfLabel = 'RECRUIT'; btn.textContent = 'RECRUIT'; } catch (e) {}
+        handleRecruit(btn, member);
+      };
+    } catch (e) { toast('Share engine failed to load \u2014 reload the page and try again.'); }
+  }
+
   function handleRecruit(btn, member) {
     if (!window.PFShare || typeof window.PFShare.shareImage !== 'function') {
-      toast('Share engine still loading \u2014 tap again in a second.');
+      shareEngineWait(btn, member, 0);
       return;
     }
     busyOn(btn);

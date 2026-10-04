@@ -7,6 +7,11 @@
   if (window.pfShareImageDone) return;
   window.pfShareImageDone = true;
 
+  /* 2026-10-04: a no-callsign sharer gets no "FIGHTING AS" strip with zero
+     warning — flag it once per page at the user-initiated share entry point
+     (not in stampCallsign itself, which also runs on plain downloads). */
+  var _pfNoCsWarned = false;
+
   /* ------------------------------------------------------------------ */
   /* Per-game poster content. (No share/save flags: the pair is          */
   /* unconditional in v1.4.1 — every game gets both buttons.)             */
@@ -286,6 +291,12 @@
   try { window.pfCreditShare = creditShare; } catch (e) {}
 
   function shareImage(cv, filename, title, gameId) {
+    try{
+      if(!callsignOf()&&!_pfNoCsWarned){
+        _pfNoCsWarned=true;
+        toast('Heads up: no callsign claimed \u2014 this poster carries no attribution strip. Claim a callsign so shares credit you.');
+      }
+    }catch(e){}
     try { cv = stampCallsign(cv) || cv; } catch (e) {}
     canvasBlob(cv, function (blob) {
       if (!blob) { toast('Poster failed \u2014 try again.'); return; }

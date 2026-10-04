@@ -210,6 +210,42 @@ function checkStreakMilestone(j){
     }
   }catch(e){}
 }
+/* GAP AUDIT v2 U1 (2026-10-03): levelUpOverlay() was CALLED above but never
+   DEFINED — the ReferenceError died inside the try/catch while the milestone
+   was already marked "seen", so streak celebrations silently never fired and
+   never retried. Now defined: a full-screen celebration using the
+   .dp-overlay/.dp-lvlup styles already shipped in dpCss(). Dismiss via the
+   button, clicking the backdrop, or Escape; auto-dismisses after 30s so the
+   overlay can never strand the page. */
+function levelUpOverlay(title){
+  try{
+    ovCss();
+    var old=document.getElementById("dpLvlOv");
+    if(old&&old.parentNode) old.parentNode.removeChild(old);
+    var label=String(title||"STREAK MILESTONE");
+    var d=document.createElement("div");
+    d.id="dpLvlOv"; d.className="dp-overlay dp-lvlup";
+    d.setAttribute("role","dialog"); d.setAttribute("aria-label","Streak milestone");
+    d.innerHTML='<div><h1>&#9733; STREAK MILESTONE &#9733;</h1>'
+      +'<div class="dp-rankname">'+esc(label)+'</div>'
+      +'<div class="dp-sub">The streak holds. The machine notices.<br>Keep the fire lit.</div>'
+      +'<button id="dpLvlBtn" class="c-btn">KEEP FIGHTING</button></div>';
+    document.body.appendChild(d);
+    try{ if(window.PF&&PF.dope&&PF.dope.confetti){ PF.dope.confetti(d,40); } }catch(e){}
+    var done=false;
+    function onKey(e){ if(e&&(e.key==="Escape"||e.keyCode===27)) close(); }
+    function close(){
+      if(done) return; done=true;
+      try{ document.removeEventListener("keydown",onKey); }catch(e2){}
+      try{ if(d.parentNode) d.parentNode.removeChild(d); }catch(e3){}
+    }
+    document.addEventListener("keydown",onKey);
+    d.addEventListener("click",function(e){ if(e.target===d) close(); });
+    var b=document.getElementById("dpLvlBtn");
+    if(b){ b.onclick=close; try{ b.focus(); }catch(e4){} }
+    setTimeout(close,30000);
+  }catch(e5){ try{ toast("Streak milestone hit: "+String(title||"")+"."); }catch(e6){} }
+}
 function fmtLeft(ms){
   ms=Math.max(0,ms);
   var s=Math.floor(ms/1000), h=Math.floor(s/3600), m=Math.floor((s%3600)/60), ss=s%60;

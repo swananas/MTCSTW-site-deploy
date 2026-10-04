@@ -178,6 +178,17 @@
       localStorage.removeItem('pf_auth_secret');
       localStorage.removeItem('pf_device_v1');
     } catch (e2) {}
+    /* GAP AUDIT v2 (2026-10-03): the footer wipe used to skip sessionStorage
+       while the YOUR DATA panel's wipeLocalAll() swept it — the "identical
+       wipe" claim was inexact. Now both paths clear pf_* session keys too. */
+    try {
+      var sgone = [];
+      for (var j = 0; j < sessionStorage.length; j++) {
+        var sk = sessionStorage.key(j);
+        if (sk && sk.indexOf('pf_') === 0) sgone.push(sk);
+      }
+      sgone.forEach(function (k) { try { sessionStorage.removeItem(k); } catch (e3) {} });
+    } catch (e4) {}
   }
 
   /* ---- boot: inject now, keep trying, watch the DOM, never be absent ----

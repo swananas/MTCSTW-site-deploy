@@ -123,6 +123,12 @@
   };
 
   /* ---------- network sync ---------- */
+  /* GAP AUDIT v2 P1 (2026-10-03): longer backoff on a dead backend. The 60s
+     poll already skips hidden tabs (PF.hidden()); consecutive network
+     failures now also stretch the interval — 3+ fails poll every 2nd tick,
+     6+ fails every 3rd tick. First success resets to 60s. */
+  var _syncFails=0, _tickN=0;
+  function noteSync(ok){ _syncFails=ok?0:Math.min(_syncFails+1,99); }
   function onSync(xp,comrades,mode){
     stickXp=xp; stickComrades=comrades; stickMode=mode;
     var pct=Math.min(100,(xp/GOAL)*100);
@@ -142,19 +148,22 @@
   }
   function barHost(){ var b=document.getElementById("pf-nuke-stick"); return (b&&!b.hidden)?b:document.body; }
   function tick(){
+    _tickN++;
+    if(_syncFails>=6&&(_tickN%3!==0)) return;
+    if(_syncFails>=3&&(_tickN%2!==0)) return;
     if(BACKEND_URL){
       var cb="pfNukeStripCb"+Date.now()+Math.floor(Math.random()*1e6);
       window[cb]=function(d){
         try{ delete window[cb]; }catch(e){}
         var sc=document.getElementById(cb); if(sc&&sc.parentNode) sc.parentNode.removeChild(sc);
-        if(d&&d.ok){ onSync(Number(d.xp_today)||0,Number(d.comrades)||0,"network"); }
-        else{ onSync(localXpToday(),0,"local"); }
+        if(d&&d.ok){ noteSync(true); onSync(Number(d.xp_today)||0,Number(d.comrades)||0,"network"); }
+        else{ noteSync(false); onSync(localXpToday(),0,"local"); }
       };
       var sc=document.createElement("script"); sc.id=cb;
       sc.src=BACKEND_URL+"?action=xp_today&callback="+cb;
       /* 12s backstop — a hung request must not freeze the bar or leak window[cb]. */
-      var hung=setTimeout(function(){ if(window[cb]){ try{delete window[cb];}catch(e){} if(sc.parentNode) sc.parentNode.removeChild(sc); onSync(localXpToday(),0,"local"); } },12000);
-      sc.onerror=function(){ try{clearTimeout(hung);}catch(e){} try{delete window[cb];}catch(e){} if(sc.parentNode) sc.parentNode.removeChild(sc); onSync(localXpToday(),0,"local"); };
+      var hung=setTimeout(function(){ if(window[cb]){ try{delete window[cb];}catch(e){} if(sc.parentNode) sc.parentNode.removeChild(sc); noteSync(false); onSync(localXpToday(),0,"local"); } },12000);
+      sc.onerror=function(){ try{clearTimeout(hung);}catch(e){} try{delete window[cb];}catch(e){} if(sc.parentNode) sc.parentNode.removeChild(sc); noteSync(false); onSync(localXpToday(),0,"local"); };
       document.head.appendChild(sc);
     }else{
       onSync(localXpToday(),0,"local");

@@ -199,10 +199,23 @@ function wire(){
   });
   document.querySelectorAll(".v-extend").forEach(function(btn){
     btn.onclick=function(){
+      /* GAP AUDIT v2 U2 (2026-10-03): the extend vote POST had no callback —
+         it toasted success immediately (false success on failure) and could
+         double-submit. Now: disabled while in flight, toast only on a real
+         backend verdict, re-enabled on failure. */
+      if(btn.disabled) return;
+      var orig=btn.textContent;
+      btn.disabled=true; btn.textContent="Voting…";
       post("venture_vote",{callsign:id.callsign,device:id.device,venture_id:btn.getAttribute("data-id"),
-        proposal:"extend",vote:"yes",key:id.device+":"+Date.now()});
-      toast("Vote cast. >50% of shares extends funding 3 days.");
-      setTimeout(load,2500);
+        proposal:"extend",vote:"yes",key:id.device+":"+Date.now()},function(j){
+        if(j&&j.ok){
+          toast("Vote cast. >50% of shares extends funding 3 days.");
+          setTimeout(load,2500);
+        } else {
+          btn.disabled=false; btn.textContent=orig;
+          toast("Vote failed: "+((j&&j.err)||"no reply from Command.")+" Try again.");
+        }
+      });
     };
   });
   document.querySelectorAll(".v-cert").forEach(function(btn){

@@ -207,6 +207,11 @@ function eraseData(){
          keys (e.g. pf_cs_dismissed) that neither path used to clear. */
       wipeLocalAll();
       setTimeout(function(){ try{ location.reload(); }catch(e2){} },2200);
+    } else if(eb){
+      /* GAP AUDIT v2 R1 (2026-10-03): email/device scopes don't reload —
+         the success path left the button disabled with "ERASING…" forever.
+         Re-enable it so a second erase doesn't need a page refresh. */
+      eb.disabled=false; eb.textContent=elbl;
     }
   });
 }

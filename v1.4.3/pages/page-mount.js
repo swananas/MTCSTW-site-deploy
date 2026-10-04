@@ -65,7 +65,15 @@
       title: 'CREATE', sub: 'The propaganda workshop. Make it. Ship it.',
       order: [
         ['poster-forge', 'pf-ov-poster'],
-        ['feed', 'pf-ov-feed']
+        ['feed', 'pf-ov-feed'],
+        /* GAP AUDIT v2 F1/F2 (2026-10-03): armory + earnings were orphaned in
+           the 410991b reorg (staged by games/bundle-create.js, mounted
+           nowhere). Remounted here on /create — armory was CREATE-section
+           before the reorg ('armory':'create' map), and earnings ("Get Paid
+           to Agitate") is creator tooling: revenue_claim is only callable
+           from earnings.js, so this is where creators claim revenue. */
+        ['armory', 'pf-ov-armory'],
+        ['earnings', 'pf-ov-earnings']
       ]
     },
     'pf-bank': {

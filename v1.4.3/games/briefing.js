@@ -485,7 +485,10 @@ function dropTryBackend(){
 function dropSectionHtml(){
   var ddp=dropFor(DROP_N);
   var tag=DROP_NET.tag||ddp.t, head=DROP_NET.head||ddp.h, body=String(DROP_NET.body||ddp.b).replace("{N}",dropNetCount());
-  return '<div class="br-sec"><div class="br-sect">\u26A1 FEATURED DROP</div>'
+  /* 2026-10-03 fix: the slot mounts as section[data-game="daily-drop"] (nested in
+     briefing's section) so core/share-image.js re-attaches its SHARE IMAGE /
+     SAVE IMAGE TO PHONE pair — the pair the drop lost in the homepage reorg. */
+  return '<section class="br-sec" data-game="daily-drop"><div class="br-sect">\u26A1 FEATURED DROP</div>'
     +'<div class="br-dday" id="brDropDay">Day '+DROP_N+' of the offensive</div>'
     +'<div class="br-dcard"><span class="br-dtag" id="brDropTag"'+(DROP_GOLDEN?' style="color:#e8b10c"':'')+'>'+(DROP_GOLDEN?'\u2605 GOLDEN DROP \u2605':esc(tag))+'</span>'
     +'<p class="br-dhead" id="brDropHead">'+(DROP_GOLDEN?"THE MOTHERLODE<br><span style='font-size:0.9rem;'>Today the machine smiles on you.</span>":esc(head))+'</p>'
@@ -494,17 +497,91 @@ function dropSectionHtml(){
     +'<div class="br-dbtns"><button class="c-btn" id="brDropShare">SHARE THIS DROP</button>'
     +'<button class="c-btn" id="brDropArchBtn">PAST DROPS</button></div>'
     +'<div class="br-darch" id="brDropArch"></div>'
-    +'<div class="br-dnote">One drop per day. Come back tomorrow &mdash; the offensive continues.</div></div>';
+    +'<div class="br-dnote">One drop per day. Come back tomorrow &mdash; the offensive continues.</div></section>';
 }
+/* ---------- FEATURED DROP share poster (2026-10-03 fix) ----------
+   SHARE THIS DROP generates a branded 1080x1350 poster of TODAY's drop through
+   the PFShare image flow. The painter reads the rendered DOM so it works
+   whether the content came from the backend or the static fallback. */
+function dropWrap(x,text,maxW){
+  var words=String(text==null?"":text).split(/\s+/),lines=[],line="";
+  words.forEach(function(w){ var t=line?line+" "+w:w;
+    if(x.measureText(t).width>maxW&&line){ lines.push(line); line=w; } else { line=t; } });
+  if(line)lines.push(line); return lines;
+}
+function dropPaintPoster(done){
+  try{
+    var tagEl=document.getElementById("brDropTag"),hdEl=document.getElementById("brDropHead"),bdEl=document.getElementById("brDropBody");
+    var tag=String(tagEl?tagEl.textContent:"TRUTH").toUpperCase(),
+        head=String(hdEl?hdEl.textContent:"").toUpperCase(),
+        body=bdEl?bdEl.textContent:"";
+    var W=1080,H=1350,cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+    var x=cv.getContext("2d"); if(!x){ done(null); return; }
+    x.fillStyle="#0d0d0d"; x.fillRect(0,0,W,H);
+    x.strokeStyle="#c1121f"; x.lineWidth=18; x.strokeRect(16,16,W-32,H-32);
+    x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(52,52,W-104,H-104);
+    x.textAlign="center";
+    var y=170;
+    x.fillStyle="#f5ead6"; x.font="700 34px Arial,sans-serif";
+    x.fillText("\u2605 THE PROPAGANDA FACTORY \u2605",W/2,y); y+=108;
+    x.fillStyle="#c1121f"; x.font="900 60px \"Arial Black\",Arial,sans-serif";
+    x.fillText("\u2605 THE DAILY DROP \u2605",W/2,y); y+=92;
+    x.fillStyle="#f5ead6"; x.font="700 38px Arial,sans-serif";
+    x.fillText("DAY "+DROP_N+" OF THE 32-DAY OFFENSIVE",W/2,y); y+=84;
+    x.font="700 32px Arial,sans-serif";
+    var tw=x.measureText(tag).width+80;
+    x.fillStyle="#c1121f"; x.fillRect(W/2-tw/2,y-46,tw,66);
+    x.fillStyle="#ffffff"; x.fillText(tag,W/2,y); y+=104;
+    x.fillStyle="#f5ead6"; x.font="900 52px \"Arial Black\",Arial,sans-serif";
+    dropWrap(x,head,W-170).slice(0,5).forEach(function(l){ x.fillText(l,W/2,y); y+=64; });
+    y+=22;
+    x.fillStyle="#c9bfa8"; x.font="400 38px Arial,sans-serif";
+    dropWrap(x,body,W-210).slice(0,7).forEach(function(l){ x.fillText(l,W/2,y); y+=52; });
+    y+=26;
+    if(y<H-320){
+      x.fillStyle="#ff5a00"; x.font="700 34px Arial,sans-serif";
+      x.fillText("YOUR STREAK: "+DROP_S.streak+(DROP_S.streak===1?" DAY":" DAYS"),W/2,y);
+    }
+    /* Footer: MTCSTW.COM + JOIN THE FIGHT. (red, bold) — the share-image CTA standard. */
+    x.fillStyle="#c1121f"; x.font="900 46px \"Arial Black\",Arial,sans-serif";
+    x.fillText("MTCSTW.COM",W/2,H-168);
+    x.font="900 44px \"Arial Black\",Arial,sans-serif";
+    x.fillText("JOIN THE FIGHT.",W/2,H-108);
+    x.fillStyle="#c9bfa8"; x.font="400 30px Arial,sans-serif";
+    try{ x.fillText(new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}).toUpperCase(),W/2,H-58); }catch(e){}
+    done(cv);
+  }catch(e){ try{ done(null); }catch(e2){} }
+}
+/* Register the drop's custom painter with the share-image companion. Guarded:
+   if the companion is killed (?pf_off=share-image) the SHARE THIS DROP button
+   falls back to text share below. */
+try{ if(window.PFShare&&PFShare.setPoster) PFShare.setPoster("daily-drop",dropPaintPoster); }catch(e){}
 function dropWire(){
   var sh=document.getElementById("brDropShare");
   if(sh) sh.onclick=function(){
-    var hd=document.getElementById("brDropHead"), cur=hd?hd.textContent:"";
-    /* Share reads the rendered headline from the DOM so it works whether the
-       content came from the backend or the static fallback. */
-    var text="Day "+DROP_N+" of the offensive: "+cur+" \u2014 via The Propaganda Factory "+location.href;
-    if(navigator.share){ navigator.share({title:"The Daily Drop",text:text,url:location.href}).catch(function(){}); }
-    else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(function(){ toast("Drop copied. Go spread it."); }).catch(function(){}); }
+    /* 2026-10-03 fix: SHARE THIS DROP generates a poster IMAGE of today's drop
+       through the PFShare image flow (canvas -> PNG). On iOS the share sheet
+       is the save route ("Save Image" is one tap); on desktop it downloads.
+       Text share is the fallback when the share-image companion is
+       unavailable (e.g. ?pf_off=share-image). */
+    function textShare(){
+      var hd=document.getElementById("brDropHead"), cur=hd?hd.textContent:"";
+      /* Share reads the rendered headline from the DOM so it works whether the
+         content came from the backend or the static fallback. */
+      var text="Day "+DROP_N+" of the offensive: "+cur+" \u2014 via The Propaganda Factory "+location.href;
+      if(navigator.share){ navigator.share({title:"The Daily Drop",text:text,url:location.href}).catch(function(){}); }
+      else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(function(){ toast("Drop copied. Go spread it."); }).catch(function(){}); }
+    }
+    if(window.PFShare&&window.PFShare.shareImage){
+      sh.disabled=true;
+      try{
+        dropPaintPoster(function(cv){
+          sh.disabled=false;
+          if(cv) PFShare.shareImage(cv,"pfn-daily-drop.png","The Daily Drop","daily-drop");
+          else textShare();
+        });
+      }catch(e){ sh.disabled=false; textShare(); }
+    } else textShare();
   };
   var ab=document.getElementById("brDropArchBtn");
   if(ab) ab.onclick=function(){

@@ -32,6 +32,13 @@
       lines: ['The network counts every thing done.', 'Goal: 5 million things.'],
       cta: 'DO A THING'
     },
+    /* 2026-10-03: restored — the drop consolidated into briefing.js as the
+       FEATURED DROP slot, but its share-image button pair must keep working. */
+    'daily-drop': {
+      title: '\u2605 THE DAILY DROP \u2605', tag: 'Fresh slop, daily',
+      lines: ['A new drop every day of the offensive.', 'Claim it. Share it. Spread it.'],
+      cta: 'CLAIM THE DROP'
+    },
     'billionaire-supervillain': {
       title: 'BILLIONAIRE OR SUPERVILLAIN?', tag: 'One quote. Two monsters. You decide.',
       lines: ['A new quote every day.', 'Billionaire or supervillain \u2014 can you tell them apart?'],
@@ -78,7 +85,7 @@
       cta: 'JOIN THE RAID'
     }
   };
-  var ORDER = ['fan-vote', 'slr-match-quiz', 'creator-guess', 'bracket-board', 'daily-orders', 'boost-raid', 'do-meter',
+  var ORDER = ['fan-vote', 'slr-match-quiz', 'creator-guess', 'bracket-board', 'daily-orders', 'boost-raid', 'do-meter', 'daily-drop',
                'billionaire-supervillain', 'daily-interrogation',
                'caption-combat', 'poster-forge', 'enlistment-ranks', 'war-bonds'];
   var SHARE_LABEL = 'SHARE IMAGE';
@@ -216,9 +223,13 @@
       wrap(x, stamp, W - 170).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 42; });
     }
     x.fillStyle = '#c1121f'; x.font = '900 46px "Arial Black",Arial,sans-serif';
-    x.fillText('MTCSTW.COM', W / 2, H - 128);
+    x.fillText('MTCSTW.COM', W / 2, H - 168);
+    /* 2026-10-03: share-image CTA standard — every share image carries
+       'JOIN THE FIGHT.' (red, bold) above/below MTCSTW.COM. */
+    x.fillStyle = '#c1121f'; x.font = '900 44px "Arial Black",Arial,sans-serif';
+    x.fillText('JOIN THE FIGHT.', W / 2, H - 108);
     x.fillStyle = '#c9bfa8'; x.font = '400 30px Arial,sans-serif';
-    x.fillText(dateStr(), W / 2, H - 76);
+    x.fillText(dateStr(), W / 2, H - 58);
     return cv;
   }
 

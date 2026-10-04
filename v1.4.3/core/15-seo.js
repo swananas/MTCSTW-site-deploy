@@ -17,7 +17,7 @@ function inject(){
       "name":"The Propaganda Factory",
       "alternateName":"MTCSTW",
       "url":"https://www.mtcstw.com/",
-      "description":"The Propaganda Factory (MTCSTW): 62 vetted leftist creators, 5M+ combined reach, one machine. Propaganda, games, and organizing tools for the movement.",
+      "description":"The Propaganda Factory (MTCSTW): 62 vetted leftist creators, 8M+ combined reach, one machine. Propaganda, games, and organizing tools for the movement.",
       "sameAs":[
         "https://www.instagram.com/mtcstw",
         "https://www.instagram.com/propfac",

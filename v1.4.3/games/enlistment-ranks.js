@@ -238,7 +238,7 @@ function drawPoster(n,cs){
     x.fillText("IT APART.",540,845);
   } else {
     x.fillStyle="#c1121f"; x.font="900 150px 'Arial Black',Arial,sans-serif";
-    x.fillText("5M+",540,450);
+    x.fillText("8M+",540,450);
     x.fillStyle="#f5ead6"; x.font="900 84px 'Arial Black',Arial,sans-serif";
     x.fillText("NETWORK",540,585); x.fillText("REACH",540,695);
     x.fillStyle="#c9bfa8"; x.font="36px Arial,sans-serif";

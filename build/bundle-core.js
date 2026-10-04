@@ -74,7 +74,10 @@ var BUNDLES = {
     'pages/page-mount.js',
     'games/notify.js',
     'core/06-pinups.js',
-    'core/share-image.js'
+    'core/share-image.js',
+    /* creator-recruit: shared recruiting toolbar for roster cards + catalog
+       pages. Last: needs PFShare (share-image.js) + the catalog renderers. */
+    'pages/creator-recruit.js'
   ],
   /* DEFECT 1 (2026-10-03): /store, /privacy, /terms and every other non-v2
      page route to the v1.1.0 silo set, which carries no footer chrome — the

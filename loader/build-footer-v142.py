@@ -43,7 +43,7 @@ V1_JS = ["core/00-bus.js", "core/03-global.js", "core/04-ledger.js",
          "core/06-override.js", "core/08-engage.js", "core/09-toast.js",
          "core/10-ticker.js", "fixes/homepage.js", "fixes/about.js",
          "fixes/faqs.js", "fixes/roster.js", "fixes/podcast.js", "fixes/tax.js",
-         "fixes/terms.js", "fixes/schema.js"]
+         "fixes/terms.js", "fixes/schema.js", "fixes/article-visibility.js"]
 
 # verify every listed file exists on disk
 missing = []

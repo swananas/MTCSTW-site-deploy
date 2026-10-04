@@ -381,7 +381,7 @@ function render(){
         post("bounty_claim",{bounty_id:bid,content_id:cid,callsign:id.callsign,device:id.device},function(j){
           btn.disabled=false;
           var er=document.getElementById("bnErr_"+bid);
-          if(!j||!j.ok){ if(er) er.textContent=(j&&j.err)||"Claim failed."; return; }
+          if(!j||!j.ok){ if(er) er.textContent=baWriteErr(j&&j.err||j&&j.error,"Claim failed."); return; }
           toast("BOUNTY CLAIMED. +"+(j.xp||0)+" XP pending review.");
           load();
         });
@@ -427,7 +427,7 @@ function render(){
             B=null; BM=null; load();
           } else {
             var er=document.getElementById("bnCloseErr_"+bid);
-            if(er) er.textContent=(j&&j.err)||"Close failed.";
+            if(er) er.textContent=baWriteErr(j&&j.err||j&&j.error,"Close failed.");
             btn.disabled=false; btn.textContent="CLOSE BOUNTY";
           }
         });

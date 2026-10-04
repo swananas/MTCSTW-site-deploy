@@ -730,6 +730,26 @@ body:has(#pf-nuke-stick:not([hidden])) #pf-do-mini{bottom:calc(56px + env(safe-a
 .bt-st-approved{color:#0c6;border-color:#0c6;}
 .bt-st-rejected{color:#c33;border-color:#c33;}
 
+/* === Ventures + IRL empty states readability (2026-10-04) === */
+#pf-ventures .x-pane,#pf-irl .x-pane{color:var(--pf-cream);}
+#pf-ventures .x-empty{color:var(--pf-cream);padding:8px 0;}
+#pf-ventures .x-venture{border-top:1px solid var(--pf-border);padding:10px 0;}
+#pf-ventures .x-chead{color:var(--pf-cream);font-weight:700;font-size:15px;margin-bottom:4px;}
+#pf-ventures .x-kind{color:var(--pf-red-bright);font-size:11px;letter-spacing:1px;}
+#pf-ventures .x-eb{color:var(--pf-gold);font-size:11px;font-weight:700;}
+#pf-ventures .x-csub,#pf-ventures .x-pool,#pf-ventures .x-myrow{color:var(--pf-cream);font-size:13px;line-height:1.5;}
+#pf-ventures .x-poolnum{color:var(--pf-gold);font-weight:700;}
+#pf-ventures .x-sides{color:var(--pf-cream);font-size:13px;margin-top:4px;}
+#pf-ventures .x-sideA{color:var(--pf-red-bright);font-weight:700;}
+#pf-ventures .x-sideB{color:var(--pf-gold);font-weight:700;}
+#pf-ventures .x-risk{color:var(--pf-red-bright);font-weight:700;}
+#pf-ventures .x-warn{color:var(--pf-gold);font-weight:700;margin:6px 0;}
+#pf-ventures input,#pf-ventures select{background:var(--pf-dark);border:1px solid var(--pf-border-light);color:var(--pf-cream);padding:8px;}
+#pf-irl .irl-frame{color:var(--pf-red-bright);font-weight:700;letter-spacing:2px;margin-bottom:10px;}
+#pf-irl .irl-type{color:var(--pf-cream);font-weight:700;letter-spacing:1px;}
+#pf-irl .irl-when,#pf-irl .irl-where{color:var(--pf-cream);font-size:13px;}
+#pf-irl .irl-rsvps{color:var(--pf-gold);font-weight:700;margin-top:6px;}
+
 /* === KNOW YOUR ENEMY intel readability (2026-10-03) ===
    #pf-intel was the only HQ silo whose template lacked .pf-silo, so its
    dark .x-pane cards inherited Squarespace's dark body text (dark-on-dark

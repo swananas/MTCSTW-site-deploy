@@ -395,7 +395,7 @@ function render(){
           else{
             b.disabled=false;
             var e2=document.getElementById("fdSchedErr");
-            if(e2) e2.textContent=(j&&j.err)||"Cancel failed.";
+            if(e2) e2.textContent=fdWriteErr(j&&j.err||j&&j.error,"Cancel failed.");
           }
         });
       };
@@ -576,7 +576,7 @@ function doAmplify(){
         saveMine(mine);
         sel=null; updateGo(); renderMine(); loadBoard();
       }else{
-        toast("Amplify failed: "+((j&&j.err)||"unknown error"));
+        toast("Amplify failed: "+fdWriteErr(j&&j.err||j&&j.error,"unknown error"));
       }
     });
   }
@@ -712,7 +712,7 @@ function wireCards(el){
         var id=ident(); if(!id.callsign){ toast("Claim a callsign first."); return; }
         btn.disabled=true;
         post("resurface",{callsign:id.callsign,device:id.device,content_id:btn.getAttribute("data-cid")},function(j){
-          if(!j||!j.ok){ toast((j&&j.err)||"Resurface failed."); btn.disabled=false; return; }
+          if(!j||!j.ok){ toast(fdWriteErr(j&&j.err||j&&j.error,"Resurface failed.")); btn.disabled=false; return; }
           toast("+5 XP — winner redeployed.");
           btn.textContent="RESURFACED";
         });

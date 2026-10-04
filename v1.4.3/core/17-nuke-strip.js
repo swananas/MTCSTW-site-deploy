@@ -210,16 +210,35 @@
   function scrollToId(id){
     try{ var el=document.getElementById(id); if(el&&el.scrollIntoView) el.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){}
   }
-  /* This device's cell (invite code + member count), one JSONP per session. */
+  /* This device's cell (invite code + member count), one JSONP per session.
+     2026-10-03 fix (CELL undefined/5): the backend's pubCell() returns
+     `members` as a NUMBER (mems.length), not an array — so the old
+     `(j.cell.members||[]).length` read `.length` off a number and produced
+     undefined (then cached the bad shape in pf_nuke_cell_v1, so it survived
+     reloads). normCellMembers accepts both shapes; cached rows from older
+     writes are normalized too. */
+  function normCellMembers(m){
+    if(Array.isArray(m)) return m.length;
+    if(typeof m==="number"&&isFinite(m)) return Math.max(0,Math.floor(m));
+    return 0;
+  }
+  function normCachedCell(c){
+    if(!c||typeof c!=="object") return null;
+    if(typeof c.members!=="number"||!isFinite(c.members)) c.members=0;
+    if(!c.name) c.name="YOUR CELL";
+    return c;
+  }
   function cellInfo(cb){
     if(stickCellTried){ cb(stickCell); return; }
     var cs="", dev="";
     try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){}
     try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){}
-    if(!cs||!BACKEND_URL){ stickCellTried=true; cb(null); return; }
+    /* No callsign yet (not claimed / identity not loaded): do NOT latch —
+       retry on the next tick so the cell name appears once it arrives. */
+    if(!cs||!BACKEND_URL){ cb(null); return; }
     try{
       var cached=JSON.parse(localStorage.getItem("pf_nuke_cell_v1")||"null");
-      if(cached&&cached.t&&Date.now()-cached.t<600000&&cached.cs===cs){ stickCellTried=true; stickCell=cached.cell; cb(stickCell); return; }
+      if(cached&&cached.t&&Date.now()-cached.t<600000&&cached.cs===cs){ stickCellTried=true; stickCell=normCachedCell(cached.cell); cb(stickCell); return; }
     }catch(e){}
     var fn="pfNukeCellCb"+Date.now();
     window[fn]=function(j){
@@ -227,7 +246,7 @@
       var sc=document.getElementById(fn); if(sc&&sc.parentNode) sc.parentNode.removeChild(sc);
       stickCellTried=true;
       if(j&&j.in_cell&&j.cell){
-        stickCell={name:j.cell.name||"YOUR CELL",code:j.cell.invite_code||"",members:(j.cell.members||[]).length};
+        stickCell={name:j.cell.name||"YOUR CELL",code:j.cell.invite_code||"",members:normCellMembers(j.cell.members)};
         try{ localStorage.setItem("pf_nuke_cell_v1",JSON.stringify({t:Date.now(),cs:cs,cell:stickCell})); }catch(e){}
       } else stickCell=null;
       cb(stickCell);
@@ -329,13 +348,17 @@
       else mb.textContent="SPREAD THE WORD";
     }
     var rb=document.getElementById("pnsRally"), c=document.getElementById("pnsCell");
+    /* The callback fires asynchronously when the cell JSONP resolves, so the
+       ticker re-renders on cell data arrival (and on the 60s tick while the
+       callsign is still missing). "CELL NO CELL" is the explicit fallback
+       when there is no cell / data hasn't loaded yet. */
     cellInfo(function(cell){
       if(!document.body.contains(bar)) return;
       if(cell){
         if(c){ c.textContent="CELL "+cell.members+"/5"; c.style.display=""; }
         if(rb) rb.textContent="RALLY "+String(cell.name||"CELL").toUpperCase().slice(0,14);
       }else{
-        if(c) c.style.display="none";
+        if(c){ c.textContent="CELL NO CELL"; c.style.display=""; }
         if(rb) rb.textContent="BUILD YOUR CELL";
       }
     });

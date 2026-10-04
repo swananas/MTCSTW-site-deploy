@@ -689,3 +689,15 @@ footer h1, footer h2, footer h3, footer h4{color:#f5ead6 !important;}
 .bt-st-pending{color:#fc0;border-color:#fc0;}
 .bt-st-approved{color:#0c6;border-color:#0c6;}
 .bt-st-rejected{color:#c33;border-color:#c33;}
+
+/* ============================================================================
+   DEFECT 3 (2026-10-03) — /economy renders in a ~240px left column.
+   Root cause: the page's Squarespace Code block is sized ~240px wide in the
+   Fluid Engine editor (same root cause as the earlier Home / /political-hq
+   narrow-column incidents). The editor is off-limits, so pages/page-mount.js
+   stamps .pf-fe-full on the block's .fe-block wrapper ancestor; this rule
+   forces it to full content width. !important outranks Squarespace's inline
+   layout styles, which FE JS rewrites on resize. Scoped: the class is only
+   ever stamped on /economy's mount — no other page's layout is touched.
+   ============================================================================ */
+.pf-fe-full{width:100%!important;max-width:none!important;left:0!important;}

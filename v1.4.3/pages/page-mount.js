@@ -165,12 +165,31 @@
   }
 
   var mounted = {};
+  /* DEFECT 3 (2026-10-03): force a page's Fluid Engine block wrapper to full
+     content width. The /economy Code block is sized ~240px wide in the FE
+     editor (same root cause as the earlier Home / /political-hq narrow-column
+     incidents — Code blocks set narrow in the editor). The editor is
+     off-limits, so the mount stamps .pf-fe-full (see core/01-styles.css) on
+     the block's .fe-block ancestor; the !important rule there keeps winning
+     over Squarespace's inline layout styles, which FE JS rewrites on resize.
+     Best-effort: never throws, never breaks the mount. */
+  function widenFeBlock(host) {
+    try {
+      var b = host && host.closest ? host.closest('.fe-block') : null;
+      if (b && b.classList && !b.classList.contains('pf-fe-full')) {
+        b.classList.add('pf-fe-full');
+      }
+    } catch (e) { /* layout best-effort only */ }
+  }
   function mountPage(pageId) {
     var cfg = PAGE_ORDERS[pageId];
     if (!cfg) return 0;
     var h = document.getElementById(pageId);
     if (!h || isEditor()) return 0;
     try { mountHeader(h, cfg); } catch (e) {}
+    /* DEFECT 3: /economy only — widen its narrow FE Code block. Scoped by
+       pageId so no other page's layout is touched. */
+    if (pageId === 'pf-economy') widenFeBlock(h);
     var n = 0;
     cfg.order.forEach(function (entry) {
       var silo = entry[0], tplId = entry[1];

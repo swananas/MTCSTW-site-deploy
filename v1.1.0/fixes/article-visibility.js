@@ -261,7 +261,7 @@
     setTimeout(run, 20000);
     try {
       if (window.MutationObserver && document.documentElement) {
-        var obs = new MutationObserver(function () { dirty = true; schedule(); });
+        var obs = new window.MutationObserver(function () { dirty = true; schedule(); });
         obs.observe(document.documentElement, {
           attributes: true,
           attributeFilter: ['style', 'class'],

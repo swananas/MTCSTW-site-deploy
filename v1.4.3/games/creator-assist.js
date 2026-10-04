@@ -33,6 +33,24 @@
   var BACKEND = window.PF_BACKEND_URL;
   function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
   function toast(m){ try{ PF.toast(m); }catch(e){} }
+/* 2026-10-04: friendly write-path errors — raw snake_case backend codes are
+   never shown to users (same pattern as games/armory.js writeErrCopy). */
+function baWriteErr(e,fb){
+  var s=String(e==null?"":e).trim();
+  var fall=fb||"The wire fought back. Nothing changed — retry.";
+  if(!s||/network error/i.test(s)) return fall;
+  var map={
+    "bad requester":"That callsign didn't check out. Re-claim it in Daily Orders, then retry.",
+    "missing title":"Give the bounty a title first.",
+    "reward must be 5-500 XP":"The XP reward must be between 5 and 500.",
+    "insufficient XP":"Not enough XP in the war chest. Go earn some.",
+    "escrow failed":"The XP escrow didn't go through. Retry.",
+    "db error":"The bounty board hiccuped. Retry in a moment."
+  };
+  if(map[s]) return map[s];
+  if(s.indexOf("_")!==-1) return fall; /* never show raw snake_case */
+  return s; /* backend prose already human-readable */
+}
   function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
 
   /* JSONP GET, same pattern as the other game silos. 12s timeout. */
@@ -379,9 +397,10 @@ function render(){
     if(tv.length<4){ if(pe) pe.textContent="Title needs 4+ characters."; return; }
     if(xv<10||xv>100){ if(pe) pe.textContent="XP reward must be 10-100."; return; }
     pb.disabled=true;
-    post("bounty_post",{title:tv,detail:dv,xp:xv,requester:id.callsign,device:id.device},function(j){
+    /* 2026-10-04: backend contract — bounty_post reads p.xp_reward (not p.xp). */
+    post("bounty_post",{title:tv,detail:dv,xp_reward:xv,requester:id.callsign,device:id.device},function(j){
       pb.disabled=false;
-      if(!j||!j.ok){ if(pe) pe.textContent=(j&&j.err)||"Post failed."; return; }
+      if(!j||!j.ok){ if(pe) pe.textContent=baWriteErr(j&&j.err||j&&j.error,"Post failed."); return; }
       toast("BOUNTY POSTED. Creators, come and get it.");
       load();
     });

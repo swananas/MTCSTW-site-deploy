@@ -25,6 +25,51 @@ function fmtSched(t){ try{ var d=new Date(Number(t)||0); if(isNaN(d.getTime())) 
   return (d.getMonth()+1)+"/"+d.getDate()+" "+d.getHours()+":"+String(d.getMinutes()).padStart(2,"0"); }catch(e){ return "?"; } }
 function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
 function toast(m){ try{ PF.toast(m); }catch(e){} }
+/* 2026-10-04: friendly write-path errors — raw snake_case backend codes are
+   never shown to users (same pattern as games/armory.js writeErrCopy). */
+function fdWriteErr(e,fb){
+  var s=String(e==null?"":e).trim();
+  var fall=fb||"The wire fought back. Nothing changed — retry.";
+  if(!s||/network error/i.test(s)) return fall;
+  var map={
+    "bad sender":"That callsign didn't check out. Re-claim it in Daily Orders, then retry.",
+    "bad receiver":"That callsign isn't a valid target. Refresh and try again.",
+    "no self-tips":"You can't tip yourself. Pick someone else.",
+    "tip must be 5/10/25/50/100 XP":"Tips come in 5, 10, 25, 50, or 100 XP.",
+    "insufficient XP":"Not enough XP in the war chest. Go earn some.",
+    "bad voter":"That callsign didn't check out. Re-claim it in Daily Orders, then retry.",
+    "bad creator":"That creator tag didn't check out. Refresh the feed and try again.",
+    "no self-votes":"You can't vote on your own content.",
+    "bad callsign":"That callsign didn't check out. Re-claim it in Daily Orders, then retry.",
+    "missing content_id":"That post lost its ID. Refresh the feed and try again.",
+    "db error":"The ledger hiccuped. Retry in a moment."
+  };
+  if(map[s]) return map[s];
+  if(s.indexOf("_")!==-1) return fall; /* never show raw snake_case */
+  return s; /* backend prose already human-readable */
+}
+/* 2026-10-04: epoch-ms for a "YYYY-MM-DD HH:MM" wall-clock in America/Chicago.
+   schedule_add reads epoch-ms p.scheduled_for; the Intl offset is resolved
+   iteratively so DST transitions convert correctly. */
+function chicagoToMs(str){
+  try{
+    var m=/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})$/.exec(String(str||"").trim());
+    if(!m) return 0;
+    var y=+m[1],mo=+m[2],d=+m[3],hh=+m[4],mi=+m[5];
+    if(mo<1||mo>12||d<1||d>31||hh>23||mi>59) return 0;
+    var target=Date.UTC(y,mo-1,d,hh,mi,0), guess=target;
+    for(var i=0;i<4;i++){
+      var tz=new Date(guess).toLocaleString("en-US",{timeZone:"America/Chicago",hour12:false,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});
+      var p=/(\d+)\/(\d+)\/(\d+),?\s*(\d+):(\d+)/.exec(tz);
+      if(!p) return 0;
+      var asUtc=Date.UTC(+p[3],+p[1]-1,+p[2],(+p[4])%24,+p[5],0);
+      var adj=target-asUtc;
+      guess=guess+adj;
+      if(Math.abs(adj)<60000) break;
+    }
+    return guess;
+  }catch(e){ return 0; }
+}
 /* Friendly copy for gated read failures (2026-10-03): raw backend strings
    like 'missing credentials' are never shown as UI copy. */
 function fdAuthHint(j){
@@ -161,8 +206,8 @@ function render(){
       +'<div class="x-note">by '+esc(it.creator||"anon")+' &bull; '+(Number(it.shares)||0)+' shares &bull; '+(Number(it.boosts)||0)+' boosts</div>'
       +'<div class="fd-actions" style="margin-top:6px">'
       +'<button class="c-btn fd-share" data-cid="'+cid+'" data-title="'+esc(it.title||"")+'">SHARE &amp; PUMP</button> '
-      +'<button class="c-btn fd-vote" data-cid="'+cid+'" data-v="1">&#9650;</button>'
-      +'<button class="c-btn fd-vote" data-cid="'+cid+'" data-v="-1">&#9660;</button> '
+      +'<button class="c-btn fd-vote" data-cid="'+cid+'" data-creator="'+esc(it.creator||"")+'" data-v="1">&#9650;</button>'
+      +'<button class="c-btn fd-vote" data-cid="'+cid+'" data-creator="'+esc(it.creator||"")+'" data-v="-1">&#9660;</button> '
       +'<button class="c-btn fd-tip" data-cid="'+cid+'" data-creator="'+esc(it.creator||"")+'">TIP</button> '
       +'<button class="c-btn fd-sched" data-cid="'+cid+'" data-title="'+esc(it.title||"")+'">SCHEDULE</button> '
       +'<button class="c-btn fd-intel" data-cid="'+cid+'">WHO&#39;S SHARING</button>'
@@ -278,15 +323,17 @@ function render(){
   for(var vi=0;vi<vs.length;vi++){
     (function(b){
       b.onclick=function(){
-        var cid=b.getAttribute("data-cid"), v=b.getAttribute("data-v");
+        var cid=b.getAttribute("data-cid"), v=b.getAttribute("data-v"), creator=b.getAttribute("data-creator");
         if(!id.callsign){ toast("Claim a callsign to vote."); return; }
+        if(!creator){ toast("That post is missing its creator — refresh the feed and try again."); return; }
         b.disabled=true;
-        /* 2026-10-03: param normalization — the backend reads "voter"
-           (p.voter || p.callsign) and the auth gate checks voter first, so
-           the duplicate "callsign" is dropped. */
-        postX("reputation","rep_action","reputation_vote",{content_id:cid,voter:id.callsign,device:id.device,vote:Number(v)},function(j){
+        /* 2026-10-04: backend contract — reputation_vote reads p.creator and
+           p.up (Number(p.up)>=0 -> upvote, else downvote); the vote direction
+           is mapped explicitly so a rename never records everything as down. */
+        postX("reputation","rep_action","reputation_vote",{creator:creator,voter:id.callsign,device:id.device,up:(Number(v)>0?1:-1)},function(j){
           b.disabled=false;
-          toast(j&&j.ok?"Vote recorded.":"Vote failed.");
+          if(j&&j.ok){ toast("Vote recorded."); }
+          else toast(fdWriteErr(j&&j.err||j&&j.error,"Vote failed."));
         });
       };
     })(vs[vi]);
@@ -302,9 +349,12 @@ function render(){
         amt=Math.round(Number(amt)||0);
         if(amt!==10&&amt!==25&&amt!==50){ toast("Pick 10, 25, or 50."); return; }
         b.disabled=true;
-        postX("tip","t_action","tip_send",{content_id:cid,from:id.callsign,to:creator,xp:amt,device:id.device},function(j){
+        /* 2026-10-04: backend contract — tip_send reads p.from_cs / p.to_cs
+           (not from/to); content_id is unread by the backend, dropped. */
+        postX("tip","t_action","tip_send",{from_cs:id.callsign,to_cs:creator,xp:amt,device:id.device},function(j){
           b.disabled=false;
-          toast(j&&j.ok?("Tipped "+amt+" XP to "+creator+"."):((j&&j.err)||"Tip failed."));
+          if(j&&j.ok){ toast("Tipped "+amt+" XP to "+creator+"."); }
+          else toast(fdWriteErr(j&&j.err||j&&j.error,"Tip failed."));
         });
       };
     })(ts[ti]);
@@ -315,15 +365,20 @@ function render(){
     (function(b){
       b.onclick=function(){
         if(!id.callsign){ toast("Claim a callsign to schedule."); return; }
-        var cid=b.getAttribute("data-cid"), title=b.getAttribute("data-title");
+        var cid=b.getAttribute("data-cid");
         var plat=window.prompt("Platform? (twitter / tiktok / facebook / instagram)", "twitter")||"twitter";
         var when=window.prompt("When? (YYYY-MM-DD HH:MM, Chicago time)", "");
         if(!when){ return; }
+        /* 2026-10-04: backend contract — schedule_add reads epoch-ms
+           p.scheduled_for (must be future, within 30 days), not a string. */
+        var whenMs=chicagoToMs(when);
+        if(!whenMs){ toast("Use the format YYYY-MM-DD HH:MM — e.g. 2026-10-05 14:30."); return; }
+        if(whenMs<=Date.now()){ toast("That time is in the past. Pick a future slot."); return; }
         b.disabled=true;
-        postX("schedule","s_action","schedule_add",{content_id:cid,title:title,callsign:id.callsign,device:id.device,platform:String(plat).toLowerCase().slice(0,16),send_at:String(when).slice(0,32)},function(j){
+        postX("schedule","s_action","schedule_add",{content_id:cid,callsign:id.callsign,device:id.device,platform:String(plat).toLowerCase().slice(0,16),scheduled_for:whenMs},function(j){
           b.disabled=false;
           if(j&&j.ok){ toast("Scheduled. It will fire from the queue."); load(); }
-          else toast((j&&j.err)||"Schedule failed.");
+          else toast(fdWriteErr(j&&j.err||j&&j.error,"Schedule failed."));
         });
       };
     })(ss[si]);

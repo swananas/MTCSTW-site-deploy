@@ -17,7 +17,7 @@
     var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null,false),ns=[];
     while(w.nextNode())ns.push(w.currentNode);
     ns.forEach(function(n){
-    var t=n.nodeValue,f=t.replace("40 vetted leftist creators","41 vetted leftist creators").replace("40 roster creators","41 roster creators").replace("40 creators","41 creators");
+    var t=n.nodeValue,f=t.replace("40 vetted leftist creators","62 vetted leftist creators").replace("41 vetted leftist creators","62 vetted leftist creators").replace("40 roster creators","62 roster creators").replace("41 roster creators","62 roster creators").replace("40 creators","62 creators").replace("41 creators","62 creators");
     if(f!==t)n.nodeValue=f;
     });
     };

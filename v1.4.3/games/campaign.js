@@ -202,7 +202,7 @@ function render(){
     post("campaign_pledge",{callsign:id.callsign,device:id.device},function(j){
       if(!j||!j.ok){
         var e=document.getElementById("cpPledgeErr");
-        if(e) e.textContent=(j&&j.err)||"Pledge failed. Try again.";
+        if(e) e.textContent=PF.errCopy(j,"Pledge failed. Try again.");
         pb.disabled=false; return;
       }
       toast("PLEDGED. Your callsign is on the wall.");
@@ -221,7 +221,7 @@ function render(){
       btn.onclick=function(){
         btn.disabled=true;
         post("campaign_act",{callsign:id.callsign,device:id.device,mission_id:btn.getAttribute("data-mid")},function(j){
-          if(!j||!j.ok){ toast((j&&j.err)||"Mission failed."); btn.disabled=false; return; }
+          if(!j||!j.ok){ toast(PF.errCopy(j,"Mission failed.")); btn.disabled=false; return; }
           var mxp=((j&&j.xp)||10), mid=btn.getAttribute("data-mid");
           toast("+"+mxp+" XP — mission complete.");
           /* Backend granted the XP via xpGrant — mirror locally for instant HUD

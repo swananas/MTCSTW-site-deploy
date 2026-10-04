@@ -408,3 +408,28 @@
 #pf-intel .in-meta{color:var(--pf-muted);font-size:12px;margin-top:6px;}
 #pf-intel .in-meta a{color:var(--pf-red-bright);font-weight:700;}
 #pf-intel .in-sub{color:var(--pf-cream);}
+
+/* === Ventures + IRL empty states readability (2026-10-04) ===
+   #pf-ventures / #pf-irl templates lack .pf-silo, and their inner classes
+   (.x-empty has no rule anywhere) inherited the page's dark body copy on
+   the black band — "No ventures funding" / "No events posted yet" were
+   near-invisible dark-on-dark. Lock the in-item hierarchy explicitly,
+   same pattern as the #pf-intel fix above. */
+#pf-ventures .x-pane,#pf-irl .x-pane{color:var(--pf-cream);}
+#pf-ventures .x-empty{color:var(--pf-cream);padding:8px 0;}
+#pf-ventures .x-venture{border-top:1px solid var(--pf-border);padding:10px 0;}
+#pf-ventures .x-chead{color:var(--pf-cream);font-weight:700;font-size:15px;margin-bottom:4px;}
+#pf-ventures .x-kind{color:var(--pf-red-bright);font-size:11px;letter-spacing:1px;}
+#pf-ventures .x-eb{color:var(--pf-gold);font-size:11px;font-weight:700;}
+#pf-ventures .x-csub,#pf-ventures .x-pool,#pf-ventures .x-myrow{color:var(--pf-cream);font-size:13px;line-height:1.5;}
+#pf-ventures .x-poolnum{color:var(--pf-gold);font-weight:700;}
+#pf-ventures .x-sides{color:var(--pf-cream);font-size:13px;margin-top:4px;}
+#pf-ventures .x-sideA{color:var(--pf-red-bright);font-weight:700;}
+#pf-ventures .x-sideB{color:var(--pf-gold);font-weight:700;}
+#pf-ventures .x-risk{color:var(--pf-red-bright);font-weight:700;}
+#pf-ventures .x-warn{color:var(--pf-gold);font-weight:700;margin:6px 0;}
+#pf-ventures input,#pf-ventures select{background:var(--pf-dark);border:1px solid var(--pf-border-light);color:var(--pf-cream);padding:8px;}
+#pf-irl .irl-frame{color:var(--pf-red-bright);font-weight:700;letter-spacing:2px;margin-bottom:10px;}
+#pf-irl .irl-type{color:var(--pf-cream);font-weight:700;letter-spacing:1px;}
+#pf-irl .irl-when,#pf-irl .irl-where{color:var(--pf-cream);font-size:13px;}
+#pf-irl .irl-rsvps{color:var(--pf-gold);font-weight:700;margin-top:6px;}

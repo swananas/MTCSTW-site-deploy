@@ -84,7 +84,7 @@ var DROPS=[
   {t:"ORDER",h:"Put your politics in the group chat.",b:"One message. \\u2018Did you know CEOs make 290x what we do?\\u2019 Then watch."},
 {t:"TRUTH",h:"\\u2018There is no alternative\\u2019 is the most successful propaganda ever made.",b:"There are always alternatives. They just don't profit the people saying that."},
 {t:"ORDER",h:"Support one striking worker this week.",b:"Walk a picket line, contribute to a strike fund, or just bring coffee. Show up."},
-{t:"TRUTH",h:"The network is the message.",b:"41 creators. 5 million reach. One machine. You're already inside it \\u2014 act like it."},
+{t:"TRUTH",h:"The network is the message.",b:"62 creators. 8M+ reach. One machine. You're already inside it \\u2014 act like it."},
 {t:"ORDER",h:"Bring one friend into the ranks.",b:"Send them this page. The machine grows one recruit at a time."}
 ];
 

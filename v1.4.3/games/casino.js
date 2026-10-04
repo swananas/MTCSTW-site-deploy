@@ -209,7 +209,7 @@ function wire(id){
         btn.disabled=true;
         postW("wager_place",{callsign:id.callsign,wager_id:wid,side:side,amount:amt},function(j){
           btn.disabled=false;
-          if(!j||!j.ok){ toast((j&&j.err)||"Bet failed."); return; }
+          if(!j||!j.ok){ toast(PF.errCopy(j,"Bet failed.")); return; }
           toast("BET PLACED: "+amt+" XP on "+side+".");
           load();
         });
@@ -226,7 +226,7 @@ function wire(id){
         postG("lottery_buy",{callsign:id.callsign,tickets:tk},function(j){
           btn.disabled=false;
           var e=document.getElementById("csLotErr");
-          if(!j||!j.ok){ if(e) e.textContent=(j&&j.err)||"Buy failed."; return; }
+          if(!j||!j.ok){ if(e) e.textContent=PF.errCopy(j,"Buy failed."); return; }
           toast(tk+" ticket"+(tk>1?"s":"")+" in the draw. Good luck.");
           load();
         });
@@ -243,7 +243,7 @@ function wire(id){
     fc.disabled=true;
     postG("flip_create",{callsign:id.callsign,amount:amt,side:side},function(j){
       fc.disabled=false;
-      if(!j||!j.ok){ if(e) e.textContent=(j&&j.err)||"Create failed."; return; }
+      if(!j||!j.ok){ if(e) e.textContent=PF.errCopy(j,"Create failed."); return; }
       toast("FLIP OPEN: "+amt+" XP on "+side.toUpperCase()+".");
       load();
     });
@@ -256,7 +256,7 @@ function wire(id){
         btn.disabled=true;
         postG("flip_join",{callsign:id.callsign,flip_id:btn.getAttribute("data-fid")},function(j){
           btn.disabled=false;
-          if(!j||!j.ok){ toast((j&&j.err)||"Join failed."); return; }
+          if(!j||!j.ok){ toast(PF.errCopy(j,"Join failed.")); return; }
           var iWon=j.winner&&(String(j.winner).toUpperCase()===String(id.callsign).toUpperCase());
           toast(j.winner?(iWon?"YOU WIN THE FLIP!":"Flip lost. Winner: "+j.winner):"Flip resolved.");
           /* M1 dopamine: winning the flip gets the big one. */
@@ -275,7 +275,7 @@ function wire(id){
     cb.disabled=true;
     postG("crash_bet",{callsign:id.callsign,amount:amt},function(j){
       cb.disabled=false;
-      if(!j||!j.ok){ if(e) e.textContent=(j&&j.err)||"Bet failed."; return; }
+      if(!j||!j.ok){ if(e) e.textContent=PF.errCopy(j,"Bet failed."); return; }
       toast("IN FOR "+amt+" XP. Cash out before it crashes.");
       load();
     });
@@ -285,7 +285,7 @@ function wire(id){
   if(co) co.onclick=function(){
     co.disabled=true; co.textContent="CASHING OUT...";
     postG("crash_cashout",{callsign:id.callsign},function(j){
-      if(!j||!j.ok){ toast((j&&j.err)||"Cashout failed."); load(); return; }
+      if(!j||!j.ok){ toast(PF.errCopy(j,"Cashout failed.")); load(); return; }
       toast("CASHED OUT: +"+(j.payout||0)+" XP!");
       /* M1 dopamine: cashing out before the crash is the skill moment. */
       try{ if(window.PF&&PF.dope){ var ch=document.getElementById("xCasino")||document.body; PF.dope.confetti(ch,50); PF.dope.xpFloat(ch,"+"+(j.payout||0)+" XP"); } }catch(dpe){}
@@ -305,7 +305,7 @@ function wire(id){
     if(e) e.textContent="";
     postG("roulette_spin",{callsign:id.callsign,bet_type:bt,bet_value:bt==="number"?bv:"",amount:amt},function(j){
       sp.disabled=false; sp.textContent="SPIN";
-      if(!j||!j.ok){ if(e) e.textContent=(j&&j.err)||"Spin failed."; return; }
+      if(!j||!j.ok){ if(e) e.textContent=PF.errCopy(j,"Spin failed."); return; }
       var res=j.result!=null?j.result:"?";
       var pay=Number(j.payout)||0;
       if(r) r.innerHTML='<div class="cs-rounum">'+esc(res)+'</div><div class="'+(pay>0?"cs-win":"cs-lose")+'">'

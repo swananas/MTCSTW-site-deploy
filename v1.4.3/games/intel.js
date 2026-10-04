@@ -181,7 +181,7 @@ function render(j){
     fb.disabled=true;
     post({type:"intel",i_action:"intel_submit",callsign:me.callsign,device:me.device,target:target,activity:activity,amount:amount,source:source},function(j){
       fb.disabled=false;
-      if(!j||!j.ok){ if(errEl)errEl.textContent=(j&&j.err)||"Submission failed."; return; }
+      if(!j||!j.ok){ if(errEl)errEl.textContent=PF.errCopy(j,"Submission failed."); return; }
       toast("Intel submitted for review.");
       /* 2026-10-03 C2: load() sequences render -> loadMySubs(), so the
          submissions fetch targets the fresh node (was: load() +

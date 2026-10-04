@@ -181,7 +181,7 @@ function wireAuctions(id,el){
       if(amt<=0){ toast("Enter a bid amount."); return; }
       btn.disabled=true;
       post("sink","s_action","auction_bid",{callsign:id.callsign,device:id.device,auction_id:aid,amount:amt},function(j){
-        if(!j||!j.ok){ toast((j&&j.err)||"Bid failed."); btn.disabled=false; return; }
+        if(!j||!j.ok){ toast(PF.errCopy(j,"Bid failed.")); btn.disabled=false; return; }
         toast("BID PLACED — "+amt+" XP.");
         setTimeout(function(){ AU=null; load(); },800);
       });
@@ -195,7 +195,7 @@ function wireAuctions(id,el){
       if(!window.confirm("Cancel this auction? It must have no bids.")) return;
       btn.disabled=true;
       post("sink","s_action","auction_cancel",{callsign:id.callsign,device:id.device,auction_id:aid},function(j){
-        if(!j||!j.ok){ toast((j&&j.err)||"Cancel failed."); btn.disabled=false; return; }
+        if(!j||!j.ok){ toast(PF.errCopy(j,"Cancel failed.")); btn.disabled=false; return; }
         toast("AUCTION CANCELLED.");
         setTimeout(function(){ AU=null; load(); },800);
       });
@@ -211,7 +211,7 @@ function wireAuctions(id,el){
       btn.disabled=true;
       adminPost("sink","s_action","auction_close",{callsign:id.callsign,device:id.device,auction_id:aid},function(j){
         if(!j||!j.ok){
-          toast((j&&j.err)==="seller or admin only"?"Only the seller or an admin can close this.":((j&&j.err)||"Close failed."));
+          toast(PF.errCopy(j,"Close failed."));
           btn.disabled=false; return;
         }
         toast("AUCTION CLOSED — winner "+(j.winner||"none")+" at "+(Number(j.winning_bid)||0)+" XP; "+(Number(j.losers_refunded)||0)+" loser(s) refunded.");
@@ -241,7 +241,7 @@ function wireCosmetics(id,el){
     btn.onclick=function(){
       var cid=btn.getAttribute("data-cid"); btn.disabled=true;
       post("sink","s_action","cosmetic_buy",{callsign:id.callsign,device:id.device,item_id:cid},function(j){
-        if(!j||!j.ok){ toast((j&&j.err)||"Purchase failed."); btn.disabled=false; return; }
+        if(!j||!j.ok){ toast(PF.errCopy(j,"Purchase failed.")); btn.disabled=false; return; }
         toast("OWNED. Wear it loud.");
         setTimeout(function(){ CO=null; load(); },800);
       });
@@ -277,7 +277,7 @@ function wireStaking(id,el){
     if(amt<=0){ toast("Enter an amount."); return; }
     b.disabled=true;
     post("stake","st_action","stake_lock",{callsign:id.callsign,device:id.device,amount:amt,duration_days:dur},function(j){
-      if(!j||!j.ok){ toast((j&&j.err)||"Stake failed."); b.disabled=false; return; }
+      if(!j||!j.ok){ toast(PF.errCopy(j,"Stake failed.")); b.disabled=false; return; }
       toast("LOCKED. Patience is a weapon.");
       setTimeout(function(){ ST=null; load(); },800);
     });
@@ -287,7 +287,7 @@ function wireStaking(id,el){
     btn.onclick=function(){
       var sid=btn.getAttribute("data-sid"); btn.disabled=true;
       post("stake","st_action","stake_claim",{callsign:id.callsign,device:id.device,stake_id:sid},function(j){
-        if(!j||!j.ok){ toast((j&&j.err)||"Claim failed."); btn.disabled=false; return; }
+        if(!j||!j.ok){ toast(PF.errCopy(j,"Claim failed.")); btn.disabled=false; return; }
         toast("+"+(j.payout||0)+" XP CLAIMED.");
         setTimeout(function(){ ST=null; load(); },800);
       });
@@ -329,7 +329,7 @@ function wireTreasury(id,el){
     if(amt<=0){ toast("Enter an amount."); return; }
     d.disabled=true;
     post("treasury","t_action","treasury_donate",{callsign:id.callsign,device:id.device,cell_id:TRCELL,amount:amt},function(j){
-      if(!j||!j.ok){ toast((j&&j.err)||"Transfer failed."); d.disabled=false; return; }
+      if(!j||!j.ok){ toast(PF.errCopy(j,"Transfer failed.")); d.disabled=false; return; }
       toast("THREW DOWN "+amt+" XP to the war chest.");
       api("treasury_balance",{cell_id:TRCELL},function(jj){ TRB=jj; render(); });
     });
@@ -351,7 +351,7 @@ function wireTreasury(id,el){
       sp.disabled=false; sp.textContent="SPEND";
       if(!j||!j.ok){
         var e=String((j&&j.err)||"");
-        if(err) err.textContent=(e==="officers only")?"Officers only — the backend said no.":(e||"Spend failed.");
+        if(err) err.textContent=(e==="officers only")?"Officers only — the backend said no.":PF.errCopy(e,"Spend failed.");
         return;
       }
       toast("SPENT "+amt+" XP — "+purp+".");
@@ -388,7 +388,7 @@ function wireSponsor(id,el){
     if(!cid){ toast("Paste a content id (from Poster Forge share panel)."); return; }
     b.disabled=true;
     post("sponsor","sp_action","sponsor_buy",{callsign:id.callsign,device:id.device,content_id:cid,amount:amt},function(j){
-      if(!j||!j.ok){ toast((j&&j.err)||"Sponsor failed."); b.disabled=false; return; }
+      if(!j||!j.ok){ toast(PF.errCopy(j,"Sponsor failed.")); b.disabled=false; return; }
       toast("SPONSORED. Your poster rides the wire.");
       b.disabled=false;
     });
@@ -413,7 +413,7 @@ function wirePowerups(id,el){
     btn.onclick=function(){
       var kind=btn.getAttribute("data-puk"); btn.disabled=true;
       post("powerup","p_action","powerup_buy",{callsign:id.callsign,device:id.device,kind:kind},function(j){
-        if(!j||!j.ok){ toast((j&&j.err)||"Purchase failed."); btn.disabled=false; return; }
+        if(!j||!j.ok){ toast(PF.errCopy(j,"Purchase failed.")); btn.disabled=false; return; }
         toast("POWERED UP. Grind twice as hard.");
         setTimeout(function(){ PU=null; load(); },800);
       });
@@ -434,7 +434,7 @@ function wireTitles(id,el){
     if(!t){ toast("Enter a title."); return; }
     b.disabled=true;
     post("title","ti_action","title_buy",{callsign:id.callsign,device:id.device,title:t},function(j){
-      if(!j||!j.ok){ toast((j&&j.err)||"Purchase failed."); b.disabled=false; return; }
+      if(!j||!j.ok){ toast(PF.errCopy(j,"Purchase failed.")); b.disabled=false; return; }
       toast("TITLE SET: "+t);
       b.disabled=false;
     });
@@ -475,7 +475,7 @@ function wirePrizes(id,el){
     api("prize_contrib_list",{pool_id:pid},function(j){
       b.disabled=false;
       if(!j||!j.ok){
-        if(out) out.innerHTML='<div class="x-note">'+esc((j&&j.err)||"No data for that pool.")+'</div>';
+        if(out) out.innerHTML='<div class="x-note">'+esc(PF.errCopy(j,"No data for that pool."))+'</div>';
         return;
       }
       var h='<div class="cp-mtext"><b>POOL TOTAL: '+Number(j.total||0)+' XP</b></div>';
@@ -496,7 +496,7 @@ function wireDrops(id,el){
     btn.onclick=function(){
       var did=btn.getAttribute("data-did"); btn.disabled=true;
       post("drop","d_action","drop_join",{callsign:id.callsign,device:id.device,drop_id:did},function(j){
-        if(!j||!j.ok){ toast((j&&j.err)||"Commit failed."); btn.disabled=false; return; }
+        if(!j||!j.ok){ toast(PF.errCopy(j,"Commit failed.")); btn.disabled=false; return; }
         toast(j.dup?"Already committed.":"COMMITTED. +10 XP. Be ready at drop time.");
         setTimeout(function(){ DR=null; load(); },800);
       });

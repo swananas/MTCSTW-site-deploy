@@ -39,7 +39,7 @@ function cleanHeadings(){
     if(/meet the network/i.test((allH2[k].textContent||'').trim())){
       var sec=allH2[k].closest('section')||allH2[k].parentElement;
       var body=(sec.textContent||'');
-      var isGood=/41 creators/i.test(body)||/\d\.\d\s*\/\s*10|propaganda score/i.test(body);
+      var isGood=/(41|62) creators/i.test(body)||/\d\.\d\s*\/\s*10|propaganda score/i.test(body);
       mtn.push({sec:sec,isGood:isGood});
     }
   }

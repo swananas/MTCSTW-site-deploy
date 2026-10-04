@@ -116,7 +116,7 @@ function render(j){
         post("alert_respond",{callsign:id.callsign,device:id.device,alert_id:aid,content_id:cid.trim()},function(j){
           if(!j||!j.ok){
             var e=document.getElementById("alErr"+aid);
-            if(e) e.textContent=(j&&j.err)||"Response failed.";
+            if(e) e.textContent=PF.errCopy(j,"Response failed.");
             btn.disabled=false; return;
           }
           toast(j.dup?"Already logged. Stay sharp.":"+25 XP — rapid response logged.");

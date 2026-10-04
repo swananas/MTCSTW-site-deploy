@@ -190,7 +190,7 @@ function bind(){
       b.disabled=true;
       post("petition","pe_action","petition_sign",{callsign:ident().callsign,petition_id:pid},function(j){
         if(j&&j.ok){ toast(j.dup?"Already signed.":"Signed. +10 XP."); load(); }
-        else { toast((j&&j.err)||"Sign failed."); b.disabled=false; }
+        else { toast(PF.errCopy(j,"Sign failed.")); b.disabled=false; }
       });
     };
   });
@@ -224,7 +224,7 @@ function bind(){
     pcb.disabled=true;
     post("petition","pe_action","petition_create",{callsign:ident().callsign,title:title,description:gv("cvPetDesc"),target:target,goal:Number(gv("cvPetGoal"))||500},function(j){
       if(j&&j.ok){ toast("Petition launched. +25 XP."); CREATE_OPEN=false; load(); }
-      else { err.textContent=(j&&j.err)||"Create failed."; pcb.disabled=false; }
+      else { err.textContent=PF.errCopy(j,"Create failed."); pcb.disabled=false; }
     });
   };
   /* script picker */
@@ -257,7 +257,7 @@ function bind(){
     lc.disabled=true;
     post("rep","r_action","rep_contact",{callsign:ident().callsign,rep_name:rep,method:gv("cvMethod"),script_used:sid||""},function(j){
       if(j&&j.ok){ toast("Contact logged. +25 XP."); }
-      else { err.textContent=(j&&j.err)||"Log failed."; }
+      else { err.textContent=PF.errCopy(j,"Log failed."); }
       lc.disabled=false;
     });
   };
@@ -272,7 +272,7 @@ function bind(){
     pl.disabled=true;
     post("rep","r_action","voter_pledge",{callsign:ident().callsign,state:gv("cvVoterState")},function(j){
       if(j&&j.ok){ toast(j.dup?"Already pledged.":"Pledged. +50 XP."); }
-      else { toast((j&&j.err)||"Pledge failed."); }
+      else { toast(PF.errCopy(j,"Pledge failed.")); }
       pl.disabled=false;
     });
   };
@@ -289,7 +289,7 @@ function bind(){
     cs2.disabled=true;
     post("notifyq","nq_action","contact_set",{callsign:ident().callsign,email:em,phone:ph,email_optin:eo&&eo.checked?1:0,sms_optin:so&&so.checked?1:0,age13:(age13&&age13.checked)?1:0},function(j){
       if(j&&j.ok){ toast("Preferences saved."); }
-      else { err.textContent=(j&&j.err)||"Save failed."; }
+      else { err.textContent=PF.errCopy(j,"Save failed."); }
       cs2.disabled=false;
     });
   };

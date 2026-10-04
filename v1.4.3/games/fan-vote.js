@@ -400,7 +400,7 @@
     function retractDone(j){
       if(!j || !j.ok){
         /* Failure: do NOT clear local state — show the error honestly. */
-        msg.innerHTML = 'Retract failed (' + esc((j && (j.err || j.error)) || 'network error') + ') &mdash; your vote is still counted. Try again.';
+        msg.innerHTML = 'Retract failed (' + esc(PF.errCopy(j, 'network error')) + ') &mdash; your vote is still counted. Try again.';
         return;
       }
       try { localStorage.removeItem(storeKey); } catch(e){}
@@ -459,7 +459,7 @@
           setTimeout(fetchTotals,1500);
         } else {
           restoreBtn();
-          var msg=(j&&(j.err||j.error))||'Vote rejected.';
+          var msg=PF.errCopy(j,'Vote rejected.');
           try{ if(window.PF&&PF.toast) PF.toast(msg+' Not counted — try again.'); }catch(e){}
         }
       })

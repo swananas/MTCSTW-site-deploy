@@ -153,7 +153,7 @@ function wireRevenue(id,el){
     post("finance","f_action","revenue_claim",{callsign:id.callsign,device:id.device},function(j){
       b.disabled=false;
       if(!j||!j.ok){
-        document.getElementById("erClaimNote").textContent=(j&&j.err)||"Nothing to claim.";
+        document.getElementById("erClaimNote").textContent=PF.errCopy(j,"Nothing to claim.");
         return;
       }
       var t=Number(j.total||0);

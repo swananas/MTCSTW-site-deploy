@@ -417,7 +417,7 @@ function wire(){
         try{ document.dispatchEvent(new CustomEvent("pf-combo-hit")); }catch(e2){}
       } else {
         ob.disabled=false; ob.textContent="OPEN THE CRATE";
-        if(err) err.textContent=(j&&j.err)||"The crate jammed. Try again.";
+        if(err) err.textContent=PF.errCopy(j,"The crate jammed. Try again.");
       }
     });
   }; }
@@ -428,7 +428,7 @@ function wire(){
     post("streak","str_action","streak_freeze_buy",{callsign:id.callsign,device:id.device},function(j){
       fb.disabled=false;
       if(j&&j.ok){ toast("Streak frozen. Sleep easy, soldier."); comboHit(); load(); }
-      else if(err) err.textContent=(j&&j.err)||"Freeze failed.";
+      else if(err) err.textContent=PF.errCopy(j,"Freeze failed.");
     });
   }; }
   /* 2026-10-03: plain daily check-in (streak_checkin, AUTH). */
@@ -442,7 +442,7 @@ function wire(){
         toast(j.dup?("Already checked in — day "+(Number(j.count)||"")+" holds."):("Checked in. Day "+(Number(j.count)||"")+" of the fire."));
         comboHit(); load();
       }
-      else if(err) err.textContent=(j&&j.err)||"Check-in failed.";
+      else if(err) err.textContent=PF.errCopy(j,"Check-in failed.");
     });
   }; }
   var rb=document.getElementById("dpRepairBtn");
@@ -452,7 +452,7 @@ function wire(){
     post("streak","str_action","streak_repair",{callsign:id.callsign,device:id.device},function(j){
       rb.disabled=false;
       if(j&&j.ok){ toast("Streak relit. Don't let it die twice."); comboHit(); load(); }
-      else if(err) err.textContent=(j&&j.err)||"Repair failed.";
+      else if(err) err.textContent=PF.errCopy(j,"Repair failed.");
     });
   }; }
 }

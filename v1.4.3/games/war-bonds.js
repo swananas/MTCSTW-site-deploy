@@ -198,7 +198,7 @@
         }
         postBody(body, function(j){
           wbClaimBtn.disabled = false;
-          if(!j || !j.ok){ wbSay((j && (j.err || j.error)) || 'Claim failed. Try again.'); return; }
+          if(!j || !j.ok){ wbSay(PF.errCopy(j, 'Claim failed. Try again.')); return; }
           if(!j.claimed){
             if(j.no_webhooks_received){
               /* The Squarespace webhook has never fired — the buyer isn't at

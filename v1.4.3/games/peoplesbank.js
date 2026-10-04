@@ -292,7 +292,7 @@ function wireVault(id,el){
       function(j){
         btn.disabled=false;
         if(j&&j.ok){ toast(isDep?("+"+amt.toLocaleString()+" XP in the vault."):(amt.toLocaleString()+" XP withdrawn to spendable.")); }
-        else if(err){ err.textContent=(j&&(j.err||j.error))||"Transfer failed."; }
+        else if(err){ err.textContent=PF.errCopy(j,"Transfer failed."); }
         setTimeout(function(){
           api("bank_status",{callsign:iid.callsign},function(jj){ BST=jj; render(); });
           api("xp_balance",{callsign:iid.callsign},function(j2){ BAL=j2; render(); });
@@ -314,7 +314,7 @@ function wireVault(id,el){
     post("bank","b_action","overtime",{callsign:iid.callsign,device:iid.device,amount:amt,key:iid.device+":"+Date.now()},function(j){
       otb.disabled=false;
       if(j&&j.ok){ toast("OVERTIME LOGGED. +"+amt+" XP in the vault."); }
-      else if(err){ err.textContent=(j&&(j.err||j.error))||"Log failed."; }
+      else if(err){ err.textContent=PF.errCopy(j,"Log failed."); }
       setTimeout(function(){
         api("bank_status",{callsign:iid.callsign},function(jj){ BST=jj; render(); });
       },1200);
@@ -380,7 +380,7 @@ function wireTeller(id,el){
     if(!confirm("Send "+amt+" XP to "+to+"? Fee: "+fee+" XP. They receive "+(amt-fee)+" XP.")) return;
     b.disabled=true;
     post("remit","r_action","remit_send",{callsign:id.callsign,device:id.device,to_cs:to,amount:amt},function(j){
-      if(!j||!j.ok){ err.textContent=(j&&j.err)||"Transfer failed."; b.disabled=false; return; }
+      if(!j||!j.ok){ err.textContent=PF.errCopy(j,"Transfer failed."); b.disabled=false; return; }
       toast("SENT. "+to+" receives "+(j.received||amt)+" XP.");
       document.getElementById("pbToCs").value=""; document.getElementById("pbToAmt").value=""; document.getElementById("pbToMsg").value="";
       b.disabled=false;
@@ -419,7 +419,7 @@ function wireSavings(id,el){
     var a=amtOf(); if(!a) return; d.disabled=true;
     post("finance","f_action","savings_deposit",{callsign:id.callsign,device:id.device,amount:a},function(j){
       d.disabled=false;
-      if(!j||!j.ok){ document.getElementById("pbSavErr").textContent=(j&&j.err)||"Deposit failed."; return; }
+      if(!j||!j.ok){ document.getElementById("pbSavErr").textContent=PF.errCopy(j,"Deposit failed."); return; }
       toast("DEPOSITED "+a+" XP. Slow and steady.");
       refresh();
     });
@@ -429,7 +429,7 @@ function wireSavings(id,el){
     var a=amtOf(); if(!a) return; w.disabled=true;
     post("finance","f_action","savings_withdraw",{callsign:id.callsign,device:id.device,amount:a},function(j){
       w.disabled=false;
-      if(!j||!j.ok){ document.getElementById("pbSavErr").textContent=(j&&j.err)||"Withdrawal failed."; return; }
+      if(!j||!j.ok){ document.getElementById("pbSavErr").textContent=PF.errCopy(j,"Withdrawal failed."); return; }
       toast("WITHDREW "+a+" XP. Back in your pocket.");
       refresh();
     });
@@ -493,7 +493,7 @@ function wireLoans(id,el){
     o.disabled=true;
     post("finance","f_action","loan_offer",{callsign:id.callsign,device:id.device,borrower:to,principal:amt,interest_pct:pct,duration_days:dur},function(j){
       o.disabled=false;
-      if(!j||!j.ok){ e.textContent=(j&&j.err)||"Offer failed."; return; }
+      if(!j||!j.ok){ e.textContent=PF.errCopy(j,"Offer failed."); return; }
       toast("LOAN OFFERED. "+to+" can accept it at the Loan Desk.");
       api("loan_list",{callsign:id.callsign},function(jj){ LNS=jj; render(); });
     });
@@ -503,7 +503,7 @@ function wireLoans(id,el){
     btn.onclick=function(){
       var lid=btn.getAttribute("data-lnrepay"); btn.disabled=true;
       post("finance","f_action","loan_repay",{callsign:id.callsign,device:id.device,loan_id:lid},function(j){
-        if(!j||!j.ok){ toast((j&&j.err)||"Repayment failed."); btn.disabled=false; return; }
+        if(!j||!j.ok){ toast(PF.errCopy(j,"Repayment failed.")); btn.disabled=false; return; }
         toast("LOAN REPAID. Your credit stands.");
         api("loan_list",{callsign:id.callsign},function(jj){ LNS=jj; render(); });
         api("xp_balance",{callsign:id.callsign},function(j2){ BAL=j2; render(); });
@@ -518,7 +518,7 @@ function wireLoans(id,el){
       if(!window.confirm("Cancel this loan offer? The principal returns to you.")) return;
       btn.disabled=true;
       post("finance","f_action","loan_cancel",{callsign:id.callsign,device:id.device,loan_id:lid},function(j){
-        if(!j||!j.ok){ toast((j&&j.err)||"Cancel failed."); btn.disabled=false; return; }
+        if(!j||!j.ok){ toast(PF.errCopy(j,"Cancel failed.")); btn.disabled=false; return; }
         toast("OFFER CANCELLED. Principal refunded.");
         api("loan_list",{callsign:id.callsign},function(jj){ LNS=jj; render(); });
       });
@@ -560,7 +560,7 @@ function wireBonds(id,el){
     b.disabled=true;
     post("finance","f_action","bond_buy",{callsign:id.callsign,device:id.device,amount:a},function(j){
       b.disabled=false;
-      if(!j||!j.ok){ e.textContent=(j&&j.err)||"Purchase failed."; return; }
+      if(!j||!j.ok){ e.textContent=PF.errCopy(j,"Purchase failed."); return; }
       toast("BOND BOUGHT. +20% in 30 days. The war effort thanks you.");
       api("bond_list",{callsign:id.callsign},function(jj){ BND=jj; render(); });
       api("xp_balance",{callsign:id.callsign},function(j2){ BAL=j2; render(); });
@@ -571,7 +571,7 @@ function wireBonds(id,el){
     btn.onclick=function(){
       var bid=btn.getAttribute("data-bondid"); btn.disabled=true;
       post("finance","f_action","bond_redeem",{callsign:id.callsign,device:id.device,bond_id:bid},function(j){
-        if(!j||!j.ok){ toast((j&&j.err)||"Redemption failed."); btn.disabled=false; return; }
+        if(!j||!j.ok){ toast(PF.errCopy(j,"Redemption failed.")); btn.disabled=false; return; }
         toast("+"+(j.payout||0)+" XP REDEEMED. Profit is a weapon.");
         api("bond_list",{callsign:id.callsign},function(jj){ BND=jj; render(); });
         api("xp_balance",{callsign:id.callsign},function(j2){ BAL=j2; render(); });

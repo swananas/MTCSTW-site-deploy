@@ -219,7 +219,7 @@ function render(){
       btn.disabled=true;
       post({type:"battle",b_action:"battle_vote",battle_id:btn.getAttribute("data-bid"),content_id:btn.getAttribute("data-cid"),voter:me.callsign,device:me.device},function(j){
         btn.disabled=false;
-        if(!j||!j.ok){ toast((j&&j.err)||"Vote failed."); return; }
+        if(!j||!j.ok){ toast(PF.errCopy(j,"Vote failed.")); return; }
         toast("VOTE COUNTED. May the best propaganda win.");
         try{ if(window.PF&&PF.dope){ PF.dope.press(btn); var vh=document.getElementById("xBattles")||document.body; PF.dope.xpFloat(vh,"VOTE COUNTED"); } }catch(e2){}
         load();
@@ -235,7 +235,7 @@ function render(){
       btn.disabled=true;
       post({type:"spread",sp_action:"boost_give",content_id:btn.getAttribute("data-cid"),booster:me.callsign,device:me.device,xp:btn.getAttribute("data-amt")},function(j){
         btn.disabled=false;
-        if(!j||!j.ok){ toast((j&&j.err)||"Boost failed."); return; }
+        if(!j||!j.ok){ toast(PF.errCopy(j,"Boost failed.")); return; }
         toast("BOOSTED — "+j.total_boosts+" XP total on this piece.");
         try{ if(window.PF&&PF.dope){ PF.dope.press(btn); var bh=document.getElementById("xBattles")||document.body; PF.dope.xpFloat(bh,"+"+btn.getAttribute("data-amt")+" XP BOOST"); } }catch(e2){}
         load();
@@ -271,7 +271,7 @@ function render(){
     var act=fee>0?"battle_enter_staked":"battle_enter";
     post({type:"battle",b_action:act,battle_id:bid,content_id:cid,creator:me.callsign},function(j){
       eb.disabled=false;
-      if(!j||!j.ok){ if(errEl)errEl.textContent=(j&&j.err)||"Entry failed."; return; }
+      if(!j||!j.ok){ if(errEl)errEl.textContent=PF.errCopy(j,"Entry failed."); return; }
       toast(fee>0?("ENTERED STAKED. "+fee+" XP in the pool — now get your cell to vote."):"ENTERED. Now get your cell to vote.");
       /* M1 dopamine: entering the arena should feel like something. */
       try{ if(window.PF&&PF.dope){ var dh=document.getElementById("xBattles")||document.body; PF.dope.confetti(dh,fee>0?60:30); PF.dope.ping(dh,fee>0?"STAKED ENTRY CONFIRMED":"ENTERED THE ARENA"); } }catch(e2){}
@@ -294,7 +294,7 @@ function render(){
     cb2.disabled=true;
     post({type:"battle",b_action:"battle_propose",callsign:me.callsign,device:me.device,title:title,ends_at:endsAt},function(j){
       cb2.disabled=false;
-      if(!j||!j.ok){ if(errEl)errEl.textContent=(j&&j.err)||"Proposal failed."; return; }
+      if(!j||!j.ok){ if(errEl)errEl.textContent=PF.errCopy(j,"Proposal failed."); return; }
       toast("Battle proposed! Awaiting approval.");
       try{ if(window.PF&&PF.dope){ var ph=document.getElementById("xBattles")||document.body; PF.dope.confetti(ph,30); PF.dope.ping(ph,"BATTLE PROPOSED"); } }catch(e2){}
       /* 2026-10-03 C2: load()'s fin() sequences render -> loadMyProposals(),

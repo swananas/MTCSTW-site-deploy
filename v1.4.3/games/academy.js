@@ -156,7 +156,7 @@
               render(el,lessons);
             } else {
               btn.disabled=false; btn.textContent="MARK COMPLETE";
-              toast((j&&j.err)||"Could not record. Try again.");
+              toast(PF.errCopy(j,"Could not record. Try again."));
             }
           });
         };

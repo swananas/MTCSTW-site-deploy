@@ -358,7 +358,7 @@ function pfWireBoosts(root){
         btn.disabled=true;
         pfPost({type:"spread",sp_action:"boost_give",content_id:btn.getAttribute("data-cid"),booster:id.callsign,device:id.device,xp:btn.getAttribute("data-amt")},function(j){
           btn.disabled=false;
-          if(!j||!j.ok){ pfToast((j&&j.err)||"Boost failed."); return; }
+          if(!j||!j.ok){ pfToast(PF.errCopy(j,"Boost failed.")); return; }
           pfToast("BOOSTED — "+j.total_boosts+" XP total on this piece.");
           pfRenderSpread(); pfRenderImpact();
           try{ document.dispatchEvent(new CustomEvent("pf-boost-given",{detail:{content_id:btn.getAttribute("data-cid")}})); }catch(e){}
@@ -737,7 +737,7 @@ function saveVideo(){
   }
   post("video_create",{callsign:idd.callsign, device:idd.device, title:title, frames:JSON.stringify(out)}, function(j){
     if(j&&j.ok){ toast("Saved. +15 XP. ID: "+j.id); loadLibrary(); }
-    else toast((j&&j.err)||"Save failed.");
+    else toast(PF.errCopy(j,"Save failed."));
   });
 }
 function loadLibrary(){

@@ -323,7 +323,7 @@ function renderLobby(el){
         res=document.getElementById("cSearchRes");
     err.textContent=""; res.innerHTML='<div class="c-load">Searching&hellip;</div>';
     api("cell_search",{q:q},function(j){
-      if(!j||!j.ok){ err.textContent=(j&&j.err)||"Network error."; res.innerHTML=""; return; }
+      if(!j||!j.ok){ err.textContent=cellWriteErr(j,"Network error."); res.innerHTML=""; return; }
       var list=j.cells||[];
       if(!list.length){ res.innerHTML='<div class="x-note">No cells match. Found the first one above.</div>'; return; }
       var h="";
@@ -792,7 +792,7 @@ function renderCell(el,s){
     var code=document.getElementById("cLinkCode").value, err=document.getElementById("cLinkErr");
     errEl.textContent=""; err.textContent="";
     api("cell_join",{callsign:id.callsign,device:id.device,code:code},function(j){
-      if(!j||!j.ok){ err.textContent=(j&&j.err)||"Network error."; return; }
+      if(!j||!j.ok){ err.textContent=cellWriteErr(j,"Network error."); return; }
       toast("Wired into "+j.cell.name+". The chain grows.");
       refresh();
     });

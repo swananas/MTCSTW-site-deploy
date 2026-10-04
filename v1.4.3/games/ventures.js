@@ -182,7 +182,7 @@ function wire(){
         side:sideEl?sideEl.value:"a",key:id.device+":"+Date.now()},function(j){
         btn.disabled=false;
         if(j&&j.ok){ toast("+"+j.shares+" shares"+(j.earlybird?" (early-bird!)":"")+"."); }
-        else { errEl.textContent=(j&&j.err)||"Pledge failed."; }
+        else { errEl.textContent=PF.errCopy(j,"Pledge failed."); }
         setTimeout(load,1500);
       });
     };
@@ -192,7 +192,7 @@ function wire(){
       btn.disabled=true; btn.textContent="Resolving…";
       post("venture_resolve",{venture_id:btn.getAttribute("data-id"),callsign:id.callsign,device:id.device},function(j){
         if(j&&j.ok){ toast(j.result==="draw"?"Draw — pledges returned.":j.result==="missed"?"Goal missed — pledges returned.":"Resolved. Spoils paid."); }
-        else { toast((j&&j.err)||"Resolve failed."); btn.disabled=false; btn.textContent="Resolve now"; }
+        else { toast(PF.errCopy(j,"Resolve failed.")); btn.disabled=false; btn.textContent="Resolve now"; }
         setTimeout(load,2000);
       });
     };
@@ -213,7 +213,7 @@ function wire(){
           setTimeout(load,2500);
         } else {
           btn.disabled=false; btn.textContent=orig;
-          toast("Vote failed: "+((j&&j.err)||"no reply from Command.")+" Try again.");
+          toast("Vote failed: "+(PF.errCopy(j,"no reply from Command."))+" Try again.");
         }
       });
     };

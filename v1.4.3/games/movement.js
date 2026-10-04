@@ -122,7 +122,7 @@ function wireCauses(id,el){
       btn.disabled=true;
       post("finance","f_action","cause_donate",{callsign:id.callsign,device:id.device,pool_id:pid,amount:amt},function(j){
         btn.disabled=false;
-        if(!j||!j.ok){ toast((j&&j.err)||"Transfer failed."); return; }
+        if(!j||!j.ok){ toast(PF.errCopy(j,"Transfer failed.")); return; }
         toast("FUNDED "+amt+" XP. The movement thanks you.");
         api("cause_list",{},function(jj){ CAUSES=jj; render(); });
       });
@@ -164,7 +164,7 @@ function wireSubs(id,el){
     b.disabled=true;
     post("finance","f_action","subscribe",{callsign:id.callsign,device:id.device,subscriber:id.callsign,creator:cr,amount_per_week:amt},function(j){
       b.disabled=false;
-      if(!j||!j.ok){ e.textContent=(j&&j.err)||"Failed."; return; }
+      if(!j||!j.ok){ e.textContent=PF.errCopy(j,"Failed."); return; }
       toast("SUPPORTING "+cr+" at "+amt+" XP/week.");
       document.getElementById("mvSubCs").value=""; document.getElementById("mvSubAmt").value="";
       api("subscription_list",{callsign:id.callsign},function(jj){ SUBS=jj; render(); });
@@ -175,7 +175,7 @@ function wireSubs(id,el){
     btn.onclick=function(){
       var cr=btn.getAttribute("data-unsub"); btn.disabled=true;
       post("finance","f_action","unsubscribe",{callsign:id.callsign,device:id.device,subscriber:id.callsign,creator:cr},function(j){
-        if(!j||!j.ok){ toast((j&&j.err)||"Failed."); btn.disabled=false; return; }
+        if(!j||!j.ok){ toast(PF.errCopy(j,"Failed.")); btn.disabled=false; return; }
         toast("Stopped supporting "+cr+".");
         api("subscription_list",{callsign:id.callsign},function(jj){ SUBS=jj; render(); });
       });
@@ -215,7 +215,7 @@ function wirePrizes(id,el){
     c.disabled=true;
     post("prize","p_action","prize_create",{callsign:id.callsign,device:id.device,title:t,target:tg},function(j){
       c.disabled=false;
-      if(!j||!j.ok){ e.textContent=(j&&j.err)||"Failed."; return; }
+      if(!j||!j.ok){ e.textContent=PF.errCopy(j,"Failed."); return; }
       toast("POOL CREATED. Now fund it.");
       document.getElementById("mvPrizeTitle").value=""; document.getElementById("mvPrizeTarget").value="";
       api("prize_list",{},function(jj){ PRIZES=jj; render(); });
@@ -231,7 +231,7 @@ function wirePrizes(id,el){
       btn.disabled=true;
       post("prize","p_action","prize_contribute",{callsign:id.callsign,device:id.device,pool_id:pid,amount:amt},function(j){
         btn.disabled=false;
-        if(!j||!j.ok){ toast((j&&j.err)||"Failed."); return; }
+        if(!j||!j.ok){ toast(PF.errCopy(j,"Failed.")); return; }
         toast("CONTRIBUTED "+amt+" XP to the pool.");
         api("prize_list",{},function(jj){ PRIZES=jj; render(); });
       });
@@ -274,7 +274,7 @@ function wireBurns(id,el){
     b.disabled=true;
     post("finance","f_action","xp_burn",{callsign:id.callsign,device:id.device,amount:amt,reason:why},function(j){
       b.disabled=false;
-      if(!j||!j.ok){ e.textContent=(j&&j.err)||"Burn failed."; return; }
+      if(!j||!j.ok){ e.textContent=PF.errCopy(j,"Burn failed."); return; }
       toast("BURNED "+amt+" XP."+(j.badge?" TRUE BELIEVER badge earned.":""));
       document.getElementById("mvBurnAmt").value=""; document.getElementById("mvBurnWhy").value="";
       api("burn_leaderboard",{},function(jj){ BURNS=jj; render(); });

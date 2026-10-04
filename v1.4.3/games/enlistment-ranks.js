@@ -649,7 +649,7 @@ function pConfirm(st){
       } else {
         /* Failure: keep the modal open and show the error in-modal — the
            user must not have to re-do an irreversible XP burn. */
-        showPrestigeErr("Prestige failed: "+((j&&j.err)||"unknown")+" — your XP is untouched. Check the connection and hit BURN IT again.");
+        showPrestigeErr("Prestige failed: "+(PF.errCopy(j,"unknown"))+" — your XP is untouched. Check the connection and hit BURN IT again.");
         cBtn.disabled=false; cBtn.textContent="BURN IT";
         loadPrestige();
       }

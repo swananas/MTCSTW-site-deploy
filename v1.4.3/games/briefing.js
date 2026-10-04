@@ -319,7 +319,7 @@ function render(){
             });
           }catch(e){}
         }
-        else { toast((j&&j.err)||"Claim failed."); btn.disabled=false; btn.textContent="CLAIM"; return; }
+        else { toast(PF.errCopy(j,"Claim failed.")); btn.disabled=false; btn.textContent="CLAIM"; return; }
         load();
       });
     }; })(acts[a]);

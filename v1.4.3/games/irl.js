@@ -106,7 +106,7 @@ function render(j){
         post("event_rsvp",{callsign:id.callsign,device:id.device,event_id:eid},function(j){
           if(!j||!j.ok){
             var er=document.getElementById("irlErr"+eid);
-            if(er) er.textContent=(j&&j.err)||"RSVP failed.";
+            if(er) er.textContent=PF.errCopy(j,"RSVP failed.");
             btn.disabled=false; return;
           }
           toast("+50 XP — see you in the street.");

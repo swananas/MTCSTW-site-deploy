@@ -122,7 +122,7 @@ function render(){
     var all={}; TYPES.forEach(function(t){ all[t[0]]=0; });
     post("notifyq","nq_action","notify_prefs",{callsign:CS,prefs:all},function(j){
       if(j&&j.ok){ PREFS=j.prefs; render(); toast("All emails muted."); }
-      else msg("Could not save. "+((j&&j.err)||""));
+      else msg("Could not save. "+(PF.errCopy(j,"")));
     });
   });
 }
@@ -162,7 +162,7 @@ function exportData(){
   post("privacy","p_action","privacy_export",{callsign:CS,device:ident().device},function(j){
     if(b){ b.disabled=false; b.textContent=lbl; }
     privMsg("");
-    if(!(j&&j.ok)){ toast("Export failed. "+((j&&j.err)||"")); return; }
+    if(!(j&&j.ok)){ toast("Export failed. "+(PF.errCopy(j,""))); return; }
     try{
       var blob=new Blob([JSON.stringify(j,null,2)],{type:"application/json"});
       var a=document.createElement("a");
@@ -194,7 +194,7 @@ function eraseData(){
     privMsg("");
     if(!(j&&j.ok)){
       if(eb){ eb.disabled=false; eb.textContent="RETRY"; }
-      toast("Erase failed. "+((j&&j.err)||""));
+      toast("Erase failed. "+(PF.errCopy(j,"")));
       return;
     }
     toast((j&&j.note)||"Erased.");
@@ -250,7 +250,7 @@ function save(){
   post("notifyq","nq_action","notify_prefs",{callsign:CS,prefs:prefs},function(j){
     if(b){ b.disabled=false; b.textContent=lbl; }
     if(j&&j.ok){ PREFS=j.prefs; toast("Preferences saved."); msg(""); render(); }
-    else msg("Could not save. "+((j&&j.err)||""));
+    else msg("Could not save. "+(PF.errCopy(j,"")));
   });
 }
 function updateEmail(){
@@ -267,7 +267,7 @@ function updateEmail(){
   post("notifyq","nq_action","contact_set",{callsign:CS,email:em,email_optin:1,age13:1},function(j){
     if(b){ b.disabled=false; b.textContent=lbl; }
     if(j&&j.ok){ MASKED=em; toast("Email updated."); msg(""); render(); }
-    else msg("Could not save. "+((j&&j.err)||""));
+    else msg("Could not save. "+(PF.errCopy(j,"")));
   });
 }
 /* auth:auth_rotate (AUTH) — requires the CURRENT secret, which PF.authPost
@@ -287,7 +287,7 @@ function rotateSecret(){
       toast("Secret rotated. This device is re-keyed.");
       if(m) m.textContent="Rotated.";
     } else {
-      if(m) m.textContent="Rotate failed. "+((j&&j.err)||"");
+      if(m) m.textContent="Rotate failed. "+(PF.errCopy(j,""));
     }
   });
 }

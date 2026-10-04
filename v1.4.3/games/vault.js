@@ -119,7 +119,7 @@ function renderGate(){
     setSecret(s);
     apiAdmin("network_health",function(j){
       if(j&&j.ok){ toast("Vault unlocked."); load(); }
-      else{ clearSecret(); err("vlGateErr",(j&&j.err)||"Invalid secret."); }
+      else{ clearSecret(); err("vlGateErr",PF.errCopy(j,"Invalid secret.")); }
     });
   };
 }
@@ -336,7 +336,7 @@ function wire(){
   if(b) b.onclick=function(){ b.disabled=true;
     post("gamble","g_action","lottery_draw",{},function(j){
       b.disabled=false;
-      if(!j||!j.ok){ err("vlDrawErr",(j&&j.err)||"Draw failed."); return; }
+      if(!j||!j.ok){ err("vlDrawErr",PF.errCopy(j,"Draw failed.")); return; }
       toast("Winner: "+j.winner+" — "+j.pot+" XP."); LS=null; load();
     }); };
   b=document.getElementById("vlWCreate");
@@ -345,7 +345,7 @@ function wire(){
     var closes=val("vlWClose"); var ts=closes?new Date(closes).getTime():0;
     post("wager","w_action","wager_create",{kind:val("vlWKind"),target_id:val("vlWTid"),description:val("vlWDesc"),sides:sides,closes_at:ts},function(j){
       b.disabled=false;
-      if(!j||!j.ok){ err("vlWErr",(j&&j.err)||"Create failed."); return; }
+      if(!j||!j.ok){ err("vlWErr",PF.errCopy(j,"Create failed.")); return; }
       toast("Wager created: "+j.id); WL=null; load();
     }); };
   var rbs=document.querySelectorAll("[data-wres]");
@@ -356,7 +356,7 @@ function wire(){
       if(!side){ err("vlWResErr","Enter the winning side."); btn.disabled=false; return; }
       post("wager","w_action","wager_resolve",{wager_id:wid,winning_side:side},function(j){
         btn.disabled=false;
-        if(!j||!j.ok){ err("vlWResErr",(j&&j.err)||"Resolve failed."); return; }
+        if(!j||!j.ok){ err("vlWResErr",PF.errCopy(j,"Resolve failed.")); return; }
         toast("Wager resolved. "+(j.payouts||[]).length+" payouts."); WL=null; load();
       }); };
   })(rbs[i]); }
@@ -364,7 +364,7 @@ function wire(){
   if(b) b.onclick=function(){ b.disabled=true;
     post("sub","s_action","subscription_process",{},function(j){
       b.disabled=false;
-      if(!j||!j.ok){ err("vlSubErr",(j&&j.err)||"Process failed."); return; }
+      if(!j||!j.ok){ err("vlSubErr",PF.errCopy(j,"Process failed.")); return; }
       var out=document.getElementById("vlSubOut");
       if(out) out.textContent="Paid "+(j.paid||0)+" subscriptions, skipped "+(j.skipped||0)+".";
       toast("Subscriptions processed.");
@@ -375,7 +375,7 @@ function wire(){
       var pid=btn.getAttribute("data-cw");
       post("cause","c_action","cause_withdraw",{pool_id:pid,amount:Number(val("vlCW_"+pid))||0,note:val("vlCWN_"+pid)},function(j){
         btn.disabled=false;
-        if(!j||!j.ok){ err("vlCWErr",(j&&j.err)||"Withdraw failed."); return; }
+        if(!j||!j.ok){ err("vlCWErr",PF.errCopy(j,"Withdraw failed.")); return; }
         toast("Disbursed "+(j.withdrawn||0)+" XP from "+pid+"."); CL=null; load();
       }); };
   })(cwb[i]); }
@@ -383,7 +383,7 @@ function wire(){
   if(b) b.onclick=function(){ b.disabled=true;
     post("prize","p_action","prize_award",{pool_id:val("vlPPool"),winner:val("vlPWin")},function(j){
       b.disabled=false;
-      if(!j||!j.ok){ err("vlPErr",(j&&j.err)||"Award failed."); return; }
+      if(!j||!j.ok){ err("vlPErr",PF.errCopy(j,"Award failed.")); return; }
       toast("Awarded "+(j.amount||0)+" XP to "+j.winner+".");
     }); };
   var eab=document.querySelectorAll("[data-ea]");
@@ -394,7 +394,7 @@ function wire(){
       if(!cs){ err("vlEAErr","Enter a callsign."); btn.disabled=false; return; }
       post("irl","i_action","event_attended",{event_id:eid,callsign:cs},function(j){
         btn.disabled=false;
-        if(!j||!j.ok){ err("vlEAErr",(j&&j.err)||"Confirm failed."); return; }
+        if(!j||!j.ok){ err("vlEAErr",PF.errCopy(j,"Confirm failed.")); return; }
         toast(j.dup?"Already confirmed.":"Attendance confirmed. +100 XP to "+cs+".");
       }); };
   })(eab[e]); }
@@ -403,14 +403,14 @@ function wire(){
     var at=val("vlDAt"); var ts=at?new Date(at).getTime():0;
     post("drop","d_action","drop_create",{title:val("vlDTitle"),content_id:val("vlDCid"),drop_at:ts},function(j){
       b.disabled=false;
-      if(!j||!j.ok){ err("vlDErr",(j&&j.err)||"Create failed."); return; }
+      if(!j||!j.ok){ err("vlDErr",PF.errCopy(j,"Create failed.")); return; }
       toast("Drop created: "+j.id); DL=null; load();
     }); };
   b=document.getElementById("vlACreate");
   if(b) b.onclick=function(){ b.disabled=true;
     post("alert","al_action","alert_create",{headline:val("vlAHead"),context:val("vlACtx"),template_id:val("vlATpl")},function(j){
       b.disabled=false;
-      if(!j||!j.ok){ err("vlAErr",(j&&j.err)||"Create failed."); return; }
+      if(!j||!j.ok){ err("vlAErr",PF.errCopy(j,"Create failed.")); return; }
       toast("Alert created: "+j.id); AL=null; load();
     }); };
   /* flash broadcast: the producer for the 'Flash events' email pref */
@@ -420,7 +420,7 @@ function wire(){
     if(!ft||!fm){ err("vlFBErr","Title and message required."); b.disabled=false; return; }
     post("flash","fl_action","flash_broadcast",{title:ft,message:fm},function(j){
       b.disabled=false;
-      if(!j||!j.ok){ err("vlFBErr",(j&&j.err)||"Broadcast failed."); return; }
+      if(!j||!j.ok){ err("vlFBErr",PF.errCopy(j,"Broadcast failed.")); return; }
       toast("Flash broadcast queued (row "+j.id+"). It drains with the hourly queue.");
     }); };
   /* moderation queue: battle proposals */
@@ -429,7 +429,7 @@ function wire(){
     btn.onclick=function(){ btn.disabled=true;
       post("battle","b_action","battle_approve",{proposal_id:btn.getAttribute("data-bap")},function(j){
         btn.disabled=false;
-        if(!j||!j.ok){ toast("Approve failed: "+((j&&j.err)||"error")); return; }
+        if(!j||!j.ok){ toast("Approve failed: "+(PF.errCopy(j,"error"))); return; }
         toast("Battle approved and live: "+j.id); BP=null; load();
       }); };
   })(baps[bi]); }
@@ -440,7 +440,7 @@ function wire(){
       btn.disabled=true;
       post("battle","b_action","battle_reject",{proposal_id:btn.getAttribute("data-brj"),reason:reason},function(j){
         btn.disabled=false;
-        if(!j||!j.ok){ toast("Reject failed: "+((j&&j.err)||"error")); return; }
+        if(!j||!j.ok){ toast("Reject failed: "+(PF.errCopy(j,"error"))); return; }
         toast("Proposal rejected."); BP=null; load();
       }); };
   })(brjs[bj]); }
@@ -450,7 +450,7 @@ function wire(){
     btn.onclick=function(){ btn.disabled=true;
       post("intel","i_action","intel_approve",{submission_id:btn.getAttribute("data-iap")},function(j){
         btn.disabled=false;
-        if(!j||!j.ok){ toast("Approve failed: "+((j&&j.err)||"error")); return; }
+        if(!j||!j.ok){ toast("Approve failed: "+(PF.errCopy(j,"error"))); return; }
         toast("Intel published: "+j.id); IS=null; load();
       }); };
   })(iaps[ii]); }
@@ -461,7 +461,7 @@ function wire(){
       btn.disabled=true;
       post("intel","i_action","intel_reject",{submission_id:btn.getAttribute("data-irj"),reason:reason},function(j){
         btn.disabled=false;
-        if(!j||!j.ok){ toast("Reject failed: "+((j&&j.err)||"error")); return; }
+        if(!j||!j.ok){ toast("Reject failed: "+(PF.errCopy(j,"error"))); return; }
         toast("Submission rejected."); IS=null; load();
       }); };
   })(irjs[ij]); }
@@ -471,14 +471,14 @@ function wire(){
     var ends=val("vlBEnds"); var ts=ends?new Date(ends).getTime():0;
     post("battle","b_action","battle_create",{title:val("vlBT"),ends_at:ts},function(j){
       b.disabled=false;
-      if(!j||!j.ok){ err("vlBErr",(j&&j.err)||"Create failed."); return; }
+      if(!j||!j.ok){ err("vlBErr",PF.errCopy(j,"Create failed.")); return; }
       toast("Battle created: "+j.id); BTL=null; load();
     }); };
   b=document.getElementById("vlBSCreate");
   if(b) b.onclick=function(){ b.disabled=true;
     post("battle","b_action","battle_create_staked",{title:val("vlBST"),entry_fee:Number(val("vlBFee"))||0,prize_pool:Number(val("vlBPool"))||0},function(j){
       b.disabled=false;
-      if(!j||!j.ok){ err("vlBSErr",(j&&j.err)||"Create failed."); return; }
+      if(!j||!j.ok){ err("vlBSErr",PF.errCopy(j,"Create failed.")); return; }
       toast("Staked battle created: "+j.id); BTL=null; load();
     }); };
   var bvts=document.querySelectorAll("[data-bvote]");
@@ -486,7 +486,7 @@ function wire(){
     btn.onclick=function(){ btn.disabled=true;
       post("battle","b_action","battle_open_voting",{battle_id:btn.getAttribute("data-bvote")},function(j){
         btn.disabled=false;
-        if(!j||!j.ok){ err("vlBCErr",(j&&j.err)||"Open voting failed."); return; }
+        if(!j||!j.ok){ err("vlBCErr",PF.errCopy(j,"Open voting failed.")); return; }
         toast("Voting open."); BTL=null; load();
       }); };
   })(bvts[vi]); }
@@ -497,7 +497,7 @@ function wire(){
       btn.disabled=true;
       post("battle","b_action","battle_close",{battle_id:btn.getAttribute("data-bclose")},function(j){
         btn.disabled=false;
-        if(!j||!j.ok){ err("vlBCErr",(j&&j.err)||"Close failed."); return; }
+        if(!j||!j.ok){ err("vlBCErr",PF.errCopy(j,"Close failed.")); return; }
         toast("Battle settled. Winner: "+(j.winner||"?")); BTL=null; load();
       }); };
   })(bcls[ci]); }
@@ -509,7 +509,7 @@ function wire(){
       btn.disabled=true;
       post("sink","s_action","auction_cancel",{auction_id:btn.getAttribute("data-acancel")},function(j){
         btn.disabled=false;
-        if(!j||!j.ok){ err("vlACErr",(j&&j.err)||"Cancel failed."); return; }
+        if(!j||!j.ok){ err("vlACErr",PF.errCopy(j,"Cancel failed.")); return; }
         toast("Auction cancelled."); AUL=null; load();
       }); };
   })(acs[ai2]); }

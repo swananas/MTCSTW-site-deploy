@@ -132,7 +132,7 @@
            leaderboard on "Loading…" with no error path. Swap any loading
            placeholders in this section for an explicit error + reload. */
         try {
-          var loads = root.querySelectorAll('.c-load,.hq-load');
+          var loads = root.querySelectorAll('.c-load,.hq-load,.ca-load,.cw-load,.p-load');
           for (var j = 0; j < loads.length; j++) {
             var d = document.createElement('div');
             d.style.cssText = 'border:2px solid #c1121f;background:#1a0505;color:#f5f0e1;padding:12px;margin:8px 0;font-family:Arial,sans-serif;font-size:14px;';

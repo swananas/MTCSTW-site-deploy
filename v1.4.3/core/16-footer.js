@@ -168,7 +168,7 @@
         if (!(j && j.ok)) {
           btn.disabled = false;
           btn.textContent = 'RETRY';
-          dmsg('Erase failed: ' + ((j && j.err) || 'no reply from Command.') + ' Your data is untouched — try again.');
+          dmsg('Erase failed: ' + PF.errCopy(j, 'no reply from Command.') + ' Your data is untouched — try again.');
           return;
         }
         /* Server-side done. Now wipe every site key in this browser so the

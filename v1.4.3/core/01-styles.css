@@ -358,3 +358,25 @@ body:has(#pf-nuke-stick:not([hidden])) #pf-do-mini{bottom:calc(56px + env(safe-a
    ever stamped on /economy's mount — no other page's layout is touched.
    ============================================================================ */
 .pf-fe-full{width:100%!important;max-width:none!important;left:0!important;}
+
+/* ============================================================================
+   DEFECT 4 (2026-10-03) — /request-access (Creator HQ) layout broken.
+   (a) The page's Squarespace Code blocks are sized ~240px wide in the Fluid
+   Engine editor (same root cause as defect 3's /economy incident and the
+   earlier Home / /political-hq narrow-column incidents). The editor is
+   off-limits, so games/war-card.js (and games/academy.js for academy-only
+   pages) stamps .pf-fe-hq on the .fe-block wrapper ancestor of each HQ
+   mount div (#pf-war-card, #pf-academy-hq, #pf-cell-hq, #pf-dash-hq); this
+   rule forces full content width. !important outranks Squarespace's inline
+   layout styles, which FE JS rewrites on resize.
+   (b) The black Creator war card panel was overflowing its narrow/short FE
+   block and painting over the native request form's Name/Handle inputs
+   (the panel itself carries no position/z-index — pure block-geometry
+   overflow). Widening the block to full width plus height:auto (block box
+   fits its content instead of clipping/overflowing it) removes the
+   overlap so the form inputs are fully visible and clickable.
+   grid-column:1/-1 covers grid-placed FE sections; width/left covers
+   absolute-placed ones. Scoped: the class is only ever stamped on HQ
+   mounts — no other page's layout is touched.
+   ============================================================================ */
+.pf-fe-hq{width:100%!important;max-width:none!important;left:0!important;grid-column:1/-1!important;height:auto!important;}

@@ -191,4 +191,18 @@
     var hq=document.getElementById("pf-academy-hq");
     if(hq) mount(hq);
   }catch(e2){}
+  /* DEFECT4 (2026-10-03): /request-access Fluid Engine layout repair for HQ
+     pages that carry the academy block but NOT the war-card block
+     (war-card.js stamps .pf-fe-hq when #pf-war-card exists). Same narrow
+     ~240px Code-block root cause as defect 3's /economy: stamp .pf-fe-hq
+     (see core/01-styles.css + core/bundle-styles.css) on the block's
+     .fe-block wrapper ancestor so the !important rule forces full content
+     width / auto height. Scoped: no-ops unless #pf-academy-hq exists. */
+  try{
+    if(!document.getElementById("pf-war-card")){
+      var hqm=document.getElementById("pf-academy-hq");
+      var hqb=(hqm&&hqm.closest)?hqm.closest(".fe-block"):null;
+      if(hqb&&hqb.classList&&!hqb.classList.contains("pf-fe-hq"))hqb.classList.add("pf-fe-hq");
+    }
+  }catch(e3){}
 })();

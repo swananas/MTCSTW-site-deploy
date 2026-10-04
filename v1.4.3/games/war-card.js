@@ -212,6 +212,24 @@
   }
 
   render();
+  /* DEFECT4 (2026-10-03): /request-access Fluid Engine layout repair.
+     (a) Squarespace stored the HQ Code blocks ~240px wide (same narrow-column
+     root cause as defect 3's /economy). (b) The war-card panel overflowed its
+     narrow/short block and painted over the native request form's Name/Handle
+     inputs (the panel itself has no position/z-index — pure block-geometry
+     overflow). The editor is off-limits, so stamp .pf-fe-hq (see
+     core/01-styles.css + core/bundle-styles.css) on the .fe-block wrapper
+     ancestor of every HQ mount div; the !important rule forces full content
+     width and auto height, beating Squarespace's inline layout styles.
+     Scoped: this IIFE only runs where #pf-war-card exists (HQ pages), so no
+     other page is touched. Best-effort: never throws, never breaks render. */
+  try {
+    ['pf-war-card', 'pf-academy-hq', 'pf-cell-hq', 'pf-dash-hq'].forEach(function (id) {
+      var m = document.getElementById(id);
+      var b = (m && m.closest) ? m.closest('.fe-block') : null;
+      if (b && b.classList && !b.classList.contains('pf-fe-hq')) b.classList.add('pf-fe-hq');
+    });
+  } catch (e4) {}
   api("cell_leaderboard",{},function(j){ board=j; syncMeta(); });
   (function(){ var id=ident(); if(!id.callsign) return;
     api("cell_mine",{callsign:id.callsign,device:id.device},function(j){ state=j; syncMeta(); });

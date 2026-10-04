@@ -40,7 +40,7 @@ var BASE='https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@'+(onV2?V3:V1)
 var CSS=onV2?['core/bundle-styles.css']:['core/01-styles.css','fixes/mobile.css'];
 var isHome=!!document.getElementById('pf-v2');
 var isHQ=!!document.getElementById('pf-political-hq');
-var isWarCard=!!document.getElementById('pf-war-card');
+var isWarCard=!!document.getElementById('pf-war-card')||!!document.getElementById('pf-academy-hq'); /* DEFECT4: academy mount div also selects the HQ bundle set */
 var CORE_V2=['core/bundle-core.js']; /* placeholder — resolved to the SLR core below once page flags exist */
 var PAGES_V2=['pages/bundle-pages.js'];
 /* Per-page game map: each v2 page fetches only the game bundles it mounts
@@ -53,7 +53,8 @@ var PAGES_V2=['pages/bundle-pages.js'];
    + bundle-cells. /create = bundle-home (poster-forge, feed) +
    bundle-create. /bank, /economy, /war-chest, /ventures, /events,
    /war-report = their single bundle each.
-   /political-hq = core + bundle-hq + pages. Creator HQ (#pf-war-card) =
+   /political-hq = core + bundle-hq + pages. Creator HQ (#pf-war-card, or
+   #pf-academy-hq per DEFECT4) =
    core + bundle-create (academy, creator-assist, armory, dashboard) +
    bundle-cells (cell-hq, war-card) + pages.
    SLR roster/catalog = core + bundle-roster (efficiency.js paints the live

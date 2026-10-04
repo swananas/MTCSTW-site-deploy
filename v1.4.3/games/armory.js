@@ -151,6 +151,38 @@ function post(sAction,params,cb){
     .catch(function(){ try{clearTimeout(hung);}catch(e){} cb(null); });
 }
 var items=[], equipped={}, balance=null;
+/* H12 (2026-10-03): stock-load failure state. One auto-retry (~3s) fires
+   before the error panel; the RETRY button re-fires on demand. */
+var stockFailed=false, autoRetried=false;
+
+/* M27/M26 (2026-10-03): friendly write-path errors + working-state buttons.
+   Raw snake_case backend codes are never shown to users. */
+function writeErrCopy(e,fb){
+  var s=String(e==null?'':e).trim();
+  var fall=fb||'The wire fought back. Nothing changed — retry.';
+  if(!s||/network error/i.test(s)) return fall;
+  var map={
+    'bad callsign':'That callsign didn\u2019t check out. Re-claim it in Daily Orders, then retry.',
+    'bad kind':'That slot didn\u2019t take. Refresh the stock and try again.',
+    'missing item_id':'No item selected. Refresh the stock and try again.',
+    'missing item_id or kind':'No item selected. Refresh the stock and try again.',
+    'no such item':'That item isn\u2019t on the rack anymore. Refresh the stock.',
+    'not owned':'You don\u2019t own that one yet — buy it first.',
+    'already owned':'Already yours. It\u2019s waiting on the rack.',
+    'insufficient XP':'Not enough XP in the war chest. Go earn some.',
+    'db error':'The Armory ledger hiccuped. Retry in a moment.',
+    'invalid_code':'That code doesn\u2019t open anything. Check it and try again.'
+  };
+  if(map[s]) return map[s];
+  if(s.indexOf('_')!==-1) return fall; /* never show raw snake_case */
+  return s; /* backend prose already human-readable */
+}
+function busyBtn(btn,on){
+  try{
+    if(on){ if(btn.getAttribute('data-lbl')==null) btn.setAttribute('data-lbl',btn.textContent); btn.disabled=true; btn.textContent='WORKING\u2026'; }
+    else{ btn.disabled=false; var l=btn.getAttribute('data-lbl'); if(l!=null) btn.textContent=l; btn.removeAttribute('data-lbl'); }
+  }catch(e){}
+}
 
 function renderPreview(){
   var pv=document.getElementById('aPreview'); if(!pv)return;
@@ -190,7 +222,14 @@ function render(){
     });
     h+='</div>';
   });
-  shop.innerHTML=h||'<div class="a-needcs">Armory stock failed to load. Retry shortly.</div>';
+  if(h){ shop.innerHTML=h; }
+  else{
+    /* H12 (2026-10-03): a failed stock load is a dead end no longer —
+       one auto-retry already fired; the RETRY button re-fires the load. */
+    shop.innerHTML='<div class="a-needcs">Armory stock failed to load. Retry shortly.<br><button class="a-btn" id="aRetryStock">RETRY</button></div>';
+    var _rb=document.getElementById('aRetryStock');
+    if(_rb) _rb.onclick=function(){ autoRetried=false; stockFailed=false; doList(); };
+  }
   shop.querySelectorAll('button[data-act]').forEach(function(b){
     b.onclick=function(){ handleAct(b.getAttribute('data-act'),b.getAttribute('data-id'),b); };
   });
@@ -203,10 +242,10 @@ function handleAct(act,id,btn){
     var cost=parseInt(btn.getAttribute('data-cost'),10)||0;
     if(balance!=null&&balance<cost){ toast('Not enough XP. Go earn some.'); return; }
     if(!window.confirm('Spend '+cost.toLocaleString()+' XP on this item? One-time purchase, yours forever.'))return;
-    btn.disabled=true;
+    busyBtn(btn,true);
     post('cosmetic_buy',{callsign:idn.callsign,item_id:id},function(j){
-      btn.disabled=false;
-      if(!j||!j.ok){ toast('Purchase failed: '+((j&&j.err)||'network error')); return; }
+      busyBtn(btn,false);
+      if(!j||!j.ok){ toast('Purchase failed: '+writeErrCopy(j&&j.err,'Purchase failed')); return; }
       balance=(j.balance!=null)?j.balance:(balance-cost);
       var it=items.filter(function(x){return x.id===id;})[0];
       if(it)it.owned=true;
@@ -218,19 +257,22 @@ function handleAct(act,id,btn){
       render();
     });
   }else if(act==='equip'){
-    btn.disabled=true;
+    busyBtn(btn,true);
     post('cosmetic_equip',{callsign:idn.callsign,item_id:id},function(j){
-      btn.disabled=false;
-      if(!j||!j.ok){ toast('Equip failed: '+((j&&j.err)||'network error')); return; }
+      busyBtn(btn,false);
+      if(!j||!j.ok){ toast('Equip failed: '+writeErrCopy(j&&j.err,'Equip failed')); return; }
       var s=armState(); s[j.kind]=id; saveArm(s); equipped[j.kind]=id;
       toast('Equipped.');
       render();
     });
   }else if(act==='unequip'){
     var kind=btn.getAttribute('data-kind');
-    btn.disabled=true;
+    busyBtn(btn,true);
     post('cosmetic_equip',{callsign:idn.callsign,kind:kind,item_id:''},function(j){
-      btn.disabled=false;
+      busyBtn(btn,false);
+      /* M29: check the backend verdict before claiming success — a failed
+         unequip leaves local state untouched and invites a retry. */
+      if(!j||!j.ok){ toast('Unequip failed: '+writeErrCopy(j&&j.err,'Unequip failed')+'. Tap again to retry.'); return; }
       var s=armState(); delete s[kind]; saveArm(s); delete equipped[kind];
       toast('Unequipped.');
       render();
@@ -259,6 +301,7 @@ function load(){
 function doList(){
   var idn=ident();
   get('cosmetic_list',{callsign:idn.callsign},function(j){
+    stockFailed=!(j&&j.ok);
     if(j&&j.ok){
       items=j.items||[]; equipped=j.equipped||{};
       var s=armState();
@@ -267,6 +310,14 @@ function doList(){
     }
     get('xp_balance',{callsign:idn.callsign},function(b){
       balance=(b&&b.balance!=null)?b.balance:null;
+      /* H12 (2026-10-03): one auto-retry (~3s backoff) before the error panel. */
+      if(stockFailed&&!autoRetried){
+        autoRetried=true;
+        var shop=document.getElementById('aShop');
+        shop.innerHTML='<div class="a-needcs">The Armory is slow to answer. Retrying&hellip;</div>';
+        setTimeout(doList,3000);
+        return;
+      }
       render();
     });
   });

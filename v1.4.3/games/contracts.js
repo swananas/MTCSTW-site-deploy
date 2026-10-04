@@ -73,6 +73,32 @@ function api(action,params,cb,isGet){
   }catch(e){ posted(null); }
 }
 var GOAL_UNITS={share_raid:"shares",recruit_drive:"recruits",perfect_week:"days"};
+/* Friendly copy for WRITE paths (2026-10-03 M27): raw snake_case backend
+   codes route through the same propaganda-voice map the read paths use.
+   Never show a raw code to users. */
+function cxWriteErr(e,fb){
+  var s=String(e==null?"":e).trim();
+  var fall=fb||"The wire fought back. Nothing changed — retry.";
+  if(!s||/network error/i.test(s)) return fall;
+  var map={
+    "invalid_code":"That code doesn't open anything. Check it and try again.",
+    "already_accepted":"Already locked in. One shot per cell.",
+    "bad callsign":"That callsign didn't check out. Re-claim it in Enlistment Ranks, then retry.",
+    "db error":"The ledger hiccuped. Retry in a moment.",
+    "refund failed":"The refund didn't land. Contact MTCSTW with your contract ID.",
+    "unknown goal":"That goal isn't on the board. Pick one from the list."
+  };
+  if(map[s]) return map[s];
+  if(s.indexOf("_")!==-1) return fall; /* never show raw snake_case */
+  return s; /* backend prose already human-readable */
+}
+/* M26 (2026-10-03): disabled + spinner label on mutation buttons. */
+function busyBtn(btn,on){
+  try{
+    if(on){ if(btn.getAttribute("data-lbl")==null) btn.setAttribute("data-lbl",btn.textContent); btn.disabled=true; btn.textContent="WORKING…"; }
+    else{ btn.disabled=false; var l=btn.getAttribute("data-lbl"); if(l!=null) btn.textContent=l; btn.removeAttribute("data-lbl"); }
+  }catch(e){}
+}
 var board=null, mine=null, busy=false, loadTries=0;
 function load(){
   var id=ident();
@@ -195,33 +221,39 @@ function wire(){
   var b;
   b=document.getElementById("xFound");
   if(b) b.onclick=function(){
-    var nm=document.getElementById("xCampName").value, err=document.getElementById("xFoundErr"), id=ident();
+    var btn=this, nm=document.getElementById("xCampName").value, err=document.getElementById("xFoundErr"), id=ident();
     err.textContent="";
+    busyBtn(btn,true);
     api("camp_found",{callsign:id.callsign,device:id.device,name:nm},function(j){
-      if(!j||!j.ok){ err.textContent=(j&&j.err)||"Network error."; load(); return; }
+      busyBtn(btn,false);
+      if(!j||!j.ok){ err.textContent=cxWriteErr(j&&j.err); load(); return; }
       toast("Camp "+j.camp+" founded. The board is yours.");
     });
   };
   b=document.getElementById("xPledge");
   if(b) b.onclick=function(){
-    var err=document.getElementById("xPledgeErr"), id=ident();
+    var btn=this, err=document.getElementById("xPledgeErr"), id=ident();
     err.textContent="";
+    busyBtn(btn,true);
     api("camp_pledge",{callsign:id.callsign,device:id.device,
       cell_id:document.getElementById("xPledgeCell").value,
       camp:document.getElementById("xPledgeCamp").value},function(j){
-      if(!j||!j.ok){ err.textContent=(j&&j.err)||"Network error."; load(); return; }
+      busyBtn(btn,false);
+      if(!j||!j.ok){ err.textContent=cxWriteErr(j&&j.err); load(); return; }
       toast("Cell pledged to "+j.camp+".");
     });
   };
   b=document.getElementById("xPost");
   if(b) b.onclick=function(){
-    var err=document.getElementById("xPostErr"), id=ident();
+    var btn=this, err=document.getElementById("xPostErr"), id=ident();
     err.textContent="";
+    busyBtn(btn,true);
     api("contract_post",{callsign:id.callsign,device:id.device,
       goal:document.getElementById("xGoal").value,
       target:document.getElementById("xTarget").value,
       bounty:document.getElementById("xContractBounty").value},function(j){
-      if(!j||!j.ok){ err.textContent=(j&&j.err)||"Network error."; load(); return; }
+      busyBtn(btn,false);
+      if(!j||!j.ok){ err.textContent=cxWriteErr(j&&j.err); load(); return; }
       toast("Contract posted. Cells, come and get it.");
     });
   };
@@ -234,9 +266,11 @@ function wire(){
       var cellId=fcs.length===1?fcs[0].id:(fcs[parseInt(pick,10)-1]||{}).id;
       if(!cellId) return;
       var id=ident();
+      busyBtn(btn,true);
       api("contract_accept",{callsign:id.callsign,device:id.device,
         cell_id:cellId,contract_id:btn.getAttribute("data-id")},function(j){
-        if(!j||!j.ok){ toast((j&&j.err)||"Accept failed."); load(); return; }
+        busyBtn(btn,false);
+        if(!j||!j.ok){ toast(cxWriteErr(j&&j.err,"Accept failed")); load(); return; }
         toast("Contract accepted. "+j.escrow+" XP escrowed — go earn it.");
       });
     };
@@ -245,12 +279,12 @@ function wire(){
   for(var k=0;k<cl.length;k++)(function(btn){
     btn.onclick=function(){
       var id=ident(), cid=btn.getAttribute("data-id"), bnty=parseInt(btn.getAttribute("data-b"),10)||0;
-      btn.disabled=true;
+      busyBtn(btn,true);
       api("contract_claim",{callsign:id.callsign,device:id.device,contract_id:cid},function(j){
         if(j&&j.ok){
           try{ document.dispatchEvent(new CustomEvent("pf-contract-paid",{detail:{id:cid,bounty:bnty}})); }catch(e){}
           try{ document.dispatchEvent(new CustomEvent("pf-contract-claimed",{detail:{id:cid}})); }catch(e2){}
-        } else { toast((j&&j.err)||"Claim failed."); btn.disabled=false; }
+        } else { toast(cxWriteErr(j&&j.err,"Claim failed")); busyBtn(btn,false); }
         setTimeout(load,1500);
       });
     };
@@ -259,8 +293,10 @@ function wire(){
   for(var m=0;m<cx.length;m++)(function(btn){
     btn.onclick=function(){
       var id=ident();
+      busyBtn(btn,true);
       api("contract_cancel",{callsign:id.callsign,device:id.device,contract_id:btn.getAttribute("data-id")},function(j){
-        if(!j||!j.ok){ toast((j&&j.err)||"Cancel failed."); }
+        busyBtn(btn,false);
+        if(!j||!j.ok){ toast(cxWriteErr(j&&j.err,"Cancel failed")); }
         else toast("Contract cancelled. Escrow refunded.");
         load();
       });

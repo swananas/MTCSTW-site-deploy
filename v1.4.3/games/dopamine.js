@@ -428,7 +428,7 @@ function tick(){
     els[i].textContent=fmtLeft(until-now);
   }
 }
-setInterval(tick,1000);
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} tick(); },1000);
 setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },120000);
 /* combo events from anywhere on the page */
 try{ document.addEventListener("pf-combo-hit",function(){ comboHit(); }); }catch(e){}

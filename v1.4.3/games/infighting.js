@@ -371,8 +371,8 @@ function arenaTick(){
     if(cur)cur.live=w.live;
   }
 }
-if(SLIM){ renderStrip(); setInterval(stripTick,1000); }
-else{ render(); setInterval(arenaTick,1000); }
+if(SLIM){ renderStrip(); setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} stripTick(); },1000); }
+else{ render(); setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} arenaTick(); },1000); }
 })();
 <\/script>
 </template>`);

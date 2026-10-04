@@ -139,7 +139,11 @@ function privacyPanelHTML(){
   if(CS) h+='<label style="font-size:12px;cursor:pointer;"><input type="checkbox" id="npEraseFull" checked style="vertical-align:middle;margin-right:4px;">Erase my callsign too (not just email)</label>';
   h+='<button class="c-btn" id="npErase" type="button" style="border-color:#c1121f;color:#c1121f;">ERASE MY DATA</button>';
   h+='<span id="npPrivMsg" style="font-size:12px;"></span>';
-  h+='</div></div>';
+  h+='</div>';
+  /* H11b (2026-10-03): the export is capped at 200 rows per table
+     (EXPORT_CAP in the backend) — say so instead of implying a full dump. */
+  h+='<div style="font-size:11px;color:#8a8a8a;margin-top:6px;">Exports include up to 200 rows per category.</div>';
+  h+='</div>';
   return h;
 }
 function privMsg(t){ var m=document.getElementById("npPrivMsg"); if(m){ m.textContent=t; } }
@@ -150,8 +154,13 @@ function bindPrivacyPanel(){
   if(er) er.addEventListener("click",eraseData);
 }
 function exportData(){
+  /* M28 (2026-10-03): disabled+spinner while the export assembles —
+     no double-submit. Mirrors the armory btn.disabled=true pattern. */
+  var b=document.getElementById("npExport"), lbl=b?b.textContent:"";
+  if(b){ b.disabled=true; b.textContent="ASSEMBLING\u2026"; }
   privMsg("Assembling\u2026");
   post("privacy","p_action","privacy_export",{callsign:CS,device:ident().device},function(j){
+    if(b){ b.disabled=false; b.textContent=lbl; }
     privMsg("");
     if(!(j&&j.ok)){ toast("Export failed. "+((j&&j.err)||"")); return; }
     try{
@@ -175,26 +184,66 @@ function eraseData(){
       : "Erase your email and phone, unsubscribe, detach callsign recovery? Your callsign stays on the public boards.";
   }
   if(!window.confirm(warn)) return;
+  /* M28: disabled+spinner while the erase runs — no double-submit. On
+     success the button stays disabled until the reload; on failure it
+     becomes the RETRY path like the footer button. */
+  var eb=document.getElementById("npErase"), elbl=eb?eb.textContent:"";
+  if(eb){ eb.disabled=true; eb.textContent="ERASING\u2026"; }
   privMsg("Erasing\u2026");
   post("privacy","p_action","privacy_erase",{callsign:CS,device:ident().device,scope:scope},function(j){
     privMsg("");
-    if(!(j&&j.ok)){ toast("Erase failed. "+((j&&j.err)||"")); return; }
+    if(!(j&&j.ok)){
+      if(eb){ eb.disabled=false; eb.textContent="RETRY"; }
+      toast("Erase failed. "+((j&&j.err)||""));
+      return;
+    }
     toast((j&&j.note)||"Erased.");
     if(scope==="full"){
-      /* The identity is gone server-side — drop the local keys too so the
-         UI stops fighting as the deleted callsign. */
-      try{ localStorage.removeItem("pf_identity_v1"); }catch(e){}
-      try{ localStorage.removeItem("pf_auth_secret"); }catch(e){}
+      /* M24 (2026-10-03): the footer DELETE MY DATA button wipes every
+         pf_* localStorage key; this path used to drop only identity +
+         auth secret, leaving streak/XP/cell caches behind. Unified: the
+         full erase now does the same complete wipe as the footer
+         (v1.4.3/core/16-footer.js wipeLocal) plus the sessionStorage
+         keys (e.g. pf_cs_dismissed) that neither path used to clear. */
+      wipeLocalAll();
       setTimeout(function(){ try{ location.reload(); }catch(e2){} },2200);
     }
   });
+}
+/* M24: mirror of the footer's wipeLocal + sessionStorage sweep. */
+function wipeLocalAll(){
+  try{
+    var gone=[];
+    for(var i=0;i<localStorage.length;i++){
+      var k=localStorage.key(i);
+      if(k&&k.indexOf("pf_")===0) gone.push(k);
+    }
+    gone.forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
+  }catch(e){}
+  try{
+    localStorage.removeItem("pf_identity_v1");
+    localStorage.removeItem("pf_auth_secret");
+    localStorage.removeItem("pf_device_v1");
+  }catch(e2){}
+  try{
+    var sgone=[];
+    for(var j=0;j<sessionStorage.length;j++){
+      var sk=sessionStorage.key(j);
+      if(sk&&sk.indexOf("pf_")===0) sgone.push(sk);
+    }
+    sgone.forEach(function(k){ try{ sessionStorage.removeItem(k); }catch(e){} });
+  }catch(e3){}
 }
 function save(){
   var prefs={};
   var togs=document.querySelectorAll(".npTog");
   for(var i=0;i<togs.length;i++) prefs[togs[i].getAttribute("data-k")]=togs[i].checked?1:0;
+  /* M28: disabled+spinner while the save posts — no double-submit. */
+  var b=document.getElementById("npSave"), lbl=b?b.textContent:"";
+  if(b){ b.disabled=true; b.textContent="SAVING\u2026"; }
   msg("Saving\u2026");
   post("notifyq","nq_action","notify_prefs",{callsign:CS,prefs:prefs},function(j){
+    if(b){ b.disabled=false; b.textContent=lbl; }
     if(j&&j.ok){ PREFS=j.prefs; toast("Preferences saved."); msg(""); render(); }
     else msg("Could not save. "+((j&&j.err)||""));
   });
@@ -206,8 +255,12 @@ function updateEmail(){
      backend enforces it too. */
   var age13=document.getElementById("npAge13");
   if(!(age13&&age13.checked)){ msg("Please confirm you are 13 or older."); return; }
+  /* M28: disabled+spinner while the email update posts — no double-submit. */
+  var b=document.getElementById("npEmailBtn"), lbl=b?b.textContent:"";
+  if(b){ b.disabled=true; b.textContent="SAVING\u2026"; }
   msg("Saving\u2026");
   post("notifyq","nq_action","contact_set",{callsign:CS,email:em,email_optin:1,age13:1},function(j){
+    if(b){ b.disabled=false; b.textContent=lbl; }
     if(j&&j.ok){ MASKED=em; toast("Email updated."); msg(""); render(); }
     else msg("Could not save. "+((j&&j.err)||""));
   });

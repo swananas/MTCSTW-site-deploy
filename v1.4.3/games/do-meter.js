@@ -452,7 +452,7 @@ function total(){try{if(window.PF_GLOBAL_TASKS>0)return window.PF_GLOBAL_TASKS;v
 function paint(){var el=document.getElementById('pfDoMiniNum');if(el)el.textContent=(total()).toLocaleString('en-US');}
 document.addEventListener('pf-do-update',paint);
 document.addEventListener('pf-global-tasks',paint);
-paint();setInterval(paint,5000);
+paint();setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} paint(); },5000);
 })();
 </script>
 </div>

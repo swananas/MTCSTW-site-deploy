@@ -1,11 +1,17 @@
 /* core/07-slr-db.js  |  PF v1.4.2 | Master SLR database.
-   The 62-member snapshot is embedded in 07-slr-db-data.js (generated from
-   src/data/slr-master-db.json at build time) and applied SYNCHRONOUSLY, so
-   PF.ROSTER, PF.slrAll() and PF.slrMember() are populated before any game
-   silo runs — no async race for the existing synchronous consumers.
-   If the snapshot is absent, falls back to fetching the pinned JSON.
-   API: PF.slrReady (promise), PF.slrAll(), PF.slrMember(slug), PF.slrMeta(),
-        PF.slrLegacy (legacy-shape array backing the PF.ROSTER getter).
+   The 62-member snapshot is generated into 07-slr-db-data.js (from
+   src/data/slr-master-db.json). M34 (2026-10-03): the snapshot ships INSIDE
+   the core bundle only on roster pages (core/bundle-core-slr.js); the slim
+   core/bundle-core.js omits it. When the snapshot is present it is applied
+   SYNCHRONOUSLY, so PF.ROSTER, PF.slrAll() and PF.slrMember() are populated
+   before any game silo runs — no async race for the synchronous consumers.
+   When it is absent, PF.ensureSLRDB() injects the pinned data script on
+   first need (promise-cached, concurrent calls deduped, 15s backstop, JSON
+   fallback, resolves to [] on failure so consumers degrade gracefully).
+   PF.slrReady is a lazy getter over ensureSLRDB(), so existing
+   PF.slrReady.then(...) consumers work on both core variants unchanged.
+   API: PF.slrReady (promise), PF.ensureSLRDB(), PF.slrAll(), PF.slrMember(slug),
+        PF.slrMeta(), PF.slrLegacy (legacy-shape array backing the PF.ROSTER getter).
    KILL: ?pf_off=slr-db  or  localStorage pf_disabled_v1='["slr-db"]' */
 (function () {
   'use strict';
@@ -69,12 +75,63 @@
       });
   }
 
+  /* Synchronous fast path (unchanged): on bundle-core-slr pages the snapshot
+     rode in with the bundle — apply before any game silo runs. */
   var snap = window.PF_SLR_DB_SNAPSHOT;
   if (snap && apply(snap)) {
     PF.log('slr-db', 'snapshot applied: ' + MEMBERS.length + ' members');
-    PF.slrReady = Promise.resolve(MEMBERS);
-  } else {
-    PF.slrReady = fetchFallback();
+  }
+
+  /* ---- Lazy load (M34): PF.ensureSLRDB() ----
+     Injects the pinned core/07-slr-db-data.js script exactly once and applies
+     it. Concurrent callers share one promise; the 15s backstop plus the JSON
+     fallback mean a failed load resolves to [] instead of hanging — every
+     consumer already degrades on an empty roster. */
+  var _slrPending = null;
+  function dataUrl() {
+    var b = ownBase();
+    return (b ? b + '/v1.4.3/core/07-slr-db-data.js'
+      : 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@main/v1.4.3/core/07-slr-db-data.js');
+  }
+  PF.ensureSLRDB = function () {
+    var s0 = window.PF_SLR_DB_SNAPSHOT;
+    if (s0 && apply(s0)) return Promise.resolve(MEMBERS);
+    if (MEMBERS.length) return Promise.resolve(MEMBERS);
+    if (_slrPending) return _slrPending;
+    _slrPending = new Promise(function (resolve) {
+      var url = dataUrl(), done = false;
+      function fin() {
+        if (done) return; done = true;
+        var s2 = window.PF_SLR_DB_SNAPSHOT;
+        if (s2 && apply(s2)) {
+          PF.log('slr-db', 'lazy snapshot applied: ' + MEMBERS.length + ' members');
+          resolve(MEMBERS);
+        } else {
+          /* Backstop: the pinned JSON carries the same {meta, members} shape. */
+          fetchFallback().then(resolve);
+        }
+      }
+      try {
+        var el = document.createElement('script');
+        el.src = url; el.async = true;
+        el.onload = fin; el.onerror = fin;
+        document.head.appendChild(el);
+        setTimeout(fin, 15000);
+      } catch (e) { fin(); }
+    });
+    return _slrPending;
+  };
+
+  /* PF.slrReady — lazy getter: the first .then() pulls the DB in on demand.
+     Existing consumers (pages/slr-roster.js, pages/slr-catalog.js,
+     games/efficiency.js) need no changes on either core variant. */
+  try {
+    Object.defineProperty(PF, 'slrReady', {
+      configurable: true,
+      get: function () { return PF.ensureSLRDB(); }
+    });
+  } catch (e) {
+    PF.slrReady = PF.ensureSLRDB();
   }
 
   PF.slrAll = function () { return MEMBERS; };

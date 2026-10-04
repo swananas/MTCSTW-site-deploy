@@ -10,7 +10,7 @@
 .pf-flash{animation:pfFlash 1.4s ease-out}
 @keyframes pfFlash{0%,100%{box-shadow:none}25%{box-shadow:0 0 0 4px #c1121f,0 0 24px #c1121f}}
 
-#pf-caption{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f}
+#pf-caption{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f;box-sizing:border-box}
 #pf-caption h2{color:#c1121f;font-size:28px;margin:0 0 6px;letter-spacing:2px;text-transform:uppercase}
 #pf-caption .c-sub{font-family:Arial,sans-serif;font-size:14px;color:#c9bfa8;margin-bottom:6px}
 #pf-caption .c-week{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c1121f;text-transform:uppercase;margin-bottom:16px}
@@ -34,7 +34,7 @@
 #pf-caption .c-div h3{color:#f5ead6;font-size:18px;letter-spacing:2px;margin:0 0 6px;text-transform:uppercase}
 #pf-caption .c-div p{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin:0 0 6px}
 
-#pf-orders{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f}
+#pf-orders{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f;box-sizing:border-box}
 #pf-orders h2{color:#c1121f;font-size:28px;margin:0 0 4px;letter-spacing:2px;text-transform:uppercase}
 #pf-orders .o-date{font-family:Arial,sans-serif;font-size:12px;letter-spacing:3px;color:#c9bfa8;text-transform:uppercase;margin-bottom:6px}
 #pf-orders .o-combo{font-size:16px;letter-spacing:3px;color:#c1121f;text-transform:uppercase;margin-bottom:12px;min-height:20px}
@@ -130,7 +130,7 @@
 #pf-orders .o-shareimg:disabled{opacity:.5;cursor:wait;transform:none}
 #pf-orders .o-who{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#c1121f;text-transform:uppercase;margin-top:10px}
 
-#pf-dometer2{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f;position:relative;overflow:hidden}
+#pf-dometer2{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f;position:relative;overflow:hidden;box-sizing:border-box}
 #pf-dometer2 h2{color:#c1121f;font-size:30px;margin:0 0 6px;letter-spacing:3px;text-transform:uppercase}
 #pf-dometer2 .d-sub{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase;margin-bottom:14px;line-height:1.6}
 #pf-dometer2 .d-num{font-size:64px;color:#f5ead6;letter-spacing:2px;line-height:1;margin:6px 0}
@@ -169,7 +169,7 @@
 #pf-do-mini .m-line b{color:#c1121f}
 @media (max-width:640px){#pf-do-mini .m-line{margin-bottom:8px;font-size:9px}}
 
-#slr-nuke{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:26px 22px;max-width:900px;margin:0 auto 24px;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f}
+#slr-nuke{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:26px 22px;max-width:900px;margin:0 auto 24px;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f;box-sizing:border-box}
 #slr-nuke .slr-nuke-kicker{font-family:Arial,sans-serif;font-size:11px;letter-spacing:4px;color:#c1121f;text-transform:uppercase;margin-bottom:6px}
 #slr-nuke h2{color:#f5ead6;font-size:26px;margin:0 0 6px;letter-spacing:2px;text-transform:uppercase}
 #slr-nuke h2 .slr-red{color:#c1121f}
@@ -307,3 +307,42 @@ footer h1, footer h2, footer h3, footer h4{color:#f5ead6 !important;}
 #pf-cells .c-prestige .c-prben{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin:3px 0}
 #pf-cells .c-prestige .c-prprog{height:10px;background:#2a2a2a;border:1px solid #555;margin:10px auto 4px;max-width:320px}
 #pf-cells .c-prestige .c-prfill{display:block;height:100%;background:linear-gradient(90deg,#c1121f,#ffb703)}
+
+/* ============================================================================
+   GAP AUDIT 2026-10-03 — mobile CSS fixes (CSS only; no JS touched)
+   H9  : box-sizing:border-box added to the four legacy widget card roots above
+         (#pf-caption, #pf-orders, #pf-dometer2, #slr-nuke) — mirrors #pf-poster
+   H10 : #pf-nuke-stick (z 9000) vs #pf-do-mini (z 99998) no longer collide;
+         body gets bottom padding so fixed chrome can't cover footer links/CTAs
+   M35 : iOS safe-area insets (env(safe-area-inset-bottom)) on fixed chrome
+   M33 : do-meter spark chart scrolls horizontally instead of silently clipping
+   M34 : daily-orders warpath row goes fluid on narrow phones
+   M32 : feed tabs get a visible active-tab indicator (.fd-on, incl. BOOST/VAULT)
+   ============================================================================ */
+/* M35: fixed chrome clears the iPhone home indicator (progressive — ignored
+   by browsers without env(), where the earlier bottom:0 rule stands) */
+#pf-do-mini{bottom:env(safe-area-inset-bottom,0px)}
+/* M35: nuke strip's own rule is injected at runtime by 17-nuke-strip.js, so
+   this needs the body- prefix to outrank it regardless of stylesheet order */
+body #pf-nuke-stick{padding-bottom:env(safe-area-inset-bottom,0px)}
+/* H10: when the nuke strip is live, the do-mini ticker rides above it
+   (strip runs ~48px tall: 6px meter + ~42px action row) instead of covering it */
+body:has(#pf-nuke-stick:not([hidden])) #pf-do-mini{bottom:calc(56px + env(safe-area-inset-bottom,0px))}
+/* H10: compensating body padding so fixed chrome never covers footer links/CTAs on phones */
+@media (max-width:640px){body{padding-bottom:calc(104px + env(safe-area-inset-bottom,0px))}}
+/* M33 (audit M31): spark history scrolls instead of clipping after ~5-6 weeks.
+   `safe center` keeps short histories centered but aligns to start when the
+   row overflows, so the first weeks stay reachable while scrolling. */
+#pf-dometer2 .d-spark{justify-content:safe center;overflow-x:auto;max-width:100%;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+#pf-dometer2 .d-bar{flex:0 0 auto}
+/* M34 (audit M32): warpath row was 288px in a ~252px content area at 320px
+   widths — days now flex down instead of forcing horizontal overflow */
+#pf-orders .o-wprow{max-width:100%}
+#pf-orders .o-day{flex:1 1 0;min-width:0;max-width:36px;width:auto}
+@media (max-width:360px){#pf-orders .o-wprow{gap:4px}}
+/* M32 (audit M30): feed tab bar + active-tab indicator.
+   .fd-on is stamped by games/feed.js on the selected tab (incl. BOOST/VAULT). */
+#xFeed .fd-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+#xFeed .fd-tab{background:#1a1a1a;border:2px solid #555;color:#c9bfa8;font-family:'Arial Black',Arial,sans-serif;font-size:12px;letter-spacing:2px;padding:10px 14px;cursor:pointer;text-transform:uppercase}
+#xFeed .fd-tab:hover{border-color:#c1121f;color:#f5ead6}
+#xFeed .fd-tab.fd-on{background:#c1121f;border-color:#c1121f;color:#fff;box-shadow:0 0 12px rgba(193,18,31,.65)}

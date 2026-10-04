@@ -179,7 +179,7 @@
     if (h.querySelector('.pf-events-nudge')) return;
     var card = document.createElement('div');
     card.className = 'pf-events-nudge';
-    card.style.cssText = 'max-width:680px;margin:18px auto;padding:26px 22px;text-align:center;' +
+    card.style.cssText = 'max-width:680px;margin:18px auto;padding:26px 22px;text-align:center;box-sizing:border-box;' +
       'background:linear-gradient(160deg,#0d0d0d 0%,#1c0707 60%,#0d0d0d 100%);' +
       'border:3px solid #c1121f;color:#f5ead6;font-family:Arial,sans-serif;';
     card.innerHTML =

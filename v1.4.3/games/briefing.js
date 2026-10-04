@@ -527,10 +527,11 @@ bannerCss();
 dropTryBackend();
 load();
 setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },180000);
-setInterval(tick,1000);
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} tick(); },1000);
 /* keep the banner clear if the comeback banner mounts later */
 setInterval(function(){
   try{
+    if(window.PF&&PF.hidden&&PF.hidden()) return;
     var bar=document.getElementById("pf-seasonbar"); if(!bar) return;
     var top=document.getElementById("dpComeback")?42:0;
     if(bar.style.top!==top+"px"){ bar.style.top=top+"px"; document.body.style.paddingTop=(36+top)+"px"; }

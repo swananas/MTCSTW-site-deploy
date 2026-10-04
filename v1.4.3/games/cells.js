@@ -208,6 +208,40 @@ function cellErrCopy(e){
     return "The cell network couldn't verify your callsign. Re-claim it in Enlistment Ranks (one tap), then retry.";
   return "The cell network didn't answer. Your callsign is fine — the wire is not.";
 }
+/* Friendly copy for WRITE paths (2026-10-03 M27): read paths already got
+   friendly copy (cellErrCopy); writes route raw snake_case codes through
+   the same propaganda-voice map. Never show a raw code to users. */
+function cellWriteErr(e,fb){
+  var s=String(e==null?"":e).trim();
+  var fall=fb||"The wire fought back. Nothing changed — retry.";
+  if(!s||/network error/i.test(s)) return fall;
+  var map={
+    "invalid_code":"That invite code doesn't open any door. Check it and try again.",
+    "cell_full":"That cell is full — five fighters max. Found your own instead.",
+    "already_accepted":"Already locked in. One shot per cell.",
+    "already_joined":"You're already in. The fight continues.",
+    "already leading":"You're already wiring this cell. One wire per cell.",
+    "already claimed":"Already claimed. One shot per fighter.",
+    "already settled":"Already settled. It's done.",
+    "bad callsign":"That callsign didn't check out. Re-claim it in Enlistment Ranks, then retry.",
+    "missing cell_id":"No cell selected. Refresh and try again.",
+    "unknown cell":"That cell isn't on the map anymore. Refresh and retry.",
+    "db error":"The cell ledger hiccuped. Retry in a moment.",
+    "title too short":"Title needs 4+ characters.",
+    "title rejected":"That title didn't pass the censors. Pick another.",
+    "bad characters":"Letters, numbers, and spaces only. Keep it clean."
+  };
+  if(map[s]) return map[s];
+  if(s.indexOf("_")!==-1) return fall; /* never show raw snake_case */
+  return s; /* backend prose already human-readable */
+}
+/* M26 (2026-10-03): disabled + spinner label on mutation buttons. */
+function busyBtn(btn,on,label){
+  try{
+    if(on){ if(btn.getAttribute("data-lbl")==null) btn.setAttribute("data-lbl",btn.textContent); btn.disabled=true; btn.textContent=label||"WORKING…"; }
+    else{ btn.disabled=false; var l=btn.getAttribute("data-lbl"); if(l!=null) btn.textContent=l; btn.removeAttribute("data-lbl"); }
+  }catch(e){}
+}
 function render(){
   var el=document.getElementById("cBody");
   if(!el) return;
@@ -259,8 +293,11 @@ function renderLobby(el){
   document.getElementById("cCreate").onclick=function(){
     var nm=document.getElementById("cName").value, id=ident(), err=document.getElementById("cCreateErr");
     err.textContent="";
+    var btn=document.getElementById("cCreate");
+    busyBtn(btn,true);
     api("cell_create",{callsign:id.callsign,device:id.device,name:nm},function(j){
-      if(!j||!j.ok){ err.textContent=(j&&j.err)||"Network error."; return; }
+      busyBtn(btn,false);
+      if(!j||!j.ok){ err.textContent=cellWriteErr(j&&j.err); return; }
       toast("Cell "+j.cell.name+" formed. Recruit your four.");
       refresh();
     });
@@ -269,8 +306,11 @@ function renderLobby(el){
     var code=document.getElementById("cCode").value, ref=document.getElementById("cRef").value,
         id=ident(), err=document.getElementById("cJoinErr");
     err.textContent="";
+    var btn=document.getElementById("cJoin");
+    busyBtn(btn,true);
     api("cell_join",{callsign:id.callsign,device:id.device,code:code,ref:ref},function(j){
-      if(!j||!j.ok){ err.textContent=(j&&j.err)||"Network error."; return; }
+      busyBtn(btn,false);
+      if(!j||!j.ok){ err.textContent=cellWriteErr(j&&j.err); return; }
       toast("Welcome to "+j.cell.name+". Check in daily.");
       refresh();
     });
@@ -300,8 +340,10 @@ function renderLobby(el){
         btn.onclick=function(){
           var code=btn.getAttribute("data-code"), id2=ident();
           err.textContent="";
+          busyBtn(btn,true);
           api("cell_join",{callsign:id2.callsign,device:id2.device,code:code},function(j2){
-            if(!j2||!j2.ok){ err.textContent=(j2&&j2.err)||"Network error."; return; }
+            busyBtn(btn,false);
+            if(!j2||!j2.ok){ err.textContent=cellWriteErr(j2&&j2.err); return; }
             toast("Welcome to "+j2.cell.name+". Check in daily.");
             refresh();
           });
@@ -342,8 +384,10 @@ function renderCellSlim(el,s){
   var ci=document.getElementById("cCheckin");
   if(ci) ci.onclick=function(){
     errEl.textContent="";
+    busyBtn(ci,true);
     api("cell_checkin",{callsign:id.callsign,device:id.device,cell_id:c.id},function(j){
-      if(!j||!j.ok){ errEl.textContent=(j&&j.err)||"Network error."; return; }
+      busyBtn(ci,false);
+      if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err); return; }
       if(j.already){ toast("Already checked in."); }
       else { toast("Checked in. Streak: "+j.cell.streak+"."); try{ if(window.pfReportAction) window.pfReportAction("cell_checkin"); }catch(e){} }
       refresh();
@@ -352,8 +396,10 @@ function renderCellSlim(el,s){
   var cv=document.getElementById("cCover");
   if(cv) cv.onclick=function(){
     errEl.textContent="";
+    busyBtn(cv,true);
     api("cell_cover",{callsign:id.callsign,device:id.device,cell_id:c.id},function(j){
-      if(!j||!j.ok){ errEl.textContent=(j&&j.err)||"No cover to play."; return; }
+      busyBtn(cv,false);
+      if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err,"No cover to play."); return; }
       toast("Cover played — "+j.covered+" is saved. Streak: "+j.streak+".");
       refresh();
     });
@@ -459,8 +505,10 @@ function renderCell(el,s){
     btn.onclick=function(){
       var tgt=btn.getAttribute("data-cs"), id2=ident();
       errEl.textContent="";
+      busyBtn(btn,true);
       post("cell","cell_action","cell_promote",{callsign:id2.callsign,device:id2.device,cell_id:c.id,target:tgt},function(j){
-        if(!j||!j.ok){ errEl.textContent=(j&&j.err)||"Network error."; return; }
+        busyBtn(btn,false);
+        if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err); return; }
         toast(tgt+" promoted to OFFICER.");
         refresh();
       });
@@ -470,8 +518,10 @@ function renderCell(el,s){
   if(rn) rn.onclick=function(){
     var nm=document.getElementById("cRename").value;
     errEl.textContent="";
+    busyBtn(rn,true);
     api("cell_rename",{callsign:id.callsign,device:id.device,name:nm},function(j){
-      if(!j||!j.ok){ errEl.textContent=(j&&j.err)||"Network error."; return; }
+      busyBtn(rn,false);
+      if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err); return; }
       toast("Cell renamed to "+j.cell.name+(j.cell.verified?" \u2713 verified.":"."));
       refresh();
     });
@@ -485,8 +535,10 @@ function renderCell(el,s){
   };
   var ci=document.getElementById("cCheckin");  if(ci) ci.onclick=function(){
     errEl.textContent="";
+    busyBtn(ci,true);
     api("cell_checkin",{callsign:id.callsign,device:id.device,cell_id:c.id},function(j){
-      if(!j||!j.ok){ errEl.textContent=(j&&j.err)||"Network error."; return; }
+      busyBtn(ci,false);
+      if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err); return; }
       if(j.already){ toast("Already checked in."); }
       else { toast("Checked in. Streak: "+j.cell.streak+"."); try{ if(window.pfReportAction) window.pfReportAction("cell_checkin"); }catch(e){} }
       refresh();
@@ -495,16 +547,28 @@ function renderCell(el,s){
   var cv=document.getElementById("cCover");
   if(cv) cv.onclick=function(){
     errEl.textContent="";
+    busyBtn(cv,true);
     api("cell_cover",{callsign:id.callsign,device:id.device,cell_id:c.id},function(j){
-      if(!j||!j.ok){ errEl.textContent=(j&&j.err)||"No cover to play."; return; }
+      busyBtn(cv,false);
+      if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err,"No cover to play."); return; }
       toast("Cover played — "+j.covered+" is saved. Streak: "+j.streak+".");
       refresh();
     });
   };
   var lv=document.getElementById("cLeave");
   if(lv) lv.onclick=function(){
+    /* M28: anchors have no disabled state — a busy flag blocks double-taps. */
+    if(lv.getAttribute("data-busy")) return;
     if(!window.confirm("Leave "+c.name+"? Your cell streak bonus goes with it.")) return;
-    api("cell_leave",{callsign:id.callsign,device:id.device},function(){
+    lv.setAttribute("data-busy","1"); lv.style.opacity=".5";
+    api("cell_leave",{callsign:id.callsign,device:id.device},function(j){
+      /* M28: check the backend verdict — on failure the fighter stays in
+         the cell and the local cache is NOT cleared. */
+      if(!j||!j.ok){
+        lv.removeAttribute("data-busy"); lv.style.opacity="";
+        errEl.textContent=cellWriteErr(j&&j.err,"The wire fought back — you're still in the cell.");
+        return;
+      }
       setCache(1,"",""); state=null; refresh();
     });
   };
@@ -542,12 +606,12 @@ function renderCell(el,s){
         if(title.length<4){ if(ee) ee.textContent="Title needs 4+ characters."; return; }
         if(days<1) days=1; if(days>30) days=30;
         if(!window.confirm("Launch challenge \\\"+title+\\\" for "+days+" days?")) return;
-        btn.disabled=true;
+        busyBtn(btn,true);
         post("challenge","ch_action","challenge_create",
           {callsign:id3.callsign,device:id3.device,title:title,metric:metric,days:days},
           function(r){
-            btn.disabled=false;
-            if(!r||!r.ok){ if(ee) ee.textContent=(r&&r.err)||"Network error."; return; }
+            busyBtn(btn,false);
+            if(!r||!r.ok){ if(ee) ee.textContent=cellWriteErr(r&&r.err); return; }
             toast("CHALLENGE LIVE. Get your cell in.");
             loadCh();
           });
@@ -578,8 +642,10 @@ function renderCell(el,s){
           btn.onclick=function(){
             var chid=btn.getAttribute("data-ch"), id2=ident();
             var ee=document.getElementById("cChErr-"+chid); if(ee) ee.textContent="";
+            busyBtn(btn,true);
             post("challenge","ch_action","challenge_join",{callsign:id2.callsign,device:id2.device,cell_id:c.id,challenge_id:chid},function(r){
-              if(!r||!r.ok){ if(ee) ee.textContent=(r&&r.err)||"Network error."; return; }
+              busyBtn(btn,false);
+              if(!r||!r.ok){ if(ee) ee.textContent=cellWriteErr(r&&r.err); return; }
               toast("Cell entered. Fight for the top.");
             });
           };
@@ -603,8 +669,15 @@ function renderCell(el,s){
   var lleaves=document.querySelectorAll(".c-lleave");
   for(var li2=0;li2<lleaves.length;li2++)(function(a){
     a.onclick=function(){
+      if(a.getAttribute("data-busy")) return;
       if(!window.confirm("Leave "+a.getAttribute("data-nm")+"?")) return;
-      api("cell_leave",{callsign:id.callsign,device:id.device,cell_id:a.getAttribute("data-id")},function(){
+      a.setAttribute("data-busy","1"); a.style.opacity=".5";
+      api("cell_leave",{callsign:id.callsign,device:id.device,cell_id:a.getAttribute("data-id")},function(j){
+        if(!j||!j.ok){
+          a.removeAttribute("data-busy"); a.style.opacity="";
+          errEl.textContent=cellWriteErr(j&&j.err,"The wire fought back — you're still in the cell.");
+          return;
+        }
         state=null; refresh();
       });
     };

@@ -47,23 +47,56 @@ window.PFCallsign = function(){
   try{ return String((JSON.parse(localStorage.getItem('pf_identity_v1')||'{}')).callsign||''); }
   catch(e){ return ''; }
 };
+/* H13 (2026-10-03): dismissing the claim modal no longer silences EVERY
+   callsign gate for the session. Dismissals are scoped per-gate (keyed by
+   the modal's context string) and re-arm after 30 minutes — a dismiss is
+   "not now", never "stop asking forever". */
+var PF_CS_REMIND_MIN = 30;
+var PF_CS_DISMISS_KEY = 'pf_cs_dismissed_v2';
+function pfCsGateKey(opts){
+  var ctx = String((opts && opts.context) || 'to continue').toLowerCase();
+  return ctx.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 64) || 'default';
+}
+function pfCsDismissals(){
+  try { return JSON.parse(sessionStorage.getItem(PF_CS_DISMISS_KEY) || '{}'); }
+  catch(e){ return {}; }
+}
+function pfCsDismissed(key){
+  var d = pfCsDismissals();
+  var t = d[key] || 0;
+  if(!t) return false;
+  if(Date.now() - t > PF_CS_REMIND_MIN * 60000){
+    /* the 30-minute nag timed out — clear and let the gate ask again */
+    try{ delete d[key]; sessionStorage.setItem(PF_CS_DISMISS_KEY, JSON.stringify(d)); }catch(e){}
+    return false;
+  }
+  return true;
+}
+function pfCsDismiss(key){
+  try{
+    var d = pfCsDismissals();
+    d[key] = Date.now();
+    sessionStorage.setItem(PF_CS_DISMISS_KEY, JSON.stringify(d));
+  }catch(e){}
+}
+/* One-time migration: retire the legacy session-wide gag so pre-H13
+   dismissals can't haunt the new per-gate logic. */
+try{ sessionStorage.removeItem('pf_cs_dismissed'); }catch(e){}
 /* PF.requireCallsign(callback, opts) — reusable callsign claim gate.
    If the user has a callsign, callback(callsign) fires immediately.
    If not, an inline modal prompts them to claim one (same register flow as
    Daily Orders: validate → POST register → save secret → localStorage →
    'pf-callsign-claimed' event). On success, callback(newCallsign) fires.
-   If the user dismisses, a session flag prevents nagging and callback('')
-   fires once. opts.context: e.g. "to claim your War Bond XP" — shown in
-   the prompt copy. */
+   Dismissing silences only THIS gate for 30 minutes (H13); other gates keep
+   working. opts.context: e.g. "to claim your War Bond XP" — shown in
+   the prompt copy and used to scope the dismissal. */
 window.PF.requireCallsign = function(callback, opts){
   opts = opts || {};
   var done = function(cs){ try{ callback(cs || ''); }catch(e){} };
   var cs = '';
   try{ cs = window.PFCallsign ? window.PFCallsign() : ''; }catch(e){}
   if(cs){ done(cs); return; }
-  try{
-    if(sessionStorage.getItem('pf_cs_dismissed') === '1'){ done(''); return; }
-  }catch(e){}
+  if(pfCsDismissed(pfCsGateKey(opts))){ done(''); return; }
   pfClaimModal(done, opts);
 };
 function pfClaimModal(done, opts){
@@ -93,7 +126,7 @@ function pfClaimModal(done, opts){
   function finish(cs, dismissed){
     if(finished) return; finished = true;
     try{ if(overlay.parentNode) overlay.parentNode.removeChild(overlay); }catch(e){}
-    if(dismissed){ try{ sessionStorage.setItem('pf_cs_dismissed','1'); }catch(e){} }
+    if(dismissed){ pfCsDismiss(pfCsGateKey(opts)); }
     done(cs || '');
   }
   var input = box.querySelector('#pf-cs-input');
@@ -256,9 +289,11 @@ if(document.readyState === 'loading'){
   window.pfFetchGlobalTasks();
 }
 /* PF.ROSTER — LIVE legacy-shape view of the master SLR database (core/07-slr-db.js).
-   The 62-member snapshot is embedded in 07-slr-db-data.js and mapped here
-   synchronously at load, so every game that reads PF.ROSTER keeps working
-   unchanged. Do NOT hardcode roster lists in game files — edit
+   M34 (2026-10-03): the 62-member snapshot ships synchronously only inside
+   core/bundle-core-slr.js (roster pages: homepage, /arcade, /create,
+   Creator HQ, SLR roster/catalog). On slim-core pages it loads on demand via
+   PF.ensureSLRDB(); until then PF.ROSTER reads [] and consumers degrade.
+   Do NOT hardcode roster lists in game files — edit
    src/data/slr-master-db.json and rebuild. */
 Object.defineProperty(PF, 'ROSTER', {
   configurable: true,

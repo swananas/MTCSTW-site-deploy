@@ -1,19 +1,34 @@
 #!/usr/bin/env node
-/* build/bundle-core.js — Concatenate v1.4.3 core + page files into 2 bundles.
+/* build/bundle-core.js — Concatenate v1.4.3 core + page files into bundles.
  *
  * WHY: the footer loader was fetching 15 core files + 5 page files as 20
  * sequential blocking requests (async=false). Concatenation in loader order
  * is behavior-identical (order preserved) and cuts initial requests 23 -> 4.
  *
+ * M34 (2026-10-03): core/07-slr-db-data.js (173KB raw, 41.6KB gzip — 71% of
+ * the old bundle-core) NO LONGER ships in core/bundle-core.js. It lives in
+ * core/bundle-core-slr.js instead: the identical core composition plus the
+ * snapshot in the same position. The footer loader
+ * (loader/footer_v143_final.html) picks bundle-core-slr.js on pages that
+ * mount roster consumers (homepage, /arcade, /create, Creator HQ, SLR
+ * roster/catalog) and the slim bundle-core.js everywhere else (/bank,
+ * /economy, /war-chest, /ventures, /events, /war-report, /political-hq,
+ * /cells never read the DB). Synchronous PF.ROSTER / PF.slrAll() consumers
+ * keep working unchanged on SLR pages; on slim-core pages the DB loads on
+ * demand via PF.ensureSLRDB() (core/07-slr-db.js) — promise-cached, deduped,
+ * fails gracefully to [].
+ *
  * SAFETY:
- * - 07-slr-db.js ownBase() patched to also match 'bundle-core' in script src.
+ * - 07-slr-db.js ownBase() matches 'bundle-core' in script src — also matches
+ *   'bundle-core-slr.js' (substring), so the lazy data URL resolves on both.
  * - pwa/install.js pwaBase() matches any '/v1.4.3/' + 'MTCSTW-site-deploy'
- *   script — works with the bundle name.
+ *   script — works with both bundle names.
  * - Kill switches (?pf_off=<silo>) are by silo name, not filename — preserved.
  * - Page files guard on DOM presence (getElementById checks) — safe to concat.
  *
  * Usage: node build/bundle-core.js [--debug]
- * Output: v1.4.3/core/bundle-core.js, v1.4.3/pages/bundle-pages.js
+ * Output: v1.4.3/core/bundle-core.js, v1.4.3/core/bundle-core-slr.js,
+ *         v1.4.3/pages/bundle-pages.js
  */
 'use strict';
 var fs = require('fs');
@@ -23,27 +38,34 @@ var cp = require('child_process');
 var V143 = path.join(__dirname, '..', 'v1.4.3');
 var DEBUG = process.argv.indexOf('--debug') !== -1;
 
+/* The slim core composition. bundle-core-slr (below) = this list plus the
+   173KB SLR snapshot, for pages that mount roster consumers. */
+var CORE_FILES = [
+  'core/00-bus.js',
+  'core/07-slr-db.js',
+  'core/03-global.js',
+  'core/14-auth.js',
+  'pwa/install.js',
+  'core/04-ledger.js',
+  'core/05-tally.js',
+  'core/08-dopamine.js',
+  'core/09-referral.js',
+  'core/10-convert.js',
+  'core/11-xpledger.js',
+  'core/12-notify.js',
+  'core/13-flow.js',
+  'core/15-seo.js',
+  'core/campaign-data.js',
+  'core/17-nuke-strip.js',
+  'core/16-footer.js'
+];
+
 var BUNDLES = {
-  'core/bundle-core': [
-    'core/00-bus.js',
-    'core/07-slr-db-data.js',
-    'core/07-slr-db.js',
-    'core/03-global.js',
-    'core/14-auth.js',
-    'pwa/install.js',
-    'core/04-ledger.js',
-    'core/05-tally.js',
-    'core/08-dopamine.js',
-    'core/09-referral.js',
-    'core/10-convert.js',
-    'core/11-xpledger.js',
-    'core/12-notify.js',
-    'core/13-flow.js',
-    'core/15-seo.js',
-    'core/campaign-data.js',
-    'core/17-nuke-strip.js',
-    'core/16-footer.js'
-  ],
+  'core/bundle-core': CORE_FILES.slice(),
+  /* M34: roster pages get the identical core PLUS the snapshot, in the same
+     relative position the old bundle-core used (right after 00-bus.js). */
+  'core/bundle-core-slr':
+    ['core/00-bus.js', 'core/07-slr-db-data.js'].concat(CORE_FILES.slice(1)),
   'pages/bundle-pages': [
     'pages/home-v2.js',
     'pages/political-hq.js',

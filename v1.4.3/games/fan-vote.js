@@ -358,7 +358,7 @@
       b.style.cssText = 'display:inline-block;background:#141414;border:2px solid #f5f0e1;color:#f5f0e1;padding:0.6rem 1rem;margin:0.15rem;font-size:0.9rem;font-weight:700;letter-spacing:0.04em;cursor:pointer;font-family:inherit;';
       b.onmouseover = function(){ b.style.background='#c1121f'; b.style.borderColor='#c1121f'; };
       b.onmouseout = function(){ b.style.background='#141414'; b.style.borderColor='#f5f0e1'; };
-      b.onclick = function(){ castVote(c); };
+      b.onclick = function(){ castVote(c, b); };
       var s = document.createElement('button');
       s.textContent = 'SHARE';
       s.style.cssText = 'display:inline-block;background:transparent;border:2px solid #c1121f;color:#c1121f;padding:0.6rem 0.8rem;margin:0.15rem;font-size:0.75rem;font-weight:700;letter-spacing:0.12em;cursor:pointer;font-family:inherit;';
@@ -419,9 +419,25 @@
   fetchTotals();
   renderStreak();
   checkKingmaker();
-  function castVote(c){
+  function castVote(c, btn){
     var dev=''; try { dev=(window.PFDeviceId&&PFDeviceId())||''; }catch(e){}
     if(!dev){ try{ if(window.PF&&PF.toast) PF.toast('Could not identify this device — vote not cast.'); }catch(e){} return; }
+    /* 2026-10-03 M26: disabled+spinner state while the vote is in flight —
+       prevents double-vote double-submit. Same pattern as armory.js
+       (btn.disabled=true at POST, restored on failure). Success lands
+       showVoted(), which replaces the ballot — no restore needed. */
+    var label = '';
+    if(btn){
+      if(btn.disabled) return; /* a vote is already in flight */
+      try{
+        label = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = '\u23F3 CASTING\u2026';
+      }catch(e){}
+    }
+    function restoreBtn(){
+      if(btn){ try{ btn.disabled = false; btn.textContent = label; }catch(e){} }
+    }
     /* 2026-10-03: explicit vote route (backend M6 closed the bare-POST
        fall-through). CORS so we read the verdict — no more false success. */
     var ctrl=null; try{ ctrl=new AbortController(); }catch(e){}
@@ -442,12 +458,14 @@
           /* Refresh the shared totals so the new vote appears on next render. */
           setTimeout(fetchTotals,1500);
         } else {
+          restoreBtn();
           var msg=(j&&(j.err||j.error))||'Vote rejected.';
           try{ if(window.PF&&PF.toast) PF.toast(msg+' Not counted — try again.'); }catch(e){}
         }
       })
       .catch(function(){
         clearTimeout(to);
+        restoreBtn();
         try{ if(window.PF&&PF.toast) PF.toast('Network error — vote not counted. Try again.'); }catch(e){}
       });
   }

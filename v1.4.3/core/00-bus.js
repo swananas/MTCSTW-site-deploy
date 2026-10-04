@@ -39,12 +39,31 @@
          aesthetic (black bg, red border, cream text). Core loads before
          every silo, so all games can call PF.toast directly.
          Queued (2026-10-02): rapid messages stack sequentially instead of
-         overlapping — one visible at a time, FIFO. */
+         overlapping — one visible at a time, FIFO.
+         2026-10-03 (M23): messages render inside ONE persistent live-region
+         container (role="status" aria-live="polite", same pattern as
+         social-proof.js) so screen readers announce them. The attributes
+         are set once on the container — individual messages are not
+         redundant live regions themselves. */
       try {
         PF._toastQ = PF._toastQ || [];
         PF._toastQ.push(String(msg));
         if (!PF._toastBusy) PF._toastNext();
       } catch (e) {}
+    },
+    _toastBox: function () {
+      /* the single persistent toast live-region, created exactly once */
+      var box = null;
+      try { box = document.getElementById('pf-toast-live'); } catch (e) {}
+      if (!box) {
+        box = document.createElement('div');
+        box.id = 'pf-toast-live';
+        box.setAttribute('role', 'status');
+        box.setAttribute('aria-live', 'polite');
+        box.style.cssText = 'position:fixed;left:0;right:0;bottom:8%;z-index:99999;pointer-events:none;text-align:center;';
+        (document.body || document.documentElement).appendChild(box);
+      }
+      return box;
     },
     _toastNext: function () {
       try {
@@ -52,9 +71,10 @@
         if (!q.length) { PF._toastBusy = false; return; }
         PF._toastBusy = true;
         var msg = q.shift();
+        var box = PF._toastBox();
         var t = document.createElement('div'); t.textContent = msg;
-        t.style.cssText = 'position:fixed;left:50%;bottom:8%;transform:translateX(-50%);background:#0a0a0a;color:#f5f0e1;font:bold 15px monospace;padding:12px 22px;border:2px solid #c1121f;z-index:99999;max-width:90vw;text-align:center;box-sizing:border-box';
-        document.body.appendChild(t);
+        t.style.cssText = 'display:inline-block;background:#0a0a0a;color:#f5f0e1;font:bold 15px monospace;padding:12px 22px;border:2px solid #c1121f;max-width:90vw;text-align:center;box-sizing:border-box';
+        box.appendChild(t);
         setTimeout(function () { try { t.remove(); } catch (e) {} PF._toastNext(); }, 3000);
       } catch (e) { try { PF._toastBusy = false; } catch (e2) {} }
     },

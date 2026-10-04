@@ -36,6 +36,22 @@
       return '<br><span class="x-note">Your callsign needs to reconnect &mdash; re-claim it in Enlistment Ranks (one tap), then retry.</span>';
     return "";
   }
+  /* Friendly copy for WRITE paths (2026-10-03 M27): raw snake_case backend
+     codes never reach users — mark-read, prefs save. */
+  function ntWriteErr(e,fb){
+    var s=String(e==null?"":e).trim();
+    var fall=fb||"The wire fought back. Tap again to retry.";
+    if(!s||/network error/i.test(s)) return fall;
+    var map={
+      "bad callsign":"That callsign didn't check out. Re-claim it in Enlistment Ranks, then retry.",
+      "missing id":"That dispatch slipped away. Refresh and try again.",
+      "db error":"The ledger hiccuped. Retry in a moment.",
+      "unknown notify action":"That order isn't on the books. Refresh and try again."
+    };
+    if(map[s]) return map[s];
+    if(s.indexOf("_")!==-1) return fall; /* never show raw snake_case */
+    return s; /* backend prose already human-readable */
+  }
   function api(action,params,cb){
     if(!BACKEND){ cb(null); return; }
     /* Private reads require auth_secret (IDOR fix). Route gated actions
@@ -152,6 +168,10 @@
   /* ---------- data ---------- */
   function load(){
     var id=ident(), done=false, n=0;
+    /* M27 (2026-10-03): logged-out visitors have no callsign/device identity —
+       skip backend calls entirely instead of firing them blind (incl. the
+       90s poll). */
+    if(!id.callsign){ N=null; PR=null; if(panelOpen) renderPanel(); return; }
     function fin(){ if(done)return; done=true; updateBadge(); if(panelOpen) renderPanel(); }
     function one(){ n++; if(n>=2) fin(); }
     setTimeout(fin,15000);
@@ -177,9 +197,15 @@
       return;
     }
     var list=(N&&N.notifications)||[], i;
+    var inboxFailed=!N||!N.ok;
     var h='<h4>\uD83D\uDD14 NOTIFICATIONS</h4>';
     h+='<div class="x-pane"><h4>Inbox</h4>';
-    if(!list.length) h+='<div class="x-note">Quiet on the wire. Go make some noise.</div>';
+    /* M27 (2026-10-03): a network/auth failure renders a distinct error state
+       with retry — never the empty "Quiet on the wire" line. */
+    if(inboxFailed){
+      h+='<div class="x-note">The wire went quiet — not from silence, but from a cut line. Your dispatches are still out there.'+ntAuthHint(N)+'</div>';
+      h+='<div style="margin-top:8px"><button class="c-btn" id="ntInboxRetry">RETRY</button></div>';
+    } else if(!list.length) h+='<div class="x-note">Quiet on the wire. Go make some noise.</div>';
     for(i=0;i<Math.min(list.length,30);i++){
       var n=list[i];
       h+='<div class="cp-mission"'+(n.read?' style="opacity:.6"':'')+'><div class="cp-mtext">'
@@ -204,7 +230,7 @@
       btn.onclick=function(){
         var nid=btn.getAttribute("data-nid"); btn.disabled=true;
         post("notify","n_action","notification_read",{callsign:id.callsign,device:id.device,id:nid},function(j){
-          if(!j||!j.ok){ toast((j&&j.err)||"Failed."); btn.disabled=false; return; }
+          if(!j||!j.ok){ toast(ntWriteErr(j&&j.err,"Mark-read failed. Tap again to retry.")); btn.disabled=false; return; }
           setTimeout(function(){ N=null; load(); },500);
         });
       };
@@ -216,13 +242,15 @@
       for(var c=0;c<cbs.length;c++) out[cbs[c].getAttribute("data-pref")]=cbs[c].checked?1:0;
       sv.disabled=true;
       post("notify","n_action","notification_prefs",out,function(j){
-        if(!j||!j.ok){ toast((j&&j.err)||"Save failed."); sv.disabled=false; return; }
+        if(!j||!j.ok){ toast(ntWriteErr(j&&j.err,"Save failed. Tap again to retry.")); sv.disabled=false; return; }
         toast("PREFERENCES SAVED.");
         sv.disabled=false;
       });
     };
     var rb=panel.querySelector('#ntRetry');
     if(rb) rb.onclick=function(){ N=PR=null; panel.innerHTML='<div class="c-load">Tuning&hellip;</div>'; load(); };
+    var irb=panel.querySelector('#ntInboxRetry');
+    if(irb) irb.onclick=function(){ N=PR=null; panel.innerHTML='<div class="c-load">Tuning&hellip;</div>'; load(); };
   }
 
   /* Boot: header may not exist yet if the bundle ran early. */

@@ -1045,7 +1045,7 @@ if(_shareBtn){_shareBtn.addEventListener('click',function(){shareOrdersImage(_sh
 
 renderReset();
 if(!window._pfOrdersTick){ window._pfOrdersTick=setInterval(function(){ renderReset(); },60000); }
-if(!window._pfRaidTick){ window._pfRaidTick=setInterval(function(){ raidTick(); },1000); }
+if(!window._pfRaidTick){ window._pfRaidTick=setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} raidTick(); },1000); }
 render();
 syncFromServer();
 })();

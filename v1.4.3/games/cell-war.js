@@ -134,7 +134,7 @@ function render(j){
   h+='</div>';
   host.innerHTML=h;
   if(TICK) clearInterval(TICK);
-  tick(); TICK=setInterval(tick,1000);
+  tick(); TICK=setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} tick(); },1000);
   var jb=document.getElementById("cwJoinCell"), bb=document.getElementById("cwBuildCell"), vb=document.getElementById("cwViewCell");
   if(jb) jb.onclick=goCells;
   if(bb) bb.onclick=goCells;

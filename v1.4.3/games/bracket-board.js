@@ -7,7 +7,7 @@
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-bracket">
 <div id="pf-bracket">
 <style>
-#pf-bracket{position:relative;font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:720px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f}
+#pf-bracket{position:relative;font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:720px;margin:0 auto;text-align:center;box-sizing:border-box;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f}
 #pf-bracket h2{color:#c1121f;font-size:30px;margin:0 0 6px;letter-spacing:2px;text-transform:uppercase}
 #pf-bracket .b-sub{font-family:Arial,sans-serif;font-size:14px;color:#c9bfa8;margin-bottom:6px}
 #pf-bracket .b-week{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase;margin-bottom:18px}

@@ -267,6 +267,6 @@
   try {
     document.addEventListener('pf-hype', function () { try { paintHype(document); } catch (e) {} });
     document.addEventListener('pf-infight', function () { try { paintHype(document); } catch (e) {} });
-    setInterval(function () { try { paintHype(document); } catch (e) {} }, 30000);
+    setInterval(function () { try { if(window.PF&&PF.hidden&&PF.hidden()) return; paintHype(document); } catch (e) {} }, 30000);
   } catch (e) {}
 })();

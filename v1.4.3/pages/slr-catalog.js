@@ -31,7 +31,7 @@
 
   function render(root, m, all) {
     var img = m.picture
-      ? '<img src="' + esc(m.picture) + '" alt="' + esc(m.name) + ', SLR propagandist" style="width:100%;max-width:520px;height:auto;display:block;margin:0 auto;border:3px solid ' + RED + ';">'
+      ? '<img src="' + esc(m.picture) + '" alt="' + esc(m.image_alt || (m.name + ', SLR propagandist')) + '" style="width:100%;max-width:520px;height:auto;display:block;margin:0 auto;border:3px solid ' + RED + ';">'
       : '<div style="width:100%;max-width:520px;margin:0 auto;height:300px;display:flex;align-items:center;justify-content:center;background:#1a1a1a;border:3px solid ' + RED + ';">'
         + '<span style="font-size:4.5rem;font-weight:900;color:' + RED + ';">' + esc(initials(m.name)) + '</span></div>';
 

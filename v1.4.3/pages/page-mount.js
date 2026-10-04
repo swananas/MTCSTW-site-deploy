@@ -152,9 +152,18 @@
     if (host.querySelector(':scope > .pf-page-head')) return;
     var head = document.createElement('div');
     head.className = 'pf-page-head';
-    head.style.cssText = 'text-align:center;margin:6px auto 22px;max-width:720px;font-family:Arial,sans-serif;';
+    /* CONTRAST FIX (2026-10-04): the hero carries its own dark band so the
+       near-white title is never at the mercy of the Squarespace section
+       background — /economy, /arcade and /war-chest ship light-gray section
+       backgrounds, which washed #f5ead6 out to ~1.4–2.0:1 (verified below).
+       On this dark band the title hits 16.3:1 and the sub 7.3:1 (both AAA).
+       Red top/bottom bars keep the red/black propaganda treatment. */
+    head.style.cssText = 'text-align:center;margin:0 auto 22px;max-width:720px;font-family:Arial,sans-serif;' +
+      'background:linear-gradient(180deg,#141414 0%,#0b0b0b 100%);' +
+      'border:1px solid #333;border-top:4px solid #c1121f;border-bottom:4px solid #c1121f;' +
+      'padding:24px 18px 20px;box-sizing:border-box;border-radius:3px;';
     var kicker = document.createElement('div');
-    kicker.style.cssText = 'font-size:12px;letter-spacing:5px;color:#c1121f;font-weight:800;margin-bottom:8px;';
+    kicker.style.cssText = 'font-size:12px;letter-spacing:5px;color:#dc143c;font-weight:800;margin-bottom:8px;';
     kicker.textContent = 'MTCSTW.COM';
     var title = document.createElement('div');
     title.style.cssText = "font-family:'Arial Black',Arial,sans-serif;font-size:34px;letter-spacing:3px;color:#f5ead6;text-transform:uppercase;margin:0 0 8px;";

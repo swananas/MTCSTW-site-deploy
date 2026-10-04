@@ -2,7 +2,10 @@
    KILL: ?pf_off=03-global  or  localStorage pf_disabled_v1='["03-global"]' */
 /* PF GLOBAL ACTIONS: unified site-wide total, visible to everyone.
    Each widget calls pfReportAction('action_type') on completion.
-   The total is fetched from the backend and displayed in #pf-global-total. */
+   The total is fetched from the backend and displayed in #pf-global-total.
+   2026-10-04: also owns the site-wide first-touch ?ref=<callsign> capture
+   (pf_pending_ref) so referrals landing on ANY page attribute — it used to
+   live only in the homepage Referral War game. */
 window.PF_BACKEND_URL = "https://pf-api.mtcstw.workers.dev";
 /* P0 (2026-10-02): shared POST helper for POST_ONLY actions.
    Usage: PF.postAction('cell','cell_action','cell_create',{callsign:cs},cb)
@@ -47,6 +50,26 @@ window.PFCallsign = function(){
   try{ return String((JSON.parse(localStorage.getItem('pf_identity_v1')||'{}')).callsign||''); }
   catch(e){ return ''; }
 };
+/* 2026-10-04 (creator audit): site-wide first-touch ?ref=<callsign> capture.
+   MOVED here from the homepage-only Referral War game (games/referral.js)
+   so referrals landing on ANY page — notably /request-access — are captured
+   into pf_pending_ref for the enlistment claim flow. First touch wins; a
+   visitor who already holds a callsign keeps their own identity (a ref can
+   never overwrite or self-credit an existing callsign). Exposed as
+   PF.capturePendingRef for late-arriving silos. */
+window.PF.capturePendingRef = function(){
+  try{
+    var m = String(window.location.search||'').match(/[?&]ref=([a-z0-9_]{3,20})/i);
+    if(!m || !m[1]) return false;
+    var hasCs = ''; try{ hasCs = window.PFCallsign ? window.PFCallsign() : ''; }catch(e0){}
+    if(hasCs) return false;
+    var hasRef = ''; try{ hasRef = localStorage.getItem('pf_pending_ref') || ''; }catch(e1){}
+    if(hasRef) return true; /* first touch wins — keep the original ref */
+    try{ localStorage.setItem('pf_pending_ref', m[1].toLowerCase()); }catch(e2){}
+    return true;
+  }catch(e3){ return false; }
+};
+try{ window.PF.capturePendingRef(); }catch(e4){}
 /* H13 (2026-10-03): dismissing the claim modal no longer silences EVERY
    callsign gate for the session. Dismissals are scoped per-gate (keyed by
    the modal's context string) and re-arm after 30 minutes — a dismiss is

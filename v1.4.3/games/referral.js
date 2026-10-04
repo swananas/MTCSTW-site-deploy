@@ -262,7 +262,7 @@ function render(){
             toast(rcs+" needs 3+ actions first. Nudge them.");
             btn.disabled=false; btn.textContent="ACTIVATE +50 XP";
           } else {
-            toast("Activation failed: "+((j&&j.err)||"try again."));
+            toast("Activation failed: "+(PF.errCopy(j,"try again.")));
             btn.disabled=false; btn.textContent="ACTIVATE +50 XP";
           }
         });
@@ -322,7 +322,7 @@ function render(){
         if(err) err.textContent="That recruiter code doesn't exist. Check the spelling.";
         rcb.disabled=false; rcb.textContent="CLAIM +25 XP";
       } else {
-        if(err) err.textContent=(j&&j.err)||"Claim failed. Try again.";
+        if(err) err.textContent=PF.errCopy(j,"Claim failed. Try again.");
         rcb.disabled=false; rcb.textContent="CLAIM +25 XP";
       }
     });
@@ -337,7 +337,7 @@ function render(){
         toast(j.already?("You already have a mentor: "+j.mentor+"."):("Mentor assigned: "+j.mentor+". Learn the ropes."));
         M=null; load();
       } else {
-        toast((j&&j.err)||"No mentor available right now.");
+        toast(PF.errCopy(j,"No mentor available right now."));
         mpb.disabled=false; mpb.textContent="FIND ME A MENTOR";
       }
     });
@@ -355,7 +355,7 @@ function render(){
           toast(rcs+" has "+(j.actions||0)+"/5 actions. Nudge them.");
           btn.disabled=false; btn.textContent="CLAIM +10 XP";
         } else {
-          toast((j&&j.err)||"Claim failed.");
+          toast(PF.errCopy(j,"Claim failed."));
           btn.disabled=false; btn.textContent="CLAIM +10 XP";
         }
       });

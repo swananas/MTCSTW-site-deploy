@@ -405,6 +405,63 @@ function renderCellSlim(el,s){
     });
   };
 }
+/* RECRUIT poster: 1080x1350 cell-recruit image for the native share sheet.
+   Pure canvas text/shapes only — no external assets, so the canvas can never
+   be tainted. The FIGHTING AS <CALLSIGN> strip is applied by
+   PFShare.stampCallsign inside shareImage (idempotent); keep the bottom 70px
+   of the layout clear for it. */
+function drawRecruitPoster(c){
+  var W=1080,H=1350;
+  var cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+  var x=cv.getContext("2d"); if(!x) return null;
+  function center(t,y,font,fill){ x.font=font; x.fillStyle=fill; x.textAlign="center"; x.fillText(t,W/2,y); }
+  function wrapLines(text,font,maxW,maxLines){
+    x.font=font; x.textAlign="center";
+    var words=String(text||"").split(/\s+/), lines=[], cur="";
+    words.forEach(function(w){
+      var t=cur?cur+" "+w:w;
+      if(x.measureText(t).width>maxW&&cur){ lines.push(cur); cur=w; } else cur=t;
+    });
+    if(cur) lines.push(cur);
+    return lines.slice(0,maxLines||2);
+  }
+  x.fillStyle="#0d0d0d"; x.fillRect(0,0,W,H);
+  x.strokeStyle="#c1121f"; x.lineWidth=14; x.strokeRect(20,20,W-40,H-40);
+  x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(44,44,W-88,H-88);
+  var y=118;
+  center("\u2605 THE PROPAGANDA FACTORY \u2605",y,"700 32px Arial,sans-serif","#c1121f"); y+=76;
+  var nameF="900 82px \"Arial Black\",Arial,sans-serif";
+  wrapLines(String(c.name||"MY CELL").toUpperCase(),nameF,W-170,2).forEach(function(l){
+    center(l,y,nameF,"#c1121f"); y+=96; });
+  y+=18;
+  var tagF="700 34px Arial,sans-serif";
+  wrapLines("FIVE CALLSIGNS. ONE STREAK. NOBODY LEFT BEHIND.",tagF,W-190,2).forEach(function(l){
+    center(l,y,tagF,"#f5ead6"); y+=48; });
+  var streak=Number(c.streak)||0;
+  y+=26;
+  center("\u26A1 "+streak+"-DAY STREAK \u26A1",y,"900 40px \"Arial Black\",Arial,sans-serif","#c1121f"); y+=74;
+  center("INVITE CODE",y,"700 30px Arial,sans-serif","#c9bfa8"); y+=16;
+  var code=String(c.invite_code||"").toUpperCase()||"???";
+  x.strokeStyle="#c1121f"; x.lineWidth=6;
+  x.strokeRect(W/2-280,y,560,150);
+  x.fillStyle="#141010"; x.fillRect(W/2-280,y,560,150);
+  center(code,y+106,"900 96px \"Arial Black\",Arial,sans-serif","#c1121f");
+  y+=150+52;
+  var lnF="400 34px Arial,sans-serif";
+  wrapLines("Enter this code on mtcstw.com/cells to wire in.",lnF,W-210,2).forEach(function(l){
+    center(l,y,lnF,"#c9bfa8"); y+=50; });
+  wrapLines("Check in daily. Stack the streak. Recruit +25 XP.",lnF,W-210,2).forEach(function(l){
+    center(l,y,lnF,"#c9bfa8"); y+=50; });
+  y+=44;
+  var cta="JOIN MY CELL";
+  x.font="900 44px \"Arial Black\",Arial,sans-serif";
+  var tw=x.measureText(cta).width+110;
+  x.fillStyle="#c1121f"; x.fillRect(W/2-tw/2,y-58,tw,94);
+  center(cta,y+8,"900 44px \"Arial Black\",Arial,sans-serif","#ffffff");
+  y=H-160;
+  center("MTCSTW.COM",y,"900 48px \"Arial Black\",Arial,sans-serif","#c1121f");
+  return cv;
+}
 function renderCell(el,s){
   if(SLIM){ renderCellSlim(el,s); return; }
   var c=s.cell, pct=Math.round((c.mult-1)*100);
@@ -475,6 +532,8 @@ function renderCell(el,s){
     html+='<div class="c-rename"><input aria-label="RENAME CELL" id="cRename" maxlength="24" placeholder="RENAME CELL" value="'+esc(c.name)+'" autocomplete="off">'+
       '<button class="c-btn" id="cRenameBtn">Rename</button></div>';
   }
+  /* RECRUIT: any member can mint the recruit poster and share it. */
+  html+='<button class="c-btn c-big" id="cRecruit">RECRUIT</button>';
   if(!s.checked_today){
     html+='<button class="c-btn c-big" id="cCheckin">Orders done &mdash; check in</button>';
   } else {
@@ -525,6 +584,26 @@ function renderCell(el,s){
       toast("Cell renamed to "+j.cell.name+(j.cell.verified?" \u2713 verified.":"."));
       refresh();
     });
+  };
+  /* RECRUIT: mint the poster and open the phone's native share sheet.
+     PFShare.shareImage handles stampCallsign (idempotent), toBlob -> File ->
+     navigator.canShare({files}) -> navigator.share, and the
+     download fallback on browsers without file-share support. */
+  var rc=document.getElementById("cRecruit");
+  if(rc) rc.onclick=function(){
+    errEl.textContent="";
+    if(!window.PFShare){ errEl.textContent="Share engine still loading \u2014 tap again in a second."; return; }
+    if(!id.callsign){ errEl.textContent="Claim a callsign first \u2014 it goes on the poster."; return; }
+    toast("Minting your recruit poster\u2026");
+    var cv=null;
+    try{ cv=drawRecruitPoster(c); }catch(e){ cv=null; }
+    if(!cv){ errEl.textContent="Poster failed \u2014 try again."; return; }
+    try{
+      PFShare.shareImage(cv,
+        "cell-recruit-"+String(c.invite_code||"").toLowerCase()+".png",
+        "Join my cell: "+c.name,
+        "cell-recruit");
+    }catch(e){ errEl.textContent="Share unavailable here."; }
   };
   document.getElementById("cCodeShow").onclick=function(){
     var code=c.invite_code;

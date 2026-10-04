@@ -5,6 +5,19 @@
    EVENTS SEEN: pf-caption, pf-do-mini, pf-dometer2, pf-orders, pf-poster
    KILL: ?pf_off=core-styles  or  localStorage pf_disabled_v1='["core-styles"]'
    SOURCE: verbatim extract from dist/pf-footer-v1.4.1.html
+   ----------------------------------------------------------------------------
+   ★ SYNC CHECKLIST — READ BEFORE EDITING (added 2026-10-04 after a drift
+   incident: the 2026-10-03 Know Your Enemy CSS shipped in 02-design-system.css
+   but never made it into bundle-styles.css, so the live fix was half-deployed):
+   1. bundle-styles.css is the SERVED file (loader pulls it via jsDelivr).
+      It is HAND-MAINTAINED — there is no build script that regenerates it
+      from these source files. Editing a source file alone changes NOTHING live.
+   2. After ANY edit to a source CSS file, copy the new/changed rules into
+      v1.4.3/core/bundle-styles.css by hand (01-styles.css content = top of the
+      bundle; 02-design-system.css content = middle, ending at .bt-st-rejected;
+      hand-added defect/audit fix blocks live at the bottom of the bundle).
+   3. Run `node build/check-styles-sync.js` — it FAILS if any source rule is
+      missing from the bundle. Fix the bundle, then hand off for re-pin.
    ============================================================================ */
 /* PF-WIDGET-STYLES: document-wide, outside templates for reliability */
 .pf-flash{animation:pfFlash 1.4s ease-out}
@@ -348,16 +361,22 @@ body:has(#pf-nuke-stick:not([hidden])) #pf-do-mini{bottom:calc(56px + env(safe-a
 #xFeed .fd-tab.fd-on{background:#c1121f;border-color:#c1121f;color:#fff;box-shadow:0 0 12px rgba(193,18,31,.65)}
 
 /* ============================================================================
-   DEFECT 3 (2026-10-03) — /economy renders in a ~240px left column.
-   Root cause: the page's Squarespace Code block is sized ~240px wide in the
-   Fluid Engine editor (same root cause as the earlier Home / /political-hq
-   narrow-column incidents). The editor is off-limits, so pages/page-mount.js
-   stamps .pf-fe-full on the block's .fe-block wrapper ancestor; this rule
-   forces it to full content width. !important outranks Squarespace's inline
-   layout styles, which FE JS rewrites on resize. Scoped: the class is only
-   ever stamped on /economy's mount — no other page's layout is touched.
+   DEFECT 3 (2026-10-03; root cause corrected 2026-10-04) — /economy renders
+   in a ~240px left column.
+   TRUE root cause (verified against live /economy HTML): Squarespace emits a
+   static <style> tag per Fluid Engine section with per-block grid placement,
+   e.g. .fe-block-yui_..._431{grid-area:1/2/7/6} on desktop — 4 of 24 grid
+   columns. There are NO inline layout styles and FE JS does not rewrite
+   geometry at runtime. The 2026-10-03 fix failed because width:100%!important
+   cannot override grid placement: a grid item's size/position comes from
+   grid-area/grid-column, not width. The fix is grid-column:1/-1!important,
+   which spans the block across the full grid and beats the static grid-area
+   rule. The editor is off-limits, so pages/page-mount.js stamps .pf-fe-full
+   on the block's .fe-block wrapper ancestor; this rule forces it to full
+   content width. Scoped: the class is only ever stamped on /economy's
+   mount — no other page's layout is touched.
    ============================================================================ */
-.pf-fe-full{width:100%!important;max-width:none!important;left:0!important;}
+.pf-fe-full{width:100%!important;max-width:none!important;left:0!important;grid-column:1/-1!important;}
 
 /* ============================================================================
    DEFECT 4 (2026-10-03) — /request-access (Creator HQ) layout broken.
@@ -367,19 +386,40 @@ body:has(#pf-nuke-stick:not([hidden])) #pf-do-mini{bottom:calc(56px + env(safe-a
    off-limits, so games/war-card.js (and games/academy.js for academy-only
    pages) stamps .pf-fe-hq on the .fe-block wrapper ancestor of each HQ
    mount div (#pf-war-card, #pf-academy-hq, #pf-cell-hq, #pf-dash-hq); this
-   rule forces full content width. !important outranks Squarespace's inline
-   layout styles, which FE JS rewrites on resize.
+   rule forces full content width. !important outranks Squarespace's static
+   per-block grid-area rules (emitted in a <style> tag per FE section —
+   there are no inline layout styles; FE JS does not rewrite geometry).
    (b) The black Creator war card panel was overflowing its narrow/short FE
    block and painting over the native request form's Name/Handle inputs
    (the panel itself carries no position/z-index — pure block-geometry
-   overflow). Widening the block to full width plus height:auto (block box
-   fits its content instead of clipping/overflowing it) removes the
-   overlap so the form inputs are fully visible and clickable.
+   overlap). TRUE geometry (verified against live /request-access HTML):
+   desktop grid-areas are form=1/2/52/11 vs war-card=1/2/7/6 — the war card
+   sits INSIDE the form's rows 1-7 (z-index 4 over the form's 3). Column
+   widening alone cannot fix a ROW overlap, which is why 664e99c's fix did
+   not take effect. games/war-card.js additionally stamps .pf-fe-wc on the
+   war-card block (/request-access only); the DEFECT 4b rule below clears
+   its explicit row placement on desktop so grid auto-placement (with
+   grid-column:1/-1 from .pf-fe-hq) parks the block below the form.
+   Mobile geometry already stacks (form rows 1-17, war card rows 17-23),
+   so the row override is desktop-only.
    grid-column:1/-1 covers grid-placed FE sections; width/left covers
    absolute-placed ones. Scoped: the class is only ever stamped on HQ
    mounts — no other page's layout is touched.
    ============================================================================ */
 .pf-fe-hq{width:100%!important;max-width:none!important;left:0!important;grid-column:1/-1!important;height:auto!important;}
+
+/* ============================================================================
+   DEFECT 4b (2026-10-04) — /request-access desktop: the war-card FE block's
+   editor grid-area (rows 1-7) overlaps the request form's grid-area
+   (rows 1-52). Clears the explicit row placement on desktop; combined with
+   .pf-fe-hq's grid-column:1/-1, grid auto-placement drops the block into
+   the first fully-free row band — below the form — regardless of how tall
+   the form's editor row span is. Desktop-only: mobile geometry stacks
+   correctly without intervention.
+   ============================================================================ */
+@media (min-width:768px){
+  .pf-fe-wc{grid-row:auto!important;}
+}
 
 /* ============================================================================
    GAP AUDIT v2 2026-10-03 — mobile CSS fixes (CSS only; no JS touched)

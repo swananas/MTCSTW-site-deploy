@@ -3,6 +3,17 @@
    WHAT: Shared design tokens + component classes for all v1.4.3 silos.
    WHY: Every new silo invented its own inline styles. This is the single
    source of truth for spacing, color, buttons, cards, forms, and gates.
+   ----------------------------------------------------------------------------
+   ★ SYNC CHECKLIST — READ BEFORE EDITING (added 2026-10-04 after a drift
+   incident: the 2026-10-03 Know Your Enemy CSS shipped in this file but
+   never made it into bundle-styles.css, so the live fix was half-deployed):
+   1. bundle-styles.css is the SERVED file (loader pulls it via jsDelivr).
+      Editing this source file alone changes NOTHING live.
+   2. After ANY edit here, copy the new/changed rules into
+      v1.4.3/core/bundle-styles.css (matching section: design-system content
+      ends at .bt-st-rejected; hand-added defect blocks live below it).
+   3. Run `node build/check-styles-sync.js` — it FAILS if any source rule is
+      missing from the bundle. Fix the bundle, then hand off for re-pin.
    ============================================================================ */
 
 /* ---------- 1. DESIGN TOKENS ---------- */

@@ -212,23 +212,36 @@
   }
 
   render();
-  /* DEFECT4 (2026-10-03): /request-access Fluid Engine layout repair.
+  /* DEFECT4 (2026-10-03; row-overlap fix 2026-10-04): /request-access Fluid
+     Engine layout repair.
      (a) Squarespace stored the HQ Code blocks ~240px wide (same narrow-column
      root cause as defect 3's /economy). (b) The war-card panel overflowed its
      narrow/short block and painted over the native request form's Name/Handle
      inputs (the panel itself has no position/z-index — pure block-geometry
-     overflow). The editor is off-limits, so stamp .pf-fe-hq (see
-     core/01-styles.css + core/bundle-styles.css) on the .fe-block wrapper
-     ancestor of every HQ mount div; the !important rule forces full content
-     width and auto height, beating Squarespace's inline layout styles.
-     Scoped: this IIFE only runs where #pf-war-card exists (HQ pages), so no
-     other page is touched. Best-effort: never throws, never breaks render. */
+     overlap). TRUE geometry (live HTML): desktop grid-areas form=1/2/52/11
+     vs war-card=1/2/7/6 — the war card sits inside the form's rows, so
+     column widening alone (pf-fe-hq) could never fix it. The editor is
+     off-limits, so: stamp .pf-fe-hq (see core/01-styles.css) on the .fe-block
+     wrapper ancestor of every HQ mount div for full content width, AND stamp
+     .pf-fe-wc on the war-card block on /request-access so the DEFECT 4b CSS
+     rule clears its explicit row placement on desktop — grid auto-placement
+     then parks the block below the form. Scoped: this IIFE only runs where
+     #pf-war-card exists (HQ pages), and .pf-fe-wc only on /request-access,
+     so no other page's layout is touched. Best-effort: never throws, never
+     breaks render. */
   try {
     ['pf-war-card', 'pf-academy-hq', 'pf-cell-hq', 'pf-dash-hq'].forEach(function (id) {
       var m = document.getElementById(id);
       var b = (m && m.closest) ? m.closest('.fe-block') : null;
       if (b && b.classList && !b.classList.contains('pf-fe-hq')) b.classList.add('pf-fe-hq');
     });
+    /* DEFECT 4b: /request-access desktop row overlap — drop the war-card
+       block out of the form's grid rows (see core/01-styles.css). */
+    if (/\/request-access(\/|$|\?)/.test(location.pathname || '')) {
+      var wcm = document.getElementById('pf-war-card');
+      var wcb = (wcm && wcm.closest) ? wcm.closest('.fe-block') : null;
+      if (wcb && wcb.classList && !wcb.classList.contains('pf-fe-wc')) wcb.classList.add('pf-fe-wc');
+    }
   } catch (e4) {}
   api("cell_leaderboard",{},function(j){ board=j; syncMeta(); });
   (function(){ var id=ident(); if(!id.callsign) return;

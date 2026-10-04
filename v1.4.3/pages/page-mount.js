@@ -173,14 +173,17 @@
   }
 
   var mounted = {};
-  /* DEFECT 3 (2026-10-03): force a page's Fluid Engine block wrapper to full
-     content width. The /economy Code block is sized ~240px wide in the FE
-     editor (same root cause as the earlier Home / /political-hq narrow-column
-     incidents — Code blocks set narrow in the editor). The editor is
-     off-limits, so the mount stamps .pf-fe-full (see core/01-styles.css) on
-     the block's .fe-block ancestor; the !important rule there keeps winning
-     over Squarespace's inline layout styles, which FE JS rewrites on resize.
-     Best-effort: never throws, never breaks the mount. */
+  /* DEFECT 3 (2026-10-03; root cause corrected 2026-10-04): force a page's
+     Fluid Engine block wrapper to full content width. TRUE mechanism
+     (verified against live /economy HTML): Squarespace emits a static
+     <style> tag per FE section with per-block grid placement, e.g.
+     .fe-block-yui_..._431{grid-area:1/2/7/6} on desktop — 4 of 24 grid
+     columns. There are NO inline layout styles and FE JS does not rewrite
+     geometry at runtime; the 2026-10-03 width-only fix failed because a grid
+     item's size comes from grid-area/grid-column, not width. The editor is
+     off-limits, so the mount stamps .pf-fe-full (see core/01-styles.css,
+     which now sets grid-column:1/-1!important) on the block's .fe-block
+     ancestor. Best-effort: never throws, never breaks the mount. */
   function widenFeBlock(host) {
     try {
       var b = host && host.closest ? host.closest('.fe-block') : null;

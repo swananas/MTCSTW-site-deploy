@@ -729,6 +729,25 @@ body:has(#pf-nuke-stick:not([hidden])) #pf-do-mini{bottom:calc(56px + env(safe-a
 .bt-st-pending{color:#fc0;border-color:#fc0;}
 .bt-st-approved{color:#0c6;border-color:#0c6;}
 .bt-st-rejected{color:#c33;border-color:#c33;}
+
+/* === KNOW YOUR ENEMY intel readability (2026-10-03) ===
+   #pf-intel was the only HQ silo whose template lacked .pf-silo, so its
+   dark .x-pane cards inherited Squarespace's dark body text (dark-on-dark
+   body copy) and its .c-tag subtitle sat in muted tan on the page's light
+   section background (washed out). The template now carries .pf-silo like
+   its siblings (dark bg + cream text); the rules below lock the in-item
+   hierarchy explicitly instead of relying on inheritance. Red/black
+   propaganda aesthetic kept — this is legibility, not a redesign.
+   SYNCED 2026-10-04 from v1.4.3/core/02-design-system.css (commit 1b8213f). */
+#pf-intel .x-pane{color:var(--pf-cream);}
+#pf-intel .in-frame{color:var(--pf-red-bright);font-weight:700;letter-spacing:2px;margin-bottom:10px;}
+#pf-intel .in-target{color:var(--pf-cream);font-weight:700;font-size:16px;letter-spacing:1px;margin-bottom:6px;}
+#pf-intel .in-activity{color:var(--pf-cream);line-height:1.55;}
+#pf-intel .in-amount{color:var(--pf-gold);font-weight:700;letter-spacing:1px;margin-top:8px;}
+#pf-intel .in-meta{color:var(--pf-muted);font-size:12px;margin-top:6px;}
+#pf-intel .in-meta a{color:var(--pf-red-bright);font-weight:700;}
+#pf-intel .in-sub{color:var(--pf-cream);}
+
 /* ============================================================================
    DEFECT 3 (2026-10-03) — /economy renders in a ~240px left column.
    Root cause: the page's Squarespace Code block is sized ~240px wide in the
@@ -739,7 +758,7 @@ body:has(#pf-nuke-stick:not([hidden])) #pf-do-mini{bottom:calc(56px + env(safe-a
    layout styles, which FE JS rewrites on resize. Scoped: the class is only
    ever stamped on /economy's mount — no other page's layout is touched.
    ============================================================================ */
-.pf-fe-full{width:100%!important;max-width:none!important;left:0!important;}
+.pf-fe-full{width:100%!important;max-width:none!important;left:0!important;grid-column:1/-1!important;}
 
 /* ============================================================================
    DEFECT 4 (2026-10-03) — /request-access (Creator HQ) layout broken.
@@ -762,6 +781,19 @@ body:has(#pf-nuke-stick:not([hidden])) #pf-do-mini{bottom:calc(56px + env(safe-a
    mounts — no other page's layout is touched.
    ============================================================================ */
 .pf-fe-hq{width:100%!important;max-width:none!important;left:0!important;grid-column:1/-1!important;height:auto!important;}
+
+/* ============================================================================
+   DEFECT 4b (2026-10-04) — /request-access desktop: the war-card FE block's
+   editor grid-area (rows 1-7) overlaps the request form's grid-area
+   (rows 1-52). Clears the explicit row placement on desktop; combined with
+   .pf-fe-hq's grid-column:1/-1, grid auto-placement drops the block into
+   the first fully-free row band — below the form — regardless of how tall
+   the form's editor row span is. Desktop-only: mobile geometry stacks
+   correctly without intervention.
+   ============================================================================ */
+@media (min-width:768px){
+  .pf-fe-wc{grid-row:auto!important;}
+}
 
 /* ============================================================================
    GAP AUDIT v2 2026-10-03 — mobile CSS fixes (CSS only; no JS touched)

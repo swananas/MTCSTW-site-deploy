@@ -158,8 +158,15 @@ function render(){
   var el=document.getElementById("xBrief"); if(!el) return;
   var id=ident(), h="";
   if(!id.callsign){
+    /* 2026-10-04: the Featured Drop is public content — its slot and the
+       SHARE THIS DROP button render for anonymous visitors too. Only the
+       personalized briefing (rank, XP, orders, cell) needs a callsign.
+       Previously the whole drop hid behind the gate, so anonymous crawls
+       saw no drop at all while logged-in owners did. */
     el.innerHTML='<div class="br-gate">Briefings run on callsigns. Claim yours in Enlistment Ranks, then report back here.</div>'
-      +'<div style="margin-top:10px"><button class="c-btn" onclick="document.getElementById(\\\'pf-ranks\\\')&&document.getElementById(\\\'pf-ranks\\\').scrollIntoView({behavior:\\\'smooth\\\'})">ENLIST</button></div>';
+      +'<div style="margin-top:10px"><button class="c-btn" onclick="document.getElementById(\\\'pf-ranks\\\')&&document.getElementById(\\\'pf-ranks\\\').scrollIntoView({behavior:\\\'smooth\\\'})">ENLIST</button></div>'
+      +dropSectionHtml();
+    dropWire();
     renderSeasonBanner();
     return;
   }

@@ -79,6 +79,29 @@
     if (footers && footers.length) return footers[0];
     return null;
   }
+  /* DEFECT 1b (2026-10-04): the crossnav strip (19-crossnav, same bundle)
+     prepends its own <nav class="pf-xn-nav"> as the footer's first child. A
+     plain footer.querySelector('nav, ...') would match it first, dropping
+     the DELETE MY DATA link into the "THE FRONT LINES" page-nav instead of
+     next to the site's own footer links — on /store the late commerce
+     footer re-render makes that the common outcome. The data-rights link
+     must never live inside our injected strip, so skip any nav under
+     #pf-crossnav here. */
+  function footerNav(footer) {
+    var navs = null;
+    try { navs = footer.querySelectorAll('nav, .footer-nav, .Footer-nav, [class*="nav"]'); } catch (e) { return null; }
+    for (var i = 0; i < navs.length; i++) {
+      var p = navs[i], inside = false;
+      try {
+        while (p && p !== footer) {
+          if (p.id === 'pf-crossnav') { inside = true; break; }
+          p = p.parentNode;
+        }
+      } catch (e2) {}
+      if (!inside) return navs[i];
+    }
+    return null;
+  }
   var LINK_STYLE = 'color:#c1121f;font-weight:900;letter-spacing:0.12em;font-size:11px;text-decoration:underline;cursor:pointer;margin-left:14px;white-space:nowrap;';
   function makeLink() {
     var a = document.createElement('a');
@@ -96,8 +119,7 @@
     if (!footer) return;
     var a = makeLink();
     /* Append at the end of the footer content, next to the other footer links. */
-    var nav = null;
-    try { nav = footer.querySelector('nav, .footer-nav, .Footer-nav, [class*="nav"]'); } catch (e2) {}
+    var nav = footerNav(footer);
     if (nav) nav.appendChild(a); else footer.appendChild(a);
   }
 
@@ -254,8 +276,7 @@
   function moveIntoFooter(link, footer) {
     try {
       var wrap = document.getElementById('pf-delete-fixed');
-      var nav = null;
-      try { nav = footer.querySelector('nav, .footer-nav, .Footer-nav, [class*="nav"]'); } catch (e2) {}
+      var nav = footerNav(footer);
       if (nav) nav.appendChild(link); else footer.appendChild(link);
       link.style.cssText = LINK_STYLE;
       if (wrap && wrap.parentNode) wrap.parentNode.removeChild(wrap);

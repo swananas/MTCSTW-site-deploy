@@ -37,6 +37,45 @@
     function save(s){ try{ localStorage.setItem(LS,JSON.stringify(s)); }catch(e){} }
     function count(st){ var n=0; for(var k in st.t){ if(st.t.hasOwnProperty(k))n++; } return n; }
 
+    /* 2026-10-05 (fe/political-hq-optimize — Psych gate F2 plumbing):
+       expose week-aware progress so success toasts (F2-TOAST) and a future
+       progress meter (F2-PROG) can read "N of 3" without duplicating the
+       localStorage schema. Invisible to visitors — the getter alone changes
+       nothing on screen. */
+    function progress(){
+      try{
+        var st=load(), wk=week();
+        if(st.w!==wk) return {count:0, threshold:THRESHOLD, awarded:false};
+        return {count:count(st), threshold:THRESHOLD, awarded:!!st.a};
+      }catch(e){ return {count:0, threshold:THRESHOLD, awarded:false}; }
+    }
+    try{ PF.civicDutyProgress = progress; }catch(e){}
+
+    /* 2026-10-05 (P1 F2-PROG): visible progress meter. Paints
+       "🗳 Civic Duty: N of 3 actions this week" into #cvDutyMeter (mounted
+       by civic.js in the Contact-your-rep pane header). Repaints on every
+       pf-civic-* event and on week rollover; a MutationObserver repaints
+       after civic.js re-renders wipe the node. Surprise rewards don't pull
+       behavior forward — visible progress does. */
+    function meterText(){
+      var p=progress();
+      if(p.awarded||p.count>=p.threshold) return "\ud83d\uddf3 Civic Duty: "+p.threshold+" of "+p.threshold+" \u2014 earned this week";
+      return "\ud83d\uddf3 Civic Duty: "+p.count+" of "+p.threshold+" actions this week";
+    }
+    function paintMeter(){
+      try{
+        var el=document.getElementById("cvDutyMeter");
+        /* Same-value guard: setting textContent always mutates, which
+           would re-trigger this observer forever. */
+        if(el){ var t=meterText(); if(el.textContent!==t) el.textContent=t; }
+      }catch(e){}
+    }
+    try{
+      var mo=new MutationObserver(function(){ paintMeter(); });
+      mo.observe(document.documentElement,{childList:true,subtree:true});
+    }catch(e){}
+    paintMeter();
+
     function award(wk){
       /* Write m.civic=1 into pf_medals_v2 using the EXACT schema
          service-medals.js uses ({w, m, fd}) — read-modify-write, preserving
@@ -66,7 +105,7 @@
     }
 
     Object.keys(TYPES).forEach(function(ev){
-      document.addEventListener(ev,function(){ try{ record(TYPES[ev]); }catch(e){} });
+      document.addEventListener(ev,function(){ try{ record(TYPES[ev]); }catch(e){} paintMeter(); });
     });
   } catch (err) { PF.error("civic-duty", err); }
 })();

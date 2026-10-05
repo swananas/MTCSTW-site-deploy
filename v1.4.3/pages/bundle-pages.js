@@ -1389,7 +1389,7 @@
        silo — core/money-page.js renders itself into #pf-money (page mode)
        or the interim PHQ tab. Sub copy provisional — Psych veto. */
     'pf-money': {
-      title: 'FOLLOW THE MONEY', sub: 'See who bought your government.',
+      title: 'FOLLOW THE MONEY', sub: 'Follow the money. See who funds the votes.',
       order: [
         ['money', null]
       ]

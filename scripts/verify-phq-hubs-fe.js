@@ -149,6 +149,32 @@ if (has(ARTIFACT, 'pfPhqHubsDone') && has(ARTIFACT, 'Contains: phq-hubs.js, civi
   ok('bundle-hq.js artifact regenerated with hub runtime');
 else no('artifact', 'bundle-hq.js not regenerated');
 
+/* 2k2. deep-chunk split (fe/political-hq-optimize): below-fold silos ride
+   bundle-hq-deep.js, loaded async by the hub runtime — never in the
+   blocking bundle. */
+var deepMap = bjs.match(/'bundle-hq-deep': \[([\s\S]*?)\]/);
+var DEEP_FILES = ['stateleg.js', 'legislation.js', 'governance.js', 'notify-prefs.js',
+  'intel.js', 'predict.js', 'predict-home.js', 'ballot-countdown.js', 'nonprofits.js'];
+if (deepMap && DEEP_FILES.every(function (f) { return deepMap[1].indexOf("'" + f + "'") !== -1; }))
+  ok('build/bundle.js: deep chunk holds the 9 below-fold silos');
+else no('deep bundle map', 'bundle-hq-deep missing or incomplete in build/bundle.js');
+if (hqMap && DEEP_FILES.every(function (f) { return hqMap[1].indexOf("'" + f + "'") === -1; }))
+  ok('build/bundle.js: deep files NOT in the blocking bundle-hq');
+else no('split', 'a below-fold silo is still in the blocking bundle-hq');
+var DEEP_ART = path.join(V, 'games', 'bundle-hq-deep.js');
+if (fs.existsSync(DEEP_ART) && has(DEEP_ART, 'pf-ov-nonprofits') && has(DEEP_ART, 'pf-ov-stateleg'))
+  ok('bundle-hq-deep.js artifact built with deep silo templates');
+else no('deep artifact', 'bundle-hq-deep.js missing or stale');
+if (has(MOD, 'PF.phqDeepReady') && has(MOD, 'loadDeepChunk()') && has(MOD, 'bundle-hq-deep.js'))
+  ok('phq-hubs.js: async deep-chunk loader + phqDeepReady retry');
+else no('deep loader', 'deep-chunk loader / phqDeepReady missing in phq-hubs.js');
+if (has(MOD, 'hubMissing') && has(MOD, 'mountedSilos'))
+  ok('phq-hubs.js: missing-template retry + remount dedupe guards');
+else no('retry guards', 'hubMissing/mountedSilos guards missing');
+if (has(MOD, 'template not staged yet') || has(MOD, 'phqDeepReady() can re-run'))
+  ok('phq-hubs.js: notify-prefs waits for deep chunk (no empty util div)');
+else no('notify-prefs', 'notify-prefs deep-chunk guard missing');
+
 /* 2l. CSS sync */
 try {
   cp.execSync('node build/check-styles-sync.js', { cwd: ROOT, stdio: 'pipe' });
@@ -172,8 +198,10 @@ else no('wallshame', 'dual-mount slot API missing');
 if (has(MOD, 'PFMoneyTab.mountTab')) ok('money slot contract (mountTab)');
 else no('money slot', 'missing');
 
-/* 2o. AC-return rail + next-hub exits + notify-prefs alert row */
-if (has(MOD, 'Back to Action Center') && has(MOD, 'data-hub-go="action"')) ok('AC-return rail');
+/* 2o. AC-return rail + next-hub exits + notify-prefs alert row
+   2026-10-05 (P6): approved copy is "Back to Take Action" — the old
+   "Action Center" label was retired as dishonest (no such silo merged). */
+if (has(MOD, 'Back to Take Action') && has(MOD, 'data-hub-go="action"')) ok('AC-return rail');
 else no('ac return', 'missing');
 if (has(MOD, 'Next: ')) ok('next-hub exits');
 else no('next-hub', 'missing');
@@ -340,6 +368,118 @@ try {
   if (shells4.length === 6) ok('hubs stack without sub-nav (graceful degradation)');
   else no('degraded stack', 'got ' + shells4.length);
 } catch (e) { no('vm hubnav kill', e && e.message); }
+
+try {
+  /* 3e. deep-chunk split: missing templates recorded, then mounted on
+     phqDeepReady() with no duplicates (fe/political-hq-optimize). */
+  var env5 = fakeDom();
+  var PF5 = loadInVm(env5);
+  var T5 = PF5.phqHubTest;
+  /* vm shim lacks importNode — mountOneSilo needs it */
+  env5.doc.importNode = function (n) { return n; };
+  function stageTpl(id) {
+    var t = env5.mkEl('template'); t.id = id;
+    t.content = {}; /* truthy: passes the !tpl.content check */
+    return t;
+  }
+  /* stage ONLY the critical template first (deep chunk not loaded) */
+  stageTpl('pf-ov-civic');
+  var ORDER5 = [['civic', 'pf-ov-civic'], ['legislation', 'pf-ov-legislation'],
+    ['predict', 'pf-ov-predict'], ['stateleg', 'pf-ov-stateleg'],
+    ['notify-prefs', 'pf-ov-notify-prefs'], ['governance', 'pf-ov-gov'],
+    ['intel', 'pf-ov-intel'], ['nonprofits', 'pf-ov-nonprofits']];
+  PF5.mountHubSilos(ORDER5);
+  var miss = T5.hubMissing;
+  function missHas(hub, silo) {
+    return (miss[hub] || []).some(function (m) { return m[0] === silo; });
+  }
+  if (missHas('people', 'stateleg') && missHas('bills', 'legislation') &&
+      missHas('bills', 'governance') && missHas('intel', 'intel') &&
+      missHas('intel', 'nonprofits') && missHas('ballot', 'predict'))
+    ok('deep split: missing templates recorded per hub');
+  else no('deep missing', JSON.stringify(miss));
+  if (!env5.doc.getElementById('pf-util-notify-prefs'))
+    ok('deep split: notify-prefs util div NOT pre-created (waits for deep)');
+  else no('notify-prefs', 'empty util div created before deep chunk');
+  /* deep chunk lands: stage templates, fire phqDeepReady() */
+  ['pf-ov-legislation', 'pf-ov-predict', 'pf-ov-stateleg', 'pf-ov-notify-prefs',
+   'pf-ov-gov', 'pf-ov-intel', 'pf-ov-nonprofits'].forEach(stageTpl);
+  PF5.phqDeepReady();
+  if (env5.doc.getElementById('phq-silo-stateleg') &&
+      env5.doc.getElementById('phq-silo-legislation') &&
+      env5.doc.getElementById('phq-silo-governance') &&
+      env5.doc.getElementById('phq-silo-intel') &&
+      env5.doc.getElementById('phq-silo-nonprofits') &&
+      env5.doc.getElementById('phq-silo-predict'))
+    ok('deep ready: all 6 late silos mounted into their hubs');
+  else no('deep remount', 'a late silo failed to mount on phqDeepReady()');
+  if (env5.doc.getElementById('pf-util-notify-prefs'))
+    ok('deep ready: notify-prefs util pane mounted');
+  else no('notify-prefs', 'util pane missing after phqDeepReady()');
+  /* idempotent: second call mounts nothing new (6 late + civic + notify-prefs) */
+  var secsBefore = Object.keys(env5.registry).filter(function (k) { return k.indexOf('phq-silo-') === 0; }).length;
+  PF5.phqDeepReady();
+  var secsAfter = Object.keys(env5.registry).filter(function (k) { return k.indexOf('phq-silo-') === 0; }).length;
+  if (secsBefore === 8 && secsAfter === 8) ok('deep ready: idempotent, no duplicate silo sections');
+  else no('deep idempotency', 'silo sections ' + secsBefore + ' -> ' + secsAfter);
+} catch (e) { no('vm deep split', e && e.message); }
+
+try {
+  /* 3f. hub-visibility regression (QC veto 2026-10-05): the deep-chunk split
+     hid people/bills/intel on the first pass (fail-soft, n=0) but no code
+     path ever restored display after phqDeepReady() re-mounted their silos —
+     the silos existed in the DOM but stayed permanently invisible. Simulate
+     the faithful sequence: all hubs mount with deep templates missing (n=0
+     -> hidden), then the deep chunk lands and phqDeepReady() re-mounts. */
+  var env6 = fakeDom({ skipped: ['phq-hubnav'] }); /* navKilled: mounts all 6 hubs first pass */
+  var PF6 = loadInVm(env6);
+  env6.doc.importNode = function (n) { return n; };
+  function stageTpl6(id) {
+    var t = env6.mkEl('template'); t.id = id; t.content = {}; return t;
+  }
+  stageTpl6('pf-ov-civic');
+  var ORDER6 = [['legislation', 'pf-ov-legislation'], ['predict', 'pf-ov-predict'],
+    ['stateleg', 'pf-ov-stateleg'], ['governance', 'pf-ov-gov'],
+    ['intel', 'pf-ov-intel'], ['nonprofits', 'pf-ov-nonprofits']];
+  PF6.mountHubSilos(ORDER6);
+  function disp6(id) {
+    var s = env6.doc.getElementById('phq-' + id);
+    return s ? s.style.display : '<missing>';
+  }
+  /* sub-nav stand-in: tabs derive visibility from section display (refreshTabs) */
+  var nav6 = env6.mkEl('nav'); nav6.id = 'pf-hq-subnav';
+  var tabs6 = {};
+  ['people', 'bills', 'intel'].forEach(function (id) {
+    var b = env6.mkEl('button'); b.className = 'pf-hq-tab';
+    b.setAttribute('data-hub', id); tabs6[id] = b;
+  });
+  nav6.querySelectorAll = function (sel) {
+    return sel === '.pf-hq-tab' ? [tabs6.people, tabs6.bills, tabs6.intel] : [];
+  };
+  var triad = ['people', 'bills', 'intel'];
+  if (triad.every(function (id) { return disp6(id) === 'none'; }))
+    ok('visibility: people/bills/intel hidden on first pass (fail-soft, n=0)');
+  else no('vis first pass', 'people=' + disp6('people') + ' bills=' + disp6('bills') + ' intel=' + disp6('intel'));
+  /* deep chunk lands: stage templates, fire phqDeepReady() */
+  ['pf-ov-legislation', 'pf-ov-predict', 'pf-ov-stateleg', 'pf-ov-gov',
+   'pf-ov-intel', 'pf-ov-nonprofits'].forEach(stageTpl6);
+  PF6.phqDeepReady();
+  if (triad.every(function (id) { return disp6(id) !== 'none'; }))
+    ok('visibility: people/bills/intel sections un-hidden after phqDeepReady()');
+  else no('vis after deep', 'people=' + disp6('people') + ' bills=' + disp6('bills') + ' intel=' + disp6('intel'));
+  var tabsOk = triad.every(function (id) {
+    return tabs6[id].style.display !== 'none' && tabs6[id].getAttribute('aria-hidden') === 'false';
+  });
+  if (tabsOk) ok('visibility: people/bills/intel tabs restored after phqDeepReady()');
+  else no('tab vis after deep', triad.map(function (k) {
+    return k + '=' + tabs6[k].style.display + '/' + tabs6[k].getAttribute('aria-hidden');
+  }).join(' '));
+  /* fail-soft preserved: intentionally-empty hubs (action/money, no silos in
+     ORDER) stay hidden — the n>0 restore must not un-hide them */
+  if (disp6('action') === 'none' && disp6('money') === 'none')
+    ok('visibility: intentionally-empty hubs (action/money) stay hidden');
+  else no('vis empty hubs', 'action=' + disp6('action') + ' money=' + disp6('money'));
+} catch (e) { no('vm visibility', e && e.message); }
 
 console.log('\n' + passes + ' passed, ' + fails.length + ' failed');
 if (fails.length) { console.log('FAILURES:'); fails.forEach(function (f) { console.log(' - ' + f); }); process.exit(1); }

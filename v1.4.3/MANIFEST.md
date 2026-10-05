@@ -22,7 +22,14 @@ Composition as of 2026-10-05 (generated — do not hand-edit this list):
 - Page/section bundles in `build/bundle.js`: bundle-sec1, bundle-home,
   bundle-arcade(-h), bundle-cells(-h), bundle-create(-h), bundle-bank,
   bundle-economy, bundle-warchest, bundle-ventures, bundle-events,
-  bundle-warreport, bundle-roster, bundle-hq
+  bundle-warreport, bundle-roster, bundle-hq, bundle-hq-deep
+- `bundle-hq` (critical path, blocking): phq-hubs.js, civic.js,
+  phq-jobs-panel.js, civic-duty.js — ~137KB. Everything below the fold rides
+  `bundle-hq-deep.js` (async, injected by phq-hubs.js; PF.phqDeepReady()
+  re-mounts silos whose templates weren't staged on first pass):
+  stateleg.js, legislation.js, governance.js, notify-prefs.js, intel.js,
+  predict.js, predict-home.js, ballot-countdown.js, nonprofits.js — ~152KB.
+  Split 2026-10-05 (fe/political-hq-optimize).
 - Bundles are (re)built by release eng; never hand-edit the checked-in
   `v1.4.3/**/bundle-*.js` artifacts — fix the source silo and rebuild.
 

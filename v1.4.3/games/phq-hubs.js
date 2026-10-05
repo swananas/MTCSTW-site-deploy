@@ -80,7 +80,7 @@
       order: ['intel', 'nonprofits'],
       panes: ['polls'] },
     { id: 'money', sec: '06', tab: 'FOLLOW THE MONEY', title: 'Follow the Money', /* [PSYCH] tab label */
-      mission: 'See who bought your government.', /* [PSYCH] */
+      mission: 'Follow the money. See who funds the votes.', /* [PSYCH] P5 */
       silos: ['money-tab', 'money-vote', 'pac-alerts', 'trades-tab', 'corp-card', 'ledgers', 'boycotts'],
       interim: ['money-tab', 'money-vote', 'pac-alerts', 'trades-tab', 'corp-card', 'ledgers', 'boycotts'],
       order: [],
@@ -137,9 +137,9 @@
           var loads = root.querySelectorAll('.c-load,.hq-load,.ca-load,.cw-load,.p-load');
           for (var j = 0; j < loads.length; j++) {
             var d = document.createElement('div');
-            d.style.cssText = 'border:2px solid #c1121f;background:#1a0505;color:#f5f0e1;padding:12px;margin:8px 0;font-family:Arial,sans-serif;font-size:14px;';
+            d.style.cssText = 'border:2px solid var(--pf-red);background:#1a0505;color:#f5f0e1;padding:12px;margin:8px 0;font-family:Arial,sans-serif;font-size:14px;';
             d.innerHTML = 'This widget failed to start. ' +
-              '<button style="background:#c1121f;color:#fff;border:0;font-weight:700;padding:8px 14px;cursor:pointer;" onclick="location.reload()">Reload</button>';
+              '<button style="background:var(--pf-red);color:#fff;border:0;font-weight:700;padding:8px 14px;cursor:pointer;" onclick="location.reload()">Reload</button>';
             if (loads[j].parentNode) loads[j].parentNode.replaceChild(d, loads[j]);
           }
         } catch (e2) {}
@@ -170,6 +170,12 @@
 
   var mountedHubs = {};   /* hubId -> true once its silos have mounted */
   var hubHasSilos = {};   /* hubId -> count of actually-mounted silos */
+  var mountedSilos = {};  /* 'hubId:silo' -> true (deep-chunk remount guard) */
+  var hubMissing = {};    /* hubId -> [[silo, tplId]] missing on first pass */
+  /* 2026-10-05 (fe/political-hq-optimize): hubId -> [[silo, tplId], ...]
+     silos skipped on first pass because their template wasn't staged yet
+     (their code rides the async bundle-hq-deep chunk). phqDeepReady()
+     re-mounts exactly these once the deep chunk lands. */
 
   function hubSectionEl(hub) { return document.getElementById('phq-' + hub.id); }
 
@@ -219,7 +225,7 @@
           '<div class="pf-hub-silos"><div class="pf-hub-loading">Loading ' + esc(hub.title) + '&hellip;</div></div>' +
           '<footer class="pf-hub-exits">' +
           '<a href="#phq-' + next.id + '" data-hub-go="' + next.id + '">Next: ' + esc(next.title) + ' &rarr;</a>' +
-          '<a href="#phq-action" data-hub-go="action">&larr; Back to Action Center</a>' +
+          '<a href="#phq-action" data-hub-go="action">&larr; Back to Take Action</a>' +
           '</footer>';
         sec.innerHTML = h;
         host.appendChild(sec);
@@ -238,7 +244,7 @@
         if (!kind) continue;
         var hubId = hubForPaneKind(kind);
         if (!hubId) continue;
-        if (!panes[i].id) panes[i].id = 'phq-pane-' + kind;
+        if (!panes[i].id && !document.getElementById('phq-pane-' + kind)) panes[i].id = 'phq-pane-' + kind;
         panes[i].setAttribute('data-phq-hub', hubId);
         panes[i].setAttribute('data-phq-pane', kind);
       }
@@ -289,6 +295,9 @@
     if (!sec) return false;
     var silos = sec.querySelector('.pf-hub-silos');
     if (!silos) return false;
+    /* 2026-10-05 (fe/political-hq-optimize): remount guard — phqDeepReady()
+       re-runs mountHub for hubs with late templates; never double-slot. */
+    if (silos.querySelector('[data-wallshame-slot="' + hub.id + '"]')) return true;
     try {
       var api = (window.PFWallShame && window.PFWallShame.mount) ? window.PFWallShame
         : (PF.WallShame && PF.WallShame.mount) ? PF.WallShame : null;
@@ -312,6 +321,8 @@
     if (!sec) return false;
     var silos = sec.querySelector('.pf-hub-silos');
     if (!silos) return false;
+    /* 2026-10-05 (fe/political-hq-optimize): remount guard — same as wallshame. */
+    if (silos.querySelector('[data-money-slot]')) return true;
     try {
       var api = (window.PFMoneyTab && window.PFMoneyTab.mountTab) ? window.PFMoneyTab
         : (PF.MoneyTab && PF.MoneyTab.mountTab) ? PF.MoneyTab : null;
@@ -333,12 +344,18 @@
     var sec = hubSectionEl(hub);
     var silosBox = sec ? sec.querySelector('.pf-hub-silos') : null;
     var n = 0;
+    /* 2026-10-05 (fe/political-hq-optimize): templates missing on this pass
+       (deep-chunk silo not staged yet) are recorded for the phqDeepReady()
+       retry — EXCEPT kill-switched silos, which are intentional no-mounts. */
+    var missing = (hubMissing[hub.id] = []);
     try {
       if (silosBox) {
         for (var i = 0; i < orderPairs.length; i++) {
           var silo = orderPairs[i][0], tplId = orderPairs[i][1];
           if (hubForSilo(silo) !== hub.id) continue;
-          if (mountOneSilo(silo, tplId, silosBox)) n++;
+          if (mountedSilos[hub.id + ':' + silo]) { n++; continue; }
+          if (!PF.skip(silo) && !document.getElementById(tplId)) { missing.push([silo, tplId]); continue; }
+          if (mountOneSilo(silo, tplId, silosBox)) { mountedSilos[hub.id + ':' + silo] = true; n++; }
         }
         if (mountWallShameSlot(hub)) n++;
         if (mountMoneySlot(hub)) n++;
@@ -349,10 +366,15 @@
     hubHasSilos[hub.id] = n;
     clearLoading(hub);
     tagHubPanes();
-    /* FAIL-SOFT (spec §1): hub hides when all its silos are killed or fail to mount. */
+    /* FAIL-SOFT (spec §1): hub hides when all its silos are killed or fail to mount.
+       2026-10-05 (hub-visibility fix): when the deep-chunk re-mount succeeds
+       (n>0), restore display — the first-pass fail-soft hide must not stick
+       forever, or people/bills/intel stay invisible after phqDeepReady(). */
     if (n === 0 && sec) {
       sec.style.display = 'none';
       if (PF) PF.error('phq-hubs', 'hub ' + hub.id + ' has no mountable silos — hidden (fail-soft)');
+    } else if (n > 0 && sec && sec.style.display === 'none') {
+      sec.style.display = '';
     }
     refreshTabs();
     return n;
@@ -383,6 +405,13 @@
     if (!host) return;
     for (var i = 0; i < orderPairs.length; i++) {
       if (orderPairs[i][0] !== 'notify-prefs') continue;
+      /* 2026-10-05 (fe/political-hq-optimize): the notify-prefs template now
+         stages with the async bundle-hq-deep chunk. Bail BEFORE creating the
+         util div so phqDeepReady() can re-run this cleanly on deep load —
+         a pre-created empty div would trip the early-return guard above and
+         the pane would never mount. */
+      var tpl = document.getElementById(orderPairs[i][1]);
+      if (!tpl || !tpl.content) return;
       var util = document.createElement('div');
       util.id = 'pf-util-notify-prefs';
       util.className = 'pf-hub-util';
@@ -473,6 +502,70 @@
     }
   }
 
+  /* ============ deep-chunk async loader (fe/political-hq-optimize) ============
+     bundle-hq-deep.js carries the below-fold silo code (stateleg, legislation,
+     governance, notify-prefs, intel, predict, predict-home, ballot-countdown,
+     nonprofits). It is NOT in the blocking footer sequence — this loader
+     injects it async once the hub shells render, so 152KB of code never
+     blocks first paint. PF.phqDeepReady() re-mounts any hub/silo whose
+     template was missing on the first pass (recorded in hubMissing), then
+     re-runs the notify-prefs utility mount, refreshes tabs, and re-collects
+     scroll-spy targets. Idempotent and fail-soft: if the deep chunk fails
+     (one retry), hubs stay hidden per the spec §1 fail-soft rule and a
+     PF.error is logged — never a spinner forever. */
+  var deepState = { tried: false, done: false };
+  function deepUrl() {
+    try {
+      var ss = document.scripts || document.getElementsByTagName('script');
+      for (var i = 0; i < ss.length; i++) {
+        var src = String(ss[i].src || '');
+        var m = src.match(/^(.*\/)games\/bundle-hq\.js(\?|#|$)/);
+        if (m) return m[1] + 'games/bundle-hq-deep.js';
+      }
+    } catch (e) {}
+    return null;
+  }
+  function phqDeepReady() {
+    if (deepState.done) return;
+    deepState.done = true;
+    try {
+      var orderPairs = window.pfPhqHubOrder || [];
+      for (var i = 0; i < HUBS.length; i++) {
+        var miss = hubMissing[HUBS[i].id];
+        if (miss && miss.length) {
+          delete mountedHubs[HUBS[i].id];
+          mountHub(HUBS[i], orderPairs);
+          hubMissing[HUBS[i].id] = [];
+        }
+      }
+      mountNotifyPrefs(orderPairs);
+      refreshTabs();
+      try { if (window.pfPhqHubSpyRefresh) window.pfPhqHubSpyRefresh(); } catch (e2) {}
+    } catch (e) { if (PF) PF.error('phq-hubs', 'deep ready failed :: ' + (e && e.message || e)); }
+  }
+  function loadDeepChunk() {
+    if (deepState.tried) return;
+    deepState.tried = true;
+    var url = deepUrl();
+    if (!url) { if (PF) PF.error('phq-hubs', 'deep chunk: could not resolve bundle-hq.js URL — deep silos skipped'); return; }
+    var attempts = 0;
+    function attempt() {
+      attempts++;
+      try {
+        var s = document.createElement('script');
+        s.src = url; s.async = true;
+        s.onload = function () { phqDeepReady(); };
+        s.onerror = function () {
+          if (attempts < 2) { setTimeout(attempt, 5000); }
+          else if (PF) PF.error('phq-hubs', 'deep chunk failed to load after retry — below-fold silos unavailable');
+        };
+        (document.head || document.documentElement).appendChild(s);
+      } catch (e) { if (PF) PF.error('phq-hubs', 'deep chunk inject failed :: ' + (e && e.message || e)); }
+    }
+    attempt();
+  }
+  PF.phqDeepReady = phqDeepReady;
+
   /* ============ main entry: PF.mountHubSilos(ORDER) ============ */
   function mountHubSilos(ORDER) {
     try {
@@ -483,6 +576,9 @@
 
       var nav = navKilled ? null : renderSubnav(host);
       renderHubShells(host);
+      /* 2026-10-05 (fe/political-hq-optimize): kick the async deep chunk
+         now — below-fold silo code must not block first paint. */
+      loadDeepChunk();
       mountCivicStrip(ORDER);
       mountNotifyPrefs(ORDER);
 
@@ -588,6 +684,7 @@
   /* test seam: pure helpers for the verify script */
   PF.phqHubTest = {
     hubs: HUBS, paneKindForHeading: paneKindForHeading,
-    hubForPaneKind: hubForPaneKind, hubForSilo: hubForSilo, hubKillIds: hubKillIds
+    hubForPaneKind: hubForPaneKind, hubForSilo: hubForSilo, hubKillIds: hubKillIds,
+    deepUrl: deepUrl, phqDeepReady: phqDeepReady, hubMissing: hubMissing
   };
 })();

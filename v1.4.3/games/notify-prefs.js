@@ -22,7 +22,7 @@ function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,
 function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
 function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
   try{ var t=document.createElement("div"); t.textContent=m;
-  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:var(--pf-red);color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
   document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
@@ -95,7 +95,7 @@ function render(){
   });
   h+='<div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">';
   h+='<button class="c-btn" id="npSave" type="button">SAVE PREFERENCES</button>';
-  h+='<a href="#" id="npUnsubAll" style="font-size:12px;color:#c1121f;">Unsubscribe from all</a>';
+  h+='<a href="#" id="npUnsubAll" style="font-size:12px;color:var(--pf-red);">Unsubscribe from all</a>';
   h+='<span id="npMsg" style="font-size:12px;"></span>';
   h+='</div>';
   /* 2026-10-03: auth_rotate (AUTH) — the orphaned auth hygiene action.
@@ -143,7 +143,7 @@ function privacyPanelHTML(){
   h+='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px;">';
   h+='<button class="c-btn" id="npExport" type="button">DOWNLOAD MY DATA</button>';
   if(CS) h+='<label style="font-size:12px;cursor:pointer;"><input type="checkbox" id="npEraseFull" checked style="vertical-align:middle;margin-right:4px;">Erase my callsign too (not just email)</label>';
-  h+='<button class="c-btn" id="npErase" type="button" style="border-color:#c1121f;color:#c1121f;">ERASE MY DATA</button>';
+  h+='<button class="c-btn" id="npErase" type="button" style="border-color:var(--pf-red);color:var(--pf-red);">ERASE MY DATA</button>';
   h+='<span id="npPrivMsg" style="font-size:12px;"></span>';
   h+='</div>';
   /* H11b (2026-10-03): the export is capped at 200 rows per table

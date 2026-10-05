@@ -24,12 +24,12 @@
 #pf-nonprofits .np-t44{min-height:44px}
 #pf-nonprofits .np-chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
 #pf-nonprofits .np-chip{min-height:44px;padding:8px 10px;font-size:12px;font-weight:700;background:#2a0a0a;border:1px solid #6a2020;color:#f5f0e1;cursor:pointer}
-#pf-nonprofits .np-chip[aria-pressed="true"]{background:#c1121f;border-color:#f5f0e1}
+#pf-nonprofits .np-chip[aria-pressed="true"]{background:var(--pf-red);border-color:#f5f0e1}
 #pf-nonprofits .np-card{border:1px solid #4a4a4a;padding:12px;margin:12px 0;overflow-wrap:anywhere}
 #pf-nonprofits .np-name{font-weight:900;font-size:16px;margin-bottom:4px}
 #pf-nonprofits .np-badge{display:inline-block;font-weight:900;font-size:11px;letter-spacing:1px;border:1px solid #f5f0e1;color:#f5f0e1;padding:2px 8px;margin:4px 0 6px 0}
 #pf-nonprofits .np-badge-st{border-color:#8fd18f;color:#8fd18f}
-#pf-nonprofits .np-focus{font-size:13px;color:#c9bfa8;margin:6px 0 0}
+#pf-nonprofits .np-focus{font-size:13px;color:var(--pf-muted);margin:6px 0 0}
 /* Disclosure line: always visible on flagged orgs, never buried. */
 #pf-nonprofits .np-dis{font-size:13px;font-weight:700;color:#ffd166;margin:8px 0 0}
 #pf-nonprofits .np-visit{display:flex;margin-top:10px}
@@ -42,7 +42,7 @@ var BACKEND=window.PF_BACKEND_URL;
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
   try{ var t=document.createElement("div"); t.textContent=m;
-  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:var(--pf-red);color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
   document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }

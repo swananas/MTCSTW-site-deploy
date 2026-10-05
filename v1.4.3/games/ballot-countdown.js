@@ -319,6 +319,12 @@
   function boot() {
     var st = homeState();
     if (!st) return; /* stateless / unset: no drafts rendered */
+    /* 2026-10-05 (fe/political-hq-optimize): skip the countdowns read when the
+       tray mount is absent — the bundle loads on /political-hq but the
+       #pf-forged-ballot mount lives elsewhere (hand-step). Fetching into the
+       void was one wasted JSONP read per pageview for every home-state user.
+       (DOM check after the state check so stateless users never touch the DOM.) */
+    if (!document.getElementById(MOUNT_ID)) return;
     /* Deep-link contract for the Discord ammo drop (T3): #ballot-forge=<draft_id>
        forges the same draft with the identical T1 key space. */
     var deepId = null;

@@ -343,6 +343,13 @@ var SECTIONS = {
    loader only when #pf-political-hq is present — never on the homepage or
    other pages. */
 var HQ_BUNDLES = {
+  /* 2026-10-05 (fe/political-hq-optimize): bundle-hq is the CRITICAL path —
+     only what first paint / the above-the-fold civic strip need. Everything
+     else rides bundle-hq-deep, injected async by phq-hubs.js (below-fold
+     hub silos lazy-mount on intersection anyway, so their code never needed
+     to block first paint). Critical ≈ civic strip (civic.js stages
+     pf-ov-civic immediately) + jobs panel (mounted by civic.js) +
+     civic-duty (event listener, rides civic actions) + the hub runtime. */
   'bundle-hq': [
     /* 2026-10-05 (fe/phq-hub-nav): the section-hub runtime MUST stay first —
        it defines PF.mountHubSilos before pages/political-hq.js delegates. */
@@ -351,7 +358,13 @@ var HQ_BUNDLES = {
     /* Wave A5 S-13: official jobs panel (FRED UNRATE/PAYEMS), mounted by
        civic.js above the pressure-campaigns pane. */
     'phq-jobs-panel.js',
-    'civic-duty.js',
+    'civic-duty.js'
+  ],
+  /* 2026-10-05 (fe/political-hq-optimize): DEEP chunk — below-fold hub silos.
+     Loaded async by phq-hubs.js after the hub shells render; PF.phqDeepReady()
+     re-mounts any hub whose silos were missing their templates at first pass.
+     phq-hubs.js MUST stay first in bundle-hq (not here) — it owns the loader. */
+  'bundle-hq-deep': [
     /* 2026-10-05 (fe/state-legislatures): state legislature directory. */
     'stateleg.js',
     /* 2026-10-05 (fe/legislation-tracker): bill tracker. */

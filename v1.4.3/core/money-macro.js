@@ -109,6 +109,28 @@
     var title = esc(s.title || s.series_id || '\u2014');
     var saNsa = esc(s.sa_nsa || '');
     var link = esc(s.source_url || ('https://fred.stlouisfed.org/series/' + (s.series_id || '')));
+    /* P-07 (Wave A6/PW1): machine-readable figure payload for the one-tap
+       share decorator (macro-share.js). Attribute-escaped; stale cards carry
+       the flag so the decorator skips them. */
+    var figAttr = '';
+    try {
+      /* Stale cards: figure fields stay EMPTY (the stale-suppression
+         invariant — no figure may leak, not even into data attributes).
+         The decorator skips stale cards via the stale flag. */
+      var staleFig = !!s.stale;
+      figAttr = ' data-macro="' + esc(JSON.stringify({
+        series_id: s.series_id || '', title: s.title || s.series_id || '',
+        value_label: staleFig ? '' : (s.value_label != null ? s.value_label : ''),
+        unit_label: staleFig ? '' : (s.unit_label || ''),
+        period_label: staleFig ? '' : (s.period_label || s.period || ''),
+        change_label: staleFig ? '' : (s.change_basis === 'yoy'
+          ? (s.change_pct_label || s.change_label || '')
+          : (s.change_label || s.change_pct_label || '')),
+        sa_nsa: s.sa_nsa || '', source_url: s.source_url || '',
+        retrieved_at: s.retrieved_at != null ? s.retrieved_at : null,
+        vintage_date: s.vintage_date || null, stale: staleFig
+      })) + '"';
+    } catch (e) {}
     var body;
     if (s.stale) {
       /* Stale-suppression: figure hidden, the backend's honest note shows. */
@@ -125,7 +147,7 @@
         '<div class="pf-macro-period">' + esc(s.period_label || s.period || '') + '</div>' +
         '<div class="pf-macro-change">' + esc(change || '') + '</div>';
     }
-    return '<a class="pf-macro-card" href="' + link + '" target="_blank" rel="noopener">' +
+    return '<a class="pf-macro-card"' + figAttr + ' href="' + link + '" target="_blank" rel="noopener">' +
       '<div class="pf-macro-head"><span class="pf-macro-title">' + title + '</span>' +
       (saNsa ? '<span class="pf-macro-sa">' + saNsa + '</span>' : '') + '</div>' +
       body +

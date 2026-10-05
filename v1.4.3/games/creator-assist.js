@@ -211,6 +211,9 @@ function baWriteErr(e,fb){
     "#pf-ca .seal-objective{background:#0d0d0d;border:1px dashed #c1121f;padding:10px 12px;margin:8px 0;font-size:14px;line-height:1.5}" +
     "#pf-ca .mult-big{font:bold 44px Arial;color:#ffd166;text-align:center;margin:10px 0;letter-spacing:2px}" +
     "#pf-ca .mult-win{font:bold 15px Arial;color:#ffd166;text-align:center}" +
+    /* S2 (2026-10-05): post-proof "submitted, awaiting review" state. */
+    "#pf-ca .bn-pending{background:#0d140d;border:1px solid #4c9a2a;border-left:4px solid #4c9a2a;padding:10px 14px;margin:10px 0;font:bold 13px Arial;color:#bfe3a8;letter-spacing:1px}" +
+    "#pf-ca .bn-pending span{font-weight:normal;color:#8aa27e;letter-spacing:normal}" +
     "</style>";
 
   mount.innerHTML = '<div class="fe-block pf-override-block pf-silo" id="pf-ca">' + css +
@@ -433,6 +436,35 @@ function sealedById(bid){
   for(var i=0;i<SEALED.length;i++){ if(SEALED[i] && SEALED[i].id===bid) return SEALED[i]; }
   return null;
 }
+/* S2 (2026-10-05): post-proof bounty helpers. PROOF_HOSTS mirrors the
+   backend PROOF_DOMAINS map (src/bounties.js) so the client rejects obvious
+   mismatches before the server does. String ops only — no regex. */
+var PROOF_HOSTS={tiktok:["tiktok.com"],instagram:["instagram.com"],facebook:["facebook.com","fb.com"],youtube:["youtube.com","youtu.be"]};
+function proofUrlCheck(raw,plat){
+  var u=String(raw||"").trim().slice(0,500);
+  if(!u) return {ok:false,msg:"Paste your post URL first."};
+  var proto=u.split("://")[0].toLowerCase();
+  if(proto!=="http"&&proto!=="https")
+    return {ok:false,msg:"That doesn't look like a link — start it with http:// or https://."};
+  var after=u.slice(proto.length+3);
+  var host=after.split("/")[0].split("?")[0].split("#")[0].split(":")[0].toLowerCase().replace(/\.$/,"");
+  if(!host||host.indexOf(".")===-1)
+    return {ok:false,msg:"That doesn't look like a link."};
+  var doms=PROOF_HOSTS[String(plat||"").toLowerCase()];
+  if(doms){
+    var m=false;
+    for(var i=0;i<doms.length;i++){
+      if(host===doms[i]||host.slice(-doms[i].length-1)==="."+doms[i]){ m=true; break; }
+    }
+    if(!m) return {ok:false,msg:"That link needs to be a "+String(plat||"").toLowerCase()+" URL."};
+  }
+  return {ok:true,url:u};
+}
+/* Per-device "proof already submitted" memory so a re-render doesn't invite a
+   double-submit. The backend UNIQUE(bounty_id,device) is the real guard —
+   this is only paint. */
+function proofSub(){ try{ return JSON.parse(localStorage.getItem("pf_proof_sub_v1")||"{}"); }catch(e){ return {}; } }
+function proofSubSave(bid){ try{ var m=proofSub(); m[bid]=1; localStorage.setItem("pf_proof_sub_v1",JSON.stringify(m)); }catch(e){} }
 function sealedCardHtml(b, ceremony){
   var acc=sealedAcc()[b.id]||{};
   var h='<div class="bn-item bn-sealed" id="sealCard_'+esc(b.id)+'">';
@@ -520,11 +552,31 @@ function render(){
   }
   for(var i=0;i<list.length;i++){
     var b=list[i];
+    /* S2 (2026-10-05): bounty_type comes from bounty_list — post-proof
+       bounties claim with a proof URL instead of a content ID. Conditional
+       render: the proof input only shows when the data flags proof-type. */
+    var btype=String(b.bounty_type||"").toLowerCase();
+    var bplat=String(b.platform||"").toLowerCase();
+    var isProof=(btype==="postproof");
     h+='<div class="bn-item"><div class="bn-title">'+esc(b.title)+'</div>'
       +'<div class="x-note">'+esc(b.detail||"")+'</div>'
       +'<div class="bn-meta">'+(Number(b.xp)||0)+' XP &bull; posted by '+esc(b.requester||"anon")
-      +(b.status==='claimed'?' &bull; CLAIMED':'')+'</div>';
-    if(b.status!=='claimed'&&b.status!=='done'){
+      +(b.status==='claimed'?' &bull; CLAIMED':'')
+      +(isProof?' &bull; POST-PROOF':'')+'</div>';
+    if(b.status!=='claimed'&&b.status!=='done'&&isProof&&proofSub()[b.id]){
+      /* already submitted on this device — show the pending state, not the form */
+      h+='<div class="bn-pending">PROOF SUBMITTED &mdash; AWAITING REVIEW<br><span>XP lands when the review clears your post.</span></div>'
+        +'<div class="c-err" id="bnErr_'+esc(b.id)+'"></div>';
+    } else if(b.status!=='claimed'&&b.status!=='done'&&isProof){
+      /* post-proof claim form: proof URL in, review queue out */
+      h+='<div class="bn-claimrow"><input aria-label="Proof URL — link to your post" class="bn-input" id="bnProof_'+esc(b.id)+'" placeholder="Proof URL — link to your post" maxlength="500">'
+        +'<button class="c-btn bn-claim" data-bid="'+esc(b.id)+'" data-platform="'+esc(bplat)+'">CLAIM</button> '
+        /* R17: NEED WORDS? drawer — the armory opens inline, at the point of labor. */
+        +'<button class="c-btn ghost bn-wordsbtn" data-bid="'+esc(b.id)+'">NEED WORDS?</button></div>'
+        +'<div class="x-note">Paste your post link'+(bplat?' on '+esc(bplat):"")+'. No auto-pay on paste &mdash; XP pays when the review clears.</div>'
+        +'<div class="bn-words" id="bnWords_'+esc(b.id)+'" style="display:none;margin-top:8px"></div>'
+        +'<div class="c-err" id="bnErr_'+esc(b.id)+'"></div>';
+    } else if(b.status!=='claimed'&&b.status!=='done'){
       h+='<div class="bn-claimrow"><input aria-label="Your content ID (from Poster Forge)" class="bn-input" id="bnSub_'+esc(b.id)+'" placeholder="Your content ID (from Poster Forge)" maxlength="64">'
         +'<button class="c-btn bn-claim" data-bid="'+esc(b.id)+'">CLAIM</button> '
         /* R17: NEED WORDS? drawer — the armory opens inline, at the point of labor. */
@@ -571,14 +623,34 @@ function render(){
     (function(btn){
       btn.onclick=function(){
         var bid=btn.getAttribute("data-bid");
+        var plat=btn.getAttribute("data-platform")||"";
         var inp=document.getElementById("bnSub_"+bid);
         var cid=inp?inp.value.trim():"";
-        if(!cid){ var e0=document.getElementById("bnErr_"+bid); if(e0) e0.textContent="Enter your content ID first."; return; }
+        if(inp&&!cid){ var e0=document.getElementById("bnErr_"+bid); if(e0) e0.textContent="Enter your content ID first."; return; }
+        /* S2 (2026-10-05): post-proof claims carry proof_url. The claim does
+           not pay — the backend parks it in the review queue. Auth params
+           (callsign + device) go on every post, same as before. */
+        var params={bounty_id:bid,content_id:cid,callsign:id.callsign,device:id.device};
+        var pinp=document.getElementById("bnProof_"+bid);
+        if(pinp){
+          var chk=proofUrlCheck(pinp.value,plat);
+          if(!chk.ok){ var pe0=document.getElementById("bnErr_"+bid); if(pe0) pe0.textContent=chk.msg; return; }
+          params.proof_url=chk.url;
+        }
         btn.disabled=true;
-        post("bounty_claim",{bounty_id:bid,content_id:cid,callsign:id.callsign,device:id.device},function(j){
+        post("bounty_claim",params,function(j){
           btn.disabled=false;
           var er=document.getElementById("bnErr_"+bid);
           if(!j||!j.ok){ if(er) er.textContent=baWriteErr(j&&j.err||j&&j.error,"Claim failed."); return; }
+          /* S2: a pending proof claim is not a payout — say so. Backend
+             errors (e.g. 'that proof URL was already used') surface honestly
+             through baWriteErr above. */
+          if(j.pending){
+            proofSubSave(bid);
+            toast("PROOF SUBMITTED \u2014 AWAITING REVIEW. XP pays on approval.");
+            load();
+            return;
+          }
           toast("BOUNTY CLAIMED. +"+(j.xp||0)+" XP pending review.");
           load();
         });

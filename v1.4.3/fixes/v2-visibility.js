@@ -55,6 +55,17 @@
     } catch (e) { return null; }
   }
 
+  /* Standard gradient-text technique (background-clip:text +
+     -webkit-text-fill-color:transparent) is legitimate design, not
+     brokenness: the background gradient paints the glyphs. Exempt such
+     elements from paint-level detection AND repair so the guard never
+     "fixes" intentional gradient text. */
+  function isGradientText(c) {
+    try {
+      return c.backgroundClip === 'text' || c.webkitBackgroundClip === 'text';
+    } catch (e) { return false; }
+  }
+
   /* Repair one element. Returns the number of repairs applied.
      Every repair is restore-only. */
   function fixEl(el, isRoot) {
@@ -110,19 +121,23 @@
         setImp(el, 'transform', 'none'); fixed++;
       }
       var f = c.filter || '';
-      if (f && f !== 'none' && /(opacity|brightness|contrast)\(\s*0/.test(f)) {
+      /* True-zero anchoring: brightness(0)/contrast(0)/opacity(0) only.
+         brightness(0.5) etc. are legitimate dimming, never repair them. */
+      if (f && f !== 'none' && /(opacity|brightness|contrast)\(\s*0(\.0+)?\s*\)/.test(f)) {
         setImp(el, 'filter', 'none'); fixed++;
       }
       /* -webkit-text-fill-color: transparent paints no glyphs while keeping
          the box AND the accessibility tree intact. Restore the cascade's
-         real text color via inherit (restore-only). */
+         real text color via inherit (restore-only). Gradient text
+         (background-clip:text) is exempt: the background paints the
+         glyphs, so transparent fill is the design, not breakage. */
       var tfc = String(c.webkitTextFillColor || '').replace(/\s+/g, '');
       var tfcZero = /^transparent$/i.test(tfc);
       if (!tfcZero) {
         var tfcm = tfc.match(/^rgba?\((\d+),(\d+),(\d+)(?:,([\d.]+))?\)$/i);
         if (tfcm && tfcm[4] !== undefined && parseFloat(tfcm[4]) === 0) { tfcZero = true; }
       }
-      if (tfcZero) { setImp(el, '-webkit-text-fill-color', 'inherit'); fixed++; }
+      if (tfcZero && !isGradientText(c)) { setImp(el, '-webkit-text-fill-color', 'inherit'); fixed++; }
     } catch (e4) {}
     return fixed;
   }
@@ -249,16 +264,23 @@
   function textPaintBroken(el) {
     var c = cs(el);
     if (!c) { return false; }
-    var col = String(c.color || '').replace(/\s+/g, '');
-    if (/^transparent$/i.test(col)) { return true; }
-    var m = col.match(/^rgba?\((\d+),(\d+),(\d+)(?:,([\d.]+))?\)$/i);
-    if (m && m[4] !== undefined && parseFloat(m[4]) === 0) { return true; }
-    var tfc = String(c.webkitTextFillColor || '').replace(/\s+/g, '');
-    if (/^transparent$/i.test(tfc)) { return true; }
-    var m2 = tfc.match(/^rgba?\((\d+),(\d+),(\d+)(?:,([\d.]+))?\)$/i);
-    if (m2 && m2[4] !== undefined && parseFloat(m2[4]) === 0) { return true; }
+    /* Gradient text (background-clip:text) paints its glyphs from the
+       background — color/tfc transparency is the design, not breakage.
+       The filter check still applies: brightness(0) on gradient text
+       paints nothing genuinely. */
+    if (!isGradientText(c)) {
+      var col = String(c.color || '').replace(/\s+/g, '');
+      if (/^transparent$/i.test(col)) { return true; }
+      var m = col.match(/^rgba?\((\d+),(\d+),(\d+)(?:,([\d.]+))?\)$/i);
+      if (m && m[4] !== undefined && parseFloat(m[4]) === 0) { return true; }
+      var tfc = String(c.webkitTextFillColor || '').replace(/\s+/g, '');
+      if (/^transparent$/i.test(tfc)) { return true; }
+      var m2 = tfc.match(/^rgba?\((\d+),(\d+),(\d+)(?:,([\d.]+))?\)$/i);
+      if (m2 && m2[4] !== undefined && parseFloat(m2[4]) === 0) { return true; }
+    }
     var f = c.filter || '';
-    if (f && f !== 'none' && /(brightness|contrast)\(\s*0/.test(f)) { return true; }
+    /* True-zero anchoring: brightness(0.5) is legitimate dimming. */
+    if (f && f !== 'none' && /(brightness|contrast)\(\s*0(\.0+)?\s*\)/.test(f)) { return true; }
     return false;
   }
 
@@ -334,7 +356,11 @@
       var broken = false;
       try { broken = contentBroken(root); } catch (e2) {}
       try { n += fixText(root, broken); } catch (e3) {}
-      try { n += fixOffscreen(root); } catch (e4) {}
+      /* Gated on the broken-state gate: a below-the-fold footer or
+         crossnav is normal layout, not brokenness. Running fixOffscreen
+         ungated blanket-neutralized chrome (position/margin/left/top) on
+         every pass, violating the no-op contract. */
+      try { if (broken) { n += fixOffscreen(root); } } catch (e4) {}
       /* Gated descendant repair: the culprit is BELOW the root. */
       try {
         if (broken) { n += fixDescendants(root); }

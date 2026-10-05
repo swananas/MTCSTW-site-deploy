@@ -172,16 +172,25 @@
   function card(it) {
     var cls = 'pf-mgal-card' + (it.hq_model ? ' hq' : '') + ((it.featured && !it.hq_model) ? ' feat' : '');
     var visual, bodyMeta;
+    /* Synergy-1 attribution: credit lines render through the shared
+       PF.credit component (same voice everywhere; honest empty when the
+       backend sent no attribution). Defensive — the component may be
+       kill-switched or absent on a stale bundle. */
+    function creditFor(src) {
+      try { return (window.PF && window.PF.credit) ? window.PF.credit(src) : ''; }
+      catch (e) { return ''; }
+    }
     if (it.hq_model) {
       visual = modelVisual(it);
       bodyMeta = '<div class="pf-mgal-meta">HQ MODEL — here is what good looks like. ' +
-        'The figure is the live official vintage; remix it and make it yours.</div>';
+        'The figure is the live official vintage; remix it and make it yours.</div>' +
+        creditFor({ sourced_by: it.sourced_by || 'hq' });
     } else {
       visual = it.artifact_url
         ? '<div class="pf-mgal-visual"><img src="' + esc(it.artifact_url) + '" alt="' +
           esc('Macro piece by ' + (it.callsign || 'a creator')) + '" loading="lazy" /></div>'
         : '<div class="pf-mgal-visual"><span style="color:#3a3a3a;font-size:40px;">—</span></div>';
-      bodyMeta = '<div class="pf-mgal-meta">MADE BY ' + esc(it.callsign || 'A CREATOR') + '</div>' +
+      bodyMeta = creditFor({ sourced_by: it.sourced_by || it.callsign }) +
         (it.caption ? '<div class="pf-mgal-cap">' + esc(it.caption).slice(0, 280) + '</div>' : '');
     }
     var chain = it.remix_of

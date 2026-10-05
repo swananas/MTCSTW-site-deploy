@@ -2383,7 +2383,12 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
      Poster Forge and the Studio plugin registry coordinator:
        sessionStorage['pf_forge_prefill_v1'] = JSON.stringify({
          v: 1, plugin_id, template_id, label, data, source, fetched_at,
-         stashed_at: <ms epoch> })
+         stashed_at: <ms epoch>,
+         -- Synergy-1 attribution hook (S-20): creator-made templates carry
+            their maker. Optional passthrough — the Forge hands these to
+            PF.credit when the template renders. Absent = no credit line,
+            never a guess. --
+         sourced_by: <callsign|'hq'>, sourced_name: <display>, sourced_url: <profile> })
      The Forge reads it on /create load: if PFStudio.applyPrefill exists
      it is applied and the stash cleared; otherwise the Forge toasts and
      keeps the stash for when the political templates land. */
@@ -2555,7 +2560,13 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
       data: card.data,
       source: card.source,
       fetched_at: card.fetched_at,
-      stashed_at: Date.now()
+      stashed_at: Date.now(),
+      /* Synergy-1 attribution hook (S-20): passthrough for creator-made
+         templates. Today's political cards are data-built (no maker), so
+         these stay empty — the Forge renders no credit line for them. */
+      sourced_by: card.sourced_by || '',
+      sourced_name: card.sourced_name || '',
+      sourced_url: card.sourced_url || ''
     };
     var okStash = false;
     try {

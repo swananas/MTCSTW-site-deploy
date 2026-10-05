@@ -132,12 +132,15 @@ var BUNDLES = {
     'games/flash-siren.js',
     'core/06-pinups.js',
     'core/share-image.js',
-    /* PHQ share posters (2026-10-05): Political HQ custom painters
-       (pressure / prediction / predict-call / scorecard / cell-win / ballot).
-       Right after share-image so PFShare is registered first; registers via
-       PFShare.setPoster with its own retry loop, and exposes PF.PHQShare
-       for the PHQ silos. */
-    'core/share-image-phq.js',
+    /* PHQ share posters (2026-10-05, consolidated fe/phq-share-consolidation):
+       ~1.5KB lazy stub ONLY. The full painter module
+       (core/share-image-phq.js, 23 painters, ~87KB) loads on the first
+       share/save/paint call via the stub's script injection — the ~99% of
+       visitors who never share never pay for it (Performance gate).
+       Right after share-image so PFShare is registered first; the stub
+       creates the PF.PHQShare facade and the module registers into it
+       via PFShare.setPoster with its own retry loop. */
+    'core/share-image-phq-lazy.js',
     /* creator-recruit: shared recruiting toolbar for roster cards + catalog
        pages. Last: needs PFShare (share-image.js) + the catalog renderers. */
     'pages/creator-recruit.js',

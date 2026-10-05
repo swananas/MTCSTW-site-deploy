@@ -61,6 +61,11 @@ var _full = readFileSync(join(ROOT, "v1.4.3/games/caption-combat.js"), "utf8");
 var _m = _full.match(/<script>\n([\s\S]*?)\n<\/script>/);
 if (!_m) { console.log("HARNESS ERROR: inner script not found"); process.exit(2); }
 var src = _m[1];
+/* The extracted text is raw template-literal content — evaluate it to the
+   cooked value the browser actually receives (escape sequences processed),
+   mirroring scripts/check-inner-scripts.js. Without this, regex escapes like
+   \\/ arrive doubled and new Function chokes on invalid flags. */
+src = new Function('return (' + '`' + src + '`);')();
 src = src.replace(/\}\)\(\);\s*$/,
   'window.__ccApi={ccRenderPol:ccRenderPol,ccSetPromptKind:ccSetPromptKind,ccPolKilled:ccPolKilled,getKind:function(){return ccPromptKind;},getFact:function(){return ccPolFactText;}};})();');
 var runner = new Function('window','document','localStorage','location','setTimeout','clearTimeout','fetch','URL','navigator','AbortController','PF', src);

@@ -25,6 +25,13 @@
   <div class="c-wauthor" id="cWAuthor"></div>
 </div>
 
+<div class="c-pol" id="cPol" style="display:none">
+  <h3>Political round</h3>
+  <div class="c-sub" style="margin-top:-0.4rem">One fact. One week. The fact card is locked — your caption isn't.</div>
+  <div id="cPolFact"></div>
+  <div style="margin-top:0.6rem"><a class="c-btn ghost" id="cPolBtn" href="#">Caption this instead</a></div>
+</div>
+
 <div class="c-form">
   <label for="ccName">Your name / handle</label>
   <input aria-label="@yourhandle" id="ccName" maxlength="40" placeholder="@yourhandle">
@@ -172,6 +179,75 @@ function ccLoadBoard(){
 }
 ccLoadBoard();
 
+/* --- Political round (2026-10-05): this week's prompt assembled from live
+   political data (caption_prompt GET, public). The fact card is display-only
+   (textContent, no inputs) — players caption it, they never edit the facts.
+   Fails silent: no prompt, no section. Kill: ?pf_off=caption-political or
+   localStorage pf_disabled_v1 including "caption-political". --- */
+var ccPromptKind="standard", ccPolFactText="";
+function ccPolKilled(){
+  try{
+    if(/(?:\\?|&)pf_off=caption-political(?:&|$)/.test(location.search)) return true;
+    var d=JSON.parse(localStorage.getItem("pf_disabled_v1")||"[]");
+    return Array.isArray(d)&&d.indexOf("caption-political")>=0;
+  }catch(e){ return false; }
+}
+function ccSetPromptKind(kind){
+  ccPromptKind=(kind==="political")?"political":"standard";
+  var btn=document.getElementById("cPolBtn");
+  if(btn) btn.textContent = ccPromptKind==="political" ? "Back to the standard template" : "Caption this instead";
+  var fact=document.getElementById("cPolFact");
+  if(fact) fact.style.outline = ccPromptKind==="political" ? "2px solid #c1121f" : "none";
+}
+function ccRenderPol(j){
+  var wrap=document.getElementById("cPol"); if(!wrap) return;
+  var p=j&&j.ok&&j.prompt;
+  if(!p||!p.fact){ wrap.style.display="none"; return; }
+  var host=document.getElementById("cPolFact"); host.innerHTML="";
+  var card=document.createElement("div");
+  card.style.cssText="border:1px solid #3a3226;background:#14100b;padding:0.9rem 1rem;margin:0.6rem 0;";
+  var badge=document.createElement("div");
+  badge.style.cssText="color:#c1121f;font-size:0.72rem;font-weight:800;letter-spacing:0.14em;margin-bottom:0.35rem;";
+  badge.textContent=p.badge||"POLITICAL";
+  var title=document.createElement("div");
+  title.style.cssText="color:#f5f0e1;font-size:1.05rem;font-weight:800;margin-bottom:0.3rem;";
+  title.textContent=p.title||"Caption this";
+  var fact=document.createElement("div");
+  fact.style.cssText="color:#f5f0e1;font-size:0.95rem;line-height:1.4;";
+  fact.textContent=p.fact;
+  var src=document.createElement("div");
+  src.style.cssText="color:#b8ab8e;font-size:0.75rem;margin-top:0.45rem;letter-spacing:0.04em;";
+  src.appendChild(document.createTextNode("Source: "));
+  if(p.source&&/^https:\\/\\//.test(p.source)){
+    var a=document.createElement("a");
+    a.href=p.source; a.target="_blank"; a.rel="noopener";
+    a.style.color="#b8ab8e";
+    try{ a.textContent=new URL(p.source).hostname; }catch(e){ a.textContent=p.source; }
+    src.appendChild(a);
+  } else { src.appendChild(document.createTextNode(p.source||"—")); }
+  if(p.source_date) src.appendChild(document.createTextNode(" · "+p.source_date));
+  card.appendChild(badge); card.appendChild(title); card.appendChild(fact); card.appendChild(src);
+  host.appendChild(card);
+  ccPolFactText=p.fact;
+  wrap.style.display="block";
+  var btn=document.getElementById("cPolBtn");
+  if(btn&&!btn.dataset.ccWired){ btn.dataset.ccWired="1";
+    btn.onclick=function(e){ e.preventDefault(); ccSetPromptKind(ccPromptKind==="political"?"standard":"political"); return false; }; }
+}
+function ccLoadPol(){
+  if(ccPolKilled()) return;
+  try{
+    var bkUrl=window.PF_BACKEND_URL; if(!bkUrl) return;
+    var s=document.createElement("script");
+    var cb="pfCapPol"+Date.now()+Math.floor(Math.random()*1e6);
+    window[cb]=function(j){ try{ delete window[cb]; }catch(e){} ccRenderPol(j); };
+    s.src=bkUrl+"?action=caption_prompt&week="+encodeURIComponent(wk.toISOString().slice(0,10))+"&callback="+cb;
+    document.head.appendChild(s);
+    setTimeout(function(){ try{ s.remove(); delete window[cb]; }catch(e){} },10000);
+  }catch(e){}
+}
+ccLoadPol();
+
 var tpl=document.getElementById("cTemplate");
 if(THIS_WEEK.img){ var im=document.createElement("img"); im.src=THIS_WEEK.img; im.alt=THIS_WEEK.alt; tpl.appendChild(im); }
 else { tpl.innerHTML='<div class="c-ph">This week\\u2019s template drops Monday.<br>Send yours below.</div>'; }
@@ -232,7 +308,7 @@ document.getElementById("cSubmit").onclick=function(){
      and never silently swaps to another path. --- */
   function capBackend(burl,bcs,bdev){
     var body={type:"caption",c_action:"caption_submit",callsign:bcs,device:bdev,
-      handle:n,caption:capText,week:weekKey.replace(/^cc_/,"")};
+      handle:n,caption:capText,week:weekKey.replace(/^cc_/,""),prompt_kind:ccPromptKind};
     function done(j){
       /* dup:true also lands here - the entry was already counted */
       if(j&&j.ok){ capSuccess(); }
@@ -257,7 +333,8 @@ document.getElementById("cSubmit").onclick=function(){
      or no backend URL - the caption_submit action is auth-gated). Same rule as
      before: the week locks only after the mail client actually takes over. --- */
   function capMailto(){
-    self.href="mailto:"+EMAIL+"?subject="+encodeURIComponent("Caption Combat entry - week of "+weekStr)+"&body="+encodeURIComponent("Handle: "+n+"\\n\\nCaption:\\n"+c);
+    var promptLine="Prompt: "+(ccPromptKind==="political"?("political — "+ccPolFactText):"standard template");
+    self.href="mailto:"+EMAIL+"?subject="+encodeURIComponent("Caption Combat entry - week of "+weekStr)+"&body="+encodeURIComponent("Handle: "+n+"\\n"+promptLine+"\\n\\nCaption:\\n"+c);
     setTimeout(function(){
       if(!document.hasFocus()){
         /* mail client took over - the entry is away */

@@ -181,7 +181,7 @@ ccLoadBoard();
 var ccPromptKind="standard", ccPolFactText="";
 function ccPolKilled(){
   try{
-    if(/(?:\?|&)pf_off=caption-political(?:&|$)/.test(location.search)) return true;
+    if(/(?:\\?|&)pf_off=caption-political(?:&|$)/.test(location.search)) return true;
     var d=JSON.parse(localStorage.getItem("pf_disabled_v1")||"[]");
     return Array.isArray(d)&&d.indexOf("caption-political")>=0;
   }catch(e){ return false; }
@@ -212,7 +212,7 @@ function ccRenderPol(j){
   var src=document.createElement("div");
   src.style.cssText="color:#b8ab8e;font-size:0.75rem;margin-top:0.45rem;letter-spacing:0.04em;";
   src.appendChild(document.createTextNode("Source: "));
-  if(p.source&&/^https:\/\//.test(p.source)){
+  if(p.source&&/^https:\\/\\//.test(p.source)){
     var a=document.createElement("a");
     a.href=p.source; a.target="_blank"; a.rel="noopener";
     a.style.color="#b8ab8e";
@@ -328,7 +328,7 @@ document.getElementById("cSubmit").onclick=function(){
      before: the week locks only after the mail client actually takes over. --- */
   function capMailto(){
     var promptLine="Prompt: "+(ccPromptKind==="political"?("political — "+ccPolFactText):"standard template");
-    self.href="mailto:"+EMAIL+"?subject="+encodeURIComponent("Caption Combat entry - week of "+weekStr)+"&body="+encodeURIComponent("Handle: "+n+"\n"+promptLine+"\n\nCaption:\n"+c);
+    self.href="mailto:"+EMAIL+"?subject="+encodeURIComponent("Caption Combat entry - week of "+weekStr)+"&body="+encodeURIComponent("Handle: "+n+"\\n"+promptLine+"\\n\\nCaption:\\n"+c);
     setTimeout(function(){
       if(!document.hasFocus()){
         /* mail client took over - the entry is away */

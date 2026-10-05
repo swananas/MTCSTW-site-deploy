@@ -41,6 +41,28 @@
   var LS_HQ = 'pf_cellhq_v1';
 
   function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  /* CELLS STATE AFFILIATION (2026-10-05): 50 states + DC, copied verbatim
+     from civic.js STATES (bundle-cells ships cell-hq.js WITHOUT civic.js,
+     so the constant is duplicated here by design — keep both lists in sync;
+     see tests/cell-state-consistency.md). Fail-soft: every state read is
+     guarded, so cells from an old backend (no state field) render exactly
+     as before. */
+  var HQ_STATES=[["AL","Alabama"],["AK","Alaska"],["AZ","Arizona"],["AR","Arkansas"],["CA","California"],["CO","Colorado"],["CT","Connecticut"],["DE","Delaware"],["FL","Florida"],["GA","Georgia"],["HI","Hawaii"],["ID","Idaho"],["IL","Illinois"],["IN","Indiana"],["IA","Iowa"],["KS","Kansas"],["KY","Kentucky"],["LA","Louisiana"],["ME","Maine"],["MD","Maryland"],["MA","Massachusetts"],["MI","Michigan"],["MN","Minnesota"],["MS","Mississippi"],["MO","Missouri"],["MT","Montana"],["NE","Nebraska"],["NV","Nevada"],["NH","New Hampshire"],["NJ","New Jersey"],["NM","New Mexico"],["NY","New York"],["NC","North Carolina"],["ND","North Dakota"],["OH","Ohio"],["OK","Oklahoma"],["OR","Oregon"],["PA","Pennsylvania"],["RI","Rhode Island"],["SC","South Carolina"],["SD","South Dakota"],["TN","Tennessee"],["TX","Texas"],["UT","Utah"],["VT","Vermont"],["VA","Virginia"],["WA","Washington"],["WV","West Virginia"],["WI","Wisconsin"],["WY","Wyoming"],["DC","District of Columbia"]];
+  function hqStateName(code){ code=String(code||"").toUpperCase();
+    for(var i=0;i<HQ_STATES.length;i++) if(HQ_STATES[i][0]===code) return HQ_STATES[i][1];
+    return ""; }
+  function hqStateOpts(sel,noLabel){
+    var h='<option value="">'+esc(noLabel||"No state affiliation")+'</option>';
+    for(var i=0;i<HQ_STATES.length;i++){
+      h+='<option value="'+HQ_STATES[i][0]+'"'+(sel===HQ_STATES[i][0]?' selected':'')+'>'+esc(HQ_STATES[i][1])+'</option>';
+    }
+    return h; }
+  function hqStateBadge(c){ /* "OPERATING IN TEXAS" on the cell header. */
+    var n=c&&hqStateName(c.state);
+    return n?'<span class="hq-state" title="State affiliation">OPERATING IN '+esc(n.toUpperCase())+'</span>':""; }
+  function hqStateTag(it){ /* compact "TEXAS" tag for task/bounty/listing rows. */
+    var n=it&&hqStateName(it.state);
+    return n?'<span class="hq-stag" title="State-scoped">'+esc(n.toUpperCase())+'</span>':""; }
   function toast(m){ try{ PF.toast(m); }catch(e){} }
   function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
   function load(k,fb){ try{ return JSON.parse(localStorage.getItem(k)||JSON.stringify(fb)); }catch(e){ return fb; } }
@@ -52,7 +74,7 @@
     warchest_status:1, treasury_balance:1 };
   /* Mutations go through POST (CSRF-able via GET otherwise). */
   var WRITE = { cell_create:1, cell_join:1, cell_checkin:1, cell_cover:1,
-    cell_leave:1, cell_rename:1, cell_promote:1, cell_bounty_claim:1,
+    cell_leave:1, cell_rename:1, cell_update:1, cell_promote:1, cell_bounty_claim:1,
     cell_contribute:1 };
 
   function api(action, params, cb){
@@ -245,6 +267,9 @@
     '.hq-mem:last-child{border-bottom:0}' +
     '.hq-badge{font-size:11px;background:#c1121f;color:#fff;padding:2px 8px;font-weight:700;margin-left:6px;white-space:nowrap}' +
     '.hq-badge.dim{background:#333}' +
+    '.hq-state{font-size:11px;background:#0d0d0d;border:2px solid #c1121f;color:#f5ead6;padding:2px 8px;font-weight:700;margin-left:6px;white-space:nowrap;letter-spacing:1px}' +
+    '.hq-stag{font-size:10px;background:#c1121f;color:#fff;padding:2px 8px;font-weight:700;margin-left:6px;white-space:nowrap;letter-spacing:1px}' +
+    '.hq-sel{background:#0a0a0a;color:#f5f0e6;border:2px solid #444;padding:9px 10px;font-size:16px;margin:4px 4px 4px 0;max-width:100%;min-height:44px}' +
     '.hq-bar{height:10px;background:#222;margin:4px 0 10px;position:relative}' +
     '.hq-bar>div{height:10px;background:#c1121f}' +
     '.hq-winner{border-color:#c1121f;background:#180a0a}' +
@@ -281,6 +306,7 @@
     board: null,
     links: null,
     searchQ: '',
+    searchState: '',
     searchRes: null,
     loading: {}
   };
@@ -388,7 +414,8 @@
   }
   function doSearch(cb){
     S.loading.search = true;
-    api('cell_search', { q: S.searchQ }, function(j){
+    /* api() drops "" — unfiltered discovery behaves exactly as before. */
+    api('cell_search', { q: S.searchQ, state: S.searchState }, function(j){
       S.loading.search = false;
       S.searchRes = j;
       cb(j);
@@ -419,7 +446,7 @@
     var fBadge = isF ? '<span class="hq-badge">FOUNDER</span>' : '';
     var chk = c.checked_today ? '<span class="hq-badge dim">CHECKED IN</span>'
       : '<button class="hq-btn sm" data-hq="checkin" data-cell="'+esc(c.id)+'">CHECK IN</button>';
-    return '<div class="hq-card"><h3>'+esc(c.name)+vBadge+fBadge+'</h3>' +
+    return '<div class="hq-card"><h3>'+esc(c.name)+vBadge+fBadge+hqStateBadge(c)+'</h3>' +
       '<div><span class="hq-stat">'+esc(String(c.streak||0))+'-day streak</span>' +
       '<span class="hq-stat">'+esc(String(c.members||0))+'/5 members</span>' +
       '<span class="hq-stat">'+esc(String(c.active_week||0))+' active this week</span>' +
@@ -459,7 +486,8 @@
           id: prim.id, name: prim.name, streak: prim.streak, members: (j.members||[]).length,
           active_week: prim.active_week, verified: prim.verified, is_founder: j.is_founder,
           checked_today: j.checked_today, invite_code: prim.invite_code,
-          prestige_tier: prim.prestige_tier, prestige_flame: prim.prestige_flame
+          prestige_tier: prim.prestige_tier, prestige_flame: prim.prestige_flame,
+          state: prim.state
         });
         if (j.cover_for){
           h += '<div class="hq-card"><h3>Cover available</h3>' +
@@ -469,7 +497,7 @@
         if (j.bounties_pending && j.bounties_pending.length){
           var bx = j.bounty_xp || 25;
           h += '<div class="hq-card"><h3>Recruit bounties ready</h3><div class="hq-note">' +
-            j.bounties_pending.map(function(b){ return esc(b.from); }).join(', ') +
+            j.bounties_pending.map(function(b){ return esc(b.from)+hqStateTag(b); }).join(', ') +
             ' checked in. Claim +'+bx+' XP each.</div>' +
             '<button class="hq-btn sm" data-hq="bounties">CLAIM BOUNTIES</button></div>';
         }
@@ -485,7 +513,9 @@
       h += '<div class="hq-card"><h3>Found a cell</h3>' +
         '<div class="hq-note">3&ndash;24 characters. You become founder. Max 3 cells per callsign.</div>' +
         '<div class="hq-row"><input class="hq-in" id="hqNewName" maxlength="24" placeholder="Cell name">' +
-        '<button class="hq-btn" data-hq="create">FOUND CELL</button></div></div>';
+        '<select class="hq-sel" id="hqNewState" aria-label="STATE AFFILIATION">'+hqStateOpts("","No state affiliation")+'</select>' +
+        '<button class="hq-btn" data-hq="create">FOUND CELL</button></div>' +
+        '<div class="hq-note">State affiliation unlocks location tasks and policymaker bounties.</div></div>';
       h += '<div class="hq-card"><h3>Join with invite code</h3>' +
         '<div class="hq-row"><input class="hq-in" id="hqJoinCode" maxlength="12" placeholder="INVITE CODE" style="text-transform:uppercase">' +
         '<button class="hq-btn" data-hq="join">JOIN CELL</button></div></div>';
@@ -507,7 +537,7 @@
     }
     var cname = cell ? cell.name : 'Cell';
     var h = '<button class="hq-btn sm ghost" data-hq="back">&larr; MY CELLS</button>' +
-      '<div class="hq-head" style="margin-top:8px"><h2>'+esc(cname)+'</h2>' +
+      '<div class="hq-head" style="margin-top:8px"><h2>'+esc(cname)+hqStateBadge(cell)+'</h2>' +
       '<div class="hq-tag">Cell command detail</div></div>';
     h += '<div id="hqDetBody">'+loading('Pulling cell intel&hellip;')+'</div>';
     p.innerHTML = h;
@@ -583,8 +613,10 @@
     if (isFounder){
       h += '<div class="hq-card"><h3>Founder controls</h3><div class="hq-row">' +
         '<button class="hq-btn sm" data-hq="rename" data-cell="'+esc(S.detail)+'">RENAME</button>' +
+        '<select class="hq-sel" id="hqSetState" aria-label="STATE AFFILIATION">'+hqStateOpts(String(cell&&cell.state||""),"No state affiliation")+'</select>' +
+        '<button class="hq-btn sm" data-hq="set-state" data-cell="'+esc(S.detail)+'">SET STATE</button>' +
         '<button class="hq-btn sm ghost" data-hq="leave" data-cell="'+esc(S.detail)+'">DISBAND / LEAVE</button>' +
-        '</div><div class="hq-note">Rename: 3&ndash;24 chars. Leaving as founder passes the torch or disbands the cell.</div></div>';
+        '</div><div class="hq-note">Rename: 3&ndash;24 chars. State affiliation unlocks location tasks and policymaker bounties. Leaving as founder passes the torch or disbands the cell.</div></div>';
     } else if (cell) {
       h += '<div class="hq-card"><div class="hq-row">' +
         '<button class="hq-btn sm ghost" data-hq="leave" data-cell="'+esc(S.detail)+'">LEAVE CELL</button></div></div>';
@@ -914,6 +946,7 @@
   function renderBrowse(p){
     var h = '<div class="hq-card"><h3>Find a cell</h3>' +
       '<div class="hq-row"><input class="hq-in" id="hqSearch" maxlength="32" placeholder="Search by name" value="'+esc(S.searchQ)+'">' +
+      '<select class="hq-sel" id="hqSearchState" aria-label="FILTER BY STATE">'+hqStateOpts(S.searchState,"All states")+'</select>' +
       '<button class="hq-btn" data-hq="search">SEARCH</button></div>' +
       '<div id="hqSearchRes" style="margin-top:8px">';
     if (S.loading.search) h += loading('Searching&hellip;');
@@ -928,7 +961,7 @@
       var out = '<div class="hq-card"><h3>Top cells — week of '+esc(String(j.week||''))+'</h3>';
       (j.cells||[]).slice(0,10).forEach(function(c, i){
         var v = c.verified ? '<span class="hq-badge">VERIFIED</span>' : '';
-        out += '<div class="hq-mem"><span><b>#'+(i+1)+'</b> '+esc(c.prestige_flame||'')+' '+esc(c.name)+v+'</span>' +
+        out += '<div class="hq-mem"><span><b>#'+(i+1)+'</b> '+esc(c.prestige_flame||'')+' '+esc(c.name)+v+hqStateTag(c)+'</span>' +
           '<span class="hq-note">'+esc(String(c.streak||0))+'d streak &middot; '+esc(String(c.members||0))+' members</span></div>';
       });
       out += '</div>';
@@ -953,7 +986,7 @@
     cells.forEach(function(c){
       var v = c.verified ? '<span class="hq-badge">VERIFIED</span>' : '';
       var full = (c.member_count||0) >= 5;
-      out += '<div class="hq-mem"><span><b>'+esc(c.name)+'</b>'+v +
+      out += '<div class="hq-mem"><span><b>'+esc(c.name)+'</b>'+v+hqStateTag(c) +
         '<div class="hq-note">'+esc(String(c.member_count||0))+'/5 members &middot; '+esc(String(c.streak||0))+'d streak</div></span>' +
         (full ? '<span class="hq-badge dim">FULL</span>'
           : '<button class="hq-btn sm" data-hq="join-id" data-cell="'+esc(c.id)+'">JOIN</button>') + '</div>';
@@ -1178,7 +1211,7 @@
           ? '<input class="hq-in" id="hqPa_'+esc(pl.id)+'" placeholder="winner callsign" style="width:140px">' +
             '<button class="hq-btn sm ghost" data-hq="prize-award" data-pool="'+esc(pl.id)+'">AWARD</button>'
           : '';
-        h += '<div style="margin-top:10px"><b>'+esc(pl.title)+'</b> <span class="hq-note">by '+esc(pl.created_by||'?')+'</span>' +
+        h += '<div style="margin-top:10px"><b>'+esc(pl.title)+'</b>'+hqStateTag(pl)+' <span class="hq-note">by '+esc(pl.created_by||'?')+'</span>' +
           '<div class="hq-note">'+esc(String(pl.raised||0))+' / '+esc(String(pl.target||0))+' XP</div>' +
           '<div class="hq-bar"><div style="width:'+pct+'%"></div></div>' +
           '<div class="hq-row"><input class="hq-in" id="hqPc_'+esc(pl.id)+'" type="number" min="1" placeholder="XP" style="width:90px">' +
@@ -1449,7 +1482,8 @@
       var nm = strIn('hqNewName');
       if (nm.length < 3){ toast('Cell name needs 3-24 characters.'); return; }
       busy(true);
-      api('cell_create', withIdent({name:nm}), function(j){
+      /* strIn drops nothing: "" state means unaffiliated (backend nullable). */
+      api('cell_create', withIdent({name:nm, state:strIn('hqNewState')}), function(j){
         busy(false);
         if (j && j.ok){ toast('Cell founded. Invite code: '+(j.cell&&j.cell.invite_code?j.cell.invite_code:'')); refreshMineThen('mine'); }
         else toast(friendlyErr(j));
@@ -1490,6 +1524,20 @@
         else toast(friendlyErr(j));
       });
     }
+    else if (a==='set-state'){
+      /* Founder: change the cell's state affiliation. cell_update is a WRITE
+         action -> postMut POST, so an empty string transmits (clears the
+         affiliation); fail-soft on old backends (no such action): the error
+         shows and the affiliation rendering is untouched. */
+      if(!needCs()) return;
+      var sv = strIn('hqSetState');
+      busy(true);
+      api('cell_update', withIdent({cell_id:cellId, state:sv}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('State affiliation updated.'); refreshMineThen('detail'); }
+        else toast(friendlyErr(j));
+      });
+    }
     else if (a==='promote'){
       if(!needCs()) return;
       var tgt = t.getAttribute('data-target');
@@ -1518,6 +1566,7 @@
     }
     else if (a==='search'){
       S.searchQ = strIn('hqSearch');
+      S.searchState = strIn('hqSearchState');
       var res = document.getElementById('hqSearchRes');
       if (res) res.innerHTML = loading('Searching&hellip;');
       doSearch(function(j){

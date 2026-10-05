@@ -136,3 +136,30 @@ has a 20s retry loop so it mounts once ranks exists),
 
 Kill-switches: `?pf_off=<silo>` for each of the 10 sections, or
 `?pf_off=home-v2` for the whole mount.
+
+---
+
+# PF v1.4.3 — community review pool (added 2026-10-05)
+
+Community review of Content Bank submissions per the Studio Moderation SOP
+v2 (CEO greenlight 2026-10-05). One new silo:
+
+- JS `games/review-pool.js` → silo key `review-pool` → self-mounts into
+  `#pf-review-pool` on Creator HQ / Studio; silent no-op everywhere else.
+  Bundled in `bundle-cells` (loads on /cells + Creator HQ).
+
+What it does: discovery (open count, your reviewer stats, pool health,
+qualification gating ENLISTED + 500 lifetime XP), REVIEW NEXT one-button
+claim (server assigns — no browsing/cherry-picking), blind review UI
+(artifact, caption, citation cards with verified-read badges, proof-link
+status; cell-priority "FROM YOUR CELL" flag), ACCEPT / REJECT with SOP v2
+reason codes, 4h claim countdown, outcome + settlement display, Your Reviews
+history with agreement-rate trend, public reviewer leaderboard (accuracy x
+volume) + cell accuracy board. Kill-switch: `?pf_off=review-pool`.
+
+Backend contract: POST `{type:'review', review_action:<action>}` with
+`review_next | review_vote | review_status | review_history` (callsign+dev
+identity-bound); public GET `?action=review_leaderboard` and
+`?action=review_cell_board`. All XP math server-side; frontend displays
+server-returned settlement values only. Blind by construction: the module
+reads no identity or vote-split fields (see scripts/verify-review-pool-fe.js).

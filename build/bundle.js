@@ -167,7 +167,12 @@ var SECTIONS = {
        bespoke cell home (silo key 'raid'). Mounted on pf-cells-page via
        page-mount.js; cell-scoped rounds (cell_id from the loaded cell
        context, never URL params); hidden for non-members. */
-    'supply-raid.js'
+    'supply-raid.js',
+    /* COMMUNITY REVIEW WAVE (2026-10-05): Review Pool — community review of
+       Content Bank submissions (SOP v2). Silo key 'review-pool'; self-mounts
+       into #pf-review-pool on Creator HQ / Studio, silent no-op elsewhere.
+       Kill: ?pf_off=review-pool. */
+    'review-pool.js'
   ],
   'bundle-create': [
     /* /create (+ Creator HQ) — creator tooling. */

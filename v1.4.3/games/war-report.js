@@ -134,6 +134,72 @@ function loadFanFav(){
     if(b) b.onclick=function(){ wrPaintFavPoster(name,topN); };
   });
 }
+/* MEME OF THE WEEK (2026-10-05): backend plain-text section -> styled card.
+   The backend appends a MEME OF THE WEEK block after CIVIC FRONT (the whole
+   section is absent when no asset qualifies). wrExtractMeme parses it out
+   and returns {card, before, after}: the card renders in place of the raw
+   lines so the section never renders twice. Fail-soft: any absent or
+   malformed part -> card is "" and the body renders untouched.
+   All interpolated text goes through esc(); the Source URL becomes a link
+   only for http/https. KILL: none new — this runs inside the war-report
+   IIFE, so ?pf_off=war-report / pf_disabled_v1 hides the card with the
+   widget. */
+/* MEME:BEGIN */
+function wrMemeCss(){
+  if(document.getElementById("pf-wr-meme-css")) return;
+  var s=document.createElement("style"); s.id="pf-wr-meme-css";
+  s.textContent=
+    ".wr-meme{white-space:normal;margin:14px 0;border:2px solid #c1121f;background:#161616}"
+    +".wr-meme .wm-top{background:#c1121f;color:#f5ead6;font-family:'Arial Black',Arial,sans-serif;font-size:15px;letter-spacing:2px;padding:8px 14px}"
+    +".wr-meme .wm-body{padding:12px 14px}"
+    +".wr-meme .wm-head{font-family:'Arial Black',Arial,sans-serif;font-weight:900;font-size:19px;line-height:1.4;color:#f5ead6;margin:0 0 8px}"
+    +".wr-meme .wm-meta{font-family:Arial,sans-serif;font-size:13px;color:#e8b64c;letter-spacing:1px;margin-bottom:8px}"
+    +".wr-meme .wm-fight{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin-bottom:6px}"
+    +".wr-meme .wm-src{font-family:Arial,sans-serif;font-size:12px;color:#c9bfa8;word-break:break-all}"
+    +".wr-meme .wm-src a{color:#ff5a00;text-decoration:underline}";
+  document.head.appendChild(s);
+}
+function wrMemeLink(url){
+  url=String(url||"");
+  if(!/^https?:\\/\\//i.test(url)) return esc(url);
+  return '<a href="'+esc(url)+'" rel="noopener">'+esc(url)+'</a>';
+}
+function wrTrim(s){ return String(s==null?"":s).replace(/^\\s+|\\s+$/g,""); }
+function wrExtractMeme(body){
+  var none={card:"",before:String(body==null?"":body),after:""};
+  var src=String(body==null?"":body);
+  if(src.indexOf("MEME OF THE WEEK:")<0) return none;
+  try{
+    var lines=src.split("\\n"), i, n=lines.length, start=-1;
+    for(i=0;i<n;i++){ if(wrTrim(lines[i])==="MEME OF THE WEEK:"){ start=i; break; } }
+    if(start<0) return none;
+    var j=start+1;
+    function nextLine(){ while(j<n&&wrTrim(lines[j])==="") j++; return (j<n)?lines[j++] : null; }
+    var hl=nextLine(); if(hl==null) return none;
+    var m1=/^\\s*"(.+)"\\s*[—–-]\\s*@(\\S+)\\s*$/.exec(hl);
+    if(!m1) return none;
+    var sh=nextLine(); if(sh==null) return none;
+    var m2=/^\\s*([\\d,]+)\\s+soldiers shared it this week\\s*$/.exec(sh);
+    if(!m2) return none;
+    var fg=nextLine(); if(fg==null) return none;
+    var m3=/^\\s*The fight:\\s*(.+?)\\s*$/.exec(fg);
+    if(!m3||!m3[1]) return none;
+    var srcUrl=null;
+    if(j<n&&/^\\s*Source:\\s*\\S/.test(lines[j])){
+      var m4=/^\\s*Source:\\s*(\\S+)\\s*$/.exec(lines[j]);
+      if(m4){ srcUrl=m4[1]; j++; }
+    }
+    var card='<div class="x-pane wr-meme"><div class="wm-top">&#9733; MEME OF THE WEEK</div>'
+      +'<div class="wm-body">'
+      +'<div class="wm-head">&ldquo;'+esc(m1[1])+'&rdquo;</div>'
+      +'<div class="wm-meta">&mdash; @'+esc(m1[2])+' &middot; '+esc(m2[1])+' soldiers shared it this week</div>'
+      +'<div class="wm-fight">The fight: '+esc(m3[1])+'</div>'
+      +(srcUrl?'<div class="wm-src">Source: '+wrMemeLink(srcUrl)+'</div>':"")
+      +'</div></div>';
+    return {card:card,before:lines.slice(0,start).join("\\n"),after:lines.slice(j).join("\\n")};
+  }catch(e){ return none; }
+}
+/* MEME:END */
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
   /* Private read: warreport_latest is per-callsign (IDOR fix). Route through
@@ -182,10 +248,12 @@ function paint(el,j){
   var r=j.report;
   var when="";
   try{ var d=new Date(Number(r.created_at)); if(!isNaN(d.getTime())) when=d.toLocaleDateString(); }catch(e){}
+  wrMemeCss();
+  var meme=wrExtractMeme(r.body||"");
   el.innerHTML='<div class="x-pane"><h4>'+esc(r.subject||"WAR REPORT")+'</h4>'
     +'<div class="x-note">Week of '+esc(r.week_start||"")+(when?" · drafted "+esc(when):"")+'</div>'
     +'<div class="wr-body" style="white-space:pre-wrap;font-family:monospace;font-size:13px;line-height:1.55;margin-top:8px">'
-    +esc(r.body||"")+'</div></div>'
+    +esc(meme.before)+meme.card+esc(meme.after)+'</div></div>'
     +'<div id="wrFanFav"></div>'
     +emailPaneHtml();
   wireEmail(); loadFanFav();

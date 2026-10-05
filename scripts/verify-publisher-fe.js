@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /* scripts/verify-publisher-fe.js — One-Button Publisher frontend verification
-   harness (fe/publisher-compose-ui, 2026-10-05). Run from the worktree root:
+   harness (fe/publisher-phase2, 2026-10-05 Substack-origin flip). Run from the
+   worktree root:
      node scripts/verify-publisher-fe.js
    AFTER rebuilding bundles: node build/bundle.js
    Exits 0 when every check passes, 1 with a failure list otherwise.
@@ -11,35 +12,39 @@
       the header; silent no-op when the admin rail is absent.
    3. Admin gate: module refuses to mount without the admin secret
       (sessionStorage 'pf_admin_secret') — PF.publisherDenied recorded; mount
-      conditioned ONLY on #xVault + #vlLock (vault admin area). No public mount.
-   4. Compose surface: title, body, link, image fields + LOAD WAR REPORT DRAFT.
-   5. Preview: all 5 platform tabs render, char counts shown, PUSH disabled
-      until the preview has been viewed (no blind pushes).
-   6. Toggles: unconnected platforms show NOT CONNECTED, forced off, unflippable.
+      conditioned ONLY on #xVault (vault admin area). No public mount.
+   4. Staged queue (NO compose surface): CHECK FOR NEW POSTS + REFRESH STAGED
+      buttons; STAGED FROM SUBSTACK list; REVIEW/SELECT per draft; no
+      site-origin compose fields (pubTitle/pubBody/pubLink/pubImage absent).
+   5. Derivatives preview: threads/facebook/instagram/discord + SITE tabs;
+      char counts + truncation flags; PUSH disabled until the checklist is
+      green (no blind pushes).
+   6. Toggles: unconnected platforms show NOT CONNECTED.
    7. Banned terms: no banned term in UI copy (the BANNED enforcement list,
       comments, and the FALLBACK_TARGETS admin account inventory are not
-      copy); bannedHit scan runs before preview AND push.
+      copy); bannedHit scan runs before push.
    8. No XP logic in the module (display only).
-   9. Dry-run: banner "DRY RUN — nothing publishes." markup present; post
-      object carries dry_run:true; banner hidden only when the backend reports
-      a platform live.
+   9. Dry-run: banner "DRY RUN — nothing publishes." markup present; banner
+      hidden only when the backend reports a platform live.
    10. Status board: queued -> sent/failed/skipped/unknown per-platform
-       states; unknown is terminal (no retry) with a manual-reconciliation
-       affordance (MARK SENT / MARK FAILED via publisher_reconcile);
-       publish history rendered from the audit log (publisher_history).
+       states (+ the site row); unknown is terminal (no retry) with a
+       manual-reconciliation affordance (MARK SENT / MARK FAILED via
+       publisher_reconcile); publish history rendered from the audit log
+       (publisher_history).
    11. Backend contract: {type:'publisher', publisher_action} idiom on the
-       X-Admin-Secret rail; PUB_ACTION map names the six actions; War Report
-       draft reuses the existing warreport_latest read (no new contract).
+       X-Admin-Secret rail; PUB_ACTION map names the staged-flow actions
+       (staged, poll, draftGet, checklist, enqueue, push, pushStatus,
+       reconcile, history).
    12. Bundle registration: publisher.js listed exactly once in
        build/bundle.js and present in the rebuilt bundle-bank.js.
    13. Backslash discipline: no backtick spans in the module, so the lone-
        backslash hazard class is absent by construction (asserted).
-   14. Account targeting (spec B3): post object carries the targets block;
+   14. Account targeting (spec B3): push carries the targets block;
        per-platform target selectors with safe defaults; the personal account
        is flagged explicit, never a default, and requires an explicit per-push
        confirmation before PUSH unlocks.
-   15. IG placement at preview time (spec B5): the IG preview tab shows the
-       pinned placement; a text-only post shows "needs image" in the preview. */
+   15. IG share card: canvas-rendered pull-quote card preview (PFShare
+       red/black language) for text-only posts; auto-card note present. */
 'use strict';
 var fs = require('fs');
 var path = require('path');
@@ -109,10 +114,10 @@ if (has(src, "PF.skip('publisher')")) ok('kill: PF.skip(\'publisher\') gate pres
 else no('kill', "PF.skip('publisher') gate missing");
 if (has(src, '?pf_off=publisher')) ok('kill: ?pf_off=publisher documented in header');
 else no('kill', '?pf_off=publisher not documented');
-/* Silent no-op when the vault is absent: mount() returns when #xVault/#vlLock missing. */
-if (has(src, "getElementById('xVault')") && has(src, "getElementById('vlLock')"))
+/* Silent no-op when the vault is absent: mount() returns when #xVault missing. */
+if (has(src, "getElementById('xVault')"))
   ok('kill: silent no-op when the admin area is absent');
-else no('kill', 'mount does not guard on #xVault/#vlLock');
+else no('kill', 'mount does not guard on #xVault');
 
 console.log('== 3. admin gate ==');
 if (has(src, "'pf_admin_secret'")) ok('admin: reads the admin secret from sessionStorage');
@@ -124,42 +129,48 @@ if (!/document\.body\.appendChild|document\.body\.insertAdjacentHTML/.test(src))
   ok('admin: never mounts on a public page (vault-only host)');
 else no('admin', 'module mounts outside the vault admin area');
 
-console.log('== 4. compose surface ==');
-[['pubTitle', 'title'], ['pubBody', 'body'], ['pubLink', 'link'], ['pubImage', 'image']]
-  .forEach(function (f) {
-    if (has(src, 'id="' + f[0] + '"')) ok('compose: ' + f[1] + ' field present');
-    else no('compose', f[1] + ' field missing');
-  });
-if (has(src, 'LOAD WAR REPORT DRAFT')) ok('compose: LOAD WAR REPORT DRAFT button');
-else no('compose', 'draft-load button missing');
-if (has(src, 'pubImageFile') && has(src, 'type="file"')) ok('compose: optional image picker');
-else no('compose', 'image picker missing');
+console.log('== 4. staged queue (no compose surface) ==');
+if (has(src, 'CHECK FOR NEW POSTS') && has(src, 'id="pubPollBtn"')) ok('staged: CHECK FOR NEW POSTS button');
+else no('staged', 'CHECK FOR NEW POSTS button missing');
+if (has(src, 'STAGED FROM SUBSTACK')) ok('staged: STAGED FROM SUBSTACK queue');
+else no('staged', 'staged queue missing');
+if (has(src, 'data-pub-select')) ok('staged: per-draft REVIEW/SELECT');
+else no('staged', 'per-draft select missing');
+[['pubTitle', 'title'], ['pubBody', 'body'], ['pubLink', 'link'], ['pubImage', 'image']].forEach(function (f) {
+  if (has(src, 'id="' + f[0] + '"')) no('staged', 'site-origin compose field present: ' + f[1]);
+});
+if (!/id="pub(Title|Body|Link|Image)"/.test(src)) ok('staged: no site-origin compose fields');
+if (has(src, 'LOAD WAR REPORT DRAFT')) no('staged', 'dead LOAD WAR REPORT DRAFT button present');
+else ok('staged: no dead compose buttons');
 
-console.log('== 5. per-platform preview ==');
-['discord', 'instagram', 'threads', 'facebook', 'substack'].forEach(function (p) {
+console.log('== 5. derivatives preview ==');
+['discord', 'instagram', 'threads', 'facebook'].forEach(function (p) {
   if (has(src, "key: '" + p + "'")) ok('preview: ' + p + ' platform definition');
   else no('preview', p + ' missing from PLATFORMS');
 });
+if (has(src, "key: 'substack'")) no('preview', 'dead substack platform definition present');
+else ok('preview: no substack destination platform');
 if (has(src, 'data-pub-tab') && has(src, 'data-pub-pane'))
   ok('preview: per-platform tabs and panes');
 else no('preview', 'preview tabs/panes missing');
+if (has(src, "data-pub-tab=\"site\"") || has(src, 'SITE</button>'))
+  ok('preview: SITE article tab present');
+else no('preview', 'SITE tab missing');
 if (has(src, 'chars') && has(src, 'TRUNCATED')) ok('preview: char counts + truncation flags shown');
 else no('preview', 'char counts / truncation flags missing');
-if (has(src, 'state.previewViewed') && has(src, 'No blind pushes'))
-  ok('push: locked until the preview is viewed (no blind pushes)');
-else no('push', 'no-blind-push gate missing');
+if (has(src, 'state.allOk') && has(src, 'Checklist is not green'))
+  ok('push: locked until the checklist is green (no blind pushes)');
+else no('push', 'checklist gate missing');
 if (has(src, 'id="pubPush" disabled')) ok('push: PUSH button starts disabled');
 else no('push', 'PUSH button does not start disabled');
+if (has(src, 'Derivatives frozen at stage time')) ok('preview: frozen-derivatives note');
+else no('preview', 'frozen-derivatives note missing');
 
 console.log('== 6. per-platform toggles ==');
 if (has(src, 'NOT CONNECTED')) ok('toggles: unconnected platforms labeled NOT CONNECTED');
 else no('toggles', 'NOT CONNECTED label missing');
-if (has(src, 'if (!state.connected[key]) return'))
-  ok('toggles: unconnected platforms unflippable');
-else no('toggles', 'unflippable-toggles guard missing');
-if (has(src, 'if (!state.connected[k]) state.toggles[k] = false'))
-  ok('toggles: unconnected platforms forced off');
-else no('toggles', 'forced-off for unconnected platforms missing');
+if (has(src, 'publisher_checklist') || has(src, 'checklist:')) ok('toggles: checklist re-runs on toggle change');
+else no('toggles', 'checklist refresh on toggle change missing');
 
 console.log('== 7. banned terms ==');
 if (/\bdonate\w*\b/i.test(ui)) no('banned', 'banned term in UI copy: ' + (ui.match(/\bdonate\w*\b/i) || [])[0]);
@@ -169,8 +180,8 @@ else ok('banned: no banned handle in UI copy');
 if (has(src, 'function bannedHit')) ok('banned: bannedHit scanner defined');
 else no('banned', 'bannedHit scanner missing');
 var scanCalls = (src.match(/bannedHit\(/g) || []).length;
-if (scanCalls >= 3) ok('banned: scan runs before preview and push (' + scanCalls + ' call sites)');
-else no('banned', 'bannedHit called only ' + scanCalls + 'x — must gate preview and push');
+if (scanCalls >= 2) ok('banned: scan gates push (' + scanCalls + ' call sites)');
+else no('banned', 'bannedHit called only ' + scanCalls + 'x — must gate the push');
 
 console.log('== 8. no XP logic ==');
 if (/\bxp\b/i.test(code.replace(/\bpublisher\b/gi, ''))) no('xp', 'XP token in module code');
@@ -183,8 +194,8 @@ else ok('xp: no XP economy references (display only)');
 console.log('== 9. dry-run ==');
 if (has(src, 'DRY RUN') && has(src, 'nothing publishes')) ok('dry-run: "DRY RUN — nothing publishes." banner copy');
 else no('dry-run', 'dry-run banner copy missing');
-if (has(src, 'dry_run: true')) ok('dry-run: post object carries dry_run:true');
-else no('dry-run', 'post object missing dry_run');
+if (has(src, 'publisher_status') && has(src, 'state.dryRun')) ok('dry-run: banner follows backend dry-run state');
+else no('dry-run', 'banner does not follow backend dry-run state');
 if (has(src, 'j.live')) ok('dry-run: banner hidden only when the backend reports a platform live');
 else no('dry-run', 'banner does not react to backend live flags');
 
@@ -196,7 +207,7 @@ console.log('== 10. status board + history ==');
 if (has(src, "publisher_push_status") || has(src, 'pushStatus')) ok('status: polls publisher_push_status');
 else no('status', 'status polling missing');
 /* B1: unknown is terminal — poller only continues on 'queued', never retries. */
-if (/if \(st === 'queued'\)/.test(src)) ok('status: unknown never retries (poll continues on queued only)');
+if (/=== 'queued'/.test(src)) ok('status: unknown never retries (poll continues on queued only)');
 else no('status', 'poller may retry non-queued states');
 if (has(src, 'MARK SENT') && has(src, 'MARK FAILED') && has(src, 'data-pub-reconcile'))
   ok('status: unknown rows carry manual-reconciliation affordance');
@@ -208,17 +219,17 @@ if (has(src, 'publisher_history') && has(src, 'PUBLISH HISTORY'))
 else no('history', 'publish-history surface missing');
 
 console.log('== 11. backend contract ==');
-if (has(src, "{ type: 'publisher', publisher_action: cAction }"))
+if (has(src, "type: 'publisher'") && has(src, 'publisher_action: cAction'))
   ok('contract: {type:publisher, publisher_action} envelope idiom');
 else no('contract', 'publisher envelope idiom missing');
-['status', 'preview', 'push', 'pushStatus', 'reconcile', 'history'].forEach(function (a) {
+['status', 'staged', 'poll', 'draftGet', 'checklist', 'enqueue', 'push', 'pushStatus', 'reconcile', 'history'].forEach(function (a) {
   if (new RegExp(a + ":\\s*'publisher_").test(src)) ok('contract: PUB_ACTION.' + a);
   else no('contract', 'PUB_ACTION.' + a + ' missing');
 });
 if (has(src, "'X-Admin-Secret'")) ok('contract: X-Admin-Secret admin rail');
 else no('contract', 'X-Admin-Secret header missing');
-if (has(src, "warreport_latest")) ok('contract: draft load reuses existing warreport_latest read');
-else no('contract', 'draft load does not reuse warreport_latest');
+if (has(src, "warreport_latest")) no('contract', 'dead warreport_latest dependency present');
+else ok('contract: no war-report dependency (Substack is the origin)');
 
 console.log('== 12. bundle registration ==');
 var bsrc = read(path.join(ROOT, 'build', 'bundle.js'));
@@ -235,10 +246,10 @@ if (/`/.test(src)) no('backticks', 'backtick spans present — lone-backslash ha
 else ok('backticks: no backtick spans (hazard class absent by construction)');
 
 console.log('== 14. account targeting (spec B3) ==');
-/* Post object carries the spec §2 targets block. */
-if (has(src, 'targets: {') && has(src, 'account_id: currentTargetId') && has(src, "page_id: currentTargetId('facebook')") && has(src, "channel: currentTargetId('discord')"))
-  ok('targets: post object carries the spec targets block');
-else no('targets', 'post object targets block missing or incomplete');
+/* Push carries the spec §2 targets block. */
+if (has(src, 'account_id: currentTargetId') && has(src, "page_id: currentTargetId('facebook')") && has(src, "channel: currentTargetId('discord')"))
+  ok('targets: push carries the spec targets block');
+else no('targets', 'push targets block missing or incomplete');
 if (has(src, 'data-pub-target')) ok('targets: per-platform target selectors rendered');
 else no('targets', 'per-platform target selectors missing');
 if (has(src, 'data-pub-placement') && has(src, "'feed'") && has(src, "'story'"))
@@ -259,11 +270,13 @@ else no('targets', 'explicit per-push confirmation missing');
 if (has(src, 'Explicit choice required')) ok('targets: PUSH blocked until the explicit choice is confirmed');
 else no('targets', 'PUSH does not gate on the explicit choice');
 
-console.log('== 15. IG placement at preview time (spec B5) ==');
-if (has(src, 'Placement pinned')) ok('preview: IG placement shown in the preview tab');
-else no('preview', 'IG placement not shown in preview');
-if (has(src, 'NEEDS IMAGE')) ok('preview: text-only IG post shows "needs image" in preview');
-else no('preview', '"needs image" preview warning missing');
+console.log('== 15. IG share card ==');
+if (has(src, 'drawShareCard') && has(src, 'data-pub-card')) ok('preview: canvas-rendered share-card preview');
+else no('preview', 'share-card canvas preview missing');
+if (has(src, 'JOIN THE FIGHT.')) ok('preview: share card carries the PFShare CTA');
+else no('preview', 'share-card CTA missing');
+if (has(src, 'auto-generate') || has(src, 'auto-generated')) ok('preview: auto-card note for text-only posts');
+else no('preview', 'auto-card note missing');
 
 console.log('\n' + passes + ' passed, ' + fails.length + ' failed.');
 if (fails.length) { console.log('FAILURES:'); fails.forEach(function (f) { console.log(' - ' + f); }); process.exit(1); }

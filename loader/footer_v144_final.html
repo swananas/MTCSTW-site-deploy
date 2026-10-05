@@ -121,16 +121,23 @@ function jsSeq(){
 }
 function loadBundle(n,cb){
   var s=document.createElement('script');s.src=BASE+n;s.async=true;
-  s.onload=function(){try{if(window.PF&&PF.mountSilos)PF.mountSilos();}catch(e){} if(cb)cb();};
+  /* 2026-10-05 (fe/events-move): a lazy chunk can stage templates for EITHER
+     mounter — the homepage (PF.mountSilos) or a dedicated page
+     (PF.mountPageSilos, page-mount.js). Call both, guarded. */
+  s.onload=function(){try{if(window.PF){if(PF.mountSilos)PF.mountSilos();if(PF.mountPageSilos)PF.mountPageSilos();}}catch(e){} if(cb)cb();};
   s.onerror=function(){siloFail(n);if(cb)cb();};
   document.head.appendChild(s);
 }
-/* Lazy section bundles: each .pf-sec-anchor (injected by home-v2.js)
-   names its bundle in data-bundle. Observe per section — a bundle loads
-   when its section scrolls near the viewport. sec1 is already in JS_SEQ.
-   Safety nets: 15s timeout loads everything; no-IO fallback loads all. */
+/* Lazy section bundles: each .pf-sec-anchor (injected by home-v2.js on the
+   homepage, or by pages/page-mount.js for lazy PAGE_ORDERS entries such as
+   the /events map chunk) names its bundle in data-bundle. Observe per
+   section — a bundle loads when its section scrolls near the viewport.
+   sec1 is already in JS_SEQ. On /events, bundle-events-map.js (the
+   protest/event map) lazy-loads here; irl + townhall ride the blocking
+   bundle-events.js. Safety nets: 15s timeout loads everything; no-IO
+   fallback loads all. */
 function jsLazy(){
-  var host=document.getElementById('pf-v2');
+  var host=document.getElementById('pf-v2')||document.getElementById('pf-events');
   if(!host){return;}
   var anchors=host.querySelectorAll('.pf-sec-anchor[data-bundle]');
   var pending={};

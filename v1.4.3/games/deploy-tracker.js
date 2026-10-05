@@ -33,7 +33,8 @@
     { id: 'enlisted',glyph: '\u2694',     name: 'Enlisted',           ev: 'pf-enlisted',            href: '/#pf-ranks' },
     { id: 'guess',   glyph: '\u25CE',     name: 'Profiler',           ev: 'pf-guess-done',          href: '/arcade#pf-guess' },
     { id: 'raid',    glyph: '\u26A1',     name: 'Raider',             ev: 'pf-raid-report',         href: '/arcade#pf-battles' },
-    { id: 'infight', glyph: '\uD83E\uDD4A', name: 'Brawler',          ev: 'pf-infight-fire',        href: '/arcade#pf-infight-root' }
+    { id: 'infight', glyph: '\uD83E\uDD4A', name: 'Brawler',          ev: 'pf-infight-fire',        href: '/arcade#pf-infight-root' },
+    { id: 'casino',  glyph: '\uD83C\uDFB0', name: 'High Roller',      ev: 'pf-casino-cashed',       href: '/arcade#pf-casino' }
   ];
 
   function load() {
@@ -105,7 +106,7 @@
 
   function urgencyHtml(left, hrs) {
     if (left <= 0) {
-      return '<div class="pd-note">FULL DEPLOYMENT secured. <b>15/15</b> medals this week.' +
+      return '<div class="pd-note">FULL DEPLOYMENT secured. <b>16/16</b> medals this week.' +
         '<br>The rack resets Monday \u2014 fresh march, soldier.</div>';
     }
     var noun = left === 1 ? 'medal' : 'medals';
@@ -154,7 +155,7 @@
     }
     h += urgencyHtml(missed.length, hoursToReset());
     if (got > 0 && missed.length > 0) {
-      h += '<div class="pd-earned">' + got + '/15 earned: ' + gotGlyphs + '</div>';
+      h += '<div class="pd-earned">' + got + '/16 earned: ' + gotGlyphs + '</div>';
     }
     el.innerHTML = h;
     return true;

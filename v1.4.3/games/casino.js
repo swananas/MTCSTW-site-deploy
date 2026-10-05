@@ -72,6 +72,26 @@ function postG(gAction,params,cb){
       .catch(function(){ _po._pfClear(); done(null); });
   }catch(e){ done(null); }
 }
+/* 6A-R2: CORS POST for bank writes — same backend action as the /bank
+   vault's DEPOSIT button (fail-closed xpGrant, weekly deposit cap,
+   idempotency key). Lets VAULT IT one-tap winnings into the vault
+   without leaving the win screen. No new backend actions. */
+function postBank(bAction,params,cb){
+  var body=Object.assign({type:"bank",b_action:bAction},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+}
 var W=null, L=null, F=null, C=null;
 var crashTimer=null;
 function fmtTime(ms){
@@ -93,7 +113,7 @@ function load(){
 /* ============ WAGERS ============ */
 function renderWagers(id){
   var ws=(W&&W.wagers)||[];
-  var h='<div class="x-pane"><h4>Wagers</h4><div class="x-note">Bet XP on battles, races, and challenges. Winners split the pool.</div>';
+  var h='<div class="x-pane" id="csWagersPane"><h4>Wagers</h4><div class="x-note">Bet XP on battles, races, and challenges. Winners split the pool.</div>';
   if(!ws.length){ h+='<div class="x-note">No open wagers right now. Check back soon.</div>'; }
   for(var i=0;i<ws.length;i++){
     var w=ws[i];
@@ -180,6 +200,134 @@ function renderRoulette(id){
     +'<button class="c-btn" id="csSpin">SPIN</button></div>'
     +'<div class="cs-roures" id="csRouRes"></div><div class="c-err" id="csRouErr"></div></div>';
   return h;
+}
+/* ============ CASHOUT REVEAL (6A-R2) ============ */
+/* "I JUST CASHED OUT +N XP" poster painter. Reads the mounted cashout
+   reveal's data-pay attribute so the card carries the real payout.
+   Registered as the PFShare 'casino' painter (setPoster) — SHARE THE WIN
+   calls it, then hands the canvas to PFShare.shareImage ('casino' game id,
+   ?ref= attribution via opts.link -> PF.shareUrl, JOIN THE FIGHT. footer
+   per the share-image CTA standard; FIGHTING AS <CALLSIGN> stamped by
+   the share flow, idempotent). */
+function casinoPaintPoster(done){
+  try{
+    var rev=document.getElementById("csCashoutReveal");
+    var pay=rev?Math.round(Number(rev.getAttribute("data-pay"))||0):0;
+    var W=1080,H=1350,cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+    var x=cv.getContext("2d"); if(!x){ done(null); return; }
+    function wrapT(text,maxW){ var words=String(text==null?"":text).split(" "),lines=[],line="";
+      for(var i=0;i<words.length;i++){ var t=line?line+" "+words[i]:words[i];
+        if(x.measureText(t).width>maxW&&line){ lines.push(line); line=words[i]; } else { line=t; } }
+      if(line)lines.push(line); return lines; }
+    x.fillStyle="#0d0d0d"; x.fillRect(0,0,W,H);
+    x.strokeStyle="#c1121f"; x.lineWidth=18; x.strokeRect(16,16,W-32,H-32);
+    x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(52,52,W-104,H-104);
+    x.textAlign="center";
+    var y=170;
+    x.fillStyle="#f5ead6"; x.font="700 34px Arial,sans-serif";
+    x.fillText("★ THE PROPAGANDA FACTORY ★",W/2,y); y+=110;
+    x.fillStyle="#c1121f"; x.font="900 72px \\\"Arial Black\\\",Arial,sans-serif";
+    x.fillText("THE WHITE MARKET",W/2,y); y+=96;
+    x.fillStyle="#f5ead6"; x.font="900 56px \\\"Arial Black\\\",Arial,sans-serif";
+    x.fillText("I JUST CASHED OUT",W/2,y); y+=104;
+    x.fillStyle="#ff5a00"; x.font="900 116px \\\"Arial Black\\\",Arial,sans-serif";
+    x.fillText("+"+pay.toLocaleString()+" XP",W/2,y); y+=96;
+    x.fillStyle="#c9bfa8"; x.font="400 38px Arial,sans-serif";
+    wrapT("The house is us — and it pays out.",W-210).forEach(function(l){ x.fillText(l,W/2,y); y+=52; });
+    /* footer: MTCSTW.COM + JOIN THE FIGHT. (red, bold) — the share-image CTA standard */
+    x.fillStyle="#c1121f"; x.font="900 46px \\\"Arial Black\\\",Arial,sans-serif";
+    x.fillText("MTCSTW.COM",W/2,H-168);
+    x.font="900 44px \\\"Arial Black\\\",Arial,sans-serif";
+    x.fillText("JOIN THE FIGHT.",W/2,H-108);
+    x.fillStyle="#c9bfa8"; x.font="400 30px Arial,sans-serif";
+    try{ x.fillText(new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}).toUpperCase(),W/2,H-58); }catch(e){}
+    done(cv);
+  }catch(e){ try{ done(null); }catch(e2){} }
+}
+/* Persistent win screen mounted at the top of the casino on every cashout
+   (crash cashout, roulette win). VAULT IT one-taps the winnings into the
+   /bank vault via the existing bank deposit action (fail-closed, weekly
+   cap, idempotency key — no new backend actions). SHARE THE WIN fires the
+   PFShare 'casino' cashout poster. The exits chip row (RUN IT BACK / VAULT
+   / MARKETS) keeps the win screen from being a dead end. Fires
+   pf-casino-cashed so the 16th service medal ticks. */
+function cashoutReveal(payout,game,big){
+  var el=document.getElementById("xCasino"); if(!el) return;
+  var id=ident();
+  var pay=Math.round(Number(payout)||0);
+  if(pay<1) return;
+  var old=document.getElementById("csCashoutReveal");
+  if(old&&old.parentNode) old.parentNode.removeChild(old);
+  /* stable per-reveal key: retries of the same win are idempotent, a new
+     cashout mints a new key (the backend also rejects double cashouts). */
+  var vkey=id.device+":vaultit:"+game+":"+pay+":"+Date.now();
+  var d=document.createElement("div");
+  d.id="csCashoutReveal";
+  d.setAttribute("data-pay",String(pay));
+  d.setAttribute("style","border:2px solid #c1121f;background:#141414;text-align:center;padding:18px 12px;margin-bottom:12px;");
+  d.innerHTML=
+    '<div style="font-family:\\\'Arial Black\\\',Arial,sans-serif;color:#ff5a00;font-size:16px;letter-spacing:3px;">★ THE HOUSE PAYS OUT ★</div>'
+    +'<div style="font-family:\\\'Arial Black\\\',Arial,sans-serif;color:#f5f0e6;font-size:44px;margin:8px 0;">+'+pay.toLocaleString()+' XP</div>'
+    +'<div class="x-note">Winnings in hand. Vault it, brag about it, or run it back.</div>'
+    +'<div style="margin:12px 0 4px;"><button class="c-btn" id="csVaultIt" style="font-size:15px;padding:12px 30px;">VAULT IT →</button></div>'
+    +'<div class="c-err" id="csVaultErr"></div>'
+    +'<div style="margin-top:6px;"><button class="c-btn ghost" id="csShareWin">SHARE THE WIN</button></div>'
+    +'<div class="x-note" style="margin:12px 0 6px;letter-spacing:2px;">— EXITS —</div>'
+    +'<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">'
+    +'<button class="c-btn ghost pf-btn-sm" id="csXReplay">↻ RUN IT BACK</button>'
+    +'<button class="c-btn ghost pf-btn-sm" id="csXVault">◈ VAULT</button>'
+    +'<button class="c-btn ghost pf-btn-sm" id="csXMarkets">⚄ MARKETS</button>'
+    +'</div>';
+  el.insertBefore(d,el.firstChild);
+  /* the cashout moment ticks the 16th service medal */
+  try{ document.dispatchEvent(new CustomEvent("pf-casino-cashed")); }catch(e){}
+  /* M1 dopamine: the reveal replaces the old toast — keep the celebration.
+     Jackpot (roulette 5x+) gets the big one. */
+  try{ if(window.PF&&PF.dope){ PF.dope.confetti(d,big?110:60); if(big) PF.dope.ping(d,"JACKPOT +"+pay+" XP"); else PF.dope.xpFloat(d,"+"+pay+" XP"); } }catch(dpe){}
+  /* --- VAULT IT: one tap, winnings -> /bank vault --- */
+  var vi=document.getElementById("csVaultIt");
+  if(vi) vi.onclick=function(){
+    var er=document.getElementById("csVaultErr");
+    if(er) er.textContent="";
+    vi.disabled=true; vi.textContent="VAULTING...";
+    postBank("deposit",{callsign:id.callsign,device:id.device,amount:pay,key:vkey},function(j){
+      if(!j||!j.ok){
+        vi.disabled=false; vi.textContent="VAULT IT →";
+        var msg=PF.errCopy(j,"Vault deposit failed.");
+        if(er) er.textContent=msg; else toast(msg);
+        return;
+      }
+      vi.textContent="VAULTED ✓";
+      toast("+"+pay.toLocaleString()+" XP in the vault.");
+      try{ document.dispatchEvent(new CustomEvent("pf-do-update")); }catch(e2){}
+    });
+  };
+  /* --- SHARE THE WIN: PFShare 'casino' cashout poster --- */
+  var sw=document.getElementById("csShareWin");
+  if(sw) sw.onclick=function(){
+    sw.disabled=true;
+    try{
+      /* re-register in case the share companion loaded after this silo */
+      try{ if(window.PFShare&&PFShare.setPoster) PFShare.setPoster("casino",casinoPaintPoster); }catch(e0){}
+      casinoPaintPoster(function(cv){
+        sw.disabled=false;
+        if(!cv){ toast("Poster failed — try again."); return; }
+        if(!(window.PFShare&&PFShare.shareImage)){ toast("Share engine loading — try again in a moment."); return; }
+        PFShare.shareImage(cv,"pfn-casino-cashout.png","The White Market — I just cashed out","casino",{link:"https://www.mtcstw.com/arcade"});
+      });
+    }catch(e){ sw.disabled=false; toast("Poster failed — try again."); }
+  };
+  /* --- exits: replay / vault / markets --- */
+  var rb=document.getElementById("csXReplay");
+  if(rb) rb.onclick=function(){ load(); };
+  var vb=document.getElementById("csXVault");
+  if(vb) vb.onclick=function(){ try{ location.href="/bank#pf-peoplesbank"; }catch(e){} };
+  var mb=document.getElementById("csXMarkets");
+  if(mb) mb.onclick=function(){
+    var wp=document.getElementById("csWagersPane");
+    if(wp){ try{ wp.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){ try{ wp.scrollIntoView(); }catch(e2){} } }
+    else toast("Wagers are at the top of the hall.");
+  };
 }
 function render(){
   var el=document.getElementById("xCasino"); if(!el) return;
@@ -286,10 +434,8 @@ function wire(id){
     co.disabled=true; co.textContent="CASHING OUT...";
     postG("crash_cashout",{callsign:id.callsign},function(j){
       if(!j||!j.ok){ toast(PF.errCopy(j,"Cashout failed.")); load(); return; }
-      toast("CASHED OUT: +"+(j.payout||0)+" XP!");
-      /* M1 dopamine: cashing out before the crash is the skill moment. */
-      try{ if(window.PF&&PF.dope){ var ch=document.getElementById("xCasino")||document.body; PF.dope.confetti(ch,50); PF.dope.xpFloat(ch,"+"+(j.payout||0)+" XP"); } }catch(dpe){}
-      load();
+      /* 6A-R2: persistent cashout reveal (VAULT IT / SHARE THE WIN / exits). */
+      cashoutReveal(j.payout,"crash");
     });
   };
   /* --- roulette --- */
@@ -308,10 +454,9 @@ function wire(id){
       if(!j||!j.ok){ if(e) e.textContent=PF.errCopy(j,"Spin failed."); return; }
       var res=j.result!=null?j.result:"?";
       var pay=Number(j.payout)||0;
-      if(r) r.innerHTML='<div class="cs-rounum">'+esc(res)+'</div><div class="'+(pay>0?"cs-win":"cs-lose")+'">'
-        +(pay>0?("WON +"+pay+" XP"):("LOST "+amt+" XP"))+'</div>';
-      /* M1 dopamine: a winning spin should feel like winning. Jackpot = big one. */
-      try{ if(pay>0&&window.PF&&PF.dope){ var rh=document.getElementById("xCasino")||document.body; var big=pay>=amt*5; PF.dope.confetti(rh,big?100:45); if(big) PF.dope.ping(rh,"JACKPOT +"+pay+" XP"); else PF.dope.xpFloat(rh,"+"+pay+" XP"); } }catch(dpe){}
+      /* 6A-R2: a winning spin cashes out — persistent reveal, not a wiped line. */
+      if(pay>0){ cashoutReveal(pay,"roulette",pay>=amt*5); return; }
+      if(r) r.innerHTML='<div class="cs-rounum">'+esc(res)+'</div><div class="cs-lose">LOST '+amt+' XP</div>';
       load();
     });
   };
@@ -336,6 +481,10 @@ function startCrashPoll(){
     });
   },5000);
 }
+/* 6A-R2: register the cashout painter with the share-image companion
+   (PFShare registry key 'casino'). Guarded: if the companion is killed
+   (?pf_off=share-image) SHARE THE WIN falls back to a toast. */
+try{ if(window.PFShare&&PFShare.setPoster) PFShare.setPoster("casino",casinoPaintPoster); }catch(e){}
 load();
 setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },120000);
 })();

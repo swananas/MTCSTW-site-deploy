@@ -74,6 +74,15 @@
       lines: ['War Bonds fund 60% of all PF operations.', 'Starting at $1. Every dollar is ammunition.'],
       cta: 'BUY WAR BONDS'
     },
+    /* 6A-R2: The White Market cashout poster. The dynamic "I JUST CASHED
+       OUT +N XP" card is painted by the casino silo's custom painter
+       (PFShare.setPoster('casino', ...)); this REG entry is the template
+       in the generator registry + the fallback generic poster. */
+    'casino': {
+      title: '\u2605 THE WHITE MARKET \u2605', tag: 'The XP wagering hall',
+      lines: ['I just cashed out. The house paid.', 'Wager XP. Cash out before the crash.'],
+      cta: 'PLAY THE MARKET'
+    },
     'slr-match-quiz': {
       title: '\u2691 FIND YOUR SLR MATCH \u2691', tag: 'What kind of propagandist are you?',
       lines: ['Take the 5-question quiz.', 'Get your archetype + 3 SLR matches.'],

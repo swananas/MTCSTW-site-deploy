@@ -17,11 +17,14 @@
 
 <h2>The Poster Forge</h2>
 <div class="p-sub">Make propaganda. Download it. Plaster the internet.</div>
+<div id="pfStrikeBar" style="display:none"></div>
 <style>
 #pf-poster .p-tabs{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
 #pf-poster .p-tab.on{border-color:#c1121f;background:rgba(193,18,31,.18);color:#fff}
 #pfPane-video{margin-top:6px}
 #pfPane-political{margin-top:6px}
+#pfStrikeBar{display:none;border:2px solid #c1121f;background:rgba(193,18,31,.12);padding:10px 14px;margin:10px 0;font-family:Arial,sans-serif;color:#f5ead6}
+#pfStrikeBar b{letter-spacing:1px}
 </style>
 <div class="p-tabs" role="tablist">
   <button class="c-btn p-tab on" data-ptab="poster" role="tab">POSTER</button>
@@ -251,9 +254,21 @@ document.getElementById("pDownload").onclick=function(e){
     var last=null;try{last=localStorage.getItem(pfKey);}catch(err){}
     if(last!==today){
       try{localStorage.setItem(pfKey,today);}catch(err){}
-      document.dispatchEvent(new CustomEvent("pf-poster-made",{detail:{day:today}}));
+      var pfDetail={day:today};
+      /* Strike-orders creation loop (fe/strike-orders-creative): tag the
+         entity binding so the order completes entity-bound. Zero XP impact
+         — same event, richer detail. */
+      if(pfStrikeLaunch&&pfStrikeLaunch.strike&&pfStrikeLaunch.entity&&pfStrikeLaunch.entity.id){
+        pfDetail.strike={cell_id:pfStrikeLaunch.strike.cell_id,week_start:pfStrikeLaunch.strike.week_start,
+          entity_kind:pfStrikeLaunch.entity.kind,entity_id:pfStrikeLaunch.entity.id};
+      }
+      document.dispatchEvent(new CustomEvent("pf-poster-made",{detail:pfDetail}));
     }
   }catch(err){}
+  /* Strike-orders creation loop: entity-bound completion receipt (zero XP,
+     idempotent server-side via INSERT OR IGNORE). Own once-per-order gate —
+     independent of the daily poster-XP gate above. */
+  try{ pfStrikeLogForge(); }catch(err2){}
   pfLogShare();
   stampedBlob(function(blob){
     var url=URL.createObjectURL(blob);
@@ -902,6 +917,80 @@ render();
     (function(b){ b.addEventListener('click',function(){ show(b.getAttribute('data-ptab')); }); })(tabs[k]);
   }
 })();
+
+/* ---------- STRIKE ORDERS creation loop (2026-10-05, fe/strike-orders-creative)
+   FORGE THIS handoff: the cell strike-orders panel writes pf_forge_launch_v1
+   (cross-page) and/or fires pf-forge-launch (same-page). On arrival the forge
+   shows the "Forging ammo for X" confirmation state — the loop closes here,
+   never a generic screen — pre-loads the entity headline, and on download
+   tags the pf-poster-made detail + POSTs strike_forge_log (zero XP,
+   idempotent) so the strike order completes entity-bound.
+   POLITICAL TAB HOOK: when the release train lands the Forge POLITICAL tab
+   (pick-fight consumer #1), it will render a [data-ptab="political"] tab and
+   this switches to it automatically — the launch payload already carries
+   tab:'political'. */
+var pfStrikeLaunch=null;
+function pfApplyForgeLaunch(p){
+  if(!p||!p.strike||!p.strike.cell_id) return;
+  pfStrikeLaunch=p;
+  var title=(p.entity&&p.entity.title)||'this week\u2019s fight';
+  try{
+    var bar=document.getElementById('pfStrikeBar');
+    if(bar){
+      bar.style.display='block';
+      bar.innerHTML='<b>FORGING AMMO FOR: '+pfEsc(String(title).toUpperCase())+'</b>'+
+        '<div style="font-size:12.5px;opacity:.85;margin-top:4px">Strike order accepted — forge it, download it, share it. Your cell counts it.</div>';
+    }
+  }catch(e){}
+  /* Pre-load the entity into the headline if the forge is untouched. */
+  try{
+    var head=document.getElementById('pHead');
+    if(head&&title){
+      var cur=String(head.value||'');
+      if(!cur.trim()||cur==='EAT THE RICH'){
+        head.value=String(title).toUpperCase().slice(0,60);
+        if(typeof sync==='function') sync();
+      }
+    }
+  }catch(e2){}
+  /* POLITICAL tab hook — no-op until the release train lands the tab. */
+  try{
+    var ptab=document.querySelector('#pf-poster .p-tab[data-ptab="political"]');
+    if(ptab) ptab.click();
+  }catch(e3){}
+}
+function pfStrikeLogForge(){
+  if(!pfStrikeLaunch||!pfStrikeLaunch.strike||!pfStrikeLaunch.entity||!pfStrikeLaunch.entity.id) return;
+  var sk='pf_strike_logged_'+String(pfStrikeLaunch.strike.cell_id).replace(/[^a-z0-9_-]/gi,'')+'_'
+    +String(pfStrikeLaunch.strike.week_start).slice(0,10)+'_'+String(pfStrikeLaunch.entity.id).replace(/[^a-z0-9_-]/gi,'');
+  try{ if(localStorage.getItem(sk)==='1') return; }catch(e){}
+  var id=null;
+  try{ id=pfIdent(); }catch(e2){ return; }
+  if(!id||!id.callsign) return;
+  try{
+    pfPost({type:'cell',cell_action:'strike_forge_log',
+      cell_id:String(pfStrikeLaunch.strike.cell_id).slice(0,64),
+      week_start:String(pfStrikeLaunch.strike.week_start).slice(0,10),
+      entity_kind:String(pfStrikeLaunch.entity.kind||'').slice(0,16),
+      entity_id:String(pfStrikeLaunch.entity.id||'').slice(0,64),
+      callsign:id.callsign,device:id.device||''},
+      function(j){ try{
+        if(j&&j.ok){ localStorage.setItem(sk,'1'); pfToast('STRIKE LOGGED — your cell counts it.'); }
+      }catch(e3){} });
+  }catch(e4){}
+}
+function pfConsumeForgeLaunch(){
+  var raw=null;
+  try{ raw=localStorage.getItem('pf_forge_launch_v1'); }catch(e){}
+  if(!raw) return;
+  try{ localStorage.removeItem('pf_forge_launch_v1'); }catch(e2){}
+  var p=null;
+  try{ p=JSON.parse(raw); }catch(e3){ return; }
+  if(!p||!p.ts||Date.now()-p.ts>15*60*1000) return; /* stale handoff */
+  pfApplyForgeLaunch(p);
+}
+try{ document.addEventListener('pf-forge-launch',function(ev){ try{ pfApplyForgeLaunch(ev&&ev.detail); }catch(x){} }); }catch(e5){}
+pfConsumeForgeLaunch();
 </scr`+`ipt>
 </div>
 </template>`);

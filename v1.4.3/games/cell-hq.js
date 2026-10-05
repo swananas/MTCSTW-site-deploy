@@ -242,6 +242,13 @@
     '.hq-bar{height:10px;background:#222;margin:4px 0 10px;position:relative}' +
     '.hq-bar>div{height:10px;background:#c1121f}' +
     '.hq-winner{border-color:#c1121f;background:#180a0a}' +
+    '.hq-strike-pol{border-color:#c1121f;background:#1a0505}' +
+    '.hq-badge.gold{background:#8a6d1f;color:#fff;border:1px solid #d4af37}' +
+    '.hq-badge.plain{margin-left:0;margin-right:6px}' +
+    '.hq-btn.hq-btn44{min-height:44px;display:inline-flex;align-items:center;padding:4px 18px;line-height:1.3}' +
+    '.hq-strike-sum{cursor:pointer;min-height:44px;display:flex;align-items:center;gap:6px;font-weight:700;font-size:14px}' +
+    '.hq-order-t{margin:8px 0 4px;font-size:16px}' +
+    '.hq-order-d{font-size:13.5px;line-height:1.5;opacity:.9;margin-bottom:8px}' +
     '.hq-note{font-size:12.5px;opacity:.8;line-height:1.5}' +
     '@media(max-width:560px){.hq-pane{padding:10px}.hq-head h2{font-size:19px}}' +
     '</style>';
@@ -576,7 +583,14 @@
       h += '<div class="hq-card"><div class="hq-row">' +
         '<button class="hq-btn sm ghost" data-hq="leave" data-cell="'+esc(S.detail)+'">LEAVE CELL</button></div></div>';
     }
+    /* G12 (2026-10-05): strike orders — rotating cell missions with a
+       standing political slot. Renders into a placeholder; the payload is
+       async and fail-soft (coming-soon cards) so it never blocks HQ. */
+    if (!strikeOff() && cell && cell.id){
+      h += '<div id="hqStrikeBody">'+loading('Issuing strike orders&hellip;')+'</div>';
+    }
     body.innerHTML = h;
+    if (!strikeOff() && cell && cell.id){ paintStrikeOrders(body, cell.id, isFounder); }
   }
 
   function pulseLine(hh){
@@ -588,6 +602,242 @@
     else parts.push('silent this week');
     if (rc > 0) parts.push(rc+' new recruit'+(rc===1?'':'s')+' in 30 days');
     return parts.join('. ') + '.';
+  }
+
+  /* ---------- STRIKE ORDERS (2026-10-05) ---------- */
+  /* Rotating cell-level missions: 2 operational + 1 standing political.
+     Contract: GET ?action=strike_orders_get&cell_id=&callsign= ->
+     {ok, week_start, orders:[{slot,title,detail,deep_link,task_type,task_ref}],
+      members:[{callsign,ops_done,political_done}], aggregate:{ops:"x/y",political:"x/y"}}
+     POST {type:'cell',cell_action:'strike_reroll',cell_id,callsign} (founder).
+     Optional ?fight_areas=a,b (weave #6, 2026-10-05): the member's local
+     pick-your-fight areas (PF.pickFight(), localStorage pf_pick_fight_v1 —
+     may not be loaded yet -> param omitted -> canonical plan). Backend uses
+     it ONLY to reorder the political rotation as a read-time view; slot
+     count, XP (zero), reroll, and rotation guarantees are untouched.
+     Fail-soft: anything missing -> coming-soon placeholders. Never a stuck
+     spinner. KILL: ?pf_off=strike. No new XP copy — only backend-supplied
+     reward labels are shown. */
+  function strikeOff(){ try { return PF.skip('strike'); } catch (e){ return false; } }
+
+  function strikeFightAreas(){
+    /* Pick-your-fight preference, defensive: the fe/pick-your-fight module
+       may not be deployed/loaded yet — then no param is sent and the
+       backend serves the canonical plan. [] / never-chosen = no filter. */
+    try {
+      if (window.PF && typeof PF.pickFight === 'function') {
+        var f = PF.pickFight();
+        if (f && f.length) return f.join(',');
+      }
+    } catch (e){}
+    return '';
+  }
+
+  function strikeXY(s){
+    var m = /^(\d+)\s*\/\s*(\d+)$/.exec(String(s==null?'':s));
+    if (!m) return {x:0,y:0};
+    var x = parseInt(m[1],10), y = parseInt(m[2],10);
+    if (isNaN(x)) x = 0; if (isNaN(y)) y = 0;
+    return {x:x, y:y};
+  }
+  function strikeSafeLink(u){
+    var s = String(u==null?'':u);
+    /* Relative site paths only; second char may not be '/' (no //host). */
+    if (/^\/[a-zA-Z0-9\-_#?&=%.][a-zA-Z0-9\/\-_#?&=%.]*$/.test(s)) return s;
+    return '/political-hq';
+  }
+  function strikeStateScope(tr){
+    /* Stateless wording: only scope the order when the API gave a state. */
+    if (!tr || !tr.state) return '';
+    var st = String(tr.state).toUpperCase().replace(/[^A-Z]/g,'').slice(0,2);
+    if (!st) return '';
+    return '<div class="hq-note" style="margin-bottom:6px"><b>'+esc(st)+' targets</b></div>';
+  }
+  function strikeMemberRows(mems, doneFor){
+    if (!mems || !mems.length) return '<div class="hq-note">No members on record.</div>';
+    return mems.map(function(m){
+      var cs = String(m && m.callsign ? m.callsign : '—');
+      var done = !!doneFor(m);
+      return '<div class="hq-mem"><span><b>'+esc(cs)+'</b></span>' +
+        '<span class="hq-note" style="font-size:16px">'+(done?'&#10003;':'&#9675;')+'</span></div>';
+    }).join('');
+  }
+  function strikeProgress(mems, aggStr, doneFor){
+    var a = strikeXY(aggStr);
+    var pct = a.y > 0 ? Math.min(100, Math.round(a.x / a.y * 100)) : 0;
+    var mems = Array.isArray(mems) ? mems : [];
+    return '<div class="hq-note"><b>'+a.x+'/'+a.y+' members completed</b></div>' +
+      '<div class="hq-bar"><div style="width:'+pct+'%"></div></div>' +
+      '<details><summary class="hq-strike-sum">Who is done? ('+a.x+'/'+a.y+')</summary>' +
+      strikeMemberRows(mems, doneFor) + '</details>';
+  }
+  function strikeOpsCard(o, mems, agg){
+    var title = o && o.title ? String(o.title) : 'Operations order';
+    var detail = o && o.detail ? String(o.detail) : 'Awaiting the week\u2019s briefing.';
+    var link = strikeSafeLink(o && o.deep_link);
+    var h = '<div class="hq-card"><div class="hq-order-t"><b>'+esc(title)+'</b></div>' +
+      strikeStateScope(o && o.task_ref) +
+      '<div class="hq-order-d">'+esc(detail)+'</div>';
+    if (o && o.reward && String(o.reward).trim()){
+      h += '<div class="hq-note" style="margin-bottom:8px">'+esc(String(o.reward))+'</div>';
+    }
+    h += '<div style="margin:8px 0"><a class="hq-btn hq-btn44" href="'+esc(link)+'">TAKE ACTION &rarr;</a></div>' +
+      strikeProgress(mems, agg, function(m){ return Number(m && m.ops_done || 0) > 0; }) +
+      '</div>';
+    return h;
+  }
+  /* ---------- CREATION TASK (2026-10-05, fe/strike-orders-creative) ----------
+     The political slot sometimes becomes a creation task: forge one poster
+     about a live bound entity. Entity selection: task_ref.entities (bound
+     server-side, state-scoped first); when pick-your-fight data exists, the
+     fight-relevant entity wins, otherwise entities[0]. FORGE THIS deep-links
+     into the Poster Forge via the pf-forge-launch handoff (localStorage for
+     cross-page + CustomEvent same-page); the forge shows the "Forging ammo
+     for X" confirmation state and tags the poster leg so completion is
+     entity-bound. Zero XP from the order itself — the forge's normal
+     poster/share legs pay out. */
+  function strikeForgeEntity(o){
+    var tr = (o && o.task_ref) || {};
+    var ents = tr.entities;
+    if (!Array.isArray(ents) || !ents.length) return null;
+    var fights = [];
+    try {
+      if (window.PF && typeof PF.pickFight === 'function' && !PF.skip('pick-fight')){
+        var f = PF.pickFight();
+        if (Array.isArray(f)) fights = f;
+      }
+    } catch (e) {}
+    if (fights.length){
+      for (var i = 0; i < ents.length; i++){
+        var areas = (ents[i] && ents[i].areas) || [];
+        for (var k = 0; k < fights.length; k++){
+          if (areas.indexOf(fights[k]) >= 0) return ents[i];
+        }
+      }
+    }
+    return ents[0];
+  }
+  function strikeForgeLaunch(cellId, weekStart, ent, deepLink){
+    var payload = { v: 1, tab: 'political', ts: Date.now(),
+      entity: ent ? { kind: String(ent.kind || ''), id: String(ent.id || ''),
+        title: String(ent.title || ''), url: String(ent.url || '') } : null,
+      strike: { cell_id: String(cellId || ''), week_start: String(weekStart || '').slice(0, 10) } };
+    try { localStorage.setItem('pf_forge_launch_v1', JSON.stringify(payload)); } catch (e) {}
+    try { document.dispatchEvent(new CustomEvent('pf-forge-launch', { detail: payload })); } catch (e2) {}
+    var dest = strikeSafeLink(deepLink);
+    if (dest === '/political-hq') dest = '/create#pf-poster';
+    try { window.location.href = dest; } catch (e3) {}
+  }
+  function strikeCreationCard(o, mems, agg, isFounder, cellId, weekStart, rerolled){
+    var tr = (o && o.task_ref) || {};
+    var ent = strikeForgeEntity(o);
+    var detail = o && o.detail ? String(o.detail) : 'Forge one propaganda poster about this week\u2019s fight target.';
+    var h = '<div class="hq-card hq-strike-pol"><div class="hq-row">' +
+      '<span class="hq-badge gold plain">POLITICAL STRIKE</span>' +
+      '<span class="hq-badge plain">CREATION</span></div>' +
+      '<div class="hq-order-t"><b>FORGE A STRIKE POSTER</b></div>' +
+      strikeStateScope(tr) +
+      (ent ? '<div class="hq-note" style="margin-bottom:6px"><b>TARGET: ' + esc(String(ent.title || '')) + '</b></div>' : '') +
+      (tr.why_now ? '<div class="hq-note" style="margin-bottom:6px"><b>WHY NOW:</b> ' + esc(String(tr.why_now)) + '</div>' : '') +
+      '<div class="hq-order-d">' + esc(detail) + '</div>';
+    /* Bounty cross-link: entity-matched bounty when the backend found one;
+       otherwise the generic bounty board. Never invents a bounty. */
+    if (tr.bounty && tr.bounty.title){
+      h += '<div class="hq-note" style="margin-bottom:8px">This also counts toward the <b>' + esc(String(tr.bounty.title)) + '</b> bounty — ' +
+        '<a href="/create?tab=bounties">open the bounty board &rarr;</a></div>';
+    } else {
+      h += '<div class="hq-note" style="margin-bottom:8px">Bounty hunters: <a href="/create?tab=bounties">check the bounty board</a> for poster bounties on this fight.</div>';
+    }
+    if (ent){
+      h += '<div style="margin:8px 0"><button class="hq-btn hq-btn44" data-hq="strike-forge" data-cell="' + esc(cellId) + '"' +
+        ' data-week="' + esc(weekStart || '') + '"' +
+        ' data-ekind="' + esc(String(ent.kind || '')) + '" data-eid="' + esc(String(ent.id || '')) + '"' +
+        ' data-etitle="' + esc(String(ent.title || '')) + '" data-eurl="' + esc(String(ent.url || '')) + '">FORGE THIS &rarr;</button></div>';
+    } else {
+      /* Fail-soft: bound set missing client-side -> plain forge deep-link, never a dead card. */
+      h += '<div style="margin:8px 0"><a class="hq-btn hq-btn44" href="/create#pf-poster">OPEN THE FORGE &rarr;</a></div>';
+    }
+    h += '<div class="hq-note" style="margin-bottom:8px">The order itself grants zero XP — the forge\u2019s normal poster/share legs pay out when you create.</div>';
+    if (isFounder){
+      h += rerolled
+        ? '<div style="margin:8px 0"><button class="hq-btn hq-btn44 ghost" disabled>RE-ROLLED THIS WEEK</button></div>'
+        : '<div style="margin:8px 0"><button class="hq-btn hq-btn44" data-hq="strike-reroll" data-cell="' + esc(cellId) + '">RE-ROLL POLITICAL ORDER</button></div>';
+    }
+    h += strikeProgress(mems, agg, function(m){ return !!(m && m.political_done); }) + '</div>';
+    return h;
+  }
+  function strikePolCard(o, mems, agg, isFounder, cellId, weekStart, rerolled){
+    if (o && o.task_type === 'creation')
+      return strikeCreationCard(o, mems, agg, isFounder, cellId, weekStart, rerolled);
+    var title = o && o.title ? String(o.title) : 'Political strike';
+    var detail = o && o.detail ? String(o.detail) : 'Awaiting the week\u2019s political strike order.';
+    var link = strikeSafeLink(o && o.deep_link);
+    var reroll = '';
+    if (isFounder){
+      reroll = rerolled
+        ? '<div style="margin:8px 0"><button class="hq-btn hq-btn44 ghost" disabled>RE-ROLLED THIS WEEK</button></div>'
+        : '<div style="margin:8px 0"><button class="hq-btn hq-btn44" data-hq="strike-reroll" data-cell="'+esc(cellId)+'">RE-ROLL POLITICAL ORDER</button></div>';
+    }
+    var h = '<div class="hq-card hq-strike-pol"><div class="hq-row">' +
+      '<span class="hq-badge gold plain">POLITICAL STRIKE</span></div>' +
+      '<div class="hq-order-t"><b>'+esc(title)+'</b></div>' +
+      strikeStateScope(o && o.task_ref) +
+      '<div class="hq-order-d">'+esc(detail)+'</div>';
+    if (o && o.reward && String(o.reward).trim()){
+      h += '<div class="hq-note" style="margin-bottom:8px">'+esc(String(o.reward))+'</div>';
+    }
+    h += '<div style="margin:8px 0"><a class="hq-btn hq-btn44" href="'+esc(link)+'">OPEN POLITICAL HQ &rarr;</a></div>' +
+      reroll +
+      strikeProgress(mems, agg, function(m){ return !!(m && m.political_done); }) +
+      '</div>';
+    return h;
+  }
+  function strikeSoonHtml(){
+    /* Fail-soft placeholders — panel always renders, never breaks HQ. */
+    return '<div class="hq-card"><h3>&#9876; Strike orders</h3>' +
+      '<div class="hq-note" style="margin-bottom:10px">The week\u2019s cell missions deploy here.</div>' +
+      '<div class="hq-card dim"><div class="hq-order-t"><b>Operations order</b></div>' +
+      '<div class="hq-note">Coming soon.</div></div>' +
+      '<div class="hq-card dim"><div class="hq-order-t"><b>Operations order</b></div>' +
+      '<div class="hq-note">Coming soon.</div></div>' +
+      '<div class="hq-card hq-strike-pol"><span class="hq-badge gold plain">POLITICAL STRIKE</span>' +
+      '<div class="hq-order-t"><b>Coming soon</b></div>' +
+      '<div class="hq-note">The standing political strike order deploys here.</div></div></div>';
+  }
+  function strikeHtml(j, isFounder, cellId){
+    var orders = j.orders || [];
+    var bySlot = {};
+    orders.forEach(function(o){ if (o && o.slot && !bySlot[o.slot]) bySlot[o.slot] = o; });
+    var ops1 = bySlot.ops1 || bySlot.ops || null;
+    var ops2 = bySlot.ops2 || null;
+    var pol = bySlot.political || null;
+    var mems = j.members || [];
+    var agg = j.aggregate || {};
+    var wk = j.week_start ? ' <span class="hq-note">week of '+esc(String(j.week_start))+'</span>' : '';
+    var h = '<div class="hq-card"><h3>&#9876; Strike orders'+wk+'</h3>' +
+      '<div class="hq-note" style="margin-bottom:10px">Complete them as a cell. Progress counts for the whole crew.</div>' +
+      strikeOpsCard(ops1, mems, agg.ops) +
+      strikeOpsCard(ops2, mems, agg.ops) +
+      strikePolCard(pol, mems, agg.political, isFounder, cellId, j.week_start, !!(j.rerolled_used || j.already_rerolled)) +
+      '</div>';
+    return h;
+  }
+  function paintStrikeOrders(root, cellId, isFounder){
+    var slot = null;
+    try { slot = root.querySelector('#hqStrikeBody'); } catch (e){}
+    if (!slot) return;
+    var sq = withIdent({cell_id: cellId});
+    var sfa = strikeFightAreas();
+    if (sfa) sq.fight_areas = sfa;
+    api('strike_orders_get', sq, function(j){
+      if (!j || !j.ok || !Array.isArray(j.orders)){
+        try { slot.innerHTML = strikeSoonHtml(); } catch (e){}
+        return;
+      }
+      try { slot.innerHTML = strikeHtml(j, isFounder, cellId); } catch (e){
+        try { slot.innerHTML = strikeSoonHtml(); } catch (e2){}
+      }
+    });
   }
 
   /* ---------- TAB 3: CELL WAR ---------- */
@@ -1068,6 +1318,37 @@
         if (j && j.ok){ toast('Covered. Nobody gets left behind.'); refreshMineThen('mine'); }
         else toast(friendlyErr(j));
       });
+    }
+    else if (a==='strike-reroll'){
+      /* G12 (2026-10-05): founder-only re-roll of the political strike order. */
+      if(!needCs()) return; busy(true);
+      postMut('strike_reroll', withIdent({cell_id: cellId}), function(j){
+        busy(false);
+        if (j && j.ok){
+          toast('New political strike order issued.');
+        } else {
+          toast(friendlyErr(j));
+          if (j && (j.already_rerolled || j.rerolled_used || /already|r[eé]-roll/i.test(String(j.err||j.error||j.message||'')))){
+            t.disabled = true; t.textContent = 'RE-ROLLED THIS WEEK';
+            return;
+          }
+        }
+        /* Re-pull the orders so the card + counts are fresh. */
+        paintStrikeOrders(mount, cellId, true);
+      });
+    }
+    else if (a==='strike-forge'){
+      /* fe/strike-orders-creative: FORGE THIS — deep-link into the Poster
+         Forge with the bound entity pre-loaded (pf-forge-launch handoff). */
+      if(!needCs()) return;
+      var fEnt = {
+        kind: t.getAttribute('data-ekind') || '',
+        id: t.getAttribute('data-eid') || '',
+        title: t.getAttribute('data-etitle') || '',
+        url: t.getAttribute('data-eurl') || ''
+      };
+      if (!fEnt.id) fEnt = null;
+      strikeForgeLaunch(cellId, t.getAttribute('data-week') || '', fEnt, '/create#pf-poster');
     }
     else if (a==='bounties'){
       if(!needCs()) return; busy(true);

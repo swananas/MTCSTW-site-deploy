@@ -63,7 +63,10 @@ var CORE_FILES = [
   /* nextop (S4, 2026-10-04): context-aware NEXT OP card, in-flow above the
      footer chrome on every page. Last: mounts before the footer element,
      so the chrome strips (crossnav/16-footer) sit below it. */
-  'core/20-nextop.js'
+  'core/20-nextop.js',
+  /* allfronts (2026-10-04): ALL FRONTS operation banner — fixed-top strip
+     while an operation is live or launching within the hour. */
+  'core/21-allfronts.js'
 ];
 
 var BUNDLES = {
@@ -103,7 +106,9 @@ var BUNDLES = {
     'core/19-crossnav.js',
     /* nextop (S4, 2026-10-04): NEXT OP card on v1.1.0-branch pages too —
        every page ends with a next action, not just v2 pages. */
-    'core/20-nextop.js'
+    'core/20-nextop.js',
+    /* allfronts (2026-10-04): operation banner on v1.1.0-branch pages too. */
+    'core/21-allfronts.js'
   ]
 };
 

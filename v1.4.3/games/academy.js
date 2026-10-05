@@ -16,6 +16,47 @@
   function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
   function toast(m){ try{ PF.toast(m); }catch(e){} }
 
+  /* Wave B1 (S-15): live FRED figures inside lesson content.
+     Lessons carry [[FRED:<SERIES_ID>]] tokens; this map fills them from the
+     existing fred_macro rail. Fail-soft: no key / stale / missing series ->
+     the honest note, never an invented figure. */
+  var FRED_FIGS = {}, FRED_NOTE = 'live figure unavailable \u2014 see /money';
+  function loadFredFigs(cb){
+    api('fred_macro', {}, function(j){
+      try{
+        if(j && j.ok && j.series && j.series.length){
+          for(var i=0;i<j.series.length;i++){
+            var c=j.series[i];
+            if(!c || !c.series_id) continue;
+            if(c.stale){ FRED_FIGS[c.series_id]={note:1}; continue; }
+            var fig=c.change_pct_label || c.value_label || '';
+            FRED_FIGS[c.series_id]={
+              text: fig + (c.period_label ? ' ('+c.period_label+')' : ''),
+              url: c.source_url || ('https://fred.stlouisfed.org/series/'+c.series_id)
+            };
+          }
+        }
+      }catch(e){}
+      try{ if(cb) cb(); }catch(e2){}
+    });
+  }
+  function figHtml(sid){
+    var f=FRED_FIGS[sid];
+    if(!f) return '<span class="ac-frednote">'+esc(FRED_NOTE)+'</span>';
+    if(f.note) return '<span class="ac-frednote">'+esc(FRED_NOTE)+'</span>';
+    return '<b>'+esc(f.text)+'</b> <a href="'+esc(f.url)+'" target="_blank" rel="noopener" class="ac-fredsrc">FRED &#8599;</a>';
+  }
+  /* Split on [[FRED:ID]] tokens; esc() the prose, inject figure HTML. */
+  function richContent(content){
+    var parts=String(content||'').split(/\[\[FRED:([A-Z0-9_]+)\]\]/g), h='';
+    for(var i=0;i<parts.length;i+=2){
+      h+=esc(parts[i]);
+      if(i+1<parts.length) h+=figHtml(parts[i+1]);
+    }
+    return h;
+  }
+  var lastRender=null;
+
   /* Credit the backend grant into the local ledger for instant HUD display.
      The backend already granted this XP via xpGrant — do NOT dispatch pf-xp
      (that would trigger the xpledger mirror with a different key and
@@ -79,6 +120,11 @@
     function maybe(){ calls++; if(calls>=2) fin(); }
     /* Safety: if JSONP hangs, unstick and show retry. */
     setTimeout(function(){ fin(); },15000);
+    /* B1: live FRED figures for the [[FRED:]] lesson tokens; when they land,
+       re-render once so the figures fill in (or the honest note does). */
+    loadFredFigs(function(){
+      if(lastRender) render(lastRender.el,lastRender.lessons,lastRender.ap);
+    });
     var p={};
     if(id.callsign) p.callsign=id.callsign;
     api("lesson_list",p,function(j){
@@ -94,6 +140,7 @@
 
   function render(el,lessons,apLessons){
     var id=ident(), h="";
+    lastRender={el:el,lessons:lessons,ap:apLessons};
     if(!lessons.length){
       el.innerHTML='<div class="fe-block pf-override-block" id="pf-academy">'
         +'<h2>Propaganda Academy</h2>'
@@ -126,7 +173,7 @@
       var isDone=!!L.done, xp=Number(L.xp_reward)||0;
       h+='<div class="x-pane" id="ac-pane-'+esc(L.id)+'">'
         +'<div class="fd-title">'+(i+1)+'. '+esc(L.title)+(isDone?' <span style="color:#7CFC00">&#10003;</span>':"")+'</div>'
-        +'<div class="x-note">'+esc(L.content)+'</div>'
+        +'<div class="x-note">'+richContent(L.content)+'</div>'
         +'<div class="x-note">+'+xp+' XP</div>';
       if(id.callsign&&!isDone){
         h+='<button class="c-btn ac-done" data-lid="'+esc(L.id)+'" data-xp="'+xp+'">MARK COMPLETE</button>';

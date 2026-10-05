@@ -32,7 +32,8 @@ var modSrc = read(MOD), stubSrc = read(STUB);
    checked-in copies still carry the pre-consolidation reassignment until
    the rebuild lands. */
 var assigners = grepFiles(/PF\.PHQShare\s*=/, ['.js'])
-  .filter(function (f) { return f !== MOD && f !== STUB && f.indexOf('/bundle-') === -1; });
+  .filter(function (f) { return f !== MOD && f !== STUB && f.indexOf('/bundle-') === -1 &&
+    f.indexOf('verify-phq-share-consolidation') === -1; });
 check('no PF.PHQShare= outside canonical files', assigners.length === 0, assigners.join(', '));
 var staleBundle = (read('v1.4.3/pages/bundle-pages.js').match(/PF\.PHQShare = \{/g) || []).length > 0;
 console.log('INFO  built v1.4.3/pages/bundle-pages.js still carries the old reassignment: ' +

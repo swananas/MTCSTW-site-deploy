@@ -289,10 +289,14 @@ footer h1, footer h2, footer h3, footer h4{color:#f5ead6 !important;}
 #pf-cells .c-brow{display:flex;align-items:center;gap:10px;padding:6px 4px;font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;border-bottom:1px solid #2a2a2a}
 #pf-cells .c-brow.c-btop{color:#f5ead6}
 #pf-cells .c-vfy{display:inline-block;background:#c1121f;color:#f5ead6;font-family:"Arial Black",Arial,sans-serif;font-size:10px;font-weight:900;letter-spacing:1px;padding:3px 8px;margin-left:8px;vertical-align:middle;white-space:nowrap}
+#pf-cells .c-state{display:inline-block;background:#0d0d0d;border:2px solid #c1121f;color:#f5ead6;font-family:"Arial Black",Arial,sans-serif;font-size:10px;font-weight:900;letter-spacing:1px;padding:3px 8px;margin-left:8px;vertical-align:middle;white-space:nowrap}
+#pf-cells .c-stag{display:inline-block;background:#c1121f;color:#fff;font-family:Arial,sans-serif;font-size:10px;font-weight:900;letter-spacing:1px;padding:2px 8px;margin-left:6px;vertical-align:middle;white-space:nowrap}
+#pf-cells .c-sel{background:#0d0d0d;color:#f5ead6;border:2px solid #444;font-family:Arial,sans-serif;font-size:16px;padding:10px 12px;min-height:44px;max-width:100%;margin:4px 4px 4px 0;display:block;width:100%}
 #pf-cells .c-unv{display:inline-block;border:1px solid #777;color:#777;font-family:Arial,sans-serif;font-size:10px;letter-spacing:1px;padding:3px 8px;margin-left:8px;vertical-align:middle;white-space:nowrap}
 #pf-cells .c-rename{margin:10px 0 2px;display:flex;align-items:center;flex-wrap:wrap;gap:8px}
 #pf-cells .c-rename input{margin:0}
 #pf-cells .c-rename .c-btn{margin-top:0}
+#pf-cells .c-rename .c-sel{width:auto;flex:1 1 200px;margin:0}
 #pf-cells .c-neterr{font-family:Arial,sans-serif;font-size:14px;color:#1a1a1a;margin:8px 0;line-height:1.7}
 #pf-cells .c-pitch{font-family:Arial,sans-serif;font-size:14px;color:#1a1a1a;margin:8px 0 10px;line-height:1.65}
 #pf-cells .c-pitch b{color:#c1121f}

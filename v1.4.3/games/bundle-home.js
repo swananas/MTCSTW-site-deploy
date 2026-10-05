@@ -1292,6 +1292,28 @@ var BACKEND=window.PF_BACKEND_URL;
 var LS_C="pf_cells_v1";
 var BOUNTY_FALLBACK=25;
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+/* CELLS STATE AFFILIATION (2026-10-05): 50 states + DC, copied verbatim
+   from civic.js STATES (bundle-cells-h ships cells.js WITHOUT civic.js, so
+   the constant is duplicated here by design — keep both lists in sync; see
+   tests/cell-state-consistency.md). Fail-soft: every state read is guarded,
+   so cells from an old backend (no state field) render exactly as before. */
+var CELL_STATES=[["AL","Alabama"],["AK","Alaska"],["AZ","Arizona"],["AR","Arkansas"],["CA","California"],["CO","Colorado"],["CT","Connecticut"],["DE","Delaware"],["FL","Florida"],["GA","Georgia"],["HI","Hawaii"],["ID","Idaho"],["IL","Illinois"],["IN","Indiana"],["IA","Iowa"],["KS","Kansas"],["KY","Kentucky"],["LA","Louisiana"],["ME","Maine"],["MD","Maryland"],["MA","Massachusetts"],["MI","Michigan"],["MN","Minnesota"],["MS","Mississippi"],["MO","Missouri"],["MT","Montana"],["NE","Nebraska"],["NV","Nevada"],["NH","New Hampshire"],["NJ","New Jersey"],["NM","New Mexico"],["NY","New York"],["NC","North Carolina"],["ND","North Dakota"],["OH","Ohio"],["OK","Oklahoma"],["OR","Oregon"],["PA","Pennsylvania"],["RI","Rhode Island"],["SC","South Carolina"],["SD","South Dakota"],["TN","Tennessee"],["TX","Texas"],["UT","Utah"],["VT","Vermont"],["VA","Virginia"],["WA","Washington"],["WV","West Virginia"],["WI","Wisconsin"],["WY","Wyoming"],["DC","District of Columbia"]];
+function cellStateName(code){ code=String(code||"").toUpperCase();
+  for(var i=0;i<CELL_STATES.length;i++) if(CELL_STATES[i][0]===code) return CELL_STATES[i][1];
+  return ""; }
+function cellStateOpts(sel,noLabel){
+  var h='<option value="">'+esc(noLabel||"No state affiliation")+'</option>';
+  for(var i=0;i<CELL_STATES.length;i++){
+    h+='<option value="'+CELL_STATES[i][0]+'"'+(sel===CELL_STATES[i][0]?' selected':'')+'>'+esc(CELL_STATES[i][1])+'</option>';
+  }
+  return h; }
+function cellStateBadge(c){ /* "OPERATING IN TEXAS" on the cell header. */
+  var n=c&&cellStateName(c.state);
+  return n?'<span class="c-state" title="State affiliation">OPERATING IN '+esc(n.toUpperCase())+'</span>':""; }
+function cellStateTag(it){ /* compact "TEXAS" tag for task/bounty/listing rows. */
+  var n=it&&cellStateName(it.state);
+  return n?'<span class="c-stag" title="State-scoped">'+esc(n.toUpperCase())+'</span>':""; }
+function selVal(id){ var el=document.getElementById(id); return el?String(el.value||""):""; }
 /* G3 (2026-10-04): shared-streak milestone badge + "milestone tomorrow"
    teaser. Milestones: 7/14/30/60/90 days. Narration only — the +5%/day
    mult stays the reward, zero new XP. */
@@ -1370,8 +1392,33 @@ function api(action,params,cb){
   document.head.appendChild(s);
 }
 /* CORS POST for POST_ONLY actions (cell_promote, challenge_join). */
-function post(type,actionKey,action,params,cb){
-  var body=Object.assign({type:type},params||{});
+/* JSONP GET that transmits empty-string params (unlike api(), which drops
+   them): clearing a state affiliation must send an explicit empty state,
+   not silently keep the old one. null/undefined are still dropped. */
+function apiKeepEmpty(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  var _cr=new Uint32Array(1);
+  try{ if(window.crypto&&crypto.getRandomValues) crypto.getRandomValues(_cr); else _cr[0]=Math.floor(Math.random()*4294967295); }catch(e){ _cr[0]=Math.floor(Math.random()*4294967295); }
+  var fn="pfCellCb"+_cr[0];
+  var s=document.createElement("script"), done=false, timer=null;
+  function finish(j){
+    done=true;
+    if(timer){ clearTimeout(timer); timer=null; }
+    window[fn]=function(){};
+    try{ delete window[fn]; }catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s);
+    cb(j);
+  }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  timer=setTimeout(function(){ finish(null); },12000);
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null) q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn;
+  s.src=BACKEND+q;
+  document.head.appendChild(s);
+}
+function post(type,actionKey,action,params,cb){  var body=Object.assign({type:type},params||{});
   body[actionKey]=action;
   if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
   var bodyStr=JSON.stringify(body);
@@ -1474,7 +1521,7 @@ function loadBoard(){
       var pfl=c.prestige_flame?' <span class="c-prb" style="margin-left:4px;" title="'+esc(c.prestige_tier||"")+' cell">'+c.prestige_flame+'</span>':"";
       return '<div class="c-brow'+(i===0?" c-btop":"")+'"><span class="c-brank">'+(i+1)+'</span>'+
         '<span class="c-bname">'+esc(c.name)+pfl+
-        (c.verified?'<span class="c-vfy" title="2+ callsigns strong">&#10003; VERIFIED</span>':'')+'</span>'+
+        (c.verified?'<span class="c-vfy" title="2+ callsigns strong">&#10003; VERIFIED</span>':'')+cellStateTag(c)+'</span>'+
         '<span class="c-bstat">'+c.streak+' streak &middot; '+c.members+'/5</span></div>';
     }).join("");
     el.innerHTML=html;
@@ -1589,6 +1636,7 @@ function renderLobby(el){
   var searchHtml=SLIM?"":
     '<div class="c-pane"><h4>Find a cell</h4>'+
     '<input aria-label="NAME OR STATE" id="cSearch" maxlength="32" placeholder="NAME OR STATE" autocomplete="off">'+
+    '<select class="c-sel" id="cSearchState" aria-label="FILTER BY STATE">'+cellStateOpts("","All states")+'</select>'+
     ' <button class="c-btn" id="cSearchBtn">Search</button>'+
     '<div class="c-err" id="cSearchErr"></div>'+
     '<div id="cSearchRes"></div></div>';
@@ -1599,6 +1647,8 @@ function renderLobby(el){
     '<div class="c-lobby">'+
     '<div class="c-pane"><h4>Form a cell</h4>'+
     '<input aria-label="CELL NAME" id="cName" maxlength="24" placeholder="CELL NAME" autocomplete="off">'+
+    '<select class="c-sel" id="cState" aria-label="STATE AFFILIATION">'+cellStateOpts("","No state affiliation")+'</select>'+
+    '<div class="x-note">State affiliation unlocks location tasks and policymaker bounties.</div>'+
     '<br><button class="c-btn" id="cCreate">Form cell</button>'+
     '<div class="c-err" id="cCreateErr"></div></div>'+
     '<div class="c-pane"><h4>Join a cell</h4>'+
@@ -1615,7 +1665,7 @@ function renderLobby(el){
     err.textContent="";
     var btn=document.getElementById("cCreate");
     busyBtn(btn,true);
-    api("cell_create",{callsign:id.callsign,device:id.device,name:nm},function(j){
+    api("cell_create",{callsign:id.callsign,device:id.device,name:nm,state:selVal("cState")},function(j){
       busyBtn(btn,false);
       if(!j||!j.ok){ err.textContent=cellWriteErr(j&&j.err); return; }
       toast("Cell "+j.cell.name+" formed. Recruit your four.");
@@ -1650,7 +1700,7 @@ function renderLobby(el){
         id=ident(), err=document.getElementById("cSearchErr"),
         res=document.getElementById("cSearchRes");
     err.textContent=""; res.innerHTML='<div class="c-load">Searching&hellip;</div>';
-    api("cell_search",{q:q},function(j){
+    api("cell_search",{q:q,state:selVal("cSearchState")},function(j){
       if(!j||!j.ok){ err.textContent=cellWriteErr(j,"Network error."); res.innerHTML=""; return; }
       var list=j.cells||[];
       if(!list.length){ res.innerHTML='<div class="x-note">No cells match. Found the first one above.</div>'; return; }
@@ -1665,7 +1715,7 @@ function renderLobby(el){
         var jbtn=cc.invite_code
           ?'<button class="c-btn c-sm" data-code="'+esc(cc.invite_code)+'">JOIN</button>'
           :'<span class="x-note">invite only</span>';
-        h+='<div class="cp-lead"><span class="cp-lname">'+esc(cc.name)+'</span> '
+        h+='<div class="cp-lead"><span class="cp-lname">'+esc(cc.name)+cellStateTag(cc)+'</span> '
           +'<span class="cp-lxp">'+(Number(cc.member_count)||0)+'/5'
           +(cc.verified?' \u2713':'')+'</span> '
           +jbtn+'</div>';
@@ -1703,7 +1753,7 @@ function verifiedBanner(c){
 function renderCellSlim(el,s){
   var c=s.cell, pct=Math.round((c.mult-1)*100), id=ident();
   var html=verifiedBanner(c)+'<div class="c-card">'+
-    '<div class="c-chead"><span class="c-cname">'+esc(c.name)+'</span>'+
+    '<div class="c-chead"><span class="c-cname">'+esc(c.name)+'</span>'+cellStateBadge(c)+
     (c.verified?'<span class="c-vfy" title="2+ callsigns strong">&#10003; VERIFIED</span>':'')+
     '<span class="c-code" id="cCodeShow" title="Tap to copy">'+esc(c.invite_code)+'</span></div>'+
     '<div class="c-cstats"><span class="c-flame">&#128293; '+c.streak+'-day streak</span>'+msBadge(c.streak)+
@@ -1920,7 +1970,7 @@ function renderCell(el,s){
       '<div class="c-lwhy">Chainlinks belong to 2+ cells and stitch the network together — so every cell on earth is reachable by direct contact. +10 XP per extra cell, weekly.</div></div>';
   }
   var html=verifiedBanner(c)+linkBar+'<div class="c-card">'+
-    '<div class="c-chead"><span class="c-cname">'+esc(c.name)+'</span>'+
+    '<div class="c-chead"><span class="c-cname">'+esc(c.name)+'</span>'+cellStateBadge(c)+
     (c.verified
       ? '<span class="c-vfy" title="2+ callsigns strong">&#10003; VERIFIED</span>'
       : '<span class="c-unv" title="Recruit at least one more callsign to verify this cell">UNVERIFIED &mdash; RECRUIT TO VERIFY</span>')+
@@ -1933,6 +1983,11 @@ function renderCell(el,s){
   if(s.is_founder){
     html+='<div class="c-rename"><input aria-label="RENAME CELL" id="cRename" maxlength="24" placeholder="RENAME CELL" value="'+esc(c.name)+'" autocomplete="off">'+
       '<button class="c-btn" id="cRenameBtn">Rename</button></div>';
+    /* State affiliation edit (founder only): cell_update accepts optional
+       state; "No state affiliation" clears it. Fail-soft on old backends —
+       the select reverts and the error shows in #cActErr. */
+    html+='<div class="c-rename"><select class="c-sel" id="cStateEdit" aria-label="STATE AFFILIATION">'+cellStateOpts(String(c.state||""),"No state affiliation")+'</select>'+
+      '<button class="c-btn" id="cStateBtn">Set state</button></div>';
   }
   /* RECRUIT: any member can mint the recruit poster and share it. */
   html+='<button class="c-btn c-big" id="cRecruit">RECRUIT</button>';
@@ -1984,6 +2039,25 @@ function renderCell(el,s){
       busyBtn(rn,false);
       if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err); return; }
       toast("Cell renamed to "+j.cell.name+(j.cell.verified?" \u2713 verified.":"."));
+      refresh();
+    });
+  };
+  /* Founder: change the cell's state affiliation (cell_update). */
+  var stb=document.getElementById("cStateBtn");
+  if(stb) stb.onclick=function(){
+    var sv=document.getElementById("cStateEdit"), val=sv?String(sv.value||""):"";
+    errEl.textContent="";
+    busyBtn(stb,true);
+    apiKeepEmpty("cell_update",{callsign:id.callsign,device:id.device,cell_id:c.id,state:val},function(j){
+      busyBtn(stb,false);
+      if(!j||!j.ok){
+        /* Old backend without cell_update: revert the picker, keep the
+           old affiliation rendering untouched. */
+        if(sv) sv.value=String(c.state||"");
+        errEl.textContent=cellWriteErr(j&&j.err);
+        return;
+      }
+      toast("Cell state affiliation updated.");
       refresh();
     });
   };
@@ -2166,7 +2240,7 @@ function renderCell(el,s){
           var purse=Math.max(0,parseInt(ch.purse||ch.prize_xp||0,10)||0);
           var won=String(ch.winner||ch.winner_cell||"");
           var isDone=/complete|ended|resolved|closed/i.test(String(ch.status||""))||!!won;
-          h+='<div class="x-pane"><h4>'+esc(ch.title)+'</h4>'
+          h+='<div class="x-pane"><h4>'+esc(ch.title)+cellStateTag(ch)+'</h4>'
             +'<div class="x-note">'+esc(ch.detail||"")+'</div>'
             +(purse?'<div class="x-note"><b>\uD83C\uDFC6 PURSE: '+purse.toLocaleString()+' XP</b></div>':'')
             +(won?'<div class="x-note">\uD83C\uDFC6 WINNER: <b>'+esc(won)+'</b> &mdash; <a href="/#pf-v2" style="color:#c1121f;">HALL OF PROOF \u2192</a></div>':'')

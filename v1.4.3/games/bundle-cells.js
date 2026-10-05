@@ -53,14 +53,19 @@
   /* Mutations go through POST (CSRF-able via GET otherwise). */
   var WRITE = { cell_create:1, cell_join:1, cell_checkin:1, cell_cover:1,
     cell_leave:1, cell_rename:1, cell_promote:1, cell_bounty_claim:1,
-    cell_contribute:1 };
+    cell_contribute:1,
+    /* 2026-10-05 founder rally tool: rally_send is the POST write. */
+    rally_send:1 };
+  /* Reads that are per-callsign private data (IDOR fix pattern) carry the
+     auth_secret — cell_mine plus the 2026-10-05 rally reads. */
+  var AUTHREAD = { cell_mine:1, rally_search:1, rally_preview:1, rally_status:1 };
 
   function api(action, params, cb){
     if (WRITE[action]) { postMut(action, params, cb); return; }
     if(!BACKEND){ cb(null); return; }
     /* Private reads require auth_secret (IDOR fix). Auto-attach for the
-       auth-gated cell_mine — same PF.getAuthSecret() pattern as briefing.js. */
-    if(action==="cell_mine"){
+       auth-gated reads — same PF.getAuthSecret() pattern as briefing.js. */
+    if (AUTHREAD[action]){
       try{
         var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
         if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
@@ -249,6 +254,14 @@
     '.hq-bar>div{height:10px;background:#c1121f}' +
     '.hq-winner{border-color:#c1121f;background:#180a0a}' +
     '.hq-note{font-size:12.5px;opacity:.8;line-height:1.5}' +
+    '.hq-rally-card{border:2px solid #c1121f;background:#1a0d0d;padding:10px;margin:8px 0}' +
+    '.hq-rally-card .hq-rally-t{font-weight:700;font-size:15px;margin-bottom:4px}' +
+    '.hq-rally-card .hq-rally-s{font-size:13px;opacity:.85;margin-bottom:4px}' +
+    '.hq-rally-card .hq-rally-a{font-size:13px;color:#ffb4a2;font-weight:700}' +
+    '.hq-res{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid #222;font-size:13px}' +
+    '.hq-res:last-child{border-bottom:0}' +
+    '.hq-in.sm{font-size:14px;padding:7px 9px}' +
+    'textarea.hq-in{width:100%;min-height:64px;box-sizing:border-box}' +
     '@media(max-width:560px){.hq-pane{padding:10px}.hq-head h2{font-size:19px}}' +
     '</style>';
 
@@ -578,11 +591,132 @@
         '<button class="hq-btn sm" data-hq="rename" data-cell="'+esc(S.detail)+'">RENAME</button>' +
         '<button class="hq-btn sm ghost" data-hq="leave" data-cell="'+esc(S.detail)+'">DISBAND / LEAVE</button>' +
         '</div><div class="hq-note">Rename: 3&ndash;24 chars. Leaving as founder passes the torch or disbands the cell.</div></div>';
+      /* 2026-10-05 founder rally tool: one political push per cell per week. */
+      h += '<div class="hq-card"><h3>&#9873; Political rally <span class="hq-note">1 per cell per week</span></h3>' +
+        '<div id="hqRallyBody">'+loading('Checking this week&rsquo;s rally&hellip;')+'</div></div>';
     } else if (cell) {
       h += '<div class="hq-card"><div class="hq-row">' +
         '<button class="hq-btn sm ghost" data-hq="leave" data-cell="'+esc(S.detail)+'">LEAVE CELL</button></div></div>';
     }
     body.innerHTML = h;
+    /* 2026-10-05 founder rally tool: composer lives in the founder controls
+       card (mounted above). Members see nothing — founders only. */
+    if (isFounder && document.getElementById('hqRallyBody')) paintRally(S.detail);
+  }
+
+  /* ---------- FOUNDER RALLY TOOL (2026-10-05) ---------- */
+  function paintRally(cellId){
+    var body = document.getElementById('hqRallyBody');
+    if (!body) return;
+    var R = { card: null, results: [] };
+    function rallyMsg(m){
+      var box = document.getElementById('hqRallyMsg');
+      if (box) box.innerHTML = '<div class="hq-note" style="margin-top:6px">'+m+'</div>';
+    }
+    function paintResults(){
+      var box = document.getElementById('hqRallyResults');
+      if (!box) return;
+      if (!R.results.length){
+        box.innerHTML = '<div class="hq-note" style="margin-top:6px">Nothing found — try different words.</div>';
+        return;
+      }
+      box.innerHTML = R.results.map(function(x, ix){
+        return '<div class="hq-res"><span><b>'+esc(x.title)+'</b><br>' +
+          '<span class="hq-note">'+esc(x.kind)+' &middot; '+esc(x.line||'')+'</span></span>' +
+          '<button class="hq-btn sm" data-rpick="'+ix+'">PICK</button></div>';
+      }).join('');
+      box.querySelectorAll('[data-rpick]').forEach(function(b){
+        b.addEventListener('click', function(){ pickResult(Number(b.getAttribute('data-rpick'))); });
+      });
+    }
+    function pickResult(ix){
+      var x = R.results[ix];
+      if (!x) return;
+      rallyMsg('Pulling the fact card&hellip;');
+      api('rally_preview', withIdent({cell_id: cellId, kind: x.kind, ref_id: x.ref_id}), function(j){
+        if (!j || !j.ok){ rallyMsg(friendlyErr(j)); return; }
+        R.card = j.card;
+        rallyMsg('');
+        paintPreview();
+      });
+    }
+    function paintPreview(){
+      var box = document.getElementById('hqRallyPrev');
+      var c = R.card;
+      if (!box || !c) return;
+      box.innerHTML =
+        '<div class="hq-rally-card"><div class="hq-rally-t">'+esc(c.title)+'</div>' +
+        '<div class="hq-rally-s">'+esc(c.status_line)+'</div>' +
+        '<div class="hq-rally-a">Action: '+esc(c.action_line)+'</div>' +
+        '<div class="hq-note">'+esc(c.link)+'</div></div>' +
+        '<div class="hq-note">Your note (optional, 140 chars) — the fact card above is system-generated and can&rsquo;t be edited:</div>' +
+        '<textarea id="hqRallyNote" class="hq-in" maxlength="140" placeholder="Why this matters to the cell&hellip;"></textarea>' +
+        '<div class="hq-row"><span class="hq-note" id="hqRallyCount">0/140</span>' +
+        '<button class="hq-btn" id="hqRallySend">SEND RALLY</button>' +
+        '<button class="hq-btn sm ghost" id="hqRallyClear">CLEAR</button></div>';
+      var ta = document.getElementById('hqRallyNote');
+      var cnt = document.getElementById('hqRallyCount');
+      ta.addEventListener('input', function(){ cnt.textContent = ta.value.length + '/140'; });
+      document.getElementById('hqRallyClear').addEventListener('click', function(){ R.card = null; box.innerHTML=''; });
+      document.getElementById('hqRallySend').addEventListener('click', sendRally);
+    }
+    function sendRally(){
+      var c = R.card;
+      if (!c) return;
+      var ta = document.getElementById('hqRallyNote');
+      var note = ta ? ta.value : '';
+      if (!moneyConfirm('Send this rally to every cell member? One rally per week — this uses it.')) return;
+      rallyMsg('Sending&hellip;');
+      /* POST write: type 'cell', cell_action 'rally_send' — auth via
+         PF.postAction (auth_secret auto-attached), AUTH_MAP gated server-side. */
+      api('rally_send', withIdent({cell_id: cellId, kind: c.kind, ref_id: c.ref_id, note: note}), function(j){
+        if (!j || !j.ok){ rallyMsg(friendlyErr(j)); return; }
+        toast('Rally sent to '+(j.sent||0)+' members.');
+        paintRally(cellId); /* re-render: now shows the used-this-week state */
+      });
+    }
+    function renderComposer(){
+      body.innerHTML =
+        '<div class="hq-note">Pick a bill, rep, pressure campaign, or network poll. ' +
+        'The fact card is pulled live from the network&rsquo;s data at send time.</div>' +
+        '<div class="hq-row" style="margin-top:6px">' +
+        '<select id="hqRallyKind" class="hq-in sm">' +
+        '<option value="">All kinds</option><option value="bill">Bill</option>' +
+        '<option value="rep">Rep</option><option value="campaign">Campaign</option>' +
+        '<option value="poll">Poll</option></select>' +
+        '<input id="hqRallyQ" class="hq-in sm" maxlength="60" placeholder="Search bills, reps, campaigns, polls&hellip;">' +
+        '<button class="hq-btn sm" id="hqRallyGo">SEARCH</button></div>' +
+        '<div id="hqRallyResults"></div>' +
+        '<div id="hqRallyPrev"></div>' +
+        '<div id="hqRallyMsg"></div>';
+      function doSearch(){
+        var q = strIn('hqRallyQ');
+        if (!q || q.trim().length < 2){ rallyMsg('Type at least 2 characters to search.'); return; }
+        rallyMsg('Searching&hellip;');
+        var ks = document.getElementById('hqRallyKind');
+        api('rally_search', withIdent({cell_id: cellId, q: q, kind: ks ? ks.value : ''}), function(j){
+          if (!j || !j.ok){ rallyMsg(friendlyErr(j)); return; }
+          R.results = j.results || [];
+          rallyMsg('');
+          paintResults();
+        });
+      }
+      document.getElementById('hqRallyGo').addEventListener('click', doSearch);
+      var qi = document.getElementById('hqRallyQ');
+      qi.addEventListener('keydown', function(ev){
+        if (ev.key === 'Enter'){ ev.preventDefault(); doSearch(); }
+      });
+    }
+    api('rally_status', withIdent({cell_id: cellId}), function(j){
+      if (!j || !j.ok){ body.innerHTML = netErr(); return; }
+      if (j.used_this_week){
+        var r = j.rally || {};
+        body.innerHTML = '<div class="hq-note">This week&rsquo;s rally is already out: <b>'+esc(r.title||'')+'</b></div>' +
+          '<div class="hq-note">Next rally unlocks Monday.</div>';
+        return;
+      }
+      renderComposer();
+    });
   }
 
   function pulseLine(hh){

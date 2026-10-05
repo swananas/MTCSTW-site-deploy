@@ -3681,7 +3681,7 @@ function renderTeaser(el){
   var h='<div class="x-pane dp-pane"><h4>TODAY&rsquo;S CRATE</h4><div class="dp-cratewrap">'
     +'<div class="dp-crate">&#128230;</div>'
     +'<div class="x-note">One free supply crate every day. Pulls pay XP &mdash; Common to Legendary.<br>Yours is sitting there, locked.</div>'
-    +'<div style="margin-top:10px"><button class="c-btn" data-pf-claim-cs="1" data-pf-claim-ctx="to open today\'s crate">CLAIM YOUR CALLSIGN TO OPEN TODAY&rsquo;S CRATE</button></div>'
+    +'<div style="margin-top:10px"><button class="c-btn" data-pf-claim-cs="1" data-pf-claim-ctx="to open today&rsquo;s crate">CLAIM YOUR CALLSIGN TO OPEN TODAY&rsquo;S CRATE</button></div>'
     +'</div></div>'
     +'<div class="x-pane dp-pane"><h4>FLASH EVENTS</h4><div id="dpTeaseFlash"><div class="x-note">Reading the wire&hellip;</div></div></div>'
     +'<div class="x-pane dp-pane"><h4>WAR-WORD BOUNTY</h4><div id="dpTeaseWW"><div class="x-note">Reading the wire&hellip;</div></div></div>'

@@ -354,7 +354,10 @@ if (unbundled.length) fail('unbundled game files: ' + unbundled.join(', '));
 try {
   cp.execFileSync(process.execPath,
     [path.join(__dirname, '..', 'scripts', 'check-inner-scripts.js')]
-      .concat(bundled.map(function (f) { return path.join(ROOT, f); })),
+      /* bundle-command silos live under v1.4.3/command/, not v1.4.3/games/. */
+      .concat(bundled.map(function (f) {
+        return path.join(ALL['bundle-command'].indexOf(f) !== -1 ? COMMAND_ROOT : ROOT, f);
+      })),
     { stdio: 'inherit' });
 } catch (e) { fail('inner <script> syntax check failed'); }
 

@@ -66,7 +66,10 @@ var CORE_FILES = [
   'core/20-nextop.js',
   /* allfronts (2026-10-04): ALL FRONTS operation banner — fixed-top strip
      while an operation is live or launching within the hour. */
-  'core/21-allfronts.js'
+  'core/21-allfronts.js',
+  /* dead-drop (A1, 2026-10-04): daily hidden XP cache — riddle card in the
+     Morning Briefing + tappable cache widget on today's hidden page. */
+  'core/22-dead-drop.js'
 ];
 
 var BUNDLES = {

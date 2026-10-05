@@ -1490,9 +1490,9 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
 /* ===== fred-economy.js ===== */
 /* games/fred-economy.js  |  PF v1.4.3 | FRED /economy DEEPENING (W4 A4).
    Read-only official-data surfaces on /economy — the flagship comparison
-   surface, deepened (S-05, S-07, S-14, M-01, S-26). All figures come from
+   surface, deepened (S-05, S-07, S-14, M-01, S-26 + S-26 ext-1). All figures come from
    the FRED read rail (?action=fred_fedwatch / fred_housing / fred_wage_gap /
-   fred_sahm / fred_series) + the public price_trends rail (S-14 community
+   fred_sahm / fred_economy&panel=sahm_history / fred_series) + the public price_trends rail (S-14 community
    line). Official vs crowdsourced are NEVER blended: two labeled lines,
    separate methodologies, every number source-stamped.
    ZERO XP: this module shows, grants, and promises no XP — no xpGrant,
@@ -1508,7 +1508,9 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
    widget when present. Silent no-op everywhere else.
    SVG/DOM charts only — no chart library (page weight budget).
    KILL: ?pf_off=economy-fred (master) or per-section:
-     ?pf_off=fed-watch | housing-context | official-trend | wage-gap | sahm
+     ?pf_off=fed-watch | housing-context | official-trend | wage-gap | sahm | sahm-history
+   (?pf_off=sahm is the master kill for the S-26 gauge + its extensions;
+   sahm-history kills only the ext-1 trigger strip.)
    localStorage pf_disabled_v1='["<silo>"]' also honored (PF.skip). */
 (function () {
   'use strict';
@@ -1590,6 +1592,10 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
     '.pf-fe-legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:#d8d0c0;margin-bottom:6px}',
     '.pf-fe-sw{display:inline-block;width:14px;height:4px;border-radius:2px;margin-right:6px;vertical-align:middle}',
     '.pf-fe-ep{font-size:13px;color:#d8d0c0;margin:4px 0}',
+    '.pf-fe-strip{margin:10px 0 4px}',
+    '.pf-fe-tmark{display:flex;gap:10px;align-items:flex-start;margin:8px 0;padding:8px 10px;background:#111;border:1px solid #2a2a2a;border-radius:6px}',
+    '.pf-fe-tdot{flex:0 0 auto;width:12px;height:12px;border-radius:50%;margin-top:3px}',
+    '.pf-fe-tmark div:last-child{font-size:13px;color:#d8d0c0;line-height:1.5}',
     '.pf-fe-state{font-weight:900;font-size:15px;letter-spacing:1px;margin:8px 0 4px}',
     '.pf-fe-gauge{position:relative;height:22px;background:#1a1a1a;border:1px solid #3a3a3a;border-radius:4px;margin:10px 0 4px;overflow:hidden}',
     '.pf-fe-bar{position:absolute;left:0;top:0;bottom:0;background:#e8b923}',
@@ -1636,6 +1642,15 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
   }
   function chip(sa) {
     return sa ? '<span class="pf-fe-chip">' + esc(sa) + '</span>' : '';
+  }
+
+  /* 'YYYY-MM' -> 'MMM YYYY' (trigger strip periods) */
+  function fmtYm(ym) {
+    try {
+      var m = parseInt(String(ym).slice(5, 7), 10);
+      if (m >= 1 && m <= 12) return MONTHS[m - 1] + ' ' + String(ym).slice(0, 4);
+    } catch (e) {}
+    return String(ym || '');
   }
 
   /* ---------- SVG two-line chart (no library) ---------- */
@@ -1957,6 +1972,55 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
       h += stampHTML(j.unrate) + '</div>';
       body.innerHTML = h;
     });
+    return sec;
+  }
+
+  /* ---------- S-26 ext-1: Sahm-rule trigger-history strip ----------
+     Extension point only: no gauge recomputation, no duplication of the
+     gauge above. Neutral framing only until News Desk signs off the
+     framing line — the backend framing_line is descriptive-mechanical,
+     and no "every time, a recession followed" copy ships anywhere here.
+     Fail soft: no key / no rows / stale / error / kill -> the strip is
+     simply absent (the gauge section carries the honest states). */
+  function mountSahmHistory(root, afterSec) {
+    if (PF.skip('sahm') || PF.skip('sahm-history')) return;
+    var sec = document.createElement('div');
+    try {
+      if (afterSec && afterSec.parentNode === root && afterSec.nextSibling) {
+        root.insertBefore(sec, afterSec.nextSibling);
+      } else { root.appendChild(sec); }
+    } catch (e) { root.appendChild(sec); }
+    function remove() { try { if (sec.parentNode) sec.parentNode.removeChild(sec); } catch (e) {} }
+    api('fred_economy', { panel: 'sahm_history' }, function (j) {
+      if (!j || j.ok === false) { remove(); return; }
+      if (!j.fred_live || j.stale) { remove(); return; }
+      var tr = Array.isArray(j.triggers) ? j.triggers : [];
+      sec.innerHTML = sectionShell('SAHM RULE — TRIGGER HISTORY', 'Every time the rule has fired',
+        'Computed from the official unemployment series — the same math as the gauge above. Descriptive only; never a forecast.');
+      var body = sec.querySelector('.pf-fe-body');
+      if (!body) { remove(); return; }
+      var h = '<div class="pf-fe-card"><h3>PAST TRIGGERS — OFFICIAL SERIES</h3>' +
+        '<div class="pf-fe-note" style="margin-top:0;">' + esc(j.framing_line || '') + '</div>';
+      if (tr.length) {
+        h += '<div class="pf-fe-strip">';
+        tr.forEach(function (t) {
+          var range = esc(fmtYm(t.start)) +
+            (t.end && t.end !== t.start ? ' \u2013 ' + esc(fmtYm(t.end)) : '');
+          var state = t.recovered
+            ? 'the rule fell back below the 0.50 trigger afterwards'
+            : 'still above the 0.50 trigger in the latest data';
+          h += '<div class="pf-fe-tmark"><div class="pf-fe-tdot" style="background:' +
+            (t.recovered ? '#8a8271' : '#c1121f') + ';"></div><div><b>' + range +
+            '</b> · peak ' + esc(Number(t.peak_value).toFixed(2)) + ' pp · ' + esc(state) +
+            '</div></div>';
+        });
+        h += '</div>';
+      } else {
+        h += '<div class="pf-fe-note">No past triggers in the available history window.</div>';
+      }
+      h += stampHTML(j.unrate) + '</div>';
+      body.innerHTML = h;
+    });
   }
 
   /* ---------- init ---------- */
@@ -1984,7 +2048,11 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
     try { mountHousing(root); } catch (e) { if (PF.error) PF.error('fred-economy', e); }
     try { mountOfficialTrend(root); } catch (e) { if (PF.error) PF.error('fred-economy', e); }
     try { mountWageGap(root); } catch (e) { if (PF.error) PF.error('fred-economy', e); }
-    try { mountSahm(root); } catch (e) { if (PF.error) PF.error('fred-economy', e); }
+    /* S-26 ext-1 trigger strip mounts directly under the gauge; the
+       gauge's section node anchors its position. */
+    var sahmSec = null;
+    try { sahmSec = mountSahm(root); } catch (e) { if (PF.error) PF.error('fred-economy', e); }
+    try { mountSahmHistory(root, sahmSec); } catch (e) { if (PF.error) PF.error('fred-economy', e); }
   } catch (e) {
     try { if (PF && PF.error) PF.error('fred-economy', e); } catch (e2) {}
   }

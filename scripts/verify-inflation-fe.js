@@ -310,5 +310,51 @@ if (!redFails.length)
   ok('red-lines: user-facing copy clean (no streaks, leaderboards, loss-framed or guilt copy)');
 else no('red-lines', 'banned copy found: ' + redFails.join(', '));
 
+console.log('\n== 17. official baseline wiring (cpi_compare) + methodology footnote ==');
+/* Fix 1: the trends view must fetch the official series from the dedicated
+   cpi_compare endpoint — price_trends does not return one. */
+if (has(src, "getJSON('cpi_compare'") || has(src, 'getJSON("cpi_compare"'))
+  ok('wiring: trends view calls getJSON(\'cpi_compare\') for the official series');
+else no('wiring', 'trends view does not call cpi_compare');
+/* The cpi_compare response shape: {official: {value, period, source_url,
+   retrieval_date} | null} — the render must unwrap c.official and show
+   period + retrieval date. */
+if (has(src, 'c.official') && has(src, 'off.value'))
+  ok('wiring: unwraps c.official and gates on value');
+else no('wiring', 'c.official unwrap / value gate missing');
+if (has(src, 'off.period') && has(src, 'off.retrieval_date') && has(src, 'Baseline pulled'))
+  ok('wiring: renders period + retrieval date ("Baseline pulled")');
+else no('wiring', 'period + retrieval-date render missing');
+/* Honest fallback: null/404 official leaves the pending copy in place. */
+if (has(src, 'pf-inf-tr-official') && has(src, 'officialPendingHTML') &&
+    has(src, 'Official baseline pending — check back'))
+  ok('wiring: null/404 official keeps the pending fallback');
+else no('wiring', 'pending-fallback plumbing missing');
+if (has(src, 'never draw a line we don')) ok('wiring: pending fallback keeps the no-invention promise');
+else no('wiring', 'no-invention promise missing from pending fallback');
+/* Fail-soft: the cpi_compare callback never renders on failure. */
+if (/getJSON\('cpi_compare'[\s\S]{0,400}var off = \(c && c\.official\) \|\| null/.test(src))
+  ok('wiring: cpi_compare callback is null-safe (fail-soft on 404)');
+else no('wiring', 'cpi_compare callback not null-safe');
+/* Fix 2: the fair-comparison footnote must disclose the basket difference
+   and the rebasing — no more "same-ish basket". */
+if (!has(src, 'Same-ish basket')) ok('footnote: "same-ish basket" copy removed');
+else no('footnote', '"same-ish basket" still present');
+if (has(src, 'genuinely different baskets')) ok('footnote: basket difference disclosed');
+else no('footnote', 'basket-difference disclosure missing');
+if (has(src, 'housing is about 36%') && has(src, 'services and transport'))
+  ok('footnote: CPI-U composition disclosed (housing ~36%, services, transport)');
+else no('footnote', 'CPI-U composition disclosure missing');
+if (has(src, '12-item basket') && has(src, 'groceries, gas, electricity, rent'))
+  ok('footnote: people\u2019s 12-item basket disclosed');
+else no('footnote', '12-item basket disclosure missing');
+if (has(src, 'compare the direction, not the digits')) ok('footnote: direction-not-digits guidance kept');
+else no('footnote', 'direction-not-digits guidance missing');
+if (has(src, 'rebased') && has(src, 'first week') && has(src, 'relative, not absolute'))
+  ok('footnote: rebasing disclosed (relative, not absolute level)');
+else no('footnote', 'rebasing disclosure missing');
+if (has(src, 'never presented as official')) ok('footnote: never-presented-as-official language kept');
+else no('footnote', 'never-presented-as-official language missing');
+
 console.log('\n' + passes + ' passed, ' + fails.length + ' failed.');
 if (fails.length) { console.log('FAILURES:'); fails.forEach(function (f) { console.log(' - ' + f); }); process.exit(1); }

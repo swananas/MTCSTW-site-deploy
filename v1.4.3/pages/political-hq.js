@@ -27,7 +27,10 @@
     ['civic', 'pf-ov-civic'],
     ['notify-prefs', 'pf-ov-notify-prefs'],
     ['governance', 'pf-ov-gov'],
-    ['intel', 'pf-ov-intel']
+    ['intel', 'pf-ov-intel'],
+    /* Political HQ expansion #3 (2026-10-05): Races Tracker board mounts
+       after intel — stages pf-ov-races from games/races.js. */
+    ['races', 'pf-ov-races']
   ];
 
   function execScripts(root, label) {

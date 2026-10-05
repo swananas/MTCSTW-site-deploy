@@ -487,17 +487,17 @@ document.addEventListener("pf-guess-done",function(){ settle("pf-guess-done",awa
    No XP (pf-guess-done already awarded) — xp=0, score in meta. */
 document.addEventListener("pf-guess-scored",function(e){ var s=0; try{ if(e&&e.detail&&typeof e.detail.score==='number') s=Math.floor(e.detail.score); }catch(err){} settle("pf-guess-scored",0,s); });
 document.addEventListener("pf-raid-report",function(){ settle("pf-raid-report",award("raid",2,"daily")); });
-document.addEventListener("pf-vote-cast",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("fanvote_"+w,10,"once",{exempt:1}); });
+document.addEventListener("pf-vote-cast",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; var gain=award("fanvote_"+w,10,"once",{exempt:1}); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("VOTE COUNTED — +10 XP"); }catch(e2){} } });
 document.addEventListener("pf-traitor-vote",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("traitor_"+w,5,"once",{exempt:1}); });
-document.addEventListener("pf-caption-submit",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("caption_"+w,10,"once",{exempt:1}); });
-document.addEventListener("pf-poster-made",function(){ settle("pf-poster-made",award("poster_"+today(),1,"once")); });
-document.addEventListener("pf-share-image",function(){ settle("pf-share-image",award("share",1,"daily")); });
-document.addEventListener("pf-drop-claimed",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; settle("pf-drop-claimed",award("drop_"+d,1,"once")); });
+document.addEventListener("pf-caption-submit",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; var gain=award("caption_"+w,10,"once",{exempt:1}); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("CAPTION IN — +10 XP"); }catch(e2){} } });
+document.addEventListener("pf-poster-made",function(){ var gain=award("poster_"+today(),1,"once"); settle("pf-poster-made",gain); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("POSTER LOGGED — +1 XP"); }catch(e2){} } });
+document.addEventListener("pf-share-image",function(){ var gain=award("share",1,"daily"); settle("pf-share-image",gain); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("SHARE LOGGED — +1 XP"); }catch(e2){} } });
+document.addEventListener("pf-drop-claimed",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; var gain=award("drop_"+d,1,"once"); settle("pf-drop-claimed",gain); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("DROP CLAIMED — +1 XP"); }catch(e2){} } });
 document.addEventListener("pf-billionaire-answered",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; settle("pf-billionaire-answered",award("billionaire_"+d,1,"once")); });
 document.addEventListener("pf-interrogation-answered",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; settle("pf-interrogation-answered",award("interrogation_"+d,1,"once")); });
 /* Do Meter Game-8 expansion bonuses: weekly-op completion + full-spectrum week. Exempt (bounded by week). */
-document.addEventListener("pf-do-challenge-done",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; settle("pf-do-challenge-done",award("dochall_"+w,15,"once",{exempt:1})); });
-document.addEventListener("pf-do-fullspectrum",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; settle("pf-do-fullspectrum",award("dospec_"+w,20,"once",{exempt:1})); });
+document.addEventListener("pf-do-challenge-done",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; var gain=award("dochall_"+w,15,"once",{exempt:1}); settle("pf-do-challenge-done",gain); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("CHALLENGE DONE — +15 XP"); }catch(e2){} } });
+document.addEventListener("pf-do-fullspectrum",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; var gain=award("dospec_"+w,20,"once",{exempt:1}); settle("pf-do-fullspectrum",gain); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("FULL SPECTRUM — +20 XP"); }catch(e2){} } });
 /* Recruit rewards: +25 XP per new recruit (War Card promise), exempt from the
    daily pool. Keyed on the running recruit total so the 6h poll can never
    double-pay — repeats hit the same key and award 0. */

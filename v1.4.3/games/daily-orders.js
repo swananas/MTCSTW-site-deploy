@@ -32,7 +32,7 @@
 <div class="o-rankline" id="oRank"></div>
 <div class="o-loot" id="oLoot"></div>
 <div class="o-err" id="oErr"></div>
-<div class="o-note">3 orders (10 XP each) + 1 field op (+5) per day. Run all three plus the op for the +5 full-deployment command bonus. Every daily task on this page caps at 50 XP a day &mdash; your cell streak gets you there faster. Streak shields forgive a missed day. Today's Boost lets you tip earned XP to a creator at 1 XP = 2 signal.</div>
+<div class="o-note">3 orders (5 XP each) + 1 field op (+5) per day. Run all three plus the op for the +5 full-deployment command bonus. Every daily task on this page caps at 25 XP a day &mdash; your cell streak gets you there faster. Streak shields forgive a missed day. Today's Boost lets you tip earned XP to a creator at 1 XP = 2 signal.</div>
 <div><button class="o-shareimg" id="oShareImg">Share orders as image</button><div class="o-note" id="oShareCount"></div></div>
 <div class="o-claim" id="oClaimWrap">
   <a id="oClaimToggle">Claim your rank on every device</a>
@@ -94,12 +94,11 @@ var FIELD_OPS=[
 ];
 var OP_XP=5, CMD_XP=5;
 function fieldOp(){ return FIELD_OPS[dayOfYear()%FIELD_OPS.length]; }
-/* economy — every daily task on the page draws from one 50 XP/day pool (PF.claimDayXp).
-   3 orders x 10 + field op 5 + command bonus 5 = 45; the last 5 come from the
-   satellite dailies (raid, check-in, share, guess, poster, drop, billionaire,
-   interrogation). A perfect day lands exactly on 50. Cell streaks multiply
-   mission XP but the pool still caps at 50 — the bonus gets you there faster. */
-var PER_DAY=3, BASE_XP=10, DAILY_MAX=50;
+/* economy — every daily task on the page draws from one 25 XP/day pool (DAILY_MAX).
+   3 orders x 5 + field op 5 + command bonus 5 = 25; a perfect day lands exactly
+   on 25. Cell streaks multiply mission XP but the pool still caps at 25 — the
+   bonus gets you there faster. */
+var PER_DAY=3, BASE_XP=5, DAILY_MAX=25;
 var PLATFORMS=[["tiktok","TikTok"],["facebook","Facebook"],["instagram","Instagram"],["x","X"],["youtube","YouTube"]];
 var STREAK_BONUS={3:10,7:25,30:100};
 var TIERS=[["RECRUIT",0],["AGITATOR",25],["CADRE",75],["COMMISSAR",150],["ARCHITECT",300]];

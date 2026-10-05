@@ -71,7 +71,7 @@ else no('tab order', 'tabs out of spec order or missing');
 var interimExpect = {
   people: ['civic', 'stateleg', 'wallshame'],
   bills: ['legislation', 'courts', 'eo', 'governance', 'wallshame'],
-  ballot: ['civic', 'ballotcd', 'races', 'ballot-measures'],
+  ballot: ['civic', 'ballotcd', 'races', 'measures'],
   action: ['action-center', 'civic', 'footprint', 'vote-alerts', 'civic-duty'],
   intel: ['intel', 'civic', 'nonprofits'],
   money: ['money-tab', 'money-vote', 'pac-alerts', 'trades-tab', 'corp-card', 'ledgers', 'boycotts']
@@ -277,7 +277,7 @@ try {
     var pre = [['stateleg', 'people'], ['legislation', 'bills'], ['courts', 'bills'],
       ['governance', 'bills'], ['action-center', 'action'], ['footprint', 'action'],
       ['vote-alerts', 'action'], ['intel', 'intel'], ['nonprofits', 'intel'],
-      ['races', 'ballot'], ['ballot-measures', 'ballot'], ['civic', null], ['notify-prefs', null]];
+      ['races', 'ballot'], ['measures', 'ballot'], ['civic', null], ['notify-prefs', null]];
     var badP = pre.filter(function (c) { return T.hubForSilo(c[0]) !== c[1]; });
     if (!badP.length) ok('hubForSilo pre-split x' + pre.length);
     else no('hubForSilo pre', JSON.stringify(badP));

@@ -250,7 +250,10 @@ var HQ_BUNDLES = {
     'civic.js',
     'governance.js',
     'notify-prefs.js',
-    'intel.js'
+    'intel.js',
+    /* A2 pressure board (2026-10-05, fe/pressure-index): stages
+       pf-ov-pressure-board into #pf-political-hq via political-hq.js ORDER. */
+    'pressure-board.js'
   ]
 };
 

@@ -85,10 +85,10 @@ function fmtDur(ms){
 }
 function val(id){ var el=document.getElementById(id); return el?String(el.value||"").trim():""; }
 function err(id,m){ var el=document.getElementById(id); if(el) el.textContent=m||""; }
-var NH=null, LS=null, WL=null, CL=null, EL=null, DL=null, AL=null, BP=null, IS=null, WH=null, BTL=null, AUL=null, SN=null, SH=null;
+var NH=null, LS=null, WL=null, CL=null, EL=null, DL=null, AL=null, BP=null, IS=null, WH=null, BTL=null, AUL=null, SN=null, SH=null, PQ=null;
 function load(){
   var n=0;
-  function one(){ n++; if(n>=14) render(); }
+  function one(){ n++; if(n>=15) render(); }
   setTimeout(render,15000);
   apiAdmin("network_health",function(j){ NH=j; one(); });
   /* 2026-10-03 conn fix: was hardcoded callsign:"x". Use the admin's own
@@ -102,6 +102,8 @@ function load(){
   api("alert_list",{},function(j){ AL=j; one(); });
   apiAdmin("battle_proposals",function(j){ BP=j; one(); });
   apiAdmin("intel_submissions",function(j){ IS=j; one(); });
+  /* S2 (2026-10-04): post-proof approval queue (shared with B6 later). */
+  apiAdmin("proof_queue",function(j){ PQ=j; one(); });
   api("battle_list",{},function(j){ BTL=j; one(); });
   api("auction_list",{},function(j){ AUL=j; one(); });
   apiAdmin("webhook_health",function(j){ WH=j; one(); });
@@ -292,6 +294,39 @@ function render(){
       +'<button class="c-btn c-btn-sm" data-iap="'+ms.id+'">APPROVE</button> '
       +'<button class="c-btn c-btn-dim c-btn-sm" data-irj="'+ms.id+'">REJECT</button></div>';
   }
+  /* S2 (2026-10-04) — PROOF QUEUE: post-proof bounty claims awaiting
+     verdict. Approve pays the XP through xpGrant caps; reject burns
+     nothing and ticks the device's rejection counter (repeat offenders
+     flagged). Shared queue — B6 (Raid the Comments) rides it later. */
+  var pql=(PQ&&PQ.ok&&PQ.queue)||[];
+  h+='<div class="x-pane"><h4>Proof queue ('+pql.length+' pending)</h4>';
+  h+='<div class="x-note">Post-proof bounty claims. APPROVE pays the XP (capped); REJECT burns nothing, flags repeat offenders.</div>';
+  if(!pql.length){ h+='<div class="x-note">Queue is empty.</div>'; }
+  for(var qi=0;qi<pql.length;qi++){
+    var pq0=pql[qi];
+    var prc=Number(pq0.reject_count)||0;
+    h+='<div class="vl-mod"><b>'+esc(pq0.bounty_title||'Untitled')+'</b> '
+      +'<span class="x-note">'+Number(pq0.xp_reward||0)+' XP &bull; '+esc(pq0.platform||'?').toUpperCase()+' &bull; '+esc(pq0.hashtag||'')+'</span><br>'
+      +'<span class="x-note">by '+esc(pq0.claimer||'?')+' &mdash; '+fmtDate(pq0.submitted_at)+'</span> '
+      +'<a href="'+esc(pq0.proof_url||'#')+'" target="_blank" rel="noopener" style="color:#dc143c;font-size:12px">VERIFY POST</a>'
+      +(prc>0?' <span class="x-note" style="color:#c1121f;font-weight:bold">REJECTS: '+prc+(prc>=3?' — REPEAT OFFENDER':'')+'</span>':'')+'<br>'
+      +'<button class="c-btn c-btn-sm" data-pap="'+pq0.id+'">APPROVE</button> '
+      +'<button class="c-btn c-btn-dim c-btn-sm" data-prj="'+pq0.id+'">REJECT</button></div>';
+  }
+  h+='</div>';
+  /* S2 (2026-10-04) — post a POST-PROOF bounty (house-funded, no escrow). */
+  h+='<div class="x-pane"><h4>Post a proof bounty</h4>'
+    +'<div class="x-note">Network-funded: XP mints on approval. Claims need a matching-platform post URL.</div>'
+    +'<input aria-label="Bounty title" id="vlPBTitle" class="c-input pf-input-lg" placeholder="TITLE — e.g. Raid poster: October push" maxlength="80"><br>'
+    +'<input aria-label="Bounty detail" id="vlPBDetail" class="c-input pf-input-lg" placeholder="Detail — what should the caption carry?" maxlength="200"><br>'
+    +'<input aria-label="Bounty XP" id="vlPBXp" class="c-input pf-input-sm" placeholder="XP (5-500)" maxlength="3" inputmode="numeric"> '
+    +'<select aria-label="Target platform" id="vlPBPlat" class="c-input pf-input-sm">'
+    +'<option value="tiktok">TikTok</option><option value="instagram">Instagram</option>'
+    +'<option value="facebook">Facebook</option><option value="youtube">YouTube</option></select><br>'
+    +'<input aria-label="Mission hashtag" id="vlPBTag" class="c-input pf-input-lg" placeholder="Mission hashtag — e.g. #PFNMission12" maxlength="60"><br>'
+    +'<input aria-label="Poster asset URL" id="vlPBAsset" class="c-input pf-input-lg" placeholder="Poster asset URL (https://…) — shown as the download" maxlength="500"><br>'
+    +'<button class="c-btn" id="vlPBPost">POST PROOF BOUNTY</button><div class="c-err" id="vlPBErr"></div></div>';
+  h+='</div>';
   h+='</div>';
   /* WEBHOOK HEALTH — War Bond commerce pipeline (2026-10-03 C2b).
      Admin-only: reveals whether the Squarespace order webhook has ever
@@ -374,6 +409,25 @@ function render(){
       +'</div>';
   }
   h+='<div class="c-err" id="vlACErr"></div></div>';
+  /* WAVE3-S3-START (race console HTML)
+     S3 Creator Recruit Races (2026-10-04): race create/end admin forms ride
+     post("recruitrace","rr_action",...) + X-Admin-Secret, exact vault pattern.
+     Backend: recruitRaceDispatch (race_create / race_end / race_payout /
+     recruit_race). Wire-up lives in the WAVE3-S3 wire-up block below. */
+  h+='<div class="x-pane"><h4>Recruit races</h4>';
+  h+='<div class="x-note" id="vlRaceStatus">Loading race status&hellip;</div>';
+  h+='<div class="vl-form">'
+    +'<input aria-label="Race name" id="vlRName" class="c-input pf-input-lg" placeholder="Race name (e.g. October Recruit Sprint)" >'
+    +'<input aria-label="Start date" id="vlRStart" class="c-input pf-input-md" type="datetime-local" >'
+    +'<input aria-label="End date" id="vlREnd" class="c-input pf-input-md" type="datetime-local" >'
+    +'<input aria-label="Participants (optional, comma-separated callsigns)" id="vlRParts" class="c-input pf-input-lg" placeholder="Participants (optional): callsign1, callsign2&hellip;" >'
+    +'<button class="c-btn" id="vlRCreate">START RACE</button><div class="c-err" id="vlRErr"></div>'
+    +'</div>';
+  h+='<div class="vl-form">'
+    +'<input aria-label="Race ID (end)" id="vlREndId" class="c-input pf-input-lg" placeholder="Race ID" >'
+    +'<button class="c-btn c-btn-dim" id="vlREndBtn">END RACE &amp; PAY WINNER</button><div class="c-err" id="vlREndErr"></div>'
+    +'</div></div>';
+  /* WAVE3-S3-END (race console HTML) */
   /* SEASON CONTROL (2026-10-04): the 32-Day Offensive is over; no way to
      launch a new season without curl. Three admin forms ride the existing
      post("season","s_action",...) + X-Admin-Secret pattern.
@@ -598,6 +652,39 @@ function wire(){
         toast("Submission rejected."); IS=null; load();
       }); };
   })(irjs[ij]); }
+  /* S2 (2026-10-04) moderation queue: proof claims (shared with B6 later) */
+  var paps=document.querySelectorAll("[data-pap]");
+  for(var pi=0;pi<paps.length;pi++){ (function(btn){
+    btn.onclick=function(){ btn.disabled=true;
+      post("bounty","b_action","proof_verdict",{claim_id:btn.getAttribute("data-pap"),verdict:"approve"},function(j){
+        btn.disabled=false;
+        if(!j||!j.ok){ toast("Approve failed: "+(PF.errCopy(j,"error"))); return; }
+        toast("Proof approved: +"+(j.xp||0)+" XP paid."); PQ=null; load();
+      }); };
+  })(paps[pi]); }
+  var prjs=document.querySelectorAll("[data-prj]");
+  for(var pj=0;pj<prjs.length;pj++){ (function(btn){
+    btn.onclick=function(){
+      var reason=window.prompt("Rejection reason (optional):")||"";
+      btn.disabled=true;
+      post("bounty","b_action","proof_verdict",{claim_id:btn.getAttribute("data-prj"),verdict:"reject",reason:reason},function(j){
+        btn.disabled=false;
+        if(!j||!j.ok){ toast("Reject failed: "+(PF.errCopy(j,"error"))); return; }
+        toast("Proof rejected. Nothing paid."); PQ=null; load();
+      }); };
+  })(prjs[pj]); }
+  /* S2 (2026-10-04): post a proof bounty (house-funded) */
+  b=document.getElementById("vlPBPost");
+  if(b) b.onclick=function(){ b.disabled=true; err("vlPBErr","");
+    var pt=val("vlPBTitle"), px=Math.round(Number(val("vlPBXp"))||0);
+    if(pt.length<4){ err("vlPBErr","Title needs 4+ characters."); b.disabled=false; return; }
+    if(!(px>=5&&px<=500)){ err("vlPBErr","XP must be 5-500."); b.disabled=false; return; }
+    post("bounty","b_action","proofbounty_create",{title:pt,detail:val("vlPBDetail"),xp_reward:px,
+      platform:val("vlPBPlat"),hashtag:val("vlPBTag"),asset_url:val("vlPBAsset")},function(j){
+      b.disabled=false;
+      if(!j||!j.ok){ err("vlPBErr",PF.errCopy(j,"Create failed.")); return; }
+      toast("Proof bounty live: "+j.id); load();
+    }); };
   /* battle control: create / create staked / open voting / close & settle */
   b=document.getElementById("vlBCreate");
   if(b) b.onclick=function(){ b.disabled=true;
@@ -667,6 +754,52 @@ function wire(){
         toast("Auction cancelled."); AUL=null; load();
       }); };
   })(acs[ai2]); }
+  /* WAVE3-S3-START (race console wire-up)
+     S3 Creator Recruit Races (2026-10-04): race create + end wire-up.
+     Reads recruit_race (public JSONP); writes ride
+     post("recruitrace","rr_action",...) with X-Admin-Secret.
+     race_end closes the race early AND auto-pays the champion. */
+  api("recruit_race",{race_id:"current"},function(j){
+    var box=document.getElementById("vlRaceStatus"); if(!box) return;
+    if(!j||!j.ok){ box.textContent="Race status unavailable."; return; }
+    var r=j.race;
+    if(r){
+      box.innerHTML="LIVE: <b>"+esc(r.name)+"</b> &mdash; ends in "+fmtDur(Number(r.seconds_left||0))
+        +" &bull; "+Number(j.total_recruits||0)+" recruits counted"
+        +' <span class="x-note">id '+esc(r.id)+'</span>';
+      var eid=document.getElementById("vlREndId"); if(eid&&!eid.value) eid.value=r.id;
+    } else if(j.champion&&j.champion.winner){
+      box.innerHTML="No live race. Last champion: <b>"+esc(j.champion.winner)+"</b>"
+        +" ("+esc(j.champion.race_name||"")+")";
+    } else {
+      box.textContent="No races yet — start the first one below.";
+    }
+  });
+  b=document.getElementById("vlRCreate");
+  if(b) b.onclick=function(){ b.disabled=true;
+    var rName=val("vlRName");
+    var rMs=val("vlRStart")?new Date(val("vlRStart")).getTime():0;
+    var rEndMs=val("vlREnd")?new Date(val("vlREnd")).getTime():0;
+    if(!rName){ err("vlRErr","Race name required."); b.disabled=false; return; }
+    if(!(rMs>0)||!(rEndMs>0)){ err("vlRErr","Start and end dates required."); b.disabled=false; return; }
+    if(!(rEndMs>rMs)){ err("vlRErr","End must be after start."); b.disabled=false; return; }
+    post("recruitrace","rr_action","race_create",{name:rName,starts_at:rMs,ends_at:rEndMs,participants:val("vlRParts")},function(j){
+      b.disabled=false;
+      if(!j||!j.ok){ err("vlRErr",PF.errCopy(j,"Create failed.")); return; }
+      toast("Race started: "+j.id); load();
+    }); };
+  b=document.getElementById("vlREndBtn");
+  if(b) b.onclick=function(){
+    var rid=val("vlREndId");
+    if(!rid){ err("vlREndErr","Race ID required."); return; }
+    if(!window.confirm("End race "+rid+"? It closes out and pays the champion.")) return;
+    b.disabled=true;
+    post("recruitrace","rr_action","race_end",{race_id:rid},function(j){
+      b.disabled=false;
+      if(!j||!j.ok){ err("vlREndErr",PF.errCopy(j,"End failed.")); return; }
+      toast(j.winner?("Race ended. Champion: "+j.winner+" (+"+j.xp+" XP)."):"Race ended — no qualifying recruits."); load();
+    }); };
+  /* WAVE3-S3-END (race console wire-up) */
   /* season control: create / tick / end (2026-10-04).
      All ride post("season","s_action",...) + X-Admin-Secret, exact vault pattern. */
   var scCur=(SN&&SN.ok&&SN.season)||null;

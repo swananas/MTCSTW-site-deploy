@@ -6632,7 +6632,13 @@ if(document.readyState==='loading'){
      read_claim     {url_hash, answer}            -> {ok, xp:5, balance} | {ok:false, err}
      cite_token     {url, query}                  -> {ok, token, expires_at}
      bank_submit    {artifact_url, caption, image_hash?, citation_token?}
-                                                  -> {ok, submission_id, status:'pending'}
+                                                  -> {ok, submission_id, status:'pending',
+                                                      review_queued:bool, review_submission_id?}
+     (review_queued true when the piece also entered the community review
+     pool; review_submission_id present only then. Fail-closed: pool down
+     still lands the submission with review_queued:false — silent, never
+     alarm the user. Frontend surfaces the review line only on
+     j.review_queued === true.)
      poster_share   {story_url, proof_url}         -> {ok, xp:5, balance} | {ok:false, err}
    Envelope: {ok:true,...} / {ok:false, err:'...'}.
 
@@ -7387,7 +7393,14 @@ if(document.readyState==='loading'){
         paneMsg(root, 'bank', true,
           '<b>IN THE QUEUE.</b> Submission ' + esc(j.submission_id) +
           ' — pending moderation.<br>Accepted pieces earn XP; rejected pieces earn nothing, ever. ' +
-          esc(COPY.trust));
+          esc(COPY.trust) +
+          /* Community review pool (2026-10-05): backend returns
+             review_queued:true only when the piece actually entered the
+             pool. Fail-closed — false/absent renders the legacy message
+             silently (pool outage is never the user's problem). */
+          (j.review_queued === true
+            ? '<br>' + esc('Also entered community review — members vote on it.')
+            : ''));
         try {
           var a = root.querySelector('[data-rx-f="artifact"]'); if (a) a.value = '';
           var c = root.querySelector('[data-rx-f="caption"]'); if (c) c.value = '';

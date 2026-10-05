@@ -280,6 +280,17 @@
        goes full width — same narrow-column root cause as /economy's
        incident, now handled by the shared registry above. */
     feWiden(h);
+    /* WORKSHOP SHELL (2026-10-05): /create is owned by the workshop shell
+       (core/workshop.js, first in bundle-create) unless the shell is killed
+       via ?pf_off=workshop. The shell renders its own header + tool rail and
+       lazy-mounts tools on demand; the legacy stacked layout below is the
+       regression path and runs ONLY when the shell is killed — or when the
+       shell failed to claim the page (window.pfWorkshopClaimed unset), e.g.
+       bundle-create failed to load. Guard is PF.skip('workshop') inverted. */
+    if (pageId === 'pf-create' && PF && !PF.skip('workshop') && window.pfWorkshopClaimed) {
+      cfg.order.forEach(function (entry) { mounted[pageId + '::' + entry[0]] = 1; });
+      return 0;
+    }
     var n = 0;
     cfg.order.forEach(function (entry) {
       var silo = entry[0], tplId = entry[1];

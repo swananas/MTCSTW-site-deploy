@@ -99,8 +99,12 @@ var SECTIONS = {
     'infighting.js'
   ],
   'bundle-cells-h': [
-    /* /cells — cells.js stages pf-ov-cells for the main Cells widget. */
-    'cells.js'
+    /* /cells — cells.js stages pf-ov-cells for the main Cells widget.
+       cell-first-hour.js (CELLS wave G1, 2026-10-04): the guided first hour —
+       extends R19's post-claim interstitial; mounts the founder checklist /
+       joiner induction on pf-cell-formed / pf-cell-joined. */
+    'cells.js',
+    'cell-first-hour.js'
   ],
   'bundle-create-h': [
     /* /create — poster-forge + feed (the Propaganda Feed workshop). */
@@ -142,7 +146,10 @@ var SECTIONS = {
     'peoplesbank.js',
     'vault.js',
     /* allfronts admin (2026-10-04): operation console mounts beside the vault. */
-    'operations-admin.js'
+    'operations-admin.js',
+    /* Federal Reserve frontend (2026-10-04): monetary policy dashboard —
+       Bank is retail, Reserve is monetary; they belong together on /bank. */
+    'reserve.js'
   ],
   'bundle-economy': [
     /* /economy — Run the Economy. */

@@ -79,7 +79,11 @@
     'pf-bank': {
       title: "THE PEOPLE'S BANK", sub: 'Your XP, weaponized. Save it, move it, grow it.',
       order: [
-        ['peoplesbank', 'pf-ov-peoplesbank']
+        ['peoplesbank', 'pf-ov-peoplesbank'],
+        /* Federal Reserve (2026-10-04): monetary policy dashboard mounts
+           below the retail bank — Bank is retail, Reserve is monetary
+           policy; they belong together on /bank. */
+        ['reserve', 'pf-ov-reserve']
       ]
     },
     'pf-economy': {

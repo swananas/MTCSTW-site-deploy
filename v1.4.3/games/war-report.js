@@ -134,6 +134,7 @@ function loadFanFav(){
     if(b) b.onclick=function(){ wrPaintFavPoster(name,topN); };
   });
 }
+function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
   /* Private read: warreport_latest is per-callsign (IDOR fix). Route through
      the shared claim-retry GET (2026-10-03) so pre-auth callsign holders get

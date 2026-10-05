@@ -355,10 +355,46 @@ function paintStrip(){
 function stripTick(){
   try{
     var w=battleWindow(chiNow());
+    syncLiveStrip(w);
     if(!stripW||w.id!==stripW.id){ paintStrip(); return; }
     var msLeft=(w.live?w.end:w.start).getTime()-chiNow().getTime();
     var c=root.querySelector('[data-if-clock]');
     if(c) c.textContent=fmtClock(msLeft);
+  }catch(e){}
+}
+/* R33 (Wave 6B): "LIVE BATTLE" ambient summon. When a bout is live in SLIM
+   mode (homepage etc. — the arena page already shows the full bout), a fixed
+   bottom strip summons the visitor to fire now. The backend bell emitter
+   also fires; this is the on-page summon. It is the alert layer only — not
+   6A's R8 cell-bout toggle (not in tree; no duplication). Zero XP. */
+var pfLiveEl=null, pfLiveShown="", pfLiveDismissed="";
+function liveStripEl(){
+  if(pfLiveEl) return pfLiveEl;
+  try{
+    var d=document.createElement("div");
+    d.id="pfLiveBattle";
+    d.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:99993;background:#e10600;color:#fff;font:bold 14px Arial,sans-serif;text-align:center;padding:10px 48px 10px 12px;letter-spacing:1px;display:none;box-shadow:0 -2px 16px rgba(0,0,0,.5)";
+    document.body.appendChild(d);
+    pfLiveEl=d;
+  }catch(e){}
+  return pfLiveEl;
+}
+function syncLiveStrip(w){
+  if(!SLIM) return;
+  var el=liveStripEl(); if(!el) return;
+  try{
+    var show=!!(w&&w.live&&pfLiveDismissed!==w.id);
+    if(show&&pfLiveShown!==w.id){
+      var dest=document.getElementById("pf-infight-root")?"#pf-infight-root":"/arcade";
+      el.innerHTML='<a href="'+dest+'" style="color:#fff;text-decoration:none">\u25CF LIVE BATTLE \u2014 FIRE NOW \u2192</a>'
+        +'<button id="pfLiveBattleX" aria-label="Dismiss" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:1px solid #fff;color:#fff;padding:2px 8px;cursor:pointer;font-size:12px">\u2715</button>';
+      el.style.display="block";
+      pfLiveShown=w.id;
+      var x=document.getElementById("pfLiveBattleX");
+      if(x){ x.onclick=function(ev){ try{ev.stopPropagation();}catch(e){} pfLiveDismissed=w.id; pfLiveShown=""; el.style.display="none"; }; }
+    }else if(!show&&pfLiveShown){
+      el.style.display="none"; pfLiveShown="";
+    }
   }catch(e){}
 }
 function arenaTick(){

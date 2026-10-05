@@ -573,6 +573,8 @@ function doAmplify(){
       if(goBtn) goBtn.disabled=false;
       if(j&&j.ok){
         toast("Amplified! "+useAmt+" XP behind \u201c"+sel.title+"\u201d.");
+        /* R12 (Wave 6B): boost impact receipt — "your boost moved X to #N". */
+        try{ if(window.PF&&PF.boostReceipt) PF.boostReceipt(); }catch(e){}
         try{ document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:-useAmt,key:"amplify_"+sel.id+"_"+useAmt,reason:"amplify: "+sel.title}})); }catch(e){}
         var mine=loadMine();
         mine.unshift({id:sel.id,title:sel.title,kind:sel.kind,xp:useAmt,ts:Date.now()});

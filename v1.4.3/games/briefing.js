@@ -370,6 +370,7 @@ function bannerCss(){
     +"#pf-seasonbar .sb-bar{flex:1;height:6px;background:#222;border-radius:3px;overflow:hidden;min-width:60px}"
     +"#pf-seasonbar .sb-fill{height:100%;background:#c1121f}"
     +"#pf-seasonbar .sb-days{color:#e8b64c;white-space:nowrap}"
+    +"#pf-seasonbar .sb-link{display:flex;align-items:center;gap:10px;flex:1;color:inherit;text-decoration:none;cursor:pointer}"
     /* 2026-10-03: FEATURED DROP slot (Daily Drop consolidation) — the drop's
        own styles, rescoped from #pf-drop to #pf-brief.br-*. */
     +"#pf-brief .br-dday{font-family:Arial,sans-serif;font-size:13px;letter-spacing:3px;color:#ff5a00;text-transform:uppercase;margin-bottom:12px}"
@@ -399,9 +400,12 @@ function renderSeasonBanner(){
       bar=document.createElement("div"); bar.id="pf-seasonbar";
       document.body.appendChild(bar);
     }
-    bar.innerHTML='<span class="sb-name">\u2694 '+esc(sn.name)+'</span>'
+    /* R22 (Wave 6B): the season banner is a link — tap through to the
+       briefing's season/war-plan section instead of a dead strip. */
+    bar.innerHTML='<a class="sb-link" href="/#pf-warplan" title="See the war plan">'
+      +'<span class="sb-name">\u2694 '+esc(sn.name)+'</span>'
       +'<span class="sb-bar"><span class="sb-fill" style="display:block;width:'+pct+'%"></span></span>'
-      +'<span class="sb-days">'+dl+'D LEFT &bull; '+pct+'%</span>';
+      +'<span class="sb-days">'+dl+'D LEFT &bull; '+pct+'%</span></a>';
     /* keep clear of the dopamine comeback banner if it appears */
     var top=0;
     try{ if(document.getElementById("dpComeback")) top=42; }catch(e){}

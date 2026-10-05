@@ -115,7 +115,10 @@
       'border:2px solid #c1121f;border-radius:8px;}'+
       '#pfNotifyPanel{position:fixed;z-index:99991;width:340px;max-width:92vw;max-height:70vh;overflow-y:auto;'+
       'background:#111;border:2px solid #c1121f;color:#f5ead6;font-family:Arial,sans-serif;padding:14px;}'+
-      '#pfNotifyPanel h4{margin:0 0 8px;font-size:14px;letter-spacing:1px;}';
+      '#pfNotifyPanel h4{margin:0 0 8px;font-size:14px;letter-spacing:1px;}'+
+      /* R28: notification deep links. */
+      '#pfNotifyPanel .nt-go{display:block;color:inherit;text-decoration:none;}'+
+      '#pfNotifyPanel a.nt-go:hover .cp-mtext b{text-decoration:underline;}';
     document.head.appendChild(st);
   }
 
@@ -206,12 +209,29 @@
       h+='<div class="x-note">The wire went quiet — not from silence, but from a cut line. Your dispatches are still out there.'+ntAuthHint(N)+'</div>';
       h+='<div style="margin-top:8px"><button class="c-btn" id="ntInboxRetry">RETRY</button></div>';
     } else if(!list.length) h+='<div class="x-note">Quiet on the wire. Go make some noise.</div>';
+    /* R28 (Wave 6B, 2026-10-04): deep-link audit. The backend's
+       notification_list returns id/type/title/body/ts/read ONLY — no link
+       field — and the panel rendered zero tap targets, so every notification
+       type was a dead tap. Fixed: each known type maps to its surface; a
+       backend-supplied n.link/n.url/n.href wins if one ever ships. Unknown
+       types stay untappable (no invented destinations). Notification types
+       enumerated from backend notify() call sites 2026-10-04: battle,
+       bounty, wager, lottery, gov, streak, flash, tip, ambush, recruit
+       (+ boost, in the prefs map, no call site yet).
+       FLAGGED FOR LIVE VERIFICATION: bounty -> /create, wager/lottery ->
+       /arcade, tip -> /create, recruit -> / are best-guess surfaces. */
+    var TYPE_DEEP={battle:'/arcade',bounty:'/create',wager:'/arcade',lottery:'/arcade',gov:'/political-hq',streak:'/',flash:'/#pf-brief',tip:'/create',ambush:'/',recruit:'/',boost:'/create'};
+    function ntDest(x){ try{ var l=x.link||x.url||x.href; if(l) return String(l); }catch(e){}
+      return TYPE_DEEP[String(x.type||'').toLowerCase()]||null; }
     for(i=0;i<Math.min(list.length,30);i++){
-      var n=list[i];
-      h+='<div class="cp-mission"'+(n.read?' style="opacity:.6"':'')+'><div class="cp-mtext">'
+      var n=list[i], dest=ntDest(n);
+      h+='<div class="cp-mission"'+(n.read?' style="opacity:.6"':'')+'>'
+        +(dest?'<a class="nt-go" href="'+esc(dest)+'">':'<span class="nt-go">')
+        +'<div class="cp-mtext">'
         +'<span class="c-tag">'+esc(n.type||"info")+'</span> <b>'+esc(n.title||"")+'</b>'
         +'<div class="x-note">'+esc(n.body||"")+'</div>'
         +'<div class="x-note">'+esc(ago(n.ts))+'</div></div>'
+        +(dest?'</a>':'</span>')
         +(n.read?'':'<button class="c-btn" data-nid="'+n.id+'">MARK READ</button>')+'</div>';
     }
     h+='</div>';

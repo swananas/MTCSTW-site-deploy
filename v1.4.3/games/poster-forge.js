@@ -360,6 +360,8 @@ function pfWireBoosts(root){
           btn.disabled=false;
           if(!j||!j.ok){ pfToast(PF.errCopy(j,"Boost failed.")); return; }
           pfToast("BOOSTED — "+j.total_boosts+" XP total on this piece.");
+          /* R12 (Wave 6B): boost impact receipt — "your boost moved X to #N". */
+          try{ if(window.PF&&PF.boostReceipt) PF.boostReceipt(); }catch(e){}
           pfRenderSpread(); pfRenderImpact();
           try{ document.dispatchEvent(new CustomEvent("pf-boost-given",{detail:{content_id:btn.getAttribute("data-cid")}})); }catch(e){}
         });

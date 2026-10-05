@@ -237,6 +237,8 @@ function render(){
         btn.disabled=false;
         if(!j||!j.ok){ toast(PF.errCopy(j,"Boost failed.")); return; }
         toast("BOOSTED — "+j.total_boosts+" XP total on this piece.");
+        /* R12 (Wave 6B): boost impact receipt — "your boost moved X to #N". */
+        try{ if(window.PF&&PF.boostReceipt) PF.boostReceipt(); }catch(e){}
         try{ if(window.PF&&PF.dope){ PF.dope.press(btn); var bh=document.getElementById("xBattles")||document.body; PF.dope.xpFloat(bh,"+"+btn.getAttribute("data-amt")+" XP BOOST"); } }catch(e2){}
         load();
       });

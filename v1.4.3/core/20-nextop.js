@@ -110,8 +110,10 @@
           'One tap keeps it alive.';
       }
     },
+    /* W2-D4 (Wave 6B): "cells hiring" rule — cell-less users get a cells op.
+       (The cellnone rule already existed; retitled to the hiring framing.) */
     cellnone: {
-      title: 'YOU FIGHT ALONE', cta: 'FIND YOUR CELL \u2192', href: '/cells',
+      title: 'CELLS ARE HIRING', cta: 'FIND YOUR CELL \u2192', href: '/cells',
       ready: function (st) { return st.cellIn !== null; },
       done: function (st) { return st.cellIn; },
       sub: function (st) { return 'No cell, no squad XP. Join one or build your own.'; }

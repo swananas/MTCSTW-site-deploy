@@ -25,6 +25,9 @@
 #pf-billionaire .bv-ctx{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin:0;line-height:1.5}
 #pf-billionaire .bv-streak{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase;margin:12px 0}
 #pf-billionaire .bv-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:12px}
+#pf-billionaire .bv-br{margin:12px 0 0}
+#pf-billionaire .bv-br a{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#ff5a00;text-decoration:none;font-weight:700}
+#pf-billionaire .bv-br a:hover{text-decoration:underline}
 </style>
 
 <h2>Billionaire or Supervillain?</h2>
@@ -38,6 +41,7 @@
 <div class="bv-streak" id="bvStreak"></div>
 <div class="bv-btns" id="bvShareRow" style="display:none">
   <button class="bv-btn ghost" id="bvCopy">Copy result grid</button>
+  <button class="bv-btn ghost" id="bvShare">Share score card</button>
 </div>
 <div class="bv-note">One quote per day. Come back tomorrow &mdash; the next monster awaits.</div>
 
@@ -98,8 +102,12 @@ function showReveal(){
   r.innerHTML='<p class="bv-verdict '+(p.correct?'right':'wrong')+'">'+(p.correct?'CORRECT.':'WRONG.')+'</p>'+
     '<p class="bv-who">'+src+' \u2014 '+Q.who+' said that.</p>'+
     '<p class="bv-ctx">'+Q.ctx+'</p>';
+  /* R20c: the quote reveal routes real billionaires to their bracket matchup. */
+  if(Q.w===0){ r.innerHTML+='<p class="bv-br"><a href="/arcade#pf-bracket">SEE THEIR BRACKET MATCHUP \\u2192</a></p>'; }
   el('bvShareRow').style.display='flex';
   el('bvStreak').textContent=streakTxt();
+  /* R20a: PFShare score card on completion ("I scored N"). */
+  try{var PS0=window.PFShare;if(PS0&&PS0.REG){var qq=String(Q.q).replace(/"/g,"");PS0.REG["billionaire-supervillain"]={title:"DAY "+n+(p.correct?" \\u2014 RIGHT":" \\u2014 WRONG"),tag:"BILLIONAIRE OR SUPERVILLAIN",lines:['"'+qq+'" \\u2014 '+Q.who],cta:"TELL THEM APART"};}}catch(e){}
 }
 el('bvStreak').textContent=streakTxt();
 if(s.played&&s.played[tk]){showReveal();}
@@ -121,6 +129,11 @@ el('bvCopy').onclick=function(){
   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done).catch(function(){fallback();});}
   else fallback();
   function fallback(){try{var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();done();}catch(e){}}
+};
+/* R20a: PFShare score card — "I scored N" with ?ref= attribution. */
+el('bvShare').onclick=function(){
+  try{var PS=window.PFShare;if(PS&&PS.poster&&PS.shareImage){var cv=PS.poster("billionaire-supervillain");if(cv){PS.shareImage(cv,"bos-score.png","I called today's Billionaire or Supervillain "+(s.played[tk].correct?"right":"wrong"),"billionaire-supervillain");return;}}}catch(e){}
+  try{if(window.PF&&PF.toast)PF.toast('Score card misfired — the grid copy still works.');}catch(e){}
 };
 })();
 </script>

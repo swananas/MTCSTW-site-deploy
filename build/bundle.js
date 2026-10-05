@@ -73,7 +73,12 @@ var SECTIONS = {
     'alerts.js',
     'fan-vote.js',
     /* W5-6 Hall of Proof (2026-10-04): public winners wall, PROOF section. */
-    'hall-of-proof.js'
+    'hall-of-proof.js',
+    /* Wave 6B-2 (2026-10-04): register Wave 3's unbundled files to unblock
+       the build gate (mirrors 5C's registration; 5C may relocate to slim
+       bundles): S5 war-room ticker, A2 flash siren. */
+    'war-room-ticker.js',
+    'flash-siren.js'
   ],
   /* SLIM DEDICATED-PAGE BUNDLES (2026-10-04, M1 dead-weight fix): /arcade,
      /cells and /create used to fetch the full bundle-home (~83KB gz) to get

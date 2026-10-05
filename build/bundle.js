@@ -270,6 +270,26 @@ var ALL = {};
 Object.keys(SECTIONS).forEach(function (k) { ALL[k] = SECTIONS[k]; });
 Object.keys(HQ_BUNDLES).forEach(function (k) { ALL[k] = HQ_BUNDLES[k]; });
 
+/* COMMAND DASHBOARD (2026-10-05, fe/command-shell): shell + request infra for
+   the /command page. Sources live in v1.4.3/command/ (NOT v1.4.3/games/), so
+   the "every game file in exactly one bundle" enforcement below never sees
+   them. bundle-command is a STANDALONE page bundle — NEVER homepage: the
+   HOMEPAGE_EXCLUDE check fails the build if any command file ever lands in
+   bundle-sec1 or bundle-home. */
+var COMMAND_ROOT = path.join(__dirname, '..', 'v1.4.3', 'command');
+var COMMAND_FILES = ['00-shell.js', '01-request.js', '02-registry.js'];
+ALL['bundle-command'] = COMMAND_FILES;
+var COMMAND_BUNDLE_ROOT = { 'bundle-command': COMMAND_ROOT };
+
+/* Homepage exclusion: command-dashboard files must NEVER ship in the
+   homepage critical path (bundle-sec1) or the homepage lazy bundle
+   (bundle-home). */
+['bundle-sec1', 'bundle-home'].forEach(function (b) {
+  SECTIONS[b].forEach(function (f) {
+    if (COMMAND_FILES.indexOf(f) !== -1) fail('command file ' + f + ' in homepage bundle ' + b);
+  });
+});
+
 function fail(msg) { console.error('BUNDLE FAIL: ' + msg); process.exit(1); }
 
 /* Every game .js file must live in exactly one page or HQ bundle — or in
@@ -331,7 +351,7 @@ Object.keys(ALL).forEach(function (name) {
   out.push('   Contains: ' + files.join(', '));
   out.push('   Each silo keeps its own PF.skip() kill switch (?pf_off=<silo>). */');
   files.forEach(function (f) {
-    var p = path.join(ROOT, f);
+    var p = path.join(COMMAND_BUNDLE_ROOT[name] || ROOT, f);
     if (!fs.existsSync(p)) fail('missing file: ' + f);
     var src = fs.readFileSync(p, 'utf8');
     out.push('\n/* ===== ' + f + ' ===== */');

@@ -158,7 +158,11 @@
        backgrounds, which washed #f5ead6 out to ~1.4–2.0:1 (verified below).
        On this dark band the title hits 16.3:1 and the sub 7.3:1 (both AAA).
        Red top/bottom bars keep the red/black propaganda treatment. */
-    head.style.cssText = 'text-align:center;margin:0 auto 22px;max-width:720px;font-family:Arial,sans-serif;' +
+    /* NAV OFFSET (2026-10-04): the band is the first content on all 9 injected
+       pages and sat under the fixed nav, clipping the top of the hero title.
+       80px top margin matches the homepage HERO FIX (01-styles.css) and clears
+       the fixed header on every injected page via this one shared mount. */
+    head.style.cssText = 'text-align:center;margin:80px auto 22px;max-width:720px;font-family:Arial,sans-serif;' +
       'background:linear-gradient(180deg,#141414 0%,#0b0b0b 100%);' +
       'border:1px solid #333;border-top:4px solid #c1121f;border-bottom:4px solid #c1121f;' +
       'padding:24px 18px 20px;box-sizing:border-box;border-radius:3px;';

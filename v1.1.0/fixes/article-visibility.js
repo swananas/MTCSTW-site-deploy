@@ -103,11 +103,27 @@
      -webkit-text-fill-color:transparent) is legitimate design, not
      brokenness: the background gradient paints the glyphs. Exempt such
      elements from paint-level detection AND repair so the guard never
-     "fixes" intentional gradient text. */
-  function isGradientText(c) {
+     "fixes" intentional gradient text.
+
+     SUBTREE-AWARE (fixup round 2): -webkit-text-fill-color and color
+     INHERIT, but background-clip does NOT. A descendant of a gradient-text
+     element therefore computes transparent fill with
+     background-clip:border-box — element-local detection would miss the
+     exemption and "repair" the intentional design (false positive
+     cascade). So check the element itself AND walk up to 8 ancestors for
+     background-clip:text / -webkit-background-clip:text; a hit on ANY
+     node in the chain exempts the element. */
+  function isGradientText(el) {
     try {
-      return c.backgroundClip === 'text' || c.webkitBackgroundClip === 'text';
-    } catch (e) { return false; }
+      var depth = 0, node = el;
+      while (node && node.nodeType === 1 && depth <= 8) {
+        var c = cs(node);
+        if (c && (c.backgroundClip === 'text' || c.webkitBackgroundClip === 'text')) { return true; }
+        node = node.parentElement;
+        depth++;
+      }
+    } catch (e) {}
+    return false;
   }
 
   /* Repair one element in the content chain. Returns the number of repairs
@@ -184,7 +200,7 @@
         var tfcm = tfc.match(/^rgba?\((\d+),(\d+),(\d+)(?:,([\d.]+))?\)$/i);
         if (tfcm && tfcm[4] !== undefined && parseFloat(tfcm[4]) === 0) { tfcZero = true; }
       }
-      if (tfcZero && !isGradientText(c)) { setImp(el, '-webkit-text-fill-color', 'inherit'); fixed++; }
+      if (tfcZero && !isGradientText(el)) { setImp(el, '-webkit-text-fill-color', 'inherit'); fixed++; }
     } catch (e4) {}
     return fixed;
   }
@@ -212,7 +228,12 @@
     /* Cap the scan so a body-level host can't turn this into a long walk. */
     var n = Math.min(els.length, 3000);
     for (i = 0; i < n; i++) {
-      if (transparentInline(els[i])) {
+      /* Honor the gradient-text exemption here too: stripping inline
+         color:transparent from a gradient-text element (or one of its
+         descendants, which inherit the transparent fill) would set the
+         glyph fill back to a solid inherited color over the clipped
+         background and destroy the intentional design. */
+      if (transparentInline(els[i]) && !isGradientText(els[i])) {
         try { els[i].style.removeProperty('color'); fixed++; } catch (e2) {}
       }
     }
@@ -221,13 +242,17 @@
        is 0, pin the nearest opaque ancestor's computed color !important;
        if no opaque ancestor exists, fall back to the body computed color.
        Gated on contentBroken() so healthy pages (where transparency is
-       intentional design) never pay for the scan and never see a repair. */
+       intentional design) never pay for the scan and never see a repair.
+       Gradient-text subtrees are exempt: transparent computed color is the
+       design there (the background paints the glyphs), and pinning an
+       opaque color !important would overwrite the transparent fill —
+       a false-positive cascade. */
     try {
       if (contentBroken(host)) {
         for (i = 0; i < n; i++) {
           try {
             var col = computedColor(els[i]);
-            if (col && colorAlpha0(col)) {
+            if (col && colorAlpha0(col) && !isGradientText(els[i])) {
               var oc = nearestOpaqueColor(els[i]);
               if (oc) { setImp(els[i], 'color', oc); fixed++; }
             }
@@ -338,7 +363,7 @@
        background — color/tfc transparency is the design, not breakage.
        The filter check still applies: brightness(0) on gradient text
        paints nothing genuinely. */
-    if (!isGradientText(c)) {
+    if (!isGradientText(el)) {
       var col = String(c.color || '').replace(/\s+/g, '');
       if (/^transparent$/i.test(col)) { return true; }
       var m = col.match(/^rgba?\((\d+),(\d+),(\d+)(?:,([\d.]+))?\)$/i);

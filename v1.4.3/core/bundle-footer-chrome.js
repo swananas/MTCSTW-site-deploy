@@ -710,7 +710,7 @@ window.PFCallsign = function(){
   var NUKE_PTS={"pf-order-checkin":10,"pf-bracket-ballot":5,"pf-bracket-liquidated":10,
    "pf-vote-cast":5,"pf-quiz-done":5,"pf-guess-done":10,"pf-raid-report":15,
    "pf-traitor-vote":5,"pf-caption-submit":10,"pf-poster-made":10,
-   "pf-drop-claimed":15,"pf-enlisted":10,"pf-wb-buy":25,"pf-billionaire-answered":5,
+   "pf-drop-claimed":15,"pf-enlisted":10,"pf-billionaire-answered":5,
    "pf-interrogation-answered":5,"pf-share-image":5,"pf-creator-xp":null};
   function nukeDay(){ return new Date().toISOString().slice(0,10); }
   function nukeLoad(){ try{ var s=JSON.parse(localStorage.getItem(NUKE_LS)||"null"); if(s&&s.d) return s; }catch(e){} return {d:nukeDay(),xp:0}; }

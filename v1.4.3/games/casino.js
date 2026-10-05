@@ -446,14 +446,13 @@ function wire(id){
     co.disabled=true; co.textContent="CASHING OUT...";
     postG("crash_cashout",{callsign:id.callsign},function(j){
       if(!j||!j.ok){ toast(PF.errCopy(j,"Cashout failed.")); load(); return; }
-      /* 6A-R2: persistent cashout reveal (VAULT IT / SHARE THE WIN / exits). */
+      /* 6A-R2: persistent cashout reveal (VAULT IT / SHARE THE WIN / exits).
+         No load() — render() wipes #xCasino and would destroy the reveal.
+         Dopamine fires inside cashoutReveal; no double confetti here. */
       cashoutReveal(j.payout,"crash");
       toast("CASHED OUT: +"+(j.payout||0)+" XP!");
       /* WM-EXITS (de-isolation): settled crash win. */
       try{ if(window.PF&&PF.wmCrashSettled) PF.wmCrashSettled(j.payout||0); }catch(wme){}
-      /* M1 dopamine: cashing out before the crash is the skill moment. */
-      try{ if(window.PF&&PF.dope){ var ch=document.getElementById("xCasino")||document.body; PF.dope.confetti(ch,50); PF.dope.xpFloat(ch,"+"+(j.payout||0)+" XP"); } }catch(dpe){}
-      load();
     });
   };
   /* --- roulette --- */
@@ -472,7 +471,6 @@ function wire(id){
       if(!j||!j.ok){ if(e) e.textContent=PF.errCopy(j,"Spin failed."); return; }
       var res=j.result!=null?j.result:"?";
       var pay=Number(j.payout)||0;
-<<<<<<< HEAD
       /* 6A-R2: a winning spin cashes out — persistent reveal, not a wiped line. */
       if(pay>0){ cashoutReveal(pay,"roulette",pay>=amt*5); return; }
       /* WM-EXITS (de-isolation): settled spin — win or loss. */

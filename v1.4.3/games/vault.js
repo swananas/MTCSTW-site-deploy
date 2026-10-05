@@ -388,7 +388,40 @@ function render(){
     +'<button class="c-btn" id="vlPBPost">POST PROOF BOUNTY</button><div class="c-err" id="vlPBErr"></div></div>';
   h+='</div>';
   h+='</div>';
-  /* WEBHOOK HEALTH — War Bond commerce pipeline (2026-10-03 C2b).
+/* S2 (2026-10-04) — PROOF QUEUE: post-proof bounty claims awaiting
+     verdict. Approve pays the XP through xpGrant caps; reject burns
+     nothing and ticks the device's rejection counter (repeat offenders
+     flagged). Shared queue — B6 (Raid the Comments) rides it later. */
+  var pql=(PQ&&PQ.ok&&PQ.queue)||[];
+  h+='<div class="x-pane"><h4>Proof queue ('+pql.length+' pending)</h4>';
+  h+='<div class="x-note">Post-proof bounty claims. APPROVE pays the XP (capped); REJECT burns nothing, flags repeat offenders.</div>';
+  if(!pql.length){ h+='<div class="x-note">Queue is empty.</div>'; }
+  for(var qi=0;qi<pql.length;qi++){
+    var pq0=pql[qi];
+    var prc=Number(pq0.reject_count)||0;
+    h+='<div class="vl-mod"><b>'+esc(pq0.bounty_title||'Untitled')+'</b> '
+      +'<span class="x-note">'+Number(pq0.xp_reward||0)+' XP &bull; '+esc(pq0.platform||'?').toUpperCase()+' &bull; '+esc(pq0.hashtag||'')+'</span><br>'
+      +'<span class="x-note">by '+esc(pq0.claimer||'?')+' &mdash; '+fmtDate(pq0.submitted_at)+'</span> '
+      +'<a href="'+esc(pq0.proof_url||'#')+'" target="_blank" rel="noopener" style="color:#dc143c;font-size:12px">VERIFY POST</a>'
+      +(prc>0?' <span class="x-note" style="color:#c1121f;font-weight:bold">REJECTS: '+prc+(prc>=3?' — REPEAT OFFENDER':'')+'</span>':'')+'<br>'
+      +'<button class="c-btn c-btn-sm" data-pap="'+pq0.id+'">APPROVE</button> '
+      +'<button class="c-btn c-btn-dim c-btn-sm" data-prj="'+pq0.id+'">REJECT</button></div>';
+  }
+  h+='</div>';
+  /* S2 (2026-10-04) — post a POST-PROOF bounty (house-funded, no escrow). */
+  h+='<div class="x-pane"><h4>Post a proof bounty</h4>'
+    +'<div class="x-note">Network-funded: XP mints on approval. Claims need a matching-platform post URL.</div>'
+    +'<input aria-label="Bounty title" id="vlPBTitle" class="c-input pf-input-lg" placeholder="TITLE — e.g. Raid poster: October push" maxlength="80"><br>'
+    +'<input aria-label="Bounty detail" id="vlPBDetail" class="c-input pf-input-lg" placeholder="Detail — what should the caption carry?" maxlength="200"><br>'
+    +'<input aria-label="Bounty XP" id="vlPBXp" class="c-input pf-input-sm" placeholder="XP (5-500)" maxlength="3" inputmode="numeric"> '
+    +'<select aria-label="Target platform" id="vlPBPlat" class="c-input pf-input-sm">'
+    +'<option value="tiktok">TikTok</option><option value="instagram">Instagram</option>'
+    +'<option value="facebook">Facebook</option><option value="youtube">YouTube</option></select><br>'
+    +'<input aria-label="Mission hashtag" id="vlPBTag" class="c-input pf-input-lg" placeholder="Mission hashtag — e.g. #PFNMission12" maxlength="60"><br>'
+    +'<input aria-label="Poster asset URL" id="vlPBAsset" class="c-input pf-input-lg" placeholder="Poster asset URL (https://…) — shown as the download" maxlength="500"><br>'
+    +'<button class="c-btn" id="vlPBPost">POST PROOF BOUNTY</button><div class="c-err" id="vlPBErr"></div></div>';
+  h+='</div>';
+  h+='</div>';  /* WEBHOOK HEALTH — War Bond commerce pipeline (2026-10-03 C2b).
      Admin-only: reveals whether the Squarespace order webhook has ever
      fired. "Never" means the webhook URL was never pasted — the reason
      bond_claim finds nothing. */

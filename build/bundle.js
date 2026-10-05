@@ -139,6 +139,8 @@ var SECTIONS = {
   'bundle-cells': [
     /* /cells (+ Creator HQ) — the cell lifecycle. */
     'cell-hq.js',
+    /* Cells G7 (2026-10-04): standalone treasury UI (fund/spend/trajectory). */
+    'treasury.js',
     'cell-war.js',
     'diplomacy.js',
     'contracts.js',

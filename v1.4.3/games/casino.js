@@ -128,7 +128,7 @@ function renderWagers(id){
     for(var s=0;s<sides.length;s++){
       var sd=sides[s], pool=Number(w.total_pool)||0, sb=Number(sd.total_bet)||0;
       var odds=sb>0?("pays "+(pool/sb).toFixed(1)+"x"):"no bets yet";
-      h+='<div class="cs-side"><span class="cs-sname">'+esc(sd.side)+'</span>'
+      h+='<div class="cs-side"><span class="cs-sname">'+esc(sd.side_name||sd.side)+'</span>'
         +' <span class="cs-odds">'+esc(odds)+' ('+sb+' XP)</span>'
         +'<button class="c-btn cs-betbtn" data-wid="'+esc(w.id)+'" data-side="'+esc(sd.side)+'">BET</button></div>';
     }

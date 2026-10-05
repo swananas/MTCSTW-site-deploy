@@ -125,7 +125,7 @@ function render(){
     var q=pendInc[k];
     h+='<div class="dp-rel"><div class="dp-rtitle">'+kindLabel(q.kind)+' &mdash; from <b>'+esc(q.from_cell)+'</b></div>'
       +'<div class="x-note">'+esc(q.message||"No message.")+'</div>'
-      +'<button class="c-btn dp-acc" data-rid="'+esc(q.id)+'">ACCEPT</button>'
+      +'<button class="c-btn dp-acc" data-rid="'+esc(q.id)+'" data-kind="'+esc(q.kind)+'" data-from="'+esc(q.from_cell)+'">ACCEPT</button>'
       +'<button class="c-btn dp-dec" data-rid="'+esc(q.id)+'">DECLINE</button></div>';
   }
   h+='</div>';
@@ -155,10 +155,14 @@ function render(){
   /* --- wire --- */
   function wire(cls,fn){ var bs=el.querySelectorAll(cls); for(var i=0;i<bs.length;i++){ (function(b){ b.addEventListener("click",fn); })(bs[i]); } }
   wire(".dp-acc",function(){
-    var rid=this.getAttribute("data-rid"), id2=ident();
-    post("diplomacy_respond",{callsign:id2.callsign,device:id2.device,request_id:rid,accept:true},function(r){
-      if(r&&r.ok){ toast("Relation forged."); load(); } else { toast((r&&r.err)||"Failed."); }
-    });
+    var rid=this.getAttribute("data-rid"), kind=this.getAttribute("data-kind"),
+        from=this.getAttribute("data-from"), id2=ident();
+    /* G12 (2026-10-04): declaration ceremony. Accepting a rivalry fires the
+       DECLARE confirm — war drums, ticker-visible to the whole movement.
+       Alliances/coalitions get the same flow, quieter. Zero XP. */
+    if(kind==="rivalry"){ ceremony(rid,from,id2,true); }
+    else if(kind==="alliance"||kind==="coalition"){ ceremony(rid,from,id2,false); }
+    else { doAccept(rid,id2); }
   });
   wire(".dp-dec",function(){
     var rid=this.getAttribute("data-rid"), id2=ident();
@@ -184,6 +188,37 @@ function render(){
       if(r&&r.ok){ toast("Proposal sent."); load(); } else { er.textContent=(r&&r.err)||"Failed."; }
     });
   }); }
+}
+/* G12 declaration ceremony (2026-10-04). war=true: the DECLARE WAR confirm
+   for rivalries — dramatic, ticker-visible. war=false: quieter pact confirm
+   for alliances/coalitions. Zero XP; pure narration/status. */
+function doAccept(rid,id2){
+  post("diplomacy_respond",{callsign:id2.callsign,device:id2.device,request_id:rid,accept:true},function(r){
+    if(r&&r.ok){ toast("Relation forged."); load(); } else { toast((r&&r.err)||"Failed."); }
+  });
+}
+function ceremony(rid,from,id2,war){
+  var title = war ? "\u2694 DECLARE WAR" : "FORGE THE PACT";
+  var body = war
+    ? "CELL <b>"+esc(from||"")+"</b> has challenged your cell. Accepting writes the declaration to the war-room ticker \u2014 the whole movement sees it. Rally your fighters."
+    : "Accepting seals the pact with CELL <b>"+esc(from||"")+"</b>. A quieter line in the ticker \u2014 but the map remembers.";
+  var yes = war ? "\u2694 DECLARE WAR" : "FORGE IT";
+  var no = war ? "STAND DOWN" : "HOLD";
+  var ov=document.createElement("div");
+  ov.style.cssText="position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.82);z-index:99998;display:flex;align-items:center;justify-content:center;padding:20px";
+  var card=document.createElement("div");
+  card.style.cssText="max-width:440px;background:"+(war?"#1c0707":"#0d0d0d")+";border:3px solid "+(war?"#c1121f":"#8a8a8a")+
+    ";padding:26px 22px;text-align:center;color:#f5ead6;font-family:Arial,sans-serif;box-shadow:0 0 24px rgba(193,18,31,.35)";
+  card.innerHTML='<div style="font-size:22px;font-weight:800;letter-spacing:2px;margin-bottom:12px;color:'+(war?"#ff5a00":"#f5ead6")+'">'+title+'</div>'+
+    '<div style="font-size:14px;line-height:1.6;margin-bottom:20px">'+body+'</div>'+
+    '<button id="pfCerYes" style="background:'+(war?"#c1121f":"#2a2a2a")+';color:#fff;font-weight:800;font-size:15px;padding:12px 26px;border:2px solid #fff;margin:4px;cursor:pointer;letter-spacing:1px">'+yes+'</button>'+
+    '<button id="pfCerNo" style="background:transparent;color:#a89e88;font-size:13px;padding:12px 18px;border:1px solid #555;margin:4px;cursor:pointer">'+no+'</button>';
+  ov.appendChild(card);
+  document.body.appendChild(ov);
+  function close(){ try{ ov.remove(); }catch(e){} }
+  card.querySelector("#pfCerYes").addEventListener("click",function(){ close(); doAccept(rid,id2); });
+  card.querySelector("#pfCerNo").addEventListener("click",close);
+  ov.addEventListener("click",function(e){ if(e.target===ov) close(); });
 }
 load();
 setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },120000);

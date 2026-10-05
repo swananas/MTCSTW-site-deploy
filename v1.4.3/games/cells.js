@@ -27,6 +27,23 @@ var BACKEND=window.PF_BACKEND_URL;
 var LS_C="pf_cells_v1";
 var BOUNTY_FALLBACK=25;
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+/* G3 (2026-10-04): shared-streak milestone badge + "milestone tomorrow"
+   teaser. Milestones: 7/14/30/60/90 days. Narration only — the +5%/day
+   mult stays the reward, zero new XP. */
+var MS_MILESTONES=[7,14,30,60,90];
+function msBadge(streak){
+  streak=Number(streak)||0;
+  var hit=null, next=null;
+  for(var i=0;i<MS_MILESTONES.length;i++){
+    if(streak>=MS_MILESTONES[i]) hit=MS_MILESTONES[i];
+    if(streak+1===MS_MILESTONES[i]) next=MS_MILESTONES[i];
+  }
+  var base="display:inline-block;font-size:11px;font-weight:800;padding:2px 8px;margin-left:6px;letter-spacing:1px;vertical-align:middle;";
+  var h="";
+  if(hit) h+='<span style="'+base+'background:#c1121f;color:#fff;" title="Shared streak milestone — the ticker heard it">&#127942; '+hit+'-DAY MILESTONE</span>';
+  else if(next) h+='<span style="'+base+'background:transparent;color:#ffb347;border:1px solid #ffb347;" title="Check in tomorrow to claim it">&#128293; '+next+'-day milestone tomorrow</span>';
+  return h;
+}
 function load(k,fb){ try{ return JSON.parse(localStorage.getItem(k)||JSON.stringify(fb)); }catch(e){ return fb; } }
 function save(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
 function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
@@ -197,6 +214,37 @@ function loadBoard(){
     }).join("");
     el.innerHTML=html;
     if(SLIM){ el.insertAdjacentHTML('beforeend','<div class="x-note"><a href="/cells" style="color:#c1121f;">Full cell leaderboard &rarr;</a></div>'); }
+  });
+}
+/* CELLS G14 (2026-10-04): CELL MUSTER board \
+   During an All Fronts op, cell check-ins score muster points; the board
+   shows the per-op ranking and each rank's Frontlines territory
+   bonus (+20/+10/+5). Hidden when no op has muster data. Full mode only;
+   refreshes on the 5-minute tick. */
+function loadMuster(){
+  if(SLIM) return;
+  var wrap=document.getElementById("cMusterWrap"); if(!wrap) return;
+  var id=ident(), params={};
+  if(id.callsign) params.callsign=id.callsign;
+  api("muster_leaderboard",params,function(j){
+    var mel=document.getElementById("cMuster"); if(!mel) return;
+    if(!j||!j.ok||!j.op||!j.board||!j.board.length){ wrap.style.display="none"; return; }
+    wrap.style.display="";
+    var op=j.op;
+    var head='<div class="x-note">'+esc(op.name)+
+      (op.live?' &mdash; <b style="color:#c1121f;">LIVE</b>: check in to score muster points':' &mdash; final standings')+'</div>';
+    var terr=["+20","+10","+5"];
+    var rows=j.board.slice(0,10).map(function(r){
+      var bonus=r.rank<=3?' &middot; <b style="color:#c1121f;">'+terr[r.rank-1]+' territory</b>':"";
+      return '<div class="c-lrow"><span class="c-lname">#'+r.rank+' '+esc(r.cell_name)+'</span>'+
+        '<span class="c-lstat">'+r.points+' muster &middot; '+r.fighters+' fighters'+bonus+'</span></div>';
+    }).join("");
+    var mine="";
+    if(j.mine&&j.mine.cell_id){
+      mine='<div class="x-note">Your cell: <b>'+esc(j.mine.cell_name)+'</b>'+
+        (j.mine.rank?' &mdash; rank #'+j.mine.rank+' ('+j.mine.points+' muster)':' &mdash; no muster points yet. Check in while the op is live.')+'</div>';
+    }
+    mel.innerHTML=head+'<div class="c-lrows">'+rows+'</div>'+mine;
   });
 }
 function renderGate(){
@@ -372,13 +420,22 @@ function renderLobby(el){
 }
 /* SLIM (homepage): the check-in card only. Members list, prestige, chainlink
    bar, challenges, health, rename, leave — all full-mode depth on /cells. */
+/* CELLS G4 (2026-10-04): VERIFIED banner on the cell profile \
+   PM-directed full-width banner (beyond the compact chip in the card head).
+   Copy states only what is true: 2+ callsigns strong. */
+function verifiedBanner(c){
+  if(!c||!c.verified) return "";
+  return '<div class="c-vbanner" style="background:#0d0d0d;border:2px solid #c1121f;margin:0 0 12px;padding:10px 12px;text-align:center;">'+
+    '<span style="color:#c1121f;font-weight:900;letter-spacing:2px;font-size:15px;">\u2713 VERIFIED CELL</span>'+
+    '<div class="x-note" style="margin-top:4px;">2+ callsigns strong &middot; Hall-pinnable</div></div>';
+}
 function renderCellSlim(el,s){
   var c=s.cell, pct=Math.round((c.mult-1)*100), id=ident();
-  var html='<div class="c-card">'+
+  var html=verifiedBanner(c)+'<div class="c-card">'+
     '<div class="c-chead"><span class="c-cname">'+esc(c.name)+'</span>'+
     (c.verified?'<span class="c-vfy" title="2+ callsigns strong">&#10003; VERIFIED</span>':'')+
     '<span class="c-code" id="cCodeShow" title="Tap to copy">'+esc(c.invite_code)+'</span></div>'+
-    '<div class="c-cstats"><span class="c-flame">&#128293; '+c.streak+'-day streak</span>'+
+    '<div class="c-cstats"><span class="c-flame">&#128293; '+c.streak+'-day streak</span>'+msBadge(c.streak)+
     '<span class="c-mult">+'+pct+'% XP on Daily Orders</span></div>';
   if(!s.checked_today){
     html+='<button class="c-btn c-big" id="cCheckin">Orders done &mdash; check in</button>';
@@ -420,7 +477,7 @@ function renderCellSlim(el,s){
       busyBtn(ci,false);
       if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err); return; }
       if(j.already){ toast("Already checked in."); }
-      else { toast("Checked in. Streak: "+j.cell.streak+"."); try{ if(window.pfReportAction) window.pfReportAction("cell_checkin"); }catch(e){} }
+      else { if(j.milestone_hit){ toast("\ud83d\udd25 CELL STREAK MILESTONE: "+j.milestone_hit+" DAYS \u2014 the ticker heard it."); } else { toast("Checked in. Streak: "+j.cell.streak+"."); } try{ if(window.pfReportAction) window.pfReportAction("cell_checkin"); }catch(e){} }
       refresh();
     });
   };
@@ -440,9 +497,30 @@ function renderCellSlim(el,s){
    Pure canvas text/shapes only — no external assets, so the canvas can never
    be tainted. The FIGHTING AS <CALLSIGN> strip is applied by
    PFShare.stampCallsign inside shareImage (idempotent); keep the bottom 70px
-   of the layout clear for it. */
+   of the layout clear for it.
+   CELLS G9 (2026-10-04): cell-branded variant — cell name + VERIFIED check
+   + prestige frame. Colors are DERIVED from the cell (deterministic hash of
+   the cell id over 8 curated on-brand palettes) — never founder-picked, so
+   there is no moderation surface. Composes this existing generator; no new
+   generator was built. */
+var CELL_PALETTES=[
+  {primary:"#c1121f",bg:"#0d0d0d",box:"#141010",cream:"#f5ead6",muted:"#c9bfa8"},
+  {primary:"#e07a1f",bg:"#0d0b08",box:"#171009",cream:"#f5ead6",muted:"#c9b190"},
+  {primary:"#8f0f1e",bg:"#0a0a0a",box:"#120a0a",cream:"#e8dcc8",muted:"#b0a48e"},
+  {primary:"#ff2b2b",bg:"#080808",box:"#140b0b",cream:"#f5ead6",muted:"#c9bfa8"},
+  {primary:"#b34a1f",bg:"#0c0a09",box:"#151010",cream:"#efe6d0",muted:"#bfae94"},
+  {primary:"#d4a017",bg:"#0d0d0c",box:"#141310",cream:"#f5ead6",muted:"#c9bd9a"},
+  {primary:"#dc143c",bg:"#0b0b0b",box:"#130d0f",cream:"#f5ead6",muted:"#c4b3a8"},
+  {primary:"#ff5a1f",bg:"#0d0d0d",box:"#16100c",cream:"#fff3e0",muted:"#cbb79e"}
+];
+function cellPalette(c){
+  var s=String((c&&(c.id||c.invite_code||c.name))||"cell"), h=5381, i;
+  for(i=0;i<s.length;i++){ h=((h<<5)+h+s.charCodeAt(i))>>>0; }
+  return CELL_PALETTES[h%CELL_PALETTES.length];
+}
 function drawRecruitPoster(c){
   var W=1080,H=1350;
+  var pal=cellPalette(c);
   var cv=document.createElement("canvas"); cv.width=W; cv.height=H;
   var x=cv.getContext("2d"); if(!x) return null;
   function center(t,y,font,fill){ x.font=font; x.fillStyle=fill; x.textAlign="center"; x.fillText(t,W/2,y); }
@@ -456,41 +534,59 @@ function drawRecruitPoster(c){
     if(cur) lines.push(cur);
     return lines.slice(0,maxLines||2);
   }
-  x.fillStyle="#0d0d0d"; x.fillRect(0,0,W,H);
-  x.strokeStyle="#c1121f"; x.lineWidth=14; x.strokeRect(20,20,W-40,H-40);
-  x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(44,44,W-88,H-88);
+  x.fillStyle=pal.bg; x.fillRect(0,0,W,H);
+  /* Prestige frame (G9): prestiged cells get an outer band in the derived
+     primary, over the standard double frame. */
+  var pr=(c&&c.prestige)||null,
+      pTier=(pr&&pr.tier&&pr.tier.name)?String(pr.tier.name).toUpperCase():"";
+  if(pTier){ x.strokeStyle=pal.primary; x.lineWidth=26; x.strokeRect(8,8,W-16,H-16); }
+  x.strokeStyle=pal.primary; x.lineWidth=14; x.strokeRect(20,20,W-40,H-40);
+  x.strokeStyle=pal.cream; x.lineWidth=3; x.strokeRect(44,44,W-88,H-88);
   var y=118;
-  center("\u2605 THE PROPAGANDA FACTORY \u2605",y,"700 32px Arial,sans-serif","#c1121f"); y+=76;
+  center("\u2605 THE PROPAGANDA FACTORY \u2605",y,"700 32px Arial,sans-serif",pal.primary); y+=76;
   var nameF='900 82px "Arial Black",Arial,sans-serif';
   wrapLines(String(c.name||"MY CELL").toUpperCase(),nameF,W-170,2).forEach(function(l){
-    center(l,y,nameF,"#c1121f"); y+=96; });
+    center(l,y,nameF,pal.primary); y+=96; });
   y+=18;
+  /* VERIFIED check (G9): verified cells carry the mark on the poster. */
+  if(c&&c.verified){
+    var vt="\u2713 VERIFIED";
+    x.font="700 34px Arial,sans-serif";
+    var vw=x.measureText(vt).width+64;
+    x.fillStyle=pal.bg; x.fillRect(W/2-vw/2,y-44,vw,64);
+    x.strokeStyle=pal.primary; x.lineWidth=4; x.strokeRect(W/2-vw/2,y-44,vw,64);
+    center(vt,y,"700 34px Arial,sans-serif",pal.primary); y+=72;
+  }
   var tagF="700 34px Arial,sans-serif";
   wrapLines("FIVE CALLSIGNS. ONE STREAK. NOBODY LEFT BEHIND.",tagF,W-190,2).forEach(function(l){
-    center(l,y,tagF,"#f5ead6"); y+=48; });
+    center(l,y,tagF,pal.cream); y+=48; });
   var streak=Number(c.streak)||0;
   y+=26;
-  center("\u26A1 "+streak+"-DAY STREAK \u26A1",y,'900 40px "Arial Black",Arial,sans-serif',"#c1121f"); y+=74;
-  center("INVITE CODE",y,"700 30px Arial,sans-serif","#c9bfa8"); y+=16;
+  center("\u26A1 "+streak+"-DAY STREAK \u26A1",y,'900 40px "Arial Black",Arial,sans-serif',pal.primary); y+=74;
+  /* Prestige tier banner (G9). */
+  if(pTier){
+    center("\u25C6 "+pTier+" \u25C6",y,"700 34px Arial,sans-serif",pal.primary); y+=56;
+  }
+  center("INVITE CODE",y,"700 30px Arial,sans-serif",pal.muted); y+=16;
   var code=String(c.invite_code||"").toUpperCase()||"???";
-  x.strokeStyle="#c1121f"; x.lineWidth=6;
+  x.strokeStyle=pal.primary; x.lineWidth=6;
   x.strokeRect(W/2-280,y,560,150);
-  x.fillStyle="#141010"; x.fillRect(W/2-280,y,560,150);
-  center(code,y+106,'900 96px "Arial Black",Arial,sans-serif',"#c1121f");
+  x.fillStyle=pal.box; x.fillRect(W/2-280,y,560,150);
+  center(code,y+106,'900 96px "Arial Black",Arial,sans-serif',pal.primary);
   y+=150+52;
   var lnF="400 34px Arial,sans-serif";
   wrapLines("Enter this code on mtcstw.com/cells to wire in.",lnF,W-210,2).forEach(function(l){
-    center(l,y,lnF,"#c9bfa8"); y+=50; });
+    center(l,y,lnF,pal.muted); y+=50; });
   wrapLines("Check in daily. Stack the streak. Recruit +25 XP.",lnF,W-210,2).forEach(function(l){
-    center(l,y,lnF,"#c9bfa8"); y+=50; });
+    center(l,y,lnF,pal.muted); y+=50; });
   y+=44;
   var cta="JOIN MY CELL";
   x.font='900 44px "Arial Black",Arial,sans-serif';
   var tw=x.measureText(cta).width+110;
-  x.fillStyle="#c1121f"; x.fillRect(W/2-tw/2,y-58,tw,94);
+  x.fillStyle=pal.primary; x.fillRect(W/2-tw/2,y-58,tw,94);
   center(cta,y+8,'900 44px "Arial Black",Arial,sans-serif',"#ffffff");
   y=H-160;
-  center("MTCSTW.COM",y,'900 48px "Arial Black",Arial,sans-serif',"#c1121f");
+  center("MTCSTW.COM",y,'900 48px "Arial Black",Arial,sans-serif',pal.primary);
   return cv;
 }
 function renderCell(el,s){
@@ -548,13 +644,13 @@ function renderCell(el,s){
       '<div class="c-lnet" id="cLinkNet">Mapping the network&hellip;</div>'+
       '<div class="c-lwhy">Chainlinks belong to 2+ cells and stitch the network together — so every cell on earth is reachable by direct contact. +10 XP per extra cell, weekly.</div></div>';
   }
-  var html=linkBar+'<div class="c-card">'+
+  var html=verifiedBanner(c)+linkBar+'<div class="c-card">'+
     '<div class="c-chead"><span class="c-cname">'+esc(c.name)+'</span>'+
     (c.verified
       ? '<span class="c-vfy" title="2+ callsigns strong">&#10003; VERIFIED</span>'
       : '<span class="c-unv" title="Recruit at least one more callsign to verify this cell">UNVERIFIED &mdash; RECRUIT TO VERIFY</span>')+
     '<span class="c-code" id="cCodeShow" title="Tap to copy">'+esc(c.invite_code)+'</span></div>'+
-    '<div class="c-cstats"><span class="c-flame">&#128293; '+c.streak+'-day streak</span>'+
+    '<div class="c-cstats"><span class="c-flame">&#128293; '+c.streak+'-day streak</span>'+msBadge(c.streak)+
     '<span class="c-mult">+'+pct+'% XP on Daily Orders</span>'+
     '<span class="c-cov">Covers left this week: '+c.covers_left+'</span></div>'+
     prHtml+
@@ -663,7 +759,7 @@ function renderCell(el,s){
       busyBtn(ci,false);
       if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err); return; }
       if(j.already){ toast("Already checked in."); }
-      else { toast("Checked in. Streak: "+j.cell.streak+"."); try{ if(window.pfReportAction) window.pfReportAction("cell_checkin"); }catch(e){} }
+      else { if(j.milestone_hit){ toast("\ud83d\udd25 CELL STREAK MILESTONE: "+j.milestone_hit+" DAYS \u2014 the ticker heard it."); } else { toast("Checked in. Streak: "+j.cell.streak+"."); } try{ if(window.pfReportAction) window.pfReportAction("cell_checkin"); }catch(e){} }
       refresh();
     });
   };
@@ -893,8 +989,9 @@ function acceptCellDeepLink(){
 }
 refresh();
 loadBoard();
+loadMuster();
 acceptCellDeepLink();
-if(!window._pfCellsTick){ window._pfCellsTick=setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} loadBoard(); },5*60*1000); }
+if(!window._pfCellsTick){ window._pfCellsTick=setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} loadBoard(); loadMuster(); },5*60*1000); }
 })();
 </script>
 </div>

@@ -114,7 +114,7 @@
   /* Branded poster renderer (1080x1350, black/red/cream)                */
   /* ------------------------------------------------------------------ */
   function wrap(x, text, maxW) {
-    var words = String(text).split(/\s+/), lines = [], line = '';
+    var words = String(text).split(/\\s+/), lines = [], line = '';
     words.forEach(function (w) {
       var t = line ? line + ' ' + w : w;
       if (x.measureText(t).width > maxW && line) { lines.push(line); line = w; }

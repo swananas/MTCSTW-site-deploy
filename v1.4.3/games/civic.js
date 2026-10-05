@@ -169,7 +169,7 @@ function render(){
     h+='<div class="c-err">Your contact prefs wouldn&rsquo;t load &mdash; your callsign needs to reconnect. Re-claim it in Enlistment Ranks (one tap), then reload this page.</div></div>';
     el.innerHTML=h; bind(); return;
   }
-  var ce=CONTACT&&CONTACT.email?String(CONTACT.email).replace(/\*\*\*/g,""): "", cp=CONTACT&&CONTACT.phone?String(CONTACT.phone).replace(/\*\*\*/g,""):"";
+  var ce=CONTACT&&CONTACT.email?String(CONTACT.email).replace(/\\*\\*\\*/g,""): "", cp=CONTACT&&CONTACT.phone?String(CONTACT.phone).replace(/\\*\\*\\*/g,""):"";
   var eo=CONTACT&&CONTACT.email_optin?1:0, so=CONTACT&&CONTACT.sms_optin?1:0;
   h+='<input aria-label="Email address" class="c-in"  id="cvEmail" type="email" maxlength="120" placeholder="Email address" value="'+esc(ce)+'">'
     +'<label style="display:block;margin:6px 0;font-size:13px"><input type="checkbox" id="cvEmailOpt"'+(eo?' checked':'')+'> Email me drops &amp; alerts</label>'

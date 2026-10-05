@@ -430,7 +430,7 @@ function drawRecruitPoster(c){
   function center(t,y,font,fill){ x.font=font; x.fillStyle=fill; x.textAlign="center"; x.fillText(t,W/2,y); }
   function wrapLines(text,font,maxW,maxLines){
     x.font=font; x.textAlign="center";
-    var words=String(text||"").split(/\s+/), lines=[], cur="";
+    var words=String(text||"").split(/\\s+/), lines=[], cur="";
     words.forEach(function(w){
       var t=cur?cur+" "+w:w;
       if(x.measureText(t).width>maxW&&cur){ lines.push(cur); cur=w; } else cur=t;

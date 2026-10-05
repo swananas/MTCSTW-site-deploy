@@ -34,7 +34,7 @@
 (function(){
 var BACKEND=window.PF_BACKEND_URL;
 function $(id){ return document.getElementById(id); }
-function fmt(n){ n=Math.round(Number(n)||0); return n>=1000?(n/1000).toFixed(1).replace(/\.0$/,'')+'K':String(n); }
+function fmt(n){ n=Math.round(Number(n)||0); return n>=1000?(n/1000).toFixed(1).replace(/\\.0$/,'')+'K':String(n); }
 function api(cb){
   if(!BACKEND){ cb(null); return; }
   var fn="pfSpCb"+Math.floor(Math.random()*1e9);

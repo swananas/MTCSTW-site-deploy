@@ -615,7 +615,7 @@ function raidSpreadLine(){
   return "";
 }
 function raidWrapC(x,text,maxW){
-  var words=String(text).split(/\s+/), lines=[], line="";
+  var words=String(text).split(/\\s+/), lines=[], line="";
   words.forEach(function(w){ var t=line?line+" "+w:w;
     if(x.measureText(t).width>maxW&&line){ lines.push(line); line=w; } else { line=t; } });
   if(line) lines.push(line); return lines;
@@ -637,7 +637,7 @@ function drawRaidCard(cb){
   x.fillText("TODAY\u2019S TARGET",W/2,y); y+=48;
   x.fillStyle="#c1121f"; x.font='900 64px "Arial Black",Arial,sans-serif';
   raidWrapC(x,tn,W-170).slice(0,2).forEach(function(l){ x.fillText(l,W/2,y); y+=72; });
-  var sub=(th+(tp?" \u00b7 "+tp:"")).replace(/^\s+|\s+$/g,"");
+  var sub=(th+(tp?" \u00b7 "+tp:"")).replace(/^\\s+|\\s+$/g,"");
   if(sub){ y+=6; x.fillStyle="#f5ead6"; x.font="700 34px Arial,sans-serif";
     raidWrapC(x,sub,W-170).slice(0,2).forEach(function(l){ x.fillText(l,W/2,y); y+=46; }); }
   if(rr&&rr.score){ y+=10; x.fillStyle="#c1121f"; x.font='900 34px "Arial Black",Arial,sans-serif';

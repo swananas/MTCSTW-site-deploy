@@ -487,7 +487,7 @@ function drawCover(c, img, W, H){
   c.drawImage(img, (W-dw)/2, (H-dh)/2, dw, dh);
 }
 function wrapText(c, text, maxW){
-  var words=String(text).split(/\s+/), lines=[], cur="";
+  var words=String(text).split(/\\s+/), lines=[], cur="";
   for(var i=0;i<words.length;i++){
     var t=cur?cur+" "+words[i]:words[i];
     if(c.measureText(t).width>maxW && cur){ lines.push(cur); cur=words[i]; }
@@ -682,7 +682,7 @@ function handleFiles(fileList){
       if(!file.type || file.type.indexOf("image/")!==0) return;
       var rd=new FileReader();
       rd.onload=function(){
-        try{ addImageFrame(String(rd.result), file.name.replace(/\.[^.]+$/,"").slice(0,32)||("img-"+(frames.length+1))); }
+        try{ addImageFrame(String(rd.result), file.name.replace(/\\.[^.]+$/,"").slice(0,32)||("img-"+(frames.length+1))); }
         catch(e){ toast("Image too large to load."); }
       };
       rd.readAsDataURL(file);

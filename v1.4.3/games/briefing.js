@@ -511,7 +511,7 @@ function dropSectionHtml(){
    the PFShare image flow. The painter reads the rendered DOM so it works
    whether the content came from the backend or the static fallback. */
 function dropWrap(x,text,maxW){
-  var words=String(text==null?"":text).split(/\s+/),lines=[],line="";
+  var words=String(text==null?"":text).split(/\\s+/),lines=[],line="";
   words.forEach(function(w){ var t=line?line+" "+w:w;
     if(x.measureText(t).width>maxW&&line){ lines.push(line); line=w; } else { line=t; } });
   if(line)lines.push(line); return lines;

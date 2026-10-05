@@ -266,7 +266,7 @@ function dollarPop(){
    propaganda card and shares it via the native share sheet (falls back to
    PNG download). This is the global number: every comrade's tasks summed. */
 function dWrap(ctx,text,maxW){
-  var words=String(text).split(/\s+/),lines=[],line='';
+  var words=String(text).split(/\\s+/),lines=[],line='';
   words.forEach(function(w){var t=line?line+' '+w:w;
     if(ctx.measureText(t).width>maxW&&line){lines.push(line);line=w;}else line=t;});
   if(line)lines.push(line);return lines;

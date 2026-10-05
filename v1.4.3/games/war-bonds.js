@@ -174,7 +174,7 @@
         if(!cs){ wbSay('Claim a callsign above to collect your bond XP.'); return; }
         var emailEl = document.getElementById('pf-wb-email');
         var email = emailEl ? String(emailEl.value || '').trim().toLowerCase() : '';
-        if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ wbSay('Enter the email you used at checkout.'); return; }
+        if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){ wbSay('Enter the email you used at checkout.'); return; }
         wbSay('Checking for unclaimed bonds\u2026');
         wbClaimBtn.disabled = true;
         var body = { type:'warbond', wb_action:'bond_claim', callsign:cs, email:email };

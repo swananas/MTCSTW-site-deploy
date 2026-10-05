@@ -69,6 +69,31 @@
   if (PF && !PF.mountPoliticalHq) PF.mountPoliticalHq = mountSilos;
   mountSilos();
 
+  /* wave-live-rails (2026-10-05): TOP STORIES rail on the Political HQ —
+     the shared news_top cache via PF.newsTop (same cache as the briefing).
+     Fail-soft: the helper renders a "stories updating" line when empty. */
+  function mountNewsRail() {
+    try {
+      var h = document.getElementById('pf-political-hq');
+      if (!h || !window.PF || !PF.newsTop) return;
+      if (document.getElementById('pf-hq-news')) return;
+      var section = document.createElement('section');
+      section.className = 'pf-v2-game pf-hq-section';
+      section.setAttribute('data-game', 'top-stories');
+      section.innerHTML = '<div class="pf-silo" id="pf-hq-news"><div class="c-load">Loading top stories&hellip;</div></div>';
+      h.appendChild(section);
+      var host = document.getElementById('pf-hq-news');
+      PF.newsTop.render(host, { limit: 8 });
+    } catch (e) { if (PF) PF.error('political-hq', 'news rail failed :: ' + (e && e.message || e)); }
+  }
+  mountNewsRail();
+  /* Retry once late — PF.newsTop may load after this page module. */
+  setTimeout(function () {
+    try {
+      if (!document.getElementById('pf-hq-news') && window.PF && PF.newsTop) mountNewsRail();
+    } catch (e) {}
+  }, 4000);
+
   /* EMPTY-BOX SWEEP (2026-10-03): a content-less .pf-silo renders as a dead
      empty black box with a red border. Collapse any .pf-silo under
      #pf-political-hq that is PROVABLY empty — no text and no media/form/

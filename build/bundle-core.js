@@ -44,6 +44,12 @@ var CORE_FILES = [
   'core/00-bus.js',
   'core/07-slr-db.js',
   'core/03-global.js',
+  /* wave-live-rails (2026-10-05): site_config client — key dates, tuning
+     knobs, small facts. Early: other modules read through PF.siteConfig. */
+  'core/site-config.js',
+  /* wave-live-rails (2026-10-05): Top Stories rail client — one shared
+     helper (PF.newsTop) so every section renders the same news cache. */
+  'core/news-top.js',
   'core/14-auth.js',
   'pwa/install.js',
   'core/04-ledger.js',

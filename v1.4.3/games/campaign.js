@@ -21,6 +21,15 @@
 var BACKEND=window.PF_BACKEND_URL;
 /* Nov 3, 2026 — Election Day. Local midnight. */
 var ELECTION=new Date(2026,10,3,0,0,0,0).getTime();
+/* wave-live-rails (2026-10-05): the authoritative campaign end comes from the
+   site_config rail ('campaign_end' — the CEO can move it without a deploy);
+   the hardcoded date above is the fail-soft fallback. */
+try{
+  if(window.PF&&PF.siteConfig){ PF.siteConfig.ready(function(map){
+    try{ var t=map&&map.campaign_end?Date.parse(map.campaign_end):0;
+      if(t>0) ELECTION=t; }catch(e){}
+  }); }
+}catch(e){}
 /* 32-Day Offensive sunset (2026-10-03): the campaign hard-expires at
    Nov 3, 2026 23:59 America/Chicago. After that the widget renders a
    CAMPAIGN COMPLETE state with final backend totals instead of the pledge

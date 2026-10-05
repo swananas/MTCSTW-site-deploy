@@ -27,12 +27,15 @@
      by the inline slug list below) load the v1.4.3 set, where pages/slr-roster.js
      and pages/slr-catalog.js render the roster and catalogs from the master
      creator database (core/07-slr-db-data.js + core/07-slr-db.js, 62 members).
-     M34 (2026-10-03): the 173KB snapshot ships only in core/bundle-core-slr.js,
-     loaded on roster pages (homepage, /arcade, /create, Creator HQ, SLR
-     roster/catalog); all other v2 pages load the slim core/bundle-core.js.
-     The old Squarespace-built roster/catalog content is replaced in-page; the
-     v1.1.0 fixes/roster.js patch no longer loads on these pages. Every other
-     page loads the v1.1.0 production set pinned to 6e8b9a4.
+     M35 (2026-10-05) perf split: the 173KB snapshot ships as the lazily-loaded
+     core/bundle-slr-data.js chunk (minified, ~40KB gzip) — in NO blocking
+     bundle. Pages that mount roster consumers (homepage, /arcade, /create,
+     Creator HQ, SLR roster/catalog) get core/bundle-core-slr.js (now the
+     slim core composition under a stable filename) and the loader kicks
+     PF.ensureSLRDB() right after the blocking bundles; all other v2 pages
+     load the slim core/bundle-core.js. Every roster consumer is async-safe
+     (PF.slrReady / PF.ensureSLRDB), so no synchronous PF.ROSTER read breaks.
+     Every other page loads the v1.1.0 production set.
      V3 pin: 41c13ac. -->
 <!-- CRAWL-AUDIT FALLBACK (2026-10-05): the DELETE MY DATA link must be
      present in the footer even if the JS bundles fail to load. The live
@@ -84,11 +87,12 @@ var PAGES_V2=['pages/bundle-pages.js'];
    Efficiency Index into their [data-eff-score] slots; nothing else in the
    bundle mounts there) + pages. */
 var isSlrPage=!!document.getElementById('pf-slr-roster')||!!document.getElementById('pf-catalog')||_isSlr;
-/* M34 (2026-10-03): the 173KB SLR snapshot lives only in bundle-core-slr.js.
-   Pages that mount roster consumers (homepage, /arcade, /create, Creator HQ,
-   SLR roster/catalog) get the SLR core so every synchronous PF.ROSTER read
-   keeps working; all other v2 pages get the slim bundle-core.js. On slim-core
-   pages the DB still loads on demand via PF.ensureSLRDB() if ever needed. */
+/* M35 (2026-10-05) perf split: the 173KB SLR snapshot is a lazily-loaded
+   chunk (core/bundle-slr-data.js) now. Pages that mount roster consumers
+   (homepage, /arcade, /create, Creator HQ, SLR roster/catalog) get
+   core/bundle-core-slr.js — the slim core composition under a stable
+   filename — and the loader kicks PF.ensureSLRDB() right after the
+   blocking bundles; all other v2 pages get the slim bundle-core.js. */
 var NEED_SLR=isHome||isArcade||isCreate||isWarCard||isSlrPage;
 CORE_V2=[NEED_SLR?'core/bundle-core-slr.js':'core/bundle-core.js'];
 var JS_GAMES=isHome?['games/bundle-sec1.js']:isArcade?['games/bundle-arcade-h.js','games/bundle-arcade.js']:isCellsPage?['games/bundle-cells-h.js','games/bundle-cells.js']:isCreate?['games/bundle-create-h.js','games/bundle-create.js']:isBank?['games/bundle-bank.js']:isEconomy?['games/bundle-economy.js']:isWarchest?['games/bundle-warchest.js']:isVentures?['games/bundle-ventures.js']:isEvents?['games/bundle-events.js']:isWarReport?['games/bundle-warreport.js']:isHQ?[]:isWarCard?['games/bundle-create.js','games/bundle-cells.js']:isSlrPage?['games/bundle-roster.js']:[];
@@ -111,7 +115,15 @@ function css(h){var l=document.createElement('link');l.rel='stylesheet';l.href=B
 l.onerror=function(){siloFail(h);};document.head.appendChild(l);}
 function jsSeq(){
   var pending=JS_SEQ.length;
-  function oneDone(){if(--pending===0){if(window.console)console.log('[PF] '+VER+' critical '+JS_SEQ.length+' files loaded');jsLazy();}}
+  function oneDone(){if(--pending===0){if(window.console)console.log('[PF] '+VER+' critical '+JS_SEQ.length+' files loaded');
+  /* M35 (2026-10-05) perf split: the SLR snapshot is a lazily-loaded chunk
+     (core/bundle-slr-data.js) now — no longer in any blocking bundle. Kick
+     it the moment the blocking bundles finish (async, non-blocking) so the
+     roster resolves before the lazy section bundles execute. Promise-cached
+     and deduped inside PF.ensureSLRDB; every roster consumer is async-safe
+     via PF.slrReady / PF.ensureSLRDB(). */
+  try{ if(NEED_SLR&&window.PF&&typeof PF.ensureSLRDB==='function'){ PF.ensureSLRDB(); } }catch(e){}
+  jsLazy();}}
   if(pending===0){jsLazy();return;}
   JS_SEQ.forEach(function(n){var s=document.createElement('script');
   /* DEFECT 1: JS_CHROME entries are absolute jsDelivr URLs — use verbatim. */

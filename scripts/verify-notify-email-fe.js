@@ -1,21 +1,32 @@
 #!/usr/bin/env node
 /* scripts/verify-notify-email-fe.js — regression guard for the notify-prefs
- * email regex (2026-10-05 fix: the regex literal in updateEmail() was
- * double-escaped — \\s in a regex literal matches a literal backslash + 's',
- * so every email containing the letter 's' was rejected and \\. required a
- * literal backslash before the dot).
+ * email regex.
+ *
+ * HISTORY:
+ * - 2026-10-05 (first fix): the regex literal in updateEmail() was
+ *   double-escaped — \\s in a PLAIN regex literal matches a literal
+ *   backslash + 's', so every email containing the letter 's' was rejected
+ *   and \\. required a literal backslash before the dot.
+ * - 2026-10-05 M35: that fix was incomplete. Both regexes live INSIDE
+ *   staged template literals (insertAdjacentHTML `<template>` blocks), and
+ *   a single-escaped \s in a template cooks to the LETTER 's' at runtime
+ *   (V8 accepts the invalid escape and collapses it) — so the runtime
+ *   regex was /^[^s@]+@[^s@]+.[^s@]+$/, STILL rejecting real emails. The
+ *   source must therefore carry the DOUBLE-escaped form (\\s, \\.), which
+ *   the template cooks to the intended single-escaped regex. Terser
+ *   re-emits the cooked template with proper re-escaping, so the built
+ *   bundles carry the double-escaped form too.
  *
  * Asserts:
- *   1. notify-prefs.js updateEmail regex is the single-escaped literal
- *      /^[^\s@]+@[^\s@]+\.[^\s@]+$/ — no double-escaped \\s@ anywhere in
- *      the source files.
- *   2. war-report.js wrEmailValid regex likewise single-escaped.
- *   3. Functional: the evaluated regex ACCEPTS valid emails
+ *   1. Sources carry the template-correct double-escaped form.
+ *   2. No single-escaped \s@ remains in the sources (it would cook to 's').
+ *   3. Functional: the COOKED regex (what the browser actually runs after
+ *      the template cooks — single-escaped) ACCEPTS valid emails
  *      (user@example.com, a.b+tag@sub.domain.org — notably containing 's')
  *      and REJECTS invalid ones (no-at-sign, @nodomain,
  *      spaces in@email.com).
- *   4. The rebuilt bundles (bundle-hq.js, bundle-warreport.js) contain the
- *      fixed regex, not the double-escaped one.
+ *   4. The rebuilt bundles (bundle-hq.js, bundle-warreport.js) carry the
+ *      double-escaped template-correct form, never the s-mangled form.
  * Run: node scripts/verify-notify-email-fe.js
  */
 'use strict';
@@ -31,21 +42,32 @@ function ok(name, cond, extra) {
 
 function read(f) { return fs.readFileSync(path.join(ROOT, f), 'utf8'); }
 
-/* 1-2. No double-escaped \s@ inside a regex literal in the sources. */
+/* 1. Template-correct double-escaped form in the sources. In the script
+ * below these literals are written with \\\\ so the actual expected text
+ * has \\ (two chars: backslash backslash). */
+var NP_SRC_RE = '/^[^\\\\s@]+@[^\\\\s@]+\\\\.[^\\\\s@]+$/';
+var WR_SRC_RE = '/^[^\\\\s@]+@[^\\\\s@]+\\\\.[^\\\\s@]{2,}$/';
 var NP = 'notify-prefs.js';
 var WR = 'war-report.js';
 var npSrc = read(NP), wrSrc = read(WR);
-var doubleEscaped = /\/[^/\n]*\\\\s@[^/\n]*\//; /* regex literal containing \\s@ */
-ok(NP + ': no double-escaped regex remains', !doubleEscaped.test(npSrc));
-ok(WR + ': no double-escaped regex remains', !doubleEscaped.test(wrSrc));
+ok(NP + ': updateEmail carries the template-correct double-escaped regex',
+  npSrc.indexOf(NP_SRC_RE) !== -1);
+ok(WR + ': wrEmailValid carries the template-correct double-escaped regex',
+  wrSrc.indexOf(WR_SRC_RE) !== -1);
 
-/* Expected single-escaped literals. */
+/* 2. No single-escaped \s@ in the sources: strip every double backslash,
+ * then a lone \s must not remain (it would cook to the letter 's'). */
+function noSingleEscaped(src) {
+  var scrubbed = src.replace(/\\\\/g, '\x00');
+  return scrubbed.indexOf('\\s') === -1;
+}
+ok(NP + ': no single-escaped \\s remains (would cook to \'s\')', noSingleEscaped(npSrc));
+ok(WR + ': no single-escaped \\s remains (would cook to \'s\')', noSingleEscaped(wrSrc));
+
+/* 3. Functional checks against the COOKED regex — what the browser runs
+ * after the template literal cooks \\s -> \s. Single-escaped text here. */
 var NP_RE_TEXT = '/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/';
 var WR_RE_TEXT = '/^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/';
-ok(NP + ': updateEmail carries the fixed regex', npSrc.indexOf(NP_RE_TEXT) !== -1);
-ok(WR + ': wrEmailValid carries the fixed regex', wrSrc.indexOf(WR_RE_TEXT) !== -1);
-
-/* 3. Functional checks against the evaluated regex literals. */
 var npRe = eval(NP_RE_TEXT);
 var wrRe = eval(WR_RE_TEXT);
 
@@ -65,12 +87,15 @@ invalid.forEach(function (em) {
   ok('war-report  rejects <' + em + '>', !wrRe.test(em));
 });
 
-/* 4. Rebuilt bundles carry the fix. */
+/* 4. Rebuilt bundles carry the template-correct form (terser re-emits the
+ * cooked template with proper re-escaping, so the bundle keeps \\s), and
+ * never the s-mangled form. */
 var hq = read('bundle-hq.js'), wrep = read('bundle-warreport.js');
-ok('bundle-hq.js carries the fixed regex', hq.indexOf(NP_RE_TEXT) !== -1);
-ok('bundle-warreport.js carries the fixed regex', wrep.indexOf(WR_RE_TEXT) !== -1);
-ok('bundle-hq.js has no double-escaped regex', !doubleEscaped.test(hq));
-ok('bundle-warreport.js has no double-escaped regex', !doubleEscaped.test(wrep));
+var MANGLED = '/^[^s@]+@';
+ok('bundle-hq.js carries the template-correct regex', hq.indexOf(NP_SRC_RE) !== -1);
+ok('bundle-warreport.js carries the template-correct regex', wrep.indexOf(WR_SRC_RE) !== -1);
+ok('bundle-hq.js has no s-mangled regex', hq.indexOf(MANGLED) === -1);
+ok('bundle-warreport.js has no s-mangled regex', wrep.indexOf(MANGLED) === -1);
 
 if (failures) { console.error('\n' + failures + ' assertion(s) failed.'); process.exit(1); }
 console.log('\nAll notify-email assertions passed.');

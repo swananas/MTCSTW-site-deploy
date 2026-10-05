@@ -921,6 +921,18 @@ function render(){
   });
   document.getElementById("oProg").textContent=Math.min(doneCount,PER_DAY)+"/"+PER_DAY+" orders complete";
   renderBoost();
+  /* M35 (2026-10-05) perf split: the SLR snapshot now loads as a lazy chunk,
+     so PF.ROSTER may still be empty when the boost section first renders.
+     Kick the load and repaint the creator dropdown when it lands, so the
+     select is never stuck empty. renderBoost() is idempotent. */
+  try {
+    if (window.PF && typeof PF.ensureSLRDB === 'function') {
+      PF.ensureSLRDB().then(function () {
+        var sel = document.getElementById('oBoostSel');
+        if (sel && sel.options.length <= 1) renderBoost();
+      });
+    }
+  } catch (e) {}
   renderPatrons();
   paintBoostRate(); /* lever D4: static note ratio follows the server rate */
   renderRaid();

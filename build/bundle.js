@@ -10,11 +10,15 @@
  *
  * BUNDLES (2026-10-03): one per page/destination after the homepage
  * slimming (see pages/home-v2.js ORDER + pages/page-mount.js PAGE_ORDERS).
- * Homepage = bundle-sec1 in the critical path + bundle-home lazy-loaded
- * as ONE bundle for the PLAY/BELONG/CREATE/FUND/ACT/PROOF sections.
- * Dedicated pages (/arcade, /cells, /create, /bank, /economy, /war-chest,
- * /ventures, /events, /war-report, SLR roster/catalog) fetch only the
- * bundle(s) they mount. /political-hq fetches bundle-hq.
+ * Homepage = bundle-sec1 in the critical path + bundle-home / bundle-home2
+ * lazy-loaded as TWO bundles for the PLAY/BELONG/CREATE/FUND/ACT/PROOF
+ * sections (M35 perf split 2026-10-05: bundle-home breached the 120KB cap;
+ * PLAY+BELONG stay in bundle-home, CREATE+FUND+ACT+PROOF moved to
+ * bundle-home2; each section anchor names its own bundle via
+ * pages/home-v2.js SECTIONS). Dedicated pages (/arcade, /cells, /create,
+ * /bank, /economy, /war-chest, /ventures, /events, /war-report, SLR
+ * roster/catalog) fetch only the bundle(s) they mount. /political-hq fetches
+ * bundle-hq.
  * Cache win: change one widget → only its page bundle invalidates.
  *
  * Minification: terser (node_modules) with --compress --mangle. Falls back
@@ -38,7 +42,12 @@ var DEBUG = process.argv.indexOf('--debug') !== -1;
    lives in exactly one bundle — the build enforces this below. */
 var SECTIONS = {
   'bundle-sec1': [
-    /* HOMEPAGE START HERE — hook & daily loop. In critical path (blocking). */
+    /* HOMEPAGE START HERE — hook & daily loop. In critical path (blocking).
+       M35 (2026-10-05) perf split: theater.js + service-medals.js moved to
+       the lazy bundle-home (both self-mount into #pf-ranks / #xBrief, which
+       exist from the blocking render; they appear when the first lazy
+       section loads, <=15s via the loader backstop). This keeps the homepage
+       blocking set (core + sec1 + css) under the 220KB budget. */
     'briefing.js',
     'do-meter.js',
     'daily-orders.js',
@@ -53,25 +62,24 @@ var SECTIONS = {
     'pick-fight.js',
     'dopamine.js',
     'enlistment-ranks.js',
-    /* Wave 5B (2026-10-04): theater rack + ribbon chase strip + Frontline
-       Streak + Theater Rank. Self-mounts into #pf-ranks and #xBrief. */
-    'theater.js',
-    'service-medals.js',
     'social-proof.js',
     /* LAUNCH WEEK (2026-10-05): FIRST WAVE — countdown/live banner, founder
        badge, 7-day circuit card, founder roll. Self-mounting; site-wide
        fixed banner bar (homepage hero-adjacent), homepage + /cells circuit
-       leg. READ-ONLY, zero XP. War-room /cells leg via bundle-cells-h
+       leg. READ-ONLY, zero XP. Stays blocking: the launch banner is
+       time-critical. War-room /cells leg via bundle-cells-h
        slim dup (same pattern as war-room-ticker.js). */
     'first-wave.js'
     /* notify.js is global chrome (header bell) — it ships in
        pages/bundle-pages.js via build/bundle-core.js, not a page bundle. */
   ],
   'bundle-home': [
-    /* HOMEPAGE PLAY/BELONG/CREATE/FUND/ACT/PROOF — lazy-loaded as one bundle
-       when those sections scroll near. Dedicated pages (/arcade, /cells,
-       /create) fetch the slim bundle-arcade-h / bundle-cells-h /
-       bundle-create-h bundles instead of this one. */
+    /* HOMEPAGE PLAY + BELONG — lazy-loaded when those sections scroll near
+       (M35 perf split 2026-10-05: was one 124KB bundle covering
+       PLAY/BELONG/CREATE/FUND/ACT/PROOF; CREATE/FUND/ACT/PROOF moved to
+       bundle-home2 so each bundle stays under the 120KB cap). Dedicated
+       pages (/arcade, /cells, /create) fetch the slim bundle-arcade-h /
+       bundle-cells-h / bundle-create-h bundles instead of this one. */
     'spotlight.js',
     'creator-guess.js',
     'daily-interrogation.js',
@@ -83,6 +91,36 @@ var SECTIONS = {
        post-claim interstitial; founder checklist / joiner induction. */
     'cell-first-hour.js',
     'referral.js',
+    /* M35 (2026-10-05): deferred out of the blocking bundle-sec1 (see
+       above). theater.js self-mounts into #pf-ranks and #xBrief;
+       service-medals.js is event-driven and order-independent. */
+    'theater.js',
+    'service-medals.js',
+    /* W5-11 Blackout Op (2026-10-04): siren countdown + debrief reveal. */
+    'blackout.js',
+    /* Wave 3 files (registered by Wave 5C integration 2026-10-04 to unblock
+       the build gate; Wave 6B 2026-10-04 registered S5 war-room ticker
+       (self-mounting, fail-silent; homepage PROOF + /cells) and A2 flash
+       siren here too. Union of both sides — 'hall-of-proof.js' confirmed
+       present in the merged tree.
+       M35 (2026-10-05): flash-siren.js REMOVED from this bundle — it is
+       global chrome shipped in pages/bundle-pages.js (blocking, every v2
+       page, always before any lazy bundle), so this was a 5KB double-ship. */
+    'ambush-drop.js',
+    'war-room-ticker.js',
+    'briefing-siren.js',
+    /* REDISTRIBUTION LAYER Phase B (2026-10-05): The Solidarity Draw's
+       bespoke home (silo key 'draw'), mounted in the Hall of Proof section
+       on the homepage (pages/home-v2.js PROOF ORDER). Pre-draw secret
+       commitment + post-draw revealed-secret verify.
+       NOTE: scripts/verify-phaseb-fe.js pins solidarity-draw.js to the
+       'bundle-home' manifest entry — do NOT move it to bundle-home2. */
+    'solidarity-draw.js'
+  ],
+  'bundle-home2': [
+    /* M35 (2026-10-05) perf split: HOMEPAGE CREATE + FUND + ACT + PROOF —
+       lazy-loaded when those sections scroll near. Split out of bundle-home
+       so each bundle stays under the 120KB cap. */
     'poster-forge.js',
     'feed.js',
     'political-hq-nudge.js',
@@ -90,32 +128,17 @@ var SECTIONS = {
     'campaign.js',
     'alerts.js',
     'fan-vote.js',
-    /* W5-11 Blackout Op (2026-10-04): siren countdown + debrief reveal. */
-    'blackout.js',
     /* W5-6 Hall of Proof (2026-10-04): public winners wall, PROOF section. */
-    'hall-of-proof.js',
-    /* Wave 3 files (registered by Wave 5C integration 2026-10-04 to unblock
-       the build gate; Wave 6B 2026-10-04 registered S5 war-room ticker
-       (self-mounting, fail-silent; homepage PROOF + /cells) and A2 flash
-       siren here too. Union of both sides — 'hall-of-proof.js' confirmed
-       present in the merged tree. */
-    'ambush-drop.js',
-    'war-room-ticker.js',
-    'flash-siren.js',
-    'briefing-siren.js',
-    /* REDISTRIBUTION LAYER Phase B (2026-10-05): The Solidarity Draw's
-       bespoke home (silo key 'draw'), mounted in the Hall of Proof section
-       on the homepage (pages/home-v2.js PROOF ORDER). Pre-draw secret
-       commitment + post-draw revealed-secret verify. */
-    'solidarity-draw.js'
+    'hall-of-proof.js'
   ],
   /* SLIM DEDICATED-PAGE BUNDLES (2026-10-04, M1 dead-weight fix): /arcade,
      /cells and /create used to fetch the full bundle-home (~83KB gz) to get
      a handful of its games. These three slim bundles re-list silos that
      also live in bundle-home; the loader's JS_GAMES map fetches the slim
      bundle INSTEAD of bundle-home on those pages, so no page ever loads the
-     same silo twice. bundle-home stays intact as the homepage's single lazy
-     bundle for PLAY/BELONG/CREATE/FUND/ACT/PROOF (zero homepage change).
+     same silo twice. bundle-home / bundle-home2 stay the homepage's lazy
+     bundles for PLAY/BELONG and CREATE/FUND/ACT/PROOF (zero homepage change
+     besides the split).
      The uniqueness check below skips these bundles on purpose. */
   'bundle-arcade-h': [
     /* /arcade — the 5 arcade games that lived in bundle-home. */

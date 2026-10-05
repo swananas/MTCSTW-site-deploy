@@ -70,7 +70,10 @@
      The 7 funnel sections, rendered as visible headers. Each entry names
      the first widget silo of its section; the header is injected before it.
      bundle = the lazy bundle the footer loader fetches for the section
-     (bundle-sec1.js is already in the critical path). */
+     (bundle-sec1.js is already in the critical path).
+     M35 (2026-10-05) perf split: PLAY/BELONG ride games/bundle-home.js,
+     CREATE/FUND/ACT/PROOF ride games/bundle-home2.js (split so each stays
+     under the 120KB cap). */
   var SECTIONS = [
     { id: 'start-here', num: 1, ico: '🔰', title: 'START HERE',
       sub: 'Your daily briefing, missions, and rank. Begin here every day.',
@@ -83,16 +86,16 @@
       first: 'cells', bundle: 'games/bundle-home.js' },
     { id: 'create', num: 4, ico: '🛠️', title: 'CREATE',
       sub: 'Learn, build, publish. The propaganda workshop.',
-      first: 'poster-forge', bundle: 'games/bundle-home.js' },
+      first: 'poster-forge', bundle: 'games/bundle-home2.js' },
     { id: 'fund', num: 5, ico: '💰', title: 'FUND',
       sub: 'The people\u2019s economy. Fund the fight, see where it goes.',
-      first: 'war-bonds', bundle: 'games/bundle-home.js' },
+      first: 'war-bonds', bundle: 'games/bundle-home2.js' },
     { id: 'act', num: 6, ico: '⚡', title: 'ACT',
       sub: 'Campaigns, alerts, and boots on the ground.',
-      first: 'campaign', bundle: 'games/bundle-home.js' },
+      first: 'campaign', bundle: 'games/bundle-home2.js' },
     { id: 'proof', num: 7, ico: '📣', title: 'PROOF',
       sub: 'The network is real. Vote, and see it move.',
-      first: 'fan-vote', bundle: 'games/bundle-home.js' }
+      first: 'fan-vote', bundle: 'games/bundle-home2.js' }
   ];
 
   /* === COMPANION LINKS (2026-10-03) ===

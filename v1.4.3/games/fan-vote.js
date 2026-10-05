@@ -39,29 +39,48 @@
   var VOTE_API_URL = (window.PF_BACKEND_URL);
   /* ROSTER: the ballot reads from the canonical PF.ROSTER
      (core/03-global.js) — authoritative scores 2026-09-28. Do NOT
-     hardcode a second copy here. */
-  var SCORES = (window.PF && PF.ROSTER) || [];
-  /* VOTE_IMGS: slug -> roster photo, derived from the canonical roster. */
+     hardcode a second copy here.
+     M35 (2026-10-05) perf split: the SLR snapshot now arrives as a lazy
+     chunk, so the roster may not be populated when this bundle executes.
+     buildBallot() (re)derives the ballot from the LIVE roster; it runs at
+     module eval (preserving the old behavior when data is already in) and
+     is re-run at mount once PF.slrReady resolves, so the ballot never
+     renders from a stale or empty read. */
+  var SCORES = [];
   var VOTE_IMGS = {};
-  for(var _ri=0; _ri<SCORES.length; _ri++){
-    if(SCORES[_ri].img) VOTE_IMGS[SCORES[_ri].slug]=SCORES[_ri].img;
-  }
+  var CANDIDATES = [];
+  function buildBallot(){
+    var r = [];
+    try {
+      if (window.PF) r = (typeof PF.slrAll === 'function') ? (PF.slrAll() || []) : (PF.ROSTER || []);
+    } catch (e) { r = []; }
+    SCORES = r;
+    /* VOTE_IMGS: slug -> roster photo, derived from the canonical roster. */
+    VOTE_IMGS = {};
+    for (var _ri = 0; _ri < SCORES.length; _ri++) {
+      if (SCORES[_ri].img) VOTE_IMGS[SCORES[_ri].slug] = SCORES[_ri].img;
+    }
     /* THE BALLOT: the 10 highest propaganda scores.
-     9.3 TIE-BREAK (codified 2026-09-29): four creators tie at 9.3 for the 10th
-     spot. The tied creators rotate weekly by ISO week number, so each gets
-     the ballot spotlight over time. Higher scores are always seated first. */
-  var _sorted = SCORES.slice().sort(function(a,b){ return b.score - a.score; });
-  var _cutoff = _sorted[9].score;
-  var _above = _sorted.filter(function(c){ return c.score > _cutoff; });
-  var _tied = _sorted.filter(function(c){ return c.score === _cutoff; });
-  var _spots = 10 - _above.length;
-  var _wk = isoWeek(PF.chiNow());
-  var _rotated = [];
-  for(var _i = 0; _i < _tied.length; _i++){
-    _rotated.push(_tied[(_wk - 1 + _i) % _tied.length]);
+       9.3 TIE-BREAK (codified 2026-09-29): four creators tie at 9.3 for the 10th
+       spot. The tied creators rotate weekly by ISO week number, so each gets
+       the ballot spotlight over time. Higher scores are always seated first. */
+    var _sorted = SCORES.slice().sort(function (a, b) { return b.score - a.score; });
+    /* Roster not in yet — leave the ballot empty; the mount path waits on
+       PF.slrReady and rebuilds. Never throw on a short roster. */
+    if (_sorted.length < 10) { CANDIDATES = []; return; }
+    var _cutoff = _sorted[9].score;
+    var _above = _sorted.filter(function (c) { return c.score > _cutoff; });
+    var _tied = _sorted.filter(function (c) { return c.score === _cutoff; });
+    var _spots = 10 - _above.length;
+    var _wk = isoWeek(PF.chiNow());
+    var _rotated = [];
+    for (var _i = 0; _i < _tied.length; _i++) {
+      _rotated.push(_tied[(_wk - 1 + _i) % _tied.length]);
+    }
+    CANDIDATES = _above.concat(_rotated.slice(0, _spots));
+    CANDIDATES.sort(function (a, b) { return b.score - a.score; });
   }
-  var CANDIDATES = _above.concat(_rotated.slice(0, _spots));
-  CANDIDATES.sort(function(a,b){ return b.score - a.score; });
+  buildBallot();
   function isoWeek(d){
     var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
     var day = (t.getUTCDay() + 6) % 7;
@@ -460,8 +479,20 @@
     }
   }
   var existing = voted();
-  if(existing){ showVoted(existing.name, existing.weight); }
-  else { renderBallot(); }
+  /* M35 (2026-10-05): if the lazy roster chunk hasn't landed yet, wait for
+     it before the first paint — buildBallot() re-derives the ballot from
+     the live roster. Without the gate the ballot would render empty. */
+  function firstPaint(){
+    buildBallot();
+    if (existing) { showVoted(existing.name, existing.weight); }
+    else { renderBallot(); }
+  }
+  if (CANDIDATES.length === 0 && window.PF && PF.slrReady &&
+      typeof PF.slrReady.then === 'function') {
+    PF.slrReady.then(function () { try { firstPaint(); } catch (e) {} });
+  } else {
+    firstPaint();
+  }
   /* Load live totals on every page view — shared across all devices. */
   fetchTotals();
   renderStreak();

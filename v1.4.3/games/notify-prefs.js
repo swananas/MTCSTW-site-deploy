@@ -261,7 +261,7 @@ function save(){
 }
 function updateEmail(){
   var em=document.getElementById("npEmail").value.trim();
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){ msg("Enter a valid email."); return; }
+  if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(em)){ msg("Enter a valid email."); return; }
   /* 2026-10-03 privacy/terms: 13+ self-certification (COPPA/GDPR-K). The
      backend enforces it too. */
   var age13=document.getElementById("npAge13");

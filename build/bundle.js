@@ -294,10 +294,16 @@ var DEAD = ['bank.js', 'casino.js', 'daily-drop.js', 'daily-fire.js', 'boost-rai
 /* Global chrome: notify.js (header bell) + flash-siren.js (A2 site-wide siren
    banner) are bundled by build/bundle-core.js into pages/bundle-pages.js —
    intentionally excluded from page bundles. */
+/* Standalone-injected (2026-10-05): enlistment-gate.js is injected directly
+   by the footer loader (loader/footer_v144_final.html gateBoot) only for
+   unseen first-time homepage visitors — it is never concatenated, so the
+   loader can keep it off the critical path for everyone else. */
 var GLOBAL_CHROME = ['notify.js', 'flash-siren.js'];
+var STANDALONE = ['enlistment-gate.js'];
 var unbundled = allFiles.filter(function (f) {
   return bundled.indexOf(f) === -1 && f.indexOf('bundle-') !== 0 &&
-    DEAD.indexOf(f) === -1 && GLOBAL_CHROME.indexOf(f) === -1;
+    DEAD.indexOf(f) === -1 && GLOBAL_CHROME.indexOf(f) === -1 &&
+    STANDALONE.indexOf(f) === -1;
 });
 if (unbundled.length) fail('unbundled game files: ' + unbundled.join(', '));
 

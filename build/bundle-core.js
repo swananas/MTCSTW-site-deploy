@@ -95,7 +95,11 @@ var BUNDLES = {
     'core/share-image.js',
     /* creator-recruit: shared recruiting toolbar for roster cards + catalog
        pages. Last: needs PFShare (share-image.js) + the catalog renderers. */
-    'pages/creator-recruit.js'
+    'pages/creator-recruit.js',
+    /* Wave 6A R5 (2026-10-04): recruit-link -> guided first hour welcome card
+       for ?creator= arrivals on /request-access. Needs the SLR roster
+       (core) + PF.requireCallsign (core). */
+    'pages/recruit-welcome.js'
   ],
   /* DEFECT 1 (2026-10-03): /store, /privacy, /terms and every other non-v2
      page route to the v1.1.0 silo set, which carries no footer chrome — the

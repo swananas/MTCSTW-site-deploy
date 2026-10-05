@@ -21,9 +21,10 @@
     },
     /* friendlyErr(j) (2026-10-04): shared read of the backend's error field.
        XP/bank actions return `error:` while most frontends only read `j.err`
-       — this reads j.err || j.error so neither field shape drops the message. */
+       — this reads j.err || j.error || j.message so no field shape drops
+       the message. */
     friendlyErr: function (j) {
-      return (j && (j.err || j.error)) || '';
+      return (j && (j.err || j.error || j.message)) || '';
     },
     /* errCopy(code, fallback) (2026-10-04): route raw backend codes
        ('cap', 'bad bet_type', 'unauthorized', 'missing credentials', ...)
@@ -37,7 +38,7 @@
          is read through friendlyErr so `error:`-shaped backends never drop
          the message. */
       var c = code;
-      if (c && typeof c === 'object') c = c.err || c.error;
+      if (c && typeof c === 'object') c = c.err || c.error || c.message;
       var s = String(c == null ? '' : c).trim();
       var fall = fallback || 'The wire fought back. Nothing changed \u2014 retry.';
       if (!s || /network error/i.test(s)) return fall;

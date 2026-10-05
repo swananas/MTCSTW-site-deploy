@@ -412,6 +412,13 @@ window.pfShareAchievement = function(gameName, detailText){
       gnSize -= 4;
       x.font = '900 ' + gnSize + 'px Arial Black, Arial, sans-serif';
     }
+    /* Ellipsis cap: names still wider than 920px at the 36px floor get
+       truncated with … so they can't overflow the inner border. */
+    if (x.measureText(gn).width > 920) {
+      while (gn.length > 1 && x.measureText(gn.slice(0, -1) + '…').width > 920)
+        gn = gn.slice(0, -1);
+      gn = gn.trim() + '…';
+    }
     x.fillText(gn, 540, 320);
     /* Star divider. */
     x.fillStyle = '#f5ead6'; x.font = '64px Arial';

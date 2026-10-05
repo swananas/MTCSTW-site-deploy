@@ -417,7 +417,11 @@ function wire(){
   var b;
   b=document.getElementById("vlDraw");
   if(b) b.onclick=function(){ b.disabled=true;
-    post("gamble","g_action","lottery_draw",{},function(j){
+    /* H2 fix (2026-10-04): the draw request must carry the current round_id
+       (backend requires it). LS is the lottery_status read from load(). */
+    var drr=(LS&&LS.ok&&LS.round)||null;
+    if(!drr||!drr.id){ b.disabled=false; err("vlDrawErr","No active lottery round."); toast("Draw failed: no active lottery round."); return; }
+    post("gamble","g_action","lottery_draw",{round_id:drr.id},function(j){
       b.disabled=false;
       if(!j||!j.ok){ err("vlDrawErr",PF.errCopy(j,"Draw failed.")); return; }
       toast("Winner: "+j.winner+" — "+j.pot+" XP."); LS=null; load();

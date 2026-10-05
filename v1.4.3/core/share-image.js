@@ -325,7 +325,7 @@
         toast(isIOS() ? 'Image downloaded \u2014 open it, tap Share, then Save Image for Photos.'
                       : 'Image downloaded.');
       }
-    });
+    }, opts); /* H3 (2026-10-04): forward format/quality — canvasBlob defaults to PNG otherwise, but the File above is typed from opts.format. */
   }
 
   function saveImage(cv, filename, gameId, opts) {
@@ -362,7 +362,7 @@
       creditShare(gameId, 'save');
       downloadBlob(blob, filename);
       toast('Image saved to your phone.');
-    });
+    }, opts); /* H3 (2026-10-04): forward format/quality — canvasBlob defaults to PNG otherwise, but the File above is typed from opts.format. */
   }
 
   function toast(msg) {

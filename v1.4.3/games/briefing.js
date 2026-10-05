@@ -542,11 +542,14 @@ function dropPaintPoster(done){
     x.fillStyle="#f5ead6"; x.font="900 52px \\\"Arial Black\\\",Arial,sans-serif";
     dropWrap(x,head,W-170).slice(0,5).forEach(function(l){ x.fillText(l,W/2,y); y+=64; });
     y+=22;
-    /* 2026-10-04 P4 #11: footer reservation -- the body is capped so it never
-       enters the footer zone (MTCSTW.COM at H-168), and the streak line gets a
-       guaranteed slot instead of being silently skipped when space runs out. */
+    /* 2026-10-04 P4 #11 (margin bump 2026-10-04): footer reservation — the body
+       is capped so it never enters the footer zone (MTCSTW.COM at H-168), and
+       the streak line gets a guaranteed 80px slot instead of being silently
+       skipped when space runs out. The extra 10px over the original 70 buys
+       the streak ~17px of worst-case clearance above the footer while also
+       trimming the tight-case body budget by up to a line. */
     x.fillStyle="#c9bfa8"; x.font="400 38px Arial,sans-serif";
-    var streakSlot=70, bodyMaxY=(H-168)-streakSlot;
+    var streakSlot=80, bodyMaxY=(H-168)-streakSlot;
     var bodyLines=dropWrap(x,body,W-210);
     var avail=Math.max(1,Math.floor((bodyMaxY-y)/52));
     bodyLines.slice(0,Math.min(7,avail)).forEach(function(l){ x.fillText(l,W/2,y); y+=52; });

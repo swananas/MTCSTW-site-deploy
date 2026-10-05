@@ -564,10 +564,12 @@ function shareLoot(reward,rk){
       try{ ios=/iPad|iPhone|iPod/.test(navigator.userAgent||""); }catch(e){}
       if(ios){
         /* iOS ignores the download attribute and detached anchors — open the
-           image in a new tab so the user can long-press to save it. */
-        try{ window.open(url,"_blank"); }catch(e){}
-        credit();
-        toast("Long-press the image \\u2014 Save to Photos.");
+           image in a new tab so the user can long-press to save it. Credit
+           only when the open is confirmed: a null/undefined return means the
+           popup was blocked, so toast instead of crediting. */
+        var win=null; try{ win=window.open(url,"_blank"); }catch(e){}
+        if(win){ credit(); toast("Long-press the image — Save to Photos."); }
+        else { toast("Popup blocked — allow popups, then try again."); }
         return;
       }
       try{

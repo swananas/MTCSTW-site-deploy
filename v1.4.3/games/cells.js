@@ -578,7 +578,7 @@ function renderCell(el,s){
       var tgt=btn.getAttribute("data-cs"), id2=ident();
       errEl.textContent="";
       busyBtn(btn,true);
-      post("cell","cell_action","cell_promote",{callsign:id2.callsign,device:id2.device,cell_id:c.id,target:tgt},function(j){
+      post("cell","cell_action","cell_promote",{callsign:id2.callsign,device:id2.device,cell_id:c.id,target:tgt,role:"officer"},function(j){
         busyBtn(btn,false);
         if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err); return; }
         toast(tgt+" promoted to OFFICER.");

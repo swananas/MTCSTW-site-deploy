@@ -133,8 +133,11 @@
          browser never stored a secret. One claim attempt, then one retry.
          Never loops: _retried is set on the retry, and a 'claim
          unavailable' claim response surfaces a distinct code instead. */
+      /* Reads both `err` and `error` shapes — some backend actions return
+         `error:` and the claim-retry must fire on either. */
+      var ec = j && (j.err || j.error);
       var needClaim = j && !j.ok && !opts._retried && !authDisabled && !PF.getAuthSecret() &&
-        (j.err === 'missing credentials' || String(j.err || '').indexOf('missing credentials') !== -1);
+        (ec === 'missing credentials' || String(ec || '').indexOf('missing credentials') !== -1);
       if (needClaim) {
         var claimCs = String(p.callsign || cs || '').toLowerCase();
         if (claimCs) {
@@ -142,7 +145,7 @@
             if (cj && cj.ok && cj.auth_secret) {
               var o2 = Object.assign({}, opts); o2._retried = true;
               PF.authGetJSONP(backendUrl, action, params, cb, o2);
-            } else if (cj && String(cj.err || '').indexOf('claim unavailable') !== -1) {
+            } else if (cj && String((cj.err || cj.error) || '').indexOf('claim unavailable') !== -1) {
               /* Legacy callsign: no secret can ever be issued for it —
                  distinct code so callers can show recovery copy, no loop. */
               done({ ok: false, err: 'legacy_callsign' });
@@ -175,11 +178,13 @@
          e.g. Armory buy/equip from a fresh browser). One attempt, then the
          original error stands. */
       var noStored = !PF.getAuthSecret();
+      /* Both error shapes, same as authGetJSONP above. */
+      var ec = j && (j.err || j.error);
       var needClaim = j && !j.ok && (
-        j.err === 'unauthorized' ||
-        String(j.err || '').indexOf('no secret issued') !== -1 ||
-        (noStored && (j.err === 'missing credentials' ||
-          String(j.err || '').indexOf('missing credentials') !== -1))
+        ec === 'unauthorized' ||
+        String(ec || '').indexOf('no secret issued') !== -1 ||
+        (noStored && (ec === 'missing credentials' ||
+          String(ec || '').indexOf('missing credentials') !== -1))
       ) && !_retried && !authDisabled;
       if (needClaim) {
         var cs = actorFromBody(body);

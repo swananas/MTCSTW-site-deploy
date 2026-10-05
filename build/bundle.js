@@ -268,7 +268,10 @@ var HQ_BUNDLES = {
     'intel.js',
     /* 2026-10-05: Call the Shot prediction game (fe/predict-share-call) —
        bill widgets + section + SHARE YOUR CALL poster hook. */
-    'predict.js'
+    'predict.js',
+    /* Ballot Countdown Cards (2026-10-05): Forged-for-You ballot drafts tray
+       + phq-ballot forge/share/pledge loop. Kill ?pf_off=ballotcd. */
+    'ballot-countdown.js'
   ]
 };
 

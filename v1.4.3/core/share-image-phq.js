@@ -1,10 +1,17 @@
 /* core/share-image-phq.js  |  PF v1.4.3 | POLITICAL HQ SHARE POSTERS.
+<<<<<<< HEAD
    Seven custom PFShare painters (1080x1350, house palette) for the Political HQ
    rollout: pressure-campaign card, prediction-result card, prediction-call card
    (pre-resolution "SHARE YOUR CALL", same painter family as the result card),
    voting scorecard, cell-competition winner card, ballot-countdown card,
    voter-pledge card (merged via fe/pledge-share-cards; other PHQ painters
    land with their silos).
+=======
+   Five custom PFShare painters (1080x1350, house palette) for the Political HQ
+   rollout: pressure-campaign card, prediction-result card, prediction-call card
+   (pre-resolution "SHARE YOUR CALL", same painter family as the result card),
+   voting scorecard, cell-competition winner card.
+>>>>>>> origin/fe/predict-share-call
    Spec: ~/workspace/hidden/phq-share-specs.md.
    Data contract (painter receives one data object; missing optional fields
    degrade gracefully; scorecard missing fields render '—', never invented):
@@ -43,7 +50,11 @@
   window.pfPhqShareDone = true;
 
   var W = 1080, H = 1350;
+<<<<<<< HEAD
   var IDS = ['phq-pressure', 'phq-prediction', 'phq-predict-call', 'phq-scorecard', 'phq-cellwin', 'phq-ballot', 'phq-pledge'];
+=======
+  var IDS = ['phq-pressure', 'phq-prediction', 'phq-predict-call', 'phq-scorecard', 'phq-cellwin'];
+>>>>>>> origin/fe/predict-share-call
   var TITLES = {
     'phq-pressure': 'PRESSURE CAMPAIGN',
     'phq-prediction': 'PREDICTION RESULT',

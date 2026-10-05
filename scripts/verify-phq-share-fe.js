@@ -54,6 +54,7 @@ if (/PF\.skip\(['"]phq-share['"]\)/.test(src)) ok('kill switch PF.skip("phq-shar
 else no('kill switch', 'PF.skip("phq-share") not found');
 if (src.indexOf('?pf_off=phq-share') !== -1) ok('KILL comment documents ?pf_off=phq-share');
 else no('kill comment', '?pf_off=phq-share missing from header');
+<<<<<<< HEAD
 if (/PF\.skip\(['"]card-pledge['"]\)/.test(src)) ok('pledge kill switch PF.skip("card-pledge") wired');
 else no('pledge kill switch', 'PF.skip("card-pledge") not found');
 if (src.indexOf('?pf_off=card-pledge') !== -1) ok('KILL comment documents ?pf_off=card-pledge');
@@ -65,6 +66,9 @@ else no('pledgeData', 'pledgeData not exposed on PF.PHQShare');
   else no('XP mint', w + ' present in share-image-phq.js \u2014 card generation must pay 0 XP');
 });
 ['phq-pressure', 'phq-prediction', 'phq-predict-call', 'phq-scorecard', 'phq-cellwin', 'phq-ballot', 'phq-pledge'].forEach(function (id) {
+=======
+['phq-pressure', 'phq-prediction', 'phq-predict-call', 'phq-scorecard', 'phq-cellwin'].forEach(function (id) {
+>>>>>>> origin/fe/predict-share-call
   if (src.indexOf("'" + id + "'") !== -1) ok('painter id registered: ' + id);
   else no('painter id', id + ' missing');
 });
@@ -236,10 +240,17 @@ var PHQ = env.sb.PF && env.sb.PF.PHQShare;
 if (!PHQ) { no('PF.PHQShare', 'API not exposed'); }
 else {
   ok('PF.PHQShare exposed');
+<<<<<<< HEAD
   if (JSON.stringify(PHQ.ids) === JSON.stringify(['phq-pressure', 'phq-prediction', 'phq-predict-call', 'phq-scorecard', 'phq-cellwin', 'phq-ballot', 'phq-pledge']))
     ok('ids list matches spec painter keys');
   else no('ids', 'unexpected ids: ' + JSON.stringify(PHQ.ids));
   ['phq-pressure', 'phq-prediction', 'phq-predict-call', 'phq-scorecard', 'phq-cellwin', 'phq-ballot', 'phq-pledge'].forEach(function (id) {
+=======
+  if (JSON.stringify(PHQ.ids) === JSON.stringify(['phq-pressure', 'phq-prediction', 'phq-predict-call', 'phq-scorecard', 'phq-cellwin']))
+    ok('ids list matches spec painter keys');
+  else no('ids', 'unexpected ids: ' + JSON.stringify(PHQ.ids));
+  ['phq-pressure', 'phq-prediction', 'phq-predict-call', 'phq-scorecard', 'phq-cellwin'].forEach(function (id) {
+>>>>>>> origin/fe/predict-share-call
     if (typeof env.registered[id] === 'function') ok('setPoster registered: ' + id);
     else no('registration', id + ' not registered with PFShare');
   });
@@ -605,8 +616,12 @@ else {
 console.log('== 4. layout guards (no collisions) ==');
 [['phq-pressure', FIX['phq-pressure']], ['phq-prediction', FIX['phq-prediction']],
  ['phq-predict-call', FIX['phq-predict-call']], ['phq-scorecard', FIX['phq-scorecard']],
+<<<<<<< HEAD
  ['phq-cellwin', FIX['phq-cellwin']],
  ['phq-pledge', PD(ROW_MO)]].forEach(function (pc) {
+=======
+ ['phq-cellwin', FIX['phq-cellwin']]].forEach(function (pc) {
+>>>>>>> origin/fe/predict-share-call
   var c = PHQ.paint(pc[0], pc[1]);
   var rs = c._recs || [], bad = [], link = null, date = null, cta = null;
   for (var i = 0; i < rs.length; i++) {

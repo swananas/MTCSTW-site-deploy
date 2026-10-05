@@ -26,6 +26,8 @@
       2,500/day/cell cap) via POST {type:'nuke', n_action:'nuke_stake'}.
       Confirm copy is binding: "Burn X XP from the treasury into the blast.
       This is a sacrifice — the XP is destroyed."
+      (2026-10-05 contract fix: nuke_status never sends a staked-today
+      number, so the card shows the cap honestly instead of a readout.)
 
    COPY RULE: "FUND THE TREASURY". The d-word is banned everywhere here.
    Money moves use native confirm(). Officers-only spend is enforced
@@ -315,7 +317,7 @@
       if (isOfficer) {
         out += '<div class="trz-card" style="border-color:#c1121f"><h3>&#9762; STAKE INTO THE BLAST</h3>' +
           '<div class="trz-note">Burn treasury XP into the media nuke: <b>1 XP = 1 charge</b>. The XP is <b>destroyed</b> — this is a sacrifice, not a spend.</div>' +
-          '<div class="trz-note" style="margin-top:4px">Daily cap: <b>2,500 XP</b> per cell &middot; staked today: <b id="' + gid('stakedToday') + '">&hellip;</b> XP</div>' +
+          '<div class="trz-note" style="margin-top:4px">Daily cap: <b>2,500 XP</b> per cell. The backend enforces the cap on every stake &mdash; over-cap stakes are rejected and refunded.</div>' +
           '<div class="trz-row" style="margin-top:8px">' +
           '<input class="trz-in sm" id="' + gid('stAmt') + '" type="number" min="1" max="2500" inputmode="numeric" placeholder="XP">' +
           '<button class="trz-btn" data-trz="stake">STAKE INTO THE BLAST</button></div>' +
@@ -340,7 +342,6 @@
 
       container.innerHTML = out;
       wire();
-      loadStakedToday();
     }
 
     function msg(id, text, ok) {
@@ -352,25 +353,6 @@
     }
 
     function refresh() { mount(container, ctx); }
-
-    /* Today's staked amount — cell-scoped read from nuke_status. Fail-soft:
-       the cap line stays, the number reads "sync pending" until the backend
-       serves the action. */
-    function loadStakedToday() {
-      var el = document.getElementById(gid('stakedToday'));
-      if (!el) return;
-      var id = ident();
-      api('nuke_status', { cell_id: cellId, callsign: id.callsign, device: id.device }, function (j) {
-        var e2 = document.getElementById(gid('stakedToday'));
-        if (!e2) return;
-        if (j && j.ok) {
-          var v = (j.staked_today != null) ? j.staked_today : j.cell_staked_today;
-          e2.textContent = fmt(Math.max(0, Math.round(Number(v) || 0)));
-        } else {
-          e2.textContent = 'sync pending';
-        }
-      });
-    }
 
     function wire() {
       container.addEventListener('click', onClick);

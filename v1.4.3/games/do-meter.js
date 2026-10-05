@@ -367,9 +367,13 @@ function shareDoImage(btn){
     else{var u=cv.toDataURL('image/png');fetch(u).then(function(r){return r.blob();}).then(function(b){done(URL.createObjectURL(b),b);});}
   }catch(e){if(btn)btn.disabled=false;}
 }
-/* ---- MEDIA NUKE METER (folded 2026-10-03; wired 2026-10-05 wave-nuke-fe):
+/* ---- MEDIA NUKE METER (folded 2026-10-03; wired 2026-10-05 wave-nuke-fe;
+   contract-fixed 2026-10-05):
    the one network progress meter — the persistent charge pool, armed tier,
    tier ladder, HOLD indicator and the CHARGE THE NUKE press button.
+   Backend fields (src/nuke.js): charge, tiers {T1..T4} (numbers),
+   armed_tier (number), hold_tier (number|null), caller {pressed_today,
+   streak}. comrades/detonation_streak are NOT served — not read, not shown.
    Display-only except the press button. The canonical sync lives in
    core/17-nuke-strip.js (window.pfNukeStrip + "pf-nuke-update" events).
    Degrades to a read-only nuke_status poll when the strip module is killed. ---- */
@@ -386,21 +390,39 @@ function nukeTierById(id){
   for(var _i=0;_i<NUKE_TIERS.length;_i++) if(NUKE_TIERS[_i].id===id) return NUKE_TIERS[_i];
   return NUKE_TIERS[0];
 }
-/* Defensive read of a nuke status payload (strip state or nuke_status GET).
-   Every number comes from the backend or the spec constants above. */
+/* Tier-id resolver for the backend's NUMERIC tiers (nuke_status sends
+   armed_tier/hold_tier as numbers, e.g. 10000) — also accepts an already
+   normalized tier id ("T1") from the strip. Contract-fixed 2026-10-05. */
+function nukeTierIdOf(tiers,v,fallback){
+  var s=String(v==null?"":v).toUpperCase();
+  for(var i=0;i<tiers.length;i++) if(String(tiers[i].id).toUpperCase()===s) return tiers[i].id;
+  var n=Number(v);
+  if(v!=null&&v!==""&&isFinite(n)){
+    for(var j=0;j<tiers.length;j++) if(Number(tiers[j].charge)===n) return tiers[j].id;
+  }
+  return fallback;
+}
+/* Defensive read of a nuke status payload — strip state (normalized) or a
+   raw nuke_status GET. Real backend fields only: charge, tiers,
+   armed_tier (number), hold_tier (number|null), caller.{pressed_today,
+   streak}. detonation_streak/comrades are NOT served by the backend and
+   were dropped (contract-fixed 2026-10-05). */
 function normNuke(st){
   st=st||{};
-  var armed=String(st.armed_tier||"T1").toUpperCase(), armedCh=Number(st.armed_charge);
-  if(!(armedCh>0)) armedCh=nukeTierById(armed).charge;
   var tiers=Array.isArray(st.tiers)&&st.tiers.length?st.tiers:NUKE_TIERS;
+  var armed=nukeTierIdOf(tiers,st.armed_tier,"T1");
+  var armedCh=Number(st.armed_charge);
+  if(!(armedCh>0)) armedCh=nukeTierById(armed).charge;
+  var holdRaw=(st.hold_tier!=null&&st.hold_tier!=="")?st.hold_tier:st.hold;
+  var hold=(holdRaw!=null&&holdRaw!=="")?nukeTierIdOf(tiers,holdRaw,null):null;
+  var caller=(st.caller&&typeof st.caller==="object")?st.caller:{};
+  var cs0=(st.charge_streak!=null)?st.charge_streak:caller.streak;
   return {
     charge:Math.max(0,Math.round(Number(st.charge!=null?st.charge:st.xp)||0)),
     armed_tier:armed, armed_charge:Math.round(armedCh),
-    hold:(st.hold?String(st.hold).toUpperCase():null),
-    pressed:!!st.pressed,
-    charge_streak:Math.max(0,Math.round(Number(st.charge_streak!=null?st.charge_streak:st.streak)||0)),
-    detonation_streak:Math.max(0,Math.round(Number(st.detonation_streak!=null?st.detonation_streak:st.det_streak)||0)),
-    comrades:Math.max(0,Math.round(Number(st.comrades)||0)),
+    hold:hold,
+    pressed:!!(st.pressed||caller.pressed_today),
+    charge_streak:Math.max(0,Math.round(Number(cs0)||0)),
     mode:(st.mode==="network")?"network":"local",
     tiers:tiers
   };
@@ -459,8 +481,10 @@ function paintNuke(st0){
   }
   var detail=document.getElementById("slr-nuke-detail");
   if(detail){
-    var dh=st.comrades+" comrades pressed today";
-    if(st.detonation_streak>0) dh+=" \u00b7 \u{1F525} "+st.detonation_streak+"-detonation streak";
+    /* comrades/detonation-streak are NOT served by the backend -- dropped
+       from the contract 2026-10-05. The line shows the armed tier instead. */
+    var tA=nukeTierById(st.armed_tier);
+    var dh=st.armed_tier+((tA&&tA.name)?(" "+tA.name):"")+" ARMED";
     if(st.mode!=="network") dh+=" \u00b7 OFFLINE \u2014 last-known pool";
     detail.textContent=dh;
   }
@@ -522,7 +546,7 @@ function heroPress(){
   try{ body.device=window.PFDeviceId?window.PFDeviceId():""; }catch(e4){}
   function done(j){
     if(j&&j.ok){
-      try{ localStorage.setItem("pf_nuke_press_v1",JSON.stringify({d:chiDayDo(),pressed:true,streak:Math.max(0,Math.round(Number(j.charge_streak!=null?j.charge_streak:0)||0))})); }catch(e5){}
+      try{ localStorage.setItem("pf_nuke_press_v1",JSON.stringify({d:chiDayDo(),pressed:true,streak:Math.max(0,Math.round(Number(j.streak!=null?j.streak:(j.charge_streak!=null?j.charge_streak:0))||0))})); }catch(e5){}
       try{ if(window.PF&&PF.dope&&PF.dope.ping){ var hb=document.getElementById("slr-nuke"); PF.dope.ping(hb||document.body,"+50 CHARGE \u2014 THE BLAST GROWS"); } }catch(e6){}
     }
     refreshNuke();

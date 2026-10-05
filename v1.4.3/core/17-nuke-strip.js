@@ -73,9 +73,9 @@
   var PRESS_CHARGE=50, PRESS_XP=5; /* spec §1: one press = +50 charge, +5 XP */
   var STAKE_CAP=2500; /* spec §1: 2,500 charge/day/cell whale guard */
 
-  var stickCharge=0, stickPct=0, stickComrades=0, stickMode="local";
+  var stickCharge=0, stickPct=0, stickMode="local";
   var stickArmed="T1", stickArmedCharge=10000, stickHold=null;
-  var stickPressed=false, stickStreak=0, stickDetStreak=0;
+  var stickPressed=false, stickStreak=0;
   var stickXp=0; /* legacy alias of the charge pool for state() consumers */
   var pressPending=false, pressFailed=false;
   var stickReady=false, stickCell=null, stickCellTried=false;
@@ -136,23 +136,23 @@
   });
 
   /* ---------- state for consumers (Do Meter's folded meter) ----------
-     Detail carries the full nuke wire-up contract: charge pool, armed tier,
-     hold, press state, streaks. Legacy keys (xp, goal) alias the charge pool
+     Detail carries the nuke wire-up contract: charge pool, armed tier,
+     hold, press state, streak. Legacy keys (xp, goal) alias the charge pool
      and the armed-tier charge so old consumers keep working. */
   function broadcast(){
     try{ document.dispatchEvent(new CustomEvent("pf-nuke-update",{detail:{
-      xp:stickCharge, comrades:stickComrades, mode:stickMode, goal:stickArmedCharge,
+      xp:stickCharge, mode:stickMode, goal:stickArmedCharge,
       charge:stickCharge, armed_tier:stickArmed, armed_charge:stickArmedCharge,
       hold:stickHold, pressed:stickPressed, charge_streak:stickStreak,
-      detonation_streak:stickDetStreak, tiers:NUKE_TIERS
+      tiers:NUKE_TIERS
     }})); }catch(e){}
   }
   window.pfNukeStrip={
     state:function(){ return {
-      xp:stickCharge, comrades:stickComrades, mode:stickMode, goal:stickArmedCharge,
+      xp:stickCharge, mode:stickMode, goal:stickArmedCharge,
       charge:stickCharge, armed_tier:stickArmed, armed_charge:stickArmedCharge,
       hold:stickHold, pressed:stickPressed, charge_streak:stickStreak,
-      detonation_streak:stickDetStreak, tiers:NUKE_TIERS
+      tiers:NUKE_TIERS
     }; },
     youToday:localXpToday,
     press:pressNuke,
@@ -160,32 +160,51 @@
   };
 
   /* ---------- charge-pool status (nuke_status) ----------
-     Contract (wave-nuke backend, per spec 2026-10-05): {ok, charge,
-     armed_tier, armed_charge, hold, pressed, charge_streak, detonation_streak,
-     comrades}. normStatus reads every field defensively — unknown/absent
-     fields fall back to spec constants, never to invented numbers. */
+     Contract (wave-nuke backend, contract-fixed 2026-10-05): {ok, charge,
+     tiers:{T1:10000,T2:25000,T3:50000,T4:150000}, armed_tier:NUMBER,
+     hold_tier:NUMBER|null, effective_tier, cooldown_until, cooldown_active,
+     last_decay_day, detonation, caller:{callsign,pressed_today,streak,
+     streak_day}|null}. The backend sends tiers as NUMBERS keyed by tier id
+     and NEVER sends hold/pressed/charge_streak/detonation_streak/comrades —
+     the old reads (armed_tier as a tier-id string, j.hold, j.pressed,
+     j.charge_streak, j.detonation_streak, j.comrades) silently produced
+     garbage: hold/press/streak/comrades stuck at null/false/0. normStatus
+     maps the REAL fields defensively — unknown/absent fields fall back to
+     spec constants, never to invented numbers. */
   var NUKE_STAT_LS="pf_nuke_status_v1";
-  function armedChargeFor(tierId,fromServer){
-    var s=Number(fromServer);
-    if(isFinite(s)&&s>0) return Math.round(s);
-    for(var i=0;i<NUKE_TIERS.length;i++) if(NUKE_TIERS[i].id===tierId) return NUKE_TIERS[i].charge;
-    return NUKE_TIERS[0].charge;
+  var NUKE_TIER_NAMES={T1:"LOCAL SKIRMISH",T2:"REGIONAL SURGE",T3:"NATIONAL TAKEOVER",T4:"MEDIA BLITZ"};
+  /* Server tier numbers with spec labels: [{id,charge,name}]. */
+  function tierListOf(srv){
+    var out=[];
+    for(var i=0;i<NUKE_TIERS.length;i++){
+      var id=NUKE_TIERS[i].id, n=Number(srv&&srv[id]);
+      if(!(n>0)) n=NUKE_TIERS[i].charge;
+      out.push({id:id,charge:Math.round(n),name:NUKE_TIER_NAMES[id]||id});
+    }
+    return out;
+  }
+  function tierIdForCharge(tiers,n){
+    for(var i=0;i<tiers.length;i++) if(Number(tiers[i].charge)===Number(n)) return tiers[i].id;
+    return "T1";
+  }
+  function tierChargeOf(tiers,id){
+    for(var i=0;i<tiers.length;i++) if(tiers[i].id===id) return tiers[i].charge;
+    return tiers.length?tiers[0].charge:10000;
   }
   function normStatus(j){
     j=j||{};
-    var armed=String(j.armed_tier||"T1").toUpperCase();
-    var okTier=false;
-    for(var i=0;i<NUKE_TIERS.length;i++) if(NUKE_TIERS[i].id===armed) okTier=true;
-    if(!okTier) armed="T1";
+    var tiers=tierListOf(j.tiers);
+    var armed=tierIdForCharge(tiers,Number(j.armed_tier));
+    var hold=(j.hold_tier!=null&&j.hold_tier!=="")?tierIdForCharge(tiers,Number(j.hold_tier)):null;
+    var caller=(j.caller&&typeof j.caller==="object")?j.caller:{};
     return {
       charge:Math.max(0,Math.round(Number(j.charge)||0)),
       armed_tier:armed,
-      armed_charge:armedChargeFor(armed,j.armed_charge),
-      hold:(j.hold?String(j.hold).toUpperCase():null),
-      pressed:!!j.pressed,
-      charge_streak:Math.max(0,Math.round(Number(j.charge_streak!=null?j.charge_streak:j.streak)||0)),
-      detonation_streak:Math.max(0,Math.round(Number(j.detonation_streak!=null?j.detonation_streak:j.det_streak)||0)),
-      comrades:Math.max(0,Math.round(Number(j.comrades)||0))
+      armed_charge:tierChargeOf(tiers,armed),
+      hold:hold,
+      pressed:!!caller.pressed_today,
+      charge_streak:Math.max(0,Math.round(Number(caller.streak)||0)),
+      tiers:tiers
     };
   }
   function nukeStatSave(j){ try{ localStorage.setItem(NUKE_STAT_LS,JSON.stringify({t:Date.now(),j:j})); }catch(e){} }
@@ -213,8 +232,8 @@
   function noteSync(ok){ _syncFails=ok?0:Math.min(_syncFails+1,99); }
   function onSync(st,mode){
     stickCharge=st.charge; stickArmed=st.armed_tier; stickArmedCharge=st.armed_charge;
-    stickHold=st.hold; stickStreak=st.charge_streak; stickDetStreak=st.detonation_streak;
-    stickComrades=st.comrades; stickMode=mode; stickXp=st.charge;
+    stickHold=st.hold; stickStreak=st.charge_streak;
+    stickMode=mode; stickXp=st.charge;
     /* The server's pressed flag is authoritative; the local record covers the
        window between a successful press and the next status sync. */
     stickPressed=st.pressed||pressedLocalToday();

@@ -20,9 +20,12 @@
    - POST JSON:  {type:"reserve", r_action:"reserve_<verb>", ...params}
        verbs: propose, vote, referendum, referendum_vote, enact,
               reassign, reassign_vote
-     nuke_injection proposals ride reserve_propose with kind:"nuke_injection"
-     + amount (<=5,000); the backend tags them stimulus:nuke against the
-     weekly budget. HOLD FOR T2/T3/T4 (and clear) ride POST {type:"nuke",
+     Fed nuke injections ride POST {type:"nuke",
+     n_action:"nuke_inject_propose", amount, title?, cell_id?} (<=5,000 XP,
+     one active injection/week) — the backend writes the reserve_proposals
+     row itself (lever_changes {"nuke_injection": amt}), tags it
+     stimulus:nuke against the weekly budget; voting rides the normal
+     reserve_vote flow. HOLD FOR T2/T3/T4 (and clear) ride POST {type:"nuke",
      n_action:"nuke_hold", hold} — governor-gated, server-enforced.
      The backend dispatches on d.r_action (auth.js TYPE_KEY reserve->
      r_action, like referral/race/remit/revenue/rep/loot/ribbons) — the
@@ -157,6 +160,15 @@ function postNuke(nAction,params,cb){
   try{ cb({ok:false,err:\"Network error.\"}); }catch(e){}
 }
 
+/* Nuke tier id from the backend's NUMERIC tier (nuke_status sends
+   armed_tier/hold_tier as numbers, e.g. 10000 — never the "T1" id).
+   Contract-fixed 2026-10-05 (wave-nuke-fe): the old code read a string
+   "hold" field the backend never sends. */
+function nukeTierId(n){
+  var tiers=[["T1",10000],["T2",25000],["T3",50000],["T4",150000]];
+  for(var i=0;i<tiers.length;i++) if(Number(n)===tiers[i][1]) return tiers[i][0];
+  return null;
+}
 function board(){ return (POL&&POL.board)||(POL&&POL.policy&&POL.policy.board)||[]; }
 function proposals(){
   var p=(POL&&POL.proposals)||(POL&&POL.open_proposals)||
@@ -294,8 +306,8 @@ function renderPolicy(el){
   if(isGovernor()){
     var _nq=(NUK&&NUK.ok)?NUK:null;
     var _charge=(_nq&&_nq.charge!=null)?fmtNum(_nq.charge):\"&mdash;\";
-    var _armed=(_nq&&_nq.armed_tier)?esc(String(_nq.armed_tier).toUpperCase()):\"T1\";
-    var _hold=(_nq&&_nq.hold)?String(_nq.hold).toUpperCase():\"\";
+    var _armed=nukeTierId(_nq&&_nq.armed_tier)||\"T1\";
+    var _hold=nukeTierId(_nq&&_nq.hold_tier);
     h+='<h3 style=\"font-family:\\'Arial Black\\',Arial,sans-serif;letter-spacing:2px;color:#f5ead6;text-transform:uppercase;margin-top:18px;\">Nuke Command</h3>'
       +'<div class=\"pb-card\" style=\"text-align:left;\">'
       +'<div class=\"x-note\">Charge pool: <b>'+_charge+' XP</b> &middot; armed tier: <b>'+_armed+'</b></div>'
@@ -327,7 +339,7 @@ function renderProposalCard(p){
   var h='<div class=\"pb-card\" style=\"text-align:left;margin-bottom:10px;\">'
     +'<div class=\"pb-clabel\"><span class=\"c-tag\">'+esc(statusLabel(p))+'</span> '+esc(p.title||\"Untitled proposal\")+'</div>'
     +'<div class=\"x-note\">Proposed by <b>'+esc(p.proposer||p.proposed_by||\"?\")+'</b>'+(p.proposer_cell?(' &middot; '+esc(p.proposer_cell)):\"\")+' &middot; discussion '+(cd===\"closed\"?\"closed\":(\"ends in \"+esc(cd)))+'</div>'
-    +((p&&p.kind===\"nuke_injection\")?'<div class=\"x-note\" style=\"margin-top:4px;\"><b>NUKE INJECTION</b> <span class=\"c-tag\">stimulus:nuke</span> &mdash; <b>'+fmtNum(p.amount||0)+'</b> XP into the blast on passage.</div>':\"\")
+    +((p&&p.lever_changes&&p.lever_changes.nuke_injection)?'<div class=\"x-note\" style=\"margin-top:4px;\"><b>NUKE INJECTION</b> <span class=\"c-tag\">stimulus:nuke</span> &mdash; <b>'+fmtNum(p.lever_changes.nuke_injection)+'</b> XP into the blast on passage.</div>':\"\")
     +'<div style=\"margin:8px 0;\">'+changeRows(p)+'</div>'
     +'<div class=\"x-note\">Board tally: <b style=\"color:#7CFF9B;\">'+t.yes+' YES</b> / <b style=\"color:#ff8a8a;\">'+t.no+' NO</b> &middot; '+tot+' cells voted</div>';
   var open=String((p&&p.status)||\"open\").toLowerCase();
@@ -372,10 +384,13 @@ function renderProposals(el){
       +' <span class=\"x-note\">Goes to discussion, then the Board vote.</span></div>'
       +'<div class=\"c-err\" id=\"rsvPErr\"></div></div>';
     /* NUKE INJECTION — nuke wire-up (2026-10-05, wave-nuke-fe). A Fed stimulus
-       allocation straight into the blast. New proposal kind nuke_injection:
-       amount <= 5,000, max 1 active injection/week; the backend tags it
-       stimulus:nuke against the weekly budget and runs the normal board vote.
-       Budget numbers come from reserve_status — never invented. */
+       allocation straight into the blast. Rides POST {type:"nuke",
+       n_action:"nuke_inject_propose", amount, title} (contract-fixed
+       2026-10-05: the old reserve_propose + kind:"nuke_injection" path never
+       worked — reserve_propose reads only lever_changes and rejects unknown
+       levers). Backend: <= 5,000 XP, max 1 active injection/week, tags
+       stimulus:nuke against the weekly budget, normal board vote via
+       reserve_vote. Budget numbers come from reserve_status — never invented. */
     var _stim=(STA&&STA.ok&&STA.stimulus)?STA.stimulus:null;
     var _bud=(_stim&&_stim.budget!=null)?Number(_stim.budget):null;
     var _rem=(_stim&&_stim.remaining!=null)?Number(_stim.remaining):null;
@@ -559,9 +574,13 @@ function wire(el){
     if(!iid.callsign){ err.textContent=\"Claim a callsign first.\"; return; }
     if(!confirm(\"Propose a \"+amt+\" XP nuke injection (stimulus:nuke)? The Board votes it like any policy.\")) return;
     inj.disabled=true;
-    /* New proposal kind nuke_injection — normal board vote flow; the backend
-       tags it stimulus:nuke against the weekly stimulus budget. */
-    post(\"propose\",{callsign:iid.callsign,device:iid.device,title:title,kind:\"nuke_injection\",amount:amt},function(j){
+    /* Fed injection channel (contract-fixed 2026-10-05): POST
+       {type:"nuke", n_action:"nuke_inject_propose", amount, title} via
+       postNuke — the backend writes the reserve_proposals row itself
+       (lever_changes {"nuke_injection": amt}) and voting rides the normal
+       reserve_vote flow. The old reserve_propose path was a dead end:
+       reserve_propose reads only lever_changes and rejects unknown levers. */
+    postNuke(\"nuke_inject_propose\",{amount:amt,title:title},function(j){
       inj.disabled=false;
       if(j&&j.ok){ toast(\"Injection proposed.\"); load(); return; }
       err.innerHTML=esc(String((j&&j.err)||\"Submit failed.\"))+authHint(j);

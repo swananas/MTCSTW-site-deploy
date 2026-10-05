@@ -3,6 +3,8 @@
    streak shields (Daily Orders local state) + active power-ups (powerup_status
    read: bought 2x multipliers AND W5-3 SHIELD grants). Extends the W5-3 shield
    display pattern; no second chip system.
+   W5-3 drop-granted shields are a SEPARATE server pool read via
+   ?action=powerup_list (per-callsign GET auth) — shown as DROP in the chip.
    Usage: PF.mountInventoryChip(hostEl) — paints from cache, refreshes in the
    background, repaints on 'pf-inventory-updated'. Mounted by Daily Orders
    (streak row) and /economy (power-ups pane). Zero XP — pure visibility.
@@ -39,6 +41,7 @@ function shields(){
 }
 
 var _puCache=null, _puAt=0, _puInFlight=false;
+var _shCache=null, _shAt=0, _shInFlight=false;
 function powerups(cb){
   var now=Date.now();
   if(_puCache&&now-_puAt<5*60*1000){ cb(_puCache); return; }
@@ -91,6 +94,9 @@ function chipHTML(){
   ensureCss();
   var sh=shields(), pus=_puCache||[], parts=[];
   if(sh>0)parts.push('<span class="g">\uD83D\uDEE1\uFE0F</span>x'+sh);
+  var ss=_shCache||0;
+  if(ss>0)parts.push('<span class="g">\uD83D\uDEE1\uFE0F</span>x'+ss+
+    ' <span class="pf-inv-dim">DROP</span>');
   for(var i=0;i<pus.length;i++){
     var p=pus[i]||{}, left=Number(p.expires_at||0)-Date.now();
     parts.push('<span class="g">\u26A1</span>'+kindLabel(p.kind)+
@@ -122,6 +128,53 @@ PF.mountInventoryChip=function(host){
   if(!found)_hosts.push(host);
   host.innerHTML=chipHTML();
   powerups(function(){ /* repaint lands via pf-inventory-updated */ });
+  srvShields(function(){ /* repaint lands via pf-inventory-updated */ });
 };
-PF.refreshInventory=function(){ _puAt=0; powerups(function(){}); };
+PF.refreshInventory=function(){ _puAt=0; _shAt=0; powerups(function(){}); srvShields(function(){}); };
+/* W5-3 Streak Shields (server): powerup_list is the per-callsign private
+   inventory read (GET, callsign auth) — the drop-granted shield pool, a
+   different pool from the Daily Orders local forged shields above. Zero
+   FE caller existed anywhere; this chip is its natural home (the mint
+   ambush drops call powerup_grant backend-side, admin/system-gated). */
+function srvShields(cb){
+  var now=Date.now();
+  if(_shCache!=null&&now-_shAt<5*60*1000){ cb(_shCache); return; }
+  if(_shInFlight){ cb(_shCache||0); return; }
+  _shInFlight=true;
+  var id={callsign:'',device:''};
+  try{ if(window.PFCallsign) id.callsign=window.PFCallsign()||''; }catch(e){}
+  try{ if(window.PFDeviceId) id.device=window.PFDeviceId()||''; }catch(e){}
+  if(!id.callsign||!window.PF_BACKEND_URL){ _shInFlight=false; cb(_shCache||0); return; }
+  function finish(n){
+    _shInFlight=false;
+    _shCache=Math.max(0,Number(n)||0); _shAt=Date.now();
+    try{ document.dispatchEvent(new CustomEvent('pf-inventory-updated')); }catch(e2){}
+    cb(_shCache);
+  }
+  try{
+    if(window.PF&&PF.authGetJSONP){
+      PF.authGetJSONP(window.PF_BACKEND_URL,'powerup_list',
+        {callsign:id.callsign,device:id.device},function(j){
+        finish((j&&j.ok)?(j.shields||0):(_shCache||0)); },{}); return;
+    }
+  }catch(e){}
+  try{
+    var sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():'';
+    var fn='pfInvShCb'+Math.floor(Math.random()*1e9);
+    var done=false;
+    function finish2(j){
+      if(done)return; done=true;
+      try{delete window[fn];}catch(e3){}
+      finish((j&&j.ok)?(j.shields||0):(_shCache||0));
+    }
+    window[fn]=finish2;
+    var s=document.createElement('script');
+    s.onerror=function(){ if(s.parentNode)s.parentNode.removeChild(s); finish(_shCache||0); };
+    var q=window.PF_BACKEND_URL+'?action=powerup_list&callsign='+encodeURIComponent(id.callsign)+
+      (id.device?'&device='+encodeURIComponent(id.device):'')+
+      (sec?'&auth_secret='+encodeURIComponent(sec):'')+'&callback='+fn;
+    s.src=q; document.head.appendChild(s);
+    setTimeout(function(){ if(s.parentNode)s.parentNode.removeChild(s); finish(_shCache||0); },12000);
+  }catch(e){ _shInFlight=false; cb(_shCache||0); }
+}
 })();

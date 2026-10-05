@@ -37,7 +37,7 @@ function api(action,params,cb){
      through the shared claim-retry GET (2026-10-03): pre-auth callsign
      holders with no stored secret get one auth_claim attempt instead of
      failing 'missing credentials' forever. */
-  if(action==="cosmetic_list"||action==="stake_list"||action==="powerup_status"){
+  if(action==="cosmetic_list"||action==="stake_list"||action==="powerup_status"||action==="treasury_spend_log"){
     try{
       if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
       var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
@@ -107,8 +107,8 @@ function adminPost(type,key,cAction,params,cb){
   }catch(e7){ done(null); }
 }
 var AU=null,CO=null,ST=null,PU=null,DR=null,TRB=null,SP=null,TRCELL="";
-/* W2-D14 (2026-10-04): public treasury spend log — read-only, officer
-   attribution. Renders against the treasury_spend_log contract (W6B-1,
+/* W2-D14 (2026-10-04): treasury spend log — callsign-authenticated read-only,
+   officer attribution. Renders against the treasury_spend_log contract (W6B-1,
    flagged); falls back to spend-kind rows in treasury_balance.recent. */
 var TRSPEND=null, TRSPEND_REQ="";
 function loadSpendLog(){

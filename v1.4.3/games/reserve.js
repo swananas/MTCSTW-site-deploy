@@ -11,6 +11,9 @@
    - GET JSONP:  ?action=reserve_policy   (public — policy levers, board,
                    open proposals, referenda)
    - GET JSONP:  ?action=reserve_ledger   (public — policy change history)
+   - GET JSONP:  ?action=reserve_status   (public — live levers + this week's
+                   stimulus budget; the integration-surface read, rendered as
+                   THIS WEEK'S PULSE in the policy tab)
    - POST JSON:  {type:"reserve", r_action:"reserve_<verb>", ...params}
        verbs: propose, vote, referendum, referendum_vote, enact,
               reassign, reassign_vote
@@ -135,7 +138,7 @@ function leverVal(pol,key){
     min:(cfg&&cfg.min!=null)?Number(cfg.min):null,
     max:(cfg&&cfg.max!=null)?Number(cfg.max):null};
 }
-var POL=null, LED=null, TAB=\"policy\";
+var POL=null, LED=null, STA=null, TAB=\"policy\";
 var NEWCHANGES=[]; /* staged proposal changes before submit */
 
 function board(){ return (POL&&POL.board)||(POL&&POL.policy&&POL.policy.board)||[]; }
@@ -207,6 +210,28 @@ function renderPolicy(el){
     var sub2=bud?(\"Budget: \"+fmtNum(bud.value)+\" XP\"):\"\";
     h+=cardRow(\"Stimulus spent this week\",fmtNum(spent)+\" XP\",sub2);
   }
+  /* THIS WEEK PULSE -- the integration-surface read (?action=reserve_status):
+     live levers + this week\'s stimulus budget. Rendered only when the backend
+     serves it -- nothing about policy numbers is ever invented here. */
+  var _st=(STA&&STA.ok)?STA:null;
+  if(_st){
+    var _lv=_st.levers||{}, _stim=_st.stimulus||null, _src=String(_lv.source||\"\");
+    var _pulse=\"\";
+    if(_lv.base_apy!=null) _pulse+=cardRow(\"Live APY\",fmtPct(_lv.base_apy),
+      _src?(\"Set by: \"+esc(_src)):\"\");
+    if(_lv.warmap_fuel_rate!=null) _pulse+=cardRow(\"Live fuel rate\",fmtMult(_lv.warmap_fuel_rate));
+    if(_stim&&_stim.remaining!=null){
+      var _ssub=_stim.budget!=null?(\"Budget: \"+fmtNum(_stim.budget)+\" XP\"):\"\";
+      if(_stim.week) _ssub+=(_ssub?(\" &middot; \"):\"\")+\"week \"+esc(String(_stim.week));
+      _pulse+=cardRow(\"Stimulus remaining\",fmtNum(_stim.remaining)+\" XP\",_ssub);
+    }
+    if(_pulse){
+      any=true;
+      h+='<h3 style=\"font-family:\\'Arial Black\\',Arial,sans-serif;letter-spacing:2px;color:#f5ead6;text-transform:uppercase;margin-top:18px;\">This week&rsquo;s pulse</h3>';
+      h+='<div class=\"pb-cards\">'+_pulse+'</div>';
+    }
+  }
+
   h+='</div>';
   if(!any) h+='<div class=\"x-note\">No policy levers published yet. The Board hasn&rsquo;t set monetary policy &mdash; or the backend hasn&rsquo;t landed. Check back.</div>';
 
@@ -492,10 +517,11 @@ function castVote(id,vote,verb){
 function load(){
   var n=0, done=false;
   function fin(){ if(done)return; done=true; render(); }
-  function one(){ n++; if(n>=2) fin(); }
+  function one(){ n++; if(n>=3) fin(); }
   setTimeout(fin,15000);
   api(\"reserve_policy\",{},function(j){ POL=j||{ok:false,err:\"network\"}; one(); });
   api(\"reserve_ledger\",{},function(j){ LED=j||{ok:false,err:\"network\"}; one(); });
+  api(\"reserve_status\",{},function(j){ STA=j||{ok:false,err:\"network\"}; one(); });
 }
 (function(){
   var sec=null;

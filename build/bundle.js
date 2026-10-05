@@ -124,7 +124,10 @@ var SECTIONS = {
   'bundle-bank': [
     /* /bank — the People's Bank. */
     'peoplesbank.js',
-    'vault.js'
+    'vault.js',
+    /* allfronts admin + Wave 5D conductor (2026-10-04): operation console
+       mounts beside the vault. */
+    'operations-admin.js'
   ],
   'bundle-economy': [
     /* /economy — Run the Economy. */

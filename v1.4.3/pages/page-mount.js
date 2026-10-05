@@ -68,7 +68,12 @@
         ['diplo', 'pf-ov-diplo'],
         ['contracts', 'pf-ov-contracts'],
         /* W5-12 Frontlines: weekly territory war map (kill: war-map). */
-        ['war-map', 'pf-ov-warmap']
+        ['war-map', 'pf-ov-warmap'],
+        /* REDISTRIBUTION LAYER Phase B (2026-10-05): Supply Line Raid —
+           bespoke cell home (silo key 'raid'). Cell-scoped rounds; cell_id
+           comes from the cell context the cells stack already loaded
+           (never URL params). Non-members get the join-a-cell nudge. */
+        ['raid', 'pf-ov-raid']
       ]
     },
     'pf-create': {

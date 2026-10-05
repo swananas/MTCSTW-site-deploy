@@ -59,7 +59,11 @@
     /* ——— SECTION 7: PROOF — social validation closer ——— */
     ['fan-vote', 'pf-ov-vote'],
     /* W5-6 Hall of Proof (2026-10-04): winners wall closes the PROOF section. */
-    ['hall', 'pf-ov-hall']
+    ['hall', 'pf-ov-hall'],
+    /* REDISTRIBUTION LAYER Phase B (2026-10-05): The Solidarity Draw's
+       bespoke home (silo key 'draw') — draw pot, tickets, pre-draw secret
+       commitment + post-draw verify. Lives inside the Hall of Proof section. */
+    ['draw', 'pf-ov-draw']
   ];
 
   /* === SECTION HEADERS (2026-10-03) ===
@@ -114,7 +118,8 @@
     'war-bonds': [['Manage your bonds \u2192', '/bank'], ['See where it goes \u2192', '/war-chest']],
     'campaign': [['Get the alert \u2192', 'alerts'], ['Take it to the streets \u2192', '/events']],
     'alerts': [['Know the terrain \u2192', '/political-hq'], ['Make a poster \u2192', 'poster-forge']],
-    'fan-vote': [['See live activity \u2192', 'socialproof'], ['Back your pick in battle \u2192', '/arcade']]
+    'fan-vote': [['See live activity \u2192', 'socialproof'], ['Back your pick in battle \u2192', '/arcade']],
+    'draw': [['See the winners wall \\u2192', 'hall'], ['Vote for your favorite \\u2192', 'fan-vote']]
   };
 
   /* Silo -> section id. Used to insert each widget's <section> in funnel
@@ -129,7 +134,9 @@
     'campaign':'act','alerts':'act',
     'fan-vote':'proof',
     /* W5-6 Hall of Proof (2026-10-04). */
-    'hall':'proof'
+    'hall':'proof',
+    /* REDISTRIBUTION LAYER Phase B (2026-10-05): Solidarity Draw. */
+    'draw':'proof'
   };
 
   /* Build the 7 section blocks at init: header + lazy-load anchor each.

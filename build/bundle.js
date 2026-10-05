@@ -87,7 +87,12 @@ var SECTIONS = {
     'ambush-drop.js',
     'war-room-ticker.js',
     'flash-siren.js',
-    'briefing-siren.js'
+    'briefing-siren.js',
+    /* REDISTRIBUTION LAYER Phase B (2026-10-05): The Solidarity Draw's
+       bespoke home (silo key 'draw'), mounted in the Hall of Proof section
+       on the homepage (pages/home-v2.js PROOF ORDER). Pre-draw secret
+       commitment + post-draw revealed-secret verify. */
+    'solidarity-draw.js'
   ],
   /* SLIM DEDICATED-PAGE BUNDLES (2026-10-04, M1 dead-weight fix): /arcade,
      /cells and /create used to fetch the full bundle-home (~83KB gz) to get
@@ -142,9 +147,10 @@ var SECTIONS = {
     /* A3 Deployment Tracker (2026-10-04): /arcade lobby deep-links into
        unplayed medal games. Coordinator: rebuild bundles to ship. */
     'deploy-tracker.js'
-    /* Phase B (not built yet): 'supply-raid.js' (silo key 'raid', mounted on
-       pf-cells-page / pf-cell-hq) and 'solidarity-draw.js' (mounted in the
-       Hall of Proof section on the homepage, games/hall-of-proof.js). */
+    /* Phase B (built 2026-10-05): 'supply-raid.js' (silo key 'raid',
+       bundle-cells, mounted on pf-cells-page / pf-cell-hq) and
+       'solidarity-draw.js' (silo key 'draw', bundle-home, mounted in the
+       Hall of Proof section on the homepage). */
   ],
   'bundle-cells': [
     /* /cells (+ Creator HQ) — the cell lifecycle. */
@@ -156,7 +162,12 @@ var SECTIONS = {
     'contracts.js',
     'war-card.js',
     /* W5-12 Frontlines: the weekly territory war map. */
-    'war-map.js'
+    'war-map.js',
+    /* REDISTRIBUTION LAYER Phase B (2026-10-05): Supply Line Raid — the
+       bespoke cell home (silo key 'raid'). Mounted on pf-cells-page via
+       page-mount.js; cell-scoped rounds (cell_id from the loaded cell
+       context, never URL params); hidden for non-members. */
+    'supply-raid.js'
   ],
   'bundle-create': [
     /* /create (+ Creator HQ) — creator tooling. */

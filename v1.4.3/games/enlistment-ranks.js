@@ -511,11 +511,12 @@ document.addEventListener("pf-billionaire-answered",function(e){ var d=(e&&e.det
 document.addEventListener("pf-interrogation-answered",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; settle("pf-interrogation-answered",award("interrogation_"+d,1,"once")); });
 /* Do Meter Game-8 expansion bonuses: weekly-op completion + full-spectrum week. Exempt (bounded by week). */
 document.addEventListener("pf-do-challenge-done",function(e){ var d=(e&&e.detail)||{}, w=d.week||"wk", amt=15;
-  /* B1 release-day order ("read the release"): 10 XP through the SAME
-     dochall_ leg (mirror max 15 / tally cap 15 — unchanged). Key
-     dochall_<YYYYMM>_<series> is disjoint from the weekly dochall_<week>
-     key. */
-  if(d.challenge==="read-the-release"&&typeof d.xp==="number"){ amt=Math.max(0,Math.min(15,Math.floor(d.xp))); }
+  /* B1 release-day order ("read the release") and engagement build-D's ritual
+     release-day order both dispatch this event with a caller-supplied xp
+     (e.g. Economy-signed 10 XP for dochall_<date>_<series>_<cs>); the award
+     honors it clamped to the 15 mirror cap, defaulting to the legacy 15. Key
+     dochall_<YYYYMMDD>_<series>_<cs> is disjoint from the weekly dochall_<week> key. */
+  if(typeof d.xp==="number"){ amt=Math.max(0,Math.min(15,Math.floor(d.xp))); }
   var gain=award("dochall_"+w,amt,"once",{exempt:1}); settle("pf-do-challenge-done",gain,0,d.dedupe||""); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("CHALLENGE DONE — +"+amt+" XP"); }catch(e2){} } });
 document.addEventListener("pf-do-fullspectrum",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; var gain=award("dospec_"+w,20,"once",{exempt:1}); settle("pf-do-fullspectrum",gain); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("FULL SPECTRUM — +20 XP"); }catch(e2){} } });
 /* Recruit rewards: +25 XP per new recruit (War Card promise), exempt from the

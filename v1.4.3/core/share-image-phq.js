@@ -395,40 +395,58 @@
     x.fillText('SUPPORT THE ALLIES DOING THE WORK.', W / 2, 492);
     x.fillStyle = '#c1121f';
     x.fillRect(W / 2 - 300, 522, 600, 4);
-    /* Org name — shrink-to-fit, max 2 lines. */
+    /* Pre-compute wrapped lines so long directory rows can shed lines before
+       paint — the bottom stack owns y>=1222 and content must clear it. */
     var name = String(d.name == null || d.name === '' ? '\u2014' : d.name).toUpperCase();
+    x.fillStyle = '#f5ead6';
+    fitFont(x, name, 88, 46, 910, '900');
+    var nameL = wrap(x, name, 910).slice(0, 2);
+    var issue = String(d.issue == null || d.issue === '' ? '\u2014' : d.issue).toUpperCase();
+    x.fillStyle = '#e8b923';
+    fitFont(x, issue, 44, 30, 910, '700');
+    var issueL = wrap(x, issue, 910).slice(0, 2);
+    var mission = String(d.mission == null || d.mission === '' ? '\u2014' : d.mission);
+    x.font = '400 36px Arial,sans-serif';
+    var missionL = wrap(x, mission, 910).slice(0, 3);
+    var url = fuelSafeUrl(d.website);
+    var dis = String(d.disclosure == null ? '' : d.disclosure).trim();
+    x.font = '700 34px Arial,sans-serif';
+    var disL = dis ? wrap(x, '\u26a0 ' + dis, 910).slice(0, 2) : [];
+    /* Budget: content block 610 -> 1180. Shed order: disclosure to 1 line,
+       then mission to 2 lines. Ellipsis marks every trim — never silent. */
+    function contentH() {
+      return nameL.length * 96 + 8 + issueL.length * 56 + 16 +
+        missionL.length * 48 + 12 + (url ? 56 : 0) + disL.length * 44 + (disL.length ? 8 : 0);
+    }
+    if (contentH() > 570 && disL.length > 1) { disL = disL.slice(0, 1); }
+    if (contentH() > 570 && missionL.length > 2) { missionL = missionL.slice(0, 2); }
+    x.font = '400 36px Arial,sans-serif';
+    if (wrap(x, mission, 910).length > missionL.length && missionL.length)
+      missionL[missionL.length - 1] = missionL[missionL.length - 1].replace(/\s+$/, '') + '\u2026';
+    x.font = '700 34px Arial,sans-serif';
+    if (dis && wrap(x, '\u26a0 ' + dis, 910).length > disL.length && disL.length)
+      disL[disL.length - 1] = disL[disL.length - 1].replace(/\s+$/, '') + '\u2026';
+    /* Paint. */
     var y = 610;
     x.fillStyle = '#f5ead6';
     fitFont(x, name, 88, 46, 910, '900');
-    wrap(x, name, 910).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 96; });
-    /* Issue area — gold, max 2 lines. */
-    var issue = String(d.issue == null || d.issue === '' ? '\u2014' : d.issue).toUpperCase();
+    nameL.forEach(function (l) { x.fillText(l, W / 2, y); y += 96; });
     y += 8;
     x.fillStyle = '#e8b923';
     fitFont(x, issue, 44, 30, 910, '700');
-    wrap(x, issue, 910).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 56; });
-    /* Mission — one line from the directory, max 3 lines, truncated honest. */
-    var mission = String(d.mission == null || d.mission === '' ? '\u2014' : d.mission);
+    issueL.forEach(function (l) { x.fillText(l, W / 2, y); y += 56; });
     y += 16;
     x.fillStyle = '#c9bfa8'; x.font = '400 36px Arial,sans-serif';
-    var ml = wrap(x, mission, 910).slice(0, 3);
-    if (wrap(x, mission, 910).length > 3) ml[ml.length - 1] = ml[ml.length - 1].replace(/\s+$/, '') + '\u2026';
-    ml.forEach(function (l) { x.fillText(l, W / 2, y); y += 48; });
-    /* Sanitized website — https only; dropped URL prints nothing, never invents. */
-    var url = fuelSafeUrl(d.website);
+    missionL.forEach(function (l) { x.fillText(l, W / 2, y); y += 48; });
     y += 12;
     if (url) {
       x.fillStyle = '#f5ead6';
       fitFont(x, url, 40, 28, 910, '700');
       x.fillText(url, W / 2, y); y += 56;
     }
-    /* Disclosure marker — flagged orgs only, gold, max 2 lines. */
-    var dis = String(d.disclosure == null ? '' : d.disclosure).trim();
-    if (dis) {
+    if (disL.length) {
       x.fillStyle = '#e8b923'; x.font = '700 34px Arial,sans-serif';
-      var dl = wrap(x, '\u26a0 ' + dis, 910).slice(0, 2);
-      if (wrap(x, '\u26a0 ' + dis, 910).length > 2) dl[dl.length - 1] = dl[dl.length - 1].replace(/\s+$/, '') + '\u2026';
-      dl.forEach(function (l) { x.fillText(l, W / 2, y); y += 44; });
+      disL.forEach(function (l) { x.fillText(l, W / 2, y); y += 44; });
       y += 8;
     }
     /* Source + compiled date — traceable to the directory, not the org. */

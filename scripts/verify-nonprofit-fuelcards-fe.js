@@ -276,6 +276,38 @@ else {
   if (!threw && cv3 && hasText(cv3, '\u2014')) ok('missing fields: em-dash, no throw');
   else no('missing fields', threw ? 'threw' : 'no em-dash fallback');
 
+  /* --- worst-case long row: content must still clear the bottom stack --- */
+  var worst = {
+    name: 'Reproductive Freedom for All (formerly NARAL Pro-Choice America)',
+    issue: 'Criminal Justice Reform & Police Accountability',
+    mission: 'Mobilizes 4M members to fight for abortion access, birth control, paid parental leave, and pregnancy protections across all fifty states every single day.',
+    website: 'https://www.reproductivefreedomforall.org',
+    disclosure: 'Primarily 501(c)(4) lobbying and organizing shop with an affiliated federal PAC',
+    compiled: 'OCTOBER 5, 2026'
+  };
+  var cvw = PHQ.paint('phq-nonprofit', worst);
+  if (cvw) {
+    var wmax = 0;
+    (cvw._recs || []).forEach(function (r) { if (r.y < 1222 && r.y > wmax) wmax = r.y; });
+    /* Geometry: the CTA button rect tops at H-84-46 = 1220. Content must stay
+       clear of it (1205 keeps a descent margin). */
+    if (wmax > 0 && wmax < 1205) ok('worst-case row: content clears the bottom stack (max y ' + Math.round(wmax) + ')');
+    else no('worst-case layout', 'content max y ' + Math.round(wmax) + ' — collision risk');
+    if (hasFrag(cvw, '\u2026')) ok('worst-case row: trims marked with ellipsis');
+    else no('worst-case ellipsis', 'trimmed text not marked');
+  } else no('worst-case row', 'paint returned null');
+  /* worst case, no callsign — the funnel line must clear too */
+  var envW = makeEnv({ noCallsign: true });
+  var PHQW = envW.sb.PF && envW.sb.PF.PHQShare;
+  var cvw2 = PHQW ? PHQW.paint('phq-nonprofit', worst) : null;
+  if (cvw2) {
+    var wmax2 = 0;
+    (cvw2._recs || []).forEach(function (r) { if (r.y < 1222 && r.y > wmax2) wmax2 = r.y; });
+    if (wmax2 > 0 && wmax2 < 1205 && hasText(cvw2, 'CLAIM YOUR CALLSIGN AT MTCSTW.COM'))
+      ok('worst-case no-callsign: funnel clears the stack (max y ' + Math.round(wmax2) + ')');
+    else no('worst-case no-callsign', 'max y ' + Math.round(wmax2));
+  } else no('worst-case no-callsign', 'paint returned null');
+
   /* --- no-callsign funnel --- */
   var env2 = makeEnv({ noCallsign: true });
   var PHQ2 = env2.sb.PF && env2.sb.PF.PHQShare;

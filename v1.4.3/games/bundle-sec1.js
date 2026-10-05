@@ -457,6 +457,30 @@ function render(){
   }
   /* ---------- 2.5 WAR PLAN (W5-4) — the 30-second morning read ---------- */
   h+=warPlanHtml();
+  /* ---------- 2.6 MACRO THIS WEEK (Wave A2, S-04, 2026-10-05) ----------
+     Release-week lines (jobs day, CPI day) from the briefing's macro_week
+     field. Renders ONLY on release weeks (backend sends lines only then).
+     Read-only official FRED figures — zero XP, display only.
+     KILL: ?pf_off=fred-editorial (same key as the news-rail flags). */
+  (function(){
+    try {
+      if (window.PF && PF.skip && PF.skip('fred-editorial')) return;
+      var mw = BRIEF && BRIEF.briefing && BRIEF.briefing.macro_week;
+      var mlines = (mw && Array.isArray(mw.lines)) ? mw.lines : [];
+      if (!mlines.length) return;
+      h += '<div class="br-sec"><div class="br-sect">MACRO THIS WEEK</div>';
+      for (var mi2 = 0; mi2 < mlines.length; mi2++) {
+        var ln = mlines[mi2] || {};
+        var lab = (ln.type === 'jobs_day') ? 'JOBS DAY' :
+                  (ln.type === 'cpi_day') ? 'CPI DAY' : 'MACRO';
+        var txt = String(ln.text || '').replace(/^(JOBS DAY|CPI DAY):\s*/, '');
+        h += '<div class="br-macro"><span class="br-mlabel">' + esc(lab) + '</span>' +
+             '<span class="br-mtext">' + esc(txt) + '</span></div>';
+      }
+      if (mw.source_note) h += '<div class="x-note">' + esc(mw.source_note) + '</div>';
+      h += '</div>';
+    } catch (e) {}
+  })();
   /* ---------- 3. TODAY'S ORDERS ---------- */
   h+='<div class="br-sec"><div class="br-sect">TODAY&rsquo;S ORDERS</div>';
   var ms=[]; try{ ms=((MISS&&MISS.missions)||[]).filter(function(m){ return !m.done; }); }catch(e){}
@@ -687,6 +711,10 @@ function bannerCss(){
     +"#pf-brief .pf-newstop-item a:hover{color:#fff;text-decoration:underline}"
     +"#pf-brief .pf-newstop-meta{display:block;font:11px monospace;color:#888;margin-top:3px}"
     +"#pf-brief .pf-newstop-empty,#pf-brief .pf-newstop-stale{font:12px monospace;color:#888;padding:6px 0}"
+    /* Wave A2 (S-04, 2026-10-05): MACRO THIS WEEK section. */
+    +"#pf-brief .br-macro{display:flex;gap:10px;align-items:baseline;padding:8px 4px;border-bottom:1px solid #222;font:13px monospace;color:#ddd}"
+    +"#pf-brief .br-mlabel{font:bold 11px monospace;color:#0a0a0a;background:#e8b64c;padding:3px 8px;border-radius:2px;white-space:nowrap;letter-spacing:1px}"
+    +"#pf-brief .br-mtext{color:#f5ead6}"
     /* S1 Route March (2026-10-04): TODAY'S ROUTE MARCH card. */
     +"#pf-brief .br-rmhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}"
     +"#pf-brief .br-rmname{font:bold 15px monospace;color:#fff;letter-spacing:1px}"
@@ -1017,6 +1045,7 @@ setInterval(function(){
 <div class="d-fire" id="dFire" style="display:none"></div>
 <div class="d-types" id="dTypes"></div>
 <div class="d-spark" id="dSpark" aria-hidden="true"></div>
+<div data-react-surface="do-meter" aria-label="React to the Do Meter"></div>
 <div id="slr-nuke">
 <div class="slr-nuke-kicker">Network Command</div>
 <h2>The <span class="slr-red">Media Nuke</span></h2>

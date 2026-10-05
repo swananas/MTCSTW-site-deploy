@@ -154,6 +154,12 @@ var BUNDLES = {
     /* A2 flash siren: site-wide banner, self-mounting + fail-silent. Global
        chrome (every v2 page) — was a dead file at 4ce7391, never bundled. */
     'games/flash-siren.js',
+    /* ENGAGE-A #2 (2026-10-05): micro-reactions on data surfaces.
+       Zero XP by design (one reaction/callsign/surface/day server-side,
+       aggregate counts only). Self-mounts on [data-react-surface]; global
+       chrome so it works on homepage (do-meter) and /war-report alike.
+       Kill: ?pf_off=reactions. */
+    'games/reactions.js',
     'core/06-pinups.js',
     'core/share-image.js',
     /* PHQ share posters (2026-10-05, consolidated fe/phq-share-consolidation):

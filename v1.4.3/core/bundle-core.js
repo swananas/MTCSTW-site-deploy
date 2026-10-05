@@ -4996,10 +4996,13 @@ if(document.readyState==='loading'){
   /* ---- op catalog: {ready, done} evaluated against state; first not-done wins ---- */
   var OPS = {
     streakrisk: {
-      title: 'STREAK AT RISK', cta: 'SAVE IT \u2192', href: '/',
+      /* Cohesion §5 copy standard (Psych, binding): streaks never feel like
+         punishment. The run is still standing — the check-in is the
+         fighter's own move. Never "or the streak breaks" threat framing. */
+      title: 'YOUR RUN IS STILL STANDING', cta: 'KEEP IT ROLLING \u2192', href: '/',
       ready: function (st) { return st.streakRisk !== null; },
       done: function (st) { return !st.streakRisk; },
-      sub: function (st) { return 'Last chance \u2014 check in before midnight Chicago or the streak breaks.'; }
+      sub: function (st) { return 'Check in before midnight Chicago \u2014 one tap keeps your run rolling.'; }
     },
     loot: {
       title: 'THE CRATE IS LOADED', cta: 'OPEN THE CRATE \u2192', href: '/',
@@ -5008,12 +5011,13 @@ if(document.readyState==='loading'){
       sub: function (st) { return 'Today\u2019s supply crate sits unclaimed. Midnight Chicago, it resets.'; }
     },
     streak: {
-      title: 'PROTECT THE STREAK', cta: 'CHECK IN \u2192', href: '/',
+      /* §5: invitational, not protection-racket framing. */
+      title: 'KEEP THE RUN ROLLING', cta: 'CHECK IN \u2192', href: '/',
       ready: function (st) { return st.streakChecked !== null; },
       done: function (st) { return st.streakChecked; },
       sub: function (st) {
-        return (st.streakCount > 0 ? st.streakCount + '-day streak. ' : '') +
-          'One tap keeps it alive.';
+        return (st.streakCount > 0 ? st.streakCount + '-day run. ' : '') +
+          'One tap keeps it rolling.';
       }
     },
     /* W2-D4 (Wave 6B): "cells hiring" rule — cell-less users get a cells op.

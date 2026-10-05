@@ -56,7 +56,7 @@ function post(type,actionKey,action,params,cb){
   }catch(e){ done(null); }
 }
 var TYPES=[
-  ["streak_alerts","Streak alerts","Your 23-day streak dies in 4 hours"],
+  ["streak_alerts","Streak alerts","Your 23-day run is still standing \u2014 4 hours left today"],
   ["weekly_report","Weekly War Report","Monday digest of your week"],
   ["flash_events","Flash events","Limited-time opportunities"],
   ["cell_activity","Cell activity","Wars, invites, milestones"],

@@ -50,8 +50,10 @@ function api(action,params,cb){
   /* Private reads require auth_secret (IDOR fix). Route gated actions
      through the shared claim-retry GET (2026-10-03): pre-auth callsign
      holders with no stored secret get one auth_claim attempt instead of
-     failing 'missing credentials' forever. */
-  if(action==="dopamine_status"||action==="combo_status"||action==="comeback_check"||action==="loot_history"){
+     failing 'missing credentials' forever.
+     Cohesion (2026-10-05): market_streak_status is the private
+     market-accuracy streak read — own row only, server-computed. */
+  if(action==="dopamine_status"||action==="combo_status"||action==="comeback_check"||action==="loot_history"||action==="market_streak_status"){
     try{
       if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
       var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
@@ -114,7 +116,13 @@ function dpCss(){
     +".dp-reward .dp-rname{font:13px monospace;color:#c9bfa8;margin-top:4px}"
     +".dp-flame{font-size:64px;line-height:1;filter:drop-shadow(0 0 14px #ff6a00)}"
     +".dp-streakn{font:bold 44px monospace;color:#f5ead6}"
-    +".dp-risk{margin:10px 0;padding:10px;border:2px solid #ff3b30;background:#2a0d0d;color:#ffb3ab;font:bold 13px monospace;letter-spacing:1px}"
+    +".dp-hold{margin:10px 0;padding:10px;border:2px solid #c9962e;background:#1d1507;color:#f0d9a0;font:bold 13px monospace;letter-spacing:1px}"
+    /* Cohesion §0 (2026-10-05): forecast-accuracy streak pane. Retrospective
+       only — no countdowns, no public leaderboard, no lost-XP language. */
+    +".dp-mkstreak{margin:14px 0 0;padding:12px;border:1px solid #c9962e;background:#14100a}"
+    +".dp-mkstreak h5{margin:0 0 6px;font:bold 12px monospace;letter-spacing:2px;color:#e8b10c}"
+    +".dp-mkstreak .dp-mkn{font:bold 22px monospace;color:#f5ead6}"
+    +".dp-mkstreak .dp-mkms{font:11px monospace;color:#c9bfa8;margin-top:6px}"
     +".dp-barwrap{height:10px;background:#2a1414;border:1px solid #5a1a1a;margin:8px 0}"
     +".dp-bar{height:100%;background:linear-gradient(90deg,#c1121f,#e8b10c);transition:width .4s}"
     +".dp-flash{margin:8px 0;padding:10px;border:1px solid #e8b10c;background:#1c1408}"
@@ -143,6 +151,10 @@ var RARITY={
 };
 var MILESTONES=[7,14,30,60,100];
 var ST=null, CB=null, WARM=false, WW=null;
+/* Cohesion (2026-10-05): market-accuracy streak state (private, own row).
+   Kill switch: ?pf_off=market-streaks hides the pane entirely. */
+var MKST=null, MKSTtried=false;
+var MKSTREAK_MILESTONES={3:25,5:50,10:75};
 /* A8 Podcast Listener Bounties: WW carries the warword_status read —
    {ok, active, episode, xp_amount, claimed}. The word itself never arrives. */
 /* ---- combo meter (session-local) ---- */
@@ -184,7 +196,7 @@ function refreshServerCombo(){
 function load(){
   var id=ident(), n=0, done=false;
   function fin(){ if(done)return; done=true; render(); }
-  function one(){ n++; if(n>=2) fin(); }
+  function one(){ n++; if(n>=3) fin(); }
   setTimeout(fin,15000);
   var p={callsign:id.callsign,device:id.device};
   api("dopamine_status",p,function(j){
@@ -197,7 +209,38 @@ function load(){
     if(j&&j.ok){ WW=j; } else { WW=null; }
     one();
   });
+  /* Cohesion (2026-10-05): private market-accuracy streak read. Fails
+     silent — the FORECAST STREAK pane simply stays hidden. */
+  loadMarketStreak(one);
   refreshServerCombo();
+}
+/* Market-accuracy streak read + calm milestone toast.
+   Retrospective only: the backend computes milestones at settlement and
+   the toast fires once per attainment (deduped on attainment timestamp).
+   Never "N wins away" — no countdown language anywhere. */
+function loadMarketStreak(one){
+  if(window.PF&&PF.skip&&PF.skip("market-streaks")){ one(); return; }
+  var id=ident();
+  if(!id.callsign){ MKST=null; MKSTtried=true; one(); return; }
+  api("market_streak_status",{callsign:id.callsign},function(j){
+    MKSTtried=true;
+    if(j&&j.ok){ MKST=j; checkMarketStreakMilestone(j); } else { MKST=null; }
+    one();
+  });
+}
+function checkMarketStreakMilestone(j){
+  try{
+    var m=Number(j&&j.last_milestone)||0;
+    if(!m||!MKSTREAK_MILESTONES[m]) return;
+    var key="m"+m+":"+(j.last_milestone_at||0);
+    var seen={};
+    try{ seen=JSON.parse(localStorage.getItem("pf_mkstreak_ms_v1")||"{}"); }catch(e){}
+    if(seen[key]) return;
+    seen[key]=1;
+    try{ localStorage.setItem("pf_mkstreak_ms_v1",JSON.stringify(seen)); }catch(e2){}
+    /* Calm claim toast — retrospective fact, no urgency, no countdown. */
+    toast("STREAK MILESTONE: "+m+" correct calls in a row. +"+MKSTREAK_MILESTONES[m]+" XP credited.");
+  }catch(e3){}
 }
 /* Streak milestones (7/14/30/60/100) trigger the level-up celebration overlay.
    Celebrates once per milestone per callsign — tracked in localStorage. */
@@ -284,6 +327,7 @@ function render(){
   }
   h+=renderLoot();
   h+=renderStreak();
+  h+=renderMarketStreak();
   h+=renderFlash();
   h+=renderWarWord();
   h+='<div class="x-pane"><h4>Session combo</h4><div id="dpComboBox"></div></div>';
@@ -335,10 +379,14 @@ function renderStreak(){
   h+='<div class="dp-flame">&#128293;</div>';
   h+='<div class="dp-streakn">'+count+' DAY'+(count===1?"":"S")+'</div>';
   if(sk.at_risk&&sk.risk_ends_at){
-    h+='<div class="dp-risk">&#9888; STREAK AT RISK &mdash; dies in <span class="dp-count" data-until="'+Number(sk.risk_ends_at)+'">--:--:--</span><br>Check in or buy a freeze.</div>';
+    /* §5: agency, not alarm — the run is still standing; the freeze is the
+       fighter's own tool. Never "dies", never red. */
+    h+='<div class="dp-hold">YOUR '+count+'-DAY RUN IS STILL STANDING &mdash; <span class="dp-count" data-until="'+Number(sk.risk_ends_at)+'">--:--:--</span> left today.<br>One check-in keeps it rolling. Or burn 100 XP to hold your ground.</div>';
   }
   if(sk.broken_recent){
-    h+='<div class="dp-risk">STREAK BROKEN &mdash; repair window closing. 250 XP to relight it.</div>';
+    /* §5: a broken streak is a clean reset, never a loss. Repair is
+       framed as holding your ground, not ransom. */
+    h+='<div class="dp-hold">STREAK RESET &mdash; a new run starts now.<br>Or hold your ground: backfill yesterday for 250 XP (48h window).</div>';
   }
   var next=null;
   for(var i=0;i<MILESTONES.length;i++){ if(count<MILESTONES[i]){ next=MILESTONES[i]; break; } }
@@ -355,6 +403,34 @@ function renderStreak(){
   if(sk.broken_recent){ h+='<button class="c-btn" id="dpRepairBtn">REPAIR &mdash; 250 XP</button>'; }
   h+='</div><div class="c-err" id="dpStreakErr"></div>';
   h+='</div></div>';
+  return h;
+}
+/* FORECAST STREAK pane (Cohesion §0, binding surfacing rules):
+   - Retrospective display only: what the run IS, never "N wins away".
+   - Own row only (private read); no public streak leaderboards.
+   - Broken streaks framed as clean resets with no lost-XP language.
+   - Refunded markets never touch the streak (backend null events).
+   Milestones are server-computed at settlement — never client-claimable. */
+function renderMarketStreak(){
+  if(window.PF&&PF.skip&&PF.skip("market-streaks")) return "";
+  if(!ident().callsign) return "";
+  if(!MKSTtried) return "";
+  if(!MKST||!MKST.ok) return "";
+  var n=Number(MKST.streak)||0, h='<div class="x-pane dp-pane dp-mkstreak"><h5>Forecast streak</h5>';
+  if(n>0){
+    h+='<div class="dp-mkn">'+n+' CORRECT IN A ROW</div>'
+      +'<div class="x-note">calibration is a weapon.</div>';
+    var m=Number(MKST.last_milestone)||0;
+    if(m>0&&MKSTREAK_MILESTONES[m]){
+      h+='<div class="dp-mkms">Latest milestone: '+m+' in a row (&#9889;'+MKSTREAK_MILESTONES[m]+' XP).</div>';
+    }
+  } else if(MKST.reset_recent){
+    /* §5: a broken streak is a clean reset — never a loss. */
+    h+='<div class="x-note">Streak reset &mdash; a new run starts now.</div>';
+  } else {
+    h+='<div class="x-note">No forecast streak yet. Your first correct call starts the run.</div>';
+  }
+  h+='</div>';
   return h;
 }
 function renderFlash(){
@@ -561,7 +637,8 @@ function wire(){
   }; }
   var fb=document.getElementById("dpFreezeBtn");
   if(fb){ fb.onclick=function(){
-    if(!confirm("Spend 100 XP on a streak freeze? It saves your streak if you miss a day.")) return;
+    /* §5: the freeze is agency — a tool the fighter earned the right to use. */
+    if(!confirm("Burn 100 XP to hold your ground? A freeze keeps your run standing through a missed day.")) return;
     var err=document.getElementById("dpStreakErr"); fb.disabled=true;
     post("streak","str_action","streak_freeze_buy",{callsign:id.callsign,device:id.device},function(j){
       fb.disabled=false;
@@ -577,7 +654,9 @@ function wire(){
     post("streak","str_action","streak_checkin",{callsign:id.callsign,device:id.device},function(j){
       cib.disabled=false; cib.textContent="CHECK IN";
       if(j&&j.ok){
-        toast(j.dup?("Already checked in — day "+(Number(j.count)||"")+" holds."):("Checked in. Day "+(Number(j.count)||"")+" of the fire."));
+        /* §5: a broken streak is a clean reset — the backend flags it. */
+        toast(j.streak_reset?("Streak reset — a new run starts now. Day 1 of the fire.")
+          :(j.dup?("Already checked in — day "+(Number(j.count)||"")+" holds."):("Checked in. Day "+(Number(j.count)||"")+" of the fire.")));
         comboHit(); load();
       }
       else if(err) err.textContent=PF.errCopy(j,"Check-in failed.");
@@ -585,11 +664,12 @@ function wire(){
   }; }
   var rb=document.getElementById("dpRepairBtn");
   if(rb){ rb.onclick=function(){
-    if(!confirm("Spend 250 XP to relight your broken streak?")) return;
+    /* §5: repair is agency — backfilling the gap, not ransom for a loss. */
+    if(!confirm("Backfill yesterday for 250 XP? Your run holds — the gap never happened.")) return;
     var err=document.getElementById("dpStreakErr"); rb.disabled=true;
     post("streak","str_action","streak_repair",{callsign:id.callsign,device:id.device},function(j){
       rb.disabled=false;
-      if(j&&j.ok){ toast("Streak relit. Don't let it die twice."); comboHit(); load(); }
+      if(j&&j.ok){ toast("Yesterday is back on the ledger. The run holds."); comboHit(); load(); }
       else if(err) err.textContent=PF.errCopy(j,"Repair failed.");
     });
   }; }

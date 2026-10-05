@@ -280,10 +280,11 @@ function render(){
 }
 /* ================= NETWORK POLLS (2026-10-05, expansion #3) ================
    Backend contract (backend pod, parallel build):
-     GET  ?action=polls_list&status=open   -> {ok, polls:[{id,question,kind,bill_id,options:[{id,label}],closes_at,status,total_votes,created_by,has_voted}]}
-     GET  ?action=polls_get&poll_id=X&callsign=Y -> detail + results (counts hidden until voted/closed)
-     POST {type:'poll', p_action:'polls_create', callsign, question, options:[labels], kind, bill_id?, closes_at} -> {ok,id}
-     POST {type:'poll', p_action:'polls_vote', callsign, poll_id, option_id} -> {ok}
+     GET  ?action=polls_list&status=open   -> {ok, polls:[{id,question,kind,bill_id,options:[{id,label}],closes_at,status,total_votes,created_by,has_voted,results_hidden}]}
+     GET  ?action=polls_list&status=closed -> same, closed polls (results released)
+     GET  ?action=polls_get&poll_id=X&callsign=Y -> {ok, poll:{id,question,kind,bill_id,options:[{id,label,count|null}],closes_at,status,total_votes,created_by,has_voted,results_hidden}}
+     POST {type:'poll', po_action:'polls_create', callsign, question, options:[labels], kind, bill_id?, closes_at} -> {ok,id}
+     POST {type:'poll', po_action:'polls_vote', callsign, poll_id, option_id} -> {ok}
    RESULTS RULE (anti-bandwagoning): percentages hidden until the viewer has
    voted (client-side map + API has_voted) or the poll is closed. Enforced
    here and — per contract — on the backend (counts withheld in polls_get). */
@@ -323,9 +324,23 @@ function fetchPollDetail(pid){
   var id2=ident(); if(id2.callsign) pp.callsign=id2.callsign;
   api("polls_get",pp,function(j){
     POLLS_FETCHING[k]=false;
-    if(j&&j.ok){ POLLS_DETAIL[k]=j; try{ render(); }catch(e){} }
+    if(j&&j.ok){ POLLS_DETAIL[k]=pollDetailAdapt(j); try{ render(); }catch(e){} }
     /* failure: keep the "Reading results" note; the next re-render refires */
   });
+}
+/* 2026-10-05 (contract fix): backend polls_get nests the detail under
+   "poll" and ships per-option "count" (null until voted/closed), not
+   top-level "options" with "votes". Normalize to the detail object. */
+function pollDetailAdapt(j){
+  if(!j) return null;
+  var d=(j.poll&&typeof j.poll==="object")?j.poll:j;
+  return d;
+}
+/* pct from count/total_votes when the backend has released counts;
+   falls back to list-level options (no counts shown) when null. */
+function pollCountsOpen(opts){
+  for(var i=0;i<opts.length;i++){ if(opts[i].count==null) return false; }
+  return true;
 }
 function pollIsVoted(p){
   var m=pollVotedGet();
@@ -363,12 +378,17 @@ function pollCard(p,closed){
       h+='<div class="x-note">Reading results&hellip;</div>';
       fetchPollDetail(p.id);
     } else {
-      var opts=(det.options&&det.options.length)?det.options:(p.options||[]);
+      var opts=(det.options&&det.options.length)?det.options:[];
+      /* contract: per-option counts released via "count"; while null (voter
+         hasn't voted / poll open), fall back to list-level options. */
+      var countsOpen=opts.length>0&&pollCountsOpen(opts);
+      if(!countsOpen){ opts=(p.options&&p.options.length)?p.options:opts; }
       var tot=Number(det.total_votes!=null?det.total_votes:p.total_votes)||0;
       if(!opts.length){ h+='<div class="x-note">No results yet.</div>'; }
       for(var i=0;i<opts.length;i++){
-        var o=opts[i], v=Number(o.votes)||0;
-        var pct=(o.pct!=null)?Number(o.pct):(tot>0?Math.round(v*100/tot):0);
+        var o=opts[i];
+        var v=(o.count!=null)?(Number(o.count)||0):((o.votes!=null)?(Number(o.votes)||0):0);
+        var pct=(countsOpen&&tot>0)?Math.round(v*100/tot):((o.pct!=null)?Number(o.pct):0);
         h+='<div class="x-note" style="margin-top:6px">'+esc(o.label)+' \u2014 '+v+' ('+pct+'%)</div>'
           +'<div class="cp-barwrap"><div class="cp-bar" style="width:'+pct+'%"></div></div>';
       }
@@ -478,7 +498,7 @@ function bindPolls(){
     b.onclick=function(){
       var pid=b.getAttribute("data-poll-vote"), oid=b.getAttribute("data-poll-opt");
       b.disabled=true;
-      post("poll","p_action","polls_vote",{callsign:ident().callsign,poll_id:pid,option_id:oid},function(j){
+      post("poll","po_action","polls_vote",{callsign:ident().callsign,poll_id:pid,option_id:oid},function(j){
         if(j&&j.ok){
           var m=pollVotedGet(); m[String(pid)]=String(oid); pollVotedSet(m);
           delete POLLS_DETAIL[String(pid)];
@@ -506,7 +526,7 @@ function bindPolls(){
     cb.disabled=true;
     var params={callsign:ident().callsign,question:q,options:opts,kind:k,closes_at:Date.now()+dur*864e5};
     if(k==="pressure"&&bill) params.bill_id=bill;
-    post("poll","p_action","polls_create",params,function(j){
+    post("poll","po_action","polls_create",params,function(j){
       if(j&&j.ok){
         toast("Poll launched.");
         POLLS_CREATE_OPEN=false; POLLS_CREATE_OPTS=2;

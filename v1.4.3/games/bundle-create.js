@@ -2015,7 +2015,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
    Backend contract (parallel workstream — UNCONFIRMED until it lands):
      GET  ?action=studio_drafts_get  (auth, owner-only)
        -> {ok:true, drafts:[{id, plugin, template, title, data_snapshot, created, read}]}
-     POST {type:'studio', studio_action:'studio_drafts_dismiss', id, callsign, auth_secret}
+     POST {type:'studio', sd_action:'studio_drafts_dismiss', id, callsign, auth_secret}
        -> {ok:true}
    If the backend is down, unauthenticated, or the action is unknown, the
    tray shows the empty state gracefully — never a crash, never a spinner
@@ -2187,7 +2187,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
     if (!r || typeof r !== 'object') return null;
     var id = String(r.id == null ? '' : r.id);
     if (!id) return null;
-    var data = r.data_snapshot;
+    var data = (r.data !== undefined) ? r.data : r.data_snapshot;
     if (typeof data === 'string') { try { data = JSON.parse(data); } catch (e) { data = {}; } }
     if (!data || typeof data !== 'object') data = {};
     return {
@@ -2255,7 +2255,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
     if (idn.callsign) params.callsign = idn.callsign;
     var fail = function () { toast('Dismiss failed \u2014 try again.'); };
     try {
-      PF.postAction('studio', 'studio_action', 'studio_drafts_dismiss', params, function (j) {
+      PF.postAction('studio', 'sd_action', 'studio_drafts_dismiss', params, function (j) {
         if (j && j.ok) {
           /* Dismiss grants ZERO XP — just remove the row. */
           drafts = drafts.filter(function (x) { return x.id !== id; });

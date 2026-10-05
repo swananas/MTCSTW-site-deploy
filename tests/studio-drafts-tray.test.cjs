@@ -375,7 +375,7 @@ console.log('== studio-drafts-tray harness ==');
   btnByLabel(trayOf(env), 'DISMISS').click();
   ok('dismiss POSTs studio_drafts_dismiss', o.postCalls.length === 1 &&
     o.postCalls[0].action === 'studio_drafts_dismiss' &&
-    o.postCalls[0].type === 'studio' && o.postCalls[0].key === 'studio_action' &&
+    o.postCalls[0].type === 'studio' && o.postCalls[0].key === 'sd_action' &&
     o.postCalls[0].params.id === 'd2');
   ok('dismiss removes the row', byClass(trayOf(env), 'fft-row').length === 1);
   ok('dismiss toast fired', o.toasts.some(function (t) { return t.indexOf('dismissed') !== -1; }));

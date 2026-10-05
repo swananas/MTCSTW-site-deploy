@@ -24,8 +24,16 @@
       line; no xpGrant, no XP toasts, no XP copy.
    10. Bundle registration: inflation-tracker.js listed exactly once in
        build/bundle.js and present in the rebuilt bundle-economy.js.
-   11. Contract surface: report_price / price_board / price_trends actions,
-       price_cents / area_key / item_id fields, the three report statuses.
+   11. Contract surface (REAL backend contract, QC-verified 2026-10-05):
+       report_price / price_board / price_trends actions,
+       price_cents / area_key / item_id fields, POST body canonical
+       {type:'price', pr_action:'report_price'} (dispatch is body-only —
+       the old "action rides in the query string AND the body" contract was
+       false and the POST fell through to "unknown action"), response reader
+       checks j.duplicate FIRST and reads status off j.report (never top-level
+       j.status — the old read made every success render "unavailable"),
+       the three report statuses handled with friendly copy, trends reads
+       j.buckets as the series array (j.weeks is a NUMBER, never the array).
    12. Honesty labeling: "community-reported" on every card + series, the
        methodology footnote, "not official data" on the share poster.
    13. Privacy: no geolocation, no lat/lon, no street address collection;
@@ -191,19 +199,36 @@ if (fs.existsSync(bundlePath) && has(read(bundlePath), 'inflation-tracker'))
   ok('bundle: inflation-tracker present in rebuilt bundle-economy.js');
 else no('bundle', 'bundle-economy.js not rebuilt or missing inflation-tracker');
 
-console.log('== 11. contract surface ==');
-[['report_price', 'POST report_price'], ['price_board', 'GET price_board'],
+console.log('== 11. contract surface (real backend contract) ==');
+/* Action names + fields still present. */
+[['report_price', 'action name report_price'], ['price_board', 'GET price_board'],
  ['price_trends', 'GET price_trends'], ['price_cents', 'price_cents field'],
- ['area_key', 'area_key field'], ['item_id', 'item_id field'],
- ["'published'", 'published status'], ["'flagged'", 'flagged status'],
- ["'already_reported_today'", 'already_reported_today status']
+ ['area_key', 'area_key field'], ['item_id', 'item_id field']
 ].forEach(function (pair) {
   if (has(src, pair[0])) ok('contract: ' + pair[1]);
   else no('contract', pair[1] + ' missing');
 });
-if (has(src, 'You already reported') && has(src, 'flagged for review'))
-  ok('contract: friendly copy for already_reported_today + flagged');
-else no('contract', 'status response copy missing');
+/* The canonical POST-body contract: type:'price' + pr_action:'report_price'
+   (src/auth.js TYPE_KEY + src/index.js dispatch are body-only). */
+if (has(src, "type: 'price'") && has(src, "pr_action: 'report_price'"))
+  ok('contract: POST body carries canonical {type:\'price\', pr_action:\'report_price\'}');
+else no('contract', 'POST body missing type:\'price\'/pr_action:\'report_price\' (bare-body POST = "unknown action")');
+/* The reader must check j.duplicate FIRST, then read status off j.report —
+   and must never read top-level j.status (the old break). Friendly copy
+   for the re-report and flagged paths must stay. */
+if (has(src, 'j.duplicate') && has(src, 'rep.status'))
+  ok('contract: reader checks j.duplicate, reads status off j.report');
+else no('contract', 'response reader missing j.duplicate / j.report unwrap');
+if (!has(src, 'You already reported') || !has(src, 'flagged for review'))
+  no('contract', 'friendly copy for re-report / flagged paths missing');
+else ok('contract: friendly copy for re-report + flagged paths');
+if (/\bj\.status\b/.test(src))
+  no('contract', 'top-level j.status still read — every success would render "unavailable"');
+else ok('contract: no top-level j.status read (old false contract gone)');
+/* Trends: the series array rides on j.buckets; j.weeks is a number. */
+if (has(src, 'j.buckets') && !/Array\.isArray\(j\.weeks\)/.test(src))
+  ok('contract: trends reads j.buckets (j.weeks is a number, never the series)');
+else no('contract', 'trends does not read j.buckets / still reads j.weeks as the array');
 
 console.log('== 12. honesty labeling ==');
 if (count(src, 'community-reported') >= 5) ok('honesty: "community-reported" labels throughout (' + count(src, 'community-reported') + ')');

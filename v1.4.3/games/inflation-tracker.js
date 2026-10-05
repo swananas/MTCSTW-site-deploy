@@ -4,25 +4,43 @@
      #pf-inflation-checkin — price check-in (item picker + price + coarse area)
      #pf-inflation-board   — area price board (medians, deltas, area vs national)
      #pf-inflation-trends  — weekly trends + People's Index vs official CPI-U
-   Backend contract (wave-inflation-tracker, built in parallel — every endpoint
-   is defensive: a 404/network failure renders a fail-soft state, never a
-   broken widget):
-     POST ?action=report_price  {item_id, price_cents, area_key, is_approximate}
+   Backend contract (verified against the real be/inflation-tracker backend:
+   src/auth.js TYPE_KEY 'price'->pr_action, src/index.js
+   `d.type === 'price' && d.pr_action`, src/inflation.js response shapes).
+   Every endpoint is defensive: a 404/network failure renders a fail-soft
+   state, never a broken widget.
+     POST report_price  BODY {type:'price', pr_action:'report_price',
+       item_id, price_cents, area_key, is_approximate, callsign, device}
        (callsign-authed)
-       -> {ok, status:'published'|'flagged'|'already_reported_today',
-           week_count?} | {ok:false}
-     week_count (published reports this week for item+area) and is_approximate
-     (0/1, from the "not sure" toggle) are OPTIONAL — code treats both as
-     absent until the backend ships them: no week_count -> fallback receipt
-     copy; missing flag -> honest copy without it. Never fail on absence.
+       The POST rail dispatches on the JSON BODY ONLY — a bare ?action=
+       query param is NOT consulted by dispatch. The old doc claimed
+       "action rides in the query string AND the body"; that was false and
+       the bare-body POST resolved to {type:'bare'} -> "unknown action".
+       -> {ok:true, duplicate:false,
+           report:{id, item_id, price_cents, area_key, reported_at,
+             status:'published'|'flagged', is_approximate},
+           week_count, flagged} |
+          {ok:true, duplicate:true, note:'already reported today', report,
+           week_count}  (same-day re-report — NOT a status string) |
+          {ok:false, error}
+       status lives on j.report; the re-report flag is top-level j.duplicate.
+       week_count = published reports this Chicago week for item+area.
+       flagged = (status === 'flagged'). is_approximate (0/1, from the
+       "not sure" toggle) is always sent and honored.
      GET  ?action=price_board   {area_key, item_id?}
        -> per-item {median_cents, trimmed_mean_cents, sample_count,
           week_ago_median_cents, delta_pct, enough_data} or {enough_data:false}
      GET  ?action=price_trends  {item_id, area_key, weeks}
-       -> weeks [{week_start, median_cents|null, sample_count}],
-          peoples_index [{week_start, value}] (rebased to the first week
-          of the requested window — the index level is relative, not
-          absolute). price_trends does NOT return the official baseline.
+       -> {weeks: <NUMBER of weeks requested>,
+           buckets: [{week_start, week_end, median_cents|null, sample_count,
+             enough_data}],
+           peoples_index: [{week_start, value, ...}]}
+          buckets is the series array — weeks is a NUMBER, never the series.
+          (The old doc claimed the array rode on j.weeks; that was false and
+          the trends widget always rendered "No trend data yet".)
+          peoples_index is rebased to the first week of the requested
+          window — the index level is relative, not absolute.
+          price_trends does NOT return the official baseline.
      GET  ?action=cpi_compare
        -> {official: {cpi_u_all_items: {series, period, value, unit,
           source_url, source_date} | null, cpi_food_at_home: ...} | null,
@@ -188,15 +206,18 @@
         .catch(function () { if (timer) clearTimeout(timer); done(null); });
     } catch (e) { if (timer) clearTimeout(timer); done(null); }
   }
-  /* POST report_price: action rides in the query string AND the body, so the
-     parallel-built backend finds it whichever way it dispatches. */
+  /* POST report_price: the backend POST rail dispatches on the JSON BODY
+     ONLY (src/auth.js TYPE_KEY 'price'->pr_action; src/index.js
+     `d.type === 'price' && d.pr_action`) — a bare ?action= query param is
+     ignored by dispatch. The report rides type:'price' + pr_action, the
+     canonical contract. */
   function postReport(params, cb) {
     var done = function (j) { try { cb(j); } catch (e) {} };
     if (!BACKEND) { done(null); return; }
     var id = ident(), sec = authSecret();
-    var body = { action: 'report_price', item_id: params.item_id, price_cents: params.price_cents, area_key: params.area_key };
+    var body = { type: 'price', pr_action: 'report_price', item_id: params.item_id, price_cents: params.price_cents, area_key: params.area_key };
     /* Graceful uncertainty (anti-gaming note #6): always a clear 0/1 —
-       the parallel-built backend may not read it yet, code is defensive. */
+       the backend reads and stores it on the report. */
     body.is_approximate = params.is_approximate ? 1 : 0;
     if (id.callsign) body.callsign = id.callsign;
     if (id.device) body.device = id.device;
@@ -355,8 +376,18 @@
           return;
         }
         saveArea(area);
-        var status = j.status;
-        if (status === 'published') {
+        /* Real backend response shape: {ok, duplicate, report:{...status},
+           week_count, flagged}. A same-day re-report comes back as
+           duplicate:true — NOT a status string — so the reader checks
+           j.duplicate FIRST, then reads the status off j.report. The old
+           reader looked for a top-level status field on the response, which
+           is never set, so every success fell through to the "unavailable"
+           copy. */
+        var rep = (j && j.report) || {};
+        var status = rep.status;
+        if (j.duplicate === true) {
+          msg('You already reported ' + esc(item.name.toLowerCase()) + ' today. Come back tomorrow.');
+        } else if (status === 'published') {
           saveLastReport(itemId, cents);
           updateRefLine(item);
           var board = document.getElementById('pf-inflation-board');
@@ -372,8 +403,6 @@
           };
         } else if (status === 'flagged') {
           msg('Thanks — flagged for review. A human takes a look before it counts. Nothing alarming; outliers get eyeballs.');
-        } else if (status === 'already_reported_today') {
-          msg('You already reported ' + esc(item.name.toLowerCase()) + ' today. Come back tomorrow.');
         } else {
           msg('Price check-in unavailable right now. Try again later.');
         }
@@ -696,7 +725,10 @@
           return;
         }
         var item = itemById(itemId);
-        var buckets = Array.isArray(j.weeks) ? j.weeks : [];
+        /* Real backend shape: weeks is a NUMBER (the window length); the
+           series array rides on buckets. Reading j.weeks as the array —
+           the old doc's shape — always rendered "No trend data yet." */
+        var buckets = Array.isArray(j.buckets) ? j.buckets : [];
         var n = 0;
         buckets.forEach(function (b) { n += Number(b.sample_count) || 0; });
         var h = '<h3 style="margin:4px 0 8px;font-size:16px;">' + esc(item.name) + ' / ' + esc(item.unit) +

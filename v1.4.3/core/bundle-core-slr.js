@@ -1630,11 +1630,33 @@ window.PF.boostReceipt = function(){
     } catch (e) { return null; }
   }
 
+  /* Roster-authoritative member list (FIX 2026-10-05: the rendered member
+     count must equal the roster grid, never the stat-row count — a partial
+     live stats table once repainted the header as 41 while the grid showed
+     all 62). */
+  function rosterMembers() {
+    var ms = [];
+    try {
+      if (PF.slrAll) ms = PF.slrAll() || [];
+      if (!ms.length && window.PF_SLR_DB_SNAPSHOT && window.PF_SLR_DB_SNAPSHOT.members)
+        ms = window.PF_SLR_DB_SNAPSHOT.members;
+    } catch (e) { ms = []; }
+    return ms;
+  }
+
   function getAll() {
     var out = {};
     try {
-      var map = CACHE || snapshotMap();
-      for (var k in map) out[k] = { followers: map[k].followers, updated_at: map[k].updated_at };
+      var snap = snapshotMap();
+      var ms = rosterMembers();
+      for (var i = 0; i < ms.length; i++) {
+        var m = ms[i];
+        if (!m || !m.slug) continue;
+        /* Live value wins; snapshot fills gaps so a partial live table can
+           never shrink the roster or its totals. */
+        var rec = (CACHE && CACHE[m.slug]) || snap[m.slug] || null;
+        if (rec) out[m.slug] = { followers: rec.followers, updated_at: rec.updated_at };
+      }
     } catch (e) {}
     return out;
   }
@@ -1646,9 +1668,9 @@ window.PF.boostReceipt = function(){
   }
 
   function count() {
-    var n = 0, all = getAll();
-    for (var k in all) n++;
-    return n;
+    /* Member count is roster-authoritative: the grid renders rosterMembers(),
+       so the painted header must match it exactly. */
+    return rosterMembers().length;
   }
 
   /* Progressive enhancement: pre-live markup carries snapshot fallback
@@ -4407,6 +4429,7 @@ if(document.readyState==='loading'){
     }catch(e2){}
   }
   function boot() {
+    stripStaticFallback();
     injectLink();
     try{ storeCard(); }catch(e){}
     var tries = 0;
@@ -4442,6 +4465,21 @@ if(document.readyState==='loading'){
   }
   function done() {
     return !!document.getElementById('pf-delete-data-link');
+  }
+  /* 2026-10-05: strip the static "DELETE MY DATA" fallback anchor that the
+     footer loader carried briefly (it linked /privacy and duplicated the
+     functional injected link). Heals already-pasted footers on boot so no
+     Squarespace re-paste is needed. Never touches our own injected link. */
+  function stripStaticFallback() {
+    try {
+      var as = document.querySelectorAll('a[href="/privacy"]');
+      for (var i = 0; i < as.length; i++) {
+        var t = ((as[i].textContent || '').trim() || '').toUpperCase();
+        if (t === 'DELETE MY DATA' && as[i].id !== 'pf-delete-data-link' && as[i].parentNode) {
+          as[i].parentNode.removeChild(as[i]);
+        }
+      }
+    } catch (e) {}
   }
   /* Last resort: fixed bottom-corner control, same look/behavior. */
   function placeFixed() {

@@ -1451,6 +1451,7 @@ window.PFCallsign = function(){
     }catch(e2){}
   }
   function boot() {
+    stripStaticFallback();
     injectLink();
     try{ storeCard(); }catch(e){}
     var tries = 0;
@@ -1486,6 +1487,21 @@ window.PFCallsign = function(){
   }
   function done() {
     return !!document.getElementById('pf-delete-data-link');
+  }
+  /* 2026-10-05: strip the static "DELETE MY DATA" fallback anchor that the
+     footer loader carried briefly (it linked /privacy and duplicated the
+     functional injected link). Heals already-pasted footers on boot so no
+     Squarespace re-paste is needed. Never touches our own injected link. */
+  function stripStaticFallback() {
+    try {
+      var as = document.querySelectorAll('a[href="/privacy"]');
+      for (var i = 0; i < as.length; i++) {
+        var t = ((as[i].textContent || '').trim() || '').toUpperCase();
+        if (t === 'DELETE MY DATA' && as[i].id !== 'pf-delete-data-link' && as[i].parentNode) {
+          as[i].parentNode.removeChild(as[i]);
+        }
+      }
+    } catch (e) {}
   }
   /* Last resort: fixed bottom-corner control, same look/behavior. */
   function placeFixed() {

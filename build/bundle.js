@@ -186,7 +186,15 @@ var SECTIONS = {
     'review-pool.js'
   ],
   'bundle-create': [
-    /* /create (+ Creator HQ) — creator tooling. */
+    /* /create (+ Creator HQ) — creator tooling.
+       WORKSHOP SHELL (2026-10-05): core/workshop.js is FIRST so its hidden
+       dock hosts (#pf-ammo, #pf-creator-assist, #pf-forged-tray) exist before
+       the self-mount modules' IIFEs run — otherwise ammo fires its error
+       banner and creator-assist's S7 appends straight into #pf-create.
+       pages/workshop-create.js is LAST: it registers every tool adapter with
+       the shell and runs the initial route. Both ship here, NOT in
+       bundle-create-h (the slim /create bundle stays poster-forge + feed). */
+    '../core/workshop.js',
     'academy.js',
     /* Wave 6A R1 (2026-10-04): graduation -> daily-loop induction card.
        Hooks academy.js's pf-lesson-complete event; mounts on /request-access
@@ -200,7 +208,11 @@ var SECTIONS = {
     'ammo.js',
     'armory.js',
     'dashboard.js',
-    'earnings.js'
+    'earnings.js',
+    /* WORKSHOP SHELL adapters (2026-10-05): last in the bundle — registers
+       all nine /create tool adapters with PFWorkshop and runs the initial
+       #pf-tool= / ?for= route. */
+    '../pages/workshop-create.js'
   ],
   'bundle-bank': [
     /* /bank — the People's Bank. */

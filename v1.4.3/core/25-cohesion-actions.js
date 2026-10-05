@@ -362,13 +362,13 @@ var peakPrompted=false; /* per session (page load) */
 window.PFPeakPrompt={
   maybePrompt:function(moment){
     if(peakPrompted) return;
+    peakPrompted=true; /* session guard, set synchronously at entry */
     var cs=callsign();
     if(!cs) return;
     /* never on losses: this helper is only invoked from win paths. */
     askCooldowns(function(supp){
       if(!supp||supp.recruit) return; /* fail closed or cooling down */
       if(lsGet('pf_peak_shown_recruit')===chiDay(0)) return; /* max 1/day */
-      peakPrompted=true;
       lsSet('pf_peak_shown_recruit',chiDay(0));
       setTimeout(function(){ window.PFPeakPrompt.fire(moment); },3000); /* >=3s after the win settles */
     });

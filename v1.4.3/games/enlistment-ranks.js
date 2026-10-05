@@ -46,6 +46,7 @@
 #pf-ranks .u-walltitle{font-size:16px;letter-spacing:3px;color:#c1121f;text-transform:uppercase;text-align:center;margin:16px 0 8px}
 #pf-ranks .u-wall{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 #pf-ranks .u-wname{background:#1a1a1a;border:2px solid #ff5a00;color:#f5ead6;font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;padding:6px 12px;text-transform:uppercase}
+#pf-ranks .u-rstar{color:#e8b10c;font-size:14px;vertical-align:-1px}
 #pf-ranks .u-wempty{font-family:Arial,sans-serif;font-size:12px;color:#777;text-align:center;width:100%}
 /* ---------- PRESTIGE ---------- */
 #pf-ranks .p-wrap{margin-top:22px;border-top:2px solid #ff5a00;padding-top:18px;text-align:center}
@@ -325,7 +326,24 @@ function renderWall(serverWall){
   if(serverWall&&serverWall.length){ names=serverWall.map(function(w){return esc(String(w.callsign).toUpperCase());}); }
   else { names=names.map(function(w){return esc(String(w).toUpperCase());}); }
   if(!names.length){ el.innerHTML='<div class="u-wempty">No architects yet. The wall waits.</div>'; return; }
-  el.innerHTML=names.slice(-24).map(function(n){ return '<span class="u-wname">'+n+'</span>'; }).join("");
+  el.innerHTML=names.slice(-24).map(function(n){
+    var wk=WALL_BADGES[String(n).toLowerCase()];
+    return '<span class="u-wname">'+n+(wk?' <span class="u-rstar" title="RISING STAR — week of '+esc(wk)+'">&#9733;</span>':'')+'</span>';
+  }).join("");
+}
+/* A6 RISING STAR badges (2026-10-04): weekly top-10 climbers get a star on
+   their Vanguard Wall entry. climber_badges is a public read
+   ({callsign: week}); cached in WALL_BADGES so both wall render paths
+   (local + server) annotate. Fail-quiet: no badges, no stars. */
+var WALL_BADGES={};
+function wallBadges(cb){
+  if(!BACKEND_URL){ cb({}); return; }
+  var fn="pfBadgeCb"+Math.floor(Math.random()*1e9);
+  window[fn]=function(j){ try{delete window[fn];}catch(e){} try{s.parentNode.removeChild(s);}catch(e2){} cb((j&&j.ok&&j.badges)||{}); };
+  var s=document.createElement("script");
+  s.onerror=function(){ cb({}); };
+  s.src=BACKEND_URL+"?action=climber_badges&callback="+fn;
+  document.head.appendChild(s);
 }
 function renderUnlocks(){
   var s=load(), idx=TIERS.indexOf(tierOf(s.xp));
@@ -665,6 +683,7 @@ document.addEventListener("pf-order-checkin",function(){ render(); });
 loadPrestige();
 render();
 syncFromServer();
+wallBadges(function(b){ WALL_BADGES=b||{}; render(); });
 wallFromServer(function(j){ if(j&&j.ok&&j.wall) renderWall(j.wall); });
 })();
 </script>

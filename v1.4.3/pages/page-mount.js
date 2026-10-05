@@ -109,7 +109,9 @@
     'pf-warreport': {
       title: 'WAR REPORT', sub: "The week in the war. Numbers, winners, what's next.",
       order: [
-        ['war-report', 'pf-ov-warreport']
+        ['war-report', 'pf-ov-warreport'],
+        /* A6 (2026-10-04): Biggest Climbers board under the report. */
+        ['climbers', 'pf-ov-climbers']
       ]
     }
   };

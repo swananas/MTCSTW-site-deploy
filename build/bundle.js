@@ -144,7 +144,9 @@ var SECTIONS = {
   ],
   'bundle-warreport': [
     /* /war-report — the weekly digest. */
-    'war-report.js'
+    'war-report.js',
+    /* A6 (2026-10-04): Biggest Climbers board (pf-ov-climbers). */
+    'climbers-board.js'
   ],
   'bundle-roster': [
     /* SLR roster/catalog pages — the live Efficiency Index painter. */

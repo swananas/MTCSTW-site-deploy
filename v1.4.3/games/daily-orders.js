@@ -757,6 +757,17 @@ function renderReset(){
   el.textContent="NEW ORDERS IN "+h+"H "+m+"M — streaks roll at midnight";
 }
 
+function wrMondayLink(){
+  /* QW-12: one-line War Report link. Monday (chiNow) gets "is live" copy,
+     every other day gets the evergreen catch-up line. No interpolation,
+     so esc() not needed. */
+  var isMon=false;
+  try{ isMon=PF.chiNow().getDay()===1; }catch(e){}
+  return '<span style="margin-left:12px;color:#b8ab8e;font-size:12px">'
+    +'<a href="/#pf-warreport" style="color:#c1121f;font-weight:700;text-decoration:none">'
+    +(isMon?"MONDAY'S WAR REPORT IS LIVE &#8594;":"CATCH UP: THE WAR REPORT &#8594;")
+    +'</a></span>';
+}
 function render(){
   var set=missionSet(), d=dayRec(), rec=d.rec, t=today();
   document.getElementById("oDate").textContent=new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
@@ -924,7 +935,11 @@ function render(){
   renderPatrons();
   paintBoostRate(); /* lever D4: static note ratio follows the server rate */
   renderRaid();
-  document.getElementById("oStreak").innerHTML="Current streak: <b>"+(d.o.streak||0)+"</b> day"+((d.o.streak||0)===1?"":"s")+((d.o.shields||0)>0?" &nbsp;\uD83D\uDEE1\uFE0F x"+d.o.shields:"");
+  document.getElementById("oStreak").innerHTML="Current streak: <b>"+(d.o.streak||0)+"</b> day"+((d.o.streak||0)===1?"":"s")+((d.o.shields||0)>0?" &nbsp;\uD83D\uDEE1\uFE0F x"+d.o.shields:"")
+    /* QW-12 (2026-10-05): Monday-issue War Report link closes the weekly loop.
+       Day logic lives here (chiNow Monday = report day); anchor verified against
+       war-report.js mount #pf-warreport. One line, no new section. */
+    +wrMondayLink();
   /* R26 (2026-10-04): the ONE shared inventory chip mounts on the streak
      row — extends the shield display above, no second chip system. */
   try{

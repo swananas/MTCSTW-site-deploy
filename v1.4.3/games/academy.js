@@ -124,12 +124,17 @@
     for(i=0;i<lessons.length;i++){
       L=lessons[i];
       var isDone=!!L.done, xp=Number(L.xp_reward)||0;
-      h+='<div class="x-pane">'
+      h+='<div class="x-pane" id="ac-pane-'+esc(L.id)+'">'
         +'<div class="fd-title">'+(i+1)+'. '+esc(L.title)+(isDone?' <span style="color:#7CFC00">&#10003;</span>':"")+'</div>'
         +'<div class="x-note">'+esc(L.content)+'</div>'
         +'<div class="x-note">+'+xp+' XP</div>';
       if(id.callsign&&!isDone){
         h+='<button class="c-btn ac-done" data-lid="'+esc(L.id)+'" data-xp="'+xp+'">MARK COMPLETE</button>';
+        /* QW-5a (2026-10-05): NEXT LESSON → scrolls to the next lesson pane —
+           same section, zero new logic, zero XP, no new endpoints. */
+        if(i<lessons.length-1){
+          h+=' <button class="c-btn ghost ac-next" data-next="'+esc(lessons[i+1].id)+'">NEXT LESSON &rarr;</button>';
+        }
       }
       h+='</div>';
     }
@@ -164,6 +169,16 @@
     }
     var rb2=document.getElementById("acRetry");
     if(rb2) rb2.onclick=function(){ el.innerHTML='<div class="c-load">Loading the academy&hellip;</div>'; load(el); };
+    /* QW-5a wiring: NEXT LESSON buttons scroll to the next lesson pane. */
+    var nx=el.querySelectorAll("button.ac-next"), n2;
+    for(n2=0;n2<nx.length;n2++){
+      (function(btn){
+        btn.onclick=function(){
+          var t=document.getElementById("ac-pane-"+btn.getAttribute("data-next"));
+          if(t){ try{ t.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){ try{ t.scrollIntoView(); }catch(e2){} } }
+        };
+      })(nx[n2]);
+    }
   }
 
   /* Idempotent mount into any container element. Exposed for the homepage

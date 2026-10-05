@@ -51,7 +51,10 @@
     '.pf-md-slot{border:1px dashed #3a3a3a;border-radius:8px;padding:16px 14px;text-align:center;background:#0d0d0d}',
     '.pf-md-slot h4{font-weight:900;font-size:15px;letter-spacing:2px;margin:0 0 8px;color:#f5ead6}',
     '.pf-md-slot p{font-size:13px;color:#c9bfa8;margin:0 0 8px;line-height:1.5}',
-    '.pf-md-slot .pf-md-tag{display:inline-block;font-weight:700;font-size:11px;letter-spacing:2px;color:#0d0d0d;background:#e8b923;border-radius:3px;padding:2px 8px}'
+    '.pf-md-slot .pf-md-tag{display:inline-block;font-weight:700;font-size:11px;letter-spacing:2px;color:#0d0d0d;background:#e8b923;border-radius:3px;padding:2px 8px}',
+    '.pf-md-links{margin-top:10px}',
+    '.pf-md-links a{display:block;font-weight:800;font-size:11px;letter-spacing:2px;color:#e8b923;text-decoration:none;margin:8px 0}',
+    '.pf-md-links a:hover{text-decoration:underline}'
   ].join('\n');
 
   function esc(s) {
@@ -84,7 +87,11 @@
         return '<div class="pf-md-slot" data-money-slot="' + esc(s.id) + '">' +
           '<h4>' + esc(s.title) + '</h4>' +
           '<p>' + esc(s.blurb) + '</p>' +
-          '<span class="pf-md-tag">AWAITING PUBLIC DATA</span></div>';
+          '<span class="pf-md-tag">AWAITING PUBLIC DATA</span>' +
+          '<div class="pf-md-links">' +
+          '<a href="/political-hq#pf-util-notify-prefs">NOTIFY ME WHEN THIS GOES LIVE</a>' +
+          '<a href="/political-hq#phq-money">SEE WHAT\'S LIVE &rarr;</a>' +
+          '</div></div>';
       }).join('') +
       '</div></div>';
     container.innerHTML = html;

@@ -222,11 +222,18 @@
       ctas.forEach(function (d) { mountSimple('cta', d); });
       fronts.forEach(function (d) { mountSimple('fronts', d); });
       river.forEach(function (d) { mountSimple('river', d); });
-      /* No tiles registered yet (branches 2-5 not merged) → run the recruit
-         check on the next tick so recruit mode renders by default. */
+      /* No tiles registered yet (branches 2-5 not merged) → on the next tick,
+         hide the deck entirely when nothing registered at all; otherwise run
+         the recruit check (recruit mode stays for tiles registered but <3
+         with data). */
       if (pendingTiles === 0 && !recruitChecked) {
         setTimeout(function () {
-          if (!recruitChecked && pendingTiles === 0) { recruitChecked = true; maybeRecruitMode(); }
+          if (!recruitChecked && pendingTiles === 0) {
+            recruitChecked = true;
+            /* QW-15: no tiles registered → hide the deck until S-12 lands. */
+            if (tiles.length === 0) { try { root.style.display = 'none'; } catch (e) {} return; }
+            maybeRecruitMode();
+          }
         }, 0);
       }
     } catch (e) { NS.log('boot', e); }

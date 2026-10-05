@@ -88,6 +88,39 @@
           return { text: '\uD83D\uDD25 ' + (cs || 'A cell') + ' rallied the cell', tag: '' };
         case 'ambush_grab':
           return { text: '\uD83D\uDCE6 ' + (cs || 'Someone') + ' grabbed the ambush drop', tag: '' };
+        /* 6A-R4/R7: narration-bus types — the headline rides ev.name
+           (server-sanitized), rendered verbatim so economic wins and civic
+           acts narrate exactly as the backend wrote them. */
+        case 'econ.auction_won':
+          return { text: '\uD83D\uDD28 ' + name, tag: '' };
+        case 'econ.stake_claimed':
+          return { text: '\uD83D\uDCB0 ' + name, tag: '' };
+        case 'econ.venture_resolved':
+          return { text: '\uD83C\uDFED ' + name, tag: '' };
+        case 'econ.dividend_paid':
+          return { text: '\uD83E\uDD1D ' + name, tag: '' };
+        case 'econ.contract_claimed':
+          return { text: '\uD83D\uDCDC ' + name, tag: '' };
+        case 'econ.savings_milestone':
+          return { text: '\uD83C\uDFE6 ' + name, tag: '' };
+        case 'econ.bond_redeemed':
+          return { text: '\uD83C\uDF96\uFE0F ' + name, tag: '' };
+        case 'econ.cell_challenge_won':
+          return { text: '\uD83C\uDFC6 ' + name, tag: '' };
+        case 'civic.intel_confirmed':
+          return { text: '\uD83D\uDCE1 ' + name, tag: '', hot: true };
+        case 'civic.petition_milestone':
+          return { text: '\u270D\uFE0F ' + name, tag: '' };
+        case 'civic.proposal_closed':
+          return { text: '\uD83D\uDDF3\uFE0F ' + name, tag: '' };
+        case 'civic.pledge_made':
+          return { text: '\u2705 ' + name, tag: '' };
+        case 'civic.index_mover':
+          return { text: '\uD83D\uDCC8 ' + name, tag: '' };
+        /* 6A-R9: cell treasury -> cause sponsorship. Headline rides ev.name
+           (server-sanitized via narrate.js), rendered verbatim. */
+        case 'cell.sponsored':
+          return { text: '\uD83C\uDFDB\uFE0F ' + name, tag: '' };
         default: {
           var label = String(ev.type || '').replace(/_/g, ' ');
           return { text: '\u2022 ' + (cs ? cs + ' — ' : '') + esc(label), tag: '' };

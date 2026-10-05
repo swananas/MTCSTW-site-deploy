@@ -56,6 +56,49 @@ function post(type,actionKey,action,params,cb){
 }
 var STATES=[["AL","Alabama"],["AK","Alaska"],["AZ","Arizona"],["AR","Arkansas"],["CA","California"],["CO","Colorado"],["CT","Connecticut"],["DE","Delaware"],["FL","Florida"],["GA","Georgia"],["HI","Hawaii"],["ID","Idaho"],["IL","Illinois"],["IN","Indiana"],["IA","Iowa"],["KS","Kansas"],["KY","Kentucky"],["LA","Louisiana"],["ME","Maine"],["MD","Maryland"],["MA","Massachusetts"],["MI","Michigan"],["MN","Minnesota"],["MS","Mississippi"],["MO","Missouri"],["MT","Montana"],["NE","Nebraska"],["NV","Nevada"],["NH","New Hampshire"],["NJ","New Jersey"],["NM","New Mexico"],["NY","New York"],["NC","North Carolina"],["ND","North Dakota"],["OH","Ohio"],["OK","Oklahoma"],["OR","Oregon"],["PA","Pennsylvania"],["RI","Rhode Island"],["SC","South Carolina"],["SD","South Dakota"],["TN","Tennessee"],["TX","Texas"],["UT","Utah"],["VT","Vermont"],["VA","Virginia"],["WA","Washington"],["WV","West Virginia"],["WI","Wisconsin"],["WY","Wyoming"]];
 var P=null, REPS=null, SCRIPTS=null, VOTER=null, CONTACT=null, CREATE_OPEN=false, VSTATS=null;
+/* 6A-R7: voter-pledge poster state — set on a successful pledge. */
+var PLEDGE_DONE=false, PLEDGE_STATE_NAME='';
+function pledgeStateName(code){
+  for(var i=0;i<STATES.length;i++) if(STATES[i][0]===code) return STATES[i][1];
+  return code||'';
+}
+/* 6A-R7: pledge-poster custom painter (1080x1350, PF brand, JOIN THE FIGHT.
+   CTA standard). Stamps the pledged state; the callsign stamp rides via
+   PFShare.shareImage -> stampCallsign (idempotent). */
+function pledgePoster(done){
+  function fail(){ try{ done(null); }catch(e){} }
+  try{
+    var cv=document.createElement('canvas'); cv.width=1080; cv.height=1350;
+    var x=cv.getContext('2d'); if(!x){ fail(); return; }
+    var st=String(PLEDGE_STATE_NAME||'').toUpperCase().slice(0,24);
+    x.fillStyle='#0d0d0d'; x.fillRect(0,0,1080,1350);
+    x.strokeStyle='#c1121f'; x.lineWidth=18; x.strokeRect(16,16,1048,1318);
+    x.strokeStyle='#f5ead6'; x.lineWidth=3; x.strokeRect(52,52,976,1246);
+    x.textAlign='center';
+    x.fillStyle='#f5ead6'; x.font='700 34px Arial,sans-serif';
+    x.fillText('\u2605 THE PROPAGANDA FACTORY \u2605',540,160);
+    x.fillStyle='#c1121f'; x.font='900 96px "Arial Black",Arial,sans-serif';
+    x.fillText('I PLEDGED',540,340); x.fillText('TO VOTE',540,450);
+    if(st){
+      x.fillStyle='#f5ead6'; x.font='900 64px "Arial Black",Arial,sans-serif';
+      x.fillText(st,540,590);
+    }
+    x.fillStyle='#c9bfa8'; x.font='400 38px Arial,sans-serif';
+    x.fillText('One ballot. One soldier. Zero excuses.',540,700);
+    x.fillText('Pledge yours. Register. Show up.',540,756);
+    x.fillStyle='#c1121f'; x.font='900 46px "Arial Black",Arial,sans-serif';
+    x.fillText('MTCSTW.COM',540,1182);
+    x.fillText('JOIN THE FIGHT.',540,1242);
+    done(cv);
+  }catch(e){ fail(); }
+}
+try{
+  if(window.PFShare&&PFShare.setPoster) PFShare.setPoster('voter-pledge',pledgePoster);
+  else document.addEventListener('pf-share-ready',function h(){
+    document.removeEventListener('pf-share-ready',h);
+    try{ if(window.PFShare&&PFShare.setPoster) PFShare.setPoster('voter-pledge',pledgePoster); }catch(e){}
+  });
+}catch(e){}
 function load(){
   var done=false, n=0;
   function fin(){ if(done)return; done=true; render(); }
@@ -153,6 +196,8 @@ function render(){
     h+='<div class="x-note">Official registration for '+esc(VOTER.state)+':</div>'
       +'<a class="c-btn" href="'+esc(VOTER.url)+'" target="_blank" rel="noopener">REGISTER ON VOTE.GOV</a> '
       +'<button class="c-btn" id="cvPledge">PLEDGE (+50 XP)</button>'
+      /* 6A-R7: voter pledge -> PFShare pledge-poster (?ref= rides the link). */
+      +(PLEDGE_DONE?'<button class="c-btn" id="cvPledgeShare">SHARE YOUR PLEDGE \u2192</button>':'')
       +'<div class="x-note">'+esc(VOTER.note||"")+'</div>';
   } else {
     h+='<div class="x-note">Pick your state to get the official registration link.</div>';
@@ -270,11 +315,29 @@ function bind(){
   var pl=document.getElementById("cvPledge");
   if(pl) pl.onclick=function(){
     pl.disabled=true;
-    post("rep","r_action","voter_pledge",{callsign:ident().callsign,state:gv("cvVoterState")},function(j){
-      if(j&&j.ok){ toast(j.dup?"Already pledged.":"Pledged. +50 XP."); }
+    var stCode=gv("cvVoterState");
+    post("rep","r_action","voter_pledge",{callsign:ident().callsign,state:stCode},function(j){
+      if(j&&j.ok){
+        /* 6A-R7: pledge landed -> arm the share-poster button. */
+        PLEDGE_DONE=true; PLEDGE_STATE_NAME=pledgeStateName(stCode);
+        toast(j.dup?"Already pledged.":"Pledged. +50 XP.");
+        try{ render(); }catch(e){}
+      }
       else { toast(PF.errCopy(j,"Pledge failed.")); }
       pl.disabled=false;
     });
+  };
+  /* 6A-R7: pledge-poster share — ?ref= rides PF.shareUrl on the link. */
+  var pls=document.getElementById("cvPledgeShare");
+  if(pls) pls.onclick=function(){
+    try{
+      if(!(window.PFShare&&PFShare.shareImage)){ toast("Share unavailable."); return; }
+      pledgePoster(function(cv){
+        if(!cv){ toast("Poster failed \u2014 try again."); return; }
+        PFShare.shareImage(cv,'pfn-voter-pledge.png','I PLEDGED TO VOTE','voter-pledge',
+          { link:'https://www.mtcstw.com/political-hq' });
+      });
+    }catch(e){ toast("Share failed."); }
   };
   /* contact prefs */
   var cs2=document.getElementById("cvContactSave");

@@ -156,6 +156,88 @@
 
   var state = { ready: false, map: {}, week: weekKey(chiNow()), queue: [] };
 
+  /* 6A-R7: BIGGEST CLIMBERS — weekly recompute deltas.
+     When a FRESH ISO-week recompute lands (no cache existed for this week),
+     diff against the previous week's cached index and surface the top
+     climbers. The strip renders into #pf-climbers-strip (roster header
+     placeholder) from a data-pf-climbers attribute, and the movers are
+     POSTed once per week to the index_movers narration rail (zero XP). */
+  function prevWeekKey() {
+    var d = chiNow(); d.setDate(d.getDate() - 7);
+    return weekKey(d);
+  }
+  function paintClimbers() {
+    var el = null;
+    try { el = document.getElementById('pf-climbers-strip'); } catch (e) {}
+    if (!el) return;
+    var climbers = [];
+    try {
+      var stored = JSON.parse(localStorage.getItem('pf-climbers-' + state.week) || 'null');
+      if (stored && stored.climbers) climbers = stored.climbers;
+    } catch (e) {}
+    try { el.setAttribute('data-pf-climbers', JSON.stringify(climbers)); } catch (e2) {}
+    if (!climbers.length) { el.innerHTML = ''; el.style.display = 'none'; return; }
+    var h = '<div style="display:flex;flex-wrap:wrap;gap:0.6rem;justify-content:center;align-items:center;'
+      + 'padding:0.9rem 1rem;margin:0 auto 1.4rem;max-width:900px;background:#141414;'
+      + 'border:2px solid #c1121f;color:#f5ead6;font-family:\'Helvetica Neue\',Arial,sans-serif;">'
+      + '<span style="font-size:0.75rem;letter-spacing:0.25em;color:#c1121f;font-weight:800;">'
+      + '\uD83D\uDD25 BIGGEST CLIMBERS \u2014 EFFICIENCY INDEX</span>';
+    for (var i = 0; i < climbers.length; i++) {
+      var c = climbers[i] || {};
+      var nm = String(c.name || c.slug || '').slice(0, 40);
+      var dl = Number(c.delta) || 0, sc = Number(c.score) || 0;
+      var href = String(c.path || ('/#pf-vote?for=' + encodeURIComponent(c.slug || '')));
+      h += '<a href="' + href.replace(/"/g, '&quot;') + '" style="text-decoration:none;color:#f5ead6;'
+        + 'border:1px solid #c1121f;padding:0.4rem 0.8rem;font-size:0.85rem;font-weight:700;">'
+        + nm.replace(/&/g, '&amp;').replace(/</g, '&lt;') + ' <span style="color:#c1121f;">+' 
+        + dl.toFixed(1) + '</span> <span style="color:#b8ab8e;font-weight:400;">' + sc.toFixed(1) + '</span></a>';
+    }
+    h += '</div>';
+    el.innerHTML = h;
+    el.style.display = '';
+  }
+  function postMovers(movers) {
+    if (!movers || !movers.length) return;
+    var flag = 'pf-movers-posted-' + state.week;
+    try { if (localStorage.getItem(flag)) return; } catch (e) {}
+    var cs = '', dev = '';
+    try { cs = window.PFCallsign ? window.PFCallsign() : ''; } catch (e2) {}
+    try { dev = window.PFDeviceId ? window.PFDeviceId() : ''; } catch (e3) {}
+    if (!cs) return; /* narration rail is callsign-authed */
+    var body = { type: 'stats', s_action: 'index_movers', callsign: cs, device: dev,
+      week: state.week, movers: movers };
+    function done(j) {
+      if (j && j.ok) { try { localStorage.setItem(flag, '1'); } catch (e4) {} }
+    }
+    try {
+      if (window.PF && PF.authPost) { PF.authPost(API, body, done); return; }
+      fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body) })
+        .then(function (r) { return r.json(); }).then(done).catch(function () {});
+    } catch (e5) {}
+  }
+  function computeClimbers(ms, freshMap) {
+    var prev = null;
+    try { prev = JSON.parse(localStorage.getItem('pf-eff-' + prevWeekKey()) || 'null'); } catch (e) {}
+    var prevMap = (prev && prev.map) || null;
+    if (!prevMap) return [];
+    var bySlug = {};
+    for (var i = 0; i < ms.length; i++) bySlug[ms[i].slug] = ms[i];
+    var deltas = [];
+    var keys = Object.keys(freshMap);
+    for (var k = 0; k < keys.length; k++) {
+      var slug = keys[k], cur = freshMap[slug], old = prevMap[slug];
+      if (!cur || !old || typeof cur.score !== 'number' || typeof old.score !== 'number') continue;
+      var d = Math.round((cur.score - old.score) * 10) / 10;
+      if (d >= 0.2 && bySlug[slug]) {
+        deltas.push({ slug: slug, name: bySlug[slug].name || slug,
+          score: cur.score, delta: d, path: bySlug[slug].catalog_path || '' });
+      }
+    }
+    deltas.sort(function (a, b) { return b.delta - a.delta; });
+    return deltas.slice(0, 3);
+  }
+
   function announce() {
     state.ready = true;
     try {
@@ -164,6 +246,7 @@
     var q = state.queue; state.queue = [];
     for (var i = 0; i < q.length; i++) { try { q[i](state.map); } catch (e2) {} }
     try { paintScores(document); } catch (e3) {}
+    try { paintClimbers(); } catch (e4) {}
   }
   /* Fill [data-eff-score="slug"] slots with the computed score (progressive
      enhancement over the static DB value rendered server-side). */
@@ -228,6 +311,21 @@
     try { cached = JSON.parse(localStorage.getItem(cacheKey) || 'null'); } catch (e) {}
     function finish(fans, views) {
       state.map = compute(ms, fans || {}, views || {});
+      /* 6A-R7: this is a FRESH recompute for the week (no cache existed) —
+         diff vs last week, stash the climbers for the roster strip, and
+         narrate the movers to the ticker exactly once per week. */
+      try {
+        if (!cached) {
+          var climbers = computeClimbers(ms, state.map);
+          try {
+            localStorage.setItem('pf-climbers-' + state.week,
+              JSON.stringify({ climbers: climbers }));
+          } catch (e) {}
+          try { document.body.setAttribute('data-pf-climbers', JSON.stringify(climbers)); }
+          catch (e2) {}
+          postMovers(climbers);
+        }
+      } catch (e3) {}
       try { localStorage.setItem(cacheKey, JSON.stringify({ map: state.map })); } catch (e) {}
       announce();
     }
@@ -254,6 +352,7 @@
       else state.queue.push(cb);
     },
     paintScores: paintScores,
+    paintClimbers: paintClimbers,
     refresh: refresh
   };
 
@@ -268,5 +367,8 @@
     document.addEventListener('pf-hype', function () { try { paintHype(document); } catch (e) {} });
     document.addEventListener('pf-infight', function () { try { paintHype(document); } catch (e) {} });
     setInterval(function () { try { if(window.PF&&PF.hidden&&PF.hidden()) return; paintHype(document); } catch (e) {} }, 30000);
+    /* 6A-R7: re-paint the climbers strip on the same cadence — the roster
+       header may mount after the efficiency announce. */
+    setInterval(function () { try { if(window.PF&&PF.hidden&&PF.hidden()) return; paintClimbers(); } catch (e) {} }, 30000);
   } catch (e) {}
 })();

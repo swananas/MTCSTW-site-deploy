@@ -74,6 +74,14 @@
       lines: ['War Bonds fund 60% of all PF operations.', 'Starting at $1. Every dollar is ammunition.'],
       cta: 'BUY WAR BONDS'
     },
+    /* 6A-R7: voter-pledge poster template. civic.js registers a custom
+       painter (state-stamped) via PFShare.setPoster; this REG entry is the
+       generic fallback for drawPoster('voter-pledge'). */
+    'voter-pledge': {
+      title: 'I PLEDGED TO VOTE', tag: 'One ballot. One soldier. Zero excuses.',
+      lines: ['I took the voter pledge with the Propaganda Factory.', 'Your turn. Pledge, register, show up.'],
+      cta: 'PLEDGE YOURS'
+    },
     /* 6A-R2: The White Market cashout poster. The dynamic "I JUST CASHED
        OUT +N XP" card is painted by the casino silo's custom painter
        (PFShare.setPoster('casino', ...)); this REG entry is the template

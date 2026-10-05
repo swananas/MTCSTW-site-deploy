@@ -82,7 +82,9 @@ function load(){
   function fin(){ if(done)return; done=true; render(); }
   function one(){ n++; if(n>=2) fin(); }
   setTimeout(fin,15000);
-  api("proposal_list",{},function(j){ PL=j; one(); });
+  /* 6A-R7/E21: pass the callsign so proposal_list returns the per-proposal
+     voted flag the non-voter ping UI keys off. */
+  api("proposal_list",{callsign:id.callsign||""},function(j){ PL=j; one(); });
   if(id.callsign){ api("delegation_get",{callsign:id.callsign},function(j){ DG=j; one(); }); }
   else { DG=null; one(); }
 }
@@ -110,6 +112,23 @@ function render(){
   var open=[], hist=[];
   for(var i=0;i<props.length;i++){ if(props[i].status==="open") open.push(props[i]); else hist.push(props[i]); }
   h+='<div class="gv-frame">ONE SOLDIER. ONE VOICE. VOTE WEIGHT GROWS WITH YOUR XP.</div>';
+  /* 6A-R7/E21: non-voter ping — open proposals closing within 6h that this
+     callsign hasn't voted on get a closing-soon banner above the fold,
+     with a VOTE NOW jump link to the proposal card. */
+  var ping=[];
+  for(var pi=0;pi<open.length;pi++){
+    var pp=open[pi], left=Number(pp.closes_at||0)-Date.now();
+    if(left>0&&left<=6*3600000&&pp.voted!==true) ping.push(pp);
+  }
+  for(var qi=0;qi<ping.length;qi++){
+    var qp=ping[qi];
+    h+='<div class="gv-ping" style="background:#1a0505;border:2px solid #c1121f;color:#f5ead6;'
+      +'padding:0.8rem 1rem;margin:0.6rem 0;font-size:0.95rem;">'
+      +'<b style="color:#c1121f;">\u26A0 VOTE CLOSING SOON:</b> &ldquo;'+esc(qp.title)+'&rdquo; '
+      +'closes in '+esc(fmtLeft(Number(qp.closes_at)-Date.now()))
+      +' \u2014 you haven\u2019t voted. '
+      +'<a href="#gv-prop-'+esc(qp.id)+'" style="color:#fff;font-weight:800;">VOTE NOW \u2193</a></div>';
+  }
   /* --- open proposals --- */
   h+='<div class="x-pane"><h4>Open proposals ('+open.length+')</h4>';
   if(!open.length){ h+='<div class="x-note">No open proposals. The floor is yours &mdash; put one up.</div>'; }
@@ -121,7 +140,7 @@ function render(){
     var closeBtn=pastDue
       ?'<button class="c-btn gv-close" data-pid="'+esc(p.id)+'">CLOSE &amp; SETTLE</button>'
       :(isAdmin()?'<button class="c-btn ghost gv-close-early" data-pid="'+esc(p.id)+'">CLOSE EARLY (ADMIN)</button>':"");
-    h+='<div class="gv-prop"><div class="gv-ptitle">'+esc(p.title)+'</div>'
+    h+='<div class="gv-prop" id="gv-prop-'+esc(p.id)+'"><div class="gv-ptitle">'+esc(p.title)+'</div>'
       +'<div class="x-note">'+esc(p.description||"")+'</div>'
       +'<div class="x-note">By <b>'+esc(p.proposer)+'</b> &bull; '+fmtLeft(p.closes_at-Date.now())+' &bull; '+(Number(p.voter_count)||0)+' voters</div>'
       +bar(Number(p.yes_weight)||0,Number(p.no_weight)||0)

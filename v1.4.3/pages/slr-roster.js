@@ -69,6 +69,7 @@
       + '<h1 style="text-align:center;color:' + CREAM + ';font-size:2.2rem;font-weight:900;letter-spacing:0.06em;margin:0 0 0.4rem;font-family:\'Helvetica Neue\',Arial,sans-serif;">SICK LEFT RADICALS</h1>'
       + '<div class="pf-slr-count" style="text-align:center;color:' + MUTED + ';font-size:0.95rem;margin-bottom:1.4rem;">'
       + members.length + ' affiliated propagandists · <span style="color:' + CREAM + ';font-weight:700;">' + totalFollowers(members) + '</span>&nbsp;combined reach</div>'
+      + '<div id="pf-climbers-strip" data-pf-climbers-strip style="display:none;"></div>'
       + '<div id="pf-race-zone"></div>'
       + '<div style="max-width:520px;margin:0 auto 1.8rem;">'
       + '<input id="pf-slr-search" type="search" placeholder="Search the roster…" autocomplete="off"'

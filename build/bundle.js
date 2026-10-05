@@ -72,11 +72,11 @@ var SECTIONS = {
     'campaign.js',
     'alerts.js',
     'fan-vote.js',
-    /* W5-6 Hall of Proof (2026-10-04): public winners wall, PROOF section. */
-    'hall-of-proof.js',
     /* Wave 6B-2 (2026-10-04): register Wave 3's unbundled files to unblock
        the build gate (mirrors 5C's registration; 5C may relocate to slim
-       bundles): S5 war-room ticker, A2 flash siren. */
+       bundles): S5 war-room ticker, A2 flash siren.
+       NOTE: 5C's 'hall-of-proof.js' forward-reference removed here — the
+       file doesn't exist on this branch; 5C's merge restores it. */
     'war-room-ticker.js',
     'flash-siren.js'
   ],

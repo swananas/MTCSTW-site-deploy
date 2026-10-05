@@ -511,7 +511,7 @@ function renderOracle(){
 }
 
 /* --- Voter turnout: site-wide ballot count, trailing 7 days (bracket_turnout). --- */
-var BRACKET_API=(window.PF_BACKEND_URL||"https://pf-api.mtcstw.workers.dev");
+var BRACKET_API=(window.PF_BACKEND_URL);
 function renderTurnout(){
   var el=document.getElementById("bTurnout"); if(!el) return;
   var paint=function(n){ if(n>0) el.innerHTML="&#9760; <b>"+Number(n).toLocaleString()+"</b> ballots cast this week &mdash; add yours"; };
@@ -1803,7 +1803,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
    sends them and no "favorite/leading" language is rendered from them.
    Backend contract: src/markets.js actions market_list / market_get /
    market_create / market_bet / market_resolve / market_refund / market_cancel.
-   XP has no cash value — solidarity stakes for the movement.
+   XP has no cash value. Stakes are final.
    KILL: ?pf_off=markets  or  localStorage pf_disabled_v1='["markets"]' */
 (function () {
   'use strict';

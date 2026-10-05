@@ -50,6 +50,53 @@ window.PFCallsign = function(){
   try{ return String((JSON.parse(localStorage.getItem('pf_identity_v1')||'{}')).callsign||''); }
   catch(e){ return ''; }
 };
+/* R29 (2026-10-05): "Subscriber" = creator-subscription holder.
+   The authoritative PM decision (BUILD_MASTER_PLAN.md:95) defines R29 as
+   creator-subscription perks ("1.1x XP on tips to the subscribed creator",
+   "Perks lapse with the subscription") — the subscriptions table is the
+   source of truth, NOT war-bond purchase. PF.isSubscriber reads the cached
+   flag in localStorage 'pf_subscriber_v1'; PF.refreshSubscriber() derives
+   it from the subscription_list read action (subDispatch, authed per
+   callsign) and must run after subscribe/unsubscribe and once when the
+   identity is available. One shared helper so the badge
+   (enlistment-ranks), ticker treatment (war-room-ticker) and subscriber
+   poster frame (share-image) all read the same source. PF.setSubscriber is
+   the write side (also used to clear the flag locally on unsubscribe). */
+window.PF.isSubscriber = function(){
+  try{ return !!localStorage.getItem('pf_subscriber_v1'); }catch(e){ return false; }
+};
+window.PF.setSubscriber = function(on){
+  try{ if(on) localStorage.setItem('pf_subscriber_v1','1'); else localStorage.removeItem('pf_subscriber_v1'); }catch(e){}
+};
+/* Derive subscriber status from the authoritative source: the
+   subscription_list read action (GET ?action=subscription_list, auth-gated
+   per callsign, or POST {type:'sub', s_action:'subscription_list'}).
+   A callsign counts as a subscriber while it holds >=1 active row AS A
+   SUBSCRIBER in the subscriptions table (supporting[] non-empty).
+   Fail-closed: a failed read keeps the last cached value — it never
+   invents or clears status. */
+window.PF.refreshSubscriber = function(cb){
+  var done = function(v){ try{ if(cb) cb(v); }catch(e){} };
+  try{
+    var cs = (window.PFCallsign ? window.PFCallsign() : '');
+    if(!cs || !window.PF_BACKEND_URL || !window.PF.postAction){
+      done(window.PF.isSubscriber()); return;
+    }
+    window.PF.postAction('sub','s_action','subscription_list',{callsign:cs},function(j){
+      try{
+        if(j && j.ok && Array.isArray(j.supporting)){
+          window.PF.setSubscriber(j.supporting.length > 0);
+        }
+      }catch(e){}
+      done(window.PF.isSubscriber());
+    });
+  }catch(e){ done(false); }
+};
+/* R29: one authoritative refresh shortly after load for returning
+   subscribers (auth + callsign helpers may load after this file). */
+try{ setTimeout(function(){
+  try{ if(window.PFCallsign && window.PFCallsign() && window.PF.refreshSubscriber) window.PF.refreshSubscriber(); }catch(e){}
+}, 3000); }catch(e2){}
 /* 2026-10-04 (creator audit): site-wide first-touch ?ref=<callsign> capture.
    MOVED here from the homepage-only Referral War game (games/referral.js)
    so referrals landing on ANY page — notably /request-access — are captured

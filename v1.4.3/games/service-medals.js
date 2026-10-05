@@ -39,6 +39,14 @@
         REQUIRED for FULL DEPLOYMENT. */
      {id:'whitemarket', glyph:'\uD83C\uDFB2', name:'Market Maker',  ev:'pf-wm-settled'}
     ];
+    /* A5 (2026-10-05): SCOUT — persistent (non-weekly) achievement medal.
+       Awarded at 6 distinct creator catalog views (pf-scout-earned, fired by
+       pages/slr-catalog.js). It never resets and NEVER counts toward the
+       weekly FULL DEPLOYMENT — the rack below stays strictly weekly. */
+    var ACHV=[{id:'scout', glyph:'\u2691', name:'Scout'}];
+    var LS_A='pf_medals_achv_v1';
+    function loadAchv(){try{var s=JSON.parse(localStorage.getItem(LS_A)||'null');if(s&&typeof s==='object')return s;}catch(e){}return {};}
+    function saveAchv(s){try{localStorage.setItem(LS_A,JSON.stringify(s));}catch(e){}}
     function load(){try{var s=JSON.parse(localStorage.getItem(LS)||'null');if(s&&s.w)return s;}catch(e){}return{w:PF.isoWeekKey(PF.chiNow()),m:{},fd:false};}
     function save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}
     function callsign(){try{return String(JSON.parse(localStorage.getItem(LS_I)||'{}').callsign||'').toLowerCase();}catch(e){return '';}}
@@ -161,6 +169,15 @@
       }else{
         h+='<div class=\"pm-note\">Earn all <b>'+MEDALS.length+'</b> this week for <b>FULL DEPLOYMENT</b>: +50 XP + your callsign on the Vanguard Wall. <b>'+got+'/'+MEDALS.length+'</b> so far.</div>';
       }
+      /* A5 (2026-10-05): persistent campaign medals — outside the weekly
+         rack. SCOUT never resets and never counts toward FULL DEPLOYMENT. */
+      var achv=loadAchv(), ah='';
+      ACHV.forEach(function(md){
+        var has=!!achv[md.id];
+        ah+='<div class=\"pm-m '+(has?'got':'miss')+'\"><span class=\"pm-g\">'+md.glyph+'</span><span class=\"pm-n\">'+md.name+'</span></div>';
+      });
+      h+='<div class=\"pm-title\" style=\"margin-top:12px\">\u2694 Campaign Medals <span>\u2014 persistent, never reset</span></div><div class=\"pm-rack\">'+ah+'</div>';
+      if(!achv.scout) h+='<div class=\"pm-note\">Scout the roster: view <b>6</b> different fighters\u2019 catalog pages to earn SCOUT.</div>';
       el.innerHTML=h;
       return true;
     }
@@ -188,6 +205,16 @@
       var s=load(),wk=PF.isoWeekKey(PF.chiNow());
       if(s.w!==wk){s={w:wk,m:{},fd:false};}
       /* already handled by the MEDALS loop above; this is a no-op safeguard */
+    });
+
+    /* A5 (2026-10-05): SCOUT award — persistent bucket, exactly-once. */
+    document.addEventListener('pf-scout-earned',function(){
+      var a=loadAchv();
+      if(a.scout)return;
+      a.scout=1;saveAchv(a);
+      /* M1 dopamine: earning a medal should feel earned. */
+      try{ if(window.PF&&PF.dope){ var mh=document.getElementById('pf-medals')||document.body; PF.dope.confetti(mh,60); PF.dope.ping(mh,'MEDAL EARNED: SCOUT'); } }catch(dpe){}
+      renderRack();
     });
     
     /* mount the rack once the ranks widget exists */

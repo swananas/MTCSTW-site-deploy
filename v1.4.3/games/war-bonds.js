@@ -199,6 +199,14 @@
         postBody(body, function(j){
           wbClaimBtn.disabled = false;
           if(!j || !j.ok){ wbSay(PF.errCopy(j, 'Claim failed. Try again.')); return; }
+          /* R29 (2026-10-05): war-bond purchase is NOT the subscriber
+             definition — creator subscriptions are (BUILD_MASTER_PLAN.md:95;
+             the subscriptions table is the source of truth). After a claim
+             attempt, refresh the real subscriber flag from
+             subscription_list so the badge, ticker and poster frame (all
+             keyed on PF.isSubscriber) stay honest. Never set subscriber
+             status from a bond claim. */
+          try{ if(window.PF && PF.refreshSubscriber) PF.refreshSubscriber(); }catch(e_sub){}
           if(!j.claimed){
             if(j.no_webhooks_received){
               /* The Squarespace webhook has never fired — the buyer isn't at

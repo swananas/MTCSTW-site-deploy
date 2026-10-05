@@ -18,6 +18,46 @@
      FUND_SKIP_SLUGS-style exclusion on the vote CTA. */
   var VOTE_SKIP_SLUGS = ['jeanine-pirreaux-comedy'];
 
+  /* A5 (2026-10-05): ROSTER ROULETTE — NEXT FIGHTER. Jumps to a random
+     DIFFERENT creator's catalog page, drawn from the real roster data (no
+     invented entries). Jeanine Pirreaux Comedy is do-not-touch: excluded
+     from the rotation entirely — the link never lands on her. */
+  var ROULETTE_SKIP_SLUGS = ['jeanine-pirreaux-comedy'];
+  function nextFighter(m, all) {
+    var pool = (all || []).filter(function (x) {
+      return x && x.slug && x.catalog_path && x.slug !== m.slug &&
+             ROULETTE_SKIP_SLUGS.indexOf(x.slug) === -1;
+    });
+    if (!pool.length) return '';
+    var pick = pool[Math.floor(Math.random() * pool.length)];
+    return '<div style="text-align:center;margin:2.4rem 0 0.6rem;">'
+      + '<a href="' + esc(pick.catalog_path) + '" style="display:inline-block;background:' + RED + ';color:#fff;font-weight:900;letter-spacing:0.14em;font-size:1rem;text-decoration:none;padding:0.9rem 2.4rem;">NEXT FIGHTER &rarr;</a>'
+      + '<div style="color:' + MUTED + ';font-size:0.78rem;letter-spacing:0.06em;margin-top:0.6rem;">THE ROSTER ROULETTE &mdash; A RANDOM FIGHTER, EVERY SPIN</div></div>';
+  }
+
+  /* A5 (2026-10-05): SCOUT CIRCUIT — distinct creator catalog views,
+     persistent across sessions. 6 distinct slugs fires pf-scout-earned;
+     service-medals.js awards the SCOUT medal as a non-weekly achievement
+     (it never counts toward FULL DEPLOYMENT). Jeanine is do-not-touch:
+     excluded from the view count. */
+  function trackScoutView(slug) {
+    if (!slug || ROULETTE_SKIP_SLUGS.indexOf(slug) !== -1) return;
+    var SK = 'pf_scout_views_v1', AK = 'pf_scout_awarded_v1', seen = {};
+    try {
+      (JSON.parse(localStorage.getItem(SK) || '[]') || []).forEach(function (s2) { seen[String(s2)] = 1; });
+    } catch (e) {}
+    if (seen[slug]) return;
+    seen[slug] = 1;
+    var arr = Object.keys(seen);
+    try { localStorage.setItem(SK, JSON.stringify(arr)); } catch (e2) {}
+    if (arr.length < 6) return;
+    var awarded = null;
+    try { awarded = localStorage.getItem(AK); } catch (e3) {}
+    if (awarded) return;
+    try { localStorage.setItem(AK, '1'); } catch (e4) {}
+    try { document.dispatchEvent(new CustomEvent('pf-scout-earned')); } catch (e5) {}
+  }
+
   function esc(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -81,6 +121,7 @@
       + '<div style="text-align:center;margin-top:2.5rem;"><a href="/creator-onboard" style="color:' + RED + ';font-weight:900;letter-spacing:0.12em;text-decoration:none;border-bottom:2px solid ' + RED + ';">WANT IN? JOIN THE SICK LEFT RADICALS →</a></div>'
       + fundBlock(m, RED, CREAM, MUTED)
       + (related ? '<h2 style="color:' + MUTED + ';font-size:1rem;font-weight:700;letter-spacing:0.1em;margin:2.5rem 0 0.8rem;">RELATED CREATORS</h2><div style="display:flex;flex-direction:column;gap:0.5rem;">' + related + '</div>' : '')
+      + nextFighter(m, all)
       + '</div></div>';
   }
 
@@ -172,6 +213,8 @@
       var root = el || takeoverMount();
       render(root, member, members);
       PF.log('slr-catalog', 'rendered ' + slug);
+      /* A5 (2026-10-05): SCOUT CIRCUIT — record this distinct creator view. */
+      try { trackScoutView(slug); } catch (e_scout) {}
       /* R31: paint the aggregate reputation line. */
       try{ repLine(root, member); }catch(e_rep){}
       /* Efficiency Index: site-pull beacon (one ping per slug per session) +

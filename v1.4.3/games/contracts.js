@@ -99,7 +99,33 @@ function busyBtn(btn,on){
     else{ btn.disabled=false; var l=btn.getAttribute("data-lbl"); if(l!=null) btn.textContent=l; btn.removeAttribute("data-lbl"); }
   }catch(e){}
 }
-var board=null, mine=null, busy=false, loadTries=0;
+var board=null, mine=null, busy=false, loadTries=0, MARKET=null;
+/* R35 (2026-10-04): cross-cell labor market — the public contracts_board
+   (W6B-1: {ok,contracts:[{id,cell,title,reward,status}]}) rendered as a
+   market strip with ticker cross-links. Independent of the main board:
+   loads in parallel, paints when it lands, hides until the action ships. */
+function paintMarket(){
+  var host=document.getElementById("xMarket"); if(!host) return;
+  var list=[];
+  try{ if(MARKET&&MARKET.contracts) list=MARKET.contracts; }catch(e){}
+  if(!list.length){ host.style.display="none"; return; }
+  var h='<h4>Open contracts — cross-cell market</h4>'
+    +'<div class="x-note">Work posted across every cell. Take it, finish it, get paid.</div>';
+  for(var i=0;i<Math.min(list.length,8);i++){
+    var c=list[i]||{};
+    h+='<div class="x-contract"><div class="x-chead">'+esc(c.title||c.id||"contract")+'</div>'
+      +'<div class="x-csub">cell <b>'+esc(c.cell||"?")+'</b> &middot; reward <b>'+Number(c.reward||0)+' XP</b>'
+      +(c.status?' &middot; '+esc(String(c.status).toUpperCase()):"")
+      +' &middot; <a href="#pf-warrticker" style="color:#dc143c;">TRACK ON TICKER &rarr;</a></div></div>';
+  }
+  host.innerHTML=h;
+}
+function loadMarket(){
+  api("contracts_board",{},function(j){
+    MARKET=(j&&j.ok)?j:null;
+    paintMarket();
+  },true);
+}
 function load(){
   var id=ident();
   if(!id.callsign){ renderGate(); return; }
@@ -140,7 +166,10 @@ function render(){
     if(rb) rb.onclick=function(){ board=null; mine=null; load(); };
     return;
   }
+  loadMarket();
   var h='';
+  /* R35: the public market strip renders first, above the camp panel. */
+  h+='<div class="x-pane" id="xMarket"><div class="c-load">Scanning the market&hellip;</div></div>';
   /* --- camp panel --- */
   var camp=(mine&&mine.my_camp)||null, bal=(mine&&typeof mine.balance==="number")?mine.balance:null;
   h+='<div class="x-pane"><h4>Your camp</h4>';
@@ -216,6 +245,7 @@ function render(){
   }
   el.innerHTML=h;
   wire();
+  paintMarket();
 }
 function wire(){
   var b;

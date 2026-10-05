@@ -119,8 +119,8 @@ function fmtHours(ms){
   var h=Math.floor(ms/3600000), m=Math.floor((ms%3600000)/60000);
   return h+"H "+(m<10?"0":"")+m+"M";
 }
-var BAL=null,STREAK=null,LOOT=null,FLASH=null,COMEBACK=null,COMEBACK_ERR=null,PROP=null,CELL=null,MISS=null,STAT=null,SEASON=null,BRIEF=null,SEASHIST=null;
-var N_CALLS=12;
+var BAL=null,STREAK=null,LOOT=null,FLASH=null,COMEBACK=null,COMEBACK_ERR=null,PROP=null,CELL=null,MISS=null,STAT=null,SEASON=null,BRIEF=null,SEASHIST=null,ECON=null;
+var N_CALLS=13;
 function load(){
   var id=ident(), done=false, n=0;
   function fin(){ if(done)return; done=true; render(); }
@@ -141,6 +141,10 @@ function load(){
   api("campaign_status",{},function(j){ STAT=j; one(); });
   /* 2026-10-03: season_history (public) — past seasons surface in §5. */
   api("season_history",{},function(j){ SEASHIST=(j&&j.ok&&j.seasons)||null; one(); });
+  /* R34 (2026-10-04): econ_calendar — auctions ending / drops starting as
+     appointment mechanics inside the briefing. Degrades silently until W6B-1
+     ships the action. */
+  api("econ_calendar",{},function(j){ ECON=(j&&j.ok)?j:null; one(); });
 }
 function seasonInfo(){
   if(SEASON){
@@ -258,6 +262,33 @@ function render(){
     }
   }catch(e){ h+='<div class="x-note">Cell intel unavailable.</div>'; }
   h+='</div>';
+  /* ---------- 4.5 ECON CALENDAR (R34) — appointment mechanics: auctions
+     ending and drops starting, straight from econ_calendar. Past items are
+     skipped; the whole section hides until the backend action ships. */
+  (function(){
+    var now=Date.now(), rows=[];
+    try{
+      var auc=ECON&&ECON.auctions?ECON.auctions:[];
+      for(var ai=0;ai<auc.length;ai++){
+        var a=auc[ai], ends=Number(a.ends_at||0);
+        if(ends&&ends<now) continue;
+        rows.push({t:"AUCTION ENDS: "+(a.title||a.id||"auction"), c:fmtCountdown(ends?ends-now:0)});
+      }
+      var drp=ECON&&ECON.drops?ECON.drops:[];
+      for(var di2=0;di2<drp.length;di2++){
+        var dp=drp[di2], starts=Number(dp.starts_at||0);
+        if(starts&&starts<now) continue;
+        rows.push({t:"DROP: "+(dp.title||dp.id||"drop"), c:starts?("IN "+fmtCountdown(starts-now)):"SOON"});
+      }
+    }catch(e){}
+    if(!rows.length) return;
+    h+='<div class="br-sec"><div class="br-sect">ECON CALENDAR</div>';
+    for(var ri=0;ri<Math.min(rows.length,5);ri++){
+      h+='<div class="br-order"><span class="br-oname">'+esc(rows[ri].t)+'</span>'
+        +'<span class="br-oxp">'+esc(rows[ri].c)+'</span></div>';
+    }
+    h+='<div style="margin-top:8px"><a href="/economy" class="c-btn" style="text-decoration:none;display:inline-block;">RUN THE ECONOMY</a></div></div>';
+  })();
   /* ---------- 5. SEASON PROGRESS ---------- */
   var sn=seasonInfo();
   var dl=Math.max(0,Math.ceil((sn.endsAt-Date.now())/86400000));

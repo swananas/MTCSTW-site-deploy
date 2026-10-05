@@ -154,16 +154,6 @@ var BUNDLES = {
        view. The phq-money painter lives in the consolidated registry. */
     'core/money-tab.js',
     'core/money-vote-card.js',
-    'core/wall-of-shame.js',
-    /* Follow the Money (2026-10-05): legislator money tab (PFMoneyTab.mount)
-       + bill-detail vote-vs-donor card (PFMoneyVote.mount). Right after
-       wall-of-shame.js so the phq-money painter is registered before any
-       DOWNLOAD/SHARE can fire. Never auto-mounts — Release Eng calls
-       PFMoneyTab.mount() from the legislator detail view and
-       PFMoneyVote.mount() from the bill detail view
-       (fe/legislation-tracker sibling branch). */
-    'core/money-tab.js',
-    'core/money-vote-card.js',
     /* Money suite companions (fe/money-page, 2026-10-05): billionaire
        ledgers (PFLedgers.mount) + donor boycotts (PFBoycotts.mount) +
        corporate playbook (PFCorpCard.mount). Never auto-mount — the

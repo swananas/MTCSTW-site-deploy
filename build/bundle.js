@@ -64,6 +64,9 @@ var SECTIONS = {
     'slr-match-quiz.js',
     'infighting.js',
     'cells.js',
+    /* CELLS wave G1 (2026-10-04): guided cell first hour — extends R19's
+       post-claim interstitial; founder checklist / joiner induction. */
+    'cell-first-hour.js',
     'referral.js',
     'poster-forge.js',
     'feed.js',

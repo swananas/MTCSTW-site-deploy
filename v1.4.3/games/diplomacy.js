@@ -62,7 +62,10 @@ function post(dAction,params,cb){
   }catch(e){ done(null); }
 }
 var CELL=null, RELS=null, REQ=null, AUTHFAIL=false;
-var KINDS={alliance:"ALLIANCE",coalition:"COALITION",rivalry:"RIVALRY",merger_proposal:"MERGER"};
+var KINDS={alliance:"ALLIANCE",coalition:"COALITION",rivalry:"RIVALRY"};
+/* merger_proposal REMOVED 2026-10-04 (PM decision #5, cells wave) — returns
+   post-launch. Historical rows keep a clean label via kindLabel below; the
+   propose option is gone and the backend rejects the kind with 'bad kind'. */
 function load(){
   var id=ident(), done=false;
   function fin(){ if(done)return; done=true; render(); }
@@ -82,7 +85,11 @@ function load(){
     api("diplomacy_requests",{cell_id:CELL.id},function(r){ REQ=r; one(); });
   });
 }
-function kindLabel(k){ return KINDS[k]||String(k||"").toUpperCase(); }
+function kindLabel(k){
+  /* Historical merger rows keep a clean label (proposal path removed). */
+  if(k==="merger_proposal") return "MERGER";
+  return KINDS[k]||String(k||"").toUpperCase();
+}
 function render(){
   var el=document.getElementById("xDiplo"); if(!el) return;
   var id=ident(), h="";
@@ -130,7 +137,7 @@ function render(){
     +'<option value="alliance">ALLIANCE &mdash; fight together, share the spoils</option>'
     +'<option value="coalition">COALITION &mdash; coordinate across many cells</option>'
     +'<option value="rivalry">RIVALRY &mdash; name your enemy, raise the stakes</option>'
-    +'<option value="merger_proposal">MERGER &mdash; become one cell</option>'
+    /* merger_proposal option removed 2026-10-04 (PM decision #5) — post-launch */
     +'</select>'
     +'<textarea class="c-in" id="dpMsg" maxlength="500" rows="2" placeholder="Message to their commanders (optional)"></textarea>'
     +'<button class="c-btn" id="dpProposeBtn">SEND PROPOSAL</button><div class="c-err" id="dpProposeErr"></div></div>';

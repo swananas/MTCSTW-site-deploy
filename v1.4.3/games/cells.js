@@ -30,6 +30,13 @@ function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,
 function load(k,fb){ try{ return JSON.parse(localStorage.getItem(k)||JSON.stringify(fb)); }catch(e){ return fb; } }
 function save(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
 function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+/* CELLS wave G1 (2026-10-04): lifecycle events for the guided first hour
+   (games/cell-first-hour.js — extends R19's post-claim interstitial, dedupe).
+   Fired on cell form/join success; the first-hour module mounts its founder
+   checklist / joiner induction from these. Zero XP, pure routing. */
+function emitCellEv(name,cell){
+  try{ document.dispatchEvent(new CustomEvent(name,{detail:{cell:cell||null}})); }catch(e){}
+}
 function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
   /* Fallback only if core hasn't loaded yet — matches PF.toast styling. */
   try{ var t=document.createElement("div"); t.textContent=m;
@@ -299,6 +306,7 @@ function renderLobby(el){
       busyBtn(btn,false);
       if(!j||!j.ok){ err.textContent=cellWriteErr(j&&j.err); return; }
       toast("Cell "+j.cell.name+" formed. Recruit your four.");
+      emitCellEv("pf-cell-formed", j.cell);
       refresh();
     });
   };
@@ -312,6 +320,7 @@ function renderLobby(el){
       busyBtn(btn,false);
       if(!j||!j.ok){ err.textContent=cellWriteErr(j&&j.err); return; }
       toast("Welcome to "+j.cell.name+". Check in daily.");
+      emitCellEv("pf-cell-joined", j.cell);
       refresh();
     });
   };
@@ -329,10 +338,18 @@ function renderLobby(el){
       var h="";
       for(var i=0;i<Math.min(list.length,10);i++){
         var cc=list[i]||{};
+        /* G10 (2026-10-04): one-tap browse->join — the backend exposes
+           invite_code for VERIFIED cells only (PM decision #6). The JOIN
+           button carries the code, so there is no manual code entry.
+           Unverified cells keep their code behind the founder's share flow:
+           an invite-only note instead of a dead JOIN button. */
+        var jbtn=cc.invite_code
+          ?'<button class="c-btn c-sm" data-code="'+esc(cc.invite_code)+'">JOIN</button>'
+          :'<span class="x-note">invite only</span>';
         h+='<div class="cp-lead"><span class="cp-lname">'+esc(cc.name)+'</span> '
-          +'<span class="cp-lxp">'+(Number(cc.members)||0)+'/5'
+          +'<span class="cp-lxp">'+(Number(cc.member_count)||0)+'/5'
           +(cc.verified?' \u2713':'')+'</span> '
-          +'<button class="c-btn c-sm" data-code="'+esc(cc.invite_code||"")+'">JOIN</button></div>';
+          +jbtn+'</div>';
       }
       res.innerHTML=h;
       var btns=res.querySelectorAll("button[data-code]");
@@ -345,6 +362,7 @@ function renderLobby(el){
             busyBtn(btn,false);
             if(!j2||!j2.ok){ err.textContent=cellWriteErr(j2&&j2.err); return; }
             toast("Welcome to "+j2.cell.name+". Check in daily.");
+            emitCellEv("pf-cell-joined", j2.cell);
             refresh();
           });
         };
@@ -820,6 +838,7 @@ function renderCell(el,s){
     api("cell_join",{callsign:id.callsign,device:id.device,code:code},function(j){
       if(!j||!j.ok){ err.textContent=cellWriteErr(j,"Network error."); return; }
       toast("Wired into "+j.cell.name+". The chain grows.");
+      emitCellEv("pf-cell-joined", j.cell);
       refresh();
     });
   };

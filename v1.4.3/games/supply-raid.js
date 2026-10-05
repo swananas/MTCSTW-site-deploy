@@ -63,7 +63,7 @@ function api(action,params,cb){
      (same IDOR pattern as cell-hq.js). */
   if(action==="cell_mine"){
     try{ var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
-      if(_sec&&params&&!params.auth_secret) params.auth_secret=<redacted> }catch(e){}
+      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec; }catch(e){}
   }
   var fn="pfRaidCb"+Math.floor(Math.random()*1e9);
   var s=document.createElement("script"), done=false;

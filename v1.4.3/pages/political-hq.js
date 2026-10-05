@@ -29,6 +29,8 @@
     /* 2026-10-05 (fe/predict-share-call): Call the Shot prediction section —
        mounts the pf-ov-predict template into #xPredict. */
     ['predict', 'pf-ov-predict'],
+    /* 2026-10-05 (fe/state-legislatures): state legislature directory. */
+    ['stateleg', 'pf-ov-stateleg'],
     ['notify-prefs', 'pf-ov-notify-prefs'],
     ['governance', 'pf-ov-gov'],
     ['intel', 'pf-ov-intel'],

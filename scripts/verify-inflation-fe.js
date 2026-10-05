@@ -316,15 +316,16 @@ console.log('\n== 17. official baseline wiring (cpi_compare) + methodology footn
 if (has(src, "getJSON('cpi_compare'") || has(src, 'getJSON("cpi_compare"'))
   ok('wiring: trends view calls getJSON(\'cpi_compare\') for the official series');
 else no('wiring', 'trends view does not call cpi_compare');
-/* The cpi_compare response shape: {official: {value, period, source_url,
-   retrieval_date} | null} — the render must unwrap c.official and show
-   period + retrieval date. */
+/* The cpi_compare response shape: {official: {cpi_u_all_items: {...},
+   ...} | null} — the render must unwrap the nested per-series baseline and
+   show period + retrieval date (backend calls it source_date). */
 if (has(src, 'c.official') && has(src, 'off.value'))
   ok('wiring: unwraps c.official and gates on value');
 else no('wiring', 'c.official unwrap / value gate missing');
-if (has(src, 'off.period') && has(src, 'off.retrieval_date') && has(src, 'Baseline pulled'))
-  ok('wiring: renders period + retrieval date ("Baseline pulled")');
-else no('wiring', 'period + retrieval-date render missing');
+if (has(src, 'cpi_u_all_items') && has(src, 'off.period') &&
+    has(src, 'off.source_date') && has(src, 'Baseline pulled'))
+  ok('wiring: unwraps nested all-items series; renders period + retrieval date ("Baseline pulled")');
+else no('wiring', 'nested-series unwrap or period + retrieval-date render missing');
 /* Honest fallback: null/404 official leaves the pending copy in place. */
 if (has(src, 'pf-inf-tr-official') && has(src, 'officialPendingHTML') &&
     has(src, 'Official baseline pending — check back'))

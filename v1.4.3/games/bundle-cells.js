@@ -448,6 +448,78 @@
     post("cell_apply",p,function(j){ cb(j||{ok:false,err:"Network error."}); });
   }
 
+  /* ---- Founder application review (QC FIX 2026-10-05, Finding 2 — HIGH) ----
+     The apply flow dead-ended at "Application sent": the backend review
+     action existed but no surface displayed the pending count or decided
+     applications. These back the founder-only review panel mounted by the
+     host (cell-hq.js detail view, gated on its existing isFounder check —
+     the server re-verifies founder on every call anyway). Zero XP here. */
+  function listApplications(cellId, cb){
+    var id=ident();
+    api("cell_applications_list",{cell_id:cellId,callsign:id.callsign,device:id.device},function(j){
+      cb(j||{ok:false,err:"Network error."});
+    });
+  }
+  function reviewApplication(cellId, target, approve, cb){
+    var id=ident();
+    var p={callsign:id.callsign,device:id.device,cell_id:cellId,target:target,approve:approve?"1":"0"};
+    try{ var s2=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():""; if(s2) p.auth_secret=s2; }catch(e){}
+    post("cell_application_review",p,function(j){ cb(j||{ok:false,err:"Network error."}); });
+  }
+  function fmtTs(ts){
+    try{ var d=new Date(Number(ts)||0); if(!d||!d.getTime()) return ""; return d.toLocaleString(); }catch(e){ return ""; }
+  }
+  /* Pure markup for the pending list — callsign, note, timestamp per
+     application, approve/deny buttons. Honest empty state; never invented. */
+  function applicationReviewHTML(apps){
+    var h='<div class="id-apprev">';
+    apps=(apps||[]);
+    if(!apps.length){
+      h+='<div class="id-hint">No pending applications.</div></div>';
+      return h;
+    }
+    apps.forEach(function(a){
+      var cs=String((a&&a.callsign)||""), note=String((a&&a.note)||""), ts=fmtTs(a&&a.ts);
+      h+='<div class="id-approw"><span class="id-appwho"><b>'+esc(cs)+'</b>'+
+        (ts?'<span class="id-hint">'+esc(ts)+'</span>':"")+'</span>'+
+        (note?'<div class="id-appnote">'+esc(note)+'</div>':"")+
+        '<div class="id-approwbtns">'+
+        '<button type="button" class="id-btn sm go" data-idapprove="'+esc(cs)+'">APPROVE</button>'+
+        '<button type="button" class="id-btn sm ghost" data-iddeny="'+esc(cs)+'">DENY</button>'+
+        '</div></div>';
+    });
+    h+='</div>';
+    return h;
+  }
+  /* Fetch + render + wire approve/deny. opts.onChange fires after each
+     decision so the host can refresh its count. Failures surface honestly. */
+  function mountApplicationReview(host, cellId, opts){
+    opts=opts||{};
+    if(!host) return false;
+    host.innerHTML='<div class="id-hint">Loading applications&hellip;</div>';
+    function reload(){
+      listApplications(cellId,function(j){
+        if(!j||!j.ok){ host.innerHTML='<div class="id-err">'+esc((j&&j.err)||"Couldn't load applications.")+'</div>'; return; }
+        host.innerHTML=applicationReviewHTML(j.applications||[]);
+      });
+    }
+    host.onclick=function(ev){
+      var t=ev&&ev.target?ev.target:null;
+      if(!t||!t.getAttribute) return;
+      var ap=t.getAttribute("data-idapprove"), dn=t.getAttribute("data-iddeny");
+      if(!ap&&!dn) return;
+      var target=ap||dn, approve=!!ap;
+      try{ t.disabled=true; }catch(e){}
+      reviewApplication(cellId,target,approve,function(j){
+        if(j&&j.ok){ toast(approve?("Approved "+target+"."):("Denied "+target+".")); reload(); }
+        else { toast((j&&j.err)||"Review failed."); try{ t.disabled=false; }catch(e){} }
+        if(opts.onChange){ try{ opts.onChange(j); }catch(e){} }
+      });
+    };
+    reload();
+    return true;
+  }
+
   /* Namespaced styles (id- prefix; injected once). */
   if(ENABLED&&typeof document!=="undefined"&&!document.getElementById("pf-cell-identity-css")){
     try{
@@ -499,6 +571,12 @@
         ".id-badge{font-size:11px;color:#888;}"+
         ".id-badge.dim{opacity:.6;}"+
         ".id-incomplete{font-size:12px;color:#888;border:1px dashed #444;border-radius:6px;padding:8px;margin:6px 0;}"+
+        /* QC FIX (2026-10-05, Finding 2): founder application-review panel. */
+        ".id-apprev{margin-top:8px;}"+
+        ".id-approw{border:1px solid #333;border-radius:6px;padding:10px;margin:8px 0;background:#111;}"+
+        ".id-appwho{display:flex;justify-content:space-between;align-items:baseline;gap:8px;color:#f5ead6;font-size:14px;}"+
+        ".id-appnote{color:#c9bfa8;font-size:13px;margin:6px 0;font-style:italic;}"+
+        ".id-approwbtns{display:flex;gap:8px;margin-top:8px;}"+
         ".id-detail{margin-top:10px;}"+
         ".id-rows{margin:8px 0;}"+
         ".id-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #222;color:#c9bfa8;}"+
@@ -524,6 +602,11 @@
     detailIdentityHTML:detailIdentityHTML,
     loadIdentity:loadIdentity,
     applyToCell:applyToCell,
+    /* QC FIX (2026-10-05, Finding 2): founder application-review panel. */
+    listApplications:listApplications,
+    reviewApplication:reviewApplication,
+    applicationReviewHTML:applicationReviewHTML,
+    mountApplicationReview:mountApplicationReview,
     /* shared no-op-safe accessors for host modules */
     esc:esc, toast:toast
   };
@@ -945,10 +1028,12 @@
     S.loading.search = true;
     /* api() drops "" — unfiltered discovery behaves exactly as before.
        CELL IDENTITY (2026-10-05): quality filters pass through to the
-       cell_search filters (cause/vibe/specialty/entry/activity). */
+       cell_search filters (cause/vibe/specialty/entry/activity).
+       QC FIX (2026-10-05, Finding 3): sort passes through too ("" -> the
+       backend's default activity ordering). */
     api('cell_search', { q: S.searchQ, state: S.searchState,
       cause: S.idfCause, vibe: S.idfVibe, specialty: S.idfSpec,
-      entry: S.idfEntry, activity: S.idfAct }, function(j){
+      entry: S.idfEntry, activity: S.idfAct, sort: S.idfSort }, function(j){
       S.loading.search = false;
       S.searchRes = j;
       cb(j);
@@ -1209,6 +1294,25 @@
           initial: hqIdentityToInitial(ident2, cell),
           onDone: function(){ render(); }});
       });
+      /* QC FIX (2026-10-05, Finding 2 — HIGH): the apply flow dead-ended at
+         "Application sent" — the founder had no review surface. Founder-only
+         pending-applications panel: the count rides the identity payload
+         (pending_applications); the list + approve/deny mount below. Gated
+         on the existing isFounder check; the server re-verifies founder on
+         every call (cell_applications_list + cell_application_review). */
+      if (isFounder && (ident2.entry_style === 'application' || (ident2.pending_applications || 0) > 0)){
+        var apN = ident2.pending_applications || 0;
+        var apBox = document.createElement('div');
+        apBox.id = 'hqAppReview';
+        apBox.innerHTML = '<h3>Pending applications' +
+          (apN ? ' <span class="hq-badge">'+esc(String(apN))+'</span>' : '') + '</h3>' +
+          '<div class="hq-note">Approve to wire them in, or deny to clear the request. 0 XP on every decision.</div>' +
+          '<div id="hqAppReviewList"></div>';
+        box.appendChild(apBox);
+        window.PFCellIdentity.mountApplicationReview(
+          apBox.querySelector('#hqAppReviewList'), cell.id,
+          { onChange: function(){ paintIdentityBlock(body, cell, isFounder); } });
+      }
     });
   }
   function hqIdentityToInitial(ident2, cell){
@@ -1557,6 +1661,9 @@
         idfSel('hqIdfSpec','All specialties',SETS.SPECIALTIES,S.idfSpec) +
         idfSel('hqIdfEntry','Any entry',[["open","Open"],["invite","Invite only"],["application","Application"]],S.idfEntry) +
         idfSel('hqIdfAct','Any activity',SETS.ACTIVITIES,S.idfAct) +
+        /* QC FIX (2026-10-05, Finding 3): the backend accepted sort= but no
+           host ever sent it — the sort control lives in the filter row. */
+        sortSelHtml('hqIdfSort', S.idfSort) +
         '<div class="hq-note" style="margin:4px 0 0">Filter by what a cell fights for, how it feels, and how it runs. Activity is computed from real signals — never self-reported.</div></div>';
     }
     h += '<div id="hqSearchRes" style="margin-top:8px">';
@@ -1596,6 +1703,17 @@
       o += '<option value="'+esc(it[0])+'"'+(String(cur||"")===it[0]?' selected':'')+'>'+esc(it[1])+'</option>';
     });
     return '<select class="hq-sel" id="'+id+'" aria-label="'+esc(label)+'">'+o+'</select>';
+  }
+  /* QC FIX (2026-10-05, Finding 3): sort select for the browse filter row.
+     The curated SORTS list carries its own labels; "" means the backend's
+     default (activity) ordering, so no blank option is needed. */
+  function sortSelHtml(id, cur){
+    var list = (window.PFCellIdentity && window.PFCellIdentity.SETS && window.PFCellIdentity.SETS.SORTS) || [];
+    var o = '<select class="hq-sel" id="'+id+'" aria-label="Sort results">';
+    list.forEach(function(it){
+      o += '<option value="'+esc(it[0])+'"'+(String(cur||"activity")===it[0]?' selected':'')+'>'+esc(it[1])+'</option>';
+    });
+    return o + '</select>';
   }
   function searchHtml(j){
     if (!j) return netErr();
@@ -2367,6 +2485,9 @@
         S.idfCause = strIn('hqIdfCause'); S.idfVibe = strIn('hqIdfVibe');
         S.idfSpec = strIn('hqIdfSpec'); S.idfEntry = strIn('hqIdfEntry');
         S.idfAct = strIn('hqIdfAct');
+        /* QC FIX (2026-10-05, Finding 3): persist the sort choice so a
+           re-render keeps it. */
+        S.idfSort = strIn('hqIdfSort');
       }
       var res = document.getElementById('hqSearchRes');
       if (res) res.innerHTML = loading('Searching&hellip;');

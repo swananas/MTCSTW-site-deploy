@@ -442,6 +442,78 @@
     post("cell_apply",p,function(j){ cb(j||{ok:false,err:"Network error."}); });
   }
 
+  /* ---- Founder application review (QC FIX 2026-10-05, Finding 2 — HIGH) ----
+     The apply flow dead-ended at "Application sent": the backend review
+     action existed but no surface displayed the pending count or decided
+     applications. These back the founder-only review panel mounted by the
+     host (cell-hq.js detail view, gated on its existing isFounder check —
+     the server re-verifies founder on every call anyway). Zero XP here. */
+  function listApplications(cellId, cb){
+    var id=ident();
+    api("cell_applications_list",{cell_id:cellId,callsign:id.callsign,device:id.device},function(j){
+      cb(j||{ok:false,err:"Network error."});
+    });
+  }
+  function reviewApplication(cellId, target, approve, cb){
+    var id=ident();
+    var p={callsign:id.callsign,device:id.device,cell_id:cellId,target:target,approve:approve?"1":"0"};
+    try{ var s2=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():""; if(s2) p.auth_secret=s2; }catch(e){}
+    post("cell_application_review",p,function(j){ cb(j||{ok:false,err:"Network error."}); });
+  }
+  function fmtTs(ts){
+    try{ var d=new Date(Number(ts)||0); if(!d||!d.getTime()) return ""; return d.toLocaleString(); }catch(e){ return ""; }
+  }
+  /* Pure markup for the pending list — callsign, note, timestamp per
+     application, approve/deny buttons. Honest empty state; never invented. */
+  function applicationReviewHTML(apps){
+    var h='<div class="id-apprev">';
+    apps=(apps||[]);
+    if(!apps.length){
+      h+='<div class="id-hint">No pending applications.</div></div>';
+      return h;
+    }
+    apps.forEach(function(a){
+      var cs=String((a&&a.callsign)||""), note=String((a&&a.note)||""), ts=fmtTs(a&&a.ts);
+      h+='<div class="id-approw"><span class="id-appwho"><b>'+esc(cs)+'</b>'+
+        (ts?'<span class="id-hint">'+esc(ts)+'</span>':"")+'</span>'+
+        (note?'<div class="id-appnote">'+esc(note)+'</div>':"")+
+        '<div class="id-approwbtns">'+
+        '<button type="button" class="id-btn sm go" data-idapprove="'+esc(cs)+'">APPROVE</button>'+
+        '<button type="button" class="id-btn sm ghost" data-iddeny="'+esc(cs)+'">DENY</button>'+
+        '</div></div>';
+    });
+    h+='</div>';
+    return h;
+  }
+  /* Fetch + render + wire approve/deny. opts.onChange fires after each
+     decision so the host can refresh its count. Failures surface honestly. */
+  function mountApplicationReview(host, cellId, opts){
+    opts=opts||{};
+    if(!host) return false;
+    host.innerHTML='<div class="id-hint">Loading applications&hellip;</div>';
+    function reload(){
+      listApplications(cellId,function(j){
+        if(!j||!j.ok){ host.innerHTML='<div class="id-err">'+esc((j&&j.err)||"Couldn't load applications.")+'</div>'; return; }
+        host.innerHTML=applicationReviewHTML(j.applications||[]);
+      });
+    }
+    host.onclick=function(ev){
+      var t=ev&&ev.target?ev.target:null;
+      if(!t||!t.getAttribute) return;
+      var ap=t.getAttribute("data-idapprove"), dn=t.getAttribute("data-iddeny");
+      if(!ap&&!dn) return;
+      var target=ap||dn, approve=!!ap;
+      try{ t.disabled=true; }catch(e){}
+      reviewApplication(cellId,target,approve,function(j){
+        if(j&&j.ok){ toast(approve?("Approved "+target+"."):("Denied "+target+".")); reload(); }
+        else { toast((j&&j.err)||"Review failed."); try{ t.disabled=false; }catch(e){} }
+        if(opts.onChange){ try{ opts.onChange(j); }catch(e){} }
+      });
+    };
+    reload();
+    return true;
+  }
+
   /* Namespaced styles (id- prefix; injected once). */
   if(ENABLED&&typeof document!=="undefined"&&!document.getElementById("pf-cell-identity-css")){
     try{
@@ -493,6 +565,12 @@
         ".id-badge{font-size:11px;color:#888;}"+
         ".id-badge.dim{opacity:.6;}"+
         ".id-incomplete{font-size:12px;color:#888;border:1px dashed #444;border-radius:6px;padding:8px;margin:6px 0;}"+
+        /* QC FIX (2026-10-05, Finding 2): founder application-review panel. */
+        ".id-apprev{margin-top:8px;}"+
+        ".id-approw{border:1px solid #333;border-radius:6px;padding:10px;margin:8px 0;background:#111;}"+
+        ".id-appwho{display:flex;justify-content:space-between;align-items:baseline;gap:8px;color:#f5ead6;font-size:14px;}"+
+        ".id-appnote{color:#c9bfa8;font-size:13px;margin:6px 0;font-style:italic;}"+
+        ".id-approwbtns{display:flex;gap:8px;margin-top:8px;}"+
         ".id-detail{margin-top:10px;}"+
         ".id-rows{margin:8px 0;}"+
         ".id-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #222;color:#c9bfa8;}"+
@@ -518,6 +596,11 @@
     detailIdentityHTML:detailIdentityHTML,
     loadIdentity:loadIdentity,
     applyToCell:applyToCell,
+    /* QC FIX (2026-10-05, Finding 2): founder application-review panel. */
+    listApplications:listApplications,
+    reviewApplication:reviewApplication,
+    applicationReviewHTML:applicationReviewHTML,
+    mountApplicationReview:mountApplicationReview,
     /* shared no-op-safe accessors for host modules */
     esc:esc, toast:toast
   };

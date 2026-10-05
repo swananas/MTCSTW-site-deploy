@@ -448,6 +448,78 @@
     post("cell_apply",p,function(j){ cb(j||{ok:false,err:"Network error."}); });
   }
 
+  /* ---- Founder application review (QC FIX 2026-10-05, Finding 2 — HIGH) ----
+     The apply flow dead-ended at "Application sent": the backend review
+     action existed but no surface displayed the pending count or decided
+     applications. These back the founder-only review panel mounted by the
+     host (cell-hq.js detail view, gated on its existing isFounder check —
+     the server re-verifies founder on every call anyway). Zero XP here. */
+  function listApplications(cellId, cb){
+    var id=ident();
+    api("cell_applications_list",{cell_id:cellId,callsign:id.callsign,device:id.device},function(j){
+      cb(j||{ok:false,err:"Network error."});
+    });
+  }
+  function reviewApplication(cellId, target, approve, cb){
+    var id=ident();
+    var p={callsign:id.callsign,device:id.device,cell_id:cellId,target:target,approve:approve?"1":"0"};
+    try{ var s2=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():""; if(s2) p.auth_secret=s2; }catch(e){}
+    post("cell_application_review",p,function(j){ cb(j||{ok:false,err:"Network error."}); });
+  }
+  function fmtTs(ts){
+    try{ var d=new Date(Number(ts)||0); if(!d||!d.getTime()) return ""; return d.toLocaleString(); }catch(e){ return ""; }
+  }
+  /* Pure markup for the pending list — callsign, note, timestamp per
+     application, approve/deny buttons. Honest empty state; never invented. */
+  function applicationReviewHTML(apps){
+    var h='<div class="id-apprev">';
+    apps=(apps||[]);
+    if(!apps.length){
+      h+='<div class="id-hint">No pending applications.</div></div>';
+      return h;
+    }
+    apps.forEach(function(a){
+      var cs=String((a&&a.callsign)||""), note=String((a&&a.note)||""), ts=fmtTs(a&&a.ts);
+      h+='<div class="id-approw"><span class="id-appwho"><b>'+esc(cs)+'</b>'+
+        (ts?'<span class="id-hint">'+esc(ts)+'</span>':"")+'</span>'+
+        (note?'<div class="id-appnote">'+esc(note)+'</div>':"")+
+        '<div class="id-approwbtns">'+
+        '<button type="button" class="id-btn sm go" data-idapprove="'+esc(cs)+'">APPROVE</button>'+
+        '<button type="button" class="id-btn sm ghost" data-iddeny="'+esc(cs)+'">DENY</button>'+
+        '</div></div>';
+    });
+    h+='</div>';
+    return h;
+  }
+  /* Fetch + render + wire approve/deny. opts.onChange fires after each
+     decision so the host can refresh its count. Failures surface honestly. */
+  function mountApplicationReview(host, cellId, opts){
+    opts=opts||{};
+    if(!host) return false;
+    host.innerHTML='<div class="id-hint">Loading applications&hellip;</div>';
+    function reload(){
+      listApplications(cellId,function(j){
+        if(!j||!j.ok){ host.innerHTML='<div class="id-err">'+esc((j&&j.err)||"Couldn't load applications.")+'</div>'; return; }
+        host.innerHTML=applicationReviewHTML(j.applications||[]);
+      });
+    }
+    host.onclick=function(ev){
+      var t=ev&&ev.target?ev.target:null;
+      if(!t||!t.getAttribute) return;
+      var ap=t.getAttribute("data-idapprove"), dn=t.getAttribute("data-iddeny");
+      if(!ap&&!dn) return;
+      var target=ap||dn, approve=!!ap;
+      try{ t.disabled=true; }catch(e){}
+      reviewApplication(cellId,target,approve,function(j){
+        if(j&&j.ok){ toast(approve?("Approved "+target+"."):("Denied "+target+".")); reload(); }
+        else { toast((j&&j.err)||"Review failed."); try{ t.disabled=false; }catch(e){} }
+        if(opts.onChange){ try{ opts.onChange(j); }catch(e){} }
+      });
+    };
+    reload();
+    return true;
+  }
+
   /* Namespaced styles (id- prefix; injected once). */
   if(ENABLED&&typeof document!=="undefined"&&!document.getElementById("pf-cell-identity-css")){
     try{
@@ -499,6 +571,12 @@
         ".id-badge{font-size:11px;color:#888;}"+
         ".id-badge.dim{opacity:.6;}"+
         ".id-incomplete{font-size:12px;color:#888;border:1px dashed #444;border-radius:6px;padding:8px;margin:6px 0;}"+
+        /* QC FIX (2026-10-05, Finding 2): founder application-review panel. */
+        ".id-apprev{margin-top:8px;}"+
+        ".id-approw{border:1px solid #333;border-radius:6px;padding:10px;margin:8px 0;background:#111;}"+
+        ".id-appwho{display:flex;justify-content:space-between;align-items:baseline;gap:8px;color:#f5ead6;font-size:14px;}"+
+        ".id-appnote{color:#c9bfa8;font-size:13px;margin:6px 0;font-style:italic;}"+
+        ".id-approwbtns{display:flex;gap:8px;margin-top:8px;}"+
         ".id-detail{margin-top:10px;}"+
         ".id-rows{margin:8px 0;}"+
         ".id-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #222;color:#c9bfa8;}"+
@@ -524,6 +602,11 @@
     detailIdentityHTML:detailIdentityHTML,
     loadIdentity:loadIdentity,
     applyToCell:applyToCell,
+    /* QC FIX (2026-10-05, Finding 2): founder application-review panel. */
+    listApplications:listApplications,
+    reviewApplication:reviewApplication,
+    applicationReviewHTML:applicationReviewHTML,
+    mountApplicationReview:mountApplicationReview,
     /* shared no-op-safe accessors for host modules */
     esc:esc, toast:toast
   };
@@ -898,6 +981,16 @@ function renderLobby(el){
      form — a cell with no identity can't complete founding. Kill-switch
      (?pf_off=cell-identity) falls back to the original blank form. */
   function identEnabled(){ return window.PFCellIdentity && window.PFCellIdentity.enabled(); }
+  /* QC FIX (2026-10-05, Finding 3): lobby sort select. Curated SORTS labels
+     when the identity module is up; literals under the kill-switch. The ""
+     default maps to the backend's default activity ordering. */
+  function lobbySortHtml(){
+    var sets=(identEnabled()&&window.PFCellIdentity.SETS&&window.PFCellIdentity.SETS.SORTS)||
+      [["activity","Sort: activity"],["newest","Sort: newest"],["streak","Sort: streak"],["members","Sort: members"]];
+    var o='<select class="c-sel" id="cSort" aria-label="SORT RESULTS">';
+    for(var i=0;i<sets.length;i++) o+='<option value="'+esc(sets[i][0])+'">'+esc(sets[i][1])+'</option>';
+    return o+'</select>';
+  }
   var formPaneHtml = identEnabled()
     ? '<div class=\"c-pane\"><h4>Form a cell</h4><div id=\"cIdentWizard\"></div></div>'
     : '<div class=\"c-pane\"><h4>Form a cell</h4>'+\n    '<input aria-label=\"CELL NAME\" id=\"cName\" maxlength=\"24\" placeholder=\"CELL NAME\" autocomplete=\"off\">'+\n    '<select class=\"c-sel\" id=\"cState\" aria-label=\"STATE AFFILIATION\">'+cellStateOpts(\"\",\"No state affiliation\")+'</select>'+\n    '<div class=\"x-note\">State affiliation unlocks location tasks and policymaker bounties.</div>'+\n    '<br><button class=\"c-btn\" id=\"cCreate\">Form cell</button>'+\n    '<div class=\"c-err\" id=\"cCreateErr\"></div></div>';
@@ -913,6 +1006,9 @@ function renderLobby(el){
     '<div class="c-pane"><h4>Find a cell</h4>'+
     '<input aria-label="NAME OR STATE" id="cSearch" maxlength="32" placeholder="NAME OR STATE" autocomplete="off">'+
     '<select class="c-sel" id="cSearchState" aria-label="FILTER BY STATE">'+cellStateOpts("","All states")+'</select>'+
+    /* QC FIX (2026-10-05, Finding 3): the backend accepted sort= but the
+       lobby never sent it — the sort control lives in the search row. */
+    lobbySortHtml()+
     /* ENGAGE-A #4 (2026-10-05): cause/vibe/tag filters. Rendered only when
        the backend serves tags (cell-identity track schema); hidden until
        then — pre-identity-schema backends browse exactly as before. */
@@ -1017,7 +1113,8 @@ function renderLobby(el){
         id=ident(), err=document.getElementById("cSearchErr"),
         res=document.getElementById("cSearchRes");
     err.textContent=""; res.innerHTML='<div class="c-load">Searching&hellip;</div>';
-    var params={q:q,state:selVal("cSearchState"),cause:cFlt.cause,vibe:cFlt.vibe,tag:cFlt.tag};
+    /* QC FIX (2026-10-05, Finding 3): sort passes through to cell_search. */
+    var params={q:q,state:selVal("cSearchState"),sort:selVal("cSort"),cause:cFlt.cause,vibe:cFlt.vibe,tag:cFlt.tag};
     if(id.callsign) params.callsign=id.callsign;
     api("cell_search",params,function(j){
       if(!j||!j.ok){ err.textContent=cellWriteErr(j,"Network error."); res.innerHTML=""; return; }
@@ -1032,12 +1129,21 @@ function renderLobby(el){
            button carries the code, so there is no manual code entry.
            Unverified cells keep their code behind the founder's share flow:
            an invite-only note instead of a dead JOIN button.
-           ENGAGE-A #4: 'mine' rows render an IN YOUR CELL state. */
-        var jbtn=cc.mine
-          ?'<span class="x-note">&#10003; IN YOUR CELL</span>'
-          :cc.invite_code
-          ?'<button class="c-btn c-sm" data-code="'+esc(cc.invite_code)+'">JOIN</button>'
-          :'<span class="x-note">invite only</span>';
+           ENGAGE-A #4: 'mine' rows render an IN YOUR CELL state.
+           QC FIX (2026-10-05, Finding 1): application-entry cells never
+           expose invite_code in search (server-side). The affordance follows
+           entry style — APPLY for application cells, one-tap JOIN for open
+           cells with a code, honest "invite only" otherwise. */
+        var jbtn;
+        if(cc.mine){
+          jbtn='<span class="x-note">&#10003; IN YOUR CELL</span>';
+        }else if(identEnabled()&&window.PFCellIdentity.joinAffordanceHTML){
+          jbtn=window.PFCellIdentity.joinAffordanceHTML(cc);
+        }else{
+          jbtn=cc.invite_code
+            ?'<button class="c-btn c-sm" data-code="'+esc(cc.invite_code)+'">JOIN</button>'
+            :'<span class="x-note">invite only</span>';
+        }
         var tagHtml="";
         var tgchips=[];
         if(cc.cause) tgchips.push(esc(cc.cause));
@@ -1052,21 +1158,42 @@ function renderLobby(el){
           +jbtn+tagHtml+'</div>';
       }
       res.innerHTML=h;
+      function doCodeJoin(code,btn){
+        var id2=ident();
+        err.textContent="";
+        busyBtn(btn,true);
+        api("cell_join",{callsign:id2.callsign,device:id2.device,code:code},function(j2){
+          busyBtn(btn,false);
+          if(!j2||!j2.ok){ err.textContent=cellWriteErr(j2&&j2.err); return; }
+          toast("Welcome to "+j2.cell.name+". Check in daily.");
+          emitCellEv("pf-cell-joined", j2.cell);
+          refresh();
+        });
+      }
       var btns=res.querySelectorAll("button[data-code]");
       for(var b=0;b<btns.length;b++)(function(btn){
+        btn.onclick=function(){ doCodeJoin(btn.getAttribute("data-code"),btn); };
+      })(btns[b]);
+      /* CELL IDENTITY (2026-10-05): one-tap join affordance from the
+         identity module carries the code in data-idjoin; application cells
+         carry data-idapply and go through the apply flow (0 XP). */
+      var jbtns=res.querySelectorAll("button[data-idjoin]");
+      for(var b2=0;b2<jbtns.length;b2++)(function(btn){
+        btn.onclick=function(){ doCodeJoin(btn.getAttribute("data-idjoin"),btn); };
+      })(jbtns[b2]);
+      var abtns=res.querySelectorAll("button[data-idapply]");
+      for(var b3=0;b3<abtns.length;b3++)(function(btn){
         btn.onclick=function(){
-          var code=btn.getAttribute("data-code"), id2=ident();
+          var cid=btn.getAttribute("data-idapply");
           err.textContent="";
           busyBtn(btn,true);
-          api("cell_join",{callsign:id2.callsign,device:id2.device,code:code},function(j2){
+          window.PFCellIdentity.applyToCell(cid,function(j3){
             busyBtn(btn,false);
-            if(!j2||!j2.ok){ err.textContent=cellWriteErr(j2&&j2.err); return; }
-            toast("Welcome to "+j2.cell.name+". Check in daily.");
-            emitCellEv("pf-cell-joined", j2.cell);
-            refresh();
+            if(j3&&j3.ok) toast("Application sent. The founder reviews every request.");
+            else err.textContent=cellWriteErr(j3&&j3.err);
           });
         };
-      })(btns[b]);
+      })(abtns[b3]);
     });
   }
   if(sb) sb.onclick=doSearch;

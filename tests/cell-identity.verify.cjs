@@ -75,6 +75,15 @@ stat(ci, ciC, 'CI contract joinAffordanceHTML', /joinAffordanceHTML\s*:\s*joinAf
 stat(ci, ciC, 'CI contract detailIdentityHTML', /detailIdentityHTML\s*:\s*detailIdentityHTML/);
 stat(ci, ciC, 'CI contract loadIdentity', /loadIdentity\s*:\s*loadIdentity/);
 stat(ci, ciC, 'CI contract applyToCell', /applyToCell\s*:\s*applyToCell/);
+/* QC FIX (2026-10-05, Finding 2): founder review contract. */
+stat(ci, ciC, 'CI contract listApplications', /listApplications\s*:\s*listApplications/);
+stat(ci, ciC, 'CI contract reviewApplication', /reviewApplication\s*:\s*reviewApplication/);
+stat(ci, ciC, 'CI contract applicationReviewHTML', /applicationReviewHTML\s*:\s*applicationReviewHTML/);
+stat(ci, ciC, 'CI contract mountApplicationReview', /mountApplicationReview\s*:\s*mountApplicationReview/);
+stat(ci, ciC, 'CI review lists via cell_applications_list', /cell_applications_list/);
+stat(ci, ciC, 'CI review posts cell_application_review', /post\("cell_application_review"/);
+stat(ci, ciC, 'CI review approve/deny buttons', /data-idapprove/);
+stat(ci, ciC, 'CI review deny button', /data-iddeny/);
 stat(ci, ciC, 'CI kill ?pf_off=cell-identity', /PF\.skip\(['"]cell-identity['"]\)/);
 stat(ci, ciC, 'CI enabled() exposed', /enabled\s*:\s*enabled/);
 stat(ci, ciC, 'CI 6-step wizard', /W\.step<6|step===6/);
@@ -112,6 +121,12 @@ stat(cells, cellsC, 'cells wizard create calls onDone refresh', /mountWizard\(wz
 stat(cells, cellsC, 'cells backfill placeholder', /cIdentBackfill/);
 stat(cells, cellsC, 'cells backfill banner', /backfillBannerHTML/);
 stat(cells, cellsC, 'cells edit-mode wizard', /mode:"edit"|mode:\s*['"]edit['"]/);
+/* QC FIX (2026-10-05, Finding 3): lobby sort wired. */
+stat(cells, cellsC, 'cells lobby sort select', /id="cSort"/);
+stat(cells, cellsC, 'cells lobby passes sort to cell_search', /sort:selVal\("cSort"\)/);
+/* QC FIX (2026-10-05, Finding 1): lobby affordance follows entry style. */
+stat(cells, cellsC, 'cells lobby entry-aware affordance', /joinAffordanceHTML\(cc\)/);
+stat(cells, cellsC, 'cells lobby wires APPLY buttons', /button\[data-idapply\]/);
 
 /* ============ 4. cell-hq.js integration ============ */
 console.log('== 4. cell-hq.js integration ==');
@@ -125,6 +140,15 @@ stat(hq, hqC, 'hq detail identity block', /hqIdentDetail/);
 stat(hq, hqC, 'hq detail kit mount', /mountKit/);
 stat(hq, hqC, 'hq founder edit entry', /hqIdentityToInitial/);
 stat(hq, hqC, 'hq wizard onDone refreshes mine', /refreshMineThen\('mine'\)/);
+/* QC FIX (2026-10-05, Finding 2): founder review panel, founder-gated. */
+stat(hq, hqC, 'hq founder review panel', /hqAppReview/);
+stat(hq, hqC, 'hq review shows pending count', /pending_applications/);
+stat(hq, hqC, 'hq review mounts founder-gated', /isFounder && \(ident2\.entry_style/);
+stat(hq, hqC, 'hq mounts application review', /mountApplicationReview/);
+/* QC FIX (2026-10-05, Finding 3): HQ browse sort wired. */
+stat(hq, hqC, 'hq browse sort select', /hqIdfSort/);
+stat(hq, hqC, 'hq doSearch passes sort', /sort:\s*S\.idfSort/);
+stat(hq, hqC, 'hq persists sort choice', /S\.idfSort = strIn\('hqIdfSort'\)/);
 
 /* ============ 5. bundle registration ============ */
 console.log('== 5. bundle registration ==');
@@ -260,6 +284,31 @@ function loadCI(skipIdent) {
   var detInc = PFI.detailIdentityHTML({ name: 'X' }, null, false);
   if (/PROFILE INCOMPLETE/.test(detInc)) ok('RT detail incomplete honest for non-founder');
   else no('RT detail incomplete', 'missing honest state');
+
+  /* QC FIX (2026-10-05, Finding 2): founder review panel runtime. */
+  var rev = PFI.applicationReviewHTML([
+    { callsign: 'hopeful3', note: 'Door-knocker, Gulf Coast.', ts: 1791240000000 },
+    { callsign: 'quiet_one', note: '', ts: 0 }
+  ]);
+  if (/hopeful3/.test(rev) && /Door-knocker/.test(rev) && /quiet_one/.test(rev)) ok('RT review lists callsign + note per application');
+  else no('RT review list', 'missing callsign/note: ' + rev.slice(0, 120));
+  if (/data-idapprove="hopeful3"/.test(rev) && /data-iddeny="hopeful3"/.test(rev)) ok('RT review approve/deny buttons carry the callsign');
+  else no('RT review buttons', 'missing data attributes');
+  var revX = PFI.applicationReviewHTML([{ callsign: '<script>alert(1)</script>', note: '<b>x</b>', ts: 1 }]);
+  if (/&lt;script&gt;/.test(revX) && !/<script>alert/.test(revX) && /&lt;b&gt;/.test(revX)) ok('RT review escapes applicant fields');
+  else no('RT review esc', 'unescaped applicant content');
+  var revEmpty = PFI.applicationReviewHTML([]);
+  if (/No pending applications/.test(revEmpty)) ok('RT review empty state honest');
+  else no('RT review empty', 'got: ' + revEmpty.slice(0, 80));
+  if (PFI.mountApplicationReview(null, 'c1') === false) ok('RT review mount null-host safe');
+  else no('RT review mount null', 'should return false');
+  var revHost = sb._mkEl();
+  if (PFI.mountApplicationReview(revHost, 'c1') === true) ok('RT review mount returns true');
+  else no('RT review mount', 'returned non-true');
+  /* No backend in the sandbox (PF_BACKEND_URL='') -> the list call fails
+     honest, never spins. */
+  if (/Network error/.test(revHost.innerHTML)) ok('RT review mount fails honest with no backend');
+  else no('RT review mount fail', 'got: ' + String(revHost.innerHTML).slice(0, 80));
 })();
 
 (function runtimeKilled() {

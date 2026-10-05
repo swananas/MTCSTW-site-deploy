@@ -411,10 +411,12 @@
     S.loading.search = true;
     /* api() drops "" — unfiltered discovery behaves exactly as before.
        CELL IDENTITY (2026-10-05): quality filters pass through to the
-       cell_search filters (cause/vibe/specialty/entry/activity). */
+       cell_search filters (cause/vibe/specialty/entry/activity).
+       QC FIX (2026-10-05, Finding 3): sort passes through too ("" -> the
+       backend's default activity ordering). */
     api('cell_search', { q: S.searchQ, state: S.searchState,
       cause: S.idfCause, vibe: S.idfVibe, specialty: S.idfSpec,
-      entry: S.idfEntry, activity: S.idfAct }, function(j){
+      entry: S.idfEntry, activity: S.idfAct, sort: S.idfSort }, function(j){
       S.loading.search = false;
       S.searchRes = j;
       cb(j);
@@ -675,6 +677,25 @@
           initial: hqIdentityToInitial(ident2, cell),
           onDone: function(){ render(); }});
       });
+      /* QC FIX (2026-10-05, Finding 2 — HIGH): the apply flow dead-ended at
+         "Application sent" — the founder had no review surface. Founder-only
+         pending-applications panel: the count rides the identity payload
+         (pending_applications); the list + approve/deny mount below. Gated
+         on the existing isFounder check; the server re-verifies founder on
+         every call (cell_applications_list + cell_application_review). */
+      if (isFounder && (ident2.entry_style === 'application' || (ident2.pending_applications || 0) > 0)){
+        var apN = ident2.pending_applications || 0;
+        var apBox = document.createElement('div');
+        apBox.id = 'hqAppReview';
+        apBox.innerHTML = '<h3>Pending applications' +
+          (apN ? ' <span class="hq-badge">'+esc(String(apN))+'</span>' : '') + '</h3>' +
+          '<div class="hq-note">Approve to wire them in, or deny to clear the request. 0 XP on every decision.</div>' +
+          '<div id="hqAppReviewList"></div>';
+        box.appendChild(apBox);
+        window.PFCellIdentity.mountApplicationReview(
+          apBox.querySelector('#hqAppReviewList'), cell.id,
+          { onChange: function(){ paintIdentityBlock(body, cell, isFounder); } });
+      }
     });
   }
   function hqIdentityToInitial(ident2, cell){
@@ -1023,6 +1044,9 @@
         idfSel('hqIdfSpec','All specialties',SETS.SPECIALTIES,S.idfSpec) +
         idfSel('hqIdfEntry','Any entry',[["open","Open"],["invite","Invite only"],["application","Application"]],S.idfEntry) +
         idfSel('hqIdfAct','Any activity',SETS.ACTIVITIES,S.idfAct) +
+        /* QC FIX (2026-10-05, Finding 3): the backend accepted sort= but no
+           host ever sent it — the sort control lives in the filter row. */
+        sortSelHtml('hqIdfSort', S.idfSort) +
         '<div class="hq-note" style="margin:4px 0 0">Filter by what a cell fights for, how it feels, and how it runs. Activity is computed from real signals — never self-reported.</div></div>';
     }
     h += '<div id="hqSearchRes" style="margin-top:8px">';
@@ -1062,6 +1086,17 @@
       o += '<option value="'+esc(it[0])+'"'+(String(cur||"")===it[0]?' selected':'')+'>'+esc(it[1])+'</option>';
     });
     return '<select class="hq-sel" id="'+id+'" aria-label="'+esc(label)+'">'+o+'</select>';
+  }
+  /* QC FIX (2026-10-05, Finding 3): sort select for the browse filter row.
+     The curated SORTS list carries its own labels; "" means the backend's
+     default (activity) ordering, so no blank option is needed. */
+  function sortSelHtml(id, cur){
+    var list = (window.PFCellIdentity && window.PFCellIdentity.SETS && window.PFCellIdentity.SETS.SORTS) || [];
+    var o = '<select class="hq-sel" id="'+id+'" aria-label="Sort results">';
+    list.forEach(function(it){
+      o += '<option value="'+esc(it[0])+'"'+(String(cur||"activity")===it[0]?' selected':'')+'>'+esc(it[1])+'</option>';
+    });
+    return o + '</select>';
   }
   function searchHtml(j){
     if (!j) return netErr();
@@ -1833,6 +1868,9 @@
         S.idfCause = strIn('hqIdfCause'); S.idfVibe = strIn('hqIdfVibe');
         S.idfSpec = strIn('hqIdfSpec'); S.idfEntry = strIn('hqIdfEntry');
         S.idfAct = strIn('hqIdfAct');
+        /* QC FIX (2026-10-05, Finding 3): persist the sort choice so a
+           re-render keeps it. */
+        S.idfSort = strIn('hqIdfSort');
       }
       var res = document.getElementById('hqSearchRes');
       if (res) res.innerHTML = loading('Searching&hellip;');

@@ -1687,6 +1687,13 @@ function render(){
   renderCell(el,state);
 }
 function renderLobby(el){
+  /* CELL IDENTITY (2026-10-05): guided founding wizard replaces the blank
+     form — a cell with no identity can't complete founding. Kill-switch
+     (?pf_off=cell-identity) falls back to the original blank form. */
+  function identEnabled(){ return window.PFCellIdentity && window.PFCellIdentity.enabled(); }
+  var formPaneHtml = identEnabled()
+    ? '<div class=\"c-pane\"><h4>Form a cell</h4><div id=\"cIdentWizard\"></div></div>'
+    : '<div class=\"c-pane\"><h4>Form a cell</h4>'+\n    '<input aria-label=\"CELL NAME\" id=\"cName\" maxlength=\"24\" placeholder=\"CELL NAME\" autocomplete=\"off\">'+\n    '<select class=\"c-sel\" id=\"cState\" aria-label=\"STATE AFFILIATION\">'+cellStateOpts(\"\",\"No state affiliation\")+'</select>'+\n    '<div class=\"x-note\">State affiliation unlocks location tasks and policymaker bounties.</div>'+\n    '<br><button class=\"c-btn\" id=\"cCreate\">Form cell</button>'+\n    '<div class=\"c-err\" id=\"cCreateErr\"></div></div>';
   /* SLIM (homepage): pitch + join form only. Steps + search are full-mode
      depth for /cells. */
   var stepsHtml=SLIM?"":
@@ -1711,12 +1718,7 @@ function renderLobby(el){
     '<br>Five callsigns. One streak. Every day the whole cell checks in, the streak climbs and everyone banks <b>+5% XP on Daily Orders</b> &mdash; up to <b>+50%</b>.</div>'+
     stepsHtml+
     '<div class="c-lobby">'+
-    '<div class="c-pane"><h4>Form a cell</h4>'+
-    '<input aria-label="CELL NAME" id="cName" maxlength="24" placeholder="CELL NAME" autocomplete="off">'+
-    '<select class="c-sel" id="cState" aria-label="STATE AFFILIATION">'+cellStateOpts("","No state affiliation")+'</select>'+
-    '<div class="x-note">State affiliation unlocks location tasks and policymaker bounties.</div>'+
-    '<br><button class="c-btn" id="cCreate">Form cell</button>'+
-    '<div class="c-err" id="cCreateErr"></div></div>'+
+    formPaneHtml+
     '<div class="c-pane"><h4>Join a cell</h4>'+
     '<input aria-label="INVITE CODE" id="cCode" maxlength="6" placeholder="INVITE CODE" autocomplete="off" style="text-transform:uppercase">'+
     '<input aria-label="WHO RECRUITED YOU (CALLSIGN)" id="cRef" maxlength="32" placeholder="WHO RECRUITED YOU (CALLSIGN)" autocomplete="off" style="text-transform:uppercase">'+
@@ -1726,6 +1728,14 @@ function renderLobby(el){
     searchHtml+
     '<div class="c-bounty">SHARE YOUR CELL CODE &mdash; every RECRUIT who checks in pays <b>+25 XP</b>. One recruit, one credit, everywhere.</div>'+
     (SLIM?'<div class="x-note">Full cell management &mdash; search, prestige, challenges &mdash; lives at <a href="/cells" style="color:#c1121f;">/cells</a>.</div>':'');
+  /* CELL IDENTITY (2026-10-05): wizard mounts when enabled; the blank form
+     is the kill-switch fallback. */
+  if(identEnabled()){
+    var wzel=document.getElementById("cIdentWizard");
+    if(wzel) window.PFCellIdentity.mountWizard(wzel,{
+      stateOptsHTML:cellStateOpts("","No state affiliation"),
+      onDone:function(){ refresh(); }});
+  } else {
   document.getElementById("cCreate").onclick=function(){
     var nm=document.getElementById("cName").value, id=ident(), err=document.getElementById("cCreateErr");
     err.textContent="";
@@ -1739,6 +1749,7 @@ function renderLobby(el){
       refresh();
     });
   };
+  }
   document.getElementById("cJoin").onclick=function(){
     var code=document.getElementById("cCode").value, ref=document.getElementById("cRef").value,
         id=ident(), err=document.getElementById("cJoinErr");
@@ -2102,6 +2113,9 @@ function renderCell(el,s){
        the select reverts and the error shows in #cActErr. */
     html+='<div class="c-rename"><select class="c-sel" id="cStateEdit" aria-label="STATE AFFILIATION">'+cellStateOpts(String(c.state||""),"No state affiliation")+'</select>'+
       '<button class="c-btn" id="cStateBtn">Set state</button></div>';
+    /* CELL IDENTITY (2026-10-05): backfill prompt for founders whose cell
+       has no identity yet. Invitational, never shaming, never a penalty. */
+    html+='<div id="cIdentBackfill"></div>';
   }
   /* RECRUIT: any member can mint the recruit poster and share it. */
   html+='<button class="c-btn c-big" id="cRecruit">RECRUIT</button>';
@@ -2117,6 +2131,40 @@ function renderCell(el,s){
   html+='<div class="c-leave"><a id="cLeave">Leave cell</a></div><div class="c-err" id="cActErr"></div></div>';
   el.innerHTML=html;
   var id=ident(), errEl=document.getElementById("cActErr");
+  /* CELL IDENTITY (2026-10-05): founder backfill — load the identity, show
+     the invitational prompt only when the profile is incomplete. */
+  (function(){
+    if(!s.is_founder) return;
+    if(!(window.PFCellIdentity&&window.PFCellIdentity.enabled())) return;
+    var bf=document.getElementById("cIdentBackfill"); if(!bf) return;
+    window.PFCellIdentity.loadIdentity(c.id,function(ident2){
+      if(ident2&&ident2.profile_complete) return;
+      bf.innerHTML=window.PFCellIdentity.backfillBannerHTML(c.name);
+      var b=bf.querySelector("[data-idbackfill]");
+      if(b) b.onclick=function(){
+        window.PFCellIdentity.mountWizard(bf,{mode:"edit",cellId:c.id,
+          stateOptsHTML:cellStateOpts(String(c.state||""),"No state affiliation"),
+          initial:identityToInitial(ident2,c),
+          onDone:function(){ refresh(); }});
+      };
+    });
+  })();
+  function identityToInitial(ident2,cell){
+    if(!ident2) return {name:(cell&&cell.name)||"",state:(cell&&cell.state)||""};
+    var vibes=[],custom="";
+    (ident2.vibes||[]).forEach(function(v){
+      var k=v.key||v;
+      if(String(k).indexOf("custom:")===0) custom=String(k).slice(7);
+      else vibes.push(k);
+    });
+    return {name:(cell&&cell.name)||"",state:(cell&&cell.state)||"",
+      causes:(ident2.causes||[]).map(function(x){return x.key||x;}),
+      vibes:vibes,customVibe:custom,
+      specialties:(ident2.specialties||[]).map(function(x){return x.key||x;}),
+      cadence:ident2.meeting_cadence||"",entry:ident2.entry_style||"",
+      charter:ident2.charter||"",motto:ident2.motto||"",region:ident2.region||"",
+      palette:(ident2.palette==null?-1:Number(ident2.palette))};
+  }
   /* Cell health: members, 7d checkins, 30d recruits. */
   (function(){
     var hel=document.getElementById("cHealth"); if(!hel) return;

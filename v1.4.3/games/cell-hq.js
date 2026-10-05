@@ -409,8 +409,12 @@
   }
   function doSearch(cb){
     S.loading.search = true;
-    /* api() drops "" — unfiltered discovery behaves exactly as before. */
-    api('cell_search', { q: S.searchQ, state: S.searchState }, function(j){
+    /* api() drops "" — unfiltered discovery behaves exactly as before.
+       CELL IDENTITY (2026-10-05): quality filters pass through to the
+       cell_search filters (cause/vibe/specialty/entry/activity). */
+    api('cell_search', { q: S.searchQ, state: S.searchState,
+      cause: S.idfCause, vibe: S.idfVibe, specialty: S.idfSpec,
+      entry: S.idfEntry, activity: S.idfAct }, function(j){
       S.loading.search = false;
       S.searchRes = j;
       cb(j);
@@ -505,7 +509,13 @@
           h += cellCard(c);
         });
       }
-      h += '<div class="hq-card"><h3>Found a cell</h3>' +
+      /* CELL IDENTITY (2026-10-05): guided founding wizard replaces the blank
+         form — a cell with no identity can't complete founding. Kill-switch
+         (?pf_off=cell-identity) falls back to the original blank form. */
+      var identOn = window.PFCellIdentity && window.PFCellIdentity.enabled();
+      h += identOn
+        ? '<div class="hq-card"><h3>Found a cell</h3><div id="hqIdentWizard"></div></div>'
+        : '<div class="hq-card"><h3>Found a cell</h3>' +
         '<div class="hq-note">3&ndash;24 characters. You become founder. Max 3 cells per callsign.</div>' +
         '<div class="hq-row"><input class="hq-in" id="hqNewName" maxlength="24" placeholder="Cell name">' +
         '<select class="hq-sel" id="hqNewState" aria-label="STATE AFFILIATION">'+hqStateOpts("","No state affiliation")+'</select>' +
@@ -515,6 +525,12 @@
         '<div class="hq-row"><input class="hq-in" id="hqJoinCode" maxlength="12" placeholder="INVITE CODE" style="text-transform:uppercase">' +
         '<button class="hq-btn" data-hq="join">JOIN CELL</button></div></div>';
       p.innerHTML = h;
+      if (identOn){
+        var wzel = document.getElementById('hqIdentWizard');
+        if (wzel) window.PFCellIdentity.mountWizard(wzel, {
+          stateOptsHTML: hqStateOpts("","No state affiliation"),
+          onDone: function(){ refreshMineThen('mine'); }});
+      }
     });
   }
 
@@ -552,6 +568,13 @@
       body.innerHTML = netErr(); wireRetries(body); return;
     }
     var h = '';
+    /* CELL IDENTITY (2026-10-05): identity + kit block first — what this
+       cell is, before the prestige numbers. Filled by paintIdentityBlock
+       after the main paint; honest incomplete state when undefined. */
+    if (window.PFCellIdentity && window.PFCellIdentity.enabled()){
+      h += '<div class="hq-card" id="hqIdentDetail"><h3>CELL IDENTITY</h3>' +
+        '<div class="hq-note">Reading cell identity&hellip;</div></div>';
+    }
     /* Prestige block. */
     if (jP && jP.ok){
       var pr = jP.prestige || {};
@@ -624,6 +647,51 @@
     }
     body.innerHTML = h;
     if (!strikeOff() && cell && cell.id){ paintStrikeOrders(body, cell.id, isFounder); }
+    if (window.PFCellIdentity && window.PFCellIdentity.enabled() && cell && cell.id){
+      paintIdentityBlock(body, cell, isFounder);
+    }
+  }
+
+  /* CELL IDENTITY (2026-10-05): detail-view identity block — full profile
+     (tags, why-line, cadence/entry/region/size, charter, trophies), the
+     downloadable banner kit, and the founder's DEFINE IT / EDIT IDENTITY
+     backfill entry. 0 XP on every surface here. */
+  function paintIdentityBlock(body, cell, isFounder){
+    var box = body.querySelector('#hqIdentDetail');
+    if (!box) return;
+    window.PFCellIdentity.loadIdentity(cell.id, function(ident2){
+      if (!ident2){ box.innerHTML = '<h3>CELL IDENTITY</h3><div class="hq-note">Identity unavailable — try again later.</div>'; return; }
+      var cellLike = { id: cell.id, name: cell.name || 'Cell', state: cell.state || '',
+        motto: ident2.motto || '', palette: ident2.palette,
+        causes: ident2.causes || [], activity: ident2.activity || '' };
+      box.innerHTML = '<h3>CELL IDENTITY</h3>' +
+        window.PFCellIdentity.detailIdentityHTML(cellLike, ident2, isFounder);
+      var kh = box.querySelector('#idKitHost');
+      if (kh) window.PFCellIdentity.mountKit(kh, cellLike);
+      var bb = box.querySelector('[data-idbackfill]');
+      if (bb) bb.addEventListener('click', function(){
+        window.PFCellIdentity.mountWizard(box, { mode: 'edit', cellId: cell.id,
+          stateOptsHTML: hqStateOpts(String(cell.state||''), "No state affiliation"),
+          initial: hqIdentityToInitial(ident2, cell),
+          onDone: function(){ render(); }});
+      });
+    });
+  }
+  function hqIdentityToInitial(ident2, cell){
+    if (!ident2) return { name: (cell&&cell.name)||'', state: (cell&&cell.state)||'' };
+    var vibes = [], custom = '';
+    (ident2.vibes||[]).forEach(function(v){
+      var k = v.key || v;
+      if (String(k).indexOf('custom:') === 0) custom = String(k).slice(7);
+      else vibes.push(k);
+    });
+    return { name: (cell&&cell.name)||'', state: (cell&&cell.state)||'',
+      causes: (ident2.causes||[]).map(function(x){ return x.key || x; }),
+      vibes: vibes, customVibe: custom,
+      specialties: (ident2.specialties||[]).map(function(x){ return x.key || x; }),
+      cadence: ident2.meeting_cadence || '', entry: ident2.entry_style || '',
+      charter: ident2.charter || '', motto: ident2.motto || '', region: ident2.region || '',
+      palette: (ident2.palette == null ? -1 : Number(ident2.palette)) };
   }
 
   function pulseLine(hh){
@@ -939,11 +1007,25 @@
 
   /* ---------- TAB 4: BROWSE ---------- */
   function renderBrowse(p){
+    /* CELL IDENTITY (2026-10-05): discovery on qualities — quality filters
+       layer under the name/state search. Kill-switch falls back to the
+       original search row only. */
+    var identOn = window.PFCellIdentity && window.PFCellIdentity.enabled();
     var h = '<div class="hq-card"><h3>Find a cell</h3>' +
       '<div class="hq-row"><input class="hq-in" id="hqSearch" maxlength="32" placeholder="Search by name" value="'+esc(S.searchQ)+'">' +
       '<select class="hq-sel" id="hqSearchState" aria-label="FILTER BY STATE">'+hqStateOpts(S.searchState,"All states")+'</select>' +
-      '<button class="hq-btn" data-hq="search">SEARCH</button></div>' +
-      '<div id="hqSearchRes" style="margin-top:8px">';
+      '<button class="hq-btn" data-hq="search">SEARCH</button></div>';
+    if (identOn){
+      var SETS = window.PFCellIdentity.SETS;
+      h += '<div class="hq-row" style="margin-top:6px" id="hqIdfRow">' +
+        idfSel('hqIdfCause','All causes',SETS.CAUSES,S.idfCause) +
+        idfSel('hqIdfVibe','All vibes',SETS.VIBES,S.idfVibe) +
+        idfSel('hqIdfSpec','All specialties',SETS.SPECIALTIES,S.idfSpec) +
+        idfSel('hqIdfEntry','Any entry',[["open","Open"],["invite","Invite only"],["application","Application"]],S.idfEntry) +
+        idfSel('hqIdfAct','Any activity',SETS.ACTIVITIES,S.idfAct) +
+        '<div class="hq-note" style="margin:4px 0 0">Filter by what a cell fights for, how it feels, and how it runs. Activity is computed from real signals — never self-reported.</div></div>';
+    }
+    h += '<div id="hqSearchRes" style="margin-top:8px">';
     if (S.loading.search) h += loading('Searching&hellip;');
     else if (S.searchRes) h += searchHtml(S.searchRes);
     h += '</div></div>';
@@ -973,18 +1055,41 @@
     });
   }
 
+  /* CELL IDENTITY (2026-10-05): one quality-filter select for discovery. */
+  function idfSel(id, label, list, cur){
+    var o = '<option value="">'+esc(label)+'</option>';
+    (list||[]).forEach(function(it){
+      o += '<option value="'+esc(it[0])+'"'+(String(cur||"")===it[0]?' selected':'')+'>'+esc(it[1])+'</option>';
+    });
+    return '<select class="hq-sel" id="'+id+'" aria-label="'+esc(label)+'">'+o+'</select>';
+  }
   function searchHtml(j){
     if (!j) return netErr();
     var cells = j.cells || [];
     if (!cells.length) return '<div class="hq-note">No cells match. Try a shorter search — or found your own.</div>';
+    /* CELL IDENTITY (2026-10-05): identity cards — the "why this cell" line,
+       quality tags, activity band. Incomplete profiles get the honest
+       state, never invented qualities. Join affordance follows entry style;
+       joining pays 0 XP (Engagement review verdict). */
+    var identOn = window.PFCellIdentity && window.PFCellIdentity.enabled();
     var out = '';
     cells.forEach(function(c){
       var v = c.verified ? '<span class="hq-badge">VERIFIED</span>' : '';
       var full = (c.member_count||0) >= 5;
+      var idBlock = identOn ? window.PFCellIdentity.cardIdentityHTML(c) : '';
+      var joinHtml;
+      if (full) joinHtml = '<span class="hq-badge dim">FULL</span>';
+      else if (identOn && c.entry_style === 'application')
+        joinHtml = '<button class="id-btn sm" data-idapply="'+esc(c.id)+'">APPLY</button>';
+      else if (identOn && c.invite_code)
+        joinHtml = '<button class="id-btn sm" data-idjoin="'+esc(c.invite_code)+'">JOIN</button>';
+      else if (identOn)
+        joinHtml = '<span class="hq-note">invite only</span>';
+      else
+        joinHtml = '<button class="hq-btn sm" data-hq="join-id" data-cell="'+esc(c.id)+'">JOIN</button>';
       out += '<div class="hq-mem"><span><b>'+esc(c.name)+'</b>'+v+hqStateTag(c) +
-        '<div class="hq-note">'+esc(String(c.member_count||0))+'/5 members &middot; '+esc(String(c.streak||0))+'d streak</div></span>' +
-        (full ? '<span class="hq-badge dim">FULL</span>'
-          : '<button class="hq-btn sm" data-hq="join-id" data-cell="'+esc(c.id)+'">JOIN</button>') + '</div>';
+        '<div class="hq-note">'+esc(String(c.member_count||0))+'/5 members &middot; '+esc(String(c.streak||0))+'d streak</div>'+idBlock+'</span>' +
+        joinHtml + '</div>';
     });
     return out;
   }
@@ -1456,6 +1561,31 @@
 
   mount.addEventListener('click', function(ev){
     var t = ev.target;
+    /* CELL IDENTITY (2026-10-05): discovery actions — intercept BEFORE the
+       data-hq walk so clicks aren't misattributed to an ancestor button.
+       Join and apply both pay 0 XP (Engagement review verdict). */
+    if (window.PFCellIdentity && window.PFCellIdentity.enabled() && t.closest){
+      var ia = t.closest('[data-idjoin],[data-idapply]');
+      if (ia && mount.contains(ia)){
+        var jc = ia.getAttribute('data-idjoin'), ac = ia.getAttribute('data-idapply');
+        if (jc){
+          var idj = ident();
+          if (!idj.callsign){ toast('Claim a callsign first.'); return; }
+          try{ ia.disabled = true; }catch(e){}
+          api('cell_join', withIdent({code:String(jc).toUpperCase().trim()}), function(j){
+            try{ ia.disabled = false; }catch(e){}
+            if (j && j.ok){ toast('Welcome to '+(j.cell&&j.cell.name?j.cell.name:'the cell')+'.'); refreshMineThen('mine'); }
+            else toast(friendlyErr(j));
+          });
+        } else if (ac){
+          window.PFCellIdentity.applyToCell(ac, function(j){
+            if (j && j.ok) toast('Application sent. The founder reviews every request.');
+            else toast(friendlyErr(j));
+          });
+        }
+        return;
+      }
+    }
     while (t && t !== mount && !t.getAttribute('data-hq')) t = t.parentNode;
     if (!t || t === mount) return;
     var a = t.getAttribute('data-hq');
@@ -1697,6 +1827,13 @@
     else if (a==='search'){
       S.searchQ = strIn('hqSearch');
       S.searchState = strIn('hqSearchState');
+      /* CELL IDENTITY (2026-10-05): persist quality filters in S so a
+         re-render keeps them. */
+      if (window.PFCellIdentity && window.PFCellIdentity.enabled()){
+        S.idfCause = strIn('hqIdfCause'); S.idfVibe = strIn('hqIdfVibe');
+        S.idfSpec = strIn('hqIdfSpec'); S.idfEntry = strIn('hqIdfEntry');
+        S.idfAct = strIn('hqIdfAct');
+      }
       var res = document.getElementById('hqSearchRes');
       if (res) res.innerHTML = loading('Searching&hellip;');
       doSearch(function(j){

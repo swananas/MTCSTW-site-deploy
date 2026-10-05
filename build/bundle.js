@@ -250,6 +250,8 @@ var HQ_BUNDLES = {
     'civic.js',
     'governance.js',
     'notify-prefs.js',
+    /* Vote Alerts (Political HQ, 2026-10-05): tripwire prefs + alert cards. */
+    'vote-alerts.js',
     'intel.js'
   ]
 };

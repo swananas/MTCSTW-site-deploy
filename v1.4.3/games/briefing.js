@@ -149,17 +149,17 @@ function routeMarchHtml(){
   if(!CIRCUIT||!CIRCUIT.stops) return "";
   var stops=CIRCUIT.stops, h="";
   var sd=Number(CIRCUIT.streak_day||1);
-  h+='<div class="br-sec" id="pf-routemarch"><div class="br-sect">\\u2694 TODAY\\u2019S ROUTE MARCH</div>';
+  h+='<div class="br-sec" id="pf-routemarch"><div class="br-sect">\u2694 TODAY\u2019S ROUTE MARCH</div>';
   h+='<div class="br-rmhead"><span class="br-rmname">'+esc(String(CIRCUIT.route_name||"MARCH"))+'</span>'
     +'<span class="br-rmday">DAY '+sd+' &bull; NEXT +'+Number(CIRCUIT.next_payout||10)+' XP</span></div>';
   for(var i=0;i<stops.length;i++){ var s=stops[i];
     h+='<a class="br-rmstop'+(s.done?" done":"")+'" href="'+esc(s.page||"/")+'">'
-      +'<span class="br-rmn">'+(s.done?"\\u2713":"STOP "+(i+1))+'</span>'
+      +'<span class="br-rmn">'+(s.done?"\u2713":"STOP "+(i+1))+'</span>'
       +'<span class="br-rml">'+esc(s.action_label||"")+'</span>'
       +'<span class="br-rmgo">&rarr;</span></a>';
   }
   if(CIRCUIT.claimed){
-    h+='<div class="x-note" style="margin-top:8px">\\u2713 MARCH COMPLETE &mdash; DAY '+sd+' &bull; +'
+    h+='<div class="x-note" style="margin-top:8px">\u2713 MARCH COMPLETE &mdash; DAY '+sd+' &bull; +'
       +Number(CIRCUIT.payout||0)+' XP claimed. Tomorrow pays +'+Number(CIRCUIT.next_payout||10)
       +' XP. Miss a day and the streak resets.</div>';
   } else if(CIRCUIT.can_claim){
@@ -375,7 +375,7 @@ function render(){
       var id2=ident();
       dopaPost("circuit","c_action","circuit_claim",{callsign:id2.callsign,device:id2.device},function(j){
         if(j&&j.ok){
-          toast("ROUTE MARCH COMPLETE. +"+Number(j.payout||0)+" XP \\u2014 DAY "+Number(j.streak_day||1)+". Tomorrow pays +"+Number(j.next_payout||0)+" XP.");
+          toast("ROUTE MARCH COMPLETE. +"+Number(j.payout||0)+" XP \u2014 DAY "+Number(j.streak_day||1)+". Tomorrow pays +"+Number(j.next_payout||0)+" XP.");
         }
         else { toast(PF.errCopy(j,"Claim failed.")); btn.disabled=false; btn.textContent="CLAIM BONUS"; return; }
         load();

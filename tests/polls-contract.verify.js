@@ -34,7 +34,8 @@ var inner = m[1];
 /* expose internals for the contract assertions (injected inside the IIFE) */
 inner = inner.replace(/\}\)\(\);\s*$/,
   '\n;window.__PT={post:post,api:api,pollDetailAdapt:pollDetailAdapt,' +
-  'pollCountsOpen:pollCountsOpen,pollCard:pollCard,' +
+  'pollCountsOpen:pollCountsOpen,pollCard:pollCard,pollsPane:pollsPane,' +
+  'pollsIsAdmin:pollsIsAdmin,' +
   'resetDetails:function(){POLLS_DETAIL={};POLLS_FETCHING={};}};\n})();');
 
 /* ---------- canned backend (contract shape: be/network-polls) ---------- */
@@ -79,6 +80,7 @@ function canned(action, params) {
 var apiUrls = [];
 var postBodies = [];
 var store = {};
+var adminStore = {};
 var xCivic = { innerHTML: '' };
 
 function parseQuery(u) {
@@ -103,6 +105,13 @@ sandbox.window = {
     getItem: function (k) { return store[k] != null ? store[k] : null; },
     setItem: function (k, v) { store[k] = String(v); },
     removeItem: function (k) { delete store[k]; }
+  },
+  /* admin-session flag per the pollsIsAdmin() contract (same key as
+     governance.js/economy.js); secret is entered on private admin surfaces */
+  sessionStorage: {
+    getItem: function (k) { return adminStore[k] != null ? adminStore[k] : null; },
+    setItem: function (k, v) { adminStore[k] = String(v); },
+    removeItem: function (k) { delete adminStore[k]; }
   }
 };
 sandbox.window.localStorage = sandbox.window.localStorage;
@@ -128,6 +137,7 @@ sandbox.document = documentStub;
 sandbox.window.document = documentStub;
 sandbox.PF = sandbox.window.PF;
 sandbox.localStorage = sandbox.window.localStorage;
+sandbox.sessionStorage = sandbox.window.sessionStorage;
 sandbox.setInterval = function () { return 0; };
 sandbox.clearInterval = function () {};
 sandbox.setTimeout = setTimeout;
@@ -198,6 +208,20 @@ setTimeout(function () {
     var srcFull = fs.readFileSync(SRC, 'utf8');
     ok('no "poll","p_action" POST in sources', srcFull.indexOf('"poll","p_action"') < 0);
     ok('no p_action polls key in sources', !/po?ll[^]*p_action/.test(srcFull) || srcFull.indexOf("p_action:'polls_") < 0);
+
+    /* ---------- 7. admin gate: creation surface admin-only, no secret input on public pane ---------- */
+    var htmlNonAdmin = T.pollsPane();
+    ok('non-admin: pollsIsAdmin() false without session secret', !T.pollsIsAdmin());
+    ok('non-admin: no START A POLL button rendered', htmlNonAdmin.indexOf('cvPollOpen') < 0, htmlNonAdmin.slice(-400));
+    ok('non-admin: no create form rendered', htmlNonAdmin.indexOf('cvPollCreate') < 0);
+    ok('non-admin: admin-only x-note shown', htmlNonAdmin.indexOf('Poll creation is admin-only') >= 0, htmlNonAdmin.slice(-400));
+    ok('no admin-secret input on the public pane (non-admin)', htmlNonAdmin.indexOf('pf_admin_secret') < 0);
+    adminStore['pf_admin_secret'] = 's3cret';
+    ok('admin: pollsIsAdmin() true with session secret', T.pollsIsAdmin());
+    var htmlAdmin = T.pollsPane();
+    ok('admin: START A POLL button rendered', htmlAdmin.indexOf('cvPollOpen') >= 0 && htmlAdmin.indexOf('START A POLL') >= 0, htmlAdmin.slice(-400));
+    ok('no admin-secret input on the public pane (admin)', htmlAdmin.indexOf('pf_admin_secret') < 0);
+    delete adminStore['pf_admin_secret'];
 
     console.log(failures === 0 ? '\nALL POLLS CONTRACT CHECKS PASSED' : '\n' + failures + ' CHECK(S) FAILED');
     process.exit(failures === 0 ? 0 : 1);

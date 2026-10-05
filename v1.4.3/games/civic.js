@@ -437,9 +437,12 @@ function pollCreateForm(){
     +'<div class="c-err" id="cvPollErr"></div></div>';
   return h;
 }
+/* Admin gate for poll creation: backend polls_create is admin-only (CEO decision).
+   Same session flag as governance.js/economy.js — the secret is entered on the
+   private admin surfaces, never on this public pane. */
+function pollsIsAdmin(){ try{ return !!sessionStorage.getItem("pf_admin_secret"); }catch(e){ return false; } }
 function pollsPane(){
-  var h='<div class="x-pane"><h4>Network Polls</h4>';
-  h+='<div class="x-note">Cast your vote. Results stay hidden until you vote \u2014 no bandwagoning.</div>';
+  var h='<div class="x-pane"><h4>Network Polls</h4>';  h+='<div class="x-note">Cast your vote. Results stay hidden until you vote \u2014 no bandwagoning.</div>';
   if(!BACKEND||(POLLS_ERR&&!POLLS_OPEN)){
     h+='<div class="c-err">Couldn&rsquo;t reach the polls wire.</div>'
       +'<button class="c-btn" id="cvPollRetry" style="min-height:44px">RETRY</button>';
@@ -454,10 +457,14 @@ function pollsPane(){
     h+='<h4 style="margin-top:10px">Closed polls</h4>';
     for(var c=0;c<closed.length;c++){ h+=pollCard(closed[c],true); }
   }
-  if(POLLS_CREATE_OPEN){
-    h+=pollCreateForm();
+  if(pollsIsAdmin()){
+    if(POLLS_CREATE_OPEN){
+      h+=pollCreateForm();
+    } else {
+      h+='<button class="c-btn" id="cvPollOpen" style="min-height:44px">START A POLL</button>';
+    }
   } else {
-    h+='<button class="c-btn" id="cvPollOpen" style="min-height:44px">START A POLL</button>';
+    h+='<div class="x-note">Poll creation is admin-only &mdash; vote on open polls below.</div>';
   }
   h+='</div>';
   return h;

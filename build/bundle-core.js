@@ -78,6 +78,10 @@ var BUNDLES = {
     'pages/slr-roster.js',
     'pages/slr-catalog.js',
     'pages/page-mount.js',
+    /* A5 (2026-10-04): Scout Circuit claim panel (roster page). */
+    'pages/scout-circuit.js',
+    /* A6 (2026-10-04): Biggest Climbers teaser (homepage Morning Briefing). */
+    'pages/climbers-teaser.js',
     'games/notify.js',
     'core/06-pinups.js',
     'core/share-image.js',

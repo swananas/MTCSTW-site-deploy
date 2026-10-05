@@ -75,6 +75,7 @@
       + '<div style="text-align:center;margin-top:2.5rem;"><a href="/creator-onboard" style="color:' + RED + ';font-weight:900;letter-spacing:0.12em;text-decoration:none;border-bottom:2px solid ' + RED + ';">WANT IN? JOIN THE SICK LEFT RADICALS →</a></div>'
       + fundBlock(m, RED, CREAM, MUTED)
       + (related ? '<h2 style="color:' + MUTED + ';font-size:1rem;font-weight:700;letter-spacing:0.1em;margin:2.5rem 0 0.8rem;">RELATED CREATORS</h2><div style="display:flex;flex-direction:column;gap:0.5rem;">' + related + '</div>' : '')
+      + rouletteBlock(m, all)
       + '</div></div>';
   }
 
@@ -99,6 +100,67 @@
       + 'font-size:0.8rem;letter-spacing:0.08em;text-decoration:none;border-bottom:1px solid ' + muted + ';">'
       + 'or fill one of their open bounties \u2192</a></div>'
       + '</div>';
+  }
+
+  /* A5 ROSTER ROULETTE (2026-10-04): "NEXT FIGHTER →" weighted-random deep
+     link to another creator, closing every catalog page's dead end.
+     Weight = followers_total (bigger reach surfaces slightly more often,
+     but every creator stays in the pool). Excludes the current page and
+     Jeanine Pirreaux Comedy (do-not-touch). Never invents creators — the
+     pick always comes from the master DB. Pure routing: zero XP. */
+  var ROULETTE_SKIP_SLUGS = ['jeanine-pirreaux-comedy'];
+  function pickNextFighter(m, all) {
+    var pool = (all || []).filter(function (x) {
+      return x && x.slug && x.slug !== m.slug && x.catalog_path &&
+        ROULETTE_SKIP_SLUGS.indexOf(x.slug) === -1 && (x.followers_total || 0) > 0;
+    });
+    if (!pool.length) return null;
+    var total = 0, i;
+    for (i = 0; i < pool.length; i++) total += (pool[i].followers_total || 1);
+    var r = Math.random() * total, acc = 0;
+    for (i = 0; i < pool.length; i++) {
+      acc += (pool[i].followers_total || 1);
+      if (r <= acc) return pool[i];
+    }
+    return pool[pool.length - 1];
+  }
+  function rouletteBlock(m, all) {
+    var next = pickNextFighter(m, all);
+    if (!next) return '';
+    return '<div style="margin:2.5rem auto 0;max-width:560px;background:#0d0d0d;border:2px dashed ' + RED + ';'
+      + 'padding:1.6rem 1rem;text-align:center;box-sizing:border-box;">'
+      + '<div style="color:' + MUTED + ';font-weight:700;letter-spacing:0.3em;font-size:0.7rem;margin-bottom:0.5rem;">ROSTER ROULETTE</div>'
+      + '<div style="color:' + CREAM + ';font-size:1rem;margin-bottom:0.3rem;">The network is bigger than one fighter.</div>'
+      + '<div style="color:' + MUTED + ';font-size:0.85rem;margin-bottom:1rem;">Next up: <strong style="color:' + CREAM + ';">' + esc(next.name) + '</strong>'
+      + (next.followers_display ? ' · ' + esc(next.followers_display) + ' followers' : '') + '</div>'
+      + '<a href="' + esc(next.catalog_path) + '" style="display:inline-block;background:' + RED + ';color:#fff;'
+      + 'font-weight:900;letter-spacing:0.12em;font-size:0.9rem;text-decoration:none;padding:0.9rem 2rem;">NEXT FIGHTER \u2192</a>'
+      + '<div style="margin-top:0.7rem;color:' + MUTED + ';font-size:0.75rem;letter-spacing:0.08em;">6 catalog visits in a week earns the SCOUT medal</div>'
+      + '</div>';
+  }
+
+  /* A5 SCOUT CIRCUIT tracking (2026-10-04): unique catalog slugs viewed
+     this Chicago week, device-local (pf_scout_v1: {w, slugs[], claimed}).
+     The claim itself is validated server-side (scout_claim checks each
+     slug against this week's pageview beacon). */
+  function chiMondayKey() {
+    var d = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+    var dow = (d.getDay() + 6) % 7;
+    d.setDate(d.getDate() - dow);
+    function p2(n) { return (n < 10 ? '0' : '') + n; }
+    return d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate());
+  }
+  function scoutTrack(slug) {
+    try {
+      var wk = chiMondayKey(), s = null;
+      try { s = JSON.parse(localStorage.getItem('pf_scout_v1') || 'null'); } catch (e) {}
+      if (!s || s.w !== wk) s = { w: wk, slugs: [], claimed: false };
+      if (s.slugs.indexOf(slug) === -1) {
+        s.slugs.push(slug);
+        try { localStorage.setItem('pf_scout_v1', JSON.stringify(s)); } catch (e2) {}
+        try { document.dispatchEvent(new CustomEvent('pf-scout-progress', { detail: { count: s.slugs.length, week: wk } })); } catch (e3) {}
+      }
+    } catch (e4) {}
   }
 
   function takeoverMount() {
@@ -132,6 +194,8 @@
       var root = el || takeoverMount();
       render(root, member, members);
       PF.log('slr-catalog', 'rendered ' + slug);
+      /* A5 SCOUT CIRCUIT: record this catalog view for the weekly circuit. */
+      try { scoutTrack(slug); } catch (eS) {}
       /* Efficiency Index: site-pull beacon (one ping per slug per session) +
          paint the live computed score into the [data-eff-score] slot.
          P0: pageview is POST-only — use fetch, not image beacon. */

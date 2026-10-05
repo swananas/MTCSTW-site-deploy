@@ -13,6 +13,9 @@
   if (!PF.slrReady) { PF.error('slr-roster', 'slr-db not loaded'); return; }
 
   var RED = '#c1121f', CREAM = '#f5f0e1', BLACK = '#0a0a0a', MUTED = '#b8ab8e';
+  /* R3 (2026-10-04): no vote chip for Jeanine Pirreaux Comedy (do-not-touch).
+     FUND_SKIP_SLUGS-style exclusion on the roster card vote CTA. */
+  var VOTE_SKIP_SLUGS = ['jeanine-pirreaux-comedy'];
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -57,7 +60,7 @@
       + '</div>'
       + '<div data-eff-score="' + esc(m.slug) + '" style="font-size:0.8rem;color:' + MUTED + ';">Propaganda score <strong style="color:' + CREAM + ';">' + m.propaganda_score.toFixed(1) + '/10</strong></div>'
       + '<a href="' + esc(m.catalog_path) + '" style="margin-top:auto;padding-top:0.6rem;display:block;text-align:center;background:' + RED + ';color:#fff;font-weight:900;letter-spacing:0.14em;font-size:0.85rem;padding:0.65rem;text-decoration:none;">VIEW PROFILE →</a>'
-      + '<a href="/#pf-vote?for=' + esc(m.slug) + '" style="margin-top:0.5rem;display:block;text-align:center;border:2px solid ' + RED + ';color:' + RED + ';font-weight:900;letter-spacing:0.14em;font-size:0.8rem;padding:0.55rem;text-decoration:none;">VOTE FOR ' + esc(m.name) + ' &rarr;</a>'
+      + (VOTE_SKIP_SLUGS.indexOf(m.slug) === -1 ? '<a href="/#pf-vote?for=' + esc(m.slug) + '" style="margin-top:0.5rem;display:block;text-align:center;border:2px solid ' + RED + ';color:' + RED + ';font-weight:900;letter-spacing:0.14em;font-size:0.8rem;padding:0.55rem;text-decoration:none;">VOTE FOR ' + esc(m.name) + ' &rarr;</a>' : '')
       + '</div></div>';
   }
 

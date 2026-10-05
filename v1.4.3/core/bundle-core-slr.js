@@ -234,11 +234,15 @@
     chiNow: function () { try { return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' })); } catch (e) { return new Date(); } },
     mondayOf: function (d) { var x = new Date(d); var day = (x.getDay() + 6) % 7; x.setHours(0, 0, 0, 0); x.setDate(x.getDate() - day); return x; },
     isoWeekKey: function (d) { var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); var day = (t.getUTCDay() + 6) % 7; t.setUTCDate(t.getUTCDate() - day + 3); var first = new Date(Date.UTC(t.getUTCFullYear(), 0, 4)); var fday = (first.getUTCDay() + 6) % 7; first.setUTCDate(first.getUTCDate() - fday + 3); var w = 1 + Math.round((t - first) / (7 * 864e5)); return t.getUTCFullYear() + '-W' + String(w).padStart(2, '0'); },
-    /* Daily XP economy: every comrade caps at 50 XP per day (America/Chicago)
-       from daily tasks. Weekly tasks, one-time bonuses, recruit bounties, and
-       the weekly FULL DEPLOYMENT medal are exempt — they're bounded by
-       week/event already. All daily XP awards MUST route through claimDayXp
-       so the cap holds no matter what order tasks are completed in. */
+    /* SHARED DAILY POOL CAP (all games): every comrade's daily-task XP draws
+       from ONE 50 XP/day pool (America/Chicago), enforced by claimDayXp.
+       Individual games may run their own LOWER sub-caps on their own awards
+       (e.g. Daily Orders caps its page awards at 25/day) — a sub-cap narrows
+       that game's slice only; it can never raise or bypass this pool.
+       Weekly tasks, one-time bonuses, recruit bounties, and the weekly FULL
+       DEPLOYMENT medal are exempt — they're bounded by week/event already.
+       All daily XP awards MUST route through claimDayXp so the cap holds no
+       matter what order tasks are completed in. */
     DAILY_XP_CAP: 50,
     _xpDayKey: 'pf_xpday_v1',
     _xpDayStr: function () { try { var n = this.chiNow(); return n.getFullYear() + '-' + ('0' + (n.getMonth() + 1)).slice(-2) + '-' + ('0' + n.getDate()).slice(-2); } catch (e) { return ''; } },
@@ -2062,12 +2066,16 @@ var PTS_DEFAULTS={ 'pf-order-checkin':1, 'pf-drop-claimed':2, 'pf-caption-submit
    never on the raw event — so the backend always matches the user's ledger. */
 var POOL_SETTLED={ 'pf-guess-done':1, 'pf-raid-report':1, 'pf-poster-made':1, 'pf-share-image':1, 'pf-drop-claimed':1, 'pf-billionaire-answered':1, 'pf-interrogation-answered':1, 'pf-checkin':1, 'pf-guess-scored':1, 'pf-do-challenge-done':1, 'pf-do-fullspectrum':1 };
 var TASKS=Object.keys(XP_DEFAULTS);
-function report(actionType, xp, pts, meta){
+function report(actionType, xp, pts, meta, dedupeKey){
   try{
     if(window.PF_BACKEND_URL){
       var dev='',cs='';
       try{ if(window.PFDeviceId) dev=window.PFDeviceId(); if(window.PFCallsign) cs=window.PFCallsign(); }catch(e){}
-      fetch(window.PF_BACKEND_URL,{method:'POST',mode:'no-cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify({type:'action',action_type:actionType,xp:xp,pts:pts,device:dev,callsign:cs,meta:meta||'',auth_secret:(window.PF&&PF.getAuthSecret?PF.getAuthSecret():'')})}).catch(function(){});
+      var body={type:'action',action_type:actionType,xp:xp,pts:pts,device:dev,callsign:cs,meta:meta||'',auth_secret:(window.PF&&PF.getAuthSecret?PF.getAuthSecret():'')};
+      /* F-5 (2026-10-05): idempotency key — the backend drops a second row
+         with the same key (no-cors retries / double-fires). */
+      if(dedupeKey) body.dedupe_key=dedupeKey;
+      fetch(window.PF_BACKEND_URL,{method:'POST',mode:'no-cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(body)}).catch(function(){});
       if(typeof window.pfFetchGlobalTotal==='function'){ setTimeout(window.pfFetchGlobalTotal, 1500); }
       if(typeof window.pfFetchGlobalTasks==='function'){ setTimeout(window.pfFetchGlobalTasks, 1500); }
     }
@@ -2082,8 +2090,13 @@ TASKS.forEach(function(ev){
     try{ if(e&&e.detail&&e.detail.creator){ meta=String(e.detail.creator)+':'+(Math.floor(Number(e.detail.tipped)||0)); } }catch(err){}
     try{ if(e&&e.detail&&e.detail.archetype){ meta='archetype:'+String(e.detail.archetype).slice(0,24); } }catch(err){}
     try{ if(e&&e.detail&&typeof e.detail.score==='number'){ meta='score:'+Math.max(0,Math.min(5,Math.floor(e.detail.score))); } }catch(err){}
+    /* F-5 (2026-10-05): bracket-board rides its match detail + idempotency
+       key on the event (single rail — the direct POST is gone). */
+    try{ if(e&&e.detail&&e.detail.ballot){ meta=String(e.detail.ballot).slice(0,128); } }catch(err){}
+    var dedupeKey='';
+    try{ if(e&&e.detail&&e.detail.dedupe){ dedupeKey=String(e.detail.dedupe).slice(0,128); } }catch(err){}
     var actionType=ev.replace(/^pf-/,'').replace(/-/g,'_');
-    report(actionType, xp, PTS_DEFAULTS[ev]||1, meta);
+    report(actionType, xp, PTS_DEFAULTS[ev]||1, meta, dedupeKey);
   });
 });
 /* True-award settlement from enlistment-ranks (pool-capped events only).
@@ -2096,7 +2109,9 @@ document.addEventListener("pf-tally-settle",function(e){
   try{ if(e&&e.detail&&typeof e.detail.xp==='number'){ xp=Math.max(0,Math.floor(e.detail.xp)); } }catch(err){}
   var meta='';
   try{ if(e&&e.detail&&typeof e.detail.score==='number'){ meta='score:'+Math.max(0,Math.min(5,Math.floor(e.detail.score))); } }catch(err){}
-  report(ev.replace(/^pf-/,'').replace(/-/g,'_'), xp, PTS_DEFAULTS[ev]||1, meta);
+  var dedupeKey='';
+  try{ if(e&&e.detail&&e.detail.dedupe){ dedupeKey=String(e.detail.dedupe).slice(0,128); } }catch(err){}
+  report(ev.replace(/^pf-/,'').replace(/-/g,'_'), xp, PTS_DEFAULTS[ev]||1, meta, dedupeKey);
 });
 })();
 

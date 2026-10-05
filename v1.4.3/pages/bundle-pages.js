@@ -382,7 +382,9 @@
   if (window.pfPoliticalHqDone) return;
   if (PF && PF.skip('political-hq')) { return; }
   var host = document.getElementById('pf-political-hq');
-  if (!host) return; /* only mounts on the Political HQ page */
+  /* 2026-10-05 (audit #4): a missing mount div used to be a silent no-op —
+     log PF.error so a misconfigured page is visible instead of invisible. */
+  if (!host) { if (PF) PF.error('political-hq', 'mount div #pf-political-hq missing — skipping'); return; }
   if (isEditor()) return;
   window.pfPoliticalHqDone = true;
 
@@ -406,7 +408,23 @@
     var scripts = root.querySelectorAll('script');
     for (var i = 0; i < scripts.length; i++) {
       try { (0, eval)(scripts[i].textContent); }
-      catch (e) { if (PF) PF.error('political-hq', 'inner script failed in ' + label + ' :: ' + (e && e.message || e)); }
+      catch (e) {
+        if (PF) PF.error('political-hq', 'inner script failed in ' + label + ' :: ' + (e && e.message || e));
+        /* TERMINAL STATE (2026-10-05, audit #1 — parity with the
+           pages/page-mount.js fix): a dead inner script must never leave
+           its "Mobilizing…" skeleton spinning forever. Swap any loading
+           placeholders in this section for an explicit error + reload. */
+        try {
+          var loads = root.querySelectorAll('.c-load,.hq-load,.ca-load,.cw-load,.p-load');
+          for (var j = 0; j < loads.length; j++) {
+            var d = document.createElement('div');
+            d.style.cssText = 'border:2px solid #c1121f;background:#1a0505;color:#f5f0e1;padding:12px;margin:8px 0;font-family:Arial,sans-serif;font-size:14px;';
+            d.innerHTML = 'This widget failed to start. ' +
+              '<button style="background:#c1121f;color:#fff;border:0;font-weight:700;padding:8px 14px;cursor:pointer;" onclick="location.reload()">Reload</button>';
+            if (loads[j].parentNode) loads[j].parentNode.replaceChild(d, loads[j]);
+          }
+        } catch (e2) {}
+      }
       scripts[i].remove();
     }
   }
@@ -1916,6 +1934,13 @@
       var cbs=panel.querySelectorAll('input[data-pref]');
       for(var c=0;c<cbs.length;c++) out[cbs[c].getAttribute("data-pref")]=cbs[c].checked?1:0;
       sv.disabled=true;
+      /* G-08 (2026-10-05): this is the IN-APP prefs contract —
+         post("notify","n_action","notification_prefs") reads/writes the
+         in-app toggles (battles/boosts/recruits/tips) in `notif_prefs`
+         (src/notify.js). The SEPARATE contract
+         post("notifyq","nq_action","notify_prefs") is the EMAIL prefs page
+         (games/notify-prefs.js, `contact_info` via src/notifyqueue.js).
+         Different surfaces, different tables — keep both, don't unify. */
       post("notify","n_action","notification_prefs",out,function(j){
         if(!j||!j.ok){ toast(ntWriteErr(j&&j.err,"Save failed. Tap again to retry.")); sv.disabled=false; return; }
         toast("PREFERENCES SAVED.");

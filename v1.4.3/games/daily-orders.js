@@ -94,10 +94,13 @@ var FIELD_OPS=[
 ];
 var OP_XP=5, CMD_XP=5;
 function fieldOp(){ return FIELD_OPS[dayOfYear()%FIELD_OPS.length]; }
-/* economy — every daily task on the page draws from one 25 XP/day pool (DAILY_MAX).
-   3 orders x 5 + field op 5 + command bonus 5 = 25; a perfect day lands exactly
-   on 25. Cell streaks multiply mission XP but the pool still caps at 25 — the
-   bonus gets you there faster. */
+/* Daily Orders sub-cap; the shared pool caps at 50. DAILY_MAX=25/day bounds
+   THIS page's awards only: 3 orders x 5 + field op 5 + command bonus 5 = 25,
+   so a perfect day lands exactly on 25. Cell streaks multiply mission XP but
+   the page's slice still caps at 25 — the bonus gets you there faster. All
+   awards route through PF.claimDayXp (the shared 50/day pool); the sub-cap
+   narrows this page's slice only. (Rebalance contract: this module never
+   touches the shared pool cap constant — the bus owns it.) */
 var PER_DAY=3, BASE_XP=5, DAILY_MAX=25;
 var PLATFORMS=[["tiktok","TikTok"],["facebook","Facebook"],["instagram","Instagram"],["x","X"],["youtube","YouTube"]];
 var STREAK_BONUS={3:10,7:25,30:100};
@@ -232,8 +235,8 @@ function checkin(mi,platform){
   var firstToday=rec.done.length===0;
   var reportNo=rec.done.length+1;                    /* 1,2,3 */
   /* CELL BONUS: shared cell streaks juice mission XP. +5%/streak day, cap +50%.
-     The central 25/day pool (PF.claimDayXp) still holds — the bonus just gets
-     you to the cap faster instead of stacking above it. */
+     The shared 50/day pool (PF.claimDayXp) still holds — the bonus just gets
+     you to the Daily Orders sub-cap (25) faster instead of stacking above it. */
   var cellMult=(typeof window.pfCellMult==="function")?window.pfCellMult():1;
   var want=Math.round(BASE_XP*Math.max(1,cellMult));
   var gained=0;
@@ -246,8 +249,8 @@ function checkin(mi,platform){
     else if(o.last&&o.last!==t&&(o.shields||0)>0){ o.shields--; shieldUsed=true; /* streak holds */ }
     else { o.streak=1; }
     o.last=t;
-    /* Streak milestone bonus draws from the same 25/day pool — it gets you to
-       the cap faster, never stacks above it. */
+    /* Streak milestone bonus routes through PF.claimDayXp (the shared 50/day
+       pool) — it gets you to the cap faster, never stacks above it. */
     if(STREAK_BONUS[o.streak]&&!rec.bonusPaid){ try{ bonus=(window.PF&&PF.claimDayXp)?PF.claimDayXp(STREAK_BONUS[o.streak]):STREAK_BONUS[o.streak]; }catch(e){ bonus=STREAK_BONUS[o.streak]; } rec.bonusPaid=true; }
     /* every 7th streak day forges a shield: one missed day forgiven */
     if(o.streak%7===0&&o.lastShieldAt!==o.streak){ o.shields=(o.shields||0)+1; o.lastShieldAt=o.streak; shieldEarned=true; }
@@ -271,7 +274,8 @@ function fireEvent(t,mi,reportNo,xp,streak,platform){
   try{ document.dispatchEvent(new CustomEvent("pf-order-checkin",{detail:{day:t,mission:mi,reportNo:reportNo,xp:xp,streak:streak,platform:platform||null}})); }catch(e){}
 }
 /* COMMAND BONUS: 3/3 missions + field op = FULL DEPLOYMENT, once per day.
-   Draws from the same 25/day pool — it can clip to 0 if the pool is spent. */
+   Draws from the shared 50/day pool via PF.claimDayXp — it can clip to 0 if
+   the pool is spent. */
 function maybeCommandBonus(){
   var d=dayRec(), t=today();
   if(d.rec.done.length>=3&&d.rec.opDone&&!d.rec.cmdPaid){

@@ -20,7 +20,10 @@
      over this interstitial. R1 marks r1='pending' synchronously at claim
      dispatch, then settles to 'card' | 'declined'. This interstitial shows
      only on 'declined'. A missing record means R1 isn't evaluating on this
-     page (not loaded / kill-switched) — show on the normal beat. */
+     page (not loaded / kill-switched) — show on the normal beat.
+     2026-10-05: core/rites.js (ENLISTED) joined as r0 — precedence
+     graduation > enlisted > squadjoin. Poll condition is now
+     r1==='declined' && r0==='declined' (absent records count as declined). */
   var CLAIM_UX_KEY = "pf_claim_ux_v1";
   function claimUxGet(cs){
     try{
@@ -54,14 +57,35 @@
     if(guardBlocks(cs)) return;
     var g=null; try{ g=claimUxGet(cs); }catch(e){}
     if(g&&(g.r19==="shown")) return; /* idempotent per claim */
-    if(g&&(g.r1==="pending")){ pollVerdict(cs,0); return; }
+    /* 2026-10-05 (r0 claim arbitration): ENLISTED (core/rites.js) joined the
+       claim arbitration as r0 — precedence graduation > enlisted > squadjoin.
+       R19 waits while EITHER party is still evaluating ('pending'). */
+    if(g&&(g.r1==="pending"||g.r0==="pending")){ pollVerdict(cs,0); return; }
     showNow(cs);
+  }
+  /* r0/r1 verdict gate: graduation (r1) and ENLISTED (r0) take precedence.
+     Show only when both are 'declined' — an absent record means that party
+     isn't evaluating on this page (not loaded / kill-switched), which counts
+     as declined, preserving the pre-r0 fallback behavior. */
+  function verdictBlocks(g){
+    try{
+      if(document.getElementById("pf-graduation")) return true;
+      if(document.getElementById("pf-enlisted")) return true;
+    }catch(e){}
+    return false;
   }
   function pollVerdict(cs,n){
     if(seen()) return;
     if(guardBlocks(cs)) return;
+    if(verdictBlocks(claimUxGet(cs))) return;
     var g=null; try{ g=claimUxGet(cs); }catch(e){}
-    if(g&&g.r1==="pending"&&n<POLL_MAX){ setTimeout(function(){ pollVerdict(cs,n+1); },POLL_MS); return; }
+    if(g&&(g.r1==="pending"||g.r0==="pending")&&n<POLL_MAX){ setTimeout(function(){ pollVerdict(cs,n+1); },POLL_MS); return; }
+    /* Bound hit (or already settled): show only on r1==='declined' AND
+       r0==='declined' — r0='card' means ENLISTED absorbed the squad-join job. */
+    var g2=null; try{ g2=claimUxGet(cs); }catch(e2){}
+    var r1ok=!g2||!g2.r1||g2.r1==="declined";
+    var r0ok=!g2||!g2.r0||g2.r0==="declined";
+    if(!(r1ok&&r0ok)) return;
     showNow(cs);
   }
   function showNow(cs){

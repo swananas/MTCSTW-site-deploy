@@ -50,6 +50,11 @@ var CORE_FILES = [
   /* wave-live-rails (2026-10-05): Top Stories rail client — one shared
      helper (PF.newsTop) so every section renders the same news cache. */
   'core/news-top.js',
+  /* eo-feed (be/eo-feed companion, 2026-10-05): Executive Orders feed
+     silo for Political HQ — stages the pf-ov-eo template; pages/
+     political-hq.js mounts it via ORDER ['eo','pf-ov-eo'].
+     Kill: ?pf_off=eo. Fail-soft: hides its section on missing data. */
+  'core/eo-feed.js',
   /* creator-stats (2026-10-05): unified stats reader — PF.creatorStats.
      After 03-global (PF_BACKEND_URL); lazy, no load-time DOM/DB dependency. */
   'core/creator-stats.js',

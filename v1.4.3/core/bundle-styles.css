@@ -771,6 +771,42 @@ html,body{overflow-x:clip;}
 .bt-st-pending{color:#fc0;border-color:#fc0;}
 .bt-st-approved{color:#0c6;border-color:#0c6;}
 .bt-st-rejected{color:#c33;border-color:#c33;}
+/* EO FEED (fe/eo-feed, 2026-10-05): Executive Orders feed cards, Political HQ. */
+#pf-eo .eo-filters{margin:0 0 14px;}
+#pf-eo .eo-chips{margin:8px 0;}
+#pf-eo .eo-chips button{margin:3px;padding:7px 12px;font-size:12px;letter-spacing:1px;}
+#pf-eo .eo-chips button.on{background:var(--pf-red);color:#fff;border-color:#fff;}
+#pf-eo .eo-topics-pending{color:var(--pf-muted);font-size:12px;font-style:italic;margin:8px 0;}
+#pf-eo .eo-card{border:2px solid var(--pf-border-light);background:#141414;margin:0 0 14px;padding:16px;text-align:left;}
+#pf-eo .eo-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+#pf-eo .eo-num{color:var(--pf-red-bright);font-weight:900;letter-spacing:2px;font-size:18px;}
+#pf-eo .eo-badge{font-size:11px;font-weight:700;letter-spacing:1px;padding:4px 10px;border:2px solid;}
+#pf-eo .eo-active{color:#7ddf8a;border-color:#7ddf8a;}
+#pf-eo .eo-revoked{color:#999;border-color:#999;}
+#pf-eo .eo-superseded{color:var(--pf-gold);border-color:var(--pf-gold);}
+#pf-eo .eo-pending{color:var(--pf-muted);border-color:var(--pf-muted);border-style:dashed;}
+#pf-eo .eo-title{color:var(--pf-cream);font-size:18px;margin:0 0 8px;line-height:1.35;}
+#pf-eo .eo-meta{display:flex;gap:12px;flex-wrap:wrap;color:var(--pf-muted);font-size:12px;letter-spacing:1px;margin-bottom:10px;}
+#pf-eo .eo-topic{color:var(--pf-gold);font-weight:700;}
+#pf-eo .eo-summary{color:var(--pf-cream);font-family:var(--pf-font-body);font-size:14px;line-height:1.6;margin:0 0 6px;}
+#pf-eo .eo-pending-sum{color:var(--pf-muted);font-family:var(--pf-font-body);font-size:13px;font-style:italic;line-height:1.6;margin:0 0 6px;}
+#pf-eo .eo-curator{color:var(--pf-muted);font-size:11px;letter-spacing:1px;margin-bottom:8px;}
+#pf-eo .eo-action{display:inline-block;background:var(--pf-red);color:#fff;font-weight:700;padding:10px 16px;margin:8px 12px 8px 0;text-decoration:none;letter-spacing:1px;font-size:13px;}
+#pf-eo .eo-source{display:inline-block;color:var(--pf-gold);font-size:12px;letter-spacing:1px;margin:8px 0;text-decoration:underline;}
+#pf-eo .eo-row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;}
+#pf-eo .eo-share,#pf-eo .eo-quiz-toggle{font-size:12px;padding:8px 12px;letter-spacing:1px;}
+#pf-eo .eo-quiz{margin-top:10px;border-top:1px dashed var(--pf-border-light);padding-top:10px;}
+#pf-eo .eo-q{color:var(--pf-cream);font-weight:700;margin-bottom:8px;font-size:14px;}
+#pf-eo .eo-opts{display:flex;flex-direction:column;gap:6px;}
+#pf-eo .eo-opt{text-align:left;font-size:13px;}
+#pf-eo .eo-opt:disabled{opacity:.55;cursor:default;}
+#pf-eo .eo-opt.eo-right{border-color:#7ddf8a;color:#7ddf8a;}
+#pf-eo .eo-opt.eo-wrong{border-color:var(--pf-red);color:var(--pf-red-bright);}
+#pf-eo .eo-qmsg{margin-top:8px;font-size:13px;font-weight:700;letter-spacing:1px;color:var(--pf-gold);}
+#pf-eo .eo-quiz-none{color:var(--pf-muted);font-size:13px;font-style:italic;}
+#pf-eo .eo-empty{color:var(--pf-muted);font-style:italic;padding:16px;}
+#pf-eo .eo-foot{color:var(--pf-muted);font-size:11px;letter-spacing:1px;margin-top:12px;border-top:1px solid var(--pf-border-light);padding-top:10px;}
+
 
 /* === Ventures + IRL empty states readability (2026-10-04) === */
 #pf-ventures .x-pane,#pf-irl .x-pane{color:var(--pf-cream);}

@@ -401,6 +401,9 @@
     ['civic', 'pf-ov-civic'],
     ['notify-prefs', 'pf-ov-notify-prefs'],
     ['governance', 'pf-ov-gov'],
+    /* 2026-10-05 (fe/eo-feed): Executive Orders feed — mounts the pf-ov-eo
+       template staged by core/eo-feed.js. Kill: ?pf_off=eo. */
+    ['eo', 'pf-ov-eo'],
     ['intel', 'pf-ov-intel']
   ];
 

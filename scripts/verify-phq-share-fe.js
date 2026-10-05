@@ -194,8 +194,8 @@ var PHQ = env.sb.PF && env.sb.PF.PHQShare;
 if (!PHQ) { no('PF.PHQShare', 'API not exposed'); }
 else {
   ok('PF.PHQShare exposed');
-  if (JSON.stringify(PHQ.ids) === JSON.stringify(['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin']))
-    ok('ids list matches spec painter keys');
+  if (JSON.stringify(PHQ.ids) === JSON.stringify(['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-nonprofit']))
+    ok('ids list matches spec painter keys (+ phq-nonprofit fuel card)');
   else no('ids', 'unexpected ids: ' + JSON.stringify(PHQ.ids));
   ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin'].forEach(function (id) {
     if (typeof env.registered[id] === 'function') ok('setPoster registered: ' + id);

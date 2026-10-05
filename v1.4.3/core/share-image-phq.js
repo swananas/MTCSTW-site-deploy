@@ -1,13 +1,18 @@
 /* core/share-image-phq.js  |  PF v1.4.3 | POLITICAL HQ SHARE POSTERS.
-   Four custom PFShare painters (1080x1350, house palette) for the Political HQ
+   Five custom PFShare painters (1080x1350, house palette) for the Political HQ
    rollout: pressure-campaign card, prediction-result card, voting scorecard,
-   cell-competition winner card. Spec: ~/workspace/hidden/phq-share-specs.md.
+   cell-competition winner card, nonprofit fuel card (weave #9).
+   Spec: ~/workspace/hidden/phq-share-specs.md.
    Data contract (painter receives one data object; missing optional fields
    degrade gracefully; scorecard missing fields render '—', never invented):
      pressure:   {title, target, demand, signatures, signaturesGoal}
      prediction: {statement, outcome ('correct'|'missed'), wins, losses}
      scorecard:  {name, state, party, grade, verdict, votes[3] {bill, vote, for_us}}
      cellwin:    {cellName, verified, members, xp, runnerUp, marginXp, mvpCallsign, weekStart}
+     nonprofit:  {name, issue, mission, website, disclosure, compiled}
+                 — all from the Ally Organizations directory (be/nonprofits-directory);
+                 website is https-only sanitized, disclosure renders the honesty
+                 marker; missing fields degrade to '—', never invented.
    Callsigns resolve at paint time via callsignOf() (identity store /
    PFCallsign) — never passed in data. Painters that render the callsign
    inline set cv._pfStamped = true so PFShare.stampCallsign stays a no-op
@@ -19,7 +24,9 @@
      PF.PHQShare.paint('phq-cellwin', {...})   -> raw canvas (previews/tests)
    Routes through PFShare.shareImage/saveImage, so the callsign-claim gate,
    the idempotent stamp, and the pf-share-image credit all ride along.
-   KILL: ?pf_off=phq-share  or  localStorage pf_disabled_v1='["phq-share"]' */
+   KILL: ?pf_off=phq-share  or  localStorage pf_disabled_v1='["phq-share"]'
+   FUEL CARD KILL (surgical): ?pf_off=card-nonprofit pulls phq-nonprofit only;
+   the other four painters keep painting. */
 (function () {
   'use strict';
   var PF = window.PF;
@@ -29,11 +36,17 @@
 
   var W = 1080, H = 1350;
   var IDS = ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin'];
+  /* FUEL CARD KILL (weave #9, surgical): the CEO pulls the fuel-card surface
+     without touching the other four painters. paintOne fail-softs too. */
+  var FUEL_KILLED = false;
+  try { FUEL_KILLED = !!(PF && PF.skip('card-nonprofit')); } catch (e) {}
+  if (!FUEL_KILLED) IDS.push('phq-nonprofit');
   var TITLES = {
     'phq-pressure': 'PRESSURE CAMPAIGN',
     'phq-prediction': 'PREDICTION RESULT',
     'phq-scorecard': 'VOTING SCORECARD',
-    'phq-cellwin': 'CELL VICTORY'
+    'phq-cellwin': 'CELL VICTORY',
+    'phq-nonprofit': 'FUEL CARD'
   };
   var DEEP = 'MTCSTW.COM/POLITICAL-HQ';
   var PENDING = {};
@@ -353,6 +366,87 @@
     return cv;
   }
 
+  /* Fuel-card URL sanitize — EXACT mirror of the Ally Organizations pane's
+     npSafeUrl (games/nonprofits.js). Only https URLs print on a card; missing
+     scheme gets https://; anything else is dropped, never invented. */
+  function fuelSafeUrl(u) {
+    var s = String(u == null ? '' : u).trim();
+    if (!s) return '';
+    if (/^https?:\/\//i.test(s)) return s;
+    if (/^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(s)) return 'https://' + s;
+    return '';
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Surface 5 — Nonprofit Fuel Card (weave #9)                          */
+  /* Every pixel traces to the Ally Organizations directory row: name,
+     issue area, mission, sanitized website, disclosure marker (flagged orgs
+     only), source + compiled date. Nothing invented — missing fields render
+     '—'. Copy rule: fuel / support / back their fight, nothing else. */
+  /* ---------------------------------------------------------------- */
+  function paintNonprofit(d, cv, x) {
+    base(x); kicker(x);
+    badge(x, '\u2605 ALLY ORGANIZATION \u2605', 280, '#f5ead6', 38);
+    var cs = callsignOf();
+    /* Headline block. */
+    x.fillStyle = '#c1121f'; x.font = '900 96px "Arial Black",Arial,sans-serif';
+    x.fillText('FUEL THEIR FIGHT', W / 2, 430);
+    x.fillStyle = '#f5ead6'; x.font = '700 38px Arial,sans-serif';
+    x.fillText('SUPPORT THE ALLIES DOING THE WORK.', W / 2, 492);
+    x.fillStyle = '#c1121f';
+    x.fillRect(W / 2 - 300, 522, 600, 4);
+    /* Org name — shrink-to-fit, max 2 lines. */
+    var name = String(d.name == null || d.name === '' ? '\u2014' : d.name).toUpperCase();
+    var y = 610;
+    x.fillStyle = '#f5ead6';
+    fitFont(x, name, 88, 46, 910, '900');
+    wrap(x, name, 910).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 96; });
+    /* Issue area — gold, max 2 lines. */
+    var issue = String(d.issue == null || d.issue === '' ? '\u2014' : d.issue).toUpperCase();
+    y += 8;
+    x.fillStyle = '#e8b923';
+    fitFont(x, issue, 44, 30, 910, '700');
+    wrap(x, issue, 910).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 56; });
+    /* Mission — one line from the directory, max 3 lines, truncated honest. */
+    var mission = String(d.mission == null || d.mission === '' ? '\u2014' : d.mission);
+    y += 16;
+    x.fillStyle = '#c9bfa8'; x.font = '400 36px Arial,sans-serif';
+    var ml = wrap(x, mission, 910).slice(0, 3);
+    if (wrap(x, mission, 910).length > 3) ml[ml.length - 1] = ml[ml.length - 1].replace(/\s+$/, '') + '\u2026';
+    ml.forEach(function (l) { x.fillText(l, W / 2, y); y += 48; });
+    /* Sanitized website — https only; dropped URL prints nothing, never invents. */
+    var url = fuelSafeUrl(d.website);
+    y += 12;
+    if (url) {
+      x.fillStyle = '#f5ead6';
+      fitFont(x, url, 40, 28, 910, '700');
+      x.fillText(url, W / 2, y); y += 56;
+    }
+    /* Disclosure marker — flagged orgs only, gold, max 2 lines. */
+    var dis = String(d.disclosure == null ? '' : d.disclosure).trim();
+    if (dis) {
+      x.fillStyle = '#e8b923'; x.font = '700 34px Arial,sans-serif';
+      var dl = wrap(x, '\u26a0 ' + dis, 910).slice(0, 2);
+      if (wrap(x, '\u26a0 ' + dis, 910).length > 2) dl[dl.length - 1] = dl[dl.length - 1].replace(/\s+$/, '') + '\u2026';
+      dl.forEach(function (l) { x.fillText(l, W / 2, y); y += 44; });
+      y += 8;
+    }
+    /* Source + compiled date — traceable to the directory, not the org. */
+    y = Math.max(y, 1080);
+    x.fillStyle = '#8a8378'; x.font = '400 30px Arial,sans-serif';
+    var src = 'SOURCE: THE PROPAGANDA FACTORY ALLY DIRECTORY' +
+      (d.compiled ? ' \u00b7 COMPILED ' + String(d.compiled).toUpperCase() : '');
+    fitFont(x, src, 30, 24, 910, '400');
+    x.fillText(src, W / 2, y); y += 52;
+    if (cs) y = csLine(cv, x, y, cs) + 12;
+    else { /* no-callsign funnel, above the fold of the bottom stack */
+      y = Math.max(y, 1140);
+      claimLine(x, y); y += 50;
+    }
+    bottomStack(x, 'fight');
+    return cv;
+  }
+
   /* ---------------------------------------------------------------- */
   /* Painter table + registration                                       */
   /* ---------------------------------------------------------------- */
@@ -360,9 +454,11 @@
     'phq-pressure': paintPressure,
     'phq-prediction': paintPrediction,
     'phq-scorecard': paintScorecard,
-    'phq-cellwin': paintCellwin
+    'phq-cellwin': paintCellwin,
+    'phq-nonprofit': paintNonprofit
   };
   function paintOne(id, data) {
+    if (id === 'phq-nonprofit' && FUEL_KILLED) return null; /* fail-soft */
     var p = PAINT[id];
     if (!p) return null;
     var cv = newCv();

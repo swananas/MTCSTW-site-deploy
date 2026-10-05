@@ -252,7 +252,11 @@ var HQ_BUNDLES = {
     'governance.js',
     'notify-prefs.js',
     'intel.js',
-    'nonprofits.js'
+    'nonprofits.js',
+    /* 2026-10-05: "FUEL THEIR FIGHT" cards (fe/nonprofits-fuel-cards) — the
+       Ally Organizations decorator + issue-area card generator. After
+       nonprofits.js (the pane it decorates). */
+    'nonprofit-fuel-cards.js'
   ]
 };
 

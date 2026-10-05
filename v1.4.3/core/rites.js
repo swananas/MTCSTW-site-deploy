@@ -14,12 +14,18 @@
      - R19's poll condition becomes r1==='declined' && r0==='declined'
        (see 22-squadjoin.js); ENLISTED's CTA absorbs squadjoin's job when shown.
 
-   Card: fullscreen war-card (22-squadjoin.js pattern), one 1200ms beat:
-   the enlistment poster stamped "FIGHTING AS <CALLSIGN>" via
-   PFShare.poster('enlistment-ranks') + PFShare.stampCallsign (core/share-image.js),
-   exactly one CTA "GET A SQUAD ->" deep-linking to the cells lobby, dismiss
-   "later". On CTA or dismiss: idempotent POST rite_enlisted_complete
-   (server-authoritative rites_log; localStorage loop-guard only).
+   Card: fullscreen war-card (22-squadjoin.js pattern), rendered
+   optimistically on the 1200ms beat (no waiting on the server read —
+   the read reconciles after, standing the card down if the server says
+   this rite is already complete): the enlistment poster stamped
+   "FIGHTING AS <CALLSIGN>" via PFShare.poster('enlistment-ranks') +
+   PFShare.stampCallsign (core/share-image.js), exactly one CTA
+   "GET A SQUAD ->" deep-linking to the cells lobby, dismiss "later".
+   CTA: idempotent POST rite_enlisted_complete (server-authoritative
+   rites_log; localStorage loop-guard only) + 'rite_completed' event.
+   Dismiss ("later" / X / Escape / backdrop): NOT a completion — no
+   completion POST; r0 settles 'declined' so R19 squadjoin may re-prompt
+   later; 'rite_dismissed' event fires for the dismiss-rate guardrail.
    Zero XP granted by the card itself — the reward is the squad.
    KILL: ?pf_off=enlisted-rite  or  localStorage pf_disabled_v1='["enlisted-rite"]' */
 (function () {
@@ -152,22 +158,36 @@
     try { if (document.getElementById('pf-graduation')) { settle(cs, 'declined'); return; } } catch (e2) {}
     try { if (document.getElementById('pf-enlisted')) { settle(cs, 'card'); return; } } catch (e3) {}
 
+    /* Short-screen safety: shrink the card below 640px viewport height so
+       the CTAs stay reachable. Injected once. */
+    try {
+      if (!document.getElementById('pf-enlisted-css')) {
+        var pfs = document.createElement('style');
+        pfs.id = 'pf-enlisted-css';
+        pfs.textContent = '@media (max-height:640px){#pf-enlisted .pf-en-card{padding:1.25rem 1rem !important;}#pf-enlisted .pf-en-head{font-size:1.3rem !important;}#pf-enlisted .pf-en-poster{max-width:170px !important;margin-bottom:0.7rem !important;}}';
+        (document.head || document.documentElement).appendChild(pfs);
+      }
+    } catch (eCss) {}
+
     var img = posterUrl();
     try {
       var ov = document.createElement('div');
       ov.id = 'pf-enlisted';
       ov.setAttribute('role', 'dialog');
       ov.setAttribute('aria-label', 'Enlisted');
-      ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:99997;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;padding:1rem;box-sizing:border-box;overflow-y:auto;';
+      /* Scroll-safe modal: the card centers via margin:auto (never the
+         flex-centering top-clip), and the overlay scrolls when the card
+         is taller than the viewport — CTAs stay reachable on short screens. */
+      ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:99997;background:rgba(0,0,0,0.88);display:flex;padding:1rem;box-sizing:border-box;overflow-y:auto;-webkit-overflow-scrolling:touch;';
       var imgHtml = img
-        ? '<div style="margin:0 auto 1.1rem;max-width:260px;"><img src="' + img + '" alt="Enlistment poster" style="display:block;width:100%;height:auto;border:2px solid #c1121f;" /></div>'
+        ? '<div class="pf-en-poster" style="margin:0 auto 1.1rem;max-width:260px;"><img src="' + img + '" alt="Enlistment poster" style="display:block;width:100%;height:auto;border:2px solid #c1121f;" /></div>'
         : '';
       ov.innerHTML =
-        '<div style="position:relative;background:#0b0b0c;border:3px solid #c1121f;max-width:440px;width:100%;margin:auto;padding:2rem 1.5rem;text-align:center;box-sizing:border-box;font-family:\'Helvetica Neue\',Arial,sans-serif;">'
+        '<div class="pf-en-card" style="position:relative;background:#0b0b0c;border:3px solid #c1121f;max-width:440px;width:100%;margin:auto;padding:2rem 1.5rem;text-align:center;box-sizing:border-box;font-family:\'Helvetica Neue\',Arial,sans-serif;">'
         + '<div id="pf-en-x" role="button" tabindex="0" aria-label="Close" style="position:absolute;top:0.4rem;right:0.7rem;cursor:pointer;font-size:1.4rem;color:#b8ab8e;line-height:1;">&times;</div>'
         + '<div style="color:#c1121f;font-weight:800;letter-spacing:0.3em;font-size:0.72rem;margin-bottom:0.8rem;">&#9733; ENLISTED &#9733;</div>'
         + imgHtml
-        + '<div style="color:#f5ead6;font-weight:900;font-size:1.7rem;line-height:1.25;margin-bottom:0.4rem;">YOU HAVE A NAME.<br>NOW GET A SQUAD.</div>'
+        + '<div class="pf-en-head" style="color:#f5ead6;font-weight:900;font-size:1.7rem;line-height:1.25;margin-bottom:0.4rem;">YOU HAVE A NAME.<br>NOW GET A SQUAD.</div>'
         + '<div style="color:#c9bfa8;font-size:0.95rem;line-height:1.6;margin-bottom:1.2rem;">The network runs on cells. Lone wolves get picked off.</div>'
         + '<a id="pf-en-cta" href="/cells" style="display:inline-block;background:#c1121f;color:#fff;font-weight:900;letter-spacing:0.12em;font-size:0.95rem;text-decoration:none;padding:0.9rem 2rem;border:2px solid #c1121f;">GET A SQUAD &#8594;</a>'
         + '<div style="margin-top:0.9rem;"><span id="pf-en-no" role="button" tabindex="0" style="color:#b8ab8e;font-size:0.8rem;cursor:pointer;text-decoration:underline;">later</span></div>'
@@ -175,11 +195,30 @@
       document.body.appendChild(ov);
       settle(cs, 'card');
       guardMark(cs);
-      function close() { try { if (ov.parentNode) ov.parentNode.removeChild(ov); } catch (e) {} }
-      function onDismiss() { close(); completeRite(cs); }
+      function emit(name) {
+        try { document.dispatchEvent(new CustomEvent(name, { detail: { callsign: String(cs).toLowerCase() } })); } catch (e) {}
+      }
+      function detachKeys() {
+        try { document.removeEventListener('keydown', onKey); } catch (e) {}
+      }
+      function close() {
+        detachKeys();
+        try { if (ov.parentNode) ov.parentNode.removeChild(ov); } catch (e) {}
+      }
+      /* Dismiss ("later" / X / Escape / backdrop click): NOT a completion.
+         No completion POST; r0 settles 'declined' so R19 squadjoin may
+         re-prompt later per the arbitration rules. The per-callsign
+         loop-guard (marked at render) still stops ENLISTED from nagging;
+         'rite_dismissed' feeds the dismiss-rate guardrail. */
+      function onDismiss() {
+        close();
+        settle(cs, 'declined');
+        emit('rite_dismissed');
+      }
       function onCta(ev) {
         try { if (ev && ev.preventDefault) ev.preventDefault(); } catch (e) {}
         close();
+        emit('rite_completed');
         /* Fire the completion POST, then route. Bounded wait so a slow
            network can't strand the user; the POST is idempotent anyway. */
         var went = false;
@@ -187,6 +226,13 @@
         try { completeRite(cs, nav); } catch (e2) {}
         setTimeout(nav, 2500);
       }
+      function onKey(e) {
+        try { if (e && e.key === 'Escape') onDismiss(); } catch (e2) {}
+      }
+      try { document.addEventListener('keydown', onKey); } catch (e3) {}
+      ov.addEventListener('click', function (ev) {
+        try { if (ev && ev.target === ov) onDismiss(); } catch (e4) {}
+      });
       var x = ov.querySelector('#pf-en-x'), no = ov.querySelector('#pf-en-no'),
           cta = ov.querySelector('#pf-en-cta');
       if (x) { x.onclick = onDismiss; x.onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { onDismiss(); } }; }
@@ -207,18 +253,9 @@
     try { if (document.getElementById('pf-graduation')) { settle(cs, 'declined'); return; } } catch (e2) {}
     if (guardDone(cs)) { settle(cs, 'declined'); return; }
     if (st && st.completed) { settle(cs, 'declined'); return; }
-    if (!st || st.server === 'pending') {
-      /* Read still in flight — poll until it resolves (bounded by the
-         read's own 6s cap), keeping the card off the beat. */
-      var n = 0;
-      (function poll() {
-        var s2 = claims[k];
-        if (s2 && s2.server !== 'pending') { evaluate(cs); return; }
-        if (n++ >= 14) { show(cs); return; } /* read hung past its cap: fail open */
-        setTimeout(poll, 500);
-      })();
-      return;
-    }
+    /* Optimistic: render on the beat without waiting on the in-flight
+       server read — the read's callback reconciles (stands the card down)
+       if the server says this rite is already complete. */
     show(cs);
   }
 
@@ -238,8 +275,20 @@
     claims[k] = { server: 'pending', completed: false };
     serverCompleted(cs, function (fin) {
       try { claims[k] = { server: 'done', completed: !!fin }; } catch (e2) {}
+      /* Reconcile the optimistic render: the server says this rite is
+         already complete and the user hasn't completed it locally in the
+         meantime (posted() is true after a CTA) — stand the card down
+         silently instead of showing a ceremony for a done rite. */
+      if (fin && !posted(cs)) {
+        try {
+          var ovr = document.getElementById('pf-enlisted');
+          if (ovr && ovr.parentNode) ovr.parentNode.removeChild(ovr);
+        } catch (e3) {}
+        settle(cs, 'declined');
+      }
     });
-    /* Let the claim toast breathe — the card lands a beat later. */
+    /* Render on the 1200ms beat WITHOUT waiting on the server read —
+       the peak-commitment moment can't absorb a ~7s stall. */
     setTimeout(function () { evaluate(cs); }, BEAT_MS);
   });
 })();

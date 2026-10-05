@@ -3,9 +3,15 @@
    consolidation: games/media-nuke.js deleted, its main progress block folded
    into the Do Meter's network blast meter).
    Injects site-wide on every page: fixed-bottom strip with the live blast
-   meter (50,000 XP/day goal), your daily charge, cell pulse, and the
-   RUN MISSION + RALLY CELL actions. Same style as the old sticky nuke bar.
-   Self-contained: own xp_today sync (?action=xp_today), own event-sourced
+   meter (persistent charge pool), your daily press, cell pulse, and the
+   CHARGE THE NUKE + RALLY CELL actions. Same style as the old sticky nuke bar.
+   NUKE WIRE-UP (2026-10-05, wave-nuke-fe): the meter reads the charge pool
+   from ?action=nuke_status and charges deliberately via CHARGE THE NUKE
+   (POST nuke_press, auth-routed). Milestones (25/60/100%) are tier-relative:
+   percent of the ARMED tier (default T1 10,000). The event-sourced
+   pf_nuke_local_v2 counter stays as the offline fallback (last-known +
+   OFFLINE, never breaking the bar).
+   Self-contained: own nuke_status sync, own event-sourced
    daily-XP counter (pf_nuke_local_v2 — the ONLY writer, so a task can never
    charge the blast twice), own once-per-day milestone pings (shared
    pf_nuke_miles_v1 keys with the Do Meter's folded meter, so celebrations
@@ -35,6 +41,8 @@
       +"#pf-nuke-stick .pns-x{background:none;border:0;color:#c9bfa8;font-size:18px;line-height:1;cursor:pointer;padding:4px 6px}"
       +"#pf-nuke-stick .pns-act{background:#c1121f;color:#fff;border:0;font:700 12px monospace;letter-spacing:1px;padding:9px 10px;cursor:pointer;white-space:nowrap;flex:1}"
       +"#pf-nuke-stick .pns-act.rally{background:transparent;border:1px solid #c1121f;color:#f5ead6}"
+      +"#pf-nuke-stick .pns-act.charged{background:#1a4d1a;border:2px solid #7CFC00;color:#fff}"
+      +"#pf-nuke-stick .pns-act.claim{background:#3a2a00;border:2px solid #e8b923;color:#ffe9a8}"
       +"#pf-nuke-stick.flash{animation:pnsflash .6s}"
       +"@keyframes pnsflash{0%,100%{border-top-color:#c1121f}50%{border-top-color:#ffcc00;box-shadow:0 -4px 26px rgba(255,204,0,.35)}}"
       +"@media (prefers-reduced-motion:reduce){#pf-nuke-stick .pns-fill{transition:none}#pf-nuke-stick .pns-fill.pulse{filter:none}#pf-nuke-stick.flash{animation:none}}";
@@ -45,17 +53,31 @@
   })();
 
   var BACKEND_URL = window.PF_BACKEND_URL || "https://pf-api.mtcstw.workers.dev";
-  var GOAL = 50000;
 
   var STICK_HTML='<div id="pf-nuke-stick" hidden>'+
   '<div class="pns-meter"><div class="pns-fill" id="pnsFill"></div></div>'+
   '<div class="pns-row"><button class="pns-tap" id="pnsTap"><span class="pns-pct" id="pnsPct">NUKE --%</span>'+
   '<span class="pns-you" id="pnsYou"></span><span class="pns-cell" id="pnsCell"></span></button>'+
   '<button class="pns-x" id="pnsX" aria-label="Hide nuke bar">\u00d7</button></div>'+
-  '<div class="pns-row"><button class="pns-act" id="pnsMission">RUN MISSION</button>'+
+  '<div class="pns-row"><button class="pns-act" id="pnsNuke" title="One deliberate press per day: +50 charge, +5 XP. The nuke can\'t be bought.">CHARGE THE NUKE</button>'+
   '<button class="pns-act rally" id="pnsRally">RALLY CELL</button></div></div>';
 
-  var stickXp=0, stickPct=0, stickComrades=0, stickMode="local";
+  /* NUKE WIRE-UP tiers (spec 2026-10-05 §2) — read from nuke_status when the
+     backend serves them; these are the spec constants as fallback. */
+  var NUKE_TIERS=[
+    {id:"T1",charge:10000,name:"LOCAL SKIRMISH"},
+    {id:"T2",charge:25000,name:"REGIONAL SURGE"},
+    {id:"T3",charge:50000,name:"NATIONAL TAKEOVER"},
+    {id:"T4",charge:150000,name:"MEDIA BLITZ"}
+  ];
+  var PRESS_CHARGE=50, PRESS_XP=5; /* spec §1: one press = +50 charge, +5 XP */
+  var STAKE_CAP=2500; /* spec §1: 2,500 charge/day/cell whale guard */
+
+  var stickCharge=0, stickPct=0, stickComrades=0, stickMode="local";
+  var stickArmed="T1", stickArmedCharge=10000, stickHold=null;
+  var stickPressed=false, stickStreak=0, stickDetStreak=0;
+  var stickXp=0; /* legacy alias of the charge pool for state() consumers */
+  var pressPending=false, pressFailed=false;
   var stickReady=false, stickCell=null, stickCellTried=false;
   var _lastStickXp=0, _stickFloatAt=0;
 
@@ -113,14 +135,74 @@
     }); }catch(err){}
   });
 
-  /* ---------- state for consumers (Do Meter's folded meter) ---------- */
+  /* ---------- state for consumers (Do Meter's folded meter) ----------
+     Detail carries the full nuke wire-up contract: charge pool, armed tier,
+     hold, press state, streaks. Legacy keys (xp, goal) alias the charge pool
+     and the armed-tier charge so old consumers keep working. */
   function broadcast(){
-    try{ document.dispatchEvent(new CustomEvent("pf-nuke-update",{detail:{xp:stickXp,comrades:stickComrades,mode:stickMode,goal:GOAL}})); }catch(e){}
+    try{ document.dispatchEvent(new CustomEvent("pf-nuke-update",{detail:{
+      xp:stickCharge, comrades:stickComrades, mode:stickMode, goal:stickArmedCharge,
+      charge:stickCharge, armed_tier:stickArmed, armed_charge:stickArmedCharge,
+      hold:stickHold, pressed:stickPressed, charge_streak:stickStreak,
+      detonation_streak:stickDetStreak, tiers:NUKE_TIERS
+    }})); }catch(e){}
   }
   window.pfNukeStrip={
-    state:function(){ return {xp:stickXp,comrades:stickComrades,mode:stickMode,goal:GOAL}; },
-    youToday:localXpToday
+    state:function(){ return {
+      xp:stickCharge, comrades:stickComrades, mode:stickMode, goal:stickArmedCharge,
+      charge:stickCharge, armed_tier:stickArmed, armed_charge:stickArmedCharge,
+      hold:stickHold, pressed:stickPressed, charge_streak:stickStreak,
+      detonation_streak:stickDetStreak, tiers:NUKE_TIERS
+    }; },
+    youToday:localXpToday,
+    press:pressNuke,
+    tiers:function(){ return NUKE_TIERS.slice(); }
   };
+
+  /* ---------- charge-pool status (nuke_status) ----------
+     Contract (wave-nuke backend, per spec 2026-10-05): {ok, charge,
+     armed_tier, armed_charge, hold, pressed, charge_streak, detonation_streak,
+     comrades}. normStatus reads every field defensively — unknown/absent
+     fields fall back to spec constants, never to invented numbers. */
+  var NUKE_STAT_LS="pf_nuke_status_v1";
+  function armedChargeFor(tierId,fromServer){
+    var s=Number(fromServer);
+    if(isFinite(s)&&s>0) return Math.round(s);
+    for(var i=0;i<NUKE_TIERS.length;i++) if(NUKE_TIERS[i].id===tierId) return NUKE_TIERS[i].charge;
+    return NUKE_TIERS[0].charge;
+  }
+  function normStatus(j){
+    j=j||{};
+    var armed=String(j.armed_tier||"T1").toUpperCase();
+    var okTier=false;
+    for(var i=0;i<NUKE_TIERS.length;i++) if(NUKE_TIERS[i].id===armed) okTier=true;
+    if(!okTier) armed="T1";
+    return {
+      charge:Math.max(0,Math.round(Number(j.charge)||0)),
+      armed_tier:armed,
+      armed_charge:armedChargeFor(armed,j.armed_charge),
+      hold:(j.hold?String(j.hold).toUpperCase():null),
+      pressed:!!j.pressed,
+      charge_streak:Math.max(0,Math.round(Number(j.charge_streak!=null?j.charge_streak:j.streak)||0)),
+      detonation_streak:Math.max(0,Math.round(Number(j.detonation_streak!=null?j.detonation_streak:j.det_streak)||0)),
+      comrades:Math.max(0,Math.round(Number(j.comrades)||0))
+    };
+  }
+  function nukeStatSave(j){ try{ localStorage.setItem(NUKE_STAT_LS,JSON.stringify({t:Date.now(),j:j})); }catch(e){} }
+  function nukeStatLast(){ try{ var s=JSON.parse(localStorage.getItem(NUKE_STAT_LS)||"null"); if(s&&s.j&&s.j.ok!==false) return s.j; }catch(e){} return null; }
+
+  /* ---------- identity + press state ---------- */
+  function callsign(){ try{ return window.PFCallsign?window.PFCallsign():""; }catch(e){ return ""; } }
+  function deviceId(){ try{ return window.PFDeviceId?window.PFDeviceId():""; }catch(e){ return ""; } }
+  var NUKE_PRESS_LS="pf_nuke_press_v1";
+  function pressedLocalToday(){
+    try{ var s=JSON.parse(localStorage.getItem(NUKE_PRESS_LS)||"null");
+      return !!(s&&s.d===chiDay()&&s.pressed); }catch(e){ return false; }
+  }
+  function markPressedLocal(streak){
+    try{ localStorage.setItem(NUKE_PRESS_LS,JSON.stringify({d:chiDay(),pressed:true,streak:(streak||0)})); }catch(e){}
+  }
+  function authSecret(){ try{ return (window.PF&&window.PF.getAuthSecret)?window.PF.getAuthSecret():""; }catch(e){ return ""; } }
 
   /* ---------- network sync ---------- */
   /* GAP AUDIT v2 P1 (2026-10-03): longer backoff on a dead backend. The 60s
@@ -129,11 +211,17 @@
      6+ fails every 3rd tick. First success resets to 60s. */
   var _syncFails=0, _tickN=0;
   function noteSync(ok){ _syncFails=ok?0:Math.min(_syncFails+1,99); }
-  function onSync(xp,comrades,mode){
-    stickXp=xp; stickComrades=comrades; stickMode=mode;
-    var pct=Math.min(100,(xp/GOAL)*100);
-    stickGrowth(xp);
-    updateStick(xp,pct);
+  function onSync(st,mode){
+    stickCharge=st.charge; stickArmed=st.armed_tier; stickArmedCharge=st.armed_charge;
+    stickHold=st.hold; stickStreak=st.charge_streak; stickDetStreak=st.detonation_streak;
+    stickComrades=st.comrades; stickMode=mode; stickXp=st.charge;
+    /* The server's pressed flag is authoritative; the local record covers the
+       window between a successful press and the next status sync. */
+    stickPressed=st.pressed||pressedLocalToday();
+    /* Milestones are tier-relative now: percent of the ARMED tier. */
+    var pct=Math.min(100,(st.charge/st.armed_charge)*100);
+    stickGrowth(st.charge);
+    updateStick(st.charge,pct);
     /* Milestones — dopamine via shared PF.dope, each once per day. */
     try{
       var dope=(window.PF&&PF.dope)?PF.dope:null;
@@ -152,22 +240,34 @@
     if(_syncFails>=6&&(_tickN%3!==0)) return;
     if(_syncFails>=3&&(_tickN%2!==0)) return;
     if(BACKEND_URL){
-      var cb="pfNukeStripCb"+Date.now()+Math.floor(Math.random()*1e6);
+      var cb="pfNukeStatCb"+Date.now()+Math.floor(Math.random()*1e6);
       window[cb]=function(d){
         try{ delete window[cb]; }catch(e){}
         var sc=document.getElementById(cb); if(sc&&sc.parentNode) sc.parentNode.removeChild(sc);
-        if(d&&d.ok){ noteSync(true); onSync(Number(d.xp_today)||0,Number(d.comrades)||0,"network"); }
-        else{ noteSync(false); onSync(localXpToday(),0,"local"); }
+        if(d&&d.ok){ noteSync(true); nukeStatSave(d); onSync(normStatus(d),"network"); }
+        else{ noteSync(false); offlineSync(); }
       };
       var sc=document.createElement("script"); sc.id=cb;
-      sc.src=BACKEND_URL+"?action=xp_today&callback="+cb;
+      /* nuke_status is an auth-attached read (callsign+device+secret), like
+         cell_mine — anonymous visitors get the public pool numbers. */
+      var src=BACKEND_URL+"?action=nuke_status";
+      var cs=callsign(); if(cs) src+="&callsign="+encodeURIComponent(cs);
+      var dev=deviceId(); if(dev) src+="&device="+encodeURIComponent(dev);
+      var sec=authSecret(); if(sec) src+="&auth_secret="+encodeURIComponent(sec);
+      sc.src=src+"&callback="+cb;
       /* 12s backstop — a hung request must not freeze the bar or leak window[cb]. */
-      var hung=setTimeout(function(){ if(window[cb]){ try{delete window[cb];}catch(e){} if(sc.parentNode) sc.parentNode.removeChild(sc); noteSync(false); onSync(localXpToday(),0,"local"); } },12000);
-      sc.onerror=function(){ try{clearTimeout(hung);}catch(e){} try{delete window[cb];}catch(e){} if(sc.parentNode) sc.parentNode.removeChild(sc); noteSync(false); onSync(localXpToday(),0,"local"); };
+      var hung=setTimeout(function(){ if(window[cb]){ try{delete window[cb];}catch(e){} if(sc.parentNode) sc.parentNode.removeChild(sc); noteSync(false); offlineSync(); } },12000);
+      sc.onerror=function(){ try{clearTimeout(hung);}catch(e){} try{delete window[cb];}catch(e){} if(sc.parentNode) sc.parentNode.removeChild(sc); noteSync(false); offlineSync(); };
       document.head.appendChild(sc);
     }else{
-      onSync(localXpToday(),0,"local");
+      offlineSync();
     }
+  }
+  /* Offline: show the last-known charge pool with the OFFLINE flag rather
+     than breaking the bar. First run with no cache: zeros. */
+  function offlineSync(){
+    var last=nukeStatLast();
+    onSync(normStatus(last||{charge:0}),"local");
   }
   /* Bar pulse + floating charge delta whenever the bar grows. Pure
      presentation; the XP accounting is untouched. */
@@ -179,7 +279,7 @@
         fill.classList.remove("pulse"); void fill.offsetWidth; fill.classList.add("pulse");
         if(dope&&_lastStickXp>0&&nowT-_stickFloatAt>2500){
           _stickFloatAt=nowT;
-          dope.xpFloat(barHost(),"+"+fmt(xp-_lastStickXp)+" XP");
+          dope.xpFloat(barHost(),"+"+fmt(xp-_lastStickXp)+" CHARGE");
         }
       }
       _lastStickXp=xp;
@@ -194,18 +294,91 @@
   }
 
   /* ---------- stick actions ---------- */
-  /* Mission button state, read live from Daily Orders local state. */
-  function missionState(){
-    var done=0, op=false;
+  /* CHARGE THE NUKE (2026-10-05, wave-nuke-fe): one deliberate press per
+     callsign per Chicago day -> POST nuke_press (auth-routed, same pattern as
+     the strip's other authed calls). Anonymous visitors are routed to
+     callsign claim — the button is a claim driver, and says so.
+     States: unpressed / pressed / failed-closed. Failed-closed: a failed or
+     unreachable press never marks the press as landed; the button says
+     PRESS FAILED — RETRY. Double-press is idempotent: the server dedupes on
+     nuke_press:<callsign>:<day>, and the client short-circuits on the local
+     pressed record + the server's pressed flag. */
+  function paintPressBtn(){
+    var b=document.getElementById("pnsNuke"); if(!b) return;
+    var cs=callsign();
+    b.classList.remove("charged"); b.classList.remove("claim");
+    if(!cs){
+      b.textContent="CLAIM CALLSIGN — CHARGE";
+      b.classList.add("claim");
+      b.title="Claim your callsign to charge the blast. The nuke can't be bought.";
+    }else if(pressPending){
+      b.textContent="CHARGING\u2026";
+      b.title="Press landing\u2026";
+    }else if(stickPressed){
+      b.textContent="CHARGED \u2713 +50";
+      b.classList.add("charged");
+      b.title="Blast charged. One deliberate press per comrade per day — the nuke can't be bought.";
+    }else if(pressFailed){
+      b.textContent="PRESS FAILED \u2014 RETRY";
+      b.title="The press did not land. Tap to try again.";
+    }else{
+      b.textContent="CHARGE THE NUKE";
+      b.title="One deliberate press per day: +50 charge, +5 XP. The nuke can't be bought.";
+    }
+  }
+  function claimRoute(){
+    /* Claim driver: scroll to Daily Orders and open the callsign claim box. */
     try{
-      var o=JSON.parse(localStorage.getItem("pf_orders_v1")||"null");
-      var rec=o&&o.days&&o.days[chiDay()];
-      if(rec&&rec.done){
-        rec.done.forEach(function(x){ if(x&&x.m==="field-op") op=true; else done++; });
-        if(rec.opDone) op=true;
+      var orders=document.getElementById("pf-orders");
+      var toggle=document.getElementById("oClaimToggle");
+      var claimBox=document.getElementById("oClaimBox");
+      if(orders){
+        if(toggle&&claimBox&&claimBox.style.display!=="block"){
+          try{ toggle.click(); }catch(e){}
+        }
+        orders.scrollIntoView({behavior:"smooth",block:"start"});
+        return;
       }
     }catch(e){}
-    return {left:Math.max(0,3-done), op:op};
+    try{ if(window.PF&&PF.toast) PF.toast("Claim your callsign in Daily Orders to charge the blast."); }catch(e2){}
+  }
+  function pressNuke(){
+    var cs=callsign();
+    if(!cs){ claimRoute(); return; }
+    if(pressPending) return;
+    if(stickPressed){ paintPressBtn(); tick(); return; } /* idempotent re-tap */
+    pressPending=true; paintPressBtn();
+    function done(j){
+      pressPending=false;
+      if(j&&j.ok){
+        pressFailed=false;
+        /* Server is authoritative; already:true (idempotent re-press) counts. */
+        var srvStreak=(j.charge_streak!=null)?j.charge_streak:(j.streak!=null?j.streak:null);
+        markPressedLocal(srvStreak!=null?srvStreak:(stickStreak+1));
+        stickPressed=true;
+        if(srvStreak!=null) stickStreak=Math.max(0,Math.round(Number(srvStreak)||0));
+        try{
+          var dope=(window.PF&&PF.dope)?PF.dope:null;
+          if(dope) dope.ping(barHost(),"+50 CHARGE \u2014 THE BLAST GROWS");
+        }catch(e){}
+      }else{
+        /* Failed-closed: never mark a press that didn't land. */
+        pressFailed=true;
+        try{ if(window.PF&&PF.toast) PF.toast("NUKE PRESS FAILED \u2014 tap to retry."); }catch(e){}
+      }
+      paintPressBtn(); tick();
+    }
+    var body={callsign:cs,device:deviceId()};
+    if(window.PF&&PF.postAction){ PF.postAction("nuke","n_action","nuke_press",body,done); return; }
+    /* Raw fallback (postAction ships in 03-global; this path is a backstop). */
+    try{
+      var b2={type:"nuke",n_action:"nuke_press",callsign:cs,device:deviceId()};
+      var sec=authSecret(); if(sec) b2.auth_secret=sec;
+      fetch(BACKEND_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b2)})
+        .then(function(r){ return r.json(); })
+        .then(function(j){ done(j); })
+        .catch(function(){ done(null); });
+    }catch(e){ done(null); }
   }
   function scrollToId(id){
     try{ var el=document.getElementById(id); if(el&&el.scrollIntoView) el.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){}
@@ -266,9 +439,11 @@
   function mintNukeCard(cell){
     try{
       if(!window.PFShare) return null;
-      var lines=["Nuke at "+Math.floor(stickPct)+"% \u2014 "+fmt(stickXp)+" / 50,000 XP today."];
+      var lines=["\u2622 NUKE at "+Math.floor(stickPct)+"% of "+stickArmed+" \u2014 "+fmt(stickCharge)+" charge in the pool."];
+      if(stickHold) lines.push("HOLD FOR "+stickHold+" \u2014 the council is building a bigger blast.");
       if(cell&&cell.code) lines.push("Rally with "+cell.name+" \u2014 invite code "+cell.code+".");
       else lines.push("Run missions. Charge the blast. Own the news cycle.");
+      lines.push("The nuke can't be bought \u2014 one press per comrade per day.");
       PFShare.REG["nuke-rally"]={
         title:"\u2622 MEDIA NUKE \u2622",
         tag:"The network is charging the blast",
@@ -287,16 +462,6 @@
       scrollToId("pf-cells");
     });
   }
-  function spreadTap(){
-    var cv=mintNukeCard(null);
-    if(cv&&window.PFShare) PFShare.shareImage(cv,"nuke-charge.png","Media Nuke \u2014 charge the blast","media-nuke");
-    else scrollToId("pf-orders");
-  }
-  function missionTap(){
-    var ms=missionState();
-    if(ms.left>0||!ms.op) scrollToId("pf-orders");
-    else spreadTap();
-  }
 
   /* ---------- stick build + visibility ---------- */
   function buildStick(){
@@ -309,7 +474,7 @@
       bar.hidden=true; try{ sessionStorage.setItem("pf_nuke_stick_hide","1"); }catch(e){}
     });
     document.getElementById("pnsTap").addEventListener("click",function(){ scrollToId("slr-nuke"); });
-    document.getElementById("pnsMission").addEventListener("click",missionTap);
+    document.getElementById("pnsNuke").addEventListener("click",pressNuke);
     document.getElementById("pnsRally").addEventListener("click",rallyTap);
     return bar;
   }
@@ -340,13 +505,16 @@
     var bar=document.getElementById("pf-nuke-stick"); if(!bar) return;
     var fill=document.getElementById("pnsFill"); if(fill) fill.style.width=Math.min(100,pct)+"%";
     var p=document.getElementById("pnsPct"); if(p) p.textContent="NUKE "+Math.floor(Math.min(100,pct))+"%";
-    var y=document.getElementById("pnsYou"); if(y) y.textContent="YOU "+fmt(localXpToday())+" XP TODAY";
-    var ms=missionState(), mb=document.getElementById("pnsMission");
-    if(mb){
-      if(ms.left>0) mb.textContent="RUN MISSION ("+ms.left+" LEFT)";
-      else if(!ms.op) mb.textContent="FIELD OP OPEN";
-      else mb.textContent="SPREAD THE WORD";
+    var y=document.getElementById("pnsYou");
+    if(y){
+      var yt;
+      if(stickPressed) yt="YOU +50 TODAY"+(stickStreak>0?" \u00B7 "+stickStreak+"-DAY STREAK":"");
+      else if(callsign()) yt="YOU: PRESS TODAY";
+      else yt="YOU: CLAIM TO CHARGE";
+      if(stickMode==="local") yt+=" \u00B7 OFFLINE";
+      y.textContent=yt;
     }
+    paintPressBtn();
     var rb=document.getElementById("pnsRally"), c=document.getElementById("pnsCell");
     /* The callback fires asynchronously when the cell JSONP resolves, so the
        ticker re-renders on cell data arrival (and on the 60s tick while the

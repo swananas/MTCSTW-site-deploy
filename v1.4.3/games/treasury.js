@@ -21,6 +21,11 @@
       "SPONSOR A CAUSE ->" deep-linking to the 6A-R9 cause-sponsorship UI
       at /war-chest?cell=<id>&sponsor=1 (movement.js owns that surface —
       reused, not rebuilt).
+   4. NUKE WIRE-UP (2026-10-05, wave-nuke-fe): officer-only STAKE INTO THE
+      BLAST card — burns treasury XP into the charge pool (1 XP = 1 charge,
+      2,500/day/cell cap) via POST {type:'nuke', n_action:'nuke_stake'}.
+      Confirm copy is binding: "Burn X XP from the treasury into the blast.
+      This is a sacrifice — the XP is destroyed."
 
    COPY RULE: "FUND THE TREASURY". The d-word is banned everywhere here.
    Money moves use native confirm(). Officers-only spend is enforced
@@ -103,6 +108,35 @@
     } catch (e) { done(null); }
   }
 
+  /* Nuke wire-up (2026-10-05, wave-nuke-fe): POST {type:'nuke',
+     n_action:'nuke_stake'|'nuke_hold'} — auth-routed via PF.postAction
+     (same pattern as the nuke strip's press); raw fallback mirrors postTreas. */
+  function postNuke(nAction, params, cb) {
+    function done(j) { try { cb(j || { ok: false, err: 'Network error.' }); } catch (e) {} }
+    var id = ident();
+    if (!id.callsign) { done({ ok: false, err: 'Claim a callsign first.' }); return; }
+    var p = { callsign: id.callsign, device: id.device };
+    for (var k in (params || {})) p[k] = params[k];
+    if (window.PF && PF.postAction) { PF.postAction('nuke', 'n_action', nAction, p, cb); return; }
+    if (!BACKEND) { done(null); return; }
+    try {
+      var body = { type: 'nuke', n_action: nAction };
+      for (var k2 in p) body[k2] = p[k2];
+      var sec = '';
+      try { sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : ''; } catch (e) {}
+      if (sec) body.auth_secret = sec;
+      var o = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }, c = null, t = null;
+      try {
+        if (window.AbortController) {
+          c = new AbortController(); o.signal = c.signal;
+          t = setTimeout(function () { try { c.abort(); } catch (e) {} }, 15000);
+        }
+      } catch (e) {}
+      fetch(BACKEND, o).then(function (r) { return r.json(); })
+        .then(function (j) { if (t) try { clearTimeout(t); } catch (e) {} done(j); })
+        .catch(function () { if (t) try { clearTimeout(t); } catch (e) {} done(null); });
+    } catch (e) { done(null); }
+  }
   /* Scoped styles — self-contained so the panel works standalone (outside
      cell-hq's hq-* stylesheet) and inside the TREASURY tab alike. */
   var CSS_DONE = false;
@@ -271,8 +305,22 @@
           '<div class="trz-err" id="' + gid('spMsg') + '" style="display:none"></div>';
       } else {
         out += '<div class="trz-note">Only the founder and officers can spend from the treasury. The backend enforces it — this panel shows the gate honestly.</div>';
+        out += '<div class="trz-note" style="margin-top:6px">Officers can also stake treasury XP into the media nuke (burned, 2,500 XP/day cap). The backend enforces the officer gate.</div>';
       }
       out += '</div>';
+
+      /* 4b. STAKE INTO THE BLAST — nuke wire-up (2026-10-05, wave-nuke-fe).
+         Officers burn treasury XP into the charge pool: 1 XP = 1 charge,
+         2,500/day/cell cap. The XP is destroyed — a sacrifice, not a spend. */
+      if (isOfficer) {
+        out += '<div class="trz-card" style="border-color:#c1121f"><h3>&#9762; STAKE INTO THE BLAST</h3>' +
+          '<div class="trz-note">Burn treasury XP into the media nuke: <b>1 XP = 1 charge</b>. The XP is <b>destroyed</b> — this is a sacrifice, not a spend.</div>' +
+          '<div class="trz-note" style="margin-top:4px">Daily cap: <b>2,500 XP</b> per cell &middot; staked today: <b id="' + gid('stakedToday') + '">&hellip;</b> XP</div>' +
+          '<div class="trz-row" style="margin-top:8px">' +
+          '<input class="trz-in sm" id="' + gid('stAmt') + '" type="number" min="1" max="2500" inputmode="numeric" placeholder="XP">' +
+          '<button class="trz-btn" data-trz="stake">STAKE INTO THE BLAST</button></div>' +
+          '<div class="trz-err" id="' + gid('stMsg') + '" style="display:none"></div></div>';
+      }
 
       /* 5. RECENT ACTIVITY — last 10 ledger rows. */
       out += '<div class="trz-card"><h3>RECENT ACTIVITY</h3>';
@@ -292,6 +340,7 @@
 
       container.innerHTML = out;
       wire();
+      loadStakedToday();
     }
 
     function msg(id, text, ok) {
@@ -303,6 +352,25 @@
     }
 
     function refresh() { mount(container, ctx); }
+
+    /* Today's staked amount — cell-scoped read from nuke_status. Fail-soft:
+       the cap line stays, the number reads "sync pending" until the backend
+       serves the action. */
+    function loadStakedToday() {
+      var el = document.getElementById(gid('stakedToday'));
+      if (!el) return;
+      var id = ident();
+      api('nuke_status', { cell_id: cellId, callsign: id.callsign, device: id.device }, function (j) {
+        var e2 = document.getElementById(gid('stakedToday'));
+        if (!e2) return;
+        if (j && j.ok) {
+          var v = (j.staked_today != null) ? j.staked_today : j.cell_staked_today;
+          e2.textContent = fmt(Math.max(0, Math.round(Number(v) || 0)));
+        } else {
+          e2.textContent = 'sync pending';
+        }
+      });
+    }
 
     function wire() {
       container.addEventListener('click', onClick);
@@ -337,6 +405,25 @@
               return;
             }
             toast('FUNDED ' + fmt(amt) + ' XP. The war chest grows.');
+            refresh();
+          });
+          return;
+        }
+        if (kind === 'stake') {
+          var stamt = Math.round(Number(document.getElementById(gid('stAmt')).value) || 0);
+          msg(gid('stMsg'), '', true);
+          if (stamt <= 0) { msg(gid('stMsg'), 'Enter an amount of XP.'); return; }
+          if (stamt > 2500) { msg(gid('stMsg'), 'The daily cap is 2,500 XP per cell.'); return; }
+          if (!window.confirm('Burn ' + fmt(stamt) + ' XP from the treasury into the blast? This is a sacrifice \u2014 the XP is destroyed.')) return;
+          btn.disabled = true;
+          postNuke('nuke_stake', { cell_id: cellId, amount: stamt }, function (j) {
+            btn.disabled = false;
+            if (!j || !j.ok) {
+              var er = (j && j.err) ? String(j.err) : 'Stake failed.';
+              msg(gid('stMsg'), er === 'officers only' ? 'Officers only \u2014 the backend said no.' : er);
+              return;
+            }
+            toast('STAKED ' + fmt(stamt) + ' XP INTO THE BLAST. Sacrifice logged.');
             refresh();
           });
           return;

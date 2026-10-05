@@ -55,7 +55,10 @@
       + '<div style="font-size:1.05rem;font-weight:900;letter-spacing:0.02em;">' + esc(m.name) + '</div>'
       + '<div style="font-size:0.8rem;color:' + MUTED + ';">' + esc(handlesLine(m)) + '</div>'
       + '<div style="display:flex;gap:0.6rem;align-items:baseline;margin-top:0.2rem;">'
-      + '<span style="font-size:1.3rem;font-weight:900;color:' + RED + ';">' + esc(m.followers_display) + '</span>'
+      /* Unified stats (2026-10-05): data-pf-fc is painted live by
+         PF.creatorStats.paint(); the snapshot followers_display stays as
+         pre-live fallback text only. */
+      + '<span data-pf-fc="' + esc(m.slug) + '" style="font-size:1.3rem;font-weight:900;color:' + RED + ';">' + esc(m.followers_display) + '</span>'
       + '<span style="font-size:0.75rem;color:' + MUTED + ';letter-spacing:0.08em;">FOLLOWERS' + (m.is_new ? ' · <span style="color:' + RED + ';font-weight:700;">NEW</span>' : '') + '</span>'
       + '</div>'
       + '<div data-eff-score="' + esc(m.slug) + '" style="font-size:0.8rem;color:' + MUTED + ';">Propaganda score <strong style="color:' + CREAM + ';">' + m.propaganda_score.toFixed(1) + '/10</strong></div>'
@@ -70,8 +73,11 @@
       '<div style="max-width:1200px;margin:0 auto;padding:2rem 1rem;box-sizing:border-box;">'
       + '<div style="text-align:center;margin-bottom:0.4rem;font-size:0.8rem;letter-spacing:0.3em;color:' + RED + ';font-weight:700;">THE PROPAGANDA FACTORY</div>'
       + '<h1 style="text-align:center;color:' + CREAM + ';font-size:2.2rem;font-weight:900;letter-spacing:0.06em;margin:0 0 0.4rem;font-family:\'Helvetica Neue\',Arial,sans-serif;">SICK LEFT RADICALS</h1>'
+      /* Unified stats (2026-10-05): header count/total are painted live by
+         PF.creatorStats.paint() (data-pf-fc-count / data-pf-fc-total); the
+         snapshot-derived values stay as pre-live fallback text only. */
       + '<div class="pf-slr-count" style="text-align:center;color:' + MUTED + ';font-size:0.95rem;margin-bottom:1.4rem;">'
-      + members.length + ' affiliated propagandists · <span style="color:' + CREAM + ';font-weight:700;">' + totalFollowers(members) + '</span>&nbsp;combined reach</div>'
+      + '<span data-pf-fc-count>' + members.length + '</span> affiliated propagandists · <span data-pf-fc-total style="color:' + CREAM + ';font-weight:700;">' + totalFollowers(members) + '</span>&nbsp;combined reach</div>'
       + '<div id="pf-climbers-strip" data-pf-climbers-strip style="display:none;"></div>'
       + '<div id="pf-race-zone"></div>'
       + '<div style="max-width:520px;margin:0 auto 1.8rem;">'
@@ -98,9 +104,16 @@
     });
   }
 
+  /* Pre-live fallback formatter. The live header total is painted by
+     PF.creatorStats.paint() -> fmtTotal (the "8M+" style); this only covers
+     the first paint from snapshot data. The network figure is never
+     hardcoded — it always derives from a summed count. */
   function totalFollowers(members) {
     var t = 0;
     for (var i = 0; i < members.length; i++) t += members[i].followers_total || 0;
+    try {
+      if (window.PF && PF.creatorStats) return PF.creatorStats.fmt(t) + '+';
+    } catch (e) {}
     if (t >= 1e6) return (t / 1e6).toFixed(1) + 'M';
     if (t >= 1e3) return Math.round(t / 1e3) + 'K';
     return String(t);
@@ -139,6 +152,13 @@
       }
       var root = el || mountTakeover();
       render(root, members);
+      /* Unified stats (2026-10-05): paint live per-creator + network counts
+         over the snapshot fallback text. Fail-soft inside the helper. */
+      try {
+        if (window.PF && PF.creatorStats) PF.creatorStats.ready(function () {
+          try { PF.creatorStats.paint(root); } catch (e) {}
+        });
+      } catch (e2) {}
       try { raceZoneInit(root); } catch (e) { PF.error('slr-roster', 'race zone: ' + (e && e.message)); }
       PF.log('slr-roster', 'rendered ' + members.length + ' members (shuffled)');
       /* Efficiency Index: paint live computed scores into [data-eff-score] slots. */

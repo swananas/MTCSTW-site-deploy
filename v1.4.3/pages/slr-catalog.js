@@ -112,7 +112,10 @@
       + (m.score_provisional ? ' <span style="font-size:0.7rem;color:' + MUTED + ';">(provisional)</span>' : '') + '</div>'
       /* R31: aggregate reputation line — filled by repLine() below. */
       + '<div id="pf-repline" style="text-align:center;margin-bottom:0.4rem;font-size:0.95rem;color:' + MUTED + ';min-height:0;"></div>'
-      + '<div style="text-align:center;margin-bottom:1.6rem;font-size:1.1rem;"><strong style="color:' + RED + ';">' + esc(m.followers_display) + '</strong> <span style="color:' + MUTED + ';font-size:0.85rem;letter-spacing:0.1em;">FOLLOWERS</span></div>'
+      /* Unified stats (2026-10-05): data-pf-fc is painted live by
+         PF.creatorStats.paint(); the snapshot followers_display stays as
+         pre-live fallback text only. */
+      + '<div style="text-align:center;margin-bottom:1.6rem;font-size:1.1rem;"><strong data-pf-fc="' + esc(m.slug) + '" style="color:' + RED + ';">' + esc(m.followers_display) + '</strong> <span style="color:' + MUTED + ';font-size:0.85rem;letter-spacing:0.1em;">FOLLOWERS</span></div>'
       + (VOTE_SKIP_SLUGS.indexOf(m.slug) === -1 ? '<div style="text-align:center;margin:0 0 1.6rem;"><a href="/#pf-vote?for=' + esc(m.slug) + '" style="display:inline-block;border:2px solid ' + RED + ';color:' + RED + ';font-weight:900;letter-spacing:0.14em;font-size:0.9rem;text-decoration:none;padding:0.7rem 1.6rem;">VOTE FOR ' + esc(m.name) + ' &rarr;</a></div>' : '')
       + para(m.bio)
       + (offer ? '<h2 style="color:' + RED + ';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;">What they offer</h2><ul style="padding-left:1.2rem;margin:0;">' + offer + '</ul>' : '')
@@ -213,6 +216,13 @@
       var root = el || takeoverMount();
       render(root, member, members);
       PF.log('slr-catalog', 'rendered ' + slug);
+      /* Unified stats (2026-10-05): paint the live follower count over the
+         snapshot fallback text. Fail-soft inside the helper. */
+      try {
+        if (window.PF && PF.creatorStats) PF.creatorStats.ready(function () {
+          try { PF.creatorStats.paint(root); } catch (e) {}
+        });
+      } catch (e_cs) {}
       /* A5 (2026-10-05): SCOUT CIRCUIT — record this distinct creator view. */
       try { trackScoutView(slug); } catch (e_scout) {}
       /* R31: paint the aggregate reputation line. */

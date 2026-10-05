@@ -68,7 +68,7 @@ function api(action,params,cb){
   }catch(e){}
   try{
     var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
-    if(_sec&&params&&!params.auth_secret) params.auth_secret=<redacted>
+    if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
   }catch(e2){}
   var fn="pfWmCb"+Math.floor(Math.random()*1e9);
   var s=document.createElement("script"), done=false, timer=null;

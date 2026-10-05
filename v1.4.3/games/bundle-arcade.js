@@ -1115,7 +1115,7 @@ function postG(gAction,params,cb){
   try{
     var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
       try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
-        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); }catch(e){}
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
       o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
     fetch(BACKEND,_po)
       .then(function(r){ return r.json(); })
@@ -1874,7 +1874,7 @@ function postM(mAction,params,cb){
   try{
     var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
       try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
-        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); }catch(e){}
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
       o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
     fetch(BACKEND,_po)
       .then(function(r){ return r.json(); })
@@ -1891,7 +1891,7 @@ function postG(gAction,params,cb){
   try{
     var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
       try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
-        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); }catch(e){}
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
       o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
     fetch(BACKEND,_po)
       .then(function(r){ return r.json(); })
@@ -1908,7 +1908,7 @@ function postW(wAction,params,cb){
   try{
     var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
       try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
-        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); }catch(e){}
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
       o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
     fetch(BACKEND,_po)
       .then(function(r){ return r.json(); })
@@ -2223,7 +2223,7 @@ function renderRaid(id){
   h+='<div class="wr-line'+(collapsed?' wr-dead':'')+'" id="wrLine">'+mult.toFixed(2)+'x</div>';
   if(collapsed){ h+='<div class="x-note" style="color:#ff4d5e;font-weight:700">THE LINE COLLAPSED. Next round forming.</div>'; }
   else if(myBet&&!myBet.cashed_out){
-    h+='<div class="x-note">You\'re on the line for '+(Number(myBet.amount)||0)+' XP at '+mult.toFixed(2)+'x = '+Math.floor((Number(myBet.amount)||0)*mult)+' XP</div>'
+    h+='<div class="x-note">You\\\'re on the line for '+(Number(myBet.amount)||0)+' XP at '+mult.toFixed(2)+'x = '+Math.floor((Number(myBet.amount)||0)*mult)+' XP</div>'
       +'<button class="c-btn" id="wrExfil">EXFILTRATE</button>'
       +'<div class="x-note">Pull out in time or the stake arms the cell treasury.</div>';
   } else {

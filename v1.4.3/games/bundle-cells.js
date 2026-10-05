@@ -3088,7 +3088,7 @@ function api(action,params,cb){
   }catch(e){}
   try{
     var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
-    if(_sec&&params&&!params.auth_secret) params.auth_secret=<redacted>
+    if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
   }catch(e2){}
   var fn="pfWmCb"+Math.floor(Math.random()*1e9);
   var s=document.createElement("script"), done=false, timer=null;
@@ -3289,7 +3289,7 @@ function api(action,params,cb){
      (same IDOR pattern as cell-hq.js). */
   if(action==="cell_mine"){
     try{ var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
-      if(_sec&&params&&!params.auth_secret) params.auth_secret=<redacted> }catch(e){}
+      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec; }catch(e){}
   }
   var fn="pfRaidCb"+Math.floor(Math.random()*1e9);
   var s=document.createElement("script"), done=false;
@@ -3312,7 +3312,7 @@ function postG(gAction,params,cb){
   try{
     var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
       try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
-        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); }catch(e){}
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
       o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
     fetch(BACKEND,_po)
       .then(function(r){ return r.json(); })
@@ -3439,7 +3439,7 @@ function render(){
       if(S.crash_secret) h+=crashSecretHTML();
     } else if(mb&&!mb.cashed_out){
       myBetCached=mb;
-      h+='<div class="x-note">You\'re on the line for '+(Number(mb.amount)||0)+' XP at '+mult.toFixed(2)+'x = '
+      h+='<div class="x-note">You\\\'re on the line for '+(Number(mb.amount)||0)+' XP at '+mult.toFixed(2)+'x = '
         +Math.floor((Number(mb.amount)||0)*mult)+' XP</div>'
         +'<button class="c-btn" id="rdExfil">EXFILTRATE</button>'
         +'<div class="x-note">Pull out in time or the stake arms the cell treasury.</div>';

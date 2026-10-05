@@ -26,9 +26,42 @@
      forged-tray     self-mount #pf-forged-tray kill forged-tray         STAGED —
                        module lives on branch fe/studio-drafts-tray (not in
                        this tree). Adapter registers the host + kill id; if the
-                       module never renders, the tool shows the terminal error
-                       instead of a blank pane. Zero changes needed here when
-                       that branch integrates.
+                       module never renders, the tool shows the honest
+                       not-live-here staged state (never the terminal error).
+                       Zero changes needed here when that branch integrates.
+
+   INCOMING TOOLS (2026-10-05, integrator pass — branch fe/create-workshop-tools):
+     caption-combat  template pf-ov-caption    kill caption-combat      STAGED —
+                       the full Caption Combat game incl. the political rounds
+                       (branch fe/caption-prompt). The module stages
+                       <template id="pf-ov-caption"> at bundle load; it ships
+                       in bundle-arcade (/arcade only), so on /create the
+                       template is absent and the tool shows the honest
+                       not-live-here staged state until the module's bundle
+                       ships on /create. The political round carries its own
+                       sub-kill 'caption-political' (orthogonal — kills the
+                       round, not the tool). Zero adapter changes needed on
+                       integration.
+     NOT rail tools (documented, not registered — no standalone mount
+     surface; registering them would invent behavior):
+     - meme-of-the-week (branch fe/meme-of-the-week): a styled card rendered
+       INSIDE the War Report widget body (games/war-report.js,
+       bundle-warreport → /war-report only). No template, no host div, no
+       own kill (inherits 'war-report'). Needs a standalone mount surface
+       from the meme-week workers to become a rail tool.
+     - forge-political (branch fe/studio-political-tab): a POLITICAL tab
+       INSIDE Poster Forge (poster-forge-political.js renders into
+       #xPolitical within the forge template; kill 'poster-forge').
+       Lands natively inside the existing THE POSTER FORGE tool — zero
+       adapter changes here. BLOCKER for its own branch: the module boots
+       once at bundle load and silently no-ops when #xPolitical is absent,
+       so under the shell's lazy mount the tab never populates — the
+       module needs a lazy-safe re-attach.
+     - share-kits (branch fe/campaign-share-kits): a SHARE KIT section
+       inside civic.js pressure-campaign cards on /political-hq
+       (bundle-hq); the kit painters (core/share-image-phq-kits.js) are
+       PF.PHQShare registry decorators, not a mountable unit. Needs a
+       standalone module from the share-kits workers to become a rail tool.
 
    KILL: per-tool ?pf_off=<tool-id> (declared on each register call below and
    enforced by the shell at registration). Master ?pf_off=workshop kills the
@@ -51,6 +84,29 @@
      belt-and-braces for late registration paths. */
   function dockHost(id, kill) {
     try { return WS.ensureDockHost(id, kill); } catch (e) { return null; }
+  }
+
+  /* Staged-tool state (Psych gate 2026-10-05): a staged rail entry must
+     never fall through to the terminal error ("failed to start." + a futile
+     Reload). It renders an honest NOT LIVE HERE YET state with a payoff CTA
+     instead — same .pf-ws-empty visual language as the graduation empty
+     state. The shell's terminalError is untouched: it stays for genuinely
+     broken tools. */
+  function showStaged(section, body, ctaText, ctaFn) {
+    if (section.querySelector('.pf-ws-empty')) return;
+    var d = document.createElement('div');
+    d.className = 'pf-ws-empty';
+    var t = document.createElement('div');
+    t.className = 'pf-ws-empty-t';
+    t.textContent = 'NOT LIVE HERE YET.';
+    var p = document.createElement('div');
+    p.textContent = body;
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = ctaText;
+    b.onclick = function () { try { ctaFn(); } catch (e) { err('staged CTA failed: ' + (e && e.message)); } };
+    d.appendChild(t); d.appendChild(p); d.appendChild(b);
+    section.appendChild(d);
   }
 
   /* ---- template tools (lazy clone + execScripts, page-mount's approach) ---- */
@@ -107,11 +163,15 @@
 
   /* ---- graduation: event-driven card, relocated when it renders ----
      academy-graduation.js renders #pf-graduation into the academy container
-     on its own triggers (pf-lesson-complete / pf-callsign-claimed / boot).
-     The adapter kicks the documented primary trigger, then relocates the
-     card into this tool's pane if/when it appears (bounded poll; the card
-     only exists for fresh graduates). No card after the poll = the honest
-     empty state with a payoff into the Academy. */
+     on its own triggers (pf-lesson-complete / pf-graduation-check /
+     pf-callsign-claimed / boot). The adapter kicks the dedicated
+     pf-graduation-check re-check ping — deliberately NOT the bare
+     pf-lesson-complete, which do-meter.js scores at +3 "Lessons" (phantom
+     Do Meter credit + $ animation for a lesson never earned). The new event
+     is scored by nothing. Then the adapter relocates the card into this
+     tool's pane if/when it appears (bounded poll; the card only exists for
+     fresh graduates). No card after the poll = the honest empty state with
+     a payoff into the Academy. */
   WS.register({
     id: 'graduation', title: 'GRADUATION',
     tagline: "Finish every lesson. Your induction card lands here.",
@@ -154,8 +214,11 @@
           if (iv) clearInterval(iv);
         }
       }
-      /* The tool's own documented trigger — no internals touched. */
-      try { document.dispatchEvent(new CustomEvent('pf-lesson-complete')); } catch (e) {}
+      /* Dedicated re-check ping for the graduation module — no internals
+         touched. Deliberately NOT the bare pf-lesson-complete: that event
+         scores +3 Do Meter "Lessons" credit, so dispatching it here would
+         manufacture phantom task credit once per week per browser. */
+      try { document.dispatchEvent(new CustomEvent('pf-graduation-check')); } catch (e) {}
       iv = setInterval(tick, 500);
       tick();
       /* Graduation's internal check carries a 15s safety timeout; give it
@@ -168,7 +231,9 @@
   /* ---- forged-tray: staged adapter for the in-flight module ----
      The module (branch fe/studio-drafts-tray) renders synchronously into
      #pf-forged-tray at bundle load. If it never loads, the dock host stays
-     empty and the tool shows the terminal error instead of a blank pane. */
+     empty and the tool shows the honest not-live-here staged state — never
+     the terminal error (staged, not broken). Zero changes needed here when
+     that branch integrates. */
   dockHost('pf-forged-tray', 'forged-tray');
   WS.register({
     id: 'forged-tray', title: 'FORGED FOR YOU',
@@ -179,10 +244,53 @@
       if (!node) throw new Error('self-mount host #pf-forged-tray missing');
       section.appendChild(node);
       /* The module renders synchronously at bundle time; an empty host
-         means the module isn't in this build. */
+         means the module isn't in this build — staged, not broken. */
       if (!node.children.length && !node.textContent.trim()) {
-        throw new Error('forged-tray module not loaded in this build');
+        showStaged(section,
+          'The forged tray is still being built. It joins the /create workshop when its module ships.',
+          '\u2190 ALL TOOLS', function () { WS.close(); });
       }
+    }
+  });
+
+  /* ---- caption-combat: STAGED adapter for the incoming tool ----
+     The full Caption Combat game with the political rounds (branch
+     fe/caption-prompt) is template-based: caption-combat.js stages
+     <template id="pf-ov-caption"> at bundle load and the shell clones it
+     lazily into the pane — same mechanics as poster-forge/feed/armory/
+     earnings. Kill 'caption-combat' matches the module's own PF.skip id;
+     the political round's sub-kill 'caption-political' is orthogonal.
+     STAGED: the module ships in bundle-arcade (/arcade only), not in any
+     bundle that loads on /create, so #pf-ov-caption is never staged here —
+     until the module's bundle ships on /create the tool renders the honest
+     not-live-here state (never the terminal error — staged, not broken).
+     Zero adapter changes needed on integration: when the template exists,
+     the mount below clones it exactly like the shell's mountTemplate. */
+  WS.register({
+    id: 'caption-combat', title: 'CAPTION COMBAT',
+    tagline: 'One template. One week. Funniest caption wins.',
+    templateId: 'pf-ov-caption', selfMount: null, kill: 'caption-combat',
+    mount: function (section) {
+      var tpl = document.getElementById('pf-ov-caption');
+      if (tpl && tpl.content) {
+        /* Module shipped: clone the staged template (the shell's own
+           mountTemplate path, replicated — the shell doesn't expose it).
+           A failing inner script rethrows, so the shell's try/catch still
+           renders the terminal error — correct for a genuinely broken
+           tool. */
+        section.appendChild(document.importNode(tpl.content, true));
+        var scripts = section.querySelectorAll('script');
+        for (var i = 0; i < scripts.length; i++) {
+          try { (0, eval)(scripts[i].textContent); }
+          catch (e) { scripts[i].remove(); throw e; }
+          scripts[i].remove();
+        }
+        return;
+      }
+      /* STAGED: honest not-live-here state with a payoff into /arcade. */
+      showStaged(section,
+        'Caption Combat is running on /arcade. It joins the /create workshop when its bundle ships.',
+        'PLAY IT ON /ARCADE', function () { location.href = '/arcade'; });
     }
   });
 

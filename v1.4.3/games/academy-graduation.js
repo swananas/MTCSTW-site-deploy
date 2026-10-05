@@ -317,9 +317,10 @@
 
   /* Primary trigger: academy.js dispatches pf-lesson-complete after every
      successful lesson_complete — check on a beat so the academy's own
-     re-render lands first. */
+     re-render lands first. The /create workshop adapter kicks a dedicated
+     pf-graduation-check for the same re-check (never Do-Meter-scored). */
   var pending = false;
-  document.addEventListener('pf-lesson-complete', function () {
+  function recheckSoon() {
     if (pending) return;
     pending = true;
     setTimeout(function () {
@@ -327,7 +328,9 @@
       var cs = containers(), i;
       for (i = 0; i < cs.length; i++) check(cs[i]);
     }, 1200);
-  });
+  }
+  document.addEventListener('pf-lesson-complete', recheckSoon);
+  document.addEventListener('pf-graduation-check', recheckSoon);
 
   /* R1/R19 claim-scoped sequencing (2026-10-04): the graduation card fires
      on pf-callsign-claimed. Evaluate the claim NOW — if this claim's owner is

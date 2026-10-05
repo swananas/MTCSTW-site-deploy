@@ -63,7 +63,7 @@
       mission: 'Your ballot, your races, your countdown.', /* [PSYCH] */
       silos: ['civic-ballot', 'ballotcd', 'races', 'measures', 'civic-votercheck'],
       interim: ['civic', 'ballotcd', 'races', 'measures'],
-      order: ['races', 'measures'],
+      order: ['races', 'measures', 'predict'],
       panes: ['ballot', 'voter', 'votercheck', 'countdown'] },
     { id: 'action', sec: '04', tab: 'TAKE ACTION', title: 'Take Action',
       mission: 'Stop reading. Start hitting.', /* [PSYCH] */
@@ -262,6 +262,18 @@
         if (!hub) return;
         var sec = hubSectionEl(hub);
         var hidden = !sec || sec.style.display === 'none';
+        /* 2026-10-05 (SURGE-2 FAIL 2): spec §5.2 virtual nav — keep the tab
+           visible when the civic strip holds tagged panes for this hub, even
+           if the hub section itself mounted zero silos. TAKE ACTION's panes
+           (Pressure campaigns, Petitions, …) live in the strip until its
+           dedicated silos (action-center, footprint, vote-alerts) merge;
+           hiding the tab defeats the deep-scroll nav. The section stays
+           hidden (no empty shell); goHub scrolls to the tagged panes. */
+        if (hidden) {
+          try {
+            hidden = document.querySelectorAll('[data-phq-hub="' + hub.id + '"]').length === 0;
+          } catch (e) { /* keep hidden on query failure (fail-soft) */ }
+        }
         b.style.display = hidden ? 'none' : '';
         b.setAttribute('aria-hidden', hidden ? 'true' : 'false');
       })(tabs[i]);

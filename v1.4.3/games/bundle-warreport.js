@@ -51,7 +51,7 @@ function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e
    Email capture for the Monday digest + FAN FAVORITE share poster. The
    sending leg is gated on the Resend DNS records (Shane's hand-step) —
    capture degrades gracefully until the backend action exists. */
-function wrEmailValid(s){ return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/.test(String(s||"").trim()); }
+function wrEmailValid(s){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(s||"").trim()); }
 function emailPaneHtml(){
   return '<div class="x-pane"><h4>GET THE WAR REPORT BY EMAIL</h4>'
     +'<div class="x-note">Monday mornings, straight to your inbox. The one channel the machine truly owns.</div>'

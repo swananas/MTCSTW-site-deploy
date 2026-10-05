@@ -134,7 +134,7 @@ function renderLottery(id){
 /* ============ COIN FLIP ============ */
 function renderFlip(id){
   var fl=(F&&F.flips)||[];
-  var h='<div class="x-pane"><h4>Coin Flip</h4><div class="x-note">Heads or tails. Winner takes double. 5% rake feeds the lottery.</div>'
+  var h='<div class="x-pane"><h4>Coin Flip</h4><div class="x-note">Heads or tails. Winner takes 1.9×. 5% rake feeds the lottery.</div>'
     +'<div class="cs-betrow"><input aria-label="XP amount" class="c-input pf-input-sm" id="csFlipAmt" type="number" min="1" placeholder="XP amount" >'
     +'<select class="c-input pf-input-sm" id="csFlipSide" ><option value="heads">HEADS</option><option value="tails">TAILS</option></select>'
     +'<button class="c-btn" id="csFlipCreate">CREATE FLIP</button></div>'

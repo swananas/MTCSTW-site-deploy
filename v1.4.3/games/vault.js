@@ -85,10 +85,10 @@ function fmtDur(ms){
 }
 function val(id){ var el=document.getElementById(id); return el?String(el.value||"").trim():""; }
 function err(id,m){ var el=document.getElementById(id); if(el) el.textContent=m||""; }
-var NH=null, LS=null, WL=null, CL=null, EL=null, DL=null, AL=null, BP=null, IS=null, WH=null, BTL=null, AUL=null, SN=null, SH=null;
+var NH=null, LS=null, WL=null, CL=null, EL=null, DL=null, AL=null, BP=null, IS=null, WH=null, BTL=null, AUL=null, SN=null, SH=null, PQ=null;
 function load(){
   var n=0;
-  function one(){ n++; if(n>=14) render(); }
+  function one(){ n++; if(n>=15) render(); }
   setTimeout(render,15000);
   apiAdmin("network_health",function(j){ NH=j; one(); });
   /* 2026-10-03 conn fix: was hardcoded callsign:"x". Use the admin's own
@@ -102,6 +102,8 @@ function load(){
   api("alert_list",{},function(j){ AL=j; one(); });
   apiAdmin("battle_proposals",function(j){ BP=j; one(); });
   apiAdmin("intel_submissions",function(j){ IS=j; one(); });
+  /* S2 (Wave 2): post-proof approval queue (shared with B6 later). */
+  apiAdmin("proof_queue",function(j){ PQ=j; one(); });
   api("battle_list",{},function(j){ BTL=j; one(); });
   api("auction_list",{},function(j){ AUL=j; one(); });
   apiAdmin("webhook_health",function(j){ WH=j; one(); });
@@ -293,7 +295,40 @@ function render(){
       +'<button class="c-btn c-btn-dim c-btn-sm" data-irj="'+ms.id+'">REJECT</button></div>';
   }
   h+='</div>';
-  /* WEBHOOK HEALTH — War Bond commerce pipeline (2026-10-03 C2b).
+/* S2 (2026-10-04) — PROOF QUEUE: post-proof bounty claims awaiting
+     verdict. Approve pays the XP through xpGrant caps; reject burns
+     nothing and ticks the device's rejection counter (repeat offenders
+     flagged). Shared queue — B6 (Raid the Comments) rides it later. */
+  var pql=(PQ&&PQ.ok&&PQ.queue)||[];
+  h+='<div class="x-pane"><h4>Proof queue ('+pql.length+' pending)</h4>';
+  h+='<div class="x-note">Post-proof bounty claims. APPROVE pays the XP (capped); REJECT burns nothing, flags repeat offenders.</div>';
+  if(!pql.length){ h+='<div class="x-note">Queue is empty.</div>'; }
+  for(var qi=0;qi<pql.length;qi++){
+    var pq0=pql[qi];
+    var prc=Number(pq0.reject_count)||0;
+    h+='<div class="vl-mod"><b>'+esc(pq0.bounty_title||'Untitled')+'</b> '
+      +'<span class="x-note">'+Number(pq0.xp_reward||0)+' XP &bull; '+esc(pq0.platform||'?').toUpperCase()+' &bull; '+esc(pq0.hashtag||'')+'</span><br>'
+      +'<span class="x-note">by '+esc(pq0.claimer||'?')+' &mdash; '+fmtDate(pq0.submitted_at)+'</span> '
+      +'<a href="'+esc(pq0.proof_url||'#')+'" target="_blank" rel="noopener" style="color:#dc143c;font-size:12px">VERIFY POST</a>'
+      +(prc>0?' <span class="x-note" style="color:#c1121f;font-weight:bold">REJECTS: '+prc+(prc>=3?' — REPEAT OFFENDER':'')+'</span>':'')+'<br>'
+      +'<button class="c-btn c-btn-sm" data-pap="'+pq0.id+'">APPROVE</button> '
+      +'<button class="c-btn c-btn-dim c-btn-sm" data-prj="'+pq0.id+'">REJECT</button></div>';
+  }
+  h+='</div>';
+  /* S2 (2026-10-04) — post a POST-PROOF bounty (house-funded, no escrow). */
+  h+='<div class="x-pane"><h4>Post a proof bounty</h4>'
+    +'<div class="x-note">Network-funded: XP mints on approval. Claims need a matching-platform post URL.</div>'
+    +'<input aria-label="Bounty title" id="vlPBTitle" class="c-input pf-input-lg" placeholder="TITLE — e.g. Raid poster: October push" maxlength="80"><br>'
+    +'<input aria-label="Bounty detail" id="vlPBDetail" class="c-input pf-input-lg" placeholder="Detail — what should the caption carry?" maxlength="200"><br>'
+    +'<input aria-label="Bounty XP" id="vlPBXp" class="c-input pf-input-sm" placeholder="XP (5-500)" maxlength="3" inputmode="numeric"> '
+    +'<select aria-label="Target platform" id="vlPBPlat" class="c-input pf-input-sm">'
+    +'<option value="tiktok">TikTok</option><option value="instagram">Instagram</option>'
+    +'<option value="facebook">Facebook</option><option value="youtube">YouTube</option></select><br>'
+    +'<input aria-label="Mission hashtag" id="vlPBTag" class="c-input pf-input-lg" placeholder="Mission hashtag — e.g. #PFNMission12" maxlength="60"><br>'
+    +'<input aria-label="Poster asset URL" id="vlPBAsset" class="c-input pf-input-lg" placeholder="Poster asset URL (https://…) — shown as the download" maxlength="500"><br>'
+    +'<button class="c-btn" id="vlPBPost">POST PROOF BOUNTY</button><div class="c-err" id="vlPBErr"></div></div>';
+  h+='</div>';
+  h+='</div>';  /* WEBHOOK HEALTH — War Bond commerce pipeline (2026-10-03 C2b).
      Admin-only: reveals whether the Squarespace order webhook has ever
      fired. "Never" means the webhook URL was never pasted — the reason
      bond_claim finds nothing. */
@@ -598,7 +633,109 @@ function wire(){
         toast("Submission rejected."); IS=null; load();
       }); };
   })(irjs[ij]); }
+/* S2 (2026-10-04) moderation queue: proof claims (shared with B6 later) */
+  var paps=document.querySelectorAll("[data-pap]");
+  for(var pi=0;pi<paps.length;pi++){ (function(btn){
+    btn.onclick=function(){ btn.disabled=true;
+      post("bounty","b_action","proof_verdict",{claim_id:btn.getAttribute("data-pap"),verdict:"approve"},function(j){
+        btn.disabled=false;
+        if(!j||!j.ok){ toast("Approve failed: "+(PF.errCopy(j,"error"))); return; }
+        toast("Proof approved: +"+(j.xp||0)+" XP paid."); PQ=null; load();
+      }); };
+  })(paps[pi]); }
+  var prjs=document.querySelectorAll("[data-prj]");
+  for(var pj=0;pj<prjs.length;pj++){ (function(btn){
+    btn.onclick=function(){
+      var reason=window.prompt("Rejection reason (optional):")||"";
+      btn.disabled=true;
+      post("bounty","b_action","proof_verdict",{claim_id:btn.getAttribute("data-prj"),verdict:"reject",reason:reason},function(j){
+        btn.disabled=false;
+        if(!j||!j.ok){ toast("Reject failed: "+(PF.errCopy(j,"error"))); return; }
+        toast("Proof rejected. Nothing paid."); PQ=null; load();
+      }); };
+  })(prjs[pj]); }
+  /* S2 (2026-10-04): post a proof bounty (house-funded) */
+  b=document.getElementById("vlPBPost");
+  if(b) b.onclick=function(){ b.disabled=true; err("vlPBErr","");
+    var pt=val("vlPBTitle"), px=Math.round(Number(val("vlPBXp"))||0);
+    if(pt.length<4){ err("vlPBErr","Title needs 4+ characters."); b.disabled=false; return; }
+    if(!(px>=5&&px<=500)){ err("vlPBErr","XP must be 5-500."); b.disabled=false; return; }
+    post("bounty","b_action","proofbounty_create",{title:pt,detail:val("vlPBDetail"),xp_reward:px,
+      platform:val("vlPBPlat"),hashtag:val("vlPBTag"),asset_url:val("vlPBAsset")},function(j){
+      b.disabled=false;
+      if(!j||!j.ok){ err("vlPBErr",PF.errCopy(j,"Create failed.")); return; }
+      toast("Proof bounty live: "+j.id); load();
+    }); };
   /* battle control: create / create staked / open voting / close & settle */
+  b=document.getElementById("vlBCreate");
+  if(b) b.onclick=function(){ b.disabled=true;
+    var ends=val("vlBEnds"); var ts=ends?new Date(ends).getTime():0;
+    post("battle","b_action","battle_create",{title:val("vlBT"),ends_at:ts},function(j){
+      b.disabled=false;
+      if(!j||!j.ok){ err("vlBErr",PF.errCopy(j,"Create failed.")); return; }
+      toast("Battle created: "+j.id); BTL=null; load();
+    }); };
+  b=document.getElementById("vlBSCreate");
+  if(b) b.onclick=function(){ b.disabled=true;
+    post("battle","b_action","battle_create_staked",{title:val("vlBST"),entry_fee:Number(val("vlBFee"))||0,prize_pool:Number(val("vlBPool"))||0},function(j){
+      b.disabled=false;
+      if(!j||!j.ok){ err("vlBSErr",PF.errCopy(j,"Create failed.")); return; }
+      toast("Staked battle created: "+j.id); BTL=null; load();
+    }); };
+  var bvts=document.querySelectorAll("[data-bvote]");
+  for(var vi=0;vi<bvts.length;vi++){ (function(btn){
+    btn.onclick=function(){ btn.disabled=true;
+      post("battle","b_action","battle_open_voting",{battle_id:btn.getAttribute("data-bvote")},function(j){
+        btn.disabled=false;
+        if(!j||!j.ok){ err("vlBCErr",PF.errCopy(j,"Open voting failed.")); return; }
+        toast("Voting open."); BTL=null; load();
+      }); };
+  })(bvts[vi]); }
+  var bcls=document.querySelectorAll("[data-bclose]");
+  for(var ci=0;ci<bcls.length;ci++){ (function(btn){
+    btn.onclick=function(){
+      if(!window.confirm("Close and settle this battle? Winner takes +100 XP.")) return;
+      btn.disabled=true;
+      post("battle","b_action","battle_close",{battle_id:btn.getAttribute("data-bclose")},function(j){
+        btn.disabled=false;
+        if(!j||!j.ok){ err("vlBCErr",PF.errCopy(j,"Close failed.")); return; }
+        toast("Battle settled. Winner: "+(j.winner||"?")); BTL=null; load();
+      }); };
+  })(bcls[ci]); }
+  /* manual war bond sale: bond_record via the warbond admin rail */
+  b=document.getElementById("vlWBRec");
+  if(b) b.onclick=function(){ b.disabled=true; err("vlWBErr","");
+    var cs=val("vlWBcs"), em=val("vlWBemail").toLowerCase(), tier=Number(val("vlWBtier"))||0;
+    var dv=val("vlWBdate"), soldTs=dv?(new Date(dv+"T12:00:00").getTime()||0):0;
+    if(!cs&&!em){ err("vlWBErr","Buyer callsign or email required."); b.disabled=false; return; }
+    if(!tier){ err("vlWBErr","Pick a War Bond tier."); b.disabled=false; return; }
+    post("warbond","wb_action","bond_record",{buyer_callsign:cs,email:em,amount:tier,sold_ts:soldTs},function(j){
+      b.disabled=false;
+      if(!j||!j.ok){ err("vlWBErr",PF.errCopy(j,"Record failed.")); return; }
+      var out=document.getElementById("vlWBOut");
+      var bits=[];
+      if(j.dup) bits.push("<b>DUPLICATE</b> — this sale was already recorded.");
+      bits.push("Recorded a <b>$"+Number(j.tier||0)+"</b> War Bond sale"+(j.callsign?(" for <b>"+esc(j.callsign)+"</b>"):"")+".");
+      bits.push("Thank-you XP: <b>"+Number(j.xp_granted||0)+"</b>"+
+        (Number(j.xp_granted||0)===0?" (cap-hit day — stays claimable via bond_claim).":"."));
+      bits.push("Split: $"+Number(j.network_share||0).toFixed(2)+" network / $"+Number(j.creator_share||0).toFixed(2)+" creator pool.");
+      bits.push("Order: <span class=\"c-mono\">"+esc(j.order_id||"")+"</span>");
+      if(out) out.innerHTML=bits.join("<br>");
+      toast(j.dup?"Sale already recorded.":"War Bond sale recorded: $"+j.tier+(j.callsign?" for "+j.callsign:"")+".");
+    }); };
+  /* auction cancel (admin): only pre-bid auctions can be cancelled */
+  var acs=document.querySelectorAll("[data-acancel]");
+  for(var ai2=0;ai2<acs.length;ai2++){ (function(btn){
+    btn.onclick=function(){
+      if(!window.confirm("Cancel this auction? It must have no bids.")) return;
+      btn.disabled=true;
+      post("sink","s_action","auction_cancel",{auction_id:btn.getAttribute("data-acancel")},function(j){
+        btn.disabled=false;
+        if(!j||!j.ok){ err("vlACErr",PF.errCopy(j,"Cancel failed.")); return; }
+        toast("Auction cancelled."); AUL=null; load();
+      }); };
+  })(acs[ai2]); }
+    /* battle control: create / create staked / open voting / close & settle */
   b=document.getElementById("vlBCreate");
   if(b) b.onclick=function(){ b.disabled=true;
     var ends=val("vlBEnds"); var ts=ends?new Date(ends).getTime():0;

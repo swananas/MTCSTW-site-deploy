@@ -41,7 +41,7 @@ function api(action,params,cb){
      through the shared claim-retry GET (2026-10-03): pre-auth callsign
      holders with no stored secret get one auth_claim attempt instead of
      failing 'missing credentials' forever. */
-  if(action==="loot_status"||action==="streak_status"||action==="cell_mine"||action==="comeback_check"){
+  if(action==="loot_status"||action==="streak_status"||action==="cell_mine"||action==="comeback_check"||action==="circuit_status"){
     try{
       if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
       var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
@@ -119,8 +119,8 @@ function fmtHours(ms){
   var h=Math.floor(ms/3600000), m=Math.floor((ms%3600000)/60000);
   return h+"H "+(m<10?"0":"")+m+"M";
 }
-var BAL=null,STREAK=null,LOOT=null,FLASH=null,COMEBACK=null,COMEBACK_ERR=null,PROP=null,CELL=null,MISS=null,STAT=null,SEASON=null,BRIEF=null,SEASHIST=null;
-var N_CALLS=12;
+var BAL=null,STREAK=null,LOOT=null,FLASH=null,COMEBACK=null,COMEBACK_ERR=null,PROP=null,CELL=null,MISS=null,STAT=null,SEASON=null,BRIEF=null,SEASHIST=null,CIRCUIT=null;
+var N_CALLS=13;
 function load(){
   var id=ident(), done=false, n=0;
   function fin(){ if(done)return; done=true; render(); }
@@ -133,6 +133,8 @@ function load(){
   api("xp_balance",{callsign:id.callsign},function(j){ BAL=j; one(); });
   api("streak_status",{callsign:id.callsign,device:id.device},function(j){ STREAK=(j&&j.ok)?j:null; one(); });
   api("loot_status",{callsign:id.callsign,device:id.device},function(j){ LOOT=(j&&j.ok)?j:null; one(); });
+  /* S1 Route March (Wave 2): today's circuit — auth-gated per-callsign read. */
+  api("circuit_status",{callsign:id.callsign,device:id.device},function(j){ CIRCUIT=(j&&j.ok)?j:null; one(); });
   api("flash_active",{},function(j){ FLASH=j; one(); });
   api("comeback_check",{callsign:id.callsign,device:id.device},function(j){ COMEBACK=(j&&j.ok&&j.eligible)?j:null; COMEBACK_ERR=(j&&!j.ok)?j:null; one(); });
   api("proposal_list",{},function(j){ PROP=j; one(); });
@@ -142,6 +144,45 @@ function load(){
   /* 2026-10-03: season_history (public) — past seasons surface in §5. */
   api("season_history",{},function(j){ SEASHIST=(j&&j.ok&&j.seasons)||null; one(); });
 }
+/* ---------- S1 ROUTE MARCH (2026-10-04): TODAY'S ROUTE MARCH card ---------- */
+function routeMarchHtml(){
+  if(!CIRCUIT||!CIRCUIT.stops) return "";
+  var stops=CIRCUIT.stops, h="";
+  var sd=Number(CIRCUIT.streak_day||1);
+  h+='<div class="br-sec" id="pf-routemarch"><div class="br-sect">\\u2694 TODAY\\u2019S ROUTE MARCH</div>';
+  h+='<div class="br-rmhead"><span class="br-rmname">'+esc(String(CIRCUIT.route_name||"MARCH"))+'</span>'
+    +'<span class="br-rmday">DAY '+sd+' &bull; NEXT +'+Number(CIRCUIT.next_payout||10)+' XP</span></div>';
+  for(var i=0;i<stops.length;i++){ var s=stops[i];
+    h+='<a class="br-rmstop'+(s.done?" done":"")+'" href="'+esc(s.page||"/")+'">'
+      +'<span class="br-rmn">'+(s.done?"\\u2713":"STOP "+(i+1))+'</span>'
+      +'<span class="br-rml">'+esc(s.action_label||"")+'</span>'
+      +'<span class="br-rmgo">&rarr;</span></a>';
+  }
+  if(CIRCUIT.claimed){
+    h+='<div class="x-note" style="margin-top:8px">\\u2713 MARCH COMPLETE &mdash; DAY '+sd+' &bull; +'
+      +Number(CIRCUIT.payout||0)+' XP claimed. Tomorrow pays +'+Number(CIRCUIT.next_payout||10)
+      +' XP. Miss a day and the streak resets.</div>';
+  } else if(CIRCUIT.can_claim){
+    h+='<div style="margin-top:10px"><button class="c-btn br-rmbtn" data-act="circuit">CLAIM +'
+      +Number(CIRCUIT.next_payout||10)+' XP &mdash; DAY '+sd+'</button></div>';
+  } else {
+    h+='<div class="x-note" style="margin-top:8px">'+Number(CIRCUIT.completed||0)+' OF '
+      +Number(CIRCUIT.total||4)+' stops done. Finish the march to claim +'
+      +Number(CIRCUIT.next_payout||10)+' XP (day '+sd+').</div>';
+  }
+  h+='</div>';
+  return h;
+}
+/* W5-10 Operation Arcs (2026-10-04): "OPERATION <name>: <chapter_title>" line
+   under the soldier header whenever an arc is live. DOM-insert only — never a
+   full re-render — so a late arc read can't clobber mid-interaction state.
+   paintArcHeader is safe to call any number of times (dedupes on .br-arc). */
+function paintArcHeader(){
+  try{
+    if(!OPARC||!OPARC.active) return;
+    var el=document.getElementById("xBrief"); if(!el) return;
+    if(el.querySelector(".br-arc")) return;
+    var head=el.querySelector(".br-head");
 function seasonInfo(){
   if(SEASON){
     return { name:String(SEASON.name||"THE 32-DAY OFFENSIVE"),
@@ -240,6 +281,8 @@ function render(){
   }
   if(!ms.length&&!fe.length){ h+='<div class="x-note">Orders incoming. Check Daily Orders for the full board.</div>'; }
   h+='<div style="margin-top:8px"><button class="c-btn" data-go="pf-orders">FULL ORDER BOARD</button></div></div>';
+  /* ---------- 3.25 ROUTE MARCH (S1) — today's guided circuit ---------- */
+  h+=routeMarchHtml();
   /* ---------- 3.5 FEATURED DROP (Daily Drop slot) ---------- */
   h+=dropSectionHtml();
   /* ---------- 4. YOUR CELL ---------- */
@@ -324,7 +367,22 @@ function render(){
       });
     }; })(acts[a]);
   }
-  dropWire();
+/* S1 Route March: the circuit claim button (pays the escalating bonus). */
+  var rmacts=el.querySelectorAll("button[data-act='circuit']");
+  for(var ra=0;ra<rmacts.length;ra++){
+    (function(btn){ btn.onclick=function(){
+      btn.disabled=true; btn.textContent="CLAIMING...";
+      var id2=ident();
+      dopaPost("circuit","c_action","circuit_claim",{callsign:id2.callsign,device:id2.device},function(j){
+        if(j&&j.ok){
+          toast("ROUTE MARCH COMPLETE. +"+Number(j.payout||0)+" XP \\u2014 DAY "+Number(j.streak_day||1)+". Tomorrow pays +"+Number(j.next_payout||0)+" XP.");
+        }
+        else { toast(PF.errCopy(j,"Claim failed.")); btn.disabled=false; btn.textContent="CLAIM BONUS"; return; }
+        load();
+      });
+    }; })(rmacts[ra]);
+  }
+    dropWire();
   renderSeasonBanner();
   tick();
 }
@@ -365,6 +423,16 @@ function bannerCss(){
     +"#pf-brief .br-cell .br-cname{font:bold 16px monospace;color:#fff}"
     +"#pf-brief .br-seasonline{display:flex;justify-content:space-between;font:bold 12px monospace;color:#ff6b6b;margin-bottom:8px}"
     +"#pf-brief .br-gate{font:14px monospace;color:#ccc;padding:16px;border:1px dashed #666}"
+    +"#pf-brief .br-rmhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}"
+    +"#pf-brief .br-rmname{font:bold 15px monospace;color:#fff;letter-spacing:1px}"
+    +"#pf-brief .br-rmday{font:bold 11px monospace;color:#e8b64c;letter-spacing:1px}"
+    +"#pf-brief .br-rmstop{display:flex;align-items:center;gap:10px;padding:9px 6px;border-bottom:1px solid #222;font:13px monospace;color:#ddd;text-decoration:none}"
+    +"#pf-brief .br-rmstop.done{color:#7ddf8a}"
+    +"#pf-brief .br-rmn{font:bold 12px monospace;color:#c1121f;min-width:54px}"
+    +"#pf-brief .br-rmstop.done .br-rmn{color:#7ddf8a}"
+    +"#pf-brief .br-rml{flex:1}"
+    +"#pf-brief .br-rmgo{color:#c1121f;font-weight:bold}"
+    +"#pf-brief .br-rmbtn{margin-top:2px}"
     +"#pf-seasonbar{position:fixed;top:0;left:0;right:0;z-index:99990;background:#0a0a0a;border-bottom:2px solid #c1121f;color:#fff;font:bold 12px monospace;padding:7px 12px;display:flex;align-items:center;gap:10px;letter-spacing:1px}"
     +"#pf-seasonbar .sb-name{color:#ff6b6b;white-space:nowrap}"
     +"#pf-seasonbar .sb-bar{flex:1;height:6px;background:#222;border-radius:3px;overflow:hidden;min-width:60px}"

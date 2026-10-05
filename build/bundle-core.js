@@ -63,7 +63,14 @@ var CORE_FILES = [
   /* nextop (S4, 2026-10-04): context-aware NEXT OP card, in-flow above the
      footer chrome on every page. Last: mounts before the footer element,
      so the chrome strips (crossnav/16-footer) sit below it. */
-  'core/20-nextop.js'
+  'core/20-nextop.js',
+  /* routemarch (S1, Wave 2): daily guided-circuit strip — STOP n OF 4
+     + claim button on today's route stop pages. Mounts before the footer
+     element, alongside nextop. */
+  'core/22-routemarch.js',
+  /* deaddrop (A1, Wave 2): daily hidden XP cache — riddle card in the
+     Morning Briefing + tappable cache widget on today's hidden page. */
+  'core/22-dead-drop.js'
 ];
 
 var BUNDLES = {

@@ -325,6 +325,60 @@ function post(bAction,params,cb){
   }catch(e){ done(null); }
 }
 var B=null, BM=null;
+/* ---- S2 Post-Proof Bounties (2026-10-04) ----
+   House-posted: download the poster, post it off-platform with the mission
+   hashtag + callsign in the caption, paste the post URL. The claim lands in
+   the review queue as PENDING — XP pays only on admin approval
+   (proof_verdict). Shared queue; B6 (Raid the Comments) rides it later. */
+function proofAcc(){ try{ return JSON.parse(localStorage.getItem("pf_proof_v1")||"{}"); }catch(e){ return {}; } }
+function proofAccSave(m){ try{ localStorage.setItem("pf_proof_v1", JSON.stringify(m||{})); }catch(e){} }
+function proofPlatLabel(p){
+  p=String(p||"").toLowerCase();
+  return p==="tiktok"?"TikTok":p==="instagram"?"Instagram":p==="facebook"?"Facebook":p==="youtube"?"YouTube":(p||"?");
+}
+function proofWriteErr(e){
+  var s=String(e==null?"":e).trim();
+  var fall="The wire fought back. Nothing changed \u2014 retry.";
+  if(!s||/network error/i.test(s)) return fall;
+  if(s.indexOf("proof URL must be a")===0)
+    return "That link isn't on the bounty's target platform. Post it there first, then paste the URL.";
+  var map={
+    "device id required":"Couldn't read your device ID. Reload and retry.",
+    "post-proof bounty requires proof_url":"Paste your post URL first.",
+    "bounty platform not configured":"This bounty isn't configured right. Flag it.",
+    "already claimed":"This device already has a claim in for this bounty.",
+    "that proof URL was already used":"That post URL was already used for another claim.",
+    "bounty not open":"That bounty closed."
+  };
+  if(map[s]) return map[s];
+  if(s.indexOf("_")!==-1) return fall; /* never show raw snake_case */
+  return s;
+}
+function proofCardHtml(b){
+  var pend=proofAcc()[b.id];
+  var pl=proofPlatLabel(b.platform);
+  var h='<div class="bn-item bn-proof" id="proofCard_'+esc(b.id)+'">';
+  h+='<div style="display:inline-block;background:#c1121f;color:#fff;font:bold 11px Arial;letter-spacing:2px;padding:3px 10px;margin-bottom:8px">POST-PROOF</div>';
+  h+='<div class="bn-title">'+esc(b.title||"Untitled")+'</div>';
+  h+='<div class="x-note">'+esc(b.detail||"")+'</div>';
+  h+='<div class="bn-meta">'+Number(b.xp_reward||0)+' XP &bull; '+esc(pl)+' &bull; <b>'+esc(b.hashtag||"")+'</b></div>';
+  if(b.asset_url){
+    h+='<div style="margin:10px 0"><img src="'+esc(b.asset_url)+'" alt="Bounty poster" loading="lazy" style="max-width:100%;height:auto;border:1px solid #333;display:block"></div>'
+      +'<a class="c-btn" href="'+esc(b.asset_url)+'" download target="_blank" rel="noopener">DOWNLOAD POSTER</a>';
+  } else {
+    h+='<div class="x-note">No poster attached \u2014 forge one, then post it.</div>'
+      +'<a class="c-btn c-btn-dim" href="/poster-forge">OPEN POSTER FORGE</a>';
+  }
+  h+='<div class="x-note" style="margin-top:8px">Post it on '+esc(pl)+' with <b>'+esc(b.hashtag||"")+'</b> and your callsign in the caption, then paste the post URL:</div>';
+  if(pend){
+    h+='<div style="margin:8px 0;padding:10px;border:1px solid #c1121f;color:#f5ead6;font:bold 12px Arial;letter-spacing:1px">IN REVIEW \u2014 your post is in the approval queue. XP lands on approval.</div>';
+  } else {
+    h+='<div class="bn-claimrow"><input aria-label="Your post URL on '+esc(pl)+'" class="bn-input" id="bnProof_'+esc(b.id)+'" placeholder="Paste your post URL (https://\u2026)" maxlength="500" inputmode="url">'
+      +'<button class="c-btn bn-proofsub" data-bid="'+esc(b.id)+'">SUBMIT PROOF</button></div>'
+      +'<div class="c-err" id="bnProofErr_'+esc(b.id)+'"></div>';
+  }
+  return h+'</div>';
+}
 function load(){
   var done=false, n=0;
   function fin(){ if(done)return; done=true; render(); }
@@ -365,6 +419,11 @@ function render(){
   /* --- open bounties --- */
   var list=[];
   try{ if(B&&B.ok&&B.bounties) list=B.bounties; }catch(e){}
+  /* S2 (Wave 2): post-proof bounties get their own section — asset +
+     hashtag + platform + XP + URL claim form. House-posted, so they sit
+     outside the ?for= creator filter. */
+  var PROOFS=list.filter(function(b){ return b && String(b.bounty_type||"").toLowerCase()==="postproof"; });
+  list=list.filter(function(b){ return !(b && String(b.bounty_type||"").toLowerCase()==="postproof"); });
   if(FOR_SLUG){
     var fl=String(forName||"").toLowerCase();
     list=list.filter(function(b){
@@ -374,6 +433,13 @@ function render(){
       var hay=(String(b.title||"")+" "+String(b.detail||"")).toLowerCase();
       return hay.indexOf(fl)!==-1;
     });
+  }
+  /* --- S2 post-proof bounties (house-posted, approval-gated) --- */
+  if(PROOFS.length && !FOR_SLUG){
+    h+='<div class="x-pane"><h4>Post-proof bounties</h4>';
+    h+='<div class="x-note">Download the poster, post it off-platform with the mission hashtag + your callsign, paste the post URL. Approved posts pay XP and hit the homepage Proof Wall.</div>';
+    for(var pf2=0;pf2<PROOFS.length;pf2++){ h+=proofCardHtml(PROOFS[pf2]); }
+    h+='</div>';
   }
   h+='<div class="x-pane"><h4>Open bounties</h4>';
   if(!list.length){
@@ -445,7 +511,29 @@ function render(){
       };
     })(cl[c]);
   }
-  /* wire post */
+/* S2 (2026-10-04): wire post-proof URL submissions — the claim lands as
+     PENDING in the review queue; XP pays only on admin approval. */
+  var psb=el.querySelectorAll("button.bn-proofsub");
+  for(var pc=0;pc<psb.length;pc++){
+    (function(btn){
+      btn.onclick=function(){
+        var bid=btn.getAttribute("data-bid");
+        var inp=document.getElementById("bnProof_"+bid);
+        var url=inp?inp.value.trim():"";
+        var er=document.getElementById("bnProofErr_"+bid);
+        if(!url||!/^https?:\/\//i.test(url)){ if(er) er.textContent="Paste the full post URL first (https://\u2026)."; return; }
+        btn.disabled=true;
+        post("bounty_claim",{bounty_id:bid,proof_url:url,callsign:id.callsign,device:id.device},function(j){
+          btn.disabled=false;
+          if(!j||!j.ok){ if(er) er.textContent=proofWriteErr(j&&j.err||j&&j.error); return; }
+          var m=proofAcc(); m[bid]={at:Date.now()}; proofAccSave(m);
+          toast("PROOF SUBMITTED \u2014 in review. XP lands on approval.");
+          load();
+        });
+      };
+    })(psb[pc]);
+  }
+    /* wire post */
   var pb=document.getElementById("bnPostBtn");
   if(pb) pb.onclick=function(){
     var t=document.getElementById("bnTitle"), d=document.getElementById("bnDetail"), x=document.getElementById("bnXp");

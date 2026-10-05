@@ -237,6 +237,13 @@ var SECTIONS = {
        into #pf-ammo / #pf-war-card. Display-only, no XP. Backend action
        `claim_support_search` CONFIRMED on wave-claim-support (2026-10-05). */
     'ammo.js',
+    /* Wave A3 FRED creator surfaces (2026-10-05): S-11 official-figure
+       citations + S-28 release-day prompts. Self-mounts right after
+       #pf-ammo (ammo.js runs first so the anchor exists). Display-only,
+       zero XP. Kills: ?pf_off=ammo-figures / ?pf_off=release-prompts.
+       Backend actions `fred_citations` + `fred_release_prompts` CONFIRMED
+       on be/fred-creator. */
+    'ammo-citations.js',
     'armory.js',
     'dashboard.js',
     'earnings.js',

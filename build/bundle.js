@@ -189,6 +189,10 @@ var SECTIONS = {
     /* Cells G7 (2026-10-04): standalone treasury UI (fund/spend/trajectory). */
     'treasury.js',
     'cell-war.js',
+    /* Propaganda Front (2026-10-05): opt-in political side front for the
+       Cell War — per-capita political asset output, recognition-only crown,
+       zero XP. Standby state when the forge/bounty rails aren't live. */
+    'cell-war-front.js',
     'diplomacy.js',
     'contracts.js',
     'war-card.js',

@@ -42,6 +42,10 @@ var SECTIONS = {
     'briefing.js',
     'do-meter.js',
     'daily-orders.js',
+    /* Political HQ integration #5 (2026-10-05): home-state preference —
+       onboarding state picker (stateless-first) + settings widget. Lives
+       with the claim flow in bundle-sec1 (critical path). No XP, read-only. */
+    'home-state.js',
     'dopamine.js',
     'enlistment-ranks.js',
     /* Wave 5B (2026-10-04): theater rack + ribbon chase strip + Frontline

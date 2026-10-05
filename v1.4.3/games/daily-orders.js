@@ -39,6 +39,10 @@
   <div class="o-claimbox" id="oClaimBox">
     <input aria-label="CALLSIGN" id="oCallsign" maxlength="20" placeholder="CALLSIGN" autocomplete="off" style="text-transform:uppercase">
     <label style="display:block;margin:8px 0;font-size:12px;color:#b8ab8e;cursor:pointer;"><input type="checkbox" id="oAge13" style="vertical-align:middle;margin-right:6px;">I confirm I am 13 or older.</label>
+    <label style="display:block;margin:8px 0;font-size:12px;color:#b8ab8e;">Home state <span style="opacity:.7;">(personalizes your civic feed)</span>
+      <select id="oHomeState" aria-label="Home state" style="display:block;width:100%;min-height:44px;margin-top:4px;background:#0d0d0d;color:#f5ead6;border:1px solid #6b5f45;font-size:15px;padding:8px;"></select>
+    </label>
+    <div style="font-size:11px;color:#8a7f68;margin:-2px 0 8px;">Only used to personalize your civic feed. Never public, never on leaderboards, never shared.</div>
     <br><button class="o-claimbtn" id="oClaimBtn">Claim</button>
     <div class="o-err" id="oClaimErr"></div>
   </div>
@@ -976,6 +980,12 @@ function render(){
           else if(window.PF&&PF.claimAuthSecret){ PF.claimAuthSecret(cs,function(){}); }
         }catch(e3){}
         save(LS_I,{callsign:cs});
+        /* Home-state preference (home-state.js): stateless-first picker in the
+           claim box. Guarded — claim must never fail if the module is skipped. */
+        try{
+          var _hs=document.getElementById("oHomeState");
+          if(_hs&&_hs.value!==undefined&&window.PF&&PF.setHomeState){ PF.setHomeState(_hs.value); }
+        }catch(eHs){}
         try{document.dispatchEvent(new CustomEvent('pf-callsign-claimed',{detail:{callsign:cs}}));}catch(e){}
         var rr=load(LS_R,{xp:0,got:{}});
         if(j.xp>rr.xp){ rr.xp=j.xp; save(LS_R,rr); }

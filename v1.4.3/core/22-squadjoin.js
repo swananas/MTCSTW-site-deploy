@@ -15,9 +15,62 @@
   var SEEN_KEY = "pf_squadjoin_v1";
   function seen(){ try{ return localStorage.getItem(SEEN_KEY)==="1"; }catch(e){ return true; } }
   function mark(){ try{ localStorage.setItem(SEEN_KEY,"1"); }catch(e){} }
-  function show(){
+  /* R1/R19 claim-scoped guard (2026-10-04): shared with
+     games/academy-graduation.js — the graduation card (R1) takes precedence
+     over this interstitial. R1 marks r1='pending' synchronously at claim
+     dispatch, then settles to 'card' | 'declined'. This interstitial shows
+     only on 'declined'. A missing record means R1 isn't evaluating on this
+     page (not loaded / kill-switched) — show on the normal beat. */
+  var CLAIM_UX_KEY = "pf_claim_ux_v1";
+  function claimUxGet(cs){
+    try{
+      var o=JSON.parse(sessionStorage.getItem(CLAIM_UX_KEY)||"{}");
+      return (o&&o[String(cs||"").toLowerCase()])||null;
+    }catch(e){ return null; }
+  }
+  function claimUxSet(cs,patch){
+    try{
+      var k=String(cs||"").toLowerCase(); if(!k) return;
+      var o={};
+      try{ o=JSON.parse(sessionStorage.getItem(CLAIM_UX_KEY)||"{}"); }catch(e2){ o={}; }
+      o[k]=Object.assign(o[k]||{},{callsign:k},patch||{});
+      sessionStorage.setItem(CLAIM_UX_KEY,JSON.stringify(o));
+    }catch(e){}
+  }
+  /* R1/R19 verdict gate: graduation card (R1) takes precedence. Card on
+     screen, or R1 verdict 'card' for this claim → stand down. Verdict
+     'declined' → show. Verdict still 'pending' → poll until it settles
+     (backend reads are async) or the bound hits, then fall back to showing
+     (R1 hung or absent — the interstitial is the fallback). */
+  var POLL_MS = 500, POLL_MAX = 20; /* 10s past the 1200ms beat */
+  function guardBlocks(cs){
+    try{ if(document.getElementById("pf-graduation")) return true; }catch(e){}
+    var g=null; try{ g=claimUxGet(cs); }catch(e2){}
+    if(g&&(g.r1==="card")) return true;
+    return false;
+  }
+  function show(cs){
     if(seen()) return;
+    if(guardBlocks(cs)) return;
+    var g=null; try{ g=claimUxGet(cs); }catch(e){}
+    if(g&&(g.r19==="shown")) return; /* idempotent per claim */
+    if(g&&(g.r1==="pending")){ pollVerdict(cs,0); return; }
+    showNow(cs);
+  }
+  function pollVerdict(cs,n){
+    if(seen()) return;
+    if(guardBlocks(cs)) return;
+    var g=null; try{ g=claimUxGet(cs); }catch(e){}
+    if(g&&g.r1==="pending"&&n<POLL_MAX){ setTimeout(function(){ pollVerdict(cs,n+1); },POLL_MS); return; }
+    showNow(cs);
+  }
+  function showNow(cs){
+    if(seen()) return;
+    if(guardBlocks(cs)) return;
+    var g=null; try{ g=claimUxGet(cs); }catch(e){}
+    if(g&&(g.r19==="shown")) return;
     mark();
+    try{ claimUxSet(cs,{r19:"shown",ts:Date.now()}); }catch(e2){}
     try{
       if(document.getElementById("pf-squadjoin")) return;
       var ov=document.createElement("div");
@@ -41,8 +94,10 @@
       if(no){ no.onclick=close; no.onkeydown=function(e){ if(e.key==="Enter"||e.key===" "){ close(); } }; }
     }catch(e){}
   }
-  document.addEventListener("pf-callsign-claimed", function(){
+  document.addEventListener("pf-callsign-claimed", function(e){
+    var cs=""; try{ cs=String((e&&e.detail&&e.detail.callsign)||""); }catch(e0){}
+    if(!cs){ try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e1){} }
     /* Let the claim toast breathe — the card lands a beat later. */
-    setTimeout(show, 1200);
+    setTimeout(function(){ show(cs); }, 1200);
   });
 })();

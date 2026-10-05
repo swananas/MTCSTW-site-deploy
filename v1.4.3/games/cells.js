@@ -744,12 +744,15 @@ function renderCell(el,s){
         for(var i=0;i<list.length;i++){
           var ch=list[i]||{};
           /* R25 (2026-10-04): purse display on challenge cards; winners link
-             to the Hall spotlight; purse pays out through the dividend rails.
-             Backend contract (flagged): challenge_list rows may carry purse
-             (or prize_xp), status, winner (cell name), winner_cell_id. */
+             to the Hall spotlight. CEO decision (2026-10-04): challenge-purse
+             payout goes through backend auto-pay ONLY — the frontend
+             dividend-button payout path was REMOVED (double-payable, no
+             mutual exclusion). The purse line below is a STATUS DISPLAY only:
+             it never initiates a payout. Backend contract (flagged):
+             challenge_list rows may carry purse (or prize_xp), status,
+             winner (cell name), winner_cell_id. */
           var purse=Math.max(0,parseInt(ch.purse||ch.prize_xp||0,10)||0);
           var won=String(ch.winner||ch.winner_cell||"");
-          var wcid=String(ch.winner_cell_id||"");
           var isDone=/complete|ended|resolved|closed/i.test(String(ch.status||""))||!!won;
           h+='<div class="x-pane"><h4>'+esc(ch.title)+'</h4>'
             +'<div class="x-note">'+esc(ch.detail||"")+'</div>'
@@ -757,7 +760,7 @@ function renderCell(el,s){
             +(won?'<div class="x-note">\uD83C\uDFC6 WINNER: <b>'+esc(won)+'</b> &mdash; <a href="/#pf-v2" style="color:#c1121f;">HALL OF PROOF \u2192</a></div>':'')
             +'<div class="x-note">'+(isDone?"Decided.":"Ends: "+esc(ch.ends||"soon"))+'</div>'
             +(isDone
-              ?(purse&&wcid?'<button class="c-btn c-chpay" data-ch="'+esc(ch.id)+'" data-cell="'+esc(wcid)+'" data-purse="'+purse+'">PAY PURSE VIA DIVIDENDS</button>':'')
+              ?(purse?'<div class="x-note"><b>\uD83C\uDFC6 PURSE: '+purse.toLocaleString()+' XP</b> — auto-pays to '+(won?'<b>'+esc(won)+'</b>':'the winning cell')+' via the backend. No manual payout.</div>':'')
               :'<button class="c-btn c-chjoin" data-ch="'+esc(ch.id)+'">ENTER MY CELL</button>')
             +'<div class="c-err" id="cChErr-'+esc(ch.id)+'"></div></div>';
         }
@@ -778,26 +781,10 @@ function renderCell(el,s){
             });
           };
         })(jbs[b]);
-        /* R25: purse payout through the existing dividend rails. The backend
-           enforces founder/officer — the frontend only routes. */
-        var pbs=host.querySelectorAll(".c-chpay");
-        for(var pb2=0;pb2<pbs.length;pb2++)(function(btn){
-          btn.onclick=function(){
-            var chid=btn.getAttribute("data-ch"), wcell=btn.getAttribute("data-cell"),
-                amt=Math.max(0,parseInt(btn.getAttribute("data-purse"),10)||0),
-                id2=ident(), ee=document.getElementById("cChErr-"+chid);
-            if(ee) ee.textContent="";
-            if(!wcell||!amt){ if(ee) ee.textContent="Winner or purse missing."; return; }
-            if(!window.confirm("Pay "+amt.toLocaleString()+" XP to the winning cell via dividends?")) return;
-            busyBtn(btn,true);
-            post("finance","f_action","dividend_pay",{callsign:id2.callsign,device:id2.device,cell_id:wcell,amount:amt},function(r){
-              busyBtn(btn,false);
-              if(!r||!r.ok){ if(ee) ee.textContent=cellWriteErr(r&&r.err); return; }
-              toast("PURSE PAID — "+amt.toLocaleString()+" XP split across the winning cell.");
-              loadCh();
-            });
-          };
-        })(pbs[pb2]);
+        /* R25 purse payout: REMOVED (2026-10-04, CEO decision). Backend
+           auto-pay (challenge_resolve) is the ONE payout path — this
+           frontend dividend-button path was double-payable with no mutual
+           exclusion. The purse card above is a status display only. */
         api("challenge_board",{},function(b2){
           var bh=document.getElementById("cChBoard"); if(!bh) return;
           var rows=(b2&&b2.board)||[];

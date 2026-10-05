@@ -5,11 +5,19 @@
    1. node --check on the new/edited modules
    2. Static checks: zero xpGrant(, kill ids declared + enforced, no
       PFWorkshop reassignment, no new -load classes, page-mount legacy guard,
-      bundle placement (bundle-create, NOT bundle-create-h)
+      bundle placement (bundle-create, NOT bundle-create-h), no bare
+      pf-lesson-complete dispatch in adapters (Do Meter scores it +3 —
+      the graduation adapter kicks a dedicated pf-graduation-check the
+      graduation module listens for)
    3. Runtime checks in a minimal DOM shim (vm): register 3 fake tools
       (template / self-mount / custom), open/close, one-active-tool,
       lazy-mount-once, hash routing, back-button, Escape, kill-switch
-      fallback, master ?pf_off=workshop kill.
+      fallback, master ?pf_off=workshop kill; the real adapters file
+      registers all 10 tools in rail order, the staged caption-combat
+      and forged-tray adapters render the honest not-live-here state
+      (never the terminal error) with their payoff CTAs (/arcade nav,
+      rail return) and close cleanly, and ?pf_off=caption-combat keeps
+      it off the rail.
    Exits 0 when every check passes, 1 with a failure list otherwise. */
 'use strict';
 var fs = require('fs');
@@ -67,14 +75,15 @@ else no('kill-master', "PF.skip('workshop') missing in shell");
 var expectedKills = {
   'poster-forge': 'poster-forge', 'feed': 'feed', 'armory': 'armory',
   'earnings': 'earnings', 'academy': 'academy', 'creator-assist': 'creator-assist',
-  'ammo': 'ammo', 'graduation': 'academy-graduation', 'forged-tray': 'forged-tray'
+  'ammo': 'ammo', 'graduation': 'academy-graduation', 'forged-tray': 'forged-tray',
+  'caption-combat': 'caption-combat'
 };
 var killsOk = true;
 Object.keys(expectedKills).forEach(function (id) {
   var re = new RegExp("id:\\s*['\"]" + id + "['\"][\\s\\S]{0,400}?kill:\\s*['\"]" + expectedKills[id] + "['\"]");
   if (!re.test(adaptSrc)) { killsOk = false; }
 });
-if (killsOk) ok('all 9 adapters declare their kill id');
+if (killsOk) ok('all 10 adapters declare their kill id');
 else no('kill-adapters', 'one or more adapters missing kill declaration');
 
 /* 2d. Adapter kill ids match the modules' own PF.skip ids (cross-check). */
@@ -95,7 +104,16 @@ try {
     { cwd: ROOT, stdio: 'pipe' }).toString();
   if (!/PF\.skip\(['"]forged-tray['"]\)/.test(traySrc)) { crossOk = false; crossNotes.push('forged-tray'); }
 } catch (e) { crossOk = false; crossNotes.push('forged-tray(branch unreadable)'); }
-if (crossOk) ok('adapter kill ids match module PF.skip ids (incl. forged-tray branch)');
+/* caption-combat: the incoming tool is the political-rounds branch (the module
+   also exists in-tree with the same kill id — check both). */
+try {
+  var capBranch = cp.execSync('git show origin/fe/caption-prompt:v1.4.3/games/caption-combat.js',
+    { cwd: ROOT, stdio: 'pipe' }).toString();
+  if (!/PF\.skip\(['"]caption-combat['"]\)/.test(capBranch)) { crossOk = false; crossNotes.push('caption-combat(branch)'); }
+  var capTree = read(path.join(V, 'games', 'caption-combat.js'));
+  if (!/PF\.skip\(['"]caption-combat['"]\)/.test(capTree)) { crossOk = false; crossNotes.push('caption-combat(tree)'); }
+} catch (e) { crossOk = false; crossNotes.push('caption-combat(branch unreadable)'); }
+if (crossOk) ok('adapter kill ids match module PF.skip ids (incl. forged-tray + caption-combat branches)');
 else no('kill-crosscheck', 'mismatch: ' + crossNotes.join(', '));
 
 /* 2e. No new -load classes (spec: fixed selector family only). */
@@ -140,6 +158,28 @@ else no('bundle-h-clean', 'workshop code leaked into bundle-create-h');
 if (shellCode.indexOf('migration') === -1 && adaptCode.indexOf('migration') === -1)
   ok('no backend migration reserved (frontend-only)');
 else no('migration', 'migration referenced in frontend files');
+
+/* 2i. Economy: no bare pf-lesson-complete dispatch in adapters. do-meter.js
+   scores every pf-lesson-complete DOM event at +3 "Lessons", so the
+   graduation adapter impersonating it would manufacture phantom Do Meter
+   task credit. The adapter kicks a dedicated pf-graduation-check, which
+   the graduation module listens for (scored by nothing). */
+if (adaptCode.indexOf("CustomEvent('pf-lesson-complete')") === -1 &&
+    adaptCode.indexOf('CustomEvent("pf-lesson-complete")') === -1)
+  ok("adapters never dispatch bare pf-lesson-complete (no phantom Do Meter credit)");
+else no('no-phantom-lesson', "bare CustomEvent('pf-lesson-complete') dispatch in adapters");
+if (/dispatchEvent\(new CustomEvent\('pf-graduation-check'\)\)/.test(adaptCode))
+  ok('graduation adapter kicks pf-graduation-check');
+else no('grad-check-dispatch', 'pf-graduation-check dispatch missing in adapters');
+var gradSrc = read(path.join(V, 'games', 'academy-graduation.js'));
+var gradCode = stripComments(gradSrc);
+if (/addEventListener\('pf-lesson-complete'/.test(gradCode) &&
+    /addEventListener\('pf-graduation-check'/.test(gradCode))
+  ok('academy-graduation.js listens for pf-lesson-complete + pf-graduation-check');
+else no('grad-check-listen', 'graduation module listener wrong');
+if (gradCode.indexOf("CustomEvent('pf-lesson-complete')") === -1)
+  ok('academy-graduation.js dispatches no bare pf-lesson-complete');
+else no('grad-dispatch', 'graduation module dispatches pf-lesson-complete');
 
 /* ============ 3. runtime checks in a DOM shim ============ */
 console.log('== 3. runtime checks (DOM shim) ==');
@@ -521,19 +561,93 @@ if (pk.WS && !pk.shim.document.getElementById('pf-ammo') &&
   ok('dock primer respects kills: no host for killed tool');
 else no('rt-primer-kill', 'primer created host for killed tool');
 
-/* ---- integration: the real adapters file registers all 9 tools ---- */
+/* ---- integration: the real adapters file registers all 10 tools ---- */
 var ia = bootShell([]);
 if (ia.WS) {
   try {
     vm.runInContext(read(ADAPT), ia.ctx, { filename: 'workshop-create.js' });
     var ids = ia.WS.list();
     var want = ['poster-forge', 'feed', 'armory', 'earnings', 'academy',
-                'creator-assist', 'ammo', 'graduation', 'forged-tray'];
-    if (ids.join(',') === want.join(',') && railButtons(ia.shim).length === 9)
-      ok('adapters file: all 9 tools registered, rail order correct');
+                'creator-assist', 'ammo', 'graduation', 'forged-tray',
+                'caption-combat'];
+    if (ids.join(',') === want.join(',') && railButtons(ia.shim).length === 10)
+      ok('adapters file: all 10 tools registered, rail order correct');
     else no('rt-adapters', 'registered: ' + ids.join(','));
+
+    /* caption-combat opens: module absent on /create (bundle-arcade only)
+       -> staged template missing -> honest not-live-here state, NEVER the
+       terminal error, no spinner left. */
+    ia.WS.open('caption-combat');
+    var ccPane = paneOf(ia.shim);
+    var ccEmpty = ccPane.querySelector('.pf-ws-empty');
+    var ccErr = ccPane.querySelector('.pf-ws-err');
+    var ccSpinners = ccPane.querySelectorAll('.c-load,.hq-load,.ca-load,.cw-load,.p-load');
+    var ccTxt = ccPane.textContent;
+    if (ia.WS.active() === 'caption-combat' && ccEmpty && !ccErr && ccSpinners.length === 0 &&
+        ccTxt.indexOf('NOT LIVE HERE YET.') !== -1 &&
+        ccTxt.indexOf('Caption Combat is running on /arcade.') !== -1)
+      ok('staged caption-combat: honest not-live-here state, no terminal error, no spinner');
+    else no('rt-cc-staged', 'staged state wrong (err=' + !!ccErr + ' empty=' + !!ccEmpty + ')');
+    /* Approved tagline untouched on the rail button. */
+    var ccTab = ia.shim.document.querySelector('[data-ws-tool="caption-combat"]');
+    if (ccTab && ccTab.textContent.indexOf('One template. One week. Funniest caption wins.') !== -1)
+      ok('caption-combat tagline intact on the rail');
+    else no('rt-cc-tagline', 'caption-combat tagline changed or missing');
+    /* CTA payoff: PLAY IT ON /ARCADE navigates to /arcade. */
+    var ccBtn = null, ccBtns = ccPane.querySelectorAll('button'), bi;
+    for (bi = 0; bi < ccBtns.length; bi++) {
+      if (ccBtns[bi].textContent === 'PLAY IT ON /ARCADE') ccBtn = ccBtns[bi];
+    }
+    if (ccBtn) {
+      ccBtn.onclick();
+      if (ia.shim.location.href === '/arcade')
+        ok('staged caption-combat: CTA navigates to /arcade');
+      else no('rt-cc-cta', 'CTA did not navigate (href=' + ia.shim.location.href + ')');
+    } else no('rt-cc-cta', 'PLAY IT ON /ARCADE button missing');
+    ia.WS.close();
+    if (ia.WS.active() === null && stageOf(ia.shim).style.display === 'none')
+      ok('staged caption-combat: closes back to the rail');
+    else no('rt-cc-close', 'staged tool close failed');
+
+    /* forged-tray opens: module absent -> honest not-live-here staged state
+       with a rail-return CTA, NEVER the terminal error. */
+    ia.WS.open('forged-tray');
+    var ftPane = paneOf(ia.shim);
+    var ftEmpty = ftPane.querySelector('.pf-ws-empty');
+    var ftErr = ftPane.querySelector('.pf-ws-err');
+    var ftTxt = ftPane.textContent;
+    if (ia.WS.active() === 'forged-tray' && ftEmpty && !ftErr &&
+        ftTxt.indexOf('NOT LIVE HERE YET.') !== -1 &&
+        ftTxt.indexOf('The forged tray is still being built.') !== -1)
+      ok('staged forged-tray: honest not-live-here state, no terminal error');
+    else no('rt-ft-staged', 'forged-tray staged state wrong (err=' + !!ftErr + ' empty=' + !!ftEmpty + ')');
+    /* CTA payoff: rail-return button closes the tool back to the rail. */
+    var ftBtn = null, ftBtns = ftPane.querySelectorAll('button'), fi;
+    for (fi = 0; fi < ftBtns.length; fi++) {
+      if (ftBtns[fi].textContent === '← ALL TOOLS') ftBtn = ftBtns[fi];
+    }
+    if (ftBtn) {
+      ftBtn.onclick();
+      if (ia.WS.active() === null && stageOf(ia.shim).style.display === 'none')
+        ok('staged forged-tray: CTA returns to the rail');
+      else no('rt-ft-cta', 'rail-return CTA did not close the tool');
+    } else no('rt-ft-cta', 'rail-return button missing');
+
+    /* killed caption-combat never reaches the rail */
   } catch (e) { no('rt-adapters', 'adapters file threw: ' + (e && e.message)); }
 } else no('rt-adapters-boot', 'shell failed to boot in adapter test');
+
+/* ---- per-tool kill on the real adapter: ?pf_off=caption-combat ---- */
+var ck = bootShell(['caption-combat']);
+if (ck.WS) {
+  try {
+    vm.runInContext(read(ADAPT), ck.ctx, { filename: 'workshop-create.js' });
+    var cids = ck.WS.list();
+    if (cids.indexOf('caption-combat') === -1 && cids.length === 9)
+      ok('kill: ?pf_off=caption-combat keeps it off the rail');
+    else no('rt-cc-kill', 'killed tool registered: ' + cids.join(','));
+  } catch (e) { no('rt-cc-kill', 'adapters file threw: ' + (e && e.message)); }
+} else no('rt-cc-kill-boot', 'shell failed to boot in kill test');
 
 /* ============ summary ============ */
 console.log('\n' + passes + ' passed, ' + fails.length + ' failed.');

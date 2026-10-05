@@ -109,6 +109,8 @@ var SECTIONS = {
     /* /cells (+ Creator HQ) — the cell lifecycle. */
     'cell-hq.js',
     'cell-war.js',
+    /* W5-12 Frontlines: the weekly territory war map. */
+    'war-map.js',
     'diplomacy.js',
     'contracts.js',
     'war-card.js'

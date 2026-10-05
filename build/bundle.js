@@ -272,7 +272,8 @@ var SECTIONS = {
 
 /* HQ bundle: civic, governance, notify-prefs mount ONLY on /political-hq
    (pages/political-hq.js) — plus Know Your Enemy (intel.js), moved here
-   2026-10-03 from the homepage ACT section. Loaded by the footer loader
+   2026-10-03 from the homepage ACT section, plus Ally Organizations
+   (nonprofits.js), added 2026-10-05. Loaded by the footer loader
    only when #pf-political-hq is present — never on the homepage or other
    pages. */
 var HQ_BUNDLES = {
@@ -287,7 +288,9 @@ var HQ_BUNDLES = {
     'predict.js',
     /* Ballot Countdown Cards (2026-10-05): Forged-for-You ballot drafts tray
        + phq-ballot forge/share/pledge loop. Kill ?pf_off=ballotcd. */
-    'ballot-countdown.js'
+    'ballot-countdown.js',
+    /* Ally Organizations directory (fe/nonprofits-directory, 2026-10-05). */
+    'nonprofits.js'
   ]
 };
 

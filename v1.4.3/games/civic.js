@@ -27,6 +27,23 @@
 #pf-civic .cv-pb-D{color:#8fbfff}#pf-civic .cv-pb-R{color:#ff8f8f}#pf-civic .cv-pb-I{color:#c9bfa8}
 #pf-civic .cv-diractions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
 #pf-civic .cv-xpb{display:inline-block;font-weight:900;font-size:12px;color:#ffd166;border:1px solid #ffd166;padding:6px 10px;white-space:nowrap}
+/* 2026-10-05: call practice mode — frontend-only rehearsal overlay.
+   Mobile-first: 44px+ targets, no horizontal scroll, timer pinned. */
+#pfPracOv{position:fixed;top:0;left:0;right:0;bottom:0;z-index:100000;background:rgba(8,8,8,.96);overflow-y:auto;display:none;-webkit-overflow-scrolling:touch}
+#pfPracOv .pfprac-card{max-width:640px;margin:0 auto;padding:16px 16px 48px;color:#f5ead6;box-sizing:border-box}
+#pfPracOv .pfprac-top{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;gap:12px;background:rgba(8,8,8,.96);padding:12px 0;z-index:2}
+#pfPracOv .pfprac-timer{font:bold 28px monospace;color:#ffd166}
+#pfPracOv .pfprac-x{min-width:44px}
+#pfPracOv .pfprac-h{margin:8px 0 4px}
+#pfPracOv .pfprac-zero{margin:8px 0}
+#pfPracOv .pfprac-tele{font-size:22px;line-height:1.5;background:#141414;border:1px solid #4a4a4a;padding:20px 16px;margin:12px 0;min-height:120px;overflow-wrap:anywhere}
+#pfPracOv .pfprac-prog{text-align:center}
+#pfPracOv .pfprac-row{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+#pfPracOv .pfprac-row .c-btn{flex:1;min-height:44px;box-sizing:border-box}
+#pfPracOv .pfprac-big{width:100%;min-height:52px;margin:12px 0;box-sizing:border-box}
+#pfPracOv .pfprac-gentle{opacity:0;transition:opacity 1.2s ease;font-size:17px;color:#ffd166;text-align:center;margin:16px 0}
+#pfPracOv .pfprac-gentle.pfprac-show{opacity:1}
+#pfPracOv .pfprac-warm{font-size:24px;font-weight:900;color:#f5ead6;margin:16px 0 8px}
 </style>
 </div>
 <script>
@@ -210,7 +227,11 @@ function dirRowHTML(r){
   /* +25 XP badge rides next to LOG CONTACT (CEO requirement 2026-10-05) —
      the reward is surfaced, not new. */
   h+=' <button type="button" class="c-btn cv-t44" data-dir-log="'+esc(nm)+'">LOG CONTACT</button>'
-    +'<span class="cv-xpb">+25 XP</span>';
+    +'<span class="cv-xpb">+25 XP</span>'
+    /* 2026-10-05: call practice mode — rehearsal entry point per row.
+       Practice earns zero XP (stated in the overlay); the real call logs
+       through the same doLogContact() path as LOG CONTACT. */
+    +' <button type="button" class="c-btn cv-t44" data-dir-practice="'+esc(nm)+'" data-dir-phone="'+esc(telHref)+'">PRACTICE FIRST</button>';
   h+='</div></div>';
   return h;
 }
@@ -279,6 +300,200 @@ function doLogContact(repName,btn,errEl){
     if(btn) btn.disabled=false;
   });
 }
+/* --- call practice mode (2026-10-05): frontend-only rehearsal for
+   first-time callers. Warm and encouraging, never gamified-shaming.
+   PRACTICE EARNS ZERO XP — the overlay and entry points say so plainly.
+   The real call logs through the shared doLogContact() helper above
+   (same POST shape, +25 XP, 2/day cap) — the POST logic is NOT
+   duplicated here. No backend writes from practice; the only
+   persistence is a per-callsign practice count in localStorage, used
+   for encouragement copy only. */
+var PRAC={el:null,timer:null,secs:60,lines:[],idx:0,rep:"",phone:"",script:null,started:false,done:false};
+function pracGetCount(){
+  var id=""; try{ id=ident().callsign||""; }catch(e){}
+  try{ return Number(window.localStorage.getItem("pf_prac_count_"+id))||0; }catch(e){ return 0; }
+}
+function pracBumpCount(){
+  var id=""; try{ id=ident().callsign||""; }catch(e){}
+  try{ window.localStorage.setItem("pf_prac_count_"+id,String(pracGetCount()+1)); }catch(e){}
+}
+/* Script picker: a campaign-passed script wins verbatim; otherwise the
+   default rep-contact script — the topic-selected one when the legacy
+   pane has one picked, else the first backend script. Never invented. */
+function pracDefaultScript(){
+  var scripts=(SCRIPTS&&SCRIPTS.scripts)||[];
+  if(!scripts.length) return null;
+  var sid=""; try{ var b=document.getElementById("cvScriptBox"); sid=b?b.getAttribute("data-script-id"):""; }catch(e){}
+  for(var i=0;i<scripts.length;i++){ if(sid&&String(scripts[i].id)===String(sid)) return scripts[i]; }
+  return scripts[0];
+}
+function pracNormScript(sc){
+  if(!sc) return null;
+  var body=sc.script!=null?sc.script:(sc.body!=null?sc.body:"");
+  if(!String(body).replace(/\s+/g,"")) return null;
+  return {title:String(sc.title||sc.topic||"Call script"),body:String(body)};
+}
+/* Same substitution + escaping discipline as showScript: escape the
+   script first, then fill {NAME}/{STATE}/{REP} with escaped values. */
+function pracFill(body,repName){
+  var name=gv("cvMyName")||"[YOUR NAME]", st=gv("cvMyState")||"[STATE]", rep=repName||gv("cvRepSel")||"[REP]";
+  return esc(body).split("{NAME}").join(esc(name)).split("{STATE}").join(esc(st)).split("{REP}").join(esc(rep));
+}
+function pracFmt(s){ s=Math.max(0,s); var m=Math.floor(s/60), r=s%60; return m+":"+(r<10?"0":"")+r; }
+function pracEnsure(){
+  if(PRAC.el) return PRAC.el;
+  var ov=document.createElement("div");
+  ov.id="pfPracOv"; ov.style.display="none";
+  document.body.appendChild(ov);
+  PRAC.el=ov; return ov;
+}
+function pracStopTimer(){ if(PRAC.timer){ try{ clearInterval(PRAC.timer); }catch(e){} PRAC.timer=null; } }
+function pracPaintLine(){
+  var t=document.getElementById("pfPracTele"); if(t) t.innerHTML=PRAC.lines[PRAC.idx]||"";
+  var p=document.getElementById("pfPracProg"); if(p) p.textContent="Line "+(PRAC.idx+1)+" of "+PRAC.lines.length;
+}
+function pracRender(){
+  var ov=pracEnsure();
+  var n=pracGetCount();
+  var h='<div class="pfprac-card">'
+    +'<div class="pfprac-top">'
+    +'<div class="pfprac-timer" id="pfPracTimer" aria-live="polite">'+pracFmt(PRAC.secs)+'</div>'
+    +'<button type="button" class="c-btn cv-t44 pfprac-x" id="pfPracClose" aria-label="Close practice">\u2715</button>'
+    +'</div>'
+    +'<h3 class="pfprac-h">Practice your call</h3>'
+    /* Zero-XP copy, plain: practice never mints XP. */
+    +'<div class="x-note pfprac-zero">Practice earns <b>no XP</b> \u2014 the real call earns <b>+25 XP</b>.</div>';
+  if(PRAC.rep) h+='<div class="x-note">Rehearsing for: <b>'+esc(PRAC.rep)+'</b></div>';
+  if(n>0) h+='<div class="x-note">You\u2019ve run through this '+n+' time'+(n===1?"":"s")+'. Each rep makes the real call easier.</div>';
+  if(!PRAC.script){
+    /* Backend-unreachable: no script to rehearse against, retry the
+       rep_scripts read — practice itself never depends on the write wire. */
+    h+='<div class="c-err">The script wire didn\u2019t answer \u2014 nothing to rehearse against yet.</div>'
+      +'<button type="button" class="c-btn cv-t44 pfprac-big" id="pfPracRetryScript">RETRY LOADING SCRIPT</button>';
+  } else {
+    h+='<div class="x-note"><b>'+esc(PRAC.script.title)+'</b></div>'
+      +'<div class="pfprac-tele" id="pfPracTele" aria-live="polite">'+(PRAC.lines[PRAC.idx]||"")+'</div>'
+      +'<div class="x-note pfprac-prog" id="pfPracProg">Line '+(PRAC.idx+1)+' of '+PRAC.lines.length+'</div>'
+      +'<div class="pfprac-row">'
+      +'<button type="button" class="c-btn cv-t44" id="pfPracPrev">\u2190 BACK</button>'
+      +'<button type="button" class="c-btn cv-t44" id="pfPracNext">NEXT LINE \u2192</button>'
+      +'</div>';
+    if(!PRAC.started){
+      h+='<button type="button" class="c-btn cv-t44 pfprac-big" id="pfPracStart">START 60-SECOND TIMER</button>'
+        +'<div class="x-note">Read it out loud, like the staffer just picked up. No rush \u2014 the timer is a guide, not a test.</div>';
+    }
+    /* Gentle end target: filled + faded in when the timer lands, never a buzzer. */
+    h+='<div class="pfprac-gentle" id="pfPracGentle" aria-live="polite"></div>';
+    if(!PRAC.done){
+      h+='<button type="button" class="c-btn cv-t44 pfprac-big" id="pfPracDone">I PRACTICED \u2713</button>';
+    } else {
+      h+='<div class="pfprac-warm">Nice. You\u2019ve got this.</div>'
+        +'<div class="x-note">The real call is where the +25 XP lives. Staffer answers, you read your lines, done.</div>'
+        +'<div class="pfprac-row">';
+      if(PRAC.phone) h+='<a class="c-btn cv-t44" href="'+esc(PRAC.phone)+'">CALL NOW</a>';
+      h+='<button type="button" class="c-btn cv-t44" id="pfPracLog">LOG THE REAL CALL (+25 XP)</button></div>'
+        +'<div class="c-err" id="pfPracErr"></div>'
+        +'<div class="x-note">2 logged contacts per day \u2014 same as always.</div>';
+    }
+  }
+  h+='</div>';
+  ov.innerHTML=h;
+  pracBind();
+}
+function pracBind(){
+  function on(id,fn){ var e=document.getElementById(id); if(e) e.onclick=fn; }
+  on("pfPracClose",pracClose);
+  on("pfPracStart",pracStart);
+  on("pfPracDone",pracCheckIn);
+  on("pfPracLog",pracLogReal);
+  on("pfPracPrev",function(){ if(PRAC.idx>0){ PRAC.idx--; pracPaintLine(); } });
+  on("pfPracNext",function(){ if(PRAC.idx<PRAC.lines.length-1){ PRAC.idx++; pracPaintLine(); } });
+  on("pfPracRetryScript",function(){
+    var b=document.getElementById("pfPracRetryScript"); if(b) b.disabled=true;
+    api("rep_scripts",{},function(j){ SCRIPTS=j; pracOpen({repName:PRAC.rep,phone:PRAC.phone}); });
+  });
+}
+function pracOpen(opts){
+  opts=opts||{};
+  PRAC.rep=String(opts.repName||"");
+  PRAC.phone=String(opts.phone||"");
+  /* Campaign-passed script verbatim, else the default rep-contact script. */
+  PRAC.script=pracNormScript(opts.script)||pracNormScript(pracDefaultScript());
+  PRAC.lines=[]; PRAC.idx=0; PRAC.secs=60; PRAC.started=false; PRAC.done=false;
+  if(PRAC.script){
+    var filled=pracFill(PRAC.script.body,PRAC.rep);
+    /* Teleprompter: line-by-line advance — simpler and more robust than
+       auto-scroll (no scroll-timing bugs at any font size). Split on
+       blank lines so each beat is one tap. */
+    var parts=filled.split(/\n\s*\n/), i, t;
+    for(i=0;i<parts.length;i++){ t=parts[i].replace(/\s+/g," ").replace(/^\s+|\s+$/g,""); if(t) PRAC.lines.push(t); }
+    if(!PRAC.lines.length) PRAC.lines=[filled];
+  }
+  pracStopTimer();
+  pracRender();
+  var ov=pracEnsure(); ov.style.display="block";
+  try{ ov.scrollTop=0; }catch(e){}
+  try{ document.body.style.overflow="hidden"; }catch(e){}
+}
+function pracClose(){
+  pracStopTimer();
+  var ov=document.getElementById("pfPracOv");
+  if(ov) ov.style.display="none";
+  try{ document.body.style.overflow=""; }catch(e){}
+}
+function pracStart(){
+  if(PRAC.started) return;
+  PRAC.started=true; PRAC.secs=60;
+  var t=document.getElementById("pfPracTimer"); if(t) t.textContent=pracFmt(PRAC.secs);
+  var s=document.getElementById("pfPracStart"); if(s) s.style.display="none";
+  pracStopTimer();
+  PRAC.timer=setInterval(pracTick,1000);
+}
+function pracTick(){
+  PRAC.secs--;
+  var t=document.getElementById("pfPracTimer");
+  if(t) t.textContent=pracFmt(PRAC.secs);
+  if(PRAC.secs<=0){
+    pracStopTimer();
+    var g=document.getElementById("pfPracGentle");
+    if(g){ g.innerHTML="Time. Breathe \u2014 that was the hard part, and you did it."; g.classList.add("pfprac-show"); }
+    var s=document.getElementById("pfPracStart"); if(s) s.style.display="none";
+  }
+}
+/* "I practiced" check-in: warm, ungated (no timer requirement, no
+   shaming) — bumps the local encouragement count and surfaces the
+   real-call prompt. */
+function pracCheckIn(){
+  if(PRAC.done) return;
+  PRAC.done=true; pracStopTimer(); pracBumpCount();
+  pracRender();
+}
+/* Real-call path: reuses the EXISTING doLogContact() write path — same
+   POST, same +25 XP, same 2/day cap. No duplicated POST logic. */
+function pracLogReal(){
+  var b=document.getElementById("pfPracLog");
+  var err=document.getElementById("pfPracErr");
+  doLogContact(PRAC.rep,b,err);
+}
+/* Defensive entry point for parallel builds (pressure-campaign cards are
+   not in this base yet): cards can call
+   window.PFPractice.open({repName,phone,script:{title,script}}) — the
+   script passes through verbatim — or render
+   <button data-pf-practice data-pf-rep="..." data-pf-phone="tel:..."
+   data-pf-script-title="..." data-pf-script-body="...">. */
+window.PFPractice={ open:function(o){ try{ pracOpen(o||{}); }catch(e){} }, close:function(){ try{ pracClose(); }catch(e){} } };
+try{
+  document.addEventListener("click",function(e){
+    var b=e.target&&e.target.closest?e.target.closest("[data-pf-practice]"):null;
+    if(!b) return;
+    var sb=b.getAttribute("data-pf-script-body");
+    window.PFPractice.open({
+      repName:b.getAttribute("data-pf-rep")||"",
+      phone:b.getAttribute("data-pf-phone")||"",
+      script:sb?{title:b.getAttribute("data-pf-script-title")||"Call script",script:sb}:null
+    });
+  });
+}catch(e){}
 function render(){
   var el=document.getElementById("xCivic"); if(!el) return;
   var id=ident(), h="";
@@ -329,7 +544,11 @@ function render(){
     +'<select class="c-in"  id="cvMyState">'+stateOpts("")+'</select>'
     +'<div class="x-note">Method:</div>'
     +'<select class="c-in"  id="cvMethod"><option value="call">Call</option><option value="email">Email</option><option value="tweet">Tweet</option></select>'
-    +'<button class="c-btn" id="cvLogContact">LOG CONTACT (+25 XP)</button><div class="c-err" id="cvRepErr"></div>'
+    +'<button class="c-btn" id="cvLogContact">LOG CONTACT (+25 XP)</button> '
+    /* 2026-10-05: call practice mode entry point — rehearses the rep call
+       against the script picker below. Zero XP, stated plainly. */
+    +'<button class="c-btn" id="cvPracticeFirst">PRACTICE FIRST</button><div class="c-err" id="cvRepErr"></div>'
+    +'<div class="x-note">Practice earns no XP &mdash; the real call earns +25 XP.</div>'
     +'<div class="x-note">XP has no cash value. Stakes are final.</div>'
     /* 2026-10-03: rep_contact_history (AUTH) — the caller's own contact log. */
     +'<div id="cvHistBox" style="margin-top:8px"><div class="x-note">Reading your contact log&hellip;</div></div>';
@@ -472,6 +691,11 @@ function bind(){
   /* 2026-10-05: routes through the shared rep_contact write path — same
      POST, same +25 XP, same 2/day cap as the directory rows. */
   if(lc) lc.onclick=function(){ doLogContact(gv("cvRepSel"),lc,document.getElementById("cvRepErr")); };
+  /* 2026-10-05: call practice mode — rehearses against the topic-selected
+     script (or the default rep-contact script); zero XP, stated in the
+     overlay. */
+  var pf1=document.getElementById("cvPracticeFirst");
+  if(pf1) pf1.onclick=function(){ pracOpen({repName:gv("cvRepSel"),phone:""}); };
   /* --- congressional directory bindings --- */
   var dst=document.getElementById("cvDirState");
   if(dst) dst.onchange=function(){ DIRST.st=gv("cvDirState"); fetchDir(); };
@@ -491,9 +715,15 @@ function bind(){
   if(dl&&!dl.getAttribute("data-bound")){
     dl.setAttribute("data-bound","1");
     dl.addEventListener("click",function(e){
-      var t=e.target&&e.target.closest?e.target.closest("[data-dir-log],#cvDirRetry"):null;
+      var t=e.target&&e.target.closest?e.target.closest("[data-dir-log],[data-dir-practice],#cvDirRetry"):null;
       if(!t) return;
       if(t.id==="cvDirRetry"){ fetchDir(); return; }
+      /* 2026-10-05: call practice mode entry — per-row rehearsal. Survives
+         repaints (delegated), so unreachable→retry never breaks it. */
+      if(t.hasAttribute&&t.hasAttribute("data-dir-practice")){
+        pracOpen({repName:t.getAttribute("data-dir-practice"),phone:t.getAttribute("data-dir-phone")||""});
+        return;
+      }
       doLogContact(t.getAttribute("data-dir-log"),t,document.getElementById("cvDirErr"));
     });
   }

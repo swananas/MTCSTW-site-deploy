@@ -41,6 +41,7 @@
     <button class="p-btn ghost" id="pRandom">&#9873; Agitate me</button>
     <a class="p-btn" id="pDownload" href="#" download="pfn-propaganda-poster.png">Download</a>
     <button class="p-btn ghost" id="pShare">Share</button>
+    <button class="p-btn" id="pBattle">ENTER INTO POSTER BATTLES →</button>
   </div>
   <div class="p-note">1080 &times; 1350 — made for the feed. Every download carries JOIN THE FIGHT. + MTCSTW.COM.</div>
   <div id="pSpread"></div>
@@ -259,6 +260,40 @@ document.getElementById("pShare").onclick=function(){
     var url=URL.createObjectURL(blob);window.open(url,"_blank");
   });
 };
+/* R6 (2026-10-04): one-tap forge -> Poster Battles pipeline. Registers the
+   poster so it has a content ID, then battle_propose carries the stamped
+   poster (the JOIN THE FIGHT. CTA is baked into the canvas by watermark())
+   as an optional image payload. Zero XP — navigation + competition only. */
+function pfBattleThumb(){
+  try{
+    var c2=document.createElement('canvas');
+    var w=540,h=Math.round(540*cv.height/cv.width);
+    c2.width=w;c2.height=h;
+    c2.getContext('2d').drawImage(cv,0,0,w,h);
+    return c2.toDataURL('image/jpeg',0.72);
+  }catch(e){ return ''; }
+}
+document.getElementById("pBattle").onclick=function(){
+  var id=pfIdent();
+  if(!id.callsign){ pfToast("Claim a callsign first (Enlistment Ranks)."); return; }
+  var btn=document.getElementById("pBattle");
+  var cid=pfContentId();
+  var BTN_LABEL="ENTER INTO POSTER BATTLES →";
+  btn.disabled=true; btn.textContent="ENTERING…";
+  function restore(){ try{ btn.disabled=false; btn.textContent=BTN_LABEL; }catch(e){} }
+  pfPost({type:"spread",sp_action:"content_register",id:cid,callsign:id.callsign,kind:"poster",title:String(state.head||"untitled").slice(0,200)},function(){
+    try{ pfRegistered[cid]=1; }catch(e){}
+    var img=pfBattleThumb();
+    if(img.length>400000){ restore(); pfToast("Poster too large to enter."); return; }
+    pfPost({type:"battle",b_action:"battle_propose",callsign:id.callsign,device:id.device,
+      title:String(state.head||"untitled").slice(0,120),ends_at:Date.now()+7*86400000,
+      image_data:img,content_id:cid},function(j){
+      restore();
+      if(j&&j.ok){ pfToast("Battle proposed! Your poster hits the arena after approval."); }
+      else pfToast(PF.errCopy(j,"Proposal failed."));
+    });
+  });
+};
 /* ---- Spread tracking + creator dashboard + boost economy ---- */
 var PFBE=window.PF_BACKEND_URL;
 function pfEsc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
@@ -360,6 +395,8 @@ function pfWireBoosts(root){
           btn.disabled=false;
           if(!j||!j.ok){ pfToast(PF.errCopy(j,"Boost failed.")); return; }
           pfToast("BOOSTED — "+j.total_boosts+" XP total on this piece.");
+          /* R12 (Wave 6B): boost impact receipt — "your boost moved X to #N". */
+          try{ if(window.PF&&PF.boostReceipt) PF.boostReceipt(); }catch(e){}
           pfRenderSpread(); pfRenderImpact();
           try{ document.dispatchEvent(new CustomEvent("pf-boost-given",{detail:{content_id:btn.getAttribute("data-cid")}})); }catch(e){}
         });

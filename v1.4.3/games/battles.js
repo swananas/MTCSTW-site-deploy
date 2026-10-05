@@ -98,6 +98,9 @@ function loadMyProposals(){
       var pr=j.proposals[i];
       var st=String(pr.status||"pending").toUpperCase();
       h+='<div class="bt-prop"><b>'+esc(pr.title)+'</b> <span class="bt-st bt-st-'+esc(pr.status)+'">'+st+'</span>';
+      /* R6 (2026-10-04): forge-proposed battles show the poster's stamped
+         thumbnail — the programmatic propose renders in place. */
+      if(pr.image_data) h+='<br><img src="'+esc(pr.image_data)+'" alt="proposed battle poster" loading="lazy" style="display:block;max-width:180px;width:100%;height:auto;margin:0.4rem 0;border:2px solid #c1121f;">';
       if(pr.status==="rejected"&&pr.reason) h+=' <span class="x-note">'+esc(pr.reason)+'</span>';
       h+=' <span class="x-note">'+fmtDate(pr.created_at)+'</span></div>';
     }
@@ -150,7 +153,11 @@ function render(){
     for(var e=0;e<ents.length;e++){
       var en=ents[e], bm=bmap[en.id]||{xp:0,boosts:0};
       h+='<div class="bt-entry"><span class="bt-erank">#'+(e+1)+'</span> '
-        +'<b>'+esc(en.title||en.id)+'</b> <span class="x-note">by '+esc(en.creator)+' &bull; '+en.votes+' votes &bull; boosted '+bm.xp+' XP</span><br>'
+        +'<b>'+esc(en.title||en.id)+'</b> <span class="x-note">by '+esc(en.creator)+' &bull; '+en.votes+' votes &bull; boosted '+bm.xp+' XP</span>'
+        /* R6 (2026-10-04): forge-proposed entries carry the stamped poster —
+           the JOIN THE FIGHT. CTA is baked into the image itself. */
+        +(en.image?'<img src="'+esc(en.image)+'" alt="battle entry poster" loading="lazy" style="display:block;max-width:220px;width:100%;height:auto;margin:0.5rem 0;border:2px solid #c1121f;">':'')
+        +'<br>'
         +'<button class="c-btn bt-votebtn" data-bid="'+esc(b.id)+'" data-cid="'+esc(en.id)+'">VOTE</button> '
         +boostBtns(en.id)+'</div>';
     }
@@ -158,7 +165,9 @@ function render(){
   }
   /* enter a battle */
   h+='<div class="x-pane"><h4>Enter the arena</h4>'
-    +'<div class="x-note">Submit a forged poster by its content ID (shown in the Poster Forge after you share).</div>';
+    +'<div class="x-note">Submit a forged poster by its content ID (shown in the Poster Forge after you share).</div>'
+    /* R6 (2026-10-04): reverse link — forge -> battles one-tap pipeline. */
+    +'<div class="x-note" style="margin:0.5rem 0 0.75rem;"><a href="/create" style="color:#c1121f;font-weight:900;letter-spacing:0.12em;text-decoration:none;border-bottom:2px solid #c1121f;">FORGE A CONTENDER &rarr;</a></div>';
   if(open.length){
     var lastCid=""; try{ lastCid=localStorage.getItem("pf_last_content_id")||""; }catch(e){}
     h+='<select id="btBattleSel">'+open.map(function(b){
@@ -237,6 +246,8 @@ function render(){
         btn.disabled=false;
         if(!j||!j.ok){ toast(PF.errCopy(j,"Boost failed.")); return; }
         toast("BOOSTED — "+j.total_boosts+" XP total on this piece.");
+        /* R12 (Wave 6B): boost impact receipt — "your boost moved X to #N". */
+        try{ if(window.PF&&PF.boostReceipt) PF.boostReceipt(); }catch(e){}
         try{ if(window.PF&&PF.dope){ PF.dope.press(btn); var bh=document.getElementById("xBattles")||document.body; PF.dope.xpFloat(bh,"+"+btn.getAttribute("data-amt")+" XP BOOST"); } }catch(e2){}
         load();
       });

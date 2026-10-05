@@ -1403,7 +1403,18 @@
     'pf-events': {
       title: 'BOOTS ON THE GROUND', sub: 'Digital is the rehearsal. The street is the show.',
       order: [
-        ['irl', 'pf-ov-irl']
+        ['irl', 'pf-ov-irl'],
+        /* 2026-10-05 (fe/events-move): Town Hall Tracker + protest/event map
+           moved here from Political HQ (wiring-map §7). Order: irl (existing
+           page anchor) → town halls → protest map. Kill switches survive the
+           move unchanged: ?pf_off=townhall / ?pf_off=civicevents. */
+        ['townhall', 'pf-ov-townhall'],
+        /* Lazy entry: entry[2] names the on-demand chunk. The template stages
+           only when games/bundle-events-map.js loads (loader jsLazy()
+           observes the placeholder below); mountPage skips until then and the
+           retry loop picks it up. Hard ban: no tile-map SDK may ever ride in
+           this chunk (OSM link-outs only — civic-events.js contract). */
+        ['civicevents', 'pf-ov-civicevents', 'games/bundle-events-map.js']
       ]
     },
     'pf-warreport': {
@@ -1507,6 +1518,9 @@
   }
 
   var mounted = {};
+  /* 2026-10-05 (fe/events-move): tracks injected lazy-bundle anchors so a
+     lazy entry's placeholder is created exactly once per page/silo. */
+  var lazyAnchored = {};
   /* DEFECT 3 (2026-10-03; root cause corrected 2026-10-04; generalized
      2026-10-04): force PF mount points' Fluid Engine block wrappers to full
      content width — on EVERY v2 page, not just /economy.
@@ -1578,7 +1592,7 @@
     }
     var n = 0;
     cfg.order.forEach(function (entry) {
-      var silo = entry[0], tplId = entry[1];
+      var silo = entry[0], tplId = entry[1], lazyBundle = entry[2];
       var key = pageId + '::' + silo;
       if (mounted[key]) return;
       if (tplId === null || tplId === undefined) {
@@ -1593,13 +1607,55 @@
       if (PF && PF.skip(silo)) { mounted[key] = 1; return; }
       try {
         var tpl = document.getElementById(tplId);
-        if (!tpl || !tpl.content) return; /* bundle not staged yet — try next call */
+        if (!tpl || !tpl.content) {
+          /* 2026-10-05 (fe/events-move): LAZY ENTRY. The chunk hasn't staged
+             its template yet — inject a loader anchor placeholder (once) at
+             this ordered position so the footer loader's jsLazy() fetches the
+             chunk when the section scrolls near. Fail-soft: plain skip when
+             there is no lazy bundle for this entry (next retry call tries
+             again, as before). */
+          if (lazyBundle && !lazyAnchored[key]) {
+            lazyAnchored[key] = 1;
+            try {
+              var anchor = document.createElement('div');
+              anchor.className = 'pf-sec-anchor pf-lazy-skel';
+              anchor.setAttribute('data-bundle', lazyBundle);
+              anchor.setAttribute('data-lazy-silo', silo);
+              anchor.innerHTML = '<div class="c-load">Mobilizing&hellip;</div>';
+              h.appendChild(anchor);
+              /* Fail-soft: if the lazy chunk never arrives (load error,
+                 blocked CDN), the skeleton must not spin forever. After 25s
+                 with no mount, swap it for an explicit message + reload. */
+              setTimeout(function () {
+                try {
+                  if (mounted[key]) return;
+                  var a = h.querySelector('[data-lazy-silo="' + silo + '"]');
+                  if (!a || a.getAttribute('data-pf-mounted')) return;
+                  a.innerHTML = '<div style="border:2px solid #c1121f;background:#1a0505;color:#f5f0e1;padding:12px;margin:8px 0;font-family:Arial,sans-serif;font-size:14px;">' +
+                    'This section failed to load. ' +
+                    '<button style="background:#c1121f;color:#fff;border:0;font-weight:700;padding:8px 14px;cursor:pointer;" onclick="location.reload()">Reload</button></div>';
+                } catch (e2) {}
+              }, 25000);
+            } catch (e3) { err('lazy anchor failed: ' + silo, e3); }
+          }
+          return; /* bundle not staged yet — try next call */
+        }
         var frag = document.importNode(tpl.content, true);
         var section = document.createElement('section');
         section.className = 'pf-v2-game';
         section.setAttribute('data-game', silo);
         section.appendChild(frag);
-        h.appendChild(section);
+        /* A lazy entry's placeholder anchor (if any) is replaced by the real
+           section — no orphaned skeletons, no dead mount divs. */
+        try {
+          var old = h.querySelector('[data-lazy-silo="' + silo + '"]');
+          if (old && old.parentNode) {
+            old.setAttribute('data-pf-mounted', '1');
+            old.parentNode.replaceChild(section, old);
+          } else {
+            h.appendChild(section);
+          }
+        } catch (e4) { h.appendChild(section); }
         execScripts(section, tplId);
         mounted[key] = 1;
         n++;

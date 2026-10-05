@@ -104,6 +104,10 @@
 (function(){
 var TIERS=[["RECRUIT",0],["AGITATOR",25],["CADRE",75],["COMMISSAR",150],["ARCHITECT",300]];
 var LS="pf_ranks_v1", LS_I="pf_identity_v1";
+/* Spec 4 (Fix Pod, 2026-10-05): quiz-finale enlistment completion XP.
+   Amount TBD — Economy Desk to set. STAYS 0 until the Desk signs off:
+   award() with 0 is a safe no-op that marks the completion key consumed. */
+var QUIZ_COMPLETE_XP=0;
 /* Central backend: paste the /exec URL from the ranks-backend deploy to make
    ranks follow users across devices. Empty = device-local mode. */
 var BACKEND_URL="";
@@ -480,15 +484,22 @@ function render(){
 }
 /* cross-widget events — document, not window: games dispatch non-bubbling
    CustomEvents on document, which never reach window listeners. */
-document.addEventListener("pf-bracket-ballot",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("bracket_"+w,10,"once",{exempt:1}); });
+document.addEventListener("pf-bracket-ballot",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; var gain=award("bracket_"+w,10,"once",{exempt:1}); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("BALLOT IN — +10 XP"); }catch(e2){} } });
 document.addEventListener("pf-quiz-done",function(){ award("quiz",15,"once",{exempt:1}); });
+/* Spec 4 (Fix Pod, 2026-10-05): the quiz finale's enlist CTA completes the
+   callsign-claim flow and dispatches pf-quiz-enlisted. The receipt toast is
+   gain-gated like the rebalance toasts — silent while QUIZ_COMPLETE_XP=0. */
+document.addEventListener("pf-quiz-enlisted",function(){
+  var gain=award("quiz_enlist",QUIZ_COMPLETE_XP,"once",{exempt:1});
+  if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("QUIZ ENLISTMENT — +"+gain+" XP"); }catch(e2){} }
+});
 document.addEventListener("pf-guess-done",function(){ settle("pf-guess-done",award("guess_"+today(),1,"once")); });
 /* Guess scores: forward the score to the tally so the backend records it.
    No XP (pf-guess-done already awarded) — xp=0, score in meta. */
 document.addEventListener("pf-guess-scored",function(e){ var s=0; try{ if(e&&e.detail&&typeof e.detail.score==='number') s=Math.floor(e.detail.score); }catch(err){} settle("pf-guess-scored",0,s); });
 document.addEventListener("pf-raid-report",function(){ settle("pf-raid-report",award("raid",2,"daily")); });
 document.addEventListener("pf-vote-cast",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; var gain=award("fanvote_"+w,10,"once",{exempt:1}); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("VOTE COUNTED — +10 XP"); }catch(e2){} } });
-document.addEventListener("pf-traitor-vote",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("traitor_"+w,5,"once",{exempt:1}); });
+document.addEventListener("pf-traitor-vote",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; var gain=award("traitor_"+w,5,"once",{exempt:1}); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("TRAITOR VOTE — +5 XP"); }catch(e2){} } });
 document.addEventListener("pf-caption-submit",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; var gain=award("caption_"+w,10,"once",{exempt:1}); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("CAPTION IN — +10 XP"); }catch(e2){} } });
 document.addEventListener("pf-poster-made",function(){ var gain=award("poster_"+today(),1,"once"); settle("pf-poster-made",gain); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("POSTER LOGGED — +1 XP"); }catch(e2){} } });
 document.addEventListener("pf-share-image",function(){ var gain=award("share",1,"daily"); settle("pf-share-image",gain); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("SHARE LOGGED — +1 XP"); }catch(e2){} } });

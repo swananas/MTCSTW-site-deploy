@@ -628,9 +628,29 @@ function render(){
               if(rj&&rj.ok&&rj.is_record){ toast("NEW PERSONAL RECORD: "+got+" XP in a day."); }
             });
           }catch(e){}
+          /* Spec 8 (Fix Pod, 2026-10-05): route into one prescribed next
+             action — the Daily Orders check-in card — instead of toast +
+             reload. load() re-fetches comeback_check so the CLAIM card
+             clears; then scroll to #pf-orders and flash it (pf-flash idiom
+             mirrors daily-orders.js). */
+          load();
+          setTimeout(function(){
+            try{
+              var oc=document.getElementById("pf-orders");
+              if(oc){
+                var r=oc.getBoundingClientRect();
+                if(r.top<-10||r.top>window.innerHeight+10){
+                  var t=r.top+(window.pageYOffset||document.documentElement.scrollTop||0);
+                  window.scrollTo(0,Math.max(0,t-20));
+                }
+                oc.classList.add("pf-flash");
+                setTimeout(function(){ try{oc.classList.remove("pf-flash");}catch(e3){} },1400);
+              } else { toast("Next: check in with Daily Orders."); }
+            }catch(e2){ toast("Next: check in with Daily Orders."); }
+          },650);
+          return;
         }
         else { toast(PF.errCopy(j,"Claim failed.")); btn.disabled=false; btn.textContent="CLAIM"; return; }
-        load();
       });
     }; })(acts[a]);
   }
@@ -1709,7 +1729,11 @@ var MISSIONS=[
 {t:"Comment on one SLR post tagging another SLR creator who'd vibe with it. Cross-pollinate."},
 {t:"Like and share a post from the newest SLR recruit. Welcome them in.",share:1},
 {t:"Post a screenshot of an SLR post you liked and say why it hit.",share:1},
-{t:"Rest. Like one SLR post, touch grass, come back tomorrow — the streak keeps."}
+{t:"Rest. Like one SLR post, touch grass, come back tomorrow — the streak keeps."},
+/* Spec 9 (Fix Pod, 2026-10-05): the nuke joins the rotation. Copy mirrors
+   the strip's own button title ("One deliberate press per day: +50 charge,
+   +5 XP. The nuke can't be bought.") — honest, real link, no fake urgency. */
+{t:"CHARGE THE NUKE — one deliberate press feeds the network charge pool (+50 charge, +5 XP). The nuke can't be bought.",nuke:1}
 ];
 var LOOT=["The machine sees you, agitator.","Another brick in the wall. Their wall. We're taking it apart.","Noted in the ledger. History will remember this one.","Discipline is propaganda too.","Small actions, compounded. That's the whole theory.","The algorithm didn't see it coming.","Report filed. The network grows.","You are the media now. Act like it."];
 /* FIELD OPS — the lynchpin: one cross-game bonus mission per day, rotating.
@@ -1856,6 +1880,9 @@ function mergeCheckinState(j){
   render();
 }
 
+/* Spec 10 (Fix Pod, 2026-10-05): format a cell-streak multiplier for the
+   award line — 1.35, 1.5, never 1.50. */
+function fmtMult(c){ var s=Number(c).toFixed(2); if(s.indexOf(".")>=0){ s=s.replace(/0+$/,"").replace(/\.$/,""); } return s; }
 function checkin(mi,platform){
   var d=dayRec(), o=d.o, rec=d.rec, t=today();
   var already=rec.done.some(function(x){ return String(x.m)===String(mi); });
@@ -1884,7 +1911,7 @@ function checkin(mi,platform){
     /* every 7th streak day forges a shield: one missed day forgiven */
     if(o.streak%7===0&&o.lastShieldAt!==o.streak){ o.shields=(o.shields||0)+1; o.lastShieldAt=o.streak; shieldEarned=true; }
   }
-  rec.done.push({m:String(mi),p:platform,g:gained}); rec.xp=(rec.xp||0)+gained; saveDay(o,rec);
+  rec.done.push({m:String(mi),p:platform,g:gained,c:cellMult}); rec.xp=(rec.xp||0)+gained; saveDay(o,rec);
   /* FULL DEPLOYMENT command bonus is claimed here so it lands inside the same
      dispatched event — the tally records it exactly once, no phantom row. */
   var cmd=maybeCommandBonus();
@@ -1936,6 +1963,46 @@ function maybeCommandBonus(){
     if(lootEl) lootEl.textContent="+"+(got+cmd)+" XP — FIELD OP COMPLETE: "+op.label+". The network runs through you."+(cmd?" FULL DEPLOYMENT command bonus!":"");
     /* DOPAMINE: field-op celebration — confetti + floating XP over the orders widget. */
     try{ if(window.PF&&PF.dope){ var ob=document.getElementById("pf-orders"); PF.dope.confetti(ob,30); PF.dope.xpFloat(ob,"+"+(got+cmd)+" XP"); } }catch(e){}
+    render();
+  });
+})();
+
+/* Spec 9: nuke-mission auto-complete — when the strip broadcasts a landed
+   press (pf-nuke-update, pressed:true) and today's set includes the nuke
+   mission, it reports through the standard checkin path: same daily pool,
+   same events as a manual Report back. Mirrors armFieldOp above. */
+(function armNukeMission(){
+  var nukeDay=today();
+  if(window._pfNukeKey===nukeDay) return;
+  window._pfNukeKey=nukeDay;
+  document.addEventListener("pf-nuke-update",function(e){
+    if(today()!==nukeDay) return;             /* stale listener from a past day */
+    var pressed=false;
+    try{ pressed=!!(e&&e.detail&&e.detail.pressed); }catch(e2){}
+    if(!pressed){
+      try{ pressed=!!(window.pfNukeStrip&&window.pfNukeStrip.state&&window.pfNukeStrip.state().pressed); }catch(e3){}
+    }
+    if(!pressed) return;
+    var set=missionSet(), target=-1, i, m;
+    for(i=0;i<set.length;i++){ m=MISSIONS[set[i]]; if(m&&m.nuke){ target=set[i]; break; } }
+    if(target<0) return;                       /* nuke not in today's set */
+    var d=dayRec();
+    var done=d.rec.done.some(function(x){ return String(x.m)===String(target); });
+    if(done) return;                           /* counted exactly once */
+    var res=checkin(target,null);
+    if(!res||!res.ok) return;
+    /* Presentation mirrors doReport: loot line + dopamine, then re-render. */
+    var loot="NUKE CHARGED \u2014 +50 to the network pool. The nuke can't be bought.";
+    if(res.cellBonus>0) loot="CELL BONUS +"+res.cellBonus+" XP ("+Math.round((res.cellMult-1)*100)+"% cell streak) \u2014 "+loot;
+    var cmd=res.cmd||0;
+    if(cmd) loot="FULL DEPLOYMENT \u2014 COMMAND BONUS +"+cmd+". "+loot;
+    try{
+      var box=document.getElementById("pf-orders");
+      if(box&&window.PF&&PF.dope){ PF.dope.xpFloat(box,"+"+(res.gained+res.bonus+cmd)+" XP"); PF.dope.confetti(box,res.reportNo>=3?60:18); }
+      var lootEl=document.getElementById("oLoot");
+      if(lootEl) lootEl.textContent="+"+(res.gained+res.bonus+cmd)+" XP \u2014 "+loot;
+      var errEl=document.getElementById("oErr"); if(errEl) errEl.textContent="";
+    }catch(e4){}
     render();
   });
 })();
@@ -2391,9 +2458,21 @@ function render(){
     var m=MISSIONS[mi]||{t:""}, entry=null;
     rec.done.forEach(function(x){ if(String(x.m)===String(mi)) entry=x; });
     var isDone=!!entry;
-    var xpLine='+'+(isDone?(typeof entry.g==="number"?entry.g:BASE_XP):BASE_XP)+' XP'+(isDone?"":" · report #"+(doneCount+1));
+    /* Spec 10: the award line surfaces the cell streak multiplier — done
+   entries show what the streak paid ("+7 XP (×1.35 cell streak)"),
+   pending missions preview the multiplied want. */
+    var multNow=(typeof window.pfCellMult==="function")?window.pfCellMult():1;
+    var shown=isDone?(typeof entry.g==="number"?entry.g:BASE_XP):Math.round(BASE_XP*Math.max(1,multNow));
+    var multTag="";
+    if(isDone&&entry.c>1){ multTag=" (×"+fmtMult(entry.c)+" cell streak)"; }
+    else if(!isDone&&multNow>1){ multTag=" (×"+fmtMult(multNow)+" cell streak)"; }
+    var xpLine='+'+shown+' XP'+multTag+(isDone?"":" · report #"+(doneCount+1));
     var action;
     if(isDone){ action='<div><span class="o-donetag">Reported</span></div>'; }
+    /* Spec 9: the nuke mission deep-links to the strip press button —
+       the press itself pays the strip's +5 XP; completion auto-reports
+       below when the press lands. */
+    else if(m.nuke){ action='<button class="o-btn o-nukego" data-mi="'+mi+'">GO TO THE NUKE &rarr;</button>'; }
     else if(m.share){
       action='<div class="o-platpick" id="o-pick-'+mi+'"><div class="o-picklabel">Where did you share it?</div>'
         +PLATFORMS.map(function(p){
@@ -2521,6 +2600,29 @@ function render(){
   z.querySelectorAll("button.o-platbtn").forEach(function(b){
     b.onclick=function(){
       doReport(parseInt(b.getAttribute("data-mi"),10), b.getAttribute("data-p"), b);
+    };
+  });
+  /* Spec 9: GO TO THE NUKE — unhide the stick (respecting the user's
+     pf_nuke_stick_hide dismissal), focus + flash the press button;
+     fall back to the nuke section anchor when the stick is gone. */
+  z.querySelectorAll("button.o-nukego").forEach(function(b){
+    b.onclick=function(){
+      try{
+        var dismissed=false;
+        try{ dismissed=!!sessionStorage.getItem("pf_nuke_stick_hide"); }catch(e){}
+        var stick=document.getElementById("pf-nuke-stick");
+        if(stick&&!dismissed){
+          stick.hidden=false;
+          try{ stick.scrollIntoView({behavior:"smooth",block:"end"}); }catch(e2){ try{stick.scrollIntoView();}catch(e3){} }
+          var nb=document.getElementById("pnsNuke");
+          if(nb){ try{ nb.focus(); }catch(e4){} nb.classList.add("pf-flash");
+            setTimeout(function(){ try{nb.classList.remove("pf-flash");}catch(e5){} },1400); }
+          return;
+        }
+      }catch(e6){}
+      try{ var sec=document.getElementById("slr-nuke");
+        if(sec){ sec.scrollIntoView({behavior:"smooth",block:"start"}); return; } }catch(e7){}
+      try{ window.scrollTo(0,document.body.scrollHeight); }catch(e8){}
     };
   });
   document.getElementById("oProg").textContent=Math.min(doneCount,PER_DAY)+"/"+PER_DAY+" orders complete";
@@ -3585,6 +3687,10 @@ function warplanCard(){
 (function(){
 var TIERS=[["RECRUIT",0],["AGITATOR",25],["CADRE",75],["COMMISSAR",150],["ARCHITECT",300]];
 var LS="pf_ranks_v1", LS_I="pf_identity_v1";
+/* Spec 4 (Fix Pod, 2026-10-05): quiz-finale enlistment completion XP.
+   Amount TBD — Economy Desk to set. STAYS 0 until the Desk signs off:
+   award() with 0 is a safe no-op that marks the completion key consumed. */
+var QUIZ_COMPLETE_XP=0;
 /* Central backend: paste the /exec URL from the ranks-backend deploy to make
    ranks follow users across devices. Empty = device-local mode. */
 var BACKEND_URL="";
@@ -3961,15 +4067,22 @@ function render(){
 }
 /* cross-widget events — document, not window: games dispatch non-bubbling
    CustomEvents on document, which never reach window listeners. */
-document.addEventListener("pf-bracket-ballot",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("bracket_"+w,10,"once",{exempt:1}); });
+document.addEventListener("pf-bracket-ballot",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; var gain=award("bracket_"+w,10,"once",{exempt:1}); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("BALLOT IN — +10 XP"); }catch(e2){} } });
 document.addEventListener("pf-quiz-done",function(){ award("quiz",15,"once",{exempt:1}); });
+/* Spec 4 (Fix Pod, 2026-10-05): the quiz finale's enlist CTA completes the
+   callsign-claim flow and dispatches pf-quiz-enlisted. The receipt toast is
+   gain-gated like the rebalance toasts — silent while QUIZ_COMPLETE_XP=0. */
+document.addEventListener("pf-quiz-enlisted",function(){
+  var gain=award("quiz_enlist",QUIZ_COMPLETE_XP,"once",{exempt:1});
+  if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("QUIZ ENLISTMENT — +"+gain+" XP"); }catch(e2){} }
+});
 document.addEventListener("pf-guess-done",function(){ settle("pf-guess-done",award("guess_"+today(),1,"once")); });
 /* Guess scores: forward the score to the tally so the backend records it.
    No XP (pf-guess-done already awarded) — xp=0, score in meta. */
 document.addEventListener("pf-guess-scored",function(e){ var s=0; try{ if(e&&e.detail&&typeof e.detail.score==='number') s=Math.floor(e.detail.score); }catch(err){} settle("pf-guess-scored",0,s); });
 document.addEventListener("pf-raid-report",function(){ settle("pf-raid-report",award("raid",2,"daily")); });
 document.addEventListener("pf-vote-cast",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; var gain=award("fanvote_"+w,10,"once",{exempt:1}); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("VOTE COUNTED — +10 XP"); }catch(e2){} } });
-document.addEventListener("pf-traitor-vote",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("traitor_"+w,5,"once",{exempt:1}); });
+document.addEventListener("pf-traitor-vote",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; var gain=award("traitor_"+w,5,"once",{exempt:1}); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("TRAITOR VOTE — +5 XP"); }catch(e2){} } });
 document.addEventListener("pf-caption-submit",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; var gain=award("caption_"+w,10,"once",{exempt:1}); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("CAPTION IN — +10 XP"); }catch(e2){} } });
 document.addEventListener("pf-poster-made",function(){ var gain=award("poster_"+today(),1,"once"); settle("pf-poster-made",gain); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("POSTER LOGGED — +1 XP"); }catch(e2){} } });
 document.addEventListener("pf-share-image",function(){ var gain=award("share",1,"daily"); settle("pf-share-image",gain); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("SHARE LOGGED — +1 XP"); }catch(e2){} } });

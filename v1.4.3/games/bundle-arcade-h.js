@@ -616,6 +616,7 @@ el('bvShare').onclick=function(){
 '      +"<div style=\'margin-top:1.2rem;\'><input id=\'pf-mq-email\' type=\'email\' placeholder=\'Email for dispatch updates\' style=\'padding:0.6rem;width:70%;max-width:280px;background:#141414;border:2px solid #c1121f;color:#f5f0e1;font-family:inherit;\'>"\n' +
 '      +" <button id=\'pf-mq-join\' style=\'padding:0.6rem 1rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:700;cursor:pointer;font-family:inherit;\'>ENLIST</button></div>"\n' +
 '      +"<div id=\'pf-mq-msg\' style=\'margin-top:0.6rem;font-size:0.85rem;color:#b8ab8e;min-height:1.2em;\'></div>"\n' +
+'      +"<div id=\'pf-mq-mailfb\' style=\'margin-top:0.4rem;font-size:0.8rem;color:#b8ab8e;display:none;\'>Prefer email? <a href=\'#\' id=\'pf-mq-maillink\' style=\'color:#c1121f;text-decoration:underline;\'>Send your enlistment by email</a></div>"\n' +
 '      +"<div><button id=\'pf-mq-again\' style=\'margin-top:0.8rem;background:none;border:1px solid #b8ab8e;color:#b8ab8e;padding:0.5rem 1rem;cursor:pointer;font-family:inherit;font-size:0.8rem;\'>RETAKE QUIZ</button></div>";\n' +
 '    try{document.dispatchEvent(new CustomEvent("pf-quiz-done",{detail:{archetype:top}}));}catch(e){}\n' +
 '    /* M1 dopamine: archetype reveal is the payoff — celebrate it. */\n' +
@@ -648,13 +649,46 @@ el('bvShare').onclick=function(){
 '    };}\n' +
 '    var ibf=document.getElementById("pf-mq-infight");\n' +
 '    if(ibf){ibf.onclick=function(){var t=document.getElementById("pf-infight-root");if(t){try{t.scrollIntoView({behavior:"smooth",block:"start"});}catch(e){t.scrollIntoView();}}};}\n' +
+'    /* Spec 4 (Fix Pod, 2026-10-05): the finale CTA routes into the enlist\n' +
+'       flow (callsign claim) at peak curiosity. The mailto survives only as\n' +
+'       a fallback, wrapped in the caption-combat focus-check: confirmed\n' +
+'       only when the mail client actually takes over. */\n' +
+'    function mqMailto(em,msg){\n' +
+'      window.location.href="mailto:mtcstw@gmail.com?subject=SLR%20Match%20Quiz%20Enlistment&body="+encodeURIComponent("Archetype: "+A.name+"\\nEmail: "+em);\n' +
+'      setTimeout(function(){\n' +
+'        if(!document.hasFocus()){\n' +
+'          msg.textContent="Enlistment sent \u2014 welcome to the factory.";\n' +
+'          try{localStorage.setItem("pf_mq_enlist_v1",JSON.stringify({email:em,archetype:A.name,via:"email",ts:Date.now()}));}catch(e){}\n' +
+'        }else{\n' +
+'          msg.textContent="Your email app didn\u2019t open \u2014 your enlistment wasn\u2019t sent. Try again, or claim a callsign above.";\n' +
+'        }\n' +
+'      },700);\n' +
+'    }\n' +
 '    document.getElementById("pf-mq-join").onclick=function(){\n' +
 '      var em=(document.getElementById("pf-mq-email").value||"").trim();\n' +
 '      var msg=document.getElementById("pf-mq-msg");\n' +
 '      if(!em||em.indexOf("@")<0){msg.textContent="Enter a valid email.";return;}\n' +
-'      window.location.href="mailto:mtcstw@gmail.com?subject=SLR%20Match%20Quiz%20Enlistment&body="+encodeURIComponent("Archetype: "+A.name+"\\nEmail: "+em);\n' +
-'      msg.textContent="Opening your mail app \\u2014 welcome to the factory.";\n' +
+'      var fb=document.getElementById("pf-mq-mailfb");if(fb){try{fb.style.display="";}catch(e){}}\n' +
+'      if(window.PF&&typeof window.PF.requireCallsign==="function"){\n' +
+'        window.PF.requireCallsign(function(cs){\n' +
+'          if(cs){\n' +
+'            try{localStorage.setItem("pf_mq_enlist_v1",JSON.stringify({email:em,archetype:A.name,callsign:cs,ts:Date.now()}));}catch(e){}\n' +
+'            try{document.dispatchEvent(new CustomEvent("pf-quiz-enlisted",{detail:{callsign:cs,archetype:A.name}}));}catch(e2){}\n' +
+'            msg.textContent="Enlisted as "+String(cs).toUpperCase()+" \u2014 your archetype is locked in.";\n' +
+'            try{if(window.PF&&PF.toast)PF.toast("ENLISTED \u2014 welcome to the factory.");}catch(e3){}\n' +
+'          }else{\n' +
+'            msg.textContent="No problem \u2014 your email is saved. Tap ENLIST again anytime, or send it by email below.";\n' +
+'          }\n' +
+'        },{context:"to lock in your "+A.name+" archetype"});\n' +
+'      }else{ mqMailto(em,msg); }\n' +
 '    };\n' +
+'    var mql=document.getElementById("pf-mq-maillink");\n' +
+'    if(mql){mql.onclick=function(ev){try{if(ev&&ev.preventDefault)ev.preventDefault();}catch(e){}\n' +
+'      var em2=(document.getElementById("pf-mq-email").value||"").trim();\n' +
+'      var msg2=document.getElementById("pf-mq-msg");\n' +
+'      if(!em2||em2.indexOf("@")<0){msg2.textContent="Enter a valid email first.";return;}\n' +
+'      mqMailto(em2,msg2);\n' +
+'    };}\n' +
 '    document.getElementById("pf-mq-again").onclick=function(){qi=0;scores={agitator:0,meme:0,organizer:0,sniper:0,hype:0};renderQ();};\n' +
 '  }\n' +
 '  if(PF_MODE==="slim"){ renderCompact(); }\n' +

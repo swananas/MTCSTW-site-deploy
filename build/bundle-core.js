@@ -70,7 +70,16 @@ var CORE_FILES = [
   'core/22-routemarch.js',
   /* deaddrop (A1, Wave 2): daily hidden XP cache — riddle card in the
      Morning Briefing + tappable cache widget on today's hidden page. */
-  'core/22-dead-drop.js'
+  'core/22-dead-drop.js',
+  /* cohesion-actions (2026-10-05, cohesion Build-2 items 6/7/8/9):
+     PFInlineActions (inline one-tap actions, same endpoints as page
+     buttons), PFLadder (progressive asks, server-ledger sequenced,
+     7-day server decline cooldown), PFPeakPrompt (recruit CTA on wins
+     only, >=3s delay, 1/session, 0 XP), PFWhatsNext (next rank / weekly
+     medals / one clear step from the server ledger). Last: no DOM
+     dependency at load; mounts only on data-pf-* anchors.
+     Kill: ?pf_off=cohesion-actions. */
+  'core/25-cohesion-actions.js'
 ];
 
 var BUNDLES = {

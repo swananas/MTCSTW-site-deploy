@@ -106,13 +106,24 @@ PLAT_NORM = {'tiktok':'tiktok','facebook':'facebook','instagram':'instagram',
              'youtube':'youtube','x':'x','substack':'substack'}
 AUDIENCE_PLATFORMS = {'tiktok','facebook','instagram','youtube','x','substack'}
 
+# Per-link verified-status overrides. The generator defaults every http link
+# to "confirmed"; these entries were hand-verified to a different status.
+# (slug, raw_link_key) -> status. Syncs the slr-master-db.json hand-patches
+# (SD Patreon retagged unverified; propfac IG probable) into the generator
+# so a regen no longer reverts them.
+LINK_STATUS_OVERRIDES = {
+    ("mtcstw", "instagram_2"): "probable",
+    ("south-dakota-department-of-propaganda", "web_2"): "unverified",
+}
+
 members = []
 
 # ---- 41 existing ----
 for c in db41['creators']:
     slug = c['slug']
     total = OLD_TOTALS[slug]
-    links = [{"platform": k.capitalize(), "url": v, "status": "confirmed"}
+    links = [{"platform": k.capitalize(), "url": v,
+              "status": LINK_STATUS_OVERRIDES.get((slug, k), "confirmed")}
              for k, v in c.get('links', {}).items() if isinstance(v, str) and v.startswith('http')]
     notes = c.get('notes', '')
     m_bio = re.search(r'Bio:\s*([^\n]{20,400})', notes)
@@ -269,6 +280,7 @@ out = {
                   "new members carry provisional scores 7.6-9.8",
                   "no guessed URLs; links tagged confirmed/probable/unverified",
                   "all jsDelivr roster-photo URLs pin to @46c34bf (ROSTER_PHOTO_PIN in build-master-db.py)"],
+        "content_updated": "2026-10-03",
     },
     "members": members,
 }

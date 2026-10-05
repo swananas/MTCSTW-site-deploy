@@ -32,7 +32,16 @@
        coarse-area-only copy present.
    14. Loop law: check-in -> board ("SEE YOUR AREA'S BOARD"), board tabs
        YOUR AREA / NATIONAL / COMPARE, SHARE THIS BOARD via PFShare.
-   15. Silent no-op: each widget returns when its mount div is absent. */
+   15. Silent no-op: each widget returns when its mount div is absent.
+   16. Motivation design (Psych) + red-line scan: cause-framing headline,
+       "Join the count." subline, "I fight with receipts." identity anchor,
+       per-item "actually" prompt, honest norm line, authorship framing,
+       red-line-#6 consent line + "how we use this" methodology anchor,
+       week_count receipt payoff with fallback, "not sure" approximate
+       toggle wiring (is_approximate), area pre-fill via pf_inflation_area,
+       display-only last-reported reference (price input never pre-filled),
+       and a scan of user-facing copy for banned tokens: streaks,
+       leaderboards, loss-framed and guilt copy. */
 'use strict';
 var fs = require('fs');
 var path = require('path');
@@ -238,6 +247,68 @@ var noopFails = ['pf-inflation-checkin', 'pf-inflation-board', 'pf-inflation-tre
 });
 if (!noopFails.length) ok('mount: silent no-op when each mount div is absent');
 else no('mount', 'silent no-op guard missing for: ' + noopFails.join(','));
+
+console.log('\n== 16. motivation design (Psych) + red-line scan ==');
+if (has(src, 'honest inflation number') && has(src, 'building our own'))
+  ok('cause: framing headline "honest inflation number / building our own"');
+else no('cause', 'cause-framing headline missing');
+if (has(src, 'Join the count.')) ok('cause: "Join the count." subline');
+else no('cause', '"Join the count." subline missing');
+if (has(src, 'I fight with receipts.')) ok('cause: identity anchor "I fight with receipts."');
+else no('cause', 'identity anchor "I fight with receipts." missing');
+if (has(src, 'actually cost you this week')) ok('copy: per-item "actually" prompt');
+else no('copy', 'per-item "actually" prompt missing');
+if (has(src, 'Most reports this week come from actual grocery receipts.'))
+  ok('copy: honest norm line');
+else no('copy', 'honest norm line missing');
+if (has(src, 'Your receipt is building the People'))
+  ok('copy: authorship framing near submit');
+else no('copy', 'authorship framing missing');
+if (has(src, 'Your activity powers the movement'))
+  ok('consent: red-line-#6 line at the point of collection');
+else no('consent', 'red-line-#6 consent line missing');
+if (has(src, 'How we use this') && has(src, 'id="pf-inf-method"'))
+  ok('consent: plain-language "how we use this" link anchors to the methodology footnote');
+else no('consent', '"how we use this" link / methodology footnote anchor missing');
+if (has(src, 'week_count') && has(src, 'thanks for building the index'))
+  ok('receipt: week_count payoff with fallback when week_count is absent');
+else no('receipt', 'week_count receipt / fallback copy missing');
+if (/j\s*&&\s*j\.week_count/.test(src))
+  ok('receipt: week_count absence handled defensively (never fails on absence)');
+else no('receipt', 'week_count absence not guarded');
+if (has(src, 'pf-inf-ci-approx') && has(src, 'not sure of the exact price'))
+  ok('approx: "not sure" checkbox present, labeled approximate');
+else no('approx', '"not sure" checkbox missing');
+if (has(src, 'body.is_approximate') && has(src, 'approxEl.checked'))
+  ok('approx: is_approximate wired to the checkbox (sent 0/1 on report_price)');
+else no('approx', 'is_approximate not wired to the checkbox');
+if (has(src, "'pf_inflation_area'") && has(src, 'localStorage.getItem(AREA_LS)'))
+  ok('prefill: area remembered in localStorage pf_inflation_area and pre-filled');
+else no('prefill', 'pf_inflation_area pre-fill missing');
+if (has(src, 'pf-inf-ci-refl') && has(src, 'last reported:'))
+  ok('refline: last-reported price shown as display-only reference');
+else no('refline', 'last-reported reference line missing');
+/* The only write to the price input is the success clear — the reference
+   value is NEVER pre-filled into the input. */
+if (count(src, 'priceEl.value =') === 1)
+  ok('refline: price input is never pre-filled (single write: the success clear)');
+else no('refline', 'price input has ' + count(src, 'priceEl.value =') + ' writes (must be 1)');
+
+/* Red-line scan over USER-FACING copy: strip /* *\/ and // comments first,
+   so design notes in comments cannot trip (or hide) copy violations. */
+var copyOnly = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^[ \t]*\/\/.*$/mg, '');
+var redFails = [];
+[['streak', 'streak'], ['leaderboard', 'leaderboard'],
+ ["you\u2019ll lose", 'loss-framed'], ["you'll lose", 'loss-framed'],
+ ['top contributor', 'top-contributor'], ['counting on you', 'guilt'],
+ ['let the movement down', 'guilt'], ['earn xp', 'XP promise'],
+ ['+ xp', 'XP promise']
+].forEach(function (pair) {
+  if (copyOnly.toLowerCase().indexOf(pair[0]) !== -1) redFails.push(pair[1] + ' copy ("' + pair[0] + '")');
+});
+if (!redFails.length)
+  ok('red-lines: user-facing copy clean (no streaks, leaderboards, loss-framed or guilt copy)');
+else no('red-lines', 'banned copy found: ' + redFails.join(', '));
 
 console.log('\n' + passes + ' passed, ' + fails.length + ' failed.');
 if (fails.length) { console.log('FAILURES:'); fails.forEach(function (f) { console.log(' - ' + f); }); process.exit(1); }

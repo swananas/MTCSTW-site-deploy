@@ -7,8 +7,14 @@
    Backend contract (wave-inflation-tracker, built in parallel — every endpoint
    is defensive: a 404/network failure renders a fail-soft state, never a
    broken widget):
-     POST ?action=report_price  {item_id, price_cents, area_key} (callsign-authed)
-       -> {ok, status:'published'|'flagged'|'already_reported_today'} | {ok:false}
+     POST ?action=report_price  {item_id, price_cents, area_key, is_approximate}
+       (callsign-authed)
+       -> {ok, status:'published'|'flagged'|'already_reported_today',
+           week_count?} | {ok:false}
+     week_count (published reports this week for item+area) and is_approximate
+     (0/1, from the "not sure" toggle) are OPTIONAL — code treats both as
+     absent until the backend ships them: no week_count -> fallback receipt
+     copy; missing flag -> honest copy without it. Never fail on absence.
      GET  ?action=price_board   {area_key, item_id?}
        -> per-item {median_cents, trimmed_mean_cents, sample_count,
           week_ago_median_cents, delta_pct, enough_data} or {enough_data:false}
@@ -29,6 +35,18 @@
    board, presets the area) -> board tabs [YOUR AREA | NATIONAL | COMPARE]
    -> share card ("PRICES IN <AREA>" poster via the existing PFShare flow).
    Every step informs, invites back, pays off.
+   MOTIVATION DESIGN (Psych, ~/workspace/hidden/data-strategy/motivation-
+   design.md §§1,2,4 — red lines binding): cause-framing header ("the
+   government won't give us an honest inflation number, so we're building
+   our own" / "Join the count." / identity anchor "I fight with receipts."),
+   plain "actually" prompt, honest-norm + authorship lines, red-line-#6
+   consent ("Your activity powers the movement's intelligence." + plain-
+   language "how we use this" anchored to the methodology footnote),
+   week_count receipt payoff, graceful "not sure" approximate toggle,
+   area pre-fill + display-only last-reported reference (NEVER pre-filled
+   into the input — pre-filled inputs get submitted unexamined). Recognition
+   only: no streak mechanics, no leaderboard mechanics, no per-user counts,
+   no guilt copy, zero economy as before.
    ZERO ECONOMY: this build grants no XP, shows no XP, promises no XP.
    KILL: ?pf_off=inflation (master) | ?pf_off=inflation-checkin |
          ?pf_off=inflation-board | ?pf_off=inflation-trends
@@ -171,6 +189,9 @@
     if (!BACKEND) { done(null); return; }
     var id = ident(), sec = authSecret();
     var body = { action: 'report_price', item_id: params.item_id, price_cents: params.price_cents, area_key: params.area_key };
+    /* Graceful uncertainty (anti-gaming note #6): always a clear 0/1 —
+       the parallel-built backend may not read it yet, code is defensive. */
+    body.is_approximate = params.is_approximate ? 1 : 0;
     if (id.callsign) body.callsign = id.callsign;
     if (id.device) body.device = id.device;
     if (sec) body.auth_secret = sec;
@@ -192,9 +213,35 @@
   }
 
   /* ---------------- shared state ---------------- */
-  var AREA_LS = 'pf_inflation_area_v1';
-  function lastArea() { try { return localStorage.getItem(AREA_LS) || ''; } catch (e) { return ''; } }
+  /* Area persists across visits (anti-gaming note #2: make honesty easier
+     than lying). Old key pf_inflation_area_v1 is read once as a fallback
+     for continuity, then migrated on the next successful report. */
+  var AREA_LS = 'pf_inflation_area';
+  var AREA_LS_OLD = 'pf_inflation_area_v1';
+  function lastArea() {
+    try { return localStorage.getItem(AREA_LS) || localStorage.getItem(AREA_LS_OLD) || ''; }
+    catch (e) { return ''; }
+  }
   function saveArea(a) { try { localStorage.setItem(AREA_LS, a); } catch (e) {} }
+
+  /* Last-reported price per item — REFERENCE ONLY, display never. The
+     reference line shows it ("last reported: $X on <date>"); it is NEVER
+     pre-filled into the price input (pre-filled inputs get submitted
+     unexamined). Keyed pf_inflation_last_<item_id> -> {cents, date}. */
+  var LAST_LS = 'pf_inflation_last_';
+  function lastReport(id) {
+    try {
+      var raw = localStorage.getItem(LAST_LS + id);
+      if (!raw) return null;
+      var j = JSON.parse(raw);
+      if (j && Number(j.cents) > 0 && j.date) return { cents: Number(j.cents), date: String(j.date) };
+    } catch (e) {}
+    return null;
+  }
+  function saveLastReport(id, cents) {
+    try { localStorage.setItem(LAST_LS + id, JSON.stringify({ cents: cents, date: todayChicago() })); }
+    catch (e) {}
+  }
 
   var CSS = 'background:#111;color:#f5f0e6;border:2px solid #c1121f;border-radius:10px;padding:18px;max-width:640px;margin:0 auto;font-family:system-ui,-apple-system,sans-serif;';
   var BTN = 'background:#c1121f;color:#fff;border:none;border-radius:6px;padding:10px 18px;font:bold 15px system-ui;cursor:pointer;';
@@ -215,28 +262,69 @@
 
     mount.innerHTML =
       '<div style="' + CSS + '" id="pf-inf-ci">' +
-      '<h2 style="margin:0 0 4px;font-size:22px;letter-spacing:1px;">REPORT A PRICE</h2>' +
-      '<div style="font-size:14px;color:#d8d0c0;margin-bottom:14px;">What did it cost where you live? Your report feeds the People\'s Index — community data, never sold.</div>' +
+      '<h2 style="margin:0 0 4px;font-size:22px;letter-spacing:1px;">THE PEOPLE\u2019S PRICE CHECK-IN</h2>' +
+      '<div style="font-size:16px;font-weight:bold;color:#f5f0e6;margin-bottom:2px;">The government won\u2019t give us an honest inflation number, so we\u2019re building our own.</div>' +
+      '<div style="font-size:14px;color:#d8d0c0;margin-bottom:14px;">Join the count.</div>' +
       '<div id="pf-inf-ci-body">' +
       '<label style="display:block;font-size:13px;margin-bottom:4px;">ITEM</label>' +
       '<select id="pf-inf-ci-item" style="' + INPUT + 'margin-bottom:10px;">' + opts + '</select>' +
-      '<label style="display:block;font-size:13px;margin-bottom:4px;">PRICE YOU PAID</label>' +
-      '<input id="pf-inf-ci-price" inputmode="decimal" placeholder="4.29" style="' + INPUT + 'margin-bottom:10px;">' +
+      '<label id="pf-inf-ci-price-label" style="display:block;font-size:13px;margin-bottom:4px;"></label>' +
+      '<input id="pf-inf-ci-price" inputmode="decimal" placeholder="4.29" style="' + INPUT + 'margin-bottom:2px;">' +
+      '<div id="pf-inf-ci-refl" style="' + SMALL + 'margin-bottom:8px;"></div>' +
       '<label style="display:block;font-size:13px;margin-bottom:4px;">WHERE (coarse only)</label>' +
       '<input id="pf-inf-ci-area" placeholder="ZIP or city — never your address" style="' + INPUT + 'margin-bottom:6px;" value="' + esc(lastArea()) + '">' +
-      '<div style="' + SMALL + 'margin-bottom:12px;">ZIP code or "City, ST" only. Never your street, never your name.</div>' +
+      '<div style="' + SMALL + 'margin-bottom:10px;">ZIP code or "City, ST" only. Never your street, never your name.</div>' +
+      '<label style="display:block;font-size:13px;margin-bottom:12px;cursor:pointer;">' +
+      '<input type="checkbox" id="pf-inf-ci-approx" style="margin-right:6px;vertical-align:middle;">I\u2019m not sure of the exact price</label>' +
+      '<div style="' + SMALL + 'margin-bottom:12px;">Most reports this week come from actual grocery receipts.</div>' +
+      '<div style="font-size:13px;color:#d8d0c0;margin-bottom:12px;">Your receipt is building the People\u2019s Price Index.</div>' +
       '<button id="pf-inf-ci-go" style="' + BTN + '">REPORT PRICE</button>' +
+      '<div style="' + SMALL + 'margin-top:10px;">Your activity powers the movement\u2019s intelligence. <a href="#pf-inf-method" style="color:#e8a0a0;">How we use this</a>.</div>' +
       '<div id="pf-inf-ci-msg" style="margin-top:12px;font-size:14px;"></div>' +
       '</div>' +
-      '<div style="' + HONEST + '">Community-reported prices are aggregated and public in the aggregate. One report per item per day.</div>' +
+      '<div id="pf-inf-method" style="' + HONEST + '">How we use this: your reports are aggregated into anonymous community medians on the board. We never sell your data. Your area is always coarse — ZIP or city, never an address, never a name. One report per item per day.</div>' +
+      '<div style="' + HONEST + 'color:#c98f8f;margin-top:6px;">I fight with receipts.</div>' +
       '</div>';
 
     var itemEl = document.getElementById('pf-inf-ci-item');
     var priceEl = document.getElementById('pf-inf-ci-price');
+    var priceLabelEl = document.getElementById('pf-inf-ci-price-label');
+    var reflEl = document.getElementById('pf-inf-ci-refl');
     var areaEl = document.getElementById('pf-inf-ci-area');
+    var approxEl = document.getElementById('pf-inf-ci-approx');
     var msgEl = document.getElementById('pf-inf-ci-msg');
     var goBtn = document.getElementById('pf-inf-ci-go');
     function msg(html) { msgEl.innerHTML = html; }
+
+    /* Per-item prompt + display-only reference line (anti-gaming #1, #2). */
+    function pricePrompt(it) {
+      return 'What did ' + it.name.toLowerCase() + ' actually cost you this week?';
+    }
+    function updateRefLine(it) {
+      var rec = it.id ? lastReport(it.id) : null;
+      reflEl.innerHTML = rec
+        ? 'last reported: ' + money(rec.cents) + ' on ' + esc(rec.date)
+        : '';
+    }
+    function updatePricePrompt() {
+      var it = itemById(itemEl.value) || { name: 'that item', id: '' };
+      priceLabelEl.textContent = pricePrompt(it);
+      updateRefLine(it);
+    }
+    itemEl.onchange = updatePricePrompt;
+    updatePricePrompt();
+
+    /* Receipt payoff (payoff map §2): instant acknowledgment + this week's
+       sample count when the backend returns week_count. Defensive: absent,
+       null, or non-numeric week_count falls back to the thanks line. */
+    function receiptHTML(it, cents, area, j) {
+      var wc = j && j.week_count != null && isFinite(Number(j.week_count)) ? Number(j.week_count) : null;
+      if (wc != null) {
+        return 'Report logged \u2014 that\u2019s #' + wc.toLocaleString('en-US') +
+          ' for ' + esc(it.name.toLowerCase()) + ' in ' + esc(area) + ' this week.';
+      }
+      return 'Report logged \u2014 thanks for building the index.';
+    }
 
     goBtn.onclick = function () {
       var itemId = itemEl.value;
@@ -250,9 +338,10 @@
         msg('You need a callsign to report — claim one in Enlistment Ranks (one tap), then come back.');
         return;
       }
+      var approx = approxEl.checked ? 1 : 0;
       goBtn.disabled = true; goBtn.style.opacity = '0.5';
       msg('<span style="color:#b8b0a0;">Sending…</span>');
-      postReport({ item_id: itemId, price_cents: cents, area_key: area }, function (j) {
+      postReport({ item_id: itemId, price_cents: cents, area_key: area, is_approximate: approx }, function (j) {
         goBtn.disabled = false; goBtn.style.opacity = '1';
         if (!j || j.ok === false) {
           /* Fail-soft: the endpoint may not exist yet — never a broken form. */
@@ -262,9 +351,11 @@
         saveArea(area);
         var status = j.status;
         if (status === 'published') {
+          saveLastReport(itemId, cents);
+          updateRefLine(item);
           var board = document.getElementById('pf-inflation-board');
           var seeBoard = board ? '<br><button id="pf-inf-ci-seeboard" style="' + BTN_GHOST + 'margin-top:10px;">SEE YOUR AREA\u2019S BOARD →</button>' : '';
-          msg('<span style="color:#9fd6a0;">Logged. ' + esc(item.name) + ' at ' + money(cents) + ' is in the people\u2019s index.</span>' +
+          msg('<span style="color:#9fd6a0;">' + receiptHTML(item, cents, area, j) + '</span>' +
             '<br><span style="' + SMALL + '">One report per item per day — come back tomorrow with the next one.</span>' + seeBoard);
           priceEl.value = '';
           var sb = document.getElementById('pf-inf-ci-seeboard');

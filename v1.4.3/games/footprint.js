@@ -40,9 +40,11 @@ function apiAuthed(action,params,cb){
   var q="?action="+encodeURIComponent(action);
   for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
   try{
-    var sec=""; try{ sec=JSON.parse(localStorage.getItem("pf_identity_v1")||"{}").auth_secret||""; }catch(e2){}
+    /* canonical secret store: localStorage 'pf_auth_secret' (core/14-auth.js) */
+    var sec=""; try{ sec=(window.PF&&PF.getAuthSecret?PF.getAuthSecret():"")||""; }catch(e2){}
+    if(!sec){ try{ sec=localStorage.getItem("pf_auth_secret")||""; }catch(e3){} }
     if(sec) q+="&auth_secret="+encodeURIComponent(sec);
-  }catch(e3){}
+  }catch(e5){}
   q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
   setTimeout(function(){ finish(null); },12000);
 }

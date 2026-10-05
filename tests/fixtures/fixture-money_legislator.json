@@ -1,0 +1,64 @@
+{
+  "ok": true,
+  "cycle": 2026,
+  "source": "FEC (api.open.fec.gov)",
+  "retrieved_at": 1760000000000,
+  "member": {
+    "bioguide_id": "A000055",
+    "fec_candidate_id": "H0XX00001",
+    "name": "Fixture One",
+    "office": "H",
+    "state": "LA",
+    "party": "R"
+  },
+  "totals": {
+    "raised": 100000,
+    "spent": 70000,
+    "cash": 30000
+  },
+  "small_dollar_pct": 2.5,
+  "large_dollar_pct": 60,
+  "top_donors": [
+    {
+      "name": "Big Donor",
+      "employer": "Exxon",
+      "occupation": "Executive",
+      "amount": 9000
+    },
+    {
+      "name": "Amy Banker",
+      "employer": "Goldman Sachs",
+      "occupation": "Banker",
+      "amount": 5000
+    },
+    {
+      "name": "Mid Donor",
+      "employer": "Walmart",
+      "occupation": "Manager",
+      "amount": 3000
+    },
+    {
+      "name": "D4",
+      "employer": "None",
+      "occupation": "Retired",
+      "amount": 2500
+    }
+  ],
+  "industries": [
+    {
+      "industry": "Finance & Insurance",
+      "total": 40000,
+      "estimated": true
+    },
+    {
+      "industry": "Energy & Oil",
+      "total": 25000,
+      "estimated": true
+    },
+    {
+      "industry": "Retail & Consumer",
+      "total": 10000,
+      "estimated": true
+    }
+  ]
+}

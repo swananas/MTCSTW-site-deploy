@@ -20,7 +20,16 @@
       PFMoneyVote.mount() renders the vote-vs-donor card (header copy, per-row
       "received $X from" copy, methodology caption, money:null vote-only
       rows), honors the kill switch, and fails soft.
-   Fixture figures are synthetic paint-test values, not asserted facts.
+   4. Real-BE integration: tests/fixtures/fixture-money_*.json — byte output
+      of the LOCKED backend's repDispatch (be/follow-the-money @ dd9cab9,
+      captured by running the BE test harness) — is fed through
+      PFMoneyTab.mount / PFMoneyVote.mount. The real contract
+      (member/totals.{raised,spent,cash}/retrieved_at/industries[].total/
+      small_dollar_pct/large_dollar_pct, cards[]/position/copy) renders —
+      the empty states must NOT fire on real data.
+   Fixture figures are synthetic paint-test values, not asserted facts;
+   section 4 fixtures are real repDispatch output (members are the BE test's
+   seeded congress rows).
    Exits 0 when every check passes, 1 with a failure list otherwise. */
 'use strict';
 var fs = require('fs');
@@ -81,17 +90,21 @@ if (mtsrc.indexOf('?pf_off=money-tab') !== -1) ok('KILL comment documents ?pf_of
 else no('kill comment', '?pf_off=money-tab missing from header');
 if (mvsrc.indexOf('?pf_off=money-vote') !== -1) ok('KILL comment documents ?pf_off=money-vote');
 else no('kill comment', '?pf_off=money-vote missing from header');
-/* esc() on injected fields — comment-stripped view, no string stripping */
+/* esc() on injected fields — comment-stripped view, no string stripping.
+   Field names track the LOCKED BE contract (member/totals/retrieved_at/
+   industries[].total/small_dollar_pct, cards[]/position/d.copy). */
 ['esc\\(leg\\.name', 'esc\\(chamberLabel\\(leg\\)\\)', 'esc\\(EMPTY_MSG\\)',
  'esc\\(d\\.name', 'esc\\(d\\.employer\\)', 'esc\\(d\\.industry',
- 'esc\\(money\\(d\\.amount\\)\\)', 'esc\\(j\\.cycle', 'esc\\(retrDate\\(j\\.retrieved\\)\\)'
+ 'esc\\(money\\(d\\.amount\\)\\)', 'esc\\(money\\(d\\.total\\)\\)', 'esc\\(j\\.cycle',
+ 'esc\\(retrDate\\(j\\.retrieved_at\\)\\)'
 ].forEach(function (pat) {
   if (new RegExp(pat).test(mtcode)) ok('money-tab esc applied: ' + pat.replace(/\\\\/g, ''));
   else no('esc() money-tab', pat + ' not found');
 });
 ['esc\\(HEADER\\)', 'esc\\(r\\.name', 'esc\\(chamberLabel\\(r\\)\\)',
- 'esc\\(r\\.vote', 'esc\\(money\\(d\\.amount\\)\\)', 'esc\\(d\\.industry',
- 'esc\\(bill\\.bill_id', 'esc\\(bill\\.title', 'esc\\(EMPTY_MSG\\)'
+ 'esc\\(r\\.position', 'esc\\(money\\(d\\.total\\)\\)', 'esc\\(d\\.copy\\)',
+ 'esc\\(d\\.industry', 'esc\\(bill\\.bill_id', 'esc\\(bill\\.title',
+ 'esc\\(EMPTY_MSG\\)'
 ].forEach(function (pat) {
   if (new RegExp(pat).test(mvcode)) ok('money-vote esc applied: ' + pat.replace(/\\\\/g, ''));
   else no('esc() money-vote', pat + ' not found');
@@ -129,8 +142,10 @@ BANNED.forEach(function (w) {
 if (/\bbought\b/i.test(mvsrc) || /\bbought\b/i.test(mtsrc)) { no('causation', 'bare "bought" present'); banFail++; }
 if (!banFail) ok('no banned causation phrases in either module');
 if (mvcode.indexOf('received <span') !== -1 || mvsrc.indexOf("received <span class=\"pf-mv-amt\">") !== -1)
-  ok('vote-card per-row copy shape: "received $X from [industry]"');
-else no('row copy', '"received $X from" shape missing');
+  ok('vote-card per-row fallback shape: "received $X from [industry]"');
+else no('row copy', 'fallback "received $X from" shape missing');
+if (/esc\(d\.copy\)/.test(mvcode)) ok('vote-card consumes the BE prebuilt copy verbatim (d.copy)');
+else no('row copy', 'd.copy not consumed verbatim');
 /* money-tab copy */
 if (mtsrc.indexOf("Money data isn't loaded yet — no figures shown rather than guesses.") !== -1)
   ok('money-tab empty state copy present');
@@ -306,32 +321,45 @@ var PFIX = {
   ],
   topIndustries: [{ industry: 'FINANCE', amount: 120000 }]
 };
+/* MRESP_OK / VRESP_OK — synthetic paint-test values, not asserted facts.
+   Shapes track the LOCKED BE contract (be/follow-the-money @ dd9cab9):
+   member/totals.{raised,spent,cash}/retrieved_at/industries[].total/
+   small_dollar_pct & large_dollar_pct as percentages (NO x100),
+   cards[]/position/BE-prebuilt copy. */
 var MRESP_OK = {
   ok: true,
-  legislator: { bioguide_id: 'J000288', name: 'MIKE JOHNSON', chamber: 'house', party: 'R', state: 'LA' },
-  cycle: '2026', retrieved: '2026-10-05',
-  summary: { total_raised: 1234567, total_spent: 890123, cash_on_hand: 344444,
-             small_dollar: 0.23, large_dollar: 0.77 },
+  cycle: 2026, source: 'FEC (api.open.fec.gov)', retrieved_at: 1760000000000,
+  member: { bioguide_id: 'J000288', fec_candidate_id: 'H8NY15154', name: 'MIKE JOHNSON',
+            office: 'H', state: 'LA', party: 'R' },
+  totals: { raised: 1234567, spent: 890123, cash: 344444 },
+  small_dollar_pct: 23, large_dollar_pct: 77,
   top_donors: [
-    { name: 'ACME CORP', employer: 'ACME INC', amount: 25000 },
-    { name: 'JOHN DOE', employer: '', amount: 10000 }
+    { name: 'ACME CORP', employer: 'ACME INC', occupation: 'CEO', amount: 25000 },
+    { name: 'JOHN DOE', employer: '', occupation: 'Retired', amount: 10000 }
   ],
-  top_industries: [
-    { industry: 'FINANCE', amount: 120000, estimated: 1 },
-    { industry: 'ENERGY', amount: 80000, estimated: 0 }
+  industries: [
+    { industry: 'FINANCE', total: 120000, estimated: true },
+    { industry: 'ENERGY', total: 80000, estimated: false }
   ]
 };
 var VRESP_OK = {
   ok: true,
   bill: { bill_id: 'H.R.3633', title: 'THE CLARITY ACT' },
-  methodology: 'Donations are correlated with votes, not proof of cause.',
-  rows: [
+  cycle: 2026,
+  cards: [
     { bioguide_id: 'J000288', name: 'MIKE JOHNSON', chamber: 'house', party: 'R', state: 'LA',
-      vote: 'Yea',
-      money: { industries: [{ industry: 'FINANCE', amount: 50000 },
-                           { industry: 'ENERGY', amount: 25000 }] } },
+      position: 'Yea', vote_id: 'h-119-2026-3633', vote_date: '2026-03-01',
+      question: 'On Passage', source_url: 'https://clerk.house.gov/Votes/20263633',
+      money: { cycle: 2026, source: 'FEC (api.open.fec.gov)', retrieved_at: 1760000000000,
+        industries: [{ industry: 'FINANCE', total: 50000, estimated: true,
+                       copy: 'received $50,000 from FINANCE' },
+                     { industry: 'ENERGY', total: 25000, estimated: false,
+                       copy: 'received $25,000 from ENERGY' }] } },
     { bioguide_id: 'S000148', name: 'CHUCK SCHUMER', chamber: 'senate', party: 'D', state: 'NY',
-      vote: 'Nay', money: null }
+      position: 'Nay', vote_id: 's-119-2026-3633', vote_date: '2026-03-02',
+      question: 'On Passage of the Bill',
+      source_url: 'https://www.senate.gov/legislative/LIS/roll_call_votes/vote1192/vote_119_2_00363.htm',
+      money: null }
   ]
 };
 
@@ -466,8 +494,8 @@ function mountTab(resp) {
     ok('tab top industries with estimated badge');
   else no('tab industries', 'missing');
   if (html.indexOf('Source: FEC') !== -1 && html.indexOf('2026 cycle') !== -1 &&
-      html.indexOf('retrieved OCT 5, 2026') !== -1)
-    ok('tab source footer: "Source: FEC · 2026 cycle · retrieved OCT 5, 2026"');
+      html.indexOf('retrieved OCT 9, 2025') !== -1)
+    ok('tab source footer: "Source: FEC · 2026 cycle · retrieved OCT 9, 2025" (epoch-ms retrieved_at)');
   else no('tab footer', 'missing');
   /* DOWNLOAD -> PF.PHQShare.save('phq-money', {...}) via existing flow */
   var click = (root._listeners.click || [])[0];
@@ -505,12 +533,13 @@ function mountTab(resp) {
   else no('tab fail-soft ok:false', 'section not hidden');
 })();
 (function () {
-  var t = mountTab({ ok: true, legislator: { name: 'MIKE JOHNSON' }, cycle: '2026', retrieved: '2026-10-05' });
+  var t = mountTab({ ok: true, member: { name: 'MIKE JOHNSON' }, cycle: 2026,
+    retrieved_at: 1760000000000 });
   var html = t ? allHtml(t.container) : '';
   if (t && t.container.style.display !== 'none' &&
       html.indexOf("Money data isn't loaded yet — no figures shown rather than guesses.") !== -1 &&
       html.indexOf('Source: FEC') !== -1)
-    ok('tab empty state: no summary shows the honest message + source footer (section stays)');
+    ok('tab empty state: no totals shows the honest message + source footer (section stays)');
   else no('tab empty state', 'missing or section hidden');
 })();
 (function () {
@@ -562,10 +591,10 @@ function mountVote(resp) {
     ok('vote row: name + vote');
   else no('vote row', 'missing');
   if (html.indexOf('received') !== -1 && html.indexOf('$50,000') !== -1 && html.indexOf('FINANCE') !== -1)
-    ok('vote row copy: "received $50,000 from FINANCE"');
+    ok('vote row copy verbatim from BE: "received $50,000 from FINANCE"');
   else no('row copy', 'missing');
   if (html.indexOf('$25,000') !== -1 && html.indexOf('ENERGY') !== -1)
-    ok('vote row carries all top industries with amounts');
+    ok('vote row carries all top industries with totals');
   else no('row industries', 'missing');
   /* money:null member -> vote-only row, never hidden */
   if (html.indexOf('CHUCK SCHUMER') !== -1 && html.indexOf('Nay') !== -1)
@@ -598,17 +627,17 @@ function mountVote(resp) {
   else no('vote fail-soft ok:false', 'section not hidden');
 })();
 (function () {
-  var t = mountVote({ ok: true, bill: { bill_id: 'H.R.3633', title: 'THE CLARITY ACT' }, rows: [] });
+  var t = mountVote({ ok: true, bill: { bill_id: 'H.R.3633', title: 'THE CLARITY ACT' }, cards: [] });
   var html = t ? allHtml(t.container) : '';
   if (t && t.container.style.display !== 'none' &&
       html.indexOf('No vote records returned for this bill.') !== -1)
-    ok('vote empty state: zero rows shows the honest message (section stays)');
+    ok('vote empty state: zero cards shows the honest message (section stays)');
   else no('vote empty state', 'missing or section hidden');
 })();
 (function () {
   /* methodology default when the endpoint omits it */
   var t = mountVote({ ok: true, bill: { bill_id: 'H.R.3633', title: 'X' },
-    rows: [{ name: 'A', vote: 'Yea', money: null }] });
+    cards: [{ name: 'A', position: 'Yea', money: null }] });
   var html = t ? allHtml(t.container) : '';
   if (html.indexOf('Donations are correlated with votes, not proof of cause.') !== -1)
     ok('vote methodology defaults to the verbatim caption');
@@ -628,6 +657,112 @@ function mountVote(resp) {
   else no('vote kill switch', 'PFMoneyVote exposed despite ?pf_off=money-vote');
   if (typeof e.sb.PFMoneyTab !== 'undefined') ok('vote kill switch is scoped (money-tab still loads)');
   else no('kill scope', 'money-tab wrongly killed');
+})();
+
+/* ============ 4. real-BE integration (LOCKED contract, be/follow-the-money @ dd9cab9) ============
+   The 116 checks above use contract-correct synthetic fixtures. This test
+   feeds REAL repDispatch output — tests/fixtures/fixture-money_*.json,
+   captured by running the BE test harness against dd9cab9 — through
+   PFMoneyTab.mount / PFMoneyVote.mount. With live BE data the modules must
+   RENDER (never the empty states). */
+console.log('== 4. real-BE response integration (captured repDispatch output) ==');
+var BE_LEG = JSON.parse(read(path.join(ROOT, 'tests', 'fixtures', 'fixture-money_legislator.json')));
+var BE_VOTE = JSON.parse(read(path.join(ROOT, 'tests', 'fixtures', 'fixture-money_vote_card.json')));
+/* sanity: the fixtures really are the BE contract, not the old FE assumption */
+if (BE_LEG.member && BE_LEG.totals && typeof BE_LEG.totals.raised === 'number' &&
+    typeof BE_LEG.retrieved_at === 'number' && Array.isArray(BE_LEG.industries) &&
+    typeof BE_LEG.small_dollar_pct === 'number' && !('summary' in BE_LEG) && !('legislator' in BE_LEG))
+  ok('fixture money_legislator is the real BE contract (member/totals/retrieved_at/industries/pcts)');
+else no('fixture shape', 'money_legislator fixture does not match the BE contract');
+if (Array.isArray(BE_VOTE.cards) && BE_VOTE.cards.length > 0 &&
+    BE_VOTE.cards[0].position !== undefined && !('rows' in BE_VOTE) &&
+    BE_VOTE.cards.some(function (c) { return c.money && c.money.industries &&
+      c.money.industries.some(function (x) { return typeof x.copy === 'string'; }); }))
+  ok('fixture money_vote_card is the real BE contract (cards[]/position/prebuilt copy)');
+else no('fixture shape', 'money_vote_card fixture does not match the BE contract');
+
+(function () {
+  /* real legislator response -> PFMoneyTab renders, NOT the empty state */
+  var t = mountTab(BE_LEG);
+  if (!t) return;
+  var root = t.container.children[0];
+  if (!root || root.className !== 'pf-mt') { no('real tab root', 'missing .pf-mt'); return; }
+  var html = allHtml(root);
+  if (html.indexOf("Money data isn't loaded yet") === -1) ok('real tab: no empty state on live BE data');
+  else no('real tab', 'EMPTY STATE fired on a real BE response');
+  if (html.indexOf('Fixture One') !== -1 && html.indexOf('U.S. HOUSE') !== -1)
+    ok('real tab: name + office-H chamber line');
+  else no('real tab header', 'missing');
+  if (html.indexOf('$100,000') !== -1 && html.indexOf('$70,000') !== -1 && html.indexOf('$30,000') !== -1)
+    ok('real tab: totals.raised/spent/cash ($100,000/$70,000/$30,000)');
+  else no('real tab totals', 'missing');
+  /* percentages pass straight through — 2.5 and 60, never x100 */
+  if (html.indexOf('width:2.5%') !== -1 && html.indexOf('width:60%') !== -1 &&
+      html.indexOf('2.5%') !== -1 && html.indexOf('60%') !== -1 &&
+      html.indexOf('width:250%') === -1 && html.indexOf('width:6000%') === -1)
+    ok('real tab: split bar uses small/large_dollar_pct directly (2.5%/60%, no x100)');
+  else no('real tab split', 'percentages wrong or multiplied');
+  if (html.indexOf('Big Donor') !== -1 && html.indexOf('Exxon') !== -1 && html.indexOf('$9,000') !== -1)
+    ok('real tab: top donor name + employer + amount');
+  else no('real tab donors', 'missing');
+  if (html.indexOf('Finance &amp; Insurance') !== -1 && html.indexOf('$40,000') !== -1 &&
+      html.indexOf('ESTIMATED FROM EMPLOYER DATA') !== -1)
+    ok('real tab: industries[].total + estimated badge');
+  else no('real tab industries', 'missing');
+  if (html.indexOf('Source: FEC') !== -1 && html.indexOf('2026 cycle') !== -1 &&
+      html.indexOf('retrieved OCT 9, 2025') !== -1)
+    ok('real tab: source footer with epoch-ms retrieved_at (OCT 9, 2025)');
+  else no('real tab footer', 'missing');
+  /* SHARE poster rides the real data through the adapter */
+  var click = (root._listeners.click || [])[0];
+  if (!click) { no('real tab poster', 'no click listener'); return; }
+  click({ target: { getAttribute: function (k) { return k === 'data-mt-sh' ? '1' : null; } } });
+  var scv = t.env.shareCalls[0] && t.env.shareCalls[0].cv;
+  if (scv && hasText(scv, 'FIXTURE ONE') && hasFrag(scv, '$100,000') &&
+      hasFrag(scv, 'U.S. HOUSE') && hasFrag(scv, 'SOURCE: FEC') &&
+      hasFrag(scv, 'RETRIEVED OCT 9, 2025'))
+    ok('real tab SHARE: poster carries BE data (name/totals/chamber/source/date)');
+  else no('real tab poster', 'poster missing BE fields');
+})();
+
+(function () {
+  /* real vote-card response -> PFMoneyVote renders, NOT the empty state */
+  var t = mountVote(BE_VOTE);
+  if (!t) return;
+  var root = t.container.children[0];
+  if (!root || root.className !== 'pf-mv') { no('real vote root', 'missing .pf-mv'); return; }
+  var html = allHtml(root);
+  if (html.indexOf('No vote records returned') === -1) ok('real vote: no empty state on live BE data');
+  else no('real vote', 'EMPTY STATE fired on a real BE response');
+  if (html.indexOf('Who funded both sides') !== -1) ok('real vote: header copy');
+  else no('real vote header', 'missing');
+  if (html.indexOf('H.R.1') !== -1 && html.indexOf('One Big Beautiful Bill Act') !== -1)
+    ok('real vote: bill line (H.R.1 — One Big Beautiful Bill Act)');
+  else no('real vote bill', 'missing');
+  if (html.indexOf('Robert B. Aderholt') !== -1 && html.indexOf('Yea') !== -1)
+    ok('real vote: card reads position (not vote)');
+  else no('real vote card', 'missing');
+  /* the BE prebuilt copy is consumed VERBATIM — byte-identical to repDispatch */
+  var want = BE_VOTE.cards.filter(function (c) { return c.bioguide_id === 'A000055'; })[0]
+    .money.industries[0].copy;
+  if (want === 'received $40,000 from Finance & Insurance' &&
+      html.indexOf('received $40,000 from Finance &amp; Insurance') !== -1)
+    ok('real vote: BE prebuilt copy consumed verbatim ("received $40,000 from Finance & Insurance")');
+  else no('real vote copy', 'verbatim copy missing');
+  /* money:null member -> vote-only row, never hidden */
+  if (html.indexOf('Mark E. Amodei') !== -1 && html.indexOf('Yea') !== -1)
+    ok('real vote: money:null member renders a vote-only row (never hidden)');
+  else no('real vote vote-only', 'missing');
+  /* money object with EMPTY industries -> the no-data line, not hidden */
+  if (html.indexOf('Jake Auchincloss') !== -1 && html.indexOf('No industry donor data reported.') !== -1)
+    ok('real vote: empty industries renders the no-data line (row stays)');
+  else no('real vote empty-industries', 'missing');
+  if (html.indexOf('Donations are correlated with votes, not proof of cause.') !== -1)
+    ok('real vote: methodology caption rendered verbatim');
+  else no('real vote methodology', 'missing');
+  var low = html.toLowerCase();
+  if (low.indexOf('bought') === -1) ok('real vote: no causation language in rendered output');
+  else no('real vote copy-rule', 'causation language leaked');
 })();
 
 console.log('\n== summary ==');

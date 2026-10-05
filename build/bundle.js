@@ -259,7 +259,11 @@ var SECTIONS = {
   ],
   'bundle-economy': [
     /* /economy — Run the Economy. */
-    'economy.js'
+    'economy.js',
+    /* Wave data (2026-10-05): the people's CPI — community-reported prices.
+       Self-mounts into #pf-inflation-checkin / #pf-inflation-board /
+       #pf-inflation-trends; silent no-op elsewhere. Zero XP. */
+    'inflation-tracker.js'
   ],
   'bundle-warchest': [
     /* /war-chest — Movement Finance. */

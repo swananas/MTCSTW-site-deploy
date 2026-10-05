@@ -143,6 +143,12 @@ var BUNDLES = {
        can fire. Never auto-mounts — Release Eng calls PFWallShame.mount()
        from the bill detail view (fe/legislation-tracker). */
     'core/wall-of-shame.js',
+    /* Corporate Playbook (2026-10-05): company facts card
+       (PFCorpCard.mount). Right after wall-of-shame.js so the phq-corp
+       painter is registered before any card SHARE/DOWNLOAD can fire.
+       Never auto-mounts — Release Eng calls PFCorpCard.mount()
+       from the follow-the-money company view (fe/follow-the-money). */
+    'core/corp-card.js',
     /* creator-recruit: shared recruiting toolbar for roster cards + catalog
        pages. Last: needs PFShare (share-image.js) + the catalog renderers. */
     'pages/creator-recruit.js',

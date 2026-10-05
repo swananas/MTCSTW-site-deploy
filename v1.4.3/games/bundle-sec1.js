@@ -245,16 +245,6 @@ function routeMarchHtml(){
   h+='</div>';
   return h;
 }
-/* W5-10 Operation Arcs (2026-10-04): "OPERATION <name>: <chapter_title>" line
-   under the soldier header whenever an arc is live. DOM-insert only — never a
-   full re-render — so a late arc read can't clobber mid-interaction state.
-   paintArcHeader is safe to call any number of times (dedupes on .br-arc). */
-function paintArcHeader(){
-  try{
-    if(!OPARC||!OPARC.active) return;
-    var el=document.getElementById("xBrief"); if(!el) return;
-    if(el.querySelector(".br-arc")) return;
-    var head=el.querySelector(".br-head");
 function seasonInfo(){
   if(SEASON){
     return { name:String(SEASON.name||"THE 32-DAY OFFENSIVE"),

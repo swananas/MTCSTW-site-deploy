@@ -157,6 +157,9 @@
      into div#<div> at bundle time; page-mount only positions it. */
   var SELF = {
     'cell-hq': { div: 'pf-cell-hq', kill: 'cellhq' },
+    /* Synergy-2 mission control (2026-10-05): Creator HQ payoff dashboard.
+       Self-mounts into #pf-hq-mission (Dashboard Code-block hand-step). */
+    'hq-mission': { div: 'pf-hq-mission', kill: 'hq-mission' },
     /* money (fe/money-page, 2026-10-05): the Follow-the-Money suite renders
        itself into #pf-money (core/money-page.js, context-aware mount).
        Kill: ?pf_off=money (master). */
@@ -275,7 +278,7 @@
     'pf-cells-page', 'pf-cell-hq',
     'pf-arcade', 'pf-create', 'pf-bank', 'pf-economy',
     'pf-warchest', 'pf-ventures', 'pf-events', 'pf-warreport',
-    'pf-war-card', 'pf-academy-hq', 'pf-dash-hq',
+    'pf-war-card', 'pf-academy-hq', 'pf-dash-hq', 'pf-hq-mission',
     'pf-political-hq', 'pf-slr-roster', 'pf-catalog', 'pf-money'
   ];
   function feWiden(host) {

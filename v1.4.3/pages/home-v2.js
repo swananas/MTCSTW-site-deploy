@@ -37,6 +37,9 @@
     ['socialproof', 'pf-ov-socialproof'],
     ['brief', 'pf-ov-brief'],
     ['daily-orders', 'pf-ov-orders'],
+    /* P1#6 (2026-10-05): hq-nudge promoted to START HERE — the flagship's
+       front door sits directly after the daily loop, not buried in CREATE. */
+    ['hq-nudge', 'pf-ov-hq-nudge'],
     ['dopa', 'pf-ov-dopa'],
     ['do-meter', 'pf-ov-dometer'],
     ['enlistment-ranks', 'pf-ov-ranks'],
@@ -50,7 +53,6 @@
     /* ——— SECTION 4: CREATE — creator tools ——— */
     ['poster-forge', 'pf-ov-poster'],
     ['feed', 'pf-ov-feed'],
-    ['hq-nudge', 'pf-ov-hq-nudge'],
     /* ——— SECTION 5: FUND — economy ——— */
     ['war-bonds', 'pf-ov-bonds'],
     /* ——— SECTION 6: ACT — action ——— */
@@ -126,10 +128,11 @@
      order even as bundles arrive out of order, and to map lazy bundles. */
   var SILO_SEC = {
     'socialproof':'start-here','brief':'start-here','daily-orders':'start-here',
+    'hq-nudge':'start-here', /* P1#6 (2026-10-05): promoted with ORDER move */
     'dopa':'start-here','do-meter':'start-here','enlistment-ranks':'start-here',
     'spotlight':'play','slr-match-quiz':'play','infighting':'play',
     'cells':'belong','referral':'belong',
-    'poster-forge':'create','feed':'create','hq-nudge':'create',
+    'poster-forge':'create','feed':'create',
     'war-bonds':'fund',
     'campaign':'act','alerts':'act',
     'fan-vote':'proof',

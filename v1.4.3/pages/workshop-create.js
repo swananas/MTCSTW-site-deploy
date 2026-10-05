@@ -30,6 +30,38 @@
                        instead of a blank pane. Zero changes needed here when
                        that branch integrates.
 
+   INCOMING TOOLS (2026-10-05, integrator pass — branch fe/create-workshop-tools):
+     caption-combat  template pf-ov-caption    kill caption-combat      STAGED —
+                       the full Caption Combat game incl. the political rounds
+                       (branch fe/caption-prompt). The module stages
+                       <template id="pf-ov-caption"> at bundle load; it ships
+                       in bundle-arcade (/arcade only), so on /create the
+                       template is absent and the tool shows the terminal
+                       error until the module's bundle ships on /create. The
+                       political round carries its own sub-kill
+                       'caption-political' (orthogonal — kills the round, not
+                       the tool). Zero adapter changes needed on integration.
+     NOT rail tools (documented, not registered — no standalone mount
+     surface; registering them would invent behavior):
+     - meme-of-the-week (branch fe/meme-of-the-week): a styled card rendered
+       INSIDE the War Report widget body (games/war-report.js,
+       bundle-warreport → /war-report only). No template, no host div, no
+       own kill (inherits 'war-report'). Needs a standalone mount surface
+       from the meme-week workers to become a rail tool.
+     - forge-political (branch fe/studio-political-tab): a POLITICAL tab
+       INSIDE Poster Forge (poster-forge-political.js renders into
+       #xPolitical within the forge template; kill 'poster-forge').
+       Lands natively inside the existing THE POSTER FORGE tool — zero
+       adapter changes here. BLOCKER for its own branch: the module boots
+       once at bundle load and silently no-ops when #xPolitical is absent,
+       so under the shell's lazy mount the tab never populates — the
+       module needs a lazy-safe re-attach.
+     - share-kits (branch fe/campaign-share-kits): a SHARE KIT section
+       inside civic.js pressure-campaign cards on /political-hq
+       (bundle-hq); the kit painters (core/share-image-phq-kits.js) are
+       PF.PHQShare registry decorators, not a mountable unit. Needs a
+       standalone module from the share-kits workers to become a rail tool.
+
    KILL: per-tool ?pf_off=<tool-id> (declared on each register call below and
    enforced by the shell at registration). Master ?pf_off=workshop kills the
    whole shell (legacy stacked layout returns).
@@ -184,6 +216,24 @@
         throw new Error('forged-tray module not loaded in this build');
       }
     }
+  });
+
+  /* ---- caption-combat: STAGED adapter for the incoming tool ----
+     The full Caption Combat game with the political rounds (branch
+     fe/caption-prompt) is template-based: caption-combat.js stages
+     <template id="pf-ov-caption"> at bundle load and the shell clones it
+     lazily into the pane — same mechanics as poster-forge/feed/armory/
+     earnings. Kill 'caption-combat' matches the module's own PF.skip id;
+     the political round's sub-kill 'caption-political' is orthogonal.
+     STAGED: the module ships in bundle-arcade (/arcade only), not in any
+     bundle that loads on /create, so #pf-ov-caption is never staged here —
+     the tool shows the terminal error (never a blank pane or spinner)
+     until the module's bundle ships on /create. Zero adapter changes
+     needed then. */
+  WS.register({
+    id: 'caption-combat', title: 'CAPTION COMBAT',
+    tagline: 'One template. One week. Funniest caption wins.',
+    templateId: 'pf-ov-caption', selfMount: null, kill: 'caption-combat', mount: null
   });
 
   /* Initial route: #pf-tool=<id> deep-link, or ?for=<slug> (catalog bounty

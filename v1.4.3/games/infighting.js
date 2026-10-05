@@ -15,6 +15,12 @@
    &callsign=C  -> logs one row to the "infight" tab; server enforces the
    200-fire per-callsign per-round cap. ?action=infight_totals&round=R ->
    {round, totals:{slug:n}}. No PII: slugs + callsign only.
+   6A-R8 CELL BOUT: toggle in the arena header; when on, fire calls carry
+   the visitor's cell_id (from the cells.js pf_cells_v1 cache, validated
+   server-side against cell_members, fail-closed) and the widget shows the
+   creator bout + per-cell standings side by side. Round rollover settles
+   the cell bout via infight_settle (idempotent) into infight_cell_wins —
+   the war map's future input for war-standing points.
    Homepage mount: registers <template id="pf-ov-infight"> on PF.holder();
    pages/home-v2.js instantiates it in ORDER. The HYPE score overlay is
    global: it paints onto [data-eff-score="slug"] slots wherever they render
@@ -80,6 +86,16 @@
 var API=(window.PF_BACKEND_URL||'https://pf-api.mtcstw.workers.dev');
 var LS_R='pf_ranks_v1',LS_I='pf_identity_v1';
 var LS_OPS='pf_infight_ops_v1',LS_SPENT='pf_infight_spent_v1',LS_SEEN='pf_infight_seen_v1',LS_LAST='pf_infight_last_v1';
+/* 6A-R8 cell bout: CELL BOUT toggle + per-cell standings. Cell identity
+   follows the cells.js convention (pf_cells_v1 cache written by cell_mine:
+   {mult, cell_id, name, t}). */
+var LS_CELLBOUT='pf_infight_cellbout_v1',LS_CELLCACHE='pf_cells_v1';
+function myCell(){try{var c=JSON.parse(localStorage.getItem(LS_CELLCACHE)||'null');if(c&&c.cell_id)return{id:String(c.cell_id),name:String(c.name||'YOUR CELL').slice(0,80)};}catch(e){}return null;}
+function cellBoutOn(){try{return localStorage.getItem(LS_CELLBOUT)==='1';}catch(e){return false;}}
+function setCellBout(on){try{localStorage.setItem(LS_CELLBOUT,on?'1':'0');}catch(e){}}
+/* Cell tag attached to fire calls: only when CELL BOUT is on and the
+   visitor holds a cell. Server validates membership fail-closed. */
+function fireCellId(){if(!cellBoutOn())return'';var m=myCell();return m?m.id:'';}
 var BATTLE_MIN=10,SLOT_MIN=30,CAP=200,AMMO_OP=25,AMMO_SHARE=15;
 function chiNow(){try{return PF.chiNow();}catch(e){return new Date();}}
 function pad(n){return (n<10?'0':'')+n;}
@@ -93,7 +109,7 @@ function apiGet(params,cb,timeoutMs){
   /* P0 (2026-10-02): infight_fire is POST-only (was CSRF-able via GET). */
   if(params && params.action==='infight_fire' && window.PF && PF.postAction){
     PF.postAction('stats','s_action','infight_fire',
-      {callsign:params.callsign,round:params.round,slug:params.slug,amt:params.amt},cb);
+      {callsign:params.callsign,round:params.round,slug:params.slug,amt:params.amt,cell_id:params.cell_id||''},cb);
     return;
   }
   var done=false,name='pfIfCb'+Date.now()+Math.floor(Math.random()*1e6);
@@ -134,6 +150,7 @@ function markOp(id,key){try{var o=JSON.parse(localStorage.getItem(LS_OPS)||'{}')
 var root=document.getElementById('pf-infight-root');
 if(!root)return;
 var cur=null,fighters=[null,null],totals={},pending={},side=0,pollTimer=null,lastRound='';
+var cellTotals={};
 function fmtClock(ms){if(ms<0)ms=0;var s=Math.floor(ms/1000),m=Math.floor(s/60);s=s%60;return pad(m)+':'+pad(s);}
 function fighterCard(f,idx,total,maxTotal){
   var pct=maxTotal>0?Math.round(total/maxTotal*100):0;
@@ -152,12 +169,41 @@ function render(){
   if(!roster.length)return;
   cur=w;
   var mm=matchup(w.id,roster);
-  fighters=mm;totals={};pending={};
+  fighters=mm;totals={};pending={};cellTotals={};
   if(lastRound&&lastRound!==w.id){settleLastBattle(lastRound,roster);}
   lastRound=w.id;
   try{localStorage.setItem(LS_SEEN,w.id);}catch(e){}
   if(w.live)startPoll();else stopPoll();
   paint(w);
+}
+/* 6A-R8: cell bout standings pane. Per-cell rollup from infight_totals;
+   the visitor's own cell is highlighted. */
+function cellPaneHtml(mc){
+  var ids=Object.keys(cellTotals);
+  var rows=ids.map(function(id){return{id:id,name:String((cellTotals[id]&&cellTotals[id].name)||id).slice(0,80),fire:Number(cellTotals[id]&&cellTotals[id].fire)||0};});
+  rows.sort(function(a,b){return b.fire-a.fire;});
+  var maxF=rows.length?rows[0].fire:1;
+  var listHtml=rows.length?rows.map(function(r,i){
+    var mine=mc&&r.id===mc.id;
+    var pct=maxF>0?Math.round(r.fire/maxF*100):0;
+    return '<div style="background:#141414;border:1px solid '+(mine?'#e10600':'#333')+';padding:8px 10px;margin-bottom:6px;'+(mine?'outline:2px solid #e10600;':'')+'">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">'+
+      '<div style="font-weight:800;font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(i+1)+'. '+esc(r.name)+(mine?' <span style="color:#e10600;font-size:11px;">\u25B2 YOUR CELL</span>':'')+'</div>'+
+      '<div style="font-weight:800;color:#fff;white-space:nowrap;">'+r.fire.toLocaleString()+'</div></div>'+
+      '<div style="height:8px;background:#2a2a2a;margin-top:6px;"><div style="height:8px;background:#e10600;width:'+pct+'%;transition:width .6s;"></div></div>'+
+      '</div>';
+  }).join(''):'<div style="font-size:13px;color:#999;">No cell fire this bout yet \u2014 be the first to light it up.</div>';
+  return '<div style="border:1px solid #e10600;padding:10px;background:#0d0d0d;">'+
+    '<div style="font-weight:900;font-size:15px;letter-spacing:1px;margin-bottom:8px;">CELL BOUT</div>'+
+    listHtml+
+    '<div style="font-size:11px;color:#666;margin-top:8px;">Cell fire counts while CELL BOUT is on. The winning cell banks war-standing points.</div>'+
+    '</div>';
+}
+function updateCellPane(){
+  if(!cellBoutOn())return;
+  var mc=myCell();if(!mc)return;
+  var pane=root.querySelector('[data-if-cellpane]');
+  if(pane)pane.innerHTML=cellPaneHtml(mc);
 }
 function paint(w){
   if(!fighters[0]||!fighters[1])return;
@@ -194,17 +240,35 @@ function paint(w){
       '<div style="font-size:12px;color:#ccc;">'+(ops.share?'<span style="font-size:12px;color:#4caf50;font-weight:800;">\u2713 SHARED</span>':'<button data-if-op="share" style="background:#222;color:#fff;border:1px solid #e10600;font-weight:800;padding:6px 12px;cursor:pointer;font-size:12px;">SHARE BATTLE +'+AMMO_SHARE+' AMMO</button>')+' <span style="color:#777;">ammo fires for your picked fighter</span></div>'+
       '</div>';
   }
+  /* 6A-R8: CELL BOUT toggle next to the creator bout UI. When on (and the
+     visitor holds a cell), the widget shows the creator bout AND the cell
+     bout side by side; fire calls carry the cell tag. */
+  var mc=myCell(),cbOn=cellBoutOn()&&!!mc;
+  var toggleHtml=mc
+    ?'<button data-if-celltoggle style="background:'+(cellBoutOn()?'#e10600':'#222')+';color:#fff;border:1px solid #e10600;font-weight:800;padding:6px 12px;cursor:pointer;font-size:12px;">CELL BOUT: '+(cellBoutOn()?'ON':'OFF')+'</button>'
+    :'<a href="/cells" style="font-size:12px;color:#e10600;font-weight:800;text-decoration:none;">JOIN A CELL TO BOUT \u2192</a>';
+  var creatorPane=
+    '<div style="display:flex;gap:10px;">'+fighterCard(fighters[0],0,tA,maxT)+fighterCard(fighters[1],1,tB,maxT)+'</div>'+
+    fireCtl+opsHtml;
+  var bodyHtml=cbOn
+    ?'<div style="display:flex;gap:12px;flex-wrap:wrap;">'+
+     '<div style="flex:1.25;min-width:260px;">'+creatorPane+'</div>'+
+     '<div style="flex:1;min-width:240px;" data-if-cellpane>'+cellPaneHtml(mc)+'</div>'+
+     '</div>'
+    :creatorPane;
   root.innerHTML=
     '<div style="background:#0a0a0a;border:2px solid #e10600;padding:14px;font-family:inherit;color:#fff;">'+
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">'+
-    '<div style="font-weight:900;font-size:18px;letter-spacing:1px;">INFIGHTING</div>'+badge+'</div>'+
-    '<div style="display:flex;gap:10px;">'+fighterCard(fighters[0],0,tA,maxT)+fighterCard(fighters[1],1,tB,maxT)+'</div>'+
-    fireCtl+opsHtml+lastLine+
+    '<div style="font-weight:900;font-size:18px;letter-spacing:1px;">INFIGHTING</div>'+
+    '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'+toggleHtml+badge+'</div></div>'+
+    bodyHtml+lastLine+
     '<div style="font-size:11px;color:#666;margin-top:10px;">Winner takes a 24h +0.2 HYPE bump on their displayed score (never above 9.8). Boost only \u2014 no attack moves, this is family.</div>'+
     '</div>';
   bind();
 }
 function bind(){
+  var tg=root.querySelector('[data-if-celltoggle]');
+  if(tg){tg.onclick=function(){setCellBout(!cellBoutOn());paint(cur);};}
   var cards=root.querySelectorAll('[data-if-side]');
   for(var i=0;i<cards.length;i++){(function(el){el.onclick=function(){side=Number(el.getAttribute('data-if-side'));paint(cur);};})(cards[i]);}
   var fires=root.querySelectorAll('[data-if-fire]');
@@ -224,7 +288,7 @@ function doFire(idx,amt){
   try{ if(window.PF&&PF.debitLocal) PF.debitLocal(null,amt); }catch(e){}
   addSpent(cur.id,amt);
   pending[f.slug]=(pending[f.slug]||0)+amt;
-  apiGet({action:'infight_fire',round:cur.id,slug:f.slug,amt:amt,callsign:callsign()},function(){pollTotals();});
+  apiGet({action:'infight_fire',round:cur.id,slug:f.slug,amt:amt,callsign:callsign(),cell_id:fireCellId()},function(){pollTotals();});
   dispatch('pf-infight-fire',{slug:f.slug,amt:amt,round:cur.id});
   updateBars();
   /* M1 dopamine: firing ammo should feel like firing ammo. */
@@ -255,7 +319,7 @@ function grantOp(key,slug,amt){
   if(amt>0){
     addSpent(cur.id,amt);
     pending[slug]=(pending[slug]||0)+amt;
-    apiGet({action:'infight_fire',round:cur.id,slug:slug,amt:amt,callsign:callsign()},function(){pollTotals();});
+    apiGet({action:'infight_fire',round:cur.id,slug:slug,amt:amt,callsign:callsign(),cell_id:fireCellId()},function(){pollTotals();});
     dispatch('pf-infight-fire',{slug:slug,amt:amt,round:cur.id,op:key});
   }
   updateBars();
@@ -268,7 +332,7 @@ function pollTotals(){
   if(!cur||!cur.live)return;
   try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){}
   apiGet({action:'infight_totals',round:cur.id},function(j){
-    if(j&&j.ok&&j.round===cur.id&&j.totals){totals=j.totals;pending={};updateBars();}
+    if(j&&j.ok&&j.round===cur.id&&j.totals){totals=j.totals;pending={};if(j.cells)cellTotals=j.cells;updateBars();}
   },8000);
 }
 function updateBars(){
@@ -284,6 +348,7 @@ function updateBars(){
   });
   var x=root.querySelector('[data-if-xp]');
   if(x)x.textContent=xp().toLocaleString();
+  updateCellPane();
 }
 function startPoll(){stopPoll();pollTotals();pollTimer=setInterval(pollTotals,10000);}
 function stopPoll(){if(pollTimer){clearInterval(pollTimer);pollTimer=null;}}
@@ -303,6 +368,15 @@ function settleLastBattle(prevId,roster){
         /* New hype record: tell the paint owner (efficiency.js) to re-check. */
         dispatch('pf-hype',{slug:w.slug,round:prevId});
       }
+      /* 6A-R8: settle the cell bout too — server-side idempotent, records
+         the winning cell in infight_cell_wins for the war map. Only fires
+         when the round actually saw cell fire. */
+      try{
+        var hasCellFire=j.cells&&Object.keys(j.cells).length>0;
+        if(hasCellFire&&window.PF&&PF.postAction){
+          PF.postAction('stats','s_action','infight_settle',{round:prevId,callsign:callsign()},function(){});
+        }
+      }catch(e){}
     }
   },8000);
 }
@@ -355,10 +429,46 @@ function paintStrip(){
 function stripTick(){
   try{
     var w=battleWindow(chiNow());
+    syncLiveStrip(w);
     if(!stripW||w.id!==stripW.id){ paintStrip(); return; }
     var msLeft=(w.live?w.end:w.start).getTime()-chiNow().getTime();
     var c=root.querySelector('[data-if-clock]');
     if(c) c.textContent=fmtClock(msLeft);
+  }catch(e){}
+}
+/* R33 (Wave 6B): "LIVE BATTLE" ambient summon. When a bout is live in SLIM
+   mode (homepage etc. — the arena page already shows the full bout), a fixed
+   bottom strip summons the visitor to fire now. The backend bell emitter
+   also fires; this is the on-page summon. It is the alert layer only — not
+   6A's R8 cell-bout toggle (not in tree; no duplication). Zero XP. */
+var pfLiveEl=null, pfLiveShown="", pfLiveDismissed="";
+function liveStripEl(){
+  if(pfLiveEl) return pfLiveEl;
+  try{
+    var d=document.createElement("div");
+    d.id="pfLiveBattle";
+    d.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:99993;background:#e10600;color:#fff;font:bold 14px Arial,sans-serif;text-align:center;padding:10px 48px 10px 12px;letter-spacing:1px;display:none;box-shadow:0 -2px 16px rgba(0,0,0,.5)";
+    document.body.appendChild(d);
+    pfLiveEl=d;
+  }catch(e){}
+  return pfLiveEl;
+}
+function syncLiveStrip(w){
+  if(!SLIM) return;
+  var el=liveStripEl(); if(!el) return;
+  try{
+    var show=!!(w&&w.live&&pfLiveDismissed!==w.id);
+    if(show&&pfLiveShown!==w.id){
+      var dest=document.getElementById("pf-infight-root")?"#pf-infight-root":"/arcade";
+      el.innerHTML='<a href="'+dest+'" style="color:#fff;text-decoration:none">\u25CF LIVE BATTLE \u2014 FIRE NOW \u2192</a>'
+        +'<button id="pfLiveBattleX" aria-label="Dismiss" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:1px solid #fff;color:#fff;padding:2px 8px;cursor:pointer;font-size:12px">\u2715</button>';
+      el.style.display="block";
+      pfLiveShown=w.id;
+      var x=document.getElementById("pfLiveBattleX");
+      if(x){ x.onclick=function(ev){ try{ev.stopPropagation();}catch(e){} pfLiveDismissed=w.id; pfLiveShown=""; el.style.display="none"; }; }
+    }else if(!show&&pfLiveShown){
+      el.style.display="none"; pfLiveShown="";
+    }
   }catch(e){}
 }
 function arenaTick(){

@@ -196,7 +196,7 @@ function cellPaneHtml(mc){
   return '<div style="border:1px solid #e10600;padding:10px;background:#0d0d0d;">'+
     '<div style="font-weight:900;font-size:15px;letter-spacing:1px;margin-bottom:8px;">CELL BOUT</div>'+
     listHtml+
-    '<div style="font-size:11px;color:#666;margin-top:8px;">Cell fire counts while CELL BOUT is on. The winning cell banks war-standing points.</div>'+
+    '<div style="font-size:11px;color:#666;margin-top:8px;">Cell fire counts while CELL BOUT is on \u2014 it feeds your cell\u2019s weekly war score. One war, one leaderboard.</div>'+
     '</div>';
 }
 function updateCellPane(){

@@ -344,6 +344,17 @@
       cb(j);
     });
   }
+  /* G6 (2026-10-04): White Market cell-war odds. Read-only — zero XP for
+     viewing; stakes go through the casino's wager_place escrow. */
+  function loadMarket(cb){
+    if (S.market && Date.now()-S.market._t < 60000) { cb(S.market); return; }
+    S.loading.market = true;
+    api('cellwar_market', {}, function(j){
+      S.loading.market = false;
+      if (j && j.ok) { j._t = Date.now(); S.market = j; }
+      cb(j);
+    });
+  }
   function loadBoard(cb){
     if (S.board && Date.now()-S.board._t < 60000) { cb(S.board); return; }
     S.loading.board = true;
@@ -578,13 +589,15 @@
     var h = '<div class="hq-card"><h3>&#9876; How Cell War works</h3>' +
       '<div class="hq-note">Every Monday a new war week begins. Cells earn XP all week — ' +
       'the top cell is crowned champion and every member takes a <b>+10% XP bonus</b>. ' +
-      'Past weeks finalize automatically. Fight as your callsign.</div></div>';
+      'Bout fire feeds the war score too — one war, one leaderboard. ' +
+      'Past weeks finalize automatically. <b>Weekly champions claim territory.</b> ' +
+      'Fight as your callsign.</div></div>';
     h += '<div id="hqWarBody">'+loading('Reading the war board&hellip;')+'</div>';
     p.innerHTML = h;
     var body = document.getElementById('hqWarBody');
-    var gotS=false, gotH=false, jS=null, jHh=null;
+    var gotS=false, gotH=false, gotM=false, jS=null, jHh=null, jM=null;
     function paint(){
-      if(!gotS||!gotH) return;
+      if(!gotS||!gotH||!gotM) return;
       var out = '';
       if (jS && jS.ok){
         if (jS.last_winner){
@@ -603,6 +616,20 @@
       } else {
         out += netErr();
       }
+      /* G6: White Market odds strip — implied championship chance from the
+         war board + the market's own escrow pools. Viewing is free; the
+         betting itself lives in the White Market on /arcade. */
+      if (jM && jM.ok && (jM.odds||[]).length){
+        out += '<div class="hq-card"><h3>&#127963; White Market — championship odds</h3>' +
+          '<div class="hq-note">'+esc(jM.description||'CELL WAR')+' &middot; '+esc(String(jM.pool_total||0))+' XP in the pot. ' +
+          'Odds move with the board. Viewing is free — bets go down in the White Market.</div>';
+        jM.odds.slice(0,5).forEach(function(o, i){
+          var pays = o.pays > 0 ? ' &middot; pays '+esc(String(o.pays))+'x ('+esc(String(o.pool||0))+' XP in)' : ' &middot; no bets yet';
+          out += '<div class="hq-mem"><span><b>#'+(i+1)+'</b> '+esc(o.name||'')+'</span>' +
+            '<span class="hq-note">'+esc(String(o.implied||0))+'% implied'+pays+'</span></div>';
+        });
+        out += '<div style="margin-top:10px"><a class="hq-btn" href="/arcade">PLACE BETS IN THE WHITE MARKET &rarr;</a></div></div>';
+      }
       if (jHh && jHh.ok && (jHh.winners||[]).length){
         out += '<div class="hq-card"><h3>Hall of fame</h3>';
         jHh.winners.forEach(function(w){
@@ -618,6 +645,7 @@
     }
     loadWar(function(j){ gotS=true; jS=j; paint(); });
     loadHistory(function(j){ gotH=true; jHh=j; paint(); });
+    loadMarket(function(j){ gotM=true; jM=j; paint(); });
   }
 
   /* ---------- TAB 4: BROWSE ---------- */

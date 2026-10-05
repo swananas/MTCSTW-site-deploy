@@ -13,6 +13,7 @@
 <style>
 #pf-cell-war .cw-wrap{background:linear-gradient(160deg,#0d0d0d 0%,#1c0707 60%,#0d0d0d 100%);border:3px solid #c1121f;padding:26px 22px;max-width:680px;margin:18px auto;text-align:center;box-shadow:0 0 24px rgba(193,18,31,.35);color:#f5ead6;font-family:Arial,sans-serif}
 #pf-cell-war .cw-kicker{font-size:12px;letter-spacing:4px;color:#c1121f;font-weight:800;margin-bottom:6px}
+#pf-cell-war .cw-stakes{font-size:13px;letter-spacing:3px;color:#e8b64c;font-weight:800;margin-bottom:10px;text-transform:uppercase}
 #pf-cell-war h2{font-family:'Arial Black',Arial,sans-serif;color:#f5ead6;font-size:30px;margin:0 0 4px;letter-spacing:2px;text-transform:uppercase}
 #pf-cell-war h2 .cw-week{color:#c1121f}
 #pf-cell-war .cw-count{font-family:'Courier New',monospace;font-size:15px;color:#ffb347;letter-spacing:1px;margin-bottom:14px}
@@ -35,6 +36,15 @@
 #pf-cell-war .cw-note{font-size:12px;color:#a89e88;margin-top:12px;line-height:1.5}
 #pf-cell-war .cw-empty{font-size:14px;color:#a89e88;padding:14px 0;line-height:1.6}
 #pf-cell-war .cw-load{color:#a89e88;font-size:14px;padding:20px}
+/* G6 (2026-10-04): White Market odds strip — live championship odds from
+   the war board + market escrow pools. Zero XP for viewing. */
+#pf-cell-war .cw-odds{margin:6px 0 8px;border:1px dashed #c1121f;padding:12px 10px;background:#100808}
+#pf-cell-war .cw-okick{font-size:11px;letter-spacing:3px;color:#ffb347;font-weight:800;margin-bottom:8px}
+#pf-cell-war .cw-orow{display:grid;grid-template-columns:1fr auto;gap:8px;padding:6px 4px;border-top:1px solid #2a2a2a;font-size:13px;text-align:left}
+#pf-cell-war .cw-oname{font-weight:800;color:#f5ead6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pf-cell-war .cw-oev{font-family:'Courier New',monospace;color:#ffb347;font-size:12px;white-space:nowrap}
+#pf-cell-war .cw-obet{display:inline-block;margin-top:10px;background:transparent;border:1px solid #ffb347;color:#ffb347;font-weight:800;font-size:12px;padding:8px 18px;text-decoration:none;letter-spacing:1px}
+#pf-cell-war .cw-ofree{font-size:11px;color:#a89e88;margin-top:8px}
 </style>
 <script>
 (function(){
@@ -99,6 +109,7 @@ function render(j){
   var h='<div class="cw-wrap">';
   h+='<div class="cw-kicker">MARQUEE EVENT</div>';
   h+='<h2>\u2694\uFE0F Cell War <span class="cw-week">\u2014 Week '+esc(j.week_no||"?")+'</span></h2>';
+  h+='<div class="cw-stakes">Weekly champions claim territory</div>';
   h+='<div class="cw-count" id="cwCount">--</div>';
   if(j.last_winner&&j.last_winner.cell_name){
     h+='<div class="cw-champ">\uD83C\uDFC6 REIGNING CHAMPIONS: '+esc(j.last_winner.cell_name)+
@@ -120,6 +131,8 @@ function render(j){
   }else{
     h+='<div class="cw-empty">No shots fired yet this week.<br>Be the first cell on the board.</div>';
   }
+  /* G6: White Market championship odds strip — filled by renderMarket. */
+  h+='<div id="cwMarket"><div class="cw-load">Reading the White Market&hellip;</div></div>';
   var mine=(j.my_cells||[]).length>0;
   h+='<div class="cw-cta">';
   if(mine){
@@ -129,8 +142,8 @@ function render(j){
     h+='<button class="cw-btn cw-ghost" id="cwBuildCell" type="button">BUILD YOUR CELL</button>';
   }
   h+='</div>';
-  h+='<div class="cw-note">Every XP you earn feeds your cell\u2019s war score. '+
-     'Top cell Sunday midnight takes the crown \u2014 and a +10% XP reign all next week.</div>';
+  h+='<div class="cw-note">Every XP you earn feeds your cell\u2019s war score \u2014 bout fire counts too. '+
+     'Top cell Sunday midnight takes the crown, claims territory on the war map, and reigns with +10% XP all next week.</div>';
   h+='</div>';
   host.innerHTML=h;
   if(TICK) clearInterval(TICK);
@@ -143,6 +156,22 @@ function render(j){
 function load(){
   var id=ident();
   api("cellwar_standings",{callsign:id.callsign},render);
+  /* G6: White Market championship odds — live from the war board. */
+  api("cellwar_market",{},renderMarket);
+}
+function renderMarket(j){
+  var el=document.getElementById("cwMarket"); if(!el) return;
+  var odds=(j&&j.ok&&j.odds)||[];
+  if(!odds.length){ el.innerHTML='<div class="cw-note">No odds yet \u2014 the market opens when cells hit the board.</div>'; return; }
+  var h='<div class="cw-odds"><div class="cw-okick">\uD83C\uDFDB\uFE0F WHITE MARKET \u2014 CHAMPIONSHIP ODDS</div>';
+  for(var i=0;i<Math.min(5,odds.length);i++){
+    var o=odds[i];
+    var ev=esc(String(o.implied||0))+'%'+(o.pays>0?' \u00B7 pays '+esc(String(o.pays))+'x':'');
+    h+='<div class="cw-orow"><div class="cw-oname">'+(i+1)+'. '+esc(o.name||'')+'</div><div class="cw-oev">'+ev+'</div></div>';
+  }
+  h+='<a class="cw-obet" href="/arcade">BET IN THE WHITE MARKET \u2192</a>';
+  h+='<div class="cw-ofree">Odds move with the war board. Viewing is free.</div></div>';
+  el.innerHTML=h;
 }
 load();
 setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },60000);

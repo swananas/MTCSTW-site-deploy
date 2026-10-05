@@ -73,7 +73,8 @@
     { key: "postproof", name: "PROOF", url: "/create" },
     { key: "arcade", name: "ARCADE", url: "/arcade" },
     { key: "races", name: "RACES", url: "/sick-left-radicals" },
-    { key: "siren", name: "SIREN", url: "/" }
+    { key: "siren", name: "SIREN", url: "/" },
+    { key: "cells", name: "CELLS", url: "/cells" }
   ];
 
   /* ---------- Chicago-week helpers (ribbons are awarded on America/Chicago Mondays) ---------- */
@@ -281,10 +282,10 @@
     var need = 7 - breadth;
     var head, sub;
     if (need <= 0) {
-      head = "RIBBON CHASE — " + breadth + "/7 SYSTEMS";
+      head = "RIBBON CHASE — " + breadth + "/10 SYSTEMS";
       sub = "FULL THEATER SECURED. Fight to keep it.";
     } else {
-      head = "RIBBON CHASE — " + breadth + "/7 SYSTEMS";
+      head = "RIBBON CHASE — " + breadth + "/10 SYSTEMS";
       sub = "FULL THEATER needs " + need + " more";
     }
     var h = '<div class="th-chase-head">&#9733; ' + esc(head) + '</div>'

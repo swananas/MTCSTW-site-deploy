@@ -3579,7 +3579,15 @@ function render(){
   var el=document.getElementById("xDopa"); if(!el) return;
   var id=ident(), h="";
   if(!id.callsign){
-    el.innerHTML=PF.gateHTML('Daily Fire runs on callsigns.','to stoke the fire');
+    /* 2026-10-05 Phase 3 #9: anonymous dopa teaser. Anonymous visitors get a
+       real glimpse of today's fire — public flash_list + warword_status are
+       anonymous-safe — plus an honest mechanic preview and a one-tap callsign
+       claim CTA, instead of the dead gate card. When there is no anonymous-
+       safe data to show, the panes describe the mechanic honestly; they never
+       promise loot the visitor can't claim. Kill switch: ?pf_off=dopa
+       (silo-wide via PF.skip, above). */
+    dpCss();
+    renderTeaser(el);
     return;
   }
   if(WARM||!ST){
@@ -3699,6 +3707,71 @@ function fillFlashHistory(){
         +esc(e.title||"Flash event")+(dt?' <span class="x-note">&mdash; burned out '+esc(dt)+'</span>':"")+'</div>';
     }
     box.innerHTML=hh;
+  });
+}
+/* ---- anonymous teaser (2026-10-05 Phase 3 #9) ----
+   Shown when there is no callsign. Panes reuse the dopa visual language
+   (.dp-pane, .dp-crate, .dp-flash, .dp-mult, .dp-count, .dp-flame) so this
+   reads as the same widget, unlocked. All data is anonymous-safe:
+   flash_list and warword_status are public reads. The crate pane describes
+   the mechanic honestly — never a fake "today's pull". The CTA reuses the
+   site-wide in-place claim flow (data-pf-claim-cs -> PF.requireCallsign). */
+function renderTeaser(el){
+  var h='<div class="x-pane dp-pane"><h4>TODAY&rsquo;S CRATE</h4><div class="dp-cratewrap">'
+    +'<div class="dp-crate">&#128230;</div>'
+    +'<div class="x-note">One free supply crate every day. Pulls pay XP &mdash; Common to Legendary.<br>Yours is sitting there, locked.</div>'
+    +'<div style="margin-top:10px"><button class="c-btn" data-pf-claim-cs="1" data-pf-claim-ctx="to open today\'s crate">CLAIM YOUR CALLSIGN TO OPEN TODAY&rsquo;S CRATE</button></div>'
+    +'</div></div>'
+    +'<div class="x-pane dp-pane"><h4>FLASH EVENTS</h4><div id="dpTeaseFlash"><div class="x-note">Reading the wire&hellip;</div></div></div>'
+    +'<div class="x-pane dp-pane"><h4>WAR-WORD BOUNTY</h4><div id="dpTeaseWW"><div class="x-note">Reading the wire&hellip;</div></div></div>'
+    +'<div class="x-pane dp-pane"><h4>DETONATION STREAK</h4><div style="text-align:center">'
+    +'<div class="dp-flame">&#128293;</div>'
+    +'<div class="x-note">Check in daily. Buy a freeze to skip a day without dying.<br>Milestones at 7, 14, 30, 60 and 100 days.</div>'
+    +'</div></div>';
+  el.innerHTML=h;
+  fillTeaserFlash();
+  fillTeaserWarWord();
+}
+/* Teaser flash fill (flash_list, public). Active events render with the same
+   .dp-flash row the enlisted view uses; the global tick() drives the
+   [data-until] countdowns automatically. No active events = an honest
+   "quiet right now" note, not an empty room. */
+function fillTeaserFlash(){
+  var box=document.getElementById("dpTeaseFlash"); if(!box) return;
+  api("flash_list",{},function(j){
+    if(!document.getElementById("dpTeaseFlash")) return;
+    var ev=(j&&j.ok&&j.events)||[];
+    var live=ev.filter(function(e){ return e.active; });
+    if(live.length){
+      var hh="";
+      for(var i=0;i<live.length;i++){
+        var f=live[i], mult=Number(f.multiplier)||2;
+        hh+='<div class="dp-flash"><span class="dp-mult">'+mult+'X XP</span>'
+          +'<b>'+esc(f.label||f.title||"Flash event")+'</b><br>'
+          +'<span class="dp-count" data-until="'+Number(f.ends_at)+'">--:--:--</span> remaining</div>';
+      }
+      box.innerHTML=hh+'<div class="x-note">Live right now. Enlisted soldiers are cashing in.</div>';
+    } else {
+      box.innerHTML='<div class="x-note">No flash event live right now. They drop without warning &mdash; enlist and you&rsquo;re in the second one lands.</div>';
+    }
+  });
+}
+/* Teaser war-word fill (warword_status, public with device id only). Never
+   shows a redeem box — redeeming needs a callsign. When no word is live,
+   the pane routes to the podcast so the visitor arrives armed. */
+function fillTeaserWarWord(){
+  var box=document.getElementById("dpTeaseWW"); if(!box) return;
+  var id=ident();
+  api("warword_status",{device:id.device},function(j){
+    if(!document.getElementById("dpTeaseWW")) return;
+    if(j&&j.ok&&j.active){
+      box.innerHTML='<div class="x-note">BOUNTY LIVE: <b>+'+Number(j.xp_amount||25)+' XP</b> for the spoken war-word'
+        +(j.episode?' in <b>'+esc(j.episode)+'</b>':'')
+        +'. Hear it in the episode, enlist, take the bounty.<br>'
+        +'<a href="'+WW_PODCAST+'" target="_blank" rel="noopener">LISTEN TO THE PODCAST</a></div>';
+    } else {
+      box.innerHTML='<div class="x-note">The bounty wire is quiet right now. Every episode hides a spoken war-word worth XP &mdash; <a href="'+WW_PODCAST+'" target="_blank" rel="noopener">LISTEN TO THE PODCAST</a> so you&rsquo;re ready.</div>';
+    }
   });
 }
 /* A8 Podcast Listener Bounties — spoken war-word per episode, redeemed here

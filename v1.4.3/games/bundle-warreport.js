@@ -51,7 +51,7 @@ function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e
    Email capture for the Monday digest + FAN FAVORITE share poster. The
    sending leg is gated on the Resend DNS records (Shane's hand-step) —
    capture degrades gracefully until the backend action exists. */
-function wrEmailValid(s){ return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/.test(String(s||"").trim()); }
+function wrEmailValid(s){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(s||"").trim()); }
 function emailPaneHtml(){
   return '<div class="x-pane"><h4>GET THE WAR REPORT BY EMAIL</h4>'
     +'<div class="x-note">Monday mornings, straight to your inbox. The one channel the machine truly owns.</div>'
@@ -176,7 +176,7 @@ function wrExtractMeme(body){
   var src=String(body==null?"":body);
   if(src.indexOf("MEME OF THE WEEK:")<0) return none;
   try{
-    var lines=src.split("\n"), i, n=lines.length, start=-1;
+    var lines=src.split("\\n"), i, n=lines.length, start=-1;
     for(i=0;i<n;i++){ if(wrTrim(lines[i])==="MEME OF THE WEEK:"){ start=i; break; } }
     if(start<0) return none;
     var j=start+1;
@@ -202,10 +202,11 @@ function wrExtractMeme(body){
       +'<div class="wm-fight">The fight: '+esc(m3[1])+'</div>'
       +(srcUrl?'<div class="wm-src">Source: '+wrMemeLink(srcUrl)+'</div>':"")
       +'</div></div>';
-    return {card:card,before:lines.slice(0,start).join("\n"),after:lines.slice(j).join("\n")};
+    return {card:card,before:lines.slice(0,start).join("\\n"),after:lines.slice(j).join("\\n")};
   }catch(e){ return none; }
 }
 /* MEME:END */
+function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
   /* Private read: warreport_latest is per-callsign (IDOR fix). Route through
      the shared claim-retry GET (2026-10-03) so pre-auth callsign holders get

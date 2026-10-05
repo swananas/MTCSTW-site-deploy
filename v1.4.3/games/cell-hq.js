@@ -779,6 +779,30 @@
       h += '<div class="hq-note">Join a cell to see its treasury.</div>';
     }
     h += '</div>';
+    /* --- 6A-R9: OUTWARD GLORY — sponsor a cause pool from the treasury.
+       Officer-gated server-side (cause_sponsor); the button just routes to
+       /war-chest?sponsor=1 where the sponsor flow lives. */
+    var canSpon = !!(S.mine && (S.mine.is_founder || S.mine.is_officer));
+    h += '<div class="hq-card" style="border-color:#c1121f"><h3>&#9876; Sponsor a cause <span class="hq-note">treasury &#8594; the movement</span></h3>';
+    h += '<div class="hq-note">Deploy idle treasury XP to a cause pool — strike fund, bail fund, mutual aid. ' +
+      'The cell\'s name rides the pool as sponsor, hits the war-room ticker, and climbs the inter-cell sponsorship board.</div>';
+    if (wcid && canSpon){
+      h += '<div class="hq-row" style="margin-top:8px"><a class="hq-btn" href="/war-chest?cell='+esc(wcid)+'&sponsor=1">SPONSOR A CAUSE &rarr;</a></div>';
+      var shist = (tr && tr.ok && tr.recent || []).filter(function(x){ return String(x.kind || '') === 'sponsor'; });
+      if (shist.length){
+        h += '<div class="hq-note" style="margin-top:8px"><b>Sponsored:</b> ' +
+          shist.slice(0,5).map(function(x){
+            var dp = '';
+            try { dp = new Date(Number(x.ts)||0).toLocaleDateString(); } catch(e){}
+            return esc(dp)+' — '+Math.abs(Number(x.amount||0)).toLocaleString()+' XP, by '+esc(x.callsign||'?');
+          }).join(' &middot; ') + '</div>';
+      }
+    } else if (wcid){
+      h += '<div class="hq-note">Only the founder and officers can sponsor causes from the treasury.</div>';
+    } else {
+      h += '<div class="hq-note">Join a cell to sponsor causes from its treasury.</div>';
+    }
+    h += '</div>';
     /* --- 1. WAR CHEST (personal bank) --- */
     var b = R.bank;
     if (b && b.ok){

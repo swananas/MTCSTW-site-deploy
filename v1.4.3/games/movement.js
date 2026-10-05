@@ -77,6 +77,25 @@ var PRESELECT=(function(){
   }catch(e){ return ""; }
 })();
 var preselectApplied=false;
+/* 6A-R9 (2026-10-04): /war-chest?cell=<id>&sponsor=1 — cell treasury
+   sponsorship mode. Deep-linked from the /cells treasury panel's
+   "SPONSOR A CAUSE" button. Officer-gated server-side (cause_sponsor). */
+var SPONSOR_CELL=(function(){
+  try{
+    var m=String(window.location.search||"").match(/[?&]cell=([a-zA-Z0-9_-]{1,64})/);
+    var s=/[?&]sponsor=1/.test(String(window.location.search||""));
+    return (m&&s)?m[1]:"";
+  }catch(e){ return ""; }
+})();
+var SPONSOR_CELL_NAME="", sponsorCellFetched=false;
+function fetchSponsorCell(cb){
+  if(sponsorCellFetched||!SPONSOR_CELL){ if(cb)cb(); return; }
+  sponsorCellFetched=true;
+  api("cell_card",{cell_id:SPONSOR_CELL},function(j){
+    if(j&&j.ok&&j.cell&&j.cell.name) SPONSOR_CELL_NAME=j.cell.name;
+    if(cb)cb();
+  });
+}
 function load(){
   var id=ident(), done=false, n=0, need=4;
   function fin(){ if(done)return; done=true; render(); }
@@ -86,6 +105,8 @@ function load(){
   api("subscription_list",{callsign:id.callsign},function(j){ SUBS=j; one(); });
   api("prize_list",{},function(j){ PRIZES=j; one(); });
   api("burn_leaderboard",{},function(j){ BURNS=j; one(); });
+  /* 6A-R9: resolve the sponsor cell's name in parallel (public read). */
+  if(SPONSOR_CELL) fetchSponsorCell(function(){ render(); });
 }
 function render(){
   var el=document.getElementById("xMovement"); if(!el) return;
@@ -121,15 +142,53 @@ function render(){
 function renderCauses(id){
   var h='<div class="x-pane"><div class="pb-bankhead">&#9670; CAUSE POOLS — MONEY FOR THE FIGHT &#9670;</div>'
     +'<div class="x-note">Strike funds. Bail funds. Mutual aid. When the movement needs money fast, it comes from here — not from billionaires with strings attached.</div>';
+  /* 6A-R9: sponsor mode banner — the cell whose treasury is on the line. */
+  if(SPONSOR_CELL){
+    var cnm=SPONSOR_CELL_NAME||SPONSOR_CELL;
+    h+='<div class="x-note" style="border:1px solid #c1121f;padding:8px;margin:6px 0;background:#1c0a0a;">'
+      +'&#9876; SPONSORING AS <b>CELL '+esc(cnm)+'</b> — treasury XP, not yours. '
+      +'Founder/officers only; every sponsorship hits the war-room ticker.</div>';
+  }
   var pools=(CAUSES&&CAUSES.ok&&CAUSES.pools)||[];
   if(!pools.length) h+='<div class="x-note">No cause pools yet.</div>';
   for(var i=0;i<pools.length;i++){
     var p=pools[i];
     h+='<div class="cp-mission"><div class="cp-mtext"><b>'+esc(p.name)+'</b>'
       +'<div class="x-note">'+esc(p.description||"")+'</div>'
-      +'<div class="x-note"><b>'+Number(p.balance||0).toLocaleString()+' XP</b> &bull; '+Number(p.donors||0)+' backers</div>'
-      +'<div style="margin-top:6px"><input aria-label="XP" class="c-in pf-input-sm" data-causeamt="'+esc(p.id)+'" type="number" min="1" placeholder="XP" /> '
-      +'<button class="c-btn" data-causefund="'+esc(p.id)+'">FUND</button></div></div></div>';
+      +'<div class="x-note"><b>'+Number(p.balance||0).toLocaleString()+' XP</b> &bull; '+Number(p.donors||0)+' backers</div>';
+    /* 6A-R9: "Sponsored by CELL <NAME>" attribution block. */
+    var spons=p.sponsors||[];
+    if(spons.length){
+      h+='<div class="x-note" style="margin-top:4px">&#9876; <b>Sponsored by</b> '
+        +spons.map(function(sp){
+          return 'CELL '+esc(sp.cell_name||sp.cell_id)+' ('+Number(sp.amount||0).toLocaleString()+' XP)';
+        }).join(' &middot; ')+'</div>';
+    }
+    h+='<div style="margin-top:6px"><input aria-label="XP" class="c-in pf-input-sm" data-causeamt="'+esc(p.id)+'" type="number" min="1" placeholder="XP" /> '
+      +'<button class="c-btn" data-causefund="'+esc(p.id)+'">FUND</button>';
+    /* 6A-R9: sponsor-from-treasury flow (officer-gated server-side). */
+    if(SPONSOR_CELL){
+      h+=' <input aria-label="Treasury XP" class="c-in pf-input-sm" data-sponsoramt="'+esc(p.id)+'" type="number" min="1" placeholder="Treasury XP" /> '
+        +'<button class="c-btn" data-sponsor="'+esc(p.id)+'" style="border-color:#c1121f">SPONSOR FROM TREASURY</button>';
+    }
+    h+='</div></div></div>';
+  }
+  h+='</div>';
+  /* 6A-R9: inter-cell sponsorship totals leaderboard. */
+  h+=renderSponsorBoard();
+  return h;
+}
+/* 6A-R9: inter-cell sponsorship totals — the rivalry stat. */
+function renderSponsorBoard(){
+  var board=(CAUSES&&CAUSES.ok&&CAUSES.sponsor_board)||[];
+  if(!board.length) return '';
+  var h='<div class="x-pane"><div class="pb-bankhead">&#9670; CELL SPONSORSHIP BOARD &#9670;</div>'
+    +'<div class="x-note">Which cells put their treasury where their mouth is.</div>';
+  for(var i=0;i<board.length;i++){
+    var b=board[i];
+    h+='<div class="cp-lead"><span class="cp-lname">'+(i+1)+'. CELL '+esc(b.cell_name||b.cell_id)+'</span> '
+      +'<span class="cp-lxp">'+Number(b.total||0).toLocaleString()+' XP</span>'
+      +'<div class="x-note">'+Number(b.sponsorships||0)+' sponsorships</div></div>';
   }
   h+='</div>';
   return h;
@@ -151,6 +210,28 @@ function wireCauses(id,el){
       });
     };
   })(bs[i]); }
+  /* 6A-R9: sponsor-from-treasury wiring — officer-gated server-side
+     (cause_sponsor). Native confirm() per the treasury-panel convention;
+     the debit hits the CELL treasury, never the officer's wallet. */
+  var ss=el.querySelectorAll('button[data-sponsor]');
+  for(var k=0;k<ss.length;k++){ (function(btn){
+    btn.onclick=function(){
+      var pid=btn.getAttribute("data-sponsor");
+      var inp=el.querySelector('input[data-sponsoramt="'+pid+'"]');
+      var amt=Math.round(Number(inp?inp.value:0)||0);
+      if(amt<=0){ toast("Enter a treasury amount."); return; }
+      if(!id.callsign){ toast("Claim a callsign first."); return; }
+      var cnm=SPONSOR_CELL_NAME||SPONSOR_CELL;
+      if(!window.confirm("Sponsor "+amt+" XP from CELL "+cnm+" treasury to this cause? Officers only.")) return;
+      btn.disabled=true;
+      post("finance","f_action","cause_sponsor",{callsign:id.callsign,device:id.device,cell_id:SPONSOR_CELL,pool_id:pid,amount:amt},function(j){
+        btn.disabled=false;
+        if(!j||!j.ok){ toast(PF.errCopy(j,"Sponsorship failed.")); return; }
+        toast(j.dup?"Already sponsored — counted once.":"CELL "+(j.cell_name||cnm)+" SPONSORED "+amt+" XP. The ticker saw it.");
+        api("cause_list",{},function(jj){ CAUSES=jj; render(); });
+      });
+    };
+  })(ss[k]); }
 }
 /* ---------- 2. SUBSCRIPTIONS ---------- */
 function renderSubs(id){

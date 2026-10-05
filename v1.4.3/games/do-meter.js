@@ -3,7 +3,7 @@
    (games/media-nuke.js deleted; its sticky strip moved to core/17-nuke-strip.js).
    This section is display-only: the canonical sync + event-sourced counter live
    in the strip module (window.pfNukeStrip, "pf-nuke-update" events); it degrades
-   to a read-only xp_today poll if the strip module is killed.
+   to a read-only nuke_status poll if the strip module is killed.
    KILL: ?pf_off=do-meter  or  localStorage pf_disabled_v1='["do-meter"]' */
 
 (function () {
@@ -32,19 +32,23 @@
 <div id="slr-nuke">
 <div class="slr-nuke-kicker">Network Command</div>
 <h2>The <span class="slr-red">Media Nuke</span></h2>
-<p class="slr-nuke-sub">Master XP tracker &mdash; every mission charges the blast. When the bar fills, we own the news cycle.</p>
+<p class="slr-nuke-sub">Deliberately charged &mdash; one press per comrade per day. <strong>The nuke can&rsquo;t be bought.</strong></p>
 <div class="slr-nuke-barwrap">
   <div class="slr-nuke-fill" id="slr-nuke-fill"></div>
   <div class="slr-nuke-label" id="slr-nuke-label">CHARGING&hellip;</div>
 </div>
 <div class="slr-nuke-status" id="slr-nuke-status"></div>
 <div class="slr-nuke-detail" id="slr-nuke-detail"></div>
+<div class="slr-nuke-press" id="slr-nuke-press"></div>
 <div class="slr-nuke-you" id="slr-nuke-you"></div>
+<div class="slr-nuke-ladder" id="slr-nuke-ladder"></div>
+<div class="slr-nuke-honest">Tiers measure network effort, not guaranteed outcomes &mdash; actual trending and press pickup depend on platform dynamics outside our control.</div>
 <details class="slr-nuke-math">
   <summary>The math</summary>
-  <p><strong>50,000 XP in one day = a media nuke.</strong> Every comrade caps at 50 XP of daily tasks per day, so a full bar means roughly <strong>1,000 comrades running full missions</strong> &mdash; tens of thousands of coordinated likes, comments, shares, and watch-throughs landing inside the platforms' first-hour velocity window.</p>
-  <p>That's the force it takes to push a hashtag onto the national trending page, get the TikTok/X trends desks buzzing, and force newsroom pickup. At 8M+ network reach, it only takes <strong>1% of the audience</strong> moving together.</p>
-  <p>When the bar fills, command issues the target, the hashtag, and the go-time. Until then: run your missions, charge the blast.</p>
+  <p><strong>One press = +50 charge, +5 XP.</strong> 1,000 comrades pressing daily = 50,000 charge = T3, the classic National Takeover. Cell coordination multiplies member presses; cell treasuries can stake XP into the blast (burned, never spent); the Board can inject Fed stimulus. The pool decays <strong>10%/day</strong> &mdash; use it or lose it.</p>
+  <p>Detonation auto-fires at T1. The council can <strong>HOLD</strong> for a bigger tier &mdash; paying decay as the price of ambition.</p>
+  <p>The fiction stays: a full T3 blast is tens of thousands of coordinated likes, comments, shares, and watch-throughs landing inside the platforms' first-hour velocity window. The meter proves we showed up &mdash; not that the algorithm obeyed.</p>
+  <p>When the bar fills, command issues the target, the hashtag, and the go-time. Until then: press daily, charge the blast.</p>
 </details>
 </div>
 <div><button class="d-shareimg" id="dShareImg">Share network total</button><div class="d-sub" id="dShareCount" style="margin-top:6px"></div></div>
@@ -363,63 +367,204 @@ function shareDoImage(btn){
     else{var u=cv.toDataURL('image/png');fetch(u).then(function(r){return r.blob();}).then(function(b){done(URL.createObjectURL(b),b);});}
   }catch(e){if(btn)btn.disabled=false;}
 }
-/* ---- MEDIA NUKE METER (folded 2026-10-03): the one network progress meter.
-   Display-only. The canonical sync + event-sourced daily-XP counter live in
+/* ---- MEDIA NUKE METER (folded 2026-10-03; wired 2026-10-05 wave-nuke-fe;
+   contract-fixed 2026-10-05):
+   the one network progress meter — the persistent charge pool, armed tier,
+   tier ladder, HOLD indicator and the CHARGE THE NUKE press button.
+   Backend fields (src/nuke.js): charge, tiers {T1..T4} (numbers),
+   armed_tier (number), hold_tier (number|null), caller {pressed_today,
+   streak}. comrades/detonation_streak are NOT served — not read, not shown.
+   Display-only except the press button. The canonical sync lives in
    core/17-nuke-strip.js (window.pfNukeStrip + "pf-nuke-update" events).
-   Degrades to a read-only xp_today poll when the strip module is killed. ---- */
-var NUKE_GOAL=50000;
+   Degrades to a read-only nuke_status poll when the strip module is killed. ---- */
+/* Spec constants (2026-10-05 §2) — the backend may serve tiers in nuke_status;
+   these are the fallback so the ladder never renders empty. */
+var NUKE_TIERS=[
+ {id:"T1",charge:10000,name:"LOCAL SKIRMISH"},
+ {id:"T2",charge:25000,name:"REGIONAL SURGE"},
+ {id:"T3",charge:50000,name:"NATIONAL TAKEOVER"},
+ {id:"T4",charge:150000,name:"MEDIA BLITZ"}
+];
+var PRESS_CHARGE=50;
+function nukeTierById(id){
+  for(var _i=0;_i<NUKE_TIERS.length;_i++) if(NUKE_TIERS[_i].id===id) return NUKE_TIERS[_i];
+  return NUKE_TIERS[0];
+}
+/* Tier-id resolver for the backend's NUMERIC tiers (nuke_status sends
+   armed_tier/hold_tier as numbers, e.g. 10000) — also accepts an already
+   normalized tier id ("T1") from the strip. Contract-fixed 2026-10-05. */
+function nukeTierIdOf(tiers,v,fallback){
+  var s=String(v==null?"":v).toUpperCase();
+  for(var i=0;i<tiers.length;i++) if(String(tiers[i].id).toUpperCase()===s) return tiers[i].id;
+  var n=Number(v);
+  if(v!=null&&v!==""&&isFinite(n)){
+    for(var j=0;j<tiers.length;j++) if(Number(tiers[j].charge)===n) return tiers[j].id;
+  }
+  return fallback;
+}
+/* Defensive read of a nuke status payload — strip state (normalized) or a
+   raw nuke_status GET. Real backend fields only: charge, tiers,
+   armed_tier (number), hold_tier (number|null), caller.{pressed_today,
+   streak}. detonation_streak/comrades are NOT served by the backend and
+   were dropped (contract-fixed 2026-10-05). */
+function normNuke(st){
+  st=st||{};
+  var tiers=Array.isArray(st.tiers)&&st.tiers.length?st.tiers:NUKE_TIERS;
+  var armed=nukeTierIdOf(tiers,st.armed_tier,"T1");
+  var armedCh=Number(st.armed_charge);
+  if(!(armedCh>0)) armedCh=nukeTierById(armed).charge;
+  var holdRaw=(st.hold_tier!=null&&st.hold_tier!=="")?st.hold_tier:st.hold;
+  var hold=(holdRaw!=null&&holdRaw!=="")?nukeTierIdOf(tiers,holdRaw,null):null;
+  var caller=(st.caller&&typeof st.caller==="object")?st.caller:{};
+  var cs0=(st.charge_streak!=null)?st.charge_streak:caller.streak;
+  return {
+    charge:Math.max(0,Math.round(Number(st.charge!=null?st.charge:st.xp)||0)),
+    armed_tier:armed, armed_charge:Math.round(armedCh),
+    hold:hold,
+    pressed:!!(st.pressed||caller.pressed_today),
+    charge_streak:Math.max(0,Math.round(Number(cs0)||0)),
+    mode:(st.mode==="network")?"network":"local",
+    tiers:tiers
+  };
+}
+/* Tier-relative states: pct is percent of the ARMED tier. */
 function nukeStateFor(pct){
   if(pct>=100) return {cls:"st-armed",text:"\u2622 MEDIA NUKE ARMED \u2622"};
-  if(pct>=60) return {cls:"st-critical",text:"CRITICAL MASS \u2014 all hands on deck"};
-  if(pct>=25) return {cls:"st-charging",text:"CHARGING \u2014 spread the missions"};
-  return {cls:"st-dormant",text:"DORMANT \u2014 the network sleeps"};
+  if(pct>=60) return {cls:"st-critical",text:"CRITICAL MASS \u2014 press harder"};
+  if(pct>=25) return {cls:"st-charging",text:"CHARGING \u2014 press daily"};
+  return {cls:"st-dormant",text:"DORMANT \u2014 press to wake it"};
 }
-/* Read-only peek at the strip module's event-sourced counter (owned there —
-   never written from here, so a task can never charge the blast twice). */
-function nukeLocalRead(){
-  try{ var s=JSON.parse(localStorage.getItem("pf_nuke_local_v2")||"null");
-    var t=new Date().toISOString().slice(0,10);
-    if(s&&s.d===t) return Number(s.xp)||0; }catch(e){}
-  return 0;
-}
+/* Read-only nuke_status poll (auth-attached like the strip's cell_mine).
+   The strip's 60s tick is the primary feed; this is the killed-strip fallback. */
 function nukePoll(cb){
   var done=false, burl="";
   try{ burl=window.PF_BACKEND_URL||"https://pf-api.mtcstw.workers.dev"; }catch(e){}
-  function fin(st){ if(done) return; done=true; try{ cb(st); }catch(e){} }
+  function fin(st){ if(done) return; done=true; try{ cb(normNuke(st)); }catch(e){} }
   try{
     var cbn="pfNukeDoCb"+Date.now();
     window[cbn]=function(d){ try{delete window[cbn];}catch(e){}
       var sc=document.getElementById(cbn); if(sc&&sc.parentNode) sc.parentNode.removeChild(sc);
-      if(d&&d.ok) fin({xp:Number(d.xp_today)||0,comrades:Number(d.comrades)||0,mode:"network"});
-      else fin({xp:0,comrades:0,mode:"local"}); };
+      if(d&&d.ok) fin(d);
+      else fin({mode:"local"}); };
     var sc=document.createElement("script"); sc.id=cbn;
-    sc.src=burl+"?action=xp_today&callback="+cbn;
-    sc.onerror=function(){ try{delete window[cbn];}catch(e){} fin({xp:0,comrades:0,mode:"local"}); };
+    var src=burl+"?action=nuke_status";
+    try{
+      var pcs=window.PFCallsign?window.PFCallsign():"";
+      if(pcs) src+="&callsign="+encodeURIComponent(pcs);
+      var pdev=window.PFDeviceId?window.PFDeviceId():"";
+      if(pdev) src+="&device="+encodeURIComponent(pdev);
+      var psec=(window.PF&&window.PF.getAuthSecret)?window.PF.getAuthSecret():"";
+      if(psec) src+="&auth_secret="+encodeURIComponent(psec);
+    }catch(e){}
+    sc.src=src+"&callback="+cbn;
+    sc.onerror=function(){ try{delete window[cbn];}catch(e){} fin({mode:"local"}); };
     document.head.appendChild(sc);
     /* 12s backstop — a hung request must not freeze the headline bar. */
-    setTimeout(function(){ if(window[cbn]){ try{delete window[cbn];}catch(e){} if(sc.parentNode) sc.parentNode.removeChild(sc); fin({xp:0,comrades:0,mode:"local"}); } },12000);
-  }catch(e){ fin({xp:0,comrades:0,mode:"local"}); }
+    setTimeout(function(){ if(window[cbn]){ try{delete window[cbn];}catch(e){} if(sc.parentNode) sc.parentNode.removeChild(sc); fin({mode:"local"}); } },12000);
+  }catch(e){ fin({mode:"local"}); }
 }
 function nukeState(cb){
-  try{ if(window.pfNukeStrip&&window.pfNukeStrip.state){ cb(window.pfNukeStrip.state()); return; } }catch(e){}
-  nukePoll(function(st){ if(st.mode==="local") st.xp=nukeLocalRead(); cb(st); });
+  try{ if(window.pfNukeStrip&&window.pfNukeStrip.state){ cb(normNuke(window.pfNukeStrip.state())); return; } }catch(e){}
+  nukePoll(cb);
 }
-function paintNuke(st){
+function paintNuke(st0){
   var root=document.getElementById("slr-nuke"); if(!root) return;
-  st=st||{};
-  var xp=Number(st.xp)||0, goal=Number(st.goal)||NUKE_GOAL, comrades=Number(st.comrades)||0;
-  var pct=Math.min(100,(xp/goal)*100), nst=nukeStateFor(pct);
+  var st=normNuke(st0);
+  var pct=Math.min(100,(st.charge/st.armed_charge)*100), nst=nukeStateFor(pct);
   var fill=document.getElementById("slr-nuke-fill"); if(fill) fill.style.width=pct+"%";
-  var label=document.getElementById("slr-nuke-label"); if(label) label.textContent=fmt(xp)+" / "+fmt(goal)+" XP";
-  var status=document.getElementById("slr-nuke-status"); if(status) status.innerHTML='<span class="'+nst.cls+'">'+nst.text+'</span>';
+  var label=document.getElementById("slr-nuke-label"); if(label) label.textContent=fmt(st.charge)+" / "+fmt(st.armed_charge)+" CHARGE";
+  var status=document.getElementById("slr-nuke-status");
+  if(status){
+    var sh='<span class="'+nst.cls+'">'+nst.text+'</span>';
+    if(st.hold) sh+='<div class="slr-nuke-hold">\u26d4 HOLD FOR '+escH(st.hold)+' \u2014 the council is building a bigger blast</div>';
+    status.innerHTML=sh;
+  }
   var detail=document.getElementById("slr-nuke-detail");
-  if(detail) detail.textContent=(st.mode==="network")?(comrades+" comrades in the fight today \u2014 network sync live"):"network sync offline \u2014 showing this device only";
+  if(detail){
+    /* comrades/detonation-streak are NOT served by the backend -- dropped
+       from the contract 2026-10-05. The line shows the armed tier instead. */
+    var tA=nukeTierById(st.armed_tier);
+    var dh=st.armed_tier+((tA&&tA.name)?(" "+tA.name):"")+" ARMED";
+    if(st.mode!=="network") dh+=" \u00b7 OFFLINE \u2014 last-known pool";
+    detail.textContent=dh;
+  }
+  /* Press button — the hero instance of the daily press. */
+  var cs=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){}
+  var pressed=st.pressed||pressedLocalDo();
+  var pw=document.getElementById("slr-nuke-press");
+  if(pw){
+    var bl;
+    if(!cs) bl='<button class="slr-nuke-btn claim" data-nuke-press="1">CLAIM YOUR CALLSIGN TO CHARGE THE BLAST</button>';
+    else if(pressed) bl='<button class="slr-nuke-btn charged" data-nuke-press="1" disabled>CHARGED \u2713 +50'+(st.charge_streak>0?(' \u00b7 '+st.charge_streak+'-DAY STREAK'):'')+'</button>';
+    else bl='<button class="slr-nuke-btn" data-nuke-press="1">CHARGE THE NUKE \u2014 +50</button>';
+    if(pw.getAttribute("data-nuke-html")!==bl){ pw.innerHTML=bl; pw.setAttribute("data-nuke-html",bl); }
+  }
   var you=document.getElementById("slr-nuke-you");
-  if(you) you.innerHTML="Your charge today: <strong>"+fmt(nukeLocalRead())+" XP</strong> \u2014 run missions to push the bar";
+  if(you){
+    if(!cs) you.textContent="No callsign, no blast \u2014 claim yours in Daily Orders, then press daily.";
+    else if(pressed) you.textContent="Your press landed: +50 charge today."+(st.charge_streak>0?(" \u2014 "+st.charge_streak+"-day charge streak"):"");
+    else you.textContent="You haven't pressed today \u2014 the nuke can't be bought, only charged.";
+  }
+  /* Tier ladder — armed tier marked, HOLD shown in the status line above. */
+  var lad=document.getElementById("slr-nuke-ladder");
+  if(lad){
+    var lh="";
+    for(var li=0;li<st.tiers.length;li++){
+      var t=st.tiers[li]||{};
+      var tid=String(t.id||"").toUpperCase();
+      var tch=Math.max(0,Math.round(Number(t.charge)||0));
+      var armed=(tid===st.armed_tier);
+      var passed=st.charge>=tch;
+      lh+='<div class="slr-ladder-row'+(armed?' armed':'')+(passed?' passed':'')+'">'
+        +'<span class="slr-ladder-id">'+escH(tid)+'</span>'
+        +'<span class="slr-ladder-name">'+escH(t.name||tid)+'</span>'
+        +'<span class="slr-ladder-ch">'+fmt(tch)+'</span>'
+        +(armed?'<span class="slr-ladder-flag">ARMED</span>':'')
+        +'</div>';
+    }
+    if(lad.getAttribute("data-nuke-html")!==lh){ lad.innerHTML=lh; lad.setAttribute("data-nuke-html",lh); }
+  }
   root.classList.toggle("armed",pct>=100);
+}
+function escH(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+/* Chicago day + the shared pressed record (same key the strip writes). */
+function chiDayDo(){ try{ return new Date().toLocaleDateString("en-CA",{timeZone:"America/Chicago"}); }catch(e){ return new Date().toISOString().slice(0,10); } }
+function pressedLocalDo(){
+  try{ var s=JSON.parse(localStorage.getItem("pf_nuke_press_v1")||"null");
+    return !!(s&&s.d===chiDayDo()&&s.pressed); }catch(e){ return false; }
+}
+/* Hero press: prefer the strip's canonical press (it owns the pressed record
+   and the fail-closed states). If the strip is killed, POST directly with the
+   same contract and refresh the hero. */
+function heroPress(){
+  try{
+    if(window.pfNukeStrip&&window.pfNukeStrip.press){ window.pfNukeStrip.press(); setTimeout(refreshNuke,1500); return; }
+  }catch(e){}
+  var cs=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e2){}
+  if(!cs){ try{ var o=document.getElementById("pf-orders"); if(o) o.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e3){} return; }
+  var body={callsign:cs};
+  try{ body.device=window.PFDeviceId?window.PFDeviceId():""; }catch(e4){}
+  function done(j){
+    if(j&&j.ok){
+      try{ localStorage.setItem("pf_nuke_press_v1",JSON.stringify({d:chiDayDo(),pressed:true,streak:Math.max(0,Math.round(Number(j.streak!=null?j.streak:(j.charge_streak!=null?j.charge_streak:0))||0))})); }catch(e5){}
+      try{ if(window.PF&&PF.dope&&PF.dope.ping){ var hb=document.getElementById("slr-nuke"); PF.dope.ping(hb||document.body,"+50 CHARGE \u2014 THE BLAST GROWS"); } }catch(e6){}
+    }
+    refreshNuke();
+  }
+  try{
+    if(window.PF&&window.PF.postAction){ window.PF.postAction("nuke","n_action","nuke_press",body,done); return; }
+  }catch(e7){}
+  done(null);
 }
 function refreshNuke(){ nukeState(paintNuke); }
 document.addEventListener("pf-nuke-update",function(e){ try{ paintNuke((e&&e.detail)||{}); }catch(err){} });
+if(!window._pfNukeHeroWired){
+  window._pfNukeHeroWired=true;
+  document.addEventListener("click",function(e){
+    var t=e&&e.target;
+    while(t&&t!==document){ if(t.getAttribute&&t.getAttribute("data-nuke-press")){ try{ heroPress(); }catch(err){} return; } t=t.parentNode; }
+  });
+}
 refreshNuke();
 if(!window._pfNukeDoTick){ window._pfNukeDoTick=setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} refreshNuke(); },90000); }
 Object.keys(PTS).forEach(function(type){
@@ -457,5 +602,5 @@ paint();setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) retur
 </script>
 </div>
 </template>`);
-  PF.holder().insertAdjacentHTML('beforeend', "<style>/* PF-DOMETER-SPARK-FIX-20260930: the sparkline bars had no explicit height, so the\nabsolutely-positioned fill overflowed the collapsed bar and rendered as a stray floating\nred square. Give legacy page-level #pf-dometer the same 64px bar height as the template. */\n#pf-dometer .d-bar{height:64px}\n/* PF-DOMETER-LOOP-20261001: milestone toast + week-reset countdown for the dopamine loop. */\n#pf-dometer2 .d-reset{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#f5ead6;opacity:.65;text-transform:uppercase;margin-top:6px}\n#pf-dometer2 .d-ping{position:absolute;top:34%;left:50%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 14px monospace;letter-spacing:1px;padding:10px 18px;border:2px solid #f5ead6;z-index:11;pointer-events:none;white-space:nowrap;max-width:94%;animation:dpingshake .4s}\n@keyframes dpingshake{0%{transform:translateX(-50%) scale(.7)}60%{transform:translateX(-50%) scale(1.06)}100%{transform:translateX(-50%) scale(1)}}\n@media (prefers-reduced-motion:reduce){#pf-dometer2 .d-ping{animation:none}}\n/* PF-DOMETER-G8-20261001: expansion panels — pulse ticker, streak saver, weekly op, badges, dissemination rank, fan fire, 90% critical keg. */\n#pf-dometer2 .d-pulse{font:bold 12px monospace;color:#e8b923;letter-spacing:1px;margin:4px 0}\n#pf-dometer2 .d-saver{background:#3a0d0d;border:2px solid #c1121f;color:#f5ead6;font:bold 12px Arial,sans-serif;letter-spacing:1px;padding:8px 12px;margin-top:8px}\n#pf-dometer2 .d-challenge{border:2px dashed #e8b923;padding:10px 12px;margin-top:10px;text-align:left}\n#pf-dometer2 .d-chl-head{font:bold 13px Arial,sans-serif;color:#e8b923;letter-spacing:1px}\n#pf-dometer2 .d-chl-bar{height:10px;background:#2a2a2a;margin:8px 0 4px}\n#pf-dometer2 .d-chl-bar i{display:block;height:100%;background:#e8b923}\n#pf-dometer2 .d-chl-prog{font:11px monospace;color:#f5ead6;opacity:.8}\n#pf-dometer2 .d-badges{margin-top:8px}\n#pf-dometer2 .d-badge{display:inline-block;background:#c1121f;color:#fff;font:bold 10px monospace;letter-spacing:1px;padding:4px 8px;margin:2px 3px;border:1px solid #f5ead6}\n#pf-dometer2 .d-rank{font:bold 12px Arial,sans-serif;color:#7fd4ff;letter-spacing:1px;margin-top:8px}\n#pf-dometer2 .d-fire{font:bold 12px Arial,sans-serif;color:#ff9d5c;letter-spacing:1px;margin-top:6px}\n#pf-dometer2 .d-keg.critical{animation:dkegpulse 1s infinite}\n@keyframes dkegpulse{0%,100%{box-shadow:0 0 0 0 rgba(193,18,31,.7)}50%{box-shadow:0 0 18px 4px rgba(193,18,31,.9)}}\n@media (prefers-reduced-motion:reduce){#pf-dometer2 .d-keg.critical{animation:none}}\n</style>");
+  PF.holder().insertAdjacentHTML('beforeend', "<style>/* PF-DOMETER-SPARK-FIX-20260930: the sparkline bars had no explicit height, so the\nabsolutely-positioned fill overflowed the collapsed bar and rendered as a stray floating\nred square. Give legacy page-level #pf-dometer the same 64px bar height as the template. */\n#pf-dometer .d-bar{height:64px}\n/* PF-DOMETER-LOOP-20261001: milestone toast + week-reset countdown for the dopamine loop. */\n#pf-dometer2 .d-reset{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#f5ead6;opacity:.65;text-transform:uppercase;margin-top:6px}\n#pf-dometer2 .d-ping{position:absolute;top:34%;left:50%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 14px monospace;letter-spacing:1px;padding:10px 18px;border:2px solid #f5ead6;z-index:11;pointer-events:none;white-space:nowrap;max-width:94%;animation:dpingshake .4s}\n@keyframes dpingshake{0%{transform:translateX(-50%) scale(.7)}60%{transform:translateX(-50%) scale(1.06)}100%{transform:translateX(-50%) scale(1)}}\n@media (prefers-reduced-motion:reduce){#pf-dometer2 .d-ping{animation:none}}\n/* PF-DOMETER-G8-20261001: expansion panels — pulse ticker, streak saver, weekly op, badges, dissemination rank, fan fire, 90% critical keg. */\n#pf-dometer2 .d-pulse{font:bold 12px monospace;color:#e8b923;letter-spacing:1px;margin:4px 0}\n#pf-dometer2 .d-saver{background:#3a0d0d;border:2px solid #c1121f;color:#f5ead6;font:bold 12px Arial,sans-serif;letter-spacing:1px;padding:8px 12px;margin-top:8px}\n#pf-dometer2 .d-challenge{border:2px dashed #e8b923;padding:10px 12px;margin-top:10px;text-align:left}\n#pf-dometer2 .d-chl-head{font:bold 13px Arial,sans-serif;color:#e8b923;letter-spacing:1px}\n#pf-dometer2 .d-chl-bar{height:10px;background:#2a2a2a;margin:8px 0 4px}\n#pf-dometer2 .d-chl-bar i{display:block;height:100%;background:#e8b923}\n#pf-dometer2 .d-chl-prog{font:11px monospace;color:#f5ead6;opacity:.8}\n#pf-dometer2 .d-badges{margin-top:8px}\n#pf-dometer2 .d-badge{display:inline-block;background:#c1121f;color:#fff;font:bold 10px monospace;letter-spacing:1px;padding:4px 8px;margin:2px 3px;border:1px solid #f5ead6}\n#pf-dometer2 .d-rank{font:bold 12px Arial,sans-serif;color:#7fd4ff;letter-spacing:1px;margin-top:8px}\n#pf-dometer2 .d-fire{font:bold 12px Arial,sans-serif;color:#ff9d5c;letter-spacing:1px;margin-top:6px}\n#pf-dometer2 .d-keg.critical{animation:dkegpulse 1s infinite}\n@keyframes dkegpulse{0%,100%{box-shadow:0 0 0 0 rgba(193,18,31,.7)}50%{box-shadow:0 0 18px 4px rgba(193,18,31,.9)}}\n@media (prefers-reduced-motion:reduce){#pf-dometer2 .d-keg.critical{animation:none}}\n/* PF-NUKE-WIREUP-20261005: hero card — press button, tier ladder, hold, honesty line. */\n#slr-nuke .slr-nuke-press{margin:10px 0 6px}\n#slr-nuke .slr-nuke-btn{background:#c1121f;color:#fff;border:0;font:700 14px \'Arial Black\',Arial,sans-serif;letter-spacing:2px;padding:12px 20px;cursor:pointer;text-transform:uppercase}\n#slr-nuke .slr-nuke-btn.charged{background:#1a4d1a;border:2px solid #7CFC00}\n#slr-nuke .slr-nuke-btn.claim{background:#3a2a00;border:2px solid #e8b923;color:#ffe9a8}\n#slr-nuke .slr-nuke-btn:disabled{cursor:default}\n#slr-nuke .slr-nuke-hold{font-size:13px;letter-spacing:2px;color:#ff8a8a;margin-top:6px;text-transform:uppercase}\n#slr-nuke .slr-nuke-ladder{margin:14px 0 10px;text-align:left}\n#slr-nuke .slr-ladder-row{display:flex;gap:10px;align-items:center;padding:7px 10px;border:1px solid #333;margin-bottom:4px;font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px}\n#slr-nuke .slr-ladder-row.armed{border-color:#c1121f;background:#1c0d0d}\n#slr-nuke .slr-ladder-id{font-weight:900;color:#c1121f;min-width:28px}\n#slr-nuke .slr-ladder-name{flex:1;color:#f5ead6}\n#slr-nuke .slr-ladder-ch{color:#c9bfa8}\n#slr-nuke .slr-ladder-flag{background:#c1121f;color:#fff;font-size:10px;font-weight:900;letter-spacing:2px;padding:3px 8px}\n#slr-nuke .slr-nuke-honest{font-family:Arial,sans-serif;font-size:11.5px;color:#8a8172;font-style:italic;line-height:1.5;margin:10px 0 4px}\n</style>");
 })();

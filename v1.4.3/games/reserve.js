@@ -14,9 +14,19 @@
    - GET JSONP:  ?action=reserve_status   (public — live levers + this week's
                    stimulus budget; the integration-surface read, rendered as
                    THIS WEEK'S PULSE in the policy tab)
+   - GET JSONP:  ?action=nuke_status     (charge pool, armed tier, HOLD state;
+                   feeds the governor-gated NUKE COMMAND block + injection
+                   budget line; callsign/device/auth_secret attached)
    - POST JSON:  {type:"reserve", r_action:"reserve_<verb>", ...params}
        verbs: propose, vote, referendum, referendum_vote, enact,
               reassign, reassign_vote
+     Fed nuke injections ride POST {type:"nuke",
+     n_action:"nuke_inject_propose", amount, title?, cell_id?} (<=5,000 XP,
+     one active injection/week) — the backend writes the reserve_proposals
+     row itself (lever_changes {"nuke_injection": amt}), tags it
+     stimulus:nuke against the weekly budget; voting rides the normal
+     reserve_vote flow. HOLD FOR T2/T3/T4 (and clear) ride POST {type:"nuke",
+     n_action:"nuke_hold", hold} — governor-gated, server-enforced.
      The backend dispatches on d.r_action (auth.js TYPE_KEY reserve->
      r_action, like referral/race/remit/revenue/rep/loot/ribbons) — the
      frontend was the outlier sending action:, which silently missed.
@@ -138,9 +148,27 @@ function leverVal(pol,key){
     min:(cfg&&cfg.min!=null)?Number(cfg.min):null,
     max:(cfg&&cfg.max!=null)?Number(cfg.max):null};
 }
-var POL=null, LED=null, STA=null, TAB=\"policy\";
+var POL=null, LED=null, STA=null, NUK=null, TAB=\"policy\";
 var NEWCHANGES=[]; /* staged proposal changes before submit */
+/* Nuke wire-up (2026-10-05, wave-nuke-fe): POST {type:\"nuke\",
+   n_action:\"nuke_hold\"} — auth-routed via PF.postAction; raw fallback
+   mirrors the reserve post() helper. */
+function postNuke(nAction,params,cb){
+  var body={callsign:ident().callsign,device:ident().device};
+  for(var k in params) body[k]=params[k];
+  if(window.PF&&PF.postAction){ PF.postAction(\"nuke\",\"n_action\",nAction,body,cb); return; }
+  try{ cb({ok:false,err:\"Network error.\"}); }catch(e){}
+}
 
+/* Nuke tier id from the backend's NUMERIC tier (nuke_status sends
+   armed_tier/hold_tier as numbers, e.g. 10000 — never the "T1" id).
+   Contract-fixed 2026-10-05 (wave-nuke-fe): the old code read a string
+   "hold" field the backend never sends. */
+function nukeTierId(n){
+  var tiers=[["T1",10000],["T2",25000],["T3",50000],["T4",150000]];
+  for(var i=0;i<tiers.length;i++) if(Number(n)===tiers[i][1]) return tiers[i][0];
+  return null;
+}
 function board(){ return (POL&&POL.board)||(POL&&POL.policy&&POL.policy.board)||[]; }
 function proposals(){
   var p=(POL&&POL.proposals)||(POL&&POL.open_proposals)||
@@ -272,6 +300,29 @@ function renderPolicy(el){
   } else {
     h+='<div class=\"x-note\">No Board seated yet. Monetary policy stands as published &mdash; the ranks govern from the Referendum tab.</div>';
   }
+  /* NUKE COMMAND — nuke wire-up (2026-10-05, wave-nuke-fe). Governor-gated:
+     hold state is command business; the ranks read it on the Do Meter hero.
+     The server enforces the gate — this is convenience rendering. */
+  if(isGovernor()){
+    var _nq=(NUK&&NUK.ok)?NUK:null;
+    var _charge=(_nq&&_nq.charge!=null)?fmtNum(_nq.charge):\"&mdash;\";
+    var _armed=nukeTierId(_nq&&_nq.armed_tier)||\"T1\";
+    var _hold=nukeTierId(_nq&&_nq.hold_tier);
+    h+='<h3 style=\"font-family:\\'Arial Black\\',Arial,sans-serif;letter-spacing:2px;color:#f5ead6;text-transform:uppercase;margin-top:18px;\">Nuke Command</h3>'
+      +'<div class=\"pb-card\" style=\"text-align:left;\">'
+      +'<div class=\"x-note\">Charge pool: <b>'+_charge+' XP</b> &middot; armed tier: <b>'+_armed+'</b></div>'
+      +'<div class=\"x-note\" style=\"margin-top:6px;\">'
+      +(_hold?('HOLD: <b style=\"color:#ff8a8a;\">HOLD FOR '+esc(_hold)+'</b> &mdash; detonation waits for the bigger tier.')
+            :'HOLD: <b style=\"color:#7CFF9B;\">AUTO-FIRE AT T1</b> &mdash; the tightest dopamine loop.')
+      +'</div>'
+      +'<div class=\"x-note\" style=\"margin-top:4px;\">Holding burns: 10%/day decay keeps eating the pool while you wait. That\\'s the honest price of ambition.</div>'
+      +'<div style=\"margin-top:8px;\">'
+      +'<button class=\"c-btn pf-btn-sm\" data-rsv-hold=\"T2\">Hold for T2</button> '
+      +'<button class=\"c-btn pf-btn-sm\" data-rsv-hold=\"T3\">Hold for T3</button> '
+      +'<button class=\"c-btn pf-btn-sm\" data-rsv-hold=\"T4\">Hold for T4</button> '
+      +(_hold?'<button class=\"c-btn ghost pf-btn-sm\" data-rsv-hold=\"\">Clear hold</button>':\"\")
+      +'</div><div class=\"c-err\" id=\"rsvHoldErr\"></div></div>';
+  }
   return h;
 }
 /* Backend status contract: proposals open/passed/failed/enacted (+
@@ -288,6 +339,7 @@ function renderProposalCard(p){
   var h='<div class=\"pb-card\" style=\"text-align:left;margin-bottom:10px;\">'
     +'<div class=\"pb-clabel\"><span class=\"c-tag\">'+esc(statusLabel(p))+'</span> '+esc(p.title||\"Untitled proposal\")+'</div>'
     +'<div class=\"x-note\">Proposed by <b>'+esc(p.proposer||p.proposed_by||\"?\")+'</b>'+(p.proposer_cell?(' &middot; '+esc(p.proposer_cell)):\"\")+' &middot; discussion '+(cd===\"closed\"?\"closed\":(\"ends in \"+esc(cd)))+'</div>'
+    +((p&&p.lever_changes&&p.lever_changes.nuke_injection)?'<div class=\"x-note\" style=\"margin-top:4px;\"><b>NUKE INJECTION</b> <span class=\"c-tag\">stimulus:nuke</span> &mdash; <b>'+fmtNum(p.lever_changes.nuke_injection)+'</b> XP into the blast on passage.</div>':\"\")
     +'<div style=\"margin:8px 0;\">'+changeRows(p)+'</div>'
     +'<div class=\"x-note\">Board tally: <b style=\"color:#7CFF9B;\">'+t.yes+' YES</b> / <b style=\"color:#ff8a8a;\">'+t.no+' NO</b> &middot; '+tot+' cells voted</div>';
   var open=String((p&&p.status)||\"open\").toLowerCase();
@@ -331,6 +383,30 @@ function renderProposals(el){
       +'<div style=\"margin-top:8px;\"><button class=\"c-btn\" id=\"rsvPSubmit\">Submit proposal</button>'
       +' <span class=\"x-note\">Goes to discussion, then the Board vote.</span></div>'
       +'<div class=\"c-err\" id=\"rsvPErr\"></div></div>';
+    /* NUKE INJECTION — nuke wire-up (2026-10-05, wave-nuke-fe). A Fed stimulus
+       allocation straight into the blast. Rides POST {type:"nuke",
+       n_action:"nuke_inject_propose", amount, title} (contract-fixed
+       2026-10-05: the old reserve_propose + kind:"nuke_injection" path never
+       worked — reserve_propose reads only lever_changes and rejects unknown
+       levers). Backend: <= 5,000 XP, max 1 active injection/week, tags
+       stimulus:nuke against the weekly budget, normal board vote via
+       reserve_vote. Budget numbers come from reserve_status — never invented. */
+    var _stim=(STA&&STA.ok&&STA.stimulus)?STA.stimulus:null;
+    var _bud=(_stim&&_stim.budget!=null)?Number(_stim.budget):null;
+    var _rem=(_stim&&_stim.remaining!=null)?Number(_stim.remaining):null;
+    var _wk=(_stim&&_stim.week)?String(_stim.week):\"\";
+    h+='<h3 style=\"font-family:\\'Arial Black\\',Arial,sans-serif;letter-spacing:2px;color:#f5ead6;text-transform:uppercase;margin-top:18px;\">Nuke Injection</h3>'
+      +'<div class=\"pb-card\" style=\"text-align:left;\">'
+      +'<div class=\"x-note\">Inject Fed stimulus straight into the blast. Tag: <b>stimulus:nuke</b>. Max <b>5,000 XP</b> per injection, one active injection per week &mdash; the Board votes it like any policy.</div>'
+      +'<div class=\"x-note\" style=\"margin-top:4px;\">Weekly budget impact: <b><span id=\"rsvInjImpact\">5,000</span> of '+(_bud!=null?fmtNum(_bud):\"10,000\")+' weekly stimulus</b>'
+      +(_rem!=null?(' &middot; '+fmtNum(_rem)+' XP remaining'+(_wk?(' (week '+esc(_wk)+')'):\"\")):\"\")
+      +((_rem!=null&&_rem<5000)?'<br><b style=\"color:#ff8a8a;\">Warning: less than 5,000 XP remains this week.</b>':\"\")
+      +'</div>'
+      +'<div style=\"margin-top:8px;\"><input class=\"c-in pf-input-sm\" id=\"rsvInjAmt\" type=\"number\" min=\"1\" max=\"5000\" placeholder=\"XP (max 5,000)\" aria-label=\"Injection amount\" /> '
+      +'<input class=\"c-in\" id=\"rsvInjTitle\" maxlength=\"80\" placeholder=\"Injection title (optional)\" aria-label=\"Injection title\" style=\"margin-top:8px;\" /></div>'
+      +'<div style=\"margin-top:8px;\"><button class=\"c-btn\" id=\"rsvInjSubmit\">Propose injection</button>'
+      +' <span class=\"x-note\">Goes to discussion, then the Board vote.</span></div>'
+      +'<div class=\"c-err\" id=\"rsvInjErr\"></div></div>';
   } else {
     h+='<div class=\"x-note\" style=\"margin-top:12px;\">Only seated governors can table proposals. The ranks rule through referenda.</div>';
   }
@@ -484,6 +560,52 @@ function wire(el){
       err.innerHTML=esc(String((j&&j.err)||\"Reassign failed.\"))+authHint(j);
     });
   };
+  /* NUKE INJECTION form (governor-gated). */
+  var inj=document.getElementById(\"rsvInjSubmit\");
+  if(inj) inj.onclick=function(){
+    var iid=ident();
+    var amtEl=document.getElementById(\"rsvInjAmt\"), titleEl=document.getElementById(\"rsvInjTitle\");
+    var err=document.getElementById(\"rsvInjErr\");
+    var amt=Math.round(Number(amtEl.value)||0);
+    var title=String(titleEl.value||\"\").trim()||(\"Nuke injection: \"+amt+\" XP into the blast\");
+    err.textContent=\"\";
+    if(!(amt>=1)){ err.textContent=\"Enter an amount of XP.\"; return; }
+    if(amt>5000){ err.textContent=\"Max 5,000 XP per injection.\"; return; }
+    if(!iid.callsign){ err.textContent=\"Claim a callsign first.\"; return; }
+    if(!confirm(\"Propose a \"+amt+\" XP nuke injection (stimulus:nuke)? The Board votes it like any policy.\")) return;
+    inj.disabled=true;
+    /* Fed injection channel (contract-fixed 2026-10-05): POST
+       {type:"nuke", n_action:"nuke_inject_propose", amount, title} via
+       postNuke — the backend writes the reserve_proposals row itself
+       (lever_changes {"nuke_injection": amt}) and voting rides the normal
+       reserve_vote flow. The old reserve_propose path was a dead end:
+       reserve_propose reads only lever_changes and rejects unknown levers. */
+    postNuke(\"nuke_inject_propose\",{amount:amt,title:title},function(j){
+      inj.disabled=false;
+      if(j&&j.ok){ toast(\"Injection proposed.\"); load(); return; }
+      err.innerHTML=esc(String((j&&j.err)||\"Submit failed.\"))+authHint(j);
+    });
+  };
+  var injAmt=document.getElementById(\"rsvInjAmt\");
+  if(injAmt) injAmt.oninput=function(){
+    var sp=document.getElementById(\"rsvInjImpact\");
+    if(sp) sp.textContent=fmtNum(Math.max(0,Math.round(Number(injAmt.value)||0)));
+  };
+  /* HOLD buttons — governor-gated, server-enforced. */
+  var hs=el.querySelectorAll('button[data-rsv-hold]');
+  for(var hi=0;hi<hs.length;hi++){ (function(b){ b.onclick=function(){
+    var hv=b.getAttribute(\"data-rsv-hold\")||\"\";
+    var iid=ident(); var err=document.getElementById(\"rsvHoldErr\");
+    if(!iid.callsign){ if(err) err.textContent=\"Claim a callsign first.\"; return; }
+    if(!confirm(hv?(\"Set HOLD FOR \"+hv+\"? Detonation waits for the bigger tier — 10%/day decay keeps eating the pool.\"):\"Clear the hold? Detonation goes back to auto-fire at T1.\")) return;
+    b.disabled=true;
+    postNuke(\"nuke_hold\",{hold:hv},function(j){
+      b.disabled=false;
+      if(j&&j.ok){ toast(hv?(\"HOLD FOR \"+hv+\" SET.\"):\"Hold cleared — auto-fire at T1.\"); load(); return; }
+      var m=String((j&&j.err)||\"Hold failed.\");
+      if(err) err.innerHTML=esc(m)+authHint(j); else toast(m);
+    });
+  }; })(hs[hi]); }
 }
 function paintChanges(){
   var box=document.getElementById(\"rsvPChanges\"); if(!box) return;
@@ -517,11 +639,17 @@ function castVote(id,vote,verb){
 function load(){
   var n=0, done=false;
   function fin(){ if(done)return; done=true; render(); }
-  function one(){ n++; if(n>=3) fin(); }
+  function one(){ n++; if(n>=4) fin(); }
   setTimeout(fin,15000);
   api(\"reserve_policy\",{},function(j){ POL=j||{ok:false,err:\"network\"}; one(); });
   api(\"reserve_ledger\",{},function(j){ LED=j||{ok:false,err:\"network\"}; one(); });
   api(\"reserve_status\",{},function(j){ STA=j||{ok:false,err:\"network\"}; one(); });
+  /* Nuke wire-up (2026-10-05, wave-nuke-fe): charge pool + armed tier + HOLD,
+     for the governor-gated NUKE COMMAND block and the injection budget line.
+     Auth-attached read (callsign+device+secret), like the strip's cell_mine. */
+  var _nid=ident(), _nsec=\"\";
+  try{ _nsec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():\"\"; }catch(_e){}
+  api(\"nuke_status\",{callsign:_nid.callsign,device:_nid.device,auth_secret:_nsec},function(j){ NUK=j||{ok:false,err:\"network\"}; one(); });
 }
 (function(){
   var sec=null;

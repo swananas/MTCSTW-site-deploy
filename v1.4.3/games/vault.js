@@ -85,10 +85,10 @@ function fmtDur(ms){
 }
 function val(id){ var el=document.getElementById(id); return el?String(el.value||"").trim():""; }
 function err(id,m){ var el=document.getElementById(id); if(el) el.textContent=m||""; }
-var NH=null, LS=null, WL=null, CL=null, EL=null, DL=null, AL=null, BP=null, IS=null, WH=null, BTL=null, AUL=null;
+var NH=null, LS=null, WL=null, CL=null, EL=null, DL=null, AL=null, BP=null, IS=null, WH=null, BTL=null, AUL=null, SN=null, SH=null;
 function load(){
   var n=0;
-  function one(){ n++; if(n>=12) render(); }
+  function one(){ n++; if(n>=14) render(); }
   setTimeout(render,15000);
   apiAdmin("network_health",function(j){ NH=j; one(); });
   /* 2026-10-03 conn fix: was hardcoded callsign:"x". Use the admin's own
@@ -105,6 +105,10 @@ function load(){
   api("battle_list",{},function(j){ BTL=j; one(); });
   api("auction_list",{},function(j){ AUL=j; one(); });
   apiAdmin("webhook_health",function(j){ WH=j; one(); });
+  /* Season console (2026-10-04): current + history are public JSONP reads,
+     the writes ride post("season","s_action",...) with X-Admin-Secret. */
+  api("season_current",{},function(j){ SN=j; one(); });
+  api("season_history",{},function(j){ SH=j; one(); });
 }
 function renderGate(){
   var el=document.getElementById("xVault"); if(!el) return;
@@ -235,6 +239,19 @@ function render(){
   var ax=(AL&&AL.ok&&AL.alerts)||[];
   if(ax.length){ h+='<div class="x-note">'+ax.length+' active alert(s). Latest: <b>'+esc(ax[0].headline)+'</b> &mdash; '+esc(ax[0].response_count||0)+' responses</div>'; }
   h+='</div>';
+  /* FLASH EVENT CONSOLE (2026-10-04): fire a site-wide XP multiplier window.
+     POST flash_create {title, multiplier, duration_hours, description} rides
+     X-Admin-Secret (copied to _adminSecret by index.js); backend clamps
+     multiplier 1.25x-5x and duration 1h-72h; xp.js multiplies every grant
+     while an event is active. */
+  h+='<div class="x-pane"><h4>Flash event console</h4>'
+    +'<div class="x-note">Ignite a site-wide XP multiplier. Every XP grant is multiplied while it burns (xp.js applies it automatically). Backend clamps: 1.25x&ndash;5x, 1&ndash;72 hours.</div>'
+    +'<div class="vl-form"><input aria-label="Flash event title" id="vlFEvt" class="c-input pf-input-lg" placeholder="Event title (e.g. RIOT WEEKEND)" >'
+    +'<input aria-label="Multiplier" id="vlFMult" class="c-input pf-input-sm" type="number" min="1.25" max="5" step="0.25" value="2" >'
+    +'<input aria-label="Duration hours" id="vlFHrs" class="c-input pf-input-sm" type="number" min="1" max="72" step="1" value="2" >'
+    +'<input aria-label="Description (optional)" id="vlFDesc" class="c-input pf-input-lg" placeholder="Description (optional)" >'
+    +'<button class="c-btn" id="vlFFire">IGNITE FLASH EVENT</button><div class="c-err" id="vlFErr"></div></div>'
+    +'<div class="x-note" id="vlFOut"></div></div>';
   /* FLASH BROADCAST (2026-10-03): the producer behind the 'Flash events'
      notification preference. Fires a broadcast email (type='flash_events')
      to every email-opted-in user; drainQueue respects per-type prefs. */
@@ -282,6 +299,27 @@ function render(){
     h+='<div class="x-note">Webhook health unavailable ('+esc((WH&&WH.err)||"loading")+').</div>';
   }
   h+='</div>';
+  /* RECORD WAR BOND SALE — the bond_record fallback promised in the help
+     text above (2026-10-04). Manual recording for cash/in-person sales
+     until the Squarespace webhook URL is pasted. Thank-you XP routes
+     through xpGrant, so daily caps still apply; on a cap-hit day the XP
+     stays claimable via bond_claim. */
+  var wbD=new Date(), wbM=wbD.getMonth()+1, wbDay=wbD.getDate();
+  var wbToday=wbD.getFullYear()+"-"+(wbM<10?"0":"")+wbM+"-"+(wbDay<10?"0":"")+wbDay;
+  h+='<div class="x-pane"><h4>Record War Bond sale</h4>'
+    +'<div class="x-note">Manual fallback for cash/in-person sales — until the Squarespace order webhook is live.</div>'
+    +'<div class="vl-form">'
+    +'<input aria-label="Buyer callsign" id="vlWBcs" class="c-input pf-input-md" placeholder="Buyer callsign" >'
+    +'<input aria-label="Buyer email (optional)" id="vlWBemail" class="c-input pf-input-lg" placeholder="Buyer email (optional)" >'
+    +'<select aria-label="War Bond tier" id="vlWBtier" class="c-input pf-input-sm">'
+    +'<option value="5">$5 &mdash; 50 XP</option>'
+    +'<option value="10">$10 &mdash; 100 XP</option>'
+    +'<option value="25">$25 &mdash; 250 XP</option>'
+    +'<option value="50">$50 &mdash; 500 XP</option>'
+    +'</select>'
+    +'<input aria-label="Sale date" id="vlWBdate" class="c-input pf-input-md" type="date" value="'+wbToday+'" >'
+    +'<button class="c-btn" id="vlWBRec">RECORD SALE</button><div class="c-err" id="vlWBErr"></div>'
+    +'</div><div class="x-note" id="vlWBOut"></div></div>';
   /* BATTLE CONTROL — direct create/close/voting control (2026-10-03 H7).
      Proposals still flow through the moderation queue above; these are the
      admin-only battle_create / battle_create_staked / battle_open_voting /
@@ -325,6 +363,51 @@ function render(){
       +'</div>';
   }
   h+='<div class="c-err" id="vlACErr"></div></div>';
+  /* SEASON CONTROL (2026-10-04): the 32-Day Offensive is over; no way to
+     launch a new season without curl. Three admin forms ride the existing
+     post("season","s_action",...) + X-Admin-Secret pattern.
+     season_create params: name, description, starts_at, ends_at (epoch ms),
+       goal_type, goal_target. season_tick: season_id, metric, value.
+       season_end: season_id. */
+  h+='<div class="x-pane"><h4>Season control</h4>';
+  var sc=(SN&&SN.ok&&SN.season)||null;
+  if(sc){
+    h+='<div class="x-note">LIVE: <b>'+esc(sc.name)+'</b> &mdash; '+(sc.days_left||0)+' day(s) left &bull; '
+      +esc(sc.goal_type)+': '+Number(sc.current||0)+'/'+Number(sc.goal_target||0)+' ('+Number(sc.pct||0)+'%)'
+      +' <span class="x-note">id '+esc(sc.id)+'</span></div>';
+  } else {
+    h+='<div class="x-note">No live season ('+esc((SN&&SN.err)||(SN&&!SN.season?"ended / none":"loading"))+'). The 32-Day Offensive has ended &mdash; launch the next campaign below.</div>';
+  }
+  h+='<div class="vl-form">'
+    +'<input aria-label="Season name" id="vlSName" class="c-input pf-input-lg" placeholder="Season name (e.g. 45-Day Surge)" >'
+    +'<input aria-label="Season description" id="vlSDesc" class="c-input pf-input-lg" placeholder="Description (goal narrative)" >'
+    +'<input aria-label="Start date" id="vlSStart" class="c-input pf-input-md" type="datetime-local" >'
+    +'<input aria-label="End date" id="vlSEnd" class="c-input pf-input-md" type="datetime-local" >'
+    +'<input aria-label="Goal type (metric)" id="vlSGType" class="c-input pf-input-md" placeholder="Goal type (e.g. shares)" >'
+    +'<input aria-label="Goal target" id="vlSGTarget" class="c-input pf-input-sm" type="number" min="1" placeholder="Target" >'
+    +'<button class="c-btn" id="vlSCreate">LAUNCH SEASON</button><div class="c-err" id="vlSErr"></div>'
+    +'</div>';
+  h+='<div class="vl-form" style="margin-top:6px">'
+    +'<input aria-label="Season ID (tick)" id="vlTSeason" class="c-input pf-input-lg" placeholder="Season ID" >'
+    +'<input aria-label="Metric" id="vlTMetric" class="c-input pf-input-md" placeholder="Metric (e.g. shares)" >'
+    +'<input aria-label="Value to add" id="vlTValue" class="c-input pf-input-sm" type="number" placeholder="+ value" >'
+    +'<button class="c-btn" id="vlSTick">TICK SEASON</button><div class="c-err" id="vlTErr"></div>'
+    +'<div class="x-note" id="vlTOut"></div></div>';
+  h+='<div class="vl-form" style="margin-top:6px">'
+    +'<input aria-label="Season ID (end)" id="vlESeason" class="c-input pf-input-lg" placeholder="Season ID" >'
+    +'<button class="c-btn c-btn-dim" id="vlSEndBtn">END SEASON</button><div class="c-err" id="vlEErr"></div>'
+    +'</div>';
+  var shr=(SH&&SH.ok&&SH.seasons)||[];
+  if(shr.length){
+    h+='<div class="x-note" style="margin-top:6px"><b>Recent seasons</b></div><div class="vl-list">';
+    for(var si=0;si<Math.min(shr.length,6);si++){ var ss=shr[si];
+      h+='<div class="vl-row"><div><b>'+esc(ss.name||ss.id)+'</b>'
+        +' <span class="x-note">'+String(ss.status||"").toUpperCase()+' &bull; '+Number(ss.current||0)+'/'+Number(ss.goal_target||0)+' ('+Number(ss.pct||0)+'%)</span></div>'
+        +'<span class="x-note">'+esc(ss.id)+'</span></div>';
+    }
+    h+='</div>';
+  }
+  h+='</div>';
   el.innerHTML=h;
   wire();
 }
@@ -412,6 +495,24 @@ function wire(){
       b.disabled=false;
       if(!j||!j.ok){ err("vlAErr",PF.errCopy(j,"Create failed.")); return; }
       toast("Alert created: "+j.id); AL=null; load();
+    }); };
+  /* flash event console: flash_create rides X-Admin-Secret (vault post());
+     created_by comes from the admin's own callsign attached above. */
+  b=document.getElementById("vlFFire");
+  if(b) b.onclick=function(){ b.disabled=true;
+    var ft=val("vlFEvt");
+    if(!ft){ err("vlFErr","Title required."); b.disabled=false; return; }
+    var fmult=Number(val("vlFMult"))||2, fhrs=Number(val("vlFHrs"))||2;
+    if(fmult<1.25||fmult>5){ err("vlFErr","Multiplier must be 1.25 to 5."); b.disabled=false; return; }
+    if(fhrs<1||fhrs>72){ err("vlFErr","Duration must be 1 to 72 hours."); b.disabled=false; return; }
+    post("flash","fl_action","flash_create",
+      {title:ft,multiplier:fmult,duration_hours:fhrs,description:val("vlFDesc")},function(j){
+      b.disabled=false;
+      if(!j||!j.ok){ err("vlFErr",PF.errCopy(j,"Ignite failed.")); return; }
+      toast("Flash event live: "+j.multiplier+"x XP until "+fmtDate(j.ends_at)+".");
+      var out=document.getElementById("vlFOut");
+      if(out) out.textContent="Event ID "+j.id+" — multiplier hits every XP grant now.";
+      var fte=document.getElementById("vlFEvt"); if(fte) fte.value="";
     }); };
   /* flash broadcast: the producer for the 'Flash events' email pref */
   b=document.getElementById("vlFBFire");
@@ -501,6 +602,27 @@ function wire(){
         toast("Battle settled. Winner: "+(j.winner||"?")); BTL=null; load();
       }); };
   })(bcls[ci]); }
+  /* manual war bond sale: bond_record via the warbond admin rail */
+  b=document.getElementById("vlWBRec");
+  if(b) b.onclick=function(){ b.disabled=true; err("vlWBErr","");
+    var cs=val("vlWBcs"), em=val("vlWBemail").toLowerCase(), tier=Number(val("vlWBtier"))||0;
+    var dv=val("vlWBdate"), soldTs=dv?(new Date(dv+"T12:00:00").getTime()||0):0;
+    if(!cs&&!em){ err("vlWBErr","Buyer callsign or email required."); b.disabled=false; return; }
+    if(!tier){ err("vlWBErr","Pick a War Bond tier."); b.disabled=false; return; }
+    post("warbond","wb_action","bond_record",{buyer_callsign:cs,email:em,amount:tier,sold_ts:soldTs},function(j){
+      b.disabled=false;
+      if(!j||!j.ok){ err("vlWBErr",PF.errCopy(j,"Record failed.")); return; }
+      var out=document.getElementById("vlWBOut");
+      var bits=[];
+      if(j.dup) bits.push("<b>DUPLICATE</b> — this sale was already recorded.");
+      bits.push("Recorded a <b>$"+Number(j.tier||0)+"</b> War Bond sale"+(j.callsign?(" for <b>"+esc(j.callsign)+"</b>"):"")+".");
+      bits.push("Thank-you XP: <b>"+Number(j.xp_granted||0)+"</b>"+
+        (Number(j.xp_granted||0)===0?" (cap-hit day — stays claimable via bond_claim).":"."));
+      bits.push("Split: $"+Number(j.network_share||0).toFixed(2)+" network / $"+Number(j.creator_share||0).toFixed(2)+" creator pool.");
+      bits.push("Order: <span class=\"c-mono\">"+esc(j.order_id||"")+"</span>");
+      if(out) out.innerHTML=bits.join("<br>");
+      toast(j.dup?"Sale already recorded.":"War Bond sale recorded: $"+j.tier+(j.callsign?" for "+j.callsign:"")+".");
+    }); };
   /* auction cancel (admin): only pre-bid auctions can be cancelled */
   var acs=document.querySelectorAll("[data-acancel]");
   for(var ai2=0;ai2<acs.length;ai2++){ (function(btn){
@@ -513,6 +635,50 @@ function wire(){
         toast("Auction cancelled."); AUL=null; load();
       }); };
   })(acs[ai2]); }
+  /* season control: create / tick / end (2026-10-04).
+     All ride post("season","s_action",...) + X-Admin-Secret, exact vault pattern. */
+  var scCur=(SN&&SN.ok&&SN.season)||null;
+  var _tEl=document.getElementById("vlTSeason"), _mEl=document.getElementById("vlTMetric"), _eEl=document.getElementById("vlESeason");
+  if(scCur&&scCur.id){
+    if(_tEl&&!_tEl.value) _tEl.value=scCur.id;
+    if(_eEl&&!_eEl.value) _eEl.value=scCur.id;
+    if(_mEl&&!_mEl.value) _mEl.value=scCur.goal_type||"shares";
+  }
+  b=document.getElementById("vlSCreate");
+  if(b) b.onclick=function(){ b.disabled=true;
+    var sName=val("vlSName");
+    var sMs=val("vlSStart")?new Date(val("vlSStart")).getTime():0;
+    var eMs=val("vlSEnd")?new Date(val("vlSEnd")).getTime():0;
+    if(!sName){ err("vlSErr","Season name required."); b.disabled=false; return; }
+    if(!(sMs>0)||!(eMs>0)){ err("vlSErr","Start and end dates required."); b.disabled=false; return; }
+    if(!(eMs>sMs)){ err("vlSErr","End must be after start."); b.disabled=false; return; }
+    post("season","s_action","season_create",{name:sName,description:val("vlSDesc"),starts_at:sMs,ends_at:eMs,goal_type:val("vlSGType"),goal_target:Number(val("vlSGTarget"))||0},function(j){
+      b.disabled=false;
+      if(!j||!j.ok){ err("vlSErr",PF.errCopy(j,"Create failed.")); return; }
+      toast("Season launched: "+j.id); SN=null; SH=null; load();
+    }); };
+  b=document.getElementById("vlSTick");
+  if(b) b.onclick=function(){ b.disabled=true;
+    var sid=val("vlTSeason");
+    if(!sid){ err("vlTErr","Season ID required."); b.disabled=false; return; }
+    post("season","s_action","season_tick",{season_id:sid,metric:val("vlTMetric")||"shares",value:Number(val("vlTValue"))||0},function(j){
+      b.disabled=false;
+      if(!j||!j.ok){ err("vlTErr",PF.errCopy(j,"Tick failed.")); return; }
+      var out=document.getElementById("vlTOut");
+      if(out) out.textContent="Progress updated. Total: "+(j.total||0)+".";
+      toast("Season ticked. Total: "+(j.total||0)+"."); SN=null; SH=null; load();
+    }); };
+  b=document.getElementById("vlSEndBtn");
+  if(b) b.onclick=function(){
+    var sid=val("vlESeason");
+    if(!sid){ err("vlEErr","Season ID required."); return; }
+    if(!window.confirm("End season "+sid+"? It closes out and leaves the current slot empty.")) return;
+    b.disabled=true;
+    post("season","s_action","season_end",{season_id:sid},function(j){
+      b.disabled=false;
+      if(!j||!j.ok){ err("vlEErr",PF.errCopy(j,"End failed.")); return; }
+      toast("Season ended: "+sid); SN=null; SH=null; load();
+    }); };
 }
 renderGate();
 setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} if(getSecret()) load(); },300000);

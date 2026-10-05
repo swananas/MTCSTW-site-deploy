@@ -16,6 +16,7 @@
 '  <div style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;">5 questions. One roster. Zero mercy.<br>How well do you know the Sick Left Radicals?</div>\n' +
 '  <div id="pf-guess-streak" style="font-size:0.85rem;color:#c1121f;margin-bottom:0.4rem;letter-spacing:0.1em;"></div>\n' +
 '  <div id="pf-guess-stats" style="font-size:0.8rem;color:#b8ab8e;margin-bottom:0.8rem;min-height:1.1em;"></div>\n' +
+'  <div id="pf-guess-lb" style="font-size:0.8rem;color:#b8ab8e;margin-bottom:1rem;text-align:left;min-height:1.1em;"></div>\n' +
 '  <div id="pf-guess-body"></div>\n' +
 '</div>\n' +
 '<script>\n' +
@@ -57,6 +58,22 @@
 '  function paintStats(){var el=document.getElementById("pf-guess-stats");if(!el)return;\n' +
 '    if(GSTAT&&GSTAT.plays>0){var avg=(GSTAT.plays>0&&GSTAT.avg)?Number(GSTAT.avg).toFixed(1):"\\u2014";\n' +
 '      el.innerHTML="<b style=\'color:#f5f0e1;\'>"+GSTAT.plays.toLocaleString()+"</b> comrades played this week \\u2014 average <b style=\'color:#f5f0e1;\'>"+avg+"/5</b>";}}\n' +
+'  var GLB=null;\n' +
+'  function chiDayPad(){var d=chiDay().split("-");return d[0]+"-"+(d[1].length<2?"0":"")+d[1]+"-"+(d[2].length<2?"0":"")+d[2];}\n' +
+'  function loadLb(cb){var done=function(){if(cb)cb();};\n' +
+'    try{var c=JSON.parse(localStorage.getItem("pf_guess_lb_v1")||"null");if(c&&Date.now()-c.at<10*60000&&c.d&&c.d.ok&&c.d.day===chiDayPad()){GLB=c.d;done();return;}}catch(e){}\n' +
+'    var name="pfGsL"+Date.now(),fired=false;\n' +
+'    window[name]=function(d){if(fired)return;fired=true;try{delete window[name];}catch(e){}var s=document.getElementById(name);if(s&&s.parentNode)s.parentNode.removeChild(s);if(d&&d.ok){GLB=d;try{localStorage.setItem("pf_guess_lb_v1",JSON.stringify({at:Date.now(),d:d}));}catch(e){}}done();};\n' +
+'    try{var scr=document.createElement("script");scr.id=name;scr.src=API+"?callback="+name+"&action=guess_leaderboard";scr.onerror=function(){if(!fired){fired=true;done();}};(document.head||document.documentElement).appendChild(scr);}catch(e){if(!fired){fired=true;done();}}\n' +
+'    setTimeout(function(){if(!fired){fired=true;done();}},10000);}\n' +
+'  function paintLb(){var el=document.getElementById("pf-guess-lb");if(!el)return;\n' +
+'    if(!GLB||!GLB.ok||!GLB.entries||!GLB.entries.length){el.innerHTML="";return;}\n' +
+'    var h="<div style=\'letter-spacing:0.2em;color:#c1121f;font-size:0.75rem;margin-bottom:0.4rem;\'>TODAY\\u2019S LEADERBOARD</div>";\n' +
+'    var n=Math.min(GLB.entries.length,10),i,e2,rk,col;\n' +
+'    for(i=0;i<n;i++){e2=GLB.entries[i];rk=i+1;\n' +
+'      col=rk===1?"#ffd166":rk===2?"#c9c9c9":rk===3?"#cd7f32":"#b8ab8e";\n' +
+'      h+="<div style=\'display:flex;justify-content:space-between;padding:0.25rem 0;border-bottom:1px solid #222;\'><span><b style=\'color:"+col+";\'>"+rk+".</b> <b style=\'color:#f5f0e1;\'>"+esc(e2.callsign)+"</b></span><span style=\'color:#f5f0e1;font-weight:800;\'>"+e2.score+"/5</span></div>";}\n' +
+'    el.innerHTML=h;}\n' +
 '  var body=document.getElementById("pf-guess-body"),streakEl=document.getElementById("pf-guess-streak");\n' +
 '  var st=load(),tdy=chiDay();\n' +
 '  var isDaily=st.lastDaily!==tdy;\n' +
@@ -91,6 +108,8 @@
 '      else{if(st.last!==t){st.streak=0;st.last=t;}}\n' +
 '      save(st);isDaily=false;}\n' +
 '    paintStreak();paintStats();\n' +
+'    try{localStorage.removeItem("pf_guess_lb_v1");}catch(e){}\n' +
+'    loadLb(paintLb);\n' +
 '    var studyHtml="";\n' +
 '    if(missed.length){\n' +
 '      var links=[];\n' +
@@ -130,7 +149,7 @@
 '    document.getElementById("pf-guess-again").onclick=function(){qi=0;score=0;missed=[];qs=pick(buildBank());renderQ();};\n' +
 '  }\n' +
 '  function yesterday(t){try{var d=new Date(t+"T12:00:00Z");d.setUTCDate(d.getUTCDate()-1);return d.toISOString().slice(0,10);}catch(e){return"";}}\n' +
-'  paintStreak();loadStats(paintStats);\n' +
+'  paintStreak();loadStats(paintStats);loadLb(paintLb);\n' +
 '  if(bank.length){renderQ();}else{body.innerHTML="<div style=\'color:#c1121f;font-weight:900;padding:1rem;\'>ROSTER OFFLINE \\u2014 try again soon.</div>";}\n' +
 '})();\n' +
 '<\/script>\n' +

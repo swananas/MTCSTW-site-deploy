@@ -276,6 +276,7 @@ function render(){
   wire();
   renderCombo();
   fillLootHistory();
+  fillFlashHistory();
 }
 function renderLoot(){
   var loot=(ST&&ST.loot)||{}, claimed=!!loot.claimed_today;
@@ -351,8 +352,30 @@ function renderFlash(){
       +'<b>'+esc(f.label||"Flash event")+'</b><br>'
       +'<span class="dp-count" data-until="'+Number(f.ends_at)+'">--:--:--</span> remaining</div>';
   }
+  /* 2026-10-04 flash history strip (flash_list, public GET) — recent/past
+     flash events, newest first. Filled by fillFlashHistory() after render. */
+  h+='<div id="dpFlashHist"><div class="x-note">Reading flash history&hellip;</div></div>';
   h+='</div>';
   return h;
+}
+/* Flash history fill (flash_list, public read). Called after every render.
+   Mirrors fillLootHistory(): public JSONP, newest-first, past events only. */
+function fillFlashHistory(){
+  var box=document.getElementById("dpFlashHist"); if(!box) return;
+  api("flash_list",{},function(j){
+    if(!document.getElementById("dpFlashHist")) return;
+    var ev=(j&&j.ok&&j.events)||[];
+    var past=ev.filter(function(e){ return !e.active; });
+    if(!past.length){ box.innerHTML='<div class="x-note">No past flash events yet. The next one will burn bright.</div>'; return; }
+    var hh='<div class="x-note" style="margin-top:8px"><b>RECENT FLASHES:</b></div>';
+    for(var i=0;i<Math.min(past.length,6);i++){
+      var e=past[i], mult=Number(e.multiplier)||1, dt="";
+      try{ dt=new Date(Number(e.ends_at)).toLocaleDateString(); }catch(e2){}
+      hh+='<div class="x-note">&#128293; <span class="dp-mult">'+mult+'X</span>'
+        +esc(e.title||"Flash event")+(dt?' <span class="x-note">&mdash; burned out '+esc(dt)+'</span>':"")+'</div>';
+    }
+    box.innerHTML=hh;
+  });
 }
 function renderCombo(){
   var box=document.getElementById("dpComboBox"); if(!box) return;

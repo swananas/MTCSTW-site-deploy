@@ -43,7 +43,7 @@
   /* JSONP GET — read-only cell actions. 12s timeout, same as every silo. */
   var READ = { cell_mine:1, cell_prestige:1, cell_health:1, cell_search:1,
     cell_leaderboard:1, cell_links:1, cellwar_standings:1, cellwar_history:1,
-    warchest_status:1 };
+    warchest_status:1, treasury_balance:1 };
   /* Mutations go through POST (CSRF-able via GET otherwise). */
   var WRITE = { cell_create:1, cell_join:1, cell_checkin:1, cell_cover:1,
     cell_leave:1, cell_rename:1, cell_promote:1, cell_bounty_claim:1,
@@ -194,6 +194,23 @@
   function strIn(id){
     var el = document.getElementById(id);
     return el ? String(el.value||'').trim() : '';
+  }
+  /* Dividend split preview: equal floor split across every member (matches
+     the backend dividend_pay — no weighted/by-contribution mode exists). */
+  function divSplit(amt){
+    var n = ((S.mine && S.mine.members) || []).length;
+    if (!n || !amt || amt < 1) return null;
+    var per = Math.floor(amt / n);
+    if (per < 1) return null;
+    var total = per * n;
+    return { n: n, per: per, total: total, leftover: amt - total };
+  }
+  function divPreviewHtml(amt){
+    var sp = divSplit(amt);
+    if (!sp) return 'Enter an amount to preview the split.';
+    var s = sp.per.toLocaleString()+' XP &times; '+sp.n+' members = <b>'+sp.total.toLocaleString()+' XP</b> distributed';
+    if (sp.leftover > 0) s += ' ('+sp.leftover.toLocaleString()+' XP stays in the treasury)';
+    return s;
   }
 
   /* ---------- shell ---------- */
@@ -677,7 +694,7 @@
     var body = document.getElementById('hqTreasBody');
     /* Parallel reads: bank, loans, prizes, bonds, campaign, warchest. */
     var R = {};
-    var need = ['bank','loans','prizes','bonds','camp','wchest'];
+    var need = ['bank','loans','prizes','bonds','camp','wchest','treasury'];
     var done = 0;
     function each(){ done++; if (done >= need.length) paintTreasury(body, R, isFounder); }
     finGet('bank_status', {}, function(j){ R.bank=j; each(); });
@@ -688,6 +705,8 @@
     var wcid = (S.mine && S.mine.cell && S.mine.cell.id) || '';
     if (wcid) api('warchest_status', {cell_id: wcid}, function(j){ R.wchest=j; each(); });
     else { R.wchest = null; each(); }
+    if (wcid) api('treasury_balance', {cell_id: wcid}, function(j){ R.treasury=j; each(); });
+    else { R.treasury = null; each(); }
   }
 
   function paintTreasury(body, R, isFounder){
@@ -726,6 +745,40 @@
     } else {
       h += '<div class="hq-card"><h3>&#9876;&#65039; Cell War Chest</h3><div class="hq-note">Join a cell to contribute XP to its war chest.</div></div>';
     }
+    /* --- DIVIDEND PAYOUTS (treasury -> members, equal split) --- */
+    var tr = R.treasury;
+    var divN = ((S.mine && S.mine.members) || []).length;
+    h += '<div class="hq-card" style="border-color:#7CFC00"><h3>&#128176; Dividend payouts <span class="hq-note">treasury &#8594; members</span></h3>';
+    var canDiv = !!(S.mine && (S.mine.is_founder || S.mine.is_officer));
+    if (tr && tr.ok){
+      h += '<div><span class="hq-stat"><b>'+Number(tr.balance||0).toLocaleString()+' XP</b> treasury balance</span></div>';
+      h += '<div class="hq-note">Pay the cell treasury out to members. <b>Equal split only</b> — every member gets the same XP; any leftover stays in the treasury. One payout per amount per day.</div>';
+      if (canDiv && divN > 0){
+        h += '<div class="hq-row" style="margin-top:8px;flex-wrap:wrap">' +
+          '<input class="hq-in" id="hqDivAmt" type="number" min="1" inputmode="numeric" placeholder="XP amount" style="width:140px">' +
+          '<button class="hq-btn" data-hq="dividend-pay">PAY DIVIDEND</button></div>' +
+          '<div id="hqDivPreview" class="hq-note" style="margin-top:6px">Enter an amount to preview the split.</div>' +
+          '<div id="hqDivMsg"></div>';
+      } else if (!canDiv){
+        h += '<div class="hq-note">Only the founder and officers can trigger dividend payouts.</div>';
+      } else {
+        h += '<div class="hq-note">No members to pay yet.</div>';
+      }
+      var dhist = (tr.recent || []).filter(function(x){ return String(x.kind || '') === 'dividend'; });
+      if (dhist.length){
+        h += '<div class="hq-note" style="margin-top:8px"><b>Payout history:</b> ' +
+          dhist.slice(0,5).map(function(x){
+            var dp = '';
+            try { dp = new Date(Number(x.ts)||0).toLocaleDateString(); } catch(e){}
+            return esc(dp)+' — '+Math.abs(Number(x.amount||0)).toLocaleString()+' XP split, ordered by '+esc(x.callsign||'?');
+          }).join(' &middot; ') + '</div>';
+      }
+    } else if (wcid){
+      h += netErr();
+    } else {
+      h += '<div class="hq-note">Join a cell to see its treasury.</div>';
+    }
+    h += '</div>';
     /* --- 1. WAR CHEST (personal bank) --- */
     var b = R.bank;
     if (b && b.ok){
@@ -960,6 +1013,34 @@
         else toast(friendlyErr(j));
       });
     }
+    else if (a==='dividend-pay'){
+      if(!needCs()) return;
+      if (!(S.mine && (S.mine.is_founder || S.mine.is_officer))){
+        toast('Only the founder and officers can pay dividends.'); return;
+      }
+      var dcell2 = (S.mine && S.mine.cell && S.mine.cell.id) || '';
+      if (!dcell2){ toast('Join a cell first.'); return; }
+      var damt = numIn('hqDivAmt', 0);
+      if (!damt || damt < 1){ toast('Enter an XP amount first.'); return; }
+      var dsp = divSplit(damt);
+      if (!dsp){ toast('Amount too small to split across all members.'); return; }
+      var dmsg = 'Pay dividend: '+dsp.per.toLocaleString()+' XP to each of '+dsp.n+' members ('+
+        dsp.total.toLocaleString()+' XP total';
+      if (dsp.leftover > 0) dmsg += ', '+dsp.leftover.toLocaleString()+' XP stays in the treasury';
+      dmsg += '). Confirm?';
+      if (!moneyConfirm(dmsg)) return;
+      busy(true);
+      postFin('dividend_pay', {cell_id: dcell2, amount: damt}, function(j){
+        busy(false);
+        if (j && j.ok){
+          treasMsg('hqDivMsg', true, 'Paid '+Number(j.distributed||0).toLocaleString()+' XP — '+
+            Number(j.per_member||0).toLocaleString()+' XP to every member.');
+          toast('Dividend paid. '+Number(j.distributed||0).toLocaleString()+' XP out.');
+          S.tab='treasury'; render();
+        }
+        else treasMsg('hqDivMsg', false, friendlyErr(j));
+      });
+    }
     else if (a==='create'){
       if(!needCs()) return;
       var nm = strIn('hqNewName');
@@ -1180,6 +1261,14 @@
         if (j && (j.ok || j.pledged)){ treasMsg('hqPledgeMsg', true, 'Pledged. +25 XP. The wall holds.'); toast('Pledged.'); S.tab='treasury'; render(); }
         else treasMsg('hqPledgeMsg', false, friendlyErr(j));
       });
+    }
+  });
+
+  /* dividend amount — live split preview */
+  mount.addEventListener('input', function(ev){
+    if (ev.target && ev.target.id === 'hqDivAmt'){
+      var pv = document.getElementById('hqDivPreview');
+      if (pv) pv.innerHTML = divPreviewHtml(numIn('hqDivAmt', 0));
     }
   });
 

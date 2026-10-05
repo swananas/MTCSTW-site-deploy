@@ -1758,14 +1758,15 @@ try {
    panel not already mounted. Polls every 2s.
    Actions: operation_launch {name, theme, duration_hours, flash_multiplier,
    starts_at?}, operation_end. All ride X-Admin-Secret, same rail as
-   flash_create. KILL: ?pf_off=allfronts_admin */
+   flash_create. KILL: ?pf_off=allfronts_admin (or localStorage
+   pf_disabled_v1='["allfronts_admin"]') */
 (function () {
   'use strict';
-  if (!window.PF) return;
-  try {
-    var _h = String(window.location.href || '');
-    if (_h.indexOf('pf_off=allfronts_admin') !== -1) return;
-  } catch (e) {}
+  /* G-07 (2026-10-05): standard kill switch — ?pf_off=allfronts_admin or
+     localStorage pf_disabled_v1='["allfronts_admin"]' (same key as before;
+     PF.skip covers both rails, the old hand-rolled check only saw the URL). */
+  var PF = window.PF;
+  if (!PF || PF.skip('allfronts_admin')) return;
 
   var BACKEND = window.PF_BACKEND_URL;
   var SECRET_KEY = 'pf_admin_secret';

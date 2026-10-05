@@ -85,6 +85,11 @@ var CORE_FILES = [
   'core/22-routemarch.js',
   /* squadjoin (R19, 2026-10-04): post-claim "NOW GET A SQUAD." interstitial. */
   'core/22-squadjoin.js',
+  /* dead-drop (A1, 2026-10-05): daily hidden XP cache — riddle card in the
+     Morning Briefing + tappable cache widget on today's hidden page.
+     Core silo (no page dependency); G-06 fix: the module header always
+     claimed bundle-core ships it, but it was in no bundle until now. */
+  'core/22-dead-drop.js',
   /* rites (ENLISTED, 2026-10-05): post-claim enlistment ceremony (r0 claim
      arbitration). ORDER: must follow 22-squadjoin.js — both listen for
      'pf-callsign-claimed' with a 1200ms beat, and squadjoin's listener must

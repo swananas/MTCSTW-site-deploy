@@ -341,6 +341,13 @@
       var cbs=panel.querySelectorAll('input[data-pref]');
       for(var c=0;c<cbs.length;c++) out[cbs[c].getAttribute("data-pref")]=cbs[c].checked?1:0;
       sv.disabled=true;
+      /* G-08 (2026-10-05): this is the IN-APP prefs contract —
+         post("notify","n_action","notification_prefs") reads/writes the
+         in-app toggles (battles/boosts/recruits/tips) in `notif_prefs`
+         (src/notify.js). The SEPARATE contract
+         post("notifyq","nq_action","notify_prefs") is the EMAIL prefs page
+         (games/notify-prefs.js, `contact_info` via src/notifyqueue.js).
+         Different surfaces, different tables — keep both, don't unify. */
       post("notify","n_action","notification_prefs",out,function(j){
         if(!j||!j.ok){ toast(ntWriteErr(j&&j.err,"Save failed. Tap again to retry.")); sv.disabled=false; return; }
         toast("PREFERENCES SAVED.");

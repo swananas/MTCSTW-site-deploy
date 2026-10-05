@@ -51,13 +51,10 @@ var SECTIONS = {
        settings widget. Step two of onboarding personalization, right after
        the state picker. No XP, read-only. */
     'pick-fight.js',
-<<<<<<< HEAD
     /* P1#6 (2026-10-05): hq-nudge promoted to START HERE (homepage audit).
        Static CTA card — must stage with the critical path so it mounts in
        ORDER position right after daily-orders, not late at section end. */
     'political-hq-nudge.js',
-=======
->>>>>>> origin/fe/pick-your-fight
     'dopamine.js',
     'enlistment-ranks.js',
     /* Wave 5B (2026-10-04): theater rack + ribbon chase strip + Frontline

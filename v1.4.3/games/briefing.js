@@ -17,6 +17,9 @@
   if (!PF || PF.skip("brief")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-brief">
 <div class="fe-block pf-override-block pf-silo" id="pf-brief">
+<!-- W6B (2026-10-04): anchor for R11/R22 /#pf-warplan links. Wave 5A's W5-4
+     war-plan section should take over this id when it merges — remove this span then. -->
+<span id="pf-warplan"></span>
 <h2>Morning Briefing</h2>
 <div class="c-tag">Your war, at a glance. Thirty seconds, then move.</div>
 <div id="xBrief"><div class="c-load">Assembling your briefing&hellip;</div></div>

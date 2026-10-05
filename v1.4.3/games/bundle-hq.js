@@ -333,7 +333,7 @@ function pressureBind(qsa){
       var cid=b.getAttribute("data-pc-join");
       if(PC_JOINED[cid]) return;
       b.disabled=true;
-      post("pressure","pc_action","pressure_join",{callsign:ident().callsign,id:cid},function(j){
+      post("pressure","pr_action","pressure_join",{callsign:ident().callsign,id:cid},function(j){
         if(j&&j.ok){ PC_JOINED[cid]=1; b.innerHTML="YOU&rsquo;RE IN"; pcRefreshCounts(); }
         else { toast(PF.errCopy(j,"Join failed.")); b.disabled=false; }
       });

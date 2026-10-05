@@ -753,8 +753,8 @@ function renderCell(el,s){
           var isDone=/complete|ended|resolved|closed/i.test(String(ch.status||""))||!!won;
           h+='<div class="x-pane"><h4>'+esc(ch.title)+'</h4>'
             +'<div class="x-note">'+esc(ch.detail||"")+'</div>'
-            +(purse?'<div class="x-note"><b>\\uD83C\\uDFC6 PURSE: '+purse.toLocaleString()+' XP</b></div>':'')
-            +(won?'<div class="x-note">\\uD83C\\uDFC6 WINNER: <b>'+esc(won)+'</b> &mdash; <a href="/#pf-v2" style="color:#c1121f;">HALL OF PROOF \\u2192</a></div>':'')
+            +(purse?'<div class="x-note"><b>\uD83C\uDFC6 PURSE: '+purse.toLocaleString()+' XP</b></div>':'')
+            +(won?'<div class="x-note">\uD83C\uDFC6 WINNER: <b>'+esc(won)+'</b> &mdash; <a href="/#pf-v2" style="color:#c1121f;">HALL OF PROOF \u2192</a></div>':'')
             +'<div class="x-note">'+(isDone?"Decided.":"Ends: "+esc(ch.ends||"soon"))+'</div>'
             +(isDone
               ?(purse&&wcid?'<button class="c-btn c-chpay" data-ch="'+esc(ch.id)+'" data-cell="'+esc(wcid)+'" data-purse="'+purse+'">PAY PURSE VIA DIVIDENDS</button>':'')

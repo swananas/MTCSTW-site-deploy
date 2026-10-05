@@ -101,9 +101,9 @@ function wrPaintFavPoster(name,votes){
     x.textAlign="center";
     var y=180;
     x.fillStyle="#f5ead6"; x.font="700 34px Arial,sans-serif";
-    x.fillText("\\u2605 THE PROPAGANDA FACTORY \\u2605",W/2,y); y+=110;
+    x.fillText("\u2605 THE PROPAGANDA FACTORY \u2605",W/2,y); y+=110;
     x.fillStyle="#c1121f"; x.font="900 72px \\"Arial Black\\",Arial,sans-serif";
-    x.fillText("\\u2605 FAN FAVORITE \\u2605",W/2,y); y+=110;
+    x.fillText("\u2605 FAN FAVORITE \u2605",W/2,y); y+=110;
     x.fillStyle="#f5ead6"; x.font="900 64px \\"Arial Black\\",Arial,sans-serif";
     wrWrap(x,String(name).toUpperCase(),W-180).slice(0,3).forEach(function(l){ x.fillText(l,W/2,y); y+=78; });
     y+=30;

@@ -180,7 +180,7 @@ function renderPrompts(st){
     for(var i=0;i<tc.length;i++){
       var t=tc[i], sh=Number(t.shares)||0;
       if(sh>=HOT_SHARES) prompts.push({k:"hot"+i,
-        t:"\\u2018"+(t.title||t.content_id||"your post")+"\\u2019 is moving — "+sh+" shares.",
+        t:"\u2018"+(t.title||t.content_id||"your post")+"\u2019 is moving — "+sh+" shares.",
         d:"Strike while it's hot. Share it again.",
         btn:"SHARE IT AGAIN", title:String(t.title||t.content_id||"MTCSTW"), url:""});
     }
@@ -195,7 +195,7 @@ function renderPrompts(st){
   }catch(e){}
   if(!prompts.length) return "";
   var h='<div class="x-pane"><h4>Action prompts</h4>'
-    +'<div class="x-note">Your numbers say move. Don\\u2019t let heat cool.</div>';
+    +'<div class="x-note">Your numbers say move. Don\u2019t let heat cool.</div>';
   for(var p=0;p<prompts.length;p++){
     var pr=prompts[p];
     h+='<div class="cp-mission"><div class="cp-mtext"><b>'+esc(pr.t)+'</b><br><span class="x-note">'+esc(pr.d)+'</span></div>'

@@ -97,15 +97,15 @@ function renderReceipt(){
   var r=lastReceipt||{};
   var failed=(r.result==="missed"||r.result==="draw");
   var h='<div class="x-pane x-claim"><h4>'+
-    (failed?"REFUNDED \\u2014 HERE\\u2019S WHAT WE LEARNED":"RESOLVED \\u2014 SPOILS IN THE VAULT")+'</h4>';
+    (failed?"REFUNDED \u2014 HERE\u2019S WHAT WE LEARNED":"RESOLVED \u2014 SPOILS IN THE VAULT")+'</h4>';
   h+='<div class="x-myrow"><span><b>'+esc(r.name||"Venture")+'</b> — '+
     esc(String(r.result||"").toUpperCase()||"SETTLED")+'</span></div>';
   if(!failed){
     var mp=r.my_payout, tm=r.total_moved||r.pool;
     if(mp!=null&&Number(mp)>0)
-      h+='<div class="x-note">\\u2714 <b>'+Number(mp).toLocaleString()+' XP</b> landed in your War Chest.</div>';
+      h+='<div class="x-note">\u2714 <b>'+Number(mp).toLocaleString()+' XP</b> landed in your War Chest.</div>';
     else
-      h+='<div class="x-note">\\u2714 Your share landed in your War Chest.</div>';
+      h+='<div class="x-note">\u2714 Your share landed in your War Chest.</div>';
     if(tm!=null)
       h+='<div class="x-note">'+Number(tm).toLocaleString()+' XP moved in total.</div>';
     h+='<div class="x-note">Spoils compound. Roll them into the next venture or throw down to your cell treasury.</div>';
@@ -309,7 +309,7 @@ function showVictoryNudge(){
   var d=document.createElement("div");
   d.id="vVictory"; d.className="x-pane x-claim";
   d.innerHTML='<h4>POST YOUR VICTORY</h4>'+
-    '<div class="x-note">The certificate is saved on your device. Put it on the wire \\u2014 victories recruit.</div>'+
+    '<div class="x-note">The certificate is saved on your device. Put it on the wire \u2014 victories recruit.</div>'+
     '<div style="margin-top:8px"><button class="c-btn" id="vVictoryShare">SHARE THE CERTIFICATE</button></div>';
   host.insertBefore(d,host.firstChild);
   var b=document.getElementById("vVictoryShare");
@@ -317,8 +317,8 @@ function showVictoryNudge(){
     try{
       if(window.PFShare&&PFShare.shareImage&&lastCertCv)
         PFShare.shareImage(lastCertCv,"venture-certificate.png","Joint Ventures","ventures");
-      else toast("Sharing is warming up \\u2014 the file is saved on your device.");
-    }catch(e){ toast("Sharing is warming up \\u2014 the file is saved on your device."); }
+      else toast("Sharing is warming up \u2014 the file is saved on your device.");
+    }catch(e){ toast("Sharing is warming up \u2014 the file is saved on your device."); }
   };
 }
 function mintCertificate(vid){

@@ -148,7 +148,7 @@ function renderBondWall(id){
       var tier=b.tier!=null?Number(b.tier):null;
       h+='<div class="cp-mission"><div class="cp-mtext"><b>'+esc(b.callsign||"A comrade")+'</b>'
         +(tier>0?'<div class="x-note">$'+tier+' War Bond</div>':'')+'</div>'
-        +'<div class="cp-mdone">\\u2605</div></div>';
+        +'<div class="cp-mdone">\u2605</div></div>';
     }
     h+='</div>';
   }
@@ -171,9 +171,9 @@ function renderCauses(id){
     var backer=(Number(p.my_donation||0)>0||p.is_backer===true);
     var pct=goal>0?Math.min(100,Math.round(Number(p.balance||0)/goal*100)):0;
     h+='<div class="cp-mission"><div class="cp-mtext">'
-      +(funded?'<div style="background:#1a5c1a;color:#fff;font-weight:800;letter-spacing:2px;font-size:12px;padding:6px 10px;margin-bottom:8px;text-align:center">\\u2714 FUNDED \\u2014 THE MOVEMENT DELIVERS</div>':'')
+      +(funded?'<div style="background:#1a5c1a;color:#fff;font-weight:800;letter-spacing:2px;font-size:12px;padding:6px 10px;margin-bottom:8px;text-align:center">\u2714 FUNDED \u2014 THE MOVEMENT DELIVERS</div>':'')
       +'<b>'+esc(p.name)+'</b>'
-      +(backer?' <span style="background:#d4af37;color:#0d0d0d;font-weight:800;font-size:10px;letter-spacing:1px;padding:2px 8px;border-radius:3px">\\u2605 BACKER</span>':'')
+      +(backer?' <span style="background:#d4af37;color:#0d0d0d;font-weight:800;font-size:10px;letter-spacing:1px;padding:2px 8px;border-radius:3px">\u2605 BACKER</span>':'')
       +'<div class="x-note">'+esc(p.description||"")+'</div>'
       +'<div class="x-note"><b>'+Number(p.balance||0).toLocaleString()+' XP</b> &bull; '+Number(p.donors||0)+' backers'
       +(goal>0?' &bull; goal '+goal.toLocaleString()+' XP ('+pct+'%)':'')+'</div>'

@@ -167,7 +167,7 @@ function erPaintMilestone(){
     x.textAlign="center";
     var y=180;
     x.fillStyle="#f5ead6"; x.font="700 34px Arial,sans-serif";
-    x.fillText("\\u2605 THE PROPAGANDA FACTORY \\u2605",W/2,y); y+=120;
+    x.fillText("\u2605 THE PROPAGANDA FACTORY \u2605",W/2,y); y+=120;
     x.fillStyle="#e8b64c"; x.font="900 110px \\"Arial Black\\",Arial,sans-serif";
     x.fillText(ms.toLocaleString()+"+",W/2,y); y+=120;
     x.fillStyle="#f5ead6"; x.font="900 56px \\"Arial Black\\",Arial,sans-serif";

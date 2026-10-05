@@ -119,11 +119,11 @@ function showWhy(){
   var p=s.played[tk],w=el('iqWhy');w.style.display='block';
   w.innerHTML='<p class="iq-verdict '+(p.correct?'right':'wrong')+'">'+(p.correct?'CORRECT.':'WRONG.')+'</p><p>'+Q.why+'</p>';
   /* R20b: wrong answers get a study-up link — intel desk, bracket, or roster. */
-  if(!p.correct){ var stu=IQ_STUDY[QIDX]||IQ_STUDY_DFL; w.innerHTML+='<p class="iq-study"><a href="'+stu.href+'">'+stu.label+' \\u2192</a></p>'; }
+  if(!p.correct){ var stu=IQ_STUDY[QIDX]||IQ_STUDY_DFL; w.innerHTML+='<p class="iq-study"><a href="'+stu.href+'">'+stu.label+' \u2192</a></p>'; }
   el('iqShareRow').style.display='flex';
   el('iqStreak').textContent=streakTxt();
   /* R20a: PFShare score card on completion ("I scored N"). */
-  try{var PS0=window.PFShare;if(PS0&&PS0.REG){PS0.REG["daily-interrogation"]={title:"DAY "+n+(p.correct?" \\u2014 CORRECT":" \\u2014 WRONG"),tag:"THE DAILY INTERROGATION",lines:["Streak: "+s.streak+" day"+(s.streak===1?"":"s")],cta:"FACE THE INTERROGATION"};}}catch(e){}
+  try{var PS0=window.PFShare;if(PS0&&PS0.REG){PS0.REG["daily-interrogation"]={title:"DAY "+n+(p.correct?" \u2014 CORRECT":" \u2014 WRONG"),tag:"THE DAILY INTERROGATION",lines:["Streak: "+s.streak+" day"+(s.streak===1?"":"s")],cta:"FACE THE INTERROGATION"};}}catch(e){}
 }
 el('iqStreak').textContent=streakTxt();
 if(s.played&&s.played[tk]){renderOpts(true);showWhy();}

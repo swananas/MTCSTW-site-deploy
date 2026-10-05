@@ -103,11 +103,11 @@ function showReveal(){
     '<p class="bv-who">'+src+' \u2014 '+Q.who+' said that.</p>'+
     '<p class="bv-ctx">'+Q.ctx+'</p>';
   /* R20c: the quote reveal routes real billionaires to their bracket matchup. */
-  if(Q.w===0){ r.innerHTML+='<p class="bv-br"><a href="/arcade#pf-bracket">SEE THEIR BRACKET MATCHUP \\u2192</a></p>'; }
+  if(Q.w===0){ r.innerHTML+='<p class="bv-br"><a href="/arcade#pf-bracket">SEE THEIR BRACKET MATCHUP \u2192</a></p>'; }
   el('bvShareRow').style.display='flex';
   el('bvStreak').textContent=streakTxt();
   /* R20a: PFShare score card on completion ("I scored N"). */
-  try{var PS0=window.PFShare;if(PS0&&PS0.REG){var qq=String(Q.q).replace(/"/g,"");PS0.REG["billionaire-supervillain"]={title:"DAY "+n+(p.correct?" \\u2014 RIGHT":" \\u2014 WRONG"),tag:"BILLIONAIRE OR SUPERVILLAIN",lines:['"'+qq+'" \\u2014 '+Q.who],cta:"TELL THEM APART"};}}catch(e){}
+  try{var PS0=window.PFShare;if(PS0&&PS0.REG){var qq=String(Q.q).replace(/"/g,"");PS0.REG["billionaire-supervillain"]={title:"DAY "+n+(p.correct?" \u2014 RIGHT":" \u2014 WRONG"),tag:"BILLIONAIRE OR SUPERVILLAIN",lines:['"'+qq+'" \u2014 '+Q.who],cta:"TELL THEM APART"};}}catch(e){}
 }
 el('bvStreak').textContent=streakTxt();
 if(s.played&&s.played[tk]){showReveal();}

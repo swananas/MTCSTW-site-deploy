@@ -80,7 +80,7 @@ function postG(gAction,params,cb){
   try{
     var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
       try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
-        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); }catch(e){}
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
       o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
     fetch(BACKEND,_po)
       .then(function(r){ return r.json(); })

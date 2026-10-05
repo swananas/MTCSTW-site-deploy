@@ -34,12 +34,10 @@
      v1.1.0 fixes/roster.js patch no longer loads on these pages. Every other
      page loads the v1.1.0 production set pinned to 6e8b9a4.
      V3 pin: 41c13ac. -->
-<!-- CRAWL-AUDIT FALLBACK (2026-10-05): the DELETE MY DATA link must be
-     present in the footer even if the JS bundles fail to load. The live
-     link is injected by core/16-footer.js (shipped in bundle-core.js on
-     v2 pages and bundle-footer-chrome.js on non-v2 pages); this static
-     anchor is the no-JS guarantee. -->
-<a href="/privacy">DELETE MY DATA</a>
+<!-- 2026-10-05: the static DELETE MY DATA fallback anchor was removed here —
+     it duplicated the functional link injected by core/16-footer.js (dialog +
+     privacy_erase flow). The JS silo strips any already-pasted static
+     fallback on boot, so no footer re-paste is needed. -->
 <script>(function(){
 var V3='41c13ac',V1='76107b5';
 /* DEFECT 1 (2026-10-03): pin for core/bundle-footer-chrome.js (added in

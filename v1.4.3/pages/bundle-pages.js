@@ -1134,6 +1134,11 @@
          pre-live fallback text only. */
       + '<div style="text-align:center;margin-bottom:1.6rem;font-size:1.1rem;"><strong data-pf-fc="' + esc(m.slug) + '" style="color:' + RED + ';">' + esc(m.followers_display) + '</strong> <span style="color:' + MUTED + ';font-size:0.85rem;letter-spacing:0.1em;">FOLLOWERS</span></div>'
       + (VOTE_SKIP_SLUGS.indexOf(m.slug) === -1 ? '<div style="text-align:center;margin:0 0 1.6rem;"><a href="/#pf-vote?for=' + esc(m.slug) + '" style="display:inline-block;border:2px solid ' + RED + ';color:' + RED + ';font-weight:900;letter-spacing:0.14em;font-size:0.9rem;text-decoration:none;padding:0.7rem 1.6rem;">VOTE FOR ' + esc(m.name) + ' &rarr;</a></div>' : '')
+      /* QW-7 (2026-10-05): SEE THEIR POSTERS — route catalog visitors to
+         this creator's banked posters on the /create feed. ?creator= is
+         captured first-touch by core/09-referral.js. Skipped for the
+         do-not-touch slug (Jeanine Pirreaux Comedy). */
+      + (VOTE_SKIP_SLUGS.indexOf(m.slug) === -1 ? '<div style="text-align:center;margin:0 0 1.6rem;"><a href="/create#pf-feed?creator=' + encodeURIComponent(m.slug) + '" style="color:' + MUTED + ';font-size:0.8rem;letter-spacing:0.1em;text-decoration:none;border-bottom:1px solid ' + MUTED + ';">SEE THEIR POSTERS &rarr;</a></div>' : '')
       + para(m.bio)
       + (offer ? '<h2 style="color:' + RED + ';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;">What they offer</h2><ul style="padding-left:1.2rem;margin:0;">' + offer + '</ul>' : '')
       + (links ? '<h2 style="color:' + RED + ';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;">Find them here</h2><ul style="list-style:none;padding:0;margin:0;">' + links + '</ul>' : '')
@@ -2848,6 +2853,39 @@ window.pfPinups={
       title: '\u2694 BOOST RAID \u2694', tag: 'One target. One day. The whole network.',
       lines: ['Like. Comment. Share. Report back.', 'Today\u2019s raid target is live now.'],
       cta: 'JOIN THE RAID'
+    },
+    /* QW-11 (2026-10-05): painter templates for the six game result moments.
+       Battles, supply-raid, solidarity-draw, irl, academy-graduation and
+       vanguard-wall register their own share buttons against these ids. */
+    'poster-battles': {
+      title: '\u2620 POSTER BATTLES \u2620', tag: 'Head-to-head propaganda war.',
+      lines: ['Vote the matchups. Crown the killers.', 'New battles every week.'],
+      cta: 'VOTE THE BATTLES'
+    },
+    'supply-raid': {
+      title: '\u26A1 SUPPLY LINE RAID \u26A1', tag: 'Hit the line. Take their cut.',
+      lines: ['Raids pay out to the cell.', 'Join the next raid.'],
+      cta: 'JOIN THE RAID'
+    },
+    'academy-grad': {
+      title: '\u2605 ACADEMY GRADUATE \u2605', tag: 'Trained. Tested. Deployed.',
+      lines: ['Graduated the Propaganda Academy.', 'The war needs graduates.'],
+      cta: 'START THE ACADEMY'
+    },
+    'solidarity-draw': {
+      title: '\u2764 SOLIDARITY DRAW \u2764', tag: 'The pot feeds the fighters.',
+      lines: ['Every ticket funds the network.', 'Draws every week.'],
+      cta: 'GET TICKETS'
+    },
+    'irl-going': {
+      title: '\uD83D\uDCCD IRL MOBILIZATION \uD83D\uDCCD', tag: 'Touch grass. Raise hell.',
+      lines: ['I\u2019m showing up. Are you?', 'Find your mobilization.'],
+      cta: 'FIND YOURS'
+    },
+    'vanguard-wall': {
+      title: '\u2605 VANGUARD WALL \u2605', tag: 'Etched in the machine.',
+      lines: ['The architects. The legends.', 'Climb the ranks. Get etched.'],
+      cta: 'CLIMB THE RANKS'
     }
   };
   var ORDER = ['fan-vote', 'slr-match-quiz', 'creator-guess', 'bracket-board', 'daily-orders', 'boost-raid', 'do-meter', 'daily-drop',

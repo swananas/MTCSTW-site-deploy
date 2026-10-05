@@ -144,9 +144,10 @@ function tierOf(xp){ var t=TIERS[0]; for(var i=0;i<TIERS.length;i++){ if(xp>=TIE
 /* settle(ev, gain): forward the TRUE awarded XP (after 50/day pool clipping)
    to the tally so the backend records exactly what the ledger granted —
    including 0 when the pool is spent. The tally records pool-capped events
-   ONLY on settle, never on the raw game event. */
-function settle(ev,gain,score){
-  try{ var d={ev:ev,xp:gain}; if(typeof score==='number') d.score=score; document.dispatchEvent(new CustomEvent("pf-tally-settle",{detail:d})); }catch(e){}
+   ONLY on settle, never on the raw game event. B1: optional dedupe is
+   forwarded as the tally dedupe_key (release-day order idempotency). */
+function settle(ev,gain,score,dedupe){
+  try{ var d={ev:ev,xp:gain}; if(typeof score==='number') d.score=score; if(dedupe) d.dedupe=String(dedupe); document.dispatchEvent(new CustomEvent("pf-tally-settle",{detail:d})); }catch(e){}
 }
 
 /* ---------- UNLOCKS ---------- */
@@ -507,7 +508,13 @@ document.addEventListener("pf-drop-claimed",function(e){ var d=(e&&e.detail&&e.d
 document.addEventListener("pf-billionaire-answered",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; settle("pf-billionaire-answered",award("billionaire_"+d,1,"once")); });
 document.addEventListener("pf-interrogation-answered",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; settle("pf-interrogation-answered",award("interrogation_"+d,1,"once")); });
 /* Do Meter Game-8 expansion bonuses: weekly-op completion + full-spectrum week. Exempt (bounded by week). */
-document.addEventListener("pf-do-challenge-done",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; var gain=award("dochall_"+w,15,"once",{exempt:1}); settle("pf-do-challenge-done",gain); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("CHALLENGE DONE — +15 XP"); }catch(e2){} } });
+document.addEventListener("pf-do-challenge-done",function(e){ var d=(e&&e.detail)||{}, w=d.week||"wk", amt=15;
+  /* B1 release-day order ("read the release"): 10 XP through the SAME
+     dochall_ leg (mirror max 15 / tally cap 15 — unchanged). Key
+     dochall_<YYYYMM>_<series> is disjoint from the weekly dochall_<week>
+     key. */
+  if(d.challenge==="read-the-release"&&typeof d.xp==="number"){ amt=Math.max(0,Math.min(15,Math.floor(d.xp))); }
+  var gain=award("dochall_"+w,amt,"once",{exempt:1}); settle("pf-do-challenge-done",gain,0,d.dedupe||""); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("CHALLENGE DONE — +"+amt+" XP"); }catch(e2){} } });
 document.addEventListener("pf-do-fullspectrum",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; var gain=award("dospec_"+w,20,"once",{exempt:1}); settle("pf-do-fullspectrum",gain); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("FULL SPECTRUM — +20 XP"); }catch(e2){} } });
 /* Recruit rewards: +25 XP per new recruit (War Card promise), exempt from the
    daily pool. Keyed on the running recruit total so the 6h poll can never

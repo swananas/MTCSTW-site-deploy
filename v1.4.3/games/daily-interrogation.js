@@ -93,10 +93,17 @@ var n=dayNum(),Q=QS[(n-1)%QS.length],s=load(),tk=dayKey();
 var IQ_STUDY_DFL={label:"STUDY UP: POLITICAL HQ INTEL DESK",href:"/political-hq"};
 var IQ_STUDY={8:{label:"STUDY UP: THE LIQUIDATION BRACKET",href:"/arcade#pf-bracket"},22:{label:"STUDY UP: THE LIQUIDATION BRACKET",href:"/arcade#pf-bracket"},29:{label:"STUDY UP: MEET MTCSTW",href:"/mtcstw"}};
 var QIDX=(n-1)%QS.length;
-/* deterministic daily rotation: the correct answer must not sit in one slot */
-var _rot=n%4,_ord=[0,1,2,3],QA=0,_ri,_qi;
-for(_ri=0;_ri<_rot;_ri++){_ord.push(_ord.shift());}
-for(_qi=0;_qi<4;_qi++){if(_ord[_qi]===Q.a)QA=_qi;}
+/* deterministic daily rotation: the correct answer must not sit in one slot.
+   Option-count-aware (B1): 4-option static questions rotate exactly as
+   before (n%4); 2-option macro questions rotate over their 2 slots. */
+var _ord=[],QA=0;
+function setupRotation(){
+  var _cnt=Q.o.length,_rot=n%_cnt,_ri,_qi;
+  _ord=[]; for(_ri=0;_ri<_cnt;_ri++)_ord.push(_ri);
+  for(_ri=0;_ri<_rot;_ri++){_ord.push(_ord.shift());}
+  QA=0; for(_qi=0;_qi<_cnt;_qi++){if(_ord[_qi]===Q.a)QA=_qi;}
+}
+setupRotation();
 function el(id){return document.getElementById(id);}
 el('iqDay').textContent='Day '+n+' of the interrogation';
 el('iqQ').textContent=Q.q;
@@ -118,8 +125,9 @@ function renderOpts(locked){
 function showWhy(){
   var p=s.played[tk],w=el('iqWhy');w.style.display='block';
   w.innerHTML='<p class="iq-verdict '+(p.correct?'right':'wrong')+'">'+(p.correct?'CORRECT.':'WRONG.')+'</p><p>'+Q.why+'</p>';
-  /* R20b: wrong answers get a study-up link — intel desk, bracket, or roster. */
-  if(!p.correct){ var stu=IQ_STUDY[QIDX]||IQ_STUDY_DFL; w.innerHTML+='<p class="iq-study"><a href="'+stu.href+'">'+stu.label+' \u2192</a></p>'; }
+  /* R20b: wrong answers get a study-up link — intel desk, bracket, or roster;
+     macro questions (B1) send the reader to the money page. */
+  if(!p.correct){ var stu=Q.macro?{label:"STUDY UP: THE MONEY PAGE",href:"/money"}:(IQ_STUDY[QIDX]||IQ_STUDY_DFL); w.innerHTML+='<p class="iq-study"><a href="'+stu.href+'">'+stu.label+' \u2192</a></p>'; }
   el('iqShareRow').style.display='flex';
   el('iqStreak').textContent=streakTxt();
   /* R20a: PFShare score card on completion ("I scored N"). */
@@ -128,6 +136,46 @@ function showWhy(){
 el('iqStreak').textContent=streakTxt();
 if(s.played&&s.played[tk]){renderOpts(true);showWhy();}
 else{renderOpts(false);}
+/* Wave B1 (S-16): MACRO DAY — every 7th day the question comes from the live
+   quiz bank (server-computed answers; figures refresh monthly so answers
+   can't be memorized). CONTENT ONLY — the pf-interrogation-answered event
+   and its XP leg are untouched. If the bank is unavailable (no key, stale,
+   fetch failed), the static rotation stands: never a fabricated question. */
+var MACRO_EVERY=7;
+function apiGet(action,cb){
+  var be=""; try{ be=window.PF_BACKEND_URL||""; }catch(e){}
+  if(!be){ cb(null); return; }
+  var fn="pfIqCb"+Math.floor(Math.random()*1e9), done=false;
+  var s2=document.createElement("script");
+  function fin(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s2.parentNode)s2.parentNode.removeChild(s2); cb(j); }
+  window[fn]=function(j){ fin(j); };
+  s2.onerror=function(){ fin(null); };
+  s2.src=be+"?action="+encodeURIComponent(action)+"&callback="+fn;
+  document.head.appendChild(s2);
+  setTimeout(function(){ fin(null); },12000);
+}
+(function macroDay(){
+  if(n%MACRO_EVERY!==0) return;
+  if(s.played&&s.played[tk]) return;
+  apiGet('fred_quiz_bank',function(j){
+    try{
+      if(!j||!j.ok||!j.questions||!j.questions.length) return;
+      if(s.played&&s.played[tk]) return; /* answered while fetching */
+      var qi=Math.floor(n/MACRO_EVERY)%j.questions.length;
+      var mq=j.questions[qi];
+      if(!mq||!mq.options||mq.options.length<2) return;
+      var ci=parseInt(mq.correct_index,10);
+      if(!(ci>=0&&ci<mq.options.length)) return;
+      Q={q:String(mq.q),o:mq.options.slice(),a:ci,why:String(mq.why||''),macro:mq.id};
+      QIDX='macro:'+mq.id;
+      setupRotation();
+      el('iqDay').textContent='Day '+n+' of the interrogation \u2014 MACRO DAY';
+      el('iqQ').textContent=Q.q;
+      renderOpts(false);
+    }catch(e){}
+  });
+})();
 function answer(pick){
   var correct=(pick===QA);
   s.played=s.played||{};s.played[tk]={pick:pick,correct:correct};

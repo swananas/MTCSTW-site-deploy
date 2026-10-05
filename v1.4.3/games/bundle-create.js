@@ -1493,8 +1493,9 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
   /* Mount: Creator HQ. The dedicated <div id="pf-ammo"> is the REQUIRED
      mount — the Creator HQ page must include it for the Ammo Finder to
      appear. Legacy fallback: render right after #pf-war-card (the Creator
-     HQ anchor) with a loud console.warn. Neither anchor anywhere → a
-     visible error banner on the page. Never a silent no-op. */
+     HQ anchor) with a loud console.warn. Neither anchor anywhere → the
+     module idles. The "NOWHERE TO MOUNT" banner is a dev aid, gated behind
+     ?pf_debug (or window.PF_DEBUG) — it never renders in production. */
   var mount = document.getElementById('pf-ammo');
   if (!mount) {
     var warCard = document.getElementById('pf-war-card');
@@ -1508,15 +1509,27 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
       mount.id = 'pf-ammo';
       warCard.parentNode.insertBefore(mount, warCard.nextSibling);
     } else {
+      /* Debug-gated (2026-10-05): the "NOWHERE TO MOUNT" banner is a dev
+         aid for the Creator HQ page build — it never renders in production.
+         Renders only under ?pf_debug (or window.PF_DEBUG); otherwise the
+         module idles with a console-only note. */
       try {
-        var fail = document.createElement('div');
-        fail.id = 'pf-ammo-missing';
-        fail.setAttribute('role', 'alert');
-        fail.style.cssText = 'background:#1a0505;border:2px solid #c1121f;color:#ffb3b3;' +
-          'font:bold 14px Arial,sans-serif;padding:16px;margin:12px;';
-        fail.textContent = 'AMMO FINDER HAS NOWHERE TO MOUNT — ' +
-          'add <div id="pf-ammo"></div> to the Creator HQ page.';
-        if (document.body) document.body.insertBefore(fail, document.body.firstChild);
+        var dbg = false;
+        try { dbg = !!window.PF_DEBUG || /[?&]pf_debug\b/.test(window.location.href || ''); } catch (e0d) {}
+        try {
+          console.warn('[PF ammo] no #pf-ammo / #pf-war-card mount on this page — Ammo Finder idle.' +
+            (dbg ? ' (debug banner shown)' : ''));
+        } catch (e0e) {}
+        if (dbg && document.body) {
+          var fail = document.createElement('div');
+          fail.id = 'pf-ammo-missing';
+          fail.setAttribute('role', 'alert');
+          fail.style.cssText = 'background:#1a0505;border:2px solid #c1121f;color:#ffb3b3;' +
+            'font:bold 14px Arial,sans-serif;padding:16px;margin:12px;';
+          fail.textContent = 'AMMO FINDER HAS NOWHERE TO MOUNT — ' +
+            'add <div id="pf-ammo"></div> to the Creator HQ page.';
+          document.body.insertBefore(fail, document.body.firstChild);
+        }
       } catch (e0c) {}
       return;
     }

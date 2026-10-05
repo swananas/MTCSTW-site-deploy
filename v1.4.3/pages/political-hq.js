@@ -25,6 +25,9 @@
      Know Your Enemy (intel) moved here 2026-10-03 from the homepage. */
   var ORDER = [
     ['civic', 'pf-ov-civic'],
+    /* 2026-10-05 (fe/townhall-tracker): Town Hall Tracker pane — list,
+       question kits, RSVP, submit. Kill: ?pf_off=townhall */
+    ['townhall', 'pf-ov-townhall'],
     ['notify-prefs', 'pf-ov-notify-prefs'],
     ['governance', 'pf-ov-gov'],
     ['intel', 'pf-ov-intel']

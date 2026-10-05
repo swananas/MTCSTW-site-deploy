@@ -250,7 +250,10 @@ var HQ_BUNDLES = {
     'civic.js',
     'governance.js',
     'notify-prefs.js',
-    'intel.js'
+    'intel.js',
+    /* Town Hall Tracker (2026-10-05): Political HQ silo — list/detail/
+       RSVP/question kits/submit. Mounted by pages/political-hq.js. */
+    'townhall.js'
   ]
 };
 

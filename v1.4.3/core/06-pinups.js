@@ -44,16 +44,18 @@ var MEDALS = [
   ['drop',         'Supply Runner',     '\u25CF'],
   ['enlisted',     'Enlisted',          '\u2694'],
   ['guess',        'Profiler',          '\u25CE'],
-  ['raid',         'Raider',            '\u26A1']
+  ['raid',         'Raider',            '\u26A1'],
+  /* 2026-10-04 de-isolation: White Market 'Market Maker' (mirrors service-medals). */
+  ['whitemarket',  'Market Maker',       '\uD83C\uDFB2']
 ];
-var MEDAL_EV = {vote:'pf-vote-cast',ballot:'pf-bracket-ballot',bracket:'pf-bracket-liquidated',bonds:'pf-wb-buy',caption:'pf-caption-submit',poster:'pf-poster-made',quiz:'pf-quiz-done',billionaire:'pf-billionaire-answered',interrogation:'pf-interrogation-answered',orders:'pf-order-checkin',drop:'pf-drop-claimed',enlisted:'pf-enlisted',guess:'pf-guess-done',raid:'pf-raid-report'};
+var MEDAL_EV = {vote:'pf-vote-cast',ballot:'pf-bracket-ballot',bracket:'pf-bracket-liquidated',bonds:'pf-wb-buy',caption:'pf-caption-submit',poster:'pf-poster-made',quiz:'pf-quiz-done',billionaire:'pf-billionaire-answered',interrogation:'pf-interrogation-answered',orders:'pf-order-checkin',drop:'pf-drop-claimed',enlisted:'pf-enlisted',guess:'pf-guess-done',raid:'pf-raid-report',whitemarket:'pf-wm-settled'};
 var TIERS = [['RECRUIT',0,'\u2691'],['AGITATOR',25,'\u2692'],['CADRE',75,'\u2699'],['COMMISSAR',150,'\u272A'],['ARCHITECT',300,'\u265B']];
 
 var PINUPS = [];
 TASKS.forEach(function(t,i){ PINUPS.push({id:'task:'+t[0], kind:'task', ev:t[0], title:t[1], sub:t[2], glyph:t[3], n:i+1}); });
 MEDALS.forEach(function(m,i){ PINUPS.push({id:'medal:'+m[0], kind:'medal', ev:MEDAL_EV[m[0]], title:'MEDAL: '+m[1].toUpperCase(), sub:'Service Medal earned. Wear it.', glyph:m[2], n:16+i}); });
 TIERS.forEach(function(t,i){ PINUPS.push({id:'tier:'+t[0], kind:'tier', title:'PROMOTED: '+t[0], sub:t[1]+' XP. The ladder climbs.', glyph:t[2], n:30+i}); });
-PINUPS.push({id:'full:deployment', kind:'full', title:'FULL DEPLOYMENT', sub:'All 15 medals in one week. Legend.', glyph:'\u2605', n:35});
+PINUPS.push({id:'full:deployment', kind:'full', title:'FULL DEPLOYMENT', sub:'All 16 medals in one week. Legend.', glyph:'\u2605', n:35});
 var BY_ID = {}; PINUPS.forEach(function(p){ BY_ID[p.id]=p; });
 
 /* ---------------- storage ---------------- */

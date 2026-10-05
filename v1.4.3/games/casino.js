@@ -1,5 +1,7 @@
-/* games/casino.js  |  PF v1.4.3 | XP CASINO: wagers, lottery, coin flip, crash, roulette.
-   LAYERING: a game silo like campaign.js. Reads via JSONP (self-contained api()),
+/* games/casino.js  |  PF v1.4.3 | THE WHITE MARKET (house games):
+   wagers, lottery, coin flip, crash, roulette — the hall's house-games zone.
+   Display name is The White Market; internal silo/file/kill-switch names stay
+   "casino" for stability. Reads via JSONP (self-contained api()),
    writes via CORS POST — wagers use {type:"wager",w_action:...}, everything else
    uses {type:"gamble",g_action:...}. It never reaches into another silo's internals.
    XP has no cash value — social gambling for movement engagement.
@@ -10,7 +12,7 @@
   if (!PF || PF.skip("casino")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-casino">
 <div class="fe-block pf-override-block pf-silo" id="pf-casino">
-<h2>XP Casino</h2>
+<h2>The White Market &mdash; House Games</h2>
 <div class="c-tag">Wager your XP. Winner takes the glory — and the pot.</div>
 <div id="xCasino"><div class="c-load">Rolling the dice&hellip;</div></div>
 </div>
@@ -120,6 +122,8 @@ function renderWagers(id){
     if(w.resolved){
       h+='<div class="cs-wager"><div class="cs-wdesc">'+esc(w.description)+'</div>'
         +'<div class="cs-wres">RESOLVED — winner: '+esc(w.outcome)+'</div></div>';
+      /* WM-EXITS (de-isolation): settle tracked bets against the resolved row. */
+      try{ if(window.PF&&PF.wmWagerResolved) PF.wmWagerResolved(w); }catch(wme){}
       continue;
     }
     h+='<div class="cs-wager"><div class="cs-wdesc">'+esc(w.description)+'</div>'
@@ -141,6 +145,8 @@ function renderWagers(id){
 /* ============ LOTTERY ============ */
 function renderLottery(id){
   var r=(L&&L.round)||null;
+  /* WM-EXITS (de-isolation): watch for round transitions — the previous round resolved. */
+  try{ if(r&&window.PF&&PF.wmLotterySeen) PF.wmLotterySeen(r); }catch(wme){}
   var h='<div class="x-pane"><h4>Lottery</h4><div class="x-note">10 XP per ticket. Winner takes the whole pot. Drawn weekly.</div>';
   if(!r){ h+='<div class="x-note">Lottery loading&hellip;</div></div>'; return h; }
   h+='<div class="cs-pot">'+(Number(r.pot)||0)+' XP POT</div>'
@@ -334,7 +340,7 @@ function render(){
   var id=ident();
   var h='<div class="cs-frame">THE HOUSE ALWAYS WINS? NOT WHEN THE HOUSE IS US.</div>';
   if(!id.callsign){
-    h+=PF.gateHTML('The casino runs on callsigns.','to play');
+    h+=PF.gateHTML('The White Market runs on callsigns.','to play');
     el.innerHTML=h; return;
   }
   h+=renderWagers(id)+renderLottery(id)+renderFlip(id)+renderCrash(id)+renderRoulette(id);
@@ -359,6 +365,8 @@ function wire(id){
           btn.disabled=false;
           if(!j||!j.ok){ toast(PF.errCopy(j,"Bet failed.")); return; }
           toast("BET PLACED: "+amt+" XP on "+side+".");
+          /* WM-EXITS (de-isolation): track the bet so resolution settles win/loss. */
+          try{ if(window.PF&&PF.wmBetPlaced) PF.wmBetPlaced({game:"wager",wid:wid,side:side,amount:amt}); }catch(wme){}
           load();
         });
       };
@@ -406,6 +414,8 @@ function wire(id){
           btn.disabled=false;
           if(!j||!j.ok){ toast(PF.errCopy(j,"Join failed.")); return; }
           var iWon=j.winner&&(String(j.winner).toUpperCase()===String(id.callsign).toUpperCase());
+          /* WM-EXITS (de-isolation): settled flip — win or loss. */
+          try{ if(window.PF&&PF.wmFlipSettled) PF.wmFlipSettled(btn.getAttribute("data-fid"),iWon,F&&F.flips); }catch(wme){}
           toast(j.winner?(iWon?"YOU WIN THE FLIP!":"Flip lost. Winner: "+j.winner):"Flip resolved.");
           /* M1 dopamine: winning the flip gets the big one. */
           try{ if(iWon&&window.PF&&PF.dope){ var fh=document.getElementById("xCasino")||document.body; PF.dope.confetti(fh,80); PF.dope.ping(fh,"YOU WIN THE FLIP"); } }catch(dpe){}
@@ -425,6 +435,8 @@ function wire(id){
       cb.disabled=false;
       if(!j||!j.ok){ if(e) e.textContent=PF.errCopy(j,"Bet failed."); return; }
       toast("IN FOR "+amt+" XP. Cash out before it crashes.");
+      /* WM-EXITS (de-isolation): track the crash bet — a crash without cashout settles as a loss. */
+      try{ if(window.PF&&PF.wmBetPlaced) PF.wmBetPlaced({game:"crash",round_id:j.round_id,amount:amt}); }catch(wme){}
       load();
     });
   };
@@ -436,6 +448,12 @@ function wire(id){
       if(!j||!j.ok){ toast(PF.errCopy(j,"Cashout failed.")); load(); return; }
       /* 6A-R2: persistent cashout reveal (VAULT IT / SHARE THE WIN / exits). */
       cashoutReveal(j.payout,"crash");
+      toast("CASHED OUT: +"+(j.payout||0)+" XP!");
+      /* WM-EXITS (de-isolation): settled crash win. */
+      try{ if(window.PF&&PF.wmCrashSettled) PF.wmCrashSettled(j.payout||0); }catch(wme){}
+      /* M1 dopamine: cashing out before the crash is the skill moment. */
+      try{ if(window.PF&&PF.dope){ var ch=document.getElementById("xCasino")||document.body; PF.dope.confetti(ch,50); PF.dope.xpFloat(ch,"+"+(j.payout||0)+" XP"); } }catch(dpe){}
+      load();
     });
   };
   /* --- roulette --- */
@@ -454,8 +472,11 @@ function wire(id){
       if(!j||!j.ok){ if(e) e.textContent=PF.errCopy(j,"Spin failed."); return; }
       var res=j.result!=null?j.result:"?";
       var pay=Number(j.payout)||0;
+<<<<<<< HEAD
       /* 6A-R2: a winning spin cashes out — persistent reveal, not a wiped line. */
       if(pay>0){ cashoutReveal(pay,"roulette",pay>=amt*5); return; }
+      /* WM-EXITS (de-isolation): settled spin — win or loss. */
+      try{ if(window.PF&&PF.wmSettled) PF.wmSettled({game:"roulette",won:pay>0,amount:amt,payout:pay,result:res}); }catch(wme){}
       if(r) r.innerHTML='<div class="cs-rounum">'+esc(res)+'</div><div class="cs-lose">LOST '+amt+' XP</div>';
       load();
     });
@@ -474,6 +495,8 @@ function startCrashPoll(){
     api("crash_status",{},function(j){
       if(!j||!j.ok) return;
       C=j;
+      /* WM-EXITS (de-isolation): round crashed with our bet still in = settled loss. */
+      try{ if(j.crashed&&window.PF&&PF.wmCrashCrashed) PF.wmCrashCrashed(j.round_id); }catch(wme){}
       var m=document.getElementById("csMult");
       if(m){ m.textContent=(Number(j.multiplier)||1).toFixed(2)+"x";
         if(j.crashed){ m.className="cs-crashmult cs-crashed"; }

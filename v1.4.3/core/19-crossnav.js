@@ -17,8 +17,8 @@
         button (id #cRecruit, rendered by games/cells.js — this file only
         scrolls to it, never touches it)
       - #pf-bank <-> #pf-economy: mutual cross-link banners
-      - #pf-arcade: highlighted XP Casino entry card, scrolls to the
-        mounted casino section (section[data-game="casino"])
+      - #pf-arcade: highlighted White Market entry card, scrolls to the
+        mounted house-games section (section[data-game="casino"])
    Double-run safe (window flag + element-id guards). No backend calls,
    no dependency on any game bundle. Never runs inside the editor.
    KILL: ?pf_off=19-crossnav  or  localStorage pf_disabled_v1='["19-crossnav"]' */
@@ -254,7 +254,7 @@
             a: 'OPEN THE BANK', href: '/bank', sub: ['Spend it in the Economy \u2192', '/economy']
           },
           {
-            h: 'THE CASINO PAYS IN XP',
+            h: 'THE WHITE MARKET PAYS IN XP',
             p: 'Nine games. Zero mercy. The house always loses to the movement.',
             a: 'ENTER THE ARCADE', href: '/arcade', sub: null
           }
@@ -344,13 +344,13 @@
       },
       place: function (el) { return placeAfterHead('pf-economy', el, this); }
     },
-    /* /arcade: highlighted XP Casino entry card. */
+    /* /arcade: highlighted White Market entry card. */
     {
       id: 'pf-xn-casino', host: 'pf-arcade', tries: 0,
       build: function () {
         var b = makeBanner(
           'pf-xn-casino',
-          '\u2605 THE XP CASINO PAYS IN XP \u2605',
+          '\u2605 THE WHITE MARKET PAYS IN XP \u2605',
           'Slots, wagers, double-or-nothing nerve. Your XP is the chip \u2014 ' +
           'and the house always loses to the movement.',
           'ROLL THE DICE', null, scrollToCasino

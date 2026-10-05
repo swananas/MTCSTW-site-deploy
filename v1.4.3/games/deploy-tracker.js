@@ -34,7 +34,10 @@
     { id: 'guess',   glyph: '\u25CE',     name: 'Profiler',           ev: 'pf-guess-done',          href: '/arcade#pf-guess' },
     { id: 'raid',    glyph: '\u26A1',     name: 'Raider',             ev: 'pf-raid-report',         href: '/arcade#pf-battles' },
     { id: 'infight', glyph: '\uD83E\uDD4A', name: 'Brawler',          ev: 'pf-infight-fire',        href: '/arcade#pf-infight-root' },
-    { id: 'casino',  glyph: '\uD83C\uDFB0', name: 'High Roller',      ev: 'pf-casino-cashed',       href: '/arcade#pf-casino' }
+    { id: 'casino',  glyph: '\uD83C\uDFB0', name: 'High Roller',      ev: 'pf-casino-cashed',       href: '/arcade#pf-casino' },
+    /* 2026-10-04 de-isolation: White Market 'Market Maker' medal — first settled bet
+       in the hall (win or loss). REQUIRED for FULL DEPLOYMENT. */
+    { id: 'whitemarket', glyph: '\uD83C\uDFB2', name: 'Market Maker', ev: 'pf-wm-settled', href: '/arcade#pf-whitemarket' }
   ];
 
   function load() {
@@ -106,7 +109,7 @@
 
   function urgencyHtml(left, hrs) {
     if (left <= 0) {
-      return '<div class="pd-note">FULL DEPLOYMENT secured. <b>16/16</b> medals this week.' +
+      return '<div class="pd-note">FULL DEPLOYMENT secured. <b>'+MEDALS.length+'/'+MEDALS.length+'</b> medals this week.' +
         '<br>The rack resets Monday \u2014 fresh march, soldier.</div>';
     }
     var noun = left === 1 ? 'medal' : 'medals';
@@ -155,7 +158,7 @@
     }
     h += urgencyHtml(missed.length, hoursToReset());
     if (got > 0 && missed.length > 0) {
-      h += '<div class="pd-earned">' + got + '/16 earned: ' + gotGlyphs + '</div>';
+      h += '<div class="pd-earned">' + got + '/'+MEDALS.length+' earned: ' + gotGlyphs + '</div>';
     }
     el.innerHTML = h;
     return true;

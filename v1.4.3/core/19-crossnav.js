@@ -17,8 +17,8 @@
         button (id #cRecruit, rendered by games/cells.js — this file only
         scrolls to it, never touches it)
       - #pf-bank <-> #pf-economy: mutual cross-link banners
-      - #pf-arcade: highlighted White Market entry card, scrolls to the
-        mounted house-games section (section[data-game="casino"])
+      - #pf-arcade: highlighted War Room entry card, scrolls to the
+        mounted forecasts section (section[data-game="markets"])
    Double-run safe (window flag + element-id guards). No backend calls,
    no dependency on any game bundle. Never runs inside the editor.
    KILL: ?pf_off=19-crossnav  or  localStorage pf_disabled_v1='["19-crossnav"]' */
@@ -208,11 +208,12 @@
     return d;
   }
 
-  function scrollToCasino() {
+  function scrollToWarRoom() {
     var sec = null;
-    try { sec = document.querySelector('section[data-game="casino"]'); } catch (e) {}
+    try { sec = document.querySelector('section[data-game="markets"]'); } catch (e) {}
+    if (!sec) { try { sec = document.getElementById('pf-forecasts'); } catch (e2) {} }
     if (sec) { scrollToEl(sec); return; }
-    try { window.location.href = '/arcade'; } catch (e) {}
+    try { window.location.href = '/arcade#pf-forecasts'; } catch (e) {}
   }
 
   function scrollToRecruit() {
@@ -254,8 +255,8 @@
             a: 'OPEN THE BANK', href: '/bank', sub: ['Spend it in the Economy \u2192', '/economy']
           },
           {
-            h: 'THE WHITE MARKET PAYS IN XP',
-            p: 'Nine games. Zero mercy. The house always loses to the movement.',
+            h: 'THE WAR ROOM PAYS IN XP',
+            p: 'Nine games. Zero mercy. The collective always wins.',
             a: 'ENTER THE ARCADE', href: '/arcade', sub: null
           }
         ];
@@ -344,16 +345,16 @@
       },
       place: function (el) { return placeAfterHead('pf-economy', el, this); }
     },
-    /* /arcade: highlighted White Market entry card. */
+    /* /arcade: highlighted War Room entry card. */
     {
-      id: 'pf-xn-casino', host: 'pf-arcade', tries: 0,
+      id: 'pf-xn-warroom', host: 'pf-arcade', tries: 0,
       build: function () {
         var b = makeBanner(
-          'pf-xn-casino',
-          '\u2605 THE WHITE MARKET PAYS IN XP \u2605',
-          'Slots, wagers, double-or-nothing nerve. Your XP is the chip \u2014 ' +
-          'and the house always loses to the movement.',
-          'ROLL THE DICE', null, scrollToCasino
+          'pf-xn-warroom',
+          '\u2605 THE WAR ROOM PAYS IN XP \u2605',
+          'Stakes, gambits, and nerve. Your XP is the chip \u2014 ' +
+          'and the collective always wins.',
+          'READ THE BOARD', null, scrollToWarRoom
         );
         b.classList.add('pf-xn-pulse');
         return b;

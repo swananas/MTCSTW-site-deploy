@@ -97,7 +97,7 @@ function paint(j){
     groups[s].push(p);
   });
   if(!pins.length){
-    h+='<div class="hp-empty">The wall waits. March the circuit, crack the dead drop, claim the jackpot &mdash; come back Sunday.</div>';
+    h+='<div class="hp-empty">The wall waits. March the circuit, crack the dead drop, claim the pot &mdash; come back Sunday.</div>';
   }else{
     h+='<div class="hp-groups">';
     order.forEach(function(s){

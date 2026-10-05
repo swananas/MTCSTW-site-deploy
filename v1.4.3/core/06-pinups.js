@@ -45,7 +45,7 @@ var MEDALS = [
   ['enlisted',     'Enlisted',          '\u2694'],
   ['guess',        'Profiler',          '\u25CE'],
   ['raid',         'Raider',            '\u26A1'],
-  /* 2026-10-04 de-isolation: White Market 'Market Maker' (mirrors service-medals). */
+  /* Redistribution layer 'Market Maker' (mirrors service-medals). */
   ['whitemarket',  'Market Maker',       '\uD83C\uDFB2']
 ];
 var MEDAL_EV = {vote:'pf-vote-cast',ballot:'pf-bracket-ballot',bracket:'pf-bracket-liquidated',bonds:'pf-wb-buy',caption:'pf-caption-submit',poster:'pf-poster-made',quiz:'pf-quiz-done',billionaire:'pf-billionaire-answered',interrogation:'pf-interrogation-answered',orders:'pf-order-checkin',drop:'pf-drop-claimed',enlisted:'pf-enlisted',guess:'pf-guess-done',raid:'pf-raid-report',whitemarket:'pf-wm-settled'};

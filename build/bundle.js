@@ -122,21 +122,29 @@ var SECTIONS = {
     'feed.js'
   ],
   'bundle-arcade': [
-    /* /arcade — the 4 arcade games not already in bundle-home. */
+    /* /arcade — the 3 arcade games not already in bundle-home. */
     'caption-combat.js',
     'bracket-board.js',
     'battles.js',
-    'casino.js',
-    /* White Market de-isolation (2026-10-04, worker C): exit routing, win-share
-       poster, sweep-to-vault, bet tracking. Hooks into casino.js settlements. */
+    /* THE GAMBIT (2026-10-05): flip create/open/join UI moved out of the
+       retired casino template. Silo key 'gambits'; mounts on /arcade via
+       page-mount.js, right after the War Room section. */
+    'gambits.js',
+    /* Redistribution layer de-isolation: exit routing, win-share poster,
+       sweep-to-vault, stake tracking. Hooks into the layer settlements
+       (markets.js zones, gambits.js) — event name 'pf-wm-settled' stays. */
     'casino-exits.js',
-    /* THE WHITE MARKET lobby + prediction markets (2026-10-04, worker B):
-       hall front door + markets panel. Mounts first on /arcade via
-       page-mount.js, ahead of the casino house-games zone. */
+    /* THE WAR ROOM — FRONTLINE FORECASTS (rebranded 2026-10-05 from the
+       White Market lobby): the layer's front door + markets panel + the
+       Phase-A interim BATTLE WAGERS / RAID / DRAW zones. Mounts first on
+       /arcade via page-mount.js. */
     'markets.js',
     /* A3 Deployment Tracker (2026-10-04): /arcade lobby deep-links into
        unplayed medal games. Coordinator: rebuild bundles to ship. */
     'deploy-tracker.js'
+    /* Phase B (not built yet): 'supply-raid.js' (silo key 'raid', mounted on
+       pf-cells-page / pf-cell-hq) and 'solidarity-draw.js' (mounted in the
+       Hall of Proof section on the homepage, games/hall-of-proof.js). */
   ],
   'bundle-cells': [
     /* /cells (+ Creator HQ) — the cell lifecycle. */
@@ -238,11 +246,14 @@ Object.keys(ALL).forEach(function (b) {
 });
 /* Dead code, intentionally excluded from every bundle:
    - bank.js superseded by peoplesbank.js.
+   - casino.js RETIRED 2026-10-05 (Redistribution Layer Phase A): unmounted
+     from the /arcade page order and the manifest; the file stays in repo
+     (history). Its ?pf_off=casino kill-switch is vestigial — not rewired.
    - 2026-10-03 homepage slimming consolidated daily-drop, daily-fire,
      boost-raid, media-nuke, video, amplify, archive, bounties, assist into
      other silos — their files are being deleted; the build must not fail
      on their absence (or their presence, mid-migration). */
-var DEAD = ['bank.js', 'daily-drop.js', 'daily-fire.js', 'boost-raid.js',
+var DEAD = ['bank.js', 'casino.js', 'daily-drop.js', 'daily-fire.js', 'boost-raid.js',
   'media-nuke.js', 'video.js', 'amplify.js', 'archive.js', 'bounties.js',
   'assist.js'];
 /* Global chrome: notify.js (header bell) + flash-siren.js (A2 site-wide siren

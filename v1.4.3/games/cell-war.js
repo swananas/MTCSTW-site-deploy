@@ -36,7 +36,7 @@
 #pf-cell-war .cw-note{font-size:12px;color:#a89e88;margin-top:12px;line-height:1.5}
 #pf-cell-war .cw-empty{font-size:14px;color:#a89e88;padding:14px 0;line-height:1.6}
 #pf-cell-war .cw-load{color:#a89e88;font-size:14px;padding:20px}
-/* G6 (2026-10-04): White Market odds strip — live championship odds from
+/* G6 (2026-10-04): War Room odds strip — live championship odds from
    the war board + market escrow pools. Zero XP for viewing. */
 #pf-cell-war .cw-odds{margin:6px 0 8px;border:1px dashed #c1121f;padding:12px 10px;background:#100808}
 #pf-cell-war .cw-okick{font-size:11px;letter-spacing:3px;color:#ffb347;font-weight:800;margin-bottom:8px}
@@ -131,8 +131,8 @@ function render(j){
   }else{
     h+='<div class="cw-empty">No shots fired yet this week.<br>Be the first cell on the board.</div>';
   }
-  /* G6: White Market championship odds strip — filled by renderMarket. */
-  h+='<div id="cwMarket"><div class="cw-load">Reading the White Market&hellip;</div></div>';
+  /* G6: War Room championship odds strip — filled by renderMarket. */
+  h+='<div id="cwMarket"><div class="cw-load">Reading the War Room&hellip;</div></div>';
   var mine=(j.my_cells||[]).length>0;
   h+='<div class="cw-cta">';
   if(mine){
@@ -156,20 +156,20 @@ function render(j){
 function load(){
   var id=ident();
   api("cellwar_standings",{callsign:id.callsign},render);
-  /* G6: White Market championship odds — live from the war board. */
+  /* G6: War Room championship odds — live from the war board. */
   api("cellwar_market",{},renderMarket);
 }
 function renderMarket(j){
   var el=document.getElementById("cwMarket"); if(!el) return;
   var odds=(j&&j.ok&&j.odds)||[];
   if(!odds.length){ el.innerHTML='<div class="cw-note">No odds yet \u2014 the market opens when cells hit the board.</div>'; return; }
-  var h='<div class="cw-odds"><div class="cw-okick">\uD83C\uDFDB\uFE0F WHITE MARKET \u2014 CHAMPIONSHIP ODDS</div>';
+  var h='<div class="cw-odds"><div class="cw-okick">\uD83C\uDFDB\uFE0F WAR ROOM \u2014 CHAMPIONSHIP ODDS</div>';
   for(var i=0;i<Math.min(5,odds.length);i++){
     var o=odds[i];
     var ev=esc(String(o.implied||0))+'%'+(o.pays>0?' \u00B7 pays '+esc(String(o.pays))+'x':'');
     h+='<div class="cw-orow"><div class="cw-oname">'+(i+1)+'. '+esc(o.name||'')+'</div><div class="cw-oev">'+ev+'</div></div>';
   }
-  h+='<a class="cw-obet" href="/arcade">BET IN THE WHITE MARKET \u2192</a>';
+  h+='<a class="cw-obet" href="/arcade#pf-forecasts">STAKE IN THE WAR ROOM \u2192</a>';
   h+='<div class="cw-ofree">Odds move with the war board. Viewing is free.</div></div>';
   el.innerHTML=h;
 }

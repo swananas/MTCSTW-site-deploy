@@ -34,10 +34,14 @@
     { id: 'guess',   glyph: '\u25CE',     name: 'Profiler',           ev: 'pf-guess-done',          href: '/arcade#pf-guess' },
     { id: 'raid',    glyph: '\u26A1',     name: 'Raider',             ev: 'pf-raid-report',         href: '/arcade#pf-battles' },
     { id: 'infight', glyph: '\uD83E\uDD4A', name: 'Brawler',          ev: 'pf-infight-fire',        href: '/arcade#pf-infight-root' },
-    { id: 'casino',  glyph: '\uD83C\uDFB0', name: 'High Roller',      ev: 'pf-casino-cashed',       href: '/arcade#pf-casino' },
-    /* 2026-10-04 de-isolation: White Market 'Market Maker' medal — first settled bet
-       in the hall (win or loss). REQUIRED for FULL DEPLOYMENT. */
-    { id: 'whitemarket', glyph: '\uD83C\uDFB2', name: 'Market Maker', ev: 'pf-wm-settled', href: '/arcade#pf-whitemarket' }
+    /* REDISTRIBUTION LAYER (2026-10-05): the retired casino hall's
+       'High Roller' medal (ev pf-casino-cashed, unearnable since casino.js
+       was unmounted) was removed from the march with it. The redistribution
+       layer's medal is below. */
+    /* Redistribution layer 'Market Maker' — first settled redistribution
+       event each week (forecast, gambit, raid, or draw — win or loss).
+       REQUIRED for FULL DEPLOYMENT. */
+    { id: 'whitemarket', glyph: '\uD83C\uDFB2', name: 'Market Maker', ev: 'pf-wm-settled', href: '/arcade#pf-forecasts' }
   ];
 
   function load() {

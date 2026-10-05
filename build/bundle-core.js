@@ -132,8 +132,9 @@ var BUNDLES = {
     'games/flash-siren.js',
     'core/06-pinups.js',
     'core/share-image.js',
-    /* PHQ share posters (2026-10-05): the five Political HQ custom painters
-       (pressure / prediction / scorecard / cell-win / wall-of-shame). Right after
+    /* PHQ share posters (2026-10-05): the six Political HQ custom painters
+       (pressure / prediction / scorecard / cell-win / wall-of-shame /
+       money-bomb). Right after
        share-image so PFShare is registered first; registers via PFShare.setPoster
        with its own retry loop, and exposes PF.PHQShare for the PHQ silos. */
     'core/share-image-phq.js',
@@ -143,6 +144,12 @@ var BUNDLES = {
        can fire. Never auto-mounts — Release Eng calls PFWallShame.mount()
        from the bill detail view (fe/legislation-tracker). */
     'core/wall-of-shame.js',
+    /* Super PAC Alerts (2026-10-05): Follow-the-Money spike list
+       (PFPacAlerts.mount). Right after wall-of-shame.js so the phq-pac
+       painter is registered before any card SHARE/DOWNLOAD can fire.
+       Never auto-mounts — Release Eng calls PFPacAlerts.mount(state, el)
+       from the Political HQ money surface. */
+    'core/pac-alerts.js',
     /* creator-recruit: shared recruiting toolbar for roster cards + catalog
        pages. Last: needs PFShare (share-image.js) + the catalog renderers. */
     'pages/creator-recruit.js',

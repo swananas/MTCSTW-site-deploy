@@ -1,7 +1,8 @@
 /* core/share-image-phq.js  |  PF v1.4.3 | POLITICAL HQ SHARE POSTERS.
-   Five custom PFShare painters (1080x1350, house palette) for the Political HQ
+   Six custom PFShare painters (1080x1350, house palette) for the Political HQ
    rollout: pressure-campaign card, prediction-result card, voting scorecard,
-   cell-competition winner card, wall-of-shame legislator card.
+   cell-competition winner card, wall-of-shame legislator card, super-PAC
+   money-bomb card.
    Spec: ~/workspace/hidden/phq-share-specs.md.
    Data contract (painter receives one data object; missing optional fields
    degrade gracefully; scorecard missing fields render '—', never invented):
@@ -11,6 +12,8 @@
      cellwin:    {cellName, verified, members, xp, runnerUp, marginXp, mvpCallsign, weekStart}
      wallshame:  {billId, billTitle, name, chamber, party, state, againstVotes,
                   position, question, voteDates[ISO], sourceUrl}
+     pac:        {state, district, cycle, amount, spender, target, supportOppose,
+                  spikeMultiple, baseline ('prior-cycle'|'none'), sourceDate}
    Callsigns resolve at paint time via callsignOf() (identity store /
    PFCallsign) — never passed in data. Painters that render the callsign
    inline set cv._pfStamped = true so PFShare.stampCallsign stays a no-op
@@ -31,13 +34,14 @@
   window.pfPhqShareDone = true;
 
   var W = 1080, H = 1350;
-  var IDS = ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame'];
+  var IDS = ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame', 'phq-pac'];
   var TITLES = {
     'phq-pressure': 'PRESSURE CAMPAIGN',
     'phq-prediction': 'PREDICTION RESULT',
     'phq-scorecard': 'VOTING SCORECARD',
     'phq-cellwin': 'CELL VICTORY',
-    'phq-wallshame': 'WALL OF SHAME'
+    'phq-wallshame': 'WALL OF SHAME',
+    'phq-pac': 'MONEY BOMB'
   };
   var DEEP = 'MTCSTW.COM/POLITICAL-HQ';
   var PENDING = {};
@@ -459,6 +463,63 @@
   }
 
   /* ---------------------------------------------------------------- */
+  /* Surface 6 — Super PAC Money Bomb Card (be/superpac-alerts, 2026-10-05) */
+  /* ---------------------------------------------------------------- */
+  function paintPac(d, cv, x) {
+    base(x); kicker(x);
+    badge(x, 'MONEY BOMB', 280, '#c1121f', 40);
+    var cs = callsignOf();
+    var y = 400;
+    /* the district — the race */
+    var geo = String(d.state || '—').toUpperCase() + (d.district ? '-' + String(d.district).toUpperCase() : '');
+    x.fillStyle = '#e8b923';
+    fitFont(x, geo, 64, 40, 910);
+    x.fillText(geo, W / 2, y); y += 58;
+    x.fillStyle = '#c9bfa8'; x.font = '700 34px Arial,sans-serif';
+    x.fillText(String(d.cycle || '—').toUpperCase() + ' CYCLE', W / 2, y); y += 66;
+    /* the amount — the thumb-stopper */
+    var amt = fmtNum(Math.round(Number(d.amount) || 0));
+    x.fillStyle = '#c1121f';
+    fitFont(x, '$' + amt, 150, 60, 910);
+    x.fillText('$' + amt, W / 2, y); y += 120;
+    x.fillStyle = '#f5ead6'; x.font = '700 34px Arial,sans-serif';
+    x.fillText('INDEPENDENT EXPENDITURES — LAST 30 DAYS', W / 2, y); y += 60;
+    /* the spender */
+    y = Math.max(760, y + 10);
+    var fit = fitFont(x, String(d.spender || '—').toUpperCase(), 72, 36, 910);
+    var lh = Math.round(fit * 0.98);
+    x.fillStyle = '#f5ead6';
+    wrap(x, String(d.spender || '—').toUpperCase(), 910).slice(0, 2)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += lh; });
+    /* target + support/oppose */
+    y += 8;
+    var so = String(d.supportOppose || '').toUpperCase() === 'OPPOSE' ? 'OPPOSES' : 'SUPPORTS';
+    x.fillStyle = '#c9bfa8'; x.font = '700 36px Arial,sans-serif';
+    wrap(x, so + ' ' + String(d.target || '—').toUpperCase(), 910).slice(0, 2)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += 46; });
+    /* the multiple — the story */
+    y = Math.max(1010, y + 12);
+    var mline = d.baseline === 'none'
+      ? 'NEW SPENDER — NO PRIOR-CYCLE BASELINE'
+      : (d.spikeMultiple == null ? '—'
+        : Number(d.spikeMultiple).toFixed(1) + '\u00d7 THE OLD DAILY PACE');
+    x.fillStyle = '#e8b923';
+    fitFont(x, mline, 44, 26, 910);
+    x.fillText(mline, W / 2, y); y += 48;
+    /* source + date */
+    x.fillStyle = '#c9bfa8'; x.font = '400 28px Arial,sans-serif';
+    var sl = 'SOURCE: FEC — INDEPENDENT EXPENDITURES (SCHEDULE E)';
+    fitFont(x, sl, 28, 20, 910, '400');
+    x.fillText(sl, W / 2, y); y += 40;
+    x.fillText('RETRIEVED ' + String(d.sourceDate || '—').toUpperCase(), W / 2, y); y += 40;
+    y = Math.max(1150, y + 6);
+    if (cs) y = csLine(cv, x, y, cs);
+    else y = claimLine(x, y); /* no-callsign: recruit strip becomes the funnel */
+    bottomStack(x, 'fight');
+    return cv;
+  }
+
+  /* ---------------------------------------------------------------- */
   /* Painter table + registration                                       */
   /* ---------------------------------------------------------------- */
   var PAINT = {
@@ -466,7 +527,8 @@
     'phq-prediction': paintPrediction,
     'phq-scorecard': paintScorecard,
     'phq-cellwin': paintCellwin,
-    'phq-wallshame': paintWallShame
+    'phq-wallshame': paintWallShame,
+    'phq-pac': paintPac
   };
   function paintOne(id, data) {
     var p = PAINT[id];

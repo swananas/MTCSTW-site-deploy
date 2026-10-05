@@ -366,10 +366,15 @@
     hubHasSilos[hub.id] = n;
     clearLoading(hub);
     tagHubPanes();
-    /* FAIL-SOFT (spec §1): hub hides when all its silos are killed or fail to mount. */
+    /* FAIL-SOFT (spec §1): hub hides when all its silos are killed or fail to mount.
+       2026-10-05 (hub-visibility fix): when the deep-chunk re-mount succeeds
+       (n>0), restore display — the first-pass fail-soft hide must not stick
+       forever, or people/bills/intel stay invisible after phqDeepReady(). */
     if (n === 0 && sec) {
       sec.style.display = 'none';
       if (PF) PF.error('phq-hubs', 'hub ' + hub.id + ' has no mountable silos — hidden (fail-soft)');
+    } else if (n > 0 && sec && sec.style.display === 'none') {
+      sec.style.display = '';
     }
     refreshTabs();
     return n;

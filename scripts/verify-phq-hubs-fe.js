@@ -422,5 +422,62 @@ try {
   else no('deep idempotency', 'silo sections ' + secsBefore + ' -> ' + secsAfter);
 } catch (e) { no('vm deep split', e && e.message); }
 
+try {
+  /* 3f. hub-visibility regression (QC veto 2026-10-05): the deep-chunk split
+     hid people/bills/intel on the first pass (fail-soft, n=0) but no code
+     path ever restored display after phqDeepReady() re-mounted their silos —
+     the silos existed in the DOM but stayed permanently invisible. Simulate
+     the faithful sequence: all hubs mount with deep templates missing (n=0
+     -> hidden), then the deep chunk lands and phqDeepReady() re-mounts. */
+  var env6 = fakeDom({ skipped: ['phq-hubnav'] }); /* navKilled: mounts all 6 hubs first pass */
+  var PF6 = loadInVm(env6);
+  env6.doc.importNode = function (n) { return n; };
+  function stageTpl6(id) {
+    var t = env6.mkEl('template'); t.id = id; t.content = {}; return t;
+  }
+  stageTpl6('pf-ov-civic');
+  var ORDER6 = [['legislation', 'pf-ov-legislation'], ['predict', 'pf-ov-predict'],
+    ['stateleg', 'pf-ov-stateleg'], ['governance', 'pf-ov-gov'],
+    ['intel', 'pf-ov-intel'], ['nonprofits', 'pf-ov-nonprofits']];
+  PF6.mountHubSilos(ORDER6);
+  function disp6(id) {
+    var s = env6.doc.getElementById('phq-' + id);
+    return s ? s.style.display : '<missing>';
+  }
+  /* sub-nav stand-in: tabs derive visibility from section display (refreshTabs) */
+  var nav6 = env6.mkEl('nav'); nav6.id = 'pf-hq-subnav';
+  var tabs6 = {};
+  ['people', 'bills', 'intel'].forEach(function (id) {
+    var b = env6.mkEl('button'); b.className = 'pf-hq-tab';
+    b.setAttribute('data-hub', id); tabs6[id] = b;
+  });
+  nav6.querySelectorAll = function (sel) {
+    return sel === '.pf-hq-tab' ? [tabs6.people, tabs6.bills, tabs6.intel] : [];
+  };
+  var triad = ['people', 'bills', 'intel'];
+  if (triad.every(function (id) { return disp6(id) === 'none'; }))
+    ok('visibility: people/bills/intel hidden on first pass (fail-soft, n=0)');
+  else no('vis first pass', 'people=' + disp6('people') + ' bills=' + disp6('bills') + ' intel=' + disp6('intel'));
+  /* deep chunk lands: stage templates, fire phqDeepReady() */
+  ['pf-ov-legislation', 'pf-ov-predict', 'pf-ov-stateleg', 'pf-ov-gov',
+   'pf-ov-intel', 'pf-ov-nonprofits'].forEach(stageTpl6);
+  PF6.phqDeepReady();
+  if (triad.every(function (id) { return disp6(id) !== 'none'; }))
+    ok('visibility: people/bills/intel sections un-hidden after phqDeepReady()');
+  else no('vis after deep', 'people=' + disp6('people') + ' bills=' + disp6('bills') + ' intel=' + disp6('intel'));
+  var tabsOk = triad.every(function (id) {
+    return tabs6[id].style.display !== 'none' && tabs6[id].getAttribute('aria-hidden') === 'false';
+  });
+  if (tabsOk) ok('visibility: people/bills/intel tabs restored after phqDeepReady()');
+  else no('tab vis after deep', triad.map(function (k) {
+    return k + '=' + tabs6[k].style.display + '/' + tabs6[k].getAttribute('aria-hidden');
+  }).join(' '));
+  /* fail-soft preserved: intentionally-empty hubs (action/money, no silos in
+     ORDER) stay hidden — the n>0 restore must not un-hide them */
+  if (disp6('action') === 'none' && disp6('money') === 'none')
+    ok('visibility: intentionally-empty hubs (action/money) stay hidden');
+  else no('vis empty hubs', 'action=' + disp6('action') + ' money=' + disp6('money'));
+} catch (e) { no('vm visibility', e && e.message); }
+
 console.log('\n' + passes + ' passed, ' + fails.length + ' failed');
 if (fails.length) { console.log('FAILURES:'); fails.forEach(function (f) { console.log(' - ' + f); }); process.exit(1); }

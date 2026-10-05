@@ -143,7 +143,7 @@
     var x=cv.getContext("2d");
     function wrap(text,font,maxW,maxLines){
       x.font=font; x.textAlign="center";
-      var words=String(text||"").split(/\\s+/), lines=[], cur="";
+      var words=String(text||"").split(/\s+/), lines=[], cur="";
       words.forEach(function(w){
         var t=cur?cur+" "+w:w;
         if(x.measureText(t).width>maxW&&cur){ lines.push(cur); cur=w; } else cur=t;

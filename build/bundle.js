@@ -101,6 +101,13 @@ var SECTIONS = {
     'bracket-board.js',
     'battles.js',
     'casino.js',
+    /* White Market de-isolation (2026-10-04, worker C): exit routing, win-share
+       poster, sweep-to-vault, bet tracking. Hooks into casino.js settlements. */
+    'casino-exits.js',
+    /* THE WHITE MARKET lobby + prediction markets (2026-10-04, worker B):
+       hall front door + markets panel. Mounts first on /arcade via
+       page-mount.js, ahead of the casino house-games zone. */
+    'markets.js',
     /* A3 Deployment Tracker (2026-10-04): /arcade lobby deep-links into
        unplayed medal games. Coordinator: rebuild bundles to ship. */
     'deploy-tracker.js'

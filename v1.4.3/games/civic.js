@@ -20,6 +20,17 @@
 #pf-civic .cv-bal-cd{font-size:16px;margin:10px 0;padding:10px;border:1px solid #4a4a4a;overflow-wrap:anywhere}
 #pf-civic .cv-balreg{margin:8px 0}
 #pf-civic .cv-balacts{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+/* 2026-10-05: cell competitions card — mobile-first, no horizontal scroll,
+   every touch target >= 44px. */
+#pf-civic .cv-cmp-tog{display:flex;gap:8px;margin:8px 0}
+#pf-civic .cv-cmp-tog .c-btn{flex:1;min-height:44px;padding:8px 4px}
+#pf-civic .cv-cmp-tog .c-btn[aria-pressed="true"]{outline:3px solid #f5ead6;outline-offset:-3px}
+#pf-civic .cv-cmp-row{border:1px solid #4a4a4a;padding:10px 12px;margin:8px 0;overflow-wrap:anywhere}
+#pf-civic .cv-cmp-rank{display:inline-block;min-width:36px;font-weight:900;font-size:16px;color:#ffd166}
+#pf-civic .cv-cmp-name{font-weight:900;font-size:15px}
+#pf-civic .cv-cmp-you{border-color:#ffd166;background:rgba(255,209,102,.08)}
+#pf-civic .cv-cmp-tag{display:inline-block;font-size:11px;font-weight:900;color:#0d0d0d;background:#ffd166;padding:2px 8px;margin-left:8px;vertical-align:middle}
+#pf-civic .cv-cmp-win{border:1px solid #ffd166;padding:12px;margin:8px 0;background:rgba(193,18,31,.12)}
 </style>
 </div>
 <script>
@@ -297,6 +308,132 @@ function fetchBallot(){
     paintBallot();
   });
 }
+/* --- cell-vs-cell civic competitions (2026-10-05) ---
+   Public GET reads (cellcomp_current + cellcomp_history). Fail-soft: the
+   card stays hidden until cellcomp_current lands ok — never an error
+   widget. campaign_calls returns metric_live:false until the
+   pressure-campaign build ships: "coming soon" placeholder, never broken.
+   winner_bonus is null (CEO decision 2026-10-05) — no bonus copy anywhere. */
+var COMP={metric:"rep_contacts",cur:{},load:{},hist:null,histDone:false};
+function compUnit(metric){
+  if(metric==="campaign_calls") return "campaign calls";
+  return "rep contacts";
+}
+function compMetricLabel(metric){
+  if(metric==="campaign_calls") return "Pressure-campaign calls";
+  return "Rep contacts";
+}
+function compWeekDate(wk){
+  var d=String(wk||"").slice(0,10);
+  try{
+    var s=new Date(d+"T12:00:00").toLocaleDateString(undefined,{month:"short",day:"numeric"});
+    if(s&&s!=="Invalid Date") return s;
+  }catch(e){}
+  return d;
+}
+function compWinnerHTML(cur){
+  var w=cur.last_winner;
+  if(!(w&&(w.cell_name||w.cell_id))) return "";
+  return '<div class="cv-cmp-win"><b>&#127942; Last week&#8217;s champion:</b> '
+    +esc(w.cell_name||w.cell_id)+' &mdash; '+Number(w.cnt||0)+' '+esc(compUnit(cur.metric))
+    +'<div class="x-note">Week of '+esc(compWeekDate(w.week_start))+'</div></div>';
+}
+function compMyLine(cur){
+  var mc=cur.my_cells||[];
+  if(!mc.length) return "";
+  var unit=esc(compUnit(cur.metric));
+  var bits=[];
+  for(var i=0;i<mc.length;i++){
+    var m=mc[i], nm=String(m.name||m.cell_id);
+    bits.push("<b>"+esc(nm)+"</b>"+(m.rank?(" &mdash; #"+Number(m.rank)):" &mdash; not on the board yet")
+      +" ("+Number(m.cnt||0)+" "+unit+")");
+  }
+  return '<div class="x-note">Your cell'+(bits.length>1?"s":"")+": "+bits.join(" &middot; ")+"</div>";
+}
+function compStandingsHTML(cur){
+  var metric=cur.metric||COMP.metric;
+  var unit=compUnit(metric);
+  if(!cur.metric_live){
+    return '<div class="x-note">Campaign-call tracking goes live when pressure campaigns ship. '
+      +'The rep-contact race is live now &mdash; switch the toggle.</div>';
+  }
+  var rows=cur.standings||[];
+  if(!rows.length){
+    return '<div class="x-note">No '+esc(unit)+' logged this week yet. Your cell could take the lead.</div>';
+  }
+  var mine={};
+  var mc=cur.my_cells||[];
+  for(var i=0;i<mc.length;i++){ mine[String(mc[i].cell_id)]=1; }
+  var h="";
+  for(var r=0;r<rows.length;r++){
+    var row=rows[r], you=mine[String(row.cell_id)];
+    h+='<div class="cv-cmp-row'+(you?" cv-cmp-you":"")+'">'
+      +'<span class="cv-cmp-rank">#'+(r+1)+'</span> '
+      +'<span class="cv-cmp-name">'+esc(row.name||row.cell_id)+'</span>'
+      +(you?'<span class="cv-cmp-tag">YOUR CELL</span>':"")
+      +'<div class="x-note">'+Number(row.cnt||0)+' '+esc(unit)
+      +' &middot; '+Number(row.members||0)+' members</div>'
+      +'</div>';
+  }
+  return h;
+}
+function compHistHTML(){
+  var wins=(COMP.hist&&COMP.hist.winners)||[];
+  if(!wins.length) return "";
+  var h='<div class="x-note" style="margin-top:8px"><b>Past champions:</b></div>';
+  for(var i=0;i<Math.min(wins.length,16);i++){
+    var w=wins[i];
+    h+='<div class="x-note">'+esc(compWeekDate(w.week_start))+" &mdash; "+esc(compMetricLabel(w.metric))
+      +': <b>'+esc(w.cell_name||w.cell_id)+"</b> ("+Number(w.cnt||0)+")</div>";
+  }
+  return h;
+}
+function compCardHTML(){
+  var cur=COMP.cur[COMP.metric];
+  if(!(cur&&cur.ok)) return "";
+  var days=Number(cur.days_remaining||0);
+  var h='<div class="x-pane"><h4>Cell competitions</h4>'
+    +'<div class="x-note">Which cell logs the most civic action this week? Live standings below.</div>'
+    +'<div class="cv-cmp-tog" role="group" aria-label="Competition metric">'
+    +'<button type="button" class="c-btn" data-comp-metric="rep_contacts" aria-pressed="'
+    +(COMP.metric==="rep_contacts"?"true":"false")+'">REP CONTACTS</button>'
+    +'<button type="button" class="c-btn" data-comp-metric="campaign_calls" aria-pressed="'
+    +(COMP.metric==="campaign_calls"?"true":"false")+'">CAMPAIGN CALLS</button>'
+    +'</div>'
+    +'<div class="x-note"><b>'+days+'</b> day'+(days===1?"":"s")+' left this week.</div>'
+    +compWinnerHTML(cur)
+    +compMyLine(cur)
+    +'<div id="cvCompStand">'+compStandingsHTML(cur)+'</div>'
+    +compHistHTML()
+    +'</div>';
+  return h;
+}
+function paintComp(){
+  var box=document.getElementById("cvCompBox"); if(!box) return;
+  box.innerHTML=compCardHTML();
+}
+function fetchComp(){
+  var m=COMP.metric;
+  if(COMP.cur[m]||COMP.load[m]){ paintComp(); }
+  else{
+    COMP.load[m]=true;
+    var pp={metric:m};
+    var idc=ident(); if(idc.callsign) pp.callsign=idc.callsign;
+    /* api() drops null/"" params; callsign rides only when present. */
+    api("cellcomp_current",pp,function(j){
+      COMP.load[m]=false;
+      if(j&&j.ok){ COMP.cur[m]=j; paintComp(); }
+      /* fail-soft: on error the box stays empty — no error widget. */
+    });
+  }
+  if(!COMP.histDone){
+    COMP.histDone=true;
+    api("cellcomp_history",{},function(j){
+      if(j&&j.ok){ COMP.hist=j; paintComp(); }
+      else { COMP.histDone=false; } /* failed — retry on next bind */
+    });
+  }
+}
 function render(){
   var el=document.getElementById("xCivic"); if(!el) return;
   var id=ident(), h="";
@@ -353,6 +490,10 @@ function render(){
     +'<div id="cvHistBox" style="margin-top:8px"><div class="x-note">Reading your contact log&hellip;</div></div>';
   if(REPS&&REPS.note){ h+='<div class="x-note">'+esc(REPS.note)+'</div>'; }
   h+='</div>';
+  /* --- cell competitions (2026-10-05): weekly cell-vs-cell civic race.
+     The card stays empty until cellcomp_current lands ok (fail-soft). It
+     sits on the rep-contact pane — logging a contact is how cells score. */
+  h+='<div id="cvCompBox"></div>';
   /* --- voter registration --- */
   h+='<div class="x-pane"><h4>Voter registration</h4>'
     /* 2026-10-03: voter_pledge_stats (public) — movement social proof. */
@@ -571,6 +712,22 @@ function bind(){
      2026-10-05 (audit #7): fetched once per page view — bind() runs on every
      re-render, and each run used to refire this authed call. LOG CONTACT
      refreshes it explicitly (the only action that mutates the log). */
+  /* --- cell competitions (2026-10-05): metric toggle is delegated (the card
+     re-paints on toggle) — one listener per fresh box element, matching the
+     directory-retry pattern. Reads are public GET; the card hides on error. */
+  var cbox=document.getElementById("cvCompBox");
+  if(cbox&&!cbox.getAttribute("data-bound")){
+    cbox.setAttribute("data-bound","1");
+    cbox.addEventListener("click",function(e){
+      var b=e.target&&e.target.closest?e.target.closest("[data-comp-metric]"):null;
+      if(!b) return;
+      var m=b.getAttribute("data-comp-metric");
+      if(m!==COMP.metric&&(m==="rep_contacts"||m==="campaign_calls")){
+        COMP.metric=m; paintComp(); fetchComp();
+      }
+    });
+  }
+  fetchComp();
   fetchHist();
 }
 load();

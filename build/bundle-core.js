@@ -111,7 +111,16 @@ var CORE_FILES = [
      on the server-supplied hidden page, mounted above the footer. The claim
      POST validates server-side; the page is never hardcoded client-side.
      Was a dead file — written but never bundled. Kill: ?pf_off=deaddrop. */
-  'core/22-dead-drop.js'
+  'core/22-dead-drop.js',
+  /* v2-visibility (P0, 2026-10-05): slim visibility guard for V2 pages —
+     ports the paint-level detection/repair of v1.1.0/fixes/article-visibility.js
+     (transparent computed text color, transparent -webkit-text-fill-color,
+     brightness(0)/contrast(0) filters, font-size:0 leaf carriers). V2 pages
+     load ZERO guard code via the V1 set; the DELETE MY DATA footer-link
+     failure on the homepage had nothing to repair it. Restore-only,
+     idempotent, same ?pf_off=article-visibility kill switch as the V1 guard.
+     Last: runs after every mount so late-hiding scripts can't win the race. */
+  'fixes/v2-visibility.js'
 ];
 
 var BUNDLES = {

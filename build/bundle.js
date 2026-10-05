@@ -41,6 +41,11 @@ var SECTIONS = {
     /* HOMEPAGE START HERE — hook & daily loop. In critical path (blocking). */
     'briefing.js',
     'do-meter.js',
+    /* NUKE THEMES (2026-10-05): detonation theme banner — mounts inside
+       do-meter's #slr-nuke block when nuke_theme_get is {active:true}.
+       Own kill-switch ?pf_off=nuke-themes; respects the do-meter switch.
+       Read-only, fail-soft, zero visual change on non-political days. */
+    'nuke-themes.js',
     'daily-orders.js',
     'dopamine.js',
     'enlistment-ranks.js',

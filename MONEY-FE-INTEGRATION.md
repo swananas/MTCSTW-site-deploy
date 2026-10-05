@@ -20,7 +20,10 @@ Branch: `fe/follow-the-money` (from `origin/fe/wall-of-shame`). Staged only — 
   industries when no donors), FEC source + retrieval date, callsign stamp,
   JOIN THE FIGHT. Sibling workers' painters (`phq-trades`, `phq-pac`,
   `phq-corp`, `phq-ledger`, `phq-boycott`) do not collide.
-- `scripts/verify-money-fe.js` — full verification (116 checks).
+- `scripts/verify-money-fe.js` — full verification (140 checks): static
+  contract checks, mocked-browser runtime tests, and a real-BE integration
+  test that feeds actual `repDispatch` output (be/follow-the-money @ dd9cab9,
+  captured in `tests/fixtures/`) through both mounts.
 - Both new modules registered in `build/bundle-core.js` (`pages/bundle-pages`),
   right after `core/wall-of-shame.js`. Bundles rebuilt green.
 
@@ -39,10 +42,11 @@ PFMoneyVote.mount('H.R.3633', document.getElementById('bill-money-slot'));
 - Endpoint down / `{ok:false}` / malformed response → the mount section hides
   itself entirely (never a broken widget). `mount()` returns `false` on
   missing args.
-- Money tab, `ok:true` but no summary → honest empty state:
+- Money tab, `ok:true` but no totals (incl. the `{ok:true, empty:true,
+  reason}` pre-ingest state) → honest empty state:
   "Money data isn't loaded yet — no figures shown rather than guesses."
   (section stays, source footer still printed).
-- Vote card, `ok:true` but zero rows → "No vote records returned for this bill."
+- Vote card, `ok:true` but zero cards → "No vote records returned for this bill."
 - No invented figures anywhere: missing fields render as em-dash; every
   number shown carries its source ("Source: FEC · {cycle} cycle ·
   retrieved {date}").
@@ -55,20 +59,35 @@ PFMoneyVote.mount('H.R.3633', document.getElementById('bill-money-slot'));
   `PFMoneyVote` is never exposed.
 - The `phq-money` painter rides the existing `?pf_off=phq-share` module kill.
 
-## Backend contract expected (parallel backend wave, be/follow-the-money)
+## Backend contract — LOCKED (be/follow-the-money @ dd9cab9; verified against the BE source)
 
 ```
-?action=money_legislator&bioguide_id=J000288 ->
-{ok, legislator:{bioguide_id,name,chamber,party,state}, cycle, retrieved,
- summary:{total_raised,total_spent,cash_on_hand,small_dollar,large_dollar},
- top_donors:[{name,employer,amount}] (up to 10),
- top_industries:[{industry,amount,estimated}]}
+?action=money_legislator&bioguide_id=A000055 ->
+{ok, cycle, source:'FEC (api.open.fec.gov)', retrieved_at,
+ member:{bioguide_id,fec_candidate_id,name,office,state,party},
+ totals:{raised,spent,cash}, small_dollar_pct, large_dollar_pct,
+ top_donors:[{name,employer,occupation,amount} x10],
+ industries:[{industry,total,estimated}]}
 
-?action=money_vote_card&bill_id=H.R.3633 ->
-{ok, bill:{bill_id,title}, methodology,
- rows:[{bioguide_id,name,chamber,party,state,vote,
-        money:{industries:[{industry,amount}]} | money:null}]}
+?action=money_vote_card&bill_id=H.R.1 ->
+{ok, bill:{bill_id,title}, cycle,
+ cards:[{bioguide_id,name,chamber,party,state,position,vote_id,vote_date,
+         question,source_url,money}]}
+   money = null | {cycle, source:'FEC (api.open.fec.gov)', retrieved_at,
+                   industries:[{industry,total,estimated,copy} x3]}
 ```
+
+Notes:
+- `small_dollar_pct` / `large_dollar_pct` are percentages already (2.5 =
+  2.5%) — the split bar must NOT multiply by 100.
+- `member.office` is `'H'`/`'S'` (FEC candidate office); vote-card rows carry
+  a real `chamber` (`rep`/`sen`).
+- `retrieved_at` is an epoch-ms number as the ingest writes it.
+- The vote card consumes the BE's prebuilt `copy` line ("received $X from
+  [industry]") verbatim — never re-composes causation-adjacent copy.
+- Tables empty until the FEC ingest runs → `{ok:true, empty:true, reason}`
+  (the money tab shows its honest empty state).
+- The frontend adapts to this contract. The backend is never modified.
 
 Until the backend ships FEC data, all views show the honest empty states —
 nothing is rendered from guesses.

@@ -8,14 +8,22 @@
    Causation claims are never rendered — correlation is shown, cause is never
    claimed. Members whose money block is null render vote-only rows (never
    hidden).
-   Backend contract (parallel backend wave, be/follow-the-money):
-     ?action=money_vote_card&bill_id=H.R.3633 ->
-     {ok, bill:{bill_id,title}, methodology, rows:[
-       {bioguide_id,name,chamber,party,state,vote,
-        money:{industries:[{industry,amount}]} | money:null}]}
+   Backend contract (LOCKED: be/follow-the-money @ dd9cab9 — the frontend
+   adapts; the backend is never modified):
+     ?action=money_vote_card&bill_id=H.R.1 ->
+     {ok, bill:{bill_id,title}, cycle,
+      cards:[{bioguide_id,name,chamber,party,state,position,vote_id,
+              vote_date,question,source_url,money}]}
+       money = null | {cycle, source:'FEC (api.open.fec.gov)', retrieved_at,
+                       industries:[{industry,total,estimated,copy} x3]}
+   The BE prebuilds the copy line per industry row — verbatim
+   "received $X from [industry]" (copy rule: never implies causation).
+   The card consumes d.copy when present and only re-renders the same
+   shape as a fallback. Members whose money block is null render
+   vote-only rows (never hidden).
    Fail-soft: endpoint down / {ok:false} / malformed response -> the mount
    section hides itself entirely, never a broken widget. ok:true with zero
-   rows -> the honest empty state ("No vote records returned for this bill.").
+   cards -> the honest empty state ("No vote records returned for this bill.").
    No invented figures — every number shown comes from the response.
    Integration hook (Release Eng wires this from the bill detail view on the
    fe/legislation-tracker sibling branch; do NOT call it from this module):
@@ -100,15 +108,22 @@
     return (ch + ' · ' + String(r.party || '—') + ' · ' + String(r.state || '—')).toUpperCase();
   }
 
-  /* One legislator row. money:null -> vote-only row, never hidden. */
+  /* One legislator row. money:null -> vote-only row, never hidden.
+     The BE prebuilds the copy line ("received $X from [industry]") on each
+     industry row — consume d.copy verbatim when present; the composed
+     fallback renders the identical shape from d.total. */
+  function indLine(d) {
+    if (d.copy) return esc(d.copy);
+    return 'received <span class="pf-mv-amt">' + esc(money(d.total)) + '</span> from <b>' +
+      esc(d.industry || '—') + '</b>';
+  }
   function rowHtml(r) {
     var inds = (r.money && Array.isArray(r.money.industries)) ? r.money.industries.slice(0, 3) : [];
     var indHtml = '';
     if (r.money) {
       if (inds.length) {
         indHtml = '<ul class="pf-mv-inds">' + inds.map(function (d) {
-          return '<li>received <span class="pf-mv-amt">' + esc(money(d.amount)) + '</span> from <b>' +
-            esc(d.industry || '—') + '</b></li>';
+          return '<li>' + indLine(d) + '</li>';
         }).join('') + '</ul>';
       } else {
         indHtml = '<ul class="pf-mv-inds"><li>No industry donor data reported.</li></ul>';
@@ -117,7 +132,7 @@
     return '<article class="pf-mv-row">' +
       '<div class="pf-mv-name">' + esc(r.name || '—') +
         '<span class="pf-mv-sub">' + esc(chamberLabel(r)) + '</span></div>' +
-      '<div class="pf-mv-vote">VOTED <b>' + esc(r.vote || '—') + '</b></div>' +
+      '<div class="pf-mv-vote">VOTED <b>' + esc(r.position || '—') + '</b></div>' +
       indHtml +
       '</article>';
   }
@@ -129,11 +144,11 @@
   function render(container, j) {
     cssOnce();
     var bill = j.bill || {};
-    var rows = Array.isArray(j.rows) ? j.rows : [];
+    var cards = Array.isArray(j.cards) ? j.cards : [];
     container.innerHTML = '';
     var root = document.createElement('div');
     root.className = 'pf-mv';
-    if (!rows.length) {
+    if (!cards.length) {
       root.innerHTML = '<div class="pf-mv-empty">' + esc(EMPTY_MSG) + '</div>';
       container.appendChild(root);
       return;
@@ -141,7 +156,7 @@
     var html = '<div class="pf-mv-kicker">FOLLOW THE MONEY</div>' +
       '<h3 class="pf-mv-title">' + esc(HEADER) + '</h3>' +
       '<div class="pf-mv-bill">' + esc(bill.bill_id || '—') + ' — ' + esc(bill.title || '—') + '</div>';
-    for (var i = 0; i < rows.length; i++) html += rowHtml(rows[i] || {});
+    for (var i = 0; i < cards.length; i++) html += rowHtml(cards[i] || {});
     html += '<div class="pf-mv-method">' + esc(j.methodology || METHOD) + '</div>';
     root.innerHTML = html;
     container.appendChild(root);

@@ -4155,15 +4155,22 @@ window.pfPinups={
    plumbing, no XP anywhere on this frontend (XP rides existing backend legs
    only; viewing money data grants 0 XP and no read-XP leg anchors here —
    core/read-xp.js only fires on #pf-readxp / Top Stories / Ammo surfaces).
-   Backend contract (parallel backend wave, be/follow-the-money):
-     ?action=money_legislator&bioguide_id=J000288 ->
-     {ok, legislator:{bioguide_id,name,chamber,party,state}, cycle, retrieved,
-      summary:{total_raised,total_spent,cash_on_hand,small_dollar,large_dollar},
-      top_donors:[{name,employer,amount}] (up to 10),
-      top_industries:[{industry,amount,estimated}]}
+   Backend contract (LOCKED: be/follow-the-money @ dd9cab9 — the frontend
+   adapts; the backend is never modified):
+     ?action=money_legislator&bioguide_id=A000055 ->
+     {ok, cycle, source:'FEC (api.open.fec.gov)', retrieved_at,
+      member:{bioguide_id,fec_candidate_id,name,office,state,party},
+      totals:{raised,spent,cash}, small_dollar_pct, large_dollar_pct,
+      top_donors:[{name,employer,occupation,amount} x10],
+      industries:[{industry,total,estimated}]}
+   Tables empty until the FEC ingest runs -> {ok:true, empty:true, reason}.
+   small_dollar_pct / large_dollar_pct arrive as percentages ALREADY
+   (2.5 = 2.5%) — never multiply by 100. member.office is 'H'/'S' (FEC
+   candidate office), not a chamber string. retrieved_at is an epoch-ms
+   number as the ingest writes it.
    Fail-soft: endpoint down / {ok:false} / malformed response -> the mount
    section hides itself entirely, never a broken widget. ok:true but no
-   summary -> the honest empty state ("Money data isn't loaded yet — no
+   totals -> the honest empty state ("Money data isn't loaded yet — no
    figures shown rather than guesses."). No invented figures — every number
    shown carries its source in the footer.
    Integration hook (Release Eng wires this from the legislator detail view;
@@ -4254,16 +4261,36 @@ window.pfPinups={
     if (n == null || isNaN(Number(n))) return '—';
     return '$' + Number(n).toLocaleString('en-US');
   }
+  /* BE member carries office:'H'/'S' (FEC candidate office), not a chamber
+     string. Map it; keep house/senate/rep/sen variants for robustness. */
   function chamberLabel(leg) {
-    var ch = String(leg.chamber || '').toLowerCase();
-    ch = ch === 'house' ? 'U.S. HOUSE' : (ch === 'senate' ? 'U.S. SENATE' : String(leg.chamber || '—'));
+    var raw = String(leg.office || leg.chamber || '').toLowerCase();
+    var ch = (raw === 'h' || raw === 'house' || raw === 'rep') ? 'U.S. HOUSE'
+      : ((raw === 's' || raw === 'senate' || raw === 'sen') ? 'U.S. SENATE'
+        : String(leg.office || leg.chamber || '—'));
     return (ch + ' · ' + String(leg.party || '—') + ' · ' + String(leg.state || '—')).toUpperCase();
   }
-  function pct(f) {
+  /* The BE sends small_dollar_pct / large_dollar_pct as percentages ALREADY
+     (Math.round((v / raised) * 1000) / 10) — pass through, never ×100. */
+  function pctOf(f) {
     if (f == null || isNaN(Number(f))) return null;
-    return Math.round(Number(f) * 100);
+    return Number(f);
+  }
+  function pctLabel(f) {
+    var n = pctOf(f);
+    if (n == null) return '—';
+    return (Math.round(n * 10) / 10) + '%';
   }
   function retrDate(r) {
+    /* The ingest writes retrieved_at as epoch ms (Date.now()); the BE passes
+       it through. Format numeric epochs as a date; also parse YYYY-MM-DD. */
+    if (typeof r === 'number' && r > 1e12) {
+      try {
+        var d = new Date(r);
+        var MN = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        return MN[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + d.getUTCFullYear();
+      } catch (e) {}
+    }
     var s = String(r == null ? '' : r).trim();
     var m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
     if (m) {
@@ -4274,30 +4301,49 @@ window.pfPinups={
     return s || '—';
   }
   function srcFooter(j) {
-    return 'Source: FEC · ' + esc(j.cycle || '—') + ' cycle · retrieved ' + esc(retrDate(j.retrieved));
+    return 'Source: FEC · ' + esc(j.cycle || '—') + ' cycle · retrieved ' + esc(retrDate(j.retrieved_at));
   }
 
   /* Endpoint response -> painter data object. Every pixel from the response;
-     nothing invented, missing fields degrade to em-dash in the painter. */
+     nothing invented, missing fields degrade to em-dash in the painter.
+     Adapts the LOCKED BE contract to the painter's internal shape:
+     BE totals.{raised,spent,cash}, member.office 'H'/'S' -> chamber string,
+     retrieved_at (epoch ms) -> 'YYYY-MM-DD' for the painter's fullDate(),
+     industries[].total -> painter's amount key. */
+  function officeChamber(off) {
+    var o = String(off || '').toUpperCase();
+    return o === 'H' ? 'house' : (o === 'S' ? 'senate' : '');
+  }
+  function retrievedISO(r) {
+    if (typeof r === 'number' && r > 1e12) {
+      try {
+        var d = new Date(r);
+        return d.getUTCFullYear() + '-' +
+          String(d.getUTCMonth() + 1).padStart(2, '0') + '-' +
+          String(d.getUTCDate()).padStart(2, '0');
+      } catch (e) {}
+    }
+    return r;
+  }
   function painterData(j) {
-    var leg = j.legislator || {};
-    var sum = j.summary || {};
+    var leg = j.member || {};
+    var t = j.totals || {};
     var donors = Array.isArray(j.top_donors) ? j.top_donors.slice(0, 3) : [];
-    var inds = Array.isArray(j.top_industries) ? j.top_industries.slice(0, 3) : [];
+    var inds = Array.isArray(j.industries) ? j.industries.slice(0, 3) : [];
     return {
-      bioguideId: leg.bioguide_id, name: leg.name, chamber: leg.chamber,
-      party: leg.party, state: leg.state, cycle: j.cycle, retrieved: j.retrieved,
-      raised: sum.total_raised, spent: sum.total_spent, cash: sum.cash_on_hand,
+      bioguideId: leg.bioguide_id, name: leg.name, chamber: officeChamber(leg.office),
+      party: leg.party, state: leg.state, cycle: j.cycle, retrieved: retrievedISO(j.retrieved_at),
+      raised: t.raised, spent: t.spent, cash: t.cash,
       topDonors: donors.map(function (d) { return { name: d.name, employer: d.employer, amount: d.amount }; }),
-      topIndustries: inds.map(function (d) { return { industry: d.industry, amount: d.amount }; })
+      topIndustries: inds.map(function (d) { return { industry: d.industry, amount: d.total }; })
     };
   }
 
-  function totalsRow(sum) {
+  function totalsRow(t) {
     var cells = [
-      ['RAISED', money(sum.total_raised)],
-      ['SPENT', money(sum.total_spent)],
-      ['CASH ON HAND', money(sum.cash_on_hand)]
+      ['RAISED', money(t.raised)],
+      ['SPENT', money(t.spent)],
+      ['CASH ON HAND', money(t.cash)]
     ];
     return cells.map(function (c) {
       return '<div class="pf-mt-total"><span class="pf-mt-tlabel">' + esc(c[0]) +
@@ -4305,19 +4351,21 @@ window.pfPinups={
     }).join('');
   }
 
-  function splitBar(sum) {
-    var sm = pct(sum.small_dollar), lg = pct(sum.large_dollar);
+  function splitBar(j) {
+    var sm = pctOf(j.small_dollar_pct), lg = pctOf(j.large_dollar_pct);
     var head = '<h4>SMALL-DOLLAR VS LARGE-DOLLAR</h4>';
     if (sm == null && lg == null) return head + '<div class="pf-mt-barlegend"><span>—</span></div>';
     sm = sm == null ? 0 : sm; lg = lg == null ? 0 : lg;
+    /* BE percentages pass straight through — no ×100. Clamp the bar to 100%. */
+    var smW = Math.max(0, Math.min(100, sm)), lgW = Math.max(0, Math.min(100, lg));
     return head +
       '<div class="pf-mt-barrow">' +
-        '<div class="pf-mt-seg-sm" style="width:' + sm + '%"></div>' +
-        '<div class="pf-mt-seg-lg" style="width:' + lg + '%"></div>' +
+        '<div class="pf-mt-seg-sm" style="width:' + smW + '%"></div>' +
+        '<div class="pf-mt-seg-lg" style="width:' + lgW + '%"></div>' +
       '</div>' +
       '<div class="pf-mt-barlegend">' +
-        '<span>SMALL-DOLLAR (&lt;$200): ' + sm + '%</span>' +
-        '<span>LARGE-DOLLAR: ' + lg + '%</span>' +
+        '<span>SMALL-DOLLAR (&lt;$200): ' + pctLabel(sm) + '</span>' +
+        '<span>LARGE-DOLLAR: ' + pctLabel(lg) + '</span>' +
       '</div>';
   }
 
@@ -4337,9 +4385,10 @@ window.pfPinups={
     var head = '<h4>TOP INDUSTRIES</h4>';
     if (!xs.length) return head + '<div class="pf-mt-barlegend"><span>—</span></div>';
     return head + '<ul class="pf-mt-list">' + xs.map(function (d) {
+      /* BE contract: {industry,total,estimated} — total, not amount. */
       var badge = d.estimated ? '<span class="pf-mt-est">ESTIMATED FROM EMPLOYER DATA</span>' : '';
       return '<li><span class="pf-mt-dname">' + esc(d.industry || '—') + '</span>' + badge +
-        '<span class="pf-mt-damt">' + esc(money(d.amount)) + '</span></li>';
+        '<span class="pf-mt-damt">' + esc(money(d.total)) + '</span></li>';
     }).join('') + '</ul>';
   }
 
@@ -4349,12 +4398,12 @@ window.pfPinups={
 
   function render(container, j) {
     cssOnce();
-    var leg = j.legislator || {};
-    var sum = j.summary || null;
+    var leg = j.member || {};
+    var t = j.totals || null;
     container.innerHTML = '';
     var root = document.createElement('div');
     root.className = 'pf-mt';
-    if (!sum) {
+    if (!t) {
       root.innerHTML = '<div class="pf-mt-empty">' + esc(EMPTY_MSG) + '</div>' +
         '<div class="pf-mt-src">' + srcFooter(j) + '</div>';
       container.appendChild(root);
@@ -4364,10 +4413,10 @@ window.pfPinups={
       '<div class="pf-mt-kicker">FOLLOW THE MONEY</div>' +
       '<h3 class="pf-mt-name">' + esc(leg.name || '—') + '</h3>' +
       '<div class="pf-mt-sub">' + esc(chamberLabel(leg)) + '</div>' +
-      '<div class="pf-mt-totals">' + totalsRow(sum) + '</div>' +
-      '<div class="pf-mt-sect">' + splitBar(sum) + '</div>' +
+      '<div class="pf-mt-totals">' + totalsRow(t) + '</div>' +
+      '<div class="pf-mt-sect">' + splitBar(j) + '</div>' +
       '<div class="pf-mt-sect">' + donorList(j.top_donors) + '</div>' +
-      '<div class="pf-mt-sect">' + industryList(j.top_industries) + '</div>' +
+      '<div class="pf-mt-sect">' + industryList(j.industries) + '</div>' +
       '<div class="pf-mt-actions">' +
         '<button type="button" class="pf-mt-btn" data-mt-dl="1">DOWNLOAD</button>' +
         '<button type="button" class="pf-mt-btn pf-mt-btn-red" data-mt-sh="1">SHARE</button>' +
@@ -4420,14 +4469,22 @@ window.pfPinups={
    Causation claims are never rendered — correlation is shown, cause is never
    claimed. Members whose money block is null render vote-only rows (never
    hidden).
-   Backend contract (parallel backend wave, be/follow-the-money):
-     ?action=money_vote_card&bill_id=H.R.3633 ->
-     {ok, bill:{bill_id,title}, methodology, rows:[
-       {bioguide_id,name,chamber,party,state,vote,
-        money:{industries:[{industry,amount}]} | money:null}]}
+   Backend contract (LOCKED: be/follow-the-money @ dd9cab9 — the frontend
+   adapts; the backend is never modified):
+     ?action=money_vote_card&bill_id=H.R.1 ->
+     {ok, bill:{bill_id,title}, cycle,
+      cards:[{bioguide_id,name,chamber,party,state,position,vote_id,
+              vote_date,question,source_url,money}]}
+       money = null | {cycle, source:'FEC (api.open.fec.gov)', retrieved_at,
+                       industries:[{industry,total,estimated,copy} x3]}
+   The BE prebuilds the copy line per industry row — verbatim
+   "received $X from [industry]" (copy rule: never implies causation).
+   The card consumes d.copy when present and only re-renders the same
+   shape as a fallback. Members whose money block is null render
+   vote-only rows (never hidden).
    Fail-soft: endpoint down / {ok:false} / malformed response -> the mount
    section hides itself entirely, never a broken widget. ok:true with zero
-   rows -> the honest empty state ("No vote records returned for this bill.").
+   cards -> the honest empty state ("No vote records returned for this bill.").
    No invented figures — every number shown comes from the response.
    Integration hook (Release Eng wires this from the bill detail view on the
    fe/legislation-tracker sibling branch; do NOT call it from this module):
@@ -4512,15 +4569,22 @@ window.pfPinups={
     return (ch + ' · ' + String(r.party || '—') + ' · ' + String(r.state || '—')).toUpperCase();
   }
 
-  /* One legislator row. money:null -> vote-only row, never hidden. */
+  /* One legislator row. money:null -> vote-only row, never hidden.
+     The BE prebuilds the copy line ("received $X from [industry]") on each
+     industry row — consume d.copy verbatim when present; the composed
+     fallback renders the identical shape from d.total. */
+  function indLine(d) {
+    if (d.copy) return esc(d.copy);
+    return 'received <span class="pf-mv-amt">' + esc(money(d.total)) + '</span> from <b>' +
+      esc(d.industry || '—') + '</b>';
+  }
   function rowHtml(r) {
     var inds = (r.money && Array.isArray(r.money.industries)) ? r.money.industries.slice(0, 3) : [];
     var indHtml = '';
     if (r.money) {
       if (inds.length) {
         indHtml = '<ul class="pf-mv-inds">' + inds.map(function (d) {
-          return '<li>received <span class="pf-mv-amt">' + esc(money(d.amount)) + '</span> from <b>' +
-            esc(d.industry || '—') + '</b></li>';
+          return '<li>' + indLine(d) + '</li>';
         }).join('') + '</ul>';
       } else {
         indHtml = '<ul class="pf-mv-inds"><li>No industry donor data reported.</li></ul>';
@@ -4529,7 +4593,7 @@ window.pfPinups={
     return '<article class="pf-mv-row">' +
       '<div class="pf-mv-name">' + esc(r.name || '—') +
         '<span class="pf-mv-sub">' + esc(chamberLabel(r)) + '</span></div>' +
-      '<div class="pf-mv-vote">VOTED <b>' + esc(r.vote || '—') + '</b></div>' +
+      '<div class="pf-mv-vote">VOTED <b>' + esc(r.position || '—') + '</b></div>' +
       indHtml +
       '</article>';
   }
@@ -4541,11 +4605,11 @@ window.pfPinups={
   function render(container, j) {
     cssOnce();
     var bill = j.bill || {};
-    var rows = Array.isArray(j.rows) ? j.rows : [];
+    var cards = Array.isArray(j.cards) ? j.cards : [];
     container.innerHTML = '';
     var root = document.createElement('div');
     root.className = 'pf-mv';
-    if (!rows.length) {
+    if (!cards.length) {
       root.innerHTML = '<div class="pf-mv-empty">' + esc(EMPTY_MSG) + '</div>';
       container.appendChild(root);
       return;
@@ -4553,7 +4617,7 @@ window.pfPinups={
     var html = '<div class="pf-mv-kicker">FOLLOW THE MONEY</div>' +
       '<h3 class="pf-mv-title">' + esc(HEADER) + '</h3>' +
       '<div class="pf-mv-bill">' + esc(bill.bill_id || '—') + ' — ' + esc(bill.title || '—') + '</div>';
-    for (var i = 0; i < rows.length; i++) html += rowHtml(rows[i] || {});
+    for (var i = 0; i < cards.length; i++) html += rowHtml(cards[i] || {});
     html += '<div class="pf-mv-method">' + esc(j.methodology || METHOD) + '</div>';
     root.innerHTML = html;
     container.appendChild(root);

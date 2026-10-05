@@ -143,6 +143,12 @@ var BUNDLES = {
        can fire. Never auto-mounts — Release Eng calls PFWallShame.mount()
        from the bill detail view (fe/legislation-tracker). */
     'core/wall-of-shame.js',
+    /* Stock Trades (2026-10-05): legislator money tab (PFTradesTab.mount).
+       Right after wall-of-shame.js — same PHQ silo family, rides the
+       phq-trades painter registered above. Never auto-mounts — Release Eng
+       calls PFTradesTab.mount() from the legislator money view
+       (fe/follow-the-money). */
+    'core/trades-tab.js',
     /* creator-recruit: shared recruiting toolbar for roster cards + catalog
        pages. Last: needs PFShare (share-image.js) + the catalog renderers. */
     'pages/creator-recruit.js',

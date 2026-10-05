@@ -1,7 +1,8 @@
 /* core/share-image-phq.js  |  PF v1.4.3 | POLITICAL HQ SHARE POSTERS.
-   Five custom PFShare painters (1080x1350, house palette) for the Political HQ
+   Six custom PFShare painters (1080x1350, house palette) for the Political HQ
    rollout: pressure-campaign card, prediction-result card, voting scorecard,
-   cell-competition winner card, wall-of-shame legislator card.
+   cell-competition winner card, wall-of-shame legislator card, stock-trades
+   portfolio card.
    Spec: ~/workspace/hidden/phq-share-specs.md.
    Data contract (painter receives one data object; missing optional fields
    degrade gracefully; scorecard missing fields render '—', never invented):
@@ -11,6 +12,9 @@
      cellwin:    {cellName, verified, members, xp, runnerUp, marginXp, mvpCallsign, weekStart}
      wallshame:  {billId, billTitle, name, chamber, party, state, againstVotes,
                   position, question, voteDates[ISO], sourceUrl}
+     trades:     {name, chamber, party, state, tradeCount,
+                  topTickers[4] {ticker, n}, dateFrom, dateTo (ISO),
+                  sources[] {label, url}, asOf (ISO date)}
    Callsigns resolve at paint time via callsignOf() (identity store /
    PFCallsign) — never passed in data. Painters that render the callsign
    inline set cv._pfStamped = true so PFShare.stampCallsign stays a no-op
@@ -22,7 +26,8 @@
      PF.PHQShare.paint('phq-cellwin', {...})   -> raw canvas (previews/tests)
    Routes through PFShare.shareImage/saveImage, so the callsign-claim gate,
    the idempotent stamp, and the pf-share-image credit all ride along.
-   KILL: ?pf_off=phq-share  or  localStorage pf_disabled_v1='["phq-share"]' */
+   KILL: ?pf_off=phq-share  or  localStorage pf_disabled_v1='["phq-share"]'
+   Card kill: ?pf_off=trades-card disables the phq-trades painter only. */
 (function () {
   'use strict';
   var PF = window.PF;
@@ -31,13 +36,14 @@
   window.pfPhqShareDone = true;
 
   var W = 1080, H = 1350;
-  var IDS = ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame'];
+  var IDS = ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame', 'phq-trades'];
   var TITLES = {
     'phq-pressure': 'PRESSURE CAMPAIGN',
     'phq-prediction': 'PREDICTION RESULT',
     'phq-scorecard': 'VOTING SCORECARD',
     'phq-cellwin': 'CELL VICTORY',
-    'phq-wallshame': 'WALL OF SHAME'
+    'phq-wallshame': 'WALL OF SHAME',
+    'phq-trades': 'THEIR PORTFOLIO'
   };
   var DEEP = 'MTCSTW.COM/POLITICAL-HQ';
   var PENDING = {};
@@ -331,7 +337,8 @@
   }
   function chamberLine(d) {
     var ch = String(d.chamber || '').toLowerCase();
-    ch = ch === 'house' ? 'U.S. HOUSE' : (ch === 'senate' ? 'U.S. SENATE' : String(d.chamber || '—'));
+    ch = (ch === 'house' || ch === 'rep') ? 'U.S. HOUSE'
+      : ((ch === 'senate' || ch === 'sen') ? 'U.S. SENATE' : String(d.chamber || '—'));
     return (ch + ' \u00b7 ' + String(d.party || '—') + ' \u00b7 ' + String(d.state || '—')).toUpperCase();
   }
   function fullDate(ws) {
@@ -459,6 +466,77 @@
   }
 
   /* ---------------------------------------------------------------- */
+  /* Surface 6 — Stock Trades Portfolio Card                             */
+  /* ---------------------------------------------------------------- */
+  /* "THEIR PORTFOLIO": a member's STOCK Act trade footprint — top tickers
+     by trade count, all from the data object (endpoint rows). Amounts are
+     RANGES on the tab; the card shows counts and tickers only, never dollar
+     figures (no midpoint, no exact). Mandatory verbatim footer (CEO
+     2026-10-05) with the actual source links + retrieval date filled in.
+     No trade-before-vote inference anywhere on this card. */
+  function paintTrades(d, cv, x) {
+    base(x); kicker(x);
+    badge(x, 'THEIR PORTFOLIO', 280, '#c1121f', 40);
+    var cs = callsignOf();
+    var y = 380;
+    var name = String(d.name || '—').toUpperCase();
+    var fit = fitFont(x, name, 88, 44, 910);
+    var lh = Math.round(fit * 0.98);
+    x.fillStyle = '#f5ead6';
+    wrap(x, name, 910).slice(0, 2)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += lh; });
+    y += 2;
+    x.fillStyle = '#c9bfa8'; x.font = '700 36px Arial,sans-serif';
+    wrap(x, chamberLine(d), 910).slice(0, 1)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += 46; });
+    /* headline count */
+    y = Math.max(620, y + 18);
+    var n = Math.max(0, parseInt(d.tradeCount, 10) || 0);
+    x.fillStyle = '#e8b923';
+    fitFont(x, n + (n === 1 ? ' STOCK ACT TRADE' : ' STOCK ACT TRADES') + ' ON FILE', 54, 34, 910);
+    x.fillText(n + (n === 1 ? ' STOCK ACT TRADE' : ' STOCK ACT TRADES') + ' ON FILE', W / 2, y);
+    y += 56;
+    /* top tickers by trade count (cap 4 — vertical budget) */
+    var tks = Array.isArray(d.topTickers) ? d.topTickers.slice(0, 4) : [];
+    if (tks.length) {
+      x.fillStyle = '#f5ead6'; x.font = '700 34px Arial,sans-serif';
+      x.fillText('MOST-TRADED:', W / 2, y); y += 44;
+      x.font = '900 44px "Arial Black",Arial,sans-serif';
+      for (var i = 0; i < tks.length; i++) {
+        var tl = String(tks[i].ticker || '—').toUpperCase() + ' \u00d7' + (parseInt(tks[i].n, 10) || 0);
+        x.fillStyle = i === 0 ? '#c1121f' : '#f5ead6';
+        fitFont(x, tl, 44, 30, 910);
+        x.fillText(tl, W / 2, y); y += 56;
+      }
+    } else {
+      x.fillStyle = '#c9bfa8'; x.font = '400 34px Arial,sans-serif';
+      x.fillText('NO TICKERED TRADES ON FILE', W / 2, y); y += 50;
+    }
+    /* date span */
+    y = Math.max(950, y + 8);
+    x.fillStyle = '#c9bfa8'; x.font = '400 30px Arial,sans-serif';
+    var span = (d.dateFrom && d.dateTo)
+      ? fullDate(d.dateFrom) + ' \u2014 ' + fullDate(d.dateTo)
+      : '—';
+    x.fillText('TRADES SPAN: ' + span, W / 2, y); y += 40;
+    /* mandatory verbatim footer (CEO 2026-10-05) — sources + date filled in */
+    var srcs = Array.isArray(d.sources) ? d.sources : [];
+    var surls = srcs.map(function (s) {
+      return String(s.url || s.label || '').replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/$/, '');
+    }).filter(function (u) { return !!u; });
+    var foot = 'PUBLIC RECORDS SHOWN SIDE BY SIDE. A CONTRIBUTION/TRADE DOES NOT PROVE IT CAUSED A VOTE. SOURCES: ' + (surls.length ? surls.join(' \u00b7 ').toUpperCase() : '—') + '. FIGURES AS OF ' + (d.asOf ? fullDate(d.asOf).toUpperCase() : '—') + '.';
+    y = Math.max(1000, y + 8);
+    x.fillStyle = '#c9bfa8'; x.font = '400 24px Arial,sans-serif';
+    wrap(x, foot, 910).slice(0, 4)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += 34; });
+    y = Math.max(1140, y + 8);
+    if (cs) y = csLine(cv, x, y, cs) + 8;
+    y = Math.max(1185, y);
+    bottomStack(x, 'fight');
+    return cv;
+  }
+
+  /* ---------------------------------------------------------------- */
   /* Painter table + registration                                       */
   /* ---------------------------------------------------------------- */
   var PAINT = {
@@ -466,7 +544,8 @@
     'phq-prediction': paintPrediction,
     'phq-scorecard': paintScorecard,
     'phq-cellwin': paintCellwin,
-    'phq-wallshame': paintWallShame
+    'phq-wallshame': paintWallShame,
+    'phq-trades': paintTrades
   };
   function paintOne(id, data) {
     var p = PAINT[id];
@@ -497,6 +576,8 @@
 
   function go(id, data, kind, opts) {
     if (IDS.indexOf(id) === -1) return false;
+    /* Card kill: ?pf_off=trades-card disables the phq-trades painter only. */
+    if (id === 'phq-trades' && PF && PF.skip('trades-card')) return false;
     opts = opts || {};
     var PS = null;
     try { PS = window.PFShare; } catch (e) {}

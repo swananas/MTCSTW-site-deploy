@@ -125,12 +125,15 @@
     if(!d.callsign){ if(err) err.textContent="Give your war card a callsign."; return; }
     toast("Minting your war card\u2026");
     drawWarCard(d,function(cv){
-      if(!cv){ if(err) err.textContent="Card failed \u2014 try again."; return; }
-      var fn="war-card-"+String(d.callsign).replace(/[^a-z0-9]+/gi,"-").toLowerCase()+".png";
+      if(!cv){ toast("Canvas unavailable \u2014 try again."); return; }
+      /* P3 (2026-10-04): photo war cards ship as JPEG q0.85; glyph fallback stays PNG. */
+      var jpg=!!(cv&&cv._pfPhoto);
+      var fn="war-card-"+String(d.callsign).replace(/[^a-z0-9]+/gi,"-").toLowerCase()+(jpg?".jpg":".png");
+      var enc=jpg?{format:"image/jpeg",quality:0.85}:null;
       try{
         if(!window.PFShare){ if(err) err.textContent="Share engine still loading."; return; }
-        if(mode==="share") PFShare.shareImage(cv,fn,d.callsign+" \u2014 Creator War Card","war-card");
-        else PFShare.saveImage(cv,fn,"war-card");
+        if(mode==="share") PFShare.shareImage(cv,fn,d.callsign+" \u2014 Creator War Card","war-card",enc);
+        else PFShare.saveImage(cv,fn,"war-card",enc);
       }catch(e){ if(err) err.textContent="Share unavailable here."; }
     });
   }
@@ -140,7 +143,7 @@
   function drawWarCard(d,cb){
     var W=1080,H=1350;
     var cv=document.createElement("canvas"); cv.width=W; cv.height=H;
-    var x=cv.getContext("2d");
+    var x=cv.getContext("2d"); if(!x){ cb(null); return; }
     function wrap(text,font,maxW,maxLines){
       x.font=font; x.textAlign="center";
       var words=String(text||"").split(/\s+/), lines=[], cur="";
@@ -200,6 +203,7 @@
           var sc=Math.max(bw/iw,bh/ih), dw=iw*sc, dh=ih*sc;
           x.save(); x.beginPath(); x.rect(bx,by,bw,bh); x.clip();
           x.drawImage(img,bx+(bw-dw)/2,by+(bh-dh)/2,dw,dh); x.restore();
+          try{ cv._pfPhoto=true; }catch(e){} /* P3 2026-10-04: photo landed — JPEG path */
         } else glyph();
       }catch(e){ glyph(); }
       paintRest();

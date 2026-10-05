@@ -499,6 +499,12 @@ try{
     luckyToast(d.xp||0,d.mult||0);
   });
 }catch(e){}
+/* Loot pull share (2026-10-04 P2): the old detached-anchor download broke on
+   Firefox/iOS (anchor never attached to the DOM; iOS ignores the download
+   attribute) and failures were swallowed. Same robust pattern as
+   core/share-image.js — Web Share with files when navigator.canShare allows,
+   iOS-safe download fallbacks, real toast on failure. Credits the once-per-day
+   share gate only on a completed share or download — never on cancel. */
 function shareLoot(reward,rk){
   try{
     var c=document.createElement("canvas"); c.width=1080; c.height=1080;
@@ -521,12 +527,66 @@ function shareLoot(reward,rk){
     g.fillText("JOIN THE FIGHT.",540,840);
     g.fillStyle="#f5ead6"; g.font="bold 48px monospace";
     g.fillText("MTCSTW.COM",540,940);
-    var a=document.createElement("a");
-    a.download="loot-pull-"+Date.now()+".png";
-    a.href=c.toDataURL("image/png"); a.click();
-    /* Firing the share counts as content shared — feeds the combo meter. */
-    try{ document.dispatchEvent(new CustomEvent("pf-content-shared",{detail:{kind:"loot"}})); }catch(e3){}
-  }catch(e){}
+    try{ if(window.PFShare&&window.PFShare.stampCallsign) c=window.PFShare.stampCallsign(c)||c; }catch(e2){}
+    var filename="loot-pull-"+Date.now()+".png";
+    /* A completed share counts as content shared (feeds the combo meter)
+       and credits the once-per-day share gate. */
+    function credit(){
+      try{ if(window.PF&&PF.creditShare) PF.creditShare("dopa","share"); }catch(e){}
+      try{ document.dispatchEvent(new CustomEvent("pf-content-shared",{detail:{kind:"loot"}})); }catch(e3){}
+    }
+    function dl(blob){
+      var url=URL.createObjectURL(blob);
+      var ios=false;
+      try{ ios=/iPad|iPhone|iPod/.test(navigator.userAgent||""); }catch(e){}
+      if(ios){
+        /* iOS ignores the download attribute and detached anchors — open the
+           image in a new tab so the user can long-press to save it. */
+        try{ window.open(url,"_blank"); }catch(e){}
+        credit();
+        toast("Long-press the image \\u2014 Save to Photos.");
+        return;
+      }
+      try{
+        var a=document.createElement("a");
+        a.href=url; a.download=filename;
+        document.body.appendChild(a); a.click();
+        setTimeout(function(){ try{URL.revokeObjectURL(url);}catch(e){} a.remove(); },4000);
+        credit();
+        toast("Pull saved. Go spread the word.");
+      }catch(e){ toast("Save failed \\u2014 try again."); }
+    }
+    function gotBlob(blob){
+      if(!blob){ toast("Poster failed \\u2014 try again."); return; }
+      var file=null;
+      try{ file=new File([blob],filename,{type:"image/png"}); }catch(e){}
+      if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
+        var cs2=""; try{ cs2=window.PFCallsign?window.PFCallsign():""; }catch(e){}
+        var txt="My supply-crate pull from The Propaganda Factory"+(cs2?" ("+cs2+")":"")+" \\u2014 https://www.mtcstw.com";
+        try{
+          navigator.share({files:[file],title:"Loot pull",text:txt}).then(
+            function(){ credit(); toast("Shared. Go spread the word."); },
+            function(err){
+              if(err&&err.name==="AbortError"){ toast("Share cancelled."); }
+              else dl(blob);
+            });
+        }catch(e){ dl(blob); }
+        return;
+      }
+      dl(blob);
+    }
+    try{
+      if(c.toBlob){ c.toBlob(function(b){ gotBlob(b); },"image/png"); }
+      else{
+        /* toBlob missing (old browsers): toDataURL -> fetch -> blob. */
+        try{
+          fetch(c.toDataURL("image/png")).then(function(r){ return r.blob(); })
+            .then(function(b){ gotBlob(b); })
+            .catch(function(){ toast("Poster failed \\u2014 try again."); });
+        }catch(e){ toast("Poster failed \\u2014 try again."); }
+      }
+    }catch(e){ toast("Poster failed \\u2014 try again."); }
+  }catch(e){ toast("Poster failed \\u2014 try again."); }
 }
 function comebackBanner(xp){
   ovCss();

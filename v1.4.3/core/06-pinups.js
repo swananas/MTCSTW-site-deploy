@@ -189,6 +189,7 @@ function pump(){
   ov.onclick=function(e){ if(e.target===ov) done(); };
   setTimeout(function(){ if(document.getElementById('pf-pinup-ov')) done(); }, 9000);
 }
+function pinupToast(m){ try{ if(PF&&PF.toast) PF.toast(m); }catch(e){} }
 function sharePinup(p){
   try{
     var svgStr=art(p,false);
@@ -207,23 +208,33 @@ function sharePinup(p){
         cx.textAlign='center'; cx.fillText('JOIN THE FIGHT \u2014 MTCSTW.COM',300,776);
         try{ if(window.PFShare&&window.PFShare.stampCallsign) window.PFShare.stampCallsign(cv); }catch(e){}
         cv.toBlob(function(b){
-          if(!b){ credit(); return; }
+          if(!b){ pinupToast('Pinup failed — try again.'); return; }
           var file=new File([b],'pfn-pinup-'+p.id.replace(/[^a-z0-9]+/gi,'-')+'.png',{type:'image/png'});
           var credited=function(){ credit(); };
-          if(navigator.canShare && navigator.canShare({files:[file]})){
-            navigator.share({files:[file],title:p.title+' — Propaganda Factory'}).then(credited,credited);
-          }else{
+          function downloadPinup(){
             var a=document.createElement('a'); a.href=URL.createObjectURL(b);
             a.download=file.name; document.body.appendChild(a); a.click();
             setTimeout(function(){ try{URL.revokeObjectURL(a.href);}catch(e){} a.remove(); },4000);
+          }
+          if(navigator.canShare && navigator.canShare({files:[file]})){
+            /* P2 (2026-10-04): credit ONLY on actual share completion.
+               AbortError (cancel) must NOT credit. */
+            navigator.share({files:[file],title:p.title+' — Propaganda Factory'}).then(
+              credited,
+              function(err){
+                if(err&&err.name==='AbortError'){ pinupToast('Share cancelled.'); }
+                else{ credited(); downloadPinup(); }
+              });
+          }else{
+            downloadPinup();
             credited();
           }
         },'image/png');
-      }catch(e){ credit(); }
+      }catch(e){ pinupToast('Pinup failed — try again.'); }
     };
-    img.onerror=function(){ credit(); };
+    img.onerror=function(){ pinupToast('Pinup failed — try again.'); };
     img.src=url;
-  }catch(e){ credit(); }
+  }catch(e){ pinupToast('Pinup failed — try again.'); }
   function credit(){
     /* once-per-day share gate: a pinup share plus any game share can't double-count the day */
     try{ if(PF && typeof PF.creditShare==='function') PF.creditShare('pinups','share'); }catch(e){}

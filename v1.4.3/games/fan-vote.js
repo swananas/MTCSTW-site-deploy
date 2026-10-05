@@ -303,11 +303,15 @@
     var msgEl=document.getElementById('pf-vote-copymsg');
     var say=function(t){ if(msgEl)msgEl.textContent=t; };
     say('Building your poster\\u2026');
+    /* P2 (2026-10-04): once-per-day share gate — credit on a completed share
+       or a completed download, never on cancel. */
+    function credit(){ try{ if(window.PF&&PF.creditShare) PF.creditShare('fan-vote','share'); }catch(e){} }
     function dl(blob){
       var a=document.createElement('a');
-      a.href=URL.createObjectURL(blob);a.download='fan-vote-'+(c.slug||'pick')+'.png';
+      a.href=URL.createObjectURL(blob);a.download='fan-vote-'+(c.slug||'pick')+'.jpg';
       document.body.appendChild(a);a.click();
       setTimeout(function(){ try{URL.revokeObjectURL(a.href);}catch(e){} a.remove(); },4000);
+      credit();
       say('Poster downloaded \\u2014 on iPhone open it from Files/Downloads, tap Share, then Save Image to put it in Photos.');
     }
     votePoster(c,mode).then(function(canvas){
@@ -316,7 +320,7 @@
       canvas.toBlob(function(blob){
         if(!blob){ say('Poster failed \\u2014 try again.');return; }
         var file=null;
-        try{ file=new File([blob],'fan-vote-'+(c.slug||'pick')+'.png',{type:'image/png'}); }catch(e){}
+        try{ file=new File([blob],'fan-vote-'+(c.slug||'pick')+'.jpg',{type:'image/jpeg'}); }catch(e){}
         var cs=''; try{ cs=(window.PFCallsign && PFCallsign())||''; }catch(e){}
         var vlink='https://www.mtcstw.com';
         try{ if(window.PF&&typeof PF.shareUrl==='function') vlink=PF.shareUrl(vlink); }catch(e){}
@@ -325,13 +329,13 @@
           vlink+' #SickLeftRadicals';
         if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
           navigator.share({files:[file],title:'Fan Vote',text:txt}).then(
-            function(){ say('Shared. Go spread the word.'); },
+            function(){ credit(); say('Shared. Go spread the word.'); },
             function(e){
               if(e&&e.name==='AbortError'){ say('Share cancelled.'); }
-              else { dl(blob); }
+              else { credit(); dl(blob); }
             });
-        } else dl(blob);
-      },'image/png');
+        } else { credit(); dl(blob); }
+      },'image/jpeg',0.85);
     });
   }
   function showVoted(name, weight){

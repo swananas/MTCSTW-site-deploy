@@ -273,7 +273,7 @@
         title:"\u2622 MEDIA NUKE \u2622",
         tag:"The network is charging the blast",
         lines:lines,
-        cta:"JOIN THE FIGHT"
+        cta:"JOIN THE FIGHT."
       };
       return PFShare.poster("nuke-rally");
     }catch(e){ return null; }

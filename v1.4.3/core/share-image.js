@@ -241,10 +241,15 @@
   /* ------------------------------------------------------------------ */
   /* Blob + delivery                                                     */
   /* ------------------------------------------------------------------ */
-  function canvasBlob(cv, cb) {
+  /* P3 (2026-10-04): optional {format, quality} — defaults to PNG exactly as
+     before, so every existing call site keeps working unchanged. */
+  function canvasBlob(cv, cb, opts) {
+    opts = opts || {};
+    var format = opts.format || 'image/png';
+    var quality = (opts.quality == null) ? 0.92 : opts.quality;
     try {
-      if (cv.toBlob) { cv.toBlob(function (b) { cb(b); }, 'image/png'); return; }
-      var u = cv.toDataURL('image/png');
+      if (cv.toBlob) { cv.toBlob(function (b) { cb(b); }, format, quality); return; }
+      var u = cv.toDataURL(format, quality);
       fetch(u).then(function (r) { return r.blob(); }).then(cb).catch(function () { cb(null); });
     } catch (e) { cb(null); }
   }
@@ -290,7 +295,10 @@
   try { if (PF) PF.creditShare = creditShare; } catch (e) {}
   try { window.pfCreditShare = creditShare; } catch (e) {}
 
-  function shareImage(cv, filename, title, gameId) {
+  function shareImage(cv, filename, title, gameId, opts) {
+    opts = opts || {};
+    var format = opts.format || 'image/png';
+    var quality = (opts.quality == null) ? 0.92 : opts.quality;
     try{
       if(!callsignOf()&&!_pfNoCsWarned){
         _pfNoCsWarned=true;
@@ -301,7 +309,7 @@
     canvasBlob(cv, function (blob) {
       if (!blob) { toast('Poster failed \u2014 try again.'); return; }
       var file = null;
-      try { file = new File([blob], filename, { type: 'image/png' }); } catch (e) {}
+      try { file = new File([blob], filename, { type: format }); } catch (e) {}
       if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
           navigator.share({ files: [file], title: title, text: shareText(title) }).then(
@@ -320,7 +328,10 @@
     });
   }
 
-  function saveImage(cv, filename, gameId) {
+  function saveImage(cv, filename, gameId, opts) {
+    opts = opts || {};
+    var format = opts.format || 'image/png';
+    var quality = (opts.quality == null) ? 0.92 : opts.quality;
     try { cv = stampCallsign(cv) || cv; } catch (e) {}
     canvasBlob(cv, function (blob) {
       if (!blob) { toast('Save failed \u2014 try again.'); return; }
@@ -328,7 +339,7 @@
         /* iOS Safari ignores the download attribute — the share sheet is the
            only reliable route into Photos ("Save Image" is one tap). */
         var file = null;
-        try { file = new File([blob], filename, { type: 'image/png' }); } catch (e) {}
+        try { file = new File([blob], filename, { type: format }); } catch (e) {}
         if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
           try {
             navigator.share({ files: [file], title: 'Save to Photos' }).then(
@@ -404,7 +415,13 @@
       var cp = CUSTOM[gameId];
       if (cp) {
         try { cp(function (cv) {
-          if (cv) shareImage(cv, 'pfn-' + gameId + '.png', g.title, gameId);
+          if (cv) {
+            /* P3 (2026-10-04): photo-bearing painters set cv._pfPhoto — those
+               ship as JPEG q0.85; everything else stays PNG as before. */
+            var pj = !!(cv && cv._pfPhoto);
+            shareImage(cv, 'pfn-' + gameId + (pj ? '.jpg' : '.png'), g.title, gameId,
+              pj ? { format: 'image/jpeg', quality: 0.85 } : null);
+          }
           else toast('Poster failed \u2014 try again.');
         }); } catch (e) { toast('Poster failed \u2014 try again.'); }
         return;
@@ -418,7 +435,11 @@
       var cp2 = CUSTOM[gameId];
       if (cp2) {
         try { cp2(function (cv) {
-          if (cv) saveImage(cv, 'pfn-' + gameId + '.png', gameId);
+          if (cv) {
+            var pj2 = !!(cv && cv._pfPhoto);
+            saveImage(cv, 'pfn-' + gameId + (pj2 ? '.jpg' : '.png'), gameId,
+              pj2 ? { format: 'image/jpeg', quality: 0.85 } : null);
+          }
           else toast('Save failed \u2014 try again.');
         }); } catch (e) { toast('Save failed \u2014 try again.'); }
         return;

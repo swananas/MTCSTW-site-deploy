@@ -393,7 +393,12 @@ function render(){
       x.fillText("JOIN THE FIGHT.",W/2,330);
       x.fillStyle="#f5ead6"; x.font="700 44px Arial,sans-serif";
       x.fillText("Claim your callsign with my code:",W/2,470);
-      x.fillStyle="#c1121f"; x.font="900 120px \\\"Arial Black\\\",Arial,sans-serif";
+      /* 2026-10-04 P4 #12: shrink-to-fit -- long callsigns stay inside the canvas. */
+      x.fillStyle="#c1121f"; x.textAlign="center";
+      var csSize=120;
+      x.font="900 "+csSize+"px \\\"Arial Black\\\",Arial,sans-serif";
+      while(csSize>36&&x.measureText(cs).width>W-200){ csSize-=4;
+        x.font="900 "+csSize+"px \\\"Arial Black\\\",Arial,sans-serif"; }
       x.fillText(cs,W/2,660);
       x.fillStyle="#c9bfa8"; x.font="400 38px Arial,sans-serif";
       x.fillText(link,W/2,780);

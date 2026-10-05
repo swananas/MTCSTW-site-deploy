@@ -463,8 +463,10 @@ function drawBoostCard(){
   ctx.fillText(b.tipped+" XP TIPPED \u00b7 1 XP = "+BOOST_RATIO+" SIGNAL",540,730);
   ctx.fillStyle="#f5f0e1"; ctx.font="36px Arial";
   wrapLines(ctx,"Pump your creator. Daily Orders on mtcstw.com.",860).forEach(function(l,i){ ctx.fillText(l,540,880+i*52); });
-  ctx.fillStyle="#ff5a00"; ctx.font="bold 44px Arial";
+  ctx.fillStyle="#c1121f"; ctx.font="bold 44px Arial";
   ctx.fillText("MTCSTW.COM",540,1180);
+  ctx.font="bold 40px Arial";
+  ctx.fillText("JOIN THE FIGHT.",540,1236);
   return cv;
 }
 function shareBoostCard(){
@@ -479,6 +481,14 @@ function shareBoostCard(){
   var done2=function(){
     var r=pumpBoost("share");
     renderBoost();
+    /* Route boost-card shares through the shared once-per-day gate so they
+       count toward the daily share task (mirrors shareOrdersImage/shareImage:
+       credit only on a confirmed share or a completed download). */
+    try{
+      if(PF && typeof PF.creditShare==='function'){ PF.creditShare('daily-orders','share'); }
+      else if(typeof window.pfCreditShare==='function'){ window.pfCreditShare('daily-orders','share'); }
+      else { document.dispatchEvent(new CustomEvent('pf-share-image',{detail:{day:new Date().toISOString().slice(0,10)}})); }
+    }catch(e){}
   };
   try{
     var cv=drawBoostCard(); if(!cv) return;
@@ -680,6 +690,7 @@ function drawRaidCard(cb){
         x.save(); x.beginPath(); x.rect(bx,by,bw,bh); x.clip();
         x.drawImage(img,bx+(bw-dw)/2,by+(bh-dh)/2,dw,dh); x.restore();
         x.strokeStyle="#c1121f"; x.lineWidth=6; x.strokeRect(bx,by,bw,bh);
+        try{ cv._pfPhoto=true; }catch(e){} /* P3 2026-10-04: photo landed — JPEG path */
       } else { paintGlyph(); }
     }catch(e){ paintGlyph(); }
     finish();
@@ -979,24 +990,29 @@ function drawOrdersCard(){
     var done=rec.done.some(function(e){return e.m===mi;});
     x.fillStyle='#c1121f';x.font='900 60px "Arial Black",Arial,sans-serif';
     x.fillText('0'+(ix+1),120,y);
-    x.fillStyle=done?'#c1121f':'#f5ead6';x.font='400 37px Arial,sans-serif';
+    x.fillStyle=done?'#c1121f':'#f5ead6';x.font='400 36px Arial,sans-serif';
     var lines=wrapLines(x,m.t,W-360);
-    lines.forEach(function(ln,i){x.fillText(ln,300,y-14+i*48);});
-    if(done){x.fillStyle='#c1121f';x.font='700 30px Arial,sans-serif';x.fillText('\\u2713 REPORTED',300,y-14+lines.length*48+6);}
-    y+=Math.max(150,lines.length*48+86);
+    /* FOOTER_RESERVE (2026-10-04): cap mission text at 2 lines so the
+       variable-length content above can never reach the hard-anchored
+       footer block (MTCSTW.COM at H-170). */
+    if(lines.length>2){ lines=lines.slice(0,2); lines[1]+='\\u2026'; }
+    lines.forEach(function(ln,i){x.fillText(ln,300,y-14+i*42);});
+    if(done){x.fillStyle='#c1121f';x.font='700 30px Arial,sans-serif';x.fillText('\\u2713 REPORTED',300,y-14+lines.length*42+6);}
+    y+=Math.max(146,lines.length*42+78);
   });
   x.textAlign='left';
   var fop=fieldOp(), fopLines=wrapLines(x,'FIELD OP: '+fop.label+(rec.opDone?' \u2713':''),W-360);
+  if(fopLines.length>2){ fopLines=fopLines.slice(0,2); fopLines[1]+='\u2026'; }
   x.fillStyle='#e8b923';x.font='900 30px "Arial Black",Arial,sans-serif';
-  fopLines.forEach(function(ln,i){x.fillText(ln,120,y+i*42);});
-  y+=fopLines.length*42+36;
+  fopLines.forEach(function(ln,i){x.fillText(ln,120,y+i*40);});
+  y+=fopLines.length*40+28;
   x.textAlign='center';
   var streak=(d.o&&d.o.streak)||0;
   x.fillStyle='#c1121f';x.font='900 40px "Arial Black",Arial,sans-serif';
-  x.fillText(streak>0?('STREAK: '+streak+' DAY'+(streak===1?'':'S')):'DAY ONE. START THE STREAK.',W/2,y+20);y+=80;
+  x.fillText(streak>0?('STREAK: '+streak+' DAY'+(streak===1?'':'S')):'DAY ONE. START THE STREAK.',W/2,y+18);y+=76;
   var id=ident(),cs='';
   try{cs=String(id.callsign||'').toUpperCase();}catch(e){}
-  if(cs){x.fillStyle='#c9bfa8';x.font='400 30px Arial,sans-serif';x.fillText('ORDERS FOR: '+cs,W/2,y+10);y+=56;try{cv._pfStamped=true;}catch(e){}}
+  if(cs){x.fillStyle='#c9bfa8';x.font='400 30px Arial,sans-serif';x.fillText('ORDERS FOR: '+cs,W/2,y+8);y+=52;try{cv._pfStamped=true;}catch(e){}}
   x.fillStyle='#f5ead6';x.font='900 62px "Arial Black",Arial,sans-serif';
   x.fillText('MTCSTW.COM',W/2,H-170);
   x.fillStyle='#c1121f';x.font='900 30px "Arial Black",Arial,sans-serif';

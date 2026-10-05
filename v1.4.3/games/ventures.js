@@ -267,6 +267,9 @@ function mintCertificate(vid){
   function done(url){
     var a=document.createElement("a"); a.href=url; a.download="venture-certificate.png";
     document.body.appendChild(a); a.click(); setTimeout(function(){a.remove();},500);
+    /* P2 (2026-10-04): once-per-day share gate — the minted certificate
+       download is a completed share. */
+    try{ if(window.PF&&PF.creditShare) PF.creditShare("ventures","share"); }catch(e){}
     toast("Certificate minted. Post it.");
   }
   try{

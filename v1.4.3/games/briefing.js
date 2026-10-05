@@ -542,13 +542,17 @@ function dropPaintPoster(done){
     x.fillStyle="#f5ead6"; x.font="900 52px \\\"Arial Black\\\",Arial,sans-serif";
     dropWrap(x,head,W-170).slice(0,5).forEach(function(l){ x.fillText(l,W/2,y); y+=64; });
     y+=22;
+    /* 2026-10-04 P4 #11: footer reservation -- the body is capped so it never
+       enters the footer zone (MTCSTW.COM at H-168), and the streak line gets a
+       guaranteed slot instead of being silently skipped when space runs out. */
     x.fillStyle="#c9bfa8"; x.font="400 38px Arial,sans-serif";
-    dropWrap(x,body,W-210).slice(0,7).forEach(function(l){ x.fillText(l,W/2,y); y+=52; });
+    var streakSlot=70, bodyMaxY=(H-168)-streakSlot;
+    var bodyLines=dropWrap(x,body,W-210);
+    var avail=Math.max(1,Math.floor((bodyMaxY-y)/52));
+    bodyLines.slice(0,Math.min(7,avail)).forEach(function(l){ x.fillText(l,W/2,y); y+=52; });
     y+=26;
-    if(y<H-320){
-      x.fillStyle="#ff5a00"; x.font="700 34px Arial,sans-serif";
-      x.fillText("YOUR STREAK: "+DROP_S.streak+(DROP_S.streak===1?" DAY":" DAYS"),W/2,y);
-    }
+    x.fillStyle="#ff5a00"; x.font="700 34px Arial,sans-serif";
+    x.fillText("YOUR STREAK: "+DROP_S.streak+(DROP_S.streak===1?" DAY":" DAYS"),W/2,y);
     /* Footer: MTCSTW.COM + JOIN THE FIGHT. (red, bold) — the share-image CTA standard. */
     x.fillStyle="#c1121f"; x.font="900 46px \\\"Arial Black\\\",Arial,sans-serif";
     x.fillText("MTCSTW.COM",W/2,H-168);

@@ -401,9 +401,17 @@ window.pfShareAchievement = function(gameName, detailText){
     x.fillStyle = '#c1121f'; x.font = '900 72px Arial Black, Arial, sans-serif';
     x.textAlign = 'center';
     x.fillText('THE PROPAGANDA FACTORY', 540, 160);
-    /* Game name. */
-    x.fillStyle = '#c1121f'; x.font = '900 96px Arial Black, Arial, sans-serif';
+    /* Game name — shrink-to-fit so long names (e.g. 'BILLIONAIRE OR
+       SUPERVILLAIN?') stay inside the 920px inner border instead of
+       overflowing the canvas at a fixed 96px. */
+    x.fillStyle = '#c1121f';
     var gn = (gameName || 'MISSION').toUpperCase();
+    var gnSize = 96;
+    x.font = '900 ' + gnSize + 'px Arial Black, Arial, sans-serif';
+    while (gnSize > 36 && x.measureText(gn).width > 920) {
+      gnSize -= 4;
+      x.font = '900 ' + gnSize + 'px Arial Black, Arial, sans-serif';
+    }
     x.fillText(gn, 540, 320);
     /* Star divider. */
     x.fillStyle = '#f5ead6'; x.font = '64px Arial';
@@ -427,7 +435,7 @@ window.pfShareAchievement = function(gameName, detailText){
     /* Footer. */
     x.fillStyle = '#c1121f'; x.font = '900 48px Arial Black, Arial, sans-serif';
     x.fillText('MTCSTW.COM', 540, 990);
-    x.fillStyle = '#f5ead6'; x.font = '900 40px Arial Black, Arial, sans-serif';
+    x.fillStyle = '#c1121f'; x.font = '900 40px Arial Black, Arial, sans-serif';
     x.fillText('JOIN THE FIGHT.', 540, 1046);
     /* Callsign attribution on every achievement image. */
     try{ if(window.PFShare&&window.PFShare.stampCallsign) window.PFShare.stampCallsign(c); }catch(e){}

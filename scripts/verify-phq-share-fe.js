@@ -51,7 +51,7 @@ if (/PF\.skip\(['"]phq-share['"]\)/.test(src)) ok('kill switch PF.skip("phq-shar
 else no('kill switch', 'PF.skip("phq-share") not found');
 if (src.indexOf('?pf_off=phq-share') !== -1) ok('KILL comment documents ?pf_off=phq-share');
 else no('kill comment', '?pf_off=phq-share missing from header');
-['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin'].forEach(function (id) {
+['phq-pressure', 'phq-prediction', 'phq-predict-call', 'phq-scorecard', 'phq-cellwin'].forEach(function (id) {
   if (src.indexOf("'" + id + "'") !== -1) ok('painter id registered: ' + id);
   else no('painter id', id + ' missing');
 });
@@ -186,6 +186,12 @@ var FIX = {
   'phq-cellwin': {
     cellName: 'IRON CELL ALPHA', verified: true, members: 23, xp: 18400,
     runnerUp: 'COPPER CELL BETA', marginXp: 2300, mvpCallsign: 'IRONHORSE', weekStart: '2026-09-28'
+  },
+  'phq-predict-call': {
+    billTitle: 'KILL THE BILLIONAIRE TAX BREAK', billId: 'hr-1', pick: 'pass', margin: '+8'
+  },
+  'phq-predict-call-nomargin': {
+    billTitle: 'RENT CAP BILL', billId: 'hr-3', pick: 'fail', margin: ''
   }
 };
 
@@ -194,10 +200,10 @@ var PHQ = env.sb.PF && env.sb.PF.PHQShare;
 if (!PHQ) { no('PF.PHQShare', 'API not exposed'); }
 else {
   ok('PF.PHQShare exposed');
-  if (JSON.stringify(PHQ.ids) === JSON.stringify(['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin']))
+  if (JSON.stringify(PHQ.ids) === JSON.stringify(['phq-pressure', 'phq-prediction', 'phq-predict-call', 'phq-scorecard', 'phq-cellwin']))
     ok('ids list matches spec painter keys');
   else no('ids', 'unexpected ids: ' + JSON.stringify(PHQ.ids));
-  ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin'].forEach(function (id) {
+  ['phq-pressure', 'phq-prediction', 'phq-predict-call', 'phq-scorecard', 'phq-cellwin'].forEach(function (id) {
     if (typeof env.registered[id] === 'function') ok('setPoster registered: ' + id);
     else no('registration', id + ' not registered with PFShare');
   });
@@ -273,6 +279,43 @@ else {
     else no('missed taunt', 'taunt present on missed variant');
     if (hasFrag(cv, 'MY RECORD: 7W \u2014 3L')) ok('missed record line');
     else no('missed record', 'missing');
+  }
+
+  /* --- Surface 2b: predict-call (pre-resolution SHARE YOUR CALL) --- */
+  cv = PHQ.paint('phq-predict-call', FIX['phq-predict-call']);
+  if (!cv) no('predict-call mount', 'null canvas');
+  else {
+    ok('predict-call mounts 1080x1350');
+    if (hasFrag(cv, 'MY CALL: LOCKED IN')) ok('predict-call badge (locked in, red)');
+    else no('predict-call badge', 'missing');
+    var pcop = badgeOp(cv, 'M');
+    if (pcop && pcop.fillStyle === '#c1121f') ok('locked-in badge is red');
+    else no('predict-call badge color', 'not red: ' + (pcop && pcop.fillStyle));
+    if (hasFrag(cv, 'KILL THE BILLIONAIRE TAX BREAK')) ok('predict-call bill title (live data)');
+    else no('predict-call title', 'missing');
+    if (hasText(cv, '\u2713 WILL PASS')) ok('call stamp: \u2713 WILL PASS');
+    else no('predict-call stamp', 'missing');
+    var psop = opFor(cv, '\u2713 WILL PASS');
+    if (psop && psop.fillStyle === '#c1121f' && /9\dpx|10\dpx|11\dpx/.test(psop.font)) ok('call stamp is giant red (same family as resolution)');
+    else no('predict-call stamp style', 'not giant red: ' + JSON.stringify(psop && { f: psop.font, c: psop.fillStyle }));
+    if (hasText(cv, 'MY MARGIN CALL: +8')) ok('margin line rendered');
+    else no('predict-call margin', 'missing');
+    if (hasText(cv, 'THINK YOU CAN CALL IT BETTER?')) ok('predict-call taunt footer');
+    else no('predict-call taunt', 'missing');
+    if (hasText(cv, 'MTCSTW.COM/POLITICAL-HQ') && hasText(cv, 'JOIN THE FIGHT.')) ok('predict-call bottom stack');
+    else no('predict-call bottom', 'stack incomplete');
+  }
+  /* fail variant + no-margin degrade */
+  cv = PHQ.paint('phq-predict-call', FIX['phq-predict-call-nomargin']);
+  if (!cv) no('predict-call-fail mount', 'null canvas');
+  else {
+    if (hasText(cv, '\u2717 WILL FAIL')) ok('call stamp: \u2717 WILL FAIL');
+    else no('predict-call fail stamp', 'missing');
+    var pfop = opFor(cv, '\u2717 WILL FAIL');
+    if (pfop && pfop.fillStyle === '#c9bfa8') ok('fail stamp muted (same family as missed)');
+    else no('predict-call fail color', 'not muted: ' + (pfop && pfop.fillStyle));
+    if (!hasFrag(cv, 'MY MARGIN CALL')) ok('no margin line when margin empty');
+    else no('predict-call margin leak', 'margin line rendered for empty margin');
   }
 
   /* --- Surface 3: scorecard --- */
@@ -368,6 +411,11 @@ else {
   cv = PHQ2.paint('phq-scorecard', FIX['phq-scorecard']);
   if (!hasFrag(cv, 'FIGHTING AS')) ok('scorecard no-callsign: stamp skipped');
   else no('scorecard no-cs', 'stamp painted');
+  cv = PHQ2.paint('phq-predict-call', FIX['phq-predict-call']);
+  if (!hasFrag(cv, 'FIGHTING AS') && hasText(cv, 'CLAIM YOUR CALLSIGN AT MTCSTW.COM') &&
+      !hasText(cv, 'THINK YOU CAN CALL IT BETTER?'))
+    ok('predict-call no-callsign: taunt swapped for claim funnel');
+  else no('predict-call no-cs', 'swap wrong');
   cv = PHQ2.paint('phq-cellwin', FIX['phq-cellwin']);
   if (!hasFrag(cv, 'FIGHTING AS') && hasText(cv, 'CLAIM YOUR CALLSIGN AT MTCSTW.COM') &&
       !hasText(cv, 'NEXT ROUND STARTS MONDAY') && hasFrag(cv, 'MVP: IRONHORSE'))
@@ -400,12 +448,14 @@ else {
 
 console.log('== 4. layout guards (no collisions) ==');
 [['phq-pressure', FIX['phq-pressure']], ['phq-prediction', FIX['phq-prediction']],
- ['phq-scorecard', FIX['phq-scorecard']], ['phq-cellwin', FIX['phq-cellwin']]].forEach(function (pc) {
+ ['phq-predict-call', FIX['phq-predict-call']], ['phq-scorecard', FIX['phq-scorecard']],
+ ['phq-cellwin', FIX['phq-cellwin']]].forEach(function (pc) {
   var c = PHQ.paint(pc[0], pc[1]);
   var rs = c._recs || [], bad = [], link = null, date = null, cta = null;
   for (var i = 0; i < rs.length; i++) {
     var r = rs[i];
-    if (r.text === '\u2713 CALLED IT' || r.text === '\u2717 SWUNG & MISSED') continue; /* rotated: recorded pre-transform */
+    if (r.text === '\u2713 CALLED IT' || r.text === '\u2717 SWUNG & MISSED' ||
+        r.text === '\u2713 WILL PASS' || r.text === '\u2717 WILL FAIL') continue; /* rotated: recorded pre-transform */
     if (r.y > 1185 && r.y < 1215) bad.push(r.text.slice(0, 24) + '@' + Math.round(r.y));
     if (r.text === 'MTCSTW.COM/POLITICAL-HQ') link = r.y;
     if (/^[A-Z]+ \d{1,2}, \d{4}$/.test(r.text)) date = r.y;

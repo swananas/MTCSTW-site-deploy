@@ -1,11 +1,14 @@
 /* core/share-image-phq.js  |  PF v1.4.3 | POLITICAL HQ SHARE POSTERS.
-   Four custom PFShare painters (1080x1350, house palette) for the Political HQ
-   rollout: pressure-campaign card, prediction-result card, voting scorecard,
-   cell-competition winner card. Spec: ~/workspace/hidden/phq-share-specs.md.
+   Five custom PFShare painters (1080x1350, house palette) for the Political HQ
+   rollout: pressure-campaign card, prediction-result card, prediction-call card
+   (pre-resolution "SHARE YOUR CALL", same painter family as the result card),
+   voting scorecard, cell-competition winner card.
+   Spec: ~/workspace/hidden/phq-share-specs.md.
    Data contract (painter receives one data object; missing optional fields
    degrade gracefully; scorecard missing fields render '—', never invented):
      pressure:   {title, target, demand, signatures, signaturesGoal}
      prediction: {statement, outcome ('correct'|'missed'), wins, losses}
+     predictcall:{billTitle, billId, pick ('pass'|'fail'), margin?}
      scorecard:  {name, state, party, grade, verdict, votes[3] {bill, vote, for_us}}
      cellwin:    {cellName, verified, members, xp, runnerUp, marginXp, mvpCallsign, weekStart}
    Callsigns resolve at paint time via callsignOf() (identity store /
@@ -28,10 +31,11 @@
   window.pfPhqShareDone = true;
 
   var W = 1080, H = 1350;
-  var IDS = ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin'];
+  var IDS = ['phq-pressure', 'phq-prediction', 'phq-predict-call', 'phq-scorecard', 'phq-cellwin'];
   var TITLES = {
     'phq-pressure': 'PRESSURE CAMPAIGN',
     'phq-prediction': 'PREDICTION RESULT',
+    'phq-predict-call': 'MY CALL',
     'phq-scorecard': 'VOTING SCORECARD',
     'phq-cellwin': 'CELL VICTORY'
   };
@@ -254,6 +258,54 @@
   }
 
   /* ---------------------------------------------------------------- */
+  /* Surface 2b — Prediction Call (pre-resolution SHARE YOUR CALL)     */
+  /* Same painter family as the result card: the resolution auto-draft  */
+  /* produces CALLED IT / MISSED in the identical visual language.     */
+  /* Data: {billTitle, billId, pick ('pass'|'fail'), margin?} — bill    */
+  /* facts pulled live at generation time, never baked in. No XP rides */
+  /* this poster; prediction XP is backend-granted on resolution only. */
+  /* ---------------------------------------------------------------- */
+  function paintPredictCall(d, cv, x) {
+    base(x); kicker(x);
+    var pass = String(d.pick || '').toLowerCase() === 'pass';
+    badge(x, 'MY CALL: LOCKED IN', 280, '#c1121f', 40);
+    var cs = callsignOf();
+    var y = 420;
+    x.fillStyle = '#f5ead6'; x.font = '900 64px "Arial Black",Arial,sans-serif';
+    wrap(x, String(d.billTitle || d.billId || '—').toUpperCase(), 910).slice(0, 3)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += 76; });
+    /* The call stamp — same rotated treatment as the resolution verdict. */
+    var stext = pass ? '\u2713 WILL PASS' : '\u2717 WILL FAIL';
+    fitFont(x, stext, 110, 72, 910);
+    x.save();
+    x.translate(W / 2, 700); x.rotate(-8 * Math.PI / 180);
+    x.fillStyle = pass ? '#c1121f' : '#c9bfa8';
+    x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.fillText(stext, 0, 0);
+    x.restore();
+    x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+    y = Math.max(900, y + 40);
+    var mg = String(d.margin == null ? '' : d.margin).trim();
+    if (mg) {
+      var mline = 'MY MARGIN CALL: ' + mg.toUpperCase();
+      x.fillStyle = '#e8b923';
+      fitFont(x, mline, 56, 40, 910);
+      x.fillText(mline, W / 2, y); y += 50;
+    }
+    y = Math.max(1000, y);
+    if (cs) y = csLine(cv, x, y, cs) + 12;
+    y = Math.max(1120, y);
+    if (cs) {
+      x.fillStyle = '#c9bfa8'; x.font = '700 36px Arial,sans-serif';
+      x.fillText('THINK YOU CAN CALL IT BETTER?', W / 2, y);
+    } else {
+      claimLine(x, y); /* no-callsign: the taunt becomes the funnel */
+    }
+    bottomStack(x, 'fight');
+    return cv;
+  }
+
+  /* ---------------------------------------------------------------- */
   /* Surface 3 — Voting Scorecard                                      */
   /* ---------------------------------------------------------------- */
   function paintScorecard(d, cv, x) {
@@ -359,6 +411,7 @@
   var PAINT = {
     'phq-pressure': paintPressure,
     'phq-prediction': paintPrediction,
+    'phq-predict-call': paintPredictCall,
     'phq-scorecard': paintScorecard,
     'phq-cellwin': paintCellwin
   };

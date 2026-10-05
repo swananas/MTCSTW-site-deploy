@@ -259,7 +259,10 @@ var HQ_BUNDLES = {
     'civic.js',
     'governance.js',
     'notify-prefs.js',
-    'intel.js'
+    'intel.js',
+    /* 2026-10-05: Call the Shot prediction game (fe/predict-share-call) —
+       bill widgets + section + SHARE YOUR CALL poster hook. */
+    'predict.js'
   ]
 };
 

@@ -18,6 +18,11 @@
    submission), a subtle "FROM YOUR CELL" badge shows — identity is still
    hidden; only the cell flag is displayed. Cell accuracy board + your
    contribution to your cell's standing ride the status response.
+   POLITICAL METADATA CHIPS (2026-10-05, weave #8): when the assigned item
+   carries political_meta (or meta), small factual tags render as context —
+   entity type + id ("BILL · H.R.14") and issue area ("ISSUE · Voting
+   rights"). Tags only, never identity, never editorial claims. Gated by
+   the ?pf_off=bank-meta kill (chips are metadata UI).
    Mounts into <div id="pf-review-pool"></div> (Creator HQ / Studio section).
    Silent no-op everywhere else.
    Needs: core/00-bus.js (PF, PF.skip, PF.toast, PF.errCopy),
@@ -42,6 +47,11 @@
 
   var mount = document.getElementById('pf-review-pool');
   if (!mount) { return; } /* silent no-op: the pool lives in Creator HQ / Studio only */
+
+  /* Political metadata chips are metadata UI — gated by ?pf_off=bank-meta. */
+  var META_KILLED = (PF && PF.skip) ? PF.skip('bank-meta') : false;
+  var META_TYPE_LABEL = { bill:'BILL', rep:'REP', race:'RACE', org:'ORG',
+    poll:'POLL', prediction:'PREDICTION', campaign:'CAMPAIGN' };
 
   var BACKEND = window.PF_BACKEND_URL;
 
@@ -112,6 +122,11 @@
     '.rp-pane{background:#0a0a0a;border:2px solid #2a2a2a;color:#f5f0e6;padding:14px;min-height:200px}' +
     '.rp-card{background:#141414;border:2px solid #2e2e2e;margin:0 0 12px;padding:12px}' +
     '.rp-card h3{margin:0 0 6px;font-size:17px}' +
+    /* Political metadata context chips (2026-10-05): factual tags only —
+       entity type/id + issue area. Never identity, never editorial claims. */
+    '.rp-chips{margin:0 0 10px}' +
+    '.rp-chip{display:inline-block;font-size:11px;letter-spacing:1px;font-weight:700;' +
+      'background:#1c1c1c;border:1px solid #c1121f;color:#f5f0e6;padding:4px 9px;margin:0 6px 6px 0}' +
     '.rp-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}' +
     '.rp-stat{font-size:13px;background:#1c1c1c;border:1px solid #333;padding:5px 10px;margin:3px 6px 3px 0;display:inline-block}' +
     '.rp-btn{background:#c1121f;color:#fff;border:0;font-weight:700;padding:12px 22px;font-size:16px;cursor:pointer;margin:4px 4px 4px 0;letter-spacing:1px}' +
@@ -406,6 +421,25 @@
   }
 
   /* ---------- the blind review ---------- */
+  /* Political metadata context chips: factual linkage tags rendered from
+     the assigned item's political_meta (fallback: meta). Entity type + id
+     and issue area only — never identity, never editorial claims. */
+  function metaChips(pm){
+    var h = '<div class="rp-chips">';
+    if (pm.entity_type && pm.entity_id) {
+      h += '<span class="rp-chip">' +
+        esc(META_TYPE_LABEL[String(pm.entity_type)] || String(pm.entity_type).toUpperCase()) +
+        ' &middot; ' + esc(pm.entity_id) + '</span>';
+    } else if (pm.entity_id) {
+      h += '<span class="rp-chip">' + esc(pm.entity_id) + '</span>';
+    }
+    if (pm.issue_area) {
+      h += '<span class="rp-chip">ISSUE &middot; ' + esc(pm.issue_area) + '</span>';
+    }
+    h += '</div>';
+    return h;
+  }
+
   function renderAssignment(p){
     var a = S.assignment;
     if (!a){ S.view='discovery'; render(); return; }
@@ -424,6 +458,13 @@
       h += '</div>';
     }
     if (a.caption && a.artifact_kind !== 'text') h += '<div class="rp-caption">'+esc(a.caption)+'</div>';
+    /* Political metadata context chips — factual tags, never identity. */
+    try {
+      if (!META_KILLED) {
+        var pm = a.political_meta || a.meta || null;
+        if (pm && (pm.entity_id || pm.issue_area)) h += metaChips(pm);
+      }
+    } catch (eChips) {}
     /* Citations with verified-read badges. */
     var cites = a.citations || [];
     if (cites.length){
@@ -643,6 +684,9 @@
       p.innerHTML = h;
     }, true);
   }
+
+  /* Test hooks for scripts/verify-bankmeta-fe.js — not for page use. */
+  try { PF.reviewPoolT = { metaChips: metaChips }; } catch (eT) {}
 
   render();
 })();

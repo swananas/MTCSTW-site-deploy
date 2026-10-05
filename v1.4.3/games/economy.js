@@ -7,7 +7,7 @@
   var PF = window.PF;
   if (!PF || PF.skip("economy")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-economy">
-<div class="fe-block pf-override-block pf-silo">
+<div class="fe-block pf-override-block pf-silo" id="pf-xp-economy">
 <h2>Run the Economy</h2>
 <div class="c-tag">Earn it. Spend it. Weaponize it. The loop that keeps the machine alive.</div>
 <div id="xEconomy"><div class="c-load">Counting the war chest&hellip;</div></div>
@@ -167,6 +167,14 @@ function render(){
   h+=renderTitles(id);
   h+=renderDrops(id);
   h+=renderPrizes(id);
+  /* QW-9 (2026-10-05): cross-link strip — Joint Ventures (#pf-ventures on the
+     homepage; mount id verified in games/ventures.js) and War Chest
+     (/war-chest; route verified in games/casino-exits.js). Pure links,
+     zero XP, no new endpoints. One compact strip, not a section. */
+  h+='<div style="margin:12px 0;padding:10px 12px;border:2px dashed #ff5a00;text-align:center">'
+    +'<span class="x-note" style="color:#ff5a00;font-weight:900;letter-spacing:2px">RUN IT UP ELSEWHERE &rarr;</span> '
+    +'<a href="/#pf-ventures" style="color:#f5f0e1;font-weight:700;margin:0 8px">Joint Ventures</a>'
+    +'<a href="/war-chest" style="color:#f5f0e1;font-weight:700;margin:0 8px">War Chest</a></div>';
   h+='<div style="margin-top:10px"><button class="c-btn" id="ecRetry">Refresh</button></div>';
   el.innerHTML=h;
   wireAuctions(id,el); wireCosmetics(id,el); wireStaking(id,el); wireTreasury(id,el);

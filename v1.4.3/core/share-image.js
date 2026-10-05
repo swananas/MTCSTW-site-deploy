@@ -107,6 +107,39 @@
       title: '\u2694 BOOST RAID \u2694', tag: 'One target. One day. The whole network.',
       lines: ['Like. Comment. Share. Report back.', 'Today\u2019s raid target is live now.'],
       cta: 'JOIN THE RAID'
+    },
+    /* QW-11 (2026-10-05): painter templates for the six game result moments.
+       Battles, supply-raid, solidarity-draw, irl, academy-graduation and
+       vanguard-wall register their own share buttons against these ids. */
+    'poster-battles': {
+      title: '\u2620 POSTER BATTLES \u2620', tag: 'Head-to-head propaganda war.',
+      lines: ['Vote the matchups. Crown the killers.', 'New battles every week.'],
+      cta: 'VOTE THE BATTLES'
+    },
+    'supply-raid': {
+      title: '\u26A1 SUPPLY LINE RAID \u26A1', tag: 'Hit the line. Take their cut.',
+      lines: ['Raids pay out to the cell.', 'Join the next raid.'],
+      cta: 'JOIN THE RAID'
+    },
+    'academy-grad': {
+      title: '\u2605 ACADEMY GRADUATE \u2605', tag: 'Trained. Tested. Deployed.',
+      lines: ['Graduated the Propaganda Academy.', 'The war needs graduates.'],
+      cta: 'START THE ACADEMY'
+    },
+    'solidarity-draw': {
+      title: '\u2764 SOLIDARITY DRAW \u2764', tag: 'The pot feeds the fighters.',
+      lines: ['Every ticket funds the network.', 'Draws every week.'],
+      cta: 'GET TICKETS'
+    },
+    'irl-going': {
+      title: '\uD83D\uDCCD IRL MOBILIZATION \uD83D\uDCCD', tag: 'Touch grass. Raise hell.',
+      lines: ['I\u2019m showing up. Are you?', 'Find your mobilization.'],
+      cta: 'FIND YOURS'
+    },
+    'vanguard-wall': {
+      title: '\u2605 VANGUARD WALL \u2605', tag: 'Etched in the machine.',
+      lines: ['The architects. The legends.', 'Climb the ranks. Get etched.'],
+      cta: 'CLIMB THE RANKS'
     }
   };
   var ORDER = ['fan-vote', 'slr-match-quiz', 'creator-guess', 'bracket-board', 'daily-orders', 'boost-raid', 'do-meter', 'daily-drop',

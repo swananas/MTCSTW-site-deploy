@@ -355,7 +355,13 @@
         href: '/arcade#pf-forecasts' },
       { id: 'fund', title: 'FUND THE FIGHT', cta: 'FUND THE FIGHT', fund: true,
         sub: 'Send the win straight to the war chest.',
-        href: '/war-chest' }
+        href: '/war-chest' },
+      { id: 'cells', title: 'FUND YOUR CELL', cta: 'FUND YOUR CELL',
+        sub: 'Route the win to your cell\'s war effort — cells that fund, fight.',
+        href: '/cells' },
+      { id: 'warbonds', title: 'BUY WAR BONDS', cta: 'BUY WAR BONDS',
+        sub: 'Convert the win into War Bonds. Fund the network, not the casino.',
+        href: '/#pf-warbonds' }
     ],
     loss: [
       { id: 'board', title: 'READ THE BOARD', cta: 'READ THE BOARD',

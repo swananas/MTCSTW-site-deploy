@@ -105,7 +105,7 @@ function render(j){
   if(!ok){
     /* FAIL SOFT: exactly as today — visible section, honest quiet pane. */
     setQuiet(false);
-    h+='<div class="x-pane"><div class="x-note">No active alerts. The wire is quiet &mdash; for now. When a moment breaks, it lands here first.</div></div>';
+    h+='<div class="x-pane"><div class="x-note">No active alerts. The wire is quiet &mdash; for now. When a moment breaks, it lands here first. <a href="/create?tab=bounties" style="color:#c1121f;font-weight:700;text-decoration:none">HIT THE OPEN BOUNTIES &#8594;</a></div></div>';
     h+='<div style="margin-top:10px"><button class="c-btn" id="alRetry">Refresh</button></div>';
     el.innerHTML=h;
     var rb0=document.getElementById("alRetry");
@@ -130,7 +130,10 @@ function render(j){
       +'<div class="al-btns">';
     if(id.callsign){
       h+='<button class="c-btn" data-al-forge="'+esc(a.id)+'" data-al-tpl="'+esc(a.template_id||"")+'">RESPOND: MAKE A POSTER</button>'
-        +'<button class="c-btn c-btn2" data-al-done="'+esc(a.id)+'">I RESPONDED</button>';
+        +'<button class="c-btn c-btn2" data-al-done="'+esc(a.id)+'">I RESPONDED</button>'
+        /* QW-13 (2026-10-05): alert energy routes to open bounties — zero new
+           XP, zero new endpoints, plain anchor in the .al-btns row. */
+        +'<a class="c-btn c-btn2" href="/create?tab=bounties" style="text-decoration:none;display:inline-block">OPEN BOUNTIES &#8594;</a>';
     } else {
       h+='<div class="x-note">Claim a callsign in Enlistment Ranks to respond.</div>';
     }

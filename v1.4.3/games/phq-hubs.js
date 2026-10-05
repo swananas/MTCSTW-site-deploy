@@ -45,27 +45,7 @@
      order   = ORDER-table ids mounted into this hub pre-split
      panes   = civic pane kinds deep-linked from this hub's tab (spec §5.2) */
   var HUBS = [
-    { id: 'people', sec: '01', tab: 'PEOPLE', title: 'People',
-      mission: 'Know the players. Your reps, their grades, your statehouse.', /* [PSYCH] */
-      silos: ['civic-directory', 'civic-scorecards', 'stateleg', 'wallshame'],
-      interim: ['civic', 'stateleg', 'wallshame'],
-      order: ['stateleg'],
-      panes: ['directory', 'reps', 'scorecards'],
-      wallshame: true },
-    { id: 'bills', sec: '02', tab: 'BILLS & COURTS', title: 'Bills & Courts',
-      mission: 'Read the battlefield. Bills, rulings, and orders — decoded.', /* [PSYCH] */
-      silos: ['legislation', 'courts', 'eo', 'governance', 'wallshame'],
-      interim: ['legislation', 'courts', 'eo', 'governance', 'wallshame'],
-      order: ['legislation', 'courts', 'eo', 'governance'],
-      panes: [],
-      wallshame: true },
-    { id: 'ballot', sec: '03', tab: 'BALLOT', title: 'Ballot',
-      mission: 'Your ballot, your races, your countdown.', /* [PSYCH] */
-      silos: ['civic-ballot', 'ballotcd', 'races', 'measures', 'civic-votercheck'],
-      interim: ['civic', 'ballotcd', 'races', 'measures'],
-      order: ['races', 'measures', 'predict'],
-      panes: ['ballot', 'voter', 'votercheck', 'countdown'] },
-    { id: 'action', sec: '04', tab: 'TAKE ACTION', title: 'Take Action',
+    { id: 'action', sec: '01', tab: 'TAKE ACTION', title: 'Take Action',
       mission: 'Stop reading. Start hitting.', /* [PSYCH] */
       silos: ['action-center', 'civic-pressure', 'civic-petitions', 'civic-pledges',
               'civic-callpractice', 'footprint', 'vote-alerts', 'civic-duty', 'civic-sharekits'],
@@ -73,6 +53,26 @@
       order: ['action-center', 'footprint', 'vote-alerts'],
       panes: ['petitions', 'pressure', 'callpractice', 'pledges', 'sharekits'],
       alertRow: true },
+    { id: 'people', sec: '02', tab: 'PEOPLE', title: 'People',
+      mission: 'Know the players. Your reps, their grades, your statehouse.', /* [PSYCH] */
+      silos: ['civic-directory', 'civic-scorecards', 'stateleg', 'wallshame'],
+      interim: ['civic', 'stateleg', 'wallshame'],
+      order: ['stateleg'],
+      panes: ['directory', 'reps', 'scorecards'],
+      wallshame: true },
+    { id: 'bills', sec: '03', tab: 'BILLS & COURTS', title: 'Bills & Courts',
+      mission: 'Read the battlefield. Bills, rulings, and orders — decoded.', /* [PSYCH] */
+      silos: ['legislation', 'courts', 'eo', 'governance', 'wallshame'],
+      interim: ['legislation', 'courts', 'eo', 'governance', 'wallshame'],
+      order: ['legislation', 'courts', 'eo', 'governance'],
+      panes: [],
+      wallshame: true },
+    { id: 'ballot', sec: '04', tab: 'BALLOT', title: 'Ballot',
+      mission: 'Your ballot, your races, your countdown.', /* [PSYCH] */
+      silos: ['civic-ballot', 'ballotcd', 'races', 'measures', 'civic-votercheck'],
+      interim: ['civic', 'ballotcd', 'races', 'measures'],
+      order: ['races', 'measures', 'predict'],
+      panes: ['ballot', 'voter', 'votercheck', 'countdown'] },
     { id: 'intel', sec: '05', tab: 'INTEL', title: 'Intel',
       mission: 'Know more than they do.', /* [PSYCH] */
       silos: ['intel', 'civic-polls', 'nonprofits', 'labor'],
@@ -390,7 +390,7 @@
       if (orderPairs[i][0] !== 'civic') continue;
       var strip = document.createElement('div');
       strip.id = 'pf-phq-civicstrip';
-      /* insert directly under the sub-nav (above the PEOPLE hub) */
+      /* insert directly under the sub-nav (above the TAKE ACTION hub) */
       if (nav && nav.parentNode === host) host.insertBefore(strip, nav.nextSibling);
       else host.insertBefore(strip, host.firstChild);
       if (mountOneSilo('civic', orderPairs[i][1], strip)) tagHubPanes();

@@ -117,6 +117,11 @@
          pre-live fallback text only. */
       + '<div style="text-align:center;margin-bottom:1.6rem;font-size:1.1rem;"><strong data-pf-fc="' + esc(m.slug) + '" style="color:' + RED + ';">' + esc(m.followers_display) + '</strong> <span style="color:' + MUTED + ';font-size:0.85rem;letter-spacing:0.1em;">FOLLOWERS</span></div>'
       + (VOTE_SKIP_SLUGS.indexOf(m.slug) === -1 ? '<div style="text-align:center;margin:0 0 1.6rem;"><a href="/#pf-vote?for=' + esc(m.slug) + '" style="display:inline-block;border:2px solid ' + RED + ';color:' + RED + ';font-weight:900;letter-spacing:0.14em;font-size:0.9rem;text-decoration:none;padding:0.7rem 1.6rem;">VOTE FOR ' + esc(m.name) + ' &rarr;</a></div>' : '')
+      /* QW-7 (2026-10-05): SEE THEIR POSTERS — route catalog visitors to
+         this creator's banked posters on the /create feed. ?creator= is
+         captured first-touch by core/09-referral.js. Skipped for the
+         do-not-touch slug (Jeanine Pirreaux Comedy). */
+      + (VOTE_SKIP_SLUGS.indexOf(m.slug) === -1 ? '<div style="text-align:center;margin:0 0 1.6rem;"><a href="/create#pf-feed?creator=' + encodeURIComponent(m.slug) + '" style="color:' + MUTED + ';font-size:0.8rem;letter-spacing:0.1em;text-decoration:none;border-bottom:1px solid ' + MUTED + ';">SEE THEIR POSTERS &rarr;</a></div>' : '')
       + para(m.bio)
       + (offer ? '<h2 style="color:' + RED + ';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;">What they offer</h2><ul style="padding-left:1.2rem;margin:0;">' + offer + '</ul>' : '')
       + (links ? '<h2 style="color:' + RED + ';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;">Find them here</h2><ul style="list-style:none;padding:0;margin:0;">' + links + '</ul>' : '')

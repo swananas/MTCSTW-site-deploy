@@ -191,7 +191,9 @@ function lastDrawHTML(){
   }
   if(sec){
     h+='<div class="sd-commit"><b>REVEALED SECRET:</b><br>'+esc(sec)+'</div>'
-      +'<button class="c-btn" id="sdVerify">VERIFY THE DRAW</button><div class="sd-check" id="sdVerifyOut"></div>';
+      +'<button class="c-btn" id="sdVerify">VERIFY THE DRAW</button>'
+      /* QW-11b (2026-10-05): SHARE the draw poster from the winner announcement. */
+      +'<button class="c-btn" id="sdShare" style="margin-left:8px">SHARE</button><div class="sd-check" id="sdVerifyOut"></div>';
   } else {
     h+='<div class="sd-commit"><b>REVEALED SECRET:</b> <span style="font-family:Arial,sans-serif">'
       +'not published for this round (legacy draw — the verifiable draw lands with the Phase B backend).</span></div>';
@@ -227,7 +229,9 @@ function wire(id){
       };
     })(lb[l]);
   }
-  var vf=document.getElementById("sdVerify");
+    var sh=document.getElementById("sdShare");
+  if(sh) sh.onclick=function(){ try{var PS=window.PFShare;if(PS&&PS.poster&&PS.shareImage){var cv=PS.poster('solidarity-draw'); if(cv) PS.shareImage(cv,'pfn-solidarity-draw.png','\u2764 SOLIDARITY DRAW \u2764','solidarity-draw');}}catch(e){} };
+var vf=document.getElementById("sdVerify");
   if(vf) vf.onclick=function(){ verifyDraw(); };
 }
 /* The verify affordance — wired, not faked. Recomputes (1) the commitment

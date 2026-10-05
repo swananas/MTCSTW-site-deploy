@@ -253,7 +253,10 @@
   }
   function shellHtml(){
     return '<div class="bb-head"><h2>THE BANK VAULT</h2>' +
-      '<p class="bb-sub">Every piece the movement banked. Study the arsenal — then remix it into your own weapon.</p></div>' +
+      '<p class="bb-sub">Every piece the movement banked. Study the arsenal — then remix it into your own weapon.</p>' +
+      '<p class="bb-sub" style="margin-top:0.6rem;">Banked something? ' +
+      '<a href="#pf-review-pool" style="color:#fff;font-weight:700;letter-spacing:1px;text-decoration:none;border-bottom:2px solid #c1121f;">REVIEW THE QUEUE &rarr;</a> ' +
+      'and put your eyes on the next wave.</p></div>' +
       '<div class="bb-filters">' + filtersHtml() + '</div>' +
       '<div data-bb-grid="1"><div class="bb-empty"><b>LOADING THE VAULT&hellip;</b><br>Racking the banked pieces.</div></div>' +
       '<div data-bb-more="1"></div>';

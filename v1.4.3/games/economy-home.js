@@ -63,6 +63,12 @@
   var RAIL_A =
     'display:inline-block;background:#c1121f;color:#fff;font-weight:900;font-size:13px;' +
     'letter-spacing:.14em;padding:12px 26px;text-decoration:none;';
+  /* QW-14 (2026-10-05): bridge strip between the People's CPI and the XP
+     economy game — anchors both ways (#pf-inflation-checkin above,
+     #pf-xp-economy = the XP economy block id in games/economy.js). */
+  var BRIDGE =
+    'margin:22px auto 8px;max-width:760px;text-align:center;' + CSS +
+    'border:2px dashed #c1121f;padding:16px;';
 
   var sec = document.createElement('div');
   sec.id = 'pf-inflation-home';
@@ -96,7 +102,21 @@
     '<div style="font-size:12px;color:#a89e88;margin-top:10px;line-height:1.5;">' +
     'Turned the index into action? The Action Center routes every fight: ' +
     'calls, campaigns, petitions, ballots.</div>' +
-    '</div>';
+    '</div>' +
+    /* QW-14 bridge strip: sits at the end of the CPI section, right before
+       the XP economy block on the stacked /economy page. Zero XP, zero
+       endpoints — pure anchor links. */
+    '<div style="' + BRIDGE + '">' +
+    '<div style="' + KICKER + '">THE LOOP CLOSES</div>' +
+    '<div style="' + SUB + 'margin-left:auto;margin-right:auto;">' +
+    '<b>YOUR CHECK-INS POWER THE INDEX</b> &mdash; every price you report sharpens ' +
+    'the People\u2019s CPI. Play the economy. Feed the intel.</div>' +
+    '<div style="margin-top:12px;">' +
+    '<a style="' + RAIL_A + 'margin:0 6px 8px;" href="#pf-inflation-checkin">' +
+    'FEED THE INDEX</a>' +
+    '<a style="' + RAIL_A + 'margin:0 6px 8px;" href="#pf-xp-economy">' +
+    'PLAY THE ECONOMY</a>' +
+    '</div></div>';
 
   /* Lead section: the Price Index is the home's flagship, so it stages first —
      page-mount's header insertBefore keeps the page hero on top regardless

@@ -208,6 +208,9 @@ var SECTIONS = {
     'vault.js',
     /* allfronts admin (2026-10-04): operation console mounts beside the vault. */
     'operations-admin.js',
+    /* One-Button Publisher FE (2026-10-05, fe/publisher-compose-ui): CEO compose
+       surface, mounts in the vault admin area only. Admin-gated at mount. */
+    'publisher.js',
     /* Federal Reserve frontend (2026-10-04): monetary policy dashboard —
        Bank is retail, Reserve is monetary; they belong together on /bank. */
     'reserve.js'

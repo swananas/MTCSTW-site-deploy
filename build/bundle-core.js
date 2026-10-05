@@ -44,6 +44,9 @@ var CORE_FILES = [
   'core/00-bus.js',
   'core/07-slr-db.js',
   'core/03-global.js',
+  /* creator-stats (2026-10-05): unified stats reader — PF.creatorStats.
+     After 03-global (PF_BACKEND_URL); lazy, no load-time DOM/DB dependency. */
+  'core/creator-stats.js',
   'core/14-auth.js',
   'pwa/install.js',
   'core/04-ledger.js',

@@ -1,1 +1,2549 @@
-!function(){"use strict";var e=window.PF;if(e&&!e.skip("wallshame")&&!window.pfWallShameDone){window.pfWallShameDone=!0;var t=window.PF_BACKEND_URL,n="phq-wallshame",a=[".pf-ws{max-width:680px;margin:0 auto;padding:8px 0}",".pf-ws-head{text-align:center;margin-bottom:6px}",".pf-ws-billtitle{font:700 18px Arial,sans-serif;color:#f5ead6}",".pf-ws-track{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:4px 6px 10px}",".pf-ws-card{flex:0 0 86%;scroll-snap-align:center;background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:26px 22px;color:#f5ead6;text-align:center}",".pf-ws-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#c1121f;margin-bottom:10px}",".pf-ws-bill{font:700 16px Arial,sans-serif;color:#e8b923;margin-bottom:12px}",'.pf-ws-name{font:900 34px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 6px}',".pf-ws-sub{font:700 16px Arial,sans-serif;color:#c9bfa8;margin-bottom:14px}",'.pf-ws-vote{font:900 20px "Arial Black",Arial,sans-serif;color:#c1121f;margin-bottom:10px}',".pf-ws-q{font:400 15px Arial,sans-serif;color:#f5ead6;margin-bottom:8px}",".pf-ws-count{font:700 14px Arial,sans-serif;color:#e8b923;margin-bottom:16px}",".pf-ws-actions{display:flex;gap:10px;justify-content:center}",'.pf-ws-btn{font:900 15px "Arial Black",Arial,sans-serif;background:#f5ead6;color:#0d0d0d;border:0;border-radius:6px;padding:12px 22px;cursor:pointer}',".pf-ws-btn-red{background:#c1121f;color:#ffffff}",".pf-ws-nav{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:6px}",".pf-ws-arrow{font:900 22px Arial,sans-serif;background:#1a1a1a;color:#f5ead6;border:1px solid #c1121f;border-radius:50%;width:44px;height:44px;cursor:pointer}",".pf-ws-dots{display:flex;gap:8px}",".pf-ws-dot{width:10px;height:10px;border-radius:50%;background:#3a3a3a;border:0;padding:0;cursor:pointer}",".pf-ws-dot.on{background:#c1121f}",".pf-ws-method{font:400 13px Arial,sans-serif;color:#c9bfa8;text-align:center;margin-top:12px;padding:0 12px}",".pf-ws-empty{font:400 16px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:28px 12px;border:1px dashed #3a3a3a;border-radius:8px}"].join("\n");try{window.PFWallShame={mount:function(e,n){if(!e||!n)return!1;try{if(n.querySelector&&n.querySelector(".pf-ws"))return!0}catch(e){}return function(e,n,a){if(t){var r="pfWsCb"+Math.floor(1e9*Math.random()),i=document.createElement("script"),o=!1;window[r]=function(e){s(e)},i.onerror=function(){s(null)};var p="?action="+encodeURIComponent(e);for(var l in n)null!=n[l]&&""!==n[l]&&(p+="&"+encodeURIComponent(l)+"="+encodeURIComponent(n[l]));p+="&callback="+r,i.src=t+p,document.head.appendChild(i),setTimeout(function(){s(null)},12e3)}else a(null);function s(e){if(!o){o=!0;try{delete window[r]}catch(e){}i.parentNode&&i.parentNode.removeChild(i),a(e)}}}("wall_of_shame",{bill_id:String(e)},function(e){if(e&&e.ok&&e.bill)try{s(n,e)}catch(e){l(n)}else l(n)}),!0}},e.WallShame=window.PFWallShame}catch(e){}}function r(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function i(t){try{e&&e.toast&&e.toast(t)}catch(e){}}function o(e,t){for(var n=Array.isArray(t.votes)?t.votes:[],a=n[0]||{},r=[],i={},o=0;o<n.length;o++){var p=String(n[o].vote_date||"");p&&!i[p]&&(i[p]=1,r.push(p))}return{billId:e.bill_id,billTitle:e.title,name:t.name,chamber:t.chamber,party:t.party,state:t.state,againstVotes:t.against_votes,position:a.position,question:a.question,voteDates:r.slice(0,3),sourceUrl:a.source_url}}function p(e,t,n){var a=(Array.isArray(t.votes)?t.votes:[])[0]||{},i=Math.max(0,parseInt(t.against_votes,10)||0);return'<div class="pf-ws-kicker">WALL OF SHAME</div><div class="pf-ws-bill">ON '+r(e.bill_id)+" — "+r(e.title)+'</div><h3 class="pf-ws-name">'+r(t.name)+'</h3><div class="pf-ws-sub">'+r(function(e){var t=String(e.chamber||"").toLowerCase();return((t="house"===t?"U.S. HOUSE":"senate"===t?"U.S. SENATE":String(e.chamber||"—"))+" · "+String(e.party||"—")+" · "+String(e.state||"—")).toUpperCase()}(t))+'</div><div class="pf-ws-vote">VOTED <b>'+r(a.position)+'</b> — AGAINST THE PROGRESSIVE POSITION</div><div class="pf-ws-q">ON: '+r(a.question)+'</div><div class="pf-ws-count">'+i+(1===i?" VOTE":" VOTES")+' AGAINST THE PROGRESSIVE POSITION ON RECORD</div><div class="pf-ws-actions"><button type="button" class="pf-ws-btn" data-ws-dl="'+n+'">DOWNLOAD</button><button type="button" class="pf-ws-btn pf-ws-btn-red" data-ws-sh="'+n+'">SHARE</button></div>'}function l(e){try{e.style.display="none",e.innerHTML=""}catch(e){}}function s(t,l){!function(){try{if(document.getElementById("pf-ws-css"))return;var e=document.createElement("style");e.id="pf-ws-css",e.textContent=a,document.head.appendChild(e)}catch(e){}}();var s=l.bill||{},c=Array.isArray(l.cards)?l.cards:[];t.innerHTML="";var d=document.createElement("div");if(d.className="pf-ws",!c.length)return d.innerHTML='<div class="pf-ws-empty">'+r("No recorded votes against the progressive position on this bill.")+"</div>",void t.appendChild(d);var f=document.createElement("div");f.className="pf-ws-head",f.innerHTML='<div class="pf-ws-kicker">WALL OF SHAME</div><div class="pf-ws-billtitle">'+r(s.bill_id)+" — "+r(s.title)+"</div>",d.appendChild(f);var m=document.createElement("div");m.className="pf-ws-track";for(var u=[],g=0;g<c.length;g++){var b=document.createElement("article");b.className="pf-ws-card",b.setAttribute("data-ws-i",String(g)),b.innerHTML=p(s,c[g],g),m.appendChild(b),u.push(o(s,c[g]))}d.appendChild(m);var h=document.createElement("div");h.className="pf-ws-nav";var v=document.createElement("button");v.type="button",v.className="pf-ws-arrow",v.setAttribute("data-ws-prev","1"),v.textContent="‹";var x=document.createElement("div");x.className="pf-ws-dots";var y=[];for(g=0;g<c.length;g++){var w=document.createElement("button");w.type="button",w.className="pf-ws-dot"+(0===g?" on":""),w.setAttribute("data-ws-dot",String(g)),x.appendChild(w),y.push(w)}var A=document.createElement("button");A.type="button",A.className="pf-ws-arrow",A.setAttribute("data-ws-next","1"),A.textContent="›",h.appendChild(v),h.appendChild(x),h.appendChild(A),d.appendChild(h);var E=document.createElement("div");E.className="pf-ws-method",E.textContent="METHOD: "+(l.method||"Ranked by recorded votes against the progressive position."),d.appendChild(E);var C=0;function k(e){C=e;for(var t=0;t<y.length;t++)y[t].className="pf-ws-dot"+(t===e?" on":"")}function S(e){k(e=Math.max(0,Math.min(y.length-1,e)));try{m.scrollTo({left:e*(m.clientWidth||320),behavior:"smooth"})}catch(e){}}m.addEventListener("scroll",function(){try{var e=m.clientWidth||1;k(Math.max(0,Math.min(y.length-1,Math.round(m.scrollLeft/e))))}catch(e){}}),d.addEventListener("click",function(t){var a=t&&t.target;if(a&&a.getAttribute)if(null==a.getAttribute("data-ws-prev"))if(null==a.getAttribute("data-ws-next")){var r=a.getAttribute("data-ws-dot");if(null==r){var o=a.getAttribute("data-ws-dl"),p=a.getAttribute("data-ws-sh");if(null!=o||null!=p){var l=parseInt(null!=o?o:p,10)||0,s=u[l];if(s)try{var c=e.PHQShare;if(!c)return void i("Share is still loading — try again.");null!=o?c.save(n,s):c.share(n,s)}catch(e){i("Poster failed — try again.")}}}else S(parseInt(r,10)||0)}else S(C+1);else S(C-1)}),t.appendChild(d)}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("money-tab")&&!window.pfMoneyTabDone){window.pfMoneyTabDone=!0;var t=window.PF_BACKEND_URL,n="phq-money",a=[".pf-mt{max-width:680px;margin:0 auto;padding:8px 0;color:#f5ead6}",".pf-mt-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#e8b923;text-align:center;margin-bottom:10px}",'.pf-mt-name{font:900 32px "Arial Black",Arial,sans-serif;color:#f5ead6;text-align:center;margin:0 0 4px}',".pf-mt-sub{font:700 15px Arial,sans-serif;color:#c9bfa8;text-align:center;margin-bottom:16px}",".pf-mt-totals{display:flex;gap:10px;justify-content:center;margin-bottom:18px;flex-wrap:wrap}",".pf-mt-total{background:#0d0d0d;border:1px solid #c1121f;border-radius:8px;padding:12px 16px;text-align:center;min-width:140px}",".pf-mt-tlabel{display:block;font:700 13px Arial,sans-serif;letter-spacing:2px;color:#c9bfa8;margin-bottom:6px}",'.pf-mt-tval{display:block;font:900 22px "Arial Black",Arial,sans-serif;color:#e8b923}',".pf-mt-sect{background:#0d0d0d;border:1px solid #3a3a3a;border-radius:8px;padding:14px 16px;margin-bottom:14px}",'.pf-mt-sect h4{font:900 16px "Arial Black",Arial,sans-serif;color:#f5ead6;letter-spacing:2px;margin:0 0 10px}',".pf-mt-barrow{display:flex;height:26px;border-radius:4px;overflow:hidden;margin:8px 0}",".pf-mt-seg-sm{background:#e8b923}",".pf-mt-seg-lg{background:#c1121f}",".pf-mt-barlegend{display:flex;justify-content:space-between;font:700 13px Arial,sans-serif;color:#c9bfa8;flex-wrap:wrap;gap:6px}",".pf-mt-list{list-style:none;margin:0;padding:0}",".pf-mt-list li{display:flex;align-items:baseline;gap:8px;padding:7px 0;border-bottom:1px solid #1e1e1e;font:400 15px Arial,sans-serif}",".pf-mt-list li:last-child{border-bottom:0}",".pf-mt-dname{color:#f5ead6;font-weight:700}",".pf-mt-demployer{color:#c9bfa8;font-size:13px}",".pf-mt-damt{margin-left:auto;color:#e8b923;font-weight:700;white-space:nowrap}",".pf-mt-est{display:inline-block;font:700 11px Arial,sans-serif;letter-spacing:1px;color:#0d0d0d;background:#e8b923;border-radius:3px;padding:2px 6px;margin-left:6px}",".pf-mt-actions{display:flex;gap:10px;justify-content:center;margin:16px 0}",'.pf-mt-btn{font:900 15px "Arial Black",Arial,sans-serif;background:#f5ead6;color:#0d0d0d;border:0;border-radius:6px;padding:12px 22px;cursor:pointer}',".pf-mt-btn-red{background:#c1121f;color:#ffffff}",".pf-mt-src{font:400 13px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:0 12px}",".pf-mt-empty{font:400 16px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:28px 12px;border:1px dashed #3a3a3a;border-radius:8px}"].join("\n");try{window.PFMoneyTab={mount:function(e,n){if(!e||!n)return!1;try{if(n.querySelector&&n.querySelector(".pf-mt"))return!0}catch(e){}return function(e,n,a){if(t){var r="pfMoneyCb"+Math.floor(1e9*Math.random()),i=document.createElement("script"),o=!1;window[r]=function(e){s(e)},i.onerror=function(){s(null)};var p="?action="+encodeURIComponent(e);for(var l in n)null!=n[l]&&""!==n[l]&&(p+="&"+encodeURIComponent(l)+"="+encodeURIComponent(n[l]));p+="&callback="+r,i.src=t+p,document.head.appendChild(i),setTimeout(function(){s(null)},12e3)}else a(null);function s(e){if(!o){o=!0;try{delete window[r]}catch(e){}i.parentNode&&i.parentNode.removeChild(i),a(e)}}}("money_legislator",{bioguide_id:String(e)},function(e){if(e&&e.ok)try{f(n,e)}catch(e){d(n)}else d(n)}),!0}},e.MoneyTab=window.PFMoneyTab}catch(e){}}function r(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function i(t){try{e&&e.toast&&e.toast(t)}catch(e){}}function o(e){return null==e||isNaN(Number(e))?"—":"$"+Number(e).toLocaleString("en-US")}function p(e){return null==e||isNaN(Number(e))?null:Number(e)}function l(e){var t=p(e);return null==t?"—":Math.round(10*t)/10+"%"}function s(e){return"Source: FEC · "+r(e.cycle||"—")+" cycle · retrieved "+r(function(e){if("number"==typeof e&&e>1e12)try{var t=new Date(e);return["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"][t.getUTCMonth()]+" "+t.getUTCDate()+", "+t.getUTCFullYear()}catch(e){}var n=String(null==e?"":e).trim(),a=n.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);if(a){var r=parseInt(a[2],10)-1;if(r>=0&&r<12)return["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"][r]+" "+parseInt(a[3],10)+", "+a[1]}return n||"—"}(e.retrieved_at))}function c(e){if("number"==typeof e&&e>1e12)try{var t=new Date(e);return t.getUTCFullYear()+"-"+String(t.getUTCMonth()+1).padStart(2,"0")+"-"+String(t.getUTCDate()).padStart(2,"0")}catch(e){}return e}function d(e){try{e.style.display="none",e.innerHTML=""}catch(e){}}function f(t,d){!function(){try{if(document.getElementById("pf-mt-css"))return;var e=document.createElement("style");e.id="pf-mt-css",e.textContent=a,document.head.appendChild(e)}catch(e){}}();var f=d.member||{},m=d.totals||null;t.innerHTML="";var u,g,b,h=document.createElement("div");if(h.className="pf-mt",!m)return h.innerHTML='<div class="pf-mt-empty">'+r("Money data isn't loaded yet — no figures shown rather than guesses.")+'</div><div class="pf-mt-src">'+s(d)+"</div>",void t.appendChild(h);h.innerHTML='<div class="pf-mt-kicker">FOLLOW THE MONEY</div><h3 class="pf-mt-name">'+r(f.name||"—")+'</h3><div class="pf-mt-sub">'+r(function(e){var t=String(e.office||e.chamber||"").toLowerCase();return(("h"===t||"house"===t||"rep"===t?"U.S. HOUSE":"s"===t||"senate"===t||"sen"===t?"U.S. SENATE":String(e.office||e.chamber||"—"))+" · "+String(e.party||"—")+" · "+String(e.state||"—")).toUpperCase()}(f))+'</div><div class="pf-mt-totals">'+function(e){return[["RAISED",o(e.raised)],["SPENT",o(e.spent)],["CASH ON HAND",o(e.cash)]].map(function(e){return'<div class="pf-mt-total"><span class="pf-mt-tlabel">'+r(e[0])+'</span><span class="pf-mt-tval">'+r(e[1])+"</span></div>"}).join("")}(m)+'</div><div class="pf-mt-sect">'+function(e){var t=p(e.small_dollar_pct),n=p(e.large_dollar_pct),a="<h4>SMALL-DOLLAR VS LARGE-DOLLAR</h4>";return null==t&&null==n?a+'<div class="pf-mt-barlegend"><span>—</span></div>':(t=null==t?0:t,n=null==n?0:n,a+'<div class="pf-mt-barrow"><div class="pf-mt-seg-sm" style="width:'+Math.max(0,Math.min(100,t))+'%"></div><div class="pf-mt-seg-lg" style="width:'+Math.max(0,Math.min(100,n))+'%"></div></div><div class="pf-mt-barlegend"><span>SMALL-DOLLAR (&lt;$200): '+l(t)+"</span><span>LARGE-DOLLAR: "+l(n)+"</span></div>")}(d)+'</div><div class="pf-mt-sect">'+(u=d.top_donors,g=Array.isArray(u)?u.slice(0,10):[],b="<h4>TOP DONORS</h4>",(g.length?b+'<ul class="pf-mt-list">'+g.map(function(e){var t=e.employer?'<span class="pf-mt-demployer">'+r(e.employer)+"</span>":"";return'<li><span class="pf-mt-dname">'+r(e.name||"—")+"</span>"+t+'<span class="pf-mt-damt">'+r(o(e.amount))+"</span></li>"}).join("")+"</ul>":b+'<div class="pf-mt-barlegend"><span>—</span></div>')+'</div><div class="pf-mt-sect">')+function(e){var t=Array.isArray(e)?e:[],n="<h4>TOP INDUSTRIES</h4>";return t.length?n+'<ul class="pf-mt-list">'+t.map(function(e){var t=e.estimated?'<span class="pf-mt-est">ESTIMATED FROM EMPLOYER DATA</span>':"";return'<li><span class="pf-mt-dname">'+r(e.industry||"—")+"</span>"+t+'<span class="pf-mt-damt">'+r(o(e.total))+"</span></li>"}).join("")+"</ul>":n+'<div class="pf-mt-barlegend"><span>—</span></div>'}(d.industries)+'</div><div class="pf-mt-actions"><button type="button" class="pf-mt-btn" data-mt-dl="1">DOWNLOAD</button><button type="button" class="pf-mt-btn pf-mt-btn-red" data-mt-sh="1">SHARE</button></div><div class="pf-mt-src">'+s(d)+"</div>";var v=function(e){var t,n,a=e.member||{},r=e.totals||{},i=Array.isArray(e.top_donors)?e.top_donors.slice(0,3):[],o=Array.isArray(e.industries)?e.industries.slice(0,3):[];return{bioguideId:a.bioguide_id,name:a.name,chamber:(t=a.office,n=String(t||"").toUpperCase(),"H"===n?"house":"S"===n?"senate":""),party:a.party,state:a.state,cycle:e.cycle,retrieved:c(e.retrieved_at),raised:r.raised,spent:r.spent,cash:r.cash,topDonors:i.map(function(e){return{name:e.name,employer:e.employer,amount:e.amount}}),topIndustries:o.map(function(e){return{industry:e.industry,amount:e.total}})}}(d);h.addEventListener("click",function(t){var a=t&&t.target;if(a&&a.getAttribute){var r=a.getAttribute("data-mt-dl"),o=a.getAttribute("data-mt-sh");if(null!=r||null!=o)try{var p=e.PHQShare;if(!p)return void i("Share is still loading — try again.");null!=r?p.save(n,v):p.share(n,v)}catch(e){i("Poster failed — try again.")}}}),t.appendChild(h)}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("money-vote")&&!window.pfMoneyVoteDone){window.pfMoneyVoteDone=!0;var t=window.PF_BACKEND_URL,n=[".pf-mv{max-width:680px;margin:0 auto;padding:8px 0;color:#f5ead6}",".pf-mv-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#e8b923;text-align:center;margin-bottom:10px}",'.pf-mv-title{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6;text-align:center;margin:0 0 6px}',".pf-mv-bill{font:700 15px Arial,sans-serif;color:#c9bfa8;text-align:center;margin-bottom:16px}",".pf-mv-row{background:#0d0d0d;border:1px solid #3a3a3a;border-radius:8px;padding:14px 16px;margin-bottom:12px}",'.pf-mv-name{font:900 20px "Arial Black",Arial,sans-serif;color:#f5ead6}',".pf-mv-sub{display:block;font:700 13px Arial,sans-serif;color:#c9bfa8;margin-top:4px}",".pf-mv-vote{font:700 15px Arial,sans-serif;color:#e8b923;margin:8px 0}",".pf-mv-vote b{color:#c1121f}",".pf-mv-inds{list-style:none;margin:0;padding:0}",".pf-mv-inds li{font:400 15px Arial,sans-serif;color:#c9bfa8;padding:4px 0}",".pf-mv-inds li b{color:#f5ead6}",".pf-mv-inds li .pf-mv-amt{color:#e8b923;font-weight:700}",".pf-mv-method{font:400 13px Arial,sans-serif;color:#c9bfa8;text-align:center;margin-top:12px;padding:0 12px;font-style:italic}",".pf-mv-empty{font:400 16px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:28px 12px;border:1px dashed #3a3a3a;border-radius:8px}"].join("\n");try{window.PFMoneyVote={mount:function(e,n){if(!e||!n)return!1;try{if(n.querySelector&&n.querySelector(".pf-mv"))return!0}catch(e){}return function(e,n,a){if(t){var r="pfMvCb"+Math.floor(1e9*Math.random()),i=document.createElement("script"),o=!1;window[r]=function(e){s(e)},i.onerror=function(){s(null)};var p="?action="+encodeURIComponent(e);for(var l in n)null!=n[l]&&""!==n[l]&&(p+="&"+encodeURIComponent(l)+"="+encodeURIComponent(n[l]));p+="&callback="+r,i.src=t+p,document.head.appendChild(i),setTimeout(function(){s(null)},12e3)}else a(null);function s(e){if(!o){o=!0;try{delete window[r]}catch(e){}i.parentNode&&i.parentNode.removeChild(i),a(e)}}}("money_vote_card",{bill_id:String(e)},function(e){if(e&&e.ok)try{p(n,e)}catch(e){o(n)}else o(n)}),!0}},e.MoneyVote=window.PFMoneyVote}catch(e){}}function a(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function r(e){return e.copy?a(e.copy):'received <span class="pf-mv-amt">'+a(null==(t=e.total)||isNaN(Number(t))?"—":"$"+Number(t).toLocaleString("en-US"))+"</span> from <b>"+a(e.industry||"—")+"</b>";var t}function i(e){var t=e.money&&Array.isArray(e.money.industries)?e.money.industries.slice(0,3):[],n="";return e.money&&(n=t.length?'<ul class="pf-mv-inds">'+t.map(function(e){return"<li>"+r(e)+"</li>"}).join("")+"</ul>":'<ul class="pf-mv-inds"><li>No industry donor data reported.</li></ul>'),'<article class="pf-mv-row"><div class="pf-mv-name">'+a(e.name||"—")+'<span class="pf-mv-sub">'+a(function(e){var t=String(e.chamber||"").toLowerCase();return((t="house"===t?"U.S. HOUSE":"senate"===t?"U.S. SENATE":String(e.chamber||"—"))+" · "+String(e.party||"—")+" · "+String(e.state||"—")).toUpperCase()}(e))+'</span></div><div class="pf-mv-vote">VOTED <b>'+a(e.position||"—")+"</b></div>"+n+"</article>"}function o(e){try{e.style.display="none",e.innerHTML=""}catch(e){}}function p(e,t){!function(){try{if(document.getElementById("pf-mv-css"))return;var e=document.createElement("style");e.id="pf-mv-css",e.textContent=n,document.head.appendChild(e)}catch(e){}}();var r=t.bill||{},o=Array.isArray(t.cards)?t.cards:[];e.innerHTML="";var p=document.createElement("div");if(p.className="pf-mv",!o.length)return p.innerHTML='<div class="pf-mv-empty">'+a("No vote records returned for this bill.")+"</div>",void e.appendChild(p);for(var l='<div class="pf-mv-kicker">FOLLOW THE MONEY</div><h3 class="pf-mv-title">'+a("Who funded both sides")+'</h3><div class="pf-mv-bill">'+a(r.bill_id||"—")+" — "+a(r.title||"—")+"</div>",s=0;s<o.length;s++)l+=i(o[s]||{});l+='<div class="pf-mv-method">'+a(t.methodology||"Donations are correlated with votes, not proof of cause.")+"</div>",p.innerHTML=l,e.appendChild(p)}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("ledgers")&&!window.pfLedgersDone){window.pfLedgersDone=!0;var t=window.PF_BACKEND_URL,n="phq-ledger",a=[".pf-ledger{max-width:680px;margin:0 auto;padding:8px 0}",".pf-ledger-head{text-align:center;margin-bottom:10px}",".pf-ledger-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#c1121f;margin-bottom:8px}",'.pf-ledger-title{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 6px}',".pf-ledger-sub{font:400 14px Arial,sans-serif;color:#c9bfa8;margin-bottom:4px}",".pf-ledger-row{background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:20px 20px 18px;margin:0 0 14px;color:#f5ead6}",".pf-ledger-rank{font:700 13px Arial,sans-serif;color:#e8b923;letter-spacing:3px;margin-bottom:6px}",'.pf-ledger-name{font:900 26px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 10px}','.pf-ledger-fig{font:900 19px "Arial Black",Arial,sans-serif;color:#f5ead6}',".pf-ledger-fig.gold{color:#e8b923}",".pf-ledger-fig.dim{color:#c9bfa8;font:400 15px Arial,sans-serif}",".pf-ledger-caveat{font:400 12px Arial,sans-serif;color:#c9bfa8;margin:2px 0 10px}",".pf-ledger-barwrap{background:#1a1a1a;border:1px solid #3a3a3a;border-radius:6px;height:22px;position:relative;margin:8px 0 4px;overflow:hidden}",".pf-ledger-bar{background:#c1121f;height:100%;min-width:3px}",".pf-ledger-ratio{font:700 13px Arial,sans-serif;color:#e8b923;margin-bottom:12px}",".pf-ledger-actions{display:flex;gap:10px;justify-content:center;margin-top:6px}",'.pf-ledger-btn{font:900 14px "Arial Black",Arial,sans-serif;background:#f5ead6;color:#0d0d0d;border:0;border-radius:6px;padding:11px 20px;cursor:pointer}',".pf-ledger-btn-red{background:#c1121f;color:#ffffff}",".pf-ledger-method{font:400 12px Arial,sans-serif;color:#c9bfa8;text-align:center;margin-top:12px;padding:0 12px;line-height:1.5}",".pf-ledger-empty{font:400 16px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:28px 12px;border:1px dashed #3a3a3a;border-radius:8px}"].join("\n"),r=!1;try{window.PFLedgers={mount:function(e){if(!e)return!1;try{if(e.querySelector&&e.querySelector(".pf-ledger"))return!0}catch(e){}return function(e,n,a){if(t){var r="pfLedgerCb"+Math.floor(1e9*Math.random()),i=document.createElement("script"),o=!1;window[r]=function(e){s(e)},i.onerror=function(){s(null)};var p="?action="+encodeURIComponent(e);for(var l in n)null!=n[l]&&""!==n[l]&&(p+="&"+encodeURIComponent(l)+"="+encodeURIComponent(n[l]));p+="&callback="+r,i.src=t+p,document.head.appendChild(i),setTimeout(function(){s(null)},12e3)}else a(null);function s(e){if(!o){o=!0;try{delete window[r]}catch(e){}i.parentNode&&i.parentNode.removeChild(i),a(e)}}}("ledger_list",{},function(t){if(t&&t.ok&&Array.isArray(t.entries))try{c(e,t)}catch(t){s(e)}else s(e)}),!0}},e.Ledgers=window.PFLedgers}catch(e){}}function i(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function o(t){try{e&&e.toast&&e.toast(t)}catch(e){}}function p(e){return{name:e.name,rank:e.rank,netWorthB:e.net_worth_b,netWorthAsOf:e.net_worth_as_of,spending:e.political_spending,spendingCycle:e.spending_cycle,ratio:e.spending_ratio,matchNote:e.match_note}}function l(e,t){var n,a,r,o,p="loaded"===e.spending_status&&null!=e.political_spending,l=0,s="";return p&&isFinite(Number(e.spending_ratio))&&Number(e.spending_ratio)>0&&(l=Math.max(.4,Math.min(100,100*Number(e.spending_ratio))),s='<div class="pf-ledger-ratio">'+i(function(e){var t=Number(e);if(!isFinite(t)||t<0)return"—";var n=100*t;return n>=1?Math.round(100*n)/100+"%":n>=.01?Math.round(1e3*n)/1e3+"%":n.toPrecision(2)+"%"}(e.spending_ratio))+" OF NET WORTH SPENT ON FEDERAL ELECTIONS</div>"),'<div class="pf-ledger-rank">#'+i(e.rank)+' — FORBES 2026</div><h3 class="pf-ledger-name">'+i(e.name)+'</h3><div class="pf-ledger-fig">NET WORTH '+i((r=e.net_worth_b,o=Number(r),isFinite(o)?"$"+Math.round(10*o)/10+"B":"—"))+'</div><div class="pf-ledger-caveat">Forbes '+i((n=e.net_worth_as_of,(a=String(n||"").match(/^(\d{4})-(\d{2})-(\d{2})$/))?["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"][parseInt(a[2],10)-1]+" "+parseInt(a[3],10)+", "+a[1]:"—"))+" snapshot · published-list-snapshot</div>"+(p?'<div class="pf-ledger-fig gold">SPENT '+i(function(e){var t=Number(e);return isFinite(t)?"$"+Math.round(t).toString().replace(/\B(?=(\d{3})+(?!\d))/g,","):"—"}(e.political_spending))+' ON FEDERAL ELECTIONS</div><div class="pf-ledger-caveat">FEC Schedule A, '+i(e.spending_cycle)+' cycle · name-matched — identity unverified</div><div class="pf-ledger-barwrap"><div class="pf-ledger-bar" style="width:'+l.toFixed(2)+'%"></div></div>'+s:'<div class="pf-ledger-fig dim">'+i("FEC data not yet loaded — no figures shown rather than invented.")+'</div><div class="pf-ledger-caveat">No figures shown rather than invented.</div>')+'<div class="pf-ledger-actions"><button type="button" class="pf-ledger-btn" data-ledger-dl="'+t+'">DOWNLOAD</button><button type="button" class="pf-ledger-btn pf-ledger-btn-red" data-ledger-sh="'+t+'">SHARE</button></div>'}function s(e){try{e.style.display="none",e.innerHTML=""}catch(e){}}function c(t,s){!function(){if(!r){r=!0;try{var e=document.createElement("style");e.type="text/css",e.appendChild(document.createTextNode(a)),document.head.appendChild(e)}catch(e){}}}();s.list;var c=Array.isArray(s.entries)?s.entries:[];t.innerHTML="";var d=document.createElement("div");if(d.className="pf-ledger",!c.length)return d.innerHTML='<div class="pf-ledger-empty">'+i("The ledger is empty — no billionaire rows returned.")+"</div>",void t.appendChild(d);var f=document.createElement("div");f.className="pf-ledger-head",f.innerHTML='<div class="pf-ledger-kicker">FOLLOW THE MONEY</div><h2 class="pf-ledger-title">THE LEDGER</h2><div class="pf-ledger-sub">Billionaire net worth vs. political spending — ranked by net worth</div>',d.appendChild(f);for(var m=[],u=0;u<c.length;u++){var g=document.createElement("article");g.className="pf-ledger-row",g.setAttribute("data-ledger-i",String(u)),g.innerHTML=l(c[u],u),d.appendChild(g),m.push(p(c[u]))}var b=document.createElement("div");b.className="pf-ledger-method",b.textContent="METHOD: "+(s.methodology||"Net worths hand-transcribed from Forbes' published 2026 list; spending from FEC Schedule A (name-matched)."),d.appendChild(b),d.addEventListener("click",function(t){var a=t&&t.target;if(a&&a.getAttribute){var r=a.getAttribute("data-ledger-dl"),i=a.getAttribute("data-ledger-sh");if(null!=r||null!=i){var p=parseInt(null!=r?r:i,10)||0,l=m[p];if(l)try{var s=e.PHQShare;if(!s)return void o("Share is still loading — try again.");null!=r?s.save(n,l):s.share(n,l)}catch(e){o("Poster failed — try again.")}}}}),t.appendChild(d)}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("boycotts")&&!window.pfBoycottsDone){window.pfBoycottsDone=!0;var t=window.PF_BACKEND_URL,n="phq-boycott",a=[".pf-bc{max-width:680px;margin:0 auto;padding:8px 0}",".pf-bc-head{text-align:center;margin-bottom:10px}",".pf-bc-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#e8b923;margin-bottom:8px}",'.pf-bc-title{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 4px}',".pf-bc-sub{font:400 14px Arial,sans-serif;color:#c9bfa8;margin-bottom:10px}",".pf-bc-disc{background:#1a1206;border:2px solid #e8b923;border-radius:8px;padding:12px 14px;font:700 13px Arial,sans-serif;color:#e8b923;text-align:center;margin:0 6px 14px;line-height:1.5}",".pf-bc-row{background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:20px 18px;color:#f5ead6;margin:0 6px 14px}",".pf-bc-rank{font:700 13px Arial,sans-serif;color:#c9bfa8;letter-spacing:3px;margin-bottom:6px}",'.pf-bc-emp{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 6px;line-height:1.1}','.pf-bc-amt{font:900 20px "Arial Black",Arial,sans-serif;color:#c1121f;margin-bottom:4px}',".pf-bc-cyc{font:400 13px Arial,sans-serif;color:#c9bfa8;margin-bottom:12px}",".pf-bc-camp{background:#161616;border:1px solid #3a3a3a;border-radius:8px;padding:12px;margin-bottom:10px}",".pf-bc-camp-t{font:700 15px Arial,sans-serif;color:#f5ead6;margin-bottom:4px}",".pf-bc-camp-s{font:400 12px Arial,sans-serif;color:#c9bfa8;margin-bottom:10px}",".pf-bc-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}",'.pf-bc-btn{font:900 14px "Arial Black",Arial,sans-serif;background:#f5ead6;color:#0d0d0d;border:0;border-radius:6px;padding:11px 20px;cursor:pointer;text-decoration:none;display:inline-block}',".pf-bc-btn-red{background:#c1121f;color:#ffffff}",".pf-bc-btn-gold{background:#e8b923;color:#0d0d0d}",".pf-bc-nocamp{font:400 13px Arial,sans-serif;color:#c9bfa8;font-style:italic;margin-bottom:4px}",".pf-bc-empty{font:400 16px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:28px 12px;border:1px dashed #3a3a3a;border-radius:8px}",".pf-bc-method{font:400 12px Arial,sans-serif;color:#c9bfa8;text-align:center;margin-top:12px;padding:0 12px;line-height:1.5}"].join("\n");try{window.PFBoycotts={mount:function(e){if(!e)return!1;try{if(e.querySelector&&e.querySelector(".pf-bc"))return!0}catch(e){}return function(e,n,a){if(t){var r="pfBcCb"+Math.floor(1e9*Math.random()),i=document.createElement("script"),o=!1;window[r]=function(e){s(e)},i.onerror=function(){s(null)};var p="?action="+encodeURIComponent(e);for(var l in n)null!=n[l]&&""!==n[l]&&(p+="&"+encodeURIComponent(l)+"="+encodeURIComponent(n[l]));p+="&callback="+r,i.src=t+p,document.head.appendChild(i),setTimeout(function(){s(null)},12e3)}else a(null);function s(e){if(!o){o=!0;try{delete window[r]}catch(e){}i.parentNode&&i.parentNode.removeChild(i),a(e)}}}("boycott_list",{},function(t){if(t&&t.ok)try{d(e,t)}catch(t){p(e)}else p(e)}),!0}},e.Boycotts=window.PFBoycotts}catch(e){}}function r(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function i(t){try{e&&e.toast&&e.toast(t)}catch(e){}}function o(e){try{return"$"+Number(e).toLocaleString("en-US",{maximumFractionDigits:0})}catch(t){return"$"+String(e)}}function p(e){try{e.style.display="none",e.innerHTML=""}catch(e){}}function l(){var t="https://www.mtcstw.com/political-hq";try{window.PF&&"function"==typeof e.shareUrl&&(t=e.shareUrl(t))}catch(e){}return t}function s(e){var t=(Array.isArray(e.linked_campaigns)?e.linked_campaigns:[])[0]||{};return{employer:e.employer,amount:e.total_donated,cycle:e.cycle,campaignTitle:t.title||"",campaignId:t.id||""}}function c(e){if(!e.length)return'<div class="pf-bc-nocamp">No linked pressure campaign yet.</div>';for(var t="",n=0;n<e.length;n++){var a=e[n]||{},i=String(a.status||"").toUpperCase();t+='<div class="pf-bc-camp"><div class="pf-bc-camp-t">'+r(a.title||a.id||"Pressure campaign")+"</div>"+(i?'<div class="pf-bc-camp-s">STATUS: '+r(i)+"</div>":"")+'<a class="pf-bc-btn pf-bc-btn-gold" data-bc-join="1" href="'+r(l())+'" target="_blank" rel="noopener">JOIN THE PRESSURE</a></div>'}return t}function d(t,p){!function(){try{if(document.getElementById("pf-bc-css"))return;var e=document.createElement("style");e.id="pf-bc-css",e.textContent=a,document.head.appendChild(e)}catch(e){}}();var l=Array.isArray(p.employers)?p.employers:[];t.innerHTML="";var d=document.createElement("div");d.className="pf-bc";var f=document.createElement("div");f.className="pf-bc-head",f.innerHTML='<div class="pf-bc-kicker">FOLLOW THE MONEY &rarr; JOIN THE FIGHT</div><h2 class="pf-bc-title">DONOR BOYCOTT LIST</h2><div class="pf-bc-sub">Top employers by employee FEC contributions'+(p.cycle_scope?" &middot; "+r(p.cycle_scope)+" cycle":"")+"</div>",d.appendChild(f);var m=document.createElement("div");if(m.className="pf-bc-disc",m.textContent=p.disclaimer||"Totals aggregate individual employee contributions reported to the FEC. Corporations cannot donate directly — an employer here means its employees gave, not the company.",d.appendChild(m),!l.length){var u=document.createElement("div");return u.className="pf-bc-empty",u.textContent=p.empty&&"donor data pending"===p.reason?"Donor data pending — the money tables are still loading. Check back soon.":"No donor data yet.",d.appendChild(u),void t.appendChild(d)}for(var g=[],b=0;b<l.length;b++){var h=l[b]||{},v=Array.isArray(h.linked_campaigns)?h.linked_campaigns:[],x=document.createElement("article");x.className="pf-bc-row",x.innerHTML='<div class="pf-bc-rank">#'+(b+1)+'</div><h3 class="pf-bc-emp">'+r(h.employer||"—")+'</h3><div class="pf-bc-amt">'+r(h.headline||"Employees gave "+o(h.total_donated)+" (FEC)")+'</div><div class="pf-bc-cyc">'+r(h.cycle||"")+(h.cycle?" cycle":"")+" &middot; "+(parseInt(h.contributions,10)||0)+" reported contributions &middot; source: FEC</div>"+c(v)+'<div class="pf-bc-actions"><button type="button" class="pf-bc-btn" data-bc-dl="'+b+'">DOWNLOAD</button><button type="button" class="pf-bc-btn pf-bc-btn-red" data-bc-sh="'+b+'">SHARE</button></div>',d.appendChild(x),g.push(s(h))}if(p.method){var y=document.createElement("div");y.className="pf-bc-method",y.textContent="METHOD: "+p.method,d.appendChild(y)}d.addEventListener("click",function(t){var a=t&&t.target;if(a&&a.getAttribute){var r=a.getAttribute("data-bc-dl"),o=a.getAttribute("data-bc-sh");if(null!=r||null!=o){var p=parseInt(null!=r?r:o,10)||0,l=g[p];if(l)try{var s=e.PHQShare;if(!s)return void i("Share is still loading — try again.");null!=r?s.save(n,l):s.share(n,l)}catch(e){i("Poster failed — try again.")}}}}),t.appendChild(d)}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("corp-card")&&!window.pfCorpCardDone){window.pfCorpCardDone=!0;var t=window.PF_BACKEND_URL,n="phq-corp",a="Per-company price data has no public source. Shown: what filings prove.",r=[".pf-cp{max-width:680px;margin:0 auto;padding:8px 0}",".pf-cp-card{background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:26px 22px;color:#f5ead6;text-align:center}",".pf-cp-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#c1121f;margin-bottom:10px}",'.pf-cp-name{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 4px}',".pf-cp-ticker{font:700 15px Arial,sans-serif;color:#e8b923;margin-bottom:16px}",".pf-cp-vs{display:flex;gap:12px;margin-bottom:8px}",".pf-cp-col{flex:1;background:#141414;border:1px solid #3a3a3a;border-radius:8px;padding:14px 8px}",".pf-cp-lab{font:700 12px Arial,sans-serif;letter-spacing:2px;color:#c9bfa8;margin-bottom:8px}",'.pf-cp-amt{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6}',".pf-cp-amt.red{color:#c1121f}",'.pf-cp-rate{font:900 22px "Arial Black",Arial,sans-serif;color:#e8b923;margin:14px 0 4px}',".pf-cp-ratelab{font:700 12px Arial,sans-serif;letter-spacing:2px;color:#c9bfa8;margin-bottom:12px}",".pf-cp-lob{font:700 16px Arial,sans-serif;color:#f5ead6;margin-bottom:4px}",".pf-cp-loblab{font:700 12px Arial,sans-serif;letter-spacing:2px;color:#c9bfa8;margin-bottom:14px}",".pf-cp-price{font:400 14px Arial,sans-serif;color:#c9bfa8;border:1px dashed #3a3a3a;border-radius:8px;padding:12px;margin:6px 0 14px}",".pf-cp-src{font:400 12px Arial,sans-serif;color:#8a8272;margin-bottom:16px}",".pf-cp-actions{display:flex;gap:10px;justify-content:center}",'.pf-cp-btn{font:900 15px "Arial Black",Arial,sans-serif;background:#f5ead6;color:#0d0d0d;border:0;border-radius:6px;padding:12px 22px;cursor:pointer}',".pf-cp-btn-red{background:#c1121f;color:#ffffff}",".pf-cp-empty{font:400 16px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:28px 12px;border:1px dashed #3a3a3a;border-radius:8px}"].join("\n");try{window.PFCorpCard={mount:function(e,n){if(!e||!n)return!1;try{if(n.querySelector&&n.querySelector(".pf-cp"))return!0}catch(e){}return function(e,n,a){if(t){var r="pfCpCb"+Math.floor(1e9*Math.random()),i=document.createElement("script"),o=!1;window[r]=function(e){s(e)},i.onerror=function(){s(null)};var p="?action="+encodeURIComponent(e);for(var l in n)null!=n[l]&&""!==n[l]&&(p+="&"+encodeURIComponent(l)+"="+encodeURIComponent(n[l]));p+="&callback="+r,i.src=t+p,document.head.appendChild(i),setTimeout(function(){s(null)},12e3)}else a(null);function s(e){if(!o){o=!0;try{delete window[r]}catch(e){}i.parentNode&&i.parentNode.removeChild(i),a(e)}}}("corp_card",{ticker:String(e).toUpperCase()},function(e){if(!e||!e.ok||!e.ticker)return e&&!1===e.ok&&e.err?(s(),void(n.innerHTML='<div class="pf-cp"><div class="pf-cp-empty">'+i("No corporate facts on file for this ticker — yet.")+"</div></div>")):void c(n);try{d(n,e)}catch(e){c(n)}}),!0}},e.CorpCard=window.PFCorpCard}catch(e){}}function i(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function o(t){try{e&&e.toast&&e.toast(t)}catch(e){}}function p(e){if(null==e)return"—";var t=Number(e);if(!isFinite(t))return"—";var n=t<0?"−":"",a=Math.abs(t);return a>=1e9?n+"$"+(a/1e9).toFixed(1)+"B":a>=1e6?n+"$"+(a/1e6).toFixed(1)+"M":a>=1e3?n+"$"+(a/1e3).toFixed(1)+"K":n+"$"+Math.round(a)}function l(e,t){for(var n={},a=[],r=0;r<(e||[]).length;r++){var i=e[r]||{},o="";"edgar"===i.kind?o="SEC EDGAR · 10-K FY"+(i.fy||t):"lda"===i.kind?o="LDA · "+(i.year||t)+" LD-2 FILINGS":i.name&&(o=String(i.name).toUpperCase()),o&&!n[o]&&(n[o]=1,a.push(o))}return a.length?"SOURCES: "+a.join(" · "):"SOURCES: PUBLIC FILINGS"}function s(){try{if(document.getElementById("pf-cp-css"))return;var e=document.createElement("style");e.id="pf-cp-css",e.textContent=r,document.head.appendChild(e)}catch(e){}}function c(e){try{e.style.display="none",e.innerHTML=""}catch(e){}}function d(t,r){s(),t.innerHTML="";var c=document.createElement("div");c.className="pf-cp";var d=r.price_hikes||{},f=d.empty&&(d.note||a)||a;c.innerHTML='<div class="pf-cp-card"><div class="pf-cp-kicker">THEIR PLAYBOOK</div><h3 class="pf-cp-name">'+i(r.name)+'</h3><div class="pf-cp-ticker">'+i(r.ticker)+" · FY"+i(r.year)+'</div><div class="pf-cp-vs"><div class="pf-cp-col"><div class="pf-cp-lab">STOCK BUYBACKS</div><div class="pf-cp-amt">'+i(p(r.buybacks))+'</div><div class="pf-cp-ratelab">SEC EDGAR · FY'+i(r.year)+'</div></div><div class="pf-cp-col"><div class="pf-cp-lab">INCOME TAXES PAID</div><div class="pf-cp-amt red">'+i(p(r.tax_paid))+'</div><div class="pf-cp-ratelab">SEC EDGAR · FY'+i(r.year)+'</div></div></div><div class="pf-cp-rate">EFFECTIVE TAX RATE: '+i(function(e){if(null==e)return"—";var t=Number(e);return isFinite(t)?(100*t).toFixed(1)+"%":"—"}(r.effective_rate))+'</div><div class="pf-cp-ratelab">TAXES PAID ÷ PRETAX INCOME · SEC EDGAR · FY'+i(r.year)+'</div><div class="pf-cp-lob">LOBBYING SPEND: '+i(p(r.lobbying_spend))+'</div><div class="pf-cp-loblab">LDA LD-2 FILINGS · '+i(r.year)+' · AS-FILED ESTIMATE</div><div class="pf-cp-price">PRICE HIKES: '+i(f)+'</div><div class="pf-cp-src">'+i(l(r.sources,r.year))+'</div><div class="pf-cp-actions"><button type="button" class="pf-cp-btn" data-cp-dl="1">DOWNLOAD</button><button type="button" class="pf-cp-btn pf-cp-btn-red" data-cp-sh="1">SHARE</button></div></div>';var m=function(e){return{ticker:e.ticker,name:e.name,year:e.year,buybacks:e.buybacks,taxPaid:e.tax_paid,effectiveRate:e.effective_rate,lobbyingSpend:e.lobbying_spend,sourceLine:l(e.sources,e.year)}}(r);c.addEventListener("click",function(t){var a=t&&t.target;if(a&&a.getAttribute){var r=a.getAttribute("data-cp-dl"),i=a.getAttribute("data-cp-sh");if(null!=r||null!=i)try{var p=e.PHQShare;if(!p)return void o("Share is still loading — try again.");null!=r?p.save(n,m):p.share(n,m)}catch(e){o("Poster failed — try again.")}}}),t.appendChild(c)}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("money")&&!window.pfMoneyPageDone){window.pfMoneyPageDone=!0;var t=window.PF_BACKEND_URL,n="https://www.mtcstw.com/political-hq",a="https://www.mtcstw.com/create",r=[".pf-mp{max-width:960px;margin:0 auto;padding:8px 0 24px;color:#f5ead6;font-family:Arial,sans-serif}",".pf-mp-kicker{font-weight:700;font-size:13px;letter-spacing:6px;color:#e8b923;text-align:center;margin-bottom:8px}",".pf-mp-title{font-weight:900;font-size:34px;text-align:center;margin:0 0 6px;letter-spacing:2px}",".pf-mp-mission{font-size:15px;color:#c9bfa8;text-align:center;margin:0 0 20px;font-style:italic}",".pf-mp-sec{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:10px;padding:18px;margin-bottom:14px}",".pf-mp-sec h3{font-weight:900;font-size:19px;letter-spacing:2px;margin:0 0 4px;color:#f5ead6}",".pf-mp-sec .pf-mp-sub{font-size:13px;color:#c9bfa8;margin:0 0 12px}",".pf-mp-pick{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}",".pf-mp-pick input{flex:1;min-width:180px;background:#1a1a1a;border:1px solid #3a3a3a;color:#f5ead6;border-radius:6px;padding:10px 12px;font-size:15px}",".pf-mp-btn{background:#c1121f;color:#fff;border:0;border-radius:6px;padding:10px 18px;font-weight:900;letter-spacing:1px;cursor:pointer;font-size:14px}",".pf-mp-btn.ghost{background:#1a1a1a;border:1px solid #3a3a3a;color:#f5ead6}",".pf-mp-cor{font-size:13px;color:#c9bfa8;border-top:1px solid #2a2a2a;margin-top:12px;padding-top:10px;font-style:italic}",".pf-mp-share{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}",".pf-mp-rail{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:18px 0 6px}",".pf-mp-rail a{color:#e8b923;font-weight:700;font-size:14px;letter-spacing:1px;text-decoration:none;border:1px solid #3a3a3a;border-radius:6px;padding:10px 16px;background:#0d0d0d}",".pf-mp-ac{display:block;text-align:center;margin:22px auto 0;max-width:420px;background:#c1121f;color:#fff;font-weight:900;letter-spacing:2px;font-size:16px;padding:14px;border-radius:8px;text-decoration:none}",".pf-mp-gauge{height:26px;border-radius:4px;overflow:hidden;display:flex;margin:10px 0}",".pf-mp-g-sm{background:#e8b923}.pf-mp-g-lg{background:#c1121f}",".pf-mp-gleg{display:flex;justify-content:space-between;font-size:13px;color:#c9bfa8;font-weight:700;flex-wrap:wrap;gap:6px}",".pf-mp-note{font-size:13px;color:#c9bfa8;text-align:center;padding:14px}",".pf-mp-redirect{max-width:560px;margin:24px auto;background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:28px 22px;text-align:center;color:#f5ead6;font-family:Arial,sans-serif}",".pf-mp-redirect h3{font-weight:900;font-size:22px;letter-spacing:2px;margin:0 0 10px}",".pf-mp-redirect p{color:#c9bfa8;font-size:14px;margin:0 0 16px}",".pf-mp-redirect a{display:inline-block;background:#c1121f;color:#fff;font-weight:900;letter-spacing:2px;padding:14px 28px;border-radius:8px;text-decoration:none;font-size:16px}"].join("\n"),i={bioguide:d("bioguide")||"",bill:d("bill")||""},o=[{key:"fec",kill:"money-fec-donors",title:"FEC DONOR FILES",sub:"Every legislator’s money, straight from the filings.",mount:function(e){var t=document.createElement("div");t.innerHTML='<div class="pf-mp-pick"><input id="pf-mp-bio" placeholder="Bioguide ID — e.g. A000055" value="'+l(i.bioguide)+'" aria-label="Legislator Bioguide ID"><button class="pf-mp-btn" id="pf-mp-bio-go">PULL THE FILE</button></div><div class="pf-mp-slot"></div><p class="pf-mp-note">Donor files come straight from FEC filings. Type a Bioguide ID (find it on the legislator’s directory page) — or open this page with <b>?bioguide=</b>.</p>',e.appendChild(t);var n=t.querySelector(".pf-mp-slot");function a(e){if(e){i.bioguide=e,n.innerHTML="";try{window.PFMoneyTab?PFMoneyTab.mount(e,n):n.innerHTML='<p class="pf-mp-note">Money module still loading — try again.</p>'}catch(e){s("fec mount failed :: "+(e&&e.message||e))}f(document.getElementById("pf-mp-gauge-slot"),e)}}t.querySelector("#pf-mp-bio-go").addEventListener("click",function(){a(t.querySelector("#pf-mp-bio").value.trim())}),i.bioguide&&a(i.bioguide)}},{key:"vote",kill:"money-vote",title:"THE MONEY BEHIND THE VOTE",sub:"Who funded both sides of the fight.",mount:function(t){var n=document.createElement("div");n.innerHTML='<div class="pf-mp-pick"><input id="pf-mp-bill" placeholder="Bill ID — e.g. H.R.3633" value="'+l(i.bill)+'" aria-label="Bill ID"><button class="pf-mp-btn" id="pf-mp-bill-go">FOLLOW THIS BILL</button></div><div class="pf-mp-slot"></div><div class="pf-mp-share" style="display:none"><button class="pf-mp-btn ghost" data-act="share">SHARE THIS CARD</button><button class="pf-mp-btn ghost" data-act="forge">FORGE THIS</button></div><p class="pf-mp-cor">Donations and votes are separate public records. Donations don’t prove motive — they show who’s in the room.</p><p class="pf-mp-note">Tip: open this page with <b>?bill=</b> to deep-link a bill.</p>',t.appendChild(n);var r=n.querySelector(".pf-mp-slot"),o=n.querySelector(".pf-mp-share"),d=null;function f(e){if(e){i.bill=e,r.innerHTML="",o.style.display="none",d=null;try{window.PFMoneyVote?PFMoneyVote.mount(e,r):r.innerHTML='<p class="pf-mp-note">Money module still loading — try again.</p>'}catch(e){s("vote mount failed :: "+(e&&e.message||e))}c("money_vote_card",{bill_id:e},function(e){try{e&&e.ok&&e.cards&&(d=e,o.style.display="flex")}catch(e){}}),function(e){var t=document.querySelector('[data-sec="wallshame"] .pf-mp-body');if(!t)return;if(p("wallshame"))return void(t.innerHTML="");t.innerHTML='<div class="pf-mp-slot"></div>';try{window.PFWallShame&&PFWallShame.mount(e,t.querySelector(".pf-mp-slot"))}catch(e){s("wall mount failed :: "+(e&&e.message||e))}}(e)}}n.querySelector("#pf-mp-bill-go").addEventListener("click",function(){f(n.querySelector("#pf-mp-bill").value.trim())}),o.addEventListener("click",function(t){var n=t.target&&t.target.getAttribute?t.target.getAttribute("data-act"):null;if(n&&d){var r,i,o=(r=d,i=(Array.isArray(r.cards)?r.cards:[]).slice(0,4).map(function(e){var t=e.money&&e.money.industries&&e.money.industries[0]||null;return{name:e.name||"—",copy:t&&t.copy||"",vote:e.position||""}}),{billTitle:r.bill&&r.bill.title||r.bill_id||"",billId:r.bill&&r.bill.bill_id||"",cycle:r.cycle||"",rows:i,source:"FEC (api.open.fec.gov)"});if("share"===n)try{e.PHQShare?e.PHQShare.share("phq-votedonor",o):s("PHQShare missing for vote share")}catch(e){s("vote share failed :: "+(e&&e.message||e))}else if("forge"===n)try{sessionStorage.setItem("pf_forge_prefill_v1",JSON.stringify({kind:"money-vote",painter:"phq-votedonor",data:o,caption:"THE MONEY BEHIND THE VOTE — "+(o.billTitle||"")})),window.location.href=a}catch(e){s("forge stash failed :: "+(e&&e.message||e))}}}),i.bill&&f(i.bill)}},{key:"wallshame",kill:"wallshame",title:"WALL OF SHAME",sub:"The votes against us, named and sourced.",mount:function(e){e.innerHTML='<p class="pf-mp-note">Pick a bill above — the wall fills with its worst votes.</p>'}},{key:"pac",kill:"pac-alerts",title:"SUPER PAC ALERTS",sub:"New money drops, as they land.",mount:function(e){var t=document.createElement("div");e.appendChild(t);try{window.PFPacAlerts&&PFPacAlerts.mount(t)}catch(e){s("pac mount failed")}}},{key:"trades",kill:"trades-tab",title:"TRADES ON THE HILL",sub:"What they bought and sold while writing the rules.",mount:function(e){var t=document.createElement("div");e.appendChild(t);try{window.PFTrades&&PFTrades.mount(t,{bioguideId:i.bioguide})}catch(e){s("trades mount failed")}}},{key:"gauge",kill:"money-small-dollar",title:"SMALL-DOLLAR RATIO",sub:"People-powered or donor-powered?",mount:function(e){var t=document.createElement("div");t.id="pf-mp-gauge-slot",e.appendChild(t),f(t,i.bioguide)}},{key:"corp",kill:"corp-card",title:"CORPORATE PLAYBOOK",sub:"Buybacks, tax dodges, lobbying — the filings don’t lie.",mount:function(e){var t=document.createElement("div");t.innerHTML='<div class="pf-mp-pick"><input id="pf-mp-ticker" placeholder="Ticker — e.g. XOM" aria-label="Company ticker"><button class="pf-mp-btn" id="pf-mp-ticker-go">PULL THE PLAYBOOK</button></div><div class="pf-mp-slot"></div><p class="pf-mp-note">Buybacks, tax rates, and lobbying spend — from SEC EDGAR 10-K filings and Senate lobbying disclosures. Shown: what filings prove.</p>',e.appendChild(t);var n=t.querySelector(".pf-mp-slot");t.querySelector("#pf-mp-ticker-go").addEventListener("click",function(){var e=t.querySelector("#pf-mp-ticker").value.trim().toUpperCase();if(e){n.innerHTML="";try{window.PFCorpCard?PFCorpCard.mount(e,n):n.innerHTML='<p class="pf-mp-note">Money module still loading — try again.</p>'}catch(e){s("corp mount failed :: "+(e&&e.message||e))}}})}},{key:"ledgers",kill:"ledgers",title:"BILLIONAIRE LEDGERS",sub:"The money behind the curtain, ledger by ledger.",mount:function(e){var t=document.createElement("div");e.appendChild(t);try{window.PFLedgers&&PFLedgers.mount(t)}catch(e){s("ledgers mount failed")}}},{key:"boycotts",kill:"boycotts",title:"DONOR BOYCOTTS",sub:"They fund the opposition — here’s the pressure.",mount:function(e){var t=document.createElement("div");e.appendChild(t);try{window.PFBoycotts&&PFBoycotts.mount(t)}catch(e){s("boycotts mount failed")}}},{key:"deep8",kill:null,title:"THE REST OF THE MONEY MAP",sub:"Eight more cuts, wiring up now.",mount:function(e){var t=document.createElement("div");e.appendChild(t);try{window.PFMoneyDeep&&PFMoneyDeep.mount(t)}catch(e){s("deep8 mount failed")}}}];try{window.PFMoney={skip:p,mountPage:g,mountTab:b}}catch(e){}try{"loading"===document.readyState?document.addEventListener("DOMContentLoaded",h):h()}catch(e){s("init failed")}}function p(t){return e.skip("money")||e.skip(t)}function l(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function s(t){try{e&&e.error&&e.error("money-page",t)}catch(e){}}function c(e,n,a){if(t){var r="pfMoneyPageCb"+Math.floor(1e9*Math.random()),i=document.createElement("script"),o=!1;window[r]=function(e){s(e)},i.onerror=function(){s(null)};var p="?action="+encodeURIComponent(e);for(var l in n)null!=n[l]&&""!==n[l]&&(p+="&"+encodeURIComponent(l)+"="+encodeURIComponent(n[l]));p+="&callback="+r,i.src=t+p,document.head.appendChild(i),setTimeout(function(){s(null)},12e3)}else a(null);function s(e){if(!o){o=!0;try{delete window[r]}catch(e){}i.parentNode&&i.parentNode.removeChild(i),a(e)}}}function d(e){try{var t=new RegExp("[?&]"+e+"=([^&#]*)").exec(window.location.search||"");return t?decodeURIComponent(t[1]):""}catch(e){return""}}function f(e,t){e&&(p("money-small-dollar")?e.innerHTML="":t?c("money_legislator",{bioguide_id:t},function(n){try{if(!n||!n.ok||n.empty||"number"!=typeof n.small_dollar_pct)return void(e.innerHTML='<p class="pf-mp-note">Small-dollar data isn’t loaded yet — no figures shown rather than guesses.</p>');var a=Math.max(0,Math.min(100,n.small_dollar_pct)),r=Math.max(0,Math.min(100,100-a)),i=n.member&&n.member.name||t;e.innerHTML='<div class="pf-mp-gauge"><div class="pf-mp-g-sm" style="width:'+a.toFixed(1)+'%"></div><div class="pf-mp-g-lg" style="width:'+r.toFixed(1)+'%"></div></div><div class="pf-mp-gleg"><span>SMALL-DOLLAR: '+a.toFixed(1)+"%</span><span>LARGE-DOLLAR: "+r.toFixed(1)+'%</span></div><p class="pf-mp-note">SOURCE: FEC · '+l(String(n.cycle||""))+" cycle · "+l(String(i))+"</p>"}catch(t){e.innerHTML='<p class="pf-mp-note">Small-dollar data isn’t loaded yet.</p>'}}):e.innerHTML='<p class="pf-mp-note">Pull a donor file above to see the small-dollar split.</p>')}function m(e){var t=document.createElement("nav");t.className="pf-mp-rail",t.setAttribute("aria-label","Money suite exits");var r=[["FIND YOUR REP",n+"#phq-people"],["BILL FILES",n+"#phq-bills"],["RACES",n+"#phq-ballot"],["PRESSURE CAMPAIGNS",n+"#phq-action"],["POSTER FORGE",a]];t.innerHTML=r.map(function(e){return'<a href="'+l(e[1])+'">'+l(e[0])+"</a>"}).join(""),e.appendChild(t);var i=document.createElement("a");i.className="pf-mp-ac",i.href=n+"#phq-action",i.textContent="BACK TO ACTION CENTER →",e.appendChild(i)}function u(e,t){!function(){try{if(document.getElementById("pf-mp-css"))return;var e=document.createElement("style");e.id="pf-mp-css",e.textContent=r,document.head.appendChild(e)}catch(e){}}();var n=document.createDocumentFragment();o.forEach(function(e){if(!e.kill||!p(e.kill)){var a,r,i,o=document.createElement("div");o.innerHTML=(a=e.key,r=e.title,i=e.sub,'<section class="pf-mp-sec" id="money-'+l(a)+'" data-sec="'+l(a)+'"><h3>'+l(r)+"</h3>"+(i?'<p class="pf-mp-sub">'+l(i)+"</p>":"")+'<div class="pf-mp-body"></div></section>');var c=o.firstChild;n.appendChild(c);var d=c.querySelector(".pf-mp-body");if(t)try{var f=new IntersectionObserver(function(t){t.forEach(function(t){if(t.isIntersecting){try{f.disconnect()}catch(e){}try{e.mount(d)}catch(t){s("lazy mount failed: "+e.key)}}})},{rootMargin:"200px"});f.observe(c)}catch(t){try{e.mount(d)}catch(e){}}else try{e.mount(d)}catch(t){s("mount failed: "+e.key+" :: "+(t&&t.message||t))}}}),e.appendChild(n)}function g(e){if(!e.querySelector(".pf-mp")){var t=document.createElement("div");t.className="pf-mp",t.innerHTML='<div class="pf-mp-kicker">MTCSTW.COM</div><h2 class="pf-mp-title">FOLLOW THE MONEY</h2><p class="pf-mp-mission">See who bought your government.</p>',e.appendChild(t),u(t,!1),m(t)}}function b(e){if(!document.getElementById("phq-money")){var t=document.createElement("section");t.id="phq-money",t.className="pf-hub",t.setAttribute("data-hub","money");var n=document.createElement("div");n.className="pf-mp",n.innerHTML='<div class="pf-mp-kicker">SECTION 06 — FOLLOW THE MONEY</div><h2 class="pf-mp-title">FOLLOW THE MONEY</h2><p class="pf-mp-mission">See who bought your government.</p>',t.appendChild(n),e.appendChild(t),u(n,!0),m(n)}}function h(){if(!function(){try{if(-1!==(window.location.href||"").indexOf("/config/"))return!0;var e=document.body;if(e&&(e.classList.contains("sqs-edit-mode")||e.classList.contains("sqs-editing")))return!0}catch(e){}return!1}()){var t=document.getElementById("pf-money"),n=document.getElementById("pf-political-hq");try{e.siteConfig&&e.siteConfig.ready?e.siteConfig.ready(a):a({})}catch(e){a({})}}function a(e){var a=e&&e.money_page_url||"";try{if(t)return void g(t);if(n){if(p("money-tab"))return;a?function(e,t){if(!document.getElementById("phq-money")){var n=document.createElement("section");n.id="phq-money",n.className="pf-hub",n.innerHTML='<div class="pf-mp-redirect"><h3>FOLLOW THE MONEY</h3><p>The money war room moved to its own page.</p><a href="'+l(t)+'">OPEN THE WAR ROOM →</a></div>',e.appendChild(n)}}(n,a):b(n)}}catch(e){s("boot failed :: "+(e&&e.message||e))}}}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("money")&&!e.skip("money-stock-trades")&&!window.pfTradesDone){window.pfTradesDone=!0;var t=window.PF_BACKEND_URL,n="AWAITING PUBLIC DATA — Trade disclosures are being wired up. This card goes live the moment the feed connects.",a=[".pf-tr{max-width:680px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}",".pf-tr-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}",".pf-tr-title{font-weight:900;font-size:22px;text-align:center;margin:0 0 12px;letter-spacing:1px}",".pf-tr-empty{border:1px dashed #3a3a3a;border-radius:8px;padding:26px 16px;text-align:center}",".pf-tr-empty .pf-tr-dash{font-size:40px;color:#3a3a3a;display:block;margin-bottom:8px}",".pf-tr-empty h4{font-weight:900;font-size:17px;letter-spacing:2px;margin:0 0 8px;color:#f5ead6}",".pf-tr-empty p{font-size:14px;color:#c9bfa8;margin:0 0 6px;line-height:1.5}",".pf-tr-empty .pf-tr-act{color:#e8b923;font-weight:700}",".pf-tr-list{list-style:none;margin:0;padding:0}",".pf-tr-list li{display:flex;gap:10px;align-items:baseline;padding:8px 0;border-bottom:1px solid #1e1e1e;font-size:15px}",".pf-tr-list li:last-child{border-bottom:0}",".pf-tr-tk{font-weight:900;color:#e8b923}",".pf-tr-ty{font-weight:700;color:#f5ead6;text-transform:uppercase}",".pf-tr-am{margin-left:auto;color:#c9bfa8}",".pf-tr-src{font-size:12px;color:#c9bfa8;text-align:center;margin-top:10px}"].join("\n");try{window.PFTrades={mount:function(e,a){if(!e)return!1;a=a||{};try{if(e.querySelector&&e.querySelector(".pf-tr"))return!0}catch(e){}var p=a.bioguideId||"";return function(e,n,a){if(t){var r="pfTradesCb"+Math.floor(1e9*Math.random()),i=document.createElement("script"),o=!1;window[r]=function(e){s(e)},i.onerror=function(){s(null)};var p="?action="+encodeURIComponent(e);for(var l in n)null!=n[l]&&""!==n[l]&&(p+="&"+encodeURIComponent(l)+"="+encodeURIComponent(n[l]));p+="&callback="+r,i.src=t+p,document.head.appendChild(i),setTimeout(function(){s(null)},12e3)}else a(null);function s(e){if(!o){o=!0;try{delete window[r]}catch(e){}i.parentNode&&i.parentNode.removeChild(i),a(e)}}}("money_trades",p?{bioguide_id:p}:{},function(t){try{t&&t.ok&&Array.isArray(t.trades)&&t.trades.length?function(e,t){i();var n=t&&Array.isArray(t.trades)?t.trades:[];if(n.length){var a=t&&t.name||"—",p=t&&t.source||"House/Senate Financial Disclosures",l='<div class="pf-tr"><div class="pf-tr-kicker">STOCK TRADES</div><h3 class="pf-tr-title">TRADES ON THE HILL — '+r(String(a).toUpperCase())+'</h3><ul class="pf-tr-list">'+n.slice(0,10).map(function(e){return'<li><span class="pf-tr-tk">'+r((e=e||{}).ticker||"—")+'</span> <span class="pf-tr-ty">'+r(e.type||"—")+'</span> <span class="pf-tr-am">'+r(e.amount_range||"—")+"</span></li>"}).join("")+'</ul><div class="pf-tr-src">SOURCE: '+r(p)+"</div></div>";e.innerHTML=l}else o(e,"NO PUBLIC RECORDS FOUND — Searched House/Senate financial disclosures. Nothing filed under this name.","none")}(e,t):o(e,n,"hold")}catch(t){o(e,n,"hold")}}),!0}}}catch(e){}}function r(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function i(){try{if(document.getElementById("pf-tr-css"))return;var e=document.createElement("style");e.id="pf-tr-css",e.textContent=a,document.head.appendChild(e)}catch(e){}}function o(e,t,n){i(),e.innerHTML='<div class="pf-tr"><div class="pf-tr-kicker">STOCK TRADES</div><h3 class="pf-tr-title">TRADES ON THE HILL</h3><div class="pf-tr-empty"><span class="pf-tr-dash">—</span><h4>'+r("none"===n?"NO PUBLIC RECORDS FOUND":"AWAITING PUBLIC DATA")+"</h4><p>"+r(t)+'</p><p class="pf-tr-act">Check back after the next filing window.</p></div><div class="pf-tr-src">SOURCE: House/Senate Financial Disclosures</div></div>'}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("money")&&!e.skip("pac-alerts")&&!window.pfPacAlertsDone){window.pfPacAlertsDone=!0;var t=window.PF_BACKEND_URL,n=[".pf-pa{max-width:680px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}",".pf-pa-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}",".pf-pa-title{font-weight:900;font-size:22px;text-align:center;margin:0 0 12px;letter-spacing:1px}",".pf-pa-empty{border:1px dashed #3a3a3a;border-radius:8px;padding:26px 16px;text-align:center}",".pf-pa-empty .pf-pa-dash{font-size:40px;color:#3a3a3a;display:block;margin-bottom:8px}",".pf-pa-empty h4{font-weight:900;font-size:17px;letter-spacing:2px;margin:0 0 8px;color:#f5ead6}",".pf-pa-empty p{font-size:14px;color:#c9bfa8;margin:0 0 6px;line-height:1.5}",".pf-pa-alert{border:1px solid #c1121f;border-top:6px solid #c1121f;border-radius:8px;background:#0d0d0d;padding:14px 16px;margin-bottom:12px}",".pf-pa-new{display:inline-block;background:#c1121f;color:#fff;font-weight:900;font-size:12px;letter-spacing:2px;padding:3px 8px;border-radius:3px;margin-bottom:8px}",".pf-pa-amt{font-weight:900;font-size:28px;color:#e8b923;margin:4px 0}",".pf-pa-name{font-weight:900;font-size:17px;color:#f5ead6;margin:0 0 4px}",".pf-pa-sum{font-size:14px;color:#c9bfa8;margin:0 0 8px;line-height:1.5}",".pf-pa-src{font-size:12px;color:#c9bfa8}"].join("\n");try{window.PFPacAlerts={mount:function(e){if(!e)return!1;try{if(e.querySelector&&e.querySelector(".pf-pa"))return!0}catch(e){}return function(e,n,a){if(t){var r="pfPacCb"+Math.floor(1e9*Math.random()),i=document.createElement("script"),o=!1;window[r]=function(e){s(e)},i.onerror=function(){s(null)};var p="?action="+encodeURIComponent(e);for(var l in n)null!=n[l]&&""!==n[l]&&(p+="&"+encodeURIComponent(l)+"="+encodeURIComponent(n[l]));p+="&callback="+r,i.src=t+p,document.head.appendChild(i),setTimeout(function(){s(null)},12e3)}else a(null);function s(e){if(!o){o=!0;try{delete window[r]}catch(e){}i.parentNode&&i.parentNode.removeChild(i),a(e)}}}("money_pac_alerts",{},function(t){try{t&&t.ok&&Array.isArray(t.alerts)?o(e,t):i(e)}catch(t){i(e)}}),!0}}}catch(e){}}function a(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function r(){try{if(document.getElementById("pf-pa-css"))return;var e=document.createElement("style");e.id="pf-pa-css",e.textContent=n,document.head.appendChild(e)}catch(e){}}function i(e){r(),e.innerHTML='<div class="pf-pa"><div class="pf-pa-kicker">SUPER PAC WIRE</div><h3 class="pf-pa-title">SUPER PAC ALERTS</h3><div class="pf-pa-empty"><span class="pf-pa-dash">—</span><h4>AWAITING PUBLIC DATA</h4><p>'+a("AWAITING PUBLIC DATA — The super PAC wire is being connected. New filings will land here the moment the feed is live.")+'</p></div><div class="pf-pa-src" style="font-size:12px;color:#c9bfa8;text-align:center;margin-top:10px">SOURCE: FEC</div></div>'}function o(e,t){r();var n=(t.alerts||[]).filter(function(e){return e&&(t=e.filing_date,n=Date.parse(t),!isNaN(n)&&Date.now()-n<=2592e6);var t,n});if(n.length){var o=t.source||"FEC (api.open.fec.gov)",p="";try{var l=t.retrieved_at,s=new Date("number"==typeof l?l:Date.parse(l));isNaN(s)||(p=" · DATA AS OF "+s.toLocaleDateString("en-US",{month:"short",year:"numeric"}).toUpperCase())}catch(e){}var c='<div class="pf-pa"><div class="pf-pa-kicker">SUPER PAC WIRE</div><h3 class="pf-pa-title">SUPER PAC ALERTS</h3>'+n.slice(0,5).map(function(e){return'<div class="pf-pa-alert"><span class="pf-pa-new">NEW FILING</span><div class="pf-pa-amt">'+a(null==(t=e.amount)||isNaN(Number(t))?"—":"$"+Number(t).toLocaleString("en-US",{maximumFractionDigits:0}))+'</div><div class="pf-pa-name">'+a(e.pac_name||"—")+'</div><p class="pf-pa-sum">'+a(e.summary||"")+'</p><div class="pf-pa-src">SOURCE: '+a(o)+p+"</div></div>";var t}).join("")+"</div>";e.innerHTML=c}else i(e)}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("money")&&!window.pfMoneyDeepDone){window.pfMoneyDeepDone=!0;var t=[{id:"money-revolving",title:"THE REVOLVING DOOR",blurb:"The staffers and members who cash out to the industries they used to regulate — career timelines, public records only."},{id:"money-committee",title:"COMMITTEE CAPTURE",blurb:"Who funds the committees that write the rules for their own industries — donor rolls vs. committee votes, side by side."},{id:"money-leadership-pac",title:"LEADERSHIP PAC SLUSH",blurb:"Where leadership PAC money actually goes — every expense line, ranked. Ships with a written slush rubric."},{id:"money-gifts",title:"GIFTS & TRAVEL",blurb:"The trips, tickets, and trinkets disclosed on the public gift rolls — per-person rows, sourced line by line."},{id:"money-fara",title:"FOREIGN LOBBY (FARA)",blurb:"Who pays foreign agents to lobby Washington — principals, agents, and dollars from the public FARA filings."},{id:"money-thinktanks",title:"THINK TANK FUNDING",blurb:'Who funds the "independent experts" on your TV — funding pies from self-reported and public sources only.'},{id:"money-industry",title:"INDUSTRY JUICY CUTS",blurb:"The vote-vs-donor juxtaposition, cut by industry — Big Oil, Big Pharma, Big Tech, one card each."},{id:"money-crypto",title:"CRYPTO DARK MONEY",blurb:"Dark money is undisclosed by definition — this will be explainer content on the crypto influence machine, never invented figures."}],n=[".pf-md{max-width:920px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}",".pf-md-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}",".pf-md-title{font-weight:900;font-size:22px;text-align:center;margin:0 0 12px;letter-spacing:1px}",".pf-md-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}",".pf-md-slot{border:1px dashed #3a3a3a;border-radius:8px;padding:16px 14px;text-align:center;background:#0d0d0d}",".pf-md-slot h4{font-weight:900;font-size:15px;letter-spacing:2px;margin:0 0 8px;color:#f5ead6}",".pf-md-slot p{font-size:13px;color:#c9bfa8;margin:0 0 8px;line-height:1.5}",".pf-md-slot .pf-md-tag{display:inline-block;font-weight:700;font-size:11px;letter-spacing:2px;color:#0d0d0d;background:#e8b923;border-radius:3px;padding:2px 8px}"].join("\n");try{window.PFMoneyDeep={mount:function(r){if(!r)return!1;try{if(r.querySelector&&r.querySelector(".pf-md"))return!0}catch(e){}!function(){try{if(document.getElementById("pf-md-css"))return;var e=document.createElement("style");e.id="pf-md-css",e.textContent=n,document.head.appendChild(e)}catch(e){}}();var i='<div class="pf-md"><div class="pf-md-kicker">DEEP CUTS</div><h3 class="pf-md-title">THE REST OF THE MONEY MAP</h3><div class="pf-md-grid">'+t.filter(function(t){return!(e&&e.skip(t.id))}).map(function(e){return'<div class="pf-md-slot" data-money-slot="'+a(e.id)+'"><h4>'+a(e.title)+"</h4><p>"+a(e.blurb)+'</p><span class="pf-md-tag">AWAITING PUBLIC DATA</span></div>'}).join("")+"</div></div>";return r.innerHTML=i,!0},slots:t.map(function(e){return e.id})}}catch(e){}}function a(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}}();
+/* PF v1.4.3 core/bundle-money.js — concatenated bundle, generated by build/bundle-core.js.
+   DO NOT EDIT. Regenerate with: node build/bundle-core.js [--debug]
+   Contains: core/wall-of-shame.js, core/money-tab.js, core/money-vote-card.js, core/ledger-list.js, core/boycott-list.js, core/corp-card.js, core/money-page.js, core/money-trades.js, core/money-pac-alerts.js, core/money-macro.js, core/money-deep8.js
+   Each file keeps its own PF.skip() kill switch (?pf_off=<silo>). */
+
+/* ===== core/wall-of-shame.js ===== */
+/* core/wall-of-shame.js  |  PF v1.4.3 | WALL OF SHAME — bill-detail carousel.
+   Swipeable legislator carousel for the bill detail view: one card per
+   legislator the endpoint flags for recorded votes against the progressive
+   position, each card with DOWNLOAD + SHARE buttons wired through the
+   EXISTING share flow — PF.PHQShare.save/.share('phq-wallshame', {...}) —
+   so the callsign-claim gate, the idempotent stamp, and the share plumbing
+   all ride along. No new share plumbing, no XP anywhere on this frontend
+   (XP rides existing backend legs only).
+   Backend contract (parallel backend wave, be/wall-of-shame):
+     ?action=wall_of_shame&bill_id=H.R.3633 ->
+     {ok, bill:{bill_id,title}, progressive_position, method, total_against,
+      cards:[{bioguide_id,name,chamber,party,state,against_votes,
+              votes:[{vote_id,vote_date,question,position,source_url}]}]}
+   Fail-soft: endpoint down / bill unknown / malformed response -> the mount
+   section hides itself entirely, never a broken widget. Zero cards -> the
+   honest empty state ("No recorded votes against the progressive position
+   on this bill."). No invented votes/positions/photos — every pixel comes
+   from the endpoint response; missing fields degrade to em-dash.
+   Integration hook (Release Eng wires this when fe/legislation-tracker lands;
+   do NOT call it from this module — the bill detail view is a sibling file):
+     PFWallShame.mount(billId, document.getElementById('bill-wallshame-slot'))
+   KILL: ?pf_off=wallshame  or  localStorage pf_disabled_v1='["wallshame"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('wallshame')) { return; }
+  if (window.pfWallShameDone) return;
+  window.pfWallShameDone = true;
+
+  var BACKEND = window.PF_BACKEND_URL;
+  var PAINTER = 'phq-wallshame';
+  var EMPTY_MSG = 'No recorded votes against the progressive position on this bill.';
+  var METHOD_DEFAULT = 'Ranked by recorded votes against the progressive position.';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function toast(m) { try { if (PF && PF.toast) PF.toast(m); } catch (e) {} }
+
+  /* JSONP GET — mirrors core/20-nextop.js api(): backend + action + params +
+     callback script tag, 12s timeout, null on any failure. */
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var fn = 'pfWsCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, 12000);
+  }
+
+  var CSS = [
+    '.pf-ws{max-width:680px;margin:0 auto;padding:8px 0}',
+    '.pf-ws-head{text-align:center;margin-bottom:6px}',
+    '.pf-ws-billtitle{font:700 18px Arial,sans-serif;color:#f5ead6}',
+    '.pf-ws-track{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:4px 6px 10px}',
+    '.pf-ws-card{flex:0 0 86%;scroll-snap-align:center;background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:26px 22px;color:#f5ead6;text-align:center}',
+    '.pf-ws-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#c1121f;margin-bottom:10px}',
+    '.pf-ws-bill{font:700 16px Arial,sans-serif;color:#e8b923;margin-bottom:12px}',
+    '.pf-ws-name{font:900 34px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 6px}',
+    '.pf-ws-sub{font:700 16px Arial,sans-serif;color:#c9bfa8;margin-bottom:14px}',
+    '.pf-ws-vote{font:900 20px "Arial Black",Arial,sans-serif;color:#c1121f;margin-bottom:10px}',
+    '.pf-ws-q{font:400 15px Arial,sans-serif;color:#f5ead6;margin-bottom:8px}',
+    '.pf-ws-count{font:700 14px Arial,sans-serif;color:#e8b923;margin-bottom:16px}',
+    '.pf-ws-actions{display:flex;gap:10px;justify-content:center}',
+    '.pf-ws-btn{font:900 15px "Arial Black",Arial,sans-serif;background:#f5ead6;color:#0d0d0d;border:0;border-radius:6px;padding:12px 22px;cursor:pointer}',
+    '.pf-ws-btn-red{background:#c1121f;color:#ffffff}',
+    '.pf-ws-nav{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:6px}',
+    '.pf-ws-arrow{font:900 22px Arial,sans-serif;background:#1a1a1a;color:#f5ead6;border:1px solid #c1121f;border-radius:50%;width:44px;height:44px;cursor:pointer}',
+    '.pf-ws-dots{display:flex;gap:8px}',
+    '.pf-ws-dot{width:10px;height:10px;border-radius:50%;background:#3a3a3a;border:0;padding:0;cursor:pointer}',
+    '.pf-ws-dot.on{background:#c1121f}',
+    '.pf-ws-method{font:400 13px Arial,sans-serif;color:#c9bfa8;text-align:center;margin-top:12px;padding:0 12px}',
+    '.pf-ws-empty{font:400 16px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:28px 12px;border:1px dashed #3a3a3a;border-radius:8px}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-ws-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-ws-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  function chamberLabel(card) {
+    var ch = String(card.chamber || '').toLowerCase();
+    ch = ch === 'house' ? 'U.S. HOUSE' : (ch === 'senate' ? 'U.S. SENATE' : String(card.chamber || '—'));
+    return (ch + ' · ' + String(card.party || '—') + ' · ' + String(card.state || '—')).toUpperCase();
+  }
+
+  /* Endpoint card -> painter data object. Every pixel from the response;
+     nothing invented, missing fields degrade to em-dash in the painter. */
+  function painterData(bill, card) {
+    var votes = Array.isArray(card.votes) ? card.votes : [];
+    var v0 = votes[0] || {};
+    var dates = [], seen = {};
+    for (var i = 0; i < votes.length; i++) {
+      var k = String(votes[i].vote_date || '');
+      if (k && !seen[k]) { seen[k] = 1; dates.push(k); }
+    }
+    return {
+      billId: bill.bill_id, billTitle: bill.title,
+      name: card.name, chamber: card.chamber, party: card.party, state: card.state,
+      againstVotes: card.against_votes,
+      position: v0.position, question: v0.question,
+      voteDates: dates.slice(0, 3), sourceUrl: v0.source_url
+    };
+  }
+
+  function cardInner(bill, card, i) {
+    var votes = Array.isArray(card.votes) ? card.votes : [];
+    var v0 = votes[0] || {};
+    var n = Math.max(0, parseInt(card.against_votes, 10) || 0);
+    return '<div class="pf-ws-kicker">WALL OF SHAME</div>' +
+      '<div class="pf-ws-bill">ON ' + esc(bill.bill_id) + ' — ' + esc(bill.title) + '</div>' +
+      '<h3 class="pf-ws-name">' + esc(card.name) + '</h3>' +
+      '<div class="pf-ws-sub">' + esc(chamberLabel(card)) + '</div>' +
+      '<div class="pf-ws-vote">VOTED <b>' + esc(v0.position) + '</b> — AGAINST THE PROGRESSIVE POSITION</div>' +
+      '<div class="pf-ws-q">ON: ' + esc(v0.question) + '</div>' +
+      '<div class="pf-ws-count">' + n + (n === 1 ? ' VOTE' : ' VOTES') +
+        ' AGAINST THE PROGRESSIVE POSITION ON RECORD</div>' +
+      '<div class="pf-ws-actions">' +
+        '<button type="button" class="pf-ws-btn" data-ws-dl="' + i + '">DOWNLOAD</button>' +
+        '<button type="button" class="pf-ws-btn pf-ws-btn-red" data-ws-sh="' + i + '">SHARE</button>' +
+      '</div>';
+  }
+
+  function hide(container) {
+    try { container.style.display = 'none'; container.innerHTML = ''; } catch (e) {}
+  }
+
+  function render(container, j) {
+    cssOnce();
+    var bill = j.bill || {};
+    var cards = Array.isArray(j.cards) ? j.cards : [];
+    container.innerHTML = '';
+    var root = document.createElement('div');
+    root.className = 'pf-ws';
+    if (!cards.length) {
+      root.innerHTML = '<div class="pf-ws-empty">' + esc(EMPTY_MSG) + '</div>';
+      container.appendChild(root);
+      return;
+    }
+    var head = document.createElement('div');
+    head.className = 'pf-ws-head';
+    head.innerHTML = '<div class="pf-ws-kicker">WALL OF SHAME</div>' +
+      '<div class="pf-ws-billtitle">' + esc(bill.bill_id) + ' — ' + esc(bill.title) + '</div>';
+    root.appendChild(head);
+    var track = document.createElement('div');
+    track.className = 'pf-ws-track';
+    var datas = [];
+    for (var i = 0; i < cards.length; i++) {
+      var art = document.createElement('article');
+      art.className = 'pf-ws-card';
+      art.setAttribute('data-ws-i', String(i));
+      art.innerHTML = cardInner(bill, cards[i], i);
+      track.appendChild(art);
+      datas.push(painterData(bill, cards[i]));
+    }
+    root.appendChild(track);
+    /* nav: prev/next + dot indicators */
+    var nav = document.createElement('div');
+    nav.className = 'pf-ws-nav';
+    var prev = document.createElement('button');
+    prev.type = 'button'; prev.className = 'pf-ws-arrow'; prev.setAttribute('data-ws-prev', '1');
+    prev.textContent = '‹';
+    var dots = document.createElement('div');
+    dots.className = 'pf-ws-dots';
+    var dotBtns = [];
+    for (i = 0; i < cards.length; i++) {
+      var db = document.createElement('button');
+      db.type = 'button'; db.className = 'pf-ws-dot' + (i === 0 ? ' on' : '');
+      db.setAttribute('data-ws-dot', String(i));
+      dots.appendChild(db); dotBtns.push(db);
+    }
+    var next = document.createElement('button');
+    next.type = 'button'; next.className = 'pf-ws-arrow'; next.setAttribute('data-ws-next', '1');
+    next.textContent = '›';
+    nav.appendChild(prev); nav.appendChild(dots); nav.appendChild(next);
+    root.appendChild(nav);
+    /* method caption under the carousel */
+    var cap = document.createElement('div');
+    cap.className = 'pf-ws-method';
+    cap.textContent = 'METHOD: ' + (j.method || METHOD_DEFAULT);
+    root.appendChild(cap);
+    var cur = 0;
+    function setDots(k) {
+      cur = k;
+      for (var q = 0; q < dotBtns.length; q++) dotBtns[q].className = 'pf-ws-dot' + (q === k ? ' on' : '');
+    }
+    function goTo(k) {
+      k = Math.max(0, Math.min(dotBtns.length - 1, k));
+      setDots(k);
+      try { track.scrollTo({ left: k * (track.clientWidth || 320), behavior: 'smooth' }); } catch (e) {}
+    }
+    track.addEventListener('scroll', function () {
+      try {
+        var w = track.clientWidth || 1;
+        setDots(Math.max(0, Math.min(dotBtns.length - 1, Math.round(track.scrollLeft / w))));
+      } catch (e) {}
+    });
+    root.addEventListener('click', function (e) {
+      var t = e && e.target;
+      if (!t || !t.getAttribute) return;
+      if (t.getAttribute('data-ws-prev') != null) { goTo(cur - 1); return; }
+      if (t.getAttribute('data-ws-next') != null) { goTo(cur + 1); return; }
+      var di = t.getAttribute('data-ws-dot');
+      if (di != null) { goTo(parseInt(di, 10) || 0); return; }
+      var dl = t.getAttribute('data-ws-dl'), sh = t.getAttribute('data-ws-sh');
+      if (dl == null && sh == null) return;
+      var idx = parseInt(dl != null ? dl : sh, 10) || 0;
+      var pd = datas[idx];
+      if (!pd) return;
+      try {
+        var PHQ = PF.PHQShare;
+        if (!PHQ) { toast('Share is still loading — try again.'); return; }
+        if (dl != null) PHQ.save(PAINTER, pd);
+        else PHQ.share(PAINTER, pd);
+      } catch (e2) { toast('Poster failed — try again.'); }
+    });
+    container.appendChild(root);
+  }
+
+  function mount(billId, container) {
+    if (!billId || !container) return false;
+    try {
+      if (container.querySelector && container.querySelector('.pf-ws')) return true; /* already mounted */
+    } catch (e) {}
+    api('wall_of_shame', { bill_id: String(billId) }, function (j) {
+      if (!j || !j.ok || !j.bill) { hide(container); return; }
+      try { render(container, j); } catch (e) { hide(container); }
+    });
+    return true;
+  }
+
+  try {
+    window.PFWallShame = { mount: mount };
+    PF.WallShame = window.PFWallShame;
+  } catch (e) {}
+})();
+
+;
+
+/* ===== core/money-tab.js ===== */
+/* core/money-tab.js  |  PF v1.4.3 | FOLLOW THE MONEY — legislator money tab.
+   Money tab for the legislator detail view: cycle totals, small-dollar vs
+   large-dollar split, top-10 donors, top industries (with an
+   "estimated from employer data" badge where estimated=1). DOWNLOAD + SHARE
+   buttons wire through the EXISTING share flow —
+   PF.PHQShare.save/.share('phq-money', {...}) — so the callsign-claim gate,
+   the idempotent stamp, and the share plumbing all ride along. No new share
+   plumbing, no XP anywhere on this frontend (XP rides existing backend legs
+   only; viewing money data grants 0 XP and no read-XP leg anchors here —
+   core/read-xp.js only fires on #pf-readxp / Top Stories / Ammo surfaces).
+   Backend contract (LOCKED: be/follow-the-money @ dd9cab9 — the frontend
+   adapts; the backend is never modified):
+     ?action=money_legislator&bioguide_id=A000055 ->
+     {ok, cycle, source:'FEC (api.open.fec.gov)', retrieved_at,
+      member:{bioguide_id,fec_candidate_id,name,office,state,party},
+      totals:{raised,spent,cash}, small_dollar_pct, large_dollar_pct,
+      top_donors:[{name,employer,occupation,amount} x10],
+      industries:[{industry,total,estimated}]}
+   Tables empty until the FEC ingest runs -> {ok:true, empty:true, reason}.
+   small_dollar_pct / large_dollar_pct arrive as percentages ALREADY
+   (2.5 = 2.5%) — never multiply by 100. member.office is 'H'/'S' (FEC
+   candidate office), not a chamber string. retrieved_at is an epoch-ms
+   number as the ingest writes it.
+   Fail-soft: endpoint down / {ok:false} / malformed response -> the mount
+   section hides itself entirely, never a broken widget. ok:true but no
+   totals -> the honest empty state ("Money data isn't loaded yet — no
+   figures shown rather than guesses."). No invented figures — every number
+   shown carries its source in the footer.
+   Integration hook (Release Eng wires this from the legislator detail view;
+   do NOT call it from this module):
+     PFMoneyTab.mount('J000288', document.getElementById('legislator-money-slot'))
+   KILL: ?pf_off=money-tab  or  localStorage pf_disabled_v1='["money-tab"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('money-tab')) { return; }
+  if (window.pfMoneyTabDone) return;
+  window.pfMoneyTabDone = true;
+
+  var BACKEND = window.PF_BACKEND_URL;
+  var PAINTER = 'phq-money';
+  var EMPTY_MSG = "Money data isn't loaded yet — no figures shown rather than guesses.";
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function toast(m) { try { if (PF && PF.toast) PF.toast(m); } catch (e) {} }
+
+  /* JSONP GET — mirrors core/20-nextop.js api(): backend + action + params +
+     callback script tag, 12s timeout, null on any failure. */
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var fn = 'pfMoneyCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, 12000);
+  }
+
+  var CSS = [
+    '.pf-mt{max-width:680px;margin:0 auto;padding:8px 0;color:#f5ead6}',
+    '.pf-mt-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#e8b923;text-align:center;margin-bottom:10px}',
+    '.pf-mt-name{font:900 32px "Arial Black",Arial,sans-serif;color:#f5ead6;text-align:center;margin:0 0 4px}',
+    '.pf-mt-sub{font:700 15px Arial,sans-serif;color:#c9bfa8;text-align:center;margin-bottom:16px}',
+    '.pf-mt-totals{display:flex;gap:10px;justify-content:center;margin-bottom:18px;flex-wrap:wrap}',
+    '.pf-mt-total{background:#0d0d0d;border:1px solid #c1121f;border-radius:8px;padding:12px 16px;text-align:center;min-width:140px}',
+    '.pf-mt-tlabel{display:block;font:700 13px Arial,sans-serif;letter-spacing:2px;color:#c9bfa8;margin-bottom:6px}',
+    '.pf-mt-tval{display:block;font:900 22px "Arial Black",Arial,sans-serif;color:#e8b923}',
+    '.pf-mt-sect{background:#0d0d0d;border:1px solid #3a3a3a;border-radius:8px;padding:14px 16px;margin-bottom:14px}',
+    '.pf-mt-sect h4{font:900 16px "Arial Black",Arial,sans-serif;color:#f5ead6;letter-spacing:2px;margin:0 0 10px}',
+    '.pf-mt-barrow{display:flex;height:26px;border-radius:4px;overflow:hidden;margin:8px 0}',
+    '.pf-mt-seg-sm{background:#e8b923}',
+    '.pf-mt-seg-lg{background:#c1121f}',
+    '.pf-mt-barlegend{display:flex;justify-content:space-between;font:700 13px Arial,sans-serif;color:#c9bfa8;flex-wrap:wrap;gap:6px}',
+    '.pf-mt-list{list-style:none;margin:0;padding:0}',
+    '.pf-mt-list li{display:flex;align-items:baseline;gap:8px;padding:7px 0;border-bottom:1px solid #1e1e1e;font:400 15px Arial,sans-serif}',
+    '.pf-mt-list li:last-child{border-bottom:0}',
+    '.pf-mt-dname{color:#f5ead6;font-weight:700}',
+    '.pf-mt-demployer{color:#c9bfa8;font-size:13px}',
+    '.pf-mt-damt{margin-left:auto;color:#e8b923;font-weight:700;white-space:nowrap}',
+    '.pf-mt-est{display:inline-block;font:700 11px Arial,sans-serif;letter-spacing:1px;color:#0d0d0d;background:#e8b923;border-radius:3px;padding:2px 6px;margin-left:6px}',
+    '.pf-mt-actions{display:flex;gap:10px;justify-content:center;margin:16px 0}',
+    '.pf-mt-btn{font:900 15px "Arial Black",Arial,sans-serif;background:#f5ead6;color:#0d0d0d;border:0;border-radius:6px;padding:12px 22px;cursor:pointer}',
+    '.pf-mt-btn-red{background:#c1121f;color:#ffffff}',
+    '.pf-mt-src{font:400 13px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:0 12px}',
+    '.pf-mt-empty{font:400 16px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:28px 12px;border:1px dashed #3a3a3a;border-radius:8px}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-mt-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-mt-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  function money(n) {
+    if (n == null || isNaN(Number(n))) return '—';
+    return '$' + Number(n).toLocaleString('en-US');
+  }
+  /* BE member carries office:'H'/'S' (FEC candidate office), not a chamber
+     string. Map it; keep house/senate/rep/sen variants for robustness. */
+  function chamberLabel(leg) {
+    var raw = String(leg.office || leg.chamber || '').toLowerCase();
+    var ch = (raw === 'h' || raw === 'house' || raw === 'rep') ? 'U.S. HOUSE'
+      : ((raw === 's' || raw === 'senate' || raw === 'sen') ? 'U.S. SENATE'
+        : String(leg.office || leg.chamber || '—'));
+    return (ch + ' · ' + String(leg.party || '—') + ' · ' + String(leg.state || '—')).toUpperCase();
+  }
+  /* The BE sends small_dollar_pct / large_dollar_pct as percentages ALREADY
+     (Math.round((v / raised) * 1000) / 10) — pass through, never ×100. */
+  function pctOf(f) {
+    if (f == null || isNaN(Number(f))) return null;
+    return Number(f);
+  }
+  function pctLabel(f) {
+    var n = pctOf(f);
+    if (n == null) return '—';
+    return (Math.round(n * 10) / 10) + '%';
+  }
+  function retrDate(r) {
+    /* The ingest writes retrieved_at as epoch ms (Date.now()); the BE passes
+       it through. Format numeric epochs as a date; also parse YYYY-MM-DD. */
+    if (typeof r === 'number' && r > 1e12) {
+      try {
+        var d = new Date(r);
+        var MN = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        return MN[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + d.getUTCFullYear();
+      } catch (e) {}
+    }
+    var s = String(r == null ? '' : r).trim();
+    var m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (m) {
+      var MON = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+      var mi = parseInt(m[2], 10) - 1;
+      if (mi >= 0 && mi < 12) return MON[mi] + ' ' + parseInt(m[3], 10) + ', ' + m[1];
+    }
+    return s || '—';
+  }
+  function srcFooter(j) {
+    return 'Source: FEC · ' + esc(j.cycle || '—') + ' cycle · retrieved ' + esc(retrDate(j.retrieved_at));
+  }
+
+  /* Endpoint response -> painter data object. Every pixel from the response;
+     nothing invented, missing fields degrade to em-dash in the painter.
+     Adapts the LOCKED BE contract to the painter's internal shape:
+     BE totals.{raised,spent,cash}, member.office 'H'/'S' -> chamber string,
+     retrieved_at (epoch ms) -> 'YYYY-MM-DD' for the painter's fullDate(),
+     industries[].total -> painter's amount key. */
+  function officeChamber(off) {
+    var o = String(off || '').toUpperCase();
+    return o === 'H' ? 'house' : (o === 'S' ? 'senate' : '');
+  }
+  function retrievedISO(r) {
+    if (typeof r === 'number' && r > 1e12) {
+      try {
+        var d = new Date(r);
+        return d.getUTCFullYear() + '-' +
+          String(d.getUTCMonth() + 1).padStart(2, '0') + '-' +
+          String(d.getUTCDate()).padStart(2, '0');
+      } catch (e) {}
+    }
+    return r;
+  }
+  function painterData(j) {
+    var leg = j.member || {};
+    var t = j.totals || {};
+    var donors = Array.isArray(j.top_donors) ? j.top_donors.slice(0, 3) : [];
+    var inds = Array.isArray(j.industries) ? j.industries.slice(0, 3) : [];
+    return {
+      bioguideId: leg.bioguide_id, name: leg.name, chamber: officeChamber(leg.office),
+      party: leg.party, state: leg.state, cycle: j.cycle, retrieved: retrievedISO(j.retrieved_at),
+      raised: t.raised, spent: t.spent, cash: t.cash,
+      topDonors: donors.map(function (d) { return { name: d.name, employer: d.employer, amount: d.amount }; }),
+      topIndustries: inds.map(function (d) { return { industry: d.industry, amount: d.total }; })
+    };
+  }
+
+  function totalsRow(t) {
+    var cells = [
+      ['RAISED', money(t.raised)],
+      ['SPENT', money(t.spent)],
+      ['CASH ON HAND', money(t.cash)]
+    ];
+    return cells.map(function (c) {
+      return '<div class="pf-mt-total"><span class="pf-mt-tlabel">' + esc(c[0]) +
+        '</span><span class="pf-mt-tval">' + esc(c[1]) + '</span></div>';
+    }).join('');
+  }
+
+  function splitBar(j) {
+    var sm = pctOf(j.small_dollar_pct), lg = pctOf(j.large_dollar_pct);
+    var head = '<h4>SMALL-DOLLAR VS LARGE-DOLLAR</h4>';
+    if (sm == null && lg == null) return head + '<div class="pf-mt-barlegend"><span>—</span></div>';
+    sm = sm == null ? 0 : sm; lg = lg == null ? 0 : lg;
+    /* BE percentages pass straight through — no ×100. Clamp the bar to 100%. */
+    var smW = Math.max(0, Math.min(100, sm)), lgW = Math.max(0, Math.min(100, lg));
+    return head +
+      '<div class="pf-mt-barrow">' +
+        '<div class="pf-mt-seg-sm" style="width:' + smW + '%"></div>' +
+        '<div class="pf-mt-seg-lg" style="width:' + lgW + '%"></div>' +
+      '</div>' +
+      '<div class="pf-mt-barlegend">' +
+        '<span>SMALL-DOLLAR (&lt;$200): ' + pctLabel(sm) + '</span>' +
+        '<span>LARGE-DOLLAR: ' + pctLabel(lg) + '</span>' +
+      '</div>';
+  }
+
+  function donorList(donors) {
+    var ds = Array.isArray(donors) ? donors.slice(0, 10) : [];
+    var head = '<h4>TOP DONORS</h4>';
+    if (!ds.length) return head + '<div class="pf-mt-barlegend"><span>—</span></div>';
+    return head + '<ul class="pf-mt-list">' + ds.map(function (d) {
+      var emp = d.employer ? '<span class="pf-mt-demployer">' + esc(d.employer) + '</span>' : '';
+      return '<li><span class="pf-mt-dname">' + esc(d.name || '—') + '</span>' + emp +
+        '<span class="pf-mt-damt">' + esc(money(d.amount)) + '</span></li>';
+    }).join('') + '</ul>';
+  }
+
+  function industryList(inds) {
+    var xs = Array.isArray(inds) ? inds : [];
+    var head = '<h4>TOP INDUSTRIES</h4>';
+    if (!xs.length) return head + '<div class="pf-mt-barlegend"><span>—</span></div>';
+    return head + '<ul class="pf-mt-list">' + xs.map(function (d) {
+      /* BE contract: {industry,total,estimated} — total, not amount. */
+      var badge = d.estimated ? '<span class="pf-mt-est">ESTIMATED FROM EMPLOYER DATA</span>' : '';
+      return '<li><span class="pf-mt-dname">' + esc(d.industry || '—') + '</span>' + badge +
+        '<span class="pf-mt-damt">' + esc(money(d.total)) + '</span></li>';
+    }).join('') + '</ul>';
+  }
+
+  function hide(container) {
+    try { container.style.display = 'none'; container.innerHTML = ''; } catch (e) {}
+  }
+
+  function render(container, j) {
+    cssOnce();
+    var leg = j.member || {};
+    var t = j.totals || null;
+    container.innerHTML = '';
+    var root = document.createElement('div');
+    root.className = 'pf-mt';
+    if (!t) {
+      root.innerHTML = '<div class="pf-mt-empty">' + esc(EMPTY_MSG) + '</div>' +
+        '<div class="pf-mt-src">' + srcFooter(j) + '</div>';
+      container.appendChild(root);
+      return;
+    }
+    root.innerHTML =
+      '<div class="pf-mt-kicker">FOLLOW THE MONEY</div>' +
+      '<h3 class="pf-mt-name">' + esc(leg.name || '—') + '</h3>' +
+      '<div class="pf-mt-sub">' + esc(chamberLabel(leg)) + '</div>' +
+      '<div class="pf-mt-totals">' + totalsRow(t) + '</div>' +
+      '<div class="pf-mt-sect">' + splitBar(j) + '</div>' +
+      '<div class="pf-mt-sect">' + donorList(j.top_donors) + '</div>' +
+      '<div class="pf-mt-sect">' + industryList(j.industries) + '</div>' +
+      '<div class="pf-mt-actions">' +
+        '<button type="button" class="pf-mt-btn" data-mt-dl="1">DOWNLOAD</button>' +
+        '<button type="button" class="pf-mt-btn pf-mt-btn-red" data-mt-sh="1">SHARE</button>' +
+      '</div>' +
+      '<div class="pf-mt-src">' + srcFooter(j) + '</div>';
+    var pd = painterData(j);
+    root.addEventListener('click', function (e) {
+      var t = e && e.target;
+      if (!t || !t.getAttribute) return;
+      var dl = t.getAttribute('data-mt-dl'), sh = t.getAttribute('data-mt-sh');
+      if (dl == null && sh == null) return;
+      try {
+        var PHQ = PF.PHQShare;
+        if (!PHQ) { toast('Share is still loading — try again.'); return; }
+        if (dl != null) PHQ.save(PAINTER, pd);
+        else PHQ.share(PAINTER, pd);
+      } catch (e2) { toast('Poster failed — try again.'); }
+    });
+    container.appendChild(root);
+  }
+
+  function mount(bioguideId, container) {
+    if (!bioguideId || !container) return false;
+    try {
+      if (container.querySelector && container.querySelector('.pf-mt')) return true; /* already mounted */
+    } catch (e) {}
+    api('money_legislator', { bioguide_id: String(bioguideId) }, function (j) {
+      if (!j || !j.ok) { hide(container); return; }
+      try { render(container, j); } catch (e) { hide(container); }
+    });
+    return true;
+  }
+
+  try {
+    window.PFMoneyTab = { mount: mount };
+    PF.MoneyTab = window.PFMoneyTab;
+  } catch (e) {}
+})();
+
+;
+
+/* ===== core/money-vote-card.js ===== */
+/* core/money-vote-card.js  |  PF v1.4.3 | FOLLOW THE MONEY — vote-vs-donor card.
+   Vote-vs-donor card for the bill detail view: one row per legislator with
+   a recorded vote, showing their vote plus the top donor industries behind
+   each side. Copy discipline is strict: the header reads "Who funded both
+   sides", per-row body copy reads "received $X from [industry]", and the
+   methodology caption is always shown verbatim:
+     "Donations are correlated with votes, not proof of cause."
+   Causation claims are never rendered — correlation is shown, cause is never
+   claimed. Members whose money block is null render vote-only rows (never
+   hidden).
+   Backend contract (LOCKED: be/follow-the-money @ dd9cab9 — the frontend
+   adapts; the backend is never modified):
+     ?action=money_vote_card&bill_id=H.R.1 ->
+     {ok, bill:{bill_id,title}, cycle,
+      cards:[{bioguide_id,name,chamber,party,state,position,vote_id,
+              vote_date,question,source_url,money}]}
+       money = null | {cycle, source:'FEC (api.open.fec.gov)', retrieved_at,
+                       industries:[{industry,total,estimated,copy} x3]}
+   The BE prebuilds the copy line per industry row — verbatim
+   "received $X from [industry]" (copy rule: never implies causation).
+   The card consumes d.copy when present and only re-renders the same
+   shape as a fallback. Members whose money block is null render
+   vote-only rows (never hidden).
+   Fail-soft: endpoint down / {ok:false} / malformed response -> the mount
+   section hides itself entirely, never a broken widget. ok:true with zero
+   cards -> the honest empty state ("No vote records returned for this bill.").
+   No invented figures — every number shown comes from the response.
+   Integration hook (Release Eng wires this from the bill detail view on the
+   fe/legislation-tracker sibling branch; do NOT call it from this module):
+     PFMoneyVote.mount('H.R.3633', document.getElementById('bill-money-slot'))
+   KILL: ?pf_off=money-vote  or  localStorage pf_disabled_v1='["money-vote"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('money-vote')) { return; }
+  if (window.pfMoneyVoteDone) return;
+  window.pfMoneyVoteDone = true;
+
+  var BACKEND = window.PF_BACKEND_URL;
+  var HEADER = 'Who funded both sides';
+  var METHOD = 'Donations are correlated with votes, not proof of cause.';
+  var EMPTY_MSG = 'No vote records returned for this bill.';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /* JSONP GET — mirrors core/20-nextop.js api(): backend + action + params +
+     callback script tag, 12s timeout, null on any failure. */
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var fn = 'pfMvCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, 12000);
+  }
+
+  var CSS = [
+    '.pf-mv{max-width:680px;margin:0 auto;padding:8px 0;color:#f5ead6}',
+    '.pf-mv-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#e8b923;text-align:center;margin-bottom:10px}',
+    '.pf-mv-title{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6;text-align:center;margin:0 0 6px}',
+    '.pf-mv-bill{font:700 15px Arial,sans-serif;color:#c9bfa8;text-align:center;margin-bottom:16px}',
+    '.pf-mv-row{background:#0d0d0d;border:1px solid #3a3a3a;border-radius:8px;padding:14px 16px;margin-bottom:12px}',
+    '.pf-mv-name{font:900 20px "Arial Black",Arial,sans-serif;color:#f5ead6}',
+    '.pf-mv-sub{display:block;font:700 13px Arial,sans-serif;color:#c9bfa8;margin-top:4px}',
+    '.pf-mv-vote{font:700 15px Arial,sans-serif;color:#e8b923;margin:8px 0}',
+    '.pf-mv-vote b{color:#c1121f}',
+    '.pf-mv-inds{list-style:none;margin:0;padding:0}',
+    '.pf-mv-inds li{font:400 15px Arial,sans-serif;color:#c9bfa8;padding:4px 0}',
+    '.pf-mv-inds li b{color:#f5ead6}',
+    '.pf-mv-inds li .pf-mv-amt{color:#e8b923;font-weight:700}',
+    '.pf-mv-method{font:400 13px Arial,sans-serif;color:#c9bfa8;text-align:center;margin-top:12px;padding:0 12px;font-style:italic}',
+    '.pf-mv-empty{font:400 16px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:28px 12px;border:1px dashed #3a3a3a;border-radius:8px}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-mv-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-mv-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  function money(n) {
+    if (n == null || isNaN(Number(n))) return '—';
+    return '$' + Number(n).toLocaleString('en-US');
+  }
+  function chamberLabel(r) {
+    var ch = String(r.chamber || '').toLowerCase();
+    ch = ch === 'house' ? 'U.S. HOUSE' : (ch === 'senate' ? 'U.S. SENATE' : String(r.chamber || '—'));
+    return (ch + ' · ' + String(r.party || '—') + ' · ' + String(r.state || '—')).toUpperCase();
+  }
+
+  /* One legislator row. money:null -> vote-only row, never hidden.
+     The BE prebuilds the copy line ("received $X from [industry]") on each
+     industry row — consume d.copy verbatim when present; the composed
+     fallback renders the identical shape from d.total. */
+  function indLine(d) {
+    if (d.copy) return esc(d.copy);
+    return 'received <span class="pf-mv-amt">' + esc(money(d.total)) + '</span> from <b>' +
+      esc(d.industry || '—') + '</b>';
+  }
+  function rowHtml(r) {
+    var inds = (r.money && Array.isArray(r.money.industries)) ? r.money.industries.slice(0, 3) : [];
+    var indHtml = '';
+    if (r.money) {
+      if (inds.length) {
+        indHtml = '<ul class="pf-mv-inds">' + inds.map(function (d) {
+          return '<li>' + indLine(d) + '</li>';
+        }).join('') + '</ul>';
+      } else {
+        indHtml = '<ul class="pf-mv-inds"><li>No industry donor data reported.</li></ul>';
+      }
+    }
+    return '<article class="pf-mv-row">' +
+      '<div class="pf-mv-name">' + esc(r.name || '—') +
+        '<span class="pf-mv-sub">' + esc(chamberLabel(r)) + '</span></div>' +
+      '<div class="pf-mv-vote">VOTED <b>' + esc(r.position || '—') + '</b></div>' +
+      indHtml +
+      '</article>';
+  }
+
+  function hide(container) {
+    try { container.style.display = 'none'; container.innerHTML = ''; } catch (e) {}
+  }
+
+  function render(container, j) {
+    cssOnce();
+    var bill = j.bill || {};
+    var cards = Array.isArray(j.cards) ? j.cards : [];
+    container.innerHTML = '';
+    var root = document.createElement('div');
+    root.className = 'pf-mv';
+    if (!cards.length) {
+      root.innerHTML = '<div class="pf-mv-empty">' + esc(EMPTY_MSG) + '</div>';
+      container.appendChild(root);
+      return;
+    }
+    var html = '<div class="pf-mv-kicker">FOLLOW THE MONEY</div>' +
+      '<h3 class="pf-mv-title">' + esc(HEADER) + '</h3>' +
+      '<div class="pf-mv-bill">' + esc(bill.bill_id || '—') + ' — ' + esc(bill.title || '—') + '</div>';
+    for (var i = 0; i < cards.length; i++) html += rowHtml(cards[i] || {});
+    html += '<div class="pf-mv-method">' + esc(j.methodology || METHOD) + '</div>';
+    root.innerHTML = html;
+    container.appendChild(root);
+  }
+
+  function mount(billId, container) {
+    if (!billId || !container) return false;
+    try {
+      if (container.querySelector && container.querySelector('.pf-mv')) return true; /* already mounted */
+    } catch (e) {}
+    api('money_vote_card', { bill_id: String(billId) }, function (j) {
+      if (!j || !j.ok) { hide(container); return; }
+      try { render(container, j); } catch (e) { hide(container); }
+    });
+    return true;
+  }
+
+  try {
+    window.PFMoneyVote = { mount: mount };
+    PF.MoneyVote = window.PFMoneyVote;
+  } catch (e) {}
+})();
+
+;
+
+/* ===== core/ledger-list.js ===== */
+/* core/ledger-list.js  |  PF v1.4.3 | BILLIONAIRE LEDGERS — Follow-the-Money.
+   The ledger: billionaire net worth (Forbes 2026, hand-transcribed) vs
+   political spending (FEC, name-matched), ranked by net worth DESC with the
+   ratio as a bar. PFLedgers.mount(container) — JSONP fetch of
+   ?action=ledger_list, one ranked row per billionaire: name, net worth,
+   political spending, the ratio bar. Caveat line under EVERY figure
+   ("Forbes Mar 1, 2026" / "FEC name-matched — identity unverified").
+   Per-row DOWNLOAD + SHARE wired through the EXISTING share flow —
+   PF.PHQShare.save/.share('phq-ledger', {...}) — so the callsign-claim gate,
+   the idempotent stamp, and the share plumbing all ride along. No new share
+   plumbing, no XP anywhere on this frontend (XP rides existing backend legs
+   only; viewing this ledger grants 0 — Economy Desk sign-off pending).
+   Backend contract (parallel backend wave, be/billionaire-ledgers):
+     ?action=ledger_list ->
+     {ok, methodology, list:{forbes_list_url, forbes_snapshot_date,
+      transcribed_date, spending_status, spending_note, refresh_policy},
+      total, entries:[{name, rank, net_worth_b, net_worth_usd, net_worth_as_of,
+      net_worth_source_url, net_worth_label, political_spending,
+      spending_cycle, match_note, spending_status, spending_label,
+      spending_ratio}]}
+   Fail-soft: endpoint down / malformed response -> the mount section hides
+   itself entirely, never a broken widget. Zero rows -> the honest empty
+   state. Pre-FEC-key: every spending figure is NULL and each row says so —
+   no invented figures, ever; missing fields degrade to em-dash.
+   Integration hook (Release Eng wires this when the Political HQ surface
+   lands; do NOT call it from this module — never auto-mounts):
+     PFLedgers.mount(document.getElementById('ledger-slot'))
+   KILL: ?pf_off=ledgers  or  localStorage pf_disabled_v1='["ledgers"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('ledgers')) { return; }
+  if (window.pfLedgersDone) return;
+  window.pfLedgersDone = true;
+
+  var BACKEND = window.PF_BACKEND_URL;
+  var PAINTER = 'phq-ledger';
+  var EMPTY_MSG = 'The ledger is empty — no billionaire rows returned.';
+  var SPENDING_PENDING = 'FEC data not yet loaded — no figures shown rather than invented.';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function toast(m) { try { if (PF && PF.toast) PF.toast(m); } catch (e) {} }
+
+  /* JSONP GET — mirrors core/20-nextop.js api(): backend + action + params +
+     callback script tag, 12s timeout, null on any failure. */
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var fn = 'pfLedgerCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, 12000);
+  }
+
+  var CSS = [
+    '.pf-ledger{max-width:680px;margin:0 auto;padding:8px 0}',
+    '.pf-ledger-head{text-align:center;margin-bottom:10px}',
+    '.pf-ledger-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#c1121f;margin-bottom:8px}',
+    '.pf-ledger-title{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 6px}',
+    '.pf-ledger-sub{font:400 14px Arial,sans-serif;color:#c9bfa8;margin-bottom:4px}',
+    '.pf-ledger-row{background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:20px 20px 18px;margin:0 0 14px;color:#f5ead6}',
+    '.pf-ledger-rank{font:700 13px Arial,sans-serif;color:#e8b923;letter-spacing:3px;margin-bottom:6px}',
+    '.pf-ledger-name{font:900 26px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 10px}',
+    '.pf-ledger-fig{font:900 19px "Arial Black",Arial,sans-serif;color:#f5ead6}',
+    '.pf-ledger-fig.gold{color:#e8b923}',
+    '.pf-ledger-fig.dim{color:#c9bfa8;font:400 15px Arial,sans-serif}',
+    '.pf-ledger-caveat{font:400 12px Arial,sans-serif;color:#c9bfa8;margin:2px 0 10px}',
+    '.pf-ledger-barwrap{background:#1a1a1a;border:1px solid #3a3a3a;border-radius:6px;height:22px;position:relative;margin:8px 0 4px;overflow:hidden}',
+    '.pf-ledger-bar{background:#c1121f;height:100%;min-width:3px}',
+    '.pf-ledger-ratio{font:700 13px Arial,sans-serif;color:#e8b923;margin-bottom:12px}',
+    '.pf-ledger-actions{display:flex;gap:10px;justify-content:center;margin-top:6px}',
+    '.pf-ledger-btn{font:900 14px "Arial Black",Arial,sans-serif;background:#f5ead6;color:#0d0d0d;border:0;border-radius:6px;padding:11px 20px;cursor:pointer}',
+    '.pf-ledger-btn-red{background:#c1121f;color:#ffffff}',
+    '.pf-ledger-method{font:400 12px Arial,sans-serif;color:#c9bfa8;text-align:center;margin-top:12px;padding:0 12px;line-height:1.5}',
+    '.pf-ledger-empty{font:400 16px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:28px 12px;border:1px dashed #3a3a3a;border-radius:8px}'
+  ].join('\n');
+
+  var cssDone = false;
+  function cssOnce() {
+    if (cssDone) return; cssDone = true;
+    try {
+      var st = document.createElement('style');
+      st.type = 'text/css'; st.appendChild(document.createTextNode(CSS));
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  function fmtB(b) {
+    var n = Number(b);
+    if (!isFinite(n)) return '—';
+    return '$' + (Math.round(n * 10) / 10) + 'B';
+  }
+  function fmtUSD(n) {
+    var v = Number(n);
+    if (!isFinite(v)) return '—';
+    return '$' + Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+  function fmtPct(ratio) {
+    var r = Number(ratio);
+    if (!isFinite(r) || r < 0) return '—';
+    var pct = r * 100;
+    if (pct >= 1) return (Math.round(pct * 100) / 100) + '%';
+    if (pct >= 0.01) return (Math.round(pct * 1000) / 1000) + '%';
+    return pct.toPrecision(2) + '%';
+  }
+  function forbesDate(iso) {
+    var m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return '—';
+    var MON = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    return MON[parseInt(m[2], 10) - 1] + ' ' + parseInt(m[3], 10) + ', ' + m[1];
+  }
+
+  function painterData(e) {
+    return {
+      name: e.name, rank: e.rank,
+      netWorthB: e.net_worth_b, netWorthAsOf: e.net_worth_as_of,
+      spending: e.political_spending, spendingCycle: e.spending_cycle,
+      ratio: e.spending_ratio, matchNote: e.match_note
+    };
+  }
+
+  function rowInner(e, i) {
+    var spendLoaded = e.spending_status === 'loaded' && e.political_spending != null;
+    var barW = 0, ratioLine = '';
+    if (spendLoaded && isFinite(Number(e.spending_ratio)) && Number(e.spending_ratio) > 0) {
+      barW = Math.max(0.4, Math.min(100, Number(e.spending_ratio) * 100));
+      ratioLine = '<div class="pf-ledger-ratio">' + esc(fmtPct(e.spending_ratio)) +
+        ' OF NET WORTH SPENT ON FEDERAL ELECTIONS</div>';
+    }
+    return '<div class="pf-ledger-rank">#' + esc(e.rank) + ' — FORBES 2026</div>' +
+      '<h3 class="pf-ledger-name">' + esc(e.name) + '</h3>' +
+      '<div class="pf-ledger-fig">NET WORTH ' + esc(fmtB(e.net_worth_b)) + '</div>' +
+      '<div class="pf-ledger-caveat">Forbes ' + esc(forbesDate(e.net_worth_as_of)) +
+        ' snapshot · published-list-snapshot</div>' +
+      (spendLoaded
+        ? '<div class="pf-ledger-fig gold">SPENT ' + esc(fmtUSD(e.political_spending)) +
+          ' ON FEDERAL ELECTIONS</div>' +
+          '<div class="pf-ledger-caveat">FEC Schedule A, ' + esc(e.spending_cycle) +
+          ' cycle · name-matched — identity unverified</div>' +
+          '<div class="pf-ledger-barwrap"><div class="pf-ledger-bar" style="width:' +
+          barW.toFixed(2) + '%"></div></div>' + ratioLine
+        : '<div class="pf-ledger-fig dim">' + esc(SPENDING_PENDING) + '</div>' +
+          '<div class="pf-ledger-caveat">No figures shown rather than invented.</div>') +
+      '<div class="pf-ledger-actions">' +
+        '<button type="button" class="pf-ledger-btn" data-ledger-dl="' + i + '">DOWNLOAD</button>' +
+        '<button type="button" class="pf-ledger-btn pf-ledger-btn-red" data-ledger-sh="' + i + '">SHARE</button>' +
+      '</div>';
+  }
+
+  function hide(container) {
+    try { container.style.display = 'none'; container.innerHTML = ''; } catch (e) {}
+  }
+
+  function render(container, j) {
+    cssOnce();
+    var list = j.list || {};
+    var entries = Array.isArray(j.entries) ? j.entries : [];
+    container.innerHTML = '';
+    var root = document.createElement('div');
+    root.className = 'pf-ledger';
+    if (!entries.length) {
+      root.innerHTML = '<div class="pf-ledger-empty">' + esc(EMPTY_MSG) + '</div>';
+      container.appendChild(root);
+      return;
+    }
+    var head = document.createElement('div');
+    head.className = 'pf-ledger-head';
+    head.innerHTML = '<div class="pf-ledger-kicker">FOLLOW THE MONEY</div>' +
+      '<h2 class="pf-ledger-title">THE LEDGER</h2>' +
+      '<div class="pf-ledger-sub">Billionaire net worth vs. political spending — ranked by net worth</div>';
+    root.appendChild(head);
+    var datas = [];
+    for (var i = 0; i < entries.length; i++) {
+      var art = document.createElement('article');
+      art.className = 'pf-ledger-row';
+      art.setAttribute('data-ledger-i', String(i));
+      art.innerHTML = rowInner(entries[i], i);
+      root.appendChild(art);
+      datas.push(painterData(entries[i]));
+    }
+    var cap = document.createElement('div');
+    cap.className = 'pf-ledger-method';
+    cap.textContent = 'METHOD: ' + (j.methodology ||
+      'Net worths hand-transcribed from Forbes\' published 2026 list; spending from FEC Schedule A (name-matched).');
+    root.appendChild(cap);
+    root.addEventListener('click', function (ev) {
+      var t = ev && ev.target;
+      if (!t || !t.getAttribute) return;
+      var dl = t.getAttribute('data-ledger-dl'), sh = t.getAttribute('data-ledger-sh');
+      if (dl == null && sh == null) return;
+      var idx = parseInt(dl != null ? dl : sh, 10) || 0;
+      var pd = datas[idx];
+      if (!pd) return;
+      try {
+        var PHQ = PF.PHQShare;
+        if (!PHQ) { toast('Share is still loading — try again.'); return; }
+        if (dl != null) PHQ.save(PAINTER, pd);
+        else PHQ.share(PAINTER, pd);
+      } catch (e2) { toast('Poster failed — try again.'); }
+    });
+    container.appendChild(root);
+  }
+
+  function mount(container) {
+    if (!container) return false;
+    try {
+      if (container.querySelector && container.querySelector('.pf-ledger')) return true; /* already mounted */
+    } catch (e) {}
+    api('ledger_list', {}, function (j) {
+      if (!j || !j.ok || !Array.isArray(j.entries)) { hide(container); return; }
+      try { render(container, j); } catch (e) { hide(container); }
+    });
+    return true;
+  }
+
+  try {
+    window.PFLedgers = { mount: mount };
+    PF.Ledgers = window.PFLedgers;
+  } catch (e) {}
+})();
+
+;
+
+/* ===== core/boycott-list.js ===== */
+/* core/boycott-list.js  |  PF v1.4.3 | DONOR BOYCOTT LIST.
+   Ranked employer list for the Follow-the-Money expansion: top corporate
+   employers by employee FEC contributions, each row linked into pressure
+   campaigns — "They fund the opposition — here's the campaign pressuring
+   them." Ranked list, amounts, linked campaign cards with JOIN buttons,
+   per-employer DOWNLOAD/SHARE through the EXISTING share flow —
+   PF.PHQShare.save/.share('phq-boycott', {...}) — so the callsign-claim
+   gate, the idempotent stamp, and the share plumbing all ride along.
+   No new share plumbing, no XP anywhere on this frontend (viewing = 0;
+   sharing rides existing create_share:; campaign joins ride the existing
+   pressure-join leg on Political HQ).
+   Backend contract (parallel backend wave, be/donor-boycotts):
+     ?action=boycott_list ->
+     {ok, employers:[{employer, total_donated, cycle, contributions,
+                      headline, linked_campaigns:[{id,title,status}],
+                      source:'FEC'}],
+      total_employers, cycle_scope, disclaimer, method, source:'FEC'}
+     money tables absent -> {ok:true, empty:true, reason:'donor data pending'}
+   JOIN buttons deep-link to the Political HQ pressure pane where the
+   EXISTING campaign join flow lives (fe/pressure-campaigns) — reuse, not
+   a rebuild. The join flow is not duplicated here.
+   Copy rule (hard): rows render the endpoint headline ("Employees of X gave
+   $Y (FEC)") and the disclaimer is prominent — corporations cannot donate
+   directly; these are employee aggregates. Never "the company donated".
+   Fail-soft: endpoint down / malformed -> the mount section hides itself
+   entirely, never a broken widget. empty:true -> the honest empty state.
+   No invented employers/amounts/links — every pixel comes from the
+   endpoint response.
+   Integration hook (Release Eng wires this; do NOT call it from this
+   module — the Political HQ money surface is a sibling file):
+     PFBoycotts.mount(document.getElementById('phq-boycott-slot'))
+   KILL: ?pf_off=boycotts  or  localStorage pf_disabled_v1='["boycotts"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('boycotts')) { return; }
+  if (window.pfBoycottsDone) return;
+  window.pfBoycottsDone = true;
+
+  var BACKEND = window.PF_BACKEND_URL;
+  var PAINTER = 'phq-boycott';
+  var HQ_URL = 'https://www.mtcstw.com/political-hq';
+  var PENDING_MSG = 'Donor data pending — the money tables are still loading. Check back soon.';
+  var EMPTY_MSG = 'No donor data yet.';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function toast(m) { try { if (PF && PF.toast) PF.toast(m); } catch (e) {} }
+  function fmtMoney(n) {
+    try { return '$' + Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 }); }
+    catch (e) { return '$' + String(n); }
+  }
+
+  /* JSONP GET — mirrors core/wall-of-shame.js api(): backend + action +
+     params + callback script tag, 12s timeout, null on any failure. */
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var fn = 'pfBcCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, 12000);
+  }
+
+  var CSS = [
+    '.pf-bc{max-width:680px;margin:0 auto;padding:8px 0}',
+    '.pf-bc-head{text-align:center;margin-bottom:10px}',
+    '.pf-bc-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#e8b923;margin-bottom:8px}',
+    '.pf-bc-title{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 4px}',
+    '.pf-bc-sub{font:400 14px Arial,sans-serif;color:#c9bfa8;margin-bottom:10px}',
+    '.pf-bc-disc{background:#1a1206;border:2px solid #e8b923;border-radius:8px;padding:12px 14px;font:700 13px Arial,sans-serif;color:#e8b923;text-align:center;margin:0 6px 14px;line-height:1.5}',
+    '.pf-bc-row{background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:20px 18px;color:#f5ead6;margin:0 6px 14px}',
+    '.pf-bc-rank{font:700 13px Arial,sans-serif;color:#c9bfa8;letter-spacing:3px;margin-bottom:6px}',
+    '.pf-bc-emp{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 6px;line-height:1.1}',
+    '.pf-bc-amt{font:900 20px "Arial Black",Arial,sans-serif;color:#c1121f;margin-bottom:4px}',
+    '.pf-bc-cyc{font:400 13px Arial,sans-serif;color:#c9bfa8;margin-bottom:12px}',
+    '.pf-bc-camp{background:#161616;border:1px solid #3a3a3a;border-radius:8px;padding:12px;margin-bottom:10px}',
+    '.pf-bc-camp-t{font:700 15px Arial,sans-serif;color:#f5ead6;margin-bottom:4px}',
+    '.pf-bc-camp-s{font:400 12px Arial,sans-serif;color:#c9bfa8;margin-bottom:10px}',
+    '.pf-bc-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}',
+    '.pf-bc-btn{font:900 14px "Arial Black",Arial,sans-serif;background:#f5ead6;color:#0d0d0d;border:0;border-radius:6px;padding:11px 20px;cursor:pointer;text-decoration:none;display:inline-block}',
+    '.pf-bc-btn-red{background:#c1121f;color:#ffffff}',
+    '.pf-bc-btn-gold{background:#e8b923;color:#0d0d0d}',
+    '.pf-bc-nocamp{font:400 13px Arial,sans-serif;color:#c9bfa8;font-style:italic;margin-bottom:4px}',
+    '.pf-bc-empty{font:400 16px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:28px 12px;border:1px dashed #3a3a3a;border-radius:8px}',
+    '.pf-bc-method{font:400 12px Arial,sans-serif;color:#c9bfa8;text-align:center;margin-top:12px;padding:0 12px;line-height:1.5}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-bc-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-bc-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  function hide(container) {
+    try { container.style.display = 'none'; container.innerHTML = ''; } catch (e) {}
+  }
+
+  function hqLink() {
+    var u = HQ_URL;
+    try { if (window.PF && typeof PF.shareUrl === 'function') u = PF.shareUrl(u); } catch (e) {}
+    return u;
+  }
+
+  /* Endpoint row -> painter data object. Every pixel from the response;
+     missing fields degrade to em-dash in the painter. */
+  function painterData(row) {
+    var camps = Array.isArray(row.linked_campaigns) ? row.linked_campaigns : [];
+    var c0 = camps[0] || {};
+    return {
+      employer: row.employer, amount: row.total_donated, cycle: row.cycle,
+      campaignTitle: c0.title || '', campaignId: c0.id || ''
+    };
+  }
+
+  function campHTML(camps) {
+    if (!camps.length) {
+      return '<div class="pf-bc-nocamp">No linked pressure campaign yet.</div>';
+    }
+    var h = '';
+    for (var i = 0; i < camps.length; i++) {
+      var c = camps[i] || {};
+      var st = String(c.status || '').toUpperCase();
+      h += '<div class="pf-bc-camp">' +
+        '<div class="pf-bc-camp-t">' + esc(c.title || c.id || 'Pressure campaign') + '</div>' +
+        (st ? '<div class="pf-bc-camp-s">STATUS: ' + esc(st) + '</div>' : '') +
+        '<a class="pf-bc-btn pf-bc-btn-gold" data-bc-join="1" href="' + esc(hqLink()) +
+        '" target="_blank" rel="noopener">JOIN THE PRESSURE</a>' +
+        '</div>';
+    }
+    return h;
+  }
+
+  function render(container, j) {
+    cssOnce();
+    var rows = Array.isArray(j.employers) ? j.employers : [];
+    container.innerHTML = '';
+    var root = document.createElement('div');
+    root.className = 'pf-bc';
+    var head = document.createElement('div');
+    head.className = 'pf-bc-head';
+    head.innerHTML = '<div class="pf-bc-kicker">FOLLOW THE MONEY &rarr; JOIN THE FIGHT</div>' +
+      '<h2 class="pf-bc-title">DONOR BOYCOTT LIST</h2>' +
+      '<div class="pf-bc-sub">Top employers by employee FEC contributions' +
+      (j.cycle_scope ? ' &middot; ' + esc(j.cycle_scope) + ' cycle' : '') + '</div>';
+    root.appendChild(head);
+    /* The disclaimer is prominent — above the list, not buried. */
+    var disc = document.createElement('div');
+    disc.className = 'pf-bc-disc';
+    disc.textContent = j.disclaimer ||
+      'Totals aggregate individual employee contributions reported to the FEC. ' +
+      'Corporations cannot donate directly — an employer here means its employees gave, not the company.';
+    root.appendChild(disc);
+    if (!rows.length) {
+      var em = document.createElement('div');
+      em.className = 'pf-bc-empty';
+      em.textContent = (j.empty && j.reason === 'donor data pending') ? PENDING_MSG : EMPTY_MSG;
+      root.appendChild(em);
+      container.appendChild(root);
+      return;
+    }
+    var datas = [];
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i] || {};
+      var camps = Array.isArray(r.linked_campaigns) ? r.linked_campaigns : [];
+      var art = document.createElement('article');
+      art.className = 'pf-bc-row';
+      art.innerHTML =
+        '<div class="pf-bc-rank">#' + (i + 1) + '</div>' +
+        '<h3 class="pf-bc-emp">' + esc(r.employer || '—') + '</h3>' +
+        '<div class="pf-bc-amt">' + esc(r.headline || ('Employees gave ' + fmtMoney(r.total_donated) + ' (FEC)')) + '</div>' +
+        '<div class="pf-bc-cyc">' + esc(r.cycle || '') + (r.cycle ? ' cycle' : '') +
+          ' &middot; ' + (parseInt(r.contributions, 10) || 0) + ' reported contributions &middot; source: FEC</div>' +
+        campHTML(camps) +
+        '<div class="pf-bc-actions">' +
+          '<button type="button" class="pf-bc-btn" data-bc-dl="' + i + '">DOWNLOAD</button>' +
+          '<button type="button" class="pf-bc-btn pf-bc-btn-red" data-bc-sh="' + i + '">SHARE</button>' +
+        '</div>';
+      root.appendChild(art);
+      datas.push(painterData(r));
+    }
+    if (j.method) {
+      var cap = document.createElement('div');
+      cap.className = 'pf-bc-method';
+      cap.textContent = 'METHOD: ' + j.method;
+      root.appendChild(cap);
+    }
+    root.addEventListener('click', function (e) {
+      var t = e && e.target;
+      if (!t || !t.getAttribute) return;
+      var dl = t.getAttribute('data-bc-dl'), sh = t.getAttribute('data-bc-sh');
+      if (dl == null && sh == null) return;
+      var idx = parseInt(dl != null ? dl : sh, 10) || 0;
+      var pd = datas[idx];
+      if (!pd) return;
+      try {
+        var PHQ = PF.PHQShare;
+        if (!PHQ) { toast('Share is still loading — try again.'); return; }
+        if (dl != null) PHQ.save(PAINTER, pd);
+        else PHQ.share(PAINTER, pd);
+      } catch (e2) { toast('Poster failed — try again.'); }
+    });
+    container.appendChild(root);
+  }
+
+  function mount(container) {
+    if (!container) return false;
+    try {
+      if (container.querySelector && container.querySelector('.pf-bc')) return true; /* already mounted */
+    } catch (e) {}
+    api('boycott_list', {}, function (j) {
+      if (!j || !j.ok) { hide(container); return; }
+      try { render(container, j); } catch (e) { hide(container); }
+    });
+    return true;
+  }
+
+  try {
+    window.PFBoycotts = { mount: mount };
+    PF.Boycotts = window.PFBoycotts;
+  } catch (e) {}
+})();
+
+;
+
+/* ===== core/corp-card.js ===== */
+/* core/corp-card.js  |  PF v1.4.3 | CORPORATE PLAYBOOK — company facts card.
+   One devastating card per company for the Follow-the-Money surface: stock
+   buybacks vs income taxes paid side-by-side, the effective tax rate,
+   lobbying spend, and the honest price-hike empty state — every figure
+   labeled with its source and year, straight from public filings.
+   DOWNLOAD + SHARE wire through the EXISTING share flow —
+   PF.PHQShare.save/.share('phq-corp', {...}) — so the callsign-claim gate,
+   the idempotent stamp, and the share plumbing all ride along. No new share
+   plumbing, no XP anywhere on this frontend (XP rides existing backend
+   legs only; Economy Desk sign-off PENDING for any card XP — currently none).
+   Backend contract (parallel backend wave, be/corp-playbook):
+     ?action=corp_card&ticker=XOM ->
+     {ok, ticker, name, cik, year, buybacks, tax_paid, pretax_income,
+      effective_rate, lobbying_spend,
+      price_hikes:{empty:true, reason:'no public per-company source', note},
+      sources:[{name, kind, ...}], retrieved_at}
+   Sources: SEC EDGAR companyfacts (FY 10-K XBRL, public, no key) and the
+   Senate LDA LD-2 filings API (public, anonymous). Price hikes: NO public
+   per-company source exists — the endpoint returns an honest empty state
+   and so does this card ("Per-company price data has no public source.
+   Shown: what filings prove."). Never proxied with CPI, never guessed.
+   Fail-soft: endpoint down / unknown ticker / malformed response -> the mount
+   section hides itself entirely, never a broken widget. Missing money
+   fields degrade to em-dash. No invented figures — every pixel comes from
+   the endpoint response.
+   Integration hook (Release Eng wires this when fe/follow-the-money lands;
+   do NOT call it from this module — the company view is a sibling file):
+     PFCorpCard.mount('XOM', document.getElementById('corp-card-slot'))
+   KILL: ?pf_off=corp-card  or  localStorage pf_disabled_v1='["corp-card"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('corp-card')) { return; }
+  if (window.pfCorpCardDone) return;
+  window.pfCorpCardDone = true;
+
+  var BACKEND = window.PF_BACKEND_URL;
+  var PAINTER = 'phq-corp';
+  var EMPTY_MSG = 'No corporate facts on file for this ticker — yet.';
+  var PRICE_EMPTY = 'Per-company price data has no public source. Shown: what filings prove.';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function toast(m) { try { if (PF && PF.toast) PF.toast(m); } catch (e) {} }
+
+  /* JSONP GET — mirrors core/wall-of-shame.js api(): backend + action +
+     params + callback script tag, 12s timeout, null on any failure. */
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var fn = 'pfCpCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, 12000);
+  }
+
+  /* Whole-USD compact money: 19000000000 -> $19.0B. Null/invalid -> em-dash. */
+  function money(v) {
+    if (v == null) return '—';
+    var n = Number(v);
+    if (!isFinite(n)) return '—';
+    var sign = n < 0 ? '−' : '';
+    var a = Math.abs(n);
+    if (a >= 1e9) return sign + '$' + (a / 1e9).toFixed(1) + 'B';
+    if (a >= 1e6) return sign + '$' + (a / 1e6).toFixed(1) + 'M';
+    if (a >= 1e3) return sign + '$' + (a / 1e3).toFixed(1) + 'K';
+    return sign + '$' + Math.round(a);
+  }
+  function pct(v) {
+    if (v == null) return '—';
+    var n = Number(v);
+    if (!isFinite(n)) return '—';
+    return (n * 100).toFixed(1) + '%';
+  }
+
+  /* Source footer from the endpoint's sources[]: one label per public source,
+     each with its year. Never invented — only what the endpoint reports. */
+  function sourceLine(sources, year) {
+    var seen = {}, parts = [];
+    for (var i = 0; i < (sources || []).length; i++) {
+      var s = sources[i] || {};
+      var label = '';
+      if (s.kind === 'edgar') label = 'SEC EDGAR · 10-K FY' + (s.fy || year);
+      else if (s.kind === 'lda') label = 'LDA · ' + (s.year || year) + ' LD-2 FILINGS';
+      else if (s.name) label = String(s.name).toUpperCase();
+      if (label && !seen[label]) { seen[label] = 1; parts.push(label); }
+    }
+    return parts.length ? 'SOURCES: ' + parts.join(' · ') : 'SOURCES: PUBLIC FILINGS';
+  }
+
+  var CSS = [
+    '.pf-cp{max-width:680px;margin:0 auto;padding:8px 0}',
+    '.pf-cp-card{background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:26px 22px;color:#f5ead6;text-align:center}',
+    '.pf-cp-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#c1121f;margin-bottom:10px}',
+    '.pf-cp-name{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 4px}',
+    '.pf-cp-ticker{font:700 15px Arial,sans-serif;color:#e8b923;margin-bottom:16px}',
+    '.pf-cp-vs{display:flex;gap:12px;margin-bottom:8px}',
+    '.pf-cp-col{flex:1;background:#141414;border:1px solid #3a3a3a;border-radius:8px;padding:14px 8px}',
+    '.pf-cp-lab{font:700 12px Arial,sans-serif;letter-spacing:2px;color:#c9bfa8;margin-bottom:8px}',
+    '.pf-cp-amt{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6}',
+    '.pf-cp-amt.red{color:#c1121f}',
+    '.pf-cp-rate{font:900 22px "Arial Black",Arial,sans-serif;color:#e8b923;margin:14px 0 4px}',
+    '.pf-cp-ratelab{font:700 12px Arial,sans-serif;letter-spacing:2px;color:#c9bfa8;margin-bottom:12px}',
+    '.pf-cp-lob{font:700 16px Arial,sans-serif;color:#f5ead6;margin-bottom:4px}',
+    '.pf-cp-loblab{font:700 12px Arial,sans-serif;letter-spacing:2px;color:#c9bfa8;margin-bottom:14px}',
+    '.pf-cp-price{font:400 14px Arial,sans-serif;color:#c9bfa8;border:1px dashed #3a3a3a;border-radius:8px;padding:12px;margin:6px 0 14px}',
+    '.pf-cp-src{font:400 12px Arial,sans-serif;color:#8a8272;margin-bottom:16px}',
+    '.pf-cp-actions{display:flex;gap:10px;justify-content:center}',
+    '.pf-cp-btn{font:900 15px "Arial Black",Arial,sans-serif;background:#f5ead6;color:#0d0d0d;border:0;border-radius:6px;padding:12px 22px;cursor:pointer}',
+    '.pf-cp-btn-red{background:#c1121f;color:#ffffff}',
+    '.pf-cp-empty{font:400 16px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:28px 12px;border:1px dashed #3a3a3a;border-radius:8px}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-cp-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-cp-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  function hide(container) {
+    try { container.style.display = 'none'; container.innerHTML = ''; } catch (e) {}
+  }
+
+  /* Endpoint response -> painter data object. Every pixel from the response;
+     missing fields degrade to em-dash in the painter, never invented. */
+  function painterData(j) {
+    return {
+      ticker: j.ticker, name: j.name, year: j.year,
+      buybacks: j.buybacks, taxPaid: j.tax_paid,
+      effectiveRate: j.effective_rate, lobbyingSpend: j.lobbying_spend,
+      sourceLine: sourceLine(j.sources, j.year)
+    };
+  }
+
+  function render(container, j) {
+    cssOnce();
+    container.innerHTML = '';
+    var root = document.createElement('div');
+    root.className = 'pf-cp';
+    var ph = j.price_hikes || {};
+    var note = (ph.empty && (ph.note || PRICE_EMPTY)) || PRICE_EMPTY;
+    root.innerHTML =
+      '<div class="pf-cp-card">' +
+        '<div class="pf-cp-kicker">THEIR PLAYBOOK</div>' +
+        '<h3 class="pf-cp-name">' + esc(j.name) + '</h3>' +
+        '<div class="pf-cp-ticker">' + esc(j.ticker) + ' · FY' + esc(j.year) + '</div>' +
+        '<div class="pf-cp-vs">' +
+          '<div class="pf-cp-col">' +
+            '<div class="pf-cp-lab">STOCK BUYBACKS</div>' +
+            '<div class="pf-cp-amt">' + esc(money(j.buybacks)) + '</div>' +
+            '<div class="pf-cp-ratelab">SEC EDGAR · FY' + esc(j.year) + '</div>' +
+          '</div>' +
+          '<div class="pf-cp-col">' +
+            '<div class="pf-cp-lab">INCOME TAXES PAID</div>' +
+            '<div class="pf-cp-amt red">' + esc(money(j.tax_paid)) + '</div>' +
+            '<div class="pf-cp-ratelab">SEC EDGAR · FY' + esc(j.year) + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="pf-cp-rate">EFFECTIVE TAX RATE: ' + esc(pct(j.effective_rate)) + '</div>' +
+        '<div class="pf-cp-ratelab">TAXES PAID ÷ PRETAX INCOME · SEC EDGAR · FY' + esc(j.year) + '</div>' +
+        '<div class="pf-cp-lob">LOBBYING SPEND: ' + esc(money(j.lobbying_spend)) + '</div>' +
+        '<div class="pf-cp-loblab">LDA LD-2 FILINGS · ' + esc(j.year) + ' · AS-FILED ESTIMATE</div>' +
+        '<div class="pf-cp-price">PRICE HIKES: ' + esc(note) + '</div>' +
+        '<div class="pf-cp-src">' + esc(sourceLine(j.sources, j.year)) + '</div>' +
+        '<div class="pf-cp-actions">' +
+          '<button type="button" class="pf-cp-btn" data-cp-dl="1">DOWNLOAD</button>' +
+          '<button type="button" class="pf-cp-btn pf-cp-btn-red" data-cp-sh="1">SHARE</button>' +
+        '</div>' +
+      '</div>';
+    var pd = painterData(j);
+    root.addEventListener('click', function (e) {
+      var t = e && e.target;
+      if (!t || !t.getAttribute) return;
+      var dl = t.getAttribute('data-cp-dl'), sh = t.getAttribute('data-cp-sh');
+      if (dl == null && sh == null) return;
+      try {
+        var PHQ = PF.PHQShare;
+        if (!PHQ) { toast('Share is still loading — try again.'); return; }
+        if (dl != null) PHQ.save(PAINTER, pd);
+        else PHQ.share(PAINTER, pd);
+      } catch (e2) { toast('Poster failed — try again.'); }
+    });
+    container.appendChild(root);
+  }
+
+  function mount(ticker, container) {
+    if (!ticker || !container) return false;
+    try {
+      if (container.querySelector && container.querySelector('.pf-cp')) return true; /* already mounted */
+    } catch (e) {}
+    api('corp_card', { ticker: String(ticker).toUpperCase() }, function (j) {
+      if (!j || !j.ok || !j.ticker) {
+        /* honest empty state on unknown ticker; full hide on transport failure */
+        if (j && j.ok === false && j.err) {
+          cssOnce();
+          container.innerHTML = '<div class="pf-cp"><div class="pf-cp-empty">' + esc(EMPTY_MSG) + '</div></div>';
+          return;
+        }
+        hide(container);
+        return;
+      }
+      try { render(container, j); } catch (e) { hide(container); }
+    });
+    return true;
+  }
+
+  try {
+    window.PFCorpCard = { mount: mount };
+    PF.CorpCard = window.PFCorpCard;
+  } catch (e) {}
+})();
+
+;
+
+/* ===== core/money-page.js ===== */
+/* core/money-page.js  |  PF v1.4.3 | FOLLOW THE MONEY — page + tab shell.
+   Context-aware mount for the money suite (phq-hub-ia-spec §4 — no code
+   fork):
+     - <div id="pf-money"> present        -> FULL-PAGE shell (the /money page)
+     - only <div id="pf-political-hq">     -> INTERIM MONEY TAB (compact, lazy)
+     - PHQ context + money_page_url set   -> one-cycle REDIRECT CARD to /money
+   The /money page itself is a CEO hand-step (Squarespace page + #pf-money
+   Code block + nav entry). Until it exists, nothing here is blocked: the
+   suite ships as the 6th hub tab inside /political-hq.
+   Cutover: Release Eng sets the `money_page_url` site-config value (default
+   empty) in the same push that adds the loader detection entry + the
+   'pf-money' PAGE_ORDERS mapping. No silo-id changes — every ?pf_off= id
+   below survives the move, so operator kill state carries over.
+   Sections (kill ids): money-macro · money-fec-donors · money-vote · wallshame ·
+   pac-alerts · trades-tab · money-small-dollar · corp-card · ledgers ·
+   boycotts · money-deep8 (9 ids) · master kill: ?pf_off=money.
+   Copy contract: "received $X from" enforced, never "bought by"; every
+   figure carries SOURCE + DATA AS OF; juxtaposition cards always carry the
+   correlation line. Hub mission + tab label copy is PROVISIONAL — Psych veto.
+   No XP anywhere on this frontend (viewing = 0; shares ride the existing
+   create_share: backend leg). War Bonds = 0 XP (standing rule).
+   KILL: ?pf_off=money (master) or per-section ids above. */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF) { return; }
+  /* Master kill: ?pf_off=money darkens the entire suite (FE review #8). */
+  if (PF.skip('money')) { return; }
+  if (window.pfMoneyPageDone) return;
+  window.pfMoneyPageDone = true;
+
+  /* Master kill helper (FE review #8): ?pf_off=money darkens everything. */
+  function skip(id) { return PF.skip('money') || PF.skip(id); }
+
+  var BACKEND = window.PF_BACKEND_URL;
+  var PHQ = 'https://www.mtcstw.com/political-hq';
+  var CREATE = 'https://www.mtcstw.com/create';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function err(m) { try { if (PF && PF.error) PF.error('money-page', m); } catch (e) {} }
+  function isEditor() {
+    try {
+      var h = window.location.href || '';
+      if (h.indexOf('/config/') !== -1) return true;
+      var b = document.body;
+      if (b && (b.classList.contains('sqs-edit-mode') || b.classList.contains('sqs-editing'))) return true;
+    } catch (e) {}
+    return false;
+  }
+
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var fn = 'pfMoneyPageCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, 12000);
+  }
+
+  function qs(name) {
+    try {
+      var m = new RegExp('[?&]' + name + '=([^&#]*)').exec(window.location.search || '');
+      return m ? decodeURIComponent(m[1]) : '';
+    } catch (e) { return ''; }
+  }
+
+  var CSS = [
+    '.pf-mp{max-width:960px;margin:0 auto;padding:8px 0 24px;color:#f5ead6;font-family:Arial,sans-serif}',
+    '.pf-mp-kicker{font-weight:700;font-size:13px;letter-spacing:6px;color:#e8b923;text-align:center;margin-bottom:8px}',
+    '.pf-mp-title{font-weight:900;font-size:34px;text-align:center;margin:0 0 6px;letter-spacing:2px}',
+    '.pf-mp-mission{font-size:15px;color:#c9bfa8;text-align:center;margin:0 0 20px;font-style:italic}',
+    '.pf-mp-sec{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:10px;padding:18px;margin-bottom:14px}',
+    '.pf-mp-sec h3{font-weight:900;font-size:19px;letter-spacing:2px;margin:0 0 4px;color:#f5ead6}',
+    '.pf-mp-sec .pf-mp-sub{font-size:13px;color:#c9bfa8;margin:0 0 12px}',
+    '.pf-mp-pick{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}',
+    '.pf-mp-pick input{flex:1;min-width:180px;background:#1a1a1a;border:1px solid #3a3a3a;color:#f5ead6;border-radius:6px;padding:10px 12px;font-size:15px}',
+    '.pf-mp-btn{background:#c1121f;color:#fff;border:0;border-radius:6px;padding:10px 18px;font-weight:900;letter-spacing:1px;cursor:pointer;font-size:14px}',
+    '.pf-mp-btn.ghost{background:#1a1a1a;border:1px solid #3a3a3a;color:#f5ead6}',
+    '.pf-mp-cor{font-size:13px;color:#c9bfa8;border-top:1px solid #2a2a2a;margin-top:12px;padding-top:10px;font-style:italic}',
+    '.pf-mp-share{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}',
+    '.pf-mp-rail{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:18px 0 6px}',
+    '.pf-mp-rail a{color:#e8b923;font-weight:700;font-size:14px;letter-spacing:1px;text-decoration:none;border:1px solid #3a3a3a;border-radius:6px;padding:10px 16px;background:#0d0d0d}',
+    '.pf-mp-ac{display:block;text-align:center;margin:22px auto 0;max-width:420px;background:#c1121f;color:#fff;font-weight:900;letter-spacing:2px;font-size:16px;padding:14px;border-radius:8px;text-decoration:none}',
+    '.pf-mp-gauge{height:26px;border-radius:4px;overflow:hidden;display:flex;margin:10px 0}',
+    '.pf-mp-g-sm{background:#e8b923}.pf-mp-g-lg{background:#c1121f}',
+    '.pf-mp-gleg{display:flex;justify-content:space-between;font-size:13px;color:#c9bfa8;font-weight:700;flex-wrap:wrap;gap:6px}',
+    '.pf-mp-note{font-size:13px;color:#c9bfa8;text-align:center;padding:14px}',
+    '.pf-mp-redirect{max-width:560px;margin:24px auto;background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:28px 22px;text-align:center;color:#f5ead6;font-family:Arial,sans-serif}',
+    '.pf-mp-redirect h3{font-weight:900;font-size:22px;letter-spacing:2px;margin:0 0 10px}',
+    '.pf-mp-redirect p{color:#c9bfa8;font-size:14px;margin:0 0 16px}',
+    '.pf-mp-redirect a{display:inline-block;background:#c1121f;color:#fff;font-weight:900;letter-spacing:2px;padding:14px 28px;border-radius:8px;text-decoration:none;font-size:16px}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-mp-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-mp-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  /* Shared picker state: one legislator + one bill drive the linked sections. */
+  var state = { bioguide: qs('bioguide') || '', bill: qs('bill') || '' };
+
+  function sectionShell(id, title, sub) {
+    return '<section class="pf-mp-sec" id="money-' + esc(id) + '" data-sec="' + esc(id) + '">' +
+      '<h3>' + esc(title) + '</h3>' +
+      (sub ? '<p class="pf-mp-sub">' + esc(sub) + '</p>' : '') +
+      '<div class="pf-mp-body"></div></section>';
+  }
+
+  /* ---- section 1: FEC donor files (element money-fec-donors) ---- */
+  function mountFec(body) {
+    var wrap = document.createElement('div');
+    wrap.innerHTML =
+      '<div class="pf-mp-pick">' +
+      '<input id="pf-mp-bio" placeholder="Bioguide ID — e.g. A000055" value="' + esc(state.bioguide) + '" aria-label="Legislator Bioguide ID">' +
+      '<button class="pf-mp-btn" id="pf-mp-bio-go">PULL THE FILE</button></div>' +
+      '<div class="pf-mp-slot"></div>' +
+      '<p class="pf-mp-note">Donor files come straight from FEC filings. Type a Bioguide ID ' +
+      '(find it on the legislator\u2019s directory page) — or open this page with <b>?bioguide=</b>.</p>';
+    body.appendChild(wrap);
+    var slot = wrap.querySelector('.pf-mp-slot');
+    function load(bio) {
+      if (!bio) return;
+      state.bioguide = bio;
+      slot.innerHTML = '';
+      try {
+        if (window.PFMoneyTab) PFMoneyTab.mount(bio, slot);
+        else { slot.innerHTML = '<p class="pf-mp-note">Money module still loading — try again.</p>'; }
+      } catch (e) { err('fec mount failed :: ' + (e && e.message || e)); }
+      mountGauge(document.getElementById('pf-mp-gauge-slot'), bio);
+    }
+    wrap.querySelector('#pf-mp-bio-go').addEventListener('click', function () {
+      load(wrap.querySelector('#pf-mp-bio').value.trim());
+    });
+    if (state.bioguide) load(state.bioguide);
+  }
+
+  /* ---- section 6: small-dollar ratio gauge (element money-small-dollar) ---- */
+  function mountGauge(slot, bioguide) {
+    if (!slot) return;
+    if (skip('money-small-dollar')) { slot.innerHTML = ''; return; }
+    if (!bioguide) {
+      slot.innerHTML = '<p class="pf-mp-note">Pull a donor file above to see the small-dollar split.</p>';
+      return;
+    }
+    api('money_legislator', { bioguide_id: bioguide }, function (j) {
+      try {
+        if (!j || !j.ok || j.empty || typeof j.small_dollar_pct !== 'number') {
+          slot.innerHTML = '<p class="pf-mp-note">Small-dollar data isn\u2019t loaded yet — no figures shown rather than guesses.</p>';
+          return;
+        }
+        var sm = Math.max(0, Math.min(100, j.small_dollar_pct));
+        var lg = Math.max(0, Math.min(100, 100 - sm));
+        var name = (j.member && j.member.name) || bioguide;
+        slot.innerHTML =
+          '<div class="pf-mp-gauge"><div class="pf-mp-g-sm" style="width:' + sm.toFixed(1) + '%"></div>' +
+          '<div class="pf-mp-g-lg" style="width:' + lg.toFixed(1) + '%"></div></div>' +
+          '<div class="pf-mp-gleg"><span>SMALL-DOLLAR: ' + sm.toFixed(1) + '%</span>' +
+          '<span>LARGE-DOLLAR: ' + lg.toFixed(1) + '%</span></div>' +
+          '<p class="pf-mp-note">SOURCE: FEC \u00b7 ' + esc(String(j.cycle || '')) + ' cycle \u00b7 ' +
+          esc(String(name)) + '</p>';
+      } catch (e) { slot.innerHTML = '<p class="pf-mp-note">Small-dollar data isn\u2019t loaded yet.</p>'; }
+    });
+  }
+
+  /* ---- section 2+3: vote-vs-donor + wall of shame (bill-linked) ---- */
+  function mountVote(body) {
+    var wrap = document.createElement('div');
+    wrap.innerHTML =
+      '<div class="pf-mp-pick">' +
+      '<input id="pf-mp-bill" placeholder="Bill ID — e.g. H.R.3633" value="' + esc(state.bill) + '" aria-label="Bill ID">' +
+      '<button class="pf-mp-btn" id="pf-mp-bill-go">FOLLOW THIS BILL</button></div>' +
+      '<div class="pf-mp-slot"></div>' +
+      '<div class="pf-mp-share" style="display:none">' +
+      '<button class="pf-mp-btn ghost" data-act="share">SHARE THIS CARD</button>' +
+      '<button class="pf-mp-btn ghost" data-act="forge">FORGE THIS</button></div>' +
+      '<p class="pf-mp-cor">Donations and votes are separate public records. ' +
+      'Donations don\u2019t prove motive \u2014 they show who\u2019s in the room.</p>' +
+      '<p class="pf-mp-note">Tip: open this page with <b>?bill=</b> to deep-link a bill.</p>';
+    body.appendChild(wrap);
+    var slot = wrap.querySelector('.pf-mp-slot');
+    var shareRow = wrap.querySelector('.pf-mp-share');
+    var lastData = null;
+    function load(bill) {
+      if (!bill) return;
+      state.bill = bill;
+      slot.innerHTML = '';
+      shareRow.style.display = 'none';
+      lastData = null;
+      try {
+        if (window.PFMoneyVote) PFMoneyVote.mount(bill, slot);
+        else { slot.innerHTML = '<p class="pf-mp-note">Money module still loading — try again.</p>'; }
+      } catch (e) { err('vote mount failed :: ' + (e && e.message || e)); }
+      /* Fetch the same endpoint for the share payload + wall mount. */
+      api('money_vote_card', { bill_id: bill }, function (j) {
+        try {
+          if (j && j.ok && j.cards) { lastData = j; shareRow.style.display = 'flex'; }
+        } catch (e) {}
+      });
+      mountWall(bill);
+    }
+    wrap.querySelector('#pf-mp-bill-go').addEventListener('click', function () {
+      load(wrap.querySelector('#pf-mp-bill').value.trim());
+    });
+    shareRow.addEventListener('click', function (ev) {
+      var b = ev.target && ev.target.getAttribute ? ev.target.getAttribute('data-act') : null;
+      if (!b || !lastData) return;
+      var payload = votePosterPayload(lastData);
+      if (b === 'share') {
+        try {
+          if (PF.PHQShare) PF.PHQShare.share('phq-votedonor', payload);
+          else err('PHQShare missing for vote share');
+        } catch (e) { err('vote share failed :: ' + (e && e.message || e)); }
+      } else if (b === 'forge') {
+        try {
+          sessionStorage.setItem('pf_forge_prefill_v1', JSON.stringify({
+            kind: 'money-vote', painter: 'phq-votedonor', data: payload,
+            caption: 'THE MONEY BEHIND THE VOTE — ' + (payload.billTitle || '')
+          }));
+          window.location.href = CREATE;
+        } catch (e) { err('forge stash failed :: ' + (e && e.message || e)); }
+      }
+    });
+    if (state.bill) load(state.bill);
+  }
+
+  function votePosterPayload(j) {
+    var cards = Array.isArray(j.cards) ? j.cards : [];
+    var rows = cards.slice(0, 4).map(function (c) {
+      var m = (c.money && c.money.industries && c.money.industries[0]) || null;
+      return {
+        name: c.name || '\u2014',
+        copy: (m && m.copy) || '',
+        vote: c.position || ''
+      };
+    });
+    return {
+      billTitle: (j.bill && j.bill.title) || j.bill_id || '',
+      billId: (j.bill && j.bill.bill_id) || '',
+      cycle: j.cycle || '',
+      rows: rows,
+      source: 'FEC (api.open.fec.gov)'
+    };
+  }
+
+  function mountWall(bill) {
+    var sec = document.querySelector('[data-sec="wallshame"] .pf-mp-body');
+    if (!sec) return;
+    if (skip('wallshame')) { sec.innerHTML = ''; return; }
+    sec.innerHTML = '<div class="pf-mp-slot"></div>';
+    try {
+      if (window.PFWallShame) PFWallShame.mount(bill, sec.querySelector('.pf-mp-slot'));
+    } catch (e) { err('wall mount failed :: ' + (e && e.message || e)); }
+  }
+
+  /* ---- section 7: corporate playbook ---- */
+  function mountCorp(body) {
+    var wrap = document.createElement('div');
+    wrap.innerHTML =
+      '<div class="pf-mp-pick">' +
+      '<input id="pf-mp-ticker" placeholder="Ticker — e.g. XOM" aria-label="Company ticker">' +
+      '<button class="pf-mp-btn" id="pf-mp-ticker-go">PULL THE PLAYBOOK</button></div>' +
+      '<div class="pf-mp-slot"></div>' +
+      '<p class="pf-mp-note">Buybacks, tax rates, and lobbying spend — from SEC EDGAR 10-K filings ' +
+      'and Senate lobbying disclosures. Shown: what filings prove.</p>';
+    body.appendChild(wrap);
+    var slot = wrap.querySelector('.pf-mp-slot');
+    wrap.querySelector('#pf-mp-ticker-go').addEventListener('click', function () {
+      var t = wrap.querySelector('#pf-mp-ticker').value.trim().toUpperCase();
+      if (!t) return;
+      slot.innerHTML = '';
+      try {
+        if (window.PFCorpCard) PFCorpCard.mount(t, slot);
+        else { slot.innerHTML = '<p class="pf-mp-note">Money module still loading — try again.</p>'; }
+      } catch (e) { err('corp mount failed :: ' + (e && e.message || e)); }
+    });
+  }
+
+  /* ---- wiring: exits rail + AC return ---- */
+  function exitsRail(root) {
+    var nav = document.createElement('nav');
+    nav.className = 'pf-mp-rail';
+    nav.setAttribute('aria-label', 'Money suite exits');
+    var links = [
+      ['FIND YOUR REP', PHQ + '#phq-people'],
+      ['BILL FILES', PHQ + '#phq-bills'],
+      ['RACES', PHQ + '#phq-ballot'],
+      ['PRESSURE CAMPAIGNS', PHQ + '#phq-action'],
+      ['POSTER FORGE', CREATE]
+    ];
+    nav.innerHTML = links.map(function (l) {
+      return '<a href="' + esc(l[1]) + '">' + esc(l[0]) + '</a>';
+    }).join('');
+    root.appendChild(nav);
+    var ac = document.createElement('a');
+    ac.className = 'pf-mp-ac';
+    ac.href = PHQ + '#phq-action';
+    ac.textContent = 'BACK TO ACTION CENTER \u2192';
+    root.appendChild(ac);
+  }
+
+  /* ---- builders: full page vs interim tab ---- */
+  var SECTIONS = [
+    { key: 'macro', kill: 'money-macro', title: 'MACRO',
+      sub: 'The headline numbers, straight from the Fed data vault.', mount: function (body) {
+        var d = document.createElement('div'); body.appendChild(d);
+        try { if (window.PFMacro) PFMacro.mount(d); } catch (e) { err('macro mount failed'); }
+      } },
+    { key: 'fec', kill: 'money-fec-donors', title: 'FEC DONOR FILES',
+      sub: 'Every legislator\u2019s money, straight from the filings.', mount: mountFec },
+    { key: 'vote', kill: 'money-vote', title: 'THE MONEY BEHIND THE VOTE',
+      sub: 'Who funded both sides of the fight.', mount: mountVote },
+    { key: 'wallshame', kill: 'wallshame', title: 'WALL OF SHAME',
+      sub: 'The votes against us, named and sourced.', mount: function (body) {
+        body.innerHTML = '<p class="pf-mp-note">Pick a bill above — the wall fills with its worst votes.</p>';
+      } },
+    { key: 'pac', kill: 'pac-alerts', title: 'SUPER PAC ALERTS',
+      sub: 'New money drops, as they land.', mount: function (body) {
+        var d = document.createElement('div'); body.appendChild(d);
+        try { if (window.PFPacAlerts) PFPacAlerts.mount(d); } catch (e) { err('pac mount failed'); }
+      } },
+    { key: 'trades', kill: 'trades-tab', title: 'TRADES ON THE HILL',
+      sub: 'What they bought and sold while writing the rules.', mount: function (body) {
+        var d = document.createElement('div'); body.appendChild(d);
+        try { if (window.PFTrades) PFTrades.mount(d, { bioguideId: state.bioguide }); } catch (e) { err('trades mount failed'); }
+      } },
+    { key: 'gauge', kill: 'money-small-dollar', title: 'SMALL-DOLLAR RATIO',
+      sub: 'People-powered or donor-powered?', mount: function (body) {
+        var d = document.createElement('div'); d.id = 'pf-mp-gauge-slot'; body.appendChild(d);
+        mountGauge(d, state.bioguide);
+      } },
+    { key: 'corp', kill: 'corp-card', title: 'CORPORATE PLAYBOOK',
+      sub: 'Buybacks, tax dodges, lobbying — the filings don\u2019t lie.', mount: mountCorp },
+    { key: 'ledgers', kill: 'ledgers', title: 'BILLIONAIRE LEDGERS',
+      sub: 'The money behind the curtain, ledger by ledger.', mount: function (body) {
+        var d = document.createElement('div'); body.appendChild(d);
+        try { if (window.PFLedgers) PFLedgers.mount(d); } catch (e) { err('ledgers mount failed'); }
+      } },
+    { key: 'boycotts', kill: 'boycotts', title: 'DONOR BOYCOTTS',
+      sub: 'They fund the opposition — here\u2019s the pressure.', mount: function (body) {
+        var d = document.createElement('div'); body.appendChild(d);
+        try { if (window.PFBoycotts) PFBoycotts.mount(d); } catch (e) { err('boycotts mount failed'); }
+      } },
+    { key: 'deep8', kill: null, title: 'THE REST OF THE MONEY MAP',
+      sub: 'Eight more cuts, wiring up now.', mount: function (body) {
+        var d = document.createElement('div'); body.appendChild(d);
+        try { if (window.PFMoneyDeep) PFMoneyDeep.mount(d); } catch (e) { err('deep8 mount failed'); }
+      } }
+  ];
+
+  function buildSections(root, lazy) {
+    cssOnce();
+    var frag = document.createDocumentFragment();
+    SECTIONS.forEach(function (s) {
+      if (s.kill && skip(s.kill)) return;
+      var tmp = document.createElement('div');
+      tmp.innerHTML = sectionShell(s.key, s.title, s.sub);
+      var sec = tmp.firstChild;
+      frag.appendChild(sec);
+      var body = sec.querySelector('.pf-mp-body');
+      if (lazy) {
+        /* Interim tab: sections mount on first intersection (PHQ budget). */
+        try {
+          var io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (en) {
+              if (en.isIntersecting) {
+                try { io.disconnect(); } catch (e) {}
+                try { s.mount(body); } catch (e) { err('lazy mount failed: ' + s.key); }
+              }
+            });
+          }, { rootMargin: '200px' });
+          io.observe(sec);
+        } catch (e) { try { s.mount(body); } catch (e2) {} }
+      } else {
+        try { s.mount(body); } catch (e) { err('mount failed: ' + s.key + ' :: ' + (e && e.message || e)); }
+      }
+    });
+    root.appendChild(frag);
+  }
+
+  function renderPage(host) {
+    if (host.querySelector('.pf-mp')) return;
+    var root = document.createElement('div');
+    root.className = 'pf-mp';
+    root.innerHTML =
+      '<div class="pf-mp-kicker">MTCSTW.COM</div>' +
+      '<h2 class="pf-mp-title">FOLLOW THE MONEY</h2>' +
+      '<p class="pf-mp-mission">See who bought your government.</p>';
+    host.appendChild(root);
+    buildSections(root, false);
+    exitsRail(root);
+  }
+
+  function renderTab(host) {
+    if (document.getElementById('phq-money')) return;
+    var sec = document.createElement('section');
+    sec.id = 'phq-money';
+    sec.className = 'pf-hub';
+    sec.setAttribute('data-hub', 'money');
+    var root = document.createElement('div');
+    root.className = 'pf-mp';
+    root.innerHTML =
+      '<div class="pf-mp-kicker">SECTION 06 \u2014 FOLLOW THE MONEY</div>' +
+      '<h2 class="pf-mp-title">FOLLOW THE MONEY</h2>' +
+      '<p class="pf-mp-mission">See who bought your government.</p>';
+    sec.appendChild(root);
+    host.appendChild(sec);
+    buildSections(root, true);
+    exitsRail(root);
+  }
+
+  function renderRedirect(host, url) {
+    if (document.getElementById('phq-money')) return;
+    var sec = document.createElement('section');
+    sec.id = 'phq-money';
+    sec.className = 'pf-hub';
+    sec.innerHTML =
+      '<div class="pf-mp-redirect"><h3>FOLLOW THE MONEY</h3>' +
+      '<p>The money war room moved to its own page.</p>' +
+      '<a href="' + esc(url) + '">OPEN THE WAR ROOM \u2192</a></div>';
+    host.appendChild(sec);
+  }
+
+  function boot() {
+    if (isEditor()) return;
+    var moneyDiv = document.getElementById('pf-money');
+    var phqDiv = document.getElementById('pf-political-hq');
+    function go(cfg) {
+      var url = (cfg && cfg.money_page_url) || '';
+      try {
+        if (moneyDiv) { renderPage(moneyDiv); return; }
+        if (phqDiv) {
+          if (skip('money-tab')) return;
+          if (url) renderRedirect(phqDiv, url);
+          else renderTab(phqDiv);
+        }
+      } catch (e) { err('boot failed :: ' + (e && e.message || e)); }
+    }
+    try {
+      if (PF.siteConfig && PF.siteConfig.ready) PF.siteConfig.ready(go);
+      else go({});
+    } catch (e) { go({}); }
+  }
+
+  try {
+    window.PFMoney = { skip: skip, mountPage: renderPage, mountTab: renderTab };
+  } catch (e) {}
+
+  /* Self-mounting silo: runs at bundle time; idempotent. */
+  try {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', boot);
+    } else { boot(); }
+  } catch (e) { err('init failed'); }
+})();
+
+;
+
+/* ===== core/money-trades.js ===== */
+/* core/money-trades.js  |  PF v1.4.3 | CONGRESSIONAL STOCK TRADES.
+   Person-card + trade-timeline for the Follow-the-Money suite
+   (element id money-stock-trades; /money page + interim PHQ money tab).
+   Never auto-mounts — the money-page shell calls PFTrades.mount(container,
+   {bioguideId}).
+   LEGAL HOLD: congressional trade disclosures are financial-disclosure data
+   under the narrow commercial-use hold — until the hold resolves, this card
+   renders ONLY the honest empty state. No endpoint exists yet
+   (?action=money_trades is reserved); when the backend lands, the card
+   lights up with zero frontend changes. Never invent a trade, a ticker, a
+   date, or an amount.
+   Expected contract (reserved):
+     ?action=money_trades&bioguide_id=A000055 ->
+     {ok, bioguide_id, name, source:'House/Senate Financial Disclosures',
+      retrieved_at, cycle, trades:[{ticker, asset, type:'buy'|'sell',
+      amount_range, filed_date, transaction_date}]}
+   Fail-soft: endpoint down / {ok:false} / malformed / hold active ->
+   the honest empty state ("AWAITING PUBLIC DATA"). Never a blank card,
+   never a spinner that spins forever, never "0" standing in for unknown.
+   No XP anywhere on this frontend (viewing = 0; sharing rides the existing
+   create_share: backend leg only when real data is present).
+   KILL: ?pf_off=money-stock-trades (master: ?pf_off=money) */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF) { return; }
+  if (PF.skip('money') || PF.skip('money-stock-trades')) { return; }
+  if (window.pfTradesDone) return;
+  window.pfTradesDone = true;
+
+  var BACKEND = window.PF_BACKEND_URL;
+  var HOLD_MSG = 'AWAITING PUBLIC DATA — Trade disclosures are being wired up. This card goes live the moment the feed connects.';
+  var EMPTY_MSG = 'NO PUBLIC RECORDS FOUND — Searched House/Senate financial disclosures. Nothing filed under this name.';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var fn = 'pfTradesCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, 12000);
+  }
+
+  var CSS = [
+    '.pf-tr{max-width:680px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}',
+    '.pf-tr-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}',
+    '.pf-tr-title{font-weight:900;font-size:22px;text-align:center;margin:0 0 12px;letter-spacing:1px}',
+    '.pf-tr-empty{border:1px dashed #3a3a3a;border-radius:8px;padding:26px 16px;text-align:center}',
+    '.pf-tr-empty .pf-tr-dash{font-size:40px;color:#3a3a3a;display:block;margin-bottom:8px}',
+    '.pf-tr-empty h4{font-weight:900;font-size:17px;letter-spacing:2px;margin:0 0 8px;color:#f5ead6}',
+    '.pf-tr-empty p{font-size:14px;color:#c9bfa8;margin:0 0 6px;line-height:1.5}',
+    '.pf-tr-empty .pf-tr-act{color:#e8b923;font-weight:700}',
+    '.pf-tr-list{list-style:none;margin:0;padding:0}',
+    '.pf-tr-list li{display:flex;gap:10px;align-items:baseline;padding:8px 0;border-bottom:1px solid #1e1e1e;font-size:15px}',
+    '.pf-tr-list li:last-child{border-bottom:0}',
+    '.pf-tr-tk{font-weight:900;color:#e8b923}',
+    '.pf-tr-ty{font-weight:700;color:#f5ead6;text-transform:uppercase}',
+    '.pf-tr-am{margin-left:auto;color:#c9bfa8}',
+    '.pf-tr-src{font-size:12px;color:#c9bfa8;text-align:center;margin-top:10px}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-tr-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-tr-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  function emptyState(container, msg, track) {
+    cssOnce();
+    container.innerHTML =
+      '<div class="pf-tr">' +
+      '<div class="pf-tr-kicker">STOCK TRADES</div>' +
+      '<h3 class="pf-tr-title">TRADES ON THE HILL</h3>' +
+      '<div class="pf-tr-empty"><span class="pf-tr-dash">\u2014</span>' +
+      '<h4>' + esc(track === 'none' ? 'NO PUBLIC RECORDS FOUND' : 'AWAITING PUBLIC DATA') + '</h4>' +
+      '<p>' + esc(msg) + '</p>' +
+      '<p class="pf-tr-act">Check back after the next filing window.</p></div>' +
+      '<div class="pf-tr-src">SOURCE: House/Senate Financial Disclosures</div>' +
+      '</div>';
+  }
+
+  function render(container, j, bioguideId) {
+    /* Real data path — reserved for when the hold lifts and the endpoint
+       exists. Every figure carries its source; missing fields are em-dash. */
+    cssOnce();
+    var trades = (j && Array.isArray(j.trades)) ? j.trades : [];
+    if (!trades.length) { emptyState(container, EMPTY_MSG, 'none'); return; }
+    var name = (j && j.name) || '\u2014';
+    var src = (j && j.source) || 'House/Senate Financial Disclosures';
+    var html = '<div class="pf-tr">' +
+      '<div class="pf-tr-kicker">STOCK TRADES</div>' +
+      '<h3 class="pf-tr-title">TRADES ON THE HILL — ' + esc(String(name).toUpperCase()) + '</h3>' +
+      '<ul class="pf-tr-list">' +
+      trades.slice(0, 10).map(function (t) {
+        t = t || {};
+        return '<li><span class="pf-tr-tk">' + esc(t.ticker || '\u2014') + '</span> ' +
+          '<span class="pf-tr-ty">' + esc(t.type || '\u2014') + '</span> ' +
+          '<span class="pf-tr-am">' + esc(t.amount_range || '\u2014') + '</span></li>';
+      }).join('') +
+      '</ul><div class="pf-tr-src">SOURCE: ' + esc(src) + '</div></div>';
+    container.innerHTML = html;
+  }
+
+  function mount(container, opts) {
+    if (!container) return false;
+    opts = opts || {};
+    try {
+      if (container.querySelector && container.querySelector('.pf-tr')) return true;
+    } catch (e) {}
+    var bioguideId = opts.bioguideId || '';
+    /* The disclosure feed is not live and the hold stands: render the
+       honest empty state without hitting a nonexistent endpoint. When the
+       endpoint exists, this same call lights up real data. */
+    api('money_trades', bioguideId ? { bioguide_id: bioguideId } : {}, function (j) {
+      try {
+        if (j && j.ok && Array.isArray(j.trades) && j.trades.length) render(container, j, bioguideId);
+        else emptyState(container, HOLD_MSG, 'hold');
+      } catch (e) { emptyState(container, HOLD_MSG, 'hold'); }
+    });
+    return true;
+  }
+
+  try { window.PFTrades = { mount: mount }; } catch (e) {}
+})();
+
+;
+
+/* ===== core/money-pac-alerts.js ===== */
+/* core/money-pac-alerts.js  |  PF v1.4.3 | SUPER PAC ALERTS.
+   Alert-card for the Follow-the-Money suite (element id pac-alerts;
+   /money page + interim PHQ money tab). Never auto-mounts — the money-page
+   shell calls PFPacAlerts.mount(container).
+   STALENESS SUPPRESSION (FE review §4): an alert asserts recency. A super
+   PAC alert whose underlying filing data is stale does not render as a
+   card at all — it falls back to the empty-state track. No endpoint exists
+   yet (?action=money_pac_alerts is reserved); until it lands, the honest
+   empty state renders. Never invent a PAC, a filing, a date, or a dollar.
+   Expected contract (reserved):
+     ?action=money_pac_alerts ->
+     {ok, source:'FEC (api.open.fec.gov)', retrieved_at,
+      alerts:[{pac_name, filing_date, amount, race, summary, source_url}]}
+   Alert cards suppress when (now - filing_date) > 30 days. The source-line
+   always carries "DATA AS OF <Mon YYYY>".
+   No XP anywhere on this frontend (viewing = 0; sharing rides the existing
+   create_share: backend leg only when real data is present).
+   KILL: ?pf_off=pac-alerts (master: ?pf_off=money) */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF) { return; }
+  if (PF.skip('money') || PF.skip('pac-alerts')) { return; }
+  if (window.pfPacAlertsDone) return;
+  window.pfPacAlertsDone = true;
+
+  var BACKEND = window.PF_BACKEND_URL;
+  var STALE_DAYS = 30; /* alert-cards assert recency; older than this, suppress */
+  var HOLD_MSG = 'AWAITING PUBLIC DATA — The super PAC wire is being connected. New filings will land here the moment the feed is live.';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var fn = 'pfPacCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, 12000);
+  }
+
+  var CSS = [
+    '.pf-pa{max-width:680px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}',
+    '.pf-pa-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}',
+    '.pf-pa-title{font-weight:900;font-size:22px;text-align:center;margin:0 0 12px;letter-spacing:1px}',
+    '.pf-pa-empty{border:1px dashed #3a3a3a;border-radius:8px;padding:26px 16px;text-align:center}',
+    '.pf-pa-empty .pf-pa-dash{font-size:40px;color:#3a3a3a;display:block;margin-bottom:8px}',
+    '.pf-pa-empty h4{font-weight:900;font-size:17px;letter-spacing:2px;margin:0 0 8px;color:#f5ead6}',
+    '.pf-pa-empty p{font-size:14px;color:#c9bfa8;margin:0 0 6px;line-height:1.5}',
+    '.pf-pa-alert{border:1px solid #c1121f;border-top:6px solid #c1121f;border-radius:8px;background:#0d0d0d;padding:14px 16px;margin-bottom:12px}',
+    '.pf-pa-new{display:inline-block;background:#c1121f;color:#fff;font-weight:900;font-size:12px;letter-spacing:2px;padding:3px 8px;border-radius:3px;margin-bottom:8px}',
+    '.pf-pa-amt{font-weight:900;font-size:28px;color:#e8b923;margin:4px 0}',
+    '.pf-pa-name{font-weight:900;font-size:17px;color:#f5ead6;margin:0 0 4px}',
+    '.pf-pa-sum{font-size:14px;color:#c9bfa8;margin:0 0 8px;line-height:1.5}',
+    '.pf-pa-src{font-size:12px;color:#c9bfa8}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-pa-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-pa-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  function money(n) {
+    if (n == null || isNaN(Number(n))) return '\u2014';
+    return '$' + Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 });
+  }
+
+  function emptyState(container) {
+    cssOnce();
+    container.innerHTML =
+      '<div class="pf-pa">' +
+      '<div class="pf-pa-kicker">SUPER PAC WIRE</div>' +
+      '<h3 class="pf-pa-title">SUPER PAC ALERTS</h3>' +
+      '<div class="pf-pa-empty"><span class="pf-pa-dash">\u2014</span>' +
+      '<h4>AWAITING PUBLIC DATA</h4>' +
+      '<p>' + esc(HOLD_MSG) + '</p></div>' +
+      '<div class="pf-pa-src" style="font-size:12px;color:#c9bfa8;text-align:center;margin-top:10px">SOURCE: FEC</div>' +
+      '</div>';
+  }
+
+  function isFresh(filingDate) {
+    var t = Date.parse(filingDate);
+    if (isNaN(t)) return false;
+    return (Date.now() - t) <= STALE_DAYS * 864e5;
+  }
+
+  function render(container, j) {
+    cssOnce();
+    var alerts = (j.alerts || []).filter(function (a) { return a && isFresh(a.filing_date); });
+    /* Suppression, not banner: stale alerts never render as cards. */
+    if (!alerts.length) { emptyState(container); return; }
+    var src = j.source || 'FEC (api.open.fec.gov)';
+    var asof = '';
+    try {
+      var rt = j.retrieved_at;
+      var d = new Date(typeof rt === 'number' ? rt : Date.parse(rt));
+      if (!isNaN(d)) asof = ' \u00b7 DATA AS OF ' + d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).toUpperCase();
+    } catch (e) {}
+    var html = '<div class="pf-pa">' +
+      '<div class="pf-pa-kicker">SUPER PAC WIRE</div>' +
+      '<h3 class="pf-pa-title">SUPER PAC ALERTS</h3>' +
+      alerts.slice(0, 5).map(function (a) {
+        return '<div class="pf-pa-alert"><span class="pf-pa-new">NEW FILING</span>' +
+          '<div class="pf-pa-amt">' + esc(money(a.amount)) + '</div>' +
+          '<div class="pf-pa-name">' + esc(a.pac_name || '\u2014') + '</div>' +
+          '<p class="pf-pa-sum">' + esc(a.summary || '') + '</p>' +
+          '<div class="pf-pa-src">SOURCE: ' + esc(src) + asof + '</div></div>';
+      }).join('') + '</div>';
+    container.innerHTML = html;
+  }
+
+  function mount(container) {
+    if (!container) return false;
+    try {
+      if (container.querySelector && container.querySelector('.pf-pa')) return true;
+    } catch (e) {}
+    api('money_pac_alerts', {}, function (j) {
+      try {
+        if (j && j.ok && Array.isArray(j.alerts)) render(container, j);
+        else emptyState(container);
+      } catch (e) { emptyState(container); }
+    });
+    return true;
+  }
+
+  try { window.PFPacAlerts = { mount: mount }; } catch (e) {}
+})();
+
+;
+
+/* ===== core/money-macro.js ===== */
+/* core/money-macro.js  |  PF v1.4.3 | FRED MACRO STRIP (V5, official data).
+   8 headline macro cards from the FRED read rail (?action=fred_macro).
+   Official U.S. macro figures only — never blended with crowdsourced
+   People's Index figures (proposal §5 rule 2).
+   PURE FIGURES: current value, period, change vs prior period, source
+   stamp, SA/NSA label, click-through to the FRED series page. No
+   predictions, no "what this means" commentary — Psych reviews this
+   surface. Nothing is estimated, nothing is seeded, nothing is mocked.
+   Never auto-mounts — the money-page shell calls PFMacro.mount(container).
+   No XP anywhere on this frontend (read-only official-data surface).
+   KILL: ?pf_off=money-macro (master: ?pf_off=money) */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF) { return; }
+  if (PF.skip('money') || PF.skip('money-macro')) { return; }
+  if (window.pfMacroDone) return;
+  window.pfMacroDone = true;
+
+  var BACKEND = window.PF_BACKEND_URL;
+  var TIMEOUT_MS = 12000;
+  var EMPTY_HEAD = 'OFFICIAL DATA CONNECTING';
+  var EMPTY_BODY = 'The macro strip is being wired to live FRED figures. ' +
+    'Nothing here is estimated or seeded — the 8 headline cards appear the ' +
+    'moment the official feed is connected.';
+  var WAITING_HEAD = 'FEED CONNECTED \u2014 FIRST REFRESH PENDING';
+  var WAITING_BODY = 'The official feed is connected and the first data ' +
+    'refresh is still on its way. Nothing here is estimated or seeded.';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var fn = 'pfMacroCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, TIMEOUT_MS);
+  }
+
+  var CSS = [
+    '.pf-macro{max-width:860px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}',
+    '.pf-macro-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}',
+    '.pf-macro-title{font-weight:900;font-size:22px;text-align:center;margin:0 0 12px;letter-spacing:1px}',
+    '.pf-macro-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}',
+    '@media (max-width:640px){.pf-macro-grid{grid-template-columns:repeat(2,1fr)}}',
+    '.pf-macro-card{display:block;border:1px solid #2a2a2a;border-top:6px solid #c1121f;border-radius:8px;background:#0d0d0d;padding:12px 12px 10px;color:#f5ead6;text-decoration:none}',
+    '.pf-macro-head{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:8px}',
+    '.pf-macro-title{font-weight:900;font-size:11px;letter-spacing:1px;color:#e8b923}',
+    '.pf-macro-sa{display:inline-block;background:#2a2a2a;color:#c9bfa8;font-weight:700;font-size:10px;letter-spacing:1px;padding:2px 6px;border-radius:3px}',
+    '.pf-macro-value{font-weight:900;font-size:24px;color:#f5ead6;margin:2px 0}',
+    '.pf-macro-unit{font-size:11px;color:#c9bfa8;margin-bottom:6px}',
+    '.pf-macro-period{font-size:12px;color:#c9bfa8}',
+    '.pf-macro-change{font-size:13px;font-weight:700;color:#f5ead6;margin:4px 0 8px}',
+    '.pf-macro-stale{font-size:13px;color:#c9bfa8;line-height:1.5;margin:6px 0 10px;min-height:44px}',
+    '.pf-macro-src{font-size:10px;color:#8a8271;letter-spacing:0.5px;border-top:1px solid #2a2a2a;padding-top:6px}',
+    '.pf-macro-empty{border:1px dashed #3a3a3a;border-radius:8px;padding:26px 16px;text-align:center}',
+    '.pf-macro-empty .pf-macro-dash{font-size:40px;color:#3a3a3a;display:block;margin-bottom:8px}',
+    '.pf-macro-empty h4{font-weight:900;font-size:17px;letter-spacing:2px;margin:0 0 8px;color:#f5ead6}',
+    '.pf-macro-empty p{font-size:14px;color:#c9bfa8;margin:0;line-height:1.5}',
+    '.pf-macro-foot{font-size:11px;color:#8a8271;text-align:center;letter-spacing:1px;margin-top:6px}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-macro-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-macro-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  /* Epoch-ms retrieved_at -> 'OCT 5, 2026'. null when unparseable (never
+     render a guessed date). */
+  function fmtRetrieved(s) {
+    try {
+      var rt = s && s.retrieved_at != null ? Number(s.retrieved_at) : NaN;
+      var d = isNaN(rt) ? null : new Date(rt);
+      if (!d || isNaN(d.getTime())) return null;
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase();
+    } catch (e) { return null; }
+  }
+
+  /* Source stamp per the locked contract: FRED · [series] · retrieved [date]. */
+  function stamp(s) {
+    var sid = s.series_id || '';
+    var ret = fmtRetrieved(s);
+    return 'FRED \u00b7 ' + sid + (ret ? ' \u00b7 RETRIEVED ' + ret : '');
+  }
+
+  function card(s) {
+    var title = esc(s.title || s.series_id || '\u2014');
+    var saNsa = esc(s.sa_nsa || '');
+    var link = esc(s.source_url || ('https://fred.stlouisfed.org/series/' + (s.series_id || '')));
+    var body;
+    if (s.stale) {
+      /* Stale-suppression: figure hidden, the backend's honest note shows. */
+      body = '<div class="pf-macro-stale">' + esc(s.stale_note || 'Last updated \u2014 refresh pending.') + '</div>';
+    } else {
+      /* Pure figures only. YoY cards lead with the YoY label the backend
+         computed; rates/payrolls/GDP lead with the per-period change label. */
+      var change = s.change_basis === 'yoy'
+        ? (s.change_pct_label || s.change_label)
+        : (s.change_label || s.change_pct_label);
+      body =
+        '<div class="pf-macro-value">' + esc(s.value_label != null ? s.value_label : '\u2014') + '</div>' +
+        '<div class="pf-macro-unit">' + esc(s.unit_label || '') + '</div>' +
+        '<div class="pf-macro-period">' + esc(s.period_label || s.period || '') + '</div>' +
+        '<div class="pf-macro-change">' + esc(change || '') + '</div>';
+    }
+    return '<a class="pf-macro-card" href="' + link + '" target="_blank" rel="noopener">' +
+      '<div class="pf-macro-head"><span class="pf-macro-title">' + title + '</span>' +
+      (saNsa ? '<span class="pf-macro-sa">' + saNsa + '</span>' : '') + '</div>' +
+      body +
+      '<div class="pf-macro-src">' + esc(stamp(s)) + '</div></a>';
+  }
+
+  function shell(inner) {
+    return '<div class="pf-macro">' +
+      '<div class="pf-macro-kicker">OFFICIAL DATA</div>' +
+      '<h3 class="pf-macro-title">THE MACRO STRIP</h3>' + inner +
+      '<div class="pf-macro-foot">OFFICIAL FIGURES VIA FRED \u00b7 NEVER BLENDED WITH CROWDSOURCED DATA</div></div>';
+  }
+
+  function emptyBlock(head, body) {
+    return '<div class="pf-macro-empty"><span class="pf-macro-dash">\u2014</span>' +
+      '<h4>' + esc(head) + '</h4><p>' + esc(body) + '</p></div>';
+  }
+
+  function render(container, j) {
+    cssOnce();
+    var live = !!(j && j.fred_live);
+    var series = (j && Array.isArray(j.series)) ? j.series : [];
+    if (!live) {
+      /* No key / no data: honest empty. Never mock data, never estimates. */
+      container.innerHTML = shell(emptyBlock(EMPTY_HEAD, (j && j.note) || EMPTY_BODY));
+      return;
+    }
+    if (!series.length) {
+      /* Connected, first ingest still pending — a distinct honest state. */
+      container.innerHTML = shell(emptyBlock(WAITING_HEAD, (j && j.note) || WAITING_BODY));
+      return;
+    }
+    /* Backend contract order: FEDFUNDS, UNRATE, DGS10, MORTGAGE30US,
+       CPIAUCNS, CPILFESL, PAYEMS, GDP. Rendered in the order received. */
+    container.innerHTML = shell(
+      '<div class="pf-macro-grid">' +
+      series.map(function (s) { return card(s || {}); }).join('') +
+      '</div>');
+  }
+
+  function mount(container) {
+    if (!container) return false;
+    try {
+      if (container.querySelector && container.querySelector('.pf-macro')) return true;
+    } catch (e) {}
+    api('fred_macro', {}, function (j) {
+      try {
+        if (j && j.ok) render(container, j);
+        else render(container, null);
+      } catch (e) { try { render(container, null); } catch (e2) {} }
+    });
+    return true;
+  }
+
+  try { window.PFMacro = { mount: mount }; } catch (e) {}
+})();
+
+;
+
+/* ===== core/money-deep8.js ===== */
+/* core/money-deep8.js  |  PF v1.4.3 | MONEY SUITE DEEP-8 EXTENSIONS.
+   Slot renderer for the 8 planned money-suite extensions
+   (phq-hub-ia-spec §3.6.8–6.15). Never auto-mounts — the money-page shell
+   calls PFMoneyDeep.mount(container).
+   STATUS: PLANNED — no branches, no backend tables, no endpoints. Each
+   slot renders its honest empty state ("AWAITING PUBLIC DATA") with its
+   kill id registered, so the /money page ships the full 15-element map
+   with zero invented data. When a backend lands for an element, a real
+   module replaces that slot — the kill id survives unchanged.
+   Per the Frontend review deferrals:
+   - money-crypto: dark money is undisclosed by definition; the slot frames
+     as explainer-only, never figures.
+   - money-thinktanks / money-fara: opaque/clunky sourcing; phase 2+.
+   - money-leadership-pac: needs a written slush rubric before any build.
+   - money-gifts / money-revolving / money-committee: phase 2 (real data).
+   - money-industry: reuses the vote-vs-donor juxtaposition when it lands.
+   KILL: ?pf_off=money (master) or per-element ?pf_off=money-<id> */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF) { return; }
+  if (PF.skip('money')) { return; }
+  if (window.pfMoneyDeepDone) return;
+  window.pfMoneyDeepDone = true;
+
+  /* id, title, variant, blurb — blurbs are provisional copy, Psych veto. */
+  var SLOTS = [
+    { id: 'money-revolving', title: 'THE REVOLVING DOOR',
+      blurb: 'The staffers and members who cash out to the industries they used to regulate — career timelines, public records only.' },
+    { id: 'money-committee', title: 'COMMITTEE CAPTURE',
+      blurb: 'Who funds the committees that write the rules for their own industries — donor rolls vs. committee votes, side by side.' },
+    { id: 'money-leadership-pac', title: 'LEADERSHIP PAC SLUSH',
+      blurb: 'Where leadership PAC money actually goes — every expense line, ranked. Ships with a written slush rubric.' },
+    { id: 'money-gifts', title: 'GIFTS & TRAVEL',
+      blurb: 'The trips, tickets, and trinkets disclosed on the public gift rolls — per-person rows, sourced line by line.' },
+    { id: 'money-fara', title: 'FOREIGN LOBBY (FARA)',
+      blurb: 'Who pays foreign agents to lobby Washington — principals, agents, and dollars from the public FARA filings.' },
+    { id: 'money-thinktanks', title: 'THINK TANK FUNDING',
+      blurb: 'Who funds the "independent experts" on your TV — funding pies from self-reported and public sources only.' },
+    { id: 'money-industry', title: 'INDUSTRY JUICY CUTS',
+      blurb: 'The vote-vs-donor juxtaposition, cut by industry — Big Oil, Big Pharma, Big Tech, one card each.' },
+    { id: 'money-crypto', title: 'CRYPTO DARK MONEY',
+      blurb: 'Dark money is undisclosed by definition — this will be explainer content on the crypto influence machine, never invented figures.' }
+  ];
+
+  var CSS = [
+    '.pf-md{max-width:920px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}',
+    '.pf-md-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}',
+    '.pf-md-title{font-weight:900;font-size:22px;text-align:center;margin:0 0 12px;letter-spacing:1px}',
+    '.pf-md-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}',
+    '.pf-md-slot{border:1px dashed #3a3a3a;border-radius:8px;padding:16px 14px;text-align:center;background:#0d0d0d}',
+    '.pf-md-slot h4{font-weight:900;font-size:15px;letter-spacing:2px;margin:0 0 8px;color:#f5ead6}',
+    '.pf-md-slot p{font-size:13px;color:#c9bfa8;margin:0 0 8px;line-height:1.5}',
+    '.pf-md-slot .pf-md-tag{display:inline-block;font-weight:700;font-size:11px;letter-spacing:2px;color:#0d0d0d;background:#e8b923;border-radius:3px;padding:2px 8px}'
+  ].join('\n');
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-md-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-md-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  function mount(container) {
+    if (!container) return false;
+    try {
+      if (container.querySelector && container.querySelector('.pf-md')) return true;
+    } catch (e) {}
+    cssOnce();
+    var live = SLOTS.filter(function (s) { return !(PF && PF.skip(s.id)); });
+    var html = '<div class="pf-md">' +
+      '<div class="pf-md-kicker">DEEP CUTS</div>' +
+      '<h3 class="pf-md-title">THE REST OF THE MONEY MAP</h3>' +
+      '<div class="pf-md-grid">' +
+      live.map(function (s) {
+        return '<div class="pf-md-slot" data-money-slot="' + esc(s.id) + '">' +
+          '<h4>' + esc(s.title) + '</h4>' +
+          '<p>' + esc(s.blurb) + '</p>' +
+          '<span class="pf-md-tag">AWAITING PUBLIC DATA</span></div>';
+      }).join('') +
+      '</div></div>';
+    container.innerHTML = html;
+    return true;
+  }
+
+  try { window.PFMoneyDeep = { mount: mount, slots: SLOTS.map(function (s) { return s.id; }) }; } catch (e) {}
+})();
+
+;

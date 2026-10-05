@@ -11,9 +11,9 @@
    empty) in the same push that adds the loader detection entry + the
    'pf-money' PAGE_ORDERS mapping. No silo-id changes — every ?pf_off= id
    below survives the move, so operator kill state carries over.
-   Sections (kill ids): money-fec-donors · money-vote · wallshame ·
+   Sections (kill ids): money-macro · money-fec-donors · money-vote · wallshame ·
    pac-alerts · trades-tab · money-small-dollar · corp-card · ledgers ·
-   boycotts · money-deep8 (8 ids) · master kill: ?pf_off=money.
+   boycotts · money-deep8 (9 ids) · master kill: ?pf_off=money.
    Copy contract: "received $X from" enforced, never "bought by"; every
    figure carries SOURCE + DATA AS OF; juxtaposition cards always carry the
    correlation line. Hub mission + tab label copy is PROVISIONAL — Psych veto.
@@ -321,6 +321,11 @@
 
   /* ---- builders: full page vs interim tab ---- */
   var SECTIONS = [
+    { key: 'macro', kill: 'money-macro', title: 'MACRO',
+      sub: 'The headline numbers, straight from the Fed data vault.', mount: function (body) {
+        var d = document.createElement('div'); body.appendChild(d);
+        try { if (window.PFMacro) PFMacro.mount(d); } catch (e) { err('macro mount failed'); }
+      } },
     { key: 'fec', kill: 'money-fec-donors', title: 'FEC DONOR FILES',
       sub: 'Every legislator\u2019s money, straight from the filings.', mount: mountFec },
     { key: 'vote', kill: 'money-vote', title: 'THE MONEY BEHIND THE VOTE',

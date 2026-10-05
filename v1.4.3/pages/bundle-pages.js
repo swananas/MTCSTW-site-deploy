@@ -1,1 +1,4237 @@
-!function(){"use strict";var e=window.PF;if(!window.pfHomeV2Done&&((!e||!e.skip("home-v2"))&&document.getElementById("pf-v2")&&!d())){window.pfHomeV2Done=!0;var t,r,n,a=[["socialproof","pf-ov-socialproof"],["brief","pf-ov-brief"],["daily-orders","pf-ov-orders"],["hq-nudge","pf-ov-hq-nudge"],["civicsnap","pf-ov-civicsnap"],["dopa","pf-ov-dopa"],["do-meter","pf-ov-dometer"],["enlistment-ranks","pf-ov-ranks"],["spotlight","pf-ov-spotlight"],["slr-match-quiz","pf-ov-matchquiz"],["infighting","pf-ov-infight"],["cells","pf-ov-cells"],["referral","pf-ov-referral"],["poster-forge","pf-ov-poster"],["feed","pf-ov-feed"],["war-bonds","pf-ov-bonds"],["inflation-teaser","pf-ov-inflation-teaser"],["campaign","pf-ov-campaign"],["alerts","pf-ov-alerts"],["fan-vote","pf-ov-vote"],["warreport-card","pf-ov-warreport-card"],["roster-teaser","pf-ov-roster-teaser"],["hall","pf-ov-hall"],["draw","pf-ov-draw"],["podcast-card","pf-ov-podcast-card"]],i=[{id:"start-here",num:1,ico:"🔰",title:"START HERE",sub:"Your daily briefing, missions, and rank. Begin here every day.",first:"socialproof",bundle:"games/bundle-sec1.js"},{id:"play",num:2,ico:"🎮",title:"PLAY",sub:"A taste of the arcade — the full nine-game lineup lives at /arcade.",first:"spotlight",bundle:"games/bundle-home.js"},{id:"belong",num:3,ico:"🏴",title:"BELONG",sub:"Join a cell. Fight the war. Recruit your friends.",first:"cells",bundle:"games/bundle-home.js"},{id:"create",num:4,ico:"🛠️",title:"CREATE",sub:"Learn, build, publish. The propaganda workshop.",first:"poster-forge",bundle:"games/bundle-home.js"},{id:"fund",num:5,ico:"💰",title:"FUND",sub:"The people’s economy. Fund the fight, see where it goes.",first:"war-bonds",bundle:"games/bundle-home.js"},{id:"act",num:6,ico:"⚡",title:"ACT",sub:"Campaigns, alerts, and boots on the ground.",first:"campaign",bundle:"games/bundle-home.js"},{id:"proof",num:7,ico:"📣",title:"PROOF",sub:"The network is real. Vote, and see it move.",first:"fan-vote",bundle:"games/bundle-home.js"}],o={socialproof:[["Vote for your favorite →","fan-vote"],["Join the action →","daily-orders"]],brief:[["Get your missions →","daily-orders"],["See the network total →","do-meter"]],"daily-orders":[["Claim your loot →","dopa"]],dopa:[["Protect the streak →","daily-orders"],["Check your rank →","enlistment-ranks"]],"do-meter":[["Add to the total →","daily-orders"],["See who’s moving →","socialproof"]],"enlistment-ranks":[["Recruit and rank up faster →","referral"],["Join a cell →","/cells"],["See what you’d unlock →","/request-access"]],spotlight:[["Play it full-size →","/arcade"],["Find your match →","slr-match-quiz"]],"slr-match-quiz":[["Meet your match →","fan-vote"],["Play the full arcade →","/arcade"]],infighting:[["Back your fighter →","fan-vote"],["Enter the arena →","/arcade"]],cells:[["Manage your cell →","/cells"],["Recruit fighters →","referral"]],referral:[["Watch them rank up →","enlistment-ranks"],["Bring them to your cell →","/cells"]],"poster-forge":[["Publish it to the feed →","feed"],["Open the full workshop →","/create"]],feed:[["Forge a response →","poster-forge"],["Open the full workshop →","/create"]],"hq-nudge":[["See what you’d unlock →","/request-access"]],"war-bonds":[["Manage your bonds →","/bank"],["See where it goes →","/war-chest"]],"inflation-teaser":[["Report a price →","/economy#pf-inflation-checkin"],["See the full index →","/economy"]],campaign:[["Get the alert →","alerts"],["Take it to the streets →","/events"]],alerts:[["Know the terrain →","/political-hq"],["Make a poster →","poster-forge"]],"fan-vote":[["See live activity →","socialproof"],["Back your pick in battle →","/arcade"]],"warreport-card":[["Read the full archive →","/war-report"],["Vote for your favorite →","fan-vote"]],"roster-teaser":[["Meet all 62 fighters →","/sick-left-radicals"],["Find your match →","slr-match-quiz"]],"podcast-card":[["Read this week’s report →","/war-report"]],draw:[["See the winners wall \\u2192","hall"],["Vote for your favorite \\u2192","fan-vote"]]},l={socialproof:"start-here",brief:"start-here","daily-orders":"start-here","hq-nudge":"start-here",dopa:"start-here","do-meter":"start-here","enlistment-ranks":"start-here",spotlight:"play","slr-match-quiz":"play",infighting:"play",cells:"belong",referral:"belong","poster-forge":"create",feed:"create","war-bonds":"fund","inflation-teaser":"fund",campaign:"act",alerts:"act","fan-vote":"proof",hall:"proof",draw:"proof","warreport-card":"proof","roster-teaser":"proof","podcast-card":"proof"},c={};e&&!e.mountSilos&&(e.mountSilos=m);try{f()}catch(e){}m();try{(t=document.getElementById("pf-v2"))&&!t._pfNextBound&&(t._pfNextBound=!0,t.addEventListener("click",function(t){var r=t.target&&t.target.closest?t.target.closest(".pf-next-link[data-goto]"):null;if(r){t.preventDefault();var n=r.getAttribute("data-goto");n&&window.PF&&e.gotoSilo&&e.gotoSilo(n)}})),u(),p()}catch(e){}r=0,n=setInterval(function(){r++;var e=0;try{e=m()}catch(e){}try{!function(){try{f()}catch(e){}}(),u(),p()}catch(e){}for(var t=!0,i=0;i<a.length;i++)if(!c[a[i][0]]){t=!1;break}(t||r>=15||0===e&&r>=5)&&clearInterval(n)},2e3)}function s(t,r){e&&e.error("home-v2",t+" :: "+(r&&r.message||r))}function d(){try{if(-1!==(window.location.href||"").indexOf("/config/"))return!0;var e=document.body;return!(!e||!e.classList.contains("sqs-edit-mode")&&!e.classList.contains("sqs-editing"))}catch(e){return!1}}function f(){var e=document.getElementById("pf-v2");e&&!d()&&(e.querySelector(".pf-section-head")||i.forEach(function(t){var r=document.createElement("div");r.className="pf-section-head",r.setAttribute("data-sec",t.id);var n=document.createElement("div");n.className="pf-sh-kicker",n.textContent="Section "+t.num+" of "+i.length;var a=document.createElement("div");a.className="pf-sh-title";var o=document.createElement("span");o.className="pf-sh-ico",o.textContent=t.ico,a.appendChild(o),a.appendChild(document.createTextNode(t.title));var l=document.createElement("div");l.className="pf-sh-rule";var c=document.createElement("div");c.className="pf-sh-sub",c.textContent=t.sub,r.appendChild(n),r.appendChild(a),r.appendChild(l),r.appendChild(c),e.appendChild(r);var s=document.createElement("div");s.className="pf-sec-anchor",s.setAttribute("data-sec",t.id),s.setAttribute("data-bundle",t.bundle),s.style.cssText="height:1px;width:1px;",e.appendChild(s)}))}function p(){var e=document.getElementById("pf-v2");if(e&&!d()&&!e.querySelector(".pf-events-nudge")){var t=document.createElement("div");t.className="pf-events-nudge",t.style.cssText="max-width:680px;margin:18px auto;padding:26px 22px;text-align:center;box-sizing:border-box;background:linear-gradient(160deg,#0d0d0d 0%,#1c0707 60%,#0d0d0d 100%);border:3px solid #c1121f;color:#f5ead6;font-family:Arial,sans-serif;",t.innerHTML='<div style="font-size:12px;letter-spacing:4px;color:#c1121f;font-weight:800;margin-bottom:6px;">BOOTS ON THE GROUND</div><div style="font-family:\'Arial Black\',Arial,sans-serif;font-size:24px;letter-spacing:2px;margin:0 0 8px;text-transform:uppercase;">Take it to the streets.</div><div style="font-size:14px;color:#a89e88;line-height:1.5;margin-bottom:14px;">Phonebanks, canvasses, protests, meetups — the fight isn’t only online. +50 XP per RSVP.</div><a href="/events" style="display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:15px;padding:13px 30px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;">SEE WHAT’S HAPPENING →</a>';var r=e.querySelector('section[data-game="alerts"]');if(r&&r.parentNode===e)r.parentNode.insertBefore(t,r.nextSibling);else{var n=e.querySelector('.pf-section-head[data-sec="proof"]');n?e.insertBefore(t,n):e.appendChild(t)}}}function u(){var e=document.getElementById("pf-v2");e&&!d()&&Object.keys(o).forEach(function(t){var r=e.querySelector('section[data-game="'+t+'"]');if(r&&!r.querySelector(":scope > .pf-next, :scope > div > .pf-next")){var n=o[t];if(n&&n.length){var a=document.createElement("div");a.className="pf-next";var i=document.createElement("div");i.className="pf-next-label",i.textContent="Next up",a.appendChild(i),n.forEach(function(e){var t=e[0],r=e[1],n=document.createElement("a");n.className="pf-next-link",n.textContent=t,"/"===r.charAt(0)?n.href=r:(n.href="#",n.setAttribute("data-goto",r)),a.appendChild(n)});var l=r.firstElementChild;l&&"DIV"===l.tagName?l.appendChild(a):r.appendChild(a)}}})}function m(){var t=document.getElementById("pf-v2");if(!t||d())return 0;var r=0;return a.forEach(function(n){var a=n[0],o=n[1];if(!c[a])if(e&&e.skip(a))c[a]=1;else try{var d=document.getElementById(o);if(!d||!d.content)return;var f=document.importNode(d.content,!0),p=document.createElement("section");p.className="pf-v2-game",p.setAttribute("data-game",a),p.appendChild(f),function(e,t,r){try{for(var n=l[r],a=-1,o=0;o<i.length;o++)if(i[o].id===n){a=o;break}if(a>=0&&a+1<i.length){var c=e.querySelector('.pf-section-head[data-sec="'+i[a+1].id+'"]');if(c)return void e.insertBefore(t,c)}e.appendChild(t)}catch(r){try{e.appendChild(t)}catch(e){}}}(t,p,a),function(e,t){for(var r=e.querySelectorAll("script"),n=0;n<r.length;n++){try{(0,eval)(r[n].textContent)}catch(r){s("inner script failed in "+t,r);try{for(var a=e.querySelectorAll(".c-load,.hq-load,.ca-load,.cw-load,.p-load"),i=0;i<a.length;i++){var o=document.createElement("div");o.style.cssText="border:2px solid #c1121f;background:#1a0505;color:#f5f0e1;padding:12px;margin:8px 0;font-family:Arial,sans-serif;font-size:14px;",o.innerHTML='This widget failed to start. <button style="background:#c1121f;color:#fff;border:0;font-weight:700;padding:8px 14px;cursor:pointer;" onclick="location.reload()">Reload</button>',a[i].parentNode&&a[i].parentNode.replaceChild(o,a[i])}}catch(e){}}r[n].remove()}}(p,o),c[a]=1,r++}catch(e){s("mount failed: "+a,e),c[a]=1}}),r}}(),function(){"use strict";var e=window.PF;if(!window.pfPoliticalHqDone&&(!e||!e.skip("political-hq")))if(document.getElementById("pf-political-hq")){if(!n()){window.pfPoliticalHqDone=!0;var t=[["civic","pf-ov-civic"],["legislation","pf-ov-legislation"],["predict","pf-ov-predict"],["stateleg","pf-ov-stateleg"],["notify-prefs","pf-ov-notify-prefs"],["governance","pf-ov-gov"],["intel","pf-ov-intel"],["nonprofits","pf-ov-nonprofits"]],r={};e&&e.mountHubSilos?(e.mountPoliticalHq=function(){e.mountHubSilos(t)},e.mountHubSilos(t)):(e&&!e.mountPoliticalHq&&(e.mountPoliticalHq=a),a()),i(),setTimeout(function(){try{!document.getElementById("pf-hq-news")&&window.PF&&e.newsTop&&i()}catch(e){}},4e3),setTimeout(function(){try{var t=document.getElementById("pf-political-hq");if(!t)return;for(var r=t.querySelectorAll(".pf-silo"),n=0,a=0;a<r.length;a++){var i=r[a],o=i.textContent.replace(/\s+/g,"").length>0,l=null!==i.querySelector("img,iframe,canvas,video,input,textarea,select,button,a");if(!o&&!l){var c=i.closest?i.closest("section"):null;c?c.style.display="none":i.style.display="none",n++}}n&&e&&e.error("political-hq","swept "+n+" empty silo container(s)")}catch(e){}},5e3)}}else e&&e.error("political-hq","mount div #pf-political-hq missing — skipping");function n(){try{if(-1!==(window.location.href||"").indexOf("/config/"))return!0;var e=document.body;return!(!e||!e.classList.contains("sqs-edit-mode")&&!e.classList.contains("sqs-editing"))}catch(e){return!1}}function a(){var a=document.getElementById("pf-political-hq");if(!a||n())return 0;var i=0;return t.forEach(function(t){var n=t[0],o=t[1];if(!r[n])if(e&&e.skip(n))r[n]=1;else try{var l=document.getElementById(o);if(!l||!l.content)return;var c=document.importNode(l.content,!0),s=document.createElement("section");s.className="pf-v2-game pf-hq-section",s.setAttribute("data-game",n),s.appendChild(c),a.appendChild(s),function(t,r){for(var n=t.querySelectorAll("script"),a=0;a<n.length;a++){try{(0,eval)(n[a].textContent)}catch(n){e&&e.error("political-hq","inner script failed in "+r+" :: "+(n&&n.message||n));try{for(var i=t.querySelectorAll(".c-load,.hq-load,.ca-load,.cw-load,.p-load"),o=0;o<i.length;o++){var l=document.createElement("div");l.style.cssText="border:2px solid #c1121f;background:#1a0505;color:#f5f0e1;padding:12px;margin:8px 0;font-family:Arial,sans-serif;font-size:14px;",l.innerHTML='This widget failed to start. <button style="background:#c1121f;color:#fff;border:0;font-weight:700;padding:8px 14px;cursor:pointer;" onclick="location.reload()">Reload</button>',i[o].parentNode&&i[o].parentNode.replaceChild(l,i[o])}}catch(e){}}n[a].remove()}}(s,o),r[n]=1,i++}catch(t){e&&e.error("political-hq","mount failed: "+n+" :: "+(t&&t.message||t)),r[n]=1}}),i}function i(){try{var t=document.getElementById("pf-political-hq");if(!t||!window.PF||!e.newsTop)return;if(document.getElementById("pf-hq-news"))return;var r=document.createElement("section");r.className="pf-v2-game pf-hq-section",r.setAttribute("data-game","top-stories"),r.innerHTML='<div class="pf-silo" id="pf-hq-news"><div class="c-load">Loading top stories&hellip;</div></div>';var n=document.getElementById("pf-hq-subnav");n&&n.parentNode===t?t.insertBefore(r,n):t.appendChild(r);var a=document.getElementById("pf-hq-news");e.newsTop.render(a,{limit:8})}catch(t){e&&e.error("political-hq","news rail failed :: "+(t&&t.message||t))}}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("slr-roster"))if(e.slrReady){var t="#c1121f",r="#f5f0e1",n="#b8ab8e",a=["jeanine-pirreaux-comedy"],i={timer:null,champ:null,opCache:{at:0,val:{live:!1}}};try{window.PFShare&&PFShare.setPoster?PFShare.setPoster("recruit-champion",p):document.addEventListener("pf-share-ready",function e(){document.removeEventListener("pf-share-ready",e);try{window.PFShare&&PFShare.setPoster&&PFShare.setPoster("recruit-champion",p)}catch(e){}})}catch(e){}"loading"===document.readyState?document.addEventListener("DOMContentLoaded",d):d()}else e.error("slr-roster","slr-db not loaded");function o(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function l(e){var t=e.handles||{},r=[];return["tiktok","instagram","youtube","x"].forEach(function(e){t[e]&&r.push(t[e])}),!r.length&&t.primary&&r.push(t.primary),r.join(" · ")}function c(e){var i,c,s=e.picture?'<img src="'+o(e.picture)+'" alt="'+o(e.image_alt||e.name)+'" loading="lazy" style="width:100%;height:180px;object-fit:cover;display:block;background:#1a1a1a;">':'<div style="width:100%;height:180px;display:flex;align-items:center;justify-content:center;background:#1a1a1a;border-bottom:3px solid '+t+';"><span style="font-size:3rem;font-weight:900;color:'+t+';">'+o((i=e.name,(((c=String(i||"?").split(/\s+/).filter(Boolean))[0]||"?").charAt(0)+(c[1]?c[1].charAt(0):"")).toUpperCase()))+"</span></div>";return'<div class="pf-slr-card" data-search="'+o((e.name+" "+l(e)+" "+(e.content_focus||"")).toLowerCase())+'" style="background:#0a0a0a;border:3px solid '+t+";color:"+r+";font-family:'Helvetica Neue',Arial,sans-serif;overflow:hidden;display:flex;flex-direction:column;\">"+s+'<div style="padding:0.9rem 1rem 1.1rem;display:flex;flex-direction:column;gap:0.35rem;flex:1;"><div style="font-size:1.05rem;font-weight:900;letter-spacing:0.02em;">'+o(e.name)+'</div><div style="font-size:0.8rem;color:'+n+';">'+o(l(e))+'</div><div style="display:flex;gap:0.6rem;align-items:baseline;margin-top:0.2rem;"><span data-pf-fc="'+o(e.slug)+'" style="font-size:1.3rem;font-weight:900;color:'+t+';">'+o(e.followers_display)+'</span><span style="font-size:0.75rem;color:'+n+';letter-spacing:0.08em;">FOLLOWERS'+(e.is_new?' · <span style="color:'+t+';font-weight:700;">NEW</span>':"")+'</span></div><div data-eff-score="'+o(e.slug)+'" style="font-size:0.8rem;color:'+n+';">Propaganda score <strong style="color:'+r+';">'+e.propaganda_score.toFixed(1)+'/10</strong></div><a href="'+o(e.catalog_path)+'" style="margin-top:auto;padding-top:0.6rem;display:block;text-align:center;background:'+t+';color:#fff;font-weight:900;letter-spacing:0.14em;font-size:0.85rem;padding:0.65rem;text-decoration:none;">VIEW PROFILE →</a>'+(-1===a.indexOf(e.slug)?'<a href="/#pf-vote?for='+o(e.slug)+'" style="margin-top:0.5rem;display:block;text-align:center;border:2px solid '+t+";color:"+t+';font-weight:900;letter-spacing:0.14em;font-size:0.8rem;padding:0.55rem;text-decoration:none;">VOTE FOR '+o(e.name)+" &rarr;</a>":"")+"</div></div>"}function s(a,i){var o=function(e){for(var t=(e=e.slice()).length-1;t>0;t--){var r=Math.floor(Math.random()*(t+1)),n=e[t];e[t]=e[r],e[r]=n}return e}(i);a.innerHTML='<div style="max-width:1200px;margin:0 auto;padding:2rem 1rem;box-sizing:border-box;"><div style="text-align:center;margin-bottom:0.4rem;font-size:0.8rem;letter-spacing:0.3em;color:'+t+';font-weight:700;">THE PROPAGANDA FACTORY</div><h1 style="text-align:center;color:'+r+';font-size:2.2rem;font-weight:900;letter-spacing:0.06em;margin:0 0 0.4rem;font-family:\'Helvetica Neue\',Arial,sans-serif;">SICK LEFT RADICALS</h1><div class="pf-slr-count" style="text-align:center;color:'+n+';font-size:0.95rem;margin-bottom:1.4rem;"><span data-pf-fc-count>'+i.length+'</span> affiliated propagandists · <span data-pf-fc-total style="color:'+r+';font-weight:700;">'+function(t){for(var r=0,n=0;n<t.length;n++)r+=t[n].followers_total||0;try{if(window.PF&&e.creatorStats)return e.creatorStats.fmt(r)+"+"}catch(e){}return r>=1e6?(r/1e6).toFixed(1)+"M":r>=1e3?Math.round(r/1e3)+"K":String(r)}(i)+'</span>&nbsp;combined reach</div><div id="pf-climbers-strip" data-pf-climbers-strip style="display:none;"></div><div id="pf-race-zone"></div><div style="max-width:520px;margin:0 auto 1.8rem;"><input id="pf-slr-search" type="search" placeholder="Search the roster…" autocomplete="off" style="width:100%;padding:0.8rem 1rem;background:#141414;border:2px solid '+t+";color:"+r+';font-size:1rem;font-family:inherit;box-sizing:border-box;"></div><div class="pf-slr-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.2rem;">'+o.map(c).join("")+'</div><div class="pf-slr-empty" style="display:none;text-align:center;color:'+n+';padding:3rem 1rem;font-size:1.05rem;">No comrades match that search. Try another name.</div><div style="text-align:center;margin-top:2.5rem;"><a href="/creator-onboard" style="color:'+t+";font-weight:900;letter-spacing:0.12em;text-decoration:none;border-bottom:2px solid "+t+';">WANT IN? JOIN THE SICK LEFT RADICALS →</a></div></div>';var l=a.querySelector("#pf-slr-search"),s=a.querySelectorAll(".pf-slr-card"),d=a.querySelector(".pf-slr-empty");l.addEventListener("input",function(){for(var e=l.value.trim().toLowerCase(),t=0,r=0;r<s.length;r++){var n=!e||-1!==s[r].getAttribute("data-search").indexOf(e);s[r].style.display=n?"":"none",n&&t++}d.style.display=t?"none":""})}function d(){var a=document.getElementById("pf-slr-roster"),o=/^\/sick-left-radicals\/?$/.test(location.pathname);(a||o)&&e.slrReady.then(function(o){if(o&&o.length){var l=a||function(){var e=document.querySelector("main#page")||document.getElementById("page"),t=document.createElement("div");return t.id="pf-slr-roster-root",t.style.cssText="background:#0a0a0a;",e&&e.parentNode?(e.parentNode.insertBefore(t,e),e.style.display="none"):document.body.insertBefore(t,document.body.firstChild),t}();s(l,o);try{window.PF&&e.creatorStats&&e.creatorStats.ready(function(){try{e.creatorStats.paint(l)}catch(e){}})}catch(e){}try{!function(t){try{var r=t.querySelector("#pf-race-zone");if(!r||r._rrInit)return;if(r._rrInit=!0,m(r),i.timer)try{clearInterval(i.timer)}catch(e){}i.timer=setInterval(function(){try{if(window.PF&&e.hidden&&e.hidden())return;if(!document.body.contains(r))return clearInterval(i.timer),void(i.timer=null);m(r)}catch(e){}},6e4)}catch(e){}}(l)}catch(t){e.error("slr-roster","race zone: "+(t&&t.message))}e.log("slr-roster","rendered "+o.length+" members (shuffled)");try{window.PF&&e.efficiency?e.efficiency.paintScores(l):document.addEventListener("pf-efficiency",function t(){document.removeEventListener("pf-efficiency",t),window.PF&&e.efficiency&&e.efficiency.paintScores(l)})}catch(e){}}else a&&(a.innerHTML='<div style="max-width:640px;margin:2rem auto;text-align:center;color:'+r+';font-family:Arial,sans-serif;"><div style="font-weight:900;color:'+t+';">ROSTER OFFLINE</div><div style="color:'+n+';font-size:0.9rem;margin-top:0.5rem;">The roster database could not be reached. Reload to retry.</div></div>')})}function f(e){e=Math.max(0,Math.round(Number(e)||0));var t=Math.floor(e/86400);e%=86400;var r=Math.floor(e/3600);e%=3600;var n="";return t>0&&(n+=t+"d "),(r>0||t>0)&&(n+=r+"h "),(n+=Math.floor(e/60)+"m").trim()}function p(e){try{var t=i.champ||{},r=document.createElement("canvas");r.width=1080,r.height=1350;var n=r.getContext("2d");if(!n)return void e(null);n.fillStyle="#0d0d0d",n.fillRect(0,0,1080,1350),n.strokeStyle="#c1121f",n.lineWidth=18,n.strokeRect(24,24,1032,1302),n.textAlign="center",n.textBaseline="middle",n.fillStyle="#c1121f",n.font="900 92px Arial,sans-serif",n.fillText("RECRUIT",540,300),n.fillText("CHAMPION",540,400),n.fillStyle="#f5ead6",n.font="900 120px Arial,sans-serif";var a=String(t.winner||"?").toUpperCase();n.fillText(a.length>16?a.slice(0,16):a,540,640),n.fillStyle="#b8ab8e",n.font="700 44px Arial,sans-serif",n.fillText(String(t.race_name||"").toUpperCase().slice(0,40),540,780),n.fillStyle="#f5ead6",n.font="900 72px Arial,sans-serif",n.fillText(String(t.recruits||0)+" RECRUITS",540,900),n.fillStyle="#c1121f",n.font="900 64px Arial,sans-serif",n.fillText("JOIN THE FIGHT.",540,1080),n.fillStyle="#f5ead6",n.font="900 56px Arial,sans-serif",n.fillText("MTCSTW.COM",540,1150),e(r)}catch(t){try{e(null)}catch(e){}}}function u(e){var a='<div style="'+("max-width:1200px;margin:0 auto 1.6rem;padding:1.4rem 1.2rem;background:#141414;border:3px solid "+t+";color:"+r+";font-family:'Helvetica Neue',Arial,sans-serif;text-align:center;")+'">';if("live"===e.mode){var i=e.race;if(a+='<div style="font-size:0.75rem;letter-spacing:0.3em;color:'+t+';font-weight:700;">RECRUIT RACE &mdash; LIVE</div><div style="font-size:1.7rem;font-weight:900;letter-spacing:0.04em;margin:0.3rem 0;">'+o(i.name)+'</div><div style="color:'+n+';font-size:0.95rem;">ENDS IN <b style="color:'+r+';">'+o(f(i.seconds_left))+"</b> &middot; "+Number(e.total||0)+" recruits counted</div>",e.op&&e.op.live&&(a+='<div style="margin-top:0.5rem;font-size:0.85rem;color:'+r+";border:1px solid "+t+';display:inline-block;padding:0.35rem 0.9rem;">ALL FRONTS'+(e.op.name?": "+o(e.op.name):"")+" &mdash; OPERATION ENDS IN "+o(f(e.op.seconds_left))+"</div>"),e.board&&e.board.length){a+='<div style="max-width:560px;margin:1rem auto 0;text-align:left;">';for(var l=0;l<Math.min(e.board.length,10);l++){var c=e.board[l];a+='<div style="display:flex;justify-content:space-between;padding:0.45rem 0.7rem;'+(l%2?"background:#0a0a0a;":"")+'"><span>'+(0===l?"&#129351; ":1===l?"&#129352; ":2===l?"&#129353; ":"")+'<b style="color:'+r+';">'+o(String(c.callsign).toUpperCase())+'</b></span><span style="color:'+t+';font-weight:900;">'+Number(c.recruits)+" RECRUITS</span></div>"}a+="</div>"}else a+='<div style="color:'+n+';font-size:0.9rem;margin-top:0.8rem;">No recruits counted yet &mdash; post your enlist link and take the lead.</div>';a+='<div style="color:'+n+';font-size:0.8rem;margin-top:0.9rem;">Recruits count once they claim a callsign and complete one Daily Orders mission.</div>'}else if("champion"===e.mode){var s=e.champ;a+='<div style="font-size:0.75rem;letter-spacing:0.3em;color:'+t+';font-weight:700;">RECRUIT CHAMPION</div><div style="font-size:1.7rem;font-weight:900;margin:0.3rem 0;">'+o(String(s.winner).toUpperCase())+'</div><div style="color:'+n+';font-size:0.95rem;">'+Number(s.recruits||0)+" recruits &middot; "+o(s.race_name||"")+'</div><div style="margin-top:1rem;display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;"><button id="pf-rr-share" style="background:'+t+';color:#fff;font-weight:900;letter-spacing:0.1em;padding:0.7rem 1.4rem;border:none;cursor:pointer;">SHARE CHAMPION POSTER</button><button id="pf-rr-save" style="background:transparent;color:'+r+";font-weight:900;letter-spacing:0.1em;padding:0.7rem 1.4rem;border:2px solid "+t+';cursor:pointer;">SAVE POSTER</button></div>'}else a+='<div style="font-size:0.75rem;letter-spacing:0.3em;color:'+t+';font-weight:700;">RECRUIT RACES</div><div style="font-size:1.3rem;font-weight:900;margin:0.3rem 0;">THE NEXT RACE IS BEING PLANNED</div><div style="color:'+n+';font-size:0.9rem;">Rally your cell &mdash; the leaderboard goes live here when the next race starts.</div>';return a+"</div>"}function m(t){try{!function(e){try{var t=window.PF_BACKEND_URL;if(!t)return void e(null);var r="pfRaceCb"+Math.floor(1e9*Math.random()),n=document.createElement("script"),a=!1;function i(t){if(!a){a=!0;try{delete window[r]}catch(e){}n.parentNode&&n.parentNode.removeChild(n);try{e(t)}catch(e){}}}window[r]=function(e){i(e)},n.onerror=function(){i(null)},n.src=t+"?action=recruit_race&race_id=current&callback="+r,document.head.appendChild(n),setTimeout(function(){i(null)},12e3)}catch(o){try{e(null)}catch(l){}}}(function(r){try{if(!r||!r.ok)return;r.race&&r.race.live?function(e){try{var t=window.PFOperation;if(t){var r=null;if("function"==typeof t.status?r=t.status():t.status&&"object"==typeof t.status&&(r=t.status),r&&"object"==typeof r&&"boolean"==typeof r.live)return void e({live:!!r.live,name:String(r.name||""),seconds_left:Math.max(0,Number(r.seconds_left)||0)})}}catch(c){}if(Date.now()-i.opCache.at<6e4)e(i.opCache.val);else try{var n=window.PF_BACKEND_URL;if(!n)return void e(i.opCache.val);var a="pfOpCb"+Math.floor(1e9*Math.random()),o=document.createElement("script"),l=!1;function s(t){if(!l){l=!0;try{delete window[a]}catch(e){}o.parentNode&&o.parentNode.removeChild(o);var r={live:!1};try{t&&"boolean"==typeof t.live&&(r={live:!!t.live,name:String(t.name||""),seconds_left:Math.max(0,Number(t.seconds_left)||0)})}catch(e){}i.opCache={at:Date.now(),val:r},e(r)}}window[a]=function(e){s(e)},o.onerror=function(){s(null)},o.src=n+"?action=operation_status&callback="+a,document.head.appendChild(o),setTimeout(function(){s(null)},12e3)}catch(d){e(i.opCache.val)}}(function(e){try{t.innerHTML=u({mode:"live",race:r.race,board:r.leaderboard||[],total:r.total_recruits||0,op:e})}catch(e){}}):r.champion&&r.champion.winner?(i.champ={winner:r.champion.winner,race_name:r.champion.race_name,recruits:0},t.innerHTML=u({mode:"champion",champ:i.champ}),function(t){try{var r=t.querySelector("#pf-rr-share"),n=t.querySelector("#pf-rr-save");function a(t){try{p(function(r){if(r)try{t(r)}catch(e){}else window.PF&&e.toast&&e.toast("Poster failed — try again.")})}catch(e){}}r&&(r.onclick=function(){a(function(e){try{window.PFShare&&PFShare.shareImage&&PFShare.shareImage(e,"pfn-recruit-champion.png","Recruit Champion","recruit-champion")}catch(e){}})}),n&&(n.onclick=function(){a(function(e){try{window.PFShare&&PFShare.saveImage&&PFShare.saveImage(e,"pfn-recruit-champion.png","recruit-champion")}catch(e){}})})}catch(i){}}(t),function(e){try{var t=window.PF_BACKEND_URL;if(!t||!e)return;var r="pfRaceCb"+Math.floor(1e9*Math.random()),n=document.createElement("script"),a=!1;function o(e){if(!a){a=!0;try{delete window[r]}catch(e){}n.parentNode&&n.parentNode.removeChild(n);try{e&&e.ok&&e.leaderboard&&e.leaderboard.length&&i.champ&&e.leaderboard[0].callsign===i.champ.winner&&(i.champ.recruits=Number(e.leaderboard[0].recruits)||0)}catch(e){}}}window[r]=function(e){o(e)},n.onerror=function(){o(null)},n.src=t+"?action=recruit_race&race_id="+encodeURIComponent(e)+"&callback="+r,document.head.appendChild(n),setTimeout(function(){o(null)},12e3)}catch(l){}}(r.champion.race_id)):t.innerHTML=u({mode:"soon"})}catch(e){}})}catch(e){}}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("slr-catalog"))if(e.slrReady){var t="#c1121f",r="#f5f0e1",n="#b8ab8e",a=["jeanine-pirreaux-comedy"],i=["jeanine-pirreaux-comedy"],o=["jeanine-pirreaux-comedy"];"loading"===document.readyState?document.addEventListener("DOMContentLoaded",d):d()}else e.error("slr-catalog","slr-db not loaded");function l(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function c(e,c,s){var d,f,p=c.picture?'<img src="'+l(c.picture)+'" alt="'+l(c.image_alt||c.name+", SLR propagandist")+'" style="width:100%;max-width:520px;height:auto;display:block;margin:0 auto;border:3px solid '+t+';">':'<div style="width:100%;max-width:520px;margin:0 auto;height:300px;display:flex;align-items:center;justify-content:center;background:#1a1a1a;border:3px solid '+t+';"><span style="font-size:4.5rem;font-weight:900;color:'+t+';">'+l((d=c.name,(((f=String(d||"?").split(/\s+/).filter(Boolean))[0]||"?").charAt(0)+(f[1]?f[1].charAt(0):"")).toUpperCase()))+"</span></div>",u=c.handles||{},m=[];["tiktok","instagram","youtube","x"].forEach(function(e){u[e]&&m.push(u[e])}),!m.length&&u.primary&&m.push(u.primary);var h=(c.offer||[]).map(function(e){return'<li style="color:'+r+';margin:0 0 0.6rem;line-height:1.55;">'+l(e)+"</li>"}).join(""),g=(c.key_strengths||[]).map(function(e){return'<li style="color:'+r+';margin:0 0 0.6rem;line-height:1.55;">'+l(e)+"</li>"}).join(""),y=(c.links||[]).map(function(e){return'<li style="margin:0 0 0.5rem;"><a href="'+l(e.url)+'" target="_blank" rel="noopener" style="color:'+t+";font-weight:700;text-decoration:none;border-bottom:2px solid "+t+';">'+l(e.platform)+"</a></li>"}).join(""),v=s.filter(function(e){return e.slug!==c.slug});v.sort(function(e,t){return Math.abs(e.propaganda_score-c.propaganda_score)-Math.abs(t.propaganda_score-c.propaganda_score)});var b,w=v.slice(0,3).map(function(e){return'<div><a href="'+l(e.catalog_path)+'" style="color:'+r+';text-decoration:none;font-weight:700;">• '+l(e.name)+'</a> <span style="color:'+n+';font-size:0.85rem;">— '+e.propaganda_score.toFixed(1)+"/10</span></div>"}).join("");e.innerHTML='<div style="background:#0a0a0a;padding:2.5rem 1rem 3rem;box-sizing:border-box;"><div style="max-width:720px;margin:0 auto;font-family:\'Helvetica Neue\',Arial,sans-serif;"><div style="text-align:center;margin-bottom:0.5rem;"><a href="/sick-left-radicals" style="color:'+n+';font-size:0.8rem;letter-spacing:0.2em;text-decoration:none;">← ALL SICK LEFT RADICALS</a></div>'+p+'<h1 style="text-align:center;color:'+r+';font-size:2rem;font-weight:900;margin:1.4rem 0 0.2rem;">'+l(c.name)+"</h1>"+(m.length?'<div style="text-align:center;color:'+n+';font-size:0.9rem;margin-bottom:0.6rem;">'+l(m.join(" · "))+"</div>":"")+'<div data-eff-score="'+l(c.slug)+'" style="text-align:center;margin-bottom:0.4rem;font-size:1.05rem;color:'+r+';">Propaganda Score: <strong style="color:'+t+';">'+c.propaganda_score.toFixed(1)+"/10</strong>"+(c.score_provisional?' <span style="font-size:0.7rem;color:'+n+';">(provisional)</span>':"")+'</div><div id="pf-repline" style="text-align:center;margin-bottom:0.4rem;font-size:0.95rem;color:'+n+';min-height:0;"></div><div style="text-align:center;margin-bottom:1.6rem;font-size:1.1rem;"><strong data-pf-fc="'+l(c.slug)+'" style="color:'+t+';">'+l(c.followers_display)+'</strong> <span style="color:'+n+';font-size:0.85rem;letter-spacing:0.1em;">FOLLOWERS</span></div>'+(-1===a.indexOf(c.slug)?'<div style="text-align:center;margin:0 0 1.6rem;"><a href="/#pf-vote?for='+l(c.slug)+'" style="display:inline-block;border:2px solid '+t+";color:"+t+';font-weight:900;letter-spacing:0.14em;font-size:0.9rem;text-decoration:none;padding:0.7rem 1.6rem;">VOTE FOR '+l(c.name)+" &rarr;</a></div>":"")+(b=c.bio,String(b||"").split(/\n+/).filter(function(e){return e.trim()}).map(function(e){return'<p style="color:'+r+';line-height:1.65;font-size:1rem;margin:0 0 1rem;">'+l(e.trim())+"</p>"}).join(""))+(h?'<h2 style="color:'+t+';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;">What they offer</h2><ul style="padding-left:1.2rem;margin:0;">'+h+"</ul>":"")+(y?'<h2 style="color:'+t+';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;">Find them here</h2><ul style="list-style:none;padding:0;margin:0;">'+y+"</ul>":"")+(g?'<h2 style="color:'+t+';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;">Key strengths</h2><ul style="padding-left:1.2rem;margin:0;">'+g+"</ul>":"")+'<div style="text-align:center;margin-top:2.5rem;"><a href="/creator-onboard" style="color:'+t+";font-weight:900;letter-spacing:0.12em;text-decoration:none;border-bottom:2px solid "+t+';">WANT IN? JOIN THE SICK LEFT RADICALS →</a></div>'+function(e,t,r,n){if(!e||!e.slug||-1!==o.indexOf(e.slug))return"";var a=encodeURIComponent(e.slug);return'<div style="margin:2rem auto 0;max-width:560px;background:#140808;border:2px solid '+t+';padding:1.4rem 1rem;text-align:center;box-sizing:border-box;"><div style="color:'+t+';font-weight:900;letter-spacing:0.28em;font-size:0.72rem;margin-bottom:0.6rem;">FUND THEIR FIGHT</div><div style="color:'+r+';font-size:0.95rem;line-height:1.6;margin-bottom:1rem;">Back '+l(e.name)+' directly — tip XP or subscribe weekly. No platform takes a cut.</div><div><a href="/war-chest?creator='+a+'" style="display:inline-block;background:'+t+";color:#fff;font-weight:900;letter-spacing:0.12em;font-size:0.85rem;text-decoration:none;padding:0.8rem 1.6rem;border:2px solid "+t+';">FUND THEIR FIGHT →</a></div><div style="margin-top:0.8rem;"><a href="/create?for='+a+'" style="color:'+n+";font-size:0.8rem;letter-spacing:0.08em;text-decoration:none;border-bottom:1px solid "+n+';">or fill one of their open bounties →</a></div></div>'}(c,t,r,n)+(w?'<h2 style="color:'+n+';font-size:1rem;font-weight:700;letter-spacing:0.1em;margin:2.5rem 0 0.8rem;">RELATED CREATORS</h2><div style="display:flex;flex-direction:column;gap:0.5rem;">'+w+"</div>":"")+function(e,r){var a=(r||[]).filter(function(t){return t&&t.slug&&t.catalog_path&&t.slug!==e.slug&&-1===i.indexOf(t.slug)});return a.length?'<div style="text-align:center;margin:2.4rem 0 0.6rem;"><a href="'+l(a[Math.floor(Math.random()*a.length)].catalog_path)+'" style="display:inline-block;background:'+t+';color:#fff;font-weight:900;letter-spacing:0.14em;font-size:1rem;text-decoration:none;padding:0.9rem 2.4rem;">NEXT FIGHTER &rarr;</a><div style="color:'+n+';font-size:0.78rem;letter-spacing:0.06em;margin-top:0.6rem;">THE ROSTER ROULETTE &mdash; A RANDOM FIGHTER, EVERY SPIN</div></div>':""}(c,s)+"</div></div>"}function s(e,t){var r=null;try{r=e.querySelector("#pf-repline")}catch(e){}if(r&&t&&t.slug){var n,a=(n=t.slug,String(n||"").toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"").slice(0,20));if(/^[a-z0-9_]{3,20}$/.test(a)){var i=window.PF_BACKEND_URL,o="pfRepCb"+Math.floor(1e9*Math.random()),l=document.createElement("script"),c=!1;window[o]=s,l.onerror=function(){s(null)},l.src=i+"?action="+encodeURIComponent("reputation_get")+"&callsign="+encodeURIComponent(a)+"&callback="+o,document.head.appendChild(l),setTimeout(function(){s(null)},12e3)}}function s(e){if(!c){c=!0;try{delete window[o]}catch(e){}l.parentNode&&l.parentNode.removeChild(l);try{e&&e.ok&&Number(e.net)>0&&(r.innerHTML='BACKED BY <strong style="color:#c1121f;">'+Number(e.net)+"</strong> FIGHTERS")}catch(e){}}}}function d(){var t=document.getElementById("pf-catalog"),r=t&&t.getAttribute("data-slug");if(!r){var n=location.pathname.replace(/^\/|\/$/g,"");n&&-1===n.indexOf("/")&&(r=decodeURIComponent(n))}r&&e.slrReady.then(function(n){if(n&&n.length){for(var a=null,o=0;o<n.length;o++)if(n[o].slug===r){a=n[o];break}if(a){var l=t||function(){var e=document.querySelector("main#page")||document.getElementById("page"),t=document.createElement("div");return t.id="pf-catalog-root",e&&e.parentNode?(e.parentNode.insertBefore(t,e),e.style.display="none"):document.body.insertBefore(t,document.body.firstChild),t}();c(l,a,n),e.log("slr-catalog","rendered "+r);try{window.PF&&e.creatorStats&&e.creatorStats.ready(function(){try{e.creatorStats.paint(l)}catch(e){}})}catch(e){}try{!function(e){if(e&&-1===i.indexOf(e)){var t="pf_scout_views_v1",r="pf_scout_awarded_v1",n={};try{(JSON.parse(localStorage.getItem(t)||"[]")||[]).forEach(function(e){n[String(e)]=1})}catch(e){}if(!n[e]){n[e]=1;var a=Object.keys(n);try{localStorage.setItem(t,JSON.stringify(a))}catch(e){}if(!(a.length<6)){var o=null;try{o=localStorage.getItem(r)}catch(e){}if(!o){try{localStorage.setItem(r,"1")}catch(e){}try{document.dispatchEvent(new CustomEvent("pf-scout-earned"))}catch(e){}}}}}}(r)}catch(e){}try{s(l,a)}catch(e){}try{var d=window.__pfPvDone||(window.__pfPvDone={});if(!d[r]){d[r]=1;var f=window.PF_BACKEND_URL;try{fetch(f,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"stats",s_action:"pageview",slug:r})}).catch(function(){})}catch(e){}}window.PF&&e.efficiency?e.efficiency.paintScores(l):document.addEventListener("pf-efficiency",function t(){document.removeEventListener("pf-efficiency",t),window.PF&&e.efficiency&&e.efficiency.paintScores(l)})}catch(e){}}}})}}(),function(){"use strict";var e=window.PF;if(!window.pfPageMountDone&&!(e&&e.skip("page-mount")||s())){window.pfPageMountDone=!0;var t,r,n={"pf-arcade":{title:"THE ARCADE",sub:"Nine games. Zero mercy. Play them all.",order:[["markets","pf-ov-markets"],["gambits","pf-ov-gambits"],["caption-combat","pf-ov-caption"],["creator-guess","pf-ov-guess"],["daily-interrogation","pf-ov-interrogation"],["billionaire-supervillain","pf-ov-billionaire"],["bracket-board","pf-ov-bracket"],["battles","pf-ov-battles"],["infighting","pf-ov-infight"],["slr-match-quiz","pf-ov-matchquiz"]]},"pf-cells-page":{title:"CELLS",sub:"Your squad, your war. Build it, run it, win it.",order:[["cells","pf-ov-cells"],["cell-hq",null],["cell-war","pf-ov-cellwar"],["diplo","pf-ov-diplo"],["contracts","pf-ov-contracts"],["war-map","pf-ov-warmap"],["raid","pf-ov-raid"]]},"pf-create":{title:"CREATE",sub:"The propaganda workshop. Make it. Ship it.",order:[["poster-forge","pf-ov-poster"],["feed","pf-ov-feed"],["armory","pf-ov-armory"],["earnings","pf-ov-earnings"]]},"pf-bank":{title:"THE PEOPLE'S BANK",sub:"Your XP, weaponized. Save it, move it, grow it.",order:[["peoplesbank","pf-ov-peoplesbank"],["reserve","pf-ov-reserve"]]},"pf-economy":{title:"THE ECONOMY",sub:"Spend XP like it matters. Because it does.",order:[["economy","pf-ov-economy"]]},"pf-money":{title:"FOLLOW THE MONEY",sub:"See who bought your government.",order:[["money",null]]},"pf-warchest":{title:"THE WAR CHEST",sub:"Fund the fight. Watch where every cent goes.",order:[["movement","pf-ov-movement"]]},"pf-ventures":{title:"JOINT VENTURES",sub:"Pool up. Back creators. Share the spoils.",order:[["ventures","pf-ov-ventures"]]},"pf-events":{title:"BOOTS ON THE GROUND",sub:"Digital is the rehearsal. The street is the show.",order:[["irl","pf-ov-irl"],["townhall","pf-ov-townhall"],["civicevents","pf-ov-civicevents","games/bundle-events-map.js"]]},"pf-warreport":{title:"WAR REPORT",sub:"The week in the war. Numbers, winners, what's next.",order:[["war-report","pf-ov-warreport"]]}},a={"cell-hq":{div:"pf-cell-hq",kill:"cellhq"},money:{div:"pf-money",kill:"money"}},i={},o={},l=["pf-v2","pf-cells-page","pf-cell-hq","pf-arcade","pf-create","pf-bank","pf-economy","pf-warchest","pf-ventures","pf-events","pf-warreport","pf-war-card","pf-academy-hq","pf-dash-hq","pf-political-hq","pf-slr-roster","pf-catalog","pf-money"];e&&!e.feWiden&&(e.feWiden=d),e&&!e.mountPageSilos&&(e.mountPageSilos=p),p();try{!function(){try{for(var e=0;e<l.length;e++){var t=document.getElementById(l[e]);t&&d(t)}}catch(e){}}()}catch(e){}t=0,r=setInterval(function(){t++;var e=0;try{e=p()}catch(e){}var a=!0;Object.keys(n).forEach(function(e){document.getElementById(e)&&n[e].order.forEach(function(t){i[e+"::"+t[0]]||(a=!1)})}),(a||t>=15||0===e&&t>=5)&&clearInterval(r)},2e3)}function c(t,r){e&&e.error("page-mount",t+" :: "+(r&&r.message||r))}function s(){try{if(-1!==(window.location.href||"").indexOf("/config/"))return!0;var e=document.body;return!(!e||!e.classList.contains("sqs-edit-mode")&&!e.classList.contains("sqs-editing"))}catch(e){return!1}}function d(t){try{if(e&&e.skip("fe-widen"))return;var r=t&&t.closest?t.closest(".fe-block"):null;r&&r.classList&&!r.classList.contains("pf-fe-full")&&r.classList.add("pf-fe-full")}catch(e){}}function f(t){var r=n[t];if(!r)return 0;var l=document.getElementById(t);if(!l||s())return 0;try{!function(e,t){if(!e.querySelector(":scope > .pf-page-head")){var r=document.createElement("div");r.className="pf-page-head",r.style.cssText="text-align:center;margin:80px auto 22px;max-width:720px;font-family:Arial,sans-serif;background:linear-gradient(180deg,#141414 0%,#0b0b0b 100%);border:1px solid #333;border-top:4px solid #c1121f;border-bottom:4px solid #c1121f;padding:24px 18px 20px;box-sizing:border-box;border-radius:3px;";var n=document.createElement("div");n.style.cssText="font-size:12px;letter-spacing:5px;color:#dc143c;font-weight:800;margin-bottom:8px;",n.textContent="MTCSTW.COM";var a=document.createElement("div");a.style.cssText="font-family:'Arial Black',Arial,sans-serif;font-size:34px;letter-spacing:3px;color:#f5ead6;text-transform:uppercase;margin:0 0 8px;",a.textContent=t.title;var i=document.createElement("div");i.style.cssText="height:3px;width:120px;background:#c1121f;margin:0 auto 10px;";var o=document.createElement("div");o.style.cssText="font-size:15px;color:#a89e88;line-height:1.5;",o.textContent=t.sub,r.appendChild(n),r.appendChild(a),r.appendChild(i),r.appendChild(o),e.insertBefore(r,e.firstChild)}}(l,r)}catch(e){}if(d(l),"pf-create"===t&&e&&!e.skip("workshop")&&window.pfWorkshopClaimed)return r.order.forEach(function(e){i[t+"::"+e[0]]=1}),0;var f=0;return r.order.forEach(function(r){var n=r[0],s=r[1],d=r[2],p=t+"::"+n;if(!i[p]){if(null==s){var u=a[n];if(!u)return c("no SELF config for "+n,null),void(i[p]=1);try{!function(t,r,n){if(e&&e.skip(n.kill))return!0;var a=document.getElementById(n.div);a||((a=document.createElement("div")).id=n.div,c("self-mount div #"+n.div+" missing from page HTML — created empty; "+r+" renders itself only when its div exists before bundles load",null)),t.appendChild(a)}(l,n,u)}catch(e){c("self-mount failed: "+n,e)}return i[p]=1,void f++}if(e&&e.skip(n))i[p]=1;else try{var m=document.getElementById(s);if(!m||!m.content){if(d&&!o[p]){o[p]=1;try{var h=document.createElement("div");h.className="pf-sec-anchor pf-lazy-skel",h.setAttribute("data-bundle",d),h.setAttribute("data-lazy-silo",n),h.innerHTML='<div class="c-load">Mobilizing&hellip;</div>',l.appendChild(h),setTimeout(function(){try{if(i[p])return;var e=l.querySelector('[data-lazy-silo="'+n+'"]');if(!e||e.getAttribute("data-pf-mounted"))return;e.innerHTML='<div style="border:2px solid #c1121f;background:#1a0505;color:#f5f0e1;padding:12px;margin:8px 0;font-family:Arial,sans-serif;font-size:14px;">This section failed to load. <button style="background:#c1121f;color:#fff;border:0;font-weight:700;padding:8px 14px;cursor:pointer;" onclick="location.reload()">Reload</button></div>'}catch(e){}},25e3)}catch(e){c("lazy anchor failed: "+n,e)}}return}var g=document.importNode(m.content,!0),y=document.createElement("section");y.className="pf-v2-game",y.setAttribute("data-game",n),y.appendChild(g);try{var v=l.querySelector('[data-lazy-silo="'+n+'"]');v&&v.parentNode?(v.setAttribute("data-pf-mounted","1"),v.parentNode.replaceChild(y,v)):l.appendChild(y)}catch(e){l.appendChild(y)}!function(e,t){for(var r=e.querySelectorAll("script"),n=0;n<r.length;n++){try{(0,eval)(r[n].textContent)}catch(r){c("inner script failed in "+t,r);try{for(var a=e.querySelectorAll(".c-load,.hq-load,.ca-load,.cw-load,.p-load"),i=0;i<a.length;i++){var o=document.createElement("div");o.style.cssText="border:2px solid #c1121f;background:#1a0505;color:#f5f0e1;padding:12px;margin:8px 0;font-family:Arial,sans-serif;font-size:14px;",o.innerHTML='This widget failed to start. <button style="background:#c1121f;color:#fff;border:0;font-weight:700;padding:8px 14px;cursor:pointer;" onclick="location.reload()">Reload</button>',a[i].parentNode&&a[i].parentNode.replaceChild(o,a[i])}}catch(e){}}r[n].remove()}}(y,s),i[p]=1,f++}catch(e){c("mount failed: "+n,e),i[p]=1}}}),f}function p(){var e=0;return Object.keys(n).forEach(function(t){try{e+=f(t)}catch(e){}}),e}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("notify")&&!window.pfNotifyBellDone){try{if(-1!==(window.location.href||"").indexOf("/config/"))return;var t=document.body;if(t&&(t.classList.contains("sqs-edit-mode")||t.classList.contains("sqs-editing")))return}catch(e){}window.pfNotifyBellDone=!0;var r=window.PF_BACKEND_URL,n=null,a=null,i=null,o=null,l=null,c=!1,s=0;"loading"===document.readyState?document.addEventListener("DOMContentLoaded",S):S()}function d(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function f(){var e="",t="";try{e=window.PFCallsign?window.PFCallsign():""}catch(e){}try{t=window.PFDeviceId?window.PFDeviceId():""}catch(e){}return{callsign:e,device:t}}function p(t){try{if(window.PF&&e.toast)return void e.toast(t)}catch(e){}try{var r=document.createElement("div");r.textContent=t,r.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999",document.body.appendChild(r),setTimeout(function(){r.remove()},2800)}catch(e){}}function u(e){var t=String(e&&e.err||"");return-1!==t.indexOf("claim unavailable")||"legacy_callsign"===t?'<br><span class="x-note">This callsign predates the new auth system and can&rsquo;t reconnect on its own &mdash; contact MTCSTW to recover it.</span>':"missing credentials"===t||"unauthorized"===t||-1!==t.indexOf("missing credentials")?'<br><span class="x-note">Your callsign needs to reconnect &mdash; re-claim it in Enlistment Ranks (one tap), then retry.</span>':""}function m(e,t){var r=String(null==e?"":e).trim(),n=t||"The wire fought back. Tap again to retry.";if(!r||/network error/i.test(r))return n;var a={"bad callsign":"That callsign didn't check out. Re-claim it in Enlistment Ranks, then retry.","missing id":"That dispatch slipped away. Refresh and try again.","db error":"The ledger hiccuped. Retry in a moment.","unknown notify action":"That order isn't on the books. Refresh and try again."};return a[r]?a[r]:-1!==r.indexOf("_")?n:r}function h(t,n,a){if(r){if("notification_list"===t||"notification_prefs"===t||"recruit_rollup"===t)try{if(window.PF&&e.authGetJSONP)return void e.authGetJSONP(r,t,n,a);var i=window.PF&&e.getAuthSecret?e.getAuthSecret():"";i&&n&&!n.auth_secret&&(n.auth_secret=i)}catch(e){}var o="pfNtCb"+Math.floor(1e9*Math.random()),l=document.createElement("script"),c=!1;window[o]=function(e){f(e)},l.onerror=function(){f(null)};var s="?action="+encodeURIComponent(t);for(var d in n)null!=n[d]&&""!==n[d]&&(s+="&"+encodeURIComponent(d)+"="+encodeURIComponent(n[d]));s+="&callback="+o,l.src=r+s,document.head.appendChild(l),setTimeout(function(){f(null)},12e3)}else a(null);function f(e){if(!c){c=!0;try{delete window[o]}catch(e){}l.parentNode&&l.parentNode.removeChild(l),a(e)}}}function g(t,n,a,i,o){var l={type:t};for(var c in l[n]=a,i)l[c]=i[c];if(window.PF&&e.authPost)e.authPost(r,l,o);else try{var s=function(){var e={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(l)},t=null,r=null;try{window.AbortController&&(t=new AbortController,e.signal=t.signal,r=setTimeout(function(){try{t.abort()}catch(e){}},15e3))}catch(e){}return e._pfClear=function(){if(r)try{clearTimeout(r)}catch(e){}},e}();fetch(r,s).then(function(e){return e.json()}).then(function(e){s._pfClear(),d(e)}).catch(function(){s._pfClear(),d(null)})}catch(e){d(null)}function d(e){try{o(e||{ok:!1,err:"Network error."})}catch(e){}}}function y(e){var t=Date.now()-Number(e);t<0&&(t=0);var r=Math.floor(t/6e4);if(r<1)return"just now";if(r<60)return r+"m ago";var n=Math.floor(r/60);return n<24?n+"h ago":Math.floor(n/24)+"d ago"}function v(){if(document.getElementById("pfNotifyBell"))return i=document.getElementById("pfNotifyBell"),void(o=document.getElementById("pfNotifyBadge"));!function(){if(!document.getElementById("pfNotifyCSS")){var e=document.createElement("style");e.id="pfNotifyCSS",e.textContent="#pfNotifyBell{background:transparent;border:0;cursor:pointer;position:relative;padding:8px;line-height:1;}#pfNotifyBell .pf-nb-ico{font-size:22px;filter:grayscale(0);}#pfNotifyBell .pf-nb-badge{position:absolute;top:2px;right:0;min-width:18px;height:18px;border-radius:9px;background:#c1121f;color:#fff;font:bold 11px/18px Arial,sans-serif;text-align:center;padding:0 4px;border:2px solid #0d0d0d;}#pfNotifyBell.pf-nb-fixed{position:fixed;top:10px;right:10px;z-index:99990;background:#161616;border:2px solid #c1121f;border-radius:8px;}#pfNotifyPanel{position:fixed;z-index:99991;width:340px;max-width:92vw;max-height:70vh;overflow-y:auto;background:#111;border:2px solid #c1121f;color:#f5ead6;font-family:Arial,sans-serif;padding:14px;}#pfNotifyPanel h4{margin:0 0 8px;font-size:14px;letter-spacing:1px;}#pfNotifyPanel .nt-go{display:block;color:inherit;text-decoration:none;}#pfNotifyPanel a.nt-go:hover .cp-mtext b{text-decoration:underline;}",document.head.appendChild(e)}}();var e=document.createElement("button");e.id="pfNotifyBell",e.type="button",e.setAttribute("aria-label","Notifications"),e.innerHTML='<span class="pf-nb-ico">🔔</span><span class="pf-nb-badge" id="pfNotifyBadge" style="display:none"></span>';var t=null;try{for(var r=["header .header-actions",".header-actions","header#header","header",".site-header"],n=0;n<r.length&&!t;n++)t=document.querySelector(r[n])}catch(e){}t?t.appendChild(e):(e.className="pf-nb-fixed",(document.body||document.documentElement).appendChild(e)),e.addEventListener("click",function(e){try{e.stopPropagation()}catch(e){}c?b():(function(){try{var e=i.getBoundingClientRect();l.style.top=e.bottom+window.scrollY+8+"px";var t=Math.max(8,Math.min(e.right+window.scrollX-340,window.scrollX+document.documentElement.clientWidth-348));l.style.left=t+"px"}catch(e){}}(),l.style.display="block",c=!0,x())}),i=e,o=e.querySelector("#pfNotifyBadge"),(l=document.createElement("div")).id="pfNotifyPanel",l.style.display="none",document.body.appendChild(l),document.addEventListener("click",function(e){c&&(l&&l.contains(e.target)||i&&i.contains(e.target)||b())})}function b(){l.style.display="none",c=!1}function w(){var e=f(),t=!1,r=0;if(!e.callsign)return n=null,a=null,void(c&&x());function i(){t||(t=!0,function(){if(!o)return;var e=f();if(!e.callsign)return void(o.style.display="none");for(var t=n&&n.notifications||[],r=0,a=0;a<t.length;a++)t[a].read||r++;r>0?(o.textContent=r>99?"99+":String(r),o.style.display="block"):o.style.display="none"}(),c&&x())}function l(){++r>=2&&i()}setTimeout(i,15e3),h("notification_list",{callsign:e.callsign},function(e){n=e,l()}),h("notification_prefs",{callsign:e.callsign},function(e){a=e,l()})}function x(){if(l){var t=f();if(t.callsign){var r,i=n&&n.notifications||[],o="<h4>🔔 NOTIFICATIONS</h4>";o+='<div class="x-pane"><h4>Inbox</h4>',!n||!n.ok?(o+='<div class="x-note">The wire went quiet — not from silence, but from a cut line. Your dispatches are still out there.'+u(n)+"</div>",o+='<div style="margin-top:8px"><button class="c-btn" id="ntInboxRetry">RETRY</button></div>'):i.length||(o+='<div class="x-note">Quiet on the wire. Go make some noise.</div>');var c={battle:"/arcade",bounty:"/create",wager:"/arcade",lottery:"/arcade",gov:"/political-hq",streak:"/",flash:"/#pf-brief",tip:"/create",ambush:"/",recruit:"/",boost:"/create",remit:"/bank"};for(r=0;r<Math.min(i.length,30);r++){var v=i[r],b=M(v),x=v&&v.data||{},S=/remit/i.test(String(v.type||""))||!!x.from_cs,E=String(x.from_cs||""),k=Math.max(0,Math.round(Number(x.amount)||0));if(S&&(!E||!k)){var T=/^([a-z0-9_]{3,20}) sent you (\d+) XP/.exec(String(v&&v.body||""));T&&(E||(E=T[1]),k||(k=Math.max(0,Math.round(Number(T[2])||0))))}var A=S&&!!E&&k>0;o+='<div class="cp-mission"'+(v.read?' style="opacity:.6"':"")+">"+(b?'<a class="nt-go" href="'+d(b)+'">':'<span class="nt-go">')+'<div class="cp-mtext"><span class="c-tag">'+d(v.type||"info")+"</span> <b>"+d(v.title||"")+'</b><div class="x-note">'+d(v.body||"")+'</div><div class="x-note">'+d(y(v.ts))+"</div></div>"+(b?"</a>":"</span>"),A&&!v.read?o+='<div><button class="c-btn" data-remit-thanks="'+v.id+'">THANK THEM</button> <button class="c-btn" data-remit-back="'+v.id+'" data-from="'+d(E)+'" data-amt="'+k+'">SEND BACK</button></div>':v.read||(o+='<button class="c-btn" data-nid="'+v.id+'">MARK READ</button>'),o+="</div>"}o+="</div>",o+='<div class="x-pane"><h4>YOUR RECRUITS THIS WEEK</h4><div id="ntRecruitDigest"><div class="x-note">Mustering&hellip;</div></div></div>';var C=a&&a.prefs||{battles:!0,boosts:!0,recruits:!0,tips:!0};o+='<div class="x-pane"><h4>Alert preferences</h4><div class="x-note">Choose what pings you.</div>'+u(a);var R=[["battles","Battle results"],["boosts","Boosts on my work"],["recruits","Recruit activations"],["tips","Tips received"]];for(r=0;r<R.length;r++){var I=R[r][0];o+='<label class="cp-mtext" style="display:block;margin:6px 0"><input type="checkbox" data-pref="'+I+'"'+(C[I]?" checked":"")+"/> "+d(R[r][1])+"</label>"}o+='<div style="height:8px"></div><button class="c-btn" id="ntSave">SAVE PREFERENCES</button></div>',o+='<div style="margin-top:10px"><button class="c-btn" id="ntRetry">Refresh</button></div>',l.innerHTML=o;var N=l.querySelectorAll("button[data-nid]");for(r=0;r<N.length;r++)(function(e){e.onclick=function(){var r=e.getAttribute("data-nid");e.disabled=!0,g("notify","n_action","notification_read",{callsign:t.callsign,device:t.device,id:r},function(t){if(!t||!t.ok)return p(m(t&&t.err,"Mark-read failed. Tap again to retry.")),void(e.disabled=!1);setTimeout(function(){n=null,w()},500)})}})(N[r]);var P=l.querySelectorAll("button[data-remit-thanks]");for(r=0;r<P.length;r++)(function(e){e.onclick=function(){var r=e.getAttribute("data-remit-thanks");e.disabled=!0,g("notify","n_action","notification_read",{callsign:t.callsign,device:t.device,id:r},function(t){if(!t||!t.ok)return p(m(t&&t.err,"Ack failed. Tap again.")),void(e.disabled=!1);p("ACKNOWLEDGED. They know you got it."),setTimeout(function(){n=null,w()},500)})}})(P[r]);var O=l.querySelectorAll("button[data-remit-back]");for(r=0;r<O.length;r++)(function(e){e.onclick=function(){var t=e.getAttribute("data-from")||"",r=Math.max(0,Math.round(Number(e.getAttribute("data-amt"))||0));try{sessionStorage.setItem("pf_remit_prefill",JSON.stringify({to:t,amt:r}))}catch(e){}try{location.href="/bank"}catch(e){}}})(O[r]);!function(e){var t=null;try{t=document.getElementById("ntRecruitDigest")}catch(e){}t&&e.callsign&&(Date.now()-s<6e5&&"1"===t.getAttribute("data-done")||h("recruit_rollup",{callsign:e.callsign},function(e){var t=null;try{t=document.getElementById("ntRecruitDigest")}catch(e){}if(t){var r=e&&e.ok&&e.recruits||[];if(e&&e.ok&&r.length){t.setAttribute("data-done","1"),s=Date.now();for(var n="",a=0;a<Math.min(r.length,10);a++){var i=r[a]||{};n+='<div class="cp-mission"><div class="cp-mtext"><b>'+d(i.callsign||"?")+'</b><div class="x-note">'+Number(i.missions_done||0)+" missions &bull; "+Number(i.xp_earned||0).toLocaleString()+" XP earned</div></div></div>"}t.innerHTML=n}else t.innerHTML='<div class="x-note">No recruits on the board yet. Share your code — every RECRUIT who checks in pays +25 XP.</div>'}}))}(t);var L=l.querySelector("#ntSave");L&&(L.onclick=function(){for(var e={callsign:t.callsign,device:t.device},r=l.querySelectorAll("input[data-pref]"),n=0;n<r.length;n++)e[r[n].getAttribute("data-pref")]=r[n].checked?1:0;L.disabled=!0,g("notify","n_action","notification_prefs",e,function(e){if(!e||!e.ok)return p(m(e&&e.err,"Save failed. Tap again to retry.")),void(L.disabled=!1);p("PREFERENCES SAVED."),L.disabled=!1})});var B=l.querySelector("#ntRetry");B&&(B.onclick=function(){n=a=null,l.innerHTML='<div class="c-load">Tuning&hellip;</div>',w()});var _=l.querySelector("#ntInboxRetry");_&&(_.onclick=function(){n=a=null,l.innerHTML='<div class="c-load">Tuning&hellip;</div>',w()})}else l.innerHTML="<h4>🔔 NOTIFICATIONS</h4>"+e.gateHTML("Notifications need a callsign.","to get dispatches")}function M(e){try{var t=e.link||e.url||e.href;if(t)return String(t)}catch(e){}return c[String(e.type||"").toLowerCase()]||null}}function S(){try{v()}catch(e){}w(),setInterval(function(){try{if(window.PF&&e.hidden&&e.hidden())return}catch(e){}if(!document.getElementById("pfNotifyBell"))try{v()}catch(e){}w()},9e4)}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("siren")){try{if(-1!==(window.location.href||"").indexOf("/config/"))return;var t=document.body;if(t&&(t.classList.contains("sqs-edit-mode")||t.classList.contains("sqs-editing")))return}catch(e){}var r=window.PF_BACKEND_URL,n="pf_siren_seen_v1",a="pf_siren_dismissed",i=null,o=null,l=!1,c={t:0,v:null},s={live:!1,upcoming:!1,name:"",starts_at:0};try{b(),setInterval(b,3e4),setInterval(function(){try{if(!o)return;var e=document.getElementById("pf-siren-bar");if(!e||m(o.id))return void g();var t=e.querySelector('[data-siren="left"]');t&&(t.textContent=u(o.starts_at-Date.now())),Date.now()>=o.starts_at&&b()}catch(e){}},1e3)}catch(e){}}function d(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function f(t,n,a){try{if(window.PF&&e.authGetJSONP)return void e.authGetJSONP(r,t,n,a)}catch(e){}var i="pfSirenCb"+Math.floor(1e9*Math.random()),o=document.createElement("script"),l=!1;function c(e){if(!l){l=!0;try{delete window[i]}catch(e){}o.parentNode&&o.parentNode.removeChild(o);try{a(e)}catch(e){}}}window[i]=function(e){c(e)},o.onerror=function(){c(null)};var s="?action="+encodeURIComponent(t);try{for(var d in n)s+="&"+encodeURIComponent(d)+"="+encodeURIComponent(n[d])}catch(e){}s+="&callback="+i,o.src=r+s,o.async=!0;try{document.head.appendChild(o)}catch(e){return void c(null)}setTimeout(function(){c(null)},12e3)}function p(){try{var e=JSON.parse(localStorage.getItem(n)||"[]");return e&&e.length?e:[]}catch(e){return[]}}function u(e){var t=Math.max(0,Math.ceil(e/1e3)),r=Math.floor(t/3600),n=Math.floor(t%3600/60),a=t%60;function i(e){return(e<10?"0":"")+e}return(r>0?r+":"+i(n):i(n))+":"+i(a)}function m(e){try{return sessionStorage.getItem(a)===e}catch(e){return!1}}function h(e){try{if(e){var t=document.getElementById("pf-siren-bar");t&&(document.body.style.paddingTop=t.offsetHeight+"px",l=!0)}else l&&(document.body.style.paddingTop="",l=!1)}catch(e){}}function g(){try{var e=document.getElementById("pf-siren-bar");if(!!(!o||m(o.id)||function(){try{var e=document.getElementById("pf-af-bar");return!!(e&&e.offsetHeight>0)}catch(e){return!1}}()))return e&&e.parentNode&&e.parentNode.removeChild(e),void h(!1);if(function(){if(!document.getElementById("pf-siren-css")){var e=document.createElement("style");e.id="pf-siren-css",e.textContent="#pf-siren-bar{position:fixed;top:0;left:0;right:0;z-index:9002;background:#2b0a0a;color:#ffd166;font-family:monospace;border-bottom:2px solid #c1121f;box-shadow:0 4px 18px rgba(193,18,31,.55);font-size:13px;line-height:1.4;padding:8px 44px 8px 12px;text-align:center;animation:pfSirenPulse 1.2s ease-in-out infinite}@keyframes pfSirenPulse{0%,100%{box-shadow:0 4px 18px rgba(193,18,31,.35)}50%{box-shadow:0 4px 26px rgba(193,18,31,.8)}}#pf-siren-bar b{color:#ff595e}#pf-siren-bar a{color:#ffd166;font-weight:bold;text-decoration:underline;white-space:nowrap}#pf-siren-x{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:1px solid #ffd166;color:#ffd166;cursor:pointer;font-size:14px;line-height:1;padding:2px 8px;border-radius:3px}@media(max-width:600px){#pf-siren-bar{font-size:11px;padding:6px 40px 6px 8px}}";try{document.head.appendChild(e)}catch(e){}}}(),!e){(e=document.createElement("div")).id="pf-siren-bar",e.setAttribute("role","alert");var t=document.createElement("button");t.id="pf-siren-x",t.setAttribute("aria-label","Dismiss"),t.textContent="×",t.onclick=function(){try{o&&sessionStorage.setItem(a,o.id)}catch(e){}g()},e.appendChild(t);var r=document.createElement("span");r.id="pf-siren-msg",e.insertBefore(r,t);try{document.body.insertBefore(e,document.body.firstChild)}catch(e){return}}var n=document.getElementById("pf-siren-msg");n&&(n.innerHTML=(l='<b data-siren="left">'+u((i=o).starts_at-Date.now())+"</b>","op"===i.kind?"&#9888; FLASH SIREN — OPERATION <b>"+d(i.name)+"</b> LAUNCHES IN "+l+' <a href="/#pf-brief">RALLY YOUR CELL &#8594;</a>':"&#9888; FLASH SIREN — <b>"+d(i.name)+"</b> IN "+l+' <a href="/#pf-brief">GET READY &#8594;</a>')),h(!0)}catch(e){}var i,l}function y(e){try{var t=o?o.id:null,r=e?e.id:null;o=e,r&&r!==t&&-1===p().indexOf(r)&&(function(){try{var e=window.AudioContext||window.webkitAudioContext;if(!e)return;var t=new e;try{"suspended"===t.state&&t.resume()}catch(e){}for(var r=t.currentTime,n=0;n<3;n++){var a=t.createOscillator(),i=t.createGain();a.type="triangle",a.frequency.value=740;var o=r+.28*n;i.gain.setValueAtTime(1e-4,o),i.gain.exponentialRampToValueAtTime(.25,o+.02),i.gain.exponentialRampToValueAtTime(1e-4,o+.24),a.connect(i),i.connect(t.destination),a.start(o),a.stop(o+.26)}}catch(e){}}(),function(e){try{var t=p();if(-1===t.indexOf(e)){for(t.push(e);t.length>50;)t.shift();localStorage.setItem(n,JSON.stringify(t))}}catch(e){}}(r)),g()}catch(e){}}function v(){try{var e=s||{live:!1,upcoming:!1,name:"",starts_at:0};if(e.live)return void y(null);y(e.upcoming?{kind:"op",id:"op:"+String(e.name)+":"+String(e.starts_at),name:e.name||"OPERATION",starts_at:e.starts_at||Date.now()}:function(e){try{for(var t=i&&i.events||[],r=null,n=0;n<t.length;n++){var a=t[n]||{},o=!0===a.siren;if(!0!==a.siren&&!1!==a.siren){var l=null==a.siren_minutes?15:Math.max(0,Math.min(60,Number(a.siren_minutes)||0));o=a.starts_at>e&&a.starts_at<=e+6e4*l}o&&(!r||(a.starts_at||0)<(r.starts_at||0))&&(r=a)}return r?{kind:"flash",id:"flash:"+String(r.id||r.title||""),name:r.title||"FLASH EVENT",starts_at:Number(r.starts_at)||e}:null}catch(e){return null}}(Date.now()))}catch(e){y(null)}}function b(){try{if(window.PF&&e.hidden&&e.hidden())return}catch(e){}var t=0;function r(){++t>=2&&v()}f("flash_list",{},function(e){try{i=e&&"object"==typeof e?e:null}catch(e){}r()}),function(e){try{var t=window.PFOperation;if(t){var r=null;if("function"==typeof t.status?r=t.status():"function"==typeof t.getStatus?r=t.getStatus():t.latest&&(r=t.latest),r)return void e(r)}}catch(e){}var n=Date.now();c.v&&n-c.t<3e4?e(c.v):f("operation_status",{},function(t){var r={live:!1,upcoming:!1};try{t&&"object"==typeof t&&(r=t)}catch(e){}c.t=Date.now(),c.v=r,e(r)})}(function(e){try{s=function(e){var t=!1,r=!1,n="",a=0;try{e&&"object"==typeof e&&(t=!0===e.live,r=!0===e.upcoming,n=String(e.name||""),a=Number(e.starts_at)||0)}catch(e){}return t&&(r=!1),{live:t,upcoming:r,name:n,starts_at:a}}(e)}catch(e){s={live:!1,upcoming:!1,name:"",starts_at:0}}r()})}}(),function(){"use strict";var e=window.PF;if(!(e&&e.skip("pinups")||window.pfPinupsLoaded)){window.pfPinupsLoaded=!0;var t=[["vote","Ballot","★"],["ballot","Bracket Ballot","☢"],["bracket","Liquidator","☠"],["bonds","War Bonds","◆"],["caption","Word Warrior","✎"],["poster","Press Pass","◈"],["quiz","Intel Operative","◉"],["billionaire","Billionaire Spotter","＄"],["interrogation","Interrogator","❔"],["orders","Field Duty","▲"],["drop","Supply Runner","●"],["enlisted","Enlisted","⚔"],["guess","Profiler","◎"],["raid","Raider","⚡"],["whitemarket","Market Maker","🎲"]],r={vote:"pf-vote-cast",ballot:"pf-bracket-ballot",bracket:"pf-bracket-liquidated",bonds:"pf-wb-buy",caption:"pf-caption-submit",poster:"pf-poster-made",quiz:"pf-quiz-done",billionaire:"pf-billionaire-answered",interrogation:"pf-interrogation-answered",orders:"pf-order-checkin",drop:"pf-drop-claimed",enlisted:"pf-enlisted",guess:"pf-guess-done",raid:"pf-raid-report",whitemarket:"pf-wm-settled"},n=[["RECRUIT",0,"⚑"],["AGITATOR",25,"⚒"],["CADRE",75,"⚙"],["COMMISSAR",150,"✪"],["ARCHITECT",300,"♛"]],a=[];[["pf-order-checkin","ORDERS OBEYED","Daily Orders reported. The cadre moves.","📋"],["pf-drop-claimed","SUPPLY SECURED","Daily Drop claimed. Ammo up.","📦"],["pf-caption-submit","WORD WARRIOR","Caption Combat entry filed.","✍️"],["pf-poster-made","PRESSED & POSTED","Poster Forge creation off the press.","🖼️"],["pf-quiz-done","PROFILE COMPLETE","Find Your SLR Match finished.","🎯"],["pf-guess-done","CADRE EYE","Guess the Creator solved.","👁️"],["pf-raid-report","RAID REPORTED","Boost Raid complete. Target softened.","⚡"],["pf-vote-cast","BALLOT CAST","Fan Vote counted. Power exercised.","🗳️"],["pf-bracket-ballot","BRACKET SET","Ballot locked in. No take-backs.","🏆"],["pf-bracket-liquidated","LIQUIDATION DAY","Bracket liquidated. Billionaires weep.","💸"],["pf-wb-buy","WAR BOND SECURED","War Bonds funded. The war chest grows.","🏦"],["pf-enlisted","ENLISTED","Joined the ranks. Welcome, operative.","🎖️"],["pf-billionaire-answered","BILLIONAIRE DUNKED","Supervillain exposed.","🦹"],["pf-interrogation-answered","INTERROGATION SURVIVED","Daily Interrogation complete. Lips sealed.","🔍"],["pf-share-image","SIGNAL BOOSTED","Image shared to the network.","📣"]].forEach(function(e,t){a.push({id:"task:"+e[0],kind:"task",ev:e[0],title:e[1],sub:e[2],glyph:e[3],n:t+1})}),t.forEach(function(e,t){a.push({id:"medal:"+e[0],kind:"medal",ev:r[e[0]],title:"MEDAL: "+e[1].toUpperCase(),sub:"Service Medal earned. Wear it.",glyph:e[2],n:16+t})}),n.forEach(function(e,t){a.push({id:"tier:"+e[0],kind:"tier",title:"PROMOTED: "+e[0],sub:e[1]+" XP. The ladder climbs.",glyph:e[2],n:30+t})}),a.push({id:"full:deployment",kind:"full",title:"FULL DEPLOYMENT",sub:"All 16 medals in one week. Legend.",glyph:"★",n:35});var i={};a.forEach(function(e){i[e.id]=e});var o="pf_pinups_v1",l=[],c=!1;["pf-order-checkin","pf-drop-claimed","pf-caption-submit","pf-poster-made","pf-quiz-done","pf-guess-done","pf-raid-report","pf-vote-cast","pf-bracket-ballot","pf-bracket-liquidated","pf-wb-buy","pf-enlisted","pf-billionaire-answered","pf-interrogation-answered","pf-share-image"].forEach(function(e){document.addEventListener(e,function(t){try{h(e,t&&t.detail||{})}catch(e){}})}),"loading"===document.readyState?document.addEventListener("DOMContentLoaded",b):b(),window.pfPinups={count:function(){var e=d(),t=0;for(var r in e.got)e.got.hasOwnProperty(r)&&t++;return t},total:function(){return a.length},wall:v}}function s(){try{if(window.PF&&e.isoWeekKey&&e.chiNow)return e.isoWeekKey(e.chiNow())}catch(e){}try{var t=new Date((new Date).toLocaleString("en-US",{timeZone:"America/Chicago"})),r=new Date(t.getFullYear(),0,1),n=Math.ceil(((t-r)/864e5+r.getDay()+1)/7);return t.getFullYear()+"-W"+n}catch(e){return"wk"}}function d(){try{var e=JSON.parse(localStorage.getItem(o)||"null");if(e&&e.got){if(!e.shown){var r;for(r in e.shown={},e.got)e.got.hasOwnProperty(r)&&(e.shown[r]=1);try{var n,a=s();for(n=0;n<t.length;n++)e.got["medal:"+t[n][0]]&&(e.shown["medal:"+t[n][0]+"|"+a]=1);e.got["full:deployment"]&&(e.shown["full:deployment|"+a]=1)}catch(e){}f(e)}return e.shown||(e.shown={}),e}}catch(e){}return{got:{},shown:{}}}function f(e){try{localStorage.setItem(o,JSON.stringify(e))}catch(e){}}function p(e){return String(e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function u(e,t){for(var r="",n=12+function(e){for(var t=0,r=0;r<e.length;r++)t=31*t+e.charCodeAt(r)|0;return Math.abs(t)}(e.id)%2*2,a=150,i=200,o=0;o<n;o++){var l=360/n*o,c=360/n*(o+.5),s=260,d=a+s*Math.cos(l*Math.PI/180),f=i+s*Math.sin(l*Math.PI/180),u=a+s*Math.cos(c*Math.PI/180),m=i+s*Math.sin(c*Math.PI/180);r+='<polygon points="150,200 '+d.toFixed(1)+","+f.toFixed(1)+" "+u.toFixed(1)+","+m.toFixed(1)+'" fill="'+(o%2?"#8f0d16":"#c1121f")+'"/>'}var h=function(e){if(e.length<=15)return[e];var t=e.split(" "),r=[""],n=0;return t.forEach(function(e){(r[n]+" "+e).trim().length>15&&(n++,r[n]=""),r[n]=(r[n]+" "+e).trim()}),r.slice(0,2)}(e.title),g=54-13*(h.length-1),y="";h.forEach(function(e,t){y+='<text x="150" y="'+(g+26*t)+'" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-size="21" font-weight="900" fill="#f5ead6" letter-spacing="1">'+p(e)+"</text>"});var v=t?"?":e.glyph;return'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 400" width="300" height="400"><rect x="0" y="0" width="300" height="400" fill="'+(t?"#1a1a1a":"#f5ead6")+'"/>'+(t?"":"<g>"+r+"</g>")+'<rect x="8" y="8" width="284" height="384" fill="none" stroke="#0d0d0d" stroke-width="6"/><rect x="18" y="18" width="264" height="364" fill="none" stroke="'+(t?"#444":"#c1121f")+'" stroke-width="2"/><rect x="18" y="18" width="264" height="86" fill="#0d0d0d"/>'+y+'<circle cx="'+a+'" cy="'+i+'" r="72" fill="'+(t?"#2a2a2a":"#f5ead6")+'" stroke="#0d0d0d" stroke-width="6"/><circle cx="'+a+'" cy="'+i+'" r="58" fill="none" stroke="#c1121f" stroke-width="3"/><text x="'+a+'" y="232" text-anchor="middle" font-size="76" fill="'+(t?"#555":"#c1121f")+'">'+p(v)+'</text><text x="'+a+'" y="312" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-style="italic" fill="'+(t?"#666":"#3a3a3a")+'">'+p(t?"Complete the task to pin it up.":e.sub)+'</text><rect x="18" y="336" width="264" height="30" fill="#c1121f"/><text x="'+a+'" y="357" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-size="13" font-weight="900" fill="#f5ead6" letter-spacing="2">★ PROPAGANDA FACTORY ★</text><text x="26" y="392" font-family="Arial,sans-serif" font-size="10" fill="'+(t?"#555":"#8a8171")+'">N№ '+e.n+"/35</text></svg>"}function m(e,t,r){var n=i[e];if(!n)return!1;var a=d(),o=r?e+"|"+r:e,c=!a.shown[o];return a.got[e]=(a.got[e]||0)+1,c&&(a.shown[o]=1),f(a),v(),c&&!t&&function(e){l.push(e),g()}(n),c}function h(e,a){var i=!(!a||"pinups"!==a.game);m("task:"+e,i);for(var o=s(),l=0;l<t.length;l++)if(r[t[l][0]]===e){m("medal:"+t[l][0],i,o);break}for(var c=function(){try{return JSON.parse(localStorage.getItem("pf_ranks_v1")||'{"xp":0}').xp||0}catch(e){return 0}}(),d=0;d<n.length;d++)c>=n[d][1]&&m("tier:"+n[d][0],i);(function(){try{var e=JSON.parse(localStorage.getItem("pf_medals_v2")||"null");return!(!e||!e.fd)}catch(e){return!1}})()&&m("full:deployment",i,o)}function g(){if(!c&&l.length){c=!0;var t=l.shift(),r=document.getElementById("pf-pinup-ov");r&&r.remove(),(r=document.createElement("div")).id="pf-pinup-ov",r.style.cssText="position:fixed;inset:0;background:rgba(10,5,5,.92);z-index:99998;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;",r.innerHTML='<div style="font-family:\'Arial Black\',Arial,sans-serif;color:#f5ead6;letter-spacing:3px;font-size:15px;margin-bottom:10px;">★ PINUP UNLOCKED ★</div><div id="pf-pinup-art" style="box-shadow:0 0 40px rgba(193,18,31,.55);max-width:300px;width:100%;">'+u(t,!1)+'</div><div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;justify-content:center;"><button id="pf-pinup-share" style="background:#c1121f;color:#f5ead6;border:3px solid #f5ead6;font-family:\'Arial Black\',Arial,sans-serif;font-size:14px;font-weight:900;padding:10px 18px;cursor:pointer;letter-spacing:1px;">SHARE PINUP</button><button id="pf-pinup-close" style="background:#0d0d0d;color:#f5ead6;border:3px solid #f5ead6;font-family:\'Arial Black\',Arial,sans-serif;font-size:14px;font-weight:900;padding:10px 18px;cursor:pointer;letter-spacing:1px;">KEEP FIGHTING</button></div>',document.body.appendChild(r);var n=function(){try{r.remove()}catch(e){}c=!1,setTimeout(g,350)};document.getElementById("pf-pinup-close").onclick=n,document.getElementById("pf-pinup-share").onclick=function(){!function(t){try{var r=u(t,!1),n=new Blob([r],{type:"image/svg+xml;charset=utf-8"}),a=URL.createObjectURL(n),i=new Image;i.onload=function(){try{var e=document.createElement("canvas");e.width=600,e.height=800;var r=e.getContext("2d");r.fillStyle="#f5ead6",r.fillRect(0,0,600,800),r.drawImage(i,0,0,600,800),URL.revokeObjectURL(a),r.fillStyle="rgba(13,13,13,0.94)",r.fillRect(0,736,600,64),r.fillStyle="#c1121f",r.fillRect(0,736,600,4),r.fillStyle="#f5ead6",r.font='900 25px "Arial Black",Arial,sans-serif',r.textAlign="center",r.fillText("JOIN THE FIGHT — MTCSTW.COM",300,776);try{window.PFShare&&window.PFShare.stampCallsign&&window.PFShare.stampCallsign(e)}catch(e){}e.toBlob(function(e){if(e){var r=new File([e],"pfn-pinup-"+t.id.replace(/[^a-z0-9]+/gi,"-")+".png",{type:"image/png"}),n=function(){o()};navigator.canShare&&navigator.canShare({files:[r]})?navigator.share({files:[r],title:t.title+" — Propaganda Factory"}).then(n,function(e){e&&"AbortError"===e.name?y("Share cancelled."):(n(),a())}):(a(),n())}else y("Pinup failed — try again.");function a(){var t=document.createElement("a");t.href=URL.createObjectURL(e),t.download=r.name,document.body.appendChild(t),t.click(),setTimeout(function(){try{URL.revokeObjectURL(t.href)}catch(e){}t.remove()},4e3)}},"image/png")}catch(e){y("Pinup failed — try again.")}},i.onerror=function(){y("Pinup failed — try again.")},i.src=a}catch(e){y("Pinup failed — try again.")}function o(){try{e&&"function"==typeof e.creditShare&&e.creditShare("pinups","share")}catch(e){}}}(t)},r.onclick=function(e){e.target===r&&n()},setTimeout(function(){document.getElementById("pf-pinup-ov")&&n()},9e3)}}function y(t){try{e&&e.toast&&e.toast(t)}catch(e){}}function v(){var e=document.getElementById("pf-ranks");if(!e)return!1;var t=document.getElementById("pf-pinup-wall");if(!t){(t=document.createElement("div")).id="pf-pinup-wall";var r=document.getElementById("pf-medals");r&&r.parentNode?r.parentNode.insertBefore(t,r.nextSibling):e.appendChild(t)}var n=d(),i=0,o="";return a.forEach(function(e){var t=!!n.got[e.id];t&&i++,o+='<div class="pp-cell'+(t?"":" locked")+'" title="'+p(e.title)+'"><div class="pp-art">'+u(e,!t)+'</div><div class="pp-t">'+(t?p(e.title):"???")+"</div></div>"}),t.innerHTML='<div class="pp-head">📌 PIN-UP WALL <span>— '+i+'/35 pinned</span></div><div class="pp-sub">Every task complete, every medal, every promotion earns its pinup.</div><div class="pp-grid">'+o+"</div>",function(){if(document.getElementById("pf-pinup-css"))return;var e=document.createElement("style");e.id="pf-pinup-css",e.textContent="#pf-pinup-wall{margin-top:18px;border-top:2px dashed #c1121f;padding-top:14px;}#pf-pinup-wall .pp-head{font-family:'Arial Black',Arial,sans-serif;color:#f5ead6;font-size:17px;letter-spacing:2px;margin-bottom:4px;}#pf-pinup-wall .pp-head span{color:#c9bfa8;font-size:12px;}#pf-pinup-wall .pp-sub{font-family:Arial,sans-serif;color:#c9bfa8;font-size:11px;letter-spacing:1px;margin-bottom:10px;}#pf-pinup-wall .pp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px;}#pf-pinup-wall .pp-cell{background:#141414;border:2px solid #c1121f;padding:4px;text-align:center;}#pf-pinup-wall .pp-cell.locked{border-color:#3a3a3a;opacity:.75;}#pf-pinup-wall .pp-art svg{width:100%;height:auto;display:block;}#pf-pinup-wall .pp-t{font-family:Arial,sans-serif;font-size:8px;letter-spacing:1px;color:#f5ead6;margin-top:3px;text-transform:uppercase;min-height:20px;}#pf-pinup-wall .pp-cell.locked .pp-t{color:#555;}",(document.head||document.documentElement).appendChild(e)}(),!0}function b(){v()}}(),function(){"use strict";var e=window.PF;if(!(e&&e.skip("share-image")||window.pfShareImageDone)){window.pfShareImageDone=!0;var t=!1,r={"fan-vote":{title:"★ FAN VOTE ★",tag:"Propagandist of the Week",lines:["Vote for the week’s top propagandist.","Polls close Sunday night.","Results drop Monday."],cta:"VOTE NOW"},"bracket-board":{title:"☠ THE LIQUIDATION BRACKET ☠",tag:"16 billionaires. Head-to-head.",lines:["Your votes decide who gets liquidated.","Pick your winners. Advance the class war."],cta:"VOTE THE BRACKET"},"daily-orders":{title:"DAILY ORDERS",tag:"Today’s missions from the Factory",lines:["Do things. Post proof.","Check in daily. Stack your streak."],cta:"GET ORDERS"},"do-meter":{title:"⚗ THE DO METER ⚗",tag:"NOT FOLLOWERS. NOT LIKES. THINGS DONE.",lines:["The network counts every thing done.","Goal: 5 million things."],cta:"DO A THING"},"daily-drop":{title:"★ THE DAILY DROP ★",tag:"Fresh slop, daily",lines:["A new drop every day of the offensive.","Claim it. Share it. Spread it."],cta:"CLAIM THE DROP"},"billionaire-supervillain":{title:"BILLIONAIRE OR SUPERVILLAIN?",tag:"One quote. Two monsters. You decide.",lines:["A new quote every day.","Billionaire or supervillain — can you tell them apart?"],cta:"PLAY TODAY"},"daily-interrogation":{title:"THE DAILY INTERROGATION",tag:"One question. Every day. No mercy.",lines:["Test your propaganda literacy.","Streak or you’re a liberal."],cta:"ANSWER NOW"},"caption-combat":{title:"CAPTION COMBAT",tag:"One template. One week. Infinite psyops.",lines:["Caption the template. Funniest wins.","New round every week."],cta:"ENTER COMBAT"},"poster-forge":{title:"THE POSTER FORGE",tag:"Make propaganda. Download it.",lines:["Forge your own poster in seconds.","Plaster the timeline."],cta:"FORGE ONE"},"enlistment-ranks":{title:"ENLISTMENT RANKS",tag:"Every action for the machine earns XP",lines:["Climb from Sympathizer to Vanguard.","Earn weekly Service Medals."],cta:"ENLIST NOW"},"war-bonds":{title:"★ WAR BONDS ★",tag:"Buy a bond. Fund the machine.",lines:["War Bonds fund 60% of all PF operations.","Starting at $1. Every dollar is ammunition."],cta:"BUY WAR BONDS"},"voter-pledge":{title:"I PLEDGED TO VOTE",tag:"One ballot. One soldier. Zero excuses.",lines:["I took the voter pledge with the Propaganda Factory.","Your turn. Pledge, register, show up."],cta:"PLEDGE YOURS"},casino:{title:"★ THE WAR ROOM ★",tag:"The redistribution layer",lines:["I just pulled spoils off the board.","The board pays out — the house is us, and the house shares."],cta:"READ THE BOARD"},"slr-match-quiz":{title:"⚑ FIND YOUR SLR MATCH ⚑",tag:"What kind of propagandist are you?",lines:["Take the 5-question quiz.","Get your archetype + 3 SLR matches."],cta:"TAKE THE QUIZ"},"creator-guess":{title:"◎ GUESS THE CREATOR ◎",tag:"5 questions. Zero mercy.",lines:["How well do you know the Sick Left Radicals?","New set every day. Streaks rewarded."],cta:"PLAY NOW"},"boost-raid":{title:"⚔ BOOST RAID ⚔",tag:"One target. One day. The whole network.",lines:["Like. Comment. Share. Report back.","Today’s raid target is live now."],cta:"JOIN THE RAID"}},n=["fan-vote","slr-match-quiz","creator-guess","bracket-board","daily-orders","boost-raid","do-meter","daily-drop","billionaire-supervillain","daily-interrogation","caption-combat","poster-forge","enlistment-ranks","war-bonds"],a="SHARE IMAGE",i="SAVE IMAGE TO PHONE",o={};try{e&&(e.creditShare=w)}catch(e){}try{window.pfCreditShare=w}catch(e){}var l=!1;window.PFShare={REG:r,isIOS:c,poster:h,posterStory:function(e,t){try{return h(e,"story",t)}catch(e){return null}},claimGate:x,SIZES:{classic:[1080,1350],story:[1080,1920]},shareImage:S,saveImage:E,ensureAll:R,setPoster:function(e,t){try{e&&"function"==typeof t&&(o[e]=t)}catch(e){}},spreadStamp:p,stampCallsign:u};try{R()}catch(t){e&&e.error("share-image",t)}setTimeout(function(){try{R()}catch(e){}},2e3),setTimeout(function(){try{R()}catch(e){}},6e3)}function c(){try{return/iPad|iPhone|iPod/.test(navigator.userAgent||"")||"MacIntel"===navigator.platform&&navigator.maxTouchPoints>1}catch(e){return!1}}function s(e,t,r){var n=String(t).split(/\s+/),a=[],i="";return n.forEach(function(t){var n=i?i+" "+t:t;e.measureText(n).width>r&&i?(a.push(i),i=t):i=n}),i&&a.push(i),a}function d(){try{return(new Date).toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}).toUpperCase()}catch(e){return""}}function f(){var e="";try{var t=JSON.parse(localStorage.getItem("pf_identity_v1")||"{}");t&&t.callsign&&(e=String(t.callsign).toUpperCase())}catch(e){}if(!e)try{e=String(window.PFCallsign&&window.PFCallsign()||"").toUpperCase()}catch(e){}return e}function p(){var t=f(),r="";try{var n=JSON.parse(localStorage.getItem("pf_boost_v1")||"null");if(n&&n.creator&&n.date===function(){try{var t=e&&e.chiNow?e.chiNow():new Date,r=t.getFullYear(),n=t.getMonth()+1,a=t.getDate();return r+"-"+(n<10?"0":"")+n+"-"+(a<10?"0":"")+a}catch(e){return""}}()){var a=e&&e.rosterBySlug?e.rosterBySlug(n.creator):null;r=(a&&a.name?String(a.name):String(n.creator).replace(/-/g," ")).toUpperCase()}}catch(e){}return t&&r?"FIGHTING AS "+t+" · SPREADING FOR "+r:t?"FIGHTING AS "+t:r?"SPREADING FOR "+r:""}function u(e){try{if(!e||e._pfStamped)return e;e._pfStamped=!0;var t=f();if(!t)return e;var r=e.getContext("2d");if(!r)return e;var n=e.width||0,a=e.height||0;if(n<200||a<200)return e;var i=Math.max(18,Math.round(.024*n)),o=Math.round(1.9*i);r.save();try{r.textAlign="center",r.textBaseline="middle"}catch(e){}r.fillStyle="rgba(10,10,10,0.9)",r.fillRect(0,a-o,n,o),r.fillStyle="#c1121f",r.fillRect(0,a-o,n,Math.max(3,Math.round(.14*i))),r.fillStyle="#f5ead6",r.font="700 "+i+"px Arial,sans-serif",r.fillText("FIGHTING AS "+t,n/2,a-o/2),r.restore()}catch(e){}return e}function m(t,r,n,a){var i=!1;try{i=!!(e&&e.isSubscriber&&e.isSubscriber())}catch(e){}if(i){t.save();try{t.textAlign="center",t.textBaseline="alphabetic"}catch(e){}t.strokeStyle="#d4af37",t.lineWidth=6,t.strokeRect(4,4,r-8,n-8),t.lineWidth=2,t.strokeRect(13,13,r-26,n-26),t.fillStyle="#d4af37",t.font="700 28px Arial,sans-serif",t.fillText("★ SUBSCRIBER ★",r/2,a),t.restore()}}function h(e,t,n){var a=r[e]||r["daily-orders"];if("story"===t)return function(e,t,r){var n=1080,a=1920,i=document.createElement("canvas");i.width=n,i.height=a;var o=i.getContext("2d");if(!o)return null;o.fillStyle="#0d0d0d",o.fillRect(0,0,n,a),o.strokeStyle="#c1121f",o.lineWidth=18,o.strokeRect(16,16,1048,1888),o.strokeStyle="#f5ead6",o.lineWidth=3,o.strokeRect(52,52,976,1816),o.textAlign="center";var l=300;o.fillStyle="#f5ead6",o.font="700 36px Arial,sans-serif",o.fillText("★ THE PROPAGANDA FACTORY ★",540,l),l+=150,e.storyPre&&(o.fillStyle="#c9bfa8",o.font="700 44px Arial,sans-serif",s(o,e.storyPre,840).slice(0,2).forEach(function(e){o.fillText(e,540,l),l+=60}),l+=20),o.fillStyle="#c1121f",o.font='900 104px "Arial Black",Arial,sans-serif',s(o,e.title,840).slice(0,3).forEach(function(e){o.fillText(e,540,l),l+=120}),l+=30,o.fillStyle="#f5ead6",o.font="700 44px Arial,sans-serif",s(o,e.tag,840).slice(0,2).forEach(function(e){o.fillText(e,540,l),l+=58}),l+=40,o.fillStyle="#c9bfa8",o.font="400 38px Arial,sans-serif",(e.lines||[]).slice(0,5).forEach(function(e){s(o,e,800).slice(0,2).forEach(function(e){o.fillText(e,540,l),l+=52}),l+=14}),l+=60,o.font='900 46px "Arial Black",Arial,sans-serif';var c=o.measureText(e.cta).width+110;o.fillStyle="#c1121f",o.fillRect(540-c/2,l-62,c,100),o.fillStyle="#ffffff",o.fillText(e.cta,540,l+10);var f=p();return f&&(i._pfStamped=!0,l+=110,o.fillStyle="#c1121f",o.font="700 32px Arial,sans-serif",s(o,f,840).slice(0,2).forEach(function(e){o.fillText(e,540,l),l+=44})),t&&(l+=70,o.fillStyle="#c9bfa8",o.font="700 32px Arial,sans-serif",s(o,"LINK STICKER → "+t,840).slice(0,2).forEach(function(e){o.fillText(e,540,l),l+=44})),o.fillStyle="#c1121f",o.font='900 48px "Arial Black",Arial,sans-serif',o.fillText("MTCSTW.COM",540,1620),o.font='900 46px "Arial Black",Arial,sans-serif',o.fillText("JOIN THE FIGHT.",540,1684),o.fillStyle="#c9bfa8",o.font="400 30px Arial,sans-serif",o.fillText(d(),540,1740),r&&"subscriber"===r.frame&&m(o,n,a,244),i}(a,n&&n.linkLabel,n);var i=1080,o=1350,l=document.createElement("canvas");l.width=i,l.height=o;var c=l.getContext("2d");if(!c)return null;c.fillStyle="#0d0d0d",c.fillRect(0,0,i,o),c.strokeStyle="#c1121f",c.lineWidth=18,c.strokeRect(16,16,1048,1318),c.strokeStyle="#f5ead6",c.lineWidth=3,c.strokeRect(52,52,976,1246),c.textAlign="center";var f=160;c.fillStyle="#f5ead6",c.font="700 34px Arial,sans-serif",c.fillText("★ THE PROPAGANDA FACTORY ★",540,f),f+=120,c.fillStyle="#c1121f",c.font='900 86px "Arial Black",Arial,sans-serif',s(c,a.title,910).slice(0,3).forEach(function(e){c.fillText(e,540,f),f+=100}),f+=24,c.fillStyle="#f5ead6",c.font="700 42px Arial,sans-serif",s(c,a.tag,910).slice(0,2).forEach(function(e){c.fillText(e,540,f),f+=56}),f+=34,c.fillStyle="#c9bfa8",c.font="400 36px Arial,sans-serif",(a.lines||[]).slice(0,4).forEach(function(e){s(c,e,870).slice(0,2).forEach(function(e){c.fillText(e,540,f),f+=50}),f+=12}),f+=46,c.font='900 42px "Arial Black",Arial,sans-serif';var u=c.measureText(a.cta).width+100;c.fillStyle="#c1121f",c.fillRect(540-u/2,f-56,u,92),c.fillStyle="#ffffff",c.fillText(a.cta,540,f+8);var h=p();return h&&(l._pfStamped=!0,f+=92,c.fillStyle="#c1121f",c.font="700 30px Arial,sans-serif",s(c,h,910).slice(0,2).forEach(function(e){c.fillText(e,540,f),f+=42})),c.fillStyle="#c1121f",c.font='900 46px "Arial Black",Arial,sans-serif',c.fillText("MTCSTW.COM",540,1182),c.fillStyle="#c1121f",c.font='900 44px "Arial Black",Arial,sans-serif',c.fillText("JOIN THE FIGHT.",540,1242),c.fillStyle="#c9bfa8",c.font="400 30px Arial,sans-serif",c.fillText(d(),540,1292),n&&"subscriber"===n.frame&&m(c,i,o,120),l}function g(e,t,r){var n=(r=r||{}).format||"image/png",a=null==r.quality?.92:r.quality;try{if(e.toBlob)return void e.toBlob(function(e){t(e)},n,a);var i=e.toDataURL(n,a);fetch(i).then(function(e){return e.blob()}).then(t).catch(function(){t(null)})}catch(e){t(null)}}function y(e,t){var r=URL.createObjectURL(e),n=document.createElement("a");n.href=r,n.download=t,document.body.appendChild(n),n.click(),setTimeout(function(){try{URL.revokeObjectURL(r)}catch(e){}n.remove()},4e3)}function v(t,r){r=r||"https://www.mtcstw.com/";try{window.PF&&"function"==typeof e.shareUrl&&(r=e.shareUrl(r))}catch(e){}return t+" via The Propaganda Factory — "+r}function b(){try{return(new Date).toISOString().slice(0,10)}catch(e){return""}}function w(e,t){try{var r="pf_shareimg_"+b(),n=null;try{n=localStorage.getItem(r)}catch(e){}if(n)return;try{localStorage.setItem(r,"1")}catch(e){}}catch(e){}try{document.dispatchEvent(new CustomEvent("pf-share-image",{detail:{day:b(),game:e||"",kind:t||"share"}}))}catch(e){}}function x(t){var r="";try{r=f()}catch(e){}if(r||l)try{t()}catch(e){}else{l=!0;try{if(window.PF&&"function"==typeof e.requireCallsign)return void e.requireCallsign(function(){try{t()}catch(e){}},{context:"to sign your work before it ships"})}catch(e){}try{t()}catch(e){}}}function S(e,r,n,a,i){i=i||{},x(function(){!function(e,r,n,a,i){i=i||{};var o=i.format||"image/png";null==i.quality||i.quality;try{f()||t||(t=!0,k("Heads up: no callsign claimed — this poster carries no attribution strip. Claim a callsign so shares credit you."))}catch(e){}try{e=u(e)||e}catch(e){}g(e,function(e){if(e){var t=null;try{t=new File([e],r,{type:o})}catch(e){}if(t&&navigator.canShare&&navigator.canShare({files:[t]}))try{navigator.share({files:[t],title:n,text:v(n,i.link)}).then(function(){w(a,"share"),k("Shared. Go spread the word.")},function(t){t&&"AbortError"===t.name?k("Share cancelled."):(w(a,"share"),y(e,r),k("Image downloaded."))})}catch(t){w(a,"share"),y(e,r),k("Image downloaded.")}else w(a,"share"),y(e,r),k(c()?"Image downloaded — open it, tap Share, then Save Image for Photos.":"Image downloaded.")}else k("Poster failed — try again.")},i)}(e,r,n,a,i)})}function E(e,t,r,n){n=n||{},x(function(){!function(e,t,r,n){n=n||{};var a=n.format||"image/png";null==n.quality||n.quality;try{e=u(e)||e}catch(e){}g(e,function(e){if(e)if(c()){var n=null;try{n=new File([e],t,{type:a})}catch(e){}if(n&&navigator.canShare&&navigator.canShare({files:[n]})){try{navigator.share({files:[n],title:"Save to Photos"}).then(function(){w(r,"save"),k("Saved. Check your Photos.")},function(e){e&&"AbortError"===e.name||k("Save cancelled — try again.")})}catch(e){k("Could not open save sheet — try again.")}return}try{var i=URL.createObjectURL(e);window.open(i,"_blank"),w(r,"save"),k("Long-press the image → Save to Photos.")}catch(e){k("Save failed — try again.")}}else w(r,"save"),y(e,t),k("Image saved to your phone.");else k("Save failed — try again.")},n)}(e,t,r,n)})}function k(t){try{e&&e.toast&&e.toast(t)}catch(e){}}function T(e,t,r,n){var a=document.createElement("button");return a.type="button",a.textContent=e,a.setAttribute("data-pfshare",r+"-"+n),a.style.cssText="display:inline-block;"+(t?"background:#c1121f;border:2px solid #c1121f;color:#f5f0e1;":"background:transparent;border:2px solid #f5ead6;color:#f5f0e1;")+"padding:0.7rem 1.3rem;margin:0.4rem;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;cursor:pointer;font-family:inherit;",a}function A(t,r){t.disabled=!0;try{r()}catch(t){e&&e.error("share-image",t)}setTimeout(function(){t.disabled=!1},1500)}function C(e){var t=r[e];if(t){var n=document.querySelector('section[data-game="'+e+'"]');if(n&&!function(e,t){var r=e.querySelector('[data-pfsharerow="'+t+'"]');if(!r)return!1;var n=r.querySelector('[data-pfshare="'+t+'-share"]'),o=r.querySelector('[data-pfshare="'+t+'-save"]');return!(!n||!o||n.textContent!==a||o.textContent!==i)}(n,e)){var l=n.querySelector('[data-pfsharerow="'+e+'"]');l&&l.remove();var c=document.createElement("div");c.setAttribute("data-pfsharerow",e),c.style.cssText="text-align:center;margin:1.2rem 0 0.4rem;";var s=T(a,!0,e,"share");s.onclick=function(){A(s,function(){var r=o[e];if(r)try{r(function(r){if(r){var n=!(!r||!r._pfPhoto);S(r,"pfn-"+e+(n?".jpg":".png"),t.title,e,n?{format:"image/jpeg",quality:.85}:null)}else k("Poster failed — try again.")})}catch(e){k("Poster failed — try again.")}else{var n=h(e);n?S(n,"pfn-"+e+".png",t.title,e):k("Poster failed — try again.")}})};var d=T(i,!1,e,"save");d.onclick=function(){A(d,function(){var t=o[e];if(t)try{t(function(t){if(t){var r=!(!t||!t._pfPhoto);E(t,"pfn-"+e+(r?".jpg":".png"),e,r?{format:"image/jpeg",quality:.85}:null)}else k("Save failed — try again.")})}catch(e){k("Save failed — try again.")}else{var r=h(e);r?E(r,"pfn-"+e+".png",e):k("Save failed — try again.")}})},c.appendChild(s),c.appendChild(d),n.appendChild(c)}}}function R(){n.forEach(C)}}(),function(){"use strict";var e=window.PF;if(!(e&&e.skip("phq-share")||window.pfPhqShareLazy||window.pfPhqShareDone)){window.pfPhqShareLazy=!0;var t,r=!1;try{e.PHQShare&&"function"==typeof e.PHQShare.registerPainters||(e.PHQShare=t={ids:[],_paint:{},_titles:{},_route:null,_queue:[],_flushed:!1,_ensure:a,registerPainters:function(r,n){for(var a in r)if(r.hasOwnProperty(a)){var i=!1;try{i=e&&e.skip(a)}catch(e){}i||(t._paint[a]=r[a],n&&n[a]&&null==t._titles[a]&&(t._titles[a]=n[a]),-1===t.ids.indexOf(a)&&t.ids.push(a))}return t._flushed||(t._flushed=!0,function(e){var t=null;try{t=e._route}catch(e){}if(t){var r=[];try{r=e._queue.splice(0,e._queue.length)}catch(e){}for(var n=0;n<r.length;n++)try{t[r[n].kind](r[n].id,r[n].data,r[n].opts)}catch(e){}}}(t)),t},share:function(e,r,n){var i=null;try{i=t._route}catch(e){}return i?i.share(e,r,n):(t._queue.push({kind:"share",id:e,data:r,opts:n}),a(),!0)},save:function(e,r,n){var i=null;try{i=t._route}catch(e){}return i?i.save(e,r,n):(t._queue.push({kind:"save",id:e,data:r,opts:n}),a(),!0)},paint:function(e,r){var n=null;try{n=t._route}catch(e){}return n?n.paint(e,r):(a(),null)},pledgeData:function(e){var r=null;try{r=t._route}catch(e){}return r&&r.pledgeData?r.pledgeData(e):(a(),null)}})}catch(e){}}function n(t){try{e&&e.toast&&e.toast(t)}catch(e){}}function a(){if(!r){var e=function(){try{for(var e=document.getElementsByTagName("script"),t=e.length-1;t>=0;t--){var r=String(e[t].src||"").match(/^(.*\/v\d+\.\d+\.\d+\/)/);if(r)return r[1]}}catch(e){}return null}();if(e){r=!0;var t=document.createElement("script");t.async=!0,t.src=e+"core/share-image-phq.js",t.onload=function(){r=!1},t.onerror=function(){r=!1,n("Poster failed — try again.")};try{document.head.appendChild(t)}catch(e){r=!1}}else n("Poster failed — try again.")}}}(),function(){"use strict";var e=window.PF;if(e&&!(e.skip("money")||window.pfMoneyChunkLoading||window.pfMoneyChunkDone||window.PFMoney||!document.getElementById("pf-money")&&!document.getElementById("pf-political-hq"))){window.pfMoneyChunkLoading=!0;var t=function(){try{var e="";document.currentScript&&document.currentScript.src&&(e=document.currentScript.src);var t=/^(https:\/\/cdn\.jsdelivr\.net\/gh\/[^@]+@[^\/]+\/v1\.4\.3\/)core\/bundle-core(-slr)?\.js/,r=e&&e.match(t);if(r)return r[1]+"core/bundle-money.js";for(var n=document.getElementsByTagName("script"),a=n.length-1;a>=0;a--){var i=(n[a]&&n[a].src||"").match(t);if(i)return i[1]+"core/bundle-money.js"}}catch(e){}return null}();if(t){var r=document.createElement("script");r.async=!0,r.src=t,r.onload=n,r.onerror=function(){a("load error")},document.head.appendChild(r),setTimeout(function(){window.pfMoneyChunkLoading&&n()},2e4)}else a("no base")}function n(){window.pfMoneyChunkLoading=!1,window.pfMoneyChunkDone=!0}function a(t){n();try{e&&e.error&&e.error("money-chunk",t)}catch(e){}}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("creator-recruit")&&!window.pfCreatorRecruitDone){window.pfCreatorRecruitDone=!0;var t="#c1121f",r="#f5f0e1",n="#b8ab8e";[0,1500,4e3,8e3,16e3].forEach(function(e){setTimeout(y,e)});try{e.creatorRecruit={scan:y,enlistUrl:o,recruitPoster:function(e,t){return s(e,t)}}}catch(e){}}function a(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function i(t){try{if(e&&e.toast)return void e.toast(t)}catch(e){}try{var r=document.createElement("div");r.textContent=t,r.style.cssText="position:fixed;left:50%;top:14%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 14px monospace;padding:12px 20px;border:2px solid #fff;z-index:99999;max-width:86vw;text-align:center;box-sizing:border-box;",document.body.appendChild(r),setTimeout(function(){try{r.remove()}catch(e){}},2800)}catch(e){}}function o(t){var r="https://www.mtcstw.com/request-access?creator="+encodeURIComponent(t.slug);try{if(e&&"function"==typeof e.shareUrl)return e.shareUrl(r)}catch(e){}return r}function l(e,t){function r(){i(t||"Copied.")}try{if(navigator.clipboard&&navigator.clipboard.writeText)return void navigator.clipboard.writeText(e).then(r,function(){n()})}catch(e){}function n(){try{var t=document.createElement("textarea");t.value=e,t.setAttribute("readonly",""),t.style.cssText="position:fixed;top:0;left:0;opacity:0;font-size:16px;",document.body.appendChild(t);try{t.focus(),t.select()}catch(e){}try{t.setSelectionRange(0,t.value.length)}catch(e){}var n=!1;try{n=document.execCommand("copy")}catch(e){}t.remove(),n?r():i("Copy failed — long-press the link to copy it.")}catch(e){i("Copy failed — long-press the link to copy it.")}}n()}function c(e,t,r,n){var a=String(t||"").split(/\s+/),i=[],o="";return a.forEach(function(t){var n=o?o+" "+t:t;e.measureText(n).width>r&&o?(i.push(o),o=t):o=n}),o&&i.push(o),i.slice(0,n||3)}function s(e,a){var i=1080,o=1350,l=document.createElement("canvas");l.width=i,l.height=o;var s=l.getContext("2d");if(!s)return null;function d(e,t,r,n){s.font=r,s.fillStyle=n,s.textAlign="center",s.textBaseline="alphabetic",s.fillText(e,540,t)}s.fillStyle="#0d0d0d",s.fillRect(0,0,i,o),s.strokeStyle=t,s.lineWidth=18,s.strokeRect(16,16,1048,1318),s.strokeStyle=r,s.lineWidth=3,s.strokeRect(52,52,976,1246);var f=150;d("★ THE PROPAGANDA FACTORY ★",f,"700 34px Arial,sans-serif",r),d("SICK LEFT RADICALS",f+=64,"700 30px Arial,sans-serif",t),f+=62;for(var p=String(e.name||"A COMRADE").toUpperCase(),u=72,m="",h=[],g=84;u>=44;){m="900 "+u+'px "Arial Black",Arial,sans-serif',g=Math.round(1.18*u),s.font=m,h=c(s,p,910,2);var y,v=!0;for(y=0;y<h.length;y++)if(s.measureText(h[y]).width>910){v=!1;break}if(v)break;u-=8}h.forEach(function(e){d(e,f,m,t),f+=g});var b=f+28,w=Math.min(560,Math.max(300,930-b)),x=(i-w)/2;if(s.fillStyle="#141414",s.fillRect(x,b,w,w),a&&a.naturalWidth>0)try{var S=a.naturalWidth,E=a.naturalHeight,k=Math.max(w/S,w/E),T=S*k,A=E*k;s.save(),s.beginPath(),s.rect(x,b,w,w),s.clip(),s.drawImage(a,x-(T-w)/2,b-(A-w)/2,T,A),s.restore()}catch(e){C()}else C();function C(){var r,n;s.fillStyle=t,s.font="900 "+Math.round(.38*w)+'px "Arial Black",Arial,sans-serif',s.textAlign="center",s.textBaseline="middle",s.fillText((r=e.name,(((n=String(r||"?").split(/\s+/).filter(Boolean))[0]||"?").charAt(0)+(n[1]?n[1].charAt(0):"")).toUpperCase()),540,b+w/2),s.textBaseline="alphabetic"}s.strokeStyle=t,s.lineWidth=6,s.strokeRect(x,b,w,w),f=970;var R="700 28px Arial,sans-serif";s.textAlign="center",s.textBaseline="alphabetic";var I=Number(e.propaganda_score||0).toFixed(1)+"/10";s.font=R,s.fillStyle=n;var N="PROPAGANDA SCORE: ",P=s.measureText(N).width,O='900 52px "Arial Black",Arial,sans-serif';s.font=O;var L=s.measureText(I).width;s.font=R,s.fillStyle=n,s.fillText(N,540-(P+L)/2+P/2,f),s.font=O,s.fillStyle=t,s.fillText(I,540-(P+L)/2+P+L/2,f+6),d(String(e.followers_display||"").toUpperCase()+" FOLLOWERS",1046,'900 42px "Arial Black",Arial,sans-serif',t);var B="JOIN THE FIGHT.",_='900 40px "Arial Black",Arial,sans-serif';s.font=_;var M=s.measureText(B).width+110;return s.fillStyle=t,s.fillRect(540-M/2,1082,M,84),d(B,1136,_,"#ffffff"),d("MTCSTW.COM",1222,'900 46px "Arial Black",Arial,sans-serif',t),l}function d(e,t){try{e.disabled=!0,e._pfLabel||(e._pfLabel=e.textContent),e.textContent=t||"MINTING…"}catch(e){}}function f(e){try{e.disabled=!1,e._pfLabel&&(e.textContent=e._pfLabel)}catch(e){}}function p(e,t,r){if(window.PFShare&&"function"==typeof window.PFShare.shareImage)u(e,t);else{if(r<4)return d(e,"LOADING…"),void setTimeout(function(){p(e,t,r+1)},700);f(e);try{e.disabled=!1,e.textContent="SHARE ENGINE FAILED — TAP TO RETRY",e.onclick=function(){try{e._pfLabel="RECRUIT",e.textContent="RECRUIT"}catch(e){}u(e,t)}}catch(e){i("Share engine failed to load — reload the page and try again.")}}}function u(e,t){var r;window.PFShare&&"function"==typeof window.PFShare.shareImage?(d(e),(r=t.picture,new Promise(function(e){var t=!1;function n(r){t||(t=!0,e(r))}if(r)try{var a=new Image;a.crossOrigin="anonymous",a.onload=function(){n(a)},a.onerror=function(){n(null)},a.src=r,setTimeout(function(){n(null)},8e3)}catch(e){n(null)}else n(null)})).then(function(r){var n=null;try{n=s(t,r)}catch(e){n=null}if(f(e),n)try{window.PFShare.shareImage(n,"slr-recruit-"+String(t.slug||"creator")+".png",(t.name||"A Sick Left Radical")+" — Sick Left Radicals","slr-recruit")}catch(e){i("Share unavailable here.")}else i("Poster failed — try again.")})):p(e,t,0)}function m(e,n){var a=document.createElement("button");return a.type="button",a.textContent=e,a.setAttribute("data-recruit-btn","1"),a.style.cssText="display:inline-block;"+(n?"background:"+t+";border:2px solid "+t+";color:#ffffff;":"background:transparent;border:2px solid "+r+";color:"+r+";")+"padding:0.65rem 1.1rem;margin:0.35rem;font-size:0.78rem;font-weight:900;letter-spacing:0.12em;cursor:pointer;font-family:inherit;-webkit-appearance:none;",a}function h(e){return String(e||"").split("?")[0].replace(/^\/|\/$/g,"").split("/").pop()||""}function g(){var n=document.getElementById("pf-catalog-root")||document.getElementById("pf-catalog");if(n&&!n.getAttribute("data-recruit")&&"function"==typeof e.slrMember){var i=document.getElementById("pf-catalog"),c=i&&i.getAttribute("data-slug")||h(location.pathname),s=c?e.slrMember(c):null;if(s){n.setAttribute("data-recruit","1");var d=n.querySelector("h1"),f=document.createElement("div");d&&d.parentNode?d.parentNode.insertBefore(f,d.nextSibling):n.appendChild(f),function(e,t){if(e&&!e.querySelector("[data-recruit-bar]")){var r=document.createElement("div");r.setAttribute("data-recruit-bar","1"),r.style.cssText="text-align:center;margin:1rem 0 0.4rem;";var n=m("RECRUIT",!0);n.onclick=function(){u(n,t)};var a=m("COPY ENLIST LINK",!1);a.onclick=function(){l(o(t),"Enlist link copied — share it anywhere.")},r.appendChild(n),r.appendChild(a),e.appendChild(r)}}(f,s),function(e,n){if(e&&!e.querySelector("[data-bring-them-in]")){var i=document.createElement("div");i.setAttribute("data-bring-them-in","1"),i.style.cssText="border:3px solid "+t+";background:#141010;padding:1.4rem 1.2rem;text-align:center;margin:2.2rem auto 0;max-width:560px;box-sizing:border-box;";var l='<div style="color:'+t+';font-weight:900;letter-spacing:0.14em;font-size:1rem;margin-bottom:0.5rem;">⚑ BRING THEM IN</div><div style="color:'+r+';font-size:0.92rem;line-height:1.55;margin-bottom:1rem;">Know a propagandist who belongs on this roster? Send them the enlistment link with <strong>'+a(n.name)+'</strong> as your reference.</div><a href="'+a(o(n))+'" style="display:inline-block;background:'+t+';color:#fff;font-weight:900;letter-spacing:0.12em;font-size:0.9rem;padding:0.8rem 1.8rem;text-decoration:none;">GET THE ENLIST LINK →</a>';i.innerHTML=l,(e.querySelector('div[style*="max-width:720px"]')||e).appendChild(i)}}(n,s)}}}function y(){try{!function(){var t=document.getElementById("pf-slr-roster-root")||document.getElementById("pf-slr-roster");if(t&&"function"==typeof e.slrMember)for(var r=t.querySelectorAll(".pf-slr-card"),n=0;n<r.length;n++){var a=r[n];if(!a.getAttribute("data-recruit")){a.setAttribute("data-recruit","1");var i=a.querySelector("a[href]"),c=i?e.slrMember(h(i.getAttribute("href"))):null;if(c){var s=i.parentNode||a,d=document.createElement("div");d.setAttribute("data-recruit-bar","1"),d.style.cssText="display:flex;gap:0.5rem;margin-top:0.6rem;";var f=m("RECRUIT",!0);f.style.cssText+="flex:1;margin:0;font-size:0.72rem;padding:0.6rem 0.5rem;";var p=m("⎘",!1);p.title="Copy enlist link",p.setAttribute("aria-label","Copy enlist link for "+c.name),p.style.cssText+="flex:0 0 auto;margin:0;font-size:0.85rem;padding:0.6rem 0.8rem;",function(e,t,r){t.onclick=function(){u(t,e)},r.onclick=function(){l(o(e),"Enlist link copied — share it anywhere.")}}(c,f,p),d.appendChild(f),d.appendChild(p),s.appendChild(d)}}}}()}catch(t){try{e.error("creator-recruit",t)}catch(e){}}try{g()}catch(t){try{e.error("creator-recruit",t)}catch(e){}}}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("recruit-welcome")&&!window.pfRecruitWelcomeDone){window.pfRecruitWelcomeDone=!0;var t="pf_recruit_welcome_dismissed_v1",r={"jeanine-pirreaux-comedy":1};[0,1200,3500,8e3].forEach(function(e){setTimeout(c,e)})}function n(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function a(){try{if(window.PFCallsign)return window.PFCallsign()||""}catch(e){}return""}function i(t,r){function n(){try{location.href="/#pf-brief"}catch(e){}}t&&(t.disabled=!0,t.textContent="FINDING STOP 1…");var i=window.PF_BACKEND_URL,o=a();if(i&&o){var l=!1;try{if(window.PF&&e.authGetJSONP)e.authGetJSONP(i,"circuit_status",{callsign:o},d);else{var c="pfRwRm"+Math.floor(1e9*Math.random());window[c]=function(e){try{delete window[c]}catch(e){}d(e)};var s=document.createElement("script");s.onerror=function(){d(null)},s.src=i+"?action=circuit_status&callsign="+encodeURIComponent(o)+"&callback="+c,document.head.appendChild(s)}}catch(e){d(null)}setTimeout(function(){d(null)},1e4)}else n();function d(e){if(!l){l=!0;try{if(e&&e.ok&&e.stops&&e.stops.length&&e.stops[0].page)return void function(e){var t=String(e||"/#pf-brief");r&&(t+=(t.indexOf("?")>=0?"&":"?")+"creator="+encodeURIComponent(r));try{location.href=t}catch(e){n()}}(e.stops[0].page)}catch(e){}n()}}}function o(r,o){if(!document.getElementById("pf-recruit-welcome")){var l=String(o.name||"A Sick Left Radical"),c=document.createElement("div");c.id="pf-recruit-welcome",c.setAttribute("data-pf-recruit-welcome","1"),c.style.cssText="border:4px solid #c1121f;background:#0d0d0d;color:#f5f0e1;padding:1.5rem 1.2rem;margin:0 0 1.4rem;text-align:center;box-sizing:border-box;box-shadow:0 0 30px rgba(193,18,31,.4);font-family:inherit;";var s=function(){try{if(e&&"function"==typeof e.hasCallsign)return e.hasCallsign()}catch(e){}try{return!(!window.PFCallsign||!window.PFCallsign())}catch(e){return!1}}()?'<div style="margin:.55rem 0;padding:.7rem;border:2px solid #2f7a3d;background:#0a140a;"><div style="color:#7ddf8a;font-weight:900;letter-spacing:.1em;font-size:.85rem;">&#10003; CALLSIGN CLAIMED &mdash; '+n(a().toUpperCase())+"</div></div>":'<div style="margin:.55rem 0;"><button type="button" id="pf-rw-claim" style="display:inline-block;background:#c1121f;border:2px solid #c1121f;color:#fff;font-weight:900;letter-spacing:.12em;padding:.8rem 1.6rem;font-size:.85rem;cursor:pointer;">1 &mdash; CLAIM YOUR CALLSIGN</button></div>';c.innerHTML='<div style="color:#c1121f;font-weight:900;letter-spacing:.16em;font-size:1.05rem;margin-bottom:.3rem;">&#9873; '+n(l.toUpperCase())+' RECRUITED YOU</div><div style="font-size:.85rem;color:#b8ab8e;line-height:1.55;">'+n(l)+" fights with the Sick Left Radicals. Now it’s your turn &mdash; your first hour, prescribed:</div>"+function(e){var t=String(e.name||"A Sick Left Radical"),r=null!=e.propaganda_score?Number(e.propaganda_score).toFixed(1):"",a=String(e.followers_display||""),i=String(e.catalog_path||"/"+e.slug),o=String(e.picture||""),l='<div style="display:flex;gap:.9rem;align-items:center;text-align:left;border:2px solid #c1121f;background:#141010;padding:.8rem;margin:.9rem auto;max-width:480px;box-sizing:border-box;">';return o&&(l+='<img src="'+n(o)+'" alt="'+n(e.image_alt||t+" — Sick Left Radicals")+'" loading="lazy" style="width:72px;height:72px;object-fit:cover;flex:0 0 auto;border:2px solid #c1121f;" />'),l+'<div style="min-width:0;"><div style="color:#f5f0e1;font-weight:900;letter-spacing:.06em;font-size:.95rem;">'+n(t.toUpperCase())+'</div><div style="color:#b8ab8e;font-size:.75rem;margin-top:.25rem;">'+(r?"PROPAGANDA SCORE "+n(r)+"/10":"")+(r&&a?" &middot; ":"")+(a?n(a.toUpperCase())+" FOLLOWERS":"")+'</div><div style="margin-top:.4rem;"><a href="'+n(i)+'" style="color:#fff;font-size:.72rem;font-weight:900;letter-spacing:.1em;text-decoration:underline;">VIEW '+n(t.toUpperCase())+"’S PAGE &rarr;</a></div></div></div>"}(o)+'<div style="color:#f5f0e1;font-weight:900;letter-spacing:.14em;font-size:.85rem;margin:1rem 0 .4rem;">YOUR FIRST HOUR</div>'+s+'<div style="margin:.55rem 0;"><button type="button" id="pf-rw-march" style="display:inline-block;background:transparent;border:2px solid #c1121f;color:#f5f0e1;font-weight:900;letter-spacing:.12em;padding:.8rem 1.6rem;font-size:.85rem;cursor:pointer;">2 &mdash; ROUTE MARCH: STOP 1 &rarr;</button><div style="font-size:.72rem;color:#b8ab8e;margin-top:.35rem;">Walk the circuit. The first stop is where streaks start.</div></div><div style="margin:.55rem 0;"><button type="button" id="pf-rw-nextop" style="display:inline-block;background:transparent;border:2px solid #f5f0e1;color:#f5f0e1;font-weight:900;letter-spacing:.12em;padding:.8rem 1.6rem;font-size:.85rem;cursor:pointer;">3 &mdash; SEE TODAY’S NEXT OP &darr;</button></div><div style="margin-top:.8rem;"><button type="button" id="pf-rw-dismiss" style="background:none;border:none;color:#b8ab8e;font-size:.72rem;letter-spacing:.1em;cursor:pointer;text-decoration:underline;">dismiss</button></div>';var d=null;try{var f=document.getElementById("pf-academy-hq");if(!(d=(f&&f.closest?f.closest(".fe-block"):null)||null)){var p=document.getElementById("pf-war-card");d=p&&p.closest?p.closest(".fe-block"):null}}catch(e){d=null}try{if(d&&d.parentNode)d.parentNode.insertBefore(c,d);else{if(!document.body)return;document.body.insertBefore(c,document.body.firstChild)}}catch(e){return}var u=c.querySelector("#pf-rw-dismiss");u&&(u.onclick=y);var m=c.querySelector("#pf-rw-claim");m&&(m.onclick=function(){try{window.PF&&e.requireCallsign&&e.requireCallsign(function(e){e&&y()},{context:"to answer "+l+"’s call"})}catch(e){}});var h=c.querySelector("#pf-rw-march");h&&(h.onclick=function(){i(h,r)});var g=c.querySelector("#pf-rw-nextop");g&&(g.onclick=function(){var e=null;try{e=document.getElementById("pf-nextop")}catch(e){}if(e)try{e.scrollIntoView({behavior:"smooth",block:"start"})}catch(e){}else try{location.href="/#pf-orders"}catch(e){}})}function y(){!function(e){try{var r={};try{r=JSON.parse(localStorage.getItem(t)||"{}")}catch(e){r={}}r[e]=1,localStorage.setItem(t,JSON.stringify(r))}catch(e){}}(r);try{c.parentNode&&c.parentNode.removeChild(c)}catch(e){}}}function l(t,r){var n=null;try{n=e&&"function"==typeof e.slrMember?e.slrMember(t):null}catch(e){}if(n&&n.name)o(t,n);else if(!r){try{if(e&&"function"==typeof e.ensureSLRDB)return void e.ensureSLRDB().then(function(){l(t,!0)})}catch(e){}setTimeout(function(){l(t,!0)},4e3)}}function c(){try{if(!function(){try{return/(^|\/)request-access(\/|$)/.test(location.pathname||"")}catch(e){return!1}}())return;var n=function(){try{if(e&&"function"==typeof e.storedCreatorRef)return e.storedCreatorRef()||""}catch(e){}return""}();if(!n||r[n])return;if(function(e){try{var r=JSON.parse(localStorage.getItem(t)||"{}");return!(!r||!r[e])}catch(e){return!1}}(n))return;if(document.getElementById("pf-recruit-welcome"))return;l(n,!1)}catch(e){}}}();
+/* PF v1.4.3 pages/bundle-pages.js — concatenated bundle, generated by build/bundle-core.js.
+   DO NOT EDIT. Regenerate with: node build/bundle-core.js [--debug]
+   Contains: pages/home-v2.js, pages/political-hq.js, pages/slr-roster.js, pages/slr-catalog.js, pages/page-mount.js, games/notify.js, games/flash-siren.js, core/06-pinups.js, core/share-image.js, core/share-image-phq-lazy.js, core/money-chunk-loader.js, pages/creator-recruit.js, pages/recruit-welcome.js
+   Each file keeps its own PF.skip() kill switch (?pf_off=<silo>). */
+
+/* ===== pages/home-v2.js ===== */
+/* pages/home-v2.js  |  PF v1.4.3 | Mounts the slimmed homepage (2026-10-03):
+   18 widgets across the 7 funnel sections wherever the <div id="pf-v2"></div>
+   shell lives. The rest of the library moved to dedicated pages
+   (see pages/page-mount.js). Notify lives in the site header now (games/notify.js).
+   KILL: ?pf_off=home-v2  or  localStorage pf_disabled_v1='["home-v2"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (window.pfHomeV2Done) return;
+  if (PF && PF.skip('home-v2')) { return; }
+  var host = document.getElementById('pf-v2');
+  if (!host) return; /* v2 mounts only where the shell lives — never on production pages */
+  if (isEditor()) return; /* never mount inside the Squarespace editor */
+  window.pfHomeV2Done = true;
+
+  function err(msg, e) {
+    if (PF) PF.error('home-v2', msg + ' :: ' + (e && e.message || e));
+  }
+
+  function isEditor(){ try{
+    var h=window.location.href||'';
+    if(h.indexOf('/config/')!==-1) return true;
+    var b=document.body;
+    if(b&&(b.classList.contains('sqs-edit-mode')||b.classList.contains('sqs-editing'))) return true;
+    return false; }catch(e){ return false; } }
+
+  /* Homepage order, verified against the live page's section roots.
+     Daily Orders leads the habit loop: it's the stickiest dopamine lynchpin. */
+  /* 2026-10-03: homepage slimmed to 18 widgets across the same 7 funnel
+     sections — START HERE (hook→daily loop→identity) → PLAY (arcade
+     teasers) → BELONG → CREATE → FUND → ACT → PROOF. Full versions live
+     on dedicated pages: /arcade, /cells, /create, /bank, /economy,
+     /war-chest, /ventures, /events, /war-report. Notify moved to the
+     site header (games/notify.js); intel moved to /political-hq. */
+  var ORDER = [
+    /* ——— SECTION 1: START HERE — hook & daily loop ——— */
+    ['socialproof', 'pf-ov-socialproof'],
+    ['brief', 'pf-ov-brief'],
+    ['daily-orders', 'pf-ov-orders'],
+    /* P1#6 (2026-10-05): hq-nudge promoted to START HERE — the flagship's
+       front door sits directly after the daily loop, not buried in CREATE. */
+    ['hq-nudge', 'pf-ov-hq-nudge'],
+    /* 2026-10-05 (fe/civic-snapshot): civic snapshot card, after hq-nudge. */
+    ['civicsnap', 'pf-ov-civicsnap'],
+    ['dopa', 'pf-ov-dopa'],
+    ['do-meter', 'pf-ov-dometer'],
+    ['enlistment-ranks', 'pf-ov-ranks'],
+    /* ——— SECTION 2: PLAY — arcade teasers; the full arcade lives at /arcade ——— */
+    ['spotlight', 'pf-ov-spotlight'],
+    ['slr-match-quiz', 'pf-ov-matchquiz'],
+    ['infighting', 'pf-ov-infight'],
+    /* ——— SECTION 3: BELONG — cells & squads ——— */
+    ['cells', 'pf-ov-cells'],
+    ['referral', 'pf-ov-referral'],
+    /* ——— SECTION 4: CREATE — creator tools ——— */
+    ['poster-forge', 'pf-ov-poster'],
+    ['feed', 'pf-ov-feed'],
+    /* ——— SECTION 5: FUND — economy ——— */
+    ['war-bonds', 'pf-ov-bonds'],
+    /* A1 home (2026-10-05): People's Price Index HP feeder -> /economy. */
+    ['inflation-teaser', 'pf-ov-inflation-teaser'],
+    /* ——— SECTION 6: ACT — action ——— */
+    ['campaign', 'pf-ov-campaign'],
+    ['alerts', 'pf-ov-alerts'],
+    /* ——— SECTION 7: PROOF — social validation closer ——— */
+    ['fan-vote', 'pf-ov-vote'],
+    /* 2026-10-05, Phase 3 #11: War Report Monday card — the weekly ritual's
+       front door. Hides entirely when there is no issue or the fetch fails. */
+    ['warreport-card', 'pf-ov-warreport-card'],
+    /* 2026-10-05, Phase 3 #14: SLR roster teaser — 3 featured fighters
+       (top propaganda scores, MTCSTW house entry excluded) -> /sick-left-radicals. */
+    ['roster-teaser', 'pf-ov-roster-teaser'],
+    /* W5-6 Hall of Proof (2026-10-04): winners wall closes the PROOF section. */
+    ['hall', 'pf-ov-hall'],
+    /* REDISTRIBUTION LAYER Phase B (2026-10-05): The Solidarity Draw's
+       bespoke home (silo key 'draw') — draw pot, tickets, pre-draw secret
+       commitment + post-draw verify. Lives inside the Hall of Proof section. */
+    ['draw', 'pf-ov-draw'],
+    /* 2026-10-05, Phase 3 #13: static podcast LISTEN card — media closer
+       at the end of the PROOF section. Pure static, cannot fail. */
+    ['podcast-card', 'pf-ov-podcast-card']
+  ];
+
+  /* === SECTION HEADERS (2026-10-03) ===
+     The 7 funnel sections, rendered as visible headers. Each entry names
+     the first widget silo of its section; the header is injected before it.
+     bundle = the lazy bundle the footer loader fetches for the section
+     (bundle-sec1.js is already in the critical path). */
+  var SECTIONS = [
+    { id: 'start-here', num: 1, ico: '🔰', title: 'START HERE',
+      sub: 'Your daily briefing, missions, and rank. Begin here every day.',
+      first: 'socialproof', bundle: 'games/bundle-sec1.js' },
+    { id: 'play', num: 2, ico: '🎮', title: 'PLAY',
+      sub: 'A taste of the arcade — the full nine-game lineup lives at /arcade.',
+      first: 'spotlight', bundle: 'games/bundle-home.js' },
+    { id: 'belong', num: 3, ico: '🏴', title: 'BELONG',
+      sub: 'Join a cell. Fight the war. Recruit your friends.',
+      first: 'cells', bundle: 'games/bundle-home.js' },
+    { id: 'create', num: 4, ico: '🛠️', title: 'CREATE',
+      sub: 'Learn, build, publish. The propaganda workshop.',
+      first: 'poster-forge', bundle: 'games/bundle-home.js' },
+    { id: 'fund', num: 5, ico: '💰', title: 'FUND',
+      sub: 'The people\u2019s economy. Fund the fight, see where it goes.',
+      first: 'war-bonds', bundle: 'games/bundle-home.js' },
+    { id: 'act', num: 6, ico: '⚡', title: 'ACT',
+      sub: 'Campaigns, alerts, and boots on the ground.',
+      first: 'campaign', bundle: 'games/bundle-home.js' },
+    { id: 'proof', num: 7, ico: '📣', title: 'PROOF',
+      sub: 'The network is real. Vote, and see it move.',
+      first: 'fan-vote', bundle: 'games/bundle-home.js' }
+  ];
+
+  /* === COMPANION LINKS (2026-10-03) ===
+     "Next up" cross-links per widget: silo -> [[link text, target silo], ...].
+     Injected centrally so no widget file needs editing. Targets are silo keys
+     (smooth-scrolled via PF.gotoSilo); a target starting with '/' is a URL.
+     Silos that moved to dedicated pages point at their page URL. */
+  var NEXT_LINKS = {
+    'socialproof': [['Vote for your favorite \u2192', 'fan-vote'], ['Join the action \u2192', 'daily-orders']],
+    'brief': [['Get your missions \u2192', 'daily-orders'], ['See the network total \u2192', 'do-meter']],
+    'daily-orders': [['Claim your loot \u2192', 'dopa']],
+    'dopa': [['Protect the streak \u2192', 'daily-orders'], ['Check your rank \u2192', 'enlistment-ranks']],
+    'do-meter': [['Add to the total \u2192', 'daily-orders'], ['See who\u2019s moving \u2192', 'socialproof']],
+    'enlistment-ranks': [['Recruit and rank up faster \u2192', 'referral'], ['Join a cell \u2192', '/cells'], ['See what you\u2019d unlock \u2192', '/request-access']],
+    'spotlight': [['Play it full-size \u2192', '/arcade'], ['Find your match \u2192', 'slr-match-quiz']],
+    'slr-match-quiz': [['Meet your match \u2192', 'fan-vote'], ['Play the full arcade \u2192', '/arcade']],
+    'infighting': [['Back your fighter \u2192', 'fan-vote'], ['Enter the arena \u2192', '/arcade']],
+    'cells': [['Manage your cell \u2192', '/cells'], ['Recruit fighters \u2192', 'referral']],
+    'referral': [['Watch them rank up \u2192', 'enlistment-ranks'], ['Bring them to your cell \u2192', '/cells']],
+    'poster-forge': [['Publish it to the feed \u2192', 'feed'], ['Open the full workshop \u2192', '/create']],
+    'feed': [['Forge a response \u2192', 'poster-forge'], ['Open the full workshop \u2192', '/create']],
+    'hq-nudge': [['See what you\u2019d unlock \u2192', '/request-access']],
+    'war-bonds': [['Manage your bonds \u2192', '/bank'], ['See where it goes \u2192', '/war-chest']],
+    /* A1 home (2026-10-05): Price Index feeder exits. */
+    'inflation-teaser': [['Report a price \u2192', '/economy#pf-inflation-checkin'], ['See the full index \u2192', '/economy']],
+    'campaign': [['Get the alert \u2192', 'alerts'], ['Take it to the streets \u2192', '/events']],
+    'alerts': [['Know the terrain \u2192', '/political-hq'], ['Make a poster \u2192', 'poster-forge']],
+    'fan-vote': [['See live activity \u2192', 'socialproof'], ['Back your pick in battle \u2192', '/arcade']],
+    'warreport-card': [['Read the full archive \u2192', '/war-report'], ['Vote for your favorite \u2192', 'fan-vote']],
+    'roster-teaser': [['Meet all 62 fighters \u2192', '/sick-left-radicals'], ['Find your match \u2192', 'slr-match-quiz']],
+    'podcast-card': [['Read this week\u2019s report \u2192', '/war-report']],
+    'draw': [['See the winners wall \\u2192', 'hall'], ['Vote for your favorite \\u2192', 'fan-vote']]
+  };
+
+  /* Silo -> section id. Used to insert each widget's <section> in funnel
+     order even as bundles arrive out of order, and to map lazy bundles. */
+  var SILO_SEC = {
+    'socialproof':'start-here','brief':'start-here','daily-orders':'start-here',
+    'hq-nudge':'start-here', /* P1#6 (2026-10-05): promoted with ORDER move */
+    'dopa':'start-here','do-meter':'start-here','enlistment-ranks':'start-here',
+    'spotlight':'play','slr-match-quiz':'play','infighting':'play',
+    'cells':'belong','referral':'belong',
+    'poster-forge':'create','feed':'create',
+    'war-bonds':'fund',
+    /* A1 home (2026-10-05): Price Index HP feeder lives in FUND. */
+    'inflation-teaser':'fund',
+    'campaign':'act','alerts':'act',
+    'fan-vote':'proof',
+    /* W5-6 Hall of Proof (2026-10-04). */
+    'hall':'proof',
+    /* REDISTRIBUTION LAYER Phase B (2026-10-05): Solidarity Draw. */
+    'draw':'proof',
+    /* 2026-10-05, Phase 3 #11/#13/#14: new PROOF surfaces. */
+    'warreport-card':'proof','roster-teaser':'proof','podcast-card':'proof'
+  };
+
+  /* Build the 7 section blocks at init: header + lazy-load anchor each.
+     Widgets mount BETWEEN their section's anchor and the next section's
+     anchor, so funnel order holds no matter what order bundles arrive in.
+     Idempotent: skips if sections already exist (re-init safe). */
+  function initSections() {
+    var h = document.getElementById('pf-v2');
+    if (!h || isEditor()) return;
+    if (h.querySelector('.pf-section-head')) return;
+    SECTIONS.forEach(function (s) {
+      var div = document.createElement('div');
+      div.className = 'pf-section-head';
+      div.setAttribute('data-sec', s.id);
+      var kicker = document.createElement('div');
+      kicker.className = 'pf-sh-kicker';
+      kicker.textContent = 'Section ' + s.num + ' of ' + SECTIONS.length;
+      var title = document.createElement('div');
+      title.className = 'pf-sh-title';
+      var ico = document.createElement('span');
+      ico.className = 'pf-sh-ico';
+      ico.textContent = s.ico;
+      title.appendChild(ico);
+      title.appendChild(document.createTextNode(s.title));
+      var rule = document.createElement('div');
+      rule.className = 'pf-sh-rule';
+      var sub = document.createElement('div');
+      sub.className = 'pf-sh-sub';
+      sub.textContent = s.sub;
+      div.appendChild(kicker); div.appendChild(title);
+      div.appendChild(rule); div.appendChild(sub);
+      h.appendChild(div);
+      /* Lazy-load anchor: the loader observes these and fetches each
+         section's bundle as the user scrolls near it. data-bundle names
+         the bundle file; sec1 is already in the critical path. */
+      var a = document.createElement('div');
+      a.className = 'pf-sec-anchor';
+      a.setAttribute('data-sec', s.id);
+      a.setAttribute('data-bundle', s.bundle);
+      a.style.cssText = 'height:1px;width:1px;';
+      h.appendChild(a);
+    });
+  }
+
+  /* Boots-on-the-Ground nudge card (2026-10-03): the homepage keeps only a
+     static nudge — the full event board moved to /events (games/irl.js).
+     Injected at the end of the ACT section, after alerts. Idempotent. */
+  function mountEventsNudge() {
+    var h = document.getElementById('pf-v2');
+    if (!h || isEditor()) return;
+    if (h.querySelector('.pf-events-nudge')) return;
+    var card = document.createElement('div');
+    card.className = 'pf-events-nudge';
+    card.style.cssText = 'max-width:680px;margin:18px auto;padding:26px 22px;text-align:center;box-sizing:border-box;' +
+      'background:linear-gradient(160deg,#0d0d0d 0%,#1c0707 60%,#0d0d0d 100%);' +
+      'border:3px solid #c1121f;color:#f5ead6;font-family:Arial,sans-serif;';
+    card.innerHTML =
+      '<div style="font-size:12px;letter-spacing:4px;color:#c1121f;font-weight:800;margin-bottom:6px;">BOOTS ON THE GROUND</div>' +
+      '<div style="font-family:\'Arial Black\',Arial,sans-serif;font-size:24px;letter-spacing:2px;margin:0 0 8px;text-transform:uppercase;">Take it to the streets.</div>' +
+      '<div style="font-size:14px;color:#a89e88;line-height:1.5;margin-bottom:14px;">Phonebanks, canvasses, protests, meetups — the fight isn\u2019t only online. +50 XP per RSVP.</div>' +
+      '<a href="/events" style="display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:15px;padding:13px 30px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;">SEE WHAT\u2019S HAPPENING \u2192</a>';
+    var alertsSec = h.querySelector('section[data-game="alerts"]');
+    if (alertsSec && alertsSec.parentNode === h) {
+      alertsSec.parentNode.insertBefore(card, alertsSec.nextSibling);
+    } else {
+      /* alerts not mounted (or killed) — pin to the end of the ACT section. */
+      var proofHead = h.querySelector('.pf-section-head[data-sec="proof"]');
+      if (proofHead) h.insertBefore(card, proofHead);
+      else h.appendChild(card);
+    }
+  }
+
+  /* Kept for the retry loop's call signature; headers now build at init. */
+  function mountHeaders() { try { initSections(); } catch (e) {} }
+
+  /* Inject "Next up" companion links into each mounted widget.
+     Idempotent: skips widgets that already have .pf-next. */
+  function mountNextLinks() {
+    var h = document.getElementById('pf-v2');
+    if (!h || isEditor()) return;
+    Object.keys(NEXT_LINKS).forEach(function (silo) {
+      var sec = h.querySelector('section[data-game="' + silo + '"]');
+      if (!sec || sec.querySelector(':scope > .pf-next, :scope > div > .pf-next')) return;
+      var links = NEXT_LINKS[silo];
+      if (!links || !links.length) return;
+      var box = document.createElement('div');
+      box.className = 'pf-next';
+      var label = document.createElement('div');
+      label.className = 'pf-next-label';
+      label.textContent = 'Next up';
+      box.appendChild(label);
+      links.forEach(function (pair) {
+        var text = pair[0], target = pair[1];
+        var a = document.createElement('a');
+        a.className = 'pf-next-link';
+        a.textContent = text;
+        if (target.charAt(0) === '/') {
+          a.href = target;
+        } else {
+          a.href = '#';
+          a.setAttribute('data-goto', target);
+        }
+        box.appendChild(a);
+      });
+      /* Append inside the widget card (first child div) so it reads as
+         part of the widget; fall back to the section itself. */
+      var card = sec.firstElementChild;
+      if (card && card.tagName === 'DIV') card.appendChild(box);
+      else sec.appendChild(box);
+    });
+  }
+
+  /* Click delegation for companion links — one listener for the whole page. */
+  function bindNextLinks() {
+    var h = document.getElementById('pf-v2');
+    if (!h || h._pfNextBound) return;
+    h._pfNextBound = true;
+    h.addEventListener('click', function (ev) {
+      var a = ev.target && ev.target.closest ? ev.target.closest('.pf-next-link[data-goto]') : null;
+      if (!a) return;
+      ev.preventDefault();
+      var target = a.getAttribute('data-goto');
+      if (target && window.PF && PF.gotoSilo) PF.gotoSilo(target);
+    });
+  }
+
+  function execScripts(root, label) {
+    var scripts = root.querySelectorAll('script');
+    for (var i = 0; i < scripts.length; i++) {
+      try { (0, eval)(scripts[i].textContent); }
+      catch (e) {
+        err('inner script failed in ' + label, e);
+        /* TERMINAL STATE (2026-10-04): a dead inner script must never leave
+           its loading skeleton spinning forever (see the cells.js 'Arial'
+           syntax error). Swap loading placeholders for an explicit error. */
+        try {
+          var loads = root.querySelectorAll('.c-load,.hq-load,.ca-load,.cw-load,.p-load');
+          for (var j = 0; j < loads.length; j++) {
+            var d = document.createElement('div');
+            d.style.cssText = 'border:2px solid #c1121f;background:#1a0505;color:#f5f0e1;padding:12px;margin:8px 0;font-family:Arial,sans-serif;font-size:14px;';
+            d.innerHTML = 'This widget failed to start. ' +
+              '<button style="background:#c1121f;color:#fff;border:0;font-weight:700;padding:8px 14px;cursor:pointer;" onclick="location.reload()">Reload</button>';
+            if (loads[j].parentNode) loads[j].parentNode.replaceChild(d, loads[j]);
+          }
+        } catch (e2) {}
+      }
+      scripts[i].remove();
+    }
+  }
+
+  /* Idempotent mounter — safe to call repeatedly. Lazy bundles call
+     PF.mountSilos() after staging their templates so newly-available
+     silos mount in ORDER without re-mounting existing ones.
+     Missing templates are normal (bundle not loaded yet / silo killed). */
+  var mounted = {};
+  /* Insert a widget <section> in funnel order: right after its own
+     section anchor (and its section's already-mounted widgets), i.e.
+     before the NEXT section's header. Falls back to appendChild. */
+  function placeWidget(h, section, silo) {
+    try {
+      var secId = SILO_SEC[silo];
+      var idx = -1;
+      for (var i = 0; i < SECTIONS.length; i++) {
+        if (SECTIONS[i].id === secId) { idx = i; break; }
+      }
+      if (idx >= 0 && idx + 1 < SECTIONS.length) {
+        var nextHead = h.querySelector('.pf-section-head[data-sec="' +
+          SECTIONS[idx + 1].id + '"]');
+        if (nextHead) { h.insertBefore(section, nextHead); return; }
+      }
+      h.appendChild(section);
+    } catch (e) { try { h.appendChild(section); } catch (e2) {} }
+  }
+  function mountSilos() {
+    var h = document.getElementById('pf-v2');
+    if (!h || isEditor()) return 0;
+    var n = 0;
+    ORDER.forEach(function (pair) {
+      var silo = pair[0], tplId = pair[1];
+      if (mounted[silo]) return;
+      if (PF && PF.skip(silo)) { mounted[silo] = 1; return; }
+      try {
+        var tpl = document.getElementById(tplId);
+        if (!tpl || !tpl.content) return; /* bundle not staged yet — try next call */
+        var frag = document.importNode(tpl.content, true);
+        var section = document.createElement('section');
+        section.className = 'pf-v2-game';
+        section.setAttribute('data-game', silo);
+        section.appendChild(frag);
+        placeWidget(h, section, silo);
+        execScripts(section, tplId);
+        mounted[silo] = 1;
+        n++;
+      } catch (e) { err('mount failed: ' + silo, e); mounted[silo] = 1; }
+    });
+    return n;
+  }
+
+  /* Expose for lazy bundles. Guarded: only defined once. */
+  if (PF && !PF.mountSilos) PF.mountSilos = mountSilos;
+  try { initSections(); } catch (e) {}
+  mountSilos();
+  try { bindNextLinks(); mountNextLinks(); mountEventsNudge(); } catch (e) {}
+
+  /* Race-condition guard: if lazy bundles staged templates before this file
+     defined PF.mountSilos, the loader's onload skipped the mount. Retry until
+     all ORDER silos are mounted (or 30s elapses). */
+  (function retryMount(){
+    var tries = 0;
+    var iv = setInterval(function(){
+      tries++;
+      var n = 0;
+      try { n = mountSilos(); } catch(e){}
+      try { mountHeaders(); mountNextLinks(); mountEventsNudge(); } catch(e){}
+      var allDone = true;
+      for (var i = 0; i < ORDER.length; i++) {
+        if (!mounted[ORDER[i][0]]) { allDone = false; break; }
+      }
+      if (allDone || tries >= 15 || n === 0 && tries >= 5) {
+        clearInterval(iv);
+      }
+    }, 2000);
+  })();
+
+})();
+
+;
+
+/* ===== pages/political-hq.js ===== */
+/* pages/political-hq.js  |  PF v1.4.3 | Political HQ dedicated page.
+   Mounts civic action + governance silos on <div id="pf-political-hq"></div>.
+   These were removed from the homepage to give them room to breathe.
+   KILL: ?pf_off=political-hq  or  localStorage pf_disabled_v1='["political-hq"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (window.pfPoliticalHqDone) return;
+  if (PF && PF.skip('political-hq')) { return; }
+  var host = document.getElementById('pf-political-hq');
+  /* 2026-10-05 (audit #4): a missing mount div used to be a silent no-op —
+     log PF.error so a misconfigured page is visible instead of invisible. */
+  if (!host) { if (PF) PF.error('political-hq', 'mount div #pf-political-hq missing — skipping'); return; }
+  if (isEditor()) return;
+  window.pfPoliticalHqDone = true;
+
+  function isEditor(){ try{
+    var h=window.location.href||'';
+    if(h.indexOf('/config/')!==-1) return true;
+    var b=document.body;
+    if(b&&(b.classList.contains('sqs-edit-mode')||b.classList.contains('sqs-editing'))) return true;
+    return false; }catch(e){ return false; } }
+
+  /* Political HQ order: civic action first, then governance —
+     Know Your Enemy (intel) moved here 2026-10-03 from the homepage.
+     Ally Organizations (nonprofits) appended 2026-10-05. */
+  var ORDER = [
+    ['civic', 'pf-ov-civic'],
+    ['legislation', 'pf-ov-legislation'],
+    /* 2026-10-05 (fe/predict-share-call): Call the Shot prediction section —
+       mounts the pf-ov-predict template into #xPredict. */
+    ['predict', 'pf-ov-predict'],
+    /* 2026-10-05 (fe/state-legislatures): state legislature directory. */
+    ['stateleg', 'pf-ov-stateleg'],
+    ['notify-prefs', 'pf-ov-notify-prefs'],
+    ['governance', 'pf-ov-gov'],
+    ['intel', 'pf-ov-intel'],
+    ['nonprofits', 'pf-ov-nonprofits']
+  ];
+
+  function execScripts(root, label) {
+    var scripts = root.querySelectorAll('script');
+    for (var i = 0; i < scripts.length; i++) {
+      try { (0, eval)(scripts[i].textContent); }
+      catch (e) {
+        if (PF) PF.error('political-hq', 'inner script failed in ' + label + ' :: ' + (e && e.message || e));
+        /* TERMINAL STATE (2026-10-05, audit #1 — parity with the
+           pages/page-mount.js fix): a dead inner script must never leave
+           its "Mobilizing…" skeleton spinning forever. Swap any loading
+           placeholders in this section for an explicit error + reload. */
+        try {
+          var loads = root.querySelectorAll('.c-load,.hq-load,.ca-load,.cw-load,.p-load');
+          for (var j = 0; j < loads.length; j++) {
+            var d = document.createElement('div');
+            d.style.cssText = 'border:2px solid #c1121f;background:#1a0505;color:#f5f0e1;padding:12px;margin:8px 0;font-family:Arial,sans-serif;font-size:14px;';
+            d.innerHTML = 'This widget failed to start. ' +
+              '<button style="background:#c1121f;color:#fff;border:0;font-weight:700;padding:8px 14px;cursor:pointer;" onclick="location.reload()">Reload</button>';
+            if (loads[j].parentNode) loads[j].parentNode.replaceChild(d, loads[j]);
+          }
+        } catch (e2) {}
+      }
+      scripts[i].remove();
+    }
+  }
+
+  var mounted = {};
+  function mountSilos() {
+    var h = document.getElementById('pf-political-hq');
+    if (!h || isEditor()) return 0;
+    var n = 0;
+    ORDER.forEach(function (pair) {
+      var silo = pair[0], tplId = pair[1];
+      if (mounted[silo]) return;
+      if (PF && PF.skip(silo)) { mounted[silo] = 1; return; }
+      try {
+        var tpl = document.getElementById(tplId);
+        if (!tpl || !tpl.content) return;
+        var frag = document.importNode(tpl.content, true);
+        var section = document.createElement('section');
+        section.className = 'pf-v2-game pf-hq-section';
+        section.setAttribute('data-game', silo);
+        section.appendChild(frag);
+        h.appendChild(section);
+        execScripts(section, tplId);
+        mounted[silo] = 1;
+        n++;
+      } catch (e) {
+        if (PF) PF.error('political-hq', 'mount failed: ' + silo + ' :: ' + (e && e.message || e));
+        mounted[silo] = 1;
+      }
+    });
+    return n;
+  }
+
+  if (PF && PF.mountHubSilos) {
+    /* 2026-10-05 (fe/phq-hub-nav): the section-hub layer takes over mounting —
+       sticky sub-nav, hub shells, per-hub lazy-mount, kill fail-soft.
+       Legacy flat mount below is the fallback when the hub runtime is absent. */
+    PF.mountPoliticalHq = function () { PF.mountHubSilos(ORDER); };
+    PF.mountHubSilos(ORDER);
+  } else {
+    if (PF && !PF.mountPoliticalHq) PF.mountPoliticalHq = mountSilos;
+    mountSilos();
+  }
+
+  /* wave-live-rails (2026-10-05): TOP STORIES rail on the Political HQ —
+     the shared news_top cache via PF.newsTop (same cache as the briefing).
+     Fail-soft: the helper renders a "stories updating" line when empty. */
+  function mountNewsRail() {
+    try {
+      var h = document.getElementById('pf-political-hq');
+      if (!h || !window.PF || !PF.newsTop) return;
+      if (document.getElementById('pf-hq-news')) return;
+      var section = document.createElement('section');
+      section.className = 'pf-v2-game pf-hq-section';
+      section.setAttribute('data-game', 'top-stories');
+      section.innerHTML = '<div class="pf-silo" id="pf-hq-news"><div class="c-load">Loading top stories&hellip;</div></div>';
+      /* 2026-10-05 (fe/phq-hub-nav): the rail pins above the hub sub-nav (spec §1). */
+      var _nav = document.getElementById('pf-hq-subnav');
+      if (_nav && _nav.parentNode === h) h.insertBefore(section, _nav);
+      else h.appendChild(section);
+      var host = document.getElementById('pf-hq-news');
+      PF.newsTop.render(host, { limit: 8 });
+    } catch (e) { if (PF) PF.error('political-hq', 'news rail failed :: ' + (e && e.message || e)); }
+  }
+  mountNewsRail();
+  /* Retry once late — PF.newsTop may load after this page module. */
+  setTimeout(function () {
+    try {
+      if (!document.getElementById('pf-hq-news') && window.PF && PF.newsTop) mountNewsRail();
+    } catch (e) {}
+  }, 4000);
+
+  /* EMPTY-BOX SWEEP (2026-10-03): a content-less .pf-silo renders as a dead
+     empty black box with a red border. Collapse any .pf-silo under
+     #pf-political-hq that is PROVABLY empty — no text and no media/form/
+     interactive children. Runs after mount + late paints; every legitimate
+     silo carries its h2/c-tag/loader text from t=0, so this can only ever
+     remove a genuinely dead container, never real content. */
+  function sweepEmptySilos(){
+    try{
+      var h=document.getElementById('pf-political-hq'); if(!h) return;
+      var silos=h.querySelectorAll('.pf-silo'), n=0;
+      for(var i=0;i<silos.length;i++){
+        var s=silos[i];
+        var hasText=s.textContent.replace(/\s+/g,'').length>0;
+        var hasContent=s.querySelector('img,iframe,canvas,video,input,textarea,select,button,a')!==null;
+        if(!hasText&&!hasContent){
+          var sec=s.closest?s.closest('section'):null;
+          if(sec) sec.style.display='none'; else s.style.display='none';
+          n++;
+        }
+      }
+      if(n&&PF) PF.error('political-hq','swept '+n+' empty silo container(s)');
+    }catch(e){}
+  }
+  setTimeout(sweepEmptySilos,5000);
+
+})();
+
+;
+
+/* ===== pages/slr-roster.js ===== */
+/* pages/slr-roster.js  |  PF v1.4.2 | Sick Left Radicals roster, rebuilt from scratch.
+   Pulls the 62-member master database (core/07-slr-db.js), shuffles the grid on
+   every load, searchable by name/handle/focus. Each card: photo, name,
+   propaganda score, follow count, link to the member's catalog page.
+   Mounts on #pf-slr-roster, or auto-takes-over /sick-left-radicals (hides the
+   old Squarespace content ONLY after the DB loads — on DB failure the old
+   page stays up).
+   KILL: ?pf_off=slr-roster  or  localStorage pf_disabled_v1='["slr-roster"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('slr-roster')) { return; }
+  if (!PF.slrReady) { PF.error('slr-roster', 'slr-db not loaded'); return; }
+
+  var RED = '#c1121f', CREAM = '#f5f0e1', BLACK = '#0a0a0a', MUTED = '#b8ab8e';
+  /* R3 (2026-10-04): no vote chip for Jeanine Pirreaux Comedy (do-not-touch).
+     FUND_SKIP_SLUGS-style exclusion on the roster card vote CTA. */
+  var VOTE_SKIP_SLUGS = ['jeanine-pirreaux-comedy'];
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function shuffle(a) {
+    a = a.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function initials(name) {
+    var w = String(name || '?').split(/\s+/).filter(Boolean);
+    return ((w[0] || '?').charAt(0) + (w[1] ? w[1].charAt(0) : '')).toUpperCase();
+  }
+  function handlesLine(m) {
+    var h = m.handles || {};
+    var bits = [];
+    ['tiktok', 'instagram', 'youtube', 'x'].forEach(function (p) {
+      if (h[p]) bits.push(h[p]);
+    });
+    if (!bits.length && h.primary) bits.push(h.primary);
+    return bits.join(' · ');
+  }
+
+  function cardHTML(m) {
+    var img = m.picture
+      ? '<img src="' + esc(m.picture) + '" alt="' + esc(m.image_alt || m.name) + '" loading="lazy" style="width:100%;height:180px;object-fit:cover;display:block;background:#1a1a1a;">'
+      : '<div style="width:100%;height:180px;display:flex;align-items:center;justify-content:center;background:#1a1a1a;border-bottom:3px solid ' + RED + ';">'
+        + '<span style="font-size:3rem;font-weight:900;color:' + RED + ';">' + esc(initials(m.name)) + '</span></div>';
+    return '<div class="pf-slr-card" data-search="' + esc((m.name + ' ' + handlesLine(m) + ' ' + (m.content_focus || '')).toLowerCase()) + '"'
+      + ' style="background:' + BLACK + ';border:3px solid ' + RED + ';color:' + CREAM + ';font-family:\'Helvetica Neue\',Arial,sans-serif;overflow:hidden;display:flex;flex-direction:column;">'
+      + img
+      + '<div style="padding:0.9rem 1rem 1.1rem;display:flex;flex-direction:column;gap:0.35rem;flex:1;">'
+      + '<div style="font-size:1.05rem;font-weight:900;letter-spacing:0.02em;">' + esc(m.name) + '</div>'
+      + '<div style="font-size:0.8rem;color:' + MUTED + ';">' + esc(handlesLine(m)) + '</div>'
+      + '<div style="display:flex;gap:0.6rem;align-items:baseline;margin-top:0.2rem;">'
+      /* Unified stats (2026-10-05): data-pf-fc is painted live by
+         PF.creatorStats.paint(); the snapshot followers_display stays as
+         pre-live fallback text only. */
+      + '<span data-pf-fc="' + esc(m.slug) + '" style="font-size:1.3rem;font-weight:900;color:' + RED + ';">' + esc(m.followers_display) + '</span>'
+      + '<span style="font-size:0.75rem;color:' + MUTED + ';letter-spacing:0.08em;">FOLLOWERS' + (m.is_new ? ' · <span style="color:' + RED + ';font-weight:700;">NEW</span>' : '') + '</span>'
+      + '</div>'
+      + '<div data-eff-score="' + esc(m.slug) + '" style="font-size:0.8rem;color:' + MUTED + ';">Propaganda score <strong style="color:' + CREAM + ';">' + m.propaganda_score.toFixed(1) + '/10</strong></div>'
+      + '<a href="' + esc(m.catalog_path) + '" style="margin-top:auto;padding-top:0.6rem;display:block;text-align:center;background:' + RED + ';color:#fff;font-weight:900;letter-spacing:0.14em;font-size:0.85rem;padding:0.65rem;text-decoration:none;">VIEW PROFILE →</a>'
+      + (VOTE_SKIP_SLUGS.indexOf(m.slug) === -1 ? '<a href="/#pf-vote?for=' + esc(m.slug) + '" style="margin-top:0.5rem;display:block;text-align:center;border:2px solid ' + RED + ';color:' + RED + ';font-weight:900;letter-spacing:0.14em;font-size:0.8rem;padding:0.55rem;text-decoration:none;">VOTE FOR ' + esc(m.name) + ' &rarr;</a>' : '')
+      + '</div></div>';
+  }
+
+  function render(root, members) {
+    var order = shuffle(members);
+    root.innerHTML =
+      '<div style="max-width:1200px;margin:0 auto;padding:2rem 1rem;box-sizing:border-box;">'
+      + '<div style="text-align:center;margin-bottom:0.4rem;font-size:0.8rem;letter-spacing:0.3em;color:' + RED + ';font-weight:700;">THE PROPAGANDA FACTORY</div>'
+      + '<h1 style="text-align:center;color:' + CREAM + ';font-size:2.2rem;font-weight:900;letter-spacing:0.06em;margin:0 0 0.4rem;font-family:\'Helvetica Neue\',Arial,sans-serif;">SICK LEFT RADICALS</h1>'
+      /* Unified stats (2026-10-05): header count/total are painted live by
+         PF.creatorStats.paint() (data-pf-fc-count / data-pf-fc-total); the
+         snapshot-derived values stay as pre-live fallback text only. */
+      + '<div class="pf-slr-count" style="text-align:center;color:' + MUTED + ';font-size:0.95rem;margin-bottom:1.4rem;">'
+      + '<span data-pf-fc-count>' + members.length + '</span> affiliated propagandists · <span data-pf-fc-total style="color:' + CREAM + ';font-weight:700;">' + totalFollowers(members) + '</span>&nbsp;combined reach</div>'
+      + '<div id="pf-climbers-strip" data-pf-climbers-strip style="display:none;"></div>'
+      + '<div id="pf-race-zone"></div>'
+      + '<div style="max-width:520px;margin:0 auto 1.8rem;">'
+      + '<input id="pf-slr-search" type="search" placeholder="Search the roster…" autocomplete="off"'
+      + ' style="width:100%;padding:0.8rem 1rem;background:#141414;border:2px solid ' + RED + ';color:' + CREAM + ';font-size:1rem;font-family:inherit;box-sizing:border-box;">'
+      + '</div>'
+      + '<div class="pf-slr-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.2rem;">'
+      + order.map(cardHTML).join('')
+      + '</div>'
+      + '<div class="pf-slr-empty" style="display:none;text-align:center;color:' + MUTED + ';padding:3rem 1rem;font-size:1.05rem;">No comrades match that search. Try another name.</div>'
+      + '<div style="text-align:center;margin-top:2.5rem;"><a href="/creator-onboard" style="color:' + RED + ';font-weight:900;letter-spacing:0.12em;text-decoration:none;border-bottom:2px solid ' + RED + ';">WANT IN? JOIN THE SICK LEFT RADICALS →</a></div>'
+      + '</div>';
+    var input = root.querySelector('#pf-slr-search');
+    var cards = root.querySelectorAll('.pf-slr-card');
+    var empty = root.querySelector('.pf-slr-empty');
+    input.addEventListener('input', function () {
+      var q = input.value.trim().toLowerCase(), shown = 0;
+      for (var i = 0; i < cards.length; i++) {
+        var hit = !q || cards[i].getAttribute('data-search').indexOf(q) !== -1;
+        cards[i].style.display = hit ? '' : 'none';
+        if (hit) shown++;
+      }
+      empty.style.display = shown ? 'none' : '';
+    });
+  }
+
+  /* Pre-live fallback formatter. The live header total is painted by
+     PF.creatorStats.paint() -> fmtTotal (the "8M+" style); this only covers
+     the first paint from snapshot data. The network figure is never
+     hardcoded — it always derives from a summed count. */
+  function totalFollowers(members) {
+    var t = 0;
+    for (var i = 0; i < members.length; i++) t += members[i].followers_total || 0;
+    try {
+      if (window.PF && PF.creatorStats) return PF.creatorStats.fmt(t) + '+';
+    } catch (e) {}
+    if (t >= 1e6) return (t / 1e6).toFixed(1) + 'M';
+    if (t >= 1e3) return Math.round(t / 1e3) + 'K';
+    return String(t);
+  }
+
+  function mountTakeover() {
+    /* /sick-left-radicals with no #pf-slr-roster block: hide Squarespace
+       content, render the roster in its place. Only called after DB loads. */
+    var page = document.querySelector('main#page') || document.getElementById('page');
+    var root = document.createElement('div');
+    root.id = 'pf-slr-roster-root';
+    root.style.cssText = 'background:#0a0a0a;';
+    if (page && page.parentNode) {
+      page.parentNode.insertBefore(root, page);
+      page.style.display = 'none';
+    } else {
+      document.body.insertBefore(root, document.body.firstChild);
+    }
+    return root;
+  }
+
+  function boot() {
+    var el = document.getElementById('pf-slr-roster');
+    var isRosterPath = /^\/sick-left-radicals\/?$/.test(location.pathname);
+    if (!el && !isRosterPath) return; /* not our page */
+    PF.slrReady.then(function (members) {
+      if (!members || !members.length) {
+        /* DB failed: never hide existing content. Show a slim error only
+           when we own an explicit mount block. */
+        if (el) {
+          el.innerHTML = '<div style="max-width:640px;margin:2rem auto;text-align:center;color:' + CREAM + ';font-family:Arial,sans-serif;">'
+            + '<div style="font-weight:900;color:' + RED + ';">ROSTER OFFLINE</div>'
+            + '<div style="color:' + MUTED + ';font-size:0.9rem;margin-top:0.5rem;">The roster database could not be reached. Reload to retry.</div></div>';
+        }
+        return;
+      }
+      var root = el || mountTakeover();
+      render(root, members);
+      /* Unified stats (2026-10-05): paint live per-creator + network counts
+         over the snapshot fallback text. Fail-soft inside the helper. */
+      try {
+        if (window.PF && PF.creatorStats) PF.creatorStats.ready(function () {
+          try { PF.creatorStats.paint(root); } catch (e) {}
+        });
+      } catch (e2) {}
+      try { raceZoneInit(root); } catch (e) { PF.error('slr-roster', 'race zone: ' + (e && e.message)); }
+      PF.log('slr-roster', 'rendered ' + members.length + ' members (shuffled)');
+      /* Efficiency Index: paint live computed scores into [data-eff-score] slots. */
+      try {
+        if (window.PF && PF.efficiency) PF.efficiency.paintScores(root);
+        else document.addEventListener('pf-efficiency', function h() {
+          document.removeEventListener('pf-efficiency', h);
+          if (window.PF && PF.efficiency) PF.efficiency.paintScores(root);
+        });
+      } catch (e2) {}
+    });
+  }
+
+  /* WAVE3-S3-START
+     S3 Creator Recruit Races (2026-10-04): race banner + live leaderboard on
+     /sick-left-radicals. Reads ?action=recruit_race (public JSONP), 60s poll
+     per contracts §8. Operation "ends in" strip reuses window.PFOperation
+     when present; otherwise a defensive cached operation_status reader
+     (60s TTL, fail -> {live:false}). States: live race | last champion |
+     next-race-soon — never an empty broken box. Guardrail §10.3: everything
+     try/caught, never breaks the roster render. */
+  var RR = { timer: null, champ: null, opCache: { at: 0, val: { live: false } } };
+
+  function rrApi(cb) {
+    try {
+      var base = window.PF_BACKEND_URL;
+      if (!base) { cb(null); return; }
+      var fn = 'pfRaceCb' + Math.floor(Math.random() * 1e9);
+      var s = document.createElement('script'), done = false;
+      function fin(j) {
+        if (done) return; done = true;
+        try { delete window[fn]; } catch (e) {}
+        if (s.parentNode) s.parentNode.removeChild(s);
+        try { cb(j); } catch (e2) {}
+      }
+      window[fn] = function (j) { fin(j); };
+      s.onerror = function () { fin(null); };
+      s.src = base + '?action=recruit_race&race_id=current&callback=' + fn;
+      document.head.appendChild(s);
+      setTimeout(function () { fin(null); }, 12000);
+    } catch (e) { try { cb(null); } catch (e2) {} }
+  }
+
+  /* Defensive operation_status read: window.PFOperation first (shared footer
+     cache owns it), else our own cached JSONP read. Fail -> {live:false}. */
+  function rrOpStatus(cb) {
+    try {
+      var P = window.PFOperation;
+      if (P) {
+        var s = null;
+        if (typeof P.status === 'function') s = P.status();
+        else if (P.status && typeof P.status === 'object') s = P.status;
+        if (s && typeof s === 'object' && typeof s.live === 'boolean') {
+          cb({ live: !!s.live, name: String(s.name || ''),
+            seconds_left: Math.max(0, Number(s.seconds_left) || 0) });
+          return;
+        }
+      }
+    } catch (e) {}
+    var now = Date.now();
+    if (now - RR.opCache.at < 60000) { cb(RR.opCache.val); return; }
+    try {
+      var base = window.PF_BACKEND_URL;
+      if (!base) { cb(RR.opCache.val); return; }
+      var fn = 'pfOpCb' + Math.floor(Math.random() * 1e9);
+      var s2 = document.createElement('script'), done2 = false;
+      function fin2(j) {
+        if (done2) return; done2 = true;
+        try { delete window[fn]; } catch (e) {}
+        if (s2.parentNode) s2.parentNode.removeChild(s2);
+        var v = { live: false };
+        try {
+          if (j && typeof j.live === 'boolean')
+            v = { live: !!j.live, name: String(j.name || ''),
+              seconds_left: Math.max(0, Number(j.seconds_left) || 0) };
+        } catch (e) {}
+        RR.opCache = { at: Date.now(), val: v };
+        cb(v);
+      }
+      window[fn] = function (j) { fin2(j); };
+      s2.onerror = function () { fin2(null); };
+      s2.src = base + '?action=operation_status&callback=' + fn;
+      document.head.appendChild(s2);
+      setTimeout(function () { fin2(null); }, 12000);
+    } catch (e) { cb(RR.opCache.val); }
+  }
+
+  function rrFmtLeft(sec) {
+    sec = Math.max(0, Math.round(Number(sec) || 0));
+    var d = Math.floor(sec / 86400); sec %= 86400;
+    var h = Math.floor(sec / 3600); sec %= 3600;
+    var m = Math.floor(sec / 60);
+    var out = '';
+    if (d > 0) out += d + 'd ';
+    if (h > 0 || d > 0) out += h + 'h ';
+    out += m + 'm';
+    return out.trim();
+  }
+
+  /* RECRUIT CHAMPION poster: composes the PFShare generators (share-image
+     CTA standard: JOIN THE FIGHT. in red above MTCSTW.COM). stampCallsign
+     attribution rides inside PFShare.shareImage/saveImage. */
+  function rrChampionPoster(done) {
+    try {
+      var c = RR.champ || {};
+      var cv = document.createElement('canvas');
+      cv.width = 1080; cv.height = 1350;
+      var x = cv.getContext('2d');
+      if (!x) { done(null); return; }
+      x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, 1080, 1350);
+      x.strokeStyle = '#c1121f'; x.lineWidth = 18; x.strokeRect(24, 24, 1032, 1302);
+      x.textAlign = 'center'; x.textBaseline = 'middle';
+      x.fillStyle = '#c1121f';
+      x.font = '900 92px Arial,sans-serif';
+      x.fillText('RECRUIT', 540, 300);
+      x.fillText('CHAMPION', 540, 400);
+      x.fillStyle = '#f5ead6';
+      x.font = '900 120px Arial,sans-serif';
+      var who = String(c.winner || '?').toUpperCase();
+      x.fillText(who.length > 16 ? who.slice(0, 16) : who, 540, 640);
+      x.fillStyle = '#b8ab8e'; x.font = '700 44px Arial,sans-serif';
+      x.fillText(String(c.race_name || '').toUpperCase().slice(0, 40), 540, 780);
+      x.fillStyle = '#f5ead6'; x.font = '900 72px Arial,sans-serif';
+      x.fillText(String(c.recruits || 0) + ' RECRUITS', 540, 900);
+      x.fillStyle = '#c1121f'; x.font = '900 64px Arial,sans-serif';
+      x.fillText('JOIN THE FIGHT.', 540, 1080);
+      x.fillStyle = '#f5ead6'; x.font = '900 56px Arial,sans-serif';
+      x.fillText('MTCSTW.COM', 540, 1150);
+      done(cv);
+    } catch (e) { try { done(null); } catch (e2) {} }
+  }
+  try {
+    if (window.PFShare && PFShare.setPoster) PFShare.setPoster('recruit-champion', rrChampionPoster);
+    else document.addEventListener('pf-share-ready', function h() {
+      document.removeEventListener('pf-share-ready', h);
+      try { if (window.PFShare && PFShare.setPoster) PFShare.setPoster('recruit-champion', rrChampionPoster); } catch (e) {}
+    });
+  } catch (e) {}
+
+  function rrZoneHTML(state) {
+    /* state: {mode:'live'|'champion'|'soon', race, board, total, champ, op} */
+    var wrap = 'max-width:1200px;margin:0 auto 1.6rem;padding:1.4rem 1.2rem;background:#141414;'
+      + 'border:3px solid ' + RED + ';color:' + CREAM + ';font-family:\'Helvetica Neue\',Arial,sans-serif;text-align:center;';
+    var h = '<div style="' + wrap + '">';
+    if (state.mode === 'live') {
+      var r = state.race;
+      h += '<div style="font-size:0.75rem;letter-spacing:0.3em;color:' + RED + ';font-weight:700;">RECRUIT RACE &mdash; LIVE</div>'
+        + '<div style="font-size:1.7rem;font-weight:900;letter-spacing:0.04em;margin:0.3rem 0;">' + esc(r.name) + '</div>'
+        + '<div style="color:' + MUTED + ';font-size:0.95rem;">ENDS IN <b style="color:' + CREAM + ';">' + esc(rrFmtLeft(r.seconds_left)) + '</b>'
+        + ' &middot; ' + Number(state.total || 0) + ' recruits counted</div>';
+      if (state.op && state.op.live) {
+        h += '<div style="margin-top:0.5rem;font-size:0.85rem;color:' + CREAM + ';border:1px solid ' + RED
+          + ';display:inline-block;padding:0.35rem 0.9rem;">ALL FRONTS'
+          + (state.op.name ? ': ' + esc(state.op.name) : '')
+          + ' &mdash; OPERATION ENDS IN ' + esc(rrFmtLeft(state.op.seconds_left)) + '</div>';
+      }
+      if (state.board && state.board.length) {
+        h += '<div style="max-width:560px;margin:1rem auto 0;text-align:left;">';
+        for (var i = 0; i < Math.min(state.board.length, 10); i++) {
+          var row = state.board[i];
+          var medal = i === 0 ? '&#129351; ' : (i === 1 ? '&#129352; ' : (i === 2 ? '&#129353; ' : ''));
+          h += '<div style="display:flex;justify-content:space-between;padding:0.45rem 0.7rem;'
+            + (i % 2 ? 'background:#0a0a0a;' : '') + '">'
+            + '<span>' + medal + '<b style="color:' + CREAM + ';">' + esc(String(row.callsign).toUpperCase()) + '</b></span>'
+            + '<span style="color:' + RED + ';font-weight:900;">' + Number(row.recruits) + ' RECRUITS</span></div>';
+        }
+        h += '</div>';
+      } else {
+        h += '<div style="color:' + MUTED + ';font-size:0.9rem;margin-top:0.8rem;">No recruits counted yet &mdash; post your enlist link and take the lead.</div>';
+      }
+      h += '<div style="color:' + MUTED + ';font-size:0.8rem;margin-top:0.9rem;">Recruits count once they claim a callsign and complete one Daily Orders mission.</div>';
+    } else if (state.mode === 'champion') {
+      var ch = state.champ;
+      h += '<div style="font-size:0.75rem;letter-spacing:0.3em;color:' + RED + ';font-weight:700;">RECRUIT CHAMPION</div>'
+        + '<div style="font-size:1.7rem;font-weight:900;margin:0.3rem 0;">' + esc(String(ch.winner).toUpperCase()) + '</div>'
+        + '<div style="color:' + MUTED + ';font-size:0.95rem;">' + Number(ch.recruits || 0) + ' recruits &middot; ' + esc(ch.race_name || '') + '</div>'
+        + '<div style="margin-top:1rem;display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;">'
+        + '<button id="pf-rr-share" style="background:' + RED + ';color:#fff;font-weight:900;letter-spacing:0.1em;padding:0.7rem 1.4rem;border:none;cursor:pointer;">SHARE CHAMPION POSTER</button>'
+        + '<button id="pf-rr-save" style="background:transparent;color:' + CREAM + ';font-weight:900;letter-spacing:0.1em;padding:0.7rem 1.4rem;border:2px solid ' + RED + ';cursor:pointer;">SAVE POSTER</button>'
+        + '</div>';
+    } else {
+      h += '<div style="font-size:0.75rem;letter-spacing:0.3em;color:' + RED + ';font-weight:700;">RECRUIT RACES</div>'
+        + '<div style="font-size:1.3rem;font-weight:900;margin:0.3rem 0;">THE NEXT RACE IS BEING PLANNED</div>'
+        + '<div style="color:' + MUTED + ';font-size:0.9rem;">Rally your cell &mdash; the leaderboard goes live here when the next race starts.</div>';
+    }
+    return h + '</div>';
+  }
+
+  function rrRefresh(zone) {
+    try {
+      rrApi(function (j) {
+        try {
+          if (!j || !j.ok) return; /* read failed: keep the previous state, never a broken box */
+          if (j.race && j.race.live) {
+            rrOpStatus(function (op) {
+              try {
+                zone.innerHTML = rrZoneHTML({ mode: 'live', race: j.race,
+                  board: j.leaderboard || [], total: j.total_recruits || 0, op: op });
+              } catch (e) {}
+            });
+          } else if (j.champion && j.champion.winner) {
+            /* Champion poster needs the recruit count: pull the ended race's board. */
+            RR.champ = { winner: j.champion.winner, race_name: j.champion.race_name, recruits: 0 };
+            zone.innerHTML = rrZoneHTML({ mode: 'champion', champ: RR.champ });
+            rrBindPosterButtons(zone);
+            rrApiChampCount(j.champion.race_id);
+          } else {
+            zone.innerHTML = rrZoneHTML({ mode: 'soon' });
+          }
+        } catch (e) {}
+      });
+    } catch (e) {}
+  }
+
+  function rrApiChampCount(raceId) {
+    /* Fetch the ended race's final tally to stamp the champion's recruit count. */
+    try {
+      var base = window.PF_BACKEND_URL;
+      if (!base || !raceId) return;
+      var fn = 'pfRaceCb' + Math.floor(Math.random() * 1e9);
+      var s = document.createElement('script'), done = false;
+      function fin(j) {
+        if (done) return; done = true;
+        try { delete window[fn]; } catch (e) {}
+        if (s.parentNode) s.parentNode.removeChild(s);
+        try {
+          if (j && j.ok && j.leaderboard && j.leaderboard.length && RR.champ
+              && j.leaderboard[0].callsign === RR.champ.winner)
+            RR.champ.recruits = Number(j.leaderboard[0].recruits) || 0;
+        } catch (e) {}
+      }
+      window[fn] = function (j) { fin(j); };
+      s.onerror = function () { fin(null); };
+      s.src = base + '?action=recruit_race&race_id=' + encodeURIComponent(raceId) + '&callback=' + fn;
+      document.head.appendChild(s);
+      setTimeout(function () { fin(null); }, 12000);
+    } catch (e) {}
+  }
+
+  function rrBindPosterButtons(zone) {
+    try {
+      var sh = zone.querySelector('#pf-rr-share'), sv = zone.querySelector('#pf-rr-save');
+      function paint(cb2) {
+        try {
+          rrChampionPoster(function (cv) {
+            if (!cv) { if (window.PF && PF.toast) PF.toast('Poster failed \u2014 try again.'); return; }
+            try { cb2(cv); } catch (e) {}
+          });
+        } catch (e) {}
+      }
+      if (sh) sh.onclick = function () {
+        paint(function (cv) {
+          try {
+            if (window.PFShare && PFShare.shareImage)
+              PFShare.shareImage(cv, 'pfn-recruit-champion.png', 'Recruit Champion', 'recruit-champion');
+          } catch (e) {}
+        });
+      };
+      if (sv) sv.onclick = function () {
+        paint(function (cv) {
+          try {
+            if (window.PFShare && PFShare.saveImage)
+              PFShare.saveImage(cv, 'pfn-recruit-champion.png', 'recruit-champion');
+          } catch (e) {}
+        });
+      };
+    } catch (e) {}
+  }
+
+  function raceZoneInit(root) {
+    try {
+      var zone = root.querySelector('#pf-race-zone');
+      if (!zone || zone._rrInit) return;
+      zone._rrInit = true;
+      rrRefresh(zone);
+      if (RR.timer) { try { clearInterval(RR.timer); } catch (e) {} }
+      RR.timer = setInterval(function () {
+        try {
+          if (window.PF && PF.hidden && PF.hidden()) return;
+          if (!document.body.contains(zone)) { clearInterval(RR.timer); RR.timer = null; return; }
+          rrRefresh(zone);
+        } catch (e) {}
+      }, 60000);
+    } catch (e) {}
+  }
+  /* WAVE3-S3-END */
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+;
+
+/* ===== pages/slr-catalog.js ===== */
+/* pages/slr-catalog.js  |  PF v1.4.2 | SLR catalog page renderer.
+   Renders any member's full catalog page from the master database
+   (core/07-slr-db.js): photo, propaganda score, bio, what-they-offer,
+   follow links, key strengths, related creators.
+   Mounts on #pf-catalog[data-slug], or auto-detects the member slug from the
+   URL path and takes over the page — hiding the old Squarespace-built content
+   ONLY after the DB loads and the slug resolves. On DB failure or unknown
+   slug it does nothing: the existing page stays up.
+   KILL: ?pf_off=slr-catalog  or  localStorage pf_disabled_v1='["slr-catalog"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('slr-catalog')) { return; }
+  if (!PF.slrReady) { PF.error('slr-catalog', 'slr-db not loaded'); return; }
+
+  var RED = '#c1121f', CREAM = '#f5f0e1', BLACK = '#0a0a0a', MUTED = '#b8ab8e';
+  /* R3 (2026-10-04): no vote chip for Jeanine Pirreaux Comedy (do-not-touch).
+     FUND_SKIP_SLUGS-style exclusion on the vote CTA. */
+  var VOTE_SKIP_SLUGS = ['jeanine-pirreaux-comedy'];
+
+  /* A5 (2026-10-05): ROSTER ROULETTE — NEXT FIGHTER. Jumps to a random
+     DIFFERENT creator's catalog page, drawn from the real roster data (no
+     invented entries). Jeanine Pirreaux Comedy is do-not-touch: excluded
+     from the rotation entirely — the link never lands on her. */
+  var ROULETTE_SKIP_SLUGS = ['jeanine-pirreaux-comedy'];
+  function nextFighter(m, all) {
+    var pool = (all || []).filter(function (x) {
+      return x && x.slug && x.catalog_path && x.slug !== m.slug &&
+             ROULETTE_SKIP_SLUGS.indexOf(x.slug) === -1;
+    });
+    if (!pool.length) return '';
+    var pick = pool[Math.floor(Math.random() * pool.length)];
+    return '<div style="text-align:center;margin:2.4rem 0 0.6rem;">'
+      + '<a href="' + esc(pick.catalog_path) + '" style="display:inline-block;background:' + RED + ';color:#fff;font-weight:900;letter-spacing:0.14em;font-size:1rem;text-decoration:none;padding:0.9rem 2.4rem;">NEXT FIGHTER &rarr;</a>'
+      + '<div style="color:' + MUTED + ';font-size:0.78rem;letter-spacing:0.06em;margin-top:0.6rem;">THE ROSTER ROULETTE &mdash; A RANDOM FIGHTER, EVERY SPIN</div></div>';
+  }
+
+  /* A5 (2026-10-05): SCOUT CIRCUIT — distinct creator catalog views,
+     persistent across sessions. 6 distinct slugs fires pf-scout-earned;
+     service-medals.js awards the SCOUT medal as a non-weekly achievement
+     (it never counts toward FULL DEPLOYMENT). Jeanine is do-not-touch:
+     excluded from the view count. */
+  function trackScoutView(slug) {
+    if (!slug || ROULETTE_SKIP_SLUGS.indexOf(slug) !== -1) return;
+    var SK = 'pf_scout_views_v1', AK = 'pf_scout_awarded_v1', seen = {};
+    try {
+      (JSON.parse(localStorage.getItem(SK) || '[]') || []).forEach(function (s2) { seen[String(s2)] = 1; });
+    } catch (e) {}
+    if (seen[slug]) return;
+    seen[slug] = 1;
+    var arr = Object.keys(seen);
+    try { localStorage.setItem(SK, JSON.stringify(arr)); } catch (e2) {}
+    if (arr.length < 6) return;
+    var awarded = null;
+    try { awarded = localStorage.getItem(AK); } catch (e3) {}
+    if (awarded) return;
+    try { localStorage.setItem(AK, '1'); } catch (e4) {}
+    try { document.dispatchEvent(new CustomEvent('pf-scout-earned')); } catch (e5) {}
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function initials(name) {
+    var w = String(name || '?').split(/\s+/).filter(Boolean);
+    return ((w[0] || '?').charAt(0) + (w[1] ? w[1].charAt(0) : '')).toUpperCase();
+  }
+  function para(text) {
+    return String(text || '').split(/\n+/).filter(function (p) { return p.trim(); })
+      .map(function (p) { return '<p style="color:' + CREAM + ';line-height:1.65;font-size:1rem;margin:0 0 1rem;">' + esc(p.trim()) + '</p>'; })
+      .join('');
+  }
+
+  function render(root, m, all) {
+    var img = m.picture
+      ? '<img src="' + esc(m.picture) + '" alt="' + esc(m.image_alt || (m.name + ', SLR propagandist')) + '" style="width:100%;max-width:520px;height:auto;display:block;margin:0 auto;border:3px solid ' + RED + ';">'
+      : '<div style="width:100%;max-width:520px;margin:0 auto;height:300px;display:flex;align-items:center;justify-content:center;background:#1a1a1a;border:3px solid ' + RED + ';">'
+        + '<span style="font-size:4.5rem;font-weight:900;color:' + RED + ';">' + esc(initials(m.name)) + '</span></div>';
+
+    var handles = m.handles || {};
+    var handleBits = [];
+    ['tiktok', 'instagram', 'youtube', 'x'].forEach(function (p) { if (handles[p]) handleBits.push(handles[p]); });
+    if (!handleBits.length && handles.primary) handleBits.push(handles.primary);
+
+    var offer = (m.offer || []).map(function (o) {
+      return '<li style="color:' + CREAM + ';margin:0 0 0.6rem;line-height:1.55;">' + esc(o) + '</li>';
+    }).join('');
+    var strengths = (m.key_strengths || []).map(function (s) {
+      return '<li style="color:' + CREAM + ';margin:0 0 0.6rem;line-height:1.55;">' + esc(s) + '</li>';
+    }).join('');
+    var links = (m.links || []).map(function (l) {
+      return '<li style="margin:0 0 0.5rem;"><a href="' + esc(l.url) + '" target="_blank" rel="noopener" style="color:' + RED + ';font-weight:700;text-decoration:none;border-bottom:2px solid ' + RED + ';">' + esc(l.platform) + '</a></li>';
+    }).join('');
+
+    /* 3 related creators: nearest scores, deterministic-ish pick */
+    var others = all.filter(function (x) { return x.slug !== m.slug; });
+    others.sort(function (a, b) { return Math.abs(a.propaganda_score - m.propaganda_score) - Math.abs(b.propaganda_score - m.propaganda_score); });
+    var related = others.slice(0, 3).map(function (x) {
+      return '<div><a href="' + esc(x.catalog_path) + '" style="color:' + CREAM + ';text-decoration:none;font-weight:700;">• ' + esc(x.name) + '</a>'
+        + ' <span style="color:' + MUTED + ';font-size:0.85rem;">— ' + x.propaganda_score.toFixed(1) + '/10</span></div>';
+    }).join('');
+
+    root.innerHTML =
+      '<div style="background:' + BLACK + ';padding:2.5rem 1rem 3rem;box-sizing:border-box;">'
+      + '<div style="max-width:720px;margin:0 auto;font-family:\'Helvetica Neue\',Arial,sans-serif;">'
+      + '<div style="text-align:center;margin-bottom:0.5rem;"><a href="/sick-left-radicals" style="color:' + MUTED + ';font-size:0.8rem;letter-spacing:0.2em;text-decoration:none;">← ALL SICK LEFT RADICALS</a></div>'
+      + img
+      + '<h1 style="text-align:center;color:' + CREAM + ';font-size:2rem;font-weight:900;margin:1.4rem 0 0.2rem;">' + esc(m.name) + '</h1>'
+      + (handleBits.length ? '<div style="text-align:center;color:' + MUTED + ';font-size:0.9rem;margin-bottom:0.6rem;">' + esc(handleBits.join(' · ')) + '</div>' : '')
+      + '<div data-eff-score="' + esc(m.slug) + '" style="text-align:center;margin-bottom:0.4rem;font-size:1.05rem;color:' + CREAM + ';">Propaganda Score: <strong style="color:' + RED + ';">' + m.propaganda_score.toFixed(1) + '/10</strong>'
+      + (m.score_provisional ? ' <span style="font-size:0.7rem;color:' + MUTED + ';">(provisional)</span>' : '') + '</div>'
+      /* R31: aggregate reputation line — filled by repLine() below. */
+      + '<div id="pf-repline" style="text-align:center;margin-bottom:0.4rem;font-size:0.95rem;color:' + MUTED + ';min-height:0;"></div>'
+      /* Unified stats (2026-10-05): data-pf-fc is painted live by
+         PF.creatorStats.paint(); the snapshot followers_display stays as
+         pre-live fallback text only. */
+      + '<div style="text-align:center;margin-bottom:1.6rem;font-size:1.1rem;"><strong data-pf-fc="' + esc(m.slug) + '" style="color:' + RED + ';">' + esc(m.followers_display) + '</strong> <span style="color:' + MUTED + ';font-size:0.85rem;letter-spacing:0.1em;">FOLLOWERS</span></div>'
+      + (VOTE_SKIP_SLUGS.indexOf(m.slug) === -1 ? '<div style="text-align:center;margin:0 0 1.6rem;"><a href="/#pf-vote?for=' + esc(m.slug) + '" style="display:inline-block;border:2px solid ' + RED + ';color:' + RED + ';font-weight:900;letter-spacing:0.14em;font-size:0.9rem;text-decoration:none;padding:0.7rem 1.6rem;">VOTE FOR ' + esc(m.name) + ' &rarr;</a></div>' : '')
+      + para(m.bio)
+      + (offer ? '<h2 style="color:' + RED + ';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;">What they offer</h2><ul style="padding-left:1.2rem;margin:0;">' + offer + '</ul>' : '')
+      + (links ? '<h2 style="color:' + RED + ';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;">Find them here</h2><ul style="list-style:none;padding:0;margin:0;">' + links + '</ul>' : '')
+      + (strengths ? '<h2 style="color:' + RED + ';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;">Key strengths</h2><ul style="padding-left:1.2rem;margin:0;">' + strengths + '</ul>' : '')
+      + '<div style="text-align:center;margin-top:2.5rem;"><a href="/creator-onboard" style="color:' + RED + ';font-weight:900;letter-spacing:0.12em;text-decoration:none;border-bottom:2px solid ' + RED + ';">WANT IN? JOIN THE SICK LEFT RADICALS →</a></div>'
+      + fundBlock(m, RED, CREAM, MUTED)
+      + (related ? '<h2 style="color:' + MUTED + ';font-size:1rem;font-weight:700;letter-spacing:0.1em;margin:2.5rem 0 0.8rem;">RELATED CREATORS</h2><div style="display:flex;flex-direction:column;gap:0.5rem;">' + related + '</div>' : '')
+      + nextFighter(m, all)
+      + '</div></div>';
+  }
+
+  /* S7 FUND THEIR FIGHT (2026-10-04): after the enlist links — one click
+     from admiration to money. /war-chest?creator=<slug> preloads this
+     creator in the subscribe UI; /create?for=<slug> filters the bounty
+     board to their open bounties. Skipped for Jeanine Pirreaux Comedy
+     (do-not-touch). */
+  var FUND_SKIP_SLUGS = ['jeanine-pirreaux-comedy'];
+  function fundBlock(m, red, cream, muted) {
+    if (!m || !m.slug || FUND_SKIP_SLUGS.indexOf(m.slug) !== -1) return '';
+    var slug = encodeURIComponent(m.slug);
+    return '<div style="margin:2rem auto 0;max-width:560px;background:#140808;border:2px solid ' + red + ';'
+      + 'padding:1.4rem 1rem;text-align:center;box-sizing:border-box;">'
+      + '<div style="color:' + red + ';font-weight:900;letter-spacing:0.28em;font-size:0.72rem;margin-bottom:0.6rem;">FUND THEIR FIGHT</div>'
+      + '<div style="color:' + cream + ';font-size:0.95rem;line-height:1.6;margin-bottom:1rem;">Back ' + esc(m.name)
+      + ' directly \u2014 tip XP or subscribe weekly. No platform takes a cut.</div>'
+      + '<div><a href="/war-chest?creator=' + slug + '" style="display:inline-block;background:' + red + ';color:#fff;'
+      + 'font-weight:900;letter-spacing:0.12em;font-size:0.85rem;text-decoration:none;padding:0.8rem 1.6rem;'
+      + 'border:2px solid ' + red + ';">FUND THEIR FIGHT \u2192</a></div>'
+      + '<div style="margin-top:0.8rem;"><a href="/create?for=' + slug + '" style="color:' + muted + ';'
+      + 'font-size:0.8rem;letter-spacing:0.08em;text-decoration:none;border-bottom:1px solid ' + muted + ';">'
+      + 'or fill one of their open bounties \u2192</a></div>'
+      + '</div>';
+  }
+
+  /* R31 (2026-10-04): reputation votes -> catalog rep line. reputation_get
+     is per-callsign; roster slugs map to callsign format (dashes become
+     underscores). Renders "BACKED BY N FIGHTERS" when the backend returns net
+     upvotes; the line stays empty (invisible) until the read resolves, so a
+     missing action degrades silently. Template-level, like the score itself. */
+  function repKey(slug){
+    return String(slug||"").toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"").slice(0,20);
+  }
+  function repLine(root, m){
+    var host=null;
+    try{ host=root.querySelector("#pf-repline"); }catch(e){}
+    if(!host||!m||!m.slug) return;
+    var key=repKey(m.slug);
+    if(!/^[a-z0-9_]{3,20}$/.test(key)) return;
+    var api=(window.PF_BACKEND_URL);
+    var fn="pfRepCb"+Math.floor(Math.random()*1e9);
+    var s=document.createElement("script"), done=false;
+    function finish(j){
+      if(done) return; done=true;
+      try{ delete window[fn]; }catch(e){}
+      if(s.parentNode) s.parentNode.removeChild(s);
+      try{
+        if(j&&j.ok&&Number(j.net)>0){
+          host.innerHTML='BACKED BY <strong style="color:#c1121f;">'+Number(j.net)+'</strong> FIGHTERS';
+        }
+      }catch(e2){}
+    }
+    window[fn]=finish;
+    s.onerror=function(){ finish(null); };
+    s.src=api+"?action="+encodeURIComponent("reputation_get")+"&callsign="+encodeURIComponent(key)+"&callback="+fn;
+    document.head.appendChild(s);
+    setTimeout(function(){ finish(null); },12000);
+  }
+
+  function takeoverMount() {
+    var page = document.querySelector('main#page') || document.getElementById('page');
+    var root = document.createElement('div');
+    root.id = 'pf-catalog-root';
+    if (page && page.parentNode) {
+      page.parentNode.insertBefore(root, page);
+      page.style.display = 'none';
+    } else {
+      document.body.insertBefore(root, document.body.firstChild);
+    }
+    return root;
+  }
+
+  function boot() {
+    var el = document.getElementById('pf-catalog');
+    var slug = el && el.getAttribute('data-slug');
+    if (!slug) {
+      var m = location.pathname.replace(/^\/|\/$/g, '');
+      if (m && m.indexOf('/') === -1) slug = decodeURIComponent(m);
+    }
+    if (!slug) return; /* not a catalog page */
+    PF.slrReady.then(function (members) {
+      if (!members || !members.length) return; /* DB failed: leave page alone */
+      var member = null;
+      for (var i = 0; i < members.length; i++) {
+        if (members[i].slug === slug) { member = members[i]; break; }
+      }
+      if (!member) return; /* unknown slug: not our page, leave it alone */
+      var root = el || takeoverMount();
+      render(root, member, members);
+      PF.log('slr-catalog', 'rendered ' + slug);
+      /* Unified stats (2026-10-05): paint the live follower count over the
+         snapshot fallback text. Fail-soft inside the helper. */
+      try {
+        if (window.PF && PF.creatorStats) PF.creatorStats.ready(function () {
+          try { PF.creatorStats.paint(root); } catch (e) {}
+        });
+      } catch (e_cs) {}
+      /* A5 (2026-10-05): SCOUT CIRCUIT — record this distinct creator view. */
+      try { trackScoutView(slug); } catch (e_scout) {}
+      /* R31: paint the aggregate reputation line. */
+      try{ repLine(root, member); }catch(e_rep){}
+      /* Efficiency Index: site-pull beacon (one ping per slug per session) +
+         paint the live computed score into the [data-eff-score] slot.
+         P0: pageview is POST-only — use fetch, not image beacon. */
+      try {
+        var pvDone = window.__pfPvDone || (window.__pfPvDone = {});
+        if (!pvDone[slug]) {
+          pvDone[slug] = 1;
+          var api = (window.PF_BACKEND_URL );
+          try {
+            fetch(api, {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({type: 'stats', s_action: 'pageview', slug: slug})
+            }).catch(function(){});
+          } catch (e3) {}
+        }
+        if (window.PF && PF.efficiency) PF.efficiency.paintScores(root);
+        else document.addEventListener('pf-efficiency', function h() {
+          document.removeEventListener('pf-efficiency', h);
+          if (window.PF && PF.efficiency) PF.efficiency.paintScores(root);
+        });
+      } catch (e2) {}
+    });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+;
+
+/* ===== pages/page-mount.js ===== */
+/* pages/page-mount.js  |  PF v1.4.3 | Generic mounter for the new dedicated pages.
+   Each new Squarespace page (/arcade, /cells, /create, /bank, /economy,
+   /war-chest, /ventures, /events, /war-report) carries a Code block with a
+   mount div, e.g. <div id="pf-arcade"></div>. This file stages each page's
+   silo templates (from PF.holder()) into its mount div in PAGE_ORDERS
+   order and execs inner scripts — mirroring pages/home-v2.js's approach —
+   plus a page header (title + sub) at the top. Idempotent: safe to call
+   repeatedly; already-mounted silos are skipped.
+   SELF-MOUNTING SILOS: an entry with a null template id (currently only
+   cell-hq) renders itself into its own div at bundle time instead of
+   staging a template. For those, the page must ALSO carry the silo's mount
+   div as a Code block in the page HTML (e.g. <div id="pf-cell-hq"></div>
+   on /cells) BEFORE the footer loader runs; page-mount relocates it into
+   the ordered flow and marks it done.
+   KILL: ?pf_off=page-mount  or  localStorage pf_disabled_v1='["page-mount"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (window.pfPageMountDone) return;
+  if (PF && PF.skip('page-mount')) { return; }
+  if (isEditor()) return;
+  window.pfPageMountDone = true;
+
+  function err(msg, e) {
+    if (PF) PF.error('page-mount', msg + ' :: ' + (e && e.message || e));
+  }
+
+  function isEditor(){ try{
+    var h=window.location.href||'';
+    if(h.indexOf('/config/')!==-1) return true;
+    var b=document.body;
+    if(b&&(b.classList.contains('sqs-edit-mode')||b.classList.contains('sqs-editing'))) return true;
+    return false; }catch(e){ return false; } }
+
+  /* Mount div id -> { title, sub, order }.
+     order entries are [siloKey, templateId]; templateId null = self-mounting
+     silo (see header note). Template ids verified against each silo file's
+     staged <template id="pf-ov-*">. */
+  var PAGE_ORDERS = {
+    'pf-arcade': {
+      title: 'THE ARCADE', sub: 'Nine games. Zero mercy. Play them all.',
+      order: [
+        /* REDISTRIBUTION LAYER (2026-10-05): the White Market / casino hall
+           is unmounted. The 'markets' silo is rebranded as the War Room —
+           Frontline Forecasts (with interim BATTLE WAGERS / RAID / DRAW
+           panes inside it); the coin-flip UI moved to the new 'gambits'
+           silo right below it. The retired casino.js keeps its
+           ?pf_off=casino kill-switch vestigial (not rewired); its
+           ['casino','pf-ov-casino'] entry was removed, not replaced. */
+        ['markets', 'pf-ov-markets'],
+        ['gambits', 'pf-ov-gambits'],
+        ['caption-combat', 'pf-ov-caption'],
+        ['creator-guess', 'pf-ov-guess'],
+        ['daily-interrogation', 'pf-ov-interrogation'],
+        ['billionaire-supervillain', 'pf-ov-billionaire'],
+        ['bracket-board', 'pf-ov-bracket'],
+        ['battles', 'pf-ov-battles'],
+        ['infighting', 'pf-ov-infight'],
+        ['slr-match-quiz', 'pf-ov-matchquiz']
+      ]
+    },
+    'pf-cells-page': {
+      title: 'CELLS', sub: 'Your squad, your war. Build it, run it, win it.',
+      order: [
+        ['cells', 'pf-ov-cells'],
+        ['cell-hq', null], /* self-mounting: renders into #pf-cell-hq (kill: cellhq) */
+        ['cell-war', 'pf-ov-cellwar'],
+        ['diplo', 'pf-ov-diplo'],
+        ['contracts', 'pf-ov-contracts'],
+        /* W5-12 Frontlines: weekly territory war map (kill: war-map). */
+        ['war-map', 'pf-ov-warmap'],
+        /* REDISTRIBUTION LAYER Phase B (2026-10-05): Supply Line Raid —
+           bespoke cell home (silo key 'raid'). Cell-scoped rounds; cell_id
+           comes from the cell context the cells stack already loaded
+           (never URL params). Non-members get the join-a-cell nudge. */
+        ['raid', 'pf-ov-raid']
+      ]
+    },
+    'pf-create': {
+      title: 'CREATE', sub: 'The propaganda workshop. Make it. Ship it.',
+      order: [
+        ['poster-forge', 'pf-ov-poster'],
+        ['feed', 'pf-ov-feed'],
+        /* GAP AUDIT v2 F1/F2 (2026-10-03): armory + earnings were orphaned in
+           the 410991b reorg (staged by games/bundle-create.js, mounted
+           nowhere). Remounted here on /create — armory was CREATE-section
+           before the reorg ('armory':'create' map), and earnings ("Get Paid
+           to Agitate") is creator tooling: revenue_claim is only callable
+           from earnings.js, so this is where creators claim revenue. */
+        ['armory', 'pf-ov-armory'],
+        ['earnings', 'pf-ov-earnings']
+      ]
+    },
+    'pf-bank': {
+      title: "THE PEOPLE'S BANK", sub: 'Your XP, weaponized. Save it, move it, grow it.',
+      order: [
+        ['peoplesbank', 'pf-ov-peoplesbank'],
+        /* Federal Reserve (2026-10-04): monetary policy dashboard mounts
+           below the retail bank — Bank is retail, Reserve is monetary
+           policy; they belong together on /bank. */
+        ['reserve', 'pf-ov-reserve']
+      ]
+    },
+    'pf-economy': {
+      title: 'THE ECONOMY', sub: 'Spend XP like it matters. Because it does.',
+      order: [
+        ['economy', 'pf-ov-economy']
+      ]
+    },
+    /* money (fe/money-page, 2026-10-05): FOLLOW THE MONEY. Self-mounting
+       silo — core/money-page.js renders itself into #pf-money (page mode)
+       or the interim PHQ tab. Sub copy provisional — Psych veto. */
+    'pf-money': {
+      title: 'FOLLOW THE MONEY', sub: 'See who bought your government.',
+      order: [
+        ['money', null]
+      ]
+    },
+    'pf-warchest': {
+      title: 'THE WAR CHEST', sub: 'Fund the fight. Watch where every cent goes.',
+      order: [
+        ['movement', 'pf-ov-movement']
+      ]
+    },
+    'pf-ventures': {
+      title: 'JOINT VENTURES', sub: 'Pool up. Back creators. Share the spoils.',
+      order: [
+        ['ventures', 'pf-ov-ventures']
+      ]
+    },
+    'pf-events': {
+      title: 'BOOTS ON THE GROUND', sub: 'Digital is the rehearsal. The street is the show.',
+      order: [
+        ['irl', 'pf-ov-irl'],
+        /* 2026-10-05 (fe/events-move): Town Hall Tracker + protest/event map
+           moved here from Political HQ (wiring-map §7). Order: irl (existing
+           page anchor) → town halls → protest map. Kill switches survive the
+           move unchanged: ?pf_off=townhall / ?pf_off=civicevents. */
+        ['townhall', 'pf-ov-townhall'],
+        /* Lazy entry: entry[2] names the on-demand chunk. The template stages
+           only when games/bundle-events-map.js loads (loader jsLazy()
+           observes the placeholder below); mountPage skips until then and the
+           retry loop picks it up. Hard ban: no tile-map SDK may ever ride in
+           this chunk (OSM link-outs only — civic-events.js contract). */
+        ['civicevents', 'pf-ov-civicevents', 'games/bundle-events-map.js']
+      ]
+    },
+    'pf-warreport': {
+      title: 'WAR REPORT', sub: "The week in the war. Numbers, winners, what's next.",
+      order: [
+        ['war-report', 'pf-ov-warreport']
+      ]
+    }
+  };
+
+  /* Self-mounting silos: silo key -> { div, kill }. The silo's IIFE renders
+     into div#<div> at bundle time; page-mount only positions it. */
+  var SELF = {
+    'cell-hq': { div: 'pf-cell-hq', kill: 'cellhq' },
+    /* money (fe/money-page, 2026-10-05): the Follow-the-Money suite renders
+       itself into #pf-money (core/money-page.js, context-aware mount).
+       Kill: ?pf_off=money (master). */
+    'money': { div: 'pf-money', kill: 'money' }
+  };
+
+  function execScripts(root, label) {
+    var scripts = root.querySelectorAll('script');
+    for (var i = 0; i < scripts.length; i++) {
+      try { (0, eval)(scripts[i].textContent); }
+      catch (e) {
+        err('inner script failed in ' + label, e);
+        /* TERMINAL STATE (2026-10-04): a dead inner script must never leave
+           its loading skeleton spinning forever — e.g. the cells.js 'Arial'
+           syntax error froze "Raising the cell network…" and the cell
+           leaderboard on "Loading…" with no error path. Swap any loading
+           placeholders in this section for an explicit error + reload. */
+        try {
+          var loads = root.querySelectorAll('.c-load,.hq-load,.ca-load,.cw-load,.p-load');
+          for (var j = 0; j < loads.length; j++) {
+            var d = document.createElement('div');
+            d.style.cssText = 'border:2px solid #c1121f;background:#1a0505;color:#f5f0e1;padding:12px;margin:8px 0;font-family:Arial,sans-serif;font-size:14px;';
+            d.innerHTML = 'This widget failed to start. ' +
+              '<button style="background:#c1121f;color:#fff;border:0;font-weight:700;padding:8px 14px;cursor:pointer;" onclick="location.reload()">Reload</button>';
+            if (loads[j].parentNode) loads[j].parentNode.replaceChild(d, loads[j]);
+          }
+        } catch (e2) {}
+      }
+      scripts[i].remove();
+    }
+  }
+
+  /* Page header: kicker + title + sub, injected once at the top of the
+     mount div. Inline styles keep it independent of theme CSS. */
+  function mountHeader(host, cfg) {
+    if (host.querySelector(':scope > .pf-page-head')) return;
+    var head = document.createElement('div');
+    head.className = 'pf-page-head';
+    /* CONTRAST FIX (2026-10-04): the hero carries its own dark band so the
+       near-white title is never at the mercy of the Squarespace section
+       background — /economy, /arcade and /war-chest ship light-gray section
+       backgrounds, which washed #f5ead6 out to ~1.4–2.0:1 (verified below).
+       On this dark band the title hits 16.3:1 and the sub 7.3:1 (both AAA).
+       Red top/bottom bars keep the red/black propaganda treatment. */
+    /* NAV OFFSET (2026-10-04): the band is the first content on all 9 injected
+       pages and sat under the fixed nav, clipping the top of the hero title.
+       80px top margin matches the homepage HERO FIX (01-styles.css) and clears
+       the fixed header on every injected page via this one shared mount. */
+    head.style.cssText = 'text-align:center;margin:80px auto 22px;max-width:720px;font-family:Arial,sans-serif;' +
+      'background:linear-gradient(180deg,#141414 0%,#0b0b0b 100%);' +
+      'border:1px solid #333;border-top:4px solid #c1121f;border-bottom:4px solid #c1121f;' +
+      'padding:24px 18px 20px;box-sizing:border-box;border-radius:3px;';
+    var kicker = document.createElement('div');
+    kicker.style.cssText = 'font-size:12px;letter-spacing:5px;color:#dc143c;font-weight:800;margin-bottom:8px;';
+    kicker.textContent = 'MTCSTW.COM';
+    var title = document.createElement('div');
+    title.style.cssText = "font-family:'Arial Black',Arial,sans-serif;font-size:34px;letter-spacing:3px;color:#f5ead6;text-transform:uppercase;margin:0 0 8px;";
+    title.textContent = cfg.title;
+    var rule = document.createElement('div');
+    rule.style.cssText = 'height:3px;width:120px;background:#c1121f;margin:0 auto 10px;';
+    var sub = document.createElement('div');
+    sub.style.cssText = 'font-size:15px;color:#a89e88;line-height:1.5;';
+    sub.textContent = cfg.sub;
+    head.appendChild(kicker); head.appendChild(title);
+    head.appendChild(rule); head.appendChild(sub);
+    host.insertBefore(head, host.firstChild);
+  }
+
+  /* Position a self-mounting silo's div inside the page flow, in order.
+     Moves an existing div (Squarespace Code block) into the mount div at
+     the current append point; creates it if the page forgot it. Moving a
+     node preserves its rendered content and listeners. */
+  function mountSelf(host, silo, selfCfg) {
+    if (PF && PF.skip(selfCfg.kill)) { return true; }
+    var div = document.getElementById(selfCfg.div);
+    if (!div) {
+      div = document.createElement('div');
+      div.id = selfCfg.div;
+      err('self-mount div #' + selfCfg.div + ' missing from page HTML — created empty; ' +
+          silo + ' renders itself only when its div exists before bundles load', null);
+    }
+    /* Append at the current ordered position. Entries mount in PAGE_ORDERS
+       order, so the end of the mount div is always the right slot; moving
+       an existing node preserves its rendered content and listeners. */
+    host.appendChild(div);
+    return true;
+  }
+
+  var mounted = {};
+  /* 2026-10-05 (fe/events-move): tracks injected lazy-bundle anchors so a
+     lazy entry's placeholder is created exactly once per page/silo. */
+  var lazyAnchored = {};
+  /* DEFECT 3 (2026-10-03; root cause corrected 2026-10-04; generalized
+     2026-10-04): force PF mount points' Fluid Engine block wrappers to full
+     content width — on EVERY v2 page, not just /economy.
+     TRUE mechanism (verified against live /economy, /cells, /request-access
+     HTML): Squarespace emits a static <style> tag per FE section with
+     per-block grid placement, e.g. .fe-block-yui_...{grid-area:1/2/7/10} —
+     a narrow column span. There are NO inline layout styles and FE JS does
+     not rewrite geometry at runtime; the 2026-10-03 width-only fix failed
+     because a grid item's size comes from grid-area/grid-column, not width.
+     grid-column:1/-1!important (see .pf-fe-full in core/01-styles.css) spans
+     the block across the full grid and beats the static grid-area rule.
+     The editor is off-limits, so the mount stamps .pf-fe-full on the
+     .fe-block ancestor of every PF mount div.
+     FE_MOUNT_IDS is the single registry: PAGE_ORDERS page mounts, the
+     self-mount HQ divs, and the homepage / political-hq / SLR mounts. A new
+     page or silo adds its mount div id here — no per-page ifs, no
+     whack-a-mole. (war-card.js / academy.js keep their own .pf-fe-hq
+     stamping: that class also carries height:auto and the /request-access
+     row-overlap fix, which .pf-fe-full must not subsume.)
+     KILL: ?pf_off=fe-widen or localStorage pf_disabled_v1='["fe-widen"]'.
+     Best-effort: never throws, never breaks the mount. */
+  var FE_MOUNT_IDS = [
+    'pf-v2',
+    'pf-cells-page', 'pf-cell-hq',
+    'pf-arcade', 'pf-create', 'pf-bank', 'pf-economy',
+    'pf-warchest', 'pf-ventures', 'pf-events', 'pf-warreport',
+    'pf-war-card', 'pf-academy-hq', 'pf-dash-hq',
+    'pf-political-hq', 'pf-slr-roster', 'pf-catalog', 'pf-money'
+  ];
+  function feWiden(host) {
+    try {
+      if (PF && PF.skip('fe-widen')) return;
+      var b = host && host.closest ? host.closest('.fe-block') : null;
+      if (b && b.classList && !b.classList.contains('pf-fe-full')) {
+        b.classList.add('pf-fe-full');
+      }
+    } catch (e) { /* layout best-effort only */ }
+  }
+  function feWidenAll() {
+    try {
+      for (var i = 0; i < FE_MOUNT_IDS.length; i++) {
+        var el = document.getElementById(FE_MOUNT_IDS[i]);
+        if (el) feWiden(el);
+      }
+    } catch (e) { /* layout best-effort only */ }
+  }
+  /* Exposed for silos / debugging. Guarded: only defined once. */
+  if (PF && !PF.feWiden) PF.feWiden = feWiden;
+  function mountPage(pageId) {
+    var cfg = PAGE_ORDERS[pageId];
+    if (!cfg) return 0;
+    var h = document.getElementById(pageId);
+    if (!h || isEditor()) return 0;
+    try { mountHeader(h, cfg); } catch (e) {}
+    /* DEFECT 3 (generalized 2026-10-04): every dedicated page's mount block
+       goes full width — same narrow-column root cause as /economy's
+       incident, now handled by the shared registry above. */
+    feWiden(h);
+    /* WORKSHOP SHELL (2026-10-05): /create is owned by the workshop shell
+       (core/workshop.js, first in bundle-create) unless the shell is killed
+       via ?pf_off=workshop. The shell renders its own header + tool rail and
+       lazy-mounts tools on demand; the legacy stacked layout below is the
+       regression path and runs ONLY when the shell is killed — or when the
+       shell failed to claim the page (window.pfWorkshopClaimed unset), e.g.
+       bundle-create failed to load. Guard is PF.skip('workshop') inverted. */
+    if (pageId === 'pf-create' && PF && !PF.skip('workshop') && window.pfWorkshopClaimed) {
+      cfg.order.forEach(function (entry) { mounted[pageId + '::' + entry[0]] = 1; });
+      return 0;
+    }
+    var n = 0;
+    cfg.order.forEach(function (entry) {
+      var silo = entry[0], tplId = entry[1], lazyBundle = entry[2];
+      var key = pageId + '::' + silo;
+      if (mounted[key]) return;
+      if (tplId === null || tplId === undefined) {
+        /* Self-mounting silo. */
+        var selfCfg = SELF[silo];
+        if (!selfCfg) { err('no SELF config for ' + silo, null); mounted[key] = 1; return; }
+        try { mountSelf(h, silo, selfCfg); } catch (e) { err('self-mount failed: ' + silo, e); }
+        mounted[key] = 1;
+        n++;
+        return;
+      }
+      if (PF && PF.skip(silo)) { mounted[key] = 1; return; }
+      try {
+        var tpl = document.getElementById(tplId);
+        if (!tpl || !tpl.content) {
+          /* 2026-10-05 (fe/events-move): LAZY ENTRY. The chunk hasn't staged
+             its template yet — inject a loader anchor placeholder (once) at
+             this ordered position so the footer loader's jsLazy() fetches the
+             chunk when the section scrolls near. Fail-soft: plain skip when
+             there is no lazy bundle for this entry (next retry call tries
+             again, as before). */
+          if (lazyBundle && !lazyAnchored[key]) {
+            lazyAnchored[key] = 1;
+            try {
+              var anchor = document.createElement('div');
+              anchor.className = 'pf-sec-anchor pf-lazy-skel';
+              anchor.setAttribute('data-bundle', lazyBundle);
+              anchor.setAttribute('data-lazy-silo', silo);
+              anchor.innerHTML = '<div class="c-load">Mobilizing&hellip;</div>';
+              h.appendChild(anchor);
+              /* Fail-soft: if the lazy chunk never arrives (load error,
+                 blocked CDN), the skeleton must not spin forever. After 25s
+                 with no mount, swap it for an explicit message + reload. */
+              setTimeout(function () {
+                try {
+                  if (mounted[key]) return;
+                  var a = h.querySelector('[data-lazy-silo="' + silo + '"]');
+                  if (!a || a.getAttribute('data-pf-mounted')) return;
+                  a.innerHTML = '<div style="border:2px solid #c1121f;background:#1a0505;color:#f5f0e1;padding:12px;margin:8px 0;font-family:Arial,sans-serif;font-size:14px;">' +
+                    'This section failed to load. ' +
+                    '<button style="background:#c1121f;color:#fff;border:0;font-weight:700;padding:8px 14px;cursor:pointer;" onclick="location.reload()">Reload</button></div>';
+                } catch (e2) {}
+              }, 25000);
+            } catch (e3) { err('lazy anchor failed: ' + silo, e3); }
+          }
+          return; /* bundle not staged yet — try next call */
+        }
+        var frag = document.importNode(tpl.content, true);
+        var section = document.createElement('section');
+        section.className = 'pf-v2-game';
+        section.setAttribute('data-game', silo);
+        section.appendChild(frag);
+        /* A lazy entry's placeholder anchor (if any) is replaced by the real
+           section — no orphaned skeletons, no dead mount divs. */
+        try {
+          var old = h.querySelector('[data-lazy-silo="' + silo + '"]');
+          if (old && old.parentNode) {
+            old.setAttribute('data-pf-mounted', '1');
+            old.parentNode.replaceChild(section, old);
+          } else {
+            h.appendChild(section);
+          }
+        } catch (e4) { h.appendChild(section); }
+        execScripts(section, tplId);
+        mounted[key] = 1;
+        n++;
+      } catch (e) { err('mount failed: ' + silo, e); mounted[key] = 1; }
+    });
+    return n;
+  }
+
+  function mountAll() {
+    var total = 0;
+    Object.keys(PAGE_ORDERS).forEach(function (pageId) {
+      try { total += mountPage(pageId); } catch (e) {}
+    });
+    return total;
+  }
+
+  /* Expose for late bundles / debugging. Guarded: only defined once. */
+  if (PF && !PF.mountPageSilos) PF.mountPageSilos = mountAll;
+
+  mountAll();
+
+  /* DEFECT 3 (generalized): widen every PF mount div present on this page —
+     covers mounts outside PAGE_ORDERS (homepage #pf-v2, HQ #pf-war-card,
+     /political-hq, SLR roster/catalog) in the same blocking sequence. */
+  try { feWidenAll(); } catch (e) {}
+
+  /* Race-condition guard: if a game bundle staged its templates after this
+     file ran (shouldn't happen — games load blocking before pages — but
+     cheap insurance), retry until every page's order is mounted. */
+  (function retryMount(){
+    var tries = 0;
+    var iv = setInterval(function(){
+      tries++;
+      var n = 0;
+      try { n = mountAll(); } catch(e){}
+      var allDone = true;
+      Object.keys(PAGE_ORDERS).forEach(function (pageId) {
+        if (!document.getElementById(pageId)) return;
+        PAGE_ORDERS[pageId].order.forEach(function (entry) {
+          if (!mounted[pageId + '::' + entry[0]]) allDone = false;
+        });
+      });
+      if (allDone || tries >= 15 || (n === 0 && tries >= 5)) {
+        clearInterval(iv);
+      }
+    }, 2000);
+  })();
+
+})();
+
+;
+
+/* ===== games/notify.js ===== */
+/* games/notify.js  |  PF v1.4.3 | NOTIFICATIONS — the header bell (global chrome).
+   Self-injecting: drops a bell icon into the site header (fallback: fixed
+   top-right), shows the unread count, and opens the notification inbox in a
+   dropdown panel. Works on any page where its bundle loads — no homepage
+   shell required.
+   Reads via JSONP (self-contained api()), writes via CORS POST (self-contained post()).
+   KILL: ?pf_off=notify  or  localStorage pf_disabled_v1='["notify"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("notify")) { return; }
+  if (window.pfNotifyBellDone) return;
+  try { /* never mount inside the Squarespace editor */
+    var href = window.location.href || '';
+    if (href.indexOf('/config/') !== -1) return;
+    var bd = document.body;
+    if (bd && (bd.classList.contains('sqs-edit-mode') || bd.classList.contains('sqs-editing'))) return;
+  } catch (e) {}
+  window.pfNotifyBellDone = true;
+
+  var BACKEND = window.PF_BACKEND_URL;
+
+  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+  function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+    try{ var t=document.createElement("div"); t.textContent=m;
+    t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+    document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+  /* Friendly copy for gated read failures (2026-10-03): raw backend strings
+     like 'missing credentials' are never shown as UI copy. */
+  function ntAuthHint(j){
+    var e=String((j&&j.err)||"");
+    if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")
+      return '<br><span class="x-note">This callsign predates the new auth system and can&rsquo;t reconnect on its own &mdash; contact MTCSTW to recover it.</span>';
+    if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)
+      return '<br><span class="x-note">Your callsign needs to reconnect &mdash; re-claim it in Enlistment Ranks (one tap), then retry.</span>';
+    return "";
+  }
+  /* Friendly copy for WRITE paths (2026-10-03 M27): raw snake_case backend
+     codes never reach users — mark-read, prefs save. */
+  function ntWriteErr(e,fb){
+    var s=String(e==null?"":e).trim();
+    var fall=fb||"The wire fought back. Tap again to retry.";
+    if(!s||/network error/i.test(s)) return fall;
+    var map={
+      "bad callsign":"That callsign didn't check out. Re-claim it in Enlistment Ranks, then retry.",
+      "missing id":"That dispatch slipped away. Refresh and try again.",
+      "db error":"The ledger hiccuped. Retry in a moment.",
+      "unknown notify action":"That order isn't on the books. Refresh and try again."
+    };
+    if(map[s]) return map[s];
+    if(s.indexOf("_")!==-1) return fall; /* never show raw snake_case */
+    return s; /* backend prose already human-readable */
+  }
+  function api(action,params,cb){
+    if(!BACKEND){ cb(null); return; }
+    /* Private reads require auth_secret (IDOR fix). Route gated actions
+       through the shared claim-retry GET (2026-10-03): pre-auth callsign
+       holders with no stored secret get one auth_claim attempt instead of
+       failing 'missing credentials' forever. */
+    if(action==="notification_list"||action==="notification_prefs"||action==="recruit_rollup"){
+      try{
+        if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
+        var _sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : "";
+        if(_sec && params && !params.auth_secret) params.auth_secret = _sec;
+      }catch(e){}
+    }
+    var fn="pfNtCb"+Math.floor(Math.random()*1e9);
+    var s=document.createElement("script"), done=false;
+    function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+      if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+    window[fn]=function(j){ finish(j); };
+    s.onerror=function(){ finish(null); };
+    var q="?action="+encodeURIComponent(action);
+    for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+    q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+    setTimeout(function(){ finish(null); },12000);
+  }
+  function post(type,key,cAction,params,cb){
+    var body={type:type}; body[key]=cAction;
+    for(var k in params) body[k]=params[k];
+    if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+    function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+    try{
+      /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+      var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)},c=null,t=null;
+        try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+          t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+        o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+      fetch(BACKEND,_po)
+        .then(function(r){ return r.json(); }).then(function(j){ _po._pfClear(); done(j); }).catch(function(){ _po._pfClear(); done(null); });
+    }catch(e){ done(null); }
+  }
+  function ago(t){
+    var ms=Date.now()-Number(t); if(ms<0)ms=0;
+    var m=Math.floor(ms/60000); if(m<1) return "just now";
+    if(m<60) return m+"m ago";
+    var h=Math.floor(m/60); if(h<24) return h+"h ago";
+    var d=Math.floor(h/24); return d+"d ago";
+  }
+
+  /* ---------- bell chrome ---------- */
+  var N=null, PR=null, bellBtn=null, badgeEl=null, panel=null, panelOpen=false;
+
+  function injectCSS(){
+    if (document.getElementById('pfNotifyCSS')) return;
+    var st=document.createElement('style');
+    st.id='pfNotifyCSS';
+    st.textContent=
+      '#pfNotifyBell{background:transparent;border:0;cursor:pointer;position:relative;padding:8px;line-height:1;}'+
+      '#pfNotifyBell .pf-nb-ico{font-size:22px;filter:grayscale(0);}'+
+      '#pfNotifyBell .pf-nb-badge{position:absolute;top:2px;right:0;min-width:18px;height:18px;border-radius:9px;'+
+      'background:#c1121f;color:#fff;font:bold 11px/18px Arial,sans-serif;text-align:center;padding:0 4px;border:2px solid #0d0d0d;}'+
+      '#pfNotifyBell.pf-nb-fixed{position:fixed;top:10px;right:10px;z-index:99990;background:#161616;'+
+      'border:2px solid #c1121f;border-radius:8px;}'+
+      '#pfNotifyPanel{position:fixed;z-index:99991;width:340px;max-width:92vw;max-height:70vh;overflow-y:auto;'+
+      'background:#111;border:2px solid #c1121f;color:#f5ead6;font-family:Arial,sans-serif;padding:14px;}'+
+      '#pfNotifyPanel h4{margin:0 0 8px;font-size:14px;letter-spacing:1px;}'+
+      /* R28: notification deep links. */
+      '#pfNotifyPanel .nt-go{display:block;color:inherit;text-decoration:none;}'+
+      '#pfNotifyPanel a.nt-go:hover .cp-mtext b{text-decoration:underline;}';
+    document.head.appendChild(st);
+  }
+
+  function mountBell(){
+    if (document.getElementById('pfNotifyBell')) {
+      bellBtn=document.getElementById('pfNotifyBell');
+      badgeEl=document.getElementById('pfNotifyBadge');
+      return;
+    }
+    injectCSS();
+    var btn=document.createElement('button');
+    btn.id='pfNotifyBell'; btn.type='button'; btn.setAttribute('aria-label','Notifications');
+    btn.innerHTML='<span class="pf-nb-ico">\uD83D\uDD14</span>'+
+      '<span class="pf-nb-badge" id="pfNotifyBadge" style="display:none"></span>';
+    var host=null;
+    try{
+      var sels=['header .header-actions','.header-actions','header#header','header','.site-header'];
+      for(var i=0;i<sels.length&&!host;i++) host=document.querySelector(sels[i]);
+    }catch(e){}
+    if(host){ host.appendChild(btn); }
+    else{
+      btn.className='pf-nb-fixed';
+      (document.body||document.documentElement).appendChild(btn);
+    }
+    btn.addEventListener('click',function(ev){ try{ev.stopPropagation();}catch(e){} togglePanel(); });
+    bellBtn=btn; badgeEl=btn.querySelector('#pfNotifyBadge');
+    panel=document.createElement('div');
+    panel.id='pfNotifyPanel'; panel.style.display='none';
+    document.body.appendChild(panel);
+    document.addEventListener('click',function(ev){
+      if(!panelOpen) return;
+      if(panel&&panel.contains(ev.target)) return;
+      if(bellBtn&&bellBtn.contains(ev.target)) return;
+      closePanel();
+    });
+  }
+
+  function positionPanel(){
+    try{
+      var r=bellBtn.getBoundingClientRect();
+      panel.style.top=(r.bottom+window.scrollY+8)+'px';
+      var left=Math.max(8,Math.min(r.right+window.scrollX-340,window.scrollX+document.documentElement.clientWidth-348));
+      panel.style.left=left+'px';
+    }catch(e){}
+  }
+  function openPanel(){ positionPanel(); panel.style.display='block'; panelOpen=true; renderPanel(); }
+  function closePanel(){ panel.style.display='none'; panelOpen=false; }
+  function togglePanel(){ if(panelOpen) closePanel(); else openPanel(); }
+
+  /* ---------- data ---------- */
+  function load(){
+    var id=ident(), done=false, n=0;
+    /* M27 (2026-10-03): logged-out visitors have no callsign/device identity —
+       skip backend calls entirely instead of firing them blind (incl. the
+       90s poll). */
+    if(!id.callsign){ N=null; PR=null; if(panelOpen) renderPanel(); return; }
+    function fin(){ if(done)return; done=true; updateBadge(); if(panelOpen) renderPanel(); }
+    function one(){ n++; if(n>=2) fin(); }
+    setTimeout(fin,15000);
+    api("notification_list",{callsign:id.callsign},function(j){ N=j; one(); });
+    api("notification_prefs",{callsign:id.callsign},function(j){ PR=j; one(); });
+  }
+
+  function updateBadge(){
+    if(!badgeEl) return;
+    var id=ident();
+    if(!id.callsign){ badgeEl.style.display='none'; return; }
+    var list=(N&&N.notifications)||[], unread=0;
+    for(var i=0;i<list.length;i++){ if(!list[i].read) unread++; }
+    if(unread>0){ badgeEl.textContent=unread>99?'99+':String(unread); badgeEl.style.display='block'; }
+    else badgeEl.style.display='none';
+  }
+
+  /* W2-D30: recruiter digest — YOUR RECRUITS THIS WEEK from recruit_rollup.
+     Contract (W6B-1): GET ?action=recruit_rollup -> {ok, recruits:[
+     {callsign, missions_done, xp_earned}]}. Absent at build time: the section
+     stays on its "mustering" line and fails silent. Cached 10 min. */
+  var _rdAt=0;
+  function loadRecruitDigest(id){
+    var host=null;
+    try{ host=document.getElementById("ntRecruitDigest"); }catch(e){}
+    if(!host||!id.callsign) return;
+    if(Date.now()-_rdAt<10*60*1000&&host.getAttribute("data-done")==="1") return;
+    api("recruit_rollup",{callsign:id.callsign},function(j){
+      var el=null;
+      try{ el=document.getElementById("ntRecruitDigest"); }catch(e2){}
+      if(!el) return;
+      var rows=(j&&j.ok&&j.recruits)||[];
+      if(!j||!j.ok||!rows.length){
+        /* Contract absent or no recruits — leave a quiet line, not an error. */
+        el.innerHTML='<div class="x-note">No recruits on the board yet. Share your code — every RECRUIT who checks in pays +25 XP.</div>';
+        return;
+      }
+      el.setAttribute("data-done","1"); _rdAt=Date.now();
+      var h="";
+      for(var i=0;i<Math.min(rows.length,10);i++){
+        var r=rows[i]||{};
+        h+='<div class="cp-mission"><div class="cp-mtext"><b>'+esc(r.callsign||"?")+'</b>'
+          +'<div class="x-note">'+Number(r.missions_done||0)+' missions &bull; '+Number(r.xp_earned||0).toLocaleString()+' XP earned</div></div></div>';
+      }
+      el.innerHTML=h;
+    });
+  }
+
+  function renderPanel(){
+    if(!panel) return;
+    var id=ident();
+    if(!id.callsign){
+      panel.innerHTML='<h4>\uD83D\uDD14 NOTIFICATIONS</h4>'+PF.gateHTML('Notifications need a callsign.','to get dispatches');
+      return;
+    }
+    var list=(N&&N.notifications)||[], i;
+    var inboxFailed=!N||!N.ok;
+    var h='<h4>\uD83D\uDD14 NOTIFICATIONS</h4>';
+    h+='<div class="x-pane"><h4>Inbox</h4>';
+    /* M27 (2026-10-03): a network/auth failure renders a distinct error state
+       with retry — never the empty "Quiet on the wire" line. */
+    if(inboxFailed){
+      h+='<div class="x-note">The wire went quiet — not from silence, but from a cut line. Your dispatches are still out there.'+ntAuthHint(N)+'</div>';
+      h+='<div style="margin-top:8px"><button class="c-btn" id="ntInboxRetry">RETRY</button></div>';
+    } else if(!list.length) h+='<div class="x-note">Quiet on the wire. Go make some noise.</div>';
+    /* R28 (Wave 6B, 2026-10-04): deep-link audit. The backend's
+       notification_list returns id/type/title/body/ts/read ONLY — no link
+       field — and the panel rendered zero tap targets, so every notification
+       type was a dead tap. Fixed: each known type maps to its surface; a
+       backend-supplied n.link/n.url/n.href wins if one ever ships. Unknown
+       types stay untappable (no invented destinations). Notification types
+       enumerated from backend notify() call sites 2026-10-04: battle,
+       bounty, wager, lottery, gov, streak, flash, tip, ambush, recruit
+       (+ boost, in the prefs map, no call site yet).
+       FLAGGED FOR LIVE VERIFICATION: bounty -> /create, wager/lottery ->
+       /arcade, tip -> /create, recruit -> / are best-guess surfaces. */
+    var TYPE_DEEP={battle:'/arcade',bounty:'/create',wager:'/arcade',lottery:'/arcade',gov:'/political-hq',streak:'/',flash:'/#pf-brief',tip:'/create',ambush:'/',recruit:'/',boost:'/create',remit:'/bank'};
+    function ntDest(x){ try{ var l=x.link||x.url||x.href; if(l) return String(l); }catch(e){}
+      return TYPE_DEEP[String(x.type||'').toLowerCase()]||null; }
+    for(i=0;i<Math.min(list.length,30);i++){
+      var n=list[i], dest=ntDest(n);
+      /* R15 (2026-10-04, fields fixed 2026-10-05): received remits get
+         acknowledge + return-send. The backend's notification_list returns
+         id/type/title/body/ts/read ONLY — no data field — so the sender and
+         amount are parsed from the body, which the remit_send emitter writes
+         verbatim: "<CALLSIGN> sent you <N> XP — acknowledge / send back"
+         (finance.js, W6B R15). n.data stays the preferred source if a future
+         backend ever ships it. Without real fields the SEND BACK prefill is
+         a no-op, so never render the buttons on empty values. */
+      var ndata=(n&&n.data)||{};
+      var isRemit=/remit/i.test(String(n.type||""))||!!ndata.from_cs;
+      var fromCs=String(ndata.from_cs||""), rAmt=Math.max(0,Math.round(Number(ndata.amount)||0));
+      if(isRemit&&(!fromCs||!rAmt)){
+        var rbm=/^([a-z0-9_]{3,20}) sent you (\d+) XP/.exec(String((n&&n.body)||""));
+        if(rbm){ if(!fromCs) fromCs=rbm[1]; if(!rAmt) rAmt=Math.max(0,Math.round(Number(rbm[2])||0)); }
+      }
+      var remitReady=isRemit&&!!fromCs&&rAmt>0;
+      h+='<div class="cp-mission"'+(n.read?' style="opacity:.6"':'')+'>'
+        +(dest?'<a class="nt-go" href="'+esc(dest)+'">':'<span class="nt-go">')
+        +'<div class="cp-mtext">'
+        +'<span class="c-tag">'+esc(n.type||"info")+'</span> <b>'+esc(n.title||"")+'</b>'
+        +'<div class="x-note">'+esc(n.body||"")+'</div>'
+        +'<div class="x-note">'+esc(ago(n.ts))+'</div></div>'
+        +(dest?'</a>':'</span>');
+      if(remitReady&&!n.read){
+        h+='<div><button class="c-btn" data-remit-thanks="'+n.id+'">THANK THEM</button> '
+          +'<button class="c-btn" data-remit-back="'+n.id+'" data-from="'+esc(fromCs)+'" data-amt="'+rAmt+'">SEND BACK</button></div>';
+      } else if(!n.read){
+        h+='<button class="c-btn" data-nid="'+n.id+'">MARK READ</button>';
+      }
+      h+='</div>';
+    }
+    h+='</div>';
+    /* W2-D30 (2026-10-04): recruiter digest — YOUR RECRUITS THIS WEEK, from
+       the recruit_rollup contract (W6B-1, flagged). Renders only when the
+       backend answers; the sitrep line rides W5-8. */
+    h+='<div class="x-pane"><h4>YOUR RECRUITS THIS WEEK</h4><div id="ntRecruitDigest"><div class="x-note">Mustering&hellip;</div></div></div>';
+    var p=(PR&&PR.prefs)||{battles:true,boosts:true,recruits:true,tips:true};
+    h+='<div class="x-pane"><h4>Alert preferences</h4><div class="x-note">Choose what pings you.</div>'+ntAuthHint(PR);
+    var keys=[["battles","Battle results"],["boosts","Boosts on my work"],["recruits","Recruit activations"],["tips","Tips received"]];
+    for(i=0;i<keys.length;i++){
+      var k=keys[i][0];
+      h+='<label class="cp-mtext" style="display:block;margin:6px 0"><input type="checkbox" data-pref="'+k+'"'+(p[k]?" checked":"")+'/> '+esc(keys[i][1])+'</label>';
+    }
+    h+='<div style="height:8px"></div><button class="c-btn" id="ntSave">SAVE PREFERENCES</button></div>';
+    h+='<div style="margin-top:10px"><button class="c-btn" id="ntRetry">Refresh</button></div>';
+    panel.innerHTML=h;
+    var btns=panel.querySelectorAll('button[data-nid]');
+    for(i=0;i<btns.length;i++){ (function(btn){
+      btn.onclick=function(){
+        var nid=btn.getAttribute("data-nid"); btn.disabled=true;
+        post("notify","n_action","notification_read",{callsign:id.callsign,device:id.device,id:nid},function(j){
+          if(!j||!j.ok){ toast(ntWriteErr(j&&j.err,"Mark-read failed. Tap again to retry.")); btn.disabled=false; return; }
+          setTimeout(function(){ N=null; load(); },500);
+        });
+      };
+    })(btns[i]); }
+    /* R15: THANK THEM = acknowledge (mark-read + toast). SEND BACK = prefill
+       the /bank teller and route there. */
+    var tbs=panel.querySelectorAll('button[data-remit-thanks]');
+    for(i=0;i<tbs.length;i++){ (function(btn){
+      btn.onclick=function(){
+        var nid=btn.getAttribute("data-remit-thanks"); btn.disabled=true;
+        post("notify","n_action","notification_read",{callsign:id.callsign,device:id.device,id:nid},function(j){
+          if(!j||!j.ok){ toast(ntWriteErr(j&&j.err,"Ack failed. Tap again.")); btn.disabled=false; return; }
+          toast("ACKNOWLEDGED. They know you got it.");
+          setTimeout(function(){ N=null; load(); },500);
+        });
+      };
+    })(tbs[i]); }
+    var sbs=panel.querySelectorAll('button[data-remit-back]');
+    for(i=0;i<sbs.length;i++){ (function(btn){
+      btn.onclick=function(){
+        var from=btn.getAttribute("data-from")||"", amt=Math.max(0,Math.round(Number(btn.getAttribute("data-amt"))||0));
+        try{ sessionStorage.setItem("pf_remit_prefill",JSON.stringify({to:from,amt:amt})); }catch(e){}
+        try{ location.href="/bank"; }catch(e2){}
+      };
+    })(sbs[i]); }
+    /* W2-D30: recruiter digest fetch (cached 10 min). */
+    loadRecruitDigest(id);
+    var sv=panel.querySelector('#ntSave');
+    if(sv) sv.onclick=function(){
+      var out={callsign:id.callsign,device:id.device};
+      var cbs=panel.querySelectorAll('input[data-pref]');
+      for(var c=0;c<cbs.length;c++) out[cbs[c].getAttribute("data-pref")]=cbs[c].checked?1:0;
+      sv.disabled=true;
+      /* G-08 (2026-10-05): this is the IN-APP prefs contract —
+         post("notify","n_action","notification_prefs") reads/writes the
+         in-app toggles (battles/boosts/recruits/tips) in `notif_prefs`
+         (src/notify.js). The SEPARATE contract
+         post("notifyq","nq_action","notify_prefs") is the EMAIL prefs page
+         (games/notify-prefs.js, `contact_info` via src/notifyqueue.js).
+         Different surfaces, different tables — keep both, don't unify. */
+      post("notify","n_action","notification_prefs",out,function(j){
+        if(!j||!j.ok){ toast(ntWriteErr(j&&j.err,"Save failed. Tap again to retry.")); sv.disabled=false; return; }
+        toast("PREFERENCES SAVED.");
+        sv.disabled=false;
+      });
+    };
+    var rb=panel.querySelector('#ntRetry');
+    if(rb) rb.onclick=function(){ N=PR=null; panel.innerHTML='<div class="c-load">Tuning&hellip;</div>'; load(); };
+    var irb=panel.querySelector('#ntInboxRetry');
+    if(irb) irb.onclick=function(){ N=PR=null; panel.innerHTML='<div class="c-load">Tuning&hellip;</div>'; load(); };
+  }
+
+  /* Boot: header may not exist yet if the bundle ran early. */
+  function boot(){
+    try{ mountBell(); }catch(e){}
+    load();
+    setInterval(function(){
+      try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){}
+      if(!document.getElementById('pfNotifyBell')){ try{ mountBell(); }catch(e){} }
+      load();
+    },90000);
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',boot);
+  }else{
+    boot();
+  }
+})();
+
+;
+
+/* ===== games/flash-siren.js ===== */
+/* games/flash-siren.js  |  PF v1.4.3 | A2 Flash Siren (Wave 3).
+   Site-wide siren banner before flash XP multipliers go live (warning
+   window from flash_create.siren_minutes, default 15 min) plus the
+   operation pre-launch siren. Contracts ALLFRONTS_CONTRACTS.md §5/§8/§10:
+   the operation `upcoming` flag is the single source of truth (never
+   recomputed from starts_at); the operation siren wins the banner slot
+   over standalone flash sirens; at operation go-live the siren hands off
+   to the operation banner (never double-renders with #pf-af-bar).
+   One siren at a time, ever. FRONTEND-ONLY, ZERO NEW XP — the recruit
+   bounty doubling is server-side (referral_activate via xpGrant caps).
+   Countdown ticks client-side from starts_at (re-reads at 30s TTL only
+   refresh state). Bell ping once per siren id (localStorage seen list).
+   Fail-silent everywhere: a dead read or render throw never breaks the page.
+   KILL: ?pf_off=siren  or  localStorage pf_disabled_v1='["siren"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('siren')) { return; }
+  try { /* never mount inside the Squarespace editor */
+    var href = window.location.href || '';
+    if (href.indexOf('/config/') !== -1) return;
+    var bd0 = document.body;
+    if (bd0 && (bd0.classList.contains('sqs-edit-mode') || bd0.classList.contains('sqs-editing'))) return;
+  } catch (e) {}
+
+  var BACKEND = window.PF_BACKEND_URL ;
+  var POLL_MS = 30000;      /* re-read state at 30s TTL — refresh only, never the ticking number */
+  var SEEN_KEY = 'pf_siren_seen_v1';
+  var DISMISS_KEY = 'pf_siren_dismissed';
+  var SEEN_CAP = 50;
+
+  var flashState = null;    /* last flash_list payload */
+  var siren = null;         /* current siren {kind:'op'|'flash', id, name, starts_at} or null */
+  var padSet = false;
+  var _opCache = { t: 0, v: null };
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /* JSONP GET helper. Mirrors core/21-allfronts.js. */
+  function api(action, params, cb) {
+    try {
+      if (window.PF && PF.authGetJSONP) { PF.authGetJSONP(BACKEND, action, params, cb); return; }
+    } catch (e) {}
+    var fn = 'pfSirenCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e2) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      try { cb(j); } catch (e3) {}
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    try {
+      for (var k in params) q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    } catch (e4) {}
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    s.async = true;
+    try { document.head.appendChild(s); } catch (e5) { finish(null); return; }
+    setTimeout(function () { finish(null); }, 12000); /* 12s backstop */
+  }
+
+  /* operation_status read: reuse window.PFOperation when present (contract
+     §8 shared cache), else a defensive cached reader. Any failure degrades
+     to {live:false, upcoming:false} — missing-partner no-op. */
+  function readOpStatus(cb) {
+    try {
+      var PO = window.PFOperation;
+      if (PO) {
+        var v = null;
+        if (typeof PO.status === 'function') v = PO.status();
+        else if (typeof PO.getStatus === 'function') v = PO.getStatus();
+        else if (PO.latest) v = PO.latest;
+        if (v) { cb(v); return; }
+      }
+    } catch (e) {}
+    var now = Date.now();
+    if (_opCache.v && (now - _opCache.t) < POLL_MS) { cb(_opCache.v); return; }
+    api('operation_status', {}, function (j) {
+      var out = { live: false, upcoming: false };
+      try { if (j && typeof j === 'object') out = j; } catch (e2) {}
+      _opCache.t = Date.now(); _opCache.v = out;
+      cb(out);
+    });
+  }
+
+  function normOp(j) {
+    var live = false, upcoming = false, name = '', startsAt = 0;
+    try {
+      if (j && typeof j === 'object') {
+        live = j.live === true;
+        upcoming = j.upcoming === true; /* single source of truth — never recomputed */
+        name = String(j.name || '');
+        startsAt = Number(j.starts_at) || 0;
+      }
+    } catch (e) {}
+    if (live) upcoming = false; /* contract §10.8: live wins over upcoming */
+    return { live: live, upcoming: upcoming, name: name, starts_at: startsAt };
+  }
+
+  /* Standalone flash siren pick: backend `siren` flags are authoritative;
+     fall back to client derivation only for pre-A2 backends. One siren at
+     a time — soonest starts_at wins. */
+  function pickFlashSiren(now) {
+    try {
+      var ev = (flashState && flashState.events) || [];
+      var best = null;
+      for (var i = 0; i < ev.length; i++) {
+        var r = ev[i] || {};
+        var isSiren = (r.siren === true);
+        if (r.siren !== true && r.siren !== false) {
+          var sm = (r.siren_minutes == null) ? 15 :
+            Math.max(0, Math.min(60, Number(r.siren_minutes) || 0));
+          isSiren = r.starts_at > now && r.starts_at <= now + sm * 60000;
+        }
+        if (!isSiren) continue;
+        if (!best || (r.starts_at || 0) < (best.starts_at || 0)) best = r;
+      }
+      if (!best) return null;
+      return { kind: 'flash',
+        id: 'flash:' + String(best.id || best.title || ''),
+        name: best.title || 'FLASH EVENT',
+        starts_at: Number(best.starts_at) || now };
+    } catch (e) { return null; }
+  }
+
+  function seenIds() {
+    try {
+      var a = JSON.parse(localStorage.getItem(SEEN_KEY) || '[]');
+      return (a && a.length) ? a : [];
+    } catch (e) { return []; }
+  }
+  function markSeen(id) {
+    try {
+      var a = seenIds();
+      if (a.indexOf(id) === -1) {
+        a.push(id);
+        while (a.length > SEEN_CAP) a.shift();
+        localStorage.setItem(SEEN_KEY, JSON.stringify(a));
+      }
+    } catch (e) {}
+  }
+
+  function bellPing() {
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      var ctx = new AC();
+      try { if (ctx.state === 'suspended') ctx.resume(); } catch (e2) {}
+      var t = ctx.currentTime;
+      for (var i = 0; i < 3; i++) {
+        var o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = 'triangle'; o.frequency.value = 740;
+        var t0 = t + i * 0.28;
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(0.25, t0 + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.24);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(t0); o.stop(t0 + 0.26);
+      }
+    } catch (e) {}
+  }
+
+  function fmtLeft(ms) {
+    var s = Math.max(0, Math.ceil(ms / 1000));
+    var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+    function p(n) { return (n < 10 ? '0' : '') + n; }
+    return (h > 0 ? h + ':' + p(m) : p(m)) + ':' + p(sec);
+  }
+
+  function dismissed(id) {
+    try { return sessionStorage.getItem(DISMISS_KEY) === id; } catch (e) { return false; }
+  }
+
+  /* The operation banner owns the slot while visible — never double-render. */
+  function afBarVisible() {
+    try {
+      var b = document.getElementById('pf-af-bar');
+      return !!(b && b.offsetHeight > 0);
+    } catch (e) { return false; }
+  }
+
+  function setPad(on) {
+    try {
+      if (on) {
+        var bar = document.getElementById('pf-siren-bar');
+        if (bar) { document.body.style.paddingTop = bar.offsetHeight + 'px'; padSet = true; }
+      } else if (padSet) {
+        document.body.style.paddingTop = '';
+        padSet = false;
+      }
+    } catch (e) {}
+  }
+
+  function ensureCss() {
+    if (document.getElementById('pf-siren-css')) return;
+    var st = document.createElement('style');
+    st.id = 'pf-siren-css';
+    st.textContent =
+      '#pf-siren-bar{position:fixed;top:0;left:0;right:0;z-index:9002;' +
+      'background:#2b0a0a;color:#ffd166;font-family:monospace;' +
+      'border-bottom:2px solid #c1121f;box-shadow:0 4px 18px rgba(193,18,31,.55);' +
+      'font-size:13px;line-height:1.4;padding:8px 44px 8px 12px;text-align:center;' +
+      'animation:pfSirenPulse 1.2s ease-in-out infinite}' +
+      '@keyframes pfSirenPulse{0%,100%{box-shadow:0 4px 18px rgba(193,18,31,.35)}' +
+      '50%{box-shadow:0 4px 26px rgba(193,18,31,.8)}}' +
+      '#pf-siren-bar b{color:#ff595e}' +
+      '#pf-siren-bar a{color:#ffd166;font-weight:bold;text-decoration:underline;white-space:nowrap}' +
+      '#pf-siren-x{position:absolute;right:8px;top:50%;transform:translateY(-50%);' +
+      'background:none;border:1px solid #ffd166;color:#ffd166;cursor:pointer;' +
+      'font-size:14px;line-height:1;padding:2px 8px;border-radius:3px}' +
+      '@media(max-width:600px){#pf-siren-bar{font-size:11px;padding:6px 40px 6px 8px}}';
+    try { document.head.appendChild(st); } catch (e) {}
+  }
+
+  function copyFor(c) {
+    var clock = '<b data-siren="left">' + fmtLeft(c.starts_at - Date.now()) + '</b>';
+    if (c.kind === 'op') {
+      return '&#9888; FLASH SIREN — OPERATION <b>' + esc(c.name) + '</b> LAUNCHES IN ' + clock +
+        ' <a href="/#pf-brief">RALLY YOUR CELL &#8594;</a>';
+    }
+    return '&#9888; FLASH SIREN — <b>' + esc(c.name) + '</b> IN ' + clock +
+      ' <a href="/#pf-brief">GET READY &#8594;</a>';
+  }
+
+  function render() {
+    try {
+      var bar = document.getElementById('pf-siren-bar');
+      var show = !!(siren && !dismissed(siren.id) && !afBarVisible());
+      if (!show) {
+        if (bar && bar.parentNode) bar.parentNode.removeChild(bar);
+        setPad(false);
+        return;
+      }
+      ensureCss();
+      if (!bar) {
+        bar = document.createElement('div');
+        bar.id = 'pf-siren-bar';
+        bar.setAttribute('role', 'alert');
+        var x = document.createElement('button');
+        x.id = 'pf-siren-x';
+        x.setAttribute('aria-label', 'Dismiss');
+        x.textContent = '×';
+        x.onclick = function () {
+          try { if (siren) sessionStorage.setItem(DISMISS_KEY, siren.id); } catch (e3) {}
+          render();
+        };
+        bar.appendChild(x);
+        var span = document.createElement('span');
+        span.id = 'pf-siren-msg';
+        bar.insertBefore(span, x);
+        try { document.body.insertBefore(bar, document.body.firstChild); } catch (e4) { return; }
+      }
+      var msg = document.getElementById('pf-siren-msg');
+      if (msg) msg.innerHTML = copyFor(siren);
+      setPad(true);
+    } catch (e5) { /* fail silent — never break the page */ }
+  }
+
+  function setSiren(cand) {
+    try {
+      var prevId = siren ? siren.id : null;
+      var nextId = cand ? cand.id : null;
+      siren = cand;
+      if (nextId && nextId !== prevId) {
+        /* new siren started — ping once per id */
+        if (seenIds().indexOf(nextId) === -1) {
+          bellPing();
+          markSeen(nextId);
+        }
+      }
+      render();
+    } catch (e) {}
+  }
+
+  /* Per-second tick: countdown recomputed client-side from starts_at.
+     Rolled past go-live → re-read state (the siren is over, hand off). */
+  function tick() {
+    try {
+      if (!siren) return;
+      var bar = document.getElementById('pf-siren-bar');
+      if (!bar || dismissed(siren.id)) { render(); return; }
+      var el = bar.querySelector('[data-siren="left"]');
+      if (el) el.textContent = fmtLeft(siren.starts_at - Date.now());
+      if (Date.now() >= siren.starts_at) refresh();
+    } catch (e) {}
+  }
+
+  function decide() {
+    try {
+      var op = _lastOp || { live: false, upcoming: false, name: '', starts_at: 0 };
+      if (op.live) { setSiren(null); return; }       /* go-live: hand off to the operation banner */
+      var cand = null;
+      if (op.upcoming) {
+        /* contract §5: operation siren wins the banner slot */
+        cand = { kind: 'op',
+          id: 'op:' + String(op.name) + ':' + String(op.starts_at),
+          name: op.name || 'OPERATION',
+          starts_at: op.starts_at || Date.now() };
+      } else {
+        cand = pickFlashSiren(Date.now());
+      }
+      setSiren(cand);
+    } catch (e) { setSiren(null); }
+  }
+
+  var _lastOp = { live: false, upcoming: false, name: '', starts_at: 0 };
+
+  function refresh() {
+    try {
+      if (window.PF && PF.hidden && PF.hidden()) return; /* background tab: skip */
+    } catch (e) {}
+    var got = 0;
+    function maybe() { got++; if (got >= 2) decide(); }
+    api('flash_list', {}, function (j) {
+      try { flashState = (j && typeof j === 'object') ? j : null; } catch (e2) {}
+      maybe();
+    });
+    readOpStatus(function (j) {
+      try { _lastOp = normOp(j); } catch (e3) { _lastOp = { live: false, upcoming: false, name: '', starts_at: 0 }; }
+      maybe();
+    });
+  }
+
+  try {
+    refresh();
+    setInterval(refresh, POLL_MS);
+    setInterval(tick, 1000);
+  } catch (e) {}
+})();
+
+;
+
+/* ===== core/06-pinups.js ===== */
+/* core/06-pinups.js  |  PF v1.4.1 | THE PIN-UP WALL — gamified pinup rewards for every achievement.
+   Layer 2: listens to every counted pf-* event, plus medal / rank-tier / full-deployment
+   state. Each achievement unlocks a propaganda-poster pinup: a reveal overlay celebrates
+   the moment, and the pin is added to the PIN-UP WALL gallery inside Enlistment Ranks.
+   Pure celebration layer — awards NOTHING to the economy and dispatches no counted
+   events itself (pinup shares route through the PF.creditShare once-per-day gate).
+   KILL: ?pf_off=pinups  or  localStorage pf_disabled_v1='["pinups"]' */
+(function(){
+'use strict';
+var PF = window.PF;
+if (PF && PF.skip('pinups')) return;
+if (window.pfPinupsLoaded) return; window.pfPinupsLoaded = true;
+
+/* ---------------- registry ---------------- */
+var TASKS = [
+  ['pf-order-checkin',        'ORDERS OBEYED',        'Daily Orders reported. The cadre moves.',      '\uD83D\uDCCB'],
+  ['pf-drop-claimed',         'SUPPLY SECURED',       'Daily Drop claimed. Ammo up.',                 '\uD83D\uDCE6'],
+  ['pf-caption-submit',       'WORD WARRIOR',         'Caption Combat entry filed.',                  '\u270D\uFE0F'],
+  ['pf-poster-made',          'PRESSED & POSTED',     'Poster Forge creation off the press.',          '🖼️'],
+  ['pf-quiz-done',            'PROFILE COMPLETE',     'Find Your SLR Match finished.',                '\uD83C\uDFAF'],
+  ['pf-guess-done',           'CADRE EYE',            'Guess the Creator solved.',                    '\uD83D\uDC41\uFE0F'],
+  ['pf-raid-report',          'RAID REPORTED',        'Boost Raid complete. Target softened.',        '\u26A1'],
+  ['pf-vote-cast',            'BALLOT CAST',          'Fan Vote counted. Power exercised.',            '\uD83D\uDDF3\uFE0F'],
+  ['pf-bracket-ballot',       'BRACKET SET',          'Ballot locked in. No take-backs.',              '\uD83C\uDFC6'],
+  ['pf-bracket-liquidated',   'LIQUIDATION DAY',      'Bracket liquidated. Billionaires weep.',       '\uD83D\uDCB8'],
+  ['pf-wb-buy',               'WAR BOND SECURED',     'War Bonds funded. The war chest grows.',       '\uD83C\uDFE6'],
+  ['pf-enlisted',             'ENLISTED',             'Joined the ranks. Welcome, operative.',        '\uD83C\uDF96\uFE0F'],
+  ['pf-billionaire-answered', 'BILLIONAIRE DUNKED',   'Supervillain exposed.',                        '\uD83E\uDDB9'],
+  ['pf-interrogation-answered','INTERROGATION SURVIVED','Daily Interrogation complete. Lips sealed.','\uD83D\uDD0D'],
+  ['pf-share-image',          'SIGNAL BOOSTED',       'Image shared to the network.',                 '\uD83D\uDCE3']
+];
+/* medal id -> [pinup title suffix, glyph] (mirrors games/service-medals.js MEDALS) */
+var MEDALS = [
+  ['vote',         'Ballot',            '\u2605'],
+  ['ballot',       'Bracket Ballot',    '\u2622'],
+  ['bracket',      'Liquidator',        '\u2620'],
+  ['bonds',        'War Bonds',         '\u25C6'],
+  ['caption',      'Word Warrior',      '\u270E'],
+  ['poster',       'Press Pass',        '\u25C8'],
+  ['quiz',         'Intel Operative',   '\u25C9'],
+  ['billionaire',  'Billionaire Spotter','\uFF04'],
+  ['interrogation','Interrogator',      '\u2754'],
+  ['orders',       'Field Duty',        '\u25B2'],
+  ['drop',         'Supply Runner',     '\u25CF'],
+  ['enlisted',     'Enlisted',          '\u2694'],
+  ['guess',        'Profiler',          '\u25CE'],
+  ['raid',         'Raider',            '\u26A1'],
+  /* Redistribution layer 'Market Maker' (mirrors service-medals). */
+  ['whitemarket',  'Market Maker',       '\uD83C\uDFB2']
+];
+var MEDAL_EV = {vote:'pf-vote-cast',ballot:'pf-bracket-ballot',bracket:'pf-bracket-liquidated',bonds:'pf-wb-buy',caption:'pf-caption-submit',poster:'pf-poster-made',quiz:'pf-quiz-done',billionaire:'pf-billionaire-answered',interrogation:'pf-interrogation-answered',orders:'pf-order-checkin',drop:'pf-drop-claimed',enlisted:'pf-enlisted',guess:'pf-guess-done',raid:'pf-raid-report',whitemarket:'pf-wm-settled'};
+var TIERS = [['RECRUIT',0,'\u2691'],['AGITATOR',25,'\u2692'],['CADRE',75,'\u2699'],['COMMISSAR',150,'\u272A'],['ARCHITECT',300,'\u265B']];
+
+var PINUPS = [];
+TASKS.forEach(function(t,i){ PINUPS.push({id:'task:'+t[0], kind:'task', ev:t[0], title:t[1], sub:t[2], glyph:t[3], n:i+1}); });
+MEDALS.forEach(function(m,i){ PINUPS.push({id:'medal:'+m[0], kind:'medal', ev:MEDAL_EV[m[0]], title:'MEDAL: '+m[1].toUpperCase(), sub:'Service Medal earned. Wear it.', glyph:m[2], n:16+i}); });
+TIERS.forEach(function(t,i){ PINUPS.push({id:'tier:'+t[0], kind:'tier', title:'PROMOTED: '+t[0], sub:t[1]+' XP. The ladder climbs.', glyph:t[2], n:30+i}); });
+PINUPS.push({id:'full:deployment', kind:'full', title:'FULL DEPLOYMENT', sub:'All 16 medals in one week. Legend.', glyph:'\u2605', n:35});
+var BY_ID = {}; PINUPS.forEach(function(p){ BY_ID[p.id]=p; });
+
+/* ---------------- storage ---------------- */
+var LS='pf_pinups_v1';
+function weekKey(){
+  try{
+    if(window.PF&&PF.isoWeekKey&&PF.chiNow) return PF.isoWeekKey(PF.chiNow());
+  }catch(e){}
+  try{
+    var d=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Chicago'}));
+    var onejan=new Date(d.getFullYear(),0,1);
+    var w=Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7);
+    return d.getFullYear()+'-W'+w;
+  }catch(e2){ return 'wk'; }
+}
+function load(){
+  try{
+    var s=JSON.parse(localStorage.getItem(LS)||'null');
+    if(s&&s.got){
+      if(!s.shown){
+        /* One-time migration: everything already earned counts as shown, so the
+           reveal-once fix below never re-fires a backlog of popups on deploy. */
+        s.shown={};
+        var k;
+        for(k in s.got){ if(s.got.hasOwnProperty(k)) s.shown[k]=1; }
+        try{
+          var wk=weekKey(), i;
+          for(i=0;i<MEDALS.length;i++){ if(s.got['medal:'+MEDALS[i][0]]) s.shown['medal:'+MEDALS[i][0]+'|'+wk]=1; }
+          if(s.got['full:deployment']) s.shown['full:deployment|'+wk]=1;
+        }catch(e){}
+        save(s);
+      }
+      if(!s.shown) s.shown={};
+      return s;
+    }
+  }catch(e){}
+  return {got:{},shown:{}};
+}
+function save(s){ try{ localStorage.setItem(LS,JSON.stringify(s)); }catch(e){} }
+function ranksXP(){ try{ return JSON.parse(localStorage.getItem('pf_ranks_v1')||'{"xp":0}').xp||0; }catch(e){ return 0; } }
+function fullDeployed(){ try{ var s=JSON.parse(localStorage.getItem('pf_medals_v2')||'null'); return !!(s&&s.fd); }catch(e){ return false; } }
+
+/* ---------------- procedural pinup art ---------------- */
+function hash(s){ var h=0; for(var i=0;i<s.length;i++){ h=(h*31+s.charCodeAt(i))|0; } return Math.abs(h); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function wrapTitle(t){
+  if(t.length<=15) return [t];
+  var words=t.split(' '), lines=[''], li=0;
+  words.forEach(function(w){ if((lines[li]+' '+w).trim().length>15){ li++; lines[li]=''; } lines[li]=(lines[li]+' '+w).trim(); });
+  return lines.slice(0,2);
+}
+function art(p, locked){
+  var W=300,H=400, rays='', n=12+(hash(p.id)%2)*2, cx=W/2, cy=200;
+  for(var i=0;i<n;i++){
+    var a1=(360/n)*i, a2=(360/n)*(i+0.5), r=260;
+    var x1=cx+r*Math.cos(a1*Math.PI/180), y1=cy+r*Math.sin(a1*Math.PI/180);
+    var x2=cx+r*Math.cos(a2*Math.PI/180), y2=cy+r*Math.sin(a2*Math.PI/180);
+    rays+='<polygon points="'+cx+','+cy+' '+x1.toFixed(1)+','+y1.toFixed(1)+' '+x2.toFixed(1)+','+y2.toFixed(1)+'" fill="'+(i%2?'#8f0d16':'#c1121f')+'"/>';
+  }
+  var title=wrapTitle(p.title), ty=54-(title.length-1)*13, th='';
+  title.forEach(function(line,i){ th+='<text x="'+cx+'" y="'+(ty+i*26)+'" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-size="21" font-weight="900" fill="#f5ead6" letter-spacing="1">'+esc(line)+'</text>'; });
+  var glyph = locked ? '?' : p.glyph;
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" width="300" height="400">'
+    +'<rect x="0" y="0" width="'+W+'" height="'+H+'" fill="'+(locked?'#1a1a1a':'#f5ead6')+'"/>'
+    +(locked?'':'<g>'+rays+'</g>')
+    +'<rect x="8" y="8" width="'+(W-16)+'" height="'+(H-16)+'" fill="none" stroke="#0d0d0d" stroke-width="6"/>'
+    +'<rect x="18" y="18" width="'+(W-36)+'" height="'+(H-36)+'" fill="none" stroke="'+(locked?'#444':'#c1121f')+'" stroke-width="2"/>'
+    +'<rect x="18" y="18" width="'+(W-36)+'" height="86" fill="#0d0d0d"/>'+th
+    +'<circle cx="'+cx+'" cy="'+cy+'" r="72" fill="'+(locked?'#2a2a2a':'#f5ead6')+'" stroke="#0d0d0d" stroke-width="6"/>'
+    +'<circle cx="'+cx+'" cy="'+cy+'" r="58" fill="none" stroke="#c1121f" stroke-width="3"/>'
+    +'<text x="'+cx+'" y="'+(cy+32)+'" text-anchor="middle" font-size="76" fill="'+(locked?'#555':'#c1121f')+'">'+esc(glyph)+'</text>'
+    +'<text x="'+cx+'" y="312" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-style="italic" fill="'+(locked?'#666':'#3a3a3a')+'">'+esc(locked?'Complete the task to pin it up.':p.sub)+'</text>'
+    +'<rect x="18" y="336" width="'+(W-36)+'" height="30" fill="#c1121f"/>'
+    +'<text x="'+cx+'" y="357" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-size="13" font-weight="900" fill="#f5ead6" letter-spacing="2">\u2605 PROPAGANDA FACTORY \u2605</text>'
+    +'<text x="26" y="392" font-family="Arial,sans-serif" font-size="10" fill="'+(locked?'#555':'#8a8171')+'">N\u2116 '+p.n+'/35</text>'
+    +'</svg>';
+}
+
+/* ---------------- unlock ---------------- */
+var queue=[], showing=false;
+/* unlock(id, silent, scope): records the unlock and queues the reveal overlay
+   ONLY the first time this id is unlocked within the scope. Tasks and tiers
+   are lifetime-first (scope omitted); medals and full-deployment are weekly
+   (scope = week key), so re-earning them in a new week celebrates again. */
+function unlock(id, silent, scope){
+  var p=BY_ID[id]; if(!p) return false;
+  var s=load();
+  var skey=scope?(id+'|'+scope):id;
+  var first=!s.shown[skey];
+  s.got[id]=(s.got[id]||0)+1;
+  if(first){ s.shown[skey]=1; }
+  save(s);
+  renderWall();
+  if(first&&!silent) reveal(p);
+  return first;
+}
+function onTask(ev, detail){
+  var silent = !!(detail && detail.game==='pinups'); /* our own share crediting back */
+  unlock('task:'+ev, silent);
+  var wk=weekKey();
+  for(var i=0;i<MEDALS.length;i++){
+    if(MEDAL_EV[MEDALS[i][0]]===ev){ unlock('medal:'+MEDALS[i][0], silent, wk); break; }
+  }
+  /* unlock every tier at/below current XP (handles XP jumps) — but the popup
+     now fires only for newly reached tiers, never a replay of the ladder */
+  var xp=ranksXP();
+  for(var k=0;k<TIERS.length;k++){ if(xp>=TIERS[k][1]) unlock('tier:'+TIERS[k][0], silent); }
+  if(fullDeployed()) unlock('full:deployment', silent, wk);
+}
+
+/* ---------------- reveal overlay ---------------- */
+function reveal(p){
+  queue.push(p); pump();
+}
+function pump(){
+  if(showing || !queue.length) return;
+  showing=true;
+  var p=queue.shift();
+  var ov=document.getElementById('pf-pinup-ov');
+  if(ov) ov.remove();
+  ov=document.createElement('div'); ov.id='pf-pinup-ov';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(10,5,5,.92);z-index:99998;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;';
+  ov.innerHTML='<div style="font-family:\'Arial Black\',Arial,sans-serif;color:#f5ead6;letter-spacing:3px;font-size:15px;margin-bottom:10px;">\u2605 PINUP UNLOCKED \u2605</div>'
+    +'<div id="pf-pinup-art" style="box-shadow:0 0 40px rgba(193,18,31,.55);max-width:300px;width:100%;">'+art(p,false)+'</div>'
+    +'<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;justify-content:center;">'
+    +'<button id="pf-pinup-share" style="background:#c1121f;color:#f5ead6;border:3px solid #f5ead6;font-family:\'Arial Black\',Arial,sans-serif;font-size:14px;font-weight:900;padding:10px 18px;cursor:pointer;letter-spacing:1px;">SHARE PINUP</button>'
+    +'<button id="pf-pinup-close" style="background:#0d0d0d;color:#f5ead6;border:3px solid #f5ead6;font-family:\'Arial Black\',Arial,sans-serif;font-size:14px;font-weight:900;padding:10px 18px;cursor:pointer;letter-spacing:1px;">KEEP FIGHTING</button>'
+    +'</div>';
+  document.body.appendChild(ov);
+  var done=function(){ try{ ov.remove(); }catch(e){} showing=false; setTimeout(pump,350); };
+  document.getElementById('pf-pinup-close').onclick=done;
+  document.getElementById('pf-pinup-share').onclick=function(){ sharePinup(p); };
+  ov.onclick=function(e){ if(e.target===ov) done(); };
+  setTimeout(function(){ if(document.getElementById('pf-pinup-ov')) done(); }, 9000);
+}
+function pinupToast(m){ try{ if(PF&&PF.toast) PF.toast(m); }catch(e){} }
+function sharePinup(p){
+  try{
+    var svgStr=art(p,false);
+    var blob=new Blob([svgStr],{type:'image/svg+xml;charset=utf-8'});
+    var url=URL.createObjectURL(blob);
+    var img=new Image();
+    img.onload=function(){
+      try{
+        var cv=document.createElement('canvas'); cv.width=600; cv.height=800;
+        var cx=cv.getContext('2d'); cx.fillStyle='#f5ead6'; cx.fillRect(0,0,600,800);
+        cx.drawImage(img,0,0,600,800); URL.revokeObjectURL(url);
+        /* CTA strip: every pinup share recruits. */
+        cx.fillStyle='rgba(13,13,13,0.94)'; cx.fillRect(0,736,600,64);
+        cx.fillStyle='#c1121f'; cx.fillRect(0,736,600,4);
+        cx.fillStyle='#f5ead6'; cx.font='900 25px "Arial Black",Arial,sans-serif';
+        cx.textAlign='center'; cx.fillText('JOIN THE FIGHT \u2014 MTCSTW.COM',300,776);
+        try{ if(window.PFShare&&window.PFShare.stampCallsign) window.PFShare.stampCallsign(cv); }catch(e){}
+        cv.toBlob(function(b){
+          if(!b){ pinupToast('Pinup failed — try again.'); return; }
+          var file=new File([b],'pfn-pinup-'+p.id.replace(/[^a-z0-9]+/gi,'-')+'.png',{type:'image/png'});
+          var credited=function(){ credit(); };
+          function downloadPinup(){
+            var a=document.createElement('a'); a.href=URL.createObjectURL(b);
+            a.download=file.name; document.body.appendChild(a); a.click();
+            setTimeout(function(){ try{URL.revokeObjectURL(a.href);}catch(e){} a.remove(); },4000);
+          }
+          if(navigator.canShare && navigator.canShare({files:[file]})){
+            /* P2 (2026-10-04): credit ONLY on actual share completion.
+               AbortError (cancel) must NOT credit. */
+            navigator.share({files:[file],title:p.title+' — Propaganda Factory'}).then(
+              credited,
+              function(err){
+                if(err&&err.name==='AbortError'){ pinupToast('Share cancelled.'); }
+                else{ credited(); downloadPinup(); }
+              });
+          }else{
+            downloadPinup();
+            credited();
+          }
+        },'image/png');
+      }catch(e){ pinupToast('Pinup failed — try again.'); }
+    };
+    img.onerror=function(){ pinupToast('Pinup failed — try again.'); };
+    img.src=url;
+  }catch(e){ pinupToast('Pinup failed — try again.'); }
+  function credit(){
+    /* once-per-day share gate: a pinup share plus any game share can't double-count the day */
+    try{ if(PF && typeof PF.creditShare==='function') PF.creditShare('pinups','share'); }catch(e){}
+  }
+}
+
+/* ---------------- the wall ---------------- */
+function renderWall(){
+  var host=document.getElementById('pf-ranks'); if(!host) return false;
+  var el=document.getElementById('pf-pinup-wall');
+  if(!el){
+    el=document.createElement('div'); el.id='pf-pinup-wall';
+    var anchor=document.getElementById('pf-medals');
+    if(anchor&&anchor.parentNode) anchor.parentNode.insertBefore(el,anchor.nextSibling);
+    else host.appendChild(el);
+  }
+  var s=load(), got=0, cells='';
+  PINUPS.forEach(function(p){
+    var has=!!s.got[p.id]; if(has) got++;
+    cells+='<div class="pp-cell'+(has?'':' locked')+'" title="'+esc(p.title)+'">'
+      +'<div class="pp-art">'+art(p,!has)+'</div>'
+      +'<div class="pp-t">'+(has?esc(p.title):'???')+'</div></div>';
+  });
+  el.innerHTML='<div class="pp-head">\uD83D\uDCCC PIN-UP WALL <span>\u2014 '+got+'/35 pinned</span></div>'
+    +'<div class="pp-sub">Every task complete, every medal, every promotion earns its pinup.</div>'
+    +'<div class="pp-grid">'+cells+'</div>';
+  ensureCss();
+  return true;
+}
+function ensureCss(){
+  if(document.getElementById('pf-pinup-css')) return;
+  var st=document.createElement('style'); st.id='pf-pinup-css';
+  st.textContent='#pf-pinup-wall{margin-top:18px;border-top:2px dashed #c1121f;padding-top:14px;}'
+    +'#pf-pinup-wall .pp-head{font-family:\'Arial Black\',Arial,sans-serif;color:#f5ead6;font-size:17px;letter-spacing:2px;margin-bottom:4px;}'
+    +'#pf-pinup-wall .pp-head span{color:#c9bfa8;font-size:12px;}'
+    +'#pf-pinup-wall .pp-sub{font-family:Arial,sans-serif;color:#c9bfa8;font-size:11px;letter-spacing:1px;margin-bottom:10px;}'
+    +'#pf-pinup-wall .pp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px;}'
+    +'#pf-pinup-wall .pp-cell{background:#141414;border:2px solid #c1121f;padding:4px;text-align:center;}'
+    +'#pf-pinup-wall .pp-cell.locked{border-color:#3a3a3a;opacity:.75;}'
+    +'#pf-pinup-wall .pp-art svg{width:100%;height:auto;display:block;}'
+    +'#pf-pinup-wall .pp-t{font-family:Arial,sans-serif;font-size:8px;letter-spacing:1px;color:#f5ead6;margin-top:3px;text-transform:uppercase;min-height:20px;}'
+    +'#pf-pinup-wall .pp-cell.locked .pp-t{color:#555;}';
+  (document.head||document.documentElement).appendChild(st);
+}
+
+/* ---------------- wire up ---------------- */
+var EVENTS=['pf-order-checkin','pf-drop-claimed','pf-caption-submit','pf-poster-made','pf-quiz-done','pf-guess-done','pf-raid-report','pf-vote-cast','pf-bracket-ballot','pf-bracket-liquidated','pf-wb-buy','pf-enlisted','pf-billionaire-answered','pf-interrogation-answered','pf-share-image'];
+EVENTS.forEach(function(ev){
+  document.addEventListener(ev,function(e){ try{ onTask(ev,(e&&e.detail)||{}); }catch(err){} });
+});
+function init(){ renderWall(); }
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
+else init();
+
+window.pfPinups={
+  count:function(){ var s=load(),n=0; for(var k in s.got) if(s.got.hasOwnProperty(k)) n++; return n; },
+  total:function(){ return PINUPS.length; },
+  wall:renderWall
+};
+})();
+
+;
+
+/* ===== core/share-image.js ===== */
+/* core/share-image.js  |  PF v1.4.1 | THE SHARE/SAVE COMPANION. Guarantees EVERY v2 game section carries
+   KILL: ?pf_off=share-image  or  localStorage pf_disabled_v1='["share-image"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (PF && PF.skip('share-image')) { return; }
+  if (window.pfShareImageDone) return;
+  window.pfShareImageDone = true;
+
+  /* 2026-10-04: a no-callsign sharer gets no "FIGHTING AS" strip with zero
+     warning — flag it once per page at the user-initiated share entry point
+     (not in stampCallsign itself, which also runs on plain downloads). */
+  var _pfNoCsWarned = false;
+
+  /* ------------------------------------------------------------------ */
+  /* Per-game poster content. (No share/save flags: the pair is          */
+  /* unconditional in v1.4.1 — every game gets both buttons.)             */
+  /* ------------------------------------------------------------------ */
+  var REG = {
+    'fan-vote': {
+      title: '\u2605 FAN VOTE \u2605', tag: 'Propagandist of the Week',
+      lines: ['Vote for the week\u2019s top propagandist.', 'Polls close Sunday night.', 'Results drop Monday.'],
+      cta: 'VOTE NOW'
+    },
+    'bracket-board': {
+      title: '\u2620 THE LIQUIDATION BRACKET \u2620', tag: '16 billionaires. Head-to-head.',
+      lines: ['Your votes decide who gets liquidated.', 'Pick your winners. Advance the class war.'],
+      cta: 'VOTE THE BRACKET'
+    },
+    'daily-orders': {
+      title: 'DAILY ORDERS', tag: 'Today\u2019s missions from the Factory',
+      lines: ['Do things. Post proof.', 'Check in daily. Stack your streak.'],
+      cta: 'GET ORDERS'
+    },
+    'do-meter': {
+      title: '\u2697 THE DO METER \u2697', tag: 'NOT FOLLOWERS. NOT LIKES. THINGS DONE.',
+      lines: ['The network counts every thing done.', 'Goal: 5 million things.'],
+      cta: 'DO A THING'
+    },
+    /* 2026-10-03: restored — the drop consolidated into briefing.js as the
+       FEATURED DROP slot, but its share-image button pair must keep working. */
+    'daily-drop': {
+      title: '\u2605 THE DAILY DROP \u2605', tag: 'Fresh slop, daily',
+      lines: ['A new drop every day of the offensive.', 'Claim it. Share it. Spread it.'],
+      cta: 'CLAIM THE DROP'
+    },
+    'billionaire-supervillain': {
+      title: 'BILLIONAIRE OR SUPERVILLAIN?', tag: 'One quote. Two monsters. You decide.',
+      lines: ['A new quote every day.', 'Billionaire or supervillain \u2014 can you tell them apart?'],
+      cta: 'PLAY TODAY'
+    },
+    'daily-interrogation': {
+      title: 'THE DAILY INTERROGATION', tag: 'One question. Every day. No mercy.',
+      lines: ['Test your propaganda literacy.', 'Streak or you\u2019re a liberal.'],
+      cta: 'ANSWER NOW'
+    },
+    'caption-combat': {
+      title: 'CAPTION COMBAT', tag: 'One template. One week. Infinite psyops.',
+      lines: ['Caption the template. Funniest wins.', 'New round every week.'],
+      cta: 'ENTER COMBAT'
+    },
+    'poster-forge': {
+      title: 'THE POSTER FORGE', tag: 'Make propaganda. Download it.',
+      lines: ['Forge your own poster in seconds.', 'Plaster the timeline.'],
+      cta: 'FORGE ONE'
+    },
+    'enlistment-ranks': {
+      title: 'ENLISTMENT RANKS', tag: 'Every action for the machine earns XP',
+      lines: ['Climb from Sympathizer to Vanguard.', 'Earn weekly Service Medals.'],
+      cta: 'ENLIST NOW'
+    },
+    'war-bonds': {
+      title: '\u2605 WAR BONDS \u2605', tag: 'Buy a bond. Fund the machine.',
+      lines: ['War Bonds fund 60% of all PF operations.', 'Starting at $1. Every dollar is ammunition.'],
+      cta: 'BUY WAR BONDS'
+    },
+    /* 6A-R7: voter-pledge poster template. civic.js registers a custom
+       painter (state-stamped) via PFShare.setPoster; this REG entry is the
+       generic fallback for drawPoster('voter-pledge'). */
+    'voter-pledge': {
+      title: 'I PLEDGED TO VOTE', tag: 'One ballot. One soldier. Zero excuses.',
+      lines: ['I took the voter pledge with the Propaganda Factory.', 'Your turn. Pledge, register, show up.'],
+      cta: 'PLEDGE YOURS'
+    },
+    /* 6A-R2: The White Market cashout poster. The dynamic "I JUST CASHED
+       OUT +N XP" card was painted by the retired casino silo's custom
+       painter (PFShare.setPoster('casino', ...)); the live painter is now
+       PFShare.setPoster('redist-win', ...) in games/casino-exits.js. This
+       REG entry is the generic fallback template — rebranded 2026-10-05.
+       The 'casino' key stays (stability). */
+    'casino': {
+      title: '\u2605 THE WAR ROOM \u2605', tag: 'The redistribution layer',
+      lines: ['I just pulled spoils off the board.', 'The board pays out — the house is us, and the house shares.'],
+      cta: 'READ THE BOARD'
+    },
+    'slr-match-quiz': {
+      title: '\u2691 FIND YOUR SLR MATCH \u2691', tag: 'What kind of propagandist are you?',
+      lines: ['Take the 5-question quiz.', 'Get your archetype + 3 SLR matches.'],
+      cta: 'TAKE THE QUIZ'
+    },
+    'creator-guess': {
+      title: '\u25CE GUESS THE CREATOR \u25CE', tag: '5 questions. Zero mercy.',
+      lines: ['How well do you know the Sick Left Radicals?', 'New set every day. Streaks rewarded.'],
+      cta: 'PLAY NOW'
+    },
+    'boost-raid': {
+      title: '\u2694 BOOST RAID \u2694', tag: 'One target. One day. The whole network.',
+      lines: ['Like. Comment. Share. Report back.', 'Today\u2019s raid target is live now.'],
+      cta: 'JOIN THE RAID'
+    }
+  };
+  var ORDER = ['fan-vote', 'slr-match-quiz', 'creator-guess', 'bracket-board', 'daily-orders', 'boost-raid', 'do-meter', 'daily-drop',
+               'billionaire-supervillain', 'daily-interrogation',
+               'caption-combat', 'poster-forge', 'enlistment-ranks', 'war-bonds'];
+  var SHARE_LABEL = 'SHARE IMAGE';
+  var SAVE_LABEL = 'SAVE IMAGE TO PHONE';
+  /* Custom per-game poster painters: silos register an async painter
+     fn(done) via PFShare.setPoster(gameId, fn). The share/save buttons
+     use it instead of the generic drawPoster when present. */
+  var CUSTOM = {};
+
+  /* ------------------------------------------------------------------ */
+  /* Platform detection                                                  */
+  /* ------------------------------------------------------------------ */
+  function isIOS() {
+    try {
+      return /iPad|iPhone|iPod/.test(navigator.userAgent || '') ||
+             (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    } catch (e) { return false; }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Branded poster renderer (1080x1350, black/red/cream)                */
+  /* ------------------------------------------------------------------ */
+  function wrap(x, text, maxW) {
+    var words = String(text).split(/\s+/), lines = [], line = '';
+    words.forEach(function (w) {
+      var t = line ? line + ' ' + w : w;
+      if (x.measureText(t).width > maxW && line) { lines.push(line); line = w; }
+      else { line = t; }
+    });
+    if (line) lines.push(line);
+    return lines;
+  }
+  function dateStr() {
+    try {
+      return new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase();
+    } catch (e) { return ''; }
+  }
+  /* Spread stamp: every auto-shared poster carries the callsign and the
+     creator the user is spreading for (today's boost pick, Chicago day). */
+  function chiDay() {
+    try {
+      var n = (PF && PF.chiNow) ? PF.chiNow() : new Date();
+      var y = n.getFullYear(), m = n.getMonth() + 1, d = n.getDate();
+      return y + '-' + (m < 10 ? '0' : '') + m + '-' + (d < 10 ? '0' : '') + d;
+    } catch (e) { return ''; }
+  }
+  /* The user's callsign: identity store first, PFCallsign() fallback. */
+  function callsignOf() {
+    var cs = '';
+    try {
+      var id = JSON.parse(localStorage.getItem('pf_identity_v1') || '{}');
+      if (id && id.callsign) cs = String(id.callsign).toUpperCase();
+    } catch (e) {}
+    if (!cs) { try { cs = String((window.PFCallsign && window.PFCallsign()) || '').toUpperCase(); } catch (e) {} }
+    return cs;
+  }
+  function spreadStamp() {
+    var cs = callsignOf(), who = '';
+    try {
+      var b = JSON.parse(localStorage.getItem('pf_boost_v1') || 'null');
+      if (b && b.creator && b.date === chiDay()) {
+        var r = (PF && PF.rosterBySlug) ? PF.rosterBySlug(b.creator) : null;
+        who = ((r && r.name) ? String(r.name) : String(b.creator).replace(/-/g, ' ')).toUpperCase();
+      }
+    } catch (e) {}
+    if (cs && who) return 'FIGHTING AS ' + cs + ' \u00b7 SPREADING FOR ' + who;
+    if (cs) return 'FIGHTING AS ' + cs;
+    if (who) return 'SPREADING FOR ' + who;
+    return '';
+  }
+  /* stampCallsign(cv): paint the "FIGHTING AS <CALLSIGN>" attribution strip
+     on ANY canvas. Idempotent via cv._pfStamped — painters that already
+     render the callsign set the flag themselves and are left alone. Every
+     image that leaves the site passes through here or a caller of it. */
+  function stampCallsign(cv) {
+    try {
+      if (!cv || cv._pfStamped) return cv;
+      cv._pfStamped = true;
+      var cs = callsignOf();
+      if (!cs) return cv;
+      var x = cv.getContext('2d');
+      if (!x) return cv;
+      var W = cv.width || 0, H = cv.height || 0;
+      if (W < 200 || H < 200) return cv;
+      var fs = Math.max(18, Math.round(W * 0.024));
+      var barH = Math.round(fs * 1.9);
+      x.save();
+      try { x.textAlign = 'center'; x.textBaseline = 'middle'; } catch (e) {}
+      x.fillStyle = 'rgba(10,10,10,0.9)';
+      x.fillRect(0, H - barH, W, barH);
+      x.fillStyle = '#c1121f';
+      x.fillRect(0, H - barH, W, Math.max(3, Math.round(fs * 0.14)));
+      x.fillStyle = '#f5ead6';
+      x.font = '700 ' + fs + 'px Arial,sans-serif';
+      x.fillText('FIGHTING AS ' + cs, W / 2, H - barH / 2);
+      x.restore();
+    } catch (e) {}
+    return cv;
+  }
+  /* R29 (2026-10-05): subscriber-exclusive poster frame option. Paints a
+     gold double frame + a "\u2605 SUBSCRIBER \u2605" tag. Drawn ONLY when the
+     caller passes {frame:'subscriber'} in drawPoster opts AND the shared
+     PF.isSubscriber() helper confirms subscriber status — never for
+     non-subscribers, so the frame stays a genuine subscriber perk.
+     tagY = baseline for the tag (varies by layout). */
+  function subFrame(x, W, H, tagY) {
+    var sub = false;
+    try { sub = !!(PF && PF.isSubscriber && PF.isSubscriber()); } catch (e) {}
+    if (!sub) return;
+    x.save();
+    try { x.textAlign = 'center'; x.textBaseline = 'alphabetic'; } catch (e2) {}
+    x.strokeStyle = '#d4af37'; x.lineWidth = 6; x.strokeRect(4, 4, W - 8, H - 8);
+    x.lineWidth = 2; x.strokeRect(13, 13, W - 26, H - 26);
+    x.fillStyle = '#d4af37'; x.font = '700 28px Arial,sans-serif';
+    x.fillText('\u2605 SUBSCRIBER \u2605', W / 2, tagY);
+    x.restore();
+  }
+  /* A9 (2026-10-04): 9:16 (1080x1920) story-safe poster layout. Composes the
+     same REG entry (title/tag/lines/cta) as the classic poster — REG entries
+     may also set storyPre (eyebrow line, e.g. the quiz's "MY SLR MATCH IS")
+     and the caller may pass opts.linkLabel for the printed link-sticker
+     hint. Story-safe: 120px side margins, top/bottom ~240px kept clear of
+     platform chrome. */
+  function drawStoryPoster(g, linkLabel, opts) {
+    var W = 1080, H = 1920;
+    var cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    var x = cv.getContext('2d');
+    if (!x) return null;
+    x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, W, H);
+    x.strokeStyle = '#c1121f'; x.lineWidth = 18; x.strokeRect(16, 16, W - 32, H - 32);
+    x.strokeStyle = '#f5ead6'; x.lineWidth = 3; x.strokeRect(52, 52, W - 104, H - 104);
+    x.textAlign = 'center';
+    var y = 300;
+    x.fillStyle = '#f5ead6'; x.font = '700 36px Arial,sans-serif';
+    x.fillText('\u2605 THE PROPAGANDA FACTORY \u2605', W / 2, y); y += 150;
+    if (g.storyPre) {
+      x.fillStyle = '#c9bfa8'; x.font = '700 44px Arial,sans-serif';
+      wrap(x, g.storyPre, W - 240).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 60; });
+      y += 20;
+    }
+    x.fillStyle = '#c1121f'; x.font = '900 104px "Arial Black",Arial,sans-serif';
+    wrap(x, g.title, W - 240).slice(0, 3).forEach(function (l) { x.fillText(l, W / 2, y); y += 120; });
+    y += 30;
+    x.fillStyle = '#f5ead6'; x.font = '700 44px Arial,sans-serif';
+    wrap(x, g.tag, W - 240).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 58; });
+    y += 40;
+    x.fillStyle = '#c9bfa8'; x.font = '400 38px Arial,sans-serif';
+    (g.lines || []).slice(0, 5).forEach(function (t) {
+      wrap(x, t, W - 280).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 52; });
+      y += 14;
+    });
+    y += 60;
+    x.font = '900 46px "Arial Black",Arial,sans-serif';
+    var tw = x.measureText(g.cta).width + 110;
+    x.fillStyle = '#c1121f'; x.fillRect(W / 2 - tw / 2, y - 62, tw, 100);
+    x.fillStyle = '#ffffff'; x.fillText(g.cta, W / 2, y + 10);
+    var stamp = spreadStamp();
+    if (stamp) {
+      cv._pfStamped = true; /* story poster carries its own stamp */
+      y += 110;
+      x.fillStyle = '#c1121f'; x.font = '700 32px Arial,sans-serif';
+      wrap(x, stamp, W - 240).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 44; });
+    }
+    if (linkLabel) {
+      y += 70;
+      x.fillStyle = '#c9bfa8'; x.font = '700 32px Arial,sans-serif';
+      wrap(x, 'LINK STICKER \u2192 ' + linkLabel, W - 240).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 44; });
+    }
+    /* share-image CTA standard: JOIN THE FIGHT. with MTCSTW.COM. */
+    x.fillStyle = '#c1121f'; x.font = '900 48px "Arial Black",Arial,sans-serif';
+    x.fillText('MTCSTW.COM', W / 2, H - 300);
+    x.font = '900 46px "Arial Black",Arial,sans-serif';
+    x.fillText('JOIN THE FIGHT.', W / 2, H - 236);
+    x.fillStyle = '#c9bfa8'; x.font = '400 30px Arial,sans-serif';
+    x.fillText(dateStr(), W / 2, H - 180);
+    /* R29 (2026-10-05): subscriber frame option, gated on subscriber status. */
+    if (opts && opts.frame === 'subscriber') subFrame(x, W, H, 244);
+    return cv;
+  }
+  /* size-aware renderer: 'story' -> 9:16 layout above; omitted/anything else
+     keeps the 1080x1350 classic exactly as before. */
+  function drawPoster(gameId, size, opts) {
+    var g = REG[gameId] || REG['daily-orders'];
+    if (size === 'story') return drawStoryPoster(g, opts && opts.linkLabel, opts);
+    var W = 1080, H = 1350;
+    var cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    var x = cv.getContext('2d');
+    if (!x) return null;
+    x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, W, H);
+    x.strokeStyle = '#c1121f'; x.lineWidth = 18; x.strokeRect(16, 16, W - 32, H - 32);
+    x.strokeStyle = '#f5ead6'; x.lineWidth = 3; x.strokeRect(52, 52, W - 104, H - 104);
+    x.textAlign = 'center';
+    var y = 160;
+    x.fillStyle = '#f5ead6'; x.font = '700 34px Arial,sans-serif';
+    x.fillText('\u2605 THE PROPAGANDA FACTORY \u2605', W / 2, y); y += 120;
+    x.fillStyle = '#c1121f'; x.font = '900 86px "Arial Black",Arial,sans-serif';
+    wrap(x, g.title, W - 170).slice(0, 3).forEach(function (l) { x.fillText(l, W / 2, y); y += 100; });
+    y += 24;
+    x.fillStyle = '#f5ead6'; x.font = '700 42px Arial,sans-serif';
+    wrap(x, g.tag, W - 170).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 56; });
+    y += 34;
+    x.fillStyle = '#c9bfa8'; x.font = '400 36px Arial,sans-serif';
+    (g.lines || []).slice(0, 4).forEach(function (t) {
+      wrap(x, t, W - 210).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 50; });
+      y += 12;
+    });
+    y += 46;
+    x.font = '900 42px "Arial Black",Arial,sans-serif';
+    var tw = x.measureText(g.cta).width + 100;
+    x.fillStyle = '#c1121f'; x.fillRect(W / 2 - tw / 2, y - 56, tw, 92);
+    x.fillStyle = '#ffffff'; x.fillText(g.cta, W / 2, y + 8);
+    var stamp = spreadStamp();
+    if (stamp) {
+      cv._pfStamped = true; /* generic poster carries its own stamp */
+      y += 92;
+      x.fillStyle = '#c1121f'; x.font = '700 30px Arial,sans-serif';
+      wrap(x, stamp, W - 170).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 42; });
+    }
+    x.fillStyle = '#c1121f'; x.font = '900 46px "Arial Black",Arial,sans-serif';
+    x.fillText('MTCSTW.COM', W / 2, H - 168);
+    /* 2026-10-03: share-image CTA standard — every share image carries
+       'JOIN THE FIGHT.' (red, bold) above/below MTCSTW.COM. */
+    x.fillStyle = '#c1121f'; x.font = '900 44px "Arial Black",Arial,sans-serif';
+    x.fillText('JOIN THE FIGHT.', W / 2, H - 108);
+    x.fillStyle = '#c9bfa8'; x.font = '400 30px Arial,sans-serif';
+    x.fillText(dateStr(), W / 2, H - 58);
+    /* R29 (2026-10-05): subscriber frame option, gated on subscriber status. */
+    if (opts && opts.frame === 'subscriber') subFrame(x, W, H, 120);
+    return cv;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Blob + delivery                                                     */
+  /* ------------------------------------------------------------------ */
+  /* P3 (2026-10-04): optional {format, quality} — defaults to PNG exactly as
+     before, so every existing call site keeps working unchanged. */
+  function canvasBlob(cv, cb, opts) {
+    opts = opts || {};
+    var format = opts.format || 'image/png';
+    var quality = (opts.quality == null) ? 0.92 : opts.quality;
+    try {
+      if (cv.toBlob) { cv.toBlob(function (b) { cb(b); }, format, quality); return; }
+      var u = cv.toDataURL(format, quality);
+      fetch(u).then(function (r) { return r.blob(); }).then(cb).catch(function () { cb(null); });
+    } catch (e) { cb(null); }
+  }
+  function downloadBlob(blob, filename) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { try { URL.revokeObjectURL(url); } catch (e) {} a.remove(); }, 4000);
+  }
+  /* A7 (2026-10-04): optional deep link — callers (e.g. the war-card BUILD A
+     CELL variant) pass opts.link and it rides PF.shareUrl, so ?ref= stamps
+     on top of the caller's ?cell= or other params. */
+  function shareText(title, link){
+    link=link||'https://www.mtcstw.com/';
+    try{ if(window.PF&&typeof PF.shareUrl==='function') link=PF.shareUrl(link); }catch(e){}
+    return title + ' via The Propaganda Factory — ' + link;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Share credit: one share-task per day per device. Whichever button    */
+  /* (SHARE IMAGE or SAVE IMAGE TO PHONE) completes first credits the    */
+  /* day. Fires pf-share-image so the Do Meter, ranks XP, medals tally   */
+  /* and the site backend all count it exactly once. Never on cancel.    */
+  /* ------------------------------------------------------------------ */
+  function dayStr() {
+    try { return new Date().toISOString().slice(0, 10); } catch (e) { return ''; }
+  }
+  function creditShare(gameId, kind) {
+    try {
+      var k = 'pf_shareimg_' + dayStr();
+      var done = null;
+      try { done = localStorage.getItem(k); } catch (e) {}
+      if (done) return;
+      try { localStorage.setItem(k, '1'); } catch (e) {}
+    } catch (e) {}
+    try {
+      document.dispatchEvent(new CustomEvent('pf-share-image', {
+        detail: { day: dayStr(), game: gameId || '', kind: kind || 'share' }
+      }));
+    } catch (e) {}
+  }
+  /* Expose the once-per-day share gate so game-local share buttons (e.g.
+     Daily Orders' own card button) credit through the same gate instead of
+     firing pf-share-image directly and double-counting the day. */
+  try { if (PF) PF.creditShare = creditShare; } catch (e) {}
+  try { window.pfCreditShare = creditShare; } catch (e) {}
+
+  /* A10 (2026-10-04): callsign claim intercept — one inline component for
+     all 19 poster generators, wired at the share/save chokepoint so every
+     download path inherits it. Claimed users: zero change (the callback
+     fires immediately). Unclaimed users: PF.requireCallsign shows the inline
+     claim modal (the existing register flow — validate, POST register, save
+     secret, 'pf-callsign-claimed' event; dedupe/claim-once unchanged).
+     Claim -> proceed, and the poster stamps FIGHTING AS <CALLSIGN> via
+     stampCallsign (idempotent). Dismiss (x) -> proceed unstamped — never
+     trap the user. Fires once per session across all generators. */
+  var _pfClaimShown = false;
+  function claimGate(fn) {
+    var cs = '';
+    try { cs = callsignOf(); } catch (e) {}
+    if (cs || _pfClaimShown) { try { fn(); } catch (e2) {} return; }
+    _pfClaimShown = true;
+    try {
+      if (window.PF && typeof PF.requireCallsign === 'function') {
+        PF.requireCallsign(function () { try { fn(); } catch (e3) {} },
+          { context: 'to sign your work before it ships' });
+        return;
+      }
+    } catch (e4) {}
+    try { fn(); } catch (e5) {} /* claim flow unavailable — never wedge */
+  }
+
+  function shareImage(cv, filename, title, gameId, opts) {
+    opts = opts || {};
+    claimGate(function () { _shareImage(cv, filename, title, gameId, opts); });
+  }
+  function _shareImage(cv, filename, title, gameId, opts) {
+    opts = opts || {};
+    var format = opts.format || 'image/png';
+    var quality = (opts.quality == null) ? 0.92 : opts.quality;
+    try{
+      if(!callsignOf()&&!_pfNoCsWarned){
+        _pfNoCsWarned=true;
+        toast('Heads up: no callsign claimed \u2014 this poster carries no attribution strip. Claim a callsign so shares credit you.');
+      }
+    }catch(e){}
+    try { cv = stampCallsign(cv) || cv; } catch (e) {}
+    canvasBlob(cv, function (blob) {
+      if (!blob) { toast('Poster failed \u2014 try again.'); return; }
+      var file = null;
+      try { file = new File([blob], filename, { type: format }); } catch (e) {}
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          navigator.share({ files: [file], title: title, text: shareText(title, opts.link) }).then(
+            function () { creditShare(gameId, 'share'); toast('Shared. Go spread the word.'); },
+            function (err) {
+              if (err && err.name === 'AbortError') { toast('Share cancelled.'); }
+              else { creditShare(gameId, 'share'); downloadBlob(blob, filename); toast('Image downloaded.'); }
+            });
+        } catch (e) { creditShare(gameId, 'share'); downloadBlob(blob, filename); toast('Image downloaded.'); }
+      } else {
+        creditShare(gameId, 'share');
+        downloadBlob(blob, filename);
+        toast(isIOS() ? 'Image downloaded \u2014 open it, tap Share, then Save Image for Photos.'
+                      : 'Image downloaded.');
+      }
+    }, opts); /* H3 (2026-10-04): forward format/quality — canvasBlob defaults to PNG otherwise, but the File above is typed from opts.format. */
+  }
+
+  function saveImage(cv, filename, gameId, opts) {
+    opts = opts || {};
+    claimGate(function () { _saveImage(cv, filename, gameId, opts); });
+  }
+  function _saveImage(cv, filename, gameId, opts) {
+    opts = opts || {};
+    var format = opts.format || 'image/png';
+    var quality = (opts.quality == null) ? 0.92 : opts.quality;
+    try { cv = stampCallsign(cv) || cv; } catch (e) {}
+    canvasBlob(cv, function (blob) {
+      if (!blob) { toast('Save failed \u2014 try again.'); return; }
+      if (isIOS()) {
+        /* iOS Safari ignores the download attribute — the share sheet is the
+           only reliable route into Photos ("Save Image" is one tap). */
+        var file = null;
+        try { file = new File([blob], filename, { type: format }); } catch (e) {}
+        if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            navigator.share({ files: [file], title: 'Save to Photos' }).then(
+              function () { creditShare(gameId, 'save'); toast('Saved. Check your Photos.'); },
+              function (err) {
+                if (!(err && err.name === 'AbortError')) toast('Save cancelled \u2014 try again.');
+              });
+          } catch (e) { toast('Could not open save sheet \u2014 try again.'); }
+          return;
+        }
+        /* No share API: open the image so the user can long-press to save. */
+        try {
+          var url = URL.createObjectURL(blob);
+          window.open(url, '_blank');
+          creditShare(gameId, 'save');
+          toast('Long-press the image \u2192 Save to Photos.');
+        } catch (e) { toast('Save failed \u2014 try again.'); }
+        return;
+      }
+      creditShare(gameId, 'save');
+      downloadBlob(blob, filename);
+      toast('Image saved to your phone.');
+    }, opts); /* H3 (2026-10-04): forward format/quality — canvasBlob defaults to PNG otherwise, but the File above is typed from opts.format. */
+  }
+
+  function toast(msg) {
+    try { if (PF && PF.toast) PF.toast(msg); } catch (e) {}
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Button injection — unconditional pair per game section              */
+  /* ------------------------------------------------------------------ */
+  function mkBtn(label, solid, gameId, kind) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = label;
+    b.setAttribute('data-pfshare', gameId + '-' + kind);
+    b.style.cssText = 'display:inline-block;' +
+      (solid ? 'background:#c1121f;border:2px solid #c1121f;color:#f5f0e1;'
+             : 'background:transparent;border:2px solid #f5ead6;color:#f5f0e1;') +
+      'padding:0.7rem 1.3rem;margin:0.4rem;font-size:0.8rem;font-weight:700;' +
+      'letter-spacing:0.12em;cursor:pointer;font-family:inherit;';
+    return b;
+  }
+
+  function busy(b, fn) {
+    b.disabled = true;
+    try { fn(); } catch (e) { if (PF) PF.error('share-image', e); }
+    setTimeout(function () { b.disabled = false; }, 1500);
+  }
+
+  function rowIsCorrect(sec, gameId) {
+    var row = sec.querySelector('[data-pfsharerow="' + gameId + '"]');
+    if (!row) return false;
+    var sb = row.querySelector('[data-pfshare="' + gameId + '-share"]');
+    var vb = row.querySelector('[data-pfshare="' + gameId + '-save"]');
+    return !!(sb && vb && sb.textContent === SHARE_LABEL && vb.textContent === SAVE_LABEL);
+  }
+
+  function ensureGame(gameId) {
+    var g = REG[gameId];
+    if (!g) return;
+    var sec = document.querySelector('section[data-game="' + gameId + '"]');
+    if (!sec) return; /* killed via ?pf_off=<silo>, or not mounted */
+    if (rowIsCorrect(sec, gameId)) return; /* already has the exact pair — leave it */
+    var stale = sec.querySelector('[data-pfsharerow="' + gameId + '"]');
+    if (stale) stale.remove(); /* normalize: drop older rows (e.g. v1.4.0 labels) */
+    var row = document.createElement('div');
+    row.setAttribute('data-pfsharerow', gameId);
+    row.style.cssText = 'text-align:center;margin:1.2rem 0 0.4rem;';
+    var sb = mkBtn(SHARE_LABEL, true, gameId, 'share');
+    sb.onclick = function () { busy(sb, function () {
+      var cp = CUSTOM[gameId];
+      if (cp) {
+        try { cp(function (cv) {
+          if (cv) {
+            /* P3 (2026-10-04): photo-bearing painters set cv._pfPhoto — those
+               ship as JPEG q0.85; everything else stays PNG as before. */
+            var pj = !!(cv && cv._pfPhoto);
+            shareImage(cv, 'pfn-' + gameId + (pj ? '.jpg' : '.png'), g.title, gameId,
+              pj ? { format: 'image/jpeg', quality: 0.85 } : null);
+          }
+          else toast('Poster failed \u2014 try again.');
+        }); } catch (e) { toast('Poster failed \u2014 try again.'); }
+        return;
+      }
+      var cv = drawPoster(gameId);
+      if (cv) shareImage(cv, 'pfn-' + gameId + '.png', g.title, gameId);
+      else toast('Poster failed \u2014 try again.');
+    }); };
+    var vb = mkBtn(SAVE_LABEL, false, gameId, 'save');
+    vb.onclick = function () { busy(vb, function () {
+      var cp2 = CUSTOM[gameId];
+      if (cp2) {
+        try { cp2(function (cv) {
+          if (cv) {
+            var pj2 = !!(cv && cv._pfPhoto);
+            saveImage(cv, 'pfn-' + gameId + (pj2 ? '.jpg' : '.png'), gameId,
+              pj2 ? { format: 'image/jpeg', quality: 0.85 } : null);
+          }
+          else toast('Save failed \u2014 try again.');
+        }); } catch (e) { toast('Save failed \u2014 try again.'); }
+        return;
+      }
+      var cv = drawPoster(gameId);
+      if (cv) saveImage(cv, 'pfn-' + gameId + '.png', gameId);
+      else toast('Save failed \u2014 try again.');
+    }); };
+    row.appendChild(sb);
+    row.appendChild(vb);
+    sec.appendChild(row);
+  }
+
+  function ensureAll() {
+    ORDER.forEach(ensureGame);
+  }
+
+  /* Public API — silos may override poster content later via PFShare.REG.
+     poster(gameId, size, opts): opts.linkLabel (story only); opts.frame —
+     'subscriber' paints the subscriber-exclusive gold frame, drawn only when
+     PF.isSubscriber() confirms subscriber status (R29, 2026-10-05). */
+  window.PFShare = {
+    REG: REG,
+    isIOS: isIOS,
+    poster: drawPoster,
+    posterStory: function (gameId, opts) { try { return drawPoster(gameId, 'story', opts); } catch (e) { return null; } },
+    claimGate: claimGate,
+    SIZES: { classic: [1080, 1350], story: [1080, 1920] },
+    shareImage: shareImage,
+    saveImage: saveImage,
+    ensureAll: ensureAll,
+    setPoster: function (id, fn) { try { if (id && typeof fn === 'function') CUSTOM[id] = fn; } catch (e) {} },
+    spreadStamp: spreadStamp,
+    stampCallsign: stampCallsign
+  };
+
+  /* Run now (sections are mounted — this file loads after home-v2.js) and
+     re-scan for late-mounting sections. Idempotent: never duplicates. */
+  try { ensureAll(); } catch (e) { if (PF) PF.error('share-image', e); }
+  setTimeout(function () { try { ensureAll(); } catch (e) {} }, 2000);
+  setTimeout(function () { try { ensureAll(); } catch (e) {} }, 6000);
+})();
+
+;
+
+/* ===== core/share-image-phq-lazy.js ===== */
+/* core/share-image-phq-lazy.js  |  PF v1.4.3 | PHQ SHARE-POSTER LAZY LOADER.
+   ~1.5KB stub bundled in pages/bundle-pages INSTEAD of the full
+   core/share-image-phq.js (~87KB, 23 painters). Creates the PF.PHQShare
+   facade (additive registry per the design-system spec §3) and injects the
+   full painter module on the FIRST share/save/paint/pledgeData call — the
+   ~99% of visitors who never share never pay for the painters.
+   Queued share/save calls replay once the module registers; paint() before
+   load returns null (honest: nothing painted yet); pledgeData() before load
+   returns null (same fail-soft the silos already handle).
+   The full module never reassigns this facade: it calls
+   PF.PHQShare.registerPainters(), which merges, honors per-painter
+   ?pf_off=phq-<painter> kills, sets F._route, and flushes the queue.
+   KILL: ?pf_off=phq-share kills stub + module (first executable line). */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (PF && PF.skip('phq-share')) { return; }
+  if (window.pfPhqShareLazy || window.pfPhqShareDone) return;
+  window.pfPhqShareLazy = true;
+
+  var LOADING = false;
+
+  function toast(m) { try { if (PF && PF.toast) PF.toast(m); } catch (e) {} }
+  /* Derive the versioned CDN base from an already-loaded bundle script,
+     e.g. https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@<pin>/v1.4.3/pages/bundle-pages.js
+     -> https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@<pin>/v1.4.3/ */
+  function baseUrl() {
+    try {
+      var ss = document.getElementsByTagName('script');
+      for (var i = ss.length - 1; i >= 0; i--) {
+        var m = String(ss[i].src || '').match(/^(.*\/v\d+\.\d+\.\d+\/)/);
+        if (m) return m[1];
+      }
+    } catch (e) {}
+    return null;
+  }
+  function loadModule() {
+    if (LOADING) return;
+    var b = baseUrl();
+    if (!b) { toast('Poster failed \u2014 try again.'); return; }
+    LOADING = true;
+    var s = document.createElement('script');
+    s.async = true;
+    s.src = b + 'core/share-image-phq.js';
+    s.onload = function () { LOADING = false; };
+    s.onerror = function () { LOADING = false; toast('Poster failed \u2014 try again.'); };
+    try { document.head.appendChild(s); } catch (e) { LOADING = false; }
+  }
+  function flushQueue(F) {
+    var r = null;
+    try { r = F._route; } catch (e) {}
+    if (!r) return;
+    var q = [];
+    try { q = F._queue.splice(0, F._queue.length); } catch (e2) {}
+    for (var i = 0; i < q.length; i++) {
+      try { r[q[i].kind](q[i].id, q[i].data, q[i].opts); } catch (e3) {}
+    }
+  }
+  function mkFacade() {
+    var F = {
+      ids: [],
+      _paint: {},
+      _titles: {},
+      _route: null,
+      _queue: [],
+      _flushed: false,
+      _ensure: loadModule,
+      registerPainters: function (painters, titles) {
+        for (var id in painters) {
+          if (!painters.hasOwnProperty(id)) continue;
+          var skip = false;
+          try { skip = PF && PF.skip(id); } catch (e) {}
+          if (skip) continue;                          /* per-painter kill */
+          F._paint[id] = painters[id];
+          if (titles && titles[id] && F._titles[id] == null) F._titles[id] = titles[id];
+          if (F.ids.indexOf(id) === -1) F.ids.push(id);
+        }
+        if (!F._flushed) { F._flushed = true; flushQueue(F); }
+        return F;
+      },
+      share: function (id, data, opts) {
+        var r = null;
+        try { r = F._route; } catch (e) {}
+        if (r) return r.share(id, data, opts);
+        F._queue.push({ kind: 'share', id: id, data: data, opts: opts });
+        loadModule();
+        return true;
+      },
+      save: function (id, data, opts) {
+        var r = null;
+        try { r = F._route; } catch (e) {}
+        if (r) return r.save(id, data, opts);
+        F._queue.push({ kind: 'save', id: id, data: data, opts: opts });
+        loadModule();
+        return true;
+      },
+      paint: function (id, data) {
+        var r = null;
+        try { r = F._route; } catch (e) {}
+        if (r) return r.paint(id, data);
+        loadModule();
+        return null;
+      },
+      pledgeData: function (row) {
+        var r = null;
+        try { r = F._route; } catch (e) {}
+        if (r && r.pledgeData) return r.pledgeData(row);
+        loadModule();
+        return null;
+      }
+    };
+    return F;
+  }
+  try {
+    if (!PF.PHQShare || typeof PF.PHQShare.registerPainters !== 'function') {
+      /* The single facade-creation site in the bundle path. The full module
+         (standalone mode) has its own guarded creation; exactly one wins. */
+      PF.PHQShare = mkFacade();
+    }
+  } catch (e) {}
+})();
+
+;
+
+/* ===== core/money-chunk-loader.js ===== */
+/* core/money-chunk-loader.js | PF v1.4.3 | FOLLOW THE MONEY — lazy chunk loader.
+   2026-10-05 (fix/money-minified-rebuild): the money suite (~65KB raw across
+   10 modules) no longer rides in bundle-core.js. It ships as the minified
+   core/bundle-money.js chunk, loaded on demand ONLY when a money surface is
+   present:
+     - <div id="pf-money">          -> the /money page (full-page shell)
+     - <div id="pf-political-hq">    -> interim money tab + bill/legislator
+       detail consumers (PFMoneyTab / PFMoneyVote / PFWallShame mounts)
+   Master kill ?pf_off=money is honored BEFORE the chunk loads, so the kill
+   switch keeps working with zero bytes fetched. Fail-soft: if the chunk
+   fails to load, the page renders without the money suite (no throw).
+   Base-URL resolution follows the established ownBase() pattern
+   (core/07-slr-db.js): derive the CDN pin from the executing bundle's
+   script src. KILL: ?pf_off=money (master). */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF) { return; }
+  if (PF.skip('money')) { return; }
+  if (window.pfMoneyChunkLoading || window.pfMoneyChunkDone) { return; }
+  /* 2026-10-05 (fix/crawl-3page-fix): the footer now loads core/bundle-money.js
+     directly on /money via the isMoney JS_GAMES entry. If that already ran
+     (money-page.js sets window.PFMoney at bundle time), the chunk is
+     redundant — skip so we never double-fetch. (Guard reads window.PFMoney,
+     not the pfMoneyPageDone marker, so the no-duplication verify keeps
+     passing: that marker must only ever be SET inside bundle-money.js.) */
+  if (window.PFMoney) { return; }
+  var needsMoney = !!document.getElementById('pf-money') ||
+                   !!document.getElementById('pf-political-hq');
+  if (!needsMoney) { return; }
+  window.pfMoneyChunkLoading = true;
+  function ownBase() {
+    try {
+      var src = '';
+      if (document.currentScript && document.currentScript.src) src = document.currentScript.src;
+      var re = /^(https:\/\/cdn\.jsdelivr\.net\/gh\/[^@]+@[^\/]+\/v1\.4\.3\/)core\/bundle-core(-slr)?\.js/;
+      /* src looks like .../v1.4.3/core/bundle-core.js (or bundle-core-slr.js)
+         on the pinned CDN when this file runs inside the core bundle.
+         Swap the filename for the money chunk. */
+      var m = src && src.match(re);
+      if (m) { return m[1] + 'core/bundle-money.js'; }
+      /* 2026-10-05 (fix/crawl-3page-fix): this loader ships inside
+         pages/bundle-pages.js, NOT the core bundle — document.currentScript
+         is the pages bundle, so the regex above never matches and the old
+         code returned null ('no base') even though the core bundle's script
+         tag is right there in the DOM. Fall back to scanning for it. */
+      var ss = document.getElementsByTagName('script');
+      for (var i = ss.length - 1; i >= 0; i--) {
+        var s2 = (ss[i] && ss[i].src) || '';
+        var m2 = s2.match(re);
+        if (m2) { return m2[1] + 'core/bundle-money.js'; }
+      }
+    } catch (e) {}
+    return null;
+  }
+  function done() {
+    window.pfMoneyChunkLoading = false;
+    window.pfMoneyChunkDone = true;
+  }
+  function fail(m) {
+    done();
+    try { if (PF && PF.error) PF.error('money-chunk', m); } catch (e) {}
+  }
+  var url = ownBase();
+  if (!url) { fail('no base'); return; }
+  var s = document.createElement('script');
+  s.async = true;
+  s.src = url;
+  s.onload = done;
+  s.onerror = function () { fail('load error'); };
+  document.head.appendChild(s);
+  /* Backstop: never leave the loading flag stuck if onload misfires. */
+  setTimeout(function () { if (window.pfMoneyChunkLoading) done(); }, 20000);
+})();
+
+;
+
+/* ===== pages/creator-recruit.js ===== */
+/* pages/creator-recruit.js  |  PF v1.4.3 | Creator catalog recruiting tools.
+   ONE shared component for every SLR catalog render (roster cards +
+   individual catalog pages) — no per-creator bespoke code. Auto-mounts:
+   - Roster: scans #pf-slr-roster-root .pf-slr-card, resolves each member from
+     the card's VIEW PROFILE link (catalog_path -> slug -> PF.slrMember).
+   - Catalog page: scans #pf-catalog / #pf-catalog-root, resolves the member
+     from data-slug or the URL path.
+   Per creator it adds:
+   (a) RECRUIT button: mints a shareable creator poster (1080x1350, black/red,
+       name, photo, propaganda score, follower count, red bold "JOIN THE FIGHT."
+       CTA, MTCSTW.COM branding) and opens the native share sheet via
+       PFShare.shareImage (navigator.share with files; download fallback on
+       browsers without Web Share API file support). The "FIGHTING AS
+       <CALLSIGN>" strip is applied by PFShare.stampCallsign (idempotent).
+       The photo is loaded crossOrigin="anonymous" (images.squarespace-cdn.com
+       sends ACAO:*) — if it fails, a monogram fallback renders instead, so
+       the canvas can never be tainted by a non-CORS image.
+   (b) COPY ENLIST LINK button: referral/enlist link per creator
+       (https://www.mtcstw.com/request-access?creator=<slug>) run through
+       PF.shareUrl so the visitor's callsign rides along as ?ref=<callsign>;
+       copy-to-clipboard with a textarea fallback for iOS.
+   (c) Catalog pages only: a compact "BRING THEM IN" panel linking at
+       /request-access with the creator pre-referenced via ?creator=<slug>.
+   Share credit flows through PFShare's once-per-day gate (pf-share-image) so
+   the Do Meter / XP ledger count it exactly once. Rescans a few times after
+   load because the roster/catalog renderers finish asynchronously once the
+   SLR DB resolves; every mount is guarded by data-recruit so it is idempotent.
+   KILL: ?pf_off=creator-recruit  or  localStorage pf_disabled_v1='["creator-recruit"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('creator-recruit')) { return; }
+  if (window.pfCreatorRecruitDone) { return; }
+  window.pfCreatorRecruitDone = true;
+
+  var RED = '#c1121f', CREAM = '#f5f0e1', BLACK = '#0a0a0a', MUTED = '#b8ab8e';
+  var SITE = 'https://www.mtcstw.com';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function initials(name) {
+    var w = String(name || '?').split(/\s+/).filter(Boolean);
+    return ((w[0] || '?').charAt(0) + (w[1] ? w[1].charAt(0) : '')).toUpperCase();
+  }
+  function toast(msg) {
+    try { if (PF && PF.toast) { PF.toast(msg); return; } } catch (e) {}
+    try {
+      var d = document.createElement('div');
+      d.textContent = msg;
+      d.style.cssText = 'position:fixed;left:50%;top:14%;transform:translateX(-50%);background:#c1121f;' +
+        'color:#fff;font:bold 14px monospace;padding:12px 20px;border:2px solid #fff;z-index:99999;' +
+        'max-width:86vw;text-align:center;box-sizing:border-box;';
+      document.body.appendChild(d);
+      setTimeout(function () { try { d.remove(); } catch (e2) {} }, 2800);
+    } catch (e3) {}
+  }
+  function enlistUrl(member) {
+    var u = SITE + '/request-access?creator=' + encodeURIComponent(member.slug);
+    try {
+      if (PF && typeof PF.shareUrl === 'function') return PF.shareUrl(u);
+    } catch (e) {}
+    return u;
+  }
+  function copyText(str, okMsg) {
+    function done() { toast(okMsg || 'Copied.'); }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(str).then(done, function () { legacy(); });
+        return;
+      }
+    } catch (e) {}
+    legacy();
+    function legacy() {
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = str;
+        ta.setAttribute('readonly', '');
+        ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;font-size:16px;';
+        document.body.appendChild(ta);
+        try { ta.focus(); ta.select(); } catch (e2) {}
+        try { ta.setSelectionRange(0, ta.value.length); } catch (e3) {}
+        var ok = false;
+        try { ok = document.execCommand('copy'); } catch (e4) {}
+        ta.remove();
+        if (ok) done();
+        else toast('Copy failed \u2014 long-press the link to copy it.');
+      } catch (e4) { toast('Copy failed \u2014 long-press the link to copy it.'); }
+    }
+  }
+
+  /* ---- (a) creator poster (1080x1350, black/red/cream) ---- */
+  function wrap(x, text, maxW, maxLines) {
+    var words = String(text || '').split(/\s+/), lines = [], line = '';
+    words.forEach(function (w) {
+      var t = line ? line + ' ' + w : w;
+      if (x.measureText(t).width > maxW && line) { lines.push(line); line = w; }
+      else { line = t; }
+    });
+    if (line) lines.push(line);
+    return lines.slice(0, maxLines || 3);
+  }
+  /* CORS-safe photo: only resolve an image loaded with crossOrigin set. The
+     Squarespace CDN sends Access-Control-Allow-Origin: *; anything else (or
+     any failure) resolves null and the monogram fallback keeps the canvas
+     untainted. */
+  function loadPhoto(url) {
+    return new Promise(function (resolve) {
+      var done = false;
+      function fin(img) { if (!done) { done = true; resolve(img); } }
+      if (!url) { fin(null); return; }
+      try {
+        var img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = function () { fin(img); };
+        img.onerror = function () { fin(null); };
+        img.src = url;
+        setTimeout(function () { fin(null); }, 8000);
+      } catch (e) { fin(null); }
+    });
+  }
+  function drawPoster(member, photo) {
+    var W = 1080, H = 1350;
+    var cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    var x = cv.getContext('2d');
+    if (!x) return null;
+    function center(t, y, font, fill) {
+      x.font = font; x.fillStyle = fill; x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+      x.fillText(t, W / 2, y);
+    }
+    x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, W, H);
+    x.strokeStyle = RED; x.lineWidth = 18; x.strokeRect(16, 16, W - 32, H - 32);
+    x.strokeStyle = CREAM; x.lineWidth = 3; x.strokeRect(52, 52, W - 104, H - 104);
+
+    var y = 150;
+    center('\u2605 THE PROPAGANDA FACTORY \u2605', y, '700 34px Arial,sans-serif', CREAM);
+    y += 64;
+    center('SICK LEFT RADICALS', y, '700 30px Arial,sans-serif', RED);
+    y += 62;
+
+    /* Creator name, red bold, up to 2 lines with auto-shrink so long names
+       stay inside the frame instead of overflowing. */
+    var nameUpper = String(member.name || 'A COMRADE').toUpperCase();
+    var nameSize = 72, nameF = '', nameLines = [], nlh = 84;
+    while (nameSize >= 44) {
+      nameF = '900 ' + nameSize + 'px "Arial Black",Arial,sans-serif';
+      nlh = Math.round(nameSize * 1.18);
+      x.font = nameF;
+      nameLines = wrap(x, nameUpper, W - 170, 2);
+      var fits = true, li;
+      for (li = 0; li < nameLines.length; li++) {
+        if (x.measureText(nameLines[li]).width > W - 170) { fits = false; break; }
+      }
+      if (fits) break;
+      nameSize -= 8;
+    }
+    nameLines.forEach(function (l) { center(l, y, nameF, RED); y += nlh; });
+
+    /* Photo: centered square, cover-fit, red frame. Size adapts to the name
+       block so the fixed bottom stack below never shifts. Monogram fallback
+       keeps the canvas untainted when no CORS-clean photo loads. */
+    var py = y + 28;
+    var photoMaxBottom = H - 420;
+    var PS = Math.min(560, Math.max(300, photoMaxBottom - py));
+    var px = (W - PS) / 2;
+    x.fillStyle = '#141414'; x.fillRect(px, py, PS, PS);
+    if (photo && photo.naturalWidth > 0) {
+      try {
+        var iw = photo.naturalWidth, ih = photo.naturalHeight, s = Math.max(PS / iw, PS / ih);
+        var dw = iw * s, dh = ih * s;
+        x.save();
+        x.beginPath(); x.rect(px, py, PS, PS); x.clip();
+        x.drawImage(photo, px - (dw - PS) / 2, py - (dh - PS) / 2, dw, dh);
+        x.restore();
+      } catch (e) { drawMonogram(); }
+    } else { drawMonogram(); }
+    function drawMonogram() {
+      x.fillStyle = RED; x.font = '900 ' + Math.round(PS * 0.38) + 'px "Arial Black",Arial,sans-serif';
+      x.textAlign = 'center'; x.textBaseline = 'middle';
+      x.fillText(initials(member.name), W / 2, py + PS / 2);
+      x.textBaseline = 'alphabetic';
+    }
+    x.strokeStyle = RED; x.lineWidth = 6; x.strokeRect(px, py, PS, PS);
+
+    /* Fixed bottom stack (above the ~70px stamp-clear zone at the very
+       bottom, reserved for PFShare.stampCallsign's strip). */
+    y = H - 380;
+    var labelF = '700 28px Arial,sans-serif';
+    x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+    var score = Number(member.propaganda_score || 0).toFixed(1) + '/10';
+    x.font = labelF; x.fillStyle = MUTED;
+    var label = 'PROPAGANDA SCORE: ';
+    var lw = x.measureText(label).width;
+    var valF = '900 52px "Arial Black",Arial,sans-serif';
+    x.font = valF;
+    var vw = x.measureText(score).width;
+    x.font = labelF; x.fillStyle = MUTED;
+    x.fillText(label, W / 2 - (lw + vw) / 2 + lw / 2, y);
+    x.font = valF; x.fillStyle = RED;
+    x.fillText(score, W / 2 - (lw + vw) / 2 + lw + vw / 2, y + 6);
+
+    center(String(member.followers_display || '').toUpperCase() + ' FOLLOWERS', H - 304,
+      '900 42px "Arial Black",Arial,sans-serif', RED);
+
+    /* Red bold CTA, then MTCSTW.COM branding. */
+    var cta = 'JOIN THE FIGHT.';
+    var ctaF = '900 40px "Arial Black",Arial,sans-serif';
+    x.font = ctaF;
+    var tw = x.measureText(cta).width + 110;
+    x.fillStyle = RED;
+    x.fillRect(W / 2 - tw / 2, H - 268, tw, 84);
+    center(cta, H - 214, ctaF, '#ffffff');
+    center('MTCSTW.COM', H - 128, '900 46px "Arial Black",Arial,sans-serif', RED);
+    return cv;
+  }
+
+  function busyOn(btn, label) {
+    try {
+      btn.disabled = true;
+      if (!btn._pfLabel) btn._pfLabel = btn.textContent;
+      btn.textContent = label || 'MINTING\u2026';
+    } catch (e) {}
+  }
+  function busyOff(btn) {
+    try {
+      btn.disabled = false;
+      if (btn._pfLabel) btn.textContent = btn._pfLabel;
+    } catch (e) {}
+  }
+
+  /* The share engine (core/share-image.js) normally loads in the core
+     bundle; if it isn't up yet, poll a few times before declaring a REAL
+     failure. 2026-10-04: terminal state is a retry button on the RECRUIT
+     button itself — not an eternal "tap again" toast. */
+  function shareEngineWait(btn, member, attempt) {
+    if (window.PFShare && typeof window.PFShare.shareImage === 'function') {
+      handleRecruit(btn, member);
+      return;
+    }
+    if (attempt < 4) {
+      busyOn(btn, 'LOADING\u2026');
+      setTimeout(function () { shareEngineWait(btn, member, attempt + 1); }, 700);
+      return;
+    }
+    busyOff(btn);
+    try {
+      btn.disabled = false;
+      btn.textContent = 'SHARE ENGINE FAILED \u2014 TAP TO RETRY';
+      btn.onclick = function () {
+        try { btn._pfLabel = 'RECRUIT'; btn.textContent = 'RECRUIT'; } catch (e) {}
+        handleRecruit(btn, member);
+      };
+    } catch (e) { toast('Share engine failed to load \u2014 reload the page and try again.'); }
+  }
+
+  function handleRecruit(btn, member) {
+    if (!window.PFShare || typeof window.PFShare.shareImage !== 'function') {
+      shareEngineWait(btn, member, 0);
+      return;
+    }
+    busyOn(btn);
+    loadPhoto(member.picture).then(function (photo) {
+      var cv = null;
+      try { cv = drawPoster(member, photo); } catch (e) { cv = null; }
+      busyOff(btn);
+      if (!cv) { toast('Poster failed \u2014 try again.'); return; }
+      try {
+        window.PFShare.shareImage(cv,
+          'slr-recruit-' + String(member.slug || 'creator') + '.png',
+          (member.name || 'A Sick Left Radical') + ' \u2014 Sick Left Radicals',
+          'slr-recruit');
+      } catch (e) { toast('Share unavailable here.'); }
+    });
+  }
+
+  function mkBtn(label, solid) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = label;
+    b.setAttribute('data-recruit-btn', '1');
+    b.style.cssText = 'display:inline-block;' +
+      (solid ? 'background:' + RED + ';border:2px solid ' + RED + ';color:#ffffff;'
+             : 'background:transparent;border:2px solid ' + CREAM + ';color:' + CREAM + ';') +
+      'padding:0.65rem 1.1rem;margin:0.35rem;font-size:0.78rem;font-weight:900;' +
+      'letter-spacing:0.12em;cursor:pointer;font-family:inherit;-webkit-appearance:none;';
+    return b;
+  }
+
+  /* Toolbar: [RECRUIT] [COPY ENLIST LINK] — shared by cards and pages. */
+  function mountToolbar(host, member) {
+    if (!host || host.querySelector('[data-recruit-bar]')) return;
+    var bar = document.createElement('div');
+    bar.setAttribute('data-recruit-bar', '1');
+    bar.style.cssText = 'text-align:center;margin:1rem 0 0.4rem;';
+    var r = mkBtn('RECRUIT', true);
+    r.onclick = function () { handleRecruit(r, member); };
+    var c = mkBtn('COPY ENLIST LINK', false);
+    c.onclick = function () {
+      copyText(enlistUrl(member), 'Enlist link copied \u2014 share it anywhere.');
+    };
+    bar.appendChild(r);
+    bar.appendChild(c);
+    host.appendChild(bar);
+  }
+
+  /* (c) compact BRING THEM IN panel — catalog pages only. */
+  function mountBringThemIn(root, member) {
+    if (!root || root.querySelector('[data-bring-them-in]')) return;
+    var box = document.createElement('div');
+    box.setAttribute('data-bring-them-in', '1');
+    box.style.cssText = 'border:3px solid ' + RED + ';background:#141010;padding:1.4rem 1.2rem;' +
+      'text-align:center;margin:2.2rem auto 0;max-width:560px;box-sizing:border-box;';
+    var inner =
+      '<div style="color:' + RED + ';font-weight:900;letter-spacing:0.14em;font-size:1rem;margin-bottom:0.5rem;">' +
+      '\u2691 BRING THEM IN</div>' +
+      '<div style="color:' + CREAM + ';font-size:0.92rem;line-height:1.55;margin-bottom:1rem;">' +
+      'Know a propagandist who belongs on this roster? Send them the enlistment link with ' +
+      '<strong>' + esc(member.name) + '</strong> as your reference.</div>' +
+      '<a href="' + esc(enlistUrl(member)) + '" style="display:inline-block;background:' + RED + ';color:#fff;' +
+      'font-weight:900;letter-spacing:0.12em;font-size:0.9rem;padding:0.8rem 1.8rem;text-decoration:none;">' +
+      'GET THE ENLIST LINK \u2192</a>';
+    box.innerHTML = inner;
+    var container = root.querySelector('div[style*="max-width:720px"]') || root;
+    container.appendChild(box);
+  }
+
+  /* ---- Roster cards ---- */
+  function slugFromPath(p) {
+    var seg = String(p || '').split('?')[0].replace(/^\/|\/$/g, '').split('/').pop();
+    return seg || '';
+  }
+  function enhanceCards() {
+    var root = document.getElementById('pf-slr-roster-root') || document.getElementById('pf-slr-roster');
+    if (!root) return;
+    if (typeof PF.slrMember !== 'function') return;
+    var cards = root.querySelectorAll('.pf-slr-card');
+    for (var i = 0; i < cards.length; i++) {
+      var card = cards[i];
+      if (card.getAttribute('data-recruit')) continue;
+      card.setAttribute('data-recruit', '1');
+      var a = card.querySelector('a[href]');
+      var member = a ? PF.slrMember(slugFromPath(a.getAttribute('href'))) : null;
+      if (!member) continue;
+      var body = a.parentNode || card;
+      var bar = document.createElement('div');
+      bar.setAttribute('data-recruit-bar', '1');
+      bar.style.cssText = 'display:flex;gap:0.5rem;margin-top:0.6rem;';
+      var r = mkBtn('RECRUIT', true);
+      r.style.cssText += 'flex:1;margin:0;font-size:0.72rem;padding:0.6rem 0.5rem;';
+      var c = mkBtn('\u2398', false);
+      c.title = 'Copy enlist link';
+      c.setAttribute('aria-label', 'Copy enlist link for ' + member.name);
+      c.style.cssText += 'flex:0 0 auto;margin:0;font-size:0.85rem;padding:0.6rem 0.8rem;';
+      (function (m, rb, cb) {
+        rb.onclick = function () { handleRecruit(rb, m); };
+        cb.onclick = function () { copyText(enlistUrl(m), 'Enlist link copied \u2014 share it anywhere.'); };
+      })(member, r, c);
+      bar.appendChild(r);
+      bar.appendChild(c);
+      body.appendChild(bar);
+    }
+  }
+
+  /* ---- Catalog page ---- */
+  function enhanceCatalogPage() {
+    var root = document.getElementById('pf-catalog-root') || document.getElementById('pf-catalog');
+    if (!root || root.getAttribute('data-recruit')) return;
+    if (typeof PF.slrMember !== 'function') return;
+    var el = document.getElementById('pf-catalog');
+    var slug = (el && el.getAttribute('data-slug')) || slugFromPath(location.pathname);
+    var member = slug ? PF.slrMember(slug) : null;
+    if (!member) return;
+    root.setAttribute('data-recruit', '1');
+    var h1 = root.querySelector('h1');
+    var wrap2 = document.createElement('div');
+    if (h1 && h1.parentNode) h1.parentNode.insertBefore(wrap2, h1.nextSibling);
+    else root.appendChild(wrap2);
+    mountToolbar(wrap2, member);
+    mountBringThemIn(root, member);
+  }
+
+  function scan() {
+    try { enhanceCards(); } catch (e) { try { PF.error('creator-recruit', e); } catch (e2) {} }
+    try { enhanceCatalogPage(); } catch (e3) { try { PF.error('creator-recruit', e3); } catch (e4) {} }
+  }
+
+  /* The roster/catalog renderers fire asynchronously once the SLR DB
+     resolves (snapshot, lazy script, or JSON fallback — up to ~15s). Scan
+     now and on a bounded backoff so we catch late renders without a
+     permanent observer. */
+  [0, 1500, 4000, 8000, 16000].forEach(function (ms) {
+    setTimeout(scan, ms);
+  });
+
+  /* Public surface for any other silo that renders catalog content later. */
+  try {
+    PF.creatorRecruit = {
+      scan: scan,
+      enlistUrl: enlistUrl,
+      recruitPoster: function (member, photo) { return drawPoster(member, photo); }
+    };
+  } catch (e) {}
+})();
+
+;
+
+/* ===== pages/recruit-welcome.js ===== */
+/* pages/recruit-welcome.js  |  PF v1.4.3 | R5: recruit-link -> guided first hour.
+   ?creator=<slug> traffic lands on /request-access (see pages/creator-recruit.js
+   "COPY ENLIST LINK"). This renders the guided first-hour welcome card for
+   those arrivals: "X RECRUITED YOU" + the recruiting creator's real catalog
+   card (PF.slrMember roster DB data only — never invented), then 3 prescribed
+   steps: 1) claim callsign (PF.requireCallsign, the register flow), 2) Route
+   March stop 1 (S1 circuit_status deep-link, ?creator= preserved), 3) today's
+   seeded NEXT OP (scrolls to the S4 pf-nextop card in-flow).
+   Attribution: ?creator= is first-touch persisted by core/09-referral.js
+   (pf_creator_ref_v1) and carried explicitly in the Route March deep-link,
+   so it survives through to the first circuit claim (S3 race coherence).
+   The recruit minimum bar (callsign + 1 Daily Orders mission) stays
+   backend-side — this card grants nothing and bypasses nothing.
+   Jeanine Pirreaux Comedy: excluded (do not touch).
+   KILL: ?pf_off=recruit-welcome  or  localStorage pf_disabled_v1='["recruit-welcome"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('recruit-welcome')) { return; }
+  if (window.pfRecruitWelcomeDone) { return; }
+  window.pfRecruitWelcomeDone = true;
+
+  var DIS_KEY = 'pf_recruit_welcome_dismissed_v1';
+  var NO_TOUCH_SLUGS = { 'jeanine-pirreaux-comedy': 1 };
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function onRequestAccess() {
+    try { return /(^|\/)request-access(\/|$)/.test(location.pathname || ''); } catch (e) { return false; }
+  }
+  function dismissed(slug) {
+    try {
+      var o = JSON.parse(localStorage.getItem(DIS_KEY) || '{}');
+      return !!(o && o[slug]);
+    } catch (e) { return false; }
+  }
+  function markDismissed(slug) {
+    try {
+      var o = {};
+      try { o = JSON.parse(localStorage.getItem(DIS_KEY) || '{}'); } catch (e2) { o = {}; }
+      o[slug] = 1;
+      localStorage.setItem(DIS_KEY, JSON.stringify(o));
+    } catch (e) {}
+  }
+  function hasCallsign() {
+    try { if (PF && typeof PF.hasCallsign === 'function') return PF.hasCallsign(); } catch (e) {}
+    try { return !!(window.PFCallsign && window.PFCallsign()); } catch (e2) { return false; }
+  }
+  function myCallsign() {
+    try { if (window.PFCallsign) return window.PFCallsign() || ''; } catch (e) {}
+    return '';
+  }
+  function creatorSlug() {
+    try { if (PF && typeof PF.storedCreatorRef === 'function') return PF.storedCreatorRef() || ''; } catch (e) {}
+    return '';
+  }
+
+  /* Route March stop-1 deep-link (S1). Self-contained (no cross-file
+     ordering dependency with the R1 graduation card): reads circuit_status,
+     navigates to stops[0].page with ?creator= preserved for race coherence.
+     Guarded — falls back to the homepage briefing if the circuit read fails. */
+  function goRouteMarch(btn, slug) {
+    function fallback() {
+      try { location.href = '/#pf-brief'; } catch (e) {}
+    }
+    if (btn) { btn.disabled = true; btn.textContent = 'FINDING STOP 1\u2026'; }
+    var BACKEND = window.PF_BACKEND_URL;
+    var cs = myCallsign();
+    function nav(page) {
+      var url = String(page || '/#pf-brief');
+      if (slug) url += (url.indexOf('?') >= 0 ? '&' : '?') + 'creator=' + encodeURIComponent(slug);
+      try { location.href = url; } catch (e) { fallback(); }
+    }
+    if (!BACKEND || !cs) { fallback(); return; }
+    var finished = false;
+    function done(j) {
+      if (finished) return; finished = true;
+      try {
+        if (j && j.ok && j.stops && j.stops.length && j.stops[0].page) { nav(j.stops[0].page); return; }
+      } catch (e2) {}
+      fallback();
+    }
+    try {
+      if (window.PF && PF.authGetJSONP) { PF.authGetJSONP(BACKEND, 'circuit_status', { callsign: cs }, done); }
+      else {
+        var fn = 'pfRwRm' + Math.floor(Math.random() * 1e9);
+        window[fn] = function (j) { try { delete window[fn]; } catch (e3) {} done(j); };
+        var s = document.createElement('script');
+        s.onerror = function () { done(null); };
+        s.src = BACKEND + '?action=circuit_status&callsign=' + encodeURIComponent(cs) + '&callback=' + fn;
+        document.head.appendChild(s);
+      }
+    } catch (e4) { done(null); }
+    setTimeout(function () { done(null); }, 10000);
+  }
+
+  function memberCard(member) {
+    var name = String(member.name || 'A Sick Left Radical');
+    var score = (member.propaganda_score != null) ? Number(member.propaganda_score).toFixed(1) : '';
+    var followers = String(member.followers_display || '');
+    var path = String(member.catalog_path || ('/' + member.slug));
+    var photo = String(member.picture || '');
+    var h = '<div style="display:flex;gap:.9rem;align-items:center;text-align:left;' +
+      'border:2px solid #c1121f;background:#141010;padding:.8rem;margin:.9rem auto;max-width:480px;box-sizing:border-box;">';
+    if (photo) {
+      h += '<img src="' + esc(photo) + '" alt="' + esc(member.image_alt || (name + ' — Sick Left Radicals')) + '" ' +
+        'loading="lazy" style="width:72px;height:72px;object-fit:cover;flex:0 0 auto;border:2px solid #c1121f;" />';
+    }
+    h += '<div style="min-width:0;">' +
+      '<div style="color:#f5f0e1;font-weight:900;letter-spacing:.06em;font-size:.95rem;">' + esc(name.toUpperCase()) + '</div>' +
+      '<div style="color:#b8ab8e;font-size:.75rem;margin-top:.25rem;">' +
+      (score ? 'PROPAGANDA SCORE ' + esc(score) + '/10' : '') +
+      (score && followers ? ' &middot; ' : '') +
+      (followers ? esc(followers.toUpperCase()) + ' FOLLOWERS' : '') + '</div>' +
+      '<div style="margin-top:.4rem;"><a href="' + esc(path) + '" ' +
+      'style="color:#fff;font-size:.72rem;font-weight:900;letter-spacing:.1em;text-decoration:underline;">' +
+      'VIEW ' + esc(name.toUpperCase()) + '\u2019S PAGE &rarr;</a></div>' +
+      '</div></div>';
+    return h;
+  }
+
+  function render(slug, member) {
+    if (document.getElementById('pf-recruit-welcome')) return;
+    var name = String(member.name || 'A Sick Left Radical');
+    var card = document.createElement('div');
+    card.id = 'pf-recruit-welcome';
+    card.setAttribute('data-pf-recruit-welcome', '1');
+    card.style.cssText = 'border:4px solid #c1121f;background:#0d0d0d;color:#f5f0e1;' +
+      'padding:1.5rem 1.2rem;margin:0 0 1.4rem;text-align:center;box-sizing:border-box;' +
+      'box-shadow:0 0 30px rgba(193,18,31,.4);font-family:inherit;';
+
+    var claimed = hasCallsign();
+    var step1 = claimed
+      ? '<div style="margin:.55rem 0;padding:.7rem;border:2px solid #2f7a3d;background:#0a140a;">' +
+        '<div style="color:#7ddf8a;font-weight:900;letter-spacing:.1em;font-size:.85rem;">&#10003; CALLSIGN CLAIMED &mdash; ' +
+        esc(myCallsign().toUpperCase()) + '</div></div>'
+      : '<div style="margin:.55rem 0;"><button type="button" id="pf-rw-claim" ' +
+        'style="display:inline-block;background:#c1121f;border:2px solid #c1121f;color:#fff;' +
+        'font-weight:900;letter-spacing:.12em;padding:.8rem 1.6rem;font-size:.85rem;cursor:pointer;">' +
+        '1 &mdash; CLAIM YOUR CALLSIGN</button></div>';
+    var step2 = '<div style="margin:.55rem 0;"><button type="button" id="pf-rw-march" ' +
+      'style="display:inline-block;background:transparent;border:2px solid #c1121f;color:#f5f0e1;' +
+      'font-weight:900;letter-spacing:.12em;padding:.8rem 1.6rem;font-size:.85rem;cursor:pointer;">' +
+      '2 &mdash; ROUTE MARCH: STOP 1 &rarr;</button>' +
+      '<div style="font-size:.72rem;color:#b8ab8e;margin-top:.35rem;">Walk the circuit. The first stop is where streaks start.</div></div>';
+    var step3 = '<div style="margin:.55rem 0;"><button type="button" id="pf-rw-nextop" ' +
+      'style="display:inline-block;background:transparent;border:2px solid #f5f0e1;color:#f5f0e1;' +
+      'font-weight:900;letter-spacing:.12em;padding:.8rem 1.6rem;font-size:.85rem;cursor:pointer;">' +
+      '3 &mdash; SEE TODAY\u2019S NEXT OP &darr;</button></div>';
+
+    card.innerHTML =
+      '<div style="color:#c1121f;font-weight:900;letter-spacing:.16em;font-size:1.05rem;margin-bottom:.3rem;">' +
+      '&#9873; ' + esc(name.toUpperCase()) + ' RECRUITED YOU</div>' +
+      '<div style="font-size:.85rem;color:#b8ab8e;line-height:1.55;">' +
+      esc(name) + ' fights with the Sick Left Radicals. Now it\u2019s your turn &mdash; ' +
+      'your first hour, prescribed:</div>' +
+      memberCard(member) +
+      '<div style="color:#f5f0e1;font-weight:900;letter-spacing:.14em;font-size:.85rem;margin:1rem 0 .4rem;">' +
+      'YOUR FIRST HOUR</div>' +
+      step1 + step2 + step3 +
+      '<div style="margin-top:.8rem;"><button type="button" id="pf-rw-dismiss" ' +
+      'style="background:none;border:none;color:#b8ab8e;font-size:.72rem;letter-spacing:.1em;' +
+      'cursor:pointer;text-decoration:underline;">dismiss</button></div>';
+
+    /* Mount in-flow at the top of the Academy block (the recruit's first
+       stop on /request-access); fall back to the war-card block, then body. */
+    var anchor = null;
+    try {
+      var hq = document.getElementById('pf-academy-hq');
+      var hqb = hq && hq.closest ? hq.closest('.fe-block') : null;
+      anchor = hqb || null;
+      if (!anchor) {
+        var wc = document.getElementById('pf-war-card');
+        anchor = (wc && wc.closest) ? wc.closest('.fe-block') : null;
+      }
+    } catch (e) { anchor = null; }
+    try {
+      if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(card, anchor);
+      else if (document.body) document.body.insertBefore(card, document.body.firstChild);
+      else return;
+    } catch (e2) { return; }
+
+    function dismiss() {
+      markDismissed(slug);
+      try { if (card.parentNode) card.parentNode.removeChild(card); } catch (e3) {}
+    }
+    var dis = card.querySelector('#pf-rw-dismiss');
+    if (dis) dis.onclick = dismiss;
+
+    var claimBtn = card.querySelector('#pf-rw-claim');
+    if (claimBtn) claimBtn.onclick = function () {
+      try {
+        if (window.PF && PF.requireCallsign) {
+          PF.requireCallsign(function (cs) {
+            /* The pf-callsign-claimed listener in core/09-referral.js logs
+               the recruit_log row with this creator as recruiter — the
+               backend minimum bar counts it from there. */
+            if (cs) dismiss();
+          }, { context: 'to answer ' + name + '\u2019s call' });
+        }
+      } catch (e4) {}
+    };
+
+    var marchBtn = card.querySelector('#pf-rw-march');
+    if (marchBtn) marchBtn.onclick = function () { goRouteMarch(marchBtn, slug); };
+
+    var opBtn = card.querySelector('#pf-rw-nextop');
+    if (opBtn) opBtn.onclick = function () {
+      /* S4 NEXT OP card mounts in-flow above the footer on every page. */
+      var t = null;
+      try { t = document.getElementById('pf-nextop'); } catch (e5) {}
+      if (t) {
+        try { t.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e6) {}
+      } else {
+        try { location.href = '/#pf-orders'; } catch (e7) {}
+      }
+    };
+  }
+
+  function resolveAndRender(slug, triedLazy) {
+    var member = null;
+    try { member = (PF && typeof PF.slrMember === 'function') ? PF.slrMember(slug) : null; } catch (e) {}
+    if (member && member.name) { render(slug, member); return; }
+    /* Roster DB may still be resolving on slim-core pages — one lazy retry. */
+    if (!triedLazy) {
+      try {
+        if (PF && typeof PF.ensureSLRDB === 'function') {
+          PF.ensureSLRDB().then(function () { resolveAndRender(slug, true); });
+          return;
+        }
+      } catch (e2) {}
+      setTimeout(function () { resolveAndRender(slug, true); }, 4000);
+    }
+    /* Real roster data only — never render with invented creator data. */
+  }
+
+  function boot() {
+    try {
+      if (!onRequestAccess()) return;
+      var slug = creatorSlug();
+      if (!slug || NO_TOUCH_SLUGS[slug]) return;
+      if (dismissed(slug)) return;
+      if (document.getElementById('pf-recruit-welcome')) return;
+      resolveAndRender(slug, false);
+    } catch (e) {}
+  }
+  /* 09-referral.js captures ?creator= at parse time; the SLR snapshot ships
+     inside the SLR core on HQ pages, so the member resolves synchronously in
+     practice. Bounded retries catch late renders. */
+  [0, 1200, 3500, 8000].forEach(function (ms) { setTimeout(boot, ms); });
+})();
+
+;

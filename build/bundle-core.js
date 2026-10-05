@@ -129,6 +129,7 @@ var MONEY_FILES = [
   'core/money-page.js',
   'core/money-trades.js',
   'core/money-pac-alerts.js',
+  'core/money-macro.js',
   'core/money-deep8.js'
 ];
 

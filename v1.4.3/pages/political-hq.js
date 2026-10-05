@@ -21,10 +21,11 @@
     if(b&&(b.classList.contains('sqs-edit-mode')||b.classList.contains('sqs-editing'))) return true;
     return false; }catch(e){ return false; } }
 
-  /* Political HQ order: civic action first, then governance —
-     Know Your Enemy (intel) moved here 2026-10-03 from the homepage. */
+  /* Political HQ order: civic action first, then the legislation tracker,
+     then governance — Know Your Enemy (intel) moved here 2026-10-03. */
   var ORDER = [
     ['civic', 'pf-ov-civic'],
+    ['legislation', 'pf-ov-legislation'],
     ['notify-prefs', 'pf-ov-notify-prefs'],
     ['governance', 'pf-ov-gov'],
     ['intel', 'pf-ov-intel']

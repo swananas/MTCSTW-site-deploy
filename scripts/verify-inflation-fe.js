@@ -213,11 +213,12 @@ else no('kill switch', 'header docs missing a ?pf_off= switch');
 
 console.log('== 9. no XP ==');
 /* The explicit ZERO ECONOMY doc line is allowed; everything else with an
-   xp token is a violation. */
+   xp token is a violation. Word-boundary match: "experimental" (nowcast
+   label, required by U-02) is NOT an XP token. */
 var scrubbed = src.split('\n').filter(function (l) { return l.indexOf('ZERO ECONOMY') === -1; }).join('\n');
 var xpHits = [];
 scrubbed.split('\n').forEach(function (l, i) {
-  if (/xp/i.test(l)) xpHits.push((i + 1) + ':' + l.trim().slice(0, 80));
+  if (/\bxp\b/i.test(l)) xpHits.push((i + 1) + ':' + l.trim().slice(0, 80));
 });
 if (!xpHits.length) ok('no-XP: zero XP tokens outside the ZERO ECONOMY doc line');
 else no('no-XP', 'XP tokens found: ' + xpHits.join(' | '));
@@ -418,6 +419,59 @@ if (has(src, 'rebased') && has(src, 'first week') && has(src, 'relative, not abs
 else no('footnote', 'rebasing disclosure missing');
 if (has(src, 'never presented as official')) ok('footnote: never-presented-as-official language kept');
 else no('footnote', 'never-presented-as-official language missing');
+
+console.log('== 17. flywheel credit (synergy-flywheel) ==');
+/* Shared helpers: present, escaped, exposed for other surfaces (U-03 spike alerts). */
+if (has(src, 'function crowdCredit') && has(src, 'function poweredBy'))
+  ok('credit: crowdCredit + poweredBy helpers present');
+else no('credit', 'crowdCredit/poweredBy helpers missing');
+if (has(src, 'PF.crowdCredit = crowdCredit') && has(src, 'PF.poweredBy = poweredBy'))
+  ok('credit: helpers exposed on PF for other surfaces');
+else no('credit', 'helpers not exposed on PF');
+/* Kill switch gates every credit line; documented in the module KILL comment. */
+if (has(src, "PF.skip('flywheel-credit')") && has(src, '?pf_off=flywheel-credit'))
+  ok('credit: ?pf_off=flywheel-credit kill switch gates helpers + documented');
+else no('credit', 'flywheel-credit kill switch missing or undocumented');
+/* Honest empty states: "no contributors yet", never a fake zero. */
+if (has(src, "no ' + esc(what) + ' yet") && has(src, 'no contributors yet'))
+  ok('credit: honest empty states ("no contributors yet", never a fake zero)');
+else no('credit', 'honest-empty copy missing');
+/* Every count labels what it counts + vintage. */
+if (has(src, "'trailing 30 days'") && has(src, "'trailing ' + weeks + ' weeks'"))
+  ok('credit: counts labeled with what + vintage (board 30d, trends W weeks)');
+else no('credit', 'vintage labels missing');
+/* Board: headline powered-by + per-card contributor counts. */
+if (has(src, 'poweredBy(j.contributors,'))
+  ok('credit: board headline "powered by N contributors" wired to j.contributors');
+else no('credit', 'board headline poweredBy missing');
+if (has(src, 'crowdCredit(r.contributors,'))
+  ok('credit: per-card contributor counts wired to r.contributors');
+else no('credit', 'per-card crowdCredit missing');
+/* Suppression respected: thin cards still show NO number (money() not called
+   in the not-enough branch). */
+if (/!r\.enough_data[\s\S]{0,600}money\(r\.median_cents\)/.test(src))
+  no('credit', 'money() reachable in the not-enough branch');
+else ok('credit: not-enough branch still never renders a number (suppression holds)');
+/* Trends: People's Index "powered by" gated on >=1 data point (piHasData). */
+if (has(src, 'piHasData') && /piHasData \? poweredBy\(j\.contributors/.test(src))
+  ok('credit: index "powered by" headline gated on >=1 data point (suppression respected)');
+else no('credit', 'piHasData gate on index headline missing');
+/* Nowcast credit: dormant component against the U-02 consumer contract. */
+if (has(src, 'pf-nowcast-credit') && has(src, 'function mountNowcastCredit'))
+  ok('credit: nowcast credit component + #pf-nowcast-credit mount present');
+else no('credit', 'nowcast credit component missing');
+if (has(src, 'reports_n') && has(src, 'contributors_n') && has(src, 'hit_rate') && has(src, 'window_label'))
+  ok('credit: nowcast consumer contract fields (reports_n, contributors_n, hit_rate, window_label)');
+else no('credit', 'nowcast contract fields missing');
+if (has(src, 'community price reports from') && has(src, 'Backtesting in progress'))
+  ok('credit: nowcast copy honest ("based on N reports from M contributors", backtest-in-progress state)');
+else no('credit', 'nowcast honest copy missing');
+if (has(src, "mount.innerHTML = ''; return;") && has(src, 'dormant'))
+  ok('credit: nowcast component dormant when no payload (renders nothing, never fake)');
+else no('credit', 'nowcast dormancy missing');
+if (has(src, 'EXPERIMENTAL NOWCAST'))
+  ok('credit: nowcast labeled experimental');
+else no('credit', 'experimental label missing on nowcast');
 
 console.log('\n' + passes + ' passed, ' + fails.length + ' failed.');
 if (fails.length) { console.log('FAILURES:'); fails.forEach(function (f) { console.log(' - ' + f); }); process.exit(1); }

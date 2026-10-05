@@ -88,6 +88,9 @@ var SECTIONS = {
     'cell-first-hour.js',
     'referral.js',
     'poster-forge.js',
+    /* Political HQ creation-plugins (2026-10-05): the Poster Forge POLITICAL
+       tab. Loads right after poster-forge.js — mounts into #xPolitical. */
+    'poster-forge-political.js',
     'feed.js',
     'war-bonds.js',
     'campaign.js',
@@ -150,6 +153,8 @@ var SECTIONS = {
   'bundle-create-h': [
     /* /create — poster-forge + feed (the Propaganda Feed workshop). */
     'poster-forge.js',
+    /* Slim dup of bundle-home's copy: political tab rides along. */
+    'poster-forge-political.js',
     'feed.js'
   ],
   'bundle-arcade': [
@@ -184,6 +189,10 @@ var SECTIONS = {
     /* Cells G7 (2026-10-04): standalone treasury UI (fund/spend/trajectory). */
     'treasury.js',
     'cell-war.js',
+    /* Propaganda Front (2026-10-05): opt-in political side front for the
+       Cell War — per-capita political asset output, recognition-only crown,
+       zero XP. Standby state when the forge/bounty rails aren't live. */
+    'cell-war-front.js',
     'diplomacy.js',
     'contracts.js',
     'war-card.js',

@@ -21,7 +21,6 @@
      {id:'vote',    glyph:'\u2605', name:'Ballot',          ev:'pf-vote-cast'},
      {id:'ballot',  glyph:'\u2622', name:'Bracket Ballot',  ev:'pf-bracket-ballot'},
      {id:'bracket', glyph:'\u2620', name:'Liquidator',      ev:'pf-bracket-liquidated'},
-     {id:'bonds',   glyph:'\u25C6', name:'War Bonds',       ev:'pf-wb-buy'},
      {id:'caption', glyph:'\u270E', name:'Word Warrior',    ev:'pf-caption-submit'},
      {id:'poster',  glyph:'\u25C8', name:'Press Pass',      ev:'pf-poster-made'},
      {id:'quiz',    glyph:'\u25C9', name:'Intel Operative', ev:'pf-quiz-done'},

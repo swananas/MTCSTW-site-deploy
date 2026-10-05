@@ -290,6 +290,12 @@ var SECTIONS = {
        official data, zero XP. Kills: ?pf_off=economy-fred (master) or
        fed-watch | housing-context | official-trend | wage-gap | sahm. */
     'fred-economy.js',
+    /* W4 B2 S-29 (2026-10-05): standalone wage-vs-prices chart card — the
+       share-first surface over M-01's math (?action=fred_wagegap).
+       NEVER auto-mounts; exposes window.PFWageGap.mount for the
+       standalone surface (/wages or the S-19 /macro page). Zero XP.
+       Kill: ?pf_off=wagegap. */
+    'fred-wagegap-card.js',
   ],
   'bundle-warchest': [
     /* /war-chest — Movement Finance. */

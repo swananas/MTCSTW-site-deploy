@@ -433,10 +433,39 @@ function mkSession(hash, state) {
         bc.params.caption === 'Test caption' && !('citation_token' in bc.params) &&
         msgHtml.indexOf('IN THE QUEUE') !== -1 && msgHtml.indexOf('sub-9') !== -1 &&
         msgHtml.indexOf('rejected pieces earn nothing, ever') !== -1 &&
-        msgHtml.indexOf('+10 XP') === -1)
+        msgHtml.indexOf('+10 XP') === -1 &&
+        /* no review_queued on the response -> legacy message, silent by design */
+        msgHtml.indexOf('community review') === -1)
       ok('bank_submit -> pending state, no XP promised at submit');
     else no('bank_submit -> pending state, no XP promised at submit',
       JSON.stringify(bc && bc.params) + ' :: ' + msgHtml.slice(0, 140));
+    /* review_queued:true -> extra community-review line rendered */
+    store['[data-rx-f="artifact"]'].value = 'https://art.example/p2.png';
+    store['[data-rx-f="caption"]'].value = 'Piece two';
+    clickH({ target: fakeTarget });
+    var bc2 = postCalls[postCalls.length - 1];
+    fireLast({ ok: true, submission_id: 'sub-10', status: 'pending',
+      review_queued: true, review_submission_id: 'rs-42' });
+    var msgHtml2 = store['[data-rx-msg="bank"]'].innerHTML;
+    if (bc2 && bc2.action === 'bank_submit' &&
+        msgHtml2.indexOf('IN THE QUEUE') !== -1 && msgHtml2.indexOf('sub-10') !== -1 &&
+        msgHtml2.indexOf('Also entered community review — members vote on it.') !== -1)
+      ok('bank_submit review_queued:true -> community-review line rendered');
+    else no('bank_submit review_queued:true -> community-review line rendered',
+      JSON.stringify(bc2 && bc2.params) + ' :: ' + msgHtml2.slice(0, 200));
+    /* review_queued:false (pool down, fail-closed) -> legacy message, silent */
+    store['[data-rx-f="artifact"]'].value = 'https://art.example/p3.png';
+    store['[data-rx-f="caption"]'].value = 'Piece three';
+    clickH({ target: fakeTarget });
+    var bc3 = postCalls[postCalls.length - 1];
+    fireLast({ ok: true, submission_id: 'sub-11', status: 'pending', review_queued: false });
+    var msgHtml3 = store['[data-rx-msg="bank"]'].innerHTML;
+    if (bc3 && bc3.action === 'bank_submit' &&
+        msgHtml3.indexOf('IN THE QUEUE') !== -1 && msgHtml3.indexOf('sub-11') !== -1 &&
+        msgHtml3.indexOf('community review') === -1)
+      ok('bank_submit review_queued:false -> legacy message, silent (fail-closed)');
+    else no('bank_submit review_queued:false -> legacy message, silent (fail-closed)',
+      JSON.stringify(bc3 && bc3.params) + ' :: ' + msgHtml3.slice(0, 200));
   } catch (e) { no('bank composer flow', e.message); }
 
   finish();

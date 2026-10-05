@@ -48,6 +48,9 @@
     ['hq-nudge', 'pf-ov-hq-nudge'],
     /* 2026-10-05 (fe/civic-snapshot): civic snapshot card, after hq-nudge. */
     ['civicsnap', 'pf-ov-civicsnap'],
+    /* 2026-10-05 (engagement build D, item #3): weekly ritual calendar slot
+       (CPI/jobs/Fed moments). Compact mode here; full rail on /money. */
+    ['ritual-calendar', 'pf-ov-ritual'],
     ['dopa', 'pf-ov-dopa'],
     ['do-meter', 'pf-ov-dometer'],
     ['enlistment-ranks', 'pf-ov-ranks'],
@@ -68,6 +71,9 @@
     /* ——— SECTION 6: ACT — action ——— */
     ['campaign', 'pf-ov-campaign'],
     ['alerts', 'pf-ov-alerts'],
+    /* 2026-10-05 (engagement build D, item #8): FB group missions — on-site
+       check-in for missions posted manually to the 84K group. */
+    ['fb-missions', 'pf-ov-fbmissions'],
     /* ——— SECTION 7: PROOF — social validation closer ——— */
     ['fan-vote', 'pf-ov-vote'],
     /* 2026-10-05, Phase 3 #11: War Report Monday card — the weekly ritual's

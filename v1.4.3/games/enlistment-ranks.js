@@ -506,8 +506,12 @@ document.addEventListener("pf-share-image",function(){ var gain=award("share",1,
 document.addEventListener("pf-drop-claimed",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; var gain=award("drop_"+d,1,"once"); settle("pf-drop-claimed",gain); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("DROP CLAIMED — +1 XP"); }catch(e2){} } });
 document.addEventListener("pf-billionaire-answered",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; settle("pf-billionaire-answered",award("billionaire_"+d,1,"once")); });
 document.addEventListener("pf-interrogation-answered",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; settle("pf-interrogation-answered",award("interrogation_"+d,1,"once")); });
-/* Do Meter Game-8 expansion bonuses: weekly-op completion + full-spectrum week. Exempt (bounded by week). */
-document.addEventListener("pf-do-challenge-done",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; var gain=award("dochall_"+w,15,"once",{exempt:1}); settle("pf-do-challenge-done",gain); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("CHALLENGE DONE — +15 XP"); }catch(e2){} } });
+/* Do Meter Game-8 expansion bonuses: weekly-op completion + full-spectrum week. Exempt (bounded by week).
+   Engagement build D item #3: the ritual release-day order dispatches this
+   same event with detail.xp=10 (Economy-signed 10 XP for
+   dochall_<date>_<series>_<cs>); the award honors a caller-supplied xp
+   clamped to the 15 mirror cap, defaulting to the legacy 15. */
+document.addEventListener("pf-do-challenge-done",function(e){ var d=(e&&e.detail)||{}; var w=d.week||"wk"; var xp=Math.min(15,Math.max(1,Math.round(Number(d.xp)||15))); var gain=award("dochall_"+w,xp,"once",{exempt:1}); settle("pf-do-challenge-done",gain); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("CHALLENGE DONE — +"+gain+" XP"); }catch(e2){} } });
 document.addEventListener("pf-do-fullspectrum",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; var gain=award("dospec_"+w,20,"once",{exempt:1}); settle("pf-do-fullspectrum",gain); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("FULL SPECTRUM — +20 XP"); }catch(e2){} } });
 /* Recruit rewards: +25 XP per new recruit (War Card promise), exempt from the
    daily pool. Keyed on the running recruit total so the 6h poll can never

@@ -132,7 +132,11 @@ var MONEY_FILES = [
   'core/money-macro.js',
   'core/macro-share.js',
   'core/macro-gallery.js',
-  'core/money-deep8.js'
+  'core/money-deep8.js',
+  /* Engagement build D item #3 (2026-10-05): weekly ritual calendar rail.
+     Same file as the homepage slot (games bundle) — self-mounts by DOM
+     presence (#pf-money -> rail). Rendered directly, no template staging. */
+  'games/ritual-calendar.js'
 ];
 
 var BUNDLES = {

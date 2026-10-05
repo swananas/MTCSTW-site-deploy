@@ -8,8 +8,25 @@ screen after the home-state picker. Step two of onboarding personalization.
 - `localStorage` `pf_pick_fight_v1`: JSON array of area ids. `[]` = skipped /
   no filter. Missing key = never chosen.
 - Local only. Never public, never on leaderboards, never shared, no backend
-  writes, no XP. Same privacy posture as `pf_home_state_v1`.
+  writes. Same privacy posture as `pf_home_state_v1`.
 - Kill switch: `?pf_off=pick-fight` or `localStorage pf_disabled_v1='["pick-fight"]'`.
+
+## XP wiring (2026-10-05 CEO directive, Economy Desk SIGN-OFF)
+
+| Action | Existing leg | Amount | Sign-off |
+|---|---|---|---|
+| First real pick (null → 1–3 non-empty picks) | enlistment-ranks onboarding track: `award("fight",10,"once",{exempt:1})`, same class as `quiz`/`bracket` | +10 XP | **SIGNED OFF** |
+| Skip ("Surprise me" → empty) | — | 0 XP | No grant |
+| Change fights later / clear filter | — | 0 XP | No grant |
+
+Mechanics: `set()` dispatches `pf-fight-picked` (with `detail.fights`) only on
+the null → non-empty transition — never on skip, re-save, or clear.
+`enlistment-ranks.js` listens and calls the existing `award()`; the `once`
+rule stamps `got["fight"]="x"` in `pf_ranks_v1`, so clearing pick storage and
+re-picking cannot re-grant. Backend mirror follows the established keyed
+`pf-xp` path (`fight` — no key collision). Toast: "FIGHTS CHOSEN — +10 XP".
+Touches none of the CEO-locked items (competition bonuses, War Bonds XP,
+strike-order XP grants).
 
 ## The 12 stable area ids
 `voting` Voting Rights & Democracy · `labor` Labor & Workers' Rights ·
@@ -52,7 +69,9 @@ consumers filter on them).
   (ballot deadlines, campaign calls, and vote windows stay visible to all).
 - Treat `[]` and "never chosen" identically (no filter).
 - Unknown ids from storage must be dropped silently (forward-compat).
-- No XP, no backend writes, no public display — preference is private.
+- The single XP event is owned by the enlistment track (see XP wiring above);
+  consumers must not grant XP for fight changes — no double-grants.
+- No backend writes, no public display — preference is private.
 
 ## Composition with the home-state picker (`fe/home-state-picker`)
 - Both are preference-only, localStorage, no backend, no XP.

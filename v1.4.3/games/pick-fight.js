@@ -11,7 +11,11 @@
    - Changeable later (settings widget below), never a one-way door.
    - Never public: never displayed on leaderboards, never attached to a
      callsign publicly, never shared. Local preference only.
-   - No XP. Read-only preference, zero write path to the backend.
+   - XP (2026-10-05 CEO directive, Economy Desk sign-off): +10 XP ONCE for a
+     first real pick (null -> 1-3 non-empty), riding the existing
+     enlistment-ranks onboarding track (award("fight",10,"once",{exempt:1}) —
+     same class as quiz/bracket). Skip ("Surprise me") = 0 XP; changes and
+     clears = 0 XP. Supersedes the earlier "No XP" requirement.
    STORAGE: localStorage "pf_pick_fight_v1" (JSON array of area ids).
    [] = skipped/no filter. Missing = never chosen.
    ISSUE AREAS = the 12 from the aligned-nonprofits master directory
@@ -81,10 +85,22 @@
       var id = String(arr[i]);
       if (validId(id) && clean.indexOf(id) === -1) clean.push(id);
     }
+    /* First-ever save? The XP hook below fires only on null -> non-empty. */
+    var wasNeverChosen = false;
+    try { wasNeverChosen = (localStorage.getItem(LS) === null); } catch (e) {}
     try { localStorage.setItem(LS, JSON.stringify(clean)); } catch (e) { /* private mode: keep going */ }
     try {
       document.dispatchEvent(new CustomEvent('pf-pick-fight-changed', { detail: { fights: clean.slice() } }));
     } catch (e2) {}
+    /* XP hook (2026-10-05 CEO directive, Economy Desk sign-off): first REAL
+       pick only (null -> 1-3 non-empty). Skip ([]) = 0 XP; re-saves and
+       clears never re-fire. The enlistment track awards once under key
+       "fight" via its existing once-rule guard (no double-grant). */
+    if (wasNeverChosen && clean.length > 0) {
+      try {
+        document.dispatchEvent(new CustomEvent('pf-fight-picked', { detail: { fights: clean.slice() } }));
+      } catch (e3) {}
+    }
     renderSettings();
     return true;
   }

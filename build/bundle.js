@@ -180,7 +180,7 @@ var SECTIONS = {
     /* Wave claim-support FE (2026-10-05): Ammo Finder — Creator HQ claim
        support. Type a claim, get leftist sources to back it up. Self-mounts
        into #pf-ammo / #pf-war-card. Display-only, no XP. Backend action
-       `claim_support_search` still PENDING on wave-claim-support. */
+       `claim_support_search` CONFIRMED on wave-claim-support (2026-10-05). */
     'ammo.js',
     'armory.js',
     'dashboard.js',

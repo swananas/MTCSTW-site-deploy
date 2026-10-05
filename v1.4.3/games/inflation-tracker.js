@@ -20,8 +20,13 @@
           week_ago_median_cents, delta_pct, enough_data} or {enough_data:false}
      GET  ?action=price_trends  {item_id, area_key, weeks}
        -> weeks [{week_start, median_cents|null, sample_count}],
-          peoples_index [{week_start, value}], official {value, period,
-          source_url} | null
+          peoples_index [{week_start, value}] (rebased to the first week
+          of the requested window — the index level is relative, not
+          absolute). price_trends does NOT return the official baseline.
+     GET  ?action=cpi_compare
+       -> {official: {value, period, source_url, retrieval_date} | null}
+       (fail-soft: a 404 or null official leaves the honest
+       "official baseline pending — check back" copy in place)
    HONESTY RULES (Psych audits this file): community data is NEVER presented
    as official. Every number the board/trends render carries a
    "community-reported" label with its date range. n<5 samples -> the card
@@ -653,6 +658,27 @@
       }).join('');
       return '<div style="display:flex;align-items:flex-end;gap:4px;height:190px;">' + cols + '</div>';
     }
+    /* ---- Official CPI-U baseline: it comes from its own endpoint
+       (?action=cpi_compare -> {official: {value, period, source_url,
+       retrieval_date} | null}), NOT from price_trends. Render value +
+       period + retrieval date so users see when the baseline was pulled.
+       Fail-soft: a 404/null leaves the honest pending copy in place. ---- */
+    function officialPendingHTML() {
+      return '<div style="color:#b8b0a0;font-size:14px;">Official baseline pending — check back. We won\u2019t draw a line we don\u2019t have.</div>';
+    }
+    function officialHTML(off) {
+      var src = safeUrl(off.source_url) || 'https://www.bls.gov/cpi/';
+      var line = off.period
+        ? 'CPI-U, ' + esc(String(off.period)) + ' · source: '
+        : 'CPI-U · release period unknown — verify the latest release at ';
+      return '<div style="background:#0d0d0d;border:1px solid #3a3a3a;border-radius:8px;padding:12px;">' +
+        '<div style="font-size:26px;font-weight:bold;">' + esc(String(off.value)) + '</div>' +
+        '<div style="' + SMALL + '">' + line +
+        '<a href="' + esc(src) + '" target="_blank" rel="noopener" style="color:#e8a0a0;">bls.gov</a>' +
+        (off.period ? '' : '.') +
+        (off.retrieval_date ? '<br>Baseline pulled ' + esc(String(off.retrieval_date)) + '.' : '') +
+        '</div></div>';
+    }
     function load() {
       var out = document.getElementById('pf-inf-tr-out');
       var aRaw = document.getElementById('pf-inf-tr-area').value.trim();
@@ -687,21 +713,19 @@
           h += '<div style="color:#b8b0a0;font-size:14px;">People\u2019s Index: not enough community data yet.</div>';
         }
         h += '<div style="font-size:13px;font-weight:bold;margin:12px 0 4px;">Official CPI-U <span style="' + SMALL + '">(BLS — the official number)</span></div>';
-        var off = j.official;
-        if (off && off.value != null) {
-          var src = safeUrl(off.source_url) || 'https://www.bls.gov/cpi/';
-          h += '<div style="background:#0d0d0d;border:1px solid #3a3a3a;border-radius:8px;padding:12px;">' +
-            '<div style="font-size:26px;font-weight:bold;">' + esc(String(off.value)) + '</div>' +
-            '<div style="' + SMALL + '">' + (off.period
-              ? 'CPI-U, ' + esc(String(off.period)) + ' · source: '
-              : 'CPI-U · release period unknown — verify the latest release at ') +
-            '<a href="' + esc(src) + '" target="_blank" rel="noopener" style="color:#e8a0a0;">bls.gov</a>' +
-            (off.period ? '' : '.') + '</div></div>';
-        } else {
-          h += '<div style="color:#b8b0a0;font-size:14px;">Official baseline pending — check back. We won\u2019t draw a line we don\u2019t have.</div>';
-        }
-        h += '<div style="' + HONEST + '">How to read this: the People\u2019s Index takes the weekly median of community-reported prices across our 12-item basket. The BLS CPI-U samples tens of thousands of prices professionally each month. Same-ish basket, different methods — compare the direction, not the digits. Community numbers are never presented as official.</div>';
+        /* Render the honest pending copy FIRST; the cpi_compare call below
+           swaps in the real baseline if the backend has one. A 404 or a
+           null official leaves this copy in place — fail-soft. */
+        h += '<div id="pf-inf-tr-official">' + officialPendingHTML() + '</div>';
+        h += '<div style="' + HONEST + '">How to read this: the People\u2019s Index is the weekly median of community-reported prices across our 12-item basket (groceries, gas, electricity, rent). The official CPI-U covers all-items — housing is about 36% of it, plus services and transport we don\u2019t track. These are genuinely different baskets, so compare the direction, not the digits. The People\u2019s Index is rebased to the first week of your window, so its level is relative, not absolute. Community numbers are never presented as official.</div>';
         out.innerHTML = h;
+        getJSON('cpi_compare', {}, function (c) {
+          var box = document.getElementById('pf-inf-tr-official');
+          if (!box) return;
+          var off = (c && c.official) || null;
+          if (off && off.value != null) { box.innerHTML = officialHTML(off); }
+          /* else: keep the pending fallback — never draw a line we don't have. */
+        });
       });
     }
     render();

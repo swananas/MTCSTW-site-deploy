@@ -85,10 +85,18 @@ function fmtDur(ms){
 }
 function val(id){ var el=document.getElementById(id); return el?String(el.value||"").trim():""; }
 function err(id,m){ var el=document.getElementById(id); if(el) el.textContent=m||""; }
-var NH=null, LS=null, WL=null, CL=null, EL=null, DL=null, AL=null, BP=null, IS=null, WH=null, BTL=null, AUL=null, SN=null, SH=null;
+/* Roster-slug check for market sides (creator kinds). Uses the SLR roster DB
+   when loaded (bundle-core-slr pages); falls back to format-only when not. */
+function isRosterSlug(s){
+  var t=String(s||"").trim().toLowerCase();
+  if(!/^[a-z0-9][a-z0-9-]{1,58}[a-z0-9]$/.test(t)) return false;
+  try{ if(window.PF&&PF.slrMember) return !!PF.slrMember(t); }catch(e){}
+  return true;
+}
+var NH=null, LS=null, WL=null, CL=null, EL=null, DL=null, AL=null, BP=null, IS=null, WH=null, BTL=null, AUL=null, SN=null, SH=null, MK=null;
 function load(){
   var n=0;
-  function one(){ n++; if(n>=14) render(); }
+  function one(){ n++; if(n>=15) render(); }
   setTimeout(render,15000);
   apiAdmin("network_health",function(j){ NH=j; one(); });
   /* 2026-10-03 conn fix: was hardcoded callsign:"x". Use the admin's own
@@ -109,6 +117,9 @@ function load(){
      the writes ride post("season","s_action",...) with X-Admin-Secret. */
   api("season_current",{},function(j){ SN=j; one(); });
   api("season_history",{},function(j){ SH=j; one(); });
+  /* Prediction market desk (2026-10-04, White Market): public JSONP read;
+     writes ride post("market","m_action",...) with X-Admin-Secret. */
+  api("market_list",{},function(j){ MK=j; one(); });
 }
 function renderGate(){
   var el=document.getElementById("xVault"); if(!el) return;
@@ -183,6 +194,55 @@ function render(){
     }
     h+='</div><div class="c-err" id="vlWResErr"></div>';
   } else { h+='<div class="x-note">No wagers yet.</div>'; }
+  h+='</div>';
+  /* 3b. PREDICTION MARKET DESK (2026-10-04, White Market).
+     Create + settle prediction boards. Rides post("market","m_action",...)
+     with X-Admin-Secret. Creator-kind sides must be real roster slugs
+     (validated client-side here; the backend re-validates). */
+  h+='<div class="x-pane"><h4>Prediction market desk</h4>'
+    +'<div class="x-note">Create and settle White Market prediction boards. Milestone kind auto-sets sides to YES/NO.</div>'
+    +'<div class="vl-form">'
+    +'<select aria-label="Market kind" id="vlMKind" class="c-input pf-input-md">'
+    +'<option value="battle">Battle Winner</option>'
+    +'<option value="infight">Infight Winner</option>'
+    +'<option value="bracket">Bracket Champion</option>'
+    +'<option value="fanfav">Fan Favorite Futures</option>'
+    +'<option value="growth">Growth Race</option>'
+    +'<option value="milestone">Milestone YES/NO</option>'
+    +'</select>'
+    +'<input aria-label="game_ref" id="vlMRef" class="c-input pf-input-lg" placeholder="game_ref: battle_id / round_id / bracket week / vote week (blank for growth/milestone)" >'
+    +'<input aria-label="Market title" id="vlMTitle" class="c-input pf-input-lg" placeholder="Title" >'
+    +'<input aria-label="Description / rules" id="vlMDesc" class="c-input pf-input-lg" placeholder="Description / rules shown on the bet slip" >'
+    +'<textarea aria-label="Sides, one per line" id="vlMSides" class="c-input pf-input-lg" rows="3" placeholder="Sides, one per line — creator markets: roster slugs"></textarea>'
+    +'<input aria-label="Betting locks at" id="vlMLock" class="c-input pf-input-md" type="datetime-local" >'
+    +'<input aria-label="Resolves at" id="vlMRes" class="c-input pf-input-md" type="datetime-local" >'
+    +'<select aria-label="Oracle" id="vlMOracle" class="c-input pf-input-md">'
+    +'<option value="auto:battle">auto:battle</option>'
+    +'<option value="auto:infight">auto:infight</option>'
+    +'<option value="auto:fanvote">auto:fanvote</option>'
+    +'<option value="manual">manual</option>'
+    +'</select>'
+    +'<input aria-label="Milestone target count" id="vlMTarget" class="c-input pf-input-md" type="number" min="1" placeholder="Milestone target (count)" >'
+    +'<textarea aria-label="oracle_params JSON" id="vlMOracleParams" class="c-input pf-input-lg" rows="2" placeholder="oracle_params JSON — growth start counts, e.g. start_counts per slug"></textarea>'
+    +'<button class="c-btn" id="vlMCreate">CREATE MARKET</button><div class="c-err" id="vlMErr"></div>'
+    +'</div>';
+  var mks=(MK&&MK.ok&&MK.markets)||[];
+  if(mks.length){
+    h+='<div class="vl-list">';
+    for(var mi=0;mi<mks.length;mi++){ var mk=mks[mi]; var mst=String(mk.status||"open");
+      h+='<div class="vl-row"><div><b>'+esc(mk.title||mk.id)+'</b>'
+        +' <span class="x-note">'+esc(mk.kind)+' &bull; '+esc(mst)+' &bull; pool '+Number(mk.total_pool||0)+' XP</span></div>'
+        +'<div class="vl-form">'
+        +'<input aria-label="Winner" id="vlMWin_'+esc(mk.id)+'" class="c-input pf-input-md" placeholder="Winner (required for manual oracle)" >'
+        +'<input aria-label="Evidence" id="vlMEv_'+esc(mk.id)+'" class="c-input pf-input-lg" placeholder="Evidence note / URL" >'
+        +'<button class="c-btn" data-mres="'+esc(mk.id)+'">RESOLVE</button>'
+        +'<input aria-label="Refund reason" id="vlMReason_'+esc(mk.id)+'" class="c-input pf-input-md" placeholder="Refund reason" >'
+        +'<button class="c-btn" data-mrefund="'+esc(mk.id)+'">REFUND</button>';
+      if(mst==="open") h+='<button class="c-btn" data-mcancel="'+esc(mk.id)+'">CANCEL</button>';
+      h+='</div></div>';
+    }
+    h+='</div><div class="c-err" id="vlMResErr"></div>';
+  } else { h+='<div class="x-note">No markets on the board.</div>'; }
   h+='</div>';
   /* 4. SUBSCRIPTION PROCESSING */
   h+='<div class="x-pane"><h4>Subscription processing</h4>'
@@ -458,6 +518,79 @@ function wire(){
         toast("Wager resolved. "+(j.payouts||[]).length+" payouts."); WL=null; load();
       }); };
   })(rbs[i]); }
+  /* Prediction market desk wiring — all ride post("market","m_action",...)
+     with X-Admin-Secret, exact vault pattern. */
+  b=document.getElementById("vlMCreate");
+  if(b) b.onclick=function(){ b.disabled=true;
+    var kind=val("vlMKind")||"battle";
+    var title=val("vlMTitle");
+    var sidesRaw=val("vlMSides").split("\\n").map(function(s){ return s.trim(); }).filter(Boolean);
+    if(kind==="milestone"){ sidesRaw=["YES","NO"]; }
+    var errM=null;
+    if(!title) errM="Title required.";
+    else if(sidesRaw.length<2) errM="At least two sides required.";
+    var lockMs=val("vlMLock")?new Date(val("vlMLock")).getTime():0;
+    var resMs=val("vlMRes")?new Date(val("vlMRes")).getTime():0;
+    if(!errM&&!(lockMs>0)) errM="Betting lock time required.";
+    if(!errM&&!(resMs>lockMs)) errM="Resolve time must be after lock time.";
+    var creatorKind=(kind==="battle"||kind==="infight"||kind==="bracket"||kind==="fanfav"||kind==="growth");
+    if(!errM&&creatorKind){
+      for(var si=0;si<sidesRaw.length;si++){
+        if(!isRosterSlug(sidesRaw[si])){ errM="Not a roster slug: "+sidesRaw[si]; break; }
+      }
+    }
+    var oparams={};
+    var opRaw=val("vlMOracleParams");
+    if(!errM&&opRaw){ try{ oparams=JSON.parse(opRaw); }catch(e){ errM="oracle_params is not valid JSON."; } }
+    var target=Number(val("vlMTarget"))||0;
+    if(!errM&&kind==="milestone"){
+      if(!(target>0)) errM="Milestone target required.";
+      else oparams.target=target;
+    }
+    if(errM){ err("vlMErr",errM); b.disabled=false; return; }
+    post("market","m_action","market_create",{
+      kind:kind, game_ref:val("vlMRef")||"", title:title, description:val("vlMDesc")||"",
+      sides:sidesRaw, locks_at:lockMs, resolves_at:resMs,
+      oracle:val("vlMOracle")||"manual", oracle_params:oparams
+    },function(j){
+      b.disabled=false;
+      if(!j||!j.ok){ err("vlMErr",PF.errCopy(j,"Create failed.")); return; }
+      toast("Market created: "+(j.id||j.market_id||"live")); MK=null; load();
+    }); };
+  var mres=document.querySelectorAll("[data-mres]");
+  for(var ri=0;ri<mres.length;ri++){ (function(btn){
+    btn.onclick=function(){ btn.disabled=true;
+      var mid=btn.getAttribute("data-mres");
+      /* Winner required for manual-oracle markets; optional cross-check for
+         auto — the backend enforces per oracle type. */
+      post("market","m_action","market_resolve",{market_id:mid,winner:val("vlMWin_"+mid)||"",evidence:val("vlMEv_"+mid)||""},function(j){
+        btn.disabled=false;
+        if(!j||!j.ok){ err("vlMResErr",PF.errCopy(j,"Resolve failed.")); return; }
+        toast("Market resolved: "+mid); MK=null; load();
+      }); };
+  })(mres[ri]); }
+  var mref=document.querySelectorAll("[data-mrefund]");
+  for(var fi=0;fi<mref.length;fi++){ (function(btn){
+    btn.onclick=function(){ btn.disabled=true;
+      var mid=btn.getAttribute("data-mrefund");
+      post("market","m_action","market_refund",{market_id:mid,reason:val("vlMReason_"+mid)||"admin refund"},function(j){
+        btn.disabled=false;
+        if(!j||!j.ok){ err("vlMResErr",PF.errCopy(j,"Refund failed.")); return; }
+        toast("Market refunded: "+mid); MK=null; load();
+      }); };
+  })(mref[fi]); }
+  var mcxl=document.querySelectorAll("[data-mcancel]");
+  for(var ci=0;ci<mcxl.length;ci++){ (function(btn){
+    btn.onclick=function(){
+      var mid=btn.getAttribute("data-mcancel");
+      if(!window.confirm("Cancel market "+mid+"? Open markets only — all bets auto-refund.")) return;
+      btn.disabled=true;
+      post("market","m_action","market_cancel",{market_id:mid},function(j){
+        btn.disabled=false;
+        if(!j||!j.ok){ err("vlMResErr",PF.errCopy(j,"Cancel failed.")); return; }
+        toast("Market cancelled: "+mid); MK=null; load();
+      }); };
+  })(mcxl[ci]); }
   b=document.getElementById("vlSubProc");
   if(b) b.onclick=function(){ b.disabled=true;
     post("sub","s_action","subscription_process",{},function(j){
@@ -651,7 +784,7 @@ function wire(){
       bits.push("Thank-you XP: <b>"+Number(j.xp_granted||0)+"</b>"+
         (Number(j.xp_granted||0)===0?" (cap-hit day — stays claimable via bond_claim).":"."));
       bits.push("Split: $"+Number(j.network_share||0).toFixed(2)+" network / $"+Number(j.creator_share||0).toFixed(2)+" creator pool.");
-      bits.push("Order: <span class=\"c-mono\">"+esc(j.order_id||"")+"</span>");
+      bits.push("Order: <span class=\\"c-mono\\">"+esc(j.order_id||"")+"</span>");
       if(out) out.innerHTML=bits.join("<br>");
       toast(j.dup?"Sale already recorded.":"War Bond sale recorded: $"+j.tier+(j.callsign?" for "+j.callsign:"")+".");
     }); };

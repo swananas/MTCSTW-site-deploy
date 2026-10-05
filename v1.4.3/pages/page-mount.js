@@ -40,6 +40,12 @@
     'pf-arcade': {
       title: 'THE ARCADE', sub: 'Nine games. Zero mercy. Play them all.',
       order: [
+        /* THE WHITE MARKET (2026-10-04): the unified wagering hall leads the
+           page — lobby (markets) first, then the house-games zone (casino).
+           Silo key + template id stay 'casino' internally; only display
+           strings were renamed to The White Market. */
+        ['markets', 'pf-ov-markets'],
+        ['casino', 'pf-ov-casino'],
         ['caption-combat', 'pf-ov-caption'],
         ['creator-guess', 'pf-ov-guess'],
         ['daily-interrogation', 'pf-ov-interrogation'],
@@ -47,7 +53,6 @@
         ['bracket-board', 'pf-ov-bracket'],
         ['battles', 'pf-ov-battles'],
         ['infighting', 'pf-ov-infight'],
-        ['casino', 'pf-ov-casino'],
         ['slr-match-quiz', 'pf-ov-matchquiz']
       ]
     },

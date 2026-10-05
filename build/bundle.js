@@ -96,6 +96,10 @@ var SECTIONS = {
     'poster-forge-political.js',
     'feed.js',
     'war-bonds.js',
+    /* A1 home (2026-10-05): /economy Price-Index Home coordinator —
+       HP feeder widget for the People's Price Index (FUND section).
+       Compact card, no backend calls; deep-links to /economy. */
+    'inflation-teaser.js',
     'campaign.js',
     'alerts.js',
     'fan-vote.js',
@@ -259,7 +263,13 @@ var SECTIONS = {
   ],
   'bundle-economy': [
     /* /economy — Run the Economy. */
-    'economy.js'
+    'economy.js',
+    /* A1 home (2026-10-05): /economy Price-Index Home coordinator.
+       economy-home.js stages the #pf-inflation-* mount divs in DOM order;
+       it also owns the home section header, deep-link scroll, and the
+       AC-return rail. (inflation-tracker.js joins this list when A1 lands —
+       QC-held, not bundled yet.) */
+    'economy-home.js',
   ],
   'bundle-warchest': [
     /* /war-chest — Movement Finance. */

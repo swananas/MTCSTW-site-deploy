@@ -84,20 +84,20 @@
   }
 
   /* Server-authoritative completed check: rites_log holds the 'enlisted' flag.
-     BACKEND SEAM (2026-10-05): the `rite_status` read action does not exist in
-     the worker yet — the backend wave owns it. Assumed shape:
-     {ok:true, rites:{enlisted:true}} (or flat j.enlisted). Any error, timeout,
-     or unknown shape resolves 'unknown' -> false (fail-open): the card shows
-     on the normal beat and the per-callsign local loop-guard is the concrete
-     repeat protection until the server read lands. */
+     Uses the real backend read `rite_status` (dispatch pair
+     ('rites','rite_action'), POST, auth-gated — added in the backend wave
+     commit 803ffdf). Any error, timeout, or unknown shape resolves
+     'unknown' -> false (fail-open): the card shows on the normal beat and
+     the per-callsign local loop-guard is the concrete repeat protection
+     when the server read is unreachable. */
   function serverCompleted(cs, cb) {
     var done = false;
     function fin(v) { if (done) return; done = true; try { cb(!!v); } catch (e) {} }
     try {
-      var url = window.PF_BACKEND_URL || '';
-      if (!url || !(window.PF && PF.authGetJSONP)) { fin(false); return; }
+      if (!(window.PF && PF.postAction)) { fin(false); return; }
       var to = setTimeout(function () { fin(false); }, 6000);
-      PF.authGetJSONP(url, 'rite_status', { callsign: String(cs || '').toLowerCase() }, function (j) {
+      PF.postAction('rites', 'rite_action', 'rite_status',
+        { callsign: String(cs || '').toLowerCase() }, function (j) {
         try { clearTimeout(to); } catch (e) {}
         var fin2 = false;
         try { fin2 = !!(j && j.ok && ((j.rites && j.rites.enlisted) || j.enlisted)); } catch (e2) {}
@@ -115,8 +115,9 @@
       markPosted(cs);
       if (window.PF && PF.postAction) {
         /* Dispatch pair follows the postAction(type,actionKey,action) convention
-           (cf. ('stats','s_action','infight_settle')). Backend wave confirms. */
-        PF.postAction('rite', 'rite_action', 'rite_enlisted_complete',
+           (cf. ('stats','s_action','infight_settle')). Backend dispatches on
+           d.type === 'rites' && d.rite_action — type is the PLURAL 'rites'. */
+        PF.postAction('rites', 'rite_action', 'rite_enlisted_complete',
           { callsign: String(cs).toLowerCase() }, function () { done(); });
         return;
       }

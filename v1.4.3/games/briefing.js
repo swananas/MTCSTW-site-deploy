@@ -41,7 +41,7 @@ function api(action,params,cb){
      through the shared claim-retry GET (2026-10-03): pre-auth callsign
      holders with no stored secret get one auth_claim attempt instead of
      failing 'missing credentials' forever. */
-  if(action==="loot_status"||action==="streak_status"||action==="cell_mine"||action==="comeback_check"){
+  if(action==="loot_status"||action==="streak_status"||action==="cell_mine"||action==="comeback_check"||action==="crossfire_status"){
     try{
       if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
       var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
@@ -119,8 +119,8 @@ function fmtHours(ms){
   var h=Math.floor(ms/3600000), m=Math.floor((ms%3600000)/60000);
   return h+"H "+(m<10?"0":"")+m+"M";
 }
-var BAL=null,STREAK=null,LOOT=null,FLASH=null,COMEBACK=null,COMEBACK_ERR=null,PROP=null,CELL=null,MISS=null,STAT=null,SEASON=null,BRIEF=null,SEASHIST=null;
-var N_CALLS=12;
+var BAL=null,STREAK=null,LOOT=null,FLASH=null,COMEBACK=null,COMEBACK_ERR=null,PROP=null,CELL=null,MISS=null,STAT=null,SEASON=null,BRIEF=null,SEASHIST=null,XCROSS=null;
+var N_CALLS=13;
 function load(){
   var id=ident(), done=false, n=0;
   function fin(){ if(done)return; done=true; render(); }
@@ -134,6 +134,8 @@ function load(){
   api("streak_status",{callsign:id.callsign,device:id.device},function(j){ STREAK=(j&&j.ok)?j:null; one(); });
   api("loot_status",{callsign:id.callsign,device:id.device},function(j){ LOOT=(j&&j.ok)?j:null; one(); });
   api("flash_active",{},function(j){ FLASH=j; one(); });
+  /* W5-5 Crossfire Circuit (2026-10-04): hot-zone state — auth-gated read. */
+  api("crossfire_status",{callsign:id.callsign,device:id.device},function(j){ XCROSS=(j&&j.ok)?j:null; one(); });
   api("comeback_check",{callsign:id.callsign,device:id.device},function(j){ COMEBACK=(j&&j.ok&&j.eligible)?j:null; COMEBACK_ERR=(j&&!j.ok)?j:null; one(); });
   api("proposal_list",{},function(j){ PROP=j; one(); });
   api("cell_mine",{callsign:id.callsign,device:id.device},function(j){ CELL=(j&&j.ok)?j:null; one(); });
@@ -153,6 +155,36 @@ function seasonInfo(){
     if(STAT){ pledges=Number(STAT.pledges)||0; acts=Number(STAT.actions)||0; goal=Number(STAT.goal)||1000; }
   }catch(e){}
   return { name:"THE 32-DAY OFFENSIVE", endsAt:ELECTION, goal:goal, progress:pledges+acts };
+}
+/* ---------- W5-5 CROSSFIRE CIRCUIT (2026-10-04): a live flash window turns
+   the next Route March stop into a hot zone. One auth-gated read
+   (crossfire_status); the combo claim is POST-only. The zone is picked
+   server-side — the client never sends a stop index. ---------- */
+function crossfireHtml(){
+  if(!XCROSS||!XCROSS.flash_live) return "";
+  var h='<div class="br-sec br-xf"><div class="br-sect">\u26A1 CROSSFIRE CIRCUIT</div>';
+  if(XCROSS.claimed){
+    h+='<div class="x-note">Zone cleared. +'+Number(XCROSS.payout||0)+' XP banked. The flash window is still live — hold the line.</div></div>';
+    return h;
+  }
+  var z=XCROSS.zone;
+  if(!z){
+    h+='<div class="x-note">Flash window live, but the march is fully walked. Nothing left to crossfire.</div></div>';
+    return h;
+  }
+  h+='<div class="br-xfz">CROSSFIRE ZONE: <b>'+esc(z.label||"")+'</b></div>';
+  var total=Number(XCROSS.step_xp||0)+Number(XCROSS.combo_xp||0);
+  if(XCROSS.can_claim){
+    h+='<div class="x-note">Mission verified. Claim the combo before the window closes.</div>'
+      +'<div style="margin-top:8px"><button class="c-btn br-xfbtn" data-act="crossfire">CLAIM COMBO +'+total+' XP</button></div>';
+  } else if(XCROSS.device_claimed){
+    h+='<div class="x-note">This device already fired its crossfire claim today.</div>';
+  } else {
+    h+='<div class="x-note">Run the mission, then claim the combo:</div>'
+      +'<div style="margin-top:8px"><a class="c-btn" href="'+esc(z.page||"/")+'">GO: '+esc(z.label||"")+'</a></div>';
+  }
+  h+='</div>';
+  return h;
 }
 function render(){
   var el=document.getElementById("xBrief"); if(!el) return;
@@ -240,6 +272,8 @@ function render(){
   }
   if(!ms.length&&!fe.length){ h+='<div class="x-note">Orders incoming. Check Daily Orders for the full board.</div>'; }
   h+='<div style="margin-top:8px"><button class="c-btn" data-go="pf-orders">FULL ORDER BOARD</button></div></div>';
+  /* W5-5 Crossfire Circuit: hot-zone banner (only renders during a live flash). */
+  h+=crossfireHtml();
   /* ---------- 3.5 FEATURED DROP (Daily Drop slot) ---------- */
   h+=dropSectionHtml();
   /* ---------- 4. YOUR CELL ---------- */
@@ -324,6 +358,28 @@ function render(){
       });
     }; })(acts[a]);
   }
+  /* W5-5 Crossfire Circuit: the zone combo claim (pays the step share + 15 XP).
+     Reveal uses the loot-crate burst styling, then the briefing reloads. */
+  var xfacts=el.querySelectorAll("button[data-act='crossfire']");
+  for(var xf=0;xf<xfacts.length;xf++){
+    (function(btn){ btn.onclick=function(){
+      btn.disabled=true; btn.textContent="CLAIMING...";
+      var id2=ident();
+      dopaPost("crossfire","x_action","crossfire_claim",{callsign:id2.callsign,device:id2.device},function(j){
+        if(j&&j.ok){
+          var got=Number(j.payout||0);
+          try{
+            btn.parentNode.innerHTML='<div class="br-xfr"><div class="xf-rtag">CROSSFIRE COMBO</div>'
+              +'<div class="xf-rxp">+'+got+' XP</div>'
+              +'<div class="xf-rname">'+esc(String(j.zone||""))+'</div></div>';
+          }catch(e){}
+          toast("CROSSFIRE COMBO. +"+got+" XP.");
+          setTimeout(load,2600);
+        }
+        else { toast(PF.errCopy(j,"Claim failed.")); btn.disabled=false; btn.textContent="CLAIM COMBO"; return; }
+      });
+    }; })(xfacts[xf]);
+  }
   dropWire();
   renderSeasonBanner();
   tick();
@@ -385,7 +441,19 @@ function bannerCss(){
     +"#pf-brief .br-daday{font-size:11px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase}"
     +"#pf-brief .br-dahead{font-family:'Arial Black',Arial,sans-serif;font-size:13px;text-transform:uppercase;margin:2px 0;color:#f5ead6}"
     +"#pf-brief .br-dabody{font-size:12px;color:#c9bfa8}"
-    +"#pf-brief .br-dnote{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:10px}";
+    +"#pf-brief .br-dnote{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:10px}"
+    /* W5-5 Crossfire Circuit (2026-10-04): hot-zone banner + combo reveal
+       (burst animation mirrors the ambush/loot-crate reveal). */
+    +"#pf-brief .br-xf{border:2px solid #e8b10c;background:#171106}"
+    +"#pf-brief .br-xfz{font:13px monospace;color:#fff;margin-bottom:6px}"
+    +"#pf-brief .br-xfz b{color:#e8b10c}"
+    +"#pf-brief .br-xfbtn{margin-top:2px}"
+    +"#pf-brief .br-xfr{margin:10px auto 0;max-width:320px;padding:14px;border:3px solid #e8b10c;background:#0d0d0d;text-align:center;animation:xfburnst .5s ease-out}"
+    +"#pf-brief .br-xfr .xf-rtag{font:bold 12px monospace;color:#e8b10c;letter-spacing:3px;margin-bottom:6px}"
+    +"#pf-brief .br-xfr .xf-rxp{font:bold 34px monospace;color:#f5ead6}"
+    +"#pf-brief .br-xfr .xf-rname{font:13px monospace;color:#c9bfa8;margin-top:4px}"
+    +"@keyframes xfburnst{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}"
+    +"@media (prefers-reduced-motion: reduce){#pf-brief .br-xfr{animation:none!important}}";
   document.head.appendChild(s);
 }
 function renderSeasonBanner(){

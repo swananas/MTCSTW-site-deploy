@@ -42,6 +42,10 @@ var SECTIONS = {
     'briefing.js',
     'do-meter.js',
     'daily-orders.js',
+    /* P1#6 (2026-10-05): hq-nudge promoted to START HERE (homepage audit).
+       Static CTA card — must stage with the critical path so it mounts in
+       ORDER position right after daily-orders, not late at section end. */
+    'political-hq-nudge.js',
     'dopamine.js',
     'enlistment-ranks.js',
     /* Wave 5B (2026-10-04): theater rack + ribbon chase strip + Frontline
@@ -76,7 +80,6 @@ var SECTIONS = {
     'referral.js',
     'poster-forge.js',
     'feed.js',
-    'political-hq-nudge.js',
     'war-bonds.js',
     'campaign.js',
     'alerts.js',

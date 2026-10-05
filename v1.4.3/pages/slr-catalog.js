@@ -125,6 +125,10 @@
     return pool[pool.length - 1];
   }
   function rouletteBlock(m, all) {
+    /* Host-page guard: the block never renders on Jeanine Pirreaux Comedy's
+       page (do-not-touch) — the scout-circuit note below still tracks the
+       visit for the SCOUT medal, but no roulette UI is injected. */
+    if (!m || !m.slug || ROULETTE_SKIP_SLUGS.indexOf(m.slug) !== -1) return '';
     var next = pickNextFighter(m, all);
     if (!next) return '';
     return '<div style="margin:2.5rem auto 0;max-width:560px;background:#0d0d0d;border:2px dashed ' + RED + ';'

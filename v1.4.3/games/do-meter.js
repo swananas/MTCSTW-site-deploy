@@ -327,7 +327,19 @@ function drawDoCard(){
   x.fillText('JOIN THE FIGHT.',W/2,H-76);
   return cv;
 }
+function _pfClaimGate(fn){
+  try{ var g=window.PFShare&&window.PFShare.claimGate; if(typeof g==='function'){ g(fn); return; } }catch(e){}
+  try{ fn(); }catch(e2){}
+}
+/* A10 (2026-10-04): callsign-claim intercept on the bespoke download path
+   below (same gate share-image.js uses at its share/save chokepoint).
+   Claimed users: zero change — the callback fires immediately. Unclaimed
+   users: inline claim prompt; zero XP for the gate itself; dismiss proceeds
+   unstamped. Never wedges the download. */
 function shareDoImage(btn){
+  _pfClaimGate(function(){ _shareDoImage(btn); });
+}
+function _shareDoImage(btn){
   if(btn)btn.disabled=true;
   try{
     var cv=drawDoCard();
@@ -362,6 +374,7 @@ function shareDoImage(btn){
     if(cv.toBlob){cv.toBlob(function(b){done(URL.createObjectURL(b),b);},'image/png');}
     else{var u=cv.toDataURL('image/png');fetch(u).then(function(r){return r.blob();}).then(function(b){done(URL.createObjectURL(b),b);});}
   }catch(e){if(btn)btn.disabled=false;}
+  });
 }
 /* ---- MEDIA NUKE METER (folded 2026-10-03): the one network progress meter.
    Display-only. The canonical sync + event-sourced daily-XP counter live in

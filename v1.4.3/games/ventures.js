@@ -237,7 +237,19 @@ function wire(){
   };
 }
 /* Shareholder certificate: 1080x1350 propaganda poster, saved to device. */
+function _pfClaimGate(fn){
+  try{ var g=window.PFShare&&window.PFShare.claimGate; if(typeof g==='function'){ g(fn); return; } }catch(e){}
+  try{ fn(); }catch(e2){}
+}
+/* A10 (2026-10-04): callsign-claim intercept on the bespoke download path
+   below (same gate share-image.js uses at its share/save chokepoint).
+   Claimed users: zero change — the callback fires immediately. Unclaimed
+   users: inline claim prompt; zero XP for the gate itself; dismiss proceeds
+   unstamped. Never wedges the download. */
 function mintCertificate(vid){
+  _pfClaimGate(function(){ _mintCertificate(vid); });
+}
+function _mintCertificate(vid){
   var v=myPos(vid);
   if(!v||!v.my_shares){ toast("No shares found."); return; }
   var cs=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){}
@@ -276,6 +288,7 @@ function mintCertificate(vid){
     if(cv.toBlob){ cv.toBlob(function(b){ if(!b){toast("Mint failed.");return;} done(URL.createObjectURL(b)); },"image/png"); }
     else done(cv.toDataURL("image/png"));
   }catch(e){ toast("Mint failed."); }
+  });
 }
 /* On-demand data (2026-10-02): fetch only when the widget is actually
    seen (or touched). The template above already renders a skeleton.

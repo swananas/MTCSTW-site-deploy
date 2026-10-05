@@ -166,7 +166,7 @@
 '        var PS2=window.PFShare;\n' +
 '        if(PS2&&PS2.posterStory&&PS2.shareImage){\n' +
 '          var _cs="";try{_cs=String(window.PFCallsign?window.PFCallsign():"");}catch(_e){}\n' +
-'          var _lbl="MTCSTW.COM/ARCADE"+(_cs?("?REF="+encodeURIComponent(_cs).toUpperCase()):"");\n' +
+'          var _lbl="MTCSTW.COM/ARCADE"+(_cs?("?REF="+encodeURIComponent(_cs)):"");\n' +
 '          var cv2=PS2.posterStory("slr-match-quiz",{linkLabel:_lbl});\n' +
 '          if(cv2){PS2.shareImage(cv2,"slr-story.png",A.name+" - my propaganda archetype","slr-match-quiz",{link:"https://www.mtcstw.com/arcade"});return;}\n' +
 '        }\n' +

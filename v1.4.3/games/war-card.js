@@ -210,7 +210,7 @@
       center(code,yy+106,'900 96px "Arial Black",Arial,sans-serif',"#c1121f");
       yy+=150+56;
       center("WIRE IN AT:",yy,'700 30px Arial,sans-serif',"#c9bfa8"); yy+=52;
-      wrap("MTCSTW.COM/CELLS?CELL="+code,'700 34px Arial,sans-serif',W-160,2).forEach(function(l){
+      wrap("mtcstw.com/cells?cell="+code.toLowerCase(),'700 34px Arial,sans-serif',W-160,2).forEach(function(l){
         center(l,yy,'700 34px Arial,sans-serif',"#f5ead6"); yy+=48; });
       yy+=36;
     } else {

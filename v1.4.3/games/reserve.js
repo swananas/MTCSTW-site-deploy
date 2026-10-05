@@ -163,10 +163,19 @@ function postNuke(nAction,params,cb){
 /* Nuke tier id from the backend's NUMERIC tier (nuke_status sends
    armed_tier/hold_tier as numbers, e.g. 10000 — never the "T1" id).
    Contract-fixed 2026-10-05 (wave-nuke-fe): the old code read a string
-   "hold" field the backend never sends. */
+   "hold" field the backend never sends.
+   Lever D2 (2026-10-05): tier values are the nuke strip's
+   (pfNukeStrip.tiers() — API-merged, strip's spec constants as fallback).
+   The inline pair list below is ONLY the strip-absent last resort and must
+   match the strip's spec constants (T1=10000/T2=25000/T3=50000/T4=150000). */
 function nukeTierId(n){
-  var tiers=[["T1",10000],["T2",25000],["T3",50000],["T4",150000]];
-  for(var i=0;i<tiers.length;i++) if(Number(n)===tiers[i][1]) return tiers[i][0];
+  var tiers=null;
+  try{
+    if(window.pfNukeStrip&&window.pfNukeStrip.tiers)
+      tiers=window.pfNukeStrip.tiers().map(function(t){ return [t.id,t.charge]; });
+  }catch(e){}
+  if(!(tiers&&tiers.length)) tiers=[["T1",10000],["T2",25000],["T3",50000],["T4",150000]];
+  for(var i=0;i<tiers.length;i++) if(Number(n)===Number(tiers[i][1])) return tiers[i][0];
   return null;
 }
 function board(){ return (POL&&POL.board)||(POL&&POL.policy&&POL.policy.board)||[]; }

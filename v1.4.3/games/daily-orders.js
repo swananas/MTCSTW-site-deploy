@@ -32,7 +32,7 @@
 <div class="o-rankline" id="oRank"></div>
 <div class="o-loot" id="oLoot"></div>
 <div class="o-err" id="oErr"></div>
-<div class="o-note">3 orders (5 XP each) + 1 field op (+5) per day. Run all three plus the op for the +5 full-deployment command bonus. Every daily task on this page caps at 25 XP a day &mdash; your cell streak gets you there faster. Streak shields forgive a missed day. Today's Boost lets you tip earned XP to a creator at 1 XP = 2 signal.</div>
+<div class="o-note">3 orders (5 XP each) + 1 field op (+5) per day. Run all three plus the op for the +5 full-deployment command bonus. Every daily task on this page caps at 25 XP a day &mdash; your cell streak gets you there faster. Streak shields forgive a missed day. Today's Boost lets you tip earned XP to a creator at <span id="oBoostRate">1 XP = 2 signal</span>.</div>
 <div><button class="o-shareimg" id="oShareImg">Share orders as image</button><div class="o-note" id="oShareCount"></div></div>
 <div class="o-claim" id="oClaimWrap">
   <a id="oClaimToggle">Claim your rank on every device</a>
@@ -308,12 +308,27 @@ function maybeCommandBonus(){
   });
 })();
 
-/* ============ TODAY'S BOOST — tip earned XP to a creator, 1 XP = 2 signal ============
+/* ============ TODAY'S BOOST — tip earned XP to a creator for signal ============
    One boost per day. Tipped XP leaves your rank total (it becomes the creator's
    signal) and feeds your lifetime patron record. The tip reports to the tally
-   backend with xp:0 and the amount in meta, so site-wide XP is never double-counted. */
+   backend with xp:0 and the amount in meta, so site-wide XP is never double-counted.
+   Lever D4 (2026-10-05): the displayed signal rate is SERVER-DRIVEN — the
+   patron_totals and boost_totals actions serve signal_rate; BOOST_RATIO (2) is
+   the local fallback AND stays the constant the tip computation itself uses
+   (tip mechanics untouched — only the copy is dynamic). */
 var LS_B="pf_boost_v1", LS_P="pf_patron_v1";
-var BOOST_RATIO=2;
+var BOOST_RATIO=2, _signalRate=null;
+function signalRate(){ var n=Number(_signalRate); return (n>0)?n:BOOST_RATIO; }
+function noteSignalRate(j){
+  var r=Number(j&&j.signal_rate);
+  if(!(r>0)||r===_signalRate) return false;
+  _signalRate=r; return true;
+}
+/* Repaint the static orders-note ratio after a server rate lands. */
+function paintBoostRate(){
+  try{ var el=document.getElementById("oBoostRate");
+    if(el) el.textContent="1 XP = "+signalRate()+" signal"; }catch(e){}
+}
 var PUMP_SIGNAL={profile:10, offsite:20, share:30};
 var PUMP_LABELS={profile:"Open their catalog profile", offsite:"Follow them off-site", share:"Share the boost card"};
 var TIP_PRESETS=[5,10,25];
@@ -363,7 +378,7 @@ function renderBoost(){
   var box=document.getElementById("oBoost"); if(!box) return;
   var b=boostRec(), t=today(), r=load(LS_R,{xp:0,got:{}});
   var h='<div class="o-bhead">\u{1F4E3} TODAY\u2019S BOOST &mdash; pump a creator with your XP</div>';
-  h+='<div class="o-bsub">1 XP = '+BOOST_RATIO+' signal. One boost per day. Tipped XP leaves your rank and becomes their signal.</div>';
+  h+='<div class="o-bsub">1 XP = '+signalRate()+' signal. One boost per day. Tipped XP leaves your rank and becomes their signal.</div>';
   if(!b||b.date!==t){
     var opts=(PF.ROSTER||[]).map(function(x){ return '<option value="'+x.slug+'">'+x.name+'</option>'; }).join("");
     h+='<div class="o-brow"><select id="oBoostSel" class="o-bsel"><option value="">\u2014 pick a creator \u2014</option>'+opts+'</select></div>';
@@ -417,7 +432,9 @@ function renderBoost(){
       crown.innerHTML='\u{1F451} MOST BOOSTED THIS WEEK: <b>'+escHtml(_tn)+'</b> &mdash; '+top.signal+' signal';
     } else {
       apiAction("boost_totals",function(j){
+        var rateNew=noteSignalRate(j);
         if(j&&j.leaders&&j.leaders.length){ _crownCache=j; renderBoost(); }
+        else if(rateNew) renderBoost(); /* server rate landed: repaint ratio copy */
       });
     }
   }
@@ -435,6 +452,7 @@ function renderPatrons(){
   };
   if(_patronCache){ show(_patronCache.patrons); return; }
   apiAction("patron_totals",function(j){
+    var rateNew=noteSignalRate(j);
     if(j&&j.patrons&&j.patrons.length){ _patronCache=j; show(j.patrons); }
     else {
       /* Backend not yet serving patrons: show this device's own record if it exists. */
@@ -442,6 +460,7 @@ function renderPatrons(){
       if(p.tipped>0) show([{callsign:(id.callsign||"you"),tipped:p.tipped}]);
       else box.innerHTML="";
     }
+    if(rateNew) renderBoost(); /* server rate landed: repaint ratio copy */
   });
 }
 /* Boost share card: 1080x1350 propaganda card for cross-platform pumping. */
@@ -459,7 +478,7 @@ function drawBoostCard(){
   ctx.fillStyle="#f5f0e1"; ctx.font="bold 120px Arial";
   ctx.fillText(b.signal+" SIGNAL",540,640);
   ctx.font="40px Arial"; ctx.fillStyle="#c1121f";
-  ctx.fillText(b.tipped+" XP TIPPED \u00b7 1 XP = "+BOOST_RATIO+" SIGNAL",540,730);
+  ctx.fillText(b.tipped+" XP TIPPED \u00b7 1 XP = "+signalRate()+" SIGNAL",540,730);
   ctx.fillStyle="#f5f0e1"; ctx.font="36px Arial";
   wrapLines(ctx,"Pump your creator. Daily Orders on mtcstw.com.",860).forEach(function(l,i){ ctx.fillText(l,540,880+i*52); });
   ctx.fillStyle="#c1121f"; ctx.font="bold 44px Arial";
@@ -894,6 +913,7 @@ function render(){
   document.getElementById("oProg").textContent=Math.min(doneCount,PER_DAY)+"/"+PER_DAY+" orders complete";
   renderBoost();
   renderPatrons();
+  paintBoostRate(); /* lever D4: static note ratio follows the server rate */
   renderRaid();
   document.getElementById("oStreak").innerHTML="Current streak: <b>"+(d.o.streak||0)+"</b> day"+((d.o.streak||0)===1?"":"s")+((d.o.shields||0)>0?" &nbsp;\uD83D\uDEE1\uFE0F x"+d.o.shields:"");
   /* R26 (2026-10-04): the ONE shared inventory chip mounts on the streak

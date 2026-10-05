@@ -1399,19 +1399,44 @@ function shareDoImage(btn){
    Display-only except the press button. The canonical sync lives in
    core/17-nuke-strip.js (window.pfNukeStrip + "pf-nuke-update" events).
    Degrades to a read-only nuke_status poll when the strip module is killed. ---- */
-/* Spec constants (2026-10-05 §2) — the backend may serve tiers in nuke_status;
-   these are the fallback so the ladder never renders empty. */
-var NUKE_TIERS=[
- {id:"T1",charge:10000,name:"LOCAL SKIRMISH"},
- {id:"T2",charge:25000,name:"REGIONAL SURGE"},
- {id:"T3",charge:50000,name:"NATIONAL TAKEOVER"},
- {id:"T4",charge:150000,name:"MEDIA BLITZ"}
-];
-var PRESS_CHARGE=50;
-function nukeTierById(id){
-  for(var _i=0;_i<NUKE_TIERS.length;_i++) if(NUKE_TIERS[_i].id===id) return NUKE_TIERS[_i];
-  return NUKE_TIERS[0];
+/* Lever D2 (2026-10-05): nuke tier VALUES have exactly one home — the nuke
+   strip (core/17-nuke-strip.js, window.pfNukeStrip.tiers(): API-merged from
+   nuke_status, falling back to the strip's spec constants). No tier-value
+   copy lives here. stripTiers() is the only fallback source; rawTiersToList
+   converts the backend's raw numeric tiers ({T1:10000,...}) to list shape so
+   the killed-strip poll still resolves charges from the API, and
+   cachedRawTiers() reuses the strip's last-known nuke_status cache for the
+   fully-offline case. All values originate from the backend or the strip —
+   nothing is invented here. */
+function stripTiers(){
+  try{ if(window.pfNukeStrip&&window.pfNukeStrip.tiers) return window.pfNukeStrip.tiers(); }catch(e){}
+  return [];
 }
+function rawTiersToList(srv){
+  var base=stripTiers(), out=[];
+  if(!srv||typeof srv!=="object") return out;
+  for(var k in srv){
+    if(!srv.hasOwnProperty(k)) continue;
+    var n=Number(srv[k]); if(!(n>0)) continue;
+    var id=String(k).toUpperCase(), name=id;
+    for(var i=0;i<base.length;i++) if(base[i].id===id){ name=base[i].name||id; break; }
+    out.push({id:id,charge:Math.round(n),name:name});
+  }
+  return out;
+}
+function cachedRawTiers(){
+  try{
+    var s=JSON.parse(localStorage.getItem("pf_nuke_status_v1")||"null");
+    if(s&&s.j&&s.j.tiers) return s.j.tiers;
+  }catch(e){}
+  return null;
+}
+function nukeTierById(tiers,id){
+  tiers=tiers||[];
+  for(var _i=0;_i<tiers.length;_i++) if(tiers[_i].id===id) return tiers[_i];
+  return null;
+}
+var PRESS_CHARGE=50; /* spec §1: one press = +50 charge */
 /* Tier-id resolver for the backend's NUMERIC tiers (nuke_status sends
    armed_tier/hold_tier as numbers, e.g. 10000) — also accepts an already
    normalized tier id ("T1") from the strip. Contract-fixed 2026-10-05. */
@@ -1431,17 +1456,33 @@ function nukeTierIdOf(tiers,v,fallback){
    were dropped (contract-fixed 2026-10-05). */
 function normNuke(st){
   st=st||{};
-  var tiers=Array.isArray(st.tiers)&&st.tiers.length?st.tiers:NUKE_TIERS;
+  /* Tier list, in priority order: the strip's normalized state, the strip's
+     canonical fallback (API-merged once the strip has fetched), the raw
+     numeric tiers from this poll's own backend response, the strip's
+     last-known backend response. Never a local copy of the values. */
+  var tiers=Array.isArray(st.tiers)&&st.tiers.length?st.tiers:stripTiers();
+  if(!(tiers&&tiers.length)){
+    var _raw=(st.tiers&&!Array.isArray(st.tiers)&&typeof st.tiers==="object")?st.tiers:cachedRawTiers();
+    var _rawList=rawTiersToList(_raw);
+    if(_rawList.length) tiers=_rawList;
+  }
   var armed=nukeTierIdOf(tiers,st.armed_tier,"T1");
   var armedCh=Number(st.armed_charge);
-  if(!(armedCh>0)) armedCh=nukeTierById(armed).charge;
+  if(!(armedCh>0)){
+    var _tA=nukeTierById(tiers,armed);
+    armedCh=_tA?Number(_tA.charge):NaN;
+  }
   var holdRaw=(st.hold_tier!=null&&st.hold_tier!=="")?st.hold_tier:st.hold;
   var hold=(holdRaw!=null&&holdRaw!=="")?nukeTierIdOf(tiers,holdRaw,null):null;
   var caller=(st.caller&&typeof st.caller==="object")?st.caller:{};
   var cs0=(st.charge_streak!=null)?st.charge_streak:caller.streak;
   return {
     charge:Math.max(0,Math.round(Number(st.charge!=null?st.charge:st.xp)||0)),
-    armed_tier:armed, armed_charge:Math.round(armedCh),
+    /* Pathological case (strip killed + backend unreachable on first visit):
+       no tier source at all — armed_charge 0 rather than NaN so the bar
+       renders "0 / 0 CHARGE" instead of NaN. Values are never invented when
+       any real source exists. */
+    armed_tier:armed, armed_charge:(armedCh>0)?Math.round(armedCh):0,
     hold:hold,
     pressed:!!(st.pressed||caller.pressed_today),
     charge_streak:Math.max(0,Math.round(Number(cs0)||0)),
@@ -1492,7 +1533,8 @@ function nukeState(cb){
 function paintNuke(st0){
   var root=document.getElementById("slr-nuke"); if(!root) return;
   var st=normNuke(st0);
-  var pct=Math.min(100,(st.charge/st.armed_charge)*100), nst=nukeStateFor(pct);
+  var _ratio=(st.armed_charge>0)?(st.charge/st.armed_charge):0;
+  var pct=Math.min(100,_ratio*100), nst=nukeStateFor(pct);
   var fill=document.getElementById("slr-nuke-fill"); if(fill) fill.style.width=pct+"%";
   var label=document.getElementById("slr-nuke-label"); if(label) label.textContent=fmt(st.charge)+" / "+fmt(st.armed_charge)+" CHARGE";
   var status=document.getElementById("slr-nuke-status");
@@ -1505,7 +1547,7 @@ function paintNuke(st0){
   if(detail){
     /* comrades/detonation-streak are NOT served by the backend -- dropped
        from the contract 2026-10-05. The line shows the armed tier instead. */
-    var tA=nukeTierById(st.armed_tier);
+    var tA=nukeTierById(st.tiers,st.armed_tier);
     var dh=st.armed_tier+((tA&&tA.name)?(" "+tA.name):"")+" ARMED";
     if(st.mode!=="network") dh+=" \u00b7 OFFLINE \u2014 last-known pool";
     detail.textContent=dh;
@@ -1664,7 +1706,7 @@ paint();setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) retur
 <div class="o-rankline" id="oRank"></div>
 <div class="o-loot" id="oLoot"></div>
 <div class="o-err" id="oErr"></div>
-<div class="o-note">3 orders (5 XP each) + 1 field op (+5) per day. Run all three plus the op for the +5 full-deployment command bonus. Every daily task on this page caps at 25 XP a day &mdash; your cell streak gets you there faster. Streak shields forgive a missed day. Today's Boost lets you tip earned XP to a creator at 1 XP = 2 signal.</div>
+<div class="o-note">3 orders (5 XP each) + 1 field op (+5) per day. Run all three plus the op for the +5 full-deployment command bonus. Every daily task on this page caps at 25 XP a day &mdash; your cell streak gets you there faster. Streak shields forgive a missed day. Today's Boost lets you tip earned XP to a creator at <span id="oBoostRate">1 XP = 2 signal</span>.</div>
 <div><button class="o-shareimg" id="oShareImg">Share orders as image</button><div class="o-note" id="oShareCount"></div></div>
 <div class="o-claim" id="oClaimWrap">
   <a id="oClaimToggle">Claim your rank on every device</a>
@@ -1940,12 +1982,27 @@ function maybeCommandBonus(){
   });
 })();
 
-/* ============ TODAY'S BOOST — tip earned XP to a creator, 1 XP = 2 signal ============
+/* ============ TODAY'S BOOST — tip earned XP to a creator for signal ============
    One boost per day. Tipped XP leaves your rank total (it becomes the creator's
    signal) and feeds your lifetime patron record. The tip reports to the tally
-   backend with xp:0 and the amount in meta, so site-wide XP is never double-counted. */
+   backend with xp:0 and the amount in meta, so site-wide XP is never double-counted.
+   Lever D4 (2026-10-05): the displayed signal rate is SERVER-DRIVEN — the
+   patron_totals and boost_totals actions serve signal_rate; BOOST_RATIO (2) is
+   the local fallback AND stays the constant the tip computation itself uses
+   (tip mechanics untouched — only the copy is dynamic). */
 var LS_B="pf_boost_v1", LS_P="pf_patron_v1";
-var BOOST_RATIO=2;
+var BOOST_RATIO=2, _signalRate=null;
+function signalRate(){ var n=Number(_signalRate); return (n>0)?n:BOOST_RATIO; }
+function noteSignalRate(j){
+  var r=Number(j&&j.signal_rate);
+  if(!(r>0)||r===_signalRate) return false;
+  _signalRate=r; return true;
+}
+/* Repaint the static orders-note ratio after a server rate lands. */
+function paintBoostRate(){
+  try{ var el=document.getElementById("oBoostRate");
+    if(el) el.textContent="1 XP = "+signalRate()+" signal"; }catch(e){}
+}
 var PUMP_SIGNAL={profile:10, offsite:20, share:30};
 var PUMP_LABELS={profile:"Open their catalog profile", offsite:"Follow them off-site", share:"Share the boost card"};
 var TIP_PRESETS=[5,10,25];
@@ -1995,7 +2052,7 @@ function renderBoost(){
   var box=document.getElementById("oBoost"); if(!box) return;
   var b=boostRec(), t=today(), r=load(LS_R,{xp:0,got:{}});
   var h='<div class="o-bhead">\u{1F4E3} TODAY\u2019S BOOST &mdash; pump a creator with your XP</div>';
-  h+='<div class="o-bsub">1 XP = '+BOOST_RATIO+' signal. One boost per day. Tipped XP leaves your rank and becomes their signal.</div>';
+  h+='<div class="o-bsub">1 XP = '+signalRate()+' signal. One boost per day. Tipped XP leaves your rank and becomes their signal.</div>';
   if(!b||b.date!==t){
     var opts=(PF.ROSTER||[]).map(function(x){ return '<option value="'+x.slug+'">'+x.name+'</option>'; }).join("");
     h+='<div class="o-brow"><select id="oBoostSel" class="o-bsel"><option value="">\u2014 pick a creator \u2014</option>'+opts+'</select></div>';
@@ -2049,7 +2106,9 @@ function renderBoost(){
       crown.innerHTML='\u{1F451} MOST BOOSTED THIS WEEK: <b>'+escHtml(_tn)+'</b> &mdash; '+top.signal+' signal';
     } else {
       apiAction("boost_totals",function(j){
+        var rateNew=noteSignalRate(j);
         if(j&&j.leaders&&j.leaders.length){ _crownCache=j; renderBoost(); }
+        else if(rateNew) renderBoost(); /* server rate landed: repaint ratio copy */
       });
     }
   }
@@ -2067,6 +2126,7 @@ function renderPatrons(){
   };
   if(_patronCache){ show(_patronCache.patrons); return; }
   apiAction("patron_totals",function(j){
+    var rateNew=noteSignalRate(j);
     if(j&&j.patrons&&j.patrons.length){ _patronCache=j; show(j.patrons); }
     else {
       /* Backend not yet serving patrons: show this device's own record if it exists. */
@@ -2074,6 +2134,7 @@ function renderPatrons(){
       if(p.tipped>0) show([{callsign:(id.callsign||"you"),tipped:p.tipped}]);
       else box.innerHTML="";
     }
+    if(rateNew) renderBoost(); /* server rate landed: repaint ratio copy */
   });
 }
 /* Boost share card: 1080x1350 propaganda card for cross-platform pumping. */
@@ -2091,7 +2152,7 @@ function drawBoostCard(){
   ctx.fillStyle="#f5f0e1"; ctx.font="bold 120px Arial";
   ctx.fillText(b.signal+" SIGNAL",540,640);
   ctx.font="40px Arial"; ctx.fillStyle="#c1121f";
-  ctx.fillText(b.tipped+" XP TIPPED \u00b7 1 XP = "+BOOST_RATIO+" SIGNAL",540,730);
+  ctx.fillText(b.tipped+" XP TIPPED \u00b7 1 XP = "+signalRate()+" SIGNAL",540,730);
   ctx.fillStyle="#f5f0e1"; ctx.font="36px Arial";
   wrapLines(ctx,"Pump your creator. Daily Orders on mtcstw.com.",860).forEach(function(l,i){ ctx.fillText(l,540,880+i*52); });
   ctx.fillStyle="#c1121f"; ctx.font="bold 44px Arial";
@@ -2526,6 +2587,7 @@ function render(){
   document.getElementById("oProg").textContent=Math.min(doneCount,PER_DAY)+"/"+PER_DAY+" orders complete";
   renderBoost();
   renderPatrons();
+  paintBoostRate(); /* lever D4: static note ratio follows the server rate */
   renderRaid();
   document.getElementById("oStreak").innerHTML="Current streak: <b>"+(d.o.streak||0)+"</b> day"+((d.o.streak||0)===1?"":"s")+((d.o.shields||0)>0?" &nbsp;\uD83D\uDEE1\uFE0F x"+d.o.shields:"");
   /* R26 (2026-10-04): the ONE shared inventory chip mounts on the streak

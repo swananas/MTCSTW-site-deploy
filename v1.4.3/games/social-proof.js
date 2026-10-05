@@ -3,6 +3,9 @@
    "127 soldiers checked in today". Refreshes every 5 min. Session-dismissible.
    S2 (2026-10-04): Proof Wall strip under the bar — approved post-proof
    bounty posts (callsign + platform + bounty) from the social_proof feed.
+   S3 (2026-10-05): static "8M+ network reach" stat in the bar (CEO directive);
+   the "N soldiers checked in today" line is suppressed when check-ins are 0
+   (never advertise an empty room) — XP earned / active cells show instead.
    KILL: ?pf_off=social-proof  or  localStorage pf_disabled_v1='["social-proof"]' */
 (function () {
   'use strict';
@@ -33,6 +36,9 @@
 </style>
 <div id="pf-sp-bar" role="status" aria-live="polite">
 <span class="sp-live" aria-hidden="true"></span>
+<!-- S3 (2026-10-05): static 8M+ network reach stat (CEO directive — lives in
+     SEO metadata only until now). Always visible, never wired to the backend. -->
+<span class="sp-stat" id="pf-sp-reach"><b>8M+</b> network reach</span>
 <span class="sp-stat" id="pf-sp-checkins">Loading network pulse&hellip;</span>
 <span class="sp-stat" id="pf-sp-xp" style="display:none"></span>
 <span class="sp-stat" id="pf-sp-cells" style="display:none"></span>
@@ -71,7 +77,16 @@ function paint(j){
   }
   var ci=$("pf-sp-checkins"), xp=$("pf-sp-xp"), cells=$("pf-sp-cells"), on=$("pf-sp-online");
   var n=Number(j.checkins_today)||0;
-  ci.innerHTML="<b>"+fmt(n)+"</b> soldier"+(n===1?"":"s")+" checked in today";
+  /* S3 (2026-10-05): zero check-ins — never advertise an empty room.
+     Hide the check-ins line; the bar leads with the static 8M+ REACH stat
+     plus XP earned / active cells when they're live. Nonzero behavior
+     is unchanged (display restored in case a prior tick hid the line). */
+  if(n>0){
+    ci.style.display="";
+    ci.innerHTML="<b>"+fmt(n)+"</b> soldier"+(n===1?"":"s")+" checked in today";
+  } else {
+    ci.style.display="none";
+  }
   if(j.xp_earned_today>0){ xp.style.display=""; xp.innerHTML="\u26A1 <b>"+fmt(j.xp_earned_today)+"</b> XP earned"; }
   if(j.active_cells>0){ cells.style.display=""; cells.innerHTML="\uD83C\uDFE0 <b>"+fmt(j.active_cells)+"</b> active cells"; }
   if(j.online_now>0){ on.style.display=""; on.innerHTML="<b>"+fmt(j.online_now)+"</b> online now"; }

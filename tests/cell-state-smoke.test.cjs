@@ -226,10 +226,20 @@ console.log('cells.js');
       cell_update: function(){ return { ok: true, cell: cellObj }; }
     };
     var b2 = makeBackend(R2);
-    var sb2 = baseSandbox(d2, b2);
+    /* cell_update (and the other mutations) ride POST JSON via fetch —
+       capture the bodies to assert the transport. */
+    var fetchCalls = [];
+    var fetchStub = function (url, opts) {
+      var body = {};
+      try { body = JSON.parse(opts.body || '{}'); } catch (e) {}
+      fetchCalls.push({ url: url, body: body });
+      return Promise.resolve({ json: function () {
+        return Promise.resolve({ ok: true, cell: cellObj }); } });
+    };
+    var sb2 = baseSandbox(d2, b2, fetchStub);
     vm.createContext(sb2);
     vm.runInContext(inner, sb2, { filename: 'cells-inner.js' });
-    return { doc: d2, backend: b2 };
+    return { doc: d2, backend: b2, fetchCalls: fetchCalls };
   }
   var withState = bootWithCell({ id: 'c1', name: 'Lone Star', streak: 5, mult: 1.1,
     invite_code: 'AB12CD', covers_left: 1, state: 'TX', verified: false });
@@ -240,13 +250,25 @@ console.log('cells.js');
       return h.indexOf('value="TX" selected') !== -1; })());
   withState.doc.getElementById('cStateEdit').value = 'CA';
   withState.doc.getElementById('cStateBtn').click();
-  var up = withState.backend.last('cell_update');
-  ok('cell_update sends new state=CA', !!up && up.params.state === 'CA', JSON.stringify(up && up.params));
+  function lastPostUpdate() {
+    for (var i = withState.fetchCalls.length - 1; i >= 0; i--)
+      if (withState.fetchCalls[i].body.cell_action === 'cell_update') return withState.fetchCalls[i];
+    return null;
+  }
+  var up = lastPostUpdate();
+  ok('cell_update rides the POST path (JSON body), not JSONP GET',
+    !!up && up.body.type === 'cell' && up.body.cell_action === 'cell_update' &&
+    up.body.cell_id === 'c1' && up.body.state === 'CA',
+    JSON.stringify(up && up.body));
+  ok('no JSONP GET issued for cell_update',
+    !withState.backend.last('cell_update'),
+    JSON.stringify(withState.backend.reqs.map(function (r) { return r.action; })));
   withState.doc.getElementById('cStateEdit').value = '';
   withState.doc.getElementById('cStateBtn').click();
-  var up2 = withState.backend.last('cell_update');
-  ok('clearing affiliation sends explicit empty state (not dropped)',
-    !!up2 && 'state' in up2.params && up2.params.state === '', JSON.stringify(up2 && up2.params));
+  var up2 = lastPostUpdate();
+  ok('clearing affiliation POSTs explicit empty state (not dropped)',
+    !!up2 && 'state' in up2.body && up2.body.state === '',
+    JSON.stringify(up2 && up2.body));
 
   var noState = bootWithCell({ id: 'c2', name: 'Ghost Cell', streak: 2, mult: 1.0,
     invite_code: 'ZZ99ZZ', covers_left: 1, verified: false });

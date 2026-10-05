@@ -21,10 +21,12 @@ STATES50).
 - bounty/task listing rows may carry `state`; FE renders a tag when present
 
 ## Transport notes
-- cells.js: mutations POST via `post()` (JSON body, empty strings transmit);
-  `cell_update` goes through `apiKeepEmpty` (JSONP GET that transmits `state=""`
-  so clearing an affiliation is explicit, not silently dropped by api()'s
-  drop-empty filter).
+- cells.js: mutations POST via `post()` (JSON body, empty strings transmit).
+  `cell_update` is listed in `POST_CELL_ACTIONS` — the backend has it in
+  POST_ONLY, so the founder state edit rides `api()` → POST JSON body
+  (never JSONP GET, which the backend rejects). Explicit `state:""` clears
+  transmit as a real empty string in the POST body, so no `apiKeepEmpty`
+  indirection is needed for this call.
 - cell-hq.js: all mutations POST via `postMut`; `cell_update` added to the
   WRITE map so it POSTs like `cell_rename`. `cell_search` is a READ (JSONP GET);
   the empty-string filter drops `state=""` so unfiltered discovery is
@@ -37,6 +39,7 @@ Old-backend cells render exactly as before: no badge, no tags, no `undefined`.
 cell error line.
 
 ## Verification
-`node tests/cell-state-smoke.test.cjs` — 29/29 pass (2026-10-05).
+`node tests/cell-state-smoke.test.cjs` — 30/30 pass (2026-10-05).
 Covers: 52-option pickers, create POST state, badge show/hide, discovery filter
-param, explicit-empty clear, fail-soft on stateless cells.
+param, explicit-empty clear, fail-soft on stateless cells, and the
+`cell_update` POST-path transport (JSON body, never JSONP GET).

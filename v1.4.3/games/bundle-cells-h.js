@@ -91,7 +91,7 @@ function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e
    request must never wedge the section on its loading text. */
 /* P0 (2026-10-02): cell mutations are POST-only (CSRF-able via GET).
    Route them through the POST helper; read-only actions stay on JSONP. */
-var POST_CELL_ACTIONS = {cell_create:1,cell_join:1,cell_checkin:1,cell_cover:1,cell_leave:1,cell_rename:1,cell_bounty_claim:1};
+var POST_CELL_ACTIONS = {cell_create:1,cell_join:1,cell_checkin:1,cell_cover:1,cell_leave:1,cell_rename:1,cell_bounty_claim:1,cell_update:1};
 function api(action,params,cb){
   if(POST_CELL_ACTIONS[action]){
     if(window.PF && PF.postAction){ PF.postAction('cell','cell_action',action,params,cb); return; }
@@ -789,7 +789,7 @@ function renderCell(el,s){
     var sv=document.getElementById("cStateEdit"), val=sv?String(sv.value||""):"";
     errEl.textContent="";
     busyBtn(stb,true);
-    apiKeepEmpty("cell_update",{callsign:id.callsign,device:id.device,cell_id:c.id,state:val},function(j){
+    api("cell_update",{callsign:id.callsign,device:id.device,cell_id:c.id,state:val},function(j){
       busyBtn(stb,false);
       if(!j||!j.ok){
         /* Old backend without cell_update: revert the picker, keep the

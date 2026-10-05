@@ -5,17 +5,23 @@
    helper so they all render the same cache.
    Backend contract: public GET action news_top_get (?limit=N) →
    {ok, stories:[{url,title,source,published_at,origin,manual}],
-    fetched_at, stale}.
+    fetched_at, stale,
+    macro_flags:[{type,label,detail,period_label,source_url}]}.
+   macro_flags (Wave A2, S-10): release-day flags (jobs day / CPI day)
+   drawn from FRED ingest freshness. Flag definitions owned by News Desk;
+   this helper renders them plain-factually. Zero XP — display only.
    Fail-soft: on read failure the helper serves its last good payload;
    if there is none, stories:[] + stale:true — callers render a
    "stories updating" line, never a broken page.
    EDITORIAL GUARD: on-site display only. This helper never posts, shares,
    or publishes anywhere.
-   API: PF.newsTop.get(limit) -> Promise<{stories, fetched_at, stale}>
+   API: PF.newsTop.get(limit) -> Promise<{stories, fetched_at, stale, macro_flags}>
         PF.newsTop.render(el, opts) -> fills el with the Top Stories rail
         PF.newsTop.source() -> "live" | "cache" | "empty" | "pending"
    Cached 5 min. Anonymous-safe (public GET, credentials omit).
-   KILL: ?pf_off=news-top  or  localStorage pf_disabled_v1='["news-top"]' */
+   KILL: ?pf_off=news-top  or  localStorage pf_disabled_v1='["news-top"]'
+         (whole rail). Flags only: ?pf_off=fred-editorial (same key kills
+         the briefing macro section too). */
 (function () {
   'use strict';
   var PF = window.PF || (window.PF = {});
@@ -26,7 +32,7 @@
   var TIMEOUT_MS = 12000;
   var TTL_MS = 5 * 60 * 1000;
 
-  var CACHE = null;   /* {stories, fetched_at, stale, at} */
+  var CACHE = null;   /* {stories, fetched_at, stale, macro_flags, at} */
   var PENDING = null;
   var SRC = 'pending';
 
@@ -84,8 +90,52 @@
       }
       if (!stories.length) return null;
       return { stories: stories, fetched_at: Number(j.fetched_at) || 0,
-        stale: !!j.stale, at: Date.now() };
+        stale: !!j.stale, macro_flags: normalizeFlags(j.macro_flags), at: Date.now() };
     } catch (e) { return null; }
+  }
+
+  /* Wave A2 (S-10): release-day flags. Plain-factual, News Desk-owned
+     definitions. Scheme-allowlisted FRED URLs only; anything else renders
+     as unlinked text (never a javascript: or off-domain href). Honors
+     ?pf_off=fred-editorial. */
+  var FRED_URL_RE = /^https:\/\/fred\.stlouisfed\.org\/series\/[A-Z0-9]+$/;
+  function flagsKilled() {
+    try { return !!(PF.skip && PF.skip('fred-editorial')); } catch (e) { return false; }
+  }
+  function normalizeFlags(raw) {
+    var out = [];
+    try {
+      if (flagsKilled()) return out;
+      if (!Array.isArray(raw)) return out;
+      for (var i = 0; i < raw.length; i++) {
+        var f = raw[i] || {};
+        if (!f.type || !f.label) continue;
+        var url = String(f.source_url || '');
+        if (!FRED_URL_RE.test(url)) url = '';
+        out.push({ type: String(f.type).slice(0, 24),
+          label: String(f.label).slice(0, 24),
+          detail: String(f.detail || '').slice(0, 160),
+          period_label: String(f.period_label || '').slice(0, 24),
+          source_url: url });
+      }
+    } catch (e) {}
+    return out;
+  }
+
+  function flagCss() {
+    if (document.getElementById('pf-newstop-flags-css')) return;
+    var st = document.createElement('style');
+    st.id = 'pf-newstop-flags-css';
+    st.textContent =
+      '.pf-newstop-flags{margin:0 0 10px}' +
+      '.pf-newstop-flag{display:flex;gap:10px;align-items:baseline;padding:8px 10px;margin-bottom:6px;' +
+      'background:#141003;border:1px solid #e8b64c;text-decoration:none}' +
+      'a.pf-newstop-flag:hover{background:#1d1607}' +
+      '.pf-newstop-flaglabel{font:bold 11px monospace;color:#0a0a0a;background:#e8b64c;' +
+      'padding:3px 8px;border-radius:2px;white-space:nowrap;letter-spacing:1px}' +
+      '.pf-newstop-flagdetail{font:12px monospace;color:#f5ead6}' +
+      '.pf-newstop-flagsrc{display:block;font:10px monospace;color:#888;margin-top:2px}';
+    document.head.appendChild(st);
   }
 
   function loadLive(limit) {
@@ -114,7 +164,7 @@
       if (p) { SRC = 'live'; CACHE = p; return CACHE; }
       if (CACHE) { SRC = 'cache'; return CACHE; } /* last good */
       SRC = 'empty';
-      return { stories: [], fetched_at: 0, stale: true, at: Date.now() };
+      return { stories: [], fetched_at: 0, stale: true, macro_flags: [], at: Date.now() };
     });
     return PENDING;
   }
@@ -122,7 +172,28 @@
   function railHTML(payload, opts) {
     opts = opts || {};
     var title = opts.title || 'TOP STORIES';
+    try { flagCss(); } catch (e) {}
     var h = '<div class="pf-newstop"><div class="pf-newstop-head">' + esc(title) + '</div>';
+    /* Wave A2 (S-10): release-day flags above the stories. Omitted when
+       none, when killed, or when the payload predates the flags field. */
+    var flags = (payload && Array.isArray(payload.macro_flags)) ? payload.macro_flags : [];
+    if (flags.length) {
+      h += '<div class="pf-newstop-flags">';
+      for (var fi = 0; fi < flags.length; fi++) {
+        var f = flags[fi];
+        var inner = '<span class="pf-newstop-flaglabel">' + esc(f.label) + '</span>' +
+          '<span class="pf-newstop-flagdetail">' + esc(f.detail) +
+          (f.period_label ? ' &middot; ' + esc(f.period_label) : '') +
+          '<span class="pf-newstop-flagsrc">St. Louis Fed FRED (official)</span></span>';
+        if (f.source_url) {
+          h += '<a class="pf-newstop-flag" href="' + esc(f.source_url) +
+            '" target="_blank" rel="noopener">' + inner + '</a>';
+        } else {
+          h += '<div class="pf-newstop-flag">' + inner + '</div>';
+        }
+      }
+      h += '</div>';
+    }
     if (!payload.stories.length) {
       h += '<div class="pf-newstop-empty">Stories updating&hellip; check back soon.</div>';
     } else {

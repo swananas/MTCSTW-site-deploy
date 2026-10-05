@@ -147,5 +147,34 @@ ok('kill switch present', pf.includes('PF.skip("pick-fight")'));
 ok('uses own LS key', pf.includes('pf_pick_fight_v1'));
 ok('max 3 enforced', /out\.length < MAX/.test(pf) || /checked\.length > MAX/.test(pf));
 
+/* ---- pf-fight-picked XP hook (Economy Desk sign-off) ---- */
+/* fresh storage for this section */
+for (const k of Object.keys(store)) delete store[k];
+let picked = null;
+documentStub.addEventListener('pf-fight-picked', ev => { picked = ev.detail.fights; });
+PF.setPickFight(['voting', 'climate']);
+ok('first real pick fires pf-fight-picked', JSON.stringify(picked) === '["voting","climate"]');
+picked = 'unset';
+PF.setPickFight(['labor']); // re-save: no re-fire
+ok('re-save does not re-fire pf-fight-picked', picked === 'unset');
+PF.setPickFight([]); // clear: no fire
+ok('clear does not fire pf-fight-picked', picked === 'unset');
+
+for (const k of Object.keys(store)) delete store[k];
+picked = null;
+PF.setPickFight([]); // skip on fresh storage: no fire
+ok('skip (empty) does not fire pf-fight-picked', picked === null);
+ok('skip still marks chosen (no filter)', PF.pickFightChosen() === true);
+
+const pf2 = fs.readFileSync(path.join(ROOT, 'pick-fight.js'), 'utf8');
+ok('header no longer has the No-XP hard requirement bullet', !/- No XP\. Read-only/.test(pf2));
+ok('header documents Economy Desk sign-off', pf2.includes('Economy Desk'));
+
+/* ---- enlistment-ranks listener (existing onboarding leg) ---- */
+const er = fs.readFileSync(path.join(ROOT, 'enlistment-ranks.js'), 'utf8');
+ok('enlistment-ranks listens for pf-fight-picked', er.includes('pf-fight-picked'));
+ok('award uses once rule + exempt', /award\("fight",\s*10,\s*"once",\s*\{exempt:1\}\)/.test(er));
+ok('toast on grant', er.includes('FIGHTS CHOSEN'));
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

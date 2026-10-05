@@ -488,6 +488,11 @@ function render(){
    CustomEvents on document, which never reach window listeners. */
 document.addEventListener("pf-bracket-ballot",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("bracket_"+w,10,"once",{exempt:1}); });
 document.addEventListener("pf-quiz-done",function(){ award("quiz",15,"once",{exempt:1}); });
+/* 2026-10-05 Pick-Your-Fight (Economy Desk sign-off): first real fight pick
+   awards once on the existing onboarding track — same class as quiz +15 /
+   bracket +10. Fires only on null -> non-empty (skip = 0 XP); the once-rule
+   guard makes re-saves/clears double-grant-proof. */
+document.addEventListener("pf-fight-picked",function(){ var gain=award("fight",10,"once",{exempt:1}); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("FIGHTS CHOSEN — +10 XP"); }catch(e2){} } });
 document.addEventListener("pf-guess-done",function(){ settle("pf-guess-done",award("guess_"+today(),1,"once")); });
 /* Guess scores: forward the score to the tally so the backend records it.
    No XP (pf-guess-done already awarded) — xp=0, score in meta. */

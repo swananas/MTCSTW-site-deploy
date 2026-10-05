@@ -44,7 +44,12 @@
        is flagged explicit, never a default, and requires an explicit per-push
        confirmation before PUSH unlocks.
    15. IG share card: canvas-rendered pull-quote card preview (PFShare
-       red/black language) for text-only posts; auto-card note present. */
+       red/black language) for text-only posts; auto-card note present;
+       the canvas is labeled PREVIEW APPROXIMATION (layout mirror, not
+       the artifact the drainer renders).
+   16. Viewed-tab gates (Psych): per-derivatives-tab viewed tracking —
+       PUSH arms only when every preview tab has been viewed AND the
+       server checklist is green. */
 'use strict';
 var fs = require('fs');
 var path = require('path');
@@ -277,6 +282,26 @@ if (has(src, 'JOIN THE FIGHT.')) ok('preview: share card carries the PFShare CTA
 else no('preview', 'share-card CTA missing');
 if (has(src, 'auto-generate') || has(src, 'auto-generated')) ok('preview: auto-card note for text-only posts');
 else no('preview', 'auto-card note missing');
+if (has(src, 'PREVIEW APPROXIMATION')) ok('preview: canvas labeled as a preview approximation');
+else no('preview', 'PREVIEW APPROXIMATION label missing from the share-card canvas');
+
+console.log('== 16. viewed-tab gates (Psych) ==');
+if (has(src, 'viewed: {}') || /state\.viewed\s*=/.test(src)) ok('gates: per-tab viewed state tracked');
+else no('gates', 'state.viewed tracking missing');
+if (/state\.viewed\[key\]\s*=\s*true/.test(src)) ok('gates: switchTab marks the opened tab viewed');
+else no('gates', 'switchTab does not record the viewed tab');
+if (has(src, 'function allTabsViewed')) ok('gates: allTabsViewed() covers every derivatives tab');
+else no('gates', 'allTabsViewed() missing');
+if (/VIEW_TABS\s*=\s*\[[^\]]*'threads'[^\]]*'facebook'[^\]]*'instagram'[^\]]*'discord'[^\]]*'site'/.test(src))
+  ok('gates: viewed set covers threads/facebook/instagram/discord/site');
+else no('gates', 'viewed tab set incomplete');
+if (/btn\.disabled\s*=\s*!ok\s*\|\|\s*state\.busy\s*\|\|\s*!allTabsViewed\(\)/.test(src))
+  ok('gates: armPush requires checklist-green AND all tabs viewed');
+else no('gates', 'armPush does not gate on viewed tabs');
+if (/Review every preview tab/.test(src)) ok('gates: push() refuses when tabs are unviewed');
+else no('gates', 'push() missing the viewed-tabs refusal');
+if (has(src, 'id="pubViewed"') || has(src, 'pubViewed')) ok('gates: viewed-progress note rendered');
+else no('gates', 'viewed-progress note missing');
 
 console.log('\n' + passes + ' passed, ' + fails.length + ' failed.');
 if (fails.length) { console.log('FAILURES:'); fails.forEach(function (f) { console.log(' - ' + f); }); process.exit(1); }

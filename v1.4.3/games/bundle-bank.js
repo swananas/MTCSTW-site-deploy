@@ -2260,8 +2260,27 @@ try {
     staged: [], selected: null, detail: null, checklist: [], allOk: false,
     tab: 'threads', toggles: {}, targets: {}, explicitAck: {},
     connected: {}, live: {}, dryRun: true, inventory: null,
-    outboxId: null, lastPushId: null, polling: false, busy: false
+    outboxId: null, lastPushId: null, polling: false, busy: false,
+    /* Psych (b): per-derivatives-tab viewed tracking. PUSH arms only when
+       every preview tab has been viewed AND the server checklist is green. */
+    viewed: {}
   };
+  var VIEW_TABS = ['threads', 'facebook', 'instagram', 'discord', 'site'];
+  function allTabsViewed() {
+    for (var i = 0; i < VIEW_TABS.length; i++) {
+      if (!state.viewed[VIEW_TABS[i]]) return false;
+    }
+    return true;
+  }
+  function renderViewed() {
+    var el = document.getElementById('pubViewed');
+    if (!el) return;
+    var bits = VIEW_TABS.map(function (k) {
+      return (state.viewed[k] ? '&#10003;' : '&#9675;') + ' ' + k;
+    });
+    el.innerHTML = 'Previewed tabs: ' + bits.join(' &middot; ')
+      + (allTabsViewed() ? '' : ' <span style="color:#d29922">&mdash; open every tab to arm PUSH</span>');
+  }
 
   function esc(s) {
     return String(s == null ? '' : s)
@@ -2517,6 +2536,7 @@ try {
     state.checklist = [];
     state.allOk = false;
     state.tab = 'threads';
+    state.viewed = {};
     renderQueue();
     var el = document.getElementById('pubDetail');
     if (el) el.innerHTML = '<div class="x-note">Loading draft&hellip;</div>';
@@ -2562,9 +2582,14 @@ try {
       + '<h4 style="margin-top:12px">FRONT LINES</h4>'
       + '<div id="pubToggles">' + PLATFORMS.map(platformRow).join('') + '</div>'
       + '<div style="margin-top:12px"><button class="c-btn" id="pubPush" disabled style="font-size:17px;padding:12px 34px">PUSH TO THE FRONT LINES</button></div>'
+      + '<div class="x-note" id="pubViewed" style="margin-top:6px"></div>'
       + '<div class="x-note" style="margin-top:6px">The site repost publishes to mtcstw.com with every push. Derivatives were frozen when the post was staged.</div>'
       + '</div>';
     renderDerivatives();
+    /* The default tab is on screen at render — it counts as viewed. */
+    state.viewed[state.tab] = true;
+    renderViewed();
+    armPush(state.allOk);
     wireDetail();
   }
 
@@ -2607,6 +2632,7 @@ try {
       igHtml += '<div class="x-note">attached image: ' + esc(ig.image) + '</div>';
     } else if (ig.share_card) {
       igHtml += '<div class="x-note">auto-generated pull-quote share card (rendered VM-side at push):</div>'
+        + '<div class="x-note" style="color:#d29922;font-weight:bold">PREVIEW APPROXIMATION &mdash; this canvas is a layout mirror, not the final card. The drainer renders the shipped card from the frozen share-card spec.</div>'
         + '<canvas data-pub-card="1" style="width:270px;height:270px;border:1px solid #444;margin-top:6px"></canvas>';
     } else if (ig.needs_image) {
       igHtml += '<div class="x-note" style="color:#f0883e;font-weight:bold">NEEDS IMAGE &mdash; attach a share card before push or Instagram skips.</div>';
@@ -2635,6 +2661,11 @@ try {
 
   function switchTab(key) {
     state.tab = key;
+    /* Psych (b): viewing a tab is the gate — PUSH arms only after every
+       derivatives tab has been opened. */
+    state.viewed[key] = true;
+    renderViewed();
+    armPush(state.allOk);
     var tabs = document.getElementById('pubTabs');
     if (tabs) tabs.innerHTML = previewTabs();
     var panes = document.querySelectorAll('[data-pub-pane]');
@@ -2694,7 +2725,9 @@ try {
   }
   function armPush(ok) {
     var btn = document.getElementById('pubPush');
-    if (btn) { btn.disabled = !ok || state.busy; }
+    /* Psych (b): PUSH arms only when the server checklist is green AND every
+       derivatives tab has been viewed. */
+    if (btn) { btn.disabled = !ok || state.busy || !allTabsViewed(); }
   }
 
   /* PUSH: banned-term scan, explicit-ack gate, then enqueue + push.
@@ -2703,6 +2736,7 @@ try {
     showErr('');
     if (!state.detail) { showErr('Select a staged draft first.'); return; }
     if (!state.allOk) { showErr('Checklist is not green. Fix the flagged items first.'); return; }
+    if (!allTabsViewed()) { showErr('Review every preview tab before pushing.'); return; }
     var d = state.detail;
     var hit = bannedHit((d.title || '') + '\n' + (d.body_markdown || '') + '\n' + (d.link || ''));
     if (hit) { showErr('Banned term blocked. The push is dead.'); return; }
@@ -2842,7 +2876,7 @@ try {
 
   function rearmPush() {
     var btn = document.getElementById('pubPush');
-    if (btn) { btn.disabled = !state.allOk; btn.textContent = 'PUSH TO THE FRONT LINES'; }
+    if (btn) { btn.disabled = !state.allOk || !allTabsViewed(); btn.textContent = 'PUSH TO THE FRONT LINES'; }
   }
 
   function fmtTs(ms) {

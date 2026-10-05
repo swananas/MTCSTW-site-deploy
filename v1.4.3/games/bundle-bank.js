@@ -1115,9 +1115,9 @@ function render(){
   h+='</div>';
   /* RECORD WAR BOND SALE — the bond_record fallback promised in the help
      text above (2026-10-04). Manual recording for cash/in-person sales
-     until the Squarespace webhook URL is pasted. Thank-you XP routes
-     through xpGrant, so daily caps still apply; on a cap-hit day the XP
-     stays claimable via bond_claim. */
+     until the Squarespace webhook URL is pasted. Thank-you XP is retired
+     (wave-xp-rebalance): bond_record now grants 0 XP, so there is no
+     claimable bond XP on any day. */
   var wbD=new Date(), wbM=wbD.getMonth()+1, wbDay=wbD.getDate();
   var wbToday=wbD.getFullYear()+"-"+(wbM<10?"0":"")+wbM+"-"+(wbDay<10?"0":"")+wbDay;
   h+='<div class="x-pane"><h4>Record War Bond sale</h4>'
@@ -1126,10 +1126,10 @@ function render(){
     +'<input aria-label="Buyer callsign" id="vlWBcs" class="c-input pf-input-md" placeholder="Buyer callsign" >'
     +'<input aria-label="Buyer email (optional)" id="vlWBemail" class="c-input pf-input-lg" placeholder="Buyer email (optional)" >'
     +'<select aria-label="War Bond tier" id="vlWBtier" class="c-input pf-input-sm">'
-    +'<option value="5">$5 &mdash; 50 XP</option>'
-    +'<option value="10">$10 &mdash; 100 XP</option>'
-    +'<option value="25">$25 &mdash; 250 XP</option>'
-    +'<option value="50">$50 &mdash; 500 XP</option>'
+    +'<option value="5">$5</option>'
+    +'<option value="10">$10</option>'
+    +'<option value="25">$25</option>'
+    +'<option value="50">$50</option>'
     +'</select>'
     +'<input aria-label="Sale date" id="vlWBdate" class="c-input pf-input-md" type="date" value="'+wbToday+'" >'
     +'<button class="c-btn" id="vlWBRec">RECORD SALE</button><div class="c-err" id="vlWBErr"></div>'
@@ -1577,7 +1577,7 @@ function wire(){
       if(j.dup) bits.push("<b>DUPLICATE</b> — this sale was already recorded.");
       bits.push("Recorded a <b>$"+Number(j.tier||0)+"</b> War Bond sale"+(j.callsign?(" for <b>"+esc(j.callsign)+"</b>"):"")+".");
       bits.push("Thank-you XP: <b>"+Number(j.xp_granted||0)+"</b>"+
-        (Number(j.xp_granted||0)===0?" (cap-hit day — stays claimable via bond_claim).":"."));
+        (Number(j.xp_granted||0)===0?" (War Bond XP retired — no XP is granted on bond sales).":"."));
       bits.push("Split: $"+Number(j.network_share||0).toFixed(2)+" network / $"+Number(j.creator_share||0).toFixed(2)+" creator pool.");
       bits.push("Order: <span class=\\"c-mono\\">"+esc(j.order_id||"")+"</span>");
       if(out) out.innerHTML=bits.join("<br>");

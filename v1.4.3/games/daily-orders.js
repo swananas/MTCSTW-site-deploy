@@ -32,7 +32,7 @@
 <div class="o-rankline" id="oRank"></div>
 <div class="o-loot" id="oLoot"></div>
 <div class="o-err" id="oErr"></div>
-<div class="o-note">3 orders (10 XP each) + 1 field op (+5) per day. Run all three plus the op for the +5 full-deployment command bonus. Every daily task on this page caps at 50 XP a day &mdash; your cell streak gets you there faster. Streak shields forgive a missed day. Today's Boost lets you tip earned XP to a creator at 1 XP = 2 signal.</div>
+<div class="o-note">3 orders (5 XP each) + 1 field op (+5) per day. Run all three plus the op for the +5 full-deployment command bonus. Every daily task on this page caps at 25 XP a day &mdash; your cell streak gets you there faster. Streak shields forgive a missed day. Today's Boost lets you tip earned XP to a creator at 1 XP = 2 signal.</div>
 <div><button class="o-shareimg" id="oShareImg">Share orders as image</button><div class="o-note" id="oShareCount"></div></div>
 <div class="o-claim" id="oClaimWrap">
   <a id="oClaimToggle">Claim your rank on every device</a>
@@ -94,12 +94,11 @@ var FIELD_OPS=[
 ];
 var OP_XP=5, CMD_XP=5;
 function fieldOp(){ return FIELD_OPS[dayOfYear()%FIELD_OPS.length]; }
-/* economy — every daily task on the page draws from one 50 XP/day pool (PF.claimDayXp).
-   3 orders x 10 + field op 5 + command bonus 5 = 45; the last 5 come from the
-   satellite dailies (raid, check-in, share, guess, poster, drop, billionaire,
-   interrogation). A perfect day lands exactly on 50. Cell streaks multiply
-   mission XP but the pool still caps at 50 — the bonus gets you there faster. */
-var PER_DAY=3, BASE_XP=10, DAILY_MAX=50;
+/* economy — every daily task on the page draws from one 25 XP/day pool (DAILY_MAX).
+   3 orders x 5 + field op 5 + command bonus 5 = 25; a perfect day lands exactly
+   on 25. Cell streaks multiply mission XP but the pool still caps at 25 — the
+   bonus gets you there faster. */
+var PER_DAY=3, BASE_XP=5, DAILY_MAX=25;
 var PLATFORMS=[["tiktok","TikTok"],["facebook","Facebook"],["instagram","Instagram"],["x","X"],["youtube","YouTube"]];
 var STREAK_BONUS={3:10,7:25,30:100};
 var TIERS=[["RECRUIT",0],["AGITATOR",25],["CADRE",75],["COMMISSAR",150],["ARCHITECT",300]];
@@ -233,7 +232,7 @@ function checkin(mi,platform){
   var firstToday=rec.done.length===0;
   var reportNo=rec.done.length+1;                    /* 1,2,3 */
   /* CELL BONUS: shared cell streaks juice mission XP. +5%/streak day, cap +50%.
-     The central 50/day pool (PF.claimDayXp) still holds — the bonus just gets
+     The central 25/day pool (PF.claimDayXp) still holds — the bonus just gets
      you to the cap faster instead of stacking above it. */
   var cellMult=(typeof window.pfCellMult==="function")?window.pfCellMult():1;
   var want=Math.round(BASE_XP*Math.max(1,cellMult));
@@ -247,7 +246,7 @@ function checkin(mi,platform){
     else if(o.last&&o.last!==t&&(o.shields||0)>0){ o.shields--; shieldUsed=true; /* streak holds */ }
     else { o.streak=1; }
     o.last=t;
-    /* Streak milestone bonus draws from the same 50/day pool — it gets you to
+    /* Streak milestone bonus draws from the same 25/day pool — it gets you to
        the cap faster, never stacks above it. */
     if(STREAK_BONUS[o.streak]&&!rec.bonusPaid){ try{ bonus=(window.PF&&PF.claimDayXp)?PF.claimDayXp(STREAK_BONUS[o.streak]):STREAK_BONUS[o.streak]; }catch(e){ bonus=STREAK_BONUS[o.streak]; } rec.bonusPaid=true; }
     /* every 7th streak day forges a shield: one missed day forgiven */
@@ -272,7 +271,7 @@ function fireEvent(t,mi,reportNo,xp,streak,platform){
   try{ document.dispatchEvent(new CustomEvent("pf-order-checkin",{detail:{day:t,mission:mi,reportNo:reportNo,xp:xp,streak:streak,platform:platform||null}})); }catch(e){}
 }
 /* COMMAND BONUS: 3/3 missions + field op = FULL DEPLOYMENT, once per day.
-   Draws from the same 50/day pool — it can clip to 0 if the pool is spent. */
+   Draws from the same 25/day pool — it can clip to 0 if the pool is spent. */
 function maybeCommandBonus(){
   var d=dayRec(), t=today();
   if(d.rec.done.length>=3&&d.rec.opDone&&!d.rec.cmdPaid){

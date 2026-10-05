@@ -132,6 +132,10 @@ var BUNDLES = {
     'games/flash-siren.js',
     'core/06-pinups.js',
     'core/share-image.js',
+    /* campaign-share-kits (2026-10-05): bill + urgency kit painters.
+       Decorates PF.PHQShare from fe/phq-share-posters — that module must
+       merge first; load order is non-critical (retry-loop decoration). */
+    'core/share-image-phq-kits.js',
     /* creator-recruit: shared recruiting toolbar for roster cards + catalog
        pages. Last: needs PFShare (share-image.js) + the catalog renderers. */
     'pages/creator-recruit.js',

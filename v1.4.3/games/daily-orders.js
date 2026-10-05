@@ -987,6 +987,7 @@ function render(){
           var _hs=document.getElementById("oHomeState");
           if(_hs&&_hs.value!==undefined&&window.PF&&PF.setHomeState){ PF.setHomeState(_hs.value); }
         }catch(eHs){}
+<<<<<<< HEAD
         /* Pick-your-fight preference (pick-fight.js): up-to-3 issue areas in
            the claim box. Guarded — claim must never fail if skipped. */
         try{

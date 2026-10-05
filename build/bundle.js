@@ -46,6 +46,7 @@ var SECTIONS = {
        onboarding state picker (stateless-first) + settings widget. Lives
        with the claim flow in bundle-sec1 (critical path). No XP, read-only. */
     'home-state.js',
+<<<<<<< HEAD
     /* Political HQ creation weave #5 (2026-10-05): pick-your-fight
        preference — onboarding issue-area picker (max 3, skippable) +
        settings widget. Step two of onboarding personalization, right after
@@ -55,6 +56,8 @@ var SECTIONS = {
        Static CTA card — must stage with the critical path so it mounts in
        ORDER position right after daily-orders, not late at section end. */
     'political-hq-nudge.js',
+=======
+>>>>>>> origin/fe/home-state-picker
     'dopamine.js',
     'enlistment-ranks.js',
     /* Wave 5B (2026-10-04): theater rack + ribbon chase strip + Frontline

@@ -234,11 +234,15 @@
     chiNow: function () { try { return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' })); } catch (e) { return new Date(); } },
     mondayOf: function (d) { var x = new Date(d); var day = (x.getDay() + 6) % 7; x.setHours(0, 0, 0, 0); x.setDate(x.getDate() - day); return x; },
     isoWeekKey: function (d) { var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); var day = (t.getUTCDay() + 6) % 7; t.setUTCDate(t.getUTCDate() - day + 3); var first = new Date(Date.UTC(t.getUTCFullYear(), 0, 4)); var fday = (first.getUTCDay() + 6) % 7; first.setUTCDate(first.getUTCDate() - fday + 3); var w = 1 + Math.round((t - first) / (7 * 864e5)); return t.getUTCFullYear() + '-W' + String(w).padStart(2, '0'); },
-    /* Daily XP economy: every comrade caps at 50 XP per day (America/Chicago)
-       from daily tasks. Weekly tasks, one-time bonuses, recruit bounties, and
-       the weekly FULL DEPLOYMENT medal are exempt — they're bounded by
-       week/event already. All daily XP awards MUST route through claimDayXp
-       so the cap holds no matter what order tasks are completed in. */
+    /* SHARED DAILY POOL CAP (all games): every comrade's daily-task XP draws
+       from ONE 50 XP/day pool (America/Chicago), enforced by claimDayXp.
+       Individual games may run their own LOWER sub-caps on their own awards
+       (e.g. Daily Orders caps its page awards at 25/day) — a sub-cap narrows
+       that game's slice only; it can never raise or bypass this pool.
+       Weekly tasks, one-time bonuses, recruit bounties, and the weekly FULL
+       DEPLOYMENT medal are exempt — they're bounded by week/event already.
+       All daily XP awards MUST route through claimDayXp so the cap holds no
+       matter what order tasks are completed in. */
     DAILY_XP_CAP: 50,
     _xpDayKey: 'pf_xpday_v1',
     _xpDayStr: function () { try { var n = this.chiNow(); return n.getFullYear() + '-' + ('0' + (n.getMonth() + 1)).slice(-2) + '-' + ('0' + n.getDate()).slice(-2); } catch (e) { return ''; } },
@@ -3338,7 +3342,7 @@ if(document.readyState==='loading'){
       state: "NC",
       office: "U.S. Senate",
       candidates: [
-        { name: "Roy Cooper", party: "D", funding: "Ex-governor, broad donor base", classTake: "Career Dem — better than the alternative, answers to the party machine." },
+        { name: "Roy Cooper", party: "D", funding: "Ex-governor, broad donor base", classTake: "Career Dem — answers to the party machine, not to you." },
         { name: "Michael Whatley", party: "R", funding: "Ex-RNC chair, corporate GOP money", classTake: "Party operative. Serves the donor class that installed him." }
       ],
       rating: "Leans D (Cooper +9)",
@@ -3349,21 +3353,21 @@ if(document.readyState==='loading'){
       state: "GA",
       office: "U.S. Senate",
       candidates: [
-        { name: "Jon Ossoff", party: "D", funding: "$20M+ Q2, mostly small-dollar and national Dems", classTake: "Incumbent. Votes with labor more often than not, still a party man." },
+        { name: "Jon Ossoff", party: "D", funding: "$20M+ Q2, mostly small-dollar and national Dems", /* ADMIN: Q2 figures stale — refresh via race_update rail */ classTake: "Incumbent. Votes with labor more often than not, still a party man." },
         { name: "Mike Collins", party: "R", funding: "MAGA-backed, Trump-endorsed", classTake: "MAGA champion. Serves billionaires and the Trump machine." }
       ],
       rating: "Leans D (Ossoff +8)",
-      stakes: "Ossoff outraised Collins 10-to-1. Georgia is the firewall."
+      stakes: "Ossoff outraised Collins 10-to-1. Georgia is the firewall." /* ADMIN: 10-to-1 is a stale Q2 figure — refresh via race_update rail */
     },
     {
       id: "mi-senate",
       state: "MI",
       office: "U.S. Senate",
       candidates: [
-        { name: "Abdul El-Sayed", party: "D", funding: "Progressive small-dollar, beat the moderate in the primary", classTake: "41-year-old epidemiologist. Medicare for All. The real deal — a generational left bet." },
+        { name: "Abdul El-Sayed", party: "D", funding: "Progressive small-dollar, beat the moderate in the primary", classTake: "Epidemiologist. Medicare for All. The real deal — a generational left bet." },
         { name: "Mike Rogers", party: "R", funding: "Corporate GOP, ex-congressman", classTake: "Standard corporate Republican. Serves whoever writes the checks." }
       ],
-      rating: "Toss-up (El-Sayed +3.4)",
+      rating: "Leans D (El-Sayed +3.4)",
       stakes: "The most important progressive bet on the map. If El-Sayed wins, it proves the left can take Senate seats."
     },
     {
@@ -3371,10 +3375,10 @@ if(document.readyState==='loading'){
       state: "OH",
       office: "U.S. Senate (special)",
       candidates: [
-        { name: "Sherrod Brown", party: "D", funding: "Labor-backed, union money", classTake: "Pro-labor record. One of the few Dems who actually fights for workers." },
+        { name: "Sherrod Brown", party: "D", funding: "Labor-backed, union money", classTake: "Pro-labor record. Trust it, but verify — at the ballot box." },
         { name: "Jon Husted", party: "R", funding: "Appointed incumbent, GOP establishment", classTake: "Corporate appointee. Votes the donor line." }
       ],
-      rating: "Toss-up (Brown +3.7)",
+      rating: "Leans D (Brown +3.7)",
       stakes: "Special election. Brown's labor record vs. an appointed seat-warmer."
     },
     {
@@ -3393,11 +3397,11 @@ if(document.readyState==='loading'){
       state: "NE",
       office: "U.S. Senate",
       candidates: [
-        { name: "Dan Osborn", party: "I", funding: "Independent, union-backed", classTake: "Independent. Union steamfitter running against a billionaire. This is the class war on a ballot." },
-        { name: "Pete Ricketts", party: "R", funding: "Billionaire incumbent", classTake: "Billionaire. Literally. Serves himself and his class." }
+        { name: "Dan Osborn", party: "I", funding: "Independent, union-backed", classTake: "Independent. Union steamfitter running against billionaire-family money. This is the class war on a ballot." },
+        { name: "Pete Ricketts", party: "R", funding: "Incumbent — from a billionaire family", classTake: "Billionaire-family money. Serves his class — himself included." }
       ],
-      rating: "Toss-up (Ricketts +4)",
-      stakes: "Worker vs. billionaire. The purest class fight on the Senate map."
+      rating: "Leans R (Ricketts +4)",
+      stakes: "Worker vs. billionaire money. The purest class fight on the Senate map."
     },
     {
       id: "me-senate",
@@ -3424,7 +3428,7 @@ if(document.readyState==='loading'){
   ];
 
   /* Measure shape: {id, state, title, summary, yesMeans, noMeans, backedBy, opposedBy}
-     Specific 2026 measures TBD — categories below are the class-war fights to watch. */
+     Specific 2026 measures resolve as they qualify — categories below are the class-war fights to watch. */
   window.PF_CAMPAIGN_MEASURES = [
     {
       id: "wages-2026",

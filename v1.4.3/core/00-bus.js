@@ -228,11 +228,15 @@
     chiNow: function () { try { return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' })); } catch (e) { return new Date(); } },
     mondayOf: function (d) { var x = new Date(d); var day = (x.getDay() + 6) % 7; x.setHours(0, 0, 0, 0); x.setDate(x.getDate() - day); return x; },
     isoWeekKey: function (d) { var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); var day = (t.getUTCDay() + 6) % 7; t.setUTCDate(t.getUTCDate() - day + 3); var first = new Date(Date.UTC(t.getUTCFullYear(), 0, 4)); var fday = (first.getUTCDay() + 6) % 7; first.setUTCDate(first.getUTCDate() - fday + 3); var w = 1 + Math.round((t - first) / (7 * 864e5)); return t.getUTCFullYear() + '-W' + String(w).padStart(2, '0'); },
-    /* Daily XP economy: every comrade caps at 50 XP per day (America/Chicago)
-       from daily tasks. Weekly tasks, one-time bonuses, recruit bounties, and
-       the weekly FULL DEPLOYMENT medal are exempt — they're bounded by
-       week/event already. All daily XP awards MUST route through claimDayXp
-       so the cap holds no matter what order tasks are completed in. */
+    /* SHARED DAILY POOL CAP (all games): every comrade's daily-task XP draws
+       from ONE 50 XP/day pool (America/Chicago), enforced by claimDayXp.
+       Individual games may run their own LOWER sub-caps on their own awards
+       (e.g. Daily Orders caps its page awards at 25/day) — a sub-cap narrows
+       that game's slice only; it can never raise or bypass this pool.
+       Weekly tasks, one-time bonuses, recruit bounties, and the weekly FULL
+       DEPLOYMENT medal are exempt — they're bounded by week/event already.
+       All daily XP awards MUST route through claimDayXp so the cap holds no
+       matter what order tasks are completed in. */
     DAILY_XP_CAP: 50,
     _xpDayKey: 'pf_xpday_v1',
     _xpDayStr: function () { try { var n = this.chiNow(); return n.getFullYear() + '-' + ('0' + (n.getMonth() + 1)).slice(-2) + '-' + ('0' + n.getDate()).slice(-2); } catch (e) { return ''; } },

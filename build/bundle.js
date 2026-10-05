@@ -253,7 +253,10 @@ var HQ_BUNDLES = {
     'intel.js',
     /* Political HQ expansion #3 (2026-10-05): Races Tracker — the midterm
        battleground board. Stages pf-ov-races (mounted by pages/political-hq.js). */
-    'races.js'
+    'races.js',
+    /* Political HQ expansion, workstream 2 of 2 (2026-10-05): Ballot Measures
+       board. Stages pf-ov-ballot-measures (mounted by pages/political-hq.js). */
+    'ballot-measures.js'
   ]
 };
 

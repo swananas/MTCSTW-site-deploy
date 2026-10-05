@@ -30,7 +30,11 @@
     ['intel', 'pf-ov-intel'],
     /* Political HQ expansion #3 (2026-10-05): Races Tracker board mounts
        after intel — stages pf-ov-races from games/races.js. */
-    ['races', 'pf-ov-races']
+    ['races', 'pf-ov-races'],
+    /* Political HQ expansion, workstream 2 of 2 (2026-10-05): Ballot Measures
+       board mounts after the races board — stages pf-ov-ballot-measures
+       from games/ballot-measures.js (shipped in bundle-hq.js). */
+    ['ballot-measures', 'pf-ov-ballot-measures']
   ];
 
   function execScripts(root, label) {

@@ -7517,7 +7517,7 @@ var CS_RE=/^[a-z0-9_]{3,20}$/;
 function $(id){ return document.getElementById(id); }
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function fmtWeek(w){ /* yyyy-mm-dd (Monday) -> "WEEK OF OCT 5, 2026" */
-  var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(w||"")); if(!m) return esc(String(w||""));
+  var m=/^(\\d{4})-(\\d{2})-(\\d{2})$/.exec(String(w||"")); if(!m) return esc(String(w||""));
   var months=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
   return "WEEK OF "+months[Number(m[2])-1]+" "+Number(m[3])+", "+m[1];
 }

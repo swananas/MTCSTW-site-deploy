@@ -369,7 +369,7 @@
   function cardIdentityHTML(c){
     c=c||{};
     if(!c.profile_complete){
-      return '<div class="id-incomplete">PROFILE INCOMPLETE — the founder hasn\'t defined this cell\'s identity yet.</div>';
+      return '<div class="id-incomplete">PROFILE INCOMPLETE — this cell\'s identity hasn\'t been defined yet.</div>';
     }
     var h='<div class="id-cardid">';
     var chips=[];
@@ -404,7 +404,7 @@
     var h='<div class="id-detail">';
     if(!identity||!identity.profile_complete){
       h+='<div class="id-incomplete">PROFILE INCOMPLETE — '+
-        (isFounder?'define it so recruits can find this cell.':'the founder hasn\'t defined this cell\'s identity yet.')+'</div>';
+        (isFounder?'define it so recruits can find this cell.':'this cell\'s identity hasn\'t been defined yet.')+'</div>';
       if(isFounder) h+='<button type="button" class="id-btn sm" data-idbackfill="1">DEFINE IT</button>';
       h+='</div>';
       return h;

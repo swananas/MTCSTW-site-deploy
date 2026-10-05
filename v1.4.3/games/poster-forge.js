@@ -989,3 +989,55 @@ pfConsumeForgeLaunch();
 </div>
 </template>`);
 })();
+
+/* pf_forge_prefill_v1 reader (weave #2, 2026-10-05) — consumes the stash
+   written by Ammo Finder's FORGE THIS buttons (and, later, the Studio
+   plugin registry's own entry points).
+   Contract: sessionStorage['pf_forge_prefill_v1'] = JSON.stringify({
+     v:1, plugin_id, template_id, label, data, source, fetched_at,
+     stashed_at })
+   - If window.PFStudio.applyPrefill exists (the plugin registry's Forge
+     integration), the payload is handed off; the stash is cleared only
+     when applyPrefill reports success.
+   - Otherwise the payload is NOT dropped: the user gets one toast and
+     the stash stays for when the political templates land. Never a
+     silent no-op, never a lost payload. */
+(function () {
+  'use strict';
+  var KEY = 'pf_forge_prefill_v1';
+  var raw = null;
+  try { raw = sessionStorage.getItem(KEY); } catch (e) { return; }
+  if (!raw) return;
+  var payload = null;
+  try { payload = JSON.parse(raw); } catch (e) { return; }
+  if (!payload || payload.v !== 1 || !payload.plugin_id || !payload.template_id) return;
+  function toast(m) {
+    try {
+      if (window.PF && window.PF.toast) { window.PF.toast(m); return; }
+    } catch (e) {}
+    try {
+      var t = document.createElement('div');
+      t.textContent = m;
+      t.style.cssText = 'position:fixed;left:50%;top:16%;transform:translateX(-50%);' +
+        'background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;' +
+        'border:2px solid #fff;z-index:99999';
+      document.body.appendChild(t);
+      setTimeout(function () { t.remove(); }, 4000);
+    } catch (e2) {}
+  }
+  var studio = null;
+  try { studio = window.PFStudio || null; } catch (e2) {}
+  if (studio && typeof studio.applyPrefill === 'function') {
+    var applied = false;
+    try { applied = !!studio.applyPrefill(payload); } catch (e3) { applied = false; }
+    if (applied) {
+      try { sessionStorage.removeItem(KEY); } catch (e4) {}
+      toast('Political payload loaded — ' + (payload.label || 'forge it') + '.');
+    } else {
+      toast('Could not load the political payload yet — it stays staged.');
+    }
+    return;
+  }
+  /* Political templates not live yet: keep the stash, say so once. */
+  toast('Political Forge templates are not live yet — your payload is staged for when they land.');
+})();

@@ -32,11 +32,29 @@ var endMark = '/* ---------- TAB 3: CELL WAR ---------- */';
 var si = src.indexOf(startMark), ei = src.indexOf(endMark);
 if (si === -1 || ei === -1 || ei < si){ console.log('FAIL - could not extract strike section'); process.exit(1); }
 var section = src.slice(si, ei);
+/* section-7 stubs: globals the creation handoff touches (bare references in
+   the section resolve through node's global scope in the Function body). */
+var LS7 = {};
+global.localStorage = {
+  getItem: function(k){ return Object.prototype.hasOwnProperty.call(LS7, k) ? LS7[k] : null; },
+  setItem: function(k, v){ LS7[k] = String(v); },
+  removeItem: function(k){ delete LS7[k]; }
+};
+var firedEvents7 = [];
+global.document = {
+  dispatchEvent: function(ev){ firedEvents7.push(ev); return true; },
+  addEventListener: function(){}, querySelector: function(){ return null; },
+  getElementById: function(){ return null; }
+};
+global.window = { location: {}, PF: PF };
+global.CustomEvent = function(t, o){ this.type = t; this.detail = (o && o.detail) || null; };
 var exports = new Function('esc','api','postMut','withIdent','toast','friendlyErr','loading','PF',
   section + '\nreturn {strikeOff:strikeOff,strikeXY:strikeXY,strikeSafeLink:strikeSafeLink,' +
   'strikeStateScope:strikeStateScope,strikeMemberRows:strikeMemberRows,strikeProgress:strikeProgress,' +
   'strikeOpsCard:strikeOpsCard,strikePolCard:strikePolCard,strikeSoonHtml:strikeSoonHtml,' +
-  'strikeHtml:strikeHtml,paintStrikeOrders:paintStrikeOrders};'
+  'strikeHtml:strikeHtml,paintStrikeOrders:paintStrikeOrders,' +
+  'strikeForgeEntity:strikeForgeEntity,strikeForgeLaunch:strikeForgeLaunch,' +
+  'strikeCreationCard:strikeCreationCard};'
 )(esc, api, postMut, withIdent, toast, friendlyErr, loading, PF);
 
 function count(html, re){ var m = html.match(re); return m ? m.length : 0; }
@@ -221,6 +239,101 @@ section.split('\n').forEach(function(l, i){
 });
 if (!badInterp.length) ok('interpolation: API data passes through esc()/sanitizers');
 else no('interpolation', badInterp.slice(0,5).join(','));
+
+/* ---------- 7. creation task card (fe/strike-orders-creative) ---------- */
+var creationFixture = {
+  ok: true, week_start: '2026-10-05',
+  orders: [
+    {slot:'ops1', task_type:'cell_checkin', title:'FULL MUSTER', detail:'check in', deep_link:'/cells', task_ref:{}},
+    {slot:'ops2', task_type:'cell_recruit', title:'RECRUIT', detail:'recruit', deep_link:'/cells', task_ref:{}},
+    {slot:'political', task_type:'creation', title:'FORGE A STRIKE POSTER',
+     detail:'Forge one propaganda poster about U.S. Senate: Abdul El-Sayed vs Mike Rogers in the Poster Forge.',
+     deep_link:'/create#pf-poster',
+     task_ref:{ scope:'state', state:'MI',
+       entities:[
+         {kind:'race', id:'mi-senate', title:'U.S. Senate: Abdul El-Sayed vs Mike Rogers', url:'', state:'MI', areas:['voting']},
+         {kind:'measure', id:'wages-2026', title:'Minimum wage increases', url:'', state:'Multiple', areas:['labor','poverty']}
+       ],
+       why_now:'The most important progressive bet on the map.',
+       bounty:{id:'b1', title:'Poster pack: mi-senate blitz'} }}
+  ],
+  members: [{callsign:'ALPHA', ops_done:2, political_done:0}],
+  aggregate: {ops:'2/3', political:'0/3'}
+};
+var ch = exports.strikeHtml(creationFixture, true, 'cell-9');
+if (ch.indexOf('data-hq="strike-forge"') !== -1 && ch.indexOf('FORGE THIS') !== -1 &&
+    ch.indexOf('data-eid="mi-senate"') !== -1 && ch.indexOf('data-week="2026-10-05"') !== -1 &&
+    ch.indexOf('data-cell="cell-9"') !== -1)
+  ok('creation card: FORGE THIS button with entity + cell + week data attrs');
+else no('creation FORGE THIS');
+if (ch.indexOf('TARGET:') !== -1 && ch.indexOf('U.S. Senate: Abdul El-Sayed vs Mike Rogers') !== -1)
+  ok('creation card: TARGET names the bound entity');
+else no('creation target');
+if (ch.indexOf('WHY NOW:') !== -1 && ch.indexOf('The most important progressive bet on the map.') !== -1)
+  ok('creation card: WHY NOW line from live copy');
+else no('creation why-now');
+if (ch.indexOf('CREATION') !== -1 && ch.indexOf('POLITICAL STRIKE') !== -1)
+  ok('creation card: CREATION + POLITICAL STRIKE badges');
+else no('creation badges');
+if (ch.indexOf('This also counts toward the') !== -1 && ch.indexOf('Poster pack: mi-senate blitz') !== -1 &&
+    ch.indexOf('/create?tab=bounties') !== -1)
+  ok('creation card: entity-matched bounty hint + bounty board link');
+else no('creation bounty hint');
+var noBountyFx = JSON.parse(JSON.stringify(creationFixture));
+delete noBountyFx.orders[2].task_ref.bounty;
+var nbh = exports.strikeHtml(noBountyFx, true, 'cell-9');
+if (nbh.indexOf('check the bounty board') !== -1 && nbh.indexOf('/create?tab=bounties') !== -1 &&
+    nbh.indexOf('This also counts toward the') === -1)
+  ok('creation card: no bounty invented — generic bounty board link instead');
+else no('creation no-bounty fallback');
+if (ch.indexOf('grants zero XP') !== -1) ok('creation card: zero-XP order note');
+else no('creation zero-XP note');
+if (ch.indexOf('OPEN POLITICAL HQ') === -1) ok('creation card replaces the PHQ link with FORGE THIS');
+else no('creation PHQ link leak');
+/* fight preference: pick-your-fight data prefers the fight-relevant entity */
+global.window.PF.pickFight = function(){ return ['labor']; };
+var fightEnt = exports.strikeForgeEntity(creationFixture.orders[2]);
+if (fightEnt && fightEnt.id === 'wages-2026') ok('fight preference: labor fight picks wages-2026 over entities[0]');
+else no('fight preference', fightEnt && fightEnt.id);
+delete global.window.PF.pickFight;
+var defEnt = exports.strikeForgeEntity(creationFixture.orders[2]);
+if (defEnt && defEnt.id === 'mi-senate') ok('no fight data: entities[0] (state-scoped primary)');
+else no('default entity', defEnt && defEnt.id);
+/* fail-soft: creation order with no bound entities -> plain forge link, never a dead card */
+var noEnt = exports.strikeCreationCard({task_type:'creation', task_ref:{}}, [], '0/1', false, 'cell-9', '2026-10-05', false);
+if (noEnt.indexOf('OPEN THE FORGE') !== -1 && noEnt.indexOf('/create#pf-poster') !== -1 &&
+    noEnt.indexOf('data-hq="strike-forge"') === -1)
+  ok('fail-soft: entity-less creation card links the plain forge (no dead end)');
+else no('creation fail-soft');
+/* launch handoff: localStorage payload + pf-forge-launch event + navigation */
+LS7 = {}; firedEvents7.length = 0; global.window.location = {};
+exports.strikeForgeLaunch('cell-9', '2026-10-05', {kind:'race', id:'mi-senate', title:'T', url:''}, '/create#pf-poster');
+var pay = null;
+try { pay = JSON.parse(LS7['pf_forge_launch_v1']); } catch (e) {}
+if (pay && pay.entity && pay.entity.id === 'mi-senate' && pay.tab === 'political' &&
+    pay.strike && pay.strike.cell_id === 'cell-9' && pay.strike.week_start === '2026-10-05')
+  ok('launch: pf_forge_launch_v1 payload (entity + strike binding + political tab hint)');
+else no('launch payload');
+var lev = firedEvents7.filter(function(e){ return e && e.type === 'pf-forge-launch'; })[0];
+if (lev && lev.detail && lev.detail.entity && lev.detail.entity.id === 'mi-senate')
+  ok('launch: pf-forge-launch CustomEvent fired with entity detail');
+else no('launch event');
+if (global.window.location.href === '/create#pf-poster') ok('launch: navigates to the forge deep-link');
+else no('launch nav', global.window.location.href);
+/* hostile entity strings escaped in card + data attrs */
+var evilEnt = {task_type:'creation', detail:'d',
+  task_ref:{entities:[{kind:'race', id:'x', title:'"><script>alert(1)</script>', url:'', areas:[]}]}};
+var eh = exports.strikeCreationCard(evilEnt, [], '0/1', false, 'cell-9', '2026-10-05', false);
+if (eh.indexOf('<script>') === -1 && eh.indexOf('&lt;script&gt;') !== -1 &&
+    eh.indexOf('data-etitle="&quot;&gt;&lt;script&gt;') !== -1)
+  ok('hostile entity strings escaped (card body + data attrs)');
+else no('creation hostile escape');
+/* delegation branch: strike-forge calls strikeForgeLaunch with data attrs */
+var mf = src.match(/else if \(a==='strike-forge'\)\{([\s\S]*?)\n    \}\n    else if \(a==='bounties'\)/);
+if (mf && mf[1].indexOf('strikeForgeLaunch(') !== -1 && mf[1].indexOf("data-eid") !== -1 &&
+    mf[1].indexOf('needCs()') !== -1)
+  ok('delegation: strike-forge branch (callsign-gated, entity from data attrs)');
+else no('strike-forge delegation');
 
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

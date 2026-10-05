@@ -686,7 +686,89 @@
       '</div>';
     return h;
   }
-  function strikePolCard(o, mems, agg, isFounder, cellId, rerolled){
+  /* ---------- CREATION TASK (2026-10-05, fe/strike-orders-creative) ----------
+     The political slot sometimes becomes a creation task: forge one poster
+     about a live bound entity. Entity selection: task_ref.entities (bound
+     server-side, state-scoped first); when pick-your-fight data exists, the
+     fight-relevant entity wins, otherwise entities[0]. FORGE THIS deep-links
+     into the Poster Forge via the pf-forge-launch handoff (localStorage for
+     cross-page + CustomEvent same-page); the forge shows the "Forging ammo
+     for X" confirmation state and tags the poster leg so completion is
+     entity-bound. Zero XP from the order itself — the forge's normal
+     poster/share legs pay out. */
+  function strikeForgeEntity(o){
+    var tr = (o && o.task_ref) || {};
+    var ents = tr.entities;
+    if (!Array.isArray(ents) || !ents.length) return null;
+    var fights = [];
+    try {
+      if (window.PF && typeof PF.pickFight === 'function' && !PF.skip('pick-fight')){
+        var f = PF.pickFight();
+        if (Array.isArray(f)) fights = f;
+      }
+    } catch (e) {}
+    if (fights.length){
+      for (var i = 0; i < ents.length; i++){
+        var areas = (ents[i] && ents[i].areas) || [];
+        for (var k = 0; k < fights.length; k++){
+          if (areas.indexOf(fights[k]) >= 0) return ents[i];
+        }
+      }
+    }
+    return ents[0];
+  }
+  function strikeForgeLaunch(cellId, weekStart, ent, deepLink){
+    var payload = { v: 1, tab: 'political', ts: Date.now(),
+      entity: ent ? { kind: String(ent.kind || ''), id: String(ent.id || ''),
+        title: String(ent.title || ''), url: String(ent.url || '') } : null,
+      strike: { cell_id: String(cellId || ''), week_start: String(weekStart || '').slice(0, 10) } };
+    try { localStorage.setItem('pf_forge_launch_v1', JSON.stringify(payload)); } catch (e) {}
+    try { document.dispatchEvent(new CustomEvent('pf-forge-launch', { detail: payload })); } catch (e2) {}
+    var dest = strikeSafeLink(deepLink);
+    if (dest === '/political-hq') dest = '/create#pf-poster';
+    try { window.location.href = dest; } catch (e3) {}
+  }
+  function strikeCreationCard(o, mems, agg, isFounder, cellId, weekStart, rerolled){
+    var tr = (o && o.task_ref) || {};
+    var ent = strikeForgeEntity(o);
+    var detail = o && o.detail ? String(o.detail) : 'Forge one propaganda poster about this week\u2019s fight target.';
+    var h = '<div class="hq-card hq-strike-pol"><div class="hq-row">' +
+      '<span class="hq-badge gold plain">POLITICAL STRIKE</span>' +
+      '<span class="hq-badge plain">CREATION</span></div>' +
+      '<div class="hq-order-t"><b>FORGE A STRIKE POSTER</b></div>' +
+      strikeStateScope(tr) +
+      (ent ? '<div class="hq-note" style="margin-bottom:6px"><b>TARGET: ' + esc(String(ent.title || '')) + '</b></div>' : '') +
+      (tr.why_now ? '<div class="hq-note" style="margin-bottom:6px"><b>WHY NOW:</b> ' + esc(String(tr.why_now)) + '</div>' : '') +
+      '<div class="hq-order-d">' + esc(detail) + '</div>';
+    /* Bounty cross-link: entity-matched bounty when the backend found one;
+       otherwise the generic bounty board. Never invents a bounty. */
+    if (tr.bounty && tr.bounty.title){
+      h += '<div class="hq-note" style="margin-bottom:8px">This also counts toward the <b>' + esc(String(tr.bounty.title)) + '</b> bounty — ' +
+        '<a href="/create?tab=bounties">open the bounty board &rarr;</a></div>';
+    } else {
+      h += '<div class="hq-note" style="margin-bottom:8px">Bounty hunters: <a href="/create?tab=bounties">check the bounty board</a> for poster bounties on this fight.</div>';
+    }
+    if (ent){
+      h += '<div style="margin:8px 0"><button class="hq-btn hq-btn44" data-hq="strike-forge" data-cell="' + esc(cellId) + '"' +
+        ' data-week="' + esc(weekStart || '') + '"' +
+        ' data-ekind="' + esc(String(ent.kind || '')) + '" data-eid="' + esc(String(ent.id || '')) + '"' +
+        ' data-etitle="' + esc(String(ent.title || '')) + '" data-eurl="' + esc(String(ent.url || '')) + '">FORGE THIS &rarr;</button></div>';
+    } else {
+      /* Fail-soft: bound set missing client-side -> plain forge deep-link, never a dead card. */
+      h += '<div style="margin:8px 0"><a class="hq-btn hq-btn44" href="/create#pf-poster">OPEN THE FORGE &rarr;</a></div>';
+    }
+    h += '<div class="hq-note" style="margin-bottom:8px">The order itself grants zero XP — the forge\u2019s normal poster/share legs pay out when you create.</div>';
+    if (isFounder){
+      h += rerolled
+        ? '<div style="margin:8px 0"><button class="hq-btn hq-btn44 ghost" disabled>RE-ROLLED THIS WEEK</button></div>'
+        : '<div style="margin:8px 0"><button class="hq-btn hq-btn44" data-hq="strike-reroll" data-cell="' + esc(cellId) + '">RE-ROLL POLITICAL ORDER</button></div>';
+    }
+    h += strikeProgress(mems, agg, function(m){ return !!(m && m.political_done); }) + '</div>';
+    return h;
+  }
+  function strikePolCard(o, mems, agg, isFounder, cellId, weekStart, rerolled){
+    if (o && o.task_type === 'creation')
+      return strikeCreationCard(o, mems, agg, isFounder, cellId, weekStart, rerolled);
     var title = o && o.title ? String(o.title) : 'Political strike';
     var detail = o && o.detail ? String(o.detail) : 'Awaiting the week\u2019s political strike order.';
     var link = strikeSafeLink(o && o.deep_link);
@@ -736,7 +818,7 @@
       '<div class="hq-note" style="margin-bottom:10px">Complete them as a cell. Progress counts for the whole crew.</div>' +
       strikeOpsCard(ops1, mems, agg.ops) +
       strikeOpsCard(ops2, mems, agg.ops) +
-      strikePolCard(pol, mems, agg.political, isFounder, cellId, !!(j.rerolled_used || j.already_rerolled)) +
+      strikePolCard(pol, mems, agg.political, isFounder, cellId, j.week_start, !!(j.rerolled_used || j.already_rerolled)) +
       '</div>';
     return h;
   }
@@ -1254,6 +1336,19 @@
         /* Re-pull the orders so the card + counts are fresh. */
         paintStrikeOrders(mount, cellId, true);
       });
+    }
+    else if (a==='strike-forge'){
+      /* fe/strike-orders-creative: FORGE THIS — deep-link into the Poster
+         Forge with the bound entity pre-loaded (pf-forge-launch handoff). */
+      if(!needCs()) return;
+      var fEnt = {
+        kind: t.getAttribute('data-ekind') || '',
+        id: t.getAttribute('data-eid') || '',
+        title: t.getAttribute('data-etitle') || '',
+        url: t.getAttribute('data-eurl') || ''
+      };
+      if (!fEnt.id) fEnt = null;
+      strikeForgeLaunch(cellId, t.getAttribute('data-week') || '', fEnt, '/create#pf-poster');
     }
     else if (a==='bounties'){
       if(!needCs()) return; busy(true);

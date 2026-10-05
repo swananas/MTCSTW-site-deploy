@@ -43,6 +43,7 @@
       <select id="oHomeState" aria-label="Home state" style="display:block;width:100%;min-height:44px;margin-top:4px;background:#0d0d0d;color:#f5ead6;border:1px solid #6b5f45;font-size:15px;padding:8px;"></select>
     </label>
     <div style="font-size:11px;color:#8a7f68;margin:-2px 0 8px;">Only used to personalize your civic feed. Never public, never on leaderboards, never shared.</div>
+    <div id="oPickFight"></div>
     <br><button class="o-claimbtn" id="oClaimBtn">Claim</button>
     <div class="o-err" id="oClaimErr"></div>
   </div>
@@ -986,6 +987,16 @@ function render(){
           var _hs=document.getElementById("oHomeState");
           if(_hs&&_hs.value!==undefined&&window.PF&&PF.setHomeState){ PF.setHomeState(_hs.value); }
         }catch(eHs){}
+        /* Pick-your-fight preference (pick-fight.js): up-to-3 issue areas in
+           the claim box. Guarded — claim must never fail if skipped. */
+        try{
+          var _pf=document.getElementById("oPickFight");
+          if(_pf&&window.PF&&PF.setPickFight){
+            var _cb=_pf.querySelectorAll(".pf-fight-cb"),_sel=[];
+            for(var _i=0;_i<_cb.length;_i++){ if(_cb[_i].checked) _sel.push(_cb[_i].getAttribute("data-fid")); }
+            PF.setPickFight(_sel);
+          }
+        }catch(ePf){}
         try{document.dispatchEvent(new CustomEvent('pf-callsign-claimed',{detail:{callsign:cs}}));}catch(e){}
         var rr=load(LS_R,{xp:0,got:{}});
         if(j.xp>rr.xp){ rr.xp=j.xp; save(LS_R,rr); }

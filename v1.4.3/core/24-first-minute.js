@@ -11,6 +11,9 @@
    core/03-global.js:50 and 09-referral.js:21), one showing per device per 7
    days (loop-guard pf_firstmission_v1). Hero-adjacent: the card inserts
    immediately before the #pf-v2 shell, i.e. above the first funnel section.
+   CLS guard: an empty layout slot (min-height ~card height) is reserved
+   synchronously at eval, before the mount retries — the later card
+   injection replaces the slot in the same tick, so the page never shifts.
 
    The CTA deep-links into the existing anonymous fan-vote flow
    (games/fan-vote.js, live node #pf-vote — anonymous by design, one
@@ -27,6 +30,8 @@
   if (window.pfFirstMissionDone) return; window.pfFirstMissionDone = true;
 
   var GUARD_KEY = 'pf_firstmission_v1';
+  var SLOT_ID = 'pf-first-mission-slot';
+  var SLOT_MIN_H = '360px'; /* approx card height: reserves layout, kills CLS */
   var WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
   function due() {
@@ -62,12 +67,36 @@
   if (hasCallsign()) return; /* holders get no first mission */
   if (!due()) return;
 
+  /* CLS guard: reserve the card's layout slot before the mount retries run,
+     so the later injection can't shift the page. Synchronous at eval (and
+     retried with the mount) — the card replaces the slot in the same tick. */
+  function reserveSlot() {
+    try {
+      if (document.getElementById('pf-first-mission') || document.getElementById(SLOT_ID)) return true;
+      var host = document.getElementById('pf-v2');
+      if (!host || !host.parentNode) return false;
+      if (isEditor()) return true;
+      var slot = document.createElement('div');
+      slot.id = SLOT_ID;
+      slot.setAttribute('aria-hidden', 'true');
+      slot.style.cssText = 'min-height:' + SLOT_MIN_H + ';box-sizing:border-box;';
+      host.parentNode.insertBefore(slot, host);
+      return true;
+    } catch (e) { return false; }
+  }
+  function dropSlot() {
+    try {
+      var s = document.getElementById(SLOT_ID);
+      if (s && s.parentNode) s.parentNode.removeChild(s);
+    } catch (e2) {}
+  }
+
   function mount() {
     try {
       if (document.getElementById('pf-first-mission')) return true;
       /* #pf-v2 is the homepage shell (pages/home-v2.js). Absent -> not the
-         homepage -> never show. Insert immediately BEFORE it: hero-adjacent,
-         above the first funnel section, without touching any homepage markup. */
+         homepage -> never show. The card replaces the reserved slot (or, if
+         the slot never got reserved, inserts before the shell as before). */
       var host = document.getElementById('pf-v2');
       if (!host || !host.parentNode) return false;
       if (isEditor()) return true; /* editor: count as handled, render nothing */
@@ -83,7 +112,12 @@
         + '<div style="color:#c9bfa8;font-size:0.95rem;line-height:1.6;margin-bottom:1.1rem;">One vote. Sixty seconds. Then decide if you\'re staying.</div>'
         + '<a id="pf-fm-cta" href="#pf-vote" style="display:inline-block;background:#c1121f;color:#fff;font-weight:900;letter-spacing:0.12em;font-size:0.95rem;text-decoration:none;padding:0.9rem 2.2rem;border:2px solid #c1121f;">FIRE &#8594;</a>'
         + '<div style="margin-top:0.9rem;"><span id="pf-fm-no" role="button" tabindex="0" style="color:#b8ab8e;font-size:0.8rem;cursor:pointer;text-decoration:underline;">just looking</span></div>';
-      host.parentNode.insertBefore(card, host);
+      var slot = document.getElementById(SLOT_ID);
+      if (slot && slot.parentNode) {
+        slot.parentNode.replaceChild(card, slot);
+      } else {
+        host.parentNode.insertBefore(card, host);
+      }
       mark();
       try { document.dispatchEvent(new CustomEvent('pf-firstmission-shown')); } catch (e) {}
       function close() { try { if (card.parentNode) card.parentNode.removeChild(card); } catch (e2) {} }
@@ -105,11 +139,15 @@
     } catch (e3) { return false; }
   }
 
-  /* The shell is Squarespace-editor markup; retry briefly in case the footer
-     bundle ran before the page body finished parsing. */
+  /* Reserve the slot synchronously at eval, then fill it on the mount
+     retries. The shell is Squarespace-editor markup; retry briefly in case
+     the footer bundle ran before the page body finished parsing. If the
+     mount never lands, the reserved slot is dropped — no gap left behind. */
   var tries = 0;
   (function attempt() {
+    try { reserveSlot(); } catch (e) {}
     if (mount()) return;
-    if (tries++ < 3) setTimeout(attempt, 1000);
+    if (tries++ < 3) { setTimeout(attempt, 1000); return; }
+    dropSlot();
   })();
 })();

@@ -78,8 +78,10 @@ var SECTIONS = {
     /* W5-6 Hall of Proof (2026-10-04): public winners wall, PROOF section. */
     'hall-of-proof.js',
     /* Wave 3 files (registered by Wave 5C integration 2026-10-04 to unblock
-       the build gate — Wave 3 coordinator may relocate to slim bundles):
-       S6 ambush claim UI, S5 war-room ticker, A2 flash siren variants. */
+       the build gate; Wave 6B 2026-10-04 registered S5 war-room ticker
+       (self-mounting, fail-silent; homepage PROOF + /cells) and A2 flash
+       siren here too. Union of both sides — 'hall-of-proof.js' confirmed
+       present in the merged tree. */
     'ambush-drop.js',
     'war-room-ticker.js',
     'flash-siren.js',
@@ -107,7 +109,10 @@ var SECTIONS = {
        extends R19's post-claim interstitial; mounts the founder checklist /
        joiner induction on pf-cell-formed / pf-cell-joined. */
     'cells.js',
-    'cell-first-hour.js'
+    'cell-first-hour.js',
+    /* S5 war-room ticker /cells leg (slim dup — the loader fetches this
+       INSTEAD of bundle-home on /cells, never both). */
+    'war-room-ticker.js'
   ],
   'bundle-create-h': [
     /* /create — poster-forge + feed (the Propaganda Feed workshop). */
@@ -227,9 +232,10 @@ Object.keys(ALL).forEach(function (b) {
 var DEAD = ['bank.js', 'daily-drop.js', 'daily-fire.js', 'boost-raid.js',
   'media-nuke.js', 'video.js', 'amplify.js', 'archive.js', 'bounties.js',
   'assist.js'];
-/* Global chrome: notify.js (header bell) is bundled by build/bundle-core.js
-   into pages/bundle-pages.js — intentionally excluded from page bundles. */
-var GLOBAL_CHROME = ['notify.js'];
+/* Global chrome: notify.js (header bell) + flash-siren.js (A2 site-wide siren
+   banner) are bundled by build/bundle-core.js into pages/bundle-pages.js —
+   intentionally excluded from page bundles. */
+var GLOBAL_CHROME = ['notify.js', 'flash-siren.js'];
 var unbundled = allFiles.filter(function (f) {
   return bundled.indexOf(f) === -1 && f.indexOf('bundle-') !== 0 &&
     DEAD.indexOf(f) === -1 && GLOBAL_CHROME.indexOf(f) === -1;

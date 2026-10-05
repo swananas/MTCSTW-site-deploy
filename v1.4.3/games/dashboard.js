@@ -139,6 +139,9 @@ function render(){
     }
   }
   h+='</div>';
+  /* W3-D12 (2026-10-04): action prompts — the analytics read drives
+     "share it while it's hot" prompts. */
+  h+=renderPrompts(st);
   /* --- your footprint (2026-10-03: user_totals, public) — device-verified
      social proof of the work you've put in. --- */
   h+='<div class="x-pane"><h4>Your footprint</h4>';
@@ -154,6 +157,59 @@ function render(){
   /* --- funnel --- */
   h+='<div class="x-pane"><h4>Onboarding funnel</h4>'+funnelHtml()+'</div>';
   el.innerHTML=h;
+  wirePrompts(el);
+}
+/* W3-D12 (2026-10-04): command center action prompts — "your catalog page is
+   hot — share it", driven by the existing creator_stats read. Content heat
+   comes from top_content shares; the catalog prompt keys off
+   catalog_views/catalog_slug/catalog_path in the response. If the backend
+   doesn't send those fields yet, the catalog prompt stays hidden and the
+   content prompts still fire — flagged for live verification. */
+var HOT_SHARES=10;
+function promptShare(title,url){
+  try{
+    if(window.PFShare&&PFShare.shareText){ PFShare.shareText(title+" — via MTCSTW "+(url||"")); }
+    else if(navigator.share){ navigator.share({title:title,text:title+" — JOIN THE FIGHT.",url:url||location.href}); }
+    else toast("Copy the link and spread it.");
+  }catch(e){}
+}
+function renderPrompts(st){
+  var prompts=[];
+  try{
+    var tc=st.top_content||[];
+    for(var i=0;i<tc.length;i++){
+      var t=tc[i], sh=Number(t.shares)||0;
+      if(sh>=HOT_SHARES) prompts.push({k:"hot"+i,
+        t:"\u2018"+(t.title||t.content_id||"your post")+"\u2019 is moving — "+sh+" shares.",
+        d:"Strike while it's hot. Share it again.",
+        btn:"SHARE IT AGAIN", title:String(t.title||t.content_id||"MTCSTW"), url:""});
+    }
+    var cv=Number(st.catalog_views||st.catalog_pageviews||0);
+    var cslug=st.catalog_slug||st.slug||"", cpath=st.catalog_path||(cslug?("/"+cslug):"");
+    if(cv>=HOT_SHARES&&cpath){
+      prompts.unshift({k:"catalog",
+        t:"YOUR CATALOG PAGE IS HOT — "+cv+" views.",
+        d:"Admirers are looking. Give them something to carry.",
+        btn:"SHARE MY PAGE", title:"Sick Left Radicals", url:cpath});
+    }
+  }catch(e){}
+  if(!prompts.length) return "";
+  var h='<div class="x-pane"><h4>Action prompts</h4>'
+    +'<div class="x-note">Your numbers say move. Don\u2019t let heat cool.</div>';
+  for(var p=0;p<prompts.length;p++){
+    var pr=prompts[p];
+    h+='<div class="cp-mission"><div class="cp-mtext"><b>'+esc(pr.t)+'</b><br><span class="x-note">'+esc(pr.d)+'</span></div>'
+      +'<div><button class="c-btn" data-ph="'+pr.k+'" data-pt="'+esc(pr.title)+'" data-pu="'+esc(pr.url)+'">'+esc(pr.btn)+'</button></div></div>';
+  }
+  return h+'</div>';
+}
+function wirePrompts(el){
+  var bs=el.querySelectorAll("button[data-ph]");
+  for(var i=0;i<bs.length;i++){
+    (function(b){
+      b.onclick=function(){ promptShare(b.getAttribute("data-pt")||"MTCSTW", b.getAttribute("data-pu")||location.href); };
+    })(bs[i]);
+  }
 }
 load();
 setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },300000);

@@ -27,6 +27,9 @@
 #pf-interrogation .iq-btn{background:none;border:2px solid #f5ead6;color:#f5ead6;padding:12px 22px;font-family:'Arial Black',Arial,sans-serif;font-size:13px;letter-spacing:2px;cursor:pointer;text-transform:uppercase}
 #pf-interrogation .iq-btn:hover{background:#1a1a1a}
 #pf-interrogation .iq-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:12px}
+#pf-interrogation .iq-study{margin:12px 0 0}
+#pf-interrogation .iq-study a{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#ff5a00;text-decoration:none;font-weight:700}
+#pf-interrogation .iq-study a:hover{text-decoration:underline}
 </style>
 
 <h2>The Daily Interrogation</h2>
@@ -37,6 +40,7 @@
 <div class="iq-streak" id="iqStreak"></div>
 <div class="iq-btns" id="iqShareRow" style="display:none">
   <button class="iq-btn" id="iqCopy">Copy result grid</button>
+  <button class="iq-btn" id="iqShare">Share score card</button>
 </div>
 <div class="iq-note">One question per day. Streak or you&apos;re a liberal.</div>
 
@@ -84,6 +88,11 @@ var LS='pf_interrogation_v1';
 function load(){try{return JSON.parse(localStorage.getItem(LS)||'{"last":"","streak":0,"played":{}}');}catch(e){return{last:'',streak:0,played:{}};}}
 function save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}
 var n=dayNum(),Q=QS[(n-1)%QS.length],s=load(),tk=dayKey();
+/* R20 (Wave 6B): wrong-answer study-up targets — the intel desk by default,
+   the bracket for bracket questions, the roster page where one fits. */
+var IQ_STUDY_DFL={label:"STUDY UP: POLITICAL HQ INTEL DESK",href:"/political-hq"};
+var IQ_STUDY={8:{label:"STUDY UP: THE LIQUIDATION BRACKET",href:"/arcade#pf-bracket"},22:{label:"STUDY UP: THE LIQUIDATION BRACKET",href:"/arcade#pf-bracket"},29:{label:"STUDY UP: MEET MTCSTW",href:"/mtcstw"}};
+var QIDX=(n-1)%QS.length;
 /* deterministic daily rotation: the correct answer must not sit in one slot */
 var _rot=n%4,_ord=[0,1,2,3],QA=0,_ri,_qi;
 for(_ri=0;_ri<_rot;_ri++){_ord.push(_ord.shift());}
@@ -109,8 +118,12 @@ function renderOpts(locked){
 function showWhy(){
   var p=s.played[tk],w=el('iqWhy');w.style.display='block';
   w.innerHTML='<p class="iq-verdict '+(p.correct?'right':'wrong')+'">'+(p.correct?'CORRECT.':'WRONG.')+'</p><p>'+Q.why+'</p>';
+  /* R20b: wrong answers get a study-up link — intel desk, bracket, or roster. */
+  if(!p.correct){ var stu=IQ_STUDY[QIDX]||IQ_STUDY_DFL; w.innerHTML+='<p class="iq-study"><a href="'+stu.href+'">'+stu.label+' \u2192</a></p>'; }
   el('iqShareRow').style.display='flex';
   el('iqStreak').textContent=streakTxt();
+  /* R20a: PFShare score card on completion ("I scored N"). */
+  try{var PS0=window.PFShare;if(PS0&&PS0.REG){PS0.REG["daily-interrogation"]={title:"DAY "+n+(p.correct?" \u2014 CORRECT":" \u2014 WRONG"),tag:"THE DAILY INTERROGATION",lines:["Streak: "+s.streak+" day"+(s.streak===1?"":"s")],cta:"FACE THE INTERROGATION"};}}catch(e){}
 }
 el('iqStreak').textContent=streakTxt();
 if(s.played&&s.played[tk]){renderOpts(true);showWhy();}
@@ -129,6 +142,11 @@ el('iqCopy').onclick=function(){
   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done).catch(function(){fallback();});}
   else fallback();
   function fallback(){try{var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();done();}catch(e){}}
+};
+/* R20a: PFShare score card — "I scored N" with ?ref= attribution. */
+el('iqShare').onclick=function(){
+  try{var PS=window.PFShare;if(PS&&PS.poster&&PS.shareImage){var cv=PS.poster("daily-interrogation");if(cv){PS.shareImage(cv,"interrogation-score.png","I scored "+(s.played[tk].correct?"1/1":"0/1")+" on The Daily Interrogation","daily-interrogation");return;}}}catch(e){}
+  try{if(window.PF&&PF.toast)PF.toast('Score card misfired — the grid copy still works.');}catch(e){}
 };
 })();
 </script>

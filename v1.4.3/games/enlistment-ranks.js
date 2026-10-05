@@ -45,7 +45,11 @@
 #pf-ranks .u-msg{font-family:Arial,sans-serif;font-size:13px;letter-spacing:1px;color:#ff5a00;text-align:center;margin-top:10px;min-height:20px;text-transform:uppercase}
 #pf-ranks .u-walltitle{font-size:16px;letter-spacing:3px;color:#c1121f;text-transform:uppercase;text-align:center;margin:16px 0 8px}
 #pf-ranks .u-wall{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
-#pf-ranks .u-wname{background:#1a1a1a;border:2px solid #ff5a00;color:#f5ead6;font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;padding:6px 12px;text-transform:uppercase}
+#pf-ranks .u-wname{background:#1a1a1a;border:2px solid #ff5a00;color:#f5ead6;font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;padding:6px 12px;text-transform:uppercase;text-decoration:none;display:inline-block}
+#pf-ranks .u-wname:hover{border-color:#f5ead6}
+#pf-ranks .u-weeklyheroes{margin:10px 0 4px;text-align:center}
+#pf-ranks .u-weeklyheroes a{font:bold 12px Arial,sans-serif;color:#ff5a00;letter-spacing:2px;text-decoration:none}
+#pf-ranks .u-weeklyheroes a:hover{text-decoration:underline}
 #pf-ranks .u-wempty{font-family:Arial,sans-serif;font-size:12px;color:#777;text-align:center;width:100%}
 /* ---------- PRESTIGE ---------- */
 #pf-ranks .p-wrap{margin-top:22px;border-top:2px solid #ff5a00;padding-top:18px;text-align:center}
@@ -87,6 +91,7 @@
   <div class="u-msg" id="uMsg"></div>
   <div class="u-walltitle">Vanguard Wall</div>
   <div class="u-wall" id="uWall"><div class="u-wempty">No architects yet. The wall waits.</div></div>
+  <div class="u-weeklyheroes"><a href="/#pf-hallofproof">WEEKLY HEROES →</a></div>
 </div>
 <div class="p-wrap">
   <div class="p-head">&#9733; Prestige &#9733;</div>
@@ -325,7 +330,10 @@ function renderWall(serverWall){
   if(serverWall&&serverWall.length){ names=serverWall.map(function(w){return esc(String(w.callsign).toUpperCase());}); }
   else { names=names.map(function(w){return esc(String(w).toUpperCase());}); }
   if(!names.length){ el.innerHTML='<div class="u-wempty">No architects yet. The wall waits.</div>'; return; }
-  el.innerHTML=names.slice(-24).map(function(n){ return '<span class="u-wname">'+n+'</span>'; }).join("");
+  /* R27 (Wave 6B): wall names link out — the Vanguard Wall (all-time legends)
+     cross-links the Hall of Proof (weekly heroes). Per-callsign feat views
+     don't exist yet; the Hall side owns that (flagged). */
+  el.innerHTML=names.slice(-24).map(function(n){ return '<a class="u-wname" href="/#pf-hallofproof" title="See the Hall of Proof">'+n+'</a>'; }).join("");
 }
 function renderUnlocks(){
   var s=load(), idx=TIERS.indexOf(tierOf(s.xp));
@@ -426,6 +434,20 @@ function render(){
   document.getElementById("rWho").innerHTML=who+(idx>=2&&who?' <span class="gold">&#9733;</span>':"");
   /* Armory: apply equipped frame + flair to the callsign display. */
   try{ if(window.PF&&PF.armoryStyle) PF.armoryStyle(document.getElementById("rWho")); }catch(e){}
+  /* W2-D17 + R29 (2026-10-04): equipped custom title byline + subscriber
+     badge on the callsign profile. Mirrors written by /economy (title_buy)
+     and /war-chest (subscribe); the ticker byline reads ev.title. */
+  try{
+    var _rWho=document.getElementById("rWho"), _ttl="", _sup=false;
+    try{ _ttl=String(localStorage.getItem("pf_title_v1")||"").slice(0,40); }catch(e2){}
+    try{ _sup=!!localStorage.getItem("pf_supporter_v1"); }catch(e3){}
+    if(_rWho&&(_ttl||_sup)){
+      var _tb=document.getElementById("rTitleBadge");
+      if(!_tb){ _tb=document.createElement("div"); _tb.id="rTitleBadge"; _tb.style.marginTop="6px"; _rWho.appendChild(_tb); }
+      _tb.innerHTML=(_ttl?' <span style="color:#d4af37;letter-spacing:1px">&laquo;'+_ttl.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+'&raquo;</span>':"")
+        +(_sup?' <span style="background:#d4af37;color:#0d0d0d;font-weight:800;font-size:10px;letter-spacing:1px;padding:2px 8px;border-radius:3px">SUPPORTER</span>':"");
+    }
+  }catch(e){}
   document.getElementById("rXp").textContent=s.xp+" XP";
   var next=TIERS[idx+1];
   if(next){

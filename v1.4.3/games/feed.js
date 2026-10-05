@@ -23,6 +23,37 @@ var BACKEND=window.PF_BACKEND_URL;
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function fmtSched(t){ try{ var d=new Date(Number(t)||0); if(isNaN(d.getTime())) return "?";
   return (d.getMonth()+1)+"/"+d.getDate()+" "+d.getHours()+":"+String(d.getMinutes()).padStart(2,"0"); }catch(e){ return "?"; } }
+/* R16 (2026-10-04): what schedule_add actually does — it queues a SHARE of a
+   content item to fire at a future time on a platform (epoch-ms
+   scheduled_for, Chicago wall-clock). The queue below is the check-back
+   surface: per-item countdowns make it an appointment mechanic. */
+function fdCountdown(ms){
+  if(ms<=0) return "any moment";
+  var s=Math.floor(ms/1000), d=Math.floor(s/86400), h=Math.floor((s%86400)/3600), m=Math.floor((s%3600)/60);
+  if(d>0) return d+"d "+h+"h";
+  if(h>0) return h+"h "+(m<10?"0":"")+m+"m";
+  return m+"m "+(s%60)+"s";
+}
+/* R16: fired-transition detection. schedule_list rows carry posted:1 once the
+   backend fires them. Ping once per queue id (localStorage): toast + the
+   FIRED state stays in the queue. The bell-inbox ping is the backend's job —
+   notify_enqueue is admin-only, so the server must enqueue on fire. */
+function fdFiredMap(){ try{ return JSON.parse(localStorage.getItem("pf_sched_fired_v1")||"{}"); }catch(e){ return {}; } }
+function fdFiredSave(m){ try{ localStorage.setItem("pf_sched_fired_v1",JSON.stringify(m)); }catch(e){} }
+function fdCheckFired(q){
+  try{
+    var seen=fdFiredMap(), changed=false;
+    for(var i=0;i<(q||[]).length;i++){
+      var it=q[i], id=String(it.id||"");
+      if(!id||seen[id]) continue;
+      if(it.posted){
+        seen[id]=1; changed=true;
+        toast("SCHEDULED DROP FIRED: "+String(it.content_id||"untitled")+" ("+String(it.platform||"")+")");
+      }
+    }
+    if(changed) fdFiredSave(seen);
+  }catch(e){}
+}
 function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
 function toast(m){ try{ PF.toast(m); }catch(e){} }
 /* 2026-10-04: friendly write-path errors — raw snake_case backend codes are
@@ -223,19 +254,26 @@ function render(){
     h+='<div class="x-pane"><div class="fd-title">DUE NOW — FIRING ('+due.length+')</div>';
     for(var di=0;di<Math.min(due.length,5);di++){
       var dd=due[di];
-      h+='<div class="x-note">'+esc(dd.content_id||"")+' &mdash; '+esc(dd.platform||"")+' &mdash; queued by '+esc(dd.callsign||"anon")+'</div>';
+      /* R16: mark the viewer's own drops in the firing queue. */
+      var mine=(id.callsign&&String(dd.callsign||"").toLowerCase()===String(id.callsign).toLowerCase())?' <b style="color:#e8b64c">&#9733; YOURS</b>':"";
+      h+='<div class="x-note">'+esc(dd.content_id||"")+' &mdash; '+esc(dd.platform||"")+' &mdash; queued by '+esc(dd.callsign||"anon")+mine+'</div>';
     }
     if(due.length>5) h+='<div class="x-note">&hellip;and '+(due.length-5)+' more in the queue.</div>';
     h+='</div>';
   }
-  /* Scheduled queue. */
+  /* MY QUEUE — SCHEDULED DROPS (R16): the viewer's queue as an appointment
+     strip — countdown per drop, FIRED state on publish, cancel stays. */
   var q=[]; try{ if(SCHED&&SCHED.ok&&SCHED.queue) q=SCHED.queue; }catch(e){}
+  fdCheckFired(q);
   if(q.length){
-    h+='<div class="x-pane"><div class="fd-title">SCHEDULED QUEUE ('+q.length+')</div>';
+    h+='<div class="x-pane"><div class="fd-title">MY QUEUE &mdash; SCHEDULED DROPS ('+q.length+')</div>';
     for(var qi=0;qi<q.length;qi++){
       var sq=q[qi];
-      h+='<div class="x-note">'+esc(sq.content_id||"")+' &mdash; '+esc(sq.platform||"")+' at '+esc(fmtSched(sq.scheduled_for))
-        +(sq.posted?' <span class="cp-mdone">FIRED</span>':' <button class="c-btn ghost" data-sqc="'+sq.id+'">CANCEL</button>')+'</div>';
+      var left=Number(sq.scheduled_for||0)-Date.now();
+      h+='<div class="x-note">'+esc(sq.content_id||"")+' &mdash; '+esc(sq.platform||"")
+        +(sq.posted?' <span class="cp-mdone">FIRED</span>'
+          :' &mdash; fires in <b>'+esc(fdCountdown(left))+'</b> ('+esc(fmtSched(sq.scheduled_for))+')'
+          +' <button class="c-btn ghost" data-sqc="'+sq.id+'">CANCEL</button>')+'</div>';
     }
     h+='</div><div class="c-err" id="fdSchedErr"></div>';
   }
@@ -573,6 +611,8 @@ function doAmplify(){
       if(goBtn) goBtn.disabled=false;
       if(j&&j.ok){
         toast("Amplified! "+useAmt+" XP behind \u201c"+sel.title+"\u201d.");
+        /* R12 (Wave 6B): boost impact receipt — "your boost moved X to #N". */
+        try{ if(window.PF&&PF.boostReceipt) PF.boostReceipt(); }catch(e){}
         try{ document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:-useAmt,key:"amplify_"+sel.id+"_"+useAmt,reason:"amplify: "+sel.title}})); }catch(e){}
         var mine=loadMine();
         mine.unshift({id:sel.id,title:sel.title,kind:sel.kind,xp:useAmt,ts:Date.now()});

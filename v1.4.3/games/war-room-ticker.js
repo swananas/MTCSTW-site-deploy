@@ -61,7 +61,11 @@
     /* Event copy — punchy, combative, never invented data. Every value comes
        from the feed_list response (server-sanitized) and is esc()ed. */
     function copyFor(ev) {
-      var cs = ev.callsign ? esc(ev.callsign) : '';
+      /* W2-D17 (2026-10-04): the actor's equipped custom title rides the
+         ticker byline. Backend flag (W6B-1): feed_list events carry title. */
+      var ttl = ev.title ? esc(String(ev.title)).slice(0,40) : '';
+      var byline = ttl ? ' \u00AB' + ttl + '\u00BB' : '';
+      var cs = ev.callsign ? esc(ev.callsign) + byline : '';
       var name = esc(ev.name), theme = esc(ev.theme);
       var tag = tagFor(ev.theme);
       switch (ev.type) {
@@ -121,6 +125,16 @@
            (server-sanitized via narrate.js), rendered verbatim. */
         case 'cell.sponsored':
           return { text: '\uD83C\uDFDB\uFE0F ' + name, tag: '' };
+        /* R29 (2026-10-04): subscription -> ticker event. Backend emitter
+           (W6B-1, flagged): feed_list type subscription/subscribe with meta
+           {creator, amount_per_week}. Perk mechanics need Shane's call. */
+        case 'subscription':
+        case 'subscribe': {
+          var creator = esc((ev.meta && ev.meta.creator) || ev.name || 'a creator');
+          var perWk = (ev.meta && ev.meta.amount_per_week) ? Number(ev.meta.amount_per_week) : 0;
+          return { text: '\uD83D\uDCB0 ' + (cs || 'A comrade') + ' is now funding ' + creator +
+            (perWk > 0 ? ' \u2014 ' + perWk.toLocaleString() + ' XP/week' : ''), tag: '' };
+        }
         default: {
           var label = String(ev.type || '').replace(/_/g, ' ');
           return { text: '\u2022 ' + (cs ? cs + ' — ' : '') + esc(label), tag: '' };

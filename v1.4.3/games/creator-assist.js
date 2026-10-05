@@ -81,6 +81,51 @@ function baWriteErr(e,fb){
 }
   function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
 
+  /* R17 (2026-10-04): shared pack cache for the NEED WORDS? drawer inside
+     bounty claim forms — caption_packs fetched once, reused by every drawer
+     on the page. Lives in the outer closure so the bounty renderer can reach
+     it through the scope chain. */
+  var CA_PACKS=null, CA_PACKS_WAIT=[];
+  function caPacks(cb){
+    if(CA_PACKS){ try{ cb(CA_PACKS); }catch(e){} return; }
+    CA_PACKS_WAIT.push(cb);
+    if(CA_PACKS_WAIT.length>1) return;
+    api("caption_packs",{},function(j){
+      CA_PACKS=(j&&j.ok&&j.packs)||[];
+      var w=CA_PACKS_WAIT; CA_PACKS_WAIT=[];
+      for(var i=0;i<w.length;i++){ try{ w[i](CA_PACKS); }catch(e){} }
+    });
+  }
+  /* R17 + W3-D3 (2026-10-04): pack ratings — the sink for reputation votes.
+     reputation_vote only accepts callsign-format keys, so packs are
+     namespaced pack_<topic-slug>. One vote per voter/pack, changeable. */
+  function caPackKey(topic){
+    return ("pack_"+String(topic||"").toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"")).slice(0,20)||"pack_misc";
+  }
+  function caPostReputation(body,cb){
+    function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+    try{
+      if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,done); return; }
+      fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+        .then(function(r){ return r.json(); }).then(done).catch(function(){ done(null); });
+    }catch(e){ done(null); }
+  }
+  function caRatePack(topic,up,btn,wrap){
+    var id=ident();
+    if(!id.callsign){ toast("Claim a callsign to rate packs."); return; }
+    if(btn) btn.disabled=true;
+    /* Backend contract (feed.js): reputation_vote reads p.creator and p.up. */
+    caPostReputation({type:"reputation",rep_action:"reputation_vote",creator:caPackKey(topic),voter:id.callsign,device:id.device,up:up?1:-1},function(j){
+      if(btn) btn.disabled=false;
+      if(!j||!j.ok){ toast(baWriteErr(j&&j.err||j&&j.error,"Rating failed.")); return; }
+      try{
+        var n=wrap?wrap.querySelector("[data-raten]"):null;
+        if(n) n.textContent=" "+(Number(j.net)||0);
+      }catch(e){}
+      toast(up?"Pack backed.":"Pack docked.");
+    });
+  }
+
   /* JSONP GET, same pattern as the other game silos. 12s timeout. */
   function api(action, params, cb){
     if(!BACKEND){ cb(null); return; }
@@ -228,7 +273,21 @@ function baWriteErr(e,fb){
       loadTab(name);
       return;
     }
-    if(t.classList && t.classList.contains("ca-copy")){
+    /* R17: pack ratings (W3-D3 sink) — intercepted before the copy branch. */
+    if(t.getAttribute && t.getAttribute("data-rate")){
+      var rw=t.closest?t.closest(".ca-rate"):null;
+      caRatePack(rw?rw.getAttribute("data-topic"):"", Number(t.getAttribute("data-rate"))>0, t, rw);
+      return;
+    }
+    /* R17: USE ON A BOUNTY → from packs to the bounty board. */
+    if(t.getAttribute && t.getAttribute("data-gobounty")){
+      var btab=mount.querySelector('.ca-tab[data-tab="bounties"]');
+      if(btab) btab.click();
+      try{ mount.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){}
+      return;
+    }
+    /* R17: drawer copy buttons (bn-wcopy) are handled by the drawer itself. */
+    if(t.classList && t.classList.contains("ca-copy") && !(t.classList.contains("bn-wcopy"))){
       copyText(t.getAttribute("data-copy")||"", t.getAttribute("data-tid")||"", t);
     }
   });
@@ -251,7 +310,13 @@ function baWriteErr(e,fb){
       }
       var h = "";
       j.packs.forEach(function(pack, pi){
-        h += '<div class="ca-topic">'+esc(pack.topic||("pack "+(pi+1)))+'</div>';
+        var topic=pack.topic||("pack "+(pi+1));
+        /* R17: pack topic header carries the W3-D3 rating sink (▲/▼). */
+        h += '<div class="ca-topic">'+esc(topic)
+          +' <span class="ca-rate" data-topic="'+esc(topic)+'">'
+          +'<button class="ca-copy" data-rate="1" title="This pack hits">&#9650;</button>'
+          +'<button class="ca-copy" data-rate="-1" title="This pack misses">&#9660;</button>'
+          +'<span data-raten style="font-size:11px;color:#9db4c8"></span></span></div>';
         (pack.captions||[]).forEach(function(c, ci){
           var tid = "cap_"+esc(pack.topic||pi)+"_"+ci;
           h += '<div class="ca-card"><div class="ca-text">'+esc(c)+'</div>' +
@@ -261,6 +326,8 @@ function baWriteErr(e,fb){
           h += '<div class="ca-card"><div class="ca-tags">'+esc(pack.hashtags.join(" "))+'</div>' +
                '<button class="ca-copy" data-copy="'+esc(pack.hashtags.join(" "))+'" data-tid="tags_'+esc(pack.topic||pi)+'">COPY TAGS</button></div>';
         }
+        /* R17: packs point at the labor — one tap to the bounty board. */
+        h += '<div style="margin:2px 0 14px"><button class="ca-copy" data-gobounty="1">USE ON A BOUNTY &rarr;</button></div>';
       });
       p.innerHTML = h;
     });
@@ -459,7 +526,10 @@ function render(){
       +(b.status==='claimed'?' &bull; CLAIMED':'')+'</div>';
     if(b.status!=='claimed'&&b.status!=='done'){
       h+='<div class="bn-claimrow"><input aria-label="Your content ID (from Poster Forge)" class="bn-input" id="bnSub_'+esc(b.id)+'" placeholder="Your content ID (from Poster Forge)" maxlength="64">'
-        +'<button class="c-btn bn-claim" data-bid="'+esc(b.id)+'">CLAIM</button></div>'
+        +'<button class="c-btn bn-claim" data-bid="'+esc(b.id)+'">CLAIM</button> '
+        /* R17: NEED WORDS? drawer — the armory opens inline, at the point of labor. */
+        +'<button class="c-btn ghost bn-wordsbtn" data-bid="'+esc(b.id)+'">NEED WORDS?</button></div>'
+        +'<div class="bn-words" id="bnWords_'+esc(b.id)+'" style="display:none;margin-top:8px"></div>'
         +'<div class="c-err" id="bnErr_'+esc(b.id)+'"></div>';
     }
     h+='</div>';
@@ -514,6 +584,57 @@ function render(){
         });
       };
     })(cl[c]);
+  }
+  /* R17: NEED WORDS? drawer — opens the relevant armory pack inline inside
+     the bounty claim form. Pack data comes from the outer caPacks() cache;
+     copies go through the outer copyText() (scope chain). */
+  var wb=el.querySelectorAll("button.bn-wordsbtn");
+  for(var wbi=0;wbi<wb.length;wbi++){
+    (function(btn){
+      btn.onclick=function(){
+        var bid=btn.getAttribute("data-bid");
+        var dw=document.getElementById("bnWords_"+bid);
+        if(!dw) return;
+        if(dw.style.display!=="none"){ dw.style.display="none"; btn.textContent="NEED WORDS?"; return; }
+        dw.style.display="block"; btn.textContent="HIDE WORDS";
+        if(dw.getAttribute("data-filled")) return;
+        dw.innerHTML='<div class="x-note">Opening the armory&hellip;</div>';
+        caPacks(function(packs){
+          if(!packs||!packs.length){
+            dw.innerHTML='<div class="x-note">Armory jammed. Open the CAPTIONS tab above for the full packs.</div>';
+            return;
+          }
+          dw.setAttribute("data-filled","1");
+          var h='<div class="ca-topic">Pick a pack, steal the words</div>'
+            +'<select class="bn-input" id="bnWordsSel_'+esc(bid)+'" style="width:100%;margin-bottom:8px" aria-label="Caption pack">';
+          for(var pi=0;pi<packs.length;pi++){
+            h+='<option value="'+pi+'">'+esc(packs[pi].topic||("pack "+(pi+1)))+'</option>';
+          }
+          h+='</select><div id="bnWordsList_'+esc(bid)+'"></div>';
+          dw.innerHTML=h;
+          function paintWords(){
+            var sel=document.getElementById("bnWordsSel_"+bid);
+            var pk=packs[(sel?Number(sel.value):0)||0]||{captions:[]};
+            var lh="";
+            (pk.captions||[]).slice(0,6).forEach(function(c){
+              lh+='<div class="ca-card"><div class="ca-text">'+esc(c)+'</div>'
+                +'<button class="ca-copy bn-wcopy" data-wcopy="'+esc(c).replace(/"/g,"&quot;")+'">COPY</button></div>';
+            });
+            var listEl=document.getElementById("bnWordsList_"+bid);
+            if(listEl) listEl.innerHTML=lh||'<div class="x-note">Empty pack.</div>';
+          }
+          var selEl=document.getElementById("bnWordsSel_"+bid);
+          if(selEl) selEl.onchange=paintWords;
+          paintWords();
+          dw.onclick=function(ev){
+            var t=ev&&ev.target;
+            if(t&&t.classList&&t.classList.contains("bn-wcopy")){
+              copyText(t.getAttribute("data-wcopy")||"","words_bounty_"+bid,t);
+            }
+          };
+        });
+      };
+    })(wb[wbi]);
   }
   /* A4 (2026-10-04): wire sealed mystery bounties — break the seal (accept +
      reveal ceremony), then complete for the server-side 1x-5x roll. */

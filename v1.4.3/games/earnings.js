@@ -64,9 +64,9 @@ function fmtDate(t){
     return mo[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear(); }catch(e){ return ""; }
 }
 function weekStart(){ var d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-d.getDay()); return d.getTime(); }
-var SUBS=null, COMM=null, TIPS=null, HIST=null;
+var SUBS=null, COMM=null, TIPS=null, HIST=null, FT=null;
 function load(){
-  var id=ident(), done=false, n=0, need=4;
+  var id=ident(), done=false, n=0, need=5;
   function fin(){ if(done)return; done=true; render(); }
   function one(){ n++; if(n>=need) fin(); }
   setTimeout(fin,15000);
@@ -74,6 +74,9 @@ function load(){
   api("commission_earnings",{callsign:id.callsign},function(j){ COMM=j; one(); });
   api("tip_history",{callsign:id.callsign},function(j){ TIPS=j; one(); });
   api("xp_history",{callsign:id.callsign,limit:200},function(j){ HIST=j; one(); });
+  /* R30 (2026-10-04): funding_totals — opt-in aggregates for the
+     CREATORS GETTING FUNDED strip. Degrades silently until it ships. */
+  api("funding_totals",{},function(j){ FT=j; one(); });
 }
 function render(){
   var el=document.getElementById("xEarnings"); if(!el) return;
@@ -83,6 +86,7 @@ function render(){
     return;
   }
   h+=renderSummary(id);
+  h+=renderFunded(id);
   h+=renderSubscribers(id);
   h+=renderRevenue(id);
   h+=renderCommissions(id);
@@ -90,8 +94,9 @@ function render(){
   h+='<div style="margin-top:10px"><button class="c-btn" id="erRetry">Refresh</button></div>';
   el.innerHTML=h;
   wireRevenue(id,el);
+  wireFunded(el);
   var rb=document.getElementById("erRetry");
-  if(rb) rb.onclick=function(){ SUBS=COMM=TIPS=HIST=null; el.innerHTML='<div class="c-load">Counting the money&hellip;</div>'; load(); };
+  if(rb) rb.onclick=function(){ SUBS=COMM=TIPS=HIST=null; FT=null; el.innerHTML='<div class="c-load">Counting the money&hellip;</div>'; load(); };
 }
 /* ---------- SUMMARY ---------- */
 function earnTotals(){
@@ -119,6 +124,65 @@ function renderSummary(id){
     +'</div>'
     +'<div class="x-note">XP in. Every stream below feeds these numbers — subscriptions, tips, commissions, revenue shares.</div></div>';
   return h;
+}
+/* ---------- R30: CREATORS GETTING FUNDED ---------- */
+var FUND_MILESTONES=[1000,10000,100000];
+function fundMilestone(tips){
+  var ms=0;
+  for(var i=0;i<FUND_MILESTONES.length;i++){ if(tips>=FUND_MILESTONES[i]) ms=FUND_MILESTONES[i]; }
+  return ms;
+}
+function renderFunded(id){
+  /* Opt-in aggregates only — the backend counts creators who opted in.
+     Silent until funding_totals ships (W6B-1). */
+  if(!FT||!FT.ok) return "";
+  var tips=Number(FT.total_tips||0), n=Number(FT.creator_count||0);
+  var ms=fundMilestone(tips);
+  var h='<div class="x-pane"><div class="pb-bankhead">&#9670; CREATORS GETTING FUNDED &#9670;</div>'
+    +'<div class="pb-cards">'
+    +'<div class="pb-card"><div class="pb-clabel">CREATORS IN</div><div class="pb-cval">'+n.toLocaleString()+'</div></div>'
+    +'<div class="pb-card"><div class="pb-clabel">TIPS FLOWING</div><div class="pb-cval">'+tips.toLocaleString()+'</div></div>'
+    +'</div>'
+    +'<div class="x-note">Opted-in creators only. Real tips, real fighters — the machine funds its own.</div>';
+  if(ms>0){
+    h+='<div style="margin-top:8px"><button class="c-btn" id="erMileBtn">SHARE THE '+ms.toLocaleString()+' MILESTONE</button></div>';
+  }
+  h+='</div>';
+  return h;
+}
+function wireFunded(el){
+  var b=document.getElementById("erMileBtn");
+  if(b) b.onclick=function(){ erPaintMilestone(); };
+}
+function erPaintMilestone(){
+  var tips=Number((FT&&FT.total_tips)||0), n=Number((FT&&FT.creator_count)||0);
+  var ms=fundMilestone(tips);
+  if(!ms){ toast("No milestone hit yet — keep tipping."); return; }
+  try{
+    var W=1080,H=1350,cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+    var x=cv.getContext("2d"); if(!x){ toast("Canvas unavailable."); return; }
+    x.fillStyle="#0d0d0d"; x.fillRect(0,0,W,H);
+    x.strokeStyle="#c1121f"; x.lineWidth=18; x.strokeRect(16,16,W-32,H-32);
+    x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(52,52,W-104,H-104);
+    x.textAlign="center";
+    var y=180;
+    x.fillStyle="#f5ead6"; x.font="700 34px Arial,sans-serif";
+    x.fillText("\u2605 THE PROPAGANDA FACTORY \u2605",W/2,y); y+=120;
+    x.fillStyle="#e8b64c"; x.font="900 110px \\"Arial Black\\",Arial,sans-serif";
+    x.fillText(ms.toLocaleString()+"+",W/2,y); y+=120;
+    x.fillStyle="#f5ead6"; x.font="900 56px \\"Arial Black\\",Arial,sans-serif";
+    x.fillText("TIPS AND COUNTING",W/2,y); y+=100;
+    x.fillStyle="#c9bfa8"; x.font="400 38px Arial,sans-serif";
+    x.fillText(n.toLocaleString()+" creators getting funded.",W/2,y); y+=70;
+    x.fillText("The machine funds its own.",W/2,y);
+    /* Footer: MTCSTW.COM + JOIN THE FIGHT. (red, bold) — the share-image CTA standard. */
+    x.fillStyle="#c1121f"; x.font="900 48px \\"Arial Black\\",Arial,sans-serif";
+    x.fillText("MTCSTW.COM",W/2,H-168);
+    x.font="900 44px \\"Arial Black\\",Arial,sans-serif";
+    x.fillText("JOIN THE FIGHT.",W/2,H-108);
+    if(window.PFShare&&PFShare.shareImage) PFShare.shareImage(cv,"pfn-funding-milestone.png","Creators getting funded","funding");
+    else toast("Share engine still loading.");
+  }catch(e){ toast("Poster failed — try again."); }
 }
 /* ---------- 1. SUBSCRIBERS ---------- */
 function renderSubscribers(id){

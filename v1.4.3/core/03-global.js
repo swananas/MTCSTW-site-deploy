@@ -495,3 +495,47 @@ window.pfShareAchievement = function(gameName, detailText){
     else show();
   }catch(e){}
 })();
+
+/* R12 (Wave 6B, 2026-10-04): BOOST IMPACT RECEIPT — after any boost_give
+   success, ask the backend how this callsign's boosts moved creators
+   (GET ?action=boost_trending&callsign=X -> {ok, moved:[{creator, deltaRank,
+   rank}], top:[...]}) and show a small dismissible receipt:
+   "Your boost moved <creator> to #N", linking into feed trending.
+   Contract-coded (W6B-1 ships boost_trending in parallel) — fails silent if
+   the action is absent or returns nothing. Zero XP: pure routing. */
+window.PF.boostReceipt = function(){
+  try{
+    var url = window.PF_BACKEND_URL; if(!url) return;
+    var cs=''; try{ cs=(window.PFCallsign&&window.PFCallsign())||''; }catch(e){}
+    if(!cs) return;
+    function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    var fn='pfBoostTrend'+Math.floor(Math.random()*1e9), done=false;
+    function fin(j){
+      if(done) return; done=true;
+      try{ delete window[fn]; }catch(e){}
+      try{ var sc=document.getElementById(fn); if(sc&&sc.parentNode) sc.parentNode.removeChild(sc); }catch(e){}
+      try{
+        var moved=(j&&j.ok&&j.moved)||[];
+        if(!moved.length) return;
+        var m=moved[0]||{};
+        var name=String(m.creator||'a creator'), rank=Number(m.rank||0);
+        if(!rank||document.getElementById('pfBoostReceipt')) return;
+        var d=document.createElement('div');
+        d.id='pfBoostReceipt';
+        d.style.cssText='position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:99995;background:#0a0a0a;border:2px solid #c1121f;color:#f5ead6;font-family:Arial,sans-serif;font-size:13px;line-height:1.5;padding:12px 16px;max-width:92vw;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.6)';
+        d.innerHTML='Your boost moved <b style="color:#e8b64c">'+esc(name)+'</b> to <b>#'+rank+'</b> on trending.'
+          +'<br><a href="/create#pf-feed" style="color:#ff5a00;font-weight:bold;text-decoration:none">SEE TRENDING \u2192</a>'
+          +' &nbsp;<button id="pfBoostRx" aria-label="Dismiss" style="background:none;border:1px solid #666;color:#999;padding:2px 8px;cursor:pointer;font-size:12px">\u2715</button>';
+        document.body.appendChild(d);
+        document.getElementById('pfBoostRx').onclick=function(){ try{ d.parentNode.removeChild(d); }catch(e){} };
+        setTimeout(function(){ try{ if(d.parentNode) d.parentNode.removeChild(d); }catch(e){} },15000);
+      }catch(e){}
+    }
+    window[fn]=function(j){ fin(j); };
+    var s=document.createElement('script');
+    s.id=fn; s.onerror=function(){ fin(null); };
+    s.src=url+'?action=boost_trending&callsign='+encodeURIComponent(cs)+'&callback='+fn;
+    try{ document.head.appendChild(s); }catch(e){ fin(null); return; }
+    setTimeout(function(){ fin(null); },10000);
+  }catch(e){}
+};

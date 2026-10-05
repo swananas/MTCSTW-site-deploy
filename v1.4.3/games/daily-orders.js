@@ -537,7 +537,9 @@ function raidSave(s){ try{ localStorage.setItem(RAID_LS,JSON.stringify(s)); }cat
 function raidCurrent(){
   var tgt=RAID_TARGETS[raidDayNum()%RAID_TARGETS.length];
   var rr=rosterBySlug(tgt.s);
-  return {tgt:tgt, rr:rr, tn:tgt.label||(rr&&rr.name)||tgt.s, th:(rr&&rr.handle)||"", tp:(rr&&rr.platform)||""};
+  /* R21 (Wave 6B): the target URL is stored at rotation time so the mission
+     target name renders as an anchor — Like/Comment/Share with a click. */
+  return {tgt:tgt, rr:rr, tn:tgt.label||(rr&&rr.name)||tgt.s, th:(rr&&rr.handle)||"", tp:(rr&&rr.platform)||"", tu:"/"+tgt.s};
 }
 function paintRaidStreak(){
   var sEl=document.getElementById("oRaidStreak"); if(!sEl) return;
@@ -576,7 +578,7 @@ function renderRaid(){
   +'<div style="font-size:1.15rem;font-weight:900;letter-spacing:0.18em;color:#c1121f;">&#9876; TODAY\u2019S HEADLINE MISSION &#9876;</div>'
   +'<div style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;">One target. One day. The whole network hits it at once.<br>Like. Comment. Share. Report back.</div>'
   +'<div><div style=\"font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\">TODAY\u2019S TARGET</div>'
-  +'<div style=\"font-size:1.5rem;font-weight:900;margin:0.4rem 0;\">'+escHtml(cur.tn)+'</div>'
+  +'<div style=\"font-size:1.5rem;font-weight:900;margin:0.4rem 0;\"><a href=\"'+cur.tu+'\" style=\"color:#f5f0e1;text-decoration:underline;text-decoration-color:#c1121f;\">'+escHtml(cur.tn)+'</a></div>'
   +'<div style=\"font-size:0.9rem;color:#b8ab8e;\">'+escHtml(cur.th)+(cur.tp?' \u00b7 '+escHtml(cur.tp):'')+'</div>'
   +'<div style=\"font-size:0.95rem;margin:0.8rem 0;padding:0.8rem;border:2px dashed #c1121f;\">'+escHtml(cur.tgt.m)+'</div></div>'
   +'<div id="oRaidTurnout" style="font-size:0.85rem;color:#b8ab8e;margin:0.6rem 0;min-height:1.2em;"></div>'
@@ -895,6 +897,16 @@ function render(){
   renderPatrons();
   renderRaid();
   document.getElementById("oStreak").innerHTML="Current streak: <b>"+(d.o.streak||0)+"</b> day"+((d.o.streak||0)===1?"":"s")+((d.o.shields||0)>0?" &nbsp;\uD83D\uDEE1\uFE0F x"+d.o.shields:"");
+  /* R26 (2026-10-04): the ONE shared inventory chip mounts on the streak
+     row — extends the shield display above, no second chip system. */
+  try{
+    var _os=document.getElementById("oStreak");
+    if(_os&&window.PF&&PF.mountInventoryChip){
+      var _chip=document.getElementById("oInvChip");
+      if(!_chip){ _chip=document.createElement("span"); _chip.id="oInvChip"; _os.appendChild(_chip); }
+      PF.mountInventoryChip(_chip);
+    }
+  }catch(e){}
   var s=d.o.streak||0;
   var nextMil=Object.keys(STREAK_BONUS).map(Number).filter(function(n){return n>s;}).sort(function(a,b){return a-b;})[0];
       document.getElementById("oNext").textContent=nextMil?("Streak bonus at "+nextMil+" days (+"+STREAK_BONUS[nextMil]+" XP)"):"Maximum streak bonus achieved. Legendary.";

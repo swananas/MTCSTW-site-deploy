@@ -706,6 +706,9 @@ function comebackBanner(xp){
         if(j&&j.ok){
           var got=Number(j.xp||xp||50);
           toast("Welcome back. +"+got+" XP."); comboHit();
+          /* R11 (Wave 6B, 2026-10-04): post-comeback_claim routing — the
+             reactivated user gets a WAR PLAN card, not a dead homepage top. */
+          warplanCard();
           /* 2026-10-03: comeback:record_check (AUTH) — check the day's haul
              against the personal best right in the comeback flow. */
           try{
@@ -716,6 +719,22 @@ function comebackBanner(xp){
         }
       });
     }; }
+  }catch(e){}
+}
+/* R11 (Wave 6B): YOUR WAR PLAN FOR TODAY card — dismissible, deep-links to
+   the briefing's war-plan section (/#pf-warplan). Zero XP: pure routing. */
+function warplanCard(){
+  try{
+    if(document.getElementById("dpWarplan")) return;
+    var d=document.createElement("div");
+    d.id="dpWarplan";
+    d.style.cssText="position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:99995;background:#0a0a0a;border:2px solid #c1121f;color:#f5ead6;font:bold 14px Arial,sans-serif;padding:14px 18px;max-width:92vw;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.6)";
+    d.innerHTML='<div style="font-size:11px;letter-spacing:2px;color:#c1121f;margin-bottom:6px">WELCOME BACK, SOLDIER</div>'
+      +'<a href="/#pf-warplan" style="color:#f5ead6;text-decoration:none;font-size:16px;letter-spacing:1px">YOUR WAR PLAN FOR TODAY \u2192</a>'
+      +'<button id="dpWarplanX" aria-label="Dismiss" style="margin-left:12px;background:none;border:1px solid #666;color:#999;padding:2px 8px;cursor:pointer;font-size:12px">\u2715</button>';
+    document.body.appendChild(d);
+    document.getElementById("dpWarplanX").onclick=function(){ try{ d.parentNode.removeChild(d); }catch(e){} };
+    setTimeout(function(){ try{ if(d.parentNode) d.parentNode.removeChild(d); }catch(e){} },30000);
   }catch(e){}
 }
 /* comeback check runs site-wide on homepage load */

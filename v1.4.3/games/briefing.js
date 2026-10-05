@@ -17,6 +17,9 @@
   if (!PF || PF.skip("brief")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-brief">
 <div class="fe-block pf-override-block pf-silo" id="pf-brief">
+<!-- W6B (2026-10-04): anchor for R11/R22 /#pf-warplan links. Wave 5A's W5-4
+     war-plan section should take over this id when it merges — remove this span then. -->
+<span id="pf-warplan"></span>
 <h2>Morning Briefing</h2>
 <div class="c-tag">Your war, at a glance. Thirty seconds, then move.</div>
 <div id="xBrief"><div class="c-load">Assembling your briefing&hellip;</div></div>
@@ -119,8 +122,8 @@ function fmtHours(ms){
   var h=Math.floor(ms/3600000), m=Math.floor((ms%3600000)/60000);
   return h+"H "+(m<10?"0":"")+m+"M";
 }
-var BAL=null,STREAK=null,LOOT=null,FLASH=null,COMEBACK=null,COMEBACK_ERR=null,PROP=null,CELL=null,MISS=null,STAT=null,SEASON=null,BRIEF=null,SEASHIST=null,CIRCUIT=null,WARPLAN=null,OPARC=null,HALL=null;
-var N_CALLS=14;
+var BAL=null,STREAK=null,LOOT=null,FLASH=null,COMEBACK=null,COMEBACK_ERR=null,PROP=null,CELL=null,MISS=null,STAT=null,SEASON=null,BRIEF=null,SEASHIST=null,CIRCUIT=null,WARPLAN=null,OPARC=null,HALL=null,ECON=null;
+var N_CALLS=15;
 function load(){
   var id=ident(), done=false, n=0;
   function fin(){ if(done)return; done=true; render(); }
@@ -161,6 +164,10 @@ function load(){
   try{
     api("hall_list",{},function(j){ HALL=(j&&j.ok)?j:null; paintHallMention(); });
   }catch(e){}
+  /* R34 (2026-10-04): econ_calendar — auctions ending / drops starting as
+     appointment mechanics inside the briefing. Degrades silently until W6B-1
+     ships the action. */
+  api("econ_calendar",{},function(j){ ECON=(j&&j.ok)?j:null; one(); });
 }
 function seasonInfo(){
   if(SEASON){
@@ -432,6 +439,33 @@ function render(){
     }
   }catch(e){ h+='<div class="x-note">Cell intel unavailable.</div>'; }
   h+='</div>';
+  /* ---------- 4.5 ECON CALENDAR (R34) — appointment mechanics: auctions
+     ending and drops starting, straight from econ_calendar. Past items are
+     skipped; the whole section hides until the backend action ships. */
+  (function(){
+    var now=Date.now(), rows=[];
+    try{
+      var auc=ECON&&ECON.auctions?ECON.auctions:[];
+      for(var ai=0;ai<auc.length;ai++){
+        var a=auc[ai], ends=Number(a.ends_at||0);
+        if(ends&&ends<now) continue;
+        rows.push({t:"AUCTION ENDS: "+(a.title||a.id||"auction"), c:fmtCountdown(ends?ends-now:0)});
+      }
+      var drp=ECON&&ECON.drops?ECON.drops:[];
+      for(var di2=0;di2<drp.length;di2++){
+        var dp=drp[di2], starts=Number(dp.starts_at||0);
+        if(starts&&starts<now) continue;
+        rows.push({t:"DROP: "+(dp.title||dp.id||"drop"), c:starts?("IN "+fmtCountdown(starts-now)):"SOON"});
+      }
+    }catch(e){}
+    if(!rows.length) return;
+    h+='<div class="br-sec"><div class="br-sect">ECON CALENDAR</div>';
+    for(var ri=0;ri<Math.min(rows.length,5);ri++){
+      h+='<div class="br-order"><span class="br-oname">'+esc(rows[ri].t)+'</span>'
+        +'<span class="br-oxp">'+esc(rows[ri].c)+'</span></div>';
+    }
+    h+='<div style="margin-top:8px"><a href="/economy" class="c-btn" style="text-decoration:none;display:inline-block;">RUN THE ECONOMY</a></div></div>';
+  })();
   /* ---------- 5. SEASON PROGRESS ---------- */
   var sn=seasonInfo();
   var dl=Math.max(0,Math.ceil((sn.endsAt-Date.now())/86400000));
@@ -571,6 +605,7 @@ function bannerCss(){
     +"#pf-seasonbar .sb-bar{flex:1;height:6px;background:#222;border-radius:3px;overflow:hidden;min-width:60px}"
     +"#pf-seasonbar .sb-fill{height:100%;background:#c1121f}"
     +"#pf-seasonbar .sb-days{color:#e8b64c;white-space:nowrap}"
+    +"#pf-seasonbar .sb-link{display:flex;align-items:center;gap:10px;flex:1;color:inherit;text-decoration:none;cursor:pointer}"
     /* 2026-10-03: FEATURED DROP slot (Daily Drop consolidation) — the drop's
        own styles, rescoped from #pf-drop to #pf-brief.br-*. */
     +"#pf-brief .br-dday{font-family:Arial,sans-serif;font-size:13px;letter-spacing:3px;color:#ff5a00;text-transform:uppercase;margin-bottom:12px}"
@@ -600,9 +635,12 @@ function renderSeasonBanner(){
       bar=document.createElement("div"); bar.id="pf-seasonbar";
       document.body.appendChild(bar);
     }
-    bar.innerHTML='<span class="sb-name">\u2694 '+esc(sn.name)+'</span>'
+    /* R22 (Wave 6B): the season banner is a link — tap through to the
+       briefing's season/war-plan section instead of a dead strip. */
+    bar.innerHTML='<a class="sb-link" href="/#pf-warplan" title="See the war plan">'
+      +'<span class="sb-name">\u2694 '+esc(sn.name)+'</span>'
       +'<span class="sb-bar"><span class="sb-fill" style="display:block;width:'+pct+'%"></span></span>'
-      +'<span class="sb-days">'+dl+'D LEFT &bull; '+pct+'%</span>';
+      +'<span class="sb-days">'+dl+'D LEFT &bull; '+pct+'%</span></a>';
     /* keep clear of the dopamine comeback banner if it appears */
     var top=0;
     try{ if(document.getElementById("dpComeback")) top=42; }catch(e){}

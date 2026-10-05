@@ -31,6 +31,7 @@
 #pf-civic .cv-dirname{font-weight:900;font-size:16px;margin-bottom:4px}
 #pf-civic .cv-pb{display:inline-block;min-width:20px;text-align:center;font-weight:900;font-size:12px;border:1px solid #f5ead6;padding:1px 6px;margin-left:8px;vertical-align:middle}
 #pf-civic .cv-pb-D{color:#8fbfff}#pf-civic .cv-pb-R{color:#ff8f8f}#pf-civic .cv-pb-I{color:#c9bfa8}
+#pf-civic .cv-nv{display:inline-block;font-weight:900;font-size:11px;letter-spacing:1px;border:1px solid #f5ead6;padding:2px 6px;margin-left:8px;vertical-align:middle;white-space:nowrap}
 #pf-civic .cv-diractions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
 #pf-civic .cv-xpb{display:inline-block;font-weight:900;font-size:12px;color:#ffd166;border:1px solid #ffd166;padding:6px 10px;white-space:nowrap}
 </style>
@@ -206,8 +207,12 @@ function dirRowHTML(r){
   /* tel: href sanitized to dial-safe chars; display keeps the API string. */
   var telHref=phone?("tel:"+phone.replace(/[^0-9+().\-]/g,"")):"";
   var curl=String(r.contact_form||r.url||"").trim();
+  /* CEO directive 2026-10-05: non-voting delegates (voting===false) get a
+     visible label. Fail-soft: rows without the field render exactly as
+     before (strict === false, so true/absent/undefined => no label). */
+  var nvLabel=(r.voting===false?'<span class="cv-nv">NON-VOTING DELEGATE</span>':"");
   var h='<div class="cv-dirrow">'
-    +'<div class="cv-dirname">'+esc(nm)+partyBadge(r.party)+'</div>'
+    +'<div class="cv-dirname">'+esc(nm)+partyBadge(r.party)+nvLabel+'</div>'
     +'<div class="x-note">'+(chLabel?esc(chLabel)+" &middot; ":"")+loc+'</div>'
     +'<div class="cv-diractions">';
   if(telHref) h+='<a class="c-btn cv-t44" href="'+esc(telHref)+'">CALL</a>';

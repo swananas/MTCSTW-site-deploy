@@ -4910,13 +4910,8 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
   <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:0.8rem;line-height:1.5;">One-time purchase, right here.<br><b style="color:#f5f0e1;">50%</b> funds the network &middot; <b style="color:#f5f0e1;">50%</b> goes into the creator pool, split equally among <b style="color:#f5f0e1;">every</b> creator on the roster.</div>
   <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:0.8rem;line-height:1.5;">The week&rsquo;s team-board winner takes an extra <b style="color:#f5f0e1;">5%</b> of the pool.</div>
   <div id="pf-wb-buy" style="margin-bottom:1.3rem;"></div>
-  <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:1.1rem;line-height:1.5;">Checkout opens the store in a new tab &mdash; your bond XP lands in the <b style="color:#f5f0e1;">Agitator&rsquo;s Ledger</b> automatically. Go check it.</div>
+  <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:1.1rem;line-height:1.5;">Checkout opens the store in a new tab. War Bonds fund the fight &mdash; they grant no XP, ever.</div>
   <div style="border-top:2px solid #c1121f;margin:1.3rem 0 1rem;"></div>
-  <div style="font-size:0.85rem;font-weight:900;letter-spacing:0.16em;color:#f5f0e1;margin-bottom:0.5rem;">ALREADY BOUGHT? CLAIM YOUR XP</div>
-  <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:0.8rem;line-height:1.5;">Bought a bond before you had a callsign? Enter the email you used at checkout to collect your thank-you XP.</div>
-  <input id="pf-wb-email" type="email" placeholder="checkout email" autocapitalize="off" autocomplete="email" spellcheck="false" style="width:100%;max-width:420px;background:#141414;color:#f5f0e1;border:2px solid #c1121f;padding:0.7rem;font-size:1rem;font-family:inherit;box-sizing:border-box;margin-bottom:0.6rem;text-align:center;" />
-  <div><button id="pf-wb-claim" style="display:inline-block;background:#c1121f;color:#f5f0e1;font-weight:900;letter-spacing:0.1em;border:none;padding:0.8rem 2rem;font-size:0.95rem;cursor:pointer;font-family:inherit;">CLAIM BOND XP</button></div>
-  <div id="pf-wb-claimmsg" style="font-size:0.85rem;color:#b8ab8e;margin-top:0.7rem;line-height:1.5;min-height:1.2em;"></div>
   <div style="font-size:0.8rem;color:#b8ab8e;letter-spacing:0.14em;margin-bottom:0.6rem;">OR FUND MONTHLY</div>
   <a href="https://mtcstw.substack.com" target="_blank" rel="noopener" style="display:inline-block;border:2px solid #c1121f;color:#f5f0e1;font-weight:700;letter-spacing:0.1em;text-decoration:none;padding:0.7rem 1.8rem;font-size:0.95rem;margin-bottom:1.1rem;">BECOME A PAID SUPPORTER &rarr;</a>
   <div style="font-size:0.8rem;color:#b8ab8e;letter-spacing:0.14em;margin-bottom:0.6rem;">OR BACK A PROPAGANDIST DIRECTLY</div>
@@ -5056,79 +5051,11 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
     }
     out.innerHTML = h;
   };
-  /* BOND XP CLAIM: buyers who purchased before claiming a callsign collect
-     their thank-you XP here. The purchase flow itself stays frictionless —
-     this gate only guards the XP collection. */
-  var wbClaimBtn = document.getElementById('pf-wb-claim');
-  if(wbClaimBtn){
-    /* C2a (2026-10-03): claim attempts are retryable. When the backend
-       reports the store webhook has NEVER fired, show an honest "not yet"
-       state with a RETRY button instead of dead-ending. */
-    var wbMsgEl = document.getElementById('pf-wb-claimmsg');
-    function wbSay(m){ if(wbMsgEl) wbMsgEl.textContent = m; }
-    function attemptClaim(){
-      if(!window.PF || !PF.requireCallsign){ wbSay('Loading\u2026 try again in a moment.'); return; }
-      PF.requireCallsign(function(cs){
-        if(!cs){ wbSay('Claim a callsign above to collect your bond XP.'); return; }
-        var emailEl = document.getElementById('pf-wb-email');
-        var email = emailEl ? String(emailEl.value || '').trim().toLowerCase() : '';
-        if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){ wbSay('Enter the email you used at checkout.'); return; }
-        wbSay('Checking for unclaimed bonds\u2026');
-        wbClaimBtn.disabled = true;
-        var body = { type:'warbond', wb_action:'bond_claim', callsign:cs, email:email };
-        /* Device id for backend dedupe/anti-abuse (same ident() pattern as
-           the other claim-type calls). */
-        try{ body.device = window.PFDeviceId ? window.PFDeviceId() : ''; }catch(e){ body.device=''; }
-        var url = window.PF_BACKEND_URL;
-        function postBody(b, cb){
-          if(window.PF && PF.authPost){ PF.authPost(url, b, cb); return; }
-          try{
-            /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
-            var _po=(function(){ var o={method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(b)},c=null,t=null;
-              try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
-                t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
-              o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
-            fetch(url, _po)
-              .then(function(r){ return r.json(); })
-              .then(function(j){ _po._pfClear(); cb(j); })
-              .catch(function(){ _po._pfClear(); cb(null); });
-          }catch(e){ cb(null); }
-        }
-        postBody(body, function(j){
-          wbClaimBtn.disabled = false;
-          if(!j || !j.ok){ wbSay(PF.errCopy(j, 'Claim failed. Try again.')); return; }
-          /* R29 (2026-10-05): war-bond purchase is NOT the subscriber
-             definition — creator subscriptions are (BUILD_MASTER_PLAN.md:95;
-             the subscriptions table is the source of truth). After a claim
-             attempt, refresh the real subscriber flag from
-             subscription_list so the badge, ticker and poster frame (all
-             keyed on PF.isSubscriber) stay honest. Never set subscriber
-             status from a bond claim. */
-          try{ if(window.PF && PF.refreshSubscriber) PF.refreshSubscriber(); }catch(e_sub){}
-          if(!j.claimed){
-            if(j.no_webhooks_received){
-              /* The Squarespace webhook has never fired — the buyer isn't at
-                 fault. Honest state + RETRY, never a dead end. */
-              if(wbMsgEl){
-                wbMsgEl.innerHTML = 'No purchase detected yet \u2014 if you just bought, allow a few minutes, then retry. '
-                  + '<button id="pf-wb-retry" style="display:inline-block;background:transparent;border:2px solid #c1121f;color:#c1121f;font-weight:700;letter-spacing:0.1em;padding:0.4rem 1.2rem;font-size:0.85rem;cursor:pointer;font-family:inherit;margin-left:0.4rem;">RETRY</button>';
-                var rbt = document.getElementById('pf-wb-retry');
-                if(rbt) rbt.onclick = function(){ attemptClaim(); };
-              } else {
-                wbSay('No purchase detected yet \u2014 if you just bought, allow a few minutes, then retry.');
-              }
-            } else {
-              wbSay(j.capped ? 'Daily XP cap reached \u2014 your bonds are still waiting. Come back tomorrow.' : 'No unclaimed bonds found for that email.');
-            }
-            return;
-          }
-          wbSay('BOND XP CLAIMED: +' + (j.xp_granted || 0) + ' XP. Check your ledger.');
-          try{ if(window.PF && PF.toast) PF.toast('Bond XP claimed: +' + (j.xp_granted || 0) + ' XP.'); }catch(e){}
-        });
-      }, { context: 'to claim your War Bond XP' });
-    }
-    wbClaimBtn.onclick = function(){ attemptClaim(); };
-  }
+  /* G-11 (2026-10-05): BOND XP CLAIM surface REMOVED — War Bonds are
+     delinked from XP per CEO decision 2026-10-05 (backend grants 0,
+     bond_claim returns {claimed:0, xp_granted:0}: nothing to claim).
+     The purchase flow, bond_stats strip, and creator-pick sections
+     above are unchanged. */
 })();
 </script>
 </template>`);

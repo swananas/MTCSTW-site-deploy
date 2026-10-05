@@ -2,7 +2,9 @@
 /* tests/stateleg.verify.js — DOM-stub smoke harness for games/stateleg.js
  * (State Legislatures frontend, Political HQ).
  * Runs the REAL module (outer IIFE, not the staged template) in a vm sandbox
- * with a fake DOM + fake JSONP/fetch backend, then drives window.PFStateLeg
+ * with a fake DOM + fake JSONP/fetch backend (mirroring the REAL
+ * be/state-legislatures contract: stateleg_list / statebills_list /
+ * statepeople_list with epoch updated_at), then drives window.PFStateLeg
  * like the federal tracker team would. Asserts:
  *   1. mount API exists; states list = 50 + DC (51)
  *   2. state picker renders 51 options; selecting a state lazy-loads
@@ -11,7 +13,7 @@
  *      source link / updated line
  *   4. stale flag (>14d) shows "last updated Xd ago" on old bills only
  *   5. missing fields render "check the official source" (data honesty)
- *   6. unicameral Nebraska renders a single chamber line
+ *   6. Nebraska (house_name null) renders its single chamber name
  *   7. pressure-this-bill: PFPressCampaigns hook fires when present;
  *      otherwise a bubbling 'pf-pressure-bill' CustomEvent with the bill
  *   8. contact logging POST shape: type/rep + r_action/rep_contact +
@@ -24,6 +26,7 @@
  *  12. statepeople_list absent -> legislator section hides cleanly
  *  13. renderSection() standalone mount works
  *  14. stored-XSS: backend strings are escaped
+ *  15. DC (no seeded row) -> honest "no data" note, not an error loop
  * Run: node tests/stateleg.verify.js
  */
 'use strict';
@@ -128,41 +131,51 @@ function qsa(root, sel) {
   return out;
 }
 
-/* ---------- fake backend ---------- */
+/* ---------- fake backend (mirrors the REAL be/state-legislatures contract) ---------- */
 var backendDown = false;
 var fetchCalls = [];
 var fetchResponder = function () { return { ok: true }; };
-function daysAgoISO(d) { return new Date(Date.now() - d * 86400000).toISOString(); }
+function daysAgoEpoch(d) { return Math.floor(Date.now() / 1000) - d * 86400; }
 var CANNED = {
-  'stateleg_state|TX': { ok: true, legislature: {
-    upper_name: 'Senate', lower_name: 'House of Representatives',
-    session_status: 'in session', party_control: 'Republican trifecta',
-    last_updated: daysAgoISO(1),
-    source_url: 'https://capitol.texas.gov', source: 'Texas Legislature Online' } },
-  'stateleg_state|NE': { ok: true, legislature: {
-    upper_name: '', lower_name: 'Unicameral',
-    session_status: 'adjourned', party_control: 'Nonpartisan (officially)',
-    last_updated: daysAgoISO(3),
-    source_url: 'https://www.nebraskalegislature.gov', source: 'Nebraska Legislature' } },
-  'stateleg_bills|TX': { ok: true, bills: [
-    { id: 'tx1', number: 'HB 100', title: 'Test Bill Fresh', summary: 'A fresh test bill.',
-      status: 'introduced', sponsors: ['Rep. A', 'Rep. B'],
-      source_url: 'https://capitol.texas.gov/bill/hb100', source: 'Texas Legislature Online',
-      updated_at: daysAgoISO(2) },
-    { id: 'tx2', number: 'SB 50', title: 'Test Bill Stale', summary: 'A stale test bill.',
-      status: 'passed chamber', sponsors: 'Sen. C',
-      source_url: 'https://capitol.texas.gov/bill/sb50', source: 'Texas Legislature Online',
-      updated_at: daysAgoISO(20) },
-    { id: 'tx3', number: 'HB 9', title: 'Test Bill <script>alert(1)</script>',
-      status: 'signed', sponsors: [],
-      source_url: 'https://capitol.texas.gov/bill/hb9', source: 'Texas Legislature Online',
-      updated_at: daysAgoISO(5) }
+  'stateleg_list|': { ok: true, count: 3, legislatures: [
+    { state: 'TX', name: 'Texas', senate_name: 'Senate',
+      house_name: 'House of Representatives', session_status: 'adjourned',
+      senate_control: 'R', house_control: 'R', governor_party: 'R',
+      updated_at: daysAgoEpoch(1), stale: false, notes: null },
+    { state: 'NE', name: 'Nebraska', senate_name: 'Nebraska Legislature',
+      house_name: null, session_status: 'adjourned',
+      senate_control: 'Nonpartisan', house_control: null, governor_party: 'R',
+      updated_at: daysAgoEpoch(3), stale: false,
+      notes: 'Unicameral, officially nonpartisan.' },
+    { state: 'MI', name: 'Michigan', senate_name: 'Senate',
+      house_name: 'House of Representatives', session_status: 'in_session',
+      senate_control: 'D', house_control: 'D', governor_party: 'D',
+      updated_at: daysAgoEpoch(1), stale: false, notes: null }
   ] },
-  'stateleg_bills|NE': { ok: true, bills: [] },
-  'statepeople_list|TX': { ok: true, people: [
-    { name: 'Jane Doe', chamber: 'House', party: 'D', district: '45', phone: '(512) 555-0100' },
-    { name: 'John Smith', chamber: 'Senate', party: 'R', district: '12', phone: '' }
-  ] }
+  'statebills_list|TX': { ok: true, count: 3, filters: { state: 'TX', status: null }, bills: [
+    { bill_id: 'TX-HB-100', state: 'TX', title: 'Test Bill Fresh',
+      plain_english_summary: 'A fresh test bill.', status: 'introduced',
+      sponsors: ['Rep. A', 'Rep. B'], updated_at: daysAgoEpoch(2), stale: false,
+      source: 'https://capitol.texas.gov/bill/hb100', notes: null },
+    { bill_id: 'TX-SB-50', state: 'TX', title: 'Test Bill Stale',
+      plain_english_summary: 'A stale test bill.', status: 'passed_chamber',
+      sponsors: ['Sen. C'], updated_at: daysAgoEpoch(20), stale: true,
+      source: 'https://capitol.texas.gov/bill/sb50', notes: null },
+    { bill_id: 'TX-HB-9', state: 'TX', title: 'Test Bill <script>alert(1)</script>',
+      plain_english_summary: '', status: 'signed', sponsors: [],
+      updated_at: daysAgoEpoch(5), stale: false,
+      source: 'https://capitol.texas.gov/bill/hb9', notes: null }
+  ] },
+  'statebills_list|NE': { ok: true, count: 0, filters: { state: 'NE', status: null }, bills: [] },
+  'statebills_list|MI': { ok: true, count: 0, filters: { state: 'MI', status: null }, bills: [] },
+  'statebills_list|DC': { ok: true, count: 0, filters: { state: 'DC', status: null }, bills: [] },
+  'statepeople_list|TX': { ok: true, count: 2, seeded: 'partial', note: 'partial seed',
+    legislators: [
+      { leg_id: 'TX-HD-45', state: 'TX', name: 'Jane Doe', chamber: 'House',
+        party: 'D', district: '45', notes: null },
+      { leg_id: 'TX-SD-12', state: 'TX', name: 'John Smith', chamber: 'Senate',
+        party: 'R', district: '12', notes: null }
+    ] }
   /* statepeople_list|NE intentionally absent -> section hides */
 };
 
@@ -214,7 +227,7 @@ sandboxDocument.head.appendChild = function (s) {
   var cb = u.searchParams.get('callback');
   var state = u.searchParams.get('state');
   var resp = null;
-  if (!backendDown) resp = CANNED[action + '|' + state] || null;
+  if (!backendDown) resp = CANNED[action + '|' + (state || '')] || null;
   var fn = sandboxWindow[cb];
   delete sandboxWindow[cb];
   if (typeof fn === 'function') fn(resp);
@@ -281,8 +294,13 @@ ok('prompt shown before a state is picked',
 pickState(m1, 'TX');
 var h1 = htmlOf(m1);
 ok('legislature header: chamber names', h1.indexOf('Senate') >= 0 && h1.indexOf('House of Representatives') >= 0);
-ok('session status badge: in session', h1.indexOf('In session') >= 0 && h1.indexOf('slb-in') >= 0);
-ok('party control shown', h1.indexOf('Republican trifecta') >= 0);
+ok('session status badge: TX adjourned', h1.indexOf('Adjourned') >= 0 && h1.indexOf('slb-adj') >= 0);
+ok('party control shown (Senate/House/Gov)', h1.indexOf('Senate R') >= 0 && h1.indexOf('House R') >= 0 && h1.indexOf('Gov R') >= 0);
+pickState(m1, 'MI');
+var hMI = htmlOf(m1);
+ok('session status badge: in_session -> In session', hMI.indexOf('In session') >= 0 && hMI.indexOf('slb-in') >= 0);
+pickState(m1, 'TX');
+h1 = htmlOf(m1);
 ok('bills: 3 cards rendered', m1.el.querySelectorAll('[data-bill-card]').length === 3);
 ok('status chips: introduced/passed chamber/signed',
   h1.indexOf('>Introduced<') >= 0 && h1.indexOf('>Passed chamber<') >= 0 && h1.indexOf('>Signed<') >= 0);
@@ -307,8 +325,8 @@ ok('missing summary -> "check the official source"',
 ok('stored-XSS escaped', h1.indexOf('&lt;script&gt;alert(1)&lt;/script&gt;') >= 0 &&
   h1.indexOf('<script>alert(1)') < 0);
 ok('legislator rows render', h1.indexOf('Jane Doe') >= 0 && h1.indexOf('John Smith') >= 0);
-ok('tel: link digits-normalized', h1.indexOf('href="tel:5125550100"') >= 0);
-ok('no phone -> "no phone listed"', h1.indexOf('no phone listed') >= 0);
+ok('no phone in backend contract -> "no phone listed" on both rows',
+  (h1.match(/no phone listed/g) || []).length === 2);
 ok('method select present', m1.el.querySelectorAll('.sl-method').length === 1);
 ok('+25 XP copy on log buttons',
   (h1.match(/LOG CONTACT \(\+25 XP\)/g) || []).length === 2);
@@ -326,7 +344,7 @@ var card2 = null;
 })();
 ok("pressure fires 'pf-pressure-bill' CustomEvent when hook absent",
   card2 && card2._dispatched && card2._dispatched.type === 'pf-pressure-bill' &&
-  card2._dispatched.detail.bill.number === 'SB 50');
+  card2._dispatched.detail.bill.number === 'TX-SB-50');
 
 /* pressure hook: PFPressCampaigns present */
 var hookBills = [];
@@ -335,7 +353,7 @@ var m2 = freshMount({ state: 'TX' });
 var p2 = m2.el.querySelectorAll('[data-sl-pressure]')[0];
 p2.click();
 ok('pressure calls window.PFPressCampaigns.pressureBill when present',
-  hookBills.length === 1 && hookBills[0].number === 'HB 100');
+  hookBills.length === 1 && hookBills[0].number === 'TX-HB-100');
 delete sandboxWindow.PFPressCampaigns;
 
 /* contact logging POST shape */
@@ -417,12 +435,19 @@ setTimeout(function () {
     /* statepeople_list absent -> section hides */
     var m7 = freshMount({ state: 'NE' });
     var h7 = htmlOf(m7);
-    ok('Nebraska unicameral single chamber line',
-      h7.indexOf('Unicameral') >= 0 && h7.indexOf('Senate') < 0);
+    ok('Nebraska renders its single chamber name (real contract: house_name null)',
+      h7.indexOf('Nebraska Legislature') >= 0);
     ok('absent statepeople_list -> legislator section hidden',
       h7.indexOf('Your state legislators') < 0);
     ok('NE empty bills -> honest empty state',
       h7.indexOf('No active bills listed') >= 0);
+
+    /* DC has no seeded row in the real backend -> honest "no data" note */
+    var m7b = freshMount({ state: 'DC' });
+    var h7b = htmlOf(m7b);
+    ok('DC (unseeded) -> "No legislature data" note, not an error loop',
+      h7b.indexOf('No legislature data for this state yet.') >= 0 &&
+      h7b.indexOf('c-err') < 0);
 
     /* renderSection standalone */
     appendedSections = [];

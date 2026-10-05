@@ -59,24 +59,28 @@
      here deliberately so the module is self-contained. If the integrator
      wants a single shared helper, dedupe at merge time.
    ---------------------------------------------------------------------------
-   BACKEND READ CONTRACT (assumed — backend team to confirm; every read is
+   BACKEND READ CONTRACT (be/state-legislatures — canonical; every read is
    JSONP via the shared api() helper, every failure is fail-soft with an
    inline error + RETRY):
-     stateleg_state  ?state=TX  -> { ok, legislature: {
-       upper_name, lower_name,        // e.g. 'Senate' / 'House of Representatives'
-       session_status,                // 'in session' | 'adjourned' | 'special'
-       party_control,                 // free text, e.g. 'Republican trifecta'
-       last_updated, source_url, source } }
-       Nebraska: upper_name empty + lower_name 'Unicameral' -> single chamber.
-     stateleg_bills  ?state=TX  -> { ok, bills: [ {
-       id, number, title, summary, status, sponsors,   // sponsors: array or string
-       source_url, source, updated_at } ] }
-       status chips: introduced / passed chamber / passed legislature /
-       signed / vetoed / dead (unknown statuses render raw, honestly).
+     stateleg_list  -> { ok, count, legislatures: [ {
+       state, name, senate_name, house_name, session_status, senate_control,
+       house_control, governor_party, updated_at, stale, notes } ] }
+       session_status: 'in_session' | 'adjourned' | 'special_session';
+       updated_at: unix epoch seconds. No state filter — the frontend finds
+       its row client-side. 50 states seeded (no DC row -> "no data" note).
+       senate/house_control + governor_party: 'R' | 'D' | 'S' | 'Nonpartisan'.
+       Nebraska: senate_name 'Nebraska Legislature', house_name null.
+     statebills_list  ?state=TX[&status=signed]  -> { ok, count, filters,
+       bills: [ { bill_id, state, title, plain_english_summary, status,
+       sponsors[], updated_at, stale, source, notes } ] }
+       status: 'introduced' | 'passed_chamber' | 'passed_legislature' |
+       'signed' | 'vetoed' | 'dead' (unknown renders raw, honestly).
+       sponsors: array; source: per-row source URL; updated_at: epoch secs.
        Bills with updated_at older than 14 days get a visible
        "last updated Xd ago" flag — never hidden.
-     statepeople_list  ?state=TX  -> { ok, people: [ {
-       name, chamber, party, district, phone, contact_url } ] }
+     statepeople_list  ?state=TX  -> { ok, count, seeded, note,
+       legislators: [ { leg_id, state, name, chamber, party, district,
+       notes } ] }
        (stretch) — if the action is absent/errors, the section hides cleanly.
    ---------------------------------------------------------------------------
    DATA HONESTY: never invent bills, statuses, legislators, or deadlines.
@@ -136,14 +140,22 @@
   }
 
   /* ---------------- display helpers ---------------- */
-  function fmtDate(iso){
-    var t=Date.parse(iso); if(isNaN(t)) return "";
+  /* Backend updated_at is unix epoch seconds; accept ISO strings too. */
+  function toMs(v){
+    if(v==null||v==="") return NaN;
+    if(typeof v==="number"||/^[0-9]+$/.test(String(v))){
+      var n=Number(v); return n>0?n*1000:NaN;
+    }
+    return Date.parse(v);
+  }
+  function fmtDate(v){
+    var t=toMs(v); if(isNaN(t)) return "";
     try{ return new Date(t).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}); }
     catch(e){ return ""; }
   }
-  function daysAgo(iso){
-    if(!iso) return -1;
-    var t=Date.parse(iso); if(isNaN(t)) return -1;
+  function daysAgo(v){
+    if(v==null||v==="") return -1;
+    var t=toMs(v); if(isNaN(t)) return -1;
     var d=Math.floor((Date.now()-t)/86400000);
     return d<0 ? -1 : d;
   }
@@ -165,7 +177,7 @@
     "passed legislature":"Passed legislature", "signed":"Signed", "vetoed":"Vetoed", "dead":"Dead" };
   function statusChip(b){
     var raw=String((b&&b.status)||"");
-    var key=raw.toLowerCase();
+    var key=raw.toLowerCase().replace(/_/g," "); /* backend: passed_chamber */
     var cls=STATUS_CLS[key]||"slc-unk";
     var txt=STATUS_LABEL[key]||(raw?esc(raw):"Status unknown");
     return '<span class="sl-chip '+cls+'">'+txt+'</span>';
@@ -192,9 +204,9 @@
     return 'Sponsors: '+esc(s);
   }
   function sessionBadge(st){
-    var s=String(st||"").toLowerCase();
+    var s=String(st||"").toLowerCase().replace(/_/g," "); /* backend: in_session */
     if(s==="in session"){ return '<span class="sl-badge slb-in">In session</span>'; }
-    if(s==="special"){ return '<span class="sl-badge slb-spec">Special session</span>'; }
+    if(s==="special session"){ return '<span class="sl-badge slb-spec">Special session</span>'; }
     if(s==="adjourned"){ return '<span class="sl-badge slb-adj">Adjourned</span>'; }
     return st?('<span class="sl-badge slb-unk">'+esc(st)+'</span>'):'<span class="sl-badge slb-unk">Session status unknown</span>';
   }
@@ -212,7 +224,7 @@
     opts=opts||{};
     return { el:el, opts:opts, tab:'state', state:opts.state||'',
       fetched:false,
-      info:null, infoLoad:false, infoErr:false,
+      info:null, infoLoad:false, infoErr:false, infoAbsent:false,
       bills:null, billsLoad:false, billsErr:false,
       people:null, peopleLoad:false, peopleAbsent:false };
   }
@@ -239,6 +251,9 @@
     if(sess.infoErr){
       return '<div class="c-err">Couldn\'t load legislature info.</div>'
         +'<button class="sl-btn sl-t44" data-sl-retry="info">RETRY</button>';
+    }
+    if(sess.infoAbsent){
+      return '<div class="x-note">No legislature data for this state yet.</div>';
     }
     var info=sess.info||{};
     var h='<div class="sl-leghead">';
@@ -366,28 +381,76 @@
     paintBody(sess);
   }
 
+  /* ---- backend-contract mapping (be/state-legislatures, canonical) ---- */
+  function rowForState(list,st){
+    list=list||[];
+    for(var i=0;i<list.length;i++){
+      if(String((list[i]&&list[i].state)||"").toUpperCase()===st) return list[i];
+    }
+    return null;
+  }
+  function partyControlLine(r){
+    var p=[];
+    if(r.senate_control) p.push("Senate "+r.senate_control);
+    if(r.house_control) p.push("House "+r.house_control);
+    if(r.governor_party) p.push("Gov "+r.governor_party);
+    return p.join(" \u00b7 ");
+  }
+  function mapLegislature(r){
+    if(!r) return null;
+    return {
+      upper_name: r.senate_name||"", lower_name: r.house_name||"",
+      session_status: r.session_status||"",
+      party_control: partyControlLine(r),
+      last_updated: (r.updated_at==null?"":r.updated_at),
+      source_url: "", source: "", notes: r.notes||null
+    };
+  }
+  function mapBill(b){
+    b=b||{};
+    return {
+      id: b.bill_id||"", number: b.bill_id||"",
+      title: b.title||"", summary: b.plain_english_summary||"",
+      status: b.status||"", sponsors: b.sponsors||[],
+      source_url: b.source||"", source: "",
+      updated_at: (b.updated_at==null?"":b.updated_at)
+    };
+  }
+  function mapPerson(p){
+    p=p||{};
+    return { name: p.name||"", chamber: p.chamber||"", party: p.party||"",
+      district: p.district||"", phone: "" };
+  }
+  function onLegislature(sess,j){
+    sess.infoLoad=false;
+    var row=rowForState(j&&j.legislatures,sess.state);
+    if(j&&j.ok&&row){ sess.info=mapLegislature(row); sess.infoErr=false; sess.infoAbsent=false; }
+    else if(j&&j.ok){ sess.info=null; sess.infoErr=false; sess.infoAbsent=true; } /* e.g. DC: not seeded */
+    else { sess.infoErr=true; }
+    paintState(sess);
+  }
+  function onBills(sess,j){
+    sess.billsLoad=false;
+    if(j&&j.ok&&j.bills){ sess.bills=j.bills.map(mapBill); sess.billsErr=false; } else { sess.billsErr=true; }
+    paintState(sess);
+  }
+  function onPeople(sess,j){
+    sess.peopleLoad=false;
+    var legs=j&&j.ok&&j.legislators;
+    if(legs){ sess.people=legs.map(mapPerson); sess.peopleAbsent=false; }
+    else { sess.peopleAbsent=true; } /* stretch: absent action hides the section */
+    paintState(sess);
+  }
+
   function fetchState(sess){
     sess.fetched=true;
-    sess.infoLoad=true; sess.infoErr=false;
+    sess.infoLoad=true; sess.infoErr=false; sess.infoAbsent=false;
     sess.billsLoad=true; sess.billsErr=false;
     sess.peopleLoad=true; sess.peopleAbsent=false; sess.people=null;
     paintState(sess);
-    api(sess,'stateleg_state',{state:sess.state},function(j){
-      sess.infoLoad=false;
-      if(j&&j.ok&&j.legislature){ sess.info=j.legislature; sess.infoErr=false; } else { sess.infoErr=true; }
-      paintState(sess);
-    });
-    api(sess,'stateleg_bills',{state:sess.state},function(j){
-      sess.billsLoad=false;
-      if(j&&j.ok&&j.bills){ sess.bills=j.bills; sess.billsErr=false; } else { sess.billsErr=true; }
-      paintState(sess);
-    });
-    api(sess,'statepeople_list',{state:sess.state},function(j){
-      sess.peopleLoad=false;
-      if(j&&j.ok&&j.people){ sess.people=j.people; sess.peopleAbsent=false; }
-      else { sess.peopleAbsent=true; } /* stretch: absent action hides the section */
-      paintState(sess);
-    });
+    api(sess,"stateleg_list",{},function(j){ onLegislature(sess,j); });
+    api(sess,"statebills_list",{state:sess.state},function(j){ onBills(sess,j); });
+    api(sess,"statepeople_list",{state:sess.state},function(j){ onPeople(sess,j); });
   }
 
   /* ---------------- pressure-this-bill hook ---------------- */
@@ -447,16 +510,10 @@
       (function(btn){
         btn.onclick=function(){
           var which=btn.getAttribute('data-sl-retry');
-          if(which==='info'){ sess.infoLoad=true; sess.infoErr=false; paintState(sess);
-            api(sess,'stateleg_state',{state:sess.state},function(j){
-              sess.infoLoad=false;
-              if(j&&j.ok&&j.legislature){ sess.info=j.legislature; sess.infoErr=false; } else { sess.infoErr=true; }
-              paintState(sess); }); }
+          if(which==='info'){ sess.infoLoad=true; sess.infoErr=false; sess.infoAbsent=false; paintState(sess);
+            api(sess,'stateleg_list',{},function(j){ onLegislature(sess,j); }); }
           else { sess.billsLoad=true; sess.billsErr=false; paintState(sess);
-            api(sess,'stateleg_bills',{state:sess.state},function(j){
-              sess.billsLoad=false;
-              if(j&&j.ok&&j.bills){ sess.bills=j.bills; sess.billsErr=false; } else { sess.billsErr=true; }
-              paintState(sess); }); }
+            api(sess,'statebills_list',{state:sess.state},function(j){ onBills(sess,j); }); }
         };
       })(retries[i]);
     }

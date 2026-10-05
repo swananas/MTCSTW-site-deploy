@@ -29,6 +29,15 @@
 var BACKEND=window.PF_BACKEND_URL;
 /* Election Day fallback for the season frame. Local midnight. */
 var ELECTION=new Date(2026,10,3,0,0,0,0).getTime();
+/* wave-live-rails (2026-10-05): the authoritative date comes from the
+   site_config rail ('campaign_end'); the hardcoded date above is the
+   fail-soft fallback. */
+try{
+  if(window.PF&&PF.siteConfig){ PF.siteConfig.ready(function(map){
+    try{ var t=map&&map.campaign_end?Date.parse(map.campaign_end):0;
+      if(t>0) ELECTION=t; }catch(e){}
+  }); }
+}catch(e){}
 /* Rank tiers mirror games/enlistment-ranks.js. */
 var TIERS=[["RECRUIT",0],["AGITATOR",25],["CADRE",75],["COMMISSAR",150],["ARCHITECT",300]];
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
@@ -412,10 +421,17 @@ function render(){
        saw no drop at all while logged-in owners did. */
     el.innerHTML='<div class="br-gate">Briefings run on callsigns. Claim yours in Enlistment Ranks, then report back here.</div>'
       +'<div style="margin-top:10px"><button class="c-btn" onclick="document.getElementById(\\\'pf-ranks\\\')&&document.getElementById(\\\'pf-ranks\\\').scrollIntoView({behavior:\\\'smooth\\\'})">ENLIST</button></div>'
-      +dropSectionHtml();
+      +dropSectionHtml()
+      /* wave-live-rails (2026-10-05): Top Stories is public — renders for
+         anonymous visitors too, same cache as the HQ. */
+      +'<div class="br-sec" id="pf-brief-news"><div class="x-note">Stories updating&hellip;</div></div>';
     dropWire();
     renderSeasonBanner();
     paintArcHeader();
+    try {
+      var nh0=document.getElementById("pf-brief-news");
+      if(nh0&&window.PF&&PF.newsTop){ PF.newsTop.render(nh0,{limit:5}); }
+    } catch(e0){}
     return;
   }
   var xp=0;
@@ -577,7 +593,14 @@ function render(){
     for(var ui=0;ui<un.length;ui++){ h+='<div class="br-order"><span class="br-oname">'+esc(un[ui])+'</span></div>'; }
     h+='<div style="margin-top:8px"><button class="c-btn" data-go="pf-dopa">COLLECT</button></div></div>';
   }
+  /* ---------- 7. TOP STORIES (wave-live-rails) — the shared news_top cache.
+     Fail-soft: the helper renders a "stories updating" line when empty. */
+  h+='<div class="br-sec" id="pf-brief-news"><div class="x-note">Stories updating&hellip;</div></div>';
   el.innerHTML=h;
+  try {
+    var nh=document.getElementById("pf-brief-news");
+    if(nh&&window.PF&&PF.newsTop){ PF.newsTop.render(nh,{limit:5}); }
+  } catch(e2){}
   /* wire nav buttons */
   var btns=el.querySelectorAll("button[data-go]");
   for(var b=0;b<btns.length;b++){
@@ -684,6 +707,14 @@ function bannerCss(){
     +"#pf-brief .br-cell .br-cname{font:bold 16px monospace;color:#fff}"
     +"#pf-brief .br-seasonline{display:flex;justify-content:space-between;font:bold 12px monospace;color:#ff6b6b;margin-bottom:8px}"
     +"#pf-brief .br-gate{font:14px monospace;color:#ccc;padding:16px;border:1px dashed #666}"
+    /* wave-live-rails (2026-10-05): Top Stories rail slots into the brief. */
+    +"#pf-brief .pf-newstop-head{font:bold 13px monospace;color:#c1121f;letter-spacing:2px;margin-bottom:10px}"
+    +"#pf-brief .pf-newstop-list{list-style:none;margin:0;padding:0}"
+    +"#pf-brief .pf-newstop-item{padding:8px 4px;border-bottom:1px solid #222;font:13px monospace}"
+    +"#pf-brief .pf-newstop-item a{color:#f5ead6;text-decoration:none}"
+    +"#pf-brief .pf-newstop-item a:hover{color:#fff;text-decoration:underline}"
+    +"#pf-brief .pf-newstop-meta{display:block;font:11px monospace;color:#888;margin-top:3px}"
+    +"#pf-brief .pf-newstop-empty,#pf-brief .pf-newstop-stale{font:12px monospace;color:#888;padding:6px 0}"
     /* S1 Route March (2026-10-04): TODAY'S ROUTE MARCH card. */
     +"#pf-brief .br-rmhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}"
     +"#pf-brief .br-rmname{font:bold 15px monospace;color:#fff;letter-spacing:1px}"

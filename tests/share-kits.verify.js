@@ -6,21 +6,33 @@
  * backend and asserts:
  *   1. kit render: 3 poster cards (target/bill/urgency) with canvas previews
  *      via PF.PHQShare.paint, SHARE + SAVE buttons per asset routed through
- *      PF.PHQShare.share/save
- *   2. painter data mapping: kit.bill -> phq-bill contract fields, kit.urgency
- *      -> phq-urgency contract fields, kit.target -> phq-pressure (reused)
+ *      PF.PHQShare.share/save with {noCredit:true} (0 XP — bypasses
+ *      creditShare, fires no pf-share-image event)
+ *   2. painter data mapping: kit.poster_bill -> phq-bill contract fields,
+ *      kit.poster_urgency -> phq-urgency contract fields, kit.poster_target
+ *      -> phq-pressure (reused); generated_at (backend key) maps to the
+ *      painter's generatedAt field
+ *   2b. key-drift guard: every backend-emitted kit key (poster_target,
+ *      poster_bill, poster_urgency, caption_punchy, caption_info,
+ *      call_script — be/campaign-share-kits src/campaign_kits.js
+ *      generateKitAssets) is consumed by the FE, and the FE reads no kit
+ *      key outside the contract (the stale kit.target / kit.bill /
+ *      kit.urgency / kit.captions shape is rejected)
  *   3. 2 caption cards with character counts + COPY (raw text to clipboard)
- *   4. CALL SCRIPT card: labeled, campaign script displayed exactly once
+ *   4. CALL SCRIPT card: labeled, campaign script displayed exactly once;
+ *      falls back to kit.call_script when pressure_get has no script
  *   5. kit:null / kit_get wire-down -> FORGING placeholder stands (never
  *      blank, never broken)
  *   6. admin: REFRESH KIT visible only with pf_admin_secret; refresh POST
- *      shape {type,pc_action,id} on the X-Admin-Secret rail; success
+ *      shape {type,pr_action,id} on the X-Admin-Secret rail; success
  *      re-renders + toast; failure toasts + re-enables
  *   7. Economy Desk row 4: LOG CALL fires EXACTLY ONE rep_contact POST per
  *      user-confirmed contact; button stays disabled + LOGGED after success;
  *      no auto-retry on timeout (manual re-tap allowed)
  *   8. XP compliance statics: no xpGrant calls, no event dispatches, no
- *      donate, no new XP grant copy in kit code
+ *      donate, no new XP grant copy in kit code; kit SHARE/SAVE pass
+ *      {noCredit:true} so no pf-share-image event fires (0 XP per the
+ *      Economy Desk signed table 2026-10-05)
  * Run: node tests/share-kits.verify.js
  */
 'use strict';
@@ -312,22 +324,40 @@ var DETAIL = {
     participant_count: 1234, call_count: 567
   }
 };
+/* REAL backend shape (be/campaign-share-kits src/campaign_kits.js
+   generateKitAssets — also baked into the v83 seed rows). The FE consumes
+   exactly these keys; the key-drift guard in Scenario G rejects any drift. */
 var KIT = {
-  target: { title: 'Stop the Oligarch Power Grab', target: 'U.S. SENATE', demand: 'VOTE NO ON CLOTURE', signatures: 12847, signaturesGoal: 25000 },
-  bill: { billNo: 'H.R. 3633', billTitle: 'THE CLARITY ACT', status: 'CLOTURE FAILED 49-50', stuckAt: 'SENATE FLOOR',
-    sourceUrl: 'https://www.congress.gov/bill/119th-congress/house-bill/3633', sourceDate: '2026-09-15', generatedAt: '2026-10-05' },
-  urgency: { title: 'Stop the Oligarch Power Grab', daysRemaining: 5, endsAt: new Date(Date.now() + 5 * 864e5).toISOString(),
-    participantCount: 1234, targetBill: 'H.R. 3633', generatedAt: '2026-10-05' },
-  captions: { punchy: PUNCHY, informative: INFORM }
+  poster_target: {
+    title: 'Stop the Oligarch Power Grab', target: 'Sen. Test One — Senator',
+    demand: 'Stop the Oligarch Power Grab', signatures: 12847, signaturesGoal: 25000,
+    callCount: 567, generated_at: '2026-10-05', sources: ['pf-api pressure data']
+  },
+  poster_bill: {
+    billNo: 'H.R. 3633', billTitle: 'THE CLARITY ACT', congress: '119',
+    status: 'CLOTURE FAILED 49-50', stuckAt: 'SENATE FLOOR',
+    sourceUrl: 'https://www.congress.gov/bill/119th-congress/house-bill/3633',
+    sourceDate: '2026-09-15', found: true,
+    generated_at: '2026-10-05', sources: ['pf-api pressure data', 'congress.gov']
+  },
+  poster_urgency: {
+    title: 'Stop the Oligarch Power Grab', daysRemaining: 5,
+    endsAt: new Date(Date.now() + 5 * 864e5).toISOString(),
+    participantCount: 1234, targetBill: 'H.R. 3633',
+    generated_at: '2026-10-05', sources: ['pf-api pressure data']
+  },
+  caption_punchy: PUNCHY,
+  caption_info: INFORM,
+  call_script: SCRIPT_TXT
 };
 var KIT2 = JSON.parse(JSON.stringify(KIT));
-KIT2.bill.billTitle = 'THE CLARITY ACT (REFRESHED)';
+KIT2.poster_bill.billTitle = 'THE CLARITY ACT (REFRESHED)';
 function kitOk(k) { return { ok: true, kit: k }; }
 
 (async function main() {
   /* ---------- Scenario A: admin happy path ---------- */
   var postFnA = function (body) {
-    if (body.pc_action === 'campaign_kit_refresh') return { ok: true, kit: KIT2 };
+    if (body.pr_action === 'campaign_kit_refresh') return { ok: true, kit: KIT2 };
     return { ok: true };
   };
   var A = runScenario({
@@ -348,17 +378,19 @@ function kitOk(k) { return { ok: true, kit: k }; }
   ok('previews drawn (drawImage received painted canvas)',
     previews.every(function (n) { return !!n._drew; }));
   var billPaint = A.paintCalls.filter(function (c) { return c.id === 'phq-bill'; })[0];
-  ok('kit.bill mapped to the phq-bill data contract',
+  ok('kit.poster_bill mapped to the phq-bill data contract',
     billPaint && billPaint.data.billNo === 'H.R. 3633' && billPaint.data.stuckAt === 'SENATE FLOOR' &&
-    billPaint.data.sourceUrl === KIT.bill.sourceUrl && billPaint.data.generatedAt === '2026-10-05',
+    billPaint.data.sourceUrl === KIT.poster_bill.sourceUrl &&
+    /* generated_at (backend key) maps to the painter's generatedAt field */
+    billPaint.data.generatedAt === '2026-10-05',
     JSON.stringify(billPaint && billPaint.data));
   var urgPaint = A.paintCalls.filter(function (c) { return c.id === 'phq-urgency'; })[0];
-  ok('kit.urgency mapped to the phq-urgency data contract',
+  ok('kit.poster_urgency mapped to the phq-urgency data contract',
     urgPaint && urgPaint.data.daysRemaining === 5 && urgPaint.data.participantCount === 1234 &&
-    urgPaint.data.targetBill === 'H.R. 3633',
+    urgPaint.data.targetBill === 'H.R. 3633' && urgPaint.data.generatedAt === '2026-10-05',
     JSON.stringify(urgPaint && urgPaint.data));
   var tgtPaint = A.paintCalls.filter(function (c) { return c.id === 'phq-pressure'; })[0];
-  ok('kit.target reuses the existing phq-pressure painter (not duplicated)',
+  ok('kit.poster_target reuses the existing phq-pressure painter (not duplicated)',
     tgtPaint && tgtPaint.data.title === 'Stop the Oligarch Power Grab' && tgtPaint.data.signatures === 12847);
   ok('2 caption cards with character counts',
     h.indexOf('PUNCHY CAPTION') >= 0 && h.indexOf('INFORMATIVE CAPTION') >= 0 &&
@@ -378,22 +410,26 @@ function kitOk(k) { return { ok: true, kit: k }; }
     JSON.stringify(A.clipboardWrites[0]));
   ok('caption copy success toast', A.toasts.some(function (t) { return /Caption copied/.test(t); }));
 
-  /* SHARE per asset -> PF.PHQShare.share (callsign gate + stamp ride along) */
+  /* SHARE per asset -> PF.PHQShare.share (callsign gate + stamp ride along;
+     {noCredit:true} bypasses creditShare — 0 XP, no pf-share-image event) */
   var shareBtns = A.doc.querySelectorAll('[data-pc-kit-share]');
   var billShare = shareBtns.filter(function (b) { return b.getAttribute('data-pc-kit-share') === 'phq-bill'; })[0];
   billShare.click();
   await A.tick(10);
-  ok('SHARE routes through PF.PHQShare.share with painter id + data',
+  ok('SHARE routes through PF.PHQShare.share with painter id + data + {noCredit:true}',
     A.shareCalls.length === 1 && A.shareCalls[0].id === 'phq-bill' &&
-    A.shareCalls[0].data.billNo === 'H.R. 3633',
+    A.shareCalls[0].data.billNo === 'H.R. 3633' &&
+    A.shareCalls[0].opts && A.shareCalls[0].opts.noCredit === true,
     JSON.stringify(A.shareCalls[0]));
   var saveBtns = A.doc.querySelectorAll('[data-pc-kit-save]');
   var urgSave = saveBtns.filter(function (b) { return b.getAttribute('data-pc-kit-save') === 'phq-urgency'; })[0];
   urgSave.click();
   await A.tick(10);
-  ok('SAVE routes through PF.PHQShare.save with painter id + data',
+  ok('SAVE routes through PF.PHQShare.save with painter id + data + {noCredit:true}',
     A.saveCalls.length === 1 && A.saveCalls[0].id === 'phq-urgency' &&
-    A.saveCalls[0].data.daysRemaining === 5);
+    A.saveCalls[0].data.daysRemaining === 5 &&
+    A.saveCalls[0].opts && A.saveCalls[0].opts.noCredit === true,
+    JSON.stringify(A.saveCalls[0]));
 
   /* Economy Desk row 4: EXACTLY ONE rep_contact POST per confirmed contact */
   var logBtns = A.doc.querySelectorAll('[data-pc-log]');
@@ -421,9 +457,10 @@ function kitOk(k) { return { ok: true, kit: k }; }
   ok('REFRESH KIT button stub found', refBtns.length === 1);
   refBtns[0].click();
   await A.tick(30);
-  var refPosts = A.posted.filter(function (p) { return p.body.pc_action === 'campaign_kit_refresh'; });
-  ok('refresh POST shape {type:pressure, pc_action, id}',
-    refPosts.length === 1 && refPosts[0].body.type === 'pressure' && refPosts[0].body.id === 'pc-hr14-2025',
+  var refPosts = A.posted.filter(function (p) { return p.body.pr_action === 'campaign_kit_refresh'; });
+  ok('refresh POST shape {type:pressure, pr_action, id}',
+    refPosts.length === 1 && refPosts[0].body.type === 'pressure' && refPosts[0].body.id === 'pc-hr14-2025' &&
+    refPosts[0].body.pr_action === 'campaign_kit_refresh' && !('pc_action' in refPosts[0].body),
     JSON.stringify(refPosts[0] && refPosts[0].body));
   ok('refresh POST rides the X-Admin-Secret rail',
     refPosts[0] && refPosts[0].headers['X-Admin-Secret'] === 's3cr3t',
@@ -460,7 +497,7 @@ function kitOk(k) { return { ok: true, kit: k }; }
   var E = runScenario({
     list: { ok: true, campaigns: [CAMPAIGN] }, get: DETAIL, kit: kitOk(KIT), admin: true,
     post: function (body) {
-      if (body.pc_action === 'campaign_kit_refresh') return { ok: false, err: 'db error' };
+      if (body.pr_action === 'campaign_kit_refresh') return { ok: false, err: 'db error' };
       return { ok: true };
     }
   });
@@ -495,14 +532,26 @@ function kitOk(k) { return { ok: true, kit: k }; }
   ok('manual re-tap after timeout is a new user-confirmed contact (second POST allowed)',
     F.posted.filter(function (p) { return p.body.r_action === 'rep_contact'; }).length === 2);
 
+  /* ---------- Scenario H: pressure_get without script -> kit.call_script fallback ---------- */
+  var NOSCRIPT = JSON.parse(JSON.stringify(DETAIL));
+  delete NOSCRIPT.campaign.script;
+  var H = runScenario({ list: { ok: true, campaigns: [CAMPAIGN] }, get: NOSCRIPT, kit: kitOk(KIT) });
+  await H.waitFor(function () { return H.html().indexOf('data-pc-kit-share="phq-bill"') >= 0; });
+  var hh = H.html();
+  ok('kit.call_script backs the CALL SCRIPT card when pressure_get has no script',
+    hh.indexOf('CALL SCRIPT') >= 0 && (hh.split('about H.R. 14. Vote NO.').length - 1) === 1,
+    'script renders=' + ((hh.split('about H.R. 14. Vote NO.').length - 1)));
+
   /* ---------- Scenario G: XP-compliance + copy statics ---------- */
   function stripComments(s) {
     return s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:\\\/])\/\/[^\n]*/g, '$1');
   }
   var code = stripComments(raw);
   ok('XP compliance: no xpGrant calls in civic.js', code.indexOf('xpGrant') === -1);
-  ok('XP compliance: kit code dispatches no pf-share-image events (creditShare owns them)',
+  ok('XP compliance: kit code dispatches no pf-share-image events (kit SHARE/SAVE bypass creditShare via {noCredit:true})',
     code.indexOf('pf-share-image') === -1 && code.indexOf('dispatchEvent') === -1);
+  ok('XP compliance: pcKitPosterGo passes {noCredit:true} on every kit SHARE/SAVE',
+    code.indexOf('noCredit:true') !== -1);
   ok('no "donate" anywhere in civic.js', code.toLowerCase().indexOf('donate') === -1);
   var kitBlock = (raw.match(/CAMPAIGN SHARE KITS[\s\S]*?function pressureBind/) || [''])[0];
   ok('no new XP grant copy in kit code',
@@ -511,6 +560,28 @@ function kitOk(k) { return { ok: true, kit: k }; }
     raw.toLowerCase().indexOf('shanetheswan') === -1);
   var kitSrc = stripComments(fs.readFileSync(KITMOD, 'utf8'));
   ok('XP compliance: no xpGrant calls in the kit painter module', kitSrc.indexOf('xpGrant') === -1);
+
+  /* Key-drift guard (Fix Pod #1): every key the backend emits in the kit
+     object (be/campaign-share-kits src/campaign_kits.js generateKitAssets —
+     the BE shape is also baked into the v83 seed rows) is consumed by the
+     FE mapper, and the FE reads no kit key outside the contract. Checked
+     on the comment-stripped civic.js so doc comments can't pass the guard;
+     the stale kit.target / kit.bill / kit.urgency / kit.captions shape is
+     explicitly rejected. */
+  var BE_KIT_KEYS = ['poster_target', 'poster_bill', 'poster_urgency',
+    'caption_punchy', 'caption_info', 'call_script'];
+  BE_KIT_KEYS.forEach(function (k) {
+    ok('drift guard: backend key kit.' + k + ' is consumed by the FE mapper',
+      new RegExp('kit\\.' + k + '\\b').test(code), 'kit.' + k + ' not read in civic.js');
+  });
+  var seenKeys = {}, badKeys = [], mK, reK = /kit\.([A-Za-z_]+)/g;
+  while ((mK = reK.exec(code))) {
+    if (BE_KIT_KEYS.indexOf(mK[1]) === -1 && !seenKeys[mK[1]]) {
+      seenKeys[mK[1]] = 1; badKeys.push(mK[1]);
+    }
+  }
+  ok('drift guard: FE reads no kit key outside the backend contract', badKeys.length === 0,
+    'stale keys read: ' + badKeys.join(', '));
 
   console.log(failures === 0 ? '\nALL PASS' : '\n' + failures + ' FAILURES');
   process.exit(failures === 0 ? 0 : 1);

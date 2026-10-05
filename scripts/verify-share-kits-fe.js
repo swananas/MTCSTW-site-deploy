@@ -88,7 +88,7 @@ else no('real name', 'found "Shane" in module');
    comment-stripped view so doc comments can't hide a real call. */
 if (code.indexOf('xpGrant') === -1) ok('XP compliance: no xpGrant calls in kit module');
 else no('xpGrant', 'xpGrant call found in kit module');
-if (code.indexOf('dispatchEvent') === -1) ok('XP compliance: no pf-share-image dispatches (creditShare owns them)');
+if (code.indexOf('dispatchEvent') === -1) ok('XP compliance: no pf-share-image dispatches (kit SHARE/SAVE bypass creditShare via {noCredit:true})');
 else no('dispatch', 'dispatchEvent found in kit module');
 if (!/pf-share-image/.test(code)) ok('XP compliance: pf-share-image only in doc comments');
 else no('pf-share-image', 'pf-share-image event referenced in code');
@@ -159,8 +159,8 @@ function makeEnv(disabled) {
   sb.PFCallsign = function () { return 'WARHAWK'; };
   sb.PFShare = {
     setPoster: function (id, fn) { registered[id] = fn; },
-    shareImage: function (cv, fn2, title, id, o) { shareCalls.push({ cv: cv, fn: fn2, title: title, id: id }); },
-    saveImage: function (cv, fn2, id, o) { saveCalls.push({ cv: cv, fn: fn2, id: id }); },
+    shareImage: function (cv, fn2, title, id, o) { shareCalls.push({ cv: cv, fn: fn2, title: title, id: id, opts: o }); },
+    saveImage: function (cv, fn2, id, o) { saveCalls.push({ cv: cv, fn: fn2, id: id, opts: o }); },
     stampCallsign: function (cv) { return cv; }
   };
   vm.createContext(sb);
@@ -304,7 +304,10 @@ else {
     ok('urgency no-callsign: no blank stamp, claim-line funnel');
   else no('urgency no-cs', 'stamp/funnel wrong');
 
-  /* --- share/save routing through PFShare (XP rides the existing leg) --- */
+  /* --- share/save routing through PFShare (Fix Pod #3: the silo passes
+         {noCredit:true}, which go() forwards to PFShare.shareImage/
+         saveImage so creditShare is bypassed — 0 XP, no pf-share-image
+         event) --- */
   var r1 = PHQ.share('phq-bill', BILL);
   if (r1 === true && env.shareCalls.length === 1 && env.shareCalls[0].id === 'phq-bill' &&
       env.shareCalls[0].fn === 'pfn-phq-bill.png' && env.shareCalls[0].cv && env.shareCalls[0].cv._recs.length > 10)
@@ -315,6 +318,16 @@ else {
       env.saveCalls[0].fn === 'pfn-phq-urgency.png')
     ok('save() routes phq-urgency to PFShare.saveImage with painted canvas');
   else no('save()', 'routing failed');
+  var r3 = PHQ.share('phq-bill', BILL, { noCredit: true });
+  if (r3 === true && env.shareCalls[env.shareCalls.length - 1].opts &&
+      env.shareCalls[env.shareCalls.length - 1].opts.noCredit === true)
+    ok('go() forwards {noCredit:true} to PFShare.shareImage (creditShare bypass)');
+  else no('noCredit share', 'opts not forwarded to shareImage');
+  var r4 = PHQ.save('phq-urgency', URGENCY, { noCredit: true });
+  if (r4 === true && env.saveCalls[env.saveCalls.length - 1].opts &&
+      env.saveCalls[env.saveCalls.length - 1].opts.noCredit === true)
+    ok('go() forwards {noCredit:true} to PFShare.saveImage (creditShare bypass)');
+  else no('noCredit save', 'opts not forwarded to saveImage');
 }
 
 /* --- kill switches: ?pf_off=phq-bill --- */

@@ -367,10 +367,10 @@ var KIT_MIN = {
   var joinBtns = A.doc.querySelectorAll('[data-pc-join]');
   joinBtns[0].click();
   await A.tick(30);
-  var joinPost = A.posted.filter(function (b) { return b.pc_action === 'pressure_join'; })[0];
-  ok('pressure_join POST shape {type,pc_action,callsign,id}',
-    joinPost && joinPost.type === 'pressure' && joinPost.pc_action === 'pressure_join' &&
-    joinPost.callsign === 'TESTCALL' && joinPost.id === 'pc-hr14-2025',
+  var joinPost = A.posted.filter(function (b) { return b.pr_action === 'pressure_join'; })[0];
+  ok('pressure_join POST shape {type,pr_action,callsign,id}',
+    joinPost && joinPost.type === 'pressure' && joinPost.pr_action === 'pressure_join' &&
+    !('pc_action' in joinPost) && joinPost.callsign === 'TESTCALL' && joinPost.id === 'pc-hr14-2025',
     JSON.stringify(joinPost));
   ok('join success sets YOU\u2019RE IN state', joinBtns[0].innerHTML === 'YOU&rsquo;RE IN');
 

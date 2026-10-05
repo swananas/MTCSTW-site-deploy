@@ -15,8 +15,11 @@
      phq-urgency: {title, daysRemaining, endsAt, participantCount, targetBill,
                    generatedAt}
    Backend contract: the pressure backend's campaign_kit_get action returns
-   the kit object; the silo maps kit.bill -> phq-bill, kit.urgency ->
-   phq-urgency, kit.target -> phq-pressure (existing painter).
+   the kit object; the silo maps kit.poster_bill -> phq-bill,
+   kit.poster_urgency -> phq-urgency, kit.poster_target -> phq-pressure
+   (existing painter). The painter-side field names (generatedAt) are the
+   house contract — the backend's generated_at is mapped to generatedAt at
+   the silo edge, never renamed in the payload itself.
    Callsigns resolve at paint time via callsignOf() (identity store /
    PFCallsign) — never passed in data. Painters that render the callsign
    inline set cv._pfStamped = true so PFShare.stampCallsign stays a no-op
@@ -30,10 +33,17 @@
    Decoration is load-order independent: this file retries until
    PF.PHQShare exists (fe/phq-share-posters must be merged first), then wraps
    its share/save/paint so the two kit ids route to the kit painters and the
-   existing four route to the originals. XP: sharing/saving rides the
-   existing once-per-day pf-share-image leg (0 ledger XP, stats only per the
-   Economy Desk signed table 2026-10-05) —
-   inherited, zero new code, no second grant.
+   existing four route to the originals. XP: the Economy Desk signed 0 XP
+   for the campaign-kit SHARE/SAVE path (2026-10-05), so the silo passes
+   {noCredit:true}; go() forwards the caller's opts through to
+   PFShare.shareImage/saveImage, where the flag bypasses creditShare
+   entirely — no pf-share-image event fires, no once-per-day local credit
+   is marked, nothing mirrors to the backend. CORRECTION 2026-10-05
+   (Fix Pod #3): the original "zero-ledger leg, inherited, zero new code"
+   claim was FALSE — the unguarded path DID route through creditShare ->
+   pf-share-image -> the +1/day backend-mirrored award. The bypass makes
+   the 0-XP signature real. The callsign-claim gate and idempotent stamp
+   still ride along on every path.
    KILL: ?pf_off=phq-bill  or  ?pf_off=phq-urgency  (or localStorage
    pf_disabled_v1='["phq-bill"]') — per-painter. */
 (function () {
@@ -172,8 +182,12 @@
   }
   /* Small provenance footer above the bottom stack: source URL + pull date
      + kit generation date. HONESTY RULE: every kit poster carries its source
-     and dates; nothing is ever invented to fill a gap. */
-  function sourceFooter(x, d) {
+     and dates; nothing is ever invented to fill a gap.
+     Footer floor (Fix Pod 2026-10-05): the block never starts above the
+     content floor — when a long bill/stuck payload pushes the callsign
+     strip low, the block compresses to a single source line so it clears
+     the strip instead of overlapping it. */
+  function sourceFooter(x, d, floorY) {
     x.textAlign = 'center'; x.textBaseline = 'alphabetic';
     x.fillStyle = '#c9bfa8'; x.font = '400 26px Arial,sans-serif';
     var lines = wrap(x, 'SRC: ' + srcStamp(d.sourceUrl), 910).slice(0, 2);
@@ -182,6 +196,10 @@
        bottom-stack gap clean no matter how many source lines wrap. */
     var total = lines.length + 1;
     var y = 1180 - (total - 1) * 34;
+    if (floorY != null && y < floorY && lines.length > 1) {
+      lines = lines.slice(0, 1);
+      y = 1180 - 34;
+    }
     for (var i = 0; i < lines.length; i++) { x.fillText(lines[i], W / 2, y); y += 34; }
     x.fillText(meta, W / 2, y);
   }
@@ -215,7 +233,7 @@
     y = Math.max(1050, y + 24);
     if (cs) y = csLine(cv, x, y, cs) + 10;
     else y = claimLine(x, y);
-    sourceFooter(x, d);
+    sourceFooter(x, d, y);
     bottomStack(x);
     return cv;
   }
@@ -259,7 +277,7 @@
     y = Math.max(1050, y);
     if (cs) y = csLine(cv, x, y, cs) + 10;
     else y = claimLine(x, y);
-    sourceFooter(x, d);
+    sourceFooter(x, d, y);
     bottomStack(x);
     return cv;
   }

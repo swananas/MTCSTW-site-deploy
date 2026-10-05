@@ -141,6 +141,12 @@ var BUNDLES = {
        creates the PF.PHQShare facade and the module registers into it
        via PFShare.setPoster with its own retry loop. */
     'core/share-image-phq-lazy.js',
+    /* Wall of Shame (2026-10-05, fe/money-page): bill-detail legislator
+       carousel (PFWallShame.mount). Never auto-mounts — Release Eng calls
+       PFWallShame.mount() from the bill detail view (fe/legislation-tracker).
+       The phq-wallshame painter lives in the consolidated registry and loads
+       via the lazy stub above. */
+    'core/wall-of-shame.js',
     /* creator-recruit: shared recruiting toolbar for roster cards + catalog
        pages. Last: needs PFShare (share-image.js) + the catalog renderers. */
     'pages/creator-recruit.js',

@@ -58,12 +58,21 @@
     ['alerts', 'pf-ov-alerts'],
     /* ——— SECTION 7: PROOF — social validation closer ——— */
     ['fan-vote', 'pf-ov-vote'],
+    /* 2026-10-05, Phase 3 #11: War Report Monday card — the weekly ritual's
+       front door. Hides entirely when there is no issue or the fetch fails. */
+    ['warreport-card', 'pf-ov-warreport-card'],
+    /* 2026-10-05, Phase 3 #14: SLR roster teaser — 3 featured fighters
+       (top propaganda scores, MTCSTW house entry excluded) -> /sick-left-radicals. */
+    ['roster-teaser', 'pf-ov-roster-teaser'],
     /* W5-6 Hall of Proof (2026-10-04): winners wall closes the PROOF section. */
     ['hall', 'pf-ov-hall'],
     /* REDISTRIBUTION LAYER Phase B (2026-10-05): The Solidarity Draw's
        bespoke home (silo key 'draw') — draw pot, tickets, pre-draw secret
        commitment + post-draw verify. Lives inside the Hall of Proof section. */
-    ['draw', 'pf-ov-draw']
+    ['draw', 'pf-ov-draw'],
+    /* 2026-10-05, Phase 3 #13: static podcast LISTEN card — media closer
+       at the end of the PROOF section. Pure static, cannot fail. */
+    ['podcast-card', 'pf-ov-podcast-card']
   ];
 
   /* === SECTION HEADERS (2026-10-03) ===
@@ -119,6 +128,9 @@
     'campaign': [['Get the alert \u2192', 'alerts'], ['Take it to the streets \u2192', '/events']],
     'alerts': [['Know the terrain \u2192', '/political-hq'], ['Make a poster \u2192', 'poster-forge']],
     'fan-vote': [['See live activity \u2192', 'socialproof'], ['Back your pick in battle \u2192', '/arcade']],
+    'warreport-card': [['Read the full archive \u2192', '/war-report'], ['Vote for your favorite \u2192', 'fan-vote']],
+    'roster-teaser': [['Meet all 62 fighters \u2192', '/sick-left-radicals'], ['Find your match \u2192', 'slr-match-quiz']],
+    'podcast-card': [['Read this week\u2019s report \u2192', '/war-report']],
     'draw': [['See the winners wall \\u2192', 'hall'], ['Vote for your favorite \\u2192', 'fan-vote']]
   };
 
@@ -136,7 +148,9 @@
     /* W5-6 Hall of Proof (2026-10-04). */
     'hall':'proof',
     /* REDISTRIBUTION LAYER Phase B (2026-10-05): Solidarity Draw. */
-    'draw':'proof'
+    'draw':'proof',
+    /* 2026-10-05, Phase 3 #11/#13/#14: new PROOF surfaces. */
+    'warreport-card':'proof','roster-teaser':'proof','podcast-card':'proof'
   };
 
   /* Build the 7 section blocks at init: header + lazy-load anchor each.

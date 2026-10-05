@@ -98,7 +98,10 @@ var SECTIONS = {
        bespoke home (silo key 'draw'), mounted in the Hall of Proof section
        on the homepage (pages/home-v2.js PROOF ORDER). Pre-draw secret
        commitment + post-draw revealed-secret verify. */
-    'solidarity-draw.js'
+    'solidarity-draw.js',
+    /* Homepage new surfaces (2026-10-05): War Report Monday card (#11),
+       podcast LISTEN card (#13), SLR roster teaser (#14) — PROOF section. */
+    'home-new-surfaces.js'
   ],
   /* SLIM DEDICATED-PAGE BUNDLES (2026-10-04, M1 dead-weight fix): /arcade,
      /cells and /create used to fetch the full bundle-home (~83KB gz) to get

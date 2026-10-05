@@ -131,7 +131,7 @@ function render(){
   h+='</div>';
   /* --- propose --- */
   h+='<div class="x-pane"><h4>Open an embassy</h4>'
-    +'<div class="x-note">Only cell founders and officers can propose. Choose the target cell and the kind of relation.</div>'
+    +'<div class="x-note">Only cell founders, officers, and warcallers can propose. Choose the target cell and the kind of relation.</div>'
     +'<input aria-label="Target cell ID or name" class="c-in" id="dpTarget" maxlength="64" placeholder="Target cell ID or name">'
     +'<select class="c-in" id="dpKind">'
     +'<option value="alliance">ALLIANCE &mdash; fight together, share the spoils</option>'

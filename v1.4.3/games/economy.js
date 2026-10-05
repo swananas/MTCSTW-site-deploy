@@ -303,8 +303,8 @@ function renderTreasury(id){
     h+='<div class="cp-mtext"><b>BALANCE: '+Number(TRB.balance||0)+' XP</b></div>'
       +'<div><input aria-label="XP" class="c-in pf-input-sm" id="ecTFund" type="number" min="1" placeholder="XP" /> '
       +'<button class="c-btn" id="ecTFundBtn">THROW DOWN</button></div>'
-      /* 2026-10-03: treasury_spend (AUTH, officers-only — backend enforces). */
-      +'<div style="margin-top:10px"><div class="x-note"><b>Officers:</b> spend from the war chest.</div>'
+      /* G11 (2026-10-04): treasury_spend (AUTH, officers + treasurer — backend enforces). */
+      +'<div style="margin-top:10px"><div class="x-note"><b>Officers &amp; treasurers:</b> spend from the war chest.</div>'
       +'<input aria-label="XP" class="c-in pf-input-sm" id="ecTSAmt" type="number" min="1" placeholder="XP" /> '
       +'<input aria-label="purpose" class="c-in pf-input-md" id="ecTSPurp" type="text" maxlength="200" placeholder="purpose (e.g. poster prize)" /> '
       +'<button class="c-btn" id="ecTSBtn">SPEND</button><div class="c-err" id="ecTSErr"></div></div>';
@@ -334,8 +334,8 @@ function wireTreasury(id,el){
       api("treasury_balance",{cell_id:TRCELL},function(jj){ TRB=jj; render(); });
     });
   };
-  /* treasury spend (2026-10-03): officers-only per backend; the UI lets any
-     officer attempt it and shows the backend's verdict honestly. */
+  /* treasury spend (G11 2026-10-04): officers + treasurer per backend; the UI
+     lets any officer or treasurer attempt it and shows the backend's verdict honestly. */
   var sp=document.getElementById("ecTSBtn");
   if(sp) sp.onclick=function(){
     var err=document.getElementById("ecTSErr");
@@ -351,7 +351,7 @@ function wireTreasury(id,el){
       sp.disabled=false; sp.textContent="SPEND";
       if(!j||!j.ok){
         var e=String((j&&j.err)||"");
-        if(err) err.textContent=(e==="officers only")?"Officers only — the backend said no.":PF.errCopy(e,"Spend failed.");
+        if(err) err.textContent=(e==="officers only")?"Officers and treasurers only — the backend said no.":PF.errCopy(e,"Spend failed.");
         return;
       }
       toast("SPENT "+amt+" XP — "+purp+".");

@@ -542,7 +542,13 @@
         var badges = '';
         if (m.badge) badges += '<span class="hq-badge dim">'+esc(m.badge)+'</span>';
         if (st && st.checked_today) badges += '<span class="hq-badge">IN TODAY</span>';
+        /* G11 (2026-10-04): role badges — titles are status, show them.
+           Role rides cell_mine members (st.role); founder from cell.founder. */
+        var mrole = st && st.role ? String(st.role) : '';
         if (cell && cell.founder === m.callsign) badges += '<span class="hq-badge">FOUNDER</span>';
+        else if (mrole === 'officer') badges += '<span class="hq-badge">OFFICER</span>';
+        else if (mrole === 'treasurer') badges += '<span class="hq-badge">TREASURER</span>';
+        else if (mrole === 'warcaller') badges += '<span class="hq-badge">WARCALLER</span>';
         var promBtn = (isFounder && !(cell && cell.founder===m.callsign))
           ? ' <button class="hq-btn sm ghost" data-hq="promote" data-cell="'+esc(S.detail)+'" data-target="'+esc(m.callsign)+'">ROLE</button>' : '';
         h += '<div class="hq-mem"><span><b>'+esc(m.callsign)+'</b>'+badges+'</span><span>'+promBtn+'</span></div>';
@@ -739,6 +745,10 @@
 
   function paintTreasury(body, R, isFounder){
     var h = '';
+    /* --- G7 (2026-10-04): standalone treasury panel container. games/treasury.js
+       mounts the fund + spend + balance-trajectory panel here via
+       window.PFTreasury.mount (called after body.innerHTML below). --- */
+    h += '<div id="hqTreasuryPanel"></div>';
     /* --- 0. CELL WAR CHEST (pooled XP contributions) --- */
     var w = R.wchest;
     var wcid = (S.mine && S.mine.cell && S.mine.cell.id) || '';
@@ -777,7 +787,7 @@
     var tr = R.treasury;
     var divN = ((S.mine && S.mine.members) || []).length;
     h += '<div class="hq-card" style="border-color:#7CFC00"><h3>&#128176; Dividend payouts <span class="hq-note">treasury &#8594; members</span></h3>';
-    var canDiv = !!(S.mine && (S.mine.is_founder || S.mine.is_officer));
+    var canDiv = !!(S.mine && (S.mine.is_founder || S.mine.is_officer || S.mine.is_treasurer));
     if (tr && tr.ok){
       h += '<div><span class="hq-stat"><b>'+Number(tr.balance||0).toLocaleString()+' XP</b> treasury balance</span></div>';
       h += '<div class="hq-note">Pay the cell treasury out to members. <b>Equal split only</b> — every member gets the same XP; any leftover stays in the treasury. One payout per amount per day.</div>';
@@ -788,7 +798,7 @@
           '<div id="hqDivPreview" class="hq-note" style="margin-top:6px">Enter an amount to preview the split.</div>' +
           '<div id="hqDivMsg"></div>';
       } else if (!canDiv){
-        h += '<div class="hq-note">Only the founder and officers can trigger dividend payouts.</div>';
+        h += '<div class="hq-note">Only the founder, officers, and the treasurer can trigger dividend payouts.</div>';
       } else {
         h += '<div class="hq-note">No members to pay yet.</div>';
       }
@@ -969,6 +979,15 @@
 
     body.innerHTML = h;
     wireRetries(body);
+    /* G7 (2026-10-04): mount the standalone treasury panel (games/treasury.js)
+       into its container at the top of the TREASURY tab. Guarded — the tab
+       renders fine if treasury.js isn't in the bundle yet. */
+    try {
+      var _tp = body.querySelector('#hqTreasuryPanel');
+      if (_tp && window.PFTreasury && window.PFTreasury.mount)
+        window.PFTreasury.mount(_tp, { cell_id: wcid, cell_name: wcname,
+          is_officer: !!(S.mine && (S.mine.is_founder || S.mine.is_officer)) });
+    } catch (e) {}
   }
 
   function escrowMemberOptions(){
@@ -1067,8 +1086,8 @@
     }
     else if (a==='dividend-pay'){
       if(!needCs()) return;
-      if (!(S.mine && (S.mine.is_founder || S.mine.is_officer))){
-        toast('Only the founder and officers can pay dividends.'); return;
+      if (!(S.mine && (S.mine.is_founder || S.mine.is_officer || S.mine.is_treasurer))){
+        toast('Only the founder, officers, and the treasurer can pay dividends.'); return;
       }
       var dcell2 = (S.mine && S.mine.cell && S.mine.cell.id) || '';
       if (!dcell2){ toast('Join a cell first.'); return; }
@@ -1142,10 +1161,11 @@
     else if (a==='promote'){
       if(!needCs()) return;
       var tgt = t.getAttribute('data-target');
-      var role = window.prompt('Set role for '+tgt+' — type "officer" or "member":','officer');
+      /* G11 (2026-10-04): founder-only role assignment — one role per member. */
+      var role = window.prompt('Set role for '+tgt+' — type "officer", "member", "treasurer", or "warcaller":','officer');
       if (!role) return;
       role = role.trim().toLowerCase();
-      if (role!=='officer' && role!=='member'){ toast('Role must be officer or member.'); return; }
+      if (role!=='officer' && role!=='member' && role!=='treasurer' && role!=='warcaller'){ toast('Role must be officer, member, treasurer, or warcaller.'); return; }
       if(!moneyConfirm('Set '+tgt+' as '+role+'?')) return;
       busy(true);
       api('cell_promote', withIdent({cell_id:cellId, target:tgt, role:role}), function(j){

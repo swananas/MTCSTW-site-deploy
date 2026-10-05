@@ -132,10 +132,11 @@ var BUNDLES = {
     'games/flash-siren.js',
     'core/06-pinups.js',
     'core/share-image.js',
-    /* PHQ share posters (2026-10-05): the five Political HQ custom painters
-       (pressure / prediction / scorecard / cell-win / wall-of-shame). Right after
-       share-image so PFShare is registered first; registers via PFShare.setPoster
-       with its own retry loop, and exposes PF.PHQShare for the PHQ silos. */
+    /* PHQ share posters (2026-10-05): the six Political HQ custom painters
+       (pressure / prediction / scorecard / cell-win / wall-of-shame /
+       ledger). Right after share-image so PFShare is registered first;
+       registers via PFShare.setPoster with its own retry loop, and exposes
+       PF.PHQShare for the PHQ silos. */
     'core/share-image-phq.js',
     /* Wall of Shame (2026-10-05): bill-detail legislator carousel
        (PFWallShame.mount). Right after share-image-phq.js so the
@@ -143,6 +144,12 @@ var BUNDLES = {
        can fire. Never auto-mounts — Release Eng calls PFWallShame.mount()
        from the bill detail view (fe/legislation-tracker). */
     'core/wall-of-shame.js',
+    /* Billionaire Ledgers (2026-10-05): ranked Follow-the-Money ledger
+       (PFLedgers.mount). Right after wall-of-shame.js so the phq-ledger
+       painter is registered before any row SHARE/DOWNLOAD can fire. Never
+       auto-mounts — Release Eng calls PFLedgers.mount() from the Political
+       HQ surface. KILL: ?pf_off=ledgers. */
+    'core/ledger-list.js',
     /* creator-recruit: shared recruiting toolbar for roster cards + catalog
        pages. Last: needs PFShare (share-image.js) + the catalog renderers. */
     'pages/creator-recruit.js',

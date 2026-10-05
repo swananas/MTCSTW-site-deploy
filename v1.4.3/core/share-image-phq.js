@@ -1,7 +1,8 @@
 /* core/share-image-phq.js  |  PF v1.4.3 | POLITICAL HQ SHARE POSTERS.
-   Five custom PFShare painters (1080x1350, house palette) for the Political HQ
+   Six custom PFShare painters (1080x1350, house palette) for the Political HQ
    rollout: pressure-campaign card, prediction-result card, voting scorecard,
-   cell-competition winner card, wall-of-shame legislator card.
+   cell-competition winner card, wall-of-shame legislator card, billionaire
+   ledger card.
    Spec: ~/workspace/hidden/phq-share-specs.md.
    Data contract (painter receives one data object; missing optional fields
    degrade gracefully; scorecard missing fields render '—', never invented):
@@ -11,6 +12,8 @@
      cellwin:    {cellName, verified, members, xp, runnerUp, marginXp, mvpCallsign, weekStart}
      wallshame:  {billId, billTitle, name, chamber, party, state, againstVotes,
                   position, question, voteDates[ISO], sourceUrl}
+     ledger:     {name, rank, netWorthB, netWorthAsOf[ISO], spending[USD|null],
+                  spendingCycle, ratio[decimal|null], matchNote}
    Callsigns resolve at paint time via callsignOf() (identity store /
    PFCallsign) — never passed in data. Painters that render the callsign
    inline set cv._pfStamped = true so PFShare.stampCallsign stays a no-op
@@ -31,13 +34,14 @@
   window.pfPhqShareDone = true;
 
   var W = 1080, H = 1350;
-  var IDS = ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame'];
+  var IDS = ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame', 'phq-ledger'];
   var TITLES = {
     'phq-pressure': 'PRESSURE CAMPAIGN',
     'phq-prediction': 'PREDICTION RESULT',
     'phq-scorecard': 'VOTING SCORECARD',
     'phq-cellwin': 'CELL VICTORY',
-    'phq-wallshame': 'WALL OF SHAME'
+    'phq-wallshame': 'WALL OF SHAME',
+    'phq-ledger': 'THE LEDGER'
   };
   var DEEP = 'MTCSTW.COM/POLITICAL-HQ';
   var PENDING = {};
@@ -459,6 +463,101 @@
   }
 
   /* ---------------------------------------------------------------- */
+  /* Surface 6 — Billionaire Ledger Card                                */
+  /* ---------------------------------------------------------------- */
+  /* Net worth vs political spending for one Forbes-2026 billionaire.
+     Every pixel from the data object; missing fields render '—', never
+     invented. Spending NULL (pre-FEC-ingest) renders the honest
+     "not yet loaded" line instead of a zero. */
+  function ledgerDate(iso) {
+    var m = String(iso == null ? '' : iso).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return '—';
+    var MON = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    var mi = parseInt(m[2], 10) - 1;
+    if (mi < 0 || mi > 11) return '—';
+    return MON[mi] + ' ' + parseInt(m[3], 10) + ', ' + m[1];
+  }
+  function ledgerMoneyB(b) {
+    var n = Number(b);
+    if (!isFinite(n)) return '—';
+    return '$' + (Math.round(n * 10) / 10) + 'B';
+  }
+  function ledgerMoney(n) {
+    var v = Number(n);
+    if (!isFinite(v)) return '—';
+    return '$' + Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+  function ledgerPct(ratio) {
+    var r = Number(ratio);
+    if (!isFinite(r) || r < 0) return '—';
+    var pct = r * 100;
+    if (pct >= 1) return (Math.round(pct * 100) / 100) + '%';
+    if (pct >= 0.01) return (Math.round(pct * 1000) / 1000) + '%';
+    return pct.toPrecision(2) + '%';
+  }
+  function paintLedger(d, cv, x) {
+    base(x); kicker(x);
+    badge(x, 'THE LEDGER', 280, '#c1121f', 40);
+    var cs = callsignOf();
+    var y = 380;
+    /* rank on the Forbes list */
+    var rk = parseInt(d.rank, 10);
+    x.fillStyle = '#e8b923'; x.font = '700 38px Arial,sans-serif';
+    x.fillText(isFinite(rk) && rk > 0 ? '#' + rk + ' ON THE FORBES 2026 LIST' : 'FORBES 2026 LIST', W / 2, y);
+    y += 58;
+    /* the billionaire — biggest element on the card */
+    x.fillStyle = '#f5ead6';
+    fitFont(x, String(d.name || '—').toUpperCase(), 92, 40, 910);
+    wrap(x, String(d.name || '—').toUpperCase(), 910).slice(0, 2)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += 96; });
+    /* net worth — the headline number */
+    y = Math.max(620, y + 8);
+    x.fillStyle = '#f5ead6'; x.font = '900 44px "Arial Black",Arial,sans-serif';
+    x.fillText('NET WORTH', W / 2, y); y += 64;
+    x.fillStyle = '#e8b923';
+    fitFont(x, ledgerMoneyB(d.netWorthB), 120, 60, 910);
+    x.fillText(ledgerMoneyB(d.netWorthB), W / 2, y); y += 38;
+    x.fillStyle = '#c9bfa8'; x.font = '400 30px Arial,sans-serif';
+    x.fillText('FORBES ' + ledgerDate(d.netWorthAsOf) + ' SNAPSHOT', W / 2, y); y += 54;
+    /* vs */
+    x.fillStyle = '#c1121f'; x.font = '900 44px "Arial Black",Arial,sans-serif';
+    x.fillText('VS.', W / 2, y); y += 56;
+    /* political spending */
+    var spend = (d.spending == null) ? null : Number(d.spending);
+    if (spend != null && isFinite(spend)) {
+      x.fillStyle = '#f5ead6'; x.font = '900 40px "Arial Black",Arial,sans-serif';
+      x.fillText('SPENT ON FEDERAL ELECTIONS', W / 2, y); y += 58;
+      x.fillStyle = '#f5ead6';
+      fitFont(x, ledgerMoney(spend), 96, 48, 910);
+      x.fillText(ledgerMoney(spend), W / 2, y); y += 38;
+      x.fillStyle = '#c9bfa8'; x.font = '400 28px Arial,sans-serif';
+      var cyc = parseInt(d.spendingCycle, 10);
+      x.fillText('FEC SCHEDULE A' + (isFinite(cyc) ? ', ' + cyc + ' CYCLE' : '') +
+        ' \u00b7 NAME-MATCHED — IDENTITY UNVERIFIED', W / 2, y); y += 48;
+      /* the ratio bar — spending as a fraction of net worth, min-width so a
+         sliver still reads as a sliver instead of vanishing */
+      var ratio = Number(d.ratio);
+      var bw = (isFinite(ratio) && ratio > 0) ? Math.max(4, Math.min(880, ratio * 880)) : 0;
+      var by = y + 8, bh = 30, bx = (W - 880) / 2;
+      x.fillStyle = '#1a1a1a'; x.fillRect(bx, by, 880, bh);
+      x.strokeStyle = '#3a3a3a'; x.lineWidth = 2; x.strokeRect(bx, by, 880, bh);
+      if (bw > 0) { x.fillStyle = '#c1121f'; x.fillRect(bx, by, bw, bh); }
+      y = by + bh + 32;
+      x.fillStyle = '#e8b923'; x.font = '700 34px Arial,sans-serif';
+      x.fillText(ledgerPct(ratio) + ' OF NET WORTH', W / 2, y); y += 36;
+    } else {
+      x.fillStyle = '#c9bfa8'; x.font = '400 34px Arial,sans-serif';
+      x.fillText('FEC DATA NOT YET LOADED', W / 2, y); y += 44;
+      x.font = '400 28px Arial,sans-serif';
+      x.fillText('NO FIGURES SHOWN RATHER THAN INVENTED', W / 2, y); y += 56;
+    }
+    y = Math.max(1080, y + 6);
+    if (cs) y = csLine(cv, x, y, cs);
+    bottomStack(x, 'fight');
+    return cv;
+  }
+
+  /* ---------------------------------------------------------------- */
   /* Painter table + registration                                       */
   /* ---------------------------------------------------------------- */
   var PAINT = {
@@ -466,7 +565,8 @@
     'phq-prediction': paintPrediction,
     'phq-scorecard': paintScorecard,
     'phq-cellwin': paintCellwin,
-    'phq-wallshame': paintWallShame
+    'phq-wallshame': paintWallShame,
+    'phq-ledger': paintLedger
   };
   function paintOne(id, data) {
     var p = PAINT[id];

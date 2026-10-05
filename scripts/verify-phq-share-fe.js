@@ -51,7 +51,7 @@ if (/PF\.skip\(['"]phq-share['"]\)/.test(src)) ok('kill switch PF.skip("phq-shar
 else no('kill switch', 'PF.skip("phq-share") not found');
 if (src.indexOf('?pf_off=phq-share') !== -1) ok('KILL comment documents ?pf_off=phq-share');
 else no('kill comment', '?pf_off=phq-share missing from header');
-['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame'].forEach(function (id) {
+['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame', 'phq-ledger'].forEach(function (id) {
   if (src.indexOf("'" + id + "'") !== -1) ok('painter id registered: ' + id);
   else no('painter id', id + ' missing');
 });
@@ -195,6 +195,14 @@ var FIX = {
     name: 'MIKE JOHNSON', chamber: 'house', party: 'R', state: 'LA',
     againstVotes: 1, position: 'Yea', question: 'On Passage',
     voteDates: ['2026-09-15'], sourceUrl: 'https://www.congress.gov/bill/119th-congress/house-bill/3633'
+  },
+  /* Billionaire-ledger painter fixture — full detail assertions live in
+     scripts/verify-ledgers-fe.js. Entities (Musk) and the Forbes net worth
+     are real; the spending figure is a synthetic paint-test value. */
+  'phq-ledger': {
+    name: 'Elon Musk', rank: 1, netWorthB: 839, netWorthAsOf: '2026-03-01',
+    spending: 839000000, spendingCycle: 2026, ratio: 0.001,
+    matchNote: "match='name-matched, identity unverified'"
   }
 };
 
@@ -203,10 +211,10 @@ var PHQ = env.sb.PF && env.sb.PF.PHQShare;
 if (!PHQ) { no('PF.PHQShare', 'API not exposed'); }
 else {
   ok('PF.PHQShare exposed');
-  if (JSON.stringify(PHQ.ids) === JSON.stringify(['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame']))
+  if (JSON.stringify(PHQ.ids) === JSON.stringify(['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame', 'phq-ledger']))
     ok('ids list matches spec painter keys');
   else no('ids', 'unexpected ids: ' + JSON.stringify(PHQ.ids));
-  ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame'].forEach(function (id) {
+  ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame', 'phq-ledger'].forEach(function (id) {
     if (typeof env.registered[id] === 'function') ok('setPoster registered: ' + id);
     else no('registration', id + ' not registered with PFShare');
   });
@@ -410,7 +418,8 @@ else {
 console.log('== 4. layout guards (no collisions) ==');
 [['phq-pressure', FIX['phq-pressure']], ['phq-prediction', FIX['phq-prediction']],
  ['phq-scorecard', FIX['phq-scorecard']], ['phq-cellwin', FIX['phq-cellwin']],
- ['phq-wallshame', FIX['phq-wallshame']]].forEach(function (pc) {
+ ['phq-wallshame', FIX['phq-wallshame']],
+ ['phq-ledger', FIX['phq-ledger']]].forEach(function (pc) {
   var c = PHQ.paint(pc[0], pc[1]);
   var rs = c._recs || [], bad = [], link = null, date = null, cta = null;
   for (var i = 0; i < rs.length; i++) {

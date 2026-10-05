@@ -284,9 +284,10 @@ var PHQ = env.sb.PF && env.sb.PF.PHQShare;
 if (!PHQ) { no('PF.PHQShare', 'API not exposed'); }
 else {
   ok('PF.PHQShare exposed (with wallshame painter registered)');
-  if (JSON.stringify(PHQ.ids) === JSON.stringify(
-      ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame']))
-    ok('ids list includes phq-wallshame');
+  /* fe/billionaire-ledgers (2026-10-05): the phq-ledger painter joined the
+     set — assert inclusion rather than an exact 5-list. */
+  if (PHQ.ids.indexOf('phq-wallshame') !== -1)
+    ok('ids list includes phq-wallshame (now ' + PHQ.ids.length + ' painters)');
   else no('ids', 'unexpected ids: ' + JSON.stringify(PHQ.ids));
   if (typeof env.registered['phq-wallshame'] === 'function') ok('setPoster registered: phq-wallshame');
   else no('registration', 'phq-wallshame not registered with PFShare');

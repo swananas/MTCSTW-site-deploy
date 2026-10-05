@@ -40,6 +40,8 @@
     /* P1#6 (2026-10-05): hq-nudge promoted to START HERE — the flagship's
        front door sits directly after the daily loop, not buried in CREATE. */
     ['hq-nudge', 'pf-ov-hq-nudge'],
+    /* 2026-10-05 (fe/civic-snapshot): civic snapshot card, after hq-nudge. */
+    ['civicsnap', 'pf-ov-civicsnap'],
     ['dopa', 'pf-ov-dopa'],
     ['do-meter', 'pf-ov-dometer'],
     ['enlistment-ranks', 'pf-ov-ranks'],

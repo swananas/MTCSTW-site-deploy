@@ -46,6 +46,11 @@ var SECTIONS = {
        onboarding state picker (stateless-first) + settings widget. Lives
        with the claim flow in bundle-sec1 (critical path). No XP, read-only. */
     'home-state.js',
+    /* Political HQ creation weave #5 (2026-10-05): pick-your-fight
+       preference — onboarding issue-area picker (max 3, skippable) +
+       settings widget. Step two of onboarding personalization, right after
+       the state picker. No XP, read-only. */
+    'pick-fight.js',
     'dopamine.js',
     'enlistment-ranks.js',
     /* Wave 5B (2026-10-04): theater rack + ribbon chase strip + Frontline

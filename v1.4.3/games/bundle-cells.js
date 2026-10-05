@@ -71,18 +71,19 @@
   /* JSONP GET — read-only cell actions. 12s timeout, same as every silo. */
   var READ = { cell_mine:1, cell_prestige:1, cell_health:1, cell_search:1,
     cell_leaderboard:1, cell_links:1, cellwar_standings:1, cellwar_history:1,
-    warchest_status:1, treasury_balance:1 };
+    warchest_status:1, treasury_balance:1, propbounty_list:1 };
   /* Mutations go through POST (CSRF-able via GET otherwise). */
   var WRITE = { cell_create:1, cell_join:1, cell_checkin:1, cell_cover:1,
     cell_leave:1, cell_rename:1, cell_update:1, cell_promote:1, cell_bounty_claim:1,
-    cell_contribute:1 };
+    cell_contribute:1, propbounty_post:1, propbounty_submit:1,
+    propbounty_vote:1, propbounty_settle:1, propbounty_cancel:1 };
 
   function api(action, params, cb){
     if (WRITE[action]) { postMut(action, params, cb); return; }
     if(!BACKEND){ cb(null); return; }
     /* Private reads require auth_secret (IDOR fix). Auto-attach for the
        auth-gated cell_mine — same PF.getAuthSecret() pattern as briefing.js. */
-    if(action==="cell_mine"){
+    if(action==="cell_mine"||action==="propbounty_list"){
       try{
         var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
         if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
@@ -1002,6 +1003,88 @@
      - War Bonds are the USD rail — link out, zero friction, no gating.
      ALL money actions use native confirm(). XP everywhere except bonds (USD).
      Language rule: pledge / contribute / back / fund — never the d-word. */
+  /* ---------- PROPAGANDA BOUNTIES (helpers — pure, extracted by tests/propbounty.verify.cjs) ----------
+     Best-poster contests: founder/officer posts a brief, members forge in the
+     Poster Forge and submit a link, the cell votes, the winner takes the XP.
+     KILL: ?pf_off=propbounty (PF.skip("propbounty")) disables the card. */
+  function pbCountdown(ts){
+    var ms = Number(ts)||0;
+    if (!ms) return 'no deadline';
+    var d = ms - Date.now();
+    if (d <= 0) return 'expired';
+    var h = Math.floor(d/3600000), dd = Math.floor(h/24);
+    if (dd > 0) return dd+'d '+(h%24)+'h left';
+    if (h > 0) return h+'h left';
+    return Math.max(1, Math.floor(d/60000))+'m left';
+  }
+  function pbEntityChip(t, ref){
+    t = String(t||'').toLowerCase(); ref = String(ref||'').trim();
+    if (t === 'none' || !t || !ref) return '';
+    return '<span class="hq-stat"><b>'+esc(t.toUpperCase())+' &middot; '+esc(ref)+'</b></span>';
+  }
+  function pbThumb(url){
+    url = String(url||'');
+    if (!/^https?:\/\//i.test(url)) return '';
+    var isImg = /\.(png|jpe?g|gif|webp)(\?|#|$)/i.test(url);
+    var link = '<a class="hq-btn sm ghost" style="text-decoration:none;display:inline-block" href="'+esc(url)+'" target="_blank" rel="noopener">VIEW &#8599;</a>';
+    if (isImg) return '<a href="'+esc(url)+'" target="_blank" rel="noopener"><img src="'+esc(url)+'" alt="submission" loading="lazy" style="max-width:120px;max-height:120px;border:2px solid #333;display:block;margin-bottom:6px"></a>'+link;
+    return link;
+  }
+  /* One submission row. me = my callsign; votedId = submission id I voted for
+     (or truthy non-id); hasVoted = whether I already voted this bounty. */
+  function pbSubRow(s, me, votedId, hasVoted){
+    var sid = String(s.id||'');
+    var own = String(s.callsign||'').toLowerCase() === String(me||'').toLowerCase();
+    var thisVoted = String(votedId||'') === sid;
+    var dis = hasVoted || own;
+    var btn = dis
+      ? '<button class="hq-btn sm" disabled>'+(thisVoted?'VOTED':'VOTE')+'</button>'
+      : '<button class="hq-btn sm" data-hq="pb-vote" data-bounty="'+esc(String(s._bounty||''))+'" data-sub="'+esc(sid)+'">VOTE</button>';
+    return '<div class="hq-mem"><span><b>'+esc(s.title||'Untitled')+'</b> <span class="hq-note">by '+esc(s.callsign||'?')+(own?' (you)':'')+
+      ' &mdash; '+esc(String(s.votes||0))+' vote'+(Number(s.votes||0)===1?'':'s')+'</span></span>' +
+      '<span>'+pbThumb(s.asset_url)+' '+btn+'</span></div>';
+  }
+  /* One bounty block. me = my callsign; canMod = founder/officer. */
+  function pbBountyCard(b, me, canMod){
+    var bid = String(b.id||'');
+    var st = String(b.status||'open');
+    var h = '<div style="margin-top:12px;border-top:1px solid #2e2e2e;padding-top:10px">';
+    h += '<div class="hq-row" style="justify-content:space-between"><span class="pb-badge">PROPAGANDA</span>' +
+      '<span class="hq-note">'+esc(pbCountdown(b.deadline))+'</span></div>';
+    h += '<div style="margin:6px 0"><b>'+esc(b.prompt||'')+'</b></div>';
+    h += '<div class="hq-row">'+pbEntityChip(b.entity_type, b.entity_ref) +
+      '<span class="hq-stat"><b>'+esc(String(b.prize_xp||0))+' XP</b> prize</span>' +
+      '<span class="hq-note">by '+esc(b.created_by||'?')+'</span></div>';
+    if (st === 'settled'){
+      h += '<div class="hq-note" style="margin-top:8px;font-size:15px"><b>&#127942; @'+esc(b.winner||'?')+
+        ' takes '+esc(String(b.prize_xp||0))+' XP</b></div>';
+    }
+    if (st === 'cancelled'){
+      h = '<div style="margin-top:12px;opacity:.45">'+h;
+    }
+    var subs = (b.submissions||[]).slice().sort(function(x,y){ return (Number(y.votes)||0)-(Number(x.votes)||0); });
+    var hasVoted = !!b.my_vote;
+    subs.forEach(function(s){ s._bounty = bid; h += pbSubRow(s, me, b.my_vote, hasVoted); });
+    if (st === 'open'){
+      if (b.my_submission){
+        h += '<div class="hq-note" style="margin-top:8px">You submitted: <b>'+esc(b.my_submission.title||b.my_submission)+'</b> — one submission per member.</div>';
+      } else {
+        h += '<div class="hq-note" style="margin-top:8px">Forge it in the Poster Forge, post it anywhere, paste the link.</div>' +
+          '<div class="hq-row" style="margin-top:4px">' +
+          '<input class="hq-in" id="hqPbUrl_'+esc(bid)+'" placeholder="https://… link to your poster" style="flex:1;min-width:180px">' +
+          '<input class="hq-in" id="hqPbTitle_'+esc(bid)+'" maxlength="80" placeholder="Title" style="width:150px">' +
+          '<button class="hq-btn sm" data-hq="pb-submit" data-bounty="'+esc(bid)+'">SUBMIT</button></div>';
+      }
+      if (canMod){
+        h += '<div class="hq-row" style="margin-top:6px">' +
+          '<button class="hq-btn sm" data-hq="pb-settle" data-bounty="'+esc(bid)+'">SETTLE EARLY</button>' +
+          '<button class="hq-btn sm ghost" data-hq="pb-cancel" data-bounty="'+esc(bid)+'">CANCEL</button></div>';
+      }
+    }
+    if (st === 'cancelled') h += '</div>';
+    return h;
+  }
+
   function renderTreasury(p){
     var id = ident();
     if (!id.callsign){
@@ -1015,9 +1098,10 @@
     h += '<div id="hqTreasBody">'+loading('Opening the vault&hellip;')+'</div>';
     p.innerHTML = h;
     var body = document.getElementById('hqTreasBody');
-    /* Parallel reads: bank, loans, prizes, bonds, campaign, warchest, causes. */
+    /* Parallel reads: bank, loans, prizes, bonds, campaign, warchest, causes,
+       propaganda bounties. */
     var R = {};
-    var need = ['bank','loans','prizes','bonds','camp','wchest','treasury','causes'];
+    var need = ['bank','loans','prizes','bonds','camp','wchest','treasury','causes','pbounty'];
     var done = 0;
     function each(){ done++; if (done >= need.length) paintTreasury(body, R, isFounder); }
     finGet('bank_status', {}, function(j){ R.bank=j; each(); });
@@ -1032,6 +1116,11 @@
     else { R.wchest = null; each(); }
     if (wcid) api('treasury_balance', {cell_id: wcid}, function(j){ R.treasury=j; each(); });
     else { R.treasury = null; each(); }
+    /* Propaganda bounties are private to the cell — auth_secret rides the
+       same auto-attach path as cell_mine. Backend may not exist yet (BE
+       branch merges separately) — degrade to a placeholder card. */
+    if (wcid) api('propbounty_list', withIdent({cell_id: wcid}), function(j){ R.pbounty=j; each(); });
+    else { R.pbounty = null; each(); }
   }
 
   function paintTreasury(body, R, isFounder){
@@ -1220,6 +1309,53 @@
       });
     }
     h += '<div id="hqPrizeMsg"></div></div>';
+
+    /* --- 3b. PROPAGANDA BOUNTIES (best-poster contests) --- */
+    var pbOff = false;
+    try { pbOff = !!(window.PF && PF.skip && PF.skip('propbounty')); } catch(e){}
+    if (!pbOff){
+      h += '<div class="hq-card" style="border-color:#c9a227"><style>.pb-badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border:1px solid #c9a227;color:#c9a227;letter-spacing:1px;white-space:nowrap}</style>' +
+        '<h3>&#127919; Propaganda bounties <span class="hq-note">best poster wins — the cell votes</span></h3>';
+      var pb = R.pbounty;
+      var me2 = (ident()||{}).callsign || '';
+      var canPbMod = !!(S.mine && (S.mine.is_founder || S.mine.is_officer));
+      if (pb && pb.ok){
+        var blist = pb.bounties || [];
+        h += '<div class="hq-note">The founder or an officer posts a brief. Members forge the poster, drop a link, ' +
+          'and the cell votes — top poster takes the bounty.</div>';
+        if (canPbMod && wcid){
+          h += '<div style="margin-top:8px;border-top:1px solid #2e2e2e;padding-top:10px"><b>Post a bounty</b>' +
+            '<div class="hq-row" style="margin-top:6px"><textarea class="hq-in" id="hqPbPrompt" maxlength="280" rows="2" ' +
+            'placeholder="Brief (280 max) — e.g. Best poster about H.R. 14 wins." style="flex:1;min-width:200px;resize:vertical"></textarea></div>' +
+            '<div class="hq-row">' +
+            '<select class="hq-in" id="hqPbType" aria-label="Entity type">' +
+            ['none','bill','rep','race','poll','nonprofit','campaign','prediction'].map(function(t2){
+              return '<option value="'+t2+'">'+t2.charAt(0).toUpperCase()+t2.slice(1)+'</option>';
+            }).join('') + '</select>' +
+            '<input class="hq-in" id="hqPbRef" maxlength="40" placeholder="Entity ref (e.g. H.R. 14)" style="width:170px">' +
+            '<select class="hq-in" id="hqPbPrize" aria-label="Prize tier">' +
+            '<option value="25">25 XP</option><option value="50" selected>50 XP</option><option value="100">100 XP</option></select>' +
+            '<select class="hq-in" id="hqPbDl" aria-label="Deadline">' +
+            '<option value="24">24h</option><option value="48" selected>48h</option><option value="72">72h</option><option value="168">7d</option></select>' +
+            '<button class="hq-btn sm" data-hq="pb-post">POST BOUNTY</button></div></div>';
+        } else if (!canPbMod){
+          h += '<div class="hq-note">Only the founder and officers can post bounties.</div>';
+        }
+        if (!blist.length){
+          h += '<div class="hq-note" style="margin-top:8px">No propaganda bounties yet — the founder can post the first.</div>';
+        } else {
+          blist.forEach(function(b){ try { h += pbBountyCard(b, me2, canPbMod); } catch(x){} });
+        }
+      } else if (wcid){
+        /* Graceful degradation: backend action doesn't exist yet — card
+           stays, placeholder note, never throws. */
+        h += '<div class="hq-note">Propaganda bounties aren\'t live on the backend yet — ' +
+          'this board lights up the moment the action ships. Nothing to do.</div>';
+      } else {
+        h += '<div class="hq-note">Join a cell to post and vote on propaganda bounties.</div>';
+      }
+      h += '<div id="hqPbMsg"></div></div>';
+    }
 
     /* --- 4. CELL LOANS (member aid in XP) --- */
     var loans = (R.loans && R.loans.ok) ? R.loans : { as_lender:[], as_borrower:[] };
@@ -1702,6 +1838,82 @@
         busy(false);
         if (j && j.ok){ treasMsg('hqLoanMsg', true, 'Microloan sent.'); toast('Microloan sent.'); }
         else treasMsg('hqLoanMsg', false, friendlyErr(j));
+      });
+    }
+    /* ----- propaganda bounty actions ----- */
+    else if (a==='pb-post'){
+      if(!needCs()) return;
+      if (!(S.mine && (S.mine.is_founder || S.mine.is_officer))){
+        treasMsg('hqPbMsg', false, 'Only the founder and officers can post bounties.'); return;
+      }
+      var pbCell = (S.mine && S.mine.cell && S.mine.cell.id) || '';
+      if (!pbCell){ treasMsg('hqPbMsg', false, 'Join a cell first.'); return; }
+      var prompt = strIn('hqPbPrompt');
+      if (prompt.length < 3){ treasMsg('hqPbMsg', false, 'Write a brief — at least 3 characters.'); return; }
+      prompt = prompt.slice(0, 280);
+      var etype = strIn('hqPbType').toLowerCase();
+      var validTypes = {none:1,bill:1,rep:1,race:1,poll:1,nonprofit:1,campaign:1,prediction:1};
+      if (!validTypes[etype]) etype = 'none';
+      var eref = strIn('hqPbRef').slice(0, 40);
+      if (etype === 'none') eref = '';
+      var pTier = numIn('hqPbPrize', 50);
+      if (pTier !== 25 && pTier !== 50 && pTier !== 100) pTier = 50;
+      var pDl = numIn('hqPbDl', 48);
+      if (pDl !== 24 && pDl !== 48 && pDl !== 72 && pDl !== 168) pDl = 48;
+      if(!moneyConfirm('Post propaganda bounty for '+pTier+' XP? "'+prompt+'"')) return;
+      busy(true);
+      api('propbounty_post', withIdent({cell_id: pbCell, prompt: prompt, entity_type: etype,
+        entity_ref: eref, prize_xp: pTier, deadline_hours: pDl}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Bounty posted. Forge away.'); S.tab='treasury'; render(); }
+        else treasMsg('hqPbMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='pb-submit'){
+      if(!needCs()) return;
+      var sbid = t.getAttribute('data-bounty');
+      var aurl = strIn('hqPbUrl_'+sbid), atitle = strIn('hqPbTitle_'+sbid).slice(0, 80);
+      if (!/^https?:\/\//i.test(aurl)){ treasMsg('hqPbMsg', false, 'Paste a valid link to your poster (http/https).'); return; }
+      if (atitle.length < 2){ treasMsg('hqPbMsg', false, 'Give your submission a title.'); return; }
+      busy(true);
+      api('propbounty_submit', withIdent({bounty_id: sbid, asset_url: aurl, title: atitle}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Submitted. May the best poster win.'); S.tab='treasury'; render(); }
+        else treasMsg('hqPbMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='pb-vote'){
+      if(!needCs()) return;
+      var vbid = t.getAttribute('data-bounty'), vsub = t.getAttribute('data-sub');
+      busy(true);
+      api('propbounty_vote', withIdent({bounty_id: vbid, submission_id: vsub}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Vote counted.'); S.tab='treasury'; render(); }
+        else treasMsg('hqPbMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='pb-settle'){
+      if(!needCs()) return;
+      if (!(S.mine && (S.mine.is_founder || S.mine.is_officer))){ toast('Officers only.'); return; }
+      var stbid = t.getAttribute('data-bounty');
+      if(!moneyConfirm('Settle this bounty early? Top-voted submission wins the XP. This cannot be undone.')) return;
+      busy(true);
+      api('propbounty_settle', withIdent({bounty_id: stbid}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Bounty settled.'); S.tab='treasury'; render(); }
+        else treasMsg('hqPbMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='pb-cancel'){
+      if(!needCs()) return;
+      if (!(S.mine && (S.mine.is_founder || S.mine.is_officer))){ toast('Officers only.'); return; }
+      var cbid = t.getAttribute('data-bounty');
+      if(!moneyConfirm('Cancel this bounty? Submissions are discarded and no XP pays out.')) return;
+      busy(true);
+      api('propbounty_cancel', withIdent({bounty_id: cbid}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Bounty cancelled.'); S.tab='treasury'; render(); }
+        else treasMsg('hqPbMsg', false, friendlyErr(j));
       });
     }
     else if (a==='pledge'){

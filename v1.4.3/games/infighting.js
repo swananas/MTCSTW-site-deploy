@@ -83,7 +83,7 @@
 <script>
 (function(){
 'use strict';
-var API=(window.PF_BACKEND_URL||'https://pf-api.mtcstw.workers.dev');
+var API=(window.PF_BACKEND_URL);
 var LS_R='pf_ranks_v1',LS_I='pf_identity_v1';
 var LS_OPS='pf_infight_ops_v1',LS_SPENT='pf_infight_spent_v1',LS_SEEN='pf_infight_seen_v1',LS_LAST='pf_infight_last_v1';
 /* 6A-R8 cell bout: CELL BOUT toggle + per-cell standings. Cell identity

@@ -218,7 +218,7 @@ function renderOracle(){
 }
 
 /* --- Voter turnout: site-wide ballot count, trailing 7 days (bracket_turnout). --- */
-var BRACKET_API=(window.PF_BACKEND_URL||"https://pf-api.mtcstw.workers.dev");
+var BRACKET_API=(window.PF_BACKEND_URL);
 function renderTurnout(){
   var el=document.getElementById("bTurnout"); if(!el) return;
   var paint=function(n){ if(n>0) el.innerHTML="&#9760; <b>"+Number(n).toLocaleString()+"</b> ballots cast this week &mdash; add yours"; };

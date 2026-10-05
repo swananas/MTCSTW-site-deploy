@@ -25,7 +25,7 @@
     if (bd0 && (bd0.classList.contains('sqs-edit-mode') || bd0.classList.contains('sqs-editing'))) return;
   } catch (e) {}
 
-  var BACKEND = window.PF_BACKEND_URL || 'https://pf-api.mtcstw.workers.dev';
+  var BACKEND = window.PF_BACKEND_URL ;
   var POLL_MS = 30000;      /* re-read state at 30s TTL — refresh only, never the ticking number */
   var SEEN_KEY = 'pf_briefing_seen_v1';
   var DISMISS_KEY = 'pf_briefing_dismissed';

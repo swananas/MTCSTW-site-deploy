@@ -47,7 +47,7 @@
 '  function load(){try{var s=JSON.parse(localStorage.getItem(LS)||"null");if(s&&typeof s.streak==="number")return s;}catch(e){}return{streak:0,last:"",lastDaily:"",dailyScore:-1};}\n' +
 '  function save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}\n' +
 '  function todayStr(){try{return new Date().toISOString().slice(0,10);}catch(e){return"";}}\n' +
-'  var API=(window.PF_BACKEND_URL||"https://pf-api.mtcstw.workers.dev");\n' +
+'  var API=(window.PF_BACKEND_URL);\n' +
 '  var GSTAT=null;\n' +
 '  function loadStats(cb){var done=function(){if(cb)cb();};\n' +
 '    try{var c=JSON.parse(localStorage.getItem("pf_guess_stats_v1")||"null");if(c&&Date.now()-c.at<6*3600000){GSTAT=c.d;done();return;}}catch(e){}\n' +

@@ -32,6 +32,15 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # Bump together with the site version.
 SERVED_VERSION = 'v1.4.3'
 
+# ROSTER_PHOTO_PIN — the SINGLE jsDelivr pin for all roster photos
+# (D5 centralization, 2026-10-05). Every picture URL served from
+# cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@<pin> MUST use this pin.
+# To re-pin (new release): change this one constant, then rebuild — the
+# assertion below fails LOUDLY if any input still carries a stale pin.
+# All 23 roster photos verified present at 46c34bf (2026-10-02, "7 final
+# photos (21/21 complete)").
+ROSTER_PHOTO_PIN = '46c34bf'
+
 # Out-of-repo SEO enrichment source. Deliberately outside the repo
 # (produced by the meta-description workflow). A missing file used to fail
 # SILENTLY (empty seo_description for all 62) — now it fails LOUDLY unless
@@ -240,6 +249,13 @@ for m in members:
     if not m['links']:
         print(f"WARNING: no links for {m['slug']} (known dead end, kept)")
     assert m['catalog_path'].startswith('/'), m['slug']
+    # D5: every jsDelivr roster-photo URL must carry the single canonical pin.
+    # A stale pin means silent 404s when jsDelivr GCs old commits — fail LOUD.
+    pic = m.get('picture') or ''
+    if 'cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@' in pic:
+        want = 'MTCSTW-site-deploy@' + ROSTER_PHOTO_PIN + '/'
+        assert want in pic, \
+            f"stale roster-photo pin for {m['slug']}: {pic[:110]} (want @{ROSTER_PHOTO_PIN})"
 
 out = {
     "meta": {
@@ -251,7 +267,8 @@ out = {
         "catalog_scrape_applied": bool(scrape),
         "rules": ["followers_total is the single numeric audience field (counted once)",
                   "new members carry provisional scores 7.6-9.8",
-                  "no guessed URLs; links tagged confirmed/probable/unverified"],
+                  "no guessed URLs; links tagged confirmed/probable/unverified",
+                  "all jsDelivr roster-photo URLs pin to @46c34bf (ROSTER_PHOTO_PIN in build-master-db.py)"],
     },
     "members": members,
 }

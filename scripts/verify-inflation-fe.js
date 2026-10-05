@@ -82,18 +82,55 @@ console.log('== 2. widget surfaces ==');
   if (has(src, "getElementById('" + pair[0] + "')")) ok('mount: #' + pair[0]);
   else no('mount', '#' + pair[0] + ' not mounted');
 });
-/* The 12 basket items with units, matching the backend seeds. */
+/* The 12 basket items with units. Ids must match the backend v99 seed ids exactly
+   (SURGE-3: gasoline_regular/gasoline contract break was missed because this check
+   only grepped the frontend file — the cross-check below guards it). */
 var ITEMS = [
   ['milk', 'gallon'], ['eggs', 'dozen'], ['bread', 'loaf'],
   ['ground_beef', 'lb'], ['chicken_breast', 'lb'], ['white_rice', 'lb'],
   ['bananas', 'lb'], ['butter', 'lb'], ['coffee_12oz', '12oz bag'],
-  ['gasoline_regular', 'gallon'], ['electricity', 'kWh'], ['rent_1br', 'month']
+  ['gasoline', 'gallon'], ['electricity', 'kWh'], ['rent_1br', 'month']
 ];
 var itemFails = ITEMS.filter(function (it) {
   return !has(src, "id: '" + it[0] + "'") || !has(src, "unit: '" + it[1] + "'");
 });
-if (!itemFails.length) ok('basket: 12 items with units match backend seeds');
+if (!itemFails.length) ok('basket: 12 items with units present in frontend');
 else no('basket', 'missing/mismatched: ' + itemFails.map(function (i) { return i[0]; }).join(','));
+/* SURGE-3 hardening: cross-check FE basket ids against the REAL backend seed ids
+   in the v99 migration. The old check only grepped the frontend file, so a
+   frontend/backend id mismatch passed 89/89 green while gasoline was dead. */
+(function crossCheckBasketSeeds() {
+  var cands = [
+    process.env.PF_BE_REPO ? path.join(process.env.PF_BE_REPO, 'migrations', 'v99_inflation_tracker.sql') : null,
+    path.join(ROOT, '..', 'mtcstw-api', 'migrations', 'v99_inflation_tracker.sql'),
+    path.join(process.env.HOME || '', 'workspace', 'mtcstw-api', 'migrations', 'v99_inflation_tracker.sql')
+  ].filter(Boolean);
+  var migPath = null;
+  for (var i = 0; i < cands.length; i++) {
+    try { if (fs.existsSync(cands[i])) { migPath = cands[i]; break; } } catch (e) {}
+  }
+  if (!migPath) {
+    no('basket/backend-seeds', 'v99_inflation_tracker.sql not found; set PF_BE_REPO to the backend repo');
+    return;
+  }
+  var migSrc = read(migPath);
+  var block = migSrc.split('INSERT OR IGNORE INTO basket_items')[1];
+  if (block) block = block.split(');')[0];
+  var seedIds = [];
+  if (block) block.split('\n').forEach(function (line) {
+    var m = line.match(/^\s*\('([a-z0-9_]+)'\s*,/);
+    if (m) seedIds.push(m[1]);
+  });
+  var feIds = ITEMS.map(function (it) { return it[0]; });
+  var inFeNotBe = feIds.filter(function (id) { return seedIds.indexOf(id) < 0; });
+  var inBeNotFe = seedIds.filter(function (id) { return feIds.indexOf(id) < 0; });
+  if (seedIds.length === 12 && !inFeNotBe.length && !inBeNotFe.length) {
+    ok('basket/backend-seeds: 12 FE ids == 12 backend seed ids (' + migPath + ')');
+  } else {
+    no('basket/backend-seeds', 'FE ids not in backend seeds: [' + inFeNotBe.join(',') +
+      ']; backend seed ids not in FE: [' + inBeNotFe.join(',') + ']; seeds found: ' + seedIds.length);
+  }
+})();
 if (has(src, 'ZIP or city — never your address')) ok('area input: coarse-only placeholder copy');
 else no('area input', 'placeholder "ZIP or city — never your address" missing');
 if (has(src, 'inputmode="decimal"') && has(src, 'pf-inf-ci-price')) ok('check-in: price input present');

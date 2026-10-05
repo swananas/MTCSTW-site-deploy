@@ -721,7 +721,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
     { id: 'bananas',          name: 'Bananas',           unit: 'lb' },
     { id: 'butter',           name: 'Butter',            unit: 'lb' },
     { id: 'coffee_12oz',      name: 'Coffee',            unit: '12oz bag' },
-    { id: 'gasoline_regular', name: 'Gasoline (regular)', unit: 'gallon' },
+    { id: 'gasoline',       name: 'Gasoline (regular)', unit: 'gallon' },
     { id: 'electricity',      name: 'Electricity',       unit: 'kWh' },
     { id: 'rent_1br',         name: 'Rent (1BR)',        unit: 'month' }
   ];

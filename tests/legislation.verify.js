@@ -223,14 +223,17 @@ function lastJsonp(win) {
   return win.__jsonpCalls[win.__jsonpCalls.length - 1] || '';
 }
 
-/* ---------- fixtures ---------- */
+/* ---------- fixtures: backend shape (be/bills @ src/bills.js) ----------
+ * bills_list rows and bills_get bill objects key on `bill_id`; tallies ride
+ * `support_cells`/`oppose_cells`; the card blurb is `plain_english_summary`;
+ * statuses arrive hyphenated ('passed-house','passed-senate'). */
 function bill(over) {
   var b = {
-    id: 'b1', number: 'H.R. 22', title: 'SAVE Act',
-    summary: 'Requires proof of citizenship to register to vote.',
+    bill_id: 'b1', title: 'SAVE Act',
+    plain_english_summary: 'Requires proof of citizenship to register to vote.',
     status: 'committee', chamber: 'house',
     sponsor_name: 'Chip Roy', sponsor_bioguide: 'R000589',
-    support_count: 2, oppose_count: 1,
+    support_cells: 2, oppose_cells: 1,
     pressure_link: 'https://www.mtcstw.com/political-hq#campaigns'
   };
   Object.keys(over || {}).forEach(function (k) { b[k] = over[k]; });
@@ -240,7 +243,7 @@ function baseBackend() {
   return {
     bills_list: { ok: true, bills: [bill()] },
     cell_mine: { ok: true, cell_id: 'cell-1', is_founder: true, callsign: 'CS' },
-    bills_get: { ok: true, bill: bill({ full_summary: 'Full text of the summary.' }),
+    bills_get: { ok: true, bill: bill({ plain_english_summary: 'Full text of the summary.' }),
       cell_votes: { support: 2, oppose: 1 }, pressure_link: '/political-hq#campaigns' },
     'POST:bill_vote': { ok: true, cell_votes: { support: 5, oppose: 2 } }
   };
@@ -258,8 +261,8 @@ ok('?pf_off=legislation stages nothing', runOuter('?pf_off=legislation').__templ
   function st(s) { return T.billStage(s); }
   ok('stage: introduced -> 0', st('introduced').idx === 0 && !st('introduced').dead);
   ok('stage: committee -> 1', st('committee').idx === 1);
-  ok('stage: passed_house -> 2', st('passed_house').idx === 2);
-  ok('stage: passed_senate -> 3', st('passed_senate').idx === 3);
+  ok('stage: passed-house -> 2', st('passed-house').idx === 2);
+  ok('stage: passed-senate -> 3', st('passed-senate').idx === 3);
   ok('stage: signed -> 4', st('signed').idx === 4);
   ok('stage: dead -> terminal', st('dead').dead === true && st('dead').idx === -1);
   ok('stage: alias became_law -> 4', st('became_law').idx === 4);
@@ -270,20 +273,20 @@ ok('?pf_off=legislation stages nothing', runOuter('?pf_off=legislation').__templ
 /* ---------- rendered card + stages ---------- */
 (function () {
   var bills = [
-    bill({ id: 's0', status: 'introduced' }),
-    bill({ id: 's1', status: 'committee' }),
-    bill({ id: 's2', status: 'passed_house' }),
-    bill({ id: 's3', status: 'passed_senate' }),
-    bill({ id: 's4', status: 'signed' }),
-    bill({ id: 's5', status: 'dead' }),
-    bill({ id: 's6', status: 'mystery_status' })
+    bill({ bill_id: 's0', status: 'introduced' }),
+    bill({ bill_id: 's1', status: 'committee' }),
+    bill({ bill_id: 's2', status: 'passed-house' }),
+    bill({ bill_id: 's3', status: 'passed-senate' }),
+    bill({ bill_id: 's4', status: 'signed' }),
+    bill({ bill_id: 's5', status: 'dead' }),
+    bill({ bill_id: 's6', status: 'mystery_status' })
   ];
   var be = baseBackend();
   be.bills_list = { ok: true, bills: bills };
   var w = runInner({ template: TEMPLATE, backend: be, callsign: 'CS' });
   var html = w.__el('xLegislation').innerHTML;
-  ok('card renders number + title',
-    html.indexOf('H.R. 22') !== -1 && html.indexOf('SAVE Act') !== -1);
+  ok('card renders number (from bill_id) + title',
+    html.indexOf('<div class="lg-num">s0</div>') !== -1 && html.indexOf('SAVE Act') !== -1);
   ok('card renders plain-English summary',
     html.indexOf('Requires proof of citizenship') !== -1);
   var T = w.__pfLegTest;
@@ -308,9 +311,9 @@ ok('?pf_off=legislation stages nothing', runOuter('?pf_off=legislation').__templ
 /* ---------- card content: stuck, players, tally, pressure ---------- */
 (function () {
   var b = bill({
-    id: 'c1', stuck_in: 'Senate — no floor vote scheduled',
+    bill_id: 'c1', stuck_in: 'Senate — no floor vote scheduled',
     blockers: [{ name: 'Mitch McConnell', bioguide_id: 'M000355' }, 'Kyrsten Sinema'],
-    support_count: 0, oppose_count: 0,
+    support_cells: 0, oppose_cells: 0,
     pressure_link: 'https://example.com/campaign-9'
   });
   var be = baseBackend();
@@ -325,13 +328,13 @@ ok('?pf_off=legislation stages nothing', runOuter('?pf_off=legislation').__templ
   ok('pressure button uses API pressure_link',
     html.indexOf('href="https://example.com/campaign-9"') !== -1);
   var be2 = baseBackend();
-  be2.bills_list = { ok: true, bills: [bill({ id: 'c2', support_count: 2, oppose_count: 1 })] };
+  be2.bills_list = { ok: true, bills: [bill({ bill_id: 'c2', support_cells: 2, oppose_cells: 1 })] };
   var w2 = runInner({ template: TEMPLATE, backend: be2, callsign: 'CS' });
   var html2 = w2.__el('xLegislation').innerHTML;
   ok('tally line on every card',
     html2.indexOf('2 cells support') !== -1 && html2.indexOf('1 cell oppose') !== -1);
   var be3 = baseBackend();
-  be3.bills_list = { ok: true, bills: [bill({ id: 'c3' })] };
+  be3.bills_list = { ok: true, bills: [bill({ bill_id: 'c3' })] };
   var w3 = runInner({ template: TEMPLATE, backend: be3, callsign: 'CS' });
   ok('no blockers section when API omits them',
     w3.__el('xLegislation').innerHTML.indexOf('Blockers:') === -1);
@@ -421,7 +424,7 @@ ok('?pf_off=legislation stages nothing', runOuter('?pf_off=legislation').__templ
   var be = baseBackend();
   be.bills_get = function (params) {
     return { ok: true,
-      bill: bill({ id: params.bill_id, full_summary: 'The full breakdown.' }),
+      bill: bill({ bill_id: params.id, plain_english_summary: 'The full breakdown.' }),
       key_players_joined: null,
       pressure_link: '/political-hq#campaigns',
       cell_votes: { support: 2, oppose: 1 } };
@@ -431,13 +434,14 @@ ok('?pf_off=legislation stages nothing', runOuter('?pf_off=legislation').__templ
   var before = w.__jsonpCalls.length;
   w.__pfLegTest.toggleExpand('b1');
   var fired = w.__jsonpCalls.slice(before).join(' ');
-  ok('expand fires bills_get with bill_id',
-    fired.indexOf('action=bills_get') !== -1 && fired.indexOf('bill_id=b1') !== -1,
+  ok('expand fires bills_get with id param (no bill_id)',
+    fired.indexOf('action=bills_get') !== -1 && fired.indexOf('id=b1') !== -1 &&
+    fired.indexOf('bill_id') === -1,
     fired);
   /* re-run with key_players in the detail payload */
   var be2 = baseBackend();
   be2.bills_get = { ok: true,
-    bill: Object.assign(bill({ id: 'b1' }), {
+    bill: Object.assign(bill({ bill_id: 'b1' }), {
       key_players: [
         { name: 'Chip Roy', bioguide_id: 'R000589', role: 'sponsor', party: 'R', state: 'TX', chamber: 'house' },
         { name: 'Mitch McConnell', bioguide_id: 'M000355', role: 'blocker', party: 'R', state: 'KY', chamber: 'senate' }
@@ -460,6 +464,41 @@ ok('?pf_off=legislation stages nothing', runOuter('?pf_off=legislation').__templ
     ev && ev.name === 'pf-legislation-member' &&
     ev.detail.bioguide_id === 'R000589' && ev.detail.name === 'Chip Roy',
     JSON.stringify(ev && { name: ev.name, detail: ev.detail }));
+})();
+
+/* ---------- backend-shape contract (be/bills @ src/bills.js) ---------- */
+(function () {
+  var w = runInner({ template: TEMPLATE, backend: baseBackend(), callsign: 'CS' });
+  var T = w.__pfLegTest;
+  var html = w.__el('xLegislation').innerHTML;
+  /* hyphenated status values in the filter select */
+  ok('status select offers passed-house', html.indexOf('value="passed-house"') !== -1);
+  ok('status select offers passed-senate', html.indexOf('value="passed-senate"') !== -1);
+  ok('no underscore status values survive', html.indexOf('value="passed_house"') === -1 &&
+    html.indexOf('value="passed_senate"') === -1);
+  /* readTally reads support_cells/oppose_cells, ignores legacy keys */
+  var t = T.readTally({ support_cells: 3, oppose_cells: 1 });
+  ok('readTally reads support_cells/oppose_cells', t.support === 3 && t.oppose === 1,
+    JSON.stringify(t));
+  var tLeg = T.readTally({ support_count: 9, supports: 8, oppose_count: 7, opposes: 6 });
+  ok('readTally ignores legacy support_count/supports/oppose_count/opposes',
+    tLeg.support === 0 && tLeg.oppose === 0, JSON.stringify(tLeg));
+  /* card number comes from bill_id */
+  var card = T.cardHTML(bill({ bill_id: 'HR-119-22', title: 'T', plain_english_summary: '' }));
+  ok('card number renders bill_id', card.indexOf('<div class="lg-num">HR-119-22</div>') !== -1,
+    card.slice(0, 200));
+  var cardLeg = T.cardHTML({ bill_id: 'LEG-1', number: 'H.R. 99', bill_number: 'HR99', title: 'T' });
+  ok('card number ignores legacy number/bill_number keys',
+    cardLeg.indexOf('H.R. 99') === -1 && cardLeg.indexOf('HR99') === -1 &&
+    cardLeg.indexOf('<div class="lg-num">LEG-1</div>') !== -1);
+  /* summary comes from plain_english_summary only */
+  var sum = T.cardHTML(bill({ bill_id: 'S-1', plain_english_summary: 'Plain words here.' }));
+  ok('card summary renders plain_english_summary', sum.indexOf('Plain words here.') !== -1);
+  var sumLeg = T.cardHTML({ bill_id: 'S-2', title: 'T',
+    summary: 'legacy one', plain_summary: 'legacy two', full_summary: 'legacy three' });
+  ok('card summary ignores legacy summary/plain_summary/full_summary keys',
+    sumLeg.indexOf('legacy one') === -1 && sumLeg.indexOf('legacy two') === -1 &&
+    sumLeg.indexOf('legacy three') === -1 && sumLeg.indexOf('lg-sum') === -1);
 })();
 
 /* ---------- error / empty states ---------- */

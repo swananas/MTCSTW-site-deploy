@@ -700,8 +700,8 @@ function readTally(b){
   if(b){
     var cv=b.cell_votes||b.tally||null;
     if(cv){ s=num(cv.support); o=num(cv.oppose); }
-    else { s=num(b.support_count!=null?b.support_count:b.supports);
-           o=num(b.oppose_count!=null?b.oppose_count:b.opposes); }
+    else { s=num(b.support_cells);
+           o=num(b.oppose_cells); }
   }
   return {support:s,oppose:o};
 }
@@ -752,13 +752,13 @@ var ST={st:"",ch:""};
 var BILLS=null, MINE=null, LOAD_ERR=false;
 var EXPANDED={}, DETAIL={};
 var STATUSES=[["","All statuses"],["introduced","Introduced"],["committee","In committee"],
-  ["passed_house","Passed House"],["passed_senate","Passed Senate"],["signed","Signed"],["dead","Dead"]];
+  ["passed-house","Passed House"],["passed-senate","Passed Senate"],["signed","Signed"],["dead","Dead"]];
 
 function cardHTML(b){
   var id=String(b.id||b.bill_id||"");
-  var number=String(b.number||b.bill_number||"").trim()||"Bill";
+  var number=String(b.bill_id||"").trim()||"Bill";
   var title=String(b.title||b.short_title||"").trim();
-  var summary=String(b.summary||b.plain_summary||"").trim();
+  var summary=String(b.plain_english_summary||"").trim();
   var t=readTally(b);
   var stuck=String(b.stuck_in||b.stuck||"").trim();
   var sponsor=String(b.sponsor_name||b.sponsor||"").trim();
@@ -792,7 +792,7 @@ function detailHTML(id){
   var t=readTally(b);
   if(d.cell_votes){ t={support:num(d.cell_votes.support),oppose:num(d.cell_votes.oppose)}; }
   var h='<div class="lg-detail" data-leg-detail="'+esc(id)+'">';
-  var full=String(b.full_summary||b.summary||b.plain_summary||"").trim();
+  var full=String(b.plain_english_summary||"").trim();
   if(full) h+='<div class="lg-sum">'+esc(full)+'</div>';
   h+=stageHTML(b.status);
   var stuck=String(b.stuck_in||b.stuck||"").trim();
@@ -884,7 +884,7 @@ function castVote(id,position){
       else {
         /* Backend didn't echo the tally — re-read the bill so the numbers
            are real, never invented. */
-        api("bills_get",{bill_id:id},function(j2){
+        api("bills_get",{id:id},function(j2){
           var b2=(j2&&j2.ok&&j2.bill)||null;
           var t2=b2?(b2.cell_votes?{support:num(b2.cell_votes.support),oppose:num(b2.cell_votes.oppose)}:readTally(b2)):{support:0,oppose:0};
           paintTally(id,t2);
@@ -906,7 +906,7 @@ function toggleExpand(id){
   EXPANDED[id]=true;
   try{ render(); }catch(e){}
   if(DETAIL[id]){ try{ render(); }catch(e){} return; }
-  api("bills_get",{bill_id:id},function(j){
+  api("bills_get",{id:id},function(j){
     if(j&&j.ok&&j.bill){ DETAIL[id]={bill:j.bill,cell_votes:j.cell_votes||null,pressure_link:j.pressure_link||null}; }
     else { DETAIL[id]={bill:null}; }
     try{ render(); }catch(e){}

@@ -109,7 +109,11 @@ if (csrc.indexOf('SEC EDGAR') !== -1 && csrc.indexOf('LDA') !== -1)
   ok('source labels SEC EDGAR + LDA present');
 else no('source labels', 'missing');
 ['donate', 'shanetheswan'].forEach(function (w) {
-  if (csrc.toLowerCase().indexOf(w) === -1 && psrc.toLowerCase().indexOf(w) === -1)
+  /* The FEC disclaimer ("corporations can't donate directly — this is
+     employee giving", boycott painter assembled on fe/money-page) is legally
+     required copy, not solicitation — excluded from the ban. */
+  var hay = (csrc.toLowerCase() + '\n' + psrc.toLowerCase()).replace(/donate directly/g, '');
+  if (hay.indexOf(w) === -1)
     ok('banned term absent: ' + w);
   else no('banned term', w + ' present');
 });

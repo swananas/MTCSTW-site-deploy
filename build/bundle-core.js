@@ -176,6 +176,13 @@ var BUNDLES = {
        full-page shell when #pf-money is present, interim money tab when
        only #pf-political-hq is present (per phq-hub-ia-spec §4). */
     'core/money-page.js',
+    /* Money suite missing elements (fe/money-page, 2026-10-05): stock
+       trades (PFTrades.mount, legal-hold empty state) + super PAC alerts
+       (PFPacAlerts.mount, staleness suppression) + deep-8 slots
+       (PFMoneyDeep.mount, honest empty states). */
+    'core/money-trades.js',
+    'core/money-pac-alerts.js',
+    'core/money-deep8.js',
     /* creator-recruit: shared recruiting toolbar for roster cards + catalog
        pages. Last: needs PFShare (share-image.js) + the catalog renderers. */
     'pages/creator-recruit.js',

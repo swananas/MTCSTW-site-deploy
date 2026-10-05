@@ -46,6 +46,13 @@
   var BACKEND = window.PF_BACKEND_URL;
 
   function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  /* Stored-XSS guard: citations/proof links come from server-stored
+     submission data, so only http(s) schemes may become clickable
+     anchors; anything else renders as plain text (no href). */
+  function safeUrl(u){
+    var s = String(u || "").trim();
+    return /^https?:\/\//i.test(s) ? s : "";
+  }
   function toast(m){ try{ if(PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
     try{ var t=document.createElement("div"); t.textContent=m;
       t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
@@ -422,10 +429,12 @@
     if (cites.length){
       h += '<h3 style="margin-top:6px">Citations</h3>';
       cites.forEach(function(c){
+        var cu = safeUrl(c.url);
+        var citeLink = cu ? '<a href="'+esc(cu)+'" target="_blank" rel="noopener">'+esc(c.url)+'</a>'
+                          : '<span>'+esc(c.url||'')+'</span>';
         h += '<div class="rp-cite">' +
           (c.verified_read ? '<span class="rp-badge gold">VERIFIED READ</span>' : '<span class="rp-badge dim">UNVERIFIED</span>') +
-          ' <b>'+esc(c.label||c.title||'Source')+'</b><br>' +
-          '<a href="'+esc(c.url||'#')+'" target="_blank" rel="noopener">'+esc(c.url||'')+'</a></div>';
+          ' <b>'+esc(c.label||c.title||'Source')+'</b><br>' + citeLink + '</div>';
       });
     }
     /* Proof-link status for poster-leg submissions. */
@@ -436,8 +445,10 @@
         var st = String(pl.status||'unchecked').toLowerCase();
         var badge = st === 'ok' ? '<span class="rp-badge gold">VERIFIED</span>'
           : st === 'fail' ? '<span class="rp-badge">FAILED</span>' : '<span class="rp-badge dim">UNCHECKED</span>';
-        h += '<div class="rp-cite">'+badge+' <b>'+esc(pl.label||'Proof')+'</b><br>' +
-          '<a href="'+esc(pl.url||'#')+'" target="_blank" rel="noopener">'+esc(pl.url||'')+'</a></div>';
+        var pu = safeUrl(pl.url);
+        var proofLink = pu ? '<a href="'+esc(pu)+'" target="_blank" rel="noopener">'+esc(pl.url)+'</a>'
+                           : '<span>'+esc(pl.url||'')+'</span>';
+        h += '<div class="rp-cite">'+badge+' <b>'+esc(pl.label||'Proof')+'</b><br>' + proofLink + '</div>';
       });
     }
     h += '</div>';

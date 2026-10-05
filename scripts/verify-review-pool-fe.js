@@ -22,7 +22,12 @@
    9. No XP logic in frontend: no xpGrant call, no arithmetic on economy
       values, no fallback mint math (server values displayed only).
    10. Bundle registration: review-pool.js in exactly one bundle
-       (bundle-cells) and present in the rebuilt bundle-cells.js. */
+       (bundle-cells) and present in the rebuilt bundle-cells.js.
+   11. Contract surface: rv_action idiom, REVIEW NEXT claim button,
+       cell-priority layer, leaderboards.
+   12. Stored-XSS guard: citation + proof-link hrefs pass through a
+       safeUrl() http(s)-scheme allowlist; non-http(s) URLs render as
+       plain text (no clickable href). */
 'use strict';
 var fs = require('fs');
 var path = require('path');
@@ -175,6 +180,22 @@ else no('contract', 'cell-priority indicator missing');
 if (has(src, 'accuracy') && has(src, 'volume') && has(src, 'cell'))
   ok('contract: leaderboards + cell accuracy board');
 else no('contract', 'leaderboard/cell-board render missing');
+
+console.log('== 12. stored-XSS scheme guard ==');
+/* safeUrl() allowlist: http(s) only, else ''. NOTE: matched on src, not code - the harness codeOnly() string-stripper is fooled by the regex literal in esc() and eats the def line (pre-existing hazard). */
+if (/function\s+safeUrl\s*\(\s*u\s*\)/.test(src) && has(src, '^https?:\\/\\/'))
+  ok('xss: safeUrl() http(s) scheme allowlist defined');
+else no('xss', 'safeUrl() http(s) allowlist missing');
+/* Both server-stored URL sinks must route through safeUrl. */
+if (has(src, 'safeUrl(c.url)')) ok('xss: citation href gated by safeUrl');
+else no('xss', 'citation href not gated by safeUrl(c.url)');
+if (has(src, 'safeUrl(pl.url)')) ok('xss: proof-link href gated by safeUrl');
+else no('xss', 'proof-link href not gated by safeUrl(pl.url)');
+/* No raw stored URL may reach an href: the old unguarded idioms
+   ('<a href="'+esc(c.url... and '<a href="'+esc(pl.url...) must be gone. */
+var rawHits = grepHits(src, /href="'\s*\+\s*esc\(\s*(c|pl)\.url/);
+if (rawHits.length) no('xss', 'unguarded href still renders stored URL: ' + rawHits.join(' | '));
+else ok('xss: no raw stored-URL href idiom remains');
 
 console.log('\n' + passes + ' passed, ' + fails.length + ' failed.');
 if (fails.length) { console.log('FAILURES:'); fails.forEach(function (f) { console.log(' - ' + f); }); process.exit(1); }

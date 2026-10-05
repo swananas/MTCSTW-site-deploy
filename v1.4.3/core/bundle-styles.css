@@ -857,6 +857,19 @@ html,body{overflow-x:clip;}
 #pf-races .rc-dfund{font-size:13px;color:var(--pf-gold);margin-top:4px;}
 #pf-races .rc-dtake{font-size:13px;color:var(--pf-cream);line-height:1.5;margin-top:2px;}
 #pf-races .rc-upd{font-size:12px;color:var(--pf-muted);margin-top:12px;letter-spacing:1px;}
+/* Election-night live mode (2026-10-05). */
+#pf-races .rc-live{color:#ff3b3b;}
+#pf-races .rc-livedot{display:inline-block;width:12px;height:12px;border-radius:50%;background:#ff3b3b;margin-right:8px;animation:rcPulse 1.2s ease-in-out infinite;}
+@keyframes rcPulse{0%,100%{opacity:1;}50%{opacity:0.25;}}
+#pf-races .rc-watchnote{font-size:12px;color:var(--pf-muted);letter-spacing:1px;margin-top:8px;}
+#pf-races .rc-called{margin-top:10px;padding:10px 12px;border:2px solid var(--pf-red);background:#1c0505;font-size:15px;color:var(--pf-cream);line-height:1.5;}
+#pf-races .rc-calledbadge{display:inline-block;background:var(--pf-red);color:#fff;font-weight:900;font-size:12px;letter-spacing:2px;padding:3px 10px;margin-right:8px;}
+#pf-races .rc-callsrc{color:var(--pf-gold);font-size:13px;}
+#pf-races .rc-calltime{color:var(--pf-muted);font-size:13px;}
+#pf-races .rc-sharecall{margin-top:8px;}
+#pf-races .rc-tooearly{margin-top:10px;}
+#pf-races .rc-remind{margin-top:8px;background:transparent;}
+#pf-races .rc-remind.rc-on{border-color:var(--pf-gold);color:var(--pf-gold);}
 
 /* ============================================================================
    DEFECT 3 (2026-10-03) — /economy renders in a ~240px left column.

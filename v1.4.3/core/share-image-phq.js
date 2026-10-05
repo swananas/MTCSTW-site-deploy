@@ -1,13 +1,19 @@
 /* core/share-image-phq.js  |  PF v1.4.3 | POLITICAL HQ SHARE POSTERS.
-   Four custom PFShare painters (1080x1350, house palette) for the Political HQ
+   Five custom PFShare painters (1080x1350, house palette) for the Political HQ
    rollout: pressure-campaign card, prediction-result card, voting scorecard,
-   cell-competition winner card. Spec: ~/workspace/hidden/phq-share-specs.md.
+   cell-competition winner card, and the election-night race-called card.
+   Spec: ~/workspace/hidden/phq-share-specs.md.
    Data contract (painter receives one data object; missing optional fields
    degrade gracefully; scorecard missing fields render '—', never invented):
      pressure:   {title, target, demand, signatures, signaturesGoal}
      prediction: {statement, outcome ('correct'|'missed'), wins, losses}
      scorecard:  {name, state, party, grade, verdict, votes[3] {bill, vote, for_us}}
      cellwin:    {cellName, verified, members, xp, runnerUp, marginXp, mvpCallsign, weekStart}
+     racecall:   {state, office, winner, winnerParty, loser, loserParty, source, calledAt}
+       Every racecall field comes from the backend's race_call record —
+       the card renders ONLY when a call exists; source + call time are
+       the honesty line. No XP rides this poster; the share rides the
+       existing once-daily pf-share-image gate.
    Callsigns resolve at paint time via callsignOf() (identity store /
    PFCallsign) — never passed in data. Painters that render the callsign
    inline set cv._pfStamped = true so PFShare.stampCallsign stays a no-op
@@ -28,12 +34,13 @@
   window.pfPhqShareDone = true;
 
   var W = 1080, H = 1350;
-  var IDS = ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin'];
+  var IDS = ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-racecall'];
   var TITLES = {
     'phq-pressure': 'PRESSURE CAMPAIGN',
     'phq-prediction': 'PREDICTION RESULT',
     'phq-scorecard': 'VOTING SCORECARD',
-    'phq-cellwin': 'CELL VICTORY'
+    'phq-cellwin': 'CELL VICTORY',
+    'phq-racecall': 'RACE CALLED'
   };
   var DEEP = 'MTCSTW.COM/POLITICAL-HQ';
   var PENDING = {};
@@ -354,13 +361,80 @@
   }
 
   /* ---------------------------------------------------------------- */
+  /* Surface 5 — Race Called Card (election-night live mode)             */
+  /* Data: {state, office, winner, winnerParty, loser, loserParty,       */
+  /*   source, calledAt}. Every field comes from the backend's          */
+  /*   race_call record — the card renders ONLY when a call exists.     */
+  /*   Source + call time are the honesty line. No XP rides this        */
+  /*   poster; the share rides the existing once-daily pf-share-image   */
+  /*   gate via PFShare.shareImage.                                     */
+  /* ---------------------------------------------------------------- */
+  function paintRacecall(d, cv, x) {
+    base(x); kicker(x);
+    badge(x, 'RACE CALLED', 280, '#f5ead6', 40);
+    var cs = callsignOf();
+    var head = (String(d.state || '').toUpperCase()
+      + ' \u2014 ' + String(d.office || '').toUpperCase().replace(/^U\.S\.\s*/, '')).trim();
+    x.fillStyle = '#f5ead6'; x.font = '900 56px "Arial Black",Arial,sans-serif';
+    var y = 400;
+    wrap(x, head === '\u2014' ? '—' : head, 910).slice(0, 2)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += 68; });
+    /* Winner stamp — the rotated verdict treatment from the prediction card. */
+    var wtext = '\u2713 ' + String(d.winner || '—').toUpperCase();
+    fitFont(x, wtext, 100, 64, 910);
+    x.save();
+    x.translate(W / 2, 640); x.rotate(-8 * Math.PI / 180);
+    x.fillStyle = '#c1121f';
+    x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.fillText(wtext, 0, 0);
+    x.restore();
+    x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+    y = 800;
+    if (d.winnerParty) {
+      x.fillStyle = '#e8b923'; x.font = '700 44px Arial,sans-serif';
+      x.fillText('(' + String(d.winnerParty).toUpperCase() + ')', W / 2, y); y += 56;
+    }
+    if (d.loser) {
+      x.fillStyle = '#c9bfa8'; x.font = '400 40px Arial,sans-serif';
+      var lline = 'DEFEATED: ' + String(d.loser).toUpperCase()
+        + (d.loserParty ? ' (' + String(d.loserParty).toUpperCase() + ')' : '');
+      wrap(x, lline, 910).slice(0, 2)
+        .forEach(function (l) { x.fillText(l, W / 2, y); y += 50; });
+    }
+    y = Math.max(980, y + 20);
+    /* Honesty line: who called it, when. Never blank on source. */
+    var hline = 'CALLED BY ' + String(d.source || '—').toUpperCase();
+    var ct = callTime(d.calledAt);
+    if (ct) hline += ' \u00b7 ' + ct;
+    x.fillStyle = '#f5ead6'; x.font = '700 36px Arial,sans-serif';
+    wrap(x, hline, 910).slice(0, 2)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += 46; });
+    y = Math.max(1080, y + 10);
+    if (cs) y = csLine(cv, x, y, cs) + 12;
+    else { claimLine(x, y); y += 50; }
+    bottomStack(x, 'fight');
+    return cv;
+  }
+  /* "NOV 3, 10:42 PM CT" — America/Chicago, the election's timezone. */
+  function callTime(ts) {
+    try {
+      var dd = new Date(Number(ts));
+      if (isNaN(dd.getTime())) return '';
+      var s = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Chicago',
+        month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(dd);
+      return s.toUpperCase() + ' CT';
+    } catch (e) { return ''; }
+  }
+
+  /* ---------------------------------------------------------------- */
   /* Painter table + registration                                       */
   /* ---------------------------------------------------------------- */
   var PAINT = {
     'phq-pressure': paintPressure,
     'phq-prediction': paintPrediction,
     'phq-scorecard': paintScorecard,
-    'phq-cellwin': paintCellwin
+    'phq-cellwin': paintCellwin,
+    'phq-racecall': paintRacecall
   };
   function paintOne(id, data) {
     var p = PAINT[id];

@@ -70,49 +70,50 @@ function post(type,actionKey,action,params,cb){
 }
 var STATES=[["AL","Alabama"],["AK","Alaska"],["AZ","Arizona"],["AR","Arkansas"],["CA","California"],["CO","Colorado"],["CT","Connecticut"],["DE","Delaware"],["FL","Florida"],["GA","Georgia"],["HI","Hawaii"],["ID","Idaho"],["IL","Illinois"],["IN","Indiana"],["IA","Iowa"],["KS","Kansas"],["KY","Kentucky"],["LA","Louisiana"],["ME","Maine"],["MD","Maryland"],["MA","Massachusetts"],["MI","Michigan"],["MN","Minnesota"],["MS","Mississippi"],["MO","Missouri"],["MT","Montana"],["NE","Nebraska"],["NV","Nevada"],["NH","New Hampshire"],["NJ","New Jersey"],["NM","New Mexico"],["NY","New York"],["NC","North Carolina"],["ND","North Dakota"],["OH","Ohio"],["OK","Oklahoma"],["OR","Oregon"],["PA","Pennsylvania"],["RI","Rhode Island"],["SC","South Carolina"],["SD","South Dakota"],["TN","Tennessee"],["TX","Texas"],["UT","Utah"],["VT","Vermont"],["VA","Virginia"],["WA","Washington"],["WV","West Virginia"],["WI","Wisconsin"],["WY","Wyoming"]];
 var P=null, REPS=null, SCRIPTS=null, VOTER=null, CREATE_OPEN=false, VSTATS=null;
-/* 6A-R7: voter-pledge poster state — set on a successful pledge. */
-var PLEDGE_DONE=false, PLEDGE_STATE_NAME='';
+/* 2026-10-05 (pledge-share-cards weave): voter-pledge share card state.
+   PLEDGE_CARD holds the phq-pledge painter data built from ballot_get via
+   PF.PHQShare.pledgeData — set on a successful pledge only when the ballot
+   wire returns a live, non-expired deadline. PLEDGE_NOTE carries the
+   fail-soft "deadline passed" copy for expired-deadline states. Card
+   GENERATION pays 0 XP (the +50 pledge XP is paid by voter_pledge itself);
+   card SHARING rides the existing poster_share leg (+5 fixed, NO_MULT,
+   counts toward the daily cap) through the POSTER SHARE verification tab. */
+var PLEDGE_DONE=false, PLEDGE_CARD=null, PLEDGE_NOTE='';
 function pledgeStateName(code){
   for(var i=0;i<STATES.length;i++) if(STATES[i][0]===code) return STATES[i][1];
   return code||'';
 }
-/* 6A-R7: pledge-poster custom painter (1080x1350, PF brand, JOIN THE FIGHT.
-   CTA standard). Stamps the pledged state; the callsign stamp rides via
-   PFShare.shareImage -> stampCallsign (idempotent). */
-function pledgePoster(done){
-  function fail(){ try{ done(null); }catch(e){} }
+/* After a successful voter_pledge: resolve the ballot row for the state and
+   arm the SHARE YOUR PLEDGE button with real deadline data. Fail-soft at
+   every step — the pledge itself always stands:
+     - ?pf_off=card-pledge or no PHQShare module -> button stays disarmed
+     - ballot_get fails/missing row -> button stays disarmed (no invented dates)
+     - expired deadline -> PLEDGE_NOTE "deadline passed", no card
+     - same-day (NULL deadline) -> armed with the at-the-polls variant */
+function armPledgeCard(stCode){
+  PLEDGE_CARD=null; PLEDGE_NOTE='';
+  var done=function(){ try{ render(); }catch(e){} };
   try{
-    var cv=document.createElement('canvas'); cv.width=1080; cv.height=1350;
-    var x=cv.getContext('2d'); if(!x){ fail(); return; }
-    var st=String(PLEDGE_STATE_NAME||'').toUpperCase().slice(0,24);
-    x.fillStyle='#0d0d0d'; x.fillRect(0,0,1080,1350);
-    x.strokeStyle='#c1121f'; x.lineWidth=18; x.strokeRect(16,16,1048,1318);
-    x.strokeStyle='#f5ead6'; x.lineWidth=3; x.strokeRect(52,52,976,1246);
-    x.textAlign='center';
-    x.fillStyle='#f5ead6'; x.font='700 34px Arial,sans-serif';
-    x.fillText('\u2605 THE PROPAGANDA FACTORY \u2605',540,160);
-    x.fillStyle='#c1121f'; x.font='900 96px "Arial Black",Arial,sans-serif';
-    x.fillText('I PLEDGED',540,340); x.fillText('TO VOTE',540,450);
-    if(st){
-      x.fillStyle='#f5ead6'; x.font='900 64px "Arial Black",Arial,sans-serif';
-      x.fillText(st,540,590);
-    }
-    x.fillStyle='#c9bfa8'; x.font='400 38px Arial,sans-serif';
-    x.fillText('One ballot. One soldier. Zero excuses.',540,700);
-    x.fillText('Pledge yours. Register. Show up.',540,756);
-    x.fillStyle='#c1121f'; x.font='900 46px "Arial Black",Arial,sans-serif';
-    x.fillText('MTCSTW.COM',540,1182);
-    x.fillText('JOIN THE FIGHT.',540,1242);
-    done(cv);
-  }catch(e){ fail(); }
-}
-try{
-  if(window.PFShare&&PFShare.setPoster) PFShare.setPoster('voter-pledge',pledgePoster);
-  else document.addEventListener('pf-share-ready',function h(){
-    document.removeEventListener('pf-share-ready',h);
-    try{ if(window.PFShare&&PFShare.setPoster) PFShare.setPoster('voter-pledge',pledgePoster); }catch(e){}
+    if(PF&&PF.skip('card-pledge')){ done(); return; }
+    if(!(window.PF&&PF.PHQShare&&PF.PHQShare.pledgeData)){ done(); return; }
+  }catch(e){ done(); return; }
+  api("ballot_get",{state:stCode},function(b){
+    try{
+      var row=(b&&b.ok&&b.ballot)||null;
+      if(!row){ done(); return; } /* ballot wire down — pledge stands, card paused */
+      var data=PF.PHQShare.pledgeData(row);
+      if(!data){
+        PLEDGE_NOTE='Registration has closed in '+pledgeStateName(stCode)+
+          ' — the deadline passed. Your pledge still counts: vote Nov 3.';
+        done(); return;
+      }
+      /* vote.gov link: ballot register_url first, voter_check URL as fallback. */
+      if(!data.registerUrl&&VOTER&&VOTER.url) data.registerUrl=VOTER.url;
+      PLEDGE_CARD=data;
+    }catch(e){}
+    done();
   });
-}catch(e){}
+}
 function load(){
   var done=false, n=0;
   function fin(){ if(done)return; done=true; render(); }
@@ -375,8 +376,11 @@ function render(){
       +'<a class="c-btn" href="'+esc(VOTER.url)+'" target="_blank" rel="noopener">REGISTER ON VOTE.GOV</a> '
       +'<button class="c-btn" id="cvPledge">PLEDGE (+50 XP)</button>'
       +'<div class="x-note">XP has no cash value. Stakes are final.</div>'
-      /* 6A-R7: voter pledge -> PFShare pledge-poster (?ref= rides the link). */
-      +(PLEDGE_DONE?'<button class="c-btn" id="cvPledgeShare">SHARE YOUR PLEDGE \u2192</button>':'')
+      /* 2026-10-05 (pledge-share-cards): SHARE YOUR PLEDGE arms only when the
+         ballot wire returned a live deadline (PLEDGE_CARD). Expired states
+         get the fail-soft "deadline passed" note instead of a card. */
+      +(PLEDGE_CARD?'<button class="c-btn" id="cvPledgeShare">SHARE YOUR PLEDGE \u2192</button>':'')
+      +(PLEDGE_DONE&&PLEDGE_NOTE?'<div class="x-note">'+esc(PLEDGE_NOTE)+'</div>':'')
       +'<div class="x-note">'+esc(VOTER.note||"")+'</div>';
   } else if(VOTER&&VOTER.err){
     /* 2026-10-05 (audit #2): a voter_check failure used to land here with
@@ -523,25 +527,33 @@ function bind(){
     var stCode=gv("cvVoterState");
     post("rep","r_action","voter_pledge",{callsign:ident().callsign,state:stCode},function(j){
       if(j&&j.ok){
-        /* 6A-R7: pledge landed -> arm the share-poster button. */
-        PLEDGE_DONE=true; PLEDGE_STATE_NAME=pledgeStateName(stCode);
+        /* 2026-10-05 (pledge-share-cards): pledge landed -> resolve the
+           ballot deadline, then arm the SHARE YOUR PLEDGE button. The +50
+           pledge XP is paid by voter_pledge itself — nothing extra here. */
+        PLEDGE_DONE=true;
         toast(j.dup?"Already pledged.":"Pledged. +50 XP.");
-        try{ render(); }catch(e){}
+        try{ armPledgeCard(stCode); }catch(e){ try{ render(); }catch(e2){} }
       }
       else { toast(PF.errCopy(j,"Pledge failed.")); }
       pl.disabled=false;
     });
   };
-  /* 6A-R7: pledge-poster share — ?ref= rides PF.shareUrl on the link. */
+  /* 2026-10-05 (pledge-share-cards): SHARE YOUR PLEDGE -> phq-pledge card
+     (state name, real registration deadline from ballot data, vote.gov link,
+     callsign stamp, source + date). Generation pays 0 XP. After the native
+     share sheet, the user banks +5 XP by verifying the public post in the
+     existing POSTER SHARE tab (create_share: leg, fixed amount, NO_MULT,
+     counts toward the daily cap — no new ledger prefix). */
   var pls=document.getElementById("cvPledgeShare");
   if(pls) pls.onclick=function(){
     try{
-      if(!(window.PFShare&&PFShare.shareImage)){ toast("Share unavailable."); return; }
-      pledgePoster(function(cv){
-        if(!cv){ toast("Poster failed \u2014 try again."); return; }
-        PFShare.shareImage(cv,'pfn-voter-pledge.png','I PLEDGED TO VOTE','voter-pledge',
-          { link:'https://www.mtcstw.com/political-hq' });
-      });
+      if(!(window.PF&&PF.PHQShare)){ toast("Share unavailable."); return; }
+      if(PF.skip&&PF.skip('card-pledge')){ toast("Pledge cards are paused."); return; }
+      var ok=PF.PHQShare.share('phq-pledge',PLEDGE_CARD||{},
+        {title:'I PLEDGED TO VOTE',link:'https://www.mtcstw.com/political-hq'});
+      if(ok) setTimeout(function(){
+        toast("Posted it publicly? Paste the link in the POSTER SHARE tab to bank +5 XP.");
+      },1500);
     }catch(e){ toast("Share failed."); }
   };
   /* 2026-10-05 (audit #3): the civic contact-prefs form is gone — "Control the

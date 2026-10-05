@@ -326,6 +326,13 @@
         var d = document.createElement('div'); body.appendChild(d);
         try { if (window.PFMacro) PFMacro.mount(d); } catch (e) { err('macro mount failed'); }
       } },
+    /* P-14/P-16 (Wave A6/PW1): the macro wall — public gallery of everything
+       made with FRED data + HQ model pieces. Display only, zero XP. */
+    { key: 'gallery', kill: 'macro-gallery', title: 'THE MACRO WALL',
+      sub: 'Made with official data. See it. Remix it. Post it.', mount: function (body) {
+        var d = document.createElement('div'); body.appendChild(d);
+        try { if (window.PFMacroGallery) PFMacroGallery.mount(d); } catch (e) { err('macro gallery mount failed'); }
+      } },
     { key: 'fec', kill: 'money-fec-donors', title: 'FEC DONOR FILES',
       sub: 'Every legislator\u2019s money, straight from the filings.', mount: mountFec },
     { key: 'vote', kill: 'money-vote', title: 'THE MONEY BEHIND THE VOTE',

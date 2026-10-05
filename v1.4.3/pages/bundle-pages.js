@@ -3190,7 +3190,11 @@ window.pfPinups={
       try { file = new File([blob], filename, { type: format }); } catch (e) {}
       if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
-          navigator.share({ files: [file], title: title, text: shareText(title, opts.link) }).then(
+          /* P-07 (Wave A6/PW1): opts.text carries a pre-written caption
+             (macro-share.js locked template map — no free-text). Falls back
+             to the standard shareText when absent. */
+          var shareTxt = (opts.text != null && opts.text !== '') ? String(opts.text) : shareText(title, opts.link);
+          navigator.share({ files: [file], title: title, text: shareTxt }).then(
             function () { creditShare(gameId, 'share'); toast('Shared. Go spread the word.'); },
             function (err) {
               if (err && err.name === 'AbortError') { toast('Share cancelled.'); }

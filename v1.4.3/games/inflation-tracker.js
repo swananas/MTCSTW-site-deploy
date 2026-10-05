@@ -443,7 +443,7 @@
     function render() {
       var h = '<div style="' + CSS + '">' +
         '<h2 style="margin:0 0 4px;font-size:22px;letter-spacing:1px;">THE PEOPLE\u2019S PRICE BOARD</h2>' +
-        '<div style="font-size:14px;color:#d8d0c0;margin-bottom:12px;">What the people are actually paying. Not Wall Street\u2019s numbers — ours.</div>' +
+        '<div style="font-size:14px;color:#d8d0c0;margin-bottom:12px;">What the people are actually paying. Not the official numbers — ours.</div>' +
         '<div style="margin-bottom:12px;">' + tabBtn('YOUR AREA', 'area') + tabBtn('NATIONAL', 'national') + tabBtn('COMPARE', 'compare') + '</div>' +
         '<div style="margin-bottom:12px;">' +
         '<input id="pf-inf-bd-area" placeholder="ZIP or city — never your address" style="' + INPUT + 'max-width:280px;display:inline-block;" value="' + esc(area) + '">' +
@@ -692,8 +692,11 @@
           var src = safeUrl(off.source_url) || 'https://www.bls.gov/cpi/';
           h += '<div style="background:#0d0d0d;border:1px solid #3a3a3a;border-radius:8px;padding:12px;">' +
             '<div style="font-size:26px;font-weight:bold;">' + esc(String(off.value)) + '</div>' +
-            '<div style="' + SMALL + '">CPI-U, ' + esc(String(off.period || 'latest release')) + ' · source: ' +
-            '<a href="' + esc(src) + '" target="_blank" rel="noopener" style="color:#e8a0a0;">bls.gov</a></div></div>';
+            '<div style="' + SMALL + '">' + (off.period
+              ? 'CPI-U, ' + esc(String(off.period)) + ' · source: '
+              : 'CPI-U · release period unknown — verify the latest release at ') +
+            '<a href="' + esc(src) + '" target="_blank" rel="noopener" style="color:#e8a0a0;">bls.gov</a>' +
+            (off.period ? '' : '.') + '</div></div>';
         } else {
           h += '<div style="color:#b8b0a0;font-size:14px;">Official baseline pending — check back. We won\u2019t draw a line we don\u2019t have.</div>';
         }

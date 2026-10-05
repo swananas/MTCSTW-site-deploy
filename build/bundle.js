@@ -42,7 +42,6 @@ var SECTIONS = {
     'briefing.js',
     'do-meter.js',
     'daily-orders.js',
-<<<<<<< HEAD
     /* Political HQ integration #5 (2026-10-05): home-state preference —
        onboarding state picker (stateless-first) + settings widget. Lives
        with the claim flow in bundle-sec1 (critical path). No XP, read-only. */
@@ -56,11 +55,9 @@ var SECTIONS = {
        Static CTA card — must stage with the critical path so it mounts in
        ORDER position right after daily-orders, not late at section end. */
     'political-hq-nudge.js',
-=======
     /* Civic Snapshot (2026-10-05): homepage "Today in Political HQ" widget —
        active campaign, polls closing soon, ballot deadlines. READ-ONLY. */
     'civic-snapshot.js',
->>>>>>> origin/fe/civic-snapshot
     'dopamine.js',
     'enlistment-ranks.js',
     /* Wave 5B (2026-10-04): theater rack + ribbon chase strip + Frontline

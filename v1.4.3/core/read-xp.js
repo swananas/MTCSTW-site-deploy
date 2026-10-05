@@ -51,7 +51,30 @@
    tears down silently (no tracking UI, no promises). Every backend call
    treats cb(null) as "unavailable" and degrades without breaking the page.
 
-   KILL: ?pf_off=readxp  or  localStorage pf_disabled_v1='["readxp"]' */
+   KILL: ?pf_off=readxp  or  localStorage pf_disabled_v1='["readxp"]'
+
+   POLITICAL METADATA — "LINK TO THE FIGHT" (CEO greenlight 2026-10-05,
+   weave #8: political data into creation). Optional linkage on the BANK A
+   PIECE pane: issue area (12 canonical, hardcoded — matches the
+   aligned-nonprofits directory) + entity type (bill/rep/race/org/poll/
+   prediction/campaign) + entity search via the Studio plugin registry
+   (sibling build: Forge POLITICAL tab + plugin registry, action
+   studio_plugins_list — assumed public GET ?action=studio_plugins_list,
+   see metaProbe/metaSearch).
+   FEATURE-DETECT: the picker mounts only when the backend answers the
+   registry probe. Registry absent -> the picker never renders (silent
+   no-op, never a broken control). Prefill via PF.bankPrefillMeta works
+   regardless — metadata rides bank_submit even with the picker hidden.
+   bank_submit carries the metadata as FLAT params (entity_type, entity_id,
+   issue_area, plugin_id?, template_id?, data_hash?, data_ts?, parent_id?)
+   when set — the backend reads p.entity_type etc. directly, never a nested
+   object.
+   Metadata changes nothing about XP (Economy Desk ruling 2026-10-05:
+   metadata submits earn the normal acceptance amounts; self-remix
+   acceptances carry note 'self_remix_no_award' and the confirmation
+   surface never shows +10/+20 copy for them).
+   KILL: ?pf_off=bank-meta  or  localStorage pf_disabled_v1='["bank-meta"]'
+   — picker + prefill + gallery + remix all no-op. */
 (function () {
   'use strict';
   var PF = window.PF;
@@ -267,6 +290,25 @@
       'padding:12px;font:400 13px/1.6 Arial;margin:12px 0}' +
     '#pf-rx-bank .rx-proof{background:#141414;border:1px solid #3a3a3a;' +
       'padding:10px 12px;margin:0 0 10px;font:400 12px/1.7 Arial;color:#d8cdb4}' +
+    /* LINK TO THE FIGHT picker (political metadata, 2026-10-05). */
+    '#pf-rx-bank .rx-meta{border:2px solid #c1121f;background:#100808;' +
+      'padding:12px;margin:12px 0 4px}' +
+    '#pf-rx-bank .rx-meta-head{font:bold 13px Arial;letter-spacing:2px;color:#fff;margin:0 0 2px}' +
+    '#pf-rx-bank .rx-meta-head span{color:#c1121f;letter-spacing:1px;font-size:11px}' +
+    '#pf-rx-bank .rx-meta-sub{font:400 12px/1.5 Arial;color:#b8a98a;margin:0 0 4px}' +
+    '#pf-rx-bank .rx-meta-res{margin:6px 0 0;max-height:220px;overflow-y:auto}' +
+    '#pf-rx-bank .rx-meta-hit{display:block;width:100%;text-align:left;background:#1a1a1a;' +
+      'border:1px solid #555;color:#f5ead6;font:400 13px Arial;padding:9px 10px;' +
+      'margin:0 0 6px;cursor:pointer}' +
+    '#pf-rx-bank .rx-meta-hit:hover{border-color:#c1121f}' +
+    '#pf-rx-bank .rx-meta-hit b{color:#fff;letter-spacing:1px;font-size:11px}' +
+    '#pf-rx-bank .rx-meta-sel{margin:8px 0 0}' +
+    '#pf-rx-bank .rx-meta-chip{display:inline-block;background:#1c1a1a;border:1px solid #c1121f;' +
+      'color:#fff;font:bold 12px Arial;letter-spacing:1px;padding:6px 10px;margin:0 6px 6px 0}' +
+    '#pf-rx-bank .rx-meta-chip button{background:none;border:0;color:#c1121f;font:bold 14px Arial;' +
+      'cursor:pointer;margin-left:8px;padding:0}' +
+    '#pf-rx-bank .rx-meta-note{font:400 12px/1.6 Arial;color:#ffd9a0;background:#1a1206;' +
+      'border:1px solid #8a6a2a;padding:8px 10px;margin:0 0 8px}' +
     '@media(max-width:560px){#pf-rx-dock .rx-row button{width:100%}' +
       '#pf-rx-bank .rx-tabs .rx-tab{flex:1}}';
 
@@ -720,6 +762,7 @@
       '<select data-rx-f="token">' + tokenOptions('') + '</select>' +
       '<div class="rx-note">No token yet? Run the Ammo Finder in Creator HQ, hit ' +
         '<b>CITE THIS</b> on a source, and it lands here.</div>' +
+      '<div data-rx-metabox="1"></div>' +
       '<button type="button" class="rx-submit" data-rx-submit="bank">SUBMIT FOR REVIEW</button>' +
       '<div data-rx-msg="bank"></div>' +
       '</div>' +
@@ -761,6 +804,14 @@
     if (btn) btn.disabled = true;
     var body = { artifact_url: artifact, caption: caption };
     if (token) body.citation_token = token;
+    /* Political metadata: factual linkage only. Changes nothing about XP
+       (Economy Desk ruling 2026-10-05). */
+    try {
+      if (!META_KILLED) {
+        var pm = metaPayload(root);
+        if (pm) metaFlat(body, pm);
+      }
+    } catch (e0) {}
     api(ACT.BANK, body, function (j) {
       try { if (btn) btn.disabled = false; } catch (e) {}
       if (j && j.ok && j.submission_id) {
@@ -768,20 +819,27 @@
           document.dispatchEvent(new CustomEvent('pf-rx-bank-submitted',
             { detail: { submission_id: String(j.submission_id) } }));
         } catch (e2) {}
-        paneMsg(root, 'bank', true,
-          '<b>IN THE QUEUE.</b> Submission ' + esc(j.submission_id) +
-          ' — pending moderation.<br>Accepted pieces earn XP; rejected pieces earn nothing, ever. ' +
-          esc(COPY.trust) +
+        /* Economy Desk ruling 2026-10-05: a self-remix acceptance carries
+           note 'self_remix_no_award' — the confirmation surface must never
+           show +10/+20 copy for it. Render the server's state, not a promise. */
+        var selfRemix = j && j.note === 'self_remix_no_award';
+        var okHtml = '<b>IN THE QUEUE.</b> Submission ' + esc(j.submission_id) +
+          (selfRemix
+            ? ' — accepted. <b>Self-remix: no XP awarded.</b><br>' + esc(COPY.trust)
+            : ' — pending moderation.<br>Accepted pieces earn XP; rejected pieces earn nothing, ever. ' +
+              esc(COPY.trust)) +
           /* Community review pool (2026-10-05): backend returns
              review_queued:true only when the piece actually entered the
              pool. Fail-closed — false/absent renders the legacy message
              silently (pool outage is never the user's problem). */
           (j.review_queued === true
             ? '<br>' + esc('Also entered community review — members vote on it.')
-            : ''));
+            : '');
+        paneMsg(root, 'bank', true, okHtml);
         try {
           var a = root.querySelector('[data-rx-f="artifact"]'); if (a) a.value = '';
           var c = root.querySelector('[data-rx-f="caption"]'); if (c) c.value = '';
+          clearMetaState(root, true);
         } catch (e3) {}
       } else {
         paneMsg(root, 'bank', false, esc(errCopy(j, 'Submit failed. Nothing banked — retry.')));
@@ -842,8 +900,15 @@
     ensureCss();
     el.id = 'pf-rx-bank';
     el.innerHTML = bankHtml();
+    try { metaState(el); } catch (e0) {}
     bankMounted = el;
     fillStorySelect(el);
+    try { mountMetaPicker(el); } catch (e1) {}
+    try {
+      if (pendingMetaPrefill) {
+        if (applyMetaPrefill(pendingMetaPrefill)) pendingMetaPrefill = null;
+      }
+    } catch (e2) {}
     el.addEventListener('click', function (ev) {
       try {
         var t = ev.target;
@@ -877,6 +942,353 @@
       try { cur = String(sel.value || ''); } catch (e) {}
       sel.innerHTML = tokenOptions(cur);
     } catch (e2) {}
+  }
+
+  /* ---------------- political metadata ("LINK TO THE FIGHT") ----------------
+     Optional linkage on the BANK A PIECE pane. The picker mounts only when
+     the Studio plugin registry answers ?action=studio_plugins_list
+     (sibling backend/Forge build); absent -> silent no-op. PF.bankPrefillMeta
+     is the Forge/plugin prefill hook and works regardless of the picker.
+     Kill: ?pf_off=bank-meta (META_KILLED -> this whole section no-ops). */
+  var META_KILLED = (PF && PF.skip) ? PF.skip('bank-meta') : false;
+  var META_TYPES = ['bill', 'rep', 'race', 'org', 'poll', 'prediction', 'campaign'];
+  var META_TYPE_LABEL = {
+    bill: 'BILL', rep: 'REP', race: 'RACE', org: 'ORG',
+    poll: 'POLL', prediction: 'PREDICTION', campaign: 'CAMPAIGN'
+  };
+  /* Canonical 12 — matches the aligned-nonprofits directory report
+     (research_notes/aligned-nonprofits-directory-20261005-0926). */
+  var META_AREAS = [
+    'Voting Rights & Democracy Reform',
+    'Labor & Workers\' Rights',
+    'Reproductive Rights & Abortion Access',
+    'Climate & Environment',
+    'Racial Justice & Civil Rights',
+    'LGBTQ+ Rights',
+    'Immigrant Rights',
+    'Criminal Justice Reform & Police Accountability',
+    'Healthcare Access',
+    'Housing & Tenants\' Rights',
+    'Anti-Poverty & Economic Justice',
+    'Government Watchdog & Accountability'
+  ];
+  function freshMeta() {
+    return {
+      entity_type: '', entity_id: '', entity_label: '', issue_area: '',
+      plugin_id: '', template_id: '', data_hash: '', data_ts: '', parent_id: ''
+    };
+  }
+  function metaState(root) {
+    try {
+      if (!root._pfMeta) root._pfMeta = freshMeta();
+      return root._pfMeta;
+    } catch (e) { return freshMeta(); }
+  }
+  /* Registry probe (JSONP, 8s). ok -> the plugin registry exists and the
+     picker may mount. Anything else -> picker never renders. */
+  var metaProbeDone = false, metaProbeOk = false, metaProbeWaiters = [];
+  function metaProbe(cb) {
+    if (META_KILLED) { if (cb) { try { cb(false); } catch (e) {} } return; }
+    if (metaProbeDone) { if (cb) { try { cb(metaProbeOk); } catch (e2) {} } return; }
+    metaProbeWaiters.push(cb || function () {});
+    if (metaProbeWaiters.length > 1) return; /* probe already in flight */
+    var settled = false;
+    function finish(ok) {
+      if (settled) return; settled = true;
+      metaProbeDone = true; metaProbeOk = !!ok;
+      var ws = metaProbeWaiters; metaProbeWaiters = [];
+      for (var i = 0; i < ws.length; i++) { try { ws[i](metaProbeOk); } catch (e3) {} }
+    }
+    function cleanup(fn, s) {
+      try { delete window[fn]; } catch (e4) {}
+      try { if (s.parentNode) s.parentNode.removeChild(s); } catch (e5) {}
+    }
+    try {
+      var be = window.PF_BACKEND_URL;
+      if (!be) { finish(false); return; }
+      var fn = 'pfMetaProbe' + Math.floor(Math.random() * 1e9);
+      var s = document.createElement('script');
+      window[fn] = function (j) {
+        cleanup(fn, s);
+        finish(!!(j && (j.ok === true || j.plugins)));
+      };
+      s.onerror = function () { cleanup(fn, s); finish(false); };
+      s.src = be + '?action=' + encodeURIComponent('studio_plugins_list') +
+        '&probe=1&callback=' + fn;
+      (document.head || document.documentElement).appendChild(s);
+      setTimeout(function () { cleanup(fn, s); finish(false); }, 8000);
+    } catch (e6) { finish(false); }
+  }
+  /* Entity search against the registry. cb(entities|null). Entity shape
+     (assumed — reconcile with the Forge sibling): {entity_type, entity_id,
+     label, data_hash?, data_ts?, plugin_id?}. */
+  function metaSearch(q, type, cb) {
+    var done = function (ents) { try { cb(ents); } catch (e) {} };
+    try {
+      var be = window.PF_BACKEND_URL;
+      if (!be || !q) { done(null); return; }
+      var fn = 'pfMetaSearch' + Math.floor(Math.random() * 1e9);
+      var s = document.createElement('script');
+      var settled = false;
+      function cleanup() {
+        try { delete window[fn]; } catch (e2) {}
+        try { if (s.parentNode) s.parentNode.removeChild(s); } catch (e3) {}
+      }
+      function finish(ents) {
+        if (settled) return; settled = true;
+        cleanup(); done(ents);
+      }
+      window[fn] = function (j) {
+        var ents = null;
+        try {
+          if (j && j.ok !== false) {
+            if (j.entities && j.entities.length) ents = j.entities;
+            else if (j.results && j.results.length) ents = j.results;
+          }
+        } catch (e4) {}
+        finish(ents);
+      };
+      s.onerror = function () { finish(null); };
+      var src = be + '?action=' + encodeURIComponent('studio_plugins_list') +
+        '&q=' + encodeURIComponent(q) + '&callback=' + fn;
+      if (type) src += '&entity_type=' + encodeURIComponent(type);
+      s.src = src;
+      (document.head || document.documentElement).appendChild(s);
+      setTimeout(function () { finish(null); }, 8000);
+    } catch (e5) { done(null); }
+  }
+
+  function metaPickerHtml() {
+    var areas = '<option value="">No issue area</option>';
+    for (var i = 0; i < META_AREAS.length; i++) {
+      areas += '<option value="' + esc(META_AREAS[i]) + '">' + esc(META_AREAS[i]) + '</option>';
+    }
+    var types = '<option value="">No entity</option>';
+    for (var k = 0; k < META_TYPES.length; k++) {
+      types += '<option value="' + META_TYPES[k] + '">' + META_TYPE_LABEL[META_TYPES[k]] + '</option>';
+    }
+    return '<div class="rx-meta" data-rx-meta="1">' +
+      '<p class="rx-meta-head">LINK TO THE FIGHT <span>OPTIONAL</span></p>' +
+      '<p class="rx-meta-sub">Tie this piece to a bill, a rep, a race — or just the ' +
+        'fight it&#39;s for. Factual linkage only; changes nothing about XP.</p>' +
+      '<label>FIGHT (ISSUE AREA)</label>' +
+      '<select data-rx-f="meta_issue">' + areas + '</select>' +
+      '<label>ENTITY TYPE</label>' +
+      '<select data-rx-f="meta_type">' + types + '</select>' +
+      '<label>FIND AN ENTITY</label>' +
+      '<input type="text" data-rx-f="meta_q" placeholder="e.g. H.R. 14, TX-21, a rep&#39;s name&hellip;" ' +
+        'maxlength="120" autocomplete="off">' +
+      '<div class="rx-meta-res" data-rx-metares="1"></div>' +
+      '<div class="rx-meta-sel" data-rx-metasel="1"></div>' +
+      '</div>';
+  }
+
+  function metaChipHtml(st) {
+    var label = st.entity_label || st.entity_id;
+    var tag = (META_TYPE_LABEL[st.entity_type] || String(st.entity_type || '').toUpperCase());
+    return '<span class="rx-meta-chip">' + esc(tag) + ' &middot; ' + esc(label) +
+      '<button type="button" data-rx-metaclear="1" aria-label="Unlink entity">&times;</button></span>';
+  }
+  /* Sync the picker's visible controls to the metadata state. Safe when the
+     picker never mounted (probe failed) — state still rides the submit. */
+  function applyMetaView(root) {
+    try {
+      var st = metaState(root);
+      var box = root.querySelector('[data-rx-meta]');
+      if (!box) return;
+      var is = box.querySelector('[data-rx-f="meta_issue"]');
+      if (is) is.value = st.issue_area || '';
+      var ts = box.querySelector('[data-rx-f="meta_type"]');
+      if (ts) ts.value = st.entity_type || '';
+      var sel = box.querySelector('[data-rx-metasel]');
+      if (sel) {
+        sel.innerHTML = (st.entity_id && st.entity_type) ? metaChipHtml(st) : '';
+      }
+    } catch (e) {}
+  }
+  function clearMetaState(root, clearInputs) {
+    try {
+      root._pfMeta = freshMeta();
+      applyMetaView(root);
+      if (clearInputs) {
+        var q = root.querySelector('[data-rx-f="meta_q"]');
+        if (q) q.value = '';
+        var res = root.querySelector('[data-rx-metares]');
+        if (res) res.innerHTML = '';
+      }
+    } catch (e) {}
+  }
+  function renderMetaResults(root, box, ents) {
+    var res;
+    try { res = box.querySelector('[data-rx-metares]'); } catch (e) { return; }
+    if (!res) return;
+    if (!ents || !ents.length) {
+      res.innerHTML = '<div class="rx-note">No entities found — try different words.</div>';
+      return;
+    }
+    var h = '';
+    for (var i = 0; i < Math.min(ents.length, 8); i++) {
+      var en = ents[i] || {};
+      var tag = META_TYPE_LABEL[en.entity_type] || String(en.entity_type || '').toUpperCase() || 'ENTITY';
+      h += '<button type="button" class="rx-meta-hit" data-rx-metahit="' + i + '">' +
+        '<b>' + esc(tag) + '</b> &middot; ' + esc(en.label || en.entity_id || '') + '</button>';
+    }
+    res.innerHTML = h;
+    res._pfEnts = ents;
+  }
+  function wireMetaPicker(root, box) {
+    var st = metaState(root);
+    function on(el, ev, fn) {
+      try { if (el) el.addEventListener(ev, fn); } catch (e) {}
+    }
+    var is = box.querySelector('[data-rx-f="meta_issue"]');
+    on(is, 'change', function () { st.issue_area = String(is.value || ''); });
+    var ts = box.querySelector('[data-rx-f="meta_type"]');
+    on(ts, 'change', function () {
+      st.entity_type = String(ts.value || '');
+      /* Changing the type drops a mismatched entity selection. */
+      if (st.entity_id && st.entity_type && st._lastType && st._lastType !== st.entity_type) {
+        st.entity_id = ''; st.entity_label = ''; st.data_hash = ''; st.data_ts = ''; st.plugin_id = '';
+      }
+      applyMetaView(root);
+    });
+    var q = box.querySelector('[data-rx-f="meta_q"]');
+    var timer = null, lastQ = '';
+    function runSearch() {
+      var qv = '';
+      try { qv = String(q.value || '').trim(); } catch (e) {}
+      if (qv === lastQ) return; lastQ = qv;
+      if (qv.length < 2) {
+        try { box.querySelector('[data-rx-metares]').innerHTML = ''; } catch (e2) {}
+        return;
+      }
+      metaSearch(qv, st.entity_type, function (ents) {
+        try { renderMetaResults(root, box, ents); } catch (e3) {}
+      });
+    }
+    on(q, 'input', function () {
+      try { if (timer) clearTimeout(timer); } catch (e) {}
+      timer = setTimeout(runSearch, 400);
+    });
+    on(box, 'click', function (ev) {
+      try {
+        var t = ev.target;
+        if (!t || !t.getAttribute) return;
+        var hit = t.getAttribute('data-rx-metahit');
+        if (t.classList && t.classList.contains('rx-meta-hit')) hit = '0';
+        /* The button or any child carries the index. */
+        var btn = t.closest ? t.closest('[data-rx-metahit]') : null;
+        var idx = btn ? btn.getAttribute('data-rx-metahit') : hit;
+        var res = box.querySelector('[data-rx-metares]');
+        if (idx !== null && idx !== undefined && res && res._pfEnts) {
+          var en = res._pfEnts[Number(idx)] || {};
+          st.entity_type = String(en.entity_type || st.entity_type || '');
+          st.entity_id = String(en.entity_id || '');
+          st.entity_label = String(en.label || en.entity_id || '');
+          st.data_hash = String(en.data_hash || '');
+          st.data_ts = String(en.data_ts || '');
+          if (en.plugin_id) st.plugin_id = String(en.plugin_id);
+          st._lastType = st.entity_type;
+          res.innerHTML = '';
+          try { q.value = ''; lastQ = ''; } catch (e2) {}
+          applyMetaView(root);
+          return;
+        }
+        if (t.getAttribute('data-rx-metaclear') || (t.closest && t.closest('[data-rx-metaclear]'))) {
+          st.entity_type = ''; st.entity_id = ''; st.entity_label = '';
+          st.data_hash = ''; st.data_ts = ''; st.plugin_id = ''; st._lastType = '';
+          applyMetaView(root);
+        }
+      } catch (e4) {}
+    });
+  }
+  /* Mount the picker inside the bank form — only after the registry probe
+     succeeds. Probe fails -> the placeholder stays empty forever. */
+  function mountMetaPicker(root) {
+    if (META_KILLED) return;
+    var box;
+    try { box = root.querySelector('[data-rx-metabox]'); } catch (e) { return; }
+    if (!box || box.getAttribute('data-rx-meta-mounted')) return;
+    box.setAttribute('data-rx-meta-mounted', '1');
+    metaProbe(function (ok) {
+      if (!ok) return;
+      try {
+        if (!root.querySelector('[data-rx-meta]')) box.innerHTML = metaPickerHtml();
+        wireMetaPicker(root, box);
+        applyMetaView(root);
+      } catch (e2) {}
+    });
+  }
+  /* Flattens the picker payload onto the bank_submit body. Backend contract
+     (be/content-bank-metadata): 8 FLAT params — the backend reads
+     p.entity_type / p.entity_id / ... directly; a nested political_meta
+     object would be silently dropped, so it must never ride the wire. */
+  var META_KEYS = ['entity_type', 'entity_id', 'issue_area',
+    'plugin_id', 'template_id', 'data_hash', 'data_ts', 'parent_id'];
+  function metaFlat(body, pm) {
+    try {
+      for (var i = 0; i < META_KEYS.length; i++) {
+        var k = META_KEYS[i];
+        if (pm && pm[k]) body[k] = pm[k];
+      }
+    } catch (e) {}
+    return body;
+  }
+  /* political_meta payload for bank_submit — null when nothing was linked. */
+  function metaPayload(root) {
+    try {
+      var st = metaState(root);
+      if (!st.entity_id && !st.issue_area) return null;
+      var pm = {};
+      if (st.entity_type) pm.entity_type = st.entity_type;
+      if (st.entity_id) pm.entity_id = st.entity_id;
+      if (st.issue_area) pm.issue_area = st.issue_area;
+      if (st.plugin_id) pm.plugin_id = st.plugin_id;
+      if (st.template_id) pm.template_id = st.template_id;
+      if (st.data_hash) pm.data_hash = st.data_hash;
+      if (st.data_ts) pm.data_ts = st.data_ts;
+      if (st.parent_id) pm.parent_id = st.parent_id;
+      return pm;
+    } catch (e) { return null; }
+  }
+  /* Pending prefill for PF.bankPrefillMeta when the composer isn't mounted
+     yet — applied by renderBank. */
+  var pendingMetaPrefill = null;
+  function applyMetaPrefill(meta) {
+    var root = null;
+    try { root = bankMounted; } catch (e) {}
+    if (!root || !document.contains(root)) return false;
+    try {
+      var st = metaState(root);
+      if (meta.entity_type) st.entity_type = String(meta.entity_type);
+      if (meta.entity_id) st.entity_id = String(meta.entity_id);
+      if (meta.entity_label) st.entity_label = String(meta.entity_label);
+      else if (meta.entity_id) st.entity_label = String(meta.entity_id);
+      if (meta.issue_area) st.issue_area = String(meta.issue_area);
+      if (meta.plugin_id) st.plugin_id = String(meta.plugin_id);
+      if (meta.template_id) st.template_id = String(meta.template_id);
+      if (meta.data_hash) st.data_hash = String(meta.data_hash);
+      if (meta.data_ts) st.data_ts = String(meta.data_ts);
+      if (meta.parent_id) st.parent_id = String(meta.parent_id);
+      st._lastType = st.entity_type;
+      var ae = root.querySelector('[data-rx-f="artifact"]');
+      if (meta.artifact_url && ae) ae.value = String(meta.artifact_url);
+      var ce = root.querySelector('[data-rx-f="caption"]');
+      if (meta.caption && ce) ce.value = String(meta.caption);
+      applyMetaView(root);
+      if (meta.note) {
+        var nb = root.querySelector('[data-rx-meta]');
+        if (nb) {
+          var d = document.createElement('div');
+          d.className = 'rx-meta-note';
+          d.textContent = String(meta.note);
+          nb.insertBefore(d, nb.firstChild);
+        }
+        try { if (PF && PF.toast) PF.toast(String(meta.note)); } catch (e2) {}
+      }
+      try { if (root.scrollIntoView) root.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e3) {}
+      return true;
+    } catch (e4) { return false; }
   }
 
   /* ---------------- init ---------------- */
@@ -927,6 +1339,24 @@
   } catch (e) { try { init(); } catch (e2) {} }
 
   /* ---------------- public API ---------------- */
+  /* Forge / plugin prefill hook (political metadata, 2026-10-05).
+     meta = {entity_type, entity_id, entity_label?, issue_area?,
+             plugin_id?, template_id?, data_hash?, data_ts?, parent_id?,
+             artifact_url?, caption?, note?}.
+     Writes the metadata state (attaches to the next bank_submit via
+     political_meta), pre-fills artifact/caption when supplied, scrolls the
+     composer into view, and shows the note. Returns true when applied to a
+     mounted composer, false when stashed for a later mount. No-op (false)
+     under ?pf_off=bank-meta. */
+  PF.bankPrefillMeta = function (meta) {
+    try {
+      if (META_KILLED) return false;
+      if (!meta) return false;
+      if (applyMetaPrefill(meta)) { pendingMetaPrefill = null; return true; }
+      pendingMetaPrefill = meta;
+      return false;
+    } catch (e) { return false; }
+  };
   PF.readXP = {
     start: start,
     rail: function (el) {
@@ -946,7 +1376,12 @@
       beat: beat, submitClaim: submitClaim, teardown: teardown,
       decorateAmmo: decorateAmmo, pushToken: pushToken,
       sessions: sessions, api: api, ACT: ACT, TYPE: TYPE, AKEY: AKEY,
-      HB_MS: HB_MS, COPY: COPY
+      HB_MS: HB_MS, COPY: COPY,
+      /* political metadata test hooks */
+      bankPrefillMeta: PF.bankPrefillMeta, metaKilled: META_KILLED,
+      metaTypes: META_TYPES, metaAreas: META_AREAS,
+      metaProbe: metaProbe, metaPayload: metaPayload, metaFlat: metaFlat,
+      mountMetaPicker: mountMetaPicker, applyMetaPrefill: applyMetaPrefill
     }
   };
 })();

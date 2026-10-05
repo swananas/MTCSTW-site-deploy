@@ -1284,20 +1284,23 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
    touch the existing race_list contract (campaign.js battlegrounds) — it
    consumes only the new races_list / races_get actions.
    Backend contract (backend crew, Political HQ expansion #3):
-     races_list -> {ok, races:[...], updated_at}
+     races_list -> {ok, races:[...], count, total, last_updated, stale}
      races_get {id} -> {ok, race:{...}}   (detail drill-down)
+   - last_updated: top-level board timestamp.
+   - stale: TOP-LEVEL flag (authoritative — never silent). A board-level
+     stale banner renders whenever it is set, in addition to per-race logic.
    Race shape (all optional except id — everything degrades gracefully):
      {id, state, chamber:"Senate"|"House", office, seat, candidates,
-      rating, source, rating_date, updated_at, stale, stakes}
+      rating, source, source_date, updated_at, stakes}
    - candidates: [{name,party,funding,classTake}] (JSON string tolerated).
    - rating: string like "Toss-up (D)", "Lean R", "Safe D" — or an object
      {level:"tossup"|"lean"|"likely"|"safe", direction:"D"|"R"}.
    - source: rating source label ("Cook Political Report", ...).
-   - rating_date / updated_at: ISO or epoch — the card shows
-     "Rating: [source], [date]".
-   - stale: backend flag; ALSO client-computed when rating_date is >14 days
-     old. Stale cards show a visible "Last updated [date] — ratings may be
-     outdated" banner — never served silently.
+   - source_date (aliased to rating_date internally): ISO or YYYY-MM-DD —
+     the card shows "Rating: [source], [date]". YYYY-MM-DD is parsed as
+     date-parts (no UTC-midnight shift) so the rendered day is exact.
+   - stale: legacy per-race flag still honored; the TOP-LEVEL stale flag is
+     the authoritative one.
    KILL: ?pf_off=races  or  localStorage pf_disabled_v1='["races"]' */
 (function () {
   'use strict';
@@ -1364,7 +1367,8 @@ function electionDay(){ return chiYmd()===ELECTION_YMD; }
 function electionOver(){ return chiYmd()>ELECTION_YMD; }
 /* ---------- state ---------- */
 var RACES=null,            /* normalized races from races_list */
-    LIST_UPDATED=null,     /* backend top-level updated_at */
+    LIST_UPDATED=null,     /* backend top-level last_updated */
+    LIST_STALE=false,      /* backend top-level stale flag (authoritative) */
     F={chamber:"all",state:"all",sort:"comp"},  /* filters */
     EXPANDED={},           /* id -> true (detail open) */
     DETAIL={};             /* id -> races_get payload (cached) */
@@ -1418,7 +1422,7 @@ function normRace(r){
     candidates:cands,
     rating:r.rating,
     source:String(r.source||r.rating_source||""),
-    rating_date:r.rating_date||r.ratingDate||null,
+    rating_date:r.rating_date||r.ratingDate||r.source_date||null,
     updated_at:r.updated_at||r.updatedAt||null,
     stale:!!r.stale,
     stakes:String(r.stakes||r.summary||"")
@@ -1426,22 +1430,44 @@ function normRace(r){
 }
 /* ---------- dates ---------- */
 var MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-function fmtDate(t){
+/* YYYY-MM-DD is parsed as date parts (local calendar day), NOT via the
+   Date constructor's UTC-midnight interpretation — avoids rendering one
+   day early in America/Chicago. */
+function parseDate(t){
+  if(t==null||t==="") return null;
+  var m=String(t).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(m){
+    var d=new Date(+m[1],+m[2]-1,+m[3]);
+    if(!isNaN(d.getTime())) return d;
+  }
   try{
-    var d=new Date(typeof t==="number"?t:String(t));
-    if(isNaN(d.getTime())) return "";
-    var s=MON[d.getMonth()]+" "+d.getDate();
-    if(d.getFullYear()!==new Date().getFullYear()) s+=", "+d.getFullYear();
-    return s;
-  }catch(e){ return ""; }
+    var d2=new Date(typeof t==="number"?t:String(t));
+    return isNaN(d2.getTime())?null:d2;
+  }catch(e){ return null; }
 }
-function msOf(t){ try{ var d=new Date(typeof t==="number"?t:String(t)); return isNaN(d.getTime())?0:d.getTime(); }catch(e){ return 0; } }
-/* Stale = backend flag OR rating older than 14 days (client fallback). */
+function fmtDate(t){
+  var d=parseDate(t); if(!d) return "";
+  var s=MON[d.getMonth()]+" "+d.getDate();
+  if(d.getFullYear()!==new Date().getFullYear()) s+=", "+d.getFullYear();
+  return s;
+}
+function msOf(t){ var d=parseDate(t); return d?d.getTime():0; }
+/* Stale = top-level board flag (authoritative, never silent), per-race
+   backend flag, OR rating older than 14 days (client fallback, keyed off
+   the aliased source_date — not the row-write timestamp). */
 function isStale(r){
   if(r.stale) return true;
   var ms=msOf(r.rating_date||r.updated_at);
   if(!ms) return false;
   return (Date.now()-ms)>14*86400000;
+}
+/* Board-level banner: the authoritative top-level flag. Rendered once,
+   above the board, IN ADDITION to any per-card banners. */
+function boardStaleHTML(){
+  if(!LIST_STALE) return "";
+  var dateStr=(LIST_UPDATED&&fmtDate(LIST_UPDATED))||"unknown";
+  return '<div class="rc-stale rc-board" role="alert">Board data: last updated '+esc(dateStr)
+    +' &mdash; ratings may be outdated.</div>';
 }
 /* ---------- data ---------- */
 function load(){
@@ -1449,11 +1475,13 @@ function load(){
   api("races_list",{},function(j){
     if(j&&j.ok&&j.races&&j.races.length){
       RACES=j.races.map(normRace);
-      LIST_UPDATED=j.updated_at||null;
+      LIST_UPDATED=j.last_updated||j.updated_at||null;
+      LIST_STALE=!!j.stale;
     } else if(j&&j.ok&&j.races&&!j.races.length){
-      RACES=[]; LIST_UPDATED=j.updated_at||null;
+      RACES=[]; LIST_UPDATED=j.last_updated||j.updated_at||null; LIST_STALE=!!j.stale;
     } else {
       RACES=null; /* backend down / malformed -> fail-soft */
+      LIST_UPDATED=null; LIST_STALE=false;
     }
     render();
   });
@@ -1614,6 +1642,7 @@ function render(){
     return;
   }
   h+=controlsHTML();
+  h+=boardStaleHTML();
   var rows=filteredSorted();
   if(!rows.length){
     h+='<div class="x-note">No races on the board for these filters &mdash; widen the net.</div>';

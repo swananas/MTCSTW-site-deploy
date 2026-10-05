@@ -516,6 +516,7 @@ html,body{overflow-x:clip;}
 #pf-races .rc-p-r{color:var(--pf-red-bright);border-color:var(--pf-red-bright);}
 #pf-races .rc-stakes{font-size:13px;color:var(--pf-cream);line-height:1.5;margin-top:8px;}
 #pf-races .rc-stale{border:2px solid var(--pf-gold);background:#241a02;color:var(--pf-gold);font-size:13px;font-weight:700;padding:10px 12px;margin:10px 0;line-height:1.5;}
+#pf-races .rc-stale.rc-board{border-width:3px;font-size:14px;margin:14px 0;padding:12px 14px;}
 #pf-races .rc-detail-btn{background:transparent;border:2px solid var(--pf-red);color:var(--pf-cream);font-weight:900;font-size:13px;letter-spacing:1px;min-height:44px;padding:0 18px;margin-top:10px;cursor:pointer;font-family:var(--pf-font-body);}
 #pf-races .rc-detail{margin-top:10px;padding-top:10px;border-top:1px solid var(--pf-border);}
 #pf-races .rc-dcand{color:var(--pf-cream);font-size:14px;font-weight:700;margin-top:8px;}

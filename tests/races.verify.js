@@ -17,6 +17,8 @@
  *  10. candidate detail expand via races_get (funding/classTake)
  *  11. no-XP grep: module mints zero XP
  *  12. zero reach into campaign.js's race_list contract (no 'race_list' read)
+ *  13. real backend shape: top-level stale/last_updated + per-race
+ *      source_date (board-level stale banner, Board data: footer, YMD day fix)
  * Run: node tests/races.verify.js
  */
 'use strict';
@@ -289,6 +291,46 @@ function clickDetail(r, id) {
 /* ---------- 12. does not touch race_list contract ---------- */
 (function () {
   ok('never reads race_list', src.indexOf('"race_list"') < 0 && src.indexOf("'race_list'") < 0);
+})();
+
+/* ---------- 13. real backend contract: top-level stale/last_updated, per-race source_date ---------- */
+function RB(stale, oldSourceDate) {
+  return {
+    ok: true, count: 2, total: 2,
+    last_updated: '2026-10-04T12:00:00Z',
+    stale: stale,
+    races: [
+      { id: 'rb-a', state: 'NC', chamber: 'Senate', office: 'U.S. Senate',
+        candidates: [{ name: 'Board Bea', party: 'D' }], rating: 'Toss-up (D)',
+        source: 'Cook Political Report', source_date: '2026-09-30', stakes: 'S.' },
+      { id: 'rb-b', state: 'TX', chamber: 'House', office: 'U.S. House', seat: 'TX-01',
+        candidates: [{ name: 'Board Bob', party: 'R' }], rating: 'Lean R',
+        source: 'Sabato', source_date: oldSourceDate || '2026-09-15', stakes: 'S.' }
+    ]
+  };
+}
+(function () {
+  var r = run({ backend: { races_list: RB(true, '2026-10-02') } });
+  var h = xRacesHTML(r);
+  ok('top-level stale -> board-level banner', h.indexOf('rc-stale rc-board') >= 0
+    && /Board data: last updated [A-Z][a-z]{2} \d{1,2} &mdash; ratings may be outdated/.test(h), h.slice(0, 400));
+  ok('source_date aliased -> source lines show dates', h.indexOf('Rating: Cook Political Report, Sep 30') >= 0, (h.match(/Rating: [^<]*/) || [])[0]);
+  ok('last_updated -> Board data: footer', /rc-upd/.test(h) && h.indexOf('Board data: Oct 4') >= 0, (h.match(/Board data: [^<]*/) || [])[0]);
+  var cardBanners = (h.match(/<div class="rc-stale" role="alert">Last updated/g) || []).length;
+  ok('no per-card banners for fresh source_dates (board banner only)', cardBanners === 0, 'found ' + cardBanners);
+})();
+(function () {
+  var r = run({ backend: { races_list: RB(false, '2026-10-02') } });
+  var h = xRacesHTML(r);
+  ok('top-level stale:false -> no board banner', h.indexOf('rc-board') < 0);
+})();
+(function () {
+  /* >14d fallback must key off source_date (the rating date), not the
+     row-write timestamp — backend sends no per-race updated_at. */
+  var r = run({ backend: { races_list: RB(false) } }); /* rb-b source_date 2026-09-15 = 20 days old */
+  var h = xRacesHTML(r);
+  var cardBanners = (h.match(/<div class="rc-stale" role="alert">Last updated/g) || []).length;
+  ok('>14d-old source_date -> per-card stale banner (1)', cardBanners === 1, 'found ' + cardBanners);
 })();
 
 if (failures) { console.error('\n' + failures + ' FAILURE(S)'); process.exit(1); }

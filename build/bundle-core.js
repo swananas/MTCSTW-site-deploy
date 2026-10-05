@@ -153,6 +153,18 @@ var BUNDLES = {
        (fe/legislation-tracker sibling branch). */
     'core/money-tab.js',
     'core/money-vote-card.js',
+    /* Money suite companions (fe/money-page, 2026-10-05): billionaire
+       ledgers (PFLedgers.mount) + donor boycotts (PFBoycotts.mount) +
+       corporate playbook (PFCorpCard.mount). Never auto-mount — the
+       money-page shell (core/money-page.js) mounts them into #pf-money
+       (or the interim #pf-political-hq money tab). */
+    'core/ledger-list.js',
+    'core/boycott-list.js',
+    'core/corp-card.js',
+    /* Money page shell (fe/money-page, 2026-10-05): context-aware mount —
+       full-page shell when #pf-money is present, interim money tab when
+       only #pf-political-hq is present (per phq-hub-ia-spec §4). */
+    'core/money-page.js',
     /* creator-recruit: shared recruiting toolbar for roster cards + catalog
        pages. Last: needs PFShare (share-image.js) + the catalog renderers. */
     'pages/creator-recruit.js',

@@ -55,7 +55,7 @@ function post(type,actionKey,action,params,cb){
   }catch(e){ done(null); }
 }
 var STATES=[["AL","Alabama"],["AK","Alaska"],["AZ","Arizona"],["AR","Arkansas"],["CA","California"],["CO","Colorado"],["CT","Connecticut"],["DE","Delaware"],["FL","Florida"],["GA","Georgia"],["HI","Hawaii"],["ID","Idaho"],["IL","Illinois"],["IN","Indiana"],["IA","Iowa"],["KS","Kansas"],["KY","Kentucky"],["LA","Louisiana"],["ME","Maine"],["MD","Maryland"],["MA","Massachusetts"],["MI","Michigan"],["MN","Minnesota"],["MS","Mississippi"],["MO","Missouri"],["MT","Montana"],["NE","Nebraska"],["NV","Nevada"],["NH","New Hampshire"],["NJ","New Jersey"],["NM","New Mexico"],["NY","New York"],["NC","North Carolina"],["ND","North Dakota"],["OH","Ohio"],["OK","Oklahoma"],["OR","Oregon"],["PA","Pennsylvania"],["RI","Rhode Island"],["SC","South Carolina"],["SD","South Dakota"],["TN","Tennessee"],["TX","Texas"],["UT","Utah"],["VT","Vermont"],["VA","Virginia"],["WA","Washington"],["WV","West Virginia"],["WI","Wisconsin"],["WY","Wyoming"]];
-var P=null, REPS=null, SCRIPTS=null, VOTER=null, CONTACT=null, CREATE_OPEN=false, VSTATS=null;
+var P=null, REPS=null, SCRIPTS=null, VOTER=null, CREATE_OPEN=false, VSTATS=null;
 /* 6A-R7: voter-pledge poster state — set on a successful pledge. */
 var PLEDGE_DONE=false, PLEDGE_STATE_NAME='';
 function pledgeStateName(code){
@@ -102,22 +102,51 @@ try{
 function load(){
   var done=false, n=0;
   function fin(){ if(done)return; done=true; render(); }
-  function one(){ n++; if(n>=6) fin(); }
+  function one(){ n++; if(n>=5) fin(); }
   setTimeout(fin,15000);
   api("petition_list",{},function(j){ P=j; one(); });
   api("rep_list",{},function(j){ REPS=j; one(); });
   api("rep_scripts",{},function(j){ SCRIPTS=j; one(); });
   /* 2026-10-03: voter_pledge_stats (public) — aggregate pledge counts. */
   api("voter_pledge_stats",{},function(j){ VSTATS=j; one(); });
-  /* contact_get is per-callsign auth-gated (rectify pass): route through the
-     shared claim-retry GET so a missing secret becomes one auth_claim attempt
-     with a friendly message, not a silent empty prefill. */
-  (function(){
-    var p={callsign:ident().callsign};
-    try{ if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,"contact_get",p,function(j){ CONTACT=j; one(); }); return; } }catch(e){}
-    api("contact_get",p,function(j){ CONTACT=j; one(); });
-  })();
   one();
+}
+/* 2026-10-05 (audit #7): sign/create used to trigger a full load() — 5 reads
+   plus re-render plus the contact-history JSONP refire in bind(). The only
+   pane those actions mutate is the petitions list: one petition_list read,
+   then re-render from cache. */
+function refreshPetitions(){
+  api("petition_list",{},function(j){ P=j; try{ render(); }catch(e){} });
+}
+var HIST_DONE=false;
+/* 2026-10-05 (audit #7): contact-history paint, split out so the log box can
+   refresh without a full re-render. Fetched once per page view (fetchHist);
+   LOG CONTACT — the only action that mutates the log — refreshes it
+   explicitly instead of every sign/pledge/create refiring it. */
+function paintHist(box,hist){
+  if(!hist.length){ box.innerHTML='<div class="x-note">No contacts logged yet. Your first call is +25 XP.</div>'; return; }
+  var hh='<div class="x-note" style="margin-top:6px"><b>Your contact log:</b></div>';
+  for(var i=0;i<Math.min(hist.length,5);i++){
+    var e=hist[i], dt="";
+    try{ dt=new Date(Number(e.ts)).toLocaleDateString(); }catch(ee){}
+    hh+='<div class="x-note">'+esc(e.rep_name||"rep")+' — '+esc(e.method||"")+(dt?" — "+esc(dt):"")+'</div>';
+  }
+  box.innerHTML=hh;
+}
+function fetchHist(force){
+  var box=document.getElementById("cvHistBox"); if(!box) return;
+  if(HIST_DONE&&!force) return;
+  var id2=ident(); if(!id2.callsign){ box.innerHTML=""; return; }
+  HIST_DONE=true;
+  var pp={callsign:id2.callsign};
+  function cb2(j){
+    var b2=document.getElementById("cvHistBox");
+    if(!b2){ HIST_DONE=false; return; }
+    if(!(j&&j.ok)){ HIST_DONE=false; return; } /* failed — retry on next bind */
+    paintHist(b2,j.history||[]);
+  }
+  try{ if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,"rep_contact_history",pp,cb2); return; } }catch(e){}
+  api("rep_contact_history",pp,cb2);
 }
 function stateOpts(sel){
   var h='<option value="">Select state&hellip;</option>';
@@ -145,8 +174,9 @@ function render(){
       +'<div class="x-note">'+(p.sig_count||0)+' / '+p.goal+' signatures ('+(p.pct||0)+'%)</div>'
       +'<button class="c-btn cp-mbtn" data-pet-sign="'+esc(p.id)+'">SIGN (+10 XP)</button> '
       /* 2026-10-03: petition_sigs (public) — who signed, per card. */
-      +'<button class="c-btn c-btn2 cp-mbtn" data-pet-sigs="'+esc(p.id)+'">WHO SIGNED</button>'
-      +'<div class="x-note" data-pet-sigs-out="'+esc(p.id)+'" style="display:none"></div></div>';
+      +'<button class="c-btn cp-mbtn" data-pet-sigs="'+esc(p.id)+'">WHO SIGNED</button>'
+      +'<div class="x-note" data-pet-sigs-out="'+esc(p.id)+'" style="display:none"></div>'
+      +'<div class="x-note">XP has no cash value. Stakes are final.</div></div>';
   }
   if(CREATE_OPEN){
     h+='<div class="x-pane pf-mt" ><h4>New petition</h4>'
@@ -155,7 +185,7 @@ function render(){
       +'<textarea class="c-in"  id="cvPetDesc" rows="3" maxlength="2000" placeholder="What are we demanding?"></textarea>'
       +'<input aria-label="Signature goal" class="c-in"  id="cvPetGoal" type="number" min="10" max="1000000" value="500" placeholder="Signature goal">'
       +'<button class="c-btn" id="cvPetCreate">LAUNCH PETITION</button> '
-      +'<button class="c-btn c-btn2" id="cvPetCancel">CANCEL</button><div class="c-err" id="cvPetErr"></div></div>';
+      +'<button class="c-btn" id="cvPetCancel">CANCEL</button><div class="c-err" id="cvPetErr"></div></div>';
   } else {
     h+='<button class="c-btn" id="cvPetOpen">START A PETITION</button>';
   }
@@ -176,6 +206,7 @@ function render(){
     +'<div class="x-note">Method:</div>'
     +'<select class="c-in"  id="cvMethod"><option value="call">Call</option><option value="email">Email</option><option value="tweet">Tweet</option></select>'
     +'<button class="c-btn" id="cvLogContact">LOG CONTACT (+25 XP)</button><div class="c-err" id="cvRepErr"></div>'
+    +'<div class="x-note">XP has no cash value. Stakes are final.</div>'
     /* 2026-10-03: rep_contact_history (AUTH) — the caller's own contact log. */
     +'<div id="cvHistBox" style="margin-top:8px"><div class="x-note">Reading your contact log&hellip;</div></div>';
   if(REPS&&REPS.note){ h+='<div class="x-note">'+esc(REPS.note)+'</div>'; }
@@ -196,33 +227,29 @@ function render(){
     h+='<div class="x-note">Official registration for '+esc(VOTER.state)+':</div>'
       +'<a class="c-btn" href="'+esc(VOTER.url)+'" target="_blank" rel="noopener">REGISTER ON VOTE.GOV</a> '
       +'<button class="c-btn" id="cvPledge">PLEDGE (+50 XP)</button>'
+      +'<div class="x-note">XP has no cash value. Stakes are final.</div>'
       /* 6A-R7: voter pledge -> PFShare pledge-poster (?ref= rides the link). */
       +(PLEDGE_DONE?'<button class="c-btn" id="cvPledgeShare">SHARE YOUR PLEDGE \u2192</button>':'')
       +'<div class="x-note">'+esc(VOTER.note||"")+'</div>';
+  } else if(VOTER&&VOTER.err){
+    /* 2026-10-05 (audit #2): a voter_check failure used to land here with
+       the select reset blank and zero feedback. VOTER.state survives the
+       failure so the select keeps the user's state; show inline error +
+       Retry instead of silence. */
+    h+='<div class="c-err">Couldn&rsquo;t reach the registration wire for '+esc(VOTER.state)+'.</div>'
+      +'<button class="c-btn" id="cvVoterRetry">RETRY</button>';
   } else {
     h+='<div class="x-note">Pick your state to get the official registration link.</div>';
   }
   h+='</div></div>';
-  /* --- notification preferences --- */
+  /* --- notification preferences (2026-10-05, audit #3): contact PII lives in
+     ONE surface — "Control the Signal" (notify-prefs silo, right below) owns
+     email/phone/opt-ins. This pane is now a link, not a second capture form.
+     No data-flow changes: notify-prefs' contact_set stays the single write
+     path, with its own 13+ self-certification intact. */
   h+='<div class="x-pane"><h4>Notification preferences</h4>'
-    +'<div class="x-note">Get drops, alerts, and battle calls by email or text. We never sell your info.</div>';
-  /* Auth-gating fallout (2026-10-03): contact_get is per-callsign. If the
-     claim-retry self-heal couldn't get credentials (legacy callsign, secret
-     lost), say so plainly instead of rendering empty fields that look
-     saved-but-blank. */
-  if(CONTACT&&CONTACT.ok===false&&/missing credentials|unauthorized|claim unavailable/i.test(String(CONTACT.err||""))){
-    h+='<div class="c-err">Your contact prefs wouldn&rsquo;t load &mdash; your callsign needs to reconnect. Re-claim it in Enlistment Ranks (one tap), then reload this page.</div></div>';
-    el.innerHTML=h; bind(); return;
-  }
-  var ce=CONTACT&&CONTACT.email?String(CONTACT.email).replace(/\\*\\*\\*/g,""): "", cp=CONTACT&&CONTACT.phone?String(CONTACT.phone).replace(/\\*\\*\\*/g,""):"";
-  var eo=CONTACT&&CONTACT.email_optin?1:0, so=CONTACT&&CONTACT.sms_optin?1:0;
-  h+='<input aria-label="Email address" class="c-in"  id="cvEmail" type="email" maxlength="120" placeholder="Email address" value="'+esc(ce)+'">'
-    +'<label style="display:block;margin:6px 0;font-size:13px"><input type="checkbox" id="cvEmailOpt"'+(eo?' checked':'')+'> Email me drops &amp; alerts</label>'
-    +'<input aria-label="Phone (for texts)" class="c-in"  id="cvPhone" type="tel" maxlength="20" placeholder="Phone (for texts)" value="'+esc(cp)+'">'
-    +'<label style="display:block;margin:6px 0;font-size:13px"><input type="checkbox" id="cvSmsOpt"'+(so?' checked':'')+'> Text me urgent calls</label>'
-    /* 2026-10-03 privacy/terms: 13+ self-certification (COPPA/GDPR-K). */
-    +'<label style="display:block;margin:6px 0;font-size:13px"><input type="checkbox" id="cvAge13"> I confirm I am 13 or older</label>'
-    +'<button class="c-btn" id="cvContactSave">SAVE PREFERENCES</button><div class="c-err" id="cvContactErr"></div></div>';
+    +'<div class="x-note">Drops, alerts, and battle calls live in one place now.</div>'
+    +'<a class="c-btn" href="#notifications">MANAGE NOTIFICATIONS \u2192</a></div>';
   el.innerHTML=h;
   bind();
 }
@@ -234,7 +261,7 @@ function bind(){
       var pid=b.getAttribute("data-pet-sign");
       b.disabled=true;
       post("petition","pe_action","petition_sign",{callsign:ident().callsign,petition_id:pid},function(j){
-        if(j&&j.ok){ toast(j.dup?"Already signed.":"Signed. +10 XP."); load(); }
+        if(j&&j.ok){ toast(j.dup?"Already signed.":"Signed. +10 XP."); refreshPetitions(); }
         else { toast(PF.errCopy(j,"Sign failed.")); b.disabled=false; }
       });
     };
@@ -245,7 +272,14 @@ function bind(){
   qsa("[data-pet-sigs]").forEach(function(b){
     b.onclick=function(){
       var pid=b.getAttribute("data-pet-sigs");
-      var out=document.querySelector('[data-pet-sigs-out="'+pid+'"]');
+      /* 2026-10-05 (audit #5): the backend petition id used to interpolate
+         unescaped into a CSS attribute selector — a quote in an id silently
+         killed WHO SIGNED. Match by attribute instead; the id never goes
+         through selector parsing now. */
+      var out=null, outs=document.querySelectorAll("[data-pet-sigs-out]");
+      for(var oi=0;oi<outs.length;oi++){
+        if(outs[oi].getAttribute("data-pet-sigs-out")===pid){ out=outs[oi]; break; }
+      }
       if(!out) return;
       if(out.style.display!=="none"){ out.style.display="none"; out.innerHTML=""; return; }
       out.style.display="block";
@@ -268,7 +302,7 @@ function bind(){
     if(!title||!target){ err.textContent="Title and target are required."; return; }
     pcb.disabled=true;
     post("petition","pe_action","petition_create",{callsign:ident().callsign,title:title,description:gv("cvPetDesc"),target:target,goal:Number(gv("cvPetGoal"))||500},function(j){
-      if(j&&j.ok){ toast("Petition launched. +25 XP."); CREATE_OPEN=false; load(); }
+      if(j&&j.ok){ toast("Petition launched. +25 XP."); CREATE_OPEN=false; refreshPetitions(); }
       else { err.textContent=PF.errCopy(j,"Create failed."); pcb.disabled=false; }
     });
   };
@@ -301,17 +335,26 @@ function bind(){
     var sid=box?box.getAttribute("data-script-id"):"";
     lc.disabled=true;
     post("rep","r_action","rep_contact",{callsign:ident().callsign,rep_name:rep,method:gv("cvMethod"),script_used:sid||""},function(j){
-      if(j&&j.ok){ toast("Contact logged. +25 XP."); }
+      if(j&&j.ok){ toast("Contact logged. +25 XP."); fetchHist(true); }
       else { err.textContent=PF.errCopy(j,"Log failed."); }
       lc.disabled=false;
     });
   };
-  /* voter */
+  /* voter — 2026-10-05 (audit #2): voter_check failure keeps the state
+     selection (VOTER.state survives) and renders an inline c-err + Retry
+     instead of a blank select with no feedback. */
+  function voterCheck(st){
+    if(!st) return;
+    VOTER={state:st};
+    api("voter_check",{state:st},function(j){
+      VOTER=(j&&j.url)?j:{state:st,err:true};
+      try{ render(); }catch(e){}
+    });
+  }
   var vs=document.getElementById("cvVoterState");
-  if(vs) vs.onchange=function(){
-    var st=gv("cvVoterState"); if(!st) return;
-    api("voter_check",{state:st},function(j){ VOTER=j; render(); });
-  };
+  if(vs) vs.onchange=function(){ voterCheck(gv("cvVoterState")); };
+  var vr=document.getElementById("cvVoterRetry");
+  if(vr) vr.onclick=function(){ voterCheck(gv("cvVoterState")); };
   var pl=document.getElementById("cvPledge");
   if(pl) pl.onclick=function(){
     pl.disabled=true;
@@ -339,44 +382,14 @@ function bind(){
       });
     }catch(e){ toast("Share failed."); }
   };
-  /* contact prefs */
-  var cs2=document.getElementById("cvContactSave");
-  if(cs2) cs2.onclick=function(){
-    var err=document.getElementById("cvContactErr");
-    var eo=document.getElementById("cvEmailOpt"), so=document.getElementById("cvSmsOpt");
-    /* 2026-10-03 privacy/terms: 13+ self-certification (COPPA/GDPR-K) whenever
-       contact PII is captured. The backend enforces it too. */
-    var age13=document.getElementById("cvAge13");
-    var em=gv("cvEmail").trim(), ph=gv("cvPhone").trim();
-    if((em||ph)&&!(age13&&age13.checked)){ err.textContent="Please confirm you are 13 or older."; return; }
-    cs2.disabled=true;
-    post("notifyq","nq_action","contact_set",{callsign:ident().callsign,email:em,phone:ph,email_optin:eo&&eo.checked?1:0,sms_optin:so&&so.checked?1:0,age13:(age13&&age13.checked)?1:0},function(j){
-      if(j&&j.ok){ toast("Preferences saved."); }
-      else { err.textContent=PF.errCopy(j,"Save failed."); }
-      cs2.disabled=false;
-    });
-  };
+  /* 2026-10-05 (audit #3): the civic contact-prefs form is gone — "Control the
+     Signal" (notify-prefs) is the single contact-PII surface and owns the
+     contact_set write path. No civic-side save binding anymore. */
   /* rep contact history (rep_contact_history, AUTH): the caller's own log.
-     Auth-gated — route through claim-retry like contact_get above. */
-  (function(){
-    var box=document.getElementById("cvHistBox"); if(!box) return;
-    var id2=ident(); if(!id2.callsign){ box.innerHTML=""; return; }
-    var pp={callsign:id2.callsign};
-    function cb2(j){
-      var b2=document.getElementById("cvHistBox"); if(!b2) return;
-      var hist=(j&&j.ok&&j.history)||[];
-      if(!hist.length){ b2.innerHTML='<div class="x-note">No contacts logged yet. Your first call is +25 XP.</div>'; return; }
-      var hh='<div class="x-note" style="margin-top:6px"><b>Your contact log:</b></div>';
-      for(var i=0;i<Math.min(hist.length,5);i++){
-        var e=hist[i], dt="";
-        try{ dt=new Date(Number(e.ts)).toLocaleDateString(); }catch(ee){}
-        hh+='<div class="x-note">'+esc(e.rep_name||"rep")+' — '+esc(e.method||"")+(dt?" — "+esc(dt):"")+'</div>';
-      }
-      b2.innerHTML=hh;
-    }
-    try{ if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,"rep_contact_history",pp,cb2); return; } }catch(e){}
-    api("rep_contact_history",pp,cb2);
-  })();
+     2026-10-05 (audit #7): fetched once per page view — bind() runs on every
+     re-render, and each run used to refire this authed call. LOG CONTACT
+     refreshes it explicitly (the only action that mutates the log). */
+  fetchHist();
 }
 load();
 })();

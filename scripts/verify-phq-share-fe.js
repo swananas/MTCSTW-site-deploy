@@ -51,7 +51,7 @@ if (/PF\.skip\(['"]phq-share['"]\)/.test(src)) ok('kill switch PF.skip("phq-shar
 else no('kill switch', 'PF.skip("phq-share") not found');
 if (src.indexOf('?pf_off=phq-share') !== -1) ok('KILL comment documents ?pf_off=phq-share');
 else no('kill comment', '?pf_off=phq-share missing from header');
-['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin'].forEach(function (id) {
+['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame'].forEach(function (id) {
   if (src.indexOf("'" + id + "'") !== -1) ok('painter id registered: ' + id);
   else no('painter id', id + ' missing');
 });
@@ -94,7 +94,7 @@ Ctx2D.prototype.measureText = function (t) { return { width: String(t).length * 
 Ctx2D.prototype.fillText = function (t, x, y) {
   this._rec.push({ text: String(t), font: this.font, fillStyle: this.fillStyle, x: x, y: y });
 };
-['fillRect', 'strokeRect', 'save', 'restore', 'translate', 'rotate', 'beginPath', 'clip', 'rect'].forEach(function (k) {
+['fillRect', 'strokeRect', 'save', 'restore', 'translate', 'rotate', 'beginPath', 'clip', 'rect', 'arc', 'stroke', 'fill'].forEach(function (k) {
   Ctx2D.prototype[k] = function () {};
 });
 function makeCanvas() {
@@ -186,6 +186,15 @@ var FIX = {
   'phq-cellwin': {
     cellName: 'IRON CELL ALPHA', verified: true, members: 23, xp: 18400,
     runnerUp: 'COPPER CELL BETA', marginXp: 2300, mvpCallsign: 'IRONHORSE', weekStart: '2026-09-28'
+  },
+  /* Synthetic paint-test vote values; the entities (bill, legislator) are
+     real. Wall-of-shame painter fixture — full detail assertions live in
+     scripts/verify-wallshame-fe.js. */
+  'phq-wallshame': {
+    billId: 'H.R.3633', billTitle: 'THE CLARITY ACT',
+    name: 'MIKE JOHNSON', chamber: 'house', party: 'R', state: 'LA',
+    againstVotes: 1, position: 'Yea', question: 'On Passage',
+    voteDates: ['2026-09-15'], sourceUrl: 'https://www.congress.gov/bill/119th-congress/house-bill/3633'
   }
 };
 
@@ -194,10 +203,10 @@ var PHQ = env.sb.PF && env.sb.PF.PHQShare;
 if (!PHQ) { no('PF.PHQShare', 'API not exposed'); }
 else {
   ok('PF.PHQShare exposed');
-  if (JSON.stringify(PHQ.ids) === JSON.stringify(['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin']))
+  if (JSON.stringify(PHQ.ids) === JSON.stringify(['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame']))
     ok('ids list matches spec painter keys');
   else no('ids', 'unexpected ids: ' + JSON.stringify(PHQ.ids));
-  ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin'].forEach(function (id) {
+  ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame'].forEach(function (id) {
     if (typeof env.registered[id] === 'function') ok('setPoster registered: ' + id);
     else no('registration', id + ' not registered with PFShare');
   });
@@ -400,7 +409,8 @@ else {
 
 console.log('== 4. layout guards (no collisions) ==');
 [['phq-pressure', FIX['phq-pressure']], ['phq-prediction', FIX['phq-prediction']],
- ['phq-scorecard', FIX['phq-scorecard']], ['phq-cellwin', FIX['phq-cellwin']]].forEach(function (pc) {
+ ['phq-scorecard', FIX['phq-scorecard']], ['phq-cellwin', FIX['phq-cellwin']],
+ ['phq-wallshame', FIX['phq-wallshame']]].forEach(function (pc) {
   var c = PHQ.paint(pc[0], pc[1]);
   var rs = c._recs || [], bad = [], link = null, date = null, cta = null;
   for (var i = 0; i < rs.length; i++) {

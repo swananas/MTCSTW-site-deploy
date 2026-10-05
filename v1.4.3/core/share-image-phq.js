@@ -341,7 +341,10 @@
     return cv;
   }
   function voteRow(x, v, y) {
-    var mark = v.for_us ? '\u2713' : '\u2717';
+    var fu = v.for_us, mark, mcol;
+    if (fu === true || fu === 1)      { mark = '✓'; mcol = '#f5ead6'; }  /* with us: cream check */
+    else if (fu === false || fu === 0){ mark = '✗'; mcol = '#c1121f'; }  /* against us: red X */
+    else                              { mark = '—'; mcol = '#c9bfa8'; }  /* unknown: neutral em-dash */
     var rest = ' ' + String(v.bill || '—').toUpperCase() + ' \u2014 ' + String(v.vote || '—').toUpperCase();
     var fs = 34;
     x.font = '400 34px Arial,sans-serif';
@@ -357,7 +360,7 @@
     }
     var sx = W / 2 - (mw + rw) / 2, pa = x.textAlign;
     x.textAlign = 'left';
-    x.fillStyle = v.for_us ? '#f5ead6' : '#c1121f';
+    x.fillStyle = mcol;
     x.fillText(mark, sx, y);
     x.fillStyle = '#c9bfa8';
     x.fillText(rest, sx + mw, y);

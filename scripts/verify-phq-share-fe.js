@@ -354,6 +354,24 @@ else {
     else no('scorecard verdict', 'missing');
     if (hasFrag(cv, 'H.R.3633') && hasFrag(cv, 'H.R.9497') && hasFrag(cv, 'S.2403')) ok('3 real-bill vote rows');
     else no('vote rows', 'missing real bills');
+    /* tri-state vote marks: true→✓ cream, false→✗ red, null→— neutral */
+    var tri = PHQ.paint('phq-scorecard', Object.assign({}, FIX['phq-scorecard'], {
+      votes: [
+        { bill: 'H.R.1', vote: 'YEA', for_us: true },
+        { bill: 'H.R.2', vote: 'NAY', for_us: false },
+        { bill: 'H.R.3', vote: 'N/A', for_us: null }
+      ]
+    }));
+    var tMark = opFor(tri, '✓'), fMark = opFor(tri, '✗');
+    var nMark = (tri._recs || []).filter(function (r) {
+      return r.text === '—' && /34px/.test(r.font);
+    })[0]; /* voteRow mark; badge em-dash is letterspaced at 36px */
+    if (tMark && tMark.fillStyle === '#f5ead6') ok('vote mark true → cream ✓');
+    else no('vote mark true', 'not cream ✓: ' + JSON.stringify(tMark && { t: tMark.text, c: tMark.fillStyle }));
+    if (fMark && fMark.fillStyle === '#c1121f') ok('vote mark false → red ✗');
+    else no('vote mark false', 'not red ✗: ' + JSON.stringify(fMark && { t: fMark.text, c: fMark.fillStyle }));
+    if (nMark && nMark.fillStyle === '#c9bfa8') ok('vote mark null → neutral —');
+    else no('vote mark null', 'not neutral —: ' + JSON.stringify(nMark && { t: nMark.text, c: nMark.fillStyle }));
     if (hasText(cv, 'FIGHTING AS WARHAWK')) ok('scorecard callsign stamp');
     else no('scorecard stamp', 'missing');
     if (hasText(cv, 'MTCSTW.COM/POLITICAL-HQ') && hasText(cv, 'JOIN THE FIGHT.')) ok('scorecard bottom stack');

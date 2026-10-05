@@ -1082,8 +1082,8 @@ setInterval(function(){
 'use strict';
 var LS='pf_do_v1';
 /* PTS table — MUST match PTS_DEFAULTS in core/05-tally.js (the backend source of truth). */
-var PTS={'pf-order-checkin':1,'pf-bracket-ballot':1,'pf-bracket-liquidated':2,'pf-vote-cast':1,'pf-quiz-done':1,'pf-guess-done':2,'pf-raid-report':2,'pf-infight-fire':3,'pf-traitor-vote':1,'pf-wb-buy':5,'pf-enlisted':3,'pf-caption-submit':2,'pf-poster-made':2,'pf-drop-claimed':2,'pf-billionaire-answered':1,'pf-interrogation-answered':1,'pf-share-image':2,'pf-checkin':1,'pf-boost-tipped':1,'pf-guess-scored':0,'pf-lesson-complete':3,'pf-campaign-pledge':3,'pf-campaign-act':2};
-var LABELS={'pf-order-checkin':'Orders','pf-bracket-ballot':'Brackets','pf-bracket-liquidated':'Liquidations','pf-vote-cast':'Votes','pf-quiz-done':'Quizzes','pf-raid-report':'Raids','pf-infight-fire':'Infighting','pf-traitor-vote':'Traitors','pf-wb-buy':'Bonds','pf-enlisted':'Enlisted','pf-caption-submit':'Captions','pf-poster-made':'Posters','pf-drop-claimed':'Drops','pf-billionaire-answered':'Billionaire','pf-interrogation-answered':'Interrogation','pf-share-image':'Shares','pf-lesson-complete':'Lessons','pf-campaign-pledge':'Pledges','pf-campaign-act':'Missions'};
+var PTS={'pf-order-checkin':1,'pf-bracket-ballot':1,'pf-bracket-liquidated':2,'pf-vote-cast':1,'pf-quiz-done':1,'pf-guess-done':2,'pf-raid-report':2,'pf-infight-fire':3,'pf-traitor-vote':1,'pf-enlisted':3,'pf-caption-submit':2,'pf-poster-made':2,'pf-drop-claimed':2,'pf-billionaire-answered':1,'pf-interrogation-answered':1,'pf-share-image':2,'pf-checkin':1,'pf-boost-tipped':1,'pf-guess-scored':0,'pf-lesson-complete':3,'pf-campaign-pledge':3,'pf-campaign-act':2};
+var LABELS={'pf-order-checkin':'Orders','pf-bracket-ballot':'Brackets','pf-bracket-liquidated':'Liquidations','pf-vote-cast':'Votes','pf-quiz-done':'Quizzes','pf-raid-report':'Raids','pf-infight-fire':'Infighting','pf-traitor-vote':'Traitors','pf-enlisted':'Enlisted','pf-caption-submit':'Captions','pf-poster-made':'Posters','pf-drop-claimed':'Drops','pf-billionaire-answered':'Billionaire','pf-interrogation-answered':'Interrogation','pf-share-image':'Shares','pf-lesson-complete':'Lessons','pf-campaign-pledge':'Pledges','pf-campaign-act':'Missions'};
 function load(){try{var s=JSON.parse(localStorage.getItem(LS)||'null');if(s&&s.w)return s;}catch(e){}return{w:PF.isoWeekKey(PF.chiNow()),total:0,byType:{},goal:1000,hits:0,hist:{},seen:[],boomed:false};}
 function save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}
 var S=load();
@@ -4646,7 +4646,6 @@ wallFromServer(function(j){ if(j&&j.ok&&j.wall) renderWall(j.wall); });
      {id:'vote',    glyph:'\u2605', name:'Ballot',          ev:'pf-vote-cast'},
      {id:'ballot',  glyph:'\u2622', name:'Bracket Ballot',  ev:'pf-bracket-ballot'},
      {id:'bracket', glyph:'\u2620', name:'Liquidator',      ev:'pf-bracket-liquidated'},
-     {id:'bonds',   glyph:'\u25C6', name:'War Bonds',       ev:'pf-wb-buy'},
      {id:'caption', glyph:'\u270E', name:'Word Warrior',    ev:'pf-caption-submit'},
      {id:'poster',  glyph:'\u25C8', name:'Press Pass',      ev:'pf-poster-made'},
      {id:'quiz',    glyph:'\u25C9', name:'Intel Operative', ev:'pf-quiz-done'},

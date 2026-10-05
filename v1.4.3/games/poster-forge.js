@@ -15,10 +15,12 @@
 #pf-poster .p-tabs{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
 #pf-poster .p-tab.on{border-color:#c1121f;background:rgba(193,18,31,.18);color:#fff}
 #pfPane-video{margin-top:6px}
+#pfPane-political{margin-top:6px}
 </style>
 <div class="p-tabs" role="tablist">
   <button class="c-btn p-tab on" data-ptab="poster" role="tab">POSTER</button>
   <button class="c-btn p-tab" data-ptab="video" role="tab">VIDEO</button>
+  <button class="c-btn p-tab" data-ptab="political" role="tab">POLITICAL</button>
 </div>
 <div id="pfPane-poster">
 <canvas id="pCanvas" width="1080" height="1350"></canvas>
@@ -50,6 +52,9 @@
 </div>
 <div id="pfPane-video" style="display:none">
 <div id="xVideo"><div class="c-load">Loading the forge&hellip;</div></div>
+</div>
+<div id="pfPane-political" style="display:none">
+<div id="xPolitical"><div class="c-load">Loading the forge&hellip;</div></div>
 </div>
 
 <script>
@@ -878,14 +883,14 @@ function render(){
 render();
 })();
 
-/* Poster/Video tab switching. */
+/* Poster/Video/Political tab switching. */
 (function(){
   var tabs=document.querySelectorAll('#pf-poster .p-tab');
   function show(which){
-    var pp=document.getElementById('pfPane-poster'), pv=document.getElementById('pfPane-video');
-    if(pp) pp.style.display=(which==='poster')?'':'none';
-    if(pv) pv.style.display=(which==='video')?'':'none';
-    for(var i=0;i<tabs.length;i++) tabs[i].classList.toggle('on',tabs[i].getAttribute('data-ptab')===which);
+    /* Generic over pfPane-* so new tabs (political) register by markup alone. */
+    var panes=document.querySelectorAll('#pf-poster [id^="pfPane-"]');
+    for(var i=0;i<panes.length;i++){ panes[i].style.display=(panes[i].getAttribute('id')==='pfPane-'+which)?'':'none'; }
+    for(var k=0;k<tabs.length;k++) tabs[k].classList.toggle('on',tabs[k].getAttribute('data-ptab')===which);
   }
   for(var k=0;k<tabs.length;k++){
     (function(b){ b.addEventListener('click',function(){ show(b.getAttribute('data-ptab')); }); })(tabs[k]);

@@ -446,7 +446,7 @@ function renderRaid(id){
   h+='<div class="wr-line'+(collapsed?' wr-dead':'')+'" id="wrLine">'+mult.toFixed(2)+'x</div>';
   if(collapsed){ h+='<div class="x-note" style="color:#ff4d5e;font-weight:700">THE LINE COLLAPSED. Next round forming.</div>'; }
   else if(myBet&&!myBet.cashed_out){
-    h+='<div class="x-note">You\\\'re on the line for '+(Number(myBet.amount)||0)+' XP at '+mult.toFixed(2)+'x = '+Math.floor((Number(myBet.amount)||0)*mult)+' XP</div>'
+    h+='<div class="x-note">You\'re on the line for '+(Number(myBet.amount)||0)+' XP at '+mult.toFixed(2)+'x = '+Math.floor((Number(myBet.amount)||0)*mult)+' XP</div>'
       +'<button class="c-btn" id="wrExfil">EXFILTRATE</button>'
       +'<div class="x-note">Pull out in time or the stake arms the cell treasury.</div>';
   } else {

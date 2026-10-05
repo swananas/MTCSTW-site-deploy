@@ -233,13 +233,35 @@ html,body{overflow-x:clip;}
 }
 .cp-mission.done,.cp-mdone{border-style:solid;opacity:.75;}
 .cp-mtext{font-size:15px;line-height:1.5;color:var(--pf-cream);}
-.cp-mxp{font-family:var(--pf-font-body);font-size:12px;letter-spacing:2px;color:var(--pf-red);margin-top:8px;text-transform:uppercase;}
+.cp-mxp{font-family:var(--pf-font-body);font-size:12px;letter-spacing:2px;color:var(--pf-red-bright);margin-top:8px;text-transform:uppercase;}
 /* Leaderboards */
 .cp-lead{margin:10px 0;}
 .cp-lname{color:var(--pf-cream);font-weight:bold;flex:1;}
-.cp-lrank{font-family:var(--pf-font-display);color:var(--pf-red);min-width:28px;}
+.cp-lrank{font-family:var(--pf-font-display);color:var(--pf-red-bright);min-width:28px;}
 .cp-lxp{font-family:var(--pf-font-mono);color:var(--pf-muted);font-size:13px;}
-.cp-pledged{font-family:var(--pf-font-body);font-size:11px;color:var(--pf-dim);}
+/* Campaign: 32-Day Offensive (2026-10-05, audit #10) — the 13 cp-* classes
+   had zero CSS rules; countdown, pledge wall, and Battlegrounds cards
+   rendered as unstyled plain text. Locked to the site's red/black/cream
+   campaign voice. */
+.cp-count{font-family:var(--pf-font-display);font-size:34px;font-weight:900;letter-spacing:2px;color:var(--pf-cream);margin:6px 0;text-transform:uppercase;}
+.cp-frame{font-family:var(--pf-font-display);font-size:18px;font-weight:700;letter-spacing:1px;color:var(--pf-red-bright);margin:8px 0;}
+.cp-sub{font-size:14px;color:var(--pf-muted);line-height:1.55;margin:6px 0 14px;}
+.cp-wall{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.cp-wname{display:inline-block;background:var(--pf-dark-3);border:1px solid var(--pf-border);color:var(--pf-cream);font-size:12px;letter-spacing:1px;padding:5px 10px;text-transform:uppercase;}
+.cp-race{background:var(--pf-dark-2);border:2px solid var(--pf-red);padding:16px 14px;margin:12px 0;text-align:left;}
+.cp-rtitle{font-family:var(--pf-font-display);font-size:19px;font-weight:900;letter-spacing:1px;color:var(--pf-cream);text-transform:uppercase;}
+.cp-rrating{display:inline-block;margin:6px 0 4px;font-size:13px;font-weight:700;letter-spacing:1px;color:var(--pf-red-bright);}
+.cp-cand{margin:10px 0;padding-top:10px;border-top:1px solid var(--pf-border);}
+.cp-cand b{color:var(--pf-cream);font-size:15px;}
+.cp-cfund{font-size:13px;color:var(--pf-gold);margin-top:4px;}
+.cp-ctake{font-size:13px;color:var(--pf-cream);line-height:1.5;margin-top:2px;}
+.cp-stakes{font-size:14px;color:var(--pf-cream);font-weight:700;line-height:1.5;margin:10px 0;border-left:3px solid var(--pf-red);padding-left:10px;}
+.cp-upd{font-size:12px;color:var(--pf-muted);letter-spacing:1px;margin-left:6px;}
+.cp-deploy{margin:12px 0 2px;}
+.cp-pledged{font-family:var(--pf-font-body);font-size:13px;color:var(--pf-muted);background:var(--pf-dark-3);border:1px solid var(--pf-gold);padding:10px 12px;margin:10px 0;}
+.cp-status-top{color:var(--pf-gold);font-weight:700;letter-spacing:1px;}
+.cp-youmsg{color:var(--pf-red-bright);font-weight:700;}
+.cp-wtime{color:var(--pf-muted);font-size:10px;letter-spacing:1px;margin-left:6px;}
 /* Casino */
 .cs-wager{background:var(--pf-dark-2);border:2px solid var(--pf-border);padding:12px;margin-bottom:10px;text-align:left;}
 .cs-wdesc{font-size:15px;color:var(--pf-cream);margin-bottom:6px;}

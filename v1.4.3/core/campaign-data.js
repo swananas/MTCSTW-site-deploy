@@ -16,7 +16,7 @@
       state: "NC",
       office: "U.S. Senate",
       candidates: [
-        { name: "Roy Cooper", party: "D", funding: "Ex-governor, broad donor base", classTake: "Career Dem — better than the alternative, answers to the party machine." },
+        { name: "Roy Cooper", party: "D", funding: "Ex-governor, broad donor base", classTake: "Career Dem — answers to the party machine, not to you." },
         { name: "Michael Whatley", party: "R", funding: "Ex-RNC chair, corporate GOP money", classTake: "Party operative. Serves the donor class that installed him." }
       ],
       rating: "Leans D (Cooper +9)",
@@ -27,21 +27,21 @@
       state: "GA",
       office: "U.S. Senate",
       candidates: [
-        { name: "Jon Ossoff", party: "D", funding: "$20M+ Q2, mostly small-dollar and national Dems", classTake: "Incumbent. Votes with labor more often than not, still a party man." },
+        { name: "Jon Ossoff", party: "D", funding: "$20M+ Q2, mostly small-dollar and national Dems", /* ADMIN: Q2 figures stale — refresh via race_update rail */ classTake: "Incumbent. Votes with labor more often than not, still a party man." },
         { name: "Mike Collins", party: "R", funding: "MAGA-backed, Trump-endorsed", classTake: "MAGA champion. Serves billionaires and the Trump machine." }
       ],
       rating: "Leans D (Ossoff +8)",
-      stakes: "Ossoff outraised Collins 10-to-1. Georgia is the firewall."
+      stakes: "Ossoff outraised Collins 10-to-1. Georgia is the firewall." /* ADMIN: 10-to-1 is a stale Q2 figure — refresh via race_update rail */
     },
     {
       id: "mi-senate",
       state: "MI",
       office: "U.S. Senate",
       candidates: [
-        { name: "Abdul El-Sayed", party: "D", funding: "Progressive small-dollar, beat the moderate in the primary", classTake: "41-year-old epidemiologist. Medicare for All. The real deal — a generational left bet." },
+        { name: "Abdul El-Sayed", party: "D", funding: "Progressive small-dollar, beat the moderate in the primary", classTake: "Epidemiologist. Medicare for All. The real deal — a generational left bet." },
         { name: "Mike Rogers", party: "R", funding: "Corporate GOP, ex-congressman", classTake: "Standard corporate Republican. Serves whoever writes the checks." }
       ],
-      rating: "Toss-up (El-Sayed +3.4)",
+      rating: "Leans D (El-Sayed +3.4)",
       stakes: "The most important progressive bet on the map. If El-Sayed wins, it proves the left can take Senate seats."
     },
     {
@@ -49,10 +49,10 @@
       state: "OH",
       office: "U.S. Senate (special)",
       candidates: [
-        { name: "Sherrod Brown", party: "D", funding: "Labor-backed, union money", classTake: "Pro-labor record. One of the few Dems who actually fights for workers." },
+        { name: "Sherrod Brown", party: "D", funding: "Labor-backed, union money", classTake: "Pro-labor record. Trust it, but verify — at the ballot box." },
         { name: "Jon Husted", party: "R", funding: "Appointed incumbent, GOP establishment", classTake: "Corporate appointee. Votes the donor line." }
       ],
-      rating: "Toss-up (Brown +3.7)",
+      rating: "Leans D (Brown +3.7)",
       stakes: "Special election. Brown's labor record vs. an appointed seat-warmer."
     },
     {
@@ -71,11 +71,11 @@
       state: "NE",
       office: "U.S. Senate",
       candidates: [
-        { name: "Dan Osborn", party: "I", funding: "Independent, union-backed", classTake: "Independent. Union steamfitter running against a billionaire. This is the class war on a ballot." },
-        { name: "Pete Ricketts", party: "R", funding: "Billionaire incumbent", classTake: "Billionaire. Literally. Serves himself and his class." }
+        { name: "Dan Osborn", party: "I", funding: "Independent, union-backed", classTake: "Independent. Union steamfitter running against billionaire-family money. This is the class war on a ballot." },
+        { name: "Pete Ricketts", party: "R", funding: "Incumbent — from a billionaire family", classTake: "Billionaire-family money. Serves his class — himself included." }
       ],
-      rating: "Toss-up (Ricketts +4)",
-      stakes: "Worker vs. billionaire. The purest class fight on the Senate map."
+      rating: "Leans R (Ricketts +4)",
+      stakes: "Worker vs. billionaire money. The purest class fight on the Senate map."
     },
     {
       id: "me-senate",
@@ -102,7 +102,7 @@
   ];
 
   /* Measure shape: {id, state, title, summary, yesMeans, noMeans, backedBy, opposedBy}
-     Specific 2026 measures TBD — categories below are the class-war fights to watch. */
+     Specific 2026 measures resolve as they qualify — categories below are the class-war fights to watch. */
   window.PF_CAMPAIGN_MEASURES = [
     {
       id: "wages-2026",

@@ -114,8 +114,29 @@ var CORE_FILES = [
   'core/22-dead-drop.js'
 ];
 
+/* 2026-10-05 (fix/money-minified-rebuild): money suite lazy chunk. The 10
+   money modules (was in CORE_FILES; +29KB weight waiver on the core bundle)
+   now ship as minified core/bundle-money.js, loaded on demand by
+   core/money-chunk-loader.js on #pf-money / #pf-political-hq only.
+   Order preserved from the old core position (wall-of-shame first). */
+var MONEY_FILES = [
+  'core/wall-of-shame.js',
+  'core/money-tab.js',
+  'core/money-vote-card.js',
+  'core/ledger-list.js',
+  'core/boycott-list.js',
+  'core/corp-card.js',
+  'core/money-page.js',
+  'core/money-trades.js',
+  'core/money-pac-alerts.js',
+  'core/money-deep8.js'
+];
+
 var BUNDLES = {
   'core/bundle-core': CORE_FILES.slice(),
+  /* 2026-10-05 (fix/money-minified-rebuild): lazy money chunk — NOT in the
+     critical path. Fetched only when a money surface is present. */
+  'core/bundle-money': MONEY_FILES.slice(),
   /* M34: roster pages get the identical core PLUS the snapshot, in the same
      relative position the old bundle-core used (right after 00-bus.js). */
   'core/bundle-core-slr':
@@ -141,38 +162,12 @@ var BUNDLES = {
        creates the PF.PHQShare facade and the module registers into it
        via PFShare.setPoster with its own retry loop. */
     'core/share-image-phq-lazy.js',
-    /* Wall of Shame (2026-10-05, fe/money-page): bill-detail legislator
-       carousel (PFWallShame.mount). Never auto-mounts — Release Eng calls
-       PFWallShame.mount() from the bill detail view (fe/legislation-tracker).
-       The phq-wallshame painter lives in the consolidated registry and loads
-       via the lazy stub above. */
-    'core/wall-of-shame.js',
-    /* Follow the Money (2026-10-05, fe/money-page): legislator money tab
-       (PFMoneyTab.mount) + bill-detail vote-vs-donor card (PFMoneyVote.mount).
-       Never auto-mounts — Release Eng calls PFMoneyTab.mount() from the
-       legislator detail view and PFMoneyVote.mount() from the bill detail
-       view. The phq-money painter lives in the consolidated registry. */
-    'core/money-tab.js',
-    'core/money-vote-card.js',
-    /* Money suite companions (fe/money-page, 2026-10-05): billionaire
-       ledgers (PFLedgers.mount) + donor boycotts (PFBoycotts.mount) +
-       corporate playbook (PFCorpCard.mount). Never auto-mount — the
-       money-page shell (core/money-page.js) mounts them into #pf-money
-       (or the interim #pf-political-hq money tab). */
-    'core/ledger-list.js',
-    'core/boycott-list.js',
-    'core/corp-card.js',
-    /* Money page shell (fe/money-page, 2026-10-05): context-aware mount —
-       full-page shell when #pf-money is present, interim money tab when
-       only #pf-political-hq is present (per phq-hub-ia-spec §4). */
-    'core/money-page.js',
-    /* Money suite missing elements (fe/money-page, 2026-10-05): stock
-       trades (PFTrades.mount, legal-hold empty state) + super PAC alerts
-       (PFPacAlerts.mount, staleness suppression) + deep-8 slots
-       (PFMoneyDeep.mount, honest empty states). */
-    'core/money-trades.js',
-    'core/money-pac-alerts.js',
-    'core/money-deep8.js',
+    /* 2026-10-05 (fix/money-minified-rebuild): the money suite (~65KB raw,
+       10 modules) moved to the lazy core/bundle-money.js chunk (MONEY_FILES
+       below) — weight waiver: +29KB over budget on the core bundle. This
+       ~1.5KB loader is all that stays in core: honors ?pf_off=money before
+       fetching, loads the chunk only on #pf-money / #pf-political-hq. */
+    'core/money-chunk-loader.js',
     /* creator-recruit: shared recruiting toolbar for roster cards + catalog
        pages. Last: needs PFShare (share-image.js) + the catalog renderers. */
     'pages/creator-recruit.js',

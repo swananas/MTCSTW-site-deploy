@@ -183,10 +183,31 @@ if (has(path.join(ROOT, 'build', 'bundle-core.js'), "'core/money-tab.js'") &&
     has(path.join(ROOT, 'build', 'bundle-core.js'), "'core/money-vote-card.js'"))
   ok('money-tab.js + money-vote-card.js registered in build/bundle-core.js (bundle-pages)');
 else no('bundle registration', 'not found in build/bundle-core.js');
-if (has(path.join(V, 'pages', 'bundle-pages.js'), 'pfMoneyTabDone') &&
-    has(path.join(V, 'pages', 'bundle-pages.js'), 'pfMoneyVoteDone'))
-  ok('module markers present in rebuilt pages/bundle-pages.js');
-else no('bundle marker', 'pfMoneyTabDone/pfMoneyVoteDone missing from bundle-pages.js');
+/* (2026-10-05 fix/money-minified-rebuild: the old 'module markers present in
+   rebuilt pages/bundle-pages.js' check was retired — the money suite moved
+   to the lazy core/bundle-money.js chunk. See chunk-split guards below.) */
+/* 2026-10-05 (fix/money-minified-rebuild): money chunk-split. The 10 money
+   modules no longer ride in bundle-pages.js — they ship as the minified
+   core/bundle-money.js chunk, loaded on demand by core/money-chunk-loader.js
+   (which stays in bundle-pages.js). Guard the new architecture: */
+var MCHUNK = path.join(V, 'core', 'bundle-money.js');
+if (fs.existsSync(MCHUNK) && has(MCHUNK, 'pfMoneyTabDone') && has(MCHUNK, 'pfMoneyVoteDone') &&
+    has(MCHUNK, 'pfMoneyPageDone'))
+  ok('money chunk core/bundle-money.js carries the suite (tab+vote+page markers)');
+else no('money chunk', 'core/bundle-money.js missing or incomplete');
+/* No duplication: the money modules must appear in exactly one built bundle.
+   (Pre-split, the suite shipped in both core and pages on some builds — the
+   weight-budget killer. Check code markers, not separator comments: terser
+   strips comments from the minified output.) */
+var dup = ['pfMoneyTabDone', 'pfMoneyPageDone', 'pfMoneyDeepDone'].some(function (mk) {
+  return has(path.join(V, 'core', 'bundle-core.js'), mk) ||
+         has(path.join(V, 'pages', 'bundle-pages.js'), mk);
+});
+if (!dup) ok('no money duplication: modules only in bundle-money.js');
+else no('money duplication', 'money module found in bundle-core.js or bundle-pages.js');
+if (has(path.join(V, 'pages', 'bundle-pages.js'), 'pfMoneyChunkLoading'))
+  ok('chunk loader present in bundle-pages.js');
+else no('chunk loader', 'money-chunk-loader missing from bundle-pages.js');
 
 /* ============ 3. mocked-browser runtime ============ */
 console.log('== 3. mocked-browser runtime (canvas + DOM stub) ==');

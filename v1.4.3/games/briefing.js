@@ -41,7 +41,7 @@ function api(action,params,cb){
      through the shared claim-retry GET (2026-10-03): pre-auth callsign
      holders with no stored secret get one auth_claim attempt instead of
      failing 'missing credentials' forever. */
-  if(action==="loot_status"||action==="streak_status"||action==="cell_mine"||action==="comeback_check"){
+  if(action==="loot_status"||action==="streak_status"||action==="cell_mine"||action==="comeback_check"||action==="circuit_status"||action==="war_plan"){
     try{
       if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
       var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
@@ -119,8 +119,8 @@ function fmtHours(ms){
   var h=Math.floor(ms/3600000), m=Math.floor((ms%3600000)/60000);
   return h+"H "+(m<10?"0":"")+m+"M";
 }
-var BAL=null,STREAK=null,LOOT=null,FLASH=null,COMEBACK=null,COMEBACK_ERR=null,PROP=null,CELL=null,MISS=null,STAT=null,SEASON=null,BRIEF=null,SEASHIST=null;
-var N_CALLS=12;
+var BAL=null,STREAK=null,LOOT=null,FLASH=null,COMEBACK=null,COMEBACK_ERR=null,PROP=null,CELL=null,MISS=null,STAT=null,SEASON=null,BRIEF=null,SEASHIST=null,CIRCUIT=null,WARPLAN=null,OPARC=null,HALL=null;
+var N_CALLS=14;
 function load(){
   var id=ident(), done=false, n=0;
   function fin(){ if(done)return; done=true; render(); }
@@ -133,6 +133,14 @@ function load(){
   api("xp_balance",{callsign:id.callsign},function(j){ BAL=j; one(); });
   api("streak_status",{callsign:id.callsign,device:id.device},function(j){ STREAK=(j&&j.ok)?j:null; one(); });
   api("loot_status",{callsign:id.callsign,device:id.device},function(j){ LOOT=(j&&j.ok)?j:null; one(); });
+  /* S1 Route March (2026-10-04): today's circuit — auth-gated per-callsign read. */
+  api("circuit_status",{callsign:id.callsign,device:id.device},function(j){ CIRCUIT=(j&&j.ok)?j:null; one(); });
+  /* W5-4 War Plan (2026-10-04): the morning aggregate — march preview +
+     ambush window + flash siren + recruit race + climbers + streak/ribbons.
+     Public info returns for any callsign; the personal streak slice is
+     included only when auth checks out (optional-auth, handled server-side).
+     Zero XP for reading or routing. */
+  api("war_plan",{callsign:id.callsign,device:id.device},function(j){ WARPLAN=(j&&j.ok)?j:null; one(); });
   api("flash_active",{},function(j){ FLASH=j; one(); });
   api("comeback_check",{callsign:id.callsign,device:id.device},function(j){ COMEBACK=(j&&j.ok&&j.eligible)?j:null; COMEBACK_ERR=(j&&!j.ok)?j:null; one(); });
   api("proposal_list",{},function(j){ PROP=j; one(); });
@@ -141,6 +149,18 @@ function load(){
   api("campaign_status",{},function(j){ STAT=j; one(); });
   /* 2026-10-03: season_history (public) — past seasons surface in §5. */
   api("season_history",{},function(j){ SEASHIST=(j&&j.ok&&j.seasons)||null; one(); });
+  /* W5-10 Operation Arcs (2026-10-04): arc read is a Promise from core/oparc.js
+     — never part of the N_CALLS countdown; fail-silent, paints when it lands. */
+  try{
+    if(window.PF&&typeof PF.opArc==="function"){
+      PF.opArc().then(function(a){ OPARC=a; paintArcHeader(); },function(){});
+    }
+  }catch(e){}
+  /* W5-6 Hall of Proof (2026-10-04): "you were mentioned" read — never part
+     of the N_CALLS countdown; fail-silent, paints when it lands. */
+  try{
+    api("hall_list",{},function(j){ HALL=(j&&j.ok)?j:null; paintHallMention(); });
+  }catch(e){}
 }
 function seasonInfo(){
   if(SEASON){
@@ -153,6 +173,155 @@ function seasonInfo(){
     if(STAT){ pledges=Number(STAT.pledges)||0; acts=Number(STAT.actions)||0; goal=Number(STAT.goal)||1000; }
   }catch(e){}
   return { name:"THE 32-DAY OFFENSIVE", endsAt:ELECTION, goal:goal, progress:pledges+acts };
+}
+/* ---------- S1 ROUTE MARCH (2026-10-04): TODAY'S ROUTE MARCH card ---------- */
+function routeMarchHtml(){
+  if(!CIRCUIT||!CIRCUIT.stops) return "";
+  var stops=CIRCUIT.stops, h="";
+  var sd=Number(CIRCUIT.streak_day||1);
+  h+='<div class="br-sec" id="pf-routemarch"><div class="br-sect">\\u2694 TODAY\\u2019S ROUTE MARCH</div>';
+  h+='<div class="br-rmhead"><span class="br-rmname">'+esc(String(CIRCUIT.route_name||"MARCH"))+'</span>'
+    +'<span class="br-rmday">DAY '+sd+' &bull; NEXT +'+Number(CIRCUIT.next_payout||10)+' XP</span></div>';
+  for(var i=0;i<stops.length;i++){ var s=stops[i];
+    h+='<a class="br-rmstop'+(s.done?" done":"")+'" href="'+esc(s.page||"/")+'">'
+      +'<span class="br-rmn">'+(s.done?"\\u2713":"STOP "+(i+1))+'</span>'
+      +'<span class="br-rml">'+esc(s.action_label||"")+'</span>'
+      +'<span class="br-rmgo">&rarr;</span></a>';
+  }
+  if(CIRCUIT.claimed){
+    h+='<div class="x-note" style="margin-top:8px">\\u2713 MARCH COMPLETE &mdash; DAY '+sd+' &bull; +'
+      +Number(CIRCUIT.payout||0)+' XP claimed. Tomorrow pays +'+Number(CIRCUIT.next_payout||10)
+      +' XP. Miss a day and the streak resets.</div>';
+  } else if(CIRCUIT.can_claim){
+    h+='<div style="margin-top:10px"><button class="c-btn br-rmbtn" data-act="circuit">CLAIM +'
+      +Number(CIRCUIT.next_payout||10)+' XP &mdash; DAY '+sd+'</button></div>';
+  } else {
+    h+='<div class="x-note" style="margin-top:8px">'+Number(CIRCUIT.completed||0)+' OF '
+      +Number(CIRCUIT.total||4)+' stops done. Finish the march to claim +'
+      +Number(CIRCUIT.next_payout||10)+' XP (day '+sd+').</div>';
+  }
+  h+='</div>';
+  return h;
+}
+/* W5-10 Operation Arcs (2026-10-04): "OPERATION <name>: <chapter_title>" line
+   under the soldier header whenever an arc is live. DOM-insert only — never a
+   full re-render — so a late arc read can't clobber mid-interaction state.
+   paintArcHeader is safe to call any number of times (dedupes on .br-arc). */
+function paintArcHeader(){
+  try{
+    if(!OPARC||!OPARC.active) return;
+    var el=document.getElementById("xBrief"); if(!el) return;
+    if(el.querySelector(".br-arc")) return;
+    var head=el.querySelector(".br-head");
+    var d=document.createElement("div");
+    d.className="br-arc";
+    d.style.cssText="margin:10px 0 0;padding:8px 12px;border:2px solid #c1121f;background:#0a0a0a;color:#f5ead6;font:bold 14px/1.4 monospace;text-transform:uppercase;letter-spacing:1px;";
+    d.textContent="OPERATION "+String(OPARC.name||"").toUpperCase()+": "+String(OPARC.chapter_title||"");
+    if(head&&head.parentNode) head.parentNode.insertBefore(d,head.nextSibling);
+    else el.insertBefore(d,el.firstChild);
+  }catch(e){}
+}
+/* ---------- W5-6 HALL OF PROOF MENTION (2026-10-04) ----------
+   "You were mentioned" — paints when the hall_list read lands, never part
+   of the N_CALLS countdown; fail-silent, dedupes on .br-hall. */
+function paintHallMention(){
+  try{
+    if(!HALL||!HALL.pins||!HALL.pins.length) return;
+    var id=ident(); if(!id.callsign) return;
+    var mycs=String(id.callsign).toLowerCase().trim(), mine=[];
+    for(var i=0;i<HALL.pins.length;i++){
+      if(String(HALL.pins[i].callsign||"").toLowerCase()===mycs) mine.push(HALL.pins[i]);
+    }
+    if(!mine.length) return;
+    var el=document.getElementById("xBrief"); if(!el) return;
+    if(el.querySelector(".br-hall")) return;
+    var feats=mine.map(function(x){ return x.feat||x.source; }).join(", ");
+    var d=document.createElement("div");
+    d.className="br-hall";
+    d.style.cssText="border:1px solid #c1121f;background:#140606;border-radius:6px;padding:10px 12px;margin:10px 0";
+    d.innerHTML='<div style="font-size:11px;letter-spacing:2px;color:#c1121f;font-weight:bold">HALL OF PROOF</div>'
+      +'<div style="font-size:13px;margin-top:4px;color:#f5ead6">You were pinned this week &mdash; '+esc(String(mine.length))
+      +' feat'+(mine.length===1?"":"s")+' on the wall: '+esc(feats)+'.</div>';
+    var arc=el.querySelector(".br-arc"), head=el.querySelector(".br-head");
+    if(arc&&arc.parentNode) arc.parentNode.insertBefore(d,arc.nextSibling);
+    else if(head&&head.parentNode) head.parentNode.insertBefore(d,head.nextSibling);
+    else el.insertBefore(d,el.firstChild);
+  }catch(e){}
+}
+/* ---------- W5-4 MORNING WAR PLAN (2026-10-04): the 30-second read ----------
+   One aggregate read (war_plan) fanning out to every live system. Every row
+   is a deep link; eligibility is enforced server-side at the destinations.
+   Zero XP for reading or routing. Rows render only when their subsystem has
+   live data — null subsystems render nothing (no empty cards). */
+function warPlanHtml(){
+  var wp=WARPLAN;
+  if(!wp) return "";
+  var rows="", now=Date.now();
+  /* ROUTE MARCH — one-line deep link down to the dedicated card (§3.25),
+     which carries the per-stop deep links and the day-N escalator. */
+  try{
+    if(wp.march){
+      var mstopN=(wp.march.stops||[]).length;
+      rows+='<div class="br-order"><span class="br-oname">\\u2694 ROUTE MARCH &mdash; '+esc(String(wp.march.route_name||"MARCH"))+' &middot; '+mstopN+' stops</span>'
+        +'<button class="c-btn" data-go="pf-routemarch">MARCH</button></div>';
+    }
+  }catch(e){}
+  /* AMBUSH — tonight's window. Live drops show slots + countdown; otherwise
+     the wait to the next eligible window. Links to /events (claim surface). */
+  try{
+    var am=wp.ambush;
+    if(am){
+      if(am.live&&am.drop){
+        var d=am.drop, left=Math.max(0,Number(d.slot_cap||0)-Number(d.claims||0));
+        rows+='<div class="br-order br-flash"><span class="br-oname">\\uD83C\\uDF81 AMBUSH LIVE &mdash; '+left+' slots left</span>'
+          +'<span class="br-oxp br-tick" data-ends="'+Number(d.ends_at||0)+'">'+fmtCountdown(Number(d.ends_at||0)-now)+'</span></div>'
+          +'<div style="margin:6px 0 2px"><a class="c-btn" href="/events">CLAIM THE DROP</a></div>';
+      } else if(Number(am.next_eligible_in||0)>0){
+        rows+='<div class="br-order"><span class="br-oname">\\uD83C\\uDF81 AMBUSH &mdash; next window in '+fmtHours(Number(am.next_eligible_in))+'</span>'
+          +'<a class="c-btn" href="/events">STANDBY</a></div>';
+      }
+    }
+  }catch(e){}
+  /* FLASH SIREN — siren countdown or live event. Routes to the arcade. */
+  try{
+    var fl=wp.flash;
+    if(fl&&(fl.live||fl.siren)){
+      var flt=fl.live?"\\u26A1 FLASH LIVE":"\\uD83D\\uDEA8 SIREN";
+      var cd="";
+      if(fl.siren&&!fl.live&&Number(fl.starts_at||0)>0)
+        cd=' <span class="br-oxp br-tick" data-ends="'+Number(fl.starts_at)+'">'+fmtCountdown(Number(fl.starts_at)-now)+'</span>';
+      rows+='<div class="br-order"><span class="br-oname">'+flt+' &mdash; '+esc(String(fl.title||"FLASH EVENT"))+cd+'</span>'
+        +'<button class="c-btn" data-go="pf-dopa">TO THE ARCADE</button></div>';
+    }
+  }catch(e){}
+  /* RECRUIT RACE — top 3 recruiters when a race is live. Routes to referrals. */
+  try{
+    var rc=wp.race;
+    if(rc&&rc.race&&rc.leaderboard&&rc.leaderboard.length){
+      var top=rc.leaderboard.slice(0,3);
+      var names=top.map(function(r,i){ return (i+1)+". "+esc(String(r.callsign||"?"))+" ("+Number(r.recruits||0)+")"; }).join(" \\u00B7 ");
+      rows+='<div class="br-order"><span class="br-oname">\\uD83C\\uDFC1 RECRUIT RACE &mdash; '+names+'</span>'
+        +'<button class="c-btn" data-go="pf-referral">RECRUIT</button></div>';
+    }
+  }catch(e){}
+  /* CLIMBERS — no climbers module in the backend yet (war_plan.climbers is
+     null). Nothing renders until the Climbers Board (A6) ships. */
+  /* STREAK — day-N chain display. Included only when the callsign authed. */
+  try{
+    var st=wp.streak;
+    if(st){
+      var sn=Number(st.count||0);
+      rows+='<div class="br-order"><span class="br-oname">\\uD83D\\uDD25 DAY '+sn+' &mdash; the chain holds'+(st.at_risk?" (AT RISK &mdash; check in today)":"")+'</span>'
+        +'<button class="c-btn" data-go="pf-dopa">HOLD IT</button></div>';
+    }
+  }catch(e){}
+  /* RIBBONS — W5-1 Theater Ribbons not built (war_plan.ribbons is []). The
+     ribbon-chase strip ("4/7 systems — FULL THEATER needs 3 more") renders
+     here once the backend ships a chase object. */
+  if(!rows) return "";
+  return '<div class="br-sec"><div class="br-sect">\\u2694 TODAY\\u2019S WAR PLAN</div>'
+    +'<div class="x-note" style="margin-bottom:6px">The whole theater, 30 seconds. Every line is a door &mdash; eligibility is checked on the other side.</div>'
+    +rows+'</div>';
 }
 function render(){
   var el=document.getElementById("xBrief"); if(!el) return;
@@ -168,6 +337,7 @@ function render(){
       +dropSectionHtml();
     dropWire();
     renderSeasonBanner();
+    paintArcHeader();
     return;
   }
   var xp=0;
@@ -224,6 +394,8 @@ function render(){
     }
     h+='</div>';
   }
+  /* ---------- 2.5 WAR PLAN (W5-4) — the 30-second morning read ---------- */
+  h+=warPlanHtml();
   /* ---------- 3. TODAY'S ORDERS ---------- */
   h+='<div class="br-sec"><div class="br-sect">TODAY&rsquo;S ORDERS</div>';
   var ms=[]; try{ ms=((MISS&&MISS.missions)||[]).filter(function(m){ return !m.done; }); }catch(e){}
@@ -240,6 +412,8 @@ function render(){
   }
   if(!ms.length&&!fe.length){ h+='<div class="x-note">Orders incoming. Check Daily Orders for the full board.</div>'; }
   h+='<div style="margin-top:8px"><button class="c-btn" data-go="pf-orders">FULL ORDER BOARD</button></div></div>';
+  /* ---------- 3.25 ROUTE MARCH (S1) — today's guided circuit ---------- */
+  h+=routeMarchHtml();
   /* ---------- 3.5 FEATURED DROP (Daily Drop slot) ---------- */
   h+=dropSectionHtml();
   /* ---------- 4. YOUR CELL ---------- */
@@ -324,8 +498,24 @@ function render(){
       });
     }; })(acts[a]);
   }
+  /* S1 Route March: the circuit claim button (pays the escalating bonus). */
+  var rmacts=el.querySelectorAll("button[data-act='circuit']");
+  for(var ra=0;ra<rmacts.length;ra++){
+    (function(btn){ btn.onclick=function(){
+      btn.disabled=true; btn.textContent="CLAIMING...";
+      var id2=ident();
+      dopaPost("circuit","c_action","circuit_claim",{callsign:id2.callsign,device:id2.device},function(j){
+        if(j&&j.ok){
+          toast("ROUTE MARCH COMPLETE. +"+Number(j.payout||0)+" XP \\u2014 DAY "+Number(j.streak_day||1)+". Tomorrow pays +"+Number(j.next_payout||0)+" XP.");
+        }
+        else { toast(PF.errCopy(j,"Claim failed.")); btn.disabled=false; btn.textContent="CLAIM BONUS"; return; }
+        load();
+      });
+    }; })(rmacts[ra]);
+  }
   dropWire();
   renderSeasonBanner();
+  paintArcHeader();
   tick();
 }
 /* per-second countdowns for flash timers */
@@ -365,6 +555,17 @@ function bannerCss(){
     +"#pf-brief .br-cell .br-cname{font:bold 16px monospace;color:#fff}"
     +"#pf-brief .br-seasonline{display:flex;justify-content:space-between;font:bold 12px monospace;color:#ff6b6b;margin-bottom:8px}"
     +"#pf-brief .br-gate{font:14px monospace;color:#ccc;padding:16px;border:1px dashed #666}"
+    /* S1 Route March (2026-10-04): TODAY'S ROUTE MARCH card. */
+    +"#pf-brief .br-rmhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}"
+    +"#pf-brief .br-rmname{font:bold 15px monospace;color:#fff;letter-spacing:1px}"
+    +"#pf-brief .br-rmday{font:bold 11px monospace;color:#e8b64c;letter-spacing:1px}"
+    +"#pf-brief .br-rmstop{display:flex;align-items:center;gap:10px;padding:9px 6px;border-bottom:1px solid #222;font:13px monospace;color:#ddd;text-decoration:none}"
+    +"#pf-brief .br-rmstop.done{color:#7ddf8a}"
+    +"#pf-brief .br-rmn{font:bold 12px monospace;color:#c1121f;min-width:54px}"
+    +"#pf-brief .br-rmstop.done .br-rmn{color:#7ddf8a}"
+    +"#pf-brief .br-rml{flex:1}"
+    +"#pf-brief .br-rmgo{color:#c1121f;font-weight:bold}"
+    +"#pf-brief .br-rmbtn{margin-top:2px}"
     +"#pf-seasonbar{position:fixed;top:0;left:0;right:0;z-index:99990;background:#0a0a0a;border-bottom:2px solid #c1121f;color:#fff;font:bold 12px monospace;padding:7px 12px;display:flex;align-items:center;gap:10px;letter-spacing:1px}"
     +"#pf-seasonbar .sb-name{color:#ff6b6b;white-space:nowrap}"
     +"#pf-seasonbar .sb-bar{flex:1;height:6px;background:#222;border-radius:3px;overflow:hidden;min-width:60px}"

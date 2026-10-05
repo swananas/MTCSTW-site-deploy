@@ -3,7 +3,9 @@
    what the visitor hasn't done today. No page is a dead end.
    FRONTEND-ONLY, ZERO NEW XP — pure routing. Reads compose the existing
    reads: dopamine_status (loot + streak + flash), streak_status,
-   cell_mine, xp_today. No new backend actions, no writes of any kind.
+   cell_mine, xp_today, plus W5-2 briefing reads: op_briefing_status
+   (60s client-side cache), ambush_status, warword_status, circuit_status.
+   No new backend actions, no writes of any kind.
    Mount: inserted in-flow immediately BEFORE the site footer element, i.e.
    below the page's primary content and above the injected footer chrome
    (crossnav strip / DELETE MY DATA / nuke meter). Retries until a footer
@@ -25,6 +27,10 @@
   } catch (e) {}
 
   var BACKEND = window.PF_BACKEND_URL;
+  /* W5-2 Midnight Briefing (2026-10-04): module-level 60s client-side
+     cache for op_briefing_status — the live flag is the time-window
+     routing rule's switch. */
+  var _briefCache = { t: 0, v: null };
   function ident() {
     var cs = '', dev = '';
     try { cs = window.PFCallsign ? window.PFCallsign() : ''; } catch (e) {}
@@ -137,6 +143,27 @@
           ' \u2014 ride it before it burns out.' : '';
       }
     },
+    /* W5-2 Midnight Briefing ops: unclaimed briefing-window systems, routed
+       above the normal priority list while op_briefing_status reports live.
+       Spec order: ambush drop -> riddle refresh -> route march night leg. */
+    briefambush: {
+      title: 'TONIGHT\u2019S AMBUSH DROP', cta: 'CLAIM THE DROP \u2192', href: '/',
+      ready: function (st) { return st.briefLive === true && st.ambushLive === true; },
+      done: function (st) { return st.ambushClaimed === true; },
+      sub: function () { return 'Limited claim slots — gone at 22:00 Chicago whether you move or not.'; }
+    },
+    briefriddle: {
+      title: 'DEAD-DROP RIDDLE ROTATED', cta: 'CRACK THE RIDDLE \u2192', href: '/',
+      ready: function (st) { return st.briefLive === true && st.riddleActive === true; },
+      done: function (st) { return st.riddleClaimed === true; },
+      sub: function () { return 'Tonight\u2019s warword expires at 22:00 Chicago. Speak it.'; }
+    },
+    briefnight: {
+      title: 'NIGHT PATROL: BONUS STOP', cta: 'PATROL THE NIGHT \u2192', href: '/',
+      ready: function (st) { return st.briefLive === true && st.nightLeg === false; },
+      done: function (st) { return st.nightLeg === true; },
+      sub: function () { return 'Briefing-window bonus stop — hard expiry 22:00 Chicago.'; }
+    },
     matchquiz: {
       title: 'FIND YOUR SLR MATCH', cta: 'TAKE THE QUIZ \u2192', href: '/arcade',
       ready: function () { return true; },
@@ -176,7 +203,19 @@
     'pf-political-hq': ['streakrisk', 'loot', 'streak', 'cellcheck', 'xpzero', 'matchquiz'],
     'default': ['streakrisk', 'loot', 'streak', 'cellcheck', 'cellnone', 'xpzero', 'matchquiz']
   };
+  /* W5-2 Midnight Briefing: while the window is live, unclaimed
+     briefing-window systems route above the normal priority list. */
+  var BRIEF_ORDER = ['briefambush', 'briefriddle', 'briefnight'];
   function pickOp(st) {
+    if (st.briefLive === true) {
+      for (var bi = 0; bi < BRIEF_ORDER.length; bi++) {
+        var bop = OPS[BRIEF_ORDER[bi]];
+        if (!bop) continue;
+        try {
+          if (bop.ready(st) && !bop.done(st)) return bop;
+        } catch (e) {}
+      }
+    }
     var order = ORDER[pageKey()] || ORDER['default'];
     for (var i = 0; i < order.length; i++) {
       var op = OPS[order[i]];
@@ -192,9 +231,14 @@
   function loadState(id, cb) {
     var st = {
       lootClaimed: null, streakCount: 0, streakChecked: null, streakRisk: null,
-      cellIn: null, cellChecked: null, xpToday: null, flash: null, flashKnown: false
+      cellIn: null, cellChecked: null, xpToday: null, flash: null, flashKnown: false,
+      /* W5-2 Midnight Briefing. briefLive===true flips pickOp into
+         briefing-priority mode. Per-system claim fields stay null on read
+         failure so their ops fail open (skipped) — never assumed done. */
+      briefLive: null, ambushLive: null, ambushClaimed: null,
+      riddleActive: null, riddleClaimed: null, nightLeg: null
     };
-    var pending = 4, guarded = false;
+    var pending = 8, guarded = false;
     /* Terminal: never leave the card waiting — every read path converges
        here exactly once, failures included (skipped ops fail open). */
     function fin() { if (guarded) return; guarded = true; cb(st); }
@@ -242,6 +286,52 @@
     api('xp_today', { callsign: id.callsign, device: id.device }, function (j) {
       try {
         if (j && j.ok && j.xp_today !== undefined) st.xpToday = Number(j.xp_today) || 0;
+      } catch (e) {}
+      one();
+    });
+    /* W5-2 Midnight Briefing reads. op_briefing_status rides the 60s
+       module-level cache (the window moves slowly); the claim reads are
+       fresh every load. All four fail open to skipped ops. */
+    var _bcNow = Date.now();
+    if (_briefCache.v !== null && (_bcNow - _briefCache.t) < 60000) {
+      st.briefLive = _briefCache.v;
+      one();
+    } else {
+      api('op_briefing_status', {}, function (j) {
+        try {
+          if (j && j.ok) {
+            st.briefLive = !!j.live;
+            _briefCache.t = Date.now(); _briefCache.v = !!j.live;
+          }
+        } catch (e) {}
+        one();
+      });
+    }
+    api('ambush_status', { callsign: id.callsign, device: id.device }, function (j) {
+      try {
+        if (j && j.ok) {
+          st.ambushLive = !!j.live;
+          st.ambushClaimed = !!(j.drop && j.drop.claimed_by_you);
+        }
+      } catch (e) {}
+      one();
+    });
+    api('warword_status', { callsign: id.callsign, device: id.device }, function (j) {
+      try {
+        if (j && j.ok) {
+          st.riddleActive = !!j.active;
+          st.riddleClaimed = !!j.claimed;
+        }
+      } catch (e) {}
+      one();
+    });
+    api('circuit_status', { callsign: id.callsign, device: id.device }, function (j) {
+      try {
+        /* night_leg_claimed lands with the circuit worker's contract
+           (see /tmp/wave5a/nightleg_contract.txt); absent = unknown,
+           so the night-patrol op stays skipped until then. */
+        if (j && j.ok && j.night_leg_claimed !== undefined)
+          st.nightLeg = !!j.night_leg_claimed;
       } catch (e) {}
       one();
     });

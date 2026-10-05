@@ -73,7 +73,14 @@ var SECTIONS = {
     'alerts.js',
     'fan-vote.js',
     /* W5-6 Hall of Proof (2026-10-04): public winners wall, PROOF section. */
-    'hall-of-proof.js'
+    'hall-of-proof.js',
+    /* Wave 3 files (registered by Wave 5C integration 2026-10-04 to unblock
+       the build gate — Wave 3 coordinator may relocate to slim bundles):
+       S6 ambush claim UI, S5 war-room ticker, A2 flash siren variants. */
+    'ambush-drop.js',
+    'war-room-ticker.js',
+    'flash-siren.js',
+    'briefing-siren.js'
   ],
   /* SLIM DEDICATED-PAGE BUNDLES (2026-10-04, M1 dead-weight fix): /arcade,
      /cells and /create used to fetch the full bundle-home (~83KB gz) to get

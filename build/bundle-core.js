@@ -66,7 +66,16 @@ var CORE_FILES = [
   'core/20-nextop.js',
   /* allfronts (2026-10-04): ALL FRONTS operation banner — fixed-top strip
      while an operation is live or launching within the hour. */
-  'core/21-allfronts.js'
+  'core/21-allfronts.js',
+  /* routemarch (S1, 2026-10-04): daily guided-circuit strip — STOP n OF 4
+     + claim button on today's route stop pages. Last: mounts before the
+     footer element, alongside nextop. */
+  'core/22-routemarch.js',
+  /* commend (W5-7, 2026-10-04): Battle Commendations — ticker-item kudos
+     buttons + daily progress chip + standalone commend-a-callsign form. */
+  'core/commend.js',
+  /* oparc (W5-10, 2026-10-04): operation arc reader — PF.opArc(), no DOM. */
+  'core/oparc.js'
 ];
 
 var BUNDLES = {
@@ -108,7 +117,14 @@ var BUNDLES = {
        every page ends with a next action, not just v2 pages. */
     'core/20-nextop.js',
     /* allfronts (2026-10-04): operation banner on v1.1.0-branch pages too. */
-    'core/21-allfronts.js'
+    'core/21-allfronts.js',
+    /* routemarch (S1, 2026-10-04): route strip on v1.1.0-branch pages too —
+       stop pages like /bank and /political-hq ride this bundle. */
+    'core/22-routemarch.js',
+    /* commend (W5-7, 2026-10-04): commend buttons + chip on v1.1.0 pages too. */
+    'core/commend.js',
+    /* oparc (W5-10, 2026-10-04): PF.opArc() reader on v1.1.0 pages too. */
+    'core/oparc.js'
   ]
 };
 

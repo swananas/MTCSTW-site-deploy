@@ -57,7 +57,9 @@
     ['campaign', 'pf-ov-campaign'],
     ['alerts', 'pf-ov-alerts'],
     /* ——— SECTION 7: PROOF — social validation closer ——— */
-    ['fan-vote', 'pf-ov-vote']
+    ['fan-vote', 'pf-ov-vote'],
+    /* W5-6 Hall of Proof (2026-10-04): winners wall closes the PROOF section. */
+    ['hall', 'pf-ov-hall']
   ];
 
   /* === SECTION HEADERS (2026-10-03) ===
@@ -125,7 +127,9 @@
     'poster-forge':'create','feed':'create','hq-nudge':'create',
     'war-bonds':'fund',
     'campaign':'act','alerts':'act',
-    'fan-vote':'proof'
+    'fan-vote':'proof',
+    /* W5-6 Hall of Proof (2026-10-04). */
+    'hall':'proof'
   };
 
   /* Build the 7 section blocks at init: header + lazy-load anchor each.

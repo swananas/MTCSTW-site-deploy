@@ -3548,13 +3548,40 @@ function render(j){
   var h="";
   var items=(j&&j.ok&&j.items)||[];
   h+='<div class="in-frame">THEY HAVE A WAR ROOM. SO DO WE.</div>';
+  /* 2026-10-05: LIVE wire feed — fresh headlines from the wire, rendered
+     above the curated dossiers. Fail-soft: if j.live is missing or empty,
+     NOTHING renders here and the dossiers stand alone exactly as before. */
+  var live=(j&&j.ok&&Array.isArray(j.live))?j.live:[];
+  if(live.length){
+    h+='<div class="x-pane inl-live">'
+      +'<div class="inl-head"><span class="inl-badge"><span class="inl-dot"></span>LIVE</span>'
+      +'<span class="inl-title">FRESH FROM THE WIRE</span></div>';
+    if(j.live_stale){
+      h+='<div class="x-note inl-stale">Wire feed may be stale &mdash; headlines below could lag.</div>';
+    }
+    for(var li=0;li<live.length;li++){
+      var lv=live[li]||{};
+      var lurl=String(lv.url||""), ltitle=String(lv.title||"");
+      h+='<div class="inl-item">';
+      if(/^https?:\\/\\//i.test(lurl)){
+        h+='<a class="inl-headline" href="'+esc(lurl)+'" target="_blank" rel="noopener">'+esc(ltitle||lurl)+'</a>';
+      }else{
+        h+='<span class="inl-headline">'+esc(ltitle||"Untitled")+'</span>';
+      }
+      h+='<div class="inl-meta">'+esc(lv.source||"wire");
+      var lts=fmtTs(lv.published_at);
+      if(lts) h+=' &bull; '+esc(lts);
+      h+='</div></div>';
+    }
+    h+='</div>';
+  }
   if(!items.length){
     h+='<div class="x-pane"><div class="x-note">No intel filed yet. The watchers are watching.</div></div>';
   }
   for(var i=0;i<items.length;i++){
     var it=items[i];
     h+='<div class="x-pane in-item">'
-      +'<div class="in-target">&#9673; '+esc(it.target)+'</div>'
+      +'<div class="in-target">&#9673; '+esc(it.target)+' <span class="in-kind">CURATED</span></div>'
       +'<div class="in-activity">'+esc(it.activity)+'</div>'
       +(it.amount?'<div class="in-amount">MONEY: '+esc(it.amount)+'</div>':"")
       +'<div class="in-meta">'+esc(fmtTs(it.ts));

@@ -451,6 +451,26 @@ html,body{overflow-x:clip;}
 #pf-intel .in-meta a{color:var(--pf-red-bright);font-weight:700;}
 #pf-intel .in-sub{color:var(--pf-cream);}
 
+/* === KNOW YOUR ENEMY live wire feed (2026-10-05) ===
+   LIVE block renders above the curated dossiers when the backend returns
+   j.live items (fail-soft: no items = no block). Pulsing red dot + LIVE
+   badge; dossiers carry a CURATED tag so the two sources are visually
+   distinct. Compact for phone viewports. */
+#pf-intel .inl-live{border:1px solid var(--pf-red-bright);}
+#pf-intel .inl-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+#pf-intel .inl-badge{display:inline-flex;align-items:center;gap:6px;background:var(--pf-red);color:#fff;
+  font-size:11px;font-weight:700;letter-spacing:2px;padding:3px 10px;border-radius:2px;}
+#pf-intel .inl-dot{width:8px;height:8px;border-radius:50%;background:#fff;animation:inlPulse 1.4s ease-in-out infinite;}
+@keyframes inlPulse{0%,100%{opacity:1;}50%{opacity:.25;}}
+#pf-intel .inl-title{color:var(--pf-red-bright);font-weight:700;letter-spacing:2px;font-size:13px;}
+#pf-intel .inl-item{border-top:1px solid var(--pf-border);padding:8px 0;}
+#pf-intel .inl-headline{color:var(--pf-cream);font-weight:700;font-size:14px;line-height:1.4;text-decoration:none;}
+#pf-intel a.inl-headline:hover{text-decoration:underline;}
+#pf-intel .inl-meta{color:var(--pf-muted);font-size:12px;margin-top:2px;}
+#pf-intel .inl-stale{margin:2px 0 6px;}
+#pf-intel .in-kind{display:inline-block;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--pf-muted);
+  border:1px solid var(--pf-border-light);padding:1px 6px;vertical-align:2px;margin-left:4px;}
+
 /* === Ventures + IRL empty states readability (2026-10-04) ===
    #pf-ventures / #pf-irl templates lack .pf-silo, and their inner classes
    (.x-empty has no rule anywhere) inherited the page's dark body copy on

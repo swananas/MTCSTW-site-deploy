@@ -65,6 +65,17 @@ function api(week,cb){
   document.head.appendChild(s);
   setTimeout(function(){ finish(null); },10000);
 }
+/* HIDE-ON-EMPTY (2026-10-05, display-only): an empty winners wall is
+   anti-proof. Hide the whole section when pins is empty; show it when the
+   wall has winners. A failed fetch keeps CURRENT behavior (visible error
+   pane) — never hide content on an error. No XP anywhere (unchanged). */
+function hpSec(){
+  try{ var m=$("pf-hallofproof"); return (m&&m.closest)?m.closest("section"):null; }
+  catch(e){ return null; }
+}
+function setWallHidden(hidden){
+  try{ var s=hpSec(); if(s) s.style.display=hidden?"none":""; }catch(e){}
+}
 function labelFor(crit,src){
   for(var i=0;i<crit.length;i++){ if(crit[i].k===src) return crit[i].feat; }
   return src.replace(/_/g," ");
@@ -72,10 +83,14 @@ function labelFor(crit,src){
 function paint(j){
   var main=$("pf-hp-main"); if(!main) return;
   if(!j||!j.ok){
+    setWallHidden(false);
     main.innerHTML='<div class="hp-empty">The wall is unreachable right now &mdash; the fight goes on without it.</div>';
     return;
   }
   var pins=(j.pins||[]).filter(function(x){ return CS_RE.test(String(x.callsign||"")); });
+  /* Empty wall: hide the section (anti-proof). Winners: show it. */
+  setWallHidden(!pins.length);
+  if(!pins.length) return;
   var crit=j.criteria||[];
   var coron=j.coronation||{};
   var h="";

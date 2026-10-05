@@ -8,9 +8,30 @@
   if (!PF || PF.skip("alerts")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-alerts">
 <div class="fe-block pf-override-block" id="pf-alerts">
+<style>
+/* QUIET COLLAPSE (2026-10-05, display-only): when alert_list is empty the
+   widget shrinks to this slim strip instead of a full section. .pf-quiet is
+   toggled by the inner script; the strip stays visible as the mobilization
+   anchor, so expanding on an alert never yanks the page. */
+#pf-alerts .pf-quietstrip{display:none;align-items:center;justify-content:center;gap:8px;
+  font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;color:#9c8f78;
+  padding:9px 12px;border:1px solid #2c2c2c;border-radius:6px;background:#0d0d0d;
+  max-width:680px;margin:0 auto;text-align:center}
+#pf-alerts .pf-quietstrip b{color:#c1121f;letter-spacing:2px}
+#pf-alerts.pf-quiet #pf-alerts-body{display:none}
+#pf-alerts.pf-quiet .pf-quietstrip{display:flex}
+#pf-alerts.pf-quiet .pf-next{display:none}
+/* mid-session alert arrival: flash + toast, impossible to miss */
+#pf-alerts.pf-flash{animation:pfAlFlash 1.4s ease-in-out 3}
+@keyframes pfAlFlash{0%,100%{box-shadow:0 0 0 0 rgba(193,18,31,0)}
+  50%{box-shadow:0 0 6px 3px rgba(193,18,31,.85)}}
+</style>
+<div class="pf-quietstrip">&#9889; <b>RAPID RESPONSE</b><span>&mdash; the wire is quiet. We move in minutes when it breaks.</span></div>
+<div id="pf-alerts-body">
 <h2>Rapid Response</h2>
 <div class="c-tag">News breaks. We move in minutes, not days.</div>
 <div id="xAlerts"><div class="c-load">Scanning the wire&hellip;</div></div>
+</div>
 </div>
 <script>
 (function(){
@@ -60,6 +81,17 @@ function fmtTs(t){
     return mo[d.getMonth()]+" "+d.getDate()+", "+h+":"+("0"+d.getMinutes()).slice(-2)+ap;
   }catch(e){ return ""; }
 }
+/* QUIET COLLAPSE state (2026-10-05, display-only). render() is the single
+   choke point for alert_list — initial load, the Refresh button, and the
+   3-minute poll all flow through it, so an alert that fires while the page
+   is open re-expands here automatically. A failed fetch keeps CURRENT
+   behavior (visible, honest pane) — never hide content on an error. */
+var quietOn=false;
+function alBlock(){ try{ return document.getElementById("pf-alerts"); }catch(e){ return null; } }
+function setQuiet(on){
+  quietOn=!!on;
+  try{ var b=alBlock(); if(b){ if(on) b.classList.add("pf-quiet"); else b.classList.remove("pf-quiet"); } }catch(e){}
+}
 function load(){
   var el=document.getElementById("xAlerts"); if(!el) return;
   api("alert_list",{},function(j){ render(j); });
@@ -68,10 +100,26 @@ function load(){
 function render(j){
   var el=document.getElementById("xAlerts"); if(!el) return;
   var id=ident(), h="";
-  var alerts=(j&&j.ok&&j.alerts)||[];
-  if(!alerts.length){
+  var ok=!!(j&&j.ok);
+  var alerts=ok?(j.alerts||[]):[];
+  if(!ok){
+    /* FAIL SOFT: exactly as today — visible section, honest quiet pane. */
+    setQuiet(false);
     h+='<div class="x-pane"><div class="x-note">No active alerts. The wire is quiet &mdash; for now. When a moment breaks, it lands here first.</div></div>';
+    h+='<div style="margin-top:10px"><button class="c-btn" id="alRetry">Refresh</button></div>';
+    el.innerHTML=h;
+    var rb0=document.getElementById("alRetry");
+    if(rb0) rb0.onclick=function(){ el.innerHTML='<div class="c-load">Scanning the wire&hellip;</div>'; load(); };
+    return;
   }
+  if(!alerts.length){
+    /* Quiet: collapse to the slim strip. The 3-minute poll re-checks. */
+    setQuiet(true);
+    el.innerHTML="";
+    return;
+  }
+  var wasQuiet=quietOn;
+  setQuiet(false);
   for(var i=0;i<alerts.length;i++){
     var a=alerts[i];
     h+='<div class="x-pane al-pane">'
@@ -127,6 +175,18 @@ function render(j){
   }
   var rb=document.getElementById("alRetry");
   if(rb) rb.onclick=function(){ el.innerHTML='<div class="c-load">Scanning the wire&hellip;</div>'; load(); };
+  if(wasQuiet){
+    /* An alert fired while the page was open: impossible to miss. */
+    try{
+      var b=alBlock();
+      if(b){
+        b.classList.remove("pf-flash"); void b.offsetWidth; b.classList.add("pf-flash");
+        setTimeout(function(){ try{ b.classList.remove("pf-flash"); }catch(e){} },4600);
+        try{ b.scrollIntoView({behavior:"smooth",block:"center"}); }catch(e2){}
+      }
+    }catch(e){}
+    toast("\u26A1 ACTIVE ALERT \u2014 rapid response needed. Move now.");
+  }
 }
 load();
 setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },180000);

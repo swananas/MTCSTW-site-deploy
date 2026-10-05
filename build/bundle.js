@@ -73,6 +73,10 @@ var SECTIONS = {
     /* CELLS wave G1 (2026-10-04): guided cell first hour — extends R19's
        post-claim interstitial; founder checklist / joiner induction. */
     'cell-first-hour.js',
+    /* Political HQ weave #5 (2026-10-05): "Your cell's fight" one-time
+       political briefing after join — listens for pf-cell-joined /
+       pf-cell-formed, dismisses permanently per cell. Zero XP. */
+    'cell-briefing.js',
     'referral.js',
     'poster-forge.js',
     'feed.js',
@@ -123,6 +127,10 @@ var SECTIONS = {
        joiner induction on pf-cell-formed / pf-cell-joined. */
     'cells.js',
     'cell-first-hour.js',
+    /* Political HQ weave #5 (2026-10-05): "Your cell's fight" one-time
+       briefing — slim dup of bundle-home's copy; /cells fetches this bundle
+       INSTEAD of bundle-home, never both. */
+    'cell-briefing.js',
     /* S5 war-room ticker /cells leg (slim dup — the loader fetches this
        INSTEAD of bundle-home on /cells, never both). */
     'war-room-ticker.js',

@@ -283,6 +283,13 @@ var SECTIONS = {
        Self-mounts into #pf-inflation-checkin / #pf-inflation-board /
        #pf-inflation-trends; silent no-op elsewhere. Zero XP. */
     'inflation-tracker.js',
+    /* W4 A4 (2026-10-05): FRED /economy deepening — Fed-watch cards (S-05),
+       housing context (S-07), official trend line (S-14), wage-vs-CPI gap
+       (M-01), Sahm-rule recession watch (S-26). Self-mounts after the A1
+       trends widget on /economy only; silent no-op elsewhere. Read-only
+       official data, zero XP. Kills: ?pf_off=economy-fred (master) or
+       fed-watch | housing-context | official-trend | wage-gap | sahm. */
+    'fred-economy.js',
   ],
   'bundle-warchest': [
     /* /war-chest — Movement Finance. */

@@ -2900,15 +2900,15 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
    CEO greenlight 2026-10-05 (weave #8: political data into creation).
    Mounts into <div id="pf-bank-browse"></div> (Creator HQ Content Bank area).
    Silent no-op everywhere else.
-   Backend contract (sibling backend build — assumed, reconcile before ship):
-     public GET ?action=bank_list&issue_area=&entity_type=&entity=&sort=
+   Backend contract (be/content-bank-metadata @ 5fec332 — reconciled):
+     public GET ?action=bank_list&issue_area=&entity_type=&entity_id=&sort=
      &limit=&offset=  ->  {ok:true, items:[{
-         submission_id, caption, artifact_url, artifact_kind ('image'|'video'|'text'),
+         id, caption, artifact_url, artifact_kind ('image'|'video'|'text'),
          artifact_text?, remix_count, created_at,
-         political_meta? {entity_type, entity_id, entity_label?,
-                          issue_area, plugin_id?, template_id?,
-                          data_hash?, data_ts?}}],
-       has_more:bool}
+         entity_type?, entity_id?, issue_area?, plugin_id?, template_id?,
+         data_hash?, data_ts?}]}
+     (flat fields, id not submission_id, no political_meta nesting, no
+      has_more — has_more is inferred client-side from a full page)
      If the action is absent (backend sibling not landed yet), the gallery
      renders a graceful "still stocking the vault" state — never an error wall.
    Filters: fight (issue-area chips), entity type, entity text search
@@ -2916,8 +2916,10 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
    Recent / Most remixed, LOAD MORE pagination.
    REMIX THIS (only on cards whose political_meta carries plugin_id):
      POST {type:'readcreate', rc_action:'bank_remix', submission_id, callsign,
-     device}  ->  {ok:true, forge_ready, forge_path?,
-                   plugin_id, template_id, entity_type, entity_id,
+     device}  ->  {ok:true, submission_id,
+                   remix:{plugin_id, template_id, entity_type, entity_id,
+                          parent_id?, data_hash?, data_ts?}}
+     (no forge_ready/forge_path — treat as optional; absent -> prefill)
                    parent_id, data_hash, data_ts}
      forge_ready true  -> navigate to forge_path (default /create,
                           override PF.bankForgePath) with:
@@ -3189,6 +3191,33 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
     } catch (e) {}
   }
 
+  /* View-object builder: normalizes a raw bank_list row (flat backend
+     fields) into the shape the card renderer consumes. Defensive on every
+     field — the gallery must never render 'undefined'. */
+  function viewItem(raw){
+    var it = {};
+    if (raw && typeof raw === 'object') {
+      for (var k in raw) {
+        if (Object.prototype.hasOwnProperty.call(raw, k)) it[k] = raw[k];
+      }
+    }
+    it.submission_id = String(raw && (raw.submission_id || raw.id) || '');
+    var src = (raw && (raw.political_meta || raw.meta) &&
+               typeof (raw.political_meta || raw.meta) === 'object')
+      ? (raw.political_meta || raw.meta) : {};
+    it.political_meta = {
+      entity_type: String(src.entity_type || (raw && raw.entity_type) || ''),
+      entity_id:   String(src.entity_id   || (raw && raw.entity_id)   || ''),
+      issue_area:  String(src.issue_area  || (raw && raw.issue_area)  || ''),
+      plugin_id:   String(src.plugin_id   || (raw && raw.plugin_id)   || ''),
+      template_id: String(src.template_id || (raw && raw.template_id) || ''),
+      data_hash:   String(src.data_hash   || (raw && raw.data_hash)   || ''),
+      data_ts:     String(src.data_ts     || (raw && raw.data_ts)     || ''),
+      parent_id:   String(src.parent_id   || (raw && raw.parent_id)   || '')
+    };
+    return it;
+  }
+
   /* ---------- data ---------- */
   function load(reset){
     if (S.loading) return;
@@ -3198,7 +3227,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
     var params = { sort: S.sort, limit: LIMIT, offset: S.offset };
     if (S.area) params.issue_area = S.area;
     if (S.type) params.entity_type = S.type;
-    if (S.entity) params.entity = S.entity;
+    if (S.entity) params.entity_id = S.entity;
     pubGet('bank_list', params, function (j){
       S.loading = false;
       if (!j || j.ok === false || !j.items) {
@@ -3209,9 +3238,14 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
         return;
       }
       var items = j.items || [];
-      for (var i = 0; i < items.length; i++) S.items.push(items[i]);
+      /* Backend contract (be/content-bank-metadata): bank_list returns FLAT
+         fields — id (not submission_id), entity_type/entity_id/issue_area/
+         plugin_id/template_id/data_hash/data_ts as top-level fields, no
+         political_meta nesting, no has_more. Build the view object the
+         card renderer expects, and infer has_more from a full page. */
+      for (var i = 0; i < items.length; i++) S.items.push(viewItem(items[i]));
       S.offset = S.items.length;
-      S.hasMore = j.has_more === true;
+      S.hasMore = items.length === LIMIT && items.length > 0;
       paint();
     });
   }
@@ -3235,6 +3269,16 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
     try { if (PF.bankForgePath) return String(PF.bankForgePath); } catch (e) {}
     return '/create';
   }
+  /* Normalizes a bank_remix response into the Forge handoff shape. */
+  function normRemix(j, sid){
+    var rx = (j && j.remix && typeof j.remix === 'object') ? j.remix : (j || {});
+    return {
+      plugin_id: rx.plugin_id || '', template_id: rx.template_id || '',
+      entity_type: rx.entity_type || '', entity_id: rx.entity_id || '',
+      parent_id: rx.parent_id || sid,
+      data_hash: rx.data_hash || '', data_ts: rx.data_ts || ''
+    };
+  }
   function doRemix(sid, btn){
     if (!sid) return;
     try { if (btn) btn.disabled = true; } catch (e) {}
@@ -3244,12 +3288,12 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
         toast('Remix didn\'t land — the wire fought back. Retry.');
         return;
       }
-      var r = {
-        plugin_id: j.plugin_id || '', template_id: j.template_id || '',
-        entity_type: j.entity_type || '', entity_id: j.entity_id || '',
-        parent_id: j.parent_id || sid,
-        data_hash: j.data_hash || '', data_ts: j.data_ts || ''
-      };
+      /* Backend contract (be/content-bank-metadata): {ok, submission_id,
+         remix:{plugin_id, template_id, entity_type, entity_id, parent_id,
+         data_hash, data_ts}} — nested, no forge_ready/forge_path. Read
+         defensively so either shape works; forge_ready stays optional
+         (the prefill fallback covers its absence). */
+      var r = normRemix(j, sid);
       if (j.forge_ready === true) {
         var path = j.forge_path || forgePath();
         try { window.location.href = path + '?' + remixQuery(r); }
@@ -3335,7 +3379,8 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
       remixQuery: remixQuery, forgePath: forgePath, S: S,
       AREAS: AREAS, TYPES: TYPES, LIMIT: LIMIT,
       cardHtml: cardHtml, metaChips: metaChips, gridHtml: gridHtml,
-      shellHtml: shellHtml, filtersHtml: filtersHtml
+      shellHtml: shellHtml, filtersHtml: filtersHtml,
+      viewItem: viewItem, normRemix: normRemix
     };
   } catch (eT) {}
 

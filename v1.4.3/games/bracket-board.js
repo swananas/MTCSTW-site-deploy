@@ -359,20 +359,19 @@ function render(){
         var opp=mus[m][0]===s?mus[m][1]:mus[m][0];
         if(s>opp){ var up=loadUpsets(); up["m"+m]=1; saveUpsets(up); }
       }
-      /* 2026-10-03 conn fix: report the pick to the real backend via the
-         tally wildcard (action_type 'bracket_ballot' — real route). The old
-         BRACKET_BACKEND_URL was always empty, so picks were silently dropped. */
-      try{
-        if(window.PF_BACKEND_URL){
-          var _dev='',_cs='',_sec='';
-          try{ if(window.PFDeviceId) _dev=window.PFDeviceId(); if(window.PFCallsign) _cs=window.PFCallsign();
-               if(window.PF&&PF.getAuthSecret) _sec=PF.getAuthSecret(); }catch(_e){}
-          fetch(window.PF_BACKEND_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},
-            body:JSON.stringify({type:"action",action_type:"bracket_ballot",device:_dev,callsign:_cs,auth_secret:_sec,
-              meta:weekKey()+":m"+m+"=s"+s})});
-        }
-      }catch(e){}
-      try{ document.dispatchEvent(new CustomEvent("pf-bracket-ballot",{detail:{week:weekKey(),mission:m}})); }catch(e){}
+      /* F-5 (2026-10-05): ONE rail per event. The ballot reports ONLY via
+         the pf-bracket-ballot DOM event -> core/05-tally.js (the canonical
+         tally reporter). The 2026-10-03 direct no-cors POST fired alongside
+         the event and double-counted every ballot server-side (logAction is
+         append-only). Match detail rides in the event; 05-tally forwards it
+         as meta. The dedupe key lets the backend drop no-cors retries
+         idempotently (see src/vote.js ensureActionDedupe). */
+      var _bdev='',_bcs='';
+      try{ if(window.PFDeviceId) _bdev=window.PFDeviceId(); if(window.PFCallsign) _cs=window.PFCallsign(); }catch(_e){}
+      try{ document.dispatchEvent(new CustomEvent("pf-bracket-ballot",{detail:{
+        week:weekKey(), mission:m, ballot:weekKey()+":m"+m+"=s"+s,
+        dedupe:"bracket_ballot:"+weekKey()+":m"+m+":"+(_bcs||_bdev||"anon")
+      }})); }catch(e){}
       render();
     };
   });

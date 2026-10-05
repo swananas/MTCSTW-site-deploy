@@ -1748,7 +1748,11 @@ function renderCellSlim(el,s){
       busyBtn(ci,false);
       if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err); return; }
       if(j.already){ toast("Already checked in."); }
-      else { if(j.milestone_hit){ toast("\ud83d\udd25 CELL STREAK MILESTONE: "+j.milestone_hit+" DAYS \u2014 the ticker heard it."); } else { toast("Checked in. Streak: "+j.cell.streak+"."); } try{ if(window.pfReportAction) window.pfReportAction("cell_checkin"); }catch(e){} }
+      else { if(j.milestone_hit){ toast("\ud83d\udd25 CELL STREAK MILESTONE: "+j.milestone_hit+" DAYS \u2014 the ticker heard it."); } else { toast("Checked in. Streak: "+j.cell.streak+"."); } /* F-5 (2026-10-05): this tally rail STAYS. The api("cell_checkin") call
+         above feeds the streak system (type:cell); this POST feeds the
+         tally (type:action) which contracts.js perfect_week reads.
+         Two different rails, not a double rail — do not remove. */
+      try{ if(window.pfReportAction) window.pfReportAction("cell_checkin"); }catch(e){} }
       refresh();
     });
   };
@@ -2030,7 +2034,11 @@ function renderCell(el,s){
       busyBtn(ci,false);
       if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err); return; }
       if(j.already){ toast("Already checked in."); }
-      else { if(j.milestone_hit){ toast("\ud83d\udd25 CELL STREAK MILESTONE: "+j.milestone_hit+" DAYS \u2014 the ticker heard it."); } else { toast("Checked in. Streak: "+j.cell.streak+"."); } try{ if(window.pfReportAction) window.pfReportAction("cell_checkin"); }catch(e){} }
+      else { if(j.milestone_hit){ toast("\ud83d\udd25 CELL STREAK MILESTONE: "+j.milestone_hit+" DAYS \u2014 the ticker heard it."); } else { toast("Checked in. Streak: "+j.cell.streak+"."); } /* F-5 (2026-10-05): this tally rail STAYS. The api("cell_checkin") call
+         above feeds the streak system (type:cell); this POST feeds the
+         tally (type:action) which contracts.js perfect_week reads.
+         Two different rails, not a double rail — do not remove. */
+      try{ if(window.pfReportAction) window.pfReportAction("cell_checkin"); }catch(e){} }
       refresh();
     });
   };

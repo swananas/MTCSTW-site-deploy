@@ -67,6 +67,8 @@
       + (handleBits.length ? '<div style="text-align:center;color:' + MUTED + ';font-size:0.9rem;margin-bottom:0.6rem;">' + esc(handleBits.join(' · ')) + '</div>' : '')
       + '<div data-eff-score="' + esc(m.slug) + '" style="text-align:center;margin-bottom:0.4rem;font-size:1.05rem;color:' + CREAM + ';">Propaganda Score: <strong style="color:' + RED + ';">' + m.propaganda_score.toFixed(1) + '/10</strong>'
       + (m.score_provisional ? ' <span style="font-size:0.7rem;color:' + MUTED + ';">(provisional)</span>' : '') + '</div>'
+      /* R31: aggregate reputation line — filled by repLine() below. */
+      + '<div id="pf-repline" style="text-align:center;margin-bottom:0.4rem;font-size:0.95rem;color:' + MUTED + ';min-height:0;"></div>'
       + '<div style="text-align:center;margin-bottom:1.6rem;font-size:1.1rem;"><strong style="color:' + RED + ';">' + esc(m.followers_display) + '</strong> <span style="color:' + MUTED + ';font-size:0.85rem;letter-spacing:0.1em;">FOLLOWERS</span></div>'
       + para(m.bio)
       + (offer ? '<h2 style="color:' + RED + ';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;">What they offer</h2><ul style="padding-left:1.2rem;margin:0;">' + offer + '</ul>' : '')
@@ -101,6 +103,40 @@
       + '</div>';
   }
 
+  /* R31 (2026-10-04): reputation votes -> catalog rep line. reputation_get
+     is per-callsign; roster slugs map to callsign format (dashes become
+     underscores). Renders "BACKED BY N FIGHTERS" when the backend returns net
+     upvotes; the line stays empty (invisible) until the read resolves, so a
+     missing action degrades silently. Template-level, like the score itself. */
+  function repKey(slug){
+    return String(slug||"").toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"").slice(0,20);
+  }
+  function repLine(root, m){
+    var host=null;
+    try{ host=root.querySelector("#pf-repline"); }catch(e){}
+    if(!host||!m||!m.slug) return;
+    var key=repKey(m.slug);
+    if(!/^[a-z0-9_]{3,20}$/.test(key)) return;
+    var api=(window.PF_BACKEND_URL||"https://pf-api.mtcstw.workers.dev");
+    var fn="pfRepCb"+Math.floor(Math.random()*1e9);
+    var s=document.createElement("script"), done=false;
+    function finish(j){
+      if(done) return; done=true;
+      try{ delete window[fn]; }catch(e){}
+      if(s.parentNode) s.parentNode.removeChild(s);
+      try{
+        if(j&&j.ok&&Number(j.net)>0){
+          host.innerHTML='BACKED BY <strong style="color:#c1121f;">'+Number(j.net)+'</strong> FIGHTERS';
+        }
+      }catch(e2){}
+    }
+    window[fn]=finish;
+    s.onerror=function(){ finish(null); };
+    s.src=api+"?action="+encodeURIComponent("reputation_get")+"&callsign="+encodeURIComponent(key)+"&callback="+fn;
+    document.head.appendChild(s);
+    setTimeout(function(){ finish(null); },12000);
+  }
+
   function takeoverMount() {
     var page = document.querySelector('main#page') || document.getElementById('page');
     var root = document.createElement('div');
@@ -132,6 +168,8 @@
       var root = el || takeoverMount();
       render(root, member, members);
       PF.log('slr-catalog', 'rendered ' + slug);
+      /* R31: paint the aggregate reputation line. */
+      try{ repLine(root, member); }catch(e_rep){}
       /* Efficiency Index: site-pull beacon (one ping per slug per session) +
          paint the live computed score into the [data-eff-score] slot.
          P0: pageview is POST-only — use fetch, not image beacon. */

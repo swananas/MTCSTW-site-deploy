@@ -29,7 +29,111 @@ function wrErrCopy(e){
     return "Could not reach Command — your callsign needs to reconnect. Re-claim it in Enlistment Ranks (one tap), then retry.";
   return "Could not reach Command. The wire is down — retry in a bit.";
 }
-function api(action,params,cb){
+function wrPost(body,cb){
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,done); return; }
+    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+      .then(function(r){ return r.json(); }).then(done).catch(function(){ done(null); });
+  }catch(e){ done(null); }
+}
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+/* R18 (2026-10-04): War Report -> Substack bridge, on-site half.
+   Email capture for the Monday digest + FAN FAVORITE share poster. The
+   sending leg is gated on the Resend DNS records (Shane's hand-step) —
+   capture degrades gracefully until the backend action exists. */
+function wrEmailValid(s){ return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/.test(String(s||"").trim()); }
+function emailPaneHtml(){
+  return '<div class="x-pane"><h4>GET THE WAR REPORT BY EMAIL</h4>'
+    +'<div class="x-note">Monday mornings, straight to your inbox. The one channel the machine truly owns.</div>'
+    +'<div style="margin-top:8px"><input id="wrEmail" type="email" placeholder="you@example.com" aria-label="Email address" style="width:62%;max-width:320px;padding:8px;font:14px monospace" maxlength="120"> '
+    +'<button class="c-btn" id="wrEmailBtn">SIGN ME UP</button></div>'
+    +'<div class="c-err" id="wrEmailErr" style="margin-top:6px"></div></div>';
+}
+function wireEmail(){
+  var b=document.getElementById("wrEmailBtn"); if(!b) return;
+  b.onclick=function(){
+    var inp=document.getElementById("wrEmail"), err=document.getElementById("wrEmailErr");
+    var em=inp?inp.value.trim():"";
+    if(!wrEmailValid(em)){ if(err) err.textContent="That email doesn't look right."; return; }
+    b.disabled=true; if(err) err.textContent="";
+    var id=ident();
+    wrPost({type:"warreport",wr_action:"email_capture",email:em,callsign:id.callsign||"",device:id.device||""},function(j){
+      b.disabled=false;
+      if(j&&j.ok){ if(inp) inp.value=""; toast("You're on the list. See you Monday."); }
+      else if(err) err.textContent="The email list isn't wired yet — the Resend DNS is still pending. Check back Monday.";
+    });
+  };
+}
+/* FAN FAVORITE: last week's Propagandist of the Week, from the same results
+   read the ballot uses (?action=results&week=, {votes:{slug:count}}). */
+function wrIsoWeek(d){
+  var t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  var day=(t.getUTCDay()+6)%7; t.setUTCDate(t.getUTCDate()-day+3);
+  var first=new Date(Date.UTC(t.getUTCFullYear(),0,4));
+  var fday=(first.getUTCDay()+6)%7; first.setUTCDate(first.getUTCDate()-fday+3);
+  return 1+Math.round((t-first)/6048e5);
+}
+function wrLastWeekKey(){ var d=new Date(); d.setDate(d.getDate()-7); return d.getFullYear()+"-W"+wrIsoWeek(d); }
+function wrRosterName(slug){
+  try{
+    var all=(window.PF&&PF.slrAll)?PF.slrAll():((window.PF&&PF.ROSTER)?PF.ROSTER:[]);
+    for(var i=0;i<all.length;i++){ if(all[i]&&all[i].slug===slug) return all[i].name||slug; }
+  }catch(e){}
+  return String(slug||"").replace(/-/g," ");
+}
+function wrWrap(x,text,maxW){
+  var words=String(text==null?"":text).split(/\\s+/),lines=[],line="";
+  words.forEach(function(w){ var t=line?line+" "+w:w;
+    if(x.measureText(t).width>maxW&&line){ lines.push(line); line=w; } else { line=t; } });
+  if(line)lines.push(line); return lines;
+}
+function wrPaintFavPoster(name,votes){
+  try{
+    var W=1080,H=1350,cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+    var x=cv.getContext("2d"); if(!x){ toast("Canvas unavailable."); return; }
+    x.fillStyle="#0d0d0d"; x.fillRect(0,0,W,H);
+    x.strokeStyle="#c1121f"; x.lineWidth=18; x.strokeRect(16,16,W-32,H-32);
+    x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(52,52,W-104,H-104);
+    x.textAlign="center";
+    var y=180;
+    x.fillStyle="#f5ead6"; x.font="700 34px Arial,sans-serif";
+    x.fillText("\\u2605 THE PROPAGANDA FACTORY \\u2605",W/2,y); y+=110;
+    x.fillStyle="#c1121f"; x.font="900 72px \\"Arial Black\\",Arial,sans-serif";
+    x.fillText("\\u2605 FAN FAVORITE \\u2605",W/2,y); y+=110;
+    x.fillStyle="#f5ead6"; x.font="900 64px \\"Arial Black\\",Arial,sans-serif";
+    wrWrap(x,String(name).toUpperCase(),W-180).slice(0,3).forEach(function(l){ x.fillText(l,W/2,y); y+=78; });
+    y+=30;
+    x.fillStyle="#c9bfa8"; x.font="700 40px Arial,sans-serif";
+    x.fillText("PROPAGANDIST OF THE WEEK",W/2,y); y+=70;
+    x.fillStyle="#e8b64c"; x.font="700 36px Arial,sans-serif";
+    x.fillText(Number(votes||0)+" NETWORK VOTES",W/2,y);
+    /* Footer: MTCSTW.COM + JOIN THE FIGHT. (red, bold) — the share-image CTA standard. */
+    x.fillStyle="#c1121f"; x.font="900 48px \\"Arial Black\\",Arial,sans-serif";
+    x.fillText("MTCSTW.COM",W/2,H-168);
+    x.font="900 44px \\"Arial Black\\",Arial,sans-serif";
+    x.fillText("JOIN THE FIGHT.",W/2,H-108);
+    if(window.PFShare&&PFShare.shareImage) PFShare.shareImage(cv,"pfn-fan-favorite.png","Fan Favorite — "+name,"fan-favorite");
+    else toast("Share engine still loading.");
+  }catch(e){ toast("Poster failed — try again."); }
+}
+function loadFanFav(){
+  var host=document.getElementById("wrFanFav"); if(!host) return;
+  api("results",{week:wrLastWeekKey()},function(j){
+    var votes=(j&&j.votes)||null, top=null, topN=0;
+    if(votes){ for(var k in votes){ var n=Number(votes[k])||0; if(n>topN){ topN=n; top=k; } } }
+    if(!top){ host.style.display="none"; return; }
+    var name=wrRosterName(top);
+    host.innerHTML='<div class="x-pane"><h4>&#9733; FAN FAVORITE</h4>'
+      +'<div class="x-note">Last week the network crowned <b>'+esc(name)+'</b> Propagandist of the Week ('+topN+' votes).</div>'
+      +'<div style="margin-top:8px"><button class="c-btn" id="wrFavShare">SHARE THE CROWN</button></div></div>';
+    var b=document.getElementById("wrFavShare");
+    if(b) b.onclick=function(){ wrPaintFavPoster(name,topN); };
+  });
+}
   if(!BACKEND){ cb(null); return; }
   /* Private read: warreport_latest is per-callsign (IDOR fix). Route through
      the shared claim-retry GET (2026-10-03) so pre-auth callsign holders get
@@ -68,7 +172,10 @@ function paint(el,j){
     el.innerHTML='<div class="x-pane"><h4>No report yet, soldier</h4>'
       +'<div class="x-note">Command drafts the War Report every Monday. It lands here '
       +'(and in your inbox once email is wired). Check in all week so there is '
-      + 'something worth writing about.</div></div>';
+      + 'something worth writing about.</div></div>'
+      +'<div id="wrFanFav"></div>'
+      +emailPaneHtml();
+    wireEmail(); loadFanFav();
     return;
   }
   var r=j.report;
@@ -77,7 +184,10 @@ function paint(el,j){
   el.innerHTML='<div class="x-pane"><h4>'+esc(r.subject||"WAR REPORT")+'</h4>'
     +'<div class="x-note">Week of '+esc(r.week_start||"")+(when?" · drafted "+esc(when):"")+'</div>'
     +'<div class="wr-body" style="white-space:pre-wrap;font-family:monospace;font-size:13px;line-height:1.55;margin-top:8px">'
-    +esc(r.body||"")+'</div></div>';
+    +esc(r.body||"")+'</div></div>'
+    +'<div id="wrFanFav"></div>'
+    +emailPaneHtml();
+  wireEmail(); loadFanFav();
 }
 function load(){
   var el=document.getElementById("xWarReport"); if(!el) return;

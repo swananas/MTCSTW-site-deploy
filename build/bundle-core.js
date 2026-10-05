@@ -69,7 +69,9 @@ var CORE_FILES = [
   'core/20-nextop.js',
   /* allfronts (2026-10-04): ALL FRONTS operation banner — fixed-top strip
      while an operation is live or launching within the hour. */
-  'core/21-allfronts.js'
+  'core/21-allfronts.js',
+  /* squadjoin (R19, 2026-10-04): post-claim "NOW GET A SQUAD." interstitial. */
+  'core/22-squadjoin.js'
 ];
 
 var BUNDLES = {

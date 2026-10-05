@@ -97,7 +97,7 @@ function npScopeBadge(r){
   var scope=String(r.scope==null?"":r.scope).trim();
   if(/^national/i.test(scope)) return '<span class="np-badge">NATIONAL</span>';
   var st=String(r.state==null?"":r.state).trim().toUpperCase();
-  var label=st?esc(st):(scope?esc(scope.replace(/\(.*$/,"").trim().toUpperCase().slice(0,24)):"LOCAL");
+  var label=st?esc(st):(scope?esc(scope.replace(/\\(.*$/,"").trim().toUpperCase().slice(0,24)):"LOCAL");
   return '<span class="np-badge np-badge-st">'+label+'</span>';
 }
 /* Only http(s) website URLs become tap targets. Missing scheme gets https://;
@@ -105,8 +105,8 @@ function npScopeBadge(r){
 function npSafeUrl(u){
   var s=String(u==null?"":u).trim();
   if(!s) return "";
-  if(/^https?:\/\//i.test(s)) return s;
-  if(/^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(s)) return "https://"+s;
+  if(/^https?:\\/\\//i.test(s)) return s;
+  if(/^[\\w-]+(\\.[\\w-]+)+(\\/\\S*)?$/.test(s)) return "https://"+s;
   return "";
 }
 /* Disclosure: visible honesty line on every flagged org, rendered exactly

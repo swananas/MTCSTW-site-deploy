@@ -6293,10 +6293,10 @@ function getBattlegroundData(){
 /* "NC Senate" from {state:'NC', office:'U.S. Senate'} — feeds the
    aria-label template in the copy package. */
 function raceLabel(r){
-  return String(r.state||"").toUpperCase()+" "+String(r.office||"").replace(/^U\.S\.\s*/i,"");
+  return String(r.state||"").toUpperCase()+" "+String(r.office||"").replace(/^U\\.S\\.\\s*/i,"");
 }
 function lastName(n){
-  var p=String(n||"").trim().split(/\s+/); return p[p.length-1]||"";
+  var p=String(n||"").trim().split(/\\s+/); return p[p.length-1]||"";
 }
 /* #13 (2026-10-05): battleground deploy poster (1080x1350, PF brand — the
    voter-pledge painter convention from civic.js: red border, cream text,
@@ -6310,7 +6310,7 @@ function racePoster(r,done){
     var cv=document.createElement("canvas"); cv.width=1080; cv.height=1350;
     var x=cv.getContext("2d"); if(!x){ fail(); return; }
     function wrap(text,maxW){
-      var words=String(text||"").split(/\s+/), lines=[], line="";
+      var words=String(text||"").split(/\\s+/), lines=[], line="";
       for(var i=0;i<words.length;i++){
         var t=line?line+" "+words[i]:words[i];
         if(x.measureText(t).width>maxW&&line){ lines.push(line); line=words[i]; }
@@ -6320,11 +6320,11 @@ function racePoster(r,done){
       return lines;
     }
     function shrinkFit(text,maxW,font,y){
-      var size=parseInt(font.match(/(\d+)px/)[1],10), f=font, guard=0;
+      var size=parseInt(font.match(/(\\d+)px/)[1],10), f=font, guard=0;
       while(size>26&&guard<20){
         x.font=f;
         if(x.measureText(text).width<=maxW) break;
-        size-=4; f=f.replace(/(\d+)px/,size+"px"); guard++;
+        size-=4; f=f.replace(/(\\d+)px/,size+"px"); guard++;
       }
       x.font=f; x.fillText(text,540,y);
     }

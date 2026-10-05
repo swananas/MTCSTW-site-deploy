@@ -1,7 +1,8 @@
 /* core/share-image-phq.js  |  PF v1.4.3 | POLITICAL HQ SHARE POSTERS.
-   Five custom PFShare painters (1080x1350, house palette) for the Political HQ
+   Six custom PFShare painters (1080x1350, house palette) for the Political HQ
    rollout: pressure-campaign card, prediction-result card, voting scorecard,
-   cell-competition winner card, wall-of-shame legislator card.
+   cell-competition winner card, wall-of-shame legislator card, donor-boycott
+   employer card.
    Spec: ~/workspace/hidden/phq-share-specs.md.
    Data contract (painter receives one data object; missing optional fields
    degrade gracefully; scorecard missing fields render '—', never invented):
@@ -11,6 +12,9 @@
      cellwin:    {cellName, verified, members, xp, runnerUp, marginXp, mvpCallsign, weekStart}
      wallshame:  {billId, billTitle, name, chamber, party, state, againstVotes,
                   position, question, voteDates[ISO], sourceUrl}
+     boycott:    {employer, amount, cycle, campaignTitle, campaignId}
+                  (copy rule: "employees gave" — corporations can't donate
+                  directly; the painter states it)
    Callsigns resolve at paint time via callsignOf() (identity store /
    PFCallsign) — never passed in data. Painters that render the callsign
    inline set cv._pfStamped = true so PFShare.stampCallsign stays a no-op
@@ -31,13 +35,14 @@
   window.pfPhqShareDone = true;
 
   var W = 1080, H = 1350;
-  var IDS = ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame'];
+  var IDS = ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame', 'phq-boycott'];
   var TITLES = {
     'phq-pressure': 'PRESSURE CAMPAIGN',
     'phq-prediction': 'PREDICTION RESULT',
     'phq-scorecard': 'VOTING SCORECARD',
     'phq-cellwin': 'CELL VICTORY',
-    'phq-wallshame': 'WALL OF SHAME'
+    'phq-wallshame': 'WALL OF SHAME',
+    'phq-boycott': 'DONOR BOYCOTT'
   };
   var DEEP = 'MTCSTW.COM/POLITICAL-HQ';
   var PENDING = {};
@@ -459,6 +464,63 @@
   }
 
   /* ---------------------------------------------------------------- */
+  /* Surface 6 — Donor Boycott Employer Card (be/donor-boycotts, 2026-10-05) */
+  /* ---------------------------------------------------------------- */
+  /* FOLLOW THE MONEY -> JOIN THE FIGHT. Employer (giant), "EMPLOYEES GAVE
+     $X (FEC)" amount line, the corporations-can't-donate disclaimer (hard
+     copy rule — never "the company donated"), linked campaign, sources,
+     callsign stamp, JOIN THE FIGHT bottom stack. Every pixel from the data
+     object; missing fields degrade to em-dash. */
+  function paintBoycott(d, cv, x) {
+    base(x); kicker(x);
+    badge(x, 'FOLLOW THE MONEY', 280, '#e8b923', 40);
+    var cs = callsignOf();
+    var y = 400;
+    /* the employer — biggest element on the card */
+    var fit = fitFont(x, String(d.employer || '—').toUpperCase(), 96, 40, 910);
+    var lh = Math.round(fit * 0.98);
+    x.fillStyle = '#f5ead6';
+    wrap(x, String(d.employer || '—').toUpperCase(), 910).slice(0, 2)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += lh; });
+    /* the money — the thumb-stopper */
+    y = Math.max(640, y + 14);
+    var amt = fmtNum(parseInt(d.amount, 10) || 0);
+    x.fillStyle = '#c1121f';
+    fitFont(x, 'EMPLOYEES GAVE ' + amt + ' (FEC)', 56, 30, 910);
+    x.fillText('EMPLOYEES GAVE ' + amt + ' (FEC)', W / 2, y); y += 58;
+    /* hard copy rule, on the poster itself */
+    x.fillStyle = '#c9bfa8'; x.font = '700 30px Arial,sans-serif';
+    wrap(x, 'CORPORATIONS CAN\u2019T DONATE DIRECTLY \u2014 THIS IS EMPLOYEE GIVING', 910)
+      .slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 40; });
+    /* linked pressure campaign */
+    y = Math.max(860, y + 18);
+    var ct = String(d.campaignTitle || '').trim();
+    if (ct) {
+      x.fillStyle = '#e8b923'; x.font = '700 34px Arial,sans-serif';
+      x.fillText('NOW PRESSURING THEM VIA', W / 2, y); y += 46;
+      x.fillStyle = '#f5ead6';
+      fitFont(x, ct.toUpperCase(), 44, 28, 910, '700');
+      wrap(x, ct.toUpperCase(), 910).slice(0, 2)
+        .forEach(function (l) { x.fillText(l, W / 2, y); y += 52; });
+    } else {
+      x.fillStyle = '#c9bfa8'; x.font = '400 32px Arial,sans-serif';
+      x.fillText('NO LINKED PRESSURE CAMPAIGN \u2014 YET', W / 2, y); y += 44;
+    }
+    /* sources */
+    y = Math.max(1060, y + 10);
+    x.fillStyle = '#c9bfa8'; x.font = '400 28px Arial,sans-serif';
+    var src = 'SOURCE: FEC SCHEDULE A EMPLOYER DATA' +
+      (d.cycle ? ' \u00b7 ' + String(d.cycle).toUpperCase() + ' CYCLE' : '');
+    fitFont(x, src, 28, 20, 910, '400');
+    x.fillText(src, W / 2, y); y += 40;
+    y = Math.max(1120, y + 4);
+    if (cs) y = csLine(cv, x, y, cs);
+    else y = claimLine(x, y);
+    bottomStack(x, 'fight');
+    return cv;
+  }
+
+  /* ---------------------------------------------------------------- */
   /* Painter table + registration                                       */
   /* ---------------------------------------------------------------- */
   var PAINT = {
@@ -466,7 +528,8 @@
     'phq-prediction': paintPrediction,
     'phq-scorecard': paintScorecard,
     'phq-cellwin': paintCellwin,
-    'phq-wallshame': paintWallShame
+    'phq-wallshame': paintWallShame,
+    'phq-boycott': paintBoycott
   };
   function paintOne(id, data) {
     var p = PAINT[id];

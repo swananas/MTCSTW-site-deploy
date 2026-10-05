@@ -143,6 +143,12 @@ var BUNDLES = {
        can fire. Never auto-mounts — Release Eng calls PFWallShame.mount()
        from the bill detail view (fe/legislation-tracker). */
     'core/wall-of-shame.js',
+    /* Donor Boycott Lists (2026-10-05): ranked employer boycott list
+       (PFBoycotts.mount). Right after wall-of-shame.js so the phq-boycott
+       painter is registered before any card SHARE/DOWNLOAD can fire.
+       Never auto-mounts — Release Eng calls PFBoycotts.mount() from the
+       Political HQ money surface. Kill: ?pf_off=boycotts. */
+    'core/boycott-list.js',
     /* creator-recruit: shared recruiting toolbar for roster cards + catalog
        pages. Last: needs PFShare (share-image.js) + the catalog renderers. */
     'pages/creator-recruit.js',

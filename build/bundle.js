@@ -248,6 +248,8 @@ var SECTIONS = {
 var HQ_BUNDLES = {
   'bundle-hq': [
     'civic.js',
+    /* 2026-10-05 (fe/civic-events): Protest & Event Map silo (Political HQ). */
+    'civic-events.js',
     'governance.js',
     'notify-prefs.js',
     'intel.js'

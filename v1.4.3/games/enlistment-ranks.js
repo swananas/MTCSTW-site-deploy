@@ -333,7 +333,13 @@ function renderWall(serverWall){
   /* R27 (Wave 6B): wall names link out — the Vanguard Wall (all-time legends)
      cross-links the Hall of Proof (weekly heroes). Per-callsign feat views
      don't exist yet; the Hall side owns that (flagged). */
-  el.innerHTML=names.slice(-24).map(function(n){ return '<a class="u-wname" href="/#pf-hallofproof" title="See the Hall of Proof">'+n+'</a>'; }).join("");
+  /* perf-wall-limit FE companion (Fix Pod, 2026-10-05): the backend now
+     serves the wall as ORDER BY ts DESC LIMIT 200 (stats.js), so the
+     first 24 are the LATEST 24. slice(-24) took the TAIL — correct
+     only while the wall arrived oldest-first. MERGE WITH OR AFTER
+     fix/perf-wall-limit (BE): merging this early would show the
+     OLDEST 24, a visible regression. */
+  el.innerHTML=names.slice(0,24).map(function(n){ return '<a class="u-wname" href="/#pf-hallofproof" title="See the Hall of Proof">'+n+'</a>'; }).join("");
 }
 function renderUnlocks(){
   var s=load(), idx=TIERS.indexOf(tierOf(s.xp));

@@ -289,12 +289,20 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
    If the action 404s (backend not deployed yet) the pane renders a
    "Command is wiring this" placeholder — never a stack trace. Zero XP for
    viewing anything. All server strings escaped.
+   Wave A5 S-08: a "state of the economy" one-liner (GDP + UNRATE, official
+   via FRED) renders under the stats row — figures only, omitted when the
+   macro wire is dead or figures are stale.
    KILL: ?pf_off=theater (or ?pf_off=theater-sitrep)  or
-   localStorage pf_disabled_v1='["theater"]' */
+   localStorage pf_disabled_v1='["theater"]'
+   ECONOMY LINE KILL: ?pf_off=sitrep-economy (pane stays up) */
 (function () {
   'use strict';
   var PF = window.PF;
   if (!PF || PF.skip("theater") || PF.skip("theater-sitrep")) { return; }
+  /* Wave A5 S-08: the economy one-liner has its own kill so the sitrep
+     pane itself stays up if the macro line is killed. */
+  var ECON_KILLED = false;
+  try { ECON_KILLED = PF.skip("sitrep-economy"); } catch (e) {}
   var BACKEND = window.PF_BACKEND_URL;
 
   function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
@@ -375,6 +383,28 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
 
   var WIRING = "Command is wiring this — check back.";
   var SR = null, SR_ERR = false, SR_LOADING = true;
+  /* Wave A5 S-08: "state of the economy" one-liner (GDP + UNRATE) from
+     ?action=fred_context&surface=sitrep. Cached; omitted entirely when the
+     call fails or figures are stale — never a placeholder, never invented. */
+  var ECON = null, ECON_ERR = false;
+  function econLine() {
+    if (ECON_KILLED || ECON_ERR || !ECON || !ECON.ok || !ECON.fred_live) return "";
+    var cards = ECON.cards || [], gdp = null, un = null, i;
+    for (i = 0; i < cards.length; i++) {
+      if (cards[i] && cards[i].series_id === "GDP") gdp = cards[i];
+      if (cards[i] && cards[i].series_id === "UNRATE") un = cards[i];
+    }
+    if (!gdp || !un || gdp.stale || un.stale ||
+        gdp.value == null || un.value == null) return "";
+    /* Figures only: backend-computed labels, never recomputed here. */
+    var gdpBit = "GDP " + (gdp.change_pct_label || gdp.change_label || "") +
+      " (" + (gdp.period_label || gdp.period || "") + ")";
+    var unBit = "UNEMPLOYMENT " +
+      (un.value_label != null ? un.value_label : "") +
+      (un.unit === "percent" ? "%" : "") +
+      " (" + (un.period_label || un.period || "") + ")";
+    return gdpBit + " \u00b7 " + unBit;
+  }
 
   function paneNode() {
     var d = document.createElement("div");
@@ -403,6 +433,11 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
       + '<div class="sr-stat"><span class="sr-v">' + esc(SR.ambush_claims != null ? SR.ambush_claims : "—") + '</span><span class="sr-l">Ambush claims</span></div>'
       + '<div class="sr-stat"><span class="sr-v">' + esc(SR.breadth != null ? SR.breadth : "—") + '</span><span class="sr-l">Front breadth</span></div>'
       + '</div>';
+    /* Wave A5 S-08: state-of-the-economy one-liner. Omitted when the
+       macro wire is dead or figures are stale — no placeholders. */
+    var econ = econLine();
+    if (econ) h += '<div class="sr-foot" style="margin-bottom:10px"><b>STATE OF THE ECONOMY:</b> ' +
+      esc(econ) + ' <span style="color:#777">\u00b7 OFFICIAL VIA FRED</span></div>';
     var missed = SR.missed_systems || [];
     if (missed.length) {
       h += '<div class="sr-missed">MISSED FRONTS — go take them:<br>';
@@ -452,6 +487,19 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
     }, 500);
   }
 
+  /* Wave A5 S-08: the economy line rides the pane's own cadence. Fail-soft:
+     a dead macro wire hides the line; it never breaks the sitrep. */
+  function loadEcon() {
+    if (ECON_KILLED) return;
+    api("fred_context", { surface: "sitrep" }, function (j) {
+      try {
+        if (j && j.ok && j.fred_live && (j.cards || []).length) { ECON = j; ECON_ERR = false; }
+        else if (!ECON) { ECON_ERR = true; }
+        paintSitrep();
+      } catch (e) {}
+    });
+  }
+
   css();
   waitFor("#xWarReport", function () {
     paintSitrep();
@@ -463,6 +511,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
       if (j && j.ok) { SR = j; } else { SR_ERR = true; }
       paintSitrep();
     });
+    loadEcon();
   });
   /* Refresh on the widget's own cadence; skip when the tab is hidden. */
   setInterval(function () {
@@ -474,6 +523,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
       if (j && j.ok) { SR = j; SR_ERR = false; } else if (!SR) { SR_ERR = true; }
       paintSitrep();
     });
+    loadEcon(); /* Wave A5 S-08: economy line refreshes on the same cadence. */
   }, 600000);
 })();
 

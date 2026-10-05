@@ -267,6 +267,9 @@ function renderVault(id){
     +'<div class="pb-card"><div class="pb-clabel">YOU OWE</div><div class="pb-cval pb-neg">-'+Math.round(nw.owe).toLocaleString()+'</div></div>'
     +'</div></div>';
   if(MEMBER_SINCE) h+='<div class="x-note" style="margin-top:8px;">MEMBER SINCE '+esc(fmtDate(MEMBER_SINCE))+'</div>';
+  /* Wave A5 S-06: official-rates context box slot (bank-fred-context.js
+     mounts here from wireVault). Empty when ?pf_off=bank-fred. */
+  if(!(PF&&(PF.skip('bank')||PF.skip('bank-fred')))) h+='<div id="pbFredCtx"></div>';
   h+='</div>';
   return h;
 }
@@ -325,6 +328,16 @@ function wireVault(id,el){
       },1200);
     });
   };
+  /* Wave A5 S-06: official-rates context box. Defensive: the module may be
+     killed (?pf_off=bank-fred) or absent from an older bundle — the vault
+     tab must never break. In-game rate comes from the already-loaded
+     bankStatus (read-only; no write, no XP grant). */
+  try {
+    var fctx = document.getElementById('pbFredCtx');
+    if (fctx && window.PFBankFred && window.PFBankFred.mount) {
+      window.PFBankFred.mount(fctx, (BST && BST.ok) ? Number(BST.rate_pct) : 0);
+    }
+  } catch (e) {}
 }
 /* ---------- 1. ACCOUNT OVERVIEW (the lobby) ---------- */
 function renderLobby(id){

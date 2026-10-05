@@ -1209,6 +1209,10 @@ function render(){
   h+='</div>';
   /* --- pressure campaigns (2026-10-05, wave pressure-campaigns FE) --- */
   h+=pressurePaneHTML();
+  /* --- Wave A5 S-13: official jobs panel above pressure campaigns.
+     The module mounts itself into this slot; a dead macro wire renders
+     nothing and never breaks the civic page. */
+  if(!(PF&&(PF.skip('phq-jobs')))) h+='<div id="cvJobsPanel"></div>';
   /* --- network polls (2026-10-05) --- */
   h+=pollsPane();
   /* --- contact your rep --- */
@@ -1312,6 +1316,12 @@ function render(){
     +'<a class="c-btn" href="#notifications">MANAGE NOTIFICATIONS \u2192</a></div>';
   el.innerHTML=h;
   bind();
+  /* Wave A5 S-13: mount the official jobs panel (defensive — the module
+     may be killed or absent from an older bundle). */
+  try {
+    var jp = document.getElementById('cvJobsPanel');
+    if (jp && window.PFJobsPanel && window.PFJobsPanel.mount) window.PFJobsPanel.mount(jp);
+  } catch (e) {}
 }
 /* ================= NETWORK POLLS (2026-10-05, expansion #3) ================
    Backend contract (backend pod, parallel build):

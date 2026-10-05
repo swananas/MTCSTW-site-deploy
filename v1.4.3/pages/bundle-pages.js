@@ -395,9 +395,11 @@
     if(b&&(b.classList.contains('sqs-edit-mode')||b.classList.contains('sqs-editing'))) return true;
     return false; }catch(e){ return false; } }
 
-  /* Political HQ order: civic action first, then governance —
+  /* Political HQ order: Action Center hub first (the civic battle plan),
+     then the civic action flows it deep-links into, then governance —
      Know Your Enemy (intel) moved here 2026-10-03 from the homepage. */
   var ORDER = [
+    ['action-center', 'pf-ov-action-center'],
     ['civic', 'pf-ov-civic'],
     ['notify-prefs', 'pf-ov-notify-prefs'],
     ['governance', 'pf-ov-gov'],

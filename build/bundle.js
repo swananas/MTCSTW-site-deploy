@@ -247,6 +247,7 @@ var SECTIONS = {
    pages. */
 var HQ_BUNDLES = {
   'bundle-hq': [
+    'action-center.js',
     'civic.js',
     'governance.js',
     'notify-prefs.js',

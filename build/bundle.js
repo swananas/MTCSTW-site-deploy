@@ -75,6 +75,8 @@ var SECTIONS = {
     'campaign.js',
     'alerts.js',
     'fan-vote.js',
+    /* W5-11 Blackout Op (2026-10-04): siren countdown + debrief reveal. */
+    'blackout.js',
     /* W5-6 Hall of Proof (2026-10-04): public winners wall, PROOF section. */
     'hall-of-proof.js',
     /* Wave 3 files (registered by Wave 5C integration 2026-10-04 to unblock
@@ -144,7 +146,9 @@ var SECTIONS = {
     'cell-war.js',
     'diplomacy.js',
     'contracts.js',
-    'war-card.js'
+    'war-card.js',
+    /* W5-12 Frontlines: the weekly territory war map. */
+    'war-map.js'
   ],
   'bundle-create': [
     /* /create (+ Creator HQ) — creator tooling. */

@@ -238,9 +238,10 @@
          briefing-priority mode. Per-system claim fields stay null on read
          failure so their ops fail open (skipped) — never assumed done. */
       briefLive: null, ambushLive: null, ambushClaimed: null,
-      riddleActive: null, riddleClaimed: null, nightLeg: null
+      riddleActive: null, riddleClaimed: null, nightLeg: null,
+      blackoutLive: false
     };
-    var pending = 8, guarded = false;
+    var pending = 9, guarded = false;
     /* Terminal: never leave the card waiting — every read path converges
        here exactly once, failures included (skipped ops fail open). */
     function fin() { if (guarded) return; guarded = true; cb(st); }
@@ -337,6 +338,21 @@
       } catch (e) {}
       one();
     });
+    /* W5-11 Blackout: shadow mode — while a blackout op is live the NEXT OP
+       card switches copy (no routing change, zero XP). Defensive flags read:
+       works before and after the conductor's preset/flags schema lands. */
+    api('operation_status', {}, function (j) {
+      try {
+        if (j && j.live === true) {
+          var fl = j.flags;
+          if (typeof fl === 'string') { try { fl = JSON.parse(fl); } catch (e) { fl = {}; } }
+          fl = (fl && typeof fl === 'object') ? fl : {};
+          st.blackoutLive = fl.blackout === true || String(j.preset || '') === 'blackout' ||
+            /blackout/i.test(String(j.name || ''));
+        }
+      } catch (e) {}
+      one();
+    });
   }
 
   /* ---- card ---- */
@@ -417,7 +433,19 @@
     return;
   }
   loadState(id, function (st) {
-    var op = pickOp(st);
+    var op;
+    if (st.blackoutLive) {
+      /* Shadow mode: the wire is dark — on-brand copy, no real names. */
+      op = {
+        title: 'SOMETHING IS HAPPENING', cta: 'READ THE BRIEFING \u2192', href: '/',
+        sub: function () {
+          return 'The ticker went dark. Dead Drops pay double and sealed bounties ' +
+            'get one re-roll — move quiet, then read the debrief.';
+        }
+      };
+    } else {
+      op = pickOp(st);
+    }
     op.__st = st;
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { boot(op); });
     else boot(op);

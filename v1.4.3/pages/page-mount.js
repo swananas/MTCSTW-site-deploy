@@ -63,7 +63,9 @@
         ['cell-hq', null], /* self-mounting: renders into #pf-cell-hq (kill: cellhq) */
         ['cell-war', 'pf-ov-cellwar'],
         ['diplo', 'pf-ov-diplo'],
-        ['contracts', 'pf-ov-contracts']
+        ['contracts', 'pf-ov-contracts'],
+        /* W5-12 Frontlines: weekly territory war map (kill: war-map). */
+        ['war-map', 'pf-ov-warmap']
       ]
     },
     'pf-create': {

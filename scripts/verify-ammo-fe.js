@@ -53,9 +53,9 @@ else no('kill comment', '?pf_off=ammo missing from header');
   if (src.indexOf(s) !== -1) ok('contract string present: ' + s);
   else no('contract string', s + ' missing');
 });
-if (/PENDING/.test(src) && src.indexOf('wave-claim-support') !== -1)
-  ok('backend contract marked PENDING (wave-claim-support not landed)');
-else no('contract PENDING marker', 'missing PENDING / wave-claim-support note');
+if (/CONFIRMED/.test(src) && src.indexOf('wave-claim-support') !== -1)
+  ok('backend contract marked CONFIRMED (wave-claim-support landed)');
+else no('contract CONFIRMED marker', 'missing CONFIRMED / wave-claim-support note');
 
 if (src.indexOf('Sources to back your claim. You verify, you post.') !== -1)
   ok('honest label copy exact');
@@ -110,6 +110,7 @@ El.prototype.getAttribute = function (n) {
 El.prototype.setAttribute = function (n, v) {
   this.attrs[n] = String(v);
   if (n === 'class') this._classes = String(v).split(/\s+/).filter(Boolean);
+  if (n === 'value') this.value = String(v); /* DOM-faithful: value attr sets the property */
 };
 Object.defineProperty(El.prototype, 'id', {
   get: function () { return this.attrs.id || ''; },
@@ -184,7 +185,7 @@ function parseHTML(html) {
     var el = new El(name);
     var attrStr = tok.slice(tok.indexOf(nm[1]) + nm[1].length);
     var are = /([a-zA-Z_:][\w:.-]*)(?:\s*=\s*"([^"]*)")?/g, am;
-    while ((am = are.exec(attrStr))) el.attrs[am[1]] = am[2] === undefined ? '' : am[2];
+    while ((am = are.exec(attrStr))) el.setAttribute(am[1], am[2] === undefined ? '' : am[2]);
     if (el.attrs['class']) el._classes = el.attrs['class'].split(/\s+/).filter(Boolean);
     el.parentNode = stack[stack.length - 1];
     stack[stack.length - 1].children.push(el);
@@ -300,6 +301,13 @@ function makeEnv(opts) {
     clearTimeout: function () {},
     console: console
   };
+  /* minimal sessionStorage (recent searches + bank inbox) */
+  var store = {};
+  sandbox.sessionStorage = {
+    getItem: function (k) { return Object.prototype.hasOwnProperty.call(store, k) ? store[k] : null; },
+    setItem: function (k, v) { store[k] = String(v); },
+    removeItem: function (k) { delete store[k]; }
+  };
   sandbox.window.PF = PFproxy;
   sandbox.window.location = { href: 'https://mtcstw.com/' };
   sandbox.window.PF_BACKEND_URL = 'https://pf-api.mtcstw.workers.dev';
@@ -366,11 +374,16 @@ async function main() {
     else no('dedicated mount', 'did not mount into #pf-ammo');
   })();
 
-  /* mount: nowhere to mount -> silent no-op */
+  /* mount: nowhere to mount -> visible error banner, never silent */
   (function () {
     var env = makeEnv({});
-    try { loadModule(env); ok('no mount div: silent no-op (no throw)'); }
-    catch (e) { no('no mount div', 'threw: ' + e.message); }
+    try {
+      loadModule(env);
+      var banner = env.doc.getElementById('pf-ammo-missing');
+      if (banner && /NOWHERE TO MOUNT/.test(banner.textContent))
+        ok('no mount div: visible error banner (never a silent no-op)');
+      else no('no mount div', 'visible mount-failure banner missing');
+    } catch (e) { no('no mount div', 'threw: ' + e.message); }
   })();
 
   /* input validation */
@@ -528,15 +541,112 @@ async function main() {
     else no('enter key', 'did not submit');
   })();
 
+  /* per-card action buttons + aria labels */
+  (function () {
+    var pb = docR.getElementById('xAmmo').querySelector('[data-am-poster="0"]');
+    var bb = docR.getElementById('xAmmo').querySelector('[data-am-bank="0"]');
+    if (pb && pb.textContent === 'MAKE A POSTER' && pb.getAttribute('aria-label'))
+      ok('per-card MAKE A POSTER button (aria-labeled)');
+    else no('poster button', 'missing or unlabeled');
+    if (bb && bb.textContent === 'SUBMIT TO CONTENT BANK' && bb.getAttribute('aria-label'))
+      ok('per-card SUBMIT TO CONTENT BANK button (aria-labeled)');
+    else no('bank button', 'missing or unlabeled');
+    var ci = docR.getElementById('am-claim');
+    if (ci && ci.getAttribute('aria-label')) ok('claim input carries aria-label');
+    else no('input aria', 'aria-label missing on #am-claim');
+    var xa = docR.getElementById('xAmmo');
+    if (xa && xa.getAttribute('aria-live') === 'polite') ok('results region uses aria-live (loading announced)');
+    else no('aria-live', '#xAmmo missing aria-live="polite"');
+  })();
+
+  /* recent-search chips: recorded, rendered, click re-runs */
+  (function () {
+    var env = makeEnv({ warcard: true });
+    var doc = searchFlow(env);
+    env.getPostCb()({ ok: true, results: [RES1], sources_down: [] });
+    var chip = doc.getElementById('am-chips').querySelector('[data-am-chip="0"]');
+    if (chip && chip.textContent === 'billionaires paid less tax than nurses')
+      ok('recent search chip rendered after search');
+    else no('recent chip', 'chip missing or wrong text');
+    var n0 = env.postCalls.length;
+    fire(chip, 'click');
+    if (env.postCalls.length === n0 + 1 &&
+        env.postCalls[n0].params.claim === 'billionaires paid less tax than nurses')
+      ok('chip click re-runs the search');
+    else no('chip click', 'did not re-fire with the chip query');
+  })();
+
+  /* query transparency: backend terms echoed, claim fallback */
+  (function () {
+    var env = makeEnv({ warcard: true });
+    var doc = searchFlow(env);
+    env.getPostCb()({ ok: true, results: [RES1], sources_down: [], terms: ['billionaire', 'tax rate'] });
+    var t = doc.getElementById('xAmmo').querySelector('.am-terms');
+    if (t && t.textContent === 'searched for: billionaire, tax rate')
+      ok('terms line shows the backend-returned terms');
+    else no('terms line', 'got: ' + (t && t.textContent));
+    var env2 = makeEnv({ warcard: true });
+    var doc2 = searchFlow(env2);
+    env2.getPostCb()({ ok: true, results: [RES1], sources_down: [] });
+    var t2 = doc2.getElementById('xAmmo').querySelector('.am-terms');
+    if (t2 && t2.textContent === 'searched for: billionaires paid less tax than nurses')
+      ok('terms line falls back to the claim when the backend omits terms');
+    else no('terms fallback', 'got: ' + (t2 && t2.textContent));
+  })();
+
+  /* refine + retry re-runs with the refined claim */
+  (function () {
+    var env = makeEnv({ warcard: true });
+    var doc = searchFlow(env);
+    env.getPostCb()({ ok: true, results: [RES1], sources_down: [] });
+    var ri = doc.getElementById('am-refine');
+    if (!ri || ri.value !== 'billionaires paid less tax than nurses') { no('refine input', 'missing or not prefilled'); return; }
+    ok('refine input prefilled with the claim');
+    ri.value = 'billionaires effective tax rate 2024';
+    fire(doc.getElementById('am-rerun'), 'click');
+    var last = env.postCalls[env.postCalls.length - 1];
+    if (last && last.params.claim === 'billionaires effective tax rate 2024')
+      ok('REFINE + RETRY re-runs with the refined claim');
+    else no('refine retry', 'wrong claim: ' + (last && last.params.claim));
+  })();
+
+  /* poster fallback when PFShare is absent */
+  (function () {
+    fire(docR.getElementById('xAmmo').querySelector('[data-am-poster="0"]'), 'click');
+    if (envR.toasts.indexOf('Poster flow not loaded — open the Create page to forge one.') !== -1)
+      ok('poster: graceful toast when PFShare is absent');
+    else no('poster fallback', 'no graceful toast; toasts: ' + JSON.stringify(envR.toasts));
+  })();
+
+  /* bank: structured bundle copied + inbox staged */
+  await (async function () {
+    fire(docR.getElementById('xAmmo').querySelector('[data-am-bank="0"]'), 'click');
+    await new Promise(function (r) { setImmediate(r); });
+    var last = envR.clips[envR.clips.length - 1];
+    var parsed = null;
+    try { parsed = JSON.parse(last); } catch (e) {}
+    var c = parsed && parsed.citation;
+    if (parsed && parsed.kind === 'pf-citation' && parsed.v === 1 && c &&
+        c.url === 'https://example.com/one' && c.headline === 'Headline One' &&
+        c.outlet === 'The Outlet' && c.date === 'Oct 4 2026' &&
+        c.query === 'billionaires paid less tax than nurses' &&
+        typeof c.searched_at === 'number' && c.token === null)
+      ok('bank: structured citation bundle copied (url/headline/outlet/date/query/searched_at/token:null)');
+    else no('bank bundle', 'got: ' + JSON.stringify(last));
+    if (envR.toasts.some(function (m) { return /Content Bank submit UI is not on this page/.test(m); }))
+      ok('bank: gap toast when no Content Bank surface is present');
+    else no('bank toast', 'missing gap toast; toasts: ' + JSON.stringify(envR.toasts));
+  })();
+
   /* PF surface actually used — no XP-adjacent calls possible */
   (function () {
     var env = makeEnv({ warcard: true });
     var doc = searchFlow(env);
     env.getPostCb()({ ok: true, results: [RES1], sources_down: [] });
     fire(doc.getElementById('xAmmo').querySelector('[data-am-copy="0"]'), 'click');
-    var allowed = { skip: 1, toast: 1, postAction: 1 };
+    var allowed = { skip: 1, toast: 1, postAction: 1, readXP: 1 };
     var bad = env.pfGets.filter(function (k) { return !allowed[k]; });
-    if (bad.length === 0) ok('module only touches PF.skip / PF.toast / PF.postAction');
+    if (bad.length === 0) ok('module only touches PF.skip / PF.toast / PF.postAction (+PF.readXP for the bank chain)');
     else no('PF surface', 'unexpected PF members used: ' + bad.join(','));
   })();
 

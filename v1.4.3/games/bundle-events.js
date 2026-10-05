@@ -1,1 +1,236 @@
-!function(){"use strict";var n=window.PF;n&&!n.skip("irl")&&n.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-irl">\n<div class="fe-block pf-override-block" id="pf-irl">\n<h2>Boots on the Ground</h2>\n<div class="c-tag">Digital is the rehearsal. The street is the show. +50 XP per RSVP.</div>\n<div id="xIrl"><div class="c-load">Finding the fight near you&hellip;</div></div>\n</div>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}\n  try{ var t=document.createElement("div"); t.textContent=m;\n  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";\n  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  var fn="pfIrlCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\nfunction post(cAction,params,cb){\n  var body=Object.assign({type:"irl",i_action:cAction},params);\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }\n  var bodyStr=JSON.stringify(body);\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */\n    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;\n      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}\n      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();\n    fetch(BACKEND,_po)\n      .then(function(r){ return r.json(); })\n      .then(function(j){ _po._pfClear(); done(j); })\n      .catch(function(){ _po._pfClear(); done(null); });\n  }catch(e){ done(null); }\n}\nvar TYPE_ICON={phonebank:"☎",canvass:"🚪",protest:"✊",meeting:"👥"};\nfunction fmtDate(t){\n  try{\n    var ms=Number(t); if(ms<1e12) ms=ms*1000;\n    var d=new Date(ms); if(isNaN(d.getTime())) return String(t||"");\n    var mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];\n    var wd=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];\n    var h=d.getHours(), ap=h>=12?"pm":"am"; h=h%12; if(h===0)h=12;\n    return wd[d.getDay()]+" "+mo[d.getMonth()]+" "+d.getDate()+", "+h+":"+("0"+d.getMinutes()).slice(-2)+ap;\n  }catch(e){ return String(t||""); }\n}\n/* R10 (2026-10-04): ?squad= prefill for the roll-with-cell checkbox —\n   squad=1 checks every event, squad=<event_id> checks that event only. */\nvar SQUAD_PRE="";\ntry{ var _sqm=/(?:^|[?&])squad=([^&#]*)/.exec(location.search||"");\n  if(_sqm) SQUAD_PRE=decodeURIComponent(_sqm[1]||""); }catch(e){}\n/* Auth-attached JSONP GET (private reads need the callsign secret — the\n   same IDOR pattern cells.js uses for cell_mine). event_rsvp_list is\n   additionally gated server-side on cell membership. */\nfunction apiAuth(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  var fn="pfIrlA"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var pp=Object.assign({},params||{});\n  try{ var sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";\n    if(sec&&!pp.auth_secret) pp.auth_secret=sec; }catch(e){}\n  var q="?action="+encodeURIComponent(action);\n  for(var k in pp){ if(pp[k]!=null&&pp[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(pp[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\nfunction load(){\n  var el=document.getElementById("xIrl"); if(!el) return;\n  api("event_list",{},function(j){ render(j); enhanceCell(j); });\n  setTimeout(function(){ if(el.innerHTML.indexOf("c-load")>=0) render(null); },15000);\n}\n/* 6A-R10 (2026-10-04): auth-aware JSONP for the private cell reads\n   (cell_mine + event_rsvp_list) — same pattern as games/cells.js. */\nfunction apiAuth(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  try{\n    if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }\n    var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";\n    if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;\n  }catch(e){}\n  api(action,params,cb);\n}\nvar CELL6A=null;\n/* 6A-R10: YOUR CELL strip — cell_mine members x event_rsvp_list.\n   Renders "N OF YOUR CELL GOING" under each upcoming event. Read-only,\n   fail-silent: the strip just stays empty if any read fails. */\nfunction enhanceCell(j){\n  var id=ident(); if(!id.callsign) return;\n  var evs=(j&&j.ok&&j.events)||[];\n  var upcoming=evs.filter(function(e){ return (Number(e.event_at)||0)>=Date.now(); });\n  if(!upcoming.length) return;\n  apiAuth("cell_mine",{callsign:id.callsign,device:id.device},function(m){\n    if(!m||!m.ok||!m.in_cell||!m.cell) return;\n    CELL6A={id:m.cell.id,name:m.cell.name};\n    var cid=m.cell.id;\n    upcoming.forEach(function(e){\n      apiAuth("event_rsvp_list",{callsign:id.callsign,device:id.device,event_id:e.id,cell_id:cid},function(r){\n        var host=document.getElementById("irlCell"+e.id); if(!host) return;\n        if(!r||!r.ok) return;\n        var n=Number(r.cell_count)||0, sq=Number(r.squad_count)||0;\n        if(n<=0) return;\n        host.innerHTML=\'<div class="irl-cellstrip">&#9876; <b>\'+n+\' OF YOUR CELL GOING</b>\'\n          +(sq>0?\' &mdash; \'+sq+\' rolling as a squad\':\'\')\n          +\'</div>\';\n      });\n    });\n  });\n}\nfunction render(j){\n  var el=document.getElementById("xIrl"); if(!el) return;\n  var id=ident(), h="";\n  var evs=(j&&j.ok&&j.events)||[];\n  h+=\'<div class="irl-frame">THE ALGORITHM CAN’T KNOCK ON DOORS. YOU CAN.</div>\';\n  if(!evs.length){\n    h+=\'<div class="x-pane"><div class="x-note">No events posted yet. Check back — when the call goes out, it lands here.</div></div>\';\n  }\n  /* group: upcoming first */\n  evs.sort(function(a,b){ return (Number(a.event_at)||0)-(Number(b.event_at)||0); });\n  for(var i=0;i<evs.length;i++){\n    var e=evs[i];\n    var past=(Number(e.event_at)||0)<Date.now();\n    var icon=TYPE_ICON[String(e.type||"").toLowerCase()]||"📍";\n    h+=\'<div class="x-pane irl-ev\'+(past?\' irl-past\':\'\')+\'">\'\n      +\'<div class="irl-type">\'+icon+\' \'+esc(String(e.type||"event").toUpperCase())+\'</div>\'\n      +\'<h4>\'+esc(e.title)+\'</h4>\'\n      +\'<div class="irl-when">\'+esc(fmtDate(e.event_at))+\'</div>\'\n      +\'<div class="irl-where">\'+esc(e.location||"Location TBA")+\'</div>\'\n      +(e.description?\'<div class="x-note">\'+esc(e.description)+\'</div>\':"")\n      +\'<div class="irl-rsvps">\'+(Number(e.rsvp_count)||0)+\' soldiers committed</div>\';\n    /* R10 (2026-10-04): YOUR CELL strip — "N OF YOUR CELL GOING" — filled\n       after render via event_rsvp_list. Hidden until a count lands. */\n    h+=\'<div class="irl-cell" id="irlCell\'+esc(e.id)+\'" style="display:none"></div>\';\n    if(!past&&id.callsign){\n      var sqPre=(SQUAD_PRE==="1"||SQUAD_PRE===String(e.id))?\' checked="checked"\':"";\n      h+=\'<label class="irl-sq"><input type="checkbox" id="irlSquad\'+esc(e.id)+\'"\'+sqPre+\'> ROLL WITH MY CELL</label>\'\n        +\'<button class="c-btn" data-irl-rsvp="\'+esc(e.id)+\'">RSVP (+50 XP)</button><div class="c-err" id="irlErr\'+esc(e.id)+\'"></div>\'\n        /* 6A-R10: event-squad challenge template — prefilled on /cells. */\n        +\'<div style="margin-top:6px"><a class="x-note" href="/cells?squad=\'+esc(e.id)+\'">&#9876; MAKE IT A SQUAD CHALLENGE &rarr;</a></div>\';\n    } else if(!past){\n      h+=\'<div class="x-note">Claim a callsign in Enlistment Ranks to RSVP.</div>\';\n    } else if(id.callsign){\n      /* 6A-R10: post-event proof routes via the S2 post-proof approval\n         queue (bounty board, BOUNTIES tab on /create). */\n      h+=\'<div style="margin-top:6px"><a class="c-btn" href="/create?tab=bounties">&#128247; WERE YOU THERE? DROP YOUR PROOF &rarr;</a></div>\';\n    }\n    h+=\'</div>\';\n  }\n  h+=\'<div style="margin-top:10px"><button class="c-btn" id="irlRetry">Refresh</button></div>\';\n  el.innerHTML=h;\n  /* R10: populate the YOUR CELL strips. One cell_mine read for the primary\n     cell, then one event_rsvp_list read per upcoming event. Fail-silent —\n     the strip just stays hidden. */\n  if(id.callsign){\n    apiAuth("cell_mine",{callsign:id.callsign,device:id.device},function(mj){\n      var cid=(mj&&mj.ok&&mj.in_cell&&mj.cell&&mj.cell.id)?String(mj.cell.id):"";\n      if(!cid) return;\n      var btns2=el.querySelectorAll("button[data-irl-rsvp]");\n      for(var q=0;q<btns2.length;q++){\n        (function(btn){\n          var eid=btn.getAttribute("data-irl-rsvp");\n          apiAuth("event_rsvp_list",{callsign:id.callsign,event_id:eid,cell_id:cid},function(j){\n            var d=document.getElementById("irlCell"+eid);\n            if(!d) return;\n            if(j&&j.ok&&Number(j.cell_count)>0){\n              d.style.display="";\n              d.innerHTML=\'⚔ <b>\'+Number(j.cell_count)+\'</b> OF YOUR CELL GOING\'+\n                (Number(j.squad_count)>0?\' — <b>\'+Number(j.squad_count)+\'</b> ROLLING AS A SQUAD\':\'\');\n            }\n          });\n        })(btns2[q]);\n      }\n    });\n  }\n  var btns=el.querySelectorAll("button[data-irl-rsvp]");\n  for(var b=0;b<btns.length;b++){\n    (function(btn){\n      btn.onclick=function(){\n        var eid=btn.getAttribute("data-irl-rsvp");\n        btn.disabled=true;\n        /* R10: roll-with-cell checkbox rides the RSVP as squad=1 (backend\n           flag on the row; zero extra XP — routing earns nothing). */\n        var sqb=document.getElementById("irlSquad"+eid);\n        var squad=(sqb&&sqb.checked)?1:0;\n        post("event_rsvp",{callsign:id.callsign,device:id.device,event_id:eid,squad:squad},function(j){\n          if(!j||!j.ok){\n            var er=document.getElementById("irlErr"+eid);\n            if(er) er.textContent=PF.errCopy(j,"RSVP failed.");\n            btn.disabled=false; return;\n          }\n          toast("+50 XP — see you in the street."+(squad?" Your cell knows you\'re rolling with them.":""));\n          btn.textContent="COMMITTED";\n          load();\n        });\n      };\n    })(btns[b]);\n  }\n  var rb=document.getElementById("irlRetry");\n  if(rb) rb.onclick=function(){ el.innerHTML=\'<div class="c-load">Finding the fight near you&hellip;</div>\'; load(); };\n}\nload();\nsetInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },300000);\n})();\n<\/script>\n</div>\n</template>')}();
+/* PF v1.4.3 bundle-events.js — concatenated bundle, generated by build/bundle.js.
+   DO NOT EDIT. Regenerate with: node build/bundle.js [--debug]
+   Contains: irl.js
+   Each silo keeps its own PF.skip() kill switch (?pf_off=<silo>). */
+
+/* ===== irl.js ===== */
+/* games/irl.js  |  PF v1.4.3 | BOOTS ON THE GROUND: the digital-to-physical
+   bridge. Phonebanks, canvasses, protests, meetings — XP for showing up
+   where it counts. The point of all of this is the real world.
+   KILL: ?pf_off=irl  or  localStorage pf_disabled_v1='["irl"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("irl")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-irl">
+<div class="fe-block pf-override-block" id="pf-irl">
+<h2>Boots on the Ground</h2>
+<div class="c-tag">Digital is the rehearsal. The street is the show. +50 XP per RSVP.</div>
+<div id="xIrl"><div class="c-load">Finding the fight near you&hellip;</div></div>
+</div>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  var fn="pfIrlCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function post(cAction,params,cb){
+  var body=Object.assign({type:"irl",i_action:cAction},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+}
+var TYPE_ICON={phonebank:"\u260E",canvass:"\uD83D\uDEAA",protest:"\u270A",meeting:"\uD83D\uDC65"};
+function fmtDate(t){
+  try{
+    var ms=Number(t); if(ms<1e12) ms=ms*1000;
+    var d=new Date(ms); if(isNaN(d.getTime())) return String(t||"");
+    var mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    var wd=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    var h=d.getHours(), ap=h>=12?"pm":"am"; h=h%12; if(h===0)h=12;
+    return wd[d.getDay()]+" "+mo[d.getMonth()]+" "+d.getDate()+", "+h+":"+("0"+d.getMinutes()).slice(-2)+ap;
+  }catch(e){ return String(t||""); }
+}
+/* R10 (2026-10-04): ?squad= prefill for the roll-with-cell checkbox —
+   squad=1 checks every event, squad=<event_id> checks that event only. */
+var SQUAD_PRE="";
+try{ var _sqm=/(?:^|[?&])squad=([^&#]*)/.exec(location.search||"");
+  if(_sqm) SQUAD_PRE=decodeURIComponent(_sqm[1]||""); }catch(e){}
+/* Auth-attached JSONP GET (private reads need the callsign secret — the
+   same IDOR pattern cells.js uses for cell_mine). event_rsvp_list is
+   additionally gated server-side on cell membership. */
+function apiAuth(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  var fn="pfIrlA"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var pp=Object.assign({},params||{});
+  try{ var sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+    if(sec&&!pp.auth_secret) pp.auth_secret=sec; }catch(e){}
+  var q="?action="+encodeURIComponent(action);
+  for(var k in pp){ if(pp[k]!=null&&pp[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(pp[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function load(){
+  var el=document.getElementById("xIrl"); if(!el) return;
+  api("event_list",{},function(j){ render(j); enhanceCell(j); });
+  setTimeout(function(){ if(el.innerHTML.indexOf("c-load")>=0) render(null); },15000);
+}
+/* 6A-R10 (2026-10-04): auth-aware JSONP for the private cell reads
+   (cell_mine + event_rsvp_list) — same pattern as games/cells.js. */
+function apiAuth(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  try{
+    if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
+    var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+    if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+  }catch(e){}
+  api(action,params,cb);
+}
+var CELL6A=null;
+/* 6A-R10: YOUR CELL strip — cell_mine members x event_rsvp_list.
+   Renders "N OF YOUR CELL GOING" under each upcoming event. Read-only,
+   fail-silent: the strip just stays empty if any read fails. */
+function enhanceCell(j){
+  var id=ident(); if(!id.callsign) return;
+  var evs=(j&&j.ok&&j.events)||[];
+  var upcoming=evs.filter(function(e){ return (Number(e.event_at)||0)>=Date.now(); });
+  if(!upcoming.length) return;
+  apiAuth("cell_mine",{callsign:id.callsign,device:id.device},function(m){
+    if(!m||!m.ok||!m.in_cell||!m.cell) return;
+    CELL6A={id:m.cell.id,name:m.cell.name};
+    var cid=m.cell.id;
+    upcoming.forEach(function(e){
+      apiAuth("event_rsvp_list",{callsign:id.callsign,device:id.device,event_id:e.id,cell_id:cid},function(r){
+        var host=document.getElementById("irlCell"+e.id); if(!host) return;
+        if(!r||!r.ok) return;
+        var n=Number(r.cell_count)||0, sq=Number(r.squad_count)||0;
+        if(n<=0) return;
+        host.innerHTML='<div class="irl-cellstrip">&#9876; <b>'+n+' OF YOUR CELL GOING</b>'
+          +(sq>0?' &mdash; '+sq+' rolling as a squad':'')
+          +'</div>';
+      });
+    });
+  });
+}
+function render(j){
+  var el=document.getElementById("xIrl"); if(!el) return;
+  var id=ident(), h="";
+  var evs=(j&&j.ok&&j.events)||[];
+  h+='<div class="irl-frame">THE ALGORITHM CAN\u2019T KNOCK ON DOORS. YOU CAN.</div>';
+  if(!evs.length){
+    h+='<div class="x-pane"><div class="x-note">No events posted yet. Check back — when the call goes out, it lands here.</div></div>';
+  }
+  /* group: upcoming first */
+  evs.sort(function(a,b){ return (Number(a.event_at)||0)-(Number(b.event_at)||0); });
+  for(var i=0;i<evs.length;i++){
+    var e=evs[i];
+    var past=(Number(e.event_at)||0)<Date.now();
+    var icon=TYPE_ICON[String(e.type||"").toLowerCase()]||"\uD83D\uDCCD";
+    h+='<div class="x-pane irl-ev'+(past?' irl-past':'')+'">'
+      +'<div class="irl-type">'+icon+' '+esc(String(e.type||"event").toUpperCase())+'</div>'
+      +'<h4>'+esc(e.title)+'</h4>'
+      +'<div class="irl-when">'+esc(fmtDate(e.event_at))+'</div>'
+      +'<div class="irl-where">'+esc(e.location||"Location TBA")+'</div>'
+      +(e.description?'<div class="x-note">'+esc(e.description)+'</div>':"")
+      +'<div class="irl-rsvps">'+(Number(e.rsvp_count)||0)+' soldiers committed</div>';
+    /* R10 (2026-10-04): YOUR CELL strip — "N OF YOUR CELL GOING" — filled
+       after render via event_rsvp_list. Hidden until a count lands. */
+    h+='<div class="irl-cell" id="irlCell'+esc(e.id)+'" style="display:none"></div>';
+    if(!past&&id.callsign){
+      var sqPre=(SQUAD_PRE==="1"||SQUAD_PRE===String(e.id))?' checked="checked"':"";
+      h+='<label class="irl-sq"><input type="checkbox" id="irlSquad'+esc(e.id)+'"'+sqPre+'> ROLL WITH MY CELL</label>'
+        +'<button class="c-btn" data-irl-rsvp="'+esc(e.id)+'">RSVP (+50 XP)</button><div class="c-err" id="irlErr'+esc(e.id)+'"></div>'
+        /* 6A-R10: event-squad challenge template — prefilled on /cells. */
+        +'<div style="margin-top:6px"><a class="x-note" href="/cells?squad='+esc(e.id)+'">&#9876; MAKE IT A SQUAD CHALLENGE &rarr;</a></div>';
+    } else if(!past){
+      h+='<div class="x-note">Claim a callsign in Enlistment Ranks to RSVP.</div>';
+    } else if(id.callsign){
+      /* 6A-R10: post-event proof routes via the S2 post-proof approval
+         queue (bounty board, BOUNTIES tab on /create). */
+      h+='<div style="margin-top:6px"><a class="c-btn" href="/create?tab=bounties">&#128247; WERE YOU THERE? DROP YOUR PROOF &rarr;</a></div>';
+    }
+    h+='</div>';
+  }
+  h+='<div style="margin-top:10px"><button class="c-btn" id="irlRetry">Refresh</button></div>';
+  el.innerHTML=h;
+  /* R10: populate the YOUR CELL strips. One cell_mine read for the primary
+     cell, then one event_rsvp_list read per upcoming event. Fail-silent —
+     the strip just stays hidden. */
+  if(id.callsign){
+    apiAuth("cell_mine",{callsign:id.callsign,device:id.device},function(mj){
+      var cid=(mj&&mj.ok&&mj.in_cell&&mj.cell&&mj.cell.id)?String(mj.cell.id):"";
+      if(!cid) return;
+      var btns2=el.querySelectorAll("button[data-irl-rsvp]");
+      for(var q=0;q<btns2.length;q++){
+        (function(btn){
+          var eid=btn.getAttribute("data-irl-rsvp");
+          apiAuth("event_rsvp_list",{callsign:id.callsign,event_id:eid,cell_id:cid},function(j){
+            var d=document.getElementById("irlCell"+eid);
+            if(!d) return;
+            if(j&&j.ok&&Number(j.cell_count)>0){
+              d.style.display="";
+              d.innerHTML='⚔ <b>'+Number(j.cell_count)+'</b> OF YOUR CELL GOING'+
+                (Number(j.squad_count)>0?' — <b>'+Number(j.squad_count)+'</b> ROLLING AS A SQUAD':'');
+            }
+          });
+        })(btns2[q]);
+      }
+    });
+  }
+  var btns=el.querySelectorAll("button[data-irl-rsvp]");
+  for(var b=0;b<btns.length;b++){
+    (function(btn){
+      btn.onclick=function(){
+        var eid=btn.getAttribute("data-irl-rsvp");
+        btn.disabled=true;
+        /* R10: roll-with-cell checkbox rides the RSVP as squad=1 (backend
+           flag on the row; zero extra XP — routing earns nothing). */
+        var sqb=document.getElementById("irlSquad"+eid);
+        var squad=(sqb&&sqb.checked)?1:0;
+        post("event_rsvp",{callsign:id.callsign,device:id.device,event_id:eid,squad:squad},function(j){
+          if(!j||!j.ok){
+            var er=document.getElementById("irlErr"+eid);
+            if(er) er.textContent=PF.errCopy(j,"RSVP failed.");
+            btn.disabled=false; return;
+          }
+          toast("+50 XP — see you in the street."+(squad?" Your cell knows you're rolling with them.":""));
+          btn.textContent="COMMITTED";
+          load();
+        });
+      };
+    })(btns[b]);
+  }
+  var rb=document.getElementById("irlRetry");
+  if(rb) rb.onclick=function(){ el.innerHTML='<div class="c-load">Finding the fight near you&hellip;</div>'; load(); };
+}
+load();
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },300000);
+})();
+</scr`+`ipt>
+</div>
+</template>`);
+})();
+
+;

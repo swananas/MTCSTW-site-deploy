@@ -499,3 +499,26 @@ html,body{overflow-x:clip;}
 #pf-irl .irl-cell{color:var(--pf-red-bright);font-weight:700;margin-top:6px;letter-spacing:1px;font-size:13px;}
 #pf-irl .irl-sq{display:block;color:var(--pf-cream);font-size:13px;font-weight:700;letter-spacing:1px;margin:8px 0 4px;cursor:pointer;}
 #pf-irl .irl-sq input{margin-right:6px;accent-color:var(--pf-red-bright);}
+
+/* ---------- PHQ SECTION HUBS (2026-10-05, fe/phq-hub-nav) ----------
+   Sticky sub-nav + hub shells for /political-hq. Copy in hub missions is
+   provisional — Psych veto pending. */
+#pf-hq-subnav{position:sticky;top:0;z-index:50;background:var(--pf-dark);border-top:2px solid var(--pf-red);border-bottom:2px solid var(--pf-red);}
+.pf-hq-tabs{display:flex;gap:6px;overflow-x:auto;white-space:nowrap;scroll-snap-type:x mandatory;padding:8px 12px;scrollbar-width:thin;-webkit-overflow-scrolling:touch;}
+.pf-hq-tab{scroll-snap-align:start;flex:0 0 auto;background:transparent;border:1px solid var(--pf-border-light);color:var(--pf-cream);font-family:var(--pf-font-body);font-weight:700;font-size:12px;letter-spacing:1px;padding:10px 14px;cursor:pointer;}
+.pf-hq-tab:hover{border-color:var(--pf-red-bright);color:#fff;}
+.pf-hq-tab[aria-current="true"]{background:var(--pf-red);border-color:var(--pf-red);color:#fff;}
+.pf-hub{margin:28px 0;padding:0 4px;}
+.pf-hub-head{border-left:4px solid var(--pf-red);padding:4px 0 4px 14px;margin-bottom:14px;}
+.pf-hub-kicker{color:var(--pf-red-bright);font-family:var(--pf-font-body);font-weight:700;font-size:11px;letter-spacing:2px;}
+.pf-hub-head h2{color:var(--pf-cream);font-family:var(--pf-font-display);font-size:24px;margin:6px 0;}
+.pf-hub-mission{color:var(--pf-muted);font-family:var(--pf-font-body);font-size:14px;margin:0;}
+.pf-hub-alertrow{margin:10px 0 0;font-family:var(--pf-font-body);font-size:13px;color:var(--pf-muted);}
+.pf-hub-alertrow a{color:var(--pf-gold);font-weight:700;}
+.pf-hub-silos .pf-hub-loading{color:var(--pf-dim);font-family:var(--pf-font-body);font-size:13px;padding:18px;border:1px dashed var(--pf-border);}
+.pf-hub-exits{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:16px;padding-top:12px;border-top:1px solid var(--pf-border);font-family:var(--pf-font-body);font-size:13px;}
+.pf-hub-exits a{color:var(--pf-gold);font-weight:700;text-decoration:none;}
+.pf-hub-exits a:hover{text-decoration:underline;}
+.pf-hub-util{margin:24px 0;}
+#pf-phq-civicstrip{margin:8px 0 4px;}
+@media (prefers-reduced-motion:reduce){.pf-hq-tabs{scroll-snap-type:none;}}

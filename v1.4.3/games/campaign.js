@@ -120,10 +120,11 @@ function renderComplete(){
   h+='<div class="x-pane"><h4>Final results</h4>'
     +'<div class="cp-barwrap"><div class="cp-bar" style="width:'+pct+'%"></div></div>'
     +'<div class="x-note">'+pledges+' pledges &bull; '+acts+' actions &bull; '+pct+'% of '+goal+' goal</div></div>';
-  var pl=(W&&W.pledges)||[];
+  var pl=((W&&W.pledges)||[]).slice();
+  pl.sort(function(a,b){ return Number(b.ts||b.pledged_at||0)-Number(a.ts||a.pledged_at||0); });
   h+='<div class="x-pane"><h4>Pledge wall &mdash; honor roll</h4><div class="cp-wall">';
   if(!pl.length){ h+='<div class="x-note">No pledges recorded.</div>'; }
-  for(var w=0;w<Math.min(pl.length,40);w++){ h+='<span class="cp-wname">'+esc(pl[w].callsign)+'</span>'; }
+  for(var w=0;w<pl.length;w++){ h+='<span class="cp-wname">'+esc(pl[w].callsign)+'</span>'; }
   h+='</div></div>';
   var ld=(L&&L.leaders)||[];
   h+='<div class="x-pane"><h4>Top fighters</h4>';
@@ -150,17 +151,33 @@ function render(){
     el.innerHTML=h; return;
   }
   /* --- pledge --- */
+  /* 2026-10-05, audit #14: the static PLEDGED badge is replaced with a
+     personal status block — Day N of 32, missions left today, your
+     war-effort contribution. Audit #15: the war-effort pane below gets the
+     matching personal contribution line. */
+  var ms=(M&&M.missions)||[];
+  var ld=(L&&L.leaders)||[];
+  var myXp=0;
+  for(var qx=0;qx<ld.length;qx++){
+    try{ if(String(ld[qx].callsign||"").toUpperCase()===id.callsign.toUpperCase()){ myXp=Number(ld[qx].xp)||0; break; } }catch(eqx){}
+  }
   if(isPledged()){
-    h+='<div class="cp-pledged">&#9733; PLEDGED TO VOTE &mdash; '+esc(id.callsign)+' is on the wall.</div>';
+    var missionsLeft=0;
+    for(var ml=0;ml<ms.length;ml++){ if(!ms[ml].done) missionsLeft++; }
+    var dayN=32-Math.min(32,Math.max(0,dl));
+    h+='<div class="cp-pledged"><div class="cp-status-top">&#9733; PLEDGED &mdash; '+esc(id.callsign)+' is etched on the wall.</div>'
+      +'<div class="x-note">Day '+dayN+' of 32 &bull; '+missionsLeft+' mission'+(missionsLeft===1?"":"s")+' left today'
+      +(myXp>0?' &bull; you put '+myXp+' XP into the war effort':'')
+      +'.</div></div>';
   } else {
     h+='<div class="x-pane"><h4>Take the pledge</h4>'
       +'<div class="x-note">Pledge to vote on Nov 3. Your callsign gets etched on the Pledge Wall &mdash; permanent.</div>'
       +'<button class="c-btn" id="cpPledgeBtn">PLEDGE TO VOTE</button><div class="c-err" id="cpPledgeErr"></div></div>';
   }
   /* --- today's missions --- */
-  var ms=(M&&M.missions)||[];
+  if(!ms.length){ h+='<div class="x-pane"><h4>Today&rsquo;s missions</h4><div class="x-note">Missions loading&hellip; hit retry below if this sticks.</div></div>'; }
+  else {
   h+='<div class="x-pane"><h4>Today&rsquo;s missions</h4>';
-  if(!ms.length){ h+='<div class="x-note">Missions loading&hellip; hit retry below if this sticks.</div>'; }
   for(var i=0;i<ms.length;i++){
     var m=ms[i];
     h+='<div class="cp-mission"><div class="cp-mtext">'+esc(m.label)+'</div>'
@@ -170,20 +187,34 @@ function render(){
     h+='</div>';
   }
   h+='</div>';
+  }
   /* --- war effort --- */
   var pledges=(S&&S.pledges)||0, acts=(S&&S.actions)||0, goal=(S&&S.goal)||1000;
   var pct=Math.min(100,Math.round((pledges+acts)/Math.max(1,goal)*100));
   h+='<div class="x-pane"><h4>The war effort</h4>'
     +'<div class="cp-barwrap"><div class="cp-bar" style="width:'+pct+'%"></div></div>'
-    +'<div class="x-note">'+pledges+' pledges &bull; '+acts+' actions &bull; '+pct+'% of '+goal+' goal</div></div>';
+    +'<div class="x-note">'+pledges+' pledges &bull; '+acts+' actions &bull; '+pct+'% of '+goal+' goal</div>'
+    +'<div class="x-note cp-youmsg">'+(myXp>0?'You put '+myXp+' XP into the war effort. Keep fighting.':'No war-effort XP on your name yet \u2014 today\u2019s missions are above.')+'</div></div>';
   /* --- pledge wall --- */
-  var pl=(W&&W.pledges)||[];
-  h+='<div class="x-pane"><h4>Pledge wall</h4><div class="cp-wall">';
+  /* 2026-10-05, audit #12: the silent 40-name cap is gone — the "permanent
+     etching" promise means every pledger sees their name. Newest first,
+     relative timestamps, and your position on the wall. */
+  var pl=((W&&W.pledges)||[]).slice();
+  pl.sort(function(a,b){ return Number(b.ts||b.pledged_at||0)-Number(a.ts||a.pledged_at||0); });
+  var myPos=0;
+  for(var w0=0;w0<pl.length;w0++){
+    try{ if(String(pl[w0].callsign||"").toUpperCase()===id.callsign.toUpperCase()){ myPos=w0+1; break; } }catch(e0){}
+  }
+  h+='<div class="x-pane"><h4>Pledge wall</h4>'
+    +(myPos>0?'<div class="x-note cp-youmsg">You are #'+myPos+' of '+pl.length+' &mdash; etched forever.</div>':'')
+    +'<div class="cp-wall">';
   if(!pl.length){ h+='<div class="x-note">No pledges yet. Be the first name etched.</div>'; }
-  for(var w=0;w<Math.min(pl.length,40);w++){ h+='<span class="cp-wname">'+esc(pl[w].callsign)+'</span>'; }
+  for(var w=0;w<pl.length;w++){
+    var wts=Number(pl[w].ts||pl[w].pledged_at||0);
+    h+='<span class="cp-wname">'+esc(pl[w].callsign)+(wts>0?'<span class="cp-wtime">'+esc(relTime(wts))+'</span>':'')+'</span>';
+  }
   h+='</div></div>';
   /* --- leaders --- */
-  var ld=(L&&L.leaders)||[];
   h+='<div class="x-pane"><h4>Top fighters</h4>';
   if(!ld.length){ h+='<div class="x-note">No standings yet.</div>'; }
   for(var q=0;q<Math.min(ld.length,10);q++){
@@ -234,6 +265,30 @@ function render(){
       };
     })(btns[b]);
   }
+  /* #13 — DEPLOY FOR THIS RACE buttons: each card's shareable poster rides
+     PFShare.shareImage (callsign gate + FIGHTING AS stamp inherited, ?ref=
+     appended via opts.link + PF.shareUrl — the copy package pattern). */
+  var dbs=el.querySelectorAll("[data-cp-deploy]");
+  for(var db=0;db<dbs.length;db++){
+    (function(btn){
+      btn.onclick=function(){
+        if(!(window.PFShare&&PFShare.shareImage)){ toast("Share unavailable."); return; }
+        var rid=btn.getAttribute("data-cp-deploy"), r=null;
+        for(var i=0;i<RACES_CACHE.length;i++){ if(String(RACES_CACHE[i].id)===rid){ r=RACES_CACHE[i]; break; } }
+        if(!r){ toast("Race not found."); return; }
+        btn.disabled=true;
+        racePoster(r,function(cv){
+          btn.disabled=false;
+          if(!cv){ toast("Poster failed \u2014 try again."); return; }
+          var cs=r.candidates||[];
+          var title="DEPLOY FOR "+String(r.state||"").toUpperCase()
+            +" \u2014 "+lastName(cs[0]&&cs[0].name)+" vs "+lastName(cs[1]&&cs[1].name);
+          PFShare.shareImage(cv,"pfn-battleground-"+rid+".png",title,"battlegrounds",
+            { link:"https://www.mtcstw.com/political-hq" });
+        });
+      };
+    })(dbs[db]);
+  }
   var rb=document.getElementById("cpRetry");
   if(rb) rb.onclick=function(){ S=M=W=L=R=null; el.innerHTML='<div class="c-load">Mobilizing&hellip;</div>'; load(); };
 }
@@ -250,7 +305,22 @@ function fmtUpd(t){
     return mo[d.getMonth()]+" "+d.getDate();
   }catch(e){ return String(t||""); }
 }
-function renderBattlegrounds(){
+/* Relative timestamp for the pledge wall (audit #12). */
+function relTime(t){
+  var d=Date.now()-t; if(d<0) d=0;
+  var m=Math.floor(d/60000);
+  if(m<1) return "just now";
+  if(m<60) return m+"m ago";
+  var hr=Math.floor(m/60);
+  if(hr<24) return hr+"h ago";
+  var dy=Math.floor(hr/24);
+  if(dy<7) return dy+"d ago";
+  return Math.floor(dy/7)+"w ago";
+}
+/* #13 (2026-10-05): battleground deploy data. Split out of
+   renderBattlegrounds so the click wiring can find the race by id. */
+var RACES_CACHE=[];
+function getBattlegroundData(){
   var races=[], meas=[], updated=null, fromLive=false;
   /* Prefer live backend data; fall back to the static file. */
   try{
@@ -261,12 +331,81 @@ function renderBattlegrounds(){
     }
   }catch(e){}
   if(!races.length){
-    try{ races=window.PF_CAMPAIGN_RACES||[]; }catch(e){}
-    try{ meas=window.PF_CAMPAIGN_MEASURES||[]; }catch(e){}
+    try{ races=window.PF_CAMPAIGN_RACES||[]; }catch(e2){}
+    try{ meas=window.PF_CAMPAIGN_MEASURES||[]; }catch(e3){}
   }
+  return {races:races,meas:meas,updated:updated,fromLive:fromLive};
+}
+/* "NC Senate" from {state:'NC', office:'U.S. Senate'} — feeds the
+   aria-label template in the copy package. */
+function raceLabel(r){
+  return String(r.state||"").toUpperCase()+" "+String(r.office||"").replace(/^U\.S\.\s*/i,"");
+}
+function lastName(n){
+  var p=String(n||"").trim().split(/\s+/); return p[p.length-1]||"";
+}
+/* #13 (2026-10-05): battleground deploy poster (1080x1350, PF brand — the
+   voter-pledge painter convention from civic.js: red border, cream text,
+   Arial Black headlines, MTCSTW.COM / JOIN THE FIGHT.). The ?ref= link
+   rides the share-sheet text via opts.link + PF.shareUrl — NOT the canvas.
+   FIGHTING AS <CALLSIGN> rides PFShare.shareImage -> stampCallsign
+   (idempotent). Copy structure per the CTA copy package. */
+function racePoster(r,done){
+  function fail(){ try{ done(null); }catch(e){} }
+  try{
+    var cv=document.createElement("canvas"); cv.width=1080; cv.height=1350;
+    var x=cv.getContext("2d"); if(!x){ fail(); return; }
+    function wrap(text,maxW){
+      var words=String(text||"").split(/\s+/), lines=[], line="";
+      for(var i=0;i<words.length;i++){
+        var t=line?line+" "+words[i]:words[i];
+        if(x.measureText(t).width>maxW&&line){ lines.push(line); line=words[i]; }
+        else line=t;
+      }
+      if(line) lines.push(line);
+      return lines;
+    }
+    function shrinkFit(text,maxW,font,y){
+      var size=parseInt(font.match(/(\d+)px/)[1],10), f=font, guard=0;
+      while(size>26&&guard<20){
+        x.font=f;
+        if(x.measureText(text).width<=maxW) break;
+        size-=4; f=f.replace(/(\d+)px/,size+"px"); guard++;
+      }
+      x.font=f; x.fillText(text,540,y);
+    }
+    x.fillStyle="#0d0d0d"; x.fillRect(0,0,1080,1350);
+    x.strokeStyle="#c1121f"; x.lineWidth=18; x.strokeRect(16,16,1048,1318);
+    x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(52,52,976,1246);
+    x.textAlign="center";
+    x.fillStyle="#f5ead6"; x.font='700 34px Arial,sans-serif';
+    x.fillText("\u2605 THE PROPAGANDA FACTORY \u2605",540,160);
+    x.fillStyle="#c1121f"; x.font='900 96px "Arial Black",Arial,sans-serif';
+    x.fillText("DEPLOY FOR "+String(r.state||"").toUpperCase().slice(0,2),540,330);
+    var cs=r.candidates||[];
+    var sub=lastName(cs[0]&&cs[0].name).toUpperCase()+" VS "+lastName(cs[1]&&cs[1].name).toUpperCase()
+      +" \u2014 "+String(r.office||"").toUpperCase();
+    x.fillStyle="#f5ead6";
+    shrinkFit(sub,920,'900 64px "Arial Black",Arial,sans-serif',448);
+    x.font="400 38px Arial,sans-serif";
+    var lines=wrap(r.stakes,920), y=570, li;
+    for(li=0;li<lines.length&&y<900;li++){ x.fillText(lines[li],540,y); y+=52; }
+    x.fillStyle="#c9bfa8";
+    x.fillText("Real race. Real stakes. Class lines drawn.",540,y+44);
+    x.fillStyle="#c1121f"; x.font='900 46px "Arial Black",Arial,sans-serif';
+    x.fillText("MTCSTW.COM",540,1182);
+    x.fillText("JOIN THE FIGHT.",540,1242);
+    done(cv);
+  }catch(e){ fail(); }
+}
+function renderBattlegrounds(){
+  var d=getBattlegroundData(), races=d.races, meas=d.meas;
+  RACES_CACHE=races;
   var h='<div class="x-pane"><h4>Battlegrounds</h4>'
     +'<div class="x-note">Real races, real candidates &mdash; scored on class lines. Who funds them. Who they answer to.'
-    +(fromLive&&updated?' <span class="cp-upd">Data updated: '+esc(fmtUpd(updated))+'</span>':'')
+    /* #19: "Data updated:" renders from the backend's top-level updated_at
+       on race_list — renders nothing when absent, never a blank label. */
+    +(d.fromLive&&d.updated?' <span class="cp-upd">Data updated: '+esc(fmtUpd(d.updated))+'</span>':'')
     +'</div>';
   for(var i=0;i<races.length;i++){
     var r=races[i];
@@ -278,7 +417,14 @@ function renderBattlegrounds(){
         +'<div class="cp-cfund">Money: '+esc(cs[c].funding)+'</div>'
         +'<div class="cp-ctake">Class take: '+esc(cs[c].classTake)+'</div></div>';
     }
-    h+='<div class="cp-stakes">'+esc(r.stakes)+'</div></div>';
+    h+='<div class="cp-stakes">'+esc(r.stakes)+'</div>';
+    /* #13: one action per race card — shareable recruitment poster.
+       Placement: directly after .cp-stakes, the last card element. */
+    if(cs.length>=2&&r.id){
+      h+='<button class="c-btn cp-deploy" data-cp-deploy="'+esc(r.id)+'" aria-label="Deploy for the '+esc(raceLabel(r))+' race \u2014 share a recruitment poster">DEPLOY FOR THIS RACE</button>'
+        +'<div class="x-note">Your poster. Your callsign. Their feed.</div>';
+    }
+    h+='</div>';
   }
   for(var m=0;m<meas.length;m++){
     var mm=meas[m];

@@ -86,7 +86,7 @@ function postG(gAction,params,cb){
   try{
     var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
       try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
-        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); }catch(e){}
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
       o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
     fetch(BACKEND,_po)
       .then(function(r){ return r.json(); })
@@ -213,7 +213,7 @@ function render(){
       if(S.crash_secret) h+=crashSecretHTML();
     } else if(mb&&!mb.cashed_out){
       myBetCached=mb;
-      h+='<div class="x-note">You\'re on the line for '+(Number(mb.amount)||0)+' XP at '+mult.toFixed(2)+'x = '
+      h+='<div class="x-note">You\\\'re on the line for '+(Number(mb.amount)||0)+' XP at '+mult.toFixed(2)+'x = '
         +Math.floor((Number(mb.amount)||0)*mult)+' XP</div>'
         +'<button class="c-btn" id="rdExfil">EXFILTRATE</button>'
         +'<div class="x-note">Pull out in time or the stake arms the cell treasury.</div>';

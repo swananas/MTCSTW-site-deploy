@@ -214,7 +214,12 @@ var SECTIONS = {
        Content Bank submissions (SOP v2). Silo key 'review-pool'; self-mounts
        into #pf-review-pool on Creator HQ / Studio, silent no-op elsewhere.
        Kill: ?pf_off=review-pool. */
-    'review-pool.js'
+    'review-pool.js',
+    /* ENGAGEMENT BUILD-C (2026-10-05): Cell Seasons — forecasting pools +
+       bounties wrapped in seasons (trophy, top-5 rivalry board, season
+       winner). Silo key 'cell-seasons'; self-mounts into #pf-cells-page,
+       silent no-op elsewhere. Kill: ?pf_off=cell-seasons. */
+    'cell-seasons.js'
   ],
   'bundle-create': [
     /* /create (+ Creator HQ) — creator tooling.

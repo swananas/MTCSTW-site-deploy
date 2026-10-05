@@ -1351,7 +1351,11 @@
            bespoke cell home (silo key 'raid'). Cell-scoped rounds; cell_id
            comes from the cell context the cells stack already loaded
            (never URL params). Non-members get the join-a-cell nudge. */
-        ['raid', 'pf-ov-raid']
+        ['raid', 'pf-ov-raid'],
+        /* ENGAGEMENT BUILD-C (2026-10-05): Cell Seasons (silo key
+           'cell-seasons'). Self-mounting: renders into #pf-cell-seasons on
+           #pf-cells-page (kill: cell-seasons). */
+        ['cell-seasons', null]
       ]
     },
     'pf-create': {

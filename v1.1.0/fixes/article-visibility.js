@@ -119,9 +119,11 @@
         if (a && a.w === 0 && a.h === 0) { setImp(el, 'content-visibility', 'visible'); fixed++; }
       }
     } catch (e) {}
-    /* font-size:0 kills text rendering; repair on the host itself (ancestors
-       may use font-size:0 legitimately for whitespace collapsing). */
-    if (isHost && (c.fontSize === '0px' || c.fontSize === '0')) {
+    /* font-size:0 kills text rendering; repair on the host itself AND on leaf
+       text carriers (no children, holds text). Ancestors that use
+       font-size:0 for whitespace collapsing keep their exemption. */
+    if ((c.fontSize === '0px' || c.fontSize === '0') &&
+        (isHost || (el.children && el.children.length === 0 && text))) {
       setImp(el, 'font-size', '16px'); fixed++;
     }
     /* Zero/tiny-height clipping: content exists (scrollHeight > 0) but the
@@ -143,21 +145,41 @@
       var clip = c.clip || '';
       if (clip && clip !== 'auto' && /rect\(\s*0/.test(clip)) { setImp(el, 'clip', 'auto'); fixed++; }
     } catch (e3) {}
-    /* scale(0) transform or opacity(0) filter: paints nothing, stays in DOM. */
+    /* scale(0) transform or opacity(0)/brightness(0)/contrast(0) filter:
+       paints nothing, stays in DOM. brightness(0)/contrast(0) render text
+       as solid black — invisible on the site's dark sections — while the
+       element keeps area and computed "visible", so the old opacity-only
+       regex missed them entirely. */
     try {
       var t = c.transform || '';
       if (t && t !== 'none' && (/^matrix\(0,/.test(t) || /^matrix3d\(0,/.test(t))) {
         setImp(el, 'transform', 'none'); fixed++;
       }
       var f = c.filter || '';
-      if (f && f !== 'none' && /opacity\(\s*0/.test(f)) { setImp(el, 'filter', 'none'); fixed++; }
+      if (f && f !== 'none' && /(opacity|brightness|contrast)\(\s*0/.test(f)) {
+        setImp(el, 'filter', 'none'); fixed++;
+      }
+      /* -webkit-text-fill-color: transparent paints no glyphs while keeping
+         the box AND the accessibility tree intact — the classic "text in DOM,
+         selectable, but paints nothing" mechanism. Restore the cascade's
+         real text color via inherit (restore-only). */
+      var tfc = String(c.webkitTextFillColor || '').replace(/\s+/g, '');
+      var tfcZero = /^transparent$/i.test(tfc);
+      if (!tfcZero) {
+        var tfcm = tfc.match(/^rgba?\((\d+),(\d+),(\d+)(?:,([\d.]+))?\)$/i);
+        if (tfcm && tfcm[4] !== undefined && parseFloat(tfcm[4]) === 0) { tfcZero = true; }
+      }
+      if (tfcZero) { setImp(el, '-webkit-text-fill-color', 'inherit'); fixed++; }
     } catch (e4) {}
     return fixed;
   }
 
   /* Transparent INLINE text color inside the content host is unambiguously an
-     accident (stylesheet-level transparency is left alone as intentional
-     design). Removing the inline declaration falls back to the cascade. */
+     accident — removing the inline declaration falls back to the cascade.
+     Stylesheet-level transparency is repaired too (by the computed-color
+     loop in fixText), but ONLY when the gate sees the content as actually
+     broken; on a healthy page intentional design transparency is left
+     alone. */
   function transparentInline(el) {
     var v = '';
     try { v = el.style.getPropertyValue('color') || ''; } catch (e) { return false; }
@@ -179,7 +201,54 @@
         try { els[i].style.removeProperty('color'); fixed++; } catch (e2) {}
       }
     }
+    /* Computed-color repair: stylesheet-sourced transparent text that
+       inline-stripping can't reach. For elements whose COMPUTED color alpha
+       is 0, pin the nearest opaque ancestor's computed color !important;
+       if no opaque ancestor exists, fall back to the body computed color.
+       Gated on contentBroken() so healthy pages (where transparency is
+       intentional design) never pay for the scan and never see a repair. */
+    try {
+      if (contentBroken(host)) {
+        for (i = 0; i < n; i++) {
+          try {
+            var col = computedColor(els[i]);
+            if (col && colorAlpha0(col)) {
+              var oc = nearestOpaqueColor(els[i]);
+              if (oc) { setImp(els[i], 'color', oc); fixed++; }
+            }
+          } catch (e3) {}
+        }
+      }
+    } catch (e4) {}
     return fixed;
+  }
+
+  /* ---- computed-color helpers (Fix C) ---- */
+  function computedColor(el) {
+    try {
+      var c = window.getComputedStyle(el);
+      return String((c && c.color) || '').replace(/\s+/g, '');
+    } catch (e) { return ''; }
+  }
+  function colorAlpha0(col) {
+    if (/^transparent$/i.test(col)) { return true; }
+    var m = col.match(/^rgba?\((\d+),(\d+),(\d+)(?:,([\d.]+))?\)$/i);
+    if (m && m[4] !== undefined && parseFloat(m[4]) === 0) { return true; }
+    return false;
+  }
+  /* Nearest ancestor (walking outward from the element's parent) whose
+     computed color has non-zero alpha. Falls back to the body computed
+     color when nothing opaque exists in the chain. */
+  function nearestOpaqueColor(el) {
+    var p = null, guard = 0, col = '';
+    try { p = el.parentElement; } catch (e) { p = null; }
+    while (p && p.nodeType === 1 && guard < 32) {
+      col = computedColor(p);
+      if (col && !colorAlpha0(col)) { return col; }
+      p = p.parentElement;
+      guard++;
+    }
+    try { return computedColor(document.body); } catch (e2) { return ''; }
   }
 
   /* Off-screen positioning from ANY source (stylesheet or inline): if the
@@ -219,7 +288,11 @@
     return 'opacity=' + c.opacity + ' visibility=' + c.visibility +
       ' display=' + c.display + ' height=' + c.height +
       ' overflow=' + c.overflow + ' transform=' + c.transform +
-      ' contentVisibility=' + (c.contentVisibility || '?');
+      ' contentVisibility=' + (c.contentVisibility || '?') +
+      ' color=' + c.color +
+      ' webkitTextFillColor=' + (c.webkitTextFillColor || '?') +
+      ' filter=' + c.filter +
+      ' mixBlendMode=' + (c.mixBlendMode || '?');
   }
 
   /* ---- Descendant blind-spot repair (hotfix 2026-10-04) ---- */
@@ -237,12 +310,35 @@
     return false;
   }
 
+  /* Paint-level invisibility: computed text color with zero alpha (from ANY
+     source, not just inline), transparent -webkit-text-fill-color, or a
+     filter that renders glyphs as solid black (brightness(0)/contrast(0) —
+     invisible on the site's dark sections). The gate previously only saw
+     box-level brokenness (opacity/visibility/display/zero-area); paint-level
+     hiding never triggered it, so the descendant repair pass never ran. */
+  function textPaintBroken(el) {
+    var c = cs(el);
+    if (!c) { return false; }
+    var col = String(c.color || '').replace(/\s+/g, '');
+    if (/^transparent$/i.test(col)) { return true; }
+    var m = col.match(/^rgba?\((\d+),(\d+),(\d+)(?:,([\d.]+))?\)$/i);
+    if (m && m[4] !== undefined && parseFloat(m[4]) === 0) { return true; }
+    var tfc = String(c.webkitTextFillColor || '').replace(/\s+/g, '');
+    if (/^transparent$/i.test(tfc)) { return true; }
+    var m2 = tfc.match(/^rgba?\((\d+),(\d+),(\d+)(?:,([\d.]+))?\)$/i);
+    if (m2 && m2[4] !== undefined && parseFloat(m2[4]) === 0) { return true; }
+    var f = c.filter || '';
+    if (f && f !== 'none' && /(brightness|contrast)\(\s*0/.test(f)) { return true; }
+    return false;
+  }
+
   /* A content container is broken when it holds text but paints nothing:
-     computed invisible, or zero painted area. */
+     computed invisible, paint-level invisible, or zero painted area. */
   function containerBroken(el) {
     try {
       if (!hasText(el)) { return false; }
       if (elInvisible(el)) { return true; }
+      if (textPaintBroken(el)) { return true; }
       var a = rectArea(el);
       return !!(a && a.w === 0 && a.h === 0);
     } catch (e) { return false; }

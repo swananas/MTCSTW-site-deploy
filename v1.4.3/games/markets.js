@@ -25,7 +25,7 @@
    sends them and no "favorite/leading" language is rendered from them.
    Backend contract: src/markets.js actions market_list / market_get /
    market_create / market_bet / market_resolve / market_refund / market_cancel.
-   XP has no cash value — solidarity stakes for the movement.
+   XP has no cash value. Stakes are final.
    KILL: ?pf_off=markets  or  localStorage pf_disabled_v1='["markets"]' */
 (function () {
   'use strict';

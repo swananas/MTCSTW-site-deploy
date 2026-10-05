@@ -4,7 +4,7 @@
    "casino" for stability. Reads via JSONP (self-contained api()),
    writes via CORS POST — wagers use {type:"wager",w_action:...}, everything else
    uses {type:"gamble",g_action:...}. It never reaches into another silo's internals.
-   XP has no cash value — social gambling for movement engagement.
+   XP has no cash value. Stakes are final.
    KILL: ?pf_off=casino  or  localStorage pf_disabled_v1='["casino"]' */
 (function () {
   'use strict';

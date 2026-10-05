@@ -102,6 +102,10 @@ var SECTIONS = {
     'inflation-teaser.js',
     'campaign.js',
     'alerts.js',
+    /* Engagement Build-B (2026-10-05, items #9/#10): platform hooks +
+       cross-platform quests (homepage ACT section). */
+    'platform-hooks.js',
+    'quests.js',
     'fan-vote.js',
     /* W5-11 Blackout Op (2026-10-04): siren countdown + debrief reveal. */
     'blackout.js',

@@ -62,6 +62,10 @@
     /* ——— SECTION 6: ACT — action ——— */
     ['campaign', 'pf-ov-campaign'],
     ['alerts', 'pf-ov-alerts'],
+    /* Engagement Build-B (2026-10-05, items #9/#10): platform hooks +
+       cross-platform quests — the ACT section's action surfaces. */
+    ['platform-hooks', 'pf-ov-hooks'],
+    ['quests', 'pf-ov-quests'],
     /* ——— SECTION 7: PROOF — social validation closer ——— */
     ['fan-vote', 'pf-ov-vote'],
     /* 2026-10-05, Phase 3 #11: War Report Monday card — the weekly ritual's
@@ -155,6 +159,8 @@
     /* A1 home (2026-10-05): Price Index HP feeder lives in FUND. */
     'inflation-teaser':'fund',
     'campaign':'act','alerts':'act',
+    /* Engagement Build-B (2026-10-05, items #9/#10): ACT surfaces. */
+    'platform-hooks':'act','quests':'act',
     'fan-vote':'proof',
     /* W5-6 Hall of Proof (2026-10-04). */
     'hall':'proof',

@@ -250,7 +250,10 @@ var HQ_BUNDLES = {
     'civic.js',
     'governance.js',
     'notify-prefs.js',
-    'intel.js'
+    'intel.js',
+    /* Political HQ expansion #3 (2026-10-05): Races Tracker — the midterm
+       battleground board. Stages pf-ov-races (mounted by pages/political-hq.js). */
+    'races.js'
   ]
 };
 

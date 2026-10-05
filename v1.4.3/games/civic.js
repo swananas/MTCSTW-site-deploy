@@ -13,6 +13,14 @@
 <h2>Wage Civic Warfare</h2>
 <div class="c-tag">Petitions, reps, voter registration. Power off the timeline.</div>
 <div id="xCivic"><div class="c-load">Mobilizing&hellip;</div></div>
+<style>
+/* 2026-10-05: ballot center (Political HQ #4) — mobile-first, no horizontal
+   scroll, every touch target >= 44px. */
+#pf-civic .cv-t44{min-height:44px}
+#pf-civic .cv-bal-cd{font-size:16px;margin:10px 0;padding:10px;border:1px solid #4a4a4a;overflow-wrap:anywhere}
+#pf-civic .cv-balreg{margin:8px 0}
+#pf-civic .cv-balacts{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+</style>
 </div>
 <script>
 (function(){
@@ -155,6 +163,139 @@ function stateOpts(sel){
   }
   return h;
 }
+/* --- ballot center (2026-10-05, Political HQ #4): state-keyed election
+   dates from the ballot_get wire. READ-ONLY — no XP, no write path.
+   Renders ONLY what the API returns; NULL/missing fields fall back to
+   "Check your state site" + the official link, never invented data.
+   Countdowns reflect real ISO dates vs the viewer's local today only. */
+var BAL={st:"",rows:null,load:false,err:false};
+var STATES50=null; /* STATES + DC, filter-only (STATES itself untouched). */
+function ballotStates(){
+  if(!STATES50) STATES50=STATES.concat([["DC","District of Columbia"]]);
+  return STATES50;
+}
+function ballotStateOpts(sel){
+  var st=ballotStates(), h='<option value="">Pick your state&hellip;</option>';
+  for(var i=0;i<st.length;i++){
+    h+='<option value="'+st[i][0]+'"'+(sel===st[i][0]?' selected':'')+'>'+esc(st[i][1])+'</option>';
+  }
+  return h;
+}
+var BAL_MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+/* Parse an ISO date ("2026-10-19") as LOCAL midnight — new Date("2026-10-19")
+   is UTC midnight and would drift a day behind for US timezones. */
+function balDate(iso){
+  var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso||""));
+  if(!m) return null;
+  return new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));
+}
+function balFmt(iso){
+  var d=balDate(iso); if(!d) return "";
+  return BAL_MONTHS[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear();
+}
+/* Whole calendar days from local-today start to the deadline. Positive =
+   days left, 0 = today, negative = passed. */
+function balDaysLeft(iso){
+  var d=balDate(iso); if(!d) return null;
+  var now=new Date(); now.setHours(0,0,0,0);
+  return Math.round((d.getTime()-now.getTime())/86400000);
+}
+function balFind(code){
+  if(!BAL.rows) return null;
+  for(var i=0;i<BAL.rows.length;i++){ if(String(BAL.rows[i].state)===code) return BAL.rows[i]; }
+  return null;
+}
+/* Normalize the ballot_get&all=1 payload — accept the record list under
+   whichever key the backend ships (rows/ballots/states), never assume. */
+function balRows(j){
+  if(!j||!j.ok) return null;
+  var cands=[j.rows,j.ballots,j.states];
+  for(var i=0;i<cands.length;i++){
+    if(cands[i]&&typeof cands[i].length==="number") return cands[i];
+  }
+  return null;
+}
+function ballotDeadlineHTML(row){
+  var nm=esc(row.state_name||row.state||"your state");
+  if(!row.registration_deadline){
+    /* NULL deadline = same-day registration (backend notes explain). */
+    return '<div class="cv-bal-cd"><b>Same-day registration available</b> in '+nm+'.</div>'
+      +(row.notes?'<div class="x-note">'+esc(row.notes)+'</div>':"");
+  }
+  var left=balDaysLeft(row.registration_deadline), dstr=balFmt(row.registration_deadline);
+  if(left===null){
+    return '<div class="cv-bal-cd">Registration deadline in '+nm+': check the date on the state site.</div>';
+  }
+  if(left<0) return '<div class="cv-bal-cd"><b>Registration has closed</b> in '+nm+' (deadline was '+esc(dstr)+'). You may still have options &mdash; check the state site.</div>';
+  if(left===0) return '<div class="cv-bal-cd"><b>TODAY is the last day</b> to register in '+nm+'.</div>';
+  return '<div class="cv-bal-cd"><b>'+left+' day'+(left===1?"":"s")+' left</b> to register in '+nm+' ('+esc(dstr)+').</div>';
+}
+/* Every outbound link: the state's own URL from the API, new tab, no
+   opener — never a PF-wrapped or invented URL. */
+function ballotLink(label,url){
+  if(!url) return "";
+  return '<a class="c-btn cv-t44" href="'+esc(url)+'" target="_blank" rel="noopener">'+esc(label)+'</a>';
+}
+function ballotFallback(label,url){
+  var h='<div class="x-note">'+esc(label)+': check your state site';
+  if(url) h+=' &mdash; <a href="'+esc(url)+'" target="_blank" rel="noopener">official link</a>';
+  return h+'.</div>';
+}
+function ballotBoxHTML(){
+  if(BAL.err){
+    return '<div class="c-err">Couldn&rsquo;t reach the ballot wire.</div>'
+      +'<button type="button" class="c-btn cv-t44" id="cvBalRetry">RETRY</button>';
+  }
+  if(BAL.load||BAL.rows===null) return '<div class="c-load">Mobilizing&hellip;</div>';
+  if(!BAL.st) return '<div class="x-note">Pick your state for deadlines, early voting dates, and your polling place.</div>';
+  var row=balFind(BAL.st);
+  if(!row) return '<div class="x-note">No ballot data for that state yet &mdash; check your state site.</div>';
+  var nm=esc(row.state_name||row.state||"");
+  var h='<div><div class="x-note" style="margin-top:8px"><b>'+nm+'</b></div>';
+  h+=ballotDeadlineHTML(row);
+  /* Register — official state URL only, clearly labeled as official. */
+  if(row.register_url){
+    h+='<div class="cv-balreg">'+ballotLink("REGISTER TO VOTE",row.register_url)+'</div>'
+      +'<div class="x-note">Opens '+nm+'&rsquo;s <b>official</b> registration site in a new tab.</div>';
+  } else {
+    h+=ballotFallback("Registration link",row.ballot_info_url);
+  }
+  /* Early voting. */
+  if(row.early_voting_start||row.early_voting_end){
+    var ev=balFmt(row.early_voting_start);
+    if(row.early_voting_end) ev+=(ev?" &ndash; ":"")+balFmt(row.early_voting_end);
+    h+='<div class="x-note"><b>Early voting:</b> '+ev+'</div>';
+  } else {
+    h+=ballotFallback("Early voting dates",row.ballot_info_url||row.register_url);
+  }
+  /* Election day: the API value; the Nov 3, 2026 general is the fallback. */
+  h+='<div class="x-note"><b>Election day:</b> '+(balFmt(row.election_day)||"Nov 3, 2026")+'</div>';
+  /* Polling place + ballot info. */
+  var links=ballotLink("FIND MY POLLING PLACE",row.polling_place_url)
+    +(row.polling_place_url&&row.ballot_info_url?" ":"")
+    +ballotLink("BALLOT INFO",row.ballot_info_url);
+  if(links) h+='<div class="cv-balacts">'+links+'</div>';
+  else h+=ballotFallback("Polling place & ballot info",null);
+  if(row.notes&&row.registration_deadline) h+='<div class="x-note">'+esc(row.notes)+'</div>';
+  h+='</div>';
+  return h;
+}
+function paintBallot(){
+  var box=document.getElementById("cvBalBox"); if(!box) return;
+  box.innerHTML=ballotBoxHTML();
+}
+function fetchBallot(){
+  BAL.load=true; BAL.err=false; paintBallot();
+  /* all=1: one read, cached — state switches then paint from cache with no
+     per-selection round-trip (mobile-friendly). */
+  api("ballot_get",{all:1},function(j){
+    BAL.load=false;
+    var rows=balRows(j);
+    if(rows){ BAL.rows=rows; BAL.err=false; }
+    else { BAL.err=true; }
+    paintBallot();
+  });
+}
 function render(){
   var el=document.getElementById("xCivic"); if(!el) return;
   var id=ident(), h="";
@@ -242,6 +383,14 @@ function render(){
     h+='<div class="x-note">Pick your state to get the official registration link.</div>';
   }
   h+='</div></div>';
+  /* --- ballot center (2026-10-05, Political HQ #4): state election dates.
+     Read-only pane — countdowns from real API dates only, no invented data,
+     no XP. Ballot deadlines live here; voter registration stays above. */
+  h+='<div class="x-pane"><h4>Ballot Center</h4>'
+    +'<div class="x-note">Deadlines, early voting, and your polling place &mdash; straight from your state&rsquo;s official data.</div>'
+    +'<select class="c-in cv-t44" id="cvBalState" aria-label="Pick your state">'+ballotStateOpts(BAL.st)+'</select>'
+    +'<div id="cvBalBox">'+ballotBoxHTML()+'</div>'
+    +'</div>';
   /* --- notification preferences (2026-10-05, audit #3): contact PII lives in
      ONE surface — "Control the Signal" (notify-prefs silo, right below) owns
      email/phone/opt-ins. This pane is now a link, not a second capture form.
@@ -385,6 +534,15 @@ function bind(){
   /* 2026-10-05 (audit #3): the civic contact-prefs form is gone — "Control the
      Signal" (notify-prefs) is the single contact-PII surface and owns the
      contact_set write path. No civic-side save binding anymore. */
+  /* --- ballot center (2026-10-05): state select paints from the cached
+     ballot_get&all=1 rows — no round-trip per selection. One lazy read on
+     first bind; RETRY lives inside the painted box, so it needs a direct
+     binding after every re-render (same pattern as cvVoterRetry). */
+  var bst=document.getElementById("cvBalState");
+  if(bst) bst.onchange=function(){ BAL.st=gv("cvBalState"); paintBallot(); };
+  var brt=document.getElementById("cvBalRetry");
+  if(brt) brt.onclick=function(){ fetchBallot(); };
+  if(BAL.rows===null&&!BAL.load&&!BAL.err){ fetchBallot(); }
   /* rep contact history (rep_contact_history, AUTH): the caller's own log.
      2026-10-05 (audit #7): fetched once per page view — bind() runs on every
      re-render, and each run used to refire this authed call. LOG CONTACT

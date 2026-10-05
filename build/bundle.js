@@ -44,6 +44,9 @@ var SECTIONS = {
     'daily-orders.js',
     'dopamine.js',
     'enlistment-ranks.js',
+    /* Wave 5B (2026-10-04): theater rack + ribbon chase strip + Frontline
+       Streak + Theater Rank. Self-mounts into #pf-ranks and #xBrief. */
+    'theater.js',
     'service-medals.js',
     'social-proof.js'
     /* notify.js is global chrome (header bell) — it ships in
@@ -68,7 +71,9 @@ var SECTIONS = {
     'war-bonds.js',
     'campaign.js',
     'alerts.js',
-    'fan-vote.js'
+    'fan-vote.js',
+    /* W5-6 Hall of Proof (2026-10-04): public winners wall, PROOF section. */
+    'hall-of-proof.js'
   ],
   /* SLIM DEDICATED-PAGE BUNDLES (2026-10-04, M1 dead-weight fix): /arcade,
      /cells and /create used to fetch the full bundle-home (~83KB gz) to get
@@ -146,7 +151,9 @@ var SECTIONS = {
   ],
   'bundle-warreport': [
     /* /war-report — the weekly digest. */
-    'war-report.js'
+    'war-report.js',
+    /* Wave 5B (2026-10-04): Situation Report pane, prepended into #xWarReport. */
+    'theater-sitrep.js'
   ],
   'bundle-roster': [
     /* SLR roster/catalog pages — the live Efficiency Index painter. */

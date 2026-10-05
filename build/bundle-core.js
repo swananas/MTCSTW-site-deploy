@@ -178,6 +178,24 @@ var BUNDLES = {
 
 function fail(msg) { console.error('BUNDLE FAIL: ' + msg); process.exit(1); }
 
+/* Inner-script syntax gate (2026-10-05): see build/bundle.js. Core/page
+   files can also stage templates with inner <script> blocks — check every
+   shipped file's inner scripts BEFORE bundling. */
+(function () {
+  var shipped = [];
+  Object.keys(BUNDLES).forEach(function (name) {
+    BUNDLES[name].forEach(function (f) {
+      var p = path.join(V143, f);
+      if (shipped.indexOf(p) === -1) shipped.push(p);
+    });
+  });
+  try {
+    cp.execFileSync(process.execPath,
+      [path.join(__dirname, '..', 'scripts', 'check-inner-scripts.js')].concat(shipped),
+      { stdio: 'inherit' });
+  } catch (e) { fail('inner <script> syntax check failed'); }
+})();
+
 /* Resolve terser: local node_modules first, then global, then give up. */
 function terserBin() {
   var local = path.join(__dirname, '..', 'node_modules', '.bin', 'terser');

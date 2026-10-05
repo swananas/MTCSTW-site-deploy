@@ -298,6 +298,19 @@ var unbundled = allFiles.filter(function (f) {
 });
 if (unbundled.length) fail('unbundled game files: ' + unbundled.join(', '));
 
+/* Inner-script syntax gate (2026-10-05): widget silos stage <template> HTML
+   containing inner <script> blocks inside template literals. node --check
+   only sees the OUTER file — the inner script the browser receives exists
+   only after template-literal escape processing, and a SyntaxError there
+   kills the whole widget at runtime (MORNING BRIEFING + Solidarity Draw,
+   2026-10-05). Check every shipped silo's inner scripts BEFORE bundling. */
+try {
+  cp.execFileSync(process.execPath,
+    [path.join(__dirname, '..', 'scripts', 'check-inner-scripts.js')]
+      .concat(bundled.map(function (f) { return path.join(ROOT, f); })),
+    { stdio: 'inherit' });
+} catch (e) { fail('inner <script> syntax check failed'); }
+
 /* Resolve terser: local node_modules first, then global, then give up. */
 function terserBin() {
   var local = path.join(__dirname, '..', 'node_modules', '.bin', 'terser');

@@ -250,7 +250,12 @@ var HQ_BUNDLES = {
     'civic.js',
     'governance.js',
     'notify-prefs.js',
-    'intel.js'
+    'intel.js',
+    /* 2026-10-05 (fe/predictions-home): predictions home wiring — BALLOT hub
+       slot 3.7 chrome for the CALL THE SHOT section. Decorates #pf-predict at
+       runtime; fail-soft without predict.js. (Release Eng: keep BOTH this and
+       the merge/fe-predict-share-call 'predict.js' line at merge.) */
+    'predict-home.js'
   ]
 };
 

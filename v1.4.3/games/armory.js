@@ -9,7 +9,7 @@
   var PF = window.PF;
   if (!PF || PF.skip("armory")) { return; }
 
-  var BACKEND = (window.PF_BACKEND_URL || "https://pf-api.mtcstw.workers.dev");
+  var BACKEND = (window.PF_BACKEND_URL );
   var LS_I = "pf_identity_v1";
   var LS_ARM = "pf_armory_v1";
 
@@ -102,7 +102,7 @@
 <script>
 (function(){
 var LS_I="pf_identity_v1", LS_ARM="pf_armory_v1";
-var BACKEND=(window.PF_BACKEND_URL||"https://pf-api.mtcstw.workers.dev");
+var BACKEND=(window.PF_BACKEND_URL);
 var PREVIEWS={
   'iron-frame':{sec:'frames',blurb:'Cold steel. The working-class frame.',css:'border:3px solid #888;'},
   'gold-frame':{sec:'frames',blurb:'For those who seized the means of shine.',css:'border:3px solid #d4af37;box-shadow:0 0 12px rgba(212,175,55,.55);'},

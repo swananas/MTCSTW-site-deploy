@@ -10,7 +10,10 @@
    legacy pages; the footer chrome needs only identity + backend + PF bus.
    Loads after core/00-bus.js (window.PF with skip()/toast()).
    KILL: ?pf_off=18-footer-deps */
-window.PF_BACKEND_URL = "https://pf-api.mtcstw.workers.dev";
+/* PF_BACKEND_URL — second definition site for legacy pages (see header).
+   Canonical definition lives in core/03-global.js; update BOTH on a domain
+   change. Conditional so a v2 core that already set it is never clobbered. */
+window.PF_BACKEND_URL = window.PF_BACKEND_URL || "https://pf-api.mtcstw.workers.dev";
 /* Per-device identity + callsign. Attached to every backend action report so
    per-user rows in the Sheet key to the local device and the user's callsign.
    Votes stay anonymous by design — no identity is ever sent on vote rows. */

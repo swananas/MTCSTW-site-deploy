@@ -48,7 +48,13 @@ var SECTIONS = {
        Streak + Theater Rank. Self-mounts into #pf-ranks and #xBrief. */
     'theater.js',
     'service-medals.js',
-    'social-proof.js'
+    'social-proof.js',
+    /* LAUNCH WEEK (2026-10-05): FIRST WAVE — countdown/live banner, founder
+       badge, 7-day circuit card, founder roll. Self-mounting; site-wide
+       fixed banner bar (homepage hero-adjacent), homepage + /cells circuit
+       leg. READ-ONLY, zero XP. War-room /cells leg via bundle-cells-h
+       slim dup (same pattern as war-room-ticker.js). */
+    'first-wave.js'
     /* notify.js is global chrome (header bell) — it ships in
        pages/bundle-pages.js via build/bundle-core.js, not a page bundle. */
   ],
@@ -119,7 +125,12 @@ var SECTIONS = {
     'cell-first-hour.js',
     /* S5 war-room ticker /cells leg (slim dup — the loader fetches this
        INSTEAD of bundle-home on /cells, never both). */
-    'war-room-ticker.js'
+    'war-room-ticker.js',
+    /* LAUNCH WEEK (2026-10-05): FIRST WAVE /cells leg — circuit card after
+       the cell-war standings + the fixed banner bar (war-room mount).
+       Slim dup of bundle-sec1's copy; loader fetches this INSTEAD of
+       bundle-home on /cells, never both — no double-mount. */
+    'first-wave.js'
   ],
   'bundle-create-h': [
     /* /create — poster-forge + feed (the Propaganda Feed workshop). */

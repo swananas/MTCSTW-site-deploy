@@ -156,6 +156,16 @@ function baWriteErr(e,fb){
     "#pf-ca .ca-load{padding:24px;text-align:center;color:#888}" +
     "#pf-ca .ca-err{padding:24px;text-align:center;color:#c1121f}" +
     "#pf-ca .ca-err button{background:#c1121f;border:none;color:#fff;font:bold 12px Arial;padding:8px 16px;cursor:pointer;margin-top:8px}" +
+    /* Wave 4 A4 (2026-10-04): sealed mystery bounty cards. */
+    "#pf-ca .bn-sealed{position:relative;background:#1a0d0d;border:1px solid #c1121f;border-left:4px solid #c1121f;padding:14px;margin:10px 0;overflow:hidden}" +
+    "#pf-ca .wax{width:88px;height:88px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e01420,#8f0a12 70%);color:#fff;display:flex;align-items:center;justify-content:center;font:bold 11px Arial;letter-spacing:2px;transform:rotate(-12deg);box-shadow:0 4px 14px rgba(193,18,31,.5),inset 0 2px 6px rgba(255,255,255,.25);margin:4px 0 10px}" +
+    "#pf-ca .wax.crack{animation:sealPop .65s ease forwards}" +
+    "@keyframes sealPop{0%{transform:rotate(-12deg) scale(1);opacity:1}35%{transform:rotate(-4deg) scale(1.3);opacity:1}100%{transform:rotate(10deg) scale(0);opacity:0}}" +
+    "#pf-ca .reveal-in{animation:revealIn .8s ease}" +
+    "@keyframes revealIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}" +
+    "#pf-ca .seal-objective{background:#0d0d0d;border:1px dashed #c1121f;padding:10px 12px;margin:8px 0;font-size:14px;line-height:1.5}" +
+    "#pf-ca .mult-big{font:bold 44px Arial;color:#ffd166;text-align:center;margin:10px 0;letter-spacing:2px}" +
+    "#pf-ca .mult-win{font:bold 15px Arial;color:#ffd166;text-align:center}" +
     "</style>";
 
   mount.innerHTML = '<div class="fe-block pf-override-block pf-silo" id="pf-ca">' + css +
@@ -324,7 +334,44 @@ function post(bAction,params,cb){
       .catch(function(){ _po._pfClear(); done(null); });
   }catch(e){ done(null); }
 }
-var B=null, BM=null;
+var B=null, BM=null, SEALED=[];
+/* Wave 4 A4 (2026-10-04): per-device sealed-bounty accept state. The backend
+   is the source of truth (bounty_accepts); this only remembers which
+   envelopes this browser already broke so the UI can show the mission. */
+function sealedAcc(){ try{ return JSON.parse(localStorage.getItem("pf_sealed_v1")||"{}"); }catch(e){ return {}; } }
+function sealedAccSave(m){ try{ localStorage.setItem("pf_sealed_v1", JSON.stringify(m||{})); }catch(e){} }
+function sealedErr(j){
+  var s=(j&&(j.err||j.error))||"";
+  s=String(s).trim();
+  return s || "The wire fought back. Nothing changed \u2014 retry.";
+}
+function sealedById(bid){
+  for(var i=0;i<SEALED.length;i++){ if(SEALED[i] && SEALED[i].id===bid) return SEALED[i]; }
+  return null;
+}
+function sealedCardHtml(b, ceremony){
+  var acc=sealedAcc()[b.id]||{};
+  var h='<div class="bn-item bn-sealed" id="sealCard_'+esc(b.id)+'">';
+  h+='<div class="wax">SEALED</div>';
+  h+='<div class="bn-title">???</div>';
+  h+='<div class="x-note">REWARD: MYSTERY &bull; Vanishes Sunday 23:59 CT</div>';
+  if(acc.done){
+    h+='<div class="x-note">COMPLETED &bull; rolled <b>'+esc(String(acc.mult||"?"))+'&times;</b>. The envelope is ash.</div>';
+  } else if(acc.o){
+    h+='<div class="seal-objective'+(ceremony?' reveal-in':'')+'">MISSION: <b>'+esc(acc.o)+'</b></div>';
+    h+='<div class="x-note">Finish it, then roll. A 5&times; roll that hits your daily XP cap pays the cap \u2014 nothing banks.</div>';
+    h+='<button class="c-btn bn-complete" data-bid="'+esc(b.id)+'">COMPLETE \u2014 ROLL THE REWARD</button>';
+    /* W5-11 Blackout: one free re-roll per device while a blackout op is live.
+       Hidden until the blackout check confirms; wired in wireSealed(). */
+    h+='<button class="c-btn bn-reroll" data-bid="'+esc(b.id)+'" style="display:none">RE-ROLL \u2014 BLACKOUT</button>';
+    h+='<div class="c-err" id="sealRr_'+esc(b.id)+'"></div>';
+    h+='<div id="sealRes_'+esc(b.id)+'"></div>';
+  } else {
+    h+='<button class="c-btn bn-break" data-bid="'+esc(b.id)+'">BREAK THE SEAL</button>';
+    h+='<div class="c-err" id="sealErr_'+esc(b.id)+'"></div>';
+  }
+  return h+'</div>';
+}
 function load(){
   var done=false, n=0;
   function fin(){ if(done)return; done=true; render(); }
@@ -365,6 +412,8 @@ function render(){
   /* --- open bounties --- */
   var list=[];
   try{ if(B&&B.ok&&B.bounties) list=B.bounties; }catch(e){}
+  /* A4 (2026-10-04): sealed envelopes split out into their own section. */
+  SEALED=list.filter(function(b){ return b && b.sealed; });
   if(FOR_SLUG){
     var fl=String(forName||"").toLowerCase();
     list=list.filter(function(b){
@@ -374,6 +423,14 @@ function render(){
       var hay=(String(b.title||"")+" "+String(b.detail||"")).toLowerCase();
       return hay.indexOf(fl)!==-1;
     });
+  }
+  list=list.filter(function(b){ return !(b&&b.sealed); });
+  /* --- sealed mystery bounties (weekly, house-posted) --- */
+  if(SEALED.length && !FOR_SLUG){
+    h+='<div class="x-pane"><h4>Sealed \u2014 mystery bounties</h4>';
+    h+='<div class="x-note">Three sealed envelopes drop every Monday. Break one to learn the mission. Finish it to roll 1&times;\u20135&times; on the reward. Unclaimed envelopes vanish Sunday at midnight.</div>';
+    for(var si=0;si<SEALED.length;si++){ h+=sealedCardHtml(SEALED[si], false); }
+    h+='</div>';
   }
   h+='<div class="x-pane"><h4>Open bounties</h4>';
   if(!list.length){
@@ -445,6 +502,134 @@ function render(){
       };
     })(cl[c]);
   }
+  /* A4 (2026-10-04): wire sealed mystery bounties — break the seal (accept +
+     reveal ceremony), then complete for the server-side 1x-5x roll. */
+  function reSealCard(bid, ceremony){
+    var b=sealedById(bid); if(!b) return;
+    var card=document.getElementById("sealCard_"+bid);
+    if(card) card.outerHTML=sealedCardHtml(b, ceremony);
+    wireSealed();
+  }
+  function wireSealed(){
+    var bk=el.querySelectorAll("button.bn-break");
+    for(var i=0;i<bk.length;i++){
+      (function(btn){
+        if(btn.getAttribute("data-wired")) return;
+        btn.setAttribute("data-wired","1");
+        btn.onclick=function(){
+          var bid=btn.getAttribute("data-bid");
+          var er=document.getElementById("sealErr_"+bid);
+          btn.disabled=true; btn.textContent="BREAKING\u2026";
+          post("bounty_claim",{bounty_id:bid,callsign:id.callsign,device:id.device},function(j){
+            if(!j||!j.ok){
+              btn.disabled=false; btn.textContent="BREAK THE SEAL";
+              if(er) er.textContent=sealedErr(j);
+              return;
+            }
+            var m=sealedAcc();
+            m[bid]={o:j.objective||"",b:j.base||0,done:0,mult:0};
+            sealedAccSave(m);
+            /* reveal ceremony: crack the wax, then the mission slides in */
+            var card=document.getElementById("sealCard_"+bid);
+            var wax=card?card.querySelector(".wax"):null;
+            if(wax) wax.classList.add("crack");
+            setTimeout(function(){ reSealCard(bid, true); }, 700);
+          });
+        };
+      })(bk[i]);
+    }
+    var cp=el.querySelectorAll("button.bn-complete");
+    for(var k=0;k<cp.length;k++){
+      (function(btn){
+        if(btn.getAttribute("data-wired")) return;
+        btn.setAttribute("data-wired","1");
+        btn.onclick=function(){
+          var bid=btn.getAttribute("data-bid");
+          var res=document.getElementById("sealRes_"+bid);
+          btn.disabled=true; btn.textContent="ROLLING\u2026";
+          /* roll animation is theater only — the multiplier is rolled
+             server-side and arrives with the response. */
+          if(res) res.innerHTML='<div class="mult-big" id="sealRoll_'+esc(bid)+'">1&times;</div><div class="x-note">THE HOUSE ROLLS&hellip;</div>';
+          var t0=Date.now();
+          var iv=setInterval(function(){
+            var rr=document.getElementById("sealRoll_"+bid);
+            if(rr) rr.textContent=(1+Math.floor(Math.random()*5))+"\u00d7";
+          },90);
+          post("bounty_claim",{bounty_id:bid,complete:1,callsign:id.callsign,device:id.device},function(j){
+            var wait=Math.max(0, 800-(Date.now()-t0));
+            setTimeout(function(){
+              clearInterval(iv);
+              if(!j||!j.ok){
+                if(res) res.innerHTML='<div class="c-err">'+esc(sealedErr(j))+'</div>';
+                btn.disabled=false; btn.textContent="COMPLETE \u2014 ROLL THE REWARD";
+                return;
+              }
+              var m=sealedAcc(); var a=m[bid]||{};
+              a.done=1; a.mult=j.multiplier||0; m[bid]=a; sealedAccSave(m);
+              var cap=j.capped?'<div class="x-note">Hit your daily XP cap \u2014 paid the cap, nothing banked.</div>':"";
+              if(res) res.innerHTML='<div class="mult-big reveal-in">'+esc(String(j.multiplier||"?"))+'&times;</div>'
+                +'<div class="mult-win">+'+esc(String(j.xp||0))+' XP</div>'+cap
+                +'<div class="x-note">Base '+esc(String(j.base||0))+' XP &times; '+esc(String(j.multiplier||"?"))+' roll.</div>';
+              btn.style.display="none";
+              toast("SEALED BOUNTY COMPLETE. "+(j.multiplier||"?")+"\u00d7 \u2014 +"+(j.xp||0)+" XP.");
+            }, wait);
+          });
+        };
+      })(cp[i]);
+    }
+    /* W5-11 Blackout: one free re-roll per device while a blackout op is live.
+       Button stays hidden unless PFBlackout.isLive confirms. */
+    (function(){
+      var rr=el.querySelectorAll("button.bn-reroll");
+      if(!rr.length) return;
+      function wireRr(){
+        for(var i=0;i<rr.length;i++){
+          (function(btn){
+            if(btn.getAttribute("data-wired")) return;
+            btn.setAttribute("data-wired","1");
+            btn.onclick=function(){
+              var bid=btn.getAttribute("data-bid");
+              var er=document.getElementById("sealRr_"+bid);
+              btn.disabled=true; btn.textContent="RE-ROLLING\u2026";
+              var body={type:"blackout",bo_action:"bounty_reroll",bounty_id:bid,
+                callsign:id.callsign,device:id.device,auth_secret:id.auth_secret};
+              function done(j){
+                if(!j||!j.ok){
+                  btn.disabled=false; btn.textContent="RE-ROLL \u2014 BLACKOUT";
+                  if(er) er.textContent=(j&&j.err)||"Re-roll failed.";
+                  return;
+                }
+                if(j.already){
+                  if(er) er.textContent="Already re-rolled for this blackout.";
+                  btn.style.display="none";
+                  return;
+                }
+                btn.style.display="none";
+                if(er) er.textContent="";
+                toast("RE-ROLLED: "+(j.multiplier||"?")+"\u00d7 locked for this envelope.");
+              }
+              try{
+                if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,done); return; }
+                fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},
+                  body:JSON.stringify(body)}).then(function(r){ return r.json(); })
+                  .then(done).catch(function(){ done(null); });
+              }catch(e){ done(null); }
+            };
+          })(rr[i]);
+        }
+      }
+      try{
+        if(window.PFBlackout && typeof window.PFBlackout.isLive==="function"){
+          window.PFBlackout.isLive(function(live){
+            if(!live) return;
+            for(var i=0;i<rr.length;i++){ rr[i].style.display=""; }
+            wireRr();
+          });
+        }
+      }catch(e){}
+    })();
+  }
+  wireSealed();
   /* wire post */
   var pb=document.getElementById("bnPostBtn");
   if(pb) pb.onclick=function(){

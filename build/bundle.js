@@ -142,6 +142,10 @@ var SECTIONS = {
     'infighting.js'
   ],
   'bundle-cells-h': [
+    /* CELL IDENTITY (2026-10-05): structured cell profiles — guided founding
+       wizard, quality filters, identity kit. Before its consumers
+       (cells.js stages pf-ov-cells with the wizard). Kill: ?pf_off=cell-identity. */
+    'cell-identity.js',
     /* /cells — cells.js stages pf-ov-cells for the main Cells widget.
        cell-first-hour.js (CELLS wave G1, 2026-10-04): the guided first hour —
        extends R19's post-claim interstitial; mounts the founder checklist /
@@ -191,6 +195,11 @@ var SECTIONS = {
        Hall of Proof section on the homepage). */
   ],
   'bundle-cells': [
+    /* CELL IDENTITY (2026-10-05): structured cell profiles — guided founding
+       wizard, discovery-on-qualities, identity kit, founder backfill.
+       Before its consumers (cell-hq.js, cells.js mounts).
+       Kill: ?pf_off=cell-identity. Zero XP on every surface here. */
+    'cell-identity.js',
     /* /cells (+ Creator HQ) — the cell lifecycle. */
     'cell-hq.js',
     /* Cells G7 (2026-10-04): standalone treasury UI (fund/spend/trajectory). */

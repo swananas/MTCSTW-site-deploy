@@ -76,10 +76,16 @@ if (has(home, 'pf-inflation-home') && has(home, 'return; } /* double-run safe */
 console.log('== 3. bundle order ==');
 var ecoSec = bjs.slice(bjs.indexOf("'bundle-economy'"));
 var iHome = ecoSec.indexOf("'economy-home.js'"), iInf = ecoSec.indexOf("'inflation-tracker.js'");
-if (iHome !== -1 && iInf !== -1 && iHome < iInf) ok('bundle.js: economy-home.js before inflation-tracker.js');
-else no('bundle.js order', 'economy-home.js must precede inflation-tracker.js');
+/* A1 (inflation-tracker.js) is QC-held and NOT bundled yet — economy-home.js
+   stages the mounts inertly until A1 lands. When A1 merges, it must be listed
+   AFTER economy-home.js. */
+if (iHome !== -1 && iInf === -1) ok('bundle.js: economy-home.js listed, inflation-tracker.js correctly absent (A1 QC-held)');
+else if (iHome !== -1 && iInf !== -1 && iHome < iInf) ok('bundle.js: economy-home.js before inflation-tracker.js (A1 landed)');
+else no('bundle.js order', 'economy-home.js missing or misordered');
 var beHome = be.indexOf('/* ===== economy-home.js ===== */'), beInf = be.indexOf('/* ===== inflation-tracker.js ===== */');
-if (beHome !== -1 && beInf !== -1 && beHome < beInf) ok('built bundle-economy.js order'); else no('built bundle order', 'wrong or missing');
+if (beHome !== -1 && beInf === -1) ok('built bundle-economy.js: economy-home present, A1 correctly absent');
+else if (beHome !== -1 && beInf !== -1 && beHome < beInf) ok('built bundle-economy.js order (A1 landed)');
+else no('built bundle order', 'wrong or missing');
 if (count(bjs, "'economy-home.js'") === 1) ok('economy-home.js listed exactly once'); else no('economy-home.js listing', 'count != 1');
 
 console.log('== 4. kill switches ==');

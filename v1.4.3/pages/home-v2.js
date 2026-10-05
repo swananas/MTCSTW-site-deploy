@@ -340,6 +340,14 @@
   try { initSections(); } catch (e) {}
   mountSilos();
   try { bindNextLinks(); mountNextLinks(); mountEventsNudge(); } catch (e) {}
+  /* Hero network reach (P0 fix 2026-10-05): paint live creator/network counts
+     over the [data-pf-fc-total] snapshot fallback in the hero. Fail-soft —
+     snapshot text stays if the backend is unreachable. Mirrors slr-roster. */
+  try {
+    if (window.PF && PF.creatorStats) PF.creatorStats.ready(function () {
+      try { PF.creatorStats.paint(document); } catch (e) {}
+    });
+  } catch (e2) {}
 
   /* Race-condition guard: if lazy bundles staged templates before this file
      defined PF.mountSilos, the loader's onload skipped the mount. Retry until

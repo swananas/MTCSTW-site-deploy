@@ -105,7 +105,13 @@ var CORE_FILES = [
      on explicit anchors (#pf-readxp / #pf-readxp-bank); decorates Top
      Stories surfaces and Ammo Finder cards via MutationObserver when
      those dependencies are present. Fail-soft everywhere. */
-  'core/read-xp.js'
+  'core/read-xp.js',
+  /* dead-drop (A1, 2026-10-05): daily hidden XP cache. Riddle card injects
+     into the Morning Briefing (#xBrief); tappable cache widget renders ONLY
+     on the server-supplied hidden page, mounted above the footer. The claim
+     POST validates server-side; the page is never hardcoded client-side.
+     Was a dead file — written but never bundled. Kill: ?pf_off=deaddrop. */
+  'core/22-dead-drop.js'
 ];
 
 var BUNDLES = {

@@ -812,8 +812,43 @@ function paintLinkNet(){
     el.innerHTML=_linkNetHtml;
   },true);
 }
+/* A7 (2026-10-04): war-card BUILD A CELL deep links — ?cell=<invite_code>
+   lands here with ?ref=<callsign>. The ref is first-touch captured by the
+   referral engine (09-referral + pf_pending_ref); the invite code is
+   pre-filled below and the recruiter field takes the stored ref, so the
+   arrival is one tap from joining. The existing cell_join + recruit_log
+   paths then pay the recruiter's +25 XP bounty — no new backend actions. */
+var _pfCellDl=false;
+function acceptCellDeepLink(){
+  if(_pfCellDl) return;
+  var m=null;
+  try{ m=String(location.search||"").match(/[?&]cell=([A-Za-z0-9_-]{1,12})/); }catch(e){}
+  if(!m||!m[1]) return;
+  _pfCellDl=true;
+  var code=m[1], n=0;
+  (function fill(){
+    var cI=null,cR=null;
+    try{ cI=document.getElementById("cCode"); cR=document.getElementById("cRef"); }catch(e){}
+    if(cI){
+      try{ cI.value=code; }catch(e2){}
+      try{
+        if(cR&&!cR.value&&window.PF&&PF.storedRef){
+          var sr=PF.storedRef();
+          if(sr) cR.value=String(sr).toUpperCase();
+        }
+      }catch(e3){}
+      try{ cI.scrollIntoView({behavior:"smooth",block:"center"}); }catch(e4){}
+      try{ toast("Invite link accepted \u2014 tap JOIN to wire into the cell."); }catch(e5){}
+      return;
+    }
+    /* The claim gate renders first for no-callsign arrivals — retry until
+       the join form exists (post-claim render included). */
+    if(++n<25) setTimeout(fill,400);
+  })();
+}
 refresh();
 loadBoard();
+acceptCellDeepLink();
 if(!window._pfCellsTick){ window._pfCellsTick=setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} loadBoard(); },5*60*1000); }
 })();
 </script>

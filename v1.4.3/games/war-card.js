@@ -65,6 +65,23 @@
     return n;
   }
   function val(id){ try{ return document.getElementById(id).value.trim(); }catch(e){ return ""; } }
+  function warVariant(){
+    try{
+      var r=document.querySelector('input[name="wVar"]:checked');
+      return r?String(r.value):'standard';
+    }catch(e){ return 'standard'; }
+  }
+  /* A7 (2026-10-04): /cells deep link for the BUILD A CELL poster variant.
+     ?cell= is the cell's invite code (the join form accepts it); ?ref= is
+     the sharer's callsign via PF.shareUrl — first-touch captured by the
+     referral engine, so the recruit_log + +25 XP bounty fire on the existing
+     path when the recruit enlists. */
+  function cellDeepLink(code){
+    var u='https://www.mtcstw.com/cells';
+    if(code) u+='?cell='+encodeURIComponent(String(code));
+    try{ if(window.PF&&typeof PF.shareUrl==='function') u=PF.shareUrl(u); }catch(e){}
+    return u;
+  }
   function data(){
     var slug=val("wRoster");
     var r=roster().filter(function(x){ return x.slug===slug; })[0]||null;
@@ -73,7 +90,8 @@
     return { roster:r, callsign:cs, followers:val("wFol"), years:val("wYrs"),
       strengths:[val("wS1"),val("wS2"),val("wS3")].filter(Boolean),
       cells:cellsLed(cs),
-      code:(state&&state.in_cell&&state.cell)?state.cell.invite_code:"" };
+      code:(state&&state.in_cell&&state.cell)?state.cell.invite_code:"",
+      variant:warVariant() };
   }
   function syncMeta(){
     var d=data();
@@ -102,6 +120,13 @@
       '<label>STRENGTH 3<input aria-label="e.g. Mutual-aid drives" id="wS3" maxlength="48" placeholder="e.g. Mutual-aid drives" autocomplete="off"></label>'+
       '</div>'+
       '<div class="c-wmeta"><span id="wCells">CELLS: &hellip;</span><span id="wCode"></span></div>'+
+      /* A7 (2026-10-04): BUILD A CELL poster variant — a recruit flyer whose
+         encoded link deep-links straight into the cell join (?cell= +
+         ?ref=), firing the existing recruit bounty on join. */
+      '<div class="c-wvar" style="margin:0.8rem 0;padding:0.7rem;border:2px dashed #c1121f;">'+
+      '<div style="font-size:0.75rem;letter-spacing:0.18em;color:#c1121f;font-weight:900;margin-bottom:0.4rem;">POSTER VARIANT</div>'+
+      '<label style="display:block;margin:0.3rem 0;cursor:pointer;"><input type="radio" name="wVar" value="standard" checked style="margin-right:0.5rem;">STANDARD WAR CARD</label>'+
+      '<label style="display:block;margin:0.3rem 0;cursor:pointer;"><input type="radio" name="wVar" value="cell" style="margin-right:0.5rem;">BUILD A CELL &mdash; recruit poster with your cell invite link</label></div>'+
       '<div class="c-wbtns"><button class="c-btn c-big" id="wShare">Share war card</button>'+
       '<button class="c-btn" id="wSave">Save image</button></div>'+
       '<div class="c-err" id="wErr"></div>'+
@@ -124,18 +149,84 @@
     if(!d.roster){ if(err) err.textContent="Pick your creator profile first."; return; }
     if(!d.callsign){ if(err) err.textContent="Give your war card a callsign."; return; }
     toast("Minting your war card\u2026");
-    drawWarCard(d,function(cv){
+    var painter=(d.variant==="cell")?drawCellVariant:drawWarCard;
+    painter(d,function(cv){
       if(!cv){ toast("Canvas unavailable \u2014 try again."); return; }
       /* P3 (2026-10-04): photo war cards ship as JPEG q0.85; glyph fallback stays PNG. */
       var jpg=!!(cv&&cv._pfPhoto);
-      var fn="war-card-"+String(d.callsign).replace(/[^a-z0-9]+/gi,"-").toLowerCase()+(jpg?".jpg":".png");
+      var slug=String(d.callsign).replace(/[^a-z0-9]+/gi,"-").toLowerCase();
+      var fn=((d.variant==="cell")?"build-a-cell-":"war-card-")+slug+(jpg?".jpg":".png");
       var enc=jpg?{format:"image/jpeg",quality:0.85}:null;
+      /* A7: BUILD A CELL shares carry the deep link in the share text —
+         /cells?cell=<code>&ref=<callsign>. */
+      if(mode==="share"&&d.variant==="cell"){ enc=enc||{}; enc.link=cellDeepLink(d.code); }
       try{
         if(!window.PFShare){ if(err) err.textContent="Share engine still loading."; return; }
         if(mode==="share") PFShare.shareImage(cv,fn,d.callsign+" \u2014 Creator War Card","war-card",enc);
         else PFShare.saveImage(cv,fn,"war-card",enc);
       }catch(e){ if(err) err.textContent="Share unavailable here."; }
     });
+  }
+
+  /* A7 (2026-10-04): BUILD A CELL variant — a recruit flyer, not a stat card.
+     The encoded deep link (printed on the poster + in the share text) lands
+     on /cells with ?cell=<invite_code>&ref=<callsign>; the join flow and the
+     referral engine do the rest — no new backend actions. CTA stays in the
+     war-card family bucket: JOIN MY CELL when the founder has a code,
+     BUILD YOUR CELL when they don't. */
+  function drawCellVariant(d,cb){
+    var W=1080,H=1350;
+    var cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+    var x=cv.getContext("2d"); if(!x){ cb(null); return; }
+    function wrap(text,font,maxW,maxLines){
+      x.font=font; x.textAlign="center";
+      var words=String(text||"").split(/\s+/), lines=[], cur="";
+      words.forEach(function(w){
+        var t=cur?cur+" "+w:w;
+        if(x.measureText(t).width>maxW&&cur){ lines.push(cur); cur=w; } else cur=t;
+      });
+      if(cur) lines.push(cur);
+      return lines.slice(0,maxLines||2);
+    }
+    function center(t,y,font,fill){ x.font=font; x.fillStyle=fill; x.textAlign="center"; x.fillText(t,W/2,y); }
+    x.fillStyle="#0b0b0c"; x.fillRect(0,0,W,H);
+    x.strokeStyle="#c1121f"; x.lineWidth=14; x.strokeRect(20,20,W-40,H-40);
+    x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(44,44,W-88,H-88);
+    center("\u2605 SICK LEFT RADICALS \u2605",104,'700 30px Arial,sans-serif',"#c1121f");
+    center("BUILD A CELL",168,'900 84px "Arial Black",Arial,sans-serif',"#f5ead6");
+    var yy=252;
+    wrap(d.callsign,'900 60px "Arial Black",Arial,sans-serif',W-160,2).forEach(function(l){
+      center(l,yy,'900 60px "Arial Black",Arial,sans-serif',"#c1121f"); yy+=74; });
+    if(d.roster&&d.roster.handle){ center(d.roster.handle,yy,'700 30px Arial,sans-serif',"#c9bfa8"); yy+=48; }
+    yy+=24;
+    center("FIVE CALLSIGNS. ONE STREAK.",yy,'700 38px Arial,sans-serif',"#f5ead6"); yy+=52;
+    center("NOBODY LEFT BEHIND.",yy,'700 38px Arial,sans-serif',"#f5ead6"); yy+=92;
+    var code=String(d.code||"").trim();
+    if(code){
+      center("YOUR INVITE CODE",yy,'700 30px Arial,sans-serif',"#c9bfa8"); yy+=24;
+      x.strokeStyle="#c1121f"; x.lineWidth=6;
+      x.strokeRect(W/2-280,yy,560,150);
+      x.fillStyle="#141010"; x.fillRect(W/2-280,yy,560,150);
+      center(code,yy+106,'900 96px "Arial Black",Arial,sans-serif',"#c1121f");
+      yy+=150+56;
+      center("WIRE IN AT:",yy,'700 30px Arial,sans-serif',"#c9bfa8"); yy+=52;
+      wrap("MTCSTW.COM/CELLS?CELL="+code,'700 34px Arial,sans-serif',W-160,2).forEach(function(l){
+        center(l,yy,'700 34px Arial,sans-serif',"#f5ead6"); yy+=48; });
+      yy+=36;
+    } else {
+      wrap("NO CELL YET — FOUND YOURS AT MTCSTW.COM/CELLS",'700 34px Arial,sans-serif',W-200,2).forEach(function(l){
+        center(l,yy,'700 34px Arial,sans-serif',"#f5ead6"); yy+=48; });
+      yy+=36;
+    }
+    center("EVERY RECRUIT WHO CHECKS IN EARNS +25 XP",yy,'700 26px Arial,sans-serif',"#f5ead6"); yy+=100;
+    var cta=code?"JOIN MY CELL":"BUILD YOUR CELL";
+    x.font='900 44px "Arial Black",Arial,sans-serif';
+    var tw=x.measureText(cta).width+110;
+    x.fillStyle="#c1121f"; x.fillRect(W/2-tw/2,yy-58,tw,94);
+    center(cta,yy+8,'900 44px "Arial Black",Arial,sans-serif',"#ffffff");
+    center("MTCSTW.COM",H-168,'900 48px "Arial Black",Arial,sans-serif',"#c1121f");
+    center("JOIN THE FIGHT.",H-108,'900 44px "Arial Black",Arial,sans-serif',"#c1121f");
+    cb(cv);
   }
 
   /* 1080x1350 propaganda-poster war card. Photo loads CORS-anonymous with a

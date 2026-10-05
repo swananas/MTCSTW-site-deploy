@@ -25,7 +25,7 @@
 #pf-legislation .lg-t44{min-height:44px}
 #pf-legislation .lg-cham{display:flex;gap:8px;margin:8px 0}
 #pf-legislation .lg-cham .c-btn{flex:1;min-height:44px;padding:8px 4px}
-#pf-legislation .lg-cham .c-btn[aria-pressed="true"]{outline:3px solid #f5ead6;outline-offset:-3px}
+#pf-legislation .lg-cham .c-btn[aria-pressed="true"]{outline:3px solid var(--pf-cream);outline-offset:-3px}
 #pf-legislation .lg-card{border:1px solid #4a4a4a;padding:12px;margin:12px 0;overflow-wrap:anywhere}
 #pf-legislation .lg-num{font-weight:900;font-size:14px;color:#ffd166}
 #pf-legislation .lg-title{font-weight:900;font-size:17px;margin:2px 0 6px;line-height:1.25}
@@ -34,17 +34,17 @@
 #pf-legislation .lg-steps{display:flex;margin:10px 0 4px}
 #pf-legislation .lg-step{flex:1;min-width:0;text-align:center}
 #pf-legislation .lg-dot{display:block;width:12px;height:12px;border-radius:50%;border:2px solid #5a5a5a;background:#141414;margin:0 auto 4px}
-#pf-legislation .lg-done .lg-dot{background:#c1121f;border-color:#c1121f}
+#pf-legislation .lg-done .lg-dot{background:var(--pf-red);border-color:var(--pf-red)}
 #pf-legislation .lg-cur .lg-dot{background:#ffd166;border-color:#ffd166}
 #pf-legislation .lg-lab{display:block;font-size:9px;line-height:1.25;color:#8f8875;padding:0 2px}
 #pf-legislation .lg-cur .lg-lab{color:#fff;font-weight:700}
 #pf-legislation .lg-dead .lg-step{opacity:.4}
 #pf-legislation .lg-deadtag{display:inline-block;font-weight:900;font-size:11px;color:#8f8875;border:1px solid #5a5a5a;padding:4px 10px;margin:6px 0}
-#pf-legislation .lg-statusline{font-size:12px;color:#c9bfa8;margin:2px 0 6px}
+#pf-legislation .lg-statusline{font-size:12px;color:var(--pf-muted);margin:2px 0 6px}
 #pf-legislation .lg-stuck{font-size:13px;color:#ffb3b3;margin:6px 0;line-height:1.35}
 #pf-legislation .lg-kp{font-size:13px;margin:6px 0;line-height:1.5}
 #pf-legislation .lg-kplink{background:none;border:0;color:#8fbfff;text-decoration:underline;font-size:13px;padding:6px 2px;cursor:pointer;font-family:inherit;min-height:32px}
-#pf-legislation .lg-tally{font-weight:900;font-size:13px;color:#f5ead6;margin:8px 0}
+#pf-legislation .lg-tally{font-weight:900;font-size:13px;color:var(--pf-cream);margin:8px 0}
 #pf-legislation .lg-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 #pf-legislation .lg-picker{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 #pf-legislation .lg-detail{border-top:1px dashed #4a4a4a;margin-top:10px;padding-top:10px}
@@ -58,7 +58,7 @@ function num(v){ var n=Number(v); return isFinite(n)&&n>=0?Math.floor(n):0; }
 function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
 function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
   try{ var t=document.createElement("div"); t.textContent=m;
-  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:var(--pf-red);color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
   document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }

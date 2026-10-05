@@ -118,11 +118,11 @@
         '#phq-ballot-predict .phh-rail{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}' +
         '#phq-ballot-predict .phh-btn{flex:1 1 160px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;' +
         'font-weight:900;font-size:0.85rem;letter-spacing:0.1em;text-decoration:none;text-align:center;' +
-        'border:2px solid #c1121f;background:#141414;color:#f5f0e1;font-family:inherit;padding:10px 12px;box-sizing:border-box}' +
-        '#phq-ballot-predict .phh-btn:active{background:#c1121f}' +
-        '#phq-ballot-predict .phh-back{border-color:#e8b923}' +
+        'border:2px solid var(--pf-red);background:#141414;color:#f5f0e1;font-family:inherit;padding:10px 12px;box-sizing:border-box}' +
+        '#phq-ballot-predict .phh-btn:active{background:var(--pf-red)}' +
+        '#phq-ballot-predict .phh-back{border-color:var(--pf-gold)}' +
         '#phq-ballot-predict .phh-exits{margin-top:16px;border-top:2px solid #3a3a3a;padding-top:12px}' +
-        '#phq-ballot-predict .phh-exits-label{font-size:0.75rem;letter-spacing:0.2em;color:#c1121f;font-weight:900;margin-bottom:4px}' +
+        '#phq-ballot-predict .phh-exits-label{font-size:0.75rem;letter-spacing:0.2em;color:var(--pf-red);font-weight:900;margin-bottom:4px}' +
         '#phq-ballot-predict .phh-note{font-size:0.8rem;color:#b8ab8e;margin-top:8px;line-height:1.45}';
       (document.head || document.documentElement).appendChild(st);
     } catch (e) {}

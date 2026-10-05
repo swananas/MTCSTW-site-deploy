@@ -24,7 +24,7 @@
    every touch target >= 44px. */
 #pf-civic .cv-cmp-tog{display:flex;gap:8px;margin:8px 0}
 #pf-civic .cv-cmp-tog .c-btn{flex:1;min-height:44px;padding:8px 4px}
-#pf-civic .cv-cmp-tog .c-btn[aria-pressed="true"]{outline:3px solid #f5ead6;outline-offset:-3px}
+#pf-civic .cv-cmp-tog .c-btn[aria-pressed="true"]{outline:3px solid var(--pf-cream);outline-offset:-3px}
 #pf-civic .cv-cmp-row{border:1px solid #4a4a4a;padding:10px 12px;margin:8px 0;overflow-wrap:anywhere}
 #pf-civic .cv-cmp-rank{display:inline-block;min-width:36px;font-weight:900;font-size:16px;color:#ffd166}
 #pf-civic .cv-cmp-name{font-weight:900;font-size:15px}
@@ -37,12 +37,12 @@
 #pf-civic .cv-t44{min-height:44px}
 #pf-civic .cv-cham{display:flex;gap:8px;margin:8px 0}
 #pf-civic .cv-cham .c-btn{flex:1;min-height:44px;padding:8px 4px}
-#pf-civic .cv-cham .c-btn[aria-pressed="true"]{outline:3px solid #f5ead6;outline-offset:-3px}
+#pf-civic .cv-cham .c-btn[aria-pressed="true"]{outline:3px solid var(--pf-cream);outline-offset:-3px}
 #pf-civic .cv-dirrow{border:1px solid #4a4a4a;padding:12px;margin:12px 0;overflow-wrap:anywhere}
 #pf-civic .cv-dirname{font-weight:900;font-size:16px;margin-bottom:4px}
-#pf-civic .cv-pb{display:inline-block;min-width:20px;text-align:center;font-weight:900;font-size:12px;border:1px solid #f5ead6;padding:1px 6px;margin-left:8px;vertical-align:middle}
-#pf-civic .cv-pb-D{color:#8fbfff}#pf-civic .cv-pb-R{color:#ff8f8f}#pf-civic .cv-pb-I{color:#c9bfa8}
-#pf-civic .cv-nv{display:inline-block;font-weight:900;font-size:11px;letter-spacing:1px;border:1px solid #f5ead6;padding:2px 6px;margin-left:8px;vertical-align:middle;white-space:nowrap}
+#pf-civic .cv-pb{display:inline-block;min-width:20px;text-align:center;font-weight:900;font-size:12px;border:1px solid var(--pf-cream);padding:1px 6px;margin-left:8px;vertical-align:middle}
+#pf-civic .cv-pb-D{color:#8fbfff}#pf-civic .cv-pb-R{color:#ff8f8f}#pf-civic .cv-pb-I{color:var(--pf-muted)}
+#pf-civic .cv-nv{display:inline-block;font-weight:900;font-size:11px;letter-spacing:1px;border:1px solid var(--pf-cream);padding:2px 6px;margin-left:8px;vertical-align:middle;white-space:nowrap}
 #pf-civic .cv-diractions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
 #pf-civic .cv-xpb{display:inline-block;font-weight:900;font-size:12px;color:#ffd166;border:1px solid #ffd166;padding:6px 10px;white-space:nowrap}
 /* 2026-10-05: voting scorecards — mobile-first, badges readable, >=44px
@@ -56,11 +56,11 @@
 #pf-civic .cv-vb{display:inline-block;flex:none;font-weight:900;font-size:13px;padding:6px 8px;border:2px solid;min-width:56px;text-align:center}
 #pf-civic .cv-vb-yea{color:#7dff9a;border-color:#7dff9a}
 #pf-civic .cv-vb-nay{color:#ff8f8f;border-color:#ff8f8f}
-#pf-civic .cv-vb-nv{color:#c9bfa8;border-color:#c9bfa8}
+#pf-civic .cv-vb-nv{color:var(--pf-muted);border-color:var(--pf-muted)}
 #pf-civic .cv-sctag{min-height:44px;margin-top:8px}
-#pf-civic .cv-issue{border:2px solid #c1121f;padding:12px;margin-bottom:12px;overflow-wrap:anywhere}
+#pf-civic .cv-issue{border:2px solid var(--pf-red);padding:12px;margin-bottom:12px;overflow-wrap:anywhere}
 #pf-civic .cv-ir{display:grid;grid-template-columns:1fr 44px 44px 44px 64px;gap:4px;padding:8px 0;border-top:1px solid #4a4a4a;text-align:center;font-size:14px;align-items:center}
-#pf-civic .cv-irh{font-weight:900;border-top:none;color:#c9bfa8;font-size:12px}
+#pf-civic .cv-irh{font-weight:900;border-top:none;color:var(--pf-muted);font-size:12px}
 #pf-civic .cv-ir .cv-irlabel{text-align:left;font-weight:900}
 #pf-civic .cv-ir .cv-irtot{font-weight:900}
 #pf-civic .cv-diractions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
@@ -68,7 +68,7 @@
 /* 2026-10-05: call practice mode — frontend-only rehearsal overlay.
    Mobile-first: 44px+ targets, no horizontal scroll, timer pinned. */
 #pfPracOv{position:fixed;top:0;left:0;right:0;bottom:0;z-index:100000;background:rgba(8,8,8,.96);overflow-y:auto;display:none;-webkit-overflow-scrolling:touch}
-#pfPracOv .pfprac-card{max-width:640px;margin:0 auto;padding:16px 16px 48px;color:#f5ead6;box-sizing:border-box}
+#pfPracOv .pfprac-card{max-width:640px;margin:0 auto;padding:16px 16px 48px;color:var(--pf-cream);box-sizing:border-box}
 #pfPracOv .pfprac-top{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;gap:12px;background:rgba(8,8,8,.96);padding:12px 0;z-index:2}
 #pfPracOv .pfprac-timer{font:bold 28px monospace;color:#ffd166}
 #pfPracOv .pfprac-x{min-width:44px}
@@ -81,7 +81,7 @@
 #pfPracOv .pfprac-big{width:100%;min-height:52px;margin:12px 0;box-sizing:border-box}
 #pfPracOv .pfprac-gentle{opacity:0;transition:opacity 1.2s ease;font-size:17px;color:#ffd166;text-align:center;margin:16px 0}
 #pfPracOv .pfprac-gentle.pfprac-show{opacity:1}
-#pfPracOv .pfprac-warm{font-size:24px;font-weight:900;color:#f5ead6;margin:16px 0 8px}
+#pfPracOv .pfprac-warm{font-size:24px;font-weight:900;color:var(--pf-cream);margin:16px 0 8px}
 </style>
 </div>
 <script>
@@ -91,7 +91,7 @@ function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,
 function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
 function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
   try{ var t=document.createElement("div"); t.textContent=m;
-  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:var(--pf-red);color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
   document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }

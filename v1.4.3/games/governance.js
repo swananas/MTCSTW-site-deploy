@@ -21,7 +21,7 @@ function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,
 function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
 function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
   try{ var t=document.createElement("div"); t.textContent=m;
-  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:var(--pf-red);color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
   document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
@@ -135,9 +135,9 @@ function render(){
   }
   for(var qi=0;qi<ping.length;qi++){
     var qp=ping[qi];
-    h+='<div class="gv-ping" style="background:#1a0505;border:2px solid #c1121f;color:#f5ead6;'
+    h+='<div class="gv-ping" style="background:#1a0505;border:2px solid var(--pf-red);color:var(--pf-cream);'
       +'padding:0.8rem 1rem;margin:0.6rem 0;font-size:0.95rem;">'
-      +'<b style="color:#c1121f;">\u26A0 VOTE CLOSING SOON:</b> &ldquo;'+esc(qp.title)+'&rdquo; '
+      +'<b style="color:var(--pf-red);">\u26A0 VOTE CLOSING SOON:</b> &ldquo;'+esc(qp.title)+'&rdquo; '
       +'closes in '+esc(fmtLeft(Number(qp.closes_at)-Date.now()))
       +' \u2014 you haven\u2019t voted. '
       +'<a href="#gv-prop-'+esc(qp.id)+'" style="color:#fff;font-weight:800;">VOTE NOW \u2193</a></div>';

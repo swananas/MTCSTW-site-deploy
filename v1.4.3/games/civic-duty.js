@@ -37,6 +37,20 @@
     function save(s){ try{ localStorage.setItem(LS,JSON.stringify(s)); }catch(e){} }
     function count(st){ var n=0; for(var k in st.t){ if(st.t.hasOwnProperty(k))n++; } return n; }
 
+    /* 2026-10-05 (fe/political-hq-optimize — Psych gate F2 plumbing):
+       expose week-aware progress so success toasts (F2-TOAST) and a future
+       progress meter (F2-PROG) can read "N of 3" without duplicating the
+       localStorage schema. Invisible to visitors — the getter alone changes
+       nothing on screen. */
+    function progress(){
+      try{
+        var st=load(), wk=week();
+        if(st.w!==wk) return {count:0, threshold:THRESHOLD, awarded:false};
+        return {count:count(st), threshold:THRESHOLD, awarded:!!st.a};
+      }catch(e){ return {count:0, threshold:THRESHOLD, awarded:false}; }
+    }
+    try{ PF.civicDutyProgress = progress; }catch(e){}
+
     function award(wk){
       /* Write m.civic=1 into pf_medals_v2 using the EXACT schema
          service-medals.js uses ({w, m, fd}) — read-modify-write, preserving

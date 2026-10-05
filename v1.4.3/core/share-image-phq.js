@@ -1,13 +1,28 @@
 /* core/share-image-phq.js  |  PF v1.4.3 | POLITICAL HQ SHARE POSTERS.
-   Four custom PFShare painters (1080x1350, house palette) for the Political HQ
+   Five custom PFShare painters (1080x1350, house palette) for the Political HQ
    rollout: pressure-campaign card, prediction-result card, voting scorecard,
-   cell-competition winner card. Spec: ~/workspace/hidden/phq-share-specs.md.
+   cell-competition winner card, voter-pledge card. Spec: ~/workspace/hidden/phq-share-specs.md.
    Data contract (painter receives one data object; missing optional fields
    degrade gracefully; scorecard missing fields render '—', never invented):
      pressure:   {title, target, demand, signatures, signaturesGoal}
      prediction: {statement, outcome ('correct'|'missed'), wins, losses}
      scorecard:  {name, state, party, grade, verdict, votes[3] {bill, vote, for_us}}
      cellwin:    {cellName, verified, members, xp, runnerUp, marginXp, mvpCallsign, weekStart}
+     pledge:     {stateCode, stateName, deadline ('YYYY-MM-DD' | null),
+                  daysLeft (number | 'sameday'), registerUrl, electionDay, source}
+   Pledge deadline semantics (mirrors the Ballot Center pane exactly — same
+   balDaysLeft formula, same variants):
+     - deadline null      -> same-day registration state: "REGISTER AT THE POLLS"
+                            variant. Never fake urgency.
+     - deadline missing/malformed -> fail-soft: painter returns null (no card).
+     - deadline in the past        -> fail-soft: painter returns null; the
+                            caller shows the "deadline passed" state instead.
+     - deadline today     -> "TODAY IS THE LAST DAY TO REGISTER" variant.
+   Every deadline is caller-supplied from ballot_get data — the painter never
+   invents one. Use PF.PHQShare.pledgeData(ballotRow) to build the data object
+   (returns null for expired/malformed rows); it is the same pure function the
+   civic voter pane uses, so the Ballot Center "my pledge" entry point can
+   reuse it later.
    Callsigns resolve at paint time via callsignOf() (identity store /
    PFCallsign) — never passed in data. Painters that render the callsign
    inline set cv._pfStamped = true so PFShare.stampCallsign stays a no-op
@@ -17,9 +32,13 @@
      PF.PHQShare.share('phq-pressure', {...})  -> share sheet / download
      PF.PHQShare.save('phq-scorecard', {...})  -> save to phone
      PF.PHQShare.paint('phq-cellwin', {...})   -> raw canvas (previews/tests)
+     PF.PHQShare.share('phq-pledge', pledgeData) -> voter pledge share card
    Routes through PFShare.shareImage/saveImage, so the callsign-claim gate,
    the idempotent stamp, and the pf-share-image credit all ride along.
-   KILL: ?pf_off=phq-share  or  localStorage pf_disabled_v1='["phq-share"]' */
+   KILL: ?pf_off=phq-share  or  localStorage pf_disabled_v1='["phq-share"]'
+   PLEDGE KILL: ?pf_off=card-pledge (or pf_disabled_v1 '["card-pledge"]') —
+   the phq-pledge painter returns null and the civic pane does not arm the
+   SHARE YOUR PLEDGE button. */
 (function () {
   'use strict';
   var PF = window.PF;
@@ -28,12 +47,13 @@
   window.pfPhqShareDone = true;
 
   var W = 1080, H = 1350;
-  var IDS = ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin'];
+  var IDS = ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-pledge'];
   var TITLES = {
     'phq-pressure': 'PRESSURE CAMPAIGN',
     'phq-prediction': 'PREDICTION RESULT',
     'phq-scorecard': 'VOTING SCORECARD',
-    'phq-cellwin': 'CELL VICTORY'
+    'phq-cellwin': 'CELL VICTORY',
+    'phq-pledge': 'VOTER PLEDGE'
   };
   var DEEP = 'MTCSTW.COM/POLITICAL-HQ';
   var PENDING = {};
@@ -354,13 +374,137 @@
   }
 
   /* ---------------------------------------------------------------- */
+  /* Surface 5 — Voter Pledge Card ("I'M IN. Texas. Registered. Nov 3.") */
+  /* ---------------------------------------------------------------- */
+  /* Whole calendar days from local-today start to the deadline — the same
+     formula the Ballot Center pane uses (positive = days left, 0 = today,
+     negative = passed, null = unparseable). */
+  function pledgeDaysLeft(iso) {
+    var m = String(iso == null ? '' : iso).match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (!m) return null;
+    var d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    if (isNaN(d.getTime())) return null;
+    var now = new Date(); now.setHours(0, 0, 0, 0);
+    return Math.round((d.getTime() - now.getTime()) / 86400000);
+  }
+  /* Long date for the card ("OCTOBER 13, 2026") — same month list the
+     Ballot Center pane uses, uppercase for the canvas. */
+  function pledgeFmtLong(iso) {
+    var m = String(iso == null ? '' : iso).match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (!m) return '';
+    var MON = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY',
+      'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
+    var mi = parseInt(m[2], 10) - 1;
+    if (mi < 0 || mi > 11) return '';
+    return MON[mi] + ' ' + parseInt(m[3], 10) + ', ' + m[1];
+  }
+  /* vote.gov display form: strip scheme/www so the canvas line stays short. */
+  function pledgeShortUrl(u) {
+    var s = String(u == null ? '' : u).replace(/^https?:\/\/(www\.)?/i, '').replace(/\/+$/, '');
+    return s.toUpperCase().slice(0, 44);
+  }
+  /* Pure ballot-row -> pledge card data (or null). Mirrors the Ballot Center
+     deadline semantics exactly:
+       NULL deadline  -> same-day registration state ('sameday' variant)
+       missing/malformed deadline -> null (fail-soft: caller shows no card)
+       past deadline  -> null (fail-soft: caller shows "deadline passed")
+     Never invents a date: the deadline comes only from the ballot row.
+     The civic voter pane uses this after a successful voter_pledge; the
+     Ballot Center "my pledge" entry point can reuse it later. */
+  function pledgeData(row) {
+    row = row || {};
+    var code = String(row.state || '').toUpperCase().trim().slice(0, 2);
+    if (!code) return null;
+    var dl = row.registration_deadline;
+    var deadline = (dl == null || dl === '') ? null : String(dl).slice(0, 10);
+    var left;
+    if (deadline === null) {
+      left = 'sameday';
+    } else {
+      left = pledgeDaysLeft(deadline);
+      if (left === null) return null; /* malformed — fail soft */
+      if (left < 0) return null;      /* expired — fail soft */
+    }
+    return {
+      stateCode: code,
+      stateName: String(row.state_name || code),
+      deadline: deadline,          /* null = same-day registration state */
+      daysLeft: left,              /* number | 'sameday' */
+      registerUrl: String(row.register_url || ''),
+      electionDay: String(row.election_day || '').slice(0, 10),
+      source: 'PF BALLOT CENTER DATA'
+    };
+  }
+  function paintPledge(d, cv, x) {
+    /* Kill switch ?pf_off=card-pledge: no card, fail-soft. */
+    try { if (PF && PF.skip('card-pledge')) return null; } catch (e) {}
+    d = d || {};
+    var st = String(d.stateName || d.stateCode || '').toUpperCase().slice(0, 28);
+    if (!st) return null;
+    var left = d.daysLeft;
+    if (left === undefined || left === null) {
+      /* Tolerate callers that pass deadline without daysLeft — derive it. */
+      if (d.deadline == null) left = 'sameday';
+      else { left = pledgeDaysLeft(d.deadline); if (left === null) return null; }
+    }
+    if (left !== 'sameday' && left < 0) return null; /* expired — no card */
+    base(x); kicker(x);
+    badge(x, 'VOTER PLEDGE', 280, '#f5ead6', 40);
+    x.textAlign = 'center';
+    x.fillStyle = '#c1121f'; x.font = '900 118px "Arial Black",Arial,sans-serif';
+    x.fillText("I'M IN.", W / 2, 424);
+    fitFont(x, st, 84, 44, 920, '900');
+    x.fillStyle = '#f5ead6';
+    x.fillText(st, W / 2, 548);
+    var y = 668;
+    if (left === 'sameday') {
+      /* Same-day registration state: the correct variant, never fake urgency. */
+      x.fillStyle = '#c1121f'; x.font = '900 62px "Arial Black",Arial,sans-serif';
+      x.fillText('REGISTER AT THE POLLS', W / 2, y); y += 84;
+      x.fillStyle = '#f5ead6'; x.font = '700 42px Arial,sans-serif';
+      var sdl = wrap(x, 'SAME-DAY REGISTRATION IN ' + st, 920).slice(0, 2);
+      for (var si = 0; si < sdl.length; si++) { x.fillText(sdl[si], W / 2, y); y += 56; }
+    } else if (left === 0) {
+      x.fillStyle = '#c1121f'; x.font = '900 56px "Arial Black",Arial,sans-serif';
+      var tdl = wrap(x, 'TODAY IS THE LAST DAY TO REGISTER', 920).slice(0, 2);
+      for (var ti = 0; ti < tdl.length; ti++) { x.fillText(tdl[ti], W / 2, y); y += 68; }
+    } else {
+      x.fillStyle = '#f5ead6'; x.font = '900 54px "Arial Black",Arial,sans-serif';
+      x.fillText('REGISTER BY ' + pledgeFmtLong(d.deadline), W / 2, y); y += 78;
+      x.fillStyle = '#c1121f'; x.font = '900 64px "Arial Black",Arial,sans-serif';
+      x.fillText(left + (left === 1 ? ' DAY LEFT' : ' DAYS LEFT'), W / 2, y); y += 86;
+    }
+    var reg = pledgeShortUrl(d.registerUrl);
+    if (reg) {
+      x.fillStyle = '#c9bfa8'; x.font = '700 32px Arial,sans-serif';
+      x.fillText('REGISTER: ' + reg, W / 2, y); y += 54;
+    }
+    var ed = pledgeFmtLong(d.electionDay);
+    if (ed) {
+      x.fillStyle = '#f5ead6'; x.font = '700 40px Arial,sans-serif';
+      x.fillText('VOTE ' + ed, W / 2, y); y += 58;
+    }
+    y = Math.max(y + 24, 990);
+    var cs = callsignOf();
+    if (cs) y = csLine(cv, x, y, cs);   /* _pfStamped=true: stampCallsign stays a no-op */
+    else y = claimLine(x, y);            /* no callsign: the funnel line */
+    /* Source + date attribution (the generation date rides bottomStack). */
+    x.fillStyle = '#c9bfa8'; x.font = '400 28px Arial,sans-serif';
+    x.fillText('SOURCE: ' + String(d.source || 'PF BALLOT CENTER DATA').toUpperCase().slice(0, 44),
+      W / 2, H - 176);
+    bottomStack(x); /* DEEP link -> JOIN THE FIGHT. -> date */
+    return cv;
+  }
+
+  /* ---------------------------------------------------------------- */
   /* Painter table + registration                                       */
   /* ---------------------------------------------------------------- */
   var PAINT = {
     'phq-pressure': paintPressure,
     'phq-prediction': paintPrediction,
     'phq-scorecard': paintScorecard,
-    'phq-cellwin': paintCellwin
+    'phq-cellwin': paintCellwin,
+    'phq-pledge': paintPledge
   };
   function paintOne(id, data) {
     var p = PAINT[id];
@@ -418,7 +562,11 @@
       ids: IDS.slice(),
       share: function (id, data, opts) { return go(id, data, 'share', opts); },
       save: function (id, data, opts) { return go(id, data, 'save', opts); },
-      paint: function (id, data) { try { return paintOne(id, data || {}); } catch (e) { return null; } }
+      paint: function (id, data) { try { return paintOne(id, data || {}); } catch (e) { return null; } },
+      /* Ballot-row -> pledge card data (null when no card: expired/malformed).
+         Used by the civic voter pane after a successful voter_pledge; the
+         Ballot Center "my pledge" entry point can reuse it later. */
+      pledgeData: function (row) { try { return pledgeData(row); } catch (e) { return null; } }
     };
   } catch (e) {}
 })();

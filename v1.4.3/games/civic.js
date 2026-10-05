@@ -261,7 +261,8 @@ function bind(){
       var pid=b.getAttribute("data-pet-sign");
       b.disabled=true;
       post("petition","pe_action","petition_sign",{callsign:ident().callsign,petition_id:pid},function(j){
-        if(j&&j.ok){ toast(j.dup?"Already signed.":"Signed. +10 XP."); refreshPetitions(); }
+        if(j&&j.ok){ toast(j.dup?"Already signed.":"Signed. +10 XP."); refreshPetitions();
+          try{ document.dispatchEvent(new CustomEvent('pf-civic-petition-signed')); }catch(e){} }
         else { toast(PF.errCopy(j,"Sign failed.")); b.disabled=false; }
       });
     };
@@ -302,7 +303,8 @@ function bind(){
     if(!title||!target){ err.textContent="Title and target are required."; return; }
     pcb.disabled=true;
     post("petition","pe_action","petition_create",{callsign:ident().callsign,title:title,description:gv("cvPetDesc"),target:target,goal:Number(gv("cvPetGoal"))||500},function(j){
-      if(j&&j.ok){ toast("Petition launched. +25 XP."); CREATE_OPEN=false; refreshPetitions(); }
+      if(j&&j.ok){ toast("Petition launched. +25 XP."); CREATE_OPEN=false; refreshPetitions();
+        try{ document.dispatchEvent(new CustomEvent('pf-civic-petition-created')); }catch(e){} }
       else { err.textContent=PF.errCopy(j,"Create failed."); pcb.disabled=false; }
     });
   };
@@ -335,7 +337,8 @@ function bind(){
     var sid=box?box.getAttribute("data-script-id"):"";
     lc.disabled=true;
     post("rep","r_action","rep_contact",{callsign:ident().callsign,rep_name:rep,method:gv("cvMethod"),script_used:sid||""},function(j){
-      if(j&&j.ok){ toast("Contact logged. +25 XP."); fetchHist(true); }
+      if(j&&j.ok){ toast("Contact logged. +25 XP."); fetchHist(true);
+        try{ document.dispatchEvent(new CustomEvent('pf-civic-rep-contacted')); }catch(e){} }
       else { err.textContent=PF.errCopy(j,"Log failed."); }
       lc.disabled=false;
     });
@@ -348,6 +351,7 @@ function bind(){
     VOTER={state:st};
     api("voter_check",{state:st},function(j){
       VOTER=(j&&j.url)?j:{state:st,err:true};
+      if(j&&j.url){ try{ document.dispatchEvent(new CustomEvent('pf-civic-voter-checked')); }catch(e){} }
       try{ render(); }catch(e){}
     });
   }
@@ -364,6 +368,7 @@ function bind(){
         /* 6A-R7: pledge landed -> arm the share-poster button. */
         PLEDGE_DONE=true; PLEDGE_STATE_NAME=pledgeStateName(stCode);
         toast(j.dup?"Already pledged.":"Pledged. +50 XP.");
+        try{ document.dispatchEvent(new CustomEvent('pf-civic-voter-pledged')); }catch(e){}
         try{ render(); }catch(e){}
       }
       else { toast(PF.errCopy(j,"Pledge failed.")); }

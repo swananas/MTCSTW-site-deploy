@@ -41,7 +41,14 @@
         Earned by the first settled redistribution-layer event each week —
         forecast, gambit, raid, or draw (win or loss) — REQUIRED for
         FULL DEPLOYMENT. */
-     {id:'whitemarket', glyph:'\uD83C\uDFB2', name:'Market Maker',  ev:'pf-wm-settled'}
+     {id:'whitemarket', glyph:'\uD83C\uDFB2', name:'Market Maker',  ev:'pf-wm-settled'},
+     /* 2026-10-05: CIVIC DUTY — 3-of-5 distinct civic actions in a week
+        (petition signed/created, rep contacted, voter pledged/checked).
+        Event 'pf-civic-duty-earned' is fired by games/civic-duty.js after its
+        own threshold gate (service-medals.js never listens for the 5 raw
+        pf-civic-* events directly — the gate keeps them out of the weekly
+        rack until qualified). REQUIRED for FULL DEPLOYMENT like the rest. */
+     {id:'civic', glyph:'\uD83D\uDDF3', name:'Civic Duty', ev:'pf-civic-duty-earned'}
     ];
     /* A5 (2026-10-05): SCOUT — persistent (non-weekly) achievement medal.
        Awarded at 6 distinct creator catalog views (pf-scout-earned, fired by
@@ -224,7 +231,12 @@
     /* mount the rack once the ranks widget exists */
     var tries=0;
     function mount(){
-      if(renderRack())return;
+      /* 2026-10-05: cross-page medal check — Civic Duty is earned on
+         /political-hq (bundle-hq), where this file never loads. If it
+         completed the set before the rack mounted here, checkFull fires
+         FULL DEPLOYMENT now. checkFull is a no-op when any medal is
+         missing or fd/fd_pending is already set — safe to call every mount. */
+      if(renderRack()){ try{ checkFull(load()); }catch(e){} return; }
       if(++tries<20)setTimeout(mount,1000);
     }
     if(document.readyState==='complete'||document.readyState==='interactive')mount();

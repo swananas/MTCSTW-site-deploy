@@ -189,6 +189,23 @@ function baWriteErr(e,fb){
 
   var loaded = {};
   function pane(name){ return document.getElementById("ca-pane-"+name); }
+  /* 6A-R10 (2026-10-04): ?tab=bounties deep-link — /events post-event
+     proof cards route here so attendees land on the S2 post-proof
+     bounty board (the approval queue lives behind it). */
+  try{
+    var tm=String(window.location.search||"").match(/[?&]tab=(bounties|captions|hashtags|headlines)/i);
+    if(tm){
+      var tname=tm[1].toLowerCase(), tbtn=mount.querySelector('.ca-tab[data-tab="'+tname+'"]');
+      if(tbtn){
+        var _tabs=mount.querySelectorAll(".ca-tab");
+        for(var _i=0;_i<_tabs.length;_i++) _tabs[_i].classList.remove("on");
+        tbtn.classList.add("on");
+        var _panes=mount.querySelectorAll(".ca-pane");
+        for(var _j=0;_j<_panes.length;_j++) _panes[_j].classList.remove("on");
+        var _p=pane(tname); if(_p) _p.classList.add("on");
+      }
+    }
+  }catch(e){}
   function errHtml(msg){ return '<div class="ca-err">'+esc(msg)+'<br><button data-retry="1">RETRY</button></div>'; }
 
   mount.addEventListener("click", function(ev){
@@ -628,8 +645,11 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
     })();
   }
 
-  /* Load the default tab immediately. */
-  loadTab("captions");
+  /* Load the default tab immediately (6A-R10: ?tab= deep-link overrides). */
+  loadTab((function(){ try{
+    var m=String(window.location.search||"").match(/[?&]tab=(bounties|captions|hashtags|headlines)/i);
+    return m?m[1].toLowerCase():"captions";
+  }catch(e){ return "captions"; } })());
   /* S7 (2026-10-04): ?for=<slug> deep-link from catalog pages — open the
      bounty board straight away (delegated click handler does the switch). */
   if(FOR_SLUG){

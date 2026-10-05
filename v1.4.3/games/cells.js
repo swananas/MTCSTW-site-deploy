@@ -722,6 +722,31 @@ function renderCell(el,s){
           });
       };
     }
+    /* 6A-R10: event-squad challenge template. /events links here with
+       ?squad=<event_id>; prefill the create form (title/metric/days) from
+       the event via the existing challenge_create contract. Minimal:
+       prefill only, the user still confirms + launches. */
+    function prefillSquad(host){
+      var m=null;
+      try{ m=String(window.location.search||"").match(/[?&]squad=([a-zA-Z0-9_-]{1,64})/); }catch(e){}
+      if(!m) return;
+      var eid=m[1];
+      api("event_list",{},function(j){
+        var evs=(j&&j.ok&&j.events)||[];
+        var ev=null;
+        for(var i=0;i<evs.length;i++){ if(String(evs[i].id)===eid){ ev=evs[i]; break; } }
+        if(!ev) return;
+        var tEl=host.querySelector("#cChTitle"), mEl=host.querySelector("#cChMetric"),
+            dEl=host.querySelector("#cChDays"), ee=host.querySelector("#cChCreateErr");
+        if(!tEl||!mEl||!dEl) return;
+        var title=("SQUAD ROLL CALL: "+String(ev.title||"event")).slice(0,48);
+        var days=Math.ceil(((Number(ev.event_at)||Date.now())-Date.now())/86400000);
+        if(!(days>=1)) days=1; if(days>30) days=30;
+        tEl.value=title; mEl.value="checkins"; dEl.value=days;
+        if(ee){ ee.innerHTML='&#9876; Prefilled from <b>'+esc(String(ev.title||"the event"))+'</b> — launch it and get your cell in.'; }
+        try{ if(tEl.scrollIntoView) tEl.scrollIntoView({block:"center"}); }catch(e){}
+      });
+    }
     function loadCh(){
       host.innerHTML='<h3>Cell challenges</h3><div class="c-load">Loading challenges&hellip;</div>';
       api("challenge_list",{},function(j){
@@ -742,6 +767,7 @@ function renderCell(el,s){
         h+='<div id="cChBoard"><div class="c-load">Loading standings&hellip;</div></div>';
         host.innerHTML=h;
         wireCreate();
+        prefillSquad(host);
         var jbs=host.querySelectorAll(".c-chjoin");
         for(var b=0;b<jbs.length;b++)(function(btn){
           btn.onclick=function(){

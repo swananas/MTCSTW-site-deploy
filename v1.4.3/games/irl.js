@@ -64,8 +64,45 @@ function fmtDate(t){
 }
 function load(){
   var el=document.getElementById("xIrl"); if(!el) return;
-  api("event_list",{},function(j){ render(j); });
+  api("event_list",{},function(j){ render(j); enhanceCell(j); });
   setTimeout(function(){ if(el.innerHTML.indexOf("c-load")>=0) render(null); },15000);
+}
+/* 6A-R10 (2026-10-04): auth-aware JSONP for the private cell reads
+   (cell_mine + event_rsvp_list) — same pattern as games/cells.js. */
+function apiAuth(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  try{
+    if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
+    var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+    if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+  }catch(e){}
+  api(action,params,cb);
+}
+var CELL6A=null;
+/* 6A-R10: YOUR CELL strip — cell_mine members x event_rsvp_list.
+   Renders "N OF YOUR CELL GOING" under each upcoming event. Read-only,
+   fail-silent: the strip just stays empty if any read fails. */
+function enhanceCell(j){
+  var id=ident(); if(!id.callsign) return;
+  var evs=(j&&j.ok&&j.events)||[];
+  var upcoming=evs.filter(function(e){ return (Number(e.event_at)||0)>=Date.now(); });
+  if(!upcoming.length) return;
+  apiAuth("cell_mine",{callsign:id.callsign,device:id.device},function(m){
+    if(!m||!m.ok||!m.in_cell||!m.cell) return;
+    CELL6A={id:m.cell.id,name:m.cell.name};
+    var cid=m.cell.id;
+    upcoming.forEach(function(e){
+      apiAuth("event_rsvp_list",{callsign:id.callsign,device:id.device,event_id:e.id,cell_id:cid},function(r){
+        var host=document.getElementById("irlCell"+e.id); if(!host) return;
+        if(!r||!r.ok) return;
+        var n=Number(r.cell_count)||0, sq=Number(r.squad_count)||0;
+        if(n<=0) return;
+        host.innerHTML='<div class="irl-cellstrip">&#9876; <b>'+n+' OF YOUR CELL GOING</b>'
+          +(sq>0?' &mdash; '+sq+' rolling as a squad':'')
+          +'</div>';
+      });
+    });
+  });
 }
 function render(j){
   var el=document.getElementById("xIrl"); if(!el) return;
@@ -87,11 +124,20 @@ function render(j){
       +'<div class="irl-when">'+esc(fmtDate(e.event_at))+'</div>'
       +'<div class="irl-where">'+esc(e.location||"Location TBA")+'</div>'
       +(e.description?'<div class="x-note">'+esc(e.description)+'</div>':"")
-      +'<div class="irl-rsvps">'+(Number(e.rsvp_count)||0)+' soldiers committed</div>';
+      +'<div class="irl-rsvps">'+(Number(e.rsvp_count)||0)+' soldiers committed</div>'
+      +'<div id="irlCell'+esc(e.id)+'"></div>';
     if(!past&&id.callsign){
-      h+='<button class="c-btn" data-irl-rsvp="'+esc(e.id)+'">RSVP (+50 XP)</button><div class="c-err" id="irlErr'+esc(e.id)+'"></div>';
+      h+='<button class="c-btn" data-irl-rsvp="'+esc(e.id)+'">RSVP (+50 XP)</button> '
+        +'<label class="x-note" style="display:inline-block;margin-left:6px"><input type="checkbox" data-irl-squad="'+esc(e.id)+'"> roll with my cell</label>'
+        +'<div class="c-err" id="irlErr'+esc(e.id)+'"></div>'
+        /* 6A-R10: event-squad challenge template — prefilled on /cells. */
+        +'<div style="margin-top:6px"><a class="x-note" href="/cells?squad='+esc(e.id)+'">&#9876; MAKE IT A SQUAD CHALLENGE &rarr;</a></div>';
     } else if(!past){
       h+='<div class="x-note">Claim a callsign in Enlistment Ranks to RSVP.</div>';
+    } else if(id.callsign){
+      /* 6A-R10: post-event proof routes via the S2 post-proof approval
+         queue (bounty board, BOUNTIES tab on /create). */
+      h+='<div style="margin-top:6px"><a class="c-btn" href="/create?tab=bounties">&#128247; WERE YOU THERE? DROP YOUR PROOF &rarr;</a></div>';
     }
     h+='</div>';
   }
@@ -103,13 +149,16 @@ function render(j){
       btn.onclick=function(){
         var eid=btn.getAttribute("data-irl-rsvp");
         btn.disabled=true;
-        post("event_rsvp",{callsign:id.callsign,device:id.device,event_id:eid},function(j){
+        /* 6A-R10: cell-attendance intent — "I'm rolling with my cell." */
+        var sq=el.querySelector('input[data-irl-squad="'+eid+'"]');
+        var squad=(sq&&sq.checked)?1:0;
+        post("event_rsvp",{callsign:id.callsign,device:id.device,event_id:eid,squad:squad},function(j){
           if(!j||!j.ok){
             var er=document.getElementById("irlErr"+eid);
             if(er) er.textContent=PF.errCopy(j,"RSVP failed.");
             btn.disabled=false; return;
           }
-          toast("+50 XP — see you in the street.");
+          toast("+50 XP — see you in the street."+(squad?" Your cell knows you're rolling with them.":""));
           btn.textContent="COMMITTED";
           load();
         });

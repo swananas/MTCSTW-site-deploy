@@ -21,13 +21,41 @@
   } catch (e) {}
 
   var mount = document.getElementById('pf-creator-assist');
+  /* S7 FUND THEIR FIGHT (2026-10-04): catalog pages deep-link to
+     /create?for=<slug> to show that creator's open bounties. */
+  var FOR_SLUG = (function(){
+    try{
+      var m = String(window.location.search||'').match(/[?&]for=([a-z0-9_-]{1,60})/i);
+      return m ? m[1].toLowerCase() : '';
+    }catch(e){ return ''; }
+  })();
+  function memberName(slug){
+    try{
+      var all = (window.PF && PF.slrAll) ? PF.slrAll() : [];
+      for(var i=0;i<all.length;i++){
+        if(all[i] && all[i].slug === slug && all[i].name) return all[i].name;
+      }
+    }catch(e){}
+    return String(slug||'').replace(/-/g,' ');
+  }
   if (!mount) {
     /* Creator HQ fallback: render right after the war card. */
     var warCard = document.getElementById('pf-war-card');
-    if (!warCard || !warCard.parentNode) { return; }
-    mount = document.createElement('div');
-    mount.id = 'pf-creator-assist';
-    warCard.parentNode.insertBefore(mount, warCard.nextSibling);
+    if (warCard && warCard.parentNode) {
+      mount = document.createElement('div');
+      mount.id = 'pf-creator-assist';
+      warCard.parentNode.insertBefore(mount, warCard.nextSibling);
+    } else if (FOR_SLUG) {
+      /* S7: /create has no #pf-creator-assist and no #pf-war-card. Mount the
+         board inside #pf-create: page-mount inserts the page header before
+         it and appends its game sections after it, so the filtered board
+         lands right below the header — the deep-link target. */
+      var createHost = document.getElementById('pf-create');
+      if (!createHost) { return; }
+      mount = document.createElement('div');
+      mount.id = 'pf-creator-assist';
+      createHost.appendChild(mount);
+    } else { return; }
   }
 
   var BACKEND = window.PF_BACKEND_URL;
@@ -311,19 +339,47 @@ function doXp(n,key,reason){
     document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:n,key:key,reason:reason||"bounty"}}));
   }catch(e){}
 }
+/* S7 (2026-10-04): land the deep-linked visitor on the filtered board.
+   Once per page view — later refreshes (3-min interval) must not yank. */
+function forScrollOnce(){
+  if(!FOR_SLUG||window.__pfForScrolled) return;
+  window.__pfForScrolled=true;
+  try{
+    var ca=document.getElementById("pf-ca");
+    if(ca&&ca.scrollIntoView) setTimeout(function(){ try{ ca.scrollIntoView({block:"start"}); }catch(e){} },300);
+  }catch(e){}
+}
 function render(){
   var el=document.getElementById("xBounty"); if(!el) return;
   var id=ident(), h="";
+  /* S7 (2026-10-04): ?for=<slug> deep-link from catalog pages — filter
+     context shown above everything, even the callsign gate. */
+  var forName=FOR_SLUG?memberName(FOR_SLUG):"";
+  if(FOR_SLUG){
+    h+='<div class="ca-card" style="border-color:#c1121f;"><div class="ca-text">Showing open bounties for <b>'+esc(forName||FOR_SLUG)+'</b>.</div><a href="/create" style="color:#dc143c;font-size:12px;letter-spacing:1px;">CLEAR FILTER</a></div>';
+  }
   if(!id.callsign){
     h+=PF.gateHTML('Bounties run on callsigns.','to claim bounties');
-    el.innerHTML=h; return;
+    el.innerHTML=h; forScrollOnce(); return;
   }
   /* --- open bounties --- */
   var list=[];
   try{ if(B&&B.ok&&B.bounties) list=B.bounties; }catch(e){}
+  if(FOR_SLUG){
+    var fl=String(forName||"").toLowerCase();
+    list=list.filter(function(b){
+      var rq=String(b.requester||"").toLowerCase();
+      if(rq===FOR_SLUG) return true;
+      if(!fl) return false;
+      var hay=(String(b.title||"")+" "+String(b.detail||"")).toLowerCase();
+      return hay.indexOf(fl)!==-1;
+    });
+  }
   h+='<div class="x-pane"><h4>Open bounties</h4>';
   if(!list.length){
-    h+='<div class="x-note">No open bounties. Post one below — put XP on the work you need.</div>';
+    h+=FOR_SLUG
+      ?'<div class="x-note">No open bounties from '+esc(forName||FOR_SLUG)+' right now. Post one below \u2014 put XP on the work you need.</div>'
+      :'<div class="x-note">No open bounties. Post one below \u2014 put XP on the work you need.</div>';
   }
   for(var i=0;i<list.length;i++){
     var b=list[i];
@@ -368,6 +424,7 @@ function render(){
     +'<button class="c-btn" id="bnPostBtn">POST BOUNTY</button><div class="c-err" id="bnPostErr"></div></div>';
   h+='<div style="margin-top:10px"><button class="c-btn" id="bnRetry">Refresh</button></div>';
   el.innerHTML=h;
+  forScrollOnce();
   /* wire claims */
   var cl=el.querySelectorAll("button.bn-claim");
   for(var c=0;c<cl.length;c++){
@@ -443,4 +500,12 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
 
   /* Load the default tab immediately. */
   loadTab("captions");
+  /* S7 (2026-10-04): ?for=<slug> deep-link from catalog pages — open the
+     bounty board straight away (delegated click handler does the switch). */
+  if(FOR_SLUG){
+    try{
+      var btab=mount.querySelector('.ca-tab[data-tab="bounties"]');
+      if(btab) btab.click();
+    }catch(e){}
+  }
 })();

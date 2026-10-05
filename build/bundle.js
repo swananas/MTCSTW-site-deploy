@@ -100,7 +100,10 @@ var SECTIONS = {
     'caption-combat.js',
     'bracket-board.js',
     'battles.js',
-    'casino.js'
+    'casino.js',
+    /* A3 Deployment Tracker (2026-10-04): /arcade lobby deep-links into
+       unplayed medal games. Coordinator: rebuild bundles to ship. */
+    'deploy-tracker.js'
   ],
   'bundle-cells': [
     /* /cells (+ Creator HQ) — the cell lifecycle. */

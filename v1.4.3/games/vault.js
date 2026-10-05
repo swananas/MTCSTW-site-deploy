@@ -260,6 +260,17 @@ function render(){
     +'<div class="vl-form"><input aria-label="Flash title" id="vlFBTitle" class="c-input pf-input-lg" placeholder="Flash title" >'
     +'<input aria-label="Flash message" id="vlFBMsg" class="c-input pf-input-lg" placeholder="Message (goes to email + in-app)" >'
     +'<button class="c-btn" id="vlFBFire">FIRE BROADCAST</button><div class="c-err" id="vlFBErr"></div></div></div>';
+  /* A8 WAR-WORD CONSOLE (2026-10-04): set the spoken war-word for a podcast
+     episode. POST warword_set rides X-Admin-Secret (vault post()); backend
+     clamps payout 5..50 XP, deactivates the old word, and pings active
+     fighters WITHOUT naming the word (it stays spoken-only). */
+  h+='<div class="x-pane"><h4>War-word console</h4>'
+    +'<div class="x-note">Set the war-word spoken in the latest episode. Listeners type it in Daily Fire to claim the bounty. Keep the word spoken-only — it is never shown on-site.</div>'
+    +'<div class="vl-form"><input aria-label="War-word" id="vlWWWord" class="c-input pf-input-md" placeholder="War-word (e.g. CATACLYSM)" >'
+    +'<input aria-label="Episode label" id="vlWWEp" class="c-input pf-input-lg" placeholder="Episode label (e.g. EP 42 — THE TURN)" >'
+    +'<input aria-label="Bounty XP" id="vlWWXp" class="c-input pf-input-sm" type="number" min="5" max="50" step="1" value="25" >'
+    +'<button class="c-btn" id="vlWWFire">SET WAR-WORD</button><div class="c-err" id="vlWWErr"></div></div>'
+    +'<div class="x-note" id="vlWWOut"></div></div>';
   /* MODERATION QUEUE — battle proposals + intel submissions */
   h+='<div class="x-pane"><h4>Moderation queue</h4>';
   var bpl=(BP&&BP.ok&&BP.proposals)||[];
@@ -527,6 +538,23 @@ function wire(){
       b.disabled=false;
       if(!j||!j.ok){ err("vlFBErr",PF.errCopy(j,"Broadcast failed.")); return; }
       toast("Flash broadcast queued (row "+j.id+"). It drains with the hourly queue.");
+    }); };
+  /* A8 war-word console: warword_set rides X-Admin-Secret (vault post());
+     backend normalizes the word, clamps 5..50 XP, and pings active fighters
+     without naming the word. */
+  b=document.getElementById("vlWWFire");
+  if(b) b.onclick=function(){ b.disabled=true;
+    var ww=val("vlWWWord");
+    if(!ww){ err("vlWWErr","War-word required."); b.disabled=false; return; }
+    var wxp=Number(val("vlWWXp"))||25;
+    if(wxp<5||wxp>50){ err("vlWWErr","Bounty must be 5 to 50 XP."); b.disabled=false; return; }
+    post("warword","w_action","warword_set",{word:ww,episode:val("vlWWEp"),xp:wxp},function(j){
+      b.disabled=false;
+      if(!j||!j.ok){ err("vlWWErr",PF.errCopy(j,"Set failed.")); return; }
+      toast("War-word live: "+j.word.toUpperCase()+" ("+j.xp_amount+" XP). Fighters were pinged.");
+      var out=document.getElementById("vlWWOut");
+      if(out) out.textContent="Active word: "+j.word+" — episode: "+(j.episode||"(unlabeled)")+" — "+j.xp_amount+" XP bounty.";
+      var wwe=document.getElementById("vlWWWord"); if(wwe) wwe.value="";
     }); };
   /* moderation queue: battle proposals */
   var baps=document.querySelectorAll("[data-bap]");

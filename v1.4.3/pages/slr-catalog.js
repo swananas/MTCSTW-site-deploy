@@ -73,8 +73,32 @@
       + (links ? '<h2 style="color:' + RED + ';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;">Find them here</h2><ul style="list-style:none;padding:0;margin:0;">' + links + '</ul>' : '')
       + (strengths ? '<h2 style="color:' + RED + ';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;">Key strengths</h2><ul style="padding-left:1.2rem;margin:0;">' + strengths + '</ul>' : '')
       + '<div style="text-align:center;margin-top:2.5rem;"><a href="/creator-onboard" style="color:' + RED + ';font-weight:900;letter-spacing:0.12em;text-decoration:none;border-bottom:2px solid ' + RED + ';">WANT IN? JOIN THE SICK LEFT RADICALS →</a></div>'
+      + fundBlock(m, RED, CREAM, MUTED)
       + (related ? '<h2 style="color:' + MUTED + ';font-size:1rem;font-weight:700;letter-spacing:0.1em;margin:2.5rem 0 0.8rem;">RELATED CREATORS</h2><div style="display:flex;flex-direction:column;gap:0.5rem;">' + related + '</div>' : '')
       + '</div></div>';
+  }
+
+  /* S7 FUND THEIR FIGHT (2026-10-04): after the enlist links — one click
+     from admiration to money. /war-chest?creator=<slug> preloads this
+     creator in the subscribe UI; /create?for=<slug> filters the bounty
+     board to their open bounties. Skipped for Jeanine Pirreaux Comedy
+     (do-not-touch). */
+  var FUND_SKIP_SLUGS = ['jeanine-pirreaux-comedy'];
+  function fundBlock(m, red, cream, muted) {
+    if (!m || !m.slug || FUND_SKIP_SLUGS.indexOf(m.slug) !== -1) return '';
+    var slug = encodeURIComponent(m.slug);
+    return '<div style="margin:2rem auto 0;max-width:560px;background:#140808;border:2px solid ' + red + ';'
+      + 'padding:1.4rem 1rem;text-align:center;box-sizing:border-box;">'
+      + '<div style="color:' + red + ';font-weight:900;letter-spacing:0.28em;font-size:0.72rem;margin-bottom:0.6rem;">FUND THEIR FIGHT</div>'
+      + '<div style="color:' + cream + ';font-size:0.95rem;line-height:1.6;margin-bottom:1rem;">Back ' + esc(m.name)
+      + ' directly \u2014 tip XP or subscribe weekly. No platform takes a cut.</div>'
+      + '<div><a href="/war-chest?creator=' + slug + '" style="display:inline-block;background:' + red + ';color:#fff;'
+      + 'font-weight:900;letter-spacing:0.12em;font-size:0.85rem;text-decoration:none;padding:0.8rem 1.6rem;'
+      + 'border:2px solid ' + red + ';">FUND THEIR FIGHT \u2192</a></div>'
+      + '<div style="margin-top:0.8rem;"><a href="/create?for=' + slug + '" style="color:' + muted + ';'
+      + 'font-size:0.8rem;letter-spacing:0.08em;text-decoration:none;border-bottom:1px solid ' + muted + ';">'
+      + 'or fill one of their open bounties \u2192</a></div>'
+      + '</div>';
   }
 
   function takeoverMount() {

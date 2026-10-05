@@ -66,6 +66,17 @@ function fmtDate(t){
     return mo[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear(); }catch(e){ return ""; }
 }
 var CAUSES=null, SUBS=null, PRIZES=null, BURNS=null;
+/* S7 FUND THEIR FIGHT (2026-10-04): /war-chest?creator=<slug> preselects
+   the creator in the subscription UI — catalog pages deep-link here.
+   Existing backend contract only: {type:'finance',f_action:'subscribe',
+   subscriber, creator, amount_per_week}. No new actions. */
+var PRESELECT=(function(){
+  try{
+    var m=String(window.location.search||"").match(/[?&]creator=([a-z0-9_-]{3,60})/i);
+    return m?m[1].toLowerCase():"";
+  }catch(e){ return ""; }
+})();
+var preselectApplied=false;
 function load(){
   var id=ident(), done=false, n=0, need=4;
   function fin(){ if(done)return; done=true; render(); }
@@ -91,6 +102,18 @@ function render(){
   h+='<div style="margin-top:10px"><button class="c-btn" id="mvRetry">Refresh</button></div>';
   el.innerHTML=h;
   wireCauses(id,el); wireSubs(id,el); wirePrizes(id,el); wireBurns(id,el);
+  /* S7 preselect: prefill the subscribe field with the ?creator= target
+     once per page view, then scroll the visitor to it. */
+  if(PRESELECT&&!preselectApplied){
+    preselectApplied=true;
+    try{
+      var pi=document.getElementById("mvSubCs");
+      if(pi&&!pi.value) pi.value=PRESELECT;
+      var pb2=document.getElementById("mvPre");
+      if(pb2&&pb2.scrollIntoView) setTimeout(function(){ try{ pb2.scrollIntoView({block:"center"}); }catch(e){} },400);
+      toast("FUNDING "+PRESELECT.toUpperCase()+" \\u2014 set XP/week and hit SUPPORT.");
+    }catch(e){}
+  }
   var rb=document.getElementById("mvRetry");
   if(rb) rb.onclick=function(){ CAUSES=SUBS=PRIZES=BURNS=null; el.innerHTML='<div class="c-load">Opening the war chest&hellip;</div>'; load(); };
 }
@@ -145,6 +168,7 @@ function renderSubs(id){
   }
   if(sup.length) h+='<div class="x-note"><b>'+total.toLocaleString()+' XP/week</b> flowing to creators.</div>';
   h+='<div class="pb-sub pf-mt" >FIND CREATORS</div>'
+    +(PRESELECT?'<div class="x-note" id="mvPre" style="border:1px solid #c1121f;padding:8px;margin:6px 0;background:#1c0a0a;">FUNDING <b>'+esc(PRESELECT)+'</b> &mdash; preloaded below. <a href="/war-chest" style="color:#dc143c;">clear</a></div>':'')
     +'<div><input aria-label="creator callsign" class="c-in pf-input-md" id="mvSubCs" type="text" placeholder="creator callsign" /> '
     +'<input aria-label="XP/week" class="c-in pf-input-sm" id="mvSubAmt" type="number" min="1" max="10000" placeholder="XP/week" /> '
     +'<button class="c-btn" id="mvSubBtn">SUPPORT</button></div>'

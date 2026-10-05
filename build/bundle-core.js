@@ -59,7 +59,11 @@ var CORE_FILES = [
   'core/17-nuke-strip.js',
   'core/16-footer.js',
   /* crossnav: persistent 9-page cross-link strip + page CTAs (all pages). */
-  'core/19-crossnav.js'
+  'core/19-crossnav.js',
+  /* nextop (S4, 2026-10-04): context-aware NEXT OP card, in-flow above the
+     footer chrome on every page. Last: mounts before the footer element,
+     so the chrome strips (crossnav/16-footer) sit below it. */
+  'core/20-nextop.js'
 ];
 
 var BUNDLES = {
@@ -96,7 +100,10 @@ var BUNDLES = {
     'core/17-nuke-strip.js',
     'core/16-footer.js',
     /* crossnav: persistent 9-page strip on v1.1.0-branch pages too. */
-    'core/19-crossnav.js'
+    'core/19-crossnav.js',
+    /* nextop (S4, 2026-10-04): NEXT OP card on v1.1.0-branch pages too —
+       every page ends with a next action, not just v2 pages. */
+    'core/20-nextop.js'
   ]
 };
 

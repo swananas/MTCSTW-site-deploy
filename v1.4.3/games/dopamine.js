@@ -142,7 +142,9 @@ var RARITY={
   legendary:{c:"#e8b10c",label:"LEGENDARY"}
 };
 var MILESTONES=[7,14,30,60,100];
-var ST=null, CB=null, WARM=false;
+var ST=null, CB=null, WARM=false, WW=null;
+/* A8 Podcast Listener Bounties: WW carries the warword_status read —
+   {ok, active, episode, xp_amount, claimed}. The word itself never arrives. */
 /* ---- combo meter (session-local) ---- */
 function comboGet(){
   try{
@@ -182,11 +184,17 @@ function refreshServerCombo(){
 function load(){
   var id=ident(), n=0, done=false;
   function fin(){ if(done)return; done=true; render(); }
-  function one(){ n++; if(n>=1) fin(); }
+  function one(){ n++; if(n>=2) fin(); }
   setTimeout(fin,15000);
   var p={callsign:id.callsign,device:id.device};
   api("dopamine_status",p,function(j){
     if(j&&j.ok){ ST=j; checkStreakMilestone(j); } else { WARM=true; }
+    one();
+  });
+  /* A8: war-word live/claimed state (public read — the word never leaves the
+     server). Fails silent: the bounty pane degrades to a standby note. */
+  api("warword_status",{device:id.device},function(j){
+    if(j&&j.ok){ WW=j; } else { WW=null; }
     one();
   });
   refreshServerCombo();
@@ -269,6 +277,7 @@ function render(){
   h+=renderLoot();
   h+=renderStreak();
   h+=renderFlash();
+  h+=renderWarWord();
   h+='<div class="x-pane"><h4>Session combo</h4><div id="dpComboBox"></div></div>';
   h+=renderRecords();
   h+=renderNearRank();
@@ -377,6 +386,39 @@ function fillFlashHistory(){
     box.innerHTML=hh;
   });
 }
+/* A8 Podcast Listener Bounties — spoken war-word per episode, redeemed here
+   for a small XP bounty. The word is spoken in the episode and compared
+   server-side; this widget never fetches it. Placement: the Daily Fire hub
+   (homepage) — where a podcast listener landing on the site stokes the fire.
+   KILL: ?pf_off=dopa (whole silo). */
+var WW_PODCAST='https://rss.com/podcasts/the-propaganda-factory';
+function renderWarWord(){
+  var h='<div class="x-pane dp-pane"><h4>War-word bounty</h4>';
+  h+='<div class="x-note">Every episode of the podcast hides a spoken war-word. '
+    +'Hear it, type it below, take the bounty. '
+    +'<a href="'+WW_PODCAST+'" target="_blank" rel="noopener">LISTEN TO THE PODCAST</a></div>';
+  var ww=WW;
+  if(!ww){
+    h+='<div class="x-note">The bounty wire is quiet right now — check back after the next episode drops.</div>';
+  } else if(!ww.active){
+    h+='<div class="x-note">No war-word live right now. Listen to the latest episode so you are ready when the next one drops.</div>';
+  } else if(ww.claimed){
+    h+='<div class="x-note">Bounty claimed'+(ww.episode?' for <b>'+esc(ww.episode)+'</b>':'')
+      +'. One per device per word — the next word drops with the next episode.</div>';
+  } else {
+    h+='<div style="margin-top:10px">'
+      +'<input aria-label="Spoken war-word" id="dpWarWordInput" class="c-input" '
+      +'placeholder="Type the spoken war-word" autocapitalize="none" autocomplete="off" spellcheck="false" '
+      +'style="max-width:280px;margin-right:8px">'
+      +'<button class="c-btn" id="dpWarWordBtn">REDEEM BOUNTY</button>'
+      +'<div class="c-err" id="dpWarWordErr"></div></div>'
+      +'<div class="x-note">Bounty: <b>'+Number(ww.xp_amount||25)+' XP</b>'
+      +(ww.episode?' — live for <b>'+esc(ww.episode)+'</b>':'')
+      +'. One claim per device. The wire resets with each new word.</div>';
+  }
+  h+='</div>';
+  return h;
+}
 function renderCombo(){
   var box=document.getElementById("dpComboBox"); if(!box) return;
   var c=comboGet(), m=comboMult(c.n);
@@ -478,6 +520,40 @@ function wire(){
       else if(err) err.textContent=PF.errCopy(j,"Repair failed.");
     });
   }; }
+  /* A8 Podcast Listener Bounties: redeem the spoken war-word. One claim per
+     device per word (backend-enforced); the word is compared server-side. */
+  var wwb=document.getElementById("dpWarWordBtn");
+  if(wwb){ wwb.onclick=function(){
+    var err=document.getElementById("dpWarWordErr");
+    var inp=document.getElementById("dpWarWordInput");
+    var word=inp?inp.value:"";
+    if(!word||!word.trim()){ if(err) err.textContent="Type the word you heard in the episode."; return; }
+    wwb.disabled=true; wwb.textContent="CHECKING THE WIRE...";
+    post("warword","w_action","warword_redeem",{callsign:id.callsign,device:id.device,word:word},function(j){
+      wwb.disabled=false; wwb.textContent="REDEEM BOUNTY";
+      if(j&&j.ok){
+        var gained=Number(j.xp||0);
+        toast("BOUNTY SECURED. +"+gained+" XP"+(j.lucky?" — LUCKY hit":"")+".");
+        try{ if(window.PF&&PF.dope){ PF.dope.confetti(document.getElementById("pf-dopa"),40); PF.dope.xpFloat(document.getElementById("pf-dopa"),"+"+gained+" XP"); } }catch(e){}
+        comboHit();
+        try{ document.dispatchEvent(new CustomEvent("pf-combo-hit")); }catch(e2){}
+        load();
+      } else if(err) {
+        err.textContent=warWordErr(j);
+      }
+    });
+  }; }
+}
+/* Friendly copy for war-word rejections — the backend word is never shown,
+   so wrong guesses get a nudge back to the episode. */
+function warWordErr(j){
+  var e=String((j&&j.err)||"");
+  if(e==="wrong word") return "That word does not open anything. Listen close and try again.";
+  if(e==="already claimed") return "Already claimed. One bounty per device per word.";
+  if(e==="no war-word live") return "No war-word is live right now — it drops with the next episode.";
+  if(e==="daily cap reached"||j&&j.capped) return "Daily cap reached. The wire resets at midnight Chicago time — come back swinging.";
+  if(e==="device required") return "Your device ID did not come through — reload and try again.";
+  return PF.errCopy(j,"The wire fought back. Nothing changed — retry.");
 }
 /* ---- ticking countdowns ---- */
 function tick(){

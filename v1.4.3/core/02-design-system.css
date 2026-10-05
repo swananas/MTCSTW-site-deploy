@@ -505,7 +505,7 @@ html,body{overflow-x:clip;}
    provisional — Psych veto pending. */
 #pf-hq-subnav{position:sticky;top:0;z-index:50;background:var(--pf-dark);border-top:2px solid var(--pf-red);border-bottom:2px solid var(--pf-red);}
 .pf-hq-tabs{display:flex;gap:6px;overflow-x:auto;white-space:nowrap;scroll-snap-type:x mandatory;padding:8px 12px;scrollbar-width:thin;-webkit-overflow-scrolling:touch;}
-.pf-hq-tab{scroll-snap-align:start;flex:0 0 auto;background:transparent;border:1px solid var(--pf-border-light);color:var(--pf-cream);font-family:var(--pf-font-body);font-weight:700;font-size:12px;letter-spacing:1px;padding:10px 14px;cursor:pointer;}
+.pf-hq-tab{scroll-snap-align:start;flex:0 0 auto;background:transparent;border:1px solid var(--pf-border-light);color:var(--pf-cream);font-family:var(--pf-font-body);font-weight:700;font-size:12px;letter-spacing:1px;padding:14px 16px;cursor:pointer;}
 .pf-hq-tab:hover{border-color:var(--pf-red-bright);color:#fff;}
 .pf-hq-tab[aria-current="true"]{background:var(--pf-red);border-color:var(--pf-red);color:#fff;}
 .pf-hub{margin:28px 0;padding:0 4px;}

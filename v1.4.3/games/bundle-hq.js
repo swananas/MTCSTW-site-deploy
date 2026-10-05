@@ -86,7 +86,7 @@
       order: ['intel', 'nonprofits'],
       panes: ['polls'] },
     { id: 'money', sec: '06', tab: 'FOLLOW THE MONEY', title: 'Follow the Money', /* [PSYCH] tab label */
-      mission: 'See who bought your government.', /* [PSYCH] */
+      mission: 'Follow the money. See who funds the votes.', /* [PSYCH] P5 */
       silos: ['money-tab', 'money-vote', 'pac-alerts', 'trades-tab', 'corp-card', 'ledgers', 'boycotts'],
       interim: ['money-tab', 'money-vote', 'pac-alerts', 'trades-tab', 'corp-card', 'ledgers', 'boycotts'],
       order: [],
@@ -231,7 +231,7 @@
           '<div class="pf-hub-silos"><div class="pf-hub-loading">Loading ' + esc(hub.title) + '&hellip;</div></div>' +
           '<footer class="pf-hub-exits">' +
           '<a href="#phq-' + next.id + '" data-hub-go="' + next.id + '">Next: ' + esc(next.title) + ' &rarr;</a>' +
-          '<a href="#phq-action" data-hub-go="action">&larr; Back to Action Center</a>' +
+          '<a href="#phq-action" data-hub-go="action">&larr; Back to Take Action</a>' +
           '</footer>';
         sec.innerHTML = h;
         host.appendChild(sec);
@@ -250,7 +250,7 @@
         if (!kind) continue;
         var hubId = hubForPaneKind(kind);
         if (!hubId) continue;
-        if (!panes[i].id) panes[i].id = 'phq-pane-' + kind;
+        if (!panes[i].id && !document.getElementById('phq-pane-' + kind)) panes[i].id = 'phq-pane-' + kind;
         panes[i].setAttribute('data-phq-hub', hubId);
         panes[i].setAttribute('data-phq-pane', kind);
       }
@@ -372,10 +372,15 @@
     hubHasSilos[hub.id] = n;
     clearLoading(hub);
     tagHubPanes();
-    /* FAIL-SOFT (spec §1): hub hides when all its silos are killed or fail to mount. */
+    /* FAIL-SOFT (spec §1): hub hides when all its silos are killed or fail to mount.
+       2026-10-05 (hub-visibility fix): when the deep-chunk re-mount succeeds
+       (n>0), restore display — the first-pass fail-soft hide must not stick
+       forever, or people/bills/intel stay invisible after phqDeepReady(). */
     if (n === 0 && sec) {
       sec.style.display = 'none';
       if (PF) PF.error('phq-hubs', 'hub ' + hub.id + ' has no mountable silos — hidden (fail-soft)');
+    } else if (n > 0 && sec && sec.style.display === 'none') {
+      sec.style.display = '';
     }
     refreshTabs();
     return n;
@@ -740,6 +745,14 @@
 #pf-civic .cv-nv{display:inline-block;font-weight:900;font-size:11px;letter-spacing:1px;border:1px solid var(--pf-cream);padding:2px 6px;margin-left:8px;vertical-align:middle;white-space:nowrap}
 #pf-civic .cv-diractions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
 #pf-civic .cv-xpb{display:inline-block;font-weight:900;font-size:12px;color:#ffd166;border:1px solid #ffd166;padding:6px 10px;white-space:nowrap}
+/* 2026-10-05 (rep-flow friction): secondary row actions tuck behind MORE —
+   the scan path stays name > CALL/CONTACT/LOG. */
+#pf-civic .cv-mored{display:inline-block}
+#pf-civic .cv-mored>summary{list-style:none;display:inline-block;cursor:pointer}
+#pf-civic .cv-mored>summary::-webkit-details-marker{display:none}
+#pf-civic .cv-mored>summary::after{content:" \u25be"}
+#pf-civic .cv-mored[open]>summary::after{content:" \u25b4"}
+#pf-civic .cv-morebody{margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 /* 2026-10-05: voting scorecards — mobile-first, badges readable, >=44px
    touch targets, no horizontal scroll. */
 #pf-civic .cv-scdetail{margin-top:10px;border-top:2px solid #4a4a4a;padding-top:10px}
@@ -785,6 +798,11 @@ var BACKEND=window.PF_BACKEND_URL;
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
 function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+/* 2026-10-05 (P2 F2-TOAST): read the Civic Duty progress AFTER the
+   pf-civic-* event has been dispatched (civic-duty.js records
+   synchronously), so the toast shows the count including this action. */
+function dutyN(){ try{ var p=window.PF&&PF.civicDutyProgress&&PF.civicDutyProgress(); return (p&&p.count)||0; }catch(e){ return 0; } }
+function dutyFrag(){ return " \ud83d\uddf3 Civic Duty: "+dutyN()+" of 3."; }
   try{ var t=document.createElement("div"); t.textContent=m;
   t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:var(--pf-red);color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
   document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
@@ -838,6 +856,9 @@ var STATES_F=null; /* STATES + DC, filter-only (STATES itself untouched). */
 /* 2026-10-05 (wave pressure-campaigns FE): active pressure campaigns from
    pressure_list, per-campaign script+targets via pressure_get, join state. */
 var PC_LIST=null, PC_SCRIPT={}, PC_TITLE={}, PC_JOINED={};
+/* 2026-10-05 (P2 F2-TOAST): petitions signed this session render a
+   post-sign SHARE IT button — the share ask follows the action (W18). */
+var PET_SHARE_AFTER={}, PET_TITLE={};
 /* 6A-R7: voter-pledge poster state — set on a successful pledge. */
 var PLEDGE_DONE=false, PLEDGE_STATE_NAME='';
 /* Network Polls (2026-10-05, interactive expansion #3): poll list/detail
@@ -991,7 +1012,9 @@ function pressurePaneHTML(){
       +'<div class="x-note" data-pc-counts="'+esc(cid)+'">'+pcCountersHTML(c)+'</div>'
       +'<div data-pc-body="'+esc(cid)+'"><div class="c-load">Loading campaign&hellip;</div></div>'
       +'<button class="c-btn cp-mbtn" data-pc-join="'+esc(cid)+'"'+(PC_JOINED[cid]?" disabled":"")+'>'+(PC_JOINED[cid]?"YOU&rsquo;RE IN":"JOIN THE PRESSURE")+'</button> '
-      +'<button class="c-btn cp-mbtn" data-pc-share="'+esc(cid)+'">SHARE</button>'
+      /* 2026-10-05 (P10 W18): the share ask follows the action — SHARE
+         renders only after join, never on the un-joined card. */
+      +'<button class="c-btn cp-mbtn" data-pc-share="'+esc(cid)+'"'+(PC_JOINED[cid]?"":' style="display:none"')+'>SHARE</button>'
       +'</div>';
   }
   return h+'</div>';
@@ -1068,7 +1091,18 @@ function pcPaintCard(cid,j){
     /* Extended rep_contact POST: the backend accepts an optional campaign
        param, passed here so the call is attributed to the campaign. */
     post("rep","r_action","rep_contact",{callsign:ident().callsign,rep_name:mname,method:"call",script_used:"pressure:"+cid2,campaign:cid2},function(j){
-      if(j&&j.ok){ toast("Call logged \u2014 +25 XP."); fetchHist(true); }
+      /* 2026-10-05 (P2 F2-TOAST): a campaign call is a rep contact — it
+         feeds Civic Duty. Record first so the toast shows the new count. */
+      if(j&&j.ok){ try{ document.dispatchEvent(new CustomEvent('pf-civic-rep-contacted')); }catch(e){}
+        toast("Logged \u2014 +25 XP."+dutyFrag()); fetchHist(true);
+        /* 2026-10-05 (P10 W18): share ask AFTER the logged call, never
+           before the effort. Transient — next card repaint clears it. */
+        try{ if(btn.parentNode&&!btn.parentNode.querySelector("[data-pc-tell]")){
+          var tb=document.createElement("button"); tb.type="button";
+          tb.className="c-btn cp-mbtn"; tb.setAttribute("data-pc-tell","1");
+          tb.textContent="Tell the network \u2192";
+          tb.onclick=function(){ pcShare(cid2); };
+          btn.parentNode.insertBefore(tb,btn.nextSibling); } }catch(e2){} }
       /* 2/day cap: the backend surfaces the 'cap' code, routed through the
          shared friendly-copy mapper (resets at midnight Chicago). */
       else { toast(PF.errCopy(j,"Log failed.")); }
@@ -1118,7 +1152,11 @@ function pressureBind(qsa){
       if(PC_JOINED[cid]) return;
       b.disabled=true;
       post("pressure","pr_action","pressure_join",{callsign:ident().callsign,id:cid},function(j){
-        if(j&&j.ok){ PC_JOINED[cid]=1; b.innerHTML="YOU&rsquo;RE IN"; pcRefreshCounts(); }
+        if(j&&j.ok){ PC_JOINED[cid]=1; b.innerHTML="YOU&rsquo;RE IN"; pcRefreshCounts();
+          /* 2026-10-05 (P10 W18): reveal the post-join SHARE affordance. */
+          try{ var card=b.closest?b.closest("[data-pc-card]"):null;
+            var sh=card?card.querySelector("[data-pc-share]"):null;
+            if(sh) sh.style.display=""; }catch(e){} }
         else { toast(PF.errCopy(j,"Join failed.")); b.disabled=false; }
       });
     };
@@ -1433,15 +1471,19 @@ function dirRowHTML(r){
      the reward is surfaced, not new. */
   h+=' <button type="button" class="c-btn cv-t44" data-dir-log="'+esc(nm)+'">LOG CONTACT</button>'
     +'<span class="cv-xpb">+25 XP</span>';
+  /* 2026-10-05 (rep-flow friction): secondary row actions tuck behind MORE —
+     the scan path is name > CALL/CONTACT/LOG, not five equal buttons. */
+  var moreBtns="";
   /* 2026-10-05: voting scorecards — expandable member detail keyed by
      bioguide_id. Rows without the key get no button (fail-soft). */
   var bio=scKey(r);
-  if(bio) h+=' <button type="button" class="c-btn cv-t44" data-sc-toggle="'+esc(bio)+'">'
+  if(bio) moreBtns+=' <button type="button" class="c-btn cv-t44" data-sc-toggle="'+esc(bio)+'">'
     +(SCST.open===bio?"HIDE SCORECARD":"SCORECARD")+'</button>';
   /* 2026-10-05: call practice mode — rehearsal entry point per row.
      Practice earns zero XP (stated in the overlay); the real call logs
      through the same doLogContact() path as LOG CONTACT. */
-  h+=' <button type="button" class="c-btn cv-t44" data-dir-practice="'+esc(nm)+'" data-dir-phone="'+esc(telHref)+'">PRACTICE FIRST</button>';
+  moreBtns+=' <button type="button" class="c-btn cv-t44" data-dir-practice="'+esc(nm)+'" data-dir-phone="'+esc(telHref)+'">PRACTICE FIRST</button>';
+  if(moreBtns) h+=' <details class="cv-mored"><summary class="c-btn cv-t44">MORE</summary><div class="cv-morebody">'+moreBtns+'</div></details>';
   h+='</div>';
   if(bio&&SCST.open===bio) h+=scDetailHTML(bio);
   h+='</div>';
@@ -1465,7 +1507,11 @@ function dirListHTML(){
   });
   if(q) reps=reps.filter(function(r){ return String(r.name||"").toLowerCase().indexOf(q)!==-1; });
   if(!reps.length) return '<div class="x-note">No members match those filters. Broaden the hunt.</div>';
-  var h="";
+  /* 2026-10-05 (rep-flow friction): a count line so the list scans as
+     "your reps", not an endless dump. */
+  var h='<div class="x-note">'+reps.length+' member'+(reps.length===1?"":"s")
+    +(DIRST.st?" in "+esc(String(DIRST.st).toUpperCase()):" nationwide")
+    +(DIRST.ch?" · "+esc(DIRST.ch):"")+'.</div>';
   for(var i=0;i<reps.length;i++) h+=dirRowHTML(reps[i]);
   return h;
 }
@@ -1657,7 +1703,10 @@ function doLogContact(repName,btn,errEl){
     if(j&&j.ok){
       /* CEO requirement 2026-10-05: the +25 XP reward is explicit in the
          confirmation. */
-      toast("Contact logged \u2014 +25 XP earned.");
+      /* 2026-10-05 (P2 F2-TOAST): the contact action feeds Civic Duty —
+         record first so the toast shows the new count. */
+      try{ document.dispatchEvent(new CustomEvent('pf-civic-rep-contacted')); }catch(e){}
+      toast("Logged \u2014 +25 XP."+dutyFrag());
       fetchHist(true);
     } else {
       var e=String((j&&(j.err||j.error))||"");
@@ -1880,11 +1929,15 @@ function render(){
   if(!pets.length){ h+='<div class="x-note">No petitions yet. Start the first one below.</div>'; }
   for(var i=0;i<pets.length;i++){
     var p=pets[i];
+    PET_TITLE[p.id]=p.title;
     h+='<div class="cp-mission"><div class="cp-mtext">'+esc(p.title)+'</div>'
       +'<div class="x-note">Target: '+esc(p.target)+' &bull; by '+esc(p.creator)+'</div>'
       +'<div class="cp-barwrap"><div class="cp-bar" style="width:'+(p.pct||0)+'%"></div></div>'
       +'<div class="x-note">'+(p.sig_count||0)+' / '+p.goal+' signatures ('+(p.pct||0)+'%)</div>'
       +'<button class="c-btn cp-mbtn" data-pet-sign="'+esc(p.id)+'">SIGN (+10 XP)</button> '
+      /* 2026-10-05 (P2 F2-TOAST / P10 W18): share affordance appears only
+         AFTER signing — never before the action. */
+      +(PET_SHARE_AFTER[p.id]?'<button class="c-btn cp-mbtn" data-pet-shareafter="'+esc(p.id)+'">SHARE IT \u2192</button> ':"")
       /* 2026-10-03: petition_sigs (public) — who signed, per card. */
       +'<button class="c-btn cp-mbtn" data-pet-sigs="'+esc(p.id)+'">WHO SIGNED</button>'
       +'<div class="x-note" data-pet-sigs-out="'+esc(p.id)+'" style="display:none"></div>'
@@ -1911,7 +1964,11 @@ function render(){
   /* --- network polls (2026-10-05) --- */
   h+=pollsPane();
   /* --- contact your rep --- */
-  h+='<div class="x-pane"><h4>Contact your rep</h4>';
+  h+='<div class="x-pane"><h4>Contact your rep</h4>'
+    /* 2026-10-05 (P1 F2-PROG): Civic Duty progress meter mount. Painted by
+       civic-duty.js from PF.civicDutyProgress(); empty until that module
+       paints (MutationObserver repaints after re-renders). */
+    +'<div class="x-note" id="cvDutyMeter" aria-live="polite"></div>'
   var reps=(REPS&&REPS.reps)||[];
   var ropts='<option value="">Pick a rep&hellip;</option>';
   for(var r=0;r<reps.length;r++){ ropts+='<option value="'+esc(reps[r].name)+'">'+esc(reps[r].name)+' &mdash; '+esc(reps[r].role||reps[r].chamber||"")+'</option>'; }
@@ -1942,6 +1999,13 @@ function render(){
   /* --- congressional directory (2026-10-05): full member directory.
      Server filters on state/chamber (reps_list); name search is
      client-side. Renders only what the API returns — no invented data. */
+  /* 2026-10-05 (rep-flow friction): default the directory to the viewer's
+     home state. "All states" dumped all 535 members on first paint — the
+     rep lookup is "your reps", not the whole Congress. Once-per-mount:
+     an explicit "All states" choice (or the legislation-member flow's
+     deliberate reset) must survive later re-renders. */
+  if(!DIRST.st&&!DIRST._hsInit){ DIRST._hsInit=true;
+    try{ var _hs=(window.PF&&PF.homeState&&PF.homeState())||""; if(_hs) DIRST.st=_hs; }catch(e){} }
   h+='<div class="x-pane"><h4>Find your reps</h4>'
     +'<div class="x-note">Every logged contact: <b>+25 XP</b> (2/day).</div>'
     /* 2026-10-05: issue view panel — "where does Congress stand on X".
@@ -2132,6 +2196,11 @@ function pollCard(p,closed){
         h+='<div class="x-note" style="margin-top:6px">'+esc(o.label)+' \u2014 '+v+' ('+pct+'%)</div>'
           +'<div class="cp-barwrap"><div class="cp-bar" style="width:'+pct+'%"></div></div>';
       }
+      /* 2026-10-05 (P11 W14): the voted poll is no longer a dead end —
+         convert the peak-engagement moment into a first civic action. */
+      h+='<div class="x-note" style="margin-top:8px">'+(kind==="pressure"
+        ?'This could become a pressure campaign \u2014 <a href="/political-hq#phq-action">see TAKE ACTION \u2192</a>'
+        :'Your call is counted. <a href="/political-hq#phq-pane-directory">Make it real: contact your rep \u2192</a>')+'</div>';
     }
   } else {
     /* RESULTS RULE: vote buttons only, no percentages — no bandwagoning. */
@@ -2292,8 +2361,15 @@ function bind(){
       var pid=b.getAttribute("data-pet-sign");
       b.disabled=true;
       post("petition","pe_action","petition_sign",{callsign:ident().callsign,petition_id:pid},function(j){
-        if(j&&j.ok){ toast(j.dup?"Already signed.":"Signed. +10 XP."); refreshPetitions();
-          try{ document.dispatchEvent(new CustomEvent('pf-civic-petition-signed')); }catch(e){} }
+        if(j&&j.ok){
+          /* 2026-10-05 (P2 F2-TOAST): record first — the toast shows the
+             count INCLUDING this action. Share ask comes after the action
+             (P10 W18), never before. */
+          try{ document.dispatchEvent(new CustomEvent('pf-civic-petition-signed')); }catch(e){}
+          toast((j.dup?"Already signed.":"Signed. +10 XP.")+dutyFrag()+(j.dup?"":" Share it \u2192"));
+          if(!j.dup){ PET_SHARE_AFTER[pid]=1; }
+          refreshPetitions();
+        }
         else { toast(PF.errCopy(j,"Sign failed.")); b.disabled=false; }
       });
     };
@@ -2327,6 +2403,23 @@ function bind(){
   });
   var pc=document.getElementById("cvPetCancel");
   if(pc) pc.onclick=function(){ CREATE_OPEN=false; render(); };
+  /* 2026-10-05 (P2 F2-TOAST): post-sign share affordance — two-tier native
+     share with clipboard fallback, same pattern as pcShare(). */
+  qsa("[data-pet-shareafter]").forEach(function(sb){
+    sb.onclick=function(){
+      var pid2=sb.getAttribute("data-pet-shareafter");
+      var title=PET_TITLE[pid2]||"A Propaganda Factory petition";
+      var link="https://www.mtcstw.com/political-hq";
+      try{ if(window.PF&&typeof PF.shareUrl==="function") link=PF.shareUrl(link); }catch(e){}
+      var text=title+" \u2014 sign it at "+link;
+      if(navigator.share){ try{ navigator.share({title:title,text:text}).catch(function(){}); return; }catch(e){} }
+      try{
+        if(navigator.clipboard&&navigator.clipboard.writeText){
+          navigator.clipboard.writeText(text).then(function(){ toast("Share text copied. Spread it."); },function(){ toast("Copy failed \u2014 select it manually."); });
+        } else toast("Copy failed \u2014 select it manually.");
+      }catch(e2){ toast("Copy failed \u2014 select it manually."); }
+    };
+  });
   var pcb=document.getElementById("cvPetCreate");
   if(pcb) pcb.onclick=function(){
     var err=document.getElementById("cvPetErr");
@@ -2334,8 +2427,11 @@ function bind(){
     if(!title||!target){ err.textContent="Title and target are required."; return; }
     pcb.disabled=true;
     post("petition","pe_action","petition_create",{callsign:ident().callsign,title:title,description:gv("cvPetDesc"),target:target,goal:Number(gv("cvPetGoal"))||500},function(j){
-      if(j&&j.ok){ toast("Petition launched. +25 XP."); CREATE_OPEN=false; refreshPetitions();
-        try{ document.dispatchEvent(new CustomEvent('pf-civic-petition-created')); }catch(e){} }
+      if(j&&j.ok){
+        /* 2026-10-05 (P2 F2-TOAST): record first — toast shows the new count. */
+        try{ document.dispatchEvent(new CustomEvent('pf-civic-petition-created')); }catch(e){}
+        toast("Live. +25 XP."+dutyFrag()); CREATE_OPEN=false; refreshPetitions();
+      }
       else { err.textContent=PF.errCopy(j,"Create failed."); pcb.disabled=false; }
     });
   };
@@ -2361,21 +2457,10 @@ function bind(){
   var nm=document.getElementById("cvMyName"), mst=document.getElementById("cvMyState"), rp=document.getElementById("cvRepSel");
   if(nm) nm.oninput=showScript; if(mst) mst.onchange=showScript; if(rp) rp.onchange=showScript;
   var lc=document.getElementById("cvLogContact");
-  if(lc) lc.onclick=function(){
-    var err=document.getElementById("cvRepErr");
-    var rep=gv("cvRepSel"); if(!rep){ err.textContent="Pick a rep first."; return; }
-    var box=document.getElementById("cvScriptBox");
-    var sid=box?box.getAttribute("data-script-id"):"";
-    lc.disabled=true;
-    post("rep","r_action","rep_contact",{callsign:ident().callsign,rep_name:rep,method:gv("cvMethod"),script_used:sid||""},function(j){
-      if(j&&j.ok){ toast("Contact logged. +25 XP."); fetchHist(true);
-        try{ document.dispatchEvent(new CustomEvent('pf-civic-rep-contacted')); }catch(e){} }
-      else { err.textContent=PF.errCopy(j,"Log failed."); }
-      lc.disabled=false;
-    });
-  };
   /* 2026-10-05: routes through the shared rep_contact write path — same
-     POST, same +25 XP, same 2/day cap as the directory rows. */
+     POST, same +25 XP, same 2/day cap as the directory rows. (The older
+     inline binding this replaced is gone; doLogContact is the single
+     owner of this flow, including the pf-civic-rep-contacted dispatch.) */
   if(lc) lc.onclick=function(){ doLogContact(gv("cvRepSel"),lc,document.getElementById("cvRepErr")); };
   /* --- congressional directory bindings --- */
   var dst=document.getElementById("cvDirState");
@@ -2449,6 +2534,24 @@ function bind(){
   }
   /* First paint: fire the reps_list read once (Mobilizing… covers it). */
   if(DIRST.reps===null&&!DIRST.load&&!DIRST.err){ fetchDir(); }
+  /* 2026-10-05 (rep-flow friction): follow the home-state picker. When the
+     viewer sets/changes their home state, the directory re-filters to it —
+     the rep lookup stays "your reps" with zero extra taps. Bound once. */
+  var dehs=document.documentElement;
+  if(dehs&&!dehs.getAttribute("data-dirhs-bound")){
+    dehs.setAttribute("data-dirhs-bound","1");
+    document.addEventListener("pf-home-state-changed",function(e){
+      try{
+        var s=e&&e.detail&&e.detail.state;
+        if(typeof s==="string"&&s&&s!==DIRST.st){
+          DIRST.st=s; DIRST.reps=null; DIRST.q="";
+          var ds=document.getElementById("cvDirState"); if(ds) ds.value=s;
+          var dq=document.getElementById("cvDirQ"); if(dq) dq.value="";
+          fetchDir();
+        }
+      }catch(ee){}
+    });
+  }
   /* voter — 2026-10-05 (audit #2): voter_check failure keeps the state
      selection (VOTER.state survives) and renders an inline c-err + Retry
      instead of a blank select with no feedback.
@@ -2462,7 +2565,10 @@ function bind(){
     var pp={state:st};
     function cb(j){
       VOTER=(j&&j.url)?j:{state:st,err:true};
-      if(j&&j.url){ try{ document.dispatchEvent(new CustomEvent('pf-civic-voter-checked')); }catch(e){} }
+      /* 2026-10-05 (P2 F2-TOAST): the voter check is a Civic Duty action —
+         confirm it and show the new count. */
+      if(j&&j.url){ try{ document.dispatchEvent(new CustomEvent('pf-civic-voter-checked')); }catch(e){}
+        try{ toast("Checked."+dutyFrag()); }catch(e2){} }
       try{ render(); }catch(e){}
     }
     try{ if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,"voter_check",pp,cb); return; } }catch(e){}
@@ -2482,9 +2588,11 @@ function bind(){
            ballot deadline, then arm the SHARE YOUR PLEDGE button. The +50
            pledge XP is paid by voter_pledge itself — nothing extra here. */
         PLEDGE_DONE=true;
-        toast(j.dup?"Already pledged.":"Pledged. +50 XP.");
-        try{ armPledgeCard(stCode); }catch(e){ try{ render(); }catch(e2){} }
+        /* 2026-10-05 (P2 F2-TOAST): record first — toast shows the new
+           count. Share ask follows the pledge (cvPledgeShare button). */
         try{ document.dispatchEvent(new CustomEvent('pf-civic-voter-pledged')); }catch(e){}
+        toast((j.dup?"Already pledged.":"Pledged. +50 XP.")+dutyFrag()+(j.dup?"":" Share your pledge \u2192"));
+        try{ armPledgeCard(stCode); }catch(e){ try{ render(); }catch(e2){} }
       }
       else { toast(PF.errCopy(j,"Pledge failed.")); }
       pl.disabled=false;
@@ -2808,6 +2916,31 @@ load();
     }
     try{ PF.civicDutyProgress = progress; }catch(e){}
 
+    /* 2026-10-05 (P1 F2-PROG): visible progress meter. Paints
+       "🗳 Civic Duty: N of 3 actions this week" into #cvDutyMeter (mounted
+       by civic.js in the Contact-your-rep pane header). Repaints on every
+       pf-civic-* event and on week rollover; a MutationObserver repaints
+       after civic.js re-renders wipe the node. Surprise rewards don't pull
+       behavior forward — visible progress does. */
+    function meterText(){
+      var p=progress();
+      if(p.awarded||p.count>=p.threshold) return "\ud83d\uddf3 Civic Duty: "+p.threshold+" of "+p.threshold+" \u2014 earned this week";
+      return "\ud83d\uddf3 Civic Duty: "+p.count+" of "+p.threshold+" actions this week";
+    }
+    function paintMeter(){
+      try{
+        var el=document.getElementById("cvDutyMeter");
+        /* Same-value guard: setting textContent always mutates, which
+           would re-trigger this observer forever. */
+        if(el){ var t=meterText(); if(el.textContent!==t) el.textContent=t; }
+      }catch(e){}
+    }
+    try{
+      var mo=new MutationObserver(function(){ paintMeter(); });
+      mo.observe(document.documentElement,{childList:true,subtree:true});
+    }catch(e){}
+    paintMeter();
+
     function award(wk){
       /* Write m.civic=1 into pf_medals_v2 using the EXACT schema
          service-medals.js uses ({w, m, fd}) — read-modify-write, preserving
@@ -2837,7 +2970,7 @@ load();
     }
 
     Object.keys(TYPES).forEach(function(ev){
-      document.addEventListener(ev,function(){ try{ record(TYPES[ev]); }catch(e){} });
+      document.addEventListener(ev,function(){ try{ record(TYPES[ev]); }catch(e){} paintMeter(); });
     });
   } catch (err) { PF.error("civic-duty", err); }
 })();

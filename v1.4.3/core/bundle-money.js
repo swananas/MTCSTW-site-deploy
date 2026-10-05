@@ -1895,7 +1895,7 @@
     root.innerHTML =
       '<div class="pf-mp-kicker">MTCSTW.COM</div>' +
       '<h2 class="pf-mp-title">FOLLOW THE MONEY</h2>' +
-      '<p class="pf-mp-mission">See who bought your government.</p>';
+      '<p class="pf-mp-mission">Follow the money. See who funds the votes.</p>';
     host.appendChild(root);
     buildSections(root, false);
     exitsRail(root);
@@ -1912,7 +1912,7 @@
     root.innerHTML =
       '<div class="pf-mp-kicker">SECTION 06 \u2014 FOLLOW THE MONEY</div>' +
       '<h2 class="pf-mp-title">FOLLOW THE MONEY</h2>' +
-      '<p class="pf-mp-mission">See who bought your government.</p>';
+      '<p class="pf-mp-mission">Follow the money. See who funds the votes.</p>';
     sec.appendChild(root);
     host.appendChild(sec);
     buildSections(root, true);

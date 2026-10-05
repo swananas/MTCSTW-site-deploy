@@ -113,7 +113,7 @@ function pollsHTML(list){
     if(votes!==null) meta.push(votes+" votes");
     h+='<div class="cs-poll"><div class="cs-q">'+esc(p.question||"Untitled poll")+'</div>';
     if(meta.length) h+='<div class="cs-meta">'+esc(meta.join(" · " ))+'</div>';
-    h+='<a class="c-btn cs-btn" href="'+esc(LINK_HQ)+'">VOTE &rarr;</a></div>';
+    h+='<a class="c-btn cs-btn" href="/political-hq#phq-pane-polls">VOTE &rarr;</a></div>';
   }
   return h+'</div>';
 }
@@ -153,7 +153,12 @@ function ballotHTML(state,b,edl){
   var ed=nextElectionDay();
   var dstr=ed?" ("+MONTHS[ed.getMonth()]+" "+ed.getDate()+")":"";
   h+='<div class="cs-title">'+Math.round(left)+' days until Election Day'+esc(dstr)+'.</div>';
-  h+='<a class="c-btn cs-btn" href="'+esc(LINK_HQ)+'">CHECK YOUR DEADLINE &rarr;</a></div>';
+  h+='<a class="c-btn cs-btn" href="/political-hq#phq-pane-ballot">CHECK YOUR DEADLINE &rarr;</a>'
+    /* 2026-10-05 (P3 F4-STATE): the no-state pane is the exact moment a
+       stateless visitor sees the value of setting a state — one contextual
+       ask at the moment of visible value, not a second nag. #oClaimWrap is
+       the claim-box mount on this page. */
+    +'<div class="cs-meta"><i>Want your registration deadline here? <a href="#oClaimWrap">set your home state &uarr;</a></i></div></div>';
   return h;
 }
 function paint(j){

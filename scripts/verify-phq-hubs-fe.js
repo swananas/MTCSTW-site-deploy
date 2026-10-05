@@ -198,8 +198,10 @@ else no('wallshame', 'dual-mount slot API missing');
 if (has(MOD, 'PFMoneyTab.mountTab')) ok('money slot contract (mountTab)');
 else no('money slot', 'missing');
 
-/* 2o. AC-return rail + next-hub exits + notify-prefs alert row */
-if (has(MOD, 'Back to Action Center') && has(MOD, 'data-hub-go="action"')) ok('AC-return rail');
+/* 2o. AC-return rail + next-hub exits + notify-prefs alert row
+   2026-10-05 (P6): approved copy is "Back to Take Action" — the old
+   "Action Center" label was retired as dishonest (no such silo merged). */
+if (has(MOD, 'Back to Take Action') && has(MOD, 'data-hub-go="action"')) ok('AC-return rail');
 else no('ac return', 'missing');
 if (has(MOD, 'Next: ')) ok('next-hub exits');
 else no('next-hub', 'missing');

@@ -80,7 +80,7 @@
       order: ['intel', 'nonprofits'],
       panes: ['polls'] },
     { id: 'money', sec: '06', tab: 'FOLLOW THE MONEY', title: 'Follow the Money', /* [PSYCH] tab label */
-      mission: 'See who bought your government.', /* [PSYCH] */
+      mission: 'Follow the money. See who funds the votes.', /* [PSYCH] P5 */
       silos: ['money-tab', 'money-vote', 'pac-alerts', 'trades-tab', 'corp-card', 'ledgers', 'boycotts'],
       interim: ['money-tab', 'money-vote', 'pac-alerts', 'trades-tab', 'corp-card', 'ledgers', 'boycotts'],
       order: [],
@@ -225,7 +225,7 @@
           '<div class="pf-hub-silos"><div class="pf-hub-loading">Loading ' + esc(hub.title) + '&hellip;</div></div>' +
           '<footer class="pf-hub-exits">' +
           '<a href="#phq-' + next.id + '" data-hub-go="' + next.id + '">Next: ' + esc(next.title) + ' &rarr;</a>' +
-          '<a href="#phq-action" data-hub-go="action">&larr; Back to Action Center</a>' +
+          '<a href="#phq-action" data-hub-go="action">&larr; Back to Take Action</a>' +
           '</footer>';
         sec.innerHTML = h;
         host.appendChild(sec);
@@ -244,7 +244,7 @@
         if (!kind) continue;
         var hubId = hubForPaneKind(kind);
         if (!hubId) continue;
-        if (!panes[i].id) panes[i].id = 'phq-pane-' + kind;
+        if (!panes[i].id && !document.getElementById('phq-pane-' + kind)) panes[i].id = 'phq-pane-' + kind;
         panes[i].setAttribute('data-phq-hub', hubId);
         panes[i].setAttribute('data-phq-pane', kind);
       }

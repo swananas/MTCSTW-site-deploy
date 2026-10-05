@@ -278,6 +278,7 @@ var SECTIONS = {
 var HQ_BUNDLES = {
   'bundle-hq': [
     'civic.js',
+    'civic-duty.js',
     'governance.js',
     'notify-prefs.js',
     'intel.js',

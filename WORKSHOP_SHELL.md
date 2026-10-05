@@ -46,8 +46,8 @@ PFWorkshop.register({ id, title, tagline, templateId|null, selfMount|null, kill,
 | academy | custom (`PFAcademy.mount`, lazy) | `academy` | LIVE |
 | creator-assist | self-mount `#pf-creator-assist` | `creator-assist` | LIVE |
 | ammo | self-mount `#pf-ammo` | `ammo` | LIVE |
-| graduation | custom (kicks `pf-lesson-complete`, relocates `#pf-graduation` if it renders; honest empty state + Academy payoff otherwise) | `academy-graduation` | LIVE |
-| forged-tray | self-mount `#pf-forged-tray` | `forged-tray` | **STAGED** — module lives on `fe/studio-drafts-tray`, not in this tree. Adapter registers host + kill; empty host → terminal error, not a blank pane. Zero changes needed here when that branch integrates. |
+| graduation | custom (kicks `pf-graduation-check`, relocates `#pf-graduation` if it renders; honest empty state + Academy payoff otherwise) | `academy-graduation` | LIVE |
+| forged-tray | self-mount `#pf-forged-tray` | `forged-tray` | **STAGED** — module lives on `fe/studio-drafts-tray`, not in this tree. Adapter registers host + kill; empty host → honest not-live-here staged state with rail-return CTA (never the terminal error). Zero changes needed here when that branch integrates. |
 
 ## What the incoming-tools integrator needs to know
 

@@ -164,9 +164,9 @@ console.log('== 11. contract surface ==');
   if (has(src, a)) ok('contract: ' + a);
   else no('contract', a + ' missing');
 });
-if (has(src, "postAction('review','review_action'") || has(src, 'review_action'))
-  ok('contract: {type:review, review_action} dispatch idiom');
-else no('contract', 'review_action dispatch idiom missing');
+if (has(src, "postAction('review','rv_action'") || has(src, 'rv_action'))
+  ok('contract: {type:review, rv_action} dispatch idiom');
+else no('contract', 'rv_action dispatch idiom missing');
 if (has(src, 'REVIEW NEXT')) ok('contract: REVIEW NEXT one-button claim');
 else no('contract', 'REVIEW NEXT button missing');
 if (has(src, 'FROM YOUR CELL') && has(src, 'cell_priority'))

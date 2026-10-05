@@ -23,7 +23,7 @@
    Needs: core/00-bus.js (PF, PF.skip, PF.toast, PF.errCopy),
    core/03-global.js (PF_BACKEND_URL, PF.postAction).
    Backend contract (server side on wave-community-review; action names per
-   the Studio SOP v2): POST {type:'review', review_action:<action>} where
+   the Studio SOP v2): POST {type:'review', rv_action:<action>} where
      <action> = review_next | review_vote | review_status | review_history
    public GET ?action=review_leaderboard | ?action=review_cell_board.
    Rejection reason codes (SOP v2, human sentence each): DUPLICATE, EMPTY,
@@ -53,14 +53,14 @@
   function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
   function errCopy(j, fb){ try{ if(PF&&PF.errCopy) return PF.errCopy(j, fb); }catch(e){} return (j&&(j.err||j.error))||fb||"Something broke."; }
 
-  /* Mutations: POST {type:'review', review_action:<action>}. Prefers
+  /* Mutations: POST {type:'review', rv_action:<action>}. Prefers
      PF.postAction (03-global.js: auth + 15s abort); raw fetch is the backstop. */
   function postMut(action, params, cb){
     var done = function(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} };
-    if (window.PF && PF.postAction) { PF.postAction('review','review_action',action,params,done); return; }
+    if (window.PF && PF.postAction) { PF.postAction('review','rv_action',action,params,done); return; }
     if(!BACKEND){ done(null); return; }
     try{
-      var body = Object.assign({type:'review', review_action:action}, params||{});
+      var body = Object.assign({type:'review', rv_action:action}, params||{});
       var o={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}, c=null, t=null;
       try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
         t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}

@@ -78,8 +78,10 @@
     if(!BACKEND){ cb(null); return; }
     /* Private reads require auth_secret (IDOR fix). Auto-attach for the
        auth-gated cell_mine — same PF.getAuthSecret() pattern as briefing.js.
-       S-31: fcpool_list is likewise member-only. */
-    if(action==="cell_mine"||action==="propbounty_list"||action==="fcpool_list"){
+       S-31: fcpool_list is likewise member-only. S-31 Psych fix:
+       fcpool_leaderboard needs the secret so my_cells (own-cell rank)
+       populates and members see their private standing. */
+    if(action==="cell_mine"||action==="propbounty_list"||action==="fcpool_list"||action==="fcpool_leaderboard"){
       try{
         var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
         if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;

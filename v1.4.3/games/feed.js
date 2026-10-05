@@ -50,17 +50,20 @@ function fdWriteErr(e,fb){
 }
 /* 2026-10-04: epoch-ms for a "YYYY-MM-DD HH:MM" wall-clock in America/Chicago.
    schedule_add reads epoch-ms p.scheduled_for; the Intl offset is resolved
-   iteratively so DST transitions convert correctly. */
+   iteratively so DST transitions convert correctly.
+   NOTE: this whole widget ships inside an outer template literal, so every
+   regex backslash below MUST stay doubled (\\) or the inner script dies with
+   a SyntaxError at mount (2026-10-04 hotfix). */
 function chicagoToMs(str){
   try{
-    var m=/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})$/.exec(String(str||"").trim());
+    var m=/^(\\d{4})-(\\d{2})-(\\d{2})[ T](\\d{2}):(\\d{2})$/.exec(String(str||"").trim());
     if(!m) return 0;
     var y=+m[1],mo=+m[2],d=+m[3],hh=+m[4],mi=+m[5];
     if(mo<1||mo>12||d<1||d>31||hh>23||mi>59) return 0;
     var target=Date.UTC(y,mo-1,d,hh,mi,0), guess=target;
     for(var i=0;i<4;i++){
       var tz=new Date(guess).toLocaleString("en-US",{timeZone:"America/Chicago",hour12:false,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});
-      var p=/(\d+)\/(\d+)\/(\d+),?\s*(\d+):(\d+)/.exec(tz);
+      var p=/(\\d+)\\/(\\d+)\\/(\\d+),?\\s*(\\d+):(\\d+)/.exec(tz);
       if(!p) return 0;
       var asUtc=Date.UTC(+p[3],+p[1]-1,+p[2],(+p[4])%24,+p[5],0);
       var adj=target-asUtc;

@@ -1609,6 +1609,28 @@ function bind(){
   /* 2026-10-05 (wave pressure-campaigns FE): pressure-card bindings. */
   pressureBind(qsa);
 }
+/* 2026-10-05: legislation silo integration — key-player names on bill cards
+   dispatch pf-legislation-member; filter THIS directory to that member and
+   scroll it into view. Decoupled via event: the legislation silo never
+   touches civic internals, and this listener is a no-op when the directory
+   pane isn't mounted. */
+document.addEventListener("pf-legislation-member",function(e){
+  try{
+    var d=(e&&e.detail)||{};
+    var nm=String(d.name||"").trim(); if(!nm) return;
+    if(!document.getElementById("cvDirList")) return; /* directory not mounted */
+    DIRST.st=""; DIRST.ch=""; DIRST.q=nm;
+    var st=document.getElementById("cvDirState"); if(st) st.value="";
+    var q=document.getElementById("cvDirQ"); if(q) q.value=nm;
+    var btns=document.querySelectorAll(".cv-cham [data-ch]");
+    for(var i=0;i<btns.length;i++){
+      btns[i].setAttribute("aria-pressed",btns[i].getAttribute("data-ch")===""?"true":"false");
+    }
+    fetchDir();
+    var pane=document.getElementById("pf-civic");
+    if(pane&&pane.scrollIntoView) pane.scrollIntoView();
+  }catch(err){}
+});
 load();
 })();
 </scr`+`ipt>

@@ -285,15 +285,19 @@ var SECTIONS = {
 /* HQ bundle: civic, governance, notify-prefs mount ONLY on /political-hq
    (pages/political-hq.js) — plus Know Your Enemy (intel.js), moved here
    2026-10-03 from the homepage ACT section, plus Ally Organizations
-   (nonprofits.js), added 2026-10-05. Loaded by the footer loader
-   only when #pf-political-hq is present — never on the homepage or other
-   pages. */
+   (nonprofits.js), added 2026-10-05, plus the legislation tracker
+   (legislation.js, 2026-10-05) — bill cards with stage progress, key
+   players, cell tallies, founder-only cell voting. Loaded by the footer
+   loader only when #pf-political-hq is present — never on the homepage or
+   other pages. */
 var HQ_BUNDLES = {
   'bundle-hq': [
     'civic.js',
     'civic-duty.js',
     /* 2026-10-05 (fe/state-legislatures): state legislature directory. */
     'stateleg.js',
+    /* 2026-10-05 (fe/legislation-tracker): bill tracker. */
+    'legislation.js',
     'governance.js',
     'notify-prefs.js',
     'intel.js',

@@ -26,6 +26,7 @@
      Ally Organizations (nonprofits) appended 2026-10-05. */
   var ORDER = [
     ['civic', 'pf-ov-civic'],
+    ['legislation', 'pf-ov-legislation'],
     /* 2026-10-05 (fe/predict-share-call): Call the Shot prediction section —
        mounts the pf-ov-predict template into #xPredict. */
     ['predict', 'pf-ov-predict'],

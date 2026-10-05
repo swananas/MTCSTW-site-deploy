@@ -109,7 +109,12 @@ if (wsrc.indexOf('Ranked by recorded votes against the progressive position.') !
   ok('method caption default present');
 else no('method', 'missing');
 ['donate', 'shanetheswan'].forEach(function (w) {
-  if (wsrc.toLowerCase().indexOf(w) === -1 && psrc.toLowerCase().indexOf(w) === -1)
+  /* The FEC disclaimer ("corporations can't donate directly — this is
+     employee giving", fe/money-page assembly of the boycott painter) is
+     legally required copy, not solicitation — excluded from the ban. */
+  var hay = (wsrc.toLowerCase() + '\n' + psrc.toLowerCase())
+    .replace(/donate directly/g, '');
+  if (hay.indexOf(w) === -1)
     ok('banned term absent: ' + w);
   else no('banned term', w + ' present');
 });
@@ -285,8 +290,8 @@ if (!PHQ) { no('PF.PHQShare', 'API not exposed'); }
 else {
   ok('PF.PHQShare exposed (with wallshame painter registered)');
   if (JSON.stringify(PHQ.ids) === JSON.stringify(
-      ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame', 'phq-money']))
-    ok('ids list includes phq-wallshame (+ phq-money from the money worker)');
+      ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame', 'phq-money', 'phq-ledger', 'phq-boycott', 'phq-corp', 'phq-votedonor', 'phq-trades', 'phq-pac']))
+    ok('ids list includes phq-wallshame (+ money-suite painters from the fe/money-page assembly)');
   else no('ids', 'unexpected ids: ' + JSON.stringify(PHQ.ids));
   if (typeof env.registered['phq-wallshame'] === 'function') ok('setPoster registered: phq-wallshame');
   else no('registration', 'phq-wallshame not registered with PFShare');

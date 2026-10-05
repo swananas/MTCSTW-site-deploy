@@ -100,7 +100,11 @@ else no('CTA', 'JOIN THE FIGHT. missing from painter');
   else if (/\bPF\.xp\b|\.xpGrant\b/.test(codeNoComments)) no('xp', 'XP API call found in ledger-list.js');
   else ok('no XP grant paths in ledger-list.js');
 })();
-if (psrc.toLowerCase().indexOf('donate') === -1 && lsrc.toLowerCase().indexOf('donate') === -1)
+/* The FEC disclaimer ("corporations can't donate directly — this is employee
+   giving", boycott painter assembled on fe/money-page) is legally required
+   copy, not solicitation — excluded from the ban. */
+if (psrc.toLowerCase().replace(/donate directly/g, 'x').indexOf('donate') === -1 &&
+    lsrc.toLowerCase().indexOf('donate') === -1)
   ok('banned word "donate" absent from both modules');
 else no('banned term', '"donate" found');
 /* caveat lines present */
@@ -295,8 +299,8 @@ if (!PHQ) { no('PF.PHQShare', 'API not exposed'); }
 else {
   ok('PF.PHQShare exposed (with ledger painter registered)');
   if (JSON.stringify(PHQ.ids) === JSON.stringify(
-      ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame', 'phq-ledger']))
-    ok('ids list includes phq-ledger (6 painters)');
+      ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame', 'phq-money', 'phq-ledger', 'phq-boycott', 'phq-corp', 'phq-votedonor', 'phq-trades', 'phq-pac']))
+    ok('ids list includes phq-ledger (+ money-suite painters from the fe/money-page assembly)');
   else no('ids', 'unexpected ids: ' + JSON.stringify(PHQ.ids));
   if (typeof env.registered['phq-ledger'] === 'function') ok('setPoster registered: phq-ledger');
   else no('registration', 'phq-ledger not registered with PFShare');

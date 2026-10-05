@@ -37,7 +37,7 @@
   window.pfPhqShareDone = true;
 
   var W = 1080, H = 1350;
-  var IDS = ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame', 'phq-money', 'phq-ledger', 'phq-boycott', 'phq-corp'];
+  var IDS = ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame', 'phq-money', 'phq-ledger', 'phq-boycott', 'phq-corp', 'phq-votedonor', 'phq-trades', 'phq-pac'];
   var TITLES = {
     'phq-pressure': 'PRESSURE CAMPAIGN',
     'phq-prediction': 'PREDICTION RESULT',
@@ -45,9 +45,12 @@
     'phq-cellwin': 'CELL VICTORY',
     'phq-wallshame': 'WALL OF SHAME',
     'phq-money': 'FOLLOW THE MONEY',
-    'phq-ledger': 'BILLIONAIRE LEDGER',
+    'phq-ledger': 'THE LEDGER',
     'phq-boycott': 'DONOR BOYCOTT',
-    'phq-corp': 'CORPORATE PLAYBOOK'
+    'phq-corp': 'CORPORATE PLAYBOOK',
+    'phq-votedonor': 'THE MONEY BEHIND THE VOTE',
+    'phq-trades': 'TRADES ON THE HILL',
+    'phq-pac': 'SUPER PAC ALERT'
   };
   var DEEP = 'MTCSTW.COM/POLITICAL-HQ';
   var PENDING = {};
@@ -569,6 +572,48 @@
   }
 
   /* ---------------------------------------------------------------- */
+  function ledgerDate(iso) {
+    var m = String(iso == null ? '' : iso).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return '—';
+    var MON = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    var mi = parseInt(m[2], 10) - 1;
+    if (mi < 0 || mi > 11) return '—';
+    return MON[mi] + ' ' + parseInt(m[3], 10) + ', ' + m[1];
+  }
+
+  function ledgerMoneyB(b) {
+    var n = Number(b);
+    if (!isFinite(n)) return '—';
+    return '$' + (Math.round(n * 10) / 10) + 'B';
+  }
+
+  function moneyB(v) {
+    if (v == null) return '\u2014';
+    var n = Number(v);
+    if (!isFinite(n)) return '\u2014';
+    var sign = n < 0 ? '\u2212' : '';
+    var a = Math.abs(n);
+    if (a >= 1e9) return sign + '$' + (a / 1e9).toFixed(1) + 'B';
+    if (a >= 1e6) return sign + '$' + (a / 1e6).toFixed(1) + 'M';
+    if (a >= 1e3) return sign + '$' + (a / 1e3).toFixed(1) + 'K';
+    return sign + '$' + Math.round(a);
+  }
+
+  function ledgerMoney(n) {
+    var v = Number(n);
+    if (!isFinite(v)) return '—';
+    return '$' + Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  function ledgerPct(ratio) {
+    var r = Number(ratio);
+    if (!isFinite(r) || r < 0) return '—';
+    var pct = r * 100;
+    if (pct >= 1) return (Math.round(pct * 100) / 100) + '%';
+    if (pct >= 0.01) return (Math.round(pct * 1000) / 1000) + '%';
+    return pct.toPrecision(2) + '%';
+  }
+
   function paintLedger(d, cv, x) {
     base(x); kicker(x);
     badge(x, 'THE LEDGER', 280, '#c1121f', 40);
@@ -748,6 +793,108 @@
     return cv;
   }
 
+
+  function paintVoteDonor(d, cv, x) {
+    base(x); kicker(x);
+    badge(x, 'THE MONEY BEHIND THE VOTE', 280, '#f5ead6', 36);
+    var cs = callsignOf();
+    var y = 400;
+    /* the bill */
+    x.fillStyle = '#e8b923';
+    fitFont(x, String(d.billId || '\u2014').toUpperCase(), 64, 40, 910);
+    x.fillText(String(d.billId || '\u2014').toUpperCase(), W / 2, y); y += 58;
+    x.fillStyle = '#f5ead6'; x.font = '700 36px Arial,sans-serif';
+    wrap(x, String(d.billTitle || '\u2014').toUpperCase(), 910).slice(0, 2)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += 48; });
+    /* the funded rows — BE copy verbatim ("received $X from [industry]") */
+    y = Math.max(640, y + 18);
+    var rows = Array.isArray(d.rows) ? d.rows.slice(0, 4) : [];
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i] || {};
+      x.fillStyle = '#f5ead6'; x.font = '900 44px "Arial Black",Arial,sans-serif';
+      var nm = String(r.name || '\u2014').toUpperCase();
+      fitFont(x, nm, 44, 28, 910);
+      x.fillText(nm, W / 2, y); y += 52;
+      x.fillStyle = '#c1121f'; x.font = '700 36px Arial,sans-serif';
+      wrap(x, String(r.copy || '').toUpperCase(), 910).slice(0, 2)
+        .forEach(function (l) { x.fillText(l, W / 2, y); y += 44; });
+      y += 14;
+    }
+    /* correlation line — legally safe, always present */
+    y = Math.max(1050, y + 6);
+    x.fillStyle = '#c9bfa8'; x.font = '400 28px Arial,sans-serif';
+    wrap(x, 'DONATIONS AND VOTES ARE SEPARATE PUBLIC RECORDS. DONATIONS DON\u2019T PROVE MOTIVE \u2014 THEY SHOW WHO\u2019S IN THE ROOM.', 910).slice(0, 3)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += 38; });
+    /* source */
+    var sl = 'SOURCE: ' + String(d.source || 'FEC') + ' \u00b7 ' + String(d.cycle || '').toUpperCase() + ' CYCLE';
+    x.font = '400 28px Arial,sans-serif';
+    fitFont(x, sl, 28, 20, 910, '400');
+    x.fillText(sl, W / 2, y); y += 40;
+    y = Math.max(1150, y);
+    if (cs) y = csLine(cv, x, y, cs);
+    bottomStack(x, 'fight');
+    return cv;
+  }
+
+  function paintTrades(d, cv, x) {
+    base(x); kicker(x);
+    badge(x, 'TRADES ON THE HILL', 280, '#f5ead6', 40);
+    var cs = callsignOf();
+    var y = 400;
+    x.fillStyle = '#f5ead6';
+    fitFont(x, String(d.name || '\u2014').toUpperCase(), 88, 40, 910);
+    wrap(x, String(d.name || '\u2014').toUpperCase(), 910).slice(0, 2)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += 92; });
+    y = Math.max(600, y + 12);
+    var trades = Array.isArray(d.trades) ? d.trades.slice(0, 5) : [];
+    for (var i = 0; i < trades.length; i++) {
+      var t = trades[i] || {};
+      var line = String(t.ticker || '\u2014').toUpperCase() + ' \u2014 ' +
+        String(t.type || '').toUpperCase() + ' ' + String(t.amount_range || '');
+      x.fillStyle = '#e8b923'; x.font = '700 40px Arial,sans-serif';
+      fitFont(x, line, 40, 26, 910);
+      x.fillText(line, W / 2, y); y += 56;
+    }
+    y = Math.max(1050, y + 6);
+    var sl = 'SOURCE: ' + String(d.source || 'HOUSE/SENATE FINANCIAL DISCLOSURES');
+    x.fillStyle = '#c9bfa8'; x.font = '400 28px Arial,sans-serif';
+    fitFont(x, sl, 28, 20, 910, '400');
+    x.fillText(sl, W / 2, y); y += 40;
+    y = Math.max(1150, y);
+    if (cs) y = csLine(cv, x, y, cs);
+    bottomStack(x, 'fight');
+    return cv;
+  }
+
+  function paintPac(d, cv, x) {
+    base(x); kicker(x);
+    badge(x, 'SUPER PAC ALERT', 280, '#c1121f', 40);
+    var cs = callsignOf();
+    var y = 400;
+    var alerts = Array.isArray(d.alerts) ? d.alerts.slice(0, 3) : [];
+    for (var i = 0; i < alerts.length; i++) {
+      var a = alerts[i] || {};
+      x.fillStyle = '#c1121f'; x.font = '900 40px "Arial Black",Arial,sans-serif';
+      x.fillText('NEW FILING', W / 2, y); y += 52;
+      x.fillStyle = '#e8b923';
+      fitFont(x, moneyLine(a.amount), 110, 56, 910);
+      x.fillText(moneyLine(a.amount), W / 2, y); y += 120;
+      x.fillStyle = '#f5ead6'; x.font = '700 38px Arial,sans-serif';
+      wrap(x, String(a.pac_name || '\u2014').toUpperCase(), 910).slice(0, 2)
+        .forEach(function (l) { x.fillText(l, W / 2, y); y += 48; });
+      y += 24;
+    }
+    y = Math.max(1050, y);
+    var sl = 'SOURCE: ' + String(d.source || 'FEC');
+    x.fillStyle = '#c9bfa8'; x.font = '400 28px Arial,sans-serif';
+    fitFont(x, sl, 28, 20, 910, '400');
+    x.fillText(sl, W / 2, y); y += 40;
+    y = Math.max(1150, y);
+    if (cs) y = csLine(cv, x, y, cs);
+    bottomStack(x, 'fight');
+    return cv;
+  }
+
   /* Painter table + registration                                       */
   /* ---------------------------------------------------------------- */
   var PAINT = {
@@ -759,7 +906,10 @@
     'phq-money': paintMoney,
     'phq-ledger': paintLedger,
     'phq-boycott': paintBoycott,
-    'phq-corp': paintCorp
+    'phq-corp': paintCorp,
+    'phq-votedonor': paintVoteDonor,
+    'phq-trades': paintTrades,
+    'phq-pac': paintPac
   };
   function paintOne(id, data) {
     var p = PAINT[id];

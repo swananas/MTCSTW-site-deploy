@@ -73,10 +73,10 @@ var FIXTURE_METHOD =
   '\u2014 labels get scrubbed every cycle. Rows with fewer than 10 distinct voices (k\u226510) never ' +
   'make the board; they show as \u2018not enough reports yet\u2019 \u2014 never a number, never a zero ' +
   'that pretends there\u2019s no pressure.\n\n' +
-  'Your activity powers the movement\u2019s intelligence. Deleting your data removes your personal ' +
-  'records. Weekly numbers are recomputed daily, so recent weeks stop reflecting deleted activity ' +
-  'within one refresh cycle; older published weekly aggregates keep their historical counts \u2014 ' +
-  'they\u2019re anonymous and can\u2019t be un-counted.\n\n' +
+  'Your activity powers the movement\u2019s intelligence. Delete your data any time \u2014 it removes ' +
+  'your personal records. Weekly numbers are recomputed daily, so recent weeks stop reflecting ' +
+  'deleted activity within one refresh cycle; older published weekly aggregates keep their ' +
+  'historical counts \u2014 they\u2019re anonymous and can\u2019t be un-counted.\n\n' +
   'These numbers are community-reported and unofficial \u2014 our count of the movement\u2019s heat, ' +
   'not an official record.';
 

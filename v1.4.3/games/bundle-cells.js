@@ -616,10 +616,28 @@
      {ok, week_start, orders:[{slot,title,detail,deep_link,task_type,task_ref}],
       members:[{callsign,ops_done,political_done}], aggregate:{ops:"x/y",political:"x/y"}}
      POST {type:'cell',cell_action:'strike_reroll',cell_id,callsign} (founder).
+     Optional ?fight_areas=a,b (weave #6, 2026-10-05): the member's local
+     pick-your-fight areas (PF.pickFight(), localStorage pf_pick_fight_v1 —
+     may not be loaded yet -> param omitted -> canonical plan). Backend uses
+     it ONLY to reorder the political rotation as a read-time view; slot
+     count, XP (zero), reroll, and rotation guarantees are untouched.
      Fail-soft: anything missing -> coming-soon placeholders. Never a stuck
      spinner. KILL: ?pf_off=strike. No new XP copy — only backend-supplied
      reward labels are shown. */
   function strikeOff(){ try { return PF.skip('strike'); } catch (e){ return false; } }
+
+  function strikeFightAreas(){
+    /* Pick-your-fight preference, defensive: the fe/pick-your-fight module
+       may not be deployed/loaded yet — then no param is sent and the
+       backend serves the canonical plan. [] / never-chosen = no filter. */
+    try {
+      if (window.PF && typeof PF.pickFight === 'function') {
+        var f = PF.pickFight();
+        if (f && f.length) return f.join(',');
+      }
+    } catch (e){}
+    return '';
+  }
 
   function strikeXY(s){
     var m = /^(\d+)\s*\/\s*(\d+)$/.exec(String(s==null?'':s));
@@ -732,7 +750,10 @@
     var slot = null;
     try { slot = root.querySelector('#hqStrikeBody'); } catch (e){}
     if (!slot) return;
-    api('strike_orders_get', withIdent({cell_id: cellId}), function(j){
+    var sq = withIdent({cell_id: cellId});
+    var sfa = strikeFightAreas();
+    if (sfa) sq.fight_areas = sfa;
+    api('strike_orders_get', sq, function(j){
       if (!j || !j.ok || !Array.isArray(j.orders)){
         try { slot.innerHTML = strikeSoonHtml(); } catch (e){}
         return;

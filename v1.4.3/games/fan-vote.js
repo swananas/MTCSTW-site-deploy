@@ -72,6 +72,22 @@
     return 1 + Math.round((t - first) / 6048e5);
   }
   var now = PF.chiNow();
+  /* R3 (2026-10-04): ?for=<slug> deep-link preselect — catalog/roster
+     "VOTE FOR <name> →" chips land on /#pf-vote?for=<slug>. The param may
+     arrive in location.search or inside the hash fragment. Navigation only;
+     zero new XP. */
+  function pfForSlug(){
+    var s='';
+    try{
+      var m=(location.search||'').match(/[?&]for=([^&]+)/);
+      if(!m){ var h=String(location.hash||''), q=h.indexOf('?');
+        if(q!==-1) m=h.slice(q).match(/[?&]for=([^&]+)/); }
+      if(m) s=decodeURIComponent(m[1]);
+    }catch(e){}
+    return String(s||'').toLowerCase().replace(/[^a-z0-9_-]/g,'');
+  }
+  var PF_FOR_SLUG = pfForSlug();
+  var PF_FOR_SCROLLED = false;
   var weekKey = now.getFullYear() + "-W" + isoWeek(now);
   var storeKey = "slr-vote-" + weekKey;
   /* COMMISSAR unlock: vote counts double. Set by the Enlistment Ranks widget. */
@@ -347,6 +363,10 @@
       '.<br>Results drop Monday morning on the reshuffle.<br>' +
       '<button id="pf-vote-share" style="background:#c1121f;border:2px solid #c1121f;color:#f5f0e1;padding:0.6rem 1.4rem;margin-top:0.8rem;margin-right:0.5rem;font-size:0.85rem;font-weight:700;letter-spacing:0.1em;cursor:pointer;font-family:inherit;">CAMPAIGN FOR ' + esc(first) + '</button>' +
       '<button id="pf-vote-reset" style="background:transparent;border:2px solid #c1121f;color:#c1121f;padding:0.45rem 1.2rem;margin-top:0.8rem;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;cursor:pointer;font-family:inherit;">RESET VOTE</button>';
+    /* R3 (2026-10-04): post-vote route back to the creator's catalog page. */
+    if(vc && vc.slug){
+      msg.innerHTML += '<div style="margin-top:0.9rem;"><a href="/' + esc(vc.slug) + '" style="color:#c1121f;font-weight:700;font-size:0.85rem;letter-spacing:0.08em;text-decoration:none;border-bottom:1px solid #c1121f;">see ' + esc(name) + '&rsquo;s page &rarr;</a></div>';
+    }
     var sb = document.getElementById('pf-vote-share');
     if(sb) sb.onclick = function(){ shareVotePoster(vc,'post'); };
     var rb = document.getElementById('pf-vote-reset');
@@ -354,6 +374,7 @@
   }
   function renderBallot(){
     list.innerHTML = '';
+    var forRow = null, forFound = false;
     CANDIDATES.forEach(function(c){
       var row = document.createElement('div');
       row.style.cssText = 'display:block;margin:0.25rem 0;';
@@ -368,8 +389,30 @@
       s.style.cssText = 'display:inline-block;background:transparent;border:2px solid #c1121f;color:#c1121f;padding:0.6rem 0.8rem;margin:0.15rem;font-size:0.75rem;font-weight:700;letter-spacing:0.12em;cursor:pointer;font-family:inherit;';
       s.onclick = function(){ shareVotePoster(c,'pre'); };
       row.appendChild(b); row.appendChild(s);
+      /* R3 (2026-10-04): ?for=<slug> preselect — highlight the catalog pick. */
+      if(PF_FOR_SLUG && c.slug === PF_FOR_SLUG){
+        forFound = true; forRow = row;
+        b.style.borderColor = '#c1121f';
+        b.style.boxShadow = '0 0 0 2px #c1121f';
+        var tag = document.createElement('span');
+        tag.textContent = ' \u2605 YOUR PICK';
+        tag.style.cssText = 'color:#c1121f;font-weight:900;font-size:0.75rem;letter-spacing:0.12em;';
+        row.appendChild(tag);
+      }
       list.appendChild(row);
     });
+    if(PF_FOR_SLUG && !forFound){
+      /* Valid roster slug but not on this week's ballot — say so honestly. */
+      var rname = (window.PF && PF.rosterName) ? PF.rosterName(PF_FOR_SLUG, PF_FOR_SLUG) : PF_FOR_SLUG;
+      var nb = document.createElement('div');
+      nb.style.cssText = 'color:#b8ab8e;font-size:0.85rem;margin:0 0 0.8rem;';
+      nb.innerHTML = esc(rname) + ' isn&rsquo;t on this week&rsquo;s ballot &mdash; cast your vote for one of these candidates.';
+      list.insertBefore(nb, list.firstChild);
+    }
+    if(forRow && !PF_FOR_SCROLLED){
+      PF_FOR_SCROLLED = true;
+      try{ forRow.scrollIntoView({block:'center'}); }catch(e){}
+    }
   }
   /* RESET VOTE: retracts the vote server-side, then clears the local ballot
      lock and re-opens the ballot. 2026-10-03 conn fix: symmetric with cast —

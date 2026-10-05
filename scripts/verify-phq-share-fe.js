@@ -65,7 +65,6 @@ else no('pledgeData', 'pledgeData not exposed on PF.PHQShare');
   else no('XP mint', w + ' present in share-image-phq.js \u2014 card generation must pay 0 XP');
 });
 ['phq-pressure', 'phq-prediction', 'phq-predict-call', 'phq-scorecard', 'phq-cellwin', 'phq-ballot', 'phq-pledge'].forEach(function (id) {
-['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame'].forEach(function (id) {
   if (src.indexOf("'" + id + "'") !== -1) ok('painter id registered: ' + id);
   else no('painter id', id + ' missing');
 });
@@ -79,15 +78,23 @@ if (src.indexOf('CLAIM YOUR CALLSIGN AT MTCSTW.COM') !== -1) ok('no-callsign fun
 else no('funnel', 'CLAIM YOUR CALLSIGN AT MTCSTW.COM missing');
 if (src.indexOf('cv._pfStamped = true') !== -1) ok('painters set _pfStamped (idempotent stamp safety net)');
 else no('_pfStamped', 'no painter sets cv._pfStamped');
-['donate', 'shanetheswan'].forEach(function (w) {
+['shanetheswan'].forEach(function (w) {
   if (src.toLowerCase().indexOf(w) === -1) ok('banned term absent: ' + w);
   else no('banned term', w + ' present in module');
 });
+/* 'donate' appears ONLY in the legally-mandated boycott disclaimer
+   ("CORPORATIONS CAN'T DONATE DIRECTLY — THIS IS EMPLOYEE GIVING") — QC-ruled
+   false positive; assert no other occurrence. */
+(function () {
+  var stripped = src.split("CAN\\u2019T DONATE DIRECTLY").join('');
+  if (stripped.toLowerCase().indexOf('donate') === -1) ok('banned term absent outside disclaimer: donate');
+  else no('banned term', 'donate present outside the boycott disclaimer');
+})();
 if (!/\bShane\b/.test(src)) ok('no real names in copy');
 else no('real name', 'found "Shane" in module');
-if (has(path.join(ROOT, 'build', 'bundle-core.js'), "'core/share-image-phq.js'"))
-  ok('share-image-phq.js registered in build/bundle-core.js (bundle-pages)');
-else no('bundle registration', 'not found in build/bundle-core.js');
+if (has(path.join(ROOT, 'build', 'bundle-core.js'), "'core/share-image-phq-lazy.js'"))
+  ok('share-image-phq lazy stub registered in build/bundle-core.js (bundle-pages)');
+else no('bundle registration', 'lazy stub not found in build/bundle-core.js');
 if (has(path.join(V, 'pages', 'bundle-pages.js'), 'pfPhqShareDone'))
   ok('module marker present in rebuilt pages/bundle-pages.js');
 else no('bundle marker', 'pfPhqShareDone missing from bundle-pages.js');
@@ -206,6 +213,7 @@ var FIX = {
   },
   'phq-predict-call-nomargin': {
     billTitle: 'RENT CAP BILL', billId: 'hr-3', pick: 'fail', margin: ''
+  },
   /* Synthetic paint-test vote values; the entities (bill, legislator) are
      real. Wall-of-shame painter fixture — full detail assertions live in
      scripts/verify-wallshame-fe.js. */
@@ -245,14 +253,12 @@ var PHQ = env.sb.PF && env.sb.PF.PHQShare;
 if (!PHQ) { no('PF.PHQShare', 'API not exposed'); }
 else {
   ok('PF.PHQShare exposed');
-  if (JSON.stringify(PHQ.ids) === JSON.stringify(['phq-pressure', 'phq-prediction', 'phq-predict-call', 'phq-scorecard', 'phq-cellwin', 'phq-ballot', 'phq-pledge']))
-    ok('ids list matches spec painter keys');
-  else no('ids', 'unexpected ids: ' + JSON.stringify(PHQ.ids));
+  var wantIds = ['phq-pressure', 'phq-prediction', 'phq-predict-call', 'phq-scorecard', 'phq-cellwin', 'phq-ballot', 'phq-pledge'];
+  var missingIds = wantIds.filter(function (id) { return PHQ.ids.indexOf(id) === -1; });
+  if (missingIds.length === 0) ok('ids list contains spec painter keys (registry carries ' + PHQ.ids.length + ' total)');
+  else no('ids', 'missing ids: ' + JSON.stringify(missingIds));
   ['phq-pressure', 'phq-prediction', 'phq-predict-call', 'phq-scorecard', 'phq-cellwin', 'phq-ballot', 'phq-pledge'].forEach(function (id) {
-  if (JSON.stringify(PHQ.ids) === JSON.stringify(['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame']))
-    ok('ids list matches spec painter keys');
-  else no('ids', 'unexpected ids: ' + JSON.stringify(PHQ.ids));
-  ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame', 'phq-money'].forEach(function (id) {
+    if (PHQ.ids.indexOf(id) === -1) no('registry subset', id + ' missing from canonical registry');
     if (typeof env.registered[id] === 'function') ok('setPoster registered: ' + id);
     else no('registration', id + ' not registered with PFShare');
   });

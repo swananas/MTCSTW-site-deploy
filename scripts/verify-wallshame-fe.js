@@ -289,10 +289,11 @@ var PHQ = env.sb.PF && env.sb.PF.PHQShare;
 if (!PHQ) { no('PF.PHQShare', 'API not exposed'); }
 else {
   ok('PF.PHQShare exposed (with wallshame painter registered)');
-  if (JSON.stringify(PHQ.ids) === JSON.stringify(
-      ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame', 'phq-money', 'phq-ledger', 'phq-boycott', 'phq-corp', 'phq-votedonor', 'phq-trades', 'phq-pac']))
-    ok('ids list includes phq-wallshame (+ money-suite painters from the fe/money-page assembly)');
-  else no('ids', 'unexpected ids: ' + JSON.stringify(PHQ.ids));
+  var want = ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame', 'phq-money', 'phq-ledger', 'phq-boycott', 'phq-corp', 'phq-votedonor', 'phq-trades', 'phq-pac'];
+  var missing = want.filter(function (id) { return PHQ.ids.indexOf(id) === -1; });
+  if (missing.length === 0)
+    ok('ids list includes phq-wallshame (+ money-suite painters; registry carries ' + PHQ.ids.length + ' total)');
+  else no('ids', 'missing ids: ' + JSON.stringify(missing));
   if (typeof env.registered['phq-wallshame'] === 'function') ok('setPoster registered: phq-wallshame');
   else no('registration', 'phq-wallshame not registered with PFShare');
 

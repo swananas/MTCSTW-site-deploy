@@ -216,45 +216,6 @@ function crossfireHtml(){
      ships the action. */
   api("econ_calendar",{},function(j){ ECON=(j&&j.ok)?j:null; one(); });
 }
-/* ---------- S1 ROUTE MARCH (2026-10-04): TODAY'S ROUTE MARCH card ---------- */
-function routeMarchHtml(){
-  if(!CIRCUIT||!CIRCUIT.stops) return "";
-  var stops=CIRCUIT.stops, h="";
-  var sd=Number(CIRCUIT.streak_day||1);
-  h+='<div class="br-sec" id="pf-routemarch"><div class="br-sect">\\u2694 TODAY\\u2019S ROUTE MARCH</div>';
-  h+='<div class="br-rmhead"><span class="br-rmname">'+esc(String(CIRCUIT.route_name||"MARCH"))+'</span>'
-    +'<span class="br-rmday">DAY '+sd+' &bull; NEXT +'+Number(CIRCUIT.next_payout||10)+' XP</span></div>';
-  for(var i=0;i<stops.length;i++){ var s=stops[i];
-    h+='<a class="br-rmstop'+(s.done?" done":"")+'" href="'+esc(s.page||"/")+'">'
-      +'<span class="br-rmn">'+(s.done?"\\u2713":"STOP "+(i+1))+'</span>'
-      +'<span class="br-rml">'+esc(s.action_label||"")+'</span>'
-      +'<span class="br-rmgo">&rarr;</span></a>';
-  }
-  if(CIRCUIT.claimed){
-    h+='<div class="x-note" style="margin-top:8px">\\u2713 MARCH COMPLETE &mdash; DAY '+sd+' &bull; +'
-      +Number(CIRCUIT.payout||0)+' XP claimed. Tomorrow pays +'+Number(CIRCUIT.next_payout||10)
-      +' XP. Miss a day and the streak resets.</div>';
-  } else if(CIRCUIT.can_claim){
-    h+='<div style="margin-top:10px"><button class="c-btn br-rmbtn" data-act="circuit">CLAIM +'
-      +Number(CIRCUIT.next_payout||10)+' XP &mdash; DAY '+sd+'</button></div>';
-  } else {
-    h+='<div class="x-note" style="margin-top:8px">'+Number(CIRCUIT.completed||0)+' OF '
-      +Number(CIRCUIT.total||4)+' stops done. Finish the march to claim +'
-      +Number(CIRCUIT.next_payout||10)+' XP (day '+sd+').</div>';
-  }
-  h+='</div>';
-  return h;
-}
-/* W5-10 Operation Arcs (2026-10-04): "OPERATION <name>: <chapter_title>" line
-   under the soldier header whenever an arc is live. DOM-insert only — never a
-   full re-render — so a late arc read can't clobber mid-interaction state.
-   paintArcHeader is safe to call any number of times (dedupes on .br-arc). */
-function paintArcHeader(){
-  try{
-    if(!OPARC||!OPARC.active) return;
-    var el=document.getElementById("xBrief"); if(!el) return;
-    if(el.querySelector(".br-arc")) return;
-    var head=el.querySelector(".br-head");
 function seasonInfo(){
   if(SEASON){
     return { name:String(SEASON.name||"THE 32-DAY OFFENSIVE"),

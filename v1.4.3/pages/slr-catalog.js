@@ -165,7 +165,7 @@
     if(!host||!m||!m.slug) return;
     var key=repKey(m.slug);
     if(!/^[a-z0-9_]{3,20}$/.test(key)) return;
-    var api=(window.PF_BACKEND_URL||"https://pf-api.mtcstw.workers.dev");
+    var api=(window.PF_BACKEND_URL);
     var fn="pfRepCb"+Math.floor(Math.random()*1e9);
     var s=document.createElement("script"), done=false;
     function finish(j){
@@ -234,7 +234,7 @@
         var pvDone = window.__pfPvDone || (window.__pfPvDone = {});
         if (!pvDone[slug]) {
           pvDone[slug] = 1;
-          var api = (window.PF_BACKEND_URL || 'https://pf-api.mtcstw.workers.dev');
+          var api = (window.PF_BACKEND_URL );
           try {
             fetch(api, {
               method: 'POST',

@@ -561,7 +561,7 @@ function paintRaidTurnout(){
   var show=function(n){ if(n>0) el.innerHTML="&#9876; <b style='color:#f5f0e1;'>"+Number(n).toLocaleString()+"</b> raiders hit today\u2019s target \u2014 join them"; };
   try{ var c=JSON.parse(localStorage.getItem("pf_raid_turnout_v1")||"null");
     if(c&&Date.now()-c.at<3600000){ show(c.d); return; } }catch(e){}
-  var RAID_API=beUrl()||"https://pf-api.mtcstw.workers.dev";
+  var RAID_API=beUrl();
   var name="pfRT"+Date.now(), fired=false;
   window[name]=function(d){ if(fired) return; fired=true; try{ delete window[name]; }catch(e){}
     var s=document.getElementById(name); if(s&&s.parentNode) s.parentNode.removeChild(s);

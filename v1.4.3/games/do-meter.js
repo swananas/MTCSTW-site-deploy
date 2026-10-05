@@ -438,7 +438,7 @@ function nukeStateFor(pct){
    The strip's 60s tick is the primary feed; this is the killed-strip fallback. */
 function nukePoll(cb){
   var done=false, burl="";
-  try{ burl=window.PF_BACKEND_URL||"https://pf-api.mtcstw.workers.dev"; }catch(e){}
+  try{ burl=window.PF_BACKEND_URL; }catch(e){}
   function fin(st){ if(done) return; done=true; try{ cb(normNuke(st)); }catch(e){} }
   try{
     var cbn="pfNukeDoCb"+Date.now();

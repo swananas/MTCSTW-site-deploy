@@ -52,7 +52,7 @@
     }catch(e){}
   })();
 
-  var BACKEND_URL = window.PF_BACKEND_URL || "https://pf-api.mtcstw.workers.dev";
+  var BACKEND_URL = window.PF_BACKEND_URL ;
 
   var STICK_HTML='<div id="pf-nuke-stick" hidden>'+
   '<div class="pns-meter"><div class="pns-fill" id="pnsFill"></div></div>'+

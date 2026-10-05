@@ -54,6 +54,29 @@
     return '';
   }
 
+  /* R1/R19 claim-scoped guard (2026-10-04): the graduation card (R1) and the
+     post-claim squad interstitial (R19, core/22-squadjoin.js) fire on the same
+     pf-callsign-claimed event — exactly ONE may claim the moment per callsign.
+     Graduation takes precedence: R1 evaluates the claim and records its verdict
+     ('pending' -> 'card' | 'declined'); R19 shows only on 'declined'. Shared
+     sessionStorage key so both silos respect it across branches/pages. */
+  var CLAIM_UX_KEY = 'pf_claim_ux_v1';
+  function claimUxGet(cs) {
+    try {
+      var o = JSON.parse(sessionStorage.getItem(CLAIM_UX_KEY) || '{}');
+      return (o && o[String(cs || '').toLowerCase()]) || null;
+    } catch (e) { return null; }
+  }
+  function claimUxSet(cs, patch) {
+    try {
+      var k = String(cs || '').toLowerCase(); if (!k) return;
+      var o = {};
+      try { o = JSON.parse(sessionStorage.getItem(CLAIM_UX_KEY) || '{}'); } catch (e2) { o = {}; }
+      o[k] = Object.assign(o[k] || {}, { callsign: k }, patch || {});
+      sessionStorage.setItem(CLAIM_UX_KEY, JSON.stringify(o));
+    } catch (e) {}
+  }
+
   /* JSONP GET — academy_progress is auth-gated, so it rides the shared
      claim-retry getter like academy.js does; lesson_list stays public. */
   function api(action, params, cb) {
@@ -187,6 +210,9 @@
       if (root && root.parentNode === container) container.insertBefore(card, root);
       else container.insertBefore(card, container.firstChild);
     } catch (e) { return; }
+    /* R1/R19: the card rendered for this callsign — claim the post-claim
+       moment so the squad interstitial (R19) stands down for this claim. */
+    try { claimUxSet(id.callsign || '', { r1: 'card', ts: Date.now() }); } catch (e0) {}
 
     /* Ceremony, not a silent tick: confetti burst on the card. */
     try {
@@ -223,13 +249,25 @@
 
   /* Graduation check: fresh lesson state from the backend; renders the card
      only when every lesson is done AND no graduation flag exists locally or
-     server-side. Idempotent by construction. */
-  function check(container) {
+     server-side. Idempotent by construction.
+     R1/R19 sequencing: check(container, optCs, optDone) — the claim listener
+     passes the claimed callsign + a verdict callback so the squad
+     interstitial (R19) learns whether the card rendered for THIS claim. */
+  function check(container, optCs, optDone) {
+    function verdict(v) { try { if (optDone) optDone(v); } catch (e) {} }
     try {
       var id = ident();
-      if (!id.callsign) return;
-      if (flagSet(id.callsign)) return;
-      if (document.getElementById('pf-graduation')) return;
+      var cs = optCs || id.callsign;
+      if (!cs) { verdict('declined'); return; }
+      if (flagSet(cs)) { verdict('declined'); return; }
+      if (document.getElementById('pf-graduation')) { verdict('declined'); return; }
+      /* R1/R19 vice versa: if the squad interstitial already claimed this
+         claim's moment, the card stands down. Claim-scoped only (optCs set)
+         — later genuine graduations re-evaluate without optCs. */
+      if (optCs) {
+        var gx = claimUxGet(cs);
+        if (gx && gx.r19 === 'shown') { verdict('declined'); return; }
+      }
       var lessonsArr = null, apGraduated = null, calls = 0, finished = false;
       function maybe() {
         calls++;
@@ -237,34 +275,35 @@
         finished = true;
         try {
           var lessons = lessonsArr || [];
-          if (!lessons.length) return;
+          if (!lessons.length) { verdict('declined'); return; }
           var n = 0, i;
           for (i = 0; i < lessons.length; i++) { if (lessons[i].done) n++; }
-          if (n < lessons.length) return; /* not all done — no graduation */
-          if (apGraduated === true) { flagMark(id.callsign); return; }
+          if (n < lessons.length) { verdict('declined'); return; } /* not all done — no graduation */
+          if (apGraduated === true) { flagMark(cs); verdict('declined'); return; }
           /* Mirror the flag server-side (idempotent), then render. The local
              flag is set at render so a failed POST can't loop the card. */
           try {
-            post('academy_graduate', { callsign: id.callsign, device: id.device }, function () {});
+            post('academy_graduate', { callsign: cs, device: id.device }, function () {});
           } catch (e) {}
-          flagMark(id.callsign);
+          flagMark(cs);
           renderCard(container, lessons.length);
-        } catch (e2) {}
+          verdict('card');
+        } catch (e2) { verdict('declined'); }
       }
       /* Safety: never hang the check. */
-      setTimeout(function () { if (!finished) { finished = true; } }, 15000);
+      setTimeout(function () { if (!finished) { finished = true; verdict('declined'); } }, 15000);
       api('lesson_list', {}, function (j) {
         if (j && j.ok && j.lessons && j.lessons.length) lessonsArr = j.lessons;
         maybe();
       });
-      api('academy_progress', { callsign: id.callsign }, function (j) {
+      api('academy_progress', { callsign: cs }, function (j) {
         if (j && j.ok) {
           apGraduated = (j.graduated === true);
           if (j.lessons && j.lessons.length) lessonsArr = j.lessons;
         }
         maybe();
       });
-    } catch (e3) {}
+    } catch (e3) { verdict('declined'); }
   }
 
   function containers() {
@@ -288,6 +327,41 @@
       var cs = containers(), i;
       for (i = 0; i < cs.length; i++) check(cs[i]);
     }, 1200);
+  });
+
+  /* R1/R19 claim-scoped sequencing (2026-10-04): the graduation card fires
+     on pf-callsign-claimed. Evaluate the claim NOW — if this claim's owner is
+     a fresh graduate, the card renders and the R19 squad interstitial stands
+     down for this claim (guard verdict 'card'); otherwise the verdict is
+     'declined' and R19 may show. Graduation takes precedence by construction:
+     the verdict is claim-scoped, and R19 polls for it before showing. */
+  document.addEventListener('pf-callsign-claimed', function (e) {
+    try {
+      var cs = '';
+      try { cs = String((e && e.detail && e.detail.callsign) || ''); } catch (e0) {}
+      if (!cs && window.PFCallsign) { try { cs = window.PFCallsign() || ''; } catch (e1) {} }
+      if (!cs) return;
+      var g = claimUxGet(cs);
+      if (g && g.r1 === 'card') return; /* card already rendered for this claim */
+      claimUxSet(cs, { r1: 'pending', ts: Date.now() });
+      var done = false;
+      function settle(v) {
+        if (done) return; done = true;
+        claimUxSet(cs, { r1: v, ts: Date.now() });
+      }
+      var carr = containers(), i, remaining = carr.length;
+      if (!remaining) { settle('declined'); return; }
+      for (i = 0; i < carr.length; i++) {
+        (function (c) {
+          check(c, cs, function (v) {
+            if (done) return;
+            if (v === 'card') { settle('card'); return; }
+            remaining--;
+            if (remaining <= 0) settle('declined');
+          });
+        })(carr[i]);
+      }
+    } catch (e2) {}
   });
 
   /* Mount-time leg: catches graduates whose final lesson landed on another

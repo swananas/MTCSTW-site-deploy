@@ -200,8 +200,12 @@ var DEAD = ['bank.js', 'daily-drop.js', 'daily-fire.js', 'boost-raid.js',
   'media-nuke.js', 'video.js', 'amplify.js', 'archive.js', 'bounties.js',
   'assist.js'];
 /* Global chrome: notify.js (header bell) is bundled by build/bundle-core.js
-   into pages/bundle-pages.js — intentionally excluded from page bundles. */
-var GLOBAL_CHROME = ['notify.js'];
+   into pages/bundle-pages.js — intentionally excluded from page bundles.
+   Wave 3 (2026-10-04): flash-siren.js, ambush-drop.js, war-room-ticker.js
+   ship in core/bundle-core.js (+footer-chrome for the two banners) via
+   build/bundle-core.js — same exemption. */
+var GLOBAL_CHROME = ['notify.js', 'flash-siren.js', 'ambush-drop.js',
+  'war-room-ticker.js'];
 var unbundled = allFiles.filter(function (f) {
   return bundled.indexOf(f) === -1 && f.indexOf('bundle-') !== 0 &&
     DEAD.indexOf(f) === -1 && GLOBAL_CHROME.indexOf(f) === -1;

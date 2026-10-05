@@ -66,7 +66,17 @@ var CORE_FILES = [
   'core/20-nextop.js',
   /* allfronts (2026-10-04): ALL FRONTS operation banner — fixed-top strip
      while an operation is live or launching within the hour. */
-  'core/21-allfronts.js'
+  'core/21-allfronts.js',
+  /* flash-siren (A2, Wave 3, 2026-10-04): 15-min warning siren before flash
+     multipliers go live — site-wide banner + countdown, yields to the
+     operation banner at go-live. */
+  'games/flash-siren.js',
+  /* ambush-drop (S6, Wave 3, 2026-10-04): unannounced supply-drop banner +
+     claim modal, site-wide. Self-mounts; fail-silent. */
+  'games/ambush-drop.js',
+  /* war-room-ticker (S5, Wave 3, 2026-10-04): live activity feed — mounts in
+     the homepage PROOF section and the /cells sidebar where present. */
+  'games/war-room-ticker.js'
 ];
 
 var BUNDLES = {
@@ -108,7 +118,11 @@ var BUNDLES = {
        every page ends with a next action, not just v2 pages. */
     'core/20-nextop.js',
     /* allfronts (2026-10-04): operation banner on v1.1.0-branch pages too. */
-    'core/21-allfronts.js'
+    'core/21-allfronts.js',
+    /* flash-siren (A2, Wave 3): siren banner on v1.1.0-branch pages too. */
+    'games/flash-siren.js',
+    /* ambush-drop (S6, Wave 3): supply-drop banner on v1.1.0-branch pages too. */
+    'games/ambush-drop.js'
   ]
 };
 

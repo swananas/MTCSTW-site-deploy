@@ -24,9 +24,10 @@
           of the requested window — the index level is relative, not
           absolute). price_trends does NOT return the official baseline.
      GET  ?action=cpi_compare
-       -> {official: {value, period, source_url, retrieval_date} | null}
-       (fail-soft: a 404 or null official leaves the honest
-       "official baseline pending — check back" copy in place)
+       -> {official: {cpi_u_all_items: {series, period, value, unit,
+          source_url, source_date} | null, cpi_food_at_home: ...} | null,
+          official_note?} (fail-soft: a 404 or null official leaves the
+       honest "official baseline pending — check back" copy in place)
    HONESTY RULES (Psych audits this file): community data is NEVER presented
    as official. Every number the board/trends render carries a
    "community-reported" label with its date range. n<5 samples -> the card
@@ -659,24 +660,27 @@
       return '<div style="display:flex;align-items:flex-end;gap:4px;height:190px;">' + cols + '</div>';
     }
     /* ---- Official CPI-U baseline: it comes from its own endpoint
-       (?action=cpi_compare -> {official: {value, period, source_url,
-       retrieval_date} | null}), NOT from price_trends. Render value +
-       period + retrieval date so users see when the baseline was pulled.
+       (?action=cpi_compare -> {official: {cpi_u_all_items: {...} | null,
+       ...} | null}), NOT from price_trends. Render value + period +
+       retrieval date so users see when the baseline was pulled.
        Fail-soft: a 404/null leaves the honest pending copy in place. ---- */
     function officialPendingHTML() {
       return '<div style="color:#b8b0a0;font-size:14px;">Official baseline pending — check back. We won\u2019t draw a line we don\u2019t have.</div>';
     }
     function officialHTML(off) {
       var src = safeUrl(off.source_url) || 'https://www.bls.gov/cpi/';
+      /* The backend calls it source_date; retrieval_date is accepted too. */
+      var rd = off.retrieval_date || off.source_date;
       var line = off.period
-        ? 'CPI-U, ' + esc(String(off.period)) + ' · source: '
+        ? 'CPI-U, ' + esc(String(off.period)) +
+          (off.unit ? ' (' + esc(String(off.unit)) + ')' : '') + ' · source: '
         : 'CPI-U · release period unknown — verify the latest release at ';
       return '<div style="background:#0d0d0d;border:1px solid #3a3a3a;border-radius:8px;padding:12px;">' +
         '<div style="font-size:26px;font-weight:bold;">' + esc(String(off.value)) + '</div>' +
         '<div style="' + SMALL + '">' + line +
         '<a href="' + esc(src) + '" target="_blank" rel="noopener" style="color:#e8a0a0;">bls.gov</a>' +
         (off.period ? '' : '.') +
-        (off.retrieval_date ? '<br>Baseline pulled ' + esc(String(off.retrieval_date)) + '.' : '') +
+        (rd ? '<br>Baseline pulled ' + esc(String(rd)) + '.' : '') +
         '</div></div>';
     }
     function load() {
@@ -723,6 +727,11 @@
           var box = document.getElementById('pf-inf-tr-official');
           if (!box) return;
           var off = (c && c.official) || null;
+          /* cpi_compare nests the baseline per series; the headline
+             all-items series is the official number we render. A flat
+             {value, period, ...} official is also accepted. */
+          if (off && off.value == null)
+            off = off.cpi_u_all_items || off.cpi_food_at_home || null;
           if (off && off.value != null) { box.innerHTML = officialHTML(off); }
           /* else: keep the pending fallback — never draw a line we don't have. */
         });

@@ -22,12 +22,14 @@
     return false; }catch(e){ return false; } }
 
   /* Political HQ order: civic action first, then governance —
-     Know Your Enemy (intel) moved here 2026-10-03 from the homepage. */
+     Know Your Enemy (intel) moved here 2026-10-03 from the homepage.
+     Ally Organizations (nonprofits) appended 2026-10-05. */
   var ORDER = [
     ['civic', 'pf-ov-civic'],
     ['notify-prefs', 'pf-ov-notify-prefs'],
     ['governance', 'pf-ov-gov'],
-    ['intel', 'pf-ov-intel']
+    ['intel', 'pf-ov-intel'],
+    ['nonprofits', 'pf-ov-nonprofits']
   ];
 
   function execScripts(root, label) {

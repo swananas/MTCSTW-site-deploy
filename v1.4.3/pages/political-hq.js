@@ -84,8 +84,16 @@
     return n;
   }
 
-  if (PF && !PF.mountPoliticalHq) PF.mountPoliticalHq = mountSilos;
-  mountSilos();
+  if (PF && PF.mountHubSilos) {
+    /* 2026-10-05 (fe/phq-hub-nav): the section-hub layer takes over mounting —
+       sticky sub-nav, hub shells, per-hub lazy-mount, kill fail-soft.
+       Legacy flat mount below is the fallback when the hub runtime is absent. */
+    PF.mountPoliticalHq = function () { PF.mountHubSilos(ORDER); };
+    PF.mountHubSilos(ORDER);
+  } else {
+    if (PF && !PF.mountPoliticalHq) PF.mountPoliticalHq = mountSilos;
+    mountSilos();
+  }
 
   /* wave-live-rails (2026-10-05): TOP STORIES rail on the Political HQ —
      the shared news_top cache via PF.newsTop (same cache as the briefing).
@@ -99,7 +107,10 @@
       section.className = 'pf-v2-game pf-hq-section';
       section.setAttribute('data-game', 'top-stories');
       section.innerHTML = '<div class="pf-silo" id="pf-hq-news"><div class="c-load">Loading top stories&hellip;</div></div>';
-      h.appendChild(section);
+      /* 2026-10-05 (fe/phq-hub-nav): the rail pins above the hub sub-nav (spec §1). */
+      var _nav = document.getElementById('pf-hq-subnav');
+      if (_nav && _nav.parentNode === h) h.insertBefore(section, _nav);
+      else h.appendChild(section);
       var host = document.getElementById('pf-hq-news');
       PF.newsTop.render(host, { limit: 8 });
     } catch (e) { if (PF) PF.error('political-hq', 'news rail failed :: ' + (e && e.message || e)); }

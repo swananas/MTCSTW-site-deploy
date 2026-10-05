@@ -25,6 +25,9 @@
      Know Your Enemy (intel) moved here 2026-10-03 from the homepage. */
   var ORDER = [
     ['civic', 'pf-ov-civic'],
+    /* 2026-10-05 (fe/predict-share-call): Call the Shot prediction section —
+       mounts the pf-ov-predict template into #xPredict. */
+    ['predict', 'pf-ov-predict'],
     ['notify-prefs', 'pf-ov-notify-prefs'],
     ['governance', 'pf-ov-gov'],
     ['intel', 'pf-ov-intel']

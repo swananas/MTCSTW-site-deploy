@@ -106,6 +106,11 @@ var CORE_FILES = [
      Stories surfaces and Ammo Finder cards via MutationObserver when
      those dependencies are present. Fail-soft everywhere. */
   'core/read-xp.js',
+  /* courts (court tracker, 2026-10-05): SCOTUS docket silo — stages the
+     pf-ov-courts template; pages/political-hq.js mounts it in ORDER.
+     Self-contained JSONP reads; read-XP + share legs are optional hooks.
+     Kill: ?pf_off=courts. */
+  'core/courts.js',
   /* dead-drop (A1, 2026-10-05): daily hidden XP cache. Riddle card injects
      into the Morning Briefing (#xBrief); tappable cache widget renders ONLY
      on the server-supplied hidden page, mounted above the footer. The claim

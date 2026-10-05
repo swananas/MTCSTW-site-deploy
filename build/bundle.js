@@ -279,11 +279,9 @@ var SECTIONS = {
 var HQ_BUNDLES = {
   'bundle-hq': [
     'civic.js',
-<<<<<<< HEAD
     'civic-duty.js',
-=======
+    /* 2026-10-05 (fe/state-legislatures): state legislature directory. */
     'stateleg.js',
->>>>>>> origin/fe/state-legislatures
     'governance.js',
     'notify-prefs.js',
     'intel.js',

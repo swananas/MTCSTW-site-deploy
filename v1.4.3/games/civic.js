@@ -58,6 +58,13 @@ var STATES=[["AL","Alabama"],["AK","Alaska"],["AZ","Arizona"],["AR","Arkansas"],
 var P=null, REPS=null, SCRIPTS=null, VOTER=null, CREATE_OPEN=false, VSTATS=null;
 /* 6A-R7: voter-pledge poster state — set on a successful pledge. */
 var PLEDGE_DONE=false, PLEDGE_STATE_NAME='';
+/* Network Polls (2026-10-05, interactive expansion #3): poll list/detail
+   cache, create-form state, per-poll voted state (client-side +
+   localStorage so a refresh keeps it; the API's has_voted is the
+   server-side half). */
+var POLLS_OPEN=null, POLLS_CLOSED=null, POLLS_ERR=false, POLLS_CREATE_OPEN=false,
+    POLLS_CREATE_OPTS=2, POLLS_DETAIL={}, POLLS_FETCHING={},
+    POLLS_DRAFT={q:"",opts:[],kind:"general",dur:"3",bill:""};
 function pledgeStateName(code){
   for(var i=0;i<STATES.length;i++) if(STATES[i][0]===code) return STATES[i][1];
   return code||'';
@@ -102,13 +109,23 @@ try{
 function load(){
   var done=false, n=0;
   function fin(){ if(done)return; done=true; render(); }
-  function one(){ n++; if(n>=5) fin(); }
+  function one(){ n++; if(n>=7) fin(); }
   setTimeout(fin,15000);
   api("petition_list",{},function(j){ P=j; one(); });
   api("rep_list",{},function(j){ REPS=j; one(); });
   api("rep_scripts",{},function(j){ SCRIPTS=j; one(); });
   /* 2026-10-03: voter_pledge_stats (public) — aggregate pledge counts. */
   api("voter_pledge_stats",{},function(j){ VSTATS=j; one(); });
+  /* 2026-10-05: network polls — open list is the contract call; closed
+     list is best-effort (backend may not serve status=closed). */
+  api("polls_list",{status:"open"},function(j){
+    if(j&&j.ok){ POLLS_OPEN=j; } else { POLLS_ERR=true; POLLS_OPEN=null; }
+    one();
+  });
+  api("polls_list",{status:"closed"},function(j){
+    POLLS_CLOSED=(j&&j.ok)?j:null;
+    one();
+  });
   one();
 }
 /* 2026-10-05 (audit #7): sign/create used to trigger a full load() — 5 reads
@@ -190,6 +207,8 @@ function render(){
     h+='<button class="c-btn" id="cvPetOpen">START A PETITION</button>';
   }
   h+='</div>';
+  /* --- network polls (2026-10-05) --- */
+  h+=pollsPane();
   /* --- contact your rep --- */
   h+='<div class="x-pane"><h4>Contact your rep</h4>';
   var reps=(REPS&&REPS.reps)||[];
@@ -253,6 +272,245 @@ function render(){
   el.innerHTML=h;
   bind();
 }
+/* ================= NETWORK POLLS (2026-10-05, expansion #3) ================
+   Backend contract (backend pod, parallel build):
+     GET  ?action=polls_list&status=open   -> {ok, polls:[{id,question,kind,bill_id,options:[{id,label}],closes_at,status,total_votes,created_by,has_voted}]}
+     GET  ?action=polls_get&poll_id=X&callsign=Y -> detail + results (counts hidden until voted/closed)
+     POST {type:'poll', p_action:'polls_create', callsign, question, options:[labels], kind, bill_id?, closes_at} -> {ok,id}
+     POST {type:'poll', p_action:'polls_vote', callsign, poll_id, option_id} -> {ok}
+   RESULTS RULE (anti-bandwagoning): percentages hidden until the viewer has
+   voted (client-side map + API has_voted) or the poll is closed. Enforced
+   here and — per contract — on the backend (counts withheld in polls_get). */
+function pollVotedGet(){ try{ return JSON.parse(localStorage.getItem("pf_polls_voted_v1")||"{}"); }catch(e){ return {}; } }
+function pollVotedSet(m){ try{ localStorage.setItem("pf_polls_voted_v1",JSON.stringify(m)); }catch(e){} }
+function pollCountdown(ts){
+  var ms=Number(ts)-Date.now();
+  if(!(ms>0)) return "Closed";
+  var d=Math.floor(ms/864e5), h=Math.floor(ms%864e5/36e5), m=Math.floor(ms%36e5/6e4);
+  if(d>0) return d+"d "+h+"h left";
+  if(h>0) return h+"h "+m+"m left";
+  return Math.max(m,1)+"m left";
+}
+function pollTick(){
+  var els=document.querySelectorAll("[data-poll-countdown]");
+  for(var i=0;i<els.length;i++){ els[i].textContent=pollCountdown(els[i].getAttribute("data-poll-countdown")); }
+}
+try{ setInterval(pollTick,30000); }catch(e){}
+function loadPolls(){
+  POLLS_ERR=false;
+  var done=0;
+  function one(){ done++; if(done>=2){ try{ render(); }catch(e){} } }
+  api("polls_list",{status:"open"},function(j){
+    if(j&&j.ok){ POLLS_OPEN=j; } else { POLLS_ERR=true; POLLS_OPEN=null; }
+    one();
+  });
+  api("polls_list",{status:"closed"},function(j){
+    POLLS_CLOSED=(j&&j.ok)?j:null;
+    one();
+  });
+}
+function fetchPollDetail(pid){
+  var k=String(pid);
+  if(POLLS_FETCHING[k]||POLLS_DETAIL[k]) return;
+  POLLS_FETCHING[k]=true;
+  var pp={poll_id:pid};
+  var id2=ident(); if(id2.callsign) pp.callsign=id2.callsign;
+  api("polls_get",pp,function(j){
+    POLLS_FETCHING[k]=false;
+    if(j&&j.ok){ POLLS_DETAIL[k]=j; try{ render(); }catch(e){} }
+    /* failure: keep the "Reading results" note; the next re-render refires */
+  });
+}
+function pollIsVoted(p){
+  var m=pollVotedGet();
+  return !!(m[String(p.id)]||p.has_voted);
+}
+function pollCard(p,closed){
+  var h='<div class="cp-mission">';
+  h+='<div class="cp-mtext">'+esc(p.question)+'</div>';
+  var kind=String(p.kind||"general");
+  h+='<div class="x-note">'+(kind==="pressure"
+    ?'<b>PRESSURE POLL</b> \u2014 "should we pressure this bill?"'
+    :"General poll");
+  if(p.bill_id){
+    var bl=String(p.bill_id);
+    h+=' \u2022 bill: '+(bl.indexOf("http")===0
+      ?'<a href="'+esc(bl)+'" target="_blank" rel="noopener">link</a>'
+      :esc(bl));
+  }
+  h+='</div>';
+  /* passed badge: passed pressure polls PROPOSE a draft campaign — review
+     queue, never auto-launch. */
+  if(String(p.status)==="passed"){
+    h+='<div class="x-note"><b>\u2713 Passed \u2014 draft campaign proposed, under review.</b></div>';
+  }
+  if(!closed){
+    h+='<div class="x-note">Closes in <span data-poll-countdown="'+esc(p.closes_at)+'">'+pollCountdown(p.closes_at)+'</span></div>';
+  } else {
+    h+='<div class="x-note">Closed.</div>';
+  }
+  h+='<div class="x-note"><b>'+Number(p.total_votes||0)+'</b> votes</div>';
+  var voted=pollIsVoted(p);
+  if(voted||closed){
+    var det=POLLS_DETAIL[String(p.id)];
+    if(!det){
+      h+='<div class="x-note">Reading results&hellip;</div>';
+      fetchPollDetail(p.id);
+    } else {
+      var opts=(det.options&&det.options.length)?det.options:(p.options||[]);
+      var tot=Number(det.total_votes!=null?det.total_votes:p.total_votes)||0;
+      if(!opts.length){ h+='<div class="x-note">No results yet.</div>'; }
+      for(var i=0;i<opts.length;i++){
+        var o=opts[i], v=Number(o.votes)||0;
+        var pct=(o.pct!=null)?Number(o.pct):(tot>0?Math.round(v*100/tot):0);
+        h+='<div class="x-note" style="margin-top:6px">'+esc(o.label)+' \u2014 '+v+' ('+pct+'%)</div>'
+          +'<div class="cp-barwrap"><div class="cp-bar" style="width:'+pct+'%"></div></div>';
+      }
+    }
+  } else {
+    /* RESULTS RULE: vote buttons only, no percentages — no bandwagoning. */
+    var vo=p.options||[];
+    h+='<div class="x-note">Results stay hidden until you vote.</div>';
+    for(var j=0;j<vo.length;j++){
+      h+='<button class="c-btn cp-mbtn" style="min-height:44px" data-poll-vote="'+esc(p.id)+'" data-poll-opt="'+esc(vo[j].id)+'">'+esc(vo[j].label)+'</button> ';
+    }
+    if(!vo.length){ h+='<div class="x-note">No options on this poll.</div>'; }
+  }
+  h+='<div class="x-note">XP has no cash value. Stakes are final.</div></div>';
+  return h;
+}
+function pollSaveDraft(){
+  POLLS_DRAFT.q=gv("cvPollQ");
+  var a=[], els=document.querySelectorAll("[data-poll-opt-in]");
+  for(var i=0;i<els.length;i++){ a.push(els[i].value); }
+  POLLS_DRAFT.opts=a;
+  POLLS_DRAFT.kind=gv("cvPollKind")||"general";
+  POLLS_DRAFT.dur=gv("cvPollDur")||"3";
+  POLLS_DRAFT.bill=gv("cvPollBill");
+}
+function pollCreateForm(){
+  var h='<div class="x-pane pf-mt"><h4>New poll</h4>'
+    +'<input aria-label="Poll question" class="c-in" id="cvPollQ" maxlength="280" placeholder="Poll question (280 max)" value="'+esc(POLLS_DRAFT.q)+'">'
+    +'<div id="cvPollOpts">';
+  for(var i=0;i<POLLS_CREATE_OPTS;i++){
+    var ov=(POLLS_DRAFT.opts&&POLLS_DRAFT.opts[i])?POLLS_DRAFT.opts[i]:"";
+    h+='<div><input aria-label="Option '+(i+1)+'" class="c-in" data-poll-opt-in="'+i+'" maxlength="120" placeholder="Option '+(i+1)+'" value="'+esc(ov)+'">'
+      +(i>=2?' <button class="c-btn" data-poll-opt-rm="'+i+'" style="min-height:44px">REMOVE</button>':'')+'</div>';
+  }
+  h+='</div>'
+    +'<button class="c-btn" id="cvPollAddOpt" style="min-height:44px">+ ADD OPTION ('+POLLS_CREATE_OPTS+'/6)</button>'
+    +'<div class="x-note" style="margin-top:8px">Kind:</div>'
+    +'<select class="c-in" id="cvPollKind">'
+    +'<option value="general"'+(POLLS_DRAFT.kind==="general"?" selected":"")+'>General</option>'
+    +'<option value="pressure"'+(POLLS_DRAFT.kind==="pressure"?" selected":"")+'>Should we pressure this bill?</option></select>'
+    +'<input aria-label="Bill link (pressure polls)" class="c-in" id="cvPollBill" maxlength="300" placeholder="Bill link (pressure polls)" value="'+esc(POLLS_DRAFT.bill)+'"'
+    +(POLLS_DRAFT.kind==="pressure"?"":' style="display:none"')+'>'
+    +'<div class="x-note">Duration:</div>'
+    +'<select class="c-in" id="cvPollDur">'
+    +'<option value="1"'+(POLLS_DRAFT.dur==="1"?" selected":"")+'>1 day</option>'
+    +'<option value="3"'+(POLLS_DRAFT.dur==="3"?" selected":"")+'>3 days</option>'
+    +'<option value="7"'+(POLLS_DRAFT.dur==="7"?" selected":"")+'>7 days</option>'
+    +'<option value="14"'+(POLLS_DRAFT.dur==="14"?" selected":"")+'>14 days</option></select>'
+    +'<div class="x-note"><b>Pressure polls that PASS (&gt;60% YES and 10+ votes) only PROPOSE a draft campaign for review. They never auto-launch.</b></div>'
+    +'<button class="c-btn" id="cvPollCreate" style="min-height:44px">LAUNCH POLL</button> '
+    +'<button class="c-btn" id="cvPollCancel" style="min-height:44px">CANCEL</button>'
+    +'<div class="c-err" id="cvPollErr"></div></div>';
+  return h;
+}
+function pollsPane(){
+  var h='<div class="x-pane"><h4>Network Polls</h4>';
+  h+='<div class="x-note">Cast your vote. Results stay hidden until you vote \u2014 no bandwagoning.</div>';
+  if(!BACKEND||(POLLS_ERR&&!POLLS_OPEN)){
+    h+='<div class="c-err">Couldn&rsquo;t reach the polls wire.</div>'
+      +'<button class="c-btn" id="cvPollRetry" style="min-height:44px">RETRY</button>';
+    h+='</div>';
+    return h;
+  }
+  var open=(POLLS_OPEN&&POLLS_OPEN.polls)||[];
+  if(!open.length){ h+='<div class="x-note">No open polls right now. Start the first one.</div>'; }
+  for(var i=0;i<open.length;i++){ h+=pollCard(open[i],false); }
+  var closed=(POLLS_CLOSED&&POLLS_CLOSED.polls)||[];
+  if(closed.length){
+    h+='<h4 style="margin-top:10px">Closed polls</h4>';
+    for(var c=0;c<closed.length;c++){ h+=pollCard(closed[c],true); }
+  }
+  if(POLLS_CREATE_OPEN){
+    h+=pollCreateForm();
+  } else {
+    h+='<button class="c-btn" id="cvPollOpen" style="min-height:44px">START A POLL</button>';
+  }
+  h+='</div>';
+  return h;
+}
+function bindPolls(){
+  function qsa(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  var rt=document.getElementById("cvPollRetry");
+  if(rt) rt.onclick=function(){ loadPolls(); };
+  var op=document.getElementById("cvPollOpen");
+  if(op) op.onclick=function(){
+    POLLS_CREATE_OPEN=true; POLLS_CREATE_OPTS=2;
+    POLLS_DRAFT={q:"",opts:[],kind:"general",dur:"3",bill:""};
+    render();
+  };
+  var cn=document.getElementById("cvPollCancel");
+  if(cn) cn.onclick=function(){ POLLS_CREATE_OPEN=false; render(); };
+  var kind=document.getElementById("cvPollKind");
+  if(kind) kind.onchange=function(){
+    var b=document.getElementById("cvPollBill");
+    if(b) b.style.display=(kind.value==="pressure")?"":"none";
+  };
+  var add=document.getElementById("cvPollAddOpt");
+  if(add) add.onclick=function(){
+    if(POLLS_CREATE_OPTS<6){ pollSaveDraft(); POLLS_CREATE_OPTS++; render(); }
+  };
+  qsa("[data-poll-opt-rm]").forEach(function(b){
+    b.onclick=function(){
+      if(POLLS_CREATE_OPTS>2){ pollSaveDraft(); POLLS_CREATE_OPTS--; render(); }
+    };
+  });
+  qsa("[data-poll-vote]").forEach(function(b){
+    b.onclick=function(){
+      var pid=b.getAttribute("data-poll-vote"), oid=b.getAttribute("data-poll-opt");
+      b.disabled=true;
+      post("poll","p_action","polls_vote",{callsign:ident().callsign,poll_id:pid,option_id:oid},function(j){
+        if(j&&j.ok){
+          var m=pollVotedGet(); m[String(pid)]=String(oid); pollVotedSet(m);
+          delete POLLS_DETAIL[String(pid)];
+          toast("+5 XP earned");
+          fetchPollDetail(pid);
+        } else { toast(PF.errCopy(j,"Vote failed.")); b.disabled=false; }
+      });
+    };
+  });
+  var cb=document.getElementById("cvPollCreate");
+  if(cb) cb.onclick=function(){
+    var err=document.getElementById("cvPollErr");
+    var q=gv("cvPollQ").trim();
+    if(!q){ err.textContent="Question is required."; return; }
+    if(q.length>280){ err.textContent="Question must be 280 characters or less."; return; }
+    var opts=[];
+    qsa("[data-poll-opt-in]").forEach(function(inp){
+      var v=(inp.value||"").trim(); if(v) opts.push(v);
+    });
+    if(opts.length<2){ err.textContent="At least 2 options are required."; return; }
+    if(opts.length>6){ err.textContent="At most 6 options."; return; }
+    var k=gv("cvPollKind")==="pressure"?"pressure":"general";
+    var dur=Number(gv("cvPollDur"))||3;
+    var bill=gv("cvPollBill").trim();
+    cb.disabled=true;
+    var params={callsign:ident().callsign,question:q,options:opts,kind:k,closes_at:Date.now()+dur*864e5};
+    if(k==="pressure"&&bill) params.bill_id=bill;
+    post("poll","p_action","polls_create",params,function(j){
+      if(j&&j.ok){
+        toast("Poll launched.");
+        POLLS_CREATE_OPEN=false; POLLS_CREATE_OPTS=2;
+        POLLS_DRAFT={q:"",opts:[],kind:"general",dur:"3",bill:""};
+        loadPolls();
+      } else { err.textContent=PF.errCopy(j,"Create failed."); cb.disabled=false; }
+    });
+  };
+}
+/* ================= END NETWORK POLLS ================= */
 function gv(id){ var e=document.getElementById(id); return e?e.value:""; }
 function bind(){
   function qsa(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); }
@@ -385,6 +643,8 @@ function bind(){
   /* 2026-10-05 (audit #3): the civic contact-prefs form is gone — "Control the
      Signal" (notify-prefs) is the single contact-PII surface and owns the
      contact_set write path. No civic-side save binding anymore. */
+  /* network polls (2026-10-05): vote buttons, create form, retry. */
+  bindPolls();
   /* rep contact history (rep_contact_history, AUTH): the caller's own log.
      2026-10-05 (audit #7): fetched once per page view — bind() runs on every
      re-render, and each run used to refire this authed call. LOG CONTACT

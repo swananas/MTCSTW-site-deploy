@@ -2468,9 +2468,62 @@
       try {
         if (j && j.ok) render(container, j);
         else render(container, null);
+        renderModelCards(container);
       } catch (e) { try { render(container, null); } catch (e2) {} }
     });
     return true;
+  }
+
+  /* ---------- Wave B3: M-03 + M-06 strip model cards ----------
+     Two derived-model cards appended to the macro strip (money page).
+     MODEL chip + methodology on each; descriptive only, no predictions.
+     Each card has its own kill switch; they ride the money-macro master. */
+  function modelCard(title, modelTag, valueHTML, periodLabel, note, stampHTML) {
+    return '<div class="pf-macro-card">' +
+      '<div class="pf-macro-head"><span class="pf-macro-title">' + esc(title) + '</span>' +
+      '<span class="pf-macro-sa">' + esc(modelTag) + '</span></div>' +
+      valueHTML +
+      '<div class="pf-macro-period">' + esc(periodLabel || '') + '</div>' +
+      '<div class="pf-macro-src">' + note + stampHTML + '</div></div>';
+  }
+
+  function renderModelCards(container) {
+    try {
+      var grid = container.querySelector('.pf-macro-grid');
+      if (!grid) return;
+      var extra = document.createElement('div');
+      extra.className = 'pf-macro-grid';
+      extra.style.marginTop = '10px';
+      extra.setAttribute('data-macro-models', '1');
+      grid.parentNode.insertBefore(extra, grid.nextSibling);
+      function add(html) {
+        try { extra.insertAdjacentHTML('beforeend', html); } catch (e) {}
+      }
+      if (!PF.skip('yield-spread')) {
+        api('fred_yield_spread', { limit: 1 }, function (j) {
+          if (!j || !j.ok || !j.fred_live || !j.spread_live || j.stale || j.spread_bp == null) return;
+          var val = (j.spread_bp > 0 ? '+' : j.spread_bp < 0 ? '\u2212' : '') +
+            Math.abs(j.spread_bp) + ' bp';
+          add(modelCard('YIELD-CURVE SPREAD (10Y \u2212 2Y)', 'MODEL M-03',
+            '<div class="pf-macro-value">' + esc(val) + '</div>' +
+            '<div class="pf-macro-unit">' + (j.inverted ? 'INVERTED' : 'NORMAL') + '</div>',
+            (j.history && j.history[0] ? j.history[0].period_label : ''),
+            'Spread of official Treasury yields. Descriptive only — not a forecast. ',
+            'FRED \u00b7 DGS10 \u2212 DGS2'));
+        });
+      }
+      if (!PF.skip('policy-stance')) {
+        api('fred_policy_stance', { limit: 1 }, function (j) {
+          if (!j || !j.ok || !j.fred_live || !j.stance_live || j.stale || j.real_rate == null) return;
+          add(modelCard('FED POLICY STANCE', 'MODEL M-06',
+            '<div class="pf-macro-value">' + esc(j.real_rate_label || '') + '</div>' +
+            '<div class="pf-macro-unit">' + esc(String(j.regime || '').toUpperCase()) + '</div>',
+            esc(j.period_label || ''),
+            'Real rate = Fed funds \u2212 PCE inflation. Descriptive only — never a forecast of Fed action. ',
+            'FRED \u00b7 FEDFUNDS \u2212 PCEPI'));
+        });
+      }
+    } catch (e) {}
   }
 
   try { window.PFMacro = { mount: mount }; } catch (e) {}

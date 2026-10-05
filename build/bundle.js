@@ -290,6 +290,11 @@ var SECTIONS = {
        official data, zero XP. Kills: ?pf_off=economy-fred (master) or
        fed-watch | housing-context | official-trend | wage-gap | sahm. */
     'fred-economy.js',
+    /* Wave B3 (fe/fred-mw2): FRED models wave 2 on /economy — M-04
+       rent-burden estimator + U-01 local inflation indices. Self-mounts
+       on #pf-economy only; silent no-op elsewhere. Kills:
+       ?pf_off=rent-burden | local-indices. */
+    'fred-models2.js',
   ],
   'bundle-warchest': [
     /* /war-chest — Movement Finance. */
@@ -346,8 +351,13 @@ var HQ_BUNDLES = {
     'phq-hubs.js',
     'civic.js',
     /* Wave A5 S-13: official jobs panel (FRED UNRATE/PAYEMS), mounted by
-       civic.js above the pressure-campaigns pane. */
+       civic.js above the pressure-campaigns pane. Wave B3 adds the M-05
+       jobs-quality composite inside the panel. */
     'phq-jobs-panel.js',
+    /* Wave B3 (fe/fred-mw2): geographic campaign intelligence (U-09/U-10)
+       — organizer view, state-level aggregates, min-N=5. Self-mounts on
+       #pf-political-hq only. KILL: ?pf_off=geo-intel. */
+    'phq-geo-intel.js',
     'civic-duty.js',
     /* 2026-10-05 (fe/state-legislatures): state legislature directory. */
     'stateleg.js',

@@ -37,6 +37,7 @@
     ['socialproof', 'pf-ov-socialproof'],
     ['brief', 'pf-ov-brief'],
     ['daily-orders', 'pf-ov-orders'],
+    ['civicsnap', 'pf-ov-civicsnap'],
     ['dopa', 'pf-ov-dopa'],
     ['do-meter', 'pf-ov-dometer'],
     ['enlistment-ranks', 'pf-ov-ranks'],

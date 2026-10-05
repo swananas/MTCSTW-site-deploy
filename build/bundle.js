@@ -42,6 +42,9 @@ var SECTIONS = {
     'briefing.js',
     'do-meter.js',
     'daily-orders.js',
+    /* Civic Snapshot (2026-10-05): homepage "Today in Political HQ" widget —
+       active campaign, polls closing soon, ballot deadlines. READ-ONLY. */
+    'civic-snapshot.js',
     'dopamine.js',
     'enlistment-ranks.js',
     /* Wave 5B (2026-10-04): theater rack + ribbon chase strip + Frontline

@@ -76,6 +76,15 @@ var CORE_FILES = [
   'core/22-routemarch.js',
   /* squadjoin (R19, 2026-10-04): post-claim "NOW GET A SQUAD." interstitial. */
   'core/22-squadjoin.js',
+  /* rites (ENLISTED, 2026-10-05): post-claim enlistment ceremony (r0 claim
+     arbitration). ORDER: must follow 22-squadjoin.js — both listen for
+     'pf-callsign-claimed' with a 1200ms beat, and squadjoin's listener must
+     register first so its beat sees r0='pending' and polls to a verdict. */
+  'core/rites.js',
+  /* first-minute (Spec 2, 2026-10-05): anonymous homepage first-60s mission.
+     Page-conditional (self-gates on the #pf-v2 homepage shell + no
+     callsign), like 22-routemarch.js — bundled in core, never shown off-page. */
+  'core/24-first-minute.js',
   /* commend (W5-7, 2026-10-04): Battle Commendations — ticker-item kudos
      buttons + daily progress chip + standalone commend-a-callsign form. */
   'core/commend.js',

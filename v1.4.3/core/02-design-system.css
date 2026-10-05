@@ -453,3 +453,7 @@ html,body{overflow-x:clip;}
 #pf-irl .irl-type{color:var(--pf-cream);font-weight:700;letter-spacing:1px;}
 #pf-irl .irl-when,#pf-irl .irl-where{color:var(--pf-cream);font-size:13px;}
 #pf-irl .irl-rsvps{color:var(--pf-gold);font-weight:700;margin-top:6px;}
+/* R10 (2026-10-04): YOUR CELL strip + roll-with-cell checkbox. */
+#pf-irl .irl-cell{color:var(--pf-red-bright);font-weight:700;margin-top:6px;letter-spacing:1px;font-size:13px;}
+#pf-irl .irl-sq{display:block;color:var(--pf-cream);font-size:13px;font-weight:700;letter-spacing:1px;margin:8px 0 4px;cursor:pointer;}
+#pf-irl .irl-sq input{margin-right:6px;accent-color:var(--pf-red-bright);}

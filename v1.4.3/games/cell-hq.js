@@ -692,9 +692,9 @@
     h += '<div id="hqTreasBody">'+loading('Opening the vault&hellip;')+'</div>';
     p.innerHTML = h;
     var body = document.getElementById('hqTreasBody');
-    /* Parallel reads: bank, loans, prizes, bonds, campaign, warchest. */
+    /* Parallel reads: bank, loans, prizes, bonds, campaign, warchest, causes. */
     var R = {};
-    var need = ['bank','loans','prizes','bonds','camp','wchest','treasury'];
+    var need = ['bank','loans','prizes','bonds','camp','wchest','treasury','causes'];
     var done = 0;
     function each(){ done++; if (done >= need.length) paintTreasury(body, R, isFounder); }
     finGet('bank_status', {}, function(j){ R.bank=j; each(); });
@@ -702,6 +702,8 @@
     finGet('prize_list', {}, function(j){ R.prizes=j; each(); });
     finGet('bond_list', {}, function(j){ R.bonds=j; each(); });
     finGet('campaign_status', {}, function(j){ R.camp=j; each(); });
+    /* R9 (2026-10-04): cause pools + sponsor board for the SPONSOR panel. */
+    finGet('cause_list', {}, function(j){ R.causes=j; each(); });
     var wcid = (S.mine && S.mine.cell && S.mine.cell.id) || '';
     if (wcid) api('warchest_status', {cell_id: wcid}, function(j){ R.wchest=j; each(); });
     else { R.wchest = null; each(); }
@@ -777,6 +779,45 @@
       h += netErr();
     } else {
       h += '<div class="hq-note">Join a cell to see its treasury.</div>';
+    }
+    h += '</div>';
+    /* --- R9 (2026-10-04): SPONSOR — cell treasury -> cause pool.
+       Officer-gated server-side (cause_sponsor); degrade gracefully for
+       non-officers (board visible, no form). Zero XP to the officer —
+       the treasury pays, never personal XP. */
+    var ca = R.causes;
+    var canSpon = !!(S.mine && (S.mine.is_founder || S.mine.is_officer));
+    var spCell = (S.mine && S.mine.cell && S.mine.cell.id) || '';
+    var spName = (S.mine && S.mine.cell && S.mine.cell.name) || 'your cell';
+    h += '<div class="hq-card" style="border-color:#c1121f"><h3>&#9733; Sponsor a cause <span class="hq-note">treasury &#8594; cause pool</span></h3>';
+    if (ca && ca.ok){
+      var pools = ca.pools || [];
+      h += '<div class="hq-note">Put the cell treasury behind a cause — strike funds, bail funds, mutual aid. ' +
+        'Sponsorships are attributed to <b>'+esc(spName)+'</b> on the cause board.</div>';
+      if (canSpon && spCell && pools.length){
+        h += '<div class="hq-row" style="margin-top:8px;flex-wrap:wrap">' +
+          '<select class="hq-in" id="hqSpPool" aria-label="Cause pool" style="max-width:230px">' +
+          pools.map(function(p2){ return '<option value="'+esc(p2.id)+'">'+esc(p2.name)+' ('+Number(p2.balance||0).toLocaleString()+' XP)</option>'; }).join('') +
+          '</select>' +
+          '<input class="hq-in" id="hqSpAmt" type="number" min="1" inputmode="numeric" placeholder="XP amount" style="width:140px">' +
+          '<button class="hq-btn" data-hq="sponsor">SPONSOR A CAUSE &rarr;</button></div>' +
+          '<div id="hqSpMsg"></div>';
+      } else if (!spCell){
+        h += '<div class="hq-note">Join a cell to sponsor causes from its treasury.</div>';
+      } else if (!canSpon){
+        h += '<div class="hq-note">Only the founder and officers can move treasury funds. Earn a role, then sponsor.</div>';
+      } else {
+        h += '<div class="hq-note">No cause pools yet.</div>';
+      }
+      var spBoard = ca.sponsor_board || [];
+      if (spBoard.length){
+        h += '<div class="hq-note" style="margin-top:8px"><b>Top sponsoring cells:</b> ' +
+          spBoard.slice(0,5).map(function(x,i){ return (i+1)+'. '+esc(x.cell_name)+' ('+Number(x.total||0).toLocaleString()+' XP)'; }).join(' &middot; ') + '</div>';
+      }
+    } else if (spCell){
+      h += netErr();
+    } else {
+      h += '<div class="hq-note">Join a cell to see cause sponsorships.</div>';
     }
     h += '</div>';
     /* --- 1. WAR CHEST (personal bank) --- */
@@ -1039,6 +1080,34 @@
           S.tab='treasury'; render();
         }
         else treasMsg('hqDivMsg', false, friendlyErr(j));
+      });
+    }
+    /* R9 (2026-10-04): SPONSOR — treasury -> cause pool. Officer-gated
+       server-side; the backend debits the treasury, never the officer. */
+    else if (a==='sponsor'){
+      if(!needCs()) return;
+      if (!(S.mine && (S.mine.is_founder || S.mine.is_officer))){
+        toast('Only the founder and officers can sponsor from the treasury.'); return;
+      }
+      var scell2 = (S.mine && S.mine.cell && S.mine.cell.id) || '';
+      if (!scell2){ toast('Join a cell first.'); return; }
+      var spid = strIn('hqSpPool');
+      var samt = numIn('hqSpAmt', 0);
+      if (!spid){ toast('Pick a cause pool.'); return; }
+      if (!samt || samt < 1){ toast('Enter an XP amount first.'); return; }
+      var spcname = (S.mine.cell && S.mine.cell.name) || 'your cell';
+      if (!moneyConfirm('Sponsor '+samt.toLocaleString()+' XP from the '+spcname+' treasury to this cause? Officer move — spends real cell XP.')) return;
+      busy(true);
+      postFin('cause_sponsor', {cell_id: scell2, pool_id: spid, amount: samt}, function(j){
+        busy(false);
+        if (j && j.ok){
+          var smsg = j.dup ? 'Already counted — double-tap ignored.' :
+            'Sponsored '+Number(j.amount||samt).toLocaleString()+' XP to '+(j.pool||'the cause')+' as '+(j.cell_name||spcname)+'.';
+          treasMsg('hqSpMsg', true, smsg);
+          toast('Cause sponsored. The treasury backs the fight.');
+          S.tab='treasury'; render();
+        }
+        else treasMsg('hqSpMsg', false, friendlyErr(j));
       });
     }
     else if (a==='create'){

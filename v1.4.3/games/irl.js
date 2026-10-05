@@ -62,6 +62,30 @@ function fmtDate(t){
     return wd[d.getDay()]+" "+mo[d.getMonth()]+" "+d.getDate()+", "+h+":"+("0"+d.getMinutes()).slice(-2)+ap;
   }catch(e){ return String(t||""); }
 }
+/* R10 (2026-10-04): ?squad= prefill for the roll-with-cell checkbox —
+   squad=1 checks every event, squad=<event_id> checks that event only. */
+var SQUAD_PRE="";
+try{ var _sqm=/(?:^|[?&])squad=([^&#]*)/.exec(location.search||"");
+  if(_sqm) SQUAD_PRE=decodeURIComponent(_sqm[1]||""); }catch(e){}
+/* Auth-attached JSONP GET (private reads need the callsign secret — the
+   same IDOR pattern cells.js uses for cell_mine). event_rsvp_list is
+   additionally gated server-side on cell membership. */
+function apiAuth(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  var fn="pfIrlA"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var pp=Object.assign({},params||{});
+  try{ var sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+    if(sec&&!pp.auth_secret) pp.auth_secret=sec; }catch(e){}
+  var q="?action="+encodeURIComponent(action);
+  for(var k in pp){ if(pp[k]!=null&&pp[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(pp[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
 function load(){
   var el=document.getElementById("xIrl"); if(!el) return;
   api("event_list",{},function(j){ render(j); });
@@ -88,8 +112,13 @@ function render(j){
       +'<div class="irl-where">'+esc(e.location||"Location TBA")+'</div>'
       +(e.description?'<div class="x-note">'+esc(e.description)+'</div>':"")
       +'<div class="irl-rsvps">'+(Number(e.rsvp_count)||0)+' soldiers committed</div>';
+    /* R10 (2026-10-04): YOUR CELL strip — "N OF YOUR CELL GOING" — filled
+       after render via event_rsvp_list. Hidden until a count lands. */
+    h+='<div class="irl-cell" id="irlCell'+esc(e.id)+'" style="display:none"></div>';
     if(!past&&id.callsign){
-      h+='<button class="c-btn" data-irl-rsvp="'+esc(e.id)+'">RSVP (+50 XP)</button><div class="c-err" id="irlErr'+esc(e.id)+'"></div>';
+      var sqPre=(SQUAD_PRE==="1"||SQUAD_PRE===String(e.id))?' checked="checked"':"";
+      h+='<label class="irl-sq"><input type="checkbox" id="irlSquad'+esc(e.id)+'"'+sqPre+'> ROLL WITH MY CELL</label>'
+        +'<button class="c-btn" data-irl-rsvp="'+esc(e.id)+'">RSVP (+50 XP)</button><div class="c-err" id="irlErr'+esc(e.id)+'"></div>';
     } else if(!past){
       h+='<div class="x-note">Claim a callsign in Enlistment Ranks to RSVP.</div>';
     }
@@ -97,13 +126,41 @@ function render(j){
   }
   h+='<div style="margin-top:10px"><button class="c-btn" id="irlRetry">Refresh</button></div>';
   el.innerHTML=h;
+  /* R10: populate the YOUR CELL strips. One cell_mine read for the primary
+     cell, then one event_rsvp_list read per upcoming event. Fail-silent —
+     the strip just stays hidden. */
+  if(id.callsign){
+    apiAuth("cell_mine",{callsign:id.callsign,device:id.device},function(mj){
+      var cid=(mj&&mj.ok&&mj.in_cell&&mj.cell&&mj.cell.id)?String(mj.cell.id):"";
+      if(!cid) return;
+      var btns2=el.querySelectorAll("button[data-irl-rsvp]");
+      for(var q=0;q<btns2.length;q++){
+        (function(btn){
+          var eid=btn.getAttribute("data-irl-rsvp");
+          apiAuth("event_rsvp_list",{callsign:id.callsign,event_id:eid,cell_id:cid},function(j){
+            var d=document.getElementById("irlCell"+eid);
+            if(!d) return;
+            if(j&&j.ok&&Number(j.cell_count)>0){
+              d.style.display="";
+              d.innerHTML='⚔ <b>'+Number(j.cell_count)+'</b> OF YOUR CELL GOING'+
+                (Number(j.squad_count)>0?' — <b>'+Number(j.squad_count)+'</b> ROLLING AS A SQUAD':'');
+            }
+          });
+        })(btns2[q]);
+      }
+    });
+  }
   var btns=el.querySelectorAll("button[data-irl-rsvp]");
   for(var b=0;b<btns.length;b++){
     (function(btn){
       btn.onclick=function(){
         var eid=btn.getAttribute("data-irl-rsvp");
         btn.disabled=true;
-        post("event_rsvp",{callsign:id.callsign,device:id.device,event_id:eid},function(j){
+        /* R10: roll-with-cell checkbox rides the RSVP as squad=1 (backend
+           flag on the row; zero extra XP — routing earns nothing). */
+        var sqb=document.getElementById("irlSquad"+eid);
+        var squad=(sqb&&sqb.checked)?1:0;
+        post("event_rsvp",{callsign:id.callsign,device:id.device,event_id:eid,squad:squad},function(j){
           if(!j||!j.ok){
             var er=document.getElementById("irlErr"+eid);
             if(er) er.textContent=PF.errCopy(j,"RSVP failed.");

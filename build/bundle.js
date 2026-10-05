@@ -75,6 +75,9 @@ var SECTIONS = {
     'cell-first-hour.js',
     'referral.js',
     'poster-forge.js',
+    /* Political HQ creation-plugins (2026-10-05): the Poster Forge POLITICAL
+       tab. Loads right after poster-forge.js — mounts into #xPolitical. */
+    'poster-forge-political.js',
     'feed.js',
     'political-hq-nudge.js',
     'war-bonds.js',
@@ -135,6 +138,8 @@ var SECTIONS = {
   'bundle-create-h': [
     /* /create — poster-forge + feed (the Propaganda Feed workshop). */
     'poster-forge.js',
+    /* Slim dup of bundle-home's copy: political tab rides along. */
+    'poster-forge-political.js',
     'feed.js'
   ],
   'bundle-arcade': [

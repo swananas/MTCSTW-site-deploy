@@ -143,9 +143,13 @@ if (has(rx, 'pendingMetaPrefill') && has(rx, 'if (pendingMetaPrefill)'))
 else no('hook', 'pending-prefill path missing');
 
 console.log('== 6. bank_submit metadata + self-remix ==');
-if (has(rx, 'political_meta') && has(rx, 'body.political_meta = pm') && has(rx, 'metaPayload(root)'))
-  ok('submit: political_meta rides bank_submit when linked');
-else no('submit', 'political_meta not attached to bank_submit');
+/* Backend contract (be/content-bank-metadata): 8 FLAT params — the nested
+   political_meta object was silently dropped, so metaFlat is the contract. */
+if (has(rx, 'function metaFlat(body, pm)') && has(rx, 'metaFlat(body, pm)') &&
+    has(rx, 'function metaPayload(root)') &&
+    !has(codeOnly(rx), 'body.political_meta = pm'))
+  ok('submit: metadata rides bank_submit as 8 flat params (no nested object)');
+else no('submit', 'bank_submit metadata not flattened to backend contract');
 if (has(rx, "j.note === 'self_remix_no_award'"))
   ok('xp: self_remix_no_award note detected on acceptance');
 else no('xp', "self_remix_no_award branch missing");
@@ -180,6 +184,17 @@ else no('gallery', 'sort controls missing');
 if (has(bb, 'LOAD MORE') && has(bb, 'has_more') && has(bb, 'offset'))
   ok('gallery: LOAD MORE pagination on has_more');
 else no('gallery', 'pagination missing');
+/* Backend contract (be/content-bank-metadata): bank_list returns flat fields
+   (id, no nesting, no has_more), reads entity_id filter. */
+if (has(bb, 'params.entity_id = S.entity') && !has(codeOnly(bb), 'params.entity = S.entity'))
+  ok('gallery: entity filter sent as entity_id');
+else no('gallery', 'entity_id filter param missing');
+if (has(bb, 'viewItem') && has(bb, 'raw.submission_id || raw.id'))
+  ok('gallery: rows normalized to view objects (id -> submission_id)');
+else no('gallery', 'viewItem normalization missing');
+if (has(bb, 'items.length === LIMIT'))
+  ok('gallery: has_more inferred from a full page');
+else no('gallery', 'has_more inference missing');
 if (has(bb, 'NOTHING BANKED HERE YET'))
   ok('gallery: empty-filter state copy');
 else no('gallery', 'empty state copy missing');
@@ -209,7 +224,11 @@ if (has(bb, "'/create'") && has(bb, 'PF.bankForgePath'))
 else no('remix', 'forge path default/override missing');
 if (has(bb, "'bank_remix'") && has(bb, "'readcreate'") && has(bb, 'submission_id'))
   ok('remix: POST bank_remix (readcreate) with submission_id');
-else no('remix', 'bank_remix POST contract missing');
+/* Backend contract (be/content-bank-metadata): {ok, submission_id, remix:{...}}
+   nested — read defensively via normRemix; forge_ready optional. */
+if (has(bb, 'function normRemix(j, sid)') && has(bb, 'j.remix'))
+  ok('remix: reads j.remix || j defensively (backend nested shape)');
+else no('remix', 'defensive nested-remix read missing');
 
 console.log('== 9. no XP copy in gallery/remix ==');
 var xpHits = grepHits(bb, /\+10|\+20|xpGrant/i);
@@ -376,6 +395,39 @@ console.log('== 15. functional (vm sandbox) ==');
       if (T.S.sort === 'recent' && T.filtersHtml().indexOf('MOST REMIXED') !== -1)
         ok('functional: sort controls present');
       else no('functional', 'sort controls wrong');
+      /* viewItem: flat backend row (id, flat meta fields) -> view object. */
+      if (typeof T.viewItem !== 'function') { no('functional', 'viewItem hook missing'); }
+      else {
+        var v = T.viewItem({ id: 42, caption: 'Poster', artifact_kind: 'image',
+          artifact_url: 'https://x.test/p.png', remix_count: 0,
+          entity_type: 'bill', entity_id: 'H.R. 14',
+          issue_area: 'Voting Rights & Democracy Reform', plugin_id: 'civics',
+          template_id: 'bill-card', data_hash: 'h1', data_ts: 't1' });
+        if (v.submission_id === '42' && v.political_meta &&
+            v.political_meta.entity_type === 'bill' && v.political_meta.entity_id === 'H.R. 14' &&
+            v.political_meta.issue_area === 'Voting Rights & Democracy Reform' &&
+            v.political_meta.plugin_id === 'civics' &&
+            JSON.stringify(v).indexOf('undefined') === -1)
+          ok('functional: viewItem normalizes flat row (id -> submission_id, meta nested)');
+        else no('functional', 'viewItem wrong: ' + JSON.stringify(v));
+        var card2 = T.cardHtml(v);
+        if (card2.indexOf('data-bb-remix="42"') !== -1 && card2.indexOf('REMIX THIS') !== -1)
+          ok('functional: normalized row renders REMIX THIS card');
+        else no('functional', 'normalized card wrong');
+      }
+      /* normRemix: reads j.remix || j defensively. */
+      if (typeof T.normRemix !== 'function') { no('functional', 'normRemix hook missing'); }
+      else {
+        var n1 = T.normRemix({ ok: true, submission_id: 'sub_9',
+          remix: { plugin_id: 'civics', template_id: 'bill-card', entity_type: 'bill',
+                   entity_id: 'H.R. 14', data_hash: 'h1', data_ts: 't1' } }, 'sub_9');
+        var n2 = T.normRemix({ ok: true, plugin_id: 'civics', entity_type: 'rep',
+          entity_id: 'J. Smith (TX-21)' }, 'sub_1');
+        if (n1.plugin_id === 'civics' && n1.entity_id === 'H.R. 14' && n1.parent_id === 'sub_9' &&
+            n2.plugin_id === 'civics' && n2.entity_id === 'J. Smith (TX-21)' && n2.parent_id === 'sub_1')
+          ok('functional: normRemix reads nested remix and flat shapes');
+        else no('functional', 'normRemix wrong: ' + JSON.stringify(n1) + ' / ' + JSON.stringify(n2));
+      }
     }
   } catch (e) { no('functional', 'bank-browse vm: ' + e.message); }
 
@@ -399,6 +451,22 @@ console.log('== 15. functional (vm sandbox) ==');
           pm.parent_id === 'sub_9')
         ok('functional: PF.bankPrefillMeta -> political_meta rides next submit');
       else no('functional', 'prefill/payload mismatch: ' + JSON.stringify(pm));
+      /* metaFlat: the actual wire contract — 8 flat params, never nested. */
+      if (typeof RX._t.metaFlat !== 'function') { no('functional', 'metaFlat hook missing'); }
+      else {
+        var body = RX._t.metaFlat({ artifact_url: 'https://x.test/p.png', caption: 'c' },
+          { entity_type: 'bill', entity_id: 'H.R. 14', issue_area: 'Voting Rights & Democracy Reform',
+            plugin_id: 'civics', template_id: 'bill-card', data_hash: 'h1', data_ts: 't1', parent_id: 'sub_9' });
+        var flatKeys = ['entity_type','entity_id','issue_area','plugin_id','template_id','data_hash','data_ts','parent_id'];
+        var flatOk = flatKeys.every(function (k) { return body[k] !== undefined && body[k] !== ''; });
+        if (flatOk && body.political_meta === undefined && body.entity_id === 'H.R. 14')
+          ok('functional: metaFlat writes 8 flat params, no nested political_meta');
+        else no('functional', 'metaFlat wrong: ' + JSON.stringify(body));
+        var sparse = RX._t.metaFlat({}, { entity_type: 'rep' });
+        if (sparse.entity_type === 'rep' && sparse.entity_id === undefined && sparse.political_meta === undefined)
+          ok('functional: metaFlat skips empty fields (sparse payload)');
+        else no('functional', 'metaFlat sparse wrong: ' + JSON.stringify(sparse));
+      }
       if (RX._t.metaAreas.length === 12 && RX._t.metaTypes.length === 7)
         ok('functional: 12 areas + 7 types exposed');
       else no('functional', 'canonical list lengths wrong');

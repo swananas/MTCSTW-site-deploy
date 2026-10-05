@@ -6702,8 +6702,10 @@ if(document.readyState==='loading'){
    registry probe. Registry absent -> the picker never renders (silent
    no-op, never a broken control). Prefill via PF.bankPrefillMeta works
    regardless — metadata rides bank_submit even with the picker hidden.
-   bank_submit carries political_meta:{entity_type,entity_id,issue_area,
-   plugin_id?,template_id?,data_hash?,data_ts?,parent_id?} when set.
+   bank_submit carries the metadata as FLAT params (entity_type, entity_id,
+   issue_area, plugin_id?, template_id?, data_hash?, data_ts?, parent_id?)
+   when set — the backend reads p.entity_type etc. directly, never a nested
+   object.
    Metadata changes nothing about XP (Economy Desk ruling 2026-10-05:
    metadata submits earn the normal acceptance amounts; self-remix
    acceptances carry note 'self_remix_no_award' and the confirmation
@@ -7444,7 +7446,7 @@ if(document.readyState==='loading'){
     try {
       if (!META_KILLED) {
         var pm = metaPayload(root);
-        if (pm) body.political_meta = pm;
+        if (pm) metaFlat(body, pm);
       }
     } catch (e0) {}
     api(ACT.BANK, body, function (j) {
@@ -7854,6 +7856,21 @@ if(document.readyState==='loading'){
       } catch (e2) {}
     });
   }
+  /* Flattens the picker payload onto the bank_submit body. Backend contract
+     (be/content-bank-metadata): 8 FLAT params — the backend reads
+     p.entity_type / p.entity_id / ... directly; a nested political_meta
+     object would be silently dropped, so it must never ride the wire. */
+  var META_KEYS = ['entity_type', 'entity_id', 'issue_area',
+    'plugin_id', 'template_id', 'data_hash', 'data_ts', 'parent_id'];
+  function metaFlat(body, pm) {
+    try {
+      for (var i = 0; i < META_KEYS.length; i++) {
+        var k = META_KEYS[i];
+        if (pm && pm[k]) body[k] = pm[k];
+      }
+    } catch (e) {}
+    return body;
+  }
   /* political_meta payload for bank_submit — null when nothing was linked. */
   function metaPayload(root) {
     try {
@@ -8000,7 +8017,7 @@ if(document.readyState==='loading'){
       /* political metadata test hooks */
       bankPrefillMeta: PF.bankPrefillMeta, metaKilled: META_KILLED,
       metaTypes: META_TYPES, metaAreas: META_AREAS,
-      metaProbe: metaProbe, metaPayload: metaPayload,
+      metaProbe: metaProbe, metaPayload: metaPayload, metaFlat: metaFlat,
       mountMetaPicker: mountMetaPicker, applyMetaPrefill: applyMetaPrefill
     }
   };

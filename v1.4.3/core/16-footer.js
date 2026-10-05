@@ -224,8 +224,33 @@
           in a fixed bottom-corner position so the control is never missing.
      All paths converge on injectLink()/placeFixed(): a single link element
      (id pf-delete-data-link) is created once and moved, never duplicated. */
+  /* R13 (2026-10-04): "claim your wall spot" card on /store. Path-gated —
+     only renders on store pages; dismissible; never duplicates. The buyer
+     wall itself lives on /war-chest (#pf-bond-wall). Receipt-page copy is
+     Shane's hand-step; this card catches every store visitor. */
+  function storeCard(){
+    if(document.getElementById('pf-store-wall')) return;
+    var p='';
+    try{ p=String(location.pathname||''); }catch(e){}
+    if(!/^\/store(\/|$)/.test(p)) return;
+    try{
+      var d=document.createElement('div');
+      d.id='pf-store-wall';
+      d.style.cssText='background:#0d0d0d;color:#f5ead6;border-bottom:3px solid #c1121f;'+
+        'font:bold 13px/1.5 Arial,sans-serif;letter-spacing:1px;text-align:center;'+
+        'padding:10px 44px 10px 12px;position:relative;z-index:9990;';
+      d.innerHTML='BOUGHT A BOND? <a href="/war-chest#pf-bond-wall" style="color:#fff;text-decoration:underline;">CLAIM YOUR WALL SPOT &rarr;</a>';
+      var x=document.createElement('span');
+      x.textContent='\u00d7';
+      x.style.cssText='position:absolute;right:12px;top:8px;font-size:20px;cursor:pointer;color:#f5ead6;';
+      x.onclick=function(){ d.remove(); };
+      d.appendChild(x);
+      if(document.body) document.body.insertBefore(d,document.body.firstChild);
+    }catch(e2){}
+  }
   function boot() {
     injectLink();
+    try{ storeCard(); }catch(e){}
     var tries = 0;
     var iv = setInterval(function () {
       tries++;

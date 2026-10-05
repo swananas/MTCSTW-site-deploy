@@ -107,6 +107,33 @@ function adminPost(type,key,cAction,params,cb){
   }catch(e7){ done(null); }
 }
 var AU=null,CO=null,ST=null,PU=null,DR=null,TRB=null,SP=null,TRCELL="";
+/* W2-D14 (2026-10-04): public treasury spend log — read-only, officer
+   attribution. Renders against the treasury_spend_log contract (W6B-1,
+   flagged); falls back to spend-kind rows in treasury_balance.recent. */
+var TRSPEND=null, TRSPEND_REQ="";
+function loadSpendLog(){
+  if(!TRCELL||TRSPEND_REQ===TRCELL) return;
+  TRSPEND_REQ=TRCELL; TRSPEND=null;
+  api("treasury_spend_log",{cell_id:TRCELL},function(j){
+    TRSPEND=(j&&j.ok)?j:null;
+    render();
+  });
+}
+function renderSpendLog(){
+  var rows=[];
+  if(TRSPEND&&TRSPEND.spends) rows=TRSPEND.spends;
+  else if(TRB&&TRB.ok&&TRB.recent){
+    rows=(TRB.recent||[]).filter(function(r){ return /spend/i.test(String(r.kind||"")); });
+  }
+  if(!rows.length) return '<div class="x-note">No spends on record. The war chest is untouched.</div>';
+  var h="";
+  for(var i=0;i<Math.min(rows.length,10);i++){
+    var r=rows[i];
+    h+='<div class="cp-mission"><div class="cp-mtext"><b>-'+Number(r.amount||0).toLocaleString()+' XP</b> — '+esc(r.purpose||r.note||"spend")
+      +'<div class="x-note">ordered by '+esc(r.callsign||r.officer||"?")+(r.ts||r.at?' &bull; '+esc(fmtDate(r.ts||r.at)):'')+'</div></div></div>';
+  }
+  return h;
+}
 var STAKE_YIELDS={7:5,30:15,90:40};
 function load(){
   var id=ident(), done=false, n=0, need=7;
@@ -312,6 +339,10 @@ function renderTreasury(id){
     if(rec.length){ h+='<div class="x-note pf-mt" >Recent:</div>';
       for(var i=0;i<Math.min(rec.length,5);i++) h+='<div class="x-note">'+esc(rec[i].callsign)+' '+esc(rec[i].kind||"threw down")+' '+Number(rec[i].amount||0)+' XP</div>';
     }
+    /* W2-D14: public spend log with officer attribution. */
+    h+='<div class="x-note pf-mt"><b>SPEND LOG</b> — every XP out of the war chest, officer-attributed.</div>';
+    h+=renderSpendLog();
+    loadSpendLog();
   } else if(TRCELL){ h+='<div class="x-note">No treasury data for that cell.</div>'; }
   h+='</div>'; return h;
 }
@@ -319,7 +350,7 @@ function wireTreasury(id,el){
   var v=document.getElementById("ecTView");
   if(v) v.onclick=function(){
     TRCELL=String(document.getElementById("ecTCell").value||"").trim();
-    TRB=null; render();
+    TRB=null; TRSPEND=null; TRSPEND_REQ=""; render();
     if(TRCELL) api("treasury_balance",{cell_id:TRCELL},function(j){ TRB=j; render(); });
   };
   var d=document.getElementById("ecTFundBtn");
@@ -396,7 +427,9 @@ function wireSponsor(id,el){
 }
 /* ---------- POWER-UPS ---------- */
 function renderPowerups(id){
-  var h='<div class="x-pane"><h4>Power-Ups</h4><div class="x-note">Spend XP to earn XP faster. The engine feeds itself.</div>'+ecAuthHint(PU);
+  var h='<div class="x-pane"><h4>Power-Ups</h4><div class="x-note">Spend XP to earn XP faster. The engine feeds itself.</div>'+ecAuthHint(PU)
+    /* R26: the ONE shared inventory chip mounts here too. */
+    +'<div id="ecInvChip"></div>';
   var act=(PU&&PU.active)||[];
   if(act.length){ h+='<div class="x-note">Active:</div>';
     for(var i=0;i<act.length;i++) h+='<div class="cp-mdone">'+esc(act[i].kind)+' — expires in '+esc(fmtDur(Number(act[i].expires_at)-Date.now()))+'</div>';
@@ -408,6 +441,11 @@ function renderPowerups(id){
   return h;
 }
 function wirePowerups(id,el){
+  /* R26: mount the shared inventory chip (shields + active power-ups). */
+  try{
+    var chip=document.getElementById("ecInvChip");
+    if(chip&&window.PF&&PF.mountInventoryChip) PF.mountInventoryChip(chip);
+  }catch(e){}
   var btns=el.querySelectorAll('button[data-puk]');
   for(var i=0;i<btns.length;i++){ (function(btn){
     btn.onclick=function(){
@@ -436,6 +474,9 @@ function wireTitles(id,el){
     post("title","ti_action","title_buy",{callsign:id.callsign,device:id.device,title:t},function(j){
       if(!j||!j.ok){ toast(PF.errCopy(j,"Purchase failed.")); b.disabled=false; return; }
       toast("TITLE SET: "+t);
+      /* W2-D17: title mirror — the equipped title renders on the callsign
+         profile (enlistment-ranks) and the ticker byline. */
+      try{ localStorage.setItem("pf_title_v1",t); }catch(e){}
       b.disabled=false;
     });
   };

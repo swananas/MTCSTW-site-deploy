@@ -50,6 +50,9 @@ var CORE_FILES = [
   'core/05-tally.js',
   'core/08-dopamine.js',
   'core/09-referral.js',
+  /* R26 (2026-10-04): shared power-up/shield inventory chip. Core so every
+     page bundle can mount it via PF.mountInventoryChip. */
+  'core/23-inventory.js',
   'core/10-convert.js',
   'core/11-xpledger.js',
   'core/12-notify.js',
@@ -82,6 +85,9 @@ var BUNDLES = {
     'pages/slr-catalog.js',
     'pages/page-mount.js',
     'games/notify.js',
+    /* A2 flash siren: site-wide banner, self-mounting + fail-silent. Global
+       chrome (every v2 page) — was a dead file at 4ce7391, never bundled. */
+    'games/flash-siren.js',
     'core/06-pinups.js',
     'core/share-image.js',
     /* creator-recruit: shared recruiting toolbar for roster cards + catalog

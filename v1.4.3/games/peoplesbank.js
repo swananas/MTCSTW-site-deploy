@@ -257,7 +257,7 @@ function renderVault(id){
     +'<div class="pb-card"><div class="pb-clabel">LIQUID</div><div class="pb-cval">'+Math.round(nw.liq).toLocaleString()+'</div></div>'
     +'<div class="pb-card"><div class="pb-clabel">SAVINGS</div><div class="pb-cval">'+Math.round(nw.sav).toLocaleString()+'</div></div>'
     +'<div class="pb-card"><div class="pb-clabel">STAKED</div><div class="pb-cval">'+Math.round(nw.stk).toLocaleString()+'</div></div>'+pbAuthHint(STK)
-    +'<div class="pb-card"><div class="pb-clabel">LIBERTY BONDS</div><div class="pb-cval">'+Math.round(nw.bnd).toLocaleString()+'</div></div>'
+    +'<div class="pb-card"><div class="pb-clabel">LIBERTY BONDS (IN-GAME XP)</div><div class="pb-cval">'+Math.round(nw.bnd).toLocaleString()+'</div></div>'
     +'<div class="pb-card"><div class="pb-clabel">LOANS OUT</div><div class="pb-cval">+'+Math.round(nw.lendOut).toLocaleString()+'</div></div>'
     +'<div class="pb-card"><div class="pb-clabel">YOU OWE</div><div class="pb-cval pb-neg">-'+Math.round(nw.owe).toLocaleString()+'</div></div>'
     +'</div></div>';
@@ -334,7 +334,7 @@ function renderLobby(id){
     +'<div class="pb-card"><div class="pb-clabel">LIQUID</div><div class="pb-cval">'+Math.round(nw.liq).toLocaleString()+'</div></div>'
     +'<div class="pb-card"><div class="pb-clabel">SAVINGS</div><div class="pb-cval">'+Math.round(nw.sav).toLocaleString()+'</div></div>'
     +'<div class="pb-card"><div class="pb-clabel">STAKED</div><div class="pb-cval">'+Math.round(nw.stk).toLocaleString()+'</div></div>'+pbAuthHint(STK)
-    +'<div class="pb-card"><div class="pb-clabel">LIBERTY BONDS</div><div class="pb-cval">'+Math.round(nw.bnd).toLocaleString()+'</div></div>'
+    +'<div class="pb-card"><div class="pb-clabel">LIBERTY BONDS (IN-GAME XP)</div><div class="pb-cval">'+Math.round(nw.bnd).toLocaleString()+'</div></div>'
     +'<div class="pb-card"><div class="pb-clabel">LOANS OUT</div><div class="pb-cval">+'+Math.round(nw.lendOut).toLocaleString()+'</div></div>'
     +'<div class="pb-card"><div class="pb-clabel">YOU OWE</div><div class="pb-cval pb-neg">-'+Math.round(nw.owe).toLocaleString()+'</div></div>'
     +'</div></div>';
@@ -368,6 +368,18 @@ function renderTeller(id){
 function wireTeller(id,el){
   var b=document.getElementById("pbSendBtn");
   if(!b) return;
+  /* R15 (2026-10-04): return-send prefill — the bell panel's SEND BACK drops
+     {to, amt} here so the recipient answers in one tap. */
+  try{
+    var pre=JSON.parse(sessionStorage.getItem("pf_remit_prefill")||"null");
+    if(pre&&pre.to){
+      var ti=document.getElementById("pbToCs"), ai=document.getElementById("pbToAmt");
+      if(ti) ti.value=String(pre.to||"").slice(0,32);
+      if(ai&&pre.amt) ai.value=Math.max(1,Math.round(Number(pre.amt)||0));
+      sessionStorage.removeItem("pf_remit_prefill");
+      toast("RETURNING FIRE — recipient and amount prefilled. Hit SEND.");
+    }
+  }catch(e){}
   b.onclick=function(){
     var to=String(document.getElementById("pbToCs").value||"").trim().toLowerCase().replace(/[^a-z0-9_]/g,"");
     var amt=Math.round(Number(document.getElementById("pbToAmt").value)||0);
@@ -527,7 +539,7 @@ function wireLoans(id,el){
 }
 /* ---------- 5. BOND DESK ---------- */
 function renderBonds(id){
-  var h='<div class="x-pane pb-pane"><div class="pb-bankhead">&#9670; BOND DESK — LIBERTY BONDS, 20% IN 30 DAYS &#9670;</div>'
+  var h='<div class="x-pane pb-pane"><div class="pb-bankhead">&#9670; BOND DESK — LIBERTY BONDS (IN-GAME XP), 20% IN 30 DAYS &#9670;</div>'
     +'<div class="x-note">Buy the war effort. Your XP funds the fight; in 30 days it comes back 20% heavier. The billionaires&rsquo; bonds fund yachts. Ours fund the revolution.</div>'
     +'<div><input aria-label="XP to invest" class="c-in pf-input-sm" id="pbBondAmt" type="number" min="1" placeholder="XP to invest" /> '
     +'<button class="c-btn" id="pbBondBuy">BUY BOND</button></div>'

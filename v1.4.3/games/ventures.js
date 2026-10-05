@@ -27,7 +27,7 @@ function toast(m){ try{ PF.toast(m); }catch(e){} }
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
   /* Private reads require auth_secret (IDOR fix). Auto-attach for gated actions. */
-  if(action==="venture_mine"){
+  if(action==="venture_mine"||action==="cell_mine"){
     try{
       var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
       if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
@@ -62,6 +62,9 @@ function post(action,params,cb){
   }catch(e){ done(null); }
 }
 var board=null, mine=null, busy=false;
+/* R14 (2026-10-04): last resolve receipt — rendered visibly so vault
+   deposits land in front of the user instead of a toast. */
+var lastReceipt=null;
 function load(){
   var id=ident();
   if(!id.callsign){ renderGate(); return; }
@@ -86,6 +89,38 @@ function myPos(id){
   for(var i=0;i<mine.mine.length;i++) if(mine.mine[i].id===id) return mine.mine[i];
   return null;
 }
+/* R14a/c: resolve receipt. Consumes the venture_resolve response —
+   result, my_payout, total_moved, goal, pooled — and renders the outcome
+   where the user can see the vault deposits land. Failed ventures get the
+   "refunded — here's what we learned" moment instead of a bare toast. */
+function renderReceipt(){
+  var r=lastReceipt||{};
+  var failed=(r.result==="missed"||r.result==="draw");
+  var h='<div class="x-pane x-claim"><h4>'+
+    (failed?"REFUNDED \\u2014 HERE\\u2019S WHAT WE LEARNED":"RESOLVED \\u2014 SPOILS IN THE VAULT")+'</h4>';
+  h+='<div class="x-myrow"><span><b>'+esc(r.name||"Venture")+'</b> — '+
+    esc(String(r.result||"").toUpperCase()||"SETTLED")+'</span></div>';
+  if(!failed){
+    var mp=r.my_payout, tm=r.total_moved||r.pool;
+    if(mp!=null&&Number(mp)>0)
+      h+='<div class="x-note">\\u2714 <b>'+Number(mp).toLocaleString()+' XP</b> landed in your War Chest.</div>';
+    else
+      h+='<div class="x-note">\\u2714 Your share landed in your War Chest.</div>';
+    if(tm!=null)
+      h+='<div class="x-note">'+Number(tm).toLocaleString()+' XP moved in total.</div>';
+    h+='<div class="x-note">Spoils compound. Roll them into the next venture or throw down to your cell treasury.</div>';
+  } else {
+    h+='<div class="x-note">Every pledge returned to its War Chest — nothing lost but the lesson.</div>';
+    if(r.goal!=null||r.pooled!=null)
+      h+='<div class="x-note">Goal: <b>'+Number(r.goal||0).toLocaleString()+' XP</b> &middot; pooled: <b>'+Number(r.pooled||0).toLocaleString()+' XP</b>.</div>';
+    h+='<div class="x-note"><b>What we learned:</b> '+
+      (r.result==="missed"
+        ?"the goal outran the network this time — smaller targets fund faster. Propose it again, leaner."
+        :"a draw means both sides fought to a standstill — pick a side earlier next time and the spoils are yours.")+'</div>';
+  }
+  h+='<div style="margin-top:8px"><button class="c-btn" id="vReceiptOk">BACK TO THE WAR ROOM</button></div></div>';
+  return h;
+}
 function render(){
   var el=document.getElementById("vBody"); if(!el) return;
   var id=ident();
@@ -98,6 +133,9 @@ function render(){
     return;
   }
   var now=Date.now(), h="";
+  /* R14a/c: resolve receipt — vault deposits land visibly; failed ventures
+     get the "refunded — here's what we learned" moment. */
+  if(lastReceipt) h+=renderReceipt();
   var vs=board.ventures||[];
   var funding=vs.filter(function(v){return v.phase==="funding";});
   var battle=vs.filter(function(v){return v.phase==="battle"||v.phase==="resolvable";});
@@ -125,6 +163,10 @@ function render(){
     h+='<div class="x-pledge"><input aria-label="XP (10-500)" class="v-amt" data-id="'+esc(v.id)+'" type="number" min="10" max="500" placeholder="XP (10-500)" style="width:110px"> ';
     if(v.kind==="clash") h+='<select class="v-side" data-id="'+esc(v.id)+'"><option value="a">SIDE A</option><option value="b">SIDE B</option></select> ';
     h+='<button class="c-btn v-pledgebtn" data-id="'+esc(v.id)+'">Buy shares</button>';
+    /* R14b: route-my-shares opt-in — spoils land in the cell treasury.
+       Backend contract (flagged): venture_pledge accepts route_to_treasury
+       + cell_id. */
+    h+='<label class="x-note" style="display:block;margin-top:6px;cursor:pointer"><input type="checkbox" class="v-route" data-id="'+esc(v.id)+'"> ROUTE MY SHARES TO MY CELL TREASURY</label>';
     if(!v.extended) h+=' <button class="c-btn v-extend" data-id="'+esc(v.id)+'">Vote extend</button>';
     h+='</div><div class="c-err v-err" data-id="'+esc(v.id)+'"></div></div>';
     if(mp&&mp.my_shares>0) h+='<div class="x-note">You hold '+mp.my_shares+' shares here.</div>';
@@ -177,26 +219,48 @@ function wire(){
       var amt=parseInt(amtEl.value,10);
       errEl.textContent="";
       if(!amt||amt<10||amt>500){ errEl.textContent="Pledge 10-500 XP from your War Chest."; return; }
-      btn.disabled=true;
-      post("venture_pledge",{callsign:id.callsign,device:id.device,venture_id:vid,amount:amt,
-        side:sideEl?sideEl.value:"a",key:id.device+":"+Date.now()},function(j){
-        btn.disabled=false;
-        if(j&&j.ok){ toast("+"+j.shares+" shares"+(j.earlybird?" (early-bird!)":"")+"."); }
-        else { errEl.textContent=PF.errCopy(j,"Pledge failed."); }
-        setTimeout(load,1500);
-      });
+      var routeEl=document.querySelector('.v-route[data-id="'+vid+'"]');
+      var route=!!(routeEl&&routeEl.checked);
+      function doPledge(cellId){
+        var params={callsign:id.callsign,device:id.device,venture_id:vid,amount:amt,
+          side:sideEl?sideEl.value:"a",key:id.device+":"+Date.now()};
+        if(route){ params.route_to_treasury=1; params.cell_id=cellId; }
+        post("venture_pledge",params,function(j){
+          btn.disabled=false;
+          if(j&&j.ok){ toast("+"+j.shares+" shares"+(j.earlybird?" (early-bird!)":"")+(route?". Spoils route to your cell treasury.":"")+"."); }
+          else { errEl.textContent=PF.errCopy(j,"Pledge failed."); }
+          setTimeout(load,1500);
+        });
+      }
+      if(route){
+        btn.disabled=true;
+        api("cell_mine",{callsign:id.callsign,device:id.device},function(cm){
+          var cid=cm&&cm.ok&&cm.cell&&cm.cell.id;
+          if(!cid){ btn.disabled=false; errEl.textContent="Join a cell first to route shares to a treasury."; return; }
+          doPledge(cid);
+        });
+      } else doPledge(null);
     };
   });
   document.querySelectorAll(".v-resolve").forEach(function(btn){
     btn.onclick=function(){
       btn.disabled=true; btn.textContent="Resolving…";
       post("venture_resolve",{venture_id:btn.getAttribute("data-id"),callsign:id.callsign,device:id.device},function(j){
-        if(j&&j.ok){ toast(j.result==="draw"?"Draw — pledges returned.":j.result==="missed"?"Goal missed — pledges returned.":"Resolved. Spoils paid."); }
+        if(j&&j.ok){
+          /* R14a/c: stash the receipt so the render shows vault deposits
+             landing (or the refunded lesson) instead of a bare toast. */
+          lastReceipt={result:j.result,name:j.name||j.venture_name,
+            my_payout:j.my_payout,total_moved:(j.total_moved!=null?j.total_moved:j.pool),
+            goal:j.goal,pooled:j.pooled};
+          toast(j.result==="draw"?"Draw — pledges returned.":j.result==="missed"?"Goal missed — pledges returned.":"Resolved. Spoils paid.");
+        }
         else { toast(PF.errCopy(j,"Resolve failed.")); btn.disabled=false; btn.textContent="Resolve now"; }
-        setTimeout(load,2000);
+        setTimeout(load,1500);
       });
     };
   });
+  var rok=document.getElementById("vReceiptOk");
+  if(rok) rok.onclick=function(){ lastReceipt=null; render(); };
   document.querySelectorAll(".v-extend").forEach(function(btn){
     btn.onclick=function(){
       /* GAP AUDIT v2 U2 (2026-10-03): the extend vote POST had no callback —
@@ -237,6 +301,26 @@ function wire(){
   };
 }
 /* Shareholder certificate: 1080x1350 propaganda poster, saved to device. */
+var lastCertCv=null;
+/* R14d: S2-style share nudge on certificate download — "post your victory". */
+function showVictoryNudge(){
+  var host=document.getElementById("vBody"); if(!host) return;
+  var old=document.getElementById("vVictory"); if(old) old.remove();
+  var d=document.createElement("div");
+  d.id="vVictory"; d.className="x-pane x-claim";
+  d.innerHTML='<h4>POST YOUR VICTORY</h4>'+
+    '<div class="x-note">The certificate is saved on your device. Put it on the wire \\u2014 victories recruit.</div>'+
+    '<div style="margin-top:8px"><button class="c-btn" id="vVictoryShare">SHARE THE CERTIFICATE</button></div>';
+  host.insertBefore(d,host.firstChild);
+  var b=document.getElementById("vVictoryShare");
+  if(b) b.onclick=function(){
+    try{
+      if(window.PFShare&&PFShare.shareImage&&lastCertCv)
+        PFShare.shareImage(lastCertCv,"venture-certificate.png","Joint Ventures","ventures");
+      else toast("Sharing is warming up \\u2014 the file is saved on your device.");
+    }catch(e){ toast("Sharing is warming up \\u2014 the file is saved on your device."); }
+  };
+}
 function mintCertificate(vid){
   var v=myPos(vid);
   if(!v||!v.my_shares){ toast("No shares found."); return; }
@@ -270,6 +354,9 @@ function mintCertificate(vid){
     /* P2 (2026-10-04): once-per-day share gate — the minted certificate
        download is a completed share. */
     try{ if(window.PF&&PF.creditShare) PF.creditShare("ventures","share"); }catch(e){}
+    /* R14d: the victory nudge rides the download. */
+    lastCertCv=cv;
+    try{ showVictoryNudge(); }catch(e2){}
     toast("Certificate minted. Post it.");
   }
   try{

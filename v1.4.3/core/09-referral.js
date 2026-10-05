@@ -123,7 +123,7 @@ PF.storedRef=storedRef;
    of dying silent. cb(ok) reports the outcome; the caller persists its
    once-flag ONLY on success so a failed send stays retryable on a later
    claim instead of being lost forever. */
-function logRecruit(recruiter,attempt,cb){
+function logRecruit(recruiter,attempt,cb,source){
   attempt=attempt||0;
   function done(ok,err){
     if(!ok){
@@ -137,19 +137,25 @@ function logRecruit(recruiter,attempt,cb){
      credit to a callsign literally named "creator". */
   if(/^creator:creator($|:)/.test(rstr)){ done(false,"recruiter collides with callsign 'creator'"); return; }
   if(!/^(creator:)?[a-z0-9_-]{1,40}$/.test(rstr)){ done(false,'bad recruiter shape'); return; }
+  var body={type:'action',action_type:'recruit_log',xp:0,pts:0,
+        meta:'recruiter:'+rstr.slice(0,64),auth_secret:(window.PF&&PF.getAuthSecret?PF.getAuthSecret():'')};
+  /* R23 (2026-10-04): cell-invite joins tag source=cell so the backend can
+     attribute S3 race credit. The minimum bar (callsign + 1 mission) stays
+     backend-enforced — the frontend only tags. */
+  if(source) body.source=String(source).slice(0,16);
   try{
     if(!window.PF_BACKEND_URL){ done(false,'no backend URL'); return; }
     var dev='',cs='';
     try{ if(window.PFDeviceId) dev=window.PFDeviceId(); }catch(e){}
     try{ cs=myCallsign(); }catch(e){}
+    body.device=String(dev||'').slice(0,64);
+    body.callsign=String(cs||'').slice(0,64);
     fetch(window.PF_BACKEND_URL,{method:'POST',mode:'no-cors',
       headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({type:'action',action_type:'recruit_log',xp:0,pts:0,
-        device:String(dev||'').slice(0,64),callsign:String(cs||'').slice(0,64),
-        meta:'recruiter:'+rstr.slice(0,64),auth_secret:(window.PF&&PF.getAuthSecret?PF.getAuthSecret():'')})})
+      body:JSON.stringify(body)})
       .then(function(){ done(true); })
       .catch(function(err){
-        if(attempt<2){ setTimeout(function(){ logRecruit(recruiter,attempt+1,cb); },attempt===0?1500:4000); }
+        if(attempt<2){ setTimeout(function(){ logRecruit(recruiter,attempt+1,cb,source); },attempt===0?1500:4000); }
         else { done(false,(err&&err.message)||'network error'); }
       });
   }catch(e){ done(false,String((e&&e.message)||e)); }
@@ -198,6 +204,30 @@ document.addEventListener('pf-callsign-claimed',function(){
     });
     try{ document.dispatchEvent(new CustomEvent('pf-creator-referred',{detail:{creator:slug}})); }catch(e3){}
   }
+});
+
+/* R23 (2026-10-04): cell-invite joins credit the same RECRUIT event.
+   cells.js dispatches 'pf-recruit-cell' {recruiter} after a successful
+   cell_join that carried recruiter attribution (invite code / WHO RECRUITED
+   YOU field). The row is tagged source=cell so the backend can attribute
+   S3 race credit; the minimum bar (callsign + 1 mission) is enforced
+   backend-side — this leg only tags. Pair-deduped per (recruiter,source) so
+   a join that also rode the ?ref= claim leg never double-counts. */
+var _cellPairs={};
+try{ _cellPairs=JSON.parse(localStorage.getItem('pf_recruit_pairs_v1')||'{}')||{}; }catch(e){ _cellPairs={}; }
+document.addEventListener('pf-recruit-cell',function(e){
+  var me=myCallsign(), ref='';
+  try{ ref=clean(String((e&&e.detail&&e.detail.recruiter)||'')); }catch(e2){}
+  if(!ref||!me||ref===me) return;
+  if(ref==='creator'||ref.indexOf('creator:')===0) return;
+  var key=ref+'|cell';
+  if(_cellPairs[key]) return;
+  _cellPairs[key]=1;
+  try{ localStorage.setItem('pf_recruit_pairs_v1',JSON.stringify(_cellPairs)); }catch(e3){}
+  logRecruit(ref,0,function(ok){
+    if(!ok){ delete _cellPairs[key]; try{ localStorage.setItem('pf_recruit_pairs_v1',JSON.stringify(_cellPairs)); }catch(e4){} }
+    else { try{ document.dispatchEvent(new CustomEvent('pf-referred',{detail:{recruiter:ref,source:'cell'}})); }catch(e5){} }
+  },'cell');
 });
 
 /* /request-access: a creator-referred arrival sees their reference confirmed

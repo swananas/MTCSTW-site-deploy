@@ -72,11 +72,10 @@ var SECTIONS = {
     'campaign.js',
     'alerts.js',
     'fan-vote.js',
-    /* Wave 6B-2 (2026-10-04): register Wave 3's unbundled files to unblock
-       the build gate (mirrors 5C's registration; 5C may relocate to slim
-       bundles): S5 war-room ticker, A2 flash siren.
-       NOTE: 5C's 'hall-of-proof.js' forward-reference removed here — the
-       file doesn't exist on this branch; 5C's merge restores it. */
+    /* Wave 6B (2026-10-04): register Wave 3's unbundled files to unblock the
+       build gate: S5 war-room ticker (self-mounting, fail-silent; homepage
+       PROOF + /cells), A2 flash siren. NOTE: 'hall-of-proof.js' (5C) doesn't
+       exist on this branch — re-add when 5C merges. */
     'war-room-ticker.js',
     'flash-siren.js'
   ],
@@ -98,7 +97,10 @@ var SECTIONS = {
   ],
   'bundle-cells-h': [
     /* /cells — cells.js stages pf-ov-cells for the main Cells widget. */
-    'cells.js'
+    'cells.js',
+    /* S5 war-room ticker /cells leg (slim dup — the loader fetches this
+       INSTEAD of bundle-home on /cells, never both). */
+    'war-room-ticker.js'
   ],
   'bundle-create-h': [
     /* /create — poster-forge + feed (the Propaganda Feed workshop). */
@@ -211,9 +213,10 @@ Object.keys(ALL).forEach(function (b) {
 var DEAD = ['bank.js', 'daily-drop.js', 'daily-fire.js', 'boost-raid.js',
   'media-nuke.js', 'video.js', 'amplify.js', 'archive.js', 'bounties.js',
   'assist.js'];
-/* Global chrome: notify.js (header bell) is bundled by build/bundle-core.js
-   into pages/bundle-pages.js — intentionally excluded from page bundles. */
-var GLOBAL_CHROME = ['notify.js'];
+/* Global chrome: notify.js (header bell) + flash-siren.js (A2 site-wide siren
+   banner) are bundled by build/bundle-core.js into pages/bundle-pages.js —
+   intentionally excluded from page bundles. */
+var GLOBAL_CHROME = ['notify.js', 'flash-siren.js'];
 var unbundled = allFiles.filter(function (f) {
   return bundled.indexOf(f) === -1 && f.indexOf('bundle-') !== 0 &&
     DEAD.indexOf(f) === -1 && GLOBAL_CHROME.indexOf(f) === -1;

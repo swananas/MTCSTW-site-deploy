@@ -58,7 +58,7 @@
        through the shared claim-retry GET (2026-10-03): pre-auth callsign
        holders with no stored secret get one auth_claim attempt instead of
        failing 'missing credentials' forever. */
-    if(action==="notification_list"||action==="notification_prefs"){
+    if(action==="notification_list"||action==="notification_prefs"||action==="recruit_rollup"){
       try{
         if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
         var _sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : "";
@@ -192,6 +192,37 @@
     else badgeEl.style.display='none';
   }
 
+  /* W2-D30: recruiter digest — YOUR RECRUITS THIS WEEK from recruit_rollup.
+     Contract (W6B-1): GET ?action=recruit_rollup -> {ok, recruits:[
+     {callsign, missions_done, xp_earned}]}. Absent at build time: the section
+     stays on its "mustering" line and fails silent. Cached 10 min. */
+  var _rdAt=0;
+  function loadRecruitDigest(id){
+    var host=null;
+    try{ host=document.getElementById("ntRecruitDigest"); }catch(e){}
+    if(!host||!id.callsign) return;
+    if(Date.now()-_rdAt<10*60*1000&&host.getAttribute("data-done")==="1") return;
+    api("recruit_rollup",{callsign:id.callsign},function(j){
+      var el=null;
+      try{ el=document.getElementById("ntRecruitDigest"); }catch(e2){}
+      if(!el) return;
+      var rows=(j&&j.ok&&j.recruits)||[];
+      if(!j||!j.ok||!rows.length){
+        /* Contract absent or no recruits — leave a quiet line, not an error. */
+        el.innerHTML='<div class="x-note">No recruits on the board yet. Share your code — every RECRUIT who checks in pays +25 XP.</div>';
+        return;
+      }
+      el.setAttribute("data-done","1"); _rdAt=Date.now();
+      var h="";
+      for(var i=0;i<Math.min(rows.length,10);i++){
+        var r=rows[i]||{};
+        h+='<div class="cp-mission"><div class="cp-mtext"><b>'+esc(r.callsign||"?")+'</b>'
+          +'<div class="x-note">'+Number(r.missions_done||0)+' missions &bull; '+Number(r.xp_earned||0).toLocaleString()+' XP earned</div></div></div>';
+      }
+      el.innerHTML=h;
+    });
+  }
+
   function renderPanel(){
     if(!panel) return;
     var id=ident();
@@ -225,16 +256,32 @@
       return TYPE_DEEP[String(x.type||'').toLowerCase()]||null; }
     for(i=0;i<Math.min(list.length,30);i++){
       var n=list[i], dest=ntDest(n);
+      /* R15 (2026-10-04): received remits get acknowledge + return-send.
+         Backend contract (W6B-1, flagged): the remit notification carries
+         data {from_cs, amount}. Falls back to a plain MARK READ. */
+      var ndata=(n&&n.data)||{};
+      var isRemit=/remit/i.test(String(n.type||""))||!!ndata.from_cs;
+      var fromCs=String(ndata.from_cs||""), rAmt=Math.max(0,Math.round(Number(ndata.amount)||0));
       h+='<div class="cp-mission"'+(n.read?' style="opacity:.6"':'')+'>'
         +(dest?'<a class="nt-go" href="'+esc(dest)+'">':'<span class="nt-go">')
         +'<div class="cp-mtext">'
         +'<span class="c-tag">'+esc(n.type||"info")+'</span> <b>'+esc(n.title||"")+'</b>'
         +'<div class="x-note">'+esc(n.body||"")+'</div>'
         +'<div class="x-note">'+esc(ago(n.ts))+'</div></div>'
-        +(dest?'</a>':'</span>')
-        +(n.read?'':'<button class="c-btn" data-nid="'+n.id+'">MARK READ</button>')+'</div>';
+        +(dest?'</a>':'</span>');
+      if(isRemit&&!n.read){
+        h+='<div><button class="c-btn" data-remit-thanks="'+n.id+'">THANK THEM</button> '
+          +'<button class="c-btn" data-remit-back="'+n.id+'" data-from="'+esc(fromCs)+'" data-amt="'+rAmt+'">SEND BACK</button></div>';
+      } else if(!n.read){
+        h+='<button class="c-btn" data-nid="'+n.id+'">MARK READ</button>';
+      }
+      h+='</div>';
     }
     h+='</div>';
+    /* W2-D30 (2026-10-04): recruiter digest — YOUR RECRUITS THIS WEEK, from
+       the recruit_rollup contract (W6B-1, flagged). Renders only when the
+       backend answers; the sitrep line rides W5-8. */
+    h+='<div class="x-pane"><h4>YOUR RECRUITS THIS WEEK</h4><div id="ntRecruitDigest"><div class="x-note">Mustering&hellip;</div></div></div>';
     var p=(PR&&PR.prefs)||{battles:true,boosts:true,recruits:true,tips:true};
     h+='<div class="x-pane"><h4>Alert preferences</h4><div class="x-note">Choose what pings you.</div>'+ntAuthHint(PR);
     var keys=[["battles","Battle results"],["boosts","Boosts on my work"],["recruits","Recruit activations"],["tips","Tips received"]];
@@ -255,6 +302,29 @@
         });
       };
     })(btns[i]); }
+    /* R15: THANK THEM = acknowledge (mark-read + toast). SEND BACK = prefill
+       the /bank teller and route there. */
+    var tbs=panel.querySelectorAll('button[data-remit-thanks]');
+    for(i=0;i<tbs.length;i++){ (function(btn){
+      btn.onclick=function(){
+        var nid=btn.getAttribute("data-remit-thanks"); btn.disabled=true;
+        post("notify","n_action","notification_read",{callsign:id.callsign,device:id.device,id:nid},function(j){
+          if(!j||!j.ok){ toast(ntWriteErr(j&&j.err,"Ack failed. Tap again.")); btn.disabled=false; return; }
+          toast("ACKNOWLEDGED. They know you got it.");
+          setTimeout(function(){ N=null; load(); },500);
+        });
+      };
+    })(tbs[i]); }
+    var sbs=panel.querySelectorAll('button[data-remit-back]');
+    for(i=0;i<sbs.length;i++){ (function(btn){
+      btn.onclick=function(){
+        var from=btn.getAttribute("data-from")||"", amt=Math.max(0,Math.round(Number(btn.getAttribute("data-amt"))||0));
+        try{ sessionStorage.setItem("pf_remit_prefill",JSON.stringify({to:from,amt:amt})); }catch(e){}
+        try{ location.href="/bank"; }catch(e2){}
+      };
+    })(sbs[i]); }
+    /* W2-D30: recruiter digest fetch (cached 10 min). */
+    loadRecruitDigest(id);
     var sv=panel.querySelector('#ntSave');
     if(sv) sv.onclick=function(){
       var out={callsign:id.callsign,device:id.device};

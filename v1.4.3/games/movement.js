@@ -65,7 +65,7 @@ function fmtDate(t){
     var mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
     return mo[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear(); }catch(e){ return ""; }
 }
-var CAUSES=null, SUBS=null, PRIZES=null, BURNS=null;
+var CAUSES=null, SUBS=null, PRIZES=null, BURNS=null, BWALL=null;
 /* S7 FUND THEIR FIGHT (2026-10-04): /war-chest?creator=<slug> preselects
    the creator in the subscription UI — catalog pages deep-link here.
    Existing backend contract only: {type:'finance',f_action:'subscribe',
@@ -78,7 +78,7 @@ var PRESELECT=(function(){
 })();
 var preselectApplied=false;
 function load(){
-  var id=ident(), done=false, n=0, need=4;
+  var id=ident(), done=false, n=0, need=5;
   function fin(){ if(done)return; done=true; render(); }
   function one(){ n++; if(n>=need) fin(); }
   setTimeout(fin,15000);
@@ -86,6 +86,8 @@ function load(){
   api("subscription_list",{callsign:id.callsign},function(j){ SUBS=j; one(); });
   api("prize_list",{},function(j){ PRIZES=j; one(); });
   api("burn_leaderboard",{},function(j){ BURNS=j; one(); });
+  /* R13: bondholder wall data (backend contract — flagged). */
+  api("bond_stats",{},function(j){ BWALL=j; one(); });
 }
 function render(){
   var el=document.getElementById("xMovement"); if(!el) return;
@@ -94,7 +96,9 @@ function render(){
     el.innerHTML=PF.gateHTML('Movement finance runs on callsigns.','to fund the fight');
     return;
   }
+  h+=renderStoreCta();
   h+=renderCauses(id);
+  h+=renderBondWall(id);
   h+=renderSubs(id);
   h+=renderPrizes(id);
   h+=renderBurns(id);
@@ -115,7 +119,41 @@ function render(){
     }catch(e){}
   }
   var rb=document.getElementById("mvRetry");
-  if(rb) rb.onclick=function(){ CAUSES=SUBS=PRIZES=BURNS=null; el.innerHTML='<div class="c-load">Opening the war chest&hellip;</div>'; load(); };
+  if(rb) rb.onclick=function(){ CAUSES=SUBS=PRIZES=BURNS=BWALL=null; el.innerHTML='<div class="c-load">Opening the war chest&hellip;</div>'; load(); };
+}
+/* ---------- 0. STORE CROSS-LINK (R13) ----------
+   /war-chest -> /store: the bond directory lives here; the checkout lives
+   in the store. Both directions stay one tap apart. */
+function renderStoreCta(){
+  return '<div class="x-pane" style="border-color:#d4af37"><div class="pb-bankhead">&#9733; WAR BONDS (REAL $) LIVE IN THE STORE &#9733;</div>'
+    +'<div class="x-note">Real dollars, real bonds — $5 to $50. Half funds the network, half fuels the creator pool.</div>'
+    +'<div style="margin-top:8px"><a class="c-btn" href="/store" style="display:inline-block;text-decoration:none">BUY WAR BONDS IN THE STORE &rarr;</a> '
+    +'<a class="c-btn ghost" href="/bank" style="display:inline-block;text-decoration:none">LIBERTY BONDS (IN-GAME XP) &rarr;</a></div></div>';
+}
+/* ---------- BONDHOLDER WALL (R13) ----------
+   Buyer wall surface: every bond buyer gets a named spot. Renders against
+   the bond_stats contract — backend flag: include a "buyers" array of
+   {callsign, tier} (or recent_buyers). "Claim your wall spot" prompts on
+   /store ride the footer chrome (16-footer.js). */
+function renderBondWall(id){
+  var h='<div class="x-pane" id="pf-bond-wall"><div class="pb-bankhead">&#9733; BONDHOLDER WALL &#9733;</div>'
+    +'<div class="x-note">The names behind the war chest. Buy a bond in the <a href="/store" style="color:#c1121f;">store</a> and your callsign lands here.</div>';
+  var buyers=(BWALL&&BWALL.ok&&(BWALL.buyers||BWALL.recent_buyers))||[];
+  if(!buyers.length){
+    h+='<div class="x-note">The wall is waiting for its first name.'+(BWALL?'':'')+'</div>';
+  } else {
+    h+='<div class="cp-wall">';
+    for(var i=0;i<Math.min(buyers.length,40);i++){
+      var b=buyers[i]||{};
+      var tier=b.tier!=null?Number(b.tier):null;
+      h+='<div class="cp-mission"><div class="cp-mtext"><b>'+esc(b.callsign||"A comrade")+'</b>'
+        +(tier>0?'<div class="x-note">$'+tier+' War Bond</div>':'')+'</div>'
+        +'<div class="cp-mdone">\\u2605</div></div>';
+    }
+    h+='</div>';
+  }
+  h+='</div>';
+  return h;
 }
 /* ---------- 1. CAUSE POOLS ---------- */
 function renderCauses(id){
@@ -125,9 +163,21 @@ function renderCauses(id){
   if(!pools.length) h+='<div class="x-note">No cause pools yet.</div>';
   for(var i=0;i<pools.length;i++){
     var p=pools[i];
-    h+='<div class="cp-mission"><div class="cp-mtext"><b>'+esc(p.name)+'</b>'
+    /* R24 (2026-10-04): completion ceremony — FUNDED banner + donor badge.
+       Backend emitter (W6B-1, flagged): pool rows carry status/funded/goal
+       and the reader's my_donation/is_backer. Rendered defensively. */
+    var goal=Number(p.goal||0);
+    var funded=(p.status==="funded"||p.funded===true||(goal>0&&Number(p.balance||0)>=goal));
+    var backer=(Number(p.my_donation||0)>0||p.is_backer===true);
+    var pct=goal>0?Math.min(100,Math.round(Number(p.balance||0)/goal*100)):0;
+    h+='<div class="cp-mission"><div class="cp-mtext">'
+      +(funded?'<div style="background:#1a5c1a;color:#fff;font-weight:800;letter-spacing:2px;font-size:12px;padding:6px 10px;margin-bottom:8px;text-align:center">\\u2714 FUNDED \\u2014 THE MOVEMENT DELIVERS</div>':'')
+      +'<b>'+esc(p.name)+'</b>'
+      +(backer?' <span style="background:#d4af37;color:#0d0d0d;font-weight:800;font-size:10px;letter-spacing:1px;padding:2px 8px;border-radius:3px">\\u2605 BACKER</span>':'')
       +'<div class="x-note">'+esc(p.description||"")+'</div>'
-      +'<div class="x-note"><b>'+Number(p.balance||0).toLocaleString()+' XP</b> &bull; '+Number(p.donors||0)+' backers</div>'
+      +'<div class="x-note"><b>'+Number(p.balance||0).toLocaleString()+' XP</b> &bull; '+Number(p.donors||0)+' backers'
+      +(goal>0?' &bull; goal '+goal.toLocaleString()+' XP ('+pct+'%)':'')+'</div>'
+      +(goal>0&&!funded?'<div style="background:#1a1a1a;height:8px;margin:6px 0"><div style="background:#c1121f;height:8px;width:'+pct+'%"></div></div>':'')
       +'<div style="margin-top:6px"><input aria-label="XP" class="c-in pf-input-sm" data-causeamt="'+esc(p.id)+'" type="number" min="1" placeholder="XP" /> '
       +'<button class="c-btn" data-causefund="'+esc(p.id)+'">FUND</button></div></div></div>';
   }
@@ -190,6 +240,8 @@ function wireSubs(id,el){
       b.disabled=false;
       if(!j||!j.ok){ e.textContent=PF.errCopy(j,"Failed."); return; }
       toast("SUPPORTING "+cr+" at "+amt+" XP/week.");
+      /* R29: supporter badge mirror — enlistment-ranks renders the badge. */
+      try{ localStorage.setItem("pf_supporter_v1","1"); }catch(e2){}
       document.getElementById("mvSubCs").value=""; document.getElementById("mvSubAmt").value="";
       api("subscription_list",{callsign:id.callsign},function(jj){ SUBS=jj; render(); });
     });
@@ -201,7 +253,15 @@ function wireSubs(id,el){
       post("finance","f_action","unsubscribe",{callsign:id.callsign,device:id.device,subscriber:id.callsign,creator:cr},function(j){
         if(!j||!j.ok){ toast(PF.errCopy(j,"Failed.")); btn.disabled=false; return; }
         toast("Stopped supporting "+cr+".");
-        api("subscription_list",{callsign:id.callsign},function(jj){ SUBS=jj; render(); });
+        api("subscription_list",{callsign:id.callsign},function(jj){
+          SUBS=jj;
+          /* R29: clear the supporter badge mirror when nothing remains. */
+          try{
+            var left=(jj&&jj.ok&&jj.supporting)||[];
+            if(!left.length) localStorage.removeItem("pf_supporter_v1");
+          }catch(e3){}
+          render();
+        });
       });
     };
   })(us[i]); }

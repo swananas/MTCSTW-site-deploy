@@ -344,8 +344,8 @@
       cb(j);
     });
   }
-  /* G6 (2026-10-04): White Market cell-war odds. Read-only — zero XP for
-     viewing; stakes go through the casino's wager_place escrow. */
+  /* G6 (2026-10-04): War Room cell-war odds. Read-only — zero XP for
+     viewing; stakes go through the layer's wager_place escrow. */
   function loadMarket(cb){
     if (S.market && Date.now()-S.market._t < 60000) { cb(S.market); return; }
     S.loading.market = true;
@@ -622,19 +622,19 @@
       } else {
         out += netErr();
       }
-      /* G6: White Market odds strip — implied championship chance from the
+      /* G6: War Room odds strip — implied championship chance from the
          war board + the market's own escrow pools. Viewing is free; the
-         betting itself lives in the White Market on /arcade. */
+         staking itself lives in the War Room on /arcade. */
       if (jM && jM.ok && (jM.odds||[]).length){
-        out += '<div class="hq-card"><h3>&#127963; White Market — championship odds</h3>' +
+        out += '<div class="hq-card"><h3>&#127963; War Room — championship odds</h3>' +
           '<div class="hq-note">'+esc(jM.description||'CELL WAR')+' &middot; '+esc(String(jM.pool_total||0))+' XP in the pot. ' +
-          'Odds move with the board. Viewing is free — bets go down in the White Market.</div>';
+          'Odds move with the board. Viewing is free — stakes go down in the War Room.</div>';
         jM.odds.slice(0,5).forEach(function(o, i){
           var pays = o.pays > 0 ? ' &middot; pays '+esc(String(o.pays))+'x ('+esc(String(o.pool||0))+' XP in)' : ' &middot; no bets yet';
           out += '<div class="hq-mem"><span><b>#'+(i+1)+'</b> '+esc(o.name||'')+'</span>' +
             '<span class="hq-note">'+esc(String(o.implied||0))+'% implied'+pays+'</span></div>';
         });
-        out += '<div style="margin-top:10px"><a class="hq-btn" href="/arcade">PLACE BETS IN THE WHITE MARKET &rarr;</a></div></div>';
+        out += '<div style="margin-top:10px"><a class="hq-btn" href="/arcade#pf-forecasts">STAKE IN THE WAR ROOM &rarr;</a></div></div>';
       }
       if (jHh && jHh.ok && (jHh.winners||[]).length){
         out += '<div class="hq-card"><h3>Hall of fame</h3>';

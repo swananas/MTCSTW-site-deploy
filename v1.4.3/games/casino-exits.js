@@ -1,27 +1,34 @@
-/* games/casino-exits.js  |  PF v1.4.3 | WHITE MARKET DE-ISOLATION (worker C).
-   Wires the wagering hall into the rest of the site — four integrations:
-   1. EXITS: after a hall game settles (win or loss), render a NEXT OP-style
-      routing card (config + priority, pure links). Win -> markets / vault /
-      arcade. Loss -> markets / arcade / briefing. ZERO new XP, no backend
-      writes — links only.
-   2. 16TH SERVICE MEDAL: every settlement dispatches 'pf-wm-settled' — the
-      existing settled-bet signal the medal layer listens on (service-medals
-      on the homepage, deploy-tracker on /arcade). First settled bet in the
-      hall earns the High Roller medal, required for FULL DEPLOYMENT.
+/* games/casino-exits.js  |  PF v1.4.3 | REDISTRIBUTION LAYER DE-ISOLATION
+   (2026-10-05: rewired off the retired casino hall onto the War Room).
+   File name keeps "casino-exits" for stability (build + kill-switch history);
+   every UI string was reframed — nothing called "casino" renders on screen.
+   Wires the redistribution layer into the rest of the site — four integrations:
+   1. EXITS: after a layer event settles (win or loss), render a NEXT OP-style
+      routing card (config + priority, links + one-tap actions). Win -> vault /
+      forecasts / war chest. Loss -> forecasts / arcade / briefing. The only
+      XP writes are VAULT IT (bank deposit) and FUND THE FIGHT (war-chest
+      donate) — everything else is links.
+   2. SERVICE MEDAL: every settlement dispatches 'pf-wm-settled' — the
+      settled-event signal the medal layer listens on (service-medals on the
+      homepage, deploy-tracker on /arcade). The first settled redistribution-
+      layer event each week (forecast, gambit, raid, or draw — win or loss)
+      earns the Market Maker medal, required for FULL DEPLOYMENT.
+      (Stale note corrected 2026-10-05: no "High Roller medal" exists in code;
+      it was renamed to Market Maker in wave-predict. Event name stays
+      'pf-wm-settled' for stability.)
    3. WIN-SHARE POSTER: on wins with a real payout, offer a share poster via
-      PFShare.setPoster('whitemarket-win') + PFShare.shareImage — standard
+      PFShare.setPoster('redist-win') + PFShare.shareImage — standard
       JOIN THE FIGHT. CTA + MTCSTW.COM footer. Amounts are real backend
       grants, never invented.
    4. VAULT IT: one-tap real deposit of the win into the People's Bank
       vault (6A-R2 pattern — existing bank deposit action, fail-closed
       xpGrant, weekly deposit cap, idempotency key). No new backend actions.
-   Settlement hooks live in games/casino.js (guarded one-liners marked
-   WM-EXITS); the markets panel (games/markets.js) can adopt the same
-   'pf-wm-settled' event later — it currently exposes no hook, so market
-   settlements are not wired (not forced).
+   Settlement hooks are called by the new layer surfaces (markets.js zones,
+   gambits.js); the event name 'pf-wm-settled' is unchanged.
    LAYERING: game silo, /arcade page (ships in bundle-arcade, right after
-   casino.js). Reads via JSONP (self-contained api()); the ONLY read is
-   notification_list on lottery round transitions. No writes of any kind.
+   markets.js). Reads via JSONP (self-contained api()); the ONLY read is
+   notification_list on draw round transitions. Writes: VAULT IT (bank
+   deposit) and FUND THE FIGHT (treasury_donate, cell_id='network').
    KILL: ?pf_off=casino-exits  or  localStorage pf_disabled_v1='["casino-exits"]' */
 (function () {
   'use strict';
@@ -30,7 +37,7 @@
 
   var BACKEND = window.PF_BACKEND_URL;
   var BET_LS = 'pf_wm_bets_v1';    /* tracked open bets awaiting settlement */
-  var LOT_LS = 'pf_wm_lotto_v1';   /* last lottery round seen + tickets held */
+  var LOT_LS = 'pf_wm_lotto_v1';   /* last draw round seen + tickets held */
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -92,12 +99,39 @@
         .catch(function () { if (t) { try { clearTimeout(t); } catch (e3) {} } done(null); });
     } catch (e4) { done(null); }
   }
+  /* ---- FUND THE FIGHT: CORS POST for war-chest donations.
+     Existing backend action treasury_donate (verified against
+     wave-redistribute src/sinks.js): {type:'treasury',
+     t_action:'treasury_donate', callsign, device, cell_id, amount}.
+     The network war chest is the treasury row with cell_id='network' —
+     same shape as a cell donation, no new backend actions. ---- */
+  function postTreasury(tAction, params, cb) {
+    var body = { type: 'treasury', t_action: tAction };
+    for (var k in params) { if (Object.prototype.hasOwnProperty.call(params, k)) body[k] = params[k]; }
+    if (window.PF && PF.authPost) { PF.authPost(BACKEND, body, cb); return; }
+    var bodyStr = JSON.stringify(body);
+    function done(j) { try { cb(j || { ok: false, err: 'Network error.' }); } catch (e) {} }
+    try {
+      var o = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: bodyStr };
+      var c2 = null, t2 = null;
+      try {
+        if (window.AbortController) {
+          c2 = new AbortController(); o.signal = c2.signal;
+          t2 = setTimeout(function () { try { c2.abort(); } catch (e) {} }, 15000);
+        }
+      } catch (e) {}
+      fetch(BACKEND, o)
+        .then(function (r) { return r.json(); })
+        .then(function (j) { if (t2) { try { clearTimeout(t2); } catch (e2) {} } done(j); })
+        .catch(function () { if (t2) { try { clearTimeout(t2); } catch (e3) {} } done(null); });
+    } catch (e4) { done(null); }
+  }
   function vaultIt(btn) {
     var amt = Math.round(Number(btn.getAttribute('data-wm-vaultit')) || 0);
     if (!(amt > 0)) { toast('Nothing to vault.'); return; }
     var id = ident();
     if (!id.callsign) { toast('Enlist a callsign first — the vault needs an owner.'); return; }
-    var key = id.device + ':vaultit:whitemarket:' + amt + ':' + Date.now();
+    var key = id.device + ':vaultit:redist:' + amt + ':' + Date.now();
     btn.disabled = true;
     var orig = btn.innerHTML;
     btn.innerHTML = '<div class="wmx-rt">VAULTING...</div>';
@@ -111,6 +145,27 @@
       btn.innerHTML = '<div class="wmx-rt">VAULTED &#10003;</div>' +
         '<div class="wmx-rs">' + amt.toLocaleString() + ' XP in the vault.</div>';
       toast('+' + amt.toLocaleString() + ' XP in the vault.');
+      try { document.dispatchEvent(new CustomEvent('pf-do-update')); } catch (e6) {}
+    });
+  }
+  function fundFight(btn) {
+    var amt = Math.round(Number(btn.getAttribute('data-wm-fund')) || 0);
+    if (!(amt > 0)) { toast('Nothing to send.'); return; }
+    var id = ident();
+    if (!id.callsign) { toast('Enlist a callsign first — the war chest needs a donor.'); return; }
+    btn.disabled = true;
+    var orig = btn.innerHTML;
+    btn.innerHTML = '<div class="wmx-rt">ARMING THE WAR CHEST...</div>';
+    postTreasury('treasury_donate', { callsign: id.callsign, device: id.device, cell_id: 'network', amount: amt }, function (j) {
+      if (!j || !j.ok) {
+        btn.disabled = false; btn.innerHTML = orig;
+        var msg = 'Donation failed.';
+        try { if (window.PF && PF.errCopy) msg = PF.errCopy(j, msg); } catch (e5) {}
+        toast(msg); return;
+      }
+      btn.innerHTML = '<div class="wmx-rt">FUNDED &#10003;</div>' +
+        '<div class="wmx-rs">' + amt.toLocaleString() + ' XP armed the war chest.</div>';
+      toast(amt.toLocaleString() + ' XP to the war chest. The fight thanks you.');
       try { document.dispatchEvent(new CustomEvent('pf-do-update')); } catch (e6) {}
     });
   }
@@ -134,7 +189,7 @@
       localStorage.setItem(BET_LS, JSON.stringify({ bets: bets }));
     } catch (e) {}
   }
-  /* casino.js calls this when a bet is placed (wager_place / crash_bet). */
+  /* Layer surfaces call this when a stake is placed (wager_place / crash_bet). */
   function wmBetPlaced(bet) {
     try {
       if (!bet || !bet.game) return;
@@ -152,9 +207,10 @@
     } catch (e) {}
   }
 
-  /* casino.js: resolved wager rows (renderWagers). Settles tracked bets by
-     matching side against the winning side label (backend sets outcome to
-     the winning side; payout mirrors the backend parimutuel formula). */
+  /* Resolved wager rows (markets.js BATTLE WAGERS zone). Settles tracked
+     stakes by matching side against the winning side label (backend sets
+     outcome to the winning side; payout mirrors the backend parimutuel
+     formula). */
   function wmWagerResolved(w) {
     try {
       var bets = betLoad(), changed = false, wid = String((w && w.id) || '');
@@ -179,8 +235,8 @@
     } catch (e) {}
   }
 
-  /* casino.js: flip_join settled. Payout mirrors the backend grant exactly:
-     pot = 2x stake, 5% rake to the lottery. */
+  /* gambits.js: flip_join settled. Payout mirrors the backend grant exactly:
+     pot = 2x stake, 5% tithe to the war chest — the winner takes 1.9x. */
   function wmFlipSettled(fid, iWon, flips) {
     try {
       var amt = 0;
@@ -192,8 +248,8 @@
     } catch (e) {}
   }
 
-  /* casino.js: crash_cashout settled (a cashout is always a win — the
-     multiplier never drops below 1x while the round is live). */
+  /* markets.js raid zone: crash_cashout settled (an exfiltration is always a
+     win — the line never drops below 1x while the round is live). */
   function wmCrashSettled(payout) {
     try {
       var bets = betLoad(), amt = 0, changed = false;
@@ -206,7 +262,7 @@
     } catch (e) {}
   }
 
-  /* casino.js crash poll: the round crashed with our bet still in — a
+  /* markets.js raid poll: the line collapsed with our stake still on it — a
      settled loss. Deduped by the exited flag (poll fires every 5s). */
   function wmCrashCrashed(roundId) {
     try {
@@ -222,9 +278,9 @@
     } catch (e) {}
   }
 
-  /* casino.js: lottery_status round seen. A round-id change with tickets held
-     in the previous round = that round resolved. The win signal is the
-     backend's lottery-win notification (existing read, no new writes). */
+  /* markets.js draw zone: lottery_status round seen. A round-id change with
+     tickets held in the previous round = that round resolved. The win signal
+     is the backend's lottery-win notification (existing read, no new writes). */
   function lotLoad() {
     try {
       var s = JSON.parse(localStorage.getItem(LOT_LS) || 'null');
@@ -267,7 +323,7 @@
     } catch (e) {}
   }
 
-  /* Expose the hooks for casino.js (guarded one-liners there call these). */
+  /* Expose the hooks for the layer surfaces (guarded one-liners there call these). */
   try {
     PF.wmBetPlaced = wmBetPlaced;
     PF.wmSettled = wmSettled;
@@ -278,38 +334,38 @@
     PF.wmLotterySeen = wmLotterySeen;
   } catch (e) {}
 
-  /* ---- exit routing: NEXT OP-style config + priority, links only ---- */
-  var GAME_LBL = { flip: 'COIN FLIP', crash: 'CRASH', roulette: 'ROULETTE', wager: 'WAGER', lottery: 'LOTTERY', market: 'MARKET' };
-  /* Markets panel anchor: the White Market lobby section (games/markets.js).
-     Falls back to the house-games section, then the /arcade page itself. */
+  /* ---- exit routing: NEXT OP-style config + priority.
+     Psych audit: RUN IT BACK is demoted — VAULT IT leads the win card,
+     STAKE IT FORWARD rides second, FUND THE FIGHT closes it. ---- */
+  var GAME_LBL = { flip: 'THE GAMBIT', crash: 'SUPPLY LINE RAID', wager: 'WAGER', lottery: 'THE SOLIDARITY DRAW', market: 'FORECAST' };
+  /* Forecasts section anchor (games/markets.js). Falls back to /arcade itself. */
   function marketsHref() {
     try {
-      if (document.getElementById('pf-whitemarket')) return '#pf-whitemarket';
-      if (document.getElementById('pf-casino')) return '#pf-casino';
+      if (document.getElementById('pf-forecasts')) return '#pf-forecasts';
     } catch (e) {}
-    return '/arcade#pf-whitemarket';
+    return '/arcade#pf-forecasts';
   }
   var EXITS = {
     win: [
-      { id: 'markets', title: 'COLLECT AND ROLL IT', cta: 'HIT THE MARKETS',
-        sub: 'Winnings ride again — bet the next Propagandist of the Week in The White Market.',
-        href: marketsHref },
-      { id: 'vault', title: 'BANK IT', cta: 'VAULT IT', sweep: true,
+      { id: 'vault', title: 'VAULT IT', cta: 'VAULT IT', sweep: true,
         sub: 'Move the win to the People\'s Bank vault. Interest lands every Monday.',
         href: '/bank' },
-      { id: 'arcade', title: 'RUN IT BACK', cta: 'BACK TO THE ARCADE',
-        sub: 'The floor is open. Same hall, new nerve.',
-        href: '/arcade' }
+      { id: 'stakeit', title: 'STAKE IT FORWARD', cta: 'STAKE IT FORWARD',
+        sub: 'Winnings ride again — back the next forecast on the War Room board.',
+        href: '/arcade#pf-forecasts' },
+      { id: 'fund', title: 'FUND THE FIGHT', cta: 'FUND THE FIGHT', fund: true,
+        sub: 'Send the win straight to the war chest.',
+        href: '/war-chest' }
     ],
     loss: [
-      { id: 'markets', title: 'READ THE MARKET', cta: 'HIT THE MARKETS',
-        sub: 'Study the board — bet the next Propagandist of the Week smarter.',
-        href: marketsHref },
-      { id: 'arcade', title: 'RUN IT BACK', cta: 'BACK TO THE ARCADE',
-        sub: 'Shake it off. The hall is open.',
+      { id: 'board', title: 'READ THE BOARD', cta: 'READ THE BOARD',
+        sub: 'Study the forecasts — stake the next one smarter.',
+        href: '/arcade#pf-forecasts' },
+      { id: 'fight', title: 'BACK TO THE FIGHT', cta: 'BACK TO THE FIGHT',
+        sub: 'Shake it off. The board is open.',
         href: '/arcade' },
       { id: 'brief', title: 'GET INTEL', cta: 'READ THE BRIEFING',
-        sub: 'The Briefing never loses. Intel first, bets second.',
+        sub: 'The Briefing never loses. Intel first, stakes second.',
         href: '/#pf-brief' }
     ]
   };
@@ -346,15 +402,15 @@
 
   function cardHtml(d) {
     var won = !!d.won;
-    var gl = GAME_LBL[d.game] || 'WHITE MARKET';
+    var gl = GAME_LBL[d.game] || 'WAR ROOM';
     var fig = won ? (Number(d.payout) || 0) : (Number(d.amount) || 0);
     var head = gl + ' — ' + (won
       ? '<span class="w">WON' + (fig > 0 ? ' +' + fmt(fig) + ' XP' : '') + '</span>'
       : '<span class="l">LOST' + (fig > 0 ? ' ' + fmt(fig) + ' XP' : '') + '</span>');
     var sub = won
-      ? 'The hall pays out. Pick your exit, soldier.'
-      : 'The house keeps that one. Pick your exit, soldier.';
-    var h = '<div class="wmx-card"><div class="wmx-kick">AFTER ACTION · THE WHITE MARKET</div>' +
+      ? 'The board pays out. Pick your exit, soldier.'
+      : 'The line keeps that one. Pick your exit, soldier.';
+    var h = '<div class="wmx-card"><div class="wmx-kick">AFTER ACTION · THE WAR ROOM</div>' +
       '<div class="wmx-head">' + head + '</div>' +
       '<div class="wmx-sub">' + esc(sub) + '</div>';
     var routes = EXITS[won ? 'win' : 'loss'];
@@ -363,13 +419,17 @@
       var href = (typeof r.href === 'function') ? r.href() : r.href;
       var sub2 = r.id === 'vault' && won && fig > 0
         ? 'Vault ' + fmt(fig) + ' XP to the People\'s Bank vault. Interest lands every Monday.'
-        : r.sub;
-      /* VAULT IT (6A-R2 real-deposit pattern): one-tap deposit, no nav. */
+        : (r.id === 'fund' && won && fig > 0
+          ? 'Send ' + fmt(fig) + ' XP straight to the war chest.'
+          : r.sub);
+      /* VAULT IT / FUND THE FIGHT: one-tap actions, no nav. */
       var inner = '<div class="wmx-rt">' + esc(r.title) + '</div>' +
         '<div class="wmx-rs">' + esc(sub2) + '</div>' +
         '<span class="wmx-cta">' + esc(r.cta) + ' &rarr;</span>';
       if (r.sweep && won && fig > 0) {
         h += '<button type="button" class="wmx-route" data-wm-vaultit="' + fig + '">' + inner + '</button>';
+      } else if (r.fund && won && fig > 0) {
+        h += '<button type="button" class="wmx-route" data-wm-fund="' + fig + '">' + inner + '</button>';
       } else {
         h += '<a class="wmx-route" href="' + esc(href) + '">' + inner + '</a>';
       }
@@ -386,18 +446,26 @@
   function tray() {
     var t = document.getElementById('pf-wm-exits');
     if (t) return t;
-    var xc = document.getElementById('xCasino');
-    if (!xc || !xc.parentNode) return null;
+    /* Anchor: the War Room forecasts section first, then the gambits silo,
+       then the page mounts. The retired casino mount (#xCasino) is gone. */
+    var anchor = null;
+    try {
+      anchor = document.getElementById('pf-forecasts') || document.getElementById('pf-gambits');
+      if (!anchor) anchor = document.getElementById('pf-arcade') || document.body;
+    } catch (e) { anchor = document.body; }
+    if (!anchor) return null;
     t = document.createElement('div');
     t.id = 'pf-wm-exits';
-    try { xc.parentNode.insertBefore(t, xc.nextSibling); }
+    try { anchor.appendChild(t); }
     catch (e) { return null; }
     t.addEventListener('click', function (ev) {
       try {
-        var el = ev.target && ev.target.closest ? ev.target.closest('[data-wm-vaultit],[data-wm-dismiss],[data-wm-share]') : null;
+        var el = ev.target && ev.target.closest ? ev.target.closest('[data-wm-vaultit],[data-wm-fund],[data-wm-dismiss],[data-wm-share]') : null;
         if (!el) return;
         if (el.hasAttribute('data-wm-vaultit')) {
           vaultIt(el);
+        } else if (el.hasAttribute('data-wm-fund')) {
+          fundFight(el);
         } else if (el.hasAttribute('data-wm-dismiss')) {
           t.innerHTML = ''; lastWin = null;
         } else if (el.hasAttribute('data-wm-share')) {
@@ -419,7 +487,7 @@
     } catch (err) {}
   });
 
-  /* ---- win-share poster: PFShare.setPoster('whitemarket-win') ---- */
+  /* ---- win-share poster: PFShare.setPoster('redist-win') ---- */
   function wmWrap(x, text, maxW) {
     var words = String(text == null ? '' : text).split(/\s+/), lines = [], line = '';
     words.forEach(function (w) {
@@ -438,7 +506,7 @@
       cv.width = W; cv.height = H;
       var x = cv.getContext('2d');
       if (!x) { done(null); return; }
-      var gl = GAME_LBL[w.game] || 'WHITE MARKET';
+      var gl = GAME_LBL[w.game] || 'WAR ROOM';
       x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, W, H);
       x.strokeStyle = '#c1121f'; x.lineWidth = 18; x.strokeRect(16, 16, W - 32, H - 32);
       x.strokeStyle = '#f5ead6'; x.lineWidth = 3; x.strokeRect(52, 52, W - 104, H - 104);
@@ -447,16 +515,16 @@
       x.fillStyle = '#f5ead6'; x.font = '700 34px Arial,sans-serif';
       x.fillText('\u2605 THE PROPAGANDA FACTORY \u2605', W / 2, y); y += 110;
       x.fillStyle = '#c1121f'; x.font = '900 84px "Arial Black",Arial,sans-serif';
-      wmWrap(x, 'THE WHITE MARKET', W - 170).forEach(function (l) { x.fillText(l, W / 2, y); y += 98; });
+      wmWrap(x, 'THE WAR ROOM', W - 170).forEach(function (l) { x.fillText(l, W / 2, y); y += 98; });
       y += 20;
       x.fillStyle = '#f5ead6'; x.font = '700 40px Arial,sans-serif';
-      x.fillText('THE WAGERING HALL PAYS OUT', W / 2, y); y += 110;
+      x.fillText('THE BOARD PAYS OUT', W / 2, y); y += 110;
       x.fillStyle = '#7CFC00'; x.font = '900 120px "Arial Black",Arial,sans-serif';
       x.fillText('+' + fmt(w.payout) + ' XP', W / 2, y); y += 110;
       x.fillStyle = '#c9bfa8'; x.font = '700 38px Arial,sans-serif';
       x.fillText(gl + ' WIN', W / 2, y); y += 130;
       x.font = '900 42px "Arial Black",Arial,sans-serif';
-      var cta = 'PLAY THE MARKET', tw = x.measureText(cta).width + 100;
+      var cta = 'BACK THE NEXT ONE', tw = x.measureText(cta).width + 100;
       x.fillStyle = '#c1121f'; x.fillRect(W / 2 - tw / 2, y - 56, tw, 92);
       x.fillStyle = '#ffffff'; x.fillText(cta, W / 2, y + 8);
       /* Footer: MTCSTW.COM + JOIN THE FIGHT. (red, bold) — share-image CTA standard. */
@@ -472,12 +540,12 @@
     } catch (err) { try { done(null); } catch (e2) {} }
   }
   try {
-    if (window.PFShare && PFShare.setPoster) PFShare.setPoster('whitemarket-win', wmWinPainter);
+    if (window.PFShare && PFShare.setPoster) PFShare.setPoster('redist-win', wmWinPainter);
   } catch (e) {}
   /* Late PFShare (share-image loads in core bundle, this in a page bundle —
      normally core first; re-register once in case order flipped). */
   setTimeout(function () {
-    try { if (window.PFShare && PFShare.setPoster) PFShare.setPoster('whitemarket-win', wmWinPainter); } catch (e) {}
+    try { if (window.PFShare && PFShare.setPoster) PFShare.setPoster('redist-win', wmWinPainter); } catch (e) {}
   }, 3000);
 
   function shareWin(btn) {
@@ -486,7 +554,7 @@
       if (btn) btn.disabled = true;
       wmWinPainter(function (cv) {
         try { if (btn) btn.disabled = false; } catch (e) {}
-        if (cv) PFShare.shareImage(cv, 'pfn-whitemarket-win.png', 'The White Market win', 'whitemarket-win');
+        if (cv) PFShare.shareImage(cv, 'pfn-redist-win.png', 'The War Room win', 'redist-win');
         else toast('Poster failed — try again.');
       });
     } catch (e) { try { if (btn) btn.disabled = false; } catch (e2) {} }

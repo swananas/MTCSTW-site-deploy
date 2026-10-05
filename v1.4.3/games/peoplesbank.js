@@ -4,7 +4,7 @@
    full transaction history. Reads via JSONP (self-contained api()), writes
    via CORS POST (self-contained post()). It never reaches into another
    silo's internals. Does NOT duplicate economy.js (staking, auctions,
-   cosmetics, treasury, gambling) or casino.js — the Bank is for everyday
+   cosmetics, treasury, stakes) — the Bank is for everyday
    banking: balances, transfers, savings, loans, bonds, history.
    KILL: ?pf_off=peoplesbank  or  localStorage pf_disabled_v1='["peoplesbank"]' */
 (function () {
@@ -614,7 +614,7 @@ function renderHistory(id){
     +'<button class="c-btn pb-f'+(HIST_FILTER==="bond"?" pb-fact":"")+'" data-hf="bond">BONDS</button> '
     +'<button class="c-btn pb-f'+(HIST_FILTER==="loan"?" pb-fact":"")+'" data-hf="loan">LOANS</button> '
     +'<button class="c-btn pb-f'+(HIST_FILTER==="savings"?" pb-fact":"")+'" data-hf="savings">SAVINGS</button> '
-    +'<button class="c-btn pb-f'+(HIST_FILTER==="gamble"?" pb-fact":"")+'" data-hf="gamble">GAMBLING</button> '
+    +'<button class="c-btn pb-f'+(HIST_FILTER==="gamble"?" pb-fact":"")+'" data-hf="gamble">STAKES</button> '
     +'<button class="c-btn pb-f'+(HIST_FILTER==="activity"?" pb-fact":"")+'" data-hf="activity">ACTIVITY</button>'
     +'</div><div style="height:8px"></div>';
   var es=(XH&&XH.ok&&XH.entries)||[];

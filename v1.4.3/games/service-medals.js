@@ -33,10 +33,14 @@
      {id:'guess',   glyph:'\u25CE', name:'Profiler',        ev:'pf-guess-done'},
      {id:'raid',    glyph:'\u26A1', name:'Raider',           ev:'pf-raid-report'},
      {id:'infight', glyph:'\uD83E\uDD4A', name:'Brawler',          ev:'pf-infight-fire'},
-     {id:'casino',  glyph:'\uD83C\uDFB0', name:'High Roller',      ev:'pf-casino-cashed'},
-     /* 2026-10-04 de-isolation: the White Market wagering hall joins the rack.
-        Earned by the first settled bet in the hall each week (win or loss) —
-        REQUIRED for FULL DEPLOYMENT. */
+     /* REDISTRIBUTION LAYER (2026-10-05): the retired casino hall's
+        'High Roller' medal (ev pf-casino-cashed, which can never fire again
+        — casino.js is unmounted) was removed with it. The redistribution
+        layer's medal is below. Event name 'pf-wm-settled' stays (stability). */
+     /* Redistribution layer 'Market Maker' (CEO decision: name stays).
+        Earned by the first settled redistribution-layer event each week —
+        forecast, gambit, raid, or draw (win or loss) — REQUIRED for
+        FULL DEPLOYMENT. */
      {id:'whitemarket', glyph:'\uD83C\uDFB2', name:'Market Maker',  ev:'pf-wm-settled'}
     ];
     function load(){try{var s=JSON.parse(localStorage.getItem(LS)||'null');if(s&&s.w)return s;}catch(e){}return{w:PF.isoWeekKey(PF.chiNow()),m:{},fd:false};}

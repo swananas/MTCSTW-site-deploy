@@ -119,7 +119,7 @@ function load(){
      the writes ride post("season","s_action",...) with X-Admin-Secret. */
   api("season_current",{},function(j){ SN=j; one(); });
   api("season_history",{},function(j){ SH=j; one(); });
-  /* Prediction market desk (2026-10-04, White Market): public JSONP read;
+  /* Prediction market desk (2026-10-04, War Room era): public JSONP read;
      writes ride post("market","m_action",...) with X-Admin-Secret. */
   api("market_list",{},function(j){ MK=j; one(); });
 }
@@ -197,12 +197,12 @@ function render(){
     h+='</div><div class="c-err" id="vlWResErr"></div>';
   } else { h+='<div class="x-note">No wagers yet.</div>'; }
   h+='</div>';
-  /* 3b. PREDICTION MARKET DESK (2026-10-04, White Market).
+  /* 3b. PREDICTION MARKET DESK (2026-10-04, War Room era).
      Create + settle prediction boards. Rides post("market","m_action",...)
      with X-Admin-Secret. Creator-kind sides must be real roster slugs
      (validated client-side here; the backend re-validates). */
   h+='<div class="x-pane"><h4>Prediction market desk</h4>'
-    +'<div class="x-note">Create and settle White Market prediction boards. Milestone kind auto-sets sides to YES/NO.</div>'
+    +'<div class="x-note">Create and settle War Room forecast boards. Milestone kind auto-sets sides to YES/NO.</div>'
     +'<div class="vl-form">'
     +'<select aria-label="Market kind" id="vlMKind" class="c-input pf-input-md">'
     +'<option value="battle">Battle Winner</option>'
@@ -214,7 +214,7 @@ function render(){
     +'</select>'
     +'<input aria-label="game_ref" id="vlMRef" class="c-input pf-input-lg" placeholder="game_ref: battle_id / round_id / bracket week / vote week (blank for growth/milestone)" >'
     +'<input aria-label="Market title" id="vlMTitle" class="c-input pf-input-lg" placeholder="Title" >'
-    +'<input aria-label="Description / rules" id="vlMDesc" class="c-input pf-input-lg" placeholder="Description / rules shown on the bet slip" >'
+    +'<input aria-label="Description / rules" id="vlMDesc" class="c-input pf-input-lg" placeholder="Description / rules shown on the stake slip" >'
     +'<textarea aria-label="Sides, one per line" id="vlMSides" class="c-input pf-input-lg" rows="3" placeholder="Sides, one per line — creator markets: roster slugs"></textarea>'
     +'<input aria-label="Betting locks at" id="vlMLock" class="c-input pf-input-md" type="datetime-local" >'
     +'<input aria-label="Resolves at" id="vlMRes" class="c-input pf-input-md" type="datetime-local" >'

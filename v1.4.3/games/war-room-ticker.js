@@ -135,6 +135,34 @@
           return { text: '\uD83D\uDCB0 ' + (cs || 'A comrade') + ' is now funding ' + creator +
             (perWk > 0 ? ' \u2014 ' + perWk.toLocaleString() + ' XP/week' : ''), tag: '' };
         }
+        /* Redistribution Layer (2026-10-05): settlement + spoils events.
+           Copies verbatim from the redistribution spec §1.10 — every number
+           rides ev.meta (emitted by the backend); the ticker never invents. */
+        case 'gambit_settled': {
+          var gwin = esc((ev.meta && ev.meta.winner) || ev.callsign || 'A fighter');
+          var gtithe = (ev.meta && ev.meta.tithe != null) ? Number(ev.meta.tithe) : 0;
+          return { text: '\u2694\uFE0F ' + gwin + ' won the gambit — ' +
+            gtithe.toLocaleString() + ' XP tithed to the war chest', tag: '' };
+        }
+        case 'raid_spoils': {
+          var rcell = esc((ev.meta && ev.meta.cell) || ev.name || 'A cell');
+          var ramt = (ev.meta && ev.meta.amount != null) ? Number(ev.meta.amount) : 0;
+          return { text: '\uD83D\uDCE6 ' + rcell + ' left ' + ramt.toLocaleString() +
+            ' XP on the line — spoils to the cell treasury', tag: '' };
+        }
+        case 'draw_won': {
+          var dwin = esc((ev.meta && ev.meta.winner) || ev.callsign || 'A fighter');
+          var dshare = (ev.meta && ev.meta.winnerShare != null) ? Number(ev.meta.winnerShare) : 0;
+          var dchest = (ev.meta && ev.meta.chestShare != null) ? Number(ev.meta.chestShare) : 0;
+          return { text: '\uD83C\uDF97\uFE0F ' + dwin + ' won the Solidarity Draw — ' +
+            dshare.toLocaleString() + ' XP, ' + dchest.toLocaleString() +
+            ' XP to the war chest', tag: '' };
+        }
+        case 'forecast_settled': {
+          var fpool = (ev.meta && ev.meta.pool != null) ? Number(ev.meta.pool) : 0;
+          return { text: '\uD83D\uDCCA ' + name + ' resolved — ' +
+            fpool.toLocaleString() + ' XP redistributed to the winners', tag: '' };
+        }
         default: {
           var label = String(ev.type || '').replace(/_/g, ' ');
           return { text: '\u2022 ' + (cs ? cs + ' — ' : '') + esc(label), tag: '' };

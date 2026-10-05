@@ -83,13 +83,15 @@
       cta: 'PLEDGE YOURS'
     },
     /* 6A-R2: The White Market cashout poster. The dynamic "I JUST CASHED
-       OUT +N XP" card is painted by the casino silo's custom painter
-       (PFShare.setPoster('casino', ...)); this REG entry is the template
-       in the generator registry + the fallback generic poster. */
+       OUT +N XP" card was painted by the retired casino silo's custom
+       painter (PFShare.setPoster('casino', ...)); the live painter is now
+       PFShare.setPoster('redist-win', ...) in games/casino-exits.js. This
+       REG entry is the generic fallback template — rebranded 2026-10-05.
+       The 'casino' key stays (stability). */
     'casino': {
-      title: '\u2605 THE WHITE MARKET \u2605', tag: 'The XP wagering hall',
-      lines: ['I just cashed out. The house paid.', 'Wager XP. Cash out before the crash.'],
-      cta: 'PLAY THE MARKET'
+      title: '\u2605 THE WAR ROOM \u2605', tag: 'The redistribution layer',
+      lines: ['I just pulled spoils off the board.', 'The board pays out — the house is us, and the house shares.'],
+      cta: 'READ THE BOARD'
     },
     'slr-match-quiz': {
       title: '\u2691 FIND YOUR SLR MATCH \u2691', tag: 'What kind of propagandist are you?',

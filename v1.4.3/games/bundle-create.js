@@ -1,1 +1,2278 @@
-!function(){"use strict";var e=window.PF;if(e&&!e.skip("academy")){var t=window.PF_BACKEND_URL;window.PFAcademy={mount:f};try{e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-academy"><div id="pf-academy-slot"></div><script>window.PFAcademy.mount(document.getElementById("pf-academy-slot"));<\/script></template>')}catch(e){}try{var n=document.getElementById("pf-academy-hq");n&&f(n)}catch(e){}try{if(!document.getElementById("pf-war-card")){var a=document.getElementById("pf-academy-hq"),i=a&&a.closest?a.closest(".fe-block"):null;i&&i.classList&&!i.classList.contains("pf-fe-hq")&&i.classList.add("pf-fe-hq")}}catch(e){}}function r(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function o(){var e="",t="";try{e=window.PFCallsign?window.PFCallsign():""}catch(e){}try{t=window.PFDeviceId?window.PFDeviceId():""}catch(e){}return{callsign:e,device:t}}function s(t){try{e.toast(t)}catch(e){}}function c(t,n){try{window.PF&&e.creditLocal&&e.creditLocal("academy_lesson_"+t,n)}catch(e){}}function l(n,a,i){if(t){if("academy_progress"===n)try{if(window.PF&&e.authGetJSONP)return void e.authGetJSONP(t,n,a,i);var r=window.PF&&e.getAuthSecret?e.getAuthSecret():"";r&&a&&!a.auth_secret&&(a.auth_secret=r)}catch(e){}var o="pfAcCb"+Math.floor(1e9*Math.random()),s=document.createElement("script"),c=!1;window[o]=function(e){u(e)},s.onerror=function(){u(null)};var l="?action="+encodeURIComponent(n);for(var d in a)null!=a[d]&&""!==a[d]&&(l+="&"+encodeURIComponent(d)+"="+encodeURIComponent(a[d]));l+="&callback="+o,s.src=t+l,document.head.appendChild(s),setTimeout(function(){u(null)},12e3)}else i(null);function u(e){if(!c){c=!0;try{delete window[o]}catch(e){}s.parentNode&&s.parentNode.removeChild(s),i(e)}}}function d(n,a,i){var r=Object.assign({type:"academy",a_action:n},a);if(window.PF&&e.authPost)e.authPost(t,r,i);else{var o=JSON.stringify(r);try{var s=function(){var e={method:"POST",headers:{"Content-Type":"application/json"},body:o},t=null,n=null;try{window.AbortController&&(t=new AbortController,e.signal=t.signal,n=setTimeout(function(){try{t.abort()}catch(e){}},15e3))}catch(e){}return e._pfClear=function(){if(n)try{clearTimeout(n)}catch(e){}},e}();fetch(t,s).then(function(e){return e.json()}).then(function(e){s._pfClear(),c(e)}).catch(function(){s._pfClear(),c(null)})}catch(e){c(null)}}function c(e){try{i(e||{ok:!1,err:"Network error."})}catch(e){}}}function u(e){var t=o(),n=!1,a=null,i=null,r=0;function s(){n||(n=!0,p(e,a||[],i))}function c(){++r>=2&&s()}setTimeout(function(){s()},15e3);var d={};t.callsign&&(d.callsign=t.callsign),l("lesson_list",d,function(e){e&&e.ok&&e.lessons&&e.lessons.length&&(a=e.lessons),c()}),t.callsign?l("academy_progress",{callsign:t.callsign},function(e){e&&e.ok&&e.lessons&&(i=e.lessons),c()}):c()}function p(t,n,a){var i=o(),l="";if(n.length){n=n.slice().sort(function(e,t){return(e.order_num||0)-(t.order_num||0)});var f,v,h=a&&a.length?a:n,m=0;for(f=0;f<h.length;f++)h[f].done&&m++;var b=h.length?Math.round(m/h.length*100):0,g=!(!a||!a.length);for(l+='<div class="fe-block pf-override-block" id="pf-academy"><h2>Propaganda Academy</h2><div class="c-tag">Learn the craft. Earn your stripes. Pump with purpose.</div>',i.callsign?l+='<div class="x-pane"><div class="x-note">PROGRESS: '+m+"/"+h.length+" lessons &mdash; "+b+"%"+(g?' <span style="color:#7CFC00">&#10003; HQ-synced</span>':"")+'</div><div style="background:#222;border:1px solid #555;height:14px;margin-top:6px"><div style="background:#c1121f;height:12px;width:'+b+'%"></div></div></div>':l+=e.gateHTML("The Academy enrolls callsign holders.","to enroll and bank XP"),f=0;f<n.length;f++){var y=!!(v=n[f]).done,w=Number(v.xp_reward)||0;l+='<div class="x-pane"><div class="fd-title">'+(f+1)+". "+r(v.title)+(y?' <span style="color:#7CFC00">&#10003;</span>':"")+'</div><div class="x-note">'+r(v.content)+'</div><div class="x-note">+'+w+" XP</div>",i.callsign&&!y&&(l+='<button class="c-btn ac-done" data-lid="'+r(v.id)+'" data-xp="'+w+'">MARK COMPLETE</button>'),l+="</div>"}l+='<div style="margin-top:10px"><button class="c-btn" id="acRetry">Refresh</button></div>',l+="</div>",t.innerHTML=l;var x,S=t.querySelectorAll("button.ac-done");for(x=0;x<S.length;x++)(function(a){a.onclick=function(){var r=a.getAttribute("data-lid");a.disabled=!0,a.textContent="RECORDING...",d("lesson_complete",{callsign:i.callsign,device:i.device,lesson_id:r},function(i){if(i&&i.ok){var o=null!=i.xp?i.xp:Number(a.getAttribute("data-xp"))||0;o>0&&c(r,o);try{document.dispatchEvent(new CustomEvent("pf-lesson-complete",{detail:{lesson:r,xp:o}}))}catch(e){}s(i.dup?"Already banked. No double pay.":"Lesson complete. +"+o+" XP.");try{if(window.PF&&e.dope){var l=document.getElementById("pf-academy")||document.body;e.dope.press(a),e.dope.confetti(l,35),o>0&&e.dope.xpFloat(l,"+"+o+" XP")}}catch(e){}for(var d=0;d<n.length;d++)n[d].id===r&&(n[d].done=1);p(t,n)}else a.disabled=!1,a.textContent="MARK COMPLETE",s(e.errCopy(i,"Could not record. Try again."))})}})(S[x]);var k=document.getElementById("acRetry");k&&(k.onclick=function(){t.innerHTML='<div class="c-load">Loading the academy&hellip;</div>',u(t)})}else{t.innerHTML='<div class="fe-block pf-override-block" id="pf-academy"><h2>Propaganda Academy</h2><div class="c-tag">Learn the craft. Earn your stripes. Pump with purpose.</div><div class="x-pane"><div class="x-note">The academy is mustering its instructors.</div><div style="margin-top:8px"><button class="c-btn" id="acRetry">Retry</button></div></div></div>';var E=document.getElementById("acRetry");E&&(E.onclick=function(){t.innerHTML='<div class="c-load">Loading the academy&hellip;</div>',u(t)})}}function f(e){e&&!e.getAttribute("data-pf-academy-mounted")&&(e.setAttribute("data-pf-academy-mounted","1"),e.innerHTML='<div class="c-load">Loading the academy&hellip;</div>',u(e))}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("academy-graduation")&&!window.pfAcademyGraduationDone){window.pfAcademyGraduationDone=!0;var t=window.PF_BACKEND_URL,n="pf_academy_grad_v1",a="pf_claim_ux_v1",i=!1;document.addEventListener("pf-lesson-complete",function(){i||(i=!0,setTimeout(function(){i=!1;var e,t=f();for(e=0;e<t.length;e++)p(t[e])},1200))}),document.addEventListener("pf-callsign-claimed",function(e){try{var t="";try{t=String(e&&e.detail&&e.detail.callsign||"")}catch(d){}if(!t&&window.PFCallsign)try{t=window.PFCallsign()||""}catch(u){}if(!t)return;var n=s(t);if(n&&"card"===n.r1)return;c(t,{r1:"pending",ts:Date.now()});var a=!1;function l(e){a||(a=!0,c(t,{r1:e,ts:Date.now()}))}var i,r=f(),o=r.length;if(!o)return void l("declined");for(i=0;i<r.length;i++)(function(e){p(e,t,function(e){a||("card"!==e?--o<=0&&l("declined"):l("card"))})})(r[i])}catch(v){}}),"loading"===document.readyState?document.addEventListener("DOMContentLoaded",v):v()}function r(){var e="",t="";try{e=window.PFCallsign?window.PFCallsign():""}catch(e){}try{t=window.PFDeviceId?window.PFDeviceId():""}catch(e){}return{callsign:e,device:t}}function o(e){try{var t={};try{t=JSON.parse(localStorage.getItem(n)||"{}")}catch(e){t={}}t[e]=1,localStorage.setItem(n,JSON.stringify(t))}catch(e){}}function s(e){try{var t=JSON.parse(sessionStorage.getItem(a)||"{}");return t&&t[String(e||"").toLowerCase()]||null}catch(e){return null}}function c(e,t){try{var n=String(e||"").toLowerCase();if(!n)return;var i={};try{i=JSON.parse(sessionStorage.getItem(a)||"{}")}catch(e){i={}}i[n]=Object.assign(i[n]||{},{callsign:n},t||{}),sessionStorage.setItem(a,JSON.stringify(i))}catch(e){}}function l(n,a,i){if(t){try{if("academy_progress"===n&&window.PF&&e.authGetJSONP)return void e.authGetJSONP(t,n,a,i)}catch(e){}var r="pfAgCb"+Math.floor(1e9*Math.random()),o=document.createElement("script"),s=!1;window[r]=function(e){d(e)},o.onerror=function(){d(null)};var c="?action="+encodeURIComponent(n);for(var l in a)null!=a[l]&&""!==a[l]&&(c+="&"+encodeURIComponent(l)+"="+encodeURIComponent(a[l]));c+="&callback="+r,o.src=t+c;try{document.head.appendChild(o)}catch(e){return void d(null)}setTimeout(function(){d(null)},12e3)}else i(null);function d(e){if(!s){s=!0;try{delete window[r]}catch(e){}o.parentNode&&o.parentNode.removeChild(o),i(e)}}}function d(n){function a(){try{location.href="/#pf-brief"}catch(e){}}n&&(n.disabled=!0,n.textContent="FINDING TODAY’S ROUTE…");var i=r(),o=function(){try{if(e&&"function"==typeof e.storedCreatorRef)return e.storedCreatorRef()||""}catch(e){}return""}();if(t&&i.callsign){var s=!1;try{if(window.PF&&e.authGetJSONP)e.authGetJSONP(t,"circuit_status",{callsign:i.callsign},d);else{var c="pfAgRm"+Math.floor(1e9*Math.random());window[c]=function(e){try{delete window[c]}catch(e){}d(e)};var l=document.createElement("script");l.onerror=function(){d(null)},l.src=t+"?action=circuit_status&callsign="+encodeURIComponent(i.callsign)+"&callback="+c,document.head.appendChild(l)}}catch(e){d(null)}setTimeout(function(){d(null)},1e4)}else a();function d(e){if(!s){s=!0;try{if(e&&e.ok&&e.stops&&e.stops.length&&e.stops[0].page)return void function(e){var t=String(e||"/#pf-brief");o&&(t+=(t.indexOf("?")>=0?"&":"?")+"creator="+encodeURIComponent(o));try{location.href=t}catch(e){a()}}(e.stops[0].page)}catch(e){}a()}}}function u(t,n){if(t&&!document.getElementById("pf-graduation")){var a=r(),i=document.createElement("div");i.id="pf-graduation",i.setAttribute("data-pf-graduation","1"),i.style.cssText="border:4px solid #c1121f;background:#0d0d0d;color:#f5f0e1;padding:1.6rem 1.2rem;margin:0 0 1.2rem;text-align:center;box-sizing:border-box;box-shadow:0 0 34px rgba(193,18,31,.45);font-family:inherit;";var s,l="";a.callsign?l+='<div style="margin:.55rem 0;padding:.7rem;border:2px solid #2f7a3d;background:#0a140a;"><div style="color:#7ddf8a;font-weight:900;letter-spacing:.1em;">&#10003; CALLSIGN CLAIMED &mdash; '+(s=a.callsign.toUpperCase(),String(null==s?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")+"</div></div>"):l+='<div style="margin:.55rem 0;"><button type="button" id="pf-grad-claim" style="display:inline-block;background:#c1121f;border:2px solid #c1121f;color:#fff;font-weight:900;letter-spacing:.12em;padding:.8rem 1.6rem;font-size:.85rem;cursor:pointer;">CLAIM YOUR CALLSIGN</button></div>',l+='<div style="margin:.55rem 0;"><button type="button" id="pf-grad-march" style="display:inline-block;background:transparent;border:2px solid #c1121f;color:#f5f0e1;font-weight:900;letter-spacing:.12em;padding:.8rem 1.6rem;font-size:.85rem;cursor:pointer;">START TODAY’S ROUTE MARCH &rarr;</button><div style="font-size:.72rem;color:#b8ab8e;margin-top:.35rem;">Day 1 of the 7-day escalator &mdash; 10 XP today, up to 75 on day 7.</div></div>',l+='<div style="margin:.55rem 0;"><a href="/#pf-orders" style="display:inline-block;background:transparent;border:2px solid #f5f0e1;color:#f5f0e1;font-weight:900;letter-spacing:.12em;padding:.8rem 1.6rem;font-size:.85rem;text-decoration:none;">CHECK IN: DAILY ORDERS &rarr;</a></div>',i.innerHTML='<div style="color:#c1121f;font-weight:900;letter-spacing:.18em;font-size:1.15rem;margin-bottom:.4rem;">&#9733; ACADEMY GRADUATE &#9733;</div><div style="font-size:.9rem;color:#f5f0e1;line-height:1.6;margin-bottom:.8rem;">All '+n+" lessons complete. The training wheels are off, soldier &mdash; here are your first orders:</div>"+l+'<div style="margin-top:1rem;"><button type="button" id="pf-grad-dismiss" style="background:none;border:none;color:#b8ab8e;font-size:.72rem;letter-spacing:.1em;cursor:pointer;text-decoration:underline;">dismiss</button></div>';try{var u=t.querySelector("#pf-academy");u&&u.parentNode===t?t.insertBefore(i,u):t.insertBefore(i,t.firstChild)}catch(e){return}try{c(a.callsign||"",{r1:"card",ts:Date.now()})}catch(e){}try{window.PF&&e.dope&&(e.dope.confetti(i,60),e.dope.press(i))}catch(e){}var p=i.querySelector("#pf-grad-dismiss");p&&(p.onclick=h);var f=i.querySelector("#pf-grad-march");f&&(f.onclick=function(){d(f)});var v=i.querySelector("#pf-grad-claim");v&&(v.onclick=function(){try{window.PF&&e.requireCallsign&&e.requireCallsign(function(t){t&&(h(),function(t){try{e.toast(t)}catch(e){}}("Callsign claimed. Welcome to the fight."))},{context:"to graduate from the Academy"})}catch(e){}})}function h(){var e="";try{e=window.PFCallsign?window.PFCallsign():""}catch(e){}e?o(e):a.callsign&&o(a.callsign);try{i.parentNode&&i.parentNode.removeChild(i)}catch(e){}}}function p(a,i,c){function d(e){try{c&&c(e)}catch(e){}}try{var p=r(),f=i||p.callsign;if(!f)return void d("declined");if(function(e){try{var t=JSON.parse(localStorage.getItem(n)||"{}");return!(!t||!t[e])}catch(e){return!1}}(f))return void d("declined");if(document.getElementById("pf-graduation"))return void d("declined");if(i){var v=s(f);if(v&&"shown"===v.r19)return void d("declined")}var h=null,m=null,b=0,g=!1;function y(){if(!(++b<2||g)){g=!0;try{var n=h||[];if(!n.length)return void d("declined");var i,r=0;for(i=0;i<n.length;i++)n[i].done&&r++;if(r<n.length)return void d("declined");if(!0===m)return o(f),void d("declined");try{!function(n,a,i){var r=Object.assign({type:"academy",a_action:n},a);if(window.PF&&e.authPost)e.authPost(t,r,i);else{var o=JSON.stringify(r);try{fetch(t,{method:"POST",headers:{"Content-Type":"application/json"},body:o}).then(function(e){return e.json()}).then(function(e){s(e)}).catch(function(){s(null)})}catch(e){s(null)}}function s(e){try{i(e||{ok:!1,err:"Network error."})}catch(e){}}}("academy_graduate",{callsign:f,device:p.device},function(){})}catch(e){}o(f),u(a,n.length),d("card")}catch(e){d("declined")}}}setTimeout(function(){g||(g=!0,d("declined"))},15e3),l("lesson_list",{},function(e){e&&e.ok&&e.lessons&&e.lessons.length&&(h=e.lessons),y()}),l("academy_progress",{callsign:f},function(e){e&&e.ok&&(m=!0===e.graduated,e.lessons&&e.lessons.length&&(h=e.lessons)),y()})}catch(w){d("declined")}}function f(){var e,t=[],n=document.querySelectorAll("#pf-academy");for(e=0;e<n.length;e++){var a=n[e].parentElement;a&&-1===t.indexOf(a)&&t.push(a)}return t}function v(){setTimeout(function(){var e,t=f();for(e=0;e<t.length;e++)p(t[e])},2500)}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("creator-assist")){try{if(-1!==(window.location.href||"").indexOf("/config/"))return;var t=document.body;if(t&&(t.classList.contains("sqs-edit-mode")||t.classList.contains("sqs-editing")))return}catch(e){}var n=document.getElementById("pf-creator-assist"),a=function(){try{var e=String(window.location.search||"").match(/[?&]for=([a-z0-9_-]{1,60})/i);return e?e[1].toLowerCase():""}catch(e){return""}}();if(!n){var i=document.getElementById("pf-war-card");if(i&&i.parentNode)(n=document.createElement("div")).id="pf-creator-assist",i.parentNode.insertBefore(n,i.nextSibling);else{if(!a)return;var r=document.getElementById("pf-create");if(!r)return;(n=document.createElement("div")).id="pf-creator-assist",r.appendChild(n)}}var o=window.PF_BACKEND_URL,s=null,c=[];n.innerHTML='<div class="fe-block pf-override-block pf-silo" id="pf-ca"><style>#pf-ca{font-family:Arial,sans-serif;color:#f5ead6}#pf-ca .ca-tabs{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}#pf-ca .ca-tab{background:#1a1a1a;border:1px solid #444;color:#f5ead6;padding:10px 18px;cursor:pointer;font:bold 13px Arial;letter-spacing:1px}#pf-ca .ca-tab.on{background:#c1121f;border-color:#c1121f;color:#fff}#pf-ca .ca-tab:hover{border-color:#c1121f}#pf-ca .ca-pane{display:none}#pf-ca .ca-pane.on{display:block}#pf-ca .ca-card{background:#141414;border:1px solid #333;border-left:4px solid #c1121f;padding:12px 14px;margin:10px 0}#pf-ca .ca-topic{font:bold 12px Arial;color:#c1121f;letter-spacing:2px;margin-bottom:8px;text-transform:uppercase}#pf-ca .ca-text{font-size:14px;line-height:1.5;margin:8px 0;white-space:pre-wrap}#pf-ca .ca-tags{font-size:13px;color:#9db4c8;margin:8px 0;line-height:1.6}#pf-ca .ca-copy{background:#c1121f;border:none;color:#fff;font:bold 12px Arial;padding:8px 16px;cursor:pointer;letter-spacing:1px;margin-top:6px}#pf-ca .ca-copy:hover{background:#e01420}#pf-ca .ca-copy:disabled{background:#555;cursor:default}#pf-ca .ca-hint{font-size:12px;color:#888;margin:10px 0;font-style:italic}#pf-ca .ca-load{padding:24px;text-align:center;color:#888}#pf-ca .ca-err{padding:24px;text-align:center;color:#c1121f}#pf-ca .ca-err button{background:#c1121f;border:none;color:#fff;font:bold 12px Arial;padding:8px 16px;cursor:pointer;margin-top:8px}#pf-ca .bn-sealed{position:relative;background:#1a0d0d;border:1px solid #c1121f;border-left:4px solid #c1121f;padding:14px;margin:10px 0;overflow:hidden}#pf-ca .wax{width:88px;height:88px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e01420,#8f0a12 70%);color:#fff;display:flex;align-items:center;justify-content:center;font:bold 11px Arial;letter-spacing:2px;transform:rotate(-12deg);box-shadow:0 4px 14px rgba(193,18,31,.5),inset 0 2px 6px rgba(255,255,255,.25);margin:4px 0 10px}#pf-ca .wax.crack{animation:sealPop .65s ease forwards}@keyframes sealPop{0%{transform:rotate(-12deg) scale(1);opacity:1}35%{transform:rotate(-4deg) scale(1.3);opacity:1}100%{transform:rotate(10deg) scale(0);opacity:0}}#pf-ca .reveal-in{animation:revealIn .8s ease}@keyframes revealIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}#pf-ca .seal-objective{background:#0d0d0d;border:1px dashed #c1121f;padding:10px 12px;margin:8px 0;font-size:14px;line-height:1.5}#pf-ca .mult-big{font:bold 44px Arial;color:#ffd166;text-align:center;margin:10px 0;letter-spacing:2px}#pf-ca .mult-win{font:bold 15px Arial;color:#ffd166;text-align:center}#pf-ca .bn-pending{background:#0d140d;border:1px solid #4c9a2a;border-left:4px solid #4c9a2a;padding:10px 14px;margin:10px 0;font:bold 13px Arial;color:#bfe3a8;letter-spacing:1px}#pf-ca .bn-pending span{font-weight:normal;color:#8aa27e;letter-spacing:normal}</style><h2>Creator Assist</h2><div class="c-tag">The template armory. Steal these, pump them everywhere.</div><div class="ca-tabs" role="tablist"><button class="ca-tab on" data-tab="captions" role="tab">CAPTIONS</button><button class="ca-tab" data-tab="hashtags" role="tab">HASHTAGS</button><button class="ca-tab" data-tab="headlines" role="tab">HEADLINES</button><button class="ca-tab" data-tab="bounties" role="tab">BOUNTIES</button></div><div class="ca-pane on" id="ca-pane-captions"><div class="ca-load">Loading caption packs&hellip;</div></div><div class="ca-pane" id="ca-pane-hashtags"><div class="ca-load">Loading hashtag sets&hellip;</div></div><div class="ca-pane" id="ca-pane-headlines"><div class="ca-load">Loading headline formulas&hellip;</div><div class="ca-hint">Fill in the {BRACKETED} placeholders with your specifics. Make it yours.</div></div><div class="ca-pane" id="ca-pane-bounties"><div class="ca-topic" style="margin-top:4px">Campaign Pool / Bounties</div><div class="ca-hint">One demand board. Need propaganda? Post a bounty. Make one? Claim it. Get paid in XP.</div><div id="xBounty"><div class="ca-load">Loading bounties&hellip;</div></div></div></div>';var l={};try{var d=String(window.location.search||"").match(/[?&]tab=(bounties|captions|hashtags|headlines)/i);if(d){var u=d[1].toLowerCase(),p=n.querySelector('.ca-tab[data-tab="'+u+'"]');if(p){for(var f=n.querySelectorAll(".ca-tab"),v=0;v<f.length;v++)f[v].classList.remove("on");p.classList.add("on");for(var h=n.querySelectorAll(".ca-pane"),m=0;m<h.length;m++)h[m].classList.remove("on");var b=_(u);b&&b.classList.add("on")}}}catch(e){}n.addEventListener("click",function(e){var t=e.target;if(t.classList&&t.classList.contains("ca-tab")){for(var a=t.getAttribute("data-tab"),i=n.querySelectorAll(".ca-tab"),r=0;r<i.length;r++)i[r].classList.remove("on");t.classList.add("on");for(var o=n.querySelectorAll(".ca-pane"),s=0;s<o.length;s++)o[s].classList.remove("on");return _(a).classList.add("on"),void I(a)}if(t.getAttribute&&t.getAttribute("data-retry")){var c=t.closest(".ca-pane").id.replace("ca-pane-","");return l[c]=!1,void I(c)}if(t.getAttribute&&t.getAttribute("data-rate")){var d=t.closest?t.closest(".ca-rate"):null;C(d?d.getAttribute("data-topic"):"",Number(t.getAttribute("data-rate"))>0,t,d)}else if(t.getAttribute&&t.getAttribute("data-gobounty")){var u=n.querySelector('.ca-tab[data-tab="bounties"]');u&&u.click();try{n.scrollIntoView({behavior:"smooth",block:"start"})}catch(e){}}else t.classList&&t.classList.contains("ca-copy")&&!t.classList.contains("bn-wcopy")&&A(t.getAttribute("data-copy")||"",t.getAttribute("data-tid")||"",t)});var g=!1;if(I(function(){try{var e=String(window.location.search||"").match(/[?&]tab=(bounties|captions|hashtags|headlines)/i);return e?e[1].toLowerCase():"captions"}catch(e){return"captions"}}()),a)try{var y=n.querySelector('.ca-tab[data-tab="bounties"]');y&&y.click()}catch(e){}}function w(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function x(t){try{e.toast(t)}catch(e){}}function S(e,t){var n=String(null==e?"":e).trim(),a=t||"The wire fought back. Nothing changed — retry.";if(!n||/network error/i.test(n))return a;var i={"bad requester":"That callsign didn't check out. Re-claim it in Daily Orders, then retry.","missing title":"Give the bounty a title first.","reward must be 5-500 XP":"The XP reward must be between 5 and 500.","insufficient XP":"Not enough XP in the war chest. Go earn some.","escrow failed":"The XP escrow didn't go through. Retry.","db error":"The bounty board hiccuped. Retry in a moment."};return i[n]?i[n]:-1!==n.indexOf("_")?a:n}function k(){var e="",t="";try{e=window.PFCallsign?window.PFCallsign():""}catch(e){}try{t=window.PFDeviceId?window.PFDeviceId():""}catch(e){}return{callsign:e,device:t}}function E(e){if(s)try{e(s)}catch(e){}else c.push(e),c.length>1||P("caption_packs",{},function(e){s=e&&e.ok&&e.packs||[];var t=c;c=[];for(var n=0;n<t.length;n++)try{t[n](s)}catch(e){}})}function T(e){return("pack_"+String(e||"").toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"")).slice(0,20)||"pack_misc"}function C(t,n,a,i){var r=k();r.callsign?(a&&(a.disabled=!0),function(t,n){function a(e){try{n(e||{ok:!1,err:"Network error."})}catch(e){}}try{if(window.PF&&e.authPost)return void e.authPost(o,t,a);fetch(o,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(t)}).then(function(e){return e.json()}).then(a).catch(function(){a(null)})}catch(e){a(null)}}({type:"reputation",rep_action:"reputation_vote",creator:T(t),voter:r.callsign,device:r.device,up:n?1:-1},function(e){if(a&&(a.disabled=!1),e&&e.ok){try{var t=i?i.querySelector("[data-raten]"):null;t&&(t.textContent=" "+(Number(e.net)||0))}catch(e){}x(n?"Pack backed.":"Pack docked.")}else x(S(e&&e.err||e&&e.error,"Rating failed."))})):x("Claim a callsign to rate packs.")}function P(e,t,n){if(o){var a="pfCaCb"+Math.floor(1e9*Math.random()),i=document.createElement("script"),r=!1;window[a]=function(e){l(e)},i.onerror=function(){l(null)};var s="?action="+encodeURIComponent(e);for(var c in t)null!=t[c]&&""!==t[c]&&(s+="&"+encodeURIComponent(c)+"="+encodeURIComponent(t[c]));s+="&callback="+a,i.src=o+s,document.head.appendChild(i),setTimeout(function(){l(null)},12e3)}else n(null);function l(e){if(!r){r=!0;try{delete window[a]}catch(e){}i.parentNode&&i.parentNode.removeChild(i),n(e)}}}function A(t,n,a){function i(){if(x("Copied. Go pump it."),n&&function(t){try{if(!o)return;var n=k(),a={type:"action",action_type:"assist_copy",callsign:n.callsign||"",device:n.device||"",meta:String(t||"").slice(0,128)};if(window.PF&&e.authPost)return void e.authPost(o,a,function(){});window.fetch&&fetch(o,{method:"POST",mode:"cors",headers:{"Content-Type":"application/json"},body:JSON.stringify(a)}).catch(function(){})}catch(e){}}(n),a){var t=a.textContent;a.textContent="COPIED",a.disabled=!0,setTimeout(function(){a.textContent=t,a.disabled=!1},1500)}}try{navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(t).then(i,function(){r()}):r()}catch(e){r()}function r(){try{var e=document.createElement("textarea");e.value=t,e.style.cssText="position:fixed;opacity:0",document.body.appendChild(e),e.select(),document.execCommand("copy"),e.remove(),i()}catch(e){x("Copy failed — select it manually.")}}}function _(e){return document.getElementById("ca-pane-"+e)}function N(e){return'<div class="ca-err">'+w(e)+'<br><button data-retry="1">RETRY</button></div>'}function I(t){var n;l[t]||(l[t]=!0,"captions"===t?(n=_("captions"),P("caption_packs",{},function(e){if(e&&e.ok&&e.packs&&e.packs.length){var t="";e.packs.forEach(function(e,n){var a=e.topic||"pack "+(n+1);t+='<div class="ca-topic">'+w(a)+' <span class="ca-rate" data-topic="'+w(a)+'"><button class="ca-copy" data-rate="1" title="This pack hits">&#9650;</button><button class="ca-copy" data-rate="-1" title="This pack misses">&#9660;</button><span data-raten style="font-size:11px;color:#9db4c8"></span></span></div>',(e.captions||[]).forEach(function(a,i){var r="cap_"+w(e.topic||n)+"_"+i;t+='<div class="ca-card"><div class="ca-text">'+w(a)+'</div><button class="ca-copy" data-copy="'+w(a).replace(/"/g,"&quot;")+'" data-tid="'+r+'">COPY</button></div>'}),e.hashtags&&e.hashtags.length&&(t+='<div class="ca-card"><div class="ca-tags">'+w(e.hashtags.join(" "))+'</div><button class="ca-copy" data-copy="'+w(e.hashtags.join(" "))+'" data-tid="tags_'+w(e.topic||n)+'">COPY TAGS</button></div>'),t+='<div style="margin:2px 0 14px"><button class="ca-copy" data-gobounty="1">USE ON A BOUNTY &rarr;</button></div>'}),n.innerHTML=t}else n.innerHTML=N("Armory jammed. Couldn't load captions.")})):"hashtags"===t?function(){var e=_("hashtags");P("hashtag_sets",{},function(t){if(t&&t.ok&&t.sets&&t.sets.length){var n='<div class="ca-hint">One tap copies the whole set. Paste under your post.</div>';t.sets.forEach(function(e){var t=(e.tags||[]).join(" ");n+='<div class="ca-card"><div class="ca-topic">'+w(e.name||e.id)+'</div><div class="ca-tags">'+w(t)+'</div><button class="ca-copy" data-copy="'+w(t)+'" data-tid="hs_'+w(e.id||"")+'">COPY SET</button></div>'}),e.innerHTML=n}else e.innerHTML=N("Armory jammed. Couldn't load hashtag sets.")})}():"headlines"===t?function(){var e=_("headlines");P("headline_formulas",{},function(t){if(t&&t.ok&&t.formulas&&t.formulas.length){var n='<div class="ca-hint">Fill in the {BRACKETED} placeholders with your specifics. Make it yours.</div>';t.formulas.forEach(function(e){n+='<div class="ca-card"><div class="ca-text">'+w(e.text)+'</div><button class="ca-copy" data-copy="'+w(e.text).replace(/"/g,"&quot;")+'" data-tid="hf_'+w(e.id||"")+'">COPY</button></div>'}),e.innerHTML=n}else e.innerHTML=N("Armory jammed. Couldn't load headline formulas.")+'<div class="ca-hint">Fill in the {BRACKETED} placeholders with your specifics. Make it yours.</div>'})}():"bounties"===t&&function(){if(g)return;g=!0,function(){var t=window.PF_BACKEND_URL;function n(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function i(){var e="",t="";try{e=window.PFCallsign?window.PFCallsign():""}catch(e){}try{t=window.PFDeviceId?window.PFDeviceId():""}catch(e){}return{callsign:e,device:t}}function r(t){try{e.toast(t)}catch(e){}}function o(n,a,i){if(t){if("bounty_mine"===n)try{var r=window.PF&&e.getAuthSecret?e.getAuthSecret():"";r&&a&&!a.auth_secret&&(a.auth_secret=r)}catch(e){}var o="pfBnCb"+Math.floor(1e9*Math.random()),s=document.createElement("script"),c=!1;window[o]=function(e){u(e)},s.onerror=function(){u(null)};var l="?action="+encodeURIComponent(n);for(var d in a)null!=a[d]&&""!==a[d]&&(l+="&"+encodeURIComponent(d)+"="+encodeURIComponent(a[d]));l+="&callback="+o,s.src=t+l,document.head.appendChild(s),setTimeout(function(){u(null)},12e3)}else i(null);function u(e){if(!c){c=!0;try{delete window[o]}catch(e){}s.parentNode&&s.parentNode.removeChild(s),i(e)}}}function s(n,a,i){var r=Object.assign({type:"bounty",b_action:n},a);if(window.PF&&e.authPost)e.authPost(t,r,i);else{var o=JSON.stringify(r);try{var s=function(){var e={method:"POST",headers:{"Content-Type":"application/json"},body:o},t=null,n=null;try{window.AbortController&&(t=new AbortController,e.signal=t.signal,n=setTimeout(function(){try{t.abort()}catch(e){}},15e3))}catch(e){}return e._pfClear=function(){if(n)try{clearTimeout(n)}catch(e){}},e}();fetch(t,s).then(function(e){return e.json()}).then(function(e){s._pfClear(),c(e)}).catch(function(){s._pfClear(),c(null)})}catch(e){c(null)}}function c(e){try{i(e||{ok:!1,err:"Network error."})}catch(e){}}}var c=null,l=null,d=[];function u(){try{return JSON.parse(localStorage.getItem("pf_sealed_v1")||"{}")}catch(e){return{}}}function p(e){try{localStorage.setItem("pf_sealed_v1",JSON.stringify(e||{}))}catch(e){}}function f(e){var t=e&&(e.err||e.error)||"";return(t=String(t).trim())||"The wire fought back. Nothing changed — retry."}function v(e){for(var t=0;t<d.length;t++)if(d[t]&&d[t].id===e)return d[t];return null}var h={tiktok:["tiktok.com"],instagram:["instagram.com"],facebook:["facebook.com","fb.com"],youtube:["youtube.com","youtu.be"]};function m(e,t){var n=String(e||"").trim().slice(0,500);if(!n)return{ok:!1,msg:"Paste your post URL first."};var a=n.split("://")[0].toLowerCase();if("http"!==a&&"https"!==a)return{ok:!1,msg:"That doesn't look like a link — start it with http:// or https://."};var i=n.slice(a.length+3).split("/")[0].split("?")[0].split("#")[0].split(":")[0].toLowerCase().replace(/\.$/,"");if(!i||-1===i.indexOf("."))return{ok:!1,msg:"That doesn't look like a link."};var r=h[String(t||"").toLowerCase()];if(r){for(var o=!1,s=0;s<r.length;s++)if(i===r[s]||i.slice(-r[s].length-1)==="."+r[s]){o=!0;break}if(!o)return{ok:!1,msg:"That link needs to be a "+String(t||"").toLowerCase()+" URL."}}return{ok:!0,url:n}}function b(){try{return JSON.parse(localStorage.getItem("pf_proof_sub_v1")||"{}")}catch(e){return{}}}function g(e){try{var t=b();t[e]=1,localStorage.setItem("pf_proof_sub_v1",JSON.stringify(t))}catch(e){}}function y(e,t){var a=u()[e.id]||{},i='<div class="bn-item bn-sealed" id="sealCard_'+n(e.id)+'">';return i+='<div class="wax">SEALED</div>',i+='<div class="bn-title">???</div>',i+='<div class="x-note">REWARD: MYSTERY &bull; Vanishes Sunday 23:59 CT</div>',a.done?i+='<div class="x-note">COMPLETED &bull; rolled <b>'+n(String(a.mult||"?"))+"&times;</b>. The envelope is ash.</div>":a.o?(i+='<div class="seal-objective'+(t?" reveal-in":"")+'">MISSION: <b>'+n(a.o)+"</b></div>",i+='<div class="x-note">Finish it, then roll. A 5&times; roll that hits your daily XP cap pays the cap — nothing banks.</div>',i+='<button class="c-btn bn-complete" data-bid="'+n(e.id)+'">COMPLETE — ROLL THE REWARD</button>',i+='<div id="sealRes_'+n(e.id)+'"></div>'):(i+='<button class="c-btn bn-break" data-bid="'+n(e.id)+'">BREAK THE SEAL</button>',i+='<div class="c-err" id="sealErr_'+n(e.id)+'"></div>'),i+"</div>"}function w(){var e=!1,t=0;function n(){e||(e=!0,k())}function a(){++t>=2&&n()}setTimeout(n,15e3);var r=i();o("bounty_list",{},function(e){c=e,a()}),o("bounty_mine",{callsign:r.callsign},function(e){l=e,a()})}function x(){if(a&&!window.__pfForScrolled){window.__pfForScrolled=!0;try{var e=document.getElementById("pf-ca");e&&e.scrollIntoView&&setTimeout(function(){try{e.scrollIntoView({block:"start"})}catch(e){}},300)}catch(e){}}}function k(){var t=document.getElementById("xBounty");if(t){var o=i(),h="",k=a?function(t){try{for(var n=window.PF&&e.slrAll?e.slrAll():[],a=0;a<n.length;a++)if(n[a]&&n[a].slug===t&&n[a].name)return n[a].name}catch(e){}return String(t||"").replace(/-/g," ")}(a):"";if(a&&(h+='<div class="ca-card" style="border-color:#c1121f;"><div class="ca-text">Showing open bounties for <b>'+n(k||a)+'</b>.</div><a href="/create" style="color:#dc143c;font-size:12px;letter-spacing:1px;">CLEAR FILTER</a></div>'),!o.callsign)return h+=e.gateHTML("Bounties run on callsigns.","to claim bounties"),t.innerHTML=h,void x();var T=[];try{c&&c.ok&&c.bounties&&(T=c.bounties)}catch(e){}if(d=T.filter(function(e){return e&&e.sealed}),a){var C=String(k||"").toLowerCase();T=T.filter(function(e){return String(e.requester||"").toLowerCase()===a||!!C&&-1!==(String(e.title||"")+" "+String(e.detail||"")).toLowerCase().indexOf(C)})}if(T=T.filter(function(e){return!(e&&e.sealed)}),d.length&&!a){h+='<div class="x-pane"><h4>Sealed — mystery bounties</h4>',h+='<div class="x-note">Three sealed envelopes drop every Monday. Break one to learn the mission. Finish it to roll 1&times;–5&times; on the reward. Unclaimed envelopes vanish Sunday at midnight.</div>';for(var P=0;P<d.length;P++)h+=y(d[P],!1);h+="</div>"}h+='<div class="x-pane"><h4>Open bounties</h4>',T.length||(h+=a?'<div class="x-note">No open bounties from '+n(k||a)+" right now. Post one below — put XP on the work you need.</div>":'<div class="x-note">No open bounties. Post one below — put XP on the work you need.</div>');for(var _=0;_<T.length;_++){var N=T[_],I=String(N.bounty_type||"").toLowerCase(),L=String(N.platform||"").toLowerCase(),O="postproof"===I;h+='<div class="bn-item"><div class="bn-title">'+n(N.title)+'</div><div class="x-note">'+n(N.detail||"")+'</div><div class="bn-meta">'+(Number(N.xp)||0)+" XP &bull; posted by "+n(N.requester||"anon")+("claimed"===N.status?" &bull; CLAIMED":"")+(O?" &bull; POST-PROOF":"")+"</div>","claimed"!==N.status&&"done"!==N.status&&O&&b()[N.id]?h+='<div class="bn-pending">PROOF SUBMITTED &mdash; AWAITING REVIEW<br><span>XP lands when the review clears your post.</span></div><div class="c-err" id="bnErr_'+n(N.id)+'"></div>':"claimed"!==N.status&&"done"!==N.status&&O?h+='<div class="bn-claimrow"><input aria-label="Proof URL — link to your post" class="bn-input" id="bnProof_'+n(N.id)+'" placeholder="Proof URL — link to your post" maxlength="500"><button class="c-btn bn-claim" data-bid="'+n(N.id)+'" data-platform="'+n(L)+'">CLAIM</button> <button class="c-btn ghost bn-wordsbtn" data-bid="'+n(N.id)+'">NEED WORDS?</button></div><div class="x-note">Paste your post link'+(L?" on "+n(L):"")+'. No auto-pay on paste &mdash; XP pays when the review clears.</div><div class="bn-words" id="bnWords_'+n(N.id)+'" style="display:none;margin-top:8px"></div><div class="c-err" id="bnErr_'+n(N.id)+'"></div>':"claimed"!==N.status&&"done"!==N.status&&(h+='<div class="bn-claimrow"><input aria-label="Your content ID (from Poster Forge)" class="bn-input" id="bnSub_'+n(N.id)+'" placeholder="Your content ID (from Poster Forge)" maxlength="64"><button class="c-btn bn-claim" data-bid="'+n(N.id)+'">CLAIM</button> <button class="c-btn ghost bn-wordsbtn" data-bid="'+n(N.id)+'">NEED WORDS?</button></div><div class="bn-words" id="bnWords_'+n(N.id)+'" style="display:none;margin-top:8px"></div><div class="c-err" id="bnErr_'+n(N.id)+'"></div>'),h+="</div>"}h+="</div>";var F=[];try{l&&l.ok&&l.bounties&&(F=l.bounties)}catch(e){}h+='<div class="x-pane"><h4>My bounties</h4>',F.length||(h+='<div class="x-note">You haven’t posted any bounties yet.</div>');for(var R=0;R<F.length;R++){var M=F[R]||{},B=String(M.status||"open");h+='<div class="bn-item"><div class="bn-title">'+n(M.title||"Untitled")+'</div><div class="bn-meta">'+(Number(M.xp_reward)||0)+" XP &bull; "+n(B.toUpperCase())+(M.claimed_by?" &bull; claimed by "+n(M.claimed_by):"")+"</div>","open"===B&&(h+='<div style="margin-top:6px"><button class="c-btn bn-close" data-bid="'+n(M.id)+'">CLOSE BOUNTY</button></div><div class="c-err" id="bnCloseErr_'+n(M.id)+'"></div>'),h+="</div>"}h+="</div>",h+='<div class="x-pane"><h4>Post a bounty</h4><div class="x-note">Need propaganda? Put XP on it. A creator claims it, submits, gets paid.</div><input aria-label="BOUNTY TITLE — e.g. Poster: Ohio Senate race" class="bn-input" id="bnTitle" placeholder="BOUNTY TITLE — e.g. Poster: Ohio Senate race" maxlength="80"><br><input aria-label="Detail — what should it say? who is it for?" class="bn-input" id="bnDetail" placeholder="Detail — what should it say? who is it for?" maxlength="200"><br><input aria-label="XP reward (10-100)" class="bn-input" id="bnXp" placeholder="XP reward (10-100)" maxlength="3" inputmode="numeric"><br><button class="c-btn" id="bnPostBtn">POST BOUNTY</button><div class="c-err" id="bnPostErr"></div></div>',h+='<div style="margin-top:10px"><button class="c-btn" id="bnRetry">Refresh</button></div>',t.innerHTML=h,x();for(var D=t.querySelectorAll("button.bn-claim"),U=0;U<D.length;U++)(function(e){e.onclick=function(){var t=e.getAttribute("data-bid"),n=e.getAttribute("data-platform")||"",a=document.getElementById("bnSub_"+t),i=a?a.value.trim():"";if(!a||i){var c={bounty_id:t,content_id:i,callsign:o.callsign,device:o.device},l=document.getElementById("bnProof_"+t);if(l){var d=m(l.value,n);if(!d.ok){var u=document.getElementById("bnErr_"+t);return void(u&&(u.textContent=d.msg))}c.proof_url=d.url}e.disabled=!0,s("bounty_claim",c,function(n){e.disabled=!1;var a=document.getElementById("bnErr_"+t);if(n&&n.ok){if(n.pending)return g(t),r("PROOF SUBMITTED — AWAITING REVIEW. XP pays on approval."),void w();r("BOUNTY CLAIMED. +"+(n.xp||0)+" XP pending review."),w()}else a&&(a.textContent=S(n&&n.err||n&&n.error,"Claim failed."))})}else{var p=document.getElementById("bnErr_"+t);p&&(p.textContent="Enter your content ID first.")}}})(D[U]);for(var q=t.querySelectorAll("button.bn-wordsbtn"),j=0;j<q.length;j++)(function(e){e.onclick=function(){var t=e.getAttribute("data-bid"),a=document.getElementById("bnWords_"+t);if(a){if("none"!==a.style.display)return a.style.display="none",void(e.textContent="NEED WORDS?");a.style.display="block",e.textContent="HIDE WORDS",a.getAttribute("data-filled")||(a.innerHTML='<div class="x-note">Opening the armory&hellip;</div>',E(function(e){if(e&&e.length){a.setAttribute("data-filled","1");for(var i='<div class="ca-topic">Pick a pack, steal the words</div><select class="bn-input" id="bnWordsSel_'+n(t)+'" style="width:100%;margin-bottom:8px" aria-label="Caption pack">',r=0;r<e.length;r++)i+='<option value="'+r+'">'+n(e[r].topic||"pack "+(r+1))+"</option>";i+='</select><div id="bnWordsList_'+n(t)+'"></div>',a.innerHTML=i;var o=document.getElementById("bnWordsSel_"+t);o&&(o.onchange=s),s(),a.onclick=function(e){var n=e&&e.target;n&&n.classList&&n.classList.contains("bn-wcopy")&&A(n.getAttribute("data-wcopy")||"","words_bounty_"+t,n)}}else a.innerHTML='<div class="x-note">Armory jammed. Open the CAPTIONS tab above for the full packs.</div>';function s(){var a=document.getElementById("bnWordsSel_"+t),i=e[(a?Number(a.value):0)||0]||{captions:[]},r="";(i.captions||[]).slice(0,6).forEach(function(e){r+='<div class="ca-card"><div class="ca-text">'+n(e)+'</div><button class="ca-copy bn-wcopy" data-wcopy="'+n(e).replace(/"/g,"&quot;")+'">COPY</button></div>'});var o=document.getElementById("bnWordsList_"+t);o&&(o.innerHTML=r||'<div class="x-note">Empty pack.</div>')}}))}}})(q[j]);K();var H=document.getElementById("bnPostBtn");H&&(H.onclick=function(){var e=document.getElementById("bnTitle"),t=document.getElementById("bnDetail"),n=document.getElementById("bnXp"),a=e?e.value.trim():"",i=t?t.value.trim():"",c=Math.round(Number(n?n.value:"")||0),l=document.getElementById("bnPostErr");a.length<4?l&&(l.textContent="Title needs 4+ characters."):c<10||c>100?l&&(l.textContent="XP reward must be 10-100."):(H.disabled=!0,s("bounty_post",{title:a,detail:i,xp_reward:c,requester:o.callsign,device:o.device},function(e){H.disabled=!1,e&&e.ok?(r("BOUNTY POSTED. Creators, come and get it."),w()):l&&(l.textContent=S(e&&e.err||e&&e.error,"Post failed."))}))});var W=document.getElementById("bnRetry");W&&(W.onclick=function(){c=null,l=null,t.innerHTML='<div class="c-load">Loading bounties&hellip;</div>',w()});for(var X=t.querySelectorAll("button.bn-close"),G=0;G<X.length;G++)(function(e){e.onclick=function(){var t=e.getAttribute("data-bid");t&&window.confirm("Close this bounty? The escrowed XP returns to you.")&&(e.disabled=!0,e.textContent="CLOSING…",s("bounty_close",{bounty_id:t,callsign:o.callsign,device:o.device},function(n){if(n&&n.ok){r("BOUNTY CLOSED. +"+(Number(n.refunded)||0)+" XP escrow refunded."),c=null,l=null,w()}else{var a=document.getElementById("bnCloseErr_"+t);a&&(a.textContent=S(n&&n.err||n&&n.error,"Close failed.")),e.disabled=!1,e.textContent="CLOSE BOUNTY"}}))}})(X[G])}function Y(e,t){var n=v(e);if(n){var a=document.getElementById("sealCard_"+e);a&&(a.outerHTML=y(n,t)),K()}}function K(){for(var e=t.querySelectorAll("button.bn-break"),a=0;a<e.length;a++)(function(e){e.getAttribute("data-wired")||(e.setAttribute("data-wired","1"),e.onclick=function(){var t=e.getAttribute("data-bid"),n=document.getElementById("sealErr_"+t);e.disabled=!0,e.textContent="BREAKING…",s("bounty_claim",{bounty_id:t,callsign:o.callsign,device:o.device},function(a){if(!a||!a.ok)return e.disabled=!1,e.textContent="BREAK THE SEAL",void(n&&(n.textContent=f(a)));var i=u();i[t]={o:a.objective||"",b:a.base||0,done:0,mult:0},p(i);var r=document.getElementById("sealCard_"+t),o=r?r.querySelector(".wax"):null;o&&o.classList.add("crack"),setTimeout(function(){Y(t,!0)},700)})})})(e[a]);for(var i=t.querySelectorAll("button.bn-complete"),c=0;c<i.length;c++)(function(e){e.getAttribute("data-wired")||(e.setAttribute("data-wired","1"),e.onclick=function(){var t=e.getAttribute("data-bid"),a=document.getElementById("sealRes_"+t);e.disabled=!0,e.textContent="ROLLING…",a&&(a.innerHTML='<div class="mult-big" id="sealRoll_'+n(t)+'">1&times;</div><div class="x-note">THE HOUSE ROLLS&hellip;</div>');var i=Date.now(),c=setInterval(function(){var e=document.getElementById("sealRoll_"+t);e&&(e.textContent=1+Math.floor(5*Math.random())+"×")},90);s("bounty_claim",{bounty_id:t,complete:1,callsign:o.callsign,device:o.device},function(o){var s=Math.max(0,800-(Date.now()-i));setTimeout(function(){if(clearInterval(c),!o||!o.ok)return a&&(a.innerHTML='<div class="c-err">'+n(f(o))+"</div>"),e.disabled=!1,void(e.textContent="COMPLETE — ROLL THE REWARD");var i=u(),s=i[t]||{};s.done=1,s.mult=o.multiplier||0,i[t]=s,p(i);var l=o.capped?'<div class="x-note">Hit your daily XP cap — paid the cap, nothing banked.</div>':"";a&&(a.innerHTML='<div class="mult-big reveal-in">'+n(String(o.multiplier||"?"))+'&times;</div><div class="mult-win">+'+n(String(o.xp||0))+" XP</div>"+l+'<div class="x-note">Base '+n(String(o.base||0))+" XP &times; "+n(String(o.multiplier||"?"))+" roll.</div>"),e.style.display="none",r("SEALED BOUNTY COMPLETE. "+(o.multiplier||"?")+"× — +"+(o.xp||0)+" XP.")},s)})})})(i[a])}}w(),setInterval(function(){try{if(window.PF&&e.hidden&&e.hidden())return}catch(e){}w()},18e4)}()}())}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("armory")){window.PF_BACKEND_URL;var t={"iron-frame":{sec:"frames",blurb:"Cold steel. The working-class frame.",css:"border:3px solid #888;"},"gold-frame":{sec:"frames",blurb:"For those who seized the means of shine.",css:"border:3px solid #d4af37;box-shadow:0 0 12px rgba(212,175,55,.55);"},"vanguard-frame":{sec:"frames",blurb:"The elite frame. Worn by the vanguard.",css:"border:4px double #c1121f;box-shadow:0 0 0 2px #0d0d0d,0 0 0 4px #d4af37,0 0 16px rgba(193,18,31,.6);"},"star-flair":{sec:"flair",blurb:"★ prefix on your callsign, everywhere it shows.",css:""},"gold-callsign":{sec:"flair",blurb:"Your callsign rendered in solid gold.",css:""},"foil-poster":{sec:"posters",blurb:"Holographic foil finish on Poster Forge exports.",css:""},"animated-poster":{sec:"posters",blurb:"Animated border on Poster Forge exports.",css:""},"propaganda-chief":{sec:"badges",blurb:"The rarest badge on the network.",css:""}};e.armoryStyle=function(e){if(e){var n=function(){try{return JSON.parse(localStorage.getItem("pf_armory_v1")||"{}")}catch(e){return{}}}(),a="";try{var i=JSON.parse(localStorage.getItem("pf_identity_v1")||"{}");a=String(i.callsign||"").toUpperCase()}catch(e){}var r=n.callsign||"",o="star-flair"===r?"★ ":"",s="gold-callsign"===r?"#d4af37":"",c=n.frame||"",l=t[c]&&t[c].css||"",d=e.getAttribute("data-armory-base")||e.textContent;e.getAttribute("data-armory-base")||e.setAttribute("data-armory-base",d);var u=a||d.replace(/^Fighting as\s+/i,"").replace(/^\u2605\s*/,"").trim();e.innerHTML='<span class="pf-armory-framed" style="'+l+(l?"display:inline-block;padding:2px 10px;":"")+'">'+(o?'<span style="color:#d4af37">'+o+"</span>":"")+"<span"+(s?' style="color:'+s+';font-weight:bold"':"")+">"+(a?"FIGHTING AS "+u:u)+"</span></span>"}},e.holder().insertAdjacentHTML("beforeend","<template id=\"pf-ov-armory\">\n<div id=\"pf-armory\">\n<style>\n#pf-armory{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f}\n#pf-armory h2{color:#c1121f;font-size:28px;margin:0 0 4px;letter-spacing:2px;text-transform:uppercase}\n#pf-armory .a-sub{font-family:Arial,sans-serif;font-size:12px;letter-spacing:3px;color:#ff5a00;text-transform:uppercase;margin-bottom:8px}\n#pf-armory .a-bal{font-family:Arial,sans-serif;font-size:14px;color:#d4af37;margin-bottom:16px;letter-spacing:1px}\n#pf-armory .a-preview{margin:0 0 18px;padding:14px;background:#1a1a1a;border:1px solid #333}\n#pf-armory .a-preview .a-plabel{font-family:Arial,sans-serif;font-size:10px;letter-spacing:3px;color:#777;text-transform:uppercase;margin-bottom:8px}\n#pf-armory .a-sec{margin:18px 0 6px;text-align:left}\n#pf-armory .a-sec h3{color:#d4af37;font-size:15px;letter-spacing:2px;margin:0 0 2px;text-transform:uppercase}\n#pf-armory .a-sec .a-secsub{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-bottom:8px}\n#pf-armory .a-item{background:#1a1a1a;border:1px solid #333;padding:12px 14px;margin:8px 0;display:flex;align-items:center;gap:12px;text-align:left}\n#pf-armory .a-swatch{width:44px;height:44px;flex:0 0 44px;display:flex;align-items:center;justify-content:center;font-size:20px;background:#0d0d0d;color:#d4af37}\n#pf-armory .a-info{flex:1;min-width:0}\n#pf-armory .a-name{font-size:13px;letter-spacing:1px;text-transform:uppercase}\n#pf-armory .a-blurb{font-family:Arial,sans-serif;font-size:11px;color:#999;margin-top:2px}\n#pf-armory .a-cost{font-family:Arial,sans-serif;font-size:12px;color:#d4af37;white-space:nowrap}\n#pf-armory .a-btn{background:#c1121f;color:#fff;border:0;padding:9px 16px;font-family:'Arial Black',Arial,sans-serif;font-size:11px;letter-spacing:1px;cursor:pointer;text-transform:uppercase;white-space:nowrap}\n#pf-armory .a-btn:hover{background:#8f0d17}\n#pf-armory .a-btn.equip{background:#1a5c1a}\n#pf-armory .a-btn.equip:hover{background:#0f4210}\n#pf-armory .a-btn.owned-on{background:none;border:2px solid #d4af37;color:#d4af37}\n#pf-armory .a-btn:disabled{background:#333;color:#777;cursor:default}\n#pf-armory .a-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:14px}\n#pf-armory .a-needcs{font-family:Arial,sans-serif;font-size:13px;color:#ff5a00;padding:20px 0}\n</style>\n\n<h2>&#9876; The Armory</h2>\n<div class=\"a-sub\">Spend XP. Look dangerous.</div>\n<div class=\"a-bal\" id=\"aBal\">Loading&hellip;</div>\n<div class=\"a-preview\">\n  <div class=\"a-plabel\">Your callsign preview</div>\n  <div id=\"aPreview\" style=\"font-size:18px;letter-spacing:1px\"></div>\n</div>\n<div id=\"aShop\"></div>\n<div class=\"a-note\">One-time purchases. Yours forever. Equipped flair shows on your callsign across the site.</div>\n\n<script>\n(function(){\nvar LS_I=\"pf_identity_v1\", LS_ARM=\"pf_armory_v1\";\nvar BACKEND=(window.PF_BACKEND_URL||\"https://pf-api.mtcstw.workers.dev\");\nvar PREVIEWS={\n  'iron-frame':{sec:'frames',blurb:'Cold steel. The working-class frame.',css:'border:3px solid #888;'},\n  'gold-frame':{sec:'frames',blurb:'For those who seized the means of shine.',css:'border:3px solid #d4af37;box-shadow:0 0 12px rgba(212,175,55,.55);'},\n  'vanguard-frame':{sec:'frames',blurb:'The elite frame. Worn by the vanguard.',css:'border:4px double #c1121f;box-shadow:0 0 0 2px #0d0d0d,0 0 0 4px #d4af37,0 0 16px rgba(193,18,31,.6);'},\n  'star-flair':{sec:'flair',blurb:'\\u2605 prefix on your callsign, everywhere it shows.',css:''},\n  'gold-callsign':{sec:'flair',blurb:'Your callsign rendered in solid gold.',css:''},\n  'foil-poster':{sec:'posters',blurb:'Holographic foil finish on Poster Forge exports.',css:''},\n  'animated-poster':{sec:'posters',blurb:'Animated border on Poster Forge exports.',css:''},\n  'propaganda-chief':{sec:'badges',blurb:'The rarest badge on the network.',css:''}\n};\nvar SECTIONS=[\n  {id:'frames',title:'Profile Frames',sub:'Borders for your callsign display'},\n  {id:'flair',title:'Callsign Flair',sub:'Style your name across the site'},\n  {id:'posters',title:'Poster Upgrades',sub:'Enhance your Poster Forge exports'},\n  {id:'badges',title:'Badges',sub:'Wear your rank'}\n];\nvar SEC_ICO={'frames':'\\u25A3','flair':'\\u2605','posters':'\\u25C9','badges':'\\u2694'};\nfunction esc(s){return String(s==null?'':s).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[c];});}\nfunction ident(){try{var id=JSON.parse(localStorage.getItem(LS_I)||'{}');return{callsign:String(id.callsign||'').toLowerCase(),device:String(id.device||'')};}catch(e){return{callsign:'',device:''};}}\nfunction armState(){try{return JSON.parse(localStorage.getItem(LS_ARM)||'{}');}catch(e){return{};}}\nfunction saveArm(s){try{localStorage.setItem(LS_ARM,JSON.stringify(s));}catch(e){}}\nfunction toast(m){try{if(window.PF&&PF.toast)PF.toast(m);}catch(e){}}\nfunction get(action,params,cb){\n  var fn='pfArm'+Math.random().toString(36).slice(2),done=false;\n  function finish(j){if(done)return;done=true;try{delete window[fn];}catch(e){}\n    var s=document.getElementById(fn);if(s&&s.parentNode)s.parentNode.removeChild(s);cb(j);}\n  window[fn]=function(j){finish(j);};\n  var q='?action='+encodeURIComponent(action);\n  for(var k in params){if(params[k]!=null&&params[k]!=='')q+='&'+encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}\n  /* Attach auth_secret for authenticated GETs (cosmetic_list IDOR fix) */\n  try{ var sec=(window.PF&&PF.getAuthSecret?PF.getAuthSecret():''); if(sec) q+='&auth_secret='+encodeURIComponent(sec); }catch(e){}\n  var s=document.createElement('script');s.id=fn;s.src=BACKEND+q+'&callback='+fn;\n  s.onerror=function(){finish(null);};document.head.appendChild(s);\n  setTimeout(function(){finish(null);},12000);\n}\nfunction post(sAction,params,cb){\n  var body=Object.assign({type:'sink',s_action:sAction},params);\n  if(window.PF&&PF.authPost){PF.authPost(BACKEND,body,cb);return;}\n  /* 2026-10-03 L5: abort backstop — a hung fallback POST previously left\n     buy/equip buttons stuck disabled. */\n  var ctl=null;\n  try{ ctl=new AbortController(); }catch(e){}\n  var hung=setTimeout(function(){ try{ if(ctl) ctl.abort(); }catch(e){} },15000);\n  fetch(BACKEND,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:ctl?ctl.signal:undefined})\n    .then(function(r){return r.json();}).then(function(j){ try{clearTimeout(hung);}catch(e){} cb(j); })\n    .catch(function(){ try{clearTimeout(hung);}catch(e){} cb(null); });\n}\nvar items=[], equipped={}, balance=null;\n/* H12 (2026-10-03): stock-load failure state. One auto-retry (~3s) fires\n   before the error panel; the RETRY button re-fires on demand. */\nvar stockFailed=false, autoRetried=false;\n\n/* M27/M26 (2026-10-03): friendly write-path errors + working-state buttons.\n   Raw snake_case backend codes are never shown to users. */\nfunction writeErrCopy(e,fb){\n  var s=String(e==null?'':e).trim();\n  var fall=fb||'The wire fought back. Nothing changed — retry.';\n  if(!s||/network error/i.test(s)) return fall;\n  var map={\n    'bad callsign':'That callsign didn’t check out. Re-claim it in Daily Orders, then retry.',\n    'bad kind':'That slot didn’t take. Refresh the stock and try again.',\n    'missing item_id':'No item selected. Refresh the stock and try again.',\n    'missing item_id or kind':'No item selected. Refresh the stock and try again.',\n    'no such item':'That item isn’t on the rack anymore. Refresh the stock.',\n    'not owned':'You don’t own that one yet — buy it first.',\n    'already owned':'Already yours. It’s waiting on the rack.',\n    'insufficient XP':'Not enough XP in the war chest. Go earn some.',\n    'db error':'The Armory ledger hiccuped. Retry in a moment.',\n    'invalid_code':'That code doesn’t open anything. Check it and try again.'\n  };\n  if(map[s]) return map[s];\n  if(s.indexOf('_')!==-1) return fall; /* never show raw snake_case */\n  return s; /* backend prose already human-readable */\n}\nfunction busyBtn(btn,on){\n  try{\n    if(on){ if(btn.getAttribute('data-lbl')==null) btn.setAttribute('data-lbl',btn.textContent); btn.disabled=true; btn.textContent='WORKING…'; }\n    else{ btn.disabled=false; var l=btn.getAttribute('data-lbl'); if(l!=null) btn.textContent=l; btn.removeAttribute('data-lbl'); }\n  }catch(e){}\n}\n\nfunction renderPreview(){\n  var pv=document.getElementById('aPreview'); if(!pv)return;\n  var id=ident();\n  var s=armState();\n  var name=(id.callsign||'anonymous').toUpperCase();\n  var prefix=(s.callsign==='star-flair')?'<span style=\"color:#d4af37\">\\u2605 </span>':'';\n  var color=(s.callsign==='gold-callsign')?'#d4af37':'#f5ead6';\n  var frame=(s.frame&&PREVIEWS[s.frame])?PREVIEWS[s.frame].css:'';\n  pv.innerHTML='<span style=\"'+(frame?frame+'display:inline-block;padding:4px 14px;':'')+'\">'+prefix+\n    '<span style=\"color:'+color+'\">'+esc(name)+'</span></span>';\n}\n\nfunction render(){\n  renderPreview();\n  var bal=document.getElementById('aBal');\n  bal.textContent=(balance==null)?'Balance unavailable':('Your war chest: '+Number(balance).toLocaleString()+' XP');\n  var shop=document.getElementById('aShop'), h='';\n  SECTIONS.forEach(function(sec){\n    var list=items.filter(function(it){return (PREVIEWS[it.id]||{}).sec===sec.id;});\n    if(!list.length)return;\n    h+='<div class=\"a-sec\"><h3>'+SEC_ICO[sec.id]+' '+esc(sec.title)+'</h3><div class=\"a-secsub\">'+esc(sec.sub)+'</div>';\n    list.forEach(function(it){\n      var meta=PREVIEWS[it.id]||{};\n      var isEq=equipped[it.kind]===it.id;\n      var btn;\n      if(isEq){ btn='<button class=\"a-btn owned-on\" data-act=\"unequip\" data-id=\"'+esc(it.id)+'\" data-kind=\"'+esc(it.kind)+'\">Equipped</button>'; }\n      else if(it.owned){ btn='<button class=\"a-btn equip\" data-act=\"equip\" data-id=\"'+esc(it.id)+'\">Equip</button>'; }\n      else{\n        var afford=balance!=null&&balance>=it.cost;\n        btn='<button class=\"a-btn\" data-act=\"buy\" data-id=\"'+esc(it.id)+'\" data-cost=\"'+it.cost+'\"'+(afford?'':' disabled')+'>Buy \\u00B7 '+Number(it.cost).toLocaleString()+' XP</button>';\n      }\n      var sw='<div class=\"a-swatch\" style=\"'+(meta.css||'')+'\">'+(SEC_ICO[sec.id]||'\\u25A3')+'</div>';\n      h+='<div class=\"a-item\">'+sw+'<div class=\"a-info\"><div class=\"a-name\">'+esc(it.name)+'</div>'+\n        '<div class=\"a-blurb\">'+esc(meta.blurb||'')+'</div></div>'+\n        '<div class=\"a-cost\">'+(it.owned?'Owned':Number(it.cost).toLocaleString()+' XP')+'</div>'+btn+'</div>';\n    });\n    h+='</div>';\n  });\n  if(h){ shop.innerHTML=h; }\n  else{\n    /* H12 (2026-10-03): a failed stock load is a dead end no longer —\n       one auto-retry already fired; the RETRY button re-fires the load. */\n    shop.innerHTML='<div class=\"a-needcs\">Armory stock failed to load. Retry shortly.<br><button class=\"a-btn\" id=\"aRetryStock\">RETRY</button></div>';\n    var _rb=document.getElementById('aRetryStock');\n    if(_rb) _rb.onclick=function(){ autoRetried=false; stockFailed=false; doList(); };\n  }\n  shop.querySelectorAll('button[data-act]').forEach(function(b){\n    b.onclick=function(){ handleAct(b.getAttribute('data-act'),b.getAttribute('data-id'),b); };\n  });\n}\n\nfunction handleAct(act,id,btn){\n  var idn=ident();\n  if(!idn.callsign){ toast('Claim a callsign first (Daily Orders widget).'); return; }\n  if(act==='buy'){\n    var cost=parseInt(btn.getAttribute('data-cost'),10)||0;\n    if(balance!=null&&balance<cost){ toast('Not enough XP. Go earn some.'); return; }\n    if(!window.confirm('Spend '+cost.toLocaleString()+' XP on this item? One-time purchase, yours forever.'))return;\n    busyBtn(btn,true);\n    post('cosmetic_buy',{callsign:idn.callsign,item_id:id},function(j){\n      busyBtn(btn,false);\n      if(!j||!j.ok){ toast('Purchase failed: '+writeErrCopy(j&&j.err,'Purchase failed')); return; }\n      balance=(j.balance!=null)?j.balance:(balance-cost);\n      var it=items.filter(function(x){return x.id===id;})[0];\n      if(it)it.owned=true;\n      var s=armState();\n      if(j.kind){ s[j.kind]=id; equipped[j.kind]=id; }\n      saveArm(s);\n      try{document.dispatchEvent(new CustomEvent('pf-xp',{detail:{gain:-cost,key:'armory_'+Date.now(),reason:'armory purchase'}}));}catch(e){}\n      toast('Acquired. Equipped automatically.');\n      render();\n    });\n  }else if(act==='equip'){\n    busyBtn(btn,true);\n    post('cosmetic_equip',{callsign:idn.callsign,item_id:id},function(j){\n      busyBtn(btn,false);\n      if(!j||!j.ok){ toast('Equip failed: '+writeErrCopy(j&&j.err,'Equip failed')); return; }\n      var s=armState(); s[j.kind]=id; saveArm(s); equipped[j.kind]=id;\n      toast('Equipped.');\n      render();\n    });\n  }else if(act==='unequip'){\n    var kind=btn.getAttribute('data-kind');\n    busyBtn(btn,true);\n    post('cosmetic_equip',{callsign:idn.callsign,kind:kind,item_id:''},function(j){\n      busyBtn(btn,false);\n      /* M29: check the backend verdict before claiming success — a failed\n         unequip leaves local state untouched and invites a retry. */\n      if(!j||!j.ok){ toast('Unequip failed: '+writeErrCopy(j&&j.err,'Unequip failed')+'. Tap again to retry.'); return; }\n      var s=armState(); delete s[kind]; saveArm(s); delete equipped[kind];\n      toast('Unequipped.');\n      render();\n    });\n  }\n}\n\nfunction load(){\n  var shop=document.getElementById('aShop');\n  var idn=ident();\n  if(!idn.callsign){\n    shop.innerHTML='<div class=\"a-needcs\">Claim a callsign first (Daily Orders widget) \\u2014 the Armory needs a name.</div>';\n    document.getElementById('aBal').textContent='';\n    renderPreview();\n    return;\n  }\n  /* Pre-auth users have no stored auth_secret yet: claim one first so the\n     list GET can return owned/equipped state. Claim is best-effort — the\n     catalog is public, so the shop renders either way. */\n  var noSec=true;\n  try{ noSec=!(window.PF&&PF.getAuthSecret&&PF.getAuthSecret()); }catch(e){ noSec=true; }\n  if(noSec&&window.PF&&PF.claimAuthSecret){\n    PF.claimAuthSecret(idn.callsign,function(){ doList(); });\n  }else{ doList(); }\n}\nfunction doList(){\n  var idn=ident();\n  get('cosmetic_list',{callsign:idn.callsign},function(j){\n    stockFailed=!(j&&j.ok);\n    if(j&&j.ok){\n      items=j.items||[]; equipped=j.equipped||{};\n      var s=armState();\n      for(var k in equipped){ s[k]=equipped[k]; }\n      saveArm(s);\n    }\n    get('xp_balance',{callsign:idn.callsign},function(b){\n      balance=(b&&b.balance!=null)?b.balance:null;\n      /* H12 (2026-10-03): one auto-retry (~3s backoff) before the error panel. */\n      if(stockFailed&&!autoRetried){\n        autoRetried=true;\n        var shop=document.getElementById('aShop');\n        shop.innerHTML='<div class=\"a-needcs\">The Armory is slow to answer. Retrying&hellip;</div>';\n        setTimeout(doList,3000);\n        return;\n      }\n      render();\n    });\n  });\n}\nload();\n})();\n<\/script>\n</div>\n</template>")}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("dashboard")){e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-dash">\n<div class="fe-block pf-override-block pf-silo" id="pf-dash">\n<h2>Command Center</h2>\n<div class="c-tag">Your numbers, one screen. Optimize what you can see.</div>\n<div id="xDash"><div class="c-load">Loading&hellip;</div></div>\n</div>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}\n  try{ var t=document.createElement("div"); t.textContent=m;\n  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";\n  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  /* Private reads require auth_secret (IDOR fix). Auto-attach for gated actions. */\n  if(action==="xp_history"||action==="subscription_list"||action==="commission_earnings"){\n    try{\n      var _sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : "";\n      if(_sec && params && !params.auth_secret) params.auth_secret = _sec;\n    }catch(e){}\n  }\n  var fn="pfDbCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\nfunction adminSecret(){ try{ return sessionStorage.getItem("pf_admin_secret")||""; }catch(e){ return ""; } }\nvar CS=null, HIST=null, FUNNEL=null, FUNNEL_DONE=false, UTOT=null;\nfunction load(){\n  var id=ident(), done=false, n=0;\n  function fin(){ if(done)return; done=true; render(); }\n  function one(){ n++; if(n>=3) fin(); }\n  setTimeout(fin,15000);\n  api("creator_stats",{callsign:id.callsign},function(j){ CS=j; one(); });\n  api("xp_history",{callsign:id.callsign,limit:100},function(j){ HIST=j; one(); });\n  /* 2026-10-03: user_totals (public) — device/callsign action totals.\n     Note: this read returns no ok field ({device,callsign,xp,pts,actions}). */\n  api("user_totals",{device:id.device,callsign:id.callsign},function(j){ UTOT=j; one(); });\n  loadFunnel();\n}\nfunction loadFunnel(){\n  var sec=adminSecret(); if(!sec){ FUNNEL_DONE=true; return; }\n  try{\n    /* 2026-10-03 M4: AbortController backstop — a hung request previously\n       left the admin funnel on "Checking admin access…" forever. */\n    var ctl=null;\n    try{ ctl=new AbortController(); }catch(e){}\n    var hung=setTimeout(function(){ try{ if(ctl) ctl.abort(); }catch(e){} },15000);\n    fetch(BACKEND+"?action=funnel_stats",{method:"GET",headers:{"X-Admin-Secret":sec},signal:ctl?ctl.signal:undefined})\n      .then(function(r){ return r.json(); })\n      .then(function(j){ try{clearTimeout(hung);}catch(e){} FUNNEL=j; FUNNEL_DONE=true; render(); })\n      .catch(function(){ try{clearTimeout(hung);}catch(e){} FUNNEL_DONE=true; });\n  }catch(e){ FUNNEL_DONE=true; }\n}\nfunction dayKey(ts){ var d=new Date(ts); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }\nfunction weekBars(){\n  var entries=(HIST&&HIST.entries)||[];\n  var days=[], labels=[], sums=[0,0,0,0,0,0,0];\n  var now=new Date(); now.setHours(0,0,0,0);\n  for(var i=6;i>=0;i--){\n    var d=new Date(now.getTime()-i*86400000);\n    days.push(dayKey(d.getTime()));\n    labels.push(["Su","Mo","Tu","We","Th","Fr","Sa"][d.getDay()]);\n  }\n  for(var e=0;e<entries.length;e++){\n    var en=entries[e], delta=Number(en.delta)||0;\n    if(delta<=0) continue;\n    var k=dayKey(en.ts), ix=days.indexOf(k);\n    if(ix>=0) sums[ix]+=delta;\n  }\n  var max=Math.max.apply(null,sums.concat([1]));\n  var h=\'<div style="display:flex;align-items:flex-end;justify-content:space-between;height:140px;padding:8px 4px 0">\';\n  for(var b=0;b<7;b++){\n    var pct=Math.round(sums[b]/max*100);\n    h+=\'<div style="flex:1;text-align:center;margin:0 2px">\'\n      +\'<div style="height:100px;position:relative;background:#222;border:1px solid #444">\'\n      +\'<div style="position:absolute;bottom:0;left:0;right:0;height:\'+Math.max(pct,3)+\'%;background:#c1121f"></div></div>\'\n      +\'<div style="font-size:11px;color:#aaa;margin-top:2px">\'+labels[b]+\'</div>\'\n      +\'<div style="font-size:11px;font-weight:bold">\'+sums[b]+\'</div></div>\';\n  }\n  return h+\'</div>\';\n}\nfunction funnelHtml(){\n  if(!FUNNEL_DONE){ return \'<div class="x-note">Checking admin access&hellip;</div>\'; }\n  if(!FUNNEL||!FUNNEL.ok){ return \'<div class="x-note">Funnel is admin-only. Unlock the Admin Vault to see it.</div>\'; }\n  var f=FUNNEL.funnel||[];\n  var labels={enlisted:"Enlisted",lesson_1:"Lesson 1 done",first_share:"First share",joined_cell:"Joined a cell",week_active:"Active this week"};\n  var h=\'<div class="x-note">Where fighters drop off. Fix the biggest leak first.</div>\';\n  var prev=null;\n  for(var i=0;i<f.length;i++){\n    var st=f[i], c=Number(st.count)||0, lab=labels[st.step]||st.step;\n    var drop=prev==null?"":(prev>0?" ("+Math.round((prev-c)/prev*100)+"% drop)":"");\n    h+=\'<div class="cp-mission"><div class="cp-mtext">\'+esc(lab)+\'</div>\'\n      +\'<div class="cp-mxp">\'+c+drop+\'</div></div>\';\n    prev=c;\n  }\n  return h;\n}\nfunction render(){\n  var el=document.getElementById("xDash"); if(!el) return;\n  var id=ident(), h="";\n  if(!id.callsign){\n    h+=PF.gateHTML(\'Command Center runs on callsigns.\',\'to command\');\n    el.innerHTML=h; return;\n  }\n  /* --- your numbers --- */\n  var st=(CS&&CS.stats)||{};\n  function num(v){ return Number(v)||0; }\n  h+=\'<div class="x-pane"><h4>Your numbers</h4>\'\n    +\'<div class="cp-mission"><div class="cp-mtext">Total shares</div><div class="cp-mxp">\'+num(st.total_shares)+\'</div></div>\'\n    +\'<div class="cp-mission"><div class="cp-mtext">Boosts received</div><div class="cp-mxp">\'+num(st.total_boosts_received)+\'</div></div>\'\n    +\'<div class="cp-mission"><div class="cp-mtext">Tips received (XP)</div><div class="cp-mxp">\'+num(st.total_tips_received)+\'</div></div>\'\n    +\'<div class="cp-mission"><div class="cp-mtext">XP earned (all time)</div><div class="cp-mxp">\'+num(st.total_xp_earned)+\'</div></div>\'\n    +\'<div class="cp-mission"><div class="cp-mtext">Recruits</div><div class="cp-mxp">\'+num(st.followers_via_referrals)+\'</div></div>\';\n  var tc=st.top_content||[];\n  if(tc.length){\n    h+=\'<h4 style="margin-top:10px">Top content</h4>\';\n    for(var t=0;t<tc.length;t++){\n      h+=\'<div class="cp-mission"><div class="cp-mtext">\'+esc(tc[t].title||tc[t].content_id)+\'</div>\'\n        +\'<div class="cp-mxp">\'+num(tc[t].shares)+\' shares</div></div>\';\n    }\n  }\n  h+=\'</div>\';\n  /* W3-D12 (2026-10-04): action prompts — the analytics read drives\n     "share it while it\'s hot" prompts. */\n  h+=renderPrompts(st);\n  /* --- your footprint (2026-10-03: user_totals, public) — device-verified\n     social proof of the work you\'ve put in. --- */\n  h+=\'<div class="x-pane"><h4>Your footprint</h4>\';\n  if(UTOT&&(UTOT.actions!=null||UTOT.xp!=null)){\n    h+=\'<div class="cp-mission"><div class="cp-mtext">Actions logged on this device</div><div class="cp-mxp">\'+Number(UTOT.actions||0)+\'</div></div>\'\n      +\'<div class="cp-mission"><div class="cp-mtext">XP from logged actions</div><div class="cp-mxp">\'+Number(UTOT.xp||0)+\'</div></div>\';\n  } else {\n    h+=\'<div class="x-note">Footprint unreadable right now. The wire will catch up.</div>\';\n  }\n  h+=\'</div>\';\n  /* --- weekly activity --- */\n  h+=\'<div class="x-pane"><h4>XP earned this week</h4>\'+weekBars()+\'</div>\';\n  /* --- funnel --- */\n  h+=\'<div class="x-pane"><h4>Onboarding funnel</h4>\'+funnelHtml()+\'</div>\';\n  el.innerHTML=h;\n  wirePrompts(el);\n}\n/* W3-D12 (2026-10-04): command center action prompts — "your catalog page is\n   hot — share it", driven by the existing creator_stats read. Content heat\n   comes from top_content shares; the catalog prompt keys off\n   catalog_views/catalog_slug/catalog_path in the response. If the backend\n   doesn\'t send those fields yet, the catalog prompt stays hidden and the\n   content prompts still fire — flagged for live verification. */\nvar HOT_SHARES=10;\nfunction promptShare(title,url){\n  try{\n    if(window.PFShare&&PFShare.shareText){ PFShare.shareText(title+" — via MTCSTW "+(url||"")); }\n    else if(navigator.share){ navigator.share({title:title,text:title+" — JOIN THE FIGHT.",url:url||location.href}); }\n    else toast("Copy the link and spread it.");\n  }catch(e){}\n}\nfunction renderPrompts(st){\n  var prompts=[];\n  try{\n    var tc=st.top_content||[];\n    for(var i=0;i<tc.length;i++){\n      var t=tc[i], sh=Number(t.shares)||0;\n      if(sh>=HOT_SHARES) prompts.push({k:"hot"+i,\n        t:"‘"+(t.title||t.content_id||"your post")+"’ is moving — "+sh+" shares.",\n        d:"Strike while it\'s hot. Share it again.",\n        btn:"SHARE IT AGAIN", title:String(t.title||t.content_id||"MTCSTW"), url:""});\n    }\n    var cv=Number(st.catalog_views||st.catalog_pageviews||0);\n    var cslug=st.catalog_slug||st.slug||"", cpath=st.catalog_path||(cslug?("/"+cslug):"");\n    if(cv>=HOT_SHARES&&cpath){\n      prompts.unshift({k:"catalog",\n        t:"YOUR CATALOG PAGE IS HOT — "+cv+" views.",\n        d:"Admirers are looking. Give them something to carry.",\n        btn:"SHARE MY PAGE", title:"Sick Left Radicals", url:cpath});\n    }\n  }catch(e){}\n  if(!prompts.length) return "";\n  var h=\'<div class="x-pane"><h4>Action prompts</h4>\'\n    +\'<div class="x-note">Your numbers say move. Don’t let heat cool.</div>\';\n  for(var p=0;p<prompts.length;p++){\n    var pr=prompts[p];\n    h+=\'<div class="cp-mission"><div class="cp-mtext"><b>\'+esc(pr.t)+\'</b><br><span class="x-note">\'+esc(pr.d)+\'</span></div>\'\n      +\'<div><button class="c-btn" data-ph="\'+pr.k+\'" data-pt="\'+esc(pr.title)+\'" data-pu="\'+esc(pr.url)+\'">\'+esc(pr.btn)+\'</button></div></div>\';\n  }\n  return h+\'</div>\';\n}\nfunction wirePrompts(el){\n  var bs=el.querySelectorAll("button[data-ph]");\n  for(var i=0;i<bs.length;i++){\n    (function(b){\n      b.onclick=function(){ promptShare(b.getAttribute("data-pt")||"MTCSTW", b.getAttribute("data-pu")||location.href); };\n    })(bs[i]);\n  }\n}\nload();\nsetInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },300000);\n})();\n<\/script>\n</div>\n</template>');try{if(-1===(window.location.href||"").indexOf("/config/")){var t=document.getElementById("pf-war-card"),n=null;try{n=document.body}catch(c){}if(t&&n&&!n.classList.contains("sqs-edit-mode")&&!n.classList.contains("sqs-editing")&&!document.getElementById("pf-dash-hq")){var a=document.getElementById("pf-ov-dash");if(a&&a.content){var i=document.createElement("div");i.id="pf-dash-hq",i.className="fe-block pf-override-block pf-silo",t.parentNode?t.parentNode.insertBefore(i,t.nextSibling):t.appendChild(i);var r=document.importNode(a.content,!0);i.appendChild(r);var o="";try{o=sessionStorage.getItem("pf_admin_secret")||""}catch(d){}var s=window.PF_BACKEND_URL||"";function l(){var e=document.getElementById("xDash");e&&(e.innerHTML='<div class="x-note">Command Center is admin-only. Unlock the Admin Vault to view it.</div>')}if(o&&s)try{fetch(s+"?action=funnel_stats",{method:"GET",headers:{"X-Admin-Secret":o}}).then(function(e){return e.json()}).then(function(t){if(t&&t.ok)for(var n=i.querySelectorAll("script"),a=0;a<n.length;a++){try{(0,eval)(n[a].textContent)}catch(t){window.PF&&e.error&&e.error("dashboard-hq",t)}n[a].remove()}else l()}).catch(function(){l()})}catch(u){l()}else l()}}}}catch(p){window.PF&&e.error&&e.error("dashboard-hq-mount",p)}}}(),function(){"use strict";var e=window.PF;e&&!e.skip("earnings")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-earnings">\n<div class="fe-block pf-override-block pf-silo" id="pf-earnings">\n<h2>Get Paid to Agitate</h2>\n<div class="c-tag">Your work pays. Track every stream.</div>\n<div id="xEarnings"><div class="c-load">Counting the money&hellip;</div></div>\n</div>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}\n  try{ var t=document.createElement("div"); t.textContent=m;\n  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";\n  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  /* Private reads require auth_secret (IDOR fix). Auto-attach for gated actions. */\n  if(action==="xp_history"||action==="subscription_list"||action==="commission_earnings"||action==="tip_history"){\n    try{\n      var _sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : "";\n      if(_sec && params && !params.auth_secret) params.auth_secret = _sec;\n    }catch(e){}\n  }\n  var fn="pfErCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\nfunction post(type,key,cAction,params,cb){\n  var body={type:type}; body[key]=cAction;\n  for(var k in params) body[k]=params[k];\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */\n    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)},c=null,t=null;\n      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}\n      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();\n    fetch(BACKEND,_po)\n      .then(function(r){ return r.json(); }).then(function(j){ _po._pfClear(); done(j); }).catch(function(){ _po._pfClear(); done(null); });\n  }catch(e){ done(null); }\n}\nfunction fmtDate(t){\n  try{ var d=new Date(Number(t)); if(isNaN(d.getTime())) return "";\n    var mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];\n    return mo[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear(); }catch(e){ return ""; }\n}\nfunction weekStart(){ var d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-d.getDay()); return d.getTime(); }\nvar SUBS=null, COMM=null, TIPS=null, HIST=null, FT=null;\nfunction load(){\n  var id=ident(), done=false, n=0, need=5;\n  function fin(){ if(done)return; done=true; render(); }\n  function one(){ n++; if(n>=need) fin(); }\n  setTimeout(fin,15000);\n  api("subscription_list",{callsign:id.callsign},function(j){ SUBS=j; one(); });\n  api("commission_earnings",{callsign:id.callsign},function(j){ COMM=j; one(); });\n  api("tip_history",{callsign:id.callsign},function(j){ TIPS=j; one(); });\n  api("xp_history",{callsign:id.callsign,limit:200},function(j){ HIST=j; one(); });\n  /* R30 (2026-10-04): funding_totals — opt-in aggregates for the\n     CREATORS GETTING FUNDED strip. Degrades silently until it ships. */\n  api("funding_totals",{},function(j){ FT=j; one(); });\n}\nfunction render(){\n  var el=document.getElementById("xEarnings"); if(!el) return;\n  var id=ident(), h="";\n  if(!id.callsign){\n    el.innerHTML=PF.gateHTML(\'Earnings run on callsigns.\',\'to see your earnings\');\n    return;\n  }\n  h+=renderSummary(id);\n  h+=renderFunded(id);\n  h+=renderSubscribers(id);\n  h+=renderRevenue(id);\n  h+=renderCommissions(id);\n  h+=renderTips(id);\n  h+=\'<div style="margin-top:10px"><button class="c-btn" id="erRetry">Refresh</button></div>\';\n  el.innerHTML=h;\n  wireRevenue(id,el);\n  wireFunded(el);\n  var rb=document.getElementById("erRetry");\n  if(rb) rb.onclick=function(){ SUBS=COMM=TIPS=HIST=null; FT=null; el.innerHTML=\'<div class="c-load">Counting the money&hellip;</div>\'; load(); };\n}\n/* ---------- SUMMARY ---------- */\nfunction earnTotals(){\n  var ws=weekStart(), allTime=0, thisWeek=0;\n  try{\n    var es=(HIST&&HIST.ok&&HIST.entries)||[];\n    for(var i=0;i<es.length;i++){\n      var d=Number(es[i].delta)||0;\n      if(d>0){ allTime+=d; if(Number(es[i].ts)>=ws) thisWeek+=d; }\n    }\n  }catch(e){}\n  return { allTime:Math.round(allTime), thisWeek:Math.round(thisWeek) };\n}\nfunction renderSummary(id){\n  var t=earnTotals();\n  var fans=(SUBS&&SUBS.ok&&SUBS.supporters)||[];\n  var subWk=0;\n  for(var i=0;i<fans.length;i++) subWk+=Number(fans[i].amount_per_week||0);\n  var h=\'<div class="x-pane"><div class="pb-bankhead">&#9670; EARNINGS SUMMARY &#9670;</div>\'\n    +\'<div class="pb-cards">\'\n    +\'<div class="pb-card"><div class="pb-clabel">THIS WEEK</div><div class="pb-cval">\'+t.thisWeek.toLocaleString()+\'</div></div>\'\n    +\'<div class="pb-card"><div class="pb-clabel">ALL TIME</div><div class="pb-cval">\'+t.allTime.toLocaleString()+\'</div></div>\'\n    +\'<div class="pb-card"><div class="pb-clabel">SUBS / WEEK</div><div class="pb-cval">\'+subWk.toLocaleString()+\'</div></div>\'\n    +\'<div class="pb-card"><div class="pb-clabel">SUPPORTERS</div><div class="pb-cval">\'+fans.length+\'</div></div>\'\n    +\'</div>\'\n    +\'<div class="x-note">XP in. Every stream below feeds these numbers — subscriptions, tips, commissions, revenue shares.</div></div>\';\n  return h;\n}\n/* ---------- R30: CREATORS GETTING FUNDED ---------- */\nvar FUND_MILESTONES=[1000,10000,100000];\nfunction fundMilestone(tips){\n  var ms=0;\n  for(var i=0;i<FUND_MILESTONES.length;i++){ if(tips>=FUND_MILESTONES[i]) ms=FUND_MILESTONES[i]; }\n  return ms;\n}\nfunction renderFunded(id){\n  /* Opt-in aggregates only — the backend counts creators who opted in.\n     Silent until funding_totals ships (W6B-1). */\n  if(!FT||!FT.ok) return "";\n  var tips=Number(FT.total_tips||0), n=Number(FT.creator_count||0);\n  var ms=fundMilestone(tips);\n  var h=\'<div class="x-pane"><div class="pb-bankhead">&#9670; CREATORS GETTING FUNDED &#9670;</div>\'\n    +\'<div class="pb-cards">\'\n    +\'<div class="pb-card"><div class="pb-clabel">CREATORS IN</div><div class="pb-cval">\'+n.toLocaleString()+\'</div></div>\'\n    +\'<div class="pb-card"><div class="pb-clabel">TIPS FLOWING</div><div class="pb-cval">\'+tips.toLocaleString()+\'</div></div>\'\n    +\'</div>\'\n    +\'<div class="x-note">Opted-in creators only. Real tips, real fighters — the machine funds its own.</div>\';\n  if(ms>0){\n    h+=\'<div style="margin-top:8px"><button class="c-btn" id="erMileBtn">SHARE THE \'+ms.toLocaleString()+\' MILESTONE</button></div>\';\n  }\n  h+=\'</div>\';\n  return h;\n}\nfunction wireFunded(el){\n  var b=document.getElementById("erMileBtn");\n  if(b) b.onclick=function(){ erPaintMilestone(); };\n}\nfunction erPaintMilestone(){\n  var tips=Number((FT&&FT.total_tips)||0), n=Number((FT&&FT.creator_count)||0);\n  var ms=fundMilestone(tips);\n  if(!ms){ toast("No milestone hit yet — keep tipping."); return; }\n  try{\n    var W=1080,H=1350,cv=document.createElement("canvas"); cv.width=W; cv.height=H;\n    var x=cv.getContext("2d"); if(!x){ toast("Canvas unavailable."); return; }\n    x.fillStyle="#0d0d0d"; x.fillRect(0,0,W,H);\n    x.strokeStyle="#c1121f"; x.lineWidth=18; x.strokeRect(16,16,W-32,H-32);\n    x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(52,52,W-104,H-104);\n    x.textAlign="center";\n    var y=180;\n    x.fillStyle="#f5ead6"; x.font="700 34px Arial,sans-serif";\n    x.fillText("★ THE PROPAGANDA FACTORY ★",W/2,y); y+=120;\n    x.fillStyle="#e8b64c"; x.font="900 110px \\"Arial Black\\",Arial,sans-serif";\n    x.fillText(ms.toLocaleString()+"+",W/2,y); y+=120;\n    x.fillStyle="#f5ead6"; x.font="900 56px \\"Arial Black\\",Arial,sans-serif";\n    x.fillText("TIPS AND COUNTING",W/2,y); y+=100;\n    x.fillStyle="#c9bfa8"; x.font="400 38px Arial,sans-serif";\n    x.fillText(n.toLocaleString()+" creators getting funded.",W/2,y); y+=70;\n    x.fillText("The machine funds its own.",W/2,y);\n    /* Footer: MTCSTW.COM + JOIN THE FIGHT. (red, bold) — the share-image CTA standard. */\n    x.fillStyle="#c1121f"; x.font="900 48px \\"Arial Black\\",Arial,sans-serif";\n    x.fillText("MTCSTW.COM",W/2,H-168);\n    x.font="900 44px \\"Arial Black\\",Arial,sans-serif";\n    x.fillText("JOIN THE FIGHT.",W/2,H-108);\n    if(window.PFShare&&PFShare.shareImage) PFShare.shareImage(cv,"pfn-funding-milestone.png","Creators getting funded","funding");\n    else toast("Share engine still loading.");\n  }catch(e){ toast("Poster failed — try again."); }\n}\n/* ---------- 1. SUBSCRIBERS ---------- */\nfunction renderSubscribers(id){\n  var fans=(SUBS&&SUBS.ok&&SUBS.supporters)||[];\n  var h=\'<div class="x-pane"><div class="pb-bankhead">&#9670; SUBSCRIBERS — YOUR PATRONS &#9670;</div>\'\n    +\'<div class="x-note">Soldiers paying you weekly XP. Treat them well — they fund your propaganda.</div>\';\n  if(!fans.length) h+=\'<div class="x-note">No subscribers yet. Make propaganda worth paying for.</div>\';\n  var total=0;\n  for(var i=0;i<fans.length;i++){\n    var f=fans[i]; total+=Number(f.amount_per_week||0);\n    h+=\'<div class="cp-lead"><span class="cp-lname">\'+esc(f.subscriber)+\'</span> \'\n      +\'<span class="cp-lxp">\'+Number(f.amount_per_week||0).toLocaleString()+\' XP/week</span>\'\n      +\'<span class="x-note"> since \'+esc(fmtDate(f.started_at))+\'</span></div>\';\n  }\n  if(fans.length) h+=\'<div class="x-note"><b>\'+total.toLocaleString()+\' XP/week</b> in recurring patronage.</div>\';\n  h+=\'</div>\';\n  return h;\n}\n/* ---------- 2. REVENUE SHARES ---------- */\nfunction renderRevenue(id){\n  var h=\'<div class="x-pane"><div class="pb-bankhead">&#9670; REVENUE SHARES — SPONSORED CONTENT &#9670;</div>\'\n    +\'<div class="x-note">When someone sponsors a poster you boosted, 10% of the spend flows to top boosters. Claim what&rsquo;s yours.</div>\'\n    +\'<button class="c-btn" id="erClaimBtn">CLAIM REVENUE</button> <span class="x-note" id="erClaimNote"></span></div>\';\n  return h;\n}\nfunction wireRevenue(id,el){\n  var b=document.getElementById("erClaimBtn");\n  if(!b) return;\n  b.onclick=function(){\n    b.disabled=true;\n    document.getElementById("erClaimNote").textContent="checking…";\n    post("finance","f_action","revenue_claim",{callsign:id.callsign,device:id.device},function(j){\n      b.disabled=false;\n      if(!j||!j.ok){\n        document.getElementById("erClaimNote").textContent=PF.errCopy(j,"Nothing to claim.");\n        return;\n      }\n      var t=Number(j.total||0);\n      document.getElementById("erClaimNote").textContent=t>0?("claimed "+t.toLocaleString()+" XP"):"nothing pending";\n      toast(t>0?("CLAIMED "+t+" XP. Your boosts paid off."):("No pending revenue."));\n    });\n  };\n}\n/* ---------- 3. COMMISSIONS ---------- */\nfunction renderCommissions(id){\n  var tot=(COMM&&COMM.ok)?Number(COMM.total_earned||0):0;\n  var recs=(COMM&&COMM.ok&&COMM.recruits)||[];\n  var h=\'<div class="x-pane"><div class="pb-bankhead">&#9670; REFERRAL COMMISSIONS — 5% OF YOUR RECRUITS &#9670;</div>\'\n    +\'<div class="x-note">Every recruit you bring in pays you 5% of their earnings — automatically, until they&rsquo;ve earned 10,000 XP. Build the network, share the upside.</div>\'\n    +\'<div class="pb-balrow"><span class="pb-blabel">TOTAL EARNED</span><span class="pb-bval">\'+tot.toLocaleString()+\' XP</span></div>\';\n  if(!recs.length) h+=\'<div class="x-note">No recruits yet. Your referral code is in the Referral War panel.</div>\';\n  for(var i=0;i<recs.length;i++){\n    var r=recs[i];\n    h+=\'<div class="cp-lead"><span class="cp-lname">\'+esc(r.recruit)+\'</span> \'\n      +\'<span class="cp-lxp">+\'+Number(r.earned_for_you||0).toLocaleString()+\' XP for you</span></div>\';\n  }\n  h+=\'</div>\';\n  return h;\n}\n/* ---------- 4. TIPS RECEIVED ---------- */\nfunction renderTips(id){\n  var tips=(TIPS&&TIPS.ok&&TIPS.tips)||[];\n  var mine=[], total=0;\n  for(var i=0;i<tips.length;i++){\n    if(String(tips[i].to_cs||"").toLowerCase()===id.callsign.toLowerCase()){\n      mine.push(tips[i]); total+=Number(tips[i].xp||0);\n    }\n  }\n  var h=\'<div class="x-pane"><div class="pb-bankhead">&#9670; TIPS RECEIVED &#9670;</div>\'\n    +\'<div class="x-note">Direct appreciation from soldiers who value your work.</div>\'\n    +\'<div class="pb-balrow"><span class="pb-blabel">TOTAL TIPPED</span><span class="pb-bval">\'+total.toLocaleString()+\' XP</span></div>\';\n  if(!mine.length) h+=\'<div class="x-note">No tips yet. Keep creating.</div>\';\n  for(var q=0;q<Math.min(mine.length,15);q++){\n    var t=mine[q];\n    h+=\'<div class="cp-lead"><span class="cp-lname">\'+esc(t.from_cs)+\'</span> \'\n      +\'<span class="cp-lxp">+\'+Number(t.xp||0).toLocaleString()+\' XP</span>\'\n      +(t.message?\'<div class="x-note">&ldquo;\'+esc(t.message)+\'&rdquo;</div>\':\'\')+\'</div>\';\n  }\n  h+=\'</div>\';\n  return h;\n}\n/* On-demand data (2026-10-02): fetch only when the widget is actually\n   seen (or touched). The template above already renders a skeleton.\n   In-memory vars keep the session cache — no refetch on scroll. */\n(function(){\n  var sec=null;\n  try{ sec=document.querySelector(\'section[data-game="earnings"]\'); }catch(e){}\n  var start=(window.PF&&PF.whenVisible)?PF.whenVisible(sec,function(){load();}):null;\n  if(start){ try{ if(sec) sec.addEventListener(\'pointerdown\',start,{once:true}); }catch(e){} }\n  else load();\n})();\nsetInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },180000);\n})();\n<\/script>\n</div>\n</template>')}();
+/* PF v1.4.3 bundle-create.js — concatenated bundle, generated by build/bundle.js.
+   DO NOT EDIT. Regenerate with: node build/bundle.js [--debug]
+   Contains: academy.js, academy-graduation.js, creator-assist.js, armory.js, dashboard.js, earnings.js
+   Each silo keeps its own PF.skip() kill switch (?pf_off=<silo>). */
+
+/* ===== academy.js ===== */
+/* games/academy.js  |  PF v1.4.3 | PROPAGANDA ACADEMY: onboarding/training track.
+   Lessons are served by the backend (lesson_list) — no static catalog here.
+   Completion posts lesson_complete; the backend grants real XP through the
+   ledger (idempotent per callsign+lesson). Progress comes from the same call.
+   Mounts two ways: (1) homepage via the pf-ov-academy template in the v2
+   ORDER list; (2) Creator HQ (/request-access) direct into
+   <div id="pf-academy-hq"></div>. It never reaches into another silo's internals.
+   KILL: ?pf_off=academy  or  localStorage pf_disabled_v1='["academy"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("academy")) { return; }
+  var BACKEND = window.PF_BACKEND_URL;
+
+  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+  function toast(m){ try{ PF.toast(m); }catch(e){} }
+
+  /* Credit the backend grant into the local ledger for instant HUD display.
+     The backend already granted this XP via xpGrant — do NOT dispatch pf-xp
+     (that would trigger the xpledger mirror with a different key and
+     double-grant). This is the nolx pattern from enlistment-ranks. */
+  /* Delegates to the global layer: PF.creditLocal owns the pf_ranks_v1
+     ledger so all writers share one format (see core/00-bus.js). */
+  function creditLocal(lid, xp){
+    try{ if(window.PF&&PF.creditLocal) PF.creditLocal('academy_lesson_'+lid, xp); }catch(e){}
+  }
+
+  /* JSONP GET with 12s timeout — same pattern as the other game silos. */
+  function api(action,params,cb){
+    if(!BACKEND){ cb(null); return; }
+    /* academy_progress is AUTH-gated (IDOR fix): route through the shared
+       claim-retry GET like the other per-callsign reads. */
+    if(action==="academy_progress"){
+      try{
+        if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
+        var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+        if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+      }catch(e){}
+    }
+    var fn="pfAcCb"+Math.floor(Math.random()*1e9);
+    var s=document.createElement("script"), done=false;
+    function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+      if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+    window[fn]=function(j){ finish(j); };
+    s.onerror=function(){ finish(null); };
+    var q="?action="+encodeURIComponent(action);
+    for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+    q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+    setTimeout(function(){ finish(null); },12000);
+  }
+
+  /* POST: real CORS fetch (worker sends Access-Control-Allow-Origin: *),
+     PF.authPost first when available (attaches the callsign secret). */
+  function post(aAction,params,cb){
+    var body=Object.assign({type:"academy",a_action:aAction},params);
+    if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+    var bodyStr=JSON.stringify(body);
+    function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+    try{
+      /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+      var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
+        try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+          t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+        o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+      fetch(BACKEND,_po)
+        .then(function(r){ return r.json(); })
+        .then(function(j){ _po._pfClear(); done(j); })
+        .catch(function(){ _po._pfClear(); done(null); });
+    }catch(e){ done(null); }
+  }
+
+  function load(el){
+    var id=ident(), finished=false, lessonsArr=null, apArr=null, calls=0;
+    /* 2026-10-03: also pull academy_progress (AUTH) — the HQ-authoritative
+       per-callsign completion map that feeds the progress bar. Falls back to
+       the lesson_list done flags if it fails, so no stuck loader. */
+    function fin(){ if(finished)return; finished=true; render(el,lessonsArr||[],apArr); }
+    function maybe(){ calls++; if(calls>=2) fin(); }
+    /* Safety: if JSONP hangs, unstick and show retry. */
+    setTimeout(function(){ fin(); },15000);
+    var p={};
+    if(id.callsign) p.callsign=id.callsign;
+    api("lesson_list",p,function(j){
+      if(j&&j.ok&&j.lessons&&j.lessons.length) lessonsArr=j.lessons;
+      maybe();
+    });
+    if(id.callsign) api("academy_progress",{callsign:id.callsign},function(j){
+      if(j&&j.ok&&j.lessons) apArr=j.lessons;
+      maybe();
+    });
+    else maybe();
+  }
+
+  function render(el,lessons,apLessons){
+    var id=ident(), h="";
+    if(!lessons.length){
+      el.innerHTML='<div class="fe-block pf-override-block" id="pf-academy">'
+        +'<h2>Propaganda Academy</h2>'
+        +'<div class="c-tag">Learn the craft. Earn your stripes. Pump with purpose.</div>'
+        +'<div class="x-pane"><div class="x-note">The academy is mustering its instructors.</div>'
+        +'<div style="margin-top:8px"><button class="c-btn" id="acRetry">Retry</button></div></div></div>';
+      var rb=document.getElementById("acRetry");
+      if(rb) rb.onclick=function(){ el.innerHTML='<div class="c-load">Loading the academy&hellip;</div>'; load(el); };
+      return;
+    }
+    lessons=lessons.slice().sort(function(a,b){ return (a.order_num||0)-(b.order_num||0); });
+    /* Progress bar is fed by academy_progress (AUTH, HQ-authoritative) when it
+       landed; falls back to the lesson_list done flags. */
+    var src=(apLessons&&apLessons.length)?apLessons:lessons;
+    var n=0,i,L;
+    for(i=0;i<src.length;i++){ if(src[i].done) n++; }
+    var pct=src.length?Math.round(n/src.length*100):0;
+    var hqSynced=!!(apLessons&&apLessons.length);
+    h+='<div class="fe-block pf-override-block" id="pf-academy">'
+      +'<h2>Propaganda Academy</h2>'
+      +'<div class="c-tag">Learn the craft. Earn your stripes. Pump with purpose.</div>';
+    if(!id.callsign){
+      h+=PF.gateHTML('The Academy enrolls callsign holders.','to enroll and bank XP');
+    } else {
+      h+='<div class="x-pane"><div class="x-note">PROGRESS: '+n+'/'+src.length+' lessons &mdash; '+pct+'%'+(hqSynced?' <span style="color:#7CFC00">&#10003; HQ-synced</span>':"")+'</div>'
+        +'<div style="background:#222;border:1px solid #555;height:14px;margin-top:6px"><div style="background:#c1121f;height:12px;width:'+pct+'%"></div></div></div>';
+    }
+    for(i=0;i<lessons.length;i++){
+      L=lessons[i];
+      var isDone=!!L.done, xp=Number(L.xp_reward)||0;
+      h+='<div class="x-pane">'
+        +'<div class="fd-title">'+(i+1)+'. '+esc(L.title)+(isDone?' <span style="color:#7CFC00">&#10003;</span>':"")+'</div>'
+        +'<div class="x-note">'+esc(L.content)+'</div>'
+        +'<div class="x-note">+'+xp+' XP</div>';
+      if(id.callsign&&!isDone){
+        h+='<button class="c-btn ac-done" data-lid="'+esc(L.id)+'" data-xp="'+xp+'">MARK COMPLETE</button>';
+      }
+      h+='</div>';
+    }
+    h+='<div style="margin-top:10px"><button class="c-btn" id="acRetry">Refresh</button></div>';
+    h+='</div>';
+    el.innerHTML=h;
+    var bs=el.querySelectorAll("button.ac-done"), b;
+    for(b=0;b<bs.length;b++){
+      (function(btn){
+        btn.onclick=function(){
+          var lid=btn.getAttribute("data-lid");
+          btn.disabled=true; btn.textContent="RECORDING...";
+          post("lesson_complete",{callsign:id.callsign,device:id.device,lesson_id:lid},function(j){
+            if(j&&j.ok){
+              var gained=(j.xp!=null?j.xp:Number(btn.getAttribute("data-xp"))||0);
+              /* Backend granted the XP — mirror it locally for instant HUD
+                 (nolx: no pf-xp dispatch, no double-grant). Count it in Do Meter. */
+              if(gained>0) creditLocal(lid, gained);
+              try{ document.dispatchEvent(new CustomEvent("pf-lesson-complete",{detail:{lesson:lid,xp:gained}})); }catch(e2){}
+              toast(j.dup?"Already banked. No double pay.":"Lesson complete. +"+gained+" XP.");
+              /* M1 dopamine: banking a lesson should feel earned. */
+              try{ if(window.PF&&PF.dope){ var ah=document.getElementById("pf-academy")||document.body; PF.dope.press(btn); PF.dope.confetti(ah,35); if(gained>0) PF.dope.xpFloat(ah,"+"+gained+" XP"); } }catch(dpe){}
+              for(var k=0;k<lessons.length;k++){ if(lessons[k].id===lid) lessons[k].done=1; }
+              render(el,lessons);
+            } else {
+              btn.disabled=false; btn.textContent="MARK COMPLETE";
+              toast(PF.errCopy(j,"Could not record. Try again."));
+            }
+          });
+        };
+      })(bs[b]);
+    }
+    var rb2=document.getElementById("acRetry");
+    if(rb2) rb2.onclick=function(){ el.innerHTML='<div class="c-load">Loading the academy&hellip;</div>'; load(el); };
+  }
+
+  /* Idempotent mount into any container element. Exposed for the homepage
+     template's inner script (eval'd on mount by the v2 mounter). */
+  function mount(el){
+    if(!el||el.getAttribute("data-pf-academy-mounted")) return;
+    el.setAttribute("data-pf-academy-mounted","1");
+    el.innerHTML='<div class="c-load">Loading the academy&hellip;</div>';
+    load(el);
+  }
+  window.PFAcademy={mount:mount};
+
+  /* (1) Homepage: stage the template; the v2 ORDER list mounts it into #pf-v2. */
+  try{
+    PF.holder().insertAdjacentHTML("beforeend",
+      '<template id="pf-ov-academy">'
+      +'<div id="pf-academy-slot"></div>'
+      +'<scr'+'ipt>window.PFAcademy.mount(document.getElementById("pf-academy-slot"));</scr'+'ipt>'
+      +'</template>');
+  }catch(e){}
+
+  /* (2) Creator HQ (/request-access): direct mount where the page provides
+     <div id="pf-academy-hq"></div>. Add that div to the page as a code block. */
+  try{
+    var hq=document.getElementById("pf-academy-hq");
+    if(hq) mount(hq);
+  }catch(e2){}
+  /* DEFECT4 (2026-10-03): /request-access Fluid Engine layout repair for HQ
+     pages that carry the academy block but NOT the war-card block
+     (war-card.js stamps .pf-fe-hq when #pf-war-card exists). Same narrow
+     ~240px Code-block root cause as defect 3's /economy: stamp .pf-fe-hq
+     (see core/01-styles.css + core/bundle-styles.css) on the block's
+     .fe-block wrapper ancestor so the !important rule forces full content
+     width / auto height. Scoped: no-ops unless #pf-academy-hq exists. */
+  try{
+    if(!document.getElementById("pf-war-card")){
+      var hqm=document.getElementById("pf-academy-hq");
+      var hqb=(hqm&&hqm.closest)?hqm.closest(".fe-block"):null;
+      if(hqb&&hqb.classList&&!hqb.classList.contains("pf-fe-hq"))hqb.classList.add("pf-fe-hq");
+    }
+  }catch(e3){}
+})();
+
+;
+
+/* ===== academy-graduation.js ===== */
+/* games/academy-graduation.js  |  PF v1.4.3 | R1: Academy graduation -> daily-loop induction.
+   Hooks the pf-lesson-complete event academy.js already dispatches (and runs
+   one mount-time check for past completions). When the backend reports every
+   lesson done and academy_progress.graduated is false, it POSTs the idempotent
+   academy_graduate flag and renders a GRADUATION ceremony card — once, ever:
+     1. CLAIM YOUR CALLSIGN (PF.requireCallsign; defensive — lessons already
+        require a callsign, so this is normally a checkmark)
+     2. START TODAY'S ROUTE MARCH — deep-link to stop 1 of the S1 circuit
+        (circuit_status stops[0].page; ?creator= preserved; falls back to
+        the homepage briefing if the circuit read fails)
+     3. First Daily Orders check-in link (/#pf-orders)
+   The card is a sibling inserted BEFORE #pf-academy (never replaces the
+   academy's own render), dismisses permanently via the local flag + the
+   backend academy_graduates row, and grants ZERO XP — lesson payouts already
+   happened. Cross-device: the backend graduated flag is authoritative.
+   KILL: ?pf_off=academy-graduation  or  localStorage pf_disabled_v1='["academy-graduation"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('academy-graduation')) { return; }
+  if (window.pfAcademyGraduationDone) { return; }
+  window.pfAcademyGraduationDone = true;
+  var BACKEND = window.PF_BACKEND_URL;
+  var FLAG_KEY = 'pf_academy_grad_v1';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function ident() {
+    var cs = '', dev = '';
+    try { cs = window.PFCallsign ? window.PFCallsign() : ''; } catch (e) {}
+    try { dev = window.PFDeviceId ? window.PFDeviceId() : ''; } catch (e) {}
+    return { callsign: cs, device: dev };
+  }
+  function toast(m) { try { PF.toast(m); } catch (e) {} }
+
+  function flagSet(cs) {
+    try {
+      var o = JSON.parse(localStorage.getItem(FLAG_KEY) || '{}');
+      return !!(o && o[cs]);
+    } catch (e) { return false; }
+  }
+  function flagMark(cs) {
+    try {
+      var o = {};
+      try { o = JSON.parse(localStorage.getItem(FLAG_KEY) || '{}'); } catch (e2) { o = {}; }
+      o[cs] = 1;
+      localStorage.setItem(FLAG_KEY, JSON.stringify(o));
+    } catch (e) {}
+  }
+  function creatorSlug() {
+    try { if (PF && typeof PF.storedCreatorRef === 'function') return PF.storedCreatorRef() || ''; } catch (e) {}
+    return '';
+  }
+
+  /* R1/R19 claim-scoped guard (2026-10-04): the graduation card (R1) and the
+     post-claim squad interstitial (R19, core/22-squadjoin.js) fire on the same
+     pf-callsign-claimed event — exactly ONE may claim the moment per callsign.
+     Graduation takes precedence: R1 evaluates the claim and records its verdict
+     ('pending' -> 'card' | 'declined'); R19 shows only on 'declined'. Shared
+     sessionStorage key so both silos respect it across branches/pages. */
+  var CLAIM_UX_KEY = 'pf_claim_ux_v1';
+  function claimUxGet(cs) {
+    try {
+      var o = JSON.parse(sessionStorage.getItem(CLAIM_UX_KEY) || '{}');
+      return (o && o[String(cs || '').toLowerCase()]) || null;
+    } catch (e) { return null; }
+  }
+  function claimUxSet(cs, patch) {
+    try {
+      var k = String(cs || '').toLowerCase(); if (!k) return;
+      var o = {};
+      try { o = JSON.parse(sessionStorage.getItem(CLAIM_UX_KEY) || '{}'); } catch (e2) { o = {}; }
+      o[k] = Object.assign(o[k] || {}, { callsign: k }, patch || {});
+      sessionStorage.setItem(CLAIM_UX_KEY, JSON.stringify(o));
+    } catch (e) {}
+  }
+
+  /* JSONP GET — academy_progress is auth-gated, so it rides the shared
+     claim-retry getter like academy.js does; lesson_list stays public. */
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    try {
+      if (action === 'academy_progress' && window.PF && PF.authGetJSONP) {
+        PF.authGetJSONP(BACKEND, action, params, cb); return;
+      }
+    } catch (e) {}
+    var fn = 'pfAgCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e2) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    try { document.head.appendChild(s); } catch (e3) { finish(null); return; }
+    setTimeout(function () { finish(null); }, 12000);
+  }
+
+  /* POST: real CORS fetch, PF.authPost first when available (attaches the
+     callsign secret). Same shape as academy.js's post(). */
+  function post(aAction, params, cb) {
+    var body = Object.assign({ type: 'academy', a_action: aAction }, params);
+    if (window.PF && PF.authPost) { PF.authPost(BACKEND, body, cb); return; }
+    var bodyStr = JSON.stringify(body);
+    function done(j) { try { cb(j || { ok: false, err: 'Network error.' }); } catch (e) {} }
+    try {
+      fetch(BACKEND, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: bodyStr })
+        .then(function (r) { return r.json(); })
+        .then(function (j) { done(j); })
+        .catch(function () { done(null); });
+    } catch (e) { done(null); }
+  }
+
+  /* Route March day-1 deep-link (S1). Reads today's circuit stops and sends
+     the graduate to stop 1 with ?creator= preserved for race coherence.
+     Guarded: falls back to the homepage briefing if S1 hasn't landed or the
+     read fails — never a dead button. */
+  function goRouteMarch(btn) {
+    function fallback() {
+      try { location.href = '/#pf-brief'; } catch (e) {}
+    }
+    if (btn) { btn.disabled = true; btn.textContent = 'FINDING TODAY\u2019S ROUTE\u2026'; }
+    var id = ident();
+    var cr = creatorSlug();
+    function nav(page) {
+      var url = String(page || '/#pf-brief');
+      if (cr) url += (url.indexOf('?') >= 0 ? '&' : '?') + 'creator=' + encodeURIComponent(cr);
+      try { location.href = url; } catch (e) { fallback(); }
+    }
+    if (!BACKEND || !id.callsign) { fallback(); return; }
+    var finished = false;
+    function done(j) {
+      if (finished) return; finished = true;
+      try {
+        if (j && j.ok && j.stops && j.stops.length && j.stops[0].page) { nav(j.stops[0].page); return; }
+      } catch (e) {}
+      fallback();
+    }
+    try {
+      if (window.PF && PF.authGetJSONP) { PF.authGetJSONP(BACKEND, 'circuit_status', { callsign: id.callsign }, done); }
+      else {
+        var fn = 'pfAgRm' + Math.floor(Math.random() * 1e9);
+        window[fn] = function (j) { try { delete window[fn]; } catch (e) {} done(j); };
+        var s = document.createElement('script');
+        s.onerror = function () { done(null); };
+        s.src = BACKEND + '?action=circuit_status&callsign=' + encodeURIComponent(id.callsign) + '&callback=' + fn;
+        document.head.appendChild(s);
+      }
+    } catch (e) { done(null); }
+    setTimeout(function () { done(null); }, 10000);
+  }
+
+  function renderCard(container, total) {
+    if (!container || document.getElementById('pf-graduation')) return;
+    var id = ident();
+    var card = document.createElement('div');
+    card.id = 'pf-graduation';
+    card.setAttribute('data-pf-graduation', '1');
+    card.style.cssText = 'border:4px solid #c1121f;background:#0d0d0d;color:#f5f0e1;' +
+      'padding:1.6rem 1.2rem;margin:0 0 1.2rem;text-align:center;box-sizing:border-box;' +
+      'box-shadow:0 0 34px rgba(193,18,31,.45);font-family:inherit;';
+
+    var steps = '';
+    /* Step 1: callsign. Lessons require one, so this is a checkmark in
+       practice — the claim branch is defensive per the R1 spec. */
+    if (id.callsign) {
+      steps += '<div style="margin:.55rem 0;padding:.7rem;border:2px solid #2f7a3d;background:#0a140a;">' +
+        '<div style="color:#7ddf8a;font-weight:900;letter-spacing:.1em;">&#10003; CALLSIGN CLAIMED &mdash; ' +
+        esc(id.callsign.toUpperCase()) + '</div></div>';
+    } else {
+      steps += '<div style="margin:.55rem 0;"><button type="button" id="pf-grad-claim" ' +
+        'style="display:inline-block;background:#c1121f;border:2px solid #c1121f;color:#fff;' +
+        'font-weight:900;letter-spacing:.12em;padding:.8rem 1.6rem;font-size:.85rem;cursor:pointer;">' +
+        'CLAIM YOUR CALLSIGN</button></div>';
+    }
+    /* Step 2: Route March day-1. Step 3: Daily Orders check-in. */
+    steps += '<div style="margin:.55rem 0;"><button type="button" id="pf-grad-march" ' +
+      'style="display:inline-block;background:transparent;border:2px solid #c1121f;color:#f5f0e1;' +
+      'font-weight:900;letter-spacing:.12em;padding:.8rem 1.6rem;font-size:.85rem;cursor:pointer;">' +
+      'START TODAY\u2019S ROUTE MARCH &rarr;</button>' +
+      '<div style="font-size:.72rem;color:#b8ab8e;margin-top:.35rem;">Day 1 of the 7-day escalator &mdash; 10 XP today, up to 75 on day 7.</div></div>';
+    steps += '<div style="margin:.55rem 0;"><a href="/#pf-orders" ' +
+      'style="display:inline-block;background:transparent;border:2px solid #f5f0e1;color:#f5f0e1;' +
+      'font-weight:900;letter-spacing:.12em;padding:.8rem 1.6rem;font-size:.85rem;text-decoration:none;">' +
+      'CHECK IN: DAILY ORDERS &rarr;</a></div>';
+
+    card.innerHTML =
+      '<div style="color:#c1121f;font-weight:900;letter-spacing:.18em;font-size:1.15rem;margin-bottom:.4rem;">' +
+      '&#9733; ACADEMY GRADUATE &#9733;</div>' +
+      '<div style="font-size:.9rem;color:#f5f0e1;line-height:1.6;margin-bottom:.8rem;">' +
+      'All ' + total + ' lessons complete. The training wheels are off, soldier &mdash; ' +
+      'here are your first orders:</div>' +
+      steps +
+      '<div style="margin-top:1rem;"><button type="button" id="pf-grad-dismiss" ' +
+      'style="background:none;border:none;color:#b8ab8e;font-size:.72rem;letter-spacing:.1em;' +
+      'cursor:pointer;text-decoration:underline;">dismiss</button></div>';
+
+    try {
+      var root = container.querySelector('#pf-academy');
+      if (root && root.parentNode === container) container.insertBefore(card, root);
+      else container.insertBefore(card, container.firstChild);
+    } catch (e) { return; }
+    /* R1/R19: the card rendered for this callsign — claim the post-claim
+       moment so the squad interstitial (R19) stands down for this claim. */
+    try { claimUxSet(id.callsign || '', { r1: 'card', ts: Date.now() }); } catch (e0) {}
+
+    /* Ceremony, not a silent tick: confetti burst on the card. */
+    try {
+      if (window.PF && PF.dope) { PF.dope.confetti(card, 60); PF.dope.press(card); }
+    } catch (e2) {}
+
+    function dismiss() {
+      var dcs = '';
+      try { dcs = window.PFCallsign ? window.PFCallsign() : ''; } catch (e3a) {}
+      if (dcs) flagMark(dcs);
+      else if (id.callsign) flagMark(id.callsign);
+      try { if (card.parentNode) card.parentNode.removeChild(card); } catch (e3) {}
+    }
+    var dis = card.querySelector('#pf-grad-dismiss');
+    if (dis) dis.onclick = dismiss;
+
+    var marchBtn = card.querySelector('#pf-grad-march');
+    if (marchBtn) marchBtn.onclick = function () { goRouteMarch(marchBtn); };
+
+    var claimBtn = card.querySelector('#pf-grad-claim');
+    if (claimBtn) claimBtn.onclick = function () {
+      try {
+        if (window.PF && PF.requireCallsign) {
+          PF.requireCallsign(function (cs) {
+            if (cs) {
+              dismiss();
+              toast('Callsign claimed. Welcome to the fight.');
+            }
+          }, { context: 'to graduate from the Academy' });
+        }
+      } catch (e6) {}
+    };
+  }
+
+  /* Graduation check: fresh lesson state from the backend; renders the card
+     only when every lesson is done AND no graduation flag exists locally or
+     server-side. Idempotent by construction.
+     R1/R19 sequencing: check(container, optCs, optDone) — the claim listener
+     passes the claimed callsign + a verdict callback so the squad
+     interstitial (R19) learns whether the card rendered for THIS claim. */
+  function check(container, optCs, optDone) {
+    function verdict(v) { try { if (optDone) optDone(v); } catch (e) {} }
+    try {
+      var id = ident();
+      var cs = optCs || id.callsign;
+      if (!cs) { verdict('declined'); return; }
+      if (flagSet(cs)) { verdict('declined'); return; }
+      if (document.getElementById('pf-graduation')) { verdict('declined'); return; }
+      /* R1/R19 vice versa: if the squad interstitial already claimed this
+         claim's moment, the card stands down. Claim-scoped only (optCs set)
+         — later genuine graduations re-evaluate without optCs. */
+      if (optCs) {
+        var gx = claimUxGet(cs);
+        if (gx && gx.r19 === 'shown') { verdict('declined'); return; }
+      }
+      var lessonsArr = null, apGraduated = null, calls = 0, finished = false;
+      function maybe() {
+        calls++;
+        if (calls < 2 || finished) return;
+        finished = true;
+        try {
+          var lessons = lessonsArr || [];
+          if (!lessons.length) { verdict('declined'); return; }
+          var n = 0, i;
+          for (i = 0; i < lessons.length; i++) { if (lessons[i].done) n++; }
+          if (n < lessons.length) { verdict('declined'); return; } /* not all done — no graduation */
+          if (apGraduated === true) { flagMark(cs); verdict('declined'); return; }
+          /* Mirror the flag server-side (idempotent), then render. The local
+             flag is set at render so a failed POST can't loop the card. */
+          try {
+            post('academy_graduate', { callsign: cs, device: id.device }, function () {});
+          } catch (e) {}
+          flagMark(cs);
+          renderCard(container, lessons.length);
+          verdict('card');
+        } catch (e2) { verdict('declined'); }
+      }
+      /* Safety: never hang the check. */
+      setTimeout(function () { if (!finished) { finished = true; verdict('declined'); } }, 15000);
+      api('lesson_list', {}, function (j) {
+        if (j && j.ok && j.lessons && j.lessons.length) lessonsArr = j.lessons;
+        maybe();
+      });
+      api('academy_progress', { callsign: cs }, function (j) {
+        if (j && j.ok) {
+          apGraduated = (j.graduated === true);
+          if (j.lessons && j.lessons.length) lessonsArr = j.lessons;
+        }
+        maybe();
+      });
+    } catch (e3) { verdict('declined'); }
+  }
+
+  function containers() {
+    var out = [], els = document.querySelectorAll('#pf-academy'), i;
+    for (i = 0; i < els.length; i++) {
+      var c = els[i].parentElement;
+      if (c && out.indexOf(c) === -1) out.push(c);
+    }
+    return out;
+  }
+
+  /* Primary trigger: academy.js dispatches pf-lesson-complete after every
+     successful lesson_complete — check on a beat so the academy's own
+     re-render lands first. */
+  var pending = false;
+  document.addEventListener('pf-lesson-complete', function () {
+    if (pending) return;
+    pending = true;
+    setTimeout(function () {
+      pending = false;
+      var cs = containers(), i;
+      for (i = 0; i < cs.length; i++) check(cs[i]);
+    }, 1200);
+  });
+
+  /* R1/R19 claim-scoped sequencing (2026-10-04): the graduation card fires
+     on pf-callsign-claimed. Evaluate the claim NOW — if this claim's owner is
+     a fresh graduate, the card renders and the R19 squad interstitial stands
+     down for this claim (guard verdict 'card'); otherwise the verdict is
+     'declined' and R19 may show. Graduation takes precedence by construction:
+     the verdict is claim-scoped, and R19 polls for it before showing. */
+  document.addEventListener('pf-callsign-claimed', function (e) {
+    try {
+      var cs = '';
+      try { cs = String((e && e.detail && e.detail.callsign) || ''); } catch (e0) {}
+      if (!cs && window.PFCallsign) { try { cs = window.PFCallsign() || ''; } catch (e1) {} }
+      if (!cs) return;
+      var g = claimUxGet(cs);
+      if (g && g.r1 === 'card') return; /* card already rendered for this claim */
+      claimUxSet(cs, { r1: 'pending', ts: Date.now() });
+      var done = false;
+      function settle(v) {
+        if (done) return; done = true;
+        claimUxSet(cs, { r1: v, ts: Date.now() });
+      }
+      var carr = containers(), i, remaining = carr.length;
+      if (!remaining) { settle('declined'); return; }
+      for (i = 0; i < carr.length; i++) {
+        (function (c) {
+          check(c, cs, function (v) {
+            if (done) return;
+            if (v === 'card') { settle('card'); return; }
+            remaining--;
+            if (remaining <= 0) settle('declined');
+          });
+        })(carr[i]);
+      }
+    } catch (e2) {}
+  });
+
+  /* Mount-time leg: catches graduates whose final lesson landed on another
+     device/session. One cheap read per device until the flag is set. */
+  function boot() {
+    setTimeout(function () {
+      var cs = containers(), i;
+      for (i = 0; i < cs.length; i++) check(cs[i]);
+    }, 2500);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+;
+
+/* ===== creator-assist.js ===== */
+/* games/creator-assist.js  |  PF v1.4.3 | CREATOR ASSIST — live template armory.
+   Wires the backend assist actions (caption_packs, hashtag_sets,
+   headline_formulas) to a tabbed UI on Creator HQ. Copy-paste caption packs,
+   hashtag sets, and headline formulas — fetched live so the armory stays
+   fresh without a redeploy.
+   2026-10-03: Propaganda Bounties (games/bounties.js) merged as the
+   Campaign Pool / Bounties tab. bounties.js deleted.
+   Mounts into <div id="pf-creator-assist"></div>; falls back to inserting
+   after #pf-war-card when on Creator HQ without the dedicated mount.
+   Needs: core/00-bus.js (PF), core/03-global.js (PF_BACKEND_URL).
+   KILL: ?pf_off=creator-assist  or  localStorage pf_disabled_v1='["creator-assist"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("creator-assist")) { return; }
+  try { /* never mount inside the Squarespace editor */
+    var href = window.location.href || '';
+    if (href.indexOf('/config/') !== -1) return;
+    var bd = document.body;
+    if (bd && (bd.classList.contains('sqs-edit-mode') || bd.classList.contains('sqs-editing'))) return;
+  } catch (e) {}
+
+  var mount = document.getElementById('pf-creator-assist');
+  /* S7 FUND THEIR FIGHT (2026-10-04): catalog pages deep-link to
+     /create?for=<slug> to show that creator's open bounties. */
+  var FOR_SLUG = (function(){
+    try{
+      var m = String(window.location.search||'').match(/[?&]for=([a-z0-9_-]{1,60})/i);
+      return m ? m[1].toLowerCase() : '';
+    }catch(e){ return ''; }
+  })();
+  function memberName(slug){
+    try{
+      var all = (window.PF && PF.slrAll) ? PF.slrAll() : [];
+      for(var i=0;i<all.length;i++){
+        if(all[i] && all[i].slug === slug && all[i].name) return all[i].name;
+      }
+    }catch(e){}
+    return String(slug||'').replace(/-/g,' ');
+  }
+  if (!mount) {
+    /* Creator HQ fallback: render right after the war card. */
+    var warCard = document.getElementById('pf-war-card');
+    if (warCard && warCard.parentNode) {
+      mount = document.createElement('div');
+      mount.id = 'pf-creator-assist';
+      warCard.parentNode.insertBefore(mount, warCard.nextSibling);
+    } else if (FOR_SLUG) {
+      /* S7: /create has no #pf-creator-assist and no #pf-war-card. Mount the
+         board inside #pf-create: page-mount inserts the page header before
+         it and appends its game sections after it, so the filtered board
+         lands right below the header — the deep-link target. */
+      var createHost = document.getElementById('pf-create');
+      if (!createHost) { return; }
+      mount = document.createElement('div');
+      mount.id = 'pf-creator-assist';
+      createHost.appendChild(mount);
+    } else { return; }
+  }
+
+  var BACKEND = window.PF_BACKEND_URL;
+  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  function toast(m){ try{ PF.toast(m); }catch(e){} }
+/* 2026-10-04: friendly write-path errors — raw snake_case backend codes are
+   never shown to users (same pattern as games/armory.js writeErrCopy). */
+function baWriteErr(e,fb){
+  var s=String(e==null?"":e).trim();
+  var fall=fb||"The wire fought back. Nothing changed — retry.";
+  if(!s||/network error/i.test(s)) return fall;
+  var map={
+    "bad requester":"That callsign didn't check out. Re-claim it in Daily Orders, then retry.",
+    "missing title":"Give the bounty a title first.",
+    "reward must be 5-500 XP":"The XP reward must be between 5 and 500.",
+    "insufficient XP":"Not enough XP in the war chest. Go earn some.",
+    "escrow failed":"The XP escrow didn't go through. Retry.",
+    "db error":"The bounty board hiccuped. Retry in a moment."
+  };
+  if(map[s]) return map[s];
+  if(s.indexOf("_")!==-1) return fall; /* never show raw snake_case */
+  return s; /* backend prose already human-readable */
+}
+  function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+
+  /* R17 (2026-10-04): shared pack cache for the NEED WORDS? drawer inside
+     bounty claim forms — caption_packs fetched once, reused by every drawer
+     on the page. Lives in the outer closure so the bounty renderer can reach
+     it through the scope chain. */
+  var CA_PACKS=null, CA_PACKS_WAIT=[];
+  function caPacks(cb){
+    if(CA_PACKS){ try{ cb(CA_PACKS); }catch(e){} return; }
+    CA_PACKS_WAIT.push(cb);
+    if(CA_PACKS_WAIT.length>1) return;
+    api("caption_packs",{},function(j){
+      CA_PACKS=(j&&j.ok&&j.packs)||[];
+      var w=CA_PACKS_WAIT; CA_PACKS_WAIT=[];
+      for(var i=0;i<w.length;i++){ try{ w[i](CA_PACKS); }catch(e){} }
+    });
+  }
+  /* R17 + W3-D3 (2026-10-04): pack ratings — the sink for reputation votes.
+     reputation_vote only accepts callsign-format keys, so packs are
+     namespaced pack_<topic-slug>. One vote per voter/pack, changeable. */
+  function caPackKey(topic){
+    return ("pack_"+String(topic||"").toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"")).slice(0,20)||"pack_misc";
+  }
+  function caPostReputation(body,cb){
+    function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+    try{
+      if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,done); return; }
+      fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+        .then(function(r){ return r.json(); }).then(done).catch(function(){ done(null); });
+    }catch(e){ done(null); }
+  }
+  function caRatePack(topic,up,btn,wrap){
+    var id=ident();
+    if(!id.callsign){ toast("Claim a callsign to rate packs."); return; }
+    if(btn) btn.disabled=true;
+    /* Backend contract (feed.js): reputation_vote reads p.creator and p.up. */
+    caPostReputation({type:"reputation",rep_action:"reputation_vote",creator:caPackKey(topic),voter:id.callsign,device:id.device,up:up?1:-1},function(j){
+      if(btn) btn.disabled=false;
+      if(!j||!j.ok){ toast(baWriteErr(j&&j.err||j&&j.error,"Rating failed.")); return; }
+      try{
+        var n=wrap?wrap.querySelector("[data-raten]"):null;
+        if(n) n.textContent=" "+(Number(j.net)||0);
+      }catch(e){}
+      toast(up?"Pack backed.":"Pack docked.");
+    });
+  }
+
+  /* JSONP GET, same pattern as the other game silos. 12s timeout. */
+  function api(action, params, cb){
+    if(!BACKEND){ cb(null); return; }
+    var fn="pfCaCb"+Math.floor(Math.random()*1e9);
+    var s=document.createElement("script"), done=false;
+    function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+      if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+    window[fn]=function(j){ finish(j); };
+    s.onerror=function(){ finish(null); };
+    var q="?action="+encodeURIComponent(action);
+    for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+    q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+    setTimeout(function(){ finish(null); },12000);
+  }
+
+  /* Fire-and-forget copy tracking. Silent on failure — never block the UX.
+     Routed through the auth layer: claimed users carry their real stored
+     auth_secret and their rows land; anonymous users have no secret to send
+     (none is fabricated) — their rows 401 and are dropped silently. */
+  function trackCopy(templateId){
+    try{
+      if(!BACKEND) return;
+      var id = ident();
+      var body={type:"action",action_type:"assist_copy",
+        callsign:id.callsign||"",device:id.device||"",
+        meta:String(templateId||"").slice(0,128)};
+      if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,function(){}); return; }
+      if(window.fetch){
+        fetch(BACKEND, {method:"POST", mode:"cors",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify(body)}).catch(function(){});
+      }
+    }catch(e){}
+  }
+
+  function copyText(txt, templateId, btn){
+    function ok(){
+      toast("Copied. Go pump it.");
+      if(templateId) trackCopy(templateId);
+      if(btn){ var o=btn.textContent; btn.textContent="COPIED"; btn.disabled=true;
+        setTimeout(function(){ btn.textContent=o; btn.disabled=false; },1500); }
+    }
+    try{
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(txt).then(ok,function(){ fallback(); });
+      } else fallback();
+    }catch(e){ fallback(); }
+    function fallback(){
+      try{
+        var ta=document.createElement("textarea"); ta.value=txt;
+        ta.style.cssText="position:fixed;opacity:0"; document.body.appendChild(ta);
+        ta.select(); document.execCommand("copy"); ta.remove(); ok();
+      }catch(e2){ toast("Copy failed — select it manually."); }
+    }
+  }
+
+  var css = "<style>" +
+    "#pf-ca{font-family:Arial,sans-serif;color:#f5ead6}" +
+    "#pf-ca .ca-tabs{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}" +
+    "#pf-ca .ca-tab{background:#1a1a1a;border:1px solid #444;color:#f5ead6;padding:10px 18px;cursor:pointer;font:bold 13px Arial;letter-spacing:1px}" +
+    "#pf-ca .ca-tab.on{background:#c1121f;border-color:#c1121f;color:#fff}" +
+    "#pf-ca .ca-tab:hover{border-color:#c1121f}" +
+    "#pf-ca .ca-pane{display:none}" +
+    "#pf-ca .ca-pane.on{display:block}" +
+    "#pf-ca .ca-card{background:#141414;border:1px solid #333;border-left:4px solid #c1121f;padding:12px 14px;margin:10px 0}" +
+    "#pf-ca .ca-topic{font:bold 12px Arial;color:#c1121f;letter-spacing:2px;margin-bottom:8px;text-transform:uppercase}" +
+    "#pf-ca .ca-text{font-size:14px;line-height:1.5;margin:8px 0;white-space:pre-wrap}" +
+    "#pf-ca .ca-tags{font-size:13px;color:#9db4c8;margin:8px 0;line-height:1.6}" +
+    "#pf-ca .ca-copy{background:#c1121f;border:none;color:#fff;font:bold 12px Arial;padding:8px 16px;cursor:pointer;letter-spacing:1px;margin-top:6px}" +
+    "#pf-ca .ca-copy:hover{background:#e01420}" +
+    "#pf-ca .ca-copy:disabled{background:#555;cursor:default}" +
+    "#pf-ca .ca-hint{font-size:12px;color:#888;margin:10px 0;font-style:italic}" +
+    "#pf-ca .ca-load{padding:24px;text-align:center;color:#888}" +
+    "#pf-ca .ca-err{padding:24px;text-align:center;color:#c1121f}" +
+    "#pf-ca .ca-err button{background:#c1121f;border:none;color:#fff;font:bold 12px Arial;padding:8px 16px;cursor:pointer;margin-top:8px}" +
+    /* Wave 4 A4 (2026-10-04): sealed mystery bounty cards. */
+    "#pf-ca .bn-sealed{position:relative;background:#1a0d0d;border:1px solid #c1121f;border-left:4px solid #c1121f;padding:14px;margin:10px 0;overflow:hidden}" +
+    "#pf-ca .wax{width:88px;height:88px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e01420,#8f0a12 70%);color:#fff;display:flex;align-items:center;justify-content:center;font:bold 11px Arial;letter-spacing:2px;transform:rotate(-12deg);box-shadow:0 4px 14px rgba(193,18,31,.5),inset 0 2px 6px rgba(255,255,255,.25);margin:4px 0 10px}" +
+    "#pf-ca .wax.crack{animation:sealPop .65s ease forwards}" +
+    "@keyframes sealPop{0%{transform:rotate(-12deg) scale(1);opacity:1}35%{transform:rotate(-4deg) scale(1.3);opacity:1}100%{transform:rotate(10deg) scale(0);opacity:0}}" +
+    "#pf-ca .reveal-in{animation:revealIn .8s ease}" +
+    "@keyframes revealIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}" +
+    "#pf-ca .seal-objective{background:#0d0d0d;border:1px dashed #c1121f;padding:10px 12px;margin:8px 0;font-size:14px;line-height:1.5}" +
+    "#pf-ca .mult-big{font:bold 44px Arial;color:#ffd166;text-align:center;margin:10px 0;letter-spacing:2px}" +
+    "#pf-ca .mult-win{font:bold 15px Arial;color:#ffd166;text-align:center}" +
+    "</style>";
+
+  mount.innerHTML = '<div class="fe-block pf-override-block pf-silo" id="pf-ca">' + css +
+    '<h2>Creator Assist</h2>' +
+    '<div class="c-tag">The template armory. Steal these, pump them everywhere.</div>' +
+    '<div class="ca-tabs" role="tablist">' +
+      '<button class="ca-tab on" data-tab="captions" role="tab">CAPTIONS</button>' +
+      '<button class="ca-tab" data-tab="hashtags" role="tab">HASHTAGS</button>' +
+      '<button class="ca-tab" data-tab="headlines" role="tab">HEADLINES</button>' +
+      '<button class="ca-tab" data-tab="bounties" role="tab">BOUNTIES</button>' +
+    '</div>' +
+    '<div class="ca-pane on" id="ca-pane-captions"><div class="ca-load">Loading caption packs&hellip;</div></div>' +
+    '<div class="ca-pane" id="ca-pane-hashtags"><div class="ca-load">Loading hashtag sets&hellip;</div></div>' +
+    '<div class="ca-pane" id="ca-pane-headlines"><div class="ca-load">Loading headline formulas&hellip;</div><div class="ca-hint">Fill in the {BRACKETED} placeholders with your specifics. Make it yours.</div></div>' +
+    '<div class="ca-pane" id="ca-pane-bounties">' +
+      '<div class="ca-topic" style="margin-top:4px">Campaign Pool / Bounties</div>' +
+      '<div class="ca-hint">One demand board. Need propaganda? Post a bounty. Make one? Claim it. Get paid in XP.</div>' +
+      '<div id="xBounty"><div class="ca-load">Loading bounties&hellip;</div></div>' +
+    '</div>' +
+    '</div>';
+
+  var loaded = {};
+  function pane(name){ return document.getElementById("ca-pane-"+name); }
+  /* 6A-R10 (2026-10-04): ?tab=bounties deep-link — /events post-event
+     proof cards route here so attendees land on the S2 post-proof
+     bounty board (the approval queue lives behind it). */
+  try{
+    var tm=String(window.location.search||"").match(/[?&]tab=(bounties|captions|hashtags|headlines)/i);
+    if(tm){
+      var tname=tm[1].toLowerCase(), tbtn=mount.querySelector('.ca-tab[data-tab="'+tname+'"]');
+      if(tbtn){
+        var _tabs=mount.querySelectorAll(".ca-tab");
+        for(var _i=0;_i<_tabs.length;_i++) _tabs[_i].classList.remove("on");
+        tbtn.classList.add("on");
+        var _panes=mount.querySelectorAll(".ca-pane");
+        for(var _j=0;_j<_panes.length;_j++) _panes[_j].classList.remove("on");
+        var _p=pane(tname); if(_p) _p.classList.add("on");
+      }
+    }
+  }catch(e){}
+  function errHtml(msg){ return '<div class="ca-err">'+esc(msg)+'<br><button data-retry="1">RETRY</button></div>'; }
+
+  mount.addEventListener("click", function(ev){
+    var t = ev.target;
+    if(t.classList && t.classList.contains("ca-tab")){
+      var tab = t.getAttribute("data-tab");
+      var tabs = mount.querySelectorAll(".ca-tab");
+      for(var i=0;i<tabs.length;i++) tabs[i].classList.remove("on");
+      t.classList.add("on");
+      var panes = mount.querySelectorAll(".ca-pane");
+      for(var j=0;j<panes.length;j++) panes[j].classList.remove("on");
+      pane(tab).classList.add("on");
+      loadTab(tab);
+      return;
+    }
+    if(t.getAttribute && t.getAttribute("data-retry")){
+      var p = t.closest(".ca-pane");
+      var name = p.id.replace("ca-pane-","");
+      loaded[name] = false;
+      loadTab(name);
+      return;
+    }
+    /* R17: pack ratings (W3-D3 sink) — intercepted before the copy branch. */
+    if(t.getAttribute && t.getAttribute("data-rate")){
+      var rw=t.closest?t.closest(".ca-rate"):null;
+      caRatePack(rw?rw.getAttribute("data-topic"):"", Number(t.getAttribute("data-rate"))>0, t, rw);
+      return;
+    }
+    /* R17: USE ON A BOUNTY → from packs to the bounty board. */
+    if(t.getAttribute && t.getAttribute("data-gobounty")){
+      var btab=mount.querySelector('.ca-tab[data-tab="bounties"]');
+      if(btab) btab.click();
+      try{ mount.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){}
+      return;
+    }
+    /* R17: drawer copy buttons (bn-wcopy) are handled by the drawer itself. */
+    if(t.classList && t.classList.contains("ca-copy") && !(t.classList.contains("bn-wcopy"))){
+      copyText(t.getAttribute("data-copy")||"", t.getAttribute("data-tid")||"", t);
+    }
+  });
+
+  function loadTab(tab){
+    if(loaded[tab]) return;
+    loaded[tab] = true;
+    if(tab==="captions") loadCaptions();
+    else if(tab==="hashtags") loadHashtags();
+    else if(tab==="headlines") loadHeadlines();
+    else if(tab==="bounties") loadBounties();
+  }
+
+  function loadCaptions(){
+    var p = pane("captions");
+    api("caption_packs", {}, function(j){
+      if(!j || !j.ok || !j.packs || !j.packs.length){
+        p.innerHTML = errHtml("Armory jammed. Couldn't load captions.");
+        return;
+      }
+      var h = "";
+      j.packs.forEach(function(pack, pi){
+        var topic=pack.topic||("pack "+(pi+1));
+        /* R17: pack topic header carries the W3-D3 rating sink (▲/▼). */
+        h += '<div class="ca-topic">'+esc(topic)
+          +' <span class="ca-rate" data-topic="'+esc(topic)+'">'
+          +'<button class="ca-copy" data-rate="1" title="This pack hits">&#9650;</button>'
+          +'<button class="ca-copy" data-rate="-1" title="This pack misses">&#9660;</button>'
+          +'<span data-raten style="font-size:11px;color:#9db4c8"></span></span></div>';
+        (pack.captions||[]).forEach(function(c, ci){
+          var tid = "cap_"+esc(pack.topic||pi)+"_"+ci;
+          h += '<div class="ca-card"><div class="ca-text">'+esc(c)+'</div>' +
+               '<button class="ca-copy" data-copy="'+esc(c).replace(/"/g,"&quot;")+'" data-tid="'+tid+'">COPY</button></div>';
+        });
+        if(pack.hashtags && pack.hashtags.length){
+          h += '<div class="ca-card"><div class="ca-tags">'+esc(pack.hashtags.join(" "))+'</div>' +
+               '<button class="ca-copy" data-copy="'+esc(pack.hashtags.join(" "))+'" data-tid="tags_'+esc(pack.topic||pi)+'">COPY TAGS</button></div>';
+        }
+        /* R17: packs point at the labor — one tap to the bounty board. */
+        h += '<div style="margin:2px 0 14px"><button class="ca-copy" data-gobounty="1">USE ON A BOUNTY &rarr;</button></div>';
+      });
+      p.innerHTML = h;
+    });
+  }
+
+  function loadHashtags(){
+    var p = pane("hashtags");
+    api("hashtag_sets", {}, function(j){
+      if(!j || !j.ok || !j.sets || !j.sets.length){
+        p.innerHTML = errHtml("Armory jammed. Couldn't load hashtag sets.");
+        return;
+      }
+      var h = '<div class="ca-hint">One tap copies the whole set. Paste under your post.</div>';
+      j.sets.forEach(function(set){
+        var tags = (set.tags||[]).join(" ");
+        h += '<div class="ca-card"><div class="ca-topic">'+esc(set.name||set.id)+'</div>' +
+             '<div class="ca-tags">'+esc(tags)+'</div>' +
+             '<button class="ca-copy" data-copy="'+esc(tags)+'" data-tid="hs_'+esc(set.id||"")+'">COPY SET</button></div>';
+      });
+      p.innerHTML = h;
+    });
+  }
+
+  function loadHeadlines(){
+    var p = pane("headlines");
+    api("headline_formulas", {}, function(j){
+      if(!j || !j.ok || !j.formulas || !j.formulas.length){
+        p.innerHTML = errHtml("Armory jammed. Couldn't load headline formulas.") +
+          '<div class="ca-hint">Fill in the {BRACKETED} placeholders with your specifics. Make it yours.</div>';
+        return;
+      }
+      var h = '<div class="ca-hint">Fill in the {BRACKETED} placeholders with your specifics. Make it yours.</div>';
+      j.formulas.forEach(function(f){
+        h += '<div class="ca-card"><div class="ca-text">'+esc(f.text)+'</div>' +
+             '<button class="ca-copy" data-copy="'+esc(f.text).replace(/"/g,"&quot;")+'" data-tid="hf_'+esc(f.id||"")+'">COPY</button></div>';
+      });
+      p.innerHTML = h;
+    });
+  }
+
+
+  /* ---------- CAMPAIGN POOL / BOUNTIES (merged from games/bounties.js, PF v1.4.3, 2026-10-03) ----------
+     One demand board: post-a-bounty form + bounty list + my bounties. Same bounty_*
+     backend calls. bounties.js deleted. Loaded lazily on first tab open. */
+  var bountyStarted=false;
+  function loadBounties(){
+    if(bountyStarted) return; bountyStarted=true;
+    (function(){
+
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ PF.toast(m); }catch(e){} }
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  /* IDOR fix: bounty_mine is per-callsign private data — attach auth_secret. */
+  if(action==="bounty_mine"){
+    try{
+      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+    }catch(e){}
+  }
+  var fn="pfBnCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function post(bAction,params,cb){
+  var body=Object.assign({type:"bounty",b_action:bAction},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+}
+var B=null, BM=null, SEALED=[];
+/* Wave 4 A4 (2026-10-04): per-device sealed-bounty accept state. The backend
+   is the source of truth (bounty_accepts); this only remembers which
+   envelopes this browser already broke so the UI can show the mission. */
+function sealedAcc(){ try{ return JSON.parse(localStorage.getItem("pf_sealed_v1")||"{}"); }catch(e){ return {}; } }
+function sealedAccSave(m){ try{ localStorage.setItem("pf_sealed_v1", JSON.stringify(m||{})); }catch(e){} }
+function sealedErr(j){
+  var s=(j&&(j.err||j.error))||"";
+  s=String(s).trim();
+  return s || "The wire fought back. Nothing changed \u2014 retry.";
+}
+function sealedById(bid){
+  for(var i=0;i<SEALED.length;i++){ if(SEALED[i] && SEALED[i].id===bid) return SEALED[i]; }
+  return null;
+}
+function sealedCardHtml(b, ceremony){
+  var acc=sealedAcc()[b.id]||{};
+  var h='<div class="bn-item bn-sealed" id="sealCard_'+esc(b.id)+'">';
+  h+='<div class="wax">SEALED</div>';
+  h+='<div class="bn-title">???</div>';
+  h+='<div class="x-note">REWARD: MYSTERY &bull; Vanishes Sunday 23:59 CT</div>';
+  if(acc.done){
+    h+='<div class="x-note">COMPLETED &bull; rolled <b>'+esc(String(acc.mult||"?"))+'&times;</b>. The envelope is ash.</div>';
+  } else if(acc.o){
+    h+='<div class="seal-objective'+(ceremony?' reveal-in':'')+'">MISSION: <b>'+esc(acc.o)+'</b></div>';
+    h+='<div class="x-note">Finish it, then roll. A 5&times; roll that hits your daily XP cap pays the cap \u2014 nothing banks.</div>';
+    h+='<button class="c-btn bn-complete" data-bid="'+esc(b.id)+'">COMPLETE \u2014 ROLL THE REWARD</button>';
+    h+='<div id="sealRes_'+esc(b.id)+'"></div>';
+  } else {
+    h+='<button class="c-btn bn-break" data-bid="'+esc(b.id)+'">BREAK THE SEAL</button>';
+    h+='<div class="c-err" id="sealErr_'+esc(b.id)+'"></div>';
+  }
+  return h+'</div>';
+}
+function load(){
+  var done=false, n=0;
+  function fin(){ if(done)return; done=true; render(); }
+  function one(){ n++; if(n>=2) fin(); }
+  setTimeout(fin,15000);
+  var id0=ident();
+  api("bounty_list",{},function(j){ B=j; one(); });
+  api("bounty_mine",{callsign:id0.callsign},function(j){ BM=j; one(); });
+}
+function doXp(n,key,reason){
+  try{
+    document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:n,key:key,reason:reason||"bounty"}}));
+  }catch(e){}
+}
+/* S7 (2026-10-04): land the deep-linked visitor on the filtered board.
+   Once per page view — later refreshes (3-min interval) must not yank. */
+function forScrollOnce(){
+  if(!FOR_SLUG||window.__pfForScrolled) return;
+  window.__pfForScrolled=true;
+  try{
+    var ca=document.getElementById("pf-ca");
+    if(ca&&ca.scrollIntoView) setTimeout(function(){ try{ ca.scrollIntoView({block:"start"}); }catch(e){} },300);
+  }catch(e){}
+}
+function render(){
+  var el=document.getElementById("xBounty"); if(!el) return;
+  var id=ident(), h="";
+  /* S7 (2026-10-04): ?for=<slug> deep-link from catalog pages — filter
+     context shown above everything, even the callsign gate. */
+  var forName=FOR_SLUG?memberName(FOR_SLUG):"";
+  if(FOR_SLUG){
+    h+='<div class="ca-card" style="border-color:#c1121f;"><div class="ca-text">Showing open bounties for <b>'+esc(forName||FOR_SLUG)+'</b>.</div><a href="/create" style="color:#dc143c;font-size:12px;letter-spacing:1px;">CLEAR FILTER</a></div>';
+  }
+  if(!id.callsign){
+    h+=PF.gateHTML('Bounties run on callsigns.','to claim bounties');
+    el.innerHTML=h; forScrollOnce(); return;
+  }
+  /* --- open bounties --- */
+  var list=[];
+  try{ if(B&&B.ok&&B.bounties) list=B.bounties; }catch(e){}
+  /* A4 (2026-10-04): sealed envelopes split out into their own section. */
+  SEALED=list.filter(function(b){ return b && b.sealed; });
+  if(FOR_SLUG){
+    var fl=String(forName||"").toLowerCase();
+    list=list.filter(function(b){
+      var rq=String(b.requester||"").toLowerCase();
+      if(rq===FOR_SLUG) return true;
+      if(!fl) return false;
+      var hay=(String(b.title||"")+" "+String(b.detail||"")).toLowerCase();
+      return hay.indexOf(fl)!==-1;
+    });
+  }
+  list=list.filter(function(b){ return !(b&&b.sealed); });
+  /* --- sealed mystery bounties (weekly, house-posted) --- */
+  if(SEALED.length && !FOR_SLUG){
+    h+='<div class="x-pane"><h4>Sealed \u2014 mystery bounties</h4>';
+    h+='<div class="x-note">Three sealed envelopes drop every Monday. Break one to learn the mission. Finish it to roll 1&times;\u20135&times; on the reward. Unclaimed envelopes vanish Sunday at midnight.</div>';
+    for(var si=0;si<SEALED.length;si++){ h+=sealedCardHtml(SEALED[si], false); }
+    h+='</div>';
+  }
+  h+='<div class="x-pane"><h4>Open bounties</h4>';
+  if(!list.length){
+    h+=FOR_SLUG
+      ?'<div class="x-note">No open bounties from '+esc(forName||FOR_SLUG)+' right now. Post one below \u2014 put XP on the work you need.</div>'
+      :'<div class="x-note">No open bounties. Post one below \u2014 put XP on the work you need.</div>';
+  }
+  for(var i=0;i<list.length;i++){
+    var b=list[i];
+    h+='<div class="bn-item"><div class="bn-title">'+esc(b.title)+'</div>'
+      +'<div class="x-note">'+esc(b.detail||"")+'</div>'
+      +'<div class="bn-meta">'+(Number(b.xp)||0)+' XP &bull; posted by '+esc(b.requester||"anon")
+      +(b.status==='claimed'?' &bull; CLAIMED':'')+'</div>';
+    if(b.status!=='claimed'&&b.status!=='done'){
+      h+='<div class="bn-claimrow"><input aria-label="Your content ID (from Poster Forge)" class="bn-input" id="bnSub_'+esc(b.id)+'" placeholder="Your content ID (from Poster Forge)" maxlength="64">'
+        +'<button class="c-btn bn-claim" data-bid="'+esc(b.id)+'">CLAIM</button> '
+        /* R17: NEED WORDS? drawer — the armory opens inline, at the point of labor. */
+        +'<button class="c-btn ghost bn-wordsbtn" data-bid="'+esc(b.id)+'">NEED WORDS?</button></div>'
+        +'<div class="bn-words" id="bnWords_'+esc(b.id)+'" style="display:none;margin-top:8px"></div>'
+        +'<div class="c-err" id="bnErr_'+esc(b.id)+'"></div>';
+    }
+    h+='</div>';
+  }
+  h+='</div>';
+  /* --- my bounties: posted by me, with CLOSE for open ones --- */
+  var mine=[];
+  try{ if(BM&&BM.ok&&BM.bounties) mine=BM.bounties; }catch(e){}
+  h+='<div class="x-pane"><h4>My bounties</h4>';
+  if(!mine.length){
+    h+='<div class="x-note">You haven\u2019t posted any bounties yet.</div>';
+  }
+  for(var mi=0;mi<mine.length;mi++){
+    var mb=mine[mi]||{};
+    var mst=String(mb.status||"open");
+    h+='<div class="bn-item"><div class="bn-title">'+esc(mb.title||"Untitled")+'</div>'
+      +'<div class="bn-meta">'+(Number(mb.xp_reward)||0)+' XP &bull; '+esc(mst.toUpperCase())
+      +(mb.claimed_by?' &bull; claimed by '+esc(mb.claimed_by):'')+'</div>';
+    if(mst==="open"){
+      h+='<div style="margin-top:6px"><button class="c-btn bn-close" data-bid="'+esc(mb.id)+'">CLOSE BOUNTY</button></div>'
+        +'<div class="c-err" id="bnCloseErr_'+esc(mb.id)+'"></div>';
+    }
+    h+='</div>';
+  }
+  h+='</div>';
+  /* --- post a bounty --- */
+  h+='<div class="x-pane"><h4>Post a bounty</h4>'
+    +'<div class="x-note">Need propaganda? Put XP on it. A creator claims it, submits, gets paid.</div>'
+    +'<input aria-label="BOUNTY TITLE — e.g. Poster: Ohio Senate race" class="bn-input" id="bnTitle" placeholder="BOUNTY TITLE — e.g. Poster: Ohio Senate race" maxlength="80"><br>'
+    +'<input aria-label="Detail — what should it say? who is it for?" class="bn-input" id="bnDetail" placeholder="Detail — what should it say? who is it for?" maxlength="200"><br>'
+    +'<input aria-label="XP reward (10-100)" class="bn-input" id="bnXp" placeholder="XP reward (10-100)" maxlength="3" inputmode="numeric"><br>'
+    +'<button class="c-btn" id="bnPostBtn">POST BOUNTY</button><div class="c-err" id="bnPostErr"></div></div>';
+  h+='<div style="margin-top:10px"><button class="c-btn" id="bnRetry">Refresh</button></div>';
+  el.innerHTML=h;
+  forScrollOnce();
+  /* wire claims */
+  var cl=el.querySelectorAll("button.bn-claim");
+  for(var c=0;c<cl.length;c++){
+    (function(btn){
+      btn.onclick=function(){
+        var bid=btn.getAttribute("data-bid");
+        var inp=document.getElementById("bnSub_"+bid);
+        var cid=inp?inp.value.trim():"";
+        if(!cid){ var e0=document.getElementById("bnErr_"+bid); if(e0) e0.textContent="Enter your content ID first."; return; }
+        btn.disabled=true;
+        post("bounty_claim",{bounty_id:bid,content_id:cid,callsign:id.callsign,device:id.device},function(j){
+          btn.disabled=false;
+          var er=document.getElementById("bnErr_"+bid);
+          if(!j||!j.ok){ if(er) er.textContent=baWriteErr(j&&j.err||j&&j.error,"Claim failed."); return; }
+          toast("BOUNTY CLAIMED. +"+(j.xp||0)+" XP pending review.");
+          load();
+        });
+      };
+    })(cl[c]);
+  }
+  /* R17: NEED WORDS? drawer — opens the relevant armory pack inline inside
+     the bounty claim form. Pack data comes from the outer caPacks() cache;
+     copies go through the outer copyText() (scope chain). */
+  var wb=el.querySelectorAll("button.bn-wordsbtn");
+  for(var wbi=0;wbi<wb.length;wbi++){
+    (function(btn){
+      btn.onclick=function(){
+        var bid=btn.getAttribute("data-bid");
+        var dw=document.getElementById("bnWords_"+bid);
+        if(!dw) return;
+        if(dw.style.display!=="none"){ dw.style.display="none"; btn.textContent="NEED WORDS?"; return; }
+        dw.style.display="block"; btn.textContent="HIDE WORDS";
+        if(dw.getAttribute("data-filled")) return;
+        dw.innerHTML='<div class="x-note">Opening the armory&hellip;</div>';
+        caPacks(function(packs){
+          if(!packs||!packs.length){
+            dw.innerHTML='<div class="x-note">Armory jammed. Open the CAPTIONS tab above for the full packs.</div>';
+            return;
+          }
+          dw.setAttribute("data-filled","1");
+          var h='<div class="ca-topic">Pick a pack, steal the words</div>'
+            +'<select class="bn-input" id="bnWordsSel_'+esc(bid)+'" style="width:100%;margin-bottom:8px" aria-label="Caption pack">';
+          for(var pi=0;pi<packs.length;pi++){
+            h+='<option value="'+pi+'">'+esc(packs[pi].topic||("pack "+(pi+1)))+'</option>';
+          }
+          h+='</select><div id="bnWordsList_'+esc(bid)+'"></div>';
+          dw.innerHTML=h;
+          function paintWords(){
+            var sel=document.getElementById("bnWordsSel_"+bid);
+            var pk=packs[(sel?Number(sel.value):0)||0]||{captions:[]};
+            var lh="";
+            (pk.captions||[]).slice(0,6).forEach(function(c){
+              lh+='<div class="ca-card"><div class="ca-text">'+esc(c)+'</div>'
+                +'<button class="ca-copy bn-wcopy" data-wcopy="'+esc(c).replace(/"/g,"&quot;")+'">COPY</button></div>';
+            });
+            var listEl=document.getElementById("bnWordsList_"+bid);
+            if(listEl) listEl.innerHTML=lh||'<div class="x-note">Empty pack.</div>';
+          }
+          var selEl=document.getElementById("bnWordsSel_"+bid);
+          if(selEl) selEl.onchange=paintWords;
+          paintWords();
+          dw.onclick=function(ev){
+            var t=ev&&ev.target;
+            if(t&&t.classList&&t.classList.contains("bn-wcopy")){
+              copyText(t.getAttribute("data-wcopy")||"","words_bounty_"+bid,t);
+            }
+          };
+        });
+      };
+    })(wb[wbi]);
+  }
+  /* A4 (2026-10-04): wire sealed mystery bounties — break the seal (accept +
+     reveal ceremony), then complete for the server-side 1x-5x roll. */
+  function reSealCard(bid, ceremony){
+    var b=sealedById(bid); if(!b) return;
+    var card=document.getElementById("sealCard_"+bid);
+    if(card) card.outerHTML=sealedCardHtml(b, ceremony);
+    wireSealed();
+  }
+  function wireSealed(){
+    var bk=el.querySelectorAll("button.bn-break");
+    for(var i=0;i<bk.length;i++){
+      (function(btn){
+        if(btn.getAttribute("data-wired")) return;
+        btn.setAttribute("data-wired","1");
+        btn.onclick=function(){
+          var bid=btn.getAttribute("data-bid");
+          var er=document.getElementById("sealErr_"+bid);
+          btn.disabled=true; btn.textContent="BREAKING\u2026";
+          post("bounty_claim",{bounty_id:bid,callsign:id.callsign,device:id.device},function(j){
+            if(!j||!j.ok){
+              btn.disabled=false; btn.textContent="BREAK THE SEAL";
+              if(er) er.textContent=sealedErr(j);
+              return;
+            }
+            var m=sealedAcc();
+            m[bid]={o:j.objective||"",b:j.base||0,done:0,mult:0};
+            sealedAccSave(m);
+            /* reveal ceremony: crack the wax, then the mission slides in */
+            var card=document.getElementById("sealCard_"+bid);
+            var wax=card?card.querySelector(".wax"):null;
+            if(wax) wax.classList.add("crack");
+            setTimeout(function(){ reSealCard(bid, true); }, 700);
+          });
+        };
+      })(bk[i]);
+    }
+    var cp=el.querySelectorAll("button.bn-complete");
+    for(var k=0;k<cp.length;k++){
+      (function(btn){
+        if(btn.getAttribute("data-wired")) return;
+        btn.setAttribute("data-wired","1");
+        btn.onclick=function(){
+          var bid=btn.getAttribute("data-bid");
+          var res=document.getElementById("sealRes_"+bid);
+          btn.disabled=true; btn.textContent="ROLLING\u2026";
+          /* roll animation is theater only — the multiplier is rolled
+             server-side and arrives with the response. */
+          if(res) res.innerHTML='<div class="mult-big" id="sealRoll_'+esc(bid)+'">1&times;</div><div class="x-note">THE HOUSE ROLLS&hellip;</div>';
+          var t0=Date.now();
+          var iv=setInterval(function(){
+            var rr=document.getElementById("sealRoll_"+bid);
+            if(rr) rr.textContent=(1+Math.floor(Math.random()*5))+"\u00d7";
+          },90);
+          post("bounty_claim",{bounty_id:bid,complete:1,callsign:id.callsign,device:id.device},function(j){
+            var wait=Math.max(0, 800-(Date.now()-t0));
+            setTimeout(function(){
+              clearInterval(iv);
+              if(!j||!j.ok){
+                if(res) res.innerHTML='<div class="c-err">'+esc(sealedErr(j))+'</div>';
+                btn.disabled=false; btn.textContent="COMPLETE \u2014 ROLL THE REWARD";
+                return;
+              }
+              var m=sealedAcc(); var a=m[bid]||{};
+              a.done=1; a.mult=j.multiplier||0; m[bid]=a; sealedAccSave(m);
+              var cap=j.capped?'<div class="x-note">Hit your daily XP cap \u2014 paid the cap, nothing banked.</div>':"";
+              if(res) res.innerHTML='<div class="mult-big reveal-in">'+esc(String(j.multiplier||"?"))+'&times;</div>'
+                +'<div class="mult-win">+'+esc(String(j.xp||0))+' XP</div>'+cap
+                +'<div class="x-note">Base '+esc(String(j.base||0))+' XP &times; '+esc(String(j.multiplier||"?"))+' roll.</div>';
+              btn.style.display="none";
+              toast("SEALED BOUNTY COMPLETE. "+(j.multiplier||"?")+"\u00d7 \u2014 +"+(j.xp||0)+" XP.");
+            }, wait);
+          });
+        };
+      })(cp[i]);
+    }
+  }
+  wireSealed();
+  /* wire post */
+  var pb=document.getElementById("bnPostBtn");
+  if(pb) pb.onclick=function(){
+    var t=document.getElementById("bnTitle"), d=document.getElementById("bnDetail"), x=document.getElementById("bnXp");
+    var tv=t?t.value.trim():"", dv=d?d.value.trim():"", xv=Math.round(Number(x?x.value:"")||0);
+    var pe=document.getElementById("bnPostErr");
+    if(tv.length<4){ if(pe) pe.textContent="Title needs 4+ characters."; return; }
+    if(xv<10||xv>100){ if(pe) pe.textContent="XP reward must be 10-100."; return; }
+    pb.disabled=true;
+    /* 2026-10-04: backend contract — bounty_post reads p.xp_reward (not p.xp). */
+    post("bounty_post",{title:tv,detail:dv,xp_reward:xv,requester:id.callsign,device:id.device},function(j){
+      pb.disabled=false;
+      if(!j||!j.ok){ if(pe) pe.textContent=baWriteErr(j&&j.err||j&&j.error,"Post failed."); return; }
+      toast("BOUNTY POSTED. Creators, come and get it.");
+      load();
+    });
+  };
+  var rb=document.getElementById("bnRetry");
+  if(rb) rb.onclick=function(){ B=null; BM=null; el.innerHTML='<div class="c-load">Loading bounties&hellip;</div>'; load(); };
+  /* wire close-my-bounty */
+  var cb2=el.querySelectorAll("button.bn-close");
+  for(var k=0;k<cb2.length;k++){
+    (function(btn){
+      btn.onclick=function(){
+        var bid=btn.getAttribute("data-bid"); if(!bid) return;
+        if(!window.confirm("Close this bounty? The escrowed XP returns to you.")) return;
+        btn.disabled=true; btn.textContent="CLOSING\u2026";
+        post("bounty_close",{bounty_id:bid,callsign:id.callsign,device:id.device},function(j){
+          if(j&&j.ok){
+            var rf=Number(j.refunded)||0;
+            /* 2026-10-03 fix M2: the backend already granted this refund via
+               xpGrant ('bounty_refund_'+bid) — dispatching pf-xp here made
+               the xpledger mirror it a SECOND time under a different key
+               ('lx:<device>:bounty_refund_'+bid), double-paying the refund.
+               Backend is the source of truth; toast only. */
+            toast("BOUNTY CLOSED. +"+rf+" XP escrow refunded.");
+            B=null; BM=null; load();
+          } else {
+            var er=document.getElementById("bnCloseErr_"+bid);
+            if(er) er.textContent=baWriteErr(j&&j.err||j&&j.error,"Close failed.");
+            btn.disabled=false; btn.textContent="CLOSE BOUNTY";
+          }
+        });
+      };
+    })(cb2[k]);
+  }
+}
+load(); /* pane is visible: fetch immediately */
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },180000);
+
+    })();
+  }
+
+  /* Load the default tab immediately (6A-R10: ?tab= deep-link overrides). */
+  loadTab((function(){ try{
+    var m=String(window.location.search||"").match(/[?&]tab=(bounties|captions|hashtags|headlines)/i);
+    return m?m[1].toLowerCase():"captions";
+  }catch(e){ return "captions"; } })());
+  /* S7 (2026-10-04): ?for=<slug> deep-link from catalog pages — open the
+     bounty board straight away (delegated click handler does the switch). */
+  if(FOR_SLUG){
+    try{
+      var btab=mount.querySelector('.ca-tab[data-tab="bounties"]');
+      if(btab) btab.click();
+    }catch(e){}
+  }
+})();
+
+;
+
+/* ===== armory.js ===== */
+/* games/armory.js | PF v1.4.3 | THE ARMORY: XP cosmetics shop.
+   Spend XP on profile frames, callsign flair, and poster upgrades.
+   Pure vanity — no gameplay impact. One-time purchases, permanently owned.
+   Backend: sink/cosmetic_list (GET), sink/cosmetic_buy + sink/cosmetic_equip (POST).
+   KILL: ?pf_off=armory or localStorage pf_disabled_v1='["armory"]' */
+
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("armory")) { return; }
+
+  var BACKEND = (window.PF_BACKEND_URL || "https://pf-api.mtcstw.workers.dev");
+  var LS_I = "pf_identity_v1";
+  var LS_ARM = "pf_armory_v1";
+
+  /* Item metadata for previews (backend supplies name/cost/kind/owned). */
+  var PREVIEWS = {
+    'iron-frame':      { sec: 'frames',  blurb: 'Cold steel. The working-class frame.', css: 'border:3px solid #888;' },
+    'gold-frame':      { sec: 'frames',  blurb: 'For those who seized the means of shine.', css: 'border:3px solid #d4af37;box-shadow:0 0 12px rgba(212,175,55,.55);' },
+    'vanguard-frame':  { sec: 'frames',  blurb: 'The elite frame. Worn by the vanguard.', css: 'border:4px double #c1121f;box-shadow:0 0 0 2px #0d0d0d,0 0 0 4px #d4af37,0 0 16px rgba(193,18,31,.6);' },
+    'star-flair':      { sec: 'flair',   blurb: '\u2605 prefix on your callsign, everywhere it shows.', css: '' },
+    'gold-callsign':   { sec: 'flair',   blurb: 'Your callsign rendered in solid gold.', css: '' },
+    'foil-poster':     { sec: 'posters', blurb: 'Holographic foil finish on Poster Forge exports.', css: '' },
+    'animated-poster': { sec: 'posters', blurb: 'Animated border on Poster Forge exports.', css: '' },
+    'propaganda-chief':{ sec: 'badges',  blurb: 'The rarest badge on the network.', css: '' }
+  };
+  var SECTIONS = [
+    { id: 'frames',  title: 'Profile Frames',   sub: 'Borders for your callsign display' },
+    { id: 'flair',   title: 'Callsign Flair',   sub: 'Style your name across the site' },
+    { id: 'posters', title: 'Poster Upgrades', sub: 'Enhance your Poster Forge exports' },
+    { id: 'badges',  title: 'Badges',           sub: 'Wear your rank' }
+  ];
+
+  /* ---- equipped state (localStorage mirror; backend is source of truth) ---- */
+  function armState() {
+    try { return JSON.parse(localStorage.getItem(LS_ARM) || '{}'); } catch (e) { return {}; }
+  }
+
+  /* Global helper: apply equipped frame + flair to any callsign element.
+     Used by the armory preview and patched into enlistment-ranks. */
+  PF.armoryStyle = function (el) {
+    if (!el) return;
+    var s = armState(), cs = '';
+    try {
+      var id = JSON.parse(localStorage.getItem(LS_I) || '{}');
+      cs = String(id.callsign || '').toUpperCase();
+    } catch (e) {}
+    var flair = s.callsign || '';
+    var prefix = (flair === 'star-flair') ? '\u2605 ' : '';
+    var color = (flair === 'gold-callsign') ? '#d4af37' : '';
+    var frame = s.frame || '';
+    var frameCss = (PREVIEWS[frame] && PREVIEWS[frame].css) || '';
+    /* Rebuild content: flair prefix + callsign, wrapped in frame span. */
+    var label = el.getAttribute('data-armory-base') || el.textContent;
+    if (!el.getAttribute('data-armory-base')) el.setAttribute('data-armory-base', label);
+    var name = cs || label.replace(/^Fighting as\s+/i, '').replace(/^\u2605\s*/, '').trim();
+    el.innerHTML = '<span class="pf-armory-framed" style="' + frameCss +
+      (frameCss ? 'display:inline-block;padding:2px 10px;' : '') + '">' +
+      (prefix ? '<span style="color:#d4af37">' + prefix + '</span>' : '') +
+      '<span' + (color ? ' style="color:' + color + ';font-weight:bold"' : '') + '>' +
+      (cs ? 'FIGHTING AS ' + name : name) + '</span></span>';
+  };
+
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-armory">
+<div id="pf-armory">
+<style>
+#pf-armory{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f}
+#pf-armory h2{color:#c1121f;font-size:28px;margin:0 0 4px;letter-spacing:2px;text-transform:uppercase}
+#pf-armory .a-sub{font-family:Arial,sans-serif;font-size:12px;letter-spacing:3px;color:#ff5a00;text-transform:uppercase;margin-bottom:8px}
+#pf-armory .a-bal{font-family:Arial,sans-serif;font-size:14px;color:#d4af37;margin-bottom:16px;letter-spacing:1px}
+#pf-armory .a-preview{margin:0 0 18px;padding:14px;background:#1a1a1a;border:1px solid #333}
+#pf-armory .a-preview .a-plabel{font-family:Arial,sans-serif;font-size:10px;letter-spacing:3px;color:#777;text-transform:uppercase;margin-bottom:8px}
+#pf-armory .a-sec{margin:18px 0 6px;text-align:left}
+#pf-armory .a-sec h3{color:#d4af37;font-size:15px;letter-spacing:2px;margin:0 0 2px;text-transform:uppercase}
+#pf-armory .a-sec .a-secsub{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-bottom:8px}
+#pf-armory .a-item{background:#1a1a1a;border:1px solid #333;padding:12px 14px;margin:8px 0;display:flex;align-items:center;gap:12px;text-align:left}
+#pf-armory .a-swatch{width:44px;height:44px;flex:0 0 44px;display:flex;align-items:center;justify-content:center;font-size:20px;background:#0d0d0d;color:#d4af37}
+#pf-armory .a-info{flex:1;min-width:0}
+#pf-armory .a-name{font-size:13px;letter-spacing:1px;text-transform:uppercase}
+#pf-armory .a-blurb{font-family:Arial,sans-serif;font-size:11px;color:#999;margin-top:2px}
+#pf-armory .a-cost{font-family:Arial,sans-serif;font-size:12px;color:#d4af37;white-space:nowrap}
+#pf-armory .a-btn{background:#c1121f;color:#fff;border:0;padding:9px 16px;font-family:'Arial Black',Arial,sans-serif;font-size:11px;letter-spacing:1px;cursor:pointer;text-transform:uppercase;white-space:nowrap}
+#pf-armory .a-btn:hover{background:#8f0d17}
+#pf-armory .a-btn.equip{background:#1a5c1a}
+#pf-armory .a-btn.equip:hover{background:#0f4210}
+#pf-armory .a-btn.owned-on{background:none;border:2px solid #d4af37;color:#d4af37}
+#pf-armory .a-btn:disabled{background:#333;color:#777;cursor:default}
+#pf-armory .a-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:14px}
+#pf-armory .a-needcs{font-family:Arial,sans-serif;font-size:13px;color:#ff5a00;padding:20px 0}
+</style>
+
+<h2>&#9876; The Armory</h2>
+<div class="a-sub">Spend XP. Look dangerous.</div>
+<div class="a-bal" id="aBal">Loading&hellip;</div>
+<div class="a-preview">
+  <div class="a-plabel">Your callsign preview</div>
+  <div id="aPreview" style="font-size:18px;letter-spacing:1px"></div>
+</div>
+<div id="aShop"></div>
+<div class="a-note">One-time purchases. Yours forever. Equipped flair shows on your callsign across the site.</div>
+
+<script>
+(function(){
+var LS_I="pf_identity_v1", LS_ARM="pf_armory_v1";
+var BACKEND=(window.PF_BACKEND_URL||"https://pf-api.mtcstw.workers.dev");
+var PREVIEWS={
+  'iron-frame':{sec:'frames',blurb:'Cold steel. The working-class frame.',css:'border:3px solid #888;'},
+  'gold-frame':{sec:'frames',blurb:'For those who seized the means of shine.',css:'border:3px solid #d4af37;box-shadow:0 0 12px rgba(212,175,55,.55);'},
+  'vanguard-frame':{sec:'frames',blurb:'The elite frame. Worn by the vanguard.',css:'border:4px double #c1121f;box-shadow:0 0 0 2px #0d0d0d,0 0 0 4px #d4af37,0 0 16px rgba(193,18,31,.6);'},
+  'star-flair':{sec:'flair',blurb:'\\u2605 prefix on your callsign, everywhere it shows.',css:''},
+  'gold-callsign':{sec:'flair',blurb:'Your callsign rendered in solid gold.',css:''},
+  'foil-poster':{sec:'posters',blurb:'Holographic foil finish on Poster Forge exports.',css:''},
+  'animated-poster':{sec:'posters',blurb:'Animated border on Poster Forge exports.',css:''},
+  'propaganda-chief':{sec:'badges',blurb:'The rarest badge on the network.',css:''}
+};
+var SECTIONS=[
+  {id:'frames',title:'Profile Frames',sub:'Borders for your callsign display'},
+  {id:'flair',title:'Callsign Flair',sub:'Style your name across the site'},
+  {id:'posters',title:'Poster Upgrades',sub:'Enhance your Poster Forge exports'},
+  {id:'badges',title:'Badges',sub:'Wear your rank'}
+];
+var SEC_ICO={'frames':'\\u25A3','flair':'\\u2605','posters':'\\u25C9','badges':'\\u2694'};
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function ident(){try{var id=JSON.parse(localStorage.getItem(LS_I)||'{}');return{callsign:String(id.callsign||'').toLowerCase(),device:String(id.device||'')};}catch(e){return{callsign:'',device:''};}}
+function armState(){try{return JSON.parse(localStorage.getItem(LS_ARM)||'{}');}catch(e){return{};}}
+function saveArm(s){try{localStorage.setItem(LS_ARM,JSON.stringify(s));}catch(e){}}
+function toast(m){try{if(window.PF&&PF.toast)PF.toast(m);}catch(e){}}
+function get(action,params,cb){
+  var fn='pfArm'+Math.random().toString(36).slice(2),done=false;
+  function finish(j){if(done)return;done=true;try{delete window[fn];}catch(e){}
+    var s=document.getElementById(fn);if(s&&s.parentNode)s.parentNode.removeChild(s);cb(j);}
+  window[fn]=function(j){finish(j);};
+  var q='?action='+encodeURIComponent(action);
+  for(var k in params){if(params[k]!=null&&params[k]!=='')q+='&'+encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}
+  /* Attach auth_secret for authenticated GETs (cosmetic_list IDOR fix) */
+  try{ var sec=(window.PF&&PF.getAuthSecret?PF.getAuthSecret():''); if(sec) q+='&auth_secret='+encodeURIComponent(sec); }catch(e){}
+  var s=document.createElement('script');s.id=fn;s.src=BACKEND+q+'&callback='+fn;
+  s.onerror=function(){finish(null);};document.head.appendChild(s);
+  setTimeout(function(){finish(null);},12000);
+}
+function post(sAction,params,cb){
+  var body=Object.assign({type:'sink',s_action:sAction},params);
+  if(window.PF&&PF.authPost){PF.authPost(BACKEND,body,cb);return;}
+  /* 2026-10-03 L5: abort backstop — a hung fallback POST previously left
+     buy/equip buttons stuck disabled. */
+  var ctl=null;
+  try{ ctl=new AbortController(); }catch(e){}
+  var hung=setTimeout(function(){ try{ if(ctl) ctl.abort(); }catch(e){} },15000);
+  fetch(BACKEND,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:ctl?ctl.signal:undefined})
+    .then(function(r){return r.json();}).then(function(j){ try{clearTimeout(hung);}catch(e){} cb(j); })
+    .catch(function(){ try{clearTimeout(hung);}catch(e){} cb(null); });
+}
+var items=[], equipped={}, balance=null;
+/* H12 (2026-10-03): stock-load failure state. One auto-retry (~3s) fires
+   before the error panel; the RETRY button re-fires on demand. */
+var stockFailed=false, autoRetried=false;
+
+/* M27/M26 (2026-10-03): friendly write-path errors + working-state buttons.
+   Raw snake_case backend codes are never shown to users. */
+function writeErrCopy(e,fb){
+  var s=String(e==null?'':e).trim();
+  var fall=fb||'The wire fought back. Nothing changed — retry.';
+  if(!s||/network error/i.test(s)) return fall;
+  var map={
+    'bad callsign':'That callsign didn\u2019t check out. Re-claim it in Daily Orders, then retry.',
+    'bad kind':'That slot didn\u2019t take. Refresh the stock and try again.',
+    'missing item_id':'No item selected. Refresh the stock and try again.',
+    'missing item_id or kind':'No item selected. Refresh the stock and try again.',
+    'no such item':'That item isn\u2019t on the rack anymore. Refresh the stock.',
+    'not owned':'You don\u2019t own that one yet — buy it first.',
+    'already owned':'Already yours. It\u2019s waiting on the rack.',
+    'insufficient XP':'Not enough XP in the war chest. Go earn some.',
+    'db error':'The Armory ledger hiccuped. Retry in a moment.',
+    'invalid_code':'That code doesn\u2019t open anything. Check it and try again.'
+  };
+  if(map[s]) return map[s];
+  if(s.indexOf('_')!==-1) return fall; /* never show raw snake_case */
+  return s; /* backend prose already human-readable */
+}
+function busyBtn(btn,on){
+  try{
+    if(on){ if(btn.getAttribute('data-lbl')==null) btn.setAttribute('data-lbl',btn.textContent); btn.disabled=true; btn.textContent='WORKING\u2026'; }
+    else{ btn.disabled=false; var l=btn.getAttribute('data-lbl'); if(l!=null) btn.textContent=l; btn.removeAttribute('data-lbl'); }
+  }catch(e){}
+}
+
+function renderPreview(){
+  var pv=document.getElementById('aPreview'); if(!pv)return;
+  var id=ident();
+  var s=armState();
+  var name=(id.callsign||'anonymous').toUpperCase();
+  var prefix=(s.callsign==='star-flair')?'<span style="color:#d4af37">\\u2605 </span>':'';
+  var color=(s.callsign==='gold-callsign')?'#d4af37':'#f5ead6';
+  var frame=(s.frame&&PREVIEWS[s.frame])?PREVIEWS[s.frame].css:'';
+  pv.innerHTML='<span style="'+(frame?frame+'display:inline-block;padding:4px 14px;':'')+'">'+prefix+
+    '<span style="color:'+color+'">'+esc(name)+'</span></span>';
+}
+
+function render(){
+  renderPreview();
+  var bal=document.getElementById('aBal');
+  bal.textContent=(balance==null)?'Balance unavailable':('Your war chest: '+Number(balance).toLocaleString()+' XP');
+  var shop=document.getElementById('aShop'), h='';
+  SECTIONS.forEach(function(sec){
+    var list=items.filter(function(it){return (PREVIEWS[it.id]||{}).sec===sec.id;});
+    if(!list.length)return;
+    h+='<div class="a-sec"><h3>'+SEC_ICO[sec.id]+' '+esc(sec.title)+'</h3><div class="a-secsub">'+esc(sec.sub)+'</div>';
+    list.forEach(function(it){
+      var meta=PREVIEWS[it.id]||{};
+      var isEq=equipped[it.kind]===it.id;
+      var btn;
+      if(isEq){ btn='<button class="a-btn owned-on" data-act="unequip" data-id="'+esc(it.id)+'" data-kind="'+esc(it.kind)+'">Equipped</button>'; }
+      else if(it.owned){ btn='<button class="a-btn equip" data-act="equip" data-id="'+esc(it.id)+'">Equip</button>'; }
+      else{
+        var afford=balance!=null&&balance>=it.cost;
+        btn='<button class="a-btn" data-act="buy" data-id="'+esc(it.id)+'" data-cost="'+it.cost+'"'+(afford?'':' disabled')+'>Buy \\u00B7 '+Number(it.cost).toLocaleString()+' XP</button>';
+      }
+      var sw='<div class="a-swatch" style="'+(meta.css||'')+'">'+(SEC_ICO[sec.id]||'\\u25A3')+'</div>';
+      h+='<div class="a-item">'+sw+'<div class="a-info"><div class="a-name">'+esc(it.name)+'</div>'+
+        '<div class="a-blurb">'+esc(meta.blurb||'')+'</div></div>'+
+        '<div class="a-cost">'+(it.owned?'Owned':Number(it.cost).toLocaleString()+' XP')+'</div>'+btn+'</div>';
+    });
+    h+='</div>';
+  });
+  if(h){ shop.innerHTML=h; }
+  else{
+    /* H12 (2026-10-03): a failed stock load is a dead end no longer —
+       one auto-retry already fired; the RETRY button re-fires the load. */
+    shop.innerHTML='<div class="a-needcs">Armory stock failed to load. Retry shortly.<br><button class="a-btn" id="aRetryStock">RETRY</button></div>';
+    var _rb=document.getElementById('aRetryStock');
+    if(_rb) _rb.onclick=function(){ autoRetried=false; stockFailed=false; doList(); };
+  }
+  shop.querySelectorAll('button[data-act]').forEach(function(b){
+    b.onclick=function(){ handleAct(b.getAttribute('data-act'),b.getAttribute('data-id'),b); };
+  });
+}
+
+function handleAct(act,id,btn){
+  var idn=ident();
+  if(!idn.callsign){ toast('Claim a callsign first (Daily Orders widget).'); return; }
+  if(act==='buy'){
+    var cost=parseInt(btn.getAttribute('data-cost'),10)||0;
+    if(balance!=null&&balance<cost){ toast('Not enough XP. Go earn some.'); return; }
+    if(!window.confirm('Spend '+cost.toLocaleString()+' XP on this item? One-time purchase, yours forever.'))return;
+    busyBtn(btn,true);
+    post('cosmetic_buy',{callsign:idn.callsign,item_id:id},function(j){
+      busyBtn(btn,false);
+      if(!j||!j.ok){ toast('Purchase failed: '+writeErrCopy(j&&j.err,'Purchase failed')); return; }
+      balance=(j.balance!=null)?j.balance:(balance-cost);
+      var it=items.filter(function(x){return x.id===id;})[0];
+      if(it)it.owned=true;
+      var s=armState();
+      if(j.kind){ s[j.kind]=id; equipped[j.kind]=id; }
+      saveArm(s);
+      try{document.dispatchEvent(new CustomEvent('pf-xp',{detail:{gain:-cost,key:'armory_'+Date.now(),reason:'armory purchase'}}));}catch(e){}
+      toast('Acquired. Equipped automatically.');
+      render();
+    });
+  }else if(act==='equip'){
+    busyBtn(btn,true);
+    post('cosmetic_equip',{callsign:idn.callsign,item_id:id},function(j){
+      busyBtn(btn,false);
+      if(!j||!j.ok){ toast('Equip failed: '+writeErrCopy(j&&j.err,'Equip failed')); return; }
+      var s=armState(); s[j.kind]=id; saveArm(s); equipped[j.kind]=id;
+      toast('Equipped.');
+      render();
+    });
+  }else if(act==='unequip'){
+    var kind=btn.getAttribute('data-kind');
+    busyBtn(btn,true);
+    post('cosmetic_equip',{callsign:idn.callsign,kind:kind,item_id:''},function(j){
+      busyBtn(btn,false);
+      /* M29: check the backend verdict before claiming success — a failed
+         unequip leaves local state untouched and invites a retry. */
+      if(!j||!j.ok){ toast('Unequip failed: '+writeErrCopy(j&&j.err,'Unequip failed')+'. Tap again to retry.'); return; }
+      var s=armState(); delete s[kind]; saveArm(s); delete equipped[kind];
+      toast('Unequipped.');
+      render();
+    });
+  }
+}
+
+function load(){
+  var shop=document.getElementById('aShop');
+  var idn=ident();
+  if(!idn.callsign){
+    shop.innerHTML='<div class="a-needcs">Claim a callsign first (Daily Orders widget) \\u2014 the Armory needs a name.</div>';
+    document.getElementById('aBal').textContent='';
+    renderPreview();
+    return;
+  }
+  /* Pre-auth users have no stored auth_secret yet: claim one first so the
+     list GET can return owned/equipped state. Claim is best-effort — the
+     catalog is public, so the shop renders either way. */
+  var noSec=true;
+  try{ noSec=!(window.PF&&PF.getAuthSecret&&PF.getAuthSecret()); }catch(e){ noSec=true; }
+  if(noSec&&window.PF&&PF.claimAuthSecret){
+    PF.claimAuthSecret(idn.callsign,function(){ doList(); });
+  }else{ doList(); }
+}
+function doList(){
+  var idn=ident();
+  get('cosmetic_list',{callsign:idn.callsign},function(j){
+    stockFailed=!(j&&j.ok);
+    if(j&&j.ok){
+      items=j.items||[]; equipped=j.equipped||{};
+      var s=armState();
+      for(var k in equipped){ s[k]=equipped[k]; }
+      saveArm(s);
+    }
+    get('xp_balance',{callsign:idn.callsign},function(b){
+      balance=(b&&b.balance!=null)?b.balance:null;
+      /* H12 (2026-10-03): one auto-retry (~3s backoff) before the error panel. */
+      if(stockFailed&&!autoRetried){
+        autoRetried=true;
+        var shop=document.getElementById('aShop');
+        shop.innerHTML='<div class="a-needcs">The Armory is slow to answer. Retrying&hellip;</div>';
+        setTimeout(doList,3000);
+        return;
+      }
+      render();
+    });
+  });
+}
+load();
+})();
+</script>
+</div>
+</template>`);
+})();
+
+;
+
+/* ===== dashboard.js ===== */
+/* games/dashboard.js  |  PF v1.4.3 | COMMAND CENTER: unified creator analytics.
+   LAYERING: a game silo like campaign.js. Reads via JSONP (self-contained api());
+   the admin funnel uses fetch + X-Admin-Secret (sessionStorage, same key as vault).
+   It never reaches into another silo's internals.
+   KILL: ?pf_off=dash  or  localStorage pf_disabled_v1='["dash"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("dashboard")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-dash">
+<div class="fe-block pf-override-block pf-silo" id="pf-dash">
+<h2>Command Center</h2>
+<div class="c-tag">Your numbers, one screen. Optimize what you can see.</div>
+<div id="xDash"><div class="c-load">Loading&hellip;</div></div>
+</div>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  /* Private reads require auth_secret (IDOR fix). Auto-attach for gated actions. */
+  if(action==="xp_history"||action==="subscription_list"||action==="commission_earnings"){
+    try{
+      var _sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : "";
+      if(_sec && params && !params.auth_secret) params.auth_secret = _sec;
+    }catch(e){}
+  }
+  var fn="pfDbCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function adminSecret(){ try{ return sessionStorage.getItem("pf_admin_secret")||""; }catch(e){ return ""; } }
+var CS=null, HIST=null, FUNNEL=null, FUNNEL_DONE=false, UTOT=null;
+function load(){
+  var id=ident(), done=false, n=0;
+  function fin(){ if(done)return; done=true; render(); }
+  function one(){ n++; if(n>=3) fin(); }
+  setTimeout(fin,15000);
+  api("creator_stats",{callsign:id.callsign},function(j){ CS=j; one(); });
+  api("xp_history",{callsign:id.callsign,limit:100},function(j){ HIST=j; one(); });
+  /* 2026-10-03: user_totals (public) — device/callsign action totals.
+     Note: this read returns no ok field ({device,callsign,xp,pts,actions}). */
+  api("user_totals",{device:id.device,callsign:id.callsign},function(j){ UTOT=j; one(); });
+  loadFunnel();
+}
+function loadFunnel(){
+  var sec=adminSecret(); if(!sec){ FUNNEL_DONE=true; return; }
+  try{
+    /* 2026-10-03 M4: AbortController backstop — a hung request previously
+       left the admin funnel on "Checking admin access…" forever. */
+    var ctl=null;
+    try{ ctl=new AbortController(); }catch(e){}
+    var hung=setTimeout(function(){ try{ if(ctl) ctl.abort(); }catch(e){} },15000);
+    fetch(BACKEND+"?action=funnel_stats",{method:"GET",headers:{"X-Admin-Secret":sec},signal:ctl?ctl.signal:undefined})
+      .then(function(r){ return r.json(); })
+      .then(function(j){ try{clearTimeout(hung);}catch(e){} FUNNEL=j; FUNNEL_DONE=true; render(); })
+      .catch(function(){ try{clearTimeout(hung);}catch(e){} FUNNEL_DONE=true; });
+  }catch(e){ FUNNEL_DONE=true; }
+}
+function dayKey(ts){ var d=new Date(ts); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
+function weekBars(){
+  var entries=(HIST&&HIST.entries)||[];
+  var days=[], labels=[], sums=[0,0,0,0,0,0,0];
+  var now=new Date(); now.setHours(0,0,0,0);
+  for(var i=6;i>=0;i--){
+    var d=new Date(now.getTime()-i*86400000);
+    days.push(dayKey(d.getTime()));
+    labels.push(["Su","Mo","Tu","We","Th","Fr","Sa"][d.getDay()]);
+  }
+  for(var e=0;e<entries.length;e++){
+    var en=entries[e], delta=Number(en.delta)||0;
+    if(delta<=0) continue;
+    var k=dayKey(en.ts), ix=days.indexOf(k);
+    if(ix>=0) sums[ix]+=delta;
+  }
+  var max=Math.max.apply(null,sums.concat([1]));
+  var h='<div style="display:flex;align-items:flex-end;justify-content:space-between;height:140px;padding:8px 4px 0">';
+  for(var b=0;b<7;b++){
+    var pct=Math.round(sums[b]/max*100);
+    h+='<div style="flex:1;text-align:center;margin:0 2px">'
+      +'<div style="height:100px;position:relative;background:#222;border:1px solid #444">'
+      +'<div style="position:absolute;bottom:0;left:0;right:0;height:'+Math.max(pct,3)+'%;background:#c1121f"></div></div>'
+      +'<div style="font-size:11px;color:#aaa;margin-top:2px">'+labels[b]+'</div>'
+      +'<div style="font-size:11px;font-weight:bold">'+sums[b]+'</div></div>';
+  }
+  return h+'</div>';
+}
+function funnelHtml(){
+  if(!FUNNEL_DONE){ return '<div class="x-note">Checking admin access&hellip;</div>'; }
+  if(!FUNNEL||!FUNNEL.ok){ return '<div class="x-note">Funnel is admin-only. Unlock the Admin Vault to see it.</div>'; }
+  var f=FUNNEL.funnel||[];
+  var labels={enlisted:"Enlisted",lesson_1:"Lesson 1 done",first_share:"First share",joined_cell:"Joined a cell",week_active:"Active this week"};
+  var h='<div class="x-note">Where fighters drop off. Fix the biggest leak first.</div>';
+  var prev=null;
+  for(var i=0;i<f.length;i++){
+    var st=f[i], c=Number(st.count)||0, lab=labels[st.step]||st.step;
+    var drop=prev==null?"":(prev>0?" ("+Math.round((prev-c)/prev*100)+"% drop)":"");
+    h+='<div class="cp-mission"><div class="cp-mtext">'+esc(lab)+'</div>'
+      +'<div class="cp-mxp">'+c+drop+'</div></div>';
+    prev=c;
+  }
+  return h;
+}
+function render(){
+  var el=document.getElementById("xDash"); if(!el) return;
+  var id=ident(), h="";
+  if(!id.callsign){
+    h+=PF.gateHTML('Command Center runs on callsigns.','to command');
+    el.innerHTML=h; return;
+  }
+  /* --- your numbers --- */
+  var st=(CS&&CS.stats)||{};
+  function num(v){ return Number(v)||0; }
+  h+='<div class="x-pane"><h4>Your numbers</h4>'
+    +'<div class="cp-mission"><div class="cp-mtext">Total shares</div><div class="cp-mxp">'+num(st.total_shares)+'</div></div>'
+    +'<div class="cp-mission"><div class="cp-mtext">Boosts received</div><div class="cp-mxp">'+num(st.total_boosts_received)+'</div></div>'
+    +'<div class="cp-mission"><div class="cp-mtext">Tips received (XP)</div><div class="cp-mxp">'+num(st.total_tips_received)+'</div></div>'
+    +'<div class="cp-mission"><div class="cp-mtext">XP earned (all time)</div><div class="cp-mxp">'+num(st.total_xp_earned)+'</div></div>'
+    +'<div class="cp-mission"><div class="cp-mtext">Recruits</div><div class="cp-mxp">'+num(st.followers_via_referrals)+'</div></div>';
+  var tc=st.top_content||[];
+  if(tc.length){
+    h+='<h4 style="margin-top:10px">Top content</h4>';
+    for(var t=0;t<tc.length;t++){
+      h+='<div class="cp-mission"><div class="cp-mtext">'+esc(tc[t].title||tc[t].content_id)+'</div>'
+        +'<div class="cp-mxp">'+num(tc[t].shares)+' shares</div></div>';
+    }
+  }
+  h+='</div>';
+  /* W3-D12 (2026-10-04): action prompts — the analytics read drives
+     "share it while it's hot" prompts. */
+  h+=renderPrompts(st);
+  /* --- your footprint (2026-10-03: user_totals, public) — device-verified
+     social proof of the work you've put in. --- */
+  h+='<div class="x-pane"><h4>Your footprint</h4>';
+  if(UTOT&&(UTOT.actions!=null||UTOT.xp!=null)){
+    h+='<div class="cp-mission"><div class="cp-mtext">Actions logged on this device</div><div class="cp-mxp">'+Number(UTOT.actions||0)+'</div></div>'
+      +'<div class="cp-mission"><div class="cp-mtext">XP from logged actions</div><div class="cp-mxp">'+Number(UTOT.xp||0)+'</div></div>';
+  } else {
+    h+='<div class="x-note">Footprint unreadable right now. The wire will catch up.</div>';
+  }
+  h+='</div>';
+  /* --- weekly activity --- */
+  h+='<div class="x-pane"><h4>XP earned this week</h4>'+weekBars()+'</div>';
+  /* --- funnel --- */
+  h+='<div class="x-pane"><h4>Onboarding funnel</h4>'+funnelHtml()+'</div>';
+  el.innerHTML=h;
+  wirePrompts(el);
+}
+/* W3-D12 (2026-10-04): command center action prompts — "your catalog page is
+   hot — share it", driven by the existing creator_stats read. Content heat
+   comes from top_content shares; the catalog prompt keys off
+   catalog_views/catalog_slug/catalog_path in the response. If the backend
+   doesn't send those fields yet, the catalog prompt stays hidden and the
+   content prompts still fire — flagged for live verification. */
+var HOT_SHARES=10;
+function promptShare(title,url){
+  try{
+    if(window.PFShare&&PFShare.shareText){ PFShare.shareText(title+" — via MTCSTW "+(url||"")); }
+    else if(navigator.share){ navigator.share({title:title,text:title+" — JOIN THE FIGHT.",url:url||location.href}); }
+    else toast("Copy the link and spread it.");
+  }catch(e){}
+}
+function renderPrompts(st){
+  var prompts=[];
+  try{
+    var tc=st.top_content||[];
+    for(var i=0;i<tc.length;i++){
+      var t=tc[i], sh=Number(t.shares)||0;
+      if(sh>=HOT_SHARES) prompts.push({k:"hot"+i,
+        t:"\u2018"+(t.title||t.content_id||"your post")+"\u2019 is moving — "+sh+" shares.",
+        d:"Strike while it's hot. Share it again.",
+        btn:"SHARE IT AGAIN", title:String(t.title||t.content_id||"MTCSTW"), url:""});
+    }
+    var cv=Number(st.catalog_views||st.catalog_pageviews||0);
+    var cslug=st.catalog_slug||st.slug||"", cpath=st.catalog_path||(cslug?("/"+cslug):"");
+    if(cv>=HOT_SHARES&&cpath){
+      prompts.unshift({k:"catalog",
+        t:"YOUR CATALOG PAGE IS HOT — "+cv+" views.",
+        d:"Admirers are looking. Give them something to carry.",
+        btn:"SHARE MY PAGE", title:"Sick Left Radicals", url:cpath});
+    }
+  }catch(e){}
+  if(!prompts.length) return "";
+  var h='<div class="x-pane"><h4>Action prompts</h4>'
+    +'<div class="x-note">Your numbers say move. Don\u2019t let heat cool.</div>';
+  for(var p=0;p<prompts.length;p++){
+    var pr=prompts[p];
+    h+='<div class="cp-mission"><div class="cp-mtext"><b>'+esc(pr.t)+'</b><br><span class="x-note">'+esc(pr.d)+'</span></div>'
+      +'<div><button class="c-btn" data-ph="'+pr.k+'" data-pt="'+esc(pr.title)+'" data-pu="'+esc(pr.url)+'">'+esc(pr.btn)+'</button></div></div>';
+  }
+  return h+'</div>';
+}
+function wirePrompts(el){
+  var bs=el.querySelectorAll("button[data-ph]");
+  for(var i=0;i<bs.length;i++){
+    (function(b){
+      b.onclick=function(){ promptShare(b.getAttribute("data-pt")||"MTCSTW", b.getAttribute("data-pu")||location.href); };
+    })(bs[i]);
+  }
+}
+load();
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },300000);
+})();
+</scr`+`ipt>
+</div>
+</template>`);
+  /* H6 (2026-10-03): Creator HQ mount. dash belongs in Creator HQ — the HQ page
+     (#pf-war-card) loads bundle-sec4 (which stages pf-ov-dash above) but nothing
+     mounted it. Mount here, admin-gated: full render only for holders of the
+     admin secret (sessionStorage 'pf_admin_secret', same key as the vault),
+     verified against the backend (funnel_stats requires a valid X-Admin-Secret);
+     everyone else gets a locked note. */
+  try {
+    var href6 = window.location.href || '';
+    if (href6.indexOf('/config/') === -1) {
+      var hq6 = document.getElementById('pf-war-card');
+      var bd6 = null;
+      try { bd6 = document.body; } catch (e0) {}
+      if (hq6 && bd6 && !bd6.classList.contains('sqs-edit-mode') &&
+          !bd6.classList.contains('sqs-editing') && !document.getElementById('pf-dash-hq')) {
+        var tpl6 = document.getElementById('pf-ov-dash');
+        if (tpl6 && tpl6.content) {
+          var wrap6 = document.createElement('div');
+          wrap6.id = 'pf-dash-hq';
+          wrap6.className = 'fe-block pf-override-block pf-silo';
+          if (hq6.parentNode) hq6.parentNode.insertBefore(wrap6, hq6.nextSibling);
+          else hq6.appendChild(wrap6);
+          var frag6 = document.importNode(tpl6.content, true);
+          wrap6.appendChild(frag6);
+          var sec6 = '';
+          try { sec6 = sessionStorage.getItem('pf_admin_secret') || ''; } catch (e1) {}
+          var backend6 = window.PF_BACKEND_URL || '';
+          function locked6() {
+            var x = document.getElementById('xDash');
+            if (x) x.innerHTML = '<div class="x-note">Command Center is admin-only. Unlock the Admin Vault to view it.</div>';
+          }
+          if (sec6 && backend6) {
+            /* Verify the secret is real before rendering (same pattern as the vault). */
+            try {
+              fetch(backend6 + '?action=funnel_stats', { method: 'GET', headers: { 'X-Admin-Secret': sec6 } })
+                .then(function (r) { return r.json(); })
+                .then(function (j) {
+                  if (j && j.ok) {
+                    var sc = wrap6.querySelectorAll('script');
+                    for (var i = 0; i < sc.length; i++) {
+                      try { (0, eval)(sc[i].textContent); } catch (e2) { if (window.PF && PF.error) PF.error('dashboard-hq', e2); }
+                      sc[i].remove();
+                    }
+                  } else locked6();
+                })
+                .catch(function () { locked6(); });
+            } catch (e3) { locked6(); }
+          } else locked6();
+        }
+      }
+    }
+  } catch (e4) { if (window.PF && PF.error) PF.error('dashboard-hq-mount', e4); }
+})();
+
+;
+
+/* ===== earnings.js ===== */
+/* games/earnings.js  |  PF v1.4.3 | CREATOR EARNINGS.
+   For creators to track income: subscribers, revenue shares from sponsored
+   content, referral commissions, tips received, and an earnings summary.
+   Reads via JSONP (self-contained api()), writes via CORS POST
+   (self-contained post()). It never reaches into another silo's internals.
+   KILL: ?pf_off=earnings  or  localStorage pf_disabled_v1='["earnings"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("earnings")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-earnings">
+<div class="fe-block pf-override-block pf-silo" id="pf-earnings">
+<h2>Get Paid to Agitate</h2>
+<div class="c-tag">Your work pays. Track every stream.</div>
+<div id="xEarnings"><div class="c-load">Counting the money&hellip;</div></div>
+</div>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  /* Private reads require auth_secret (IDOR fix). Auto-attach for gated actions. */
+  if(action==="xp_history"||action==="subscription_list"||action==="commission_earnings"||action==="tip_history"){
+    try{
+      var _sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : "";
+      if(_sec && params && !params.auth_secret) params.auth_secret = _sec;
+    }catch(e){}
+  }
+  var fn="pfErCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function post(type,key,cAction,params,cb){
+  var body={type:type}; body[key]=cAction;
+  for(var k in params) body[k]=params[k];
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); }).then(function(j){ _po._pfClear(); done(j); }).catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+}
+function fmtDate(t){
+  try{ var d=new Date(Number(t)); if(isNaN(d.getTime())) return "";
+    var mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return mo[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear(); }catch(e){ return ""; }
+}
+function weekStart(){ var d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-d.getDay()); return d.getTime(); }
+var SUBS=null, COMM=null, TIPS=null, HIST=null, FT=null;
+function load(){
+  var id=ident(), done=false, n=0, need=5;
+  function fin(){ if(done)return; done=true; render(); }
+  function one(){ n++; if(n>=need) fin(); }
+  setTimeout(fin,15000);
+  api("subscription_list",{callsign:id.callsign},function(j){ SUBS=j; one(); });
+  api("commission_earnings",{callsign:id.callsign},function(j){ COMM=j; one(); });
+  api("tip_history",{callsign:id.callsign},function(j){ TIPS=j; one(); });
+  api("xp_history",{callsign:id.callsign,limit:200},function(j){ HIST=j; one(); });
+  /* R30 (2026-10-04): funding_totals — opt-in aggregates for the
+     CREATORS GETTING FUNDED strip. Degrades silently until it ships. */
+  api("funding_totals",{},function(j){ FT=j; one(); });
+}
+function render(){
+  var el=document.getElementById("xEarnings"); if(!el) return;
+  var id=ident(), h="";
+  if(!id.callsign){
+    el.innerHTML=PF.gateHTML('Earnings run on callsigns.','to see your earnings');
+    return;
+  }
+  h+=renderSummary(id);
+  h+=renderFunded(id);
+  h+=renderSubscribers(id);
+  h+=renderRevenue(id);
+  h+=renderCommissions(id);
+  h+=renderTips(id);
+  h+='<div style="margin-top:10px"><button class="c-btn" id="erRetry">Refresh</button></div>';
+  el.innerHTML=h;
+  wireRevenue(id,el);
+  wireFunded(el);
+  var rb=document.getElementById("erRetry");
+  if(rb) rb.onclick=function(){ SUBS=COMM=TIPS=HIST=null; FT=null; el.innerHTML='<div class="c-load">Counting the money&hellip;</div>'; load(); };
+}
+/* ---------- SUMMARY ---------- */
+function earnTotals(){
+  var ws=weekStart(), allTime=0, thisWeek=0;
+  try{
+    var es=(HIST&&HIST.ok&&HIST.entries)||[];
+    for(var i=0;i<es.length;i++){
+      var d=Number(es[i].delta)||0;
+      if(d>0){ allTime+=d; if(Number(es[i].ts)>=ws) thisWeek+=d; }
+    }
+  }catch(e){}
+  return { allTime:Math.round(allTime), thisWeek:Math.round(thisWeek) };
+}
+function renderSummary(id){
+  var t=earnTotals();
+  var fans=(SUBS&&SUBS.ok&&SUBS.supporters)||[];
+  var subWk=0;
+  for(var i=0;i<fans.length;i++) subWk+=Number(fans[i].amount_per_week||0);
+  var h='<div class="x-pane"><div class="pb-bankhead">&#9670; EARNINGS SUMMARY &#9670;</div>'
+    +'<div class="pb-cards">'
+    +'<div class="pb-card"><div class="pb-clabel">THIS WEEK</div><div class="pb-cval">'+t.thisWeek.toLocaleString()+'</div></div>'
+    +'<div class="pb-card"><div class="pb-clabel">ALL TIME</div><div class="pb-cval">'+t.allTime.toLocaleString()+'</div></div>'
+    +'<div class="pb-card"><div class="pb-clabel">SUBS / WEEK</div><div class="pb-cval">'+subWk.toLocaleString()+'</div></div>'
+    +'<div class="pb-card"><div class="pb-clabel">SUPPORTERS</div><div class="pb-cval">'+fans.length+'</div></div>'
+    +'</div>'
+    +'<div class="x-note">XP in. Every stream below feeds these numbers — subscriptions, tips, commissions, revenue shares.</div></div>';
+  return h;
+}
+/* ---------- R30: CREATORS GETTING FUNDED ---------- */
+var FUND_MILESTONES=[1000,10000,100000];
+function fundMilestone(tips){
+  var ms=0;
+  for(var i=0;i<FUND_MILESTONES.length;i++){ if(tips>=FUND_MILESTONES[i]) ms=FUND_MILESTONES[i]; }
+  return ms;
+}
+function renderFunded(id){
+  /* Opt-in aggregates only — the backend counts creators who opted in.
+     Silent until funding_totals ships (W6B-1). */
+  if(!FT||!FT.ok) return "";
+  var tips=Number(FT.total_tips||0), n=Number(FT.creator_count||0);
+  var ms=fundMilestone(tips);
+  var h='<div class="x-pane"><div class="pb-bankhead">&#9670; CREATORS GETTING FUNDED &#9670;</div>'
+    +'<div class="pb-cards">'
+    +'<div class="pb-card"><div class="pb-clabel">CREATORS IN</div><div class="pb-cval">'+n.toLocaleString()+'</div></div>'
+    +'<div class="pb-card"><div class="pb-clabel">TIPS FLOWING</div><div class="pb-cval">'+tips.toLocaleString()+'</div></div>'
+    +'</div>'
+    +'<div class="x-note">Opted-in creators only. Real tips, real fighters — the machine funds its own.</div>';
+  if(ms>0){
+    h+='<div style="margin-top:8px"><button class="c-btn" id="erMileBtn">SHARE THE '+ms.toLocaleString()+' MILESTONE</button></div>';
+  }
+  h+='</div>';
+  return h;
+}
+function wireFunded(el){
+  var b=document.getElementById("erMileBtn");
+  if(b) b.onclick=function(){ erPaintMilestone(); };
+}
+function erPaintMilestone(){
+  var tips=Number((FT&&FT.total_tips)||0), n=Number((FT&&FT.creator_count)||0);
+  var ms=fundMilestone(tips);
+  if(!ms){ toast("No milestone hit yet — keep tipping."); return; }
+  try{
+    var W=1080,H=1350,cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+    var x=cv.getContext("2d"); if(!x){ toast("Canvas unavailable."); return; }
+    x.fillStyle="#0d0d0d"; x.fillRect(0,0,W,H);
+    x.strokeStyle="#c1121f"; x.lineWidth=18; x.strokeRect(16,16,W-32,H-32);
+    x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(52,52,W-104,H-104);
+    x.textAlign="center";
+    var y=180;
+    x.fillStyle="#f5ead6"; x.font="700 34px Arial,sans-serif";
+    x.fillText("\u2605 THE PROPAGANDA FACTORY \u2605",W/2,y); y+=120;
+    x.fillStyle="#e8b64c"; x.font="900 110px \\"Arial Black\\",Arial,sans-serif";
+    x.fillText(ms.toLocaleString()+"+",W/2,y); y+=120;
+    x.fillStyle="#f5ead6"; x.font="900 56px \\"Arial Black\\",Arial,sans-serif";
+    x.fillText("TIPS AND COUNTING",W/2,y); y+=100;
+    x.fillStyle="#c9bfa8"; x.font="400 38px Arial,sans-serif";
+    x.fillText(n.toLocaleString()+" creators getting funded.",W/2,y); y+=70;
+    x.fillText("The machine funds its own.",W/2,y);
+    /* Footer: MTCSTW.COM + JOIN THE FIGHT. (red, bold) — the share-image CTA standard. */
+    x.fillStyle="#c1121f"; x.font="900 48px \\"Arial Black\\",Arial,sans-serif";
+    x.fillText("MTCSTW.COM",W/2,H-168);
+    x.font="900 44px \\"Arial Black\\",Arial,sans-serif";
+    x.fillText("JOIN THE FIGHT.",W/2,H-108);
+    if(window.PFShare&&PFShare.shareImage) PFShare.shareImage(cv,"pfn-funding-milestone.png","Creators getting funded","funding");
+    else toast("Share engine still loading.");
+  }catch(e){ toast("Poster failed — try again."); }
+}
+/* ---------- 1. SUBSCRIBERS ---------- */
+function renderSubscribers(id){
+  var fans=(SUBS&&SUBS.ok&&SUBS.supporters)||[];
+  var h='<div class="x-pane"><div class="pb-bankhead">&#9670; SUBSCRIBERS — YOUR PATRONS &#9670;</div>'
+    +'<div class="x-note">Soldiers paying you weekly XP. Treat them well — they fund your propaganda.</div>';
+  if(!fans.length) h+='<div class="x-note">No subscribers yet. Make propaganda worth paying for.</div>';
+  var total=0;
+  for(var i=0;i<fans.length;i++){
+    var f=fans[i]; total+=Number(f.amount_per_week||0);
+    h+='<div class="cp-lead"><span class="cp-lname">'+esc(f.subscriber)+'</span> '
+      +'<span class="cp-lxp">'+Number(f.amount_per_week||0).toLocaleString()+' XP/week</span>'
+      +'<span class="x-note"> since '+esc(fmtDate(f.started_at))+'</span></div>';
+  }
+  if(fans.length) h+='<div class="x-note"><b>'+total.toLocaleString()+' XP/week</b> in recurring patronage.</div>';
+  h+='</div>';
+  return h;
+}
+/* ---------- 2. REVENUE SHARES ---------- */
+function renderRevenue(id){
+  var h='<div class="x-pane"><div class="pb-bankhead">&#9670; REVENUE SHARES — SPONSORED CONTENT &#9670;</div>'
+    +'<div class="x-note">When someone sponsors a poster you boosted, 10% of the spend flows to top boosters. Claim what&rsquo;s yours.</div>'
+    +'<button class="c-btn" id="erClaimBtn">CLAIM REVENUE</button> <span class="x-note" id="erClaimNote"></span></div>';
+  return h;
+}
+function wireRevenue(id,el){
+  var b=document.getElementById("erClaimBtn");
+  if(!b) return;
+  b.onclick=function(){
+    b.disabled=true;
+    document.getElementById("erClaimNote").textContent="checking\u2026";
+    post("finance","f_action","revenue_claim",{callsign:id.callsign,device:id.device},function(j){
+      b.disabled=false;
+      if(!j||!j.ok){
+        document.getElementById("erClaimNote").textContent=PF.errCopy(j,"Nothing to claim.");
+        return;
+      }
+      var t=Number(j.total||0);
+      document.getElementById("erClaimNote").textContent=t>0?("claimed "+t.toLocaleString()+" XP"):"nothing pending";
+      toast(t>0?("CLAIMED "+t+" XP. Your boosts paid off."):("No pending revenue."));
+    });
+  };
+}
+/* ---------- 3. COMMISSIONS ---------- */
+function renderCommissions(id){
+  var tot=(COMM&&COMM.ok)?Number(COMM.total_earned||0):0;
+  var recs=(COMM&&COMM.ok&&COMM.recruits)||[];
+  var h='<div class="x-pane"><div class="pb-bankhead">&#9670; REFERRAL COMMISSIONS — 5% OF YOUR RECRUITS &#9670;</div>'
+    +'<div class="x-note">Every recruit you bring in pays you 5% of their earnings — automatically, until they&rsquo;ve earned 10,000 XP. Build the network, share the upside.</div>'
+    +'<div class="pb-balrow"><span class="pb-blabel">TOTAL EARNED</span><span class="pb-bval">'+tot.toLocaleString()+' XP</span></div>';
+  if(!recs.length) h+='<div class="x-note">No recruits yet. Your referral code is in the Referral War panel.</div>';
+  for(var i=0;i<recs.length;i++){
+    var r=recs[i];
+    h+='<div class="cp-lead"><span class="cp-lname">'+esc(r.recruit)+'</span> '
+      +'<span class="cp-lxp">+'+Number(r.earned_for_you||0).toLocaleString()+' XP for you</span></div>';
+  }
+  h+='</div>';
+  return h;
+}
+/* ---------- 4. TIPS RECEIVED ---------- */
+function renderTips(id){
+  var tips=(TIPS&&TIPS.ok&&TIPS.tips)||[];
+  var mine=[], total=0;
+  for(var i=0;i<tips.length;i++){
+    if(String(tips[i].to_cs||"").toLowerCase()===id.callsign.toLowerCase()){
+      mine.push(tips[i]); total+=Number(tips[i].xp||0);
+    }
+  }
+  var h='<div class="x-pane"><div class="pb-bankhead">&#9670; TIPS RECEIVED &#9670;</div>'
+    +'<div class="x-note">Direct appreciation from soldiers who value your work.</div>'
+    +'<div class="pb-balrow"><span class="pb-blabel">TOTAL TIPPED</span><span class="pb-bval">'+total.toLocaleString()+' XP</span></div>';
+  if(!mine.length) h+='<div class="x-note">No tips yet. Keep creating.</div>';
+  for(var q=0;q<Math.min(mine.length,15);q++){
+    var t=mine[q];
+    h+='<div class="cp-lead"><span class="cp-lname">'+esc(t.from_cs)+'</span> '
+      +'<span class="cp-lxp">+'+Number(t.xp||0).toLocaleString()+' XP</span>'
+      +(t.message?'<div class="x-note">&ldquo;'+esc(t.message)+'&rdquo;</div>':'')+'</div>';
+  }
+  h+='</div>';
+  return h;
+}
+/* On-demand data (2026-10-02): fetch only when the widget is actually
+   seen (or touched). The template above already renders a skeleton.
+   In-memory vars keep the session cache — no refetch on scroll. */
+(function(){
+  var sec=null;
+  try{ sec=document.querySelector('section[data-game="earnings"]'); }catch(e){}
+  var start=(window.PF&&PF.whenVisible)?PF.whenVisible(sec,function(){load();}):null;
+  if(start){ try{ if(sec) sec.addEventListener('pointerdown',start,{once:true}); }catch(e){} }
+  else load();
+})();
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },180000);
+})();
+</scr`+`ipt>
+</div>
+</template>`);
+})();
+
+;

@@ -40,12 +40,15 @@
     'pf-arcade': {
       title: 'THE ARCADE', sub: 'Nine games. Zero mercy. Play them all.',
       order: [
-        /* THE WHITE MARKET (2026-10-04): the unified wagering hall leads the
-           page — lobby (markets) first, then the house-games zone (casino).
-           Silo key + template id stay 'casino' internally; only display
-           strings were renamed to The White Market. */
+        /* REDISTRIBUTION LAYER (2026-10-05): the White Market / casino hall
+           is unmounted. The 'markets' silo is rebranded as the War Room —
+           Frontline Forecasts (with interim BATTLE WAGERS / RAID / DRAW
+           panes inside it); the coin-flip UI moved to the new 'gambits'
+           silo right below it. The retired casino.js keeps its
+           ?pf_off=casino kill-switch vestigial (not rewired); its
+           ['casino','pf-ov-casino'] entry was removed, not replaced. */
         ['markets', 'pf-ov-markets'],
-        ['casino', 'pf-ov-casino'],
+        ['gambits', 'pf-ov-gambits'],
         ['caption-combat', 'pf-ov-caption'],
         ['creator-guess', 'pf-ov-guess'],
         ['daily-interrogation', 'pf-ov-interrogation'],

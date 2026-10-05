@@ -147,6 +147,23 @@ var BUNDLES = {
        The phq-wallshame painter lives in the consolidated registry and loads
        via the lazy stub above. */
     'core/wall-of-shame.js',
+    /* Follow the Money (2026-10-05, fe/money-page): legislator money tab
+       (PFMoneyTab.mount) + bill-detail vote-vs-donor card (PFMoneyVote.mount).
+       Never auto-mounts — Release Eng calls PFMoneyTab.mount() from the
+       legislator detail view and PFMoneyVote.mount() from the bill detail
+       view. The phq-money painter lives in the consolidated registry. */
+    'core/money-tab.js',
+    'core/money-vote-card.js',
+    'core/wall-of-shame.js',
+    /* Follow the Money (2026-10-05): legislator money tab (PFMoneyTab.mount)
+       + bill-detail vote-vs-donor card (PFMoneyVote.mount). Right after
+       wall-of-shame.js so the phq-money painter is registered before any
+       DOWNLOAD/SHARE can fire. Never auto-mounts — Release Eng calls
+       PFMoneyTab.mount() from the legislator detail view and
+       PFMoneyVote.mount() from the bill detail view
+       (fe/legislation-tracker sibling branch). */
+    'core/money-tab.js',
+    'core/money-vote-card.js',
     /* creator-recruit: shared recruiting toolbar for roster cards + catalog
        pages. Last: needs PFShare (share-image.js) + the catalog renderers. */
     'pages/creator-recruit.js',

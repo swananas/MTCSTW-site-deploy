@@ -285,8 +285,8 @@ if (!PHQ) { no('PF.PHQShare', 'API not exposed'); }
 else {
   ok('PF.PHQShare exposed (with wallshame painter registered)');
   if (JSON.stringify(PHQ.ids) === JSON.stringify(
-      ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame']))
-    ok('ids list includes phq-wallshame');
+      ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame', 'phq-money']))
+    ok('ids list includes phq-wallshame (+ phq-money from the money worker)');
   else no('ids', 'unexpected ids: ' + JSON.stringify(PHQ.ids));
   if (typeof env.registered['phq-wallshame'] === 'function') ok('setPoster registered: phq-wallshame');
   else no('registration', 'phq-wallshame not registered with PFShare');

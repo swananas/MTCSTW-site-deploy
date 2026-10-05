@@ -250,7 +250,10 @@ var HQ_BUNDLES = {
     'civic.js',
     'governance.js',
     'notify-prefs.js',
-    'intel.js'
+    'intel.js',
+    /* Ballot Countdown Cards (2026-10-05): Forged-for-You ballot drafts tray
+       + phq-ballot forge/share/pledge loop. Kill ?pf_off=ballotcd. */
+    'ballot-countdown.js'
   ]
 };
 

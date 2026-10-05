@@ -132,6 +132,9 @@ var BUNDLES = {
     'games/flash-siren.js',
     'core/06-pinups.js',
     'core/share-image.js',
+    /* Ballot Countdown Cards (2026-10-05): phq-ballot painter (10th PHQ
+       painter; kill ?pf_off=phq-share). Needs PFShare (share-image.js). */
+    'core/share-image-phq.js',
     /* creator-recruit: shared recruiting toolbar for roster cards + catalog
        pages. Last: needs PFShare (share-image.js) + the catalog renderers. */
     'pages/creator-recruit.js',

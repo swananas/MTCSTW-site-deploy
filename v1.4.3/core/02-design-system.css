@@ -90,6 +90,26 @@
 .pf-btn-dim,.c-btn-dim{opacity:.55;}
 .pf-btn-sm{padding:8px 14px;font-size:11px;}
 
+/* ---------- 4b. GLOBAL ACCESSIBILITY GUARDS (audit v3, M4+M5, 2026-10-04)
+   M4: tap-target floor — every interactive element inside PF chrome is at
+   least 44px tall (WCAG 2.2 AA). Scoped to [id^="pf-"] mounts + .pf-silo
+   components so Squarespace native chrome/editor is untouched. Inline text
+   links (display:inline) ignore min-height, so prose links are unaffected.
+   !important is intentional: widget templates use inline styles, which this
+   must outrank (same precedent as the M2 font-size sweep).
+   M5: overflow-x guard — a rogue wide element can never cause horizontal
+   page scroll on phones. `clip` (not `hidden`) keeps position:sticky working;
+   @supports fallback for older browsers. Applied to html/body only — safe,
+   since Squarespace never relies on page-level horizontal scroll. The img
+   rule is scoped to PF surfaces so Squarespace galleries are untouched. */
+[id^="pf-"] button,[id^="pf-"] a,[id^="pf-"] input[type="submit"],
+[id^="pf-"] input[type="button"],.pf-silo button,.pf-silo a{
+  min-height:44px!important; box-sizing:border-box;
+}
+html,body{overflow-x:clip;}
+@supports not (overflow-x:clip){html,body{overflow-x:hidden;}}
+[id^="pf-"] img,.pf-silo img{max-width:100%;height:auto;}
+
 /* ---------- 5. FORMS ---------- */
 .pf-label,.vl-lab,.vd-flabel{
   font-family:var(--pf-font-body); font-size:11px; letter-spacing:2px;

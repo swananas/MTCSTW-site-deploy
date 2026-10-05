@@ -224,7 +224,7 @@ function stampedBlob(cb){
     }
   }catch(e){src=cv;}
   src.toBlob(function(blob){
-    if(blob.arrayBuffer){blob.arrayBuffer().then(function(buf){cb(new Blob([stampPng(buf)],{type:"image/png"}));});}
+    if(blob.arrayBuffer){blob.arrayBuffer().then(function(buf){cb(new Blob([stampPng(buf)],{type:"image/png"}));}).catch(function(){pfToast("Poster failed to render — tap Download again to retry.");});}
     else{cb(blob);}
   });
 }

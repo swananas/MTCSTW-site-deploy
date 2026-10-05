@@ -927,20 +927,6 @@
           "source": "linked in TikTok bio (contents not inspectable)"
         },
         {
-          "platform": "Merch",
-          "url": "https://www.thelastcookout.com (limited-edition $200 art prints + solidarity hoodie)",
-          "followers": "n/a",
-          "status": "confirmed",
-          "source": "on-site merch section"
-        },
-        {
-          "platform": "Newsletter",
-          "url": "https://www.thelastcookout.com (on-site email signup; not Substack)",
-          "followers": "n/a",
-          "status": "confirmed",
-          "source": "on-site subscribe form"
-        },
-        {
           "platform": "Podcast",
           "url": "The Last Cookout Podcast (announced on website FAQs; no Spotify/Apple/RSS found)",
           "followers": "n/a",

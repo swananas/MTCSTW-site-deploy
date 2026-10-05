@@ -61,9 +61,10 @@ var PAGES_V2=['pages/bundle-pages.js'];
    Homepage = bundle-sec1 blocking + bundle-home lazy (the .pf-sec-anchor
    mechanism in jsLazy(): PLAY/BELONG/CREATE/FUND/ACT/PROOF anchors all name
    games/bundle-home.js, loaded once when the first scrolls near).
-   /arcade = bundle-home (5 of its 9 games) + bundle-arcade (the other 4).
-   /cells = bundle-home (cells.js stages pf-ov-cells for the main Cells widget)
-   + bundle-cells. /create = bundle-home (poster-forge, feed) +
+   /arcade = bundle-arcade-h (the 5 arcade games that lived in bundle-home)
+   + bundle-arcade (the other 4).
+   /cells = bundle-cells-h (cells.js stages pf-ov-cells for the main Cells
+   widget) + bundle-cells. /create = bundle-create-h (poster-forge, feed) +
    bundle-create. /bank, /economy, /war-chest, /ventures, /events,
    /war-report = their single bundle each.
    /political-hq = core + bundle-hq + pages. Creator HQ (#pf-war-card) =
@@ -80,7 +81,7 @@ var isSlrPage=!!document.getElementById('pf-slr-roster')||!!document.getElementB
    pages the DB still loads on demand via PF.ensureSLRDB() if ever needed. */
 var NEED_SLR=isHome||isArcade||isCreate||isWarCard||isSlrPage;
 CORE_V2=[NEED_SLR?'core/bundle-core-slr.js':'core/bundle-core.js'];
-var JS_GAMES=isHome?['games/bundle-sec1.js']:isArcade?['games/bundle-home.js','games/bundle-arcade.js']:isCellsPage?['games/bundle-home.js','games/bundle-cells.js']:isCreate?['games/bundle-home.js','games/bundle-create.js']:isBank?['games/bundle-bank.js']:isEconomy?['games/bundle-economy.js']:isWarchest?['games/bundle-warchest.js']:isVentures?['games/bundle-ventures.js']:isEvents?['games/bundle-events.js']:isWarReport?['games/bundle-warreport.js']:isHQ?[]:isWarCard?['games/bundle-create.js','games/bundle-cells.js']:isSlrPage?['games/bundle-roster.js']:[];
+var JS_GAMES=isHome?['games/bundle-sec1.js']:isArcade?['games/bundle-arcade-h.js','games/bundle-arcade.js']:isCellsPage?['games/bundle-cells-h.js','games/bundle-cells.js']:isCreate?['games/bundle-create-h.js','games/bundle-create.js']:isBank?['games/bundle-bank.js']:isEconomy?['games/bundle-economy.js']:isWarchest?['games/bundle-warchest.js']:isVentures?['games/bundle-ventures.js']:isEvents?['games/bundle-events.js']:isWarReport?['games/bundle-warreport.js']:isHQ?[]:isWarCard?['games/bundle-create.js','games/bundle-cells.js']:isSlrPage?['games/bundle-roster.js']:[];
 var JS_HQ=isHQ?['games/bundle-hq.js']:[];
 /* DEFECT 1 (2026-10-03): the v1.1.0 set carries no footer chrome. Append
    the slim footer-chrome bundle (DELETE MY DATA + NUKE meter + RUN

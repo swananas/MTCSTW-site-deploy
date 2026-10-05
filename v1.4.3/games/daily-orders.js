@@ -468,6 +468,14 @@ function drawBoostCard(){
   return cv;
 }
 function shareBoostCard(){
+  var boostShareErr=function(msg){
+    /* Reuses the file's existing .o-err error style; auto-dismisses like the share note. */
+    try{
+      var d=document.createElement('div');d.className='o-err';d.style.marginTop='8px';d.textContent=msg;
+      var sh=document.getElementById('oBoostShare');
+      if(sh&&sh.parentNode){sh.parentNode.appendChild(d);setTimeout(function(){if(d.parentNode)d.remove();},9000);}
+    }catch(e){}
+  };
   var done2=function(){
     var r=pumpBoost("share");
     renderBoost();
@@ -485,7 +493,7 @@ function shareBoostCard(){
       }
     };
     if(cv.toBlob){ cv.toBlob(function(bl){ go(URL.createObjectURL(bl),bl); },"image/png"); }
-    else{ var u=cv.toDataURL("image/png"); fetch(u).then(function(r){return r.blob();}).then(function(bl){ go(URL.createObjectURL(bl),bl); }); }
+    else{ var u=cv.toDataURL("image/png"); fetch(u).then(function(r){return r.blob();}).then(function(bl){ go(URL.createObjectURL(bl),bl); }).catch(function(){ boostShareErr("Boost card image failed to build — tap Share again to retry."); }); }
   }catch(e){}
 }
 
@@ -1037,7 +1045,7 @@ function shareOrdersImage(btn){
       }
     };
     if(cv.toBlob){cv.toBlob(function(b){done(URL.createObjectURL(b),b);},'image/png');}
-    else{var u=cv.toDataURL('image/png');fetch(u).then(function(r){return r.blob();}).then(function(b){done(URL.createObjectURL(b),b);});}
+    else{ var u=cv.toDataURL('image/png');fetch(u).then(function(r){return r.blob();}).then(function(b){done(URL.createObjectURL(b),b);}).catch(function(){if(btn)btn.disabled=false;note('Image failed to build — tap the button again to retry.','#c1121f');});}
   }catch(e){if(btn)btn.disabled=false;}
 }
 var _shareBtn=document.getElementById('oShareImg');

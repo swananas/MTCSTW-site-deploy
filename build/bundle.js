@@ -51,8 +51,9 @@ var SECTIONS = {
   ],
   'bundle-home': [
     /* HOMEPAGE PLAY/BELONG/CREATE/FUND/ACT/PROOF — lazy-loaded as one bundle
-       when those sections scroll near. Also fetched BLOCKING on /arcade (5
-       of its 9 games live here) and /create (poster-forge, feed). */
+       when those sections scroll near. Dedicated pages (/arcade, /cells,
+       /create) fetch the slim bundle-arcade-h / bundle-cells-h /
+       bundle-create-h bundles instead of this one. */
     'spotlight.js',
     'creator-guess.js',
     'daily-interrogation.js',
@@ -68,6 +69,31 @@ var SECTIONS = {
     'campaign.js',
     'alerts.js',
     'fan-vote.js'
+  ],
+  /* SLIM DEDICATED-PAGE BUNDLES (2026-10-04, M1 dead-weight fix): /arcade,
+     /cells and /create used to fetch the full bundle-home (~83KB gz) to get
+     a handful of its games. These three slim bundles re-list silos that
+     also live in bundle-home; the loader's JS_GAMES map fetches the slim
+     bundle INSTEAD of bundle-home on those pages, so no page ever loads the
+     same silo twice. bundle-home stays intact as the homepage's single lazy
+     bundle for PLAY/BELONG/CREATE/FUND/ACT/PROOF (zero homepage change).
+     The uniqueness check below skips these bundles on purpose. */
+  'bundle-arcade-h': [
+    /* /arcade — the 5 arcade games that lived in bundle-home. */
+    'creator-guess.js',
+    'daily-interrogation.js',
+    'billionaire-supervillain.js',
+    'slr-match-quiz.js',
+    'infighting.js'
+  ],
+  'bundle-cells-h': [
+    /* /cells — cells.js stages pf-ov-cells for the main Cells widget. */
+    'cells.js'
+  ],
+  'bundle-create-h': [
+    /* /create — poster-forge + feed (the Propaganda Feed workshop). */
+    'poster-forge.js',
+    'feed.js'
   ],
   'bundle-arcade': [
     /* /arcade — the 4 arcade games not already in bundle-home. */
@@ -147,8 +173,13 @@ function fail(msg) { console.error('BUNDLE FAIL: ' + msg); process.exit(1); }
    GLOBAL_CHROME, which ships via build/bundle-core.js (pages/bundle-pages.js
    loads on every v2 page) instead of a page bundle. */
 var allFiles = fs.readdirSync(ROOT).filter(function (f) { return f.slice(-3) === '.js'; });
+/* Every game .js file must live in exactly one page or HQ bundle — except the
+   three SLIM_DUP bundles above, which intentionally re-list silos from
+   bundle-home (the loader fetches slim INSTEAD of bundle-home, never both). */
+var SLIM_DUP = ['bundle-arcade-h', 'bundle-cells-h', 'bundle-create-h'];
 var bundled = [];
 Object.keys(ALL).forEach(function (b) {
+  if (SLIM_DUP.indexOf(b) !== -1) return; /* see note above */
   ALL[b].forEach(function (f) {
     if (bundled.indexOf(f) !== -1) fail('file in two bundles: ' + f);
     bundled.push(f);

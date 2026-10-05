@@ -3248,10 +3248,11 @@ window.pfPinups={
 
 /* ===== core/share-image-phq.js ===== */
 /* core/share-image-phq.js  |  PF v1.4.3 | POLITICAL HQ SHARE POSTERS.
-   Five custom PFShare painters (1080x1350, house palette) for the Political HQ
+   Six custom PFShare painters (1080x1350, house palette) for the Political HQ
    rollout: pressure-campaign card, prediction-result card, prediction-call card
    (pre-resolution "SHARE YOUR CALL", same painter family as the result card),
-   voting scorecard, cell-competition winner card.
+   voting scorecard, cell-competition winner card, ballot-countdown card
+   (merged via fe/ballot-countdown; other PHQ painters land with their silos).
    Spec: ~/workspace/hidden/phq-share-specs.md.
    Data contract (painter receives one data object; missing optional fields
    degrade gracefully; scorecard missing fields render '—', never invented):
@@ -3260,6 +3261,10 @@ window.pfPinups={
      predictcall:{billTitle, billId, pick ('pass'|'fail'), margin?}
      scorecard:  {name, state, party, grade, verdict, votes[3] {bill, vote, for_us}}
      cellwin:    {cellName, verified, members, xp, runnerUp, marginXp, mvpCallsign, weekStart}
+     ballot:     {state ('TX'), daysLeft (7|3|1|0|null), deadline ('YYYY-MM-DD'|null),
+                 registerUrl, sameDay (bool). daysLeft null + sameDay true ->
+                 NO DEADLINE variant. Missing daysLeft + not sameDay ->
+                 CHECK YOUR DEADLINE degrade (never invented).}
    Callsigns resolve at paint time via callsignOf() (identity store /
    PFCallsign) — never passed in data. Painters that render the callsign
    inline set cv._pfStamped = true so PFShare.stampCallsign stays a no-op
@@ -3280,13 +3285,14 @@ window.pfPinups={
   window.pfPhqShareDone = true;
 
   var W = 1080, H = 1350;
-  var IDS = ['phq-pressure', 'phq-prediction', 'phq-predict-call', 'phq-scorecard', 'phq-cellwin'];
+  var IDS = ['phq-pressure', 'phq-prediction', 'phq-predict-call', 'phq-scorecard', 'phq-cellwin', 'phq-ballot'];
   var TITLES = {
     'phq-pressure': 'PRESSURE CAMPAIGN',
     'phq-prediction': 'PREDICTION RESULT',
     'phq-predict-call': 'MY CALL',
     'phq-scorecard': 'VOTING SCORECARD',
-    'phq-cellwin': 'CELL VICTORY'
+    'phq-cellwin': 'CELL VICTORY',
+    'phq-ballot': 'BALLOT COUNTDOWN'
   };
   var DEEP = 'MTCSTW.COM/POLITICAL-HQ';
   var PENDING = {};
@@ -3654,6 +3660,116 @@ window.pfPinups={
     return cv;
   }
 
+  /* Specific source + date line above the standard stack. Skipped when
+     data.source is absent — bottomStack's deep link is the fallback, so we
+     never print a redundant second MTCSTW.COM line. */
+  function srcLine(x, d) {
+    var s = String(d.source == null ? '' : d.source).trim();
+    if (!s) return;
+    var t = 'SOURCE: ' + s.toUpperCase();
+    var dt = String(d.source_date == null ? '' : d.source_date).trim();
+    if (dt) t += ' \u00b7 ' + monDate(dt);
+    x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+    x.fillStyle = '#c9bfa8';
+    fitFont(x, t, 30, 22, 910, '400');
+    x.fillText(t, W / 2, H - 168);
+  }
+  var BALLOT_STATES = {
+    AL: 'ALABAMA', AK: 'ALASKA', AZ: 'ARIZONA', AR: 'ARKANSAS', CA: 'CALIFORNIA',
+    CO: 'COLORADO', CT: 'CONNECTICUT', DE: 'DELAWARE', DC: 'DISTRICT OF COLUMBIA',
+    FL: 'FLORIDA', GA: 'GEORGIA', HI: 'HAWAII', ID: 'IDAHO', IL: 'ILLINOIS',
+    IN: 'INDIANA', IA: 'IOWA', KS: 'KANSAS', KY: 'KENTUCKY', LA: 'LOUISIANA',
+    ME: 'MAINE', MD: 'MARYLAND', MA: 'MASSACHUSETTS', MI: 'MICHIGAN',
+    MN: 'MINNESOTA', MS: 'MISSISSIPPI', MO: 'MISSOURI', MT: 'MONTANA',
+    NE: 'NEBRASKA', NV: 'NEVADA', NH: 'NEW HAMPSHIRE', NJ: 'NEW JERSEY',
+    NM: 'NEW MEXICO', NY: 'NEW YORK', NC: 'NORTH CAROLINA', ND: 'NORTH DAKOTA',
+    OH: 'OHIO', OK: 'OKLAHOMA', OR: 'OREGON', PA: 'PENNSYLVANIA',
+    RI: 'RHODE ISLAND', SC: 'SOUTH CAROLINA', SD: 'SOUTH DAKOTA',
+    TN: 'TENNESSEE', TX: 'TEXAS', UT: 'UTAH', VT: 'VERMONT', VA: 'VIRGINIA',
+    WA: 'WASHINGTON', WV: 'WEST VIRGINIA', WI: 'WISCONSIN', WY: 'WYOMING'
+  };
+  function ballotDate(ymd) {
+    var s = String(ymd == null ? '' : ymd).trim();
+    var m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return '';
+    var MON = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY',
+      'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
+    var mi = parseInt(m[2], 10) - 1;
+    if (mi < 0 || mi > 11) return '';
+    return MON[mi] + ' ' + parseInt(m[3], 10) + ', ' + m[1];
+  }
+  function ballotShortUrl(u, st) {
+    var s = String(u == null ? '' : u).trim()
+      .replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/$/, '');
+    if (s) return s.toUpperCase();
+    return 'VOTE.GOV/REGISTER' + (st ? '/' + st.toLowerCase() : '');
+  }
+  function paintBallot(d, cv, x) {
+    base(x); kicker(x);
+    badge(x, 'BALLOT COUNTDOWN', 280, '#f5ead6', 40);
+    var st = String(d.state == null ? '' : d.state).toUpperCase().trim();
+    var sName = BALLOT_STATES[st] || (st ? st : 'YOUR STATE');
+    var sameDay = !!d.sameDay;
+    var dl = (typeof d.daysLeft === 'number' && isFinite(d.daysLeft)) ? Math.round(d.daysLeft) : null;
+    var cs = callsignOf();
+    var y = 430;
+    x.textAlign = 'center';
+    if (sameDay) {
+      /* Same-day registration: no deadline — never fake urgency. */
+      x.fillStyle = '#c1121f';
+      x.font = '900 120px "Arial Black",Arial,sans-serif';
+      x.fillText('NO DEADLINE', W / 2, y); y += 140;
+      x.fillStyle = '#f5ead6'; x.font = '700 52px Arial,sans-serif';
+      wrap(x, 'REGISTER AT THE POLLS IN ' + sName, 910).slice(0, 2)
+        .forEach(function (l) { x.fillText(l, W / 2, y); y += 64; });
+      y += 24;
+    } else if (dl === 0) {
+      x.fillStyle = '#c1121f';
+      x.font = '900 170px "Arial Black",Arial,sans-serif';
+      x.fillText('TODAY', W / 2, y); y += 190;
+      x.fillStyle = '#f5ead6'; x.font = '700 52px Arial,sans-serif';
+      wrap(x, 'LAST DAY TO REGISTER IN ' + sName, 910).slice(0, 2)
+        .forEach(function (l) { x.fillText(l, W / 2, y); y += 64; });
+      y += 24;
+    } else if (dl !== null && dl > 0) {
+      x.fillStyle = '#c1121f';
+      x.font = '900 300px "Arial Black",Arial,sans-serif';
+      x.fillText(String(dl), W / 2, y); y += 320;
+      x.fillStyle = '#f5ead6'; x.font = '900 84px "Arial Black",Arial,sans-serif';
+      x.fillText(dl === 1 ? 'DAY LEFT' : 'DAYS LEFT', W / 2, y); y += 110;
+      x.font = '700 52px Arial,sans-serif';
+      wrap(x, 'TO REGISTER IN ' + sName, 910).slice(0, 2)
+        .forEach(function (l) { x.fillText(l, W / 2, y); y += 64; });
+      y += 24;
+    } else {
+      /* Missing deadline data: honest degrade, nothing invented. */
+      x.fillStyle = '#e8b923';
+      x.font = '900 84px "Arial Black",Arial,sans-serif';
+      wrap(x, 'CHECK YOUR DEADLINE', 910).slice(0, 2)
+        .forEach(function (l) { x.fillText(l, W / 2, y); y += 96; });
+      x.fillStyle = '#f5ead6'; x.font = '700 48px Arial,sans-serif';
+      wrap(x, 'REGISTRATION DATES VARY — ' + sName, 910).slice(0, 2)
+        .forEach(function (l) { x.fillText(l, W / 2, y); y += 60; });
+      y += 24;
+    }
+    /* Deadline + register lines (rendered only from real data). */
+    var dlFull = ballotDate(d.deadline);
+    if (!sameDay && dlFull) {
+      x.fillStyle = '#e8b923'; x.font = '700 44px Arial,sans-serif';
+      x.fillText('DEADLINE: ' + dlFull, W / 2, y); y += 64;
+    }
+    var reg = ballotShortUrl(d.registerUrl, st.toLowerCase());
+    x.fillStyle = '#f5ead6';
+    fitFont(x, 'REGISTER: ' + reg, 46, 30, 910, '700');
+    x.fillText('REGISTER: ' + reg, W / 2, y); y += 60;
+    y = Math.max(1050, y);
+    if (cs) y = csLine(cv, x, y, cs) + 12;
+    else { claimLine(x, y); y += 50; }
+    srcLine(x, d);
+    bottomStack(x, 'fight');
+    return cv;
+  }
+
   /* ---------------------------------------------------------------- */
   /* Painter table + registration                                       */
   /* ---------------------------------------------------------------- */
@@ -3662,7 +3778,8 @@ window.pfPinups={
     'phq-prediction': paintPrediction,
     'phq-predict-call': paintPredictCall,
     'phq-scorecard': paintScorecard,
-    'phq-cellwin': paintCellwin
+    'phq-cellwin': paintCellwin,
+    'phq-ballot': paintBallot
   };
   function paintOne(id, data) {
     var p = PAINT[id];

@@ -132,10 +132,11 @@ var BUNDLES = {
     'games/flash-siren.js',
     'core/06-pinups.js',
     'core/share-image.js',
-    /* PHQ share posters (2026-10-05): the four Political HQ custom painters
-       (pressure / prediction / scorecard / cell-win). Right after share-image
-       so PFShare is registered first; registers via PFShare.setPoster with
-       its own retry loop, and exposes PF.PHQShare for the PHQ silos. */
+    /* PHQ share posters (2026-10-05): Political HQ custom painters
+       (pressure / prediction / predict-call / scorecard / cell-win / ballot).
+       Right after share-image so PFShare is registered first; registers via
+       PFShare.setPoster with its own retry loop, and exposes PF.PHQShare
+       for the PHQ silos. */
     'core/share-image-phq.js',
     /* creator-recruit: shared recruiting toolbar for roster cards + catalog
        pages. Last: needs PFShare (share-image.js) + the catalog renderers. */

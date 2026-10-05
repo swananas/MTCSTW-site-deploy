@@ -127,6 +127,9 @@ var MONEY_FILES = [
   'core/boycott-list.js',
   'core/corp-card.js',
   'core/money-page.js',
+  /* Engagement Build-C (2026-10-05): weekly free-pick CPI prediction pool
+     card on /money (silo key 'money-pools'; kill ?pf_off=money-pools). */
+  'core/money-pools.js',
   'core/money-trades.js',
   'core/money-pac-alerts.js',
   'core/money-macro.js',

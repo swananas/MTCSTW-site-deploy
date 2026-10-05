@@ -175,7 +175,7 @@ function ident(){ return load(LS_I,{});  }
   var s=document.createElement("script");
   window[fn]=function(j){ try{delete window[fn];}catch(e){} if(s.parentNode) s.parentNode.removeChild(s); cb(j);};
   s.onerror=function(){ try{delete window[fn];}catch(e){} cb(null);};
-  var q="?action="+encodeURIComponent(obj.action); /* 2026-10-03 conn fix: removed dormant action:"wall"->?action=etch mapping (no live caller) */
+  var q="?action="+encodeURIComponent(obj.action);
   q+="&callsign="+encodeURIComponent(obj.callsign||"");
   if(obj.email) q+="&email="+encodeURIComponent(obj.email);
   if(obj.day) q+="&day="+encodeURIComponent(obj.day);

@@ -834,6 +834,12 @@ function render(){
     e.preventDefault();
     if(!confirm("Mute every email from the Propaganda Factory?")) return;
     var all={}; TYPES.forEach(function(t){ all[t[0]]=0; });
+    /* G-08 (2026-10-05): this is the EMAIL prefs contract —
+       post("notifyq","nq_action","notify_prefs") writes email-topic prefs
+       to contact_info (src/notifyqueue.js). The SEPARATE contract
+       post("notify","n_action","notification_prefs") is the IN-APP
+       notification center (games/notify.js, notif_prefs via src/notify.js).
+       Different surfaces, different tables — keep both, don't unify. */
     post("notifyq","nq_action","notify_prefs",{callsign:CS,prefs:all},function(j){
       if(j&&j.ok){ PREFS=j.prefs; render(); toast("All emails muted."); }
       else msg("Could not save. "+(PF.errCopy(j,"")));

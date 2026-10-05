@@ -121,6 +121,9 @@ var PLEDGE_DONE=false, PLEDGE_CARD=null, PLEDGE_NOTE='';
    rep" pane — no new reward mechanics. */
 var DIRST={st:"",ch:"",q:"",reps:null,load:false,err:false};
 var STATES_F=null; /* STATES + DC, filter-only (STATES itself untouched). */
+/* 2026-10-05 (wave pressure-campaigns FE): active pressure campaigns from
+   pressure_list, per-campaign script+targets via pressure_get, join state. */
+var PC_LIST=null, PC_SCRIPT={}, PC_TITLE={}, PC_JOINED={};
 /* 6A-R7: voter-pledge poster state — set on a successful pledge. */
 var PLEDGE_DONE=false, PLEDGE_STATE_NAME='';
 function pledgeStateName(code){
@@ -161,13 +164,16 @@ function armPledgeCard(stCode){
 function load(){
   var done=false, n=0;
   function fin(){ if(done)return; done=true; render(); }
-  function one(){ n++; if(n>=5) fin(); }
+  function one(){ n++; if(n>=6) fin(); }
   setTimeout(fin,15000);
   api("petition_list",{},function(j){ P=j; one(); });
   api("rep_list",{},function(j){ REPS=j; one(); });
   api("rep_scripts",{},function(j){ SCRIPTS=j; one(); });
   /* 2026-10-03: voter_pledge_stats (public) — aggregate pledge counts. */
   api("voter_pledge_stats",{},function(j){ VSTATS=j; one(); });
+  /* 2026-10-05 (wave pressure-campaigns FE): active campaigns. Fail-soft —
+     a down wire or zero campaigns hides the pane entirely (render skips it). */
+  api("pressure_list",{},function(j){ PC_LIST=(j&&j.ok&&j.campaigns)||[]; one(); });
   one();
 }
 /* 2026-10-05 (audit #7): sign/create used to trigger a full load() — 5 reads
@@ -206,6 +212,189 @@ function fetchHist(force){
   }
   try{ if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,"rep_contact_history",pp,cb2); return; } }catch(e){}
   api("rep_contact_history",pp,cb2);
+}
+/* ============ PRESSURE CAMPAIGNS (2026-10-05, wave pressure-campaigns FE) ============
+   One card per active campaign: title, target bill (+ congress.gov link when
+   the bill text carries one), days remaining, call script with copy button,
+   tap-to-call target members with LOG CALL buttons, live participant/call
+   counters, share, and JOIN THE PRESSURE -> pressure_join.
+   FAIL-SOFT: if the API is down or returns no campaigns, pressurePaneHTML()
+   returns "" and the section never mounts. No broken widget, no stuck
+   spinner. No invented data — everything rendered comes from the API. */
+function pcCountersHTML(c){
+  return '<b>'+(Number(c.participant_count)||0)+'</b> in &bull; <b>'+(Number(c.call_count)||0)+'</b> calls logged';
+}
+function pcBillHTML(tb){
+  tb=String(tb==null?"":tb); if(!tb) return "";
+  /* Extract the first https URL for the congress.gov link; the label is the
+     text with the URL stripped. */
+  var m=tb.match(/https?:\\/\\/[^\\s<>"']+/);
+  var label=m?tb.replace(m[0],"").replace(/\s{2,}/g," ").trim():tb;
+  var h='<div class="x-note">Target bill: <b>'+esc(label||tb)+'</b>';
+  if(m){ h+=' &bull; <a href="'+esc(m[0])+'" target="_blank" rel="noopener">congress.gov \u2192</a>'; }
+  return h+'</div>';
+}
+function pcDaysHTML(c){
+  var d=null;
+  try{
+    var t=new Date(c.ends_at).getTime();
+    if(!isNaN(t)) d=Math.max(0,Math.ceil((t-Date.now())/864e5));
+  }catch(e){}
+  if(d==null&&c.days_remaining!=null&&c.days_remaining!=="") d=Math.max(0,Number(c.days_remaining)||0);
+  if(d==null) return "";
+  return '<div class="x-note">'+(d===0?'<b>Last day</b> to call.':'<b>'+d+'</b> day'+(d===1?"":"s")+' left to call.')+'</div>';
+}
+function pressurePaneHTML(){
+  /* Fail-soft: nothing to render -> no section at all. */
+  if(!(PC_LIST&&PC_LIST.length)) return "";
+  var h='<div class="x-pane" id="cvPcPane"><h4>Pressure campaigns</h4>'
+    +'<div class="c-tag">Call blitzes on live bills. Read the script, ring the office, log the call.</div>';
+  for(var i=0;i<PC_LIST.length;i++){
+    var c=PC_LIST[i]||{}, cid=String(c.id||"");
+    if(!cid) continue;
+    PC_TITLE[cid]=c.title||"A Propaganda Factory pressure campaign";
+    h+='<div class="cp-mission" data-pc-card>'
+      +'<div class="cp-mtext">'+esc(c.title||"Pressure campaign")+'</div>'
+      +pcBillHTML(c.target_bill)
+      +pcDaysHTML(c)
+      +'<div class="x-note" data-pc-counts="'+esc(cid)+'">'+pcCountersHTML(c)+'</div>'
+      +'<div data-pc-body="'+esc(cid)+'"><div class="c-load">Loading campaign&hellip;</div></div>'
+      +'<button class="c-btn cp-mbtn" data-pc-join="'+esc(cid)+'"'+(PC_JOINED[cid]?" disabled":"")+'>'+(PC_JOINED[cid]?"YOU&rsquo;RE IN":"JOIN THE PRESSURE")+'</button> '
+      +'<button class="c-btn cp-mbtn" data-pc-share="'+esc(cid)+'">SHARE</button>'
+      +'</div>';
+  }
+  return h+'</div>';
+}
+/* Two-tier clipboard (navigator.clipboard first, hidden-textarea
+   execCommand fallback) — same pattern as ammo.js. iOS-safe. */
+function pcCopyText(txt,btn,msg){
+  function doneOk(){
+    toast(msg||"Copied.");
+    if(btn){ var o=btn.textContent; btn.textContent="COPIED"; btn.disabled=true;
+      setTimeout(function(){ btn.textContent=o; btn.disabled=false; },1500); }
+  }
+  function fallback(){
+    try{
+      var ta=document.createElement("textarea"); ta.value=txt;
+      ta.style.cssText="position:fixed;opacity:0";
+      ta.setAttribute("readonly","");
+      document.body.appendChild(ta); ta.select();
+      try{ ta.setSelectionRange(0,ta.value.length); }catch(e){}
+      document.execCommand("copy"); ta.remove(); doneOk();
+    }catch(e2){ toast("Copy failed \u2014 select it manually."); }
+  }
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(doneOk,function(){ fallback(); }); }
+    else fallback();
+  }catch(e){ fallback(); }
+}
+function pcFindBody(cid){
+  var nodes=document.querySelectorAll("[data-pc-body]");
+  for(var i=0;i<nodes.length;i++){ if(nodes[i].getAttribute("data-pc-body")===cid) return nodes[i]; }
+  return null;
+}
+function pcPaintCard(cid,j){
+  var body=pcFindBody(cid); if(!body) return;
+  var c=(j&&j.ok&&j.campaign)||null;
+  if(!c){
+    body.innerHTML='<div class="x-note">Campaign details are unavailable right now \u2014 check back shortly.</div>';
+    return;
+  }
+  PC_SCRIPT[cid]=c.script||"";
+  var h='<div class="pf-mt"><div class="x-note"><b>Call script</b></div>'
+    +'<div class="x-note" style="white-space:pre-wrap">'+esc(c.script||"")+'</div>'
+    +'<button class="c-btn cp-mbtn" data-pc-copy="'+esc(cid)+'">COPY SCRIPT</button></div>';
+  var ms=c.target_members||[];
+  if(ms.length){
+    h+='<div class="x-note pf-mt"><b>Targets \u2014 tap to call:</b></div>';
+    for(var i=0;i<ms.length;i++){
+      var m=ms[i]||{};
+      var tel=String(m.phone||"").replace(/[^0-9+]/g,"");
+      var badge="";
+      if(m.party&&m.state) badge=String(m.party)+" \u00b7 "+String(m.state);
+      else if(m.party||m.state) badge=String(m.party||m.state);
+      var mname=String(m.name||"Member");
+      h+='<div class="cp-mission" style="margin-top:8px">'
+        +'<div class="cp-mtext">'+esc(mname)+'</div>'
+        +'<div class="x-note">'+esc(String(m.role||""))+(badge?" &bull; "+esc(badge):"")+'</div>'
+        +(tel?'<a class="c-btn cp-mbtn" href="tel:'+esc(tel)+'">'+esc(String(m.phone||tel))+'</a> ':'')
+        +'<button class="c-btn cp-mbtn" data-pc-log="'+esc(cid)+"|"+esc(mname)+'">LOG CALL (+25 XP)</button>'
+        +'</div>';
+    }
+  }
+  body.innerHTML=h;
+  /* Per-card bindings happen here, not in bind(): pressure_get resolves
+     after bind() already ran, so bind-on-paint is the only correct spot. */
+  var bb=body.querySelectorAll("[data-pc-copy]");
+  for(var b2=0;b2<bb.length;b2++){ (function(btn){ btn.onclick=function(){
+    pcCopyText(PC_SCRIPT[btn.getAttribute("data-pc-copy")]||"",btn,"Script copied. Go make the call.");
+  }; })(bb[b2]); }
+  var lb=body.querySelectorAll("[data-pc-log]");
+  for(var l2=0;l2<lb.length;l2++){ (function(btn){ btn.onclick=function(){
+    var v=btn.getAttribute("data-pc-log"), pi=v.indexOf("|");
+    var cid2=v.slice(0,pi), mname=v.slice(pi+1);
+    btn.disabled=true;
+    /* Extended rep_contact POST: the backend accepts an optional campaign
+       param, passed here so the call is attributed to the campaign. */
+    post("rep","r_action","rep_contact",{callsign:ident().callsign,rep_name:mname,method:"call",script_used:"pressure:"+cid2,campaign:cid2},function(j){
+      if(j&&j.ok){ toast("Call logged \u2014 +25 XP."); fetchHist(true); }
+      /* 2/day cap: the backend surfaces the 'cap' code, routed through the
+         shared friendly-copy mapper (resets at midnight Chicago). */
+      else { toast(PF.errCopy(j,"Log failed.")); }
+      btn.disabled=false;
+    });
+  }; })(lb[l2]); }
+}
+function pcRefreshCounts(){
+  /* Re-poll pressure_list for live participant/call counters only — the
+     rendered cards (script/targets from pressure_get) are left untouched. */
+  api("pressure_list",{},function(j){
+    if(!(j&&j.ok&&j.campaigns)) return;
+    var nodes=document.querySelectorAll("[data-pc-counts]");
+    for(var i=0;i<j.campaigns.length;i++){
+      var c=j.campaigns[i]||{}, cid=String(c.id||"");
+      for(var k=0;k<nodes.length;k++){
+        if(nodes[k].getAttribute("data-pc-counts")===cid){ nodes[k].innerHTML=pcCountersHTML(c); break; }
+      }
+    }
+  });
+}
+function pcShare(cid){
+  var title=PC_TITLE[cid]||"A Propaganda Factory pressure campaign";
+  var link="https://www.mtcstw.com/political-hq";
+  try{ if(window.PF&&typeof PF.shareUrl==="function") link=PF.shareUrl(link); }catch(e){}
+  var text=title+" \u2014 join the pressure at "+link;
+  /* Site share convention: navigator.share when available, clipboard
+     fallback — same two-tier pattern as do-meter/fan-vote text shares. */
+  if(navigator.share){ try{ navigator.share({title:title,text:text}).catch(function(){}); return; }catch(e){} }
+  pcCopyText(text,null,"Share text copied. Spread it.");
+}
+function pressureBind(qsa){
+  if(!(PC_LIST&&PC_LIST.length)) return;
+  for(var i=0;i<PC_LIST.length;i++){
+    (function(cid){
+      if(!cid) return;
+      /* Per-card script + targets (pressure_get). Fail-soft per card. */
+      api("pressure_get",{id:cid},function(j){ pcPaintCard(cid,j); });
+    })(String((PC_LIST[i]||{}).id||""));
+  }
+  /* COPY SCRIPT and LOG CALL buttons are painted by the async pressure_get
+     and bound there at paint time (pcPaintCard); join/share buttons are in
+     the synchronous card shell, bound here. */
+  qsa("[data-pc-join]").forEach(function(b){
+    b.onclick=function(){
+      var cid=b.getAttribute("data-pc-join");
+      if(PC_JOINED[cid]) return;
+      b.disabled=true;
+      post("pressure","pr_action","pressure_join",{callsign:ident().callsign,id:cid},function(j){
+        if(j&&j.ok){ PC_JOINED[cid]=1; b.innerHTML="YOU&rsquo;RE IN"; pcRefreshCounts(); }
+        else { toast(PF.errCopy(j,"Join failed.")); b.disabled=false; }
+      });
+    };
+  });
+  qsa("[data-pc-share]").forEach(function(b){
+    b.onclick=function(){ pcShare(b.getAttribute("data-pc-share")); };
+  });
 }
 function stateOpts(sel){
   var h='<option value="">Select state&hellip;</option>';
@@ -784,6 +973,8 @@ function render(){
     h+='<button class="c-btn" id="cvPetOpen">START A PETITION</button>';
   }
   h+='</div>';
+  /* --- pressure campaigns (2026-10-05, wave pressure-campaigns FE) --- */
+  h+=pressurePaneHTML();
   /* --- contact your rep --- */
   h+='<div class="x-pane"><h4>Contact your rep</h4>';
   var reps=(REPS&&REPS.reps)||[];
@@ -1128,6 +1319,8 @@ function bind(){
   }
   fetchComp();
   fetchHist();
+  /* 2026-10-05 (wave pressure-campaigns FE): pressure-card bindings. */
+  pressureBind(qsa);
 }
 load();
 })();

@@ -193,6 +193,12 @@
             if (cj && cj.ok && cj.auth_secret) {
               /* Retry once with the fresh secret. */
               PF.authPost(backendUrl, body, cb, true);
+            } else if (cj && String((cj.err || cj.error) || '').indexOf('claim unavailable') !== -1) {
+              /* Legacy callsign that can never self-claim — surface the
+                 stable 'legacy_callsign' code (same as authGetJSONP) so
+                 every POST surface can render recovery copy, not raw
+                 backend prose. */
+              try { cb({ ok: false, err: 'legacy_callsign' }); } catch (e) {}
             } else {
               try { cb(j); } catch (e) {}
             }

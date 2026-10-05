@@ -58,9 +58,15 @@
   function api(action, params, cb){
     if (WRITE[action]) { postMut(action, params, cb); return; }
     if(!BACKEND){ cb(null); return; }
-    /* Private reads require auth_secret (IDOR fix). Auto-attach for the
-       auth-gated cell_mine — same PF.getAuthSecret() pattern as briefing.js. */
+    /* cell_mine is an auth-gated private read: route it through the shared
+       claim-retry GET (2026-10-05 legacy auth fix) so pre-auth callsigns get
+       one auth_claim attempt and legacy-unclaimable callsigns surface the
+       stable 'legacy_callsign' code (12s timeout, no hangs). */
     if(action==="cell_mine"){
+      try{ if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; } }catch(e){}
+      /* Raw fallback: private reads require auth_secret (IDOR fix).
+         Auto-attach for the auth-gated cell_mine — same PF.getAuthSecret()
+         pattern as briefing.js. */
       try{
         var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
         if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
@@ -299,7 +305,12 @@
   }
   function friendlyErr(j){
     if (!j) return "Couldn't reach HQ. Check your connection.";
-    return j.err || j.error || 'Something broke on our end.';
+    var e = j.err || j.error || '';
+    /* Legacy-unclaimable callsign: recovery copy, never the raw code
+       (2026-10-05 legacy auth fix). */
+    if (e === 'legacy_callsign' || String(e).indexOf('claim unavailable') !== -1)
+      return "This callsign predates the new auth system — contact MTCSTW to recover it.";
+    return e || 'Something broke on our end.';
   }
 
   /* ---------- data loaders ---------- */
@@ -434,10 +445,17 @@
       if (!j){ p.innerHTML = netErr(); wireRetries(p); return; }
       /* C3 (2026-10-03): no/invalid auth_secret means the callsign session
          isn't authenticated — show the logged-out state, not a raw
-         "missing credentials" error (a wrong state). */
+         "missing credentials" error (a wrong state).
+         Legacy fix (2026-10-05): legacy-unclaimable callsigns get recovery
+         copy, not the re-enlist prompt (re-enlisting can't fix them). */
       if (j && (j.err==="missing credentials"||j.err==="unauthorized")){
         p.innerHTML = '<div class="hq-card"><h3>Session check needed</h3>' +
           '<div class="hq-note">Your callsign session needs a refresh. Re-enlist in Daily Orders, then come back &mdash; your HQ will be waiting.</div></div>';
+        return;
+      }
+      if (j && j.err==="legacy_callsign"){
+        p.innerHTML = '<div class="hq-card"><h3>Callsign recovery needed</h3>' +
+          '<div class="hq-note">This callsign predates the new auth system and can&rsquo;t reconnect on its own &mdash; contact MTCSTW to recover it.</div></div>';
         return;
       }
       if (j.err || j.ok === false){ p.innerHTML = '<div class="hq-err"><b>'+esc(friendlyErr(j))+'</b></div>'; return; }

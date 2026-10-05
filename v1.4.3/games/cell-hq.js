@@ -3,7 +3,7 @@
      cell_mine, cell_create, cell_join, cell_checkin, cell_cover,
      cell_leave, cell_rename, cell_promote, cell_bounty_claim,
      cell_prestige, cell_health, cell_search, cell_leaderboard,
-     cell_links, cellwar_standings, cellwar_history
+     cell_links, cellwar_standings, cellwar_history, cell_pulse
    NOTE: cell_members and cell_activity are not backend actions. Member
    rosters come from cell_mine (primary cell) + cell_prestige (any cell).
    The "pulse" panel derives recent activity from cell_health.
@@ -43,6 +43,7 @@
   /* JSONP GET — read-only cell actions. 12s timeout, same as every silo. */
   var READ = { cell_mine:1, cell_prestige:1, cell_health:1, cell_search:1,
     cell_leaderboard:1, cell_links:1, cellwar_standings:1, cellwar_history:1,
+    cell_pulse:1,
     warchest_status:1, treasury_balance:1 };
   /* Mutations go through POST (CSRF-able via GET otherwise). */
   var WRITE = { cell_create:1, cell_join:1, cell_checkin:1, cell_cover:1,
@@ -53,8 +54,9 @@
     if (WRITE[action]) { postMut(action, params, cb); return; }
     if(!BACKEND){ cb(null); return; }
     /* Private reads require auth_secret (IDOR fix). Auto-attach for the
-       auth-gated cell_mine — same PF.getAuthSecret() pattern as briefing.js. */
-    if(action==="cell_mine"){
+       auth-gated cell_mine + cell_pulse — same PF.getAuthSecret() pattern
+       as briefing.js. */
+    if(action==="cell_mine"||action==="cell_pulse"){
       try{
         var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
         if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
@@ -326,6 +328,18 @@
       cb(j);
     });
   }
+  /* Political Pulse (2026-10-05, weave #2): cell-scoped politics items.
+     Member-gated read; auth_secret auto-attached by api(). Fail-soft:
+     a null/!ok response means the section stays hidden, never an error. */
+  function loadPulse(cellId, cb){
+    if (S.detailPulse && S.detailPulse.cell_id === cellId) { cb(S.detailPulse); return; }
+    S.loading['pu_'+cellId] = true;
+    api('cell_pulse', withIdent({cell_id: cellId}), function(j){
+      S.loading['pu_'+cellId] = false;
+      if (j && j.ok) S.detailPulse = j;
+      cb(j);
+    });
+  }
   function loadWar(cb){
     if (S.war && Date.now()-S.war._t < 60000) { cb(S.war); return; }
     S.loading.war = true;
@@ -499,17 +513,18 @@
     h += '<div id="hqDetBody">'+loading('Pulling cell intel&hellip;')+'</div>';
     p.innerHTML = h;
     var body = document.getElementById('hqDetBody');
-    /* Parallel: prestige + health. */
-    var gotP = false, gotH = false, jP = null, jH = null;
+    /* Parallel: prestige + health + political pulse. */
+    var gotP = false, gotH = false, gotU = false, jP = null, jH = null, jU = null;
     function maybePaint(){
-      if (!gotP || !gotH) return;
-      paintDetail(body, cell, isFounder, isPrimary, jP, jH, mine);
+      if (!gotP || !gotH || !gotU) return;
+      paintDetail(body, cell, isFounder, isPrimary, jP, jH, jU, mine);
     }
     loadPrestige(cid, function(j){ gotP=true; jP=j; maybePaint(); });
     loadHealth(cid, function(j){ gotH=true; jH=j; maybePaint(); });
+    loadPulse(cid, function(j){ gotU=true; jU=j; maybePaint(); });
   }
 
-  function paintDetail(body, cell, isFounder, isPrimary, jP, jH, mine){
+  function paintDetail(body, cell, isFounder, isPrimary, jP, jH, jU, mine){
     if ((!jP || !jP.ok) && (!jH || !jH.ok)){
       body.innerHTML = netErr(); wireRetries(body); return;
     }
@@ -566,6 +581,19 @@
         '<span class="hq-stat">'+esc(String(hh.recruits_last_30d||0))+' recruits (30d)</span></div>' +
         '<div class="hq-note" style="margin-top:8px"><b>Recent pulse:</b> ' + pulseLine(hh) + '</div></div>';
     }
+    /* POLITICAL PULSE (2026-10-05, weave #2): politics folded into cell
+       activity. Hidden ENTIRELY when empty (or when the read fails) —
+       an empty politics section is noise, not content. Collapsible
+       otherwise; collapse state persists per browser. */
+    if (jU && jU.ok && (jU.items||[]).length){
+      var puCollapsed = false;
+      try{ puCollapsed = localStorage.getItem('pf_hq_pulse_collapsed') === '1'; }catch(e){}
+      h += '<div class="hq-card" id="hqPulseCard"><h3>&#128308; Political pulse' +
+        '<button class="hq-btn sm ghost" data-hq="pulse-toggle" style="margin-left:8px">' +
+        (puCollapsed ? 'EXPAND' : 'COLLAPSE') + '</button></h3>' +
+        '<div id="hqPulseBody"' + (puCollapsed ? ' style="display:none"' : '') + '>' +
+        pulseItemsHtml(jU.items) + '</div></div>';
+    }
     /* Founder controls. */
     if (isFounder){
       h += '<div class="hq-card"><h3>Founder controls</h3><div class="hq-row">' +
@@ -588,6 +616,39 @@
     else parts.push('silent this week');
     if (rc > 0) parts.push(rc+' new recruit'+(rc===1?'':'s')+' in 30 days');
     return parts.join('. ') + '.';
+  }
+
+  /* Political pulse item render: title, one-line detail, one-tap action
+     link (deep_link), source + timestamp. All strings escaped — backend
+     rows are operator/admin-seeded, but the feed must never be an XSS
+     channel. Deadline items carry a future ts: show the due date instead
+     of a relative "ago". */
+  function pulseAgo(ts){
+    var n = Number(ts||0), now = Date.now();
+    if (!(n > 0)) return '';
+    if (n > now){
+      var dt = new Date(n);
+      try{ return 'due ' + dt.toLocaleDateString(undefined, {month:'short', day:'numeric'}); }
+      catch(e){ return 'upcoming'; }
+    }
+    var m = Math.floor((now - n)/60000);
+    if (m < 1) return 'just now';
+    if (m < 60) return m + 'm ago';
+    var hh = Math.floor(m/60);
+    if (hh < 24) return hh + 'h ago';
+    return Math.floor(hh/24) + 'd ago';
+  }
+  function pulseItemsHtml(items){
+    var h = '';
+    (items||[]).forEach(function(it){
+      var link = String(it.deep_link||'/political-hq');
+      if (!/^\/[a-zA-Z0-9_\-\/#]*$/.test(link)) link = '/political-hq';
+      h += '<div class="hq-mem" style="align-items:flex-start"><span><b>'+esc(it.title)+'</b>' +
+        '<div class="hq-note">'+esc(it.detail||'')+'</div>' +
+        '<div class="hq-note">'+esc(it.source||'')+' &middot; '+esc(pulseAgo(it.ts))+'</div></span>' +
+        '<span><a class="hq-btn sm" href="'+esc(link)+'">ACT &rarr;</a></span></div>';
+    });
+    return h;
   }
 
   /* ---------- TAB 3: CELL WAR ---------- */
@@ -1027,7 +1088,7 @@
 
   /* ---------- event delegation ---------- */
   function refreshMineThen(tab){
-    invalidateMine(); S.detailPrestige=null; S.detailHealth=null;
+    invalidateMine(); S.detailPrestige=null; S.detailHealth=null; S.detailPulse=null;
     S.tab = tab || 'mine';
     mount.querySelectorAll('.hq-tab').forEach(function(x){
       x.classList.toggle('on', x.getAttribute('data-tab')===S.tab);
@@ -1050,7 +1111,18 @@
     function busy(dis){ try{ t.disabled = !!dis; }catch(e){} }
 
     if (a==='back'){ refreshMineThen('mine'); }
-    else if (a==='detail'){ S.detail=cellId; S.detailPrestige=null; S.detailHealth=null; S.tab='detail'; render(); }
+    else if (a==='detail'){ S.detail=cellId; S.detailPrestige=null; S.detailHealth=null; S.detailPulse=null; S.tab='detail'; render(); }
+    else if (a==='pulse-toggle'){
+      /* Political Pulse collapse toggle — DOM-local, no refetch; the
+         collapse choice persists per browser. */
+      var puBody = document.getElementById('hqPulseBody');
+      if (puBody){
+        var wasHidden = puBody.style.display === 'none';
+        puBody.style.display = wasHidden ? '' : 'none';
+        try{ localStorage.setItem('pf_hq_pulse_collapsed', wasHidden ? '0' : '1'); }catch(e){}
+        t.textContent = wasHidden ? 'COLLAPSE' : 'EXPAND';
+      }
+    }
     else if (a==='checkin'){
       if(!needCs()) return; busy(true);
       api('cell_checkin', withIdent({cell_id:cellId}), function(j){

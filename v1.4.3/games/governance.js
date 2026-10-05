@@ -76,17 +76,27 @@ function adminPost(gAction,params,cb){
       .catch(function(){ _po._pfClear(); done(null); });
   }catch(e7){ done(null); }
 }
-var PL=null, DG=null;
+var PL=null, DG=null, MYW=null;
 function load(){
   var id=ident(), done=false, n=0;
   function fin(){ if(done)return; done=true; render(); }
-  function one(){ n++; if(n>=2) fin(); }
+  function one(){ n++; if(n>=3) fin(); }
   setTimeout(fin,15000);
   /* 6A-R7/E21: pass the callsign so proposal_list returns the per-proposal
      voted flag the non-voter ping UI keys off. */
   api("proposal_list",{callsign:id.callsign||""},function(j){ PL=j; one(); });
   if(id.callsign){ api("delegation_get",{callsign:id.callsign},function(j){ DG=j; one(); }); }
   else { DG=null; one(); }
+  /* 2026-10-05 (audit #28): the persistent vote-weight readout. Public
+     xp_balance read; the formula mirrors the backend's voteWeight():
+     1 + floor(sqrt(xp_balance/100)). */
+  if(id.callsign){
+    api("xp_balance",{callsign:id.callsign},function(j){
+      var bal=(j&&j.balance!=null)?Math.max(0,Number(j.balance)||0):null;
+      MYW=(bal==null)?null:(1+Math.floor(Math.sqrt(bal/100)));
+      one();
+    });
+  } else { MYW=null; one(); }
 }
 function fmtLeft(ms){
   if(ms<=0) return "CLOSED";
@@ -112,6 +122,9 @@ function render(){
   var open=[], hist=[];
   for(var i=0;i<props.length;i++){ if(props[i].status==="open") open.push(props[i]); else hist.push(props[i]); }
   h+='<div class="gv-frame">ONE SOLDIER. ONE VOICE. VOTE WEIGHT GROWS WITH YOUR XP.</div>';
+  /* 2026-10-05 (audit #28): weight was announced once in a toast and displayed
+     nowhere — persistent readout under the banner. */
+  h+='<div class="x-note">Your vote weight: <b>'+(MYW==null?"\u2026":MYW)+'</b> &mdash; earn XP anywhere and it grows.</div>';
   /* 6A-R7/E21: non-voter ping — open proposals closing within 6h that this
      callsign hasn't voted on get a closing-soon banner above the fold,
      with a VOTE NOW jump link to the proposal card. */
@@ -138,8 +151,8 @@ function render(){
        settle; early close is admin-only (backend enforces). */
     var pastDue=Number(p.closes_at||0)<=Date.now();
     var closeBtn=pastDue
-      ?'<button class="c-btn gv-close" data-pid="'+esc(p.id)+'">CLOSE &amp; SETTLE</button>'
-      :(isAdmin()?'<button class="c-btn ghost gv-close-early" data-pid="'+esc(p.id)+'">CLOSE EARLY (ADMIN)</button>':"");
+      ?'<button class="c-btn" data-gv-close data-pid="'+esc(p.id)+'">CLOSE &amp; SETTLE</button>'
+      :(isAdmin()?'<button class="c-btn ghost" data-gv-close-early data-pid="'+esc(p.id)+'">CLOSE EARLY (ADMIN)</button>':"");
     h+='<div class="gv-prop" id="gv-prop-'+esc(p.id)+'"><div class="gv-ptitle">'+esc(p.title)+'</div>'
       +'<div class="x-note">'+esc(p.description||"")+'</div>'
       +'<div class="x-note">By <b>'+esc(p.proposer)+'</b> &bull; '+fmtLeft(p.closes_at-Date.now())+' &bull; '+(Number(p.voter_count)||0)+' voters</div>'
@@ -151,7 +164,7 @@ function render(){
   h+='</div>';
   /* --- new proposal --- */
   h+='<div class="x-pane"><h4>New proposal</h4>'
-    +'<div class="x-note">Costs <b>100 XP</b> to put on the floor &mdash; keeps the spam out. Duration 1&ndash;30 days.</div>'
+    +'<div class="x-note">Costs <b>100 XP</b> to put on the floor &mdash; keeps the spam out. Duration 1&ndash;30 days. XP has no cash value. Stakes are final.</div>'
     +'<input aria-label="Proposal title" class="c-in" id="gvTitle" maxlength="120" placeholder="Proposal title">'
     +'<textarea class="c-in" id="gvDesc" maxlength="2000" rows="3" placeholder="What are you proposing, and why?"></textarea>'
     +'<div class="x-note">Duration: <input class="c-in gv-dur" id="gvDays" type="number" min="1" max="30" value="7"> days</div>'
@@ -180,10 +193,23 @@ function render(){
   /* --- wire --- */
   var vbs=el.querySelectorAll(".gv-vote");
   for(var v=0;v<vbs.length;v++){ (function(b){ b.addEventListener("click",function(){
+    var pid=b.getAttribute("data-pid"), ch=b.getAttribute("data-ch");
+    /* 2026-10-05 (audit #26): VOTE YES / VOTE NO had no disabled state during
+       the vote POST — a double-click fired duplicate votes. Disable BOTH
+       buttons for this proposal while the vote is in flight; re-enable only
+       on failure (success re-renders via load(), which rebuilds the DOM).
+       Matched by attribute, never interpolated into a selector — backend ids
+       stay out of CSS parsing. */
+    var pair=[];
+    for(var q=0;q<vbs.length;q++){ if(vbs[q].getAttribute("data-pid")===pid) pair.push(vbs[q]); }
+    for(var q2=0;q2<pair.length;q2++){ pair[q2].disabled=true; }
     var id2=ident();
-    post("proposal_vote",{callsign:id2.callsign,device:id2.device,proposal_id:b.getAttribute("data-pid"),choice:b.getAttribute("data-ch")},function(r){
+    post("proposal_vote",{callsign:id2.callsign,device:id2.device,proposal_id:pid,choice:ch},function(r){
       if(r&&r.ok){ toast("Vote counted. Weight: "+(r.weight||1)+"."); load(); }
-      else { toast((r&&r.err)||"Vote failed."); }
+      else {
+        toast((r&&r.err)||"Vote failed.");
+        for(var q3=0;q3<pair.length;q3++){ pair[q3].disabled=false; }
+      }
     });
   }); })(vbs[v]); }
   /* close & settle (proposal_close, AUTH+ADMIN). Past-due: any authed user.
@@ -203,11 +229,14 @@ function render(){
       }
     });
   }
-  var cbs=el.querySelectorAll(".gv-close");
+  /* 2026-10-05 (audit #9): gv-close / gv-close-early were style classes with no
+     CSS rules — they are pure wiring hooks, so they now ride data attributes
+     (the file's own convention: data-pid, data-ch) instead of dangling. */
+  var cbs=el.querySelectorAll("[data-gv-close]");
   for(var c=0;c<cbs.length;c++){ (function(b){ b.addEventListener("click",function(){
     closeProposal(b.getAttribute("data-pid"),false,b);
   }); })(cbs[c]); }
-  var ebs=el.querySelectorAll(".gv-close-early");
+  var ebs=el.querySelectorAll("[data-gv-close-early]");
   for(var e=0;e<ebs.length;e++){ (function(b){ b.addEventListener("click",function(){
     closeProposal(b.getAttribute("data-pid"),true,b);
   }); })(ebs[e]); }
@@ -245,8 +274,26 @@ function render(){
     });
   }); }
 }
+/* 2026-10-05 (audit #27): the 120s scheduled re-render wiped in-progress drafts
+   (the new-proposal form, the delegate-callsign input). Skip the tick while
+   any input/textarea in the pane is focused or holds a non-default value —
+   #gvDays ships value="7", so the defaultValue comparison keeps the refresh
+   alive until the user actually types. */
+function govHasDraft(){
+  try{
+    var el=document.getElementById("xGov"); if(!el) return false;
+    var f=el.querySelectorAll("input,textarea");
+    for(var i=0;i<f.length;i++){
+      var t=f[i];
+      if(t===document.activeElement) return true;
+      if(t.type==="checkbox"||t.type==="radio"){ if(t.checked!==t.defaultChecked) return true; }
+      else if(String(t.value)!==String(t.defaultValue)) return true;
+    }
+  }catch(e){}
+  return false;
+}
 load();
-setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },120000);
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} if(govHasDraft()) return; load(); },120000);
 })();
 </scr`+`ipt>
 </div>

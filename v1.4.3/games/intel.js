@@ -192,8 +192,25 @@ function render(j){
   var rb=document.getElementById("inRetry");
   if(rb) rb.onclick=function(){ el.innerHTML='<div class="c-load">Reading their mail&hellip;</div>'; load(); };
 }
+/* 2026-10-05 (audit #27): the 300s scheduled re-render wiped in-progress
+   file-intel drafts (target/activity/money/source inputs). Skip the tick
+   while any input/textarea in the pane is focused or holds a non-default
+   value. */
+function intelHasDraft(){
+  try{
+    var el=document.getElementById("xIntel"); if(!el) return false;
+    var f=el.querySelectorAll("input,textarea");
+    for(var i=0;i<f.length;i++){
+      var t=f[i];
+      if(t===document.activeElement) return true;
+      if(t.type==="checkbox"||t.type==="radio"){ if(t.checked!==t.defaultChecked) return true; }
+      else if(String(t.value)!==String(t.defaultValue)) return true;
+    }
+  }catch(e){}
+  return false;
+}
 load();
-setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },300000);
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} if(intelHasDraft()) return; load(); },300000);
 })();
 </scr`+`ipt>
 </div>

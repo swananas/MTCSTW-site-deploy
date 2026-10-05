@@ -94,7 +94,7 @@ function render(){
     h+='</label>';
   });
   h+='<div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">';
-  h+='<button class="c-btn c-btn-primary" id="npSave" type="button">SAVE PREFERENCES</button>';
+  h+='<button class="c-btn" id="npSave" type="button">SAVE PREFERENCES</button>';
   h+='<a href="#" id="npUnsubAll" style="font-size:12px;color:#c1121f;">Unsubscribe from all</a>';
   h+='<span id="npMsg" style="font-size:12px;"></span>';
   h+='</div>';

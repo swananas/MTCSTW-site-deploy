@@ -209,7 +209,13 @@ var SECTIONS = {
     'ammo.js',
     'armory.js',
     'dashboard.js',
-    'earnings.js'
+    'earnings.js',
+    /* CONTENT BANK POLITICAL METADATA (2026-10-05, weave #8): Bank Browse —
+       the Content Bank gallery (filters, sort, load more, REMIX THIS).
+       Silo key 'bank-browse'; self-mounts into #pf-bank-browse on the
+       Creator HQ Content Bank area, silent no-op elsewhere.
+       Kill: ?pf_off=bank-meta. No XP anywhere in this module. */
+    'bank-browse.js'
   ],
   'bundle-bank': [
     /* /bank — the People's Bank. */

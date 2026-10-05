@@ -15,7 +15,7 @@
 <div class="fe-block pf-override-block" id="pf-caption">
 
 <h2>Caption Combat</h2>
-<div class="c-sub">One template. One week. Funniest caption wins the homepage.</div>
+<div class="c-sub">One template. One week. Make us laugh.</div>
 <div class="c-week" id="cWeek"></div>
 <div class="c-template" id="cTemplate"></div>
 
@@ -42,7 +42,7 @@
 
 <div class="c-fight" id="cFight" style="display:none">
   <h3>The fight card</h3>
-  <div class="c-sub" style="margin-top:-0.4rem">One vote per callsign per week. Funniest caption takes the crown Monday.</div>
+  <div class="c-sub" style="margin-top:-0.4rem">One vote per callsign per week. Vote for the funniest.</div>
   <div id="cFightList"></div>
 </div>
 
@@ -52,7 +52,7 @@
   <a class="c-btn ghost" id="cTemplateBtn" href="#">Submit a template</a>
 </div>
 
-<div class="c-rules">One entry per person per week. Winner picked Sunday night, crowned Monday.<br>Keep it punchy. The machine reserves the right to laugh.</div>
+<div class="c-rules">One entry per person per week.<br>Keep it punchy. The machine reserves the right to laugh.</div>
 
 <script>
 (function(){
@@ -276,7 +276,7 @@ function markSubmitted(){
   note.className="c-rules";
   note.style.color="#c1121f";
   note.style.marginTop="10px";
-  note.textContent="Entry logged for the week of "+weekStr+". One entry per person per week — see you Monday.";
+  note.textContent="Entry logged for the week of "+weekStr+". One entry per person per week.";
   btn.parentNode.appendChild(note);
 }
 if(CS.weeks[weekKey]){ markSubmitted(); }

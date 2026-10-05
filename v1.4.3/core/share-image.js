@@ -34,7 +34,10 @@
     },
     'do-meter': {
       title: '\u2697 THE DO METER \u2697', tag: 'NOT FOLLOWERS. NOT LIKES. THINGS DONE.',
-      lines: ['The network counts every thing done.', 'Goal: 5 million things.'],
+      /* 2026-10-05: "Goal: 5 million things." was stale — the goal is dynamic
+         (starts 1,000/week, scales x1.25 per detonation — games/do-meter.js).
+         Evergreen line instead; never a hard number. */
+      lines: ['The network counts every thing done.', 'The weekly target climbs 25% with every detonation.'],
       cta: 'DO A THING'
     },
     /* 2026-10-03: restored — the drop consolidated into briefing.js as the
@@ -70,8 +73,10 @@
       cta: 'ENLIST NOW'
     },
     'war-bonds': {
-      title: '\u2605 WAR BONDS \u2605', tag: 'Buy a bond. Fund the machine.',
-      lines: ['War Bonds fund 60% of all PF operations.', 'Starting at $1. Every dollar is ammunition.'],
+      /* 2026-10-05: replacement copy (PR desk). The bonds are $5/$10/$25/$50 —
+         "Starting at $1" was flat wrong (product-explainers §15). */
+      title: '$5 \u00b7 $10 \u00b7 $25 \u00b7 $50', tag: 'WAR BONDS \u2014 FOUR TIERS. REAL CHECKOUT.',
+      lines: ['Half to the machine. Half split equally among the 62 creators.'],
       cta: 'BUY WAR BONDS'
     },
     /* 6A-R7: voter-pledge poster template. civic.js registers a custom
@@ -82,17 +87,12 @@
       lines: ['I took the voter pledge with the Propaganda Factory.', 'Your turn. Pledge, register, show up.'],
       cta: 'PLEDGE YOURS'
     },
-    /* 6A-R2: The White Market cashout poster. The dynamic "I JUST CASHED
-       OUT +N XP" card was painted by the retired casino silo's custom
-       painter (PFShare.setPoster('casino', ...)); the live painter is now
-       PFShare.setPoster('redist-win', ...) in games/casino-exits.js. This
-       REG entry is the generic fallback template — rebranded 2026-10-05.
-       The 'casino' key stays (stability). */
-    'casino': {
-      title: '\u2605 THE WAR ROOM \u2605', tag: 'The redistribution layer',
-      lines: ['I just pulled spoils off the board.', 'The board pays out — the house is us, and the house shares.'],
-      cta: 'READ THE BOARD'
-    },
+    /* 2026-10-05: the 'casino' REG entry is RETIRED — the casino was unmounted
+       in Phase A and its share surface moved to the redist-win custom painter
+       (games/casino-exits.js). The dead games/casino.js still registers its
+       own custom painter via PFShare.setPoster('casino', ...), so removing
+       this static entry breaks nothing. Release Eng: delete games/casino.js
+       at cleanup. */
     'slr-match-quiz': {
       title: '\u2691 FIND YOUR SLR MATCH \u2691', tag: 'What kind of propagandist are you?',
       lines: ['Take the 5-question quiz.', 'Get your archetype + 3 SLR matches.'],
@@ -107,6 +107,78 @@
       title: '\u2694 BOOST RAID \u2694', tag: 'One target. One day. The whole network.',
       lines: ['Like. Comment. Share. Report back.', 'Today\u2019s raid target is live now.'],
       cta: 'JOIN THE RAID'
+    },
+    /* ---------------------------------------------------------------- */
+    /* STUDIO POSTER BATCH (2026-10-05): 9 new posters, copy verbatim    */
+    /* from the PR desk package (~/workspace/hidden/studio-poster-copy.md). */
+    /* These REG entries are STATIC templates — the generic drawPoster   */
+    /* fallback. Every poster with dynamic fields gets a custom painter  */
+    /* below (registered via PFShare.setPoster) — EXCEPT 'ammo-cite',    */
+    /* whose painter is owned by games/ammo.js (branch                   */
+    /* fix/studio-ammo-ux); this file registers no 'ammo-cite' painter   */
+    /* so the two branches merge clean. The painter fills the bracketed  */
+    /* fields from PFShare.posterState and takes precedence in the       */
+    /* share/save flow whenever registered.                              */
+    /* Keys match each silo's canonical game id (verified by grep):      */
+    /*  first-wave / ammo-cite / top-stories — no silo in tree yet (big  */
+    /*    update); news rail (wave-live-rails) is in QC, Ammo Finder     */
+    /*    (wave-claim-support) in build.                                 */
+    /*  markets — games/markets.js Frontline Forecasts (silo 'markets'). */
+    /*  gambits — games/gambits.js (silo 'gambits').                     */
+    /*  draw    — games/solidarity-draw.js (silo 'draw').                */
+    /*  raid    — games/supply-raid.js (silo 'raid').                    */
+    /*  nuke-detonation — core/17-nuke-strip.js detonation event (the    */
+    /*    rally card keeps its own 'media-nuke' gameId / 'nuke-rally'     */
+    /*    REG key — untouched).                                          */
+    /*  enlisted-ceremony — core/rites.js ENLISTED ceremony share (the    */
+    /*    rite card itself renders via the 'enlistment-ranks' poster).   */
+    /* None are in ORDER: painters ship dormant and fire only when       */
+    /* their silo wires a share/save button.                             */
+    /* ---------------------------------------------------------------- */
+    'first-wave': {
+      title: 'YOU WERE HERE WHEN IT STARTED.', tag: '',
+      lines: ['First Wave founder \u2014 [CALLSIGN].'],
+      cta: 'ENLIST THIS WEEK. FOUNDERS ARE FOREVER.'
+    },
+    'ammo-cite': {
+      title: '[CITED HEADLINE]', tag: 'SOURCED. VERIFIED. WEAPONIZED.',
+      lines: ['via [OUTLET] \u2014 ammo pulled from the factory\u2019s verified feeds.'],
+      cta: 'JOIN THE FIGHT.'
+    },
+    'top-stories': {
+      title: '[STORY HEADLINE]', tag: 'FROM THE NEWS RAIL \u2014 READ FIRST. SHARE SECOND.',
+      lines: ['via [OUTLET] \u2014 this is what we\u2019re reading today.'],
+      cta: 'JOIN THE FIGHT.'
+    },
+    'markets': {
+      title: '[MARKET TITLE]', tag: 'READ THE BOARD. BACK THE OUTCOME.',
+      lines: ['[CALLSIGN] backs [POSITION] \u2014 winners split the pool, no house cut.'],
+      cta: 'JOIN THE FIGHT.'
+    },
+    'gambits': {
+      title: '[WINNER CALLSIGN] TOOK THE POT.', tag: 'THE GAMBIT \u2014 50/50. NO HOUSE.',
+      lines: ['[POT] XP on one flip. 5% armed the war chest.'],
+      cta: 'JOIN THE FIGHT.'
+    },
+    'draw': {
+      title: '[WINNER CALLSIGN] DREW THE WEEK.', tag: 'THE SOLIDARITY DRAW \u2014 FORTUNE FAVORS THE COLLECTIVE.',
+      lines: ['[WINNER XP] XP to the winner \u2014 [CHEST XP] XP to the war chest. Verifiable draw, round [N].'],
+      cta: 'JOIN THE FIGHT.'
+    },
+    'raid': {
+      title: '[CALLSIGN] EXFILTRATED AT [\u00d7MULTIPLIER].', tag: 'SUPPLY LINE RAID \u2014 THE LINE CLIMBS. THE NERVE HOLDS.',
+      lines: ['[PAYOUT] XP out before the collapse. The line keeps its cut for the collective.'],
+      cta: 'JOIN THE FIGHT.'
+    },
+    'nuke-detonation': {
+      title: '[TIER NAME]', tag: '\u2605 DETONATION \u2605',
+      lines: ['The blast is real. [CALLSIGN] was in the Detonation Crew.'],
+      cta: 'JOIN THE FIGHT.'
+    },
+    'enlisted-ceremony': {
+      title: 'YOU HAVE A NAME.', tag: '',
+      lines: ['[CALLSIGN] is enlisted. Now get a squad.'],
+      cta: 'GET A SQUAD \u2192'
     }
   };
   var ORDER = ['fan-vote', 'slr-match-quiz', 'creator-guess', 'bracket-board', 'daily-orders', 'boost-raid', 'do-meter', 'daily-drop',
@@ -341,6 +413,269 @@
     /* R29 (2026-10-05): subscriber frame option, gated on subscriber status. */
     if (opts && opts.frame === 'subscriber') subFrame(x, W, H, 120);
     return cv;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* STUDIO POSTER custom painters (2026-10-05). Copy verbatim from the */
+  /* PR desk package — do not reword.                                   */
+  /*                                                                    */
+  /* REG vs custom: the REG entries above are static templates (generic  */
+  /* drawPoster fallback). Each poster below has dynamic fields, so it  */
+  /* gets a custom painter fn(done) following the voter-pledge          */
+  /* (games/civic.js) / redist-win (games/casino-exits.js) pattern —    */
+  /* with one exception: 'ammo-cite', whose painter is owned by         */
+  /* games/ammo.js (branch fix/studio-ammo-ux) and is NOT registered     */
+  /* here, so the two branches merge without a CUSTOM collision.        */
+  /* Painters read their payload from PFShare.posterState(id): the silo */
+  /* sets state, then calls PFShare.shareImage/saveImage with the       */
+  /* painter's gameId. Missing/invalid state -> done(null), the         */
+  /* established "Poster failed — try again." path. Nothing is invented:*/
+  /* every number comes from the state the silo supplied.               */
+  /* ------------------------------------------------------------------ */
+  var POSTER_STATE = {};
+  function posterState(id, data) {
+    try {
+      if (data === undefined) return POSTER_STATE[id] || null;
+      if (data === null) delete POSTER_STATE[id];
+      else POSTER_STATE[id] = data;
+      return POSTER_STATE[id] || null;
+    } catch (e) { return null; }
+  }
+  function fmtN(n) {
+    try { var v = Number(n); if (isFinite(v)) return v.toLocaleString('en-US'); } catch (e) {}
+    return String(n == null ? '' : n);
+  }
+  function nonEmpty(s) {
+    if (typeof s === 'string') return s.trim();
+    return (s == null ? '' : String(s).trim());
+  }
+  /* Studio layout: kicker, red headline, sub lines, optional CTA button,
+     callsign stamp line, MTCSTW.COM + JOIN THE FIGHT. footer, date. Mirrors
+     the classic drawPoster chrome so the batch reads as one family. */
+  function paintStudio(o) {
+    var W = 1080, H = 1350;
+    var cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    var x = cv.getContext('2d');
+    if (!x) return null;
+    x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, W, H);
+    x.strokeStyle = '#c1121f'; x.lineWidth = 18; x.strokeRect(16, 16, W - 32, H - 32);
+    x.strokeStyle = '#f5ead6'; x.lineWidth = 3; x.strokeRect(52, 52, W - 104, H - 104);
+    x.textAlign = 'center';
+    var y = 170;
+    x.fillStyle = '#f5ead6'; x.font = '700 34px Arial,sans-serif';
+    wrap(x, o.kicker, W - 170).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 48; });
+    y += 70;
+    x.fillStyle = '#c1121f'; x.font = '900 84px "Arial Black",Arial,sans-serif';
+    wrap(x, o.headline, W - 170).slice(0, 3).forEach(function (l) { x.fillText(l, W / 2, y); y += 98; });
+    y += 30;
+    x.fillStyle = '#f5ead6'; x.font = '400 38px Arial,sans-serif';
+    (o.subs || []).slice(0, 4).forEach(function (t) {
+      wrap(x, t, W - 190).slice(0, 3).forEach(function (l) { x.fillText(l, W / 2, y); y += 52; });
+      y += 16;
+    });
+    if (o.cta) {
+      y += 40;
+      x.font = '900 42px "Arial Black",Arial,sans-serif';
+      var tw = x.measureText(o.cta).width + 100;
+      x.fillStyle = '#c1121f'; x.fillRect(W / 2 - tw / 2, y - 56, tw, 92);
+      x.fillStyle = '#ffffff'; x.fillText(o.cta, W / 2, y + 8);
+      y += 92;
+    }
+    var stamp = spreadStamp();
+    if (stamp) {
+      cv._pfStamped = true; /* carries its own stamp, like drawPoster */
+      y += 40;
+      x.fillStyle = '#c1121f'; x.font = '700 30px Arial,sans-serif';
+      wrap(x, stamp, W - 170).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 42; });
+    }
+    /* Share-image CTA standard: MTCSTW.COM + JOIN THE FIGHT. (red, bold). */
+    x.fillStyle = '#c1121f'; x.font = '900 46px "Arial Black",Arial,sans-serif';
+    x.fillText('MTCSTW.COM', W / 2, H - 168);
+    x.fillStyle = '#c1121f'; x.font = '900 44px "Arial Black",Arial,sans-serif';
+    x.fillText('JOIN THE FIGHT.', W / 2, H - 108);
+    x.fillStyle = '#c9bfa8'; x.font = '400 30px Arial,sans-serif';
+    x.fillText(dateStr(), W / 2, H - 58);
+    return cv;
+  }
+  function studioDone(done, cv) {
+    try { done(cv || null); } catch (e) {}
+  }
+  /* 1. FIRST WAVE founder poster. State: {full_muster: bool}. Callsign from
+     the identity store — founderhood is gated on a claimed callsign. */
+  function firstWavePainter(done) {
+    try {
+      var cs = callsignOf();
+      if (!cs) { studioDone(done, null); return; }
+      var st = posterState('first-wave') || {};
+      var full = st.full_muster === true;
+      studioDone(done, paintStudio({
+        kicker: '\u2605 THE PROPAGANDA FACTORY \u2605',
+        headline: full ? 'FIRST WAVE \u2014 FULL MUSTER' : 'YOU WERE HERE WHEN IT STARTED.',
+        subs: [full ? cs + ' stood the full muster. First wave, full strength.'
+                    : 'First Wave founder \u2014 ' + cs],
+        cta: 'ENLIST THIS WEEK. FOUNDERS ARE FOREVER.'
+      }));
+    } catch (e) { studioDone(done, null); }
+  }
+  /* 2. Ammo Finder citation poster — REG fallback only. The custom painter
+     is owned by games/ammo.js (branch fix/studio-ammo-ux, which registers
+     PFShare.setPoster('ammo-cite', ...) itself); this file must NOT register
+     a second painter or the two branches collide at merge. CUSTOM['ammo-cite']
+     set by ammo.js takes precedence at runtime; this REG entry is the
+     generic drawPoster fallback. */
+  /* 3. Top Stories share poster. State: {headline, outlet} — pulled from
+     the news_top story payload, never invented. */
+  function topStoriesPainter(done) {
+    try {
+      var st = posterState('top-stories') || {};
+      var head = nonEmpty(st.headline), outlet = nonEmpty(st.outlet);
+      if (!head || !outlet) { studioDone(done, null); return; }
+      studioDone(done, paintStudio({
+        kicker: 'FROM THE NEWS RAIL \u2014 READ FIRST. SHARE SECOND.',
+        headline: head,
+        subs: ['via ' + outlet + ' \u2014 this is what we\u2019re reading today.']
+      }));
+    } catch (e) { studioDone(done, null); }
+  }
+  /* 4. Frontline Forecasts poster (silo 'markets'). State: {market_title,
+     position} — from the placed/settled position; battle-wager shares swap
+     the wager terms into position. */
+  function marketsPainter(done) {
+    try {
+      var st = posterState('markets') || {};
+      var title = nonEmpty(st.market_title), pos = nonEmpty(st.position);
+      var cs = callsignOf();
+      if (!title || !pos || !cs) { studioDone(done, null); return; }
+      studioDone(done, paintStudio({
+        kicker: 'READ THE BOARD. BACK THE OUTCOME.',
+        headline: title,
+        subs: [cs + ' backs ' + pos + ' \u2014 winners split the pool, no house cut.']
+      }));
+    } catch (e) { studioDone(done, null); }
+  }
+  /* 5. The Gambit poster (silo 'gambits'). State: {won, winner_callsign,
+     pot_xp}. Winner takes 1.9x (math-audit rule — never "double"); 5% of
+     every pot tithes to the war chest. Loss variant needs no fields. */
+  function gambitsPainter(done) {
+    try {
+      var st = posterState('gambits') || {};
+      if (st.won === true) {
+        var winner = nonEmpty(st.winner_callsign), pot = st.pot_xp;
+        if (!winner || !(Number(pot) > 0)) { studioDone(done, null); return; }
+        studioDone(done, paintStudio({
+          kicker: 'THE GAMBIT \u2014 50/50. NO HOUSE.',
+          headline: winner.toUpperCase() + ' TOOK THE POT.',
+          subs: [fmtN(pot) + ' XP on one flip. 5% armed the war chest.']
+        }));
+      } else if (st.won === false) {
+        studioDone(done, paintStudio({
+          kicker: 'THE GAMBIT \u2014 50/50. NO HOUSE.',
+          headline: 'THE POT GOT AWAY.',
+          subs: ['Winner takes 1.9\u00d7. The war chest takes its cut \u2014 5% of every pot.']
+        }));
+      } else { studioDone(done, null); }
+    } catch (e) { studioDone(done, null); }
+  }
+  /* 6. Solidarity Draw poster (silo 'draw'). State: {won, winner_callsign,
+     winner_xp, chest_xp, round}. The 80/20 split is NOT hardcoded — the two
+     XP fields are dynamic, so the copy survives a split change. Loser
+     variant needs no fields. */
+  function drawPainter(done) {
+    try {
+      var st = posterState('draw') || {};
+      if (st.won === true) {
+        var winner = nonEmpty(st.winner_callsign);
+        var wxp = st.winner_xp, cxp = st.chest_xp, round = st.round;
+        if (!winner || !(Number(wxp) >= 0) || !(Number(cxp) >= 0) || !(Number(round) > 0)) {
+          studioDone(done, null); return;
+        }
+        studioDone(done, paintStudio({
+          kicker: 'THE SOLIDARITY DRAW \u2014 FORTUNE FAVORS THE COLLECTIVE.',
+          headline: winner.toUpperCase() + ' DREW THE WEEK.',
+          subs: [fmtN(wxp) + ' XP to the winner \u2014 ' + fmtN(cxp) +
+                 ' XP to the war chest. Verifiable draw, round ' + fmtN(round) + '.']
+        }));
+      } else if (st.won === false) {
+        studioDone(done, paintStudio({
+          kicker: 'THE SOLIDARITY DRAW \u2014 FORTUNE FAVORS THE COLLECTIVE.',
+          headline: 'THE POT RIDES AGAIN.',
+          subs: ['10 XP a ticket. Winner takes the lion\u2019s share \u2014 the war chest takes its cut.']
+        }));
+      } else { studioDone(done, null); }
+    } catch (e) { studioDone(done, null); }
+  }
+  /* 7. Supply Line Raid poster (silo 'raid'). State: {won, multiplier,
+     payout_xp, callsign?, cell_name?}. The CTA verb is EXFILTRATE — never
+     "cash out". Unaffiliated loss: stake spoils to the network war chest. */
+  function raidPainter(done) {
+    try {
+      var st = posterState('raid') || {};
+      var cs = nonEmpty(st.callsign) || callsignOf();
+      if (!cs) { studioDone(done, null); return; }
+      cs = cs.toUpperCase();
+      if (st.won === true) {
+        var mult = nonEmpty(st.multiplier).replace(/^\u00d7/, '');
+        var payout = st.payout_xp;
+        if (!mult || !(Number(payout) > 0)) { studioDone(done, null); return; }
+        studioDone(done, paintStudio({
+          kicker: 'SUPPLY LINE RAID \u2014 THE LINE CLIMBS. THE NERVE HOLDS.',
+          headline: cs + ' EXFILTRATED AT \u00d7' + mult + '.',
+          subs: [fmtN(payout) + ' XP out before the collapse. The line keeps its cut for the collective.']
+        }));
+      } else if (st.won === false) {
+        var cell = nonEmpty(st.cell_name);
+        var treasury = cell ? cell + '\u2019s treasury' : 'the network war chest';
+        studioDone(done, paintStudio({
+          kicker: 'SUPPLY LINE RAID \u2014 THE LINE CLIMBS. THE NERVE HOLDS.',
+          headline: 'THE LINE COLLAPSED.',
+          subs: [cs + '\u2019s stake arms ' + treasury + '. Losers fund the squad.']
+        }));
+      } else { studioDone(done, null); }
+    } catch (e) { studioDone(done, null); }
+  }
+  /* 8. Nuke detonation poster. State: {tier} — 1-4, "T1"-"T4", or the tier
+     name verbatim. No outcome claims (no trending/pickup language); the
+     binding honesty line rides the sub. Never a purchase mention. */
+  var NUKE_TIER_NAMES = ['LOCAL SKIRMISH', 'REGIONAL SURGE', 'NATIONAL TAKEOVER', 'MEDIA BLITZ'];
+  function nukeTierName(t) {
+    try {
+      if (typeof t === 'number' && NUKE_TIER_NAMES[t - 1]) return NUKE_TIER_NAMES[t - 1];
+      var up = String(t == null ? '' : t).toUpperCase().trim();
+      var m = up.match(/^T([1-4])$/);
+      if (m) return NUKE_TIER_NAMES[Number(m[1]) - 1];
+      if (NUKE_TIER_NAMES.indexOf(up) !== -1) return up;
+    } catch (e) {}
+    return '';
+  }
+  function nukeDetonationPainter(done) {
+    try {
+      var st = posterState('nuke-detonation') || {};
+      var tierName = nukeTierName(st.tier);
+      var cs = nonEmpty(st.callsign) || callsignOf();
+      if (!tierName || !cs) { studioDone(done, null); return; }
+      studioDone(done, paintStudio({
+        kicker: '\u2605 DETONATION \u2605',
+        headline: tierName,
+        subs: ['The blast is real. ' + cs.toUpperCase() + ' was in the Detonation Crew.',
+               'The meter proves we showed up, not that the algorithm obeyed.']
+      }));
+    } catch (e) { studioDone(done, null); }
+  }
+  /* 9. ENLISTED ceremony poster. The callsign IS the poster — zero XP
+     language, one prescribed CTA. stampCallsign path reused via the
+     share/save flow (paintStudio sets _pfStamped like drawPoster). */
+  function enlistedCeremonyPainter(done) {
+    try {
+      var cs = callsignOf();
+      if (!cs) { studioDone(done, null); return; }
+      studioDone(done, paintStudio({
+        kicker: '\u2605 THE PROPAGANDA FACTORY \u2605',
+        headline: 'YOU HAVE A NAME.',
+        subs: [cs + ' is enlisted. Now get a squad.'],
+        cta: 'GET A SQUAD \u2192'
+      }));
+    } catch (e) { studioDone(done, null); }
   }
 
   /* ------------------------------------------------------------------ */
@@ -613,9 +948,32 @@
     saveImage: saveImage,
     ensureAll: ensureAll,
     setPoster: function (id, fn) { try { if (id && typeof fn === 'function') CUSTOM[id] = fn; } catch (e) {} },
+    /* Studio batch (2026-10-05): dynamic-poster state. Silos set
+       PFShare.posterState(id, data) before shareImage/saveImage; the
+       custom painter for that id reads it. posterState(id) reads,
+       posterState(id, null) clears. */
+    posterState: posterState,
     spreadStamp: spreadStamp,
     stampCallsign: stampCallsign
   };
+
+  /* Studio poster batch (2026-10-05): register the dynamic-field painters.
+     REG entries above stay as the generic drawPoster fallback. Painters ship
+     dormant — they fire only when their silo sets posterState and calls
+     shareImage/saveImage with the painter's gameId. */
+  try {
+    window.PFShare.setPoster('first-wave', firstWavePainter);
+    /* 'ammo-cite': painter owned by games/ammo.js (fix/studio-ammo-ux) —
+       intentionally NOT registered here; REG fallback above covers
+       drawPoster('ammo-cite'). */
+    window.PFShare.setPoster('top-stories', topStoriesPainter);
+    window.PFShare.setPoster('markets', marketsPainter);
+    window.PFShare.setPoster('gambits', gambitsPainter);
+    window.PFShare.setPoster('draw', drawPainter);
+    window.PFShare.setPoster('raid', raidPainter);
+    window.PFShare.setPoster('nuke-detonation', nukeDetonationPainter);
+    window.PFShare.setPoster('enlisted-ceremony', enlistedCeremonyPainter);
+  } catch (e) {}
 
   /* Run now (sections are mounted — this file loads after home-v2.js) and
      re-scan for late-mounting sections. Idempotent: never duplicates. */

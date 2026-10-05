@@ -895,6 +895,16 @@ function render(){
   renderPatrons();
   renderRaid();
   document.getElementById("oStreak").innerHTML="Current streak: <b>"+(d.o.streak||0)+"</b> day"+((d.o.streak||0)===1?"":"s")+((d.o.shields||0)>0?" &nbsp;\uD83D\uDEE1\uFE0F x"+d.o.shields:"");
+  /* R26 (2026-10-04): the ONE shared inventory chip mounts on the streak
+     row — extends the shield display above, no second chip system. */
+  try{
+    var _os=document.getElementById("oStreak");
+    if(_os&&window.PF&&PF.mountInventoryChip){
+      var _chip=document.getElementById("oInvChip");
+      if(!_chip){ _chip=document.createElement("span"); _chip.id="oInvChip"; _os.appendChild(_chip); }
+      PF.mountInventoryChip(_chip);
+    }
+  }catch(e){}
   var s=d.o.streak||0;
   var nextMil=Object.keys(STREAK_BONUS).map(Number).filter(function(n){return n>s;}).sort(function(a,b){return a-b;})[0];
       document.getElementById("oNext").textContent=nextMil?("Streak bonus at "+nextMil+" days (+"+STREAK_BONUS[nextMil]+" XP)"):"Maximum streak bonus achieved. Legendary.";

@@ -72,8 +72,12 @@ var SECTIONS = {
     'campaign.js',
     'alerts.js',
     'fan-vote.js',
-    /* W5-6 Hall of Proof (2026-10-04): public winners wall, PROOF section. */
-    'hall-of-proof.js'
+    /* S5 war-room ticker (wave-3): self-mounting, fail-silent; mounts homepage
+       PROOF section + /cells. Was never added to any bundle at 4ce7391
+       (dead file) — wired here for the homepage leg.
+       NOTE (wave-6b-3): 'hall-of-proof.js' (W6B-2's file, not yet merged)
+       belongs in this bundle once it lands — re-add it here. */
+    'war-room-ticker.js'
   ],
   /* SLIM DEDICATED-PAGE BUNDLES (2026-10-04, M1 dead-weight fix): /arcade,
      /cells and /create used to fetch the full bundle-home (~83KB gz) to get
@@ -93,7 +97,10 @@ var SECTIONS = {
   ],
   'bundle-cells-h': [
     /* /cells — cells.js stages pf-ov-cells for the main Cells widget. */
-    'cells.js'
+    'cells.js',
+    /* S5 war-room ticker /cells leg (slim dup — the loader fetches this
+       INSTEAD of bundle-home on /cells, never both). */
+    'war-room-ticker.js'
   ],
   'bundle-create-h': [
     /* /create — poster-forge + feed (the Propaganda Feed workshop). */
@@ -206,9 +213,10 @@ Object.keys(ALL).forEach(function (b) {
 var DEAD = ['bank.js', 'daily-drop.js', 'daily-fire.js', 'boost-raid.js',
   'media-nuke.js', 'video.js', 'amplify.js', 'archive.js', 'bounties.js',
   'assist.js'];
-/* Global chrome: notify.js (header bell) is bundled by build/bundle-core.js
-   into pages/bundle-pages.js — intentionally excluded from page bundles. */
-var GLOBAL_CHROME = ['notify.js'];
+/* Global chrome: notify.js (header bell) + flash-siren.js (A2 site-wide siren
+   banner) are bundled by build/bundle-core.js into pages/bundle-pages.js —
+   intentionally excluded from page bundles. */
+var GLOBAL_CHROME = ['notify.js', 'flash-siren.js'];
 var unbundled = allFiles.filter(function (f) {
   return bundled.indexOf(f) === -1 && f.indexOf('bundle-') !== 0 &&
     DEAD.indexOf(f) === -1 && GLOBAL_CHROME.indexOf(f) === -1;

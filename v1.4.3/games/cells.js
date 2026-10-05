@@ -288,7 +288,7 @@ function renderLobby(el){
     '<div class="c-err" id="cJoinErr"></div></div>'+
     '</div>'+
     searchHtml+
-    '<div class="c-bounty">Share your cell code: <b>+25 XP</b> every time your recruit checks in.</div>'+
+    '<div class="c-bounty">SHARE YOUR CELL CODE &mdash; every RECRUIT who checks in pays <b>+25 XP</b>. One recruit, one credit, everywhere.</div>'+
     (SLIM?'<div class="x-note">Full cell management &mdash; search, prestige, challenges &mdash; lives at <a href="/cells" style="color:#c1121f;">/cells</a>.</div>':'');
   document.getElementById("cCreate").onclick=function(){
     var nm=document.getElementById("cName").value, id=ident(), err=document.getElementById("cCreateErr");
@@ -312,6 +312,12 @@ function renderLobby(el){
       busyBtn(btn,false);
       if(!j||!j.ok){ err.textContent=cellWriteErr(j&&j.err); return; }
       toast("Welcome to "+j.cell.name+". Check in daily.");
+      /* R23 (2026-10-04): recruiter-attributed joins fire the ONE shared
+         RECRUIT event (09-referral tags source=cell for S3 race credit). */
+      try{
+        var rr=String(ref||"").trim().toLowerCase();
+        if(rr) document.dispatchEvent(new CustomEvent("pf-recruit-cell",{detail:{recruiter:rr}}));
+      }catch(e){}
       refresh();
     });
   };
@@ -695,6 +701,7 @@ function renderCell(el,s){
         +'<option value="recruits">Recruits</option>'
         +'<option value="xp">XP earned</option></select> '
         +'<input id="cChDays" type="number" min="1" max="30" value="7" style="width:64px" aria-label="Days"> '
+        +'<input id="cChPurse" type="number" min="0" placeholder="PURSE XP (optional)" aria-label="Purse XP" style="width:150px"> '
         +'<button class="c-btn" id="cChCreateBtn">CREATE CHALLENGE</button>'
         +'<div class="c-err" id="cChCreateErr"></div></div>';
     }
@@ -707,13 +714,17 @@ function renderCell(el,s){
             dEl=host.querySelector("#cChDays"), ee=host.querySelector("#cChCreateErr");
         var title=tEl?tEl.value.trim():"", metric=mEl?mEl.value:"checkins",
             days=dEl?(parseInt(dEl.value,10)||7):7;
+        var pEl=host.querySelector("#cChPurse");
+        var purse=pEl?Math.max(0,parseInt(pEl.value,10)||0):0;
         if(ee) ee.textContent="";
         if(title.length<4){ if(ee) ee.textContent="Title needs 4+ characters."; return; }
         if(days<1) days=1; if(days>30) days=30;
         if(!window.confirm("Launch challenge \\\"+title+\\\" for "+days+" days?")) return;
         busyBtn(btn,true);
-        post("challenge","ch_action","challenge_create",
-          {callsign:id3.callsign,device:id3.device,title:title,metric:metric,days:days},
+        var cbody={callsign:id3.callsign,device:id3.device,title:title,metric:metric,days:days};
+        /* R25: optional purse rides challenge_create (backend contract). */
+        if(purse>0) cbody.purse=purse;
+        post("challenge","ch_action","challenge_create",cbody,
           function(r){
             busyBtn(btn,false);
             if(!r||!r.ok){ if(ee) ee.textContent=cellWriteErr(r&&r.err); return; }
@@ -732,10 +743,22 @@ function renderCell(el,s){
         }
         for(var i=0;i<list.length;i++){
           var ch=list[i]||{};
+          /* R25 (2026-10-04): purse display on challenge cards; winners link
+             to the Hall spotlight; purse pays out through the dividend rails.
+             Backend contract (flagged): challenge_list rows may carry purse
+             (or prize_xp), status, winner (cell name), winner_cell_id. */
+          var purse=Math.max(0,parseInt(ch.purse||ch.prize_xp||0,10)||0);
+          var won=String(ch.winner||ch.winner_cell||"");
+          var wcid=String(ch.winner_cell_id||"");
+          var isDone=/complete|ended|resolved|closed/i.test(String(ch.status||""))||!!won;
           h+='<div class="x-pane"><h4>'+esc(ch.title)+'</h4>'
             +'<div class="x-note">'+esc(ch.detail||"")+'</div>'
-            +'<div class="x-note">Ends: '+esc(ch.ends||"soon")+'</div>'
-            +'<button class="c-btn c-chjoin" data-ch="'+esc(ch.id)+'">ENTER MY CELL</button>'
+            +(purse?'<div class="x-note"><b>\\uD83C\\uDFC6 PURSE: '+purse.toLocaleString()+' XP</b></div>':'')
+            +(won?'<div class="x-note">\\uD83C\\uDFC6 WINNER: <b>'+esc(won)+'</b> &mdash; <a href="/#pf-v2" style="color:#c1121f;">HALL OF PROOF \\u2192</a></div>':'')
+            +'<div class="x-note">'+(isDone?"Decided.":"Ends: "+esc(ch.ends||"soon"))+'</div>'
+            +(isDone
+              ?(purse&&wcid?'<button class="c-btn c-chpay" data-ch="'+esc(ch.id)+'" data-cell="'+esc(wcid)+'" data-purse="'+purse+'">PAY PURSE VIA DIVIDENDS</button>':'')
+              :'<button class="c-btn c-chjoin" data-ch="'+esc(ch.id)+'">ENTER MY CELL</button>')
             +'<div class="c-err" id="cChErr-'+esc(ch.id)+'"></div></div>';
         }
         h+=createFormHtml();
@@ -755,6 +778,26 @@ function renderCell(el,s){
             });
           };
         })(jbs[b]);
+        /* R25: purse payout through the existing dividend rails. The backend
+           enforces founder/officer — the frontend only routes. */
+        var pbs=host.querySelectorAll(".c-chpay");
+        for(var pb2=0;pb2<pbs.length;pb2++)(function(btn){
+          btn.onclick=function(){
+            var chid=btn.getAttribute("data-ch"), wcell=btn.getAttribute("data-cell"),
+                amt=Math.max(0,parseInt(btn.getAttribute("data-purse"),10)||0),
+                id2=ident(), ee=document.getElementById("cChErr-"+chid);
+            if(ee) ee.textContent="";
+            if(!wcell||!amt){ if(ee) ee.textContent="Winner or purse missing."; return; }
+            if(!window.confirm("Pay "+amt.toLocaleString()+" XP to the winning cell via dividends?")) return;
+            busyBtn(btn,true);
+            post("finance","f_action","dividend_pay",{callsign:id2.callsign,device:id2.device,cell_id:wcell,amount:amt},function(r){
+              busyBtn(btn,false);
+              if(!r||!r.ok){ if(ee) ee.textContent=cellWriteErr(r&&r.err); return; }
+              toast("PURSE PAID — "+amt.toLocaleString()+" XP split across the winning cell.");
+              loadCh();
+            });
+          };
+        })(pbs[pb2]);
         api("challenge_board",{},function(b2){
           var bh=document.getElementById("cChBoard"); if(!bh) return;
           var rows=(b2&&b2.board)||[];

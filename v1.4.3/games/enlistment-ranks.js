@@ -426,6 +426,20 @@ function render(){
   document.getElementById("rWho").innerHTML=who+(idx>=2&&who?' <span class="gold">&#9733;</span>':"");
   /* Armory: apply equipped frame + flair to the callsign display. */
   try{ if(window.PF&&PF.armoryStyle) PF.armoryStyle(document.getElementById("rWho")); }catch(e){}
+  /* W2-D17 + R29 (2026-10-04): equipped custom title byline + subscriber
+     badge on the callsign profile. Mirrors written by /economy (title_buy)
+     and /war-chest (subscribe); the ticker byline reads ev.title. */
+  try{
+    var _rWho=document.getElementById("rWho"), _ttl="", _sup=false;
+    try{ _ttl=String(localStorage.getItem("pf_title_v1")||"").slice(0,40); }catch(e2){}
+    try{ _sup=!!localStorage.getItem("pf_supporter_v1"); }catch(e3){}
+    if(_rWho&&(_ttl||_sup)){
+      var _tb=document.getElementById("rTitleBadge");
+      if(!_tb){ _tb=document.createElement("div"); _tb.id="rTitleBadge"; _tb.style.marginTop="6px"; _rWho.appendChild(_tb); }
+      _tb.innerHTML=(_ttl?' <span style="color:#d4af37;letter-spacing:1px">&laquo;'+_ttl.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+'&raquo;</span>':"")
+        +(_sup?' <span style="background:#d4af37;color:#0d0d0d;font-weight:800;font-size:10px;letter-spacing:1px;padding:2px 8px;border-radius:3px">SUPPORTER</span>':"");
+    }
+  }catch(e){}
   document.getElementById("rXp").textContent=s.xp+" XP";
   var next=TIERS[idx+1];
   if(next){

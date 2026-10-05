@@ -295,6 +295,9 @@ var SECTIONS = {
    other pages. */
 var HQ_BUNDLES = {
   'bundle-hq': [
+    /* 2026-10-05 (fe/phq-hub-nav): the section-hub runtime MUST stay first —
+       it defines PF.mountHubSilos before pages/political-hq.js delegates. */
+    'phq-hubs.js',
     'civic.js',
     'civic-duty.js',
     /* 2026-10-05 (fe/state-legislatures): state legislature directory. */

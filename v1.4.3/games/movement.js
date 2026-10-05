@@ -66,6 +66,25 @@ function fmtDate(t){
     return mo[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear(); }catch(e){ return ""; }
 }
 var CAUSES=null, SUBS=null, PRIZES=null, BURNS=null, BWALL=null;
+/* R24 (2026-10-05): pool names the backend's funding ceremony already
+   celebrated. cause_list rows carry no goal/status/my_donation fields, so
+   the ceremony's visible half is the civic.cause_funded feed event
+   ("CAUSE <NAME> FULLY FUNDED", emitted once per pool by
+   maybeCelebrateCause). Uppercase pool-name -> 1. Fail-silent: an
+   unreachable feed just leaves the banner dark. */
+var CAUSEFUNDED={};
+function scanCauseFunded(j){
+  CAUSEFUNDED={};
+  try{
+    var evs=(j&&j.ok&&j.events)||[];
+    for(var i=0;i<evs.length;i++){
+      var ev=evs[i]||{};
+      if(String(ev.type||"")!=="civic.cause_funded") continue;
+      var m=/^CAUSE (.+) FULLY FUNDED$/.exec(String(ev.name||""));
+      if(m&&m[1]) CAUSEFUNDED[String(m[1]).toUpperCase()]=1;
+    }
+  }catch(e){}
+}
 /* S7 FUND THEIR FIGHT (2026-10-04): /war-chest?creator=<slug> preselects
    the creator in the subscription UI — catalog pages deep-link here.
    Existing backend contract only: {type:'finance',f_action:'subscribe',
@@ -97,11 +116,13 @@ function fetchSponsorCell(cb){
   });
 }
 function load(){
-  var id=ident(), done=false, n=0, need=5;
+  var id=ident(), done=false, n=0, need=6;
   function fin(){ if(done)return; done=true; render(); }
   function one(){ n++; if(n>=need) fin(); }
   setTimeout(fin,15000);
   api("cause_list",{},function(j){ CAUSES=j; one(); });
+  /* R24: the funding ceremony's feed half — see scanCauseFunded. */
+  api("feed_list",{limit:50},function(j){ scanCauseFunded(j); one(); });
   api("subscription_list",{callsign:id.callsign},function(j){ SUBS=j; one(); });
   api("prize_list",{},function(j){ PRIZES=j; one(); });
   api("burn_leaderboard",{},function(j){ BURNS=j; one(); });
@@ -193,9 +214,13 @@ function renderCauses(id){
     var p=pools[i];
     /* R24 (2026-10-04): completion ceremony — FUNDED banner + donor badge.
        Backend emitter (W6B-1, flagged): pool rows carry status/funded/goal
-       and the reader's my_donation/is_backer. Rendered defensively. */
+       and the reader's my_donation/is_backer. Rendered defensively.
+       2026-10-05: the backend's cause_list ships none of those fields, so
+       the celebrated set from the civic.cause_funded feed events
+       (scanCauseFunded) is OR'd in — real ceremony data, no invented goal. */
     var goal=Number(p.goal||0);
-    var funded=(p.status==="funded"||p.funded===true||(goal>0&&Number(p.balance||0)>=goal));
+    var celebrated=!!CAUSEFUNDED[String(p.name||"").toUpperCase()];
+    var funded=(celebrated||p.status==="funded"||p.funded===true||(goal>0&&Number(p.balance||0)>=goal));
     var backer=(Number(p.my_donation||0)>0||p.is_backer===true);
     var pct=goal>0?Math.min(100,Math.round(Number(p.balance||0)/goal*100)):0;
     h+='<div class="cp-mission"><div class="cp-mtext">'
@@ -317,12 +342,19 @@ function wireSubs(id,el){
     if(cr===id.callsign){ e.textContent="Cannot support yourself."; return; }
     if(amt<=0||amt>10000){ e.textContent="Amount must be 1–10,000 XP/week."; return; }
     b.disabled=true;
-    post("finance","f_action","subscribe",{callsign:id.callsign,device:id.device,subscriber:id.callsign,creator:cr,amount_per_week:amt},function(j){
+    /* R29 fix (2026-10-05): subscribe lives in subDispatch — the correct
+       contract is {type:'sub', s_action:'subscribe'} (authGate AUTH_MAP
+       'sub:subscribe'); the old finance/f_action route returned 'unknown
+       finance action' and never created the row. */
+    post("sub","s_action","subscribe",{callsign:id.callsign,device:id.device,subscriber:id.callsign,creator:cr,amount_per_week:amt},function(j){
       b.disabled=false;
       if(!j||!j.ok){ e.textContent=PF.errCopy(j,"Failed."); return; }
       toast("SUPPORTING "+cr+" at "+amt+" XP/week.");
       /* R29: supporter badge mirror — enlistment-ranks renders the badge. */
       try{ localStorage.setItem("pf_supporter_v1","1"); }catch(e2){}
+      /* R29 (2026-10-05): refresh the authoritative subscriber flag
+         (derived from subscription_list, not from this mirror). */
+      try{ if(window.PF&&PF.refreshSubscriber) PF.refreshSubscriber(); }catch(e5){}
       document.getElementById("mvSubCs").value=""; document.getElementById("mvSubAmt").value="";
       api("subscription_list",{callsign:id.callsign},function(jj){ SUBS=jj; render(); });
     });
@@ -331,9 +363,11 @@ function wireSubs(id,el){
   for(var i=0;i<us.length;i++){ (function(btn){
     btn.onclick=function(){
       var cr=btn.getAttribute("data-unsub"); btn.disabled=true;
-      post("finance","f_action","unsubscribe",{callsign:id.callsign,device:id.device,subscriber:id.callsign,creator:cr},function(j){
+      post("sub","s_action","unsubscribe",{callsign:id.callsign,device:id.device,subscriber:id.callsign,creator:cr},function(j){
         if(!j||!j.ok){ toast(PF.errCopy(j,"Failed.")); btn.disabled=false; return; }
         toast("Stopped supporting "+cr+".");
+        /* R29 (2026-10-05): refresh the authoritative subscriber flag. */
+        try{ if(window.PF&&PF.refreshSubscriber) PF.refreshSubscriber(); }catch(e6){}
         api("subscription_list",{callsign:id.callsign},function(jj){
           SUBS=jj;
           /* R29: clear the supporter badge mirror when nothing remains. */

@@ -62,10 +62,14 @@
        from the feed_list response (server-sanitized) and is esc()ed. */
     function copyFor(ev) {
       /* W2-D17 (2026-10-04): the actor's equipped custom title rides the
-         ticker byline. Backend flag (W6B-1): feed_list events carry title. */
+         ticker byline. Backend flag (W6B-1): feed_list events carry title.
+         R29 (2026-10-05): subscriber treatment — feed_list events carry
+         subscriber:true on the actor (backend-set flag). The marker is a
+         text star (\u2605), never emoji. paint() adds the wrt-isub class. */
       var ttl = ev.title ? esc(String(ev.title)).slice(0,40) : '';
       var byline = ttl ? ' \u00AB' + ttl + '\u00BB' : '';
-      var cs = ev.callsign ? esc(ev.callsign) + byline : '';
+      var sub = !!(ev && ev.subscriber);
+      var cs = ev.callsign ? (sub ? '\u2605 ' : '') + esc(ev.callsign) + byline : '';
       var name = esc(ev.name), theme = esc(ev.theme);
       var tag = tagFor(ev.theme);
       switch (ev.type) {
@@ -125,6 +129,11 @@
            (server-sanitized via narrate.js), rendered verbatim. */
         case 'cell.sponsored':
           return { text: '\uD83C\uDFDB\uFE0F ' + name, tag: '' };
+        /* R24 (2026-10-05): cause-pool funding ceremony — the backend's
+           maybeCelebrateCause emits civic.cause_funded once per pool, the
+           headline riding ev.name ("CAUSE <NAME> FULLY FUNDED"). */
+        case 'civic.cause_funded':
+          return { text: '\uD83C\uDFC6 ' + name, tag: '', hot: true };
         /* R29 (2026-10-04): subscription -> ticker event. Backend emitter
            (W6B-1, flagged): feed_list type subscription/subscribe with meta
            {creator, amount_per_week}. Perk mechanics need Shane's call. */
@@ -208,7 +217,10 @@
       for (var i = 0; i < evs.length; i++) {
         var ev = evs[i], c = copyFor(ev);
         var page = ev.ref ? safePage(ev.ref.page) : '';
-        var open = page ? '<a class="wrt-item" href="' + page + '">' : '<span class="wrt-item">';
+        /* R29 (2026-10-05): subscriber actions get distinct treatment.
+           (wrt-isub — not wrt-sub, which is the ticker subtitle's class.) */
+        var subCls = (ev && ev.subscriber) ? ' wrt-isub' : '';
+        var open = page ? '<a class="wrt-item' + subCls + '" href="' + page + '">' : '<span class="wrt-item' + subCls + '">';
         var close = page ? '</a>' : '</span>';
         h += open +
           '<span class="wrt-copy">' + c.text +
@@ -286,6 +298,8 @@
         '#pf-warrticker .wrt-sub{font-size:13px;color:#a89e88;margin-bottom:14px}' +
         '#pf-warrticker .wrt-item{display:flex;align-items:baseline;gap:10px;padding:9px 10px;' +
         'border-top:1px solid #2a2a2a;color:#f5ead6;text-decoration:none;font-size:14px}' +
+        /* R29 (2026-10-05): subscriber actions — gold inset bar + tinted ground. */
+        '#pf-warrticker .wrt-item.wrt-isub{box-shadow:inset 3px 0 0 #d4af37;background:#141008}' +
         '#pf-warrticker a.wrt-item:hover{background:#161616}' +
         '#pf-warrticker .wrt-copy{flex:1;line-height:1.4}' +
         '#pf-warrticker .wrt-tag{color:#c1121f;font-weight:700}' +

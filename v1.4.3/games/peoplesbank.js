@@ -158,6 +158,11 @@ function renderTabs(){
 }
 function render(){
   var el=document.getElementById("xPBank"); if(!el) return;
+  /* R15 (2026-10-05): a pending return-send prefill jumps straight to the
+     TRANSFERS tab, otherwise the prefill in wireTeller never runs (the bank
+     opens on VAULT) and the SEND BACK tap silently dies. One-shot: the key
+     is consumed inside wireTeller. */
+  try{ if(sessionStorage.getItem("pf_remit_prefill")) TAB="teller"; }catch(e){}
   var id=ident(), h="", g=gate();
   if(g){ el.innerHTML=g; return; }
   h+=renderTabs();

@@ -251,17 +251,27 @@
        (+ boost, in the prefs map, no call site yet).
        FLAGGED FOR LIVE VERIFICATION: bounty -> /create, wager/lottery ->
        /arcade, tip -> /create, recruit -> / are best-guess surfaces. */
-    var TYPE_DEEP={battle:'/arcade',bounty:'/create',wager:'/arcade',lottery:'/arcade',gov:'/political-hq',streak:'/',flash:'/#pf-brief',tip:'/create',ambush:'/',recruit:'/',boost:'/create'};
+    var TYPE_DEEP={battle:'/arcade',bounty:'/create',wager:'/arcade',lottery:'/arcade',gov:'/political-hq',streak:'/',flash:'/#pf-brief',tip:'/create',ambush:'/',recruit:'/',boost:'/create',remit:'/bank'};
     function ntDest(x){ try{ var l=x.link||x.url||x.href; if(l) return String(l); }catch(e){}
       return TYPE_DEEP[String(x.type||'').toLowerCase()]||null; }
     for(i=0;i<Math.min(list.length,30);i++){
       var n=list[i], dest=ntDest(n);
-      /* R15 (2026-10-04): received remits get acknowledge + return-send.
-         Backend contract (W6B-1, flagged): the remit notification carries
-         data {from_cs, amount}. Falls back to a plain MARK READ. */
+      /* R15 (2026-10-04, fields fixed 2026-10-05): received remits get
+         acknowledge + return-send. The backend's notification_list returns
+         id/type/title/body/ts/read ONLY — no data field — so the sender and
+         amount are parsed from the body, which the remit_send emitter writes
+         verbatim: "<CALLSIGN> sent you <N> XP — acknowledge / send back"
+         (finance.js, W6B R15). n.data stays the preferred source if a future
+         backend ever ships it. Without real fields the SEND BACK prefill is
+         a no-op, so never render the buttons on empty values. */
       var ndata=(n&&n.data)||{};
       var isRemit=/remit/i.test(String(n.type||""))||!!ndata.from_cs;
       var fromCs=String(ndata.from_cs||""), rAmt=Math.max(0,Math.round(Number(ndata.amount)||0));
+      if(isRemit&&(!fromCs||!rAmt)){
+        var rbm=/^([a-z0-9_]{3,20}) sent you (\d+) XP/.exec(String((n&&n.body)||""));
+        if(rbm){ if(!fromCs) fromCs=rbm[1]; if(!rAmt) rAmt=Math.max(0,Math.round(Number(rbm[2])||0)); }
+      }
+      var remitReady=isRemit&&!!fromCs&&rAmt>0;
       h+='<div class="cp-mission"'+(n.read?' style="opacity:.6"':'')+'>'
         +(dest?'<a class="nt-go" href="'+esc(dest)+'">':'<span class="nt-go">')
         +'<div class="cp-mtext">'
@@ -269,7 +279,7 @@
         +'<div class="x-note">'+esc(n.body||"")+'</div>'
         +'<div class="x-note">'+esc(ago(n.ts))+'</div></div>'
         +(dest?'</a>':'</span>');
-      if(isRemit&&!n.read){
+      if(remitReady&&!n.read){
         h+='<div><button class="c-btn" data-remit-thanks="'+n.id+'">THANK THEM</button> '
           +'<button class="c-btn" data-remit-back="'+n.id+'" data-from="'+esc(fromCs)+'" data-amt="'+rAmt+'">SEND BACK</button></div>';
       } else if(!n.read){

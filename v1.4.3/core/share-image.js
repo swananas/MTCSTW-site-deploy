@@ -209,13 +209,31 @@
     } catch (e) {}
     return cv;
   }
+  /* R29 (2026-10-05): subscriber-exclusive poster frame option. Paints a
+     gold double frame + a "\u2605 SUBSCRIBER \u2605" tag. Drawn ONLY when the
+     caller passes {frame:'subscriber'} in drawPoster opts AND the shared
+     PF.isSubscriber() helper confirms subscriber status — never for
+     non-subscribers, so the frame stays a genuine subscriber perk.
+     tagY = baseline for the tag (varies by layout). */
+  function subFrame(x, W, H, tagY) {
+    var sub = false;
+    try { sub = !!(PF && PF.isSubscriber && PF.isSubscriber()); } catch (e) {}
+    if (!sub) return;
+    x.save();
+    try { x.textAlign = 'center'; x.textBaseline = 'alphabetic'; } catch (e2) {}
+    x.strokeStyle = '#d4af37'; x.lineWidth = 6; x.strokeRect(4, 4, W - 8, H - 8);
+    x.lineWidth = 2; x.strokeRect(13, 13, W - 26, H - 26);
+    x.fillStyle = '#d4af37'; x.font = '700 28px Arial,sans-serif';
+    x.fillText('\u2605 SUBSCRIBER \u2605', W / 2, tagY);
+    x.restore();
+  }
   /* A9 (2026-10-04): 9:16 (1080x1920) story-safe poster layout. Composes the
      same REG entry (title/tag/lines/cta) as the classic poster — REG entries
      may also set storyPre (eyebrow line, e.g. the quiz's "MY SLR MATCH IS")
      and the caller may pass opts.linkLabel for the printed link-sticker
      hint. Story-safe: 120px side margins, top/bottom ~240px kept clear of
      platform chrome. */
-  function drawStoryPoster(g, linkLabel) {
+  function drawStoryPoster(g, linkLabel, opts) {
     var W = 1080, H = 1920;
     var cv = document.createElement('canvas');
     cv.width = W; cv.height = H;
@@ -268,13 +286,15 @@
     x.fillText('JOIN THE FIGHT.', W / 2, H - 236);
     x.fillStyle = '#c9bfa8'; x.font = '400 30px Arial,sans-serif';
     x.fillText(dateStr(), W / 2, H - 180);
+    /* R29 (2026-10-05): subscriber frame option, gated on subscriber status. */
+    if (opts && opts.frame === 'subscriber') subFrame(x, W, H, 244);
     return cv;
   }
   /* size-aware renderer: 'story' -> 9:16 layout above; omitted/anything else
      keeps the 1080x1350 classic exactly as before. */
   function drawPoster(gameId, size, opts) {
     var g = REG[gameId] || REG['daily-orders'];
-    if (size === 'story') return drawStoryPoster(g, opts && opts.linkLabel);
+    if (size === 'story') return drawStoryPoster(g, opts && opts.linkLabel, opts);
     var W = 1080, H = 1350;
     var cv = document.createElement('canvas');
     cv.width = W; cv.height = H;
@@ -318,6 +338,8 @@
     x.fillText('JOIN THE FIGHT.', W / 2, H - 108);
     x.fillStyle = '#c9bfa8'; x.font = '400 30px Arial,sans-serif';
     x.fillText(dateStr(), W / 2, H - 58);
+    /* R29 (2026-10-05): subscriber frame option, gated on subscriber status. */
+    if (opts && opts.frame === 'subscriber') subFrame(x, W, H, 120);
     return cv;
   }
 
@@ -576,7 +598,10 @@
     ORDER.forEach(ensureGame);
   }
 
-  /* Public API — silos may override poster content later via PFShare.REG. */
+  /* Public API — silos may override poster content later via PFShare.REG.
+     poster(gameId, size, opts): opts.linkLabel (story only); opts.frame —
+     'subscriber' paints the subscriber-exclusive gold frame, drawn only when
+     PF.isSubscriber() confirms subscriber status (R29, 2026-10-05). */
   window.PFShare = {
     REG: REG,
     isIOS: isIOS,

@@ -28,10 +28,31 @@
         sources_down:[...names of unreachable sources...],
         terms:[...query terms the backend actually searched...]}
      `terms` renders as "searched for: …" under the results; when the
-     backend omits it, the submitted claim is shown instead. */
+     backend omits it, the submitted claim is shown instead.
+     ---- POLITICAL MODE CONTRACT (weave #2, 2026-10-05) ----
+     be/ammo-political (src/ammo.js, per-callsign auth, POST-only, zero XP):
+       PF.postAction('ammo', 'ammo_action', 'ammo_political_search',
+                     {query: q}, cb)
+       -> {ok, available, missing?, results:[{kind:'rep'|'bill'|'race',
+           id, title, subtitle, meta}]}
+       PF.postAction('ammo', 'ammo_action', 'ammo_political_detail',
+                     {kind, id}, cb)
+       -> {ok, available?, kind, id, title, detail:{...},
+           forge_cards:[{plugin_id, template_id, label, data, source,
+           fetched_at}]}
+     available:false means the Political HQ tables have not merged yet —
+     the tab renders "Political data not loaded yet" and never breaks.
+     FORGE THIS: the card payload is stashed under the pf_forge_prefill_v1
+     key (see pf_forge_prefill_v1 contract below) and the user is sent to
+     /create. The Poster Forge reads the stash on load; if its political
+     templates are not live yet it toasts and keeps the stash for later. */
   var CLAIM_TYPE = 'claimsupport';
   var CLAIM_ACTION_KEY = 'cs_action';
   var CLAIM_ACTION = 'claim_support_search';
+  var POL_TYPE = 'ammo';
+  var POL_ACTION_KEY = 'ammo_action';
+  var POL_SEARCH = 'ammo_political_search';
+  var POL_DETAIL = 'ammo_political_detail';
 
   /* Mount: Creator HQ. The dedicated <div id="pf-ammo"> is the REQUIRED
      mount — the Creator HQ page must include it for the Ammo Finder to
@@ -162,6 +183,35 @@
       'font:bold 12px Arial;letter-spacing:1px;padding:10px 18px;cursor:pointer;border-radius:2px}' +
     '#pf-ammo #am-rerun:hover{background:#c1121f}' +
     '#pf-ammo #am-rerun:disabled{opacity:.55;cursor:wait}' +
+    /* POLITICAL mode (weave #2): mode tabs, kind badges, voting-record
+       table, stale banner, forge buttons. Same house palette. */
+    '#pf-ammo .am-modes{display:flex;gap:8px;margin:2px 0 10px;flex-wrap:wrap}' +
+    '#pf-ammo .am-mode{background:#1a1a1a;border:1px solid #555;color:#f5ead6;' +
+      'font:bold 12px Arial;letter-spacing:2px;padding:9px 18px;cursor:pointer;border-radius:2px}' +
+    '#pf-ammo .am-mode.on{border-color:#c1121f;background:rgba(193,18,31,.18);color:#fff}' +
+    '#pf-ammo .am-kind{display:inline-block;background:#c1121f;color:#fff;' +
+      'font:bold 10px Arial;letter-spacing:1px;padding:3px 8px;margin-right:8px;border-radius:2px}' +
+    '#pf-ammo .am-kind.bill{background:#8a6d1c}#pf-ammo .am-kind.race{background:#1c5a8a}' +
+    '#pf-ammo .am-poldetail{background:#141414;border:1px solid #3a3a3a;' +
+      'border-left:4px solid #c1121f;padding:14px 16px;margin:0 0 12px}' +
+    '#pf-ammo .am-poldetail h4{font:bold 15px Arial;color:#fff;margin:0 0 8px}' +
+    '#pf-ammo .am-polmeta{font:400 12px/1.6 Arial;color:#b8a98a;margin:0 0 10px}' +
+    '#pf-ammo .am-votes{width:100%;border-collapse:collapse;margin:8px 0 10px;font:400 12px/1.5 Arial}' +
+    '#pf-ammo .am-votes th{font:bold 11px Arial;letter-spacing:1px;color:#b8a98a;' +
+      'text-align:left;padding:6px 8px;border-bottom:1px solid #3a3a3a}' +
+    '#pf-ammo .am-votes td{padding:6px 8px;border-bottom:1px solid #222;color:#d8cdb4;vertical-align:top}' +
+    '#pf-ammo .am-pos-yea{color:#7cFF9b;font-weight:bold}' +
+    '#pf-ammo .am-pos-nay{color:#ff6b6b;font-weight:bold}' +
+    '#pf-ammo .am-pos-miss{color:#8a8a8a}' +
+    '#pf-ammo .am-stale{background:#2a1a05;border:1px solid #e8b34b;color:#e8b34b;' +
+      'font:bold 12px Arial;letter-spacing:1px;padding:8px 12px;margin:0 0 10px}' +
+    '#pf-ammo .am-forgebtn{background:#c1121f;border:1px solid #c1121f;color:#fff;' +
+      'font:bold 11px Arial;letter-spacing:1px;padding:8px 14px;cursor:pointer}' +
+    '#pf-ammo .am-forgebtn:hover{background:#e01a28}' +
+    '#pf-ammo .am-forgebtn:disabled{opacity:.55;cursor:wait}' +
+    '#pf-ammo .am-back{background:transparent;border:1px solid #555;color:#f5ead6;' +
+      'font:bold 11px Arial;letter-spacing:1px;padding:8px 14px;cursor:pointer;margin-bottom:10px}' +
+    '#pf-ammo .am-src{font:400 11px/1.5 Arial;color:#8a7f66;margin:8px 0 2px;letter-spacing:.5px}' +
     '@media(max-width:560px){#pf-ammo #am-go{width:100%}}';
 
   mount.innerHTML =
@@ -169,6 +219,10 @@
     '<style>' + CSS + '</style>' +
     '<h2>Ammo Finder</h2>' +
     '<div class="c-tag">Type the claim. We dig up the sources.</div>' +
+    '<div class="am-modes" role="tablist" aria-label="Ammo Finder mode">' +
+    '<button type="button" class="am-mode on" id="am-mode-sources" role="tab" aria-selected="true">SOURCES</button>' +
+    '<button type="button" class="am-mode" id="am-mode-political" role="tab" aria-selected="false">POLITICAL</button>' +
+    '</div>' +
     '<div class="am-chips" id="am-chips" aria-label="Recent searches" style="display:none"></div>' +
     '<div class="am-row">' +
     '<input id="am-claim" type="text" maxlength="500" autocomplete="off" ' +
@@ -392,11 +446,234 @@
       'page yet — paste the bundle when it lands.');
   }
 
+  /* ============ POLITICAL MODE (weave #2) ============
+     Entity search across reps / bills / races from the Political HQ
+     tables. Read-only, zero XP (Economy Desk sign-off): these buttons
+     transport data, they grant nothing — creation downstream rides the
+     existing Forge/readcreate legs exactly once.
+     FORGE THIS stash contract (pf_forge_prefill_v1) — shared with the
+     Poster Forge and the Studio plugin registry coordinator:
+       sessionStorage['pf_forge_prefill_v1'] = JSON.stringify({
+         v: 1, plugin_id, template_id, label, data, source, fetched_at,
+         stashed_at: <ms epoch> })
+     The Forge reads it on /create load: if PFStudio.applyPrefill exists
+     it is applied and the stash cleared; otherwise the Forge toasts and
+     keeps the stash for when the political templates land. */
+  var FORGE_STASH_KEY = 'pf_forge_prefill_v1';
+  var mode = 'sources';
+  var polResults = [];
+  var polCards = [];
+  var polDetail = null;
+
+  function setMode(m) {
+    mode = (m === 'political') ? 'political' : 'sources';
+    var ms = null, mp = null;
+    try {
+      ms = document.getElementById('am-mode-sources');
+      mp = document.getElementById('am-mode-political');
+    } catch (e) {}
+    if (ms) { ms.classList.toggle('on', mode === 'sources'); ms.setAttribute('aria-selected', mode === 'sources' ? 'true' : 'false'); }
+    if (mp) { mp.classList.toggle('on', mode === 'political'); mp.setAttribute('aria-selected', mode === 'political' ? 'true' : 'false'); }
+    if (claimInput) {
+      try {
+        claimInput.placeholder = (mode === 'political')
+          ? 'e.g. Ted Cruz, HR-22, texas senate'
+          : 'e.g. billionaires paid less in taxes than nurses';
+        claimInput.setAttribute('aria-label', (mode === 'political')
+          ? 'Search reps, bills, and races'
+          : 'Type the claim you want sources for');
+      } catch (e2) {}
+    }
+    if (goBtn) { try { goBtn.textContent = (mode === 'political') ? 'FIND TARGETS' : 'FIND AMMO'; } catch (e3) {} }
+    /* Clear the results pane on mode switch — never mix the two modes. */
+    xAmmo.innerHTML = (mode === 'political')
+      ? '<div class="am-empty">Search a rep, a bill, or a race. Voting records, ' +
+        'bill status, and ratings come straight from the Political HQ tables — ' +
+        'verified positions only, nothing invented.</div>'
+      : '<div class="am-empty">Type a claim above and hit FIND AMMO. ' +
+        'The armory does the digging.</div>';
+  }
+
+  function renderPolLoading() {
+    xAmmo.innerHTML = '<div class="am-load">Digging through the Political HQ tables…</div>';
+  }
+  function renderPolUnavailable(missing) {
+    xAmmo.innerHTML = '<div class="am-empty">Political data not loaded yet — the ' +
+      'Political HQ tables are still merging. Check back after the big update ships.' +
+      (missing && missing.length ? '<br>Waiting on: ' + esc(missing.join(', ')) : '') + '</div>';
+  }
+  function kindBadge(k) {
+    var cls = k === 'bill' ? 'bill' : (k === 'race' ? 'race' : '');
+    var label = k === 'rep' ? 'REP' : (k === 'bill' ? 'BILL' : 'RACE');
+    return '<span class="am-kind ' + cls + '">' + label + '</span>';
+  }
+  function renderPolResults(results, query) {
+    polResults = results || [];
+    var n = polResults.length;
+    if (!n) {
+      xAmmo.innerHTML = '<div class="am-empty">No reps, bills, or races matched ' +
+        '“' + esc(query) + '”. Try a last name, a bill number (HR-22), or a state.</div>';
+      return;
+    }
+    var h = '<div class="am-reshead"><h3 class="am-reshead-t" id="am-reshead" tabindex="-1">' +
+      n + ' target' + (n === 1 ? '' : 's') + ' locked in.</h3></div>';
+    for (var i = 0; i < n; i++) {
+      var r = polResults[i] || {};
+      h += '<div class="am-card"><a class="am-head" href="#" data-am-pol="' + i + '">' +
+        kindBadge(r.kind) + esc(r.title || 'Untitled') + '</a>' +
+        '<div class="am-meta">' + esc(r.subtitle || '') + '</div></div>';
+    }
+    xAmmo.innerHTML = h;
+    try {
+      var rh = document.getElementById('am-reshead');
+      if (rh && rh.focus) rh.focus();
+    } catch (e) {}
+  }
+  function posClass(p) {
+    if (p === 'Yea') return 'am-pos-yea';
+    if (p === 'Nay') return 'am-pos-nay';
+    return 'am-pos-miss';
+  }
+  function renderPolDetail(res) {
+    polDetail = res;
+    polCards = (res && res.forge_cards) || [];
+    var d = (res && res.detail) || {};
+    var kind = res.kind;
+    var h = '<button type="button" class="am-back" id="am-polback">← BACK TO TARGETS</button>';
+    h += '<div class="am-poldetail"><h4>' + kindBadge(kind) + esc(res.title || '') + '</h4>';
+    if (kind === 'rep') {
+      h += '<div class="am-polmeta">' + esc(d.chamber || '') + ' · Phone: ' + esc(d.phone || '—') +
+        (d.url ? ' · <a href="' + esc(d.url) + '" target="_blank" rel="noopener" style="color:#7cFF9b">official site</a>' : '') + '</div>';
+      h += '<table class="am-votes"><thead><tr><th>VOTE</th><th>BILL</th><th>POSITION</th></tr></thead><tbody>';
+      var votes = d.votes || [];
+      for (var i = 0; i < votes.length; i++) {
+        var v = votes[i] || {};
+        h += '<tr><td>' + esc(v.vote_date || '') + '<br>' + esc(v.question || '') + '</td>' +
+          '<td>' + esc(v.bill_id || '') + ' — ' + esc(v.bill_title || '') + '</td>' +
+          '<td class="' + posClass(v.position) + '">' + esc(v.position || '—') + '</td></tr>';
+      }
+      h += '</tbody></table>';
+      h += '<div class="am-src">Source: ' + esc(d.source || '') + '. "—" means no verified position on record — never guessed.</div>';
+    } else if (kind === 'bill') {
+      h += '<div class="am-polmeta">Status: <b>' + esc(d.status || '—') + '</b>' +
+        ' · Stuck in: ' + esc(d.stuck_in || '—') +
+        ' · Sponsor: ' + esc(d.sponsor || '—') +
+        (d.public_law && d.public_law !== '—' ? ' · ' + esc(d.public_law) : '') + '</div>';
+      if (d.summary) h += '<p class="am-ex">' + esc(d.summary) + '</p>';
+      var kp = d.key_players || [];
+      if (kp.length) {
+        h += '<div class="am-polmeta">Key players: ';
+        for (var k = 0; k < kp.length; k++) {
+          h += esc(kp[k].role || '') + ' — ' + esc(kp[k].name || '—') +
+            ' (' + esc(kp[k].party || '—') + '-' + esc(kp[k].state || '—') + ')' +
+            (k < kp.length - 1 ? '; ' : '');
+        }
+        h += '</div>';
+      }
+      h += '<div class="am-src">Source: ' + esc(d.source || '') +
+        (d.source_url ? ' · <a href="' + esc(d.source_url) + '" target="_blank" rel="noopener" style="color:#7cFF9b">congress.gov</a>' : '') +
+        (d.data_as_of && d.data_as_of !== '—' ? ' · data as of ' + esc(d.data_as_of) : '') + '</div>';
+    } else if (kind === 'race') {
+      if (d.stale) {
+        h += '<div class="am-stale">⚠ STALE RATING — snapshot from ' + esc(d.source_date || 'unknown') +
+          ', older than 14 days. Verify before posting.</div>';
+      }
+      h += '<div class="am-polmeta">Rating: <b>' + esc(d.rating || '—') + '</b>' +
+        (d.poll_margin && d.poll_margin !== '—' ? ' · margin ' + esc(d.poll_margin) : '') + '</div>';
+      if (d.stakes) h += '<p class="am-ex">' + esc(d.stakes) + '</p>';
+      var cands = d.candidates || [];
+      for (var c = 0; c < cands.length; c++) {
+        h += '<div class="am-polmeta"><b>' + esc(cands[c].name || '—') + '</b> (' +
+          esc(cands[c].party || '—') + ') — ' + esc(cands[c].funding || '—') + '</div>';
+      }
+      h += '<div class="am-src">Source: ' + esc(d.source_note || '') + '</div>';
+    }
+    if (polCards.length) {
+      h += '<div class="am-actions" style="margin-top:10px">';
+      for (var f = 0; f < polCards.length; f++) {
+        h += '<button type="button" class="am-forgebtn" data-am-forge="' + f + '">' +
+          esc(polCards[f].label || 'FORGE THIS') + '</button>';
+      }
+      h += '</div><div class="am-src">Forge cards pull live data at generation time and ' +
+        'carry the source + date on the asset. Nothing auto-publishes.</div>';
+    }
+    h += '</div>';
+    xAmmo.innerHTML = h;
+  }
+  function loadPolDetail(kind, id) {
+    if (!(PF && PF.postAction)) { renderError(); return; }
+    renderPolLoading();
+    try {
+      PF.postAction(POL_TYPE, POL_ACTION_KEY, POL_DETAIL, { kind: kind, id: id }, function (j) {
+        if (j && j.ok && j.available === false) { renderPolUnavailable(j.missing); return; }
+        if (j && j.ok && j.detail) { renderPolDetail(j); return; }
+        renderError();
+      });
+    } catch (e) { renderError(); }
+  }
+  /* FORGE THIS: stash the card payload for the Poster Forge, then jump to
+     /create. Zero XP here — the Forge's own creation/share legs grant
+     exactly once downstream (Economy Desk sign-off). Fail-closed: if the
+     stash cannot be written, the user stays put with a toast instead of
+     landing on /create empty-handed. */
+  function forgeThis(i, btn) {
+    var card = polCards[i];
+    if (!card) return;
+    var payload = {
+      v: 1,
+      plugin_id: card.plugin_id,
+      template_id: card.template_id,
+      label: card.label,
+      data: card.data,
+      source: card.source,
+      fetched_at: card.fetched_at,
+      stashed_at: Date.now()
+    };
+    var okStash = false;
+    try {
+      sessionStorage.setItem(FORGE_STASH_KEY, JSON.stringify(payload));
+      okStash = true;
+    } catch (e) {}
+    if (!okStash) { toast('Could not stage the payload — try again.'); return; }
+    if (btn) { try { btn.disabled = true; btn.textContent = 'STAGED — OPENING FORGE…'; } catch (e2) {} }
+    try { window.location.href = '/create'; }
+    catch (e3) { toast('Payload staged — open the Create page to forge it.'); }
+  }
+  function submitPolitical() {
+    if (busy) return;
+    var query = '';
+    try { query = String(claimInput.value || '').trim(); } catch (e) {}
+    if (!query) { toast('Type a name, bill, or race first.'); return; }
+    if (query.length > 80) query = query.slice(0, 80);
+    if (!(PF && PF.postAction)) { renderError(); return; }
+    lastQuery = query;
+    lastSearchedAt = Date.now();
+    setBusy(true);
+    renderPolLoading();
+    try {
+      PF.postAction(POL_TYPE, POL_ACTION_KEY, POL_SEARCH, { query: query }, function (j) {
+        setBusy(false);
+        if (j && j.ok && j.available === false) { renderPolUnavailable(j.missing); return; }
+        if (j && j.ok) {
+          var results = (j.results && j.results.length) ? j.results : [];
+          renderPolResults(results, query);
+          return;
+        }
+        renderError();
+      });
+    } catch (e) {
+      setBusy(false);
+      renderError();
+    }
+  }
+
   function setBusy(on) {
     busy = on;
     if (goBtn) {
       goBtn.disabled = on;
-      goBtn.textContent = on ? 'DIGGING…' : 'FIND AMMO';
+      /* Mode-aware label — political mode never shows the sources label. */
+      goBtn.textContent = on ? 'DIGGING…'
+        : (mode === 'political' ? 'FIND TARGETS' : 'FIND AMMO');
     }
     try {
       var rr = document.getElementById('am-rerun');
@@ -460,6 +737,9 @@
   }
 
   function submit() {
+    /* Political mode branches to the Political HQ tables; sources mode
+       keeps the original claim-support flow. Never mixed. */
+    if (mode === 'political') { submitPolitical(); return; }
     if (busy) return;
     var claim = '';
     try { claim = String(claimInput.value || '').trim(); } catch (e) {}
@@ -502,6 +782,23 @@
   mount.addEventListener('click', function (ev) {
     var t = ev.target;
     if (!t || !t.getAttribute) return;
+    if (t.id === 'am-mode-sources') { setMode('sources'); return; }
+    if (t.id === 'am-mode-political') { setMode('political'); return; }
+    if (t.id === 'am-polback') { renderPolResults(polResults, lastQuery); return; }
+    var fg = t.getAttribute('data-am-forge');
+    if (fg !== null && fg !== '') { forgeThis(Number(fg), t); return; }
+    var pl = t.getAttribute('data-am-pol');
+    if ((pl === null || pl === '') && t.closest) {
+      var anc = null;
+      try { anc = t.closest('[data-am-pol]'); } catch (e) {}
+      if (anc) pl = anc.getAttribute('data-am-pol');
+    }
+    if (pl !== null && pl !== '') {
+      var pr = polResults[Number(pl)];
+      if (pr) { loadPolDetail(pr.kind, pr.id); }
+      if (ev && ev.preventDefault) ev.preventDefault();
+      return;
+    }
     if (t.id === 'am-go' || t.getAttribute('data-am-retry')) { submit(); return; }
     if (t.id === 'am-copyall') {
       if (lastResults.length) copyText(lastResults.map(citation).join('\n\n'), t);

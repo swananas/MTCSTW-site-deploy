@@ -33,6 +33,24 @@
 #pf-civic .cv-pb-D{color:#8fbfff}#pf-civic .cv-pb-R{color:#ff8f8f}#pf-civic .cv-pb-I{color:#c9bfa8}
 #pf-civic .cv-diractions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
 #pf-civic .cv-xpb{display:inline-block;font-weight:900;font-size:12px;color:#ffd166;border:1px solid #ffd166;padding:6px 10px;white-space:nowrap}
+/* 2026-10-05: voting scorecards — mobile-first, badges readable, >=44px
+   touch targets, no horizontal scroll. */
+#pf-civic .cv-scdetail{margin-top:10px;border-top:2px solid #4a4a4a;padding-top:10px}
+#pf-civic .cv-sc-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+#pf-civic .cv-scrow{display:flex;gap:10px;align-items:flex-start;border-top:1px solid #4a4a4a;padding:10px 0}
+#pf-civic .cv-scrow:first-of-type{border-top:none}
+#pf-civic .cv-scbody{flex:1;min-width:0}
+#pf-civic .cv-sctitle{font-weight:700;font-size:14px;overflow-wrap:anywhere}
+#pf-civic .cv-vb{display:inline-block;flex:none;font-weight:900;font-size:13px;padding:6px 8px;border:2px solid;min-width:56px;text-align:center}
+#pf-civic .cv-vb-yea{color:#7dff9a;border-color:#7dff9a}
+#pf-civic .cv-vb-nay{color:#ff8f8f;border-color:#ff8f8f}
+#pf-civic .cv-vb-nv{color:#c9bfa8;border-color:#c9bfa8}
+#pf-civic .cv-sctag{min-height:44px;margin-top:8px}
+#pf-civic .cv-issue{border:2px solid #c1121f;padding:12px;margin-bottom:12px;overflow-wrap:anywhere}
+#pf-civic .cv-ir{display:grid;grid-template-columns:1fr 44px 44px 44px 64px;gap:4px;padding:8px 0;border-top:1px solid #4a4a4a;text-align:center;font-size:14px;align-items:center}
+#pf-civic .cv-irh{font-weight:900;border-top:none;color:#c9bfa8;font-size:12px}
+#pf-civic .cv-ir .cv-irlabel{text-align:left;font-weight:900}
+#pf-civic .cv-ir .cv-irtot{font-weight:900}
 </style>
 </div>
 <script>
@@ -217,7 +235,14 @@ function dirRowHTML(r){
      the reward is surfaced, not new. */
   h+=' <button type="button" class="c-btn cv-t44" data-dir-log="'+esc(nm)+'">LOG CONTACT</button>'
     +'<span class="cv-xpb">+25 XP</span>';
-  h+='</div></div>';
+  /* 2026-10-05: voting scorecards — expandable member detail keyed by
+     bioguide_id. Rows without the key get no button (fail-soft). */
+  var bio=scKey(r);
+  if(bio) h+=' <button type="button" class="c-btn cv-t44" data-sc-toggle="'+esc(bio)+'">'
+    +(SCST.open===bio?"HIDE SCORECARD":"SCORECARD")+'</button>';
+  h+='</div>';
+  if(bio&&SCST.open===bio) h+=scDetailHTML(bio);
+  h+='</div>';
   return h;
 }
 function dirListHTML(){
@@ -256,6 +281,167 @@ function fetchDir(){
     else { DIRST.err=true; }
     paintDir();
   });
+}
+/* --- voting scorecards (2026-10-05) ---
+   Backend contract (be/congress-scorecards, parallel build — developed
+   against the documented shape, verify against the real branch before ship):
+     scorecard_get?bioguide_id=X ->
+       {ok, bioguide_id, votes:[{vote_id, position, issue_tag, question,
+                                bill_title, vote_date, result}]}
+     scorecard_issue?vote_id=Y ->
+       {ok, vote:{...}, breakdown:{yea:{D,R,I}, nay:{D,R,I},
+                                   not_voting:{D,R,I}}}
+   Linked by bioguide_id — the same key the directory rows carry (scKey
+   reads r.bioguide_id, falls back to r.bioguide/r.id; rows without any key
+   get no SCORECARD button — fail-soft, never invented).
+   Renders ONLY what the API returns. No placeholder votes: a member with
+   no tracked votes gets the explicit "no votes tracked yet" empty state. */
+var SCST={open:null,issue:null,issueFrom:null,sc:{},iss:{}};
+function scKey(r){ return String((r&&(r.bioguide_id||r.bioguide||r.id))||"").trim(); }
+function scGet(bio){ return SCST.sc[bio]||null; }
+function repNameByBio(bio){
+  var reps=DIRST.reps||[];
+  for(var i=0;i<reps.length;i++){ if(scKey(reps[i])===bio) return String(reps[i].name||"").trim(); }
+  return "";
+}
+function fetchScorecard(bio){
+  var cur=SCST.sc[bio]={load:true,err:false,votes:null,name:repNameByBio(bio)};
+  paintDir();
+  api("scorecard_get",{bioguide_id:bio},function(j){
+    cur.load=false;
+    if(j&&j.ok&&j.votes){ cur.votes=j.votes; cur.err=false; }
+    else { cur.err=true; }
+    paintDir();
+  });
+}
+function posBadge(pos){
+  var p=String(pos||"").toLowerCase().trim();
+  if(p.indexOf("yea")===0) return '<span class="cv-vb cv-vb-yea">YEA</span>';
+  if(p.indexOf("nay")===0) return '<span class="cv-vb cv-vb-nay">NAY</span>';
+  /* Anything else (Present, Not Voting, Absent) is shown verbatim —
+     escaped — never normalized into Yea/Nay. */
+  return '<span class="cv-vb cv-vb-nv">'+esc(String(pos||"\u2014").toUpperCase().slice(0,12))+'</span>';
+}
+function scDate(ds){
+  var d=String(ds||"").trim(); if(!d) return "";
+  var m=d.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m) return m[2]+"/"+m[3]+"/"+m[1];
+  return d.slice(0,10);
+}
+function scVoteHTML(v){
+  var title=String(v.bill_title||v.question||"").trim()||"Untitled vote";
+  var h='<div class="cv-scrow">'+posBadge(v.position)
+    +'<div class="cv-scbody">'
+    +'<div class="cv-sctitle">'+esc(title)+'</div>'
+    +'<div class="x-note">'+esc(scDate(v.vote_date));
+  if(v.result) h+=' &middot; Result: '+esc(v.result);
+  h+='</div>';
+  /* Entry point to the issue view: tapping an issue_tag jumps to the
+     vote breakdown for that vote. No vote_id -> plain label, no jump. */
+  if(v.issue_tag){
+    if(v.vote_id) h+='<button type="button" class="c-btn cv-t44 cv-sctag" data-sc-issue="'+esc(String(v.vote_id))+'">'+esc(v.issue_tag)+'</button>';
+    else h+='<div class="x-note">'+esc(v.issue_tag)+'</div>';
+  }
+  return h+'</div></div>';
+}
+function scDetailHTML(bio){
+  var cur=scGet(bio), nm=(cur&&cur.name)||repNameByBio(bio)||"This member";
+  var h='<div class="cv-scdetail" data-sc-detail="'+esc(bio)+'">'
+    +'<div class="cv-sc-head"><b>'+esc(nm)+' &mdash; voting record</b>';
+  /* Share rides the detail header once votes are in hand — never on a
+     loading/failed pane, so the shared text can only describe real data. */
+  if(cur&&!cur.load&&!cur.err&&cur.votes) h+=' <button type="button" class="c-btn cv-t44" data-sc-share="'+esc(bio)+'">SHARE</button>';
+  h+='</div>';
+  if(!cur||cur.load){ h+='<div class="c-load">Reading their record&hellip;</div>'; }
+  else if(cur.err){
+    h+='<div class="c-err">Couldn&rsquo;t reach the scorecard wire.</div>'
+      +'<button type="button" class="c-btn cv-t44" data-sc-retry="'+esc(bio)+'">RETRY</button>';
+  }
+  else if(!cur.votes.length){
+    h+='<div class="x-note">'+esc(nm)+' has no votes tracked yet.</div>';
+  }
+  else {
+    for(var i=0;i<cur.votes.length;i++) h+=scVoteHTML(cur.votes[i]);
+  }
+  return h+'</div>';
+}
+/* --- issue view: "where does Congress stand on X" --- */
+function fetchIssue(vid){
+  var cur=SCST.iss[vid]={load:true,err:false,vote:null,breakdown:null};
+  paintIssue();
+  api("scorecard_issue",{vote_id:vid},function(j){
+    cur.load=false;
+    if(j&&j.ok&&j.vote&&j.breakdown){ cur.vote=j.vote; cur.breakdown=j.breakdown; cur.err=false; }
+    else { cur.err=true; }
+    paintIssue();
+  });
+}
+function partySum(o){ o=o||{}; return (Number(o.D)||0)+(Number(o.R)||0)+(Number(o.I)||0); }
+function n0(v){ return String(Number(v)||0); }
+function issueTableHTML(bd){
+  var rows=[["yea","YEA"],["nay","NAY"],["not_voting","NOT VOTING"]];
+  var h='<div class="cv-issue-table">'
+    +'<div class="cv-ir cv-irh"><span></span><span>D</span><span>R</span><span>I</span><span>TOTAL</span></div>';
+  for(var i=0;i<rows.length;i++){
+    var c=bd[rows[i][0]]||{};
+    h+='<div class="cv-ir"><span class="cv-irlabel">'+rows[i][1]+'</span>'
+      +'<span>'+n0(c.D)+'</span><span>'+n0(c.R)+'</span><span>'+n0(c.I)+'</span>'
+      +'<span class="cv-irtot">'+partySum(c)+'</span></div>';
+  }
+  return h+'</div>';
+}
+function issueHTML(){
+  var vid=SCST.issue, cur=vid?SCST.iss[vid]:null;
+  if(!vid) return "";
+  var h='<div class="cv-issue" id="cvIssue">';
+  h+='<button type="button" class="c-btn cv-t44" data-issue-back>&larr; BACK</button>';
+  if(!cur||cur.load){ return h+'<div class="c-load">Reading the vote&hellip;</div></div>'; }
+  if(cur.err){
+    return h+'<div class="c-err">Couldn&rsquo;t reach the vote wire.</div>'
+      +'<button type="button" class="c-btn cv-t44" data-issue-retry="'+esc(vid)+'">RETRY</button></div>';
+  }
+  var v=cur.vote||{}, bd=cur.breakdown||{};
+  var title=String(v.bill_title||v.question||v.title||"").trim()||"Vote";
+  h+='<h4 style="margin:10px 0 4px">'+esc(title)+'</h4>'
+    +'<div class="x-note">'+esc(scDate(v.vote_date));
+  if(v.chamber) h+=' &middot; '+esc(v.chamber);
+  if(v.result) h+=' &middot; Result: '+esc(v.result);
+  h+='</div>'
+    /* Totals math: each cell is the API's number; TOTAL is D+R+I. */
+    +issueTableHTML(bd)
+    +'<div class="x-note">Counts straight from the wire — no spin.</div></div>';
+  return h;
+}
+function paintIssue(){
+  var p=document.getElementById("cvIssuePanel"); if(!p) return;
+  p.innerHTML=issueHTML();
+}
+/* Share: text share via the existing PFShare.shareText idiom (dashboard.js
+   promptShare), navigator.share fallback, toast fallback. Copy is built
+   from the member's real tracked positions only — member name + Yea/Nay
+   counts + link back to Political HQ. */
+function shareScorecard(bio){
+  var cur=scGet(bio), nm=(cur&&cur.name)||repNameByBio(bio)||"A member of Congress";
+  var url="https://www.mtcstw.com/political-hq";
+  try{ if(window.PF&&typeof PF.shareUrl==="function") url=PF.shareUrl(url); }catch(e){}
+  var title=nm+"'s voting record";
+  var summary="", votes=(cur&&cur.votes)||[];
+  if(votes.length){
+    var y=0,n=0;
+    for(var i=0;i<votes.length;i++){
+      var p=String(votes[i].position||"").toLowerCase().trim();
+      if(p.indexOf("yea")===0) y++; else if(p.indexOf("nay")===0) n++;
+    }
+    summary=" \u2014 "+votes.length+" votes tracked ("+y+" Yea, "+n+" Nay)";
+  } else summary=" \u2014 no votes tracked yet";
+  var txt=title+summary+" \u2014 see the receipts at "+url;
+  try{
+    if(window.PFShare&&PFShare.shareText){ PFShare.shareText(txt); return; }
+    if(typeof navigator!=="undefined"&&navigator.share){
+      navigator.share({title:title,text:txt,url:url}).catch(function(){}); return;
+    }
+  }catch(e){}
+  toast("Copy the link and spread it: "+url);
 }
 /* Shared rep_contact write path (2026-10-05): the legacy "Contact your rep"
    pane and every directory row log through this — same POST shape, same
@@ -346,6 +532,9 @@ function render(){
      client-side. Renders only what the API returns — no invented data. */
   h+='<div class="x-pane"><h4>Find your reps</h4>'
     +'<div class="x-note">Every logged contact: <b>+25 XP</b> (2/day).</div>'
+    /* 2026-10-05: issue view panel — "where does Congress stand on X".
+       Painted at the top of the directory pane when a vote is open. */
+    +'<div id="cvIssuePanel">'+issueHTML()+'</div>'
     +'<div class="cv-dirfilters">'
     +'<select class="c-in cv-t44" id="cvDirState" aria-label="Filter by state">'+dirStateOpts(DIRST.st)+'</select>'
     +'<div class="cv-cham" role="group" aria-label="Chamber filter">'
@@ -497,10 +686,44 @@ function bind(){
   if(dl&&!dl.getAttribute("data-bound")){
     dl.setAttribute("data-bound","1");
     dl.addEventListener("click",function(e){
-      var t=e.target&&e.target.closest?e.target.closest("[data-dir-log],#cvDirRetry"):null;
+      var t=e.target&&e.target.closest?e.target.closest("[data-dir-log],[data-sc-toggle],[data-sc-share],[data-sc-retry],[data-sc-issue],#cvDirRetry"):null;
       if(!t) return;
       if(t.id==="cvDirRetry"){ fetchDir(); return; }
+      /* 2026-10-05: voting scorecards — toggle, share, retry, issue jump. */
+      if(t.hasAttribute("data-sc-toggle")){
+        var bio=t.getAttribute("data-sc-toggle");
+        if(SCST.open===bio){ SCST.open=null; paintDir(); }
+        else { SCST.open=bio; fetchScorecard(bio); }
+        return;
+      }
+      if(t.hasAttribute("data-sc-share")){ shareScorecard(t.getAttribute("data-sc-share")); return; }
+      if(t.hasAttribute("data-sc-retry")){ fetchScorecard(t.getAttribute("data-sc-retry")); return; }
+      if(t.hasAttribute("data-sc-issue")){
+        var vid=t.getAttribute("data-sc-issue");
+        SCST.issue=vid;
+        fetchIssue(vid);
+        /* fetchIssue -> paintIssue (loading state paints first). */
+        try{ var p=document.getElementById("cvIssuePanel"); if(p&&p.scrollIntoView) p.scrollIntoView(); }catch(ee){}
+        return;
+      }
       doLogContact(t.getAttribute("data-dir-log"),t,document.getElementById("cvDirErr"));
+    });
+  }
+  /* 2026-10-05: issue-view panel buttons (BACK/RETRY) — the panel repaints
+     on fetchIssue, so delegation on the document survives. Bound once. */
+  var de=document.documentElement;
+  if(de&&!de.getAttribute("data-sc-bound")){
+    de.setAttribute("data-sc-bound","1");
+    de.addEventListener("click",function(e){
+      var t=e.target&&e.target.closest?e.target.closest("[data-issue-back],[data-issue-retry]"):null;
+      if(!t) return;
+      if(t.hasAttribute("data-issue-back")){
+        SCST.issue=null;
+        paintIssue(); paintDir();
+        try{ var dl2=document.getElementById("cvDirList"); if(dl2&&dl2.scrollIntoView) dl2.scrollIntoView(); }catch(ee){}
+        return;
+      }
+      if(t.hasAttribute("data-issue-retry")){ fetchIssue(t.getAttribute("data-issue-retry")); }
     });
   }
   /* First paint: fire the reps_list read once (Mobilizing… covers it). */

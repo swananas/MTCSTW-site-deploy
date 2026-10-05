@@ -377,19 +377,44 @@ function shareDoImage(btn){
    Display-only except the press button. The canonical sync lives in
    core/17-nuke-strip.js (window.pfNukeStrip + "pf-nuke-update" events).
    Degrades to a read-only nuke_status poll when the strip module is killed. ---- */
-/* Spec constants (2026-10-05 §2) — the backend may serve tiers in nuke_status;
-   these are the fallback so the ladder never renders empty. */
-var NUKE_TIERS=[
- {id:"T1",charge:10000,name:"LOCAL SKIRMISH"},
- {id:"T2",charge:25000,name:"REGIONAL SURGE"},
- {id:"T3",charge:50000,name:"NATIONAL TAKEOVER"},
- {id:"T4",charge:150000,name:"MEDIA BLITZ"}
-];
-var PRESS_CHARGE=50;
-function nukeTierById(id){
-  for(var _i=0;_i<NUKE_TIERS.length;_i++) if(NUKE_TIERS[_i].id===id) return NUKE_TIERS[_i];
-  return NUKE_TIERS[0];
+/* Lever D2 (2026-10-05): nuke tier VALUES have exactly one home — the nuke
+   strip (core/17-nuke-strip.js, window.pfNukeStrip.tiers(): API-merged from
+   nuke_status, falling back to the strip's spec constants). No tier-value
+   copy lives here. stripTiers() is the only fallback source; rawTiersToList
+   converts the backend's raw numeric tiers ({T1:10000,...}) to list shape so
+   the killed-strip poll still resolves charges from the API, and
+   cachedRawTiers() reuses the strip's last-known nuke_status cache for the
+   fully-offline case. All values originate from the backend or the strip —
+   nothing is invented here. */
+function stripTiers(){
+  try{ if(window.pfNukeStrip&&window.pfNukeStrip.tiers) return window.pfNukeStrip.tiers(); }catch(e){}
+  return [];
 }
+function rawTiersToList(srv){
+  var base=stripTiers(), out=[];
+  if(!srv||typeof srv!=="object") return out;
+  for(var k in srv){
+    if(!srv.hasOwnProperty(k)) continue;
+    var n=Number(srv[k]); if(!(n>0)) continue;
+    var id=String(k).toUpperCase(), name=id;
+    for(var i=0;i<base.length;i++) if(base[i].id===id){ name=base[i].name||id; break; }
+    out.push({id:id,charge:Math.round(n),name:name});
+  }
+  return out;
+}
+function cachedRawTiers(){
+  try{
+    var s=JSON.parse(localStorage.getItem("pf_nuke_status_v1")||"null");
+    if(s&&s.j&&s.j.tiers) return s.j.tiers;
+  }catch(e){}
+  return null;
+}
+function nukeTierById(tiers,id){
+  tiers=tiers||[];
+  for(var _i=0;_i<tiers.length;_i++) if(tiers[_i].id===id) return tiers[_i];
+  return null;
+}
+var PRESS_CHARGE=50; /* spec §1: one press = +50 charge */
 /* Tier-id resolver for the backend's NUMERIC tiers (nuke_status sends
    armed_tier/hold_tier as numbers, e.g. 10000) — also accepts an already
    normalized tier id ("T1") from the strip. Contract-fixed 2026-10-05. */
@@ -409,17 +434,33 @@ function nukeTierIdOf(tiers,v,fallback){
    were dropped (contract-fixed 2026-10-05). */
 function normNuke(st){
   st=st||{};
-  var tiers=Array.isArray(st.tiers)&&st.tiers.length?st.tiers:NUKE_TIERS;
+  /* Tier list, in priority order: the strip's normalized state, the strip's
+     canonical fallback (API-merged once the strip has fetched), the raw
+     numeric tiers from this poll's own backend response, the strip's
+     last-known backend response. Never a local copy of the values. */
+  var tiers=Array.isArray(st.tiers)&&st.tiers.length?st.tiers:stripTiers();
+  if(!(tiers&&tiers.length)){
+    var _raw=(st.tiers&&!Array.isArray(st.tiers)&&typeof st.tiers==="object")?st.tiers:cachedRawTiers();
+    var _rawList=rawTiersToList(_raw);
+    if(_rawList.length) tiers=_rawList;
+  }
   var armed=nukeTierIdOf(tiers,st.armed_tier,"T1");
   var armedCh=Number(st.armed_charge);
-  if(!(armedCh>0)) armedCh=nukeTierById(armed).charge;
+  if(!(armedCh>0)){
+    var _tA=nukeTierById(tiers,armed);
+    armedCh=_tA?Number(_tA.charge):NaN;
+  }
   var holdRaw=(st.hold_tier!=null&&st.hold_tier!=="")?st.hold_tier:st.hold;
   var hold=(holdRaw!=null&&holdRaw!=="")?nukeTierIdOf(tiers,holdRaw,null):null;
   var caller=(st.caller&&typeof st.caller==="object")?st.caller:{};
   var cs0=(st.charge_streak!=null)?st.charge_streak:caller.streak;
   return {
     charge:Math.max(0,Math.round(Number(st.charge!=null?st.charge:st.xp)||0)),
-    armed_tier:armed, armed_charge:Math.round(armedCh),
+    /* Pathological case (strip killed + backend unreachable on first visit):
+       no tier source at all — armed_charge 0 rather than NaN so the bar
+       renders "0 / 0 CHARGE" instead of NaN. Values are never invented when
+       any real source exists. */
+    armed_tier:armed, armed_charge:(armedCh>0)?Math.round(armedCh):0,
     hold:hold,
     pressed:!!(st.pressed||caller.pressed_today),
     charge_streak:Math.max(0,Math.round(Number(cs0)||0)),
@@ -470,7 +511,8 @@ function nukeState(cb){
 function paintNuke(st0){
   var root=document.getElementById("slr-nuke"); if(!root) return;
   var st=normNuke(st0);
-  var pct=Math.min(100,(st.charge/st.armed_charge)*100), nst=nukeStateFor(pct);
+  var _ratio=(st.armed_charge>0)?(st.charge/st.armed_charge):0;
+  var pct=Math.min(100,_ratio*100), nst=nukeStateFor(pct);
   var fill=document.getElementById("slr-nuke-fill"); if(fill) fill.style.width=pct+"%";
   var label=document.getElementById("slr-nuke-label"); if(label) label.textContent=fmt(st.charge)+" / "+fmt(st.armed_charge)+" CHARGE";
   var status=document.getElementById("slr-nuke-status");
@@ -483,7 +525,7 @@ function paintNuke(st0){
   if(detail){
     /* comrades/detonation-streak are NOT served by the backend -- dropped
        from the contract 2026-10-05. The line shows the armed tier instead. */
-    var tA=nukeTierById(st.armed_tier);
+    var tA=nukeTierById(st.tiers,st.armed_tier);
     var dh=st.armed_tier+((tA&&tA.name)?(" "+tA.name):"")+" ARMED";
     if(st.mode!=="network") dh+=" \u00b7 OFFLINE \u2014 last-known pool";
     detail.textContent=dh;

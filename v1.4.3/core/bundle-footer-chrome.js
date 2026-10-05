@@ -666,6 +666,19 @@ window.PFCallsign = function(){
     {id:"T3",charge:50000,name:"NATIONAL TAKEOVER"},
     {id:"T4",charge:150000,name:"MEDIA BLITZ"}
   ];
+  /* Lever D2 (2026-10-05): the BACKEND is the single source of truth for nuke
+     tiers. liveTiers holds the last API-merged tier list (set in normStatus);
+     state(), tiers(), and broadcast() serve it, falling back to the NUKE_TIERS
+     spec constants before the first successful fetch. NUKE_TIERS stays as the
+     ONE canonical spec-constant fallback in the codebase — do not duplicate
+     these values elsewhere. */
+  var liveTiers=null;
+  /* Deep copy: consumers must not be able to mutate the canonical list. */
+  function pubTiers(){
+    var src=liveTiers||NUKE_TIERS, out=[];
+    for(var i=0;i<src.length;i++) out.push({id:src[i].id,charge:src[i].charge,name:src[i].name});
+    return out;
+  }
   var PRESS_CHARGE=50, PRESS_XP=5; /* spec §1: one press = +50 charge, +5 XP */
   var STAKE_CAP=2500; /* spec §1: 2,500 charge/day/cell whale guard */
 
@@ -740,7 +753,7 @@ window.PFCallsign = function(){
       xp:stickCharge, mode:stickMode, goal:stickArmedCharge,
       charge:stickCharge, armed_tier:stickArmed, armed_charge:stickArmedCharge,
       hold:stickHold, pressed:stickPressed, charge_streak:stickStreak,
-      tiers:NUKE_TIERS
+      tiers:pubTiers()
     }})); }catch(e){}
   }
   window.pfNukeStrip={
@@ -748,11 +761,11 @@ window.PFCallsign = function(){
       xp:stickCharge, mode:stickMode, goal:stickArmedCharge,
       charge:stickCharge, armed_tier:stickArmed, armed_charge:stickArmedCharge,
       hold:stickHold, pressed:stickPressed, charge_streak:stickStreak,
-      tiers:NUKE_TIERS
+      tiers:pubTiers()
     }; },
     youToday:localXpToday,
     press:pressNuke,
-    tiers:function(){ return NUKE_TIERS.slice(); }
+    tiers:function(){ return pubTiers(); }
   };
 
   /* ---------- charge-pool status (nuke_status) ----------
@@ -790,6 +803,7 @@ window.PFCallsign = function(){
   function normStatus(j){
     j=j||{};
     var tiers=tierListOf(j.tiers);
+    liveTiers=tiers; /* lever D2: publish the API-merged list to consumers */
     var armed=tierIdForCharge(tiers,Number(j.armed_tier));
     var hold=(j.hold_tier!=null&&j.hold_tier!=="")?tierIdForCharge(tiers,Number(j.hold_tier)):null;
     var caller=(j.caller&&typeof j.caller==="object")?j.caller:{};

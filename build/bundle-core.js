@@ -111,7 +111,19 @@ var CORE_FILES = [
      on the server-supplied hidden page, mounted above the footer. The claim
      POST validates server-side; the page is never hardcoded client-side.
      Was a dead file — written but never bundled. Kill: ?pf_off=deaddrop. */
-  'core/22-dead-drop.js'
+  'core/22-dead-drop.js',
+  /* claim-cta (Cohesion §3, 2026-10-05): shared non-blocking callsign claim
+     CTA — PF.claimCTA / PF.mountClaimCTA. After 03-global (PF.requireCallsign
+     + the delegated claim tap handler). Kill: ?pf_off=25-claim-cta. */
+  'core/25-claim-cta.js',
+  /* crowd-credit (Cohesion §2, 2026-10-05): PF.crowdCredit — aggregated
+     contributor counts with mandatory vintage labels for data outputs.
+     Kill: ?pf_off=26-crowd-credit. */
+  'core/26-crowd-credit.js',
+  /* freshness (Cohesion §4, 2026-10-05): PF.freshBadge / PF.degradedVintage /
+     PF.honestZero — LIVE badges only on <=15-min-fresh data, automatic label
+     degradation, honest zero states. Kill: ?pf_off=27-freshness. */
+  'core/27-freshness.js'
 ];
 
 /* 2026-10-05 (fix/money-minified-rebuild): money suite lazy chunk. The 10

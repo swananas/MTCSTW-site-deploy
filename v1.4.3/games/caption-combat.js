@@ -10,6 +10,7 @@
 
 <h2>Caption Combat</h2>
 <div class="c-sub">One template. One week. Make us laugh.</div>
+<div id="cClaimCta"></div>
 <div class="c-week" id="cWeek"></div>
 <div class="c-template" id="cTemplate"></div>
 
@@ -59,6 +60,9 @@ var EMAIL = "mtcstw@gmail.com";
 
 var wk=PF.mondayOf(PF.chiNow());
 document.getElementById("cWeek").textContent="Week of "+wk.toLocaleDateString("en-US",{month:"long",day:"numeric"})+" — entries close Sunday night";
+/* Cohesion §3 (2026-10-05): identity surfacing — invitational claim CTA when
+   no callsign. Non-blocking; voting/entry still explain themselves. */
+try{ if(window.PF&&PF.mountClaimCTA) PF.mountClaimCTA(document.getElementById("cClaimCta"),"to vote in caption combat"); }catch(e){}
 
 /* --- Caption Combat voting (2026-10-05): the caption_leaderboard GET returns
    this week's entries with per-entry id + votes; caption_vote

@@ -935,6 +935,9 @@ function paint(w){
     '<div style="font-size:11px;color:#666;margin-top:10px;">Winner takes a 24h +0.2 HYPE bump on their displayed score (never above 9.8). Boost only \u2014 no attack moves, this is family.</div>'+
     '</div>';
   bind();
+  /* Cohesion §3 (2026-10-05): identity surfacing — invitational claim CTA
+     when no callsign. Non-blocking; the pit still renders and spectates. */
+  try{ if(window.PF&&PF.mountClaimCTA) PF.mountClaimCTA(root,'to fire in the infighting pit'); }catch(e){}
 }
 function bind(){
   var tg=root.querySelector('[data-if-celltoggle]');

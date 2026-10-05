@@ -341,16 +341,21 @@
     itemEl.onchange = updatePricePrompt;
     updatePricePrompt();
 
-    /* Receipt payoff (payoff map §2): instant acknowledgment + this week's
-       sample count when the backend returns week_count. Defensive: absent,
-       null, or non-numeric week_count falls back to the thanks line. */
+    /* Receipt payoff + fingerprint (payoff map §2 / Cohesion §2, 2026-10-05):
+       instant acknowledgment + this week's sample count when the backend
+       returns week_count. "Your price check-in moved the People's Index" is
+       a PERSONAL confirmation — shown only to the reporting user, post-submit,
+       never as a public per-user claim. Contributor counts are server-computed
+       aggregates (j.contributors). Defensive: absent, null, or non-numeric
+       week_count falls back to the thanks line. */
     function receiptHTML(it, cents, area, j) {
       var wc = j && j.week_count != null && isFinite(Number(j.week_count)) ? Number(j.week_count) : null;
+      var moved = 'Your price check-in moved the People\u2019s Index.<br>';
       if (wc != null) {
-        return 'Report logged \u2014 that\u2019s #' + wc.toLocaleString('en-US') +
+        return moved + 'Report logged \u2014 that\u2019s #' + wc.toLocaleString('en-US') +
           ' for ' + esc(it.name.toLowerCase()) + ' in ' + esc(area) + ' this week.';
       }
-      return 'Report logged \u2014 thanks for building the index.';
+      return moved + 'Report logged \u2014 thanks for building the index.';
     }
 
     goBtn.onclick = function () {
@@ -442,22 +447,43 @@
     return '<span style="color:' + color + ';font-weight:bold;">' + arrow + ' ' + Math.abs(dn).toFixed(1) + '%</span>' +
       ' <span style="' + SMALL + '">' + word + ' vs last week</span>';
   }
+  function crowdLine(r) {
+    /* Cohesion §2 (2026-10-05): aggregated contributor counts with vintage
+       labels, via the shared PF.crowdCredit helper. Aggregates only — no
+       per-user lists, ever. Guarded: if the helper is killed (?pf_off),
+       degrade to a plain count line rather than breaking the card. */
+    try {
+      if (window.PF && PF.crowdCredit)
+        return PF.crowdCredit(r.contributors, r.vintage || 'trailing 30 days');
+    } catch (e) {}
+    var n = Math.floor(Number(r.contributors) || 0);
+    return '<span style="' + SMALL + '">' + (n > 0 ? n + ' contributors' : 'no contributors yet') +
+      ' · trailing 30 days</span>';
+  }
   function cardHTML(r, range) {
     var item = itemById(r.item_id);
     var head = '<div style="font-size:15px;font-weight:bold;">' + esc(item.name) +
       ' <span style="font-weight:normal;color:#b8b0a0;">/ ' + esc(item.unit) + '</span></div>';
     var honest = '<div style="' + HONEST + 'margin-top:8px;">community-reported · ' + esc(range) + '</div>';
     if (!r.enough_data || r.median_cents == null) {
-      /* n<5 (or no median): NEVER a number. */
+      /* n<5 (or no median): NEVER a number — but the contributor COUNT still
+         publishes (spec §2: same exposure as the already-public sample
+         count). */
+      var cn = Math.floor(Number(r.contributors) || 0);
+      var soFar = cn > 0
+        ? esc(String(cn)) + ' contributor' + (cn === 1 ? '' : 's') + ' so far — ' : '';
       return '<div style="background:#0d0d0d;border:1px solid #3a3a3a;border-radius:8px;padding:14px;">' +
         head + '<div style="margin-top:10px;color:#b8b0a0;font-size:14px;">Not enough reports yet.</div>' +
-        '<div style="' + SMALL + 'margin-top:4px;">We need at least 5 reports before we show a number. Report one above.</div>' + honest + '</div>';
+        '<div style="' + SMALL + 'margin-top:4px;">' + soFar +
+        'We need at least 5 reports before we show a number. Report one above.</div>' +
+        '<div style="margin-top:6px;">' + crowdLine(r) + '</div>' + honest + '</div>';
     }
     return '<div style="background:#0d0d0d;border:1px solid #3a3a3a;border-radius:8px;padding:14px;">' +
       head +
       '<div style="font-size:30px;font-weight:bold;margin:6px 0 2px;">' + money(r.median_cents) + '</div>' +
-      '<div style="' + SMALL + '">median of ' + esc(String(r.sample_count)) + ' reports this week' +
+      '<div style="' + SMALL + '">median of ' + esc(String(r.sample_count)) + ' reports' +
       (r.trimmed_mean_cents != null ? ' · trimmed avg ' + money(r.trimmed_mean_cents) : '') + '</div>' +
+      '<div style="margin-top:6px;">' + crowdLine(r) + '</div>' +
       '<div style="margin-top:8px;font-size:14px;">' + deltaHTML(r) + '</div>' +
       honest + '</div>';
   }

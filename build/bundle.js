@@ -128,6 +128,10 @@ var SECTIONS = {
   'bundle-create': [
     /* /create (+ Creator HQ) — creator tooling. */
     'academy.js',
+    /* Wave 6A R1 (2026-10-04): graduation -> daily-loop induction card.
+       Hooks academy.js's pf-lesson-complete event; mounts on /request-access
+       + homepage wherever the academy mounts. */
+    'academy-graduation.js',
     'creator-assist.js',
     'armory.js',
     'dashboard.js',

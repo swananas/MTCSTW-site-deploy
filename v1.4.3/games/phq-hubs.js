@@ -61,9 +61,9 @@
       wallshame: true },
     { id: 'ballot', sec: '03', tab: 'BALLOT', title: 'Ballot',
       mission: 'Your ballot, your races, your countdown.', /* [PSYCH] */
-      silos: ['civic-ballot', 'ballotcd', 'races', 'ballot-measures', 'civic-votercheck'],
-      interim: ['civic', 'ballotcd', 'races', 'ballot-measures'],
-      order: ['races', 'ballot-measures'],
+      silos: ['civic-ballot', 'ballotcd', 'races', 'measures', 'civic-votercheck'],
+      interim: ['civic', 'ballotcd', 'races', 'measures'],
+      order: ['races', 'measures'],
       panes: ['ballot', 'voter', 'votercheck', 'countdown'] },
     { id: 'action', sec: '04', tab: 'TAKE ACTION', title: 'Take Action',
       mission: 'Stop reading. Start hitting.', /* [PSYCH] */

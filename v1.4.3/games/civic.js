@@ -31,6 +31,20 @@
 #pf-civic .cv-cmp-you{border-color:#ffd166;background:rgba(255,209,102,.08)}
 #pf-civic .cv-cmp-tag{display:inline-block;font-size:11px;font-weight:900;color:#0d0d0d;background:#ffd166;padding:2px 8px;margin-left:8px;vertical-align:middle}
 #pf-civic .cv-cmp-win{border:1px solid #ffd166;padding:12px;margin:8px 0;background:rgba(193,18,31,.12)}
+/* 2026-10-05: congressional directory — mobile-first, no horizontal scroll,
+   every touch target >= 44px. */
+#pf-civic .cv-dirfilters .c-in{width:100%;box-sizing:border-box;margin-bottom:8px}
+#pf-civic .cv-t44{min-height:44px}
+#pf-civic .cv-cham{display:flex;gap:8px;margin:8px 0}
+#pf-civic .cv-cham .c-btn{flex:1;min-height:44px;padding:8px 4px}
+#pf-civic .cv-cham .c-btn[aria-pressed="true"]{outline:3px solid #f5ead6;outline-offset:-3px}
+#pf-civic .cv-dirrow{border:1px solid #4a4a4a;padding:12px;margin:12px 0;overflow-wrap:anywhere}
+#pf-civic .cv-dirname{font-weight:900;font-size:16px;margin-bottom:4px}
+#pf-civic .cv-pb{display:inline-block;min-width:20px;text-align:center;font-weight:900;font-size:12px;border:1px solid #f5ead6;padding:1px 6px;margin-left:8px;vertical-align:middle}
+#pf-civic .cv-pb-D{color:#8fbfff}#pf-civic .cv-pb-R{color:#ff8f8f}#pf-civic .cv-pb-I{color:#c9bfa8}
+#pf-civic .cv-nv{display:inline-block;font-weight:900;font-size:11px;letter-spacing:1px;border:1px solid #f5ead6;padding:2px 6px;margin-left:8px;vertical-align:middle;white-space:nowrap}
+#pf-civic .cv-diractions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+#pf-civic .cv-xpb{display:inline-block;font-weight:900;font-size:12px;color:#ffd166;border:1px solid #ffd166;padding:6px 10px;white-space:nowrap}
 </style>
 </div>
 <script>
@@ -84,6 +98,13 @@ var P=null, REPS=null, SCRIPTS=null, VOTER=null, CREATE_OPEN=false, VSTATS=null;
    card SHARING rides the existing poster_share leg (+5 fixed, NO_MULT,
    counts toward the daily cap) through the POSTER SHARE verification tab. */
 var PLEDGE_DONE=false, PLEDGE_CARD=null, PLEDGE_NOTE='';
+/* 2026-10-05: congressional directory state. reps_list is the only new read;
+   the rep_contact write path below is shared with the legacy "Contact your
+   rep" pane — no new reward mechanics. */
+var DIRST={st:"",ch:"",q:"",reps:null,load:false,err:false};
+var STATES_F=null; /* STATES + DC, filter-only (STATES itself untouched). */
+/* 6A-R7: voter-pledge poster state — set on a successful pledge. */
+var PLEDGE_DONE=false, PLEDGE_STATE_NAME='';
 function pledgeStateName(code){
   for(var i=0;i<STATES.length;i++) if(STATES[i][0]===code) return STATES[i][1];
   return code||'';
@@ -434,6 +455,114 @@ function fetchComp(){
     });
   }
 }
+/* --- congressional directory helpers (2026-10-05) --- */
+function dirStateOpts(sel){
+  if(!STATES_F) STATES_F=STATES.concat([["DC","District of Columbia"]]);
+  var h='<option value="">All states</option>';
+  for(var i=0;i<STATES_F.length;i++){
+    h+='<option value="'+STATES_F[i][0]+'"'+(sel===STATES_F[i][0]?' selected':'')+'>'+esc(STATES_F[i][1])+'</option>';
+  }
+  return h;
+}
+function partyBadge(party){
+  var t=String(party||"").trim().toUpperCase();
+  var l=t.charAt(0);
+  if(l==="D"||l==="R"||l==="I") return '<span class="cv-pb cv-pb-'+l+'">'+l+'</span>';
+  return t?'<span class="cv-pb cv-pb-I">'+esc(t.slice(0,3))+'</span>':"";
+}
+function dirRowHTML(r){
+  var nm=String(r.name||"").trim()||"Unnamed";
+  var ch=String(r.chamber||"").toLowerCase();
+  var chLabel=ch==="senate"?"Senator":ch==="house"?"Rep":"";
+  var loc=esc(String(r.state||""));
+  if(ch==="house"&&r.district) loc+=" &middot; District "+esc(String(r.district));
+  var phone=String(r.phone||"").trim();
+  /* tel: href sanitized to dial-safe chars; display keeps the API string. */
+  var telHref=phone?("tel:"+phone.replace(/[^0-9+().\-]/g,"")):"";
+  var curl=String(r.contact_form||r.url||"").trim();
+  /* CEO directive 2026-10-05: non-voting delegates (voting===false) get a
+     visible label. Fail-soft: rows without the field render exactly as
+     before (strict === false, so true/absent/undefined => no label). */
+  var nvLabel=(r.voting===false?'<span class="cv-nv">NON-VOTING DELEGATE</span>':"");
+  var h='<div class="cv-dirrow">'
+    +'<div class="cv-dirname">'+esc(nm)+partyBadge(r.party)+nvLabel+'</div>'
+    +'<div class="x-note">'+(chLabel?esc(chLabel)+" &middot; ":"")+loc+'</div>'
+    +'<div class="cv-diractions">';
+  if(telHref) h+='<a class="c-btn cv-t44" href="'+esc(telHref)+'">CALL</a>';
+  else h+='<span class="x-note">no phone listed</span>';
+  if(curl) h+=' <a class="c-btn cv-t44" href="'+esc(curl)+'" target="_blank" rel="noopener">CONTACT</a>';
+  /* +25 XP badge rides next to LOG CONTACT (CEO requirement 2026-10-05) —
+     the reward is surfaced, not new. */
+  h+=' <button type="button" class="c-btn cv-t44" data-dir-log="'+esc(nm)+'">LOG CONTACT</button>'
+    +'<span class="cv-xpb">+25 XP</span>';
+  h+='</div></div>';
+  return h;
+}
+function dirListHTML(){
+  if(DIRST.err){
+    return '<div class="c-err">Couldn&rsquo;t reach the directory wire.</div>'
+      +'<button type="button" class="c-btn cv-t44" id="cvDirRetry">RETRY</button>';
+  }
+  /* Mobilizing fallback pattern, matching the rest of the silo. */
+  if(DIRST.load||DIRST.reps===null) return '<div class="c-load">Mobilizing&hellip;</div>';
+  var q=String(DIRST.q||"").trim().toLowerCase();
+  var reps=DIRST.reps.slice();
+  /* Client re-sort fallback (server already sorts state ASC, name ASC). */
+  reps.sort(function(a,b){
+    var sa=String(a.state||""), sb=String(b.state||"");
+    if(sa<sb) return -1; if(sa>sb) return 1;
+    var na=String(a.name||"").toLowerCase(), nb=String(b.name||"").toLowerCase();
+    if(na<nb) return -1; if(na>nb) return 1; return 0;
+  });
+  if(q) reps=reps.filter(function(r){ return String(r.name||"").toLowerCase().indexOf(q)!==-1; });
+  if(!reps.length) return '<div class="x-note">No members match those filters. Broaden the hunt.</div>';
+  var h="";
+  for(var i=0;i<reps.length;i++) h+=dirRowHTML(reps[i]);
+  return h;
+}
+function paintDir(){
+  var l=document.getElementById("cvDirList"); if(!l) return;
+  l.innerHTML=dirListHTML();
+}
+function fetchDir(){
+  DIRST.load=true; DIRST.err=false;
+  paintDir();
+  /* api() drops null/"" params, so empty filters = unfiltered list. */
+  api("reps_list",{state:DIRST.st,chamber:DIRST.ch},function(j){
+    DIRST.load=false;
+    if(j&&j.ok&&j.reps){ DIRST.reps=j.reps; DIRST.err=false; }
+    else { DIRST.err=true; }
+    paintDir();
+  });
+}
+/* Shared rep_contact write path (2026-10-05): the legacy "Contact your rep"
+   pane and every directory row log through this — same POST shape, same
+   +25 XP, same 2/day cap. */
+function doLogContact(repName,btn,errEl){
+  if(!repName){ if(errEl) errEl.textContent="Pick a rep first."; return; }
+  var box=document.getElementById("cvScriptBox");
+  var sid=box?box.getAttribute("data-script-id"):"";
+  if(btn) btn.disabled=true;
+  post("rep","r_action","rep_contact",{callsign:ident().callsign,rep_name:repName,method:gv("cvMethod"),script_used:sid||""},function(j){
+    if(j&&j.ok){
+      /* CEO requirement 2026-10-05: the +25 XP reward is explicit in the
+         confirmation. */
+      toast("Contact logged \u2014 +25 XP earned.");
+      fetchHist(true);
+    } else {
+      var e=String((j&&(j.err||j.error))||"");
+      if(/cap/i.test(e)){
+        /* 2/day cap per the rep_contact contract — reward amount + reset
+           spelled out. */
+        toast("Daily limit reached (2/day) \u2014 +25 XP each, resets tomorrow.");
+      } else {
+        var m=PF.errCopy(j,"Log failed.");
+        if(errEl) errEl.textContent=m; else toast(m);
+      }
+    }
+    if(btn) btn.disabled=false;
+  });
+}
 function render(){
   var el=document.getElementById("xCivic"); if(!el) return;
   var id=ident(), h="";
@@ -494,6 +623,23 @@ function render(){
      The card stays empty until cellcomp_current lands ok (fail-soft). It
      sits on the rep-contact pane — logging a contact is how cells score. */
   h+='<div id="cvCompBox"></div>';
+  /* --- congressional directory (2026-10-05): full member directory.
+     Server filters on state/chamber (reps_list); name search is
+     client-side. Renders only what the API returns — no invented data. */
+  h+='<div class="x-pane"><h4>Find your reps</h4>'
+    +'<div class="x-note">Every logged contact: <b>+25 XP</b> (2/day).</div>'
+    +'<div class="cv-dirfilters">'
+    +'<select class="c-in cv-t44" id="cvDirState" aria-label="Filter by state">'+dirStateOpts(DIRST.st)+'</select>'
+    +'<div class="cv-cham" role="group" aria-label="Chamber filter">'
+    +'<button type="button" class="c-btn cv-ch" data-ch="" aria-pressed="'+(DIRST.ch===""?"true":"false")+'">ALL</button>'
+    +'<button type="button" class="c-btn cv-ch" data-ch="senate" aria-pressed="'+(DIRST.ch==="senate"?"true":"false")+'">SENATE</button>'
+    +'<button type="button" class="c-btn cv-ch" data-ch="house" aria-pressed="'+(DIRST.ch==="house"?"true":"false")+'">HOUSE</button>'
+    +'</div>'
+    +'<input class="c-in cv-t44" id="cvDirQ" type="search" maxlength="60" placeholder="Search by name" aria-label="Search by name" value="'+esc(DIRST.q)+'">'
+    +'</div>'
+    +'<div class="c-err" id="cvDirErr"></div>'
+    +'<div id="cvDirList">'+dirListHTML()+'</div>'
+    +'</div>';
   /* --- voter registration --- */
   h+='<div class="x-pane"><h4>Voter registration</h4>'
     /* 2026-10-03: voter_pledge_stats (public) — movement social proof. */
@@ -637,6 +783,36 @@ function bind(){
       lc.disabled=false;
     });
   };
+  /* 2026-10-05: routes through the shared rep_contact write path — same
+     POST, same +25 XP, same 2/day cap as the directory rows. */
+  if(lc) lc.onclick=function(){ doLogContact(gv("cvRepSel"),lc,document.getElementById("cvRepErr")); };
+  /* --- congressional directory bindings --- */
+  var dst=document.getElementById("cvDirState");
+  if(dst) dst.onchange=function(){ DIRST.st=gv("cvDirState"); fetchDir(); };
+  var dq=document.getElementById("cvDirQ");
+  if(dq) dq.oninput=function(){ DIRST.q=gv("cvDirQ"); paintDir(); };
+  var cham=document.querySelector(".cv-cham");
+  if(cham) cham.onclick=function(e){
+    var b=e.target&&e.target.closest?e.target.closest("[data-ch]"):null; if(!b) return;
+    DIRST.ch=b.getAttribute("data-ch");
+    var btns=cham.querySelectorAll("[data-ch]");
+    for(var i=0;i<btns.length;i++){ btns[i].setAttribute("aria-pressed",btns[i]===b?"true":"false"); }
+    fetchDir();
+  };
+  /* Delegated: retry lives inside the painted list, rows re-paint on
+     search/filter — one listener survives all of it. */
+  var dl=document.getElementById("cvDirList");
+  if(dl&&!dl.getAttribute("data-bound")){
+    dl.setAttribute("data-bound","1");
+    dl.addEventListener("click",function(e){
+      var t=e.target&&e.target.closest?e.target.closest("[data-dir-log],#cvDirRetry"):null;
+      if(!t) return;
+      if(t.id==="cvDirRetry"){ fetchDir(); return; }
+      doLogContact(t.getAttribute("data-dir-log"),t,document.getElementById("cvDirErr"));
+    });
+  }
+  /* First paint: fire the reps_list read once (Mobilizing… covers it). */
+  if(DIRST.reps===null&&!DIRST.load&&!DIRST.err){ fetchDir(); }
   /* voter — 2026-10-05 (audit #2): voter_check failure keeps the state
      selection (VOTER.state survives) and renders an inline c-err + Retry
      instead of a blank select with no feedback.

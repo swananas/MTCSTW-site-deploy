@@ -95,7 +95,14 @@ var CORE_FILES = [
      buttons + daily progress chip + standalone commend-a-callsign form. */
   'core/commend.js',
   /* oparc (W5-10, 2026-10-04): operation arc reader — PF.opArc(), no DOM. */
-  'core/oparc.js'
+  'core/oparc.js',
+  /* read-xp (read/create XP, 2026-10-05): article reader (visibility-aware
+     heartbeats + comprehension quiz), Ammo Finder CITE THIS decorator,
+     Content Bank composer, poster-share proof capture. Self-mounts only
+     on explicit anchors (#pf-readxp / #pf-readxp-bank); decorates Top
+     Stories surfaces and Ammo Finder cards via MutationObserver when
+     those dependencies are present. Fail-soft everywhere. */
+  'core/read-xp.js'
 ];
 
 var BUNDLES = {

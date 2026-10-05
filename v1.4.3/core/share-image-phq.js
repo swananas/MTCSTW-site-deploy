@@ -1,13 +1,21 @@
 /* core/share-image-phq.js  |  PF v1.4.3 | POLITICAL HQ SHARE POSTERS.
-   Four custom PFShare painters (1080x1350, house palette) for the Political HQ
+   Nine custom PFShare painters (1080x1350, house palette) for the Political HQ
    rollout: pressure-campaign card, prediction-result card, voting scorecard,
-   cell-competition winner card. Spec: ~/workspace/hidden/phq-share-specs.md.
-   Data contract (painter receives one data object; missing optional fields
-   degrade gracefully; scorecard missing fields render '—', never invented):
-     pressure:   {title, target, demand, signatures, signaturesGoal}
-     prediction: {statement, outcome ('correct'|'missed'), wins, losses}
-     scorecard:  {name, state, party, grade, verdict, votes[3] {bill, vote, for_us}}
-     cellwin:    {cellName, verified, members, xp, runnerUp, marginXp, mvpCallsign, weekStart}
+   cell-competition winner card, bill-status card, race-watch card, poll-results
+   card, rep-contact card, ally-org card. Spec: ~/workspace/hidden/phq-share-specs.md.
+   Data contract (painter receives one data object; missing fields render '—',
+   never guessed, never blank holes; every card prints its source + date line
+   above the standard stack when data.source is present; stale:true paints the
+   DATA MAY BE OUTDATED banner):
+     pressure:    {title, target, demand, signatures, signaturesGoal}
+     prediction:  {statement, outcome ('correct'|'missed'), wins, losses}
+     scorecard:   {name, state, party, grade, verdict, votes[3] {bill, vote, for_us}}
+     cellwin:     {cellName, verified, members, xp, runnerUp, marginXp, mvpCallsign, weekStart}
+     bill-status: {bill_id, title, stage, stage_index (1-5), old_stage?, source?, source_date?}
+     race:        {state, district, chamber, rating, candidates[] {name, party}, source?, source_date?, stale?}
+     poll-results:{question, options[] {text, votes, pct, winner}, total_votes, closed_at, source?, source_date?}
+     rep-contact: {rep_name, state, party, method ('CALLED'|'EMAILED'), topic, tel?, source?, source_date?}
+     nonprofit:   {name, mission, focus, website, disclosure?, source?, source_date?}
    Callsigns resolve at paint time via callsignOf() (identity store /
    PFCallsign) — never passed in data. Painters that render the callsign
    inline set cv._pfStamped = true so PFShare.stampCallsign stays a no-op
@@ -28,12 +36,18 @@
   window.pfPhqShareDone = true;
 
   var W = 1080, H = 1350;
-  var IDS = ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin'];
+  var IDS = ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin',
+    'phq-bill-status', 'phq-race', 'phq-poll-results', 'phq-rep-contact', 'phq-nonprofit'];
   var TITLES = {
     'phq-pressure': 'PRESSURE CAMPAIGN',
     'phq-prediction': 'PREDICTION RESULT',
     'phq-scorecard': 'VOTING SCORECARD',
-    'phq-cellwin': 'CELL VICTORY'
+    'phq-cellwin': 'CELL VICTORY',
+    'phq-bill-status': 'BILL STATUS',
+    'phq-race': 'RACE WATCH',
+    'phq-poll-results': 'POLL RESULTS',
+    'phq-rep-contact': 'I TOOK ACTION',
+    'phq-nonprofit': 'MOVEMENT ALLY'
   };
   var DEEP = 'MTCSTW.COM/POLITICAL-HQ';
   var PENDING = {};
@@ -165,6 +179,44 @@
       if (mi >= 0 && mi < 12) return MON[mi] + ' ' + parseInt(m[3], 10);
     }
     return (s || '—').toUpperCase().slice(0, 16);
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Honesty rails: source + date line, stale / just-moved banners     */
+  /* ---------------------------------------------------------------- */
+  /* Specific source + date line above the standard stack. Skipped when
+     data.source is absent — bottomStack's deep link is the fallback, so we
+     never print a redundant second MTCSTW.COM line. */
+  function srcLine(x, d) {
+    var s = String(d.source == null ? '' : d.source).trim();
+    if (!s) return;
+    var t = 'SOURCE: ' + s.toUpperCase();
+    var dt = String(d.source_date == null ? '' : d.source_date).trim();
+    if (dt) t += ' \u00b7 ' + monDate(dt);
+    x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+    x.fillStyle = '#c9bfa8';
+    fitFont(x, t, 30, 22, 910, '400');
+    x.fillText(t, W / 2, H - 168);
+  }
+  /* Gold bar / black text banner for stale-data and just-moved alerts.
+     Returns the next content y. */
+  function goldBar(x, text, cy) {
+    fitFont(x, text, 34, 22, 920);
+    var tw = x.measureText(text).width + 70;
+    x.fillStyle = '#e8b923'; x.fillRect(W / 2 - tw / 2, cy - 46, tw, 62);
+    x.fillStyle = '#0d0d0d'; x.textAlign = 'center';
+    var pb = x.textBaseline; x.textBaseline = 'middle';
+    x.fillText(text, W / 2, cy - 14);
+    x.textBaseline = pb;
+    return cy + 40;
+  }
+  function staleBanner(x, cy) {
+    return goldBar(x, '! DATA MAY BE OUTDATED !', cy);
+  }
+  function movedBanner(x, cy, oldStage, stage) {
+    return goldBar(x, 'JUST MOVED \u2014 ' +
+      String(oldStage == null ? '—' : oldStage).toUpperCase() +
+      ' \u2192 ' + String(stage == null ? '—' : stage).toUpperCase(), cy);
   }
 
   /* ---------------------------------------------------------------- */
@@ -354,13 +406,246 @@
   }
 
   /* ---------------------------------------------------------------- */
+  /* Surface 5 — Bill Status Card                                       */
+  /* ---------------------------------------------------------------- */
+  function paintBillStatus(d, cv, x) {
+    base(x); kicker(x);
+    badge(x, 'BILL STATUS', 280, '#f5ead6', 40);
+    var cs = callsignOf();
+    var y = 400;
+    if (d.old_stage) y = movedBanner(x, 360, d.old_stage, d.stage);
+    var billId = String(d.bill_id == null ? '—' : d.bill_id).toUpperCase();
+    x.fillStyle = '#c1121f'; x.textAlign = 'center';
+    fitFont(x, billId, 120, 64, 910);
+    x.fillText(billId, W / 2, y + 100);
+    y += 170;
+    x.fillStyle = '#f5ead6'; x.font = '700 44px Arial,sans-serif';
+    wrap(x, String(d.title == null ? '—' : d.title).toUpperCase(), 910).slice(0, 2)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += 54; });
+    y = Math.max(760, y + 30);
+    /* 5-stage progress bar: filled pips = stage_index, no invented labels. */
+    var raw = parseInt(d.stage_index, 10);
+    var idx = (raw >= 1 && raw <= 5) ? raw : 0;
+    var bx = 140, bw = 800, seg = bw / 5, by = y, bh = 30, i;
+    for (i = 0; i < 5; i++) {
+      x.fillStyle = i < idx ? '#c1121f' : '#161616';
+      x.fillRect(bx + i * seg + 3, by, seg - 6, bh);
+      x.strokeStyle = '#f5ead6'; x.lineWidth = 2;
+      x.strokeRect(bx + i * seg + 3, by, seg - 6, bh);
+      x.fillStyle = i < idx ? '#ffffff' : '#c9bfa8';
+      x.font = '700 26px Arial,sans-serif'; x.textAlign = 'center';
+      x.fillText(String(i + 1), bx + i * seg + seg / 2, by + bh + 34);
+    }
+    y = by + bh + 84;
+    x.fillStyle = '#c9bfa8'; x.font = '700 34px Arial,sans-serif'; x.textAlign = 'center';
+    x.fillText(idx ? 'STAGE ' + idx + ' OF 5' : 'STAGE \u2014 OF 5', W / 2, y); y += 66;
+    var stg = String(d.stage == null ? '—' : d.stage).toUpperCase();
+    x.fillStyle = '#e8b923';
+    fitFont(x, stg, 64, 40, 910);
+    x.fillText(stg, W / 2, y); y += 60;
+    y = Math.max(1100, y);
+    if (cs) y = csLine(cv, x, y, cs) + 12;
+    else { claimLine(x, y); y += 50; }
+    srcLine(x, d);
+    bottomStack(x, 'fight');
+    return cv;
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Surface 6 — Competitive Race Card                                  */
+  /* ---------------------------------------------------------------- */
+  function paintRace(d, cv, x) {
+    base(x); kicker(x);
+    badge(x, 'RACE WATCH', 280, '#f5ead6', 40);
+    var cs = callsignOf();
+    var y = 420;
+    if (d.stale) y = staleBanner(x, 360) + 20;
+    var dist = String(d.district == null ? '—' : d.district).toUpperCase();
+    x.fillStyle = '#c1121f'; x.textAlign = 'center';
+    fitFont(x, dist, 120, 64, 910);
+    x.fillText(dist, W / 2, y + 90); y += 160;
+    var sub = String(d.state == null ? '—' : d.state).toUpperCase() + ' \u00b7 ' +
+      String(d.chamber == null ? '—' : d.chamber).toUpperCase();
+    x.fillStyle = '#c9bfa8';
+    fitFont(x, sub, 36, 28, 910, '700');
+    x.fillText(sub, W / 2, y); y += 80;
+    /* The rating — big gold stamp, the thumb-stopping headline. */
+    var rating = String(d.rating == null ? '—' : d.rating).toUpperCase();
+    fitFont(x, rating, 56, 34, 820);
+    var rw = x.measureText(rating).width + 90;
+    x.fillStyle = '#e8b923'; x.fillRect(W / 2 - rw / 2, y, rw, 84);
+    x.fillStyle = '#0d0d0d'; x.textAlign = 'center';
+    var pb = x.textBaseline; x.textBaseline = 'middle';
+    x.fillText(rating, W / 2, y + 44);
+    x.textBaseline = pb;
+    y += 150;
+    x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+    var cands = Array.isArray(d.candidates) ? d.candidates.slice(0, 4) : [];
+    for (var i = 0; i < cands.length; i++) {
+      var c = cands[i] || {};
+      var line = String(c.name == null ? '—' : c.name).toUpperCase() +
+        ' (' + String(c.party == null ? '—' : c.party).toUpperCase() + ')';
+      x.fillStyle = '#f5ead6';
+      fitFont(x, line, 42, 30, 910, '700');
+      x.fillText(line, W / 2, y); y += 58;
+    }
+    y = Math.max(1050, y);
+    if (cs) y = csLine(cv, x, y, cs) + 12;
+    else { claimLine(x, y); y += 50; }
+    srcLine(x, d);
+    bottomStack(x, 'fight');
+    return cv;
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Surface 7 — Closed Poll Results Card                               */
+  /* ---------------------------------------------------------------- */
+  function paintPoll(d, cv, x) {
+    base(x); kicker(x);
+    badge(x, 'POLL RESULTS', 280, '#f5ead6', 40);
+    var cs = callsignOf();
+    var y = 420;
+    x.fillStyle = '#f5ead6'; x.font = '900 56px "Arial Black",Arial,sans-serif'; x.textAlign = 'center';
+    wrap(x, String(d.question == null ? '—' : d.question).toUpperCase(), 910).slice(0, 3)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += 66; });
+    y = Math.max(640, y + 20);
+    var opts = Array.isArray(d.options) ? d.options.slice(0, 4) : [];
+    var total = parseInt(d.total_votes, 10);
+    for (var i = 0; i < opts.length; i++) {
+      var o = opts[i] || {};
+      var win = !!o.winner;
+      var pct = parseFloat(o.pct);
+      if (!(pct >= 0)) { /* derive from votes/total only when both exist */
+        var vv = parseFloat(o.votes);
+        if (!isNaN(total) && total > 0 && !isNaN(vv)) pct = Math.round(vv / total * 100);
+      }
+      var frac = (pct >= 0) ? Math.max(0, Math.min(1, pct / 100)) : 0;
+      var ptxt = (pct >= 0) ? Math.round(pct) + '%' : '—';
+      var lab = String(o.text == null ? '—' : o.text).toUpperCase();
+      x.textAlign = 'left';
+      x.fillStyle = win ? '#e8b923' : '#f5ead6';
+      fitFont(x, lab, 36, 26, 640, '700');
+      x.fillText(lab, 120, y);
+      x.textAlign = 'right';
+      x.fillStyle = win ? '#e8b923' : '#c9bfa8';
+      x.font = '700 38px Arial,sans-serif';
+      x.fillText(ptxt, 960, y);
+      if (win) {
+        x.textAlign = 'left'; x.fillStyle = '#e8b923'; x.font = '700 28px Arial,sans-serif';
+        x.fillText('\u2605 WINNER', 120, y + 34);
+      }
+      x.fillStyle = '#161616'; x.fillRect(120, y + 46, 840, 20);
+      x.strokeStyle = '#f5ead6'; x.lineWidth = 2; x.strokeRect(120, y + 46, 840, 20);
+      x.fillStyle = win ? '#e8b923' : '#c1121f';
+      x.fillRect(120, y + 46, Math.round(840 * frac), 20);
+      x.textAlign = 'center';
+      y += 100;
+    }
+    y = Math.max(1000, y + 10);
+    x.fillStyle = '#c9bfa8'; x.font = '700 34px Arial,sans-serif'; x.textAlign = 'center';
+    x.fillText('CLOSED ' + monDate(d.closed_at), W / 2, y); y += 46;
+    var tot = isNaN(total) ? '—' : fmtNum(total);
+    x.fillStyle = '#e8b923';
+    fitFont(x, tot + ' VOTES', 44, 32, 910);
+    x.fillText(tot + ' VOTES', W / 2, y); y += 40;
+    y = Math.max(1100, y);
+    if (cs) y = csLine(cv, x, y, cs) + 12;
+    else { claimLine(x, y); y += 50; }
+    srcLine(x, d);
+    bottomStack(x, 'fight');
+    return cv;
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Surface 8 — "I Contacted My Rep" Card                              */
+  /* ---------------------------------------------------------------- */
+  function paintRepContact(d, cv, x) {
+    base(x); kicker(x);
+    badge(x, 'PRESSURE LOGGED', 280, '#f5ead6', 40);
+    var cs = callsignOf();
+    var m = String(d.method == null ? '' : d.method).toUpperCase();
+    var head = m === 'EMAILED' ? 'I EMAILED' : (m === 'CALLED' ? 'I CALLED' : 'I TOOK ACTION');
+    x.fillStyle = '#c1121f'; x.textAlign = 'center';
+    fitFont(x, head, 130, 72, 910);
+    x.fillText(head, W / 2, 480);
+    var y = 590;
+    var nm = String(d.rep_name == null ? '—' : d.rep_name).toUpperCase();
+    x.fillStyle = '#f5ead6';
+    fitFont(x, nm, 72, 44, 910);
+    x.fillText(nm, W / 2, y); y += 70;
+    x.fillStyle = '#c9bfa8'; x.font = '700 36px Arial,sans-serif';
+    x.fillText('(' + String(d.state == null ? '—' : d.state).toUpperCase() + '-' +
+      String(d.party == null ? '—' : d.party).toUpperCase() + ')', W / 2, y); y += 70;
+    x.fillStyle = '#e8b923'; x.font = '700 40px Arial,sans-serif';
+    wrap(x, 'TOPIC: ' + String(d.topic == null ? '—' : d.topic).toUpperCase(), 910).slice(0, 2)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += 52; });
+    y = Math.max(900, y + 20);
+    if (d.tel) { /* rendered as text only — the share caption carries any tap link */
+      var tline = 'THEIR NUMBER: ' + String(d.tel).toUpperCase();
+      x.fillStyle = '#f5ead6';
+      fitFont(x, tline, 44, 32, 910);
+      x.fillText(tline, W / 2, y); y += 64;
+    }
+    y = Math.max(1020, y);
+    if (cs) y = csLine(cv, x, y, cs) + 12;
+    else { claimLine(x, y); y += 50; }
+    srcLine(x, d);
+    bottomStack(x, 'fight');
+    return cv;
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Surface 9 — Ally Org Support Card                                  */
+  /* ---------------------------------------------------------------- */
+  function paintNonprofit(d, cv, x) {
+    base(x); kicker(x);
+    badge(x, 'MOVEMENT ALLY', 280, '#f5ead6', 40);
+    var cs = callsignOf();
+    var y = 430;
+    x.fillStyle = '#c1121f'; x.textAlign = 'center';
+    x.font = '900 96px "Arial Black",Arial,sans-serif';
+    wrap(x, String(d.name == null ? '—' : d.name).toUpperCase(), 910).slice(0, 2)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += 104; });
+    y += 10;
+    var focus = 'FOCUS: ' + String(d.focus == null ? '—' : d.focus).toUpperCase();
+    x.fillStyle = '#e8b923';
+    fitFont(x, focus, 38, 28, 910, '700');
+    x.fillText(focus, W / 2, y); y += 62;
+    x.fillStyle = '#f5ead6'; x.font = '400 40px Arial,sans-serif';
+    wrap(x, String(d.mission == null ? '—' : d.mission).toUpperCase(), 910).slice(0, 3)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += 52; });
+    y = Math.max(880, y + 20);
+    if (d.disclosure) {
+      x.fillStyle = '#c9bfa8'; x.font = '400 32px Arial,sans-serif';
+      wrap(x, 'DISCLOSURE: ' + String(d.disclosure).toUpperCase(), 910).slice(0, 2)
+        .forEach(function (l) { x.fillText(l, W / 2, y); y += 42; });
+      y += 20;
+    }
+    var web = String(d.website == null ? '—' : d.website).toUpperCase();
+    x.fillStyle = '#f5ead6';
+    fitFont(x, web, 48, 32, 910);
+    x.fillText(web, W / 2, y); y += 60;
+    y = Math.max(1080, y);
+    if (cs) y = csLine(cv, x, y, cs) + 12;
+    else { claimLine(x, y); y += 50; }
+    srcLine(x, d);
+    bottomStack(x, 'fight');
+    return cv;
+  }
+
+  /* ---------------------------------------------------------------- */
   /* Painter table + registration                                       */
   /* ---------------------------------------------------------------- */
   var PAINT = {
     'phq-pressure': paintPressure,
     'phq-prediction': paintPrediction,
     'phq-scorecard': paintScorecard,
-    'phq-cellwin': paintCellwin
+    'phq-cellwin': paintCellwin,
+    'phq-bill-status': paintBillStatus,
+    'phq-race': paintRace,
+    'phq-poll-results': paintPoll,
+    'phq-rep-contact': paintRepContact,
+    'phq-nonprofit': paintNonprofit
   };
   function paintOne(id, data) {
     var p = PAINT[id];

@@ -4,9 +4,10 @@
      node scripts/verify-phq-share-fe.js
    1. node --check on the new module
    2. Static checks (kill switch, copy/CTA standards, banned terms, bundle marker)
-   3. Mocked-browser runtime tests (vm + canvas-2d stub): each of the 4 painters
+   3. Mocked-browser runtime tests (vm + canvas-2d stub): each of the 9 painters
       mounts, paints its spec copy, stamps the callsign, degrades with no
-      callsign (claim-line funnel), and PF.PHQShare.share/save route through
+      callsign (claim-line funnel), paints honest '—'s on empty data, honors
+      the kill switch, and PF.PHQShare.share/save route through
       PFShare.shareImage/saveImage.
    Exits 0 when every check passes, 1 with a failure list otherwise. */
 'use strict';
@@ -51,10 +52,18 @@ if (/PF\.skip\(['"]phq-share['"]\)/.test(src)) ok('kill switch PF.skip("phq-shar
 else no('kill switch', 'PF.skip("phq-share") not found');
 if (src.indexOf('?pf_off=phq-share') !== -1) ok('KILL comment documents ?pf_off=phq-share');
 else no('kill comment', '?pf_off=phq-share missing from header');
-['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin'].forEach(function (id) {
+['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin',
+ 'phq-bill-status', 'phq-race', 'phq-poll-results', 'phq-rep-contact', 'phq-nonprofit'].forEach(function (id) {
   if (src.indexOf("'" + id + "'") !== -1) ok('painter id registered: ' + id);
   else no('painter id', id + ' missing');
 });
+/* honesty rails live in the module */
+if (src.indexOf('SOURCE: ') !== -1) ok('honesty rail: source line painter (srcLine)');
+else no('honesty', 'srcLine / SOURCE: line missing');
+if (src.indexOf('DATA MAY BE OUTDATED') !== -1) ok('honesty rail: stale banner copy');
+else no('honesty', 'DATA MAY BE OUTDATED banner missing');
+if (src.indexOf('JUST MOVED') !== -1) ok('bill-status: JUST MOVED banner copy');
+else no('honesty', 'JUST MOVED banner missing');
 if (src.indexOf('JOIN THE FIGHT.') !== -1) ok('CTA standard: JOIN THE FIGHT.');
 else no('CTA', 'JOIN THE FIGHT. missing');
 if (src.indexOf('MTCSTW.COM/POLITICAL-HQ') !== -1) ok('viral deep link MTCSTW.COM/POLITICAL-HQ printed');
@@ -103,7 +112,7 @@ function makeCanvas() {
     getContext: function () { return new Ctx2D(this._recs); }
   };
 }
-function makeEnv() {
+function makeEnv(kill) {
   var store = { pf_identity_v1: JSON.stringify({ callsign: 'WARHAWK' }) };
   var registered = {};
   var shareCalls = [], saveCalls = [];
@@ -120,7 +129,7 @@ function makeEnv() {
     createElement: function (t) { if (String(t).toLowerCase() === 'canvas') return makeCanvas(); return {}; },
     addEventListener: function () {}
   };
-  sb.PF = { skip: function () { return false; }, toast: function () {} };
+  sb.PF = { skip: function () { return !!kill; }, toast: function () {} };
   sb.PFCallsign = function () { return 'WARHAWK'; };
   sb.PFShare = {
     setPoster: function (id, fn) { registered[id] = fn; },
@@ -186,6 +195,47 @@ var FIX = {
   'phq-cellwin': {
     cellName: 'IRON CELL ALPHA', verified: true, members: 23, xp: 18400,
     runnerUp: 'COPPER CELL BETA', marginXp: 2300, mvpCallsign: 'IRONHORSE', weekStart: '2026-09-28'
+  },
+  /* Surfaces 5-9 fixtures: synthetic paint-test values, not asserted facts. */
+  'phq-bill-status': {
+    bill_id: 'H.R. 14', title: 'FOR THE PEOPLE ACT — VOTING RIGHTS PACKAGE',
+    stage: 'PASSED HOUSE', stage_index: 3, old_stage: 'IN COMMITTEE',
+    source: 'congress.gov', source_date: '2026-10-05'
+  },
+  'phq-race': {
+    state: 'TEXAS', district: 'TX-23', chamber: 'U.S. HOUSE', rating: 'TOSS-UP',
+    candidates: [{ name: 'JOHN DOE', party: 'D' }, { name: 'JANE ROE', party: 'R' }],
+    source: 'cookpolitical.com', source_date: '2026-10-01', stale: false
+  },
+  'phq-race-stale': {
+    state: 'TEXAS', district: 'TX-23', chamber: 'U.S. HOUSE', rating: 'TOSS-UP',
+    candidates: [{ name: 'JOHN DOE', party: 'D' }, { name: 'JANE ROE', party: 'R' }],
+    source: 'cookpolitical.com', source_date: '2026-08-01', stale: true
+  },
+  'phq-poll-results': {
+    question: 'SHOULD THE SENATE KILL THE FILIBUSTER?',
+    options: [
+      { text: 'YES — KILL IT', votes: 842, pct: 61, winner: true },
+      { text: 'NO — KEEP IT', votes: 538, pct: 39 }
+    ],
+    total_votes: 1380, closed_at: '2026-10-04'
+  },
+  'phq-rep-contact': {
+    rep_name: 'MIKE JOHNSON', state: 'LA', party: 'R', method: 'CALLED',
+    topic: 'VOTE NO ON H.R.3633', tel: '(555) 019-2834'
+  },
+  'phq-rep-contact-emailed': {
+    rep_name: 'JOHN DOE', state: 'TX', party: 'D', method: 'EMAILED',
+    topic: 'SUPPORT THE JOHN LEWIS ACT'
+  },
+  'phq-nonprofit': {
+    name: 'LOUISIANA TRANS ADVOCATES', mission: 'FIGHTING FOR TRANS RIGHTS ACROSS LOUISIANA',
+    focus: 'LGBTQ+ RIGHTS', website: 'LATRANSADVOCATES.ORG',
+    disclosure: 'MTCSTW HAS NO FINANCIAL TIES TO THIS ORG'
+  },
+  'phq-nonprofit-nodisclosure': {
+    name: 'BAYOU MUTUAL AID', mission: 'NEIGHBORS FEEDING NEIGHBORS AFTER THE STORM',
+    focus: 'MUTUAL AID', website: 'BAYOUMUTUALAID.ORG'
   }
 };
 
@@ -194,16 +244,24 @@ var PHQ = env.sb.PF && env.sb.PF.PHQShare;
 if (!PHQ) { no('PF.PHQShare', 'API not exposed'); }
 else {
   ok('PF.PHQShare exposed');
-  if (JSON.stringify(PHQ.ids) === JSON.stringify(['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin']))
-    ok('ids list matches spec painter keys');
+  if (JSON.stringify(PHQ.ids) === JSON.stringify(['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin',
+      'phq-bill-status', 'phq-race', 'phq-poll-results', 'phq-rep-contact', 'phq-nonprofit']))
+    ok('ids list matches all 9 painter keys');
   else no('ids', 'unexpected ids: ' + JSON.stringify(PHQ.ids));
-  ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin'].forEach(function (id) {
+  ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin',
+   'phq-bill-status', 'phq-race', 'phq-poll-results', 'phq-rep-contact', 'phq-nonprofit'].forEach(function (id) {
     if (typeof env.registered[id] === 'function') ok('setPoster registered: ' + id);
     else no('registration', id + ' not registered with PFShare');
   });
   if (PHQ.paint('phq-bogus', {}) === null && PHQ.share('phq-bogus', {}) === false && PHQ.save('phq-bogus', {}) === false)
     ok('unknown id fails closed (paint null, share/save false)');
   else no('unknown id', 'did not fail closed');
+
+  /* --- kill switch: PF.skip('phq-share') blocks the whole module --- */
+  var kenv = makeEnv(true);
+  if (!kenv.sb.PF.PHQShare && !kenv.sb.pfPhqShareDone && Object.keys(kenv.registered).length === 0)
+    ok('kill switch respected: no PHQShare, no painters registered');
+  else no('kill switch', 'module mounted despite PF.skip("phq-share")');
 
   /* --- Surface 1: pressure --- */
   var cv = PHQ.paint('phq-pressure', FIX['phq-pressure']);
@@ -350,6 +408,164 @@ else {
     else no('cellwin CTA clash', 'generic JOIN THE FIGHT. also present');
   }
 
+  /* --- Surface 5: bill-status --- */
+  cv = PHQ.paint('phq-bill-status', FIX['phq-bill-status']);
+  if (!cv || cv.width !== 1080 || cv.height !== 1350) no('bill-status mount', 'no 1080x1350 canvas');
+  else {
+    ok('bill-status mounts 1080x1350');
+    if (hasFrag(cv, 'BILL STATUS')) ok('bill-status badge');
+    else no('bill-status badge', 'missing');
+    if (hasText(cv, 'H.R. 14')) ok('bill-status big bill id');
+    else no('bill-status id', 'H.R. 14 missing');
+    if (hasFrag(cv, 'FOR THE PEOPLE ACT')) ok('bill-status title');
+    else no('bill-status title', 'missing');
+    if (hasFrag(cv, 'JUST MOVED') && hasFrag(cv, 'IN COMMITTEE') && hasFrag(cv, 'PASSED HOUSE'))
+      ok('bill-status JUST MOVED banner (old -> new stage)');
+    else no('bill-status moved', 'banner missing');
+    if (hasFrag(cv, 'STAGE 3 OF 5')) ok('bill-status stage 3 of 5');
+    else no('bill-status stage', 'STAGE 3 OF 5 missing');
+    if (hasText(cv, 'FIGHTING AS WARHAWK') && cv._pfStamped === true) ok('bill-status callsign stamp + _pfStamped');
+    else no('bill-status stamp', 'missing');
+    if (hasFrag(cv, 'SOURCE: CONGRESS.GOV') && hasFrag(cv, 'OCT 5'))
+      ok('bill-status source + date line (honesty rail)');
+    else no('bill-status source', 'SOURCE: CONGRESS.GOV missing');
+    if (hasText(cv, 'MTCSTW.COM/POLITICAL-HQ') && hasText(cv, 'JOIN THE FIGHT.')) ok('bill-status bottom stack');
+    else no('bill-status bottom', 'stack incomplete');
+  }
+  cv = PHQ.paint('phq-bill-status', {});
+  if (cv && hasFrag(cv, '\u2014') && hasFrag(cv, 'STAGE \u2014 OF 5') && !hasFrag(cv, 'JUST MOVED') &&
+      !hasFrag(cv, 'SOURCE:'))
+    ok('bill-status empty data: honest \u2014s, no moved banner, no source line');
+  else no('bill-status degrade', 'empty-data render wrong: ' + (cv && joined(cv).slice(0, 200)));
+
+  /* --- Surface 6: race --- */
+  cv = PHQ.paint('phq-race', FIX['phq-race']);
+  if (!cv || cv.width !== 1080 || cv.height !== 1350) no('race mount', 'no 1080x1350 canvas');
+  else {
+    ok('race mounts 1080x1350');
+    if (hasFrag(cv, 'RACE WATCH')) ok('race badge');
+    else no('race badge', 'missing');
+    if (hasText(cv, 'TX-23')) ok('race big district');
+    else no('race district', 'TX-23 missing');
+    if (hasFrag(cv, 'TEXAS \u00b7 U.S. HOUSE')) ok('race state/chamber subline');
+    else no('race subline', 'missing');
+    if (hasText(cv, 'TOSS-UP')) {
+      ok('race rating badge');
+      var rop = opFor(cv, 'TOSS-UP');
+      if (rop && rop.fillStyle === '#0d0d0d') ok('race rating is black-on-gold stamp');
+      else no('race rating style', 'not black-on-gold: ' + (rop && rop.fillStyle));
+    }
+    else no('race rating', 'TOSS-UP missing');
+    if (hasFrag(cv, 'JOHN DOE (D)') && hasFrag(cv, 'JANE ROE (R)')) ok('race candidates listed');
+    else no('race candidates', 'missing');
+    if (!hasFrag(cv, 'DATA MAY BE OUTDATED')) ok('race fresh data: no stale banner');
+    else no('race banner', 'stale banner on fresh data');
+    if (hasText(cv, 'FIGHTING AS WARHAWK') && cv._pfStamped === true) ok('race callsign stamp + _pfStamped');
+    else no('race stamp', 'missing');
+    if (hasFrag(cv, 'SOURCE: COOKPOLITICAL.COM')) ok('race source line (honesty rail)');
+    else no('race source', 'missing');
+    if (hasText(cv, 'MTCSTW.COM/POLITICAL-HQ') && hasText(cv, 'JOIN THE FIGHT.')) ok('race bottom stack');
+    else no('race bottom', 'stack incomplete');
+  }
+  cv = PHQ.paint('phq-race', FIX['phq-race-stale']);
+  if (cv && hasFrag(cv, 'DATA MAY BE OUTDATED')) ok('race stale:true paints the stale banner');
+  else no('race stale', 'stale banner missing on stale data');
+  cv = PHQ.paint('phq-race', {});
+  if (cv && hasFrag(cv, '\u2014') && !hasFrag(cv, 'DATA MAY BE OUTDATED'))
+    ok('race empty data: honest \u2014s, no stale banner');
+  else no('race degrade', 'empty-data render wrong');
+
+  /* --- Surface 7: poll-results --- */
+  cv = PHQ.paint('phq-poll-results', FIX['phq-poll-results']);
+  if (!cv || cv.width !== 1080 || cv.height !== 1350) no('poll mount', 'no 1080x1350 canvas');
+  else {
+    ok('poll mounts 1080x1350');
+    if (hasFrag(cv, 'POLL RESULTS')) ok('poll badge');
+    else no('poll badge', 'missing');
+    if (hasFrag(cv, 'SHOULD THE SENATE KILL THE FILIBUSTER?')) ok('poll question');
+    else no('poll question', 'missing');
+    if (hasFrag(cv, 'YES \u2014 KILL IT') && hasFrag(cv, '61%') && hasFrag(cv, 'NO \u2014 KEEP IT') && hasFrag(cv, '39%'))
+      ok('poll options with percentages');
+    else no('poll options', 'missing');
+    if (hasFrag(cv, 'WINNER')) {
+      ok('poll winner highlighted');
+      var wop = opFor(cv, '\u2605 WINNER');
+      if (wop && wop.fillStyle === '#e8b923') ok('poll winner tag is gold');
+      else no('poll winner color', 'not gold: ' + (wop && wop.fillStyle));
+    }
+    else no('poll winner', 'WINNER tag missing');
+    if (hasFrag(cv, 'CLOSED OCT 4')) ok('poll CLOSED date line');
+    else no('poll closed', 'CLOSED OCT 4 missing');
+    if (hasFrag(cv, '1,380 VOTES')) ok('poll total votes');
+    else no('poll total', '1,380 VOTES missing');
+    if (hasText(cv, 'FIGHTING AS WARHAWK') && cv._pfStamped === true) ok('poll callsign stamp + _pfStamped');
+    else no('poll stamp', 'missing');
+    if (hasText(cv, 'MTCSTW.COM/POLITICAL-HQ') && hasText(cv, 'JOIN THE FIGHT.')) ok('poll bottom stack');
+    else no('poll bottom', 'stack incomplete');
+  }
+  cv = PHQ.paint('phq-poll-results', {});
+  if (cv && hasFrag(cv, '\u2014') && hasFrag(cv, 'CLOSED \u2014'))
+    ok('poll empty data: honest \u2014s');
+  else no('poll degrade', 'empty-data render wrong');
+
+  /* --- Surface 8: rep-contact --- */
+  cv = PHQ.paint('phq-rep-contact', FIX['phq-rep-contact']);
+  if (!cv || cv.width !== 1080 || cv.height !== 1350) no('rep-contact mount', 'no 1080x1350 canvas');
+  else {
+    ok('rep-contact mounts 1080x1350');
+    if (hasFrag(cv, 'PRESSURE LOGGED')) ok('rep-contact badge');
+    else no('rep-contact badge', 'missing');
+    if (hasText(cv, 'I CALLED')) ok('rep-contact I CALLED headline');
+    else no('rep-contact headline', 'I CALLED missing');
+    if (hasFrag(cv, 'MIKE JOHNSON (LA-R)')) ok('rep-contact rep name (state-party)');
+    else no('rep-contact name', 'missing');
+    if (hasFrag(cv, 'TOPIC: VOTE NO ON H.R.3633')) ok('rep-contact topic line');
+    else no('rep-contact topic', 'missing');
+    if (hasFrag(cv, 'THEIR NUMBER: (555) 019-2834')) ok('rep-contact number as plain text (no tel:)');
+    else no('rep-contact tel', 'number missing');
+    if (hasText(cv, 'FIGHTING AS WARHAWK') && cv._pfStamped === true) ok('rep-contact callsign stamp + _pfStamped');
+    else no('rep-contact stamp', 'missing');
+    if (hasText(cv, 'MTCSTW.COM/POLITICAL-HQ') && hasText(cv, 'JOIN THE FIGHT.')) ok('rep-contact bottom stack');
+    else no('rep-contact bottom', 'stack incomplete');
+  }
+  cv = PHQ.paint('phq-rep-contact', FIX['phq-rep-contact-emailed']);
+  if (cv && hasText(cv, 'I EMAILED') && !hasFrag(cv, 'THEIR NUMBER:'))
+    ok('rep-contact EMAILED variant headline, no number line without tel');
+  else no('rep-contact emailed', 'variant wrong');
+  cv = PHQ.paint('phq-rep-contact', {});
+  if (cv && hasText(cv, 'I TOOK ACTION') && hasFrag(cv, '\u2014'))
+    ok('rep-contact empty data: neutral headline, honest \u2014s');
+  else no('rep-contact degrade', 'empty-data render wrong');
+
+  /* --- Surface 9: nonprofit --- */
+  cv = PHQ.paint('phq-nonprofit', FIX['phq-nonprofit']);
+  if (!cv || cv.width !== 1080 || cv.height !== 1350) no('nonprofit mount', 'no 1080x1350 canvas');
+  else {
+    ok('nonprofit mounts 1080x1350');
+    if (hasFrag(cv, 'MOVEMENT ALLY')) ok('nonprofit badge');
+    else no('nonprofit badge', 'missing');
+    if (hasFrag(cv, 'LOUISIANA TRANS ADVOCATES')) ok('nonprofit big name');
+    else no('nonprofit name', 'missing');
+    if (hasFrag(cv, 'FOCUS: LGBTQ+ RIGHTS')) ok('nonprofit focus line');
+    else no('nonprofit focus', 'missing');
+    if (hasFrag(cv, 'FIGHTING FOR TRANS RIGHTS ACROSS LOUISIANA')) ok('nonprofit mission');
+    else no('nonprofit mission', 'missing');
+    if (hasFrag(cv, 'DISCLOSURE: MTCSTW HAS NO FINANCIAL TIES TO THIS ORG')) ok('nonprofit disclosure (honesty rail)');
+    else no('nonprofit disclosure', 'missing');
+    if (hasFrag(cv, 'LATRANSADVOCATES.ORG')) ok('nonprofit website URL');
+    else no('nonprofit website', 'missing');
+    if (hasText(cv, 'FIGHTING AS WARHAWK') && cv._pfStamped === true) ok('nonprofit callsign stamp + _pfStamped');
+    else no('nonprofit stamp', 'missing');
+    if (hasText(cv, 'MTCSTW.COM/POLITICAL-HQ') && hasText(cv, 'JOIN THE FIGHT.')) ok('nonprofit bottom stack');
+    else no('nonprofit bottom', 'stack incomplete');
+  }
+  cv = PHQ.paint('phq-nonprofit', FIX['phq-nonprofit-nodisclosure']);
+  if (cv && !hasFrag(cv, 'DISCLOSURE:')) ok('nonprofit: no disclosure line when none supplied');
+  else no('nonprofit nodisclosure', 'disclosure line rendered without data');
+  cv = PHQ.paint('phq-nonprofit', {});
+  if (cv && hasFrag(cv, '\u2014')) ok('nonprofit empty data: honest \u2014s');
+  else no('nonprofit degrade', 'empty-data render wrong');
+
   /* --- no-callsign fallback: no blank stamp, claim-line funnel --- */
   var env2 = makeEnv();
   delete env2.sb.PFCallsign;
@@ -373,6 +589,13 @@ else {
       !hasText(cv, 'NEXT ROUND STARTS MONDAY') && hasFrag(cv, 'MVP: IRONHORSE'))
     ok('cellwin no-callsign: recruit strip swapped, MVP (roster data) kept');
   else no('cellwin no-cs', 'swap wrong');
+  ['phq-bill-status', 'phq-race', 'phq-poll-results', 'phq-rep-contact', 'phq-nonprofit'].forEach(function (id) {
+    var c3 = PHQ2.paint(id, FIX[id]);
+    if (c3 && !hasFrag(c3, 'FIGHTING AS') && c3._pfStamped !== true &&
+        hasText(c3, 'CLAIM YOUR CALLSIGN AT MTCSTW.COM'))
+      ok(id + ' no-callsign: no blank stamp, claim funnel present');
+    else no(id + ' no-cs', 'stamp leaked or funnel missing');
+  });
 
   /* --- share/save routing through PFShare --- */
   var r1 = PHQ.share('phq-pressure', FIX['phq-pressure']);
@@ -385,6 +608,16 @@ else {
       env.saveCalls[0].fn === 'pfn-phq-scorecard.png')
     ok('save() routes to PFShare.saveImage with painted canvas');
   else no('save()', 'routing failed');
+  var r3 = PHQ.share('phq-race', FIX['phq-race']);
+  if (r3 === true && env.shareCalls.length === 2 && env.shareCalls[1].id === 'phq-race' &&
+      env.shareCalls[1].fn === 'pfn-phq-race.png' && env.shareCalls[1].cv._pfStamped === true)
+    ok('share() routes new painter id (phq-race) with painted canvas');
+  else no('share() new id', 'routing failed');
+  var r4 = PHQ.save('phq-nonprofit', FIX['phq-nonprofit']);
+  if (r4 === true && env.saveCalls.length === 2 && env.saveCalls[1].id === 'phq-nonprofit' &&
+      env.saveCalls[1].fn === 'pfn-phq-nonprofit.png')
+    ok('save() routes new painter id (phq-nonprofit)');
+  else no('save() new id', 'routing failed');
   /* registered custom painters draw from pending data (the button-row path) */
   var before = env.shareCalls.length;
   env.shareCalls.length = 0;
@@ -400,7 +633,12 @@ else {
 
 console.log('== 4. layout guards (no collisions) ==');
 [['phq-pressure', FIX['phq-pressure']], ['phq-prediction', FIX['phq-prediction']],
- ['phq-scorecard', FIX['phq-scorecard']], ['phq-cellwin', FIX['phq-cellwin']]].forEach(function (pc) {
+ ['phq-scorecard', FIX['phq-scorecard']], ['phq-cellwin', FIX['phq-cellwin']],
+ ['phq-bill-status', FIX['phq-bill-status']], ['phq-race', FIX['phq-race']],
+ ['phq-race', FIX['phq-race-stale']], ['phq-poll-results', FIX['phq-poll-results']],
+ ['phq-rep-contact', FIX['phq-rep-contact']], ['phq-nonprofit', FIX['phq-nonprofit']],
+ ['phq-bill-status', {}], ['phq-race', {}], ['phq-poll-results', {}],
+ ['phq-rep-contact', {}], ['phq-nonprofit', {}]].forEach(function (pc) {
   var c = PHQ.paint(pc[0], pc[1]);
   var rs = c._recs || [], bad = [], link = null, date = null, cta = null;
   for (var i = 0; i < rs.length; i++) {

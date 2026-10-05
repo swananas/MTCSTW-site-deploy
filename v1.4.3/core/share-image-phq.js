@@ -1,7 +1,8 @@
 /* core/share-image-phq.js  |  PF v1.4.3 | POLITICAL HQ SHARE POSTERS.
-   Five custom PFShare painters (1080x1350, house palette) for the Political HQ
+   Six custom PFShare painters (1080x1350, house palette) for the Political HQ
    rollout: pressure-campaign card, prediction-result card, voting scorecard,
-   cell-competition winner card, wall-of-shame legislator card.
+   cell-competition winner card, wall-of-shame legislator card,
+   follow-the-money card.
    Spec: ~/workspace/hidden/phq-share-specs.md.
    Data contract (painter receives one data object; missing optional fields
    degrade gracefully; scorecard missing fields render '—', never invented):
@@ -11,6 +12,11 @@
      cellwin:    {cellName, verified, members, xp, runnerUp, marginXp, mvpCallsign, weekStart}
      wallshame:  {billId, billTitle, name, chamber, party, state, againstVotes,
                   position, question, voteDates[ISO], sourceUrl}
+     money:      {bioguideId, name, chamber, party, state, cycle, retrieved,
+                  raised, spent, cash, topDonors[3] {name, employer, amount},
+                  topIndustries[3] {industry, amount}}
+                money prefers top-3 donors; falls back to top-3 industries
+                when no donors are reported. Source line always printed.
    Callsigns resolve at paint time via callsignOf() (identity store /
    PFCallsign) — never passed in data. Painters that render the callsign
    inline set cv._pfStamped = true so PFShare.stampCallsign stays a no-op
@@ -31,13 +37,14 @@
   window.pfPhqShareDone = true;
 
   var W = 1080, H = 1350;
-  var IDS = ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame'];
+  var IDS = ['phq-pressure', 'phq-prediction', 'phq-scorecard', 'phq-cellwin', 'phq-wallshame', 'phq-money'];
   var TITLES = {
     'phq-pressure': 'PRESSURE CAMPAIGN',
     'phq-prediction': 'PREDICTION RESULT',
     'phq-scorecard': 'VOTING SCORECARD',
     'phq-cellwin': 'CELL VICTORY',
-    'phq-wallshame': 'WALL OF SHAME'
+    'phq-wallshame': 'WALL OF SHAME',
+    'phq-money': 'FOLLOW THE MONEY'
   };
   var DEEP = 'MTCSTW.COM/POLITICAL-HQ';
   var PENDING = {};
@@ -459,6 +466,106 @@
   }
 
   /* ---------------------------------------------------------------- */
+  /* Surface 6 — Follow the Money Card                                  */
+  /* ---------------------------------------------------------------- */
+  /* Legislator money card: cycle totals, top-3 donors (or top-3 industries
+     when no donors are reported), FEC source line with retrieval date.
+     Every figure from the data object; missing fields render '—', never
+     invented. No causation copy on the card — totals and donor names only. */
+  function moneyLine(n) {
+    if (n == null || isNaN(Number(n))) return '\u2014';
+    return '$' + fmtNum(n);
+  }
+  function moneyRow(x, label, val, y) {
+    var l1 = label + '  ', l2 = String(val);
+    x.font = '700 40px Arial,sans-serif';
+    var w1 = x.measureText(l1).width;
+    x.font = '900 56px "Arial Black",Arial,sans-serif';
+    var w2 = x.measureText(l2).width;
+    var sx = W / 2 - (w1 + w2) / 2, pa = x.textAlign, pb = x.textBaseline;
+    x.textAlign = 'left'; x.textBaseline = 'middle';
+    x.fillStyle = '#f5ead6'; x.font = '700 40px Arial,sans-serif';
+    x.fillText(l1, sx, y);
+    x.fillStyle = '#e8b923'; x.font = '900 56px "Arial Black",Arial,sans-serif';
+    x.fillText(l2, sx + w1, y);
+    x.textAlign = pa; x.textBaseline = pb;
+  }
+  function moneyEntry(d, isDonor) {
+    if (isDonor) {
+      var emp = d.employer ? ' (' + String(d.employer) + ')' : '';
+      return String(d.name || '\u2014').toUpperCase() + emp.toUpperCase() + ' \u2014 ' + moneyLine(d.amount);
+    }
+    return String(d.industry || '\u2014').toUpperCase() + ' \u2014 ' + moneyLine(d.amount);
+  }
+  function paintMoney(d, cv, x) {
+    base(x); kicker(x);
+    badge(x, 'FOLLOW THE MONEY', 280, '#f5ead6', 40);
+    var cs = callsignOf();
+    var y = 380;
+    var fit = fitFont(x, String(d.name || '\u2014').toUpperCase(), 88, 40, 910);
+    var lh = Math.round(fit * 0.98);
+    x.fillStyle = '#f5ead6';
+    wrap(x, String(d.name || '\u2014').toUpperCase(), 910).slice(0, 2)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += lh; });
+    y = Math.max(500, y + 8);
+    x.fillStyle = '#c9bfa8'; x.font = '700 36px Arial,sans-serif';
+    wrap(x, chamberLine(d), 910).slice(0, 1)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += 46; });
+    y += 6;
+    x.fillStyle = '#e8b923';
+    fitFont(x, String(d.cycle || '\u2014').toUpperCase() + ' CYCLE \u00b7 FEC', 44, 28, 910);
+    x.fillText(String(d.cycle || '\u2014').toUpperCase() + ' CYCLE \u00b7 FEC', W / 2, y); y += 52;
+    /* cycle totals — the headline of the card */
+    y = Math.max(620, y + 40);
+    moneyRow(x, 'RAISED', moneyLine(d.raised), y); y += 64;
+    moneyRow(x, 'SPENT', moneyLine(d.spent), y); y += 64;
+    moneyRow(x, 'CASH ON HAND', moneyLine(d.cash), y); y += 64;
+    /* top-3 donors, falling back to top-3 industries */
+    var donors = Array.isArray(d.topDonors) ? d.topDonors.slice(0, 3) : [];
+    var inds = Array.isArray(d.topIndustries) ? d.topIndustries.slice(0, 3) : [];
+    var useDonors = donors.length > 0;
+    var rows = useDonors ? donors : inds;
+    y = Math.max(880, y + 20);
+    x.fillStyle = '#e8b923'; x.font = '700 36px Arial,sans-serif';
+    x.fillText(useDonors ? 'TOP DONORS' : 'TOP INDUSTRIES', W / 2, y); y += 50;
+    x.textAlign = 'left';
+    if (!rows.length) {
+      x.fillStyle = '#c9bfa8'; x.font = '400 36px Arial,sans-serif'; x.textAlign = 'center';
+      x.fillText('NO DONOR DATA REPORTED', W / 2, y);
+      x.textAlign = 'left'; y += 50;
+    } else {
+      for (var i = 0; i < rows.length; i++) {
+        var entry = moneyEntry(rows[i] || {}, useDonors);
+        var fs = 34;
+        x.font = '400 34px Arial,sans-serif';
+        while (fs > 26 && x.measureText(entry).width > 910) {
+          fs -= 2; x.font = '400 ' + fs + 'px Arial,sans-serif';
+        }
+        if (x.measureText(entry).width > 910) {
+          while (entry.length > 4 && x.measureText(entry).width > 906) entry = entry.slice(0, -4);
+          entry = entry.replace(/\s+$/, '') + '\u2026';
+        }
+        var tw = x.measureText(entry).width;
+        x.fillStyle = '#f5ead6';
+        x.fillText(entry, W / 2 - tw / 2, y);
+        y += 50;
+      }
+    }
+    x.textAlign = 'center';
+    /* source + retrieval date — every number on this card carries its source */
+    y = Math.max(1100, y + 10);
+    var sl = 'SOURCE: FEC \u00b7 ' + String(d.cycle || '\u2014').toUpperCase() +
+      ' CYCLE \u00b7 RETRIEVED ' + fullDate(d.retrieved);
+    x.fillStyle = '#c9bfa8';
+    fitFont(x, sl, 30, 20, 910, '400');
+    x.fillText(sl, W / 2, y); y += 40;
+    y = Math.max(1150, y);
+    if (cs) y = csLine(cv, x, y, cs);
+    bottomStack(x, 'fight');
+    return cv;
+  }
+
+  /* ---------------------------------------------------------------- */
   /* Painter table + registration                                       */
   /* ---------------------------------------------------------------- */
   var PAINT = {
@@ -466,7 +573,8 @@
     'phq-prediction': paintPrediction,
     'phq-scorecard': paintScorecard,
     'phq-cellwin': paintCellwin,
-    'phq-wallshame': paintWallShame
+    'phq-wallshame': paintWallShame,
+    'phq-money': paintMoney
   };
   function paintOne(id, data) {
     var p = PAINT[id];

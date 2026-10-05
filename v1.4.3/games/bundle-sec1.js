@@ -520,12 +520,7 @@ function render(){
       h+='<div class="br-order"><span class="br-oname">'+esc(rows[ri].t)+'</span>'
         +'<span class="br-oxp">'+esc(rows[ri].c)+'</span></div>';
     }
-    h+='<div style="margin-top:8px"><a href="/economy" class="c-btn" style="text-decoration:none;display:inline-block;">RUN THE ECONOMY</a></div>';
-    /* A1 home (2026-10-05): People's Price Index feeder — Daily Briefing row.
-       Deep-links to the check-in widget on /economy. No backend call. */
-    h+='<div class="br-order" style="margin-top:6px"><span class="br-oname">PRICE INDEX \u2014 report this week\u2019s prices</span>' +
-      '<span class="br-oxp"><a href="/economy#pf-inflation-checkin" style="color:#e8a0a0;">REPORT \u2192</a></span></div>';
-    h+='</div>';
+    h+='<div style="margin-top:8px"><a href="/economy" class="c-btn" style="text-decoration:none;display:inline-block;">RUN THE ECONOMY</a></div></div>';
   })();
   /* ---------- 5. SEASON PROGRESS ---------- */
   var sn=seasonInfo();

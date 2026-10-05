@@ -57,8 +57,6 @@
     ['feed', 'pf-ov-feed'],
     /* ——— SECTION 5: FUND — economy ——— */
     ['war-bonds', 'pf-ov-bonds'],
-    /* A1 home (2026-10-05): People's Price Index HP feeder -> /economy. */
-    ['inflation-teaser', 'pf-ov-inflation-teaser'],
     /* ——— SECTION 6: ACT — action ——— */
     ['campaign', 'pf-ov-campaign'],
     ['alerts', 'pf-ov-alerts'],
@@ -131,8 +129,6 @@
     'feed': [['Forge a response \u2192', 'poster-forge'], ['Open the full workshop \u2192', '/create']],
     'hq-nudge': [['See what you\u2019d unlock \u2192', '/request-access']],
     'war-bonds': [['Manage your bonds \u2192', '/bank'], ['See where it goes \u2192', '/war-chest']],
-    /* A1 home (2026-10-05): Price Index feeder exits. */
-    'inflation-teaser': [['Report a price \u2192', '/economy#pf-inflation-checkin'], ['See the full index \u2192', '/economy']],
     'campaign': [['Get the alert \u2192', 'alerts'], ['Take it to the streets \u2192', '/events']],
     'alerts': [['Know the terrain \u2192', '/political-hq'], ['Make a poster \u2192', 'poster-forge']],
     'fan-vote': [['See live activity \u2192', 'socialproof'], ['Back your pick in battle \u2192', '/arcade']],
@@ -152,8 +148,6 @@
     'cells':'belong','referral':'belong',
     'poster-forge':'create','feed':'create',
     'war-bonds':'fund',
-    /* A1 home (2026-10-05): Price Index HP feeder lives in FUND. */
-    'inflation-teaser':'fund',
     'campaign':'act','alerts':'act',
     'fan-vote':'proof',
     /* W5-6 Hall of Proof (2026-10-04). */

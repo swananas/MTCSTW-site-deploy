@@ -198,6 +198,15 @@ var SECTIONS = {
        into #pf-ammo / #pf-war-card. Display-only, no XP. Backend action
        `claim_support_search` CONFIRMED on wave-claim-support (2026-10-05). */
     'ammo.js',
+    /* Forged For You (2026-10-05): Studio draft tray — auto-generated draft
+       assets await review/post/save/dismiss. Mounts after #pf-ammo on
+       Creator HQ. Display + post/save only; drafts grant zero XP — Post/Save
+       ride the exact PF.PHQShare share/save entry points (share-image.js
+       once-per-day gate) so each explicit tap credits at most once.
+       Backend actions `studio_drafts_get` / `studio_drafts_dismiss` are a
+       parallel workstream (UNCONFIRMED); tray degrades to empty gracefully.
+       KILL: ?pf_off=forged-tray. */
+    'studio-drafts-tray.js',
     'armory.js',
     'dashboard.js',
     'earnings.js'

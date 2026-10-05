@@ -6,22 +6,31 @@
    Governors (callsign + cell); the server enforces every gate — the
    client-side governor checks below are convenience rendering only.
 
-   CONTRACT (2026-10-04, backend sibling's src/reserve.js is authoritative;
-   this file was built before it landed — GAPS FLAGGED in this header):
+   CONTRACT (2026-10-04, backend src/reserve.js is authoritative — aligned
+   2026-10-04 reserve recon):
    - GET JSONP:  ?action=reserve_policy   (public — policy levers, board,
                    open proposals, referenda)
    - GET JSONP:  ?action=reserve_ledger   (public — policy change history)
-   - POST JSON:  {type:"reserve", action:"reserve_<verb>", ...params}
-       verbs: propose, vote, referendum, enact, reassign
-     The sibling dispatch must read `action` ("reserve_propose" etc.) on
-     POST — if it expects `r_action` instead, the post() wrapper below is
-     the single place to remap.
+   - POST JSON:  {type:"reserve", r_action:"reserve_<verb>", ...params}
+       verbs: propose, vote, referendum, referendum_vote, enact,
+              reassign, reassign_vote
+     The backend dispatches on d.r_action (auth.js TYPE_KEY reserve->
+     r_action, like referral/race/remit/revenue/rep/loot/ribbons) — the
+     frontend was the outlier sending action:, which silently missed.
+   - Proposal status contract (backend): open/passed/failed/enacted +
+     discussion_ends; referenda: open/passed/failed + ends_at. No
+     discussion/voting/referendum/rejected/expired, no closes_at, no kind.
+   - Ledger entries (backend): {id, ts, action, details{}, actor} —
+     canonical board-spec shape, one DDL.
+   - Lever keys (backend): base_apy, stimulus_budget_weekly,
+     furnace_burn_target, warmap_fuel_rate, market_fee_rate,
+     treasury_fee_rate. reserve_propose takes lever_changes as an OBJECT
+     {lever_key: new_value}; referendum VOTES go to reserve_referendum_vote
+     with {referendum_id, choice} (reserve_referendum OPENS one).
    - {ok, err} response shapes throughout. Lever RANGES (min/max) are read
-     from reserve_policy — nothing about policy numbers is hardcoded here
-     (math audit pending). Response-field names for proposals/ledger are
-     defensive guesses: this UI tolerates missing fields rather than
-     inventing data. If the supply endpoint doesn't exist yet, the dashboard
-     shows policy + votes only and says so.
+     from reserve_policy — nothing about policy numbers is hardcoded here.
+     If the supply endpoint doesn't exist yet, the dashboard shows policy +
+     votes only and says so.
    Mount: staged template pf-ov-reserve; pages/page-mount.js mounts it on
    /bank after peoplesbank (pf-bank PAGE_ORDERS) — Bank is retail, Reserve
    is monetary policy; they belong together. NOT duplicated on
@@ -69,11 +78,12 @@ function api(action,params,cb){
   q+=\"&callback=\"+fn; s.src=BACKEND+q; document.head.appendChild(s);
   setTimeout(function(){ finish(null); },12000);
 }
-/* POST dispatch per the frontend contract: {type:\"reserve\",
-   action:\"reserve_<verb>\"}. PF.authPost carries the auth secret when the
-   visitor is claimed; the raw fallback mirrors governance.js. */
+/* POST dispatch per the backend contract: {type:\"reserve\",
+   r_action:\"reserve_<verb>\"} (auth.js TYPE_KEY reserve->r_action).
+   PF.authPost carries the auth secret when the visitor is claimed; the
+   raw fallback mirrors governance.js. */
 function post(verb,params,cb){
-  var body={type:\"reserve\",action:\"reserve_\"+verb};
+  var body={type:\"reserve\",r_action:\"reserve_\"+verb};
   for(var k in params) body[k]=params[k];
   if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
   function done(j){ try{ cb(j||{ok:false,err:\"Network error.\"}); }catch(e){} }
@@ -95,35 +105,35 @@ function fmtDur(ms){
 }
 function fmtNum(v){ var n=Number(v); if(!isFinite(n)) return \"&mdash;\"; return n.toLocaleString(); }
 function fmtPct(v){ var n=Number(v); if(!isFinite(n)) return \"&mdash;\"; return n.toFixed(2)+\"%\"; }
+/* Backend lever units (src/reserve.js LEVERS): base_apy is POINTS (2.0 =
+   2%) so fmtPct applies directly; market/treasury fee rates are FRACTIONS
+   (0.05 = 5%); warmap_fuel_rate is a multiplier (1.0 = base rate). */
+function fmtFrac(v){ var n=Number(v); if(!isFinite(n)) return \"&mdash;\"; return (n*100).toFixed(2)+\"%\"; }
+function fmtMult(v){ var n=Number(v); if(!isFinite(n)) return \"&mdash;\"; return \"&times;\"+n.toFixed(2); }
 
 /* Lever metadata only — current values AND ranges come from reserve_policy.
-   A lever is shown only if the policy response carries its current value. */
+   Keys match the backend LEVERS contract exactly; a lever is shown only if
+   the policy response carries its current value. */
 var LEVERS=[
-  {key:\"apy\",            label:\"Savings APY\",        fmt:fmtPct},
-  {key:\"stimulus_budget\",label:\"Stimulus budget\",   fmt:fmtNum},
-  {key:\"burn_target\",    label:\"Weekly burn target\",fmt:fmtNum},
-  {key:\"fuel_rate\",      label:\"Fuel rate\",         fmt:fmtNum},
-  {key:\"fee_remit\",      label:\"Remit fee rate\",    fmt:fmtPct},
-  {key:\"fee_transfer\",   label:\"Transfer fee rate\", fmt:fmtPct},
-  {key:\"fee_savings\",    label:\"Savings fee rate\",  fmt:fmtPct},
-  {key:\"fee_loan\",       label:\"Loan fee rate\",     fmt:fmtPct}
+  {key:\"base_apy\",              label:\"Savings APY\",        fmt:fmtPct},
+  {key:\"stimulus_budget_weekly\",label:\"Stimulus budget\",   fmt:fmtNum},
+  {key:\"furnace_burn_target\",   label:\"Weekly burn target\",fmt:fmtNum},
+  {key:\"warmap_fuel_rate\",       label:\"Fuel rate\",         fmt:fmtMult},
+  {key:\"market_fee_rate\",        label:\"Market fee rate\",   fmt:fmtFrac},
+  {key:\"treasury_fee_rate\",      label:\"Treasury fee rate\", fmt:fmtFrac}
 ];
-/* Read lever current value + range from the policy payload, tolerating
-   both flat (policy.apy) and nested (policy.levers.apy, policy.ranges.*)
-   shapes. Returns null when the backend doesn't serve this lever. */
+/* Read lever current value + range from the policy payload. Backend shape:
+   POL.policy = {base_apy, stimulus_budget_weekly, ...} (flat) and
+   POL.lever_config = {<key>: {def,min,max,step}}. Returns null when the
+   backend doesn't serve this lever. */
 function leverVal(pol,key){
   if(!pol) return null;
-  var v=null, src=pol;
-  if(src[key]!=null) v=src[key];
-  else if(src.levers&&src.levers[key]!=null) v=src.levers[key];
-  else if(src.fees&&key.indexOf(\"fee_\")===0&&src.fees[key.slice(4)]!=null) v=src.fees[key.slice(4)];
-  return v==null?null:{value:v,min:rangeOf(pol,key,\"min\"),max:rangeOf(pol,key,\"max\")};
-}
-function rangeOf(pol,key,which){
-  var r=pol?(pol.ranges||pol.lever_ranges||{})[key]:null;
-  if(r&&r[which]!=null) return Number(r[which]);
-  var flat=(pol||{})[key+\"_\"+which];
-  return flat!=null?Number(flat):null;
+  var v=(pol[key]!=null)?pol[key]:((pol.levers&&pol.levers[key]!=null)?pol.levers[key]:null);
+  if(v==null) return null;
+  var cfg=(POL&&POL.lever_config&&POL.lever_config[key])||null;
+  return {value:v,
+    min:(cfg&&cfg.min!=null)?Number(cfg.min):null,
+    max:(cfg&&cfg.max!=null)?Number(cfg.max):null};
 }
 var POL=null, LED=null, TAB=\"policy\";
 var NEWCHANGES=[]; /* staged proposal changes before submit */
@@ -139,34 +149,39 @@ function referenda(){
   return r||[];
 }
 function myCallsign(){ return String((ident()||{}).callsign||\"\").toLowerCase(); }
-/* Convenience rendering only — the server enforces the gate. */
-function isGovernor(){
-  var cs=myCallsign(); if(!cs) return false;
-  var b=board();
-  for(var i=0;i<b.length;i++){ if(String(b[i]&&(b[i].callsign||\"\")).toLowerCase()===cs) return true; }
-  return false;
-}
-function propTally(p){
-  if(p&&p.tally&&p.tally.yes!=null) return {yes:Number(p.tally.yes)||0,no:Number(p.tally.no)||0};
-  var y=0,n=0, vs=(p&&p.votes)||[];
-  for(var i=0;i<vs.length;i++){ var v=String(vs[i]&&vs[i].vote||\"\").toLowerCase(); if(v===\"yes\")y++; else if(v===\"no\")n++; }
-  return {yes:y,no:n};
-}
-function cellTallies(p){
-  var map={}, vs=(p&&p.votes)||[];
-  for(var i=0;i<vs.length;i++){ var v=vs[i]||{}; var cell=String(v.cell||\"unaffiliated\");
-    if(!map[cell]) map[cell]={cell:cell,yes:0,no:0};
-    var s=String(v.vote||\"\").toLowerCase(); if(s===\"yes\")map[cell].yes++; else if(s===\"no\")map[cell].no++; }
-  var out=[]; for(var k in map) out.push(map[k]);
-  out.sort(function(a,b){ return (b.yes-b.no)-(a.yes-a.no); });
+/* Backend board roster entries: {cell_id, name, governor, members,
+   verified}. Convenience rendering only — the server enforces the gate. */
+function mySeats(){
+  var cs=myCallsign(); if(!cs) return [];
+  var out=[], b=board();
+  for(var i=0;i<b.length;i++){
+    if(String((b[i]&&b[i].governor)||\"\").toLowerCase()===cs) out.push(b[i]);
+  }
   return out;
 }
+function isGovernor(){ return mySeats().length>0; }
+/* Backend proposals carry a flat tally {yes, no, votes} (one vote per
+   cell); lever_changes is an OBJECT {lever_key: new_value}. */
+function propTally(p){
+  if(p&&(p.yes!=null||p.no!=null)) return {yes:Number(p.yes)||0,no:Number(p.no)||0};
+  if(p&&p.tally&&p.tally.yes!=null) return {yes:Number(p.tally.yes)||0,no:Number(p.tally.no)||0};
+  return {yes:0,no:0};
+}
+function leverLabel(key){
+  for(var i=0;i<LEVERS.length;i++) if(LEVERS[i].key===key) return LEVERS[i];
+  return null;
+}
 function changeRows(p){
-  var ch=(p&&p.changes)||[];
+  var ch=(p&&p.lever_changes)||{};
+  var ks=Object.keys(ch);
+  var pol=(POL&&POL.policy)||{};
   var h=\"\";
-  for(var i=0;i<ch.length;i++){ var c=ch[i]||{};
-    var lab=c.label||c.lever||\"lever\";
-    h+='<div class=\"x-note\" style=\"margin:4px 0;\"><b>'+esc(lab)+':</b> '+esc(String(c.old!=null?c.old:\"&mdash;\"))+' &rarr; '+esc(String(c.new!=null?c.new:c.value!=null?c.value:\"&mdash;\"))+'</div>';
+  for(var i=0;i<ks.length;i++){
+    var L=leverLabel(ks[i]);
+    var lab=L?L.label:ks[i];
+    var fmt=L?L.fmt:fmtNum;
+    var oldv=(pol[ks[i]]!=null)?fmt(pol[ks[i]]):\"&mdash;\";
+    h+='<div class=\"x-note\" style=\"margin:4px 0;\"><b>'+esc(lab)+':</b> '+oldv+' &rarr; '+fmt(ch[ks[i]])+'</div>';
   }
   return h||'<div class=\"x-note\">No lever changes listed.</div>';
 }
@@ -187,7 +202,7 @@ function renderPolicy(el){
   }
   /* Stimulus spent-this-week is a readout, not a settable lever. */
   var spent=pol.stimulus_spent_week!=null?pol.stimulus_spent_week:(pol.stimulus&&pol.stimulus.spent_week);
-  var bud=leverVal(pol,\"stimulus_budget\");
+  var bud=leverVal(pol,\"stimulus_budget_weekly\");
   if(spent!=null){ any=true;
     var sub2=bud?(\"Budget: \"+fmtNum(bud.value)+\" XP\"):\"\";
     h+=cardRow(\"Stimulus spent this week\",fmtNum(spent)+\" XP\",sub2);
@@ -208,16 +223,19 @@ function renderPolicy(el){
     h+='<div class=\"x-note\" style=\"margin-top:12px;\">Supply readout pending &mdash; the backend doesn&rsquo;t publish XP supply yet. Policy + votes below.</div>';
   }
 
-  /* Board of Governors. */
+  /* Board of Governors. Backend roster entries:
+     {cell_id, name, governor, members, verified}. */
   var b=board();
   h+='<h3 style=\"font-family:\\'Arial Black\\',Arial,sans-serif;letter-spacing:2px;color:#f5ead6;text-transform:uppercase;margin-top:18px;\">Board of Governors</h3>';
   if(b.length){
     h+='<div class=\"pb-hist\">';
     for(var q=0;q<b.length;q++){ var g=b[q]||{};
-      var mine=String(g.callsign||\"\").toLowerCase()===myCallsign();
-      h+='<div class=\"pb-row\"><span><b style=\"color:'+(mine?\"#7CFF9B\":\"#f5ead6\")+'\">'+esc(g.callsign||\"?\")+'</b>'
+      var gov=String(g.governor||\"\");
+      var mine=gov.toLowerCase()===myCallsign();
+      var cellName=g.name||g.cell_id||\"?\";
+      h+='<div class=\"pb-row\"><span><b style=\"color:'+(mine?\"#7CFF9B\":\"#f5ead6\")+'\">'+esc(gov||\"?\")+'</b>'
         +(mine?' <span class=\"c-tag\" style=\"font-size:10px;\">YOU</span>':\"\")
-        +'</span><span class=\"x-note\">'+(g.cell?esc(g.cell):\"no cell\")+'</span></div>';
+        +'</span><span class=\"x-note\">'+esc(cellName)+(g.members!=null?(' &middot; '+Number(g.members)+' fighters'):\"\")+'</span></div>';
     }
     h+='</div>';
     if(isGovernor()){
@@ -231,36 +249,30 @@ function renderPolicy(el){
   }
   return h;
 }
+/* Backend status contract: proposals open/passed/failed/enacted (+
+   discussion_ends); referenda open/passed/failed (+ ends_at). */
 function statusLabel(p){
-  var s=String((p&&p.status)||\"discussion\").toLowerCase();
-  var map={discussion:\"IN DISCUSSION\",voting:\"BOARD VOTE\",referendum:\"REFERENDUM\",passed:\"PASSED\",enacted:\"ENACTED\",rejected:\"REJECTED\",expired:\"EXPIRED\"};
+  var s=String((p&&p.status)||\"open\").toLowerCase();
+  var map={open:\"OPEN — IN DISCUSSION\",passed:\"PASSED\",failed:\"FAILED\",enacted:\"ENACTED\"};
   return map[s]||s.toUpperCase();
 }
 function renderProposalCard(p){
-  var ends=p&&(p.discussion_ends||p.voting_ends||p.ends);
+  var ends=p&&(p.discussion_ends||0);
   var cd=ends?fmtDur(Number(ends)-Date.now()):\"&mdash;\";
   var t=propTally(p), tot=t.yes+t.no;
-  var cells=cellTallies(p);
   var h='<div class=\"pb-card\" style=\"text-align:left;margin-bottom:10px;\">'
     +'<div class=\"pb-clabel\"><span class=\"c-tag\">'+esc(statusLabel(p))+'</span> '+esc(p.title||\"Untitled proposal\")+'</div>'
-    +'<div class=\"x-note\">Proposed by <b>'+esc(p.proposer||p.proposed_by||\"?\")+'</b> &middot; discussion '+(cd===\"closed\"?\"closed\":(\"ends in \"+esc(cd)))+'</div>'
+    +'<div class=\"x-note\">Proposed by <b>'+esc(p.proposer||p.proposed_by||\"?\")+'</b>'+(p.proposer_cell?(' &middot; '+esc(p.proposer_cell)):\"\")+' &middot; discussion '+(cd===\"closed\"?\"closed\":(\"ends in \"+esc(cd)))+'</div>'
     +'<div style=\"margin:8px 0;\">'+changeRows(p)+'</div>'
-    +'<div class=\"x-note\">Board tally: <b style=\"color:#7CFF9B;\">'+t.yes+' YES</b> / <b style=\"color:#ff8a8a;\">'+t.no+' NO</b> &middot; '+tot+' cast</div>';
-  if(cells.length){
-    h+='<div style=\"margin-top:6px;\">';
-    for(var i=0;i<cells.length;i++){ var c=cells[i];
-      h+='<div class=\"x-note\">'+esc(c.cell)+': <b style=\"color:#7CFF9B;\">'+c.yes+'</b> / <b style=\"color:#ff8a8a;\">'+c.no+'</b></div>';
-    }
-    h+='</div>';
-  }
-  var open=String((p&&p.status)||\"discussion\").toLowerCase();
-  var votable=(open===\"discussion\"||open===\"voting\")&&isGovernor();
+    +'<div class=\"x-note\">Board tally: <b style=\"color:#7CFF9B;\">'+t.yes+' YES</b> / <b style=\"color:#ff8a8a;\">'+t.no+' NO</b> &middot; '+tot+' cells voted</div>';
+  var open=String((p&&p.status)||\"open\").toLowerCase();
+  var votable=(open===\"open\")&&isGovernor();
   if(votable){
     h+='<div style=\"margin-top:8px;\">'
       +'<button class=\"c-btn pf-btn-sm\" data-rsv-vote=\"yes\" data-rsv-id=\"'+esc(p.id||\"\")+'\">Vote YES</button> '
       +'<button class=\"c-btn ghost pf-btn-sm\" data-rsv-vote=\"no\" data-rsv-id=\"'+esc(p.id||\"\")+'\">Vote NO</button>'
       +'</div>';
-  } else if(open===\"discussion\"||open===\"voting\"){
+  } else if(open===\"open\"){
     h+='<div class=\"x-note\">Board vote only &mdash; governors decide; the ranks speak in referenda.</div>';
   }
   if((open===\"passed\")&&isGovernor()){
@@ -286,7 +298,6 @@ function renderProposals(el){
     h+='<h3 style=\"font-family:\\'Arial Black\\',Arial,sans-serif;letter-spacing:2px;color:#f5ead6;text-transform:uppercase;margin-top:18px;\">New Proposal</h3>'
       +'<div class=\"pb-card\" style=\"text-align:left;\">'
       +'<input class=\"c-in\" id=\"rsvPTitle\" maxlength=\"80\" placeholder=\"Proposal title\" aria-label=\"Proposal title\" style=\"margin-bottom:8px;\" />'
-      +'<input class=\"c-in\" id=\"rsvPSum\" maxlength=\"280\" placeholder=\"Summary for the ranks\" aria-label=\"Proposal summary\" style=\"margin-bottom:8px;\" />'
       +(opts?('<div style=\"margin-bottom:8px;\"><select class=\"c-in pf-input-sm\" id=\"rsvPLever\" aria-label=\"Lever\">'+opts+'</select> '
         +'<input class=\"c-in pf-input-sm\" id=\"rsvPVal\" type=\"number\" step=\"any\" placeholder=\"New value\" aria-label=\"New value\" /> '
         +'<button class=\"c-btn ghost pf-btn-sm\" id=\"rsvPAdd\">Add change</button></div>'
@@ -303,20 +314,19 @@ function renderProposals(el){
 function renderReferenda(el){
   var h='<h3 style=\"font-family:\\'Arial Black\\',Arial,sans-serif;letter-spacing:2px;color:#f5ead6;text-transform:uppercase;\">Referenda</h3>'
     +'<div class=\"x-note\" style=\"margin-bottom:10px;\">One callsign, one vote. The ranks overrule the Board.</div>';
+  /* Backend referenda: {id, proposal_id, question, ends_at, status,
+     yes, no, votes}. Proposals and referenda are separate lists — the
+     backend never sets a proposal status of \"referendum\". */
   var rs=referenda();
-  /* Proposals already in referendum status show here too. */
-  var ps=proposals();
-  for(var i=0;i<ps.length;i++){ if(String((ps[i]&&ps[i].status)||\"\").toLowerCase()===\"referendum\"&&rs.indexOf(ps[i])===-1) rs.push(ps[i]); }
   if(!rs.length) h+='<div class=\"x-note\">No live referenda. When the Board deadlocks &mdash; or overreaches &mdash; the ranks vote here.</div>';
   for(var q=0;q<rs.length;q++){ var r=rs[q]||{};
     var t=propTally(r), tot=t.yes+t.no;
     var yp=tot?Math.round(100*t.yes/tot):0, np=tot?Math.round(100*t.no/tot):0;
-    var ends=r.referendum_ends||r.ends;
+    var ends=r.ends_at||0;
     var cd=ends?fmtDur(Number(ends)-Date.now()):\"&mdash;\";
     h+='<div class=\"pb-card\" style=\"text-align:left;margin-bottom:10px;\">'
-      +'<div class=\"pb-clabel\"><span class=\"c-tag\">REFERENDUM</span> '+esc(r.title||\"Untitled\")+'</div>'
-      +'<div class=\"x-note\">'+(r.summary?esc(r.summary):\"\")+(cd===\"closed\"?\" &middot; voting closed\":\" &middot; closes in \"+esc(cd))+'</div>'
-      +'<div style=\"margin:8px 0;\">'+changeRows(r)+'</div>'
+      +'<div class=\"pb-clabel\"><span class=\"c-tag\">'+esc(statusLabel(r))+'</span> '+esc(r.question||\"Untitled\")+'</div>'
+      +'<div class=\"x-note\">'+(cd===\"closed\"?\"voting closed\":\"closes in \"+esc(cd))+'</div>'
       +'<div style=\"background:#141414;border:1px solid #333;margin:8px 0;\">'
       +'<div style=\"height:14px;background:#7CFF9B;width:'+yp+'%;\"></div>'
       +'<div style=\"height:14px;background:#ff5a5f;width:'+np+'%;margin-top:2px;\"></div></div>'
@@ -336,6 +346,8 @@ function renderReferenda(el){
 function renderLedger(el){
   var h='<h3 style=\"font-family:\\'Arial Black\\',Arial,sans-serif;letter-spacing:2px;color:#f5ead6;text-transform:uppercase;\">Policy Ledger</h3>'
     +'<div class=\"x-note\" style=\"margin-bottom:10px;\">Every policy change, on the record. Public by design.</div>';
+  /* Backend entries: {id, ts, action, details{}, actor} — canonical
+     board-spec shape. */
   var es=(LED&&LED.entries)||(LED&&LED.ledger)||[];
   if(!es.length) h+='<div class=\"x-note\">Ledger is empty &mdash; or the backend hasn&rsquo;t landed yet. Nothing hidden, nothing missing: there&rsquo;s just nothing to show.</div>';
   else{
@@ -343,9 +355,12 @@ function renderLedger(el){
     var shown=0;
     for(var i=0;i<es.length&&shown<40;i++){ var e=es[i]||{}; shown++;
       var dt=\"\"; try{ var d=new Date(Number(e.ts)); dt=isNaN(d.getTime())?\"\":d.toLocaleDateString()+\" \"+d.toLocaleTimeString(); }catch(x){}
-      h+='<div class=\"pb-row\"><span><b>'+esc(e.kind||\"policy\")+'</b> &middot; '+esc(e.actor||e.by||\"board\")
-        +'<br><span class=\"x-note\">'+esc(e.note||e.summary||\"\")+'</span></span>'
-        +'<span class=\"x-note\">'+esc(dt)+'</span></div>';
+      var det=e.details||{};
+      var note=det.title||det.question||det.name||\"\";
+      if(det.result) note+=(note?\" — \":\"\")+\"result: \"+det.result;
+      h+='<div class=\"pb-row\"><span><b>'+esc(e.action||\"policy\")+'</b> &middot; '+esc(e.actor||\"board\")
+        +(note?('<br><span class=\"x-note\">'+esc(String(note)).slice(0,140)+'</span>'):\"\")
+        +'</span><span class=\"x-note\">'+esc(dt)+'</span></div>';
     }
     h+='</div>';
   }
@@ -382,7 +397,7 @@ function wire(el){
   for(var z=0;z<es.length;z++){ (function(b){ b.onclick=function(){
     var id=b.getAttribute(\"data-rsv-enact\"); var iid=ident(); var err=el.querySelector(\"#rsvErr-\"+id);
     b.disabled=true;
-    post(\"enact\",{callsign:iid.callsign,device:iid.device,proposal:id},function(j){
+    post(\"enact\",{callsign:iid.callsign,device:iid.device,proposal_id:id},function(j){
       b.disabled=false;
       if(j&&j.ok){ toast(\"Policy enacted.\"); load(); return; }
       if(err) err.textContent=String((j&&j.err)||\"Enact failed.\")+authHint(j).replace(/<[^>]*>/g,\"\");
@@ -409,13 +424,16 @@ function wire(el){
   if(sub) sub.onclick=function(){
     var iid=ident(); var err=document.getElementById(\"rsvPErr\");
     var title=String(document.getElementById(\"rsvPTitle\").value||\"\").trim();
-    var sum=String(document.getElementById(\"rsvPSum\").value||\"\").trim();
     err.textContent=\"\";
     if(!title){ err.textContent=\"Give the proposal a title.\"; return; }
     if(!NEWCHANGES.length){ err.textContent=\"Add at least one lever change.\"; return; }
     if(!iid.callsign){ err.textContent=\"Claim a callsign first.\"; return; }
     sub.disabled=true;
-    post(\"propose\",{callsign:iid.callsign,device:iid.device,title:title,summary:sum,changes:JSON.stringify(NEWCHANGES)},function(j){
+    /* Backend contract: lever_changes is an OBJECT {lever_key: new_value}
+       keyed by the backend lever names. */
+    var lc={};
+    for(var li=0;li<NEWCHANGES.length;li++) lc[NEWCHANGES[li].lever]=NEWCHANGES[li].value;
+    post(\"propose\",{callsign:iid.callsign,device:iid.device,title:title,lever_changes:lc},function(j){
       sub.disabled=false;
       if(j&&j.ok){ NEWCHANGES=[]; toast(\"Proposal tabled.\"); load(); return; }
       err.innerHTML=esc(String((j&&j.err)||\"Submit failed.\"))+authHint(j);
@@ -430,7 +448,12 @@ function wire(el){
     if(to===myCallsign()){ err.textContent=\"That&rsquo;s your own seat.\"; return; }
     if(!confirm(\"Reassign your Board seat to \"+to+\"? This is final.\")) return;
     rb.disabled=true;
-    post(\"reassign\",{callsign:iid.callsign,device:iid.device,to:to},function(j){
+    /* Backend reserve_reassign requires cell_id: use the caller's first
+       seated governorship (the seat list is rendered above). */
+    var seats=mySeats();
+    var seatCell=seats.length?String(seats[0].cell_id||\"\"):\"\";
+    if(!seatCell){ err.textContent=\"No seated governorship found.\"; rb.disabled=false; return; }
+    post(\"reassign\",{callsign:iid.callsign,device:iid.device,cell_id:seatCell,target:to},function(j){
       rb.disabled=false;
       if(j&&j.ok){ toast(\"Seat reassigned.\"); load(); return; }
       err.innerHTML=esc(String((j&&j.err)||\"Reassign failed.\"))+authHint(j);
@@ -449,11 +472,18 @@ function paintChanges(){
   for(var q=0;q<rs.length;q++){ (function(b){ b.onclick=function(){
     NEWCHANGES.splice(Number(b.getAttribute(\"data-rsv-rm\")),1); paintChanges(); }; })(rs[q]); }
 }
+/* Board votes -> reserve_vote {proposal_id, choice} (governor-gated).
+   Referendum votes -> reserve_referendum_vote {referendum_id, choice}
+   (any callsign; reserve_referendum OPENS a referendum, it does not vote). */
 function castVote(id,vote,verb){
   var iid=ident();
   var err=document.getElementById(verb===\"referendum\"?\"rsvRefErr-\"+id:\"rsvErr-\"+id);
   if(!iid.callsign){ if(err) err.textContent=\"Claim a callsign first.\"; else toast(\"Claim a callsign first.\"); return; }
-  post(verb,{callsign:iid.callsign,device:iid.device,proposal:id,vote:vote},function(j){
+  var act=verb===\"referendum\"?\"referendum_vote\":\"vote\";
+  var params=verb===\"referendum\"
+    ?{callsign:iid.callsign,device:iid.device,referendum_id:id,choice:vote}
+    :{callsign:iid.callsign,device:iid.device,proposal_id:id,choice:vote};
+  post(act,params,function(j){
     if(j&&j.ok){ toast(\"Vote recorded.\"); load(); return; }
     if(err) err.innerHTML=esc(String((j&&j.err)||\"Vote failed.\"))+authHint(j);
     else toast(String((j&&j.err)||\"Vote failed.\"));

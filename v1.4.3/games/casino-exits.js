@@ -12,10 +12,9 @@
       PFShare.setPoster('whitemarket-win') + PFShare.shareImage — standard
       JOIN THE FIGHT. CTA + MTCSTW.COM footer. Amounts are real backend
       grants, never invented.
-   4. SWEEP TO VAULT: one-click deep link into the People's Bank deposit flow;
-      the win amount is stashed in localStorage ('pf_sweep_amt') and the bank
-      prefills its vault amount input once. Link only — the user still taps
-      DEPOSIT; no new transfer mechanics.
+   4. VAULT IT: one-tap real deposit of the win into the People's Bank
+      vault (6A-R2 pattern — existing bank deposit action, fail-closed
+      xpGrant, weekly deposit cap, idempotency key). No new backend actions.
    Settlement hooks live in games/casino.js (guarded one-liners marked
    WM-EXITS); the markets panel (games/markets.js) can adopt the same
    'pf-wm-settled' event later — it currently exposes no hook, so market
@@ -32,7 +31,6 @@
   var BACKEND = window.PF_BACKEND_URL;
   var BET_LS = 'pf_wm_bets_v1';    /* tracked open bets awaiting settlement */
   var LOT_LS = 'pf_wm_lotto_v1';   /* last lottery round seen + tickets held */
-  var SWEEP_LS = 'pf_sweep_amt';   /* win amount stashed for the bank prefill */
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -67,6 +65,54 @@
     s.src = BACKEND + q;
     document.head.appendChild(s);
     setTimeout(function () { finish(null); }, 12000);
+  }
+
+  /* ---- VAULT IT (6A-R2 real-deposit pattern): CORS POST for bank writes —
+     same backend action as the /bank vault's DEPOSIT button (fail-closed
+     xpGrant, weekly deposit cap, idempotency key). One-taps winnings into
+     the vault without leaving the win screen. No new backend actions. ---- */
+  function postBank(bAction, params, cb) {
+    var body = { type: 'bank', b_action: bAction };
+    for (var k in params) { if (Object.prototype.hasOwnProperty.call(params, k)) body[k] = params[k]; }
+    if (window.PF && PF.authPost) { PF.authPost(BACKEND, body, cb); return; }
+    var bodyStr = JSON.stringify(body);
+    function done(j) { try { cb(j || { ok: false, err: 'Network error.' }); } catch (e) {} }
+    try {
+      var o = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: bodyStr };
+      var c = null, t = null;
+      try {
+        if (window.AbortController) {
+          c = new AbortController(); o.signal = c.signal;
+          t = setTimeout(function () { try { c.abort(); } catch (e) {} }, 15000);
+        }
+      } catch (e) {}
+      fetch(BACKEND, o)
+        .then(function (r) { return r.json(); })
+        .then(function (j) { if (t) { try { clearTimeout(t); } catch (e2) {} } done(j); })
+        .catch(function () { if (t) { try { clearTimeout(t); } catch (e3) {} } done(null); });
+    } catch (e4) { done(null); }
+  }
+  function vaultIt(btn) {
+    var amt = Math.round(Number(btn.getAttribute('data-wm-vaultit')) || 0);
+    if (!(amt > 0)) { toast('Nothing to vault.'); return; }
+    var id = ident();
+    if (!id.callsign) { toast('Enlist a callsign first — the vault needs an owner.'); return; }
+    var key = id.device + ':vaultit:whitemarket:' + amt + ':' + Date.now();
+    btn.disabled = true;
+    var orig = btn.innerHTML;
+    btn.innerHTML = '<div class="wmx-rt">VAULTING...</div>';
+    postBank('deposit', { callsign: id.callsign, device: id.device, amount: amt, key: key }, function (j) {
+      if (!j || !j.ok) {
+        btn.disabled = false; btn.innerHTML = orig;
+        var msg = 'Vault deposit failed.';
+        try { if (window.PF && PF.errCopy) msg = PF.errCopy(j, msg); } catch (e5) {}
+        toast(msg); return;
+      }
+      btn.innerHTML = '<div class="wmx-rt">VAULTED &#10003;</div>' +
+        '<div class="wmx-rs">' + amt.toLocaleString() + ' XP in the vault.</div>';
+      toast('+' + amt.toLocaleString() + ' XP in the vault.');
+      try { document.dispatchEvent(new CustomEvent('pf-do-update')); } catch (e6) {}
+    });
   }
 
   /* ---- bet tracking (device-local; lets resolutions settle win/loss) ---- */
@@ -248,7 +294,7 @@
       { id: 'markets', title: 'COLLECT AND ROLL IT', cta: 'HIT THE MARKETS',
         sub: 'Winnings ride again — bet the next Propagandist of the Week in The White Market.',
         href: marketsHref },
-      { id: 'vault', title: 'BANK IT', cta: 'SWEEP TO VAULT', sweep: true,
+      { id: 'vault', title: 'BANK IT', cta: 'VAULT IT', sweep: true,
         sub: 'Move the win to the People\'s Bank vault. Interest lands every Monday.',
         href: '/bank' },
       { id: 'arcade', title: 'RUN IT BACK', cta: 'BACK TO THE ARCADE',
@@ -277,7 +323,7 @@
     '.wmx-head{font-family:\'Arial Black\',Arial,sans-serif;font-size:21px;letter-spacing:1px;color:#f5ead6;margin:8px 18px}' +
     '.wmx-head .w{color:#7CFC00}.wmx-head .l{color:#ff4d5e}' +
     '.wmx-sub{font-size:13px;color:#a89e88;margin:0 18px 12px;line-height:1.5}' +
-    '.wmx-route{display:block;text-decoration:none;border-top:1px solid #222;padding:12px 18px;text-align:left}' +
+    '.wmx-route{display:block;width:100%;font:inherit;color:inherit;background:none;border:none;border-top:1px solid #222;padding:12px 18px;text-align:left;cursor:pointer}' +
     '.wmx-route:hover{background:#160808}' +
     '.wmx-rt{font-family:\'Arial Black\',Arial,sans-serif;font-size:14px;letter-spacing:2px;color:#f5ead6}' +
     '.wmx-rs{font-size:12px;color:#a89e88;margin:4px 0 8px;line-height:1.5}' +
@@ -316,13 +362,17 @@
       var r = routes[i];
       var href = (typeof r.href === 'function') ? r.href() : r.href;
       var sub2 = r.id === 'vault' && won && fig > 0
-        ? 'Sweep ' + fmt(fig) + ' XP to the People\'s Bank vault. Interest lands every Monday.'
+        ? 'Vault ' + fmt(fig) + ' XP to the People\'s Bank vault. Interest lands every Monday.'
         : r.sub;
-      var extra = (r.sweep && won && fig > 0) ? ' data-wm-sweep="' + fig + '"' : '';
-      h += '<a class="wmx-route" href="' + esc(href) + '"' + extra + '>' +
-        '<div class="wmx-rt">' + esc(r.title) + '</div>' +
+      /* VAULT IT (6A-R2 real-deposit pattern): one-tap deposit, no nav. */
+      var inner = '<div class="wmx-rt">' + esc(r.title) + '</div>' +
         '<div class="wmx-rs">' + esc(sub2) + '</div>' +
-        '<span class="wmx-cta">' + esc(r.cta) + ' &rarr;</span></a>';
+        '<span class="wmx-cta">' + esc(r.cta) + ' &rarr;</span>';
+      if (r.sweep && won && fig > 0) {
+        h += '<button type="button" class="wmx-route" data-wm-vaultit="' + fig + '">' + inner + '</button>';
+      } else {
+        h += '<a class="wmx-route" href="' + esc(href) + '">' + inner + '</a>';
+      }
     }
     if (won && fig > 0 && window.PFShare && PFShare.shareImage) {
       h += '<div class="wmx-row"><button type="button" class="wmx-cta ghost" data-wm-share="1">' +
@@ -344,11 +394,10 @@
     catch (e) { return null; }
     t.addEventListener('click', function (ev) {
       try {
-        var el = ev.target && ev.target.closest ? ev.target.closest('[data-wm-sweep],[data-wm-dismiss],[data-wm-share]') : null;
+        var el = ev.target && ev.target.closest ? ev.target.closest('[data-wm-vaultit],[data-wm-dismiss],[data-wm-share]') : null;
         if (!el) return;
-        if (el.hasAttribute('data-wm-sweep')) {
-          /* stash the win for the bank's one-time prefill; nav proceeds */
-          try { localStorage.setItem(SWEEP_LS, String(el.getAttribute('data-wm-sweep') || '')); } catch (e2) {}
+        if (el.hasAttribute('data-wm-vaultit')) {
+          vaultIt(el);
         } else if (el.hasAttribute('data-wm-dismiss')) {
           t.innerHTML = ''; lastWin = null;
         } else if (el.hasAttribute('data-wm-share')) {

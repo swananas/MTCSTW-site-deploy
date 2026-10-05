@@ -266,18 +266,6 @@ function renderVault(id){
   return h;
 }
 function wireVault(id,el){
-  /* WM-EXITS sweep-to-vault (2026-10-04 de-isolation): the White Market exit
-     card stashes a win amount in localStorage ('pf_sweep_amt') before
-     navigating to /bank. Prefill the vault amount input once, then consume
-     the key. Link only — the user still taps DEPOSIT. */
-  try{
-    var swRaw=localStorage.getItem("pf_sweep_amt");
-    if(swRaw){
-      localStorage.removeItem("pf_sweep_amt");
-      var swAmt=Math.round(Number(swRaw)||0), swInp=document.getElementById("pbVltAmt");
-      if(swInp&&swAmt>0&&!swInp.value) swInp.value=swAmt;
-    }
-  }catch(swe){}
   function balNow(){ return (BST&&BST.ok)?Math.round(Number(BST.balance)||0):0; }
   function spendNow(){ return (BAL&&typeof BAL.balance==="number")?Math.round(BAL.balance):0; }
   var chips=el.querySelectorAll('button[data-vchip]');

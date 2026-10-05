@@ -8,7 +8,7 @@
   try {
     /* PF SERVICE MEDALS v2 — sticky collection layer over all 12 homepage games.
        Listens for pf-* CustomEvents. Awards one medal per game per week
-       (America/Chicago, Monday reset). All 16 in a week = FULL DEPLOYMENT:
+       (America/Chicago, Monday reset). All medals in a week = FULL DEPLOYMENT:
        +50 XP via ranks backend (idempotent per week) + callsign etched on the
        Vanguard Wall. Device-local medal tracking (pf_medals_v2) + backend for XP. */
     (function(){
@@ -36,7 +36,7 @@
      /* 2026-10-04 de-isolation: the White Market wagering hall joins the rack.
         Earned by the first settled bet in the hall each week (win or loss) —
         REQUIRED for FULL DEPLOYMENT. */
-     {id:'whitemarket', glyph:'\uD83C\uDFB2', name:'High Roller',  ev:'pf-wm-settled'}
+     {id:'whitemarket', glyph:'\uD83C\uDFB2', name:'Market Maker',  ev:'pf-wm-settled'}
     ];
     function load(){try{var s=JSON.parse(localStorage.getItem(LS)||'null');if(s&&s.w)return s;}catch(e){}return{w:PF.isoWeekKey(PF.chiNow()),m:{},fd:false};}
     function save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}
@@ -156,9 +156,9 @@
       });
       h+='</div>';
       if(s.fd){
-        h+='<div class=\"pm-fd\">\u2605 FULL DEPLOYMENT \u2605</div><div class=\"pm-note\">All 16 earned. <b>+50 XP</b> banked, name on the wall. See you Monday.</div>';
+        h+='<div class=\"pm-fd\">\u2605 FULL DEPLOYMENT \u2605</div><div class=\"pm-note\">All '+MEDALS.length+' earned. <b>+50 XP</b> banked, name on the wall. See you Monday.</div>';
       }else{
-        h+='<div class=\"pm-note\">Earn all <b>16</b> this week for <b>FULL DEPLOYMENT</b>: +50 XP + your callsign on the Vanguard Wall. <b>'+got+'/16</b> so far.</div>';
+        h+='<div class=\"pm-note\">Earn all <b>'+MEDALS.length+'</b> this week for <b>FULL DEPLOYMENT</b>: +50 XP + your callsign on the Vanguard Wall. <b>'+got+'/'+MEDALS.length+'</b> so far.</div>';
       }
       el.innerHTML=h;
       return true;

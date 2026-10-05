@@ -45,8 +45,8 @@ var MEDALS = [
   ['enlisted',     'Enlisted',          '\u2694'],
   ['guess',        'Profiler',          '\u25CE'],
   ['raid',         'Raider',            '\u26A1'],
-  /* 2026-10-04 de-isolation: White Market High Roller (mirrors service-medals). */
-  ['whitemarket',  'High Roller',       '\uD83C\uDFB2']
+  /* 2026-10-04 de-isolation: White Market 'Market Maker' (mirrors service-medals). */
+  ['whitemarket',  'Market Maker',       '\uD83C\uDFB2']
 ];
 var MEDAL_EV = {vote:'pf-vote-cast',ballot:'pf-bracket-ballot',bracket:'pf-bracket-liquidated',bonds:'pf-wb-buy',caption:'pf-caption-submit',poster:'pf-poster-made',quiz:'pf-quiz-done',billionaire:'pf-billionaire-answered',interrogation:'pf-interrogation-answered',orders:'pf-order-checkin',drop:'pf-drop-claimed',enlisted:'pf-enlisted',guess:'pf-guess-done',raid:'pf-raid-report',whitemarket:'pf-wm-settled'};
 var TIERS = [['RECRUIT',0,'\u2691'],['AGITATOR',25,'\u2692'],['CADRE',75,'\u2699'],['COMMISSAR',150,'\u272A'],['ARCHITECT',300,'\u265B']];

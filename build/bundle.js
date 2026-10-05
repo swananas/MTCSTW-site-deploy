@@ -226,7 +226,23 @@ var SECTIONS = {
   ],
   'bundle-events': [
     /* /events — Boots on the Ground. */
-    'irl.js'
+    'irl.js',
+    /* 2026-10-05 (fe/events-move): Town Hall Tracker moved from Political HQ
+       (was fe/townhall-tracker's bundle-hq slot) to /events. Mounted by
+       pages/page-mount.js PAGE_ORDERS['pf-events']; kill ?pf_off=townhall. */
+    'townhall.js'
+  ],
+  /* 2026-10-05 (fe/events-move): /events LAZY map chunk. The protest/event
+     map (civic-events.js — OSM link-outs, NO tile-map SDK, hard ban honored)
+     loads on demand when its section scrolls near (loader jsLazy() +
+     .pf-sec-anchor[data-bundle] placeholder injected by page-mount.js),
+     15s backstop; fail-soft skeleton if the chunk fails. Keeps the initial
+     /events payload at the irl+townhall weight (FITS-WITH-LAZY per the
+     2026-10-05 load assessment). Never fetched on any other page. */
+  'bundle-events-map': [
+    /* /events — protest/event map (moved from Political HQ, fe/civic-events).
+       Kill ?pf_off=civicevents — honored before the anchor is even injected. */
+    'civic-events.js'
   ],
   'bundle-warreport': [
     /* /war-report — the weekly digest. */

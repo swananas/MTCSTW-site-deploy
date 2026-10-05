@@ -107,6 +107,15 @@
         ['economy', 'pf-ov-economy']
       ]
     },
+    /* money (fe/money-page, 2026-10-05): FOLLOW THE MONEY. Self-mounting
+       silo — core/money-page.js renders itself into #pf-money (page mode)
+       or the interim PHQ tab. Sub copy provisional — Psych veto. */
+    'pf-money': {
+      title: 'FOLLOW THE MONEY', sub: 'See who bought your government.',
+      order: [
+        ['money', null]
+      ]
+    },
     'pf-warchest': {
       title: 'THE WAR CHEST', sub: 'Fund the fight. Watch where every cent goes.',
       order: [
@@ -136,7 +145,11 @@
   /* Self-mounting silos: silo key -> { div, kill }. The silo's IIFE renders
      into div#<div> at bundle time; page-mount only positions it. */
   var SELF = {
-    'cell-hq': { div: 'pf-cell-hq', kill: 'cellhq' }
+    'cell-hq': { div: 'pf-cell-hq', kill: 'cellhq' },
+    /* money (fe/money-page, 2026-10-05): the Follow-the-Money suite renders
+       itself into #pf-money (core/money-page.js, context-aware mount).
+       Kill: ?pf_off=money (master). */
+    'money': { div: 'pf-money', kill: 'money' }
   };
 
   function execScripts(root, label) {
@@ -249,7 +262,7 @@
     'pf-arcade', 'pf-create', 'pf-bank', 'pf-economy',
     'pf-warchest', 'pf-ventures', 'pf-events', 'pf-warreport',
     'pf-war-card', 'pf-academy-hq', 'pf-dash-hq',
-    'pf-political-hq', 'pf-slr-roster', 'pf-catalog'
+    'pf-political-hq', 'pf-slr-roster', 'pf-catalog', 'pf-money'
   ];
   function feWiden(host) {
     try {

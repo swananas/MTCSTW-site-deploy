@@ -78,15 +78,23 @@ if (src.indexOf('CLAIM YOUR CALLSIGN AT MTCSTW.COM') !== -1) ok('no-callsign fun
 else no('funnel', 'CLAIM YOUR CALLSIGN AT MTCSTW.COM missing');
 if (src.indexOf('cv._pfStamped = true') !== -1) ok('painters set _pfStamped (idempotent stamp safety net)');
 else no('_pfStamped', 'no painter sets cv._pfStamped');
-['donate', 'shanetheswan'].forEach(function (w) {
+['shanetheswan'].forEach(function (w) {
   if (src.toLowerCase().indexOf(w) === -1) ok('banned term absent: ' + w);
   else no('banned term', w + ' present in module');
 });
+/* 'donate' appears ONLY in the legally-mandated boycott disclaimer
+   ("CORPORATIONS CAN'T DONATE DIRECTLY — THIS IS EMPLOYEE GIVING") — QC-ruled
+   false positive; assert no other occurrence. */
+(function () {
+  var stripped = src.split("CAN\\u2019T DONATE DIRECTLY").join('');
+  if (stripped.toLowerCase().indexOf('donate') === -1) ok('banned term absent outside disclaimer: donate');
+  else no('banned term', 'donate present outside the boycott disclaimer');
+})();
 if (!/\bShane\b/.test(src)) ok('no real names in copy');
 else no('real name', 'found "Shane" in module');
-if (has(path.join(ROOT, 'build', 'bundle-core.js'), "'core/share-image-phq.js'"))
-  ok('share-image-phq.js registered in build/bundle-core.js (bundle-pages)');
-else no('bundle registration', 'not found in build/bundle-core.js');
+if (has(path.join(ROOT, 'build', 'bundle-core.js'), "'core/share-image-phq-lazy.js'"))
+  ok('share-image-phq lazy stub registered in build/bundle-core.js (bundle-pages)');
+else no('bundle registration', 'lazy stub not found in build/bundle-core.js');
 if (has(path.join(V, 'pages', 'bundle-pages.js'), 'pfPhqShareDone'))
   ok('module marker present in rebuilt pages/bundle-pages.js');
 else no('bundle marker', 'pfPhqShareDone missing from bundle-pages.js');
@@ -107,7 +115,7 @@ Ctx2D.prototype.measureText = function (t) { return { width: String(t).length * 
 Ctx2D.prototype.fillText = function (t, x, y) {
   this._rec.push({ text: String(t), font: this.font, fillStyle: this.fillStyle, x: x, y: y });
 };
-['fillRect', 'strokeRect', 'save', 'restore', 'translate', 'rotate', 'beginPath', 'clip', 'rect'].forEach(function (k) {
+['fillRect', 'strokeRect', 'save', 'restore', 'translate', 'rotate', 'beginPath', 'clip', 'rect', 'arc', 'stroke', 'fill'].forEach(function (k) {
   Ctx2D.prototype[k] = function () {};
 });
 function makeCanvas() {
@@ -205,6 +213,15 @@ var FIX = {
   },
   'phq-predict-call-nomargin': {
     billTitle: 'RENT CAP BILL', billId: 'hr-3', pick: 'fail', margin: ''
+  },
+  /* Synthetic paint-test vote values; the entities (bill, legislator) are
+     real. Wall-of-shame painter fixture — full detail assertions live in
+     scripts/verify-wallshame-fe.js. */
+  'phq-wallshame': {
+    billId: 'H.R.3633', billTitle: 'THE CLARITY ACT',
+    name: 'MIKE JOHNSON', chamber: 'house', party: 'R', state: 'LA',
+    againstVotes: 1, position: 'Yea', question: 'On Passage',
+    voteDates: ['2026-09-15'], sourceUrl: 'https://www.congress.gov/bill/119th-congress/house-bill/3633'
   }
 };
 
@@ -236,10 +253,12 @@ var PHQ = env.sb.PF && env.sb.PF.PHQShare;
 if (!PHQ) { no('PF.PHQShare', 'API not exposed'); }
 else {
   ok('PF.PHQShare exposed');
-  if (JSON.stringify(PHQ.ids) === JSON.stringify(['phq-pressure', 'phq-prediction', 'phq-predict-call', 'phq-scorecard', 'phq-cellwin', 'phq-ballot', 'phq-pledge']))
-    ok('ids list matches spec painter keys');
-  else no('ids', 'unexpected ids: ' + JSON.stringify(PHQ.ids));
+  var wantIds = ['phq-pressure', 'phq-prediction', 'phq-predict-call', 'phq-scorecard', 'phq-cellwin', 'phq-ballot', 'phq-pledge'];
+  var missingIds = wantIds.filter(function (id) { return PHQ.ids.indexOf(id) === -1; });
+  if (missingIds.length === 0) ok('ids list contains spec painter keys (registry carries ' + PHQ.ids.length + ' total)');
+  else no('ids', 'missing ids: ' + JSON.stringify(missingIds));
   ['phq-pressure', 'phq-prediction', 'phq-predict-call', 'phq-scorecard', 'phq-cellwin', 'phq-ballot', 'phq-pledge'].forEach(function (id) {
+    if (PHQ.ids.indexOf(id) === -1) no('registry subset', id + ' missing from canonical registry');
     if (typeof env.registered[id] === 'function') ok('setPoster registered: ' + id);
     else no('registration', id + ' not registered with PFShare');
   });
@@ -605,7 +624,7 @@ else {
 console.log('== 4. layout guards (no collisions) ==');
 [['phq-pressure', FIX['phq-pressure']], ['phq-prediction', FIX['phq-prediction']],
  ['phq-predict-call', FIX['phq-predict-call']], ['phq-scorecard', FIX['phq-scorecard']],
- ['phq-cellwin', FIX['phq-cellwin']],
+ ['phq-cellwin', FIX['phq-cellwin']], ['phq-wallshame', FIX['phq-wallshame']],
  ['phq-pledge', PD(ROW_MO)]].forEach(function (pc) {
   var c = PHQ.paint(pc[0], pc[1]);
   var rs = c._recs || [], bad = [], link = null, date = null, cta = null;

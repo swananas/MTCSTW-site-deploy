@@ -141,6 +141,38 @@ var BUNDLES = {
        creates the PF.PHQShare facade and the module registers into it
        via PFShare.setPoster with its own retry loop. */
     'core/share-image-phq-lazy.js',
+    /* Wall of Shame (2026-10-05, fe/money-page): bill-detail legislator
+       carousel (PFWallShame.mount). Never auto-mounts — Release Eng calls
+       PFWallShame.mount() from the bill detail view (fe/legislation-tracker).
+       The phq-wallshame painter lives in the consolidated registry and loads
+       via the lazy stub above. */
+    'core/wall-of-shame.js',
+    /* Follow the Money (2026-10-05, fe/money-page): legislator money tab
+       (PFMoneyTab.mount) + bill-detail vote-vs-donor card (PFMoneyVote.mount).
+       Never auto-mounts — Release Eng calls PFMoneyTab.mount() from the
+       legislator detail view and PFMoneyVote.mount() from the bill detail
+       view. The phq-money painter lives in the consolidated registry. */
+    'core/money-tab.js',
+    'core/money-vote-card.js',
+    /* Money suite companions (fe/money-page, 2026-10-05): billionaire
+       ledgers (PFLedgers.mount) + donor boycotts (PFBoycotts.mount) +
+       corporate playbook (PFCorpCard.mount). Never auto-mount — the
+       money-page shell (core/money-page.js) mounts them into #pf-money
+       (or the interim #pf-political-hq money tab). */
+    'core/ledger-list.js',
+    'core/boycott-list.js',
+    'core/corp-card.js',
+    /* Money page shell (fe/money-page, 2026-10-05): context-aware mount —
+       full-page shell when #pf-money is present, interim money tab when
+       only #pf-political-hq is present (per phq-hub-ia-spec §4). */
+    'core/money-page.js',
+    /* Money suite missing elements (fe/money-page, 2026-10-05): stock
+       trades (PFTrades.mount, legal-hold empty state) + super PAC alerts
+       (PFPacAlerts.mount, staleness suppression) + deep-8 slots
+       (PFMoneyDeep.mount, honest empty states). */
+    'core/money-trades.js',
+    'core/money-pac-alerts.js',
+    'core/money-deep8.js',
     /* creator-recruit: shared recruiting toolbar for roster cards + catalog
        pages. Last: needs PFShare (share-image.js) + the catalog renderers. */
     'pages/creator-recruit.js',

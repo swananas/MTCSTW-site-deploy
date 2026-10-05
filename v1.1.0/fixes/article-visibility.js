@@ -33,7 +33,22 @@
      stopped before body);
    - stays restore-only and idempotent: it ONLY EVER RESTORES visibility,
      never hides anything. On a healthy page every check passes and it is a
-     complete no-op. Never runs in the Squarespace editor. */
+     complete no-op. Never runs in the Squarespace editor.
+   HOTFIX 2026-10-04 (worker 1): descendant blind spot. The rewrite above
+   repairs the resolved host (article#page-regions) and everything ABOVE it
+   (main, body, html) — but on Squarespace 7.1 pages the text lives several
+   levels BELOW the host:
+     article#page-regions > section.region > section.page-section >
+     .content-wrapper > .fluid-engine > .fe-block > .sqs-block >
+     .sqs-block-content > text
+   /privacy's failure happened to be at/above the host, so the rewrite fixed
+   it; /terms' invisibility originates BELOW the host, on that content spine,
+   which the guard never inspected — the page stayed blank with the full text
+   in the DOM. Fix: a broken-state-gated descendant repair pass. When text is
+   in the DOM but nothing paints (host zero-area, or a text-bearing content
+   container computing invisible/zero-area), the same restore-only repairs
+   are applied down the host's descendant tree. Gated + throttled so healthy
+   pages never pay for it and never see a repair. */
 (function () {
   'use strict';
   var PF = window.PF;
@@ -207,6 +222,78 @@
       ' contentVisibility=' + (c.contentVisibility || '?');
   }
 
+  /* ---- Descendant blind-spot repair (hotfix 2026-10-04) ---- */
+
+  /* Computed-invisible regardless of layout area (an opacity:0 or
+     visibility:hidden container keeps its box, so zero-area alone is not
+     a sufficient broken-state signal). */
+  function elInvisible(el) {
+    var c = cs(el);
+    if (!c) { return false; }
+    var op = parseFloat(c.opacity);
+    if (!isNaN(op) && op < 0.01) { return true; }
+    if (c.visibility === 'hidden' || c.visibility === 'collapse') { return true; }
+    if (c.display === 'none') { return true; }
+    return false;
+  }
+
+  /* A content container is broken when it holds text but paints nothing:
+     computed invisible, or zero painted area. */
+  function containerBroken(el) {
+    try {
+      if (!hasText(el)) { return false; }
+      if (elInvisible(el)) { return true; }
+      var a = rectArea(el);
+      return !!(a && a.w === 0 && a.h === 0);
+    } catch (e) { return false; }
+  }
+
+  /* The Squarespace 7.1 content spine between the resolved host and the
+     text. Any of these levels can be the invisible parent the ancestor
+     pass never sees. */
+  var SPINE_SELECTORS =
+    'section[data-test="page-section"], section.region, ' +
+    '.content-wrapper, .fluid-engine, .fe-block, .sqs-block, .sqs-block-content';
+
+  function contentBroken(host) {
+    try {
+      if (!hasText(host)) { return false; }
+      var a = rectArea(host);
+      if (a && a.w === 0 && a.h === 0) { return true; }
+      var cands = null;
+      try { cands = host.querySelectorAll(SPINE_SELECTORS); } catch (e) { return false; }
+      for (var i = 0; i < cands.length; i++) {
+        if (containerBroken(cands[i])) { return true; }
+      }
+    } catch (e2) {}
+    return false;
+  }
+
+  var lastDeepAt = 0;
+  function fixDescendants(host) {
+    var now = Date.now();
+    if (now - lastDeepAt < 5000) { return 0; }
+    lastDeepAt = now;
+    var n = 0, els = null, i;
+    try { els = host.getElementsByTagName('*'); } catch (e) { return 0; }
+    /* Cap the walk; repairs are restore-only so a partial walk on a huge
+       page can only under-repair, never harm. */
+    var count = Math.min(els.length, 1500);
+    for (i = 0; i < count; i++) {
+      try { n += fixEl(els[i], false); } catch (e2) {}
+    }
+    /* Off-screen content containers paint nothing even when "visible":
+       neutralize the worst offenders back into flow. */
+    var spine = null;
+    try { spine = host.querySelectorAll(SPINE_SELECTORS); } catch (e3) { spine = null; }
+    if (spine) {
+      for (i = 0; i < spine.length; i++) {
+        try { n += fixOffscreen(spine[i]); } catch (e4) {}
+      }
+    }
+    return n;
+  }
+
   var lastLogAt = 0;
   function run() {
     var host = resolveHost();
@@ -227,6 +314,20 @@
       lastLogAt = now;
       PF.log('article-visibility', 'restored visibility (' + n + ' repair(s)) @ ' + location.pathname);
     }
+    /* Descendant blind-spot repair: if the content is still broken after
+       the ancestor pass, the culprit is BELOW the host — walk down the
+       content spine and repair there too. */
+    try {
+      if (contentBroken(host)) {
+        var dn = fixDescendants(host);
+        n += dn;
+        if (dn > 0 && PF && PF.log && now - lastLogAt > 10000) {
+          lastLogAt = now;
+          PF.log('article-visibility',
+            'descendant repair (' + dn + ' repair(s)) @ ' + location.pathname);
+        }
+      }
+    } catch (e5) {}
     /* Diagnostic: content exists but still paints nothing — report the
        computed snapshot so the next incident arrives with data. */
     try {
@@ -237,6 +338,14 @@
           'host still zero-area after repair @ ' + location.pathname + ' :: ' + snapshot(host));
       }
     } catch (e4) {}
+    try {
+      if (contentBroken(host) && now - lastLogAt > 10000) {
+        lastLogAt = now;
+        PF.error('article-visibility',
+          'content still broken after descendant repair @ ' + location.pathname +
+          ' :: ' + snapshot(host));
+      }
+    } catch (e6) {}
   }
 
   /* Event-driven re-repair: any style/class/DOM mutation re-arms the guard

@@ -491,14 +491,21 @@ function bind(){
   };
   /* voter — 2026-10-05 (audit #2): voter_check failure keeps the state
      selection (VOTER.state survives) and renders an inline c-err + Retry
-     instead of a blank select with no feedback. */
+     instead of a blank select with no feedback.
+     2026-10-05 (voter-check auth): route through PF.authGetJSONP so the
+     backend can attribute the check to the callsign (auth_secret-in-GET,
+     same as rep_contact_history). No session -> plain api() as before;
+     the read path (vote.gov URL) is unaffected either way. */
   function voterCheck(st){
     if(!st) return;
     VOTER={state:st};
-    api("voter_check",{state:st},function(j){
+    var pp={state:st};
+    function cb(j){
       VOTER=(j&&j.url)?j:{state:st,err:true};
       try{ render(); }catch(e){}
-    });
+    }
+    try{ if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,"voter_check",pp,cb); return; } }catch(e){}
+    api("voter_check",pp,cb);
   }
   var vs=document.getElementById("cvVoterState");
   if(vs) vs.onchange=function(){ voterCheck(gv("cvVoterState")); };

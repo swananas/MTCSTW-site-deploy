@@ -190,8 +190,72 @@
     } catch (e) {}
     return cv;
   }
-  function drawPoster(gameId) {
+  /* A9 (2026-10-04): 9:16 (1080x1920) story-safe poster layout. Composes the
+     same REG entry (title/tag/lines/cta) as the classic poster — REG entries
+     may also set storyPre (eyebrow line, e.g. the quiz's "MY SLR MATCH IS")
+     and the caller may pass opts.linkLabel for the printed link-sticker
+     hint. Story-safe: 120px side margins, top/bottom ~240px kept clear of
+     platform chrome. */
+  function drawStoryPoster(g, linkLabel) {
+    var W = 1080, H = 1920;
+    var cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    var x = cv.getContext('2d');
+    if (!x) return null;
+    x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, W, H);
+    x.strokeStyle = '#c1121f'; x.lineWidth = 18; x.strokeRect(16, 16, W - 32, H - 32);
+    x.strokeStyle = '#f5ead6'; x.lineWidth = 3; x.strokeRect(52, 52, W - 104, H - 104);
+    x.textAlign = 'center';
+    var y = 300;
+    x.fillStyle = '#f5ead6'; x.font = '700 36px Arial,sans-serif';
+    x.fillText('\u2605 THE PROPAGANDA FACTORY \u2605', W / 2, y); y += 150;
+    if (g.storyPre) {
+      x.fillStyle = '#c9bfa8'; x.font = '700 44px Arial,sans-serif';
+      wrap(x, g.storyPre, W - 240).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 60; });
+      y += 20;
+    }
+    x.fillStyle = '#c1121f'; x.font = '900 104px "Arial Black",Arial,sans-serif';
+    wrap(x, g.title, W - 240).slice(0, 3).forEach(function (l) { x.fillText(l, W / 2, y); y += 120; });
+    y += 30;
+    x.fillStyle = '#f5ead6'; x.font = '700 44px Arial,sans-serif';
+    wrap(x, g.tag, W - 240).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 58; });
+    y += 40;
+    x.fillStyle = '#c9bfa8'; x.font = '400 38px Arial,sans-serif';
+    (g.lines || []).slice(0, 5).forEach(function (t) {
+      wrap(x, t, W - 280).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 52; });
+      y += 14;
+    });
+    y += 60;
+    x.font = '900 46px "Arial Black",Arial,sans-serif';
+    var tw = x.measureText(g.cta).width + 110;
+    x.fillStyle = '#c1121f'; x.fillRect(W / 2 - tw / 2, y - 62, tw, 100);
+    x.fillStyle = '#ffffff'; x.fillText(g.cta, W / 2, y + 10);
+    var stamp = spreadStamp();
+    if (stamp) {
+      cv._pfStamped = true; /* story poster carries its own stamp */
+      y += 110;
+      x.fillStyle = '#c1121f'; x.font = '700 32px Arial,sans-serif';
+      wrap(x, stamp, W - 240).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 44; });
+    }
+    if (linkLabel) {
+      y += 70;
+      x.fillStyle = '#c9bfa8'; x.font = '700 32px Arial,sans-serif';
+      wrap(x, 'LINK STICKER \u2192 ' + linkLabel, W - 240).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 44; });
+    }
+    /* share-image CTA standard: JOIN THE FIGHT. with MTCSTW.COM. */
+    x.fillStyle = '#c1121f'; x.font = '900 48px "Arial Black",Arial,sans-serif';
+    x.fillText('MTCSTW.COM', W / 2, H - 300);
+    x.font = '900 46px "Arial Black",Arial,sans-serif';
+    x.fillText('JOIN THE FIGHT.', W / 2, H - 236);
+    x.fillStyle = '#c9bfa8'; x.font = '400 30px Arial,sans-serif';
+    x.fillText(dateStr(), W / 2, H - 180);
+    return cv;
+  }
+  /* size-aware renderer: 'story' -> 9:16 layout above; omitted/anything else
+     keeps the 1080x1350 classic exactly as before. */
+  function drawPoster(gameId, size, opts) {
     var g = REG[gameId] || REG['daily-orders'];
+    if (size === 'story') return drawStoryPoster(g, opts && opts.linkLabel);
     var W = 1080, H = 1350;
     var cv = document.createElement('canvas');
     cv.width = W; cv.height = H;
@@ -260,8 +324,11 @@
     document.body.appendChild(a); a.click();
     setTimeout(function () { try { URL.revokeObjectURL(url); } catch (e) {} a.remove(); }, 4000);
   }
-  function shareText(title){
-    var link='https://www.mtcstw.com/';
+  /* A7 (2026-10-04): optional deep link — callers (e.g. the war-card BUILD A
+     CELL variant) pass opts.link and it rides PF.shareUrl, so ?ref= stamps
+     on top of the caller's ?cell= or other params. */
+  function shareText(title, link){
+    link=link||'https://www.mtcstw.com/';
     try{ if(window.PF&&typeof PF.shareUrl==='function') link=PF.shareUrl(link); }catch(e){}
     return title + ' via The Propaganda Factory — ' + link;
   }
@@ -295,7 +362,36 @@
   try { if (PF) PF.creditShare = creditShare; } catch (e) {}
   try { window.pfCreditShare = creditShare; } catch (e) {}
 
+  /* A10 (2026-10-04): callsign claim intercept — one inline component for
+     all 19 poster generators, wired at the share/save chokepoint so every
+     download path inherits it. Claimed users: zero change (the callback
+     fires immediately). Unclaimed users: PF.requireCallsign shows the inline
+     claim modal (the existing register flow — validate, POST register, save
+     secret, 'pf-callsign-claimed' event; dedupe/claim-once unchanged).
+     Claim -> proceed, and the poster stamps FIGHTING AS <CALLSIGN> via
+     stampCallsign (idempotent). Dismiss (x) -> proceed unstamped — never
+     trap the user. Fires once per session across all generators. */
+  var _pfClaimShown = false;
+  function claimGate(fn) {
+    var cs = '';
+    try { cs = callsignOf(); } catch (e) {}
+    if (cs || _pfClaimShown) { try { fn(); } catch (e2) {} return; }
+    _pfClaimShown = true;
+    try {
+      if (window.PF && typeof PF.requireCallsign === 'function') {
+        PF.requireCallsign(function () { try { fn(); } catch (e3) {} },
+          { context: 'to sign your work before it ships' });
+        return;
+      }
+    } catch (e4) {}
+    try { fn(); } catch (e5) {} /* claim flow unavailable — never wedge */
+  }
+
   function shareImage(cv, filename, title, gameId, opts) {
+    opts = opts || {};
+    claimGate(function () { _shareImage(cv, filename, title, gameId, opts); });
+  }
+  function _shareImage(cv, filename, title, gameId, opts) {
     opts = opts || {};
     var format = opts.format || 'image/png';
     var quality = (opts.quality == null) ? 0.92 : opts.quality;
@@ -312,7 +408,7 @@
       try { file = new File([blob], filename, { type: format }); } catch (e) {}
       if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
-          navigator.share({ files: [file], title: title, text: shareText(title) }).then(
+          navigator.share({ files: [file], title: title, text: shareText(title, opts.link) }).then(
             function () { creditShare(gameId, 'share'); toast('Shared. Go spread the word.'); },
             function (err) {
               if (err && err.name === 'AbortError') { toast('Share cancelled.'); }
@@ -329,6 +425,10 @@
   }
 
   function saveImage(cv, filename, gameId, opts) {
+    opts = opts || {};
+    claimGate(function () { _saveImage(cv, filename, gameId, opts); });
+  }
+  function _saveImage(cv, filename, gameId, opts) {
     opts = opts || {};
     var format = opts.format || 'image/png';
     var quality = (opts.quality == null) ? 0.92 : opts.quality;
@@ -462,6 +562,9 @@
     REG: REG,
     isIOS: isIOS,
     poster: drawPoster,
+    posterStory: function (gameId, opts) { try { return drawPoster(gameId, 'story', opts); } catch (e) { return null; } },
+    claimGate: claimGate,
+    SIZES: { classic: [1080, 1350], story: [1080, 1920] },
     shareImage: shareImage,
     saveImage: saveImage,
     ensureAll: ensureAll,

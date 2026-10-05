@@ -104,7 +104,7 @@
 '    };}\n' +
 '  }\n' +
 '  function mqLabels(A){var ml=[],i;for(i=0;i<A.mates.length&&i<3;i++){ml.push(A.mates[i].label||A.mates[i]);}return ml;}\n' +
-'  function mqApplyPoster(A){try{var PS=window.PFShare;if(!PS||!PS.REG||!PS.REG["slr-match-quiz"])return false;var ml=mqLabels(A);PS.REG["slr-match-quiz"]={title:A.name,tag:"YOUR PROPAGANDA ARCHETYPE",lines:["YOUR SLR MATCHES:"].concat(ml),cta:"FIND YOUR MATCH"};return true;}catch(e){return false;}}\n' +
+'  function mqApplyPoster(A){try{var PS=window.PFShare;if(!PS||!PS.REG||!PS.REG["slr-match-quiz"])return false;var ml=mqLabels(A);PS.REG["slr-match-quiz"]={title:A.name,tag:"YOUR PROPAGANDA ARCHETYPE",lines:["YOUR SLR MATCHES:"].concat(ml),cta:"FIND YOUR MATCH",storyPre:"MY SLR MATCH IS"};return true;}catch(e){return false;}}\n' +
 '  function mqPublish(A){try{localStorage.setItem("pf_mq_result_v1",JSON.stringify({name:A.name,mates:mqLabels(A)}));}catch(e){}mqApplyPoster(A);}\n' +
 '  function mqRestore(){try{var s=JSON.parse(localStorage.getItem("pf_mq_result_v1")||"null");if(s&&s.name&&s.mates&&s.mates.length){mqApplyPoster({name:s.name,mates:s.mates.map(function(m){return{label:m};})});}}catch(e){}}\n' +
 '  function renderR(){\n' +
@@ -137,6 +137,7 @@
 '      +"<div id=\'pf-mq-tribe\' style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:0.8rem;min-height:1.2em;\'></div>"\n' +
 '      +"<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;margin-bottom:0.4rem;\'>YOUR SLR MATCHES</div>"+mh+fourthHtml\n' +
 '      +"<div style=\'margin-top:1rem;\'><button id=\'pf-mq-share\' style=\'padding:0.7rem 1.6rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>SHARE ARCHETYPE CARD</button></div>"\n' +
+'      +"<div style=\'margin-top:0.6rem;\'><button id=\'pf-mq-story\' style=\'padding:0.7rem 1.6rem;background:transparent;border:2px solid #c1121f;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>SHARE TO STORY (9:16)</button></div>"\n' +
 '      +(streakN>1?"<div style=\'margin-top:0.6rem;font-size:0.85rem;color:#b8ab8e;\'>&#128293; <b style=\'color:#f5f0e1;\'>"+streakN+"-day streak</b> \\u2014 see you tomorrow</div>":"")\n' +
 '      +infHtml\n' +
 '      +"<div style=\'margin-top:1.2rem;\'><input id=\'pf-mq-email\' type=\'email\' placeholder=\'Email for dispatch updates\' style=\'padding:0.6rem;width:70%;max-width:280px;background:#141414;border:2px solid #c1121f;color:#f5f0e1;font-family:inherit;\'>"\n' +
@@ -156,6 +157,22 @@
 '      try{var PS=window.PFShare;if(PS&&PS.poster&&PS.shareImage){var cv=PS.poster("slr-match-quiz");if(cv){PS.shareImage(cv,"slr-archetype.png",A.name+" \\u2014 my propaganda archetype","slr-match-quiz");setTimeout(unlock4,15000);return;}}}catch(e){}\n' +
 '      unlock4();\n' +
 '    };\n' +
+'    /* A9 (2026-10-04): IG Story chain - 9:16 archetype poster for the link sticker. */\n' +
+'    /* The share link carries the poster sharer\'s own ?ref= (PF.shareUrl stamps their */\n' +
+'    /* callsign), so each hop re-attributes. No XP on the story-post side; quiz rewards unchanged. */\n' +
+'    var mqStoryBtn=document.getElementById("pf-mq-story");\n' +
+'    if(mqStoryBtn){mqStoryBtn.onclick=function(){\n' +
+'      try{\n' +
+'        var PS2=window.PFShare;\n' +
+'        if(PS2&&PS2.posterStory&&PS2.shareImage){\n' +
+'          var _cs="";try{_cs=String(window.PFCallsign?window.PFCallsign():"");}catch(_e){}\n' +
+'          var _lbl="MTCSTW.COM/ARCADE"+(_cs?("?REF="+encodeURIComponent(_cs).toUpperCase()):"");\n' +
+'          var cv2=PS2.posterStory("slr-match-quiz",{linkLabel:_lbl});\n' +
+'          if(cv2){PS2.shareImage(cv2,"slr-story.png",A.name+" - my propaganda archetype","slr-match-quiz",{link:"https://www.mtcstw.com/arcade"});return;}\n' +
+'        }\n' +
+'      }catch(e2){}\n' +
+'      try{if(window.PF&&PF.toast)PF.toast("Poster failed - try again.");}catch(e3){}\n' +
+'    };}\n' +
 '    var ibf=document.getElementById("pf-mq-infight");\n' +
 '    if(ibf){ibf.onclick=function(){var t=document.getElementById("pf-infight-root");if(t){try{t.scrollIntoView({behavior:"smooth",block:"start"});}catch(e){t.scrollIntoView();}}};}\n' +
 '    document.getElementById("pf-mq-join").onclick=function(){\n' +

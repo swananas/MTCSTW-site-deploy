@@ -58,6 +58,9 @@
 #pf-predgame .pq-locked{border:2px solid var(--pf-red);background:#1a0505;padding:12px;font-weight:700;color:#f5f0e1}
 #pf-predgame .pq-locked .pq-xpline{color:#f5f0e1}
 #pf-predgame .pq-result{border:2px solid #4a4a4a;padding:12px}
+/* share-out gaps #1 (2026-10-06): share this call */
+#pf-predgame .pq-callshare{background:none;border:2px solid #f5ead6;color:#f5ead6;padding:10px 22px;font-family:'Arial Black',Arial,sans-serif;font-size:12px;letter-spacing:2px;cursor:pointer;text-transform:uppercase;margin-top:8px}
+#pf-predgame .pq-callshare:hover{background:#1a1a1a}
 #pf-predgame .pq-win{color:#7fd069;font-weight:900}
 #pf-predgame .pq-loss{color:var(--pf-red);font-weight:900}
 #pf-predgame .pq-void{border:2px dashed #4a4a4a;padding:12px;color:#b8ab8e;font-weight:700}
@@ -294,6 +297,8 @@
         } else {
           h += '<div class="pq-msg">You called <b>' + esc(optLabel(q, q.my_pick) || q.my_pick) + '</b>.</div>';
         }
+        /* share-out gaps #1: own painter via pf:terminal (never the pass/fail one). */
+        h += '<div><button type="button" class="pq-callshare" data-q="' + esc(q.id) + '">SHARE THIS CALL</button></div>';
       } else {
         h += '<div class="pq-msg">You made no call on this one. The next board is already open.</div>';
       }
@@ -304,7 +309,9 @@
       h += '<div class="pq-locked">LOCKED IN &mdash; you called <b>' + esc(optLabel(q, q.my_pick) || q.my_pick) + '</b>.'
         + '<div class="pq-xpline">Right call pays +' + PFG.XP_REWARD + ' XP.</div>'
         + (q.category === 'economy' ? '<div class="pq-disclaim">Game only &mdash; not financial advice.</div>' : '')
-        + '</div>';
+        + '</div>'
+        /* share-out gaps #1: own painter via pf:terminal (never the pass/fail one). */
+        + '<div><button type="button" class="pq-callshare" data-q="' + esc(q.id) + '">SHARE THIS CALL</button></div>';
     } else if (isLocked(q)) {
       h += '<div class="pq-locked">LOCKED &mdash; calls are closed on this one. The next board is already open.'
         + (q.category === 'economy' ? '<div class="pq-disclaim">Game only &mdash; not financial advice.</div>' : '')
@@ -420,6 +427,35 @@
           })(btns[k]);
         }
       })(rows[j]);
+    }
+    /* share-out gaps #1: SHARE THIS CALL — own pf:terminal painter. */
+    var sbs = root.querySelectorAll ? root.querySelectorAll('.pq-callshare') : [];
+    for (var si = 0; si < sbs.length; si++) {
+      (function (sbtn) {
+        sbtn.onclick = function () {
+          try {
+            var qid2 = sbtn.getAttribute('data-q'), qq = null;
+            for (var n = 0; n < state.questions.length; n++) {
+              if (state.questions[n].id === qid2) { qq = state.questions[n]; break; }
+            }
+            if (!qq || !window.PFShareEverywhere || !window.PFShareEverywhere.terminal) return;
+            var pickLbl = optLabel(qq, qq.my_pick) || qq.my_pick || '';
+            var res = (qq.status === 'resolved')
+              ? (qq.my_correct === true ? 'CALLED IT RIGHT' : (qq.my_correct === false ? 'MISSED IT' : 'RESOLVED'))
+              : 'CALL LOCKED IN';
+            window.PFPredgame._lastCall = { title: qq.title, pick: pickLbl, res: res };
+            window.PFShareEverywhere.terminal({
+              gameId: 'callit',
+              title: 'MY CALL IS ON RECORD',
+              result: res + (pickLbl ? ' — ' + pickLbl : ''),
+              lines: [String(qq.title || '')],
+              link: '/predict',
+              host: (sbtn.parentNode && sbtn.parentNode.parentNode) || sbtn.parentNode,
+              kicker: '\u25c9 CALL IT. \u25c9'
+            });
+          } catch (e) {}
+        };
+      })(sbs[si]);
     }
   }
   function renderInto(root) {

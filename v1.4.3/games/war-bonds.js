@@ -12,6 +12,8 @@
   <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:0.8rem;line-height:1.5;">One-time purchase, right here.<br><b style="color:#f5f0e1;">50%</b> funds the network &middot; <b style="color:#f5f0e1;">50%</b> goes into the creator pool, split equally among <b style="color:#f5f0e1;">every</b> creator on the roster.</div>
   <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:0.8rem;line-height:1.5;">The week&rsquo;s team-board winner takes an extra <b style="color:#f5f0e1;">5%</b> of the pool.</div>
   <div id="pf-wb-buy" style="margin-bottom:1.3rem;"></div>
+  <!-- share-out gaps #3: "I BACKED THE FIGHT" post-purchase share bar (runtime-wired by the scanner) -->
+  <div id="pf-wb-sharehost" style="margin-bottom:1.3rem;"><div data-pf-share="war-bonds" data-pf-share-link="/war-bonds"></div></div>
   <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:1.1rem;line-height:1.5;">Checkout opens the store in a new tab. War Bonds fund the fight &mdash; they grant no XP, ever.</div>
   <div style="border-top:2px solid #c1121f;margin:1.3rem 0 1rem;"></div>
   <div style="font-size:0.8rem;color:#b8ab8e;letter-spacing:0.14em;margin-bottom:0.6rem;">OR FUND MONTHLY</div>
@@ -158,6 +160,24 @@
      bond_claim returns {claimed:0, xp_granted:0}: nothing to claim).
      The purchase flow, bond_stats strip, and creator-pick sections
      above are unchanged. */
+  /* share-out gaps #3: post-purchase "I BACKED THE FIGHT" share.
+     Squarespace commerce is native — checkout opens in a new tab, so the
+     runtime detects the return trip (?pf_backed=1 or a store-checkout
+     referrer) and surfaces the backer share panel. Checkout untouched. */
+  (function(){
+    try{
+      var q=String(window.location.search||""), ref=String(document.referrer||"");
+      var backed=/[?&]pf_backed=1/.test(q)||/checkout|order-confirmation|order_confirmed/.test(ref);
+      var host=document.getElementById("pf-wb-sharehost");
+      if(backed&&host){
+        var note=document.createElement("div");
+        note.style.cssText="color:#e8b923;font-weight:900;letter-spacing:0.14em;font-size:0.85rem;margin-bottom:0.5rem;";
+        note.textContent="\u2605 BOND SECURED \u2014 YOU'RE IN THE LEDGER \u2605";
+        host.insertBefore(note,host.firstChild);
+        try{ host.scrollIntoView({behavior:"smooth",block:"center"}); }catch(e2){}
+      }
+    }catch(e){}
+  })();
 })();
 </script>
 </template>`);

@@ -128,6 +128,8 @@ function paint(j){
     h+='</div>';
   }
   main.innerHTML=h;
+  /* share-out gaps #11: the wall is shareable. */
+  try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(main,'hall-of-proof',{link:'/hall-of-proof'}); }catch(e){}
   /* Past-weeks archive. */
   var weeks=(j.weeks||[]).filter(function(w){ return /^\\d{4}-\\d{2}-\\d{2}$/.test(String(w)); });
   var arch=$("pf-hp-archive"), sel=$("pf-hp-weeksel");

@@ -273,6 +273,8 @@
         if (ref) parent.insertBefore(el, ref);
         else parent.appendChild(el);
         montageOn = true;
+        /* share-out gaps #2: the debrief is a game-over moment — share it. */
+        try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(el,'arcade-blackout',{link:'/'}); }catch(e){}
       } catch (e) {}
     }
     function maybeMontage() {

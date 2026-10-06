@@ -5,7 +5,10 @@
    Builds on core/share-image.js (PFShare): REG templates, custom painters
    via PFShare.setPoster, shareImage/saveImage delivery (Web Share API +
    download fallback), stampCallsign, claimGate. Extends, never reinvents.
-   KILL: ?pf_off=share-everywhere  or  localStorage pf_disabled_v1='["share-everywhere"]' */
+   KILL: ?pf_off=share-everywhere  or  localStorage pf_disabled_v1='["share-everywhere"]'
+   Take-cell finer kill (UX Combination Play 2, 2026-10-06, fe/ux-take-to-cell):
+   ?pf_off=takecell — the TAKE THIS TO YOUR CELL buttons stay inert/hidden
+   while the rest of the share pipeline keeps running. */
 (function () {
   'use strict';
   var PF = window.PF;
@@ -145,6 +148,62 @@
       title: 'THE ACADEMY', tag: 'Trained. Not born.',
       lines: ['Courses that make agitators.', 'Graduate. Then organize.'],
       cta: 'START TRAINING'
+    },
+    /* ---- Share-out gap audit (2026-10-06, fe/share-out-gaps): ---- */
+    'callit': {
+      title: '\u25c9 CALL IT. \u25c9', tag: 'Staff board. My call, on record.',
+      lines: ['My call is locked in.', 'Right calls pay. Wrong calls cost pride.'],
+      cta: 'MAKE THE CALL'
+    },
+    'cellwar-standings': {
+      title: '\u2694 CELL WAR \u2694', tag: 'This week\u2019s standings, live.',
+      lines: ['Top cell Sunday midnight takes the crown.', 'Every XP feeds your cell\u2019s war score.'],
+      cta: 'JOIN THE WAR'
+    },
+    'war-bonds': {
+      title: '\u2605 I BACKED THE FIGHT \u2605', tag: 'War Bonds: real money, real machine.',
+      lines: ['50% funds the network. 50% to the creator pool.', 'Bonds grant no XP, ever.'],
+      cta: 'JOIN THE FIGHT'
+    },
+    'bank-deposit': {
+      title: '\u25c8 VAULT SECURED \u25c8', tag: 'XP in the vault. Slow and steady.',
+      lines: ['Deposits build the war chest.', 'The vault never sleeps.'],
+      cta: 'JOIN THE FIGHT'
+    },
+    'event-rsvp': {
+      title: 'I\u2019M GOING', tag: 'Boots on the ground.',
+      lines: ['RSVP\u2019d. Now show up.', 'The street is the show.'],
+      cta: 'JOIN THE FIGHT'
+    },
+    'gov-result': {
+      title: '\u2696 ASSEMBLY DECIDED \u2696', tag: 'The ranks voted. The record stands.',
+      lines: ['Power from the ranks, not from above.', 'Rally your cell around the result.'],
+      cta: 'JOIN THE FIGHT'
+    },
+    'ventures': {
+      title: 'JOINT VENTURES', tag: 'Shareholder war funds.',
+      lines: ['Pool the war chest. Split the spoils.', 'Victories recruit.'],
+      cta: 'JOIN THE FIGHT'
+    },
+    'arcade-blackout': {
+      title: 'BLACKOUT', tag: 'The op went dark. The debrief is public.',
+      lines: ['Signal returned. Receipts kept.', 'Next op: be there.'],
+      cta: 'JOIN THE FIGHT'
+    },
+    'arcade-ambush': {
+      title: 'SUPPLY DROP', tag: 'Claimed the drop. First come, first served.',
+      lines: ['Extraction complete.', 'The next drop is already inbound.'],
+      cta: 'JOIN THE FIGHT'
+    },
+    'hall-of-proof': {
+      title: '\u2605 HALL OF PROOF \u2605', tag: 'Earned. Pinned. On the wall.',
+      lines: ['This week\u2019s soldiers earned the wall.', 'March the circuit. Earn your pin.'],
+      cta: 'JOIN THE FIGHT'
+    },
+    'master-calendar': {
+      title: 'WAR CALENDAR', tag: 'Every front, one calendar.',
+      lines: ['Mobilizations, ops, votes, drops.', 'Never miss a front.'],
+      cta: 'JOIN THE FIGHT'
     },
     /* Reserved REG for surfaces landing later — the bar works day one. */
     'shrinkflation': {
@@ -364,11 +423,131 @@
     } catch (e) { fallback(); }
   }
 
+  /* ------------------------------------------------------------------ */
+  /* Cell War standings painter (share-out gap #4): leaderboard poster  */
+  /* from the live #xCellWar standings DOM. Top cells + week.           */
+  /* ------------------------------------------------------------------ */
+  function paintCellWarStandings(done) {
+    function fallback() {
+      try { done(PFShare.poster('cellwar-standings')); } catch (e) { done(null); }
+    }
+    try {
+      var rows = [];
+      try {
+        var els = document.querySelectorAll('#xCellWar .cw-row');
+        for (var i = 0; i < els.length && rows.length < 5; i++) {
+          var nm = els[i].querySelector('.cw-name');
+          var pt = els[i].querySelector('.cw-xp');
+          if (!nm) continue;
+          /* .cw-name may carry a nested YOUR CELL tag — strip it. */
+          var nEl = nm.cloneNode(true);
+          var tag = nEl.querySelector('.cw-mine-tag');
+          if (tag && tag.parentNode) tag.parentNode.removeChild(tag);
+          rows.push({ n: nEl.textContent.trim(), p: pt ? pt.textContent.trim() : '' });
+        }
+      } catch (e) {}
+      if (!rows.length) { fallback(); return; }
+      var W = 1080, H = 1350;
+      var cv = document.createElement('canvas');
+      cv.width = W; cv.height = H;
+      var x = cv.getContext('2d');
+      if (!x) { fallback(); return; }
+      paintFrame(x, W, H);
+      var y = 170;
+      x.fillStyle = '#f5ead6'; x.font = '700 34px Arial,sans-serif';
+      x.fillText('\u2694 CELLS 2.0 \u2694', W / 2, y); y += 100;
+      x.fillStyle = '#c1121f'; x.font = '900 84px "Arial Black",Arial,sans-serif';
+      x.fillText('CELL WAR', W / 2, y); y += 60;
+      var week = '';
+      try {
+        var wEl = document.querySelector('#xCellWar .cw-week');
+        if (wEl) week = wEl.textContent.trim().toUpperCase();
+      } catch (e) {}
+      if (week) {
+        x.fillStyle = '#e8b923'; x.font = '700 30px Arial,sans-serif';
+        x.fillText(week, W / 2, y); y += 60;
+      }
+      y += 20;
+      for (var r = 0; r < rows.length; r++) {
+        var ry = y + r * 120;
+        if (ry > H - 260) break;
+        if (r === 0) {
+          x.fillStyle = '#2a1503';
+          x.fillRect(90, ry - 62, W - 180, 104);
+          x.strokeStyle = '#e8b923'; x.lineWidth = 3;
+          x.strokeRect(90, ry - 62, W - 180, 104);
+        }
+        x.textAlign = 'left';
+        x.fillStyle = r === 0 ? '#e8b923' : '#c1121f';
+        x.font = '900 52px "Arial Black",Arial,sans-serif';
+        x.fillText(String(r + 1), 120, ry);
+        x.fillStyle = '#f5ead6'; x.font = '800 40px Arial,sans-serif';
+        var nl = wrap(x, rows[r].n.toUpperCase(), W - 480);
+        x.fillText(nl[0], 210, ry);
+        x.textAlign = 'right';
+        x.fillStyle = '#e8b923'; x.font = '700 36px Arial,sans-serif';
+        x.fillText(rows[r].p, W - 120, ry);
+        x.textAlign = 'center';
+      }
+      paintFooter(x, W, H);
+      try { if (PFShare.stampCallsign) PFShare.stampCallsign(cv); } catch (e) {}
+      done(cv);
+    } catch (e) { fallback(); }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* War Bonds painter (share-out gap #3): "I BACKED THE FIGHT" card.   */
+  /* Reads the live war-ledger strip (#pf-wb-stats) when present.       */
+  /* ------------------------------------------------------------------ */
+  function paintWarBonds(done) {
+    function fallback() {
+      try { done(PFShare.poster('war-bonds')); } catch (e) { done(null); }
+    }
+    try {
+      var W = 1080, H = 1350;
+      var cv = document.createElement('canvas');
+      cv.width = W; cv.height = H;
+      var x = cv.getContext('2d');
+      if (!x) { fallback(); return; }
+      paintFrame(x, W, H);
+      var y = 190;
+      x.fillStyle = '#f5ead6'; x.font = '700 34px Arial,sans-serif';
+      x.fillText('\u2605 THE PROPAGANDA FACTORY \u2605', W / 2, y); y += 110;
+      x.fillStyle = '#c1121f'; x.font = '900 92px "Arial Black",Arial,sans-serif';
+      wrap(x, 'I BACKED THE FIGHT', W - 170).forEach(function (l) { x.fillText(l, W / 2, y); y += 110; });
+      y += 30;
+      /* live ledger line, fail-open */
+      var ledger = '';
+      try {
+        var sEl = document.querySelector('#pf-wb-stats');
+        if (sEl) ledger = sEl.textContent.replace(/\s+/g, ' ').trim().toUpperCase();
+      } catch (e) {}
+      if (ledger) {
+        x.fillStyle = '#e8b923'; x.font = '700 32px Arial,sans-serif';
+        wrap(x, ledger, W - 180).slice(0, 3).forEach(function (l) { x.fillText(l, W / 2, y); y += 46; });
+        y += 20;
+      }
+      x.fillStyle = '#f5ead6'; x.font = '700 34px Arial,sans-serif';
+      ['50% FUNDS THE NETWORK.', '50% TO THE CREATOR POOL, SPLIT EQUALLY.', 'BONDS GRANT NO XP, EVER.'].forEach(function (l) {
+        x.fillText(l, W / 2, y); y += 54;
+      });
+      paintFooter(x, W, H);
+      try { if (PFShare.stampCallsign) PFShare.stampCallsign(cv); } catch (e) {}
+      done(cv);
+    } catch (e) { fallback(); }
+  }
+
+  /* Surfaces with dedicated DOM-reading painters — terminal() never     */
+  /* clobbers these with the generic detail painter.                     */
+  var DEDICATED = { 'territory-map': 1, 'war-map': 1, 'cellwar-standings': 1, 'war-bonds': 1 };
+
   function registerPainters() {
     try {
       if (!window.PFShare || !PFShare.setPoster) return false;
       PFShare.setPoster('territory-map', paintTerritoryMap);
       PFShare.setPoster('war-map', paintWarMap);
+      PFShare.setPoster('cellwar-standings', paintCellWarStandings);
+      PFShare.setPoster('war-bonds', paintWarBonds);
       return true;
     } catch (e) { return false; }
   }
@@ -564,6 +743,399 @@
     } catch (e) { return false; }
   }
 
+  /* ------------------------------------------------------------------ */
+  /* TAKE THIS TO YOUR CELL — payload-carrying handoff (UX Combination   */
+  /* Play 2, 2026-10-06, fe/ux-take-to-cell). Extends the take-cell      */
+  /* preset above: the button now carries the card payload (title + key  */
+  /* figure + link back) into the member's primary cell context.         */
+  /*   Mechanism: the primary cell resolves through the EXISTING         */
+  /*   cell_mine read channel (same JSONP contract as games/cell-hq.js   */
+  /*   — no new endpoint, no second posting mechanism). When the cells   */
+  /*   surface registers its feed writer (window.PFCellFeed.post), the   */
+  /*   payload posts direct. Otherwise it is staged in sessionStorage    */
+  /*   and the member is routed to /cells, where the staged-drop         */
+  /*   receiver offers the post.                                         */
+  /*   Fail-open: no callsign / no cell / lookup failure -> the per-card  */
+  /*   buttons hide; nothing ever throws.                                */
+  /*   KILL: ?pf_off=takecell. Zero XP — this only moves intel.          */
+  /* ------------------------------------------------------------------ */
+  function takecellOff() {
+    try { return PF.skip('takecell'); } catch (e) { return false; }
+  }
+  function tcPayloadFromHost(host) {
+    if (!host || !host.getAttribute) return null;
+    var t = host.getAttribute('data-pf-tc-title');
+    if (!t) return null;
+    return {
+      title: t,
+      figure: host.getAttribute('data-pf-tc-figure') || '',
+      link: host.getAttribute('data-pf-tc-link') || '/',
+      kind: host.getAttribute('data-pf-tc-kind') || 'intel'
+    };
+  }
+  function tcPayloadFromOpts(opts) {
+    opts = opts || {};
+    if (!opts.title) return null;
+    return {
+      title: String(opts.title),
+      figure: String(opts.figure || ''),
+      link: String(opts.link || '/'),
+      kind: String(opts.kind || 'intel')
+    };
+  }
+  /* Primary cell via the existing cell_mine read (cell-hq.js contract:
+     j.cell = { id, name }). Cached 10 min, single in-flight request. */
+  var _tcCell = null, _tcCellAt = 0, _tcCellQ = null;
+  function primaryCell(cb) {
+    cb = cb || function () {};
+    try {
+      if (window.PFCellPrimary && window.PFCellPrimary.id) {
+        cb({ id: String(window.PFCellPrimary.id), name: String(window.PFCellPrimary.name || 'your cell') });
+        return;
+      }
+    } catch (e) {}
+    var now = Date.now();
+    if (_tcCellAt > 0 && now - _tcCellAt < 600000) { cb(_tcCell); return; }
+    if (_tcCellQ) { _tcCellQ.push(cb); return; }
+    _tcCellQ = [cb];
+    function done(cell) {
+      _tcCell = cell; _tcCellAt = Date.now();
+      var q = _tcCellQ; _tcCellQ = null;
+      for (var i = 0; i < q.length; i++) { try { q[i](cell); } catch (e) {} }
+    }
+    try {
+      var BACKEND = window.PF_BACKEND_URL;
+      if (!BACKEND) { done(null); return; }
+      var fn = 'pfTcCb' + Math.floor(Math.random() * 1e9);
+      var s = document.createElement('script'), finished = false;
+      function fin(cell) {
+        if (finished) return; finished = true;
+        try { delete window[fn]; } catch (e) {}
+        try { if (s.parentNode) s.parentNode.removeChild(s); } catch (e) {}
+        done(cell);
+      }
+      window[fn] = function (j) {
+        var cell = null;
+        try {
+          var c = j && j.cell;
+          if (c && c.id) cell = { id: String(c.id), name: String(c.name || 'your cell') };
+        } catch (e) {}
+        fin(cell);
+      };
+      s.onerror = function () { fin(null); };
+      var q = '?action=cell_mine&callback=' + fn;
+      try {
+        var sec = (PF && PF.getAuthSecret) ? PF.getAuthSecret() : '';
+        if (sec) q += '&auth_secret=' + encodeURIComponent(sec);
+      } catch (e) {}
+      try {
+        var id = JSON.parse(localStorage.getItem('pf_identity_v1') || '{}');
+        if (id && id.callsign) q += '&callsign=' + encodeURIComponent(id.callsign);
+      } catch (e) {}
+      s.src = BACKEND + q;
+      document.head.appendChild(s);
+      setTimeout(function () { fin(_tcCell); }, 12000);
+    } catch (e) { done(null); }
+  }
+  function stagedDrop(p) {
+    try {
+      sessionStorage.setItem('pf_takecell_drop', JSON.stringify({ p: p, ts: Date.now() }));
+    } catch (e) {}
+    try { location.href = '/cells#pf-takecell'; } catch (e) {}
+  }
+  function clearDrop() { try { sessionStorage.removeItem('pf_takecell_drop'); } catch (e) {} }
+  function takeToCell(payload) {
+    payload = payload || {};
+    if (takecellOff()) return false;
+    var cs = callsignOf();
+    if (!cs) { toast('Claim your callsign first \u2014 your cell needs to know it\u2019s you.'); return false; }
+    var p = {
+      title: String(payload.title || 'Intel drop').slice(0, 140),
+      figure: String(payload.figure || '').slice(0, 200),
+      link: safeHref(payload.link || '/'),
+      kind: String(payload.kind || 'intel').slice(0, 40)
+    };
+    /* Direct post when the cells surface has registered its feed writer —
+       the one posting mechanism, extended, not duplicated. */
+    try {
+      if (window.PFCellFeed && typeof window.PFCellFeed.post === 'function') {
+        primaryCell(function (cell) {
+          if (!cell) { stagedDrop(p); return; }
+          try {
+            window.PFCellFeed.post({
+              cell_id: cell.id, title: p.title, figure: p.figure,
+              link: p.link, kind: p.kind,
+              context: 'Shared from ' + p.link + ' by ' + cs
+            }, function (ok) {
+              if (ok) toast('Dropped in ' + cell.name + '.');
+              else stagedDrop(p);
+            });
+          } catch (e) { stagedDrop(p); }
+        });
+        return true;
+      }
+    } catch (e) {}
+    stagedDrop(p);
+    return true;
+  }
+
+  /* Outward share for the standardized bar: card hook first, Web Share /
+     clipboard fallback otherwise. Never throws. */
+  function shareIntel(opts) {
+    opts = opts || {};
+    try {
+      if (typeof opts.onShare === 'function') { opts.onShare(); return; }
+    } catch (e) {}
+    var title = String(opts.title || 'Propaganda Factory intel');
+    var figure = String(opts.figure || '');
+    var url = shareUrl(safeHref(opts.link || '/'));
+    var text = title + (figure ? ' \u2014 ' + figure : '');
+    try {
+      if (navigator.share) { navigator.share({ title: title, text: text, url: url }); return; }
+    } catch (e) {}
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text + ' ' + url).then(
+          function () { toast('Copied \u2014 paste it anywhere.'); },
+          function () { toast('Copy blocked \u2014 long-press to copy.'); });
+        return;
+      }
+    } catch (e) {}
+    try { toast(url); } catch (e) {}
+  }
+
+  /* Standardized action bar — same labels, same order, same branded
+     styling on every card: SHARE THIS INTEL · TAKE THIS TO YOUR CELL ·
+     REPORT BACK. Declarative: <div data-pf-actionbar data-pf-tc-title="…"
+     data-pf-tc-figure="…" data-pf-tc-link="…" data-pf-tc-kind="…"
+     data-pf-share-own="1">. Cards that already own share UI pass
+     shareOwn (or carry [data-pf-share]) — the share button is skipped,
+     the remaining two keep their order. */
+  var TC_BAR_CSS = 'border:2px solid #c1121f;background:#0d0d0d;max-width:680px;margin:1rem auto;' +
+    'padding:0.7rem 0.8rem;text-align:center;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif;';
+  var TC_BTN_CSS = 'display:inline-block;background:#c1121f;color:#fff;font-weight:900;font-size:0.72rem;' +
+    'letter-spacing:0.14em;padding:0.55rem 1rem;margin:0.2rem;text-decoration:none;cursor:pointer;border:0;' +
+    'font-family:Arial,Helvetica,sans-serif;';
+  var TC_GHOST_CSS = 'display:inline-block;background:transparent;color:#c9bfa8;font-weight:900;font-size:0.72rem;' +
+    'letter-spacing:0.14em;padding:0.55rem 1rem;margin:0.2rem;text-decoration:none;cursor:pointer;' +
+    'border:1px solid #c1121f;font-family:Arial,Helvetica,sans-serif;';
+  var _tcCssDone = false;
+  function tcCssOnce() {
+    if (_tcCssDone) return;
+    _tcCssDone = true;
+    try {
+      var st = document.createElement('style');
+      st.setAttribute('data-pf-tc-css', '1');
+      st.textContent = '.pf-tc-btn{display:inline-block;background:#c1121f;color:#fff;font-weight:900;' +
+        'font-size:.72rem;letter-spacing:.14em;padding:.55rem 1rem;margin:.2rem .2rem .2rem 0;' +
+        'text-decoration:none;cursor:pointer;border:0;font-family:Arial,Helvetica,sans-serif}' +
+        '.pf-tc-btn:hover{background:#e01424}';
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+  function setTcAttrs(el, p) {
+    try {
+      el.setAttribute('data-pf-tc-title', String(p.title || ''));
+      el.setAttribute('data-pf-tc-figure', String(p.figure || ''));
+      el.setAttribute('data-pf-tc-link', String(p.link || '/'));
+      el.setAttribute('data-pf-tc-kind', String(p.kind || 'intel'));
+    } catch (e) {}
+  }
+  function actionBar(host, opts) {
+    opts = opts || {};
+    if (!host) return null;
+    try {
+      tcCssOnce();
+      var ex = host.querySelector('[data-pf-actionbar]');
+      if (ex) return ex;
+      var p = tcPayloadFromOpts(opts);
+      if (!p) return null;
+      var d = document.createElement('div');
+      d.setAttribute('data-pf-actionbar', p.kind);
+      d.style.cssText = TC_BAR_CSS;
+      var shareOwn = !!opts.shareOwn;
+      try { if (!shareOwn && host.querySelector('[data-pf-share]')) shareOwn = true; } catch (e) {}
+      if (!shareOwn) {
+        var sh = document.createElement('button');
+        sh.type = 'button';
+        sh.style.cssText = TC_GHOST_CSS;
+        sh.textContent = '\u26a1 SHARE THIS INTEL';
+        sh.addEventListener('click', function () { shareIntel(opts); });
+        d.appendChild(sh);
+      }
+      var tc = document.createElement('button');
+      tc.type = 'button';
+      tc.style.cssText = TC_BTN_CSS;
+      tc.textContent = '\u2605 TAKE THIS TO YOUR CELL';
+      tc.setAttribute('data-pf-takecell', '');
+      setTcAttrs(tc, p);
+      tc.setAttribute('data-pf-takecell-wired', '1');
+      tc.addEventListener('click', function (ev) {
+        try { ev.preventDefault(); takeToCell(p); } catch (e) {}
+      });
+      d.appendChild(tc);
+      var rb = document.createElement('a');
+      rb.href = '/data-bounties';
+      rb.style.cssText = TC_GHOST_CSS;
+      rb.textContent = '\u2713 REPORT BACK';
+      d.appendChild(rb);
+      host.appendChild(d);
+      refreshTcVisibility(d);
+      return d;
+    } catch (e) { return null; }
+  }
+
+  /* Fail-open visibility: the take-cell action is member-only. No callsign
+     -> hide now. Members -> one async primary-cell check; no cell -> hide. */
+  var _tcVisChecked = false;
+  function refreshTcVisibility(root) {
+    try {
+      if (takecellOff()) return;
+      var scope = root || document;
+      if (!scope.querySelectorAll) return;
+      var btns = scope.querySelectorAll('[data-pf-takecell]');
+      if (!btns.length) return;
+      if (!callsignOf()) {
+        for (var i = 0; i < btns.length; i++) { btns[i].style.display = 'none'; }
+        return;
+      }
+      if (_tcVisChecked) return;
+      _tcVisChecked = true;
+      primaryCell(function (cell) {
+        if (cell) return;
+        for (var j = 0; j < btns.length; j++) {
+          try { if (document.contains(btns[j])) btns[j].style.display = 'none'; } catch (e) {}
+        }
+      });
+    } catch (e) {}
+  }
+
+  /* Staged-drop receiver: /cells#pf-takecell with a sessionStorage payload
+     renders the review-before-posting strip on the cell surface. */
+  function scanTakecellDrop() {
+    try {
+      if (window.pfTakecellDropDone) return;
+      if (String(location.hash || '').indexOf('pf-takecell') < 0) return;
+      var raw = null;
+      try { raw = sessionStorage.getItem('pf_takecell_drop'); } catch (e) {}
+      if (!raw) return;
+      var drop = null;
+      try { drop = JSON.parse(raw); } catch (e) {}
+      var p = (drop && drop.p) || null;
+      if (!p || !p.title) return;
+      window.pfTakecellDropDone = true;
+      renderDropStrip(p);
+    } catch (e) {}
+  }
+  function renderDropStrip(p) {
+    try {
+      var d = document.createElement('div');
+      d.setAttribute('data-pf-takecell-drop', '1');
+      d.style.cssText = 'border:2px solid #c1121f;background:#0d0d0d;max-width:680px;margin:1rem auto;' +
+        'padding:0.9rem 1rem;text-align:center;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box;';
+      var k = document.createElement('div');
+      k.style.cssText = 'color:#c1121f;font-weight:900;letter-spacing:0.22em;font-size:0.72rem;margin-bottom:0.4rem;';
+      k.textContent = '\u2605 INTEL DROP \u2014 REVIEW BEFORE POSTING';
+      var t = document.createElement('div');
+      t.style.cssText = 'color:#f5ead6;font-weight:900;font-size:1rem;margin-bottom:0.25rem;';
+      t.textContent = String(p.title || 'Intel drop');
+      d.appendChild(k);
+      d.appendChild(t);
+      if (p.figure) {
+        var f = document.createElement('div');
+        f.style.cssText = 'color:#e8b923;font-weight:700;font-size:0.9rem;margin-bottom:0.4rem;';
+        f.textContent = String(p.figure);
+        d.appendChild(f);
+      }
+      var l = document.createElement('div');
+      l.style.cssText = 'color:#c9bfa8;font-size:0.8rem;margin-bottom:0.7rem;';
+      l.textContent = 'From ' + String(p.link || '/');
+      d.appendChild(l);
+      var hasFeed = false;
+      try { hasFeed = !!(window.PFCellFeed && typeof window.PFCellFeed.post === 'function'); } catch (e) {}
+      if (hasFeed) {
+        var post = document.createElement('button');
+        post.type = 'button';
+        post.style.cssText = TC_BTN_CSS;
+        post.textContent = 'POST TO MY CELL';
+        post.addEventListener('click', function () {
+          primaryCell(function (cell) {
+            if (!cell) { toast('Join a cell first \u2014 your intel is staged.'); return; }
+            try {
+              window.PFCellFeed.post({
+                cell_id: cell.id, title: p.title, figure: p.figure,
+                link: p.link, kind: p.kind,
+                context: 'Intel drop from ' + p.link
+              }, function (ok) {
+                if (ok) { toast('Dropped in ' + cell.name + '.'); clearDrop(); d.remove(); }
+                else toast('Drop failed \u2014 try again.');
+              });
+            } catch (e) { toast('Drop failed \u2014 try again.'); }
+          });
+        });
+        d.appendChild(post);
+      } else {
+        /* Fail-open: no feed mechanism -> no post button, no error. The
+           intel stays staged; the member's cell HQ is right below. */
+        var n = document.createElement('div');
+        n.style.cssText = 'color:#c9bfa8;font-size:0.82rem;margin-bottom:0.6rem;line-height:1.5;';
+        n.textContent = 'Cell feeds aren\u2019t wired yet \u2014 your intel is staged. Drop it in your cell HQ below.';
+        d.appendChild(n);
+      }
+      var x = document.createElement('button');
+      x.type = 'button';
+      x.style.cssText = TC_GHOST_CSS;
+      x.textContent = 'DISCARD';
+      x.addEventListener('click', function () { clearDrop(); try { d.remove(); } catch (e) {} });
+      d.appendChild(x);
+      var anchor = null;
+      try { anchor = document.getElementById('pf-cells-page') || document.getElementById('pf-cell-hq'); } catch (e) {}
+      if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(d, anchor);
+      else if (document.body) document.body.insertBefore(d, document.body.firstChild);
+    } catch (e) {}
+  }
+  /* Declarative per-card buttons + action-bar hosts, wired by the scan. */
+  function scanTakecell() {
+    var btns = null, i, b;
+    try { btns = document.querySelectorAll('[data-pf-takecell]'); } catch (e) { return; }
+    var off = takecellOff();
+    for (i = 0; i < btns.length; i++) {
+      try {
+        b = btns[i];
+        if (off) { b.style.display = 'none'; continue; }
+        if (!b.getAttribute('data-pf-takecell-wired')) {
+          b.setAttribute('data-pf-takecell-wired', '1');
+          (function (btn) {
+            btn.addEventListener('click', function (ev) {
+              try { ev.preventDefault(); takeToCell(tcPayloadFromHost(btn) || {}); } catch (e) {}
+            });
+          })(b);
+        }
+      } catch (e) {}
+    }
+    var bars = null;
+    try { bars = document.querySelectorAll('[data-pf-actionbar]'); } catch (e) { bars = null; }
+    if (bars) {
+      for (i = 0; i < bars.length; i++) {
+        try {
+          b = bars[i];
+          if (b.getAttribute('data-pf-actionbar-wired')) continue;
+          b.setAttribute('data-pf-actionbar-wired', '1');
+          var p = tcPayloadFromHost(b);
+          if (!p) continue;
+          /* Replace the declarative host with the built bar. */
+          var built = actionBar(b.parentNode, {
+            title: p.title, figure: p.figure, link: p.link, kind: p.kind,
+            shareOwn: b.getAttribute('data-pf-share-own') === '1'
+          });
+          if (built) { try { b.parentNode.removeChild(b); } catch (e) {} }
+        } catch (e) {}
+      }
+    }
+    refreshTcVisibility();
+    scanTakecellDrop();
+  }
+
   /* The share pipeline needs the painter-resolved canvas. Wrap PFShare's
      shareImage/saveImage so a null canvas resolves via the custom painter
      (or generic poster) for this gameId first. Installed once. */
@@ -619,7 +1191,9 @@
   }
   var PAINTERS = {
     'territory-map': paintTerritoryMap,
-    'war-map': paintWarMap
+    'war-map': paintWarMap,
+    'cellwar-standings': paintCellWarStandings,
+    'war-bonds': paintWarBonds
   };
 
   /* External painter registration: silos with their own custom painters
@@ -631,6 +1205,153 @@
       if (gameId && typeof fn === 'function') { PAINTERS[gameId] = fn; return true; }
     } catch (e) {}
     return false;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Game-over share hook (share-out gap audit, fe/share-out-gaps).      */
+  /* Arcade games and terminal moments dispatch                          */
+  /*   document.dispatchEvent(new CustomEvent('pf:terminal', {detail:{   */
+  /*     gameId, title?, result?, score?, lines?, link?, host?, kicker?  */
+  /*   }}))                                                             */
+  /* or call PFShareEverywhere.terminal(detail) directly. The handler   */
+  /* renders a result panel + the site-wide share bar into detail.host  */
+  /* (or a [data-pf-terminal="<gameId>"] slot), painting the poster     */
+  /* from the detail itself — every terminal surface gets its OWN       */
+  /* painter, never a borrowed one. Fail-open; never throws.            */
+  /* KILL: ?pf_off=share-terminal (in addition to share-everywhere).    */
+  /* ------------------------------------------------------------------ */
+  var TERMINAL_DATA = {};
+  function terminalGameId(d) {
+    var g = String((d && d.gameId) || '').toLowerCase().replace(/[^a-z0-9-]/g, '');
+    return g || 'arcade';
+  }
+  /* Detail-driven painter factory: one branded poster per terminal      */
+  /* surface, rendered from TERMINAL_DATA[gameId]. Canvas fillText is    */
+  /* injection-safe; the DOM panel uses textContent only.                */
+  function paintTerminalFor(gameId) {
+    return function (done) {
+      function fallback() {
+        try { done(PFShare.poster(gameId)); } catch (e) { done(null); }
+      }
+      try {
+        var d = TERMINAL_DATA[gameId] || {};
+        var W = 1080, H = 1350;
+        var cv = document.createElement('canvas');
+        cv.width = W; cv.height = H;
+        var x = cv.getContext('2d');
+        if (!x) { fallback(); return; }
+        paintFrame(x, W, H);
+        var y = 160;
+        var kick = d.kicker || (PFShare.REG[gameId] && PFShare.REG[gameId].title) || 'THE PROPAGANDA FACTORY';
+        x.fillStyle = '#f5ead6'; x.font = '700 34px Arial,sans-serif';
+        wrap(x, String(kick).toUpperCase(), W - 180).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 48; });
+        y += 40;
+        var title = d.title || gameTitle(gameId);
+        x.fillStyle = '#c1121f'; x.font = '900 76px "Arial Black",Arial,sans-serif';
+        wrap(x, String(title).toUpperCase(), W - 170).slice(0, 3).forEach(function (l) { x.fillText(l, W / 2, y); y += 92; });
+        y += 20;
+        if (d.result) {
+          x.fillStyle = '#e8b923'; x.font = '800 40px Arial,sans-serif';
+          wrap(x, String(d.result).toUpperCase(), W - 180).slice(0, 3).forEach(function (l) { x.fillText(l, W / 2, y); y += 56; });
+          y += 10;
+        }
+        if (d.score) {
+          x.fillStyle = '#f5ead6'; x.font = '900 54px "Arial Black",Arial,sans-serif';
+          x.fillText(String(d.score).toUpperCase(), W / 2, y); y += 80;
+        }
+        if (d.lines && d.lines.length) {
+          x.fillStyle = '#c9bfa8'; x.font = '400 30px Arial,sans-serif';
+          d.lines.slice(0, 3).forEach(function (ln) {
+            wrap(x, String(ln), W - 200).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 44; });
+          });
+        }
+        paintFooter(x, W, H);
+        try { if (PFShare.stampCallsign) PFShare.stampCallsign(cv); } catch (e) {}
+        done(cv);
+      } catch (e) { fallback(); }
+    };
+  }
+  function terminal(detail) {
+    detail = detail || {};
+    try { if (PF.skip('share-terminal')) return false; } catch (e) {}
+    var gameId = terminalGameId(detail);
+    TERMINAL_DATA[gameId] = {
+      title: String(detail.title || ''),
+      result: String(detail.result || ''),
+      score: String(detail.score || ''),
+      lines: Array.isArray(detail.lines) ? detail.lines.slice(0, 3).map(function (s) { return String(s); }) : [],
+      kicker: String(detail.kicker || '')
+    };
+    /* Dedicated DOM painters keep theirs; everything else gets the      */
+    /* detail-driven poster (its OWN painter, never a borrowed one).     */
+    if (!DEDICATED[gameId]) registerPainter(gameId, paintTerminalFor(gameId));
+    var host = null;
+    try {
+      if (detail.host && detail.host.nodeType === 1) { host = detail.host; }
+      else {
+        var slot = document.querySelector('[data-pf-terminal="' + gameId + '"]:not([data-pf-terminal-wired])');
+        if (slot) { host = slot; slot.setAttribute('data-pf-terminal-wired', '1'); }
+      }
+    } catch (e) { host = null; }
+    if (!host) return true; /* painter data registered; no panel without a host */
+    try {
+      var old = host.querySelector('[data-pf-terminal-panel="' + gameId + '"]');
+      if (old && old.parentNode) old.parentNode.removeChild(old);
+      var p = document.createElement('div');
+      p.setAttribute('data-pf-terminal-panel', gameId);
+      p.style.cssText = 'border:2px solid #c1121f;background:#0d0d0d;margin:1rem auto;' +
+        'padding:1rem 1.2rem;text-align:center;max-width:640px;box-sizing:border-box;';
+      var k = document.createElement('div');
+      k.style.cssText = 'color:#c9bfa8;font-size:0.7rem;letter-spacing:0.24em;font-weight:700;margin-bottom:0.35rem;';
+      k.textContent = 'RESULT ON RECORD';
+      var t = document.createElement('div');
+      t.style.cssText = 'color:#f5ead6;font-family:"Arial Black",Arial,sans-serif;font-size:1.25rem;letter-spacing:0.06em;margin-bottom:0.3rem;';
+      t.textContent = TERMINAL_DATA[gameId].title || gameTitle(gameId);
+      p.appendChild(k); p.appendChild(t);
+      if (TERMINAL_DATA[gameId].result) {
+        var r = document.createElement('div');
+        r.style.cssText = 'color:#e8b923;font-weight:800;font-size:1rem;margin-bottom:0.25rem;';
+        r.textContent = TERMINAL_DATA[gameId].result;
+        p.appendChild(r);
+      }
+      if (TERMINAL_DATA[gameId].score) {
+        var s = document.createElement('div');
+        s.style.cssText = 'color:#f5ead6;font-weight:700;font-size:0.95rem;margin-bottom:0.25rem;';
+        s.textContent = TERMINAL_DATA[gameId].score;
+        p.appendChild(s);
+      }
+      host.appendChild(p);
+      bar(p, gameId, { link: detail.link || null, title: TERMINAL_DATA[gameId].title || gameTitle(gameId) });
+    } catch (e) {}
+    return true;
+  }
+  /* Bridge existing silo events into pf:terminal (additive — the silos   */
+  /* themselves are untouched). Currently: ambush drop claim.            */
+  function bridgeSiloEvents() {
+    try {
+      document.addEventListener('pf-ambush-claimed', function (e) {
+        try {
+          if (PF.skip('share-terminal')) return;
+          var d = (e && e.detail) || {};
+          var r = d.reward || {};
+          var label = (Number(r.xp) > 0) ? ('+' + Number(r.xp) + ' XP') : String(r.label || 'CLAIMED');
+          var host = null;
+          try { host = document.getElementById('pfAmbushModal'); } catch (e2) {}
+          terminal({
+            gameId: 'arcade-ambush', title: 'SUPPLY DROP CLAIMED',
+            result: (String(r.rarity || '').toUpperCase() + ' HAUL').trim(),
+            score: label,
+            lines: ['Extraction complete.', 'The next drop is already inbound.'],
+            link: '/arcade', host: host, kicker: '\u2605 SUPPLY DROP \u2605'
+          });
+        } catch (e2) {}
+      });
+    } catch (e) {}
+    try {
+      document.addEventListener('pf:terminal', function (e) {
+        try { terminal((e && e.detail) || {}); } catch (e2) {}
+      });
+    } catch (e) {}
   }
   /* Pull painters a silo exposed for late registration (the money chunk may
      load after this module). Currently: PFRobReport._painters. */
@@ -724,13 +1445,14 @@
       var tries = 0;
       var t = setInterval(function () {
         tries++;
-        if (registerReg() && registerPainters()) { clearInterval(t); wrapPipeline(); scan(); }
+        if (registerReg() && registerPainters()) { clearInterval(t); wrapPipeline(); bridgeSiloEvents(); scan(); }
         else if (tries > 20) { clearInterval(t); }
       }, 500);
       return;
     }
     registerPainters();
     wrapPipeline();
+    bridgeSiloEvents();
     scan();
     try {
       var mo = new MutationObserver(function () { scan(); });
@@ -747,6 +1469,7 @@
       handoff: handoff,
       registerPainter: registerPainter,
       resolvePoster: resolvePoster,
+      terminal: terminal,
       REG: NEW_REG,
       NETWORKS: NETWORKS,
       scan: scan

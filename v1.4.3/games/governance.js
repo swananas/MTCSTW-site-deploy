@@ -186,7 +186,9 @@ function render(){
   for(var k=0;k<Math.min(hist.length,20);k++){
     var q=hist[k], badge=q.result==="passed"?'<span class="gv-pass">PASSED</span>':(q.result==="failed"?'<span class="gv-fail">FAILED</span>':'<span class="gv-tie">TIE</span>');
     h+='<div class="gv-prop gv-hist"><div class="gv-ptitle">'+esc(q.title)+' '+badge+'</div>'
-      +'<div class="x-note">YES '+esc(q.yes_weight)+' &bull; NO '+esc(q.no_weight)+' &bull; '+esc(q.voter_count)+' voters</div></div>';
+      +'<div class="x-note">YES '+esc(q.yes_weight)+' &bull; NO '+esc(q.no_weight)+' &bull; '+esc(q.voter_count)+' voters</div>'
+      /* share-out gaps #8: the result is shareable. */
+      +'<div style="margin-top:6px"><button type="button" class="c-btn ghost gv-share" data-idx="'+k+'">SHARE RESULT</button></div></div>';
   }
   h+='</div>';
   /* Integration audit 2026-10-06: the Assembly was a widget-level dead end —
@@ -220,6 +222,23 @@ function render(){
       }
     });
   }); })(vbs[v]); }
+  /* share-out gaps #8: each decided result is shareable via pf:terminal. */
+  var gss=el.querySelectorAll(".gv-share");
+  for(var gs=0;gs<gss.length;gs++){ (function(b){ b.addEventListener("click",function(){
+    try{
+      var qq=hist[Number(b.getAttribute("data-idx"))];
+      if(!qq||!window.PFShareEverywhere||!window.PFShareEverywhere.terminal) return;
+      var res=qq.result==="passed"?"PASSED":(qq.result==="failed"?"FAILED":"TIE");
+      window.PFShareEverywhere.terminal({
+        gameId:"gov-result", title:"THE ASSEMBLY DECIDED",
+        result:res+" — "+String(qq.title||""),
+        lines:["YES "+qq.yes_weight+" · NO "+qq.no_weight+" · "+qq.voter_count+" voters"],
+        link:"/political-hq",
+        host:(b.closest&&b.closest(".x-pane"))||el,
+        kicker:"\u2696 THE ASSEMBLY \u2696"
+      });
+    }catch(e){}
+  }); })(gss[gs]); }
   /* close & settle (proposal_close, AUTH+ADMIN). Past-due: any authed user.
      Early: admin only — rides the X-Admin-Secret header via adminPost. */
   function closeProposal(pid,early,btn){

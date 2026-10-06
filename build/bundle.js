@@ -401,10 +401,11 @@ var SECTIONS = {
   'bundle-peoples-cpi': [
     'peoples-cpi.js'
   ],
-  /* 2026-10-06 (fe/blossom-s4): /fund — THE PROPAGANDA FUND. Structure-only
-     transparency page (games/propaganda-fund.js renders into #pf-fund);
-     the content is gated on News Desk/Brand sign-off, so the silo renders
-     an empty-honest body with no figures. Kill: ?pf_off=fund. */
+  /* 2026-10-06 (fe/teardown-fund, WS-10): /fund — THE PROPAGANDA FUND, the
+     treasury (teardown PART 2 §10 on PF.patterns: P1 hero, P4 raised/goal
+     strip, P7 allocation + burn ledgers, P5 ring recognition, P6 action
+     bar). Figures stay gated on News Desk/Brand sign-off (FUND.verified);
+     unverified → fail-closed empty-honest. Kill: ?pf_off=fund. */
   'bundle-fund': [
     'propaganda-fund.js'
   ],

@@ -115,6 +115,11 @@ var SECTIONS = {
        HP feeder widget for the People's Price Index (FUND section).
        Compact card, no backend calls; deep-links to /economy. */
     'inflation-teaser.js',
+    /* 2026-10-06 (fe/homepage-sitemap, CEO directive): SITE MAP / FIND YOUR
+       FRONT — the homepage directory block. Pure static, no backend, no XP.
+       Registered directly before campaign.js so it mounts first in ACT,
+       above the 32-Day Offensive. Kill: ?pf_off=sitemap. */
+    'sitemap.js',
     'campaign.js',
     'alerts.js',
     /* Engagement build D item #8 (2026-10-05): FB group missions — on-site

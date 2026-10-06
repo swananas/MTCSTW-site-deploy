@@ -166,7 +166,7 @@ function render(){
         +'<b>'+esc(en.title||en.id)+'</b> <span class="x-note">by '+esc(en.creator)+' &bull; '+en.votes+' votes &bull; boosted '+bm.xp+' XP</span>'
         /* R6 (2026-10-04): forge-proposed entries carry the stamped poster —
            the JOIN THE FIGHT. CTA is baked into the image itself. */
-        +(function(){var _eim=safeUrl(en.image);return _eim?'<img src="'+esc(_eim)+'" alt="battle entry poster" loading="lazy" style="display:block;max-width:220px;width:100%;height:auto;margin:0.5rem 0;border:2px solid #c1121f;">':'')})()
+        +(function(){var _eim=safeUrl(en.image);return _eim?'<img src="'+esc(_eim)+'" alt="battle entry poster" loading="lazy" style="display:block;max-width:220px;width:100%;height:auto;margin:0.5rem 0;border:2px solid #c1121f;">':''})()
         +'<br>'
         +'<button class="c-btn bt-votebtn" data-bid="'+esc(b.id)+'" data-cid="'+esc(en.id)+'">VOTE</button> '
         +boostBtns(en.id)+'</div>';

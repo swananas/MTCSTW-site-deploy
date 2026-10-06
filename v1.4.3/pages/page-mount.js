@@ -131,6 +131,9 @@
     'pf-events': {
       title: 'BOOTS ON THE GROUND', sub: 'Digital is the rehearsal. The street is the show.',
       order: [
+        /* 2026-10-05 (fe/master-calendar): the War Calendar mounts first —
+           it aggregates every dated thing (IRL, draw, routines, deadlines). */
+        ['mastercal', 'pf-ov-mastercal'],
         ['irl', 'pf-ov-irl'],
         /* 2026-10-05 (fe/events-move): Town Hall Tracker + protest/event map
            moved here from Political HQ (wiring-map §7). Order: irl (existing

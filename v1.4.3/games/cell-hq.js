@@ -281,7 +281,8 @@
 
   mount.innerHTML = CSS +
     '<div class="hq-head"><h2>&#9876; CELL HQ</h2>' +
-    '<div class="hq-tag">Command center for your cells — streaks, prestige, Cell War, and the whole network.</div></div>' +
+    '<div class="hq-tag">Command center for your cells — streaks, prestige, Cell War, and the whole network.</div>' +
+    '<div class="hq-tag" style="margin-top:4px;">&#128467; <a href="/events#pf-mastercal" style="font-weight:800;color:#c1121f;">WAR CALENDAR</a> — mobilizations, draws, and deadlines.</div></div>' +
     '<div class="hq-tabs" id="hqTabs">' +
     '<button class="hq-tab on" data-tab="mine">MY CELLS</button>' +
     '<button class="hq-tab" data-tab="war">CELL WAR</button>' +

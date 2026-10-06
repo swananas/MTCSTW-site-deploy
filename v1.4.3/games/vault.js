@@ -521,7 +521,7 @@ function render(){
     +'<button class="c-btn c-btn-dim" id="vlREndBtn">END RACE &amp; PAY WINNER</button><div class="c-err" id="vlREndErr"></div>'
     +'</div></div>';
   /* WAVE3-S3-END (race console HTML) */
-  /* SEASON CONTROL (2026-10-04): the 32-Day Offensive is over; no way to
+  /* SEASON CONTROL (2026-10-04): the Midterm Blitz is over; no way to
      launch a new season without curl. Three admin forms ride the existing
      post("season","s_action",...) + X-Admin-Secret pattern.
      season_create params: name, description, starts_at, ends_at (epoch ms),
@@ -534,7 +534,7 @@ function render(){
       +esc(sc.goal_type)+': '+Number(sc.current||0)+'/'+Number(sc.goal_target||0)+' ('+Number(sc.pct||0)+'%)'
       +' <span class="x-note">id '+esc(sc.id)+'</span></div>';
   } else {
-    h+='<div class="x-note">No live season ('+esc((SN&&SN.err)||(SN&&!SN.season?"ended / none":"loading"))+'). The 32-Day Offensive has ended &mdash; launch the next campaign below.</div>';
+    h+='<div class="x-note">No live season ('+esc((SN&&SN.err)||(SN&&!SN.season?"ended / none":"loading"))+'). The Midterm Blitz has ended &mdash; launch the next campaign below.</div>';
   }
   h+='<div class="vl-form">'
     +'<input aria-label="Season name" id="vlSName" class="c-input pf-input-lg" placeholder="Season name (e.g. 45-Day Surge)" >'

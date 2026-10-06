@@ -1,7 +1,7 @@
 /* games/master-calendar.js  |  PF v1.4.3 | THE WAR CALENDAR (master calendar).
    One calendar aggregating every dated thing in the movement: IRL events,
    Solidarity Draw, War Report Mondays, fan-vote windows, medal resets,
-   32-Day Offensive end, Discord daily/weekly routines. Server-driven via
+   MIDTERM BLITZ end, Discord daily/weekly routines. Server-driven via
    the `calendar_events` BE action so the site and Discord routines stay
    in sync (single source of truth).
 

@@ -1,5 +1,5 @@
 /* core/campaign-data.js  |  PF v1.4.3 | Static campaign content: battleground
-   races + ballot measures for the 32-Day Offensive. Data verified via live
+   races + ballot measures for the Midterm Blitz. Data verified via live
    research Oct 2, 2026 (RCP averages, Ballotpedia, CNN/USA Today). Polling
    moves — treat ratings as snapshots, not predictions.
    KILL: ?pf_off=campaign-data  or  localStorage pf_disabled_v1='["campaign-data"]' */

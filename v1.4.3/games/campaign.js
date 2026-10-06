@@ -1,4 +1,4 @@
-/* games/campaign.js  |  PF v1.4.3 | THE 32-DAY OFFENSIVE: midterm campaign HQ.
+/* games/campaign.js  |  PF v1.4.3 | THE MIDTERM BLITZ: midterm campaign HQ.
    LAYERING: a game silo like contracts.js. Reads via JSONP (self-contained api()),
    writes via CORS POST (self-contained post()). It never reaches into another
    silo's internals. Race/measure content comes from core/campaign-data.js
@@ -12,7 +12,7 @@
   if (!PF || PF.skip("campaign")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-campaign">
 <div class="fe-block pf-override-block" id="pf-campaign">
-<h2>The 32-Day Offensive</h2>
+<h2>The Midterm Blitz</h2>
 <div class="c-tag">Midterm campaign HQ. Every action builds our power.</div>
 <div id="xCampaign"><div class="c-load">Mobilizing&hellip;</div></div>
 </div>
@@ -30,7 +30,7 @@ try{
       if(t>0) ELECTION=t; }catch(e){}
   }); }
 }catch(e){}
-/* 32-Day Offensive sunset (2026-10-03): the campaign hard-expires at
+/* MIDTERM BLITZ sunset (2026-10-03): the campaign hard-expires at
    Nov 3, 2026 23:59 America/Chicago. After that the widget renders a
    CAMPAIGN COMPLETE state with final backend totals instead of the pledge
    form. Never pulled early — the check is wall-clock, not deploy time. */
@@ -116,7 +116,7 @@ function renderComplete(){
   var el=document.getElementById("xCampaign"); if(!el) return;
   var h='<div class="cp-count">CAMPAIGN COMPLETE</div>'
     +'<div class="cp-frame">THE OFFENSIVE IS OVER. THE FIGHT IS NOT.</div>'
-    +'<div class="cp-sub">Final results from the 32-Day Offensive &mdash; the pledge form is retired, the wall stands.</div>';
+    +'<div class="cp-sub">Final results from the Midterm Blitz &mdash; the pledge form is retired, the wall stands.</div>';
   if(!S&&!W&&!L){
     h+='<div class="c-neterr">The wire didn&rsquo;t answer with final results.'
       +'<br><button class="c-btn" id="cpRetry">Retry connection</button></div>';

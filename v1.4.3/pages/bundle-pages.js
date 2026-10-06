@@ -90,7 +90,12 @@
     ['draw', 'pf-ov-draw'],
     /* 2026-10-05, Phase 3 #13: static podcast LISTEN card — media closer
        at the end of the PROOF section. Pure static, cannot fail. */
-    ['podcast-card', 'pf-ov-podcast-card']
+    ['podcast-card', 'pf-ov-podcast-card'],
+    /* 2026-10-05, Bluesky Component 2: "THE WIRE" — the SLR generator feed
+       + hand-picked posts, native house styling. PROOF closer, last. Builds
+       against a stub generator URI until Pod 1 publishes; fail-soft hides
+       the section until the feed is live. Kill: ?pf_off=bluesky-feed. */
+    ['bluesky', 'pf-ov-bsky']
   ];
 
   /* === SECTION HEADERS (2026-10-03) ===
@@ -151,7 +156,9 @@
     'warreport-card': [['Read the full archive \u2192', '/war-report'], ['Vote for your favorite \u2192', 'fan-vote']],
     'roster-teaser': [['Meet all 62 fighters \u2192', '/sick-left-radicals'], ['Find your match \u2192', 'slr-match-quiz']],
     'podcast-card': [['Read this week\u2019s report \u2192', '/war-report']],
-    'draw': [['See the winners wall \\u2192', 'hall'], ['Vote for your favorite \\u2192', 'fan-vote']]
+    'draw': [['See the winners wall \\u2192', 'hall'], ['Vote for your favorite \\u2192', 'fan-vote']],
+    /* 2026-10-05, Bluesky Component 2: THE WIRE — final PROOF closer. */
+    'bluesky': [['Find the roster \\u2192', '/sick-left-radicals']]
   };
 
   /* Silo -> section id. Used to insert each widget's <section> in funnel
@@ -173,7 +180,9 @@
     /* REDISTRIBUTION LAYER Phase B (2026-10-05): Solidarity Draw. */
     'draw':'proof',
     /* 2026-10-05, Phase 3 #11/#13/#14: new PROOF surfaces. */
-    'warreport-card':'proof','roster-teaser':'proof','podcast-card':'proof'
+    'warreport-card':'proof','roster-teaser':'proof','podcast-card':'proof',
+    /* 2026-10-05, Bluesky Component 2: THE WIRE closes PROOF. */
+    'bluesky':'proof'
   };
 
   /* Build the 7 section blocks at init: header + lazy-load anchor each.
@@ -234,7 +243,8 @@
       '<div style="font-size:12px;letter-spacing:4px;color:#c1121f;font-weight:800;margin-bottom:6px;">BOOTS ON THE GROUND</div>' +
       '<div style="font-family:\'Arial Black\',Arial,sans-serif;font-size:24px;letter-spacing:2px;margin:0 0 8px;text-transform:uppercase;">Take it to the streets.</div>' +
       '<div style="font-size:14px;color:#a89e88;line-height:1.5;margin-bottom:14px;">Phonebanks, canvasses, protests, meetups — the fight isn\u2019t only online. +50 XP per RSVP.</div>' +
-      '<a href="/events" style="display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:15px;padding:13px 30px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;">SEE WHAT\u2019S HAPPENING \u2192</a>';
+      '<a href="/events" style="display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:15px;padding:13px 30px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;">SEE WHAT\u2019S HAPPENING \u2192</a> ' +
+      '<a href="/events#pf-mastercal" style="display:inline-block;color:#f5ead6;font-weight:800;font-size:13px;padding:13px 18px;text-decoration:none;letter-spacing:1px;">WAR CALENDAR \u2192</a>';
     var alertsSec = h.querySelector('section[data-game="alerts"]');
     if (alertsSec && alertsSec.parentNode === h) {
       alertsSec.parentNode.insertBefore(card, alertsSec.nextSibling);
@@ -1366,6 +1376,11 @@
         ['contracts', 'pf-ov-contracts'],
         /* W5-12 Frontlines: weekly territory war map (kill: war-map). */
         ['war-map', 'pf-ov-warmap'],
+        /* CELLS 2.0 (2026-10-05): territory map (kill: cell-territory-map)
+           + competition seasons (kill: cell-comp-seasons). Mount next to the
+           war map on /cells. */
+        ['cell-territory-map', 'pf-ov-territory-map'],
+        ['cell-comp-seasons', 'pf-ov-cellcomp-seasons'],
         /* REDISTRIBUTION LAYER Phase B (2026-10-05): Supply Line Raid —
            bespoke cell home (silo key 'raid'). Cell-scoped rounds; cell_id
            comes from the cell context the cells stack already loaded
@@ -1428,9 +1443,9 @@
     'pf-events': {
       title: 'BOOTS ON THE GROUND', sub: 'Digital is the rehearsal. The street is the show.',
       order: [
-        /* 2026-10-05 (fe/events-platform): the War Calendar mounts first.
-           Owned by the master-calendar coordinator — their bundle stages the
-           template; fail-soft skip until then. Kill ?pf_off=mastercal. */
+        /* 2026-10-05 (fe/master-calendar): the War Calendar mounts first —
+           it aggregates every dated thing (IRL, draw, routines, deadlines).
+           Kill ?pf_off=mastercal. */
         ['mastercal', 'pf-ov-mastercal'],
         /* 2026-10-05 (fe/events-platform): new events-platform silo —
            listings + RSVP, #e=<id> detail, field-report wall, photo

@@ -123,6 +123,11 @@ var CORE_FILES = [
      contributor counts with mandatory vintage labels for data outputs.
      Kill: ?pf_off=26-crowd-credit. */
   'core/26-crowd-credit.js',
+  /* FRED Everywhere Phase 1 (2026-10-05): window.PFFred — the single
+     honest-render toolkit for every FRED surface (citations, staleness
+     badges, sparklines, tap sheets, honest reads). Core so money, economy,
+     war-report, briefing, and academy surfaces all share it. */
+  'core/fred-shared.js',
   /* freshness (Cohesion §4, 2026-10-05): PF.freshBadge / PF.degradedVintage /
      PF.honestZero — LIVE badges only on <=15-min-fresh data, automatic label
      degradation, honest zero states. Kill: ?pf_off=27-freshness. */
@@ -145,6 +150,9 @@ var MONEY_FILES = [
   'core/money-trades.js',
   'core/money-pac-alerts.js',
   'core/money-macro.js',
+  /* FRED Everywhere Phase 1 (2026-10-05): the "economy they're governing"
+     strip for the Follow the Money tab — policy transmission framing. */
+  'core/fred-governing.js',
   'core/macro-share.js',
   'core/macro-gallery.js',
   'core/money-deep8.js',

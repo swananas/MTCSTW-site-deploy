@@ -73,16 +73,22 @@ var PAGES_V2=['pages/bundle-pages.js'];
    + bundle-arcade (the other 4).
    /cells = bundle-cells-h (cells.js stages pf-ov-cells for the main Cells
    widget) + bundle-cells. /create = bundle-create-h (poster-forge, feed) +
-   bundle-create. /bank, /economy, /war-chest, /ventures, /events,
-   /war-report = their single bundle each.
+   bundle-create. /bank, /economy, /ventures, /events,
+   /war-report = their single bundle each. /war-chest (redirecting to
+   /ventures per BLOSSOM M3) still ships bundle-warchest.js on its own
+   mount div, and /ventures ships bundle-ventures.js + bundle-warchest.js
+   (the movement silo mounts as the "Movement Funds" section).
    /political-hq = core + bundle-hq + pages. Creator HQ (#pf-war-card) =
    core + bundle-create (academy, creator-assist, armory, dashboard) +
    bundle-cells (cell-hq, war-card, review-pool) + pages.
    /money (#pf-money) = core + core/bundle-money.js (explicit JS_GAMES entry;
    the chunk loader in bundle-pages.js is the async fallback for the PHQ tab)
    + games/bundle-predgame.js (CALL IT. section, self-mounts, 'economy'
-   preselected; kill ?pf_off=predgame) + pages. /command-deck (#pf-command) = core + games/bundle-command.js
-   (standalone page bundle, self-mounting via command/02-registry.js) + pages.
+   preselected; kill ?pf_off=predgame) + pages. /follow-the-money IS the
+   money page (BLOSSOM M1 2026-10-06: /money redirects there). /command-deck is retired
+   (BLOSSOM R4 2026-10-06: folded into /war-report — the #pf-command
+   loader branch below ships bundle-command.js only if a #pf-command
+   mount div exists) + pages.
    SLR roster/catalog = core + bundle-roster (efficiency.js paints the live
    Efficiency Index into their [data-eff-score] slots; nothing else in the
    bundle mounts there) + pages. */
@@ -97,7 +103,7 @@ CORE_V2=[NEED_SLR?'core/bundle-core-slr.js':'core/bundle-core.js'];
 /* PWA (2026-10-05, fe/pwa): install.js, right after the core bundle (home of
    core/03-global.js). Relative = resolves against the v1.4.3 BASE. */
 var JS_PWA=['pwa/install.js'];
-var JS_GAMES=isHome?['games/bundle-sec1.js']:isArcade?['games/bundle-arcade-h.js','games/bundle-arcade.js','games/bundle-predgame.js']:isCellsPage?['games/bundle-cells-h.js','games/bundle-cells.js']:isCreate?['games/bundle-create-h.js','games/bundle-create.js']:isBank?['games/bundle-bank.js']:isEconomy?['games/bundle-economy.js']:isWarchest?['games/bundle-warchest.js']:isVentures?['games/bundle-ventures.js']:isEvents?['games/bundle-events.js']:isWarReport?['games/bundle-warreport.js']:isMoney?['core/bundle-money.js','games/bundle-predgame.js']:isCommand?['games/bundle-command.js']:isHQ?[]:isWarCard?['games/bundle-create.js','games/bundle-cells.js']:isSlrPage?['games/bundle-roster.js']:[];
+var JS_GAMES=isHome?['games/bundle-sec1.js']:isArcade?['games/bundle-arcade-h.js','games/bundle-arcade.js','games/bundle-predgame.js']:isCellsPage?['games/bundle-cells-h.js','games/bundle-cells.js']:isCreate?['games/bundle-create-h.js','games/bundle-create.js']:isBank?['games/bundle-bank.js']:isEconomy?['games/bundle-economy.js']:isWarchest?['games/bundle-warchest.js']:isVentures?['games/bundle-ventures.js','games/bundle-warchest.js']:isEvents?['games/bundle-events.js']:isWarReport?['games/bundle-warreport.js']:isMoney?['core/bundle-money.js','games/bundle-predgame.js']:isCommand?['games/bundle-command.js']:isHQ?[]:isWarCard?['games/bundle-create.js','games/bundle-cells.js']:isSlrPage?['games/bundle-roster.js']:[];
 var JS_HQ=isHQ?['games/bundle-hq.js','games/bundle-predgame.js']:[]; /* 2026-10-05 (fe/predict-game): CALL IT. section for the BALLOT hub ('elections' preselected) */
 /* DEFECT 1 (2026-10-03): the v1.1.0 set carries no footer chrome. Append
    the slim footer-chrome bundle (DELETE MY DATA + NUKE meter + RUN

@@ -120,7 +120,7 @@
 
   function xlinks() {
     return '<div class="pf-ex-xlinks">Translated it? Now ' +
-      '<a href="https://www.mtcstw.com/money#pf-stackem">stack two numbers</a> · ' +
+      '<a href="https://www.mtcstw.com/follow-the-money#pf-stackem">stack two numbers</a> · ' +
       '<a href="https://www.mtcstw.com/economy#pf-receipt">check the receipts</a></div>';
   }
 

@@ -449,7 +449,8 @@ function render(){
   try{ if(who&&window.PF&&PF.mountRecoveryEntry) PF.mountRecoveryEntry(document.getElementById("rWho")); }catch(e){}
   /* W2-D17 + R29 (2026-10-04): equipped custom title byline + subscriber
      badge on the callsign profile. Mirrors written by /economy (title_buy)
-     and /war-chest (subscribe); the ticker byline reads ev.title.
+     and /ventures (subscribe — BLOSSOM M3 2026-10-06 folded /war-chest in);
+     the ticker byline reads ev.title.
      R29 (2026-10-05): war-bond SUBSCRIBER badge via the shared
      PF.isSubscriber() helper (backend-set flag, mirrored by war-bonds.js). */
   try{

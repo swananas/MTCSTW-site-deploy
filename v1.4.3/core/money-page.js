@@ -85,9 +85,9 @@
     '.pf-mp-kicker{font-weight:700;font-size:13px;letter-spacing:6px;color:#e8b923;text-align:center;margin-bottom:8px}',
     '.pf-mp-title{font-weight:900;font-size:34px;text-align:center;margin:0 0 6px;letter-spacing:2px}',
     '.pf-mp-mission{font-size:15px;color:#c9bfa8;text-align:center;margin:0 0 20px;font-style:italic}',
-    '.pf-mp-sec{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:10px;padding:18px;margin-bottom:14px}',
-    '.pf-mp-sec h3{font-weight:900;font-size:19px;letter-spacing:2px;margin:0 0 4px;color:#f5ead6}',
-    '.pf-mp-sec .pf-mp-sub{font-size:13px;color:#c9bfa8;margin:0 0 12px}',
+    '.pf-mp-sec{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:10px;padding:26px 22px}',
+    '.pf-mp-sec h3{font-weight:900;font-size:21px;letter-spacing:2px;margin:0;color:#f5ead6}',
+    '.pf-mp-sec .pf-mp-sub{font-size:14px;line-height:1.6;color:#c9bfa8;margin:10px 0 0}',
     '.pf-mp-pick{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}',
     '.pf-mp-pick input{flex:1;min-width:180px;background:#1a1a1a;border:1px solid #3a3a3a;color:#f5ead6;border-radius:6px;padding:10px 12px;font-size:15px}',
     '.pf-mp-btn{background:#c1121f;color:#fff;border:0;border-radius:6px;padding:10px 18px;font-weight:900;letter-spacing:1px;cursor:pointer;font-size:14px}',
@@ -120,11 +120,17 @@
   /* Shared picker state: one legislator + one bill drive the linked sections. */
   var state = { bioguide: qs('bioguide') || '', bill: qs('bill') || '' };
 
+  /* BREATHE pilot (2026-10-06): section shell carries the shared rhythm class
+     (.pf-br-sec owns spacing; .pf-mp-sec keeps the money-card visuals). The
+     header/body hooks (.pf-br-head/.pf-br-body) let PF.Breathe wire collapse
+     toggles without touching section content. */
   function sectionShell(id, title, sub) {
-    return '<section class="pf-mp-sec" id="money-' + esc(id) + '" data-sec="' + esc(id) + '">' +
-      '<h3>' + esc(title) + '</h3>' +
-      (sub ? '<p class="pf-mp-sub">' + esc(sub) + '</p>' : '') +
-      '<div class="pf-mp-body"></div></section>';
+    return '<section class="pf-mp-sec pf-br-sec" id="money-' + esc(id) + '" data-sec="' + esc(id) + '">' +
+      '<div class="pf-br-head"><div class="pf-br-headtxt">' +
+      '<h3 class="pf-br-title">' + esc(title) + '</h3>' +
+      (sub ? '<p class="pf-mp-sub pf-br-sub">' + esc(sub) + '</p>' : '') +
+      '</div></div>' +
+      '<div class="pf-mp-body pf-br-body"></div></section>';
   }
 
   /* ---- section 1: FEC donor files (element money-fec-donors) ---- */
@@ -296,6 +302,33 @@
     });
   }
 
+  /* ---- BREATHE pilot (2026-10-06): sticky scrollspy nav + collapsible trails.
+     Enhancement-only: builds the nav from the sections that actually rendered
+     (kill-switch aware), then wires a collapse toggle per section. The deep8
+     stub ("wiring up now") starts folded; everything else starts open. Any
+     failure leaves the page fully usable, just denser. */
+  function mountBreathe(root) {
+    try {
+      var B = PF.Breathe;
+      if (!B) return;
+      var secs = root.querySelectorAll('section.pf-br-sec');
+      if (!secs || !secs.length) return;
+      var items = [];
+      Array.prototype.forEach.call(secs, function (sec) {
+        var h = sec.querySelector('.pf-br-title');
+        if (sec.id && h && h.textContent) items.push({ id: sec.id, label: h.textContent.trim() });
+      });
+      var mission = root.querySelector('.pf-mp-mission');
+      var navHost = document.createElement('div');
+      if (mission && mission.parentNode) mission.parentNode.insertBefore(navHost, mission.nextSibling);
+      else root.insertBefore(navHost, root.firstChild);
+      B.sectionNav(navHost, items);
+      Array.prototype.forEach.call(secs, function (sec) {
+        B.collapsible(sec, { startOpen: sec.getAttribute('data-sec') !== 'deep8' });
+      });
+    } catch (e) { err('breathe pilot failed :: ' + (e && e.message || e)); }
+  }
+
   /* ---- wiring: exits rail + AC return ---- */
   function exitsRail(root) {
     var nav = document.createElement('nav');
@@ -439,6 +472,7 @@
       '<p class="pf-mp-mission">Follow the money. See who funds the votes.</p>';
     host.appendChild(root);
     buildSections(root, false);
+    mountBreathe(root);
     exitsRail(root);
   }
 
@@ -457,6 +491,7 @@
     sec.appendChild(root);
     host.appendChild(sec);
     buildSections(root, true);
+    mountBreathe(root);
     exitsRail(root);
   }
 

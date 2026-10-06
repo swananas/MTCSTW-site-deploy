@@ -222,27 +222,38 @@
       '</div>';
   }
 
+  /* BREATHE (2026-10-06): progressive disclosure — dense lists unfold instead of
+     overwhelming. First 5 rows show; the rest hide behind SHOW ALL N. The
+     shared [data-showall] CSS rule reveals them; the toggle is wired in
+     render()'s delegated click handler. */
+  function brMore(total) {
+    return '<button type="button" class="pf-br-more" data-br-more="1" data-br-total="' + total + '">' +
+      'SHOW ALL ' + total + ' \u25BC</button>';
+  }
+
   function donorList(donors) {
     var ds = Array.isArray(donors) ? donors.slice(0, 10) : [];
     var head = '<h4>TOP DONORS</h4>';
     if (!ds.length) return head + '<div class="pf-mt-barlegend"><span>—</span></div>';
-    return head + '<ul class="pf-mt-list">' + ds.map(function (d) {
+    return head + '<ul class="pf-mt-list">' + ds.map(function (d, i) {
       var emp = d.employer ? '<span class="pf-mt-demployer">' + esc(d.employer) + '</span>' : '';
-      return '<li><span class="pf-mt-dname">' + esc(d.name || '—') + '</span>' + emp +
+      var extra = i >= 5 ? ' class="pf-br-list-extra"' : '';
+      return '<li' + extra + '><span class="pf-mt-dname">' + esc(d.name || '—') + '</span>' + emp +
         '<span class="pf-mt-damt">' + esc(money(d.amount)) + '</span></li>';
-    }).join('') + '</ul>';
+    }).join('') + '</ul>' + (ds.length > 5 ? brMore(ds.length) : '');
   }
 
   function industryList(inds) {
     var xs = Array.isArray(inds) ? inds : [];
     var head = '<h4>TOP INDUSTRIES</h4>';
     if (!xs.length) return head + '<div class="pf-mt-barlegend"><span>—</span></div>';
-    return head + '<ul class="pf-mt-list">' + xs.map(function (d) {
+    return head + '<ul class="pf-mt-list">' + xs.map(function (d, i) {
       /* BE contract: {industry,total,estimated} — total, not amount. */
       var badge = d.estimated ? '<span class="pf-mt-est">ESTIMATED FROM EMPLOYER DATA</span>' : '';
-      return '<li><span class="pf-mt-dname">' + esc(d.industry || '—') + '</span>' + badge +
+      var extra = i >= 5 ? ' class="pf-br-list-extra"' : '';
+      return '<li' + extra + '><span class="pf-mt-dname">' + esc(d.industry || '—') + '</span>' + badge +
         '<span class="pf-mt-damt">' + esc(money(d.total)) + '</span></li>';
-    }).join('') + '</ul>';
+    }).join('') + '</ul>' + (xs.length > 5 ? brMore(xs.length) : '');
   }
 
   function hide(container) {
@@ -279,6 +290,20 @@
     root.addEventListener('click', function (e) {
       var t = e && e.target;
       if (!t || !t.getAttribute) return;
+      /* BREATHE show-more toggle (progressive disclosure). */
+      if (t.getAttribute('data-br-more') != null) {
+        var scope = (t.closest && t.closest('.pf-mt')) || root;
+        var total = t.getAttribute('data-br-total') || '';
+        if (scope.getAttribute('data-showall') === '1') {
+          scope.removeAttribute('data-showall');
+          t.textContent = 'SHOW ALL ' + total + ' \u25BC';
+        } else {
+          scope.setAttribute('data-showall', '1');
+          t.textContent = 'SHOW LESS \u25B2';
+        }
+        t.setAttribute('aria-expanded', scope.getAttribute('data-showall') === '1' ? 'true' : 'false');
+        return;
+      }
       var dl = t.getAttribute('data-mt-dl'), sh = t.getAttribute('data-mt-sh');
       if (dl == null && sh == null) return;
       try {

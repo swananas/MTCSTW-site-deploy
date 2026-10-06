@@ -216,9 +216,9 @@ function wireEvent(e){
   };
 }
 function needCs(){
-  /* PF.authPost attaches the signed-in callsign; this helper exists so the
-     intent is explicit at each call site. */
-  try{ if(window.PF&&PF.callsign) return PF.callsign(); }catch(e){}
+  /* civic.js ident() idiom: the signed-in callsign rides in the POST body
+     so authGate + the claim-retry path can resolve the actor. */
+  try{ if(window.PFCallsign) return window.PFCallsign(); }catch(e){}
   return '';
 }
 function note(msg){ try{ alert(msg); }catch(e){} }

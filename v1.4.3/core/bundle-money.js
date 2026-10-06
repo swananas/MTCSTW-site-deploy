@@ -2729,9 +2729,9 @@
     { sid1: 'CPIAUCNS', sid2: 'PCEPI',
       hook: 'Inflation gauges', question: 'Headline vs the Fed\u2019s favorite',
       why: 'Two inflation baskets, two answers. The Fed watches PCE; you feel CPI. Same economy, different thermometers.' },
-    { sid1: 'CPILFESL', sid2: 'CPIAUCNS',
-      hook: 'Core vs Headline', question: 'What\u2019s really cooking underneath',
-      why: 'Core strips food and energy to find the trend hiding under the noisy headline.' }
+    { sid1: 'MORTGAGE30US', sid2: 'CPIAUCNS',
+      hook: 'The Real Mortgage Rate', question: 'What does a mortgage actually cost in real terms?',
+      why: 'The mortgage rate minus inflation is the real rate — what borrowing actually costs you.' }
   ];
 
   var SERIES12 = ['FEDFUNDS', 'UNRATE', 'DGS10', 'DGS2', 'MORTGAGE30US',
@@ -2855,7 +2855,10 @@
             '" data-c="' + esc(color) + '"/>';
         })(pts[i], l, col);
       }
-      var nm = esc(l.title || l.series_id);
+      /* Prohibition 2: seasonal adjustment shown inline for mixed pairs. */
+      var sa0 = String(l.sa_nsa || '').toUpperCase();
+      var saLbl = sa0.indexOf('NSA') === 0 ? ' (NSA)' : (sa0.indexOf('SA') === 0 ? ' (SA)' : '');
+      var nm = esc((l.title || l.series_id) + saLbl);
       legend += '<span><i style="background:' + col + '"></i>' + nm + '</span>';
     });
     /* y min/max labels */
@@ -2991,11 +2994,13 @@
       x.fillStyle = '#8a8271'; x.font = '400 24px Arial,sans-serif';
       x.fillText('axis starts at ' + lo.toFixed(1) + ' \u2014 not zero', cx, chY + chH + 34);
       y = chY + chH + 70;
-      /* legend */
+      /* legend (Prohibition 2: SA/NSA inline) */
       x.font = '700 26px Arial,sans-serif';
       legs.forEach(function (l, li) {
         x.fillStyle = LEG_COLORS[li % LEG_COLORS.length];
-        x.fillText('\u2014 ' + (l.title || l.series_id), cx, y);
+        var sa1 = String(l.sa_nsa || '').toUpperCase();
+        var saLbl1 = sa1.indexOf('NSA') === 0 ? ' (NSA)' : (sa1.indexOf('SA') === 0 ? ' (SA)' : '');
+        x.fillText('\u2014 ' + (l.title || l.series_id) + saLbl1, cx, y);
         y += 36;
       });
       y += 10;

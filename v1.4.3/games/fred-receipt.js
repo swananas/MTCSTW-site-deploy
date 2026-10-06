@@ -109,7 +109,7 @@
   }
 
   /* Official panel: blue-gray line chart of the FRED series. */
-  function officialPanel(obs, F) {
+  function officialPanel(obs, F, stale) {
     var pts = (obs || []).slice().reverse().slice(-12); /* oldest-first, last 12 */
     var W = 340, H = 120, PAD = 6;
     var vals = pts.map(function (p) { return +p.value; }).filter(isFinite);
@@ -134,6 +134,7 @@
     var h = '<div class="pf-rc-panel pf-rc-off">' +
       '<span class="pf-rc-badge">OFFICIAL — U.S. BUREAU OF LABOR STATISTICS VIA FRED</span>' +
       '<div class="pf-rc-fig">' + (yoy == null ? '—' : (yoy >= 0 ? '+' : '−') + Math.abs(yoy).toFixed(1) + '%') + '</div>' +
+      (stale && stale.stale && F && F.staleBadge ? F.staleBadge({ stale: true, days_old: stale.days_old, series_id: OFFICIAL_SID }) : '') +
       '<div class="pf-rc-meta">rent of primary residence, 12-month change' +
       (latest ? ' · ' + esc(F.fmtPeriod({ series_id: OFFICIAL_SID, period: latest.period })) : '') + '</div>' +
       svg;
@@ -174,18 +175,7 @@
     return { html: h, publishable: true, delta: d, reports: item.sample_count };
   }
 
-  function gapStrip(offYoy, pplDelta) {
-    /* Display arithmetic on the two separately-fetched figures, with the
-       methodology line. Described, never adjudicated. */
-    if (offYoy == null || pplDelta == null) return '';
-    var gap = Math.abs(pplDelta - offYoy);
-    var dir = pplDelta >= offYoy ? 'above' : 'below';
-    return '<div class="pf-rc-gap"><b>THE GAP — </b>' +
-      'People report rents moving ' + (pplDelta >= 0 ? '+' : '−') + Math.abs(pplDelta).toFixed(1) +
-      '% this month; official rent CPI says ' + (offYoy >= 0 ? '+' : '−') + Math.abs(offYoy).toFixed(1) +
-      '%. That\u2019s a ' + gap.toFixed(1) + '-point gap, with the people\u2019s number ' + dir + '.' +
-      '<div class="pf-rc-method">' + esc(GAP_METHOD) + '</div></div>';
-  }
+  /* (dead duplicate gapStrip removed 2026-10-05: keep one source of truth in render) */
 
   /* ---------- share card: BOTH panels or nothing ---------- */
   function wrapText(x, text, maxW) {
@@ -310,7 +300,8 @@
       '<button type="button" class="pf-rc-cat" disabled title="Phase 3 — needs the official motor-fuel series">GAS<small>PHASE 3</small></button>' +
       '</div>';
 
-    var off = officialPanel(data.obs, F);
+    var offStale = data.offStale || null;
+    var off = officialPanel(data.obs, F, offStale);
     var ppl = peoplePanel(data.item);
     var showOff = view !== 'peoples', showPpl = view !== 'official';
     h += '<div class="pf-rc-panels"' + (view === 'side' ? '' : ' style="grid-template-columns:1fr"') + '>';
@@ -318,14 +309,26 @@
     if (showPpl) h += ppl.html;
     h += '</div>';
 
-    /* Gap: renders ONLY when both panels have publishable data. */
+    /* Gap: renders ONLY when both panels have publishable data AND the
+       official leg is fresh (staleness protocol: stale leg -> protocol line). */
     var gapText = '';
-    if (showOff && showPpl && ppl.publishable && off.yoy != null && ppl.delta != null) {
-      var gap = Math.abs(ppl.delta - off.yoy);
-      var dir = ppl.delta >= off.yoy ? 'above' : 'below';
+    if (offStale && offStale.stale && showOff && showPpl && ppl.publishable) {
+      /* Comparison paused — same protocol copy fred_compare uses. */
+      gapText = 'Comparison paused — ' + OFFICIAL_SID + ' is ' + (offStale.days_old == null ? '?' : offStale.days_old) +
+        ' days past its expected refresh.';
+      h += '<div class="pf-rc-gap"><b>THE GAP — </b>' + esc(gapText) +
+        '<div class="pf-rc-method">' + esc(GAP_METHOD) + '</div></div>';
+    } else if (showOff && showPpl && ppl.publishable && off.yoy != null && ppl.delta != null) {
+      /* Horizon-honest: annualize the people's month-over-month delta before
+         differencing against the official 12-month change. */
+      var ann = (Math.pow(1 + ppl.delta / 100, 12) - 1) * 100;
+      var gap = Math.abs(ann - off.yoy);
+      var dir = ann >= off.yoy ? 'above' : 'below';
       gapText = 'People report rents moving ' + (ppl.delta >= 0 ? '+' : '−') + Math.abs(ppl.delta).toFixed(1) +
-        '% this month; official rent CPI says ' + (off.yoy >= 0 ? '+' : '−') + Math.abs(off.yoy).toFixed(1) +
-        '%. That\u2019s a ' + gap.toFixed(1) + '-point gap, with the people\u2019s number ' + dir + '.';
+        '% this month — about a ' + (ann >= 0 ? '+' : '−') + Math.abs(ann).toFixed(1) +
+        '% annual pace; official rent CPI says ' + (off.yoy >= 0 ? '+' : '−') + Math.abs(off.yoy).toFixed(1) +
+        '% over the year. That\u2019s roughly a ' + gap.toFixed(1) +
+        '-point gap, with the people\u2019s number ' + dir + '.';
       h += '<div class="pf-rc-gap"><b>THE GAP — </b>' + esc(gapText) +
         '<div class="pf-rc-method">' + esc(GAP_METHOD) + '</div></div>';
     }
@@ -369,13 +372,14 @@
     else host.appendChild(el);
     el.innerHTML = '<div class="pf-rc"><div class="pf-rc-loading">CHECKING THE RECEIPTS…</div></div>';
 
-    var obs = null, item = null, done = 0;
+    var obs = null, item = null, offMeta = null, done = 0;
     function maybe() {
       if (++done < 2) return;
-      render(el, 'side', 'rent', { obs: obs, item: item });
+      render(el, 'side', 'rent', { obs: obs, item: item, offStale: offMeta });
     }
     F.api('fred_series', { series_id: OFFICIAL_SID, limit: 15 }, function (j) {
       obs = (j && j.ok && j.observations) || null;
+      if (j && j.ok) offMeta = { stale: !!j.stale, days_old: j.days_old == null ? null : j.days_old, stale_note: j.stale_note || null };
       maybe();
     });
     /* People's panel: national board. enough_data is backend-owned
@@ -391,7 +395,7 @@
     });
     /* Backstop: render whatever arrived after 15s. */
     setTimeout(function () {
-      if (done < 2) { done = 2; render(el, 'side', 'rent', { obs: obs, item: item }); }
+      if (done < 2) { done = 2; render(el, 'side', 'rent', { obs: obs, item: item, offStale: offMeta }); }
     }, 15000);
   }
 

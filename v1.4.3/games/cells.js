@@ -297,8 +297,166 @@ function loadMuster(){
 function renderGate(){
   var el=document.getElementById("cBody");
   if(!el) return;
-  /* 2026-10-03 H8: active in-place claim (was: scroll away to Enlistment Ranks). */
-  el.innerHTML=PF.gateHTML('Cells run on callsigns.','to form your cell');
+  /* CONTRIBUTION-FIRST, IDENTITY-SECOND (teardown WS-3, 2026-10-06):
+     guests get the PUBLIC SQUAD ROOM — live intel cards (leaderboard,
+     war standings, open assembly votes) with rate-limited DATA actions
+     that queue device-locally until a callsign is claimed. SOCIAL actions
+     (form/join/check-in/recruit/post-as-identity/cell chat) REQUIRE a
+     claimed callsign and are NEVER rendered for guests — see paintGuestRoom:
+     it wires zero cell_join/cell_checkin/cell_cover/cell_create/cell_leave
+     mutations. Security: queued actions are quarantined (never counted
+     toward quorums/aggregates) until the one session -> one callsign merge
+     fires them with an origin:'guest_queue' provenance flag. */
+  el.innerHTML=PF.gateHTML('Cells run on callsigns — but the intel is public.','to wire into a cell')
+    +'<div id="cGuestRoom"><div class="c-load">Reading the public board&hellip;</div></div>';
+  paintGuestRoom(document.getElementById("cGuestRoom"));
+}
+
+/* ---------- GUEST LAYER: quarantined, rate-limited, contribution-first ----
+   Queue store: localStorage pf_guest_queue_v1 — [{kind, proposal_id,
+   choice, ts, origin:'guest_queue'}]. Rate limit: 5 queued data actions per
+   device per 24h (pf_guest_rl_v1). Replay on 'pf-callsign-claimed' through
+   the SAME authenticated wires a member would use (proposal_vote), with
+   the provenance flag so the backend can tell guest-originated votes. */
+var GUEST_Q_KEY='pf_guest_queue_v1', GUEST_RL_KEY='pf_guest_rl_v1', GUEST_RL_MAX=5;
+function guestQueue(){ return load(GUEST_Q_KEY,[]); }
+function guestSaveQueue(q){ save(GUEST_Q_KEY,(q||[]).slice(-25)); }
+function guestRlOk(){
+  try{
+    var day=new Date().toISOString().slice(0,10);
+    var rl=load(GUEST_RL_KEY,{day:day,n:0});
+    if(rl.day!==day){ rl={day:day,n:0}; }
+    if(rl.n>=GUEST_RL_MAX) return false;
+    rl.n++; save(GUEST_RL_KEY,rl); return true;
+  }catch(e){ return false; }
+}
+/* The ONE guest data action on the cells surface: queue an assembly vote.
+   A guest's voice is captured NOW; identity is asked for at the moment they
+   want credit. Quarantined until claim — never a live aggregate write. */
+function guestVote(pid,choice){
+  pid=String(pid||''); choice=String(choice||'').toLowerCase();
+  if(pid===''||(choice!=='yes'&&choice!=='no')) return;
+  var q=guestQueue();
+  for(var i=0;i<q.length;i++){ if(String(q[i].proposal_id)===pid){ toast("Already queued — claim a callsign to fire it."); return; } }
+  if(!guestRlOk()){ toast("Guest move limit reached (5/day). Claim a callsign for unlimited action."); return; }
+  q.push({kind:'proposal_vote',proposal_id:pid,choice:choice,ts:Date.now(),origin:'guest_queue',guest_queued:1});
+  guestSaveQueue(q);
+  toast("QUEUED — claim a callsign and your vote fires with it.");
+  paintGuestRoom(document.getElementById("cGuestRoom"));
+}
+function guestReplay(){
+  var q=guestQueue();
+  if(!q.length) return;
+  var id=ident();
+  if(!id.callsign||!window.PF_BACKEND_URL) return;
+  var rest=q.slice();
+  guestSaveQueue([]);
+  (function next(){
+    var it=rest.shift();
+    if(!it){ if(guestQueue().length===0) toast("Your queued moves fired — welcome to the fight."); return; }
+    var body={type:'gov',g_action:'proposal_vote',callsign:id.callsign,device:id.device,
+      proposal_id:it.proposal_id,choice:it.choice,origin:'guest_queue'};
+    function done(j){
+      if(!(j&&j.ok)){ var r=guestQueue(); r.push(it); guestSaveQueue(r); }
+      next();
+    }
+    try{
+      if(window.PF&&PF.authPost){ PF.authPost(window.PF_BACKEND_URL,body,done); return; }
+    }catch(e){}
+    try{
+      fetch(window.PF_BACKEND_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+        .then(function(r){ return r.json(); }).then(function(j){ done(j||{ok:false}); }).catch(function(){ done({ok:false}); });
+    }catch(e){ done({ok:false}); }
+  })();
+}
+document.addEventListener('pf-callsign-claimed', function(){ setTimeout(guestReplay,1500); });
+/* Exposed for the teardown verify harness. */
+window.PFCellsGuest={queue:guestQueue,vote:guestVote,replay:guestReplay,rlMax:GUEST_RL_MAX};
+
+/* Public squad room: intel cards (P2) + the full 3-slot Action Bar (P6).
+   Every number carries its source line (P4 voice) and every proof line is
+   real-or-suppressed (P8). Guests see standings; they can QUEUE a vote;
+   no social surface is wired here. */
+function paintGuestRoom(host){
+  if(!host) return;
+  var pat=(window.PF&&PF.patterns)||null;
+  function bar(){
+    return pat&&pat.actionBar
+      ? pat.actionBar({shareUrl:pageUrl(),cellUrl:'/cells',reportUrl:'#pf-cells'})
+      : '';
+  }
+  function pageUrl(){ try{ return String(window.location.href||'/cells'); }catch(e){ return '/cells'; } }
+  function cardHtml(kicker,headline,dataLine){
+    if(pat&&pat.intelCard) return pat.intelCard({kicker:kicker,headline:headline,dataLine:dataLine})+bar();
+    return '<div class="c-pane"><h4>'+headline+'</h4><div>'+dataLine+'</div></div>';
+  }
+  var pend=0;
+  try{
+    api("cell_leaderboard",{},function(jB){
+      api("cellwar_standings",{},function(jW){
+        api("proposal_list",{},function(jP){
+          var h='';
+          /* P1 briefing hero for guests: enlistment IS the primary action. */
+          if(pat&&pat.hero){
+            h+=pat.hero({kicker:'THE SQUAD ROOM',mission:'Five callsigns. One streak. Nobody gets left behind.',
+              sub:'Browse the war board as a guest. Do something valuable — your moves queue up and fire the moment you claim a callsign.'});
+            h+='<div style="margin:10px 0"><button type="button" class="pf-pat-join" data-pf-claim-cs="1" data-pf-claim-ctx="to wire into a cell">JOIN THE FIGHT.</button></div>';
+          }
+          /* Board — public, coarse, no member drill-downs. */
+          var cells=(jB&&jB.cells)||[];
+          if(cells.length){
+            var rows=cells.slice(0,5).map(function(c,i){
+              return '<div class="c-brow'+(i===0?' c-btop':'')+'"><span class="c-brank">'+(i+1)+'</span>'+
+                '<span class="c-bname">'+esc(c.name)+
+                (c.verified?'<span class="c-vfy" title="2+ callsigns strong">&#10003; VERIFIED</span>':'')+'</span>'+
+                '<span class="c-bstat">'+c.streak+' streak &middot; '+c.members+'/5</span></div>';
+            }).join('');
+            h+=cardHtml('PUBLIC BOARD','Top cells — week of '+esc(String(jB.week||'')),rows+
+              '<div class="x-note" style="margin-top:6px">source: cell_leaderboard &middot; coarse standings only, no member drill-downs</div>');
+          }
+          /* War standings — existing public wiring, pattern skin. */
+          var war=(jW&&jW.ok&&jW.standings)||[];
+          if(war.length){
+            var wrows=war.slice(0,3).map(function(r,i){
+              return '<div class="c-brow"><span class="c-brank">'+(i+1)+'</span>'+
+                '<span class="c-bname">'+esc(r.name)+'</span>'+
+                '<span class="c-bstat">'+esc(String(r.xp_earned||0))+' XP</span></div>';
+            }).join('');
+            h+=cardHtml('CELL WAR','Week '+esc(String(jW.week_no||''))+' standings',wrows+
+              '<div class="x-note" style="margin-top:6px">source: cellwar_standings &middot; public, rate-limited (60s cache)</div>');
+          }
+          /* Open assembly votes — the guest DATA action: queue a vote. */
+          var open=(jP&&jP.ok&&jP.proposals?jP.proposals:[]).filter(function(p){ return p.status==='open'; });
+          var q=guestQueue();
+          if(open.length){
+            var prows=open.slice(0,3).map(function(p){
+              var pid=String(p.id||'');
+              var queued=null;
+              for(var i=0;i<q.length;i++){ if(String(q[i].proposal_id)===pid){ queued=q[i]; break; } }
+              var btns=queued
+                ? '<span class="x-note">QUEUED '+(queued.choice||'').toUpperCase()+' — claim a callsign to fire it</span>'
+                : '<button class="c-btn c-sm" data-gv-yes="'+esc(pid)+'">VOTE YES</button> '+
+                  '<button class="c-btn c-sm" data-gv-no="'+esc(pid)+'">VOTE NO</button>';
+              return '<div class="hq-mem"><span><b>'+esc(p.title||'Untitled proposal')+'</b><br>'+
+                '<span class="x-note">YES '+esc(String(p.yes_weight||0))+' &middot; NO '+esc(String(p.no_weight||0))+
+                ' &middot; '+esc(String(p.voter_count||0))+' voters</span></span><span>'+btns+'</span></div>';
+            }).join('');
+            h+=cardHtml('THE PEOPLE\u2019S ASSEMBLY','Open votes — your voice, queued',prows+
+              '<div class="x-note" style="margin-top:6px">source: proposal_list &middot; guest votes are quarantined on this device until you claim a callsign ('+q.length+' queued, '+GUEST_RL_MAX+'/day)</div>');
+          }
+          host.innerHTML=h||'<div class="c-empty">The board is quiet. Check back soon.</div>';
+          host.querySelectorAll('[data-gv-yes]').forEach(function(b){
+            b.onclick=function(){ guestVote(b.getAttribute('data-gv-yes'),'yes'); };
+          });
+          host.querySelectorAll('[data-gv-no]').forEach(function(b){
+            b.onclick=function(){ guestVote(b.getAttribute('data-gv-no'),'no'); };
+          });
+        });
+      });
+    });
+  }catch(e){
+    host.innerHTML='<div class="c-empty">The board is quiet. Check back soon.</div>';
+  }
 }
 /* Friendly copy for cell_mine read failures (2026-10-03): raw backend
    strings like 'missing credentials' are never rendered as UI copy. */
@@ -759,6 +917,10 @@ function drawRecruitPoster(c){
 function renderCell(el,s){
   if(SLIM){ renderCellSlim(el,s); return; }
   var c=s.cell, pct=Math.round((c.mult-1)*100);
+  /* PSYCH GATE (teardown WS-3): streaks are PARTICIPATION RATE, never
+     all-or-nothing; no blame attribution ever — "3 of 5 reported", never
+     "2 failed". Members who haven't checked in render neutrally (no OUT
+     badge); the header counts reporters, not failures. */
   var mems=(s.members||[]).map(function(m){
     var role=String(m.role||"member").toUpperCase();
     var badge=role==="FOUNDER"?'<span class="c-role c-rfounder">FOUNDER</span>'
@@ -769,8 +931,11 @@ function renderCell(el,s){
       ?' <button class="c-btn c-sm c-prom" data-cs="'+esc(m.callsign)+'">PROMOTE</button>':"";
     return '<div class="c-mrow"><span class="c-dot'+(m.checked_today?" c-on":"")+'"></span>'+
       '<span class="c-mname">'+esc(m.callsign)+'</span>'+prb+badge+
-      (m.checked_today?'<span class="c-mok">IN</span>':'<span class="c-mno">OUT</span>')+prom+'</div>';
+      (m.checked_today?'<span class="c-mok">IN</span>':'')+prom+'</div>';
   }).join("");
+  var memArr=s.members||[];
+  var reportedToday=memArr.filter(function(m){ return !!m.checked_today; }).length;
+  var partHead='<div class="x-note" style="margin:8px 0 4px"><b>'+reportedToday+' OF '+(memArr.length||5)+' REPORTED TODAY</b></div>';
   /* CELL PRESTIGE panel: tier badge, power, benefits, progress, recruit nudge. */
   var pr=c.prestige||null, prHtml="";
   if(pr&&pr.tier){
@@ -821,7 +986,7 @@ function renderCell(el,s){
     '<span class="c-mult">+'+pct+'% XP on Daily Orders</span>'+
     '<span class="c-cov">Covers left this week: '+c.covers_left+'</span></div>'+
     prHtml+
-    '<div class="c-members">'+mems+'</div>';
+    '<div class="c-members">'+partHead+mems+'</div>';
   if(s.is_founder){
     html+='<div class="c-rename"><input aria-label="RENAME CELL" id="cRename" maxlength="24" placeholder="RENAME CELL" value="'+esc(c.name)+'" autocomplete="off">'+
       '<button class="c-btn" id="cRenameBtn">Rename</button></div>';

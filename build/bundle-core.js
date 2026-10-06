@@ -58,6 +58,10 @@ var CORE_FILES = [
      After 03-global (PF_BACKEND_URL); lazy, no load-time DOM/DB dependency. */
   'core/creator-stats.js',
   'core/14-auth.js',
+  /* TEARDOWN WS-3 (2026-10-06): the pattern library moves up so game/core
+     modules that consume PF.patterns (squadjoin, cells) can call it
+     synchronously at mount. Pure HTML builders, no load-time deps. */
+  'core/33-patterns.js',
   /* Pod 4 (2026-10-05): "Sign in with Bluesky" OAuth link card. After
      14-auth (needs PF.authPost/authGetJSONP + requireCallsign). */
   'core/28-bsky-link.js',
@@ -152,13 +156,7 @@ var CORE_FILES = [
   /* freshness (Cohesion §4, 2026-10-05): PF.freshBadge / PF.degradedVintage /
      PF.honestZero — LIVE badges only on <=15-min-fresh data, automatic label
      degradation, honest zero states. Kill: ?pf_off=27-freshness. */
-  'core/27-freshness.js',
-  /* teardown patterns (WS-0, 2026-10-06): the 8-pattern brand library —
-     PF.patterns render helpers (pure HTML strings, zero backend, zero XP,
-     fail-open, no writes). Last: needs nothing but the PF bus (00-bus);
-     positioned last so the 12 section workstreams can consume it from any
-     page bundle that ships core. Kill: ?pf_off=patterns. */
-  'core/33-patterns.js'
+  'core/27-freshness.js'
 ];
 
 /* 2026-10-05 (fix/money-minified-rebuild): money suite lazy chunk. The 10

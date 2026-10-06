@@ -19,31 +19,33 @@
 </div>
 <style>
 #pf-cell-war-front .pf-load{color:#a89e88;font-size:14px;padding:20px;text-align:center}
-#pf-cell-war-front .pw-wrap{background:linear-gradient(160deg,#0d0d0d 0%,#140b1c 60%,#0d0d0d 100%);border:3px solid #7b2ff7;padding:26px 22px;max-width:680px;margin:18px auto;text-align:center;box-shadow:0 0 24px rgba(123,47,247,.35);color:#f5ead6;font-family:Arial,sans-serif}
-#pf-cell-war-front .pw-kicker{font-size:12px;letter-spacing:4px;color:#7b2ff7;font-weight:800;margin-bottom:6px}
+/* TEARDOWN WS-3: pattern skin (P2 Intel Card) — black card, red top-rule.
+   Data wiring below is unchanged. */
+#pf-cell-war-front .pw-wrap{background:#0d0d0d;border-top:4px solid #c1121f;border-left:3px solid #c1121f;border-right:3px solid #c1121f;border-bottom:3px solid #c1121f;padding:26px 22px;max-width:680px;margin:18px auto;text-align:center;box-shadow:0 0 24px rgba(193,18,31,.35);color:#f5ead6;font-family:Arial,sans-serif}
+#pf-cell-war-front .pw-kicker{font-size:12px;letter-spacing:4px;color:#c1121f;font-weight:800;margin-bottom:6px}
 #pf-cell-war-front h2{font-family:'Arial Black',Arial,sans-serif;color:#f5ead6;font-size:28px;margin:0 0 4px;letter-spacing:2px;text-transform:uppercase}
-#pf-cell-war-front h2 .pw-week{color:#7b2ff7}
+#pf-cell-war-front h2 .pw-week{color:#c1121f}
 #pf-cell-war-front .pw-sub{font-size:13px;color:#a89e88;margin-bottom:14px;line-height:1.5}
-#pf-cell-war-front .pw-champ{background:#7b2ff7;color:#fff;font-weight:800;font-size:14px;padding:10px 14px;margin:0 0 16px;letter-spacing:1px}
+#pf-cell-war-front .pw-champ{background:#c1121f;color:#fff;font-weight:800;font-size:14px;padding:10px 14px;margin:0 0 16px;letter-spacing:1px}
 #pf-cell-war-front .pw-champ small{display:block;font-weight:400;font-size:12px;margin-top:4px;letter-spacing:0}
 #pf-cell-war-front .pw-row{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;background:#161616;border:1px solid #333;padding:10px 12px;margin-bottom:8px;text-align:left}
-#pf-cell-war-front .pw-row.pw-mine{border:2px solid #c9a0ff;background:#17101f}
-#pf-cell-war-front .pw-pos{font-family:'Arial Black',Arial,sans-serif;font-size:20px;color:#7b2ff7;text-align:center}
-#pf-cell-war-front .pw-row.pw-mine .pw-pos{color:#c9a0ff}
+#pf-cell-war-front .pw-row.pw-mine{border:2px solid #c1121f;background:#1e0d0d}
+#pf-cell-war-front .pw-pos{font-family:'Arial Black',Arial,sans-serif;font-size:20px;color:#c1121f;text-align:center}
+#pf-cell-war-front .pw-row.pw-mine .pw-pos{color:#ff5a5a}
 #pf-cell-war-front .pw-name{font-weight:800;font-size:15px;color:#f5ead6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #pf-cell-war-front .pw-sub2{font-size:12px;color:#a89e88;margin-top:2px}
-#pf-cell-war-front .pw-mine-tag{display:inline-block;background:#c9a0ff;color:#000;font-size:10px;font-weight:800;padding:1px 6px;margin-left:6px;letter-spacing:1px;vertical-align:middle}
+#pf-cell-war-front .pw-mine-tag{display:inline-block;background:#c1121f;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;margin-left:6px;letter-spacing:1px;vertical-align:middle}
 #pf-cell-war-front .pw-bar{height:8px;background:#2a2a2a;margin-top:6px;border:1px solid #444}
-#pf-cell-war-front .pw-bar i{display:block;height:100%;background:linear-gradient(90deg,#7b2ff7,#c9a0ff)}
-#pf-cell-war-front .pw-score{font-family:'Courier New',monospace;font-size:15px;font-weight:700;color:#c9a0ff;text-align:right;white-space:nowrap}
+#pf-cell-war-front .pw-bar i{display:block;height:100%;background:linear-gradient(90deg,#c1121f,#ff5a00)}
+#pf-cell-war-front .pw-score{font-family:'Courier New',monospace;font-size:15px;font-weight:700;color:#f5ead6;text-align:right;white-space:nowrap}
 #pf-cell-war-front .pw-cta{margin-top:16px}
-#pf-cell-war-front .pw-btn{display:inline-block;background:#7b2ff7;color:#fff;font-weight:800;font-size:15px;padding:13px 30px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;margin:4px;cursor:pointer}
-#pf-cell-war-front .pw-btn.pw-ghost{background:transparent;border-color:#7b2ff7;color:#f5ead6}
+#pf-cell-war-front .pw-btn{display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:15px;padding:13px 30px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;margin:4px;cursor:pointer}
+#pf-cell-war-front .pw-btn.pw-ghost{background:transparent;border-color:#c1121f;color:#f5ead6}
 #pf-cell-war-front .pw-btn:disabled{opacity:.5;cursor:default}
 #pf-cell-war-front .pw-note{font-size:12px;color:#a89e88;margin-top:12px;line-height:1.5}
 #pf-cell-war-front .pw-empty{font-size:14px;color:#a89e88;padding:14px 0;line-height:1.6}
-#pf-cell-war-front .pw-standby{border:2px dashed #7b2ff7;padding:22px 16px;margin:6px 0}
-#pf-cell-war-front .pw-standby .pw-st-k{font-size:12px;letter-spacing:4px;color:#c9a0ff;font-weight:800;margin-bottom:8px}
+#pf-cell-war-front .pw-standby{border:2px dashed #c1121f;padding:22px 16px;margin:6px 0}
+#pf-cell-war-front .pw-standby .pw-st-k{font-size:12px;letter-spacing:4px;color:#c1121f;font-weight:800;margin-bottom:8px}
 </style>
 <script>
 (function(){
@@ -101,9 +103,21 @@ function toast(m){
   try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
   try{
     var t=document.createElement("div"); t.textContent=m;
-    t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#7b2ff7;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+    t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
     document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800);
   }catch(e2){}
+}
+/* TEARDOWN WS-3: CTA discipline — "ENLIST MY CELL" carried the banned
+   enlist verb; the DEPLOY-family voice is "FIELD MY CELL". */
+function frontActionBar(){
+  try{
+    var pat=(window.PF&&window.PF.patterns)||null;
+    if(pat&&pat.actionBar){
+      var u=''; try{ u=String(window.location.href||'/cells'); }catch(e){ u='/cells'; }
+      return pat.actionBar({shareUrl:u,cellUrl:'/cells',reportUrl:'/#pf-orders'});
+    }
+  }catch(e){}
+  return '';
 }
 function joinFront(cellId,btn){
   var id=ident();
@@ -160,13 +174,14 @@ function render(j){
   for(var mi=0;mi<mine.length;mi++){ if(opted.indexOf(mine[mi])===-1) can.push(mine[mi]); }
   h+='<div class="pw-cta">';
   if(can.length&&id.callsign){
-    h+='<button class="pw-btn" id="pwJoin" type="button">ENLIST MY CELL \u2192</button>';
+    h+='<button class="pw-btn" id="pwJoin" type="button">FIELD MY CELL \u2192</button>';
   }else if(!id.callsign){
-    h+='<div class="pw-note">Claim a callsign and join a cell to enlist it in the front.</div>';
+    h+='<div class="pw-note">Claim a callsign and join a cell to field it on the front.</div>';
   }
   h+='</div>';
   h+='<div class="pw-note">Every poster forged via political plugins and every bounty your fighters complete feeds your cell\u2019s per-fighter score. '+
      'Top cell Sunday midnight takes the PROPAGANDIST crown \u2014 glory only, zero XP. Opt-in is per week; the front defaults OFF.</div>';
+  h+=frontActionBar();
   h+='</div>';
   host.innerHTML=h;
   if(TICK) clearInterval(TICK);

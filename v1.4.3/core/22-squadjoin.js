@@ -102,13 +102,20 @@
       ov.setAttribute("role","dialog");
       ov.setAttribute("aria-label","Find your squad");
       ov.style.cssText="position:fixed;top:0;left:0;right:0;bottom:0;z-index:99997;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;padding:1rem;box-sizing:border-box;";
+      /* TEARDOWN WS-3: the primary CTA rides the DEPLOY-family pattern
+         (fail-open to the legacy red button when the pattern lib is
+         kill-switched). "JOIN THE FIGHT." stays enlistment-only and is
+         never reused here — this routes a claimed callsign to their cell. */
+      var patCta = null;
+      try { patCta = (window.PF && PF.patterns && PF.patterns.deployBtn) ? PF.patterns.deployBtn('/cells', 'FIND YOUR CELL') : ''; } catch (e) { patCta = ''; }
+      if (!patCta) patCta = '<a href="/cells" style="display:inline-block;background:#c1121f;color:#fff;font-weight:900;letter-spacing:0.12em;font-size:0.95rem;text-decoration:none;padding:0.9rem 2rem;border:2px solid #c1121f;">FIND YOUR CELL &rarr;</a>';
       ov.innerHTML=
         '<div style="position:relative;background:#0b0b0c;border:3px solid #c1121f;max-width:440px;width:100%;padding:2rem 1.5rem;text-align:center;box-sizing:border-box;font-family:\'Helvetica Neue\',Arial,sans-serif;">'
         +'<div id="pf-sq-x" role="button" tabindex="0" aria-label="Close" style="position:absolute;top:0.4rem;right:0.7rem;cursor:pointer;font-size:1.4rem;color:#b8ab8e;line-height:1;">&times;</div>'
         +'<div style="color:#c1121f;font-weight:800;letter-spacing:0.3em;font-size:0.72rem;margin-bottom:0.8rem;">&#9733; SICK LEFT RADICALS &#9733;</div>'
         +'<div style="color:#f5ead6;font-weight:900;font-size:1.7rem;line-height:1.25;margin-bottom:0.4rem;">YOU HAVE A NAME.<br>NOW GET A SQUAD.</div>'
         +'<div style="color:#c9bfa8;font-size:0.95rem;line-height:1.6;margin-bottom:1.2rem;">Five callsigns. One streak.<br>Nobody left behind.</div>'
-        +'<a href="/cells" style="display:inline-block;background:#c1121f;color:#fff;font-weight:900;letter-spacing:0.12em;font-size:0.95rem;text-decoration:none;padding:0.9rem 2rem;border:2px solid #c1121f;">FIND YOUR CELL &rarr;</a>'
+        + patCta
         +'<div style="margin-top:0.9rem;"><span id="pf-sq-no" role="button" tabindex="0" style="color:#b8ab8e;font-size:0.8rem;cursor:pointer;text-decoration:underline;">I fight alone (for now)</span></div>'
         +'</div>';
       document.body.appendChild(ov);

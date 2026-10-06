@@ -126,7 +126,10 @@
 
   var active = null; /* one guided card at a time */
 
-  function stepRow(num, title, body, done, btnId, btnLabel) {
+  /* TEARDOWN WS-3 (News Desk gate): the red-button rule — only enlistment
+     and the DEPLOY family may be red. "GOT IT" is a confirmation, so it
+     renders ghost (non-red). */
+  function stepRow(num, title, body, done, btnId, btnLabel, ghostBtn) {
     var h = '<div style="margin:.55rem 0;padding:.7rem .8rem;text-align:left;box-sizing:border-box;' +
       (done
         ? 'border:2px solid #2f7a3d;background:#0a140a;'
@@ -137,9 +140,10 @@
     if (!done) {
       h += '<div style="font-size:.78rem;color:#b8ab8e;line-height:1.5;margin:.3rem 0 .5rem;">' + body + '</div>';
       if (btnId) {
-        h += '<button type="button" id="' + btnId + '" style="display:inline-block;background:#c1121f;' +
-          'border:2px solid #c1121f;color:#fff;font-weight:900;letter-spacing:.1em;' +
-          'padding:.55rem 1.1rem;font-size:.78rem;cursor:pointer;">' + esc(btnLabel) + '</button>';
+        var btnStyle = ghostBtn
+          ? 'display:inline-block;background:transparent;border:2px solid #c1121f;color:#f5f0e1;font-weight:900;letter-spacing:.1em;padding:.55rem 1.1rem;font-size:.78rem;cursor:pointer;'
+          : 'display:inline-block;background:#c1121f;border:2px solid #c1121f;color:#fff;font-weight:900;letter-spacing:.1em;padding:.55rem 1.1rem;font-size:.78rem;cursor:pointer;';
+        h += '<button type="button" id="' + btnId + '" style="' + btnStyle + '">' + esc(btnLabel) + '</button>';
       }
     }
     h += '</div>';
@@ -173,8 +177,8 @@
         st.checked, 'pf-fh-checkin', 'GO CHECK IN');
       h += stepRow(2, 'THE COVER RULE',
         'Miss a day and a cellmate can cover you &mdash; once per week. That is the whole safety net. ' +
-        'Check in daily so nobody has to burn their cover on you.',
-        st.coverOk, 'pf-fh-cover', 'GOT IT');
+        'No blame, no questions — the net holds.',
+        st.coverOk, 'pf-fh-cover', 'GOT IT', true);
       h += stepRow(3, 'RECRUIT ONE',
         'Bring one fighter in. When your recruit checks in, the +25 XP recruit bounty pays through the existing bounty wire &mdash; no extra steps.',
         st.recruited, 'pf-fh-share', 'RECRUIT ONE');

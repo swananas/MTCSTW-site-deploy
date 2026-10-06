@@ -462,27 +462,33 @@
     if (!(s > 1.0001) || !(s <= 2)) return '';
     return '<span class="hq-surge" title="Thin data zone — this bounty pays above the posted XP until coverage fills in. Surge decays as confirmed reports arrive.">&#9889;SURGE &times;'+s.toFixed(1)+'</span>';
   }
-  /* Governance card: active assembly votes with a vote CTA (reverse path of
-     the governance widget's RALLY YOUR CELL link — /cells -> /governance). */
+  /* Governance card (TEARDOWN WS-3): Intel Card (P2) skin + the full 3-slot
+     Action Bar (P6). Data wiring unchanged — active assembly votes with a
+     vote CTA (reverse path of the governance widget's RALLY YOUR CELL link). */
   function paintGovCard(el){
     if (!el) return;
+    var pat = (window.PF && PF.patterns) || null;
     loadGov(function(j){
       var open = (j && j.ok && j.proposals ? j.proposals : []).filter(function(p){ return p.status === 'open'; });
       if (!open.length){ el.style.display = 'none'; return; }
       el.style.display = '';
-      var h = '<div class="hq-card"><h3>&#127963; The People\'s Assembly <span class="hq-note">open votes</span></h3>' +
-        '<div class="hq-note">The network governs itself. Your ballot carries your XP weight — cast it where it counts.</div>';
+      var rows = '';
       open.slice(0,3).forEach(function(p){
         var pid = String(p.id||'');
-        h += '<div class="hq-mem"><span><b>'+esc(p.title||'Untitled proposal')+'</b><br>' +
+        rows += '<div class="hq-mem"><span><b>'+esc(p.title||'Untitled proposal')+'</b><br>' +
           '<span class="hq-note">YES '+esc(String(p.yes_weight||0))+' &middot; NO '+esc(String(p.no_weight||0)) +
           ' &middot; '+esc(String(p.voter_count||0))+' voters &middot; '+esc(timeLeft(Number(p.closes_at||0)-Date.now())) +'</span></span>' +
           '<span><a class="hq-btn sm" style="text-decoration:none;display:inline-block" href="/governance#gv-prop-'+esc(pid)+'">VOTE &rarr;</a></span></div>';
       });
       if (open.length > 3)
-        h += '<div class="hq-note"><a href="/governance">+'+(open.length-3)+' more open on the Assembly floor &rarr;</a></div>';
-      h += '<div data-pf-handoff="share-intel"></div></div>';
-      el.innerHTML = h;
+        rows += '<div class="hq-note"><a href="/governance">+'+(open.length-3)+' more open on the Assembly floor &rarr;</a></div>';
+      var inner = '<div class="hq-note">The network governs itself. Your ballot carries your XP weight — cast it where it counts.</div>' + rows;
+      el.innerHTML = (pat && pat.intelCard
+        ? pat.intelCard({ kicker: 'THE PEOPLE\u2019S ASSEMBLY', headline: 'Open votes', dataLine: inner,
+            verb: 'deploy', label: 'OPEN THE ASSEMBLY FLOOR', href: '/governance' }) + hqActionBar(pat) +
+          '<div data-pf-handoff="share-intel"></div>'
+        : '<div class="hq-card"><h3>&#127963; The People\'s Assembly <span class="hq-note">open votes</span></h3>' + inner +
+          '<div data-pf-handoff="share-intel"></div></div>');
     });
   }
   /* Cell data-bounty card: the cell's open bounties WITH gold surge markers.
@@ -493,20 +499,26 @@
     roster_correction:'ROSTER FIX', photo_evidence:'PHOTO BOUNTY' };
   function paintDbCard(el, cellId){
     if (!el) return;
+    var pat = (window.PF && PF.patterns) || null;
     if (!cellId){ el.style.display = 'none'; return; }
     loadCellBounties(cellId, function(j){
       var mine = (j && j.ok && j.bounties ? j.bounties : []).filter(function(b){ return String(b.cell_id||'') === String(cellId); });
       if (!mine.length){ el.style.display = 'none'; return; }
       el.style.display = '';
-      var h = '<div class="hq-card"><h3>&#9889; Cell data bounties <span class="hq-note">your cell\'s open targets</span></h3>' +
-        '<div class="hq-note">Your content becomes movement action — shares, campaigns, evidence, price data. Never sold. Never ad inventory.</div>';
+      var rows = '';
       mine.slice(0,5).forEach(function(b){
-        h += '<div class="hq-mem"><span><b>'+esc(HQ_DB_KINDS[b.kind]||b.kind||'BOUNTY')+'</b> — '+esc(b.title||'')+hqSurgeTag(b)+'<br>' +
+        rows += '<div class="hq-mem"><span><b>'+esc(HQ_DB_KINDS[b.kind]||b.kind||'BOUNTY')+'</b> — '+esc(b.title||'')+hqSurgeTag(b)+'<br>' +
           '<span class="hq-note">+'+esc(String(b.xp_amount||0))+' XP &middot; '+esc(String((b.claims||[]).length))+' claim(s) awaiting confirmation</span></span></div>';
       });
-      h += '<div class="hq-row" style="margin-top:8px"><a class="hq-btn sm" style="text-decoration:none;display:inline-block" href="/create?tab=bounties">OPEN THE BOUNTY BOARD &rarr;</a></div>';
-      h += '<div data-pf-handoff="share-intel"></div></div>';
-      el.innerHTML = h;
+      var inner = '<div class="hq-note">Your content becomes movement action — shares, campaigns, evidence, price data. Never sold. Never ad inventory.</div>' + rows;
+      el.innerHTML = (pat && pat.intelCard
+        ? pat.intelCard({ kicker: 'CELL DATA BOUNTIES', headline: 'Your cell\u2019s open targets', dataLine: inner,
+            verb: 'deploy', label: 'OPEN THE BOUNTY BOARD', href: '/create?tab=bounties' }) + hqActionBar(pat) +
+          '<div data-pf-handoff="share-intel"></div>'
+        : '<div class="hq-card"><h3>&#9889; Cell data bounties <span class="hq-note">your cell\'s open targets</span></h3>' +
+          inner +
+          '<div class="hq-row" style="margin-top:8px"><a class="hq-btn sm" style="text-decoration:none;display:inline-block" href="/create?tab=bounties">OPEN THE BOUNTY BOARD &rarr;</a></div>' +
+          '<div data-pf-handoff="share-intel"></div></div>');
     });
   }
   function loadLinks(cb){
@@ -552,20 +564,50 @@
   }
 
   /* ---------- TAB 1: MY CELLS ---------- */
-  function cellCard(c, mine){
+  /* TEARDOWN WS-3 (2026-10-06): every dashboard card is an Intel Card (P2)
+     with the cell's collective streak as a Progression Ring (P5) and the
+     full 3-slot Action Bar (P6): SHARE THIS INTEL · TAKE THIS TO YOUR CELL
+     · REPORT BACK. The ring renders PARTICIPATION RATE (reported/members),
+     never all-or-nothing — no blame attribution. */
+  function hqActionBar(pat, shareUrl){
+    if (!(pat && pat.actionBar)) return '';
+    var url = shareUrl || '';
+    try { url = url || String(window.location.href || '/cells'); } catch (e) { url = '/cells'; }
+    return pat.actionBar({ shareUrl: url, cellUrl: '/cells', reportUrl: '/#pf-orders' });
+  }
+  function cellCard(c, mine, partInfo){
     var isF = c.is_founder;
     var vBadge = c.verified ? '<span class="hq-badge">VERIFIED</span>' : '';
     var fBadge = isF ? '<span class="hq-badge">FOUNDER</span>' : '';
     var chk = c.checked_today ? '<span class="hq-badge dim">CHECKED IN</span>'
       : '<button class="hq-btn sm" data-hq="checkin" data-cell="'+esc(c.id)+'">CHECK IN</button>';
+    var pat = (window.PF && PF.patterns) || null;
+    /* P5: the cell's collective streak as a participation-rate ring.
+       Rendered ONLY with real reporter counts — a fake 0% is a lie, so the
+       ring stays hidden until the participation data is on record (P8). */
+    var ringHtml = '';
+    try {
+      var p = partInfo || null;
+      if (pat && pat.ring && p && Number(p.members) > 0){
+        var memN = Number(p.members);
+        var repN = Math.max(0, Math.min(memN, Number(p.reported) || 0));
+        ringHtml = '<div class="hq-row" style="margin:6px 0">' +
+          pat.ring({ xp: repN, cap: memN,
+            streak: Number(c.streak) || 0, rank: c.prestige_tier || '' }) +
+          '<span class="hq-note"><b>' + repN + ' OF ' + memN + ' REPORTED TODAY</b><br>' +
+          esc(String(c.streak||0)) + '-day streak — the net holds together</span></div>';
+      }
+    } catch (e) { ringHtml = ''; }
     return '<div class="hq-card"><h3>'+esc(c.name)+vBadge+fBadge+hqStateBadge(c)+'</h3>' +
+      ringHtml +
       '<div><span class="hq-stat">'+esc(String(c.streak||0))+'-day streak</span>' +
       '<span class="hq-stat">'+esc(String(c.members||0))+'/5 members</span>' +
       '<span class="hq-stat">'+esc(String(c.active_week||0))+' active this week</span>' +
       (c.prestige_tier ? '<span class="hq-stat">'+esc(c.prestige_flame||'')+' '+esc(c.prestige_tier)+'</span>' : '') +
       (c.invite_code ? '<span class="hq-stat">Code: '+esc(c.invite_code)+'</span>' : '') + '</div>' +
       '<div class="hq-row" style="margin-top:8px">'+chk +
-      '<button class="hq-btn sm ghost" data-hq="detail" data-cell="'+esc(c.id)+'">OPEN HQ</button></div></div>';
+      '<button class="hq-btn sm ghost" data-hq="detail" data-cell="'+esc(c.id)+'">OPEN HQ</button></div>' +
+      hqActionBar(pat) + '</div>';
   }
 
   function renderMine(p){
@@ -603,6 +645,9 @@
           checked_today: j.checked_today, invite_code: prim.invite_code,
           prestige_tier: prim.prestige_tier, prestige_flame: prim.prestige_flame,
           state: prim.state
+        }, null, {
+          reported: (j.members||[]).filter(function(m){ return !!m.checked_today; }).length,
+          members: (j.members||[]).length
         });
         if (j.cover_for){
           h += '<div class="hq-card"><h3>Cover available</h3>' +
@@ -963,23 +1008,26 @@
     if (!st) return '';
     return '<div class="hq-note" style="margin-bottom:6px"><b>'+esc(st)+' targets</b></div>';
   }
-  function strikeMemberRows(mems, doneFor){
-    if (!mems || !mems.length) return '<div class="hq-note">No members on record.</div>';
-    return mems.map(function(m){
-      var cs = String(m && m.callsign ? m.callsign : '—');
-      var done = !!doneFor(m);
-      return '<div class="hq-mem"><span><b>'+esc(cs)+'</b></span>' +
-        '<span class="hq-note" style="font-size:16px">'+(done?'&#10003;':'&#9675;')+'</span></div>';
+  /* PSYCH GATE (teardown WS-3): no blame attribution ever. The details list
+     names REPORTERS only (positive, never who missed) — "3 of 5 reported",
+     never "2 failed". */
+  function strikeReporters(mems, doneFor){
+    var done = [];
+    (Array.isArray(mems) ? mems : []).forEach(function(m){
+      try { if (doneFor(m)) done.push(String(m && m.callsign ? m.callsign : '—')); } catch (e) {}
+    });
+    if (!done.length) return '<div class="hq-note">Nobody in yet — the first report lands here.</div>';
+    return done.map(function(cs){
+      return '<div class="hq-mem"><span><b>'+esc(cs)+'</b></span><span class="hq-badge">REPORTED</span></div>';
     }).join('');
   }
   function strikeProgress(mems, aggStr, doneFor){
     var a = strikeXY(aggStr);
     var pct = a.y > 0 ? Math.min(100, Math.round(a.x / a.y * 100)) : 0;
-    var mems = Array.isArray(mems) ? mems : [];
-    return '<div class="hq-note"><b>'+a.x+'/'+a.y+' members completed</b></div>' +
+    return '<div class="hq-note"><b>'+a.x+'/'+a.y+' reported</b> — participation, not perfection</div>' +
       '<div class="hq-bar"><div style="width:'+pct+'%"></div></div>' +
-      '<details><summary class="hq-strike-sum">Who is done? ('+a.x+'/'+a.y+')</summary>' +
-      strikeMemberRows(mems, doneFor) + '</details>';
+      '<details><summary class="hq-strike-sum">Who reported? ('+a.x+'/'+a.y+')</summary>' +
+      strikeReporters(mems, doneFor) + '</details>';
   }
   function strikeOpsCard(o, mems, agg){
     var title = o && o.title ? String(o.title) : 'Operations order';
@@ -1150,14 +1198,18 @@
     });
   }
 
-  /* ---------- TAB 3: CELL WAR ---------- */
+  /* ---------- TAB 2: CELL WAR ---------- */
+  /* TEARDOWN WS-3: the Cell War standings card keeps its EXISTING data
+     wiring (loadWar/loadHistory/loadMarket) — pattern skin only (P2 Intel
+     Card + P6 Action Bar). */
   function renderWar(p){
+    var pat = (window.PF && PF.patterns) || null;
     var h = '<div class="hq-card"><h3>&#9876; How Cell War works</h3>' +
       '<div class="hq-note">Every Monday a new war week begins. Cells earn XP all week — ' +
       'the top cell is crowned champion and every member takes a <b>+10% XP bonus</b>. ' +
       'Bout fire feeds the war score too — one war, one leaderboard. ' +
       'Past weeks finalize automatically. <b>Weekly champions claim territory.</b> ' +
-      'Fight as your callsign.</div></div>';
+      'Fight as your callsign.</div>' + hqActionBar(pat) + '</div>';
     h += '<div id="hqWarBody">'+loading('Reading the war board&hellip;')+'</div>';
     p.innerHTML = h;
     var body = document.getElementById('hqWarBody');
@@ -1167,18 +1219,23 @@
       var out = '';
       if (jS && jS.ok){
         if (jS.last_winner){
-          out += '<div class="hq-card hq-winner"><h3>&#128081; Reigning champion — '+esc(jS.last_winner.cell_name||'')+'</h3>' +
-            '<div class="hq-note">'+esc(String(jS.last_winner.xp_earned||0))+' XP last week. Dethrone them.</div></div>';
+          out += (pat && pat.intelCard
+            ? pat.intelCard({ kicker: 'REIGNING CHAMPIONS', headline: jS.last_winner.cell_name || '',
+                dataLine: esc(String(jS.last_winner.xp_earned||0)) + ' XP last week. Dethrone them.' }) + hqActionBar(pat)
+            : '<div class="hq-card hq-winner"><h3>&#128081; Reigning champion — '+esc(jS.last_winner.cell_name||'')+'</h3>' +
+              '<div class="hq-note">'+esc(String(jS.last_winner.xp_earned||0))+' XP last week. Dethrone them.</div></div>');
         }
-        out += '<div class="hq-card"><h3>Week '+esc(String(jS.week_no||''))+' standings</h3>';
         var st = jS.standings||[];
-        if (!st.length) out += '<div class="hq-note">No cells on the board yet this week. Be the first to score.</div>';
+        var srows = '';
+        if (!st.length) srows = '<div class="hq-note">No cells on the board yet this week. Be the first to score.</div>';
         st.forEach(function(r, i){
           var mine = r.mine ? '<span class="hq-badge">YOUR CELL</span>' : '';
-          out += '<div class="hq-mem"><span><b>#'+(i+1)+'</b> '+esc(r.prestige_flame||'')+' '+esc(r.name)+mine+'</span>' +
+          srows += '<div class="hq-mem"><span><b>#'+(i+1)+'</b> '+esc(r.prestige_flame||'')+' '+esc(r.name)+mine+'</span>' +
             '<span class="hq-note">'+esc(String(r.xp_earned||0))+' XP &middot; '+esc(String(r.members_active||0))+'/'+esc(String(r.members||0))+'</span></div>';
         });
-        out += '</div>';
+        out += (pat && pat.intelCard
+          ? pat.intelCard({ kicker: 'CELL WAR', headline: 'Week '+String(jS.week_no||'')+' standings', dataLine: srows }) + hqActionBar(pat)
+          : '<div class="hq-card"><h3>Week '+esc(String(jS.week_no||''))+' standings</h3>' + srows + '</div>');
         /* Cell dashboard ecosystem (2026-10-06): rally actions — the war
            board is ammunition (data->propaganda). */
         out += '<div data-pf-handoff="share-intel"></div>';
@@ -1197,7 +1254,8 @@
           out += '<div class="hq-mem"><span><b>#'+(i+1)+'</b> '+esc(o.name||'')+'</span>' +
             '<span class="hq-note">'+esc(String(o.implied||0))+'% implied'+pays+'</span></div>';
         });
-        out += '<div style="margin-top:10px"><a class="hq-btn" href="/arcade#pf-forecasts">STAKE IN THE WAR ROOM &rarr;</a></div></div>';
+        out += '<div style="margin-top:10px"><a class="hq-btn" href="/arcade#pf-forecasts">STAKE IN THE WAR ROOM &rarr;</a></div>' +
+          hqActionBar(pat) + '</div>';
       }
       if (jHh && jHh.ok && (jHh.winners||[]).length){
         out += '<div class="hq-card"><h3>Hall of fame</h3>';
@@ -1207,7 +1265,7 @@
           out += '<div class="hq-mem"><span>&#128081; '+esc(w.cell_name||'')+'</span>' +
             '<span class="hq-note">'+esc(d)+' &middot; '+esc(String(w.xp_earned||0))+' XP</span></div>';
         });
-        out += '</div>';
+        out += hqActionBar(pat) + '</div>';
       }
       body.innerHTML = out;
       wireRetries(body);

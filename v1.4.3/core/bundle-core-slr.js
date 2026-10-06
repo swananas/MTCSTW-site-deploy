@@ -2348,15 +2348,20 @@ window.PF.boostReceipt = function(){
 
   /* ---------- service worker (same-origin required) ---------- */
   // Browsers hard-require the SW script to be same-origin with the site.
-  // Served from jsDelivr this registration WILL fail with a SecurityError;
-  // we catch it and run in manifest-only mode (iOS A2HS + install signals).
-  // Full offline support needs sw.js at https://www.mtcstw.com/sw.js —
-  // see pwa/README.md for the hosting options.
+  // Phase B (2026-10-05): try the origin-relative /sw.js FIRST (served by
+  // the pf-sw Cloudflare worker on www.mtcstw.com); fall back to the CDN
+  // copy, which WILL fail with a SecurityError — we catch it and run in
+  // manifest-only mode (iOS A2HS + install signals).
   if ('serviceWorker' in navigator) {
     try {
-      navigator.serviceWorker.register(BASE + 'sw.js').then(
-        function () { if (window.console) console.log('[PF PWA] SW registered'); },
-        function (err) { if (window.console) console.log('[PF PWA] SW unavailable (needs same-origin hosting):', err && err.message); }
+      navigator.serviceWorker.register('/sw.js').then(
+        function () { if (window.console) console.log('[PF PWA] SW registered (origin)'); },
+        function () {
+          navigator.serviceWorker.register(BASE + 'sw.js').then(
+            function () { if (window.console) console.log('[PF PWA] SW registered (CDN)'); },
+            function (err) { if (window.console) console.log('[PF PWA] SW unavailable (needs same-origin hosting):', err && err.message); }
+          );
+        }
       );
     } catch (e) {
       if (window.console) console.log('[PF PWA] SW registration blocked:', e && e.message);

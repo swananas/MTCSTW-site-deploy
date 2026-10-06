@@ -149,6 +149,8 @@ function render(j){
     'State turf is self-declared by each cell. No one is tracked, mapped, or followed.</div>';
   h+='</div>';
   host.innerHTML=h;
+  /* 2026-10-06 share-everywhere: share/save + network row on the map. */
+  try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(host,'territory-map',{link:'/cells'}); }catch(e){}
 }
 function load(){
   api("territory_map_status",{callsign:ident()},render);

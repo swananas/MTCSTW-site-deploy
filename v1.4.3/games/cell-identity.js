@@ -175,6 +175,8 @@
       el.innerHTML=h;
       if(W.step===6){ var kp=el.querySelector("#idKitPrev"); if(kp) paintKit(kp,previewCell()); }
       wire();
+      /* 2026-10-06 share-everywhere: share the formed identity. */
+      try{ if(W.step===6&&window.PFShareEverywhere) PFShareEverywhere.bar(el,'cell-identity',{link:'/cells'}); }catch(e){}
     }
     function labelOf(list,k){ for(var i=0;i<list.length;i++) if(list[i][0]===k) return list[i][1]; return k; }
     function previewCell(){

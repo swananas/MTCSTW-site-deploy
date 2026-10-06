@@ -189,6 +189,8 @@
       h+='<div class=\"pm-title\" style=\"margin-top:12px\">\u2694 Campaign Medals <span>\u2014 persistent, never reset</span></div><div class=\"pm-rack\">'+ah+'</div>';
       if(!achv.scout) h+='<div class=\"pm-note\">Scout the roster: view <b>6</b> different fighters\u2019 catalog pages to earn SCOUT.</div>';
       el.innerHTML=h;
+      /* 2026-10-06 share-everywhere. */
+      try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(el,'achievements',{link:'/'}); }catch(e){}
       return true;
     }
     function checkFull(s){

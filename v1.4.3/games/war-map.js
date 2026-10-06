@@ -185,6 +185,8 @@ function render(j){
      '<br><b>Honorific:</b> territory points are never XP and can never be converted.</div>';
   h+='</div>';
   host.innerHTML=h;
+  /* 2026-10-06 share-everywhere. */
+  try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(host,'war-map',{link:'/cells'}); }catch(e){}
   if(TICK) clearInterval(TICK);
   tick(); TICK=setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} tick(); },1000);
   var jb=document.getElementById("wmJoinCell"), bb=document.getElementById("wmBuildCell");

@@ -128,6 +128,8 @@ function render(j){
        '<div class="pw-empty">The forge and bounty rails are still mustering \u2014 this front opens when they go live.<br>The Cell War marches on regardless.</div></div>';
     h+='</div>';
     host.innerHTML=h;
+    /* 2026-10-06 share-everywhere. */
+    try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(host,'cell-war-front',{link:'/cells'}); }catch(e){}
     if(TICK) clearInterval(TICK);
     tick(); TICK=setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} tick(); },1000);
     return;

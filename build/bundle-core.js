@@ -54,6 +54,9 @@ var CORE_FILES = [
      After 03-global (PF_BACKEND_URL); lazy, no load-time DOM/DB dependency. */
   'core/creator-stats.js',
   'core/14-auth.js',
+  /* Pod 4 (2026-10-05): "Sign in with Bluesky" OAuth link card. After
+     14-auth (needs PF.authPost/authGetJSONP + requireCallsign). */
+  'core/28-bsky-link.js',
   'pwa/install.js',
   'core/04-ledger.js',
   'core/05-tally.js',

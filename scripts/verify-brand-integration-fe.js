@@ -82,9 +82,12 @@ ok('banned-term scan (no "donate", no @shanetheswan)');
 
 /* Bundle markers */
 var bcSrc = read('build/bundle-core.js');
-if (bcSrc.indexOf("'core/share-everywhere.js'") > bcSrc.indexOf("'core/share-image.js'"))
-  ok('build list: share-everywhere after share-image (bundle-core.js)');
-else no('build list', 'share-everywhere.js not after share-image.js');
+/* Teardown: the P6 Action Bar now ships via 33-patterns.js (not
+   share-everywhere.js). The shipping guarantee is that the patterns
+   module — provider of the P6 Action Bar — is in the core build list. */
+if (bcSrc.indexOf("'core/33-patterns.js'") !== -1)
+  ok('build list: 33-patterns (P6 Action Bar) in bundle-core.js');
+else no('build list', '33-patterns.js missing from bundle-core.js');
 if (bcSrc.indexOf("'core/robreport.js'") !== -1) ok('build list: robreport in bundle-money');
 else no('build list', 'robreport.js missing from MONEY_FILES');
 var bSrc = read('build/bundle.js');
@@ -95,15 +98,22 @@ else no('build list', 'war-report.js missing');
 
 /* Surface hooks + link integrations + handoffs */
 var HOOKS = [
-  ['v1.4.3/core/robreport.js', 'data-pf-share="robreport-\' + esc(it.id) + \'"', 'robreport item card share hook'],
-  ['v1.4.3/core/robreport.js', 'data-pf-share="robreport-basket-\' + esc(b.id) + \'"', 'robreport basket share hook'],
-  ['v1.4.3/core/robreport.js', 'data-pf-share-mode="nets"', 'robreport nets mode'],
-  ['v1.4.3/core/robreport.js', 'href="/economy#pf-inflation-board"', 'robbery card -> CPI link'],
-  ['v1.4.3/core/robreport.js', 'href="/data-bounties"', 'robbery card -> bounties link'],
-  ['v1.4.3/core/robreport.js', 'data-pf-handoff="share-intel"', 'robbery report SHARE THIS INTEL'],
-  ['v1.4.3/core/robreport.js', 'data-pf-handoff="take-cell"', 'robbery report TAKE THIS TO YOUR CELL'],
-  ['v1.4.3/core/robreport.js', '_painters: EXT_PAINTERS', 'robreport exposes _painters'],
-  ['v1.4.3/core/robreport.js', 'SE.resolvePoster(pid, deliver)', 'robreport unified poster path'],
+  /* Teardown WS-5: robreport share is per-card PFShare posters registered
+     directly (PFShare.setPoster) + data-rr-share buttons wired by
+     wireShare() -> P.poster(pid) -> P.shareImage(). The loop closers are
+     text links (/economy#pf-inflation-checkin, /follow-the-money). The
+     old data-pf-share / data-pf-share-mode / data-pf-handoff / _painters /
+     SE.resolvePoster hooks are retired; take-cell lives in the P6
+     Action Bar (33-patterns.js). */
+  ['v1.4.3/core/robreport.js', "PFShare.setPoster('robreport-' + it.id", 'robreport per-item poster registration'],
+  ['v1.4.3/core/robreport.js', "PFShare.setPoster('robreport-basket-' + b.id", 'robreport per-basket poster registration'],
+  ['v1.4.3/core/robreport.js', 'data-rr-share="', 'robreport card share buttons (data-rr-share)'],
+  ['v1.4.3/core/robreport.js', "querySelectorAll('[data-rr-share]')", 'robreport wireShare wiring'],
+  ['v1.4.3/core/robreport.js', 'P.poster(pid)', 'robreport poster resolution path'],
+  ['v1.4.3/core/robreport.js', "href: '/economy#pf-inflation-checkin'", 'robbery card -> CPI checkin link'],
+  ['v1.4.3/core/robreport.js', "href: '/follow-the-money'", 'robbery card -> follow-the-money link'],
+  ['v1.4.3/core/robreport.js', 'SHARE THIS INTEL', 'robreport SHARE THIS INTEL card action'],
+  ['v1.4.3/core/33-patterns.js', "'TAKE THIS TO YOUR CELL'", 'P6 Action Bar take-cell (replaces take-cell handoff)'],
   ['v1.4.3/games/inflation-tracker.js', 'data-pf-share="inflation-board"', 'inflation board/trends nets hook'],
   ['v1.4.3/games/inflation-tracker.js', 'data-pf-handoff="share-intel"', 'inflation SHARE THIS INTEL'],
   ['v1.4.3/games/fred-stackem.js', 'data-pf-share="stackem"', 'stackem nets hook'],

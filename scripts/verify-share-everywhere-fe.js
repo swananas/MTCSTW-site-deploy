@@ -91,12 +91,11 @@ else no('banned term', '"donate" found');
 if (stripped.indexOf('shanetheswan') === -1) ok('no @shanetheswan');
 else no('identity', '@shanetheswan found');
 
-/* Bundle marker: module in the core build list after share-image.js */
+/* Bundle marker (teardown): the P6 Action Bar ships via 33-patterns.js in
+   the core build list — share-everywhere.js is no longer bundled. */
 var buildSrc = read('build/bundle-core.js');
-var siIdx = buildSrc.indexOf("'core/share-image.js'");
-var seIdx = buildSrc.indexOf("'core/share-everywhere.js'");
-if (seIdx > siIdx && siIdx !== -1) ok('build list (after share-image.js)');
-else no('build list', 'share-everywhere.js not after share-image.js');
+if (buildSrc.indexOf("'core/33-patterns.js'") !== -1) ok('build list (33-patterns P6 Action Bar in core)');
+else no('build list', '33-patterns.js missing from bundle-core.js');
 
 /* Surface hooks present */
 var HOOKS = [
@@ -117,7 +116,9 @@ var HOOKS = [
   ['v1.4.3/games/peoplesbank.js', 'pf:terminal'],
   ['v1.4.3/games/peoplesbank.js', 'data-pf-terminal="bank-deposit"'],
   ['v1.4.3/games/ventures.js', 'https://www.mtcstw.com/ventures'],
-  ['v1.4.3/games/governance.js', 'gv-share'],
+  /* Teardown WS-11: governance share wiring is the P6 actionBar
+     (P.actionBar({...})), not the retired gv-share hook. */
+  ['v1.4.3/games/governance.js', 'P.actionBar({'],
   ['v1.4.3/games/events.js', 'gameId:"event-rsvp"'],
   ['v1.4.3/games/war-bonds.js', 'data-pf-share="war-bonds"'],
   ['v1.4.3/games/war-bonds.js', 'pf_backed=1'],

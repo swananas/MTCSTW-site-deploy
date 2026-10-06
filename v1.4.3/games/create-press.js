@@ -281,7 +281,7 @@
     var h = P.hero({
       kicker: 'CREATE — THE PRINT SHOP',
       mission: 'Grab a press kit. Swap one line. Pump it everywhere.',
-      joinHref: '/#pf-enlist'
+      joinHref: '/#pf-ranks'
     });
     h += masteryHtml();
     for (var f = 0; f < FIGHTS.length; f++) {

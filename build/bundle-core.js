@@ -298,6 +298,9 @@ var BUNDLES = {
     'games/reactions.js',
     'core/06-pinups.js',
     'core/share-image.js',
+    /* 2026-10-06 share-everywhere: territory map + sitewide UGC share bars.
+       Right after share-image so PFShare is registered first. */
+    'core/share-everywhere.js',
     /* PHQ share posters (2026-10-05, consolidated fe/phq-share-consolidation):
        ~1.5KB lazy stub ONLY. The full painter module
        (core/share-image-phq.js, 23 painters, ~87KB) loads on the first

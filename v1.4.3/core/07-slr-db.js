@@ -142,4 +142,122 @@
     }
     return null;
   };
+
+  /* PROJECT BLOSSOM F3 (2026-10-06): SCORE SINGLE SOURCE OF TRUTH.
+     The roster index and catalog pages rendered `m.propaganda_score`
+     directly and drifted apart (index 8.9 vs catalog 9.0 for
+     the-antifascist-frog). Every surface reads through PF.slrScore /
+     PF.slrScoreText now — one getter, one format, one number. The live
+     Efficiency Index (games/efficiency.js) may paint a computed score over
+     these slots later, but the static fallback is always this. */
+  PF.slrScore = function (slug) {
+    var m = PF.slrMember(slug);
+    var s = m ? Number(m.propaganda_score) : NaN;
+    return (typeof s === 'number' && isFinite(s)) ? s : 0;
+  };
+  PF.slrScoreText = function (slug) {
+    return PF.slrScore(slug).toFixed(1);
+  };
+
+  /* PROJECT BLOSSOM F2 (2026-10-06): REAL AFFINITY MATCHING.
+     The old "nearest score" related block rendered an identical trio on
+     unrelated pages. PF.slrRelated(slug, n) returns the n most related
+     members — pure, deterministic, computed from the DB only:
+       shared social platforms (canonicalized links[].platform +
+         primary_platform; aggregators like Website/Linktree excluded): +4 each
+       content_focus token overlap, IDF-weighted (rare shared words like
+         "stop-motion" beat common ones like "political"): up to +12
+       propaganda-score proximity: +4 x (1-|d|/2.2)
+       audience-scale proximity (log10 followers_total): +1.5 x (1-|d|/3)
+     Ties break by slug (ascending). Never returns the member itself.
+     Exported on PF for the catalog page; also used by the verify suite. */
+  var AFF_STOP = { the:1, a:1, an:1, and:1, or:1, of:1, to:1, in:1, on:1,
+    for:1, with:1, is:1, are:1, was:1, be:1, by:1, from:1, as:1, at:1, it:1,
+    its:1, this:1, that:1, they:1, their:1, them:1, we:1, our:1, you:1, your:1,
+    he:1, she:1, his:1, her:1, not:1, no:1, but:1, so:1, if:1, when:1, who:1,
+    what:1, which:1, all:1, both:1, more:1, most:1, than:1, into:1, over:1,
+    out:1, up:1, about:1, also:1, new:1, per:1, via:1 };
+  function affTokens(s) {
+    var set = {};
+    String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').split(' ').forEach(function (w) {
+      if (w && w.length > 2 && !AFF_STOP[w]) set[w] = 1;
+    });
+    return set;
+  }
+  /* Canonicalize a raw platform label to a real social/content platform.
+     Aggregators (websites, link-in-bio, merch, tip jars, fundraisers) carry
+     no affinity signal — every creator has them. Unknown -> ''. */
+  function affCanonPlat(raw) {
+    var s = String(raw || '').toLowerCase().replace(/[^a-z]/g, '');
+    if (/^tiktok/.test(s)) return 'tiktok';
+    if (/^facebook/.test(s)) return 'facebook';
+    if (/^instagram/.test(s)) return 'instagram';
+    if (/^youtube/.test(s)) return 'youtube';
+    if (s === 'x') return 'x';
+    if (/^substack/.test(s)) return 'substack';
+    if (/^patreon/.test(s)) return 'patreon';
+    if (/^podcast/.test(s)) return 'podcast';
+    if (/^twitch/.test(s)) return 'twitch';
+    return '';
+  }
+  function affPlatforms(m) {
+    var set = {};
+    try {
+      var pp = affCanonPlat(m.primary_platform);
+      if (pp) set[pp] = 1;
+      (m.links || []).forEach(function (l) {
+        var c = l && affCanonPlat(l.platform);
+        if (c) set[c] = 1;
+      });
+    } catch (e) {}
+    return set;
+  }
+  /* IDF table over the whole roster's content_focus tokens, computed once. */
+  var _affIdf = null;
+  function affIdf() {
+    if (_affIdf) return _affIdf;
+    var df = {}, i, k;
+    for (i = 0; i < MEMBERS.length; i++) {
+      var t = affTokens(MEMBERS[i] && MEMBERS[i].content_focus);
+      for (k in t) df[k] = (df[k] || 0) + 1;
+    }
+    var N = Math.max(MEMBERS.length, 1), out = {};
+    for (k in df) out[k] = Math.log(N / df[k]);
+    _affIdf = out;
+    return out;
+  }
+  PF.slrRelated = function (slug, n) {
+    n = Math.max(1, Math.min(12, Number(n) || 3));
+    var me = PF.slrMember(slug);
+    if (!me) return [];
+    var idf = affIdf();
+    var meTok = affTokens(me.content_focus), mePl = affPlatforms(me);
+    var meScore = Number(me.propaganda_score) || 0;
+    var meReach = Math.log10(Math.max(Number(me.followers_total) || 1, 1));
+    var scored = [];
+    for (var i = 0; i < MEMBERS.length; i++) {
+      var x = MEMBERS[i];
+      if (!x || x.slug === slug) continue;
+      var s = 0, k;
+      var xp = affPlatforms(x), shared = 0;
+      for (k in xp) { if (mePl[k]) shared++; }
+      /* Platform overlap is capped: creators on six platforms would
+         otherwise swamp the content signal with aggregator-style
+         ubiquity (the old identical-trio failure mode). */
+      s += 4 * Math.min(shared, 2);
+      var xt = affTokens(x.content_focus), cw = 0;
+      for (k in xt) { if (meTok[k]) cw += idf[k] || 0; }
+      s += Math.min(12, cw);
+      var ds = Math.abs((Number(x.propaganda_score) || 0) - meScore);
+      s += 2.5 * (1 - Math.min(1, ds / 2.2));
+      var dr = Math.abs(Math.log10(Math.max(Number(x.followers_total) || 1, 1)) - meReach);
+      s += 1.5 * (1 - Math.min(1, dr / 3));
+      scored.push({ m: x, s: s });
+    }
+    scored.sort(function (a, b) {
+      if (b.s !== a.s) return b.s - a.s;
+      return a.m.slug < b.m.slug ? -1 : (a.m.slug > b.m.slug ? 1 : 0);
+    });
+    return scored.slice(0, n).map(function (r) { return r.m; });
+  };
 })();

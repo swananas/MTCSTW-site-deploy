@@ -145,7 +145,11 @@ var CORE_FILES = [
      breathing-room helpers (sticky scrollspy section nav, collapsible
      sections, show-more list disclosure). Companion to the BREATHE CSS
      section in 02-design-system.css. Pilot: /follow-the-money. */
-  'core/30-breathe.js'
+  'core/30-breathe.js',
+  /* blossom (2026-10-06, fe/blossom-craft): PF.BreathePages — page-level
+     BREATHE application for the dedicated v2 app/hub pages (rhythm +
+     section nav). Wired by pages/page-mount.js. */
+  'core/31-breathe-pages.js'
 ];
 
 /* 2026-10-05 (fix/money-minified-rebuild): money suite lazy chunk. The 10

@@ -100,11 +100,7 @@
     '.pf-mp-gauge{height:26px;border-radius:4px;overflow:hidden;display:flex;margin:10px 0}',
     '.pf-mp-g-sm{background:#e8b923}.pf-mp-g-lg{background:#c1121f}',
     '.pf-mp-gleg{display:flex;justify-content:space-between;font-size:13px;color:#c9bfa8;font-weight:700;flex-wrap:wrap;gap:6px}',
-    '.pf-mp-note{font-size:13px;color:#c9bfa8;text-align:center;padding:14px}',
-    '.pf-mp-redirect{max-width:560px;margin:24px auto;background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:28px 22px;text-align:center;color:#f5ead6;font-family:Arial,sans-serif}',
-    '.pf-mp-redirect h3{font-weight:900;font-size:22px;letter-spacing:2px;margin:0 0 10px}',
-    '.pf-mp-redirect p{color:#c9bfa8;font-size:14px;margin:0 0 16px}',
-    '.pf-mp-redirect a{display:inline-block;background:#c1121f;color:#fff;font-weight:900;letter-spacing:2px;padding:14px 28px;border-radius:8px;text-decoration:none;font-size:16px}'
+    '.pf-mp-note{font-size:13px;color:#c9bfa8;text-align:center;padding:14px}'
   ].join('\n');
 
   function cssOnce() {
@@ -495,16 +491,55 @@
     exitsRail(root);
   }
 
+  /* PROJECT BLOSSOM M4 (2026-10-06): the "money war room moved" redirect
+     card is dead. The money tab in the PHQ tab rail becomes a plain link
+     to /follow-the-money — no card, no section takeover. The rail tab is
+     swapped once (idempotent marker below); phq-hubs.js refreshTabs()
+     skips anchor tabs so the link survives hub visibility passes.
+     Fail-soft: if the rail never mounts, a minimal inline link is left at
+     the top of the PHQ host instead. */
+  var FOLLOW_THE_MONEY = '/follow-the-money';
+  function railLinkTab(dest) {
+    try {
+      if (document.querySelector('#pf-hq-subnav a[data-hub="money"]')) return true;
+      var tab = document.querySelector('#pf-hq-subnav .pf-hq-tab[data-hub="money"]');
+      if (!tab || !tab.parentNode) return false;
+      var a = document.createElement('a');
+      a.className = tab.className;
+      a.setAttribute('role', 'tab');
+      a.setAttribute('data-hub', 'money');
+      a.setAttribute('aria-controls', 'phq-money');
+      a.href = dest;
+      a.textContent = 'FOLLOW THE MONEY';
+      tab.parentNode.replaceChild(a, tab);
+      return true;
+    } catch (e) { return false; }
+  }
   function renderRedirect(host, url) {
     if (document.getElementById('phq-money')) return;
-    var sec = document.createElement('section');
-    sec.id = 'phq-money';
-    sec.className = 'pf-hub';
-    sec.innerHTML =
-      '<div class="pf-mp-redirect"><h3>FOLLOW THE MONEY</h3>' +
-      '<p>The money war room moved to its own page.</p>' +
-      '<a href="' + esc(url) + '">OPEN THE WAR ROOM \u2192</a></div>';
-    host.appendChild(sec);
+    /* Marker keeps the id contract (renderTab/renderRedirect run once). */
+    var marker = document.createElement('div');
+    marker.id = 'phq-money';
+    marker.style.display = 'none';
+    marker.setAttribute('aria-hidden', 'true');
+    host.appendChild(marker);
+    /* The subnav renders in the blocking bundle-hq chunk; this chunk is
+       async — retry briefly, then fall back to an inline link. */
+    var dest = url || FOLLOW_THE_MONEY;
+    var tries = 0;
+    (function attempt() {
+      if (railLinkTab(dest)) return;
+      if (++tries >= 20) {
+        try {
+          var p = document.createElement('p');
+          p.style.cssText = 'text-align:center;margin:1rem auto;max-width:560px;';
+          p.innerHTML = '<a href="' + esc(dest) + '" style="color:#e8b923;font-weight:900;letter-spacing:2px;text-decoration:none;">FOLLOW THE MONEY &rarr;</a>';
+          host.insertBefore(p, host.firstChild);
+        } catch (e2) {}
+        return;
+      }
+      setTimeout(attempt, 500);
+    })();
   }
 
   function boot() {

@@ -271,6 +271,23 @@
   }
 
   var mounted = {};
+  /* PROJECT BLOSSOM (2026-10-06): BREATHE rollout phases 1-3 — dedicated
+     pages that get page-level rhythm + section nav via PF.BreathePages.
+     /follow-the-money pilots its own wiring (core/money-page.js); /create
+     is owned by the workshop shell (rhythm in core/workshop.js). */
+  var BREATHE_PAGES = {
+    'pf-economy': 1, 'pf-warreport': 1,
+    'pf-cells-page': 1, 'pf-events': 1, 'pf-arcade': 1,
+    'pf-bank': 1, 'pf-warchest': 1
+  };
+  function applyBreathe(host, pageId) {
+    try {
+      if (!BREATHE_PAGES[pageId]) return;
+      if (window.PF && PF.BreathePages && typeof PF.BreathePages.applyPage === 'function') {
+        PF.BreathePages.applyPage(host, pageId);
+      }
+    } catch (e) { /* presentation-only: never break the mount */ }
+  }
   /* 2026-10-05 (fe/events-move): tracks injected lazy-bundle anchors so a
      lazy entry's placeholder is created exactly once per page/silo. */
   var lazyAnchored = {};
@@ -414,6 +431,9 @@
         n++;
       } catch (e) { err('mount failed: ' + silo, e); mounted[key] = 1; }
     });
+    /* PROJECT BLOSSOM (2026-10-06): page-level BREATHE (rhythm + section
+       nav). Idempotent — retry passes only touch newly mounted sections. */
+    applyBreathe(h, pageId);
     return n;
   }
 

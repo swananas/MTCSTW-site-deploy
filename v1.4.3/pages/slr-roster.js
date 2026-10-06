@@ -61,7 +61,9 @@
       + '<span data-pf-fc="' + esc(m.slug) + '" style="font-size:1.3rem;font-weight:900;color:' + RED + ';">' + esc(m.followers_display) + '</span>'
       + '<span style="font-size:0.75rem;color:' + MUTED + ';letter-spacing:0.08em;">FOLLOWERS' + (m.is_new ? ' · <span style="color:' + RED + ';font-weight:700;">NEW</span>' : '') + '</span>'
       + '</div>'
-      + '<div data-eff-score="' + esc(m.slug) + '" style="font-size:0.8rem;color:' + MUTED + ';">Propaganda score <strong style="color:' + CREAM + ';">' + m.propaganda_score.toFixed(1) + '/10</strong></div>'
+      /* PROJECT BLOSSOM F3: score from the single source of truth
+         (PF.slrScoreText) — same getter the catalog pages use. */
+      + '<div data-eff-score="' + esc(m.slug) + '" style="font-size:0.8rem;color:' + MUTED + ';">Propaganda score <strong style="color:' + CREAM + ';">' + PF.slrScoreText(m.slug) + '/10</strong></div>'
       + '<a href="' + esc(m.catalog_path) + '" style="margin-top:auto;padding-top:0.6rem;display:block;text-align:center;background:' + RED + ';color:#fff;font-weight:900;letter-spacing:0.14em;font-size:0.85rem;padding:0.65rem;text-decoration:none;">VIEW PROFILE →</a>'
       + (VOTE_SKIP_SLUGS.indexOf(m.slug) === -1 ? '<a href="/#pf-vote?for=' + esc(m.slug) + '" style="margin-top:0.5rem;display:block;text-align:center;border:2px solid ' + RED + ';color:' + RED + ';font-weight:900;letter-spacing:0.14em;font-size:0.8rem;padding:0.55rem;text-decoration:none;">VOTE FOR ' + esc(m.name) + ' &rarr;</a>' : '')
       + '</div></div>';

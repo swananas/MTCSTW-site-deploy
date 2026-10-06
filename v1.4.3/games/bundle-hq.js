@@ -1,1 +1,3005 @@
-!function(){"use strict";var e=window.PF;if(e&&!window.pfPhqHubsDone){window.pfPhqHubsDone=!0;var t=[{id:"action",sec:"01",tab:"TAKE ACTION",title:"Take Action",mission:"Stop reading. Start hitting.",silos:["action-center","civic-pressure","civic-petitions","civic-pledges","civic-callpractice","footprint","vote-alerts","civic-duty","civic-sharekits"],interim:["action-center","civic","footprint","vote-alerts","civic-duty"],order:["action-center","footprint","vote-alerts"],panes:["petitions","pressure","callpractice","pledges","sharekits"],alertRow:!0},{id:"people",sec:"02",tab:"PEOPLE",title:"People",mission:"Know the players. Your reps, their grades, your statehouse.",silos:["civic-directory","civic-scorecards","stateleg","wallshame"],interim:["civic","stateleg","wallshame"],order:["stateleg"],panes:["directory","reps","scorecards"],wallshame:!0},{id:"bills",sec:"03",tab:"BILLS & COURTS",title:"Bills & Courts",mission:"Read the battlefield. Bills, rulings, and orders — decoded.",silos:["legislation","courts","eo","governance","wallshame"],interim:["legislation","courts","eo","governance","wallshame"],order:["legislation","courts","eo","governance"],panes:[],wallshame:!0},{id:"ballot",sec:"04",tab:"BALLOT",title:"Ballot",mission:"Your ballot, your races, your countdown.",silos:["civic-ballot","ballotcd","races","measures","civic-votercheck"],interim:["civic","ballotcd","races","measures"],order:["races","measures","predict","predgame"],panes:["ballot","voter","votercheck","countdown"]},{id:"intel",sec:"05",tab:"INTEL",title:"Intel",mission:"Know more than they do.",silos:["intel","civic-polls","nonprofits","labor"],interim:["intel","civic","nonprofits"],order:["intel","nonprofits"],panes:["polls"]},{id:"money",sec:"06",tab:"FOLLOW THE MONEY",title:"Follow the Money",mission:"Follow the money. See who funds the votes.",silos:["money-tab","money-vote","pac-alerts","trades-tab","corp-card","ledgers","boycotts"],interim:["money-tab","money-vote","pac-alerts","trades-tab","corp-card","ledgers","boycotts"],order:[],panes:[],moneySlot:!0}],n=void 0!==window.PF_PHQ_SPLIT&&!!window.PF_PHQ_SPLIT,i={},r={},a={},o={};try{document.addEventListener("pf-civic-panes",function(){try{m()}catch(e){}})}catch(e){}var s=[],c={tried:!1,done:!1};e.phqDeepReady=C,e.mountHubSilos=function(n){try{var r=document.getElementById("pf-political-hq");if(!r||function(){try{if(-1!==(window.location.href||"").indexOf("/config/"))return!0;var e=document.body;return!(!e||!e.classList.contains("sqs-edit-mode")&&!e.classList.contains("sqs-editing"))}catch(e){return!1}}())return;window.pfPhqHubOrder=n;var a=e.skip("phq-hubnav");a||function(n){if(e.skip("phq-hubnav"))return null;if(document.getElementById("pf-hq-subnav"))return document.getElementById("pf-hq-subnav");var i=document.createElement("nav");i.id="pf-hq-subnav",i.setAttribute("aria-label","Political HQ sections");var r=document.createElement("div");r.className="pf-hq-tabs",r.setAttribute("role","tablist");for(var a=0;a<t.length;a++)(function(e){var t=document.createElement("button");t.className="pf-hq-tab",t.setAttribute("role","tab"),t.setAttribute("data-hub",e.id),t.setAttribute("aria-controls","phq-"+e.id),t.textContent=e.tab,t.addEventListener("click",function(){x(e.id,!0)}),r.appendChild(t)})(t[a]);i.appendChild(r),n.insertBefore(i,n.firstChild)}(r);!function(e){for(var n=0;n<t.length;n++)(function(n,i){if(!document.getElementById("phq-"+n.id)){var r=document.createElement("section");r.id="phq-"+n.id,r.className="pf-hub",r.setAttribute("data-hub",n.id);var a=t[(i+1)%t.length],o='<header class="pf-hub-head"><span class="pf-hub-kicker">SECTION '+n.sec+" — "+l(n.tab)+"</span><h2>"+l(n.title)+'</h2><p class="pf-hub-mission">'+l(n.mission)+"</p>"+(n.alertRow?'<p class="pf-hub-alertrow"><a href="#pf-util-notify-prefs" data-hub-go="__notify">Alert settings</a> — manage your vote &amp; case alerts.</p>':"")+'</header><div class="pf-hub-silos"><div class="pf-hub-loading">Loading '+l(n.title)+'&hellip;</div></div><footer class="pf-hub-exits"><a href="#phq-'+a.id+'" data-hub-go="'+a.id+'">Next: '+l(a.title)+' &rarr;</a><a href="#phq-action" data-hub-go="action">&larr; Back to Take Action</a></footer>';r.innerHTML=o,e.appendChild(r)}})(t[n],n)}(r),function(){if(!c.tried){c.tried=!0;var t=E();if(t){var n=0;!function i(){n++;try{var r=document.createElement("script");r.src=t,r.async=!0,r.onload=function(){C()},r.onerror=function(){n<2?setTimeout(i,5e3):e&&e.error("phq-hubs","deep chunk failed to load after retry — below-fold silos unavailable")},(document.head||document.documentElement).appendChild(r)}catch(t){e&&e.error("phq-hubs","deep chunk inject failed :: "+(t&&t.message||t))}}()}else e&&e.error("phq-hubs","deep chunk: could not resolve bundle-hq.js URL — deep silos skipped")}}(),function(t){if(!e.skip("civic")&&!document.getElementById("pf-phq-civicstrip")){var n=document.getElementById("pf-political-hq"),i=document.getElementById("pf-hq-subnav");if(n)for(var r=0;r<t.length;r++)if("civic"===t[r][0]){var a=document.createElement("div");return a.id="pf-phq-civicstrip",i&&i.parentNode===n?n.insertBefore(a,i.nextSibling):n.insertBefore(a,n.firstChild),void(h("civic",t[r][1],a)&&m())}}}(n),P(n),window.pfPhqHubDelegated||(window.pfPhqHubDelegated=!0,document.addEventListener("click",function(e){for(var t=e&&e.target;t&&t!==document;){if(t.getAttribute&&t.getAttribute("data-hub-go"))return e.preventDefault(),void x(t.getAttribute("data-hub-go"),!0);t=t.parentNode}}));var o=null;try{var s=String(window.location.hash||"").match(/^#phq-(people|bills|ballot|action|intel|money)$/);s&&(o=s[1])}catch(R){}if(a){for(var d=0;d<t.length;d++)y(t[d],n);return void T()}var p={people:!0};o&&(p[o]=!0);for(var u=0;u<t.length;u++)p[t[u].id]&&y(t[u],n);for(var v=[],f=0;f<t.length;f++)i[t[f].id]||v.push(t[f]);function L(){try{for(var e=window.innerHeight||800,t=v.length-1;t>=0;t--){var i=b(v[t]);if(i)i.getBoundingClientRect().top<1.5*e&&(y(v[t],n),v.splice(t,1));else v.splice(t,1)}}catch(e){}}if(L(),"IntersectionObserver"in window){var w=new IntersectionObserver(function(e){for(var t=0;t<e.length;t++)if(e[t]&&e[t].isIntersecting){for(var i=v.length-1;i>=0;i--)b(v[i])===e[t].target&&(y(v[i],n),v.splice(i,1));try{w.unobserve(e[t].target)}catch(e){}}},{rootMargin:"800px"});try{for(var S=0;S<v.length;S++){var _=b(v[S]);_&&w.observe(_)}}catch(O){L()}}else for(var A=v.length-1;A>=0;A--)y(v[A],n),v.splice(A,1);setTimeout(function(){try{for(var e=v.length-1;e>=0;e--)y(v[e],n),v.splice(e,1);T()}catch(e){}},15e3),T(),m(),g(),o&&setTimeout(function(){x(o,!1)},600)}catch(k){e&&e.error("phq-hubs","mountHubSilos failed :: "+(k&&k.message||k))}},e.phqGoHub=x,e.phqHubTest={hubs:t,paneKindForHeading:p,hubForPaneKind:u,hubForSilo:f,hubKillIds:function(e){return n?e.silos:e.interim},deepUrl:E,phqDeepReady:C,hubMissing:o}}function l(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function d(){try{return window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches}catch(e){return!1}}function p(e){var t=String(e||"").toLowerCase();return-1!==t.indexOf("petition")?"petitions":-1!==t.indexOf("scorecard")||-1!==t.indexOf("grade")?"scorecards":-1!==t.indexOf("directory")||-1!==t.indexOf("rep")||-1!==t.indexOf("congress")?"directory":-1!==t.indexOf("ballot center")||-1!==t.indexOf("ballot")?"ballot":-1!==t.indexOf("voter")||-1!==t.indexOf("regist")?"voter":-1!==t.indexOf("countdown")?"countdown":-1!==t.indexOf("pressure")||-1!==t.indexOf("campaign")?"pressure":-1!==t.indexOf("call practice")||-1!==t.indexOf("call script")?"callpractice":-1!==t.indexOf("pledge")?"pledges":-1!==t.indexOf("poll")?"polls":-1!==t.indexOf("share kit")?"sharekits":null}function u(e){for(var n=0;n<t.length;n++)if(-1!==t[n].panes.indexOf(e))return t[n].id;return null}function v(e){for(var n=0;n<t.length;n++)if(t[n].id===e)return t[n];return null}function f(e){for(var i=0;i<t.length;i++){if(-1!==(n?t[i].silos:t[i].order).indexOf(e))return t[i].id}return null}function h(t,n,i){try{if(e.skip(t))return!1;var r=document.getElementById(n);if(!r||!r.content)return!1;var a=document.importNode(r.content,!0),o=document.createElement("section");return o.className="pf-v2-game pf-hq-section",o.setAttribute("data-game",t),o.id="phq-silo-"+t,o.appendChild(a),i.appendChild(o),function(t,n){for(var i=t.querySelectorAll("script"),r=0;r<i.length;r++){try{(0,eval)(i[r].textContent)}catch(i){e&&e.error("phq-hubs","inner script failed in "+n+" :: "+(i&&i.message||i));try{for(var a=t.querySelectorAll(".c-load,.hq-load,.ca-load,.cw-load,.p-load"),o=0;o<a.length;o++){var s=document.createElement("div");s.style.cssText="border:2px solid var(--pf-red);background:#1a0505;color:#f5f0e1;padding:12px;margin:8px 0;font-family:Arial,sans-serif;font-size:14px;",s.innerHTML='This widget failed to start. <button style="background:var(--pf-red);color:#fff;border:0;font-weight:700;padding:8px 14px;cursor:pointer;" onclick="location.reload()">Reload</button>',a[o].parentNode&&a[o].parentNode.replaceChild(s,a[o])}}catch(e){}}i[r].remove()}}(o,n),!0}catch(n){return e&&e.error("phq-hubs","mount failed: "+t+" :: "+(n&&n.message||n)),!1}}function b(e){return document.getElementById("phq-"+e.id)}function m(){try{for(var e=document.querySelectorAll("#pf-phq-civicstrip .x-pane, #pf-political-hq .x-pane"),t=0;t<e.length;t++){var n=e[t].querySelector("h4");if(n){var i=p(n.textContent);if(i){var r=u(i);r&&(e[t].id||document.getElementById("phq-pane-"+i)||(e[t].id="phq-pane-"+i),e[t].setAttribute("data-phq-hub",r),e[t].setAttribute("data-phq-pane",i))}}}}catch(e){}}function g(){var e=document.getElementById("pf-hq-subnav");if(e)for(var t=e.querySelectorAll(".pf-hq-tab"),n=0;n<t.length;n++)(function(e){var t=v(e.getAttribute("data-hub"));if(t){var n=b(t),i=!n||"none"===n.style.display;if(i)try{i=0===document.querySelectorAll('[data-phq-hub="'+t.id+'"]').length}catch(e){}e.style.display=i?"none":"",e.setAttribute("aria-hidden",i?"true":"false")}})(t[n])}function y(t,n){if(i[t.id])return r[t.id]||0;i[t.id]=!0;var s=b(t),c=s?s.querySelector(".pf-hub-silos"):null,l=0,d=o[t.id]=[];try{if(c){for(var p=0;p<n.length;p++){var u=n[p][0],v=n[p][1];f(u)===t.id&&(a[t.id+":"+u]?l++:e.skip(u)||document.getElementById(v)?h(u,v,c)&&(a[t.id+":"+u]=!0,l++):d.push([u,v]))}(function(t){if(!t.wallshame||e.skip("wallshame"))return!1;var n=b(t);if(!n)return!1;var i=n.querySelector(".pf-hub-silos");if(!i)return!1;if(i.querySelector('[data-wallshame-slot="'+t.id+'"]'))return!0;try{var r=window.PFWallShame&&window.PFWallShame.mount?window.PFWallShame:e.WallShame&&e.WallShame.mount?e.WallShame:null;if(!r)return!1;var a=document.createElement("div");return a.setAttribute("data-wallshame-slot",t.id),i.appendChild(a),r.mount(null,a),!0}catch(n){return e&&e.error("phq-hubs","wallshame slot failed ("+t.id+") :: "+(n&&n.message||n)),!1}})(t)&&l++,function(t){if(!t.moneySlot||e.skip("money-tab"))return!1;var n=b(t);if(!n)return!1;var i=n.querySelector(".pf-hub-silos");if(!i)return!1;if(i.querySelector("[data-money-slot]"))return!0;try{var r=window.PFMoneyTab&&window.PFMoneyTab.mountTab?window.PFMoneyTab:e.MoneyTab&&e.MoneyTab.mountTab?e.MoneyTab:null;if(!r)return!1;var a=document.createElement("div");return a.setAttribute("data-money-slot","tab"),i.appendChild(a),r.mountTab(a),!0}catch(t){return e&&e.error("phq-hubs","money slot failed :: "+(t&&t.message||t)),!1}}(t)&&l++}}catch(n){e&&e.error("phq-hubs","hub mount failed: "+t.id+" :: "+(n&&n.message||n))}return r[t.id]=l,function(e){var t=b(e);if(t){var n=t.querySelector(".pf-hub-loading");n&&n.parentNode&&n.parentNode.removeChild(n)}}(t),m(),0===l&&s?(s.style.display="none",e&&e.error("phq-hubs","hub "+t.id+" has no mountable silos — hidden (fail-soft)")):l>0&&s&&"none"===s.style.display&&(s.style.display=""),g(),l}function P(t){if(!e.skip("notify-prefs")&&!document.getElementById("pf-util-notify-prefs")){var n=document.getElementById("pf-political-hq");if(n)for(var i=0;i<t.length;i++)if("notify-prefs"===t[i][0]){var r=document.getElementById(t[i][1]);if(!r||!r.content)return;var a=document.createElement("div");return a.id="pf-util-notify-prefs",a.className="pf-hub-util",n.appendChild(a),void h("notify-prefs",t[i][1],a)}}}function w(){s=[];try{for(var e=0;e<t.length;e++){var n=b(t[e]);n&&"none"!==n.style.display&&s.push({el:n,hub:t[e].id})}for(var i=document.querySelectorAll("[data-phq-hub]"),r=0;r<i.length;r++)s.push({el:i[r],hub:i[r].getAttribute("data-phq-hub")})}catch(e){}}function S(e){var t=document.getElementById("pf-hq-subnav");if(t)for(var n=t.querySelectorAll(".pf-hq-tab"),i=0;i<n.length;i++)(function(t){t.getAttribute("data-hub")===e?t.setAttribute("aria-current","true"):t.removeAttribute("aria-current")})(n[i])}function T(){if(w(),"IntersectionObserver"in window&&s.length){var e=null,t=new IntersectionObserver(function(t){for(var n=null,i=1/0,r=0;r<t.length;r++){var a=t[r];if(a&&a.isIntersecting){var o=a.boundingClientRect?a.boundingClientRect.top:0;o<i&&(i=o,n=a.target)}}if(n){var s=n.getAttribute("data-hub")||n.getAttribute("data-phq-hub");s&&s!==e&&(e=s,S(s))}},{rootMargin:"-20% 0px -60% 0px"});try{for(var n=0;n<s.length;n++)t.observe(s[n].el)}catch(e){}try{window.pfPhqHubSpyRefresh=w}catch(e){}}}function x(e,t){if("__notify"!==e){var n=v(e);if(n){!i[e]&&window.pfPhqHubOrder&&y(n,window.pfPhqHubOrder),w();var r=function(e){try{for(var t=document.querySelectorAll('[data-phq-hub="'+e+'"]'),n=0;n<t.length;n++)if(null!==t[n].offsetParent)return t[n]}catch(e){}var i=v(e);return i?b(i):null}(e);if(r&&r.scrollIntoView)try{r.scrollIntoView({behavior:d()?"auto":"smooth",block:"start"})}catch(e){}if(S(e),!1!==t)try{history.replaceState(null,"","#phq-"+e)}catch(e){}}}else{var a=document.getElementById("pf-util-notify-prefs");a&&a.scrollIntoView&&a.scrollIntoView({behavior:d()?"auto":"smooth",block:"start"})}}function E(){try{for(var e=document.scripts||document.getElementsByTagName("script"),t=0;t<e.length;t++){var n=String(e[t].src||"").match(/^(.*\/)games\/bundle-hq\.js(\?|#|$)/);if(n)return n[1]+"games/bundle-hq-deep.js"}}catch(e){}return null}function C(){if(!c.done){c.done=!0;try{for(var n=window.pfPhqHubOrder||[],r=0;r<t.length;r++){var a=o[t[r].id];a&&a.length&&(delete i[t[r].id],y(t[r],n),o[t[r].id]=[])}P(n),g();try{window.pfPhqHubSpyRefresh&&window.pfPhqHubSpyRefresh()}catch(e){}}catch(t){e&&e.error("phq-hubs","deep ready failed :: "+(t&&t.message||t))}}}}(),function(){"use strict";var e=window.PF;e&&!e.skip("civic")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-civic">\n<div class="fe-block pf-override-block pf-silo" id="pf-civic">\n<h2>Wage Civic Warfare</h2>\n<div class="c-tag">Petitions, reps, voter registration. Power off the timeline.</div>\n<div id="xCivic"><div class="c-load">Mobilizing&hellip;</div></div>\n<style>\n/* 2026-10-05: ballot center (Political HQ #4) — mobile-first, no horizontal\n   scroll, every touch target >= 44px. */\n#pf-civic .cv-t44{min-height:44px}\n#pf-civic .cv-bal-cd{font-size:16px;margin:10px 0;padding:10px;border:1px solid #4a4a4a;overflow-wrap:anywhere}\n#pf-civic .cv-balreg{margin:8px 0}\n#pf-civic .cv-balacts{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}\n/* 2026-10-05: cell competitions card — mobile-first, no horizontal scroll,\n   every touch target >= 44px. */\n#pf-civic .cv-cmp-tog{display:flex;gap:8px;margin:8px 0}\n#pf-civic .cv-cmp-tog .c-btn{flex:1;min-height:44px;padding:8px 4px}\n#pf-civic .cv-cmp-tog .c-btn[aria-pressed="true"]{outline:3px solid var(--pf-cream);outline-offset:-3px}\n#pf-civic .cv-cmp-row{border:1px solid #4a4a4a;padding:10px 12px;margin:8px 0;overflow-wrap:anywhere}\n#pf-civic .cv-cmp-rank{display:inline-block;min-width:36px;font-weight:900;font-size:16px;color:#ffd166}\n#pf-civic .cv-cmp-name{font-weight:900;font-size:15px}\n#pf-civic .cv-cmp-you{border-color:#ffd166;background:rgba(255,209,102,.08)}\n#pf-civic .cv-cmp-tag{display:inline-block;font-size:11px;font-weight:900;color:#0d0d0d;background:#ffd166;padding:2px 8px;margin-left:8px;vertical-align:middle}\n#pf-civic .cv-cmp-win{border:1px solid #ffd166;padding:12px;margin:8px 0;background:rgba(193,18,31,.12)}\n/* 2026-10-05: congressional directory — mobile-first, no horizontal scroll,\n   every touch target >= 44px. */\n#pf-civic .cv-dirfilters .c-in{width:100%;box-sizing:border-box;margin-bottom:8px}\n#pf-civic .cv-t44{min-height:44px}\n#pf-civic .cv-cham{display:flex;gap:8px;margin:8px 0}\n#pf-civic .cv-cham .c-btn{flex:1;min-height:44px;padding:8px 4px}\n#pf-civic .cv-cham .c-btn[aria-pressed="true"]{outline:3px solid var(--pf-cream);outline-offset:-3px}\n#pf-civic .cv-dirrow{border:1px solid #4a4a4a;padding:12px;margin:12px 0;overflow-wrap:anywhere}\n#pf-civic .cv-dirname{font-weight:900;font-size:16px;margin-bottom:4px}\n#pf-civic .cv-pb{display:inline-block;min-width:20px;text-align:center;font-weight:900;font-size:12px;border:1px solid var(--pf-cream);padding:1px 6px;margin-left:8px;vertical-align:middle}\n#pf-civic .cv-pb-D{color:#8fbfff}#pf-civic .cv-pb-R{color:#ff8f8f}#pf-civic .cv-pb-I{color:var(--pf-muted)}\n#pf-civic .cv-nv{display:inline-block;font-weight:900;font-size:11px;letter-spacing:1px;border:1px solid var(--pf-cream);padding:2px 6px;margin-left:8px;vertical-align:middle;white-space:nowrap}\n#pf-civic .cv-diractions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}\n#pf-civic .cv-xpb{display:inline-block;font-weight:900;font-size:12px;color:#ffd166;border:1px solid #ffd166;padding:6px 10px;white-space:nowrap}\n/* 2026-10-05 (rep-flow friction): secondary row actions tuck behind MORE —\n   the scan path stays name > CALL/CONTACT/LOG. */\n#pf-civic .cv-mored{display:inline-block}\n#pf-civic .cv-mored>summary{list-style:none;display:inline-block;cursor:pointer}\n#pf-civic .cv-mored>summary::-webkit-details-marker{display:none}\n#pf-civic .cv-mored>summary::after{content:" ▾"}\n#pf-civic .cv-mored[open]>summary::after{content:" ▴"}\n#pf-civic .cv-morebody{margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}\n/* 2026-10-05: voting scorecards — mobile-first, badges readable, >=44px\n   touch targets, no horizontal scroll. */\n#pf-civic .cv-scdetail{margin-top:10px;border-top:2px solid #4a4a4a;padding-top:10px}\n#pf-civic .cv-sc-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}\n#pf-civic .cv-scrow{display:flex;gap:10px;align-items:flex-start;border-top:1px solid #4a4a4a;padding:10px 0}\n#pf-civic .cv-scrow:first-of-type{border-top:none}\n#pf-civic .cv-scbody{flex:1;min-width:0}\n#pf-civic .cv-sctitle{font-weight:700;font-size:14px;overflow-wrap:anywhere}\n#pf-civic .cv-vb{display:inline-block;flex:none;font-weight:900;font-size:13px;padding:6px 8px;border:2px solid;min-width:56px;text-align:center}\n#pf-civic .cv-vb-yea{color:#7dff9a;border-color:#7dff9a}\n#pf-civic .cv-vb-nay{color:#ff8f8f;border-color:#ff8f8f}\n#pf-civic .cv-vb-nv{color:var(--pf-muted);border-color:var(--pf-muted)}\n#pf-civic .cv-sctag{min-height:44px;margin-top:8px}\n#pf-civic .cv-issue{border:2px solid var(--pf-red);padding:12px;margin-bottom:12px;overflow-wrap:anywhere}\n#pf-civic .cv-ir{display:grid;grid-template-columns:1fr 44px 44px 44px 64px;gap:4px;padding:8px 0;border-top:1px solid #4a4a4a;text-align:center;font-size:14px;align-items:center}\n#pf-civic .cv-irh{font-weight:900;border-top:none;color:var(--pf-muted);font-size:12px}\n#pf-civic .cv-ir .cv-irlabel{text-align:left;font-weight:900}\n#pf-civic .cv-ir .cv-irtot{font-weight:900}\n#pf-civic .cv-diractions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}\n#pf-civic .cv-xpb{display:inline-block;font-weight:900;font-size:12px;color:#ffd166;border:1px solid #ffd166;padding:6px 10px;white-space:nowrap}\n/* 2026-10-05: call practice mode — frontend-only rehearsal overlay.\n   Mobile-first: 44px+ targets, no horizontal scroll, timer pinned. */\n#pfPracOv{position:fixed;top:0;left:0;right:0;bottom:0;z-index:100000;background:rgba(8,8,8,.96);overflow-y:auto;display:none;-webkit-overflow-scrolling:touch}\n#pfPracOv .pfprac-card{max-width:640px;margin:0 auto;padding:16px 16px 48px;color:var(--pf-cream);box-sizing:border-box}\n#pfPracOv .pfprac-top{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;gap:12px;background:rgba(8,8,8,.96);padding:12px 0;z-index:2}\n#pfPracOv .pfprac-timer{font:bold 28px monospace;color:#ffd166}\n#pfPracOv .pfprac-x{min-width:44px}\n#pfPracOv .pfprac-h{margin:8px 0 4px}\n#pfPracOv .pfprac-zero{margin:8px 0}\n#pfPracOv .pfprac-tele{font-size:22px;line-height:1.5;background:#141414;border:1px solid #4a4a4a;padding:20px 16px;margin:12px 0;min-height:120px;overflow-wrap:anywhere}\n#pfPracOv .pfprac-prog{text-align:center}\n#pfPracOv .pfprac-row{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}\n#pfPracOv .pfprac-row .c-btn{flex:1;min-height:44px;box-sizing:border-box}\n#pfPracOv .pfprac-big{width:100%;min-height:52px;margin:12px 0;box-sizing:border-box}\n#pfPracOv .pfprac-gentle{opacity:0;transition:opacity 1.2s ease;font-size:17px;color:#ffd166;text-align:center;margin:16px 0}\n#pfPracOv .pfprac-gentle.pfprac-show{opacity:1}\n#pfPracOv .pfprac-warm{font-size:24px;font-weight:900;color:var(--pf-cream);margin:16px 0 8px}\n</style>\n</div>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){} toastLocal(m); }\n/* 2026-10-05 (P2 F2-TOAST): read the Civic Duty progress AFTER the\n   pf-civic-* event has been dispatched (civic-duty.js records\n   synchronously), so the toast shows the count including this action.\n   2026-10-05 (P2 scope fix): dutyN/dutyFrag were nested inside toast()\'s\n   body, so every call site outside toast() threw ReferenceError and the\n   Civic Duty toast never fired. They now live at IIFE top-level. */\nfunction dutyN(){ try{ var p=window.PF&&PF.civicDutyProgress&&PF.civicDutyProgress(); return (p&&p.count)||0; }catch(e){ return 0; } }\nfunction dutyFrag(){ return " 🗳 Civic Duty: "+dutyN()+" of 3."; }\nfunction toastLocal(m){\n  try{ var t=document.createElement("div"); t.textContent=m;\n  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:var(--pf-red);color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";\n  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  var fn="pfCvCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\nfunction post(type,actionKey,action,params,cb){\n  var body=Object.assign({type:type},params);\n  body[actionKey]=action;\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }\n  var bodyStr=JSON.stringify(body);\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */\n    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;\n      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}\n      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();\n    fetch(BACKEND,_po)\n      .then(function(r){ return r.json(); })\n      .then(function(j){ _po._pfClear(); done(j); })\n      .catch(function(){ _po._pfClear(); done(null); });\n  }catch(e){ done(null); }\n}\nvar STATES=[["AL","Alabama"],["AK","Alaska"],["AZ","Arizona"],["AR","Arkansas"],["CA","California"],["CO","Colorado"],["CT","Connecticut"],["DE","Delaware"],["FL","Florida"],["GA","Georgia"],["HI","Hawaii"],["ID","Idaho"],["IL","Illinois"],["IN","Indiana"],["IA","Iowa"],["KS","Kansas"],["KY","Kentucky"],["LA","Louisiana"],["ME","Maine"],["MD","Maryland"],["MA","Massachusetts"],["MI","Michigan"],["MN","Minnesota"],["MS","Mississippi"],["MO","Missouri"],["MT","Montana"],["NE","Nebraska"],["NV","Nevada"],["NH","New Hampshire"],["NJ","New Jersey"],["NM","New Mexico"],["NY","New York"],["NC","North Carolina"],["ND","North Dakota"],["OH","Ohio"],["OK","Oklahoma"],["OR","Oregon"],["PA","Pennsylvania"],["RI","Rhode Island"],["SC","South Carolina"],["SD","South Dakota"],["TN","Tennessee"],["TX","Texas"],["UT","Utah"],["VT","Vermont"],["VA","Virginia"],["WA","Washington"],["WV","West Virginia"],["WI","Wisconsin"],["WY","Wyoming"]];\nvar P=null, REPS=null, SCRIPTS=null, VOTER=null, CREATE_OPEN=false, VSTATS=null;\n/* 2026-10-05 (pledge-share-cards weave): voter-pledge share card state.\n   PLEDGE_CARD holds the phq-pledge painter data built from ballot_get via\n   PF.PHQShare.pledgeData — set on a successful pledge only when the ballot\n   wire returns a live, non-expired deadline. PLEDGE_NOTE carries the\n   fail-soft "deadline passed" copy for expired-deadline states. Card\n   GENERATION pays 0 XP (the +50 pledge XP is paid by voter_pledge itself);\n   card SHARING rides the existing poster_share leg (+5 fixed, NO_MULT,\n   counts toward the daily cap) through the POSTER SHARE verification tab. */\nvar PLEDGE_DONE=false, PLEDGE_CARD=null, PLEDGE_NOTE=\'\';\n/* 2026-10-05: congressional directory state. reps_list is the only new read;\n   the rep_contact write path below is shared with the legacy "Contact your\n   rep" pane — no new reward mechanics. */\nvar DIRST={st:"",ch:"",q:"",reps:null,load:false,err:false};\nvar STATES_F=null; /* STATES + DC, filter-only (STATES itself untouched). */\n/* 2026-10-05 (wave pressure-campaigns FE): active pressure campaigns from\n   pressure_list, per-campaign script+targets via pressure_get, join state. */\nvar PC_LIST=null, PC_SCRIPT={}, PC_TITLE={}, PC_JOINED={};\n/* 2026-10-05 (P2 F2-TOAST): petitions signed this session render a\n   post-sign SHARE IT button — the share ask follows the action (W18). */\nvar PET_SHARE_AFTER={}, PET_TITLE={};\n/* 6A-R7: voter-pledge poster state — set on a successful pledge. */\nvar PLEDGE_DONE=false, PLEDGE_STATE_NAME=\'\';\n/* Network Polls (2026-10-05, interactive expansion #3): poll list/detail\n   cache, create-form state, per-poll voted state (client-side +\n   localStorage so a refresh keeps it; the API\'s has_voted is the\n   server-side half). */\nvar POLLS_OPEN=null, POLLS_CLOSED=null, POLLS_ERR=false, POLLS_CREATE_OPEN=false,\n    POLLS_CREATE_OPTS=2, POLLS_DETAIL={}, POLLS_FETCHING={},\n    POLLS_DRAFT={q:"",opts:[],kind:"general",dur:"3",bill:""};\nfunction pledgeStateName(code){\n  for(var i=0;i<STATES.length;i++) if(STATES[i][0]===code) return STATES[i][1];\n  return code||\'\';\n}\n/* After a successful voter_pledge: resolve the ballot row for the state and\n   arm the SHARE YOUR PLEDGE button with real deadline data. Fail-soft at\n   every step — the pledge itself always stands:\n     - ?pf_off=card-pledge or no PHQShare module -> button stays disarmed\n     - ballot_get fails/missing row -> button stays disarmed (no invented dates)\n     - expired deadline -> PLEDGE_NOTE "deadline passed", no card\n     - same-day (NULL deadline) -> armed with the at-the-polls variant */\nfunction armPledgeCard(stCode){\n  PLEDGE_CARD=null; PLEDGE_NOTE=\'\';\n  var done=function(){ try{ render(); }catch(e){} };\n  try{\n    if(PF&&PF.skip(\'card-pledge\')){ done(); return; }\n    if(!(window.PF&&PF.PHQShare&&PF.PHQShare.pledgeData)){ done(); return; }\n  }catch(e){ done(); return; }\n  api("ballot_get",{state:stCode},function(b){\n    try{\n      var row=(b&&b.ok&&b.ballot)||null;\n      if(!row){ done(); return; } /* ballot wire down — pledge stands, card paused */\n      var data=PF.PHQShare.pledgeData(row);\n      if(!data){\n        PLEDGE_NOTE=\'Registration has closed in \'+pledgeStateName(stCode)+\n          \' — the deadline passed. Your pledge still counts: vote Nov 3.\';\n        done(); return;\n      }\n      /* vote.gov link: ballot register_url first, voter_check URL as fallback. */\n      if(!data.registerUrl&&VOTER&&VOTER.url) data.registerUrl=VOTER.url;\n      PLEDGE_CARD=data;\n    }catch(e){}\n    done();\n  });\n}\nfunction load(){\n  var done=false, n=0;\n  function fin(){ if(done)return; done=true; render(); }\n  function one(){ n++; if(n>=8) fin(); }\n  setTimeout(fin,15000);\n  api("petition_list",{},function(j){ P=j; one(); });\n  api("rep_list",{},function(j){ REPS=j; one(); });\n  api("rep_scripts",{},function(j){ SCRIPTS=j; one(); });\n  /* 2026-10-03: voter_pledge_stats (public) — aggregate pledge counts. */\n  api("voter_pledge_stats",{},function(j){ VSTATS=j; one(); });\n  /* 2026-10-05 (wave pressure-campaigns FE): active campaigns. Fail-soft —\n     a down wire or zero campaigns hides the pane entirely (render skips it). */\n  api("pressure_list",{},function(j){ PC_LIST=(j&&j.ok&&j.campaigns)||[]; one(); });\n  /* 2026-10-05: network polls — open list is the contract call; closed\n     list is best-effort (backend may not serve status=closed). */\n  api("polls_list",{status:"open"},function(j){\n    if(j&&j.ok){ POLLS_OPEN=j; } else { POLLS_ERR=true; POLLS_OPEN=null; }\n    one();\n  });\n  api("polls_list",{status:"closed"},function(j){\n    POLLS_CLOSED=(j&&j.ok)?j:null;\n    one();\n  });\n  one();\n}\n/* 2026-10-05 (audit #7): sign/create used to trigger a full load() — 5 reads\n   plus re-render plus the contact-history JSONP refire in bind(). The only\n   pane those actions mutate is the petitions list: one petition_list read,\n   then re-render from cache. */\nfunction refreshPetitions(){\n  api("petition_list",{},function(j){ P=j; try{ render(); }catch(e){} });\n}\nvar HIST_DONE=false;\n/* 2026-10-05 (audit #7): contact-history paint, split out so the log box can\n   refresh without a full re-render. Fetched once per page view (fetchHist);\n   LOG CONTACT — the only action that mutates the log — refreshes it\n   explicitly instead of every sign/pledge/create refiring it. */\nfunction paintHist(box,hist){\n  if(!hist.length){ box.innerHTML=\'<div class="x-note">No contacts logged yet. Your first call is +25 XP.</div>\'; return; }\n  var hh=\'<div class="x-note" style="margin-top:6px"><b>Your contact log:</b></div>\';\n  for(var i=0;i<Math.min(hist.length,5);i++){\n    var e=hist[i], dt="";\n    try{ dt=new Date(Number(e.ts)).toLocaleDateString(); }catch(ee){}\n    hh+=\'<div class="x-note">\'+esc(e.rep_name||"rep")+\' — \'+esc(e.method||"")+(dt?" — "+esc(dt):"")+\'</div>\';\n  }\n  box.innerHTML=hh;\n}\nfunction fetchHist(force){\n  var box=document.getElementById("cvHistBox"); if(!box) return;\n  if(HIST_DONE&&!force) return;\n  var id2=ident(); if(!id2.callsign){ box.innerHTML=""; return; }\n  HIST_DONE=true;\n  var pp={callsign:id2.callsign};\n  function cb2(j){\n    var b2=document.getElementById("cvHistBox");\n    if(!b2){ HIST_DONE=false; return; }\n    if(!(j&&j.ok)){ HIST_DONE=false; return; } /* failed — retry on next bind */\n    paintHist(b2,j.history||[]);\n  }\n  try{ if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,"rep_contact_history",pp,cb2); return; } }catch(e){}\n  api("rep_contact_history",pp,cb2);\n}\n/* ============ PRESSURE CAMPAIGNS (2026-10-05, wave pressure-campaigns FE) ============\n   One card per active campaign: title, target bill (+ congress.gov link when\n   the bill text carries one), days remaining, call script with copy button,\n   tap-to-call target members with LOG CALL buttons, live participant/call\n   counters, share, and JOIN THE PRESSURE -> pressure_join.\n   FAIL-SOFT: if the API is down or returns no campaigns, pressurePaneHTML()\n   returns "" and the section never mounts. No broken widget, no stuck\n   spinner. No invented data — everything rendered comes from the API. */\nfunction pcCountersHTML(c){\n  return \'<b>\'+(Number(c.participant_count)||0)+\'</b> in &bull; <b>\'+(Number(c.call_count)||0)+\'</b> calls logged\';\n}\nfunction pcBillHTML(tb){\n  tb=String(tb==null?"":tb); if(!tb) return "";\n  /* Extract the first https URL for the congress.gov link; the label is the\n     text with the URL stripped. */\n  var m=tb.match(/https?:\\/\\/[^\\s<>"\']+/);\n  var label=m?tb.replace(m[0],"").replace(/s{2,}/g," ").trim():tb;\n  var h=\'<div class="x-note">Target bill: <b>\'+esc(label||tb)+\'</b>\';\n  if(m){ h+=\' &bull; <a href="\'+esc(m[0])+\'" target="_blank" rel="noopener">congress.gov →</a>\'; }\n  return h+\'</div>\';\n}\nfunction pcDaysHTML(c){\n  var d=null;\n  try{\n    var t=new Date(c.ends_at).getTime();\n    if(!isNaN(t)) d=Math.max(0,Math.ceil((t-Date.now())/864e5));\n  }catch(e){}\n  if(d==null&&c.days_remaining!=null&&c.days_remaining!=="") d=Math.max(0,Number(c.days_remaining)||0);\n  if(d==null) return "";\n  return \'<div class="x-note">\'+(d===0?\'<b>Last day</b> to call.\':\'<b>\'+d+\'</b> day\'+(d===1?"":"s")+\' left to call.\')+\'</div>\';\n}\nfunction pressurePaneHTML(){\n  /* Fail-soft: nothing to render -> no section at all. */\n  if(!(PC_LIST&&PC_LIST.length)) return "";\n  var h=\'<div class="x-pane" id="cvPcPane"><h4>Pressure campaigns</h4>\'\n    +\'<div class="c-tag">Call blitzes on live bills. Read the script, ring the office, log the call.</div>\';\n  for(var i=0;i<PC_LIST.length;i++){\n    var c=PC_LIST[i]||{}, cid=String(c.id||"");\n    if(!cid) continue;\n    PC_TITLE[cid]=c.title||"A Propaganda Factory pressure campaign";\n    h+=\'<div class="cp-mission" data-pc-card>\'\n      +\'<div class="cp-mtext">\'+esc(c.title||"Pressure campaign")+\'</div>\'\n      +pcBillHTML(c.target_bill)\n      +pcDaysHTML(c)\n      +\'<div class="x-note" data-pc-counts="\'+esc(cid)+\'">\'+pcCountersHTML(c)+\'</div>\'\n      +\'<div data-pc-body="\'+esc(cid)+\'"><div class="c-load">Loading campaign&hellip;</div></div>\'\n      +\'<button class="c-btn cp-mbtn" data-pc-join="\'+esc(cid)+\'"\'+(PC_JOINED[cid]?" disabled":"")+\'>\'+(PC_JOINED[cid]?"YOU&rsquo;RE IN":"JOIN THE PRESSURE")+\'</button> \'\n      /* 2026-10-05 (P10 W18): the share ask follows the action — SHARE\n         renders only after join, never on the un-joined card. */\n      +\'<button class="c-btn cp-mbtn" data-pc-share="\'+esc(cid)+\'"\'+(PC_JOINED[cid]?"":\' style="display:none"\')+\'>SHARE</button>\'\n      +\'</div>\';\n  }\n  return h+\'</div>\';\n}\n/* Two-tier clipboard (navigator.clipboard first, hidden-textarea\n   execCommand fallback) — same pattern as ammo.js. iOS-safe. */\nfunction pcCopyText(txt,btn,msg){\n  function doneOk(){\n    toast(msg||"Copied.");\n    if(btn){ var o=btn.textContent; btn.textContent="COPIED"; btn.disabled=true;\n      setTimeout(function(){ btn.textContent=o; btn.disabled=false; },1500); }\n  }\n  function fallback(){\n    try{\n      var ta=document.createElement("textarea"); ta.value=txt;\n      ta.style.cssText="position:fixed;opacity:0";\n      ta.setAttribute("readonly","");\n      document.body.appendChild(ta); ta.select();\n      try{ ta.setSelectionRange(0,ta.value.length); }catch(e){}\n      document.execCommand("copy"); ta.remove(); doneOk();\n    }catch(e2){ toast("Copy failed — select it manually."); }\n  }\n  try{\n    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(doneOk,function(){ fallback(); }); }\n    else fallback();\n  }catch(e){ fallback(); }\n}\nfunction pcFindBody(cid){\n  var nodes=document.querySelectorAll("[data-pc-body]");\n  for(var i=0;i<nodes.length;i++){ if(nodes[i].getAttribute("data-pc-body")===cid) return nodes[i]; }\n  return null;\n}\nfunction pcPaintCard(cid,j){\n  var body=pcFindBody(cid); if(!body) return;\n  var c=(j&&j.ok&&j.campaign)||null;\n  if(!c){\n    body.innerHTML=\'<div class="x-note">Campaign details are unavailable right now — check back shortly.</div>\';\n    return;\n  }\n  PC_SCRIPT[cid]=c.script||"";\n  var h=\'<div class="pf-mt"><div class="x-note"><b>Call script</b></div>\'\n    +\'<div class="x-note" style="white-space:pre-wrap">\'+esc(c.script||"")+\'</div>\'\n    +\'<button class="c-btn cp-mbtn" data-pc-copy="\'+esc(cid)+\'">COPY SCRIPT</button></div>\';\n  var ms=c.target_members||[];\n  if(ms.length){\n    h+=\'<div class="x-note pf-mt"><b>Targets — tap to call:</b></div>\';\n    for(var i=0;i<ms.length;i++){\n      var m=ms[i]||{};\n      var tel=String(m.phone||"").replace(/[^0-9+]/g,"");\n      var badge="";\n      if(m.party&&m.state) badge=String(m.party)+" · "+String(m.state);\n      else if(m.party||m.state) badge=String(m.party||m.state);\n      var mname=String(m.name||"Member");\n      h+=\'<div class="cp-mission" style="margin-top:8px">\'\n        +\'<div class="cp-mtext">\'+esc(mname)+\'</div>\'\n        +\'<div class="x-note">\'+esc(String(m.role||""))+(badge?" &bull; "+esc(badge):"")+\'</div>\'\n        +(tel?\'<a class="c-btn cp-mbtn" href="tel:\'+esc(tel)+\'">\'+esc(String(m.phone||tel))+\'</a> \':\'\')\n        +\'<button class="c-btn cp-mbtn" data-pc-log="\'+esc(cid)+"|"+esc(mname)+\'">LOG CALL (+25 XP)</button>\'\n        +\'</div>\';\n    }\n  }\n  body.innerHTML=h;\n  /* Per-card bindings happen here, not in bind(): pressure_get resolves\n     after bind() already ran, so bind-on-paint is the only correct spot. */\n  var bb=body.querySelectorAll("[data-pc-copy]");\n  for(var b2=0;b2<bb.length;b2++){ (function(btn){ btn.onclick=function(){\n    pcCopyText(PC_SCRIPT[btn.getAttribute("data-pc-copy")]||"",btn,"Script copied. Go make the call.");\n  }; })(bb[b2]); }\n  var lb=body.querySelectorAll("[data-pc-log]");\n  for(var l2=0;l2<lb.length;l2++){ (function(btn){ btn.onclick=function(){\n    var v=btn.getAttribute("data-pc-log"), pi=v.indexOf("|");\n    var cid2=v.slice(0,pi), mname=v.slice(pi+1);\n    btn.disabled=true;\n    /* Extended rep_contact POST: the backend accepts an optional campaign\n       param, passed here so the call is attributed to the campaign. */\n    post("rep","r_action","rep_contact",{callsign:ident().callsign,rep_name:mname,method:"call",script_used:"pressure:"+cid2,campaign:cid2},function(j){\n      /* 2026-10-05 (P2 F2-TOAST): a campaign call is a rep contact — it\n         feeds Civic Duty. Record first so the toast shows the new count. */\n      if(j&&j.ok){ try{ document.dispatchEvent(new CustomEvent(\'pf-civic-rep-contacted\')); }catch(e){}\n        toast("Logged — +25 XP."+dutyFrag()); fetchHist(true);\n        /* 2026-10-05 (P10 W18): share ask AFTER the logged call, never\n           before the effort. Transient — next card repaint clears it. */\n        try{ if(btn.parentNode&&!btn.parentNode.querySelector("[data-pc-tell]")){\n          var tb=document.createElement("button"); tb.type="button";\n          tb.className="c-btn cp-mbtn"; tb.setAttribute("data-pc-tell","1");\n          tb.textContent="Tell the network →";\n          tb.onclick=function(){ pcShare(cid2); };\n          btn.parentNode.insertBefore(tb,btn.nextSibling); } }catch(e2){} }\n      /* 2/day cap: the backend surfaces the \'cap\' code, routed through the\n         shared friendly-copy mapper (resets at midnight Chicago). */\n      else { toast(PF.errCopy(j,"Log failed.")); }\n      btn.disabled=false;\n    });\n  }; })(lb[l2]); }\n}\nfunction pcRefreshCounts(){\n  /* Re-poll pressure_list for live participant/call counters only — the\n     rendered cards (script/targets from pressure_get) are left untouched. */\n  api("pressure_list",{},function(j){\n    if(!(j&&j.ok&&j.campaigns)) return;\n    var nodes=document.querySelectorAll("[data-pc-counts]");\n    for(var i=0;i<j.campaigns.length;i++){\n      var c=j.campaigns[i]||{}, cid=String(c.id||"");\n      for(var k=0;k<nodes.length;k++){\n        if(nodes[k].getAttribute("data-pc-counts")===cid){ nodes[k].innerHTML=pcCountersHTML(c); break; }\n      }\n    }\n  });\n}\nfunction pcShare(cid){\n  var title=PC_TITLE[cid]||"A Propaganda Factory pressure campaign";\n  var link="https://www.mtcstw.com/political-hq";\n  try{ if(window.PF&&typeof PF.shareUrl==="function") link=PF.shareUrl(link); }catch(e){}\n  var text=title+" — join the pressure at "+link;\n  /* Site share convention: navigator.share when available, clipboard\n     fallback — same two-tier pattern as do-meter/fan-vote text shares. */\n  if(navigator.share){ try{ navigator.share({title:title,text:text}).catch(function(){}); return; }catch(e){} }\n  pcCopyText(text,null,"Share text copied. Spread it.");\n}\nfunction pressureBind(qsa){\n  if(!(PC_LIST&&PC_LIST.length)) return;\n  for(var i=0;i<PC_LIST.length;i++){\n    (function(cid){\n      if(!cid) return;\n      /* Per-card script + targets (pressure_get). Fail-soft per card. */\n      api("pressure_get",{id:cid},function(j){ pcPaintCard(cid,j); });\n    })(String((PC_LIST[i]||{}).id||""));\n  }\n  /* COPY SCRIPT and LOG CALL buttons are painted by the async pressure_get\n     and bound there at paint time (pcPaintCard); join/share buttons are in\n     the synchronous card shell, bound here. */\n  qsa("[data-pc-join]").forEach(function(b){\n    b.onclick=function(){\n      var cid=b.getAttribute("data-pc-join");\n      if(PC_JOINED[cid]) return;\n      b.disabled=true;\n      post("pressure","pr_action","pressure_join",{callsign:ident().callsign,id:cid},function(j){\n        if(j&&j.ok){ PC_JOINED[cid]=1; b.innerHTML="YOU&rsquo;RE IN"; pcRefreshCounts();\n          /* 2026-10-05 (P10 W18): reveal the post-join SHARE affordance. */\n          try{ var card=b.closest?b.closest("[data-pc-card]"):null;\n            var sh=card?card.querySelector("[data-pc-share]"):null;\n            if(sh) sh.style.display=""; }catch(e){} }\n        else { toast(PF.errCopy(j,"Join failed.")); b.disabled=false; }\n      });\n    };\n  });\n  qsa("[data-pc-share]").forEach(function(b){\n    b.onclick=function(){ pcShare(b.getAttribute("data-pc-share")); };\n  });\n}\nfunction stateOpts(sel){\n  var h=\'<option value="">Select state&hellip;</option>\';\n  for(var i=0;i<STATES.length;i++){\n    h+=\'<option value="\'+STATES[i][0]+\'"\'+(sel===STATES[i][0]?\' selected\':\'\')+\'>\'+esc(STATES[i][1])+\'</option>\';\n  }\n  return h;\n}\n/* --- ballot center (2026-10-05, Political HQ #4): state-keyed election\n   dates from the ballot_get wire. READ-ONLY — no XP, no write path.\n   Renders ONLY what the API returns; NULL/missing fields fall back to\n   "Check your state site" + the official link, never invented data.\n   Countdowns reflect real ISO dates vs the viewer\'s local today only. */\nvar BAL={st:"",rows:null,load:false,err:false};\nvar STATES50=null; /* STATES + DC, filter-only (STATES itself untouched). */\nfunction ballotStates(){\n  if(!STATES50) STATES50=STATES.concat([["DC","District of Columbia"]]);\n  return STATES50;\n}\nfunction ballotStateOpts(sel){\n  var st=ballotStates(), h=\'<option value="">Pick your state&hellip;</option>\';\n  for(var i=0;i<st.length;i++){\n    h+=\'<option value="\'+st[i][0]+\'"\'+(sel===st[i][0]?\' selected\':\'\')+\'>\'+esc(st[i][1])+\'</option>\';\n  }\n  return h;\n}\nvar BAL_MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];\n/* Parse an ISO date ("2026-10-19") as LOCAL midnight — new Date("2026-10-19")\n   is UTC midnight and would drift a day behind for US timezones. */\nfunction balDate(iso){\n  var m=/^(d{4})-(d{2})-(d{2})/.exec(String(iso||""));\n  if(!m) return null;\n  return new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));\n}\nfunction balFmt(iso){\n  var d=balDate(iso); if(!d) return "";\n  return BAL_MONTHS[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear();\n}\n/* Whole calendar days from local-today start to the deadline. Positive =\n   days left, 0 = today, negative = passed. */\nfunction balDaysLeft(iso){\n  var d=balDate(iso); if(!d) return null;\n  var now=new Date(); now.setHours(0,0,0,0);\n  return Math.round((d.getTime()-now.getTime())/86400000);\n}\nfunction balFind(code){\n  if(!BAL.rows) return null;\n  for(var i=0;i<BAL.rows.length;i++){ if(String(BAL.rows[i].state)===code) return BAL.rows[i]; }\n  return null;\n}\n/* Normalize the ballot_get&all=1 payload — accept the record list under\n   whichever key the backend ships (rows/ballots/states), never assume. */\nfunction balRows(j){\n  if(!j||!j.ok) return null;\n  var cands=[j.rows,j.ballots,j.states];\n  for(var i=0;i<cands.length;i++){\n    if(cands[i]&&typeof cands[i].length==="number") return cands[i];\n  }\n  return null;\n}\nfunction ballotDeadlineHTML(row){\n  var nm=esc(row.state_name||row.state||"your state");\n  if(!row.registration_deadline){\n    /* NULL deadline = same-day registration (backend notes explain). */\n    return \'<div class="cv-bal-cd"><b>Same-day registration available</b> in \'+nm+\'.</div>\'\n      +(row.notes?\'<div class="x-note">\'+esc(row.notes)+\'</div>\':"");\n  }\n  var left=balDaysLeft(row.registration_deadline), dstr=balFmt(row.registration_deadline);\n  if(left===null){\n    return \'<div class="cv-bal-cd">Registration deadline in \'+nm+\': check the date on the state site.</div>\';\n  }\n  if(left<0) return \'<div class="cv-bal-cd"><b>Registration has closed</b> in \'+nm+\' (deadline was \'+esc(dstr)+\'). You may still have options &mdash; check the state site.</div>\';\n  if(left===0) return \'<div class="cv-bal-cd"><b>TODAY is the last day</b> to register in \'+nm+\'.</div>\';\n  return \'<div class="cv-bal-cd"><b>\'+left+\' day\'+(left===1?"":"s")+\' left</b> to register in \'+nm+\' (\'+esc(dstr)+\').</div>\';\n}\n/* Every outbound link: the state\'s own URL from the API, new tab, no\n   opener — never a PF-wrapped or invented URL. */\nfunction ballotLink(label,url){\n  if(!url) return "";\n  return \'<a class="c-btn cv-t44" href="\'+esc(url)+\'" target="_blank" rel="noopener">\'+esc(label)+\'</a>\';\n}\nfunction ballotFallback(label,url){\n  var h=\'<div class="x-note">\'+esc(label)+\': check your state site\';\n  if(url) h+=\' &mdash; <a href="\'+esc(url)+\'" target="_blank" rel="noopener">official link</a>\';\n  return h+\'.</div>\';\n}\nfunction ballotBoxHTML(){\n  if(BAL.err){\n    return \'<div class="c-err">Couldn&rsquo;t reach the ballot wire.</div>\'\n      +\'<button type="button" class="c-btn cv-t44" id="cvBalRetry">RETRY</button>\';\n  }\n  if(BAL.load||BAL.rows===null) return \'<div class="c-load">Mobilizing&hellip;</div>\';\n  if(!BAL.st) return \'<div class="x-note">Pick your state for deadlines, early voting dates, and your polling place.</div>\';\n  var row=balFind(BAL.st);\n  if(!row) return \'<div class="x-note">No ballot data for that state yet &mdash; check your state site.</div>\';\n  var nm=esc(row.state_name||row.state||"");\n  var h=\'<div><div class="x-note" style="margin-top:8px"><b>\'+nm+\'</b></div>\';\n  h+=ballotDeadlineHTML(row);\n  /* Register — official state URL only, clearly labeled as official. */\n  if(row.register_url){\n    h+=\'<div class="cv-balreg">\'+ballotLink("REGISTER TO VOTE",row.register_url)+\'</div>\'\n      +\'<div class="x-note">Opens \'+nm+\'&rsquo;s <b>official</b> registration site in a new tab.</div>\';\n  } else {\n    h+=ballotFallback("Registration link",row.ballot_info_url);\n  }\n  /* Early voting. */\n  if(row.early_voting_start||row.early_voting_end){\n    var ev=balFmt(row.early_voting_start);\n    if(row.early_voting_end) ev+=(ev?" &ndash; ":"")+balFmt(row.early_voting_end);\n    h+=\'<div class="x-note"><b>Early voting:</b> \'+ev+\'</div>\';\n  } else {\n    h+=ballotFallback("Early voting dates",row.ballot_info_url||row.register_url);\n  }\n  /* Election day: the API value; the Nov 3, 2026 general is the fallback. */\n  h+=\'<div class="x-note"><b>Election day:</b> \'+(balFmt(row.election_day)||"Nov 3, 2026")+\'</div>\';\n  /* Polling place + ballot info. */\n  var links=ballotLink("FIND MY POLLING PLACE",row.polling_place_url)\n    +(row.polling_place_url&&row.ballot_info_url?" ":"")\n    +ballotLink("BALLOT INFO",row.ballot_info_url);\n  if(links) h+=\'<div class="cv-balacts">\'+links+\'</div>\';\n  else h+=ballotFallback("Polling place & ballot info",null);\n  if(row.notes&&row.registration_deadline) h+=\'<div class="x-note">\'+esc(row.notes)+\'</div>\';\n  h+=\'</div>\';\n  return h;\n}\nfunction paintBallot(){\n  var box=document.getElementById("cvBalBox"); if(!box) return;\n  box.innerHTML=ballotBoxHTML();\n}\nfunction fetchBallot(){\n  BAL.load=true; BAL.err=false; paintBallot();\n  /* all=1: one read, cached — state switches then paint from cache with no\n     per-selection round-trip (mobile-friendly). */\n  api("ballot_get",{all:1},function(j){\n    BAL.load=false;\n    var rows=balRows(j);\n    if(rows){ BAL.rows=rows; BAL.err=false; }\n    else { BAL.err=true; }\n    paintBallot();\n  });\n}\n/* --- cell-vs-cell civic competitions (2026-10-05) ---\n   Public GET reads (cellcomp_current + cellcomp_history). Fail-soft: the\n   card stays hidden until cellcomp_current lands ok — never an error\n   widget. campaign_calls returns metric_live:false until the\n   pressure-campaign build ships: "coming soon" placeholder, never broken.\n   winner_bonus is null (CEO decision 2026-10-05) — no bonus copy anywhere. */\nvar COMP={metric:"rep_contacts",cur:{},load:{},hist:null,histDone:false};\nfunction compUnit(metric){\n  if(metric==="campaign_calls") return "campaign calls";\n  return "rep contacts";\n}\nfunction compMetricLabel(metric){\n  if(metric==="campaign_calls") return "Pressure-campaign calls";\n  return "Rep contacts";\n}\nfunction compWeekDate(wk){\n  var d=String(wk||"").slice(0,10);\n  try{\n    var s=new Date(d+"T12:00:00").toLocaleDateString(undefined,{month:"short",day:"numeric"});\n    if(s&&s!=="Invalid Date") return s;\n  }catch(e){}\n  return d;\n}\nfunction compWinnerHTML(cur){\n  var w=cur.last_winner;\n  if(!(w&&(w.cell_name||w.cell_id))) return "";\n  return \'<div class="cv-cmp-win"><b>&#127942; Last week&#8217;s champion:</b> \'\n    +esc(w.cell_name||w.cell_id)+\' &mdash; \'+Number(w.cnt||0)+\' \'+esc(compUnit(cur.metric))\n    +\'<div class="x-note">Week of \'+esc(compWeekDate(w.week_start))+\'</div></div>\';\n}\nfunction compMyLine(cur){\n  var mc=cur.my_cells||[];\n  if(!mc.length) return "";\n  var unit=esc(compUnit(cur.metric));\n  var bits=[];\n  for(var i=0;i<mc.length;i++){\n    var m=mc[i], nm=String(m.name||m.cell_id);\n    bits.push("<b>"+esc(nm)+"</b>"+(m.rank?(" &mdash; #"+Number(m.rank)):" &mdash; not on the board yet")\n      +" ("+Number(m.cnt||0)+" "+unit+")");\n  }\n  return \'<div class="x-note">Your cell\'+(bits.length>1?"s":"")+": "+bits.join(" &middot; ")+"</div>";\n}\nfunction compStandingsHTML(cur){\n  var metric=cur.metric||COMP.metric;\n  var unit=compUnit(metric);\n  if(!cur.metric_live){\n    return \'<div class="x-note">Campaign-call tracking goes live when pressure campaigns ship. \'\n      +\'The rep-contact race is live now &mdash; switch the toggle.</div>\';\n  }\n  var rows=cur.standings||[];\n  if(!rows.length){\n    return \'<div class="x-note">No \'+esc(unit)+\' logged this week yet. Your cell could take the lead.</div>\';\n  }\n  var mine={};\n  var mc=cur.my_cells||[];\n  for(var i=0;i<mc.length;i++){ mine[String(mc[i].cell_id)]=1; }\n  var h="";\n  for(var r=0;r<rows.length;r++){\n    var row=rows[r], you=mine[String(row.cell_id)];\n    h+=\'<div class="cv-cmp-row\'+(you?" cv-cmp-you":"")+\'">\'\n      +\'<span class="cv-cmp-rank">#\'+(r+1)+\'</span> \'\n      +\'<span class="cv-cmp-name">\'+esc(row.name||row.cell_id)+\'</span>\'\n      +(you?\'<span class="cv-cmp-tag">YOUR CELL</span>\':"")\n      +\'<div class="x-note">\'+Number(row.cnt||0)+\' \'+esc(unit)\n      +\' &middot; \'+Number(row.members||0)+\' members</div>\'\n      +\'</div>\';\n  }\n  return h;\n}\nfunction compHistHTML(){\n  var wins=(COMP.hist&&COMP.hist.winners)||[];\n  if(!wins.length) return "";\n  var h=\'<div class="x-note" style="margin-top:8px"><b>Past champions:</b></div>\';\n  for(var i=0;i<Math.min(wins.length,16);i++){\n    var w=wins[i];\n    h+=\'<div class="x-note">\'+esc(compWeekDate(w.week_start))+" &mdash; "+esc(compMetricLabel(w.metric))\n      +\': <b>\'+esc(w.cell_name||w.cell_id)+"</b> ("+Number(w.cnt||0)+")</div>";\n  }\n  return h;\n}\nfunction compCardHTML(){\n  var cur=COMP.cur[COMP.metric];\n  if(!(cur&&cur.ok)) return "";\n  var days=Number(cur.days_remaining||0);\n  var h=\'<div class="x-pane"><h4>Cell competitions</h4>\'\n    +\'<div class="x-note">Which cell logs the most civic action this week? Live standings below.</div>\'\n    +\'<div class="cv-cmp-tog" role="group" aria-label="Competition metric">\'\n    +\'<button type="button" class="c-btn" data-comp-metric="rep_contacts" aria-pressed="\'\n    +(COMP.metric==="rep_contacts"?"true":"false")+\'">REP CONTACTS</button>\'\n    +\'<button type="button" class="c-btn" data-comp-metric="campaign_calls" aria-pressed="\'\n    +(COMP.metric==="campaign_calls"?"true":"false")+\'">CAMPAIGN CALLS</button>\'\n    +\'</div>\'\n    +\'<div class="x-note"><b>\'+days+\'</b> day\'+(days===1?"":"s")+\' left this week.</div>\'\n    +compWinnerHTML(cur)\n    +compMyLine(cur)\n    +\'<div id="cvCompStand">\'+compStandingsHTML(cur)+\'</div>\'\n    +compHistHTML()\n    +\'</div>\';\n  return h;\n}\nfunction paintComp(){\n  var box=document.getElementById("cvCompBox"); if(!box) return;\n  box.innerHTML=compCardHTML();\n}\nfunction fetchComp(){\n  var m=COMP.metric;\n  if(COMP.cur[m]||COMP.load[m]){ paintComp(); }\n  else{\n    COMP.load[m]=true;\n    var pp={metric:m};\n    var idc=ident(); if(idc.callsign) pp.callsign=idc.callsign;\n    /* api() drops null/"" params; callsign rides only when present. */\n    api("cellcomp_current",pp,function(j){\n      COMP.load[m]=false;\n      if(j&&j.ok){ COMP.cur[m]=j; paintComp(); }\n      /* fail-soft: on error the box stays empty — no error widget. */\n    });\n  }\n  if(!COMP.histDone){\n    COMP.histDone=true;\n    api("cellcomp_history",{},function(j){\n      if(j&&j.ok){ COMP.hist=j; paintComp(); }\n      else { COMP.histDone=false; } /* failed — retry on next bind */\n    });\n  }\n}\n/* --- congressional directory helpers (2026-10-05) --- */\nfunction dirStateOpts(sel){\n  if(!STATES_F) STATES_F=STATES.concat([["DC","District of Columbia"]]);\n  var h=\'<option value="">All states</option>\';\n  for(var i=0;i<STATES_F.length;i++){\n    h+=\'<option value="\'+STATES_F[i][0]+\'"\'+(sel===STATES_F[i][0]?\' selected\':\'\')+\'>\'+esc(STATES_F[i][1])+\'</option>\';\n  }\n  return h;\n}\nfunction partyBadge(party){\n  var t=String(party||"").trim().toUpperCase();\n  var l=t.charAt(0);\n  if(l==="D"||l==="R"||l==="I") return \'<span class="cv-pb cv-pb-\'+l+\'">\'+l+\'</span>\';\n  return t?\'<span class="cv-pb cv-pb-I">\'+esc(t.slice(0,3))+\'</span>\':"";\n}\nfunction dirRowHTML(r){\n  var nm=String(r.name||"").trim()||"Unnamed";\n  var ch=String(r.chamber||"").toLowerCase();\n  var chLabel=ch==="senate"?"Senator":ch==="house"?"Rep":"";\n  var loc=esc(String(r.state||""));\n  if(ch==="house"&&r.district) loc+=" &middot; District "+esc(String(r.district));\n  var phone=String(r.phone||"").trim();\n  /* tel: href sanitized to dial-safe chars; display keeps the API string. */\n  var telHref=phone?("tel:"+phone.replace(/[^0-9+().-]/g,"")):"";\n  var curl=String(r.contact_form||r.url||"").trim();\n  /* CEO directive 2026-10-05: non-voting delegates (voting===false) get a\n     visible label. Fail-soft: rows without the field render exactly as\n     before (strict === false, so true/absent/undefined => no label). */\n  var nvLabel=(r.voting===false?\'<span class="cv-nv">NON-VOTING DELEGATE</span>\':"");\n  var h=\'<div class="cv-dirrow">\'\n    +\'<div class="cv-dirname">\'+esc(nm)+partyBadge(r.party)+nvLabel+\'</div>\'\n    +\'<div class="x-note">\'+(chLabel?esc(chLabel)+" &middot; ":"")+loc+\'</div>\'\n    +\'<div class="cv-diractions">\';\n  if(telHref) h+=\'<a class="c-btn cv-t44" href="\'+esc(telHref)+\'">CALL</a>\';\n  else h+=\'<span class="x-note">no phone listed</span>\';\n  if(curl) h+=\' <a class="c-btn cv-t44" href="\'+esc(curl)+\'" target="_blank" rel="noopener">CONTACT</a>\';\n  /* +25 XP badge rides next to LOG CONTACT (CEO requirement 2026-10-05) —\n     the reward is surfaced, not new. */\n  h+=\' <button type="button" class="c-btn cv-t44" data-dir-log="\'+esc(nm)+\'">LOG CONTACT</button>\'\n    +\'<span class="cv-xpb">+25 XP</span>\';\n  /* 2026-10-05 (rep-flow friction): secondary row actions tuck behind MORE —\n     the scan path is name > CALL/CONTACT/LOG, not five equal buttons. */\n  var moreBtns="";\n  /* 2026-10-05: voting scorecards — expandable member detail keyed by\n     bioguide_id. Rows without the key get no button (fail-soft). */\n  var bio=scKey(r);\n  if(bio) moreBtns+=\' <button type="button" class="c-btn cv-t44" data-sc-toggle="\'+esc(bio)+\'">\'\n    +(SCST.open===bio?"HIDE SCORECARD":"SCORECARD")+\'</button>\';\n  /* 2026-10-05: call practice mode — rehearsal entry point per row.\n     Practice earns zero XP (stated in the overlay); the real call logs\n     through the same doLogContact() path as LOG CONTACT. */\n  moreBtns+=\' <button type="button" class="c-btn cv-t44" data-dir-practice="\'+esc(nm)+\'" data-dir-phone="\'+esc(telHref)+\'">PRACTICE FIRST</button>\';\n  if(moreBtns) h+=\' <details class="cv-mored"><summary class="c-btn cv-t44">MORE</summary><div class="cv-morebody">\'+moreBtns+\'</div></details>\';\n  h+=\'</div>\';\n  if(bio&&SCST.open===bio) h+=scDetailHTML(bio);\n  h+=\'</div>\';\n  return h;\n}\nfunction dirListHTML(){\n  if(DIRST.err){\n    return \'<div class="c-err">Couldn&rsquo;t reach the directory wire.</div>\'\n      +\'<button type="button" class="c-btn cv-t44" id="cvDirRetry">RETRY</button>\';\n  }\n  /* Mobilizing fallback pattern, matching the rest of the silo. */\n  if(DIRST.load||DIRST.reps===null) return \'<div class="c-load">Mobilizing&hellip;</div>\';\n  var q=String(DIRST.q||"").trim().toLowerCase();\n  var reps=DIRST.reps.slice();\n  /* Client re-sort fallback (server already sorts state ASC, name ASC). */\n  reps.sort(function(a,b){\n    var sa=String(a.state||""), sb=String(b.state||"");\n    if(sa<sb) return -1; if(sa>sb) return 1;\n    var na=String(a.name||"").toLowerCase(), nb=String(b.name||"").toLowerCase();\n    if(na<nb) return -1; if(na>nb) return 1; return 0;\n  });\n  if(q) reps=reps.filter(function(r){ return String(r.name||"").toLowerCase().indexOf(q)!==-1; });\n  if(!reps.length) return \'<div class="x-note">No members match those filters. Broaden the hunt.</div>\';\n  /* 2026-10-05 (rep-flow friction): a count line so the list scans as\n     "your reps", not an endless dump. */\n  var h=\'<div class="x-note">\'+reps.length+\' member\'+(reps.length===1?"":"s")\n    +(DIRST.st?" in "+esc(String(DIRST.st).toUpperCase()):" nationwide")\n    +(DIRST.ch?" · "+esc(DIRST.ch):"")+\'.</div>\';\n  for(var i=0;i<reps.length;i++) h+=dirRowHTML(reps[i]);\n  return h;\n}\nfunction paintDir(){\n  var l=document.getElementById("cvDirList"); if(!l) return;\n  l.innerHTML=dirListHTML();\n}\nfunction fetchDir(){\n  DIRST.load=true; DIRST.err=false;\n  paintDir();\n  /* api() drops null/"" params, so empty filters = unfiltered list. */\n  api("reps_list",{state:DIRST.st,chamber:DIRST.ch},function(j){\n    DIRST.load=false;\n    if(j&&j.ok&&j.reps){ DIRST.reps=j.reps; DIRST.err=false; }\n    else { DIRST.err=true; }\n    paintDir();\n  });\n}\n/* --- voting scorecards (2026-10-05) ---\n   Backend contract (be/congress-scorecards, parallel build — developed\n   against the documented shape, verify against the real branch before ship):\n     scorecard_get?bioguide_id=X ->\n       {ok, bioguide_id, votes:[{vote_id, position, issue_tag, question,\n                                bill_title, vote_date, result}]}\n     scorecard_issue?vote_id=Y ->\n       {ok, vote:{...}, breakdown:{yea:{D,R,I}, nay:{D,R,I},\n                                   not_voting:{D,R,I}}}\n   Linked by bioguide_id — the same key the directory rows carry (scKey\n   reads r.bioguide_id, falls back to r.bioguide/r.id; rows without any key\n   get no SCORECARD button — fail-soft, never invented).\n   Renders ONLY what the API returns. No placeholder votes: a member with\n   no tracked votes gets the explicit "no votes tracked yet" empty state. */\nvar SCST={open:null,issue:null,issueFrom:null,sc:{},iss:{}};\nfunction scKey(r){ return String((r&&(r.bioguide_id||r.bioguide||r.id))||"").trim(); }\nfunction scGet(bio){ return SCST.sc[bio]||null; }\nfunction repNameByBio(bio){\n  var reps=DIRST.reps||[];\n  for(var i=0;i<reps.length;i++){ if(scKey(reps[i])===bio) return String(reps[i].name||"").trim(); }\n  return "";\n}\nfunction fetchScorecard(bio){\n  var cur=SCST.sc[bio]={load:true,err:false,votes:null,name:repNameByBio(bio)};\n  paintDir();\n  api("scorecard_get",{bioguide_id:bio},function(j){\n    cur.load=false;\n    if(j&&j.ok&&j.votes){ cur.votes=j.votes; cur.err=false; }\n    else { cur.err=true; }\n    paintDir();\n  });\n}\nfunction posBadge(pos){\n  var p=String(pos||"").toLowerCase().trim();\n  if(p.indexOf("yea")===0) return \'<span class="cv-vb cv-vb-yea">YEA</span>\';\n  if(p.indexOf("nay")===0) return \'<span class="cv-vb cv-vb-nay">NAY</span>\';\n  /* Anything else (Present, Not Voting, Absent) is shown verbatim —\n     escaped — never normalized into Yea/Nay. */\n  return \'<span class="cv-vb cv-vb-nv">\'+esc(String(pos||"—").toUpperCase().slice(0,12))+\'</span>\';\n}\nfunction scDate(ds){\n  var d=String(ds||"").trim(); if(!d) return "";\n  var m=d.match(/^(d{4})-(d{2})-(d{2})/);\n  if(m) return m[2]+"/"+m[3]+"/"+m[1];\n  return d.slice(0,10);\n}\nfunction scVoteHTML(v){\n  var title=String(v.bill_title||v.question||"").trim()||"Untitled vote";\n  var h=\'<div class="cv-scrow">\'+posBadge(v.position)\n    +\'<div class="cv-scbody">\'\n    +\'<div class="cv-sctitle">\'+esc(title)+\'</div>\'\n    +\'<div class="x-note">\'+esc(scDate(v.vote_date));\n  if(v.result) h+=\' &middot; Result: \'+esc(v.result);\n  h+=\'</div>\';\n  /* Entry point to the issue view: tapping an issue_tag jumps to the\n     vote breakdown for that vote. No vote_id -> plain label, no jump. */\n  if(v.issue_tag){\n    if(v.vote_id) h+=\'<button type="button" class="c-btn cv-t44 cv-sctag" data-sc-issue="\'+esc(String(v.vote_id))+\'">\'+esc(v.issue_tag)+\'</button>\';\n    else h+=\'<div class="x-note">\'+esc(v.issue_tag)+\'</div>\';\n  }\n  return h+\'</div></div>\';\n}\nfunction scDetailHTML(bio){\n  var cur=scGet(bio), nm=(cur&&cur.name)||repNameByBio(bio)||"This member";\n  var h=\'<div class="cv-scdetail" data-sc-detail="\'+esc(bio)+\'">\'\n    +\'<div class="cv-sc-head"><b>\'+esc(nm)+\' &mdash; voting record</b>\';\n  /* Share rides the detail header once votes are in hand — never on a\n     loading/failed pane, so the shared text can only describe real data. */\n  if(cur&&!cur.load&&!cur.err&&cur.votes) h+=\' <button type="button" class="c-btn cv-t44" data-sc-share="\'+esc(bio)+\'">SHARE</button>\';\n  h+=\'</div>\';\n  if(!cur||cur.load){ h+=\'<div class="c-load">Reading their record&hellip;</div>\'; }\n  else if(cur.err){\n    h+=\'<div class="c-err">Couldn&rsquo;t reach the scorecard wire.</div>\'\n      +\'<button type="button" class="c-btn cv-t44" data-sc-retry="\'+esc(bio)+\'">RETRY</button>\';\n  }\n  else if(!cur.votes.length){\n    h+=\'<div class="x-note">\'+esc(nm)+\' has no votes tracked yet.</div>\';\n  }\n  else {\n    for(var i=0;i<cur.votes.length;i++) h+=scVoteHTML(cur.votes[i]);\n  }\n  return h+\'</div>\';\n}\n/* --- issue view: "where does Congress stand on X" --- */\nfunction fetchIssue(vid){\n  var cur=SCST.iss[vid]={load:true,err:false,vote:null,breakdown:null};\n  paintIssue();\n  api("scorecard_issue",{vote_id:vid},function(j){\n    cur.load=false;\n    if(j&&j.ok&&j.vote&&j.breakdown){ cur.vote=j.vote; cur.breakdown=j.breakdown; cur.err=false; }\n    else { cur.err=true; }\n    paintIssue();\n  });\n}\nfunction partySum(o){ o=o||{}; return (Number(o.D)||0)+(Number(o.R)||0)+(Number(o.I)||0); }\nfunction n0(v){ return String(Number(v)||0); }\nfunction issueTableHTML(bd){\n  var rows=[["yea","YEA"],["nay","NAY"],["not_voting","NOT VOTING"]];\n  var h=\'<div class="cv-issue-table">\'\n    +\'<div class="cv-ir cv-irh"><span></span><span>D</span><span>R</span><span>I</span><span>TOTAL</span></div>\';\n  for(var i=0;i<rows.length;i++){\n    var c=bd[rows[i][0]]||{};\n    h+=\'<div class="cv-ir"><span class="cv-irlabel">\'+rows[i][1]+\'</span>\'\n      +\'<span>\'+n0(c.D)+\'</span><span>\'+n0(c.R)+\'</span><span>\'+n0(c.I)+\'</span>\'\n      +\'<span class="cv-irtot">\'+partySum(c)+\'</span></div>\';\n  }\n  return h+\'</div>\';\n}\nfunction issueHTML(){\n  var vid=SCST.issue, cur=vid?SCST.iss[vid]:null;\n  if(!vid) return "";\n  var h=\'<div class="cv-issue" id="cvIssue">\';\n  h+=\'<button type="button" class="c-btn cv-t44" data-issue-back>&larr; BACK</button>\';\n  if(!cur||cur.load){ return h+\'<div class="c-load">Reading the vote&hellip;</div></div>\'; }\n  if(cur.err){\n    return h+\'<div class="c-err">Couldn&rsquo;t reach the vote wire.</div>\'\n      +\'<button type="button" class="c-btn cv-t44" data-issue-retry="\'+esc(vid)+\'">RETRY</button></div>\';\n  }\n  var v=cur.vote||{}, bd=cur.breakdown||{};\n  var title=String(v.bill_title||v.question||v.title||"").trim()||"Vote";\n  h+=\'<h4 style="margin:10px 0 4px">\'+esc(title)+\'</h4>\'\n    +\'<div class="x-note">\'+esc(scDate(v.vote_date));\n  if(v.chamber) h+=\' &middot; \'+esc(v.chamber);\n  if(v.result) h+=\' &middot; Result: \'+esc(v.result);\n  h+=\'</div>\'\n    /* Totals math: each cell is the API\'s number; TOTAL is D+R+I. */\n    +issueTableHTML(bd)\n    +\'<div class="x-note">Counts straight from the wire — no spin.</div></div>\';\n  return h;\n}\nfunction paintIssue(){\n  var p=document.getElementById("cvIssuePanel"); if(!p) return;\n  p.innerHTML=issueHTML();\n}\n/* Share: text share via the existing PFShare.shareText idiom (dashboard.js\n   promptShare), navigator.share fallback, toast fallback. Copy is built\n   from the member\'s real tracked positions only — member name + Yea/Nay\n   counts + link back to Political HQ. */\nfunction shareScorecard(bio){\n  var cur=scGet(bio), nm=(cur&&cur.name)||repNameByBio(bio)||"A member of Congress";\n  var url="https://www.mtcstw.com/political-hq";\n  try{ if(window.PF&&typeof PF.shareUrl==="function") url=PF.shareUrl(url); }catch(e){}\n  var title=nm+"\'s voting record";\n  var summary="", votes=(cur&&cur.votes)||[];\n  if(votes.length){\n    var y=0,n=0;\n    for(var i=0;i<votes.length;i++){\n      var p=String(votes[i].position||"").toLowerCase().trim();\n      if(p.indexOf("yea")===0) y++; else if(p.indexOf("nay")===0) n++;\n    }\n    summary=" — "+votes.length+" votes tracked ("+y+" Yea, "+n+" Nay)";\n  } else summary=" — no votes tracked yet";\n  var txt=title+summary+" — see the receipts at "+url;\n  try{\n    if(window.PFShare&&PFShare.shareText){ PFShare.shareText(txt); return; }\n    if(typeof navigator!=="undefined"&&navigator.share){\n      navigator.share({title:title,text:txt,url:url}).catch(function(){}); return;\n    }\n  }catch(e){}\n  toast("Copy the link and spread it: "+url);\n}\n/* Shared rep_contact write path (2026-10-05): the legacy "Contact your rep"\n   pane and every directory row log through this — same POST shape, same\n   +25 XP, same 2/day cap. */\nfunction doLogContact(repName,btn,errEl){\n  if(!repName){ if(errEl) errEl.textContent="Pick a rep first."; return; }\n  var box=document.getElementById("cvScriptBox");\n  var sid=box?box.getAttribute("data-script-id"):"";\n  if(btn) btn.disabled=true;\n  post("rep","r_action","rep_contact",{callsign:ident().callsign,rep_name:repName,method:gv("cvMethod"),script_used:sid||""},function(j){\n    if(j&&j.ok){\n      /* CEO requirement 2026-10-05: the +25 XP reward is explicit in the\n         confirmation. */\n      /* 2026-10-05 (P2 F2-TOAST): the contact action feeds Civic Duty —\n         record first so the toast shows the new count. */\n      try{ document.dispatchEvent(new CustomEvent(\'pf-civic-rep-contacted\')); }catch(e){}\n      toast("Logged — +25 XP."+dutyFrag());\n      fetchHist(true);\n    } else {\n      var e=String((j&&(j.err||j.error))||"");\n      if(/cap/i.test(e)){\n        /* 2/day cap per the rep_contact contract — reward amount + reset\n           spelled out. */\n        toast("Daily limit reached (2/day) — +25 XP each, resets tomorrow.");\n      } else {\n        var m=PF.errCopy(j,"Log failed.");\n        if(errEl) errEl.textContent=m; else toast(m);\n      }\n    }\n    if(btn) btn.disabled=false;\n  });\n}\n/* --- call practice mode (2026-10-05): frontend-only rehearsal for\n   first-time callers. Warm and encouraging, never gamified-shaming.\n   PRACTICE EARNS ZERO XP — the overlay and entry points say so plainly.\n   The real call logs through the shared doLogContact() helper above\n   (same POST shape, +25 XP, 2/day cap) — the POST logic is NOT\n   duplicated here. No backend writes from practice; the only\n   persistence is a per-callsign practice count in localStorage, used\n   for encouragement copy only. */\nvar PRAC={el:null,timer:null,secs:60,lines:[],idx:0,rep:"",phone:"",script:null,started:false,done:false};\nfunction pracGetCount(){\n  var id=""; try{ id=ident().callsign||""; }catch(e){}\n  try{ return Number(window.localStorage.getItem("pf_prac_count_"+id))||0; }catch(e){ return 0; }\n}\nfunction pracBumpCount(){\n  var id=""; try{ id=ident().callsign||""; }catch(e){}\n  try{ window.localStorage.setItem("pf_prac_count_"+id,String(pracGetCount()+1)); }catch(e){}\n}\n/* Script picker: a campaign-passed script wins verbatim; otherwise the\n   default rep-contact script — the topic-selected one when the legacy\n   pane has one picked, else the first backend script. Never invented. */\nfunction pracDefaultScript(){\n  var scripts=(SCRIPTS&&SCRIPTS.scripts)||[];\n  if(!scripts.length) return null;\n  var sid=""; try{ var b=document.getElementById("cvScriptBox"); sid=b?b.getAttribute("data-script-id"):""; }catch(e){}\n  for(var i=0;i<scripts.length;i++){ if(sid&&String(scripts[i].id)===String(sid)) return scripts[i]; }\n  return scripts[0];\n}\nfunction pracNormScript(sc){\n  if(!sc) return null;\n  var body=sc.script!=null?sc.script:(sc.body!=null?sc.body:"");\n  if(!String(body).replace(/s+/g,"")) return null;\n  return {title:String(sc.title||sc.topic||"Call script"),body:String(body)};\n}\n/* Same substitution + escaping discipline as showScript: escape the\n   script first, then fill {NAME}/{STATE}/{REP} with escaped values. */\nfunction pracFill(body,repName){\n  var name=gv("cvMyName")||"[YOUR NAME]", st=gv("cvMyState")||"[STATE]", rep=repName||gv("cvRepSel")||"[REP]";\n  return esc(body).split("{NAME}").join(esc(name)).split("{STATE}").join(esc(st)).split("{REP}").join(esc(rep));\n}\nfunction pracFmt(s){ s=Math.max(0,s); var m=Math.floor(s/60), r=s%60; return m+":"+(r<10?"0":"")+r; }\nfunction pracEnsure(){\n  if(PRAC.el) return PRAC.el;\n  var ov=document.createElement("div");\n  ov.id="pfPracOv"; ov.style.display="none";\n  document.body.appendChild(ov);\n  PRAC.el=ov; return ov;\n}\nfunction pracStopTimer(){ if(PRAC.timer){ try{ clearInterval(PRAC.timer); }catch(e){} PRAC.timer=null; } }\nfunction pracPaintLine(){\n  var t=document.getElementById("pfPracTele"); if(t) t.innerHTML=PRAC.lines[PRAC.idx]||"";\n  var p=document.getElementById("pfPracProg"); if(p) p.textContent="Line "+(PRAC.idx+1)+" of "+PRAC.lines.length;\n}\nfunction pracRender(){\n  var ov=pracEnsure();\n  var n=pracGetCount();\n  var h=\'<div class="pfprac-card">\'\n    +\'<div class="pfprac-top">\'\n    +\'<div class="pfprac-timer" id="pfPracTimer" aria-live="polite">\'+pracFmt(PRAC.secs)+\'</div>\'\n    +\'<button type="button" class="c-btn cv-t44 pfprac-x" id="pfPracClose" aria-label="Close practice">✕</button>\'\n    +\'</div>\'\n    +\'<h3 class="pfprac-h">Practice your call</h3>\'\n    /* Zero-XP copy, plain: practice never mints XP. */\n    +\'<div class="x-note pfprac-zero">Practice earns <b>no XP</b> — the real call earns <b>+25 XP</b>.</div>\';\n  if(PRAC.rep) h+=\'<div class="x-note">Rehearsing for: <b>\'+esc(PRAC.rep)+\'</b></div>\';\n  if(n>0) h+=\'<div class="x-note">You’ve run through this \'+n+\' time\'+(n===1?"":"s")+\'. Each rep makes the real call easier.</div>\';\n  if(!PRAC.script){\n    /* Backend-unreachable: no script to rehearse against, retry the\n       rep_scripts read — practice itself never depends on the write wire. */\n    h+=\'<div class="c-err">The script wire didn’t answer — nothing to rehearse against yet.</div>\'\n      +\'<button type="button" class="c-btn cv-t44 pfprac-big" id="pfPracRetryScript">RETRY LOADING SCRIPT</button>\';\n  } else {\n    h+=\'<div class="x-note"><b>\'+esc(PRAC.script.title)+\'</b></div>\'\n      +\'<div class="pfprac-tele" id="pfPracTele" aria-live="polite">\'+(PRAC.lines[PRAC.idx]||"")+\'</div>\'\n      +\'<div class="x-note pfprac-prog" id="pfPracProg">Line \'+(PRAC.idx+1)+\' of \'+PRAC.lines.length+\'</div>\'\n      +\'<div class="pfprac-row">\'\n      +\'<button type="button" class="c-btn cv-t44" id="pfPracPrev">← BACK</button>\'\n      +\'<button type="button" class="c-btn cv-t44" id="pfPracNext">NEXT LINE →</button>\'\n      +\'</div>\';\n    if(!PRAC.started){\n      h+=\'<button type="button" class="c-btn cv-t44 pfprac-big" id="pfPracStart">START 60-SECOND TIMER</button>\'\n        +\'<div class="x-note">Read it out loud, like the staffer just picked up. No rush — the timer is a guide, not a test.</div>\';\n    }\n    /* Gentle end target: filled + faded in when the timer lands, never a buzzer. */\n    h+=\'<div class="pfprac-gentle" id="pfPracGentle" aria-live="polite"></div>\';\n    if(!PRAC.done){\n      h+=\'<button type="button" class="c-btn cv-t44 pfprac-big" id="pfPracDone">I PRACTICED ✓</button>\';\n    } else {\n      h+=\'<div class="pfprac-warm">Nice. You’ve got this.</div>\'\n        +\'<div class="x-note">The real call is where the +25 XP lives. Staffer answers, you read your lines, done.</div>\'\n        +\'<div class="pfprac-row">\';\n      if(PRAC.phone) h+=\'<a class="c-btn cv-t44" href="\'+esc(PRAC.phone)+\'">CALL NOW</a>\';\n      h+=\'<button type="button" class="c-btn cv-t44" id="pfPracLog">LOG THE REAL CALL (+25 XP)</button></div>\'\n        +\'<div class="c-err" id="pfPracErr"></div>\'\n        +\'<div class="x-note">2 logged contacts per day — same as always.</div>\';\n    }\n  }\n  h+=\'</div>\';\n  ov.innerHTML=h;\n  pracBind();\n}\nfunction pracBind(){\n  function on(id,fn){ var e=document.getElementById(id); if(e) e.onclick=fn; }\n  on("pfPracClose",pracClose);\n  on("pfPracStart",pracStart);\n  on("pfPracDone",pracCheckIn);\n  on("pfPracLog",pracLogReal);\n  on("pfPracPrev",function(){ if(PRAC.idx>0){ PRAC.idx--; pracPaintLine(); } });\n  on("pfPracNext",function(){ if(PRAC.idx<PRAC.lines.length-1){ PRAC.idx++; pracPaintLine(); } });\n  on("pfPracRetryScript",function(){\n    var b=document.getElementById("pfPracRetryScript"); if(b) b.disabled=true;\n    api("rep_scripts",{},function(j){ SCRIPTS=j; pracOpen({repName:PRAC.rep,phone:PRAC.phone}); });\n  });\n}\nfunction pracOpen(opts){\n  opts=opts||{};\n  PRAC.rep=String(opts.repName||"");\n  PRAC.phone=String(opts.phone||"");\n  /* Campaign-passed script verbatim, else the default rep-contact script. */\n  PRAC.script=pracNormScript(opts.script)||pracNormScript(pracDefaultScript());\n  PRAC.lines=[]; PRAC.idx=0; PRAC.secs=60; PRAC.started=false; PRAC.done=false;\n  if(PRAC.script){\n    var filled=pracFill(PRAC.script.body,PRAC.rep);\n    /* Teleprompter: line-by-line advance — simpler and more robust than\n       auto-scroll (no scroll-timing bugs at any font size). Split on\n       blank lines so each beat is one tap. */\n    var parts=filled.split(/\\ns*\\n/), i, t;\n    for(i=0;i<parts.length;i++){ t=parts[i].replace(/s+/g," ").replace(/^s+|s+$/g,""); if(t) PRAC.lines.push(t); }\n    if(!PRAC.lines.length) PRAC.lines=[filled];\n  }\n  pracStopTimer();\n  pracRender();\n  var ov=pracEnsure(); ov.style.display="block";\n  try{ ov.scrollTop=0; }catch(e){}\n  try{ document.body.style.overflow="hidden"; }catch(e){}\n}\nfunction pracClose(){\n  pracStopTimer();\n  var ov=document.getElementById("pfPracOv");\n  if(ov) ov.style.display="none";\n  try{ document.body.style.overflow=""; }catch(e){}\n}\nfunction pracStart(){\n  if(PRAC.started) return;\n  PRAC.started=true; PRAC.secs=60;\n  var t=document.getElementById("pfPracTimer"); if(t) t.textContent=pracFmt(PRAC.secs);\n  var s=document.getElementById("pfPracStart"); if(s) s.style.display="none";\n  pracStopTimer();\n  PRAC.timer=setInterval(pracTick,1000);\n}\nfunction pracTick(){\n  PRAC.secs--;\n  var t=document.getElementById("pfPracTimer");\n  if(t) t.textContent=pracFmt(PRAC.secs);\n  if(PRAC.secs<=0){\n    pracStopTimer();\n    var g=document.getElementById("pfPracGentle");\n    if(g){ g.innerHTML="Time. Breathe — that was the hard part, and you did it."; g.classList.add("pfprac-show"); }\n    var s=document.getElementById("pfPracStart"); if(s) s.style.display="none";\n  }\n}\n/* "I practiced" check-in: warm, ungated (no timer requirement, no\n   shaming) — bumps the local encouragement count and surfaces the\n   real-call prompt. */\nfunction pracCheckIn(){\n  if(PRAC.done) return;\n  PRAC.done=true; pracStopTimer(); pracBumpCount();\n  pracRender();\n}\n/* Real-call path: reuses the EXISTING doLogContact() write path — same\n   POST, same +25 XP, same 2/day cap. No duplicated POST logic. */\nfunction pracLogReal(){\n  var b=document.getElementById("pfPracLog");\n  var err=document.getElementById("pfPracErr");\n  doLogContact(PRAC.rep,b,err);\n}\n/* Defensive entry point for parallel builds (pressure-campaign cards are\n   not in this base yet): cards can call\n   window.PFPractice.open({repName,phone,script:{title,script}}) — the\n   script passes through verbatim — or render\n   <button data-pf-practice data-pf-rep="..." data-pf-phone="tel:..."\n   data-pf-script-title="..." data-pf-script-body="...">. */\nwindow.PFPractice={ open:function(o){ try{ pracOpen(o||{}); }catch(e){} }, close:function(){ try{ pracClose(); }catch(e){} } };\ntry{\n  document.addEventListener("click",function(e){\n    var b=e.target&&e.target.closest?e.target.closest("[data-pf-practice]"):null;\n    if(!b) return;\n    var sb=b.getAttribute("data-pf-script-body");\n    window.PFPractice.open({\n      repName:b.getAttribute("data-pf-rep")||"",\n      phone:b.getAttribute("data-pf-phone")||"",\n      script:sb?{title:b.getAttribute("data-pf-script-title")||"Call script",script:sb}:null\n    });\n  });\n}catch(e){}\nfunction render(){\n  var el=document.getElementById("xCivic"); if(!el) return;\n  var id=ident(), h="";\n  if(!id.callsign){\n    h+=PF.gateHTML(\'Civic action runs on callsigns.\',\'to take civic action\');\n    el.innerHTML=h; return;\n  }\n  /* --- petitions --- */\n  h+=\'<div class="x-pane"><h4>Petitions</h4>\';\n  var pets=(P&&P.petitions)||[];\n  if(!pets.length){ h+=\'<div class="x-note">No petitions yet. Start the first one below.</div>\'; }\n  for(var i=0;i<pets.length;i++){\n    var p=pets[i];\n    PET_TITLE[p.id]=p.title;\n    h+=\'<div class="cp-mission"><div class="cp-mtext">\'+esc(p.title)+\'</div>\'\n      +\'<div class="x-note">Target: \'+esc(p.target)+\' &bull; by \'+esc(p.creator)+\'</div>\'\n      +\'<div class="cp-barwrap"><div class="cp-bar" style="width:\'+(p.pct||0)+\'%"></div></div>\'\n      +\'<div class="x-note">\'+(p.sig_count||0)+\' / \'+p.goal+\' signatures (\'+(p.pct||0)+\'%)</div>\'\n      +\'<button class="c-btn cp-mbtn" data-pet-sign="\'+esc(p.id)+\'">SIGN (+10 XP)</button> \'\n      /* 2026-10-05 (P2 F2-TOAST / P10 W18): share affordance appears only\n         AFTER signing — never before the action. */\n      +(PET_SHARE_AFTER[p.id]?\'<button class="c-btn cp-mbtn" data-pet-shareafter="\'+esc(p.id)+\'">SHARE IT →</button> \':"")\n      /* 2026-10-03: petition_sigs (public) — who signed, per card. */\n      +\'<button class="c-btn cp-mbtn" data-pet-sigs="\'+esc(p.id)+\'">WHO SIGNED</button>\'\n      +\'<div class="x-note" data-pet-sigs-out="\'+esc(p.id)+\'" style="display:none"></div>\'\n      +\'<div class="x-note">XP has no cash value. Stakes are final.</div></div>\';\n  }\n  if(CREATE_OPEN){\n    h+=\'<div class="x-pane pf-mt" ><h4>New petition</h4>\'\n      +\'<input aria-label="Title (e.g. Stop the rent gouging)" class="c-in"  id="cvPetTitle" maxlength="140" placeholder="Title (e.g. Stop the rent gouging)">\'\n      +\'<input aria-label="Target (e.g. City Council)" class="c-in"  id="cvPetTarget" maxlength="140" placeholder="Target (e.g. City Council)">\'\n      +\'<textarea class="c-in"  id="cvPetDesc" rows="3" maxlength="2000" placeholder="What are we demanding?"></textarea>\'\n      +\'<input aria-label="Signature goal" class="c-in"  id="cvPetGoal" type="number" min="10" max="1000000" value="500" placeholder="Signature goal">\'\n      +\'<button class="c-btn" id="cvPetCreate">LAUNCH PETITION</button> \'\n      +\'<button class="c-btn" id="cvPetCancel">CANCEL</button><div class="c-err" id="cvPetErr"></div></div>\';\n  } else {\n    h+=\'<button class="c-btn" id="cvPetOpen">START A PETITION</button>\';\n  }\n  h+=\'</div>\';\n  /* --- pressure campaigns (2026-10-05, wave pressure-campaigns FE) --- */\n  h+=pressurePaneHTML();\n  /* --- Wave A5 S-13: official jobs panel above pressure campaigns.\n     The module mounts itself into this slot; a dead macro wire renders\n     nothing and never breaks the civic page. */\n  if(!(PF&&(PF.skip(\'phq-jobs\')))) h+=\'<div id="cvJobsPanel"></div>\';\n  /* --- network polls (2026-10-05) --- */\n  h+=pollsPane();\n  /* --- contact your rep --- */\n  h+=\'<div class="x-pane"><h4>Contact your rep</h4>\'\n    /* 2026-10-05 (P1 F2-PROG): Civic Duty progress meter mount. Painted by\n       civic-duty.js from PF.civicDutyProgress(); empty until that module\n       paints (MutationObserver repaints after re-renders). */\n    +\'<div class="x-note" id="cvDutyMeter" aria-live="polite"></div>\'\n  var reps=(REPS&&REPS.reps)||[];\n  var ropts=\'<option value="">Pick a rep&hellip;</option>\';\n  for(var r=0;r<reps.length;r++){ ropts+=\'<option value="\'+esc(reps[r].name)+\'">\'+esc(reps[r].name)+\' &mdash; \'+esc(reps[r].role||reps[r].chamber||"")+\'</option>\'; }\n  var scripts=(SCRIPTS&&SCRIPTS.scripts)||[];\n  var topics={}, topts=\'<option value="">Pick a topic&hellip;</option>\';\n  for(var s2=0;s2<scripts.length;s2++){ if(!topics[scripts[s2].topic]){ topics[scripts[s2].topic]=1; topts+=\'<option value="\'+esc(scripts[s2].topic)+\'">\'+esc(scripts[s2].topic)+\'</option>\'; } }\n  h+=\'<select class="c-in"  id="cvRepSel">\'+ropts+\'</select>\'\n    +\'<select class="c-in"  id="cvTopicSel">\'+topts+\'</select>\'\n    +\'<div id="cvScriptBox"></div>\'\n    +\'<input aria-label="Your name (for the script)" class="c-in"  id="cvMyName" maxlength="60" placeholder="Your name (for the script)">\'\n    +\'<select class="c-in"  id="cvMyState">\'+stateOpts("")+\'</select>\'\n    +\'<div class="x-note">Method:</div>\'\n    +\'<select class="c-in"  id="cvMethod"><option value="call">Call</option><option value="email">Email</option><option value="tweet">Tweet</option></select>\'\n    +\'<button class="c-btn" id="cvLogContact">LOG CONTACT (+25 XP)</button> \'\n    /* 2026-10-05: call practice mode entry point — rehearses the rep call\n       against the script picker below. Zero XP, stated plainly. */\n    +\'<button class="c-btn" id="cvPracticeFirst">PRACTICE FIRST</button><div class="c-err" id="cvRepErr"></div>\'\n    +\'<div class="x-note">Practice earns no XP &mdash; the real call earns +25 XP.</div>\'\n    +\'<div class="x-note">XP has no cash value. Stakes are final.</div>\'\n    /* 2026-10-03: rep_contact_history (AUTH) — the caller\'s own contact log. */\n    +\'<div id="cvHistBox" style="margin-top:8px"><div class="x-note">Reading your contact log&hellip;</div></div>\';\n  if(REPS&&REPS.note){ h+=\'<div class="x-note">\'+esc(REPS.note)+\'</div>\'; }\n  h+=\'</div>\';\n  /* --- cell competitions (2026-10-05): weekly cell-vs-cell civic race.\n     The card stays empty until cellcomp_current lands ok (fail-soft). It\n     sits on the rep-contact pane — logging a contact is how cells score. */\n  h+=\'<div id="cvCompBox"></div>\';\n  /* --- congressional directory (2026-10-05): full member directory.\n     Server filters on state/chamber (reps_list); name search is\n     client-side. Renders only what the API returns — no invented data. */\n  /* 2026-10-05 (rep-flow friction): default the directory to the viewer\'s\n     home state. "All states" dumped all 535 members on first paint — the\n     rep lookup is "your reps", not the whole Congress. Once-per-mount:\n     an explicit "All states" choice (or the legislation-member flow\'s\n     deliberate reset) must survive later re-renders. */\n  if(!DIRST.st&&!DIRST._hsInit){ DIRST._hsInit=true;\n    try{ var _hs=(window.PF&&PF.homeState&&PF.homeState())||""; if(_hs) DIRST.st=_hs; }catch(e){} }\n  h+=\'<div class="x-pane"><h4>Find your reps</h4>\'\n    +\'<div class="x-note">Every logged contact: <b>+25 XP</b> (2/day).</div>\'\n    /* 2026-10-05: issue view panel — "where does Congress stand on X".\n       Painted at the top of the directory pane when a vote is open. */\n    +\'<div id="cvIssuePanel">\'+issueHTML()+\'</div>\'\n    +\'<div class="cv-dirfilters">\'\n    +\'<select class="c-in cv-t44" id="cvDirState" aria-label="Filter by state">\'+dirStateOpts(DIRST.st)+\'</select>\'\n    +\'<div class="cv-cham" role="group" aria-label="Chamber filter">\'\n    +\'<button type="button" class="c-btn cv-ch" data-ch="" aria-pressed="\'+(DIRST.ch===""?"true":"false")+\'">ALL</button>\'\n    +\'<button type="button" class="c-btn cv-ch" data-ch="senate" aria-pressed="\'+(DIRST.ch==="senate"?"true":"false")+\'">SENATE</button>\'\n    +\'<button type="button" class="c-btn cv-ch" data-ch="house" aria-pressed="\'+(DIRST.ch==="house"?"true":"false")+\'">HOUSE</button>\'\n    +\'</div>\'\n    +\'<input class="c-in cv-t44" id="cvDirQ" type="search" maxlength="60" placeholder="Search by name" aria-label="Search by name" value="\'+esc(DIRST.q)+\'">\'\n    +\'</div>\'\n    +\'<div class="c-err" id="cvDirErr"></div>\'\n    +\'<div id="cvDirList">\'+dirListHTML()+\'</div>\'\n    +\'</div>\';\n  /* --- voter registration --- */\n  h+=\'<div class="x-pane"><h4>Voter registration</h4>\'\n    /* 2026-10-03: voter_pledge_stats (public) — movement social proof. */\n    +(function(){\n      if(!(VSTATS&&VSTATS.ok)) return "";\n      var total=Number(VSTATS.total_pledges)||0;\n      var bs=(VSTATS.by_state)||[], top=[];\n      for(var vi=0;vi<Math.min(bs.length,5);vi++){ top.push(esc(bs[vi].state)+": "+Number(bs[vi].pledges||0)); }\n      return \'<div class="x-note"><b>\'+total+\'</b> pledged network-wide\'+(top.length?" — top states: "+top.join(", "):"")+\'.</div>\';\n    })()\n    +\'<select class="c-in"  id="cvVoterState">\'+stateOpts(VOTER&&VOTER.state?VOTER.state:"")+\'</select>\'\n    +\'<div id="cvVoterBox">\';\n  if(VOTER&&VOTER.url){\n    h+=\'<div class="x-note">Official registration for \'+esc(VOTER.state)+\':</div>\'\n      +\'<a class="c-btn" href="\'+esc(VOTER.url)+\'" target="_blank" rel="noopener">REGISTER ON VOTE.GOV</a> \'\n      +\'<button class="c-btn" id="cvPledge">PLEDGE (+50 XP)</button>\'\n      +\'<div class="x-note">XP has no cash value. Stakes are final.</div>\'\n      /* 2026-10-05 (pledge-share-cards): SHARE YOUR PLEDGE arms only when the\n         ballot wire returned a live deadline (PLEDGE_CARD). Expired states\n         get the fail-soft "deadline passed" note instead of a card. */\n      +(PLEDGE_CARD?\'<button class="c-btn" id="cvPledgeShare">SHARE YOUR PLEDGE →</button>\':\'\')\n      +(PLEDGE_DONE&&PLEDGE_NOTE?\'<div class="x-note">\'+esc(PLEDGE_NOTE)+\'</div>\':\'\')\n      +\'<div class="x-note">\'+esc(VOTER.note||"")+\'</div>\';\n  } else if(VOTER&&VOTER.err){\n    /* 2026-10-05 (audit #2): a voter_check failure used to land here with\n       the select reset blank and zero feedback. VOTER.state survives the\n       failure so the select keeps the user\'s state; show inline error +\n       Retry instead of silence. */\n    h+=\'<div class="c-err">Couldn&rsquo;t reach the registration wire for \'+esc(VOTER.state)+\'.</div>\'\n      +\'<button class="c-btn" id="cvVoterRetry">RETRY</button>\';\n  } else {\n    h+=\'<div class="x-note">Pick your state to get the official registration link.</div>\';\n  }\n  h+=\'</div></div>\';\n  /* --- ballot center (2026-10-05, Political HQ #4): state election dates.\n     Read-only pane — countdowns from real API dates only, no invented data,\n     no XP. Ballot deadlines live here; voter registration stays above. */\n  h+=\'<div class="x-pane"><h4>Ballot Center</h4>\'\n    +\'<div class="x-note">Deadlines, early voting, and your polling place &mdash; straight from your state&rsquo;s official data.</div>\'\n    +\'<select class="c-in cv-t44" id="cvBalState" aria-label="Pick your state">\'+ballotStateOpts(BAL.st)+\'</select>\'\n    +\'<div id="cvBalBox">\'+ballotBoxHTML()+\'</div>\'\n    +\'</div>\';\n  /* --- notification preferences (2026-10-05, audit #3): contact PII lives in\n     ONE surface — "Control the Signal" (notify-prefs silo, right below) owns\n     email/phone/opt-ins. This pane is now a link, not a second capture form.\n     No data-flow changes: notify-prefs\' contact_set stays the single write\n     path, with its own 13+ self-certification intact. */\n  h+=\'<div class="x-pane"><h4>Notification preferences</h4>\'\n    +\'<div class="x-note">Drops, alerts, and battle calls live in one place now.</div>\'\n    +\'<a class="c-btn" href="#notifications">MANAGE NOTIFICATIONS →</a></div>\';\n  el.innerHTML=h;\n  bind();\n  /* 2026-10-05 (P4 pane anchors): the civic panes are painted async (after\n     the JSONP fan-in in load()), so phq-hubs\' tagHubPanes() at mount time\n     finds nothing. Announce every paint; the hub re-tags idempotently. */\n  try{ document.dispatchEvent(new CustomEvent(\'pf-civic-panes\')); }catch(e){}\n  /* Wave A5 S-13: mount the official jobs panel (defensive — the module\n     may be killed or absent from an older bundle). */\n  try {\n    var jp = document.getElementById(\'cvJobsPanel\');\n    if (jp && window.PFJobsPanel && window.PFJobsPanel.mount) window.PFJobsPanel.mount(jp);\n  } catch (e) {}\n}\n/* ================= NETWORK POLLS (2026-10-05, expansion #3) ================\n   Backend contract (backend pod, parallel build):\n     GET  ?action=polls_list&status=open   -> {ok, polls:[{id,question,kind,bill_id,options:[{id,label}],closes_at,status,total_votes,created_by,has_voted,results_hidden}]}\n     GET  ?action=polls_list&status=closed -> same, closed polls (results released)\n     GET  ?action=polls_get&poll_id=X&callsign=Y -> {ok, poll:{id,question,kind,bill_id,options:[{id,label,count|null}],closes_at,status,total_votes,created_by,has_voted,results_hidden}}\n     POST {type:\'poll\', po_action:\'polls_create\', callsign, question, options:[labels], kind, bill_id?, closes_at} -> {ok,id}\n     POST {type:\'poll\', po_action:\'polls_vote\', callsign, poll_id, option_id} -> {ok}\n   RESULTS RULE (anti-bandwagoning): percentages hidden until the viewer has\n   voted (client-side map + API has_voted) or the poll is closed. Enforced\n   here and — per contract — on the backend (counts withheld in polls_get). */\nfunction pollVotedGet(){ try{ return JSON.parse(localStorage.getItem("pf_polls_voted_v1")||"{}"); }catch(e){ return {}; } }\nfunction pollVotedSet(m){ try{ localStorage.setItem("pf_polls_voted_v1",JSON.stringify(m)); }catch(e){} }\nfunction pollCountdown(ts){\n  var ms=Number(ts)-Date.now();\n  if(!(ms>0)) return "Closed";\n  var d=Math.floor(ms/864e5), h=Math.floor(ms%864e5/36e5), m=Math.floor(ms%36e5/6e4);\n  if(d>0) return d+"d "+h+"h left";\n  if(h>0) return h+"h "+m+"m left";\n  return Math.max(m,1)+"m left";\n}\nfunction pollTick(){\n  var els=document.querySelectorAll("[data-poll-countdown]");\n  for(var i=0;i<els.length;i++){ els[i].textContent=pollCountdown(els[i].getAttribute("data-poll-countdown")); }\n}\ntry{ setInterval(pollTick,30000); }catch(e){}\nfunction loadPolls(){\n  POLLS_ERR=false;\n  var done=0;\n  function one(){ done++; if(done>=2){ try{ render(); }catch(e){} } }\n  api("polls_list",{status:"open"},function(j){\n    if(j&&j.ok){ POLLS_OPEN=j; } else { POLLS_ERR=true; POLLS_OPEN=null; }\n    one();\n  });\n  api("polls_list",{status:"closed"},function(j){\n    POLLS_CLOSED=(j&&j.ok)?j:null;\n    one();\n  });\n}\nfunction fetchPollDetail(pid){\n  var k=String(pid);\n  if(POLLS_FETCHING[k]||POLLS_DETAIL[k]) return;\n  POLLS_FETCHING[k]=true;\n  var pp={poll_id:pid};\n  var id2=ident(); if(id2.callsign) pp.callsign=id2.callsign;\n  api("polls_get",pp,function(j){\n    POLLS_FETCHING[k]=false;\n    if(j&&j.ok){ POLLS_DETAIL[k]=pollDetailAdapt(j); try{ render(); }catch(e){} }\n    /* failure: keep the "Reading results" note; the next re-render refires */\n  });\n}\n/* 2026-10-05 (contract fix): backend polls_get nests the detail under\n   "poll" and ships per-option "count" (null until voted/closed), not\n   top-level "options" with "votes". Normalize to the detail object. */\nfunction pollDetailAdapt(j){\n  if(!j) return null;\n  var d=(j.poll&&typeof j.poll==="object")?j.poll:j;\n  return d;\n}\n/* pct from count/total_votes when the backend has released counts;\n   falls back to list-level options (no counts shown) when null. */\nfunction pollCountsOpen(opts){\n  for(var i=0;i<opts.length;i++){ if(opts[i].count==null) return false; }\n  return true;\n}\nfunction pollIsVoted(p){\n  var m=pollVotedGet();\n  return !!(m[String(p.id)]||p.has_voted);\n}\nfunction pollCard(p,closed){\n  var h=\'<div class="cp-mission">\';\n  h+=\'<div class="cp-mtext">\'+esc(p.question)+\'</div>\';\n  var kind=String(p.kind||"general");\n  h+=\'<div class="x-note">\'+(kind==="pressure"\n    ?\'<b>PRESSURE POLL</b> — "should we pressure this bill?"\'\n    :"General poll");\n  if(p.bill_id){\n    var bl=String(p.bill_id);\n    h+=\' • bill: \'+(bl.indexOf("http")===0\n      ?\'<a href="\'+esc(bl)+\'" target="_blank" rel="noopener">link</a>\'\n      :esc(bl));\n  }\n  h+=\'</div>\';\n  /* passed badge: passed pressure polls PROPOSE a draft campaign — review\n     queue, never auto-launch. */\n  if(String(p.status)==="passed"){\n    h+=\'<div class="x-note"><b>✓ Passed — draft campaign proposed, under review.</b></div>\';\n  }\n  if(!closed){\n    h+=\'<div class="x-note">Closes in <span data-poll-countdown="\'+esc(p.closes_at)+\'">\'+pollCountdown(p.closes_at)+\'</span></div>\';\n  } else {\n    h+=\'<div class="x-note">Closed.</div>\';\n  }\n  h+=\'<div class="x-note"><b>\'+Number(p.total_votes||0)+\'</b> votes</div>\';\n  var voted=pollIsVoted(p);\n  if(voted||closed){\n    var det=POLLS_DETAIL[String(p.id)];\n    if(!det){\n      h+=\'<div class="x-note">Reading results&hellip;</div>\';\n      fetchPollDetail(p.id);\n    } else {\n      var opts=(det.options&&det.options.length)?det.options:[];\n      /* contract: per-option counts released via "count"; while null (voter\n         hasn\'t voted / poll open), fall back to list-level options. */\n      var countsOpen=opts.length>0&&pollCountsOpen(opts);\n      if(!countsOpen){ opts=(p.options&&p.options.length)?p.options:opts; }\n      var tot=Number(det.total_votes!=null?det.total_votes:p.total_votes)||0;\n      if(!opts.length){ h+=\'<div class="x-note">No results yet.</div>\'; }\n      for(var i=0;i<opts.length;i++){\n        var o=opts[i];\n        var v=(o.count!=null)?(Number(o.count)||0):((o.votes!=null)?(Number(o.votes)||0):0);\n        var pct=(countsOpen&&tot>0)?Math.round(v*100/tot):((o.pct!=null)?Number(o.pct):0);\n        h+=\'<div class="x-note" style="margin-top:6px">\'+esc(o.label)+\' — \'+v+\' (\'+pct+\'%)</div>\'\n          +\'<div class="cp-barwrap"><div class="cp-bar" style="width:\'+pct+\'%"></div></div>\';\n      }\n      /* 2026-10-05 (P11 W14): the voted poll is no longer a dead end —\n         convert the peak-engagement moment into a first civic action. */\n      h+=\'<div class="x-note" style="margin-top:8px">\'+(kind==="pressure"\n        ?\'This could become a pressure campaign — <a href="/political-hq#phq-action">see TAKE ACTION →</a>\'\n        :\'Your call is counted. <a href="/political-hq#phq-pane-directory">Make it real: contact your rep →</a>\')+\'</div>\';\n    }\n  } else {\n    /* RESULTS RULE: vote buttons only, no percentages — no bandwagoning. */\n    var vo=p.options||[];\n    h+=\'<div class="x-note">Results stay hidden until you vote.</div>\';\n    for(var j=0;j<vo.length;j++){\n      h+=\'<button class="c-btn cp-mbtn" style="min-height:44px" data-poll-vote="\'+esc(p.id)+\'" data-poll-opt="\'+esc(vo[j].id)+\'">\'+esc(vo[j].label)+\'</button> \';\n    }\n    if(!vo.length){ h+=\'<div class="x-note">No options on this poll.</div>\'; }\n  }\n  h+=\'<div class="x-note">XP has no cash value. Stakes are final.</div></div>\';\n  return h;\n}\nfunction pollSaveDraft(){\n  POLLS_DRAFT.q=gv("cvPollQ");\n  var a=[], els=document.querySelectorAll("[data-poll-opt-in]");\n  for(var i=0;i<els.length;i++){ a.push(els[i].value); }\n  POLLS_DRAFT.opts=a;\n  POLLS_DRAFT.kind=gv("cvPollKind")||"general";\n  POLLS_DRAFT.dur=gv("cvPollDur")||"3";\n  POLLS_DRAFT.bill=gv("cvPollBill");\n}\nfunction pollCreateForm(){\n  var h=\'<div class="x-pane pf-mt"><h4>New poll</h4>\'\n    +\'<input aria-label="Poll question" class="c-in" id="cvPollQ" maxlength="280" placeholder="Poll question (280 max)" value="\'+esc(POLLS_DRAFT.q)+\'">\'\n    +\'<div id="cvPollOpts">\';\n  for(var i=0;i<POLLS_CREATE_OPTS;i++){\n    var ov=(POLLS_DRAFT.opts&&POLLS_DRAFT.opts[i])?POLLS_DRAFT.opts[i]:"";\n    h+=\'<div><input aria-label="Option \'+(i+1)+\'" class="c-in" data-poll-opt-in="\'+i+\'" maxlength="120" placeholder="Option \'+(i+1)+\'" value="\'+esc(ov)+\'">\'\n      +(i>=2?\' <button class="c-btn" data-poll-opt-rm="\'+i+\'" style="min-height:44px">REMOVE</button>\':\'\')+\'</div>\';\n  }\n  h+=\'</div>\'\n    +\'<button class="c-btn" id="cvPollAddOpt" style="min-height:44px">+ ADD OPTION (\'+POLLS_CREATE_OPTS+\'/6)</button>\'\n    +\'<div class="x-note" style="margin-top:8px">Kind:</div>\'\n    +\'<select class="c-in" id="cvPollKind">\'\n    +\'<option value="general"\'+(POLLS_DRAFT.kind==="general"?" selected":"")+\'>General</option>\'\n    +\'<option value="pressure"\'+(POLLS_DRAFT.kind==="pressure"?" selected":"")+\'>Should we pressure this bill?</option></select>\'\n    +\'<input aria-label="Bill link (pressure polls)" class="c-in" id="cvPollBill" maxlength="300" placeholder="Bill link (pressure polls)" value="\'+esc(POLLS_DRAFT.bill)+\'"\'\n    +(POLLS_DRAFT.kind==="pressure"?"":\' style="display:none"\')+\'>\'\n    +\'<div class="x-note">Duration:</div>\'\n    +\'<select class="c-in" id="cvPollDur">\'\n    +\'<option value="1"\'+(POLLS_DRAFT.dur==="1"?" selected":"")+\'>1 day</option>\'\n    +\'<option value="3"\'+(POLLS_DRAFT.dur==="3"?" selected":"")+\'>3 days</option>\'\n    +\'<option value="7"\'+(POLLS_DRAFT.dur==="7"?" selected":"")+\'>7 days</option>\'\n    +\'<option value="14"\'+(POLLS_DRAFT.dur==="14"?" selected":"")+\'>14 days</option></select>\'\n    +\'<div class="x-note"><b>Pressure polls that PASS (&gt;60% YES and 10+ votes) only PROPOSE a draft campaign for review. They never auto-launch.</b></div>\'\n    +\'<button class="c-btn" id="cvPollCreate" style="min-height:44px">LAUNCH POLL</button> \'\n    +\'<button class="c-btn" id="cvPollCancel" style="min-height:44px">CANCEL</button>\'\n    +\'<div class="c-err" id="cvPollErr"></div></div>\';\n  return h;\n}\n/* Admin gate for poll creation: backend polls_create is admin-only (CEO decision).\n   Same session flag as governance.js/economy.js — the secret is entered on the\n   private admin surfaces, never on this public pane. */\nfunction pollsIsAdmin(){ try{ return !!sessionStorage.getItem("pf_admin_secret"); }catch(e){ return false; } }\nfunction pollsPane(){\n  var h=\'<div class="x-pane"><h4>Network Polls</h4>\';  h+=\'<div class="x-note">Cast your vote. Results stay hidden until you vote — no bandwagoning.</div>\';\n  if(!BACKEND||(POLLS_ERR&&!POLLS_OPEN)){\n    h+=\'<div class="c-err">Couldn&rsquo;t reach the polls wire.</div>\'\n      +\'<button class="c-btn" id="cvPollRetry" style="min-height:44px">RETRY</button>\';\n    h+=\'</div>\';\n    return h;\n  }\n  var open=(POLLS_OPEN&&POLLS_OPEN.polls)||[];\n  if(!open.length){ h+=\'<div class="x-note">No open polls right now. Start the first one.</div>\'; }\n  for(var i=0;i<open.length;i++){ h+=pollCard(open[i],false); }\n  var closed=(POLLS_CLOSED&&POLLS_CLOSED.polls)||[];\n  if(closed.length){\n    h+=\'<h4 style="margin-top:10px">Closed polls</h4>\';\n    for(var c=0;c<closed.length;c++){ h+=pollCard(closed[c],true); }\n  }\n  if(pollsIsAdmin()){\n    if(POLLS_CREATE_OPEN){\n      h+=pollCreateForm();\n    } else {\n      h+=\'<button class="c-btn" id="cvPollOpen" style="min-height:44px">START A POLL</button>\';\n    }\n  } else {\n    h+=\'<div class="x-note">Poll creation is admin-only &mdash; vote on open polls below.</div>\';\n  }\n  h+=\'</div>\';\n  return h;\n}\nfunction bindPolls(){\n  function qsa(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); }\n  var rt=document.getElementById("cvPollRetry");\n  if(rt) rt.onclick=function(){ loadPolls(); };\n  var op=document.getElementById("cvPollOpen");\n  if(op) op.onclick=function(){\n    POLLS_CREATE_OPEN=true; POLLS_CREATE_OPTS=2;\n    POLLS_DRAFT={q:"",opts:[],kind:"general",dur:"3",bill:""};\n    render();\n  };\n  var cn=document.getElementById("cvPollCancel");\n  if(cn) cn.onclick=function(){ POLLS_CREATE_OPEN=false; render(); };\n  var kind=document.getElementById("cvPollKind");\n  if(kind) kind.onchange=function(){\n    var b=document.getElementById("cvPollBill");\n    if(b) b.style.display=(kind.value==="pressure")?"":"none";\n  };\n  var add=document.getElementById("cvPollAddOpt");\n  if(add) add.onclick=function(){\n    if(POLLS_CREATE_OPTS<6){ pollSaveDraft(); POLLS_CREATE_OPTS++; render(); }\n  };\n  qsa("[data-poll-opt-rm]").forEach(function(b){\n    b.onclick=function(){\n      if(POLLS_CREATE_OPTS>2){ pollSaveDraft(); POLLS_CREATE_OPTS--; render(); }\n    };\n  });\n  qsa("[data-poll-vote]").forEach(function(b){\n    b.onclick=function(){\n      var pid=b.getAttribute("data-poll-vote"), oid=b.getAttribute("data-poll-opt");\n      b.disabled=true;\n      post("poll","po_action","polls_vote",{callsign:ident().callsign,poll_id:pid,option_id:oid},function(j){\n        if(j&&j.ok){\n          var m=pollVotedGet(); m[String(pid)]=String(oid); pollVotedSet(m);\n          delete POLLS_DETAIL[String(pid)];\n          toast("+5 XP earned");\n          fetchPollDetail(pid);\n        } else { toast(PF.errCopy(j,"Vote failed.")); b.disabled=false; }\n      });\n    };\n  });\n  var cb=document.getElementById("cvPollCreate");\n  if(cb) cb.onclick=function(){\n    var err=document.getElementById("cvPollErr");\n    var q=gv("cvPollQ").trim();\n    if(!q){ err.textContent="Question is required."; return; }\n    if(q.length>280){ err.textContent="Question must be 280 characters or less."; return; }\n    var opts=[];\n    qsa("[data-poll-opt-in]").forEach(function(inp){\n      var v=(inp.value||"").trim(); if(v) opts.push(v);\n    });\n    if(opts.length<2){ err.textContent="At least 2 options are required."; return; }\n    if(opts.length>6){ err.textContent="At most 6 options."; return; }\n    var k=gv("cvPollKind")==="pressure"?"pressure":"general";\n    var dur=Number(gv("cvPollDur"))||3;\n    var bill=gv("cvPollBill").trim();\n    cb.disabled=true;\n    var params={callsign:ident().callsign,question:q,options:opts,kind:k,closes_at:Date.now()+dur*864e5};\n    if(k==="pressure"&&bill) params.bill_id=bill;\n    post("poll","po_action","polls_create",params,function(j){\n      if(j&&j.ok){\n        toast("Poll launched.");\n        POLLS_CREATE_OPEN=false; POLLS_CREATE_OPTS=2;\n        POLLS_DRAFT={q:"",opts:[],kind:"general",dur:"3",bill:""};\n        loadPolls();\n      } else { err.textContent=PF.errCopy(j,"Create failed."); cb.disabled=false; }\n    });\n  };\n}\n/* ================= END NETWORK POLLS ================= */\nfunction gv(id){ var e=document.getElementById(id); return e?e.value:""; }\nfunction bind(){\n  function qsa(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); }\n  qsa("[data-pet-sign]").forEach(function(b){\n    b.onclick=function(){\n      var pid=b.getAttribute("data-pet-sign");\n      b.disabled=true;\n      post("petition","pe_action","petition_sign",{callsign:ident().callsign,petition_id:pid},function(j){\n        if(j&&j.ok){\n          /* 2026-10-05 (P2 F2-TOAST): record first — the toast shows the\n             count INCLUDING this action. Share ask comes after the action\n             (P10 W18), never before. */\n          try{ document.dispatchEvent(new CustomEvent(\'pf-civic-petition-signed\')); }catch(e){}\n          toast((j.dup?"Already signed.":"Signed. +10 XP.")+dutyFrag()+(j.dup?"":" Share it →"));\n          if(!j.dup){ PET_SHARE_AFTER[pid]=1; }\n          refreshPetitions();\n        }\n        else { toast(PF.errCopy(j,"Sign failed.")); b.disabled=false; }\n      });\n    };\n  });\n  var po=document.getElementById("cvPetOpen");\n  if(po) po.onclick=function(){ CREATE_OPEN=true; render(); };\n  /* WHO SIGNED toggle (petition_sigs, public): per-card signature list. */\n  qsa("[data-pet-sigs]").forEach(function(b){\n    b.onclick=function(){\n      var pid=b.getAttribute("data-pet-sigs");\n      /* 2026-10-05 (audit #5): the backend petition id used to interpolate\n         unescaped into a CSS attribute selector — a quote in an id silently\n         killed WHO SIGNED. Match by attribute instead; the id never goes\n         through selector parsing now. */\n      var out=null, outs=document.querySelectorAll("[data-pet-sigs-out]");\n      for(var oi=0;oi<outs.length;oi++){\n        if(outs[oi].getAttribute("data-pet-sigs-out")===pid){ out=outs[oi]; break; }\n      }\n      if(!out) return;\n      if(out.style.display!=="none"){ out.style.display="none"; out.innerHTML=""; return; }\n      out.style.display="block";\n      out.innerHTML=\'<div class="x-note">Reading signatures&hellip;</div>\';\n      api("petition_sigs",{petition_id:pid},function(j){\n        var sigs=(j&&j.ok&&j.sigs)||[];\n        if(!sigs.length){ out.innerHTML=\'<div class="x-note">No signatures yet. Be the first.</div>\'; return; }\n        var names=[];\n        for(var i=0;i<Math.min(sigs.length,10);i++){ names.push(esc(sigs[i].callsign)); }\n        out.innerHTML=\'<div class="x-note"><b>\'+sigs.length+\'</b> signed: \'+names.join(", ")+(sigs.length>10?" &hellip;":"")+\'</div>\';\n      });\n    };\n  });\n  var pc=document.getElementById("cvPetCancel");\n  if(pc) pc.onclick=function(){ CREATE_OPEN=false; render(); };\n  /* 2026-10-05 (P2 F2-TOAST): post-sign share affordance — two-tier native\n     share with clipboard fallback, same pattern as pcShare(). */\n  qsa("[data-pet-shareafter]").forEach(function(sb){\n    sb.onclick=function(){\n      var pid2=sb.getAttribute("data-pet-shareafter");\n      var title=PET_TITLE[pid2]||"A Propaganda Factory petition";\n      var link="https://www.mtcstw.com/political-hq";\n      try{ if(window.PF&&typeof PF.shareUrl==="function") link=PF.shareUrl(link); }catch(e){}\n      var text=title+" — sign it at "+link;\n      if(navigator.share){ try{ navigator.share({title:title,text:text}).catch(function(){}); return; }catch(e){} }\n      try{\n        if(navigator.clipboard&&navigator.clipboard.writeText){\n          navigator.clipboard.writeText(text).then(function(){ toast("Share text copied. Spread it."); },function(){ toast("Copy failed — select it manually."); });\n        } else toast("Copy failed — select it manually.");\n      }catch(e2){ toast("Copy failed — select it manually."); }\n    };\n  });\n  var pcb=document.getElementById("cvPetCreate");\n  if(pcb) pcb.onclick=function(){\n    var err=document.getElementById("cvPetErr");\n    var title=gv("cvPetTitle").trim(), target=gv("cvPetTarget").trim();\n    if(!title||!target){ err.textContent="Title and target are required."; return; }\n    pcb.disabled=true;\n    post("petition","pe_action","petition_create",{callsign:ident().callsign,title:title,description:gv("cvPetDesc"),target:target,goal:Number(gv("cvPetGoal"))||500},function(j){\n      if(j&&j.ok){\n        /* 2026-10-05 (P2 F2-TOAST): record first — toast shows the new count. */\n        try{ document.dispatchEvent(new CustomEvent(\'pf-civic-petition-created\')); }catch(e){}\n        toast("Live. +25 XP."+dutyFrag()); CREATE_OPEN=false; refreshPetitions();\n      }\n      else { err.textContent=PF.errCopy(j,"Create failed."); pcb.disabled=false; }\n    });\n  };\n  /* script picker */\n  var ts=document.getElementById("cvTopicSel");\n  function showScript(){\n    var box=document.getElementById("cvScriptBox"); if(!box) return;\n    var topic=gv("cvTopicSel");\n    var scripts=(SCRIPTS&&SCRIPTS.scripts)||[];\n    var sc=null;\n    for(var i=0;i<scripts.length;i++){ if(scripts[i].topic===topic){ sc=scripts[i]; break; } }\n    if(!sc){ box.innerHTML=""; return; }\n    var name=gv("cvMyName")||"[YOUR NAME]", st=gv("cvMyState")||"[STATE]", rep=gv("cvRepSel")||"[REP]";\n    /* Escape the backend-supplied script BEFORE substitution (stored-XSS\n       hardening — a malformed script row must not execute in visitors\'\n       browsers). The {NAME}/{STATE}/{REP} tokens are replaced with the\n       already-escaped user inputs afterwards. */\n    var txt=esc(sc.script).split("{NAME}").join(esc(name)).split("{STATE}").join(esc(st)).split("{REP}").join(esc(rep));\n    box.innerHTML=\'<div class="x-pane pf-mt" ><h4>\'+esc(sc.title)+\'</h4><div class="x-note" style="white-space:pre-wrap">\'+txt+\'</div></div>\';\n    box.setAttribute("data-script-id",sc.id);\n  }\n  if(ts) ts.onchange=showScript;\n  var nm=document.getElementById("cvMyName"), mst=document.getElementById("cvMyState"), rp=document.getElementById("cvRepSel");\n  if(nm) nm.oninput=showScript; if(mst) mst.onchange=showScript; if(rp) rp.onchange=showScript;\n  var lc=document.getElementById("cvLogContact");\n  /* 2026-10-05: routes through the shared rep_contact write path — same\n     POST, same +25 XP, same 2/day cap as the directory rows. (The older\n     inline binding this replaced is gone; doLogContact is the single\n     owner of this flow, including the pf-civic-rep-contacted dispatch.) */\n  if(lc) lc.onclick=function(){ doLogContact(gv("cvRepSel"),lc,document.getElementById("cvRepErr")); };\n  /* --- congressional directory bindings --- */\n  var dst=document.getElementById("cvDirState");\n  if(dst) dst.onchange=function(){ DIRST.st=gv("cvDirState"); fetchDir(); };\n  var dq=document.getElementById("cvDirQ");\n  if(dq) dq.oninput=function(){ DIRST.q=gv("cvDirQ"); paintDir(); };\n  var cham=document.querySelector(".cv-cham");\n  if(cham) cham.onclick=function(e){\n    var b=e.target&&e.target.closest?e.target.closest("[data-ch]"):null; if(!b) return;\n    DIRST.ch=b.getAttribute("data-ch");\n    var btns=cham.querySelectorAll("[data-ch]");\n    for(var i=0;i<btns.length;i++){ btns[i].setAttribute("aria-pressed",btns[i]===b?"true":"false"); }\n    fetchDir();\n  };\n  /* 2026-10-05: call practice mode — rehearses against the topic-selected\n     script (or the default rep-contact script); zero XP, stated in the\n     overlay. */\n  var pf1=document.getElementById("cvPracticeFirst");\n  if(pf1) pf1.onclick=function(){ pracOpen({repName:gv("cvRepSel"),phone:""}); };\n  /* Delegated: retry lives inside the painted list, rows re-paint on\n     search/filter — one listener survives all of it. */\n  var dl=document.getElementById("cvDirList");\n  if(dl&&!dl.getAttribute("data-bound")){\n    dl.setAttribute("data-bound","1");\n    dl.addEventListener("click",function(e){\n      var t=e.target&&e.target.closest?e.target.closest("[data-dir-log],[data-dir-practice],[data-sc-toggle],[data-sc-share],[data-sc-retry],[data-sc-issue],#cvDirRetry"):null;\n      if(!t) return;\n      if(t.id==="cvDirRetry"){ fetchDir(); return; }\n      /* 2026-10-05: voting scorecards — toggle, share, retry, issue jump. */\n      if(t.hasAttribute("data-sc-toggle")){\n        var bio=t.getAttribute("data-sc-toggle");\n        if(SCST.open===bio){ SCST.open=null; paintDir(); }\n        else { SCST.open=bio; fetchScorecard(bio); }\n        return;\n      }\n      if(t.hasAttribute("data-sc-share")){ shareScorecard(t.getAttribute("data-sc-share")); return; }\n      if(t.hasAttribute("data-sc-retry")){ fetchScorecard(t.getAttribute("data-sc-retry")); return; }\n      if(t.hasAttribute("data-sc-issue")){\n        var vid=t.getAttribute("data-sc-issue");\n        SCST.issue=vid;\n        fetchIssue(vid);\n        /* fetchIssue -> paintIssue (loading state paints first). */\n        try{ var p=document.getElementById("cvIssuePanel"); if(p&&p.scrollIntoView) p.scrollIntoView(); }catch(ee){}\n        return;\n      }\n      /* 2026-10-05: call practice mode entry — per-row rehearsal. Survives\n         repaints (delegated), so unreachable→retry never breaks it. */\n      if(t.hasAttribute&&t.hasAttribute("data-dir-practice")){\n        pracOpen({repName:t.getAttribute("data-dir-practice"),phone:t.getAttribute("data-dir-phone")||""});\n        return;\n      }\n      doLogContact(t.getAttribute("data-dir-log"),t,document.getElementById("cvDirErr"));\n    });\n  }\n  /* 2026-10-05: issue-view panel buttons (BACK/RETRY) — the panel repaints\n     on fetchIssue, so delegation on the document survives. Bound once. */\n  var de=document.documentElement;\n  if(de&&!de.getAttribute("data-sc-bound")){\n    de.setAttribute("data-sc-bound","1");\n    de.addEventListener("click",function(e){\n      var t=e.target&&e.target.closest?e.target.closest("[data-issue-back],[data-issue-retry]"):null;\n      if(!t) return;\n      if(t.hasAttribute("data-issue-back")){\n        SCST.issue=null;\n        paintIssue(); paintDir();\n        try{ var dl2=document.getElementById("cvDirList"); if(dl2&&dl2.scrollIntoView) dl2.scrollIntoView(); }catch(ee){}\n        return;\n      }\n      if(t.hasAttribute("data-issue-retry")){ fetchIssue(t.getAttribute("data-issue-retry")); }\n    });\n  }\n  /* First paint: fire the reps_list read once (Mobilizing… covers it). */\n  if(DIRST.reps===null&&!DIRST.load&&!DIRST.err){ fetchDir(); }\n  /* 2026-10-05 (rep-flow friction): follow the home-state picker. When the\n     viewer sets/changes their home state, the directory re-filters to it —\n     the rep lookup stays "your reps" with zero extra taps. Bound once. */\n  var dehs=document.documentElement;\n  if(dehs&&!dehs.getAttribute("data-dirhs-bound")){\n    dehs.setAttribute("data-dirhs-bound","1");\n    document.addEventListener("pf-home-state-changed",function(e){\n      try{\n        var s=e&&e.detail&&e.detail.state;\n        if(typeof s==="string"&&s&&s!==DIRST.st){\n          DIRST.st=s; DIRST.reps=null; DIRST.q="";\n          var ds=document.getElementById("cvDirState"); if(ds) ds.value=s;\n          var dq=document.getElementById("cvDirQ"); if(dq) dq.value="";\n          fetchDir();\n        }\n      }catch(ee){}\n    });\n  }\n  /* voter — 2026-10-05 (audit #2): voter_check failure keeps the state\n     selection (VOTER.state survives) and renders an inline c-err + Retry\n     instead of a blank select with no feedback.\n     2026-10-05 (voter-check auth): route through PF.authGetJSONP so the\n     backend can attribute the check to the callsign (auth_secret-in-GET,\n     same as rep_contact_history). No session -> plain api() as before;\n     the read path (vote.gov URL) is unaffected either way. */\n  function voterCheck(st){\n    if(!st) return;\n    VOTER={state:st};\n    var pp={state:st};\n    function cb(j){\n      VOTER=(j&&j.url)?j:{state:st,err:true};\n      /* 2026-10-05 (P2 F2-TOAST): the voter check is a Civic Duty action —\n         confirm it and show the new count. */\n      if(j&&j.url){ try{ document.dispatchEvent(new CustomEvent(\'pf-civic-voter-checked\')); }catch(e){}\n        try{ toast("Checked."+dutyFrag()); }catch(e2){} }\n      try{ render(); }catch(e){}\n    }\n    try{ if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,"voter_check",pp,cb); return; } }catch(e){}\n    api("voter_check",pp,cb);\n  }\n  var vs=document.getElementById("cvVoterState");\n  if(vs) vs.onchange=function(){ voterCheck(gv("cvVoterState")); };\n  var vr=document.getElementById("cvVoterRetry");\n  if(vr) vr.onclick=function(){ voterCheck(gv("cvVoterState")); };\n  var pl=document.getElementById("cvPledge");\n  if(pl) pl.onclick=function(){\n    pl.disabled=true;\n    var stCode=gv("cvVoterState");\n    post("rep","r_action","voter_pledge",{callsign:ident().callsign,state:stCode},function(j){\n      if(j&&j.ok){\n        /* 2026-10-05 (pledge-share-cards): pledge landed -> resolve the\n           ballot deadline, then arm the SHARE YOUR PLEDGE button. The +50\n           pledge XP is paid by voter_pledge itself — nothing extra here. */\n        PLEDGE_DONE=true;\n        /* 2026-10-05 (P2 F2-TOAST): record first — toast shows the new\n           count. Share ask follows the pledge (cvPledgeShare button). */\n        try{ document.dispatchEvent(new CustomEvent(\'pf-civic-voter-pledged\')); }catch(e){}\n        toast((j.dup?"Already pledged.":"Pledged. +50 XP.")+dutyFrag()+(j.dup?"":" Share your pledge →"));\n        try{ armPledgeCard(stCode); }catch(e){ try{ render(); }catch(e2){} }\n      }\n      else { toast(PF.errCopy(j,"Pledge failed.")); }\n      pl.disabled=false;\n    });\n  };\n  /* 2026-10-05 (pledge-share-cards): SHARE YOUR PLEDGE -> phq-pledge card\n     (state name, real registration deadline from ballot data, vote.gov link,\n     callsign stamp, source + date). Generation pays 0 XP. After the native\n     share sheet, the user banks +5 XP by verifying the public post in the\n     existing POSTER SHARE tab (create_share: leg, fixed amount, NO_MULT,\n     counts toward the daily cap — no new ledger prefix). */\n  var pls=document.getElementById("cvPledgeShare");\n  if(pls) pls.onclick=function(){\n    try{\n      if(!(window.PF&&PF.PHQShare)){ toast("Share unavailable."); return; }\n      if(PF.skip&&PF.skip(\'card-pledge\')){ toast("Pledge cards are paused."); return; }\n      var ok=PF.PHQShare.share(\'phq-pledge\',PLEDGE_CARD||{},\n        {title:\'I PLEDGED TO VOTE\',link:\'https://www.mtcstw.com/political-hq\'});\n      if(ok) setTimeout(function(){\n        toast("Posted it publicly? Paste the link in the POSTER SHARE tab to bank +5 XP.");\n      },1500);\n    }catch(e){ toast("Share failed."); }\n  };\n  /* 2026-10-05 (audit #3): the civic contact-prefs form is gone — "Control the\n     Signal" (notify-prefs) is the single contact-PII surface and owns the\n     contact_set write path. No civic-side save binding anymore. */\n  /* --- ballot center (2026-10-05): state select paints from the cached\n     ballot_get&all=1 rows — no round-trip per selection. One lazy read on\n     first bind; RETRY lives inside the painted box, so it needs a direct\n     binding after every re-render (same pattern as cvVoterRetry). */\n  var bst=document.getElementById("cvBalState");\n  if(bst) bst.onchange=function(){ BAL.st=gv("cvBalState"); paintBallot(); };\n  var brt=document.getElementById("cvBalRetry");\n  if(brt) brt.onclick=function(){ fetchBallot(); };\n  if(BAL.rows===null&&!BAL.load&&!BAL.err){ fetchBallot(); }\n  /* network polls (2026-10-05): vote buttons, create form, retry. */\n  bindPolls();\n  /* rep contact history (rep_contact_history, AUTH): the caller\'s own log.\n     2026-10-05 (audit #7): fetched once per page view — bind() runs on every\n     re-render, and each run used to refire this authed call. LOG CONTACT\n     refreshes it explicitly (the only action that mutates the log). */\n  /* --- cell competitions (2026-10-05): metric toggle is delegated (the card\n     re-paints on toggle) — one listener per fresh box element, matching the\n     directory-retry pattern. Reads are public GET; the card hides on error. */\n  var cbox=document.getElementById("cvCompBox");\n  if(cbox&&!cbox.getAttribute("data-bound")){\n    cbox.setAttribute("data-bound","1");\n    cbox.addEventListener("click",function(e){\n      var b=e.target&&e.target.closest?e.target.closest("[data-comp-metric]"):null;\n      if(!b) return;\n      var m=b.getAttribute("data-comp-metric");\n      if(m!==COMP.metric&&(m==="rep_contacts"||m==="campaign_calls")){\n        COMP.metric=m; paintComp(); fetchComp();\n      }\n    });\n  }\n  fetchComp();\n  fetchHist();\n  /* 2026-10-05 (wave pressure-campaigns FE): pressure-card bindings. */\n  pressureBind(qsa);\n}\n/* 2026-10-05: legislation silo integration — key-player names on bill cards\n   dispatch pf-legislation-member; filter THIS directory to that member and\n   scroll it into view. Decoupled via event: the legislation silo never\n   touches civic internals, and this listener is a no-op when the directory\n   pane isn\'t mounted. */\ndocument.addEventListener("pf-legislation-member",function(e){\n  try{\n    var d=(e&&e.detail)||{};\n    var nm=String(d.name||"").trim(); if(!nm) return;\n    if(!document.getElementById("cvDirList")) return; /* directory not mounted */\n    DIRST.st=""; DIRST.ch=""; DIRST.q=nm;\n    var st=document.getElementById("cvDirState"); if(st) st.value="";\n    var q=document.getElementById("cvDirQ"); if(q) q.value=nm;\n    var btns=document.querySelectorAll(".cv-cham [data-ch]");\n    for(var i=0;i<btns.length;i++){\n      btns[i].setAttribute("aria-pressed",btns[i].getAttribute("data-ch")===""?"true":"false");\n    }\n    fetchDir();\n    var pane=document.getElementById("pf-civic");\n    if(pane&&pane.scrollIntoView) pane.scrollIntoView();\n  }catch(err){}\n});\nload();\n})();\n<\/script>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("phq-jobs")&&!window.pfJobsPanelDone){window.pfJobsPanelDone=!0;var t=window.PF_BACKEND_URL,n=[".pf-jp{max-width:860px;margin:0 auto 14px;color:var(--pf-cream);font-family:Arial,sans-serif}",".pf-jp-kicker{font-weight:700;font-size:12px;letter-spacing:5px;color:var(--pf-gold);text-align:center;margin-bottom:6px}",".pf-jp-title{font-weight:900;font-size:18px;text-align:center;margin:0 0 10px;letter-spacing:1px}",".pf-jp-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px}","@media (max-width:640px){.pf-jp-grid{grid-template-columns:1fr}}",".pf-jp-card{border:1px solid #2a2a2a;border-top:6px solid var(--pf-red);border-radius:8px;background:#0d0d0d;padding:12px}",".pf-jp-head{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:8px}",".pf-jp-name{font-weight:900;font-size:11px;letter-spacing:1px;color:var(--pf-gold)}",".pf-jp-chip{display:inline-block;background:#2a2a2a;color:var(--pf-muted);font-weight:700;font-size:10px;letter-spacing:1px;padding:2px 6px;border-radius:3px}",".pf-jp-value{font-weight:900;font-size:24px;color:var(--pf-cream);margin:2px 0}",".pf-jp-period{font-size:12px;color:var(--pf-muted)}",".pf-jp-change{font-size:13px;font-weight:700;color:var(--pf-cream);margin:4px 0 8px}",".pf-jp-stale{font-size:13px;color:var(--pf-muted);line-height:1.5;margin:6px 0 10px;min-height:44px}",".pf-jp-quote{border-left:4px solid var(--pf-red);background:#141414;padding:8px 10px;margin:8px 0;font-size:13px;line-height:1.5;color:var(--pf-cream)}",".pf-jp-quotelbl{font-size:10px;font-weight:700;letter-spacing:2px;color:var(--pf-gold);margin-bottom:4px}",".pf-jp-src{font-size:10px;color:#8a8271;letter-spacing:0.5px;border-top:1px solid #2a2a2a;padding-top:6px}",".pf-jp-src a{color:#8a8271}",".pf-jp-foot{font-size:11px;color:#8a8271;text-align:center;letter-spacing:1px;margin-top:6px}"].join("\n");try{window.PFJobsPanel={mount:function(e){if(!e)return!1;try{if(e.querySelector&&e.querySelector(".pf-jp"))return!0}catch(e){}return function(e,n,i){if(t){var r="pfJobsCb"+Math.floor(1e9*Math.random()),a=document.createElement("script"),o=!1;window[r]=function(e){l(e)},a.onerror=function(){l(null)};var s="?action="+encodeURIComponent(e);for(var c in n)null!=n[c]&&""!==n[c]&&(s+="&"+encodeURIComponent(c)+"="+encodeURIComponent(n[c]));s+="&callback="+r,a.src=t+s,document.head.appendChild(a),setTimeout(function(){l(null)},12e3)}else i(null);function l(e){if(!o){o=!0;try{delete window[r]}catch(e){}a.parentNode&&a.parentNode.removeChild(a),i(e)}}}("fred_context",{surface:"jobs"},function(t){try{t&&t.ok?o(e,t):o(e,null)}catch(t){try{o(e,null)}catch(e){}}}),!0}}}catch(e){}}function i(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function r(e){var t=e.series_id||"",n=function(e){try{var t=e&&null!=e.retrieved_at?Number(e.retrieved_at):NaN,n=isNaN(t)?null:new Date(t);return!n||isNaN(n.getTime())?null:n.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}).toUpperCase()}catch(e){return null}}(e);return'FRED · <a href="'+i(e.source_url||"https://fred.stlouisfed.org/series/"+t)+'" target="_blank" rel="noopener">'+i(t)+"</a>"+(n?" · RETRIEVED "+n:"")}function a(e){var t,n=i(e.title||e.series_id||"—"),a=i(e.sa_nsa||"");if(e.stale)t='<div class="pf-jp-stale">'+i(e.stale_note||"Last updated — refresh pending.")+"</div>";else{t='<div class="pf-jp-value">'+i(null!=e.value_label?e.value_label:"—")+'</div><div class="pf-jp-period">'+i(e.period_label||e.period||"")+'</div><div class="pf-jp-change">'+i(e.change_label||e.change_pct_label||"")+"</div>";var o=function(e){if(e.stale)return null;var t=[],n=String(e.title||e.series_id||"").toUpperCase(),i=null!=e.value_label?String(e.value_label):null;if(!i)return null;var r=e.period_label||e.period||"",a=String(e.sa_nsa||"").toUpperCase();t.push(n+" IS "+i+(r?" ("+r.toUpperCase():"")),a&&t.push(", "+a),t.push(")");var o=e.change_label||e.change_pct_label;return o&&t.push(" — "+String(o).toUpperCase()+" VS PRIOR PERIOD"),t.join("")}(e);o&&(t+='<div class="pf-jp-quote"><div class="pf-jp-quotelbl">CITE THIS</div>'+i(o)+"</div>")}return'<div class="pf-jp-card"><div class="pf-jp-head"><span class="pf-jp-name">'+n+"</span>"+(a?'<span class="pf-jp-chip">'+a+"</span>":"")+"</div>"+t+'<div class="pf-jp-src">'+r(e)+"</div></div>"}function o(e,t){!function(){try{if(document.getElementById("pf-jp-css"))return;var e=document.createElement("style");e.id="pf-jp-css",e.textContent=n,document.head.appendChild(e)}catch(e){}}();var i=!(!t||!t.fred_live),r=t&&Array.isArray(t.cards)?t.cards:[];i&&r.length?e.innerHTML='<div class="pf-jp"><div class="pf-jp-kicker">OFFICIAL DATA</div><h3 class="pf-jp-title">THE JOBS NUMBERS — ARM YOURSELF</h3><div class="pf-jp-grid">'+r.map(function(e){return a(e||{})}).join("")+'</div><div class="pf-jp-foot">OFFICIAL FIGURES VIA FRED · CITE THEM IN YOUR PRESSURE-CAMPAIGN CALLS</div></div>':e.innerHTML=""}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("civic-duty"))try{var t="pf_civic_duty_v1",n="pf_medals_v2",i={"pf-civic-petition-signed":"sign","pf-civic-petition-created":"create","pf-civic-rep-contacted":"contact","pf-civic-voter-pledged":"pledge","pf-civic-voter-checked":"check"};function r(){return e.isoWeekKey(e.chiNow())}function a(){try{var e=JSON.parse(localStorage.getItem(t)||"null");if(e&&e.w&&e.t&&"object"==typeof e.t)return e}catch(e){}return{w:r(),t:{}}}function o(e){try{localStorage.setItem(t,JSON.stringify(e))}catch(e){}}function s(e){var t=0;for(var n in e.t)e.t.hasOwnProperty(n)&&t++;return t}function c(){try{var e=a(),t=r();return e.w!==t?{count:0,threshold:3,awarded:!1}:{count:s(e),threshold:3,awarded:!!e.a}}catch(e){return{count:0,threshold:3,awarded:!1}}}try{e.civicDutyProgress=c}catch(p){}function l(){try{var e=document.getElementById("cvDutyMeter");if(e){var t=(n=c()).awarded||n.count>=n.threshold?"🗳 Civic Duty: "+n.threshold+" of "+n.threshold+" — earned this week":"🗳 Civic Duty: "+n.count+" of "+n.threshold+" actions this week";e.textContent!==t&&(e.textContent=t)}}catch(e){}var n}try{new MutationObserver(function(){l()}).observe(document.documentElement,{childList:!0,subtree:!0})}catch(u){}function d(t){var i=null;try{i=JSON.parse(localStorage.getItem(n)||"null")}catch(e){i=null}i&&"object"==typeof i&&i.w&&i.m&&"object"==typeof i.m||(i={w:t,m:{},fd:!1}),i.w!==t&&(i={w:t,m:{},fd:!1});var r=!i.m.civic;i.m.civic=1;try{localStorage.setItem(n,JSON.stringify(i))}catch(e){}if(r){try{document.dispatchEvent(new CustomEvent("pf-civic-duty-earned"))}catch(e){}try{if(window.PF&&e.dope){var a=document.getElementById("pf-medals")||document.body;e.dope.confetti(a,40),e.dope.ping(a,"MEDAL EARNED: CIVIC DUTY")}}catch(e){}}}l(),Object.keys(i).forEach(function(e){document.addEventListener(e,function(){try{t=i[e],n=a(),c=r(),n.w!==c&&(n={w:c,t:{}}),n.a||(n.t[t]=1,s(n)>=3?(n.a=1,o(n),d(c)):o(n))}catch(e){}var t,n,c;l()})})}catch(v){e.error("civic-duty",v)}}();
+/* PF v1.4.3 bundle-hq.js — concatenated bundle, generated by build/bundle.js.
+   DO NOT EDIT. Regenerate with: node build/bundle.js [--debug]
+   Contains: phq-hubs.js, civic.js, phq-jobs-panel.js, civic-duty.js
+   Each silo keeps its own PF.skip() kill switch (?pf_off=<silo>). */
+
+/* ===== phq-hubs.js ===== */
+/* games/phq-hubs.js  |  PF v1.4.3 | /political-hq SECTION HUBS.
+   Implements the Design Team PHQ hub IA spec (phq-hub-ia-spec-20261005.md):
+   sticky sub-nav (#pf-hq-subnav) + 5 section hubs + interim FOLLOW THE MONEY
+   tab, hash deep-links, scroll-spy, mobile strip, per-hub lazy-mount on first
+   intersection, per-silo kill switches, fail-soft hub hiding.
+   CIVIC SPLIT STATUS (2026-10-05): the 10 civic.js panes still share the one
+   `civic` kill switch (split lands post-merge). Interim per spec §5.2: hubs
+   are a virtual nav layer — the civic section mounts once as a strip under
+   the sub-nav, its panes get phq-pane-* ids, and hub tabs deep-scroll to
+   them. Set window.PF_PHQ_SPLIT=true when the per-pane split lands and the
+   hub map below flips to per-pane silo ids automatically.
+   COPY: hub missions/tab labels below are PROVISIONAL — Psych veto pending
+   (see hidden/design-team/phq-cta-copy-20261005.md). No new XP, no new
+   currencies, no "donate" anywhere.
+   KILL: ?pf_off=phq-hubnav (hides the bar; hubs stack plainly) or any
+   ?pf_off=<silo> from the spec §7 kill strings; a hub hides when ALL its
+   silos are killed or fail to mount. */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || window.pfPhqHubsDone) return;
+  window.pfPhqHubsDone = true;
+
+  function isEditor() {
+    try {
+      var h = window.location.href || '';
+      if (h.indexOf('/config/') !== -1) return true;
+      var b = document.body;
+      if (b && (b.classList.contains('sqs-edit-mode') || b.classList.contains('sqs-editing'))) return true;
+      return false;
+    } catch (e) { return false; }
+  }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function reducedMotion() {
+    try { return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+    catch (e) { return false; }
+  }
+
+  /* ================= HUB CONFIG (spec §2–§4, §7) =================
+     silos   = target per-pane ids (post-split, spec §5.1)
+     interim = pre-split kill-check ids (spec §7 interim strings)
+     order   = ORDER-table ids mounted into this hub pre-split
+     panes   = civic pane kinds deep-linked from this hub's tab (spec §5.2) */
+  var HUBS = [
+    { id: 'action', sec: '01', tab: 'TAKE ACTION', title: 'Take Action',
+      mission: 'Stop reading. Start hitting.', /* [PSYCH] */
+      silos: ['action-center', 'civic-pressure', 'civic-petitions', 'civic-pledges',
+              'civic-callpractice', 'footprint', 'vote-alerts', 'civic-duty', 'civic-sharekits'],
+      interim: ['action-center', 'civic', 'footprint', 'vote-alerts', 'civic-duty'],
+      order: ['action-center', 'footprint', 'vote-alerts'],
+      panes: ['petitions', 'pressure', 'callpractice', 'pledges', 'sharekits'],
+      alertRow: true },
+    { id: 'people', sec: '02', tab: 'PEOPLE', title: 'People',
+      mission: 'Know the players. Your reps, their grades, your statehouse.', /* [PSYCH] */
+      silos: ['civic-directory', 'civic-scorecards', 'stateleg', 'wallshame'],
+      interim: ['civic', 'stateleg', 'wallshame'],
+      order: ['stateleg'],
+      panes: ['directory', 'reps', 'scorecards'],
+      wallshame: true },
+    { id: 'bills', sec: '03', tab: 'BILLS & COURTS', title: 'Bills & Courts',
+      mission: 'Read the battlefield. Bills, rulings, and orders — decoded.', /* [PSYCH] */
+      silos: ['legislation', 'courts', 'eo', 'governance', 'wallshame'],
+      interim: ['legislation', 'courts', 'eo', 'governance', 'wallshame'],
+      order: ['legislation', 'courts', 'eo', 'governance'],
+      panes: [],
+      wallshame: true },
+    { id: 'ballot', sec: '04', tab: 'BALLOT', title: 'Ballot',
+      mission: 'Your ballot, your races, your countdown.', /* [PSYCH] */
+      silos: ['civic-ballot', 'ballotcd', 'races', 'measures', 'civic-votercheck'],
+      interim: ['civic', 'ballotcd', 'races', 'measures'],
+      /* 2026-10-05 (fe/predict-game): CALL IT. prediction game joins the
+         BALLOT hub ('elections' preselected); 'predict' (Call the Shot)
+         stays untouched. */
+      order: ['races', 'measures', 'predict', 'predgame'],
+      panes: ['ballot', 'voter', 'votercheck', 'countdown'] },
+    { id: 'intel', sec: '05', tab: 'INTEL', title: 'Intel',
+      mission: 'Know more than they do.', /* [PSYCH] */
+      silos: ['intel', 'civic-polls', 'nonprofits', 'labor'],
+      interim: ['intel', 'civic', 'nonprofits'],
+      order: ['intel', 'nonprofits'],
+      panes: ['polls'] },
+    { id: 'money', sec: '06', tab: 'FOLLOW THE MONEY', title: 'Follow the Money', /* [PSYCH] tab label */
+      mission: 'Follow the money. See who funds the votes.', /* [PSYCH] P5 */
+      silos: ['money-tab', 'money-vote', 'pac-alerts', 'trades-tab', 'corp-card', 'ledgers', 'boycotts'],
+      interim: ['money-tab', 'money-vote', 'pac-alerts', 'trades-tab', 'corp-card', 'ledgers', 'boycotts'],
+      order: [],
+      panes: [],
+      moneySlot: true }
+  ];
+  var SPLIT = (typeof window.PF_PHQ_SPLIT !== 'undefined') ? !!window.PF_PHQ_SPLIT : false;
+
+  /* civic pane heading -> pane kind (generalizes the Action Center's
+     tagCivicPanes/ac-pane-* technique per spec §5.2) */
+  function paneKindForHeading(text) {
+    var t = String(text || '').toLowerCase();
+    if (t.indexOf('petition') !== -1) return 'petitions';
+    if (t.indexOf('scorecard') !== -1 || t.indexOf('grade') !== -1) return 'scorecards';
+    if (t.indexOf('directory') !== -1 || t.indexOf('rep') !== -1 || t.indexOf('congress') !== -1) return 'directory';
+    if (t.indexOf('ballot center') !== -1 || t.indexOf('ballot') !== -1) return 'ballot';
+    if (t.indexOf('voter') !== -1 || t.indexOf('regist') !== -1) return 'voter';
+    if (t.indexOf('countdown') !== -1) return 'countdown';
+    if (t.indexOf('pressure') !== -1 || t.indexOf('campaign') !== -1) return 'pressure';
+    if (t.indexOf('call practice') !== -1 || t.indexOf('call script') !== -1) return 'callpractice';
+    if (t.indexOf('pledge') !== -1) return 'pledges';
+    if (t.indexOf('poll') !== -1) return 'polls';
+    if (t.indexOf('share kit') !== -1) return 'sharekits';
+    return null;
+  }
+  function hubForPaneKind(kind) {
+    for (var i = 0; i < HUBS.length; i++) {
+      if (HUBS[i].panes.indexOf(kind) !== -1) return HUBS[i].id;
+    }
+    return null;
+  }
+  function hubById(id) {
+    for (var i = 0; i < HUBS.length; i++) if (HUBS[i].id === id) return HUBS[i];
+    return null;
+  }
+  /* ORDER silo id -> hub id (pre-split uses hub.order; post-split uses hub.silos) */
+  function hubForSilo(silo) {
+    for (var i = 0; i < HUBS.length; i++) {
+      var list = SPLIT ? HUBS[i].silos : HUBS[i].order;
+      if (list.indexOf(silo) !== -1) return HUBS[i].id;
+    }
+    return null;
+  }
+  function hubKillIds(hub) { return SPLIT ? hub.silos : hub.interim; }
+
+  /* ============ mount-one-silo (mirrors pages/political-hq.js mountSilos) ============ */
+  function execScripts(root, label) {
+    var scripts = root.querySelectorAll('script');
+    for (var i = 0; i < scripts.length; i++) {
+      try { (0, eval)(scripts[i].textContent); }
+      catch (e) {
+        if (PF) PF.error('phq-hubs', 'inner script failed in ' + label + ' :: ' + (e && e.message || e));
+        try {
+          var loads = root.querySelectorAll('.c-load,.hq-load,.ca-load,.cw-load,.p-load');
+          for (var j = 0; j < loads.length; j++) {
+            var d = document.createElement('div');
+            d.style.cssText = 'border:2px solid var(--pf-red);background:#1a0505;color:#f5f0e1;padding:12px;margin:8px 0;font-family:Arial,sans-serif;font-size:14px;';
+            d.innerHTML = 'This widget failed to start. ' +
+              '<button style="background:var(--pf-red);color:#fff;border:0;font-weight:700;padding:8px 14px;cursor:pointer;" onclick="location.reload()">Reload</button>';
+            if (loads[j].parentNode) loads[j].parentNode.replaceChild(d, loads[j]);
+          }
+        } catch (e2) {}
+      }
+      scripts[i].remove();
+    }
+  }
+  /* returns true when the silo actually mounted */
+  function mountOneSilo(silo, tplId, hostEl) {
+    try {
+      if (PF.skip(silo)) return false;
+      var tpl = document.getElementById(tplId);
+      if (!tpl || !tpl.content) return false;
+      var frag = document.importNode(tpl.content, true);
+      var section = document.createElement('section');
+      section.className = 'pf-v2-game pf-hq-section';
+      section.setAttribute('data-game', silo);
+      section.id = 'phq-silo-' + silo; /* deep-link anchor (AC/Deck/War Report) */
+      section.appendChild(frag);
+      hostEl.appendChild(section);
+      execScripts(section, tplId);
+      return true;
+    } catch (e) {
+      if (PF) PF.error('phq-hubs', 'mount failed: ' + silo + ' :: ' + (e && e.message || e));
+      return false;
+    }
+  }
+
+  var mountedHubs = {};   /* hubId -> true once its silos have mounted */
+  var hubHasSilos = {};   /* hubId -> count of actually-mounted silos */
+  var mountedSilos = {};  /* 'hubId:silo' -> true (deep-chunk remount guard) */
+  var hubMissing = {};    /* hubId -> [[silo, tplId]] missing on first pass */
+  /* 2026-10-05 (fe/political-hq-optimize): hubId -> [[silo, tplId], ...]
+     silos skipped on first pass because their template wasn't staged yet
+     (their code rides the async bundle-hq-deep chunk). phqDeepReady()
+     re-mounts exactly these once the deep chunk lands. */
+
+  function hubSectionEl(hub) { return document.getElementById('phq-' + hub.id); }
+
+  function renderSubnav(host) {
+    if (PF.skip('phq-hubnav')) return null;
+    if (document.getElementById('pf-hq-subnav')) return document.getElementById('pf-hq-subnav');
+    var nav = document.createElement('nav');
+    nav.id = 'pf-hq-subnav';
+    nav.setAttribute('aria-label', 'Political HQ sections');
+    var tabs = document.createElement('div');
+    tabs.className = 'pf-hq-tabs';
+    tabs.setAttribute('role', 'tablist');
+    for (var i = 0; i < HUBS.length; i++) {
+      (function (hub) {
+        var b = document.createElement('button');
+        b.className = 'pf-hq-tab';
+        b.setAttribute('role', 'tab');
+        b.setAttribute('data-hub', hub.id);
+        b.setAttribute('aria-controls', 'phq-' + hub.id);
+        b.textContent = hub.tab;
+        b.addEventListener('click', function () { goHub(hub.id, true); });
+        tabs.appendChild(b);
+      })(HUBS[i]);
+    }
+    nav.appendChild(tabs);
+    host.insertBefore(nav, host.firstChild);
+    return nav;
+  }
+
+  function renderHubShells(host) {
+    for (var i = 0; i < HUBS.length; i++) {
+      (function (hub, idx) {
+        if (document.getElementById('phq-' + hub.id)) return;
+        var sec = document.createElement('section');
+        sec.id = 'phq-' + hub.id;
+        sec.className = 'pf-hub';
+        sec.setAttribute('data-hub', hub.id);
+        var next = HUBS[(idx + 1) % HUBS.length];
+        var h = '<header class="pf-hub-head">' +
+          '<span class="pf-hub-kicker">SECTION ' + hub.sec + ' — ' + esc(hub.tab) + '</span>' +
+          '<h2>' + esc(hub.title) + '</h2>' +
+          '<p class="pf-hub-mission">' + esc(hub.mission) + '</p>' +
+          (hub.alertRow
+            ? '<p class="pf-hub-alertrow"><a href="#pf-util-notify-prefs" data-hub-go="__notify">Alert settings</a> — manage your vote &amp; case alerts.</p>'
+            : '') +
+          '</header>' +
+          '<div class="pf-hub-silos"><div class="pf-hub-loading">Loading ' + esc(hub.title) + '&hellip;</div></div>' +
+          '<footer class="pf-hub-exits">' +
+          '<a href="#phq-' + next.id + '" data-hub-go="' + next.id + '">Next: ' + esc(next.title) + ' &rarr;</a>' +
+          '<a href="#phq-action" data-hub-go="action">&larr; Back to Take Action</a>' +
+          '</footer>';
+        sec.innerHTML = h;
+        host.appendChild(sec);
+      })(HUBS[i], i);
+    }
+  }
+
+  /* tag civic panes for the §5.2 virtual nav layer */
+  function tagHubPanes() {
+    try {
+      var panes = document.querySelectorAll('#pf-phq-civicstrip .x-pane, #pf-political-hq .x-pane');
+      for (var i = 0; i < panes.length; i++) {
+        var h4 = panes[i].querySelector('h4');
+        if (!h4) continue;
+        var kind = paneKindForHeading(h4.textContent);
+        if (!kind) continue;
+        var hubId = hubForPaneKind(kind);
+        if (!hubId) continue;
+        if (!panes[i].id && !document.getElementById('phq-pane-' + kind)) panes[i].id = 'phq-pane-' + kind;
+        panes[i].setAttribute('data-phq-hub', hubId);
+        panes[i].setAttribute('data-phq-pane', kind);
+      }
+    } catch (e) {}
+  }
+  /* 2026-10-05 (P4 pane anchors): civic paints its .x-pane elements async
+     (JSONP fan-in), after mount-time tagHubPanes() already ran. Re-tag on
+     every civic paint — tagHubPanes() is idempotent. */
+  try {
+    document.addEventListener('pf-civic-panes', function () { try { tagHubPanes(); } catch (e) {} });
+  } catch (e) {}
+
+  function clearLoading(hub) {
+    var sec = hubSectionEl(hub);
+    if (!sec) return;
+    var l = sec.querySelector('.pf-hub-loading');
+    if (l && l.parentNode) l.parentNode.removeChild(l);
+  }
+
+  function refreshTabs() {
+    var nav = document.getElementById('pf-hq-subnav');
+    if (!nav) return;
+    var tabs = nav.querySelectorAll('.pf-hq-tab');
+    for (var i = 0; i < tabs.length; i++) {
+      (function (b) {
+        /* PROJECT BLOSSOM M4 (2026-10-06): anchor tabs are plain rail
+           links (e.g. money -> /follow-the-money), not hub tabs — the
+           visibility pass never hides them. */
+        try {
+          if (b.tagName === 'A' && b.getAttribute('href')) {
+            b.style.display = '';
+            b.setAttribute('aria-hidden', 'false');
+            return;
+          }
+        } catch (e0) {}
+        var hub = hubById(b.getAttribute('data-hub'));
+        if (!hub) return;
+        var sec = hubSectionEl(hub);
+        var hidden = !sec || sec.style.display === 'none';
+        /* 2026-10-05 (SURGE-2 FAIL 2): spec §5.2 virtual nav — keep the tab
+           visible when the civic strip holds tagged panes for this hub, even
+           if the hub section itself mounted zero silos. TAKE ACTION's panes
+           (Pressure campaigns, Petitions, …) live in the strip until its
+           dedicated silos (action-center, footprint, vote-alerts) merge;
+           hiding the tab defeats the deep-scroll nav. The section stays
+           hidden (no empty shell); goHub scrolls to the tagged panes. */
+        if (hidden) {
+          try {
+            hidden = document.querySelectorAll('[data-phq-hub="' + hub.id + '"]').length === 0;
+          } catch (e) { /* keep hidden on query failure (fail-soft) */ }
+        }
+        b.style.display = hidden ? 'none' : '';
+        b.setAttribute('aria-hidden', hidden ? 'true' : 'false');
+      })(tabs[i]);
+    }
+  }
+
+  /* Wall of Shame dual-mount slots (PEOPLE + BILLS) — fail-soft until the
+     wall-of-shame branch merges (held OUT of merge until the bill-detail
+     mount hook exists — data-map merge gate). */
+  function mountWallShameSlot(hub) {
+    if (!hub.wallshame || PF.skip('wallshame')) return false;
+    var sec = hubSectionEl(hub);
+    if (!sec) return false;
+    var silos = sec.querySelector('.pf-hub-silos');
+    if (!silos) return false;
+    /* 2026-10-05 (fe/political-hq-optimize): remount guard — phqDeepReady()
+       re-runs mountHub for hubs with late templates; never double-slot. */
+    if (silos.querySelector('[data-wallshame-slot="' + hub.id + '"]')) return true;
+    try {
+      var api = (window.PFWallShame && window.PFWallShame.mount) ? window.PFWallShame
+        : (PF.WallShame && PF.WallShame.mount) ? PF.WallShame : null;
+      if (!api) return false; /* not merged yet — fail soft, no skeleton */
+      var slot = document.createElement('div');
+      slot.setAttribute('data-wallshame-slot', hub.id);
+      silos.appendChild(slot);
+      api.mount(null, slot); /* people pane: no bill context; bill pane binds post-split */
+      return true;
+    } catch (e) {
+      if (PF) PF.error('phq-hubs', 'wallshame slot failed (' + hub.id + ') :: ' + (e && e.message || e));
+      return false;
+    }
+  }
+
+  /* Money interim tab slot — mounts when the money-tab shell contract exists
+     (PFMoneyTab.mountTab); hidden until then (fail-soft per spec §1). */
+  function mountMoneySlot(hub) {
+    if (!hub.moneySlot || PF.skip('money-tab')) return false;
+    var sec = hubSectionEl(hub);
+    if (!sec) return false;
+    var silos = sec.querySelector('.pf-hub-silos');
+    if (!silos) return false;
+    /* 2026-10-05 (fe/political-hq-optimize): remount guard — same as wallshame. */
+    if (silos.querySelector('[data-money-slot]')) return true;
+    try {
+      var api = (window.PFMoneyTab && window.PFMoneyTab.mountTab) ? window.PFMoneyTab
+        : (PF.MoneyTab && PF.MoneyTab.mountTab) ? PF.MoneyTab : null;
+      if (!api) return false; /* money suite not merged yet — tab stays hidden */
+      var slot = document.createElement('div');
+      slot.setAttribute('data-money-slot', 'tab');
+      silos.appendChild(slot);
+      api.mountTab(slot);
+      return true;
+    } catch (e) {
+      if (PF) PF.error('phq-hubs', 'money slot failed :: ' + (e && e.message || e));
+      return false;
+    }
+  }
+
+  function mountHub(hub, orderPairs) {
+    if (mountedHubs[hub.id]) return hubHasSilos[hub.id] || 0;
+    mountedHubs[hub.id] = true;
+    var sec = hubSectionEl(hub);
+    var silosBox = sec ? sec.querySelector('.pf-hub-silos') : null;
+    var n = 0;
+    /* 2026-10-05 (fe/political-hq-optimize): templates missing on this pass
+       (deep-chunk silo not staged yet) are recorded for the phqDeepReady()
+       retry — EXCEPT kill-switched silos, which are intentional no-mounts. */
+    var missing = (hubMissing[hub.id] = []);
+    try {
+      if (silosBox) {
+        for (var i = 0; i < orderPairs.length; i++) {
+          var silo = orderPairs[i][0], tplId = orderPairs[i][1];
+          if (hubForSilo(silo) !== hub.id) continue;
+          if (mountedSilos[hub.id + ':' + silo]) { n++; continue; }
+          if (!PF.skip(silo) && !document.getElementById(tplId)) { missing.push([silo, tplId]); continue; }
+          if (mountOneSilo(silo, tplId, silosBox)) { mountedSilos[hub.id + ':' + silo] = true; n++; }
+        }
+        if (mountWallShameSlot(hub)) n++;
+        if (mountMoneySlot(hub)) n++;
+      }
+    } catch (e) {
+      if (PF) PF.error('phq-hubs', 'hub mount failed: ' + hub.id + ' :: ' + (e && e.message || e));
+    }
+    hubHasSilos[hub.id] = n;
+    clearLoading(hub);
+    tagHubPanes();
+    /* FAIL-SOFT (spec §1): hub hides when all its silos are killed or fail to mount.
+       2026-10-05 (hub-visibility fix): when the deep-chunk re-mount succeeds
+       (n>0), restore display — the first-pass fail-soft hide must not stick
+       forever, or people/bills/intel stay invisible after phqDeepReady(). */
+    if (n === 0 && sec) {
+      sec.style.display = 'none';
+      if (PF) PF.error('phq-hubs', 'hub ' + hub.id + ' has no mountable silos — hidden (fail-soft)');
+    } else if (n > 0 && sec && sec.style.display === 'none') {
+      sec.style.display = '';
+    }
+    refreshTabs();
+    return n;
+  }
+
+  function mountCivicStrip(orderPairs) {
+    if (PF.skip('civic')) return;
+    if (document.getElementById('pf-phq-civicstrip')) return;
+    var host = document.getElementById('pf-political-hq');
+    var nav = document.getElementById('pf-hq-subnav');
+    if (!host) return;
+    for (var i = 0; i < orderPairs.length; i++) {
+      if (orderPairs[i][0] !== 'civic') continue;
+      var strip = document.createElement('div');
+      strip.id = 'pf-phq-civicstrip';
+      /* insert directly under the sub-nav (above the TAKE ACTION hub) */
+      if (nav && nav.parentNode === host) host.insertBefore(strip, nav.nextSibling);
+      else host.insertBefore(strip, host.firstChild);
+      if (mountOneSilo('civic', orderPairs[i][1], strip)) tagHubPanes();
+      return;
+    }
+  }
+
+  function mountNotifyPrefs(orderPairs) {
+    if (PF.skip('notify-prefs')) return;
+    if (document.getElementById('pf-util-notify-prefs')) return;
+    var host = document.getElementById('pf-political-hq');
+    if (!host) return;
+    for (var i = 0; i < orderPairs.length; i++) {
+      if (orderPairs[i][0] !== 'notify-prefs') continue;
+      /* 2026-10-05 (fe/political-hq-optimize): the notify-prefs template now
+         stages with the async bundle-hq-deep chunk. Bail BEFORE creating the
+         util div so phqDeepReady() can re-run this cleanly on deep load —
+         a pre-created empty div would trip the early-return guard above and
+         the pane would never mount. */
+      var tpl = document.getElementById(orderPairs[i][1]);
+      if (!tpl || !tpl.content) return;
+      var util = document.createElement('div');
+      util.id = 'pf-util-notify-prefs';
+      util.className = 'pf-hub-util';
+      host.appendChild(util); /* utility pane after the hubs (spec §6) */
+      mountOneSilo('notify-prefs', orderPairs[i][1], util);
+      return;
+    }
+  }
+
+  /* ============ navigation: hash deep-links + scroll-spy ============ */
+  var spyTargets = []; /* {el, hub} */
+  function collectSpyTargets() {
+    spyTargets = [];
+    try {
+      for (var i = 0; i < HUBS.length; i++) {
+        var sec = hubSectionEl(HUBS[i]);
+        if (sec && sec.style.display !== 'none') spyTargets.push({ el: sec, hub: HUBS[i].id });
+      }
+      var panes = document.querySelectorAll('[data-phq-hub]');
+      for (var j = 0; j < panes.length; j++) {
+        spyTargets.push({ el: panes[j], hub: panes[j].getAttribute('data-phq-hub') });
+      }
+    } catch (e) {}
+  }
+  function setActiveTab(hubId) {
+    var nav = document.getElementById('pf-hq-subnav');
+    if (!nav) return;
+    var tabs = nav.querySelectorAll('.pf-hq-tab');
+    for (var i = 0; i < tabs.length; i++) {
+      (function (b) {
+        var on = b.getAttribute('data-hub') === hubId;
+        if (on) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
+      })(tabs[i]);
+    }
+  }
+  function initScrollSpy() {
+    collectSpyTargets();
+    if (!('IntersectionObserver' in window) || !spyTargets.length) return;
+    var active = null;
+    var obs = new IntersectionObserver(function (entries) {
+      var best = null, bestTop = Infinity;
+      for (var k = 0; k < entries.length; k++) {
+        var en = entries[k];
+        if (en && en.isIntersecting) {
+          var top = en.boundingClientRect ? en.boundingClientRect.top : 0;
+          if (top < bestTop) { bestTop = top; best = en.target; }
+        }
+      }
+      if (best) {
+        var hub = best.getAttribute('data-hub') || best.getAttribute('data-phq-hub');
+        if (hub && hub !== active) { active = hub; setActiveTab(hub); }
+      }
+    }, { rootMargin: '-20% 0px -60% 0px' });
+    try {
+      for (var m = 0; m < spyTargets.length; m++) obs.observe(spyTargets[m].el);
+    } catch (e) {}
+    try { window.pfPhqHubSpyRefresh = collectSpyTargets; } catch (e2) {}
+  }
+
+  function scrollTargetFor(hubId) {
+    /* prefer the hub's first tagged pane (virtual nav, spec §5.2), else the hub section */
+    try {
+      var panes = document.querySelectorAll('[data-phq-hub="' + hubId + '"]');
+      for (var i = 0; i < panes.length; i++) {
+        if (panes[i].offsetParent !== null) return panes[i];
+      }
+    } catch (e) {}
+    var hub = hubById(hubId);
+    return hub ? hubSectionEl(hub) : null;
+  }
+  function goHub(hubId, pushHash) {
+    if (hubId === '__notify') {
+      var n = document.getElementById('pf-util-notify-prefs');
+      if (n && n.scrollIntoView) n.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
+      return;
+    }
+    var hub = hubById(hubId);
+    if (!hub) return;
+    if (!mountedHubs[hubId] && window.pfPhqHubOrder) mountHub(hub, window.pfPhqHubOrder);
+    collectSpyTargets();
+    var t = scrollTargetFor(hubId);
+    if (t && t.scrollIntoView) {
+      try { t.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' }); } catch (e) {}
+    }
+    setActiveTab(hubId);
+    if (pushHash !== false) {
+      try { history.replaceState(null, '', '#phq-' + hubId); } catch (e) {}
+    }
+  }
+
+  /* ============ deep-chunk async loader (fe/political-hq-optimize) ============
+     bundle-hq-deep.js carries the below-fold silo code (stateleg, legislation,
+     governance, notify-prefs, intel, predict, predict-home, ballot-countdown,
+     nonprofits). It is NOT in the blocking footer sequence — this loader
+     injects it async once the hub shells render, so 152KB of code never
+     blocks first paint. PF.phqDeepReady() re-mounts any hub/silo whose
+     template was missing on the first pass (recorded in hubMissing), then
+     re-runs the notify-prefs utility mount, refreshes tabs, and re-collects
+     scroll-spy targets. Idempotent and fail-soft: if the deep chunk fails
+     (one retry), hubs stay hidden per the spec §1 fail-soft rule and a
+     PF.error is logged — never a spinner forever. */
+  var deepState = { tried: false, done: false };
+  function deepUrl() {
+    try {
+      var ss = document.scripts || document.getElementsByTagName('script');
+      for (var i = 0; i < ss.length; i++) {
+        var src = String(ss[i].src || '');
+        var m = src.match(/^(.*\/)games\/bundle-hq\.js(\?|#|$)/);
+        if (m) return m[1] + 'games/bundle-hq-deep.js';
+      }
+    } catch (e) {}
+    return null;
+  }
+  function phqDeepReady() {
+    if (deepState.done) return;
+    deepState.done = true;
+    try {
+      var orderPairs = window.pfPhqHubOrder || [];
+      for (var i = 0; i < HUBS.length; i++) {
+        var miss = hubMissing[HUBS[i].id];
+        if (miss && miss.length) {
+          delete mountedHubs[HUBS[i].id];
+          mountHub(HUBS[i], orderPairs);
+          hubMissing[HUBS[i].id] = [];
+        }
+      }
+      mountNotifyPrefs(orderPairs);
+      refreshTabs();
+      try { if (window.pfPhqHubSpyRefresh) window.pfPhqHubSpyRefresh(); } catch (e2) {}
+    } catch (e) { if (PF) PF.error('phq-hubs', 'deep ready failed :: ' + (e && e.message || e)); }
+  }
+  function loadDeepChunk() {
+    if (deepState.tried) return;
+    deepState.tried = true;
+    var url = deepUrl();
+    if (!url) { if (PF) PF.error('phq-hubs', 'deep chunk: could not resolve bundle-hq.js URL — deep silos skipped'); return; }
+    var attempts = 0;
+    function attempt() {
+      attempts++;
+      try {
+        var s = document.createElement('script');
+        s.src = url; s.async = true;
+        s.onload = function () { phqDeepReady(); };
+        s.onerror = function () {
+          if (attempts < 2) { setTimeout(attempt, 5000); }
+          else if (PF) PF.error('phq-hubs', 'deep chunk failed to load after retry — below-fold silos unavailable');
+        };
+        (document.head || document.documentElement).appendChild(s);
+      } catch (e) { if (PF) PF.error('phq-hubs', 'deep chunk inject failed :: ' + (e && e.message || e)); }
+    }
+    attempt();
+  }
+  PF.phqDeepReady = phqDeepReady;
+
+  /* ============ main entry: PF.mountHubSilos(ORDER) ============ */
+  function mountHubSilos(ORDER) {
+    try {
+      var host = document.getElementById('pf-political-hq');
+      if (!host || isEditor()) return;
+      window.pfPhqHubOrder = ORDER;
+      var navKilled = PF.skip('phq-hubnav');
+
+      var nav = navKilled ? null : renderSubnav(host);
+      renderHubShells(host);
+      /* 2026-10-05 (fe/political-hq-optimize): kick the async deep chunk
+         now — below-fold silo code must not block first paint. */
+      loadDeepChunk();
+      mountCivicStrip(ORDER);
+      mountNotifyPrefs(ORDER);
+
+      /* delegate in-hub link clicks (next-hub, AC-return, alert settings) */
+      if (!window.pfPhqHubDelegated) {
+        window.pfPhqHubDelegated = true;
+        document.addEventListener('click', function (e) {
+          var t = e && e.target;
+          while (t && t !== document) {
+            if (t.getAttribute && t.getAttribute('data-hub-go')) {
+              e.preventDefault();
+              goHub(t.getAttribute('data-hub-go'), true);
+              return;
+            }
+            t = t.parentNode;
+          }
+        });
+      }
+
+      var hashHub = null;
+      try {
+        var m = String(window.location.hash || '').match(/^#phq-(people|bills|ballot|action|intel|money)$/);
+        if (m) hashHub = m[1];
+      } catch (e) {}
+
+      if (navKilled) {
+        /* graceful degradation: plain stacked page, everything mounts now */
+        for (var d = 0; d < HUBS.length; d++) mountHub(HUBS[d], ORDER);
+        initScrollSpy();
+        return;
+      }
+
+      /* immediate: civic strip is above the fold; PEOPLE hub; hash target */
+      var immediate = { people: true };
+      if (hashHub) immediate[hashHub] = true;
+      for (var i = 0; i < HUBS.length; i++) {
+        if (immediate[HUBS[i].id]) mountHub(HUBS[i], ORDER);
+      }
+
+      /* lazy-mount below the fold on first intersection (spec §1 — REQUIRED) */
+      var pending = [];
+      for (var j = 0; j < HUBS.length; j++) {
+        if (!mountedHubs[HUBS[j].id]) pending.push(HUBS[j]);
+      }
+      function mountIfNear() {
+        try {
+          var vh = window.innerHeight || 800;
+          for (var k = pending.length - 1; k >= 0; k--) {
+            var sec = hubSectionEl(pending[k]);
+            if (!sec) { pending.splice(k, 1); continue; }
+            var r = sec.getBoundingClientRect();
+            if (r.top < vh * 1.5) { mountHub(pending[k], ORDER); pending.splice(k, 1); }
+          }
+        } catch (e) {}
+      }
+      mountIfNear();
+      if ('IntersectionObserver' in window) {
+        var obs = new IntersectionObserver(function (es) {
+          for (var k = 0; k < es.length; k++) {
+            if (es[k] && es[k].isIntersecting) {
+              for (var p = pending.length - 1; p >= 0; p--) {
+                if (hubSectionEl(pending[p]) === es[k].target) {
+                  mountHub(pending[p], ORDER);
+                  pending.splice(p, 1);
+                }
+              }
+              try { obs.unobserve(es[k].target); } catch (e) {}
+            }
+          }
+        }, { rootMargin: '800px' }); /* preload margin matches the footer jsLazy() */
+        try {
+          for (var q = 0; q < pending.length; q++) {
+            var s2 = hubSectionEl(pending[q]);
+            if (s2) obs.observe(s2);
+          }
+        } catch (e) { mountIfNear(); }
+      } else {
+        for (var z = pending.length - 1; z >= 0; z--) { mountHub(pending[z], ORDER); pending.splice(z, 1); }
+      }
+      /* safety net (parity with jsLazy): 15s timeout mounts everything */
+      setTimeout(function () {
+        try {
+          for (var k = pending.length - 1; k >= 0; k--) { mountHub(pending[k], ORDER); pending.splice(k, 1); }
+          initScrollSpy();
+        } catch (e) {}
+      }, 15000);
+
+      initScrollSpy();
+      tagHubPanes();
+      refreshTabs();
+
+      /* deep-link on load */
+      if (hashHub) {
+        setTimeout(function () { goHub(hashHub, false); }, 600);
+      }
+    } catch (e) {
+      if (PF) PF.error('phq-hubs', 'mountHubSilos failed :: ' + (e && e.message || e));
+    }
+  }
+
+  PF.mountHubSilos = mountHubSilos;
+  PF.phqGoHub = goHub;
+  /* test seam: pure helpers for the verify script */
+  PF.phqHubTest = {
+    hubs: HUBS, paneKindForHeading: paneKindForHeading,
+    hubForPaneKind: hubForPaneKind, hubForSilo: hubForSilo, hubKillIds: hubKillIds,
+    deepUrl: deepUrl, phqDeepReady: phqDeepReady, hubMissing: hubMissing
+  };
+})();
+
+;
+
+/* ===== civic.js ===== */
+/* games/civic.js  |  PF v1.4.3 | CIVIC ACTION: petitions, rep contact,
+   voter registration, notification preferences.
+   LAYERING: a game silo like campaign.js. Reads via JSONP (self-contained api()),
+   writes via CORS POST (self-contained post()). It never reaches into another
+   silo's internals.
+   KILL: ?pf_off=civic  or  localStorage pf_disabled_v1='["civic"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("civic")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-civic">
+<div class="fe-block pf-override-block pf-silo" id="pf-civic">
+<h2>Wage Civic Warfare</h2>
+<div class="c-tag">Petitions, reps, voter registration. Power off the timeline.</div>
+<div id="xCivic"><div class="c-load">Mobilizing&hellip;</div></div>
+<style>
+/* 2026-10-05: ballot center (Political HQ #4) — mobile-first, no horizontal
+   scroll, every touch target >= 44px. */
+#pf-civic .cv-t44{min-height:44px}
+#pf-civic .cv-bal-cd{font-size:16px;margin:10px 0;padding:10px;border:1px solid #4a4a4a;overflow-wrap:anywhere}
+#pf-civic .cv-balreg{margin:8px 0}
+#pf-civic .cv-balacts{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+/* 2026-10-05: cell competitions card — mobile-first, no horizontal scroll,
+   every touch target >= 44px. */
+#pf-civic .cv-cmp-tog{display:flex;gap:8px;margin:8px 0}
+#pf-civic .cv-cmp-tog .c-btn{flex:1;min-height:44px;padding:8px 4px}
+#pf-civic .cv-cmp-tog .c-btn[aria-pressed="true"]{outline:3px solid var(--pf-cream);outline-offset:-3px}
+#pf-civic .cv-cmp-row{border:1px solid #4a4a4a;padding:10px 12px;margin:8px 0;overflow-wrap:anywhere}
+#pf-civic .cv-cmp-rank{display:inline-block;min-width:36px;font-weight:900;font-size:16px;color:#ffd166}
+#pf-civic .cv-cmp-name{font-weight:900;font-size:15px}
+#pf-civic .cv-cmp-you{border-color:#ffd166;background:rgba(255,209,102,.08)}
+#pf-civic .cv-cmp-tag{display:inline-block;font-size:11px;font-weight:900;color:#0d0d0d;background:#ffd166;padding:2px 8px;margin-left:8px;vertical-align:middle}
+#pf-civic .cv-cmp-win{border:1px solid #ffd166;padding:12px;margin:8px 0;background:rgba(193,18,31,.12)}
+/* 2026-10-05: congressional directory — mobile-first, no horizontal scroll,
+   every touch target >= 44px. */
+#pf-civic .cv-dirfilters .c-in{width:100%;box-sizing:border-box;margin-bottom:8px}
+#pf-civic .cv-t44{min-height:44px}
+#pf-civic .cv-cham{display:flex;gap:8px;margin:8px 0}
+#pf-civic .cv-cham .c-btn{flex:1;min-height:44px;padding:8px 4px}
+#pf-civic .cv-cham .c-btn[aria-pressed="true"]{outline:3px solid var(--pf-cream);outline-offset:-3px}
+#pf-civic .cv-dirrow{border:1px solid #4a4a4a;padding:12px;margin:12px 0;overflow-wrap:anywhere}
+#pf-civic .cv-dirname{font-weight:900;font-size:16px;margin-bottom:4px}
+#pf-civic .cv-pb{display:inline-block;min-width:20px;text-align:center;font-weight:900;font-size:12px;border:1px solid var(--pf-cream);padding:1px 6px;margin-left:8px;vertical-align:middle}
+#pf-civic .cv-pb-D{color:#8fbfff}#pf-civic .cv-pb-R{color:#ff8f8f}#pf-civic .cv-pb-I{color:var(--pf-muted)}
+#pf-civic .cv-nv{display:inline-block;font-weight:900;font-size:11px;letter-spacing:1px;border:1px solid var(--pf-cream);padding:2px 6px;margin-left:8px;vertical-align:middle;white-space:nowrap}
+#pf-civic .cv-diractions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+#pf-civic .cv-xpb{display:inline-block;font-weight:900;font-size:12px;color:#ffd166;border:1px solid #ffd166;padding:6px 10px;white-space:nowrap}
+/* 2026-10-05 (rep-flow friction): secondary row actions tuck behind MORE —
+   the scan path stays name > CALL/CONTACT/LOG. */
+#pf-civic .cv-mored{display:inline-block}
+#pf-civic .cv-mored>summary{list-style:none;display:inline-block;cursor:pointer}
+#pf-civic .cv-mored>summary::-webkit-details-marker{display:none}
+#pf-civic .cv-mored>summary::after{content:" \u25be"}
+#pf-civic .cv-mored[open]>summary::after{content:" \u25b4"}
+#pf-civic .cv-morebody{margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+/* 2026-10-05: voting scorecards — mobile-first, badges readable, >=44px
+   touch targets, no horizontal scroll. */
+#pf-civic .cv-scdetail{margin-top:10px;border-top:2px solid #4a4a4a;padding-top:10px}
+#pf-civic .cv-sc-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+#pf-civic .cv-scrow{display:flex;gap:10px;align-items:flex-start;border-top:1px solid #4a4a4a;padding:10px 0}
+#pf-civic .cv-scrow:first-of-type{border-top:none}
+#pf-civic .cv-scbody{flex:1;min-width:0}
+#pf-civic .cv-sctitle{font-weight:700;font-size:14px;overflow-wrap:anywhere}
+#pf-civic .cv-vb{display:inline-block;flex:none;font-weight:900;font-size:13px;padding:6px 8px;border:2px solid;min-width:56px;text-align:center}
+#pf-civic .cv-vb-yea{color:#7dff9a;border-color:#7dff9a}
+#pf-civic .cv-vb-nay{color:#ff8f8f;border-color:#ff8f8f}
+#pf-civic .cv-vb-nv{color:var(--pf-muted);border-color:var(--pf-muted)}
+#pf-civic .cv-sctag{min-height:44px;margin-top:8px}
+#pf-civic .cv-issue{border:2px solid var(--pf-red);padding:12px;margin-bottom:12px;overflow-wrap:anywhere}
+#pf-civic .cv-ir{display:grid;grid-template-columns:1fr 44px 44px 44px 64px;gap:4px;padding:8px 0;border-top:1px solid #4a4a4a;text-align:center;font-size:14px;align-items:center}
+#pf-civic .cv-irh{font-weight:900;border-top:none;color:var(--pf-muted);font-size:12px}
+#pf-civic .cv-ir .cv-irlabel{text-align:left;font-weight:900}
+#pf-civic .cv-ir .cv-irtot{font-weight:900}
+#pf-civic .cv-diractions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+#pf-civic .cv-xpb{display:inline-block;font-weight:900;font-size:12px;color:#ffd166;border:1px solid #ffd166;padding:6px 10px;white-space:nowrap}
+/* 2026-10-05: call practice mode — frontend-only rehearsal overlay.
+   Mobile-first: 44px+ targets, no horizontal scroll, timer pinned. */
+#pfPracOv{position:fixed;top:0;left:0;right:0;bottom:0;z-index:100000;background:rgba(8,8,8,.96);overflow-y:auto;display:none;-webkit-overflow-scrolling:touch}
+#pfPracOv .pfprac-card{max-width:640px;margin:0 auto;padding:16px 16px 48px;color:var(--pf-cream);box-sizing:border-box}
+#pfPracOv .pfprac-top{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;gap:12px;background:rgba(8,8,8,.96);padding:12px 0;z-index:2}
+#pfPracOv .pfprac-timer{font:bold 28px monospace;color:#ffd166}
+#pfPracOv .pfprac-x{min-width:44px}
+#pfPracOv .pfprac-h{margin:8px 0 4px}
+#pfPracOv .pfprac-zero{margin:8px 0}
+#pfPracOv .pfprac-tele{font-size:22px;line-height:1.5;background:#141414;border:1px solid #4a4a4a;padding:20px 16px;margin:12px 0;min-height:120px;overflow-wrap:anywhere}
+#pfPracOv .pfprac-prog{text-align:center}
+#pfPracOv .pfprac-row{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+#pfPracOv .pfprac-row .c-btn{flex:1;min-height:44px;box-sizing:border-box}
+#pfPracOv .pfprac-big{width:100%;min-height:52px;margin:12px 0;box-sizing:border-box}
+#pfPracOv .pfprac-gentle{opacity:0;transition:opacity 1.2s ease;font-size:17px;color:#ffd166;text-align:center;margin:16px 0}
+#pfPracOv .pfprac-gentle.pfprac-show{opacity:1}
+#pfPracOv .pfprac-warm{font-size:24px;font-weight:900;color:var(--pf-cream);margin:16px 0 8px}
+</style>
+</div>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){} toastLocal(m); }
+/* 2026-10-05 (P2 F2-TOAST): read the Civic Duty progress AFTER the
+   pf-civic-* event has been dispatched (civic-duty.js records
+   synchronously), so the toast shows the count including this action.
+   2026-10-05 (P2 scope fix): dutyN/dutyFrag were nested inside toast()'s
+   body, so every call site outside toast() threw ReferenceError and the
+   Civic Duty toast never fired. They now live at IIFE top-level. */
+function dutyN(){ try{ var p=window.PF&&PF.civicDutyProgress&&PF.civicDutyProgress(); return (p&&p.count)||0; }catch(e){ return 0; } }
+function dutyFrag(){ return " \ud83d\uddf3 Civic Duty: "+dutyN()+" of 3."; }
+function toastLocal(m){
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:var(--pf-red);color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  var fn="pfCvCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function post(type,actionKey,action,params,cb){
+  var body=Object.assign({type:type},params);
+  body[actionKey]=action;
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+}
+var STATES=[["AL","Alabama"],["AK","Alaska"],["AZ","Arizona"],["AR","Arkansas"],["CA","California"],["CO","Colorado"],["CT","Connecticut"],["DE","Delaware"],["FL","Florida"],["GA","Georgia"],["HI","Hawaii"],["ID","Idaho"],["IL","Illinois"],["IN","Indiana"],["IA","Iowa"],["KS","Kansas"],["KY","Kentucky"],["LA","Louisiana"],["ME","Maine"],["MD","Maryland"],["MA","Massachusetts"],["MI","Michigan"],["MN","Minnesota"],["MS","Mississippi"],["MO","Missouri"],["MT","Montana"],["NE","Nebraska"],["NV","Nevada"],["NH","New Hampshire"],["NJ","New Jersey"],["NM","New Mexico"],["NY","New York"],["NC","North Carolina"],["ND","North Dakota"],["OH","Ohio"],["OK","Oklahoma"],["OR","Oregon"],["PA","Pennsylvania"],["RI","Rhode Island"],["SC","South Carolina"],["SD","South Dakota"],["TN","Tennessee"],["TX","Texas"],["UT","Utah"],["VT","Vermont"],["VA","Virginia"],["WA","Washington"],["WV","West Virginia"],["WI","Wisconsin"],["WY","Wyoming"]];
+var P=null, REPS=null, SCRIPTS=null, VOTER=null, CREATE_OPEN=false, VSTATS=null;
+/* 2026-10-05 (pledge-share-cards weave): voter-pledge share card state.
+   PLEDGE_CARD holds the phq-pledge painter data built from ballot_get via
+   PF.PHQShare.pledgeData — set on a successful pledge only when the ballot
+   wire returns a live, non-expired deadline. PLEDGE_NOTE carries the
+   fail-soft "deadline passed" copy for expired-deadline states. Card
+   GENERATION pays 0 XP (the +50 pledge XP is paid by voter_pledge itself);
+   card SHARING rides the existing poster_share leg (+5 fixed, NO_MULT,
+   counts toward the daily cap) through the POSTER SHARE verification tab. */
+var PLEDGE_DONE=false, PLEDGE_CARD=null, PLEDGE_NOTE='';
+/* 2026-10-05: congressional directory state. reps_list is the only new read;
+   the rep_contact write path below is shared with the legacy "Contact your
+   rep" pane — no new reward mechanics. */
+var DIRST={st:"",ch:"",q:"",reps:null,load:false,err:false};
+var STATES_F=null; /* STATES + DC, filter-only (STATES itself untouched). */
+/* 2026-10-05 (wave pressure-campaigns FE): active pressure campaigns from
+   pressure_list, per-campaign script+targets via pressure_get, join state. */
+var PC_LIST=null, PC_SCRIPT={}, PC_TITLE={}, PC_JOINED={};
+/* 2026-10-05 (P2 F2-TOAST): petitions signed this session render a
+   post-sign SHARE IT button — the share ask follows the action (W18). */
+var PET_SHARE_AFTER={}, PET_TITLE={};
+/* 6A-R7: voter-pledge poster state — set on a successful pledge. */
+var PLEDGE_DONE=false, PLEDGE_STATE_NAME='';
+/* Network Polls (2026-10-05, interactive expansion #3): poll list/detail
+   cache, create-form state, per-poll voted state (client-side +
+   localStorage so a refresh keeps it; the API's has_voted is the
+   server-side half). */
+var POLLS_OPEN=null, POLLS_CLOSED=null, POLLS_ERR=false, POLLS_CREATE_OPEN=false,
+    POLLS_CREATE_OPTS=2, POLLS_DETAIL={}, POLLS_FETCHING={},
+    POLLS_DRAFT={q:"",opts:[],kind:"general",dur:"3",bill:""};
+function pledgeStateName(code){
+  for(var i=0;i<STATES.length;i++) if(STATES[i][0]===code) return STATES[i][1];
+  return code||'';
+}
+/* After a successful voter_pledge: resolve the ballot row for the state and
+   arm the SHARE YOUR PLEDGE button with real deadline data. Fail-soft at
+   every step — the pledge itself always stands:
+     - ?pf_off=card-pledge or no PHQShare module -> button stays disarmed
+     - ballot_get fails/missing row -> button stays disarmed (no invented dates)
+     - expired deadline -> PLEDGE_NOTE "deadline passed", no card
+     - same-day (NULL deadline) -> armed with the at-the-polls variant */
+function armPledgeCard(stCode){
+  PLEDGE_CARD=null; PLEDGE_NOTE='';
+  var done=function(){ try{ render(); }catch(e){} };
+  try{
+    if(PF&&PF.skip('card-pledge')){ done(); return; }
+    if(!(window.PF&&PF.PHQShare&&PF.PHQShare.pledgeData)){ done(); return; }
+  }catch(e){ done(); return; }
+  api("ballot_get",{state:stCode},function(b){
+    try{
+      var row=(b&&b.ok&&b.ballot)||null;
+      if(!row){ done(); return; } /* ballot wire down — pledge stands, card paused */
+      var data=PF.PHQShare.pledgeData(row);
+      if(!data){
+        PLEDGE_NOTE='Registration has closed in '+pledgeStateName(stCode)+
+          ' — the deadline passed. Your pledge still counts: vote Nov 3.';
+        done(); return;
+      }
+      /* vote.gov link: ballot register_url first, voter_check URL as fallback. */
+      if(!data.registerUrl&&VOTER&&VOTER.url) data.registerUrl=VOTER.url;
+      PLEDGE_CARD=data;
+    }catch(e){}
+    done();
+  });
+}
+function load(){
+  var done=false, n=0;
+  function fin(){ if(done)return; done=true; render(); }
+  function one(){ n++; if(n>=8) fin(); }
+  setTimeout(fin,15000);
+  api("petition_list",{},function(j){ P=j; one(); });
+  api("rep_list",{},function(j){ REPS=j; one(); });
+  api("rep_scripts",{},function(j){ SCRIPTS=j; one(); });
+  /* 2026-10-03: voter_pledge_stats (public) — aggregate pledge counts. */
+  api("voter_pledge_stats",{},function(j){ VSTATS=j; one(); });
+  /* 2026-10-05 (wave pressure-campaigns FE): active campaigns. Fail-soft —
+     a down wire or zero campaigns hides the pane entirely (render skips it). */
+  api("pressure_list",{},function(j){ PC_LIST=(j&&j.ok&&j.campaigns)||[]; one(); });
+  /* 2026-10-05: network polls — open list is the contract call; closed
+     list is best-effort (backend may not serve status=closed). */
+  api("polls_list",{status:"open"},function(j){
+    if(j&&j.ok){ POLLS_OPEN=j; } else { POLLS_ERR=true; POLLS_OPEN=null; }
+    one();
+  });
+  api("polls_list",{status:"closed"},function(j){
+    POLLS_CLOSED=(j&&j.ok)?j:null;
+    one();
+  });
+  one();
+}
+/* 2026-10-05 (audit #7): sign/create used to trigger a full load() — 5 reads
+   plus re-render plus the contact-history JSONP refire in bind(). The only
+   pane those actions mutate is the petitions list: one petition_list read,
+   then re-render from cache. */
+function refreshPetitions(){
+  api("petition_list",{},function(j){ P=j; try{ render(); }catch(e){} });
+}
+var HIST_DONE=false;
+/* 2026-10-05 (audit #7): contact-history paint, split out so the log box can
+   refresh without a full re-render. Fetched once per page view (fetchHist);
+   LOG CONTACT — the only action that mutates the log — refreshes it
+   explicitly instead of every sign/pledge/create refiring it. */
+function paintHist(box,hist){
+  if(!hist.length){ box.innerHTML='<div class="x-note">No contacts logged yet. Your first call is +25 XP.</div>'; return; }
+  var hh='<div class="x-note" style="margin-top:6px"><b>Your contact log:</b></div>';
+  for(var i=0;i<Math.min(hist.length,5);i++){
+    var e=hist[i], dt="";
+    try{ dt=new Date(Number(e.ts)).toLocaleDateString(); }catch(ee){}
+    hh+='<div class="x-note">'+esc(e.rep_name||"rep")+' — '+esc(e.method||"")+(dt?" — "+esc(dt):"")+'</div>';
+  }
+  box.innerHTML=hh;
+}
+function fetchHist(force){
+  var box=document.getElementById("cvHistBox"); if(!box) return;
+  if(HIST_DONE&&!force) return;
+  var id2=ident(); if(!id2.callsign){ box.innerHTML=""; return; }
+  HIST_DONE=true;
+  var pp={callsign:id2.callsign};
+  function cb2(j){
+    var b2=document.getElementById("cvHistBox");
+    if(!b2){ HIST_DONE=false; return; }
+    if(!(j&&j.ok)){ HIST_DONE=false; return; } /* failed — retry on next bind */
+    paintHist(b2,j.history||[]);
+  }
+  try{ if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,"rep_contact_history",pp,cb2); return; } }catch(e){}
+  api("rep_contact_history",pp,cb2);
+}
+/* ============ PRESSURE CAMPAIGNS (2026-10-05, wave pressure-campaigns FE) ============
+   One card per active campaign: title, target bill (+ congress.gov link when
+   the bill text carries one), days remaining, call script with copy button,
+   tap-to-call target members with LOG CALL buttons, live participant/call
+   counters, share, and JOIN THE PRESSURE -> pressure_join.
+   FAIL-SOFT: if the API is down or returns no campaigns, pressurePaneHTML()
+   returns "" and the section never mounts. No broken widget, no stuck
+   spinner. No invented data — everything rendered comes from the API. */
+function pcCountersHTML(c){
+  return '<b>'+(Number(c.participant_count)||0)+'</b> in &bull; <b>'+(Number(c.call_count)||0)+'</b> calls logged';
+}
+function pcBillHTML(tb){
+  tb=String(tb==null?"":tb); if(!tb) return "";
+  /* Extract the first https URL for the congress.gov link; the label is the
+     text with the URL stripped. */
+  var m=tb.match(/https?:\\/\\/[^\\s<>"']+/);
+  var label=m?tb.replace(m[0],"").replace(/\s{2,}/g," ").trim():tb;
+  var h='<div class="x-note">Target bill: <b>'+esc(label||tb)+'</b>';
+  if(m){ h+=' &bull; <a href="'+esc(m[0])+'" target="_blank" rel="noopener">congress.gov \u2192</a>'; }
+  return h+'</div>';
+}
+function pcDaysHTML(c){
+  var d=null;
+  try{
+    var t=new Date(c.ends_at).getTime();
+    if(!isNaN(t)) d=Math.max(0,Math.ceil((t-Date.now())/864e5));
+  }catch(e){}
+  if(d==null&&c.days_remaining!=null&&c.days_remaining!=="") d=Math.max(0,Number(c.days_remaining)||0);
+  if(d==null) return "";
+  return '<div class="x-note">'+(d===0?'<b>Last day</b> to call.':'<b>'+d+'</b> day'+(d===1?"":"s")+' left to call.')+'</div>';
+}
+function pressurePaneHTML(){
+  /* Fail-soft: nothing to render -> no section at all. */
+  if(!(PC_LIST&&PC_LIST.length)) return "";
+  var h='<div class="x-pane" id="cvPcPane"><h4>Pressure campaigns</h4>'
+    +'<div class="c-tag">Call blitzes on live bills. Read the script, ring the office, log the call.</div>';
+  for(var i=0;i<PC_LIST.length;i++){
+    var c=PC_LIST[i]||{}, cid=String(c.id||"");
+    if(!cid) continue;
+    PC_TITLE[cid]=c.title||"A Propaganda Factory pressure campaign";
+    h+='<div class="cp-mission" data-pc-card>'
+      +'<div class="cp-mtext">'+esc(c.title||"Pressure campaign")+'</div>'
+      +pcBillHTML(c.target_bill)
+      +pcDaysHTML(c)
+      +'<div class="x-note" data-pc-counts="'+esc(cid)+'">'+pcCountersHTML(c)+'</div>'
+      +'<div data-pc-body="'+esc(cid)+'"><div class="c-load">Loading campaign&hellip;</div></div>'
+      +'<button class="c-btn cp-mbtn" data-pc-join="'+esc(cid)+'"'+(PC_JOINED[cid]?" disabled":"")+'>'+(PC_JOINED[cid]?"YOU&rsquo;RE IN":"JOIN THE PRESSURE")+'</button> '
+      /* 2026-10-05 (P10 W18): the share ask follows the action — SHARE
+         renders only after join, never on the un-joined card. */
+      +'<button class="c-btn cp-mbtn" data-pc-share="'+esc(cid)+'"'+(PC_JOINED[cid]?"":' style="display:none"')+'>SHARE</button>'
+      +'</div>';
+  }
+  return h+'</div>';
+}
+/* Two-tier clipboard (navigator.clipboard first, hidden-textarea
+   execCommand fallback) — same pattern as ammo.js. iOS-safe. */
+function pcCopyText(txt,btn,msg){
+  function doneOk(){
+    toast(msg||"Copied.");
+    if(btn){ var o=btn.textContent; btn.textContent="COPIED"; btn.disabled=true;
+      setTimeout(function(){ btn.textContent=o; btn.disabled=false; },1500); }
+  }
+  function fallback(){
+    try{
+      var ta=document.createElement("textarea"); ta.value=txt;
+      ta.style.cssText="position:fixed;opacity:0";
+      ta.setAttribute("readonly","");
+      document.body.appendChild(ta); ta.select();
+      try{ ta.setSelectionRange(0,ta.value.length); }catch(e){}
+      document.execCommand("copy"); ta.remove(); doneOk();
+    }catch(e2){ toast("Copy failed \u2014 select it manually."); }
+  }
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(doneOk,function(){ fallback(); }); }
+    else fallback();
+  }catch(e){ fallback(); }
+}
+function pcFindBody(cid){
+  var nodes=document.querySelectorAll("[data-pc-body]");
+  for(var i=0;i<nodes.length;i++){ if(nodes[i].getAttribute("data-pc-body")===cid) return nodes[i]; }
+  return null;
+}
+function pcPaintCard(cid,j){
+  var body=pcFindBody(cid); if(!body) return;
+  var c=(j&&j.ok&&j.campaign)||null;
+  if(!c){
+    body.innerHTML='<div class="x-note">Campaign details are unavailable right now \u2014 check back shortly.</div>';
+    return;
+  }
+  PC_SCRIPT[cid]=c.script||"";
+  var h='<div class="pf-mt"><div class="x-note"><b>Call script</b></div>'
+    +'<div class="x-note" style="white-space:pre-wrap">'+esc(c.script||"")+'</div>'
+    +'<button class="c-btn cp-mbtn" data-pc-copy="'+esc(cid)+'">COPY SCRIPT</button></div>';
+  var ms=c.target_members||[];
+  if(ms.length){
+    h+='<div class="x-note pf-mt"><b>Targets \u2014 tap to call:</b></div>';
+    for(var i=0;i<ms.length;i++){
+      var m=ms[i]||{};
+      var tel=String(m.phone||"").replace(/[^0-9+]/g,"");
+      var badge="";
+      if(m.party&&m.state) badge=String(m.party)+" \u00b7 "+String(m.state);
+      else if(m.party||m.state) badge=String(m.party||m.state);
+      var mname=String(m.name||"Member");
+      h+='<div class="cp-mission" style="margin-top:8px">'
+        +'<div class="cp-mtext">'+esc(mname)+'</div>'
+        +'<div class="x-note">'+esc(String(m.role||""))+(badge?" &bull; "+esc(badge):"")+'</div>'
+        +(tel?'<a class="c-btn cp-mbtn" href="tel:'+esc(tel)+'">'+esc(String(m.phone||tel))+'</a> ':'')
+        +'<button class="c-btn cp-mbtn" data-pc-log="'+esc(cid)+"|"+esc(mname)+'">LOG CALL (+25 XP)</button>'
+        +'</div>';
+    }
+  }
+  body.innerHTML=h;
+  /* Per-card bindings happen here, not in bind(): pressure_get resolves
+     after bind() already ran, so bind-on-paint is the only correct spot. */
+  var bb=body.querySelectorAll("[data-pc-copy]");
+  for(var b2=0;b2<bb.length;b2++){ (function(btn){ btn.onclick=function(){
+    pcCopyText(PC_SCRIPT[btn.getAttribute("data-pc-copy")]||"",btn,"Script copied. Go make the call.");
+  }; })(bb[b2]); }
+  var lb=body.querySelectorAll("[data-pc-log]");
+  for(var l2=0;l2<lb.length;l2++){ (function(btn){ btn.onclick=function(){
+    var v=btn.getAttribute("data-pc-log"), pi=v.indexOf("|");
+    var cid2=v.slice(0,pi), mname=v.slice(pi+1);
+    btn.disabled=true;
+    /* Extended rep_contact POST: the backend accepts an optional campaign
+       param, passed here so the call is attributed to the campaign. */
+    post("rep","r_action","rep_contact",{callsign:ident().callsign,rep_name:mname,method:"call",script_used:"pressure:"+cid2,campaign:cid2},function(j){
+      /* 2026-10-05 (P2 F2-TOAST): a campaign call is a rep contact — it
+         feeds Civic Duty. Record first so the toast shows the new count. */
+      if(j&&j.ok){ try{ document.dispatchEvent(new CustomEvent('pf-civic-rep-contacted')); }catch(e){}
+        toast("Logged \u2014 +25 XP."+dutyFrag()); fetchHist(true);
+        /* 2026-10-05 (P10 W18): share ask AFTER the logged call, never
+           before the effort. Transient — next card repaint clears it. */
+        try{ if(btn.parentNode&&!btn.parentNode.querySelector("[data-pc-tell]")){
+          var tb=document.createElement("button"); tb.type="button";
+          tb.className="c-btn cp-mbtn"; tb.setAttribute("data-pc-tell","1");
+          tb.textContent="Tell the network \u2192";
+          tb.onclick=function(){ pcShare(cid2); };
+          btn.parentNode.insertBefore(tb,btn.nextSibling); } }catch(e2){} }
+      /* 2/day cap: the backend surfaces the 'cap' code, routed through the
+         shared friendly-copy mapper (resets at midnight Chicago). */
+      else { toast(PF.errCopy(j,"Log failed.")); }
+      btn.disabled=false;
+    });
+  }; })(lb[l2]); }
+}
+function pcRefreshCounts(){
+  /* Re-poll pressure_list for live participant/call counters only — the
+     rendered cards (script/targets from pressure_get) are left untouched. */
+  api("pressure_list",{},function(j){
+    if(!(j&&j.ok&&j.campaigns)) return;
+    var nodes=document.querySelectorAll("[data-pc-counts]");
+    for(var i=0;i<j.campaigns.length;i++){
+      var c=j.campaigns[i]||{}, cid=String(c.id||"");
+      for(var k=0;k<nodes.length;k++){
+        if(nodes[k].getAttribute("data-pc-counts")===cid){ nodes[k].innerHTML=pcCountersHTML(c); break; }
+      }
+    }
+  });
+}
+function pcShare(cid){
+  var title=PC_TITLE[cid]||"A Propaganda Factory pressure campaign";
+  var link="https://www.mtcstw.com/political-hq";
+  try{ if(window.PF&&typeof PF.shareUrl==="function") link=PF.shareUrl(link); }catch(e){}
+  var text=title+" \u2014 join the pressure at "+link;
+  /* Site share convention: navigator.share when available, clipboard
+     fallback — same two-tier pattern as do-meter/fan-vote text shares. */
+  if(navigator.share){ try{ navigator.share({title:title,text:text}).catch(function(){}); return; }catch(e){} }
+  pcCopyText(text,null,"Share text copied. Spread it.");
+}
+function pressureBind(qsa){
+  if(!(PC_LIST&&PC_LIST.length)) return;
+  for(var i=0;i<PC_LIST.length;i++){
+    (function(cid){
+      if(!cid) return;
+      /* Per-card script + targets (pressure_get). Fail-soft per card. */
+      api("pressure_get",{id:cid},function(j){ pcPaintCard(cid,j); });
+    })(String((PC_LIST[i]||{}).id||""));
+  }
+  /* COPY SCRIPT and LOG CALL buttons are painted by the async pressure_get
+     and bound there at paint time (pcPaintCard); join/share buttons are in
+     the synchronous card shell, bound here. */
+  qsa("[data-pc-join]").forEach(function(b){
+    b.onclick=function(){
+      var cid=b.getAttribute("data-pc-join");
+      if(PC_JOINED[cid]) return;
+      b.disabled=true;
+      post("pressure","pr_action","pressure_join",{callsign:ident().callsign,id:cid},function(j){
+        if(j&&j.ok){ PC_JOINED[cid]=1; b.innerHTML="YOU&rsquo;RE IN"; pcRefreshCounts();
+          /* 2026-10-05 (P10 W18): reveal the post-join SHARE affordance. */
+          try{ var card=b.closest?b.closest("[data-pc-card]"):null;
+            var sh=card?card.querySelector("[data-pc-share]"):null;
+            if(sh) sh.style.display=""; }catch(e){} }
+        else { toast(PF.errCopy(j,"Join failed.")); b.disabled=false; }
+      });
+    };
+  });
+  qsa("[data-pc-share]").forEach(function(b){
+    b.onclick=function(){ pcShare(b.getAttribute("data-pc-share")); };
+  });
+}
+function stateOpts(sel){
+  var h='<option value="">Select state&hellip;</option>';
+  for(var i=0;i<STATES.length;i++){
+    h+='<option value="'+STATES[i][0]+'"'+(sel===STATES[i][0]?' selected':'')+'>'+esc(STATES[i][1])+'</option>';
+  }
+  return h;
+}
+/* --- ballot center (2026-10-05, Political HQ #4): state-keyed election
+   dates from the ballot_get wire. READ-ONLY — no XP, no write path.
+   Renders ONLY what the API returns; NULL/missing fields fall back to
+   "Check your state site" + the official link, never invented data.
+   Countdowns reflect real ISO dates vs the viewer's local today only. */
+var BAL={st:"",rows:null,load:false,err:false};
+var STATES50=null; /* STATES + DC, filter-only (STATES itself untouched). */
+function ballotStates(){
+  if(!STATES50) STATES50=STATES.concat([["DC","District of Columbia"]]);
+  return STATES50;
+}
+function ballotStateOpts(sel){
+  var st=ballotStates(), h='<option value="">Pick your state&hellip;</option>';
+  for(var i=0;i<st.length;i++){
+    h+='<option value="'+st[i][0]+'"'+(sel===st[i][0]?' selected':'')+'>'+esc(st[i][1])+'</option>';
+  }
+  return h;
+}
+var BAL_MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+/* Parse an ISO date ("2026-10-19") as LOCAL midnight — new Date("2026-10-19")
+   is UTC midnight and would drift a day behind for US timezones. */
+function balDate(iso){
+  var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso||""));
+  if(!m) return null;
+  return new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));
+}
+function balFmt(iso){
+  var d=balDate(iso); if(!d) return "";
+  return BAL_MONTHS[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear();
+}
+/* Whole calendar days from local-today start to the deadline. Positive =
+   days left, 0 = today, negative = passed. */
+function balDaysLeft(iso){
+  var d=balDate(iso); if(!d) return null;
+  var now=new Date(); now.setHours(0,0,0,0);
+  return Math.round((d.getTime()-now.getTime())/86400000);
+}
+function balFind(code){
+  if(!BAL.rows) return null;
+  for(var i=0;i<BAL.rows.length;i++){ if(String(BAL.rows[i].state)===code) return BAL.rows[i]; }
+  return null;
+}
+/* Normalize the ballot_get&all=1 payload — accept the record list under
+   whichever key the backend ships (rows/ballots/states), never assume. */
+function balRows(j){
+  if(!j||!j.ok) return null;
+  var cands=[j.rows,j.ballots,j.states];
+  for(var i=0;i<cands.length;i++){
+    if(cands[i]&&typeof cands[i].length==="number") return cands[i];
+  }
+  return null;
+}
+function ballotDeadlineHTML(row){
+  var nm=esc(row.state_name||row.state||"your state");
+  if(!row.registration_deadline){
+    /* NULL deadline = same-day registration (backend notes explain). */
+    return '<div class="cv-bal-cd"><b>Same-day registration available</b> in '+nm+'.</div>'
+      +(row.notes?'<div class="x-note">'+esc(row.notes)+'</div>':"");
+  }
+  var left=balDaysLeft(row.registration_deadline), dstr=balFmt(row.registration_deadline);
+  if(left===null){
+    return '<div class="cv-bal-cd">Registration deadline in '+nm+': check the date on the state site.</div>';
+  }
+  if(left<0) return '<div class="cv-bal-cd"><b>Registration has closed</b> in '+nm+' (deadline was '+esc(dstr)+'). You may still have options &mdash; check the state site.</div>';
+  if(left===0) return '<div class="cv-bal-cd"><b>TODAY is the last day</b> to register in '+nm+'.</div>';
+  return '<div class="cv-bal-cd"><b>'+left+' day'+(left===1?"":"s")+' left</b> to register in '+nm+' ('+esc(dstr)+').</div>';
+}
+/* Every outbound link: the state's own URL from the API, new tab, no
+   opener — never a PF-wrapped or invented URL. */
+function ballotLink(label,url){
+  if(!url) return "";
+  return '<a class="c-btn cv-t44" href="'+esc(url)+'" target="_blank" rel="noopener">'+esc(label)+'</a>';
+}
+function ballotFallback(label,url){
+  var h='<div class="x-note">'+esc(label)+': check your state site';
+  if(url) h+=' &mdash; <a href="'+esc(url)+'" target="_blank" rel="noopener">official link</a>';
+  return h+'.</div>';
+}
+function ballotBoxHTML(){
+  if(BAL.err){
+    return '<div class="c-err">Couldn&rsquo;t reach the ballot wire.</div>'
+      +'<button type="button" class="c-btn cv-t44" id="cvBalRetry">RETRY</button>';
+  }
+  if(BAL.load||BAL.rows===null) return '<div class="c-load">Mobilizing&hellip;</div>';
+  if(!BAL.st) return '<div class="x-note">Pick your state for deadlines, early voting dates, and your polling place.</div>';
+  var row=balFind(BAL.st);
+  if(!row) return '<div class="x-note">No ballot data for that state yet &mdash; check your state site.</div>';
+  var nm=esc(row.state_name||row.state||"");
+  var h='<div><div class="x-note" style="margin-top:8px"><b>'+nm+'</b></div>';
+  h+=ballotDeadlineHTML(row);
+  /* Register — official state URL only, clearly labeled as official. */
+  if(row.register_url){
+    h+='<div class="cv-balreg">'+ballotLink("REGISTER TO VOTE",row.register_url)+'</div>'
+      +'<div class="x-note">Opens '+nm+'&rsquo;s <b>official</b> registration site in a new tab.</div>';
+  } else {
+    h+=ballotFallback("Registration link",row.ballot_info_url);
+  }
+  /* Early voting. */
+  if(row.early_voting_start||row.early_voting_end){
+    var ev=balFmt(row.early_voting_start);
+    if(row.early_voting_end) ev+=(ev?" &ndash; ":"")+balFmt(row.early_voting_end);
+    h+='<div class="x-note"><b>Early voting:</b> '+ev+'</div>';
+  } else {
+    h+=ballotFallback("Early voting dates",row.ballot_info_url||row.register_url);
+  }
+  /* Election day: the API value; the Nov 3, 2026 general is the fallback. */
+  h+='<div class="x-note"><b>Election day:</b> '+(balFmt(row.election_day)||"Nov 3, 2026")+'</div>';
+  /* Polling place + ballot info. */
+  var links=ballotLink("FIND MY POLLING PLACE",row.polling_place_url)
+    +(row.polling_place_url&&row.ballot_info_url?" ":"")
+    +ballotLink("BALLOT INFO",row.ballot_info_url);
+  if(links) h+='<div class="cv-balacts">'+links+'</div>';
+  else h+=ballotFallback("Polling place & ballot info",null);
+  if(row.notes&&row.registration_deadline) h+='<div class="x-note">'+esc(row.notes)+'</div>';
+  h+='</div>';
+  return h;
+}
+function paintBallot(){
+  var box=document.getElementById("cvBalBox"); if(!box) return;
+  box.innerHTML=ballotBoxHTML();
+}
+function fetchBallot(){
+  BAL.load=true; BAL.err=false; paintBallot();
+  /* all=1: one read, cached — state switches then paint from cache with no
+     per-selection round-trip (mobile-friendly). */
+  api("ballot_get",{all:1},function(j){
+    BAL.load=false;
+    var rows=balRows(j);
+    if(rows){ BAL.rows=rows; BAL.err=false; }
+    else { BAL.err=true; }
+    paintBallot();
+  });
+}
+/* --- cell-vs-cell civic competitions (2026-10-05) ---
+   Public GET reads (cellcomp_current + cellcomp_history). Fail-soft: the
+   card stays hidden until cellcomp_current lands ok — never an error
+   widget. campaign_calls returns metric_live:false until the
+   pressure-campaign build ships: "coming soon" placeholder, never broken.
+   winner_bonus is null (CEO decision 2026-10-05) — no bonus copy anywhere. */
+var COMP={metric:"rep_contacts",cur:{},load:{},hist:null,histDone:false};
+function compUnit(metric){
+  if(metric==="campaign_calls") return "campaign calls";
+  return "rep contacts";
+}
+function compMetricLabel(metric){
+  if(metric==="campaign_calls") return "Pressure-campaign calls";
+  return "Rep contacts";
+}
+function compWeekDate(wk){
+  var d=String(wk||"").slice(0,10);
+  try{
+    var s=new Date(d+"T12:00:00").toLocaleDateString(undefined,{month:"short",day:"numeric"});
+    if(s&&s!=="Invalid Date") return s;
+  }catch(e){}
+  return d;
+}
+function compWinnerHTML(cur){
+  var w=cur.last_winner;
+  if(!(w&&(w.cell_name||w.cell_id))) return "";
+  return '<div class="cv-cmp-win"><b>&#127942; Last week&#8217;s champion:</b> '
+    +esc(w.cell_name||w.cell_id)+' &mdash; '+Number(w.cnt||0)+' '+esc(compUnit(cur.metric))
+    +'<div class="x-note">Week of '+esc(compWeekDate(w.week_start))+'</div></div>';
+}
+function compMyLine(cur){
+  var mc=cur.my_cells||[];
+  if(!mc.length) return "";
+  var unit=esc(compUnit(cur.metric));
+  var bits=[];
+  for(var i=0;i<mc.length;i++){
+    var m=mc[i], nm=String(m.name||m.cell_id);
+    bits.push("<b>"+esc(nm)+"</b>"+(m.rank?(" &mdash; #"+Number(m.rank)):" &mdash; not on the board yet")
+      +" ("+Number(m.cnt||0)+" "+unit+")");
+  }
+  return '<div class="x-note">Your cell'+(bits.length>1?"s":"")+": "+bits.join(" &middot; ")+"</div>";
+}
+function compStandingsHTML(cur){
+  var metric=cur.metric||COMP.metric;
+  var unit=compUnit(metric);
+  if(!cur.metric_live){
+    return '<div class="x-note">Campaign-call tracking goes live when pressure campaigns ship. '
+      +'The rep-contact race is live now &mdash; switch the toggle.</div>';
+  }
+  var rows=cur.standings||[];
+  if(!rows.length){
+    return '<div class="x-note">No '+esc(unit)+' logged this week yet. Your cell could take the lead.</div>';
+  }
+  var mine={};
+  var mc=cur.my_cells||[];
+  for(var i=0;i<mc.length;i++){ mine[String(mc[i].cell_id)]=1; }
+  var h="";
+  for(var r=0;r<rows.length;r++){
+    var row=rows[r], you=mine[String(row.cell_id)];
+    h+='<div class="cv-cmp-row'+(you?" cv-cmp-you":"")+'">'
+      +'<span class="cv-cmp-rank">#'+(r+1)+'</span> '
+      +'<span class="cv-cmp-name">'+esc(row.name||row.cell_id)+'</span>'
+      +(you?'<span class="cv-cmp-tag">YOUR CELL</span>':"")
+      +'<div class="x-note">'+Number(row.cnt||0)+' '+esc(unit)
+      +' &middot; '+Number(row.members||0)+' members</div>'
+      +'</div>';
+  }
+  return h;
+}
+function compHistHTML(){
+  var wins=(COMP.hist&&COMP.hist.winners)||[];
+  if(!wins.length) return "";
+  var h='<div class="x-note" style="margin-top:8px"><b>Past champions:</b></div>';
+  for(var i=0;i<Math.min(wins.length,16);i++){
+    var w=wins[i];
+    h+='<div class="x-note">'+esc(compWeekDate(w.week_start))+" &mdash; "+esc(compMetricLabel(w.metric))
+      +': <b>'+esc(w.cell_name||w.cell_id)+"</b> ("+Number(w.cnt||0)+")</div>";
+  }
+  return h;
+}
+function compCardHTML(){
+  var cur=COMP.cur[COMP.metric];
+  if(!(cur&&cur.ok)) return "";
+  var days=Number(cur.days_remaining||0);
+  var h='<div class="x-pane"><h4>Cell competitions</h4>'
+    +'<div class="x-note">Which cell logs the most civic action this week? Live standings below.</div>'
+    +'<div class="cv-cmp-tog" role="group" aria-label="Competition metric">'
+    +'<button type="button" class="c-btn" data-comp-metric="rep_contacts" aria-pressed="'
+    +(COMP.metric==="rep_contacts"?"true":"false")+'">REP CONTACTS</button>'
+    +'<button type="button" class="c-btn" data-comp-metric="campaign_calls" aria-pressed="'
+    +(COMP.metric==="campaign_calls"?"true":"false")+'">CAMPAIGN CALLS</button>'
+    +'</div>'
+    +'<div class="x-note"><b>'+days+'</b> day'+(days===1?"":"s")+' left this week.</div>'
+    +compWinnerHTML(cur)
+    +compMyLine(cur)
+    +'<div id="cvCompStand">'+compStandingsHTML(cur)+'</div>'
+    +compHistHTML()
+    +'</div>';
+  return h;
+}
+function paintComp(){
+  var box=document.getElementById("cvCompBox"); if(!box) return;
+  box.innerHTML=compCardHTML();
+}
+function fetchComp(){
+  var m=COMP.metric;
+  if(COMP.cur[m]||COMP.load[m]){ paintComp(); }
+  else{
+    COMP.load[m]=true;
+    var pp={metric:m};
+    var idc=ident(); if(idc.callsign) pp.callsign=idc.callsign;
+    /* api() drops null/"" params; callsign rides only when present. */
+    api("cellcomp_current",pp,function(j){
+      COMP.load[m]=false;
+      if(j&&j.ok){ COMP.cur[m]=j; paintComp(); }
+      /* fail-soft: on error the box stays empty — no error widget. */
+    });
+  }
+  if(!COMP.histDone){
+    COMP.histDone=true;
+    api("cellcomp_history",{},function(j){
+      if(j&&j.ok){ COMP.hist=j; paintComp(); }
+      else { COMP.histDone=false; } /* failed — retry on next bind */
+    });
+  }
+}
+/* --- congressional directory helpers (2026-10-05) --- */
+function dirStateOpts(sel){
+  if(!STATES_F) STATES_F=STATES.concat([["DC","District of Columbia"]]);
+  var h='<option value="">All states</option>';
+  for(var i=0;i<STATES_F.length;i++){
+    h+='<option value="'+STATES_F[i][0]+'"'+(sel===STATES_F[i][0]?' selected':'')+'>'+esc(STATES_F[i][1])+'</option>';
+  }
+  return h;
+}
+function partyBadge(party){
+  var t=String(party||"").trim().toUpperCase();
+  var l=t.charAt(0);
+  if(l==="D"||l==="R"||l==="I") return '<span class="cv-pb cv-pb-'+l+'">'+l+'</span>';
+  return t?'<span class="cv-pb cv-pb-I">'+esc(t.slice(0,3))+'</span>':"";
+}
+function dirRowHTML(r){
+  var nm=String(r.name||"").trim()||"Unnamed";
+  var ch=String(r.chamber||"").toLowerCase();
+  var chLabel=ch==="senate"?"Senator":ch==="house"?"Rep":"";
+  var loc=esc(String(r.state||""));
+  if(ch==="house"&&r.district) loc+=" &middot; District "+esc(String(r.district));
+  var phone=String(r.phone||"").trim();
+  /* tel: href sanitized to dial-safe chars; display keeps the API string. */
+  var telHref=phone?("tel:"+phone.replace(/[^0-9+().\-]/g,"")):"";
+  var curl=String(r.contact_form||r.url||"").trim();
+  /* CEO directive 2026-10-05: non-voting delegates (voting===false) get a
+     visible label. Fail-soft: rows without the field render exactly as
+     before (strict === false, so true/absent/undefined => no label). */
+  var nvLabel=(r.voting===false?'<span class="cv-nv">NON-VOTING DELEGATE</span>':"");
+  var h='<div class="cv-dirrow">'
+    +'<div class="cv-dirname">'+esc(nm)+partyBadge(r.party)+nvLabel+'</div>'
+    +'<div class="x-note">'+(chLabel?esc(chLabel)+" &middot; ":"")+loc+'</div>'
+    +'<div class="cv-diractions">';
+  if(telHref) h+='<a class="c-btn cv-t44" href="'+esc(telHref)+'">CALL</a>';
+  else h+='<span class="x-note">no phone listed</span>';
+  if(curl) h+=' <a class="c-btn cv-t44" href="'+esc(curl)+'" target="_blank" rel="noopener">CONTACT</a>';
+  /* +25 XP badge rides next to LOG CONTACT (CEO requirement 2026-10-05) —
+     the reward is surfaced, not new. */
+  h+=' <button type="button" class="c-btn cv-t44" data-dir-log="'+esc(nm)+'">LOG CONTACT</button>'
+    +'<span class="cv-xpb">+25 XP</span>';
+  /* 2026-10-05 (rep-flow friction): secondary row actions tuck behind MORE —
+     the scan path is name > CALL/CONTACT/LOG, not five equal buttons. */
+  var moreBtns="";
+  /* 2026-10-05: voting scorecards — expandable member detail keyed by
+     bioguide_id. Rows without the key get no button (fail-soft). */
+  var bio=scKey(r);
+  if(bio) moreBtns+=' <button type="button" class="c-btn cv-t44" data-sc-toggle="'+esc(bio)+'">'
+    +(SCST.open===bio?"HIDE SCORECARD":"SCORECARD")+'</button>';
+  /* 2026-10-05: call practice mode — rehearsal entry point per row.
+     Practice earns zero XP (stated in the overlay); the real call logs
+     through the same doLogContact() path as LOG CONTACT. */
+  moreBtns+=' <button type="button" class="c-btn cv-t44" data-dir-practice="'+esc(nm)+'" data-dir-phone="'+esc(telHref)+'">PRACTICE FIRST</button>';
+  if(moreBtns) h+=' <details class="cv-mored"><summary class="c-btn cv-t44">MORE</summary><div class="cv-morebody">'+moreBtns+'</div></details>';
+  h+='</div>';
+  if(bio&&SCST.open===bio) h+=scDetailHTML(bio);
+  h+='</div>';
+  return h;
+}
+function dirListHTML(){
+  if(DIRST.err){
+    return '<div class="c-err">Couldn&rsquo;t reach the directory wire.</div>'
+      +'<button type="button" class="c-btn cv-t44" id="cvDirRetry">RETRY</button>';
+  }
+  /* Mobilizing fallback pattern, matching the rest of the silo. */
+  if(DIRST.load||DIRST.reps===null) return '<div class="c-load">Mobilizing&hellip;</div>';
+  var q=String(DIRST.q||"").trim().toLowerCase();
+  var reps=DIRST.reps.slice();
+  /* Client re-sort fallback (server already sorts state ASC, name ASC). */
+  reps.sort(function(a,b){
+    var sa=String(a.state||""), sb=String(b.state||"");
+    if(sa<sb) return -1; if(sa>sb) return 1;
+    var na=String(a.name||"").toLowerCase(), nb=String(b.name||"").toLowerCase();
+    if(na<nb) return -1; if(na>nb) return 1; return 0;
+  });
+  if(q) reps=reps.filter(function(r){ return String(r.name||"").toLowerCase().indexOf(q)!==-1; });
+  if(!reps.length) return '<div class="x-note">No members match those filters. Broaden the hunt.</div>';
+  /* 2026-10-05 (rep-flow friction): a count line so the list scans as
+     "your reps", not an endless dump. */
+  var h='<div class="x-note">'+reps.length+' member'+(reps.length===1?"":"s")
+    +(DIRST.st?" in "+esc(String(DIRST.st).toUpperCase()):" nationwide")
+    +(DIRST.ch?" · "+esc(DIRST.ch):"")+'.</div>';
+  for(var i=0;i<reps.length;i++) h+=dirRowHTML(reps[i]);
+  return h;
+}
+function paintDir(){
+  var l=document.getElementById("cvDirList"); if(!l) return;
+  l.innerHTML=dirListHTML();
+}
+function fetchDir(){
+  DIRST.load=true; DIRST.err=false;
+  paintDir();
+  /* api() drops null/"" params, so empty filters = unfiltered list. */
+  api("reps_list",{state:DIRST.st,chamber:DIRST.ch},function(j){
+    DIRST.load=false;
+    if(j&&j.ok&&j.reps){ DIRST.reps=j.reps; DIRST.err=false; }
+    else { DIRST.err=true; }
+    paintDir();
+  });
+}
+/* --- voting scorecards (2026-10-05) ---
+   Backend contract (be/congress-scorecards, parallel build — developed
+   against the documented shape, verify against the real branch before ship):
+     scorecard_get?bioguide_id=X ->
+       {ok, bioguide_id, votes:[{vote_id, position, issue_tag, question,
+                                bill_title, vote_date, result}]}
+     scorecard_issue?vote_id=Y ->
+       {ok, vote:{...}, breakdown:{yea:{D,R,I}, nay:{D,R,I},
+                                   not_voting:{D,R,I}}}
+   Linked by bioguide_id — the same key the directory rows carry (scKey
+   reads r.bioguide_id, falls back to r.bioguide/r.id; rows without any key
+   get no SCORECARD button — fail-soft, never invented).
+   Renders ONLY what the API returns. No placeholder votes: a member with
+   no tracked votes gets the explicit "no votes tracked yet" empty state. */
+var SCST={open:null,issue:null,issueFrom:null,sc:{},iss:{}};
+function scKey(r){ return String((r&&(r.bioguide_id||r.bioguide||r.id))||"").trim(); }
+function scGet(bio){ return SCST.sc[bio]||null; }
+function repNameByBio(bio){
+  var reps=DIRST.reps||[];
+  for(var i=0;i<reps.length;i++){ if(scKey(reps[i])===bio) return String(reps[i].name||"").trim(); }
+  return "";
+}
+function fetchScorecard(bio){
+  var cur=SCST.sc[bio]={load:true,err:false,votes:null,name:repNameByBio(bio)};
+  paintDir();
+  api("scorecard_get",{bioguide_id:bio},function(j){
+    cur.load=false;
+    if(j&&j.ok&&j.votes){ cur.votes=j.votes; cur.err=false; }
+    else { cur.err=true; }
+    paintDir();
+  });
+}
+function posBadge(pos){
+  var p=String(pos||"").toLowerCase().trim();
+  if(p.indexOf("yea")===0) return '<span class="cv-vb cv-vb-yea">YEA</span>';
+  if(p.indexOf("nay")===0) return '<span class="cv-vb cv-vb-nay">NAY</span>';
+  /* Anything else (Present, Not Voting, Absent) is shown verbatim —
+     escaped — never normalized into Yea/Nay. */
+  return '<span class="cv-vb cv-vb-nv">'+esc(String(pos||"\u2014").toUpperCase().slice(0,12))+'</span>';
+}
+function scDate(ds){
+  var d=String(ds||"").trim(); if(!d) return "";
+  var m=d.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m) return m[2]+"/"+m[3]+"/"+m[1];
+  return d.slice(0,10);
+}
+function scVoteHTML(v){
+  var title=String(v.bill_title||v.question||"").trim()||"Untitled vote";
+  var h='<div class="cv-scrow">'+posBadge(v.position)
+    +'<div class="cv-scbody">'
+    +'<div class="cv-sctitle">'+esc(title)+'</div>'
+    +'<div class="x-note">'+esc(scDate(v.vote_date));
+  if(v.result) h+=' &middot; Result: '+esc(v.result);
+  h+='</div>';
+  /* Entry point to the issue view: tapping an issue_tag jumps to the
+     vote breakdown for that vote. No vote_id -> plain label, no jump. */
+  if(v.issue_tag){
+    if(v.vote_id) h+='<button type="button" class="c-btn cv-t44 cv-sctag" data-sc-issue="'+esc(String(v.vote_id))+'">'+esc(v.issue_tag)+'</button>';
+    else h+='<div class="x-note">'+esc(v.issue_tag)+'</div>';
+  }
+  return h+'</div></div>';
+}
+function scDetailHTML(bio){
+  var cur=scGet(bio), nm=(cur&&cur.name)||repNameByBio(bio)||"This member";
+  var h='<div class="cv-scdetail" data-sc-detail="'+esc(bio)+'">'
+    +'<div class="cv-sc-head"><b>'+esc(nm)+' &mdash; voting record</b>';
+  /* Share rides the detail header once votes are in hand — never on a
+     loading/failed pane, so the shared text can only describe real data. */
+  if(cur&&!cur.load&&!cur.err&&cur.votes) h+=' <button type="button" class="c-btn cv-t44" data-sc-share="'+esc(bio)+'">SHARE</button>';
+  h+='</div>';
+  if(!cur||cur.load){ h+='<div class="c-load">Reading their record&hellip;</div>'; }
+  else if(cur.err){
+    h+='<div class="c-err">Couldn&rsquo;t reach the scorecard wire.</div>'
+      +'<button type="button" class="c-btn cv-t44" data-sc-retry="'+esc(bio)+'">RETRY</button>';
+  }
+  else if(!cur.votes.length){
+    h+='<div class="x-note">'+esc(nm)+' has no votes tracked yet.</div>';
+  }
+  else {
+    for(var i=0;i<cur.votes.length;i++) h+=scVoteHTML(cur.votes[i]);
+  }
+  return h+'</div>';
+}
+/* --- issue view: "where does Congress stand on X" --- */
+function fetchIssue(vid){
+  var cur=SCST.iss[vid]={load:true,err:false,vote:null,breakdown:null};
+  paintIssue();
+  api("scorecard_issue",{vote_id:vid},function(j){
+    cur.load=false;
+    if(j&&j.ok&&j.vote&&j.breakdown){ cur.vote=j.vote; cur.breakdown=j.breakdown; cur.err=false; }
+    else { cur.err=true; }
+    paintIssue();
+  });
+}
+function partySum(o){ o=o||{}; return (Number(o.D)||0)+(Number(o.R)||0)+(Number(o.I)||0); }
+function n0(v){ return String(Number(v)||0); }
+function issueTableHTML(bd){
+  var rows=[["yea","YEA"],["nay","NAY"],["not_voting","NOT VOTING"]];
+  var h='<div class="cv-issue-table">'
+    +'<div class="cv-ir cv-irh"><span></span><span>D</span><span>R</span><span>I</span><span>TOTAL</span></div>';
+  for(var i=0;i<rows.length;i++){
+    var c=bd[rows[i][0]]||{};
+    h+='<div class="cv-ir"><span class="cv-irlabel">'+rows[i][1]+'</span>'
+      +'<span>'+n0(c.D)+'</span><span>'+n0(c.R)+'</span><span>'+n0(c.I)+'</span>'
+      +'<span class="cv-irtot">'+partySum(c)+'</span></div>';
+  }
+  return h+'</div>';
+}
+function issueHTML(){
+  var vid=SCST.issue, cur=vid?SCST.iss[vid]:null;
+  if(!vid) return "";
+  var h='<div class="cv-issue" id="cvIssue">';
+  h+='<button type="button" class="c-btn cv-t44" data-issue-back>&larr; BACK</button>';
+  if(!cur||cur.load){ return h+'<div class="c-load">Reading the vote&hellip;</div></div>'; }
+  if(cur.err){
+    return h+'<div class="c-err">Couldn&rsquo;t reach the vote wire.</div>'
+      +'<button type="button" class="c-btn cv-t44" data-issue-retry="'+esc(vid)+'">RETRY</button></div>';
+  }
+  var v=cur.vote||{}, bd=cur.breakdown||{};
+  var title=String(v.bill_title||v.question||v.title||"").trim()||"Vote";
+  h+='<h4 style="margin:10px 0 4px">'+esc(title)+'</h4>'
+    +'<div class="x-note">'+esc(scDate(v.vote_date));
+  if(v.chamber) h+=' &middot; '+esc(v.chamber);
+  if(v.result) h+=' &middot; Result: '+esc(v.result);
+  h+='</div>'
+    /* Totals math: each cell is the API's number; TOTAL is D+R+I. */
+    +issueTableHTML(bd)
+    +'<div class="x-note">Counts straight from the wire — no spin.</div></div>';
+  return h;
+}
+function paintIssue(){
+  var p=document.getElementById("cvIssuePanel"); if(!p) return;
+  p.innerHTML=issueHTML();
+}
+/* Share: text share via the existing PFShare.shareText idiom (dashboard.js
+   promptShare), navigator.share fallback, toast fallback. Copy is built
+   from the member's real tracked positions only — member name + Yea/Nay
+   counts + link back to Political HQ. */
+function shareScorecard(bio){
+  var cur=scGet(bio), nm=(cur&&cur.name)||repNameByBio(bio)||"A member of Congress";
+  var url="https://www.mtcstw.com/political-hq";
+  try{ if(window.PF&&typeof PF.shareUrl==="function") url=PF.shareUrl(url); }catch(e){}
+  var title=nm+"'s voting record";
+  var summary="", votes=(cur&&cur.votes)||[];
+  if(votes.length){
+    var y=0,n=0;
+    for(var i=0;i<votes.length;i++){
+      var p=String(votes[i].position||"").toLowerCase().trim();
+      if(p.indexOf("yea")===0) y++; else if(p.indexOf("nay")===0) n++;
+    }
+    summary=" \u2014 "+votes.length+" votes tracked ("+y+" Yea, "+n+" Nay)";
+  } else summary=" \u2014 no votes tracked yet";
+  var txt=title+summary+" \u2014 see the receipts at "+url;
+  try{
+    if(window.PFShare&&PFShare.shareText){ PFShare.shareText(txt); return; }
+    if(typeof navigator!=="undefined"&&navigator.share){
+      navigator.share({title:title,text:txt,url:url}).catch(function(){}); return;
+    }
+  }catch(e){}
+  toast("Copy the link and spread it: "+url);
+}
+/* Shared rep_contact write path (2026-10-05): the legacy "Contact your rep"
+   pane and every directory row log through this — same POST shape, same
+   +25 XP, same 2/day cap. */
+function doLogContact(repName,btn,errEl){
+  if(!repName){ if(errEl) errEl.textContent="Pick a rep first."; return; }
+  var box=document.getElementById("cvScriptBox");
+  var sid=box?box.getAttribute("data-script-id"):"";
+  if(btn) btn.disabled=true;
+  post("rep","r_action","rep_contact",{callsign:ident().callsign,rep_name:repName,method:gv("cvMethod"),script_used:sid||""},function(j){
+    if(j&&j.ok){
+      /* CEO requirement 2026-10-05: the +25 XP reward is explicit in the
+         confirmation. */
+      /* 2026-10-05 (P2 F2-TOAST): the contact action feeds Civic Duty —
+         record first so the toast shows the new count. */
+      try{ document.dispatchEvent(new CustomEvent('pf-civic-rep-contacted')); }catch(e){}
+      toast("Logged \u2014 +25 XP."+dutyFrag());
+      fetchHist(true);
+    } else {
+      var e=String((j&&(j.err||j.error))||"");
+      if(/cap/i.test(e)){
+        /* 2/day cap per the rep_contact contract — reward amount + reset
+           spelled out. */
+        toast("Daily limit reached (2/day) \u2014 +25 XP each, resets tomorrow.");
+      } else {
+        var m=PF.errCopy(j,"Log failed.");
+        if(errEl) errEl.textContent=m; else toast(m);
+      }
+    }
+    if(btn) btn.disabled=false;
+  });
+}
+/* --- call practice mode (2026-10-05): frontend-only rehearsal for
+   first-time callers. Warm and encouraging, never gamified-shaming.
+   PRACTICE EARNS ZERO XP — the overlay and entry points say so plainly.
+   The real call logs through the shared doLogContact() helper above
+   (same POST shape, +25 XP, 2/day cap) — the POST logic is NOT
+   duplicated here. No backend writes from practice; the only
+   persistence is a per-callsign practice count in localStorage, used
+   for encouragement copy only. */
+var PRAC={el:null,timer:null,secs:60,lines:[],idx:0,rep:"",phone:"",script:null,started:false,done:false};
+function pracGetCount(){
+  var id=""; try{ id=ident().callsign||""; }catch(e){}
+  try{ return Number(window.localStorage.getItem("pf_prac_count_"+id))||0; }catch(e){ return 0; }
+}
+function pracBumpCount(){
+  var id=""; try{ id=ident().callsign||""; }catch(e){}
+  try{ window.localStorage.setItem("pf_prac_count_"+id,String(pracGetCount()+1)); }catch(e){}
+}
+/* Script picker: a campaign-passed script wins verbatim; otherwise the
+   default rep-contact script — the topic-selected one when the legacy
+   pane has one picked, else the first backend script. Never invented. */
+function pracDefaultScript(){
+  var scripts=(SCRIPTS&&SCRIPTS.scripts)||[];
+  if(!scripts.length) return null;
+  var sid=""; try{ var b=document.getElementById("cvScriptBox"); sid=b?b.getAttribute("data-script-id"):""; }catch(e){}
+  for(var i=0;i<scripts.length;i++){ if(sid&&String(scripts[i].id)===String(sid)) return scripts[i]; }
+  return scripts[0];
+}
+function pracNormScript(sc){
+  if(!sc) return null;
+  var body=sc.script!=null?sc.script:(sc.body!=null?sc.body:"");
+  if(!String(body).replace(/\s+/g,"")) return null;
+  return {title:String(sc.title||sc.topic||"Call script"),body:String(body)};
+}
+/* Same substitution + escaping discipline as showScript: escape the
+   script first, then fill {NAME}/{STATE}/{REP} with escaped values. */
+function pracFill(body,repName){
+  var name=gv("cvMyName")||"[YOUR NAME]", st=gv("cvMyState")||"[STATE]", rep=repName||gv("cvRepSel")||"[REP]";
+  return esc(body).split("{NAME}").join(esc(name)).split("{STATE}").join(esc(st)).split("{REP}").join(esc(rep));
+}
+function pracFmt(s){ s=Math.max(0,s); var m=Math.floor(s/60), r=s%60; return m+":"+(r<10?"0":"")+r; }
+function pracEnsure(){
+  if(PRAC.el) return PRAC.el;
+  var ov=document.createElement("div");
+  ov.id="pfPracOv"; ov.style.display="none";
+  document.body.appendChild(ov);
+  PRAC.el=ov; return ov;
+}
+function pracStopTimer(){ if(PRAC.timer){ try{ clearInterval(PRAC.timer); }catch(e){} PRAC.timer=null; } }
+function pracPaintLine(){
+  var t=document.getElementById("pfPracTele"); if(t) t.innerHTML=PRAC.lines[PRAC.idx]||"";
+  var p=document.getElementById("pfPracProg"); if(p) p.textContent="Line "+(PRAC.idx+1)+" of "+PRAC.lines.length;
+}
+function pracRender(){
+  var ov=pracEnsure();
+  var n=pracGetCount();
+  var h='<div class="pfprac-card">'
+    +'<div class="pfprac-top">'
+    +'<div class="pfprac-timer" id="pfPracTimer" aria-live="polite">'+pracFmt(PRAC.secs)+'</div>'
+    +'<button type="button" class="c-btn cv-t44 pfprac-x" id="pfPracClose" aria-label="Close practice">\u2715</button>'
+    +'</div>'
+    +'<h3 class="pfprac-h">Practice your call</h3>'
+    /* Zero-XP copy, plain: practice never mints XP. */
+    +'<div class="x-note pfprac-zero">Practice earns <b>no XP</b> \u2014 the real call earns <b>+25 XP</b>.</div>';
+  if(PRAC.rep) h+='<div class="x-note">Rehearsing for: <b>'+esc(PRAC.rep)+'</b></div>';
+  if(n>0) h+='<div class="x-note">You\u2019ve run through this '+n+' time'+(n===1?"":"s")+'. Each rep makes the real call easier.</div>';
+  if(!PRAC.script){
+    /* Backend-unreachable: no script to rehearse against, retry the
+       rep_scripts read — practice itself never depends on the write wire. */
+    h+='<div class="c-err">The script wire didn\u2019t answer \u2014 nothing to rehearse against yet.</div>'
+      +'<button type="button" class="c-btn cv-t44 pfprac-big" id="pfPracRetryScript">RETRY LOADING SCRIPT</button>';
+  } else {
+    h+='<div class="x-note"><b>'+esc(PRAC.script.title)+'</b></div>'
+      +'<div class="pfprac-tele" id="pfPracTele" aria-live="polite">'+(PRAC.lines[PRAC.idx]||"")+'</div>'
+      +'<div class="x-note pfprac-prog" id="pfPracProg">Line '+(PRAC.idx+1)+' of '+PRAC.lines.length+'</div>'
+      +'<div class="pfprac-row">'
+      +'<button type="button" class="c-btn cv-t44" id="pfPracPrev">\u2190 BACK</button>'
+      +'<button type="button" class="c-btn cv-t44" id="pfPracNext">NEXT LINE \u2192</button>'
+      +'</div>';
+    if(!PRAC.started){
+      h+='<button type="button" class="c-btn cv-t44 pfprac-big" id="pfPracStart">START 60-SECOND TIMER</button>'
+        +'<div class="x-note">Read it out loud, like the staffer just picked up. No rush \u2014 the timer is a guide, not a test.</div>';
+    }
+    /* Gentle end target: filled + faded in when the timer lands, never a buzzer. */
+    h+='<div class="pfprac-gentle" id="pfPracGentle" aria-live="polite"></div>';
+    if(!PRAC.done){
+      h+='<button type="button" class="c-btn cv-t44 pfprac-big" id="pfPracDone">I PRACTICED \u2713</button>';
+    } else {
+      h+='<div class="pfprac-warm">Nice. You\u2019ve got this.</div>'
+        +'<div class="x-note">The real call is where the +25 XP lives. Staffer answers, you read your lines, done.</div>'
+        +'<div class="pfprac-row">';
+      if(PRAC.phone) h+='<a class="c-btn cv-t44" href="'+esc(PRAC.phone)+'">CALL NOW</a>';
+      h+='<button type="button" class="c-btn cv-t44" id="pfPracLog">LOG THE REAL CALL (+25 XP)</button></div>'
+        +'<div class="c-err" id="pfPracErr"></div>'
+        +'<div class="x-note">2 logged contacts per day \u2014 same as always.</div>';
+    }
+  }
+  h+='</div>';
+  ov.innerHTML=h;
+  pracBind();
+}
+function pracBind(){
+  function on(id,fn){ var e=document.getElementById(id); if(e) e.onclick=fn; }
+  on("pfPracClose",pracClose);
+  on("pfPracStart",pracStart);
+  on("pfPracDone",pracCheckIn);
+  on("pfPracLog",pracLogReal);
+  on("pfPracPrev",function(){ if(PRAC.idx>0){ PRAC.idx--; pracPaintLine(); } });
+  on("pfPracNext",function(){ if(PRAC.idx<PRAC.lines.length-1){ PRAC.idx++; pracPaintLine(); } });
+  on("pfPracRetryScript",function(){
+    var b=document.getElementById("pfPracRetryScript"); if(b) b.disabled=true;
+    api("rep_scripts",{},function(j){ SCRIPTS=j; pracOpen({repName:PRAC.rep,phone:PRAC.phone}); });
+  });
+}
+function pracOpen(opts){
+  opts=opts||{};
+  PRAC.rep=String(opts.repName||"");
+  PRAC.phone=String(opts.phone||"");
+  /* Campaign-passed script verbatim, else the default rep-contact script. */
+  PRAC.script=pracNormScript(opts.script)||pracNormScript(pracDefaultScript());
+  PRAC.lines=[]; PRAC.idx=0; PRAC.secs=60; PRAC.started=false; PRAC.done=false;
+  if(PRAC.script){
+    var filled=pracFill(PRAC.script.body,PRAC.rep);
+    /* Teleprompter: line-by-line advance — simpler and more robust than
+       auto-scroll (no scroll-timing bugs at any font size). Split on
+       blank lines so each beat is one tap. */
+    var parts=filled.split(/\\n\s*\\n/), i, t;
+    for(i=0;i<parts.length;i++){ t=parts[i].replace(/\s+/g," ").replace(/^\s+|\s+$/g,""); if(t) PRAC.lines.push(t); }
+    if(!PRAC.lines.length) PRAC.lines=[filled];
+  }
+  pracStopTimer();
+  pracRender();
+  var ov=pracEnsure(); ov.style.display="block";
+  try{ ov.scrollTop=0; }catch(e){}
+  try{ document.body.style.overflow="hidden"; }catch(e){}
+}
+function pracClose(){
+  pracStopTimer();
+  var ov=document.getElementById("pfPracOv");
+  if(ov) ov.style.display="none";
+  try{ document.body.style.overflow=""; }catch(e){}
+}
+function pracStart(){
+  if(PRAC.started) return;
+  PRAC.started=true; PRAC.secs=60;
+  var t=document.getElementById("pfPracTimer"); if(t) t.textContent=pracFmt(PRAC.secs);
+  var s=document.getElementById("pfPracStart"); if(s) s.style.display="none";
+  pracStopTimer();
+  PRAC.timer=setInterval(pracTick,1000);
+}
+function pracTick(){
+  PRAC.secs--;
+  var t=document.getElementById("pfPracTimer");
+  if(t) t.textContent=pracFmt(PRAC.secs);
+  if(PRAC.secs<=0){
+    pracStopTimer();
+    var g=document.getElementById("pfPracGentle");
+    if(g){ g.innerHTML="Time. Breathe \u2014 that was the hard part, and you did it."; g.classList.add("pfprac-show"); }
+    var s=document.getElementById("pfPracStart"); if(s) s.style.display="none";
+  }
+}
+/* "I practiced" check-in: warm, ungated (no timer requirement, no
+   shaming) — bumps the local encouragement count and surfaces the
+   real-call prompt. */
+function pracCheckIn(){
+  if(PRAC.done) return;
+  PRAC.done=true; pracStopTimer(); pracBumpCount();
+  pracRender();
+}
+/* Real-call path: reuses the EXISTING doLogContact() write path — same
+   POST, same +25 XP, same 2/day cap. No duplicated POST logic. */
+function pracLogReal(){
+  var b=document.getElementById("pfPracLog");
+  var err=document.getElementById("pfPracErr");
+  doLogContact(PRAC.rep,b,err);
+}
+/* Defensive entry point for parallel builds (pressure-campaign cards are
+   not in this base yet): cards can call
+   window.PFPractice.open({repName,phone,script:{title,script}}) — the
+   script passes through verbatim — or render
+   <button data-pf-practice data-pf-rep="..." data-pf-phone="tel:..."
+   data-pf-script-title="..." data-pf-script-body="...">. */
+window.PFPractice={ open:function(o){ try{ pracOpen(o||{}); }catch(e){} }, close:function(){ try{ pracClose(); }catch(e){} } };
+try{
+  document.addEventListener("click",function(e){
+    var b=e.target&&e.target.closest?e.target.closest("[data-pf-practice]"):null;
+    if(!b) return;
+    var sb=b.getAttribute("data-pf-script-body");
+    window.PFPractice.open({
+      repName:b.getAttribute("data-pf-rep")||"",
+      phone:b.getAttribute("data-pf-phone")||"",
+      script:sb?{title:b.getAttribute("data-pf-script-title")||"Call script",script:sb}:null
+    });
+  });
+}catch(e){}
+function render(){
+  var el=document.getElementById("xCivic"); if(!el) return;
+  var id=ident(), h="";
+  if(!id.callsign){
+    h+=PF.gateHTML('Civic action runs on callsigns.','to take civic action');
+    el.innerHTML=h; return;
+  }
+  /* --- petitions --- */
+  h+='<div class="x-pane"><h4>Petitions</h4>';
+  var pets=(P&&P.petitions)||[];
+  if(!pets.length){ h+='<div class="x-note">No petitions yet. Start the first one below.</div>'; }
+  for(var i=0;i<pets.length;i++){
+    var p=pets[i];
+    PET_TITLE[p.id]=p.title;
+    h+='<div class="cp-mission"><div class="cp-mtext">'+esc(p.title)+'</div>'
+      +'<div class="x-note">Target: '+esc(p.target)+' &bull; by '+esc(p.creator)+'</div>'
+      +'<div class="cp-barwrap"><div class="cp-bar" style="width:'+(p.pct||0)+'%"></div></div>'
+      +'<div class="x-note">'+(p.sig_count||0)+' / '+p.goal+' signatures ('+(p.pct||0)+'%)</div>'
+      +'<button class="c-btn cp-mbtn" data-pet-sign="'+esc(p.id)+'">SIGN (+10 XP)</button> '
+      /* 2026-10-05 (P2 F2-TOAST / P10 W18): share affordance appears only
+         AFTER signing — never before the action. */
+      +(PET_SHARE_AFTER[p.id]?'<button class="c-btn cp-mbtn" data-pet-shareafter="'+esc(p.id)+'">SHARE IT \u2192</button> ':"")
+      /* 2026-10-03: petition_sigs (public) — who signed, per card. */
+      +'<button class="c-btn cp-mbtn" data-pet-sigs="'+esc(p.id)+'">WHO SIGNED</button>'
+      +'<div class="x-note" data-pet-sigs-out="'+esc(p.id)+'" style="display:none"></div>'
+      +'<div class="x-note">XP has no cash value. Stakes are final.</div></div>';
+  }
+  if(CREATE_OPEN){
+    h+='<div class="x-pane pf-mt" ><h4>New petition</h4>'
+      +'<input aria-label="Title (e.g. Stop the rent gouging)" class="c-in"  id="cvPetTitle" maxlength="140" placeholder="Title (e.g. Stop the rent gouging)">'
+      +'<input aria-label="Target (e.g. City Council)" class="c-in"  id="cvPetTarget" maxlength="140" placeholder="Target (e.g. City Council)">'
+      +'<textarea class="c-in"  id="cvPetDesc" rows="3" maxlength="2000" placeholder="What are we demanding?"></textarea>'
+      +'<input aria-label="Signature goal" class="c-in"  id="cvPetGoal" type="number" min="10" max="1000000" value="500" placeholder="Signature goal">'
+      +'<button class="c-btn" id="cvPetCreate">LAUNCH PETITION</button> '
+      +'<button class="c-btn" id="cvPetCancel">CANCEL</button><div class="c-err" id="cvPetErr"></div></div>';
+  } else {
+    h+='<button class="c-btn" id="cvPetOpen">START A PETITION</button>';
+  }
+  h+='</div>';
+  /* --- pressure campaigns (2026-10-05, wave pressure-campaigns FE) --- */
+  h+=pressurePaneHTML();
+  /* --- Wave A5 S-13: official jobs panel above pressure campaigns.
+     The module mounts itself into this slot; a dead macro wire renders
+     nothing and never breaks the civic page. */
+  if(!(PF&&(PF.skip('phq-jobs')))) h+='<div id="cvJobsPanel"></div>';
+  /* --- network polls (2026-10-05) --- */
+  h+=pollsPane();
+  /* --- contact your rep --- */
+  h+='<div class="x-pane"><h4>Contact your rep</h4>'
+    /* 2026-10-05 (P1 F2-PROG): Civic Duty progress meter mount. Painted by
+       civic-duty.js from PF.civicDutyProgress(); empty until that module
+       paints (MutationObserver repaints after re-renders). */
+    +'<div class="x-note" id="cvDutyMeter" aria-live="polite"></div>'
+  var reps=(REPS&&REPS.reps)||[];
+  var ropts='<option value="">Pick a rep&hellip;</option>';
+  for(var r=0;r<reps.length;r++){ ropts+='<option value="'+esc(reps[r].name)+'">'+esc(reps[r].name)+' &mdash; '+esc(reps[r].role||reps[r].chamber||"")+'</option>'; }
+  var scripts=(SCRIPTS&&SCRIPTS.scripts)||[];
+  var topics={}, topts='<option value="">Pick a topic&hellip;</option>';
+  for(var s2=0;s2<scripts.length;s2++){ if(!topics[scripts[s2].topic]){ topics[scripts[s2].topic]=1; topts+='<option value="'+esc(scripts[s2].topic)+'">'+esc(scripts[s2].topic)+'</option>'; } }
+  h+='<select class="c-in"  id="cvRepSel">'+ropts+'</select>'
+    +'<select class="c-in"  id="cvTopicSel">'+topts+'</select>'
+    +'<div id="cvScriptBox"></div>'
+    +'<input aria-label="Your name (for the script)" class="c-in"  id="cvMyName" maxlength="60" placeholder="Your name (for the script)">'
+    +'<select class="c-in"  id="cvMyState">'+stateOpts("")+'</select>'
+    +'<div class="x-note">Method:</div>'
+    +'<select class="c-in"  id="cvMethod"><option value="call">Call</option><option value="email">Email</option><option value="tweet">Tweet</option></select>'
+    +'<button class="c-btn" id="cvLogContact">LOG CONTACT (+25 XP)</button> '
+    /* 2026-10-05: call practice mode entry point — rehearses the rep call
+       against the script picker below. Zero XP, stated plainly. */
+    +'<button class="c-btn" id="cvPracticeFirst">PRACTICE FIRST</button><div class="c-err" id="cvRepErr"></div>'
+    +'<div class="x-note">Practice earns no XP &mdash; the real call earns +25 XP.</div>'
+    +'<div class="x-note">XP has no cash value. Stakes are final.</div>'
+    /* 2026-10-03: rep_contact_history (AUTH) — the caller's own contact log. */
+    +'<div id="cvHistBox" style="margin-top:8px"><div class="x-note">Reading your contact log&hellip;</div></div>';
+  if(REPS&&REPS.note){ h+='<div class="x-note">'+esc(REPS.note)+'</div>'; }
+  h+='</div>';
+  /* --- cell competitions (2026-10-05): weekly cell-vs-cell civic race.
+     The card stays empty until cellcomp_current lands ok (fail-soft). It
+     sits on the rep-contact pane — logging a contact is how cells score. */
+  h+='<div id="cvCompBox"></div>';
+  /* --- congressional directory (2026-10-05): full member directory.
+     Server filters on state/chamber (reps_list); name search is
+     client-side. Renders only what the API returns — no invented data. */
+  /* 2026-10-05 (rep-flow friction): default the directory to the viewer's
+     home state. "All states" dumped all 535 members on first paint — the
+     rep lookup is "your reps", not the whole Congress. Once-per-mount:
+     an explicit "All states" choice (or the legislation-member flow's
+     deliberate reset) must survive later re-renders. */
+  if(!DIRST.st&&!DIRST._hsInit){ DIRST._hsInit=true;
+    try{ var _hs=(window.PF&&PF.homeState&&PF.homeState())||""; if(_hs) DIRST.st=_hs; }catch(e){} }
+  h+='<div class="x-pane"><h4>Find your reps</h4>'
+    +'<div class="x-note">Every logged contact: <b>+25 XP</b> (2/day).</div>'
+    /* 2026-10-05: issue view panel — "where does Congress stand on X".
+       Painted at the top of the directory pane when a vote is open. */
+    +'<div id="cvIssuePanel">'+issueHTML()+'</div>'
+    +'<div class="cv-dirfilters">'
+    +'<select class="c-in cv-t44" id="cvDirState" aria-label="Filter by state">'+dirStateOpts(DIRST.st)+'</select>'
+    +'<div class="cv-cham" role="group" aria-label="Chamber filter">'
+    +'<button type="button" class="c-btn cv-ch" data-ch="" aria-pressed="'+(DIRST.ch===""?"true":"false")+'">ALL</button>'
+    +'<button type="button" class="c-btn cv-ch" data-ch="senate" aria-pressed="'+(DIRST.ch==="senate"?"true":"false")+'">SENATE</button>'
+    +'<button type="button" class="c-btn cv-ch" data-ch="house" aria-pressed="'+(DIRST.ch==="house"?"true":"false")+'">HOUSE</button>'
+    +'</div>'
+    +'<input class="c-in cv-t44" id="cvDirQ" type="search" maxlength="60" placeholder="Search by name" aria-label="Search by name" value="'+esc(DIRST.q)+'">'
+    +'</div>'
+    +'<div class="c-err" id="cvDirErr"></div>'
+    +'<div id="cvDirList">'+dirListHTML()+'</div>'
+    +'</div>';
+  /* --- voter registration --- */
+  h+='<div class="x-pane"><h4>Voter registration</h4>'
+    /* 2026-10-03: voter_pledge_stats (public) — movement social proof. */
+    +(function(){
+      if(!(VSTATS&&VSTATS.ok)) return "";
+      var total=Number(VSTATS.total_pledges)||0;
+      var bs=(VSTATS.by_state)||[], top=[];
+      for(var vi=0;vi<Math.min(bs.length,5);vi++){ top.push(esc(bs[vi].state)+": "+Number(bs[vi].pledges||0)); }
+      return '<div class="x-note"><b>'+total+'</b> pledged network-wide'+(top.length?" — top states: "+top.join(", "):"")+'.</div>';
+    })()
+    +'<select class="c-in"  id="cvVoterState">'+stateOpts(VOTER&&VOTER.state?VOTER.state:"")+'</select>'
+    +'<div id="cvVoterBox">';
+  if(VOTER&&VOTER.url){
+    h+='<div class="x-note">Official registration for '+esc(VOTER.state)+':</div>'
+      +'<a class="c-btn" href="'+esc(VOTER.url)+'" target="_blank" rel="noopener">REGISTER ON VOTE.GOV</a> '
+      +'<button class="c-btn" id="cvPledge">PLEDGE (+50 XP)</button>'
+      +'<div class="x-note">XP has no cash value. Stakes are final.</div>'
+      /* 2026-10-05 (pledge-share-cards): SHARE YOUR PLEDGE arms only when the
+         ballot wire returned a live deadline (PLEDGE_CARD). Expired states
+         get the fail-soft "deadline passed" note instead of a card. */
+      +(PLEDGE_CARD?'<button class="c-btn" id="cvPledgeShare">SHARE YOUR PLEDGE \u2192</button>':'')
+      +(PLEDGE_DONE&&PLEDGE_NOTE?'<div class="x-note">'+esc(PLEDGE_NOTE)+'</div>':'')
+      +'<div class="x-note">'+esc(VOTER.note||"")+'</div>';
+  } else if(VOTER&&VOTER.err){
+    /* 2026-10-05 (audit #2): a voter_check failure used to land here with
+       the select reset blank and zero feedback. VOTER.state survives the
+       failure so the select keeps the user's state; show inline error +
+       Retry instead of silence. */
+    h+='<div class="c-err">Couldn&rsquo;t reach the registration wire for '+esc(VOTER.state)+'.</div>'
+      +'<button class="c-btn" id="cvVoterRetry">RETRY</button>';
+  } else {
+    h+='<div class="x-note">Pick your state to get the official registration link.</div>';
+  }
+  h+='</div></div>';
+  /* --- ballot center (2026-10-05, Political HQ #4): state election dates.
+     Read-only pane — countdowns from real API dates only, no invented data,
+     no XP. Ballot deadlines live here; voter registration stays above. */
+  h+='<div class="x-pane"><h4>Ballot Center</h4>'
+    +'<div class="x-note">Deadlines, early voting, and your polling place &mdash; straight from your state&rsquo;s official data.</div>'
+    +'<select class="c-in cv-t44" id="cvBalState" aria-label="Pick your state">'+ballotStateOpts(BAL.st)+'</select>'
+    +'<div id="cvBalBox">'+ballotBoxHTML()+'</div>'
+    +'</div>';
+  /* --- notification preferences (2026-10-05, audit #3): contact PII lives in
+     ONE surface — "Control the Signal" (notify-prefs silo, right below) owns
+     email/phone/opt-ins. This pane is now a link, not a second capture form.
+     No data-flow changes: notify-prefs' contact_set stays the single write
+     path, with its own 13+ self-certification intact. */
+  h+='<div class="x-pane"><h4>Notification preferences</h4>'
+    +'<div class="x-note">Drops, alerts, and battle calls live in one place now.</div>'
+    +'<a class="c-btn" href="#notifications">MANAGE NOTIFICATIONS \u2192</a></div>';
+  el.innerHTML=h;
+  bind();
+  /* 2026-10-05 (P4 pane anchors): the civic panes are painted async (after
+     the JSONP fan-in in load()), so phq-hubs' tagHubPanes() at mount time
+     finds nothing. Announce every paint; the hub re-tags idempotently. */
+  try{ document.dispatchEvent(new CustomEvent('pf-civic-panes')); }catch(e){}
+  /* Wave A5 S-13: mount the official jobs panel (defensive — the module
+     may be killed or absent from an older bundle). */
+  try {
+    var jp = document.getElementById('cvJobsPanel');
+    if (jp && window.PFJobsPanel && window.PFJobsPanel.mount) window.PFJobsPanel.mount(jp);
+  } catch (e) {}
+}
+/* ================= NETWORK POLLS (2026-10-05, expansion #3) ================
+   Backend contract (backend pod, parallel build):
+     GET  ?action=polls_list&status=open   -> {ok, polls:[{id,question,kind,bill_id,options:[{id,label}],closes_at,status,total_votes,created_by,has_voted,results_hidden}]}
+     GET  ?action=polls_list&status=closed -> same, closed polls (results released)
+     GET  ?action=polls_get&poll_id=X&callsign=Y -> {ok, poll:{id,question,kind,bill_id,options:[{id,label,count|null}],closes_at,status,total_votes,created_by,has_voted,results_hidden}}
+     POST {type:'poll', po_action:'polls_create', callsign, question, options:[labels], kind, bill_id?, closes_at} -> {ok,id}
+     POST {type:'poll', po_action:'polls_vote', callsign, poll_id, option_id} -> {ok}
+   RESULTS RULE (anti-bandwagoning): percentages hidden until the viewer has
+   voted (client-side map + API has_voted) or the poll is closed. Enforced
+   here and — per contract — on the backend (counts withheld in polls_get). */
+function pollVotedGet(){ try{ return JSON.parse(localStorage.getItem("pf_polls_voted_v1")||"{}"); }catch(e){ return {}; } }
+function pollVotedSet(m){ try{ localStorage.setItem("pf_polls_voted_v1",JSON.stringify(m)); }catch(e){} }
+function pollCountdown(ts){
+  var ms=Number(ts)-Date.now();
+  if(!(ms>0)) return "Closed";
+  var d=Math.floor(ms/864e5), h=Math.floor(ms%864e5/36e5), m=Math.floor(ms%36e5/6e4);
+  if(d>0) return d+"d "+h+"h left";
+  if(h>0) return h+"h "+m+"m left";
+  return Math.max(m,1)+"m left";
+}
+function pollTick(){
+  var els=document.querySelectorAll("[data-poll-countdown]");
+  for(var i=0;i<els.length;i++){ els[i].textContent=pollCountdown(els[i].getAttribute("data-poll-countdown")); }
+}
+try{ setInterval(pollTick,30000); }catch(e){}
+function loadPolls(){
+  POLLS_ERR=false;
+  var done=0;
+  function one(){ done++; if(done>=2){ try{ render(); }catch(e){} } }
+  api("polls_list",{status:"open"},function(j){
+    if(j&&j.ok){ POLLS_OPEN=j; } else { POLLS_ERR=true; POLLS_OPEN=null; }
+    one();
+  });
+  api("polls_list",{status:"closed"},function(j){
+    POLLS_CLOSED=(j&&j.ok)?j:null;
+    one();
+  });
+}
+function fetchPollDetail(pid){
+  var k=String(pid);
+  if(POLLS_FETCHING[k]||POLLS_DETAIL[k]) return;
+  POLLS_FETCHING[k]=true;
+  var pp={poll_id:pid};
+  var id2=ident(); if(id2.callsign) pp.callsign=id2.callsign;
+  api("polls_get",pp,function(j){
+    POLLS_FETCHING[k]=false;
+    if(j&&j.ok){ POLLS_DETAIL[k]=pollDetailAdapt(j); try{ render(); }catch(e){} }
+    /* failure: keep the "Reading results" note; the next re-render refires */
+  });
+}
+/* 2026-10-05 (contract fix): backend polls_get nests the detail under
+   "poll" and ships per-option "count" (null until voted/closed), not
+   top-level "options" with "votes". Normalize to the detail object. */
+function pollDetailAdapt(j){
+  if(!j) return null;
+  var d=(j.poll&&typeof j.poll==="object")?j.poll:j;
+  return d;
+}
+/* pct from count/total_votes when the backend has released counts;
+   falls back to list-level options (no counts shown) when null. */
+function pollCountsOpen(opts){
+  for(var i=0;i<opts.length;i++){ if(opts[i].count==null) return false; }
+  return true;
+}
+function pollIsVoted(p){
+  var m=pollVotedGet();
+  return !!(m[String(p.id)]||p.has_voted);
+}
+function pollCard(p,closed){
+  var h='<div class="cp-mission">';
+  h+='<div class="cp-mtext">'+esc(p.question)+'</div>';
+  var kind=String(p.kind||"general");
+  h+='<div class="x-note">'+(kind==="pressure"
+    ?'<b>PRESSURE POLL</b> \u2014 "should we pressure this bill?"'
+    :"General poll");
+  if(p.bill_id){
+    var bl=String(p.bill_id);
+    h+=' \u2022 bill: '+(bl.indexOf("http")===0
+      ?'<a href="'+esc(bl)+'" target="_blank" rel="noopener">link</a>'
+      :esc(bl));
+  }
+  h+='</div>';
+  /* passed badge: passed pressure polls PROPOSE a draft campaign — review
+     queue, never auto-launch. */
+  if(String(p.status)==="passed"){
+    h+='<div class="x-note"><b>\u2713 Passed \u2014 draft campaign proposed, under review.</b></div>';
+  }
+  if(!closed){
+    h+='<div class="x-note">Closes in <span data-poll-countdown="'+esc(p.closes_at)+'">'+pollCountdown(p.closes_at)+'</span></div>';
+  } else {
+    h+='<div class="x-note">Closed.</div>';
+  }
+  h+='<div class="x-note"><b>'+Number(p.total_votes||0)+'</b> votes</div>';
+  var voted=pollIsVoted(p);
+  if(voted||closed){
+    var det=POLLS_DETAIL[String(p.id)];
+    if(!det){
+      h+='<div class="x-note">Reading results&hellip;</div>';
+      fetchPollDetail(p.id);
+    } else {
+      var opts=(det.options&&det.options.length)?det.options:[];
+      /* contract: per-option counts released via "count"; while null (voter
+         hasn't voted / poll open), fall back to list-level options. */
+      var countsOpen=opts.length>0&&pollCountsOpen(opts);
+      if(!countsOpen){ opts=(p.options&&p.options.length)?p.options:opts; }
+      var tot=Number(det.total_votes!=null?det.total_votes:p.total_votes)||0;
+      if(!opts.length){ h+='<div class="x-note">No results yet.</div>'; }
+      for(var i=0;i<opts.length;i++){
+        var o=opts[i];
+        var v=(o.count!=null)?(Number(o.count)||0):((o.votes!=null)?(Number(o.votes)||0):0);
+        var pct=(countsOpen&&tot>0)?Math.round(v*100/tot):((o.pct!=null)?Number(o.pct):0);
+        h+='<div class="x-note" style="margin-top:6px">'+esc(o.label)+' \u2014 '+v+' ('+pct+'%)</div>'
+          +'<div class="cp-barwrap"><div class="cp-bar" style="width:'+pct+'%"></div></div>';
+      }
+      /* 2026-10-05 (P11 W14): the voted poll is no longer a dead end —
+         convert the peak-engagement moment into a first civic action. */
+      h+='<div class="x-note" style="margin-top:8px">'+(kind==="pressure"
+        ?'This could become a pressure campaign \u2014 <a href="/political-hq#phq-action">see TAKE ACTION \u2192</a>'
+        :'Your call is counted. <a href="/political-hq#phq-pane-directory">Make it real: contact your rep \u2192</a>')+'</div>';
+    }
+  } else {
+    /* RESULTS RULE: vote buttons only, no percentages — no bandwagoning. */
+    var vo=p.options||[];
+    h+='<div class="x-note">Results stay hidden until you vote.</div>';
+    for(var j=0;j<vo.length;j++){
+      h+='<button class="c-btn cp-mbtn" style="min-height:44px" data-poll-vote="'+esc(p.id)+'" data-poll-opt="'+esc(vo[j].id)+'">'+esc(vo[j].label)+'</button> ';
+    }
+    if(!vo.length){ h+='<div class="x-note">No options on this poll.</div>'; }
+  }
+  h+='<div class="x-note">XP has no cash value. Stakes are final.</div></div>';
+  return h;
+}
+function pollSaveDraft(){
+  POLLS_DRAFT.q=gv("cvPollQ");
+  var a=[], els=document.querySelectorAll("[data-poll-opt-in]");
+  for(var i=0;i<els.length;i++){ a.push(els[i].value); }
+  POLLS_DRAFT.opts=a;
+  POLLS_DRAFT.kind=gv("cvPollKind")||"general";
+  POLLS_DRAFT.dur=gv("cvPollDur")||"3";
+  POLLS_DRAFT.bill=gv("cvPollBill");
+}
+function pollCreateForm(){
+  var h='<div class="x-pane pf-mt"><h4>New poll</h4>'
+    +'<input aria-label="Poll question" class="c-in" id="cvPollQ" maxlength="280" placeholder="Poll question (280 max)" value="'+esc(POLLS_DRAFT.q)+'">'
+    +'<div id="cvPollOpts">';
+  for(var i=0;i<POLLS_CREATE_OPTS;i++){
+    var ov=(POLLS_DRAFT.opts&&POLLS_DRAFT.opts[i])?POLLS_DRAFT.opts[i]:"";
+    h+='<div><input aria-label="Option '+(i+1)+'" class="c-in" data-poll-opt-in="'+i+'" maxlength="120" placeholder="Option '+(i+1)+'" value="'+esc(ov)+'">'
+      +(i>=2?' <button class="c-btn" data-poll-opt-rm="'+i+'" style="min-height:44px">REMOVE</button>':'')+'</div>';
+  }
+  h+='</div>'
+    +'<button class="c-btn" id="cvPollAddOpt" style="min-height:44px">+ ADD OPTION ('+POLLS_CREATE_OPTS+'/6)</button>'
+    +'<div class="x-note" style="margin-top:8px">Kind:</div>'
+    +'<select class="c-in" id="cvPollKind">'
+    +'<option value="general"'+(POLLS_DRAFT.kind==="general"?" selected":"")+'>General</option>'
+    +'<option value="pressure"'+(POLLS_DRAFT.kind==="pressure"?" selected":"")+'>Should we pressure this bill?</option></select>'
+    +'<input aria-label="Bill link (pressure polls)" class="c-in" id="cvPollBill" maxlength="300" placeholder="Bill link (pressure polls)" value="'+esc(POLLS_DRAFT.bill)+'"'
+    +(POLLS_DRAFT.kind==="pressure"?"":' style="display:none"')+'>'
+    +'<div class="x-note">Duration:</div>'
+    +'<select class="c-in" id="cvPollDur">'
+    +'<option value="1"'+(POLLS_DRAFT.dur==="1"?" selected":"")+'>1 day</option>'
+    +'<option value="3"'+(POLLS_DRAFT.dur==="3"?" selected":"")+'>3 days</option>'
+    +'<option value="7"'+(POLLS_DRAFT.dur==="7"?" selected":"")+'>7 days</option>'
+    +'<option value="14"'+(POLLS_DRAFT.dur==="14"?" selected":"")+'>14 days</option></select>'
+    +'<div class="x-note"><b>Pressure polls that PASS (&gt;60% YES and 10+ votes) only PROPOSE a draft campaign for review. They never auto-launch.</b></div>'
+    +'<button class="c-btn" id="cvPollCreate" style="min-height:44px">LAUNCH POLL</button> '
+    +'<button class="c-btn" id="cvPollCancel" style="min-height:44px">CANCEL</button>'
+    +'<div class="c-err" id="cvPollErr"></div></div>';
+  return h;
+}
+/* Admin gate for poll creation: backend polls_create is admin-only (CEO decision).
+   Same session flag as governance.js/economy.js — the secret is entered on the
+   private admin surfaces, never on this public pane. */
+function pollsIsAdmin(){ try{ return !!sessionStorage.getItem("pf_admin_secret"); }catch(e){ return false; } }
+function pollsPane(){
+  var h='<div class="x-pane"><h4>Network Polls</h4>';  h+='<div class="x-note">Cast your vote. Results stay hidden until you vote \u2014 no bandwagoning.</div>';
+  if(!BACKEND||(POLLS_ERR&&!POLLS_OPEN)){
+    h+='<div class="c-err">Couldn&rsquo;t reach the polls wire.</div>'
+      +'<button class="c-btn" id="cvPollRetry" style="min-height:44px">RETRY</button>';
+    h+='</div>';
+    return h;
+  }
+  var open=(POLLS_OPEN&&POLLS_OPEN.polls)||[];
+  if(!open.length){ h+='<div class="x-note">No open polls right now. Start the first one.</div>'; }
+  for(var i=0;i<open.length;i++){ h+=pollCard(open[i],false); }
+  var closed=(POLLS_CLOSED&&POLLS_CLOSED.polls)||[];
+  if(closed.length){
+    h+='<h4 style="margin-top:10px">Closed polls</h4>';
+    for(var c=0;c<closed.length;c++){ h+=pollCard(closed[c],true); }
+  }
+  if(pollsIsAdmin()){
+    if(POLLS_CREATE_OPEN){
+      h+=pollCreateForm();
+    } else {
+      h+='<button class="c-btn" id="cvPollOpen" style="min-height:44px">START A POLL</button>';
+    }
+  } else {
+    h+='<div class="x-note">Poll creation is admin-only &mdash; vote on open polls below.</div>';
+  }
+  h+='</div>';
+  return h;
+}
+function bindPolls(){
+  function qsa(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  var rt=document.getElementById("cvPollRetry");
+  if(rt) rt.onclick=function(){ loadPolls(); };
+  var op=document.getElementById("cvPollOpen");
+  if(op) op.onclick=function(){
+    POLLS_CREATE_OPEN=true; POLLS_CREATE_OPTS=2;
+    POLLS_DRAFT={q:"",opts:[],kind:"general",dur:"3",bill:""};
+    render();
+  };
+  var cn=document.getElementById("cvPollCancel");
+  if(cn) cn.onclick=function(){ POLLS_CREATE_OPEN=false; render(); };
+  var kind=document.getElementById("cvPollKind");
+  if(kind) kind.onchange=function(){
+    var b=document.getElementById("cvPollBill");
+    if(b) b.style.display=(kind.value==="pressure")?"":"none";
+  };
+  var add=document.getElementById("cvPollAddOpt");
+  if(add) add.onclick=function(){
+    if(POLLS_CREATE_OPTS<6){ pollSaveDraft(); POLLS_CREATE_OPTS++; render(); }
+  };
+  qsa("[data-poll-opt-rm]").forEach(function(b){
+    b.onclick=function(){
+      if(POLLS_CREATE_OPTS>2){ pollSaveDraft(); POLLS_CREATE_OPTS--; render(); }
+    };
+  });
+  qsa("[data-poll-vote]").forEach(function(b){
+    b.onclick=function(){
+      var pid=b.getAttribute("data-poll-vote"), oid=b.getAttribute("data-poll-opt");
+      b.disabled=true;
+      post("poll","po_action","polls_vote",{callsign:ident().callsign,poll_id:pid,option_id:oid},function(j){
+        if(j&&j.ok){
+          var m=pollVotedGet(); m[String(pid)]=String(oid); pollVotedSet(m);
+          delete POLLS_DETAIL[String(pid)];
+          toast("+5 XP earned");
+          fetchPollDetail(pid);
+        } else { toast(PF.errCopy(j,"Vote failed.")); b.disabled=false; }
+      });
+    };
+  });
+  var cb=document.getElementById("cvPollCreate");
+  if(cb) cb.onclick=function(){
+    var err=document.getElementById("cvPollErr");
+    var q=gv("cvPollQ").trim();
+    if(!q){ err.textContent="Question is required."; return; }
+    if(q.length>280){ err.textContent="Question must be 280 characters or less."; return; }
+    var opts=[];
+    qsa("[data-poll-opt-in]").forEach(function(inp){
+      var v=(inp.value||"").trim(); if(v) opts.push(v);
+    });
+    if(opts.length<2){ err.textContent="At least 2 options are required."; return; }
+    if(opts.length>6){ err.textContent="At most 6 options."; return; }
+    var k=gv("cvPollKind")==="pressure"?"pressure":"general";
+    var dur=Number(gv("cvPollDur"))||3;
+    var bill=gv("cvPollBill").trim();
+    cb.disabled=true;
+    var params={callsign:ident().callsign,question:q,options:opts,kind:k,closes_at:Date.now()+dur*864e5};
+    if(k==="pressure"&&bill) params.bill_id=bill;
+    post("poll","po_action","polls_create",params,function(j){
+      if(j&&j.ok){
+        toast("Poll launched.");
+        POLLS_CREATE_OPEN=false; POLLS_CREATE_OPTS=2;
+        POLLS_DRAFT={q:"",opts:[],kind:"general",dur:"3",bill:""};
+        loadPolls();
+      } else { err.textContent=PF.errCopy(j,"Create failed."); cb.disabled=false; }
+    });
+  };
+}
+/* ================= END NETWORK POLLS ================= */
+function gv(id){ var e=document.getElementById(id); return e?e.value:""; }
+function bind(){
+  function qsa(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  qsa("[data-pet-sign]").forEach(function(b){
+    b.onclick=function(){
+      var pid=b.getAttribute("data-pet-sign");
+      b.disabled=true;
+      post("petition","pe_action","petition_sign",{callsign:ident().callsign,petition_id:pid},function(j){
+        if(j&&j.ok){
+          /* 2026-10-05 (P2 F2-TOAST): record first — the toast shows the
+             count INCLUDING this action. Share ask comes after the action
+             (P10 W18), never before. */
+          try{ document.dispatchEvent(new CustomEvent('pf-civic-petition-signed')); }catch(e){}
+          toast((j.dup?"Already signed.":"Signed. +10 XP.")+dutyFrag()+(j.dup?"":" Share it \u2192"));
+          if(!j.dup){ PET_SHARE_AFTER[pid]=1; }
+          refreshPetitions();
+        }
+        else { toast(PF.errCopy(j,"Sign failed.")); b.disabled=false; }
+      });
+    };
+  });
+  var po=document.getElementById("cvPetOpen");
+  if(po) po.onclick=function(){ CREATE_OPEN=true; render(); };
+  /* WHO SIGNED toggle (petition_sigs, public): per-card signature list. */
+  qsa("[data-pet-sigs]").forEach(function(b){
+    b.onclick=function(){
+      var pid=b.getAttribute("data-pet-sigs");
+      /* 2026-10-05 (audit #5): the backend petition id used to interpolate
+         unescaped into a CSS attribute selector — a quote in an id silently
+         killed WHO SIGNED. Match by attribute instead; the id never goes
+         through selector parsing now. */
+      var out=null, outs=document.querySelectorAll("[data-pet-sigs-out]");
+      for(var oi=0;oi<outs.length;oi++){
+        if(outs[oi].getAttribute("data-pet-sigs-out")===pid){ out=outs[oi]; break; }
+      }
+      if(!out) return;
+      if(out.style.display!=="none"){ out.style.display="none"; out.innerHTML=""; return; }
+      out.style.display="block";
+      out.innerHTML='<div class="x-note">Reading signatures&hellip;</div>';
+      api("petition_sigs",{petition_id:pid},function(j){
+        var sigs=(j&&j.ok&&j.sigs)||[];
+        if(!sigs.length){ out.innerHTML='<div class="x-note">No signatures yet. Be the first.</div>'; return; }
+        var names=[];
+        for(var i=0;i<Math.min(sigs.length,10);i++){ names.push(esc(sigs[i].callsign)); }
+        out.innerHTML='<div class="x-note"><b>'+sigs.length+'</b> signed: '+names.join(", ")+(sigs.length>10?" &hellip;":"")+'</div>';
+      });
+    };
+  });
+  var pc=document.getElementById("cvPetCancel");
+  if(pc) pc.onclick=function(){ CREATE_OPEN=false; render(); };
+  /* 2026-10-05 (P2 F2-TOAST): post-sign share affordance — two-tier native
+     share with clipboard fallback, same pattern as pcShare(). */
+  qsa("[data-pet-shareafter]").forEach(function(sb){
+    sb.onclick=function(){
+      var pid2=sb.getAttribute("data-pet-shareafter");
+      var title=PET_TITLE[pid2]||"A Propaganda Factory petition";
+      var link="https://www.mtcstw.com/political-hq";
+      try{ if(window.PF&&typeof PF.shareUrl==="function") link=PF.shareUrl(link); }catch(e){}
+      var text=title+" \u2014 sign it at "+link;
+      if(navigator.share){ try{ navigator.share({title:title,text:text}).catch(function(){}); return; }catch(e){} }
+      try{
+        if(navigator.clipboard&&navigator.clipboard.writeText){
+          navigator.clipboard.writeText(text).then(function(){ toast("Share text copied. Spread it."); },function(){ toast("Copy failed \u2014 select it manually."); });
+        } else toast("Copy failed \u2014 select it manually.");
+      }catch(e2){ toast("Copy failed \u2014 select it manually."); }
+    };
+  });
+  var pcb=document.getElementById("cvPetCreate");
+  if(pcb) pcb.onclick=function(){
+    var err=document.getElementById("cvPetErr");
+    var title=gv("cvPetTitle").trim(), target=gv("cvPetTarget").trim();
+    if(!title||!target){ err.textContent="Title and target are required."; return; }
+    pcb.disabled=true;
+    post("petition","pe_action","petition_create",{callsign:ident().callsign,title:title,description:gv("cvPetDesc"),target:target,goal:Number(gv("cvPetGoal"))||500},function(j){
+      if(j&&j.ok){
+        /* 2026-10-05 (P2 F2-TOAST): record first — toast shows the new count. */
+        try{ document.dispatchEvent(new CustomEvent('pf-civic-petition-created')); }catch(e){}
+        toast("Live. +25 XP."+dutyFrag()); CREATE_OPEN=false; refreshPetitions();
+      }
+      else { err.textContent=PF.errCopy(j,"Create failed."); pcb.disabled=false; }
+    });
+  };
+  /* script picker */
+  var ts=document.getElementById("cvTopicSel");
+  function showScript(){
+    var box=document.getElementById("cvScriptBox"); if(!box) return;
+    var topic=gv("cvTopicSel");
+    var scripts=(SCRIPTS&&SCRIPTS.scripts)||[];
+    var sc=null;
+    for(var i=0;i<scripts.length;i++){ if(scripts[i].topic===topic){ sc=scripts[i]; break; } }
+    if(!sc){ box.innerHTML=""; return; }
+    var name=gv("cvMyName")||"[YOUR NAME]", st=gv("cvMyState")||"[STATE]", rep=gv("cvRepSel")||"[REP]";
+    /* Escape the backend-supplied script BEFORE substitution (stored-XSS
+       hardening — a malformed script row must not execute in visitors'
+       browsers). The {NAME}/{STATE}/{REP} tokens are replaced with the
+       already-escaped user inputs afterwards. */
+    var txt=esc(sc.script).split("{NAME}").join(esc(name)).split("{STATE}").join(esc(st)).split("{REP}").join(esc(rep));
+    box.innerHTML='<div class="x-pane pf-mt" ><h4>'+esc(sc.title)+'</h4><div class="x-note" style="white-space:pre-wrap">'+txt+'</div></div>';
+    box.setAttribute("data-script-id",sc.id);
+  }
+  if(ts) ts.onchange=showScript;
+  var nm=document.getElementById("cvMyName"), mst=document.getElementById("cvMyState"), rp=document.getElementById("cvRepSel");
+  if(nm) nm.oninput=showScript; if(mst) mst.onchange=showScript; if(rp) rp.onchange=showScript;
+  var lc=document.getElementById("cvLogContact");
+  /* 2026-10-05: routes through the shared rep_contact write path — same
+     POST, same +25 XP, same 2/day cap as the directory rows. (The older
+     inline binding this replaced is gone; doLogContact is the single
+     owner of this flow, including the pf-civic-rep-contacted dispatch.) */
+  if(lc) lc.onclick=function(){ doLogContact(gv("cvRepSel"),lc,document.getElementById("cvRepErr")); };
+  /* --- congressional directory bindings --- */
+  var dst=document.getElementById("cvDirState");
+  if(dst) dst.onchange=function(){ DIRST.st=gv("cvDirState"); fetchDir(); };
+  var dq=document.getElementById("cvDirQ");
+  if(dq) dq.oninput=function(){ DIRST.q=gv("cvDirQ"); paintDir(); };
+  var cham=document.querySelector(".cv-cham");
+  if(cham) cham.onclick=function(e){
+    var b=e.target&&e.target.closest?e.target.closest("[data-ch]"):null; if(!b) return;
+    DIRST.ch=b.getAttribute("data-ch");
+    var btns=cham.querySelectorAll("[data-ch]");
+    for(var i=0;i<btns.length;i++){ btns[i].setAttribute("aria-pressed",btns[i]===b?"true":"false"); }
+    fetchDir();
+  };
+  /* 2026-10-05: call practice mode — rehearses against the topic-selected
+     script (or the default rep-contact script); zero XP, stated in the
+     overlay. */
+  var pf1=document.getElementById("cvPracticeFirst");
+  if(pf1) pf1.onclick=function(){ pracOpen({repName:gv("cvRepSel"),phone:""}); };
+  /* Delegated: retry lives inside the painted list, rows re-paint on
+     search/filter — one listener survives all of it. */
+  var dl=document.getElementById("cvDirList");
+  if(dl&&!dl.getAttribute("data-bound")){
+    dl.setAttribute("data-bound","1");
+    dl.addEventListener("click",function(e){
+      var t=e.target&&e.target.closest?e.target.closest("[data-dir-log],[data-dir-practice],[data-sc-toggle],[data-sc-share],[data-sc-retry],[data-sc-issue],#cvDirRetry"):null;
+      if(!t) return;
+      if(t.id==="cvDirRetry"){ fetchDir(); return; }
+      /* 2026-10-05: voting scorecards — toggle, share, retry, issue jump. */
+      if(t.hasAttribute("data-sc-toggle")){
+        var bio=t.getAttribute("data-sc-toggle");
+        if(SCST.open===bio){ SCST.open=null; paintDir(); }
+        else { SCST.open=bio; fetchScorecard(bio); }
+        return;
+      }
+      if(t.hasAttribute("data-sc-share")){ shareScorecard(t.getAttribute("data-sc-share")); return; }
+      if(t.hasAttribute("data-sc-retry")){ fetchScorecard(t.getAttribute("data-sc-retry")); return; }
+      if(t.hasAttribute("data-sc-issue")){
+        var vid=t.getAttribute("data-sc-issue");
+        SCST.issue=vid;
+        fetchIssue(vid);
+        /* fetchIssue -> paintIssue (loading state paints first). */
+        try{ var p=document.getElementById("cvIssuePanel"); if(p&&p.scrollIntoView) p.scrollIntoView(); }catch(ee){}
+        return;
+      }
+      /* 2026-10-05: call practice mode entry — per-row rehearsal. Survives
+         repaints (delegated), so unreachable→retry never breaks it. */
+      if(t.hasAttribute&&t.hasAttribute("data-dir-practice")){
+        pracOpen({repName:t.getAttribute("data-dir-practice"),phone:t.getAttribute("data-dir-phone")||""});
+        return;
+      }
+      doLogContact(t.getAttribute("data-dir-log"),t,document.getElementById("cvDirErr"));
+    });
+  }
+  /* 2026-10-05: issue-view panel buttons (BACK/RETRY) — the panel repaints
+     on fetchIssue, so delegation on the document survives. Bound once. */
+  var de=document.documentElement;
+  if(de&&!de.getAttribute("data-sc-bound")){
+    de.setAttribute("data-sc-bound","1");
+    de.addEventListener("click",function(e){
+      var t=e.target&&e.target.closest?e.target.closest("[data-issue-back],[data-issue-retry]"):null;
+      if(!t) return;
+      if(t.hasAttribute("data-issue-back")){
+        SCST.issue=null;
+        paintIssue(); paintDir();
+        try{ var dl2=document.getElementById("cvDirList"); if(dl2&&dl2.scrollIntoView) dl2.scrollIntoView(); }catch(ee){}
+        return;
+      }
+      if(t.hasAttribute("data-issue-retry")){ fetchIssue(t.getAttribute("data-issue-retry")); }
+    });
+  }
+  /* First paint: fire the reps_list read once (Mobilizing… covers it). */
+  if(DIRST.reps===null&&!DIRST.load&&!DIRST.err){ fetchDir(); }
+  /* 2026-10-05 (rep-flow friction): follow the home-state picker. When the
+     viewer sets/changes their home state, the directory re-filters to it —
+     the rep lookup stays "your reps" with zero extra taps. Bound once. */
+  var dehs=document.documentElement;
+  if(dehs&&!dehs.getAttribute("data-dirhs-bound")){
+    dehs.setAttribute("data-dirhs-bound","1");
+    document.addEventListener("pf-home-state-changed",function(e){
+      try{
+        var s=e&&e.detail&&e.detail.state;
+        if(typeof s==="string"&&s&&s!==DIRST.st){
+          DIRST.st=s; DIRST.reps=null; DIRST.q="";
+          var ds=document.getElementById("cvDirState"); if(ds) ds.value=s;
+          var dq=document.getElementById("cvDirQ"); if(dq) dq.value="";
+          fetchDir();
+        }
+      }catch(ee){}
+    });
+  }
+  /* voter — 2026-10-05 (audit #2): voter_check failure keeps the state
+     selection (VOTER.state survives) and renders an inline c-err + Retry
+     instead of a blank select with no feedback.
+     2026-10-05 (voter-check auth): route through PF.authGetJSONP so the
+     backend can attribute the check to the callsign (auth_secret-in-GET,
+     same as rep_contact_history). No session -> plain api() as before;
+     the read path (vote.gov URL) is unaffected either way. */
+  function voterCheck(st){
+    if(!st) return;
+    VOTER={state:st};
+    var pp={state:st};
+    function cb(j){
+      VOTER=(j&&j.url)?j:{state:st,err:true};
+      /* 2026-10-05 (P2 F2-TOAST): the voter check is a Civic Duty action —
+         confirm it and show the new count. */
+      if(j&&j.url){ try{ document.dispatchEvent(new CustomEvent('pf-civic-voter-checked')); }catch(e){}
+        try{ toast("Checked."+dutyFrag()); }catch(e2){} }
+      try{ render(); }catch(e){}
+    }
+    try{ if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,"voter_check",pp,cb); return; } }catch(e){}
+    api("voter_check",pp,cb);
+  }
+  var vs=document.getElementById("cvVoterState");
+  if(vs) vs.onchange=function(){ voterCheck(gv("cvVoterState")); };
+  var vr=document.getElementById("cvVoterRetry");
+  if(vr) vr.onclick=function(){ voterCheck(gv("cvVoterState")); };
+  var pl=document.getElementById("cvPledge");
+  if(pl) pl.onclick=function(){
+    pl.disabled=true;
+    var stCode=gv("cvVoterState");
+    post("rep","r_action","voter_pledge",{callsign:ident().callsign,state:stCode},function(j){
+      if(j&&j.ok){
+        /* 2026-10-05 (pledge-share-cards): pledge landed -> resolve the
+           ballot deadline, then arm the SHARE YOUR PLEDGE button. The +50
+           pledge XP is paid by voter_pledge itself — nothing extra here. */
+        PLEDGE_DONE=true;
+        /* 2026-10-05 (P2 F2-TOAST): record first — toast shows the new
+           count. Share ask follows the pledge (cvPledgeShare button). */
+        try{ document.dispatchEvent(new CustomEvent('pf-civic-voter-pledged')); }catch(e){}
+        toast((j.dup?"Already pledged.":"Pledged. +50 XP.")+dutyFrag()+(j.dup?"":" Share your pledge \u2192"));
+        try{ armPledgeCard(stCode); }catch(e){ try{ render(); }catch(e2){} }
+      }
+      else { toast(PF.errCopy(j,"Pledge failed.")); }
+      pl.disabled=false;
+    });
+  };
+  /* 2026-10-05 (pledge-share-cards): SHARE YOUR PLEDGE -> phq-pledge card
+     (state name, real registration deadline from ballot data, vote.gov link,
+     callsign stamp, source + date). Generation pays 0 XP. After the native
+     share sheet, the user banks +5 XP by verifying the public post in the
+     existing POSTER SHARE tab (create_share: leg, fixed amount, NO_MULT,
+     counts toward the daily cap — no new ledger prefix). */
+  var pls=document.getElementById("cvPledgeShare");
+  if(pls) pls.onclick=function(){
+    try{
+      if(!(window.PF&&PF.PHQShare)){ toast("Share unavailable."); return; }
+      if(PF.skip&&PF.skip('card-pledge')){ toast("Pledge cards are paused."); return; }
+      var ok=PF.PHQShare.share('phq-pledge',PLEDGE_CARD||{},
+        {title:'I PLEDGED TO VOTE',link:'https://www.mtcstw.com/political-hq'});
+      if(ok) setTimeout(function(){
+        toast("Posted it publicly? Paste the link in the POSTER SHARE tab to bank +5 XP.");
+      },1500);
+    }catch(e){ toast("Share failed."); }
+  };
+  /* 2026-10-05 (audit #3): the civic contact-prefs form is gone — "Control the
+     Signal" (notify-prefs) is the single contact-PII surface and owns the
+     contact_set write path. No civic-side save binding anymore. */
+  /* --- ballot center (2026-10-05): state select paints from the cached
+     ballot_get&all=1 rows — no round-trip per selection. One lazy read on
+     first bind; RETRY lives inside the painted box, so it needs a direct
+     binding after every re-render (same pattern as cvVoterRetry). */
+  var bst=document.getElementById("cvBalState");
+  if(bst) bst.onchange=function(){ BAL.st=gv("cvBalState"); paintBallot(); };
+  var brt=document.getElementById("cvBalRetry");
+  if(brt) brt.onclick=function(){ fetchBallot(); };
+  if(BAL.rows===null&&!BAL.load&&!BAL.err){ fetchBallot(); }
+  /* network polls (2026-10-05): vote buttons, create form, retry. */
+  bindPolls();
+  /* rep contact history (rep_contact_history, AUTH): the caller's own log.
+     2026-10-05 (audit #7): fetched once per page view — bind() runs on every
+     re-render, and each run used to refire this authed call. LOG CONTACT
+     refreshes it explicitly (the only action that mutates the log). */
+  /* --- cell competitions (2026-10-05): metric toggle is delegated (the card
+     re-paints on toggle) — one listener per fresh box element, matching the
+     directory-retry pattern. Reads are public GET; the card hides on error. */
+  var cbox=document.getElementById("cvCompBox");
+  if(cbox&&!cbox.getAttribute("data-bound")){
+    cbox.setAttribute("data-bound","1");
+    cbox.addEventListener("click",function(e){
+      var b=e.target&&e.target.closest?e.target.closest("[data-comp-metric]"):null;
+      if(!b) return;
+      var m=b.getAttribute("data-comp-metric");
+      if(m!==COMP.metric&&(m==="rep_contacts"||m==="campaign_calls")){
+        COMP.metric=m; paintComp(); fetchComp();
+      }
+    });
+  }
+  fetchComp();
+  fetchHist();
+  /* 2026-10-05 (wave pressure-campaigns FE): pressure-card bindings. */
+  pressureBind(qsa);
+}
+/* 2026-10-05: legislation silo integration — key-player names on bill cards
+   dispatch pf-legislation-member; filter THIS directory to that member and
+   scroll it into view. Decoupled via event: the legislation silo never
+   touches civic internals, and this listener is a no-op when the directory
+   pane isn't mounted. */
+document.addEventListener("pf-legislation-member",function(e){
+  try{
+    var d=(e&&e.detail)||{};
+    var nm=String(d.name||"").trim(); if(!nm) return;
+    if(!document.getElementById("cvDirList")) return; /* directory not mounted */
+    DIRST.st=""; DIRST.ch=""; DIRST.q=nm;
+    var st=document.getElementById("cvDirState"); if(st) st.value="";
+    var q=document.getElementById("cvDirQ"); if(q) q.value=nm;
+    var btns=document.querySelectorAll(".cv-cham [data-ch]");
+    for(var i=0;i<btns.length;i++){
+      btns[i].setAttribute("aria-pressed",btns[i].getAttribute("data-ch")===""?"true":"false");
+    }
+    fetchDir();
+    var pane=document.getElementById("pf-civic");
+    if(pane&&pane.scrollIntoView) pane.scrollIntoView();
+  }catch(err){}
+});
+load();
+})();
+</scr`+`ipt>
+</div>
+</template>`);
+})();
+
+;
+
+/* ===== phq-jobs-panel.js ===== */
+/* games/phq-jobs-panel.js  |  PF v1.4.3 | S-13 JOBS PANEL (Wave A5).
+   Official jobs figures (FRED: UNRATE, PAYEMS) as a talking-points panel
+   feeding pressure campaigns — DISPLAY ONLY. Each figure gets one
+   quote-ready factual line ("UNEMPLOYMENT IS 4.2% (SEP 2026, SEASONALLY
+   ADJUSTED) — UP 0.1 POINTS SINCE AUGUST"). Facts only: no editorial layer,
+   no persuasive framing, no "what this means" commentary — persuasive copy
+   is News Desk's call and none was supplied in this wave (constraint #5).
+   PURE FIGURES: value, period, change vs prior period, SA/NSA label, source
+   stamp, click-through to the FRED series page. Nothing is estimated,
+   nothing is seeded, nothing is mocked.
+   Never auto-mounts — civic.js calls PFJobsPanel.mount(container) into the
+   #cvJobsPanel slot above the pressure-campaigns pane. Fail-soft: a dead
+   read renders nothing and never breaks the civic page. No XP anywhere on
+   this frontend (read-only official-data surface).
+   KILL: ?pf_off=phq-jobs */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF) { return; }
+  if (PF.skip('phq-jobs')) { return; }
+  if (window.pfJobsPanelDone) return;
+  window.pfJobsPanelDone = true;
+
+  var BACKEND = window.PF_BACKEND_URL;
+  var TIMEOUT_MS = 12000;
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var fn = 'pfJobsCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, TIMEOUT_MS);
+  }
+
+  var CSS = [
+    '.pf-jp{max-width:860px;margin:0 auto 14px;color:var(--pf-cream);font-family:Arial,sans-serif}',
+    '.pf-jp-kicker{font-weight:700;font-size:12px;letter-spacing:5px;color:var(--pf-gold);text-align:center;margin-bottom:6px}',
+    '.pf-jp-title{font-weight:900;font-size:18px;text-align:center;margin:0 0 10px;letter-spacing:1px}',
+    '.pf-jp-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px}',
+    '@media (max-width:640px){.pf-jp-grid{grid-template-columns:1fr}}',
+    '.pf-jp-card{border:1px solid #2a2a2a;border-top:6px solid var(--pf-red);border-radius:8px;background:#0d0d0d;padding:12px}',
+    '.pf-jp-head{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:8px}',
+    '.pf-jp-name{font-weight:900;font-size:11px;letter-spacing:1px;color:var(--pf-gold)}',
+    '.pf-jp-chip{display:inline-block;background:#2a2a2a;color:var(--pf-muted);font-weight:700;font-size:10px;letter-spacing:1px;padding:2px 6px;border-radius:3px}',
+    '.pf-jp-value{font-weight:900;font-size:24px;color:var(--pf-cream);margin:2px 0}',
+    '.pf-jp-period{font-size:12px;color:var(--pf-muted)}',
+    '.pf-jp-change{font-size:13px;font-weight:700;color:var(--pf-cream);margin:4px 0 8px}',
+    '.pf-jp-stale{font-size:13px;color:var(--pf-muted);line-height:1.5;margin:6px 0 10px;min-height:44px}',
+    '.pf-jp-quote{border-left:4px solid var(--pf-red);background:#141414;padding:8px 10px;margin:8px 0;font-size:13px;line-height:1.5;color:var(--pf-cream)}',
+    '.pf-jp-quotelbl{font-size:10px;font-weight:700;letter-spacing:2px;color:var(--pf-gold);margin-bottom:4px}',
+    '.pf-jp-src{font-size:10px;color:#8a8271;letter-spacing:0.5px;border-top:1px solid #2a2a2a;padding-top:6px}',
+    '.pf-jp-src a{color:#8a8271}',
+    '.pf-jp-foot{font-size:11px;color:#8a8271;text-align:center;letter-spacing:1px;margin-top:6px}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-jp-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-jp-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  function fmtRetrieved(s) {
+    try {
+      var rt = s && s.retrieved_at != null ? Number(s.retrieved_at) : NaN;
+      var d = isNaN(rt) ? null : new Date(rt);
+      if (!d || isNaN(d.getTime())) return null;
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase();
+    } catch (e) { return null; }
+  }
+
+  function stamp(s) {
+    var sid = s.series_id || '';
+    var ret = fmtRetrieved(s);
+    var link = s.source_url || ('https://fred.stlouisfed.org/series/' + sid);
+    return 'FRED \u00b7 <a href="' + esc(link) + '" target="_blank" rel="noopener">' + esc(sid) + '</a>' +
+      (ret ? ' \u00b7 RETRIEVED ' + ret : '');
+  }
+
+  /* Quote-ready factual line. No editorializing: the figure IS the talking
+     point. Built only from backend-computed labels — never recomputed here. */
+  function quoteLine(s) {
+    if (s.stale) return null;
+    var bits = [];
+    var title = String(s.title || s.series_id || '').toUpperCase();
+    var val = s.value_label != null ? String(s.value_label) : null;
+    if (!val) return null;
+    var period = s.period_label || s.period || '';
+    var sa = String(s.sa_nsa || '').toUpperCase();
+    bits.push(title + ' IS ' + val + (period ? ' (' + period.toUpperCase() : ''));
+    if (sa) bits.push(', ' + sa);
+    bits.push(')');
+    var ch = s.change_label || s.change_pct_label;
+    if (ch) bits.push(' \u2014 ' + String(ch).toUpperCase() + ' VS PRIOR PERIOD');
+    return bits.join('');
+  }
+
+  function card(s) {
+    var title = esc(s.title || s.series_id || '\u2014');
+    var saNsa = esc(s.sa_nsa || '');
+    var body;
+    if (s.stale) {
+      body = '<div class="pf-jp-stale">' + esc(s.stale_note || 'Last updated \u2014 refresh pending.') + '</div>';
+    } else {
+      body =
+        '<div class="pf-jp-value">' + esc(s.value_label != null ? s.value_label : '\u2014') + '</div>' +
+        '<div class="pf-jp-period">' + esc(s.period_label || s.period || '') + '</div>' +
+        '<div class="pf-jp-change">' + esc(s.change_label || s.change_pct_label || '') + '</div>';
+      var q = quoteLine(s);
+      if (q) body += '<div class="pf-jp-quote"><div class="pf-jp-quotelbl">CITE THIS</div>' + esc(q) + '</div>';
+    }
+    return '<div class="pf-jp-card">' +
+      '<div class="pf-jp-head"><span class="pf-jp-name">' + title + '</span>' +
+      (saNsa ? '<span class="pf-jp-chip">' + saNsa + '</span>' : '') + '</div>' +
+      body +
+      '<div class="pf-jp-src">' + stamp(s) + '</div></div>';
+  }
+
+  function render(container, j) {
+    cssOnce();
+    var live = !!(j && j.fred_live);
+    var cards = (j && Array.isArray(j.cards)) ? j.cards : [];
+    /* Fail-soft: no data, dead wire, or 404ing action renders NOTHING —
+       the civic page and pressure pane are untouched. */
+    if (!live || !cards.length) { container.innerHTML = ''; return; }
+    /* Backend contract order: UNRATE, PAYEMS. Rendered in order received. */
+    container.innerHTML = '<div class="pf-jp">' +
+      '<div class="pf-jp-kicker">OFFICIAL DATA</div>' +
+      '<h3 class="pf-jp-title">THE JOBS NUMBERS \u2014 ARM YOURSELF</h3>' +
+      '<div class="pf-jp-grid">' +
+      cards.map(function (s) { return card(s || {}); }).join('') +
+      '</div>' +
+      '<div class="pf-jp-foot">OFFICIAL FIGURES VIA FRED \u00b7 CITE THEM IN YOUR PRESSURE-CAMPAIGN CALLS</div></div>';
+  }
+
+  function mount(container) {
+    if (!container) return false;
+    try {
+      if (container.querySelector && container.querySelector('.pf-jp')) return true;
+    } catch (e) {}
+    api('fred_context', { surface: 'jobs' }, function (j) {
+      try {
+        if (j && j.ok) render(container, j);
+        else render(container, null);
+      } catch (e) { try { render(container, null); } catch (e2) {} }
+    });
+    return true;
+  }
+
+  try { window.PFJobsPanel = { mount: mount }; } catch (e) {}
+})();
+
+;
+
+/* ===== civic-duty.js ===== */
+/* games/civic-duty.js | PF v1.4.3 | CIVIC DUTY service-medal qualification layer.
+   Political HQ pages only (bundle-hq) — this is where civic actions fire.
+   Listens for the 5 raw pf-civic-* events from civic.js and awards the
+   'civic' service medal at 3 DISTINCT action types in the week
+   (America/Chicago, Monday reset), then hands off 'pf-civic-duty-earned'
+   to service-medals.js (idempotent there). The medal itself grants no XP;
+   FULL DEPLOYMENT's existing +50 XP flow handles the reward.
+   KILL: ?pf_off=civic-duty  or  localStorage pf_disabled_v1='["civic-duty"]' */
+
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("civic-duty")) { return; }
+  try {
+    /* PF CIVIC DUTY — qualification gate in front of the service medal.
+       Device-local state pf_civic_duty_v1 = {w: weekKey, t: {actionType:1},
+       a: awardedFlag}; resets when the week key changes. Threshold 3-of-5
+       distinct actions (mid-pack difficulty — single-event medals are easier,
+       the 16-event FULL DEPLOYMENT is the hard ceiling). */
+    var LS='pf_civic_duty_v1', MS='pf_medals_v2';
+    var THRESHOLD=3;
+    var TYPES={
+      'pf-civic-petition-signed':'sign',
+      'pf-civic-petition-created':'create',
+      'pf-civic-rep-contacted':'contact',
+      'pf-civic-voter-pledged':'pledge',
+      'pf-civic-voter-checked':'check'
+    };
+    function week(){ return PF.isoWeekKey(PF.chiNow()); }
+    function load(){
+      try{
+        var s=JSON.parse(localStorage.getItem(LS)||'null');
+        if(s&&s.w&&s.t&&typeof s.t==='object')return s;
+      }catch(e){}
+      return {w:week(),t:{}};
+    }
+    function save(s){ try{ localStorage.setItem(LS,JSON.stringify(s)); }catch(e){} }
+    function count(st){ var n=0; for(var k in st.t){ if(st.t.hasOwnProperty(k))n++; } return n; }
+
+    /* 2026-10-05 (fe/political-hq-optimize — Psych gate F2 plumbing):
+       expose week-aware progress so success toasts (F2-TOAST) and a future
+       progress meter (F2-PROG) can read "N of 3" without duplicating the
+       localStorage schema. Invisible to visitors — the getter alone changes
+       nothing on screen. */
+    function progress(){
+      try{
+        var st=load(), wk=week();
+        if(st.w!==wk) return {count:0, threshold:THRESHOLD, awarded:false};
+        return {count:count(st), threshold:THRESHOLD, awarded:!!st.a};
+      }catch(e){ return {count:0, threshold:THRESHOLD, awarded:false}; }
+    }
+    try{ PF.civicDutyProgress = progress; }catch(e){}
+
+    /* 2026-10-05 (P1 F2-PROG): visible progress meter. Paints
+       "🗳 Civic Duty: N of 3 actions this week" into #cvDutyMeter (mounted
+       by civic.js in the Contact-your-rep pane header). Repaints on every
+       pf-civic-* event and on week rollover; a MutationObserver repaints
+       after civic.js re-renders wipe the node. Surprise rewards don't pull
+       behavior forward — visible progress does. */
+    function meterText(){
+      var p=progress();
+      if(p.awarded||p.count>=p.threshold) return "\ud83d\uddf3 Civic Duty: "+p.threshold+" of "+p.threshold+" \u2014 earned this week";
+      return "\ud83d\uddf3 Civic Duty: "+p.count+" of "+p.threshold+" actions this week";
+    }
+    function paintMeter(){
+      try{
+        var el=document.getElementById("cvDutyMeter");
+        /* Same-value guard: setting textContent always mutates, which
+           would re-trigger this observer forever. */
+        if(el){ var t=meterText(); if(el.textContent!==t) el.textContent=t; }
+      }catch(e){}
+    }
+    try{
+      var mo=new MutationObserver(function(){ paintMeter(); });
+      mo.observe(document.documentElement,{childList:true,subtree:true});
+    }catch(e){}
+    paintMeter();
+
+    function award(wk){
+      /* Write m.civic=1 into pf_medals_v2 using the EXACT schema
+         service-medals.js uses ({w, m, fd}) — read-modify-write, preserving
+         other medals and fd/fd_pending. This is what makes the award stick on
+         /political-hq, where service-medals.js never loads. */
+      var s=null;
+      try{ s=JSON.parse(localStorage.getItem(MS)||'null'); }catch(e){ s=null; }
+      if(!s||typeof s!=='object'||!s.w||!s.m||typeof s.m!=='object'){ s={w:wk,m:{},fd:false}; }
+      if(s.w!==wk){ s={w:wk,m:{},fd:false}; }
+      var fresh=!s.m.civic;
+      s.m.civic=1;
+      try{ localStorage.setItem(MS,JSON.stringify(s)); }catch(e){}
+      if(!fresh)return; /* already awarded — no double dispatch/dopamine */
+      /* hand off to the medal system (idempotent — service-medals.js checks s.m[md.id]) */
+      try{ document.dispatchEvent(new CustomEvent('pf-civic-duty-earned')); }catch(e){}
+      /* M1 dopamine: same celebration service-medals.js gives every medal. */
+      try{ if(window.PF&&PF.dope){ var mh=document.getElementById('pf-medals')||document.body; PF.dope.confetti(mh,40); PF.dope.ping(mh,'MEDAL EARNED: CIVIC DUTY'); } }catch(dpe){}
+    }
+
+    function record(type){
+      var st=load(), wk=week();
+      if(st.w!==wk){ st={w:wk,t:{}}; } /* week rollover resets the count */
+      if(st.a)return; /* awarded this week — exactly-once */
+      st.t[type]=1;
+      if(count(st)>=THRESHOLD){ st.a=1; save(st); award(wk); }
+      else save(st);
+    }
+
+    Object.keys(TYPES).forEach(function(ev){
+      document.addEventListener(ev,function(){ try{ record(TYPES[ev]); }catch(e){} paintMeter(); });
+    });
+  } catch (err) { PF.error("civic-duty", err); }
+})();
+
+;

@@ -194,6 +194,39 @@
       var h = document.getElementById('pf-hud');
       if (h) h.classList.toggle('open');
     });
+    /* QC HOLD fix (2026-10-06): the nuke strip (#pf-nuke-stick, z-9000) is
+       also bottom-fixed on mobile — the HUD (z-9990) buried its CHARGE /
+       RALLY actions. Stack the HUD above the strip whenever the strip is
+       visible; drop back to bottom:0 when it's dismissed. Desktop HUD is
+       top-fixed, so the offset only applies below the 820px breakpoint. */
+    try { watchNukeStrip(el); } catch (e) {}
+  }
+
+  function nukeVisibleHeight() {
+    try {
+      var n = document.getElementById('pf-nuke-stick');
+      if (!n || n.hasAttribute('hidden')) return 0;
+      var h = n.offsetHeight || 0;
+      return h > 0 ? h : 0;
+    } catch (e) { return 0; }
+  }
+  function watchNukeStrip(hudEl) {
+    function apply() {
+      try {
+        var mobile = window.innerWidth < 820;
+        hudEl.style.bottom = (mobile && nukeVisibleHeight() > 0)
+          ? nukeVisibleHeight() + 'px' : '';
+      } catch (e) {}
+    }
+    apply();
+    try {
+      var obs = new MutationObserver(function () { apply(); });
+      obs.observe(document.body, { childList: true, subtree: true, attributes: true,
+        attributeFilter: ['hidden', 'style', 'class'] });
+    } catch (e) {}
+    try {
+      window.addEventListener('resize', apply);
+    } catch (e2) {}
   }
 
   function boot() {

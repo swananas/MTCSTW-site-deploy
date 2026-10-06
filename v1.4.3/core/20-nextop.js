@@ -549,7 +549,6 @@
   var _resolved = null; /* {op, st} once loadState completes */
   var _terminalQueue = [];
   function terminalCardHtml(op, st, ctx) {
-    var dismissKey = 'pf_nm_dismiss_' + String(ctx || 'terminal');
     return '<div class="pf-nextmove-terminal" data-pf-nm-ctx="' + esc(ctx || '') + '" style="max-width:560px;margin:18px auto;padding:16px 14px;background:#0a0a0a;' +
       'border:1px solid #333;border-left:4px solid #c1121f;box-sizing:border-box;position:relative;' +
       'font-family:Arial,sans-serif;text-align:center;">' +

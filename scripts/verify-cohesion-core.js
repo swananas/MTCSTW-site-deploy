@@ -74,7 +74,10 @@ ok('bundle has terminal API', bundle.indexOf('pf:terminal') !== -1);
 ok('bundle has new ladder', bundle.indexOf('ORDERS AWAIT DEBRIEF') !== -1);
 ok('bundle has psych fix', bundle.indexOf('Keep it going') !== -1);
 
-/* 11. Runtime: nextop ladder picks the orders rung first when opDone=false */
+/* 12. QC HOLD fixes (2026-10-06) */
+ok('hud offsets above nuke strip', hud.indexOf('pf-nuke-stick') !== -1 && hud.indexOf('nukeVisibleHeight') !== -1);
+ok('hud offset only on mobile', hud.indexOf('innerWidth < 820') !== -1);
+ok('dead dismissKey removed', nextop.indexOf('dismissKey') === -1);
 (function () {
   var logs = [];
   var sandbox = {

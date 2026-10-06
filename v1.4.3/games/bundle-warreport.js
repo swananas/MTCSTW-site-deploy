@@ -229,7 +229,9 @@ function api(action,params,cb){
   q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
   setTimeout(function(){ finish(null); },12000);
 }
-/* QW-2 (2026-10-05): next-action row rendered after the report body / email pane.
+/* QW-2 (2026-10-05, fixed Psych pre-ship): next-action row rendered after the
+   report body / email pane. Substack button label no longer promises the
+   War Report (no War Report posts exist there; the email leg is parked).
    Zero new XP, zero new endpoints, zero new backend reads — static anchors only. */
 function nextActionRow(){
   return '<div class="x-pane" style="text-align:center"><h4>READ IT. NOW MOVE.</h4>'
@@ -237,7 +239,7 @@ function nextActionRow(){
     +'<div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:10px">'
     +'<a class="c-btn" href="/#pf-vote" style="text-decoration:none;display:inline-block">VOTE FOR NEXT WEEK\\'S PROPAGANDIST</a>'
     +'<a class="c-btn" href="/create?tab=bounties" style="text-decoration:none;display:inline-block">OPEN BOUNTIES</a>'
-    +'<a class="c-btn" href="https://mtcstw.substack.com" target="_blank" rel="noopener" style="text-decoration:none;display:inline-block">GET THE WAR REPORT</a>'
+    +'<a class="c-btn" href="https://mtcstw.substack.com" target="_blank" rel="noopener" style="text-decoration:none;display:inline-block">FOLLOW THE FACTORY &#8594;</a>'
     +'</div></div>';
 }
 function paint(el,j){

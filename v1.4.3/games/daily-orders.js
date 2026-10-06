@@ -758,14 +758,15 @@ function renderReset(){
 }
 
 function wrMondayLink(){
-  /* QW-12: one-line War Report link. Monday (chiNow) gets "is live" copy,
-     every other day gets the evergreen catch-up line. No interpolation,
-     so esc() not needed. */
+  /* QW-12 (2026-10-05, fixed Psych pre-ship): one-line War Report link.
+     Monday (chiNow) gets the Monday line, every other day gets the
+     evergreen catch-up line. Neither claims a report exists — the label
+     is driven by day-of-week only. No interpolation, so esc() not needed. */
   var isMon=false;
   try{ isMon=PF.chiNow().getDay()===1; }catch(e){}
   return '<span style="margin-left:12px;color:#b8ab8e;font-size:12px">'
     +'<a href="/#pf-warreport" style="color:#c1121f;font-weight:700;text-decoration:none">'
-    +(isMon?"MONDAY'S WAR REPORT IS LIVE &#8594;":"CATCH UP: THE WAR REPORT &#8594;")
+    +(isMon?"MONDAY: THE WAR REPORT &#8594;":"CATCH UP: THE WAR REPORT &#8594;")
     +'</a></span>';
 }
 function render(){

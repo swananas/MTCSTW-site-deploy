@@ -122,6 +122,8 @@
       else { h+='<div class="db-note">Claim a callsign to take bounties.</div>'; }
       h+='<div class="db-msg"></div></div>';
     });
+    /* Brand-integration (2026-10-06): bounty boards → cells. */
+    h+='<div data-pf-handoff="take-cell"></div>';
     h+='</div>';
     host.innerHTML=h;
   }

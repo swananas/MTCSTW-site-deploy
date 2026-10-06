@@ -266,6 +266,9 @@
         '</div>';
     }
     h += '<button type="button" class="pf-se-share" data-se-act="share">SHARE THE RECEIPTS</button>';
+    /* Brand-integration (2026-10-06): networks row on the unified component —
+       the builder already owns its share button, so nets-only mode. */
+    h += '<div data-pf-share="stackem" data-pf-share-mode="nets" data-pf-share-link="/economy"></div>';
     if (!opts.noXlinks) h += xlinks();
     return '<div class="pf-se-out">' + h + '</div>';
   }

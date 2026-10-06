@@ -313,6 +313,8 @@
       '<div id="pf-inf-ci-msg" style="margin-top:12px;font-size:14px;"></div>' +
       '</div>' +
       '<div id="pf-inf-method" style="' + HONEST + '">How we use this: your reports are aggregated into anonymous community medians on the board. We never sell your data. Your area is always coarse — ZIP or city, never an address, never a name. One report per item per day.</div>' +
+      /* Brand-integration (2026-10-06): methodology → share-the-intel handoff. */
+      '<div data-pf-handoff="share-intel"></div>' +
       '<div style="' + HONEST + 'color:#c98f8f;margin-top:6px;">I fight with receipts.</div>' +
       '</div>';
 
@@ -539,7 +541,7 @@
       return '<button data-pf-inf-view="' + v + '" style="' + (on ? BTN : BTN_GHOST) + 'margin-right:8px;margin-bottom:8px;">' + label + '</button>';
     }
     function render() {
-      var h = '<div style="' + CSS + '">' +
+      var h = '<div style="' + CSS + '" data-pf-share="inflation-board" data-pf-share-mode="nets">' +
         '<h2 style="margin:0 0 4px;font-size:22px;letter-spacing:1px;">THE PEOPLE\u2019S PRICE BOARD</h2>' +
         '<div style="font-size:14px;color:#d8d0c0;margin-bottom:12px;">What the people are actually paying. Not the official numbers — ours.</div>' +
         '<div style="margin-bottom:12px;">' + tabBtn('YOUR AREA', 'area') + tabBtn('NATIONAL', 'national') + tabBtn('COMPARE', 'compare') + '</div>' +
@@ -547,6 +549,8 @@
         '<input id="pf-inf-bd-area" placeholder="ZIP or city — never your address" style="' + INPUT + 'max-width:280px;display:inline-block;" value="' + esc(area) + '">' +
         ' <button id="pf-inf-bd-go" style="' + BTN + '">LOAD</button></div>' +
         '<div id="pf-inf-bd-out"><div style="color:#b8b0a0;">Loading the board…</div></div>' +
+        /* Brand-integration (2026-10-06): data→propaganda handoff. */
+        '<div data-pf-handoff="share-intel"></div>' +
         '</div>';
       mount.innerHTML = h;
       document.getElementById('pf-inf-bd-go').onclick = function () {
@@ -715,7 +719,7 @@
           esc(it.name) + ' — ' + esc(it.unit) + '</option>';
       }).join('');
       mount.innerHTML =
-        '<div style="' + CSS + '">' +
+        '<div style="' + CSS + '" data-pf-share="inflation-board" data-pf-share-mode="nets">' +
         '<h2 style="margin:0 0 4px;font-size:22px;letter-spacing:1px;">TRENDS & THE PEOPLE\u2019S INDEX</h2>' +
         '<div style="font-size:14px;color:#d8d0c0;margin-bottom:12px;">Weekly medians from community reports — next to the official numbers, honestly labeled.</div>' +
         '<label style="display:block;font-size:13px;margin-bottom:4px;">ITEM</label>' +

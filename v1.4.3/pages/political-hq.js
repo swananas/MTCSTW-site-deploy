@@ -107,6 +107,20 @@
     mountSilos();
   }
 
+  /* Brand-integration (2026-10-06): the connective tissue. Page-level share
+     bar + the activism→data REPORT BACK handoff. Declarative — share-everywhere
+     renders them when it loads; harmless empty divs until then. */
+  try {
+    var phqHost = document.getElementById('pf-political-hq');
+    if (phqHost && !document.getElementById('pf-phq-brandfoot')) {
+      var bf = document.createElement('div');
+      bf.id = 'pf-phq-brandfoot';
+      bf.innerHTML = '<div data-pf-share="political-hq"></div>' +
+                     '<div data-pf-handoff="report-back"></div>';
+      phqHost.appendChild(bf);
+    }
+  } catch (e) {}
+
   /* wave-live-rails (2026-10-05): TOP STORIES rail on the Political HQ —
      the shared news_top cache via PF.newsTop (same cache as the briefing).
      Fail-soft: the helper renders a "stories updating" line when empty. */

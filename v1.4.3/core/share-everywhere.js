@@ -99,6 +99,73 @@
       title: 'ENLISTMENT PAPERS', tag: 'Signed. Sworn. In.',
       lines: ['I enlisted in the Propaganda Factory.', 'Your papers are waiting.'],
       cta: 'ENLIST NOW'
+    },
+    /* ---- Brand-integration pass (2026-10-06, fe/brand-integration): ---- */
+    'robreport': {
+      title: 'THE ROBBERY REPORT', tag: "Here's what they took — from their own filings.",
+      lines: ['29 items. 4 household baskets.', 'Their numbers, our division.'],
+      cta: 'JOIN THE FIGHT'
+    },
+    'robreport-basket': {
+      title: 'THE ROBBERY REPORT', tag: 'The household basket, itemized.',
+      lines: ['Your whole cart, their whole take.', 'Estimated from their own filings.'],
+      cta: 'JOIN THE FIGHT'
+    },
+    'war-report': {
+      title: '\u2694 WAR REPORT \u2694', tag: 'The week that was, straight from Command.',
+      lines: ['Read it. Now move.', 'The report lives here.'],
+      cta: 'READ THE REPORT'
+    },
+    'inflation-board': {
+      title: "PEOPLE\u2019S CPI", tag: 'Prices we reported ourselves.',
+      lines: ['Community-reported medians vs official numbers.', 'Join the count.'],
+      cta: 'JOIN THE COUNT'
+    },
+    'stackem': {
+      title: "STACK \u2019EM", tag: 'Two series. One chart. The truth.',
+      lines: ['Pick two economic series, see who wins.', 'The read writes itself.'],
+      cta: 'STACK YOURS'
+    },
+    'fred-economy': {
+      title: 'THE ECONOMY, READ', tag: 'Official data, honest framing.',
+      lines: ['FRED series, source-stamped.', 'No predictions. Just receipts.'],
+      cta: 'READ THE NUMBERS'
+    },
+    'data-bounties': {
+      title: 'DATA BOUNTIES', tag: 'Your content becomes movement action.',
+      lines: ['Claim bounties. Confirm intel.', 'Never sold. Never ad inventory.'],
+      cta: 'TAKE A BOUNTY'
+    },
+    'political-hq': {
+      title: '\u2605 POLITICAL HQ \u2605', tag: 'Every theater of the political war.',
+      lines: ['Civic action. Legislation. Intel.', 'Pick your front.'],
+      cta: 'JOIN THE FIGHT'
+    },
+    'academy': {
+      title: 'THE ACADEMY', tag: 'Trained. Not born.',
+      lines: ['Courses that make agitators.', 'Graduate. Then organize.'],
+      cta: 'START TRAINING'
+    },
+    /* Reserved REG for surfaces landing later — the bar works day one. */
+    'shrinkflation': {
+      title: 'SHRINKFLATION WATCH', tag: 'Same price. Less product.',
+      lines: ['Spot it. Report it.', 'The bag got lighter.'],
+      cta: 'JOIN THE FIGHT'
+    },
+    'utilities': {
+      title: 'UTILITY WATCH', tag: 'The bills they bury.',
+      lines: ['Power, water, gas — tracked.', 'Read the meter.'],
+      cta: 'JOIN THE FIGHT'
+    },
+    'war-report-archive': {
+      title: 'WAR REPORT ARCHIVE', tag: 'Every week, on record.',
+      lines: ['The war, week by week.', 'History with receipts.'],
+      cta: 'READ THE REPORT'
+    },
+    'peoples-cpi-methodology': {
+      title: "PEOPLE\u2019S CPI \u2014 METHOD", tag: 'How the count works.',
+      lines: ['Community-reported. Honestly labeled.', 'Read the method.'],
+      cta: 'JOIN THE COUNT'
     }
   };
 
@@ -433,6 +500,70 @@
     } catch (e) { return false; }
   }
 
+  /* ------------------------------------------------------------------ */
+  /* Pillar handoffs: story-continuation moments, not extra steps.        */
+  /* Three presets — SHARE THIS INTEL (data→propaganda), TAKE THIS TO    */
+  /* YOUR CELL (data→organize), REPORT BACK (activism→data) — plus a     */
+  /* generic builder. Declarative: <div data-pf-handoff="<kind>">.       */
+  /* ------------------------------------------------------------------ */
+  function safeHref(u) {
+    try {
+      var s = String(u || '').trim();
+      if (/^(\/|#)/.test(s)) return s;
+      if (/^https?:\/\//i.test(s)) return s;
+    } catch (e) {}
+    return '/';
+  }
+  var HANDOFFS = {
+    'share-intel': {
+      kicker: '\u26a1 SHARE THIS INTEL',
+      line: 'This number is ammunition. Put it in someone\u2019s feed.',
+      links: [{ label: 'MAKE IT A POSTER', href: '/create' }]
+    },
+    'take-cell': {
+      kicker: '\u2605 TAKE THIS TO YOUR CELL',
+      line: 'Your cell fights harder with real numbers.',
+      links: [{ label: 'OPEN YOUR CELL', href: '/cells' }]
+    },
+    'report-back': {
+      kicker: '\u2713 REPORT BACK',
+      line: 'Did the work? Log it. The movement counts what gets done.',
+      links: [{ label: 'LOG IT', href: '/data-bounties' }]
+    }
+  };
+  function handoff(host, kind, opts) {
+    opts = opts || {};
+    if (!host) return false;
+    var def = HANDOFFS[kind];
+    if (!def) return false;
+    try {
+      if (host.querySelector('[data-pf-handoff="' + kind + '"]')) return true; /* already placed */
+      var d = document.createElement('div');
+      d.setAttribute('data-pf-handoff', kind);
+      d.style.cssText = 'border:2px solid #c1121f;background:#0d0d0d;max-width:680px;margin:1.2rem auto;' +
+        'padding:0.9rem 1rem;text-align:center;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box;';
+      var k = document.createElement('div');
+      k.style.cssText = 'color:#c1121f;font-weight:900;letter-spacing:0.22em;font-size:0.72rem;margin-bottom:0.4rem;';
+      k.textContent = opts.kicker || def.kicker;
+      var l = document.createElement('div');
+      l.style.cssText = 'color:#c9bfa8;font-size:0.85rem;margin-bottom:0.7rem;line-height:1.5;';
+      l.textContent = opts.line || def.line;
+      d.appendChild(k);
+      d.appendChild(l);
+      var links = opts.links || def.links;
+      for (var i = 0; i < links.length; i++) {
+        var a = document.createElement('a');
+        a.href = safeHref(links[i].href);
+        a.textContent = links[i].label;
+        a.style.cssText = 'display:inline-block;background:#c1121f;color:#fff;font-weight:900;font-size:0.72rem;' +
+          'letter-spacing:0.14em;padding:0.6rem 1.1rem;margin:0.25rem;text-decoration:none;cursor:pointer;';
+        d.appendChild(a);
+      }
+      host.appendChild(d);
+      return true;
+    } catch (e) { return false; }
+  }
+
   /* The share pipeline needs the painter-resolved canvas. Wrap PFShare's
      shareImage/saveImage so a null canvas resolves via the custom painter
      (or generic poster) for this gameId first. Installed once. */
@@ -491,22 +622,95 @@
     'war-map': paintWarMap
   };
 
+  /* External painter registration: silos with their own custom painters
+     (e.g. the Robbery Report's per-card painters) register here so
+     resolvePoster finds them even when share-image's CUSTOM map isn't
+     consulted (PFShare.poster is the generic renderer). Idempotent. */
+  function registerPainter(gameId, fn) {
+    try {
+      if (gameId && typeof fn === 'function') { PAINTERS[gameId] = fn; return true; }
+    } catch (e) {}
+    return false;
+  }
+  /* Pull painters a silo exposed for late registration (the money chunk may
+     load after this module). Currently: PFRobReport._painters. */
+  function drainExternalPainters() {
+    try {
+      var ext = window.PFRobReport && window.PFRobReport._painters;
+      if (ext) {
+        for (var k in ext) {
+          if (ext.hasOwnProperty(k) && !PAINTERS[k] && typeof ext[k] === 'function') PAINTERS[k] = ext[k];
+        }
+      }
+    } catch (e) {}
+  }
+  /* Per-item Robbery Report REG entries (dynamic: 29 items + 4 baskets live
+     in PFRobReportData). Idempotent — only fills missing keys. */
+  function registerDynamicReg() {
+    try {
+      var D = window.PFRobReportData;
+      if (!D || !window.PFShare || !PFShare.REG) return;
+      var i;
+      if (D.ITEMS) for (i = 0; i < D.ITEMS.length; i++) {
+        var it = D.ITEMS[i], k = 'robreport-' + it.id;
+        if (!PFShare.REG[k]) PFShare.REG[k] = {
+          title: 'THE ROBBERY REPORT', tag: String(it.name || ''),
+          lines: ['Their take, from their own filings.', 'Estimated from SEC EDGAR filings.'],
+          cta: 'JOIN THE FIGHT'
+        };
+      }
+      if (D.BASKETS) for (i = 0; i < D.BASKETS.length; i++) {
+        var b = D.BASKETS[i], k2 = 'robreport-basket-' + b.id;
+        if (!PFShare.REG[k2]) PFShare.REG[k2] = {
+          title: 'THE ROBBERY REPORT', tag: String(b.name || ''),
+          lines: ['The household basket, itemized.', 'Estimated from their own filings.'],
+          cta: 'JOIN THE FIGHT'
+        };
+      }
+    } catch (e) {}
+  }
+
   /* ------------------------------------------------------------------ */
   /* Declarative scan: any [data-pf-share="<gameId>"] host gets the bar. */
-  /* Surfaces opt in with one attribute; late renders are caught by the  */
-  /* MutationObserver.                                                   */
+  /* mode="nets" (data-pf-share-mode) renders the network intent row only, */
+  /* for surfaces that already own their share/save buttons.              */
+  /* [data-pf-handoff="<kind>"] hosts get the pillar handoff block.       */
+  /* Surfaces opt in with one attribute; late renders are caught by the   */
+  /* MutationObserver.                                                    */
   /* ------------------------------------------------------------------ */
   function scan() {
-    var hosts = null;
+    drainExternalPainters();
+    registerDynamicReg();
+    var hosts = null, i, h, gid;
     try { hosts = document.querySelectorAll('[data-pf-share]'); } catch (e) { return; }
-    for (var i = 0; i < hosts.length; i++) {
+    for (i = 0; i < hosts.length; i++) {
       try {
-        var h = hosts[i];
-        var gid = h.getAttribute('data-pf-share');
+        h = hosts[i];
+        gid = h.getAttribute('data-pf-share');
         if (!gid || h.getAttribute('data-pf-share-wired')) continue;
         h.setAttribute('data-pf-share-wired', '1');
-        bar(h, gid, { link: h.getAttribute('data-pf-share-link') || null });
+        var link = h.getAttribute('data-pf-share-link') || null;
+        if (h.getAttribute('data-pf-share-mode') === 'nets') {
+          if (!h.querySelector('[data-pfshare-networks="' + gid + '"]')) {
+            h.appendChild(networksRow(gid, gameTitle(gid), link));
+          }
+        } else {
+          bar(h, gid, { link: link });
+        }
       } catch (e) {}
+    }
+    var hh = null;
+    try { hh = document.querySelectorAll('[data-pf-handoff]'); } catch (e) { hh = null; }
+    if (hh) {
+      for (i = 0; i < hh.length; i++) {
+        try {
+          h = hh[i];
+          gid = h.getAttribute('data-pf-handoff');
+          if (!gid || h.getAttribute('data-pf-handoff-wired')) continue;
+          h.setAttribute('data-pf-handoff-wired', '1');
+          handoff(h, gid, {});
+        } catch (e) {}
+      }
     }
   }
 
@@ -540,6 +744,8 @@
     window.PFShareEverywhere = {
       bar: bar,
       networks: networksRow,
+      handoff: handoff,
+      registerPainter: registerPainter,
       resolvePoster: resolvePoster,
       REG: NEW_REG,
       NETWORKS: NETWORKS,

@@ -258,6 +258,8 @@ function paint(el,j){
       +'<div class="x-note">Command drafts the War Report every Monday. It lands here '
       +'(and in your inbox once email is wired). Check in all week so there is '
       + 'something worth writing about.</div></div>'
+      /* Brand-integration (2026-10-06): war reports → sharing. */
+      +'<div data-pf-share="war-report"></div>'
       +'<div id="wrFredNumbers"></div>'
       +'<div id="wrFanFav"></div>'
       +emailPaneHtml()
@@ -274,6 +276,8 @@ function paint(el,j){
     +'<div class="x-note">Week of '+esc(r.week_start||"")+(when?" · drafted "+esc(when):"")+'</div>'
     +'<div class="wr-body" style="white-space:pre-wrap;font-family:monospace;font-size:13px;line-height:1.55;margin-top:8px">'
     +esc(meme.before)+meme.card+esc(meme.after)+'</div></div>'
+    /* Brand-integration (2026-10-06): war reports → sharing. */
+    +'<div data-pf-share="war-report"></div>'
     +'<div id="wrFredNumbers"></div>'
     +'<div id="wrFanFav"></div>'
     +emailPaneHtml()

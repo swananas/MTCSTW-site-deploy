@@ -291,7 +291,9 @@
       if(C.completed&&C.completed_at){
         h+='<div style="border:2px solid #c1121f;background:#140808;padding:.7rem;margin:.6rem 0;text-align:center">'
           +'<div style="color:#c1121f;font-weight:900;letter-spacing:.14em;font-size:.85rem">&#9733; CERTIFICATE &#9733;</div>'
-          +'<div style="color:#f5f0e1;font-size:.8rem;margin-top:.25rem">'+esc(C.title)+' &mdash; earned by '+esc(id.callsign||'callsign')+(C.completed_at?' on '+esc(fmtDate(C.completed_at)):"")+'</div></div>';
+          +'<div style="color:#f5f0e1;font-size:.8rem;margin-top:.25rem">'+esc(C.title)+' &mdash; earned by '+esc(id.callsign||'callsign')+(C.completed_at?' on '+esc(fmtDate(C.completed_at)):"")+'</div>'
+          /* Brand-integration (2026-10-06): academy → cells. */
+          +'<div style="margin-top:.5rem"><a href="/cells" style="color:#e8b923;font-weight:800;font-size:.8rem;letter-spacing:.1em;text-decoration:none">&#9733; TAKE THIS TO YOUR CELL &rarr;</a></div></div>';
       }
       for(k=0;k<cl.length;k++){
         L=cl[k];

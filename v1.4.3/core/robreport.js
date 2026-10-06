@@ -47,6 +47,9 @@
       '.pf-rr-cant{font-size:12px;color:#c9bfa8;margin:0 0 10px;border-top:1px solid #2a2a2a;padding-top:8px}' +
       '.pf-rr-cant b{color:#f5f0e6}' +
       '.pf-rr-share{background:#c1121f;color:#fff;border:none;border-radius:5px;font-weight:700;font-size:13px;letter-spacing:1px;padding:8px 18px;cursor:pointer}' +
+      /* Brand-integration (2026-10-06): card → CPI + bounty cross-links. */
+      '.pf-rr-next{font-size:12px;color:#8f887a;margin:0 0 10px;letter-spacing:1px}' +
+      '.pf-rr-next a{color:#e8a0a0;text-decoration:underline}' +
       '.pf-rr-live{font-size:12px;color:#7CFC00;margin:0 0 8px}' +
       '.pf-rr-live a{color:#7CFC00;text-decoration:underline}' +
       '.pf-rr-note{font-size:12px;color:#8f887a;margin:0 0 4px}' +
@@ -122,7 +125,8 @@
 
   /* ---------------- item card ---------------- */
   function cardHTML(it) {
-    var h = '<article class="pf-rr-card" data-rr="' + esc(it.id) + '">';
+    var h = '<article class="pf-rr-card" data-rr="' + esc(it.id) + '"' +
+            ' data-pf-share="robreport-' + esc(it.id) + '" data-pf-share-mode="nets">';
     h += '<div class="pf-rr-top"><span class="pf-rr-num">#' + it.num + '</span><h4>' + esc(it.name) + '</h4>' +
          '<span class="pf-rr-chip">' + esc(it.cls) + '</span></div>';
     h += '<p class="pf-rr-paid">You paid <b>' + (it.price != null ? money(it.price) : '—') + '</b> ' +
@@ -165,6 +169,7 @@
          }).join(' · ') + '</p>';
     h += '<p class="pf-rr-cant"><b>What this can\u2019t prove:</b> ' + esc(it.cantProve) + '</p>';
     h += '<p class="pf-rr-tiny" style="margin:0 0 10px"><i>' + esc(D.TAGLINE) + '</i></p>';
+    h += '<p class="pf-rr-next">NEXT &rarr; <a href="/economy#pf-inflation-board">LIVE PRICES</a> &middot; <a href="/data-bounties">CLAIM A BOUNTY</a></p>';
     h += '<button class="pf-rr-share" data-rr-share="item:' + esc(it.id) + '">SHARE IMAGE</button>';
     h += '</article>';
     return h;
@@ -180,7 +185,8 @@
       return '<li>' + esc(it.name) + ' × ' + bi.qty + ' (' + esc(bi.qtyLabel) + '): paid ' + money(paid) +
              ' · their take ≈ ' + money(take) + '</li>';
     }).join('');
-    var h = '<div class="pf-rr-basket" data-rr-basket="' + esc(b.id) + '">';
+    var h = '<div class="pf-rr-basket" data-rr-basket="' + esc(b.id) + '"' +
+            ' data-pf-share="robreport-basket-' + esc(b.id) + '" data-pf-share-mode="nets">';
     h += '<h4>' + esc(b.name) + '</h4><p class="pf-rr-sub">' + esc(b.sub) + '</p>';
     h += '<div class="pf-rr-bar"><div class="pf-rr-seg pf-rr-cost" style="width:' + (b.cost / b.paid * 100).toFixed(1) +
          '%"></div><div class="pf-rr-seg pf-rr-take" style="width:' + (b.take / b.paid * 100).toFixed(1) + '%"></div></div>';
@@ -189,6 +195,7 @@
     h += '<p class="pf-rr-tiny"><i>' + esc(D.TAGLINE) + '</i></p>';
     h += '<details><summary>Per-item breakdown</summary><ul>' + rows + '</ul></details>';
     h += '<p class="pf-rr-assump">' + esc(b.assumptions) + '</p>';
+    h += '<p class="pf-rr-next">NEXT &rarr; <a href="/economy#pf-inflation-board">LIVE PRICES</a> &middot; <a href="/data-bounties">CLAIM A BOUNTY</a></p>';
     h += '<button class="pf-rr-share" data-rr-share="basket:' + esc(b.id) + '">SHARE BASKET</button>';
     h += '</div>';
     return h;
@@ -296,11 +303,34 @@
       } catch (e) { try { done(null); } catch (e2) {} }
     };
   }
+  /* Painters, also exposed for the share-everywhere unified pipeline
+     (PFShare.poster is the generic renderer — it never consults the CUSTOM
+     map, so without this the per-card SHARE buttons would all ship the
+     generic daily-orders poster). */
+  var EXT_PAINTERS = {};
   function registerPainters() {
     try {
       if (!window.PFShare || !PFShare.setPoster) return;
-      D.ITEMS.forEach(function (it) { PFShare.setPoster('robreport-' + it.id, itemPainter(it.id)); });
-      D.BASKETS.forEach(function (b) { PFShare.setPoster('robreport-basket-' + b.id, basketPainter(b.id)); });
+      D.ITEMS.forEach(function (it) {
+        var pid = 'robreport-' + it.id, fn = itemPainter(it.id);
+        PFShare.setPoster(pid, fn);
+        EXT_PAINTERS[pid] = fn;
+      });
+      D.BASKETS.forEach(function (b) {
+        var pid2 = 'robreport-basket-' + b.id, fn2 = basketPainter(b.id);
+        PFShare.setPoster(pid2, fn2);
+        EXT_PAINTERS[pid2] = fn2;
+      });
+      /* Hand the mirror to share-everywhere when it's already loaded; its
+         own scan() drains EXT_PAINTERS on every pass anyway. */
+      try {
+        var SE = window.PFShareEverywhere;
+        if (SE && SE.registerPainter) {
+          for (var k in EXT_PAINTERS) {
+            if (EXT_PAINTERS.hasOwnProperty(k)) SE.registerPainter(k, EXT_PAINTERS[k]);
+          }
+        }
+      } catch (e2) {}
     } catch (e) {}
   }
 
@@ -314,12 +344,18 @@
             var parts = spec.split(':');
             var pid = parts[0] === 'basket' ? 'robreport-basket-' + parts[1] : 'robreport-' + parts[1];
             var P = window.PFShare;
-            if (!P || !P.poster) return;
-            var cv = P.poster(pid);
-            if (!cv) return;
+            if (!P) return;
             var title = 'The Robbery Report — ' + pid;
-            try { P.shareImage(cv, 'pfn-' + pid + '.png', title, 'robreport'); }
-            catch (e) { try { P.saveImage(cv, 'pfn-' + pid + '.png', 'robreport'); } catch (e2) {} }
+            function deliver(cv) {
+              if (!cv) return;
+              try { P.shareImage(cv, 'pfn-' + pid + '.png', title, 'robreport'); }
+              catch (e) { try { P.saveImage(cv, 'pfn-' + pid + '.png', 'robreport'); } catch (e2) {} }
+            }
+            /* Unified path first: resolves the real per-card painter via the
+               share-everywhere registry. Legacy path (generic poster) last. */
+            var SE = window.PFShareEverywhere;
+            if (SE && SE.resolvePoster) { SE.resolvePoster(pid, deliver); }
+            else { try { deliver(P.poster(pid)); } catch (e) {} }
           } catch (e) { err('share failed'); }
         });
       })(btns[i]);
@@ -340,6 +376,9 @@
     D.ITEMS.forEach(function (it) { h += cardHTML(it); });
     h += '<div class="pf-rr-exc"><b>Why no Big Mac:</b> ' + esc(D.EXCLUDED.note.split(': ')[1] || D.EXCLUDED.note) + '</div>';
     D.BASKETS.forEach(function (b) { h += basketHTML(b); });
+    /* Pillar handoffs (brand-integration): data→propaganda + data→organize.
+       Declarative — share-everywhere's scan renders them when it loads. */
+    h += '<div data-pf-handoff="share-intel"></div><div data-pf-handoff="take-cell"></div>';
     h += '</div>';
     host.innerHTML = h;
     wireShare(host);
@@ -373,5 +412,5 @@
     document.addEventListener('DOMContentLoaded', autoMount);
   } else { autoMount(); }
 
-  window.PFRobReport = { mount: mount, DATA: D };
+  window.PFRobReport = { mount: mount, DATA: D, _painters: EXT_PAINTERS };
 })();

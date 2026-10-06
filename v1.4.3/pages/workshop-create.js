@@ -109,6 +109,23 @@
     section.appendChild(d);
   }
 
+  /* ---- TEARDOWN WS-4 (2026-10-06): THE PRINT SHOP (games/create-press.js) —
+       template-first creation per PART 2 §4. FIRST in the rail: template
+       picker organized by FIGHT (never a blank canvas), slot-filling editor,
+       full-screen preview, P6 Action Bar. Mount is the module's public API
+       (fail-open: renders nothing when killed/absent). Kill 'create-press'
+       matches the module's own PF.skip id. */
+  WS.register({
+    id: 'press', title: 'THE PRINT SHOP',
+    tagline: 'Grab a press kit. Swap one line. Pump it everywhere.',
+    templateId: null, selfMount: null, kill: 'create-press',
+    mount: function (section) {
+      var m = window.PFPress && window.PFPress.mount;
+      if (typeof m !== 'function') throw new Error('PFPress.mount unavailable');
+      m(section);
+    }
+  });
+
   /* ---- template tools (lazy clone + execScripts, page-mount's approach) ---- */
   WS.register({
     id: 'poster-forge', title: 'THE POSTER FORGE',

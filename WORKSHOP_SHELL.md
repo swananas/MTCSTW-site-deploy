@@ -39,6 +39,7 @@ PFWorkshop.register({ id, title, tagline, templateId|null, selfMount|null, kill,
 
 | Tool | Kind | Kill | Status |
 |---|---|---|---|
+| press (TEARDOWN WS-4, 2026-10-06) | custom (`PFPress.mount`, lazy; FIRST in rail) — THE PRINT SHOP: template picker by FIGHT → slot editor → full-screen preview → P6 Action Bar; mastery path KIT UNLOCKS → ADVANCED TRACKS → SPOTLIGHT SLOTS | `create-press` | LIVE |
 | poster-forge | template `pf-ov-poster` | `poster-forge` | LIVE |
 | feed | template `pf-ov-feed` | `feed` | LIVE |
 | armory | template `pf-ov-armory` | `armory` | LIVE |

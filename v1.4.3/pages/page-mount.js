@@ -97,7 +97,10 @@
            to Agitate") is creator tooling: revenue_claim is only callable
            from earnings.js, so this is where creators claim revenue. */
         ['armory', 'pf-ov-armory'],
-        ['earnings', 'pf-ov-earnings']
+        ['earnings', 'pf-ov-earnings'],
+        /* DATA BOUNTIES (2026-10-06): self-mount board — legacy stacked
+           path only; the workshop shell owns /create normally. */
+        ['data-bounties', null]
       ]
     },
     'pf-bank': {
@@ -185,7 +188,10 @@
     /* money (fe/money-page, 2026-10-05): the Follow-the-Money suite renders
        itself into #pf-money (core/money-page.js, context-aware mount).
        Kill: ?pf_off=money (master). */
-    'money': { div: 'pf-money', kill: 'money' }
+    'money': { div: 'pf-money', kill: 'money' },
+    /* data bounties (2026-10-06): the content-to-action intake valve.
+       Self-mounts into #pf-data-bounties (games/data-bounties.js). */
+    'data-bounties': { div: 'pf-data-bounties', kill: 'databounties' }
   };
 
   function execScripts(root, label) {
@@ -301,7 +307,8 @@
     'pf-arcade', 'pf-create', 'pf-bank', 'pf-economy',
     'pf-warchest', 'pf-ventures', 'pf-events', 'pf-warreport',
     'pf-war-card', 'pf-academy-hq', 'pf-dash-hq', 'pf-hq-mission',
-    'pf-political-hq', 'pf-slr-roster', 'pf-catalog', 'pf-money'
+    'pf-political-hq', 'pf-slr-roster', 'pf-catalog', 'pf-money',
+    'pf-data-bounties'
   ];
   function feWiden(host) {
     try {

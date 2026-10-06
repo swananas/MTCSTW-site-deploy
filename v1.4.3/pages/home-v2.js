@@ -63,6 +63,9 @@
     /* A1 home (2026-10-05): People's Price Index HP feeder -> /economy. */
     ['inflation-teaser', 'pf-ov-inflation-teaser'],
     /* ——— SECTION 6: ACT — action ——— */
+    /* 2026-10-06 (fe/homepage-sitemap): SITE MAP sits first in ACT, directly
+       above the 32-Day Offensive. */
+    ['sitemap', 'pf-ov-sitemap'],
     ['campaign', 'pf-ov-campaign'],
     ['alerts', 'pf-ov-alerts'],
     /* 2026-10-05 (engagement build D, item #8): FB group missions — on-site
@@ -138,12 +141,17 @@
     'infighting': [['Back your fighter \u2192', 'fan-vote'], ['Enter the arena \u2192', '/arcade']],
     'cells': [['Manage your cell \u2192', '/cells'], ['Recruit fighters \u2192', 'referral']],
     'referral': [['Watch them rank up \u2192', 'enlistment-ranks'], ['Bring them to your cell \u2192', '/cells']],
-    'poster-forge': [['Publish it to the feed \u2192', 'feed'], ['Open the full workshop \u2192', '/create']],
-    'feed': [['Forge a response \u2192', 'poster-forge'], ['Open the full workshop \u2192', '/create']],
+    /* 2026-10-06 (fe/homepage-decondense): poster-forge + feed are teasers now —
+       companion links route out to the full workshop instead of scrolling
+       between teaser cards. */
+    'poster-forge': [['Open the full workshop \u2192', '/create'], ['See the whole machine \u2192', '/network']],
+    'feed': [['Forge a poster \u2192', 'poster-forge'], ['Open the full workshop \u2192', '/create']],
     'hq-nudge': [['See what you\u2019d unlock \u2192', '/request-access']],
     'war-bonds': [['Manage your bonds \u2192', '/bank'], ['See where it goes \u2192', '/war-chest']],
     /* A1 home (2026-10-05): Price Index feeder exits. */
     'inflation-teaser': [['Report a price \u2192', '/economy#pf-inflation-checkin'], ['See the full index \u2192', '/economy']],
+    /* 2026-10-06 (fe/homepage-sitemap): the site map's companion exits. */
+    'sitemap': [['Find your match \u2192', 'slr-match-quiz'], ['Join a cell \u2192', '/cells']],
     'campaign': [['Get the alert \u2192', 'alerts'], ['Take it to the streets \u2192', '/events']],
     'alerts': [['Know the terrain \u2192', '/political-hq'], ['Make a poster \u2192', 'poster-forge']],
     'fan-vote': [['See live activity \u2192', 'socialproof'], ['Back your pick in battle \u2192', '/arcade']],
@@ -168,6 +176,8 @@
     /* A1 home (2026-10-05): Price Index HP feeder lives in FUND. */
     'inflation-teaser':'fund',
     'campaign':'act','alerts':'act',
+    /* 2026-10-06 (fe/homepage-sitemap): site map lives in ACT, above campaign. */
+    'sitemap':'act',
     'fan-vote':'proof',
     /* W5-6 Hall of Proof (2026-10-04). */
     'hall':'proof',

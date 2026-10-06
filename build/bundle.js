@@ -93,28 +93,29 @@ var SECTIONS = {
     /* HOMEPAGE PLAY/BELONG/CREATE/FUND/ACT/PROOF — lazy-loaded as one bundle
        when those sections scroll near. Dedicated pages (/arcade, /cells,
        /create) fetch the slim bundle-arcade-h / bundle-cells-h /
-       bundle-create-h bundles instead of this one. */
+       bundle-create-h bundles instead of this one.
+       2026-10-06 (fe/homepage-decondense, CEO directive): homepage
+       de-condensing — spotlight / slr-match-quiz / infighting / cells /
+       poster-forge / feed are now static TEASER CARDS (-> /arcade, /cells,
+       /create); their full files ship ONLY via the slim-dup bundles for
+       the dedicated pages (see SLIM_ONLY below). */
     'spotlight.js',
-    'creator-guess.js',
-    'daily-interrogation.js',
-    'billionaire-supervillain.js',
-    'slr-match-quiz.js',
-    'infighting.js',
-    'cells.js',
-    /* CELLS wave G1 (2026-10-04): guided cell first hour — extends R19's
-       post-claim interstitial; founder checklist / joiner induction. */
-    'cell-first-hour.js',
+    'slr-match-quiz-teaser.js',
+    'infighting-teaser.js',
+    'cells-teaser.js',
     'referral.js',
-    'poster-forge.js',
-    /* Political HQ creation-plugins (2026-10-05): the Poster Forge POLITICAL
-       tab. Loads right after poster-forge.js — mounts into #xPolitical. */
-    'poster-forge-political.js',
-    'feed.js',
+    'poster-forge-teaser.js',
+    'feed-teaser.js',
     'war-bonds.js',
     /* A1 home (2026-10-05): /economy Price-Index Home coordinator —
        HP feeder widget for the People's Price Index (FUND section).
        Compact card, no backend calls; deep-links to /economy. */
     'inflation-teaser.js',
+    /* 2026-10-06 (fe/homepage-sitemap, CEO directive): SITE MAP / FIND YOUR
+       FRONT — the homepage directory block. Pure static, no backend, no XP.
+       Registered directly before campaign.js so it mounts first in ACT,
+       above the 32-Day Offensive. Kill: ?pf_off=sitemap. */
+    'sitemap.js',
     'campaign.js',
     'alerts.js',
     /* Engagement build D item #8 (2026-10-05): FB group missions — on-site
@@ -529,6 +530,18 @@ Object.keys(ALL).forEach(function (b) {
 var DEAD = ['bank.js', 'casino.js', 'daily-drop.js', 'daily-fire.js', 'boost-raid.js',
   'media-nuke.js', 'video.js', 'amplify.js', 'archive.js', 'bounties.js',
   'assist.js'];
+/* 2026-10-06 (fe/homepage-decondense): these silos ship ONLY via the slim-dup
+   bundles for their dedicated pages (never in bundle-home) — creator-guess,
+   daily-interrogation, billionaire-supervillain, slr-match-quiz, infighting
+   via bundle-arcade-h (/arcade); cells + cell-first-hour via bundle-cells-h
+   (/cells); poster-forge + poster-forge-political + feed via
+   bundle-create-h (/create). Their homepage teaser counterparts
+   (*-teaser.js) live in bundle-home instead. Excluded from the
+   unbundled-file gate like SLIM_DUP. */
+var SLIM_ONLY = ['creator-guess.js', 'daily-interrogation.js',
+  'billionaire-supervillain.js', 'slr-match-quiz.js', 'infighting.js',
+  'cells.js', 'cell-first-hour.js', 'poster-forge.js',
+  'poster-forge-political.js', 'feed.js'];
 /* Global chrome: notify.js (header bell) + flash-siren.js (A2 site-wide siren
    banner) are bundled by build/bundle-core.js into pages/bundle-pages.js —
    intentionally excluded from page bundles. */
@@ -545,7 +558,8 @@ var GLOBAL_CHROME = ['notify.js', 'flash-siren.js',
   'fred-stackem.js', 'fred-explain.js', 'fred-receipt.js'];
 var unbundled = allFiles.filter(function (f) {
   return bundled.indexOf(f) === -1 && f.indexOf('bundle-') !== 0 &&
-    DEAD.indexOf(f) === -1 && GLOBAL_CHROME.indexOf(f) === -1;
+    DEAD.indexOf(f) === -1 && SLIM_ONLY.indexOf(f) === -1 &&
+    GLOBAL_CHROME.indexOf(f) === -1;
 });
 if (unbundled.length) fail('unbundled game files: ' + unbundled.join(', '));
 

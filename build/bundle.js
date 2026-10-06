@@ -117,6 +117,12 @@ var SECTIONS = {
        above the 32-Day Offensive. Kill: ?pf_off=sitemap. */
     'sitemap.js',
     'campaign.js',
+    /* 2026-10-06 (fe/war-timeline, PLAY 5): war-timeline-strip.js — compact
+       "next 3" strip self-mounting after the YOUR CAMPAIGN (#pf-campaign)
+       block. Ships in bundle-home (lazy) next to its mount point; the full
+       timeline (war-timeline.js) rides bundle-events. Kill:
+       ?pf_off=wartimeline-strip. */
+    'war-timeline-strip.js',
     'alerts.js',
     /* Engagement build D item #8 (2026-10-05): FB group missions — on-site
        check-in for manually-posted group missions (ACT section). */
@@ -376,6 +382,11 @@ var SECTIONS = {
     /* 2026-10-05 (fe/master-calendar): the War Calendar — master calendar
        silo, first on /events. Kill ?pf_off=mastercal. */
     'master-calendar.js',
+    /* 2026-10-06 (fe/war-timeline, PLAY 5): the War Timeline — mission-board
+       timeline aggregating every time-bound thing (events, governance
+       closes, prediction locks, streak resets, season end, daily orders).
+       Mounts on /events right after the month grid. Kill ?pf_off=wartimeline. */
+    'war-timeline.js',
     'irl.js',
     /* 2026-10-05 (fe/events-move): Town Hall Tracker moved from Political HQ
        (was fe/townhall-tracker's bundle-hq slot) to /events. Mounted by

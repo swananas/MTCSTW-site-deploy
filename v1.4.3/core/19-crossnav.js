@@ -102,7 +102,10 @@
     ['CREATE', '/create'],
     ['BANK', '/bank'],
     ['ECONOMY', '/economy'],
-    ['WAR CHEST', '/war-chest'],
+    /* SPACE-AUDIT FIX 6 (2026-10-06): WAR CHEST pointed at /war-chest, which
+       live-redirects to /ventures — wrong theater. The war chest (personal
+       bank / XP) lives on /bank now; point straight there. */
+    ['WAR CHEST', '/bank'],
     ['VENTURES', '/ventures'],
     ['EVENTS', '/events'],
     ['WAR REPORT', '/war-report']

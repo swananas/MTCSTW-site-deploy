@@ -226,6 +226,15 @@ var SECTIONS = {
   'bundle-predgame': [
     'predgame.js'
   ],
+  /* Brand integration (2026-10-06, fix 5): Blossom page bundles, brought over
+     from fe/blossom-structure so the cross-pillar handoff pass covers the
+     Blossom modules. Self-mounting silos; silent no-ops off their pages. */
+  'bundle-peoples-cpi': [
+    'peoples-cpi.js'
+  ],
+  'bundle-fund': [
+    'propaganda-fund.js'
+  ],
   'bundle-cells': [
     /* CELL IDENTITY (2026-10-05): structured cell profiles — guided founding
        wizard, discovery-on-qualities, identity kit, founder backfill.

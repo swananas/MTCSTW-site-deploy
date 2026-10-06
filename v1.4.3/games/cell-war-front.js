@@ -128,7 +128,7 @@ function render(j){
        '<div class="pw-empty">The forge and bounty rails are still mustering \u2014 this front opens when they go live.<br>The Cell War marches on regardless.</div></div>';
     h+='</div>';
     host.innerHTML=h;
-    /* 2026-10-06 share-everywhere. */
+    /* Brand integration: share bar hook (preserved from the pre-Blossom pass). */
     try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(host,'cell-war-front',{link:'/cells'}); }catch(e){}
     if(TICK) clearInterval(TICK);
     tick(); TICK=setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} tick(); },1000);
@@ -169,6 +169,9 @@ function render(j){
   h+='</div>';
   h+='<div class="pw-note">Every poster forged via political plugins and every bounty your fighters complete feeds your cell\u2019s per-fighter score. '+
      'Top cell Sunday midnight takes the PROPAGANDIST crown \u2014 glory only, zero XP. Opt-in is per week; the front defaults OFF.</div>';
+  /* Brand integration (2026-10-06, fix 5): cross-pillar handoffs — wired
+     declaratively by the share-everywhere scanner (same branded styling). */
+  h+='<div data-pf-handoff="share-intel"></div><div data-pf-handoff="take-cell"></div>';
   h+='</div>';
   host.innerHTML=h;
   if(TICK) clearInterval(TICK);

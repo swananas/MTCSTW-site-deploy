@@ -495,13 +495,18 @@
      existing fred_macro rail. Fail-soft: no key / stale / missing series ->
      the honest note, never an invented figure. */
   var FRED_FIGS = {}, FRED_NOTE = 'live figure unavailable \u2014 see /money';
+  var FRED_CARDS = {};
   function loadFredFigs(cb){
-    api('fred_macro', {}, function(j){
+    /* FRED Everywhere Phase 1: prefer the full 11-series dashboard
+       (scope=full) via the shared client; fall back to the legacy strip. */
+    var F = window.PFFred;
+    function ingest(j){
       try{
         if(j && j.ok && j.series && j.series.length){
           for(var i=0;i<j.series.length;i++){
             var c=j.series[i];
             if(!c || !c.series_id) continue;
+            FRED_CARDS[c.series_id]=c;
             if(c.stale){ FRED_FIGS[c.series_id]={note:1}; continue; }
             var fig=c.change_pct_label || c.value_label || '';
             FRED_FIGS[c.series_id]={
@@ -512,7 +517,9 @@
         }
       }catch(e){}
       try{ if(cb) cb(); }catch(e2){}
-    });
+    }
+    if (F && F.full) { try { F.full(ingest); return; } catch (e) {} }
+    api('fred_macro', {}, ingest);
   }
   function figHtml(sid){
     var f=FRED_FIGS[sid];
@@ -528,6 +535,62 @@
       if(i+1<parts.length) h+=figHtml(parts[i+1]);
     }
     return h;
+  }
+  /* FRED Everywhere Phase 1: live-data footer strip per lesson. Collects the
+     [[FRED:ID]] series referenced by the lesson and renders each as a live
+     figure + 4-fact citation + staleness badge + ʳ marker. The caption is
+     mandatory: lessons teach historical episodes (2008, 2020, 2022) — never
+     the current print as the example. */
+  function fredTokenIds(content){
+    var ids=[], m, re=/\[\[FRED:([A-Z0-9_]+)\]\]/g;
+    try{
+      while((m=re.exec(String(content||'')))){ if(ids.indexOf(m[1])===-1) ids.push(m[1]); }
+    }catch(e){}
+    return ids;
+  }
+  function fredFooter(ids){
+    var F=window.PFFred;
+    if(!F || !ids.length) return '';
+    var cells='';
+    for(var i=0;i<ids.length;i++){
+      var c=FRED_CARDS[ids[i]];
+      if(!c) continue;
+      var unitLine=esc(c.unit_label||'');
+      if(c.series_id==='CES0500000003' && unitLine.toLowerCase().indexOf('average')===-1){
+        unitLine='average '+unitLine;
+      }
+      cells+='<div class="ac-fredcell pf-fred-tap" data-sid="'+esc(c.series_id)+'">'+
+        '<div class="ac-fredt">'+esc(c.title||F.PLAIN[c.series_id]||c.series_id)+' '+F.saNsa(c)+'</div>'+
+        '<div class="ac-fredv">'+esc(c.value_label!=null?c.value_label:'\u2014')+F.revMark(c)+'</div>'+
+        (unitLine?'<div class="ac-fredu">'+unitLine+'</div>':'')+
+        '<div class="ac-fredp">'+esc(F.fmtPeriod(c))+'</div>'+
+        '<div>'+F.staleBadge(c)+'</div>'+
+        '<div class="pf-fred-cite">'+esc(F.citation(c))+'</div></div>';
+    }
+    if(!cells) return '';
+    return '<div class="ac-fredstrip"><div class="ac-fredk">LIVE DATA — THE CURRENT PRINT</div>'+
+      '<div class="ac-fredgrid">'+cells+'</div>'+
+      '<div class="ac-fredcap">Lessons teach with historical episodes (2008, 2020, 2022) — '+
+      'never the current print as the example. Live figures above are context, not the lesson.</div></div>';
+  }
+  function fredStripCss(){
+    try{
+      if(document.getElementById('ac-fredstrip-css')) return;
+      var st=document.createElement('style');
+      st.id='ac-fredstrip-css';
+      st.textContent=[
+        '.ac-fredstrip{border-top:2px solid #c1121f;margin-top:10px;padding-top:10px}',
+        '.ac-fredk{font-weight:900;font-size:11px;letter-spacing:2px;color:#e8b923;margin-bottom:8px}',
+        '.ac-fredgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px}',
+        '@media (max-width:640px){.ac-fredgrid{grid-template-columns:1fr}}',
+        '.ac-fredcell{border:1px solid #2a2a2a;border-radius:6px;background:#0d0d0d;padding:10px;min-height:44px;cursor:pointer}',
+        '.ac-fredt{font-weight:900;font-size:10px;letter-spacing:1px;color:#e8b923;margin-bottom:4px}',
+        '.ac-fredv{font-weight:900;font-size:18px}',
+        '.ac-fredu,.ac-fredp{font-size:11px;color:#c9bfa8}',
+        '.ac-fredcap{font-size:11px;color:#8a8271;line-height:1.5;font-style:italic}'
+      ].join('\n');
+      document.head.appendChild(st);
+    }catch(e){}
   }
   var lastRender=null;
 
@@ -648,6 +711,7 @@
       h+='<div class="x-pane" id="ac-pane-'+esc(L.id)+'">'
         +'<div class="fd-title">'+(i+1)+'. '+esc(L.title)+(isDone?' <span style="color:#7CFC00">&#10003;</span>':"")+'</div>'
         +'<div class="x-note">'+richContent(L.content)+'</div>'
+        +fredFooter(fredTokenIds(L.content))
         +'<div class="x-note">+'+xp+' XP</div>';
       if(id.callsign&&!isDone){
         h+='<button class="c-btn ac-done" data-lid="'+esc(L.id)+'" data-xp="'+xp+'">MARK COMPLETE</button>';
@@ -662,6 +726,20 @@
     h+='<div style="margin-top:10px"><button class="c-btn" id="acRetry">Refresh</button></div>';
     h+='</div>';
     el.innerHTML=h;
+    fredStripCss();
+    /* FRED Everywhere: tap a footer cell → bottom sheet with the full citation. */
+    try{
+      var F0=window.PFFred;
+      if(F0){
+        var fcs=el.querySelectorAll('.ac-fredcell');
+        for(var fi=0;fi<fcs.length;fi++){
+          (function(cd){
+            var sid=cd.getAttribute('data-sid');
+            cd.addEventListener('click',function(){ var c=FRED_CARDS[sid]; if(c) F0.tapSheet(c); });
+          })(fcs[fi]);
+        }
+      }
+    }catch(e0){}
     var bs=el.querySelectorAll("button.ac-done"), b;
     for(b=0;b<bs.length;b++){
       (function(btn){

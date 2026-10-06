@@ -40,6 +40,11 @@ var SECTIONS = {
   'bundle-sec1': [
     /* HOMEPAGE START HERE — hook & daily loop. In critical path (blocking). */
     'briefing.js',
+    /* FRED Everywhere Phase 1 (2026-10-05): Morning Briefing — 6 numbers,
+       30 seconds (DGS10, DGS2, FEDFUNDS+fedwatch, UNRATE+Sahm, CPIAUCNS,
+       MORTGAGE30US). Weekdays only. Self-mounts into #xBrief. Read-only,
+       zero XP. Kill: ?pf_off=fred-briefing. */
+    'fred-briefing.js',
     'do-meter.js',
     'daily-orders.js',
     /* Political HQ integration #5 (2026-10-05): home-state preference —
@@ -314,6 +319,12 @@ var SECTIONS = {
        official data, zero XP. Kills: ?pf_off=economy-fred (master) or
        fed-watch | housing-context | official-trend | wage-gap | sahm. */
     'fred-economy.js',
+    /* FRED Everywhere Phase 1 (2026-10-05): the official macro context rail
+       beside the People's Price Index — inflation family + earnings + cost
+       of money. Self-mounts after #pf-inflation-trends on /economy only;
+       silent no-op elsewhere. Read-only official data, zero XP.
+       Kill: ?pf_off=economy-fred-rail (master ?pf_off=economy-fred). */
+    'fred-macro-rail.js',
   ],
   'bundle-warchest': [
     /* /war-chest — Movement Finance. */
@@ -346,6 +357,12 @@ var SECTIONS = {
   'bundle-warreport': [
     /* /war-report — the weekly digest. */
     'war-report.js',
+    /* FRED Everywhere Phase 1 (2026-10-05): "The week in numbers" — max 7
+       series, one honest sentence each + the week's curated matchup
+       (department rotation). Renderable module; email wiring stays parked.
+       war-report.js paint() hooks a slot with a double-mount guard.
+       Read-only, zero XP. Kill: ?pf_off=war-numbers. */
+    'fred-warreport.js',
     /* Wave 5B (2026-10-04): Situation Report pane, prepended into #xWarReport. */
     'theater-sitrep.js'
   ],

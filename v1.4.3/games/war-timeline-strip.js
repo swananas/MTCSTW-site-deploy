@@ -25,7 +25,7 @@
      war_report | fan_vote | draw | liveops | discord */
   var KIND_BASE = {season_end:100, irl:95, governance:88, prediction:78, liveops:72, streak_reset:62, war_report:58, fan_vote:52, draw:46, daily_orders:42, discord:24};
   var KIND_LABEL = {season_end:'SEASON END', irl:'STREET', governance:'ASSEMBLY VOTE', prediction:'CALL IT.', liveops:'WAR ROOM', streak_reset:'STREAK RESET', war_report:'WAR REPORT', fan_vote:'FAN VOTE', draw:'DRAW', daily_orders:'DAILY ORDERS', discord:'DISCORD'};
-  var KIND_LINK = {season_end:'/', irl:'/events', governance:'/political-hq#pf-gov', prediction:'/arcade#pf-predgame', liveops:'/war-room', streak_reset:'/#pf-ranks', war_report:'/war-report', fan_vote:'/#pf-fanvote', draw:'/#pf-draw', daily_orders:'/#pf-orders', discord:''};
+  var KIND_LINK = {season_end:'/', irl:'/events', governance:'/political-hq#pf-gov', prediction:'/arcade#pf-predgame', liveops:'/war-room', streak_reset:'/#pf-ranks', war_report:'/war-report', fan_vote:'/#pf-vote', draw:'/#pf-draw', daily_orders:'/#pf-orders', discord:''};
   var CAL_KIND = {irl:'irl', liveops:'liveops', draw:'draw', warreport:'war_report', fanvote:'fan_vote', medals:'streak_reset', offensive:'season_end', discord:'discord'};
   function chiParts(ts){
     try{

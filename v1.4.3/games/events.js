@@ -118,6 +118,23 @@ function doRsvp(eid,btn){
     toast("You\u2019re on the board. +50 XP \u2014 show up.");
     cache.forEach(function(e){ if(String(e.id)===String(eid)) e.rsvp_count=(j.rsvps!=null?j.rsvps:((Number(e.rsvp_count)||0)+1)); });
     route(true);
+    /* COHESION (2026-10-06): terminal-state wiring — the RSVP confirmation
+       hands off to the next-move engine. Slot is the event's card so the
+       card renders in place; engine queues if not loaded yet. */
+    try{
+      var tslot=root;
+      try{
+        var rbtns=root&&root.querySelectorAll?root.querySelectorAll("[data-ev-rsvp]"):[];
+        for(var ti=0;ti<rbtns.length;ti++){
+          if(rbtns[ti].getAttribute("data-ev-rsvp")===String(eid)){
+            var tpane=rbtns[ti].closest?rbtns[ti].closest(".x-pane"):null;
+            if(tpane) tslot=tpane;
+            break;
+          }
+        }
+      }catch(e2){}
+      document.dispatchEvent(new CustomEvent("pf:terminal",{detail:{slot:tslot,context:"rsvp"}}));
+    }catch(e3){}
   });
 }
 function evCard(e){

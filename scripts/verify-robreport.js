@@ -274,8 +274,11 @@ function loadRender(skipKill, withPatterns) {
   };
   win.window = win;
   if (withPatterns) {
-    /* production path: the real pattern library, exactly as shipped */
-    var pbox = { window: win, document: null, console: console };
+    /* production path: the real pattern library, exactly as shipped.
+       URL is provided: 33-patterns.js cleanHref() uses new URL() for its
+       scheme allowlist (security hardening 2026-10-06); the shim must
+       mirror a browser global or every relative link is refused. */
+    var pbox = { window: win, document: null, console: console, URL: URL };
     vm.createContext(pbox);
     vm.runInContext(fs.readFileSync(PATTERNS_MOD, 'utf8'), pbox, { filename: '33-patterns.js' });
     ok(!!win.PF.patterns, 'PF.patterns loads for the production render path');

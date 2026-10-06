@@ -2419,6 +2419,17 @@ window.PF.boostReceipt = function(){
 
   function showButton(label, onTap) {
     if (btn) { return; }
+    /* FIX 2026-10-06 (fix/pwa-install-ios-tap): install.js executes TWICE on
+       v2 pages — once inside bundle-core[-slr].js and once as the standalone
+       pwa/install.js the footer loader appends right after it (JS_PWA). The
+       per-instance `btn` closure cannot see the other instance, so two
+       identical #pf-pwa-install buttons stacked at the same spot: tapping the
+       top one dismissed only that instance's button while the twin underneath
+       stayed put, making the tap look like a no-op. Guard on the DOM id so
+       only one button ever exists, whichever instance wins the race. */
+    try {
+      if (document.getElementById('pf-pwa-install')) { return; }
+    } catch (e) {}
     btn = document.createElement('button');
     btn.id = 'pf-pwa-install';
     btn.innerHTML = '<span style="font-size:16px;margin-right:8px">\u25BC</span>' + label
@@ -2454,13 +2465,55 @@ window.PF.boostReceipt = function(){
     });
   });
 
+  /* FIX 2026-10-06 (fix/pwa-install-ios-tap): one-tap install is impossible
+     on iOS — the Share -> Add to Home Screen guidance IS the feature. The old
+     3-second toast was too easy to miss for 3-step instructions, so the tap
+     now opens a persistent modal card: unmissable, self-contained (no PF
+     dependency), dismissible via GOT IT or by tapping the backdrop. */
+  function showIOSGuide() {
+    try {
+      if (document.getElementById('pf-pwa-ios-guide')) { return; }
+      var wrap = document.createElement('div');
+      wrap.id = 'pf-pwa-ios-guide';
+      wrap.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:100000;'
+        + 'background:rgba(0,0,0,.74);display:flex;align-items:center;justify-content:center;'
+        + 'padding:22px;box-sizing:border-box;';
+      var card = document.createElement('div');
+      card.setAttribute('role', 'dialog');
+      card.setAttribute('aria-label', 'Install the app');
+      card.style.cssText = 'background:#0b0b0c;border:3px solid #c1121f;color:#f5ead6;'
+        + 'font:14px/1.65 monospace;max-width:340px;width:100%;padding:22px;box-sizing:border-box;'
+        + 'text-align:center;box-shadow:0 8px 44px rgba(0,0,0,.85);';
+      card.innerHTML =
+        '<div style="color:#c1121f;font-weight:bold;letter-spacing:2px;margin-bottom:12px;">INSTALL THE APP</div>'
+        + '<div style="text-align:left;margin-bottom:16px;">'
+        + '<div style="margin-bottom:10px;"><span style="color:#c1121f;font-weight:bold;">1.</span>'
+        + ' Tap the <b>Share</b> button in Safari\u2019s toolbar (the square with the arrow pointing up).</div>'
+        + '<div style="margin-bottom:10px;"><span style="color:#c1121f;font-weight:bold;">2.</span>'
+        + ' Scroll the share sheet down and tap <b>Add to Home Screen</b>.</div>'
+        + '<div style="margin-bottom:2px;"><span style="color:#c1121f;font-weight:bold;">3.</span>'
+        + ' Tap <b>Add</b> \u2014 the factory lands on your home screen.</div>'
+        + '</div>'
+        + '<button id="pf-pwa-ios-gotit" style="background:#c1121f;border:none;color:#fff;'
+        + 'font:bold 14px monospace;letter-spacing:1px;padding:12px 30px;cursor:pointer;">GOT IT</button>';
+      wrap.appendChild(card);
+      function close() {
+        try { if (wrap.parentNode) { wrap.parentNode.removeChild(wrap); } } catch (e2) {}
+      }
+      wrap.addEventListener('click', function (e) {
+        if (e.target === wrap || (e.target && e.target.id === 'pf-pwa-ios-gotit')) { close(); }
+      });
+      (document.body || document.documentElement).appendChild(wrap);
+    } catch (e) {}
+  }
+
   // iOS has no beforeinstallprompt: show the manual A2HS hint once per session.
   if (isiOS && !('serviceWorker' in navigator && false)) {
     window.addEventListener('load', function () {
       setTimeout(function () {
         showButton('INSTALL APP', function () {
           dismiss(false);
-          toast('Tap Share \u2192 Add to Home Screen.');
+          showIOSGuide();
         });
       }, 4000);
     });

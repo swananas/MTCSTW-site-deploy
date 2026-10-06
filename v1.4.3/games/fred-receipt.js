@@ -21,12 +21,14 @@
    reports). Phase 3 (2026-10-06): GROCERIES enabled — official leg
    CUSR0000SAF11 verified and ingested; the people's leg has no grocery
    basket aggregate yet, so it renders the honest "building" state while
-   the official panel shows. GAS stays disabled: the motor-fuel candidate
-   series (CUSR0000SETB01) failed ID verification at build — it resolves
-   to a gasoline sub-index, not the motor-fuel component — so there is no
-   verified official leg. The chip is gated, honestly labeled, and ships
-   only when a real motor-fuel series confirms.
-   Kill: ?pf_off=receipt-groceries (groceries chip only). */
+   the official panel shows. GAS enabled 2026-10-06 — official leg
+   CUSR0000SETB01 (CPI: Gasoline (All Types) in U.S. City Average,
+   monthly SA, BLS) wired by CEO ruling: the people's leg is per-gallon
+   pump-price reports, and gasoline is what the official index tracks
+   here — the correct basket match. The chip reads GAS; the citation
+   names the series exactly.
+   Kill: ?pf_off=receipt-groceries (groceries chip), ?pf_off=receipt-gas
+   (gas chip). */
 (function () {
   'use strict';
   var PF = window.PF;
@@ -44,13 +46,13 @@
 
   /* Category map (Phase 3). A category ships only when its official leg
      exists; a missing people's leg renders the honest "building" state.
-     GAS has no verified official series (build verification 2026-10-06
-     rejected the candidate ID) — chip stays gated, never silent. */
+     GAS official leg: CUSR0000SETB01, wired by CEO ruling 2026-10-06
+     (per-gallon pump prices = gasoline — the correct basket match). */
   var CATS = {
     rent: {
       label: 'RENT', official: 'CUUR0000SEHA', people: 'rent_1br',
       offPlain: 'rent of primary residence',
-      pplFig: 'median reported 1BR rent', pplUnit: '/mo',
+      pplFig: 'median reported 1BR rent', pplUnit: '/mo', pplDecimals: 0,
       gapWord: 'rents', gapOff: 'official rent CPI'
     },
     groceries: {
@@ -60,7 +62,12 @@
         'reports (milk, eggs, bread\u2026) exist, but there\u2019s no aggregate ' +
         'to compare. Report prices to build it.'
     },
-    gas: { label: 'GAS', official: null, people: 'gasoline' }
+    gas: {
+      label: 'GAS', official: 'CUSR0000SETB01', people: 'gasoline',
+      offPlain: 'gasoline (all types, CPI)',
+      pplFig: 'median reported gas price', pplUnit: '/gal', pplDecimals: 2,
+      gapWord: 'gas prices', gapOff: 'the official gasoline index'
+    }
   };
 
   var WHY_DIFFERENT = 'The official number is a national average built from ' +
@@ -133,6 +140,16 @@
     return '$' + d.toLocaleString('en-US', { maximumFractionDigits: 0 });
   }
 
+  /* People's figures are per-category: rent reports whole dollars/mo,
+     gas reports dollars-and-cents/gal. The unit and decimals ride on the
+     category so a publishing gasoline aggregate never renders as '$3'. */
+  function fmtPpl(cents, cat) {
+    var dec = (cat && cat.pplDecimals != null) ? cat.pplDecimals : 0;
+    var d = Number(cents) / 100;
+    return '$' + d.toLocaleString('en-US',
+      { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  }
+
   /* Official panel: blue-gray line chart of the FRED series. */
   function officialPanel(obs, F, stale, cat) {
     cat = cat || CATS.rent;
@@ -197,8 +214,9 @@
       var ht = Math.max(8, Math.round((v / max) * 90));
       return '<div class="pf-rc-bar" style="height:' + ht + 'px"><span>' + esc(label) + '</span></div>';
     }
-    h += '<div class="pf-rc-fig">' + fmtMoney(med) + '<span style="font-size:14px;color:#8a8271">/mo</span></div>' +
-      '<div class="pf-rc-meta">median reported 1BR rent · ' +
+    h += '<div class="pf-rc-fig">' + fmtPpl(med, cat) +
+      '<span style="font-size:14px;color:#8a8271">' + esc(cat.pplUnit || '/mo') + '</span></div>' +
+      '<div class="pf-rc-meta">' + esc(cat.pplFig || 'median reported price') + ' · ' +
       (d == null ? 'no prior window' : (d >= 0 ? '+' : '−') + Math.abs(d).toFixed(1) + '% vs last month') +
       ' · ' + (item.sample_count || 0) + ' reports</div>' +
       '<div class="pf-rc-bars">' +
@@ -315,24 +333,23 @@
     }
   }
 
-  /* Category kill switch (Phase 3): ?pf_off=receipt-groceries. */
+  /* Category kill switches (Phase 3): ?pf_off=receipt-groceries,
+     ?pf_off=receipt-gas. */
   function groceryKill() {
     try { return PF.skip('receipt-groceries'); } catch (e) { return false; }
   }
+  function gasKill() {
+    try { return PF.skip('receipt-gas'); } catch (e) { return false; }
+  }
 
-  /* Category buttons: groceries is live (official leg verified), gas stays
-     gated with an honest reason — no "PHASE 3" labels anywhere. */
+  /* Category buttons: every category ships — a missing people's leg
+     renders the honest building state, never silence or a gate. */
   function catButtons(cur) {
     var out = '';
     ['rent', 'groceries', 'gas'].forEach(function (k) {
       var c = CATS[k];
       if (k === 'groceries' && groceryKill()) return;
-      if (!c.official) {
-        out += '<button type="button" class="pf-rc-cat" disabled ' +
-          'title="No verified official motor-fuel series yet — the candidate ID failed verification at build. ' +
-          'This chip ships when the real series confirms.">GAS</button>';
-        return;
-      }
+      if (k === 'gas' && gasKill()) return;
       out += '<button type="button" class="pf-rc-cat' + (cur === k ? ' on' : '') + '"' +
         ' data-rc-cat="' + k + '">' + c.label + (k === 'groceries' ? '<small>NEW</small>' : '') + '</button>';
     });
@@ -409,7 +426,7 @@
       doShare({
         off: { fig: off.yoy == null ? '—' : (off.yoy >= 0 ? '+' : '−') + Math.abs(off.yoy).toFixed(1) + '%',
                cite: 'BLS via FRED · ' + cat.official },
-        ppl: { fig: data.item ? fmtMoney(data.item.median_cents) + '/mo' : '—',
+        ppl: { fig: data.item ? fmtPpl(data.item.median_cents, cat) + (cat.pplUnit || '/mo') : '—',
                src: (data.item ? data.item.sample_count + ' reports' : '') + ' · reported by the movement' },
         gapText: gapText
       }, sb);

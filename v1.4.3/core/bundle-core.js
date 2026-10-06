@@ -8988,13 +8988,15 @@ if(document.readyState==='loading'){
 
   /* ---------- Series metadata (News Desk §0 — copy exactly) ----------
      Phase 3 (2026-10-06): DRCCLACBS, LES1252881600Q, CUSR0000SAF11,
-     CUUR0000SEHA added (all verified on fred.stlouisfed.org 2026-10-06;
-     CUSR0000SAF11 is SA — the spec's NSA label was corrected). */
+     CUSR0000SETB01, CUUR0000SEHA added (all verified on
+     fred.stlouisfed.org 2026-10-06; CUSR0000SAF11 is SA — the spec's
+     NSA label was corrected; CUSR0000SETB01 wired as the Receipt check
+     gas official leg by CEO ruling). */
   var AGENCY = {
     FEDFUNDS: 'Board of Governors', DGS10: 'Board of Governors', DGS2: 'Board of Governors',
     DRCCLACBS: 'Board of Governors',
     UNRATE: 'BLS', CPIAUCNS: 'BLS', CPILFESL: 'BLS', PAYEMS: 'BLS', CES0500000003: 'BLS',
-    LES1252881600Q: 'BLS', CUSR0000SAF11: 'BLS', CUUR0000SEHA: 'BLS',
+    LES1252881600Q: 'BLS', CUSR0000SAF11: 'BLS', CUSR0000SETB01: 'BLS', CUUR0000SEHA: 'BLS',
     PCEPI: 'BEA', GDP: 'BEA',
     MORTGAGE30US: 'Freddie Mac'
   };
@@ -9006,20 +9008,21 @@ if(document.readyState==='loading'){
     PAYEMS: 'Nonfarm payrolls', PCEPI: 'PCE price index',
     GDP: 'Real GDP', CES0500000003: 'Average hourly earnings',
     CUUR0000SEHA: 'Rent of primary residence', DRCCLACBS: 'Credit-card delinquency',
-    LES1252881600Q: 'Median weekly earnings (real)', CUSR0000SAF11: 'Food at home (CPI)'
+    LES1252881600Q: 'Median weekly earnings (real)', CUSR0000SAF11: 'Food at home (CPI)',
+    CUSR0000SETB01: 'Gasoline (all types, CPI)'
   };
   var FREQ_WORD = { d: 'daily', w: 'weekly', m: 'monthly', q: 'quarterly' };
   var FREQ = {
     FEDFUNDS: 'm', UNRATE: 'm', DGS10: 'd', MORTGAGE30US: 'w',
     CPIAUCNS: 'm', CPILFESL: 'm', PAYEMS: 'm', PCEPI: 'm', GDP: 'q',
     CES0500000003: 'm', DGS2: 'd',
-    CUUR0000SEHA: 'm', CUSR0000SAF11: 'm', DRCCLACBS: 'q', LES1252881600Q: 'q'
+    CUUR0000SEHA: 'm', CUSR0000SAF11: 'm', CUSR0000SETB01: 'm', DRCCLACBS: 'q', LES1252881600Q: 'q'
   };
   var SA_NSA = {
     FEDFUNDS: 'NSA', UNRATE: 'SA', DGS10: 'NSA', MORTGAGE30US: 'NSA',
     CPIAUCNS: 'NSA', CPILFESL: 'SA', PAYEMS: 'SA', PCEPI: 'SA',
     GDP: 'SA', CES0500000003: 'SA', DGS2: 'NSA',
-    CUUR0000SEHA: 'NSA', CUSR0000SAF11: 'SA', DRCCLACBS: 'SA', LES1252881600Q: 'SA'
+    CUUR0000SEHA: 'NSA', CUSR0000SAF11: 'SA', CUSR0000SETB01: 'SA', DRCCLACBS: 'SA', LES1252881600Q: 'SA'
   };
 
   /* ---------- Date / period formatting ---------- */

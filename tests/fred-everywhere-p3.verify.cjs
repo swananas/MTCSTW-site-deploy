@@ -6,17 +6,19 @@
    2. Static checks on the comment-stripped view (NO string stripping — the
       AGENTS.md lesson: naive quote-stripping is regex-literal-blind):
       new-series metadata (AGENCY/PLAIN/FREQ/SA_NSA), Pair-1 median read
-      (retired CES read present only as a comment tombstone), 15-series
+      (retired CES read present only as a comment tombstone), 16-series
       macro subtitle, median re-points (governing read, macro rail,
       war-report matchup, economy M-01), Stack 'Em + explainer series
-      lists (15), rent explainer label, Receipt check groceries chip live
-      / gas chip honestly gated / no "PHASE 3" labels / category kill
-      switch, motor-fuel candidate ID never wired.
+      lists, rent explainer label, Receipt check groceries + gas chips
+      live / no "PHASE 3" labels / category kill switches, gasoline ID
+      wired (motor-fuel component ID still never wired).
    3. Mocked-browser runtime tests (vm + DOM stub, JSONP intercepted):
       Receipt check groceries category renders the official food-at-home
-      panel + the honest people's "building" state; gas chip is disabled;
-      ?pf_off=receipt-groceries hides the groceries chip; rent still
-      renders both panels + gap.
+      panel + the honest people's "building" state; gas chip is enabled
+      with the CUSR0000SETB01 official leg (people's building state when
+      no gasoline aggregate publishes); ?pf_off=receipt-groceries and
+      ?pf_off=receipt-gas hide their chips; rent still renders both
+      panels + gap.
    Fixture figures are synthetic paint-test values, not asserted facts.
    Exits 0 when every check passes, 1 with a failure list otherwise. */
 'use strict';
@@ -57,20 +59,22 @@ var S = {};
 FILES.forEach(function (f) { S[f.replace(/^v1\.4\.3\//, '')] = stripComments(read(path.join(ROOT, f))); });
 
 /* --- fred-shared.js: new-series metadata --- */
-['DRCCLACBS', 'LES1252881600Q', 'CUSR0000SAF11', 'CUUR0000SEHA'].forEach(function (id) {
+['DRCCLACBS', 'LES1252881600Q', 'CUSR0000SAF11', 'CUUR0000SEHA', 'CUSR0000SETB01'].forEach(function (id) {
   if (hasS('core/fred-shared.js', id + ':')) ok('shared metadata carries ' + id);
   else no('shared metadata ' + id, 'missing from a map');
 });
 if (has(S['core/fred-shared.js'], /LES1252881600Q:\s*'SA'/) &&
     has(S['core/fred-shared.js'], /CUSR0000SAF11:\s*'SA'/) &&
+    has(S['core/fred-shared.js'], /CUSR0000SETB01:\s*'SA'/) &&
     has(S['core/fred-shared.js'], /DRCCLACBS:\s*'SA'/) &&
     has(S['core/fred-shared.js'], /CUUR0000SEHA:\s*'NSA'/))
-  ok('shared SA/NSA: LES/FOOD/DELINQ SA, RENT NSA');
+  ok('shared SA/NSA: LES/FOOD/GAS/DELINQ SA, RENT NSA');
 else no('shared SA/NSA', 'mismatch');
 if (has(S['core/fred-shared.js'], /LES1252881600Q:\s*'q'/) &&
     has(S['core/fred-shared.js'], /DRCCLACBS:\s*'q'/) &&
-    has(S['core/fred-shared.js'], /CUSR0000SAF11:\s*'m'/))
-  ok('shared FREQ: LES/DELINQ quarterly, FOOD monthly');
+    has(S['core/fred-shared.js'], /CUSR0000SAF11:\s*'m'/) &&
+    has(S['core/fred-shared.js'], /CUSR0000SETB01:\s*'m'/))
+  ok('shared FREQ: LES/DELINQ quarterly, FOOD/GAS monthly');
 else no('shared FREQ', 'mismatch');
 if (has(S['core/fred-shared.js'], /pair1:\s*'Median usual weekly earnings/))
   ok('shared READS.pair1 is the median read');
@@ -79,11 +83,11 @@ if (S['core/fred-shared.js'].indexOf('Average wages are up') === -1)
   ok('shared: retired CES pair-1 read not rendered (comment tombstone only)');
 else no('shared retired read', 'average-based pair-1 copy still live');
 
-/* --- money-macro.js: 15 series --- */
-if (hasS('core/money-macro.js', '15 SERIES')) ok('macro dashboard subtitle: 15 SERIES');
-else no('macro subtitle', 'not 15');
-if (S['core/money-macro.js'].indexOf('11 SERIES') === -1) ok('macro: no stale 11-series copy');
-else no('macro stale copy', '11 SERIES still present');
+/* --- money-macro.js: 16 series --- */
+if (hasS('core/money-macro.js', '16 SERIES')) ok('macro dashboard subtitle: 16 SERIES');
+else no('macro subtitle', 'not 16');
+if (S['core/money-macro.js'].indexOf('15 SERIES') === -1) ok('macro: no stale 15-series copy');
+else no('macro stale copy', '15 SERIES still present');
 
 /* --- fred-governing.js: real-wage read -> median --- */
 if (hasS('core/fred-governing.js', 'LES1252881600Q (MEDIAN)')) ok('governing real-wage read re-pointed to median');
@@ -153,15 +157,26 @@ if (has(S['games/fred-receipt.js'], /data-rc-cat="' \+ k \+ '"/) &&
     hasS('games/fred-receipt.js', "label: 'GROCERIES', official: 'CUSR0000SAF11'"))
   ok('receipt groceries chip is enabled (clickable)');
 else no('receipt groceries chip', 'not enabled');
-if (has(S['games/fred-receipt.js'], /failed verification at build/))
-  ok('receipt gas chip honestly gated (verification failure named)');
-else no('receipt gas gate', 'honest gate copy missing');
+if (hasS('games/fred-receipt.js', "official: 'CUSR0000SETB01'"))
+  ok('receipt gas official leg = CUSR0000SETB01');
+else no('receipt gas leg', 'missing');
+if (hasS('games/fred-receipt.js', "PF.skip('receipt-gas')"))
+  ok('receipt gas category kill switch ?pf_off=receipt-gas');
+else no('receipt gas kill', 'missing');
+if (S['games/fred-receipt.js'].indexOf('failed verification at build') === -1)
+  ok('receipt: verification-failure gated state removed');
+else no('receipt gas gate', 'stale gated copy still present');
 if (hasS('games/fred-receipt.js', "PF.skip('receipt-groceries')"))
   ok('receipt groceries category kill switch ?pf_off=receipt-groceries');
 else no('receipt groceries kill', 'missing');
-if (S['games/fred-receipt.js'].indexOf('CUSR0000SETB01') === -1)
-  ok('receipt: rejected motor-fuel candidate ID never wired');
-else no('receipt motor-fuel ID', 'rejected ID present');
+if (S['games/fred-receipt.js'].indexOf('CUSR0000SETB') === -1 ||
+    S['games/fred-receipt.js'].indexOf('CUSR0000SETB01') !== -1)
+  ok('receipt: motor-fuel component ID (CUSR0000SETB) never wired');
+else no('receipt motor-fuel component ID', 'CUSR0000SETB present');
+if (S['games/fred-stackem.js'].indexOf('CUSR0000SETB01') === -1 &&
+    S['games/fred-explain.js'].indexOf('CUSR0000SETB01') === -1)
+  ok('stackem/explainer: gasoline series not carded outside Receipt check (16-series scope stays Receipt + dashboard)');
+else no('gasoline scope', 'SETB01 leaked into carded tools');
 
 /* ============ 3. runtime (vm + DOM stub) ============ */
 console.log('== 3. runtime (vm + DOM stub) ==');
@@ -298,8 +313,8 @@ function lastHtml(t) { return t.bodies[t.bodies.length - 1] || ''; }
   else no('receipt rent chip', 'missing');
   if (h.indexOf('data-rc-cat="groceries"') !== -1) ok('receipt groceries chip is enabled');
   else no('receipt groceries chip', 'not clickable');
-  if (/disabled[^>]*>GAS/.test(h)) ok('receipt gas chip stays disabled');
-  else no('receipt gas chip', 'not gated');
+  if (h.indexOf('data-rc-cat="gas"') !== -1 && /disabled[^>]*>GAS/.test(h) === false) ok('receipt gas chip is enabled (not disabled)');
+  else no('receipt gas chip', 'not enabled');
   if (h.indexOf('CUUR0000SEHA') !== -1) ok('receipt rent official leg cites CUUR0000SEHA');
   else no('receipt rent citation', 'missing');
   if (h.indexOf('THE GAP') !== -1) ok('receipt rent gap renders');
@@ -323,14 +338,43 @@ function lastHtml(t) { return t.bodies[t.bodies.length - 1] || ''; }
   else no('receipt groceries gap', 'gap rendered without a people\u2019s leg');
 })();
 
-/* --- C. category kill switch --- */
+/* --- C. category kill switches --- */
 (function () {
   var t = runModule({ hosts: ['pf-economy'], killed: ['receipt-groceries'] });
   var h = lastHtml(t);
   if (h.indexOf('data-rc-cat="groceries"') === -1) ok('?pf_off=receipt-groceries hides the groceries chip');
   else no('receipt groceries kill', 'chip still rendered');
+  if (h.indexOf('data-rc-cat="gas"') !== -1) ok('gas chip survives the groceries kill');
+  else no('receipt gas vs groceries kill', 'gas chip wrongly hidden');
   if (h.indexOf('RECEIPT CHECK') !== -1) ok('receipt still mounts with the chip killed');
   else no('receipt kill mount', 'whole module suppressed');
+})();
+(function () {
+  var t = runModule({ hosts: ['pf-economy'], killed: ['receipt-gas'] });
+  var h = lastHtml(t);
+  if (h.indexOf('data-rc-cat="gas"') === -1) ok('?pf_off=receipt-gas hides the gas chip');
+  else no('receipt gas kill', 'chip still rendered');
+  if (h.indexOf('data-rc-cat="groceries"') !== -1) ok('groceries chip survives the gas kill');
+  else no('receipt groceries vs gas kill', 'groceries chip wrongly hidden');
+  if (h.indexOf('RECEIPT CHECK') !== -1) ok('receipt still mounts with the gas chip killed');
+  else no('receipt gas kill mount', 'whole module suppressed');
+})();
+
+/* --- E. gas category: official gasoline panel + honest people's building state --- */
+(function () {
+  var t = runModule({ hosts: ['pf-economy'] });
+  var host = t.byId['pf-receipt'];
+  if (!host || !host.clickCat('gas')) { no('receipt gas click', 'chip not clickable'); return; }
+  ok('receipt gas chip clickable');
+  var h = lastHtml(t);
+  if (h.indexOf('CUSR0000SETB01') !== -1) ok('receipt gas official leg cites CUSR0000SETB01');
+  else no('receipt gas citation', 'missing');
+  if (h.indexOf('gasoline (all types, CPI)') !== -1) ok('receipt gas official panel labeled gasoline');
+  else no('receipt gas label', 'missing');
+  if (h.indexOf('Not enough reports yet') !== -1) ok('receipt gas people\u2019s building state renders');
+  else no('receipt gas building state', 'missing');
+  if (h.indexOf('THE GAP') === -1) ok('receipt gas: no gap without a people\u2019s leg (honest)');
+  else no('receipt gas gap', 'gap rendered without a people\u2019s leg');
 })();
 
 /* --- D. master kill still suppresses --- */

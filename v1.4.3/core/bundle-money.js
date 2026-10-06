@@ -2417,7 +2417,7 @@
     return '<div class="pf-macro">' +
       '<div class="pf-macro-kicker">OFFICIAL DATA</div>' +
       '<h3 class="pf-macro-title">THE MACRO DASHBOARD</h3>' +
-      '<p class="pf-macro-sub">15 SERIES · ROLLING REFRESH · TAP ANY CARD FOR THE FULL CITATION</p>' + inner +
+      '<p class="pf-macro-sub">16 SERIES · ROLLING REFRESH · TAP ANY CARD FOR THE FULL CITATION</p>' + inner +
       '<div class="pf-macro-foot">OFFICIAL FIGURES VIA FRED \u00b7 NEVER BLENDED WITH CROWDSOURCED DATA</div></div>';
   }
 
@@ -2441,9 +2441,10 @@
       container.innerHTML = shell(emptyBlock(WAITING_HEAD, (j && j.note) || WAITING_BODY));
       return;
     }
-    /* Backend FULL_ORDER (Phase 3, 15): FEDFUNDS, UNRATE, DGS10,
+    /* Backend FULL_ORDER (Phase 3, 16): FEDFUNDS, UNRATE, DGS10,
        MORTGAGE30US, CPIAUCNS, CPILFESL, PAYEMS, PCEPI, GDP, CES0500000003,
-       DGS2, CUUR0000SEHA, CUSR0000SAF11, DRCCLACBS, LES1252881600Q.
+       DGS2, CUUR0000SEHA, CUSR0000SAF11, CUSR0000SETB01, DRCCLACBS,
+       LES1252881600Q.
        Rendered in order. */
     container.innerHTML = shell(
       '<div class="pf-macro-grid">' +

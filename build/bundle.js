@@ -447,6 +447,14 @@ var SECTIONS = {
   'bundle-warroom': [
     'liveops.js'
   ],
+  /* 2026-10-06 (fe/live-event-mode, PLAY 9): LIVE EVENT MODE — fused live
+     surface (live board + open calls + the wire + cell rally + countdown).
+     Read-only composition of existing GET rails, zero writes, zero XP.
+     Standalone bundle (like bundle-predgame): fetched only on /war-room
+     and wherever a #pf-live mount div sits. Kill: ?pf_off=livemode. */
+  'bundle-livemode': [
+    'livemode.js'
+  ],
   'bundle-warreport': [
     /* /war-report — the weekly digest. */
     'war-report.js',

@@ -151,6 +151,20 @@
         ['economy', 'pf-ov-economy']
       ]
     },
+    /* S4/C1 (2026-10-06, Project Blossom): /peoples-cpi — the public
+       People's Price Index page (spec peoples-cpi-public-20261006.md).
+       Self-mounting silo (games/peoples-cpi.js renders into #pf-peoples-cpi);
+       spine phase FIGHT; Next Move exit -> /economy#pf-inflation-checkin.
+       Kill: ?pf_off=peoples-cpi. Squarespace hand-steps: page + the
+       #pf-peoples-cpi Code block. */
+    'pf-peoples-cpi': {
+      title: "THE PEOPLE'S PRICE INDEX",
+      sub: "The real cost of living, tracked by the people. Two ways of counting. Two separate lines. Never merged.",
+      spine: 'FIGHT',
+      order: [
+        ['peoples-cpi', null]
+      ]
+    },
     /* money (fe/money-page, 2026-10-05): FOLLOW THE MONEY. Self-mounting
        silo — core/money-page.js renders itself into #pf-money (page mode)
        or the interim PHQ tab. Sub copy provisional — Psych veto. */
@@ -158,6 +172,20 @@
       title: 'FOLLOW THE MONEY', sub: 'Follow the money. See who funds the votes.',
       order: [
         ['money', null]
+      ]
+    },
+    /* C4 (2026-10-06, Project Blossom): /fund — THE PROPAGANDA FUND.
+       STRUCTURE ONLY: the transparency-report content is gated on News Desk
+       + Brand sign-off, so the silo renders an empty-honest body — no
+       figures, no placeholders, deliberately. Spine phase ORGANIZE; Next
+       Move exit -> /follow-the-money. Kill: ?pf_off=fund. Squarespace
+       hand-steps: page + the #pf-fund Code block. */
+    'pf-fund': {
+      title: 'THE PROPAGANDA FUND', sub: 'Every cent, accounted for.',
+      spine: 'ORGANIZE',
+      next: { href: '/follow-the-money', label: 'NEXT MOVE →' },
+      order: [
+        ['fund', null]
       ]
     },
     'pf-warchest': {
@@ -205,7 +233,12 @@
     'pf-warroom': {
       title: 'WAR ROOM', sub: 'Debate nights. Election night. History, live.',
       order: [
-        ['liveops', 'pf-ov-liveops']
+        ['liveops', 'pf-ov-liveops'],
+        /* 2026-10-06 (fe/live-event-mode, PLAY 9): LIVE EVENT MODE — fused
+           live surface (board + calls + wire + rally + countdown) below the
+           War Room. Read-only, zero writes, zero XP. Self-mounts into
+           #pf-live too. Kill: ?pf_off=livemode. */
+        ['livemode', 'pf-ov-livemode']
       ]
     }
   };
@@ -223,7 +256,13 @@
     'money': { div: 'pf-money', kill: 'money' },
     /* data bounties (2026-10-06): the content-to-action intake valve.
        Self-mounts into #pf-data-bounties (games/data-bounties.js). */
-    'data-bounties': { div: 'pf-data-bounties', kill: 'databounties' }
+    'data-bounties': { div: 'pf-data-bounties', kill: 'databounties' },
+    /* S4/C1 (2026-10-06, Project Blossom): the public People's Price Index
+       renders itself into #pf-peoples-cpi. Kill: ?pf_off=peoples-cpi. */
+    'peoples-cpi': { div: 'pf-peoples-cpi', kill: 'peoples-cpi' },
+    /* C4 (2026-10-06, Project Blossom): the Propaganda Fund structure page
+       renders itself into #pf-fund. Kill: ?pf_off=fund. */
+    'fund': { div: 'pf-fund', kill: 'fund' }
   };
 
   function execScripts(root, label) {
@@ -369,7 +408,7 @@
     'pf-warchest', 'pf-ventures', 'pf-events', 'pf-warreport',
     'pf-war-card', 'pf-academy-hq', 'pf-dash-hq', 'pf-hq-mission',
     'pf-political-hq', 'pf-slr-roster', 'pf-catalog', 'pf-money',
-    'pf-data-bounties'
+    'pf-warroom', 'pf-live', 'pf-data-bounties'
   ];
   function feWiden(host) {
     try {

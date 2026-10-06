@@ -46,6 +46,16 @@
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
+  /* SECURITY (2026-10-06 pre-ship hardening): scheme allowlist for URLs
+     rendered into href/src. Only http(s) or relative URLs pass;
+     javascript:, data:, vbscript: etc. are rejected. */
+  function safeUrl(u){
+    var s=String(u==null?'':u).trim();
+    if(!s) return '';
+    try{ var p=new URL(s,'https://x.invalid').protocol;
+      if(p==='http:'||p==='https:') return s; }catch(e){}
+    return '';
+  }
   function timeAgo(ts) {
     try {
       var d = Date.now() - Number(ts || 0);
@@ -188,8 +198,8 @@
           '<span class="pf-newstop-flagdetail">' + esc(f.detail) +
           (f.period_label ? ' &middot; ' + esc(f.period_label) : '') +
           '<span class="pf-newstop-flagsrc">St. Louis Fed FRED (official)</span></span>';
-        if (f.source_url) {
-          h += '<a class="pf-newstop-flag" href="' + esc(f.source_url) +
+        var _fsu=safeUrl(f.source_url); if (_fsu) {
+          h += '<a class="pf-newstop-flag" href="' + esc(_fsu) +
             '" target="_blank" rel="noopener">' + inner + '</a>';
         } else {
           h += '<div class="pf-newstop-flag">' + inner + '</div>';
@@ -208,7 +218,7 @@
            the shared credit component renders it (or nothing, honestly). */
         var cr = '';
         try { cr = (PF.credit && s.sourced_by) ? PF.credit({ sourced_by: s.sourced_by }) : ''; } catch (e) {}
-        h += '<li class="pf-newstop-item"><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' +
+        h += '<li class="pf-newstop-item"><a href="' + esc(safeUrl(s.url)||'#') + '" target="_blank" rel="noopener">' +
           esc(s.title) + '</a>' +
           '<span class="pf-newstop-meta">' + esc(s.source) +
           (s.published_at ? ' &middot; ' + esc(timeAgo(s.published_at)) : '') + '</span>' + cr + '</li>';

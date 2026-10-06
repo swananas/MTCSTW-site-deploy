@@ -36,6 +36,16 @@
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
+  /* SECURITY (2026-10-06 pre-ship hardening): scheme allowlist for URLs
+     rendered into href/src. Only http(s) or relative URLs pass;
+     javascript:, data:, vbscript: etc. are rejected. */
+  function safeUrl(u){
+    var s=String(u==null?'':u).trim();
+    if(!s) return '';
+    try{ var p=new URL(s,'https://x.invalid').protocol;
+      if(p==='http:'||p==='https:') return s; }catch(e){}
+    return '';
+  }
 
   function api(action, params, cb) {
     if (!BACKEND) { cb(null); return; }
@@ -114,7 +124,7 @@
   function card(s) {
     var title = esc(s.title || s.series_id || '\u2014');
     var saNsa = esc(s.sa_nsa || '');
-    var link = esc(s.source_url || ('https://fred.stlouisfed.org/series/' + (s.series_id || '')));
+    var link = esc(safeUrl(s.source_url) || ('https://fred.stlouisfed.org/series/' + (s.series_id || '')));
     /* Renter/buyer frame: the 30-yr mortgage card is the BORROW BENCHMARK. */
     var tag = (s.series_id === 'MORTGAGE30US')
       ? '<div><span class="pf-bf-tag">BORROW BENCHMARK</span></div>' : '';

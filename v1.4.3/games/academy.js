@@ -38,7 +38,17 @@
   var PAT = (window.PF && window.PF.patterns) || null;
 
   function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
-  function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+
+  /* SECURITY (2026-10-06 pre-ship hardening): scheme allowlist for URLs
+     rendered into href/src. Only http(s) or relative URLs pass;
+     javascript:, data:, vbscript: etc. are rejected. */
+  function safeUrl(u){
+    var s=String(u==null?'':u).trim();
+    if(!s) return '';
+    try{ var p=new URL(s,'https://x.invalid').protocol;
+      if(p==='http:'||p==='https:') return s; }catch(e){}
+    return '';
+  }  function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
   function toast(m){ try{ PF.toast(m); }catch(e){} }
 
   /* Wave B1 (S-15): live FRED figures inside lesson content.
@@ -76,7 +86,7 @@
     var f=FRED_FIGS[sid];
     if(!f) return '<span class="ac-frednote">'+esc(FRED_NOTE)+'</span>';
     if(f.note) return '<span class="ac-frednote">'+esc(FRED_NOTE)+'</span>';
-    return '<b>'+esc(f.text)+'</b> <a href="'+esc(f.url)+'" target="_blank" rel="noopener" class="ac-fredsrc">FRED &#8599;</a>';
+    return '<b>'+esc(f.text)+'</b> <a href="'+esc(safeUrl(f.url)||"#")+'" target="_blank" rel="noopener" class="ac-fredsrc">FRED &#8599;</a>';
   }
   /* Split on [[FRED:ID]] tokens; esc() the prose, inject figure HTML. */
   function richContent(content){

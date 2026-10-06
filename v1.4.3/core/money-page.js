@@ -40,6 +40,16 @@
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
+  /* SECURITY (2026-10-06 pre-ship hardening): scheme allowlist for URLs
+     rendered into href/src. Only http(s) or relative URLs pass;
+     javascript:, data:, vbscript: etc. are rejected. */
+  function safeUrl(u){
+    var s=String(u==null?'':u).trim();
+    if(!s) return '';
+    try{ var p=new URL(s,'https://x.invalid').protocol;
+      if(p==='http:'||p==='https:') return s; }catch(e){}
+    return '';
+  }
   function err(m) { try { if (PF && PF.error) PF.error('money-page', m); } catch (e) {} }
   function isEditor() {
     try {
@@ -488,7 +498,7 @@
     var moneyDiv = document.getElementById('pf-money');
     var phqDiv = document.getElementById('pf-political-hq');
     function go(cfg) {
-      var url = (cfg && cfg.money_page_url) || '';
+      var url = safeUrl(cfg && cfg.money_page_url) || '';
       try {
         if (moneyDiv) { renderPage(moneyDiv); return; }
         if (phqDiv) {

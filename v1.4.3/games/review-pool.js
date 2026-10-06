@@ -450,11 +450,11 @@
         '<div class="rp-note" style="margin-bottom:10px">A cellmate made this. Judge it <b>harder</b>, not softer — your cell\'s accuracy standing rides on honest votes.</div>';
     }
     h += '<div class="rp-card">';
-    if (a.artifact_url){
+    var _aurl=safeUrl(a.artifact_url); if (_aurl){
       h += '<div class="rp-artifact">';
-      if (a.artifact_kind === 'video') h += '<video src="'+esc(a.artifact_url)+'" controls preload="metadata"></video>';
+      if (a.artifact_kind === 'video') h += '<video src="'+esc(_aurl)+'" controls preload="metadata"></video>';
       else if (a.artifact_kind === 'text') h += '<div class="rp-caption" style="text-align:left;padding:10px">'+esc(a.artifact_text||a.caption||'')+'</div>';
-      else h += '<img src="'+esc(a.artifact_url)+'" alt="Submission artifact">';
+      else h += '<img src="'+esc(_aurl)+'" alt="Submission artifact">';
       h += '</div>';
     }
     if (a.caption && a.artifact_kind !== 'text') h += '<div class="rp-caption">'+esc(a.caption)+'</div>';

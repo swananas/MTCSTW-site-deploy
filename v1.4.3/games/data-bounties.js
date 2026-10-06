@@ -26,6 +26,16 @@
   if (!BACKEND) { return; }
 
   function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  /* SECURITY (2026-10-06 pre-ship hardening): scheme allowlist for URLs
+     rendered into href/src. Only http(s) or relative URLs pass;
+     javascript:, data:, vbscript: etc. are rejected. */
+  function safeUrl(u){
+    var s=String(u==null?'':u).trim();
+    if(!s) return '';
+    try{ var p=new URL(s,'https://x.invalid').protocol;
+      if(p==='http:'||p==='https:') return s; }catch(e){}
+    return '';
+  }
   function ident(){ var cs='',dev=''; try{ cs=window.PFCallsign?window.PFCallsign():''; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():''; }catch(e){} return {callsign:cs,device:dev}; }
 
   var KIND_LABEL = {
@@ -118,7 +128,7 @@
         claims.forEach(function(c){
           var pl={}; try{ pl=JSON.parse(c.payload||'{}'); }catch(e){}
           h+='<div class="db-claimrow"><span class="db-cs">'+esc(c.callsign)+'</span>';
-          if(pl.photo_url) h+='<a class="db-plink" href="'+esc(pl.photo_url)+'" target="_blank" rel="noopener">view photo</a>';
+          var _purl=safeUrl(pl.photo_url); if(_purl) h+='<a class="db-plink" href="'+esc(_purl)+'" target="_blank" rel="noopener">view photo</a>';
           if(pl.caption) h+='<span class="db-cap">'+esc(pl.caption)+'</span>';
           if(pl.text) h+='<span class="db-cap">'+esc(pl.text)+'</span>';
           h+='<span class="db-conf">'+Number(c.confirms||0)+'/'+Number(b.quorum||2)+' confirms</span>';

@@ -214,6 +214,16 @@ function apiGet(callsign,cb){
 
 function platLabel(p){ var f=PLATFORMS.filter(function(x){return x[0]===p;})[0]; var t=f?f[1].toUpperCase():String(p||"").toUpperCase(); return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function escHtml(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  /* SECURITY (2026-10-06 pre-ship hardening): scheme allowlist for URLs
+     rendered into href/src. Only http(s) or relative URLs pass;
+     javascript:, data:, vbscript: etc. are rejected. */
+  function safeUrl(u){
+    var s=String(u==null?'':u).trim();
+    if(!s) return '';
+    try{ var p=new URL(s,'https://x.invalid').protocol;
+      if(p==='http:'||p==='https:') return s; }catch(e){}
+    return '';
+  }
 
 /* Merge cross-device Daily Orders state from the backend: union today's
    missions (never duplicates, never drops local progress), take the max
@@ -417,7 +427,7 @@ function renderRelease(){
           +'<div class="o-mtext">'+escHtml(String(p.headline||'READ THE RELEASE'))+'</div>'
           +'<div class="o-rfig">'+escHtml(String(p.figure||''))+'</div>'
           +'<div class="o-rsub">'+escHtml(String(p.copy||''))+'</div>'
-          +'<div class="o-rmeta">Official figure \u00b7 <a href="'+escHtml(String(p.source_url||''))+'" target="_blank" rel="noopener">FRED &#8599;</a>'+dago+'</div>'
+          +'<div class="o-rmeta">Official figure \u00b7 <a href="'+escHtml(safeUrl(p.source_url)||"#")+'" target="_blank" rel="noopener">FRED &#8599;</a>'+dago+'</div>'
           +(done?'<div><span class="o-donetag">Read &amp; banked</span></div>'
                  :'<button class="o-btn o-relbtn" data-rkey="'+escHtml(key)+'">READ THE BRIEFING \u2014 +'+RELEASE_XP+' XP</button>')
           +'</div>';
@@ -684,7 +694,7 @@ function renderRaid(){
   +'<div style="font-size:1.15rem;font-weight:900;letter-spacing:0.18em;color:#c1121f;">&#9876; TODAY\u2019S HEADLINE MISSION &#9876;</div>'
   +'<div style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;">One target. One day. The whole network hits it at once.<br>Like. Comment. Share. Report back.</div>'
   +'<div><div style=\"font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\">TODAY\u2019S TARGET</div>'
-  +'<div style=\"font-size:1.5rem;font-weight:900;margin:0.4rem 0;\"><a href=\"'+cur.tu+'\" style=\"color:#f5f0e1;text-decoration:underline;text-decoration-color:#c1121f;\">'+escHtml(cur.tn)+'</a></div>'
+  +'<div style=\"font-size:1.5rem;font-weight:900;margin:0.4rem 0;\"><a href=\"'+escHtml(cur.tu)+'\" style=\"color:#f5f0e1;text-decoration:underline;text-decoration-color:#c1121f;\">'+escHtml(cur.tn)+'</a></div>'
   +'<div style=\"font-size:0.9rem;color:#b8ab8e;\">'+escHtml(cur.th)+(cur.tp?' \u00b7 '+escHtml(cur.tp):'')+'</div>'
   +'<div style=\"font-size:0.95rem;margin:0.8rem 0;padding:0.8rem;border:2px dashed #c1121f;\">'+escHtml(cur.tgt.m)+'</div></div>'
   +'<div id="oRaidTurnout" style="font-size:0.85rem;color:#b8ab8e;margin:0.6rem 0;min-height:1.2em;"></div>'

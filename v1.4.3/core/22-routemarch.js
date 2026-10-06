@@ -33,6 +33,16 @@
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
+  /* SECURITY (2026-10-06 pre-ship hardening): scheme allowlist for URLs
+     rendered into href/src. Only http(s) or relative URLs pass;
+     javascript:, data:, vbscript: etc. are rejected. */
+  function safeUrl(u){
+    var s=String(u==null?'':u).trim();
+    if(!s) return '';
+    try{ var p=new URL(s,'https://x.invalid').protocol;
+      if(p==='http:'||p==='https:') return s; }catch(e){}
+    return '';
+  }
 
   /* JSONP GET for reads. circuit_status is a gated per-callsign read —
      route through PF.authGetJSONP when present (claim-retry self-heal),
@@ -124,7 +134,7 @@
     for (var i = 0; i < stops.length; i++) {
       var s = stops[i];
       var cls = 'pf-rm-stop' + (s.done ? ' done' : '') + (i === stopIdx ? ' cur' : '');
-      h += '<a class="' + cls + '" href="' + esc(s.page || '/') + '">'
+      h += '<a class="' + cls + '" href="' + esc(safeUrl(s.page) || '/') + '">'
         + '<span class="pf-rm-dot">' + (s.done ? '✓' : (i + 1)) + '</span>'
         + '<span>' + esc(s.action_label || '') + '</span></a>';
     }

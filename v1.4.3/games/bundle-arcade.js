@@ -1021,7 +1021,8 @@ function render(){
       +'<span class="x-note">by '+esc(ce?ce.creator:"?")+' ('+(ce?ce.votes:0)+' votes)</span></div>';
   }
   h+='</div>';
-  h+='<div style="margin-top:10px"><button class="c-btn" id="btRetry">Refresh</button></div>';
+  h+='<div style="margin-top:10px"><button class="c-btn" id="btRetry">Refresh</button> '
+    +'<button class="c-btn" id="btShare">SHARE</button></div>';
   el.innerHTML=h;
   /* wire votes */
   var vbs=el.querySelectorAll("button.bt-votebtn");
@@ -1120,6 +1121,9 @@ function render(){
   };
   var rb=document.getElementById("btRetry");
   if(rb) rb.onclick=function(){ BL=BB=TR=null; el.innerHTML='<div class="c-load">Loading the arena&hellip;</div>'; load(); };
+  /* QW-11b (2026-10-05): SHARE the battles poster from the results moment. */
+  var shb=document.getElementById("btShare");
+  if(shb) shb.onclick=function(){ try{var PS=window.PFShare;if(PS&&PS.poster&&PS.shareImage){var cv=PS.poster('poster-battles'); if(cv) PS.shareImage(cv,'pfn-poster-battles.png','\u2620 POSTER BATTLES \u2620','poster-battles');}}catch(e){} };
 }
 load();
 setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },180000);
@@ -1643,7 +1647,13 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
         href: '/arcade#pf-forecasts' },
       { id: 'fund', title: 'FUND THE FIGHT', cta: 'FUND THE FIGHT', fund: true,
         sub: 'Send the win straight to the war chest.',
-        href: '/war-chest' }
+        href: '/war-chest' },
+      { id: 'cells', title: 'FUND YOUR CELL', cta: 'FUND YOUR CELL',
+        sub: 'Route the win to your cell\'s war effort — cells that fund, fight.',
+        href: '/cells' },
+      { id: 'warbonds', title: 'BUY WAR BONDS', cta: 'BUY WAR BONDS',
+        sub: 'Convert the win into War Bonds. Fund the network, not the casino.',
+        href: '/#pf-warbonds' }
     ],
     loss: [
       { id: 'board', title: 'READ THE BOARD', cta: 'READ THE BOARD',

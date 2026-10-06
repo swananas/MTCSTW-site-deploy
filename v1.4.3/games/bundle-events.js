@@ -109,6 +109,9 @@ function apiAuth(action,params,cb){
   api(action,params,cb);
 }
 var CELL6A=null;
+/* QW-11b (2026-10-05): device-local "I'm going" flags — the RSVP confirmation
+   state that carries the SHARE button. Zero backend state. */
+var COMMITTED={};
 /* 6A-R10: YOUR CELL strip — cell_mine members x event_rsvp_list.
    Renders "N OF YOUR CELL GOING" under each upcoming event. Read-only,
    fail-silent: the strip just stays empty if any read fails. */
@@ -160,10 +163,18 @@ function render(j){
     h+='<div class="irl-cell" id="irlCell'+esc(e.id)+'" style="display:none"></div>';
     if(!past&&id.callsign){
       var sqPre=(SQUAD_PRE==="1"||SQUAD_PRE===String(e.id))?' checked="checked"':"";
-      h+='<label class="irl-sq"><input type="checkbox" id="irlSquad'+esc(e.id)+'"'+sqPre+'> ROLL WITH MY CELL</label>'
-        +'<button class="c-btn" data-irl-rsvp="'+esc(e.id)+'">RSVP (+50 XP)</button><div class="c-err" id="irlErr'+esc(e.id)+'"></div>'
-        /* 6A-R10: event-squad challenge template — prefilled on /cells. */
-        +'<div style="margin-top:6px"><a class="x-note" href="/cells?squad='+esc(e.id)+'">&#9876; MAKE IT A SQUAD CHALLENGE &rarr;</a></div>';
+      if(COMMITTED[e.id]){
+        /* QW-11b: "I'm going" confirmation state — SHARE replaces the RSVP button. */
+        h+='<div class="x-note" style="margin-top:6px;font-weight:700;color:#ffd34d">&#9876; I’M GOING</div>'
+          +'<div style="margin-top:6px"><button class="c-btn" data-irl-share="'+esc(e.id)+'">SHARE</button></div>'
+          +'<div class="c-err" id="irlErr'+esc(e.id)+'"></div>'
+          +'<div style="margin-top:6px"><a class="x-note" href="/cells?squad='+esc(e.id)+'">&#9876; MAKE IT A SQUAD CHALLENGE &rarr;</a></div>';
+      } else {
+        h+='<label class="irl-sq"><input type="checkbox" id="irlSquad'+esc(e.id)+'"'+sqPre+'> ROLL WITH MY CELL</label>'
+          +'<button class="c-btn" data-irl-rsvp="'+esc(e.id)+'">RSVP (+50 XP)</button><div class="c-err" id="irlErr'+esc(e.id)+'"></div>'
+          /* 6A-R10: event-squad challenge template — prefilled on /cells. */
+          +'<div style="margin-top:6px"><a class="x-note" href="/cells?squad='+esc(e.id)+'">&#9876; MAKE IT A SQUAD CHALLENGE &rarr;</a></div>';
+      }
     } else if(!past){
       h+='<div class="x-note">Claim a callsign in Enlistment Ranks to RSVP.</div>';
     } else if(id.callsign){
@@ -216,13 +227,20 @@ function render(j){
             btn.disabled=false; return;
           }
           toast("+50 XP — see you in the street."+(squad?" Your cell knows you're rolling with them.":""));
-          btn.textContent="COMMITTED";
+          COMMITTED[eid]=true; /* QW-11b: re-render lands on the "I'm going" + SHARE state. */
           load();
         });
       };
     })(btns[b]);
   }
-  var rb=document.getElementById("irlRetry");
+    /* QW-11b: SHARE buttons on the "I'm going" confirmation state. */
+  var shs=el.querySelectorAll("button[data-irl-share]");
+  for(var s2=0;s2<shs.length;s2++){
+    (function(btn){
+      btn.onclick=function(){ try{var PS=window.PFShare;if(PS&&PS.poster&&PS.shareImage){var cv=PS.poster('irl-going'); if(cv) PS.shareImage(cv,'pfn-irl-going.png','\uD83D\uDCCD IRL MOBILIZATION \uD83D\uDCCD','irl-going');}}catch(e){} };
+    })(shs[s2]);
+  }
+var rb=document.getElementById("irlRetry");
   if(rb) rb.onclick=function(){ el.innerHTML='<div class="c-load">Finding the fight near you&hellip;</div>'; load(); };
 }
 load();

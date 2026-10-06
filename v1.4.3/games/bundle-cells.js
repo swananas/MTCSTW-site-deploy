@@ -4203,6 +4203,8 @@ function crashSecretHTML(){
   if(!sec) return "";
   var h='<div class="rd-secret">COLLAPSE SECRET (revealed post-collapse): '+esc(sec)+'</div>';
   h+='<button class="c-btn" id="rdVerify" style="margin-top:6px">VERIFY THE COLLAPSE</button><div class="rd-verify" id="rdVerifyOut"></div>';
+  /* QW-11b (2026-10-05): SHARE the raid poster from the post-collapse outcome. */
+  h+='<button class="c-btn" id="rdShare" style="margin-top:6px;margin-left:8px">SHARE</button>';
   return h;
 }
 function journalHTML(){
@@ -4247,7 +4249,9 @@ function wire(id){
       Stried=false; loadRound(false);
     });
   };
-  var vf=document.getElementById("rdVerify");
+    var sh=document.getElementById("rdShare");
+  if(sh) sh.onclick=function(){ try{var PS=window.PFShare;if(PS&&PS.poster&&PS.shareImage){var cv=PS.poster('supply-raid'); if(cv) PS.shareImage(cv,'pfn-supply-raid.png','\u26A1 SUPPLY LINE RAID \u26A1','supply-raid');}}catch(e){} };
+var vf=document.getElementById("rdVerify");
   if(vf) vf.onclick=function(){
     var out=document.getElementById("rdVerifyOut"); if(!out) return;
     var sec=String(S.crash_secret||"");

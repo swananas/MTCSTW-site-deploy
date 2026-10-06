@@ -97,12 +97,16 @@
 var BACKEND=window.PF_BACKEND_URL;
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
-function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){} toastLocal(m); }
 /* 2026-10-05 (P2 F2-TOAST): read the Civic Duty progress AFTER the
    pf-civic-* event has been dispatched (civic-duty.js records
-   synchronously), so the toast shows the count including this action. */
+   synchronously), so the toast shows the count including this action.
+   2026-10-05 (P2 scope fix): dutyN/dutyFrag were nested inside toast()'s
+   body, so every call site outside toast() threw ReferenceError and the
+   Civic Duty toast never fired. They now live at IIFE top-level. */
 function dutyN(){ try{ var p=window.PF&&PF.civicDutyProgress&&PF.civicDutyProgress(); return (p&&p.count)||0; }catch(e){ return 0; } }
 function dutyFrag(){ return " \ud83d\uddf3 Civic Duty: "+dutyN()+" of 3."; }
+function toastLocal(m){
   try{ var t=document.createElement("div"); t.textContent=m;
   t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:var(--pf-red);color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
   document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
@@ -1375,6 +1379,10 @@ function render(){
     +'<a class="c-btn" href="#notifications">MANAGE NOTIFICATIONS \u2192</a></div>';
   el.innerHTML=h;
   bind();
+  /* 2026-10-05 (P4 pane anchors): the civic panes are painted async (after
+     the JSONP fan-in in load()), so phq-hubs' tagHubPanes() at mount time
+     finds nothing. Announce every paint; the hub re-tags idempotently. */
+  try{ document.dispatchEvent(new CustomEvent('pf-civic-panes')); }catch(e){}
   /* Wave A5 S-13: mount the official jobs panel (defensive — the module
      may be killed or absent from an older bundle). */
   try {

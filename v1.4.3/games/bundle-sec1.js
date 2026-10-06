@@ -2425,6 +2425,17 @@ function renderReset(){
   el.textContent="NEW ORDERS IN "+h+"H "+m+"M — streaks roll at midnight";
 }
 
+function wrMondayLink(){
+  /* QW-12: one-line War Report link. Monday (chiNow) gets "is live" copy,
+     every other day gets the evergreen catch-up line. No interpolation,
+     so esc() not needed. */
+  var isMon=false;
+  try{ isMon=PF.chiNow().getDay()===1; }catch(e){}
+  return '<span style="margin-left:12px;color:#b8ab8e;font-size:12px">'
+    +'<a href="/#pf-warreport" style="color:#c1121f;font-weight:700;text-decoration:none">'
+    +(isMon?"MONDAY'S WAR REPORT IS LIVE &#8594;":"CATCH UP: THE WAR REPORT &#8594;")
+    +'</a></span>';
+}
 function render(){
   var set=missionSet(), d=dayRec(), rec=d.rec, t=today();
   document.getElementById("oDate").textContent=new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
@@ -2592,7 +2603,11 @@ function render(){
   renderPatrons();
   paintBoostRate(); /* lever D4: static note ratio follows the server rate */
   renderRaid();
-  document.getElementById("oStreak").innerHTML="Current streak: <b>"+(d.o.streak||0)+"</b> day"+((d.o.streak||0)===1?"":"s")+((d.o.shields||0)>0?" &nbsp;\uD83D\uDEE1\uFE0F x"+d.o.shields:"");
+  document.getElementById("oStreak").innerHTML="Current streak: <b>"+(d.o.streak||0)+"</b> day"+((d.o.streak||0)===1?"":"s")+((d.o.shields||0)>0?" &nbsp;\uD83D\uDEE1\uFE0F x"+d.o.shields:"")
+    /* QW-12 (2026-10-05): Monday-issue War Report link closes the weekly loop.
+       Day logic lives here (chiNow Monday = report day); anchor verified against
+       war-report.js mount #pf-warreport. One line, no new section. */
+    +wrMondayLink();
   /* R26 (2026-10-04): the ONE shared inventory chip mounts on the streak
      row — extends the shield display above, no second chip system. */
   try{
@@ -4373,6 +4388,7 @@ function warplanCard(){
 #pf-ranks .u-msg{font-family:Arial,sans-serif;font-size:13px;letter-spacing:1px;color:#ff5a00;text-align:center;margin-top:10px;min-height:20px;text-transform:uppercase}
 #pf-ranks .u-walltitle{font-size:16px;letter-spacing:3px;color:#c1121f;text-transform:uppercase;text-align:center;margin:16px 0 8px}
 #pf-ranks .u-wall{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+#pf-ranks #uWall{scroll-margin-top:140px}
 #pf-ranks .u-wname{background:#1a1a1a;border:2px solid #ff5a00;color:#f5ead6;font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;padding:6px 12px;text-transform:uppercase;text-decoration:none;display:inline-block}
 #pf-ranks .u-wname:hover{border-color:#f5ead6}
 #pf-ranks .u-weeklyheroes{margin:10px 0 4px;text-align:center}
@@ -4419,6 +4435,7 @@ function warplanCard(){
   <div class="u-msg" id="uMsg"></div>
   <div class="u-walltitle">Vanguard Wall</div>
   <div class="u-wall" id="uWall"><div class="u-wempty">No architects yet. The wall waits.</div></div>
+  <div class="u-wallshare" style="text-align:center;margin-top:10px"><button class="u-btn" id="uShareWall">SHARE YOUR ETCHING</button></div>
   <div class="u-weeklyheroes"><a href="/#pf-hallofproof">WEEKLY HEROES →</a></div>
 </div>
 <div class="p-wrap">
@@ -5025,6 +5042,20 @@ function loadPrestige(){
   var el=document.getElementById("pBody"); if(!el) return;
   pApiGet("prestige_status",function(j){ renderPrestige(j); });
 }
+/* QW-4a (2026-10-05): Vanguard Wall share — calls the PFShare poster API.
+   The 'vanguard-wall' REG painter entry lands in core/share-image.js (teammate
+   batch); the generic fallback covers the interim. Zero XP: this is a link
+   out, no grant — the existing pf-share-image listener covers share logging. */
+var uShareBtn=document.getElementById("uShareWall");
+if(uShareBtn) uShareBtn.onclick=function(){
+  try{
+    var PS=window.PFShare;
+    if(PS&&PS.poster&&PS.shareImage){
+      var cv=PS.poster('vanguard-wall');
+      if(cv){ PS.shareImage(cv,'pfn-vanguard-wall.png','VANGUARD WALL \u2014 etched in the machine','vanguard-wall'); }
+    }
+  }catch(e){}
+};
 /* Daily Orders writes the real combo XP into the shared pool itself — just re-render. */
 document.addEventListener("pf-order-checkin",function(){ render(); });
 loadPrestige();

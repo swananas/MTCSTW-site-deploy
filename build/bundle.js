@@ -291,6 +291,13 @@ var SECTIONS = {
     'armory.js',
     'dashboard.js',
     'earnings.js',
+    /* Synergy-2 mission control (2026-10-05): Creator HQ payoff dashboard —
+       synergy map + read-only earnings + the wire (S-28 prompts). Self-mounts
+       into #pf-hq-mission (Dashboard Code-block hand-step); silent no-op
+       elsewhere. Display-only, zero XP. Kill: ?pf_off=hq-mission.
+       Psych spec-review PASS WITH FIXES (all applied); Brand Consistency owns
+       the tone bar on the provisional copy. */
+    'hq-mission.js',
     /* CONTENT BANK POLITICAL METADATA (2026-10-05, weave #8): Bank Browse —
        the Content Bank gallery (filters, sort, load more, REMIX THIS).
        Silo key 'bank-browse'; self-mounts into #pf-bank-browse on the

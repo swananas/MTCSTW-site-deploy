@@ -1,6 +1,12 @@
 /* core/20-nextop.js  |  PF v1.4.3 | NEXT OP (S4) — context-aware next-action card.
    Every page ends with the single best thing to do next, personalized to
    what the visitor hasn't done today. No page is a dead end.
+   2026-10-06 COHESION P0: upgraded to the spec's Next Move ladder
+   (orders report-back -> blitz mission -> phase nudge -> predictions ->
+   bounties -> streak -> circulation); psych copy constraints applied
+   (no loss framing, no shaming); terminal-state API added — surfaces
+   dispatch `pf:terminal` (or call PF.nextMove.render) for in-place cards
+   at game-over / certificate / vote / quiz / RSVP / pledge states.
    FRONTEND-ONLY, ZERO NEW XP — pure routing. Reads compose the existing
    reads: dopamine_status (loot + streak + flash), streak_status,
    cell_mine, xp_today, plus W5-2 briefing reads: op_briefing_status
@@ -99,7 +105,9 @@
       title: 'STREAK AT RISK', cta: 'SAVE IT \u2192', href: '/',
       ready: function (st) { return st.streakRisk !== null; },
       done: function (st) { return !st.streakRisk; },
-      sub: function (st) { return 'Last chance \u2014 check in before midnight Chicago or the streak breaks.'; }
+      /* Cohesion P0 (2026-10-06): psych constraint — never loss-framed.
+         "Keep it going", never "don't lose it". */
+      sub: function (st) { return 'Keep it going — one check-in before midnight Chicago.'; }
     },
     loot: {
       title: 'THE CRATE IS LOADED', cta: 'OPEN THE CRATE \u2192', href: '/',
@@ -130,11 +138,60 @@
       done: function (st) { return !st.cellIn || st.cellChecked; },
       sub: function (st) { return 'Your cell hasn\u2019t checked in today. First tap starts the cell streak.'; }
     },
+    /* ---- Cohesion P0 (2026-10-06): spec-ladder rungs. First match wins.
+       Priority: orders report-back -> blitz mission -> phase nudge ->
+       predictions -> bounties -> streak -> circulation. Zero new XP —
+       every rung routes to an existing faucet. ---- */
+    orders: {
+      title: 'ORDERS AWAIT DEBRIEF', cta: 'REPORT BACK \u2192', href: '/#pf-orders',
+      ready: function (st) { return st.opDone !== null; },
+      done: function (st) { return !!st.opDone; },
+      sub: function () { return 'Today\u2019s missions are done. Report back to log them on the record.'; }
+    },
+    blitz: {
+      title: 'BLITZ MISSION LIVE', cta: 'TODAY\u2019S MISSION \u2192', href: '/',
+      ready: function (st) { return st.blitzActive === true && st.blitzActed !== null; },
+      done: function (st) { return !!st.blitzActed; },
+      sub: function (st) {
+        return 'Day ' + (st.blitzDay || '?') + ' of the Midterm Blitz. One mission moves the line.';
+      }
+    },
+    train: {
+      title: 'FINISH BASIC TRAINING', cta: 'NEXT LESSON \u2192', href: '/academy',
+      ready: function (st) { return st.graduated !== null; },
+      done: function (st) { return !!st.graduated; },
+      sub: function () { return 'Learn the tools once, fight forever. Pick up where you left off.'; }
+    },
+    predict: {
+      title: 'THE BOARD IS OPEN', cta: 'MAKE THE CALL \u2192', href: '/money',
+      ready: function (st) { return st.openPredicts !== null && st.openPredicts > 0; },
+      done: function () { return false; },
+      sub: function (st) {
+        return st.openPredicts + ' open question' + (st.openPredicts === 1 ? '' : 's') +
+          ' on the board. Call it like you see it.';
+      }
+    },
+    bounty: {
+      title: 'OPEN BOUNTY ON THE BOARD', cta: 'EARN IT \u2192', href: '/bounty',
+      ready: function (st) { return st.openBounties !== null && st.openBounties > 0; },
+      done: function () { return false; },
+      sub: function (st) {
+        return st.openBounties + ' open bount' + (st.openBounties === 1 ? 'y' : 'ies') +
+          ' — the movement needs hands, not just eyes.';
+      }
+    },
+    catchup: {
+      title: 'CATCH UP ON THE WAR', cta: 'READ THE REPORT \u2192', href: '/war-report',
+      ready: function () { return true; },
+      done: function () { return false; },
+      sub: function () { return 'This week in the fight, distilled. Thirty seconds, then move.'; }
+    },
     xpzero: {
-      title: 'ZERO XP ON THE BOARD', cta: 'MAKE SOMETHING \u2192', href: '/create',
+      title: 'FIRST POINTS TODAY', cta: 'MAKE SOMETHING \u2192', href: '/create',
       ready: function (st) { return st.xpToday !== null; },
       done: function (st) { return st.xpToday > 0; },
-      sub: function (st) { return 'The meter is counting and you\u2019re flat. Forge one poster.'; }
+      /* Cohesion P0 (2026-10-06): psych — no shaming ("you're flat" cut). */
+      sub: function (st) { return 'Put the first points on the board — forge one poster.'; }
     },
     flash: {
       title: 'FLASH MULTIPLIER LIVE', cta: 'RIDE THE FLASH \u2192', href: '/',
@@ -188,22 +245,28 @@
   /* Per-page priority lists. Ops whose read failed are skipped (fail-open to
      the next op); circulation ops (matchquiz/roster/recruit) are always
      ready, so the card can never be a dead end. */
+  /* Per-page priority lists. Cohesion P0 (2026-10-06): reordered to the spec
+     ladder — orders report-back -> blitz mission -> phase nudge (train /
+     cellnone) -> predictions -> bounties -> streak -> circulation.
+     Ops whose read failed are skipped (fail-open to the next op);
+     circulation ops (matchquiz/catchup) are always ready, so the card can
+     never be a dead end. */
   var ORDER = {
-    'pf-v2': ['streakrisk', 'loot', 'streak', 'cellcheck', 'cellnone', 'flash', 'xpzero', 'matchquiz'],
-    'pf-arcade': ['streakrisk', 'loot', 'streak', 'matchquiz', 'cellcheck', 'xpzero'],
-    'pf-cells-page': ['cellnone', 'cellcheck', 'streakrisk', 'streak', 'loot', 'recruit'],
-    'pf-create': ['xpzero', 'streakrisk', 'loot', 'streak', 'cellcheck', 'matchquiz'],
-    'pf-bank': ['streakrisk', 'loot', 'streak', 'cellcheck', 'xpzero', 'matchquiz'],
-    'pf-economy': ['streakrisk', 'loot', 'streak', 'cellcheck', 'xpzero', 'matchquiz'],
-    'pf-warchest': ['streakrisk', 'loot', 'streak', 'cellcheck', 'xpzero', 'roster'],
-    'pf-ventures': ['streakrisk', 'loot', 'streak', 'cellcheck', 'xpzero', 'matchquiz'],
-    'pf-events': ['streakrisk', 'loot', 'streak', 'cellcheck', 'xpzero', 'matchquiz'],
-    'pf-warreport': ['streakrisk', 'loot', 'streak', 'cellcheck', 'xpzero', 'matchquiz'],
-    'pf-catalog': ['streakrisk', 'loot', 'streak', 'matchquiz', 'roster'],
-    'pf-slr-roster': ['matchquiz', 'roster', 'streakrisk', 'loot', 'streak'],
-    'pf-war-card': ['cellcheck', 'cellnone', 'streakrisk', 'loot', 'recruit'],
-    'pf-political-hq': ['streakrisk', 'loot', 'streak', 'cellcheck', 'xpzero', 'matchquiz'],
-    'default': ['streakrisk', 'loot', 'streak', 'cellcheck', 'cellnone', 'xpzero', 'matchquiz']
+    'pf-v2': ['orders', 'blitz', 'train', 'cellnone', 'predict', 'bounty', 'streakrisk', 'streak', 'cellcheck', 'loot', 'flash', 'xpzero', 'catchup', 'matchquiz'],
+    'pf-arcade': ['orders', 'blitz', 'train', 'predict', 'bounty', 'streakrisk', 'streak', 'cellcheck', 'xpzero', 'catchup', 'matchquiz'],
+    'pf-cells-page': ['orders', 'cellnone', 'cellcheck', 'blitz', 'train', 'predict', 'bounty', 'streakrisk', 'streak', 'catchup', 'recruit'],
+    'pf-create': ['orders', 'blitz', 'train', 'predict', 'bounty', 'streakrisk', 'streak', 'xpzero', 'cellcheck', 'catchup', 'matchquiz'],
+    'pf-bank': ['orders', 'blitz', 'train', 'predict', 'bounty', 'streakrisk', 'streak', 'cellcheck', 'xpzero', 'catchup', 'matchquiz'],
+    'pf-economy': ['orders', 'blitz', 'train', 'predict', 'bounty', 'streakrisk', 'streak', 'cellcheck', 'xpzero', 'catchup', 'matchquiz'],
+    'pf-warchest': ['orders', 'blitz', 'train', 'predict', 'bounty', 'streakrisk', 'streak', 'cellcheck', 'xpzero', 'catchup', 'roster'],
+    'pf-ventures': ['orders', 'blitz', 'train', 'predict', 'bounty', 'streakrisk', 'streak', 'cellcheck', 'xpzero', 'catchup', 'matchquiz'],
+    'pf-events': ['orders', 'blitz', 'train', 'predict', 'bounty', 'streakrisk', 'streak', 'cellcheck', 'xpzero', 'catchup', 'matchquiz'],
+    'pf-warreport': ['orders', 'blitz', 'train', 'predict', 'bounty', 'streakrisk', 'streak', 'catchup', 'matchquiz'],
+    'pf-catalog': ['orders', 'blitz', 'train', 'cellnone', 'predict', 'bounty', 'streakrisk', 'streak', 'catchup', 'roster'],
+    'pf-slr-roster': ['orders', 'blitz', 'train', 'cellnone', 'predict', 'bounty', 'streakrisk', 'streak', 'catchup', 'matchquiz', 'roster'],
+    'pf-war-card': ['orders', 'cellcheck', 'cellnone', 'blitz', 'train', 'predict', 'bounty', 'streakrisk', 'catchup', 'recruit'],
+    'pf-political-hq': ['orders', 'blitz', 'train', 'predict', 'bounty', 'streakrisk', 'streak', 'cellcheck', 'xpzero', 'catchup', 'matchquiz'],
+    'default': ['orders', 'blitz', 'train', 'cellnone', 'predict', 'bounty', 'streakrisk', 'streak', 'cellcheck', 'xpzero', 'catchup', 'matchquiz']
   };
   /* W5-2 Midnight Briefing: while the window is live, unclaimed
      briefing-window systems route above the normal priority list. */
@@ -234,6 +297,10 @@
     var st = {
       lootClaimed: null, streakCount: 0, streakChecked: null, streakRisk: null,
       cellIn: null, cellChecked: null, xpToday: null, flash: null, flashKnown: false,
+      /* Cohesion P0 (2026-10-06): spec-ladder reads. All fail open (null =
+         unknown = op skipped) so a dead backend never dead-ends the card. */
+      opDone: null, blitzActive: null, blitzActed: null, blitzDay: null,
+      graduated: null, openPredicts: null, openBounties: null,
       /* W5-2 Midnight Briefing. briefLive===true flips pickOp into
          briefing-priority mode. Per-system claim fields stay null on read
          failure so their ops fail open (skipped) — never assumed done. */
@@ -241,7 +308,7 @@
       riddleActive: null, riddleClaimed: null, nightLeg: null,
       blackoutLive: false
     };
-    var pending = 9, guarded = false;
+    var pending = 14, guarded = false;
     /* Terminal: never leave the card waiting — every read path converges
        here exactly once, failures included (skipped ops fail open). */
     function fin() { if (guarded) return; guarded = true; cb(st); }
@@ -338,6 +405,56 @@
       } catch (e) {}
       one();
     });
+    /* Cohesion P0 (2026-10-06): spec-ladder reads. Every one fails open —
+       unknown means the rung is skipped, never assumed done. */
+    api('get', { callsign: id.callsign }, function (j) {
+      try {
+        if (j && j.ok && j.op_done !== undefined) st.opDone = !!j.op_done;
+      } catch (e) {}
+      one();
+    });
+    api('campaign_status', {}, function (j) {
+      try {
+        if (j && j.ok && j.campaign) {
+          st.blitzActive = Number(j.campaign.days_left || 0) > 0;
+          st.blitzDay = Number(j.campaign.day_offset || 0) + 1;
+          if (j.my && j.my.actions_today !== undefined)
+            st.blitzActed = Number(j.my.actions_today || 0) > 0;
+          else st.blitzActed = false;
+        }
+      } catch (e) {}
+      one();
+    });
+    api('academy_progress', { callsign: id.callsign }, function (j) {
+      try {
+        if (j && j.ok && j.graduated !== undefined) st.graduated = !!j.graduated;
+      } catch (e) {}
+      one();
+    });
+    api('predict_qlist', {}, function (j) {
+      try {
+        if (j && j.ok && j.questions) {
+          var open = 0;
+          for (var i = 0; i < j.questions.length; i++) {
+            if (!j.questions[i].locked && !j.questions[i].resolved) open++;
+          }
+          st.openPredicts = open;
+        } else if (j && j.ok) { st.openPredicts = 0; }
+      } catch (e) {}
+      one();
+    });
+    api('propbounty_list', {}, function (j) {
+      try {
+        if (j && j.ok && j.bounties) {
+          var n = 0;
+          for (var i = 0; i < j.bounties.length; i++) {
+            if (j.bounties[i].status === 'open') n++;
+          }
+          st.openBounties = n;
+        } else if (j && j.ok) { st.openBounties = 0; }
+      } catch (e) {}
+      one();
+    });
     /* W5-11 Blackout: shadow mode — while a blackout op is live the NEXT OP
        card switches copy (no routing change, zero XP). Defensive flags read:
        works before and after the conductor's preset/flags schema lands. */
@@ -418,6 +535,75 @@
     } catch (e2) {}
   }
 
+  /* ---- Cohesion P0 (2026-10-06): terminal-state API.
+     Surfaces at terminal states (game over, certificate earned, vote cast,
+     quiz result, RSVP confirmed, pledge confirmed) dispatch:
+       document.dispatchEvent(new CustomEvent('pf:terminal', {
+         detail: { slot: <element>, context: 'game-over' }
+       }));
+     nextop renders the current best op as an in-place card inside the slot —
+     one action, dismissible, never a menu. Also exposed as
+     PF.nextMove.render(slot, context) for direct calls.
+     Psych constraints (binding): skippable everywhere; degrades to nothing
+     (not a fallback menu) if the op state isn't loaded yet. */
+  var _resolved = null; /* {op, st} once loadState completes */
+  var _terminalQueue = [];
+  function terminalCardHtml(op, st, ctx) {
+    var dismissKey = 'pf_nm_dismiss_' + String(ctx || 'terminal');
+    return '<div class="pf-nextmove-terminal" data-pf-nm-ctx="' + esc(ctx || '') + '" style="max-width:560px;margin:18px auto;padding:16px 14px;background:#0a0a0a;' +
+      'border:1px solid #333;border-left:4px solid #c1121f;box-sizing:border-box;position:relative;' +
+      'font-family:Arial,sans-serif;text-align:center;">' +
+      '<button type="button" data-pf-nm-dismiss="1" aria-label="Dismiss" style="position:absolute;top:6px;right:8px;' +
+      'background:none;border:none;color:#777;font-size:16px;cursor:pointer;padding:4px 8px;">\u00d7</button>' +
+      '<div style="font-size:10px;letter-spacing:4px;color:#dc143c;font-weight:800;margin-bottom:6px;">NEXT MOVE</div>' +
+      '<div style="font-family:\'Arial Black\',Arial,sans-serif;font-size:18px;letter-spacing:1px;' +
+      'color:#f5ead6;margin:0 0 6px;">' + esc(op.title) + '</div>' +
+      '<div style="font-size:13px;color:#a89e88;line-height:1.5;margin:0 0 12px;">' + esc(op.sub(st)) + '</div>' +
+      '<a href="' + esc(op.href) + '" style="display:inline-block;background:#c1121f;color:#fff;' +
+      'font-weight:900;letter-spacing:0.12em;font-size:12px;text-decoration:none;' +
+      'padding:10px 22px;border:2px solid #c1121f;">' + esc(op.cta) + '</a>' +
+      '</div>';
+  }
+  function renderTerminal(slot, ctx) {
+    try {
+      if (!slot || !slot.parentNode) return false;
+      if (slot.querySelector('.pf-nextmove-terminal')) return true; /* idempotent */
+      var dk = 'pf_nm_dismiss_' + String(ctx || 'terminal');
+      try { if (sessionStorage.getItem(dk) === '1') return true; } catch (e) {}
+      if (!_resolved || !_resolved.op) return false; /* not loaded yet — caller re-queues */
+      slot.insertAdjacentHTML('beforeend', terminalCardHtml(_resolved.op, _resolved.st, ctx));
+      var btn = slot.querySelector('[data-pf-nm-dismiss]');
+      if (btn) btn.addEventListener('click', function () {
+        try { sessionStorage.setItem(dk, '1'); } catch (e) {}
+        var card = slot.querySelector('.pf-nextmove-terminal');
+        if (card && card.parentNode) card.parentNode.removeChild(card);
+      });
+      return true;
+    } catch (e) { return false; }
+  }
+  try {
+    document.addEventListener('pf:terminal', function (ev) {
+      var d = (ev && ev.detail) || {};
+      if (!renderTerminal(d.slot, d.context)) {
+        _terminalQueue.push({ slot: d.slot, context: d.context });
+      }
+    });
+  } catch (e) {}
+  try {
+    if (window.PF) {
+      window.PF.nextMove = window.PF.nextMove || {};
+      window.PF.nextMove.render = function (slot, ctx) {
+        if (!renderTerminal(slot, ctx)) _terminalQueue.push({ slot: slot, context: ctx });
+      };
+      window.PF.nextMove.ready = function () { return !!(_resolved && _resolved.op); };
+    }
+  } catch (e) {}
+  function flushTerminalQueue() {
+    if (!_terminalQueue.length) return;
+    var q = _terminalQueue; _terminalQueue = [];
+    for (var i = 0; i < q.length; i++) renderTerminal(q[i].slot, q[i].context);
+  }
+
   /* ---- boot ---- */
   function boot(op) {
     try { mount(cardHtml(op, op.__st)); }
@@ -452,6 +638,9 @@
       op = pickOp(st);
     }
     op.__st = st;
+    /* Cohesion P0: publish the resolved op for terminal-state renders. */
+    _resolved = { op: op, st: st };
+    try { flushTerminalQueue(); } catch (e) {}
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { boot(op); });
     else boot(op);
   });

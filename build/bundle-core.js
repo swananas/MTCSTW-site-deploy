@@ -265,6 +265,12 @@ var BUNDLES = {
   'core/bundle-footer-chrome': [
     'core/00-bus.js',
     'core/18-footer-deps.js',
+    /* callsign-recovery (CEO directive, 2026-10-06): the delegated recovery
+       taps ([data-pf-recover-cs]) must be live BEFORE any claim prompt that
+       embeds PF.recoverLinkHTML (17-nuke-strip, 20-nextop) renders — legacy
+       pages (/privacy, /terms) otherwise get a dead link. After 00-bus /
+       18-footer-deps (PF bus + identity helpers); all other deps optional-guarded. */
+    'core/29-callsign-recovery.js',
     'core/14-auth.js',
     'core/17-nuke-strip.js',
     'core/16-footer.js',

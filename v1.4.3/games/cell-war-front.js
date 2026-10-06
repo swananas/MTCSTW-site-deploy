@@ -137,6 +137,17 @@ function render(j){
   if(j.last_winner&&j.last_winner.cell_name){
     h+='<div class="pw-champ">\uD83C\uDFC6 PROPAGANDIST CROWN: '+esc(j.last_winner.cell_name)+
        '<small>'+fmt(j.last_winner.output)+' political assets last week \u2014 the crown is glory, not XP</small></div>';
+    /* PLAY 10 — WINS THAT ECHO (2026-10-06): political-front victory render
+       -> win event. Recognition only — the crown is glory, not XP (module
+       copy); this hook mints zero XP. Dedupe key = the war week. */
+    try {
+      if (window.PF && PF.wins && typeof PF.wins.emit === 'function') {
+        PF.wins.emit('cellwar_win',
+          '\uD83C\uDFC6 ' + String(j.last_winner.cell_name) + ' TOOK THE PROPAGANDIST CROWN',
+          'Political-front champions · ' + fmt(j.last_winner.output) + ' assets last week',
+          { dedupe: 'cellwar-front:' + String(j.week_no || j.week_start || '') });
+      }
+    } catch (e) {}
   }
   if(rows.length){
     for(var i=0;i<rows.length;i++){

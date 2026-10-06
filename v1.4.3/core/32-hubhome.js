@@ -286,13 +286,18 @@
     } catch (e) {}
     var w = document.createElement('div');
     w.innerHTML = '<div class="pf-pat" id="pf-hubhero">' +
-      P.hero({ kicker: kickerText(), mission: 'Your war, your numbers, your next move \u2014 all in one place.' }) +
+      P.hero({ kicker: kickerText(), mission: 'Your war, your numbers, your next move — all in one place.' }) +
       '<div data-hub-ring>' + ringHtml({ xpToday: 0, streak: 0 }) + '</div>' +
       '<div data-hub-proof></div>' +
       '<div data-hub-cellwrap></div>' +
       '<div data-hub-next></div>' +
       linkCardsHtml() +
       frontLinesHtml() +
+      /* PLAY 10 — WINS THAT ECHO (2026-10-06): WINS strip slot — filled by
+         PF.wins.renderHubStrip in fill(). The bus hides the slot when muted
+         or empty, so anonymous/quiet states render exactly as before. */
+      '<div data-ph-wins data-pf-wins-slot="hubhero"></div>' +
+      '<div class="ph-foot"><a href="#" data-ph-paths>Change your fights</a> \u00B7 the movement rolls on below</div>' +
       '</div>';
     var el = w.firstChild;
     if (host.firstChild) host.insertBefore(el, host.firstChild);
@@ -314,6 +319,14 @@
       if (cw) cw.innerHTML = cellHtml(d);
       var nx = el.querySelector('[data-hub-next]');
       if (nx) nx.innerHTML = nextMoveHtml(d);
+      /* PLAY 10 — WINS THAT ECHO: the WINS strip. Fail-open — absent
+         PF.wins leaves the slot hidden and the hero unchanged. */
+      try {
+        var wn = el.querySelector('[data-ph-wins]');
+        if (wn && window.PF && PF.wins && typeof PF.wins.renderHubStrip === 'function') {
+          PF.wins.renderHubStrip(wn);
+        }
+      } catch (e) {}
     } catch (e) {}
   }
 

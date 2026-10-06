@@ -31,6 +31,15 @@
     warCard.parentNode.insertBefore(mount, warCard.nextSibling);
   }
 
+  /* PLAY 10 — WINS THAT ECHO (2026-10-06): inject the wins strip at the top
+     of the cell feed. Fail-open — absent PF.wins leaves the dashboard
+     exactly as before. Idempotent (bus guards on #pf-wins-cellfeed). */
+  try {
+    if (window.PF && PF.wins && typeof PF.wins.injectCellFeed === 'function') {
+      PF.wins.injectCellFeed(mount);
+    }
+  } catch (e) {}
+
   var BACKEND = window.PF_BACKEND_URL;
   var LS_HQ = 'pf_cellhq_v1';
 

@@ -129,6 +129,12 @@ var CORE_FILES = [
      anonymous visitors. Composes the HUD + pillars; duplicates neither.
      FRONTEND-ONLY, ZERO NEW XP. Kill: ?pf_off=hubhome */
   'core/32-hubhome.js',
+  /* wins-echo (PLAY 10, 2026-10-06, CEO directive): the win-event bus —
+     device-local recognition feed (cell-war victories, filled bounties,
+     poster shares/deploys) rendered as a WINS strip in the hub hero and
+     injected into the cell feed. After hubhome (its consumer). Zero XP,
+     fail-open everywhere. Kill: ?pf_off=wins */
+  'core/33-wins.js',
   /* allfronts (2026-10-04): ALL FRONTS operation banner — fixed-top strip
      while an operation is live or launching within the hour. */
   'core/21-allfronts.js',

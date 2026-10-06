@@ -114,6 +114,20 @@ function render(j){
   if(j.last_winner&&j.last_winner.cell_name){
     h+='<div class="cw-champ">\uD83C\uDFC6 REIGNING CHAMPIONS: '+esc(j.last_winner.cell_name)+
        '<small>'+fmt(j.last_winner.xp_earned)+' XP last week \u2014 members earn +'+(j.champion_bonus_pct||10)+'% XP all this week</small></div>';
+    /* PLAY 10 — WINS THAT ECHO (2026-10-06): cell-war victory render ->
+       win event. RECOGNITION ONLY — the war prize (+150 XP/member winners,
+       +50 consolation) is paid by the backend under the locked XP table
+       (xp-locked-table-retuned-20261006.md §4.7, NO_MULT); this hook mints
+       zero XP. Dedupe key = the war week. */
+    try {
+      if (window.PF && PF.wins && typeof PF.wins.emit === 'function') {
+        PF.wins.emit('cellwar_win',
+          '\u2694\uFE0F ' + String(j.last_winner.cell_name) + ' TOOK THE CROWN',
+          'Cell War champions · Week ' + (j.week_no || '?') +
+            ' · +' + (j.champion_bonus_pct || 10) + '% XP all week',
+          { dedupe: 'cellwar:' + String(j.week_no || j.week_start || '') });
+      }
+    } catch (e) {}
   }
   if(rows.length){
     for(var i=0;i<rows.length;i++){

@@ -194,6 +194,10 @@ var SECTIONS = {
     'feed.js'
   ],
   'bundle-arcade': [
+    /* TEARDOWN WS-2 (2026-10-06): the games table — lobby cards for /arcade,
+       /call-it and /liquidation. First: it mounts first in the page orders
+       below, and bundle-arcade.js loads on all three pages. */
+    'arcade-cards.js',
     /* /arcade — the 3 arcade games not already in bundle-home. */
     'caption-combat.js',
     'bracket-board.js',

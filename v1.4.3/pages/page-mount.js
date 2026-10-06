@@ -45,6 +45,9 @@
       title: 'THE ARCADE', sub: 'Six games. Zero mercy. Play them all.',
       phase: 'fight',
       order: [
+        /* TEARDOWN WS-2 (2026-10-06): the games table — lobby cards mount
+           first; each card's DEPLOY scrolls to its game below, in place. */
+        ['arcade-cards', 'pf-ov-arcade-cards'],
         ['gambits', 'pf-ov-gambits'],
         ['caption-combat', 'pf-ov-caption'],
         ['creator-guess', 'pf-ov-guess'],
@@ -71,6 +74,8 @@
       phase: 'fight',
       exit: { text: 'NEXT MOVE →', href: '/cells' },
       order: [
+        /* TEARDOWN WS-2: prediction table cards mount first. */
+        ['arcade-cards', 'pf-ov-arcade-cards'],
         ['predgame', 'pf-ov-predgame'],
         ['markets', 'pf-ov-markets']
       ]
@@ -85,6 +90,8 @@
       phase: 'fight',
       exit: { text: 'NEXT MOVE →', href: '/cells' },
       order: [
+        /* TEARDOWN WS-2: bracket card mounts first. */
+        ['arcade-cards', 'pf-ov-arcade-cards'],
         ['bracket-board', 'pf-ov-bracket']
       ]
     },

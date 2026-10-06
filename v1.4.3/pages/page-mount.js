@@ -167,6 +167,20 @@
         ['economy', 'pf-ov-economy']
       ]
     },
+    /* S4/C1 (2026-10-06, Project Blossom): /peoples-cpi — the public
+       People's Price Index page (spec peoples-cpi-public-20261006.md).
+       Self-mounting silo (games/peoples-cpi.js renders into #pf-peoples-cpi);
+       spine phase FIGHT; Next Move exit -> /economy#pf-inflation-checkin.
+       Kill: ?pf_off=peoples-cpi. Squarespace hand-steps: page + the
+       #pf-peoples-cpi Code block. */
+    'pf-peoples-cpi': {
+      title: "THE PEOPLE'S PRICE INDEX",
+      sub: "The real cost of living, tracked by the people. Two ways of counting. Two separate lines. Never merged.",
+      spine: 'FIGHT',
+      order: [
+        ['peoples-cpi', null]
+      ]
+    },
     /* money (fe/money-page, 2026-10-05): FOLLOW THE MONEY. Self-mounting
        silo — core/money-page.js renders itself into #pf-money (page mode)
        or the interim PHQ tab. Sub copy provisional — Psych veto. */
@@ -174,6 +188,19 @@
       title: 'FOLLOW THE MONEY', sub: 'Follow the money. See who funds the votes.',
       order: [
         ['money', null]
+      ]
+    },
+    /* C4 (2026-10-06, Project Blossom): /fund — THE PROPAGANDA FUND.
+       STRUCTURE ONLY: the transparency-report content is gated on News Desk
+       + Brand sign-off, so the silo renders an empty-honest body — no
+       figures, no placeholders, deliberately. Spine phase ORGANIZE; Next
+       Move exit -> /follow-the-money. Kill: ?pf_off=fund. Squarespace
+       hand-steps: page + the #pf-fund Code block. */
+    'pf-fund': {
+      title: 'THE PROPAGANDA FUND', sub: 'Every cent, accounted for.',
+      spine: 'ORGANIZE',
+      order: [
+        ['fund', null]
       ]
     },
     'pf-warchest': {
@@ -236,7 +263,13 @@
     /* money (fe/money-page, 2026-10-05): the Follow-the-Money suite renders
        itself into #pf-money (core/money-page.js, context-aware mount).
        Kill: ?pf_off=money (master). */
-    'money': { div: 'pf-money', kill: 'money' }
+    'money': { div: 'pf-money', kill: 'money' },
+    /* S4/C1 (2026-10-06, Project Blossom): the public People's Price Index
+       renders itself into #pf-peoples-cpi. Kill: ?pf_off=peoples-cpi. */
+    'peoples-cpi': { div: 'pf-peoples-cpi', kill: 'peoples-cpi' },
+    /* C4 (2026-10-06, Project Blossom): the Propaganda Fund structure page
+       renders itself into #pf-fund. Kill: ?pf_off=fund. */
+    'fund': { div: 'pf-fund', kill: 'fund' }
   };
 
   function execScripts(root, label) {
@@ -271,10 +304,11 @@
     if (host.querySelector(':scope > .pf-page-head')) return;
     var head = document.createElement('div');
     head.className = 'pf-page-head';
-    /* BLOSSOM S1 (2026-10-06): spine phase declaration on the page header
-       (cohesion gate rule — plan §8). Set only when the PAGE_ORDER entry
-       declares one, so legacy pages are never mislabeled. */
-    try { if (cfg.phase) head.setAttribute('data-pf-spine-phase', cfg.phase); } catch (e) {}
+    /* BLOSSOM integration: spine phase declaration on the page header
+       (cohesion gate rule — plan §8). Accepts both WS-A/B `phase:` and
+       WS-C `spine:` declaration shapes. Set only when declared, so legacy
+       pages are never mislabeled. */
+    try { var _sp = cfg.phase || cfg.spine; if (_sp) head.setAttribute('data-pf-spine-phase', _sp); } catch (e) {}
     /* CONTRAST FIX (2026-10-04): the hero carries its own dark band so the
        near-white title is never at the mercy of the Squarespace section
        background — /economy, /arcade and /war-chest ship light-gray section
@@ -384,10 +418,10 @@
     'pf-v2',
     'pf-cells-page', 'pf-cell-hq', 'pf-cell-war', 'pf-governance',
     'pf-arcade', 'pf-call-it', 'pf-liquidation',
-    'pf-create', 'pf-bank', 'pf-economy',
+    'pf-create', 'pf-bank', 'pf-economy', 'pf-peoples-cpi',
     'pf-warchest', 'pf-ventures', 'pf-events', 'pf-warreport',
     'pf-war-card', 'pf-academy-hq', 'pf-dash-hq', 'pf-hq-mission',
-    'pf-political-hq', 'pf-slr-roster', 'pf-catalog', 'pf-money'
+    'pf-political-hq', 'pf-slr-roster', 'pf-catalog', 'pf-money', 'pf-fund'
   ];
   function feWiden(host) {
     try {

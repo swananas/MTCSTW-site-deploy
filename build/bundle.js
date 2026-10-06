@@ -367,6 +367,20 @@ var SECTIONS = {
        Kill: ?pf_off=economy-fred-rail (master ?pf_off=economy-fred). */
     'fred-macro-rail.js',
   ],
+  /* 2026-10-06 (fe/blossom-s4): /peoples-cpi — the public People's Price
+     Index (spec peoples-cpi-public-20261006.md). Self-mounting silo
+     (games/peoples-cpi.js renders into #pf-peoples-cpi); silent no-op
+     elsewhere. Read-only JSONP, zero XP. Kill: ?pf_off=peoples-cpi. */
+  'bundle-peoples-cpi': [
+    'peoples-cpi.js'
+  ],
+  /* 2026-10-06 (fe/blossom-s4): /fund — THE PROPAGANDA FUND. Structure-only
+     transparency page (games/propaganda-fund.js renders into #pf-fund);
+     the content is gated on News Desk/Brand sign-off, so the silo renders
+     an empty-honest body with no figures. Kill: ?pf_off=fund. */
+  'bundle-fund': [
+    'propaganda-fund.js'
+  ],
   'bundle-warchest': [
     /* /war-chest — Movement Finance. */
     'movement.js'

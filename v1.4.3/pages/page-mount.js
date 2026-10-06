@@ -170,7 +170,12 @@
     'pf-warroom': {
       title: 'WAR ROOM', sub: 'Debate nights. Election night. History, live.',
       order: [
-        ['liveops', 'pf-ov-liveops']
+        ['liveops', 'pf-ov-liveops'],
+        /* 2026-10-06 (fe/live-event-mode, PLAY 9): LIVE EVENT MODE — fused
+           live surface (board + calls + wire + rally + countdown) below the
+           War Room. Read-only, zero writes, zero XP. Self-mounts into
+           #pf-live too. Kill: ?pf_off=livemode. */
+        ['livemode', 'pf-ov-livemode']
       ]
     }
   };
@@ -301,7 +306,8 @@
     'pf-arcade', 'pf-create', 'pf-bank', 'pf-economy',
     'pf-warchest', 'pf-ventures', 'pf-events', 'pf-warreport',
     'pf-war-card', 'pf-academy-hq', 'pf-dash-hq', 'pf-hq-mission',
-    'pf-political-hq', 'pf-slr-roster', 'pf-catalog', 'pf-money'
+    'pf-political-hq', 'pf-slr-roster', 'pf-catalog', 'pf-money',
+    'pf-warroom', 'pf-live'
   ];
   function feWiden(host) {
     try {

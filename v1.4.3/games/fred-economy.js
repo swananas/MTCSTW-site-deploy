@@ -369,12 +369,13 @@
     api('price_trends', { item_id: 'eggs', area_key: 'national', weeks: 24 }, function (j) { piJ = j; maybe(); });
   }
 
-  /* ---------- M-01: wage-vs-CPI gap ---------- */
+  /* ---------- M-01: median-paycheck-vs-CPI gap (Phase 3: re-pointed
+     from the CES average to the median series LES1252881600Q) ---------- */
   function mountWageGap(root) {
     if (PF.skip('wage-gap')) return;
     var sec = document.createElement('div');
-    sec.innerHTML = sectionShell('WAGES VS PRICES', 'Are paychecks keeping up?',
-      'Average hourly earnings growth vs price growth, year over year. Psych: neutral framing — no doom copy.');
+    sec.innerHTML = sectionShell('WAGES VS PRICES', 'Is the typical paycheck keeping up?',
+      'Median real earnings growth vs price growth, year over year. The median is the middle worker\u2019s pay, not an average — executive raises pull the average up and leave this untouched. Psych: neutral framing — no doom copy.');
     root.appendChild(sec);
     var body = sec.querySelector('.pf-fe-body');
     api('fred_wage_gap', { limit: 24 }, function (j) {
@@ -383,7 +384,7 @@
       /* Stub state: series contracted, ingest not yet landed — wire on arrival. */
       if (!j.wage_live) {
         body.innerHTML = emptyHTML('WAGE DATA CONNECTING',
-          j.note || 'Average hourly earnings not ingested yet — this panel lights up once the earnings series lands.');
+          j.note || 'Median usual weekly earnings not ingested yet — this panel lights up once the earnings series lands.');
         return;
       }
       if (j.stale) {
@@ -395,14 +396,17 @@
         body.innerHTML = emptyHTML('GAP PENDING', 'Not enough history yet to draw the gap — check back after the next releases.');
         return;
       }
-      var gapTxt = j.gap_pp === 0 ? 'even — wages matching prices'
-        : (j.gap_pp > 0 ? '+' : '\u2212') + Math.abs(j.gap_pp).toFixed(1) + ' pp — wages ' +
-          (j.gap_pp > 0 ? 'ahead of' : 'behind') + ' prices';
+      /* Gate fix (2026-10-05): render the backend gap_label VERBATIM — the
+         gap IS the median real YoY (the median series is already in
+         1982-84 dollars); the old client-side "wages ahead of/behind
+         prices" recompute double-counted inflation and mislabeled the
+         unit as pp. */
+      var gapTxt = j.gap_label || 'Gap unavailable';
       var pts = hist.slice().reverse().map(function (r) {
         return { t: Date.parse(r.period + '-01T00:00:00Z'), w: r.wage_yoy, c: r.cpi_yoy };
       }).filter(function (p) { return !isNaN(p.t); });
       var chart = svgLine([
-        { label: 'Wage growth — avg hourly earnings (SA)', color: '#e8b923',
+        { label: 'Median real earnings growth (SA)', color: '#e8b923',
           pts: pts.map(function (p) { return { t: p.t, y: p.w }; }) },
         { label: 'Price growth — CPI-U (NSA)', color: '#c1121f',
           pts: pts.map(function (p) { return { t: p.t, y: p.c }; }) }
@@ -410,9 +414,10 @@
       var h = '<div class="pf-fe-chart">' +
         '<div class="pf-fe-gap">Gap: ' + esc(gapTxt) + ' <span style="font-size:12px;font-weight:400;color:#c9bfa8;">(' +
         esc(j.period_label || '') + ')</span></div>' + chart +
-        '<div class="pf-fe-note">Year-over-year growth, by month. Positive gap = paychecks growing faster than ' +
-        'prices; negative = prices growing faster. Earnings are average hourly earnings of all private employees, ' +
-        'seasonally adjusted (BLS). Prices are CPI-U, all items (BLS). Two labeled lines — never blended.</div>' +
+        '<div class="pf-fe-note">Year-over-year growth, by quarter for earnings and 3-month CPI average for prices. ' +
+        'The gap is the earnings line itself \u2014 median earnings are already inflation-adjusted, so positive means the typical paycheck bought more than a year ago and negative means it bought less. ' +
+        'Earnings are median usual weekly earnings of full-time workers, in 1982\u201384 dollars, ' +
+        'seasonally adjusted (BLS) — the typical worker\u2019s paycheck, not an average. Prices are CPI-U, all items (BLS). Two labeled lines — never blended.</div>' +
         stampHTML(j.wage) + stampHTML(j.cpi) + '</div>';
       body.innerHTML = h;
     });

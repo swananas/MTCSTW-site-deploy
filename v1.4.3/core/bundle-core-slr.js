@@ -8947,6 +8947,9 @@ if(document.readyState==='loading'){
      person "your paycheck/raise" is banned against it.
    - Honest reads below are the remediated News Desk Pair 1/2/3/4/7/8/9
      reads + neutralized Pair 5/6. Copy may paraphrase; it may not invert.
+     Phase 3 (2026-10-06): Pair 1's read is REWRITTEN against the median
+     series (LES1252881600Q) — the CES-average-based read is retired.
+     CES stays available for the average-vs-median inequality lesson.
    - Mobile: 44px touch targets, no hover-only info, tap→bottom-sheet.
    Read-only: JSONP GETs against the existing fred_* actions. No XP, no
    predictions, no financial advice. Public identity MTCSTW only.
@@ -8989,10 +8992,17 @@ if(document.readyState==='loading'){
     setTimeout(function () { finish(null); }, TIMEOUT_MS);
   }
 
-  /* ---------- Series metadata (News Desk §0 — copy exactly) ---------- */
+  /* ---------- Series metadata (News Desk §0 — copy exactly) ----------
+     Phase 3 (2026-10-06): DRCCLACBS, LES1252881600Q, CUSR0000SAF11,
+     CUSR0000SETB01, CUUR0000SEHA added (all verified on
+     fred.stlouisfed.org 2026-10-06; CUSR0000SAF11 is SA — the spec's
+     NSA label was corrected; CUSR0000SETB01 wired as the Receipt check
+     gas official leg by CEO ruling). */
   var AGENCY = {
     FEDFUNDS: 'Board of Governors', DGS10: 'Board of Governors', DGS2: 'Board of Governors',
+    DRCCLACBS: 'Board of Governors',
     UNRATE: 'BLS', CPIAUCNS: 'BLS', CPILFESL: 'BLS', PAYEMS: 'BLS', CES0500000003: 'BLS',
+    LES1252881600Q: 'BLS', CUSR0000SAF11: 'BLS', CUSR0000SETB01: 'BLS', CUUR0000SEHA: 'BLS',
     PCEPI: 'BEA', GDP: 'BEA',
     MORTGAGE30US: 'Freddie Mac'
   };
@@ -9002,18 +9012,23 @@ if(document.readyState==='loading'){
     MORTGAGE30US: '30-year mortgage rate',
     CPIAUCNS: 'Consumer prices (CPI)', CPILFESL: 'Core consumer prices',
     PAYEMS: 'Nonfarm payrolls', PCEPI: 'PCE price index',
-    GDP: 'Real GDP', CES0500000003: 'Average hourly earnings'
+    GDP: 'Real GDP', CES0500000003: 'Average hourly earnings',
+    CUUR0000SEHA: 'Rent of primary residence', DRCCLACBS: 'Credit-card delinquency',
+    LES1252881600Q: 'Median weekly earnings (real)', CUSR0000SAF11: 'Food at home (CPI)',
+    CUSR0000SETB01: 'Gasoline (all types, CPI)'
   };
   var FREQ_WORD = { d: 'daily', w: 'weekly', m: 'monthly', q: 'quarterly' };
   var FREQ = {
     FEDFUNDS: 'm', UNRATE: 'm', DGS10: 'd', MORTGAGE30US: 'w',
     CPIAUCNS: 'm', CPILFESL: 'm', PAYEMS: 'm', PCEPI: 'm', GDP: 'q',
-    CES0500000003: 'm', DGS2: 'd'
+    CES0500000003: 'm', DGS2: 'd',
+    CUUR0000SEHA: 'm', CUSR0000SAF11: 'm', CUSR0000SETB01: 'm', DRCCLACBS: 'q', LES1252881600Q: 'q'
   };
   var SA_NSA = {
     FEDFUNDS: 'NSA', UNRATE: 'SA', DGS10: 'NSA', MORTGAGE30US: 'NSA',
     CPIAUCNS: 'NSA', CPILFESL: 'SA', PAYEMS: 'SA', PCEPI: 'SA',
-    GDP: 'SA', CES0500000003: 'SA', DGS2: 'NSA'
+    GDP: 'SA', CES0500000003: 'SA', DGS2: 'NSA',
+    CUUR0000SEHA: 'NSA', CUSR0000SAF11: 'SA', CUSR0000SETB01: 'SA', DRCCLACBS: 'SA', LES1252881600Q: 'SA'
   };
 
   /* ---------- Date / period formatting ---------- */
@@ -9165,9 +9180,18 @@ if(document.readyState==='loading'){
     sheetEl = null;
   }
 
-  /* ---------- Honest reads (News Desk §2, remediated) ---------- */
+  /* ---------- Honest reads (News Desk §2, remediated) ----------
+     Phase 3 (2026-10-06): pair1 RETIRED against CES and REWRITTEN against
+     the median series (LES1252881600Q). The retired copy is below the
+     divider — kept as a tombstone, never rendered. */
   var READS = {
-    pair1: 'Average wages are up X% over the year; prices are up Y%. The difference is the average raise in real terms — if it\'s negative, the average paycheck buys less than it did last year.',
+    pair1: 'Median usual weekly earnings vs prices: the typical paycheck\u2019s purchasing power, up or down in real terms over the year. The median is the middle worker\u2019s pay, not an average — executive raises pull the average up and leave this untouched. If the median falls in real terms, the typical paycheck buys less than it did last year.',
+    /* RETIRED 2026-10-06 (Phase 3): the CES-average-based Pair 1 read.
+       "Average wages are up X% over the year; prices are up Y%. The
+       difference is the average raise in real terms — if it's negative,
+       the average paycheck buys less than it did last year."
+       Replaced by the median read above. CES stays for the average-vs-
+       median inequality lesson only. */
     pair2: 'The Fed sets X%; lenders charge Y%. The gap is where banks and bond markets insert themselves between policy and your mortgage.',
     pair3: 'When the 10-year pays less than the 2-year, the market is pricing in future rate cuts — which usually means it expects the economy to weaken. It has preceded every US recession in 50 years, and it also cries wolf.',
     pair4: 'The Sahm rule flags conditions that look recessionary — it\'s a coincident signal, not a forecast. It has a near-perfect historical record, but it can trigger without a recession, as it did in 2024 when labor-force growth distorted the signal. It tells you conditions look recessionary, not that a recession is certified.',

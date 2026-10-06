@@ -10,7 +10,9 @@
    - Mortgage is a borrowing cost — NEVER presented as rent.
    - CES0500000003: "average" adjacent; no second-person "your paycheck/raise".
    - GDP is real (inflation-adjusted) — the word "real" stays adjacent.
-   - Honest reads: News Desk Pairs 1 (wages vs prices), 2 (Fed → mortgage),
+   - Honest reads: News Desk Pairs 1 (wages vs prices — Phase 3 re-points
+     the pair to the MEDIAN series LES1252881600Q; the CES-average-based
+     read is retired, not edited), 2 (Fed → mortgage),
      6 (payrolls vs unemployment, neutralized), 7 (real GDP).
    - No predictions, no financial advice. Public identity MTCSTW only.
    Read-only, zero XP. Mounts via money-page SECTIONS ('governing').
@@ -96,7 +98,7 @@
   function readsHtml(F, cards) {
     function get(sid) { return F.cardFor({ series: cards }, sid); }
     var fed = get('FEDFUNDS'), mort = get('MORTGAGE30US');
-    var cpi = get('CPIAUCNS'), ces = get('CES0500000003');
+    var cpi = get('CPIAUCNS'), med = get('LES1252881600Q');
     var pay = get('PAYEMS'), unr = get('UNRATE'), gdp = get('GDP');
     var out = '';
 
@@ -110,18 +112,24 @@
       ' A mortgage is a borrowing cost — it is not rent.</p>' +
       '<div class="pf-gov-pair">FEDFUNDS → MORTGAGE30US · each figure cited on its card</div></div>';
 
-    /* Real-wage read: average earnings vs CPI, YoY vs YoY. */
+    /* Real-wage read: MEDIAN earnings vs CPI, YoY vs YoY (Phase 3 —
+       the CES-average-based read is retired, not edited; the retired copy
+       is tombstoned in F.READS, never rendered). */
     var wage = F.READS.pair1;
-    if (ces && cpi) {
-      var cw = ces.change_pct_label || ces.change_label || '';
+    if (med && cpi) {
+      var mw = med.change_pct_label || med.change_label || '';
       var cp = cpi.change_pct_label || cpi.change_label || '';
-      if (cw && cp) {
-        wage = 'Average hourly earnings are up ' + cw.replace('+', '') + ' over the year; consumer prices are up ' +
-          cp.replace('+', '') + '. The difference is the average raise in real terms — if it\'s negative, the average paycheck buys less than it did last year.';
+      if (mw && cp) {
+        wage = 'Median usual weekly earnings are ' + (med.value_label || '') +
+          ' (1982\u201384 dollars) \u2014 ' + mw.replace('+', '') +
+          ' in real terms over the year. Consumer prices are up ' +
+          cp.replace('+', '') + ' over the year. The median is the typical ' +
+          'worker\u2019s paycheck, not an average: executive raises pull the ' +
+          'average up and leave this untouched.';
       }
     }
     out += '<div class="pf-gov-read"><h5>THE REAL-WAGE READ</h5><p>' + esc(wage) + '</p>' +
-      '<div class="pf-gov-pair">CES0500000003 (AVERAGE) vs CPIAUCNS · YoY vs YoY · SA vs NSA labeled on cards</div></div>';
+      '<div class="pf-gov-pair">LES1252881600Q (MEDIAN) vs CPIAUCNS \u00b7 YoY vs YoY \u00b7 quarterly vs monthly \u00b7 SA vs NSA labeled on cards</div></div>';
 
     /* Labor health: payrolls vs unemployment. */
     var labor = F.READS.pair6;

@@ -20,7 +20,8 @@
    - No predictions, no financial advice — enforced server-side; this file
      renders beats verbatim and never invents copy.
    - Every figure: 4-fact citation + staleness badge + ʳ marker.
-   - Rent card is labeled via-mortgage until the rent series lands (Phase 3).
+   - Rent card is backed by the live CUUR0000SEHA rent series (Phase 3);
+     the via-mortgage label is retired.
    Read-only, zero XP. Cross-links are user-initiated taps only — no
    auto-advance, no streak/XP pressure between tools. */
 (function () {
@@ -36,13 +37,17 @@
   function skip(id) { try { return PF.skip('fred') || PF.skip(id); } catch (e) { return false; } }
 
   var TOPICS = [
-    { key: 'rent', label: 'RENT', sub: 'Rent (via mortgage rates — the rent series lands in Phase 3)' },
+    /* Phase 3 (2026-10-06): the rent series is live — the card is backed
+       by CUUR0000SEHA directly; the via-mortgage label is retired. */
+    { key: 'rent', label: 'RENT', sub: 'What renters actually pay, from the CPI rent index' },
     { key: 'groceries', label: 'GROCERIES', sub: 'What food prices are doing' },
     { key: 'job-hunt', label: 'JOB HUNT', sub: 'How tight the job market is' },
     { key: 'savings', label: 'SAVINGS', sub: 'What your cash earns' }
   ];
+  /* Phase 3 (2026-10-06): the 3 new series join the nerd-mode list. */
   var SERIES12 = ['FEDFUNDS', 'UNRATE', 'DGS10', 'DGS2', 'MORTGAGE30US',
-    'CPIAUCNS', 'CPILFESL', 'PCEPI', 'GDP', 'CES0500000003', 'PAYEMS', 'CUUR0000SEHA'];
+    'CPIAUCNS', 'CPILFESL', 'PCEPI', 'GDP', 'CES0500000003', 'PAYEMS', 'CUUR0000SEHA',
+    'DRCCLACBS', 'LES1252881600Q', 'CUSR0000SAF11'];
   var PLAIN = {
     FEDFUNDS: 'Fed funds rate', UNRATE: 'Unemployment rate',
     DGS10: '10-year Treasury yield', DGS2: '2-year Treasury yield',
@@ -50,7 +55,8 @@
     CPIAUCNS: 'Consumer prices (CPI)', CPILFESL: 'Core consumer prices',
     PAYEMS: 'Nonfarm payrolls', PCEPI: 'PCE price index',
     GDP: 'Real GDP', CES0500000003: 'Average hourly earnings',
-    CUUR0000SEHA: 'Rent of primary residence'
+    CUUR0000SEHA: 'Rent of primary residence', DRCCLACBS: 'Credit-card delinquency',
+    LES1252881600Q: 'Median weekly earnings (real)', CUSR0000SAF11: 'Food at home (CPI)'
   };
   var ROTATE = ['rent', 'groceries', 'job-hunt', 'savings'];
 

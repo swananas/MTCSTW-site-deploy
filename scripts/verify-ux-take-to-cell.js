@@ -2,6 +2,9 @@
 /* scripts/verify-ux-take-to-cell.js — UX Combination Play 2 verification
    (fe/ux-take-to-cell, 2026-10-06): TAKE THIS TO YOUR CELL everywhere.
    Run from the worktree root: node scripts/verify-ux-take-to-cell.js
+   0. Built-bundle syntax gate: node --check + conflict-marker scan on
+      EVERY v1.4.3 bundle-*.js — runs FIRST so marker greps can never
+      report PASS on a syntactically broken bundle
    1. node --check on every touched source file (+ inner scripts of the
       template-staged modules: war-report, briefing, civic-events)
    2. Static checks per card type: the take-cell action / action-bar host is
@@ -29,6 +32,38 @@ function no(n, why) { fails.push(n + ' :: ' + why); console.log('  FAIL ' + n + 
 function read(p) { return fs.readFileSync(path.join(ROOT, p), 'utf8'); }
 function has(p, s) { return read(p).indexOf(s) !== -1; }
 function count(p, s) { return read(p).split(s).length - 1; }
+
+/* STEP 0 (2026-10-06 ship-blocker hardening): syntax-gate EVERY built
+   bundle BEFORE any marker greps. A verify that reports PASS on
+   syntactically broken bundles must not exist: an unresolved merge
+   conflict (<<<<<<< … ======= … >>>>>>>) or a truncated concat fails
+   node --check, so marker presence below can never mask a broken file.
+   Scans ALL v1.4.3 bundle-*.js, not just the touched ones. */
+console.log('== 0. built-bundle syntax gate (node --check + conflict scan) ==');
+(function () {
+  var dirs = ['games', 'core', 'pages'], found = [];
+  dirs.forEach(function (d) {
+    var dir = path.join(ROOT, 'v1.4.3', d);
+    if (!fs.existsSync(dir)) return;
+    fs.readdirSync(dir).forEach(function (f) {
+      if (/^bundle-.*\.js$/.test(f)) found.push('v1.4.3/' + d + '/' + f);
+    });
+  });
+  if (!found.length) { no('built bundles present', 'no bundle-*.js under v1.4.3'); return; }
+  found.forEach(function (f) {
+    var src;
+    try { src = read(f); }
+    catch (e) { no(f, 'unreadable'); return; }
+    if (/^<{7} |^={7}$|^>{7} /m.test(src)) {
+      no(f, 'UNRESOLVED MERGE CONFLICT MARKERS — rebuild from sources, do not ship');
+      return;
+    }
+    try {
+      cp.execSync('node --check ' + path.join(ROOT, f), { stdio: 'pipe' });
+      ok(f + ' parses');
+    } catch (e) { no(f, 'node --check failed'); }
+  });
+})();
 
 var TOUCHED = [
   'v1.4.3/core/share-everywhere.js',

@@ -36,7 +36,7 @@
       prompt: "That sign at the march that made you laugh out loud? Photograph it. The streets are writing our propaganda for us.",
       hint: 'Marches, rallies, demonstrations — the sharper the sign, the better.', safety: [] },
     street_art: { label: 'STREET ART', icon: '\uD83C\uDFA8',
-      prompt: "Murals, wheatpastes, graffiti with something to say. If it hits, shoot it.",
+      prompt: "Leftist street art in general. Murals, wheatpastes, stencils, graffiti with something to say — if it hits, shoot it.",
       hint: 'Walls, underpasses, alley pieces — art that fights back.', safety: [] },
     sticker: { label: 'STICKER SLAPS', icon: '\uD83D\uDCCC',
       prompt: "Leftist stickers in the wild. Mark the territory, document the territory.",

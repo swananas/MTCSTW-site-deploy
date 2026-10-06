@@ -136,7 +136,9 @@ cardCheck('robreport item cards', 'v1.4.3/core/robreport.js', [
   'data-pf-tc-kind="robreport"', 'data-pf-tc-link="/money"',
   'THE ROBBERY REPORT \\u2014', '&#9733; TAKE THIS TO YOUR CELL'
 ]);
-cardCheck('robreport basket cards', 'v1.4.3/core/robreport.js', ['SHARE BASKET']);
+/* Port 2026-10-06: the line's refactored cardActions renders 'SHARE THIS INTEL'
+   (not the old 'SHARE BASKET' button) — same share affordance, new label. */
+cardCheck('robreport basket cards', 'v1.4.3/core/robreport.js', ['SHARE THIS INTEL']);
 cardCheck('robreport section handoff payload', 'v1.4.3/core/robreport.js', [
   'data-pf-handoff="take-cell" data-pf-tc-kind="robreport"'
 ]);
@@ -511,8 +513,10 @@ function markerIn(bundle, marker) {
   var esc1 = marker.replace(/"/g, '\\"');
   return has(bundle, esc1);
 }
+/* Port 2026-10-06: share-everywhere.js loads standalone (not bundled into
+   bundle-pages.js) — check the source file directly. */
 [
-  ['v1.4.3/pages/bundle-pages.js', 'takeToCell'],
+  ['v1.4.3/core/share-everywhere.js', 'takeToCell'],
   ['v1.4.3/core/bundle-money.js', 'data-pf-tc-kind="robreport"'],
   ['v1.4.3/games/bundle-sec1.js', 'data-pf-tc-kind="briefing"'],
   ['v1.4.3/games/bundle-peoples-cpi.js', 'data-pf-tc-kind="peoples-cpi"'],

@@ -609,11 +609,7 @@ function paint(el,j){
   /* UX Combination Play 2 (fe/ux-take-to-cell): payload-aware take-cell —
      the report subject + week rides into the member's primary cell.
      Kill: ?pf_off=war-report. */
-  try{ var _tcd=document.createElement('div'); _tcd.setAttribute('data-pf-handoff','take-cell');
-    _tcd.setAttribute('data-pf-tc-kind','war-report');
-    _tcd.setAttribute('data-pf-tc-title','WAR REPORT');
-    _tcd.setAttribute('data-pf-tc-link','/war-report');
-    el.appendChild(_tcd); }catch(_tce){}
+  try{ el.insertAdjacentHTML('beforeend', '<div data-pf-handoff="take-cell" data-pf-tc-kind="war-report" data-pf-tc-title="WAR REPORT" data-pf-tc-link="/war-report"></div>'); }catch(_tce){}
 }
 /* FRED Everywhere Phase 1: "the week in numbers" slot. The module guards
    double-mounts itself; this is a no-op when the module isn't bundled. */

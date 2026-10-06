@@ -84,7 +84,12 @@
     ['draw', 'pf-ov-draw'],
     /* 2026-10-05, Phase 3 #13: static podcast LISTEN card — media closer
        at the end of the PROOF section. Pure static, cannot fail. */
-    ['podcast-card', 'pf-ov-podcast-card']
+    ['podcast-card', 'pf-ov-podcast-card'],
+    /* 2026-10-05, Bluesky Component 2: "THE WIRE" — the SLR generator feed
+       + hand-picked posts, native house styling. PROOF closer, last. Builds
+       against a stub generator URI until Pod 1 publishes; fail-soft hides
+       the section until the feed is live. Kill: ?pf_off=bluesky-feed. */
+    ['bluesky', 'pf-ov-bsky']
   ];
 
   /* === SECTION HEADERS (2026-10-03) ===
@@ -145,7 +150,9 @@
     'warreport-card': [['Read the full archive \u2192', '/war-report'], ['Vote for your favorite \u2192', 'fan-vote']],
     'roster-teaser': [['Meet all 62 fighters \u2192', '/sick-left-radicals'], ['Find your match \u2192', 'slr-match-quiz']],
     'podcast-card': [['Read this week\u2019s report \u2192', '/war-report']],
-    'draw': [['See the winners wall \\u2192', 'hall'], ['Vote for your favorite \\u2192', 'fan-vote']]
+    'draw': [['See the winners wall \\u2192', 'hall'], ['Vote for your favorite \\u2192', 'fan-vote']],
+    /* 2026-10-05, Bluesky Component 2: THE WIRE — final PROOF closer. */
+    'bluesky': [['Find the roster \\u2192', '/sick-left-radicals']]
   };
 
   /* Silo -> section id. Used to insert each widget's <section> in funnel
@@ -167,7 +174,9 @@
     /* REDISTRIBUTION LAYER Phase B (2026-10-05): Solidarity Draw. */
     'draw':'proof',
     /* 2026-10-05, Phase 3 #11/#13/#14: new PROOF surfaces. */
-    'warreport-card':'proof','roster-teaser':'proof','podcast-card':'proof'
+    'warreport-card':'proof','roster-teaser':'proof','podcast-card':'proof',
+    /* 2026-10-05, Bluesky Component 2: THE WIRE closes PROOF. */
+    'bluesky':'proof'
   };
 
   /* Build the 7 section blocks at init: header + lazy-load anchor each.

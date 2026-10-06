@@ -136,7 +136,13 @@ var SECTIONS = {
     'solidarity-draw.js',
     /* Homepage new surfaces (2026-10-05): War Report Monday card (#11),
        podcast LISTEN card (#13), SLR roster teaser (#14) — PROOF section. */
-    'home-new-surfaces.js'
+    'home-new-surfaces.js',
+    /* BLUESKY EMBEDS (2026-10-05, Component 2): "THE WIRE" — the SLR
+       generator feed + hand-picked posts rendered natively in house
+       styling. Homepage PROOF closer (last). Builds against a stub
+       generator URI until Component 1 publishes; fail-soft hides the
+       section until the feed is live. No XP, read-only. */
+    'bluesky-feed.js'
   ],
   /* SLIM DEDICATED-PAGE BUNDLES (2026-10-04, M1 dead-weight fix): /arcade,
      /cells and /create used to fetch the full bundle-home (~83KB gz) to get

@@ -142,11 +142,20 @@ var inCreateH = hSection && /'\.\.\/(core\/workshop|pages\/workshop-create)\.js'
 if (bothListed && !inCreateH) ok('shell + adapters ship in bundle-create, not bundle-create-h');
 else no('bundle-place', 'bundle placement wrong');
 var bSrc = read(BUNDLE);
-if (bSrc.indexOf('THE WORKSHOP SHELL') !== -1 && bSrc.indexOf('/create WORKSHOP TOOL ADAPTERS') !== -1)
+/* Minification-aware: debug builds keep the banner/separator comments;
+   production minified builds strip them — the string literals below survive
+   minification (shell's data-pf-ws CSS hook; the 'press' adapter title). */
+var shellPresent = bSrc.indexOf('THE WORKSHOP SHELL') !== -1 || bSrc.indexOf('data-pf-ws') !== -1;
+var adaptPresent = bSrc.indexOf('/create WORKSHOP TOOL ADAPTERS') !== -1 || bSrc.indexOf('THE PRINT SHOP') !== -1;
+if (shellPresent && adaptPresent)
   ok('regenerated bundle-create.js contains shell + adapters');
 else no('bundle-regen', 'bundle-create.js missing shell or adapters');
-if (bSrc.indexOf('===== ../core/workshop.js =====') < bSrc.indexOf('===== ammo.js =====') &&
-    bSrc.indexOf('===== ../pages/workshop-create.js =====') > bSrc.indexOf('===== earnings.js ====='))
+var orderOk = (bSrc.indexOf('===== ../core/workshop.js =====') !== -1 &&
+    bSrc.indexOf('===== ../core/workshop.js =====') < bSrc.indexOf('===== ammo.js =====') &&
+    bSrc.indexOf('===== ../pages/workshop-create.js =====') > bSrc.indexOf('===== earnings.js =====')) ||
+  (bSrc.indexOf('data-pf-ws') !== -1 && bSrc.indexOf('THE PRINT SHOP') !== -1 &&
+    bSrc.indexOf('data-pf-ws') < bSrc.indexOf('THE PRINT SHOP'));
+if (orderOk)
   ok('bundle order: shell first, adapters last');
 else no('bundle-order', 'shell/adapters misordered in bundle-create.js');
 var hSrc = read(BUNDLE_H);
@@ -567,11 +576,12 @@ if (ia.WS) {
   try {
     vm.runInContext(read(ADAPT), ia.ctx, { filename: 'workshop-create.js' });
     var ids = ia.WS.list();
-    var want = ['poster-forge', 'feed', 'armory', 'earnings', 'academy',
+    /* TEARDOWN WS-4 (2026-10-06): 'press' (THE PRINT SHOP) is first in the rail. */
+    var want = ['press', 'poster-forge', 'feed', 'armory', 'earnings', 'academy',
                 'creator-assist', 'ammo', 'graduation', 'forged-tray',
                 'caption-combat'];
-    if (ids.join(',') === want.join(',') && railButtons(ia.shim).length === 10)
-      ok('adapters file: all 10 tools registered, rail order correct');
+    if (ids.join(',') === want.join(',') && railButtons(ia.shim).length === 11)
+      ok('adapters file: all 11 tools registered, rail order correct');
     else no('rt-adapters', 'registered: ' + ids.join(','));
 
     /* caption-combat opens: module absent on /create (bundle-arcade only)
@@ -643,7 +653,8 @@ if (ck.WS) {
   try {
     vm.runInContext(read(ADAPT), ck.ctx, { filename: 'workshop-create.js' });
     var cids = ck.WS.list();
-    if (cids.indexOf('caption-combat') === -1 && cids.length === 9)
+    /* TEARDOWN WS-4 (2026-10-06): 11 rail tools now (press added). */
+    if (cids.indexOf('caption-combat') === -1 && cids.length === 10)
       ok('kill: ?pf_off=caption-combat keeps it off the rail');
     else no('rt-cc-kill', 'killed tool registered: ' + cids.join(','));
   } catch (e) { no('rt-cc-kill', 'adapters file threw: ' + (e && e.message)); }

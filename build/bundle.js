@@ -324,10 +324,15 @@ var SECTIONS = {
        Creator HQ Content Bank area, silent no-op elsewhere.
        Kill: ?pf_off=bank-meta. No XP anywhere in this module. */
     'bank-browse.js',
-=======
->>>>>>> origin/fe/create-workshop-tools
+    /* TEARDOWN WS-4 (2026-10-06): THE PRINT SHOP — template-first creation
+       (template picker by FIGHT, slot-filling editor, full-screen preview,
+       P6 Action Bar, mastery path). Registers itself with PFWorkshop via its
+       own document-level listener + PFPress.mount (called by the 'press'
+       adapter in workshop-create.js, LAST below). Kill: ?pf_off=create-press.
+       Zero XP, zero backend writes, fail-open. */
+    'create-press.js',
     /* WORKSHOP SHELL adapters (2026-10-05): last in the bundle — registers
-       all nine /create tool adapters with PFWorkshop and runs the initial
+       all ten /create tool adapters with PFWorkshop and runs the initial
        #pf-tool= / ?for= route. */
     '../pages/workshop-create.js'
   ],

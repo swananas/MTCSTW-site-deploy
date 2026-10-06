@@ -185,15 +185,32 @@
         source_label: String(res.source_label || res.source || res.label || ''),
         source_url: String(res.source_url || res.url || res.link || '')
       };
+    } else if (q.winning_option || q.source_label || q.source_url) {
+      /* BE flat shape (publicQuestion): winning_option/source_label/source_url
+         live at the question top level, not inside a resolution object. */
+      res = {
+        outcome: String(q.winning_option || ''),
+        source_label: String(q.source_label || ''),
+        source_url: String(q.source_url || '')
+      };
     } else { res = null; }
     var pick = (pickMap && pickMap[String(id)]) || null;
     return {
       id: String(id), title: String(title), category: cat, options: opts,
       status: status, lock_at: lockAt, rules: String(rules), resolution: res,
       my_pick: pick ? String(pick.option_id || pick.optionId || '') : '',
-      my_correct: pick ? (pick.correct === true || String(pick.correct).toLowerCase() === 'true') : null,
+      my_correct: pick ? normCorrect(pick) : null,
       raw: q
     };
+  }
+  /* BE sends correct as INTEGER 1/0/NULL (and voided as INTEGER flag).
+     Normalize to true/false/null so the render states work. */
+  function normCorrect(pick) {
+    if (pick.voided === 1 || pick.voided === '1' || pick.voided === true) return null;
+    var c = pick.correct;
+    if (c === 1 || c === '1' || c === true) return true;
+    if (c === 0 || c === '0' || c === false) return false;
+    return null;
   }
   function isLocked(q) {
     if (q.status === 'locked' || q.status === 'resolved' || q.status === 'voided') return true;
@@ -261,20 +278,25 @@
         if (q.my_correct === true) {
           h += '<div class="pq-win">YOU CALLED IT. +' + PFG.XP_REWARD + ' XP.</div>';
         } else if (q.my_correct === false) {
-          h += '<div class="pq-loss">MISSED IT. You called <b>' + esc(optLabel(q, q.my_pick) || q.my_pick) + '</b> &mdash; strike back on the next one.</div>';
+          h += '<div class="pq-loss">MISSED IT. You called <b>' + esc(optLabel(q, q.my_pick) || q.my_pick) + '</b> &mdash; the next board is already open.</div>';
         } else {
           h += '<div class="pq-msg">You called <b>' + esc(optLabel(q, q.my_pick) || q.my_pick) + '</b>.</div>';
         }
       } else {
         h += '<div class="pq-msg">You made no call on this one. The next board is already open.</div>';
       }
+      if (q.category === 'economy') h += '<div class="pq-disclaim">Game only &mdash; not financial advice.</div>';
       h += '</div>';
     } else if (q.my_pick) {
       /* picked — locked in (no changing, matches the bill-game convention) */
       h += '<div class="pq-locked">LOCKED IN &mdash; you called <b>' + esc(optLabel(q, q.my_pick) || q.my_pick) + '</b>.'
-        + '<div class="pq-xpline">Right call pays +' + PFG.XP_REWARD + ' XP.</div></div>';
+        + '<div class="pq-xpline">Right call pays +' + PFG.XP_REWARD + ' XP.</div>'
+        + (q.category === 'economy' ? '<div class="pq-disclaim">Game only &mdash; not financial advice.</div>' : '')
+        + '</div>';
     } else if (isLocked(q)) {
-      h += '<div class="pq-locked">LOCKED &mdash; calls are closed on this one. The next board is already open.</div>';
+      h += '<div class="pq-locked">LOCKED &mdash; calls are closed on this one. The next board is already open.'
+        + (q.category === 'economy' ? '<div class="pq-disclaim">Game only &mdash; not financial advice.</div>' : '')
+        + '</div>';
     } else {
       /* open pick */
       var cs = ident().callsign;

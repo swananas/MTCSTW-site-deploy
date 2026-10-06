@@ -125,14 +125,15 @@
   }
 
   /* Merged feed: local wins (source 'you') + backend wins (source
-     'network'), newest first, deduped on type|title|ts. */
+     'network'), newest first, deduped on stored dedupe key|ts
+     (falls back to type|title|ts for entries with no stored key). */
   function recent(n) {
     n = n || 8;
     var seen = {}, out = [];
     function push(w, source) {
       if (!w || !w.title) return;
       var ts = Number(w.ts) || 0;
-      var k = (w.type || '') + '|' + w.title + '|' + ts;
+      var k = String(w.dedupe || ((w.type || '') + '|' + w.title)) + '|' + ts;
       if (seen[k]) return; seen[k] = 1;
       out.push({ type: w.type, title: w.title, detail: w.detail || '',
         ts: ts, source: w.source || source || 'network' });

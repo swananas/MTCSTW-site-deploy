@@ -29,7 +29,11 @@
    promises no XP.
    Perf: fits the /economy 220 KB budget (this file ~6 KB raw; SVG/DOM
    sparklines only — no chart library anywhere in the A1 stack).
-   KILL: ?pf_off=economy-home  or  localStorage pf_disabled_v1='["economy-home"]' */
+   KILL: ?pf_off=economy-home  or  localStorage pf_disabled_v1='["economy-home"]'
+   WS-6 TEARDOWN (2026-10-06): deep links accept an item suffix —
+   #pf-inflation-checkin/<item_id> — pre-scoping the check-in picker via
+   PF.presetInflationItem (the one-tap confirm target from price cards).
+   Zero XP, zero new endpoints. */
 (function () {
   'use strict';
   var PF = window.PF;
@@ -136,6 +140,11 @@
   function deepLink() {
     var h = '';
     try { h = String(window.location.hash || ''); } catch (e) {}
+    /* WS-6: one-tap confirm links arrive as #pf-inflation-checkin/<item_id>
+       — pre-scope the check-in picker once the widget settles. */
+    var itemId = null;
+    var m = /^#pf-inflation-checkin\/([A-Za-z0-9_]+)$/.exec(h);
+    if (m) { itemId = m[1]; h = '#pf-inflation-checkin'; }
     if (h !== '#pf-inflation-checkin' && h !== '#pf-inflation-board' &&
         h !== '#pf-inflation-trends') { return; }
     var tries = 0;
@@ -145,8 +154,11 @@
       try { el = document.getElementById(h.slice(1)); } catch (e) {}
       var settled = el && el.firstChild;
       if (el && (settled || tries >= 8)) {
+        if (itemId && window.PF && typeof window.PF.presetInflationItem === 'function') {
+          try { window.PF.presetInflationItem(itemId); } catch (e2) {}
+        }
         try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-        catch (e2) { try { el.scrollIntoView(); } catch (e3) {} }
+        catch (e3) { try { el.scrollIntoView(); } catch (e4) {} }
         clearInterval(t);
       } else if (tries >= 8) { clearInterval(t); }
     }, 500);

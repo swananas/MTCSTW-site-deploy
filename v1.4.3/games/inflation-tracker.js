@@ -75,6 +75,16 @@
    KILL: ?pf_off=inflation (master) | ?pf_off=inflation-checkin |
          ?pf_off=inflation-board | ?pf_off=inflation-trends
          or localStorage pf_disabled_v1='["inflation"]' etc.
+   WS-6 TEARDOWN (2026-10-06, proposal PART 2 §6): board cards are price
+   cards — Data Strip (P4) figure + gray/white delta + sparkline trend +
+   recency badge + report count (P8 proof) + one-tap confirm as REPORT BACK
+   (P3), which pre-scopes the check-in item and scrolls to it. Trend colors
+   are gray/white ONLY (red never means up/down). Every figure renders
+   through stripFigure(): figure + label + source + recency stamp,
+   fail-closed. Confirms mint zero XP (zero XP awarded anywhere on the confirm
+   path); published aggregates stay callsign-gated — the existing
+   callsign check in the check-in flow is the gate, and nothing here
+   bypasses it.
    Receipt uploads (games/receipt-uploads.js) ride the 'pf:price-reported'
    CustomEvent this module dispatches on every successful check-in and are
    kill-switched independently: ?pf_off=receipt_uploads.
@@ -128,6 +138,80 @@
   function money(cents) {
     if (cents == null || isNaN(cents)) return '—';
     return '$' + (Number(cents) / 100).toFixed(2);
+  }
+  /* WS-6 pattern access (fail-open: null when ?pf_off=patterns). */
+  function patterns() {
+    try { return (window.PF && PF.patterns) || null; } catch (e) { return null; }
+  }
+  /* Relative recency stamp for the trust line ("40 min ago", "3 h ago"). */
+  function relTime(ts) {
+    var t = Number(ts);
+    if (!isFinite(t) || t <= 0) return '';
+    if (t < 1e12) t *= 1000; /* seconds -> ms */
+    var diff = Date.now() - t;
+    if (diff < 0) diff = 0;
+    var m = Math.floor(diff / 60000);
+    if (m < 1) return 'just now';
+    if (m < 60) return m + ' min ago';
+    var h = Math.floor(m / 60);
+    if (h < 24) return h + ' h ago';
+    var d = Math.floor(h / 24);
+    if (d < 7) return d + ' d ago';
+    try { return new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }
+    catch (e) { return ''; }
+  }
+  /* Recency for a board row: real timestamp when the backend supplies one,
+     else the board window label — never empty, so the Data Strip's recency
+     stamp is always present. */
+  function boardRecency(r, j) {
+    var ts = (r && (r.updated_at || r.retrieved_at)) || (j && (j.updated_at || j.retrieved_at)) || null;
+    var rel = relTime(ts);
+    if (rel) return rel;
+    return boardRange(j);
+  }
+  /* Client-side minimum-n mirror for trend buckets: enough_data plus a real
+     sample count. Sparse buckets break the sparkline — never interpolated. */
+  function okBucket(b) {
+    return !!(b && b.enough_data && b.median_cents != null && Number(b.sample_count) >= 5);
+  }
+  /* Inline sparkline — gray/white only. Red never carries trend semantics. */
+  function sparkSVG(pts) {
+    var W = 200, H = 48, PL = 4, PR = 4, PT = 6, PB = 6;
+    var iw = W - PL - PR, ih = H - PT - PB;
+    var live = pts.filter(function (v) { return v != null; });
+    var mn = Math.min.apply(null, live), mx = Math.max.apply(null, live);
+    if (mx === mn) mx = mn + 1;
+    function sx(i) { return PL + (pts.length < 2 ? iw / 2 : (i / (pts.length - 1)) * iw); }
+    function sy(v) { return PT + ih - ((v - mn) / (mx - mn)) * ih; }
+    var d = '', pen = false;
+    for (var k = 0; k < pts.length; k++) {
+      if (pts[k] == null) { pen = false; continue; }
+      d += (pen ? 'L' : 'M') + sx(k).toFixed(1) + ' ' + sy(pts[k]).toFixed(1) + ' ';
+      pen = true;
+    }
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;display:block;" role="img" aria-label="12-week trend">' +
+      '<path d="' + d + '" fill="none" stroke="#d8d0c0" stroke-width="2"/></svg>';
+  }
+  /* WS-6 trust-stamp primitive: figure + label + source + recency, routed
+     through PF.patterns.dataStrip (P4) when available. FAIL-CLOSED: returns
+     '' unless all four trust elements are present — a figure without its
+     source line and recency stamp renders NOTHING. When the patterns module
+     is killed (?pf_off=patterns), the same four elements render in manual
+     markup instead of blanking the board. */
+  function stripFigure(o) {
+    var pt = patterns();
+    if (pt && pt.dataStrip) return pt.dataStrip(o);
+    var fig = String(o.figure == null ? '' : o.figure).trim();
+    var label = String(o.label == null ? '' : o.label).trim();
+    var src = String(o.source == null ? '' : o.source).trim();
+    var upd = String(o.updated == null ? '' : o.updated).trim();
+    if (!fig || !label || !src || !upd) return '';
+    return '<div class="pf-pat pf-pat-data">' +
+      '<p class="pf-pat-data-fig">' + esc(fig) + '</p>' +
+      '<p class="pf-pat-data-label">' + esc(label) + '</p>' +
+      '<div class="pf-pat-data-rule"></div>' +
+      '<p class="pf-pat-data-src">' + esc(src) + '</p>' +
+      '<p class="pf-pat-data-time">updated ' + esc(upd) + '</p></div>';
   }
   function weekLabel(ws) {
     try {
@@ -313,7 +397,7 @@
       '<div id="pf-inf-ci-msg" style="margin-top:12px;font-size:14px;"></div>' +
       '</div>' +
       '<div id="pf-inf-method" style="' + HONEST + '">How we use this: your reports are aggregated into anonymous community medians on the board. We never sell your data. Your area is always coarse — ZIP or city, never an address, never a name. One report per item per day.</div>' +
-      '<div style="' + HONEST + 'color:#c98f8f;margin-top:6px;">I fight with receipts.</div>' +
+      '<div style="' + HONEST + 'color:#d8d0c0;margin-top:6px;">I fight with receipts.</div>' +
       '</div>';
 
     var itemEl = document.getElementById('pf-inf-ci-item');
@@ -343,6 +427,21 @@
     }
     itemEl.onchange = updatePricePrompt;
     updatePricePrompt();
+
+    /* WS-6: one-tap confirm entry — the board widget and deep links
+       pre-scope the item picker through this. Returns false for unknown
+       items or an unmounted widget. The callsign gate below stays the
+       single path to the report rail. */
+    try {
+      PF.presetInflationItem = function (id) {
+        if (!itemById(id)) return false;
+        var sel = document.getElementById('pf-inf-ci-item');
+        if (!sel) return false;
+        sel.value = id;
+        updatePricePrompt();
+        return true;
+      };
+    } catch (e) {}
 
     /* Receipt payoff + fingerprint (payoff map §2 / Cohesion §2, 2026-10-05):
        instant acknowledgment + this week's sample count when the backend
@@ -466,7 +565,9 @@
     if (d == null || isNaN(d) || !r.week_ago_median_cents) return '<span style="' + SMALL + '">no last-week data</span>';
     var dn = Number(d);
     var arrow = dn > 0 ? '\u25B2' : (dn < 0 ? '\u25BC' : '\u25AA');
-    var color = dn > 0 ? '#c98f8f' : (dn < 0 ? '#9fc98f' : '#b8b0a0');
+    /* WS-6: trend colors gray/white ONLY — direction rides the arrow glyph,
+       never red/green. */
+    var color = '#d8d0c0';
     var word = dn > 0 ? 'up' : (dn < 0 ? 'down' : 'flat');
     return '<span style="color:' + color + ';font-weight:bold;">' + arrow + ' ' + Math.abs(dn).toFixed(1) + '%</span>' +
       ' <span style="' + SMALL + '">' + word + ' vs last week</span>';
@@ -484,7 +585,20 @@
     return '<span style="' + SMALL + '">' + (n > 0 ? n + ' contributors' : 'no contributors yet') +
       ' · trailing 30 days</span>';
   }
-  function cardHTML(r, range) {
+  /* WS-6 price card: Data Strip (P4) figure + gray/white delta + sparkline
+     slot + recency badge + report count (P8 proof) + one-tap confirm.
+     The confirm is a REPORT BACK (P3): it pre-scopes the check-in item and
+     scrolls to it — the existing callsign-gated report rail does the rest.
+     Zero XP: nothing awarded anywhere on this path. */
+  function confirmHTML(itemId) {
+    var pt = patterns();
+    var a = (pt && pt.report)
+      ? pt.report('#pf-inflation-checkin', 'REPORT BACK')
+      : '<a href="#pf-inflation-checkin">REPORT BACK &rarr;</a>';
+    return '<div style="margin-top:10px;"><div style="' + SMALL + 'margin-bottom:6px;">Paid this price? One tap puts it on the board.</div>' +
+      '<span data-confirm-item="' + esc(itemId) + '">' + a + '</span></div>';
+  }
+  function cardHTML(r, range, j, areaKey) {
     var item = itemById(r.item_id);
     /* Receipt-verification share (honesty rule §7.3): when the backend
        supplies a verified_count, the aggregate discloses it — "median of
@@ -512,17 +626,70 @@
         head + '<div style="margin-top:10px;color:#b8b0a0;font-size:14px;">Not enough reports yet.</div>' +
         '<div style="' + SMALL + 'margin-top:4px;">' + soFar +
         'We need at least 5 reports before we show a number. Report one above.</div>' +
-        '<div style="margin-top:6px;">' + crowdLine(r) + '</div>' + honest + '</div>';
+        '<div style="margin-top:6px;">' + crowdLine(r) + '</div>' + confirmHTML(r.item_id) + honest + '</div>';
     }
+    var pt = patterns();
+    var n = Math.floor(Number(r.sample_count) || 0);
+    var stamp = boardRecency(r, j);
+    var strip = stripFigure({
+      figure: money(r.median_cents),
+      label: item.name.toUpperCase() + ' / ' + item.unit.toUpperCase(),
+      source: 'community-reported · ' + range + ' · median of ' + n + ' reports' +
+        (vc != null ? ' (' + vc + ' community-verified)' : '') +
+        (r.trimmed_mean_cents != null ? ' · trimmed avg ' + money(r.trimmed_mean_cents) : ''),
+      updated: stamp
+    });
+    if (!strip) {
+      /* Fail-closed: no figure renders without its source + recency stamp. */
+      return '<div style="background:#0d0d0d;border:1px solid #3a3a3a;border-radius:8px;padding:14px;">' +
+        head + '<div style="margin-top:10px;color:#b8b0a0;font-size:14px;">Figure withheld — missing trust stamp.</div>' +
+        '<div style="margin-top:6px;">' + crowdLine(r) + '</div>' + confirmHTML(r.item_id) + honest + '</div>';
+    }
+    /* P8: real count or suppressed — never invented. */
+    var proof = (pt && pt.proof) ? pt.proof({ count: n, text: 'reports this week' }) : '';
+    var spark = '<div data-inf-spark="' + esc(r.item_id) + '"' +
+      (areaKey ? ' data-inf-area="' + esc(areaKey) + '"' : '') + '></div>';
     return '<div style="background:#0d0d0d;border:1px solid #3a3a3a;border-radius:8px;padding:14px;">' +
-      head +
-      '<div style="font-size:30px;font-weight:bold;margin:6px 0 2px;">' + money(r.median_cents) + '</div>' +
-      '<div style="' + SMALL + '">median of ' + esc(String(r.sample_count)) + ' reports this week' +
-      (vc != null ? ' (' + vc + ' community-verified)' : '') +
-      (r.trimmed_mean_cents != null ? ' · trimmed avg ' + money(r.trimmed_mean_cents) : '') + '</div>' +
-      '<div style="margin-top:6px;">' + crowdLine(r) + '</div>' +
+      head + strip + spark +
       '<div style="margin-top:8px;font-size:14px;">' + deltaHTML(r) + '</div>' +
-      honest + '</div>';
+      (proof ? '<div style="margin-top:4px;">' + proof + '</div>' : '') +
+      '<div style="margin-top:6px;"><span style="display:inline-block;font-size:10px;font-weight:800;letter-spacing:1.5px;background:#1a1a1a;border:1px solid #3a3a3a;color:#d8d0c0;padding:4px 9px;border-radius:3px;">UPDATED ' + esc(stamp.toUpperCase()) + '</span></div>' +
+      '<div style="margin-top:6px;">' + crowdLine(r) + '</div>' +
+      confirmHTML(r.item_id) + honest + '</div>';
+  }
+  /* Progressive sparkline hydration: one price_trends fetch per card with
+     data, fail-soft (a card without a series is complete without the
+     sparkline). Runs inside the board widget, so the board kill switch
+     covers it. */
+  function hydrateSparks(container) {
+    var slots = null;
+    try { slots = container.querySelectorAll('[data-inf-spark]'); } catch (e) { return; }
+    for (var i = 0; i < slots.length; i++) {
+      (function (slot) {
+        var itemId = slot.getAttribute('data-inf-spark');
+        var aKey = slot.getAttribute('data-inf-area') || 'national';
+        getJSON('price_trends', { item_id: itemId, area_key: aKey, weeks: 12 }, function (j) {
+          if (!slot.isConnected) return;
+          var buckets = (j && j.ok !== false && Array.isArray(j.buckets)) ? j.buckets : [];
+          var pts = buckets.map(function (b) { return okBucket(b) ? Number(b.median_cents) : null; });
+          var live = pts.filter(function (v) { return v != null; });
+          if (live.length < 2) { try { slot.remove(); } catch (e) {} return; }
+          slot.innerHTML = sparkSVG(pts);
+        });
+      })(slots[i]);
+    }
+  }
+  /* One-tap confirm handler: pre-scope the check-in item, then scroll to
+     the check-in. The callsign gate lives in the check-in flow itself —
+     this handler posts nothing and bypasses nothing. */
+  function confirmPrice(itemId) {
+    try { if (window.PF && typeof PF.presetInflationItem === 'function') PF.presetInflationItem(itemId); } catch (e) {}
+    var t = null;
+    try { t = document.getElementById('pf-inflation-checkin'); } catch (e2) {}
+    if (t) {
+      try { t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+      catch (e3) { try { t.scrollIntoView(); } catch (e4) {} }
+    }
   }
 
   function mountBoard() {
@@ -533,6 +700,16 @@
     var area = mount.getAttribute('data-pf-inf-area') || lastArea();
     var view = 'area'; /* area | national | compare */
     var cache = { area: null, national: null };
+
+    /* WS-6: one-tap confirm delegation — attached to the persistent mount
+       node so it survives render() innerHTML swaps. */
+    mount.addEventListener('click', function (ev) {
+      var w = null;
+      try { w = ev.target && ev.target.closest ? ev.target.closest('[data-confirm-item]') : null; } catch (e) {}
+      if (!w) return;
+      ev.preventDefault();
+      confirmPrice(w.getAttribute('data-confirm-item'));
+    });
 
     function tabBtn(label, v) {
       var on = view === v;
@@ -563,14 +740,14 @@
       }
       load();
     }
-    function boardHTML(j, label) {
+    function boardHTML(j, label, areaKey) {
       var items = normBoardItems(j);
       var range = boardRange(j);
       if (!items.length) {
         return '<h3 style="margin:12px 0 8px;font-size:16px;">' + esc(label) + '</h3>' +
           '<div style="color:#b8b0a0;">No board data for this area yet. Report a price and start it.</div>';
       }
-      var cards = items.map(function (r) { return cardHTML(r, range); }).join('');
+      var cards = items.map(function (r) { return cardHTML(r, range, j, areaKey); }).join('');
       var shareBtn = (view === 'area' || view === 'compare')
         ? '<div style="margin-top:12px;"><button id="pf-inf-bd-share" style="' + BTN_GHOST + '">SHARE THIS BOARD</button></div>' : '';
       return '<h3 style="margin:12px 0 8px;font-size:16px;">' + esc(label) +
@@ -590,18 +767,18 @@
       }
       out.innerHTML = '<div style="color:#b8b0a0;">Loading the board…</div>';
       if (view === 'area') {
-        if (cache.area) { out.innerHTML = boardHTML(cache.area, 'PRICES IN ' + area.toUpperCase()); wireShare(cache.area); return; }
+        if (cache.area) { out.innerHTML = boardHTML(cache.area, 'PRICES IN ' + area.toUpperCase(), area); wireShare(cache.area); hydrateSparks(out); return; }
         getJSON('price_board', { area_key: area }, function (j) {
           if (!j || j.ok === false) { out.innerHTML = '<span style="color:#e8a0a0;">The price board is unavailable right now. Try again later.</span>'; return; }
           cache.area = j;
-          out.innerHTML = boardHTML(j, 'PRICES IN ' + area.toUpperCase()); wireShare(j);
+          out.innerHTML = boardHTML(j, 'PRICES IN ' + area.toUpperCase(), area); wireShare(j); hydrateSparks(out);
         });
       } else if (view === 'national') {
-        if (cache.national) { out.innerHTML = boardHTML(cache.national, 'NATIONAL — COMMUNITY-REPORTED'); return; }
+        if (cache.national) { out.innerHTML = boardHTML(cache.national, 'NATIONAL — COMMUNITY-REPORTED', 'national'); hydrateSparks(out); return; }
         getJSON('price_board', { area_key: 'national' }, function (j) {
           if (!j || j.ok === false) { out.innerHTML = '<span style="color:#e8a0a0;">The national board is unavailable right now. Try again later.</span>'; return; }
           cache.national = j;
-          out.innerHTML = boardHTML(j, 'NATIONAL — COMMUNITY-REPORTED');
+          out.innerHTML = boardHTML(j, 'NATIONAL — COMMUNITY-REPORTED', 'national'); hydrateSparks(out);
         });
       } else { /* compare: your area vs national, side by side */
         getJSON('price_board', { area_key: area }, function (ja) {
@@ -612,11 +789,11 @@
             if (ja && ja.ok !== false) cache.area = ja;
             if (jn && jn.ok !== false) cache.national = jn;
             var h = '';
-            h += ja && ja.ok !== false ? boardHTML(ja, 'YOUR AREA — ' + area.toUpperCase())
+            h += ja && ja.ok !== false ? boardHTML(ja, 'YOUR AREA — ' + area.toUpperCase(), area)
               : '<div style="color:#e8a0a0;">Your area\u2019s board is unavailable right now.</div>';
-            h += jn && jn.ok !== false ? boardHTML(jn, 'NATIONAL — COMMUNITY-REPORTED')
+            h += jn && jn.ok !== false ? boardHTML(jn, 'NATIONAL — COMMUNITY-REPORTED', 'national')
               : '<div style="color:#e8a0a0;margin-top:12px;">The national board is unavailable right now.</div>';
-            out.innerHTML = h; wireShare(ja || { items: [] });
+            out.innerHTML = h; wireShare(ja || { items: [] }); hydrateSparks(out);
           });
         });
       }
@@ -660,8 +837,9 @@
           x.textAlign = 'right'; x.fillStyle = '#ffffff'; x.font = 'bold 44px system-ui, sans-serif';
           x.fillText(money(r.median_cents), 990, y);
           var d = Number(r.delta_pct);
+          /* WS-6: trend colors gray/white only — the arrow carries direction. */
           if (!isNaN(d) && r.week_ago_median_cents) {
-            x.fillStyle = d > 0 ? '#c98f8f' : (d < 0 ? '#9fc98f' : '#b8b0a0');
+            x.fillStyle = '#d8d0c0';
             x.font = '28px system-ui, sans-serif';
             var arrow = d > 0 ? '\u25B2' : (d < 0 ? '\u25BC' : '\u25AA');
             x.fillText(arrow + ' ' + Math.abs(d).toFixed(1) + '% vs last wk', 990, y + 40);
@@ -746,7 +924,7 @@
         var val = moneyMode ? money(v) : String(v);
         return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-width:0;">' +
           '<div style="font-size:10px;color:#d8d0c0;margin-bottom:2px;white-space:nowrap;">' + esc(val) + '</div>' +
-          '<div title="' + esc(lbl) + ': ' + esc(val) + '" style="width:70%;height:' + hgt + 'px;background:#c1121f;border-radius:3px 3px 0 0;"></div>' +
+          '<div title="' + esc(lbl) + ': ' + esc(val) + '" style="width:70%;height:' + hgt + 'px;background:#f5f0e6;border-radius:3px 3px 0 0;"></div>' +
           '<div style="' + SMALL + 'font-size:10px;margin-top:4px;white-space:nowrap;">' + esc(lbl) + '</div></div>';
       }).join('');
       return '<div style="display:flex;align-items:flex-end;gap:4px;height:190px;">' + cols + '</div>';

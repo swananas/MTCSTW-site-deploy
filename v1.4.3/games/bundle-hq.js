@@ -77,7 +77,10 @@
       mission: 'Your ballot, your races, your countdown.', /* [PSYCH] */
       silos: ['civic-ballot', 'ballotcd', 'races', 'measures', 'civic-votercheck'],
       interim: ['civic', 'ballotcd', 'races', 'measures'],
-      order: ['races', 'measures', 'predict'],
+      /* 2026-10-05 (fe/predict-game): CALL IT. prediction game joins the
+         BALLOT hub ('elections' preselected); 'predict' (Call the Shot)
+         stays untouched. */
+      order: ['races', 'measures', 'predict', 'predgame'],
       panes: ['ballot', 'voter', 'votercheck', 'countdown'] },
     { id: 'intel', sec: '05', tab: 'INTEL', title: 'Intel',
       mission: 'Know more than they do.', /* [PSYCH] */

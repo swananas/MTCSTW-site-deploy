@@ -56,7 +56,11 @@
         ['bracket-board', 'pf-ov-bracket'],
         ['battles', 'pf-ov-battles'],
         ['infighting', 'pf-ov-infight'],
-        ['slr-match-quiz', 'pf-ov-matchquiz']
+        ['slr-match-quiz', 'pf-ov-matchquiz'],
+        /* 2026-10-05 (fe/predict-game): CALL IT. prediction game. Stages
+           from games/bundle-predgame.js (footer JS_GAMES); category preselect
+           'all' on the arcade hub. Kill: ?pf_off=predgame. */
+        ['predgame', 'pf-ov-predgame']
       ]
     },
     'pf-cells-page': {

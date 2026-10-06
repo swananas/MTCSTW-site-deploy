@@ -207,6 +207,13 @@ var SECTIONS = {
        'solidarity-draw.js' (silo key 'draw', bundle-home, mounted in the
        Hall of Proof section on the homepage). */
   ],
+  /* 2026-10-05 (fe/predict-game): CALL IT. — the prediction-game expansion.
+     Standalone page bundle (silo key 'predgame'): the footer fetches it on
+     /arcade, /political-hq and /money, so one section component serves all
+     three mounts with per-page category preselect. Kill: ?pf_off=predgame. */
+  'bundle-predgame': [
+    'predgame.js'
+  ],
   'bundle-cells': [
     /* CELL IDENTITY (2026-10-05): structured cell profiles — guided founding
        wizard, discovery-on-qualities, identity kit, founder backfill.

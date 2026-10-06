@@ -334,6 +334,22 @@
         var d = document.createElement('div'); body.appendChild(d);
         try { if (window.PFGoverning) PFGoverning.mount(d); } catch (e) { err('governing mount failed'); }
       } },
+    /* FRED Everywhere Phase 2 (2026-10-05): Tool 1 "Stack 'Em" — the full
+       comparison builder on the MACRO page. Suggested matchups default,
+       free pick guardrailed server-side. Kill: ?pf_off=money-stackem. */
+    { key: 'stackem', kill: 'money-stackem', title: 'STACK \u2019EM',
+      sub: 'STACK TWO NUMBERS. START AN ARGUMENT.', mount: function (body) {
+        var d = document.createElement('div'); d.id = 'pf-stackem'; body.appendChild(d);
+        try { if (window.PFStackEm) PFStackEm.mount(d); } catch (e) { err('stackem mount failed'); }
+      } },
+    /* FRED Everywhere Phase 2 (2026-10-05): Tool 2 explainer embedded in
+       Follow the Money — "WHAT'S THIS COSTING YOU?" Topic-first, series
+       picker ("nerd mode") one tap deeper. Kill: ?pf_off=money-explain. */
+    { key: 'explain', kill: 'money-explain', title: 'WHAT\u2019S THIS COSTING YOU?',
+      sub: 'You tell it what\u2019s hitting your wallet; it tells you what the numbers actually say.', mount: function (body) {
+        var d = document.createElement('div'); d.id = 'pf-explain-money'; body.appendChild(d);
+        try { if (window.PFExplain) PFExplain.mount(d, 'money'); } catch (e) { err('explain mount failed'); }
+      } },
     /* P-14/P-16 (Wave A6/PW1): the macro wall — public gallery of everything
        made with FRED data + HQ model pieces. Display only, zero XP. */
     { key: 'gallery', kill: 'macro-gallery', title: 'THE MACRO WALL',

@@ -535,7 +535,14 @@ var DEAD = ['bank.js', 'casino.js', 'daily-drop.js', 'daily-fire.js', 'boost-rai
 var GLOBAL_CHROME = ['notify.js', 'flash-siren.js',
   /* ENGAGE-A #2 (2026-10-05): reactions.js — cross-page micro-reactions,
      bundled into pages/bundle-pages.js (every v2 page) via bundle-core.js. */
-  'reactions.js'];
+  'reactions.js',
+  /* FRED Everywhere Phase 2 (2026-10-05): the three user modeling tools —
+     fred-stackem.js (Stack 'Em), fred-explain.js (explainer),
+     fred-receipt.js (Receipt check). They ship via build/bundle-core.js as
+     the lazy core/bundle-fred-tools.js chunk (non-money pages) and inside
+     core/bundle-money.js (money page) — intentionally excluded from page
+     bundles. */ 
+  'fred-stackem.js', 'fred-explain.js', 'fred-receipt.js'];
 var unbundled = allFiles.filter(function (f) {
   return bundled.indexOf(f) === -1 && f.indexOf('bundle-') !== 0 &&
     DEAD.indexOf(f) === -1 && GLOBAL_CHROME.indexOf(f) === -1;

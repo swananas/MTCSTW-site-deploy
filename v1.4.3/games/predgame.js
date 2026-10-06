@@ -339,6 +339,13 @@
         h += '<div class="pq-msg">You made no call on this one. The next board is already open.</div>';
       }
       if (q.category === 'economy') h += '<div class="pq-disclaim">Game only &mdash; not financial advice.</div>';
+      /* UX Combination Play 2 (fe/ux-take-to-cell): resolved calls get the
+         standardized action bar. Declarative host — share-everywhere's scan
+         builds the bar in place. Kill: ?pf_off=predgame. */
+      h += '<div data-pf-actionbar data-pf-tc-kind="predgame"' +
+        ' data-pf-tc-title="CALL IT. \u2014 ' + esc(q.title) + '"' +
+        ' data-pf-tc-figure="OUTCOME: ' + esc(winLabel) + '"' +
+        ' data-pf-tc-link="' + esc(location.pathname) + '"></div>';
       h += '</div>';
     } else if (q.my_pick) {
       /* picked — locked in (no changing, matches the bill-game convention) */

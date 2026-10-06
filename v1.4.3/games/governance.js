@@ -553,6 +553,35 @@ function render(){
   if(!light.length) h+='<p class="gv-note">No routine ballots open.</p>';
   for(var l=0;l<light.length;l++) h+=inlineRowHTML(light[l]);
   h+='</div>';
+  /* --- new proposal --- */
+  h+='<div class="x-pane"><h4>New proposal</h4>'
+    +'<div class="x-note">Costs <b>100 XP</b> to put on the floor &mdash; keeps the spam out. Duration 1&ndash;30 days. XP has no cash value. Stakes are final.</div>'
+    +'<input aria-label="Proposal title" class="c-in" id="gvTitle" maxlength="120" placeholder="Proposal title">'
+    +'<textarea class="c-in" id="gvDesc" maxlength="2000" rows="3" placeholder="What are you proposing, and why?"></textarea>'
+    +'<div class="x-note">Duration: <input class="c-in gv-dur" id="gvDays" type="number" min="1" max="30" value="7"> days</div>'
+    +'<button class="c-btn" id="gvCreateBtn">PUT IT TO A VOTE (100 XP)</button><div class="c-err" id="gvCreateErr"></div></div>';
+  /* --- delegation --- */
+  var cur=(DG&&DG.delegate)||null, toMe=(DG&&DG.delegated_to_me)||[];
+  h+='<div class="x-pane"><h4>Liquid delegation</h4>'
+    +'<div class="x-note">Trust someone&rsquo;s judgment? Hand them your vote weight. They vote, it counts double. You vote directly anytime &mdash; your own ballot always wins.</div>';
+  if(cur){ h+='<div class="x-note">Your vote is delegated to <b>'+esc(cur)+'</b>.</div>'
+    +'<button class="c-btn" id="gvUndelegate">TAKE MY VOTE BACK</button>'; }
+  else { h+='<div class="x-note">You hold your own vote.</div>'
+    +'<input aria-label="Delegate callsign" class="c-in" id="gvDel" maxlength="20" placeholder="Delegate callsign">'
+    +'<button class="c-btn" id="gvDelegateBtn">DELEGATE MY VOTE</button>'; }
+  if(toMe.length){ h+='<div class="x-note">'+toMe.length+' soldier'+(toMe.length>1?'s':'')+' trust'+(toMe.length>1?'':'s')+' your judgment: '+toMe.map(function(x){return esc(x);}).join(", ")+'</div>'; }
+  h+='<div class="c-err" id="gvDelErr"></div></div>';
+  /* --- history --- */
+  h+='<div class="x-pane"><h4>Decided ('+hist.length+')</h4>';
+  if(!hist.length){ h+='<div class="x-note">Nothing decided yet. History is waiting to be written.</div>'; }
+  for(var k=0;k<Math.min(hist.length,20);k++){
+    var q=hist[k], badge=q.result==="passed"?'<span class="gv-pass">PASSED</span>':(q.result==="failed"?'<span class="gv-fail">FAILED</span>':'<span class="gv-tie">TIE</span>');
+    h+='<div class="gv-prop gv-hist"><div class="gv-ptitle">'+esc(q.title)+' '+badge+'</div>'
+      +'<div class="x-note">YES '+esc(q.yes_weight)+' &bull; NO '+esc(q.no_weight)+' &bull; '+esc(q.voter_count)+' voters</div>'
+      /* share-out gaps #8: the result is shareable. */
+      +'<div style="margin-top:6px"><button type="button" class="c-btn ghost gv-share" data-idx="'+k+'">SHARE RESULT</button></div></div>';
+  }
+  h+='</div>';
   h+=createHTML(P);
   h+=delegationHTML();
   h+=resultsHTML(hist,P);
@@ -623,6 +652,23 @@ function wire(el){
       }
     });
   }); })(vbs[v]); }
+  /* share-out gaps #8: each decided result is shareable via pf:terminal. */
+  var gss=el.querySelectorAll(".gv-share");
+  for(var gs=0;gs<gss.length;gs++){ (function(b){ b.addEventListener("click",function(){
+    try{
+      var qq=hist[Number(b.getAttribute("data-idx"))];
+      if(!qq||!window.PFShareEverywhere||!window.PFShareEverywhere.terminal) return;
+      var res=qq.result==="passed"?"PASSED":(qq.result==="failed"?"FAILED":"TIE");
+      window.PFShareEverywhere.terminal({
+        gameId:"gov-result", title:"THE ASSEMBLY DECIDED",
+        result:res+" — "+String(qq.title||""),
+        lines:["YES "+qq.yes_weight+" · NO "+qq.no_weight+" · "+qq.voter_count+" voters"],
+        link:"/political-hq",
+        host:(b.closest&&b.closest(".x-pane"))||el,
+        kicker:"\u2696 THE ASSEMBLY \u2696"
+      });
+    }catch(e){}
+  }); })(gss[gs]); }
   /* close & settle (proposal_close, AUTH+ADMIN). Past-due: any authed user.
      Early: admin only — rides the X-Admin-Secret header via adminPost. */
   function closeProposal(pid,early,btn){

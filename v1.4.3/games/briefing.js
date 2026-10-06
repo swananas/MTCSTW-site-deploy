@@ -377,9 +377,15 @@ function warPlanHtml(){
      ribbon-chase strip ("4/7 systems — FULL THEATER needs 3 more") renders
      here once the backend ships a chase object. */
   if(!rows) return "";
+  /* UX Combination Play 2 (fe/ux-take-to-cell): figure = the order lines as
+     plain text. Kill: ?pf_off=brief. */
+  var wpFig = "";
+  try { wpFig = String(rows).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 140); } catch (e) {}
   return '<div class="br-sec"><div class="br-sect">\\u2694 TODAY\\u2019S WAR PLAN</div>'
     +'<div class="x-note" style="margin-bottom:6px">The whole theater, 30 seconds. Every line is a door &mdash; eligibility is checked on the other side.</div>'
-    +rows+'</div>';
+    +rows
+    +'<div data-pf-actionbar data-pf-tc-kind="briefing" data-pf-tc-title="TODAY\\u2019S WAR PLAN" data-pf-tc-figure="'+esc(wpFig)+'" data-pf-tc-link="/"></div>'
+    +'</div>';
 }
 function render(){
   var el=document.getElementById("xBrief"); if(!el) return;

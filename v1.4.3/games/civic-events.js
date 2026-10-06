@@ -106,6 +106,9 @@ function toolbarHTML(){
     '<a href="/political-hq" style="font:bold 11px monospace;color:#888;margin-left:6px;">ACTION CENTER &#8599;</a></div>';
 }
 function cardHTML(ev){
+  /* UX Combination Play 2 (fe/ux-take-to-cell): figure for the action bar. */
+  var ceFig = fmtDate(ev.starts_at) + ' \u2014 ' + ev.venue + ', ' + ev.city +
+    ' \u00b7 ' + (Number(ev.rsvp_count) || 0) + ' going';
   return '<div class="ce-card" data-ce-card="'+esc(ev.id)+'">'+
     '<div class="ce-card-top"><span class="ce-type">'+esc(typeLabel(ev.type))+'</span>'+
     '<span class="ce-date">'+esc(fmtDate(ev.starts_at))+'</span></div>'+
@@ -114,7 +117,8 @@ function cardHTML(ev){
     '<div class="ce-meta"><span class="ce-going">'+Number(ev.rsvp_count||0)+' going</span> '+
     '<a href="'+esc(mapLink(ev))+'" target="_blank" rel="noopener">View map</a> '+
     '<a href="'+esc(safeUrl(ev.source_url)||'#')+'" target="_blank" rel="noopener">Source</a></div>'+
-    '<button class="c-btn ce-detail" data-ce="detail" data-id="'+esc(ev.id)+'">DETAILS + RSVP</button></div>';
+    '<button class="c-btn ce-detail" data-ce="detail" data-id="'+esc(ev.id)+'">DETAILS + RSVP</button>'+
+    '<div data-pf-actionbar data-pf-tc-kind="civic-event" data-pf-tc-title="'+esc(ev.title)+'" data-pf-tc-figure="'+esc(ceFig)+'" data-pf-tc-link="/events"></div></div>';
 }
 function renderList(){
   if(!root) return;

@@ -7,14 +7,18 @@
    EXTENDS the cohesion HUD (core/30-hud.js) — does NOT rebuild it. The pillar
    row mounts inside the HUD's YOUR CAMPAIGN strip: one tap from the persistent
    HUD bar, which is on every page. The strip stays the HUD's; pillars add a row.
-   ADVENTURE-PATH CHOOSER: first-run (or anytime via the HUD strip) the user
-   picks their fight — PROPAGANDIST, DATA SCOUT, ACTIVIST, ORGANIZER. Soft paths:
-   stored device-local only (localStorage pf_adventure_path_v1). The chosen path
-   (a) reorders the four pillar buttons (chosen first), (b) biases the Next Move
-   engine (core/20-nextop.js reads PF.pillars.biasOps() — fail-open), and
-   (c) flavors the HUD strip headline. Never locks, never shames, never
-   loss-frames: the user can do everything regardless, and the path can be
-   changed or cleared at any time. This is a preference, not a gate.
+   ADVENTURE-PATH CHOOSER (multi-select, 2026-10-06 ~12:44 CDT CEO directive):
+   first-run (or anytime via the HUD strip) the user picks any combination of
+   PROPAGANDIST, DATA SCOUT, ACTIVIST, ORGANIZER — checkboxes, not radio;
+   all four is valid. Stored device-local only (localStorage
+   pf_adventure_path_v1, JSON array; bare-string v1 values migrate to
+   [value]). The chosen paths (a) reorder the four pillar buttons (selected
+   first, in path order), (b) bias the Next Move engine (core/20-nextop.js
+   reads PF.pillars.biasOps() — union of biases, deduped, fail-open), and
+   (c) flavor the HUD strip headline. Never locks, never shames, never
+   loss-frames: the daily XP cap is the SOLE governor on activity — paths
+   are identity/flavor, never permission. The user can do everything
+   regardless, and the paths can be changed or cleared at any time.
    FRONTEND-ONLY, ZERO NEW XP — pure routing + reads. No writes of any kind
    (no backend writes, no XP minted, no XP promised). DATA routes to the
    existing gated capture flows; nothing is bypassed — quorum/claim gates on
@@ -96,24 +100,53 @@
     { key: 'organize', path: 'organizer',    label: 'ORGANIZE', sub: 'CELLS',      glyph: '\uD83E\uDD1D' }
   ];
 
-  /* ---- device-local state (preference only — never a gate) ---- */
+  /* ---- device-local state (preference only — never a gate) ----
+     pf_adventure_path_v1 holds a JSON array of path keys. v1 bare-string
+     values (e.g. "data") migrate to ["data"] on read. */
   var LS_PATH = 'pf_adventure_path_v1';
   var LS_SEEN = 'pf_pillars_seen_v1';
-  function getPath() {
+  function getPaths() {
     try {
-      var p = localStorage.getItem(LS_PATH);
-      return PATHS[p] ? p : '';
-    } catch (e) { return ''; }
+      var raw = localStorage.getItem(LS_PATH);
+      if (!raw) return [];
+      var arr;
+      try { arr = JSON.parse(raw); }
+      catch (e) { arr = [raw]; } /* v1 bare-string was never JSON: migrate */
+      if (typeof arr === 'string') arr = [arr];
+      if (!arr || Object.prototype.toString.call(arr) !== '[object Array]') return [];
+      var out = [];
+      for (var i = 0; i < PATH_KEYS.length; i++) {
+        if (arr.indexOf(PATH_KEYS[i]) !== -1) out.push(PATH_KEYS[i]);
+      }
+      return out;
+    } catch (e) { return []; }
   }
-  function setPath(p) {
+  function getPath() { /* compat: first selected path, or '' */
+    var p = getPaths();
+    return p.length ? p[0] : '';
+  }
+  function setPaths(paths) {
     try {
-      if (PATHS[p]) localStorage.setItem(LS_PATH, p);
+      var clean = [];
+      (paths || []).forEach(function (p) {
+        if (PATHS[p] && clean.indexOf(p) === -1) clean.push(p);
+      });
+      if (clean.length) localStorage.setItem(LS_PATH, JSON.stringify(clean));
       else localStorage.removeItem(LS_PATH);
     } catch (e) {}
     try { localStorage.setItem(LS_SEEN, '1'); } catch (e2) {}
     applyPath();
   }
-  function clearPath() { setPath(''); }
+  function setPath(p) { /* compat: single pick replaces the set */
+    setPaths(p ? [p] : []);
+  }
+  function togglePath(p) {
+    var cur = getPaths(), i = cur.indexOf(p);
+    if (i === -1) { if (PATHS[p]) cur.push(p); }
+    else cur.splice(i, 1);
+    setPaths(cur);
+  }
+  function clearPath() { setPaths([]); }
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -336,6 +369,13 @@
     '.ppc-path .pp-g{font-size:24px;display:block;margin-bottom:6px;}',
     '.ppc-path .pp-n{font-size:11px;font-weight:900;letter-spacing:.06em;display:block;margin-bottom:4px;}',
     '.ppc-path .pp-b{font-size:11px;color:var(--pf-p-dim);line-height:1.4;display:block;}',
+    '.ppc-path.is-sel{border-color:var(--pf-p-accent);box-shadow:0 0 0 1px var(--pf-p-accent);}',
+    '.ppc-path.is-sel .pp-n{color:var(--pf-p-gold);}',
+    '.ppc-path.is-sel .pp-n::after{content:" \\2713";color:var(--pf-p-gold);}',
+    '.ppc-go{display:block;width:100%;margin:2px 0 6px;padding:11px;background:var(--pf-p-accent);',
+    'border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:900;letter-spacing:.18em;',
+    'cursor:pointer;font-family:Arial,sans-serif;}',
+    '.ppc-go:active{transform:scale(.98);}',
     '.ppc-skip{background:none;border:none;color:var(--pf-p-dim);font-size:11px;letter-spacing:.18em;',
     'font-weight:700;cursor:pointer;padding:8px;font-family:Arial,sans-serif;}',
     '.ppc-x{position:absolute;top:8px;right:10px;background:none;border:none;color:#777;font-size:18px;',
@@ -350,37 +390,43 @@
     } catch (e) {}
   }
 
-  /* ---- pillar row: ordered with the chosen path's pillar first ---- */
+  /* ---- pillar row: selected paths' pillars first (path order), then the rest ---- */
   function orderedPillars() {
-    var p = getPath();
-    var first = p && PATHS[p] ? PATHS[p].pillar : null;
-    var out = [];
-    if (first) {
-      for (var i = 0; i < PILLARS.length; i++) if (PILLARS[i].key === first) out.push(PILLARS[i]);
+    var paths = getPaths(), seen = {}, out = [];
+    for (var i = 0; i < paths.length; i++) {
+      var pk = PATHS[paths[i]] ? PATHS[paths[i]].pillar : null;
+      if (pk) seen[pk] = 1;
     }
     for (var j = 0; j < PILLARS.length; j++) {
-      if (PILLARS[j].key !== first) out.push(PILLARS[j]);
+      if (seen[PILLARS[j].key]) out.push(PILLARS[j]);
+    }
+    for (var k = 0; k < PILLARS.length; k++) {
+      if (!seen[PILLARS[k].key]) out.push(PILLARS[k]);
     }
     return out;
   }
+  function pathNames() {
+    var paths = getPaths(), out = [];
+    for (var i = 0; i < paths.length; i++) out.push(PATHS[paths[i]].name);
+    return out;
+  }
   function renderRow() {
-    var path = getPath();
+    var paths = getPaths(), names = pathNames();
     var html = '<div id="pf-pillars"><div id="pf-pillars-row">';
     var ps = orderedPillars();
     for (var i = 0; i < ps.length; i++) {
       var pl = ps[i];
-      var isPath = path && PATHS[path] && PATHS[path].pillar === pl.key;
+      var isPath = paths.indexOf(pl.path) !== -1;
       html += '<button type="button" class="pf-pillar' + (isPath ? ' is-path' : '') +
         '" data-pf-pillar="' + esc(pl.key) + '" aria-label="' + esc(pl.label + ' — ' + pl.sub) + '">' +
         '<span class="pp-g" aria-hidden="true">' + esc(pl.glyph) + '</span>' +
         '<span class="pp-l">' + esc(pl.label) + '</span>' +
         '<span class="pp-s">' + esc(pl.sub) + '</span></button>';
     }
-    var pathName = path && PATHS[path] ? PATHS[path].name : '';
     html += '</div><div id="pf-pillars-path">' +
-      (pathName
-        ? '<a data-pf-path-change="1">FIGHTING AS ' + esc(pathName) + ' \u00B7 CHANGE PATH</a>'
-        : '<a data-pf-path-change="1">PICK YOUR FIGHT \u00B7 CHOOSE A PATH</a>') +
+      (names.length
+        ? '<a data-pf-path-change="1">FIGHTING AS ' + esc(names.join(' + ')) + ' \u00B7 CHANGE PATHS</a>'
+        : '<a data-pf-path-change="1">PICK YOUR FIGHTS \u00B7 CHOOSE PATHS</a>') +
       '</div></div>';
     return html;
   }
@@ -399,8 +445,10 @@
     try {
       var t = document.getElementById('pf-hud-strip-title');
       if (t) {
-        var p = getPath();
-        t.textContent = p && PATHS[p] ? PATHS[p].headline : 'YOUR CAMPAIGN';
+        var names = pathNames();
+        t.textContent = (names.length && names.length < PATH_KEYS.length)
+          ? names.join(' + ') + ' \u00B7 YOUR CAMPAIGN'
+          : 'YOUR CAMPAIGN';
       }
     } catch (e2) {}
   }
@@ -441,24 +489,40 @@
     } catch (e) { return false; }
   }
 
-  /* ---- adventure-path chooser ---- */
+  /* ---- adventure-path chooser (multi-select checkboxes + confirm) ---- */
   function chooserHtml() {
-    var h = '<div id="pf-path-chooser" role="dialog" aria-label="Pick your fight">' +
+    var sel = {};
+    var cur = getPaths();
+    for (var i = 0; i < cur.length; i++) sel[cur[i]] = 1;
+    var h = '<div id="pf-path-chooser" role="dialog" aria-label="Pick your fights">' +
       '<div class="ppc-card" style="position:relative;">' +
       '<button type="button" class="ppc-x" data-pf-path-x="1" aria-label="Close">\u00d7</button>' +
-      '<div class="ppc-k">ADVENTURE PATH</div><h3>PICK YOUR FIGHT</h3>' +
-      '<p class="ppc-sub">This just tunes what you see first. You can do everything, ' +
+      '<div class="ppc-k">ADVENTURE PATHS</div><h3>PICK YOUR FIGHTS</h3>' +
+      '<p class="ppc-sub">Pick any combination \u2014 one, two, three, or all four. ' +
+      'This just tunes what you see first. You can do everything, ' +
       'anytime. Change it whenever.</p><div class="ppc-grid">';
-    for (var i = 0; i < PATH_KEYS.length; i++) {
-      var p = PATHS[PATH_KEYS[i]];
-      h += '<button type="button" class="ppc-path" data-pf-path-pick="' + esc(PATH_KEYS[i]) + '">' +
+    for (var j = 0; j < PATH_KEYS.length; j++) {
+      var p = PATHS[PATH_KEYS[j]];
+      h += '<button type="button" class="ppc-path' + (sel[PATH_KEYS[j]] ? ' is-sel' : '') +
+        '" data-pf-path-pick="' + esc(PATH_KEYS[j]) + '" aria-pressed="' +
+        (sel[PATH_KEYS[j]] ? 'true' : 'false') + '">' +
         '<span class="pp-g" aria-hidden="true">' + esc(p.glyph) + '</span>' +
         '<span class="pp-n">' + esc(p.name) + '</span>' +
         '<span class="pp-b">' + esc(p.blurb) + '</span></button>';
     }
-    h += '</div><button type="button" class="ppc-skip" data-pf-path-skip="1">' +
+    h += '</div><button type="button" class="ppc-go" data-pf-path-confirm="1">LOCK IT IN \u2192</button>' +
+      '<button type="button" class="ppc-skip" data-pf-path-skip="1">' +
       'JUST LOOKING AROUND \u2192</button></div></div>';
     return h;
+  }
+  function setSelVisual(b, on) {
+    try {
+      var c = String(b.getAttribute('class') || '');
+      c = c.replace(/\s*\bis-sel\b/g, '');
+      if (on) c += ' is-sel';
+      b.setAttribute('class', c.replace(/^\s+|\s+$/g, ''));
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    } catch (e) {}
   }
   function openChooser() {
     try {
@@ -469,18 +533,32 @@
       var c = wrap.firstChild;
       if (!c || !document.body) return;
       document.body.appendChild(c);
+      var sel = {};
+      var cur = getPaths();
+      for (var i = 0; i < cur.length; i++) sel[cur[i]] = 1;
       function close() {
         try { if (c.parentNode) c.parentNode.removeChild(c); } catch (e) {}
       }
       var picks = c.querySelectorAll('[data-pf-path-pick]');
-      for (var i = 0; i < picks.length; i++) {
+      for (var j = 0; j < picks.length; j++) {
         (function (b) {
           b.addEventListener('click', function () {
-            setPath(b.getAttribute('data-pf-path-pick'));
-            close();
+            var k = b.getAttribute('data-pf-path-pick');
+            if (!PATHS[k]) return;
+            sel[k] = !sel[k];
+            setSelVisual(b, !!sel[k]);
           });
-        })(picks[i]);
+        })(picks[j]);
       }
+      var go = c.querySelector('[data-pf-path-confirm]');
+      if (go) go.addEventListener('click', function () {
+        var out = [];
+        for (var n = 0; n < PATH_KEYS.length; n++) {
+          if (sel[PATH_KEYS[n]]) out.push(PATH_KEYS[n]);
+        }
+        setPaths(out);
+        close();
+      });
       var sk = c.querySelector('[data-pf-path-skip]');
       if (sk) sk.addEventListener('click', function () {
         try { localStorage.setItem(LS_SEEN, '1'); } catch (e) {}
@@ -494,18 +572,28 @@
     } catch (e) {}
   }
 
-  /* ---- public API (20-nextop.js reads biasOps(); surfaces may open the chooser) ---- */
+  /* ---- public API (20-nextop.js reads biasOps(): union of selected
+     path biases, deduped, in path order — flavor only, never a gate) ---- */
   function biasOps() {
     try {
-      var p = getPath();
-      if (p && PATHS[p]) return PATHS[p].bias.slice();
-    } catch (e) {}
-    return [];
+      var seen = {}, out = [];
+      var paths = getPaths();
+      for (var i = 0; i < paths.length; i++) {
+        var bs = PATHS[paths[i]].bias || [];
+        for (var j = 0; j < bs.length; j++) {
+          if (!seen[bs[j]]) { seen[bs[j]] = 1; out.push(bs[j]); }
+        }
+      }
+      return out;
+    } catch (e) { return []; }
   }
   try {
     PF.pillars = {
       getPath: getPath,
+      getPaths: getPaths,
       setPath: setPath,
+      setPaths: setPaths,
+      togglePath: togglePath,
       clearPath: clearPath,
       biasOps: biasOps,
       openChooser: openChooser,

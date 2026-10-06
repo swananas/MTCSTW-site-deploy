@@ -59,13 +59,29 @@ ok('no fetch/XHR', pcode.indexOf('fetch(') === -1 && pcode.indexOf('XMLHttpReque
 ok('path stored device-local', pillars.indexOf('pf_adventure_path_v1') !== -1);
 ok('no "donate" anywhere', !/donate/i.test(pillars));
 
-/* 5. psych constraints: soft paths — never locks, shames, or loss-frames */
+/* 5. psych constraints: soft paths — never locks, shames, or loss-frames.
+   Daily XP cap is the SOLE governor on activity: paths are identity/flavor. */
 ok('no loss framing ("miss out")', pcode.indexOf('miss out') === -1);
 ok('no loss framing ("fall behind")', pcode.indexOf('fall behind') === -1);
 ok('no shaming ("lazy")', pcode.indexOf('lazy') === -1);
 ok('do-everything copy', pillars.indexOf('You can do everything') !== -1);
 ok('change-anytime copy', pillars.indexOf('Change it whenever') !== -1);
 ok('path clearable', pillars.indexOf('clearPath') !== -1);
+ok('cap-is-sole-governor documented', /sole governor/i.test(pillars));
+ok('paths never restrict: "never a gate" documented', pillars.indexOf('never a gate') !== -1);
+ok('paths never restrict: no path-conditional action gating',
+  !/if\s*\([^)]*getPath\(\)[^)]*\)\s*return/i.test(pcode));
+
+/* 5b. multi-select adventure paths */
+ok('multi-select: getPaths exposed', pillars.indexOf('getPaths: getPaths') !== -1);
+ok('multi-select: setPaths exposed', pillars.indexOf('setPaths: setPaths') !== -1);
+ok('multi-select: togglePath exposed', pillars.indexOf('togglePath: togglePath') !== -1);
+ok('multi-select: JSON array storage', pillars.indexOf('JSON.stringify(clean)') !== -1);
+ok('multi-select: v1 bare-string migration', pillars.indexOf('v1 bare-string') !== -1);
+ok('multi-select: any-combination copy', pillars.indexOf('Pick any combination') !== -1);
+ok('multi-select: confirm button', pillars.indexOf('data-pf-path-confirm') !== -1);
+ok('multi-select: aria-pressed checkbox semantics', pillars.indexOf('aria-pressed') !== -1);
+ok('multi-select: toggle visual state (is-sel)', pillars.indexOf('is-sel') !== -1);
 
 /* 6. destination registry */
 ok('registry: registerDestination exposed', pillars.indexOf('registerDestination: registerDestination') !== -1);
@@ -127,8 +143,8 @@ function makeSandbox(opts) {
         var re = /<(button|a)\b([^>]*)>/gi, m;
         while ((m = re.exec(this._html))) {
           var at = m[2], child = mkEl(m[1]);
-          ['data-pf-pillar', 'data-pf-path-pick', 'data-pf-path-skip',
-           'data-pf-path-x', 'data-pf-path-change'].forEach(function (k) {
+          ['data-pf-pillar', 'data-pf-path-pick', 'data-pf-path-confirm',
+           'data-pf-path-skip', 'data-pf-path-x', 'data-pf-path-change'].forEach(function (k) {
             var mm = at.match(new RegExp(k + '="([^"]*)"'));
             if (mm) child.attrs[k] = mm[1];
           });
@@ -172,6 +188,8 @@ function makeSandbox(opts) {
       return live.filter(function (e) { return e.attrs['data-pf-pillar']; });
     if (sel.indexOf('[data-pf-path-pick]') !== -1)
       return live.filter(function (e) { return e.attrs['data-pf-path-pick']; });
+    if (sel.indexOf('[data-pf-path-confirm]') !== -1)
+      return live.filter(function (e) { return e.attrs['data-pf-path-confirm']; });
     if (sel.indexOf('[data-pf-path-change]') !== -1)
       return live.filter(function (e) { return e.attrs['data-pf-path-change']; });
     return [];
@@ -269,11 +287,31 @@ function fireClick(el) {
     ok('runtime: first-run chooser opens', !!sb.document.getElementById('pf-path-chooser'));
     var picks = sb.document.querySelectorAll('[data-pf-path-pick]');
     ok('runtime: chooser has 4 paths', picks.length === 4);
-    /* pick DATA SCOUT */
+    ok('runtime: chooser has confirm button',
+      sb.document.querySelectorAll('[data-pf-path-confirm]').length === 1);
+    /* MULTI-SELECT: toggle DATA SCOUT on — chooser stays open, nothing saved yet */
     var dp = picks.filter(function (p) { return p.attrs['data-pf-path-pick'] === 'data'; })[0];
     fireClick(dp);
-    ok('runtime: path stored device-local', sb.localStorage._store['pf_adventure_path_v1'] === 'data');
-    ok('runtime: chooser closes on pick', !sb.document.getElementById('pf-path-chooser'));
+    ok('runtime: toggle does not close chooser', !!sb.document.getElementById('pf-path-chooser'));
+    ok('runtime: toggle does not persist yet',
+      sb.localStorage._store['pf_adventure_path_v1'] == null);
+    ok('runtime: toggle paints selected state',
+      String(dp.attrs['class'] || '').indexOf('is-sel') !== -1 &&
+      dp.attrs['aria-pressed'] === 'true');
+    /* toggle it back off */
+    fireClick(dp);
+    ok('runtime: second toggle clears selected state',
+      String(dp.attrs['class'] || '').indexOf('is-sel') === -1 &&
+      dp.attrs['aria-pressed'] === 'false');
+    /* confirm with a single pick: JSON array persisted, chooser closes */
+    fireClick(dp);
+    var go = sb.document.querySelectorAll('[data-pf-path-confirm]')[0];
+    fireClick(go);
+    ok('runtime: path stored device-local as JSON array',
+      sb.localStorage._store['pf_adventure_path_v1'] === '["data"]');
+    ok('runtime: getPaths returns array',
+      JSON.stringify(sb.window.PF.pillars.getPaths()) === '["data"]');
+    ok('runtime: chooser closes on confirm', !sb.document.getElementById('pf-path-chooser'));
     var b2 = sb.document.querySelectorAll('#pf-pillars [data-pf-pillar]')
       .map(function (b) { return b.attrs['data-pf-pillar']; });
     ok('runtime: chosen pillar first', b2[0] === 'data');
@@ -281,10 +319,29 @@ function fireClick(el) {
       sb._idMap['pf-hud-strip-title'].textContent === 'DATA SCOUT \u00B7 YOUR CAMPAIGN');
     ok('runtime: biasOps for data scout',
       sb.window.PF.pillars.biasOps().join(',') === 'predict,bounty,catchup');
-    /* path change link reopens the chooser */
+    /* MULTI-SELECT: pick two paths — union bias, deduped, path order */
     var ch = sb.document.querySelectorAll('#pf-pillars [data-pf-path-change]')[0];
     fireClick(ch);
     ok('runtime: change-path reopens chooser', !!sb.document.getElementById('pf-path-chooser'));
+    var picks2 = sb.document.querySelectorAll('[data-pf-path-pick]');
+    var pp = picks2.filter(function (p) { return p.attrs['data-pf-path-pick'] === 'propagandist'; })[0];
+    fireClick(pp); /* now data + propagandist selected */
+    var go2 = sb.document.querySelectorAll('[data-pf-path-confirm]')[0];
+    fireClick(go2);
+    ok('runtime: two paths stored',
+      sb.localStorage._store['pf_adventure_path_v1'] === '["propagandist","data"]');
+    var b4 = sb.document.querySelectorAll('#pf-pillars [data-pf-pillar]')
+      .map(function (b) { return b.attrs['data-pf-pillar']; });
+    ok('runtime: selected pillars first in path order', b4[0] === 'spread' && b4[1] === 'data');
+    ok('runtime: multi headline joins names',
+      sb._idMap['pf-hud-strip-title'].textContent === 'PROPAGANDIST + DATA SCOUT \u00B7 YOUR CAMPAIGN');
+    ok('runtime: biasOps union deduped in path order',
+      sb.window.PF.pillars.biasOps().join(',') ===
+      'orders,bounty,recruit,matchquiz,loot,predict,catchup');
+    ok('runtime: both pillar buttons highlighted',
+      sb.document.querySelectorAll('#pf-pillars [data-pf-pillar]').filter(function (b) {
+        return String(b.attrs['class'] || '').indexOf('is-path') !== -1;
+      }).length === 2);
     /* clear path restores default */
     sb.window.PF.pillars.clearPath();
     var b3 = sb.document.querySelectorAll('#pf-pillars [data-pf-pillar]')
@@ -293,7 +350,53 @@ function fireClick(el) {
       b3.join(',') === 'spread,data,act,organize' &&
       sb._idMap['pf-hud-strip-title'].textContent === 'YOUR CAMPAIGN');
     ok('runtime: no path -> empty bias', sb.window.PF.pillars.biasOps().length === 0);
+    /* togglePath API: add/remove programmatically */
+    sb.window.PF.pillars.togglePath('activist');
+    ok('runtime: togglePath adds', JSON.stringify(sb.window.PF.pillars.getPaths()) === '["activist"]');
+    sb.window.PF.pillars.togglePath('activist');
+    ok('runtime: togglePath removes', sb.window.PF.pillars.getPaths().length === 0);
+    /* setPath compat: single pick replaces the set */
+    sb.window.PF.pillars.setPath('organizer');
+    ok('runtime: setPath compat replaces set',
+      JSON.stringify(sb.window.PF.pillars.getPaths()) === '["organizer"]');
+    ok('runtime: getPath compat returns first',
+      sb.window.PF.pillars.getPath() === 'organizer');
+    sb.window.PF.pillars.clearPath();
   } catch (e) { ok('runtime: pillars executes', false, String(e && e.message || e)); }
+
+  /* A2. all four paths -> default headline, all highlighted */
+  var sbA = makeSandbox({ ls: {} });
+  try {
+    vm.runInContext(pillars, sbA, { filename: '31-pillars.js' });
+    var P = sbA.window.PF.pillars;
+    P.setPaths(['propagandist', 'data', 'activist', 'organizer']);
+    ok('runtime: all-four stored',
+      JSON.stringify(P.getPaths()) === '["propagandist","data","activist","organizer"]');
+    ok('runtime: all-four -> default headline',
+      sbA._idMap['pf-hud-strip-title'].textContent === 'YOUR CAMPAIGN');
+    ok('runtime: all-four -> default pillar order',
+      sbA.document.querySelectorAll('#pf-pillars [data-pf-pillar]')
+        .map(function (b) { return b.attrs['data-pf-pillar']; }).join(',') ===
+        'spread,data,act,organize');
+    ok('runtime: all-four pillars highlighted',
+      sbA.document.querySelectorAll('#pf-pillars [data-pf-pillar]').filter(function (b) {
+        return String(b.attrs['class'] || '').indexOf('is-path') !== -1;
+      }).length === 4);
+  } catch (e) { ok('runtime: all-four executes', false, String(e && e.message || e)); }
+
+  /* A3. v1 bare-string migration */
+  var sbM = makeSandbox({ ls: { pf_pillars_seen_v1: '1', pf_adventure_path_v1: 'data' } });
+  try {
+    vm.runInContext(pillars, sbM, { filename: '31-pillars.js' });
+    ok('runtime: bare-string migrates to array',
+      JSON.stringify(sbM.window.PF.pillars.getPaths()) === '["data"]');
+    ok('runtime: junk storage value -> empty',
+      (function () {
+        var sbJ = makeSandbox({ ls: { pf_pillars_seen_v1: '1', pf_adventure_path_v1: '["hacker",42]' } });
+        vm.runInContext(pillars, sbJ, { filename: '31-pillars.js' });
+        return sbJ.window.PF.pillars.getPaths().length === 0;
+      })());
+  } catch (e) { ok('runtime: migration executes', false, String(e && e.message || e)); }
 
   /* B. registry: validation, priority, resolution */
   var sb2 = makeSandbox({ ls: { pf_pillars_seen_v1: '1' } });

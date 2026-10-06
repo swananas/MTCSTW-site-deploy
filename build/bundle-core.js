@@ -152,7 +152,13 @@ var CORE_FILES = [
   /* freshness (Cohesion §4, 2026-10-05): PF.freshBadge / PF.degradedVintage /
      PF.honestZero — LIVE badges only on <=15-min-fresh data, automatic label
      degradation, honest zero states. Kill: ?pf_off=27-freshness. */
-  'core/27-freshness.js'
+  'core/27-freshness.js',
+  /* teardown patterns (WS-0, 2026-10-06): the 8-pattern brand library —
+     PF.patterns render helpers (pure HTML strings, zero backend, zero XP,
+     fail-open, no writes). Last: needs nothing but the PF bus (00-bus);
+     positioned last so the 12 section workstreams can consume it from any
+     page bundle that ships core. Kill: ?pf_off=patterns. */
+  'core/33-patterns.js'
 ];
 
 /* 2026-10-05 (fix/money-minified-rebuild): money suite lazy chunk. The 10

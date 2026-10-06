@@ -206,7 +206,13 @@
 
   function refresh(){
     var host=document.getElementById('pf-data-bounties');
-    apiGet('databounty_list',{},function(j){
+    /* Cell dashboard ecosystem (2026-10-06): scope the list to the member's
+       primary cell when cell-hq has published it (window.PFCellPrimaryId,
+       'pf:cell-ready' event) — the backend returns open bounties that are
+       global OR targeted at that cell. Without cell context, unscoped. */
+    var lp={};
+    try{ var _pc=window.PFCellPrimaryId; if(_pc) lp.cell_id=String(_pc).slice(0,64); }catch(e){}
+    apiGet('databounty_list',lp,function(j){
       if(host&&j&&j.ok) renderBoard(host, j.bounties||[]);
       else if(host) host.innerHTML='<div class="db-board"><div class="db-empty">Bounty board is unreachable right now.</div></div>';
       /* cell strip: pin this member's cell-targeted bounties on the cell HQ */
@@ -215,16 +221,25 @@
         var strip=document.getElementById('pf-db-cellstrip');
         if(hq&&j&&j.ok){
           var id=ident();
-          var mine=(j.bounties||[]).filter(function(b){ return b.cell_id; });
+          var mine=(j.bounties||[]).filter(function(b){
+            if(!b.cell_id) return false;
+            /* cell-scoped fetch: show only MY cell's targeted bounties;
+               unscoped fetch: any cell-targeted bounty (legacy fallback). */
+            return lp.cell_id ? String(b.cell_id)===String(lp.cell_id) : true;
+          });
           if(mine.length){
             if(!strip){ strip=document.createElement('div'); strip.id='pf-db-cellstrip'; hq.insertBefore(strip, hq.firstChild); }
             var sh='<div class="db-card"><div class="db-kind">CELL DATA BOUNTIES</div>';
             mine.forEach(function(b){
               sh+='<div class="db-claimrow"><span class="db-cs">'+esc(KIND_LABEL[b.kind]||b.kind)+'</span>'+
-                '<span>'+esc(b.title)+'</span><span class="db-xp">+'+Number(b.xp_amount||0)+' XP</span></div>';
+                '<span>'+esc(b.title)+'</span><span class="db-xp">+'+Number(b.xp_amount||0)+' XP</span>'+
+                /* surge marker renders in the cell context too (gold ×N). */
+                surgeTag(b)+'</div>';
             });
             var bhost=document.getElementById('pf-data-bounties');
-            sh+='<div class="db-note">'+(bhost?'Full board below.':'See the data bounty board to claim.')+'</div></div>';
+            sh+='<div class="db-note">'+(bhost?'Full board below.':'See the data bounty board to claim.')+'</div>';
+            /* Rally actions (brand pass 2026-10-06): bounty intel is ammunition. */
+            sh+='<div data-pf-handoff="share-intel"></div></div>';
             strip.innerHTML=sh;
           } else if(strip){ strip.innerHTML=''; }
         }
@@ -238,4 +253,8 @@
     /* no board mount on this page — still refresh the cell strip if HQ exists */
     try{ if(document.getElementById('pf-cell-hq')) refresh(); }catch(e){}
   }
+  /* re-scope the strip once cell-hq publishes the primary cell id. */
+  try{
+    document.addEventListener('pf:cell-ready', function(){ refresh(); });
+  }catch(e){}
 })();

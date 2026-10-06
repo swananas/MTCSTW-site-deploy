@@ -181,6 +181,8 @@
       el.innerHTML=h;
       if(W.step===6){ var kp=el.querySelector("#idKitPrev"); if(kp) paintKit(kp,previewCell()); }
       wire();
+      /* 2026-10-06 share-everywhere: share the formed identity. */
+      try{ if(W.step===6&&window.PFShareEverywhere) PFShareEverywhere.bar(el,'cell-identity',{link:'/cells'}); }catch(e){}
     }
     function labelOf(list,k){ for(var i=0;i<list.length;i++) if(list[i][0]===k) return list[i][1]; return k; }
     function previewCell(){
@@ -325,6 +327,20 @@
       }catch(e){ toast("Banner download failed on this browser."); }
     });
     host.appendChild(dl);
+    /* share-out gaps #5: share/export the identity card IMAGE (not just download). */
+    var sh=document.createElement("button");
+    sh.className="id-btn sm"; sh.style.marginTop="8px"; sh.style.marginLeft="8px"; sh.textContent="SHARE BANNER";
+    sh.addEventListener("click",function(){
+      try{
+        var c3=document.createElement("canvas"); c3.width=1080; c3.height=1350;
+        var x3=c3.getContext("2d"); x3.drawImage(cv,0,0);
+        try{ if(window.PFShare&&PFShare.stampCallsign) PFShare.stampCallsign(c3); }catch(e){}
+        if(window.PFShare&&PFShare.shareImage){
+          PFShare.shareImage(c3,"cell-identity-card.png","My Cell Identity","cell-identity",{link:"/cells"});
+        } else toast("Sharing is warming up — use DOWNLOAD BANNER for now.");
+      }catch(e){ toast("Share failed — use DOWNLOAD BANNER instead."); }
+    });
+    host.appendChild(sh);
   }
   function mountKit(el, cell){
     if(!ENABLED||!el) return false;
@@ -2793,13 +2809,15 @@ if(!window._pfCellsTick){ window._pfCellsTick=setInterval(function(){ try{ if(wi
     { day: 4, name: 'CAST THE FAN VOTE', sub: 'Back your propagandist of the week.', url: '/', key: 'fan-vote' },
     { day: 5, name: 'WALK THE ROUTE MARCH', sub: 'Hit today\u2019s march stops.', url: null, key: 'route-march' },
     { day: 6, name: 'RECRUIT A FIGHTER', sub: 'Share your recruit link. Bring them in.', url: '/', key: 'recruit' },
-    { day: 7, name: 'FUND THE FIGHT', sub: 'Put money on the movement.', url: '/war-chest', key: 'war-chest' }
+    { day: 7, name: 'FUND THE FIGHT', sub: 'Put money on the movement.', url: '/ventures', key: 'ventures' }
   ];
   /* Deep links verified against the merged tree (2026-10-05): '/' = homepage
      (enlistment-ranks claim, Daily Orders, referral share, fan-vote all mount
-     there), '/cells' = rites.js ENLISTED CTA href, '/war-chest' =
-     bundle-warchest movement finance page. Day 5 resolves at runtime from the
-     route-march circuit_status read (same action core/22-routemarch.js uses);
+     there), '/cells' = rites.js ENLISTED CTA href, '/ventures' =
+     bundle-warchest movement finance page (BLOSSOM M3 2026-10-06: the
+     movement silo now mounts on /ventures as the Movement Funds section).
+     Day 5 resolves at runtime from the route-march circuit_status read
+     (same action core/22-routemarch.js uses);
      fallback '/events'. No invented URLs. */
   function rmLink(cb) {
     function done(url) { try { cb(url || '/events'); } catch (e) {} }
@@ -2859,7 +2877,7 @@ if(!window._pfCellsTick){ window._pfCellsTick=setInterval(function(){ try{ if(wi
         var tag = doneD
           ? '<span style="color:#7ddf8a;font-weight:900;">&#10003; DONE</span>'
           : '<span style="color:#c1121f;font-weight:900;">&#9679; OPEN</span>';
-        var stake = (day.key === 'war-chest')
+        var stake = (day.key === 'ventures')
           ? '<div style="color:#8a8172;font-size:0.72rem;margin-top:6px;">XP has no cash value. Stakes are final.</div>'
           : '';
         rows +=

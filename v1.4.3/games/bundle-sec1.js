@@ -2019,6 +2019,15 @@ var MISSIONS=[
 {t:"Post a screenshot of an SLR post you liked and say why it hit.",share:1},
 {t:"Rest. Like one SLR post, touch grass, come back tomorrow — the streak keeps."}
 ];
+/* WILD FINDS (CEO directive 2026-10-06): photo missions from the wild-find
+   type registry — the same "types of things we're looking for" as the
+   bounty board. Fail-open: registry missing = the 30 standing missions. */
+try {
+  if (window.PF && PF.wildFinds && typeof PF.wildFinds.missions === 'function') {
+    var _wfm = PF.wildFinds.missions();
+    for (var _wfi = 0; _wfi < _wfm.length; _wfi++) MISSIONS.push(_wfm[_wfi]);
+  }
+} catch (e) {}
 var LOOT=["The machine sees you, agitator.","Another brick in the wall. Their wall. We're taking it apart.","Noted in the ledger. History will remember this one.","Discipline is propaganda too.","Small actions, compounded. That's the whole theory.","The algorithm didn't see it coming.","Report filed. The network grows.","You are the media now. Act like it."];
 /* FIELD OPS — the lynchpin: one cross-game bonus mission per day, rotating.
    Doing the op in its home silo auto-completes it here and feeds the Do Meter. */
@@ -2928,6 +2937,14 @@ function render(){
     document.getElementById("oLoot").textContent="+"+(res.gained+res.bonus+cmd)+" XP — "+loot+(res.bonus?" "+res.streak+"-day streak bonus!":"");
     document.getElementById("oErr").textContent="";
     render();
+    /* COHESION (2026-10-06): terminal-state wiring — all orders reported
+       hands off to the next-move engine. Routing only, zero new XP. */
+    if(res.reportNo>=PER_DAY){
+      try{
+        var tslot=document.getElementById("pf-orders")||box;
+        document.dispatchEvent(new CustomEvent("pf:terminal",{detail:{slot:tslot,context:"orders-complete"}}));
+      }catch(e){}
+    }
   }
   z.querySelectorAll("button.o-btn").forEach(function(b){
     b.onclick=function(){
@@ -5291,6 +5308,12 @@ function warplanCard(){
 #pf-ranks .u-weeklyheroes a{font:bold 12px Arial,sans-serif;color:#ff5a00;letter-spacing:2px;text-decoration:none}
 #pf-ranks .u-weeklyheroes a:hover{text-decoration:underline}
 #pf-ranks .u-wempty{font-family:Arial,sans-serif;font-size:12px;color:#777;text-align:center;width:100%}
+/* PLAY 7 (2026-10-06): weekly FAN FAVORITE honorific card — pure display,
+   votes never become XP. Kill: ?pf_off=fan-favorite. */
+#pf-ranks .u-fanfav{width:100%;background:#1a1a1a;border:3px solid #c1121f;padding:10px;margin-bottom:4px;text-align:center}
+#pf-ranks .u-ffhonor{font-family:'Arial Black',Arial,sans-serif;font-size:13px;letter-spacing:4px;color:#c1121f;text-transform:uppercase}
+#pf-ranks .u-ffname{font-family:'Arial Black',Arial,sans-serif;font-size:20px;letter-spacing:2px;color:#f5ead6;text-transform:uppercase;margin:4px 0}
+#pf-ranks .u-ffsub{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase}
 /* ---------- PRESTIGE ---------- */
 #pf-ranks .p-wrap{margin-top:22px;border-top:2px solid #ff5a00;padding-top:18px;text-align:center}
 #pf-ranks .p-head{font-size:22px;letter-spacing:4px;color:#ff5a00;text-transform:uppercase;margin-bottom:4px}
@@ -5565,13 +5588,29 @@ function wallFromServer(cb){
   s.src=BACKEND_URL+"?action=wall&callback="+fn;
   document.head.appendChild(s);
 }
-function renderWall(serverWall){
+function renderWall(serverWall, fanFav){
   var el=document.getElementById("uWall");
   function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
   var names=getWall();
   if(serverWall&&serverWall.length){ names=serverWall.map(function(w){return esc(String(w.callsign).toUpperCase());}); }
   else { names=names.map(function(w){return esc(String(w).toUpperCase());}); }
-  if(!names.length){ el.innerHTML='<div class="u-wempty">No architects yet. The wall waits.</div>'; return; }
+  /* PLAY 7 (2026-10-06): the weekly FAN FAVORITE rides the Vanguard Wall
+     with its honorific — a PURE honorific, votes never become XP.
+     Kill: ?pf_off=fan-favorite. Fail-soft: absent/null favorite = no card.
+     Google-QC 2026-10-06: vote counts NEVER render publicly — the card
+     is name-only (no counts in text, data attrs, titles, or aria). */
+  var ffHtml="";
+  try{
+    var skipFF = window.PF && PF.skip && PF.skip("fan-favorite");
+    if(!skipFF && fanFav && fanFav.slug){
+      var fslug=esc(String(fanFav.slug).toUpperCase());
+      var fweek=esc(String(fanFav.week||""));
+      ffHtml='<div class="u-fanfav"><div class="u-ffhonor">★ FAN FAVORITE ★</div>'+
+        '<div class="u-ffname">'+fslug+'</div>'+
+        '<div class="u-ffsub">Propagandist of the Week'+(fweek?" · "+fweek:"")+'</div></div>';
+    }
+  }catch(e){}
+  if(!names.length && !ffHtml){ el.innerHTML='<div class="u-wempty">No architects yet. The wall waits.</div>'; return; }
   /* R27 (Wave 6B): wall names link out — the Vanguard Wall (all-time legends)
      cross-links the Hall of Proof (weekly heroes). Per-callsign feat views
      don't exist yet; the Hall side owns that (flagged). */
@@ -5581,7 +5620,7 @@ function renderWall(serverWall){
      only while the wall arrived oldest-first. MERGE WITH OR AFTER
      fix/perf-wall-limit (BE): merging this early would show the
      OLDEST 24, a visible regression. */
-  el.innerHTML=names.slice(0,24).map(function(n){ return '<a class="u-wname" href="/#pf-hallofproof" title="See the Hall of Proof">'+n+'</a>'; }).join("");
+  el.innerHTML=ffHtml+names.slice(0,24).map(function(n){ return '<a class="u-wname" href="/#pf-hallofproof" title="See the Hall of Proof">'+n+'</a>'; }).join("");
 }
 function renderUnlocks(){
   var s=load(), idx=TIERS.indexOf(tierOf(s.xp));
@@ -5688,7 +5727,8 @@ function render(){
   try{ if(who&&window.PF&&PF.mountRecoveryEntry) PF.mountRecoveryEntry(document.getElementById("rWho")); }catch(e){}
   /* W2-D17 + R29 (2026-10-04): equipped custom title byline + subscriber
      badge on the callsign profile. Mirrors written by /economy (title_buy)
-     and /war-chest (subscribe); the ticker byline reads ev.title.
+     and /ventures (subscribe — BLOSSOM M3 2026-10-06 folded /war-chest in);
+     the ticker byline reads ev.title.
      R29 (2026-10-05): war-bond SUBSCRIBER badge via the shared
      PF.isSubscriber() helper (backend-set flag, mirrored by war-bonds.js). */
   try{
@@ -5969,7 +6009,7 @@ document.addEventListener("pf-order-checkin",function(){ render(); });
 loadPrestige();
 render();
 syncFromServer();
-wallFromServer(function(j){ if(j&&j.ok&&j.wall) renderWall(j.wall); });
+wallFromServer(function(j){ if(j&&j.ok&&j.wall) renderWall(j.wall, j.fan_favorite); });
 })();
 </script>
 </div>
@@ -6539,6 +6579,8 @@ wallFromServer(function(j){ if(j&&j.ok&&j.wall) renderWall(j.wall); });
       h+='<div class=\"pm-title\" style=\"margin-top:12px\">\u2694 Campaign Medals <span>\u2014 persistent, never reset</span></div><div class=\"pm-rack\">'+ah+'</div>';
       if(!achv.scout) h+='<div class=\"pm-note\">Scout the roster: view <b>6</b> different fighters\u2019 catalog pages to earn SCOUT.</div>';
       el.innerHTML=h;
+      /* 2026-10-06 share-everywhere. */
+      try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(el,'achievements',{link:'/'}); }catch(e){}
       return true;
     }
     function checkFull(s){
@@ -6919,13 +6961,15 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
     { day: 4, name: 'CAST THE FAN VOTE', sub: 'Back your propagandist of the week.', url: '/', key: 'fan-vote' },
     { day: 5, name: 'WALK THE ROUTE MARCH', sub: 'Hit today\u2019s march stops.', url: null, key: 'route-march' },
     { day: 6, name: 'RECRUIT A FIGHTER', sub: 'Share your recruit link. Bring them in.', url: '/', key: 'recruit' },
-    { day: 7, name: 'FUND THE FIGHT', sub: 'Put money on the movement.', url: '/war-chest', key: 'war-chest' }
+    { day: 7, name: 'FUND THE FIGHT', sub: 'Put money on the movement.', url: '/ventures', key: 'ventures' }
   ];
   /* Deep links verified against the merged tree (2026-10-05): '/' = homepage
      (enlistment-ranks claim, Daily Orders, referral share, fan-vote all mount
-     there), '/cells' = rites.js ENLISTED CTA href, '/war-chest' =
-     bundle-warchest movement finance page. Day 5 resolves at runtime from the
-     route-march circuit_status read (same action core/22-routemarch.js uses);
+     there), '/cells' = rites.js ENLISTED CTA href, '/ventures' =
+     bundle-warchest movement finance page (BLOSSOM M3 2026-10-06: the
+     movement silo now mounts on /ventures as the Movement Funds section).
+     Day 5 resolves at runtime from the route-march circuit_status read
+     (same action core/22-routemarch.js uses);
      fallback '/events'. No invented URLs. */
   function rmLink(cb) {
     function done(url) { try { cb(url || '/events'); } catch (e) {} }
@@ -6985,7 +7029,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
         var tag = doneD
           ? '<span style="color:#7ddf8a;font-weight:900;">&#10003; DONE</span>'
           : '<span style="color:#c1121f;font-weight:900;">&#9679; OPEN</span>';
-        var stake = (day.key === 'war-chest')
+        var stake = (day.key === 'ventures')
           ? '<div style="color:#8a8172;font-size:0.72rem;margin-top:6px;">XP has no cash value. Stakes are final.</div>'
           : '';
         rows +=

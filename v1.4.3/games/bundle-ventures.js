@@ -322,7 +322,9 @@ function showVictoryNudge(){
   if(b) b.onclick=function(){
     try{
       if(window.PFShare&&PFShare.shareImage&&lastCertCv)
-        PFShare.shareImage(lastCertCv,"venture-certificate.png","Joint Ventures","ventures");
+        /* share-out gaps #7: certificate share carries the link back to the site. */
+        PFShare.shareImage(lastCertCv,"venture-certificate.png","Joint Ventures","ventures",
+          {link:"https://www.mtcstw.com/ventures", text:"Joint Ventures — shareholder war funds. Pool the war chest. Split the spoils. https://www.mtcstw.com/ventures"});
       else toast("Sharing is warming up \u2014 the file is saved on your device.");
     }catch(e){ toast("Sharing is warming up \u2014 the file is saved on your device."); }
   };

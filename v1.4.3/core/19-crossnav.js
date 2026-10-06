@@ -102,7 +102,7 @@
     ['CREATE', '/create'],
     ['BANK', '/bank'],
     ['ECONOMY', '/economy'],
- (2026-10-06): /fund was orphaned — zero inbound
+    /* SPACE-AUDIT FIX 2 (2026-10-06): /fund was orphaned — zero inbound
        links. FRONT LINES grid is the canonical inbound path (fix 9). */
     ['FUND', '/fund'],
     /* BLOSSOM M3 (2026-10-06): /war-chest folds into /ventures — the

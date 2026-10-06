@@ -354,6 +354,12 @@ var SECTIONS = {
        registers as a /create workshop tool; pins cell-targeted bounties on
        #pf-cell-hq. Kill: ?pf_off=databounties. */
     'data-bounties.js',
+    /* TEARDOWN WS-4 (2026-10-06, fe/teardown-create): CREATE — THE PRINT SHOP.
+       Template-first creation: template picker organized by fight, slot-filling
+       editor, full-screen preview, P6 Action Bar. Exposes window.PFPress.mount
+       for the workshop adapter below; must load before it. Kill:
+       ?pf_off=create-press. Zero XP, fail-open. */
+    'create-press.js',
     /* WORKSHOP SHELL adapters (2026-10-05): last in the bundle — registers
        all nine /create tool adapters with PFWorkshop and runs the initial
        #pf-tool= / ?for= route. */
@@ -593,11 +599,23 @@ var allFiles = fs.readdirSync(ROOT).filter(function (f) { return f.slice(-3) ===
    three SLIM_DUP bundles above, which intentionally re-list silos from
    bundle-home (the loader fetches slim INSTEAD of bundle-home, never both). */
 var SLIM_DUP = ['bundle-arcade-h', 'bundle-cells-h', 'bundle-create-h', 'bundle-markets', 'bundle-battles'];
+/* Shared engines intentionally registered in exactly two page bundles.
+   ux-news-combos.js (UX Combination Play 3, CEO 2026-10-06): pure engine, no
+   self-mount — CPI-spike + Robbery-Report triggers need it in bundle-economy
+   (before inflation-tracker.js); War Report order-candidate trigger needs it
+   in bundle-warreport. Both call sites guard on window.PF.newsCombos, so the
+   ~7KB minified duplication is the deliberate cost of keeping both surfaces
+   live. Any other file in two bundles is still a build failure. */
+var SHARED_ENGINES = ['ux-news-combos.js'];
 var bundled = [];
+var sharedSeen = {};
 Object.keys(ALL).forEach(function (b) {
   if (SLIM_DUP.indexOf(b) !== -1) return; /* see note above */
   ALL[b].forEach(function (f) {
-    if (bundled.indexOf(f) !== -1) fail('file in two bundles: ' + f);
+    if (bundled.indexOf(f) !== -1) {
+      if (SHARED_ENGINES.indexOf(f) !== -1 && !sharedSeen[f]) { sharedSeen[f] = 1; bundled.push(f); return; }
+      fail('file in two bundles: ' + f);
+    }
     bundled.push(f);
   });
 });

@@ -1,1 +1,369 @@
-!function(){"use strict";var e=window.PF;if(e&&!e.skip("fund")){try{if(-1!==(window.location.href||"").indexOf("/config/"))return;var t=document.body;if(t&&(t.classList.contains("sqs-edit-mode")||t.classList.contains("sqs-editing")))return}catch(e){}var n={verified:!1,raised:null,goal:null,backers:null,source:"",updated:"",push:{name:"THE OCTOBER PUSH",ends:"2026-10-31T23:59:59-05:00"},allocations:[{what:"Banner runs for 12 cells",amount:null},{what:"Propaganda bounty payouts",amount:null},{what:"War Room live operations",amount:null},{what:"Rapid-response reserve",amount:null}],spend:[{what:"Banner runs",amount:null},{what:"Bounty payouts",amount:null},{what:"War Room operations",amount:null}]},a=function(e,t){var n,a={};for(n in e)Object.prototype.hasOwnProperty.call(e,n)&&(a[n]=e[n]);if(t&&"object"==typeof t)for(n in t)Object.prototype.hasOwnProperty.call(t,n)&&(a[n]=t[n]);return a}(n,e.fundFixture),r=[5,10,25,50],i="/#pf-orders",s="/follow-the-money",p="pf_fund_flair_v1",o=[["RECRUIT",0],["AGITATOR",25],["CADRE",75],["COMMISSAR",150],["ARCHITECT",300]];e.fundTest={buildHTML:O,money:b,fundHref:w,fundBtn:T,rankFor:k,defaults:n};var f=null;try{f=document.getElementById("pf-fund")}catch(e){}if(f&&!f.getAttribute("data-pf-fund-mounted")){f.setAttribute("data-pf-fund-mounted","1");try{if(!document.getElementById("pf-fund-css")){var d=document.createElement("style");d.id="pf-fund-css",d.textContent='<style id="pf-fund-css">.pf-fund{max-width:760px;margin:0 auto;padding:4px 0 30px;background:#0a0a0a;color:#fff;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box;}.pf-fund-amts{display:flex;gap:8px;justify-content:center;margin:16px 0 12px;flex-wrap:wrap;}.pf-fund-pill{background:#0a0a0a;border:1px solid #4a4a4a;color:#fff;font-weight:700;font-size:15px;padding:10px 18px;cursor:pointer;font-family:Arial,Helvetica,sans-serif;}.pf-fund-pill.on{background:#c1121f;border-color:#c1121f;}.pf-fund-cta{text-align:center;margin:6px 0 4px;}.pf-fund-cta .pf-pat-deploy-red{margin:4px;}.pf-fund-sec{margin:26px 0 0;padding:0 4px;}.pf-fund-sec-k{color:#c1121f;text-transform:uppercase;letter-spacing:3px;font-weight:700;font-size:12px;margin:0 0 6px;}.pf-fund-sec-t{font-size:19px;font-weight:700;margin:0 0 6px;}.pf-fund-sec-s{color:#8a8a8a;font-size:13px;line-height:1.5;margin:0 0 8px;}.pf-fund-empty{border:2px dashed #4a4a4a;border-radius:10px;padding:28px 22px;text-align:center;background:#0d0d0d;}.pf-fund-empty p{font-size:15px;line-height:1.7;color:#d8d0c0;margin:0 0 12px;}.pf-fund-push{border:2px solid #c1121f;border-radius:10px;padding:18px;margin:22px 0 0;background:#12060a;text-align:center;}.pf-fund-push-t{font-size:16px;font-weight:900;letter-spacing:2px;margin-bottom:6px;}.pf-fund-push-c{color:#c1121f;font-weight:900;letter-spacing:2px;font-size:20px;margin:4px 0 10px;}.pf-fund-push-s{font-size:13px;color:#d8d0c0;margin:0 0 12px;line-height:1.5;}.pf-fund-flair{display:inline-block;border:2px solid #c1121f;color:#fff;font-weight:900;letter-spacing:2px;font-size:13px;padding:8px 16px;margin:8px 4px 0;}.pf-fund-check{display:flex;align-items:flex-start;gap:10px;margin:12px 0 0;font-size:14px;line-height:1.5;cursor:pointer;}.pf-fund-check input{width:20px;height:20px;margin-top:1px;accent-color:#c1121f;}.pf-fund-next{margin:24px 0 0;text-align:center;}</style>'.replace(/^<style[^>]*>|<\/style>$/g,""),document.head.appendChild(d)}}catch(e){}var c=e.patterns&&!e.skip("patterns")?e.patterns:null;f.innerHTML=O(a,c);try{var u=f.querySelector("[data-pf-fund-amts]");u&&u.addEventListener&&u.addEventListener("click",function(e){try{var t=e.target&&e.target.closest?e.target.closest("[data-amt]"):null;if(!t)return;var n=parseInt(t.getAttribute("data-amt"),10);if(-1===r.indexOf(n))return;for(var a=u.querySelectorAll("[data-amt]"),i=0;i<a.length;i++)a[i].classList.toggle("on",a[i]===t);var s=f.querySelector("[data-pf-fund-btn]");s&&(s.setAttribute("href",w(n)),s.textContent="FUND $"+n+" →")}catch(e){}})}catch(e){}try{var l=f.querySelector("[data-pf-fund-flair]");l&&l.addEventListener&&l.addEventListener("change",function(){try{l.checked?function(e,t){try{window.localStorage.setItem(e,t)}catch(e){}}(p,"1"):function(e){try{window.localStorage.removeItem(e)}catch(e){}}(p),f.innerHTML=O(a,c)}catch(e){}})}catch(e){}try{var h=f.querySelector("[data-pf-fund-countdown]");if(h&&a.push&&a.push.ends){var g=new Date(a.push.ends).getTime(),v=function(e){return(e<10?"0":"")+e},m=function(){try{var e=g-Date.now();if(e<=0){var t=f.querySelector("[data-pf-fund-push]");return void(t&&(t.style.display="none"))}var n=Math.floor(e/864e5),a=Math.floor(e%864e5/36e5),r=Math.floor(e%36e5/6e4);h.textContent=n+"D "+v(a)+"H "+v(r)+"M"}catch(e){}};if(m(),"function"==typeof setInterval){var y=setInterval(m,3e4);y&&y.unref&&y.unref()}}}catch(e){}}}function x(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function b(e){return e=Number(e),!isFinite(e)||e<0?"":"$"+Math.round(e).toLocaleString("en-US")}function w(e){return"/store/p/war-bond-"+e}function E(e){try{return window.localStorage.getItem(e)}catch(e){return null}}function T(e,t,n){return!(t=String(t||"").trim())||/^(javascript|data|vbscript):/i.test(t)?"":'<a class="pf-pat-deploy-red"'+(n?" "+n:"")+' href="'+x(t)+'">'+x(e)+" →</a>"}function k(e){var t,n=o[0][0],a=o[1][1];for(t=0;t<o.length;t++)e>=o[t][1]&&(n=o[t][0],a=(o[t+1]||[0,e])[1]);return{rank:n,cap:a}}function A(e,t,n){return n.map(function(n){var a=t.verified&&null!=n.amount&&b(n.amount)?b(n.amount):"—",r=t.verified&&null!=n.amount;return e?e.ledgerLine({what:n.what,figure:a,hot:r}):'<div class="pf-pat pf-pat-ledger'+(r?" hot":"")+'"><span class="pf-pat-ledger-what">'+x(n.what)+'</span><span class="pf-pat-ledger-fig'+(r?" hot":"")+'">'+x(a)+"</span></div>"}).join("")}function O(e,t){var n,a='<div class="pf-fund">';if(a+=function(e){return e?e.hero({kicker:"THE PROPAGANDA FUND",mission:"The movement’s war chest — counted in public.",sub:"Treasury, not a tip jar. Every dollar itemized, every cent deployed."}):'<section class="pf-pat pf-pat-hero"><p class="pf-pat-hero-kicker">THE PROPAGANDA FUND</p><p class="pf-pat-hero-mission">The movement’s war chest — counted in public.</p></section>'}(t),a+=(n=25,'<div class="pf-fund-sec-k" style="text-align:center;">PICK YOUR AMOUNT — ONE TAP</div><div class="pf-fund-amts" data-pf-fund-amts>'+r.map(function(e){return'<button type="button" class="pf-fund-pill'+(e===n?" on":"")+'" data-amt="'+e+'">$'+e+"</button>"}).join("")+'</div><div class="pf-fund-cta">'+T("FUND $"+n,w(n),"data-pf-fund-btn")+'</div><div class="pf-fund-cta">'+T("OUTFIT A CELL","/war-bonds")+T("ENLIST AS BACKER",i)+"</div>"),a+=function(e,t){var n='<div class="pf-fund-sec" data-pf-fund-strip>';return t.verified&&e?(n+=e.dataStrip({figure:b(t.raised)+" RAISED",label:"OF "+b(t.goal)+" GOAL",source:t.source,updated:t.updated}),n+=e.proof({count:Number(t.backers)||0,text:"backers funding the fight"})):n+='<div class="pf-fund-empty"><div class="pf-fund-sec-k">TREASURY REPORT</div><p>The treasury report is being compiled. No figures publish until they’re verified — we’d rather show you nothing than show you something shaky.</p><p style="font-size:13px;color:#8a8a8a;">When it lands, this page itemizes the Propaganda Fund: where the money comes from, where every cent goes, and the running ledger. Nothing here is estimated. Nothing here is seeded.</p></div>',n+"</div>"}(t,e),a+=function(e,t){var n=t.push&&t.push.ends,a=0;try{a=new Date(n).getTime()}catch(e){}return!n||!isFinite(a)||a<=Date.now()?"":'<div class="pf-fund-push" data-pf-fund-push><div class="pf-fund-sec-k">'+x(t.push&&t.push.name||"THE PUSH")+'</div><div class="pf-fund-push-t">THE PUSH ENDS IN</div><div class="pf-fund-push-c" data-pf-fund-countdown>--D --H --M</div><p class="pf-fund-push-s">Deadline-driven, not charity-driven. Every dollar lands in the treasury above.</p>'+T("FUND",w(25))+"</div>"}(0,e),a+=function(e,t){return'<div class="pf-fund-sec" data-pf-fund-alloc"><p class="pf-fund-sec-k">BATTLE ALLOCATIONS</p><p class="pf-fund-sec-t">Where the money deploys</p><p class="pf-fund-sec-s">Itemized battle allocations. Figures publish when the treasury report is verified.</p>'+A(e,t,t.allocations)+"</div>"}(t,e),a+=function(e,t){return'<div class="pf-fund-sec" data-pf-fund-burn"><p class="pf-fund-sec-k">BURN LEDGER</p><p class="pf-fund-sec-t">Money out, by category</p><p class="pf-fund-sec-s">The public ledger shows category totals only — individual contributions are never itemized, never drilled down.</p>'+A(e,t,t.spend)+"</div>"}(t,e),a+=function(e){var t='<div class="pf-fund-sec" data-pf-fund-recog><p class="pf-fund-sec-k">BACKER RECOGNITION</p><p class="pf-fund-sec-t">Every contribution mints a visible role</p>',n="1"===E(p);n&&(t+='<div><span class="pf-fund-flair">★ WAR CHEST BACKER</span></div>'),t+='<label class="pf-fund-check"><input type="checkbox" data-pf-fund-flair'+(n?" checked":"")+"><span>Show my <b>WAR CHEST BACKER</b> flair. Opt-in only — off until you say so.</span></label>";var a=0;try{var r=JSON.parse(E("pf_ranks_v1")||"{}");a=Math.max(0,Math.floor(Number(r.xp)||0))}catch(e){}if(a>0&&e){var s=k(a);t+=e.ring({xp:a,cap:Math.max(s.cap,a),rank:s.rank})+'<p class="pf-fund-sec-s">Your rank, recognized. The flair rides with it.</p>'}else t+='<p class="pf-fund-sec-s">Enlist and your backer flair rides with your rank in the ring.</p><div class="pf-fund-cta">'+T("ENLIST AS BACKER",i)+"</div>";return t+"</div>"}(t),a+=function(e){return'<div class="pf-fund-next"><p class="pf-fund-sec-k">NEXT MOVE</p><p style="font-size:15px;font-weight:700;margin:0 0 8px;">FOLLOW THE MONEY, LIVE</p><p class="pf-fund-sec-s" style="text-align:center;">The money trail is already open — see who funds the votes while the treasury report is compiled.</p><div>'+(e?e.textLink(s,"FOLLOW THE MONEY →"):'<a class="pf-pat-textlink" href="'+s+'">FOLLOW THE MONEY →</a>')+"</div></div>"}(t),t){var o="";try{o=window.location.href||""}catch(e){}a+=t.actionBar({shareUrl:o,cellUrl:"/cells",reportUrl:i})}return a+"</div>"}}();
+/* PF v1.4.3 bundle-fund.js — concatenated bundle, generated by build/bundle.js.
+   DO NOT EDIT. Regenerate with: node build/bundle.js [--debug]
+   Contains: propaganda-fund.js
+   Each silo keeps its own PF.skip() kill switch (?pf_off=<silo>). */
+
+/* ===== propaganda-fund.js ===== */
+/* games/propaganda-fund.js  |  PF v1.4.3 | THE PROPAGANDA FUND — /fund.
+   TEARDOWN WS-10 (section teardown PART 2 §10, CEO-approved 2026-10-06):
+   the treasury, not a tip jar. Built on PF.patterns (WS-0 library):
+     P1 Briefing Hero → P4 Data Strip (raised/goal, fail-closed) →
+     P7 Ledger Lines (battle allocations + burn ledger, AGGREGATES ONLY) →
+     P5 Progression Ring (backer recognition, render-only) → P6 Action Bar.
+   FIGURE GATE (standing Blossom C4 rule, kept): FUND.verified=false until
+   News Desk + Brand sign off the numbers. Unverified → the Data Strip and
+   every ledger figure fail closed and the page renders the empty-honest
+   panel. Empty honest beats invented: nothing estimated, nothing seeded.
+   TEST SEAM: window.PF.fundFixture (object) deep-merges over FUND — News
+   Desk staged previews + the verify harness. Never set in production.
+   CTA DISCIPLINE (§10): exactly three button verbs — FUND →, OUTFIT A
+   CELL →, ENLIST AS BACKER →. NEVER donate/give/support (linted by
+   scripts/verify-teardown-fund.js). These three are §10-sanctioned; the
+   fund-local fundBtn() emits the same pf-pat-deploy-red class as the
+   pattern library but bypasses its global label guard, which would refuse
+   "ENLIST AS BACKER". The global rogue-verb map is untouched for every
+   other module.
+   SECURITY: public ledger is aggregates-only — category totals, never
+   individual drill-downs (stated in the burn-ledger copy). Flair is OPT-IN
+   (unchecked default, device-local only). Payments: tokenization happens
+   at the Squarespace Payments checkout; this page issues idempotent GET
+   links to the live War Bond products (amount-confirm = the amount is on
+   the button; idempotent = no POST, no double-submit, nothing to retry).
+   SELF-MOUNTING SILO: renders into div#pf-fund at bundle time (the
+   Squarespace /fund page carries the Code-block hand-step). page-mount.js
+   positions it via the SELF registry; silent no-op when the div is absent.
+   KILL: ?pf_off=fund (master). Fail-open: patterns killed → legacy
+   fallback render. Zero new XP mechanics, zero backend writes. */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('fund')) { return; }
+  try {
+    var _href = window.location.href || '';
+    if (_href.indexOf('/config/') !== -1) return;
+    var _bd = document.body;
+    if (_bd && (_bd.classList.contains('sqs-edit-mode') || _bd.classList.contains('sqs-editing'))) return;
+  } catch (e) {}
+
+  /* ---------------- treasury config ---------------- */
+  var FUND_DEFAULTS = {
+    verified: false,          /* flip ONLY on News Desk + Brand sign-off */
+    raised: null, goal: null, /* verified dollars, or null */
+    backers: null,            /* verified backer count, or null (P8: suppressed without) */
+    source: '',               /* e.g. 'Treasury report — verified by the News Desk' */
+    updated: '',              /* recency stamp, e.g. 'Oct 6, 2026' */
+    push: { name: 'THE OCTOBER PUSH', ends: '2026-10-31T23:59:59-05:00' },
+    allocations: [            /* battle allocations (plan) — amounts fill when verified */
+      { what: 'Banner runs for 12 cells', amount: null },
+      { what: 'Propaganda bounty payouts', amount: null },
+      { what: 'War Room live operations', amount: null },
+      { what: 'Rapid-response reserve', amount: null }
+    ],
+    spend: [                  /* burn ledger (actuals) — aggregates only, amounts when verified */
+      { what: 'Banner runs', amount: null },
+      { what: 'Bounty payouts', amount: null },
+      { what: 'War Room operations', amount: null }
+    ]
+  };
+  function mergeFund(base, over) {
+    var out = {}, k;
+    for (k in base) { if (Object.prototype.hasOwnProperty.call(base, k)) out[k] = base[k]; }
+    if (over && typeof over === 'object') {
+      for (k in over) {
+        if (!Object.prototype.hasOwnProperty.call(over, k)) continue;
+        if (k === 'allocations' || k === 'spend' || k === 'push') out[k] = over[k];
+        else out[k] = over[k];
+      }
+    }
+    return out;
+  }
+  var FUND = mergeFund(FUND_DEFAULTS, PF.fundFixture);
+
+  /* The four live War Bond products — the real checkout surface. */
+  var AMOUNTS = [5, 10, 25, 50];
+  var BOND_URL = '/store/p/war-bond-';
+  var BONDS_PAGE = '/war-bonds';
+  var ENLIST_URL = '/#pf-orders'; /* Daily Orders enlistment widget */
+  var CELLS_URL = '/cells';
+  var MONEY_TRAIL_URL = '/follow-the-money'; /* integration-audit Next Move exit, kept */
+
+  var LS_FLAIR = 'pf_fund_flair_v1';   /* flair opt-in: device-local, OPT-IN (unchecked default) */
+  var LS_RANKS = 'pf_ranks_v1';        /* enlistment XP state: READ-ONLY, never written here */
+  var RANK_TIERS = [['RECRUIT', 0], ['AGITATOR', 25], ['CADRE', 75], ['COMMISSAR', 150], ['ARCHITECT', 300]];
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function money(n) {
+    n = Number(n);
+    if (!isFinite(n) || n < 0) return '';
+    return '$' + Math.round(n).toLocaleString('en-US');
+  }
+  function fundHref(amt) { return BOND_URL + amt; }
+  function storeGet(k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } }
+  function storeSet(k, v) { try { window.localStorage.setItem(k, v); } catch (e) {} }
+  function storeDel(k) { try { window.localStorage.removeItem(k); } catch (e) {} }
+
+  /* §10-sanctioned button verbs. Same red DEPLOY-family class the pattern
+     library uses; the label guard is bypassed ONLY here, ONLY for these. */
+  var ARROW = ' \u2192';
+  function fundBtn(label, href, attrs) {
+    href = String(href || '').trim();
+    if (!href || /^(javascript|data|vbscript):/i.test(href)) return '';
+    return '<a class="pf-pat-deploy-red"' + (attrs ? ' ' + attrs : '') +
+      ' href="' + esc(href) + '">' + esc(label) + ARROW + '</a>';
+  }
+
+  function rankFor(xp) {
+    var r = RANK_TIERS[0][0], cap = RANK_TIERS[1][1], i;
+    for (i = 0; i < RANK_TIERS.length; i++) {
+      if (xp >= RANK_TIERS[i][1]) { r = RANK_TIERS[i][0]; cap = (RANK_TIERS[i + 1] || [0, xp])[1]; }
+    }
+    return { rank: r, cap: cap };
+  }
+
+  /* ---------------- builders (pure: F config × P patterns-or-null) ---------------- */
+  function cssBlock() {
+    return '<style id="pf-fund-css">' +
+      '.pf-fund{max-width:760px;margin:0 auto;padding:4px 0 30px;background:#0a0a0a;color:#fff;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box;}' +
+      '.pf-fund-amts{display:flex;gap:8px;justify-content:center;margin:16px 0 12px;flex-wrap:wrap;}' +
+      '.pf-fund-pill{background:#0a0a0a;border:1px solid #4a4a4a;color:#fff;font-weight:700;font-size:15px;padding:10px 18px;cursor:pointer;font-family:Arial,Helvetica,sans-serif;}' +
+      '.pf-fund-pill.on{background:#c1121f;border-color:#c1121f;}' +
+      '.pf-fund-cta{text-align:center;margin:6px 0 4px;}' +
+      '.pf-fund-cta .pf-pat-deploy-red{margin:4px;}' +
+      '.pf-fund-sec{margin:26px 0 0;padding:0 4px;}' +
+      '.pf-fund-sec-k{color:#c1121f;text-transform:uppercase;letter-spacing:3px;font-weight:700;font-size:12px;margin:0 0 6px;}' +
+      '.pf-fund-sec-t{font-size:19px;font-weight:700;margin:0 0 6px;}' +
+      '.pf-fund-sec-s{color:#8a8a8a;font-size:13px;line-height:1.5;margin:0 0 8px;}' +
+      '.pf-fund-empty{border:2px dashed #4a4a4a;border-radius:10px;padding:28px 22px;text-align:center;background:#0d0d0d;}' +
+      '.pf-fund-empty p{font-size:15px;line-height:1.7;color:#d8d0c0;margin:0 0 12px;}' +
+      '.pf-fund-push{border:2px solid #c1121f;border-radius:10px;padding:18px;margin:22px 0 0;background:#12060a;text-align:center;}' +
+      '.pf-fund-push-t{font-size:16px;font-weight:900;letter-spacing:2px;margin-bottom:6px;}' +
+      '.pf-fund-push-c{color:#c1121f;font-weight:900;letter-spacing:2px;font-size:20px;margin:4px 0 10px;}' +
+      '.pf-fund-push-s{font-size:13px;color:#d8d0c0;margin:0 0 12px;line-height:1.5;}' +
+      '.pf-fund-flair{display:inline-block;border:2px solid #c1121f;color:#fff;font-weight:900;letter-spacing:2px;font-size:13px;padding:8px 16px;margin:8px 4px 0;}' +
+      '.pf-fund-check{display:flex;align-items:flex-start;gap:10px;margin:12px 0 0;font-size:14px;line-height:1.5;cursor:pointer;}' +
+      '.pf-fund-check input{width:20px;height:20px;margin-top:1px;accent-color:#c1121f;}' +
+      '.pf-fund-next{margin:24px 0 0;text-align:center;}' +
+      '</style>';
+  }
+
+  function heroBlock(P, F) {
+    if (P) {
+      return P.hero({
+        kicker: 'THE PROPAGANDA FUND',
+        mission: 'The movement\u2019s war chest \u2014 counted in public.',
+        sub: 'Treasury, not a tip jar. Every dollar itemized, every cent deployed.'
+      });
+    }
+    return '<section class="pf-pat pf-pat-hero"><p class="pf-pat-hero-kicker">THE PROPAGANDA FUND</p>' +
+      '<p class="pf-pat-hero-mission">The movement\u2019s war chest \u2014 counted in public.</p></section>';
+  }
+
+  function amountsBlock(selected) {
+    var pills = AMOUNTS.map(function (a) {
+      return '<button type="button" class="pf-fund-pill' + (a === selected ? ' on' : '') + '" data-amt="' + a + '">$' + a + '</button>';
+    }).join('');
+    return '<div class="pf-fund-sec-k" style="text-align:center;">PICK YOUR AMOUNT \u2014 ONE TAP</div>' +
+      '<div class="pf-fund-amts" data-pf-fund-amts>' + pills + '</div>' +
+      '<div class="pf-fund-cta">' +
+      fundBtn('FUND $' + selected, fundHref(selected), 'data-pf-fund-btn') +
+      '</div>' +
+      '<div class="pf-fund-cta">' +
+      fundBtn('OUTFIT A CELL', BONDS_PAGE) +
+      fundBtn('ENLIST AS BACKER', ENLIST_URL) +
+      '</div>';
+  }
+
+  function stripBlock(P, F) {
+    var html = '<div class="pf-fund-sec" data-pf-fund-strip>';
+    if (F.verified && P) {
+      html += P.dataStrip({
+        figure: money(F.raised) + ' RAISED',
+        label: 'OF ' + money(F.goal) + ' GOAL',
+        source: F.source,
+        updated: F.updated
+      });
+      html += P.proof({ count: Number(F.backers) || 0, text: 'backers funding the fight' });
+    } else {
+      /* Empty-honest: the standing Blossom C4 gate. No figures until verified. */
+      html += '<div class="pf-fund-empty"><div class="pf-fund-sec-k">TREASURY REPORT</div>' +
+        '<p>The treasury report is being compiled. No figures publish until they\u2019re verified \u2014 we\u2019d rather show you nothing than show you something shaky.</p>' +
+        '<p style="font-size:13px;color:#8a8a8a;">When it lands, this page itemizes the Propaganda Fund: where the money comes from, where every cent goes, and the running ledger. Nothing here is estimated. Nothing here is seeded.</p></div>';
+    }
+    return html + '</div>';
+  }
+
+  function ledgerRows(P, F, rows) {
+    return rows.map(function (r) {
+      var fig = (F.verified && r.amount != null && money(r.amount)) ? money(r.amount) : '\u2014';
+      var hot = F.verified && r.amount != null;
+      if (P) return P.ledgerLine({ what: r.what, figure: fig, hot: hot });
+      return '<div class="pf-pat pf-pat-ledger' + (hot ? ' hot' : '') + '"><span class="pf-pat-ledger-what">' +
+        esc(r.what) + '</span><span class="pf-pat-ledger-fig' + (hot ? ' hot' : '') + '">' + esc(fig) + '</span></div>';
+    }).join('');
+  }
+
+  function allocationsBlock(P, F) {
+    return '<div class="pf-fund-sec" data-pf-fund-alloc">' +
+      '<p class="pf-fund-sec-k">BATTLE ALLOCATIONS</p>' +
+      '<p class="pf-fund-sec-t">Where the money deploys</p>' +
+      '<p class="pf-fund-sec-s">Itemized battle allocations. Figures publish when the treasury report is verified.</p>' +
+      ledgerRows(P, F, F.allocations) + '</div>';
+  }
+
+  function burnBlock(P, F) {
+    return '<div class="pf-fund-sec" data-pf-fund-burn">' +
+      '<p class="pf-fund-sec-k">BURN LEDGER</p>' +
+      '<p class="pf-fund-sec-t">Money out, by category</p>' +
+      '<p class="pf-fund-sec-s">The public ledger shows category totals only \u2014 individual contributions are never itemized, never drilled down.</p>' +
+      ledgerRows(P, F, F.spend) + '</div>';
+  }
+
+  function pushBlock(P, F) {
+    var ends = F.push && F.push.ends;
+    var t = 0;
+    try { t = new Date(ends).getTime(); } catch (e) {}
+    if (!ends || !isFinite(t) || t <= Date.now()) return ''; /* push over: strip hides, fail-open */
+    var name = (F.push && F.push.name) || 'THE PUSH';
+    return '<div class="pf-fund-push" data-pf-fund-push>' +
+      '<div class="pf-fund-sec-k">' + esc(name) + '</div>' +
+      '<div class="pf-fund-push-t">THE PUSH ENDS IN</div>' +
+      '<div class="pf-fund-push-c" data-pf-fund-countdown>--D --H --M</div>' +
+      '<p class="pf-fund-push-s">Deadline-driven, not charity-driven. Every dollar lands in the treasury above.</p>' +
+      fundBtn('FUND', fundHref(25)) +
+      '</div>';
+  }
+
+  function recognitionBlock(P, F) {
+    var html = '<div class="pf-fund-sec" data-pf-fund-recog>' +
+      '<p class="pf-fund-sec-k">BACKER RECOGNITION</p>' +
+      '<p class="pf-fund-sec-t">Every contribution mints a visible role</p>';
+    var flairOn = storeGet(LS_FLAIR) === '1';
+    if (flairOn) html += '<div><span class="pf-fund-flair">\u2605 WAR CHEST BACKER</span></div>';
+    html += '<label class="pf-fund-check"><input type="checkbox" data-pf-fund-flair' +
+      (flairOn ? ' checked' : '') + '><span>Show my <b>WAR CHEST BACKER</b> flair. Opt-in only \u2014 off until you say so.</span></label>';
+    /* Progression Ring recognition: render-only, reads existing device XP, mints nothing. */
+    var xp = 0;
+    try { var st = JSON.parse(storeGet(LS_RANKS) || '{}'); xp = Math.max(0, Math.floor(Number(st.xp) || 0)); } catch (e) {}
+    if (xp > 0 && P) {
+      var r = rankFor(xp);
+      html += P.ring({ xp: xp, cap: Math.max(r.cap, xp), rank: r.rank }) +
+        '<p class="pf-fund-sec-s">Your rank, recognized. The flair rides with it.</p>';
+    } else {
+      html += '<p class="pf-fund-sec-s">Enlist and your backer flair rides with your rank in the ring.</p>' +
+        '<div class="pf-fund-cta">' + fundBtn('ENLIST AS BACKER', ENLIST_URL) + '</div>';
+    }
+    return html + '</div>';
+  }
+
+  function nextMoveBlock(P) {
+    var link = P
+      ? P.textLink(MONEY_TRAIL_URL, 'FOLLOW THE MONEY \u2192')
+      : '<a class="pf-pat-textlink" href="' + MONEY_TRAIL_URL + '">FOLLOW THE MONEY \u2192</a>';
+    return '<div class="pf-fund-next"><p class="pf-fund-sec-k">NEXT MOVE</p>' +
+      '<p style="font-size:15px;font-weight:700;margin:0 0 8px;">FOLLOW THE MONEY, LIVE</p>' +
+      '<p class="pf-fund-sec-s" style="text-align:center;">The money trail is already open \u2014 see who funds the votes while the treasury report is compiled.</p>' +
+      '<div>' + link + '</div></div>';
+  }
+
+  function buildHTML(F, P) {
+    var out = '<div class="pf-fund">';
+    out += heroBlock(P, F);
+    out += amountsBlock(25);
+    out += stripBlock(P, F);
+    out += pushBlock(P, F);
+    out += allocationsBlock(P, F);
+    out += burnBlock(P, F);
+    out += recognitionBlock(P, F);
+    out += nextMoveBlock(P);
+    if (P) {
+      var shareUrl = '';
+      try { shareUrl = window.location.href || ''; } catch (e) {}
+      out += P.actionBar({ shareUrl: shareUrl, cellUrl: CELLS_URL, reportUrl: ENLIST_URL });
+    }
+    return out + '</div>';
+  }
+
+  /* test seam (also used by the News Desk preview): pure builders + helpers */
+  PF.fundTest = {
+    buildHTML: buildHTML, money: money, fundHref: fundHref,
+    fundBtn: fundBtn, rankFor: rankFor, defaults: FUND_DEFAULTS
+  };
+
+  /* ---------------- mount ---------------- */
+  var host = null;
+  try { host = document.getElementById('pf-fund'); } catch (e) {}
+  if (!host) { return; } /* not the /fund page — silent no-op */
+  if (host.getAttribute('data-pf-fund-mounted')) return;
+  host.setAttribute('data-pf-fund-mounted', '1');
+
+  try {
+    if (!document.getElementById('pf-fund-css')) {
+      var st = document.createElement('style');
+      st.id = 'pf-fund-css';
+      st.textContent = cssBlock().replace(/^<style[^>]*>|<\/style>$/g, '');
+      document.head.appendChild(st);
+    }
+  } catch (e) {}
+
+  var P = (PF.patterns && !PF.skip('patterns')) ? PF.patterns : null;
+  host.innerHTML = buildHTML(FUND, P);
+
+  /* one-tap amounts: amount-confirm = the amount rides on the button */
+  try {
+    var amts = host.querySelector('[data-pf-fund-amts]');
+    if (amts && amts.addEventListener) {
+      amts.addEventListener('click', function (ev) {
+        try {
+          var b = ev.target && ev.target.closest ? ev.target.closest('[data-amt]') : null;
+          if (!b) return;
+          var a = parseInt(b.getAttribute('data-amt'), 10);
+          if (AMOUNTS.indexOf(a) === -1) return;
+          var pills = amts.querySelectorAll('[data-amt]');
+          for (var i = 0; i < pills.length; i++) pills[i].classList.toggle('on', pills[i] === b);
+          var btn = host.querySelector('[data-pf-fund-btn]');
+          if (btn) { btn.setAttribute('href', fundHref(a)); btn.textContent = 'FUND $' + a + ARROW; }
+        } catch (e2) {}
+      });
+    }
+  } catch (e) {}
+
+  /* flair opt-in: device-local only, unchecked by default */
+  try {
+    var fl = host.querySelector('[data-pf-fund-flair]');
+    if (fl && fl.addEventListener) {
+      fl.addEventListener('change', function () {
+        try {
+          if (fl.checked) storeSet(LS_FLAIR, '1'); else storeDel(LS_FLAIR);
+          host.innerHTML = buildHTML(FUND, P); /* re-render: flair chip + ring state */
+        } catch (e2) {}
+      });
+    }
+  } catch (e) {}
+
+  /* push countdown: client-side only, hides when the push ends */
+  try {
+    var cd = host.querySelector('[data-pf-fund-countdown]');
+    if (cd && FUND.push && FUND.push.ends) {
+      var tEnd = new Date(FUND.push.ends).getTime();
+      var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+      var tick = function () {
+        try {
+          var d = tEnd - Date.now();
+          if (d <= 0) { var ps = host.querySelector('[data-pf-fund-push]'); if (ps) ps.style.display = 'none'; return; }
+          var dd = Math.floor(d / 86400000), hh = Math.floor(d % 86400000 / 3600000), mm = Math.floor(d % 3600000 / 60000);
+          cd.textContent = dd + 'D ' + pad(hh) + 'H ' + pad(mm) + 'M';
+        } catch (e2) {}
+      };
+      tick();
+      if (typeof setInterval === 'function') {
+        var iv = setInterval(tick, 30000);
+        if (iv && iv.unref) iv.unref();
+      }
+    }
+  } catch (e) {}
+})();
+
+;

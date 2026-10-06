@@ -50,7 +50,7 @@
 <div id="xPredgame"><div class="c-load">Reading the room&hellip;</div></div>
 <style>
 /* CALL IT. (2026-10-05) — prediction game expansion. Mobile-first, touch targets >= 44px. */
-#pf-predgame .pq-row{margin:12px 0;padding:12px;border:2px solid #3a3a3a;background:#0d0d0d}
+#pf-predgame .pq-row{margin:12px 0;padding:16px;border:1px solid #2a2a2a;border-top:3px solid #c1121f;background:#0a0a0a}
 #pf-predgame .pq-title{font-weight:900;font-size:1rem;color:#f5f0e1;margin-bottom:6px;line-height:1.3}
 #pf-predgame .pq-status{font-size:0.75rem;letter-spacing:0.14em;color:#b8ab8e;margin-bottom:8px}
 #pf-predgame .pq-rules{font-size:0.85rem;color:#b8ab8e;line-height:1.45;margin:8px 0}
@@ -64,6 +64,9 @@
 #pf-predgame .pq-locked{border:2px solid var(--pf-red);background:#1a0505;padding:12px;font-weight:700;color:#f5f0e1}
 #pf-predgame .pq-locked .pq-xpline{color:#f5f0e1}
 #pf-predgame .pq-result{border:2px solid #4a4a4a;padding:12px}
+/* share-out gaps #1 (2026-10-06): share this call */
+#pf-predgame .pq-callshare{background:none;border:2px solid #f5ead6;color:#f5ead6;padding:10px 22px;font-family:'Arial Black',Arial,sans-serif;font-size:12px;letter-spacing:2px;cursor:pointer;text-transform:uppercase;margin-top:8px}
+#pf-predgame .pq-callshare:hover{background:#1a1a1a}
 #pf-predgame .pq-win{color:#7fd069;font-weight:900}
 #pf-predgame .pq-loss{color:var(--pf-red);font-weight:900}
 #pf-predgame .pq-void{border:2px dashed #4a4a4a;padding:12px;color:#b8ab8e;font-weight:700}
@@ -82,6 +85,7 @@
 #pf-predgame .pq-chip[aria-pressed="true"]{border-color:var(--pf-red);color:#f5f0e1;background:#1a0505}
 #pf-predgame .pq-cat{font-size:0.7rem;letter-spacing:0.16em;color:var(--pf-gold);font-weight:900;margin-bottom:6px}
 #pf-predgame .pq-gate{border:2px dashed #4a4a4a;padding:14px;color:#b8ab8e;font-size:0.9rem}
+#pf-predgame .pq-nextq{display:inline-block;margin-top:10px;min-height:44px;line-height:44px;padding:0 18px;font-weight:900;font-size:0.85rem;letter-spacing:0.1em;cursor:pointer;border:2px solid var(--pf-red);background:#1a0505;color:#f5f0e1;font-family:inherit;text-decoration:none}
 </style>
 </div>
 </template>`);
@@ -257,6 +261,8 @@
 
   /* ---- section state ---- */
   var state = { questions: [], leaders: [], cat: 'all', record: { wins: 0, losses: 0 }, hasPicks: false,
+    /* TEARDOWN WS-2: pattern helpers for the question cards (fail-open). */
+    PAT: (window.PF && window.PF.patterns) || null,
     qTrunc: false, qTotal: 0, pTrunc: false, pTotal: 0 };
 
   function recordHTML() {
@@ -270,10 +276,37 @@
     }
     return h + '</div>';
   }
+  /* COHESION (2026-10-06): next open question for the CALLED IT link. */
+  function nextOpenQ(excludeId) {
+    for (var i = 0; i < state.questions.length; i++) {
+      var c = state.questions[i];
+      if (String(c.id) === String(excludeId)) continue;
+      if (c.status === 'open' && !c.my_pick && !isLocked(c)) return c;
+    }
+    return null;
+  }
+  /* TEARDOWN WS-2: compact closing-time figure for the question card's
+     data strip (the dominant live number). Null when unknown. */
+  function lockFig(lock_at) {
+    var t = Date.parse(lock_at);
+    if (isNaN(t)) return null;
+    var r = t - Date.now();
+    if (r <= 0) return null;
+    var o = Math.floor(r / 1e3), n = Math.floor(o / 86400),
+        hh = Math.floor(o % 86400 / 3600), mm = Math.floor(o % 3600 / 60);
+    return n > 0 ? (n + 'D ' + hh + 'H') : (hh > 0 ? (hh + 'H ' + mm + 'M') : (mm + 'M ' + (o % 60) + 'S'));
+  }
   function questionHTML(q) {
-    var h = '<div class="pq-row" data-q="' + esc(q.id) + '">';
+    /* TEARDOWN WS-2: each question renders as an Intel Card (P2). */
+    var h = '<div class="pq-row pf-pat pf-pat-intel" data-q="' + esc(q.id) + '">';
     if (q.category && CAT_LABEL[q.category]) h += '<div class="pq-cat">' + CAT_LABEL[q.category] + '</div>';
     h += '<div class="pq-title">' + esc(q.title) + '</div>';
+    /* Data Strip (P4): closing time is the dominant live number — real or
+       suppressed (P8 honesty). */
+    if (state.PAT && q.status === 'open') {
+      var lf = lockFig(q.lock_at);
+      if (lf) h += state.PAT.dataStrip({ figure: lf, label: 'UNTIL CALLS CLOSE', source: 'the call board', updated: 'just now' });
+    }
     if (q.rules) h += '<div class="pq-rules">' + esc(q.rules) + '</div>';
 
     if (q.status === 'voided') {
@@ -295,11 +328,19 @@
       if (q.my_pick) {
         if (q.my_correct === true) {
           h += '<div class="pq-win">YOU CALLED IT. +' + PFG.XP_REWARD + ' XP.</div>';
+          /* COHESION (2026-10-06): prediction -> next-question. The link
+             scrolls the board to the next open question. */
+          var nx = nextOpenQ(q.id);
+          if (nx) {
+            h += '<a href="#" class="pq-nextq" data-act="nextq" data-qid="' + esc(String(nx.id)) + '">CALLED IT &mdash; NEXT QUESTION &rarr;</a>';
+          }
         } else if (q.my_correct === false) {
           h += '<div class="pq-loss">MISSED IT. You called <b>' + esc(optLabel(q, q.my_pick) || q.my_pick) + '</b> &mdash; the next board is already open.</div>';
         } else {
           h += '<div class="pq-msg">You called <b>' + esc(optLabel(q, q.my_pick) || q.my_pick) + '</b>.</div>';
         }
+        /* share-out gaps #1: own painter via pf:terminal (never the pass/fail one). */
+        h += '<div><button type="button" class="pq-callshare" data-q="' + esc(q.id) + '">SHARE THIS CALL</button></div>';
       } else {
         h += '<div class="pq-msg">You made no call on this one. The next board is already open.</div>';
       }
@@ -310,7 +351,9 @@
       h += '<div class="pq-locked">LOCKED IN &mdash; you called <b>' + esc(optLabel(q, q.my_pick) || q.my_pick) + '</b>.'
         + '<div class="pq-xpline">Right call pays +' + PFG.XP_REWARD + ' XP.</div>'
         + (q.category === 'economy' ? '<div class="pq-disclaim">Game only &mdash; not financial advice.</div>' : '')
-        + '</div>';
+        + '</div>'
+        /* share-out gaps #1: own painter via pf:terminal (never the pass/fail one). */
+        + '<div><button type="button" class="pq-callshare" data-q="' + esc(q.id) + '">SHARE THIS CALL</button></div>';
     } else if (isLocked(q)) {
       h += '<div class="pq-locked">LOCKED &mdash; calls are closed on this one. The next board is already open.'
         + (q.category === 'economy' ? '<div class="pq-disclaim">Game only &mdash; not financial advice.</div>' : '')
@@ -376,7 +419,9 @@
     return h;
   }
   function sectionHTML() {
-    return chipsHTML() + recordHTML() + '<div class="pq-qlist">' + listHTML() + '</div>' + leaderboardHTML();
+    /* Brand integration (2026-10-06, staged fix 5): cross-pillar handoffs —
+       wired declaratively by the share-everywhere scanner (same branded styling). */    return chipsHTML() + recordHTML() + '<div class="pq-qlist">' + listHTML() + '</div>' + leaderboardHTML() +
+      '<div data-pf-handoff="share-intel"></div><div data-pf-handoff="report-back"></div>';
   }
 
   /* ---- binding ---- */
@@ -424,12 +469,91 @@
         }
       })(rows[j]);
     }
+    /* COHESION (2026-10-06): CALLED IT -> NEXT QUESTION scrolls the board to
+       the next open question and flashes its row. */
+    var nql = root.querySelectorAll ? root.querySelectorAll('.pq-nextq[data-act="nextq"]') : [];
+    for (var qi = 0; qi < nql.length; qi++) {
+      (function (link) {
+        link.onclick = function (ev) {
+          try { if (ev) ev.preventDefault(); } catch (e0) {}
+          var qid = link.getAttribute('data-qid'), target = null;
+          try {
+            var rs = root.querySelectorAll ? root.querySelectorAll('.pq-row') : [];
+            for (var r = 0; r < rs.length; r++) {
+              if (rs[r].getAttribute('data-q') === qid) { target = rs[r]; break; }
+            }
+          } catch (e1) {}
+          if (target) {
+            try { target.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e2) {}
+            try {
+              target.style.outline = '2px solid var(--pf-red)';
+              setTimeout(function () { try { target.style.outline = ''; } catch (e3) {} }, 1600);
+            } catch (e4) {}
+          }
+        };
+      })(nql[qi]);
+    }
+    /* share-out gaps #1: SHARE THIS CALL — own pf:terminal painter. */
+    var sbs = root.querySelectorAll ? root.querySelectorAll('.pq-callshare') : [];
+    for (var si = 0; si < sbs.length; si++) {
+      (function (sbtn) {
+        sbtn.onclick = function () {
+          try {
+            var qid2 = sbtn.getAttribute('data-q'), qq = null;
+            for (var n = 0; n < state.questions.length; n++) {
+              if (state.questions[n].id === qid2) { qq = state.questions[n]; break; }
+            }
+            if (!qq || !window.PFShareEverywhere || !window.PFShareEverywhere.terminal) return;
+            var pickLbl = optLabel(qq, qq.my_pick) || qq.my_pick || '';
+            var res = (qq.status === 'resolved')
+              ? (qq.my_correct === true ? 'CALLED IT RIGHT' : (qq.my_correct === false ? 'MISSED IT' : 'RESOLVED'))
+              : 'CALL LOCKED IN';
+            window.PFPredgame._lastCall = { title: qq.title, pick: pickLbl, res: res };
+            window.PFShareEverywhere.terminal({
+              gameId: 'callit',
+              title: 'MY CALL IS ON RECORD',
+              result: res + (pickLbl ? ' — ' + pickLbl : ''),
+              lines: [String(qq.title || '')],
+              link: '/predict',
+              host: (sbtn.parentNode && sbtn.parentNode.parentNode) || sbtn.parentNode,
+              kicker: '\u25c9 CALL IT. \u25c9'
+            });
+          } catch (e) {}
+        };
+      })(sbs[si]);
+    }
   }
   function renderInto(root) {
     try {
       root.innerHTML = sectionHTML();
       bindSection(root);
+      /* COHESION (2026-10-06): terminal-state wiring — the first resolved
+         call the user made hands off to the next-move engine. One card per
+         board render; the engine queues if it isn't loaded yet. */
+      try { terminalHook(root); } catch (e) {}
     } catch (e) { failSoft(root, 'render failed (soft)'); }
+  }
+  function terminalHook(root) {
+    for (var i = 0; i < state.questions.length; i++) {
+      var q = state.questions[i];
+      if (q.status !== 'resolved' || !q.resolution || !q.my_pick) continue;
+      var row = null, slot = null;
+      try {
+        var rows = root.querySelectorAll ? root.querySelectorAll('.pq-row') : [];
+        for (var r = 0; r < rows.length; r++) {
+          if (rows[r].getAttribute('data-q') === String(q.id)) { row = rows[r]; break; }
+        }
+        if (row && row.querySelector) slot = row.querySelector('.pq-result');
+      } catch (e) {}
+      if (slot) {
+        try {
+          document.dispatchEvent(new CustomEvent('pf:terminal', {
+            detail: { slot: slot, context: 'predict-resolved' }
+          }));
+        } catch (e2) {}
+      }
+      return; /* first resolved call only */
+    }
   }
   /* Lock countdown ticker — one interval for the whole section. */
   var tickIv = null;

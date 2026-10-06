@@ -250,6 +250,12 @@ function doRsvp(btn){
           '<span class="ce-going">'+Number(j.rsvp_count||0)+' going</span>';
       }
       toast(j.rsvp?'You are in. See you in the streets.':'RSVP removed.');
+      /* COHESION (2026-10-06): terminal-state wiring — the "YOU ARE IN"
+         confirmation hands off to the next-move engine. Only on a real
+         RSVP (not a removal). Engine queues if not loaded yet. */
+      if(j.rsvp&&el){
+        try{ document.dispatchEvent(new CustomEvent('pf:terminal',{detail:{slot:el,context:'rsvp'}})); }catch(e2){}
+      }
     } else toast('RSVP failed: '+((j&&(j.err||j.error))||'network error'));
   });
 }

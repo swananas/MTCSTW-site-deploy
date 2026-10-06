@@ -25,7 +25,9 @@ CEO directive: the territory map has no way to share — fix first, then standar
 ## Architecture
 
 New module `v1.4.3/core/share-everywhere.js`, loaded right after `core/share-image.js`
-in build/bundle-core.js CORE_FILES (needs PFShare first). Kill: `?pf_off=share-everywhere`.
+in the `pages/bundle-pages` list of build/bundle-core.js, immediately after
+`core/share-image.js` (which ships in the pages bundle, not the core bundle).
+Kill: `?pf_off=share-everywhere`.
 
 1. **REG templates** added to `PFShare.REG` (title/tag/lines/cta), all CTA-standard:
    territory-map, war-map, cell-war-front, cell-hq, cell-identity, predictions,

@@ -147,7 +147,7 @@
     'poster-forge': [['Open the full workshop \u2192', '/create'], ['See the whole machine \u2192', '/network']],
     'feed': [['Forge a poster \u2192', 'poster-forge'], ['Open the full workshop \u2192', '/create']],
     'hq-nudge': [['See what you\u2019d unlock \u2192', '/request-access']],
-    'war-bonds': [['Manage your bonds \u2192', '/bank'], ['See where it goes \u2192', '/war-chest']],
+    'war-bonds': [['Manage your bonds \u2192', '/bank'], ['See where it goes \u2192', '/ventures']],
     /* A1 home (2026-10-05): Price Index feeder exits. */
     'inflation-teaser': [['Report a price \u2192', '/economy#pf-inflation-checkin'], ['See the full index \u2192', '/economy']],
     /* 2026-10-06 (fe/homepage-sitemap): the site map's companion exits. */

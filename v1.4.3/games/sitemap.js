@@ -39,7 +39,7 @@
 <details class="pfsm-g" open>
 <summary><span>&#9876; THE FIGHT</span><span class="pfsm-x">+</span></summary>
 <div class="pfsm-links">
-<a class="pfsm-a" href="/command-deck"><span class="pfsm-t">The War Room</span><span class="pfsm-d">Live ops. Live fire. Take your orders.</span></a>
+<a class="pfsm-a" href="/war-report"><span class="pfsm-t">The War Room</span><span class="pfsm-d">Live ops. Live fire. Take your orders.</span></a>
 <a class="pfsm-a" href="/arcade"><span class="pfsm-t">The Arcade</span><span class="pfsm-d">Nine games. Play loud, climb fast.</span></a>
 <a class="pfsm-a" href="/cells"><span class="pfsm-t">Cells</span><span class="pfsm-d">Your squad. Your block. Your mission.</span></a>
 <a class="pfsm-a" href="/political-hq"><span class="pfsm-t">Political HQ</span><span class="pfsm-d">Races, measures, candidates. Know the battlefield.</span></a>
@@ -57,7 +57,6 @@
 <details class="pfsm-g">
 <summary><span>&#128176; MONEY IS A WEAPON</span><span class="pfsm-x">+</span></summary>
 <div class="pfsm-links">
-<a class="pfsm-a" href="/money"><span class="pfsm-t">Money HQ</span><span class="pfsm-d">The people's money war room.</span></a>
 <a class="pfsm-a" href="/follow-the-money"><span class="pfsm-t">Follow the Money</span><span class="pfsm-d">Track the billionaires' cash and burn it.</span></a>
 <a class="pfsm-a" href="/economy"><span class="pfsm-t">The People's Economy</span><span class="pfsm-d">Our inflation index. Our numbers, not theirs.</span></a>
 <a class="pfsm-a" href="/bank"><span class="pfsm-t">The People's Bank</span><span class="pfsm-d">Your bonds. Your balances. Zero billionaires.</span></a>

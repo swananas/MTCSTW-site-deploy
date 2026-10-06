@@ -231,6 +231,16 @@ var SECTIONS = {
   'bundle-predgame': [
     'predgame.js'
   ],
+  /* SPACE-AUDIT FIX 7 (2026-10-06): slim dupes so /call-it and /cell-war stop
+     loading the full 127KB bundle-arcade.js for a single silo. markets.js
+     lazy-loads on /call-it; battles.js lazy-loads on /cell-war. Both stay in
+     bundle-arcade.js for /arcade itself. Kill: ?pf_off=markets / ?pf_off=battles. */
+  'bundle-markets': [
+    'markets.js'
+  ],
+  'bundle-battles': [
+    'battles.js'
+  ],
   'bundle-cells': [
     /* CELL IDENTITY (2026-10-05): structured cell profiles — guided founding
        wizard, discovery-on-qualities, identity kit, founder backfill.
@@ -379,8 +389,24 @@ var SECTIONS = {
        Kill: ?pf_off=economy-fred-rail (master ?pf_off=economy-fred). */
     'fred-macro-rail.js',
   ],
+  /* 2026-10-06 (fe/blossom-s4): /peoples-cpi — the public People's Price
+     Index (spec peoples-cpi-public-20261006.md). Self-mounting silo
+     (games/peoples-cpi.js renders into #pf-peoples-cpi); silent no-op
+     elsewhere. Read-only JSONP, zero XP. Kill: ?pf_off=peoples-cpi. */
+  'bundle-peoples-cpi': [
+    'peoples-cpi.js'
+  ],
+  /* 2026-10-06 (fe/blossom-s4): /fund — THE PROPAGANDA FUND. Structure-only
+     transparency page (games/propaganda-fund.js renders into #pf-fund);
+     the content is gated on News Desk/Brand sign-off, so the silo renders
+     an empty-honest body with no figures. Kill: ?pf_off=fund. */
+  'bundle-fund': [
+    'propaganda-fund.js'
+  ],
   'bundle-warchest': [
-    /* /war-chest — Movement Finance. */
+    /* Movement Finance (games/movement.js) — mounted on /war-chest AND,
+       since BLOSSOM M3 (2026-10-06), on /ventures as the "Movement Funds"
+       section (loader ships this bundle for isVentures too). */
     'movement.js'
   ],
   'bundle-ventures': [
@@ -525,7 +551,7 @@ var allFiles = fs.readdirSync(ROOT).filter(function (f) { return f.slice(-3) ===
 /* Every game .js file must live in exactly one page or HQ bundle — except the
    three SLIM_DUP bundles above, which intentionally re-list silos from
    bundle-home (the loader fetches slim INSTEAD of bundle-home, never both). */
-var SLIM_DUP = ['bundle-arcade-h', 'bundle-cells-h', 'bundle-create-h'];
+var SLIM_DUP = ['bundle-arcade-h', 'bundle-cells-h', 'bundle-create-h', 'bundle-markets', 'bundle-battles'];
 var bundled = [];
 Object.keys(ALL).forEach(function (b) {
   if (SLIM_DUP.indexOf(b) !== -1) return; /* see note above */

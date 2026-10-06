@@ -178,13 +178,15 @@
     { day: 4, name: 'CAST THE FAN VOTE', sub: 'Back your propagandist of the week.', url: '/', key: 'fan-vote' },
     { day: 5, name: 'WALK THE ROUTE MARCH', sub: 'Hit today\u2019s march stops.', url: null, key: 'route-march' },
     { day: 6, name: 'RECRUIT A FIGHTER', sub: 'Share your recruit link. Bring them in.', url: '/', key: 'recruit' },
-    { day: 7, name: 'FUND THE FIGHT', sub: 'Put money on the movement.', url: '/war-chest', key: 'war-chest' }
+    { day: 7, name: 'FUND THE FIGHT', sub: 'Put money on the movement.', url: '/ventures', key: 'ventures' }
   ];
   /* Deep links verified against the merged tree (2026-10-05): '/' = homepage
      (enlistment-ranks claim, Daily Orders, referral share, fan-vote all mount
-     there), '/cells' = rites.js ENLISTED CTA href, '/war-chest' =
-     bundle-warchest movement finance page. Day 5 resolves at runtime from the
-     route-march circuit_status read (same action core/22-routemarch.js uses);
+     there), '/cells' = rites.js ENLISTED CTA href, '/ventures' =
+     bundle-warchest movement finance page (BLOSSOM M3 2026-10-06: the
+     movement silo now mounts on /ventures as the Movement Funds section).
+     Day 5 resolves at runtime from the route-march circuit_status read
+     (same action core/22-routemarch.js uses);
      fallback '/events'. No invented URLs. */
   function rmLink(cb) {
     function done(url) { try { cb(url || '/events'); } catch (e) {} }
@@ -244,7 +246,7 @@
         var tag = doneD
           ? '<span style="color:#7ddf8a;font-weight:900;">&#10003; DONE</span>'
           : '<span style="color:#c1121f;font-weight:900;">&#9679; OPEN</span>';
-        var stake = (day.key === 'war-chest')
+        var stake = (day.key === 'ventures')
           ? '<div style="color:#8a8172;font-size:0.72rem;margin-top:6px;">XP has no cash value. Stakes are final.</div>'
           : '';
         rows +=

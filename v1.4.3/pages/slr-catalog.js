@@ -134,8 +134,9 @@
   }
 
   /* S7 FUND THEIR FIGHT (2026-10-04): after the enlist links — one click
-     from admiration to money. /war-chest?creator=<slug> preloads this
-     creator in the subscribe UI; /create?for=<slug> filters the bounty
+     from admiration to money. /ventures?creator=<slug> preloads this
+     creator in the subscribe UI (BLOSSOM M3 2026-10-06: was /war-chest,
+     now the Movement Funds section); /create?for=<slug> filters the bounty
      board to their open bounties. Skipped for Jeanine Pirreaux Comedy
      (do-not-touch). */
   var FUND_SKIP_SLUGS = ['jeanine-pirreaux-comedy'];
@@ -147,7 +148,7 @@
       + '<div style="color:' + red + ';font-weight:900;letter-spacing:0.28em;font-size:0.72rem;margin-bottom:0.6rem;">FUND THEIR FIGHT</div>'
       + '<div style="color:' + cream + ';font-size:0.95rem;line-height:1.6;margin-bottom:1rem;">Back ' + esc(m.name)
       + ' directly \u2014 tip XP or subscribe weekly. No platform takes a cut.</div>'
-      + '<div><a href="/war-chest?creator=' + slug + '" style="display:inline-block;background:' + red + ';color:#fff;'
+      + '<div><a href="/ventures?creator=' + slug + '" style="display:inline-block;background:' + red + ';color:#fff;'
       + 'font-weight:900;letter-spacing:0.12em;font-size:0.85rem;text-decoration:none;padding:0.8rem 1.6rem;'
       + 'border:2px solid ' + red + ';">FUND THEIR FIGHT \u2192</a></div>'
       + '<div style="margin-top:0.8rem;"><a href="/create?for=' + slug + '" style="color:' + muted + ';'

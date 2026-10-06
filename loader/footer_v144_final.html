@@ -80,7 +80,8 @@ var PAGES_V2=['pages/bundle-pages.js'];
    bundle-cells (cell-hq, war-card, review-pool) + pages.
    /money (#pf-money) = core + core/bundle-money.js (explicit JS_GAMES entry;
    the chunk loader in bundle-pages.js is the async fallback for the PHQ tab)
-   + pages. /command-deck (#pf-command) = core + games/bundle-command.js
+   + games/bundle-predgame.js (CALL IT. section, self-mounts, 'economy'
+   preselected; kill ?pf_off=predgame) + pages. /command-deck (#pf-command) = core + games/bundle-command.js
    (standalone page bundle, self-mounting via command/02-registry.js) + pages.
    SLR roster/catalog = core + bundle-roster (efficiency.js paints the live
    Efficiency Index into their [data-eff-score] slots; nothing else in the
@@ -93,8 +94,8 @@ var isSlrPage=!!document.getElementById('pf-slr-roster')||!!document.getElementB
    pages the DB still loads on demand via PF.ensureSLRDB() if ever needed. */
 var NEED_SLR=isHome||isArcade||isCreate||isWarCard||isSlrPage;
 CORE_V2=[NEED_SLR?'core/bundle-core-slr.js':'core/bundle-core.js'];
-var JS_GAMES=isHome?['games/bundle-sec1.js']:isArcade?['games/bundle-arcade-h.js','games/bundle-arcade.js']:isCellsPage?['games/bundle-cells-h.js','games/bundle-cells.js']:isCreate?['games/bundle-create-h.js','games/bundle-create.js']:isBank?['games/bundle-bank.js']:isEconomy?['games/bundle-economy.js']:isWarchest?['games/bundle-warchest.js']:isVentures?['games/bundle-ventures.js']:isEvents?['games/bundle-events.js']:isWarReport?['games/bundle-warreport.js']:isMoney?['core/bundle-money.js']:isCommand?['games/bundle-command.js']:isHQ?[]:isWarCard?['games/bundle-create.js','games/bundle-cells.js']:isSlrPage?['games/bundle-roster.js']:[];
-var JS_HQ=isHQ?['games/bundle-hq.js']:[];
+var JS_GAMES=isHome?['games/bundle-sec1.js']:isArcade?['games/bundle-arcade-h.js','games/bundle-arcade.js','games/bundle-predgame.js']:isCellsPage?['games/bundle-cells-h.js','games/bundle-cells.js']:isCreate?['games/bundle-create-h.js','games/bundle-create.js']:isBank?['games/bundle-bank.js']:isEconomy?['games/bundle-economy.js']:isWarchest?['games/bundle-warchest.js']:isVentures?['games/bundle-ventures.js']:isEvents?['games/bundle-events.js']:isWarReport?['games/bundle-warreport.js']:isMoney?['core/bundle-money.js','games/bundle-predgame.js']:isCommand?['games/bundle-command.js']:isHQ?[]:isWarCard?['games/bundle-create.js','games/bundle-cells.js']:isSlrPage?['games/bundle-roster.js']:[];
+var JS_HQ=isHQ?['games/bundle-hq.js','games/bundle-predgame.js']:[]; /* 2026-10-05 (fe/predict-game): CALL IT. section for the BALLOT hub ('elections' preselected) */
 /* DEFECT 1 (2026-10-03): the v1.1.0 set carries no footer chrome. Append
    the slim footer-chrome bundle (DELETE MY DATA + NUKE meter + RUN
    MISSION bar) so /store, /privacy, /terms and all other non-v2 pages

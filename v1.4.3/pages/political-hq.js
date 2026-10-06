@@ -30,6 +30,10 @@
     /* 2026-10-05 (fe/predict-share-call): Call the Shot prediction section —
        mounts the pf-ov-predict template into #xPredict. */
     ['predict', 'pf-ov-predict'],
+    /* 2026-10-05 (fe/predict-game): CALL IT. prediction game — staff-authored
+       questions, BALLOT hub mount, 'elections' category preselected.
+       Kill: ?pf_off=predgame. */
+    ['predgame', 'pf-ov-predgame'],
     /* 2026-10-05 (fe/state-legislatures): state legislature directory. */
     ['stateleg', 'pf-ov-stateleg'],
     ['notify-prefs', 'pf-ov-notify-prefs'],

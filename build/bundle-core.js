@@ -140,7 +140,15 @@ var CORE_FILES = [
   /* freshness (Cohesion §4, 2026-10-05): PF.freshBadge / PF.degradedVintage /
      PF.honestZero — LIVE badges only on <=15-min-fresh data, automatic label
      degradation, honest zero states. Kill: ?pf_off=27-freshness. */
-  'core/27-freshness.js'
+  'core/27-freshness.js',
+  /* PLAY 6 (UX Combination Plays Wave 2, 2026-10-06): YOUR WAR CHEST — the
+     unified money view (personal balance, bounty earnings + surge, liberty
+     bonds, cause-pool contributions, per-cell chests, War Bond movement
+     aggregate). Read-only aggregation of existing GET endpoints; fail-open
+     self-mounts on #pf-warchest-card / #pf-warchest-view / #pf-warchest-cell.
+     Kill: ?pf_off=warchest (master) · warchest-card · warchest-full ·
+     warchest-cell. */
+  'core/warchest-view.js'
 ];
 
 /* 2026-10-05 (fix/money-minified-rebuild): money suite lazy chunk. The 10

@@ -8530,6 +8530,7 @@ if(document.readyState==='loading'){
    - Every figure carries 4 facts: series ID, source agency, observation
      period, retrieval date. `citation()` builds the exact string:
      `{Agency} via FRED · {SERIES_ID} · {period} · retrieved {Mon D, YYYY}`.
+     Any fact missing → `citation()` returns '' (no partial citations).
    - Stale figures STILL RENDER with the adjacent badge
      `⚠ {n} days old — expected {daily|weekly|monthly|quarterly}`.
    - Revisions carry the ʳ marker.
@@ -8643,15 +8644,20 @@ if(document.readyState==='loading'){
     return p || '—';
   }
 
-  /* ---------- The 4-fact citation ---------- */
+  /* ---------- The 4-fact citation ----------
+     Null-if-missing (mirrors BE src/fred.js citationString): when ANY of
+     the four facts — series ID, agency, period, retrieval date — is
+     missing, emit nothing. A broken card never renders a partial citation. */
   function citation(card) {
     if (!card) return '';
     if (card.citation) return String(card.citation);
-    var agency = AGENCY[card.series_id] || 'FRED';
-    var period = fmtPeriod(card) + (card.revised ? 'ʳ' : '');
+    var sid = card.series_id;
+    var agency = sid ? AGENCY[sid] : null;
+    var period = fmtPeriod(card);
     var ret = fmtRetrieved(card.retrieved_at);
-    return agency + ' via FRED · ' + (card.series_id || '') + ' · ' + period +
-      (ret ? ' · retrieved ' + ret : '');
+    if (!sid || !agency || !period || period === '—' || !ret) return '';
+    return agency + ' via FRED · ' + sid + ' · ' + period + (card.revised ? 'ʳ' : '') +
+      ' · retrieved ' + ret;
   }
 
   /* Staleness badge (News Desk §4, exact wording). Adjacent to the figure,

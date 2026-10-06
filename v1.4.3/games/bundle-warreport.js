@@ -407,10 +407,11 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
     var v = c.value_label != null ? c.value_label : '—';
     var per = F.fmtPeriod(c);
     var cite = F.citation(c);
-    var staleNote = c.stale ? ' (carrying the last good print — ' + (c.stale_note || 'refresh pending') + ')' : '';
+    var staleNote = c.stale ? ' (carrying the last good print — ' + esc(c.stale_note || 'refresh pending') + ')' : '';
     function wrap(sent) {
       return '<div class="pf-wrnum-line"><div class="pf-wrnum-fig">' + esc(v) + F.revMark(c) +
-        ' <span style="font-size:11px;color:#8a8271;font-weight:400">' + esc(F.PLAIN[sid] || sid) + F.saNsa(c) + '</span></div>' +
+        ' <span style="font-size:11px;color:#8a8271;font-weight:400">' + esc(F.PLAIN[sid] || sid) + F.saNsa(c) + '</span> ' +
+        F.staleBadge(c) + '</div>' +
         '<div class="pf-wrnum-sent">' + sent + staleNote + '</div>' +
         '<div class="pf-fred-cite">' + esc(cite) + '</div></div>';
     }

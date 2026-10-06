@@ -181,7 +181,13 @@ var MONEY_FILES = [
   /* Engagement build D item #3 (2026-10-05): weekly ritual calendar rail.
      Same file as the homepage slot (games bundle) — self-mounts by DOM
      presence (#pf-money -> rail). Rendered directly, no template staging. */
-  'games/ritual-calendar.js'
+  'games/ritual-calendar.js',
+  /* share-in (CEO directive, 2026-10-06): ?sharein=<url> deep link + PWA Web
+     Share Target (GET) inbound draft composer — PF.shareIn. Last in core so
+     the outward pipeline (share-everywhere) and the Create workshop registry
+     are already loaded for its hand-offs. Zero XP by design, device-local
+     drafts only, no backend writes. Kill: ?pf_off=35-sharein. */
+  'core/35-sharein.js'
 ];
 
 /* FRED Everywhere Phase 2 (2026-10-05): the three user modeling tools —

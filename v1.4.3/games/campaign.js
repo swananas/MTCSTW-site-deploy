@@ -94,6 +94,9 @@ function post(cAction,params,cb){
   }catch(e){ done(null); }
 }
 var S=null, M=null, W=null, L=null, R=null;
+/* COHESION (2026-10-06): set true on a fresh pledge POST; render() consumes
+   it and hands the .cp-pledged confirmation off to the next-move engine. */
+var pfTerminalPledge=false;
 function daysLeft(){ var ms=ELECTION-Date.now(); return Math.max(0,Math.ceil(ms/86400000)); }
 function load(){
   var id=ident(), done=false, n=0;
@@ -149,7 +152,7 @@ function renderComplete(){
 }
 function render(){
   var el=document.getElementById("xCampaign"); if(!el) return;
-  if(campaignOver()){ renderComplete(); return; }
+  if(campaignOver()){ pfTerminalPledge=false; renderComplete(); return; }
   var id=ident(), dl=daysLeft(), h="";
   /* --- countdown + framing --- */
   h+='<div class="cp-count">'+(dl>0?dl+" DAYS TO ELECTION DAY":(dl===0?"ELECTION DAY IS HERE":"THE FIGHT CONTINUES"))+'</div>';
@@ -235,6 +238,15 @@ function render(){
   /* --- retry --- */
   h+='<div style="margin-top:10px"><button class="c-btn" id="cpRetry">Refresh</button></div>';
   el.innerHTML=h;
+  /* COHESION (2026-10-06): terminal-state wiring — consumed here so the
+     pledge confirmation hands off to the next-move engine exactly once. */
+  if(pfTerminalPledge){
+    pfTerminalPledge=false;
+    try{
+      var pslot=el.querySelector?el.querySelector(".cp-pledged"):null;
+      document.dispatchEvent(new CustomEvent("pf:terminal",{detail:{slot:pslot||el,context:"pledge"}}));
+    }catch(e){}
+  }
   /* wire pledge */
   var pb=document.getElementById("cpPledgeBtn");
   if(pb) pb.onclick=function(){
@@ -251,6 +263,9 @@ function render(){
          feeds Do Meter (was a dead event with zero listeners). */
       creditLocal("campaign_pledge", 25);
       try{ document.dispatchEvent(new CustomEvent("pf-campaign-pledge",{detail:{callsign:id.callsign}})); }catch(e2){}
+      /* COHESION (2026-10-06): terminal-state wiring — the pledge
+         confirmation (.cp-pledged) hands off to the next-move engine. */
+      pfTerminalPledge=true;
       load();
     });
   };

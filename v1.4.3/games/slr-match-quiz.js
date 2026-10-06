@@ -146,6 +146,11 @@
 '      +"<div id=\'pf-mq-msg\' style=\'margin-top:0.6rem;font-size:0.85rem;color:#b8ab8e;min-height:1.2em;\'></div>"\n' +
 '      +"<div><button id=\'pf-mq-again\' style=\'margin-top:0.8rem;background:none;border:1px solid #b8ab8e;color:#b8ab8e;padding:0.5rem 1rem;cursor:pointer;font-family:inherit;font-size:0.8rem;\'>RETAKE QUIZ</button></div>";\n' +
 '    try{document.dispatchEvent(new CustomEvent("pf-quiz-done",{detail:{archetype:top}}));}catch(e){}\n' +
+'    /* COHESION (2026-10-06): terminal-state wiring — the quiz result hands\n' +
+'       off to the next-move engine, which routes the visitor to a first\n' +
+'       mission. Slot is the result container; the engine queues if not\n' +
+'       loaded yet. Zero new XP — routing only. */\n' +
+'    try{document.dispatchEvent(new CustomEvent("pf:terminal",{detail:{slot:body,context:"quiz-result"}}));}catch(e){}\n' +
 '    /* M1 dopamine: archetype reveal is the payoff — celebrate it. */\n' +
 '    try{if(window.PF&&PF.dope){var dq=document.getElementById("pf-matchquiz")||document.body;PF.dope.confetti(dq,50);PF.dope.ping(dq,"ARCHETYPE LOCKED");}}catch(e){}\n' +
 '    mqPublish(A);\n' +

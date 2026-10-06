@@ -22,7 +22,7 @@
       device-local flag; suppressed once voted.
    8. CTA-verb lint clean: no donate/enlist/call-it/confirm-pill rogue verbs;
       cast action rides REPORT BACK ->; no JOIN THE FIGHT. reuse.
-   9. Kill switches: ?pf_off=gov -> silent no-op (no template staged);
+   9. Kill switches: ?pf_off=governance -> silent no-op (no template staged);
       patterns killed -> legacy fail-open render (still shielded).
    10. Countdown rising urgency: <6h -> gv-urg-3 FINAL HOURS; <24h -> gv-urg-2.
    11. Election night: closed proposals -> outcome declared, margin, turnout,
@@ -335,8 +335,8 @@ console.log('[8] CTA-verb lint');
 console.log('[9] kill switches');
 (function () {
   var tpl = stageTemplate(true);
-  if (tpl === '') ok('?pf_off=gov -> silent no-op (no template staged)');
-  else bad('kill switch', '?pf_off=gov still staged a template');
+  if (tpl === '') ok('?pf_off=governance -> silent no-op (no template staged)');
+  else bad('kill switch', '?pf_off=governance still staged a template');
   var r = runInner({ fixture: FIXTURE, callsign: 'testsoldier', patternsKilled: true });
   if (r.html.indexOf('pf-pat-hero') === -1 && r.html.indexOf('BALLOT SHIELDED') === -1) {
     if (r.html.indexOf('gv-inline') !== -1) ok('patterns killed -> legacy fail-open render');

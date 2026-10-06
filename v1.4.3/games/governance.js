@@ -53,7 +53,7 @@
    LAYERING: a game silo like campaign.js. Reads via JSONP (self-contained
    api()), writes via CORS POST (self-contained post()). It never reaches
    into another silo's internals.
-   KILL: ?pf_off=gov  or  localStorage pf_disabled_v1='["gov"]'.
+   KILL: ?pf_off=governance  or  localStorage pf_disabled_v1='["governance"]'.
    Fail-open: patterns killed -> legacy compact render (still shielded,
    still server-weight-only, still callsign-gated). */
 (function () {

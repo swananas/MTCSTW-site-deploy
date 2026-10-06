@@ -598,12 +598,17 @@
     for(i=0;i<lessons.length;i++){
       L=lessons[i];
       var isDone=!!L.done, xp=Number(L.xp_reward)||0;
-      h+='<div class="x-pane">'
+      h+='<div class="x-pane" id="ac-pane-'+esc(L.id)+'">'
         +'<div class="fd-title">'+(i+1)+'. '+esc(L.title)+(isDone?' <span style="color:#7CFC00">&#10003;</span>':"")+'</div>'
         +'<div class="x-note">'+esc(L.content)+'</div>'
         +'<div class="x-note">+'+xp+' XP</div>';
       if(id.callsign&&!isDone){
         h+='<button class="c-btn ac-done" data-lid="'+esc(L.id)+'" data-xp="'+xp+'">MARK COMPLETE</button>';
+        /* QW-5a (2026-10-05): NEXT LESSON → scrolls to the next lesson pane —
+           same section, zero new logic, zero XP, no new endpoints. */
+        if(i<lessons.length-1){
+          h+=' <button class="c-btn ghost ac-next" data-next="'+esc(lessons[i+1].id)+'">NEXT LESSON &rarr;</button>';
+        }
       }
       h+='</div>';
     }
@@ -638,6 +643,16 @@
     }
     var rb2=document.getElementById("acRetry");
     if(rb2) rb2.onclick=function(){ el.innerHTML='<div class="c-load">Loading the academy&hellip;</div>'; load(el); };
+    /* QW-5a wiring: NEXT LESSON buttons scroll to the next lesson pane. */
+    var nx=el.querySelectorAll("button.ac-next"), n2;
+    for(n2=0;n2<nx.length;n2++){
+      (function(btn){
+        btn.onclick=function(){
+          var t=document.getElementById("ac-pane-"+btn.getAttribute("data-next"));
+          if(t){ try{ t.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){ try{ t.scrollIntoView(); }catch(e2){} } }
+        };
+      })(nx[n2]);
+    }
   }
 
   /* Idempotent mount into any container element. Exposed for the homepage
@@ -879,6 +894,20 @@
       'style="display:inline-block;background:transparent;border:2px solid #f5f0e1;color:#f5f0e1;' +
       'font-weight:900;letter-spacing:.12em;padding:.8rem 1.6rem;font-size:.85rem;text-decoration:none;">' +
       'CHECK IN: DAILY ORDERS &rarr;</a></div>';
+    /* QW-5b (2026-10-05): graduation -> bounties bridge. Zero XP — pure link. */
+    steps += '<div style="margin:.55rem 0;"><div style="font-size:.8rem;color:#f5f0e1;' +
+      'line-height:1.5;margin-bottom:.4rem;">Graduated? The war needs graduates.</div>' +
+      '<a href="/create?tab=bounties" ' +
+      'style="display:inline-block;background:#c1121f;border:2px solid #c1121f;color:#fff;' +
+      'font-weight:900;letter-spacing:.12em;padding:.8rem 1.6rem;font-size:.85rem;text-decoration:none;">' +
+      'FIND OPEN BOUNTIES &rarr;</a></div>';
+    /* QW-5c (2026-10-05): graduation share — PFShare poster API. The
+       'academy-grad' REG painter entry lands in core/share-image.js
+       (teammate batch); the generic fallback covers the interim. */
+    steps += '<div style="margin:.55rem 0;"><button type="button" id="pf-grad-share" ' +
+      'style="display:inline-block;background:transparent;border:2px solid #f5f0e1;color:#f5f0e1;' +
+      'font-weight:900;letter-spacing:.12em;padding:.8rem 1.6rem;font-size:.85rem;cursor:pointer;">' +
+      'SHARE YOUR GRADUATION</button></div>';
 
     card.innerHTML =
       '<div style="color:#c1121f;font-weight:900;letter-spacing:.18em;font-size:1.15rem;margin-bottom:.4rem;">' +
@@ -917,6 +946,17 @@
 
     var marchBtn = card.querySelector('#pf-grad-march');
     if (marchBtn) marchBtn.onclick = function () { goRouteMarch(marchBtn); };
+
+    var gradShare = card.querySelector('#pf-grad-share');
+    if (gradShare) gradShare.onclick = function () {
+      try {
+        var PS = window.PFShare;
+        if (PS && PS.poster && PS.shareImage) {
+          var cv = PS.poster('academy-grad');
+          if (cv) { PS.shareImage(cv, 'pfn-academy-grad.png', 'ACADEMY GRADUATE', 'academy-grad'); }
+        }
+      } catch (e) {}
+    };
 
     var claimBtn = card.querySelector('#pf-grad-claim');
     if (claimBtn) claimBtn.onclick = function () {
@@ -4291,7 +4331,10 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
   }
   function shellHtml(){
     return '<div class="bb-head"><h2>THE BANK VAULT</h2>' +
-      '<p class="bb-sub">Every piece the movement banked. Study the arsenal — then remix it into your own weapon.</p></div>' +
+      '<p class="bb-sub">Every piece the movement banked. Study the arsenal — then remix it into your own weapon.</p>' +
+      '<p class="bb-sub" style="margin-top:0.6rem;">Banked something? ' +
+      '<a href="#pf-review-pool" style="color:#fff;font-weight:700;letter-spacing:1px;text-decoration:none;border-bottom:2px solid #c1121f;">REVIEW THE QUEUE &rarr;</a> ' +
+      'and put your eyes on the next wave.</p></div>' +
       '<div class="bb-filters">' + filtersHtml() + '</div>' +
       '<div data-bb-grid="1"><div class="bb-empty"><b>LOADING THE VAULT&hellip;</b><br>Racking the banked pieces.</div></div>' +
       '<div data-bb-more="1"></div>';

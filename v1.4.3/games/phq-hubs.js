@@ -250,6 +250,12 @@
       }
     } catch (e) {}
   }
+  /* 2026-10-05 (P4 pane anchors): civic paints its .x-pane elements async
+     (JSONP fan-in), after mount-time tagHubPanes() already ran. Re-tag on
+     every civic paint — tagHubPanes() is idempotent. */
+  try {
+    document.addEventListener('pf-civic-panes', function () { try { tagHubPanes(); } catch (e) {} });
+  } catch (e) {}
 
   function clearLoading(hub) {
     var sec = hubSectionEl(hub);

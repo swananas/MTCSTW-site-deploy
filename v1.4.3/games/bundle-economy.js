@@ -13,7 +13,7 @@
   var PF = window.PF;
   if (!PF || PF.skip("economy")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-economy">
-<div class="fe-block pf-override-block pf-silo">
+<div class="fe-block pf-override-block pf-silo" id="pf-xp-economy">
 <h2>Run the Economy</h2>
 <div class="c-tag">Earn it. Spend it. Weaponize it. The loop that keeps the machine alive.</div>
 <div id="xEconomy"><div class="c-load">Counting the war chest&hellip;</div></div>
@@ -173,6 +173,14 @@ function render(){
   h+=renderTitles(id);
   h+=renderDrops(id);
   h+=renderPrizes(id);
+  /* QW-9 (2026-10-05): cross-link strip — Joint Ventures (#pf-ventures on the
+     homepage; mount id verified in games/ventures.js) and War Chest
+     (/war-chest; route verified in games/casino-exits.js). Pure links,
+     zero XP, no new endpoints. One compact strip, not a section. */
+  h+='<div style="margin:12px 0;padding:10px 12px;border:2px dashed #ff5a00;text-align:center">'
+    +'<span class="x-note" style="color:#ff5a00;font-weight:900;letter-spacing:2px">RUN IT UP ELSEWHERE &rarr;</span> '
+    +'<a href="/#pf-ventures" style="color:#f5f0e1;font-weight:700;margin:0 8px">Joint Ventures</a>'
+    +'<a href="/war-chest" style="color:#f5f0e1;font-weight:700;margin:0 8px">War Chest</a></div>';
   h+='<div style="margin-top:10px"><button class="c-btn" id="ecRetry">Refresh</button></div>';
   el.innerHTML=h;
   wireAuctions(id,el); wireCosmetics(id,el); wireStaking(id,el); wireTreasury(id,el);
@@ -635,6 +643,12 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
   var RAIL_A =
     'display:inline-block;background:#c1121f;color:#fff;font-weight:900;font-size:13px;' +
     'letter-spacing:.14em;padding:12px 26px;text-decoration:none;';
+  /* QW-14 (2026-10-05): bridge strip between the People's CPI and the XP
+     economy game — anchors both ways (#pf-inflation-checkin above,
+     #pf-xp-economy = the XP economy block id in games/economy.js). */
+  var BRIDGE =
+    'margin:22px auto 8px;max-width:760px;text-align:center;' + CSS +
+    'border:2px dashed #c1121f;padding:16px;';
 
   var sec = document.createElement('div');
   sec.id = 'pf-inflation-home';
@@ -668,7 +682,21 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
     '<div style="font-size:12px;color:#a89e88;margin-top:10px;line-height:1.5;">' +
     'Turned the index into action? The Action Center routes every fight: ' +
     'calls, campaigns, petitions, ballots.</div>' +
-    '</div>';
+    '</div>' +
+    /* QW-14 bridge strip: sits at the end of the CPI section, right before
+       the XP economy block on the stacked /economy page. Zero XP, zero
+       endpoints — pure anchor links. */
+    '<div style="' + BRIDGE + '">' +
+    '<div style="' + KICKER + '">THE LOOP CLOSES</div>' +
+    '<div style="' + SUB + 'margin-left:auto;margin-right:auto;">' +
+    '<b>YOUR CHECK-INS POWER THE INDEX</b> &mdash; every price you report sharpens ' +
+    'the People\u2019s CPI. Play the economy. Feed the intel.</div>' +
+    '<div style="margin-top:12px;">' +
+    '<a style="' + RAIL_A + 'margin:0 6px 8px;" href="#pf-inflation-checkin">' +
+    'FEED THE INDEX</a>' +
+    '<a style="' + RAIL_A + 'margin:0 6px 8px;" href="#pf-xp-economy">' +
+    'PLAY THE ECONOMY</a>' +
+    '</div></div>';
 
   /* Lead section: the Price Index is the home's flagship, so it stages first —
      page-mount's header insertBefore keeps the page hero on top regardless

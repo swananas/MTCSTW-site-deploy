@@ -227,9 +227,9 @@ function api(action,params,cb){
    Zero new XP, zero new endpoints, zero new backend reads — static anchors only. */
 function nextActionRow(){
   return '<div class="x-pane" style="text-align:center"><h4>READ IT. NOW MOVE.</h4>'
-    +'<div class="x-note">This week\'s loop: crown the propagandist, grab a bounty, get the report in your inbox.</div>'
+    +'<div class="x-note">This week\\'s loop: crown the propagandist, grab a bounty, get the report in your inbox.</div>'
     +'<div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:10px">'
-    +'<a class="c-btn" href="/#pf-vote" style="text-decoration:none;display:inline-block">VOTE FOR NEXT WEEK\'S PROPAGANDIST</a>'
+    +'<a class="c-btn" href="/#pf-vote" style="text-decoration:none;display:inline-block">VOTE FOR NEXT WEEK\\'S PROPAGANDIST</a>'
     +'<a class="c-btn" href="/create?tab=bounties" style="text-decoration:none;display:inline-block">OPEN BOUNTIES</a>'
     +'<a class="c-btn" href="https://mtcstw.substack.com" target="_blank" rel="noopener" style="text-decoration:none;display:inline-block">GET THE WAR REPORT</a>'
     +'</div></div>';

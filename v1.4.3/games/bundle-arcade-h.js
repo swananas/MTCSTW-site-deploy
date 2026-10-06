@@ -609,6 +609,7 @@ el('bvShare').onclick=function(){
 '      +"<div style=\'font-size:0.9rem;color:#b8ab8e;margin-bottom:1rem;\'>"+A.desc+"</div>"\n' +
 '      +"<div id=\'pf-mq-tribe\' style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:0.8rem;min-height:1.2em;\'></div>"\n' +
 '      +"<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;margin-bottom:0.4rem;\'>YOUR SLR MATCHES</div>"+mh+fourthHtml\n' +
+'      +recruitHtml\n' +
 '      +"<div style=\'margin-top:1rem;\'><button id=\'pf-mq-share\' style=\'padding:0.7rem 1.6rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>SHARE ARCHETYPE CARD</button></div>"\n' +
 '      +"<div style=\'margin-top:0.6rem;\'><button id=\'pf-mq-story\' style=\'padding:0.7rem 1.6rem;background:transparent;border:2px solid #c1121f;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>SHARE TO STORY (9:16)</button></div>"\n' +
 '      +(streakN>1?"<div style=\'margin-top:0.6rem;font-size:0.85rem;color:#b8ab8e;\'>&#128293; <b style=\'color:#f5f0e1;\'>"+streakN+"-day streak</b> \\u2014 see you tomorrow</div>":"")\n' +
@@ -624,6 +625,16 @@ el('bvShare').onclick=function(){
 '    loadTribes(function(){var n=TRIBES?Number(TRIBES[top]||0):0;var t=document.getElementById("pf-mq-tribe");if(t&&n>0){t.innerHTML="<b style=\'color:#f5f0e1;\'>"+n.toLocaleString()+"</b> comrades landed <b style=\'color:#f5f0e1;\'>"+A.name+"</b> this week. The tribe grows.";}});\n' +
 '    var unlocked=false;\n' +
 '    function unlock4(){if(unlocked)return;unlocked=true;var f=document.getElementById("pf-mq-fourth");if(f&&A.mates[3]){f.innerHTML="<div style=\'padding:0.5rem;border:1px solid #c1121f;margin:0.3rem 0;font-weight:700;background:#1a0d0d;\'>"+esc(A.mates[3].label||A.mates[3])+"</div>";}}\n' +
+'    /* QW-3 (2026-10-05): RECRUIT UNDER YOUR MATCH - enlist under the match\\u2019s name.\n' +
+'       ?creator= is captured first-touch by core/09-referral.js. Zero new XP. */\n' +
+'    var recruitHtml="";\n' +
+'    for(var ri=0;ri<Math.min(3,A.mates.length);ri++){var rs=A.mates[ri];var rslug=(rs&&rs.s)?String(rs.s):"";\n' +
+'      if(!rslug)continue;\n' +
+'      recruitHtml+="<a href=\'/?creator="+encodeURIComponent(rslug)+"\' style=\'display:inline-block;margin:0.25rem;padding:0.7rem 1.6rem;background:#c1121f;color:#f5f0e1;font-weight:800;letter-spacing:0.1em;font-size:0.9rem;text-decoration:none;font-family:inherit;\'>RECRUIT UNDER "+esc(String(rs.label||rslug).toUpperCase())+" \\u2192</a>";}\n' +
+'    if(recruitHtml){recruitHtml="<div style=\'margin-top:1.2rem;border:2px solid #c1121f;padding:0.9rem;\'>"\n' +
+'      +"<div style=\'font-size:0.9rem;font-weight:900;letter-spacing:0.12em;color:#c1121f;\'>RECRUIT UNDER YOUR MATCH</div>"\n' +
+'      +"<div style=\'font-size:0.85rem;color:#b8ab8e;margin:0.4rem 0 0.8rem;\'>Enlist in their name and muster the tribe.</div>"\n' +
+'      +recruitHtml+"</div>";}\n' +
 '    function mqShareH(e){try{if(e&&e.detail&&e.detail.game==="slr-match-quiz"){unlock4();document.removeEventListener("pf-share-image",mqShareH);}}catch(err){}}\n' +
 '    document.addEventListener("pf-share-image",mqShareH);\n' +
 '    document.getElementById("pf-mq-share").onclick=function(){\n' +

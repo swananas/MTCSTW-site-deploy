@@ -229,6 +229,17 @@ function api(action,params,cb){
   q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
   setTimeout(function(){ finish(null); },12000);
 }
+/* QW-2 (2026-10-05): next-action row rendered after the report body / email pane.
+   Zero new XP, zero new endpoints, zero new backend reads — static anchors only. */
+function nextActionRow(){
+  return '<div class="x-pane" style="text-align:center"><h4>READ IT. NOW MOVE.</h4>'
+    +'<div class="x-note">This week\\'s loop: crown the propagandist, grab a bounty, get the report in your inbox.</div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:10px">'
+    +'<a class="c-btn" href="/#pf-vote" style="text-decoration:none;display:inline-block">VOTE FOR NEXT WEEK\\'S PROPAGANDIST</a>'
+    +'<a class="c-btn" href="/create?tab=bounties" style="text-decoration:none;display:inline-block">OPEN BOUNTIES</a>'
+    +'<a class="c-btn" href="https://mtcstw.substack.com" target="_blank" rel="noopener" style="text-decoration:none;display:inline-block">GET THE WAR REPORT</a>'
+    +'</div></div>';
+}
 function paint(el,j){
   var id=ident();
   if(!id.callsign){
@@ -247,7 +258,8 @@ function paint(el,j){
       +'(and in your inbox once email is wired). Check in all week so there is '
       + 'something worth writing about.</div></div>'
       +'<div id="wrFanFav"></div>'
-      +emailPaneHtml();
+      +emailPaneHtml()
+      +nextActionRow();
     wireEmail(); loadFanFav();
     return;
   }
@@ -261,7 +273,8 @@ function paint(el,j){
     +'<div class="wr-body" style="white-space:pre-wrap;font-family:monospace;font-size:13px;line-height:1.55;margin-top:8px">'
     +esc(meme.before)+meme.card+esc(meme.after)+'</div></div>'
     +'<div id="wrFanFav"></div>'
-    +emailPaneHtml();
+    +emailPaneHtml()
+    +nextActionRow();
   wireEmail(); loadFanFav();
 }
 function load(){

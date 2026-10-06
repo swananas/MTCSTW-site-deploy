@@ -157,6 +157,14 @@ function nudge(){
   t.textContent='Claim a callsign and every point you earn follows you across devices.';
   d.appendChild(h); d.appendChild(t);
   d.appendChild(goBtn('CLAIM CALLSIGN \u2192', {anchor:'#pf-orders',page:'/'}, function(){ d.remove(); }));
+  /* 2026-10-06 CEO directive: every claim prompt needs the recovery path. */
+  try{
+    if(window.PF && PF.recoverLinkHTML){
+      var rl=document.createElement('div');
+      rl.innerHTML=PF.recoverLinkHTML();
+      d.appendChild(rl);
+    }
+  }catch(e){}
   /* Expand the claim box on arrival. */
   var iv=setInterval(function(){
     var tg=document.getElementById('oClaimToggle');

@@ -173,7 +173,9 @@
         Number(st.streak || 0) + '</b>. New cache at midnight.</div>';
     } else if (!id.callsign) {
       h += '<div class="dd-meta" style="margin-top:10px">Claim a callsign in Enlistment Ranks to crack it open ' +
-        'for <b>+' + Number(st.next_payout || 15) + ' XP</b>.</div>';
+        'for <b>+' + Number(st.next_payout || 15) + ' XP</b>.</div>' +
+        /* 2026-10-06 CEO directive: every claim prompt needs the recovery path. */
+        (function(){ try{ return (window.PF && PF.recoverLinkHTML) ? PF.recoverLinkHTML() : ''; }catch(e){ return ''; } })();
     } else {
       h += '<div class="dd-meta" style="margin-top:10px">Pays <b>+' + Number(st.next_payout || 15) +
         ' XP</b>' + (st.streak > 0 ? ' &middot; streak <b>' + Number(st.streak) + '</b>' : '') +

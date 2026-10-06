@@ -469,7 +469,10 @@
     var id = ident();
     if (!id.callsign){
       p.innerHTML = '<div class="hq-card"><h3>Claim a callsign first</h3>' +
-        '<div class="hq-note">Cells run on callsigns. Claim yours in Daily Orders, then come back — your HQ will be waiting.</div></div>';
+        '<div class="hq-note">Cells run on callsigns. Claim yours in Daily Orders, then come back — your HQ will be waiting.</div>' +
+        /* 2026-10-06 CEO directive: every claim prompt needs the recovery path. */
+        (function(){ try{ return (window.PF && PF.recoverLinkHTML) ? PF.recoverLinkHTML() : ''; }catch(e){ return ''; } })() +
+        '</div>';
       return;
     }
     if (S.loading.mine){ p.innerHTML = loading('Raising the cell network&hellip;'); return; }

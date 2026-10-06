@@ -1964,6 +1964,8 @@ paint();setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) retur
     <div id="oPickFight"></div>
     <br><button class="o-claimbtn" id="oClaimBtn">Claim</button>
     <div class="o-err" id="oClaimErr"></div>
+    <!-- 2026-10-06 CEO directive: every claim prompt needs the recovery path (data-pf-recover-cs owned by core/29-callsign-recovery.js). -->
+    <div style="margin-top:.6rem;"><button type="button" data-pf-recover-cs="1" style="background:none;border:none;color:#d4af37;font-size:12px;letter-spacing:.08em;text-decoration:underline;cursor:pointer;font-family:inherit;padding:.5rem;min-height:44px;">Already have one? Recover it &rarr;</button></div>
   </div>
   <div class="o-who" id="oWho"></div>
 </div>
@@ -4432,7 +4434,10 @@ function dpAuthHint(j){
   if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")
     return '<br><span class="x-note">This callsign predates the new auth system and can&rsquo;t reconnect on its own &mdash; contact MTCSTW to recover it.</span>';
   if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)
-    return '<br><span class="x-note">Your callsign needs to reconnect &mdash; re-claim it in Enlistment Ranks (one tap), then retry.</span>';
+    return '<br><span class="x-note">Your callsign needs to reconnect &mdash; re-claim it in Enlistment Ranks (one tap), then retry.'+
+      /* 2026-10-06 CEO directive: every claim prompt needs the recovery path. */
+      (function(){ try{ return (window.PF && window.PF.recoverLinkHTML) ? window.PF.recoverLinkHTML() : ''; }catch(e2){ return ''; } })()+
+      '</span>';
   return "";
 }
 /* JSONP GET for reads. */
@@ -5662,6 +5667,10 @@ function render(){
   document.getElementById("rWho").innerHTML=who+(idx>=2&&who?' <span class="gold">&#9733;</span>':"");
   /* Armory: apply equipped frame + flair to the callsign display. */
   try{ if(window.PF&&PF.armoryStyle) PF.armoryStyle(document.getElementById("rWho")); }catch(e){}
+  /* 2026-10-06 CEO directive: "Get a recovery code" lives where a logged-in
+     user sees their callsign — the identity surface. Guarded + idempotent.
+     Runs AFTER armoryStyle (it rewrites rWho innerHTML). */
+  try{ if(who&&window.PF&&PF.mountRecoveryEntry) PF.mountRecoveryEntry(document.getElementById("rWho")); }catch(e){}
   /* W2-D17 + R29 (2026-10-04): equipped custom title byline + subscriber
      badge on the callsign profile. Mirrors written by /economy (title_buy)
      and /war-chest (subscribe); the ticker byline reads ev.title.

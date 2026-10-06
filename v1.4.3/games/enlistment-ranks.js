@@ -443,6 +443,10 @@ function render(){
   document.getElementById("rWho").innerHTML=who+(idx>=2&&who?' <span class="gold">&#9733;</span>':"");
   /* Armory: apply equipped frame + flair to the callsign display. */
   try{ if(window.PF&&PF.armoryStyle) PF.armoryStyle(document.getElementById("rWho")); }catch(e){}
+  /* 2026-10-06 CEO directive: "Get a recovery code" lives where a logged-in
+     user sees their callsign — the identity surface. Guarded + idempotent.
+     Runs AFTER armoryStyle (it rewrites rWho innerHTML). */
+  try{ if(who&&window.PF&&PF.mountRecoveryEntry) PF.mountRecoveryEntry(document.getElementById("rWho")); }catch(e){}
   /* W2-D17 + R29 (2026-10-04): equipped custom title byline + subscriber
      badge on the callsign profile. Mirrors written by /economy (title_buy)
      and /war-chest (subscribe); the ticker byline reads ev.title.

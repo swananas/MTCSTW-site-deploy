@@ -5286,7 +5286,10 @@ function fdAuthHint(j){
   if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")
     return '<div class="x-note">This callsign predates the new auth system and can&rsquo;t reconnect on its own &mdash; contact MTCSTW to recover it.</div>';
   if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)
-    return '<div class="x-note">Your scheduled queue is behind a handshake. Re-claim your callsign in Enlistment Ranks (one tap), then refresh.</div>';
+    return '<div class="x-note">Your scheduled queue is behind a handshake. Re-claim your callsign in Enlistment Ranks (one tap), then refresh.'+
+      /* 2026-10-06 CEO directive: every claim prompt needs the recovery path. */
+      (function(){ try{ return (window.PF && window.PF.recoverLinkHTML) ? window.PF.recoverLinkHTML() : ''; }catch(e2){ return ''; } })()+
+      '</div>';
   return "";
 }
 function api(action,params,cb){

@@ -65,7 +65,9 @@
       card.innerHTML =
         '<div class="pfc-cs-name">UNENLISTED</div>' +
         '<div class="pfc-cs-data">STATUS: <span class="pfc-status">RECRUIT</span> // ' +
-        'CLAIM A CALLSIGN TO LIGHT UP THIS DECK</div>';
+        'CLAIM A CALLSIGN TO LIGHT UP THIS DECK</div>' +
+        /* 2026-10-06 CEO directive: every claim prompt needs the recovery path. */
+        (function(){ try{ return (window.PF && window.PF.recoverLinkHTML) ? window.PF.recoverLinkHTML() : ''; }catch(e){ return ''; } })();
     }
   }
 
@@ -150,6 +152,8 @@
         '<h3>Claim your callsign</h3>' +
         '<p>Every operative needs a name. Enlist on the homepage and your command deck lights up.</p>' +
         '<div class="pfc-m-links"><a class="pfc-btn" href="/">Enlist →</a></div>' +
+        /* 2026-10-06 CEO directive: every claim prompt needs the recovery path. */
+        (function(){ try{ return (window.PF && window.PF.recoverLinkHTML) ? window.PF.recoverLinkHTML() : ''; }catch(e){ return ''; } })() +
       '</div>' +
       '<div class="pfc-mission">' +
         '<div class="pfc-m-num">MISSION 02 // DUTY</div>' +

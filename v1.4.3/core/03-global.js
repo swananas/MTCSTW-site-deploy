@@ -189,7 +189,10 @@ function pfClaimModal(done, opts){
     '<div id="pf-cs-err" style="font-size:0.8rem;color:#ff6b6b;min-height:1.3em;margin-bottom:0.5rem;"></div>' +
     /* 2026-10-03 privacy/terms: 13+ self-certification (COPPA/GDPR-K). */
     '<label style="display:block;margin:0 0 0.7rem;font-size:0.8rem;color:#b8ab8e;cursor:pointer;text-align:left;"><input type="checkbox" id="pf-cs-age13" style="vertical-align:middle;margin-right:6px;transform:scale(1.2);">I confirm I am 13 or older.</label>' +
-    '<button id="pf-cs-btn" style="display:inline-block;background:#c1121f;color:#f5f0e1;font-weight:900;letter-spacing:0.12em;border:none;padding:0.8rem 2.2rem;font-size:1rem;cursor:pointer;font-family:inherit;">CLAIM IT</button>';
+    '<button id="pf-cs-btn" style="display:inline-block;background:#c1121f;color:#f5f0e1;font-weight:900;letter-spacing:0.12em;border:none;padding:0.8rem 2.2rem;font-size:1rem;cursor:pointer;font-family:inherit;">CLAIM IT</button>' +
+    /* 2026-10-06 CEO directive: every claim prompt needs the recovery path.
+       data-pf-recover-cs is owned by core/29-callsign-recovery.js. */
+    (function(){ try{ return (window.PF && PF.recoverLinkHTML) ? PF.recoverLinkHTML() : ''; }catch(e){ return ''; } })();
   overlay.appendChild(box);
   document.body.appendChild(overlay);
   var finished = false;
@@ -266,7 +269,10 @@ window.PF.gateHTML = function(msg, ctx){
   return '<div class="c-gate">'+String(msg||'This runs on callsigns.')
     +'<br><button class="c-btn" data-pf-claim-cs="1"'
     +(ctx?(' data-pf-claim-ctx="'+esc(ctx)+'"'):'')
-    +'>CLAIM A CALLSIGN</button></div>';
+    +'>CLAIM A CALLSIGN</button>'
+    /* 2026-10-06 CEO directive: every claim prompt needs the recovery path. */
+    +(function(){ try{ return (window.PF && PF.recoverLinkHTML) ? PF.recoverLinkHTML() : ''; }catch(e){ return ''; } })()
+    +'</div>';
 };
 document.addEventListener('click', function(e){
   var t = null;

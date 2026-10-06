@@ -241,7 +241,10 @@ function nextActionRow(){
 function paint(el,j){
   var id=ident();
   if(!id.callsign){
-    el.innerHTML='<div class="c-gate">War Reports are written for enlisted soldiers. Claim your callsign in Enlistment Ranks, then come back for your briefing.</div>';
+    el.innerHTML='<div class="c-gate">War Reports are written for enlisted soldiers. Claim your callsign in Enlistment Ranks, then come back for your briefing.'+
+      /* 2026-10-06 CEO directive: every claim prompt needs the recovery path. */
+      (function(){ try{ return (window.PF && window.PF.recoverLinkHTML) ? window.PF.recoverLinkHTML() : ''; }catch(e){ return ''; } })()+
+      '</div>';
     return;
   }
   if(!j||!j.ok){

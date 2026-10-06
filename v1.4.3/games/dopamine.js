@@ -41,7 +41,10 @@ function dpAuthHint(j){
   if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")
     return '<br><span class="x-note">This callsign predates the new auth system and can&rsquo;t reconnect on its own &mdash; contact MTCSTW to recover it.</span>';
   if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)
-    return '<br><span class="x-note">Your callsign needs to reconnect &mdash; re-claim it in Enlistment Ranks (one tap), then retry.</span>';
+    return '<br><span class="x-note">Your callsign needs to reconnect &mdash; re-claim it in Enlistment Ranks (one tap), then retry.'+
+      /* 2026-10-06 CEO directive: every claim prompt needs the recovery path. */
+      (function(){ try{ return (window.PF && window.PF.recoverLinkHTML) ? window.PF.recoverLinkHTML() : ''; }catch(e2){ return ''; } })()+
+      '</span>';
   return "";
 }
 /* JSONP GET for reads. */

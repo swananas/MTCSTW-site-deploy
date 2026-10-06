@@ -340,10 +340,26 @@
     var b=document.getElementById("pnsNuke"); if(!b) return;
     var cs=callsign();
     b.classList.remove("charged"); b.classList.remove("claim");
+    /* Callsign present — the recovery path no longer applies; drop the row. */
+    if(cs){ try{ var stick2=document.getElementById("pf-nuke-stick"); var rw=stick2?stick2.querySelector('[data-pf-rec-row]'):null; if(rw&&rw.parentNode) rw.parentNode.removeChild(rw); }catch(e2){} }
     if(!cs){
       b.textContent="CLAIM CALLSIGN — CHARGE";
       b.classList.add("claim");
       b.title="Claim your callsign to charge the blast. The nuke can't be bought.";
+      /* 2026-10-06 CEO directive: every claim prompt needs the recovery path.
+         Idempotent — paintPressBtn re-runs on every tick. The delegated
+         [data-pf-recover-cs] tap handler is owned by core/29-callsign-recovery.js. */
+      try{
+        var stick=document.getElementById("pf-nuke-stick");
+        if(stick && window.PF && PF.recoverLinkHTML && !stick.querySelector('.pf-recover-row')){
+          var wrap=document.createElement('div');
+          wrap.className='pns-row'; wrap.setAttribute('data-pf-rec-row','1');
+          wrap.style.justifyContent='center'; wrap.style.paddingTop='0';
+          var rl=document.createElement('div');
+          rl.innerHTML=PF.recoverLinkHTML();
+          if(rl.firstChild){ wrap.appendChild(rl.firstChild); stick.appendChild(wrap); }
+        }
+      }catch(e){}
     }else if(pressPending){
       b.textContent="CHARGING\u2026";
       b.title="Press landing\u2026";

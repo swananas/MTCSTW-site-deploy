@@ -139,7 +139,10 @@
       : '<div style="margin:.55rem 0;"><button type="button" id="pf-rw-claim" ' +
         'style="display:inline-block;background:#c1121f;border:2px solid #c1121f;color:#fff;' +
         'font-weight:900;letter-spacing:.12em;padding:.8rem 1.6rem;font-size:.85rem;cursor:pointer;">' +
-        '1 &mdash; CLAIM YOUR CALLSIGN</button></div>';
+        '1 &mdash; CLAIM YOUR CALLSIGN</button>' +
+        /* 2026-10-06 CEO directive: every claim prompt needs the recovery path. */
+        (function(){ try{ return (window.PF && PF.recoverLinkHTML) ? PF.recoverLinkHTML() : ''; }catch(e){ return ''; } })() +
+        '</div>';
     var step2 = '<div style="margin:.55rem 0;"><button type="button" id="pf-rw-march" ' +
       'style="display:inline-block;background:transparent;border:2px solid #c1121f;color:#f5f0e1;' +
       'font-weight:900;letter-spacing:.12em;padding:.8rem 1.6rem;font-size:.85rem;cursor:pointer;">' +

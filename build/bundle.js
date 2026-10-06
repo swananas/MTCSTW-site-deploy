@@ -208,16 +208,17 @@ var SECTIONS = {
     'casino-exits.js',
     /* THE WAR ROOM — FRONTLINE FORECASTS (rebranded 2026-10-05 from the
        White Market lobby): the layer's front door + markets panel + the
-       Phase-A interim BATTLE WAGERS / RAID / DRAW zones. Mounts first on
-       /arcade via page-mount.js. */
+       Phase-A interim BATTLE WAGERS / RAID / DRAW zones. Mounts on /call-it
+       via page-mount.js (moved off /arcade in BLOSSOM S1, 2026-10-06). */
     'markets.js',
     /* A3 Deployment Tracker (2026-10-04): /arcade lobby deep-links into
        unplayed medal games. Coordinator: rebuild bundles to ship. */
     'deploy-tracker.js'
-    /* Phase B (built 2026-10-05): 'supply-raid.js' (silo key 'raid',
-       bundle-cells, mounted on pf-cells-page / pf-cell-hq) and
-       'solidarity-draw.js' (silo key 'draw', bundle-home, mounted in the
-       Hall of Proof section on the homepage). */
+    /* Phase B (built 2026-10-05; extracted to bundle-raid 2026-10-06):
+       'supply-raid.js' (silo key 'raid', own bundle now, mounted on
+       pf-cells-page AND pf-arcade) and 'solidarity-draw.js' (silo key
+       'draw', bundle-home, mounted in the Hall of Proof section on the
+       homepage). */
   ],
   /* 2026-10-05 (fe/predict-game): CALL IT. — the prediction-game expansion.
      Standalone page bundle (silo key 'predgame'): the footer fetches it on
@@ -225,6 +226,16 @@ var SECTIONS = {
      three mounts with per-page category preselect. Kill: ?pf_off=predgame. */
   'bundle-predgame': [
     'predgame.js'
+  ],
+  /* SPACE-AUDIT FIX 7 (2026-10-06): slim dupes so /call-it and /cell-war stop
+     loading the full 127KB bundle-arcade.js for a single silo. markets.js
+     lazy-loads on /call-it; battles.js lazy-loads on /cell-war. Both stay in
+     bundle-arcade.js for /arcade itself. Kill: ?pf_off=markets / ?pf_off=battles. */
+  'bundle-markets': [
+    'markets.js'
+  ],
+  'bundle-battles': [
+    'battles.js'
   ],
   'bundle-cells': [
     /* CELL IDENTITY (2026-10-05): structured cell profiles — guided founding
@@ -255,16 +266,19 @@ var SECTIONS = {
        ?pf_off=cell-territory-map / ?pf_off=cell-comp-seasons. Zero XP. */
     'cell-territory-map.js',
     'cell-comp-seasons.js',
-    /* REDISTRIBUTION LAYER Phase B (2026-10-05): Supply Line Raid — the
-       bespoke cell home (silo key 'raid'). Mounted on pf-cells-page via
-       page-mount.js; cell-scoped rounds (cell_id from the loaded cell
-       context, never URL params); hidden for non-members. */
-    'supply-raid.js',
     /* COMMUNITY REVIEW WAVE (2026-10-05): Review Pool — community review of
        Content Bank submissions (SOP v2). Silo key 'review-pool'; self-mounts
        into #pf-review-pool on Creator HQ / Studio, silent no-op elsewhere.
        Kill: ?pf_off=review-pool. */
     'review-pool.js'
+  ],
+  /* BLOSSOM S1 (2026-10-06): Supply Line Raid (silo key 'raid', template
+     id pf-ov-raid) extracts to its own bundle — it plays on /cells AND
+     /arcade (plan S2 sends the game home to the arcade). Standalone:
+     supply-raid.js reads cell_mine itself (backend call), no cells-stack
+     dependency. The footer loads this bundle on both pages. */
+  'bundle-raid': [
+    'supply-raid.js'
   ],
   'bundle-create': [
     /* /create (+ Creator HQ) — creator tooling.
@@ -371,8 +385,24 @@ var SECTIONS = {
        Kill: ?pf_off=economy-fred-rail (master ?pf_off=economy-fred). */
     'fred-macro-rail.js',
   ],
+  /* 2026-10-06 (fe/blossom-s4): /peoples-cpi — the public People's Price
+     Index (spec peoples-cpi-public-20261006.md). Self-mounting silo
+     (games/peoples-cpi.js renders into #pf-peoples-cpi); silent no-op
+     elsewhere. Read-only JSONP, zero XP. Kill: ?pf_off=peoples-cpi. */
+  'bundle-peoples-cpi': [
+    'peoples-cpi.js'
+  ],
+  /* 2026-10-06 (fe/blossom-s4): /fund — THE PROPAGANDA FUND. Structure-only
+     transparency page (games/propaganda-fund.js renders into #pf-fund);
+     the content is gated on News Desk/Brand sign-off, so the silo renders
+     an empty-honest body with no figures. Kill: ?pf_off=fund. */
+  'bundle-fund': [
+    'propaganda-fund.js'
+  ],
   'bundle-warchest': [
-    /* /war-chest — Movement Finance. */
+    /* Movement Finance (games/movement.js) — mounted on /war-chest AND,
+       since BLOSSOM M3 (2026-10-06), on /ventures as the "Movement Funds"
+       section (loader ships this bundle for isVentures too). */
     'movement.js'
   ],
   'bundle-ventures': [
@@ -517,7 +547,7 @@ var allFiles = fs.readdirSync(ROOT).filter(function (f) { return f.slice(-3) ===
 /* Every game .js file must live in exactly one page or HQ bundle — except the
    three SLIM_DUP bundles above, which intentionally re-list silos from
    bundle-home (the loader fetches slim INSTEAD of bundle-home, never both). */
-var SLIM_DUP = ['bundle-arcade-h', 'bundle-cells-h', 'bundle-create-h'];
+var SLIM_DUP = ['bundle-arcade-h', 'bundle-cells-h', 'bundle-create-h', 'bundle-markets', 'bundle-battles'];
 var bundled = [];
 Object.keys(ALL).forEach(function (b) {
   if (SLIM_DUP.indexOf(b) !== -1) return; /* see note above */

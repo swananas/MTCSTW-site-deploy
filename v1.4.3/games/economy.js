@@ -168,13 +168,14 @@ function render(){
   h+=renderDrops(id);
   h+=renderPrizes(id);
   /* QW-9 (2026-10-05): cross-link strip — Joint Ventures (#pf-ventures on the
-     homepage; mount id verified in games/ventures.js) and War Chest
-     (/war-chest; route verified in games/casino-exits.js). Pure links,
+     homepage; mount id verified in games/ventures.js) and Movement Funds
+     (/ventures#pf-movement; BLOSSOM M3 2026-10-06 folded /war-chest in as a
+     section — route verified in games/casino-exits.js). Pure links,
      zero XP, no new endpoints. One compact strip, not a section. */
   h+='<div style="margin:12px 0;padding:10px 12px;border:2px dashed #ff5a00;text-align:center">'
     +'<span class="x-note" style="color:#ff5a00;font-weight:900;letter-spacing:2px">RUN IT UP ELSEWHERE &rarr;</span> '
     +'<a href="/#pf-ventures" style="color:#f5f0e1;font-weight:700;margin:0 8px">Joint Ventures</a>'
-    +'<a href="/war-chest" style="color:#f5f0e1;font-weight:700;margin:0 8px">War Chest</a></div>';
+    +'<a href="/ventures" style="color:#f5f0e1;font-weight:700;margin:0 8px">Movement Funds</a></div>';
   h+='<div style="margin-top:10px"><button class="c-btn" id="ecRetry">Refresh</button></div>';
   el.innerHTML=h;
   wireAuctions(id,el); wireCosmetics(id,el); wireStaking(id,el); wireTreasury(id,el);

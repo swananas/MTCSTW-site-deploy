@@ -85,8 +85,10 @@ function scanCauseFunded(j){
     }
   }catch(e){}
 }
-/* S7 FUND THEIR FIGHT (2026-10-04): /war-chest?creator=<slug> preselects
+/* S7 FUND THEIR FIGHT (2026-10-04): /ventures?creator=<slug> preselects
    the creator in the subscription UI — catalog pages deep-link here.
+   (BLOSSOM M3 2026-10-06: was /war-chest, now the Movement Funds section
+   of /ventures.)
    Existing backend contract only: {type:'finance',f_action:'subscribe',
    subscriber, creator, amount_per_week}. No new actions. */
 var PRESELECT=(function(){
@@ -96,8 +98,8 @@ var PRESELECT=(function(){
   }catch(e){ return ""; }
 })();
 var preselectApplied=false;
-/* 6A-R9 (2026-10-04): /war-chest?cell=<id>&sponsor=1 — cell treasury
-   sponsorship mode. Deep-linked from the /cells treasury panel's
+/* 6A-R9 (2026-10-04): /ventures?cell=<id>&sponsor=1 — cell treasury
+   sponsorship mode (BLOSSOM M3 2026-10-06: was /war-chest). Deep-linked from the /cells treasury panel's
    "SPONSOR A CAUSE" button. Officer-gated server-side (cause_sponsor). */
 var SPONSOR_CELL=(function(){
   try{
@@ -164,8 +166,8 @@ function render(){
   if(rb) rb.onclick=function(){ CAUSES=SUBS=PRIZES=BURNS=BWALL=null; el.innerHTML='<div class="c-load">Opening the war chest&hellip;</div>'; load(); };
 }
 /* ---------- 0. STORE CROSS-LINK (R13) ----------
-   /war-chest -> /store: the bond directory lives here; the checkout lives
-   in the store. Both directions stay one tap apart. */
+   /ventures (Movement Funds) -> /store: the bond directory lives here; the
+   checkout lives in the store. Both directions stay one tap apart. */
 function renderStoreCta(){
   return '<div class="x-pane" style="border-color:#d4af37"><div class="pb-bankhead">&#9733; WAR BONDS (REAL $) LIVE IN THE STORE &#9733;</div>'
     +'<div class="x-note">Real dollars, real bonds — $5 to $50. Half funds the network, half fuels the creator pool.</div>'
@@ -324,7 +326,7 @@ function renderSubs(id){
   }
   if(sup.length) h+='<div class="x-note"><b>'+total.toLocaleString()+' XP/week</b> flowing to creators.</div>';
   h+='<div class="pb-sub pf-mt" >FIND CREATORS</div>'
-    +(PRESELECT?'<div class="x-note" id="mvPre" style="border:1px solid #c1121f;padding:8px;margin:6px 0;background:#1c0a0a;">FUNDING <b>'+esc(PRESELECT)+'</b> &mdash; preloaded below. <a href="/war-chest" style="color:#dc143c;">clear</a></div>':'')
+    +(PRESELECT?'<div class="x-note" id="mvPre" style="border:1px solid #c1121f;padding:8px;margin:6px 0;background:#1c0a0a;">FUNDING <b>'+esc(PRESELECT)+'</b> &mdash; preloaded below. <a href="/ventures" style="color:#dc143c;">clear</a></div>':'')
     +'<div><input aria-label="creator callsign" class="c-in pf-input-md" id="mvSubCs" type="text" placeholder="creator callsign" /> '
     +'<input aria-label="XP/week" class="c-in pf-input-sm" id="mvSubAmt" type="number" min="1" max="10000" placeholder="XP/week" /> '
     +'<button class="c-btn" id="mvSubBtn">SUPPORT</button></div>'

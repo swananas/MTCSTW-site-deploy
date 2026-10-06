@@ -326,6 +326,14 @@
         var d = document.createElement('div'); body.appendChild(d);
         try { if (window.PFMacro) PFMacro.mount(d); } catch (e) { err('macro mount failed'); }
       } },
+    /* THE ROBBERY REPORT (fe/robbery-report, 2026-10-06): CEO flagship data
+       product — per-item margin reverse-engineer from SEC filings. Self-mounts
+       via window.PFRobReport; kill ?pf_off=robreport. Read-only, zero XP. */
+    { key: 'robreport', kill: 'robreport', title: 'THE ROBBERY REPORT',
+      sub: 'Here\u2019s what they took from you — from their own filings.', mount: function (body) {
+        var d = document.createElement('div'); body.appendChild(d);
+        try { if (window.PFRobReport) PFRobReport.mount(d); } catch (e) { err('robreport mount failed'); }
+      } },
     /* FRED Everywhere Phase 1 (2026-10-05): "the economy they're governing"
        strip — policy transmission (Fed → mortgage), the real-wage read,
        labor-market health. Weekly cadence, Monday refresh note. */

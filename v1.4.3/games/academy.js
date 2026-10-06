@@ -113,10 +113,13 @@
 
   function load(el){
     var id=ident(), finished=false, lessonsArr=null, apArr=null, calls=0;
+    /* Progression v1: courses ride the same two calls (lesson_list is public,
+       academy_progress is AUTH). Prefer the AUTH copy as HQ-authoritative. */
+    var coursesArr=null, apCoursesArr=null, fredGuided=false;
     /* 2026-10-03: also pull academy_progress (AUTH) — the HQ-authoritative
        per-callsign completion map that feeds the progress bar. Falls back to
        the lesson_list done flags if it fails, so no stuck loader. */
-    function fin(){ if(finished)return; finished=true; render(el,lessonsArr||[],apArr); }
+    function fin(){ if(finished)return; finished=true; render(el,lessonsArr||[],apArr,coursesArr,apCoursesArr,fredGuided); }
     function maybe(){ calls++; if(calls>=2) fin(); }
     /* Safety: if JSONP hangs, unstick and show retry. */
     setTimeout(function(){ fin(); },15000);
@@ -129,18 +132,38 @@
     if(id.callsign) p.callsign=id.callsign;
     api("lesson_list",p,function(j){
       if(j&&j.ok&&j.lessons&&j.lessons.length) lessonsArr=j.lessons;
+      if(j&&j.ok&&j.courses) coursesArr=j.courses;
       maybe();
     });
     if(id.callsign) api("academy_progress",{callsign:id.callsign},function(j){
       if(j&&j.ok&&j.lessons) apArr=j.lessons;
+      if(j&&j.ok&&j.courses) apCoursesArr=j.courses;
+      if(j&&j.ok&&j.fred_guided_unlocked) fredGuided=true;
       maybe();
     });
     else maybe();
   }
 
-  function render(el,lessons,apLessons){
+  /* Progression v1: claim the certificate for a finished course, then reload
+     so the certificate card renders from HQ-authoritative state. */
+  function claimCertificate(el, courseId, lessons, apLessons, courses, apCourses, fg){
+    post("course_complete",{callsign:ident().callsign, device:ident().device, course_id:courseId},function(j){
+      if(j&&j.ok&&j.certificate){
+        toast("COURSE COMPLETE — certificate earned: "+j.certificate.title);
+        try{ if(window.PF&&PF.dope){ var ah=document.getElementById("pf-academy")||document.body; PF.dope.confetti(ah,60); } }catch(dpe){}
+      }
+      load(el);
+    });
+  }
+
+  function fmtDate(ts){
+    try{ var d=new Date(Number(ts)); return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+    catch(e){ return ''; }
+  }
+
+  function render(el,lessons,apLessons,courses,apCourses,fredGuided){
     var id=ident(), h="";
-    lastRender={el:el,lessons:lessons,ap:apLessons};
+    lastRender={el:el,lessons:lessons,ap:apLessons,courses:courses,apCourses:apCourses,fg:fredGuided};
     if(!lessons.length){
       el.innerHTML='<div class="fe-block pf-override-block" id="pf-academy">'
         +'<h2>Propaganda Academy</h2>'
@@ -152,8 +175,106 @@
       return;
     }
     lessons=lessons.slice().sort(function(a,b){ return (a.order_num||0)-(b.order_num||0); });
-    /* Progress bar is fed by academy_progress (AUTH, HQ-authoritative) when it
-       landed; falls back to the lesson_list done flags. */
+    /* Progression v1: prefer AUTH courses as HQ-authoritative. */
+    var csrc=(apCourses&&apCourses.length)?apCourses:(courses||[]);
+    /* Pre-progression fallback: no courses on the wire (old backend) — flat list. */
+    if(!csrc.length){ renderFlat(el,lessons,apLessons); return; }
+    var src=(apLessons&&apLessons.length)?apLessons:lessons;
+    var doneById={};
+    for(var di=0;di<src.length;di++){ if(src[di].done) doneById[src[di].id]=1; }
+    var n=0,i,L;
+    for(i=0;i<src.length;i++){ if(src[i].done) n++; }
+    var pct=src.length?Math.round(n/src.length*100):0;
+    var hqSynced=!!(apLessons&&apLessons.length);
+    h+='<div class="fe-block pf-override-block" id="pf-academy">'
+      +'<h2>Propaganda Academy</h2>'
+      +'<div class="c-tag">Learn the craft. Earn your stripes. Pump with purpose.</div>';
+    if(!id.callsign){
+      h+=PF.gateHTML('The Academy enrolls callsign holders.','to enroll and bank XP');
+    } else {
+      h+='<div class="x-pane"><div class="x-note">PROGRESS: '+n+'/'+src.length+' lessons &mdash; '+pct+'%'+(hqSynced?' <span style="color:#7CFC00">&#10003; HQ-synced</span>':"")+'</div>'
+        +'<div style="background:#222;border:1px solid #555;height:14px;margin-top:6px"><div style="background:#c1121f;height:12px;width:'+pct+'%"></div></div></div>';
+    }
+    /* Group lessons by course; unassigned -> FIELD MANUAL catch-all. */
+    var byCourse={}, unassigned=[];
+    for(i=0;i<lessons.length;i++){
+      var cid=lessons[i].course_id||null;
+      if(cid){ if(!byCourse[cid]) byCourse[cid]=[]; byCourse[cid].push(lessons[i]); }
+      else unassigned.push(lessons[i]);
+    }
+    var courseById={};
+    for(var ci2=0;ci2<csrc.length;ci2++){ courseById[csrc[ci2].id]=csrc[ci2]; }
+    var ordered=csrc.slice().sort(function(a,b){ return (a.order_num||0)-(b.order_num||0); });
+    for(var oi=0;oi<ordered.length;oi++){
+      var C=ordered[oi];
+      var cl=(byCourse[C.id]||[]).slice().sort(function(a,b){ return (a.order_num||0)-(b.order_num||0); });
+      if(!cl.length) continue;
+      var cdone=0,k;
+      for(k=0;k<cl.length;k++){ if(doneById[cl[k].id]) cdone++; }
+      var cpct=cl.length?Math.round(cdone/cl.length*100):0;
+      var locked=id.callsign&&!C.unlocked;
+      h+='<div class="x-pane" id="ac-course-'+esc(C.id)+'">'
+        +'<div class="fd-title">'+esc(C.title)
+        +(C.completed?' <span style="color:#7CFC00">&#10003;</span>':"")
+        +(locked?' <span style="color:#b8ab8e">&#128274;</span>':"")+'</div>'
+        +'<div class="x-note">'+esc(C.description||"")+'</div>'
+        +'<div class="x-note">'+cdone+'/'+cl.length+' lessons &mdash; '+cpct+'%</div>'
+        +'<div style="background:#222;border:1px solid #555;height:10px;margin:6px 0"><div style="background:#c1121f;height:8px;width:'+cpct+'%"></div></div>';
+      if(locked){
+        var reqT=C.requires_course&&courseById[C.requires_course]?courseById[C.requires_course].title:'the previous course';
+        /* Psych rule: neutral, informational lock copy — no FOMO, no shaming. */
+        h+='<div class="x-note" style="color:#b8ab8e">Complete '+esc(reqT)+' to unlock.</div>';
+      }
+      if(C.completed&&C.completed_at){
+        h+='<div style="border:2px solid #c1121f;background:#140808;padding:.7rem;margin:.6rem 0;text-align:center">'
+          +'<div style="color:#c1121f;font-weight:900;letter-spacing:.14em;font-size:.85rem">&#9733; CERTIFICATE &#9733;</div>'
+          +'<div style="color:#f5f0e1;font-size:.8rem;margin-top:.25rem">'+esc(C.title)+' &mdash; earned by '+esc(id.callsign||'callsign')+(C.completed_at?' on '+esc(fmtDate(C.completed_at)):"")+'</div></div>';
+      }
+      for(k=0;k<cl.length;k++){
+        L=cl[k];
+        var isDone=!!doneById[L.id], xp=Number(L.xp_reward)||0;
+        h+='<div class="x-pane" id="ac-pane-'+esc(L.id)+'" style="margin:.5rem 0">'
+          +'<div class="fd-title">'+esc(L.title)+(isDone?' <span style="color:#7CFC00">&#10003;</span>':"")+'</div>'
+          +'<div class="x-note">'+richContent(L.content)+'</div>'
+          +'<div class="x-note">+'+xp+' XP</div>';
+        if(id.callsign&&!isDone&&!locked){
+          h+='<button class="c-btn ac-done" data-lid="'+esc(L.id)+'" data-xp="'+xp+'" data-cid="'+esc(C.id)+'">MARK COMPLETE</button>';
+          if(k<cl.length-1){
+            h+=' <button class="c-btn ghost ac-next" data-next="'+esc(cl[k+1].id)+'">NEXT LESSON &rarr;</button>';
+          }
+        }
+        h+='</div>';
+      }
+      h+='</div>';
+    }
+    if(unassigned.length){
+      h+='<div class="x-pane" id="ac-course-field-manual">'
+        +'<div class="fd-title">FIELD MANUAL</div>'
+        +'<div class="x-note">Extra training, no prerequisites.</div>';
+      for(var ui=0;ui<unassigned.length;ui++){
+        L=unassigned[ui];
+        var uDone=!!doneById[L.id], uxp=Number(L.xp_reward)||0;
+        h+='<div class="x-pane" id="ac-pane-'+esc(L.id)+'" style="margin:.5rem 0">'
+          +'<div class="fd-title">'+esc(L.title)+(uDone?' <span style="color:#7CFC00">&#10003;</span>':"")+'</div>'
+          +'<div class="x-note">'+richContent(L.content)+'</div>'
+          +'<div class="x-note">+'+uxp+' XP</div>';
+        if(id.callsign&&!uDone){
+          h+='<button class="c-btn ac-done" data-lid="'+esc(L.id)+'" data-xp="'+uxp+'" data-cid="">MARK COMPLETE</button>';
+        }
+        h+='</div>';
+      }
+      h+='</div>';
+    }
+    h+='<div style="margin-top:10px"><button class="c-btn" id="acRetry">Refresh</button></div>';
+    h+='</div>';
+    el.innerHTML=h;
+    wireButtons(el,lessons,doneById,courseById);
+  }
+
+  /* Pre-progression flat render (fallback when the backend has no courses). */
+  function renderFlat(el,lessons,apLessons){
+    var id=ident(), h="";
+    lessons=lessons.slice().sort(function(a,b){ return (a.order_num||0)-(b.order_num||0); });
     var src=(apLessons&&apLessons.length)?apLessons:lessons;
     var n=0,i,L;
     for(i=0;i<src.length;i++){ if(src[i].done) n++; }
@@ -177,8 +298,6 @@
         +'<div class="x-note">+'+xp+' XP</div>';
       if(id.callsign&&!isDone){
         h+='<button class="c-btn ac-done" data-lid="'+esc(L.id)+'" data-xp="'+xp+'">MARK COMPLETE</button>';
-        /* QW-5a (2026-10-05): NEXT LESSON → scrolls to the next lesson pane —
-           same section, zero new logic, zero XP, no new endpoints. */
         if(i<lessons.length-1){
           h+=' <button class="c-btn ghost ac-next" data-next="'+esc(lessons[i+1].id)+'">NEXT LESSON &rarr;</button>';
         }
@@ -188,24 +307,41 @@
     h+='<div style="margin-top:10px"><button class="c-btn" id="acRetry">Refresh</button></div>';
     h+='</div>';
     el.innerHTML=h;
+    wireButtons(el,lessons,null,null);
+  }
+
+  /* Shared button wiring for both renders. data-cid carries the course so a
+     just-finished course triggers the certificate claim. */
+  function wireButtons(el,lessons,doneById,courseById){
+    var id=ident();
     var bs=el.querySelectorAll("button.ac-done"), b;
     for(b=0;b<bs.length;b++){
       (function(btn){
         btn.onclick=function(){
-          var lid=btn.getAttribute("data-lid");
+          var lid=btn.getAttribute("data-lid"), cid=btn.getAttribute("data-cid");
           btn.disabled=true; btn.textContent="RECORDING...";
           post("lesson_complete",{callsign:id.callsign,device:id.device,lesson_id:lid},function(j){
             if(j&&j.ok){
               var gained=(j.xp!=null?j.xp:Number(btn.getAttribute("data-xp"))||0);
-              /* Backend granted the XP — mirror it locally for instant HUD
-                 (nolx: no pf-xp dispatch, no double-grant). Count it in Do Meter. */
               if(gained>0) creditLocal(lid, gained);
               try{ document.dispatchEvent(new CustomEvent("pf-lesson-complete",{detail:{lesson:lid,xp:gained}})); }catch(e2){}
               toast(j.dup?"Already banked. No double pay.":"Lesson complete. +"+gained+" XP.");
-              /* M1 dopamine: banking a lesson should feel earned. */
               try{ if(window.PF&&PF.dope){ var ah=document.getElementById("pf-academy")||document.body; PF.dope.press(btn); PF.dope.confetti(ah,35); if(gained>0) PF.dope.xpFloat(ah,"+"+gained+" XP"); } }catch(dpe){}
-              for(var k=0;k<lessons.length;k++){ if(lessons[k].id===lid) lessons[k].done=1; }
-              render(el,lessons);
+              /* Progression v1: if this was the course's last lesson, claim
+                 the certificate (backend re-verifies; then full reload). */
+              if(cid&&courseById&&courseById[cid]){
+                var all=(function(){
+                  try{
+                    var lr=lastRender.lessons||[];
+                    for(var q=0;q<lr.length;q++){
+                      if((lr[q].course_id||"")===cid&&lr[q].id!==lid&&!doneById[lr[q].id]) return false;
+                    }
+                    return true;
+                  }catch(e3){ return false; }
+                })();
+                if(all){ claimCertificate(el,cid,lessons,lastRender.ap,lastRender.courses,lastRender.apCourses,lastRender.fg); return; }
+              }
+              load(el);
             } else {
               btn.disabled=false; btn.textContent="MARK COMPLETE";
               toast(PF.errCopy(j,"Could not record. Try again."));
@@ -216,7 +352,6 @@
     }
     var rb2=document.getElementById("acRetry");
     if(rb2) rb2.onclick=function(){ el.innerHTML='<div class="c-load">Loading the academy&hellip;</div>'; load(el); };
-    /* QW-5a wiring: NEXT LESSON buttons scroll to the next lesson pane. */
     var nx=el.querySelectorAll("button.ac-next"), n2;
     for(n2=0;n2<nx.length;n2++){
       (function(btn){

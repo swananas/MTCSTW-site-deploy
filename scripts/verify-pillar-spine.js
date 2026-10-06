@@ -408,7 +408,9 @@ function fireClick(el) {
       P.registerDestination('data', { url: 'https://evil.example/x' }) === false);
     ok('runtime: missing url rejected', P.registerDestination('data', {}) === false);
     ok('runtime: default data destination',
-      P.destinations('data')[0].url === '/economy');
+      P.destinations('data')[0].url === '/peoples-cpi');
+    ok('runtime: economy stays as data fallback',
+      P.destinations('data').some(function (d) { return d.url === '/economy'; }));
     P.registerDestination('data', { url: '/prices', mount: 'pf-prices' });
     ok('runtime: new page takes priority', P.destinations('data')[0].url === '/prices');
     P.registerDestination('data', { url: '/prices', mount: 'pf-prices-v2' });

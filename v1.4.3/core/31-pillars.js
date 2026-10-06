@@ -28,8 +28,8 @@
        and SPREAD pre-loads that card's poster (fallback: page map).
      - DATA / ACT / ORGANIZE resolve through the DESTINATION REGISTRY below
        (pillar -> current landing page): page silos register themselves at load,
-       so when Blossom adds /prices, /call-it, /cell-war, /governance etc. the
-       HUD picks them up with no rebuild and no edit to this file.
+       so when Blossom adds /peoples-cpi, /call-it, /cell-war, /governance etc.
+       the HUD picks them up with no rebuild and no edit to this file.
    CEO STANDING RULE (2026-10-06): new pages are pre-authorized as natural
    expansion — they stay optimized for engagement by meeting the bar: one-click
    pillar access (this row), a Next Move exit (20-nextop.js mounts on every
@@ -229,7 +229,7 @@
      first = lowest priority) point at today's pages; PAGE SILOS register
      themselves — typically at load — to become the current landing page for
      their pillar. Blossom pattern:
-       PF.pillars.registerDestination('data',     { url:'/prices',    mount:'pf-prices' });
+       PF.pillars.registerDestination('data',     { url:'/peoples-cpi', mount:'pf-peoples-cpi' });
        PF.pillars.registerDestination('act',      { url:'/call-it',   mount:'pf-call-it' });
        PF.pillars.registerDestination('organize', { url:'/cell-war',   mount:'pf-cell-war' });
        PF.pillars.registerDestination('act',      { url:'/governance', mount:'pf-governance' });
@@ -304,6 +304,10 @@
      is the movement's data bounty — the money page's own data surface can
      register itself when it lands. */
   registerDestination('data', { url: '/economy', mount: 'pf-inflation-checkin', focus: 'pf-inf-ci-price' });
+  /* BLOSSOM (2026-10-06): /peoples-cpi is the primary DATA destination;
+     registered after /economy so it takes the front of the list (newest
+     registration wins). /economy stays as the fallback. */
+  registerDestination('data', { url: '/peoples-cpi', mount: 'pf-peoples-cpi' });
   registerDestination('act', { url: '/events', mount: 'pf-events' });
   registerDestination('organize', { url: '/cells', mount: 'pf-cells-page' });
 

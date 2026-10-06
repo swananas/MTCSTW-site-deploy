@@ -1022,8 +1022,9 @@ setInterval(function(){
    Binding honesty:
    - Weekdays only. Never carry a daily briefing on monthly numbers alone —
      if nothing daily moved, the market reads (DGS10/DGS2) lead.
-   - Stale series are skipped with a one-line note, never silently presented
-     as current ("Mortgage data delayed this week — carrying last week's print").
+   - Stale series carry the last good print with the staleness badge adjacent
+     (News Desk §4.4), plus a one-line note — never silently presented as
+     current ("Mortgage data delayed — carrying the last good print").
    - Fedwatch direction: derived from the DGS2–FEDFUNDS spread (News Desk
      Pair 8) and attributed honestly to the 2-year Treasury — there is no
      fed-funds futures feed, so "per fed-funds futures" is never claimed.
@@ -1087,7 +1088,8 @@ setInterval(function(){
     } catch (e) { return ''; }
   }
 
-  /* One-line read per series. Stale legs: skipped here (note below). */
+  /* One-line read per series. Stale legs render with the badge (§4.4);
+     the one-line note is appended below. */
   function lineFor(F, c, ctx) {
     var sid = c.series_id;
     var v = c.value_label != null ? c.value_label : '—';
@@ -1161,11 +1163,11 @@ setInterval(function(){
     ORDER.forEach(function (id) {
       var c = byId[id];
       if (!c) return;
-      /* Briefings skip stale series with a note (protocol §4) — except the
-         daily market reads, which carry the badge visibly instead. */
+      /* News Desk §4.4: briefings CARRY the last good print — stale cards
+         render with the staleness badge adjacent, never dropped. The
+         one-line note is kept below. */
       if (c.stale && (F.FREQ[id] === 'm' || F.FREQ[id] === 'w' || F.FREQ[id] === 'q')) {
         skipped.push(c);
-        return;
       }
       cards.push(c);
     });

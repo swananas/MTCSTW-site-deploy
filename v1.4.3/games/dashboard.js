@@ -43,17 +43,20 @@ function api(action,params,cb){
   setTimeout(function(){ finish(null); },12000);
 }
 function adminSecret(){ try{ return sessionStorage.getItem("pf_admin_secret")||""; }catch(e){ return ""; } }
-var CS=null, HIST=null, FUNNEL=null, FUNNEL_DONE=false, UTOT=null;
+var CS=null, HIST=null, FUNNEL=null, FUNNEL_DONE=false, UTOT=null, CAL=null;
 function load(){
   var id=ident(), done=false, n=0;
   function fin(){ if(done)return; done=true; render(); }
-  function one(){ n++; if(n>=3) fin(); }
+  function one(){ n++; if(n>=4) fin(); }
   setTimeout(fin,15000);
   api("creator_stats",{callsign:id.callsign},function(j){ CS=j; one(); });
   api("xp_history",{callsign:id.callsign,limit:100},function(j){ HIST=j; one(); });
   /* 2026-10-03: user_totals (public) — device/callsign action totals.
      Note: this read returns no ok field ({device,callsign,xp,pts,actions}). */
   api("user_totals",{device:id.device,callsign:id.callsign},function(j){ UTOT=j; one(); });
+  /* 2026-10-05 (fe/master-calendar): THIS WEEK strip — the war calendar
+     feed, compact. Public read, no auth, fail-soft (strip hides on error). */
+  api("calendar_events",{},function(j){ CAL=j; one(); });
   loadFunnel();
 }
 function loadFunnel(){
@@ -114,6 +117,35 @@ function funnelHtml(){
   }
   return h;
 }
+/* 2026-10-05 (fe/master-calendar): THIS WEEK strip — compact render of the
+   war calendar feed (next 7 days). Fail-soft: returns '' on any feed
+   problem so the dashboard never shows a broken strip. */
+function renderThisWeek(){
+  try{
+    /* QC gate (2026-10-05, M5): the ?pf_off=mastercal kill covers this
+       strip too, not just the /events silo. */
+    if(window.PF&&window.PF.skip&&window.PF.skip('mastercal')) return '';
+    if(!CAL||!CAL.ok||!CAL.events||!CAL.events.length) return '';
+    var now=Date.now(), cutoff=now+7*86400000, items=[];
+    for(var i=0;i<CAL.events.length&&items.length<5;i++){
+      var ev=CAL.events[i];
+      if(ev.ts>=now-3600000&&ev.ts<=cutoff) items.push(ev);
+    }
+    if(!items.length) return '';
+    var h='<div class="x-pane"><h4>This week <a href="/events#pf-mastercal" style="font:bold 10px monospace;color:#c1121f;margin-left:8px;">FULL CALENDAR &rarr;</a></h4>';
+    for(var j=0;j<items.length;j++){
+      var e2=items[j];
+      var u2=String(e2.url||'/events');
+      /* NB: doubled backslashes — this template stages inside dashboard.js's
+         own template literal; the browser receives /^(https?:\/\/|\/)/i. */
+      if(!/^(https?:\\/\\/|\\/)/i.test(u2)) u2='/events';
+      h+='<div class="cp-mission"><div class="cp-mtext">'+esc(e2.title)+
+        '<br><span style="font-size:11px;color:#a89e88;">'+esc(e2.date_label)+'</span></div>'+
+        '<div class="cp-mxp"><a href="'+esc(u2)+'" style="color:#c1121f;font-weight:800;">GO &rarr;</a></div></div>';
+    }
+    return h+'</div>';
+  }catch(e){ return ''; }
+}
 function render(){
   var el=document.getElementById("xDash"); if(!el) return;
   var id=ident(), h="";
@@ -121,6 +153,9 @@ function render(){
     h+=PF.gateHTML('Command Center runs on callsigns.','to command');
     el.innerHTML=h; return;
   }
+  /* 2026-10-05 (fe/master-calendar): THIS WEEK strip — next 7 days from the
+     war calendar feed. Compact, fail-soft: hides entirely on feed error. */
+  h+=renderThisWeek();
   /* --- your numbers --- */
   var st=(CS&&CS.stats)||{};
   function num(v){ return Number(v)||0; }

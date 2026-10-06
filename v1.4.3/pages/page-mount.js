@@ -131,9 +131,9 @@
     'pf-events': {
       title: 'BOOTS ON THE GROUND', sub: 'Digital is the rehearsal. The street is the show.',
       order: [
-        /* 2026-10-05 (fe/events-platform): the War Calendar mounts first.
-           Owned by the master-calendar coordinator — their bundle stages the
-           template; fail-soft skip until then. Kill ?pf_off=mastercal. */
+        /* 2026-10-05 (fe/master-calendar): the War Calendar mounts first —
+           it aggregates every dated thing (IRL, draw, routines, deadlines).
+           Kill ?pf_off=mastercal. */
         ['mastercal', 'pf-ov-mastercal'],
         /* 2026-10-05 (fe/events-platform): new events-platform silo —
            listings + RSVP, #e=<id> detail, field-report wall, photo

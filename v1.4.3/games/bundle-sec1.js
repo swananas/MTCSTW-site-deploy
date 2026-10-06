@@ -3747,6 +3747,7 @@ syncFromServer();
 })();
 
 ;
+
 /* ===== political-hq-nudge.js ===== */
 /* games/political-hq-nudge.js  |  PF v1.4.3 | Front-door nudge to Political HQ.
    A punchy CTA card on the homepage driving traffic to /political-hq.

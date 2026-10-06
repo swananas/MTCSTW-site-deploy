@@ -228,7 +228,8 @@
       '<div style="font-size:12px;letter-spacing:4px;color:#c1121f;font-weight:800;margin-bottom:6px;">BOOTS ON THE GROUND</div>' +
       '<div style="font-family:\'Arial Black\',Arial,sans-serif;font-size:24px;letter-spacing:2px;margin:0 0 8px;text-transform:uppercase;">Take it to the streets.</div>' +
       '<div style="font-size:14px;color:#a89e88;line-height:1.5;margin-bottom:14px;">Phonebanks, canvasses, protests, meetups — the fight isn\u2019t only online. +50 XP per RSVP.</div>' +
-      '<a href="/events" style="display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:15px;padding:13px 30px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;">SEE WHAT\u2019S HAPPENING \u2192</a>';
+      '<a href="/events" style="display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:15px;padding:13px 30px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;">SEE WHAT\u2019S HAPPENING \u2192</a> ' +
+      '<a href="/events#pf-mastercal" style="display:inline-block;color:#f5ead6;font-weight:800;font-size:13px;padding:13px 18px;text-decoration:none;letter-spacing:1px;">WAR CALENDAR \u2192</a>';
     var alertsSec = h.querySelector('section[data-game="alerts"]');
     if (alertsSec && alertsSec.parentNode === h) {
       alertsSec.parentNode.insertBefore(card, alertsSec.nextSibling);

@@ -200,6 +200,12 @@
       'style="display:inline-block;background:#c1121f;border:2px solid #c1121f;color:#fff;' +
       'font-weight:900;letter-spacing:.12em;padding:.8rem 1.6rem;font-size:.85rem;text-decoration:none;">' +
       'FIND OPEN BOUNTIES &rarr;</a></div>';
+    /* 2026-10-05 (fe/master-calendar): graduation -> war calendar bridge.
+       Take it to the streets — mobilizations, draws, deadlines. Zero XP. */
+    steps += '<div style="margin:.55rem 0;"><a href="/events#pf-mastercal" ' +
+      'style="display:inline-block;background:transparent;border:2px solid #f5f0e1;color:#f5f0e1;' +
+      'font-weight:900;letter-spacing:.12em;padding:.8rem 1.6rem;font-size:.85rem;text-decoration:none;">' +
+      'WAR CALENDAR &rarr;</a></div>';
     /* QW-5c (2026-10-05): graduation share — PFShare poster API. The
        'academy-grad' REG painter entry lands in core/share-image.js
        (teammate batch); the generic fallback covers the interim. */

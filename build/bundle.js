@@ -330,6 +330,9 @@ var SECTIONS = {
   ],
   'bundle-events': [
     /* /events — Boots on the Ground. */
+    /* 2026-10-05 (fe/master-calendar): the War Calendar — master calendar
+       silo, first on /events. Kill ?pf_off=mastercal. */
+    'master-calendar.js',
     'irl.js',
     /* 2026-10-05 (fe/events-move): Town Hall Tracker moved from Political HQ
        (was fe/townhall-tracker's bundle-hq slot) to /events. Mounted by

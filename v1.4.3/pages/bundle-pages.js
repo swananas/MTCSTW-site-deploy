@@ -1442,6 +1442,16 @@
       order: [
         ['war-report', 'pf-ov-warreport']
       ]
+    },
+    /* 2026-10-05 (fe/liveops): War Room — live ops pages for debate nights,
+       election night, breaking events. ?event=<slug> selects the event;
+       no param renders the schedule. Ship-time hand-step: the Squarespace
+       page needs <div id="pf-warroom"></div>. Kill: ?pf_off=liveops. */
+    'pf-warroom': {
+      title: 'WAR ROOM', sub: 'Debate nights. Election night. History, live.',
+      order: [
+        ['liveops', 'pf-ov-liveops']
+      ]
     }
   };
 

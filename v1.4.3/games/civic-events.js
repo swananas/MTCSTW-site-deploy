@@ -32,6 +32,16 @@
 (function(){
 var BACKEND=window.PF_BACKEND_URL;
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  /* SECURITY (2026-10-06 pre-ship hardening): scheme allowlist for URLs
+     rendered into href/src. Only http(s) or relative URLs pass;
+     javascript:, data:, vbscript: etc. are rejected. */
+  function safeUrl(u){
+    var s=String(u==null?'':u).trim();
+    if(!s) return '';
+    try{ var p=new URL(s,'https://x.invalid').protocol;
+      if(p==='http:'||p==='https:') return s; }catch(e){}
+    return '';
+  }
 function ident(){ var cs='',dev=''; try{ cs=window.PFCallsign?window.PFCallsign():''; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():''; }catch(e){} return {callsign:cs,device:dev}; }
 function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
   try{ var t=document.createElement('div'); t.textContent=m;
@@ -103,7 +113,7 @@ function cardHTML(ev){
     '<div class="ce-where">'+esc(ev.venue)+' — '+esc(ev.city)+', '+esc(ev.state)+'</div>'+
     '<div class="ce-meta"><span class="ce-going">'+Number(ev.rsvp_count||0)+' going</span> '+
     '<a href="'+esc(mapLink(ev))+'" target="_blank" rel="noopener">View map</a> '+
-    '<a href="'+esc(ev.source_url)+'" target="_blank" rel="noopener">Source</a></div>'+
+    '<a href="'+esc(safeUrl(ev.source_url)||'#')+'" target="_blank" rel="noopener">Source</a></div>'+
     '<button class="c-btn ce-detail" data-ce="detail" data-id="'+esc(ev.id)+'">DETAILS + RSVP</button></div>';
 }
 function renderList(){
@@ -138,7 +148,7 @@ function renderDetail(id){
       '<h3>'+esc(ev.title)+'</h3>'+
       '<div class="ce-where">'+esc(ev.venue)+' — '+esc(ev.city)+', '+esc(ev.state)+'</div>'+
       '<div class="ce-meta"><a href="'+esc(mapLink(ev))+'" target="_blank" rel="noopener">View map</a> '+
-      '<a href="'+esc(ev.source_url)+'" target="_blank" rel="noopener">Source link</a></div>'+
+      '<a href="'+esc(safeUrl(ev.source_url)||'#')+'" target="_blank" rel="noopener">Source link</a></div>'+
       '<div class="ce-sub">Posted by '+esc(ev.submitted_by_callsign||'a comrade')+'</div>'+
       '<div id="ce-rsvp"><div class="c-load">Checking RSVP&hellip;</div></div>'+
       '<h4>RIDE BOARD</h4><div class="c-note">Need a ride or have seats? Coordinate below — contact info is whatever you choose to share, and riders reach out to drivers directly. No live tracking, ever.</div>'+

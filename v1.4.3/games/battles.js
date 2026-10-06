@@ -18,6 +18,16 @@
 (function(){
 var BACKEND=window.PF_BACKEND_URL;
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  /* SECURITY (2026-10-06 pre-ship hardening): scheme allowlist for URLs
+     rendered into href/src. Only http(s) or relative URLs pass;
+     javascript:, data:, vbscript: etc. are rejected. */
+  function safeUrl(u){
+    var s=String(u==null?'':u).trim();
+    if(!s) return '';
+    try{ var p=new URL(s,'https://x.invalid').protocol;
+      if(p==='http:'||p==='https:') return s; }catch(e){}
+    return '';
+  }
 function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
 function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
   try{ var t=document.createElement("div"); t.textContent=m;
@@ -100,7 +110,7 @@ function loadMyProposals(){
       h+='<div class="bt-prop"><b>'+esc(pr.title)+'</b> <span class="bt-st bt-st-'+esc(pr.status)+'">'+st+'</span>';
       /* R6 (2026-10-04): forge-proposed battles show the poster's stamped
          thumbnail — the programmatic propose renders in place. */
-      if(pr.image_data) h+='<br><img src="'+esc(pr.image_data)+'" alt="proposed battle poster" loading="lazy" style="display:block;max-width:180px;width:100%;height:auto;margin:0.4rem 0;border:2px solid #c1121f;">';
+      var _pim=safeUrl(pr.image_data); if(_pim) h+='<br><img src="'+esc(_pim)+'" alt="proposed battle poster" loading="lazy" style="display:block;max-width:180px;width:100%;height:auto;margin:0.4rem 0;border:2px solid #c1121f;">';
       if(pr.status==="rejected"&&pr.reason) h+=' <span class="x-note">'+esc(pr.reason)+'</span>';
       h+=' <span class="x-note">'+fmtDate(pr.created_at)+'</span></div>';
     }
@@ -156,7 +166,7 @@ function render(){
         +'<b>'+esc(en.title||en.id)+'</b> <span class="x-note">by '+esc(en.creator)+' &bull; '+en.votes+' votes &bull; boosted '+bm.xp+' XP</span>'
         /* R6 (2026-10-04): forge-proposed entries carry the stamped poster —
            the JOIN THE FIGHT. CTA is baked into the image itself. */
-        +(en.image?'<img src="'+esc(en.image)+'" alt="battle entry poster" loading="lazy" style="display:block;max-width:220px;width:100%;height:auto;margin:0.5rem 0;border:2px solid #c1121f;">':'')
+        +(function(){var _eim=safeUrl(en.image);return _eim?'<img src="'+esc(_eim)+'" alt="battle entry poster" loading="lazy" style="display:block;max-width:220px;width:100%;height:auto;margin:0.5rem 0;border:2px solid #c1121f;">':'')})()
         +'<br>'
         +'<button class="c-btn bt-votebtn" data-bid="'+esc(b.id)+'" data-cid="'+esc(en.id)+'">VOTE</button> '
         +boostBtns(en.id)+'</div>';

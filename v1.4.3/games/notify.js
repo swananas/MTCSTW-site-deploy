@@ -21,6 +21,16 @@
   var BACKEND = window.PF_BACKEND_URL;
 
   function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  /* SECURITY (2026-10-06 pre-ship hardening): scheme allowlist for URLs
+     rendered into href/src. Only http(s) or relative URLs pass;
+     javascript:, data:, vbscript: etc. are rejected. */
+  function safeUrl(u){
+    var s=String(u==null?'':u).trim();
+    if(!s) return '';
+    try{ var p=new URL(s,'https://x.invalid').protocol;
+      if(p==='http:'||p==='https:') return s; }catch(e){}
+    return '';
+  }
   function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
   function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
     try{ var t=document.createElement("div"); t.textContent=m;
@@ -252,7 +262,7 @@
        FLAGGED FOR LIVE VERIFICATION: bounty -> /create, wager/lottery ->
        /arcade, tip -> /create, recruit -> / are best-guess surfaces. */
     var TYPE_DEEP={battle:'/arcade',bounty:'/create',wager:'/arcade',lottery:'/arcade',gov:'/political-hq',streak:'/',flash:'/#pf-brief',tip:'/create',ambush:'/',recruit:'/',boost:'/create',remit:'/bank'};
-    function ntDest(x){ try{ var l=x.link||x.url||x.href; if(l) return String(l); }catch(e){}
+    function ntDest(x){ try{ var l=x.link||x.url||x.href; if(l){ var _sl=safeUrl(l); if(_sl) return _sl; } }catch(e){}
       return TYPE_DEEP[String(x.type||'').toLowerCase()]||null; }
     for(i=0;i<Math.min(list.length,30);i++){
       var n=list[i], dest=ntDest(n);

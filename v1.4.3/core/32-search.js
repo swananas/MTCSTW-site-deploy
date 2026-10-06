@@ -461,7 +461,7 @@
 
   function cardHtml(it) {
     var ext = it.ext ? ' target="_blank" rel="noopener"' : '';
-    return '<a class="pf-s-card" href="' + esc(it.url) + '"' + ext + '>' +
+    return '<a class="pf-s-card" href="' + esc(safeUrl(it.url)||'#') + '"' + ext + '>' +
       '<div class="pf-s-k">' + esc(it.kicker) + '</div>' +
       '<div class="pf-s-h">' + esc(it.title) + '</div>' +
       '<div class="pf-s-d">' + esc(it.sub) + '</div>' +

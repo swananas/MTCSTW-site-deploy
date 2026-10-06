@@ -548,7 +548,7 @@
     h += '<div class="am-poldetail"><h4>' + kindBadge(kind) + esc(res.title || '') + '</h4>';
     if (kind === 'rep') {
       h += '<div class="am-polmeta">' + esc(d.chamber || '') + ' · Phone: ' + esc(d.phone || '—') +
-        (d.url ? ' · <a href="' + esc(d.url) + '" target="_blank" rel="noopener" style="color:#7cFF9b">official site</a>' : '') + '</div>';
+        (d.url ? ' · <a href="' + esc(safeUrl(d.url)||"#") + '" target="_blank" rel="noopener" style="color:#7cFF9b">official site</a>' : '') + '</div>';
       h += '<table class="am-votes"><thead><tr><th>VOTE</th><th>BILL</th><th>POSITION</th></tr></thead><tbody>';
       var votes = d.votes || [];
       for (var i = 0; i < votes.length; i++) {
@@ -576,7 +576,7 @@
         h += '</div>';
       }
       h += '<div class="am-src">Source: ' + esc(d.source || '') +
-        (d.source_url ? ' · <a href="' + esc(d.source_url) + '" target="_blank" rel="noopener" style="color:#7cFF9b">congress.gov</a>' : '') +
+        (d.source_url ? ' · <a href="' + esc(safeUrl(d.source_url)||"#") + '" target="_blank" rel="noopener" style="color:#7cFF9b">congress.gov</a>' : '') +
         (d.data_as_of && d.data_as_of !== '—' ? ' · data as of ' + esc(d.data_as_of) : '') + '</div>';
     } else if (kind === 'race') {
       if (d.stale) {

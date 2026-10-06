@@ -44,10 +44,15 @@
       .replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
   function cleanHref(h) {
-    h = String(h == null ? '' : h).trim();
-    if (!h) return '';
-    if (/^(javascript|data|vbscript):/i.test(h)) return '';
-    return h;
+    /* SECURITY (2026-10-06 pre-ship hardening): upgraded from denylist to
+       scheme allowlist. Only http(s) or relative URLs pass; javascript:,
+       data:, vbscript: etc. are rejected. (The old denylist was bypassable,
+       e.g. java<tab>script: — the URL parser strips the tab.) */
+    var s = String(h == null ? '' : h).trim();
+    if (!s) return '';
+    try { var p = new URL(s, 'https://x.invalid').protocol;
+      if (p === 'http:' || p === 'https:') return s; } catch (e) {}
+    return '';
   }
   /* fail-open wrapper: any helper that can't render renders nothing */
   function safe(fn) {

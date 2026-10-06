@@ -77,7 +77,7 @@
         ? esc(it.sourced_name) + ' (@' + esc(it.sourced_by) + ')'
         : '@' + esc(it.sourced_by);
       body = 'SOURCED BY ' + (it.sourced_url
-        ? '<a href="' + esc(it.sourced_url) + '" class="pf-credit-link">' + who + '</a>'
+        ? '<a href="' + esc(safeUrl(it.sourced_url)||'#') + '" class="pf-credit-link">' + who + '</a>'
         : who);
     }
     return '<div class="' + esc(cls) + '" data-pf-credit="' + esc(it.sourced_by) + '">' +

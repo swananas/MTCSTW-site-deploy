@@ -54,6 +54,16 @@
 (function(){
 var BACKEND=window.PF_BACKEND_URL;
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  /* SECURITY (2026-10-06 pre-ship hardening): scheme allowlist for URLs
+     rendered into href/src. Only http(s) or relative URLs pass;
+     javascript:, data:, vbscript: etc. are rejected. */
+  function safeUrl(u){
+    var s=String(u==null?'':u).trim();
+    if(!s) return '';
+    try{ var p=new URL(s,'https://x.invalid').protocol;
+      if(p==='http:'||p==='https:') return s; }catch(e){}
+    return '';
+  }
 function num(v){ var n=Number(v); return isFinite(n)&&n>=0?Math.floor(n):0; }
 function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
 function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
@@ -173,7 +183,7 @@ function cardHTML(b){
   var stuck=String(b.stuck_in||b.stuck||"").trim();
   var sponsor=String(b.sponsor_name||b.sponsor||"").trim();
   var sbg=String(b.sponsor_bioguide||b.sponsor_bioguide_id||"").trim();
-  var plink=String(b.pressure_link||"/political-hq#campaigns").trim()||"/political-hq#campaigns";
+  var plink=safeUrl(b.pressure_link)||"/political-hq#campaigns";
   var founder=isFounder();
   var exp=!!EXPANDED[id];
   var h='<div class="lg-card">'
@@ -223,7 +233,7 @@ function detailHTML(id){
     h+='</div>';
   }
   h+='<div data-leg-tally="'+esc(id)+'">'+tallyHTML(t)+'</div>';
-  var plink=String(b.pressure_link||d.pressure_link||"/political-hq#campaigns").trim()||"/political-hq#campaigns";
+  var plink=safeUrl(b.pressure_link||d.pressure_link)||"/political-hq#campaigns";
   h+='<div class="lg-actions"><a class="c-btn lg-t44" href="'+esc(plink)+'">PRESSURE THIS BILL</a></div>';
   h+='</div>';
   return h;

@@ -41,6 +41,16 @@ try{
 /* Rank tiers mirror games/enlistment-ranks.js. */
 var TIERS=[["RECRUIT",0],["AGITATOR",25],["CADRE",75],["COMMISSAR",150],["ARCHITECT",300]];
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  /* SECURITY (2026-10-06 pre-ship hardening): scheme allowlist for URLs
+     rendered into href/src. Only http(s) or relative URLs pass;
+     javascript:, data:, vbscript: etc. are rejected. */
+  function safeUrl(u){
+    var s=String(u==null?'':u).trim();
+    if(!s) return '';
+    try{ var p=new URL(s,'https://x.invalid').protocol;
+      if(p==='http:'||p==='https:') return s; }catch(e){}
+    return '';
+  }
 function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
 function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
   try{ var t=document.createElement("div"); t.textContent=m;
@@ -188,7 +198,7 @@ function crossfireHtml(){
     h+='<div class="x-note">This device already fired its crossfire claim today.</div>';
   } else {
     h+='<div class="x-note">Run the mission, then claim the combo:</div>'
-      +'<div style="margin-top:8px"><a class="c-btn" href="'+esc(z.page||"/")+'">GO: '+esc(z.label||"")+'</a></div>';
+      +'<div style="margin-top:8px"><a class="c-btn" href="'+esc(safeUrl(z.page)||"/")+'">GO: '+esc(z.label||"")+'</a></div>';
   }
   h+='</div>';
   return h;
@@ -231,7 +241,7 @@ function routeMarchHtml(){
   h+='<div class="br-rmhead"><span class="br-rmname">'+esc(String(CIRCUIT.route_name||"MARCH"))+'</span>'
     +'<span class="br-rmday">DAY '+sd+' &bull; NEXT +'+Number(CIRCUIT.next_payout||10)+' XP</span></div>';
   for(var i=0;i<stops.length;i++){ var s=stops[i];
-    h+='<a class="br-rmstop'+(s.done?" done":"")+'" href="'+esc(s.page||"/")+'">'
+    h+='<a class="br-rmstop'+(s.done?" done":"")+'" href="'+esc(safeUrl(s.page)||"/")+'">'
       +'<span class="br-rmn">'+(s.done?"\\u2713":"STOP "+(i+1))+'</span>'
       +'<span class="br-rml">'+esc(s.action_label||"")+'</span>'
       +'<span class="br-rmgo">&rarr;</span></a>';

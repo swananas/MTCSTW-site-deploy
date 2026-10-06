@@ -310,6 +310,8 @@ var SECTIONS = {
        Creator HQ Content Bank area, silent no-op elsewhere.
        Kill: ?pf_off=bank-meta. No XP anywhere in this module. */
     'bank-browse.js',
+=======
+>>>>>>> origin/fe/create-workshop-tools
     /* WORKSHOP SHELL adapters (2026-10-05): last in the bundle — registers
        all nine /create tool adapters with PFWorkshop and runs the initial
        #pf-tool= / ?for= route. */

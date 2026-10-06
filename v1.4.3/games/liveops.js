@@ -103,7 +103,7 @@ function renderEvent(d){
   /* Key moments timeline */
   h+='<h4 class="lo-h">KEY MOMENTS</h4><div class="lo-moments">';
   if(!d.moments.length) h+='<div class="c-empty">No key moments yet.</div>';
-  d.moments.forEach(function(m){ h+='<div class="lo-moment"><span class="lo-ts">'+esc(ctTime(m.ts))+'</span> '+esc(m.body)+'</div>'; });
+  d.moments.forEach(function(m){ h+='<div class="lo-moment"><span class="lo-ts">'+esc(ctTime(m.ts))+'</span> '+esc(m.body)+(m.author?'<div class="lo-by">'+esc(m.author)+'</div>':'')+'</div>'; });
   h+='</div>';
   /* Live updates */
   h+='<h4 class="lo-h">LIVE FEED</h4><div class="lo-feed" id="loFeed">';
@@ -125,7 +125,13 @@ function renderEvent(d){
   h+='<h4 class="lo-h">WAR ROOM CHAT</h4><div class="lo-chat" id="loChat">';
   if(!d.chat.length) h+='<div class="c-empty">No messages yet &mdash; sound off.</div>';
   d.chat.forEach(function(c){
-    h+='<div class="lo-msg"><b>'+esc(c.callsign)+'</b> <span class="lo-ts">'+esc(ctTime(c.ts))+'</span><div>'+esc(c.body)+'</div></div>';
+    if(c.tombstone){
+      h+='<div class="lo-msg lo-tomb"><i>message removed by the operator</i> <span class="lo-ts">'+esc(ctTime(c.ts))+'</span></div>';
+    } else {
+      h+='<div class="lo-msg"><b>'+esc(c.callsign)+'</b> <span class="lo-ts">'+esc(ctTime(c.ts))+'</span>'+
+        (opMode?'<button class="lo-del" data-msg="'+esc(c.id)+'" title="Remove message">&times;</button>':'')+
+        '<div>'+esc(c.body)+'</div></div>';
+    }
   });
   h+='</div>';
   if(e.status!=='ended') h+='<div class="lo-oprow"><input id="loChatIn" maxlength="500" placeholder="Sound off (500 chars)&hellip;"><button class="c-btn" id="loChatSend">SEND</button><span id="loChatErr" class="c-err"></span></div>';
@@ -204,7 +210,14 @@ function wireEvent(e){
     if(t.classList&&t.classList.contains('lo-popen')){
       post('poll_open',{callsign:opCs(),poll:t.getAttribute('data-poll')},function(j){ if(j&&j.ok) loadEvent(true); });
     }
+    if(t.classList&&t.classList.contains('lo-del')){
+      if(confirm('Remove this message? It will show as removed by the operator.')){
+        post('chat_delete',{callsign:opCs(),event:e.slug,msg:t.getAttribute('data-msg')},function(j){ if(j&&j.ok) loadEvent(true); });
+      }
+    }
     if(t.id==='loAnnounce') post('event_announce',{callsign:opCs(),event:e.slug},function(j){ if(j&&j.ok) loadEvent(true); });
+    if(t.id==='loStart') post('event_start',{callsign:opCs(),event:e.slug},function(j){ if(j&&j.ok) loadEvent(true); });
+    if(t.id==='loEnd') post('event_end',{callsign:opCs(),event:e.slug},function(j){ if(j&&j.ok) loadEvent(true); });
     if(t.id==='loStart') post('event_start',{callsign:opCs(),event:e.slug},function(j){ if(j&&j.ok) loadEvent(true); });
     if(t.id==='loEnd') post('event_end',{callsign:opCs(),event:e.slug},function(j){ if(j&&j.ok) loadEvent(true); });
   };

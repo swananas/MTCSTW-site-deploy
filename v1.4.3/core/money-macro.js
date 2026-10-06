@@ -1,8 +1,8 @@
 /* core/money-macro.js  |  PF v1.4.3 | FRED MACRO DASHBOARD (FRED Everywhere P1).
    The full macro dashboard from ?action=fred_macro&scope=full&spark=1:
-   Phase 3 (2026-10-06) adds 4 cards — rent (CUUR0000SEHA), credit-card
+   Phase 3 (2026-10-06) adds 5 cards — rent (CUUR0000SEHA), credit-card
    delinquency (DRCCLACBS), median weekly earnings (LES1252881600Q),
-   food at home (CUSR0000SAF11) — for 15 series total.
+   food at home (CUSR0000SAF11), gasoline (CUSR0000SETB01) — for 16 series total.
    Each card: latest figure, change, sparkline, per-series staleness badge,
    4-fact citation ({Agency} via FRED · {SERIES_ID} · {period} · retrieved {date}).
    Rolling refresh per News Desk §1(a): daily series daily, weekly weekly,
@@ -30,7 +30,7 @@
 
   var EMPTY_HEAD = 'OFFICIAL DATA CONNECTING';
   var EMPTY_BODY = 'The macro dashboard is being wired to live FRED figures. ' +
-    'Nothing here is estimated or seeded — the 15 series cards appear the ' +
+    'Nothing here is estimated or seeded — the 16 series cards appear the ' +
     'moment the official feed is connected.';
   var WAITING_HEAD = 'FEED CONNECTED \u2014 FIRST REFRESH PENDING';
   var WAITING_BODY = 'The official feed is connected and the first data ' +

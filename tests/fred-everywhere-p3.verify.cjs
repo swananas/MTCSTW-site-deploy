@@ -130,13 +130,19 @@ else no('explain rent label', 'via-mortgage copy still live');
   else no('explain list ' + id, 'missing');
 });
 
-/* --- fred-warreport.js: matchup -> median, 7-series block keeps CES --- */
+/* --- fred-warreport.js: matchup + paycheck line -> median --- */
 if (has(S['games/fred-warreport.js'], /\{\s*id:\s*'wages-inflation',\s*a:\s*'LES1252881600Q'/))
   ok('war report wages-inflation matchup re-points to median');
 else no('war report matchup', 'not median');
-if (has(S['games/fred-warreport.js'], /ORDER = \[[^\]]*'CES0500000003'[^\]]*\]/))
-  ok('war report 7-series block keeps CES (News Desk series set)');
-else no('war report block', 'CES dropped from the 7-series block');
+if (has(S['games/fred-warreport.js'], /ORDER = \[[^\]]*'LES1252881600Q'[^\]]*\]/))
+  ok('war report ORDER carries the median paycheck line');
+else no('war report ORDER', 'median missing from ORDER');
+if (S['games/fred-warreport.js'].indexOf('CES0500000003') === -1)
+  ok('war report: CES fully retired from the paycheck block');
+else no('war report CES', 'CES still referenced');
+if (hasS('games/fred-warreport.js', 'the typical worker'))
+  ok('war report median line: median-grounded copy');
+else no('war report median copy', 'missing');
 
 /* --- fred-economy.js: M-01 median copy --- */
 if (hasS('games/fred-economy.js', 'Median real earnings growth')) ok('economy M-01 chart: median label');

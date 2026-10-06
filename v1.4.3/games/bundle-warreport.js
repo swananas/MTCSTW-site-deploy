@@ -310,7 +310,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
 /* ===== fred-warreport.js ===== */
 /* games/fred-warreport.js  |  PF v1.4.3 | WAR REPORT — THE WEEK IN NUMBERS.
    The weekly macro backdrop: max 7 series (UNRATE + Sahm, DGS10, DGS2,
-   CPIAUCNS, CES0500000003, MORTGAGE30US, FEDFUNDS), one honest sentence
+   CPIAUCNS, LES1252881600Q, MORTGAGE30US, FEDFUNDS), one honest sentence
    each. Plus the week's curated matchup, rotated across departments.
 
    Rotation (CEO decision 3): pickForWeek(date) -> { department, matchup }.
@@ -326,7 +326,8 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
      presented as current, never dropped without the note.
    - Sahm: coincident-only framing within one viewport (Prohibition 5),
      with the 2024 false-trigger note.
-   - CES0500000003: "average" adjacent; no second-person "your paycheck/raise".
+   - LES1252881600Q: median, inflation-adjusted — "the typical worker's
+     paycheck" framing; no second-person "your paycheck/raise".
    - No predictions. Email wiring stays parked (Resend).
    Renderable module: window.PFWarNumbers.mount(container). war-report.js
    paint() hooks a slot with a double-mount guard.
@@ -339,7 +340,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
   if (window.pfWarNumbersDone) return;
   window.pfWarNumbersDone = true;
 
-  var ORDER = ['UNRATE', 'DGS10', 'DGS2', 'CPIAUCNS', 'CES0500000003', 'MORTGAGE30US', 'FEDFUNDS'];
+  var ORDER = ['UNRATE', 'DGS10', 'DGS2', 'CPIAUCNS', 'LES1252881600Q', 'MORTGAGE30US', 'FEDFUNDS'];
 
   var DEPARTMENTS = ['News Desk', 'Economy Desk', 'Psych', 'Propaganda Studio', 'PR', 'Brand Consistency', 'Docs & Comms'];
 
@@ -438,9 +439,14 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
         var ch = c.change_pct_label || c.change_label || '';
         return wrap(esc('Consumer prices ' + (ch ? 'are ' + ch + ' over the year' : 'sit at ' + v) + ' (' + per + ', CPI-U, NSA).'));
       }
-      case 'CES0500000003': {
+      case 'LES1252881600Q': {
+        /* Gate fix (2026-10-05): the paycheck line is the MEDIAN series —
+           the CES-average-based line is retired. Median-grounded copy. */
         var cw = c.change_pct_label || c.change_label || '';
-        return wrap(esc('Average hourly earnings ' + (cw ? 'are ' + cw + ' over the year' : 'sit at ' + v) + ' (' + per + ') — the average, not the typical worker\'s pay.'));
+        var s = cw
+          ? 'Median usual weekly real earnings ran ' + cw + ' to ' + per
+          : 'Median usual weekly real earnings sit at ' + v + ' (' + per + ')';
+        return wrap(esc(s + ' — the typical worker\u2019s paycheck, inflation-adjusted (1982\u201384 dollars).'));
       }
       case 'MORTGAGE30US':
         return wrap(esc('The 30-year fixed mortgage averages ' + v + ' (' + per + ') — a borrowing cost, not rent.'));

@@ -396,9 +396,12 @@
         body.innerHTML = emptyHTML('GAP PENDING', 'Not enough history yet to draw the gap — check back after the next releases.');
         return;
       }
-      var gapTxt = j.gap_pp === 0 ? 'even — wages matching prices'
-        : (j.gap_pp > 0 ? '+' : '\u2212') + Math.abs(j.gap_pp).toFixed(1) + ' pp — wages ' +
-          (j.gap_pp > 0 ? 'ahead of' : 'behind') + ' prices';
+      /* Gate fix (2026-10-05): render the backend gap_label VERBATIM — the
+         gap IS the median real YoY (the median series is already in
+         1982-84 dollars); the old client-side "wages ahead of/behind
+         prices" recompute double-counted inflation and mislabeled the
+         unit as pp. */
+      var gapTxt = j.gap_label || 'Gap unavailable';
       var pts = hist.slice().reverse().map(function (r) {
         return { t: Date.parse(r.period + '-01T00:00:00Z'), w: r.wage_yoy, c: r.cpi_yoy };
       }).filter(function (p) { return !isNaN(p.t); });
@@ -411,8 +414,9 @@
       var h = '<div class="pf-fe-chart">' +
         '<div class="pf-fe-gap">Gap: ' + esc(gapTxt) + ' <span style="font-size:12px;font-weight:400;color:#c9bfa8;">(' +
         esc(j.period_label || '') + ')</span></div>' + chart +
-        '<div class="pf-fe-note">Year-over-year growth, by quarter for earnings and 3-month CPI average for prices. Positive gap = the typical paycheck growing faster than ' +
-        'prices; negative = prices growing faster. Earnings are median usual weekly earnings of full-time workers, in 1982\u201384 dollars, ' +
+        '<div class="pf-fe-note">Year-over-year growth, by quarter for earnings and 3-month CPI average for prices. ' +
+        'The gap is the earnings line itself \u2014 median earnings are already inflation-adjusted, so positive means the typical paycheck bought more than a year ago and negative means it bought less. ' +
+        'Earnings are median usual weekly earnings of full-time workers, in 1982\u201384 dollars, ' +
         'seasonally adjusted (BLS) — the typical worker\u2019s paycheck, not an average. Prices are CPI-U, all items (BLS). Two labeled lines — never blended.</div>' +
         stampHTML(j.wage) + stampHTML(j.cpi) + '</div>';
       body.innerHTML = h;

@@ -135,6 +135,7 @@ var FIX = {
     ok: true, fred_live: true, wage_live: true, stale: false,
     retrieved_at: 1760000000000, period: '2026-09', period_label: 'Sep 2026',
     wage_yoy: 3.8, cpi_yoy: 2.9, gap_pp: 0.9,
+    gap_label: '+0.9% \u2014 median paycheck purchasing power up vs a year ago (inflation-adjusted)',
     wage: { series_id: 'CES0500000003', title: 'Avg Hourly Earnings', sa_nsa: 'SA',
             source_url: 'https://fred.stlouisfed.org/series/CES0500000003', retrieved_at: 1760000000000 },
     cpi: { series_id: 'CPIAUCNS', title: 'CPI', sa_nsa: 'NSA',
@@ -285,7 +286,7 @@ hasR('S-14 two-line chart', /Official CPI-U \(BLS\)/);
 hasR('S-14 community line labeled', /People\u2019s Index \(community-reported\)/);
 hasR('S-14 never-blended footnote', /never one/);
 hasR('S-14 svg rendered', /<svg/);
-hasR('M-01 gap headline', /wages ahead of/);
+hasR('M-01 gap headline', /median paycheck purchasing power up/);
 hasR('M-01 two lines', /Median real earnings growth/);
 hasR('S-26 not triggered', /NOT TRIGGERED/);
 hasR('S-26 gauge vs 0.5', /trigger 0\.5 pp/);

@@ -120,10 +120,16 @@
       }
       if(id.callsign){ h+=claimForm(b); }
       else { h+='<div class="db-note">Claim a callsign to take bounties.</div>'; }
+      /* UX Combination Play 2 (fe/ux-take-to-cell): standardized action bar.
+         Declarative host — share-everywhere's scan builds the bar in place.
+         Kill: ?pf_off=databounties. */
+      h+='<div data-pf-actionbar data-pf-tc-kind="data-bounty" data-pf-tc-title="DATA BOUNTY \u2014 '+esc(b.title)+'" data-pf-tc-figure="'+esc((KIND_LABEL[b.kind]||b.kind)+' \u00b7 +'+Number(b.xp_amount||0)+' XP')+'" data-pf-tc-link="/data-bounties"></div>';
       h+='<div class="db-msg"></div></div>';
     });
-    /* Brand-integration (2026-10-06): bounty boards → cells. */
-    h+='<div data-pf-handoff="take-cell"></div>';
+    /* Brand-integration (2026-10-06): bounty boards → cells.
+       UX Combination Play 2 (fe/ux-take-to-cell): the handoff now carries
+       the board payload (title + figure + link) into the cell. */
+    h+='<div data-pf-handoff="take-cell" data-pf-tc-kind="data-bounty" data-pf-tc-title="DATA BOUNTIES" data-pf-tc-figure="Your content becomes movement action." data-pf-tc-link="/data-bounties"></div>';
     h+='</div>';
     host.innerHTML=h;
   }

@@ -514,7 +514,14 @@
         head + '<div style="margin-top:10px;color:#b8b0a0;font-size:14px;">Not enough reports yet.</div>' +
         '<div style="' + SMALL + 'margin-top:4px;">' + soFar +
         'We need at least 5 reports before we show a number. Report one above.</div>' +
-        '<div style="margin-top:6px;">' + crowdLine(r) + '</div>' + honest + '</div>';
+        '<div style="margin-top:6px;">' + crowdLine(r) + '</div>' + honest +
+        /* UX Combination Play 2 (fe/ux-take-to-cell): standardized action bar.
+           Declarative host — share-everywhere's scan builds the bar in place.
+           Kill: ?pf_off=inflation. */
+        '<div data-pf-actionbar data-pf-tc-kind="inflation"' +
+        ' data-pf-tc-title="PEOPLE\u2019S CPI \u2014 ' + esc(item.name) + '"' +
+        ' data-pf-tc-figure="' + esc(cn > 0 ? (cn + ' contributor' + (cn === 1 ? '' : 's') + ' so far') : 'No reports yet \u2014 be the first') + '"' +
+        ' data-pf-tc-link="/economy"></div></div>';
     }
     return '<div style="background:#0d0d0d;border:1px solid #3a3a3a;border-radius:8px;padding:14px;">' +
       head +
@@ -524,7 +531,12 @@
       (r.trimmed_mean_cents != null ? ' · trimmed avg ' + money(r.trimmed_mean_cents) : '') + '</div>' +
       '<div style="margin-top:6px;">' + crowdLine(r) + '</div>' +
       '<div style="margin-top:8px;font-size:14px;">' + deltaHTML(r) + '</div>' +
-      honest + '</div>';
+      honest +
+      /* UX Combination Play 2 (fe/ux-take-to-cell): standardized action bar. */
+      '<div data-pf-actionbar data-pf-tc-kind="inflation"' +
+      ' data-pf-tc-title="PEOPLE\u2019S CPI \u2014 ' + esc(item.name) + '"' +
+      ' data-pf-tc-figure="' + esc(money(r.median_cents) + ' median of ' + r.sample_count + ' reports') + '"' +
+      ' data-pf-tc-link="/economy"></div></div>';
   }
 
   function mountBoard() {

@@ -145,7 +145,14 @@ function evCard(e){
   s+='<a href="#e='+esc(e.id)+'" style="font:bold 11px monospace;padding:5px 9px;border:1px solid #666;color:#fff;text-decoration:none;">DETAILS</a>';
   if(!past) s+='<button data-ev-rsvp="'+esc(e.id)+'" style="font:bold 11px monospace;padding:5px 9px;cursor:pointer;">RSVP</button>';
   if(e.location) s+='<a href="'+esc(mapsUrl(e))+'" target="_blank" rel="noopener" style="font:bold 11px monospace;padding:5px 9px;border:1px solid #666;color:#fff;text-decoration:none;">MAP &#8599;</a>';
-  s+='</div></div>';
+  s+='</div>';
+  /* UX Combination Play 2 (fe/ux-take-to-cell): standardized action bar.
+     Declarative host — share-everywhere's scan builds the bar in place.
+     Kill: ?pf_off=events. */
+  var evFig = chiDate(e.event_at) + (e.location ? ' \u2014 ' + e.location : '') +
+    ' \u00b7 ' + (Number(e.rsvp_count) || 0) + ' going';
+  s+='<div data-pf-actionbar data-pf-tc-kind="event" data-pf-tc-title="'+esc(e.title)+'" data-pf-tc-figure="'+esc(evFig)+'" data-pf-tc-link="/events"></div>';
+  s+='</div>';
   return s;
 }
 function bindRsvps(){

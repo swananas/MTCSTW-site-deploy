@@ -751,7 +751,13 @@
           ? '<textarea class="pf-cpi-cap" rows="3" readonly id="pf-cpi-cap-' + cd.id + '">' + esc(cap) + '</textarea>' +
             '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">' +
             '<button class="pf-cpi-btn" data-share="' + cd.id + '">SHARE IMAGE</button>' +
-            '<button class="pf-cpi-btn ghost" data-copycap="' + cd.id + '">COPY CAPTION</button></div>'
+            '<button class="pf-cpi-btn ghost" data-copycap="' + cd.id + '">COPY CAPTION</button>' +
+            /* UX Combination Play 2 (fe/ux-take-to-cell): per-card take-to-cell.
+               Wired by share-everywhere's [data-pf-takecell] scan. Kill: ?pf_off=peoples-cpi. */
+            '<button type="button" class="pf-tc-btn" data-pf-takecell data-pf-tc-kind="peoples-cpi"' +
+            ' data-pf-tc-title="PEOPLE\u2019S CPI \u2014 ' + esc(cd.name) + '"' +
+            ' data-pf-tc-figure="' + esc(String(cap || cd.desc || '').replace(/\s+/g, ' ').slice(0, 140)) + '"' +
+            ' data-pf-tc-link="/economy">&#9733; TAKE THIS TO YOUR CELL</button></div>'
           : '<div class="pf-cpi-empty">Not enough data yet for this graphic \u2014 it unlocks when the index does.</div>') +
         '</div>';
     }).join('');

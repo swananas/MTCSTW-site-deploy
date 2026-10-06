@@ -278,6 +278,13 @@ function paint(el,j){
     +esc(meme.before)+meme.card+esc(meme.after)+'</div></div>'
     /* Brand-integration (2026-10-06): war reports → sharing. */
     +'<div data-pf-share="war-report"></div>'
+    /* UX Combination Play 2 (fe/ux-take-to-cell): payload-aware take-cell —
+       the report subject + week rides into the member's primary cell.
+       Kill: ?pf_off=war-report. */
+    +'<div data-pf-handoff="take-cell" data-pf-tc-kind="war-report"'
+    +' data-pf-tc-title="WAR REPORT \u2014 '+esc(r.subject||"WAR REPORT")+'"'
+    +' data-pf-tc-figure="Week of '+esc(r.week_start||"")+'"'
+    +' data-pf-tc-link="/war-report"></div>'
     +'<div id="wrFredNumbers"></div>'
     +'<div id="wrFanFav"></div>'
     +emailPaneHtml()

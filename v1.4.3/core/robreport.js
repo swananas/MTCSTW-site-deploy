@@ -171,6 +171,14 @@
     h += '<p class="pf-rr-tiny" style="margin:0 0 10px"><i>' + esc(D.TAGLINE) + '</i></p>';
     h += '<p class="pf-rr-next">NEXT &rarr; <a href="/economy#pf-inflation-board">LIVE PRICES</a> &middot; <a href="/data-bounties">CLAIM A BOUNTY</a></p>';
     h += '<button class="pf-rr-share" data-rr-share="item:' + esc(it.id) + '">SHARE IMAGE</button>';
+    /* UX Combination Play 2 (fe/ux-take-to-cell): per-card take-to-cell —
+       title + key figure + link back into the member's primary cell.
+       Wired by share-everywhere's [data-pf-takecell] scan. Kill: ?pf_off=robreport. */
+    var rrTake = (it.takeMid != null) ? it.takeMid : it.take;
+    h += '<button type="button" class="pf-tc-btn" data-pf-takecell data-pf-tc-kind="robreport"' +
+         ' data-pf-tc-title="THE ROBBERY REPORT \u2014 ' + esc(it.name) + '"' +
+         ' data-pf-tc-figure="' + esc(rrTake != null ? ('Their take \u2248 ' + money(rrTake)) : 'Their take, from their own filings') + '"' +
+         ' data-pf-tc-link="/money">&#9733; TAKE THIS TO YOUR CELL</button>';
     h += '</article>';
     return h;
   }
@@ -197,6 +205,11 @@
     h += '<p class="pf-rr-assump">' + esc(b.assumptions) + '</p>';
     h += '<p class="pf-rr-next">NEXT &rarr; <a href="/economy#pf-inflation-board">LIVE PRICES</a> &middot; <a href="/data-bounties">CLAIM A BOUNTY</a></p>';
     h += '<button class="pf-rr-share" data-rr-share="basket:' + esc(b.id) + '">SHARE BASKET</button>';
+    /* UX Combination Play 2 (fe/ux-take-to-cell): per-basket take-to-cell. */
+    h += '<button type="button" class="pf-tc-btn" data-pf-takecell data-pf-tc-kind="robreport"' +
+         ' data-pf-tc-title="THE ROBBERY REPORT \u2014 ' + esc(b.name) + '"' +
+         ' data-pf-tc-figure="' + esc('Their take \u2248 ' + money(b.take) + ' (' + b.takePct + '%)') + '"' +
+         ' data-pf-tc-link="/money">&#9733; TAKE THIS TO YOUR CELL</button>';
     h += '</div>';
     return h;
   }
@@ -377,8 +390,14 @@
     h += '<div class="pf-rr-exc"><b>Why no Big Mac:</b> ' + esc(D.EXCLUDED.note.split(': ')[1] || D.EXCLUDED.note) + '</div>';
     D.BASKETS.forEach(function (b) { h += basketHTML(b); });
     /* Pillar handoffs (brand-integration): data→propaganda + data→organize.
-       Declarative — share-everywhere's scan renders them when it loads. */
-    h += '<div data-pf-handoff="share-intel"></div><div data-pf-handoff="take-cell"></div>';
+       Declarative — share-everywhere's scan renders them when it loads.
+       UX Combination Play 2 (fe/ux-take-to-cell): the take-cell handoff now
+       carries the section payload (title + figure + link) into the cell. */
+    h += '<div data-pf-handoff="share-intel"></div>' +
+         '<div data-pf-handoff="take-cell" data-pf-tc-kind="robreport"' +
+         ' data-pf-tc-title="THE ROBBERY REPORT"' +
+         ' data-pf-tc-figure="29 items. 4 household baskets. Their numbers, our division."' +
+         ' data-pf-tc-link="/money"></div>';
     h += '</div>';
     host.innerHTML = h;
     wireShare(host);

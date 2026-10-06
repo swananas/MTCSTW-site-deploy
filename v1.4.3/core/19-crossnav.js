@@ -40,6 +40,17 @@
   }
   if (isEditor()) { return; }
 
+  /* Brand-integration (2026-10-06): /bounty 404s — retarget to /data-bounties.
+     Crossnav ships in both chrome bundles (v2 + v1.1.0 slim), so this fires
+     on the Squarespace 404 page too, where the footer chrome still loads. */
+  try {
+    var _pth = String(window.location.pathname || '');
+    if (_pth === '/bounty' || _pth === '/bounty/') {
+      window.location.replace('/data-bounties' + (window.location.search || '') + (window.location.hash || ''));
+      return;
+    }
+  } catch (e) {}
+
   /* ---- shared stylesheet (single tag, hover + mobile rules) ---- */
   function ensureCss() {
     if (document.getElementById('pf-crossnav-css')) { return; }
@@ -91,11 +102,15 @@
     ['CREATE', '/create'],
     ['BANK', '/bank'],
     ['ECONOMY', '/economy'],
-    /* SPACE-AUDIT FIX 2 (2026-10-06): /fund was orphaned — zero inbound
+ (2026-10-06): /fund was orphaned — zero inbound
        links. FRONT LINES grid is the canonical inbound path (fix 9). */
     ['FUND', '/fund'],
     /* BLOSSOM M3 (2026-10-06): /war-chest folds into /ventures — the
        VENTURES entry now covers the Movement Funds section; no duplicate. */
+/* SPACE-AUDIT FIX 6 (2026-10-06): WAR CHEST pointed at /war-chest, which
+       live-redirects to /ventures — wrong theater. The war chest (personal
+       bank / XP) lives on /bank now; point straight there. */
+    ['WAR CHEST', '/bank'],
     ['VENTURES', '/ventures'],
     ['EVENTS', '/events'],
     ['WAR REPORT', '/war-report'],

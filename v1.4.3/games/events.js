@@ -116,7 +116,20 @@ function doRsvp(eid,btn){
     rsvpBusy[eid]=0;
     if(!j||!j.ok){ toast(j&&j.err?j.err:"RSVP failed."); if(btn) btn.disabled=false; return; }
     toast("You\u2019re on the board. +50 XP \u2014 show up.");
-    cache.forEach(function(e){ if(String(e.id)===String(eid)) e.rsvp_count=(j.rsvps!=null?j.rsvps:((Number(e.rsvp_count)||0)+1)); });
+    var ev=null;
+    cache.forEach(function(e){ if(String(e.id)===String(eid)){ e.rsvp_count=(j.rsvps!=null?j.rsvps:((Number(e.rsvp_count)||0)+1)); ev=e; } });
+    /* share-out gaps #10: "I'M GOING" share after a successful RSVP. */
+    try{
+      if(window.PFShareEverywhere&&window.PFShareEverywhere.terminal){
+        var host2=(btn&&btn.closest&&btn.closest(".x-pane"))||root;
+        window.PFShareEverywhere.terminal({
+          gameId:"event-rsvp", title:"I'M GOING",
+          result:String((ev&&ev.title)||"MOBILIZATION"),
+          lines:[((ev?chiDate(ev.event_at):"")+(ev&&ev.location?" — "+ev.location:""))||"Details on the board."],
+          link:"/events", host:host2, kicker:"MOBILIZATION"
+        });
+      }
+    }catch(e){}
     route(true);
     /* COHESION (2026-10-06): terminal-state wiring — the RSVP confirmation
        hands off to the next-move engine. Slot is the event's card so the

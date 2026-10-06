@@ -175,6 +175,8 @@
       el.innerHTML=h;
       if(W.step===6){ var kp=el.querySelector("#idKitPrev"); if(kp) paintKit(kp,previewCell()); }
       wire();
+      /* 2026-10-06 share-everywhere: share the formed identity. */
+      try{ if(W.step===6&&window.PFShareEverywhere) PFShareEverywhere.bar(el,'cell-identity',{link:'/cells'}); }catch(e){}
     }
     function labelOf(list,k){ for(var i=0;i<list.length;i++) if(list[i][0]===k) return list[i][1]; return k; }
     function previewCell(){
@@ -319,6 +321,20 @@
       }catch(e){ toast("Banner download failed on this browser."); }
     });
     host.appendChild(dl);
+    /* share-out gaps #5: share/export the identity card IMAGE (not just download). */
+    var sh=document.createElement("button");
+    sh.className="id-btn sm"; sh.style.marginTop="8px"; sh.style.marginLeft="8px"; sh.textContent="SHARE BANNER";
+    sh.addEventListener("click",function(){
+      try{
+        var c3=document.createElement("canvas"); c3.width=1080; c3.height=1350;
+        var x3=c3.getContext("2d"); x3.drawImage(cv,0,0);
+        try{ if(window.PFShare&&PFShare.stampCallsign) PFShare.stampCallsign(c3); }catch(e){}
+        if(window.PFShare&&PFShare.shareImage){
+          PFShare.shareImage(c3,"cell-identity-card.png","My Cell Identity","cell-identity",{link:"/cells"});
+        } else toast("Sharing is warming up — use DOWNLOAD BANNER for now.");
+      }catch(e){ toast("Share failed — use DOWNLOAD BANNER instead."); }
+    });
+    host.appendChild(sh);
   }
   function mountKit(el, cell){
     if(!ENABLED||!el) return false;

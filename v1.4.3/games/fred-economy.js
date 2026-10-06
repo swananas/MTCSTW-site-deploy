@@ -500,6 +500,18 @@
     try { mountOfficialTrend(root); } catch (e) { if (PF.error) PF.error('fred-economy', e); }
     try { mountWageGap(root); } catch (e) { if (PF.error) PF.error('fred-economy', e); }
     try { mountSahm(root); } catch (e) { if (PF.error) PF.error('fred-economy', e); }
+    /* Brand-integration (2026-10-06): data→propaganda handoff + network row
+       for the whole deepening surface (declarative — share-everywhere
+       renders them when it loads). */
+    try {
+      var feFoot = document.createElement('div');
+      feFoot.setAttribute('data-pf-share', 'fred-economy');
+      feFoot.setAttribute('data-pf-share-mode', 'nets');
+      root.appendChild(feFoot);
+      var feHand = document.createElement('div');
+      feHand.setAttribute('data-pf-handoff', 'share-intel');
+      root.appendChild(feHand);
+    } catch (e2) {}
   } catch (e) {
     try { if (PF && PF.error) PF.error('fred-economy', e); } catch (e2) {}
   }

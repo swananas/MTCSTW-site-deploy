@@ -477,6 +477,8 @@
   mount.innerHTML = shellHtml();
   bind();
   load(true);
+  /* 2026-10-06 share-everywhere. */
+  try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(mount,'content-bank',{link:'/create'}); }catch(e){}
 
   /* Test hooks for scripts/verify-bankmeta-fe.js — not for page use. */
   try {

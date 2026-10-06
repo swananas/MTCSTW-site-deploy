@@ -585,6 +585,8 @@ function paint(el,j){
       +'<div class="x-note">Command drafts the War Report every Monday. It lands here '
       +'(and in your inbox once the email wire is live). Check in all week so there is '
       + 'something worth writing about.</div></div>'
+      /* Brand-integration (2026-10-06): war reports → sharing. */
+      +'<div data-pf-share="war-report"></div>'
       +'<div id="wrFredNumbers"></div>'
       +'<div id="wrFanFav"></div>'
       +emailPaneHtml()
@@ -602,6 +604,8 @@ function paint(el,j){
   wrWireComboOrders(el,(j.report&&j.report.body)||"");  /* NEWS+STATS (2026-10-06): wire live stats into report body blocks.
      Fail-open — blocks with no matching tags render untouched. */
   try{ if(window.PF && PF.newsStats) PF.newsStats.enhanceWarReport(el); }catch(e){}
+  /* Brand-integration: war reports -> sharing (share-everywhere scanner). */
+  try{ var _swd=document.createElement('div'); _swd.setAttribute('data-pf-share','war-report'); el.appendChild(_swd); }catch(_swe){}
 }
 /* FRED Everywhere Phase 1: "the week in numbers" slot. The module guards
    double-mounts itself; this is a no-op when the module isn't bundled. */

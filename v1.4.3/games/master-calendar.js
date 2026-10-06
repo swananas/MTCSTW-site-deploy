@@ -316,6 +316,8 @@ function render(){
   /* Town-hall honest state (unchanged). */
   h+='<div class="c-note" style="margin-top:10px;">Town halls: no BE feed yet &mdash; the tracker on this page is the source until then.</div>';
   root.innerHTML=h;
+  /* share-out gaps #11: the war calendar is shareable. */
+  try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(root,'master-calendar',{link:'/events'}); }catch(e){}
 }
 function goMap(){
   try{

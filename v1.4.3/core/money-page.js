@@ -329,8 +329,7 @@
         var d = document.createElement('div'); body.appendChild(d);
         try { if (window.PFMacro) PFMacro.mount(d); } catch (e) { err('macro mount failed'); }
       } },
-    /* THE ROBBERY REPORT (fe/robbery-report-r2, 2026-10-06): CEO flagship data
-       product — per-item margin reverse-engineer from SEC filings. Self-mounts
+, 2026-10-06): CEO flagship data       product — per-item margin reverse-engineer from SEC filings. Self-mounts
        via window.PFRobReport; kill ?pf_off=robreport. Read-only, zero XP. */
     { key: 'robreport', kill: 'robreport', title: 'THE ROBBERY REPORT',
       sub: 'Here\u2019s what they took from you — from their own filings.', mount: function (body) {

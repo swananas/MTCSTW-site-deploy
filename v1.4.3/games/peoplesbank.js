@@ -234,6 +234,8 @@ function renderVault(id){
     +'</div>'
     +'<div class="c-err" id="pbVltErr"></div>'
     +'<div class="x-note" style="margin:8px 0 0;">Withdrawals are free — but XP pulled before Monday forfeits the week\\\'s interest on it.</div>'
+    /* share-out gaps #6: post-deposit share panel lands here. */
+    +'<div data-pf-terminal="bank-deposit"></div>'
     +'</div>';
   /* overtime kicker (2026-10-03 H7): log a shift, bank XP up to the daily cap */
   var otUsed=Math.round(Number(BST.overtime_today)||0), otCap=Math.round(Number(BST.overtime_cap)||0);
@@ -299,7 +301,19 @@ function wireVault(id,el){
       {callsign:iid.callsign,device:iid.device,amount:amt,key:iid.device+":"+Date.now()},
       function(j){
         btn.disabled=false;
-        if(j&&j.ok){ toast(isDep?("+"+amt.toLocaleString()+" XP in the vault."):(amt.toLocaleString()+" XP withdrawn to spendable.")); }
+        if(j&&j.ok){ toast(isDep?("+"+amt.toLocaleString()+" XP in the vault."):(amt.toLocaleString()+" XP withdrawn to spendable."));
+          /* share-out gaps #6: share after deposit (withdrawals stay quiet). */
+          if(isDep){
+            try{
+              document.dispatchEvent(new CustomEvent("pf:terminal",{detail:{
+                gameId:"bank-deposit", title:"VAULT SECURED",
+                result:"DEPOSITED TO THE VAULT", score:"+"+amt.toLocaleString()+" XP",
+                lines:["Deposits build the war chest.","The vault never sleeps."],
+                link:"/bank", kicker:"\u25c8 THE PEOPLE'S BANK \u25c8"
+              }}));
+            }catch(e){}
+          }
+        }
         else if(err){ err.textContent=PF.errCopy(j,"Transfer failed."); }
         setTimeout(function(){
           api("bank_status",{callsign:iid.callsign},function(jj){ BST=jj; render(); });

@@ -574,6 +574,8 @@
       '<div class="hq-tag">Cell command detail</div></div>';
     h += '<div id="hqDetBody">'+loading('Pulling cell intel&hellip;')+'</div>';
     p.innerHTML = h;
+    /* 2026-10-06 share-everywhere. */
+    try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(p,'cell-hq',{link:'/cells'}); }catch(e){}
     var body = document.getElementById('hqDetBody');
     /* Parallel: prestige + health. */
     var gotP = false, gotH = false, jP = null, jH = null;

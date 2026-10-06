@@ -160,6 +160,8 @@ function render(j){
      'Top cell Sunday midnight takes the crown, claims territory on the war map, and reigns with +10% XP all next week.</div>';
   h+='</div>';
   host.innerHTML=h;
+  /* share-out gaps #4: standings share painter (top cells + week). */
+  try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(host,'cellwar-standings',{link:'/cells'}); }catch(e){}
   if(TICK) clearInterval(TICK);
   tick(); TICK=setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} tick(); },1000);
   var jb=document.getElementById("cwJoinCell"), bb=document.getElementById("cwBuildCell"), vb=document.getElementById("cwViewCell");

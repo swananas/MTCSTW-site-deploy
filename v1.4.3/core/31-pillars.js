@@ -1,7 +1,7 @@
 /* core/31-pillars.js  |  PF v1.4.3 | THE FOUR-PILLAR SPINE (2026-10-06, CEO directive).
    Product spine = four pillars, each ONE CLICK from anywhere:
      1) SPREAD PROPAGANDA — the fastest share sheet for the current page via PFShare
-     2) CAPTURE DATA     — the price-report / bounty quick-capture (existing gated flows)
+     2) TRACK DATA       — the price-report / bounty quick-capture (existing gated flows)
      3) POLITICAL ACTIVISM — the top activism action: call/event
      4) ORGANIZE         — cell join/create
    EXTENDS the cohesion HUD (core/30-hud.js) — does NOT rebuild it. The pillar
@@ -95,7 +95,7 @@
   /* ---- pillars ---- */
   var PILLARS = [
     { key: 'spread',   path: 'propagandist', label: 'SPREAD',   sub: 'PROPAGANDA', glyph: '\uD83D\uDCE3' },
-    { key: 'data',     path: 'data',         label: 'DATA',     sub: 'PRICES',     glyph: '\uD83D\uDCCA' },
+    { key: 'data',     path: 'data',         label: 'TRACK',    sub: 'PRICES',     glyph: '\uD83D\uDCCA' },
     { key: 'act',      path: 'activist',     label: 'ACT',      sub: 'SHOW UP',    glyph: '\u270A' },
     { key: 'organize', path: 'organizer',    label: 'ORGANIZE', sub: 'CELLS',      glyph: '\uD83E\uDD1D' }
   ];

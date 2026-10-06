@@ -1,39 +1,44 @@
-/* core/32-hubhome.js  |  PF v1.4.3 | USER HUB AS TRUE HOMEPAGE.
-   CEO directive 2026-10-06: "We need the user hub to be the true homepage."
-   One URL, two modes — decided device-locally, instantly, with zero backend
-   calls for the mode decision:
-     ANONYMOUS (no device-local callsign): this module returns before touching
-       the DOM. The public movement landing is unchanged in spirit.
-     RECOGNIZED (device-local callsign): inserts #pf-hubhero as the first
-       child of #pf-v2 — the YOUR CAMPAIGN hero: callsign + rank, XP-today
-       ring, streak, cell status, compact Next Move, today's Daily Orders
-       link, the four-pillar action bar (via PF.pillars.go — composes the
-       pillar-spine work, duplicates nothing), and a War Report teaser.
-       Public sections stay on the page below the fold; the movement is
-       still visible, but THEIR campaign leads. A returning user never sees
-       the join pitch as if they were new.
-   Adventure-path flavoring: when PF.pillars is present, the hero kicker
-   carries the chosen path names ("PROPAGANDIST + DATA SCOUT · YOUR
-   CAMPAIGN"); the pillar bar order follows the same path ordering as the
-   HUD bar (chosen paths first).
-   FRONTEND-ONLY, ZERO NEW XP — reads only, all fail-open with a 10s guard:
-   xp_today, streak_status, cell_mine, dopamine_status. Rank is device-local
-   (pf_ranks_v1, same tiers as the HUD); absent = omitted, never guessed.
-   FRONT LINES (workstream 1, 2026-10-06 CEO directive): a compact link grid
-   under the pillar bar covers every major feature the four pillars don't
-   reach — CALL IT., People's CPI, Robbery Report, Follow the Money, Cell
-   War, Arcade, Create, Store, Fund, Governance, Academy, Data Bounties.
-   Every feature is one tap from the hub (two taps max anywhere-to-anywhere:
-   HUD pillar/link -> hub -> feature). Pillar bar is untouched — FRONT LINES
-   only carries what PF.pillars.go() doesn't already route (price check-in
-   via DATA, events via ACT, cells via ORGANIZE are pillar-covered).
-   QUALITY BAR: low friction (reads in seconds), accurate (every figure from
-   a real read or omitted), condensed (one hero, no walls).
-   KILL: ?pf_off=hubhome  or  localStorage pf_disabled_v1='["hubhome"]' */
+/* core/32-hubhome.js  |  PF v1.4.3 | HOMEPAGE HUB — teardown WS-1 redesign
+   (CEO-approved 2026-10-06). Built visibly from the PF.patterns library
+   (core/33-patterns.js): every surface is P1/P2/P3/P5/P6/P8, no bespoke
+   chrome. One URL, two modes — decided device-locally, instantly, with
+   zero backend calls for the mode decision:
+     ANONYMOUS (no device-local callsign): #pf-anonhero — the P1 Briefing
+       Hero (red caps kicker, one-line mission, single red JOIN THE FIGHT.
+       button wired to the existing PF.requireCallsign claim modal) + the
+       dense FRONT LINES grid. Every card carries the P6 Action Bar, so the
+       funnel never dead-ends. ZERO backend reads in this mode — the public
+       landing below is untouched (byte-identical).
+     RECOGNIZED (device-local callsign): #pf-hubhero — YOUR CAMPAIGN leads:
+       P1 hero (path-flavored kicker + mission) + P5 Progression Ring (XP
+       ring + streak flame + rank — render-only, never mints) + the Next
+       Move card (News Desk kicker "YOUR ORDERS →", CTA-family verbs) +
+       Daily Orders / War Report intel cards + the FRONT LINES grid. Every
+       card carries the P6 Action Bar. P8 proof line renders ONLY from a
+       real read (cell member count) — otherwise suppressed, never inflated.
+   PILLAR DOCK: the four-pillar bar is NOT rendered here. It mounts inside
+   the HUD's YOUR CAMPAIGN strip (core/31-pillars.js) — one persistent nav,
+   not two competing ones. This module keeps the pathNames kicker flavor
+   via PF.pillars (fail-open when absent).
+   FRONTEND-ONLY, ZERO NEW XP — reads only (xp_today, streak_status,
+   cell_mine, dopamine_status), all fail-open with a 10s guard. Rank is
+   device-local (pf_ranks_v1); absent = omitted, never guessed.
+   FRONT LINES: every major feature the four pillars don't reach — CALL IT.,
+   People's CPI, Robbery Report, Follow the Money, Cell War, Arcade, Create,
+   Store, Fund, Governance, Academy, Data Bounties. Slugs per the CEO
+   directive spec; destination pages mount their own silos — this module
+   only links. Fail-open: plain anchors, zero XP, no writes.
+   CTA DISCIPLINE: JOIN THE FIGHT. (enlistment only, red button) / DEPLOY →
+   (action verb) / REPORT BACK → (close-the-loop). No donate-language.
+   KILL: ?pf_off=hubhome  or  localStorage pf_disabled_v1='["hubhome"]'
+   (patterns kill ?pf_off=patterns also fails this module open — the
+   landing stays byte-identical). */
 (function () {
   'use strict';
   var PF = window.PF;
   if (!PF || PF.skip('hubhome')) return;
+  var P = PF.patterns;
+  if (!P) return; /* patterns killed/absent: fail-open, landing untouched */
   try {
     var href = window.location.href || '';
     if (href.indexOf('/config/') !== -1) return;
@@ -57,6 +62,14 @@
   function esc(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function dailyTarget() {
+    try {
+      if (typeof window.PF_HUD_TARGET === 'number' && window.PF_HUD_TARGET > 0) return window.PF_HUD_TARGET;
+      if (window.PF && typeof PF.hudDailyTarget === 'number' && PF.hudDailyTarget > 0) return PF.hudDailyTarget;
+    } catch (e) {}
+    return 100;
   }
 
   var BACKEND = window.PF_BACKEND_URL;
@@ -101,7 +114,6 @@
     for (var i = 0; i < TIERS.length; i++) { if (xp >= TIERS[i][1]) t = TIERS[i]; }
     return t[0];
   }
-
   function rankOf() {
     try {
       var lr = JSON.parse(localStorage.getItem('pf_ranks_v1') || '{"xp":0}');
@@ -109,257 +121,210 @@
     } catch (e) { return ''; }
   }
 
-  function ringSvg(frac, size) {
-    var sz = size || 44, r = sz / 2 - 3, c = 2 * Math.PI * r;
-    var f = Math.min(1, Math.max(0, frac)), off = c * (1 - f);
-    return '<svg width="' + sz + '" height="' + sz + '" viewBox="0 0 ' + sz + ' ' + sz + '">' +
-      '<circle cx="' + sz / 2 + '" cy="' + sz / 2 + '" r="' + r + '" fill="none" stroke="#2a2a2a" stroke-width="4"/>' +
-      '<circle cx="' + sz / 2 + '" cy="' + sz / 2 + '" r="' + r + '" fill="none" stroke="#c1121f" stroke-width="4"' +
-      ' stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + off.toFixed(1) + '"' +
-      ' stroke-linecap="round" transform="rotate(-90 ' + sz / 2 + ' ' + sz / 2 + ')"/>' +
-      '<text x="' + sz / 2 + '" y="' + (sz / 2 + 4) + '" text-anchor="middle" fill="#f5ead6" font-size="11" font-weight="900" font-family="Arial">' +
-      Math.round(f * 100) + '</text></svg>';
-  }
-
+  /* Layout-only CSS: grid structure, zero colors/fonts (all styling lives in
+     33-patterns.css). Inert without the module. */
   var CSS = [
-    '#pf-hubhero{background:#0a0a0a;border:2px solid #c1121f;border-radius:6px;',
-    'padding:18px 16px;margin:0 0 18px;font-family:Arial,sans-serif;color:#f5ead6;}',
-    '#pf-hubhero .ph-kick{font-size:10px;letter-spacing:4px;color:#c1121f;font-weight:800;margin-bottom:8px;}',
-    '#pf-hubhero .ph-head{display:flex;align-items:center;gap:14px;margin-bottom:12px;}',
-    '#pf-hubhero .ph-who{flex:1 1 auto;min-width:0;}',
-    '#pf-hubhero .ph-cs{font-family:"Arial Black",Arial,sans-serif;font-size:24px;letter-spacing:2px;',
-    'color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
-    '#pf-hubhero .ph-rank{font-size:10px;letter-spacing:.22em;color:#a89e88;font-weight:700;margin-top:2px;}',
-    '#pf-hubhero .ph-streak{font-size:13px;font-weight:900;color:#e8b33c;white-space:nowrap;}',
-    '#pf-hubhero .ph-cell{font-size:12px;color:#a89e88;margin-bottom:12px;line-height:1.5;}',
-    '#pf-hubhero .ph-cell b{color:#f5ead6;}',
-    '#pf-hubhero .ph-next{background:#141414;border:1px solid #2a2a2a;border-radius:4px;',
-    'padding:12px;margin-bottom:12px;}',
-    '#pf-hubhero .ph-next .n-k{font-size:9px;letter-spacing:3px;color:#c1121f;font-weight:800;margin-bottom:6px;}',
-    '#pf-hubhero .ph-next .n-t{font-size:16px;font-weight:900;color:#fff;margin-bottom:4px;}',
-    '#pf-hubhero .ph-next .n-s{font-size:12px;color:#a89e88;margin-bottom:8px;line-height:1.5;}',
-    '#pf-hubhero .ph-cta{display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:14px;',
-    'padding:12px 26px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;min-height:44px;}',
-    '#pf-hubhero .ph-cta:active{background:#8f0d17;}',
-    '#pf-hubhero .ph-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}',
-    '#pf-hubhero .ph-linkcard{flex:1 1 140px;background:#141414;border:1px solid #2a2a2a;border-radius:4px;',
-    'padding:10px 12px;text-decoration:none;color:#f5ead6;}',
-    '#pf-hubhero .ph-linkcard .l-k{font-size:9px;letter-spacing:3px;color:#c1121f;font-weight:800;margin-bottom:4px;}',
-    '#pf-hubhero .ph-linkcard .l-t{font-size:13px;font-weight:800;}',
-    '#pf-hubhero .ph-pillars{display:flex;gap:6px;margin-bottom:4px;}',
-    '#pf-hubhero .ph-pillar{flex:1 1 0;background:#141414;border:1px solid #2a2a2a;border-radius:4px;',
-    'padding:10px 4px;color:#f5ead6;text-align:center;cursor:pointer;font-family:Arial,sans-serif;}',
-    '#pf-hubhero .ph-pillar .pp-l{display:block;font-size:12px;font-weight:900;letter-spacing:.06em;}',
-    '#pf-hubhero .ph-pillar .pp-s{display:block;font-size:8px;letter-spacing:.14em;color:#a89e88;margin-top:2px;}',
-    '#pf-hubhero .ph-pillar:active{border-color:#c1121f;}',
-    '#pf-hubhero .ph-foot{font-size:11px;color:#a89e88;text-align:center;}',
-    '#pf-hubhero .ph-foot a{color:#f5ead6;font-weight:800;}',
-    /* FRONT LINES: compact link grid for everything the pillar bar doesn't
-       cover. Reuses the ph-linkcard pattern (kicker + title) at small scale. */
-    '#pf-hubhero .ph-fl-k{font-size:10px;letter-spacing:4px;color:#c1121f;font-weight:800;margin:4px 0 8px;}',
-    '#pf-hubhero .ph-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;}',
-    '#pf-hubhero .ph-fl{display:block;background:#141414;border:1px solid #2a2a2a;border-radius:4px;',
-    'padding:8px 10px;text-decoration:none;color:#f5ead6;}',
-    '#pf-hubhero .ph-fl .l-k{font-size:9px;letter-spacing:2px;color:#c1121f;font-weight:800;margin-bottom:3px;}',
-    '#pf-hubhero .ph-fl .l-t{font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
-    '#pf-hubhero .ph-fl:active{border-color:#c1121f;}',
-    '@media (max-width:520px){#pf-hubhero .ph-grid{grid-template-columns:repeat(2,1fr);}}'
+    '#pf-hubhero,#pf-anonhero{max-width:740px;margin:0 auto;}',
+    '#pf-fl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:4px 0 12px;}',
+    '#pf-fl-grid .pf-pat-intel{margin:0;}',
+    '#pf-hub-2col{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px;}',
+    '#pf-hub-2col .pf-pat-intel{margin:0;}',
+    '@media (max-width:560px){',
+    '#pf-fl-grid{grid-template-columns:repeat(2,1fr);}',
+    '#pf-hub-2col{grid-template-columns:1fr;}',
+    '}'
   ].join('');
-
   function injectCss() {
     try {
-      if (document.getElementById('pf-hubhero-css')) return;
+      if (document.getElementById('pf-hub-css')) return;
       var st = document.createElement('style');
-      st.id = 'pf-hubhero-css'; st.textContent = CSS;
+      st.id = 'pf-hub-css'; st.textContent = CSS;
       document.head.appendChild(st);
     } catch (e) {}
   }
 
-  /* Pillar bar: composes PF.pillars (labels, order, go handlers). Fail-open:
-     no pillars module -> no bar (the HUD bar still mounts on its own). */
-  function pillarBarHtml() {
-    try {
-      var P = window.PF && PF.pillars;
-      if (!P || !P.pillars || typeof P.go !== 'function') return '';
-      var list = P.pillars.slice();
-      /* Chosen adventure paths first — same ordering contract as the HUD bar. */
-      var paths = (typeof P.getPaths === 'function') ? P.getPaths() : [];
-      list.sort(function (a, b) {
-        var ai = paths.indexOf(a.path), bi = paths.indexOf(b.path);
-        ai = ai === -1 ? 99 : ai; bi = bi === -1 ? 99 : bi;
-        return ai - bi;
-      });
-      var h = '<div class="ph-pillars" id="pf-hub-pillars">';
-      for (var i = 0; i < list.length; i++) {
-        h += '<button type="button" class="ph-pillar" data-ph-go="' + esc(list[i].key) + '">' +
-          '<span class="pp-l">' + esc(list[i].label) + '</span>' +
-          '<span class="pp-s">' + esc(list[i].sub) + '</span></button>';
-      }
-      return h + '</div>';
-    } catch (e) { return ''; }
+  /* ---- FRONT LINES ----------------------------------------------------
+     Every major feature the four-pillar dock doesn't reach. Kicker taxonomy
+     follows the pillar verb set (DATA pillar relabeled TRACK, CEO decision
+     2026-10-06 — the kickers match). Slugs per the CEO directive spec;
+     destination pages mount their own silos — this module only links. */
+  var FRONT_LINES = [
+    { k: 'PLAY',  t: 'Call it',          b: 'Call the outcome. Climb the board.',      h: '/call-it' },
+    { k: 'TRACK', t: 'People\u2019s CPI', b: 'Track prices the people report.',         h: '/peoples-cpi' },
+    { k: 'MONEY', t: 'Robbery Report',   b: 'The heist, with receipts.',                h: '/follow-the-money' },
+    { k: 'MONEY', t: 'Follow the Money', b: 'Follow the money trail.',                 h: '/follow-the-money' },
+    { k: 'SQUAD', t: 'Cell War',         b: 'Squad vs squad. Hold the line.',           h: '/cell-war' },
+    { k: 'PLAY',  t: 'Arcade',           b: 'Nine games. One war.',                     h: '/arcade' },
+    { k: 'MAKE',  t: 'Create',           b: 'Forge propaganda. Ship it.',               h: '/create' },
+    { k: 'FUND',  t: 'Store',            b: 'Wear the war.',                            h: '/store' },
+    { k: 'FUND',  t: 'Fund the fight',   b: 'Fuel the machine.',                        h: '/fund' },
+    { k: 'ACT',   t: 'Governance',       b: 'Vote the movement\u2019s line.',            h: '/governance' },
+    { k: 'LEARN', t: 'Academy',          b: 'Learn the tools. Fight forever.',          h: '/request-access#pf-academy-hq' },
+    { k: 'TRACK', t: 'Data Bounties',    b: 'Open bounties. Real targets.',             h: '/data-bounties' }
+  ];
+  /* P6 on every card: SHARE THIS INTEL -> the feature page; TAKE THIS TO
+     YOUR CELL -> /cells; REPORT BACK -> the daily check-in. The funnel
+     never dead-ends. */
+  function cardBar(href) {
+    return P.actionBar({ shareUrl: href, cellUrl: '/cells', reportUrl: '/#pf-orders' });
+  }
+  function frontLinesHtml() {
+    var h = '<div class="pf-pat"><p class="pf-pat-hero-kicker">Front lines</p>' +
+      '<div id="pf-fl-grid">';
+    for (var i = 0; i < FRONT_LINES.length; i++) {
+      var c = FRONT_LINES[i];
+      h += '<div>' + P.intelCard({ kicker: c.k, headline: c.t, dataLine: esc(c.b), href: c.h, verb: 'deploy' }) +
+        cardBar(c.h) + '</div>';
+    }
+    return h + '</div></div>';
   }
 
-  function wirePillars(root) {
+  /* ---- ANONYMOUS: P1 Briefing Hero + FRONT LINES -----------------------
+     Zero backend reads. The join button carries data-pf-claim-cs so the
+     existing delegated handler in 03-global.js opens the PF.requireCallsign
+     enlistment modal (href '/' is the no-JS fallback — the homepage, where
+     enlistment lives). */
+  function anonHeroHtml() {
+    return '<div class="pf-pat" id="pf-anonhero">' +
+      P.hero({
+        kicker: 'The movement',
+        mission: 'One machine. Four fights. Your callsign is your weapon.',
+        sub: 'No name required to look around \u2014 claim one when you\u2019re ready to fight.',
+        joinHref: '/'
+      }) +
+      frontLinesHtml() +
+      '</div>';
+  }
+  function wireAnonJoin(root) {
     try {
-      var P = window.PF && PF.pillars;
-      if (!P || typeof P.go !== 'function') return;
-      var btns = root.querySelectorAll('[data-ph-go]');
-      for (var i = 0; i < btns.length; i++) {
-        (function (b) {
-          b.addEventListener('click', function () {
-            try { P.go(b.getAttribute('data-ph-go')); } catch (e) {}
-          });
-        })(btns[i]);
+      var btn = root.querySelector('.pf-pat-join');
+      if (btn) {
+        btn.setAttribute('data-pf-claim-cs', '1');
+        btn.setAttribute('data-pf-claim-ctx', 'hub-anon-hero');
       }
     } catch (e) {}
   }
 
-  function kickerHtml() {
+  /* ---- RECOGNIZED: YOUR CAMPAIGN --------------------------------------
+     P1 (path-flavored kicker + mission) + P5 ring + next move + link cards
+     + FRONT LINES. Every card carries the P6 Action Bar. */
+  function kickerText() {
     var names = [];
     try {
-      var P = window.PF && PF.pillars;
-      if (P && typeof P.pathNames === 'function') names = P.pathNames();
+      var Pl = window.PF && PF.pillars;
+      if (Pl && typeof Pl.pathNames === 'function') names = Pl.pathNames();
     } catch (e) {}
-    var t = (names.length && names.length < 4)
-      ? names.join(' + ') + ' \u00B7 YOUR CAMPAIGN'
-      : 'YOUR CAMPAIGN';
-    return '<div class="ph-kick">' + esc(t) + '</div>';
+    return (names.length && names.length < 4)
+      ? names.join(' + ') + ' \u00B7 Your campaign'
+      : 'Your campaign';
   }
 
-  /* Compact Next Move: a small priority ladder over the same reads the HUD
-     makes. This is the hub's at-a-glance card; the full nextop ladder still
-     mounts at page end. Fail-open: unknown state -> orders link. */
-  function nextMoveHtml(d) {
-    var card;
+  /* Compact Next Move: same priority reads as before; the CTA obeys the
+     CTA family — DEPLOY → for actions, REPORT BACK → for the close-the-loop
+     check-in. Kicker per the News Desk gate: "YOUR ORDERS →". */
+  function nextMoveData(d) {
     if (d.streakRisk) {
-      card = { t: 'STREAK AT RISK', s: 'Keep it going — one check-in before midnight Chicago.', c: 'SAVE IT \u2192', h: '/#pf-orders' };
+      return { t: 'STREAK AT RISK', s: 'Keep it going \u2014 one check-in before midnight Chicago.', v: 'report', h: '/#pf-orders' };
     } else if (!d.lootClaimed) {
-      card = { t: 'THE CRATE IS LOADED', s: 'Your daily loot is waiting.', c: 'OPEN THE CRATE \u2192', h: '/#pf-orders' };
+      return { t: 'THE CRATE IS LOADED', s: 'Your daily loot is waiting.', v: 'deploy', h: '/#pf-orders' };
     } else if (!d.inCell) {
-      card = { t: 'NO SQUAD YET', s: 'Five callsigns. One streak. Nobody gets left behind.', c: 'FIND YOUR CELL \u2192', h: '/cells' };
-    } else {
-      card = { t: "TODAY'S ORDERS", s: 'Missions are live. Report back when they\u2019re done.', c: 'VIEW ORDERS \u2192', h: '/#pf-orders' };
+      return { t: 'NO SQUAD YET', s: 'Five callsigns. One streak. Nobody gets left behind.', v: 'deploy', h: '/cells' };
     }
-    return '<div class="ph-next"><div class="n-k">NEXT MOVE</div>' +
-      '<div class="n-t">' + esc(card.t) + '</div>' +
-      '<div class="n-s">' + esc(card.s) + '</div>' +
-      '<a class="ph-cta" href="' + esc(card.h) + '">' + esc(card.c) + '</a></div>';
+    return { t: 'TODAY\u2019S ORDERS', s: 'Missions are live. Report back when they\u2019re done.', v: 'deploy', h: '/#pf-orders' };
+  }
+  function nextMoveHtml(d) {
+    var c = nextMoveData(d);
+    return P.intelCard({ kicker: 'Your orders \u2192', headline: c.t, dataLine: esc(c.s), href: c.h, verb: c.v }) +
+      cardBar(c.h);
+  }
+
+  function linkCardsHtml() {
+    return '<div id="pf-hub-2col"><div>' +
+      P.intelCard({ kicker: 'Daily orders', headline: 'Today\u2019s missions',
+        dataLine: esc('Thirty seconds. Report back when done.'), href: '/#pf-orders', verb: 'deploy' }) +
+      cardBar('/#pf-orders') + '</div><div>' +
+      P.intelCard({ kicker: 'War report', headline: 'This week\u2019s dispatch',
+        dataLine: esc('The war, distilled. Sixty seconds, then move.'), href: '/war-report', verb: 'deploy' }) +
+      cardBar('/war-report') + '</div></div>';
+  }
+
+  function ringHtml(d) {
+    return P.ring({ xp: d.xpToday, cap: dailyTarget(), streak: d.streak, rank: rankOf() });
   }
 
   function cellHtml(d) {
     if (d.inCell) {
-      return '<div class="ph-cell">FIGHTING WITH <b>' + esc(d.cellName || 'YOUR CELL') + '</b>' +
-        (d.cellChecked ? ' — checked in today \u2713' : ' — cell hasn\u2019t checked in yet today') + '</div>';
+      return '<p class="pat-gray" data-hub-cell>Fighting with <b>' + esc(d.cellName || 'your cell') + '</b>' +
+        (d.cellChecked ? ' \u2014 checked in today \u2713' : ' \u2014 cell hasn\u2019t checked in yet today') + '</p>';
     }
-    return '<div class="ph-cell">No cell yet. <b><a href="/cells" style="color:#f5ead6;">Find your squad \u2192</a></b></div>';
+    return '<p class="pat-gray" data-hub-cell>No cell yet. <b><a href="/cells">Find your squad \u2192</a></b></p>';
   }
 
-  function ordersHtml() {
-    return '<a class="ph-linkcard" href="/#pf-orders"><div class="l-k">DAILY ORDERS</div>' +
-      '<div class="l-t">Today\u2019s missions \u2192</div></a>';
-  }
-
-  function warReportHtml() {
-    return '<a class="ph-linkcard" href="/war-report"><div class="l-k">WAR REPORT</div>' +
-      '<div class="l-t">This week\u2019s dispatch \u2192</div></a>';
-  }
-
-  /* FRONT LINES (workstream 1, 2026-10-06): every major feature the
-     four-pillar bar doesn't route, one tap from the hub. Pillar-covered
-     features are deliberately NOT duplicated here: price check-in (DATA ->
-     /economy#pf-inflation-checkin), Events (ACT -> /events), Cells (ORGANIZE
-     -> /cells), Daily Orders + War Report (link cards above).
-     Slugs per the CEO directive spec; destination pages mount their own
-     silos — this module only links. Fail-open: plain anchors, zero XP,
-     no writes. */
-  var FRONT_LINES = [
-    { k: 'PLAY',  t: 'Call it',          h: '/call-it' },
-    { k: 'DATA',  t: 'People\u2019s CPI', h: '/peoples-cpi' },
-    { k: 'MONEY', t: 'Robbery Report',   h: '/follow-the-money' },
-    { k: 'MONEY', t: 'Follow the Money', h: '/follow-the-money' },
-    { k: 'SQUAD', t: 'Cell War',         h: '/cell-war' },
-    { k: 'PLAY',  t: 'Arcade',           h: '/arcade' },
-    { k: 'MAKE',  t: 'Create',           h: '/create' },
-    { k: 'FUND',  t: 'Store',            h: '/store' },
-    { k: 'FUND',  t: 'Fund the fight',   h: '/fund' },
-    { k: 'ACT',   t: 'Governance',       h: '/governance' },
-    { k: 'LEARN', t: 'Academy',          h: '/request-access#pf-academy-hq' },
-    { k: 'DATA',  t: 'Data Bounties',    h: '/data-bounties' }
-  ];
-  function frontLinesHtml() {
-    var h = '<div class="ph-fl-k">FRONT LINES</div><div class="ph-grid" id="pf-hub-frontlines">';
-    for (var i = 0; i < FRONT_LINES.length; i++) {
-      h += '<a class="ph-fl" href="' + esc(FRONT_LINES[i].h) + '">' +
-        '<div class="l-k">' + esc(FRONT_LINES[i].k) + '</div>' +
-        '<div class="l-t">' + esc(FRONT_LINES[i].t) + ' \u2192</div></a>';
-    }
-    return h + '</div>';
-  }
-
-  function renderShell(cs) {
+  function renderShell(cs, anon) {
     var host = homeHost();
-    if (!host || document.getElementById('pf-hubhero')) return null;
+    if (!host) return null;
     injectCss();
-    var el = document.createElement('div');
-    el.id = 'pf-hubhero';
-    el.innerHTML =
-      kickerHtml() +
-      '<div class="ph-head">' + ringSvg(0) +
-      '<div class="ph-who"><div class="ph-cs">' + esc(cs) + '</div>' +
-      '<div class="ph-rank" data-ph-rank></div></div>' +
-      '<div class="ph-streak" data-ph-streak></div></div>' +
-      '<div data-ph-cell></div>' +
-      '<div data-ph-next></div>' +
-      '<div class="ph-row">' + ordersHtml() + warReportHtml() + '</div>' +
-      pillarBarHtml() +
+    if (anon) {
+      if (document.getElementById('pf-anonhero')) return null;
+      var a = document.createElement('div');
+      a.innerHTML = anonHeroHtml();
+      var aEl = a.firstChild;
+      if (host.firstChild) host.insertBefore(aEl, host.firstChild);
+      else host.appendChild(aEl);
+      wireAnonJoin(aEl);
+      return aEl;
+    }
+    if (document.getElementById('pf-hubhero')) return null;
+    /* A mid-session claim flips anonymous -> recognized: the anon hero
+       stands down, the campaign takes the top slot. */
+    try {
+      var old = document.getElementById('pf-anonhero');
+      if (old && old.parentNode) old.parentNode.removeChild(old);
+    } catch (e) {}
+    var w = document.createElement('div');
+    w.innerHTML = '<div class="pf-pat" id="pf-hubhero">' +
+      P.hero({ kicker: kickerText(), mission: 'Your war, your numbers, your next move \u2014 all in one place.' }) +
+      '<div data-hub-ring>' + ringHtml({ xpToday: 0, streak: 0 }) + '</div>' +
+      '<div data-hub-proof></div>' +
+      '<div data-hub-cellwrap></div>' +
+      '<div data-hub-next></div>' +
+      linkCardsHtml() +
       frontLinesHtml() +
-      '<div class="ph-foot"><a href="#" data-ph-paths>Change your fights</a> \u00B7 the movement rolls on below</div>';
+      '</div>';
+    var el = w.firstChild;
     if (host.firstChild) host.insertBefore(el, host.firstChild);
     else host.appendChild(el);
-    wirePillars(el);
-    try {
-      var ch = el.querySelector('[data-ph-paths]');
-      if (ch) ch.addEventListener('click', function (ev) {
-        try { ev.preventDefault(); } catch (e) {}
-        try {
-          var P = window.PF && PF.pillars;
-          if (P && typeof P.openChooser === 'function') P.openChooser();
-        } catch (e) {}
-      });
-    } catch (e) {}
     return el;
   }
 
   function fill(el, d) {
     if (!el) return;
     try {
-      var r = rankOf();
-      var rk = el.querySelector('[data-ph-rank]');
-      if (rk && r) rk.textContent = r;
-      var st = el.querySelector('[data-ph-streak]');
-      if (st && d.streak > 0) st.innerHTML = '&#128293;' + d.streak;
-      var ring = el.querySelector('.ph-head svg');
-      if (ring) {
-        var wrap = document.createElement('span');
-        wrap.innerHTML = ringSvg(d.xpToday / 100);
-        ring.parentNode.replaceChild(wrap.firstChild, ring);
-      }
-      var cn = el.querySelector('[data-ph-cell]');
-      if (cn) cn.innerHTML = cellHtml(d);
-      var nx = el.querySelector('[data-ph-next]');
+      var r = el.querySelector('[data-hub-ring]');
+      if (r) r.innerHTML = ringHtml(d);
+      /* P8: real figure or suppressed — cell member count from the live
+         read only; never inflated, never guessed. */
+      var pr = el.querySelector('[data-hub-proof]');
+      if (pr) pr.innerHTML = (d.cellMembers > 0)
+        ? P.proof({ count: d.cellMembers, text: 'soldiers in your cell' }) : '';
+      var cw = el.querySelector('[data-hub-cellwrap]');
+      if (cw) cw.innerHTML = cellHtml(d);
+      var nx = el.querySelector('[data-hub-next]');
       if (nx) nx.innerHTML = nextMoveHtml(d);
     } catch (e) {}
   }
 
   function boot() {
     var cs = callsign();
-    /* ANONYMOUS: the public landing is untouched — hub only for the recognized. */
-    if (!cs) return;
     var host = homeHost();
     if (!host) return;
-    var el = renderShell(cs);
+    /* ANONYMOUS: the Briefing Hero + FRONT LINES render with zero backend
+       reads — the public landing below stays byte-identical. */
+    if (!cs) { renderShell('', true); return; }
+    var el = renderShell(cs, false);
     if (!el) return;
-    var d = { xpToday: 0, streak: 0, streakRisk: false, lootClaimed: true, inCell: false, cellChecked: false, cellName: '' };
+    var d = { xpToday: 0, streak: 0, streakRisk: false, lootClaimed: true,
+      inCell: false, cellChecked: false, cellName: '', cellMembers: 0 };
     var pending = 4, done = false;
     function fin() { if (done) return; done = true; fill(el, d); }
     function one() { if (--pending <= 0) fin(); }
@@ -386,6 +351,8 @@
             if (cells[0].name) d.cellName = String(cells[0].name);
             if (cells[0].checked_today !== undefined) d.cellChecked = !!cells[0].checked_today;
           }
+          var members = j.members || (cells.length && cells[0].members) || [];
+          if (members && members.length) d.cellMembers = members.length;
         }
       } catch (e) {}
       one();

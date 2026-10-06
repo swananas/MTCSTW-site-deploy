@@ -11,7 +11,8 @@
       page-mount.js, build/bundle.js, and this harness.
    2. Kill switches: PF.skip('cell-territory-map') / PF.skip('cell-comp-seasons')
       present, ?pf_off= documented in headers, localStorage path covered by
-      PF.skip, and page-mount.js mounts both on /cells with matching silo keys.
+      PF.skip, and page-mount.js mounts both on /cell-war (BLOSSOM S2 split)
+      with matching silo keys.
    3. Territory tile grid: exactly 51 tiles (50 states + DC), all codes valid,
       viewBox present, unclaimed fill #3a3a3a, MY CELL gold highlight, legend.
    4. Territory contract: reads territory_map_status; renders regions
@@ -95,8 +96,9 @@ console.log('== 2. kill switches ==');
   else no('kill ' + key, '?pf_off=' + key + ' not documented in header');
 });
 if (has(pm, "['cell-territory-map', 'pf-ov-territory-map']") &&
-    has(pm, "['cell-comp-seasons', 'pf-ov-cellcomp-seasons']"))
-  ok('page-mount: both silos mounted on /cells with matching template ids');
+    has(pm, "['cell-comp-seasons', 'pf-ov-cellcomp-seasons']") &&
+    has(pm, "'pf-cell-war'"))
+  ok('page-mount: both silos mounted on /cell-war (BLOSSOM S2 split off /cells) with matching template ids');
 else no('page-mount', 'order entries missing or template ids mismatched');
 
 console.log('== 3. territory tile grid ==');

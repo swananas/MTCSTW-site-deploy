@@ -91,11 +91,31 @@
     ['CREATE', '/create'],
     ['BANK', '/bank'],
     ['ECONOMY', '/economy'],
-    ['WAR CHEST', '/war-chest'],
+    /* SPACE-AUDIT FIX 2 (2026-10-06): /fund was orphaned — zero inbound
+       links. FRONT LINES grid is the canonical inbound path (fix 9). */
+    ['FUND', '/fund'],
+    /* BLOSSOM M3 (2026-10-06): /war-chest folds into /ventures — the
+       VENTURES entry now covers the Movement Funds section; no duplicate. */
     ['VENTURES', '/ventures'],
     ['EVENTS', '/events'],
-    ['WAR REPORT', '/war-report']
+    ['WAR REPORT', '/war-report'],
+    /* SPACE-AUDIT FIX 3 (2026-10-06): /governance was shadowed under ACT
+       (goPillar picks /call-it) — the FRONT LINES grid gives it its own
+       inbound path from every page footer. */
+    ['GOVERNANCE', '/governance']
   ];
+
+  /* SPACE-AUDIT FIX 2 (2026-10-06): /fund joins the pillar spine as an
+     ORGANIZE destination. This module runs on every page (core bundle), so
+     the registration is global — unlike the fund silo, which only loads on
+     /fund. Secondary only: /cells is re-registered right after so it stays
+     the primary ORGANIZE landing (registerDestination takes the front). */
+  try {
+    if (window.PF && PF.pillars && PF.pillars.registerDestination) {
+      PF.pillars.registerDestination('organize', { url: '/fund', mount: 'pf-fund' });
+      PF.pillars.registerDestination('organize', { url: '/cells', mount: 'pf-cells-page' });
+    }
+  } catch (e) {}
 
   /* Proven footer selector list, copied from 16-footer (covers commerce +
      system pages where Squarespace renders footers late / differently). */

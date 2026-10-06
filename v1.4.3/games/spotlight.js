@@ -1,9 +1,9 @@
-/* games/spotlight.js | PF v1.4.3 | SPOTLIGHT: "Today's Game" — daily rotation.
-   Rotates creator-guess / daily-interrogation / billionaire-supervillain via
-   Chicago day-of-year % 3. Mounts the chosen game's staged template into the
-   spotlight slot with a TODAY'S GAME header + /arcade links for the other two.
-   The three game silos are staged by their own files but NOT listed in the
-   homepage mounter — spotlight mounts exactly one of them.
+/* games/spotlight.js | PF v1.4.3 | SPOTLIGHT TEASER — "Today's Game".
+   2026-10-06 (fe/homepage-decondense, CEO directive): the full rotating games
+   (creator-guess / daily-interrogation / billionaire-supervillain) moved to
+   /arcade — the homepage keeps only this static teaser card naming today's
+   pick via the same Chicago day-of-year rotation the widget used, so the
+   name shown is honest, plus a CTA to the arcade. Zero backend, zero XP.
    KILL: ?pf_off=spotlight  or  localStorage pf_disabled_v1='["spotlight"]' */
 (function () {
   'use strict';
@@ -11,86 +11,50 @@
   if (!PF || PF.skip("spotlight")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-spotlight">
 <div class="fe-block pf-override-block" id="pf-spotlight">
-<h2>TODAY&rsquo;S GAME</h2>
-<div class="c-tag">One game a day. The other two wait in the arcade.</div>
-<div id="pf-spot-slot"><div class="c-load">Loading today&rsquo;s game&hellip;</div></div>
-<div id="pf-spot-links" class="x-note"></div>
+<style>
+#pf-spotlight .pft-card{max-width:680px;margin:0 auto;box-sizing:border-box;background:#0d0d0d;border:2px solid #c1121f;border-radius:4px;padding:22px 18px;text-align:center}
+#pf-spotlight .pft-kick{font-size:11px;letter-spacing:4px;color:#c1121f;font-weight:800;margin-bottom:8px;font-family:Arial,sans-serif}
+#pf-spotlight .pft-title{font-family:'Arial Black',Arial,sans-serif;font-size:24px;letter-spacing:2px;color:#fff;text-transform:uppercase;margin:0 0 8px}
+#pf-spotlight .pft-hook{font-size:14px;color:#b8ab8f;line-height:1.5;margin:0 0 16px;font-family:Arial,sans-serif}
+#pf-spotlight .pft-hook b{color:#f5ead6}
+#pf-spotlight .pft-cta{display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:15px;padding:14px 30px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;min-height:48px;line-height:1.2;box-sizing:border-box;font-family:Arial,sans-serif}
+#pf-spotlight .pft-cta:active{background:#8f0d17}
+</style>
+<div class="pft-card">
+<div class="pft-kick">&#127918; PLAY &middot; TODAY&rsquo;S GAME</div>
+<div class="pft-title">Today&rsquo;s game.</div>
+<div class="pft-hook">Today&rsquo;s pick: <b id="pf-spot-name">&hellip;</b><br>One game a day. The rest wait in the arcade.</div>
+<a class="pft-cta" href="/arcade">PLAY IN THE ARCADE &rarr;</a>
 </div>
 <script>
 (function(){
 'use strict';
+/* Same rotation the full widget used: Chicago day-of-year % 3, skipping
+   games the visitor killed (?pf_off= / localStorage). */
 var GAMES=[
-  {key:'creator-guess',tpl:'pf-ov-guess',name:'Guess the Creator'},
-  {key:'daily-interrogation',tpl:'pf-ov-interrogation',name:'The Daily Interrogation'},
-  {key:'billionaire-supervillain',tpl:'pf-ov-billionaire',name:'Billionaire or Supervillain?'}
+  {key:'creator-guess',name:'Guess the Creator'},
+  {key:'daily-interrogation',name:'The Daily Interrogation'},
+  {key:'billionaire-supervillain',name:'Billionaire or Supervillain?'}
 ];
-function chiNow(){ try{ return (window.PF&&PF.chiNow)?PF.chiNow():new Date(); }catch(e){ return new Date(); } }
-/* Chicago day-of-year: Jan 1 = 0. */
+function chiNow(){ try{ return (window.PF&&window.PF.chiNow)?window.PF.chiNow():new Date(); }catch(e){ return new Date(); } }
 function dayOfYear(d){
   var jan1=new Date(d.getFullYear(),0,1);
   var today=new Date(d.getFullYear(),d.getMonth(),d.getDate());
   return Math.max(0,Math.round((today-jan1)/86400000));
 }
-/* Daily pick; skips games the user killed (?pf_off= / localStorage). */
 function pick(){
   var doy=dayOfYear(chiNow());
   for(var i=0;i<GAMES.length;i++){
     var g=GAMES[(doy+i)%GAMES.length];
-    try{ if(window.PF&&PF.skip&&PF.skip(g.key)) continue; }catch(e){}
+    try{ if(window.PF&&window.PF.skip&&window.PF.skip(g.key)) continue; }catch(e){}
     return g;
   }
   return GAMES[0];
 }
-function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
-var slot=document.getElementById('pf-spot-slot');
-var links=document.getElementById('pf-spot-links');
-if(!slot||!links) return;
-var game=pick();
-function paintLinks(){
-  var others=GAMES.filter(function(g){return g.key!==game.key;});
-  links.innerHTML='Also in the arcade: '+others.map(function(g){
-    return '<a href="/arcade" style="color:#c1121f;">'+esc(g.name)+' &rarr;</a>';
-  }).join(' &middot; ');
-}
-/* Same contract as the homepage mounter: clone the staged template, then
-   run its inner script in global scope. */
-function execScripts(root){
-  var scripts=root.querySelectorAll('script');
-  for(var i=0;i<scripts.length;i++){
-    try{ (0,eval)(scripts[i].textContent); }catch(e){}
-    scripts[i].remove();
-  }
-}
-function mountGame(){
-  var tpl=document.getElementById(game.tpl);
-  if(!tpl||!tpl.content) return false;
-  var frag=document.importNode(tpl.content,true);
-  slot.innerHTML='';
-  slot.appendChild(frag);
-  execScripts(slot);
-  return true;
-}
-function renderError(){
-  slot.innerHTML='<div class="c-neterr">Today&rsquo;s game didn&rsquo;t load.'+
-    '<br><button class="c-btn" id="pfSpotRetry">Retry</button> '+
-    '<a href="/arcade" class="c-btn ghost" style="text-decoration:none;display:inline-block;">Open the arcade</a></div>';
-  var rb=document.getElementById('pfSpotRetry');
-  if(rb) rb.onclick=function(){
-    tries=0;
-    slot.innerHTML='<div class="c-load">Loading today&rsquo;s game&hellip;</div>';
-    tryMount();
-  };
-}
-var tries=0;
-function tryMount(){
-  tries++;
-  /* Staged templates arrive with their bundles — wait for ours. */
-  if(mountGame()) return;
-  if(tries>=15){ renderError(); return; }
-  setTimeout(tryMount,2000);
-}
-paintLinks();
-tryMount();
+try{
+  var el=document.getElementById('pf-spot-name');
+  if(el) el.textContent=pick().name;
+}catch(e){}
 })();
 </scr`+`ipt>
 </div>

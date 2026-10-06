@@ -141,8 +141,11 @@
     'infighting': [['Back your fighter \u2192', 'fan-vote'], ['Enter the arena \u2192', '/arcade']],
     'cells': [['Manage your cell \u2192', '/cells'], ['Recruit fighters \u2192', 'referral']],
     'referral': [['Watch them rank up \u2192', 'enlistment-ranks'], ['Bring them to your cell \u2192', '/cells']],
-    'poster-forge': [['Publish it to the feed \u2192', 'feed'], ['Open the full workshop \u2192', '/create']],
-    'feed': [['Forge a response \u2192', 'poster-forge'], ['Open the full workshop \u2192', '/create']],
+    /* 2026-10-06 (fe/homepage-decondense): poster-forge + feed are teasers now —
+       companion links route out to the full workshop instead of scrolling
+       between teaser cards. */
+    'poster-forge': [['Open the full workshop \u2192', '/create'], ['See the whole machine \u2192', '/network']],
+    'feed': [['Forge a poster \u2192', 'poster-forge'], ['Open the full workshop \u2192', '/create']],
     'hq-nudge': [['See what you\u2019d unlock \u2192', '/request-access']],
     'war-bonds': [['Manage your bonds \u2192', '/bank'], ['See where it goes \u2192', '/war-chest']],
     /* A1 home (2026-10-05): Price Index feeder exits. */

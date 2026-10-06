@@ -35,6 +35,49 @@ self.addEventListener('activate', function (e) {
   );
 });
 
+/* PUSH (2026-10-05, fe/pwa): notification display + tap routing.
+   Payload is title/body/url only — no PII, no XP amounts, no personal
+   data. Icon/badge paths are relative to the SW script location: in
+   Phase B (sw.js served from the site origin) the icons must be
+   co-located at the origin root, or these fall back to no-icon
+   (harmless — the notification still shows). */
+self.addEventListener('push', function (e) {
+  var data = {};
+  try { data = e.data ? e.data.json() : {}; } catch (err) { data = {}; }
+  var title = data.title || 'MTCSTW';
+  var body = data.body || 'Something new from the factory.';
+  var url = data.url || '/';
+  e.waitUntil(
+    self.registration.showNotification(title, {
+      body: body,
+      icon: 'icon-192.png',
+      badge: 'icon-192.png',
+      data: { url: url }
+    })
+  );
+});
+
+self.addEventListener('notificationclick', function (e) {
+  e.notification.close();
+  var url = (e.notification.data && e.notification.data.url) || '/';
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clients) {
+      var i, c, cUrl, tUrl;
+      try { tUrl = new URL(url, self.registration.scope); } catch (err) { tUrl = null; }
+      for (i = 0; i < clients.length; i++) {
+        c = clients[i];
+        try {
+          cUrl = new URL(c.url);
+          if (tUrl && cUrl.pathname === tUrl.pathname && 'focus' in c) {
+            return c.focus();
+          }
+        } catch (err2) {}
+      }
+      if (self.clients.openWindow) { return self.clients.openWindow(url); }
+    })
+  );
+});
+
 function isApi(url) { return url.host === API_HOST; }
 function isStatic(url) {
   return url.host === CDN_HOST || /\.(png|jpe?g|gif|webp|svg|css|js|woff2?)(\?|$)/i.test(url.pathname);

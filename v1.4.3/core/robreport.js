@@ -60,7 +60,9 @@
       '.pf-rr-basket details{margin:8px 0;font-size:13px;color:#c9bfa8}' +
       '.pf-rr-basket summary{cursor:pointer;color:#f5f0e6;font-weight:700}' +
       '.pf-rr-basket li{margin:3px 0}' +
-      '.pf-rr-assump{font-size:11px;color:#8f887a;font-style:italic;margin:6px 0 0}';
+      '.pf-rr-assump{font-size:11px;color:#8f887a;font-style:italic;margin:6px 0 0}' +
+      '.pf-rr-next{font-size:13px;font-weight:700;margin:10px 0 0}' +
+      '.pf-rr-next a{color:#fff;text-decoration:none;border-bottom:2px solid #c1121f;margin-right:14px}';
     var st = document.createElement('style');
     st.setAttribute('data-pf', 'robreport');
     st.textContent = css;
@@ -166,6 +168,10 @@
     h += '<p class="pf-rr-cant"><b>What this can\u2019t prove:</b> ' + esc(it.cantProve) + '</p>';
     h += '<p class="pf-rr-tiny" style="margin:0 0 10px"><i>' + esc(D.TAGLINE) + '</i></p>';
     h += '<button class="pf-rr-share" data-rr-share="item:' + esc(it.id) + '">SHARE IMAGE</button>';
+    /* Integration audit 2026-10-06: the cards were a read-only dead end.
+       Close the money-chain loop: report the price you paid, follow their money. */
+    h += '<p class="pf-rr-next"><a href="/economy#pf-inflation-checkin">REPORT THE PRICE YOU PAID &rarr;</a>'
+       + '<a href="/follow-the-money">FOLLOW THEIR MONEY &rarr;</a></p>';
     h += '</article>';
     return h;
   }
@@ -190,6 +196,8 @@
     h += '<details><summary>Per-item breakdown</summary><ul>' + rows + '</ul></details>';
     h += '<p class="pf-rr-assump">' + esc(b.assumptions) + '</p>';
     h += '<button class="pf-rr-share" data-rr-share="basket:' + esc(b.id) + '">SHARE BASKET</button>';
+    h += '<p class="pf-rr-next"><a href="/economy#pf-inflation-checkin">REPORT THE PRICES YOU PAID &rarr;</a>'
+       + '<a href="/follow-the-money">FOLLOW THEIR MONEY &rarr;</a></p>';
     h += '</div>';
     return h;
   }

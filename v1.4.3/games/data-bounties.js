@@ -87,8 +87,17 @@
     return h;
   }
 
-  function renderBoard(host, bounties, title){
-    var id=ident();
+  /* SPARSE-AREA SURGE marker (CEO ruling 2026-10-06, economist-signed):
+     b.surge comes from the backend's surgeForBounty (1.0x–2.0x, linear,
+     confirmed coverage only, coarse area). Fail-open: no marker when the
+     field is absent or 1.0x. */
+  function surgeTag(b){
+    var s=Number(b&&b.surge)||1;
+    if(!(s>1.0001)||!(s<=2)) return '';
+    return '<span class="db-surge" title="Thin data zone — this bounty pays above the posted XP until coverage fills in. Surge decays as confirmed reports arrive.">⚡SURGE ×'+s.toFixed(1)+'</span>';
+  }
+
+  function renderBoard(host, bounties, title){    var id=ident();
     var h='<div class="db-board"><div class="db-head"><span class="db-kicker">MTCSTW.COM</span>'+
       '<h2>'+esc(title||'DATA BOUNTIES')+'</h2>'+
       '<p class="db-sub">Your content becomes movement action — shares, campaigns, evidence, price data. Never sold. Never ad inventory.</p></div>';
@@ -101,6 +110,7 @@
       h+='<div class="db-title">'+esc(b.title)+'</div>';
       if(b.detail) h+='<div class="db-detail">'+esc(b.detail)+'</div>';
       h+='<div class="db-meta"><span class="db-xp">+'+Number(b.xp_amount||0)+' XP</span>'+
+        surgeTag(b)+
         '<span class="db-hint">'+esc(KIND_HINT[b.kind]||'')+'</span></div>';
       var claims=b.claims||[];
       if(claims.length){
@@ -181,6 +191,7 @@
     '.db-detail{font-size:13.5px;color:#c9bfa8;line-height:1.5;margin-bottom:8px}'+
     '.db-meta{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}'+
     '.db-xp{background:#c1121f;color:#fff;font-weight:800;font-size:12px;padding:4px 10px;border-radius:3px;letter-spacing:1px}'+
+    '.db-surge{background:#e8b923;color:#141414;font-weight:800;font-size:12px;padding:4px 10px;border-radius:3px;letter-spacing:1px;cursor:help}'+
     '.db-hint{font-size:12px;color:#a89e88}'+
     '.db-in{display:block;width:100%;box-sizing:border-box;background:#0b0b0b;border:2px solid #3a3a3a;color:#f5ead6;padding:10px;margin:0 0 8px;font-size:14px;border-radius:3px;min-height:44px}'+
     '.db-btn{background:#c1121f;color:#fff;border:0;font-weight:800;letter-spacing:2px;padding:12px 20px;cursor:pointer;font-size:13px;border-radius:3px;min-height:44px}'+

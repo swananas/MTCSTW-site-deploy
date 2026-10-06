@@ -140,7 +140,7 @@ function runSilo(env, srcCode) {
                 ] },
               { id: 'db_cpi_price_milksouth_2026-10-05', kind: 'cpi_price',
                 title: 'Price check', detail: 'd', xp_amount: 5, cell_id: '',
-                quorum: 2, claims: [] }
+                quorum: 2, surge: 1.6, claims: [] }
             ]});
           }, 5);
         }, get: function () { return ''; }
@@ -165,6 +165,10 @@ function runSilo(env, srcCode) {
     else no('runtime: CPI form', 'price_cents input missing');
     if (/Never sold/.test(html)) ok('runtime: principle copy rendered');
     else no('runtime: principle', 'never-sold copy missing from render');
+    if (/SURGE ×1\.6/.test(html) && /[Tt]hin data zone/.test(html)) ok('runtime: surge marker rendered on thin-area bounty');
+    else no('runtime: surge marker', 'SURGE ×1.6 marker missing on surged bounty');
+    if (!/SURGE ×1\.0/.test(html)) ok('runtime: no surge marker on 1.0x bounty');
+    else no('runtime: surge marker 1.0x', 'marker shown for non-surged bounty');
     finish();
   }, 60);
 })();

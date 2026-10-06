@@ -1,1 +1,527 @@
-!function(){"use strict";var n=window.PF;n&&!n.skip("movement")&&n.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-movement">\n<div class="fe-block pf-override-block pf-silo" id="pf-movement">\n<h2>Movement Finance</h2>\n<div class="c-tag">Collective money for collective power. No billionaires on the board.</div>\n<div id="xMovement"><div class="c-load">Opening the war chest&hellip;</div></div>\n</div>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}\n  try{ var t=document.createElement("div"); t.textContent=m;\n  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";\n  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  /* Private reads require auth_secret (IDOR fix). Auto-attach for gated actions. */\n  if(action==="xp_history"||action==="subscription_list"||action==="commission_earnings"){\n    try{\n      var _sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : "";\n      if(_sec && params && !params.auth_secret) params.auth_secret = _sec;\n    }catch(e){}\n  }\n  var fn="pfMvCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\nfunction post(type,key,cAction,params,cb){\n  var body={type:type}; body[key]=cAction;\n  for(var k in params) body[k]=params[k];\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */\n    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)},c=null,t=null;\n      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}\n      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();\n    fetch(BACKEND,_po)\n      .then(function(r){ return r.json(); }).then(function(j){ _po._pfClear(); done(j); }).catch(function(){ _po._pfClear(); done(null); });\n  }catch(e){ done(null); }\n}\nfunction fmtDate(t){\n  try{ var d=new Date(Number(t)); if(isNaN(d.getTime())) return "";\n    var mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];\n    return mo[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear(); }catch(e){ return ""; }\n}\nvar CAUSES=null, SUBS=null, PRIZES=null, BURNS=null, BWALL=null;\n/* R24 (2026-10-05): pool names the backend\'s funding ceremony already\n   celebrated. cause_list rows carry no goal/status/my_donation fields, so\n   the ceremony\'s visible half is the civic.cause_funded feed event\n   ("CAUSE <NAME> FULLY FUNDED", emitted once per pool by\n   maybeCelebrateCause). Uppercase pool-name -> 1. Fail-silent: an\n   unreachable feed just leaves the banner dark. */\nvar CAUSEFUNDED={};\nfunction scanCauseFunded(j){\n  CAUSEFUNDED={};\n  try{\n    var evs=(j&&j.ok&&j.events)||[];\n    for(var i=0;i<evs.length;i++){\n      var ev=evs[i]||{};\n      if(String(ev.type||"")!=="civic.cause_funded") continue;\n      var m=/^CAUSE (.+) FULLY FUNDED$/.exec(String(ev.name||""));\n      if(m&&m[1]) CAUSEFUNDED[String(m[1]).toUpperCase()]=1;\n    }\n  }catch(e){}\n}\n/* S7 FUND THEIR FIGHT (2026-10-04): /war-chest?creator=<slug> preselects\n   the creator in the subscription UI — catalog pages deep-link here.\n   Existing backend contract only: {type:\'finance\',f_action:\'subscribe\',\n   subscriber, creator, amount_per_week}. No new actions. */\nvar PRESELECT=(function(){\n  try{\n    var m=String(window.location.search||"").match(/[?&]creator=([a-z0-9_-]{3,60})/i);\n    return m?m[1].toLowerCase():"";\n  }catch(e){ return ""; }\n})();\nvar preselectApplied=false;\n/* 6A-R9 (2026-10-04): /war-chest?cell=<id>&sponsor=1 — cell treasury\n   sponsorship mode. Deep-linked from the /cells treasury panel\'s\n   "SPONSOR A CAUSE" button. Officer-gated server-side (cause_sponsor). */\nvar SPONSOR_CELL=(function(){\n  try{\n    var m=String(window.location.search||"").match(/[?&]cell=([a-zA-Z0-9_-]{1,64})/);\n    var s=/[?&]sponsor=1/.test(String(window.location.search||""));\n    return (m&&s)?m[1]:"";\n  }catch(e){ return ""; }\n})();\nvar SPONSOR_CELL_NAME="", sponsorCellFetched=false;\nfunction fetchSponsorCell(cb){\n  if(sponsorCellFetched||!SPONSOR_CELL){ if(cb)cb(); return; }\n  sponsorCellFetched=true;\n  api("cell_card",{cell_id:SPONSOR_CELL},function(j){\n    if(j&&j.ok&&j.cell&&j.cell.name) SPONSOR_CELL_NAME=j.cell.name;\n    if(cb)cb();\n  });\n}\nfunction load(){\n  var id=ident(), done=false, n=0, need=6;\n  function fin(){ if(done)return; done=true; render(); }\n  function one(){ n++; if(n>=need) fin(); }\n  setTimeout(fin,15000);\n  api("cause_list",{},function(j){ CAUSES=j; one(); });\n  /* R24: the funding ceremony\'s feed half — see scanCauseFunded. */\n  api("feed_list",{limit:50},function(j){ scanCauseFunded(j); one(); });\n  api("subscription_list",{callsign:id.callsign},function(j){ SUBS=j; one(); });\n  api("prize_list",{},function(j){ PRIZES=j; one(); });\n  api("burn_leaderboard",{},function(j){ BURNS=j; one(); });\n  /* 6A-R9: resolve the sponsor cell\'s name in parallel (public read). */\n  if(SPONSOR_CELL) fetchSponsorCell(function(){ render(); });\n  /* R13: bondholder wall data (backend contract — flagged). */\n  api("bond_stats",{},function(j){ BWALL=j; one(); });\n}\nfunction render(){\n  var el=document.getElementById("xMovement"); if(!el) return;\n  var id=ident(), h="";\n  if(!id.callsign){\n    el.innerHTML=PF.gateHTML(\'Movement finance runs on callsigns.\',\'to fund the fight\');\n    return;\n  }\n  h+=renderStoreCta();\n  h+=renderCauses(id);\n  h+=renderBondWall(id);\n  h+=renderSubs(id);\n  h+=renderPrizes(id);\n  h+=renderBurns(id);\n  h+=renderRemitLink();\n  h+=\'<div style="margin-top:10px"><button class="c-btn" id="mvRetry">Refresh</button></div>\';\n  el.innerHTML=h;\n  wireCauses(id,el); wireSubs(id,el); wirePrizes(id,el); wireBurns(id,el);\n  /* S7 preselect: prefill the subscribe field with the ?creator= target\n     once per page view, then scroll the visitor to it. */\n  if(PRESELECT&&!preselectApplied){\n    preselectApplied=true;\n    try{\n      var pi=document.getElementById("mvSubCs");\n      if(pi&&!pi.value) pi.value=PRESELECT;\n      var pb2=document.getElementById("mvPre");\n      if(pb2&&pb2.scrollIntoView) setTimeout(function(){ try{ pb2.scrollIntoView({block:"center"}); }catch(e){} },400);\n      toast("FUNDING "+PRESELECT.toUpperCase()+" \\u2014 set XP/week and hit SUPPORT.");\n    }catch(e){}\n  }\n  var rb=document.getElementById("mvRetry");\n  if(rb) rb.onclick=function(){ CAUSES=SUBS=PRIZES=BURNS=BWALL=null; el.innerHTML=\'<div class="c-load">Opening the war chest&hellip;</div>\'; load(); };\n}\n/* ---------- 0. STORE CROSS-LINK (R13) ----------\n   /war-chest -> /store: the bond directory lives here; the checkout lives\n   in the store. Both directions stay one tap apart. */\nfunction renderStoreCta(){\n  return \'<div class="x-pane" style="border-color:#d4af37"><div class="pb-bankhead">&#9733; WAR BONDS (REAL $) LIVE IN THE STORE &#9733;</div>\'\n    +\'<div class="x-note">Real dollars, real bonds — $5 to $50. Half funds the network, half fuels the creator pool.</div>\'\n    +\'<div style="margin-top:8px"><a class="c-btn" href="/store" style="display:inline-block;text-decoration:none">BUY WAR BONDS IN THE STORE &rarr;</a> \'\n    +\'<a class="c-btn ghost" href="/bank" style="display:inline-block;text-decoration:none">LIBERTY BONDS (IN-GAME XP) &rarr;</a></div></div>\';\n}\n/* ---------- BONDHOLDER WALL (R13) ----------\n   Buyer wall surface: every bond buyer gets a named spot. Renders against\n   the bond_stats contract — backend flag: include a "buyers" array of\n   {callsign, tier} (or recent_buyers). "Claim your wall spot" prompts on\n   /store ride the footer chrome (16-footer.js). */\nfunction renderBondWall(id){\n  var h=\'<div class="x-pane" id="pf-bond-wall"><div class="pb-bankhead">&#9733; BONDHOLDER WALL &#9733;</div>\'\n    +\'<div class="x-note">The names behind the war chest. Buy a bond in the <a href="/store" style="color:#c1121f;">store</a> and your callsign lands here.</div>\';\n  var buyers=(BWALL&&BWALL.ok&&(BWALL.buyers||BWALL.recent_buyers))||[];\n  if(!buyers.length){\n    h+=\'<div class="x-note">The wall is waiting for its first name.\'+(BWALL?\'\':\'\')+\'</div>\';\n  } else {\n    h+=\'<div class="cp-wall">\';\n    for(var i=0;i<Math.min(buyers.length,40);i++){\n      var b=buyers[i]||{};\n      var tier=b.tier!=null?Number(b.tier):null;\n      h+=\'<div class="cp-mission"><div class="cp-mtext"><b>\'+esc(b.callsign||"A comrade")+\'</b>\'\n        +(tier>0?\'<div class="x-note">$\'+tier+\' War Bond</div>\':\'\')+\'</div>\'\n        +\'<div class="cp-mdone">★</div></div>\';\n    }\n    h+=\'</div>\';\n  }\n  h+=\'</div>\';\n  return h;\n}\n/* ---------- 1. CAUSE POOLS ---------- */\nfunction renderCauses(id){\n  var h=\'<div class="x-pane"><div class="pb-bankhead">&#9670; CAUSE POOLS — MONEY FOR THE FIGHT &#9670;</div>\'\n    +\'<div class="x-note">Strike funds. Bail funds. Mutual aid. When the movement needs money fast, it comes from here — not from billionaires with strings attached.</div>\';\n  /* 6A-R9: sponsor mode banner — the cell whose treasury is on the line. */\n  if(SPONSOR_CELL){\n    var cnm=SPONSOR_CELL_NAME||SPONSOR_CELL;\n    h+=\'<div class="x-note" style="border:1px solid #c1121f;padding:8px;margin:6px 0;background:#1c0a0a;">\'\n      +\'&#9876; SPONSORING AS <b>CELL \'+esc(cnm)+\'</b> — treasury XP, not yours. \'\n      +\'Founder/officers only; every sponsorship hits the war-room ticker.</div>\';\n  }\n  var pools=(CAUSES&&CAUSES.ok&&CAUSES.pools)||[];\n  if(!pools.length) h+=\'<div class="x-note">No cause pools yet.</div>\';\n  for(var i=0;i<pools.length;i++){\n    var p=pools[i];\n    /* R24 (2026-10-04): completion ceremony — FUNDED banner + donor badge.\n       Backend emitter (W6B-1, flagged): pool rows carry status/funded/goal\n       and the reader\'s my_donation/is_backer. Rendered defensively.\n       2026-10-05: the backend\'s cause_list ships none of those fields, so\n       the celebrated set from the civic.cause_funded feed events\n       (scanCauseFunded) is OR\'d in — real ceremony data, no invented goal. */\n    var goal=Number(p.goal||0);\n    var celebrated=!!CAUSEFUNDED[String(p.name||"").toUpperCase()];\n    var funded=(celebrated||p.status==="funded"||p.funded===true||(goal>0&&Number(p.balance||0)>=goal));\n    var backer=(Number(p.my_donation||0)>0||p.is_backer===true);\n    var pct=goal>0?Math.min(100,Math.round(Number(p.balance||0)/goal*100)):0;\n    h+=\'<div class="cp-mission"><div class="cp-mtext">\'\n      +(funded?\'<div style="background:#1a5c1a;color:#fff;font-weight:800;letter-spacing:2px;font-size:12px;padding:6px 10px;margin-bottom:8px;text-align:center">✔ FUNDED — THE MOVEMENT DELIVERS</div>\':\'\')\n      +\'<b>\'+esc(p.name)+\'</b>\'\n      +(backer?\' <span style="background:#d4af37;color:#0d0d0d;font-weight:800;font-size:10px;letter-spacing:1px;padding:2px 8px;border-radius:3px">★ BACKER</span>\':\'\')\n      +\'<div class="x-note">\'+esc(p.description||"")+\'</div>\'\n      +\'<div class="x-note"><b>\'+Number(p.balance||0).toLocaleString()+\' XP</b> &bull; \'+Number(p.donors||0)+\' backers\'\n      +(goal>0?\' &bull; goal \'+goal.toLocaleString()+\' XP (\'+pct+\'%)\':\'\')+\'</div>\'\n      +(goal>0&&!funded?\'<div style="background:#1a1a1a;height:8px;margin:6px 0"><div style="background:#c1121f;height:8px;width:\'+pct+\'%"></div></div>\':\'\');\n    /* 6A-R9: "Sponsored by CELL <NAME>" attribution block. */\n    var spons=p.sponsors||[];\n    if(spons.length){\n      h+=\'<div class="x-note" style="margin-top:4px">&#9876; <b>Sponsored by</b> \'\n        +spons.map(function(sp){\n          return \'CELL \'+esc(sp.cell_name||sp.cell_id)+\' (\'+Number(sp.amount||0).toLocaleString()+\' XP)\';\n        }).join(\' &middot; \')+\'</div>\';\n    }\n    h+=\'<div style="margin-top:6px"><input aria-label="XP" class="c-in pf-input-sm" data-causeamt="\'+esc(p.id)+\'" type="number" min="1" placeholder="XP" /> \'\n      +\'<button class="c-btn" data-causefund="\'+esc(p.id)+\'">FUND</button>\';\n    /* 6A-R9: sponsor-from-treasury flow (officer-gated server-side). */\n    if(SPONSOR_CELL){\n      h+=\' <input aria-label="Treasury XP" class="c-in pf-input-sm" data-sponsoramt="\'+esc(p.id)+\'" type="number" min="1" placeholder="Treasury XP" /> \'\n        +\'<button class="c-btn" data-sponsor="\'+esc(p.id)+\'" style="border-color:#c1121f">SPONSOR FROM TREASURY</button>\';\n    }\n    h+=\'</div></div></div>\';\n  }\n  h+=\'</div>\';\n  /* 6A-R9: inter-cell sponsorship totals leaderboard. */\n  h+=renderSponsorBoard();\n  return h;\n}\n/* 6A-R9: inter-cell sponsorship totals — the rivalry stat. */\nfunction renderSponsorBoard(){\n  var board=(CAUSES&&CAUSES.ok&&CAUSES.sponsor_board)||[];\n  if(!board.length) return \'\';\n  var h=\'<div class="x-pane"><div class="pb-bankhead">&#9670; CELL SPONSORSHIP BOARD &#9670;</div>\'\n    +\'<div class="x-note">Which cells put their treasury where their mouth is.</div>\';\n  for(var i=0;i<board.length;i++){\n    var b=board[i];\n    h+=\'<div class="cp-lead"><span class="cp-lname">\'+(i+1)+\'. CELL \'+esc(b.cell_name||b.cell_id)+\'</span> \'\n      +\'<span class="cp-lxp">\'+Number(b.total||0).toLocaleString()+\' XP</span>\'\n      +\'<div class="x-note">\'+Number(b.sponsorships||0)+\' sponsorships</div></div>\';\n  }\n  h+=\'</div>\';\n  return h;\n}\nfunction wireCauses(id,el){\n  var bs=el.querySelectorAll(\'button[data-causefund]\');\n  for(var i=0;i<bs.length;i++){ (function(btn){\n    btn.onclick=function(){\n      var pid=btn.getAttribute("data-causefund");\n      var inp=el.querySelector(\'input[data-causeamt="\'+pid+\'"]\');\n      var amt=Math.round(Number(inp?inp.value:0)||0);\n      if(amt<=0){ toast("Enter an amount."); return; }\n      btn.disabled=true;\n      post("finance","f_action","cause_donate",{callsign:id.callsign,device:id.device,pool_id:pid,amount:amt},function(j){\n        btn.disabled=false;\n        if(!j||!j.ok){ toast(PF.errCopy(j,"Transfer failed.")); return; }\n        toast("FUNDED "+amt+" XP. The movement thanks you.");\n        api("cause_list",{},function(jj){ CAUSES=jj; render(); });\n      });\n    };\n  })(bs[i]); }\n  /* 6A-R9: sponsor-from-treasury wiring — officer-gated server-side\n     (cause_sponsor). Native confirm() per the treasury-panel convention;\n     the debit hits the CELL treasury, never the officer\'s wallet. */\n  var ss=el.querySelectorAll(\'button[data-sponsor]\');\n  for(var k=0;k<ss.length;k++){ (function(btn){\n    btn.onclick=function(){\n      var pid=btn.getAttribute("data-sponsor");\n      var inp=el.querySelector(\'input[data-sponsoramt="\'+pid+\'"]\');\n      var amt=Math.round(Number(inp?inp.value:0)||0);\n      if(amt<=0){ toast("Enter a treasury amount."); return; }\n      if(!id.callsign){ toast("Claim a callsign first."); return; }\n      var cnm=SPONSOR_CELL_NAME||SPONSOR_CELL;\n      if(!window.confirm("Sponsor "+amt+" XP from CELL "+cnm+" treasury to this cause? Officers only.")) return;\n      btn.disabled=true;\n      post("finance","f_action","cause_sponsor",{callsign:id.callsign,device:id.device,cell_id:SPONSOR_CELL,pool_id:pid,amount:amt},function(j){\n        btn.disabled=false;\n        if(!j||!j.ok){ toast(PF.errCopy(j,"Sponsorship failed.")); return; }\n        toast(j.dup?"Already sponsored — counted once.":"CELL "+(j.cell_name||cnm)+" SPONSORED "+amt+" XP. The ticker saw it.");\n        api("cause_list",{},function(jj){ CAUSES=jj; render(); });\n      });\n    };\n  })(ss[k]); }\n}\n/* ---------- 2. SUBSCRIPTIONS ---------- */\nfunction renderSubs(id){\n  var h=\'<div class="x-pane"><div class="pb-bankhead">&#9670; CREATOR SUBSCRIPTIONS — PATRONAGE, MOVEMENT-STYLE &#9670;</div>\'\n    +\'<div class="x-note">Weekly recurring XP to the creators who arm you. Cancel anytime. No platform takes a cut.</div>\';\n  var sup=(SUBS&&SUBS.ok&&SUBS.supporting)||[];\n  h+=\'<div class="pb-sub">YOU SUPPORT (\'+sup.length+\')</div>\';\n  if(!sup.length) h+=\'<div class="x-note">You don&rsquo;t support anyone yet. Find a creator worth funding below.</div>\';\n  var total=0;\n  for(var i=0;i<sup.length;i++){\n    var s=sup[i]; total+=Number(s.amount_per_week||0);\n    h+=\'<div class="cp-mission"><div class="cp-mtext"><b>\'+esc(s.creator)+\'</b>\'\n      +\'<div class="x-note">\'+Number(s.amount_per_week).toLocaleString()+\' XP/week &bull; since \'+esc(fmtDate(s.started_at))+\'</div></div>\'\n      +\'<button class="c-btn" data-unsub="\'+esc(s.creator)+\'">STOP</button></div>\';\n  }\n  if(sup.length) h+=\'<div class="x-note"><b>\'+total.toLocaleString()+\' XP/week</b> flowing to creators.</div>\';\n  h+=\'<div class="pb-sub pf-mt" >FIND CREATORS</div>\'\n    +(PRESELECT?\'<div class="x-note" id="mvPre" style="border:1px solid #c1121f;padding:8px;margin:6px 0;background:#1c0a0a;">FUNDING <b>\'+esc(PRESELECT)+\'</b> &mdash; preloaded below. <a href="/war-chest" style="color:#dc143c;">clear</a></div>\':\'\')\n    +\'<div><input aria-label="creator callsign" class="c-in pf-input-md" id="mvSubCs" type="text" placeholder="creator callsign" /> \'\n    +\'<input aria-label="XP/week" class="c-in pf-input-sm" id="mvSubAmt" type="number" min="1" max="10000" placeholder="XP/week" /> \'\n    +\'<button class="c-btn" id="mvSubBtn">SUPPORT</button></div>\'\n    +\'<div class="c-err" id="mvSubErr"></div>\';\n  h+=\'</div>\';\n  return h;\n}\nfunction wireSubs(id,el){\n  var b=document.getElementById("mvSubBtn");\n  if(b) b.onclick=function(){\n    var cr=String(document.getElementById("mvSubCs").value||"").trim().toLowerCase().replace(/[^a-z0-9_]/g,"");\n    var amt=Math.round(Number(document.getElementById("mvSubAmt").value)||0);\n    var e=document.getElementById("mvSubErr"); e.textContent="";\n    if(!cr||cr.length<3){ e.textContent="Enter a creator callsign."; return; }\n    if(cr===id.callsign){ e.textContent="Cannot support yourself."; return; }\n    if(amt<=0||amt>10000){ e.textContent="Amount must be 1–10,000 XP/week."; return; }\n    b.disabled=true;\n    /* R29 fix (2026-10-05): subscribe lives in subDispatch — the correct\n       contract is {type:\'sub\', s_action:\'subscribe\'} (authGate AUTH_MAP\n       \'sub:subscribe\'); the old finance/f_action route returned \'unknown\n       finance action\' and never created the row. */\n    post("sub","s_action","subscribe",{callsign:id.callsign,device:id.device,subscriber:id.callsign,creator:cr,amount_per_week:amt},function(j){\n      b.disabled=false;\n      if(!j||!j.ok){ e.textContent=PF.errCopy(j,"Failed."); return; }\n      toast("SUPPORTING "+cr+" at "+amt+" XP/week.");\n      /* R29: supporter badge mirror — enlistment-ranks renders the badge. */\n      try{ localStorage.setItem("pf_supporter_v1","1"); }catch(e2){}\n      /* R29 (2026-10-05): refresh the authoritative subscriber flag\n         (derived from subscription_list, not from this mirror). */\n      try{ if(window.PF&&PF.refreshSubscriber) PF.refreshSubscriber(); }catch(e5){}\n      document.getElementById("mvSubCs").value=""; document.getElementById("mvSubAmt").value="";\n      api("subscription_list",{callsign:id.callsign},function(jj){ SUBS=jj; render(); });\n    });\n  };\n  var us=el.querySelectorAll(\'button[data-unsub]\');\n  for(var i=0;i<us.length;i++){ (function(btn){\n    btn.onclick=function(){\n      var cr=btn.getAttribute("data-unsub"); btn.disabled=true;\n      post("sub","s_action","unsubscribe",{callsign:id.callsign,device:id.device,subscriber:id.callsign,creator:cr},function(j){\n        if(!j||!j.ok){ toast(PF.errCopy(j,"Failed.")); btn.disabled=false; return; }\n        toast("Stopped supporting "+cr+".");\n        /* R29 (2026-10-05): refresh the authoritative subscriber flag. */\n        try{ if(window.PF&&PF.refreshSubscriber) PF.refreshSubscriber(); }catch(e6){}\n        api("subscription_list",{callsign:id.callsign},function(jj){\n          SUBS=jj;\n          /* R29: clear the supporter badge mirror when nothing remains. */\n          try{\n            var left=(jj&&jj.ok&&jj.supporting)||[];\n            if(!left.length) localStorage.removeItem("pf_supporter_v1");\n          }catch(e3){}\n          render();\n        });\n      });\n    };\n  })(us[i]); }\n}\n/* ---------- 3. PRIZE POOLS ---------- */\nfunction renderPrizes(id){\n  var h=\'<div class="x-pane"><div class="pb-bankhead">&#9670; PRIZE POOLS — CROWDFUNDED GLORY &#9670;</div>\'\n    +\'<div class="x-note">The community puts up the stakes. Winners take all. Create a pool, fund it, fight for it.</div>\'\n    +\'<div><input aria-label="pool title" class="c-in pf-input-md" id="mvPrizeTitle" type="text" maxlength="120" placeholder="pool title" /> \'\n    +\'<input aria-label="target XP" class="c-in pf-input-sm" id="mvPrizeTarget" type="number" min="1" placeholder="target XP" /> \'\n    +\'<button class="c-btn" id="mvPrizeBtn">CREATE POOL</button></div>\'\n    +\'<div class="c-err" id="mvPrizeErr"></div><div style="height:8px"></div>\';\n  var pools=(PRIZES&&PRIZES.ok&&PRIZES.pools)||[];\n  if(!pools.length) h+=\'<div class="x-note">No open pools. Start one.</div>\';\n  for(var i=0;i<pools.length;i++){\n    var p=pools[i], pct=Math.min(100,Math.round(Number(p.raised||0)/Math.max(1,Number(p.target||1))*100));\n    h+=\'<div class="cp-mission"><div class="cp-mtext"><b>\'+esc(p.title)+\'</b>\'\n      +\'<div class="x-note">by \'+esc(p.created_by||"")+\'</div>\'\n      +\'<div class="cp-barwrap"><div class="cp-bar" style="width:\'+pct+\'%"></div></div>\'\n      +\'<div class="x-note">\'+Number(p.raised||0).toLocaleString()+\' / \'+Number(p.target||0).toLocaleString()+\' XP (\'+pct+\'%)</div>\'\n      +\'<div style="margin-top:6px"><input aria-label="XP" class="c-in pf-input-sm" data-prizeamt="\'+esc(p.id)+\'" type="number" min="1" placeholder="XP" /> \'\n      +\'<button class="c-btn" data-prizecon="\'+esc(p.id)+\'">CONTRIBUTE</button></div></div></div>\';\n  }\n  h+=\'</div>\';\n  return h;\n}\nfunction wirePrizes(id,el){\n  var c=document.getElementById("mvPrizeBtn");\n  if(c) c.onclick=function(){\n    var t=String(document.getElementById("mvPrizeTitle").value||"").trim().slice(0,120);\n    var tg=Math.round(Number(document.getElementById("mvPrizeTarget").value)||0);\n    var e=document.getElementById("mvPrizeErr"); e.textContent="";\n    if(!t){ e.textContent="Enter a title."; return; }\n    if(tg<=0){ e.textContent="Enter a target."; return; }\n    c.disabled=true;\n    post("prize","p_action","prize_create",{callsign:id.callsign,device:id.device,title:t,target:tg},function(j){\n      c.disabled=false;\n      if(!j||!j.ok){ e.textContent=PF.errCopy(j,"Failed."); return; }\n      toast("POOL CREATED. Now fund it.");\n      document.getElementById("mvPrizeTitle").value=""; document.getElementById("mvPrizeTarget").value="";\n      api("prize_list",{},function(jj){ PRIZES=jj; render(); });\n    });\n  };\n  var bs=el.querySelectorAll(\'button[data-prizecon]\');\n  for(var i=0;i<bs.length;i++){ (function(btn){\n    btn.onclick=function(){\n      var pid=btn.getAttribute("data-prizecon");\n      var inp=el.querySelector(\'input[data-prizeamt="\'+pid+\'"]\');\n      var amt=Math.round(Number(inp?inp.value:0)||0);\n      if(amt<=0){ toast("Enter an amount."); return; }\n      btn.disabled=true;\n      post("prize","p_action","prize_contribute",{callsign:id.callsign,device:id.device,pool_id:pid,amount:amt},function(j){\n        btn.disabled=false;\n        if(!j||!j.ok){ toast(PF.errCopy(j,"Failed.")); return; }\n        toast("CONTRIBUTED "+amt+" XP to the pool.");\n        api("prize_list",{},function(jj){ PRIZES=jj; render(); });\n      });\n    };\n  })(bs[i]); }\n}\n/* ---------- 4. BURN LEADERBOARD ---------- */\nfunction renderBurns(id){\n  var h=\'<div class="x-pane"><div class="pb-bankhead">&#9670; THE FURNACE — PROVE COMMITMENT &#9670;</div>\'\n    +\'<div class="x-note">Burn XP permanently. No refund, no takeback. 1,000+ XP earns the <b>TRUE BELIEVER</b> badge. The ultimate flex is setting money on fire for the cause.</div>\'\n    +\'<div><input aria-label="XP to burn" class="c-in pf-input-sm" id="mvBurnAmt" type="number" min="1" placeholder="XP to burn" /> \'\n    +\'<input aria-label="reason (optional)" class="c-in pf-input-md" id="mvBurnWhy" type="text" maxlength="80" placeholder="reason (optional)" /> \'\n    +\'<button class="c-btn" id="mvBurnBtn">BURN IT</button></div>\'\n    +\'<div class="c-err" id="mvBurnErr"></div><div style="height:8px"></div>\';\n  var bs=(BURNS&&BURNS.ok&&BURNS.burners)||[];\n  h+=\'<div class="pb-sub">HALL OF THE COMMITTED</div>\';\n  if(!bs.length) h+=\'<div class="x-note">Nobody has burned yet. Be the first to prove it.</div>\';\n  var me=null;\n  for(var i=0;i<Math.min(bs.length,20);i++){\n    var b=bs[i];\n    if(b.callsign===id.callsign) me=b;\n    h+=\'<div class="cp-lead"><span class="cp-lrank">\'+(i+1)+\'.</span> <span class="cp-lname">\'+esc(b.callsign)+\'</span> \'\n      +\'<span class="cp-lxp">\'+Number(b.total_burned||0).toLocaleString()+\' XP</span>\'\n      +(Number(b.total_burned||0)>=1000?\' <span class="cp-mdone">TRUE BELIEVER</span>\':\'\')+\'</div>\';\n  }\n  if(me&&Number(me.total_burned||0)>=1000)\n    h+=\'<div class="cp-pledged">&#9733; TRUE BELIEVER — you have burned \'+Number(me.total_burned).toLocaleString()+\' XP.</div>\';\n  h+=\'</div>\';\n  return h;\n}\nfunction wireBurns(id,el){\n  var b=document.getElementById("mvBurnBtn");\n  if(!b) return;\n  b.onclick=function(){\n    var amt=Math.round(Number(document.getElementById("mvBurnAmt").value)||0);\n    var why=String(document.getElementById("mvBurnWhy").value||"").trim().slice(0,80);\n    var e=document.getElementById("mvBurnErr"); e.textContent="";\n    if(amt<=0){ e.textContent="Enter an amount."; return; }\n    if(!confirm("Burn "+amt+" XP forever? This cannot be undone.")) return;\n    b.disabled=true;\n    post("finance","f_action","xp_burn",{callsign:id.callsign,device:id.device,amount:amt,reason:why},function(j){\n      b.disabled=false;\n      if(!j||!j.ok){ e.textContent=PF.errCopy(j,"Burn failed."); return; }\n      toast("BURNED "+amt+" XP."+(j.badge?" TRUE BELIEVER badge earned.":""));\n      document.getElementById("mvBurnAmt").value=""; document.getElementById("mvBurnWhy").value="";\n      api("burn_leaderboard",{},function(jj){ BURNS=jj; render(); });\n    });\n  };\n}\n/* ---------- 5. REMITTANCES — link to the Bank ---------- */\nfunction renderRemitLink(){\n  return \'<div class="x-pane"><div class="pb-bankhead">&#9670; TRANSFERS &#9670;</div>\'\n    +\'<div class="x-note">Cross-cell XP transfers live at the <b>Peoples Bank of Propaganda</b> — Teller Window No. 2. \'\n    +\'2% fee funds the community lottery. One bank, one ledger, no duplication.</div></div>\';\n}\n/* On-demand data (2026-10-02): fetch only when the widget is actually\n   seen (or touched). The template above already renders a skeleton.\n   In-memory vars keep the session cache — no refetch on scroll. */\n(function(){\n  /* Ship-blocker fix (2026-10-05): the bundle IIFE runs before mountPage\n     stages the template, so section[data-game="movement"] doesn\'t exist yet.\n     Poll for the mount (30s max); only then arm whenVisible. Previously the\n     null section caused an immediate load() whose render() found no\n     #xMovement and returned early — leaving the loader stuck until the\n     180s refresh interval. */\n  var tries=0;\n  function init(){\n    tries++;\n    var sec=null;\n    try{ sec=document.querySelector(\'section[data-game="movement"]\'); }catch(e){}\n    if(!sec){\n      if(tries<60) setTimeout(init,500);\n      return;\n    }\n    var start=(window.PF&&PF.whenVisible)?PF.whenVisible(sec,function(){load();}):null;\n    if(start){ try{ sec.addEventListener(\'pointerdown\',start,{once:true}); }catch(e){} }\n    else load();\n  }\n  init();\n})();\nsetInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },180000);\n})();\n<\/script>\n</div>\n</template>')}();
+/* PF v1.4.3 bundle-warchest.js — concatenated bundle, generated by build/bundle.js.
+   DO NOT EDIT. Regenerate with: node build/bundle.js [--debug]
+   Contains: movement.js
+   Each silo keeps its own PF.skip() kill switch (?pf_off=<silo>). */
+
+/* ===== movement.js ===== */
+/* games/movement.js  |  PF v1.4.3 | MOVEMENT FINANCE.
+   The movement's collective financial layer: cause pools (strike/bail/mutual
+   aid), creator subscriptions, crowdfunded prize pools, and the XP burn
+   leaderboard. Reads via JSONP (self-contained api()), writes via CORS POST
+   (self-contained post()). It never reaches into another silo's internals.
+   Does NOT duplicate peoplesbank.js (transfers, savings, loans, bonds,
+   history) — remittances link there instead.
+   KILL: ?pf_off=movement  or  localStorage pf_disabled_v1='["movement"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("movement")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-movement">
+<div class="fe-block pf-override-block pf-silo" id="pf-movement">
+<h2>Movement Finance</h2>
+<div class="c-tag">Collective money for collective power. No billionaires on the board.</div>
+<div id="xMovement"><div class="c-load">Opening the war chest&hellip;</div></div>
+</div>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  /* Private reads require auth_secret (IDOR fix). Auto-attach for gated actions. */
+  if(action==="xp_history"||action==="subscription_list"||action==="commission_earnings"){
+    try{
+      var _sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : "";
+      if(_sec && params && !params.auth_secret) params.auth_secret = _sec;
+    }catch(e){}
+  }
+  var fn="pfMvCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function post(type,key,cAction,params,cb){
+  var body={type:type}; body[key]=cAction;
+  for(var k in params) body[k]=params[k];
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); }).then(function(j){ _po._pfClear(); done(j); }).catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+}
+function fmtDate(t){
+  try{ var d=new Date(Number(t)); if(isNaN(d.getTime())) return "";
+    var mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return mo[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear(); }catch(e){ return ""; }
+}
+var CAUSES=null, SUBS=null, PRIZES=null, BURNS=null, BWALL=null;
+/* R24 (2026-10-05): pool names the backend's funding ceremony already
+   celebrated. cause_list rows carry no goal/status/my_donation fields, so
+   the ceremony's visible half is the civic.cause_funded feed event
+   ("CAUSE <NAME> FULLY FUNDED", emitted once per pool by
+   maybeCelebrateCause). Uppercase pool-name -> 1. Fail-silent: an
+   unreachable feed just leaves the banner dark. */
+var CAUSEFUNDED={};
+function scanCauseFunded(j){
+  CAUSEFUNDED={};
+  try{
+    var evs=(j&&j.ok&&j.events)||[];
+    for(var i=0;i<evs.length;i++){
+      var ev=evs[i]||{};
+      if(String(ev.type||"")!=="civic.cause_funded") continue;
+      var m=/^CAUSE (.+) FULLY FUNDED$/.exec(String(ev.name||""));
+      if(m&&m[1]) CAUSEFUNDED[String(m[1]).toUpperCase()]=1;
+    }
+  }catch(e){}
+}
+/* S7 FUND THEIR FIGHT (2026-10-04): /war-chest?creator=<slug> preselects
+   the creator in the subscription UI — catalog pages deep-link here.
+   Existing backend contract only: {type:'finance',f_action:'subscribe',
+   subscriber, creator, amount_per_week}. No new actions. */
+var PRESELECT=(function(){
+  try{
+    var m=String(window.location.search||"").match(/[?&]creator=([a-z0-9_-]{3,60})/i);
+    return m?m[1].toLowerCase():"";
+  }catch(e){ return ""; }
+})();
+var preselectApplied=false;
+/* 6A-R9 (2026-10-04): /war-chest?cell=<id>&sponsor=1 — cell treasury
+   sponsorship mode. Deep-linked from the /cells treasury panel's
+   "SPONSOR A CAUSE" button. Officer-gated server-side (cause_sponsor). */
+var SPONSOR_CELL=(function(){
+  try{
+    var m=String(window.location.search||"").match(/[?&]cell=([a-zA-Z0-9_-]{1,64})/);
+    var s=/[?&]sponsor=1/.test(String(window.location.search||""));
+    return (m&&s)?m[1]:"";
+  }catch(e){ return ""; }
+})();
+var SPONSOR_CELL_NAME="", sponsorCellFetched=false;
+function fetchSponsorCell(cb){
+  if(sponsorCellFetched||!SPONSOR_CELL){ if(cb)cb(); return; }
+  sponsorCellFetched=true;
+  api("cell_card",{cell_id:SPONSOR_CELL},function(j){
+    if(j&&j.ok&&j.cell&&j.cell.name) SPONSOR_CELL_NAME=j.cell.name;
+    if(cb)cb();
+  });
+}
+function load(){
+  var id=ident(), done=false, n=0, need=6;
+  function fin(){ if(done)return; done=true; render(); }
+  function one(){ n++; if(n>=need) fin(); }
+  setTimeout(fin,15000);
+  api("cause_list",{},function(j){ CAUSES=j; one(); });
+  /* R24: the funding ceremony's feed half — see scanCauseFunded. */
+  api("feed_list",{limit:50},function(j){ scanCauseFunded(j); one(); });
+  api("subscription_list",{callsign:id.callsign},function(j){ SUBS=j; one(); });
+  api("prize_list",{},function(j){ PRIZES=j; one(); });
+  api("burn_leaderboard",{},function(j){ BURNS=j; one(); });
+  /* 6A-R9: resolve the sponsor cell's name in parallel (public read). */
+  if(SPONSOR_CELL) fetchSponsorCell(function(){ render(); });
+  /* R13: bondholder wall data (backend contract — flagged). */
+  api("bond_stats",{},function(j){ BWALL=j; one(); });
+}
+function render(){
+  var el=document.getElementById("xMovement"); if(!el) return;
+  var id=ident(), h="";
+  if(!id.callsign){
+    el.innerHTML=PF.gateHTML('Movement finance runs on callsigns.','to fund the fight');
+    return;
+  }
+  h+=renderStoreCta();
+  h+=renderCauses(id);
+  h+=renderBondWall(id);
+  h+=renderSubs(id);
+  h+=renderPrizes(id);
+  h+=renderBurns(id);
+  h+=renderRemitLink();
+  h+='<div style="margin-top:10px"><button class="c-btn" id="mvRetry">Refresh</button></div>';
+  el.innerHTML=h;
+  wireCauses(id,el); wireSubs(id,el); wirePrizes(id,el); wireBurns(id,el);
+  /* S7 preselect: prefill the subscribe field with the ?creator= target
+     once per page view, then scroll the visitor to it. */
+  if(PRESELECT&&!preselectApplied){
+    preselectApplied=true;
+    try{
+      var pi=document.getElementById("mvSubCs");
+      if(pi&&!pi.value) pi.value=PRESELECT;
+      var pb2=document.getElementById("mvPre");
+      if(pb2&&pb2.scrollIntoView) setTimeout(function(){ try{ pb2.scrollIntoView({block:"center"}); }catch(e){} },400);
+      toast("FUNDING "+PRESELECT.toUpperCase()+" \\u2014 set XP/week and hit SUPPORT.");
+    }catch(e){}
+  }
+  var rb=document.getElementById("mvRetry");
+  if(rb) rb.onclick=function(){ CAUSES=SUBS=PRIZES=BURNS=BWALL=null; el.innerHTML='<div class="c-load">Opening the war chest&hellip;</div>'; load(); };
+}
+/* ---------- 0. STORE CROSS-LINK (R13) ----------
+   /war-chest -> /store: the bond directory lives here; the checkout lives
+   in the store. Both directions stay one tap apart. */
+function renderStoreCta(){
+  return '<div class="x-pane" style="border-color:#d4af37"><div class="pb-bankhead">&#9733; WAR BONDS (REAL $) LIVE IN THE STORE &#9733;</div>'
+    +'<div class="x-note">Real dollars, real bonds — $5 to $50. Half funds the network, half fuels the creator pool.</div>'
+    +'<div style="margin-top:8px"><a class="c-btn" href="/store" style="display:inline-block;text-decoration:none">BUY WAR BONDS IN THE STORE &rarr;</a> '
+    +'<a class="c-btn ghost" href="/bank" style="display:inline-block;text-decoration:none">LIBERTY BONDS (IN-GAME XP) &rarr;</a></div></div>';
+}
+/* ---------- BONDHOLDER WALL (R13) ----------
+   Buyer wall surface: every bond buyer gets a named spot. Renders against
+   the bond_stats contract — backend flag: include a "buyers" array of
+   {callsign, tier} (or recent_buyers). "Claim your wall spot" prompts on
+   /store ride the footer chrome (16-footer.js). */
+function renderBondWall(id){
+  var h='<div class="x-pane" id="pf-bond-wall"><div class="pb-bankhead">&#9733; BONDHOLDER WALL &#9733;</div>'
+    +'<div class="x-note">The names behind the war chest. Buy a bond in the <a href="/store" style="color:#c1121f;">store</a> and your callsign lands here.</div>';
+  var buyers=(BWALL&&BWALL.ok&&(BWALL.buyers||BWALL.recent_buyers))||[];
+  if(!buyers.length){
+    h+='<div class="x-note">The wall is waiting for its first name.'+(BWALL?'':'')+'</div>';
+  } else {
+    h+='<div class="cp-wall">';
+    for(var i=0;i<Math.min(buyers.length,40);i++){
+      var b=buyers[i]||{};
+      var tier=b.tier!=null?Number(b.tier):null;
+      h+='<div class="cp-mission"><div class="cp-mtext"><b>'+esc(b.callsign||"A comrade")+'</b>'
+        +(tier>0?'<div class="x-note">$'+tier+' War Bond</div>':'')+'</div>'
+        +'<div class="cp-mdone">\u2605</div></div>';
+    }
+    h+='</div>';
+  }
+  h+='</div>';
+  return h;
+}
+/* ---------- 1. CAUSE POOLS ---------- */
+function renderCauses(id){
+  var h='<div class="x-pane"><div class="pb-bankhead">&#9670; CAUSE POOLS — MONEY FOR THE FIGHT &#9670;</div>'
+    +'<div class="x-note">Strike funds. Bail funds. Mutual aid. When the movement needs money fast, it comes from here — not from billionaires with strings attached.</div>';
+  /* 6A-R9: sponsor mode banner — the cell whose treasury is on the line. */
+  if(SPONSOR_CELL){
+    var cnm=SPONSOR_CELL_NAME||SPONSOR_CELL;
+    h+='<div class="x-note" style="border:1px solid #c1121f;padding:8px;margin:6px 0;background:#1c0a0a;">'
+      +'&#9876; SPONSORING AS <b>CELL '+esc(cnm)+'</b> — treasury XP, not yours. '
+      +'Founder/officers only; every sponsorship hits the war-room ticker.</div>';
+  }
+  var pools=(CAUSES&&CAUSES.ok&&CAUSES.pools)||[];
+  if(!pools.length) h+='<div class="x-note">No cause pools yet.</div>';
+  for(var i=0;i<pools.length;i++){
+    var p=pools[i];
+    /* R24 (2026-10-04): completion ceremony — FUNDED banner + donor badge.
+       Backend emitter (W6B-1, flagged): pool rows carry status/funded/goal
+       and the reader's my_donation/is_backer. Rendered defensively.
+       2026-10-05: the backend's cause_list ships none of those fields, so
+       the celebrated set from the civic.cause_funded feed events
+       (scanCauseFunded) is OR'd in — real ceremony data, no invented goal. */
+    var goal=Number(p.goal||0);
+    var celebrated=!!CAUSEFUNDED[String(p.name||"").toUpperCase()];
+    var funded=(celebrated||p.status==="funded"||p.funded===true||(goal>0&&Number(p.balance||0)>=goal));
+    var backer=(Number(p.my_donation||0)>0||p.is_backer===true);
+    var pct=goal>0?Math.min(100,Math.round(Number(p.balance||0)/goal*100)):0;
+    h+='<div class="cp-mission"><div class="cp-mtext">'
+      +(funded?'<div style="background:#1a5c1a;color:#fff;font-weight:800;letter-spacing:2px;font-size:12px;padding:6px 10px;margin-bottom:8px;text-align:center">\u2714 FUNDED \u2014 THE MOVEMENT DELIVERS</div>':'')
+      +'<b>'+esc(p.name)+'</b>'
+      +(backer?' <span style="background:#d4af37;color:#0d0d0d;font-weight:800;font-size:10px;letter-spacing:1px;padding:2px 8px;border-radius:3px">\u2605 BACKER</span>':'')
+      +'<div class="x-note">'+esc(p.description||"")+'</div>'
+      +'<div class="x-note"><b>'+Number(p.balance||0).toLocaleString()+' XP</b> &bull; '+Number(p.donors||0)+' backers'
+      +(goal>0?' &bull; goal '+goal.toLocaleString()+' XP ('+pct+'%)':'')+'</div>'
+      +(goal>0&&!funded?'<div style="background:#1a1a1a;height:8px;margin:6px 0"><div style="background:#c1121f;height:8px;width:'+pct+'%"></div></div>':'');
+    /* 6A-R9: "Sponsored by CELL <NAME>" attribution block. */
+    var spons=p.sponsors||[];
+    if(spons.length){
+      h+='<div class="x-note" style="margin-top:4px">&#9876; <b>Sponsored by</b> '
+        +spons.map(function(sp){
+          return 'CELL '+esc(sp.cell_name||sp.cell_id)+' ('+Number(sp.amount||0).toLocaleString()+' XP)';
+        }).join(' &middot; ')+'</div>';
+    }
+    h+='<div style="margin-top:6px"><input aria-label="XP" class="c-in pf-input-sm" data-causeamt="'+esc(p.id)+'" type="number" min="1" placeholder="XP" /> '
+      +'<button class="c-btn" data-causefund="'+esc(p.id)+'">FUND</button>';
+    /* 6A-R9: sponsor-from-treasury flow (officer-gated server-side). */
+    if(SPONSOR_CELL){
+      h+=' <input aria-label="Treasury XP" class="c-in pf-input-sm" data-sponsoramt="'+esc(p.id)+'" type="number" min="1" placeholder="Treasury XP" /> '
+        +'<button class="c-btn" data-sponsor="'+esc(p.id)+'" style="border-color:#c1121f">SPONSOR FROM TREASURY</button>';
+    }
+    h+='</div></div></div>';
+  }
+  h+='</div>';
+  /* 6A-R9: inter-cell sponsorship totals leaderboard. */
+  h+=renderSponsorBoard();
+  return h;
+}
+/* 6A-R9: inter-cell sponsorship totals — the rivalry stat. */
+function renderSponsorBoard(){
+  var board=(CAUSES&&CAUSES.ok&&CAUSES.sponsor_board)||[];
+  if(!board.length) return '';
+  var h='<div class="x-pane"><div class="pb-bankhead">&#9670; CELL SPONSORSHIP BOARD &#9670;</div>'
+    +'<div class="x-note">Which cells put their treasury where their mouth is.</div>';
+  for(var i=0;i<board.length;i++){
+    var b=board[i];
+    h+='<div class="cp-lead"><span class="cp-lname">'+(i+1)+'. CELL '+esc(b.cell_name||b.cell_id)+'</span> '
+      +'<span class="cp-lxp">'+Number(b.total||0).toLocaleString()+' XP</span>'
+      +'<div class="x-note">'+Number(b.sponsorships||0)+' sponsorships</div></div>';
+  }
+  h+='</div>';
+  return h;
+}
+function wireCauses(id,el){
+  var bs=el.querySelectorAll('button[data-causefund]');
+  for(var i=0;i<bs.length;i++){ (function(btn){
+    btn.onclick=function(){
+      var pid=btn.getAttribute("data-causefund");
+      var inp=el.querySelector('input[data-causeamt="'+pid+'"]');
+      var amt=Math.round(Number(inp?inp.value:0)||0);
+      if(amt<=0){ toast("Enter an amount."); return; }
+      btn.disabled=true;
+      post("finance","f_action","cause_donate",{callsign:id.callsign,device:id.device,pool_id:pid,amount:amt},function(j){
+        btn.disabled=false;
+        if(!j||!j.ok){ toast(PF.errCopy(j,"Transfer failed.")); return; }
+        toast("FUNDED "+amt+" XP. The movement thanks you.");
+        api("cause_list",{},function(jj){ CAUSES=jj; render(); });
+      });
+    };
+  })(bs[i]); }
+  /* 6A-R9: sponsor-from-treasury wiring — officer-gated server-side
+     (cause_sponsor). Native confirm() per the treasury-panel convention;
+     the debit hits the CELL treasury, never the officer's wallet. */
+  var ss=el.querySelectorAll('button[data-sponsor]');
+  for(var k=0;k<ss.length;k++){ (function(btn){
+    btn.onclick=function(){
+      var pid=btn.getAttribute("data-sponsor");
+      var inp=el.querySelector('input[data-sponsoramt="'+pid+'"]');
+      var amt=Math.round(Number(inp?inp.value:0)||0);
+      if(amt<=0){ toast("Enter a treasury amount."); return; }
+      if(!id.callsign){ toast("Claim a callsign first."); return; }
+      var cnm=SPONSOR_CELL_NAME||SPONSOR_CELL;
+      if(!window.confirm("Sponsor "+amt+" XP from CELL "+cnm+" treasury to this cause? Officers only.")) return;
+      btn.disabled=true;
+      post("finance","f_action","cause_sponsor",{callsign:id.callsign,device:id.device,cell_id:SPONSOR_CELL,pool_id:pid,amount:amt},function(j){
+        btn.disabled=false;
+        if(!j||!j.ok){ toast(PF.errCopy(j,"Sponsorship failed.")); return; }
+        toast(j.dup?"Already sponsored — counted once.":"CELL "+(j.cell_name||cnm)+" SPONSORED "+amt+" XP. The ticker saw it.");
+        api("cause_list",{},function(jj){ CAUSES=jj; render(); });
+      });
+    };
+  })(ss[k]); }
+}
+/* ---------- 2. SUBSCRIPTIONS ---------- */
+function renderSubs(id){
+  var h='<div class="x-pane"><div class="pb-bankhead">&#9670; CREATOR SUBSCRIPTIONS — PATRONAGE, MOVEMENT-STYLE &#9670;</div>'
+    +'<div class="x-note">Weekly recurring XP to the creators who arm you. Cancel anytime. No platform takes a cut.</div>';
+  var sup=(SUBS&&SUBS.ok&&SUBS.supporting)||[];
+  h+='<div class="pb-sub">YOU SUPPORT ('+sup.length+')</div>';
+  if(!sup.length) h+='<div class="x-note">You don&rsquo;t support anyone yet. Find a creator worth funding below.</div>';
+  var total=0;
+  for(var i=0;i<sup.length;i++){
+    var s=sup[i]; total+=Number(s.amount_per_week||0);
+    h+='<div class="cp-mission"><div class="cp-mtext"><b>'+esc(s.creator)+'</b>'
+      +'<div class="x-note">'+Number(s.amount_per_week).toLocaleString()+' XP/week &bull; since '+esc(fmtDate(s.started_at))+'</div></div>'
+      +'<button class="c-btn" data-unsub="'+esc(s.creator)+'">STOP</button></div>';
+  }
+  if(sup.length) h+='<div class="x-note"><b>'+total.toLocaleString()+' XP/week</b> flowing to creators.</div>';
+  h+='<div class="pb-sub pf-mt" >FIND CREATORS</div>'
+    +(PRESELECT?'<div class="x-note" id="mvPre" style="border:1px solid #c1121f;padding:8px;margin:6px 0;background:#1c0a0a;">FUNDING <b>'+esc(PRESELECT)+'</b> &mdash; preloaded below. <a href="/war-chest" style="color:#dc143c;">clear</a></div>':'')
+    +'<div><input aria-label="creator callsign" class="c-in pf-input-md" id="mvSubCs" type="text" placeholder="creator callsign" /> '
+    +'<input aria-label="XP/week" class="c-in pf-input-sm" id="mvSubAmt" type="number" min="1" max="10000" placeholder="XP/week" /> '
+    +'<button class="c-btn" id="mvSubBtn">SUPPORT</button></div>'
+    +'<div class="c-err" id="mvSubErr"></div>';
+  h+='</div>';
+  return h;
+}
+function wireSubs(id,el){
+  var b=document.getElementById("mvSubBtn");
+  if(b) b.onclick=function(){
+    var cr=String(document.getElementById("mvSubCs").value||"").trim().toLowerCase().replace(/[^a-z0-9_]/g,"");
+    var amt=Math.round(Number(document.getElementById("mvSubAmt").value)||0);
+    var e=document.getElementById("mvSubErr"); e.textContent="";
+    if(!cr||cr.length<3){ e.textContent="Enter a creator callsign."; return; }
+    if(cr===id.callsign){ e.textContent="Cannot support yourself."; return; }
+    if(amt<=0||amt>10000){ e.textContent="Amount must be 1–10,000 XP/week."; return; }
+    b.disabled=true;
+    /* R29 fix (2026-10-05): subscribe lives in subDispatch — the correct
+       contract is {type:'sub', s_action:'subscribe'} (authGate AUTH_MAP
+       'sub:subscribe'); the old finance/f_action route returned 'unknown
+       finance action' and never created the row. */
+    post("sub","s_action","subscribe",{callsign:id.callsign,device:id.device,subscriber:id.callsign,creator:cr,amount_per_week:amt},function(j){
+      b.disabled=false;
+      if(!j||!j.ok){ e.textContent=PF.errCopy(j,"Failed."); return; }
+      toast("SUPPORTING "+cr+" at "+amt+" XP/week.");
+      /* R29: supporter badge mirror — enlistment-ranks renders the badge. */
+      try{ localStorage.setItem("pf_supporter_v1","1"); }catch(e2){}
+      /* R29 (2026-10-05): refresh the authoritative subscriber flag
+         (derived from subscription_list, not from this mirror). */
+      try{ if(window.PF&&PF.refreshSubscriber) PF.refreshSubscriber(); }catch(e5){}
+      document.getElementById("mvSubCs").value=""; document.getElementById("mvSubAmt").value="";
+      api("subscription_list",{callsign:id.callsign},function(jj){ SUBS=jj; render(); });
+    });
+  };
+  var us=el.querySelectorAll('button[data-unsub]');
+  for(var i=0;i<us.length;i++){ (function(btn){
+    btn.onclick=function(){
+      var cr=btn.getAttribute("data-unsub"); btn.disabled=true;
+      post("sub","s_action","unsubscribe",{callsign:id.callsign,device:id.device,subscriber:id.callsign,creator:cr},function(j){
+        if(!j||!j.ok){ toast(PF.errCopy(j,"Failed.")); btn.disabled=false; return; }
+        toast("Stopped supporting "+cr+".");
+        /* R29 (2026-10-05): refresh the authoritative subscriber flag. */
+        try{ if(window.PF&&PF.refreshSubscriber) PF.refreshSubscriber(); }catch(e6){}
+        api("subscription_list",{callsign:id.callsign},function(jj){
+          SUBS=jj;
+          /* R29: clear the supporter badge mirror when nothing remains. */
+          try{
+            var left=(jj&&jj.ok&&jj.supporting)||[];
+            if(!left.length) localStorage.removeItem("pf_supporter_v1");
+          }catch(e3){}
+          render();
+        });
+      });
+    };
+  })(us[i]); }
+}
+/* ---------- 3. PRIZE POOLS ---------- */
+function renderPrizes(id){
+  var h='<div class="x-pane"><div class="pb-bankhead">&#9670; PRIZE POOLS — CROWDFUNDED GLORY &#9670;</div>'
+    +'<div class="x-note">The community puts up the stakes. Winners take all. Create a pool, fund it, fight for it.</div>'
+    +'<div><input aria-label="pool title" class="c-in pf-input-md" id="mvPrizeTitle" type="text" maxlength="120" placeholder="pool title" /> '
+    +'<input aria-label="target XP" class="c-in pf-input-sm" id="mvPrizeTarget" type="number" min="1" placeholder="target XP" /> '
+    +'<button class="c-btn" id="mvPrizeBtn">CREATE POOL</button></div>'
+    +'<div class="c-err" id="mvPrizeErr"></div><div style="height:8px"></div>';
+  var pools=(PRIZES&&PRIZES.ok&&PRIZES.pools)||[];
+  if(!pools.length) h+='<div class="x-note">No open pools. Start one.</div>';
+  for(var i=0;i<pools.length;i++){
+    var p=pools[i], pct=Math.min(100,Math.round(Number(p.raised||0)/Math.max(1,Number(p.target||1))*100));
+    h+='<div class="cp-mission"><div class="cp-mtext"><b>'+esc(p.title)+'</b>'
+      +'<div class="x-note">by '+esc(p.created_by||"")+'</div>'
+      +'<div class="cp-barwrap"><div class="cp-bar" style="width:'+pct+'%"></div></div>'
+      +'<div class="x-note">'+Number(p.raised||0).toLocaleString()+' / '+Number(p.target||0).toLocaleString()+' XP ('+pct+'%)</div>'
+      +'<div style="margin-top:6px"><input aria-label="XP" class="c-in pf-input-sm" data-prizeamt="'+esc(p.id)+'" type="number" min="1" placeholder="XP" /> '
+      +'<button class="c-btn" data-prizecon="'+esc(p.id)+'">CONTRIBUTE</button></div></div></div>';
+  }
+  h+='</div>';
+  return h;
+}
+function wirePrizes(id,el){
+  var c=document.getElementById("mvPrizeBtn");
+  if(c) c.onclick=function(){
+    var t=String(document.getElementById("mvPrizeTitle").value||"").trim().slice(0,120);
+    var tg=Math.round(Number(document.getElementById("mvPrizeTarget").value)||0);
+    var e=document.getElementById("mvPrizeErr"); e.textContent="";
+    if(!t){ e.textContent="Enter a title."; return; }
+    if(tg<=0){ e.textContent="Enter a target."; return; }
+    c.disabled=true;
+    post("prize","p_action","prize_create",{callsign:id.callsign,device:id.device,title:t,target:tg},function(j){
+      c.disabled=false;
+      if(!j||!j.ok){ e.textContent=PF.errCopy(j,"Failed."); return; }
+      toast("POOL CREATED. Now fund it.");
+      document.getElementById("mvPrizeTitle").value=""; document.getElementById("mvPrizeTarget").value="";
+      api("prize_list",{},function(jj){ PRIZES=jj; render(); });
+    });
+  };
+  var bs=el.querySelectorAll('button[data-prizecon]');
+  for(var i=0;i<bs.length;i++){ (function(btn){
+    btn.onclick=function(){
+      var pid=btn.getAttribute("data-prizecon");
+      var inp=el.querySelector('input[data-prizeamt="'+pid+'"]');
+      var amt=Math.round(Number(inp?inp.value:0)||0);
+      if(amt<=0){ toast("Enter an amount."); return; }
+      btn.disabled=true;
+      post("prize","p_action","prize_contribute",{callsign:id.callsign,device:id.device,pool_id:pid,amount:amt},function(j){
+        btn.disabled=false;
+        if(!j||!j.ok){ toast(PF.errCopy(j,"Failed.")); return; }
+        toast("CONTRIBUTED "+amt+" XP to the pool.");
+        api("prize_list",{},function(jj){ PRIZES=jj; render(); });
+      });
+    };
+  })(bs[i]); }
+}
+/* ---------- 4. BURN LEADERBOARD ---------- */
+function renderBurns(id){
+  var h='<div class="x-pane"><div class="pb-bankhead">&#9670; THE FURNACE — PROVE COMMITMENT &#9670;</div>'
+    +'<div class="x-note">Burn XP permanently. No refund, no takeback. 1,000+ XP earns the <b>TRUE BELIEVER</b> badge. The ultimate flex is setting money on fire for the cause.</div>'
+    +'<div><input aria-label="XP to burn" class="c-in pf-input-sm" id="mvBurnAmt" type="number" min="1" placeholder="XP to burn" /> '
+    +'<input aria-label="reason (optional)" class="c-in pf-input-md" id="mvBurnWhy" type="text" maxlength="80" placeholder="reason (optional)" /> '
+    +'<button class="c-btn" id="mvBurnBtn">BURN IT</button></div>'
+    +'<div class="c-err" id="mvBurnErr"></div><div style="height:8px"></div>';
+  var bs=(BURNS&&BURNS.ok&&BURNS.burners)||[];
+  h+='<div class="pb-sub">HALL OF THE COMMITTED</div>';
+  if(!bs.length) h+='<div class="x-note">Nobody has burned yet. Be the first to prove it.</div>';
+  var me=null;
+  for(var i=0;i<Math.min(bs.length,20);i++){
+    var b=bs[i];
+    if(b.callsign===id.callsign) me=b;
+    h+='<div class="cp-lead"><span class="cp-lrank">'+(i+1)+'.</span> <span class="cp-lname">'+esc(b.callsign)+'</span> '
+      +'<span class="cp-lxp">'+Number(b.total_burned||0).toLocaleString()+' XP</span>'
+      +(Number(b.total_burned||0)>=1000?' <span class="cp-mdone">TRUE BELIEVER</span>':'')+'</div>';
+  }
+  if(me&&Number(me.total_burned||0)>=1000)
+    h+='<div class="cp-pledged">&#9733; TRUE BELIEVER — you have burned '+Number(me.total_burned).toLocaleString()+' XP.</div>';
+  h+='</div>';
+  return h;
+}
+function wireBurns(id,el){
+  var b=document.getElementById("mvBurnBtn");
+  if(!b) return;
+  b.onclick=function(){
+    var amt=Math.round(Number(document.getElementById("mvBurnAmt").value)||0);
+    var why=String(document.getElementById("mvBurnWhy").value||"").trim().slice(0,80);
+    var e=document.getElementById("mvBurnErr"); e.textContent="";
+    if(amt<=0){ e.textContent="Enter an amount."; return; }
+    if(!confirm("Burn "+amt+" XP forever? This cannot be undone.")) return;
+    b.disabled=true;
+    post("finance","f_action","xp_burn",{callsign:id.callsign,device:id.device,amount:amt,reason:why},function(j){
+      b.disabled=false;
+      if(!j||!j.ok){ e.textContent=PF.errCopy(j,"Burn failed."); return; }
+      toast("BURNED "+amt+" XP."+(j.badge?" TRUE BELIEVER badge earned.":""));
+      document.getElementById("mvBurnAmt").value=""; document.getElementById("mvBurnWhy").value="";
+      api("burn_leaderboard",{},function(jj){ BURNS=jj; render(); });
+    });
+  };
+}
+/* ---------- 5. REMITTANCES — link to the Bank ---------- */
+function renderRemitLink(){
+  return '<div class="x-pane"><div class="pb-bankhead">&#9670; TRANSFERS &#9670;</div>'
+    +'<div class="x-note">Cross-cell XP transfers live at the <b>Peoples Bank of Propaganda</b> — Teller Window No. 2. '
+    +'2% fee funds the community lottery. One bank, one ledger, no duplication.</div></div>';
+}
+/* On-demand data (2026-10-02): fetch only when the widget is actually
+   seen (or touched). The template above already renders a skeleton.
+   In-memory vars keep the session cache — no refetch on scroll. */
+(function(){
+  /* Ship-blocker fix (2026-10-05): the bundle IIFE runs before mountPage
+     stages the template, so section[data-game="movement"] doesn't exist yet.
+     Poll for the mount (30s max); only then arm whenVisible. Previously the
+     null section caused an immediate load() whose render() found no
+     #xMovement and returned early — leaving the loader stuck until the
+     180s refresh interval. */
+  var tries=0;
+  function init(){
+    tries++;
+    var sec=null;
+    try{ sec=document.querySelector('section[data-game="movement"]'); }catch(e){}
+    if(!sec){
+      if(tries<60) setTimeout(init,500);
+      return;
+    }
+    var start=(window.PF&&PF.whenVisible)?PF.whenVisible(sec,function(){load();}):null;
+    if(start){ try{ sec.addEventListener('pointerdown',start,{once:true}); }catch(e){} }
+    else load();
+  }
+  init();
+})();
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },180000);
+})();
+</scr`+`ipt>
+</div>
+</template>`);
+})();
+
+;

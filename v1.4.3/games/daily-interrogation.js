@@ -127,7 +127,7 @@ function showWhy(){
   w.innerHTML='<p class="iq-verdict '+(p.correct?'right':'wrong')+'">'+(p.correct?'CORRECT.':'WRONG.')+'</p><p>'+Q.why+'</p>';
   /* R20b: wrong answers get a study-up link — intel desk, bracket, or roster;
      macro questions (B1) send the reader to the money page. */
-  if(!p.correct){ var stu=Q.macro?{label:"STUDY UP: THE MONEY PAGE",href:"/money"}:(IQ_STUDY[QIDX]||IQ_STUDY_DFL); w.innerHTML+='<p class="iq-study"><a href="'+stu.href+'">'+stu.label+' \u2192</a></p>'; }
+  if(!p.correct){ var stu=Q.macro?{label:"STUDY UP: THE MONEY PAGE",href:"/follow-the-money"}:(IQ_STUDY[QIDX]||IQ_STUDY_DFL); w.innerHTML+='<p class="iq-study"><a href="'+stu.href+'">'+stu.label+' \u2192</a></p>'; }
   el('iqShareRow').style.display='flex';
   el('iqStreak').textContent=streakTxt();
   /* R20a: PFShare score card on completion ("I scored N"). */

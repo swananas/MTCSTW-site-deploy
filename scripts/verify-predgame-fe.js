@@ -98,8 +98,9 @@ ok('no other game bundle stages pf-ov-predgame');
 /* ---------- 5. page wiring ---------- */
 console.log('== 5. page wiring ==');
 var pm = read(path.join(ROOT, 'v1.4.3', 'pages', 'page-mount.js'));
-if (pm.indexOf("['predgame', 'pf-ov-predgame']") !== -1) ok('/arcade PAGE_ORDERS entry');
-else no('/arcade wiring', "['predgame','pf-ov-predgame'] missing from pf-arcade order");
+/* BLOSSOM S1 (2026-10-06): predgame left the /arcade order for /call-it. */
+if (pm.indexOf("'pf-call-it'") !== -1 && pm.indexOf("['predgame', 'pf-ov-predgame']") !== -1) ok('/call-it PAGE_ORDERS entry (predgame)');
+else no('/call-it wiring', "['predgame','pf-ov-predgame'] missing from pf-call-it order");
 var phq = read(path.join(ROOT, 'v1.4.3', 'pages', 'political-hq.js'));
 if (phq.indexOf("['predgame', 'pf-ov-predgame']") !== -1) ok('/political-hq ORDER entry');
 else no('/political-hq wiring', 'ORDER entry missing');
@@ -108,7 +109,10 @@ if (hubs.indexOf("order: ['races', 'measures', 'predict', 'predgame']") !== -1) 
 else no('BALLOT hub', 'predgame missing from ballot hub order');
 var foot = read(path.join(ROOT, 'loader', 'footer_v144_final.html'));
 [
-  ["isArcade?['games/bundle-arcade-h.js','games/bundle-arcade.js','games/bundle-predgame.js']", '/arcade footer bundle'],
+  /* BLOSSOM S1 (2026-10-06): predgame moved off /arcade to /call-it.
+     /arcade keeps its own bundles + bundle-raid; /call-it carries predgame. */
+  ["isArcade?['games/bundle-arcade-h.js','games/bundle-arcade.js','games/bundle-raid.js']", '/arcade footer bundle'],
+  ["isCallIt?['games/bundle-predgame.js','games/bundle-arcade.js']", '/call-it footer bundle'],
   ["isMoney?['core/bundle-money.js','games/bundle-predgame.js']", '/money footer bundle'],
   ["var JS_HQ=isHQ?['games/bundle-hq.js','games/bundle-predgame.js']", '/political-hq footer bundle']
 ].forEach(function (pair) {

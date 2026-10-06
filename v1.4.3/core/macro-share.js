@@ -62,7 +62,7 @@
   }
 
   function deepLink(fig) {
-    var u = 'https://www.mtcstw.com/money#macro-' + (fig.series_id || '');
+    var u = 'https://www.mtcstw.com/follow-the-money#macro-' + (fig.series_id || '');
     try { if (PF.shareUrl) u = PF.shareUrl(u); } catch (e) {}
     return u;
   }

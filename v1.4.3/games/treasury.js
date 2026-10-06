@@ -19,8 +19,9 @@
       isn't registered yet (balance stays live, trajectory says so honestly).
    3. Spend destinations: free-form purpose (treasury_spend) AND
       "SPONSOR A CAUSE ->" deep-linking to the 6A-R9 cause-sponsorship UI
-      at /war-chest?cell=<id>&sponsor=1 (movement.js owns that surface —
-      reused, not rebuilt).
+      at /ventures?cell=<id>&sponsor=1 (movement.js owns that surface —
+      reused, not rebuilt; BLOSSOM M3 2026-10-06 moved the movement silo
+      onto /ventures as the Movement Funds section).
    4. NUKE WIRE-UP (2026-10-05, wave-nuke-fe): officer-only STAKE INTO THE
       BLAST card — burns treasury XP into the charge pool (1 XP = 1 charge,
       2,500/day/cell cap) via POST {type:'nuke', n_action:'nuke_stake'}.
@@ -290,7 +291,7 @@
         '<div class="trz-err" id="' + gid('fundMsg') + '" style="display:none"></div></div>';
 
       /* 4. SPEND — destinations: free-form purpose AND sponsor-a-cause
-         deep-link (6A-R9 pattern: /war-chest?cell=<id>&sponsor=1 — the
+         deep-link (6A-R9 pattern: /ventures?cell=<id>&sponsor=1 — the
          sponsorship surface lives in movement.js; reused, not rebuilt). */
       out += '<div class="trz-card"><h3>SPEND <span class="trz-note">treasury &#8594; the fight</span></h3>';
       if (isOfficer) {
@@ -306,7 +307,7 @@
           '<div class="trz-note" style="margin-bottom:6px">Deploy idle treasury XP to a cause pool — strike fund, bail fund, mutual aid. ' +
           'The cell&#39;s name rides the pool as sponsor and hits the war-room ticker.</div>' +
           '<div class="trz-row"><a class="trz-btn" style="text-decoration:none;display:inline-block" ' +
-          'href="/war-chest?cell=' + esc(cellId) + '&amp;sponsor=1">SPONSOR A CAUSE &rarr;</a></div></div>' +
+          'href="/ventures?cell=' + esc(cellId) + '&amp;sponsor=1">SPONSOR A CAUSE &rarr;</a></div></div>' +
           '<div class="trz-err" id="' + gid('spMsg') + '" style="display:none"></div>';
       } else {
         out += '<div class="trz-note">Only the founder and officers can spend from the treasury. The backend enforces it — this panel shows the gate honestly.</div>';

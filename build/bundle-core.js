@@ -140,7 +140,19 @@ var CORE_FILES = [
   /* freshness (Cohesion §4, 2026-10-05): PF.freshBadge / PF.degradedVintage /
      PF.honestZero — LIVE badges only on <=15-min-fresh data, automatic label
      degradation, honest zero states. Kill: ?pf_off=27-freshness. */
-  'core/27-freshness.js'
+  'core/27-freshness.js',
+  /* share-in (CEO directive, 2026-10-06): ?sharein=<url> deep link + PWA Web
+     Share Target (GET) inbound draft composer — PF.shareIn. Site-wide: the
+     share target can land on ANY page, so this lives in the core bundle,
+     not a lazy chunk. Zero XP by design, device-local drafts only, no
+     backend writes. Kill: ?pf_off=35-sharein. */
+  'core/35-sharein.js',
+  /* wild-finds (CEO directive, 2026-10-06): WILD FINDS folded into the
+     bounty type taxonomy — PF.wildFinds registry (mirrors backend
+     WILDFIND_TYPES), type picker, [data-pf-wildfind] launchers, Daily
+     Orders missions. After 35-sharein (its photo picker reads the
+     registry). Zero new XP. Kill: ?pf_off=wildfinds. */
+  'core/36-wildfinds.js'
 ];
 
 /* 2026-10-05 (fix/money-minified-rebuild): money suite lazy chunk. The 10
@@ -181,13 +193,7 @@ var MONEY_FILES = [
   /* Engagement build D item #3 (2026-10-05): weekly ritual calendar rail.
      Same file as the homepage slot (games bundle) — self-mounts by DOM
      presence (#pf-money -> rail). Rendered directly, no template staging. */
-  'games/ritual-calendar.js',
-  /* share-in (CEO directive, 2026-10-06): ?sharein=<url> deep link + PWA Web
-     Share Target (GET) inbound draft composer — PF.shareIn. Last in core so
-     the outward pipeline (share-everywhere) and the Create workshop registry
-     are already loaded for its hand-offs. Zero XP by design, device-local
-     drafts only, no backend writes. Kill: ?pf_off=35-sharein. */
-  'core/35-sharein.js'
+  'games/ritual-calendar.js'
 ];
 
 /* FRED Everywhere Phase 2 (2026-10-05): the three user modeling tools —

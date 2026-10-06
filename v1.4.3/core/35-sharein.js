@@ -213,13 +213,29 @@
   }
 
   function photoHandoff(d, caption, kind) {
-    /* kind: 'receipt' | 'price' | 'propaganda' — each requires an explicit
-       confirm tap inside the composer; nothing uploads silently. */
+    /* kind: 'receipt' | 'price' | 'propaganda' | 'wildfind:<key>' — each
+       requires an explicit confirm tap inside the composer; nothing
+       uploads silently. */
     close();
-    var label = { receipt: 'RECEIPT BOUNTY', price: 'PRICE REPORT', propaganda: 'PROPAGANDA UPLOAD' }[kind] || kind;
+    var wfKey = (/^wildfind:/.test(kind || '')) ? String(kind).slice(9) : '';
+    var wfLabel = '';
+    try {
+      if (wfKey && window.PF && PF.wildFinds && PF.wildFinds.get(wfKey))
+        wfLabel = 'WILD FIND — ' + PF.wildFinds.get(wfKey).label;
+    } catch (e) {}
+    var label = wfLabel ||
+      { receipt: 'RECEIPT BOUNTY', price: 'PRICE REPORT', propaganda: 'PROPAGANDA UPLOAD' }[kind] || kind;
     toast('DRAFT SAVED — ' + label + '. Tap the hand-off when ready.');
     if (kind === 'propaganda') {
       if (workshopOpen('poster-forge', { from: 'sharein', caption: caption })) return;
+      try { window.location.href = '/create'; } catch (e) {}
+      return;
+    }
+    /* WILD FIND: route to the bounty board with the type preselected. */
+    if (wfKey) {
+      try {
+        if (window.PF && PF.wildFinds) { PF.wildFinds.routeToBoard(wfKey); return; }
+      } catch (e) {}
       try { window.location.href = '/create'; } catch (e) {}
       return;
     }
@@ -326,12 +342,22 @@
         var opts = [
           ['receipt', 'RECEIPT BOUNTY', 'Price receipts = data bounties.'],
           ['price', 'PRICE REPORT', 'Attach it to a price check-in.'],
-          ['propaganda', 'PROPAGANDA UPLOAD', 'Forge it in the Create workshop.']
+          ['propaganda', 'PROPAGANDA UPLOAD', 'Forge it in the Create workshop.'],
+          /* WILD FINDS (2026-10-06): the bounty taxonomy types, one source
+             of truth (PF.wildFinds). Fail-open: option hidden if missing. */
+          ['wildfind', 'WILD FIND \uD83D\uDCF8', 'Protest signs, street art, price tags — pick the type.']
         ];
         opts.forEach(function (o) {
+          if (o[0] === 'wildfind' && !(window.PF && PF.wildFinds)) return;
           var b = btn('', o[1]);
           b.title = o[2];
-          b.onclick = function () { stepPhotoConfirm(o[0]); };
+          b.onclick = function () {
+            if (o[0] === 'wildfind') {
+              try {
+                PF.wildFinds.openTypePicker(function (key) { stepPhotoConfirm('wildfind:' + key); });
+              } catch (e) { stepPhotoConfirm('wildfind'); }
+            } else { stepPhotoConfirm(o[0]); }
+          };
           pick.appendChild(b);
         });
         wrap.appendChild(h); wrap.appendChild(p); wrap.appendChild(pick);
@@ -343,10 +369,24 @@
         var wrap = document.createElement('div');
         wrap.className = 'pf-sharein-step';
         var labels = { receipt: 'RECEIPT BOUNTY', price: 'PRICE REPORT', propaganda: 'PROPAGANDA UPLOAD' };
+        var wfKey = (/^wildfind:/.test(kindPick || '')) ? String(kindPick).slice(9) : '';
         var h = document.createElement('h3');
-        h.textContent = labels[kindPick] || 'PHOTO';
+        if (wfKey && window.PF && PF.wildFinds && PF.wildFinds.get(wfKey)) {
+          var _wft = PF.wildFinds.get(wfKey);
+          h.textContent = 'WILD FIND — ' + _wft.label;
+        } else {
+          h.textContent = labels[kindPick] || 'PHOTO';
+        }
         var p = document.createElement('p');
-        p.textContent = 'Confirm to hand this photo draft to the ' + (labels[kindPick] || 'flow') + '.';
+        p.textContent = 'Confirm to hand this photo draft to the ' + (h.textContent) + '.';
+        /* Wild-find safety: show the type's rules before confirm. */
+        if (wfKey && window.PF && PF.wildFinds) {
+          try {
+            var sw = document.createElement('div');
+            sw.innerHTML = '<div style="font-size:11px;letter-spacing:2px;color:#ff8080;font-weight:800;margin:8px 0 4px;">SAFETY RULES</div>' + PF.wildFinds.safetyHTML(wfKey);
+            wrap.appendChild(sw);
+          } catch (e) {}
+        }
         var go = btn('', 'CONFIRM — HAND IT OFF');
         go.onclick = function () {
           saveDraft({ kind: 'photo', type: kindPick, url: d.url, text: d.text, title: d.title,

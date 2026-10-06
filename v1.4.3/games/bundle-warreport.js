@@ -1,1 +1,776 @@
-!function(){"use strict";var e=window.PF;e&&!e.skip("war-report")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-warreport">\n<div class="fe-block pf-override-block" id="pf-warreport">\n<h2>&#9876; War Report</h2>\n<div class="c-tag">The week that was, straight from Command. Email\'s down — the report lives here.</div>\n<div class="c-note" style="margin:8px 0;">&#128467; <a href="/events#pf-mastercal" style="font-weight:800;color:#c1121f;">THE WAR CALENDAR</a> — every mobilization, deadline, and briefing in one place.</div>\n<div id="xWarReport"><div class="c-load">Requesting the report&hellip;</div></div>\n<div data-react-surface="war-report" aria-label="React to the War Report"></div>\n</div>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\n/* Friendly copy for read failures (2026-10-03): raw backend strings like\n   \'missing credentials\' are never shown as UI copy. */\nfunction wrErrCopy(e){\n  e=String(e||"");\n  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")\n    return "Could not reach Command. This callsign predates the new auth system and can\'t reconnect on its own — contact MTCSTW to recover it.";\n  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)\n    return "Could not reach Command — your callsign needs to reconnect. Re-claim it in Enlistment Ranks (one tap), then retry.";\n  return "Could not reach Command. The wire is down — retry in a bit.";\n}\nfunction wrPost(body,cb){\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,done); return; }\n    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})\n      .then(function(r){ return r.json(); }).then(done).catch(function(){ done(null); });\n  }catch(e){ done(null); }\n}\nfunction toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}\n  try{ var t=document.createElement("div"); t.textContent=m;\n  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";\n  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }\n/* R18 (2026-10-04): War Report -> Substack bridge, on-site half.\n   Email capture for the Monday digest + FAN FAVORITE share poster. The\n   sending leg is gated on the Resend DNS records (Shane\'s hand-step) —\n   capture degrades gracefully until the backend action exists. */\nfunction wrEmailValid(s){ return /^[^s@]+@[^s@]+.[^s@]{2,}$/.test(String(s||"").trim()); }\nfunction emailPaneHtml(){\n  return \'<div class="x-pane"><h4>GET THE WAR REPORT BY EMAIL</h4>\'\n    +\'<div class="x-note">Monday mornings, straight to your inbox. The one channel the machine truly owns.</div>\'\n    +\'<div style="margin-top:8px"><input id="wrEmail" type="email" placeholder="you@example.com" aria-label="Email address" style="width:62%;max-width:320px;padding:8px;font:14px monospace" maxlength="120"> \'\n    +\'<button class="c-btn" id="wrEmailBtn">SIGN ME UP</button></div>\'\n    +\'<div class="c-err" id="wrEmailErr" style="margin-top:6px"></div></div>\';\n}\nfunction wireEmail(){\n  var b=document.getElementById("wrEmailBtn"); if(!b) return;\n  b.onclick=function(){\n    var inp=document.getElementById("wrEmail"), err=document.getElementById("wrEmailErr");\n    var em=inp?inp.value.trim():"";\n    if(!wrEmailValid(em)){ if(err) err.textContent="That email doesn\'t look right."; return; }\n    b.disabled=true; if(err) err.textContent="";\n    var id=ident();\n    wrPost({type:"warreport",wr_action:"email_capture",email:em,callsign:id.callsign||"",device:id.device||""},function(j){\n      b.disabled=false;\n      if(j&&j.ok){ if(inp) inp.value=""; toast("You\'re on the list. See you Monday."); }\n      else if(err) err.textContent="The email list isn\'t wired yet — the Resend DNS is still pending. Check back Monday.";\n    });\n  };\n}\n/* FAN FAVORITE: last week\'s Propagandist of the Week, from the same results\n   read the ballot uses (?action=results&week=, {votes:{slug:count}}). */\nfunction wrIsoWeek(d){\n  var t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));\n  var day=(t.getUTCDay()+6)%7; t.setUTCDate(t.getUTCDate()-day+3);\n  var first=new Date(Date.UTC(t.getUTCFullYear(),0,4));\n  var fday=(first.getUTCDay()+6)%7; first.setUTCDate(first.getUTCDate()-fday+3);\n  return 1+Math.round((t-first)/6048e5);\n}\nfunction wrLastWeekKey(){ var d=new Date(); d.setDate(d.getDate()-7); return d.getFullYear()+"-W"+wrIsoWeek(d); }\nfunction wrRosterName(slug){\n  try{\n    var all=(window.PF&&PF.slrAll)?PF.slrAll():((window.PF&&PF.ROSTER)?PF.ROSTER:[]);\n    for(var i=0;i<all.length;i++){ if(all[i]&&all[i].slug===slug) return all[i].name||slug; }\n  }catch(e){}\n  return String(slug||"").replace(/-/g," ");\n}\nfunction wrWrap(x,text,maxW){\n  var words=String(text==null?"":text).split(/\\s+/),lines=[],line="";\n  words.forEach(function(w){ var t=line?line+" "+w:w;\n    if(x.measureText(t).width>maxW&&line){ lines.push(line); line=w; } else { line=t; } });\n  if(line)lines.push(line); return lines;\n}\nfunction wrPaintFavPoster(name,votes){\n  try{\n    var W=1080,H=1350,cv=document.createElement("canvas"); cv.width=W; cv.height=H;\n    var x=cv.getContext("2d"); if(!x){ toast("Canvas unavailable."); return; }\n    x.fillStyle="#0d0d0d"; x.fillRect(0,0,W,H);\n    x.strokeStyle="#c1121f"; x.lineWidth=18; x.strokeRect(16,16,W-32,H-32);\n    x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(52,52,W-104,H-104);\n    x.textAlign="center";\n    var y=180;\n    x.fillStyle="#f5ead6"; x.font="700 34px Arial,sans-serif";\n    x.fillText("★ THE PROPAGANDA FACTORY ★",W/2,y); y+=110;\n    x.fillStyle="#c1121f"; x.font="900 72px \\"Arial Black\\",Arial,sans-serif";\n    x.fillText("★ FAN FAVORITE ★",W/2,y); y+=110;\n    x.fillStyle="#f5ead6"; x.font="900 64px \\"Arial Black\\",Arial,sans-serif";\n    wrWrap(x,String(name).toUpperCase(),W-180).slice(0,3).forEach(function(l){ x.fillText(l,W/2,y); y+=78; });\n    y+=30;\n    x.fillStyle="#c9bfa8"; x.font="700 40px Arial,sans-serif";\n    x.fillText("PROPAGANDIST OF THE WEEK",W/2,y); y+=70;\n    x.fillStyle="#e8b64c"; x.font="700 36px Arial,sans-serif";\n    x.fillText(Number(votes||0)+" NETWORK VOTES",W/2,y);\n    /* Footer: MTCSTW.COM + JOIN THE FIGHT. (red, bold) — the share-image CTA standard. */\n    x.fillStyle="#c1121f"; x.font="900 48px \\"Arial Black\\",Arial,sans-serif";\n    x.fillText("MTCSTW.COM",W/2,H-168);\n    x.font="900 44px \\"Arial Black\\",Arial,sans-serif";\n    x.fillText("JOIN THE FIGHT.",W/2,H-108);\n    if(window.PFShare&&PFShare.shareImage) PFShare.shareImage(cv,"pfn-fan-favorite.png","Fan Favorite — "+name,"fan-favorite");\n    else toast("Share engine still loading.");\n  }catch(e){ toast("Poster failed — try again."); }\n}\nfunction loadFanFav(){\n  var host=document.getElementById("wrFanFav"); if(!host) return;\n  api("results",{week:wrLastWeekKey()},function(j){\n    var votes=(j&&j.votes)||null, top=null, topN=0;\n    if(votes){ for(var k in votes){ var n=Number(votes[k])||0; if(n>topN){ topN=n; top=k; } } }\n    if(!top){ host.style.display="none"; return; }\n    var name=wrRosterName(top);\n    host.innerHTML=\'<div class="x-pane"><h4>&#9733; FAN FAVORITE</h4>\'\n      +\'<div class="x-note">Last week the network crowned <b>\'+esc(name)+\'</b> Propagandist of the Week (\'+topN+\' votes).</div>\'\n      +\'<div style="margin-top:8px"><button class="c-btn" id="wrFavShare">SHARE THE CROWN</button></div></div>\';\n    var b=document.getElementById("wrFavShare");\n    if(b) b.onclick=function(){ wrPaintFavPoster(name,topN); };\n  });\n}\n/* MEME OF THE WEEK (2026-10-05): backend plain-text section -> styled card.\n   The backend appends a MEME OF THE WEEK block after CIVIC FRONT (the whole\n   section is absent when no asset qualifies). wrExtractMeme parses it out\n   and returns {card, before, after}: the card renders in place of the raw\n   lines so the section never renders twice. Fail-soft: any absent or\n   malformed part -> card is "" and the body renders untouched.\n   All interpolated text goes through esc(); the Source URL becomes a link\n   only for http/https. KILL: none new — this runs inside the war-report\n   IIFE, so ?pf_off=war-report / pf_disabled_v1 hides the card with the\n   widget. */\n/* MEME:BEGIN */\nfunction wrMemeCss(){\n  if(document.getElementById("pf-wr-meme-css")) return;\n  var s=document.createElement("style"); s.id="pf-wr-meme-css";\n  s.textContent=\n    ".wr-meme{white-space:normal;margin:14px 0;border:2px solid #c1121f;background:#161616}"\n    +".wr-meme .wm-top{background:#c1121f;color:#f5ead6;font-family:\'Arial Black\',Arial,sans-serif;font-size:15px;letter-spacing:2px;padding:8px 14px}"\n    +".wr-meme .wm-body{padding:12px 14px}"\n    +".wr-meme .wm-head{font-family:\'Arial Black\',Arial,sans-serif;font-weight:900;font-size:19px;line-height:1.4;color:#f5ead6;margin:0 0 8px}"\n    +".wr-meme .wm-meta{font-family:Arial,sans-serif;font-size:13px;color:#e8b64c;letter-spacing:1px;margin-bottom:8px}"\n    +".wr-meme .wm-fight{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin-bottom:6px}"\n    +".wr-meme .wm-src{font-family:Arial,sans-serif;font-size:12px;color:#c9bfa8;word-break:break-all}"\n    +".wr-meme .wm-src a{color:#ff5a00;text-decoration:underline}";\n  document.head.appendChild(s);\n}\nfunction wrMemeLink(url){\n  url=String(url||"");\n  if(!/^https?:\\/\\//i.test(url)) return esc(url);\n  return \'<a href="\'+esc(url)+\'" rel="noopener">\'+esc(url)+\'</a>\';\n}\nfunction wrTrim(s){ return String(s==null?"":s).replace(/^\\s+|\\s+$/g,""); }\nfunction wrExtractMeme(body){\n  var none={card:"",before:String(body==null?"":body),after:""};\n  var src=String(body==null?"":body);\n  if(src.indexOf("MEME OF THE WEEK:")<0) return none;\n  try{\n    var lines=src.split("\\n"), i, n=lines.length, start=-1;\n    for(i=0;i<n;i++){ if(wrTrim(lines[i])==="MEME OF THE WEEK:"){ start=i; break; } }\n    if(start<0) return none;\n    var j=start+1;\n    function nextLine(){ while(j<n&&wrTrim(lines[j])==="") j++; return (j<n)?lines[j++] : null; }\n    var hl=nextLine(); if(hl==null) return none;\n    var m1=/^\\s*"(.+)"\\s*[—–-]\\s*@(\\S+)\\s*$/.exec(hl);\n    if(!m1) return none;\n    var sh=nextLine(); if(sh==null) return none;\n    var m2=/^\\s*([\\d,]+)\\s+soldiers shared it this week\\s*$/.exec(sh);\n    if(!m2) return none;\n    var fg=nextLine(); if(fg==null) return none;\n    var m3=/^\\s*The fight:\\s*(.+?)\\s*$/.exec(fg);\n    if(!m3||!m3[1]) return none;\n    var srcUrl=null;\n    if(j<n&&/^\\s*Source:\\s*\\S/.test(lines[j])){\n      var m4=/^\\s*Source:\\s*(\\S+)\\s*$/.exec(lines[j]);\n      if(m4){ srcUrl=m4[1]; j++; }\n    }\n    var card=\'<div class="x-pane wr-meme"><div class="wm-top">&#9733; MEME OF THE WEEK</div>\'\n      +\'<div class="wm-body">\'\n      +\'<div class="wm-head">&ldquo;\'+esc(m1[1])+\'&rdquo;</div>\'\n      +\'<div class="wm-meta">&mdash; @\'+esc(m1[2])+\' &middot; \'+esc(m2[1])+\' soldiers shared it this week</div>\'\n      +\'<div class="wm-fight">The fight: \'+esc(m3[1])+\'</div>\'\n      +(srcUrl?\'<div class="wm-src">Source: \'+wrMemeLink(srcUrl)+\'</div>\':"")\n      +\'</div></div>\';\n    return {card:card,before:lines.slice(0,start).join("\\n"),after:lines.slice(j).join("\\n")};\n  }catch(e){ return none; }\n}\n/* MEME:END */\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  /* Private read: warreport_latest is per-callsign (IDOR fix). Route through\n     the shared claim-retry GET (2026-10-03) so pre-auth callsign holders get\n     one auth_claim attempt instead of \'missing credentials\' forever. */\n  if(action==="warreport_latest"){\n    try{\n      if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }\n      var _sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : "";\n      if(_sec && params && !params.auth_secret) params.auth_secret=_sec;\n    }catch(e){}\n  }\n  var fn="pfWrCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\n/* QW-2 (2026-10-05, fixed Psych pre-ship): next-action row rendered after the\n   report body / email pane. Substack button label no longer promises the\n   War Report (no War Report posts exist there; the email leg is parked).\n   Zero new XP, zero new endpoints, zero new backend reads — static anchors only. */\nfunction nextActionRow(){\n  return \'<div class="x-pane" style="text-align:center"><h4>READ IT. NOW MOVE.</h4>\'\n    +\'<div class="x-note">This week\\\'s loop: crown the propagandist, grab a bounty, get the report in your inbox.</div>\'\n    +\'<div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:10px">\'\n    +\'<a class="c-btn" href="/#pf-vote" style="text-decoration:none;display:inline-block">VOTE FOR NEXT WEEK\\\'S PROPAGANDIST</a>\'\n    +\'<a class="c-btn" href="/create?tab=bounties" style="text-decoration:none;display:inline-block">OPEN BOUNTIES</a>\'\n    +\'<a class="c-btn" href="https://mtcstw.substack.com" target="_blank" rel="noopener" style="text-decoration:none;display:inline-block">FOLLOW THE FACTORY &#8594;</a>\'\n    +\'</div></div>\';\n}\nfunction paint(el,j){\n  var id=ident();\n  if(!id.callsign){\n    el.innerHTML=\'<div class="c-gate">War Reports are written for enlisted soldiers. Claim your callsign in Enlistment Ranks, then come back for your briefing.\'+\n      /* 2026-10-06 CEO directive: every claim prompt needs the recovery path. */\n      (function(){ try{ return (window.PF && window.PF.recoverLinkHTML) ? window.PF.recoverLinkHTML() : \'\'; }catch(e){ return \'\'; } })()+\n      \'</div>\';\n    return;\n  }\n  if(!j||!j.ok){\n    el.innerHTML=\'<div class="c-err">\'+esc(wrErrCopy(j&&j.err))\n      +\'<br><button class="c-btn" id="wrRetry">Retry connection</button></div>\';\n    var rb=document.getElementById("wrRetry"); if(rb) rb.onclick=function(){ load(); };\n    return;\n  }\n  if(!j.report){\n    el.innerHTML=\'<div class="x-pane"><h4>No report yet, soldier</h4>\'\n      +\'<div class="x-note">Command drafts the War Report every Monday. It lands here \'\n      +\'(and in your inbox once email is wired). Check in all week so there is \'\n      + \'something worth writing about.</div></div>\'\n      +\'<div id="wrFredNumbers"></div>\'\n      +\'<div id="wrFanFav"></div>\'\n      +emailPaneHtml()\n      +nextActionRow();\n    wireEmail(); loadFanFav(); mountWarNumbers();\n    return;\n  }\n  var r=j.report;\n  var when="";\n  try{ var d=new Date(Number(r.created_at)); if(!isNaN(d.getTime())) when=d.toLocaleDateString(); }catch(e){}\n  wrMemeCss();\n  var meme=wrExtractMeme(r.body||"");\n  el.innerHTML=\'<div class="x-pane"><h4>\'+esc(r.subject||"WAR REPORT")+\'</h4>\'\n    +\'<div class="x-note">Week of \'+esc(r.week_start||"")+(when?" · drafted "+esc(when):"")+\'</div>\'\n    +\'<div class="wr-body" style="white-space:pre-wrap;font-family:monospace;font-size:13px;line-height:1.55;margin-top:8px">\'\n    +esc(meme.before)+meme.card+esc(meme.after)+\'</div></div>\'\n    +\'<div id="wrFredNumbers"></div>\'\n    +\'<div id="wrFanFav"></div>\'\n    +emailPaneHtml()\n    +nextActionRow();\n  wireEmail(); loadFanFav(); mountWarNumbers();\n}\n/* FRED Everywhere Phase 1: "the week in numbers" slot. The module guards\n   double-mounts itself; this is a no-op when the module isn\'t bundled. */\nfunction mountWarNumbers(){\n  try{\n    var slot=document.getElementById("wrFredNumbers");\n    if(slot && window.PFWarNumbers) PFWarNumbers.mount(slot);\n  }catch(e){}\n}\nfunction load(){\n  var el=document.getElementById("xWarReport"); if(!el) return;\n  var id=ident();\n  if(!id.callsign){ paint(el,{ok:true,report:null}); return; }\n  api("warreport_latest",{callsign:id.callsign},function(j){ paint(el,j); });\n}\nload();\nsetInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },600000);\n})();\n<\/script>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("war-numbers")&&!window.pfWarNumbersDone){window.pfWarNumbersDone=!0;var n=["UNRATE","DGS10","DGS2","CPIAUCNS","LES1252881600Q","MORTGAGE30US","FEDFUNDS"],t=["News Desk","Economy Desk","Psych","Propaganda Studio","PR","Brand Consistency","Docs & Comms"],r=[{id:"wages-inflation",a:"LES1252881600Q",b:"CPIAUCNS",hook:"Is the typical paycheck beating prices?"},{id:"mortgage-fed",a:"MORTGAGE30US",b:"FEDFUNDS",hook:"Who moved first?"},{id:"jobs-unemployment",a:"PAYEMS",b:"UNRATE",hook:"Hiring up, jobless up — how?"},{id:"yield-curve",a:"DGS10",b:"DGS2",hook:"The market's fear gauge"},{id:"inflation-gauges",a:"CPIAUCNS",b:"PCEPI",hook:"Headline vs the Fed's favorite"},{id:"core-headline",a:"CPILFESL",b:"CPIAUCNS",hook:"What's really cooking underneath"}],a=[".pf-wrnum{color:#f5ead6;font-family:Arial,sans-serif;margin:14px 0}",".pf-wrnum-kicker{font-weight:700;font-size:12px;letter-spacing:4px;color:#e8b923;margin-bottom:6px}",".pf-wrnum-title{font-weight:900;font-size:18px;letter-spacing:1px;margin:0 0 10px}",".pf-wrnum-line{border-top:1px solid #2a2a2a;padding:10px 0;min-height:44px}",".pf-wrnum-fig{font-weight:900;font-size:15px;color:#f5ead6}",".pf-wrnum-sent{font-size:13px;line-height:1.6;color:#e8dcc3;margin-top:4px}",".pf-wrnum-match{border:1px solid #3a2a00;border-radius:8px;background:#14100a;padding:12px;margin:12px 0}",".pf-wrnum-match h5{font-weight:900;font-size:12px;letter-spacing:2px;color:#f5c518;margin:0 0 6px}",".pf-wrnum-match p{font-size:13px;line-height:1.6;margin:0 0 6px}",".pf-wrnum-dept{font-size:10px;color:#8a8271;letter-spacing:1px}"].join("\n");try{window.PFWarNumbers={mount:function(e){if(!e)return!1;try{if(e.querySelector&&e.querySelector(".pf-wrnum"))return!0}catch(e){}var n=window.PFFred;return!n||(n.full(function(t){n.api("fred_sahm",{},function(n){try{o(e,t&&t.ok?t:null,n)}catch(e){}})}),!0)},pickForWeek:s}}catch(e){}}function i(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function s(e){var n=function(e){try{var n=e?new Date(e):new Date,t=Date.UTC(2026,0,5),r=(n.getUTCDay()+6)%7,a=Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate()-r);return Math.max(0,Math.floor((a-t)/6048e5))}catch(e){return 0}}(e);return{week:n,department:t[n%t.length],matchup:r[n%r.length]}}function o(e,t,r){!function(){try{if(document.getElementById("pf-wrnum-css"))return;var e=document.createElement("style");e.id="pf-wrnum-css",e.textContent=a,document.head.appendChild(e)}catch(e){}}();var o=window.PFFred;if(o){o.cssOnce();var l=!(!t||!t.fred_live),c=t&&Array.isArray(t.series)?t.series:[],d={};c.forEach(function(e){e&&e.series_id&&(d[e.series_id]=e)});var f,p=n.map(function(e){return d[e]}).filter(Boolean),u=s(),m=null;try{r&&r.ok&&(m=r)}catch(e){}f=l&&p.length?p.map(function(e){return function(e,n,t){var r=n.series_id,a=null!=n.value_label?n.value_label:"—",s=e.fmtPeriod(n),o=e.citation(n),l=n.stale?" (carrying the last good print — "+i(n.stale_note||"refresh pending")+")":"";function c(t){return'<div class="pf-wrnum-line"><div class="pf-wrnum-fig">'+i(a)+e.revMark(n)+' <span style="font-size:11px;color:#8a8271;font-weight:400">'+i(e.PLAIN[r]||r)+e.saNsa(n)+"</span> "+e.staleBadge(n)+'</div><div class="pf-wrnum-sent">'+t+l+'</div><div class="pf-fred-cite">'+i(o)+"</div></div>"}switch(r){case"UNRATE":var d="Unemployment is "+a+" ("+s+").";if(t&&t.current){var f=t.current.sahm_pp;d+=" The Sahm rule reads "+("number"==typeof f?f.toFixed(2)+"pp":String(f))+(t.current.triggered?" — TRIGGERED":" — not triggered")+". Coincident, not predictive: it flags conditions that look recessionary, and it can trigger without a recession, as it did in 2024."}return c(i(d));case"DGS10":return c(i("The 10-year Treasury yields "+a+" ("+s+") — the market's long-run read on growth and inflation."));case"DGS2":return c(i("The 2-year Treasury yields "+a+" ("+s+") — the market's vote on where the Fed funds rate is headed."));case"CPIAUCNS":var p=n.change_pct_label||n.change_label||"";return c(i("Consumer prices "+(p?"are "+p+" over the year":"sit at "+a)+" ("+s+", CPI-U, NSA)."));case"LES1252881600Q":var u=n.change_pct_label||n.change_label||"";return c(i((d=u?"Median usual weekly real earnings ran "+u+" to "+s:"Median usual weekly real earnings sit at "+a+" ("+s+")")+" — the typical worker’s paycheck, inflation-adjusted (1982–84 dollars)."));case"MORTGAGE30US":return c(i("The 30-year fixed mortgage averages "+a+" ("+s+") — a borrowing cost, not rent."));case"FEDFUNDS":return c(i("The effective Fed funds rate is "+a+" ("+s+") — the rate the Fed actually sets."));default:return c(i((e.PLAIN[r]||r)+": "+a+" ("+s+")."))}}(o,e,"UNRATE"===e.series_id?m:null)}).join("")+function(e,n,t){var r=n.matchup,a=e.cardFor({series:t},r.a),s=e.cardFor({series:t},r.b),o=i(r.hook);return a&&s&&(o+=" "+i((e.PLAIN[r.a]||r.a)+" vs "+(e.PLAIN[r.b]||r.b)+".")),'<div class="pf-wrnum-match"><h5>THIS WEEK’S STACK</h5><p>'+o+'</p><div class="pf-wrnum-dept">CURATED BY THE '+i(n.department.toUpperCase())+" · ROTATES WEEKLY · EMAIL WIRING PARKED</div></div>"}(o,u,p):'<div class="pf-fred-empty"><h4>OFFICIAL DATA CONNECTING</h4><p>'+i(t&&t.note||"The week in numbers appears when the official feed connects.")+"</p></div>",e.innerHTML='<div class="pf-wrnum"><div class="pf-wrnum-kicker">WAR REPORT</div><h4 class="pf-wrnum-title">THE WEEK IN NUMBERS</h4>'+f+"</div>"}}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("theater")&&!e.skip("theater-sitrep")){var n=!1;try{n=e.skip("sitrep-economy")}catch(e){}var t,r,a,i,s=window.PF_BACKEND_URL,o=[{key:"route_march",name:"ROUTE MARCH",url:"/#pf-brief"},{key:"ambush",name:"AMBUSH",url:"/"},{key:"deaddrop",name:"DEAD DROP",url:"/"},{key:"podcast",name:"PODCAST",url:"https://rss.com/podcasts/the-propaganda-factory"},{key:"mystery",name:"MYSTERY",url:"/create"},{key:"postproof",name:"PROOF",url:"/create"},{key:"arcade",name:"ARCADE",url:"/arcade"},{key:"races",name:"RACES",url:"/sick-left-radicals"},{key:"siren",name:"SIREN",url:"/"}],l=null,c=!1,d=!0,f=null,p=!1;!function(){if(!document.getElementById("pf-sitrep-css")){var e=document.createElement("style");e.id="pf-sitrep-css",e.textContent="#pf-sitrep{margin-bottom:14px}#pf-sitrep .sr-grade{display:inline-block;font-family:'Arial Black',Arial,sans-serif;font-size:30px;letter-spacing:2px;padding:6px 18px;border:3px solid;margin:6px 0 10px}#pf-sitrep .sr-head{font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#f5ead6;margin:0 0 10px}#pf-sitrep .sr-stats{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:10px}#pf-sitrep .sr-stat{display:flex;flex-direction:column}#pf-sitrep .sr-v{font-family:'Arial Black',Arial,sans-serif;font-size:22px;color:#ff5a00}#pf-sitrep .sr-l{font-family:Arial,sans-serif;font-size:10px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase}#pf-sitrep .sr-missed{font-family:Arial,sans-serif;font-size:12px;color:#c9bfa8;margin-bottom:10px;line-height:2}#pf-sitrep .sr-missed a{color:#ff5a00;text-decoration:none;border:1px solid #ff5a00;padding:4px 10px;margin-right:6px;letter-spacing:1px;font-size:11px;text-transform:uppercase}#pf-sitrep .sr-missed a:hover{background:#ff5a00;color:#0d0d0d}#pf-sitrep .sr-foot{font-family:Arial,sans-serif;font-size:12px;color:#777;letter-spacing:1px;line-height:1.6}#pf-sitrep .sr-foot b{color:#c9bfa8}#pf-sitrep .sr-wire{font-family:Arial,sans-serif;font-size:13px;color:#ff5a00;letter-spacing:1px;line-height:1.6}",document.head.appendChild(e)}}(),t="#xWarReport",r=function(){y(),function(){var e=document.getElementById("xWarReport");if(e&&!e._srObs){var n=!1,t=new MutationObserver(function(){if(!n)try{if(document.getElementById("pf-sitrep"))return;n=!0,e.insertBefore(w(),e.firstChild),n=!1}catch(e){n=!1}});try{t.observe(e,{childList:!0}),e._srObs=!0}catch(e){}}}();var e=m();e.callsign&&(h("sitrep_latest",{callsign:e.callsign,device:e.device},function(e){d=!1,e&&e.ok?l=e:c=!0,y()}),x())},a=0,i=setInterval(function(){a++;var e=null;try{e=document.querySelector(t)}catch(e){}if(e){try{clearInterval(i)}catch(e){}r(e)}else if(a>60)try{clearInterval(i)}catch(e){}},500),setInterval(function(){try{if(window.PF&&e.hidden&&e.hidden())return}catch(e){}if(document.getElementById("pf-sitrep")){var n=m();n.callsign&&(h("sitrep_latest",{callsign:n.callsign,device:n.device},function(e){e&&e.ok?(l=e,c=!1):l||(c=!0),y()}),x())}},6e5)}function u(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function m(){var e="",n="";try{e=window.PFCallsign?window.PFCallsign():""}catch(e){}try{n=window.PFDeviceId?window.PFDeviceId():""}catch(e){}return{callsign:e,device:n}}function h(n,t,r){if(s){try{if(window.PF&&e.authGetJSONP)return void e.authGetJSONP(s,n,t||{},r)}catch(e){}var a="pfSrCb"+Math.floor(1e9*Math.random()),i=document.createElement("script"),o=!1;window[a]=function(e){d(e)},i.onerror=function(){d(null)};var l="?action="+encodeURIComponent(n);for(var c in t)null!=t[c]&&""!==t[c]&&(l+="&"+encodeURIComponent(c)+"="+encodeURIComponent(t[c]));l+="&callback="+a,i.src=s+l,document.head.appendChild(i),setTimeout(function(){d(null)},12e3)}else r(null);function d(e){if(!o){o=!0;try{delete window[a]}catch(e){}try{i.parentNode&&i.parentNode.removeChild(i)}catch(e){}r(e)}}}function v(e){for(var n=0;n<o.length;n++)if(o[n].key===e)return o[n];return{key:e,name:String(e).replace(/_/g," ").toUpperCase(),url:"/"}}function g(e){return"A"===(e=String(e||"").toUpperCase())?"#4caf50":"B"===e?"#e8b64c":"C"===e?"#ff5a00":"#c1121f"}function w(){var t=document.createElement("div");t.className="x-pane",t.id="pf-sitrep";var r="<h4>&#9876; SITUATION REPORT</h4>";if(!m().callsign)return t.innerHTML=r+'<div class="sr-wire">Situation Reports are written for enlisted soldiers. Claim your callsign in Enlistment Ranks, then come back for your debrief.'+function(){try{return window.PF&&e.recoverLinkHTML?e.recoverLinkHTML():""}catch(e){return""}}()+"</div>",t;if(d&&!c)return t.innerHTML=r+'<div class="sr-wire">Requesting your debrief&hellip;</div>',t;if(c||!l||!l.ok)return t.innerHTML=r+'<div class="sr-wire">'+u("Command is wiring this — check back.")+"</div>",t;var a=String(l.grade||"?").toUpperCase();r+='<div><span class="sr-grade" style="color:'+g(a)+";border-color:"+g(a)+'">GRADE '+u(a)+"</span></div>",l.week_start&&(r+='<div class="sr-foot" style="margin-bottom:8px">Week of '+u(l.week_start)+"</div>"),l.headline&&(r+='<p class="sr-head">'+u(l.headline)+"</p>"),r+='<div class="sr-stats"><div class="sr-stat"><span class="sr-v">'+u(null!=l.circuits_completed?l.circuits_completed:"—")+'</span><span class="sr-l">Circuits</span></div><div class="sr-stat"><span class="sr-v">'+u(null!=l.ambush_claims?l.ambush_claims:"—")+'</span><span class="sr-l">Ambush claims</span></div><div class="sr-stat"><span class="sr-v">'+u(null!=l.breadth?l.breadth:"—")+'</span><span class="sr-l">Front breadth</span></div></div>';var i=function(){if(n||p||!f||!f.ok||!f.fred_live)return"";var e,t=f.cards||[],r=null,a=null;for(e=0;e<t.length;e++)t[e]&&"GDP"===t[e].series_id&&(r=t[e]),t[e]&&"UNRATE"===t[e].series_id&&(a=t[e]);return!r||!a||r.stale||a.stale||null==r.value||null==a.value?"":"GDP "+(r.change_pct_label||r.change_label||"")+" ("+(r.period_label||r.period||"")+") · UNEMPLOYMENT "+(null!=a.value_label?a.value_label:"")+("percent"===a.unit?"%":"")+" ("+(a.period_label||a.period||"")+")"}();i&&(r+='<div class="sr-foot" style="margin-bottom:10px"><b>STATE OF THE ECONOMY:</b> '+u(i)+' <span style="color:#777">· OFFICIAL VIA FRED</span></div>');var s=l.missed_systems||[];if(s.length){r+='<div class="sr-missed">MISSED FRONTS — go take them:<br>';for(var o=0;o<s.length;o++){var h=v(String(s[o]).toLowerCase());r+='<a href="'+u(h.url)+'">'+u(h.name)+" &rarr;</a>"}r+="</div>"}var w=[];return l.ribbon_state&&w.push("<b>RIBBONS:</b> "+u(l.ribbon_state)),l.streak_state&&w.push("<b>STREAK:</b> "+u(l.streak_state)),w.length&&(r+='<div class="sr-foot">'+w.join(" &nbsp;&middot;&nbsp; ")+"</div>"),t.innerHTML=r,t}function y(){var e=document.getElementById("xWarReport");if(e){var n=document.getElementById("pf-sitrep");n&&n.parentNode&&n.parentNode.removeChild(n),e.insertBefore(w(),e.firstChild)}}function x(){n||h("fred_context",{surface:"sitrep"},function(e){try{e&&e.ok&&e.fred_live&&(e.cards||[]).length?(f=e,p=!1):f||(p=!0),y()}catch(e){}})}}();
+/* PF v1.4.3 bundle-warreport.js — concatenated bundle, generated by build/bundle.js.
+   DO NOT EDIT. Regenerate with: node build/bundle.js [--debug]
+   Contains: war-report.js, fred-warreport.js, theater-sitrep.js
+   Each silo keeps its own PF.skip() kill switch (?pf_off=<silo>). */
+
+/* ===== war-report.js ===== */
+/* games/war-report.js  |  PF v1.4.3 | WAR REPORT: in-app fallback for the weekly
+   email digest. Email delivery is down until Resend DNS is set — this widget
+   lets soldiers read their latest generated War Report on-site instead.
+   Reads via JSONP (self-contained api()); warreport_latest is per-callsign
+   auth-gated (auth_secret auto-attached, IDOR fix).
+   KILL: ?pf_off=war-report  or  localStorage pf_disabled_v1='["war-report"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("war-report")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-warreport">
+<div class="fe-block pf-override-block" id="pf-warreport">
+<h2>&#9876; War Report</h2>
+<div class="c-tag">The week that was, straight from Command. Email's down — the report lives here.</div>
+<div class="c-note" style="margin:8px 0;">&#128467; <a href="/events#pf-mastercal" style="font-weight:800;color:#c1121f;">THE WAR CALENDAR</a> — every mobilization, deadline, and briefing in one place.</div>
+<div id="xWarReport"><div class="c-load">Requesting the report&hellip;</div></div>
+<div data-react-surface="war-report" aria-label="React to the War Report"></div>
+</div>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+/* Friendly copy for read failures (2026-10-03): raw backend strings like
+   'missing credentials' are never shown as UI copy. */
+function wrErrCopy(e){
+  e=String(e||"");
+  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")
+    return "Could not reach Command. This callsign predates the new auth system and can't reconnect on its own — contact MTCSTW to recover it.";
+  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)
+    return "Could not reach Command — your callsign needs to reconnect. Re-claim it in Enlistment Ranks (one tap), then retry.";
+  return "Could not reach Command. The wire is down — retry in a bit.";
+}
+function wrPost(body,cb){
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,done); return; }
+    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+      .then(function(r){ return r.json(); }).then(done).catch(function(){ done(null); });
+  }catch(e){ done(null); }
+}
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+/* R18 (2026-10-04): War Report -> Substack bridge, on-site half.
+   Email capture for the Monday digest + FAN FAVORITE share poster. The
+   sending leg is gated on the Resend DNS records (Shane's hand-step) —
+   capture degrades gracefully until the backend action exists. */
+function wrEmailValid(s){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(s||"").trim()); }
+function emailPaneHtml(){
+  return '<div class="x-pane"><h4>GET THE WAR REPORT BY EMAIL</h4>'
+    +'<div class="x-note">Monday mornings, straight to your inbox. The one channel the machine truly owns.</div>'
+    +'<div style="margin-top:8px"><input id="wrEmail" type="email" placeholder="you@example.com" aria-label="Email address" style="width:62%;max-width:320px;padding:8px;font:14px monospace" maxlength="120"> '
+    +'<button class="c-btn" id="wrEmailBtn">SIGN ME UP</button></div>'
+    +'<div class="c-err" id="wrEmailErr" style="margin-top:6px"></div></div>';
+}
+function wireEmail(){
+  var b=document.getElementById("wrEmailBtn"); if(!b) return;
+  b.onclick=function(){
+    var inp=document.getElementById("wrEmail"), err=document.getElementById("wrEmailErr");
+    var em=inp?inp.value.trim():"";
+    if(!wrEmailValid(em)){ if(err) err.textContent="That email doesn't look right."; return; }
+    b.disabled=true; if(err) err.textContent="";
+    var id=ident();
+    wrPost({type:"warreport",wr_action:"email_capture",email:em,callsign:id.callsign||"",device:id.device||""},function(j){
+      b.disabled=false;
+      if(j&&j.ok){ if(inp) inp.value=""; toast("You're on the list. See you Monday."); }
+      else if(err) err.textContent="The email list isn't wired yet — the Resend DNS is still pending. Check back Monday.";
+    });
+  };
+}
+/* FAN FAVORITE: last week's Propagandist of the Week, from the same results
+   read the ballot uses (?action=results&week=, {votes:{slug:count}}). */
+function wrIsoWeek(d){
+  var t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  var day=(t.getUTCDay()+6)%7; t.setUTCDate(t.getUTCDate()-day+3);
+  var first=new Date(Date.UTC(t.getUTCFullYear(),0,4));
+  var fday=(first.getUTCDay()+6)%7; first.setUTCDate(first.getUTCDate()-fday+3);
+  return 1+Math.round((t-first)/6048e5);
+}
+function wrLastWeekKey(){ var d=new Date(); d.setDate(d.getDate()-7); return d.getFullYear()+"-W"+wrIsoWeek(d); }
+function wrRosterName(slug){
+  try{
+    var all=(window.PF&&PF.slrAll)?PF.slrAll():((window.PF&&PF.ROSTER)?PF.ROSTER:[]);
+    for(var i=0;i<all.length;i++){ if(all[i]&&all[i].slug===slug) return all[i].name||slug; }
+  }catch(e){}
+  return String(slug||"").replace(/-/g," ");
+}
+function wrWrap(x,text,maxW){
+  var words=String(text==null?"":text).split(/\\s+/),lines=[],line="";
+  words.forEach(function(w){ var t=line?line+" "+w:w;
+    if(x.measureText(t).width>maxW&&line){ lines.push(line); line=w; } else { line=t; } });
+  if(line)lines.push(line); return lines;
+}
+function wrPaintFavPoster(name,votes){
+  try{
+    var W=1080,H=1350,cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+    var x=cv.getContext("2d"); if(!x){ toast("Canvas unavailable."); return; }
+    x.fillStyle="#0d0d0d"; x.fillRect(0,0,W,H);
+    x.strokeStyle="#c1121f"; x.lineWidth=18; x.strokeRect(16,16,W-32,H-32);
+    x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(52,52,W-104,H-104);
+    x.textAlign="center";
+    var y=180;
+    x.fillStyle="#f5ead6"; x.font="700 34px Arial,sans-serif";
+    x.fillText("\u2605 THE PROPAGANDA FACTORY \u2605",W/2,y); y+=110;
+    x.fillStyle="#c1121f"; x.font="900 72px \\"Arial Black\\",Arial,sans-serif";
+    x.fillText("\u2605 FAN FAVORITE \u2605",W/2,y); y+=110;
+    x.fillStyle="#f5ead6"; x.font="900 64px \\"Arial Black\\",Arial,sans-serif";
+    wrWrap(x,String(name).toUpperCase(),W-180).slice(0,3).forEach(function(l){ x.fillText(l,W/2,y); y+=78; });
+    y+=30;
+    x.fillStyle="#c9bfa8"; x.font="700 40px Arial,sans-serif";
+    x.fillText("PROPAGANDIST OF THE WEEK",W/2,y); y+=70;
+    x.fillStyle="#e8b64c"; x.font="700 36px Arial,sans-serif";
+    x.fillText(Number(votes||0)+" NETWORK VOTES",W/2,y);
+    /* Footer: MTCSTW.COM + JOIN THE FIGHT. (red, bold) — the share-image CTA standard. */
+    x.fillStyle="#c1121f"; x.font="900 48px \\"Arial Black\\",Arial,sans-serif";
+    x.fillText("MTCSTW.COM",W/2,H-168);
+    x.font="900 44px \\"Arial Black\\",Arial,sans-serif";
+    x.fillText("JOIN THE FIGHT.",W/2,H-108);
+    if(window.PFShare&&PFShare.shareImage) PFShare.shareImage(cv,"pfn-fan-favorite.png","Fan Favorite — "+name,"fan-favorite");
+    else toast("Share engine still loading.");
+  }catch(e){ toast("Poster failed — try again."); }
+}
+function loadFanFav(){
+  var host=document.getElementById("wrFanFav"); if(!host) return;
+  api("results",{week:wrLastWeekKey()},function(j){
+    var votes=(j&&j.votes)||null, top=null, topN=0;
+    if(votes){ for(var k in votes){ var n=Number(votes[k])||0; if(n>topN){ topN=n; top=k; } } }
+    if(!top){ host.style.display="none"; return; }
+    var name=wrRosterName(top);
+    host.innerHTML='<div class="x-pane"><h4>&#9733; FAN FAVORITE</h4>'
+      +'<div class="x-note">Last week the network crowned <b>'+esc(name)+'</b> Propagandist of the Week ('+topN+' votes).</div>'
+      +'<div style="margin-top:8px"><button class="c-btn" id="wrFavShare">SHARE THE CROWN</button></div></div>';
+    var b=document.getElementById("wrFavShare");
+    if(b) b.onclick=function(){ wrPaintFavPoster(name,topN); };
+  });
+}
+/* MEME OF THE WEEK (2026-10-05): backend plain-text section -> styled card.
+   The backend appends a MEME OF THE WEEK block after CIVIC FRONT (the whole
+   section is absent when no asset qualifies). wrExtractMeme parses it out
+   and returns {card, before, after}: the card renders in place of the raw
+   lines so the section never renders twice. Fail-soft: any absent or
+   malformed part -> card is "" and the body renders untouched.
+   All interpolated text goes through esc(); the Source URL becomes a link
+   only for http/https. KILL: none new — this runs inside the war-report
+   IIFE, so ?pf_off=war-report / pf_disabled_v1 hides the card with the
+   widget. */
+/* MEME:BEGIN */
+function wrMemeCss(){
+  if(document.getElementById("pf-wr-meme-css")) return;
+  var s=document.createElement("style"); s.id="pf-wr-meme-css";
+  s.textContent=
+    ".wr-meme{white-space:normal;margin:14px 0;border:2px solid #c1121f;background:#161616}"
+    +".wr-meme .wm-top{background:#c1121f;color:#f5ead6;font-family:'Arial Black',Arial,sans-serif;font-size:15px;letter-spacing:2px;padding:8px 14px}"
+    +".wr-meme .wm-body{padding:12px 14px}"
+    +".wr-meme .wm-head{font-family:'Arial Black',Arial,sans-serif;font-weight:900;font-size:19px;line-height:1.4;color:#f5ead6;margin:0 0 8px}"
+    +".wr-meme .wm-meta{font-family:Arial,sans-serif;font-size:13px;color:#e8b64c;letter-spacing:1px;margin-bottom:8px}"
+    +".wr-meme .wm-fight{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin-bottom:6px}"
+    +".wr-meme .wm-src{font-family:Arial,sans-serif;font-size:12px;color:#c9bfa8;word-break:break-all}"
+    +".wr-meme .wm-src a{color:#ff5a00;text-decoration:underline}";
+  document.head.appendChild(s);
+}
+function wrMemeLink(url){
+  url=String(url||"");
+  if(!/^https?:\\/\\//i.test(url)) return esc(url);
+  return '<a href="'+esc(url)+'" rel="noopener">'+esc(url)+'</a>';
+}
+function wrTrim(s){ return String(s==null?"":s).replace(/^\\s+|\\s+$/g,""); }
+function wrExtractMeme(body){
+  var none={card:"",before:String(body==null?"":body),after:""};
+  var src=String(body==null?"":body);
+  if(src.indexOf("MEME OF THE WEEK:")<0) return none;
+  try{
+    var lines=src.split("\\n"), i, n=lines.length, start=-1;
+    for(i=0;i<n;i++){ if(wrTrim(lines[i])==="MEME OF THE WEEK:"){ start=i; break; } }
+    if(start<0) return none;
+    var j=start+1;
+    function nextLine(){ while(j<n&&wrTrim(lines[j])==="") j++; return (j<n)?lines[j++] : null; }
+    var hl=nextLine(); if(hl==null) return none;
+    var m1=/^\\s*"(.+)"\\s*[—–-]\\s*@(\\S+)\\s*$/.exec(hl);
+    if(!m1) return none;
+    var sh=nextLine(); if(sh==null) return none;
+    var m2=/^\\s*([\\d,]+)\\s+soldiers shared it this week\\s*$/.exec(sh);
+    if(!m2) return none;
+    var fg=nextLine(); if(fg==null) return none;
+    var m3=/^\\s*The fight:\\s*(.+?)\\s*$/.exec(fg);
+    if(!m3||!m3[1]) return none;
+    var srcUrl=null;
+    if(j<n&&/^\\s*Source:\\s*\\S/.test(lines[j])){
+      var m4=/^\\s*Source:\\s*(\\S+)\\s*$/.exec(lines[j]);
+      if(m4){ srcUrl=m4[1]; j++; }
+    }
+    var card='<div class="x-pane wr-meme"><div class="wm-top">&#9733; MEME OF THE WEEK</div>'
+      +'<div class="wm-body">'
+      +'<div class="wm-head">&ldquo;'+esc(m1[1])+'&rdquo;</div>'
+      +'<div class="wm-meta">&mdash; @'+esc(m1[2])+' &middot; '+esc(m2[1])+' soldiers shared it this week</div>'
+      +'<div class="wm-fight">The fight: '+esc(m3[1])+'</div>'
+      +(srcUrl?'<div class="wm-src">Source: '+wrMemeLink(srcUrl)+'</div>':"")
+      +'</div></div>';
+    return {card:card,before:lines.slice(0,start).join("\\n"),after:lines.slice(j).join("\\n")};
+  }catch(e){ return none; }
+}
+/* MEME:END */
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  /* Private read: warreport_latest is per-callsign (IDOR fix). Route through
+     the shared claim-retry GET (2026-10-03) so pre-auth callsign holders get
+     one auth_claim attempt instead of 'missing credentials' forever. */
+  if(action==="warreport_latest"){
+    try{
+      if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
+      var _sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : "";
+      if(_sec && params && !params.auth_secret) params.auth_secret=_sec;
+    }catch(e){}
+  }
+  var fn="pfWrCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+/* QW-2 (2026-10-05, fixed Psych pre-ship): next-action row rendered after the
+   report body / email pane. Substack button label no longer promises the
+   War Report (no War Report posts exist there; the email leg is parked).
+   Zero new XP, zero new endpoints, zero new backend reads — static anchors only. */
+function nextActionRow(){
+  return '<div class="x-pane" style="text-align:center"><h4>READ IT. NOW MOVE.</h4>'
+    +'<div class="x-note">This week\\'s loop: crown the propagandist, grab a bounty, get the report in your inbox.</div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:10px">'
+    +'<a class="c-btn" href="/#pf-vote" style="text-decoration:none;display:inline-block">VOTE FOR NEXT WEEK\\'S PROPAGANDIST</a>'
+    +'<a class="c-btn" href="/create?tab=bounties" style="text-decoration:none;display:inline-block">OPEN BOUNTIES</a>'
+    +'<a class="c-btn" href="https://mtcstw.substack.com" target="_blank" rel="noopener" style="text-decoration:none;display:inline-block">FOLLOW THE FACTORY &#8594;</a>'
+    +'</div></div>';
+}
+function paint(el,j){
+  var id=ident();
+  if(!id.callsign){
+    el.innerHTML='<div class="c-gate">War Reports are written for enlisted soldiers. Claim your callsign in Enlistment Ranks, then come back for your briefing.'+
+      /* 2026-10-06 CEO directive: every claim prompt needs the recovery path. */
+      (function(){ try{ return (window.PF && window.PF.recoverLinkHTML) ? window.PF.recoverLinkHTML() : ''; }catch(e){ return ''; } })()+
+      '</div>';
+    return;
+  }
+  if(!j||!j.ok){
+    el.innerHTML='<div class="c-err">'+esc(wrErrCopy(j&&j.err))
+      +'<br><button class="c-btn" id="wrRetry">Retry connection</button></div>';
+    var rb=document.getElementById("wrRetry"); if(rb) rb.onclick=function(){ load(); };
+    return;
+  }
+  if(!j.report){
+    el.innerHTML='<div class="x-pane"><h4>No report yet, soldier</h4>'
+      +'<div class="x-note">Command drafts the War Report every Monday. It lands here '
+      +'(and in your inbox once email is wired). Check in all week so there is '
+      + 'something worth writing about.</div></div>'
+      +'<div id="wrFredNumbers"></div>'
+      +'<div id="wrFanFav"></div>'
+      +emailPaneHtml()
+      +nextActionRow();
+    wireEmail(); loadFanFav(); mountWarNumbers();
+    return;
+  }
+  var r=j.report;
+  var when="";
+  try{ var d=new Date(Number(r.created_at)); if(!isNaN(d.getTime())) when=d.toLocaleDateString(); }catch(e){}
+  wrMemeCss();
+  var meme=wrExtractMeme(r.body||"");
+  el.innerHTML='<div class="x-pane"><h4>'+esc(r.subject||"WAR REPORT")+'</h4>'
+    +'<div class="x-note">Week of '+esc(r.week_start||"")+(when?" · drafted "+esc(when):"")+'</div>'
+    +'<div class="wr-body" style="white-space:pre-wrap;font-family:monospace;font-size:13px;line-height:1.55;margin-top:8px">'
+    +esc(meme.before)+meme.card+esc(meme.after)+'</div></div>'
+    +'<div id="wrFredNumbers"></div>'
+    +'<div id="wrFanFav"></div>'
+    +emailPaneHtml()
+    +nextActionRow();
+  wireEmail(); loadFanFav(); mountWarNumbers();
+}
+/* FRED Everywhere Phase 1: "the week in numbers" slot. The module guards
+   double-mounts itself; this is a no-op when the module isn't bundled. */
+function mountWarNumbers(){
+  try{
+    var slot=document.getElementById("wrFredNumbers");
+    if(slot && window.PFWarNumbers) PFWarNumbers.mount(slot);
+  }catch(e){}
+}
+function load(){
+  var el=document.getElementById("xWarReport"); if(!el) return;
+  var id=ident();
+  if(!id.callsign){ paint(el,{ok:true,report:null}); return; }
+  api("warreport_latest",{callsign:id.callsign},function(j){ paint(el,j); });
+}
+load();
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },600000);
+})();
+</scr`+`ipt>
+</div>
+</template>`);
+})();
+
+;
+
+/* ===== fred-warreport.js ===== */
+/* games/fred-warreport.js  |  PF v1.4.3 | WAR REPORT — THE WEEK IN NUMBERS.
+   The weekly macro backdrop: max 7 series (UNRATE + Sahm, DGS10, DGS2,
+   CPIAUCNS, LES1252881600Q, MORTGAGE30US, FEDFUNDS), one honest sentence
+   each. Plus the week's curated matchup, rotated across departments.
+
+   Rotation (CEO decision 3): pickForWeek(date) -> { department, matchup }.
+   Departments: News Desk, Economy Desk, Psych, Propaganda Studio, PR,
+   Brand Consistency, Docs & Comms. The 6 vetted matchups come from the
+   design brief's suggested-matchups list. The weekly/editorial pick rotates
+   across favorable, unfavorable, and neutral reads — no more than two
+   consecutive curated matchups may frame the same directional grievance.
+
+   Binding honesty:
+   - Every figure: 4-fact citation. Stale figures render with the badge and
+     the one-line note ("carrying last week's print") — never silently
+     presented as current, never dropped without the note.
+   - Sahm: coincident-only framing within one viewport (Prohibition 5),
+     with the 2024 false-trigger note.
+   - LES1252881600Q: median, inflation-adjusted — "the typical worker's
+     paycheck" framing; no second-person "your paycheck/raise".
+   - No predictions. Email wiring stays parked (Resend).
+   Renderable module: window.PFWarNumbers.mount(container). war-report.js
+   paint() hooks a slot with a double-mount guard.
+   Read-only, zero XP. KILL: ?pf_off=war-numbers. */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF) { return; }
+  if (PF.skip('war-numbers')) { return; }
+  if (window.pfWarNumbersDone) return;
+  window.pfWarNumbersDone = true;
+
+  var ORDER = ['UNRATE', 'DGS10', 'DGS2', 'CPIAUCNS', 'LES1252881600Q', 'MORTGAGE30US', 'FEDFUNDS'];
+
+  var DEPARTMENTS = ['News Desk', 'Economy Desk', 'Psych', 'Propaganda Studio', 'PR', 'Brand Consistency', 'Docs & Comms'];
+
+  /* The 6 vetted matchups (design brief Tool 1 suggested matchups).
+     Phase 3 (2026-10-06): wages-inflation re-points to the median series
+     (LES1252881600Q) — the CES-average-based matchup is retired. */
+  var MATCHUPS = [
+    { id: 'wages-inflation', a: 'LES1252881600Q', b: 'CPIAUCNS', hook: 'Is the typical paycheck beating prices?' },
+    { id: 'mortgage-fed', a: 'MORTGAGE30US', b: 'FEDFUNDS', hook: 'Who moved first?' },
+    { id: 'jobs-unemployment', a: 'PAYEMS', b: 'UNRATE', hook: 'Hiring up, jobless up — how?' },
+    { id: 'yield-curve', a: 'DGS10', b: 'DGS2', hook: "The market's fear gauge" },
+    { id: 'inflation-gauges', a: 'CPIAUCNS', b: 'PCEPI', hook: "Headline vs the Fed's favorite" },
+    { id: 'core-headline', a: 'CPILFESL', b: 'CPIAUCNS', hook: "What's really cooking underneath" }
+  ];
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /* Week number since a fixed epoch (Mon 2026-01-05). Deterministic across
+     renders within the week. */
+  function weekIndex(date) {
+    try {
+      var d = date ? new Date(date) : new Date();
+      var epoch = Date.UTC(2026, 0, 5);
+      var dow = (d.getUTCDay() + 6) % 7;
+      var monday = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - dow);
+      return Math.max(0, Math.floor((monday - epoch) / (7 * 24 * 3600 * 1000)));
+    } catch (e) { return 0; }
+  }
+  function pickForWeek(date) {
+    var w = weekIndex(date);
+    return {
+      week: w,
+      department: DEPARTMENTS[w % DEPARTMENTS.length],
+      matchup: MATCHUPS[w % MATCHUPS.length]
+    };
+  }
+
+  var CSS = [
+    '.pf-wrnum{color:#f5ead6;font-family:Arial,sans-serif;margin:14px 0}',
+    '.pf-wrnum-kicker{font-weight:700;font-size:12px;letter-spacing:4px;color:#e8b923;margin-bottom:6px}',
+    '.pf-wrnum-title{font-weight:900;font-size:18px;letter-spacing:1px;margin:0 0 10px}',
+    '.pf-wrnum-line{border-top:1px solid #2a2a2a;padding:10px 0;min-height:44px}',
+    '.pf-wrnum-fig{font-weight:900;font-size:15px;color:#f5ead6}',
+    '.pf-wrnum-sent{font-size:13px;line-height:1.6;color:#e8dcc3;margin-top:4px}',
+    '.pf-wrnum-match{border:1px solid #3a2a00;border-radius:8px;background:#14100a;padding:12px;margin:12px 0}',
+    '.pf-wrnum-match h5{font-weight:900;font-size:12px;letter-spacing:2px;color:#f5c518;margin:0 0 6px}',
+    '.pf-wrnum-match p{font-size:13px;line-height:1.6;margin:0 0 6px}',
+    '.pf-wrnum-dept{font-size:10px;color:#8a8271;letter-spacing:1px}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-wrnum-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-wrnum-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  /* One honest sentence per series. Figures cited; stale legs carry the
+     badge + the one-line note. Past/present tense only. */
+  function sentence(F, c, sahm) {
+    var sid = c.series_id;
+    var v = c.value_label != null ? c.value_label : '—';
+    var per = F.fmtPeriod(c);
+    var cite = F.citation(c);
+    var staleNote = c.stale ? ' (carrying the last good print — ' + esc(c.stale_note || 'refresh pending') + ')' : '';
+    function wrap(sent) {
+      return '<div class="pf-wrnum-line"><div class="pf-wrnum-fig">' + esc(v) + F.revMark(c) +
+        ' <span style="font-size:11px;color:#8a8271;font-weight:400">' + esc(F.PLAIN[sid] || sid) + F.saNsa(c) + '</span> ' +
+        F.staleBadge(c) + '</div>' +
+        '<div class="pf-wrnum-sent">' + sent + staleNote + '</div>' +
+        '<div class="pf-fred-cite">' + esc(cite) + '</div></div>';
+    }
+    switch (sid) {
+      case 'UNRATE': {
+        var s = 'Unemployment is ' + v + ' (' + per + ').';
+        if (sahm && sahm.current) {
+          var spp = sahm.current.sahm_pp;
+          var sppl = (typeof spp === 'number') ? spp.toFixed(2) + 'pp' : String(spp);
+          s += ' The Sahm rule reads ' + sppl +
+            (sahm.current.triggered ? ' — TRIGGERED' : ' — not triggered') +
+            '. Coincident, not predictive: it flags conditions that look recessionary, and it can trigger without a recession, as it did in 2024.';
+        }
+        return wrap(esc(s));
+      }
+      case 'DGS10':
+        return wrap(esc('The 10-year Treasury yields ' + v + ' (' + per + ') — the market\'s long-run read on growth and inflation.'));
+      case 'DGS2':
+        return wrap(esc('The 2-year Treasury yields ' + v + ' (' + per + ') — the market\'s vote on where the Fed funds rate is headed.'));
+      case 'CPIAUCNS': {
+        var ch = c.change_pct_label || c.change_label || '';
+        return wrap(esc('Consumer prices ' + (ch ? 'are ' + ch + ' over the year' : 'sit at ' + v) + ' (' + per + ', CPI-U, NSA).'));
+      }
+      case 'LES1252881600Q': {
+        /* Gate fix (2026-10-05): the paycheck line is the MEDIAN series —
+           the CES-average-based line is retired. Median-grounded copy. */
+        var cw = c.change_pct_label || c.change_label || '';
+        var s = cw
+          ? 'Median usual weekly real earnings ran ' + cw + ' to ' + per
+          : 'Median usual weekly real earnings sit at ' + v + ' (' + per + ')';
+        return wrap(esc(s + ' — the typical worker\u2019s paycheck, inflation-adjusted (1982\u201384 dollars).'));
+      }
+      case 'MORTGAGE30US':
+        return wrap(esc('The 30-year fixed mortgage averages ' + v + ' (' + per + ') — a borrowing cost, not rent.'));
+      case 'FEDFUNDS':
+        return wrap(esc('The effective Fed funds rate is ' + v + ' (' + per + ') — the rate the Fed actually sets.'));
+      default:
+        return wrap(esc((F.PLAIN[sid] || sid) + ': ' + v + ' (' + per + ').'));
+    }
+  }
+
+  function matchupHtml(F, pick, cards) {
+    var m = pick.matchup;
+    var ca = F.cardFor({ series: cards }, m.a);
+    var cb = F.cardFor({ series: cards }, m.b);
+    var line = esc(m.hook);
+    if (ca && cb) {
+      line += ' ' + esc((F.PLAIN[m.a] || m.a) + ' vs ' + (F.PLAIN[m.b] || m.b) + '.');
+    }
+    return '<div class="pf-wrnum-match"><h5>THIS WEEK\u2019S STACK</h5><p>' + line + '</p>' +
+      '<div class="pf-wrnum-dept">CURATED BY THE ' + esc(pick.department.toUpperCase()) +
+      ' · ROTATES WEEKLY · EMAIL WIRING PARKED</div></div>';
+  }
+
+  function render(container, j, sahmJ) {
+    cssOnce();
+    var F = window.PFFred;
+    if (!F) return;
+    F.cssOnce();
+    var live = !!(j && j.fred_live);
+    var series = (j && Array.isArray(j.series)) ? j.series : [];
+    var byId = {};
+    series.forEach(function (s) { if (s && s.series_id) byId[s.series_id] = s; });
+    var cards = ORDER.map(function (id) { return byId[id]; }).filter(Boolean);
+    var pick = pickForWeek();
+    var sahm = null;
+    try {
+      if (sahmJ && sahmJ.ok) sahm = sahmJ;
+    } catch (e) {}
+
+    var inner;
+    if (!live || !cards.length) {
+      inner = '<div class="pf-fred-empty"><h4>OFFICIAL DATA CONNECTING</h4>' +
+        '<p>' + esc((j && j.note) || 'The week in numbers appears when the official feed connects.') + '</p></div>';
+    } else {
+      inner = cards.map(function (c) { return sentence(F, c, c.series_id === 'UNRATE' ? sahm : null); }).join('') +
+        matchupHtml(F, pick, cards);
+    }
+    container.innerHTML = '<div class="pf-wrnum">' +
+      '<div class="pf-wrnum-kicker">WAR REPORT</div>' +
+      '<h4 class="pf-wrnum-title">THE WEEK IN NUMBERS</h4>' + inner + '</div>';
+  }
+
+  function mount(container) {
+    if (!container) return false;
+    try {
+      if (container.querySelector && container.querySelector('.pf-wrnum')) return true; /* double-mount guard */
+    } catch (e) {}
+    var F = window.PFFred;
+    if (!F) return true;
+    F.full(function (j) {
+      F.api('fred_sahm', {}, function (sj) {
+        try { render(container, (j && j.ok) ? j : null, sj); }
+        catch (e) {}
+      });
+    });
+    return true;
+  }
+
+  try { window.PFWarNumbers = { mount: mount, pickForWeek: pickForWeek }; } catch (e) {}
+})();
+
+;
+
+/* ===== theater-sitrep.js ===== */
+/* games/theater-sitrep.js  |  PF v1.4.3 | Wave 5B (W5-8): SITUATION REPORT pane.
+   Self-mounting: waits for #xWarReport (war-report.js widget), then PREPENDS
+   the Situation Report pane above the war report body. Survives the widget's
+   10-minute re-renders via a MutationObserver that re-prepends from cached
+   data (no refetch storms). sitrep_latest is auth-gated via PF.authGetJSONP.
+   If the action 404s (backend not deployed yet) the pane renders a
+   "Command is wiring this" placeholder — never a stack trace. Zero XP for
+   viewing anything. All server strings escaped.
+   Wave A5 S-08: a "state of the economy" one-liner (GDP + UNRATE, official
+   via FRED) renders under the stats row — figures only, omitted when the
+   macro wire is dead or figures are stale.
+   KILL: ?pf_off=theater (or ?pf_off=theater-sitrep)  or
+   localStorage pf_disabled_v1='["theater"]'
+   ECONOMY LINE KILL: ?pf_off=sitrep-economy (pane stays up) */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("theater") || PF.skip("theater-sitrep")) { return; }
+  /* Wave A5 S-08: the economy one-liner has its own kill so the sitrep
+     pane itself stays up if the macro line is killed. */
+  var ECON_KILLED = false;
+  try { ECON_KILLED = PF.skip("sitrep-economy"); } catch (e) {}
+  var BACKEND = window.PF_BACKEND_URL;
+
+  function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+  function ident() {
+    var cs = "", dev = "";
+    try { cs = window.PFCallsign ? window.PFCallsign() : ""; } catch (e) {}
+    try { dev = window.PFDeviceId ? window.PFDeviceId() : ""; } catch (e) {}
+    return { callsign: cs, device: dev };
+  }
+  /* Auth-gated JSONP read, copied from games/war-report.js. */
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    try {
+      if (window.PF && PF.authGetJSONP) { PF.authGetJSONP(BACKEND, action, params || {}, cb); return; }
+    } catch (e) {}
+    var fn = "pfSrCb" + Math.floor(Math.random() * 1e9);
+    var s = document.createElement("script"), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e2) {}
+      try { if (s.parentNode) s.parentNode.removeChild(s); } catch (e3) {}
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = "?action=" + encodeURIComponent(action);
+    for (var k in params) { if (params[k] != null && params[k] !== "") q += "&" + encodeURIComponent(k) + "=" + encodeURIComponent(params[k]); }
+    q += "&callback=" + fn;
+    s.src = BACKEND + q;
+    document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, 12000);
+  }
+
+  /* Deep links for missed-front routing (mirrors games/theater.js). */
+  var SYSTEMS = [
+    { key: "route_march", name: "ROUTE MARCH", url: "/#pf-brief" },
+    { key: "ambush", name: "AMBUSH", url: "/" },
+    { key: "deaddrop", name: "DEAD DROP", url: "/" },
+    { key: "podcast", name: "PODCAST", url: "https://rss.com/podcasts/the-propaganda-factory" },
+    { key: "mystery", name: "MYSTERY", url: "/create" },
+    { key: "postproof", name: "PROOF", url: "/create" },
+    { key: "arcade", name: "ARCADE", url: "/arcade" },
+    { key: "races", name: "RACES", url: "/sick-left-radicals" },
+    { key: "siren", name: "SIREN", url: "/" }
+  ];
+  function sysInfo(key) {
+    for (var i = 0; i < SYSTEMS.length; i++) { if (SYSTEMS[i].key === key) return SYSTEMS[i]; }
+    return { key: key, name: String(key).replace(/_/g, " ").toUpperCase(), url: "/" };
+  }
+  function gradeColor(g) {
+    g = String(g || "").toUpperCase();
+    if (g === "A") return "#4caf50";
+    if (g === "B") return "#e8b64c";
+    if (g === "C") return "#ff5a00";
+    return "#c1121f";
+  }
+
+  function css() {
+    if (document.getElementById("pf-sitrep-css")) return;
+    var s = document.createElement("style");
+    s.id = "pf-sitrep-css";
+    s.textContent =
+      "#pf-sitrep{margin-bottom:14px}"
+      + "#pf-sitrep .sr-grade{display:inline-block;font-family:'Arial Black',Arial,sans-serif;font-size:30px;letter-spacing:2px;padding:6px 18px;border:3px solid;margin:6px 0 10px}"
+      + "#pf-sitrep .sr-head{font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#f5ead6;margin:0 0 10px}"
+      + "#pf-sitrep .sr-stats{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:10px}"
+      + "#pf-sitrep .sr-stat{display:flex;flex-direction:column}"
+      + "#pf-sitrep .sr-v{font-family:'Arial Black',Arial,sans-serif;font-size:22px;color:#ff5a00}"
+      + "#pf-sitrep .sr-l{font-family:Arial,sans-serif;font-size:10px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase}"
+      + "#pf-sitrep .sr-missed{font-family:Arial,sans-serif;font-size:12px;color:#c9bfa8;margin-bottom:10px;line-height:2}"
+      + "#pf-sitrep .sr-missed a{color:#ff5a00;text-decoration:none;border:1px solid #ff5a00;padding:4px 10px;margin-right:6px;letter-spacing:1px;font-size:11px;text-transform:uppercase}"
+      + "#pf-sitrep .sr-missed a:hover{background:#ff5a00;color:#0d0d0d}"
+      + "#pf-sitrep .sr-foot{font-family:Arial,sans-serif;font-size:12px;color:#777;letter-spacing:1px;line-height:1.6}"
+      + "#pf-sitrep .sr-foot b{color:#c9bfa8}"
+      + "#pf-sitrep .sr-wire{font-family:Arial,sans-serif;font-size:13px;color:#ff5a00;letter-spacing:1px;line-height:1.6}";
+    document.head.appendChild(s);
+  }
+
+  var WIRING = "Command is wiring this — check back.";
+  var SR = null, SR_ERR = false, SR_LOADING = true;
+  /* Wave A5 S-08: "state of the economy" one-liner (GDP + UNRATE) from
+     ?action=fred_context&surface=sitrep. Cached; omitted entirely when the
+     call fails or figures are stale — never a placeholder, never invented. */
+  var ECON = null, ECON_ERR = false;
+  function econLine() {
+    if (ECON_KILLED || ECON_ERR || !ECON || !ECON.ok || !ECON.fred_live) return "";
+    var cards = ECON.cards || [], gdp = null, un = null, i;
+    for (i = 0; i < cards.length; i++) {
+      if (cards[i] && cards[i].series_id === "GDP") gdp = cards[i];
+      if (cards[i] && cards[i].series_id === "UNRATE") un = cards[i];
+    }
+    if (!gdp || !un || gdp.stale || un.stale ||
+        gdp.value == null || un.value == null) return "";
+    /* Figures only: backend-computed labels, never recomputed here. */
+    var gdpBit = "GDP " + (gdp.change_pct_label || gdp.change_label || "") +
+      " (" + (gdp.period_label || gdp.period || "") + ")";
+    var unBit = "UNEMPLOYMENT " +
+      (un.value_label != null ? un.value_label : "") +
+      (un.unit === "percent" ? "%" : "") +
+      " (" + (un.period_label || un.period || "") + ")";
+    return gdpBit + " \u00b7 " + unBit;
+  }
+
+  function paneNode() {
+    var d = document.createElement("div");
+    d.className = "x-pane";
+    d.id = "pf-sitrep";
+    var id = ident();
+    var h = '<h4>&#9876; SITUATION REPORT</h4>';
+    if (!id.callsign) {
+      d.innerHTML = h + '<div class="sr-wire">Situation Reports are written for enlisted soldiers. Claim your callsign in Enlistment Ranks, then come back for your debrief.' +
+        /* 2026-10-06 CEO directive: every claim prompt needs the recovery path. */
+        (function(){ try{ return (window.PF && PF.recoverLinkHTML) ? PF.recoverLinkHTML() : ''; }catch(e){ return ''; } })() +
+        '</div>';
+      return d;
+    }
+    if (SR_LOADING && !SR_ERR) {
+      d.innerHTML = h + '<div class="sr-wire">Requesting your debrief&hellip;</div>';
+      return d;
+    }
+    if (SR_ERR || !SR || !SR.ok) {
+      d.innerHTML = h + '<div class="sr-wire">' + esc(WIRING) + '</div>';
+      return d;
+    }
+    var g = String(SR.grade || "?").toUpperCase();
+    h += '<div><span class="sr-grade" style="color:' + gradeColor(g) + ';border-color:' + gradeColor(g) + '">GRADE ' + esc(g) + '</span></div>';
+    if (SR.week_start) h += '<div class="sr-foot" style="margin-bottom:8px">Week of ' + esc(SR.week_start) + '</div>';
+    if (SR.headline) h += '<p class="sr-head">' + esc(SR.headline) + '</p>';
+    h += '<div class="sr-stats">'
+      + '<div class="sr-stat"><span class="sr-v">' + esc(SR.circuits_completed != null ? SR.circuits_completed : "—") + '</span><span class="sr-l">Circuits</span></div>'
+      + '<div class="sr-stat"><span class="sr-v">' + esc(SR.ambush_claims != null ? SR.ambush_claims : "—") + '</span><span class="sr-l">Ambush claims</span></div>'
+      + '<div class="sr-stat"><span class="sr-v">' + esc(SR.breadth != null ? SR.breadth : "—") + '</span><span class="sr-l">Front breadth</span></div>'
+      + '</div>';
+    /* Wave A5 S-08: state-of-the-economy one-liner. Omitted when the
+       macro wire is dead or figures are stale — no placeholders. */
+    var econ = econLine();
+    if (econ) h += '<div class="sr-foot" style="margin-bottom:10px"><b>STATE OF THE ECONOMY:</b> ' +
+      esc(econ) + ' <span style="color:#777">\u00b7 OFFICIAL VIA FRED</span></div>';
+    var missed = SR.missed_systems || [];
+    if (missed.length) {
+      h += '<div class="sr-missed">MISSED FRONTS — go take them:<br>';
+      for (var i = 0; i < missed.length; i++) {
+        var si = sysInfo(String(missed[i]).toLowerCase());
+        h += '<a href="' + esc(si.url) + '">' + esc(si.name) + ' &rarr;</a>';
+      }
+      h += '</div>';
+    }
+    var foot = [];
+    if (SR.ribbon_state) foot.push("<b>RIBBONS:</b> " + esc(SR.ribbon_state));
+    if (SR.streak_state) foot.push("<b>STREAK:</b> " + esc(SR.streak_state));
+    if (foot.length) h += '<div class="sr-foot">' + foot.join(" &nbsp;&middot;&nbsp; ") + '</div>';
+    d.innerHTML = h;
+    return d;
+  }
+  function paintSitrep() {
+    var host = document.getElementById("xWarReport");
+    if (!host) return;
+    var old = document.getElementById("pf-sitrep");
+    if (old && old.parentNode) old.parentNode.removeChild(old);
+    host.insertBefore(paneNode(), host.firstChild);
+  }
+  function keepAlive() {
+    var host = document.getElementById("xWarReport");
+    if (!host || host._srObs) return;
+    var guard = false;
+    var mo = new MutationObserver(function () {
+      if (guard) return;
+      try {
+        if (document.getElementById("pf-sitrep")) return;
+        guard = true;
+        host.insertBefore(paneNode(), host.firstChild);
+        guard = false;
+      } catch (e) { guard = false; }
+    });
+    try { mo.observe(host, { childList: true }); host._srObs = true; } catch (e) {}
+  }
+  function waitFor(sel, cb) {
+    var tries = 0;
+    var iv = setInterval(function () {
+      tries++;
+      var el = null;
+      try { el = document.querySelector(sel); } catch (e) {}
+      if (el) { try { clearInterval(iv); } catch (e2) {} cb(el); return; }
+      if (tries > 60) { try { clearInterval(iv); } catch (e3) {} }
+    }, 500);
+  }
+
+  /* Wave A5 S-08: the economy line rides the pane's own cadence. Fail-soft:
+     a dead macro wire hides the line; it never breaks the sitrep. */
+  function loadEcon() {
+    if (ECON_KILLED) return;
+    api("fred_context", { surface: "sitrep" }, function (j) {
+      try {
+        if (j && j.ok && j.fred_live && (j.cards || []).length) { ECON = j; ECON_ERR = false; }
+        else if (!ECON) { ECON_ERR = true; }
+        paintSitrep();
+      } catch (e) {}
+    });
+  }
+
+  css();
+  waitFor("#xWarReport", function () {
+    paintSitrep();
+    keepAlive();
+    var id = ident();
+    if (!id.callsign) return;
+    api("sitrep_latest", { callsign: id.callsign, device: id.device }, function (j) {
+      SR_LOADING = false;
+      if (j && j.ok) { SR = j; } else { SR_ERR = true; }
+      paintSitrep();
+    });
+    loadEcon();
+  });
+  /* Refresh on the widget's own cadence; skip when the tab is hidden. */
+  setInterval(function () {
+    try { if (window.PF && PF.hidden && PF.hidden()) return; } catch (e) {}
+    if (!document.getElementById("pf-sitrep")) return;
+    var id = ident();
+    if (!id.callsign) return;
+    api("sitrep_latest", { callsign: id.callsign, device: id.device }, function (j) {
+      if (j && j.ok) { SR = j; SR_ERR = false; } else if (!SR) { SR_ERR = true; }
+      paintSitrep();
+    });
+    loadEcon(); /* Wave A5 S-08: economy line refreshes on the same cadence. */
+  }, 600000);
+})();
+
+;

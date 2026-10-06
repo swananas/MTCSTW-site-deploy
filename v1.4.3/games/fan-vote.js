@@ -371,6 +371,10 @@
     if(sb) sb.onclick = function(){ shareVotePoster(vc,'post'); };
     var rb = document.getElementById('pf-vote-reset');
     if(rb) rb.onclick = resetVote;
+    /* COHESION (2026-10-06): terminal-state wiring — the vote-cast
+       confirmation hands off to the next-move engine. The engine renders one
+       in-place, dismissible card; it queues if it isn't loaded yet. */
+    try { document.dispatchEvent(new CustomEvent("pf:terminal",{detail:{slot:msg,context:"vote-cast"}})); }catch(e){}
   }
   function renderBallot(){
     list.innerHTML = '';

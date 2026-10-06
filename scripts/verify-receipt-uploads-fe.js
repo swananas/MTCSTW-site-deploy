@@ -16,7 +16,7 @@
       sent with the upload.
    4. Upload pre-checks: JPEG/PNG/WebP accept list + MIME check, 5MB cap.
    5. Rejection renderings: the five exact §5 strings; internal codes never
-      reach uploader UI (statusLabel reads REJECT_COPY[code]).
+      reach the client — uploader UI renders the server-provided rejection_note.
    6. Delete flow: exact §4 confirmation copy (title + three truths),
       single "DELETE MY PHOTO" + "KEEP IT"; receipt_delete POST.
    7. Quiet badge: verbatim tooltip; "community report" vs
@@ -131,8 +131,10 @@ console.log('== 5. rejection renderings ==');
   if (has(src, pair[0] + ':') && has(src, pair[1])) ok('reject copy: ' + pair[0]);
   else no('rejections', 'missing/inexact copy for ' + pair[0]);
 });
-if (has(src, 'REJECT_COPY[code]')) ok('uploader UI reads REJECT_COPY[code] (codes never leak)');
-else no('rejections', 'statusLabel does not key off REJECT_COPY');
+if (has(src, 'rejection_note ||')) ok('uploader UI renders server rejection_note (codes never reach client)');
+else no('rejections', 'uploader UI does not render rejection_note');
+if (src.indexOf('r.reject_reason') < 0 && src.indexOf('found.reject_reason') < 0) ok('uploader UI never reads reject_reason');
+else no('rejections', 'uploader UI still reads reject_reason');
 if (has(src, 'REJECT_LABELS')) ok('reviewer reason select uses human labels');
 else no('rejections', 'reviewer labels missing');
 

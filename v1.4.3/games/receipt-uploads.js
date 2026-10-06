@@ -596,9 +596,8 @@
         }
         if (st === 'verified') box.innerHTML = verifiedBadge();
         else if (st === 'rejected') {
-          var code = String(found.reject_reason || '');
           box.innerHTML = '<div style="font-size:13px;color:#e8a0a0;">' +
-            esc(REJECT_COPY[code] || 'We couldn\u2019t confirm this receipt. You can re-upload a clearer photo.') + '</div>';
+            esc(found.rejection_note || 'We couldn\u2019t confirm this receipt. You can re-upload a clearer photo.') + '</div>';
         } else if (st === 'pii_quarantined') {
           box.innerHTML = '<div style="font-size:13px;color:#e8a0a0;">' + esc(PII_COPY) + '</div>';
         }
@@ -632,9 +631,8 @@
     var st = String(r.status || 'pending');
     if (st === 'verified') return verifiedBadge();
     if (st === 'rejected') {
-      var code = String(r.reject_reason || '');
       return '<div style="font-size:13px;color:#e8a0a0;margin-top:6px;">' +
-        esc(REJECT_COPY[code] || 'We couldn\u2019t confirm this receipt. You can re-upload a clearer photo.') + '</div>' +
+        esc(r.rejection_note || 'We couldn\u2019t confirm this receipt. You can re-upload a clearer photo.') + '</div>' +
         '<div style="' + SMALL + 'margin-top:4px;">Your price report still counts as a community report.</div>';
     }
     if (st === 'pii_quarantined') {

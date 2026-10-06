@@ -43,7 +43,11 @@
       '<div style="font-size:.78rem;color:#b8ab8e;margin:.4rem 0 .8rem;">' + esc(SUB) + '</div>' + ctx +
       '<button data-pf-claim-cs="1" style="background:#c1121f;color:#fff;border:none;' +
       'font-family:inherit;font-weight:900;letter-spacing:.12em;font-size:.85rem;' +
-      'padding:.7rem 1.8rem;cursor:pointer;">CLAIM A CALLSIGN</button></div>';
+      'padding:.7rem 1.8rem;cursor:pointer;">CLAIM A CALLSIGN</button>' +
+      /* 2026-10-06 CEO directive: every claim prompt needs the recovery path.
+         data-pf-recover-cs is owned by core/29-callsign-recovery.js. */
+      (function(){ try{ return (window.PF && PF.recoverLinkHTML) ? PF.recoverLinkHTML() : ''; }catch(e){ return ''; } })() +
+      '</div>';
   };
 
   /* Mount into el (selector or node) when no callsign; no-op otherwise.

@@ -47,6 +47,8 @@
     <div id="oPickFight"></div>
     <br><button class="o-claimbtn" id="oClaimBtn">Claim</button>
     <div class="o-err" id="oClaimErr"></div>
+    <!-- 2026-10-06 CEO directive: every claim prompt needs the recovery path (data-pf-recover-cs owned by core/29-callsign-recovery.js). -->
+    <div style="margin-top:.6rem;"><button type="button" data-pf-recover-cs="1" style="background:none;border:none;color:#d4af37;font-size:12px;letter-spacing:.08em;text-decoration:underline;cursor:pointer;font-family:inherit;padding:.5rem;min-height:44px;">Already have one? Recover it &rarr;</button></div>
   </div>
   <div class="o-who" id="oWho"></div>
 </div>

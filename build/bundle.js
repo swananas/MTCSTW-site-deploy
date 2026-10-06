@@ -51,6 +51,11 @@ var SECTIONS = {
        settings widget. Step two of onboarding personalization, right after
        the state picker. No XP, read-only. */
     'pick-fight.js',
+    /* 2026-10-05 (guided onboarding): 3-step first-run overlay — pick fight,
+       claim callsign, first mission. Lives in the critical path so the entry
+       chip + 30s auto-launch work for callsign-less non-scrollers. Reuses
+       pick-fight.js APIs (must stay after it) and PF.requireCallsign. */
+    'guided-onboarding.js',
     /* P1#6 (2026-10-05): hq-nudge promoted to START HERE (homepage audit).
        Static CTA card — must stage with the critical path so it mounts in
        ORDER position right after daily-orders, not late at section end. */
@@ -150,6 +155,10 @@ var SECTIONS = {
     'infighting.js'
   ],
   'bundle-cells-h': [
+    /* CELL IDENTITY (2026-10-05): structured cell profiles — guided founding
+       wizard, quality filters, identity kit. Before its consumers
+       (cells.js stages pf-ov-cells with the wizard). Kill: ?pf_off=cell-identity. */
+    'cell-identity.js',
     /* /cells — cells.js stages pf-ov-cells for the main Cells widget.
        cell-first-hour.js (CELLS wave G1, 2026-10-04): the guided first hour —
        extends R19's post-claim interstitial; mounts the founder checklist /
@@ -199,6 +208,11 @@ var SECTIONS = {
        Hall of Proof section on the homepage). */
   ],
   'bundle-cells': [
+    /* CELL IDENTITY (2026-10-05): structured cell profiles — guided founding
+       wizard, discovery-on-qualities, identity kit, founder backfill.
+       Before its consumers (cell-hq.js, cells.js mounts).
+       Kill: ?pf_off=cell-identity. Zero XP on every surface here. */
+    'cell-identity.js',
     /* /cells (+ Creator HQ) — the cell lifecycle. */
     'cell-hq.js',
     /* Engagement build D item #7 (2026-10-05): new-cell starter kits —
@@ -320,7 +334,12 @@ var SECTIONS = {
     /* 2026-10-05 (fe/events-move): Town Hall Tracker moved from Political HQ
        (was fe/townhall-tracker's bundle-hq slot) to /events. Mounted by
        pages/page-mount.js PAGE_ORDERS['pf-events']; kill ?pf_off=townhall. */
-    'townhall.js'
+    'townhall.js',
+    /* 2026-10-05 (fe/events-platform): new events-platform silo — listings +
+       RSVP, #e=<id> detail, field-report wall, photo check-ins. Zero XP.
+       Mounted by pages/page-mount.js PAGE_ORDERS['pf-events'];
+       kill ?pf_off=events. */
+    'events.js'
   ],
   /* 2026-10-05 (fe/events-move): /events LAZY map chunk. The protest/event
      map (civic-events.js — OSM link-outs, NO tile-map SDK, hard ban honored)
@@ -333,6 +352,12 @@ var SECTIONS = {
     /* /events — protest/event map (moved from Political HQ, fe/civic-events).
        Kill ?pf_off=civicevents — honored before the anchor is even injected. */
     'civic-events.js'
+  ],
+  /* 2026-10-05 (fe/liveops): /war-room — live ops pages (debate nights,
+     election night, breaking events). One reusable template per event.
+     Kill ?pf_off=liveops. Never fetched on any other page. */
+  'bundle-warroom': [
+    'liveops.js'
   ],
   'bundle-warreport': [
     /* /war-report — the weekly digest. */

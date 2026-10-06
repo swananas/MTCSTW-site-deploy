@@ -413,7 +413,18 @@ function render(){
 }
 captureRef();
 load();
-setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },120000);
+/* Cohesion §1-D1 (2026-10-05): activation-status refresh 120s → 30s, plus an
+   on-visibility refresh — when eligibility flips, the ACTIVATE button reads
+   READY within seconds. The 3-ledger-action anti-farm gate is untouched;
+   this is display latency only. */
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },30000);
+try{
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState !== 'visible') return;
+    try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){}
+    load();
+  });
+}catch(e){}
 })();
 </scr`+`ipt>
 </div>

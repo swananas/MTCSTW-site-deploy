@@ -75,21 +75,38 @@ function paint(j){
     if(ci0) ci0.innerHTML="Network pulse unreachable \u2014 retrying";
     return;
   }
+  /* Cohesion §4 (2026-10-05): every counter carries its vintage label
+     (server-supplied j.vintages, degraded if stale). Zero states are honest
+     and invitational — never hidden, never faked. */
+  function vline(key, fb){
+    var v='';
+    try{
+      var raw=(j&&j.vintages&&j.vintages[key])||fb||'';
+      v=(window.PF&&PF.degradedVintage)?PF.degradedVintage(raw,j&&j.as_of):raw;
+    }catch(e){ v=fb||''; }
+    return v?" <span style='opacity:.7;font-size:.85em'>("+v+")</span>":"";
+  }
   var ci=$("pf-sp-checkins"), xp=$("pf-sp-xp"), cells=$("pf-sp-cells"), on=$("pf-sp-online");
   var n=Number(j.checkins_today)||0;
-  /* S3 (2026-10-05): zero check-ins — never advertise an empty room.
-     Hide the check-ins line; the bar leads with the static 8M+ REACH stat
-     plus XP earned / active cells when they're live. Nonzero behavior
-     is unchanged (display restored in case a prior tick hid the line). */
+  /* §4: the check-ins line is never hidden at 0 — an honest, invitational
+     zero state replaces the old hide-the-line behavior. */
+  ci.style.display="";
   if(n>0){
-    ci.style.display="";
-    ci.innerHTML="<b>"+fmt(n)+"</b> soldier"+(n===1?"":"s")+" checked in today";
+    ci.innerHTML="<b>"+fmt(n)+"</b> soldier"+(n===1?"":"s")+" checked in today"+vline('checkins_today','today');
   } else {
-    ci.style.display="none";
+    ci.innerHTML="No check-ins yet today \u2014 start the wave"+vline('checkins_today','today');
   }
-  if(j.xp_earned_today>0){ xp.style.display=""; xp.innerHTML="\u26A1 <b>"+fmt(j.xp_earned_today)+"</b> XP earned"; }
-  if(j.active_cells>0){ cells.style.display=""; cells.innerHTML="\uD83C\uDFE0 <b>"+fmt(j.active_cells)+"</b> active cells"; }
-  if(j.online_now>0){ on.style.display=""; on.innerHTML="<b>"+fmt(j.online_now)+"</b> online now"; }
+  /* §4: zero states are honest and invitational — the counters are never
+     hidden at 0 (replaces the pre-cohesion hide-the-line behavior). */
+  xp.style.display="";
+  if(j.xp_earned_today>0){ xp.innerHTML="\u26A1 <b>"+fmt(j.xp_earned_today)+"</b> XP earned today"+vline('xp_earned_today','today'); }
+  else { xp.innerHTML="\u26A1 No XP logged yet today \u2014 do a mission"+vline('xp_earned_today','today'); }
+  cells.style.display="";
+  if(j.active_cells>0){ cells.innerHTML="\uD83C\uDFE0 <b>"+fmt(j.active_cells)+"</b> active cells"+vline('active_cells','trailing 7 days'); }
+  else { cells.innerHTML="\uD83C\uDFE0 No active cells this week \u2014 muster one"+vline('active_cells','trailing 7 days'); }
+  on.style.display="";
+  if(j.online_now>0){ on.innerHTML="<b>"+fmt(j.online_now)+"</b> online now"+vline('online_now','last 15 minutes'); }
+  else { on.innerHTML="No comrades online right now \u2014 check back soon"+vline('online_now','last 15 minutes'); }
   /* S2 (2026-10-04) — Proof Wall strip: approved post-proof posts.
      Composes with the pulse bar; extends it, doesn't replace it. */
   var pwel=$("pf-sp-proofwall");

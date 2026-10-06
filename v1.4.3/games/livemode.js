@@ -18,7 +18,7 @@
    READ-ONLY BY CONSTRUCTION: every rail is a JSONP GET. This file issues
    zero writes and zero XP — no gain keys, no XP events, no storage writes.
    Pick / position / check-in affordances are plain deep LINKS (CALL IT. ->
-   /call-it, the board -> /arcade, cells -> /cells): the writes live in
+   /arcade#pf-forecasts, the board -> /arcade, cells -> /cells): the writes live in
    their home silos, never here.
    POLLING: one 60s master refresh across all slots; consecutive all-slot
    failures back off 60 -> 120 -> 240 -> 480s (cap), reset on any success.
@@ -295,7 +295,7 @@
     }
     return '<div class="lm-hero"><div class="lm-kicker">' + kicker + '</div>' +
       '<div class="lm-mission">' + mission + '</div>' + cd +
-      '<a class="lm-cta" href="/call-it">MAKE THE CALL &rarr;</a></div>';
+      '<a class="lm-cta" href="/arcade#pf-forecasts">MAKE THE CALL &rarr;</a></div>';
   }
   function shellHTML(cfg) {
     return heroHTML(cfg) +
@@ -348,7 +348,7 @@
       return h;
     }).join('');
   }
-  /* --- open calls: read-only CALL IT. questions (picks live in /call-it) --- */
+  /* --- open calls: read-only CALL IT. questions (picks live in /arcade#pf-forecasts) --- */
   function callsHTML(qlist, ok) {
     if (!ok || !qlist.length) return quietHTML('No calls on the board right now. The next board is already loading.');
     var open = qlist.filter(function (q) {
@@ -365,7 +365,7 @@
       var h = '<div class="lm-head">' + esc(q.title || q.question || 'Untitled question') + '</div>';
       h += '<div class="lm-data">' + esc(lockText(la)) +
         (cat ? ' &middot; ' + esc(cat) : '') + '</div>';
-      h += '<a class="lm-act" href="/call-it">MAKE THE CALL &rarr;</a>';
+      h += '<a class="lm-act" href="/arcade#pf-forecasts">MAKE THE CALL &rarr;</a>';
       return h;
     }).join('');
   }

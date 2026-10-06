@@ -484,6 +484,33 @@
     return '<span style="' + SMALL + '">' + (n > 0 ? n + ' contributors' : 'no contributors yet') +
       ' · trailing 30 days</span>';
   }
+  /* UX NEWS COMBOS (2026-10-06, fe/ux-news-combos): CPI SPIKE -> TEMPLATE
+     SUGGESTION. A week-over-week increase strictly above
+     PF.newsCombos.SPIKE_THRESHOLD_PCT (5%, documented in
+     games/ux-news-combos.js) renders a one-tap action into the Create
+     workshop. Fail-open: engine absent/killed or no spike -> no button,
+     never a broken one. Buttons are wired by a delegated listener in
+     mountBoard(). */
+  function spikeBtnHTML(r, range) {
+    try {
+      if (!window.PF || !PF.newsCombos) return '';
+      if (!PF.newsCombos.enabled('ux-combos-cpi')) return '';
+      try { if (PF.skip('poster-forge')) return ''; } catch (e) {}
+      var d = Number(r.delta_pct);
+      if (!(d > PF.newsCombos.SPIKE_THRESHOLD_PCT)) return '';
+      if (!r.enough_data || r.median_cents == null) return '';
+      var item = itemById(r.item_id);
+      return '<button type="button" class="pf-combo-btn" data-pf-cpi-spike="1" ' +
+        'data-pf-cpi-item="' + esc(item.name) + '" ' +
+        'data-pf-cpi-fig="' + esc(money(r.median_cents)) + '" ' +
+        'data-pf-cpi-delta="' + esc(String(d)) + '" ' +
+        'data-pf-cpi-range="' + esc(range) + '" ' +
+        'style="display:inline-block;margin-top:10px;background:#c1121f;color:#fff;' +
+        'border:2px solid #000;border-radius:3px;padding:9px 16px;' +
+        'font:bold 13px Arial,sans-serif;letter-spacing:2px;cursor:pointer;' +
+        'text-transform:uppercase;min-height:44px;">MAKE A POSTER ABOUT THIS \u2192</button>';
+    } catch (e) { return ''; }
+  }
   function cardHTML(r, range) {
     var item = itemById(r.item_id);
     /* Receipt-verification share (honesty rule §7.3): when the backend
@@ -522,6 +549,7 @@
       (r.trimmed_mean_cents != null ? ' · trimmed avg ' + money(r.trimmed_mean_cents) : '') + '</div>' +
       '<div style="margin-top:6px;">' + crowdLine(r) + '</div>' +
       '<div style="margin-top:8px;font-size:14px;">' + deltaHTML(r) + '</div>' +
+      spikeBtnHTML(r, range) +
       honest + '</div>';
   }
 
@@ -529,6 +557,28 @@
     if (PF.skip('inflation-board')) return;
     var mount = document.getElementById('pf-inflation-board');
     if (!mount) return; /* silent no-op */
+
+    /* UX NEWS COMBOS: one delegated listener wires every spike button in
+       every board render (area/national/compare views all re-render into
+       this mount). The data attributes on the button carry the payload;
+       the combos engine stages the forge stash and deep-links to /create. */
+    var spikeWired = false;
+    function wireSpikeButtons() {
+      if (spikeWired) return; spikeWired = true;
+      mount.addEventListener('click', function (e) {
+        try {
+          var el = e.target && e.target.closest ? e.target.closest('[data-pf-cpi-spike]') : null;
+          if (!el || !window.PF || !PF.newsCombos) return;
+          PF.newsCombos.cpiPoster(
+            el.getAttribute('data-pf-cpi-item'),
+            el.getAttribute('data-pf-cpi-fig'),
+            el.getAttribute('data-pf-cpi-delta'),
+            el.getAttribute('data-pf-cpi-range')
+          );
+        } catch (err) {}
+      });
+    }
+    wireSpikeButtons();
 
     var area = mount.getAttribute('data-pf-inf-area') || lastArea();
     var view = 'area'; /* area | national | compare */

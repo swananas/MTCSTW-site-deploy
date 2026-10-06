@@ -238,6 +238,11 @@ var SECTIONS = {
     'war-card.js',
     /* W5-12 Frontlines: the weekly territory war map. */
     'war-map.js',
+    /* CELLS 2.0 (2026-10-05): territory map + competition seasons. Mount on
+       /cells next to the war map (page-mount.js). Kill switches:
+       ?pf_off=cell-territory-map / ?pf_off=cell-comp-seasons. Zero XP. */
+    'cell-territory-map.js',
+    'cell-comp-seasons.js',
     /* REDISTRIBUTION LAYER Phase B (2026-10-05): Supply Line Raid — the
        bespoke cell home (silo key 'raid'). Mounted on pf-cells-page via
        page-mount.js; cell-scoped rounds (cell_id from the loaded cell

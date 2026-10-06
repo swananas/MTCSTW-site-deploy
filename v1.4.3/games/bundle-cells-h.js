@@ -1059,7 +1059,7 @@ function renderLobby(el){
     err.textContent="";
     var btn=document.getElementById("cJoin");
     busyBtn(btn,true);
-    api("cell_join",{callsign:id.callsign,device:id.device,code:code,ref:ref},function(j){
+    api("cell_join",{callsign:id.callsign,device:id.device,code:code,ref:ref,by:inviteBy()},function(j){
       busyBtn(btn,false);
       if(!j||!j.ok){ err.textContent=cellWriteErr(j&&j.err); return; }
       toast("Welcome to "+j.cell.name+". Check in daily.");
@@ -1162,7 +1162,7 @@ function renderLobby(el){
         var id2=ident();
         err.textContent="";
         busyBtn(btn,true);
-        api("cell_join",{callsign:id2.callsign,device:id2.device,code:code},function(j2){
+        api("cell_join",{callsign:id2.callsign,device:id2.device,code:code,by:inviteBy()},function(j2){
           busyBtn(btn,false);
           if(!j2||!j2.ok){ err.textContent=cellWriteErr(j2&&j2.err); return; }
           toast("Welcome to "+j2.cell.name+". Check in daily.");
@@ -1804,7 +1804,7 @@ function renderCell(el,s){
   if(lj) lj.onclick=function(){
     var code=document.getElementById("cLinkCode").value, err=document.getElementById("cLinkErr");
     errEl.textContent=""; err.textContent="";
-    api("cell_join",{callsign:id.callsign,device:id.device,code:code},function(j){
+    api("cell_join",{callsign:id.callsign,device:id.device,code:code,by:inviteBy()},function(j){
       if(!j||!j.ok){ err.textContent=cellWriteErr(j,"Network error."); return; }
       toast("Wired into "+j.cell.name+". The chain grows.");
       emitCellEv("pf-cell-joined", j.cell);
@@ -1860,10 +1860,56 @@ function acceptCellDeepLink(){
     if(++n<25) setTimeout(fill,400);
   })();
 }
+/* CELLS 2.0 (2026-10-05): ?invite=<cell_code>&by=<callsign> deep links.
+   The invite code prefills the join form; the by param is the recruiter's
+   callsign and is passed through to every cell_join for funnel attribution
+   (the server validates it silently — it must be a current member of the
+   target cell).
+   A fail-silent recruit_click ping fires once per pageview whenever the by
+   param is present; clicks are directional only, joins are the source of
+   truth. */
+var _pfInviteBy="", _pfInvitePinged=false;
+function inviteBy(){ return _pfInviteBy||""; }
+function pingRecruitClick(){
+  if(_pfInvitePinged||!_pfInviteBy) return;
+  _pfInvitePinged=true;
+  try{
+    var cm=null;
+    try{ cm=String(location.search||"").match(/[?&]invite=([A-Za-z0-9_-]{1,12})/); }catch(e){}
+    api("recruit_click",{invite:cm?cm[1]:"",by:_pfInviteBy},function(){});
+  }catch(e2){}
+}
+var _pfInviteDl=false;
+function acceptInviteDeepLink(){
+  if(_pfInviteDl) return;
+  var m=null, mb=null;
+  try{ m=String(location.search||"").match(/[?&]invite=([A-Za-z0-9_-]{1,12})/); }catch(e){}
+  try{ mb=String(location.search||"").match(/[?&]by=([A-Za-z0-9_-]{1,32})/); }catch(e2){}
+  if(mb&&mb[1]) _pfInviteBy=mb[1];
+  if(!m||!m[1]){ pingRecruitClick(); _pfInviteDl=true; return; }
+  _pfInviteDl=true;
+  var code=m[1], n=0;
+  (function fill(){
+    var cI=null,cR=null;
+    try{ cI=document.getElementById("cCode"); cR=document.getElementById("cRef"); }catch(e3){}
+    if(cI){
+      try{ cI.value=code; }catch(e4){}
+      try{ if(cR&&!cR.value&&_pfInviteBy) cR.value=String(_pfInviteBy).toUpperCase(); }catch(e5){}
+      try{ cI.scrollIntoView({behavior:"smooth",block:"center"}); }catch(e6){}
+      try{ toast("Invite accepted \\u2014 tap JOIN to wire into the cell."); }catch(e7){}
+      pingRecruitClick();
+      return;
+    }
+    /* The claim gate renders first for no-callsign arrivals — retry until
+       the join form exists (post-claim render included). */
+    if(++n<25) setTimeout(fill,400); else pingRecruitClick();
+  })();
+}
 refresh();
 loadBoard();
 loadMuster();
 acceptCellDeepLink();
+acceptInviteDeepLink();
 if(!window._pfCellsTick){ window._pfCellsTick=setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} loadBoard(); loadMuster(); },5*60*1000); }
 })();
 </script>

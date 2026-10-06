@@ -73,6 +73,11 @@
         ['contracts', 'pf-ov-contracts'],
         /* W5-12 Frontlines: weekly territory war map (kill: war-map). */
         ['war-map', 'pf-ov-warmap'],
+        /* CELLS 2.0 (2026-10-05): territory map (kill: cell-territory-map)
+           + competition seasons (kill: cell-comp-seasons). Mount next to the
+           war map on /cells. */
+        ['cell-territory-map', 'pf-ov-territory-map'],
+        ['cell-comp-seasons', 'pf-ov-cellcomp-seasons'],
         /* REDISTRIBUTION LAYER Phase B (2026-10-05): Supply Line Raid —
            bespoke cell home (silo key 'raid'). Cell-scoped rounds; cell_id
            comes from the cell context the cells stack already loaded

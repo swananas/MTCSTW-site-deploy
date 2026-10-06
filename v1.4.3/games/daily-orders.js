@@ -641,17 +641,35 @@ function raidTick(){
     el.textContent="RAID ENDS IN "+h+"H "+(m<10?"0":"")+m+"M "+(ss<10?"0":"")+ss+"S";
   }catch(e){}
 }
-/* RAID TURNOUT: site-wide count of today's reports (?action=raid_turnout, cached 1h). */
+/* RAID TURNOUT: site-wide count of today's reports (?action=raid_turnout, cached 1h).
+   Cohesion §4 (2026-10-05): honest zero states — "No raids reported today —
+   start one." Never hide the counter when it's 0. Vintage label mandatory. */
 function paintRaidTurnout(){
   var el=document.getElementById("oRaidTurnout"); if(!el) return;
-  var show=function(n){ if(n>0) el.innerHTML="&#9876; <b style='color:#f5f0e1;'>"+Number(n).toLocaleString()+"</b> raiders hit today\u2019s target \u2014 join them"; };
+  var show=function(n,d){
+    var vintage='';
+    try{ if(window.PF&&PF.degradedVintage) vintage=PF.degradedVintage((d&&d.vintage)||'today',d&&d.as_of); }catch(e){}
+    var vtag=vintage?" <span style='opacity:.7;font-size:.8em;'>("+vintage+")</span>":"";
+    var line;
+    try{
+      if(window.PF&&PF.honestZero){
+        line=PF.honestZero(n,
+          "&#9876; <b style='color:#f5f0e1;'>"+Number(n).toLocaleString()+"</b> raiders hit today\u2019s target \u2014 join them"+vtag,
+          "&#9876; No raids reported today \u2014 start one."+vtag);
+      }else{ throw 0; }
+    }catch(e){
+      line=n>0?("&#9876; <b style='color:#f5f0e1;'>"+Number(n).toLocaleString()+"</b> raiders hit today\u2019s target \u2014 join them"+vtag)
+              :("&#9876; No raids reported today \u2014 start one."+vtag);
+    }
+    el.innerHTML=line;
+  };
   try{ var c=JSON.parse(localStorage.getItem("pf_raid_turnout_v1")||"null");
-    if(c&&Date.now()-c.at<3600000){ show(c.d); return; } }catch(e){}
+    if(c&&Date.now()-c.at<3600000){ show(c.d,c); return; } }catch(e){}
   var RAID_API=beUrl();
   var name="pfRT"+Date.now(), fired=false;
   window[name]=function(d){ if(fired) return; fired=true; try{ delete window[name]; }catch(e){}
     var s=document.getElementById(name); if(s&&s.parentNode) s.parentNode.removeChild(s);
-    if(d&&typeof d.raiders==="number"){ try{ localStorage.setItem("pf_raid_turnout_v1",JSON.stringify({at:Date.now(),d:d.raiders})); }catch(e){} show(d.raiders); } };
+    if(d&&typeof d.raiders==="number"){ try{ localStorage.setItem("pf_raid_turnout_v1",JSON.stringify({at:Date.now(),d:d.raiders,vintage:d.vintage,as_of:d.as_of})); }catch(e){} show(d.raiders,d); } };
   try{ var scr=document.createElement("script"); scr.id=name; scr.src=RAID_API+"?callback="+name+"&action=raid_turnout";
     scr.onerror=function(){ if(!fired){ fired=true; } }; (document.head||document.documentElement).appendChild(scr); }catch(e){}
   setTimeout(function(){ if(!fired){ fired=true; try{ delete window[name]; }catch(e){} } },10000);

@@ -1096,6 +1096,9 @@ function paint(w){
     '<div style="font-size:11px;color:#666;margin-top:10px;">Winner takes a 24h +0.2 HYPE bump on their displayed score (never above 9.8). Boost only \u2014 no attack moves, this is family.</div>'+
     '</div>';
   bind();
+  /* Cohesion §3 (2026-10-05): identity surfacing — invitational claim CTA
+     when no callsign. Non-blocking; the pit still renders and spectates. */
+  try{ if(window.PF&&PF.mountClaimCTA) PF.mountClaimCTA(root,'to fire in the infighting pit'); }catch(e){}
 }
 function bind(){
   var tg=root.querySelector('[data-if-celltoggle]');
@@ -3252,7 +3255,18 @@ function render(){
 }
 captureRef();
 load();
-setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },120000);
+/* Cohesion §1-D1 (2026-10-05): activation-status refresh 120s → 30s, plus an
+   on-visibility refresh — when eligibility flips, the ACTIVATE button reads
+   READY within seconds. The 3-ledger-action anti-farm gate is untouched;
+   this is display latency only. */
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },30000);
+try{
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState !== 'visible') return;
+    try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){}
+    load();
+  });
+}catch(e){}
 })();
 </scr`+`ipt>
 </div>

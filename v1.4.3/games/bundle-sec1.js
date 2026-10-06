@@ -2310,17 +2310,35 @@ function raidTick(){
     el.textContent="RAID ENDS IN "+h+"H "+(m<10?"0":"")+m+"M "+(ss<10?"0":"")+ss+"S";
   }catch(e){}
 }
-/* RAID TURNOUT: site-wide count of today's reports (?action=raid_turnout, cached 1h). */
+/* RAID TURNOUT: site-wide count of today's reports (?action=raid_turnout, cached 1h).
+   Cohesion §4 (2026-10-05): honest zero states — "No raids reported today —
+   start one." Never hide the counter when it's 0. Vintage label mandatory. */
 function paintRaidTurnout(){
   var el=document.getElementById("oRaidTurnout"); if(!el) return;
-  var show=function(n){ if(n>0) el.innerHTML="&#9876; <b style='color:#f5f0e1;'>"+Number(n).toLocaleString()+"</b> raiders hit today\u2019s target \u2014 join them"; };
+  var show=function(n,d){
+    var vintage='';
+    try{ if(window.PF&&PF.degradedVintage) vintage=PF.degradedVintage((d&&d.vintage)||'today',d&&d.as_of); }catch(e){}
+    var vtag=vintage?" <span style='opacity:.7;font-size:.8em;'>("+vintage+")</span>":"";
+    var line;
+    try{
+      if(window.PF&&PF.honestZero){
+        line=PF.honestZero(n,
+          "&#9876; <b style='color:#f5f0e1;'>"+Number(n).toLocaleString()+"</b> raiders hit today\u2019s target \u2014 join them"+vtag,
+          "&#9876; No raids reported today \u2014 start one."+vtag);
+      }else{ throw 0; }
+    }catch(e){
+      line=n>0?("&#9876; <b style='color:#f5f0e1;'>"+Number(n).toLocaleString()+"</b> raiders hit today\u2019s target \u2014 join them"+vtag)
+              :("&#9876; No raids reported today \u2014 start one."+vtag);
+    }
+    el.innerHTML=line;
+  };
   try{ var c=JSON.parse(localStorage.getItem("pf_raid_turnout_v1")||"null");
-    if(c&&Date.now()-c.at<3600000){ show(c.d); return; } }catch(e){}
+    if(c&&Date.now()-c.at<3600000){ show(c.d,c); return; } }catch(e){}
   var RAID_API=beUrl();
   var name="pfRT"+Date.now(), fired=false;
   window[name]=function(d){ if(fired) return; fired=true; try{ delete window[name]; }catch(e){}
     var s=document.getElementById(name); if(s&&s.parentNode) s.parentNode.removeChild(s);
-    if(d&&typeof d.raiders==="number"){ try{ localStorage.setItem("pf_raid_turnout_v1",JSON.stringify({at:Date.now(),d:d.raiders})); }catch(e){} show(d.raiders); } };
+    if(d&&typeof d.raiders==="number"){ try{ localStorage.setItem("pf_raid_turnout_v1",JSON.stringify({at:Date.now(),d:d.raiders,vintage:d.vintage,as_of:d.as_of})); }catch(e){} show(d.raiders,d); } };
   try{ var scr=document.createElement("script"); scr.id=name; scr.src=RAID_API+"?callback="+name+"&action=raid_turnout";
     scr.onerror=function(){ if(!fired){ fired=true; } }; (document.head||document.documentElement).appendChild(scr); }catch(e){}
   setTimeout(function(){ if(!fired){ fired=true; try{ delete window[name]; }catch(e){} } },10000);
@@ -6015,21 +6033,38 @@ function paint(j){
     if(ci0) ci0.innerHTML="Network pulse unreachable \u2014 retrying";
     return;
   }
+  /* Cohesion §4 (2026-10-05): every counter carries its vintage label
+     (server-supplied j.vintages, degraded if stale). Zero states are honest
+     and invitational — never hidden, never faked. */
+  function vline(key, fb){
+    var v='';
+    try{
+      var raw=(j&&j.vintages&&j.vintages[key])||fb||'';
+      v=(window.PF&&PF.degradedVintage)?PF.degradedVintage(raw,j&&j.as_of):raw;
+    }catch(e){ v=fb||''; }
+    return v?" <span style='opacity:.7;font-size:.85em'>("+v+")</span>":"";
+  }
   var ci=$("pf-sp-checkins"), xp=$("pf-sp-xp"), cells=$("pf-sp-cells"), on=$("pf-sp-online");
   var n=Number(j.checkins_today)||0;
-  /* S3 (2026-10-05): zero check-ins — never advertise an empty room.
-     Hide the check-ins line; the bar leads with the static 8M+ REACH stat
-     plus XP earned / active cells when they're live. Nonzero behavior
-     is unchanged (display restored in case a prior tick hid the line). */
+  /* §4: the check-ins line is never hidden at 0 — an honest, invitational
+     zero state replaces the old hide-the-line behavior. */
+  ci.style.display="";
   if(n>0){
-    ci.style.display="";
-    ci.innerHTML="<b>"+fmt(n)+"</b> soldier"+(n===1?"":"s")+" checked in today";
+    ci.innerHTML="<b>"+fmt(n)+"</b> soldier"+(n===1?"":"s")+" checked in today"+vline('checkins_today','today');
   } else {
-    ci.style.display="none";
+    ci.innerHTML="No check-ins yet today \u2014 start the wave"+vline('checkins_today','today');
   }
-  if(j.xp_earned_today>0){ xp.style.display=""; xp.innerHTML="\u26A1 <b>"+fmt(j.xp_earned_today)+"</b> XP earned"; }
-  if(j.active_cells>0){ cells.style.display=""; cells.innerHTML="\uD83C\uDFE0 <b>"+fmt(j.active_cells)+"</b> active cells"; }
-  if(j.online_now>0){ on.style.display=""; on.innerHTML="<b>"+fmt(j.online_now)+"</b> online now"; }
+  /* §4: zero states are honest and invitational — the counters are never
+     hidden at 0 (replaces the pre-cohesion hide-the-line behavior). */
+  xp.style.display="";
+  if(j.xp_earned_today>0){ xp.innerHTML="\u26A1 <b>"+fmt(j.xp_earned_today)+"</b> XP earned today"+vline('xp_earned_today','today'); }
+  else { xp.innerHTML="\u26A1 No XP logged yet today \u2014 do a mission"+vline('xp_earned_today','today'); }
+  cells.style.display="";
+  if(j.active_cells>0){ cells.innerHTML="\uD83C\uDFE0 <b>"+fmt(j.active_cells)+"</b> active cells"+vline('active_cells','trailing 7 days'); }
+  else { cells.innerHTML="\uD83C\uDFE0 No active cells this week \u2014 muster one"+vline('active_cells','trailing 7 days'); }
+  on.style.display="";
+  if(j.online_now>0){ on.innerHTML="<b>"+fmt(j.online_now)+"</b> online now"+vline('online_now','last 15 minutes'); }
+  else { on.innerHTML="No comrades online right now \u2014 check back soon"+vline('online_now','last 15 minutes'); }
   /* S2 (2026-10-04) — Proof Wall strip: approved post-proof posts.
      Composes with the pulse bar; extends it, doesn't replace it. */
   var pwel=$("pf-sp-proofwall");

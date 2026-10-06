@@ -263,6 +263,9 @@ function paint(el,j){
       +emailPaneHtml()
       +nextActionRow();
     wireEmail(); loadFanFav(); mountWarNumbers();
+    /* NEWS+STATS (2026-10-06): wire live stats into report body blocks.
+       Fail-open — blocks with no matching tags render untouched. */
+    try{ if(window.PF && PF.newsStats) PF.newsStats.enhanceWarReport(el); }catch(e){}
     return;
   }
   var r=j.report;
@@ -279,6 +282,9 @@ function paint(el,j){
     +emailPaneHtml()
     +nextActionRow();
   wireEmail(); loadFanFav(); mountWarNumbers();
+  /* NEWS+STATS (2026-10-06): wire live stats into report body blocks.
+     Fail-open — blocks with no matching tags render untouched. */
+  try{ if(window.PF && PF.newsStats) PF.newsStats.enhanceWarReport(el); }catch(e){}
 }
 /* FRED Everywhere Phase 1: "the week in numbers" slot. The module guards
    double-mounts itself; this is a no-op when the module isn't bundled. */

@@ -65,7 +65,7 @@
   /* JSONP GET — read-only cell actions. 12s timeout, same as every silo. */
   var READ = { cell_mine:1, cell_prestige:1, cell_health:1, cell_search:1,
     cell_leaderboard:1, cell_links:1, cellwar_standings:1, cellwar_history:1,
-    warchest_status:1, treasury_balance:1, propbounty_list:1 };
+    warchest_status:1, treasury_balance:1, propbounty_list:1, recruit_funnel:1 };
   /* Mutations go through POST (CSRF-able via GET otherwise). */
   var WRITE = { cell_create:1, cell_join:1, cell_checkin:1, cell_cover:1,
     cell_leave:1, cell_rename:1, cell_update:1, cell_promote:1, cell_bounty_claim:1,
@@ -76,8 +76,9 @@
     if (WRITE[action]) { postMut(action, params, cb); return; }
     if(!BACKEND){ cb(null); return; }
     /* Private reads require auth_secret (IDOR fix). Auto-attach for the
-       auth-gated cell_mine — same PF.getAuthSecret() pattern as briefing.js. */
-    if(action==="cell_mine"||action==="propbounty_list"){
+       auth-gated cell_mine, propbounty_list, and the member-gated
+       recruit_funnel (CELLS 2.0) — same PF.getAuthSecret() pattern as briefing.js. */
+    if(action==="cell_mine"||action==="propbounty_list"||action==="recruit_funnel"){
       try{
         var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
         if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
@@ -276,12 +277,16 @@
     '.hq-order-t{margin:8px 0 4px;font-size:16px}' +
     '.hq-order-d{font-size:13.5px;line-height:1.5;opacity:.9;margin-bottom:8px}' +
     '.hq-note{font-size:12.5px;opacity:.8;line-height:1.5}' +
+    /* CELLS 2.0 — Recruit panel. */
+    '.hq-joiner{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid #222;font-size:13.5px}' +
+    '.hq-in.linklike{flex:1;min-width:0;font-size:12px;font-family:monospace,monospace}' +
     '@media(max-width:560px){.hq-pane{padding:10px}.hq-head h2{font-size:19px}}' +
     '</style>';
 
   mount.innerHTML = CSS +
     '<div class="hq-head"><h2>&#9876; CELL HQ</h2>' +
-    '<div class="hq-tag">Command center for your cells — streaks, prestige, Cell War, and the whole network.</div></div>' +
+    '<div class="hq-tag">Command center for your cells — streaks, prestige, Cell War, and the whole network.</div>' +
+    '<div class="hq-tag" style="margin-top:4px;">&#128467; <a href="/events#pf-mastercal" style="font-weight:800;color:#c1121f;">WAR CALENDAR</a> — mobilizations, draws, and deadlines.</div></div>' +
     '<div class="hq-tabs" id="hqTabs">' +
     '<button class="hq-tab on" data-tab="mine">MY CELLS</button>' +
     '<button class="hq-tab" data-tab="war">CELL WAR</button>' +
@@ -305,6 +310,9 @@
     searchRes: null,
     loading: {}
   };
+  /* CELLS 2.0 (2026-10-05): recruit funnel cache — keyed by cell so a slow
+     recruit_funnel read can never corrupt or delay the main detail paint. */
+  var RF = { cid: '', j: null };
 
   function tabEl(n){ return mount.querySelector('.hq-tab[data-tab="'+n+'"]'); }
   function pane(){ return document.getElementById('hqPane'); }
@@ -563,6 +571,14 @@
     }
     loadPrestige(cid, function(j){ gotP=true; jP=j; maybePaint(); });
     loadHealth(cid, function(j){ gotH=true; jH=j; maybePaint(); });
+    /* CELLS 2.0 — Recruit funnel rides alongside, NEVER in the paint gate:
+       a missing/slow recruit_funnel on an old backend must not delay HQ. */
+    RF.cid = cid; RF.j = null;
+    loadFunnel(cid, function(j){
+      RF.cid = cid; RF.j = j;
+      var b2 = document.getElementById('hqDetBody');
+      if (b2 && S.tab==='detail' && S.detail===cid) paintRecruitInto(b2, cell, j);
+    });
   }
 
   function paintDetail(body, cell, isFounder, isPrimary, jP, jH, mine){
@@ -618,6 +634,9 @@
       });
       h += '</div>';
     }
+    /* CELLS 2.0 — Recruit panel placeholder. paintRecruitInto fills it when
+       recruit_funnel resolves (or immediately from the RF cache on repaint). */
+    h += '<div class="hq-card" id="hqRecruit"><h3>RECRUIT</h3>'+loading('Building your invite link&hellip;')+'</div>';
     /* Health + pulse block. */
     if (jH && jH.ok){
       var hh = jH.health || {};
@@ -652,6 +671,60 @@
     if (window.PFCellIdentity && window.PFCellIdentity.enabled() && cell && cell.id){
       paintIdentityBlock(body, cell, isFounder);
     }
+    /* CELLS 2.0 — fill the Recruit panel from cache when the funnel beat
+       the paint (otherwise the loadFunnel callback paints it on arrival). */
+    if (RF.cid === S.detail && RF.j){ paintRecruitInto(body, cell, RF.j); }
+  }
+
+  /* CELLS 2.0 (2026-10-05): recruitment funnel (member-gated). Contract:
+     GET recruit_funnel -> {ok, my_link, clicks, joins, joiners:[{callsign, joined_day}]}.
+     Fail-soft: a falsy/failed read leaves the panel in an honest offline
+     state; it never blocks or breaks the rest of HQ. */
+  function loadFunnel(cid, cb){
+    var id = ident();
+    if (!id.callsign || !cid){ cb(null); return; }
+    api("recruit_funnel", withIdent({cell_id: cid}), function(j){ cb(j); });
+  }
+  function inviteLinkFor(cell, j, callsign){
+    var link = (j && j.my_link) ? String(j.my_link) : "";
+    if (!link){
+      var code = cell && cell.invite_code ? String(cell.invite_code) : "";
+      if (code && callsign){
+        link = "https://www.mtcstw.com/cells?invite="+encodeURIComponent(code)+
+               "&by="+encodeURIComponent(callsign);
+      }
+    }
+    return link;
+  }
+  function paintRecruitInto(body, cell, j){
+    var box = null;
+    try{ box = body.querySelector ? body.querySelector('#hqRecruit') : document.getElementById('hqRecruit'); }catch(e){}
+    if (!box) return;
+    var id = ident();
+    var link = inviteLinkFor(cell, j, id.callsign);
+    if (!j || !j.ok || !link){
+      box.innerHTML = '<h3>RECRUIT</h3><div class="hq-note">Recruit intel is offline right now. Your personal invite link will appear here when HQ reconnects.</div>';
+      return;
+    }
+    var clicks = Math.max(0, Number(j.clicks)||0), joins = Math.max(0, Number(j.joins)||0);
+    var h = '<h3>RECRUIT</h3>' +
+      '<div class="hq-note">Your personal invite link &mdash; share it anywhere. Taps and joins count toward your cell&rsquo;s momentum.</div>' +
+      '<div class="hq-row" style="margin-top:8px"><input class="hq-in linklike" id="hqRecruitLink" readonly value="'+esc(link)+'" aria-label="Personal invite link" />' +
+      '<button class="hq-btn sm" data-hq="recruit-copy">COPY</button></div>' +
+      '<div><span class="hq-stat">'+clicks+' taps</span><span class="hq-stat">'+joins+' joined</span>' +
+      (clicks>0 ? '<span class="hq-stat">'+Math.round(joins/clicks*100)+'% tap &rarr; join</span>' : '') + '</div>';
+    var joiners = (j.joiners && j.joiners.length) ? j.joiners : [];
+    if (joiners.length){
+      h += '<div class="hq-note" style="margin:10px 0 2px"><b>Fresh recruits</b></div>';
+      for (var i=0;i<joiners.length && i<10;i++){
+        var jr = joiners[i]||{};
+        h += '<div class="hq-joiner"><span><b>'+esc(jr.callsign||'Unknown')+'</b></span><span class="hq-note">'+esc(String(jr.joined_day||''))+'</span></div>';
+      }
+      if (joiners.length>10) h += '<div class="hq-note">+'+(joiners.length-10)+' more</div>';
+    } else {
+      h += '<div class="hq-note" style="margin-top:8px">No joins through your link yet &mdash; the first one starts the chain.</div>';
+    }
+    box.innerHTML = h;
   }
 
   /* CELL IDENTITY (2026-10-05): detail-view identity block — full profile
@@ -1633,7 +1706,27 @@
     }
     function busy(dis){ try{ t.disabled = !!dis; }catch(e){} }
 
-    if (a==='back'){ refreshMineThen('mine'); }
+    /* CELLS 2.0 (2026-10-05): copy the personal invite link from the
+       Recruit panel. Clipboard with a select+execCommand fallback; never
+       throws, never blocks. */
+    if (a==='recruit-copy'){
+      var rInp=document.getElementById('hqRecruitLink');
+      var rVal=rInp?String(rInp.value||""):"";
+      if(!rVal){ toast('No invite link yet.'); return; }
+      var rDone=function(){ toast('Invite link copied. Go recruit.'); };
+      var rFallback=function(){
+        try{ rInp.focus(); rInp.select();
+          if(document.execCommand('copy')){ rDone(); return; }
+        }catch(e2){}
+        toast('Copy this link: '+rVal);
+      };
+      try{
+        if(navigator.clipboard&&navigator.clipboard.writeText){
+          navigator.clipboard.writeText(rVal).then(rDone,rFallback);
+        } else rFallback();
+      }catch(e3){ rFallback(); }
+    }
+    else if (a==='back'){ refreshMineThen('mine'); }
     else if (a==='detail'){ S.detail=cellId; S.detailPrestige=null; S.detailHealth=null; S.tab='detail'; render(); }
     else if (a==='checkin'){
       if(!needCs()) return; busy(true);

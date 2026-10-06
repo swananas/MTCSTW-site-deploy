@@ -189,6 +189,11 @@ function render(){
       +'<div class="x-note">YES '+esc(q.yes_weight)+' &bull; NO '+esc(q.no_weight)+' &bull; '+esc(q.voter_count)+' voters</div></div>';
   }
   h+='</div>';
+  /* Integration audit 2026-10-06: the Assembly was a widget-level dead end —
+     after voting there was no onward step inside the widget (only the
+     page-level exit). Assembly decisions belong with the cell: rally it. */
+  h+='<div class="x-pane" style="text-align:center"><a href="/cells" style="display:inline-block;background:#c1121f;color:#fff;'
+    +'font-weight:900;letter-spacing:.12em;padding:12px 22px;text-decoration:none">RALLY YOUR CELL AROUND THE RESULT &rarr;</a></div>';
   el.innerHTML=h;
   /* --- wire --- */
   var vbs=el.querySelectorAll(".gv-vote");

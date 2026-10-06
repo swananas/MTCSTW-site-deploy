@@ -355,7 +355,7 @@
         href: '/arcade#pf-forecasts' },
       { id: 'fund', title: 'FUND THE FIGHT', cta: 'FUND THE FIGHT', fund: true,
         sub: 'Send the win straight to the war chest.',
-        href: '/war-chest' },
+        href: '/ventures' },
       { id: 'cells', title: 'FUND YOUR CELL', cta: 'FUND YOUR CELL',
         sub: 'Route the win to your cell\'s war effort — cells that fund, fight.',
         href: '/cells' },

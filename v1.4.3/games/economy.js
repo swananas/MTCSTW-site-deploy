@@ -556,11 +556,22 @@ function wireDrops(id,el){
    seen (or touched). The template above already renders a skeleton.
    In-memory vars keep the session cache — no refetch on scroll. */
 (function(){
-  var sec=null;
-  try{ sec=document.querySelector('section[data-game="economy"]'); }catch(e){}
-  var start=(window.PF&&PF.whenVisible)?PF.whenVisible(sec,function(){load();}):null;
-  if(start){ try{ if(sec) sec.addEventListener('pointerdown',start,{once:true}); }catch(e){} }
-  else load();
+  /* Ship-blocker fix (2026-10-05): mount race — poll for the section before
+     arming whenVisible. See movement.js for the full explanation. */
+  var tries=0;
+  function init(){
+    tries++;
+    var sec=null;
+    try{ sec=document.querySelector('section[data-game="economy"]'); }catch(e){}
+    if(!sec){
+      if(tries<60) setTimeout(init,500);
+      return;
+    }
+    var start=(window.PF&&PF.whenVisible)?PF.whenVisible(sec,function(){load();}):null;
+    if(start){ try{ sec.addEventListener('pointerdown',start,{once:true}); }catch(e){} }
+    else load();
+  }
+  init();
 })();
 setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },180000);
 })();

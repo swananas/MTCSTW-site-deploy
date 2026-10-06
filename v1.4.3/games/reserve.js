@@ -661,10 +661,23 @@ function load(){
   api(\"nuke_status\",{callsign:_nid.callsign,device:_nid.device,auth_secret:_nsec},function(j){ NUK=j||{ok:false,err:\"network\"}; one(); });
 }
 (function(){
-  var sec=null;
-  try{ sec=document.querySelector('section[data-game=\"reserve\"]'); }catch(e){}
-  var start=(window.PF&&PF.whenVisible)?PF.whenVisible(sec,function(){load();}):null;
-  if(!start){ try{ load(); }catch(e){} }
+  /* Ship-blocker fix (2026-10-05): same mount race as movement.js — the
+     bundle IIFE runs before mountPage stages the template. Poll for the
+     section (30s max) before arming whenVisible; previously the null
+     section caused an immediate load() whose render() found no #xRsv. */
+  var tries=0;
+  function init(){
+    tries++;
+    var sec=null;
+    try{ sec=document.querySelector('section[data-game=\"reserve\"]'); }catch(e){}
+    if(!sec){
+      if(tries<60) setTimeout(init,500);
+      return;
+    }
+    var start=(window.PF&&PF.whenVisible)?PF.whenVisible(sec,function(){load();}):null;
+    if(!start){ try{ load(); }catch(e){} }
+  }
+  init();
 })();
 setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },300000);
 })();

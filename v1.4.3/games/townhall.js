@@ -212,9 +212,17 @@ function renderForm(){
     });
   });
 }
+/* Ship-blocker fix (2026-10-05): boot runs on DOMContentLoaded, but mountPage
+   stages the template after. Poll for #xTownhall (30s max); previously the
+   missing element caused an early return and the section never loaded. */
+var _bootTries=0;
 function boot(){
   root=document.getElementById("xTownhall");
-  if(!root) return;
+  if(!root){
+    _bootTries++;
+    if(_bootTries<60) setTimeout(boot,500);
+    return;
+  }
   render(); load();
 }
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",boot); else boot();

@@ -256,7 +256,8 @@
   }
 
   /* ---- section state ---- */
-  var state = { questions: [], leaders: [], cat: 'all', record: { wins: 0, losses: 0 }, hasPicks: false };
+  var state = { questions: [], leaders: [], cat: 'all', record: { wins: 0, losses: 0 }, hasPicks: false,
+    qTrunc: false, qTotal: 0, pTrunc: false, pTotal: 0 };
 
   function recordHTML() {
     return '<div class="pq-record">YOUR RECORD: <b>' + state.record.wins + 'W</b> &ndash; <b>' + state.record.losses + 'L</b></div>';
@@ -363,6 +364,14 @@
         : 'No questions on the board right now. The machine never sleeps &mdash; check back.') + '</div>';
     } else {
       for (var i = 0; i < vis.length; i++) h += questionHTML(vis[i]);
+      if (state.qTrunc && state.cat === 'all') {
+        h += '<div class="pq-msg pq-trunc">Showing the 200 most urgent of ' + state.qTotal +
+          ' questions. Older resolved boards roll off after 30 days.</div>';
+      }
+      if (state.pTrunc) {
+        h += '<div class="pq-msg pq-trunc">Showing your 500 most recent of ' + state.pTotal +
+          ' calls. Your full record counts toward the leaderboard.</div>';
+      }
     }
     return h;
   }
@@ -488,6 +497,10 @@
         if (qid) pickMap[String(qid)] = p;
       }
       state.questions = qs.map(function (q) { return normQ(q, pickMap); });
+      /* B6(b) (2026-10-06): honest truncation — backend flags when the
+         200-question / 500-pick limits cut the list. */
+      state.qTrunc = !!j.questions_truncated; state.qTotal = j.questions_total | 0;
+      state.pTrunc = !!j.picks_truncated; state.pTotal = j.picks_total | 0;
       /* my-record strip: wins/losses from resolved picks the backend scored */
       var w = 0, l = 0;
       state.questions.forEach(function (q) {

@@ -211,6 +211,10 @@ var MONEY_FILES = [
      mounts on the /follow-the-money page (Follow the Money). Kill: ?pf_off=robreport. */
   'core/robreport-data.js',
   'core/robreport.js',
+  /* SEC EDGAR live rail (be/edgar-rail + fe/edgar-live, 2026-10-06): live
+     filing-validation pills for Robbery Report cards. Rides the money
+     chunk with the report. Kill: ?pf_off=edgarlive. */
+  'core/edgar-live.js',
   'core/money-tab.js',
   'core/money-vote-card.js',
   'core/ledger-list.js',

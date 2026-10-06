@@ -1,20 +1,40 @@
 /* core/robreport.js  |  PF v1.4.3 | THE ROBBERY REPORT — Phase 1 (CEO flagship).
-   "Here's what they took from you — from their own filings." Self-mounting
-   figure cards + household baskets over the curated anchors in
-   core/robreport-data.js (News Desk-verified 2026-10-06).
+   "Here's what they took from you — from their own filings." Card-ified
+   exposés (teardown WS-5, 2026-10-06): every item/basket = P2 Intel Card +
+   P4 Data Strip via window.PF.patterns (fail-open: equivalent legacy markup
+   when the patterns module is killed). One villain, ONE outrage number huge,
+   plain-English mechanism one-liner — readable in 3 seconds. Every figure
+   carries its source line ("estimated from their own filings") + recency
+   stamp — the honesty signature; fail-closed: a figure without source and
+   recency renders nothing. The wonks' data table (split bar, receipt links,
+   can't-prove) sits one tap deep in <details> — never the lead. Share:
+   per-card/per-basket PFShare posters (no free text in pixels; 'JOIN THE
+   FIGHT.' + MTCSTW.COM per the share CTA standard). Card actions are text
+   links only (News Desk red-button rule: no red buttons, no enlistment CTAs
+   in card code). The integration-audit loop closers are preserved:
+   "REPORT THE PRICE YOU PAID ->" -> /economy#pf-inflation-checkin and
+   "FOLLOW THEIR MONEY ->" -> /follow-the-money, text-link style.
+   CPI rail: card 10 lights up a live People's median via the existing
+   price_board GET when min-n data exists (P8 proof line carries the REAL
+   sample count — suppressed without one), else the curated typical-retail
+   price stands.
    READ-ONLY: no POST, no auth, ZERO XP. Self-mounts on div#pf-robreport
    (silent no-op when absent); money-page.js also calls PFRobReport.mount.
-   CPI rail: card 10 lights up a live People's median via the existing
-   price_board GET when min-n data exists, else the curated typical-retail
-   price stands. Share: per-card/per-basket PFShare posters (no free text in
-   pixels; 'JOIN THE FIGHT.' + MTCSTW.COM per the CTA standard).
    KILL: ?pf_off=robreport  or  localStorage pf_disabled_v1='["robreport"]' */
 (function () {
   'use strict';
   var PF = window.PF;
   if (!PF || PF.skip('robreport')) { return; }
   var D = window.PFRobReportData;
-  if (!D) { try { PF.error('robreport', 'data module missing'); } catch (e) {} return; }
+  if (!D || !D.ITEMS) { try { PF.error('robreport', 'data module missing'); } catch (e) {} return; }
+  /* Fail-open: when the patterns module is killed (?pf_off=patterns) the
+     section still renders with equivalent legacy markup below. */
+  var PAT = (window.PF && window.PF.patterns) ? window.PF.patterns : null;
+
+  /* News Desk anchor stamp: every curated figure verified against filings
+     current as of Oct 2026. The red-button rule lives here — anything that
+     loses its anchor loses its figure (fail-closed strip below). */
+  var RECENCY = 'Oct 2026';
 
   var CSS_DONE = false;
   function cssOnce() {
@@ -26,14 +46,24 @@
       '.pf-rr-sub{color:#c9bfa8;font-size:15px;margin:0 0 6px}' +
       '.pf-rr-tag{color:#c9bfa8;font-size:13px;font-style:italic;margin:0 0 4px}' +
       '.pf-rr-fresh{color:#8f887a;font-size:12px;margin:0 0 14px}' +
-      '.pf-rr-card{background:#141414;border:1px solid #333;border-left:5px solid #c1121f;border-radius:6px;padding:14px 16px;margin:0 0 12px}' +
-      '.pf-rr-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}' +
-      '.pf-rr-num{color:#8f887a;font-size:12px;font-weight:700;min-width:26px}' +
-      '.pf-rr-top h4{margin:0;font-size:18px;flex:1}' +
-      '.pf-rr-chip{font-size:10px;font-weight:700;letter-spacing:1px;color:#f5f0e6;background:#2a2a2a;border:1px solid #c1121f;border-radius:10px;padding:3px 9px;white-space:nowrap}' +
-      '.pf-rr-paid{font-size:14px;margin:0 0 8px}' +
-      '.pf-rr-paid b{font-size:20px;color:#fff}' +
-      '.pf-rr-tiny{color:#8f887a;font-size:11px}' +
+      /* spacing for the pattern cards inside this section */
+      '.pf-rr article.pf-pat-intel{margin:0 0 16px}' +
+      '.pf-rr .pf-pat-data{margin:12px 0 4px}' +
+      /* P2 fallback (patterns killed): same contract, legacy classes */
+      '.pf-rr-card{background:#0a0a0a;border:1px solid #2a2a2a;border-top:3px solid #c1121f;border-radius:4px;padding:16px;margin:0 0 16px}' +
+      '.pf-rr-kicker{color:#c1121f;text-transform:uppercase;letter-spacing:2px;font-size:12px;font-weight:700;margin:0 0 6px}' +
+      '.pf-rr-h{font-family:Arial,Helvetica,sans-serif;font-weight:bold;font-size:17px;color:#fff;margin:0 0 8px;line-height:1.3}' +
+      '.pf-rr-mech{font-size:14px;color:#fff;margin:0 0 12px;line-height:1.45}' +
+      /* P4 fallback (patterns killed): same contract, legacy classes */
+      '.pf-rr-dstrip{text-align:center;padding:18px 12px;margin:12px 0}' +
+      '.pf-rr-dfig{font-size:44px;font-weight:bold;color:#fff;line-height:1.1;margin:0}' +
+      '.pf-rr-dlabel{color:#c1121f;text-transform:uppercase;letter-spacing:2px;font-size:11px;font-weight:bold;margin:8px 0 0}' +
+      '.pf-rr-dsrc{color:#8a8a8a;font-size:11px;line-height:1.5;margin:12px 0 0}' +
+      '.pf-rr-dtime{color:#8a8a8a;font-size:11px;letter-spacing:1px;margin:2px 0 0}' +
+      /* the wonks' table: one tap deep, never the lead */
+      '.pf-rr-more{margin:10px 0 4px;border:1px solid #2a2a2a;border-radius:4px}' +
+      '.pf-rr-more summary{cursor:pointer;color:#f5f0e6;font-weight:700;font-size:13px;padding:10px 12px}' +
+      '.pf-rr-more-body{padding:0 12px 12px}' +
       '.pf-rr-bar{display:flex;height:16px;border-radius:8px;overflow:hidden;background:#2a2a2a;margin:0 0 8px}' +
       '.pf-rr-seg{height:100%}' +
       '.pf-rr-cost{background:#5a5a5a}' +
@@ -46,23 +76,23 @@
       '.pf-rr-receipt a{color:#e8a0a0;text-decoration:underline}' +
       '.pf-rr-cant{font-size:12px;color:#c9bfa8;margin:0 0 10px;border-top:1px solid #2a2a2a;padding-top:8px}' +
       '.pf-rr-cant b{color:#f5f0e6}' +
-      '.pf-rr-share{background:#c1121f;color:#fff;border:none;border-radius:5px;font-weight:700;font-size:13px;letter-spacing:1px;padding:8px 18px;cursor:pointer}' +
-      '.pf-rr-live{font-size:12px;color:#7CFC00;margin:0 0 8px}' +
-      '.pf-rr-live a{color:#7CFC00;text-decoration:underline}' +
       '.pf-rr-note{font-size:12px;color:#8f887a;margin:0 0 4px}' +
+      '.pf-rr-paid{font-size:14px;margin:0 0 8px}' +
+      '.pf-rr-paid b{font-size:20px;color:#fff}' +
+      '.pf-rr-tiny{color:#8f887a;font-size:11px}' +
+      /* card actions: text links only (red-button rule) */
+      '.pf-rr-actions{margin:12px 0 4px;display:flex;flex-wrap:wrap;gap:8px 20px}' +
+      '.pf-rr-next-a{color:#fff;font-size:13px;text-decoration:underline;text-underline-offset:3px}' +
+      '.pf-rr-next-a:hover{color:#8a8a8a}' +
+      '.pf-rr-live{font-size:12px;color:#7CFC00;margin:8px 0}' +
+      '.pf-rr-live a{color:#7CFC00;text-decoration:underline}' +
+      '.pf-rr-proof{font-size:12px;color:#8a8a8a;margin:4px 0 0}' +
+      '.pf-rr-proof b{color:#fff}' +
       '.pf-rr-exc{background:#1a1a1a;border:1px dashed #555;border-radius:6px;padding:12px 16px;margin:0 0 18px;font-size:13px;color:#c9bfa8}' +
       '.pf-rr-exc b{color:#f5f0e6}' +
-      '.pf-rr-basket{background:#101010;border:2px solid #c1121f;border-radius:8px;padding:16px;margin:0 0 14px}' +
-      '.pf-rr-basket h4{margin:0 0 2px;font-size:20px}' +
-      '.pf-rr-basket .pf-rr-sub{margin:0 0 8px}' +
-      '.pf-rr-btot{font-size:15px;margin:0 0 8px}' +
-      '.pf-rr-btot b{color:#e8352e;font-size:21px}' +
-      '.pf-rr-basket details{margin:8px 0;font-size:13px;color:#c9bfa8}' +
-      '.pf-rr-basket summary{cursor:pointer;color:#f5f0e6;font-weight:700}' +
-      '.pf-rr-basket li{margin:3px 0}' +
       '.pf-rr-assump{font-size:11px;color:#8f887a;font-style:italic;margin:6px 0 0}' +
-      '.pf-rr-next{font-size:13px;font-weight:700;margin:10px 0 0}' +
-      '.pf-rr-next a{color:#fff;text-decoration:none;border-bottom:2px solid #c1121f;margin-right:14px}';
+      '.pf-rr-more ul{margin:6px 0;padding-left:20px}' +
+      '.pf-rr-more li{margin:3px 0;font-size:13px}';
     var st = document.createElement('style');
     st.setAttribute('data-pf', 'robreport');
     st.textContent = css;
@@ -76,6 +106,121 @@
   }
   function money(x) { return '$' + Number(x).toFixed(2); }
   function err(m) { try { PF.error('robreport', m); } catch (e) {} }
+
+  /* ---------------- P2 Intel Card shell ----------------
+     PAT.intelCard renders the shell (one action max); the card composes
+     strip + wonks + actions around it. Fail-open legacy shell when the
+     patterns module is killed. dataLine is esc()'d by us (the helper
+     inserts it raw). */
+  function intelShell(o) {
+    if (PAT && PAT.intelCard) {
+      var full = PAT.intelCard({ kicker: o.kicker, headline: o.headline, dataLine: esc(o.dataLine) });
+      var i = full ? full.lastIndexOf('</article>') : -1;
+      if (i > 0) {
+        var open = full.slice(0, i).replace('<article', '<article data-rr="' + esc(o.id) + '"');
+        return { open: open, close: '</article>' };
+      }
+    }
+    return {
+      open: '<article class="pf-rr-card" data-rr="' + esc(o.id) + '">' +
+        (o.kicker ? '<p class="pf-rr-kicker">' + esc(o.kicker) + '</p>' : '') +
+        '<h3 class="pf-rr-h">' + esc(o.headline) + '</h3>' +
+        (o.dataLine ? '<p class="pf-rr-mech">' + esc(o.dataLine) + '</p>' : ''),
+      close: '</article>'
+    };
+  }
+
+  /* ---------------- P4 Data Strip ----------------
+     FAIL-CLOSED: figure + label + source + recency ALL required. A figure
+     without its source line and recency stamp renders NOTHING — the
+     movement's whole pitch is "we count what they hide," and an unsourced
+     number is a lie. (Mirrors PF.patterns.dataStrip's own fail-closed.) */
+  function stripHTML(o) {
+    var fig = String(o.figure == null ? '' : o.figure).trim();
+    var label = String(o.label == null ? '' : o.label).trim();
+    var source = String(o.source == null ? '' : o.source).trim();
+    var updated = String(o.updated == null ? '' : o.updated).trim();
+    if (!fig || !label || !source || !updated) { err('strip fail-closed: missing field'); return ''; }
+    if (PAT && PAT.dataStrip) {
+      var s = PAT.dataStrip({ figure: fig, label: label, source: source, updated: updated });
+      if (s) return s;
+    }
+    return '<div class="pf-rr-dstrip">' +
+      '<p class="pf-rr-dfig">' + esc(fig) + '</p>' +
+      '<p class="pf-rr-dlabel">' + esc(label) + '</p>' +
+      '<p class="pf-rr-dsrc">' + esc(source) + '</p>' +
+      '<p class="pf-rr-dtime">updated ' + esc(updated) + '</p></div>';
+  }
+
+  /* ---------------- card actions: text links ONLY ----------------
+     Red-button rule: no pf-pat-deploy-red / pf-pat-join / red buttons in
+     card code. The two integration-audit loop closers are preserved here,
+     text-link style per the rogue-verb map. The helper doubles as the
+     CTA-verb guard: a refused label renders nothing. */
+  var CTA_REPORT = { href: '/economy#pf-inflation-checkin', label: 'REPORT THE PRICE YOU PAID \u2192' };
+  var CTA_FOLLOW = { href: '/follow-the-money', label: 'FOLLOW THEIR MONEY \u2192' };
+  function tlink(href, label, attrs) {
+    if (PAT && PAT.textLink && !PAT.textLink(href, label)) { err('cta refused: ' + label); return ''; }
+    var cls = (PAT && PAT.textLink) ? 'pf-pat-textlink' : 'pf-rr-next-a';
+    return '<a class="' + cls + '" href="' + esc(href) + '"' + (attrs ? ' ' + attrs : '') + '>' +
+           esc(label) + '</a>';
+  }
+  function cardActions(shareSpec) {
+    var h = '<nav class="pf-rr-actions">';
+    h += tlink('#pf-robreport', 'SHARE THIS INTEL \u2192', 'data-rr-share="' + esc(shareSpec) + '"');
+    h += tlink(CTA_REPORT.href, CTA_REPORT.label);
+    h += tlink(CTA_FOLLOW.href, CTA_FOLLOW.label);
+    return h + '</nav>';
+  }
+
+  /* ---------------- honesty signature builders ---------------- */
+  /* Source line per card: the tagline + each EDGAR filing's short ref and
+     its filed date, straight from the curated receipt text. */
+  function sourceLine(it) {
+    var refs = (it.receipt || []).map(function (r) {
+      var parts = String(r.text).split('·');
+      var filing = (parts[0] || '').trim();
+      var filed = '';
+      for (var i = 1; i < parts.length; i++) {
+        var m = parts[i].match(/filed\s+[^·]+/i);
+        if (m) { filed = m[0].trim(); break; }
+      }
+      return (filing + (filed ? ' · ' + filed : '')).trim();
+    }).filter(function (x) { return !!x; });
+    var tag = String(D.TAGLINE || 'Estimated from their own filings.').replace(/\.\s*$/, '');
+    if (!refs.length) return ''; /* no anchor, no figure: fail-closed */
+    return tag + ' — ' + refs.join(' · ');
+  }
+  /* The ONE outrage number per card + its label. */
+  function takeFigure(it) {
+    if (it.cls === 'VALUE-CHAIN') return { fig: '\u2248 ' + money(it.takeMid), of: 'of your ' + money(it.price) };
+    if (it.id === 'gv-vs-folgers') return { fig: '\u2248 ' + money(it.legs[0].take + it.legs[1].take), of: 'both coffees' };
+    return { fig: '\u2248 ' + money(it.take), of: 'of your ' + money(it.price) };
+  }
+  /* Plain-English mechanism one-liner: HOW they take it, not the number.
+     Data-driven from the card's class + margin names — the number lives in
+     the strip below, the caveats one tap deeper. */
+  function mechanismLine(it) {
+    var m = it.math || {};
+    if (it.cls === 'DIRECT') {
+      return 'Chipotle reports its own ' + (m.takeRatioName || 'profit margin') + ' at ' + it.takePct +
+        '% — straight from their 8-K, applied to your ' + money(it.price) + '.';
+    }
+    if (it.cls === 'VALUE-CHAIN') {
+      var layers = (it.layers || []).map(function (l) { return String(l.label).replace(/\s*\(.*?\)\s*/g, ''); });
+      return 'Three margins stack in one bottle — ' + layers.join(', ') + ' — each from its own filing.';
+    }
+    if (it.cls === 'RETAIL') {
+      return 'Walmart\u2019s own ' + (m.rName || 'gross profit rate') + ' is ' + it.takePct +
+        '% — one blended margin across everything it sells.';
+    }
+    if (it.id === 'gv-vs-folgers') {
+      return 'Same Walmart blended margin on both prices — their take under one roof, twice.';
+    }
+    var kind = it.cls === 'SEGMENT' ? 'true segment margin' : 'company-wide blended margin';
+    return it.company + '\u2019s own ' + (m.gName || 'gross margin') + ' is ' + it.takePct + '% (' + kind +
+      ') — applied to the ' + money(it.price) + ' shelf price, for scale.';
+  }
 
   /* ---------------- CPI live-median chip (read-only GET, fail-soft) ---------------- */
   var BACKEND = window.PF_BACKEND_URL || '';
@@ -109,7 +254,7 @@
     } catch (e) { if (timer) clearTimeout(timer); cb(null); }
   }
 
-  /* ---------------- split bars (DOM only, no chart lib) ---------------- */
+  /* ---------------- wonks' table: one tap deep, never the lead ---------------- */
   function barHTML(segs, price) {
     var h = '<div class="pf-rr-bar" role="img">';
     for (var i = 0; i < segs.length; i++) {
@@ -121,16 +266,8 @@
   function legendHTML(segs) {
     return '<p class="pf-rr-leg">' + segs.map(function (s) { return esc(s.label) + ' ' + money(s.amt); }).join(' · ') + '</p>';
   }
-
-  /* ---------------- item card ---------------- */
-  function cardHTML(it) {
-    var h = '<article class="pf-rr-card" data-rr="' + esc(it.id) + '">';
-    h += '<div class="pf-rr-top"><span class="pf-rr-num">#' + it.num + '</span><h4>' + esc(it.name) + '</h4>' +
-         '<span class="pf-rr-chip">' + esc(it.cls) + '</span></div>';
-    h += '<p class="pf-rr-paid">You paid <b>' + (it.price != null ? money(it.price) : '—') + '</b> ' +
-         '<span class="pf-rr-tiny">' + esc(it.priceNote) + '</span></p>';
-    h += '<div class="pf-rr-live" data-rr-live="' + esc(it.id) + '" style="display:none"></div>';
-
+  function wonksHTML(it) {
+    var h = '<details class="pf-rr-more"><summary>The receipts &amp; the math</summary><div class="pf-rr-more-body">';
     if (it.cls === 'VALUE-CHAIN') {
       var segs = it.layers.map(function (l, i) {
         return { label: l.label, amt: l.amt, cls: i === 0 ? 'pf-rr-cost' : (i === 1 ? 'pf-rr-lay2' : 'pf-rr-take') };
@@ -159,25 +296,45 @@
       h += '<p class="pf-rr-take-line">Their take ≈ <b>' + money(it.take) + '</b> · ' + esc(it.takePct) + '% ' +
            '<span class="pf-rr-tiny">(' + esc(it.bandLabel) + ')</span></p>';
     }
-
     (it.notes || []).forEach(function (n) { h += '<p class="pf-rr-note">' + esc(n) + '</p>'; });
     h += '<p class="pf-rr-receipt"><b style="color:#c9bfa8">The receipt:</b> ' +
          it.receipt.map(function (r) {
            return '<a href="' + esc(r.url) + '" target="_blank" rel="noopener">' + esc(r.text.split('·')[0].trim()) + ' ↗</a>';
          }).join(' · ') + '</p>';
     h += '<p class="pf-rr-cant"><b>What this can\u2019t prove:</b> ' + esc(it.cantProve) + '</p>';
-    h += '<p class="pf-rr-tiny" style="margin:0 0 10px"><i>' + esc(D.TAGLINE) + '</i></p>';
-    h += '<button class="pf-rr-share" data-rr-share="item:' + esc(it.id) + '">SHARE IMAGE</button>';
-    /* Integration audit 2026-10-06: the cards were a read-only dead end.
-       Close the money-chain loop: report the price you paid, follow their money. */
-    h += '<p class="pf-rr-next"><a href="/economy#pf-inflation-checkin">REPORT THE PRICE YOU PAID &rarr;</a>'
-       + '<a href="/follow-the-money">FOLLOW THEIR MONEY &rarr;</a></p>';
-    h += '</article>';
-    return h;
+    return h + '</div></details>';
   }
 
-  /* ---------------- baskets ---------------- */
+  /* ---------------- item card: P2 Intel + P4 Strip ---------------- */
+  function cardHTML(it) {
+    var shell = intelShell({
+      id: it.id,
+      kicker: String(it.company).toUpperCase(), /* the villain */
+      headline: it.name,
+      dataLine: mechanismLine(it) /* plain-English mechanism, one line */
+    });
+    var tf = takeFigure(it);
+    var h = shell.open;
+    h += stripHTML({
+      figure: tf.fig, /* the ONE outrage number, huge */
+      label: 'their take · ' + tf.of,
+      source: sourceLine(it),
+      updated: RECENCY
+    });
+    h += '<div class="pf-rr-live" data-rr-live="' + esc(it.id) + '" style="display:none"></div>';
+    h += wonksHTML(it);
+    h += cardActions('item:' + it.id);
+    return h + shell.close;
+  }
+
+  /* ---------------- basket card: P2 Intel + P4 Strip ---------------- */
   function basketHTML(b) {
+    var shell = intelShell({
+      id: 'basket:' + b.id,
+      kicker: 'HOUSEHOLD BASKET · ' + String(b.sub).toUpperCase(),
+      headline: b.name,
+      dataLine: b.tagline
+    });
     var rows = b.items.map(function (bi) {
       var it = D.byId(bi.ref);
       if (!it) return '';
@@ -186,20 +343,19 @@
       return '<li>' + esc(it.name) + ' × ' + bi.qty + ' (' + esc(bi.qtyLabel) + '): paid ' + money(paid) +
              ' · their take ≈ ' + money(take) + '</li>';
     }).join('');
-    var h = '<div class="pf-rr-basket" data-rr-basket="' + esc(b.id) + '">';
-    h += '<h4>' + esc(b.name) + '</h4><p class="pf-rr-sub">' + esc(b.sub) + '</p>';
-    h += '<div class="pf-rr-bar"><div class="pf-rr-seg pf-rr-cost" style="width:' + (b.cost / b.paid * 100).toFixed(1) +
-         '%"></div><div class="pf-rr-seg pf-rr-take" style="width:' + (b.take / b.paid * 100).toFixed(1) + '%"></div></div>';
-    h += '<p class="pf-rr-btot">You paid <b style="color:#fff">' + money(b.paid) + '</b> · their take ≈ <b>' + money(b.take) +
-         '</b> (' + esc(b.takePct) + '%)</p>';
-    h += '<p class="pf-rr-tiny"><i>' + esc(D.TAGLINE) + '</i></p>';
-    h += '<details><summary>Per-item breakdown</summary><ul>' + rows + '</ul></details>';
-    h += '<p class="pf-rr-assump">' + esc(b.assumptions) + '</p>';
-    h += '<button class="pf-rr-share" data-rr-share="basket:' + esc(b.id) + '">SHARE BASKET</button>';
-    h += '<p class="pf-rr-next"><a href="/economy#pf-inflation-checkin">REPORT THE PRICES YOU PAID &rarr;</a>'
-       + '<a href="/follow-the-money">FOLLOW THEIR MONEY &rarr;</a></p>';
-    h += '</div>';
-    return h;
+    var h = shell.open;
+    h += stripHTML({
+      figure: '\u2248 ' + money(b.take),
+      label: 'their take · ' + b.sub,
+      source: String(D.TAGLINE || 'Estimated from their own filings.').replace(/\.\s*$/, '') +
+              ' — sums of the item receipts above',
+      updated: RECENCY
+    });
+    h += '<details class="pf-rr-more"><summary>Per-item breakdown</summary><div class="pf-rr-more-body"><ul>' +
+         rows + '</ul>' +
+         '<p class="pf-rr-assump">' + esc(b.assumptions) + '</p></div></details>';
+    h += cardActions('basket:' + b.id);
+    return h + shell.close;
   }
 
   /* ---------------- share posters (canvas, no free text in pixels) ---------------- */
@@ -279,8 +435,7 @@
           acc += w;
         });
         x.fillStyle = '#c9bfa8'; x.font = '400 28px Arial,sans-serif';
-        var band = it.cls === 'VALUE-CHAIN' ? it.bandLabel : it.bandLabel;
-        x.fillText(it.takePct ? ('Margin ' + it.takePct + '% · ' + band) : band, 540, y + 140);
+        x.fillText(it.takePct ? ('Margin ' + it.takePct + '% · ' + it.bandLabel) : it.bandLabel, 540, y + 140);
         done(footerPoster(p));
       } catch (e) { try { done(null); } catch (e2) {} }
     };
@@ -316,7 +471,8 @@
     var btns = root.querySelectorAll ? root.querySelectorAll('[data-rr-share]') : [];
     for (var i = 0; i < btns.length; i++) {
       (function (btn) {
-        btn.addEventListener('click', function () {
+        btn.addEventListener('click', function (ev) {
+          try { if (ev && ev.preventDefault) ev.preventDefault(); } catch (e) {}
           try {
             var spec = String(btn.getAttribute('data-rr-share') || '');
             var parts = spec.split(':');
@@ -352,7 +508,8 @@
     host.innerHTML = h;
     wireShare(host);
     registerPainters();
-    /* CPI live chip for mapped cards only. */
+    /* CPI live chip for mapped cards only: P8 proof carries the REAL sample
+       count — suppressed without one (fail-closed by construction). */
     D.ITEMS.forEach(function (it) {
       if (!it.cpiSeries) return;
       liveMedian(it.cpiSeries, function (row) {
@@ -360,9 +517,16 @@
         var el = host.querySelector('[data-rr-live="' + it.id + '"]');
         if (!el) return;
         var med = money(Number(row.median_cents) / 100);
+        var n = Number(row.sample_count);
+        var proof = '';
+        if (PAT && PAT.proof) proof = PAT.proof({ count: n, text: 'neighbors reported this price' });
+        else if (isFinite(n) && n > 0) {
+          proof = '<p class="pf-rr-proof"><b>' + esc(Math.floor(n).toLocaleString('en-US')) +
+                  '</b> neighbors reported this price</p>';
+        }
         el.style.display = 'block';
-        el.innerHTML = 'People\u2019s median (live): <b>' + esc(med) + '</b> · ' + esc(String(row.sample_count)) +
-          ' reports · <a href="/economy#pf-inflation-trends">see the live price trend \u2192</a>';
+        el.innerHTML = 'People\u2019s median (live): <b>' + esc(med) + '</b>' + proof +
+          ' <a href="/economy#pf-inflation-trends">see the live price trend \u2192</a>';
       });
     });
     return true;

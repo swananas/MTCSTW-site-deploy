@@ -27,10 +27,13 @@
    6. Kill switches: ?pf_off=robreport in robreport.js + money-page section.
    7. Bundle registration: data+render in MONEY_FILES; PFRobReport present
       in the rebuilt core/bundle-money.js.
-   8. DOM smoke (vm + minimal stub): mount() renders 30 cards + 4 baskets
-      + the excluded note + 34 share buttons; 34 painters registered;
-      painters fail soft with no canvas; kill → no exposure; mount(null)
-      → false. */
+   8. DOM smoke (vm + minimal stub): mount() renders 33 P2 intel cards +
+      33 P4 data strips + the excluded note + 33 <details> (wonks one tap
+      deep) + 33 share links; 33 painters registered; painters fail
+      soft with no canvas; kill → no exposure; mount(null) → false.
+      Fail-open fallback (patterns killed): 33 legacy cards/strips with the
+      same source+recency contract. Fail-closed figure: an item that loses
+      its EDGAR anchor loses its strip. */
 'use strict';
 var fs = require('fs');
 var path = require('path');
@@ -237,7 +240,11 @@ ok(di >= 0 && ri > di, 'robreport-data.js must precede robreport.js in the bundl
 var bundleSrc = fs.readFileSync(BUNDLE_MONEY, 'utf8');
 ok(bundleSrc.indexOf('PFRobReport') >= 0, 'rebuilt core/bundle-money.js lacks PFRobReport (rebuild: node build/bundle-core.js)');
 
-/* ---------- DOM smoke test ---------- */
+/* ---------- DOM smoke test (vm + minimal stub) ----------
+   Teardown WS-5: the render is now P2 Intel Card + P4 Data Strip via
+   PF.patterns (production path loads the real 33-patterns.js), with a
+   fail-open legacy fallback when the patterns module is killed. */
+var PATTERNS_MOD = path.join(C, '33-patterns.js');
 function makeEl(tag) {
   return {
     tagName: tag, children: [], className: '', _html: '', style: {},
@@ -249,7 +256,16 @@ function makeEl(tag) {
     set textContent(v) { this._html = v; }, get textContent() { return this._html; }
   };
 }
-function loadRender(skipKill) {
+function makeHost() {
+  var host = makeEl('div');
+  var html = '';
+  Object.defineProperty(host, 'innerHTML', {
+    set: function (v) { html = String(v); }, get: function () { return html; }
+  });
+  host.querySelector = function () { return null; };
+  return { host: host, html: function () { return html; } };
+}
+function loadRender(skipKill, withPatterns) {
   var painters = {};
   var win = {
     PF: { skip: function (id) { return skipKill && id === 'robreport'; }, error: function () {} },
@@ -257,6 +273,13 @@ function loadRender(skipKill) {
     PF_BACKEND_URL: ''
   };
   win.window = win;
+  if (withPatterns) {
+    /* production path: the real pattern library, exactly as shipped */
+    var pbox = { window: win, document: null, console: console };
+    vm.createContext(pbox);
+    vm.runInContext(fs.readFileSync(PATTERNS_MOD, 'utf8'), pbox, { filename: '33-patterns.js' });
+    ok(!!win.PF.patterns, 'PF.patterns loads for the production render path');
+  }
   var doc = {
     readyState: 'complete',
     head: makeEl('head'),
@@ -272,23 +295,22 @@ function loadRender(skipKill) {
   return { win: win, doc: doc, painters: painters };
 }
 (function smoke() {
-  var r = loadRender(false);
+  /* production path: P2 Intel + P4 Strip */
+  var r = loadRender(false, true);
   ok(!!r.win.PFRobReport, 'PFRobReport not exposed');
-  var host = makeEl('div');
-  var html = '';
-  Object.defineProperty(host, 'innerHTML', {
-    set: function (v) { html = String(v); }, get: function () { return html; }
-  });
-  host.querySelector = function () { return null; };
-  var res = r.win.PFRobReport.mount(host);
+  var h1 = makeHost();
+  var res = r.win.PFRobReport.mount(h1.host);
   ok(res === true, 'mount() should return true');
-  var cards = (html.match(/pf-rr-card"/g) || []).length;
-  ok(cards === 29, 'mount rendered ' + cards + ' item cards, expected 29 (+ excluded note = 30 cards)');
-  var baskets = (html.match(/pf-rr-basket"/g) || []).length;
-  ok(baskets === 4, 'mount rendered ' + baskets + ' baskets, expected 4');
+  var html = h1.html();
+  var intel = (html.match(/pf-pat-intel"/g) || []).length;
+  ok(intel === 33, 'mount rendered ' + intel + ' intel cards, expected 33 (29 items + 4 baskets)');
+  var strips = (html.match(/pf-pat-data"/g) || []).length;
+  ok(strips === 33, 'mount rendered ' + strips + ' data strips, expected 33');
   ok(/Why no Big Mac/.test(html), 'excluded note missing from mount');
   var shares = (html.match(/data-rr-share=/g) || []).length;
-  ok(shares === 33, 'expected 33 share buttons, got ' + shares);
+  ok(shares === 33, 'expected 33 share links, got ' + shares);
+  var details = (html.match(/<details/g) || []).length;
+  ok(details === 33, 'expected 33 wonks <details> (one tap deep), got ' + details);
   var pk = Object.keys(r.painters);
   ok(pk.length === 33, 'expected 33 painters registered, got ' + pk.length);
   ok(new Set(pk).size === 33, 'painter ids must be unique');
@@ -303,8 +325,34 @@ function loadRender(skipKill) {
   ok((html.match(/https:\/\/www\.sec\.gov\/Archives\/edgar\//g) || []).length >= 30, 'EDGAR links missing in rendered HTML');
   /* silent no-op + kill */
   ok(r.win.PFRobReport.mount(null) === false, 'mount(null) must return false');
-  var r2 = loadRender(true);
+  var r2 = loadRender(true, true);
   ok(!r2.win.PFRobReport, 'kill switch ?pf_off=robreport must prevent exposure');
+})();
+/* fail-open fallback: patterns killed -> legacy markup, same contract */
+(function fallbackSmoke() {
+  var r = loadRender(false, false);
+  ok(!!r.win.PFRobReport, 'PFRobReport not exposed (fallback path)');
+  var h = makeHost();
+  ok(r.win.PFRobReport.mount(h.host) === true, 'fallback mount() should return true');
+  var html = h.html();
+  var cards = (html.match(/pf-rr-card"/g) || []).length;
+  ok(cards === 33, 'fallback rendered ' + cards + ' legacy cards, expected 33');
+  var strips = (html.match(/pf-rr-dstrip"/g) || []).length;
+  ok(strips === 33, 'fallback rendered ' + strips + ' legacy strips, expected 33');
+  ok((html.match(/Estimated from their own filings/g) || []).length >= 33, 'fallback strips missing source lines');
+  ok((html.match(/updated Oct 2026/g) || []).length >= 33, 'fallback strips missing recency stamps');
+  ok((html.match(/data-rr-share=/g) || []).length === 33, 'fallback missing share links');
+})();
+/* fail-closed figure: an item that loses its anchor loses its strip */
+(function failClosedSmoke() {
+  var r = loadRender(false, true);
+  var D = r.win.PFRobReportData;
+  D.ITEMS[0].receipt = [];
+  var h = makeHost();
+  r.win.PFRobReport.mount(h.host);
+  var html = h.html();
+  var strips = (html.match(/pf-pat-data"/g) || []).length;
+  ok(strips === 32, 'fail-closed: anchorless item must lose its strip (got ' + strips + ' strips)');
 })();
 
 if (fails.length) {

@@ -89,25 +89,38 @@
       ]
     },
     'pf-cells-page': {
-      title: 'CELLS', sub: 'Your squad, your war. Build it, run it, win it.',
+      /* BLOSSOM S2 (2026-10-06): /cells is browse + HQ now. Cell War gameplay,
+         the territory maps and competition seasons moved to /cell-war;
+         Supply Line Raid moved to /arcade (WS-A). */
+      title: 'CELLS', sub: 'Your squad, your people. Find it, found it, run it.',
       order: [
         ['cells', 'pf-ov-cells'],
         ['cell-hq', null], /* self-mounting: renders into #pf-cell-hq (kill: cellhq) */
-        ['cell-war', 'pf-ov-cellwar'],
         ['diplo', 'pf-ov-diplo'],
-        ['contracts', 'pf-ov-contracts'],
+        ['contracts', 'pf-ov-contracts']
+      ]
+    },
+    /* BLOSSOM S2 (2026-10-06): CELL WAR — the war gameplay page, split off
+       /cells. War map + territory map + competition seasons mount here;
+       battles stages from games/bundle-arcade.js (footer isCellWar loads
+       both bundles). Hand-step: Squarespace page /cell-war carrying
+       <div id="pf-cell-war"></div> (redirect queue). */
+    'pf-cell-war': {
+      title: 'CELL WAR', sub: 'Hold ground. Take theirs.',
+      phase: 'organize',
+      next: { href: '/events', label: 'NEXT MOVE →' },
+      order: [
+        ['cell-war', 'pf-ov-cellwar'],
         /* W5-12 Frontlines: weekly territory war map (kill: war-map). */
         ['war-map', 'pf-ov-warmap'],
         /* CELLS 2.0 (2026-10-05): territory map (kill: cell-territory-map)
-           + competition seasons (kill: cell-comp-seasons). Mount next to the
-           war map on /cells. */
+           + competition seasons (kill: cell-comp-seasons). Moved here from
+           /cells in the Blossom S2 split. */
         ['cell-territory-map', 'pf-ov-territory-map'],
         ['cell-comp-seasons', 'pf-ov-cellcomp-seasons'],
-        /* REDISTRIBUTION LAYER Phase B (2026-10-05): Supply Line Raid —
-           bespoke cell home (silo key 'raid'). Cell-scoped rounds; cell_id
-           comes from the cell context the cells stack already loaded
-           (never URL params). Non-members get the join-a-cell nudge. */
-        ['raid', 'pf-ov-raid']
+        /* Battles (kill: battles) — silo ships in bundle-arcade.js, loaded
+           on this page by the footer isCellWar mapping. */
+        ['battles', 'pf-ov-battles']
       ]
     },
     'pf-create': {
@@ -133,6 +146,19 @@
            below the retail bank — Bank is retail, Reserve is monetary
            policy; they belong together on /bank. */
         ['reserve', 'pf-ov-reserve']
+      ]
+    },
+    /* BLOSSOM S3 (2026-10-06): THE PEOPLE'S ASSEMBLY — governance gets its
+       own home, split off /bank (its own LEAD magnet). games/governance.js
+       (also in bundle-hq-deep for /political-hq) loads on /governance via
+       the footer isGovernance JS_GAMES entry. Hand-step: Squarespace page
+       /governance carrying <div id="pf-governance"></div> (redirect queue). */
+    'pf-governance': {
+      title: "THE PEOPLE'S ASSEMBLY", sub: 'Propose. Vote. The network governs itself.',
+      phase: 'organize',
+      next: { href: '/follow-the-money', label: 'NEXT MOVE →' },
+      order: [
+        ['governance', 'pf-ov-gov']
       ]
     },
     'pf-economy': {
@@ -276,6 +302,9 @@
     sub.textContent = cfg.sub;
     head.appendChild(kicker); head.appendChild(title);
     head.appendChild(rule); head.appendChild(sub);
+    /* BLOSSOM (2026-10-06): spine phase on the injected header — pages
+       declare cfg.phase ('organize' etc.); unset pages carry no attribute. */
+    if (cfg.phase) { try { head.setAttribute('data-pf-spine-phase', cfg.phase); } catch (e2) {} }
     host.insertBefore(head, host.firstChild);
   }
 
@@ -305,7 +334,10 @@
      PAGE_ORDER entry declares no exit. */
   function mountExit(h, cfg) {
     try {
-      if (!cfg.exit || !cfg.exit.href) return;
+      /* BLOSSOM integration: accept both WS-A (exit:{text,href}) and
+         WS-B (next:{href,label}) declaration shapes. */
+      var e = cfg.exit || cfg.next;
+      if (!e || !e.href) return;
       var x = h.querySelector(':scope > .pf-next-move');
       if (!x) {
         x = document.createElement('a');
@@ -314,9 +346,9 @@
           'font-family:Arial,sans-serif;font-size:15px;font-weight:800;letter-spacing:3px;' +
           'color:#f5ead6;text-decoration:none;border:2px solid #c1121f;padding:14px 18px;' +
           'background:rgba(193,18,31,.12);border-radius:3px;box-sizing:border-box;';
-        x.href = cfg.exit.href;
+        x.href = e.href;
         var sp = document.createElement('span');
-        sp.textContent = cfg.exit.text || 'NEXT MOVE →';
+        sp.textContent = e.text || e.label || 'NEXT MOVE →';
         x.appendChild(sp);
       }
       h.appendChild(x); /* move to bottom */
@@ -350,7 +382,7 @@
      Best-effort: never throws, never breaks the mount. */
   var FE_MOUNT_IDS = [
     'pf-v2',
-    'pf-cells-page', 'pf-cell-hq',
+    'pf-cells-page', 'pf-cell-hq', 'pf-cell-war', 'pf-governance',
     'pf-arcade', 'pf-call-it', 'pf-liquidation',
     'pf-create', 'pf-bank', 'pf-economy',
     'pf-warchest', 'pf-ventures', 'pf-events', 'pf-warreport',

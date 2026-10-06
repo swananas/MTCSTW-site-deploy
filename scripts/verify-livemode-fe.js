@@ -439,7 +439,7 @@ var RALLY_PAYLOAD = {
       [s.board && s.board._h, '/arcade#pf-forecasts', 'board: deep link out'],
       [s.calls && s.calls._h, 'Will the runoff go progressive?', 'calls: question title'],
       [s.calls && s.calls._h, 'CLOSES IN', 'calls: lock text'],
-      [s.calls && s.calls._h, '/call-it', 'calls: deep link out'],
+      [s.calls && s.calls._h, '/arcade#pf-forecasts', 'calls: deep link out'],
       [s.news && s.news._h, 'Senate race tightens', 'news: story headline'],
       [s.news && s.news._h, 'OPEN MARKETS ON THE BOARD', 'news: event data strip'],
       [s.rally && s.rally._h, 'Bayou Brigade', 'rally: leaderboard row'],

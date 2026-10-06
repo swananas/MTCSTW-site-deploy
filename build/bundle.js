@@ -310,6 +310,14 @@ var SECTIONS = {
        Creator HQ Content Bank area, silent no-op elsewhere.
        Kill: ?pf_off=bank-meta. No XP anywhere in this module. */
     'bank-browse.js',
+    /* DATA BOUNTY PROMPTS (2026-10-06, CEO directive): the intake valve of
+       the content-to-action machine — system-generated bounties for
+       user-confirmed data + PHOTO bounties (user-taken pictures: protests,
+       events, price tags, community actions, evidence). Self-mounts into
+       #pf-data-bounties (workshop dock host, pre-created by the shell);
+       registers as a /create workshop tool; pins cell-targeted bounties on
+       #pf-cell-hq. Kill: ?pf_off=databounties. */
+    'data-bounties.js',
     /* WORKSHOP SHELL adapters (2026-10-05): last in the bundle — registers
        all nine /create tool adapters with PFWorkshop and runs the initial
        #pf-tool= / ?for= route. */

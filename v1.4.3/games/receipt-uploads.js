@@ -10,33 +10,42 @@
    points count 1× in every aggregate, ZERO XP anywhere in this flow.
 
    BACKEND CONTRACT (backend implements; this module consumes — all
-   callsign-authenticated; every failure is fail-closed):
-     receipt_upload  POST multipart {type:'price', pr_action:'receipt_upload',
-       report_id, image, consent_version, callsign, device, auth_secret}
+   callsign-authenticated; every failure is fail-closed). SINGLE SOURCE OF
+   TRUTH IS THE BACKEND — the frontend aligns to its contract exactly:
+     receipt_upload  POST multipart {report_id, image, consent_version,
+       callsign, device, auth_secret} — NO type/pr_action form fields; the
+       worker's multipart rail sets type:'receipt', rc_action:'receipt_upload'
+       itself and ignores any form-sent routing keys
        -> {ok:true, receipt:{id, status:'pending'}} |
-          {ok:false, error:'disabled'|'waitlist'|'not_in_cohort'|'too_large'|
-           'bad_type'|'daily_cap'|'pii_quarantined'|...}
-     receipt_delete  POST JSON {type:'price', pr_action:'receipt_delete',
+          {ok:false, error:'disabled'|'beta_required'|'beta_waitlisted'|
+           'forbidden'|'consent_required'|'too_large'|'bad_image'|
+           'daily_limit'|'pii_detected'|'duplicate_image'|...}
+     receipt_delete  POST JSON {type:'receipt', rc_action:'receipt_delete',
        receipt_id, ...auth} -> {ok:true}
-     my_receipts     GET ?action=my_receipts&...auth
-       -> {ok:true, receipts:[{id, report_id, item_id, item_name, price_cents,
-           receipt_date, store_name, status, image_url (worker-proxied,
-           time-limited — NEVER a direct R2 URL), reject_reason,
-           uploaded_at}], beta:{in_cohort:bool, waitlist_position?}}
-     review_queue    GET ?action=review_queue&...auth (reviewer role)
-       -> {ok:true, queue:[{receipt_id, image_url, claimed_item,
-           claimed_price_cents, claimed_date, claimed_store}]}
+     my_receipts     GET ?action=my_receipts&callsign=&auth_secret=
+       -> {ok:true, receipts:[{id, report_id, item_id, price_cents,
+           reported_at, status, uploaded_at, reviewed_at, rejection_note,
+           image_url (relative ?action=receipt_image&... — absolutized
+           against the WORKER origin, never Squarespace), ...}],
+           beta:{in_cohort:bool}}
+     review_queue    GET ?action=review_queue&callsign=&auth_secret= (reviewer role)
+       -> {ok:true, queue:[{receipt_id, image_url, is_audit,
+           claimed:{item_id, item_name, price_cents, reported_date, store},
+           verified_fields?, uploaded_at}], double_review, audit_pct,
+           store_list:[...closed chain names...]}
        Reviewer blindness: NO uploader callsign is ever returned or rendered.
-     review_decide   POST JSON {type:'price', pr_action:'review_decide',
-       receipt_id, decision:'verified'|'rejected', reason?, pii_flag?, ...auth}
-     reviewer_apply  POST JSON {type:'price', pr_action:'reviewer_apply', ...auth}
-       -> {ok:true} (orientation acknowledged; quiz follows)
-     reviewer_quiz_submit  POST JSON {type:'price', pr_action:'reviewer_quiz_submit',
-       answers:[...], ...auth} -> {ok:true, passed:bool, score?}
-   The GET rail dispatches on ?action= (public-GET pattern); the POST rail
-   dispatches on the JSON BODY {type:'price', pr_action} (body-only — a bare
-   ?action= query param is ignored by dispatch). Multipart carries type +
-   pr_action as form fields so the same dispatch sees it.
+     review_decide   POST JSON {type:'receipt', rc_action:'review_decide',
+       receipt_id, decision:'verified'|'rejected',
+       reject_reason?, store_name?, receipt_date?, item_id?, price_cents?,
+       ...auth}
+       PII escape hatch: {decision:'pii_flag'} — quarantine + <=24h purge.
+     reviewer_apply  POST JSON {type:'receipt', rc_action:'reviewer_apply', ...auth}
+       -> {ok:true, applied, quiz:[{q, options}...] (BACKEND-SERVED —
+          this module owns no scenarios), pass_score, questions}
+     reviewer_quiz_submit  POST JSON {type:'receipt', rc_action:'reviewer_quiz_submit',
+       answers:[optionIndex...], ...auth} -> {ok:true, passed:bool, score}
+   The GET rail dispatches on ?action= with callsign+auth_secret params; the
+   POST rail dispatches on the JSON BODY {type:'receipt', rc_action}.
 
    MOUNTS (all silent no-ops when absent):
      - upload step: injected into the check-in card on the
@@ -101,6 +110,18 @@
   /* Server-supplied URL sink guard: http(s) only. Defense-in-depth on top
      of the contract (worker-proxied URLs only); a direct R2 URL or a
      javascript: payload never reaches an <img> src from this module. */
+  /* The backend signs image URLs as RELATIVE (?action=receipt_image&...) —
+     absolutize them against the WORKER origin (never the Squarespace
+     origin) before they reach an <img> src or the safeUrl guard. An
+     already-absolute URL passes through untouched. */
+  function absUrl(u) {
+    var s = String(u || '').trim();
+    if (!s) return '';
+    if (/^https?:\/\//i.test(s)) return s;
+    var base = String(BACKEND || '').replace(/\/+$/, '');
+    if (!base) return '';
+    return base + (s.charAt(0) === '?' || s.charAt(0) === '/' ? s : '/' + s);
+  }
   function safeUrl(u) {
     var s = String(u || '').trim();
     if (!/^https?:\/\//i.test(s)) return '';
@@ -154,8 +175,10 @@
 
   /* Consent copy version shipped with v1 (spec §2: versioned before beta;
      any change surfaces a delta notice — the backend stores consent_version
-     + consent_at per receipt for audit). */
-  var CONSENT_VERSION = '2026-10-05-v1';
+     + consent_at per receipt for audit). MUST equal the backend's
+     CONSENT_VERSION exactly ('receipt-consent-v1') or every upload fails
+     with consent_required. */
+  var CONSENT_VERSION = 'receipt-consent-v1';
 
   /* Shown at EVERY upload, never cached as a blanket opt-in (§2 element 4).
      All six required elements: (1) "kept indefinitely" plainly, (2) the
@@ -229,32 +252,10 @@
     'If you spot payment details, you\u2019re shielding a comrade from exposure \u2014 hit \u201cReport PII\u201d. Don\u2019t copy it, don\u2019t screenshot it, don\u2019t download it. The photo is quarantined and purged within 24 hours, and the uploader\u2019s price report still counts.'
   ];
 
-  /* 10-item calibration quiz (spec §5: Security/Psych-reviewed). Frontend
-     renders the scenarios; the BACKEND grades (reviewer_quiz_submit takes
-     {answers:[optionIndex...]}). Keep these aligned with the backend key:
-     every scenario tests one orientation rule. */
-  var QUIZ = [
-    { q: 'A receipt shows eggs at a line-item price of $4.29, with a store total of $18.55. The report says eggs, $4.29. Your call?',
-      o: ['Verified \u2014 the line-item price is the price that matters', 'Reject \u2014 the total doesn\u2019t match', 'Reject \u2014 can\u2019t be sure'] },
-    { q: 'A receipt shows only a store total of $18.55 \u2014 no line items are readable. The report says eggs, $18.55. Your call?',
-      o: ['Verified \u2014 the total matches', 'Reject \u2014 the item and its price can\u2019t be read', 'Report PII'] },
-    { q: 'The receipt clearly shows milk, $3.99. The report says eggs, $3.99. Your call?',
-      o: ['Verified \u2014 the price matches', 'Reject \u2014 the receipt shows a different item', 'Verified \u2014 close enough'] },
-    { q: 'Item, price, and store are all readable, but the date is smudged beyond reading. Your call?',
-      o: ['Verified \u2014 three out of four is fine', 'Reject \u2014 no readable date', 'Report PII'] },
-    { q: 'The receipt\u2019s line-item price is $5.49. The report says $4.29. Your call?',
-      o: ['Verified \u2014 prices move', 'Reject \u2014 the price doesn\u2019t match the report', 'Report PII'] },
-    { q: 'You can clearly read a full card number on the receipt photo. Your call?',
-      o: ['Reject it as unreadable', 'Hit \u201cReport PII\u201d \u2014 flag it, don\u2019t copy anything', 'Verify it \u2014 the four facts check out'] },
-    { q: 'The photo is a little blurry, but the item, price, date, and store are all legible. Your call?',
-      o: ['Verified \u2014 legible is legible', 'Reject \u2014 too blurry to trust', 'Report PII'] },
-    { q: 'The receipt has duplicated regions and the totals are mathematically impossible. Your call?',
-      o: ['Reject \u2014 clear signs of tampering', 'Verified \u2014 maybe the register glitched', 'Reject \u2014 can\u2019t read the item'] },
-    { q: 'There\u2019s a handwritten phone number on the receipt. The four facts check out otherwise. Your call?',
-      o: ['Verify it \u2014 the facts check out', 'Hit \u201cReport PII\u201d \u2014 that\u2019s someone\u2019s personal data', 'Reject \u2014 can\u2019t read the item'] },
-    { q: 'Something about the receipt \u201clooks odd\u201d to you, but the item, price, date, and store all check out. Your call?',
-      o: ['Reject \u2014 trust your gut', 'Verified \u2014 gut feelings aren\u2019t a reject reason', 'Report PII'] }
-  ];
+  /* Calibration quiz: the scenarios are SERVED BY THE BACKEND
+     (reviewer_apply returns quiz:[{q, options}], answers stripped).
+     This module owns no scenarios and never grades — reviewer_quiz_submit
+     sends {answers:[optionIndex...]} and the backend grades. */
 
   /* Methodology footnote — rendered wherever verified data appears
      (spec §7 rule 4): the four checks, v1 = 1× badge-only (zero XP, no
@@ -324,7 +325,7 @@
     var done = function (j) { try { cb(j || { ok: false, err: 'Network error.' }); } catch (e) {} };
     if (!BACKEND) { done(null); return; }
     var id = ident(), sec = authSecret();
-    var body = { type: 'price', pr_action: prAction };
+    var body = { type: 'receipt', rc_action: prAction };
     for (var k in (params || {})) body[k] = params[k];
     if (id.callsign) body.callsign = id.callsign;
     if (id.device) body.device = id.device;
@@ -360,8 +361,9 @@
       var fd = null;
       try {
         fd = new FormData();
-        fd.append('type', 'price');
-        fd.append('pr_action', prAction);
+        /* Routing lives on the worker's multipart rail (type:'receipt',
+           rc_action:'receipt_upload' set server-side) — the form carries
+           NO type/pr_action fields, which the rail would reject anyway. */
         for (var k in (fields || {})) fd.append(k, fields[k]);
         fd.append('image', file, file.name || 'receipt.jpg');
         if (id.callsign) fd.append('callsign', id.callsign);
@@ -414,7 +416,10 @@
      and from receipt_upload's waitlist-class errors. The server ALWAYS
      enforces the 200-cohort cap — this is UX only (which control to show). */
   var betaState = 'unknown';
-  var WAITLIST_ERRORS = ['waitlist', 'not_in_cohort', 'cohort_full', 'beta_closed'];
+  /* The BACKEND's actual waitlist-class codes (single source of truth):
+     beta_required (not opted in), beta_waitlisted (over the 200 cap),
+     forbidden (upload privilege revoked). */
+  var WAITLIST_ERRORS = ['beta_required', 'beta_waitlisted', 'forbidden'];
   function noteBetaFromUpload(j) {
     var ec = String((j && (j.err || j.error)) || '').toLowerCase();
     for (var i = 0; i < WAITLIST_ERRORS.length; i++) {
@@ -530,12 +535,18 @@
                 panel.innerHTML = '<div style="' + SMALL + '">Receipt uploads are paused right now. Your price report still counts.</div>';
                 return;
               }
-              if (j && String(j.err || j.error || '') === 'daily_cap') {
+              if (j && String(j.err || j.error || '') === 'daily_limit') {
                 status('<span style="color:#e8a0a0;">You\u2019ve hit today\u2019s receipt-upload limit \u2014 try again tomorrow. Your price report still counts.</span>');
                 return;
               }
-              if (j && String(j.err || j.error || '') === 'pii_quarantined') {
+              if (j && String(j.err || j.error || '') === 'pii_detected') {
+                /* The Security-reviewed PII copy renders on the
+                   immediate-upload path (spec §3): the report still counts. */
                 status('<span style="color:#e8a0a0;">' + esc(PII_COPY) + '</span>');
+                return;
+              }
+              if (j && String(j.err || j.error || '') === 'consent_required') {
+                status('<span style="color:#e8a0a0;">Your consent needs to be re-confirmed for this upload \u2014 please try again. Your price report still counts.</span>');
                 return;
               }
               status('<span style="color:#e8a0a0;">Couldn\u2019t upload right now \u2014 your price report still counts. Try again later.</span>');
@@ -633,7 +644,7 @@
   }
 
   function receiptCard(r) {
-    var img = safeUrl(r.image_url);
+    var img = safeUrl(absUrl(r.image_url));
     var name = r.item_name || r.item_id || 'item';
     var h = '<div data-pf-rc-id="' + esc(String(r.id)) + '" style="background:#0d0d0d;border:1px solid #3a3a3a;border-radius:8px;padding:14px;">';
     if (img) {
@@ -768,7 +779,7 @@
     ORIENTATION.forEach(function (p) {
       h += '<div style="background:#0d0d0d;border:1px solid #3a3a3a;border-radius:8px;padding:12px;margin-bottom:8px;font-size:13.5px;line-height:1.6;">' + esc(p) + '</div>';
     });
-    h += '<div style="' + SMALL + 'margin:10px 0;">Reviewers: established callsign, no abuse flags, at least 5 price reports filed. Pass the 10-question calibration below to start. Privilege is revocable at any time.</div>' +
+    h += '<div style="' + SMALL + 'margin:10px 0;">Reviewers: established callsign, no abuse flags, at least 5 price reports filed. Pass the calibration quiz below to start. Privilege is revocable at any time.</div>' +
       '<button data-pf-rv-apply style="' + BTN + '">I UNDERSTAND \u2014 BECOME A REVIEWER</button>' +
       '<div data-pf-rv-msg style="margin-top:10px;font-size:14px;"></div>' +
       '</div>';
@@ -781,20 +792,30 @@
           msg.innerHTML = '<span style="color:#e8a0a0;">Couldn\u2019t enlist you right now. Try again later.</span>';
           return;
         }
-        renderQuiz(host);
+        renderQuiz(host, j.quiz, j.pass_score);
       });
     };
   }
 
-  function renderQuiz(host) {
+  /* The calibration quiz is SERVED BY THE BACKEND (reviewer_apply returns
+     quiz:[{q, options}], answers stripped) and GRADED by the backend
+     (reviewer_quiz_submit). This module renders and collects — never
+     owns scenarios, never grades. */
+  function renderQuiz(host, quiz, passScore) {
     if (off()) return;
+    var qz = Array.isArray(quiz) ? quiz : [];
+    var nq = qz.length;
+    if (!nq) {
+      host.innerHTML = '<div style="' + CSS + '"><div style="color:#e8a0a0;">The quiz didn\u2019t load \u2014 try enlisting again.</div></div>';
+      return;
+    }
     var h = '<div style="' + CSS + '">' +
       '<h2 style="margin:0 0 4px;font-size:22px;letter-spacing:1px;">CALIBRATION QUIZ</h2>' +
-      '<div style="font-size:14px;color:#d8d0c0;margin-bottom:12px;">10 scenarios. Answer like the orientation taught you \u2014 the four checks, nothing else.</div>';
-    QUIZ.forEach(function (it, qi) {
+      '<div style="font-size:14px;color:#d8d0c0;margin-bottom:12px;">' + nq + ' scenarios. Answer like the orientation taught you \u2014 the four checks, nothing else.</div>';
+    qz.forEach(function (it, qi) {
       h += '<div style="background:#0d0d0d;border:1px solid #3a3a3a;border-radius:8px;padding:12px;margin-bottom:10px;" data-pf-rv-q="' + qi + '">' +
         '<div style="font-size:14px;font-weight:bold;margin-bottom:8px;">' + (qi + 1) + '. ' + esc(it.q) + '</div>';
-      it.o.forEach(function (opt, oi) {
+      (it.options || []).forEach(function (opt, oi) {
         h += '<label style="display:block;font-size:13.5px;margin:5px 0;cursor:pointer;">' +
           '<input type="radio" name="pf-rv-q' + qi + '" value="' + oi + '" style="margin-right:8px;vertical-align:middle;">' + esc(opt) + '</label>';
       });
@@ -806,13 +827,13 @@
     host.innerHTML = h;
     host.querySelector('[data-pf-rv-submit]').onclick = function () {
       var answers = [], missing = false;
-      for (var qi = 0; qi < QUIZ.length; qi++) {
+      for (var qi = 0; qi < nq; qi++) {
         var sel = host.querySelector('input[name="pf-rv-q' + qi + '"]:checked');
         if (!sel) { missing = true; break; }
         answers.push(Number(sel.value));
       }
       var msg = host.querySelector('[data-pf-rv-msg]');
-      if (missing) { msg.innerHTML = '<span style="color:#e8a0a0;">Answer all 10 before submitting.</span>'; return; }
+      if (missing) { msg.innerHTML = '<span style="color:#e8a0a0;">Answer all ' + nq + ' before submitting.</span>'; return; }
       msg.innerHTML = '<span style="color:#b8b0a0;">Grading\u2026</span>';
       postJSON('reviewer_quiz_submit', { answers: answers }, function (j) {
         if (!j || j.ok !== true) {
@@ -863,31 +884,63 @@
         list.innerHTML = '<div style="color:#9fd6a0;">Queue\u2019s clear. Nothing assigned to you right now.</div>';
         return;
       }
+      var storeList = Array.isArray(j.store_list) ? j.store_list : [];
       list.innerHTML = '<div style="' + SMALL + 'margin-bottom:10px;">' + q.length + ' receipt' + (q.length === 1 ? '' : 's') + ' waiting.</div>' +
-        q.map(reviewCard).join('');
+        q.map(function (it) { return reviewCard(it, storeList); }).join('');
       var cards = list.querySelectorAll('[data-pf-rv-id]');
-      for (var i = 0; i < cards.length; i++) wireReviewCard(host, cards[i]);
+      for (var i = 0; i < cards.length; i++) wireReviewCard(host, cards[i], q[i]);
     });
   }
 
-  function reviewCard(it) {
-    var img = safeUrl(it.image_url);
+  /* Reviewer queue card — matches the BACKEND's claimed object shape
+     EXACTLY: nested claimed:{item_id, item_name, price_cents, reported_date,
+     store} (read it.claimed.*, never the old flat fields). The verify
+     path collects the four extracted facts the backend requires:
+     store_name (server-provided closed list), receipt_date, item_id and
+     price_cents (prefilled from the claimed facts the reviewer confirmed
+     against the photo). Reviewer blindness: the uploader's callsign is
+     never returned by the backend and never rendered. */
+  function reviewCard(it, storeList) {
+    var img = safeUrl(absUrl(it.image_url));
+    var cl = it.claimed || {};
+    var stores = Array.isArray(storeList) ? storeList : [];
     var h = '<div data-pf-rv-id="' + esc(String(it.receipt_id)) + '" style="background:#0d0d0d;border:1px solid #3a3a3a;border-radius:8px;padding:14px;margin-bottom:12px;">';
     if (img) {
       h += '<img src="' + esc(img) + '" alt="Assigned receipt" style="max-width:100%;border-radius:6px;border:1px solid #444;display:block;margin-bottom:10px;" loading="lazy">';
     } else {
       h += '<div style="' + SMALL + 'margin-bottom:10px;">Image unavailable \u2014 skip this one.</div>';
     }
-    /* The CLAIMED facts only. The uploader's callsign is never returned by
-       the backend and never rendered (reviewer blindness). */
+    /* The CLAIMED facts only (nested claimed object — the backend contract). */
     h += '<div style="font-size:13px;color:#b8b0a0;margin-bottom:2px;">CLAIMED</div>' +
-      '<div style="font-size:14px;"><b>' + esc(String(it.claimed_item || '—')) + '</b> \u2014 ' + esc(money(it.claimed_price_cents)) + '</div>' +
-      '<div style="' + SMALL + 'margin-top:2px;">Date: ' + esc(fmtDate(it.claimed_date)) +
-      ' \u00b7 Store: ' + esc(String(it.claimed_store || '—').slice(0, 64)) + '</div>' +
-      '<div style="margin-top:12px;">' +
+      '<div style="font-size:14px;"><b>' + esc(String(cl.item_name || cl.item_id || '\u2014')) + '</b> \u2014 ' + esc(money(cl.price_cents)) + '</div>' +
+      '<div style="' + SMALL + 'margin-top:2px;">Date: ' + esc(fmtDate(cl.reported_date)) +
+      ' \u00b7 Store: ' + esc(String(cl.store || '\u2014').slice(0, 64)) + '</div>';
+    if (it.is_audit && it.verified_fields) {
+      var vf = it.verified_fields;
+      h += '<div style="' + SMALL + 'margin-top:4px;">On record: ' + esc(String(vf.store_name || '')) +
+        ' \u00b7 ' + esc(String(vf.receipt_date || '')) + ' \u00b7 ' + esc(money(vf.price_cents)) + '</div>';
+    }
+    h += '<div style="margin-top:12px;">' +
       '<button data-pf-rv-yes style="' + BTN + 'margin-right:8px;">VERIFIED</button>' +
       '<button data-pf-rv-no style="' + BTN_GHOST + 'margin-right:8px;">REJECT</button>' +
       '<button data-pf-rv-pii style="' + BTN_GHOST + 'border-color:#c1121f;color:#e8a0a0;">REPORT PII</button>' +
+      '</div>' +
+      /* Verify form: the four extracted facts the backend validates. Item +
+         price ride the claimed values the reviewer confirmed on the photo;
+         store comes from the server-provided closed list; the date is read
+         from the receipt (YYYY-MM-DD, within 7 days before the report). */
+      '<div data-pf-rv-verify style="margin-top:10px;display:none;">' +
+      '<div style="font-size:13px;color:#b8b0a0;margin-bottom:6px;">CONFIRM THE FOUR FACTS FROM THE PHOTO</div>' +
+      '<div style="font-size:13px;margin-bottom:6px;">Item: <b>' + esc(String(cl.item_name || cl.item_id || '')) + '</b>' +
+      ' \u00b7 Price: <b>' + esc(money(cl.price_cents)) + '</b></div>' +
+      '<label style="display:block;font-size:13px;margin-bottom:4px;">STORE (from the receipt)</label>' +
+      '<select data-pf-rv-store style="width:100%;box-sizing:border-box;background:#0a0a0a;color:#f5f0e6;border:2px solid #444;border-radius:6px;padding:10px;font-size:14px;margin-bottom:8px;">' +
+      stores.map(function (nm) { return '<option value="' + esc(nm) + '">' + esc(nm) + '</option>'; }).join('') +
+      '</select>' +
+      '<label style="display:block;font-size:13px;margin-bottom:4px;">RECEIPT DATE (YYYY-MM-DD)</label>' +
+      '<input data-pf-rv-date type="text" value="' + esc(fmtDate(cl.reported_date)) + '" placeholder="2026-10-04" style="width:100%;box-sizing:border-box;background:#0a0a0a;color:#f5f0e6;border:2px solid #444;border-radius:6px;padding:10px;font-size:14px;margin-bottom:8px;">' +
+      '<div style="margin-top:8px;"><button data-pf-rv-yes-go style="' + BTN + 'margin-right:8px;">CONFIRM VERIFIED</button>' +
+      '<button data-pf-rv-yes-cancel style="' + BTN_GHOST + '">BACK</button></div>' +
       '</div>' +
       '<div data-pf-rv-reason style="margin-top:10px;display:none;">' +
       '<label style="display:block;font-size:13px;margin-bottom:4px;">REASON</label>' +
@@ -902,8 +955,9 @@
     return h;
   }
 
-  function wireReviewCard(host, card) {
+  function wireReviewCard(host, card, it) {
     var rid = card.getAttribute('data-pf-rv-id');
+    var cl = (it && it.claimed) || {};
     var doneBox = card.querySelector('[data-pf-rv-done]');
     function decided(html) {
       try {
@@ -912,10 +966,8 @@
         for (var i = 0; i < btns.length; i++) { btns[i].disabled = true; btns[i].style.opacity = '0.4'; }
       } catch (e) {}
     }
-    function decide(decision, reason, piiFlag) {
-      var payload = { receipt_id: String(rid), decision: decision };
-      if (reason) payload.reason = reason;
-      if (piiFlag) payload.pii_flag = 1;
+    function decide(payload, doneMsg) {
+      payload.receipt_id = String(rid);
       postJSON('review_decide', payload, function (j) {
         if (!j || j.ok !== true) {
           decided('<span style="color:#e8a0a0;">Decision didn\u2019t land \u2014 nothing changed. Try again.</span>');
@@ -925,9 +977,7 @@
         }
         /* Beta double-review: two agreeing reviewers verify. The card
            leaves this reviewer's queue either way. */
-        if (piiFlag) decided('<span style="color:#9fd6a0;">Flagged \u2014 the photo is quarantined and purges within 24 hours. You shielded the uploader.</span>');
-        else if (decision === 'verified') decided('<span style="color:#9fd6a0;">Marked verified. The uploader gets a quiet checkmark \u2014 no XP, no fanfare.</span>');
-        else decided('<span style="color:#b8b0a0;">Rejected with a plain-language reason for the uploader. Their price report still counts.</span>');
+        decided(doneMsg);
         setTimeout(function () {
           try {
             if (card.isConnected) { card.remove(); }
@@ -937,7 +987,24 @@
         }, 1200);
       });
     }
-    card.querySelector('[data-pf-rv-yes]').onclick = function () { decide('verified'); };
+    var verifyBox = card.querySelector('[data-pf-rv-verify]');
+    card.querySelector('[data-pf-rv-yes]').onclick = function () {
+      verifyBox.style.display = 'block';
+      try { verifyBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) {}
+    };
+    card.querySelector('[data-pf-rv-yes-cancel]').onclick = function () { verifyBox.style.display = 'none'; };
+    card.querySelector('[data-pf-rv-yes-go]').onclick = function () {
+      var storeSel = card.querySelector('[data-pf-rv-store]');
+      var dateEl = card.querySelector('[data-pf-rv-date]');
+      /* review_decide verify payload, backend-exact:
+         {decision, reject_reason?, store_name, receipt_date, item_id, price_cents} */
+      decide({ decision: 'verified',
+        store_name: storeSel ? storeSel.value : '',
+        receipt_date: dateEl ? String(dateEl.value || '').trim() : '',
+        item_id: String(cl.item_id || ''),
+        price_cents: Number(cl.price_cents) || 0 },
+        '<span style="color:#9fd6a0;">Marked verified. The uploader gets a quiet checkmark \u2014 no XP, no fanfare.</span>');
+    };
     var reasonBox = card.querySelector('[data-pf-rv-reason]');
     card.querySelector('[data-pf-rv-no]').onclick = function () {
       reasonBox.style.display = 'block';
@@ -946,14 +1013,16 @@
     card.querySelector('[data-pf-rv-no-cancel]').onclick = function () { reasonBox.style.display = 'none'; };
     card.querySelector('[data-pf-rv-no-go]').onclick = function () {
       var sel = card.querySelector('[data-pf-rv-reason-sel]');
-      decide('rejected', sel ? sel.value : 'item_unreadable');
+      decide({ decision: 'rejected', reject_reason: sel ? sel.value : 'item_unreadable' },
+        '<span style="color:#b8b0a0;">Rejected with a plain-language reason for the uploader. Their price report still counts.</span>');
     };
-    /* Report PII escape hatch (§3): quarantine + ≤24h purge, reviewer never
-       downloads or copies the image. The internal 'pii_detected' code rides
-       the API; the uploader sees the Security-reviewed quarantine copy. */
+    /* Report PII escape hatch (§3): the backend-exact payload is
+       {decision:'pii_flag'} — quarantine + ≤24h purge, reviewer never
+       downloads or copies the image. */
     card.querySelector('[data-pf-rv-pii]').onclick = function () {
       if (window.confirm('Flag this photo for payment details? It will be quarantined and purged within 24 hours. The uploader\u2019s report still counts.')) {
-        decide('rejected', 'pii_detected', 1);
+        decide({ decision: 'pii_flag' },
+          '<span style="color:#9fd6a0;">Flagged \u2014 the photo is quarantined and purges within 24 hours. You shielded the uploader.</span>');
       }
     };
   }

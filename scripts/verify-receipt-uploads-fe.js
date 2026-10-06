@@ -90,8 +90,8 @@ else no('kill switch', 'header does not document ?pf_off=receipt_uploads');
 
 console.log('== 3. consent ==');
 var m = src.match(/var CONSENT_VERSION = '([^']+)'/);
-if (m && m[1]) { ok('consent version shipped: ' + m[1]); }
-else no('consent', 'CONSENT_VERSION constant missing');
+if (m && m[1] === 'receipt-consent-v1') { ok('consent version shipped: receipt-consent-v1 (backend-exact)'); }
+else no('consent', 'CONSENT_VERSION must be exactly receipt-consent-v1, got ' + (m ? m[1] : 'missing'));
 [['kept indefinitely', 'indefinite holding, plain'],
  ['the item, the price, the date, and the store name', 'four extracted fields'],
  ['We never keep card numbers', "what's never kept"],
@@ -187,16 +187,19 @@ if (has(src, 'You\\u2019re on the waitlist \\u2014 we\\u2019ll open your spot so
 else no('beta', 'waitlist line not exact');
 if (has(src, 'beta.in_cohort') || has(src, 'in_cohort')) ok('cohort read from my_receipts beta');
 else no('beta', 'beta.in_cohort not read');
-[['waitlist', 1], ['not_in_cohort', 1], ['cohort_full', 1], ['beta_closed', 1]].forEach(function (pair) {
+/* The BACKEND's actual waitlist-class codes (single source of truth) —
+   beta_required / beta_waitlisted / forbidden — must be the ones mapped
+   to the waitlist UI. */
+[['beta_required', 1], ['beta_waitlisted', 1], ['forbidden', 1]].forEach(function (pair) {
   if (has(src, "'" + pair[0] + "'")) ok('waitlist-class error: ' + pair[0]);
-  else no('beta', 'missing error class ' + pair[0]);
+  else no('beta', 'missing BE error class ' + pair[0]);
 });
 
 console.log('== 11. my receipts ==');
 if (has(src, "'my_receipts'")) ok('my_receipts GET wired');
 else no('history', 'my_receipts missing');
-if (has(src, 'safeUrl(r.image_url)') || has(src, 'safeUrl(it.image_url)')) ok('images via safeUrl (worker-proxied only)');
-else no('history', 'image URLs not safeUrl-guarded');
+if (has(src, 'safeUrl(absUrl(')) ok('images via absUrl+safeUrl (worker-origin absolutized, proxied only)');
+else no('history', 'image URLs not absUrl+safeUrl-guarded');
 if (has(src, 'r2\\.cloudflarestorage')) ok('direct-R2 refusal guard present');
 else no('history', 'no direct-R2 refusal');
 if (has(src, 'receipt_records') || has(src, 'receipt_delete')) ok('delete path present per receipt');
@@ -211,10 +214,16 @@ console.log('== 12. reviewer surface ==');
   if (has(src, pair[0])) ok('orientation: ' + pair[1]);
   else no('reviewer', 'orientation missing: ' + pair[1]);
 });
-if (count(src, '{ q: ') === 10) ok('10-item calibration quiz');
-else no('reviewer', 'quiz is not 10 items (found ' + count(src, '{ q: ') + ')');
-if (has(src, "'reviewer_apply'") && has(src, "'reviewer_quiz_submit'")) ok('apply + quiz_submit wired');
-else no('reviewer', 'reviewer_apply/quiz_submit missing');
+/* Quiz is SERVED BY THE BACKEND (reviewer_apply returns quiz:[{q,options}]);
+   the frontend owns NO scenarios and never grades. */
+if (count(src, '{ q: ') === 0) ok('no FE-owned quiz scenarios (backend-served only)');
+else no('reviewer', 'frontend still owns ' + count(src, '{ q: ') + ' quiz scenarios');
+if (has(src, 'j.quiz') && has(src, 'it.options')) ok('quiz rendered from reviewer_apply response (q + options)');
+else no('reviewer', 'quiz not rendered from the BE response');
+if (has(src, "'reviewer_quiz_submit'") && has(src, 'answers: answers')) ok('quiz answers submitted to reviewer_quiz_submit (backend grades)');
+else no('reviewer', 'quiz submit path missing');
+if (has(src, "'reviewer_apply'")) ok('reviewer_apply wired');
+else no('reviewer', 'reviewer_apply missing');
 if (has(src, "'review_queue'")) ok('review_queue GET wired');
 else no('reviewer', 'review_queue missing');
 /* Reviewer blindness: reviewCard must never interpolate a uploader callsign
@@ -278,6 +287,49 @@ if (has(inf, "pf:price-reported") && has(inf, 'report_id: rep.id')) ok("inflatio
 else no('event', "inflation-tracker missing the dispatch");
 if (has(src, "d.report_id")) ok('receipt module reads report_id from event detail');
 else no('event', 'report_id not consumed');
+
+console.log('== 17. backend-contract alignment ==');
+/* Transport: the FRONTEND aligns to the BACKEND — {type:'receipt',
+   rc_action:...} on the JSON POST rail; the multipart form carries NO
+   type/pr_action routing fields. */
+if (has(src, "type: 'receipt'") && has(src, 'rc_action')) ok('receipt/rc_action transport');
+else no('contract', "missing type:'receipt' / rc_action transport");
+if (!/fd\.append\(['"](type|pr_action)['"]/.test(src)) ok('multipart carries no type/pr_action fields');
+else no('contract', 'multipart still appends type/pr_action');
+if (!/pr_action/.test(src.replace(/NO type\/pr_action/g, ''))) ok('no pr_action transport left');
+else no('contract', 'pr_action transport remnants');
+/* review_decide payload, backend-exact. */
+[['reject_reason', 'reject path'],
+ ['store_name', 'verify: store_name'],
+ ['receipt_date', 'verify: receipt_date'],
+ ['item_id', 'verify: item_id'],
+ ['price_cents', 'verify: price_cents'],
+ ["decision: 'pii_flag'", 'PII escape hatch']
+].forEach(function (pair) {
+  if (has(src, pair[0])) ok('review_decide payload: ' + pair[1]);
+  else no('contract', 'review_decide payload missing ' + pair[0]);
+});
+/* review_queue rendering: the backend's nested claimed shape. */
+if (has(src, 'it.claimed') || has(src, 'cl.item_name')) ok('review card reads nested claimed object');
+else no('contract', 'review card does not read the nested claimed object');
+if (!/claimed_item|claimed_price_cents|claimed_date|claimed_store/.test(src)) ok('no flat claimed_* fields');
+else no('contract', 'stale flat claimed_* fields present');
+/* Error codes: the backend's actual codes. */
+[['pii_detected', 'PII quarantine on upload path'],
+ ['daily_limit', 'rate limit'],
+ ['consent_required', 'consent gate']
+].forEach(function (pair) {
+  if (has(src, "'" + pair[0] + "'")) ok('error code mapped: ' + pair[0] + ' (' + pair[1] + ')');
+  else no('contract', 'error code not mapped: ' + pair[0]);
+});
+/* Image URLs: relative signed URLs absolutized against the WORKER origin. */
+if (has(src, 'function absUrl')) ok('absUrl absolutizes relative image URLs');
+else no('contract', 'absUrl missing');
+if (/worker origin/i.test(src)) ok('worker-origin absolutization documented');
+else no('contract', 'worker origin not documented');
+/* Store select comes from the backend's store_list (closed chain list). */
+if (has(src, 'store_list')) ok('review verify form uses backend store_list');
+else no('contract', 'store_list not consumed');
 
 console.log('\n' + passes + ' passed, ' + fails.length + ' failed.');
 if (fails.length) { fails.forEach(function (f) { console.log('FAIL: ' + f); }); process.exit(1); }

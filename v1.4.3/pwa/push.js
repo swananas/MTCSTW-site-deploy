@@ -15,7 +15,7 @@
    - Copy is plain and honest — no engagement bait, no streak-shaming.
    - Zero XP anywhere near push. No XP mechanics touched.
    LAYERING: a self-contained silo. Touches only public globals
-   (PF.toast, PF.errCopy, PF.authPost, PFCallsign, PF_BACKEND_URL) and the
+   (PF.toast, PF.errCopy, PF.authPost, PF.authGetJSONP, PFCallsign, PF_BACKEND_URL) and the
    Political HQ host div — never another silo's internals.
    BACKEND (separate build, spec section 4): actions push_vapid_public
    (public GET), push_subscribe / push_unsubscribe / push_prefs (callsign-
@@ -61,6 +61,21 @@
     try { dev = window.PFDeviceId ? window.PFDeviceId() : ''; } catch (e) {}
     return { callsign: cs, device: dev };
   }
+  function authSecret() {
+    try { return (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : ''; } catch (e) { return ''; }
+  }
+  /* Backend push_prefs reads topic flags TOP-LEVEL (p.daily_orders etc.);
+     a nested {prefs:{...}} is ignored and missing flags = read (silent
+     no-op). Always send all three flags explicitly. */
+  function flatPrefs(chosen) {
+    chosen = chosen || {};
+    return {
+      callsign: CS,
+      daily_orders: chosen.daily_orders ? 1 : 0,
+      draw_results: chosen.draw_results ? 1 : 0,
+      event_reminders: chosen.event_reminders ? 1 : 0
+    };
+  }
   /* JSONP GET (public actions) — mirrors games/notify-prefs.js api(). */
   function api(action, params, cb) {
     if (!BACKEND) { cb(null); return; }
@@ -86,9 +101,12 @@
     document.head.appendChild(s);
     setTimeout(function () { finish(null); }, 12000);
   }
-  /* Authed POST — mirrors games/notify-prefs.js post(). */
+  /* Authed POST — mirrors games/notify-prefs.js post().
+     Contract (backend POST rail, src/index.js + src/auth.js TYPE_KEY):
+     type:'push' + p_action (NOT push_action — the rail dispatches on
+     d.p_action, resolved from the type via TYPE_KEY). */
   function post(action, params, cb) {
-    var body = { type: 'push', push_action: action };
+    var body = { type: 'push', p_action: action };
     for (var k in params) { body[k] = params[k]; }
     if (window.PF && PF.authPost) { PF.authPost(BACKEND, body, cb); return; }
     function done(j) { try { cb(j || { ok: false, err: 'Network error.' }); } catch (e) {} }
@@ -280,7 +298,7 @@
             for (var ti = 0; ti < preTogs.length; ti++) {
               chosen[preTogs[ti].getAttribute('data-k')] = preTogs[ti].checked ? 1 : 0;
             }
-            post('push_prefs', { callsign: CS, prefs: chosen }, function () { loadPrefs(render); });
+            post('push_prefs', flatPrefs(chosen), function () { loadPrefs(render); });
           });
         }, function (e4) {
           if (btn) { btn.disabled = false; }
@@ -305,7 +323,7 @@
     var b = document.getElementById('ppSave'), lbl = b ? b.textContent : '';
     if (b) { b.disabled = true; b.textContent = 'SAVING\u2026'; }
     msg('Saving\u2026');
-    post('push_prefs', { callsign: CS, prefs: prefs }, function (j) {
+    post('push_prefs', flatPrefs(prefs), function (j) {
       if (b) { b.disabled = false; b.textContent = lbl; }
       if (j && j.ok) { PREFS = j.prefs || prefs; toast('Push preferences saved.'); msg(''); render(); }
       else { msg('Could not save. ' + errCopy(j, '')); }
@@ -318,7 +336,7 @@
     function zeroPrefs(done) {
       var all = {};
       for (var i = 0; i < TOPICS.length; i++) { all[TOPICS[i][0]] = 0; }
-      post('push_prefs', { callsign: CS, prefs: all }, function (j) {
+      post('push_prefs', flatPrefs(all), function (j) {
         PREFS = { daily_orders: 0, draw_results: 0, event_reminders: 0 };
         done();
       });
@@ -345,8 +363,14 @@
     });
   }
 
+  /* Authenticated prefs read — house pattern is PF.authGetJSONP (attaches
+     callsign/device/auth_secret with claim-retry self-heal, core/14-auth.js).
+     Falls back to the self-contained api() with a manually attached secret
+     where authGetJSONP isn't wired. push_prefs GET is per-callsign private
+     data — the backend auth-checks it, so an unauthenticated read always
+     fails and the UI would sit on all-OFF. */
   function loadPrefs(cb) {
-    api('push_prefs', { callsign: CS }, function (j) {
+    function done(j) {
       if (j && j.ok && j.prefs) {
         PREFS = {
           daily_orders: j.prefs.daily_orders ? 1 : 0,
@@ -357,7 +381,10 @@
         PREFS = { daily_orders: 0, draw_results: 0, event_reminders: 0 };
       }
       cb();
-    });
+    }
+    if (!BACKEND) { done(null); return; }
+    if (window.PF && PF.authGetJSONP) { PF.authGetJSONP(BACKEND, 'push_prefs', { callsign: CS }, done); return; }
+    api('push_prefs', { callsign: CS, auth_secret: authSecret() }, done);
   }
 
   /* ---------- init ---------- */

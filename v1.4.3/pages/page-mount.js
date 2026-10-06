@@ -207,6 +207,10 @@
            it aggregates every dated thing (IRL, draw, routines, deadlines).
            Kill ?pf_off=mastercal. */
         ['mastercal', 'pf-ov-mastercal'],
+        /* 2026-10-06 (fe/war-timeline, PLAY 5): the War Timeline — unified
+           mission-board timeline (impact-sorted + chronological toggle).
+           Kill ?pf_off=wartimeline. */
+        ['wartimeline', 'pf-ov-wartimeline'],
         /* 2026-10-05 (fe/events-platform): new events-platform silo —
            listings + RSVP, #e=<id> detail, field-report wall, photo
            check-ins. Zero XP. Kill ?pf_off=events. */

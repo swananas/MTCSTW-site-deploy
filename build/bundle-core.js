@@ -72,6 +72,11 @@ var CORE_FILES = [
      gets it. Fail-soft, DOM-fallback when the dopamine backend isn't live.
      Kill: ?pf_off=ugcdop. */
   'core/ugc-dopamine.js',
+  /* CartLens borrows for the UGC dopamine layer (CEO directive, 2026-10-06):
+     SCOUT badge for scout-priority bounties + "Check my photo" parse-assist
+     hook on photo/price claims. Hooks the bounty board via MutationObserver
+     only — does not modify the board's code. Fail-soft. Kill: ?pf_off=ugccartlens. */
+  'core/ugc-cartlens.js',
   'core/09-referral.js',
   /* R26 (2026-10-04): shared power-up/shield inventory chip. Core so every
      page bundle can mount it via PF.mountInventoryChip. */

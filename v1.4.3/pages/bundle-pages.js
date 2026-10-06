@@ -1420,11 +1420,14 @@
     'pf-events': {
       title: 'BOOTS ON THE GROUND', sub: 'Digital is the rehearsal. The street is the show.',
       order: [
-        ['irl', 'pf-ov-irl'],
-        /* 2026-10-05 (fe/events-move): Town Hall Tracker + protest/event map
-           moved here from Political HQ (wiring-map §7). Order: irl (existing
-           page anchor) → town halls → protest map. Kill switches survive the
-           move unchanged: ?pf_off=townhall / ?pf_off=civicevents. */
+        /* 2026-10-05 (fe/events-platform): the War Calendar mounts first.
+           Owned by the master-calendar coordinator — their bundle stages the
+           template; fail-soft skip until then. Kill ?pf_off=mastercal. */
+        ['mastercal', 'pf-ov-mastercal'],
+        /* 2026-10-05 (fe/events-platform): new events-platform silo —
+           listings + RSVP, #e=<id> detail, field-report wall, photo
+           check-ins. Zero XP. Kill ?pf_off=events. */
+        ['events', 'pf-ov-events'],
         ['townhall', 'pf-ov-townhall'],
         /* Lazy entry: entry[2] names the on-demand chunk. The template stages
            only when games/bundle-events-map.js loads (loader jsLazy()

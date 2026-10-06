@@ -329,7 +329,12 @@ var SECTIONS = {
     /* 2026-10-05 (fe/events-move): Town Hall Tracker moved from Political HQ
        (was fe/townhall-tracker's bundle-hq slot) to /events. Mounted by
        pages/page-mount.js PAGE_ORDERS['pf-events']; kill ?pf_off=townhall. */
-    'townhall.js'
+    'townhall.js',
+    /* 2026-10-05 (fe/events-platform): new events-platform silo — listings +
+       RSVP, #e=<id> detail, field-report wall, photo check-ins. Zero XP.
+       Mounted by pages/page-mount.js PAGE_ORDERS['pf-events'];
+       kill ?pf_off=events. */
+    'events.js'
   ],
   /* 2026-10-05 (fe/events-move): /events LAZY map chunk. The protest/event
      map (civic-events.js — OSM link-outs, NO tile-map SDK, hard ban honored)

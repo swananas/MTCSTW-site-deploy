@@ -286,6 +286,10 @@
     '.hq-order-t{margin:8px 0 4px;font-size:16px}' +
     '.hq-order-d{font-size:13.5px;line-height:1.5;opacity:.9;margin-bottom:8px}' +
     '.hq-note{font-size:12.5px;opacity:.8;line-height:1.5}' +
+    /* PLAY 7 (2026-10-06): rally-call cards. Kill: ?pf_off=cell-rally. */
+    '.hq-rally{border-color:#c1121f}' +
+    '.hq-rallyitem{border:2px solid #2e2e2e;background:#0d0d0d;padding:10px;margin:8px 0}' +
+    '.hq-rallytitle{font-weight:700;font-size:14px;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}' +
     /* CELLS 2.0 — Recruit panel. */
     '.hq-joiner{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid #222;font-size:13.5px}' +
     '.hq-in.linklike{flex:1;min-width:0;font-size:12px;font-family:monospace,monospace}' +
@@ -680,8 +684,14 @@
     if (!strikeOff() && cell && cell.id){
       h += '<div id="hqStrikeBody">'+loading('Issuing strike orders&hellip;')+'</div>';
     }
+    /* PLAY 7 (2026-10-06): RALLY CALLS — creator-milestone rally suggestions.
+       Placeholder; paintRallyCalls fills it async and fail-soft. */
+    if (!rallyOff() && cell && cell.id){
+      h += '<div id="hqRallyBody">'+loading('Scanning rally calls&hellip;')+'</div>';
+    }
     body.innerHTML = h;
     if (!strikeOff() && cell && cell.id){ paintStrikeOrders(body, cell.id, isFounder); }
+    if (!rallyOff() && cell && cell.id){ paintRallyCalls(body); }
     if (window.PFCellIdentity && window.PFCellIdentity.enabled() && cell && cell.id){
       paintIdentityBlock(body, cell, isFounder);
     }
@@ -1111,6 +1121,69 @@
     loadWar(function(j){ gotS=true; jS=j; paint(); });
     loadHistory(function(j){ gotH=true; jHh=j; paint(); });
     loadMarket(function(j){ gotM=true; jM=j; paint(); });
+  }
+
+  /* PLAY 7 (2026-10-06): RALLY CALLS — creator-milestone rally suggestions.
+     Suggestion ONLY: "RALLY AROUND THIS →" copies a rally message to the
+     clipboard (take-to-cell handoff — the leader pastes it wherever the
+     cell organizes). Nothing auto-posts to any cell. "MARK TAKEN" lets a
+     cell claim the call so others see it was picked up.
+     KILL: ?pf_off=cell-rally. Fail-soft: a failed read leaves no section —
+     it never blocks or breaks HQ. */
+  var rallyCache = {};
+  function rallyOff(){ try { return PF.skip('cell-rally'); } catch (e){ return false; } }
+  function rallyCopyText(s){
+    var msg = '🎯 RALLY CALL: ' + String(s.title||'') + '\n' + String(s.body||'') +
+      '\nTake it to your cell → https://www.mtcstw.com' + String(s.link||'/sick-left-radicals');
+    function done(){ toast('Rally copied — take it to your cell.'); }
+    function fallback(){
+      try{
+        var ta=document.createElement('textarea'); ta.value=msg;
+        ta.style.position='fixed'; ta.style.opacity='0';
+        document.body.appendChild(ta); ta.select();
+        try{ document.execCommand('copy'); }catch(e){}
+        document.body.removeChild(ta); done();
+      }catch(e){}
+    }
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(msg).then(done, fallback);
+      } else fallback();
+    }catch(e){ fallback(); }
+  }
+  function rallyActPost(rid, op, cb){
+    var id = ident();
+    if(!id.callsign){ toast('Claim a callsign first.'); cb(false); return; }
+    var sec='';
+    try{ sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():''; }catch(e){}
+    var body={type:'creatorfeed', cf_action:'rally_act', callsign:id.callsign, auth_secret:sec, id:rid, op:op};
+    function done(j){ try{ cb(j&&j.ok); }catch(e){ cb(false); } }
+    if(!BACKEND){ done(null); return; }
+    try{
+      fetch(BACKEND,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body)})
+        .then(function(r){ return r.json(); }).then(done, function(){ done(null); });
+    }catch(e){ done(null); }
+  }
+  function paintRallyCalls(body){
+    var box = null;
+    try{ box = body.querySelector ? body.querySelector('#hqRallyBody') : document.getElementById('hqRallyBody'); }catch(e){}
+    if(!box) return;
+    api('rally_suggestions', {}, function(j){
+      /* Fail-soft: no suggestions (or a failed read) = no section at all. */
+      if(!j || !j.ok || !(j.suggestions||[]).length){ try{ box.parentNode.removeChild(box); }catch(e){} return; }
+      var h='<div class="hq-card hq-rally"><h3>&#127919; Rally calls</h3>'+
+        '<div class="hq-note" style="margin-bottom:8px">Creator milestones worth rallying around. '+
+        'Suggestion only — your cell, your call. Nothing posts itself.</div>';
+      (j.suggestions||[]).forEach(function(s){
+        h+='<div class="hq-rallyitem"><div class="hq-rallytitle">'+esc(String(s.title||''))+'</div>'+
+          '<div class="hq-note">'+esc(String(s.body||''))+'</div>'+
+          '<div class="hq-row"><button class="hq-btn sm" data-rally="copy" data-rid="'+esc(String(s.id))+'">RALLY AROUND THIS &rarr;</button>'+
+          '<button class="hq-btn sm ghost" data-rally="taken" data-rid="'+esc(String(s.id))+'">MARK TAKEN</button></div></div>';
+      });
+      h+='</div>';
+      box.innerHTML=h;
+      try{ (j.suggestions||[]).forEach(function(s){ rallyCache[String(s.id)]=s; }); }catch(e){}
+    });
   }
 
   /* ---------- TAB 4: BROWSE ---------- */
@@ -1706,6 +1779,33 @@
           });
         }
         return;
+      }
+    }
+    /* PLAY 7 (2026-10-06): rally-call actions — intercept BEFORE the
+       data-hq walk so clicks aren't misattributed to an ancestor button.
+       "RALLY AROUND THIS →" copies the rally message (take-to-cell
+       handoff — nothing auto-posts). "MARK TAKEN" claims the call. */
+    if (t.closest){
+      var ra = t.closest('[data-rally]');
+      if (ra && mount.contains(ra)){
+        var rid = ra.getAttribute('data-rid'), rop = ra.getAttribute('data-rally');
+        if (rop === 'copy'){
+          var rs = rallyCache[String(rid)];
+          if (rs) rallyCopyText(rs);
+          return;
+        }
+        if (rop === 'taken'){
+          try{ ra.disabled = true; }catch(e){}
+          rallyActPost(rid, 'taken', function(wasOk){
+            try{ ra.disabled = false; }catch(e2){}
+            if (wasOk){
+              toast('Rally claimed — your cell is on it.');
+              var card = ra.closest('.hq-rallyitem');
+              if (card && card.parentNode) card.parentNode.removeChild(card);
+            } else toast('The wire fought back. Nothing changed — retry.');
+          });
+          return;
+        }
       }
     }
     while (t && t !== mount && !t.getAttribute('data-hq')) t = t.parentNode;

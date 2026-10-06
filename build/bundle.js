@@ -382,7 +382,9 @@ var SECTIONS = {
     'propaganda-fund.js'
   ],
   'bundle-warchest': [
-    /* /war-chest — Movement Finance. */
+    /* Movement Finance (games/movement.js) — mounted on /war-chest AND,
+       since BLOSSOM M3 (2026-10-06), on /ventures as the "Movement Funds"
+       section (loader ships this bundle for isVentures too). */
     'movement.js'
   ],
   'bundle-ventures': [

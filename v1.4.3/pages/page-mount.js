@@ -212,7 +212,12 @@
     'pf-ventures': {
       title: 'JOINT VENTURES', sub: 'Pool up. Back creators. Share the spoils.',
       order: [
-        ['ventures', 'pf-ov-ventures']
+        ['ventures', 'pf-ov-ventures'],
+        /* BLOSSOM M3 (2026-10-06): /war-chest folds into /ventures as the
+           "Movement Funds" section — same movement silo, same
+           pf-ov-movement template, new home. The loader ships
+           games/bundle-warchest.js on #pf-ventures so the template stages. */
+        ['movement', 'pf-ov-movement']
       ]
     },
     'pf-events': {

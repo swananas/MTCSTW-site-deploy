@@ -91,7 +91,8 @@
     ['CREATE', '/create'],
     ['BANK', '/bank'],
     ['ECONOMY', '/economy'],
-    ['WAR CHEST', '/war-chest'],
+    /* BLOSSOM M3 (2026-10-06): /war-chest folds into /ventures — the
+       VENTURES entry now covers the Movement Funds section; no duplicate. */
     ['VENTURES', '/ventures'],
     ['EVENTS', '/events'],
     ['WAR REPORT', '/war-report']

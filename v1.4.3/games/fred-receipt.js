@@ -410,7 +410,7 @@
       h += '<button type="button" class="pf-rc-share" data-rc-share>SHOW THE GAP</button>';
     }
     h += '<div class="pf-rc-xlinks">Checked the receipts? Now ' +
-      '<a href="https://www.mtcstw.com/money#pf-stackem">stack two numbers</a> · ' +
+      '<a href="https://www.mtcstw.com/follow-the-money#pf-stackem">stack two numbers</a> · ' +
       '<a href="https://www.mtcstw.com/economy#pf-explain">translate the economy</a></div>';
     h += '</div>';
     el.innerHTML = h;

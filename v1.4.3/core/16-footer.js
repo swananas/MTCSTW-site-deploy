@@ -226,8 +226,9 @@
      (id pf-delete-data-link) is created once and moved, never duplicated. */
   /* R13 (2026-10-04): "claim your wall spot" card on /store. Path-gated —
      only renders on store pages; dismissible; never duplicates. The buyer
-     wall itself lives on /war-chest (#pf-bond-wall). Receipt-page copy is
-     Shane's hand-step; this card catches every store visitor. */
+     wall itself lives on /ventures (#pf-bond-wall, the Movement Funds
+     section; BLOSSOM M3 2026-10-06 folded /war-chest in). Receipt-page copy
+     is Shane's hand-step; this card catches every store visitor. */
   function storeCard(){
     if(document.getElementById('pf-store-wall')) return;
     var p='';
@@ -239,7 +240,7 @@
       d.style.cssText='background:#0d0d0d;color:#f5ead6;border-bottom:3px solid #c1121f;'+
         'font:bold 13px/1.5 Arial,sans-serif;letter-spacing:1px;text-align:center;'+
         'padding:10px 44px 10px 12px;position:relative;z-index:9990;';
-      d.innerHTML='BOUGHT A BOND? <a href="/war-chest#pf-bond-wall" style="color:#fff;text-decoration:underline;">CLAIM YOUR WALL SPOT &rarr;</a>';
+      d.innerHTML='BOUGHT A BOND? <a href="/ventures#pf-bond-wall" style="color:#fff;text-decoration:underline;">CLAIM YOUR WALL SPOT &rarr;</a>';
       var x=document.createElement('span');
       x.textContent='\u00d7';
       x.style.cssText='position:absolute;right:12px;top:8px;font-size:20px;cursor:pointer;color:#f5ead6;';

@@ -520,6 +520,51 @@ function reportHtml(r){
     +emailPaneHtml()
     +nextActionRow();
 }
+/* UX NEWS COMBOS (2026-10-06, fe/ux-news-combos): WAR REPORT -> DAILY ORDER.
+   The report body's "NEXT WEEK — ORDERS:" bullets each get a
+   "MAKE THIS A DAILY ORDER →" action that stages the item as a Daily Order
+   candidate via PF.newsCombos.submitOrderCandidate. Fail-open: unparseable
+   body -> no panel; engine absent/killed -> nothing renders, never a
+   broken button. One delegated listener per paint handles all bullets. */
+function wrComboOrdersPanel(body){
+  try{
+    if(!window.PF||!PF.newsCombos) return "";
+    if(!PF.newsCombos.enabled('ux-combos-warreport')) return "";
+    var orders=PF.newsCombos.parseWarOrders(body||"");
+    if(!orders.length) return "";
+    var h='<div class="x-pane" style="border:2px solid #c1121f;margin-top:10px" data-pf-order-cands="1">'
+      +'<h4 style="font-family:Arial,sans-serif;letter-spacing:2px">TURN ORDERS INTO ORDERS</h4>'
+      +'<div class="x-note">Nominate one of Command\u2019s orders as a Daily Order for the whole network.</div>';
+    for(var i=0;i<orders.length;i++){
+      h+='<div style="margin-top:10px;padding:10px;background:#0d0d0d;border:1px solid #3a3a3a;border-radius:6px">'
+        +'<div style="font:14px Arial,sans-serif;color:#f5ead6;margin-bottom:8px">'+esc(orders[i])+'</div>'
+        +'<button type="button" class="pf-combo-btn" data-pf-order-cand="1" data-pf-order-text="'+esc(orders[i])+'" '
+        +'style="background:#c1121f;color:#fff;border:2px solid #000;border-radius:3px;padding:9px 16px;'
+        +'font:bold 13px Arial,sans-serif;letter-spacing:2px;cursor:pointer;text-transform:uppercase;min-height:44px">'
+        +'MAKE THIS A DAILY ORDER \u2192</button></div>';
+    }
+    h+='</div>';
+    return h;
+  }catch(e){ return ""; }
+}
+function wrWireComboOrders(el,body){
+  try{
+    var panel=wrComboOrdersPanel(body);
+    if(!panel) return;
+    var host=el.querySelector?el.querySelector('.wr-body'):null;
+    var d=document.createElement('div');
+    d.innerHTML=panel;
+    if(host&&host.parentNode){ host.parentNode.insertBefore(d,host.nextSibling); }
+    else if(el){ el.appendChild(d); } else return;
+    d.addEventListener('click',function(e){
+      try{
+        var btn=e.target&&e.target.closest?e.target.closest('[data-pf-order-cand]'):null;
+        if(!btn||!window.PF||!PF.newsCombos) return;
+        PF.newsCombos.submitOrderCandidate(btn.getAttribute('data-pf-order-text')||'');
+      }catch(e2){}
+    });
+  }catch(e){}
+}
 function paint(el,j){
   var id=ident();
   if(!id.callsign){
@@ -550,6 +595,8 @@ function paint(el,j){
   WR_LAST=j.report;
   el.innerHTML=reportHtml(j.report);
   wireWeekNav(); wireShare(); wireEmail(); loadFanFav(); mountWarNumbers();
+  /* UX NEWS COMBOS: wire War Report orders -> Daily Order candidates. */
+  wrWireComboOrders(el,(j.report&&j.report.body)||"");
 }
 /* FRED Everywhere Phase 1: "the week in numbers" slot. The module guards
    double-mounts itself; this is a no-op when the module isn't bundled. */

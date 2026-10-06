@@ -377,6 +377,11 @@ var SECTIONS = {
        BEFORE inflation-tracker.js runs, so the self-mounting widgets land
        instead of silent no-op. */
     'economy-home.js',
+    /* UX COMBINATION PLAY 3 (2026-10-06, fe/ux-news-combos): news-cycle
+       combos engine — CPI spike + Robbery Report poster triggers, War Report
+       order candidates. Must load before inflation-tracker.js so the spike
+       buttons read the engine at render time. Zero XP. */
+    'ux-news-combos.js',
     /* A1 (2026-10-05): the people's CPI — community-reported prices.
        Self-mounts into #pf-inflation-checkin / #pf-inflation-board /
        #pf-inflation-trends; silent no-op elsewhere. Zero XP. */
@@ -471,6 +476,10 @@ var SECTIONS = {
   'bundle-warreport': [
     /* /war-report — the weekly digest. */
     'war-report.js',
+    /* UX COMBINATION PLAY 3 (2026-10-06, fe/ux-news-combos): news-cycle
+       combos engine — War Report order -> Daily Order candidate wiring
+       (war-report.js paint() calls PF.newsCombos at render time). Zero XP. */
+    'ux-news-combos.js',
     /* FRED Everywhere Phase 1 (2026-10-05): "The week in numbers" — max 7
        series, one honest sentence each + the week's curated matchup
        (department rotation). Renderable module; email wiring stays parked.

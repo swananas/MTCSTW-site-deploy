@@ -444,7 +444,10 @@ var DEAD = ['bank.js', 'casino.js', 'daily-drop.js', 'daily-fire.js', 'boost-rai
 /* Global chrome: notify.js (header bell) + flash-siren.js (A2 site-wide siren
    banner) are bundled by build/bundle-core.js into pages/bundle-pages.js —
    intentionally excluded from page bundles. */
-var GLOBAL_CHROME = ['notify.js', 'flash-siren.js'];
+var GLOBAL_CHROME = ['notify.js', 'flash-siren.js',
+  /* ENGAGE-A #2 (2026-10-05): reactions.js — cross-page micro-reactions,
+     bundled into pages/bundle-pages.js (every v2 page) via bundle-core.js. */
+  'reactions.js'];
 var unbundled = allFiles.filter(function (f) {
   return bundled.indexOf(f) === -1 && f.indexOf('bundle-') !== 0 &&
     DEAD.indexOf(f) === -1 && GLOBAL_CHROME.indexOf(f) === -1;

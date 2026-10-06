@@ -13,6 +13,7 @@
 <h2>&#9876; War Report</h2>
 <div class="c-tag">The week that was, straight from Command. Email's down — the report lives here.</div>
 <div id="xWarReport"><div class="c-load">Requesting the report&hellip;</div></div>
+<div data-react-surface="war-report" aria-label="React to the War Report"></div>
 </div>
 <script>
 (function(){

@@ -1045,6 +1045,7 @@ setInterval(function(){
 <div class="d-fire" id="dFire" style="display:none"></div>
 <div class="d-types" id="dTypes"></div>
 <div class="d-spark" id="dSpark" aria-hidden="true"></div>
+<div data-react-surface="do-meter" aria-label="React to the Do Meter"></div>
 <div id="slr-nuke">
 <div class="slr-nuke-kicker">Network Command</div>
 <h2>The <span class="slr-red">Media Nuke</span></h2>

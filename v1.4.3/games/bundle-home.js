@@ -1696,6 +1696,10 @@ function renderLobby(el){
     '<div class="c-pane"><h4>Find a cell</h4>'+
     '<input aria-label="NAME OR STATE" id="cSearch" maxlength="32" placeholder="NAME OR STATE" autocomplete="off">'+
     '<select class="c-sel" id="cSearchState" aria-label="FILTER BY STATE">'+cellStateOpts("","All states")+'</select>'+
+    /* ENGAGE-A #4 (2026-10-05): cause/vibe/tag filters. Rendered only when
+       the backend serves tags (cell-identity track schema); hidden until
+       then — pre-identity-schema backends browse exactly as before. */
+    '<div id="cSearchTags" style="display:none;margin-top:6px"></div>'+
     ' <button class="c-btn" id="cSearchBtn">Search</button>'+
     '<div class="c-err" id="cSearchErr"></div>'+
     '<div id="cSearchRes"></div></div>';
@@ -1752,16 +1756,52 @@ function renderLobby(el){
       refresh();
     });
   };
-  /* FIND A CELL: search by name/state, join from results. */
+  /* FIND A CELL: search by name/state, join from results.
+     ENGAGE-A #4 (2026-10-05): discovery browse — cause/vibe/tag filters
+     (rendered from server-served tags only; the cell-identity track owns the
+     tag schema — this UI never invents tags), "your cells" state, one-tap
+     join. Join pays 0 XP (review-cleared); the inviter's existing recruit
+     stack is untouched. */
   var sb=document.getElementById("cSearchBtn");
-  if(sb) sb.onclick=function(){
+  var cFlt={cause:"",vibe:"",tag:""};
+  function cTagRow(cells){
+    /* Build the cause/vibe/tag filter row from server-served tags only.
+       No tags in the response (pre-identity-schema) = row stays hidden. */
+    var wrap=document.getElementById("cSearchTags"); if(!wrap) return;
+    var causes={},vibes={},tags={};
+    for(var i=0;i<cells.length;i++){
+      var cc=cells[i]||{};
+      if(cc.cause) causes[String(cc.cause).toLowerCase()]=1;
+      if(cc.vibe) vibes[String(cc.vibe).toLowerCase()]=1;
+      var tg=cc.tags||[];
+      for(var t=0;t<tg.length;t++) tags[String(tg[t]).toLowerCase()]=1;
+    }
+    var nC=Object.keys(causes).length,nV=Object.keys(vibes).length,nT=Object.keys(tags).length;
+    if(!nC&&!nV&&!nT){ wrap.style.display="none"; wrap.innerHTML=""; cFlt={cause:"",vibe:"",tag:""}; return; }
+    function sel(id,label,opts,cur){
+      var h='<select class="c-sel" id="'+id+'" aria-label="'+esc(label)+'"><option value="">'+esc(label)+'</option>';
+      var ks=Object.keys(opts).sort();
+      for(var k=0;k<ks.length;k++) h+='<option value="'+esc(ks[k])+'"'+(ks[k]===cur?' selected':'')+'>'+esc(ks[k])+'</option>';
+      return h+'</select>';
+    }
+    wrap.innerHTML=(nC?sel("cFltCause","All causes",causes,cFlt.cause):"")+
+      (nV?sel("cFltVibe","All vibes",vibes,cFlt.vibe):"")+
+      (nT?sel("cFltTag","All tags",tags,cFlt.tag):"");
+    wrap.style.display="";
+    function bind(id,key){ var s=document.getElementById(id); if(s) s.onchange=function(){ cFlt[key]=s.value; doSearch(); }; }
+    bind("cFltCause","cause"); bind("cFltVibe","vibe"); bind("cFltTag","tag");
+  }
+  function doSearch(){
     var q=document.getElementById("cSearch").value,
         id=ident(), err=document.getElementById("cSearchErr"),
         res=document.getElementById("cSearchRes");
     err.textContent=""; res.innerHTML='<div class="c-load">Searching&hellip;</div>';
-    api("cell_search",{q:q,state:selVal("cSearchState")},function(j){
+    var params={q:q,state:selVal("cSearchState"),cause:cFlt.cause,vibe:cFlt.vibe,tag:cFlt.tag};
+    if(id.callsign) params.callsign=id.callsign;
+    api("cell_search",params,function(j){
       if(!j||!j.ok){ err.textContent=cellWriteErr(j,"Network error."); res.innerHTML=""; return; }
       var list=j.cells||[];
+      cTagRow(list);
       if(!list.length){ res.innerHTML='<div class="x-note">No cells match. Found the first one above.</div>'; return; }
       var h="";
       for(var i=0;i<Math.min(list.length,10);i++){
@@ -1770,14 +1810,25 @@ function renderLobby(el){
            invite_code for VERIFIED cells only (PM decision #6). The JOIN
            button carries the code, so there is no manual code entry.
            Unverified cells keep their code behind the founder's share flow:
-           an invite-only note instead of a dead JOIN button. */
-        var jbtn=cc.invite_code
+           an invite-only note instead of a dead JOIN button.
+           ENGAGE-A #4: 'mine' rows render an IN YOUR CELL state. */
+        var jbtn=cc.mine
+          ?'<span class="x-note">&#10003; IN YOUR CELL</span>'
+          :cc.invite_code
           ?'<button class="c-btn c-sm" data-code="'+esc(cc.invite_code)+'">JOIN</button>'
           :'<span class="x-note">invite only</span>';
+        var tagHtml="";
+        var tgchips=[];
+        if(cc.cause) tgchips.push(esc(cc.cause));
+        if(cc.vibe) tgchips.push(esc(cc.vibe));
+        var tg2=cc.tags||[];
+        for(var t2=0;t2<Math.min(tg2.length,3);t2++) tgchips.push(esc(tg2[t2]));
+        if(tgchips.length) tagHtml=' <span class="cp-tags">'+tgchips.join(" &middot; ")+'</span>';
         h+='<div class="cp-lead"><span class="cp-lname">'+esc(cc.name)+cellStateTag(cc)+'</span> '
           +'<span class="cp-lxp">'+(Number(cc.member_count)||0)+'/5'
-          +(cc.verified?' \u2713':'')+'</span> '
-          +jbtn+'</div>';
+          +(cc.verified?' \u2713':'')
+          +(Number(cc.streak)?' &#128293;'+Number(cc.streak):'')+'</span> '
+          +jbtn+tagHtml+'</div>';
       }
       res.innerHTML=h;
       var btns=res.querySelectorAll("button[data-code]");
@@ -1796,7 +1847,8 @@ function renderLobby(el){
         };
       })(btns[b]);
     });
-  };
+  }
+  if(sb) sb.onclick=doSearch;
 }
 /* SLIM (homepage): the check-in card only. Members list, prestige, chainlink
    bar, challenges, health, rename, leave — all full-mode depth on /cells. */

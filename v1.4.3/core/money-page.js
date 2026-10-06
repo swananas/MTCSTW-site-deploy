@@ -306,7 +306,10 @@
       ['BILL FILES', PHQ + '#phq-bills'],
       ['RACES', PHQ + '#phq-ballot'],
       ['PRESSURE CAMPAIGNS', PHQ + '#phq-action'],
-      ['POSTER FORGE', CREATE]
+      ['POSTER FORGE', CREATE],
+      /* SPACE-AUDIT FIX 2 (2026-10-06): /fund was orphaned — inbound link
+         from the money trail's exits rail. */
+      ['PROPAGANDA FUND', '/fund']
     ];
     nav.innerHTML = links.map(function (l) {
       return '<a href="' + esc(l[1]) + '">' + esc(l[0]) + '</a>';

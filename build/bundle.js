@@ -227,6 +227,16 @@ var SECTIONS = {
   'bundle-predgame': [
     'predgame.js'
   ],
+  /* SPACE-AUDIT FIX 7 (2026-10-06): slim dupes so /call-it and /cell-war stop
+     loading the full 127KB bundle-arcade.js for a single silo. markets.js
+     lazy-loads on /call-it; battles.js lazy-loads on /cell-war. Both stay in
+     bundle-arcade.js for /arcade itself. Kill: ?pf_off=markets / ?pf_off=battles. */
+  'bundle-markets': [
+    'markets.js'
+  ],
+  'bundle-battles': [
+    'battles.js'
+  ],
   'bundle-cells': [
     /* CELL IDENTITY (2026-10-05): structured cell profiles — guided founding
        wizard, discovery-on-qualities, identity kit, founder backfill.
@@ -529,7 +539,7 @@ var allFiles = fs.readdirSync(ROOT).filter(function (f) { return f.slice(-3) ===
 /* Every game .js file must live in exactly one page or HQ bundle — except the
    three SLIM_DUP bundles above, which intentionally re-list silos from
    bundle-home (the loader fetches slim INSTEAD of bundle-home, never both). */
-var SLIM_DUP = ['bundle-arcade-h', 'bundle-cells-h', 'bundle-create-h'];
+var SLIM_DUP = ['bundle-arcade-h', 'bundle-cells-h', 'bundle-create-h', 'bundle-markets', 'bundle-battles'];
 var bundled = [];
 Object.keys(ALL).forEach(function (b) {
   if (SLIM_DUP.indexOf(b) !== -1) return; /* see note above */

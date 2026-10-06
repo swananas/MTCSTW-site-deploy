@@ -76,9 +76,12 @@
       ]
     },
     /* BLOSSOM S1 (2026-10-06): LIQUIDATION RECORDS — the bracket's own home,
-       split out of /arcade (plan S1). Fail-soft: builds regardless of what
-       /liquidation currently hosts (hand-step verification pending); mounts
-       only when #pf-liquidation exists. Kill: ?pf_off=bracket-board.
+       split out of /arcade (plan S1). Live /liquidation is an ACTIVE BLOG —
+       it is NOT this page. The bracket records live on the NEW route
+       /liquidation-bracket. Squarespace hand-step (separate): create the
+       /liquidation-bracket page carrying <div id="pf-liquidation"></div>.
+       Fail-soft: mounts only when #pf-liquidation exists, so nothing renders
+       until that page exists. Kill: ?pf_off=bracket-board.
        Next Move exits to /cells (FIGHT→ORGANIZE). */
     'pf-liquidation': {
       title: 'LIQUIDATION RECORDS', sub: 'The brackets. The carnage. The receipts.',
@@ -199,6 +202,7 @@
     'pf-fund': {
       title: 'THE PROPAGANDA FUND', sub: 'Every cent, accounted for.',
       spine: 'ORGANIZE',
+      next: { href: '/follow-the-money', label: 'NEXT MOVE →' },
       order: [
         ['fund', null]
       ]

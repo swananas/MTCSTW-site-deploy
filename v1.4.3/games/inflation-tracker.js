@@ -654,7 +654,14 @@
         head + '<div style="margin-top:10px;color:#b8b0a0;font-size:14px;">Not enough reports yet.</div>' +
         '<div style="' + SMALL + 'margin-top:4px;">' + soFar +
         'We need at least 5 reports before we show a number. Report one above.</div>' +
-        '<div style="margin-top:6px;">' + crowdLine(r) + '</div>' + confirmHTML(r.item_id) + honest + '</div>';
+        '<div style="margin-top:6px;">' + crowdLine(r) + '</div>' + confirmHTML(r.item_id) + honest +
+        /* UX Combination Play 2 (fe/ux-take-to-cell): standardized action bar.
+           Declarative host — share-everywhere's scan builds the bar in place.
+           Kill: ?pf_off=inflation. */
+        '<div data-pf-actionbar data-pf-tc-kind="inflation"' +
+        ' data-pf-tc-title="PEOPLE\u2019S CPI \u2014 ' + esc(item.name) + '"' +
+        ' data-pf-tc-figure="' + esc(cn > 0 ? (cn + ' contributor' + (cn === 1 ? '' : 's') + ' so far') : 'No reports yet \u2014 be the first') + '"' +
+        ' data-pf-tc-link="/economy"></div></div>';
     }
     var pt = patterns();
     var n = Math.floor(Number(r.sample_count) || 0);
@@ -683,7 +690,12 @@
       (proof ? '<div style="margin-top:4px;">' + proof + '</div>' : '') +
       '<div style="margin-top:6px;"><span style="display:inline-block;font-size:10px;font-weight:800;letter-spacing:1.5px;background:#1a1a1a;border:1px solid #3a3a3a;color:#d8d0c0;padding:4px 9px;border-radius:3px;">UPDATED ' + esc(stamp.toUpperCase()) + '</span></div>' +
       '<div style="margin-top:6px;">' + crowdLine(r) + '</div>' +
-      confirmHTML(r.item_id) + spikeBtnHTML(r, range) + honest + '</div>';
+      confirmHTML(r.item_id) + spikeBtnHTML(r, range) + honest +
+      /* UX Combination Play 2 (fe/ux-take-to-cell): standardized action bar. */
+      '<div data-pf-actionbar data-pf-tc-kind="inflation"' +
+      ' data-pf-tc-title="PEOPLE\u2019S CPI \u2014 ' + esc(item.name) + '"' +
+      ' data-pf-tc-figure="' + esc(money(r.median_cents) + ' median of ' + r.sample_count + ' reports') + '"' +
+      ' data-pf-tc-link="/economy"></div></div>';
   }
   /* Progressive sparkline hydration: one price_trends fetch per card with
      data, fail-soft (a card without a series is complete without the

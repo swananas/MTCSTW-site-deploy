@@ -729,6 +729,25 @@
       l.textContent = opts.line || def.line;
       d.appendChild(k);
       d.appendChild(l);
+      /* UX Combination Play 2 (fe/ux-take-to-cell): a take-cell handoff with
+         a card payload (data-pf-tc-* on the host, or opts.payload) renders
+         the posting button instead of the legacy /cells anchor — same
+         styling, same label, now carrying title + figure + link. */
+      if (kind === 'take-cell') {
+        var tcpl = opts.payload || tcPayloadFromHost(host);
+        if (tcpl && !takecellOff()) {
+          var tcb = document.createElement('button');
+          tcb.type = 'button';
+          tcb.textContent = 'TAKE THIS TO YOUR CELL';
+          tcb.style.cssText = 'display:inline-block;background:#c1121f;color:#fff;font-weight:900;font-size:0.72rem;' +
+            'letter-spacing:0.14em;padding:0.6rem 1.1rem;margin:0.25rem;text-decoration:none;cursor:pointer;border:0;';
+          tcb.addEventListener('click', function () { takeToCell(tcpl); });
+          d.appendChild(tcb);
+          host.appendChild(d);
+          refreshTcVisibility(d);
+          return true;
+        }
+      }
       var links = opts.links || def.links;
       for (var i = 0; i < links.length; i++) {
         var a = document.createElement('a');
@@ -946,13 +965,13 @@
     if (!host) return null;
     try {
       tcCssOnce();
-      var ex = host.querySelector('[data-pf-actionbar]');
-      if (ex) return ex;
+      /* Idempotent: the declarative scanner and programmatic callers share
+         this builder. data-pf-actionbar-built marks a finished bar. */
+      if (host.getAttribute('data-pf-actionbar-built')) return host;
       var p = tcPayloadFromOpts(opts);
       if (!p) return null;
-      var d = document.createElement('div');
-      d.setAttribute('data-pf-actionbar', p.kind);
-      d.style.cssText = TC_BAR_CSS;
+      host.setAttribute('data-pf-actionbar-built', '1');
+      host.style.cssText = TC_BAR_CSS;
       var shareOwn = !!opts.shareOwn;
       try { if (!shareOwn && host.querySelector('[data-pf-share]')) shareOwn = true; } catch (e) {}
       if (!shareOwn) {
@@ -961,7 +980,7 @@
         sh.style.cssText = TC_GHOST_CSS;
         sh.textContent = '\u26a1 SHARE THIS INTEL';
         sh.addEventListener('click', function () { shareIntel(opts); });
-        d.appendChild(sh);
+        host.appendChild(sh);
       }
       var tc = document.createElement('button');
       tc.type = 'button';
@@ -973,15 +992,14 @@
       tc.addEventListener('click', function (ev) {
         try { ev.preventDefault(); takeToCell(p); } catch (e) {}
       });
-      d.appendChild(tc);
+      host.appendChild(tc);
       var rb = document.createElement('a');
       rb.href = '/data-bounties';
       rb.style.cssText = TC_GHOST_CSS;
       rb.textContent = '\u2713 REPORT BACK';
-      d.appendChild(rb);
-      host.appendChild(d);
-      refreshTcVisibility(d);
-      return d;
+      host.appendChild(rb);
+      refreshTcVisibility(host);
+      return host;
     } catch (e) { return null; }
   }
 
@@ -1123,12 +1141,11 @@
           b.setAttribute('data-pf-actionbar-wired', '1');
           var p = tcPayloadFromHost(b);
           if (!p) continue;
-          /* Replace the declarative host with the built bar. */
-          var built = actionBar(b.parentNode, {
+          /* Build the bar in place — the declarative host becomes the bar. */
+          actionBar(b, {
             title: p.title, figure: p.figure, link: p.link, kind: p.kind,
             shareOwn: b.getAttribute('data-pf-share-own') === '1'
           });
-          if (built) { try { b.parentNode.removeChild(b); } catch (e) {} }
         } catch (e) {}
       }
     }
@@ -1433,6 +1450,9 @@
         } catch (e) {}
       }
     }
+    /* UX Combination Play 2: per-card take-cell buttons, declarative
+       action-bar hosts, and the staged-drop receiver. */
+    try { scanTakecell(); } catch (e) {}
   }
 
   /* ------------------------------------------------------------------ */
@@ -1467,6 +1487,11 @@
       bar: bar,
       networks: networksRow,
       handoff: handoff,
+      /* UX Combination Play 2 (fe/ux-take-to-cell): the take-cell action,
+         the standardized action bar, and the primary-cell resolver. */
+      takeToCell: takeToCell,
+      actionBar: actionBar,
+      primaryCell: primaryCell,
       registerPainter: registerPainter,
       resolvePoster: resolvePoster,
       terminal: terminal,

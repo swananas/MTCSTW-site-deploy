@@ -117,11 +117,17 @@ function matchSel(el, sel) {
   return false;
 }
 function qsa(root, sel) {
-  var out = [];
+  var out = [], seen = {};
+  var parts = String(sel).split(',');
   (function walk(n) {
     for (var i = 0; i < n.children.length; i++) {
       var c = n.children[i];
-      if (matchSel(c, sel)) out.push(c);
+      for (var p = 0; p < parts.length; p++) {
+        if (matchSel(c, parts[p].trim())) {
+          if (!seen[c._qid]) { c._qid = out.length + 1; seen[c._qid] = 1; out.push(c); }
+          break;
+        }
+      }
       walk(c);
     }
   })(root);
@@ -163,6 +169,7 @@ function makeEnv(o) {
     },
     document: {
       body: body,
+      activeElement: null,
       createElement: function (t) { return new El(t); },
       getElementById: function (id) {
         if (id === 'pf-v2') return pfv2;
@@ -198,7 +205,7 @@ function makeEnv(o) {
   return {
     win: win, body: body, events: events, timers: timers, store: store,
     setPickFightCalls: setPickFightCalls, requireCallsignCalls: requireCallsignCalls,
-    orders: orders,
+    orders: orders, docListeners: docListeners,
     run: function () {
       var fn = new Function('window', 'document', 'localStorage', 'setTimeout',
         'clearTimeout', 'CustomEvent', src + '\nreturn true;');
@@ -296,6 +303,62 @@ function makeEnv(o) {
   e.run();
   ok('no auto-launch after dismissal', e.timers.filter(function (t) { return t.ms === 30000; }).length === 0);
   ok('chip still offered after dismissal', !!e.win.document.getElementById('pf-ob-chip'));
+
+  /* C2 (Psych): skip is non-destructive */
+  e = makeEnv({ search: '?onboard=1', fights: ['voting', 'climate'] });
+  e.run();
+  ov = e.win.document.getElementById('pf-onboard');
+  ov.querySelector('#pf-ob-skipstep').onclick();
+  ok('"Skip this step" never wipes picks', e.setPickFightCalls.length === 0);
+  ok('"Skip this step" advances to step 2', !!ov.querySelector('#pf-ob-claim'));
+
+  /* C2: CONTINUE with zero picks, never chosen -> key stays null (no write) */
+  e = makeEnv({ search: '?onboard=1' });
+  e.run();
+  ov = e.win.document.getElementById('pf-onboard');
+  ov.querySelector('#pf-ob-continue').onclick();
+  ok('empty CONTINUE writes nothing (key stays null)', e.setPickFightCalls.length === 0);
+  ok('empty CONTINUE still advances', !!ov.querySelector('#pf-ob-claim'));
+
+  /* C2: first real pick still persists (the +10 path) */
+  e = makeEnv({ search: '?onboard=1' });
+  e.run();
+  ov = e.win.document.getElementById('pf-onboard');
+  var bx = ov.querySelectorAll('.pf-ob-cb');
+  bx[0].checked = true;
+  ov.querySelector('#pf-ob-continue').onclick();
+  ok('first real pick persists via setPickFight',
+    e.setPickFightCalls.length === 1 && e.setPickFightCalls[0][0] === 'voting');
+
+  /* C1 (Psych): aria-modal + focus trap */
+  e = makeEnv({ search: '?onboard=1' });
+  e.run();
+  ov = e.win.document.getElementById('pf-onboard');
+  ok('dialog has aria-modal=true', ov.getAttribute('aria-modal') === 'true');
+  var fz = ov.querySelectorAll('button, input, [tabindex]')
+    .filter(function (el) { return el.getAttribute('tabindex') !== '-1'; });
+  ok('focusable set non-trivial', fz.length > 3, 'got ' + fz.length);
+  var focused = [];
+  fz.forEach(function (f) {
+    f.focus = function () { focused.push(f); };
+  });
+  function tabEv(shift, active) {
+    var ev = { key: 'Tab', shiftKey: !!shift, pd: false,
+      preventDefault: function () { ev.pd = true; } };
+    e.win.document.activeElement = active;
+    (e.docListeners.keydown || []).forEach(function (fn) { fn(ev); });
+    return ev;
+  }
+  var first = fz[0], last = fz[fz.length - 1];
+  focused.length = 0;
+  var ev1 = tabEv(false, last);
+  ok('Tab on last wraps to first', ev1.pd === true && focused[focused.length - 1] === first);
+  focused.length = 0;
+  var ev2 = tabEv(true, first);
+  ok('Shift+Tab on first wraps to last', ev2.pd === true && focused[focused.length - 1] === last);
+  focused.length = 0;
+  var ev3 = tabEv(false, fz[1]);
+  ok('Tab mid-list does not hijack', ev3.pd === false && focused.length === 0);
 
   /* anonymous path: stay anonymous -> step 3 */
   e = makeEnv({ search: '?onboard=1' });

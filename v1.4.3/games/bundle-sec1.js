@@ -3472,6 +3472,7 @@ syncFromServer();
     overlay = document.createElement('div');
     overlay.id = 'pf-onboard';
     overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-label', 'Your first two minutes');
     overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:' + Z +
       ';background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;' +
@@ -3496,13 +3497,39 @@ syncFromServer();
     if (x) { x.onclick = function () { skip(curStep); }; x.onkeydown = onX; }
     overlay.onclick = function (e) { if (e.target === overlay) skip(curStep); };
     document.addEventListener('keydown', escClose);
+    document.addEventListener('keydown', trapTab);
     fire('pf-onboard-shown');
   }
   function escClose(e) {
     try { if (e.key === 'Escape' && overlay) skip(curStep); } catch (e2) {}
   }
+  /* C1 (Psych): Tab-cycling focus trap — the overlay auto-launches, so
+     keyboard/screen-reader users must not wander into the page behind it. */
+  function focusables() {
+    if (!overlay) return [];
+    var all = overlay.querySelectorAll('button, input, [tabindex]');
+    var out = [];
+    for (var i = 0; i < all.length; i++) {
+      try { if (all[i].getAttribute('tabindex') === '-1') continue; } catch (e) {}
+      out.push(all[i]);
+    }
+    return out;
+  }
+  function trapTab(e) {
+    try {
+      if (!overlay || !e || e.key !== 'Tab') return;
+      var f = focusables();
+      if (f.length < 2) return;
+      var active = null;
+      try { active = document.activeElement; } catch (e2) {}
+      var first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && active === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
+    } catch (e3) {}
+  }
   function close() {
     document.removeEventListener('keydown', escClose);
+    document.removeEventListener('keydown', trapTab);
     try { if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay); } catch (e) {}
     overlay = null; body_ = null; dots_ = null;
     hideChip();
@@ -3546,9 +3573,10 @@ syncFromServer();
 
   /* ---------- step 1: pick your fight ---------- */
   function renderFight() {
-    var opts = null, cur = [];
+    var opts = null, cur = [], initiallyChosen = false;
     try { if (PF.pickFightOptions) opts = PF.pickFightOptions(); } catch (e) {}
     try { if (PF.pickFight) cur = PF.pickFight() || []; } catch (e2) {}
+    try { if (PF.pickFightChosen) initiallyChosen = !!PF.pickFightChosen(); } catch (e3) {}
     if (!opts || !opts.length) { render(2); return; } /* pick-fight unavailable: degrade */
     var h = '<div style="font-size:1.15rem;font-weight:900;letter-spacing:.1em;margin-bottom:.5rem;">' +
       'PICK YOUR FIGHT</div>' +
@@ -3573,9 +3601,9 @@ syncFromServer();
       '<button type="button" data-ob-primary id="pf-ob-continue" style="background:#c1121f;color:#fff;' +
       'border:none;font-family:inherit;font-weight:900;letter-spacing:.12em;font-size:.9rem;' +
       'padding:.8rem 2rem;cursor:pointer;min-height:44px;width:100%;box-sizing:border-box;">CONTINUE &rarr;</button>' +
-      '<div><button type="button" id="pf-ob-surprise" style="background:none;border:0;color:#e8b923;' +
+      '<div><button type="button" id="pf-ob-skipstep" style="background:none;border:0;color:#e8b923;' +
       'cursor:pointer;font-size:.78rem;text-decoration:underline;padding:.6rem;min-height:44px;' +
-      'font-family:inherit;">Surprise me &mdash; skip this</button></div>' +
+      'font-family:inherit;">Skip this step</button></div>' +
       skipLink();
     body_.innerHTML = h;
     var grid = body_.querySelector('#pf-ob-grid');
@@ -3590,19 +3618,27 @@ syncFromServer();
         } else if (cap) { cap.style.display = 'none'; }
       });
     }
+    function sameSet(a, b) {
+      if (a.length !== b.length) return false;
+      for (var i = 0; i < a.length; i++) { if (b.indexOf(a[i]) === -1) return false; }
+      return true;
+    }
     function saveAndNext() {
       var out = [], cbx = grid.querySelectorAll('.pf-ob-cb:checked');
       for (var k = 0; k < cbx.length && out.length < 3; k++) {
         out.push(cbx[k].getAttribute('data-fid'));
       }
-      try { if (PF.setPickFight) PF.setPickFight(out); } catch (e) {}
+      /* C2 (Psych): never write destructively. Persist only when the user
+         made a real selection that is new or changed. Skipping (empty or
+         "Skip this step") leaves prior picks — and the first-pick XP hook —
+         untouched. */
+      if (out.length > 0 && (!initiallyChosen || !sameSet(out, cur))) {
+        try { if (PF.setPickFight) PF.setPickFight(out); } catch (e) {}
+      }
       render(2);
     }
     body_.querySelector('#pf-ob-continue').onclick = saveAndNext;
-    body_.querySelector('#pf-ob-surprise').onclick = function () {
-      try { if (PF.setPickFight) PF.setPickFight([]); } catch (e) {}
-      render(2);
-    };
+    body_.querySelector('#pf-ob-skipstep').onclick = function () { render(2); };
     wireSkip(body_);
   }
 
@@ -3711,7 +3747,6 @@ syncFromServer();
 })();
 
 ;
-
 /* ===== political-hq-nudge.js ===== */
 /* games/political-hq-nudge.js  |  PF v1.4.3 | Front-door nudge to Political HQ.
    A punchy CTA card on the homepage driving traffic to /political-hq.

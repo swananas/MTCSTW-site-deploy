@@ -163,7 +163,7 @@
       sub: function () { return 'Learn the tools once, fight forever. Pick up where you left off.'; }
     },
     predict: {
-      title: 'THE BOARD IS OPEN', cta: 'MAKE THE CALL \u2192', href: '/money',
+      title: 'THE BOARD IS OPEN', cta: 'MAKE THE CALL \u2192', href: '/follow-the-money',
       ready: function (st) { return st.openPredicts !== null && st.openPredicts > 0; },
       done: function () { return false; },
       sub: function (st) {
@@ -172,7 +172,7 @@
       }
     },
     bounty: {
-      title: 'OPEN BOUNTY ON THE BOARD', cta: 'EARN IT \u2192', href: '/bounty',
+      title: 'OPEN BOUNTY ON THE BOARD', cta: 'EARN IT \u2192', href: '/data-bounties',
       ready: function (st) { return st.openBounties !== null && st.openBounties > 0; },
       done: function () { return false; },
       sub: function (st) {

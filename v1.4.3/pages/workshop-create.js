@@ -161,6 +161,18 @@
     templateId: null, selfMount: 'pf-ammo', kill: 'ammo', mount: null
   });
 
+  /* ---- data bounties: self-mount board (CEO directive 2026-10-06) ----
+     The intake valve of the content-to-action machine: system-generated
+     bounties for user-confirmed data + PHOTO bounties (user-taken pictures).
+     games/data-bounties.js renders into the dock host at bundle load; the
+     shell relocates it into the pane on open. */
+  dockHost('pf-data-bounties', 'databounties');
+  WS.register({
+    id: 'data-bounties', title: 'DATA BOUNTIES',
+    tagline: 'Your content becomes movement action. Photos, prices, proof — earn XP.',
+    templateId: null, selfMount: 'pf-data-bounties', kill: 'databounties', mount: null
+  });
+
   /* ---- graduation: event-driven card, relocated when it renders ----
      academy-graduation.js renders #pf-graduation into the academy container
      on its own triggers (pf-lesson-complete / pf-graduation-check /

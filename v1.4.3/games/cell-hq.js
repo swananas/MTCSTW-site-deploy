@@ -65,7 +65,10 @@
   /* JSONP GET — read-only cell actions. 12s timeout, same as every silo. */
   var READ = { cell_mine:1, cell_prestige:1, cell_health:1, cell_search:1,
     cell_leaderboard:1, cell_links:1, cellwar_standings:1, cellwar_history:1,
-    warchest_status:1, treasury_balance:1, propbounty_list:1, recruit_funnel:1 };
+    warchest_status:1, treasury_balance:1, propbounty_list:1, recruit_funnel:1,
+    /* Cell dashboard ecosystem (2026-10-06): governance votes + cell data
+       bounties surfaced on the HQ landing tab. Both public GETs. */
+    proposal_list:1, databounty_list:1 };
   /* Mutations go through POST (CSRF-able via GET otherwise). */
   var WRITE = { cell_create:1, cell_join:1, cell_checkin:1, cell_cover:1,
     cell_leave:1, cell_rename:1, cell_update:1, cell_promote:1, cell_bounty_claim:1,
@@ -263,6 +266,9 @@
     '.hq-mem:last-child{border-bottom:0}' +
     '.hq-badge{font-size:11px;background:#c1121f;color:#fff;padding:2px 8px;font-weight:700;margin-left:6px;white-space:nowrap}' +
     '.hq-badge.dim{background:#333}' +
+    /* Cell dashboard ecosystem (2026-10-06): gold surge marker for cell
+       data bounties — mirrors the bounty board's .db-surge. */
+    '.hq-surge{background:#e8b923;color:#141414;font-weight:800;font-size:11px;padding:3px 8px;border-radius:3px;letter-spacing:1px;cursor:help;margin-left:6px}' +
     '.hq-state{font-size:11px;background:#0d0d0d;border:2px solid #c1121f;color:#f5ead6;padding:2px 8px;font-weight:700;margin-left:6px;white-space:nowrap;letter-spacing:1px}' +
     '.hq-stag{font-size:10px;background:#c1121f;color:#fff;padding:2px 8px;font-weight:700;margin-left:6px;white-space:nowrap;letter-spacing:1px}' +
     '.hq-sel{background:#0a0a0a;color:#f5f0e6;border:2px solid #444;padding:9px 10px;font-size:16px;margin:4px 4px 4px 0;max-width:100%;min-height:44px}' +
@@ -345,6 +351,19 @@
     api('cell_mine', withIdent({}), function(j){
       S.loading.mine = false;
       if (j) { j._t = Date.now(); S.mine = j; }
+      /* Cell dashboard ecosystem (2026-10-06): publish the primary cell id
+         for sibling silos (data-bounties cell strip scopes its list to it).
+         Best-effort — never breaks the HQ render. */
+      try{
+        if (j && j.ok && j.in_cell && j.cell && j.cell.id){
+          window.PFCellPrimaryId = String(j.cell.id);
+          var cev;
+          if (typeof CustomEvent === 'function')
+            cev = new CustomEvent('pf:cell-ready', {detail:{cell_id:String(j.cell.id)}});
+          else { cev = document.createEvent('Event'); cev.initEvent('pf:cell-ready', true, true); }
+          document.dispatchEvent(cev);
+        }
+      }catch(e){}
       cb(j);
     });
   }
@@ -404,6 +423,90 @@
       S.loading.board = false;
       if (j) { j._t = Date.now(); S.board = j; }
       cb(j);
+    });
+  }
+  /* Cell dashboard ecosystem (2026-10-06): governance + cell data bounties
+     on the HQ landing tab. Same 60s-cache loader idiom as loadWar. Both
+     reads are public; failures degrade to a quiet hidden card. */
+  function loadGov(cb){
+    if (S.gov && Date.now()-S.gov._t < 60000) { cb(S.gov); return; }
+    S.loading.gov = true;
+    api('proposal_list', withIdent({}), function(j){
+      S.loading.gov = false;
+      if (j && j.ok) { j._t = Date.now(); S.gov = j; }
+      cb(j);
+    });
+  }
+  function loadCellBounties(cellId, cb){
+    var key = 'db_'+cellId;
+    if (S[key] && Date.now()-S[key]._t < 60000) { cb(S[key]); return; }
+    S.loading[key] = true;
+    api('databounty_list', {cell_id: cellId}, function(j){
+      S.loading[key] = false;
+      if (j && j.ok) { j._t = Date.now(); S[key] = j; }
+      cb(j);
+    });
+  }
+  function timeLeft(ms){
+    if (!(ms > 0)) return 'closing';
+    var m = Math.floor(ms/60000), h = Math.floor(m/60), d = Math.floor(h/24);
+    if (d > 0) return d+'d '+ (h%24) +'h left';
+    if (h > 0) return h+'h '+(m%60)+'m left';
+    return m+'m left';
+  }
+  /* Gold surge marker — mirrors games/data-bounties.js surgeTag (the marker
+     must render in the cell context even when the bounty board bundle isn't
+     loaded on this page). Fail-open: no marker when absent or 1.0x. */
+  function hqSurgeTag(b){
+    var s = Number(b && b.surge) || 1;
+    if (!(s > 1.0001) || !(s <= 2)) return '';
+    return '<span class="hq-surge" title="Thin data zone — this bounty pays above the posted XP until coverage fills in. Surge decays as confirmed reports arrive.">&#9889;SURGE &times;'+s.toFixed(1)+'</span>';
+  }
+  /* Governance card: active assembly votes with a vote CTA (reverse path of
+     the governance widget's RALLY YOUR CELL link — /cells -> /governance). */
+  function paintGovCard(el){
+    if (!el) return;
+    loadGov(function(j){
+      var open = (j && j.ok && j.proposals ? j.proposals : []).filter(function(p){ return p.status === 'open'; });
+      if (!open.length){ el.style.display = 'none'; return; }
+      el.style.display = '';
+      var h = '<div class="hq-card"><h3>&#127963; The People\'s Assembly <span class="hq-note">open votes</span></h3>' +
+        '<div class="hq-note">The network governs itself. Your ballot carries your XP weight — cast it where it counts.</div>';
+      open.slice(0,3).forEach(function(p){
+        var pid = String(p.id||'');
+        h += '<div class="hq-mem"><span><b>'+esc(p.title||'Untitled proposal')+'</b><br>' +
+          '<span class="hq-note">YES '+esc(String(p.yes_weight||0))+' &middot; NO '+esc(String(p.no_weight||0)) +
+          ' &middot; '+esc(String(p.voter_count||0))+' voters &middot; '+esc(timeLeft(Number(p.closes_at||0)-Date.now())) +'</span></span>' +
+          '<span><a class="hq-btn sm" style="text-decoration:none;display:inline-block" href="/governance#gv-prop-'+esc(pid)+'">VOTE &rarr;</a></span></div>';
+      });
+      if (open.length > 3)
+        h += '<div class="hq-note"><a href="/governance">+'+(open.length-3)+' more open on the Assembly floor &rarr;</a></div>';
+      h += '<div data-pf-handoff="share-intel"></div></div>';
+      el.innerHTML = h;
+    });
+  }
+  /* Cell data-bounty card: the cell's open bounties WITH gold surge markers.
+     Claim flow lives on the bounty board (/create) — the card links there. */
+  var HQ_DB_KINDS = { cpi_price:'PRICE CHECK', prediction_resolve:'CONFIRM OUTCOME',
+    raid_report:'RAID REPORT', intel_corroborate:'CORROBORATE INTEL',
+    review_needed:'REVIEW NEEDED', event_attendance:'ATTENDANCE',
+    roster_correction:'ROSTER FIX', photo_evidence:'PHOTO BOUNTY' };
+  function paintDbCard(el, cellId){
+    if (!el) return;
+    if (!cellId){ el.style.display = 'none'; return; }
+    loadCellBounties(cellId, function(j){
+      var mine = (j && j.ok && j.bounties ? j.bounties : []).filter(function(b){ return String(b.cell_id||'') === String(cellId); });
+      if (!mine.length){ el.style.display = 'none'; return; }
+      el.style.display = '';
+      var h = '<div class="hq-card"><h3>&#9889; Cell data bounties <span class="hq-note">your cell\'s open targets</span></h3>' +
+        '<div class="hq-note">Your content becomes movement action — shares, campaigns, evidence, price data. Never sold. Never ad inventory.</div>';
+      mine.slice(0,5).forEach(function(b){
+        h += '<div class="hq-mem"><span><b>'+esc(HQ_DB_KINDS[b.kind]||b.kind||'BOUNTY')+'</b> — '+esc(b.title||'')+hqSurgeTag(b)+'<br>' +
+          '<span class="hq-note">+'+esc(String(b.xp_amount||0))+' XP &middot; '+esc(String((b.claims||[]).length))+' claim(s) awaiting confirmation</span></span></div>';
+      });
+      h += '<div class="hq-row" style="margin-top:8px"><a class="hq-btn sm" style="text-decoration:none;display:inline-block" href="/create?tab=bounties">OPEN THE BOUNTY BOARD &rarr;</a></div>';
+      h += '<div data-pf-handoff="share-intel"></div></div>';
+      el.innerHTML = h;
     });
   }
   function loadLinks(cb){
@@ -522,6 +625,10 @@
           h += cellCard(c);
         });
       }
+      /* Cell dashboard ecosystem (2026-10-06): the Assembly's open votes and
+         the cell's data bounties surface on the HQ landing tab. Painted
+         async into placeholders so the tab never blocks on them. */
+      h += '<div id="hqGovCard"></div><div id="hqDbCard"></div>';
       /* CELL IDENTITY (2026-10-05): guided founding wizard replaces the blank
          form — a cell with no identity can't complete founding. Kill-switch
          (?pf_off=cell-identity) falls back to the original blank form. */
@@ -538,6 +645,11 @@
         '<div class="hq-row"><input class="hq-in" id="hqJoinCode" maxlength="12" placeholder="INVITE CODE" style="text-transform:uppercase">' +
         '<button class="hq-btn" data-hq="join">JOIN CELL</button></div></div>';
       p.innerHTML = h;
+      /* Cell dashboard ecosystem (2026-10-06): assembly votes + cell data
+         bounties paint async; cards hide themselves when there's nothing
+         open or the member has no cell. */
+      paintGovCard(document.getElementById('hqGovCard'));
+      paintDbCard(document.getElementById('hqDbCard'), (j.in_cell && j.cell && j.cell.id) || '');
       if (identOn){
         var wzel = document.getElementById('hqIdentWizard');
         if (wzel) window.PFCellIdentity.mountWizard(wzel, {
@@ -1067,6 +1179,9 @@
             '<span class="hq-note">'+esc(String(r.xp_earned||0))+' XP &middot; '+esc(String(r.members_active||0))+'/'+esc(String(r.members||0))+'</span></div>';
         });
         out += '</div>';
+        /* Cell dashboard ecosystem (2026-10-06): rally actions — the war
+           board is ammunition (data->propaganda). */
+        out += '<div data-pf-handoff="share-intel"></div>';
       } else {
         out += netErr();
       }
@@ -1628,6 +1743,10 @@
       h += netErr();
     }
     h += '<div id="hqPledgeMsg"></div></div>';
+
+    /* Cell dashboard ecosystem (2026-10-06): rally actions — did the work?
+       Log it (activism->data). */
+    h += '<div data-pf-handoff="report-back"></div>';
 
     body.innerHTML = h;
     wireRetries(body);

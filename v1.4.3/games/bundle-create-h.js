@@ -1,1 +1,2636 @@
-!function(){"use strict";var t=window.PF;t&&!t.skip("poster-forge")&&t.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-poster">\n<div class="fe-block pf-override-block" id="pf-poster">\n\n<h2>The Poster Forge</h2>\n<div class="p-sub">Make propaganda. Download it. Plaster the internet.</div>\n<div id="pfStrikeBar" style="display:none"></div>\n<style>\n#pf-poster .p-tabs{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}\n#pf-poster .p-tab.on{border-color:#c1121f;background:rgba(193,18,31,.18);color:#fff}\n#pfPane-video{margin-top:6px}\n#pfPane-political{margin-top:6px}\n#pfStrikeBar{display:none;border:2px solid #c1121f;background:rgba(193,18,31,.12);padding:10px 14px;margin:10px 0;font-family:Arial,sans-serif;color:#f5ead6}\n#pfStrikeBar b{letter-spacing:1px}\n</style>\n<div class="p-tabs" role="tablist">\n  <button class="c-btn p-tab on" data-ptab="poster" role="tab">POSTER</button>\n  <button class="c-btn p-tab" data-ptab="video" role="tab">VIDEO</button>\n  <button class="c-btn p-tab" data-ptab="political" role="tab">POLITICAL</button>\n</div>\n<div id="pfPane-poster">\n<canvas id="pCanvas" width="1080" height="1350"></canvas>\n\n<div class="p-ctl">\n  <label for="pTop">Top line</label>\n  <input id="pTop" maxlength="40" value="THE PROPAGANDA FACTORY">\n  <label for="pHead">Headline</label>\n  <input id="pHead" maxlength="60" value="EAT THE RICH">\n  <label for="pBot">Bottom line</label>\n  <input id="pBot" maxlength="40" value="MT CSTW DOT COM">\n  <label>Style</label>\n  <div class="p-styles" id="pStyles">\n    <button class="p-style on" data-s="0">The Call</button>\n    <button class="p-style" data-s="1">Wanted</button>\n    <button class="p-style" data-s="2">Red Wave</button>\n    <button class="p-style" data-s="3">Strike!</button>\n  </div>\n  <div class="p-row">\n    <button class="p-btn ghost" id="pRandom">&#9873; Agitate me</button>\n    <a class="p-btn" id="pDownload" href="#" download="pfn-propaganda-poster.png">Download</a>\n    <button class="p-btn ghost" id="pShare">Share</button>\n    <button class="p-btn" id="pBattle">ENTER INTO POSTER BATTLES →</button>\n  </div>\n  <div class="p-note">1080 &times; 1350 — made for the feed. Every download carries JOIN THE FIGHT. + MTCSTW.COM.</div>\n  <div id="pSpread"></div>\n  <div id="pImpact"></div>\n</div>\n</div>\n<div id="pfPane-video" style="display:none">\n<div id="xVideo"><div class="c-load">Loading the forge&hellip;</div></div>\n</div>\n<div id="pfPane-political" style="display:none">\n<div id="xPolitical"><div class="c-load">Loading the forge&hellip;</div></div>\n</div>\n\n<script>\n(function(){\nvar SLOGANS=[\n ["SICK LEFT RADICALS","EAT THE RICH","SEIZE THE MEMES OF PRODUCTION"],\n ["THE PROPAGANDA FACTORY","GENERAL STRIKE","OCTOBER 1ST. EVERYWHERE."],\n ["COMRADES","HOUSING IS A HUMAN RIGHT","LANDLORDS ARE A POLICY CHOICE"],\n ["THE PROPAGANDA FACTORY","TAX THE RICH","OR WE WILL"],\n ["SICK LEFT RADICALS","UNIONIZE EVERYWHERE","YOUR BOSS IS SCARED. GOOD."],\n ["COMRADES","MEDICARE FOR ALL","YOUR INSULIN COSTS $6 TO MAKE"],\n ["THE PROPAGANDA FACTORY","ABOLISH BILLIONAIRES","NO ONE EARNS A BILLION"],\n ["SICK LEFT RADICALS","THE RENT IS TOO DAMN HIGH","ORGANIZE YOUR BUILDING"],\n ["COMRADES","YOUR BOSS NEEDS YOU","YOU DON\'T NEED YOUR BOSS"],\n ["THE PROPAGANDA FACTORY","READ THEORY","THEN TOUCH GRASS. THEN ORGANIZE."],\n ["SICK LEFT RADICALS","STRIKE!","WITHHOLD YOUR LABOR"],\n ["COMRADES","SOLIDARITY FOREVER","THE UNION MAKES US STRONG"]\n];\nvar CREAM="#f5ead6",RED="#c1121f",BLACK="#0d0d0d";\nvar cv=document.getElementById("pCanvas"),ctx=cv.getContext("2d");\nvar state={top:"THE PROPAGANDA FACTORY",head:"EAT THE RICH",bot:"MT CSTW DOT COM",style:0};\nvar W=1080,H=1350;\n\nfunction wrap(text,maxW,base){\n  var words=text.toUpperCase().split(/\\s+/),lines=[],line="";\n  words.forEach(function(w){\n    var t=line?line+" "+w:w;\n    if(ctx.measureText(t).width>maxW&&line){lines.push(line);line=w;}else{line=t;}\n  });\n  if(line)lines.push(line);\n  var size=base;\n  ctx.font=size+"px \'Arial Black\',Arial,sans-serif";\n  lines.forEach(function(l){ if(ctx.measureText(l).width>maxW){ var s=Math.floor(size*maxW/ctx.measureText(l).width); if(s<size)size=s; }});\n  if(size<40)size=40;\n  return {lines:lines,size:size};\n}\nfunction centerBlock(lines,size,y,lh,color){\n  ctx.fillStyle=color;ctx.textAlign="center";ctx.textBaseline="middle";\n  ctx.font=size+"px \'Arial Black\',Arial,sans-serif";\n  lines.forEach(function(l,i){ctx.fillText(l,540,y+i*lh);});\n  return y+lines.length*lh;\n}\nfunction border(col,w,pad){ctx.strokeStyle=col;ctx.lineWidth=w;ctx.strokeRect(pad,pad,1080-2*pad,1350-2*pad);}\nfunction watermark(){\n  ctx.save();\n  /* Bottom CTA bar: JOIN THE FIGHT. + MTCSTW.COM (site CTA standard) */\n  var barH=90, barY=H-barH;\n  ctx.fillStyle="#c1121f";\n  ctx.fillRect(0,barY,W,barH);\n  ctx.fillStyle="#f5f0e6";ctx.textAlign="center";ctx.textBaseline="middle";\n  ctx.font="bold 44px \'Arial Black\',Arial,sans-serif";\n  ctx.fillText("JOIN THE FIGHT.",W/2,barY+32);\n  ctx.font="28px Arial,sans-serif";\n  ctx.fillText("MTCSTW.COM",W/2,barY+68);\n  /* PFN watermark (top-right, smaller) */\n  var label="PFN";\n  ctx.font="28px \'Arial Black\',Arial,sans-serif";\n  var tw=ctx.measureText(label).width,pad=12,bw=tw+pad*2,bh=40;\n  var bx=W-20-bw,by=20;\n  ctx.globalAlpha=0.8;\n  ctx.fillStyle="rgba(13,13,13,0.65)";\n  if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bx,by,bw,bh,8);ctx.fill();ctx.strokeStyle="#f5f0e6";ctx.lineWidth=2;ctx.stroke();}\n  else{ctx.fillRect(bx,by,bw,bh);}\n  ctx.globalAlpha=1;\n  ctx.fillStyle="#f5f0e6";ctx.textAlign="center";ctx.textBaseline="middle";\n  ctx.fillText(label,bx+bw/2,by+bh/2+2);\n  ctx.restore();\n}\n\nfunction draw(){\n  var s=state.style;\n  ctx.textAlign="center";ctx.textBaseline="middle";\n  if(s===0){ /* THE CALL — cream, red headline */\n    ctx.fillStyle=CREAM;ctx.fillRect(0,0,W,H);border(BLACK,26,26);border(RED,6,60);\n    ctx.fillStyle=RED;ctx.font="64px \'Arial Black\',Arial,sans-serif";ctx.fillText(state.top,540,170);\n    ctx.fillStyle=BLACK;ctx.fillRect(80,230,920,6);\n    var t=wrap(state.head,860,170);var y=centerBlock(t.lines,t.size,640,t.size*1.12,RED);\n    ctx.fillStyle=BLACK;ctx.fillRect(80,H-260,920,10);\n    ctx.fillStyle=CREAM;ctx.fillRect(0,H-220,W,220);ctx.fillStyle=BLACK;ctx.fillRect(0,H-220,W,220);\n    ctx.fillStyle=CREAM;ctx.font="56px \'Arial Black\',Arial,sans-serif";ctx.fillText(state.bot,540,H-110);\n  }else if(s===1){ /* WANTED — black, cream/red */\n    ctx.fillStyle=BLACK;ctx.fillRect(0,0,W,H);border(RED,26,26);border(CREAM,6,60);\n    ctx.fillStyle=CREAM;ctx.font="150px \'Arial Black\',Arial,sans-serif";ctx.fillText("WANTED",540,190);\n    ctx.fillStyle=RED;ctx.font="56px \'Arial Black\',Arial,sans-serif";ctx.fillText(state.top,540,300);\n    var t=wrap(state.head,860,150);centerBlock(t.lines,t.size,700,t.size*1.12,CREAM);\n    ctx.fillStyle=RED;ctx.fillRect(80,H-280,920,8);\n    ctx.fillStyle=CREAM;ctx.font="52px \'Arial Black\',Arial,sans-serif";ctx.fillText(state.bot,540,H-150);\n  }else if(s===2){ /* RED WAVE — red bg */\n    ctx.fillStyle=RED;ctx.fillRect(0,0,W,H);border(BLACK,26,26);border(CREAM,6,60);\n    ctx.fillStyle=BLACK;ctx.font="64px \'Arial Black\',Arial,sans-serif";ctx.fillText(state.top,540,170);\n    var t=wrap(state.head,860,170);centerBlock(t.lines,t.size,640,t.size*1.12,CREAM);\n    ctx.fillStyle=BLACK;ctx.fillRect(0,H-220,W,220);\n    ctx.fillStyle=CREAM;ctx.font="56px \'Arial Black\',Arial,sans-serif";ctx.fillText(state.bot,540,H-110);\n  }else{ /* STRIKE — diagonal stripes */\n    ctx.fillStyle=CREAM;ctx.fillRect(0,0,W,H);\n    ctx.save();ctx.beginPath();ctx.rect(0,0,W,300);ctx.clip();\n    for(var i=-8;i<24;i++){ctx.fillStyle=i%2?BLACK:RED;ctx.save();ctx.translate(i*90,0);ctx.rotate(-0.5);ctx.fillRect(0,-200,45,700);ctx.restore();}\n    ctx.restore();\n    ctx.fillStyle=CREAM;ctx.font="72px \'Arial Black\',Arial,sans-serif";\n    ctx.save();ctx.shadowColor=BLACK;ctx.shadowOffsetX=6;ctx.shadowOffsetY=6;ctx.fillText("STRIKE!",540,150);ctx.restore();\n    border(BLACK,26,26);\n    ctx.fillStyle=BLACK;ctx.font="60px \'Arial Black\',Arial,sans-serif";ctx.fillText(state.top,540,420);\n    var t=wrap(state.head,860,170);centerBlock(t.lines,t.size,760,t.size*1.12,RED);\n    ctx.fillStyle=BLACK;ctx.fillRect(80,H-260,920,10);\n    ctx.fillStyle=BLACK;ctx.font="56px \'Arial Black\',Arial,sans-serif";ctx.fillText(state.bot,540,H-130);\n  }\n  watermark();\n}\nfunction sync(){state.top=document.getElementById("pTop").value||" ";state.head=document.getElementById("pHead").value||" ";state.bot=document.getElementById("pBot").value||" ";draw();}\n["pTop","pHead","pBot"].forEach(function(id){document.getElementById(id).addEventListener("input",sync);});\ndocument.getElementById("pStyles").addEventListener("click",function(e){\n  var b=e.target.closest(".p-style");if(!b)return;\n  this.querySelectorAll(".p-style").forEach(function(x){x.classList.remove("on");});\n  b.classList.add("on");state.style=+b.dataset.s;draw();\n});\ndocument.getElementById("pRandom").onclick=function(){\n  var p=SLOGANS[Math.floor(Math.random()*SLOGANS.length)];\n  document.getElementById("pTop").value=p[0];document.getElementById("pHead").value=p[1];document.getElementById("pBot").value=p[2];\n  sync();\n};\n/* PFN metadata stamping: inject tEXt chunks so every PNG traces to the network. */\nvar CRC_T=(function(){var t=[],c;for(var n=0;n<256;n++){c=n;for(var k=0;k<8;k++){c=c&1?0xEDB88320^(c>>>1):c>>>1;}t[n]=c>>>0;}return t;})();\nfunction pngCrc(type,data){var crc=0xFFFFFFFF,i;for(i=0;i<4;i++){crc=CRC_T[(crc^type.charCodeAt(i))&255]^(crc>>>8);}for(i=0;i<data.length;i++){crc=CRC_T[(crc^data[i])&255]^(crc>>>8);}return (crc^0xFFFFFFFF)>>>0;}\nfunction textChunk(keyword,text){\n  var enc=new TextEncoder();\n  var kw=enc.encode(keyword),tx=enc.encode(text);\n  var data=new Uint8Array(kw.length+1+tx.length);\n  data.set(kw,0);data[kw.length]=0;data.set(tx,kw.length+1);\n  var out=new Uint8Array(12+data.length),dv=new DataView(out.buffer);\n  dv.setUint32(0,data.length);\n  out[4]=116;out[5]=69;out[6]=88;out[7]=116; /* "tEXt" */\n  out.set(data,8);\n  dv.setUint32(8+data.length,pngCrc("tEXt",data));\n  return out;\n}\nfunction stampPng(buf){\n  var bytes=new Uint8Array(buf);\n  var sig=[137,80,78,71,13,10,26,10],i;\n  for(i=0;i<8;i++){if(bytes[i]!==sig[i])return buf;}\n  var meta=[\n    ["Title","PFN Agitprop Poster"],\n    ["Author","Propaganda Factory Network"],\n    ["Description","Seize the memes of production. Forged at mtcstw.com - workers of the feed, unite."],\n    ["Copyright","Copyright 2026 Propaganda Factory Network. Property of the working class."],\n    ["Software","PFN Poster Forge"],\n    ["Source","https://www.mtcstw.com"],\n    ["Comment","EAT THE RICH - solidarity forever."]\n  ];\n  var chunks=[],total=0;\n  meta.forEach(function(m){var c=textChunk(m[0],m[1]);chunks.push(c);total+=c.length;});\n  var dv=new DataView(bytes.buffer),pos=8;\n  while(pos+8<bytes.length){\n    var len=dv.getUint32(pos);\n    var type=String.fromCharCode(bytes[pos+4],bytes[pos+5],bytes[pos+6],bytes[pos+7]);\n    if(type==="IEND")break;\n    pos+=12+len;\n  }\n  var out=new Uint8Array(bytes.length+total);\n  out.set(bytes.subarray(0,pos),0);\n  var o=pos;\n  chunks.forEach(function(c){out.set(c,o);o+=c.length;});\n  out.set(bytes.subarray(pos),o);\n  return out.buffer;\n}\nfunction stampedBlob(cb){\n  /* Stamp the callsign on a throwaway copy — the forge canvas itself stays clean. */\n  var src=cv;\n  try{\n    if(window.PFShare&&window.PFShare.stampCallsign){\n      var c2=document.createElement(\'canvas\');c2.width=cv.width;c2.height=cv.height;\n      c2.getContext(\'2d\').drawImage(cv,0,0);\n      src=window.PFShare.stampCallsign(c2)||c2;\n    }\n  }catch(e){src=cv;}\n  src.toBlob(function(blob){\n    if(blob.arrayBuffer){blob.arrayBuffer().then(function(buf){cb(new Blob([stampPng(buf)],{type:"image/png"}));}).catch(function(){pfToast("Poster failed to render — tap Download again to retry.");});}\n    else{cb(blob);}\n  });\n}\ndocument.getElementById("pDownload").onclick=function(e){\n  e.preventDefault();\n  /* award XP + ping the trackers — ONCE PER DAY max (anti-farming).\n     Repeated downloads of the same or different posters on the same day\n     do not re-fire pf-poster-made. */\n  try{\n    var today=new Date().toISOString().slice(0,10);\n    var pfKey=\'pf_poster_day_v1\';\n    var last=null;try{last=localStorage.getItem(pfKey);}catch(err){}\n    if(last!==today){\n      try{localStorage.setItem(pfKey,today);}catch(err){}\n      var pfDetail={day:today};\n      /* Strike-orders creation loop (fe/strike-orders-creative): tag the\n         entity binding so the order completes entity-bound. Zero XP impact\n         — same event, richer detail. */\n      if(pfStrikeLaunch&&pfStrikeLaunch.strike&&pfStrikeLaunch.entity&&pfStrikeLaunch.entity.id){\n        pfDetail.strike={cell_id:pfStrikeLaunch.strike.cell_id,week_start:pfStrikeLaunch.strike.week_start,\n          entity_kind:pfStrikeLaunch.entity.kind,entity_id:pfStrikeLaunch.entity.id};\n      }\n      document.dispatchEvent(new CustomEvent("pf-poster-made",{detail:pfDetail}));\n    }\n  }catch(err){}\n  /* Strike-orders creation loop: entity-bound completion receipt (zero XP,\n     idempotent server-side via INSERT OR IGNORE). Own once-per-order gate —\n     independent of the daily poster-XP gate above. */\n  try{ pfStrikeLogForge(); }catch(err2){}\n  pfLogShare();\n  stampedBlob(function(blob){\n    var url=URL.createObjectURL(blob);\n    var a=document.createElement("a");\n    a.href=url;a.download="pfn-propaganda-poster.png";\n    document.body.appendChild(a);a.click();a.remove();\n    setTimeout(function(){URL.revokeObjectURL(url);},4000);\n  });\n};\ndocument.getElementById("pShare").onclick=function(){\n  pfLogShare();\n  stampedBlob(function(blob){\n    var f=new File([blob],"pfn-propaganda-poster.png",{type:"image/png"});\n    if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:"PFN propaganda poster"}).catch(function(){});return;}\n    var url=URL.createObjectURL(blob);window.open(url,"_blank");\n  });\n};\n/* R6 (2026-10-04): one-tap forge -> Poster Battles pipeline. Registers the\n   poster so it has a content ID, then battle_propose carries the stamped\n   poster (the JOIN THE FIGHT. CTA is baked into the canvas by watermark())\n   as an optional image payload. Zero XP — navigation + competition only. */\nfunction pfBattleThumb(){\n  try{\n    var c2=document.createElement(\'canvas\');\n    var w=540,h=Math.round(540*cv.height/cv.width);\n    c2.width=w;c2.height=h;\n    c2.getContext(\'2d\').drawImage(cv,0,0,w,h);\n    return c2.toDataURL(\'image/jpeg\',0.72);\n  }catch(e){ return \'\'; }\n}\ndocument.getElementById("pBattle").onclick=function(){\n  var id=pfIdent();\n  if(!id.callsign){ pfToast("Claim a callsign first (Enlistment Ranks)."); return; }\n  var btn=document.getElementById("pBattle");\n  var cid=pfContentId();\n  var BTN_LABEL="ENTER INTO POSTER BATTLES →";\n  btn.disabled=true; btn.textContent="ENTERING…";\n  function restore(){ try{ btn.disabled=false; btn.textContent=BTN_LABEL; }catch(e){} }\n  pfPost({type:"spread",sp_action:"content_register",id:cid,callsign:id.callsign,kind:"poster",title:String(state.head||"untitled").slice(0,200)},function(){\n    try{ pfRegistered[cid]=1; }catch(e){}\n    var img=pfBattleThumb();\n    if(img.length>400000){ restore(); pfToast("Poster too large to enter."); return; }\n    pfPost({type:"battle",b_action:"battle_propose",callsign:id.callsign,device:id.device,\n      title:String(state.head||"untitled").slice(0,120),ends_at:Date.now()+7*86400000,\n      image_data:img,content_id:cid},function(j){\n      restore();\n      if(j&&j.ok){ pfToast("Battle proposed! Your poster hits the arena after approval."); }\n      else pfToast(PF.errCopy(j,"Proposal failed."));\n    });\n  });\n};\n/* ---- Spread tracking + creator dashboard + boost economy ---- */\nvar PFBE=window.PF_BACKEND_URL;\nfunction pfEsc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction pfIdent(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction pfToast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}\n  try{ var t=document.createElement("div"); t.textContent=m;\n  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";\n  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }\n/* Friendly copy for gated read failures (2026-10-03): raw backend strings\n   like \'missing credentials\' are never shown as UI copy. */\nfunction pfAuthHint(j){\n  var e=String((j&&j.err)||"");\n  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")\n    return \'<br><span class="x-note">This callsign predates the new auth system and can&rsquo;t reconnect on its own &mdash; contact MTCSTW to recover it.</span>\';\n  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)\n    return \'<br><span class="x-note">Your callsign needs to reconnect &mdash; re-claim it in Enlistment Ranks (one tap), then retry.</span>\';\n  return "";\n}\nfunction pfApi(action,params,cb){\n  if(!PFBE){ cb(null); return; }\n  /* Private reads require auth_secret (IDOR fix). Route gated actions\n     through the shared claim-retry GET (2026-10-03): pre-auth callsign\n     holders with no stored secret get one auth_claim attempt instead of\n     failing \'missing credentials\' forever. */\n  if(action==="creator_dashboard"){\n    try{\n      if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(PFBE,action,params,cb); return; }\n      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";\n      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;\n    }catch(e){}\n  }\n  var fn="pfPfCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"),done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=PFBE+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\nfunction pfPost(body,cb){\n  if(window.PF&&PF.authPost){ PF.authPost(PFBE,body,cb); return; }\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    /* 2026-10-03 L6: abort backstop — a hung fallback POST previously left\n       boost buttons stuck disabled. */\n    var ctl2=null;\n    try{ ctl2=new AbortController(); }catch(e){}\n    var hung2=setTimeout(function(){ try{ if(ctl2) ctl2.abort(); }catch(e){} },15000);\n    fetch(PFBE,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body),signal:ctl2?ctl2.signal:undefined})\n      .then(function(r){ return r.json(); }).then(function(j){ try{clearTimeout(hung2);}catch(e){} done(j); })\n      .catch(function(){ try{clearTimeout(hung2);}catch(e){} done(null); });\n  }catch(e){ done(null); }\n}\n/* One content id per unique poster design. Same design = same id. */\nvar pfContentIds={}, pfRegistered={}, pfLastShared=null;\nfunction pfContentId(){\n  var sig=[state.top,state.head,state.bot,state.style].join("|");\n  if(!pfContentIds[sig]) pfContentIds[sig]="pf-"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);\n  return pfContentIds[sig];\n}\nfunction pfLogShare(){\n  var id=pfIdent();\n  var cid=pfContentId(), title=state.head||"untitled";\n  try{ localStorage.setItem("pf_last_content_id",cid); }catch(e){}\n  pfLastShared=cid;\n  if(pfRegistered[cid]){ pfDoShareLog(cid,id); return; }\n  if(!id.callsign){ pfRenderSpread(); pfRenderImpact(); return; }\n  pfPost({type:"spread",sp_action:"content_register",id:cid,callsign:id.callsign,kind:"poster",title:title},function(j){\n    if(j&&j.ok) pfRegistered[cid]=1;\n    pfDoShareLog(cid,id);\n  });\n}\nfunction pfDoShareLog(cid,id){\n  if(id.callsign){\n    pfPost({type:"spread",sp_action:"share_log",content_id:cid,sharer:id.callsign},function(){ pfRenderSpread(); });\n  } else { pfRenderSpread(); }\n  pfRenderImpact();\n  try{ document.dispatchEvent(new CustomEvent("pf-content-shared",{detail:{content_id:cid}})); }catch(e){}\n}\nfunction pfBoostRow(cid,xpTotal){\n  return \'<div class="p-boostrow"><span class="p-boosttotal">BOOSTED \'+xpTotal+\' XP</span> \'\n    +[10,25,50].map(function(a){\n      return \'<button class="p-btn ghost p-boostbtn" data-cid="\'+pfEsc(cid)+\'" data-amt="\'+a+\'">+\'+a+\' XP</button>\';\n    }).join(" ")+\'</div>\';\n}\nfunction pfWireBoosts(root){\n  var btns=(root||document).querySelectorAll("button.p-boostbtn");\n  for(var i=0;i<btns.length;i++){\n    (function(btn){\n      if(btn._pfWired) return; btn._pfWired=1;\n      btn.onclick=function(){\n        var id=pfIdent();\n        if(!id.callsign){ pfToast("Claim a callsign first."); return; }\n        btn.disabled=true;\n        pfPost({type:"spread",sp_action:"boost_give",content_id:btn.getAttribute("data-cid"),booster:id.callsign,device:id.device,xp:btn.getAttribute("data-amt")},function(j){\n          btn.disabled=false;\n          if(!j||!j.ok){ pfToast(PF.errCopy(j,"Boost failed.")); return; }\n          pfToast("BOOSTED — "+j.total_boosts+" XP total on this piece.");\n          /* R12 (Wave 6B): boost impact receipt — "your boost moved X to #N". */\n          try{ if(window.PF&&PF.boostReceipt) PF.boostReceipt(); }catch(e){}\n          pfRenderSpread(); pfRenderImpact();\n          try{ document.dispatchEvent(new CustomEvent("pf-boost-given",{detail:{content_id:btn.getAttribute("data-cid")}})); }catch(e){}\n        });\n      };\n    })(btns[i]);\n  }\n}\nfunction pfRenderSpread(){\n  var el=document.getElementById("pSpread"); if(!el) return;\n  var cid=pfLastShared||pfContentId();\n  pfApi("spread_stats",{content_id:cid},function(j){\n    var h=\'<div class="x-pane"><h4>Spread — this poster</h4>\';\n    if(j&&j.ok&&(j.total_shares>0||pfLastShared)){\n      h+=\'<div class="p-spreadnums"><span>\'+j.total_shares+\' SHARES</span><span>\'+j.unique_sharers+\' SHARERS</span><span>\'+j.cells_reached+\' CELLS</span><span>DEPTH \'+j.max_depth+\'</span></div>\';\n      var tl=j.timeline||[], mx=1, ti;\n      for(ti=0;ti<tl.length;ti++){ if(tl[ti].shares>mx) mx=tl[ti].shares; }\n      if(tl.length){\n        h+=\'<div class="p-timeline">\';\n        for(ti=0;ti<tl.length;ti++){\n          var ph=Math.max(2,Math.round(tl[ti].shares/mx*36));\n          h+=\'<div class="p-tbar" title="\'+pfEsc(tl[ti].day)+\': \'+tl[ti].shares+\'" style="height:\'+ph+\'px"></div>\';\n        }\n        h+=\'</div><div class="x-note">Shares per day, last 14 days. Watch it travel.</div>\';\n      }\n      h+=pfBoostRow(cid,0);\n      h+=\'<div class="x-note">Content ID: <span class="p-cid">\'+pfEsc(cid)+\'</span> — paste it into Poster Battles to enter.</div>\';\n    } else {\n      h+=\'<div class="x-note">Download or share this poster and its spread stats appear here — shares, cells reached, depth.</div>\';\n    }\n    h+=\'</div>\';\n    el.innerHTML=h; pfWireBoosts(el);\n  });\n}\nfunction pfRenderImpact(){\n  var el=document.getElementById("pImpact"); if(!el) return;\n  var id=pfIdent();\n  if(!id.callsign){ el.innerHTML=\'<div class="x-pane"><h4>My impact</h4><div class="x-note">Claim a callsign to track your propaganda footprint.</div></div>\'; return; }\n  pfApi("creator_dashboard",{callsign:id.callsign},function(j){\n    pfApi("boost_board",{},function(b){\n      var bmap={};\n      try{ ((b&&b.ok&&b.board)||[]).forEach(function(r){ bmap[r.id]=r.xp||0; }); }catch(e){}\n      var h=\'<div class="x-pane"><h4>My impact</h4>\';\n      if(j&&j.ok){\n        h+=\'<div class="p-spreadnums"><span>\'+j.total_content+\' PIECES</span><span>\'+j.total_shares+\' SHARES</span><span>\'+j.total_reach+\' REACH</span></div>\';\n        var top=j.top_content||[];\n        if(top.length){\n          h+=\'<div class="x-note">Your top propaganda, ranked by spread:</div>\';\n          for(var i=0;i<Math.min(top.length,10);i++){\n            var t=top[i];\n            h+=\'<div class="p-toprow"><div class="p-toptitle">\'+pfEsc(t.title||t.id)+\'</div>\'\n              +\'<div class="x-note">\'+t.shares+\' shares &bull; \'+t.sharers+\' sharers &bull; \'+t.cells+\' cells</div>\'\n              +pfBoostRow(t.id,bmap[t.id]||0)+\'</div>\';\n          }\n        } else { h+=\'<div class="x-note">No tracked pieces yet. Forge, share, and watch the numbers climb.</div>\'; }\n      } else { h+=\'<div class="x-note">\'+(pfAuthHint(j)||\'Impact data loading&hellip;\')+\'</div>\'; }\n      h+=\'</div>\';\n      el.innerHTML=h; pfWireBoosts(el);\n    });\n  });\n}\ndraw();\npfRenderSpread();\npfRenderImpact();\nwindow.__pfPoster={state:state,wrap:wrap,SLOGANS:SLOGANS,stampPng:stampPng};\n})();\n\n/* ---------- VIDEO tab (merged from games/video.js, PF v1.4.3, 2026-10-03) ----------\n   Video Forge now lives as a tab of the Poster Forge (homepage CREATE block).\n   All 4 steps preserved: templates, slideshow builder, 9:16 preview + WebM\n   recorder, save/share via the video_* backend actions. The video pane renders\n   on mount (hidden) exactly as the standalone widget did. */\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}\n  try{ var t=document.createElement("div"); t.textContent=m;\n  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";\n  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  var fn="pfVdCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\nfunction post(vAction,params,cb){\n  var body=Object.assign({type:"video",v_action:vAction},params);\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }\n  var bodyStr=JSON.stringify(body);\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */\n    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;\n      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}\n      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();\n    fetch(BACKEND,_po)\n      .then(function(r){ return r.json(); })\n      .then(function(j){ _po._pfClear(); done(j); })\n      .catch(function(){ _po._pfClear(); done(null); });\n  }catch(e){ done(null); }\n}\n/* ---------- state ---------- */\nvar VW=720, VH=1280;\nvar frames=[];            /* {label, text, duration_ms, img:Image|null, imgKey} */\nvar imgCache={};          /* imgKey -> dataURL (session) */\nvar playing=false, playIdx=0, frameStart=0, rafId=0;\nvar recorder=null, recChunks=[], recording=false, recMime="";\nvar canvas=null, ctx=null;\nvar libVideos=[];\nfunction $(id){ return document.getElementById(id); }\nfunction frameDur(f){ return Math.max(500, Math.min(10000, parseInt(f.duration_ms,10)||2000)); }\n/* ---------- canvas render ---------- */\nfunction drawCover(c, img, W, H){\n  var iw=img.naturalWidth||img.width, ih=img.naturalHeight||img.height;\n  if(!iw||!ih) return;\n  var s=Math.max(W/iw, H/ih), dw=iw*s, dh=ih*s;\n  c.drawImage(img, (W-dw)/2, (H-dh)/2, dw, dh);\n}\nfunction wrapText(c, text, maxW){\n  var words=String(text).split(/\\s+/), lines=[], cur="";\n  for(var i=0;i<words.length;i++){\n    var t=cur?cur+" "+words[i]:words[i];\n    if(c.measureText(t).width>maxW && cur){ lines.push(cur); cur=words[i]; }\n    else cur=t;\n  }\n  if(cur) lines.push(cur);\n  return lines;\n}\nfunction drawFrame(c, f){\n  c.save();\n  c.fillStyle="#0a0a0a"; c.fillRect(0,0,VW,VH);\n  if(f.img){\n    try{ drawCover(c, f.img, VW, VH); }catch(e){}\n    var g=c.createLinearGradient(0,VH*0.45,0,VH);\n    g.addColorStop(0,"rgba(0,0,0,0)"); g.addColorStop(1,"rgba(0,0,0,0.82)");\n    c.fillStyle=g; c.fillRect(0,VH*0.45,VW,VH*0.55);\n  } else {\n    var g2=c.createLinearGradient(0,0,0,VH);\n    g2.addColorStop(0,"#1a0505"); g2.addColorStop(1,"#0a0a0a");\n    c.fillStyle=g2; c.fillRect(0,0,VW,VH);\n    c.strokeStyle="#c1121f"; c.lineWidth=10; c.strokeRect(24,24,VW-48,VH-48);\n    c.fillStyle="#c1121f"; c.font="bold 64px monospace"; c.textAlign="center";\n    c.fillText("MTCSTW", VW/2, 150);\n  }\n  var txt=String(f.text||"");\n  if(txt){\n    c.textAlign="center"; c.textBaseline="alphabetic";\n    var fs=64; c.font="bold "+fs+"px Impact, Arial Black, sans-serif";\n    var lines=wrapText(c, txt.toUpperCase(), VW-120);\n    while(lines.length>6 && fs>28){ fs-=6; c.font="bold "+fs+"px Impact, Arial Black, sans-serif"; lines=wrapText(c, txt.toUpperCase(), VW-120); }\n    var lh=fs*1.18, y0=VH-80-lines.length*lh;\n    for(var i=0;i<lines.length;i++){\n      var y=y0+i*lh;\n      c.lineWidth=Math.max(4,fs/10); c.strokeStyle="#000"; c.strokeText(lines[i], VW/2, y);\n      c.fillStyle="#fff"; c.fillText(lines[i], VW/2, y);\n    }\n  }\n  c.fillStyle="#c1121f"; c.font="bold 34px monospace"; c.textAlign="left";\n  c.fillText("MTCSTW.COM", 30, VH-30);\n  c.textAlign="right"; c.fillStyle="#888";\n  c.fillText("JOIN THE FIGHT.", VW-30, VH-30);\n  c.restore();\n}\nfunction tick(now){\n  if(!playing) return;\n  if(!frames.length){ stopPlay(); return; }\n  var f=frames[playIdx];\n  if(now-frameStart>=frameDur(f)){\n    playIdx++;\n    frameStart=now;\n    if(playIdx>=frames.length){\n      if(recording){ stopRecord(); return; }\n      playIdx=0;\n    }\n  }\n  if(playIdx<frames.length && ctx) drawFrame(ctx, frames[playIdx]);\n  rafId=requestAnimationFrame(tick);\n}\nfunction startPlay(){\n  if(!frames.length){ toast("Add slides first."); return; }\n  if(!canvas) return;\n  stopPlay();\n  playing=true; playIdx=0; frameStart=performance.now();\n  var pb=$("vdPlayBtn"); if(pb) pb.textContent="PAUSE";\n  rafId=requestAnimationFrame(tick);\n}\nfunction stopPlay(){\n  playing=false;\n  try{ cancelAnimationFrame(rafId); }catch(e){}\n  var pb=$("vdPlayBtn"); if(pb) pb.textContent="PLAY";\n}\n/* ---------- recorder ---------- */\nfunction pickMime(){\n  var cands=["video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm","video/mp4"];\n  for(var i=0;i<cands.length;i++){\n    try{ if(window.MediaRecorder && MediaRecorder.isTypeSupported(cands[i])) return cands[i]; }catch(e){}\n  }\n  return "";\n}\nfunction startRecord(){\n  if(recording) return;\n  if(!frames.length){ toast("Add slides first."); return; }\n  if(!canvas){ toast("Canvas not ready."); return; }\n  if(!(window.MediaRecorder&&canvas.captureStream)){ toast("Recording not supported in this browser."); return; }\n  recMime=pickMime();\n  if(!recMime){ toast("No supported video format."); return; }\n  recChunks=[];\n  try{\n    recorder=new MediaRecorder(canvas.captureStream(30), {mimeType:recMime, videoBitsPerSecond:5000000});\n  }catch(e){ toast("Recorder failed to start."); return; }\n  recorder.ondataavailable=function(ev){ if(ev.data&&ev.data.size) recChunks.push(ev.data); };\n  recorder.onstop=function(){\n    recording=false;\n    var rb=$("vdRecBtn"); if(rb) rb.textContent="RECORD VIDEO";\n    var blob=new Blob(recChunks, {type:recMime.split(";")[0]});\n    var url=URL.createObjectURL(blob);\n    var dl=$("vdDownload");\n    if(dl){ dl.href=url; dl.download="mtcstw-video.webm"; dl.style.display="inline-block"; }\n    toast("Video ready. Hit DOWNLOAD.");\n  };\n  stopPlay();\n  playing=true; playIdx=0; frameStart=performance.now();\n  var pb=$("vdPlayBtn"); if(pb) pb.textContent="PAUSE";\n  recorder.start(250);\n  recording=true;\n  var rb2=$("vdRecBtn"); if(rb2) rb2.textContent="STOP RECORDING";\n  rafId=requestAnimationFrame(tick);\n  toast("Recording...");\n}\nfunction stopRecord(){\n  recording=false;\n  try{ if(recorder&&recorder.state!=="inactive") recorder.stop(); }catch(e){}\n  stopPlay();\n  var rb=$("vdRecBtn"); if(rb) rb.textContent="RECORD VIDEO";\n}\n/* ---------- builder ---------- */\nfunction newFrame(label, text, dur){\n  return {label:label||("slide-"+(frames.length+1)), text:text||"", duration_ms:dur||2000, img:null, imgKey:null};\n}\nfunction renderBuilder(){\n  var el=$("vdFrames"); if(!el) return;\n  var h="";\n  if(!frames.length) h+=\'<div class="x-note">No slides yet. Upload poster images, pull from the forge, or load a template.</div>\';\n  for(var i=0;i<frames.length;i++){\n    var f=frames[i];\n    h+=\'<div class="vd-frame" data-i="\'+i+\'">\'\n      +\'<div class="vd-fhead"><b>#\'+(i+1)+\'</b> \'+(f.img?\'<span class="vd-hasimg">IMG</span>\':\'<span class="vd-noimg">TEXT CARD</span>\')\n      +\' <span class="vd-flabel">\'+esc(f.label)+\'</span></div>\'\n      +\'<input aria-label="Text overlay (punchy)" class="vd-ftext" data-k="text" data-i="\'+i+\'" value="\'+esc(f.text)+\'" placeholder="Text overlay (punchy)" maxlength="140">\'\n      +\'<div class="vd-frow"><label>secs <input class="vd-fdur" data-i="\'+i+\'" type="number" min="1" max="10" step="0.5" value="\'+(frameDur(f)/1000)+\'"></label>\'\n      +\'<button class="c-btn vd-up" data-i="\'+i+\'">&uarr;</button>\'\n      +\'<button class="c-btn vd-down" data-i="\'+i+\'">&darr;</button>\'\n      +\'<button class="c-btn vd-del" data-i="\'+i+\'">DEL</button></div>\'\n      +\'</div>\';\n  }\n  el.innerHTML=h;\n  var tot=0; for(var j=0;j<frames.length;j++) tot+=frameDur(frames[j]);\n  var tl=$("vdTotal"); if(tl) tl.textContent=frames.length+" slides, "+(tot/1000).toFixed(1)+"s total";\n  bindBuilderInputs();\n}\nfunction bindBuilderInputs(){\n  var texts=document.querySelectorAll("#vdFrames .vd-ftext");\n  for(var i=0;i<texts.length;i++){\n    texts[i].addEventListener("input", function(ev){\n      var t=ev.target, idx=parseInt(t.getAttribute("data-i"),10);\n      if(frames[idx]) frames[idx].text=t.value;\n    });\n  }\n  var durs=document.querySelectorAll("#vdFrames .vd-fdur");\n  for(var j=0;j<durs.length;j++){\n    durs[j].addEventListener("change", function(ev){\n      var t=ev.target, idx=parseInt(t.getAttribute("data-i"),10);\n      var v=parseFloat(t.value)||2;\n      v=Math.max(0.5, Math.min(10, v));\n      if(frames[idx]) frames[idx].duration_ms=Math.round(v*1000);\n    });\n  }\n  var ups=document.querySelectorAll("#vdFrames .vd-up");\n  for(var k=0;k<ups.length;k++){\n    ups[k].addEventListener("click", function(ev){\n      var idx=parseInt(ev.target.getAttribute("data-i"),10);\n      if(idx>0){ var t2=frames[idx-1]; frames[idx-1]=frames[idx]; frames[idx]=t2; renderBuilder(); }\n    });\n  }\n  var dns=document.querySelectorAll("#vdFrames .vd-down");\n  for(var m=0;m<dns.length;m++){\n    dns[m].addEventListener("click", function(ev){\n      var idx=parseInt(ev.target.getAttribute("data-i"),10);\n      if(idx<frames.length-1){ var t3=frames[idx+1]; frames[idx+1]=frames[idx]; frames[idx]=t3; renderBuilder(); }\n    });\n  }\n  var dels=document.querySelectorAll("#vdFrames .vd-del");\n  for(var n=0;n<dels.length;n++){\n    dels[n].addEventListener("click", function(ev){\n      var idx=parseInt(ev.target.getAttribute("data-i"),10);\n      frames.splice(idx,1); renderBuilder();\n    });\n  }\n}\nfunction addImageFrame(dataURL, label){\n  var f=newFrame(label||("img-"+(frames.length+1)), "", 2500);\n  var im=new Image();\n  im.onload=function(){ f.img=im; renderBuilder(); drawIdle(); };\n  im.onerror=function(){ toast("Could not load image."); };\n  im.src=dataURL;\n  frames.push(f);\n  renderBuilder();\n}\nfunction handleFiles(fileList){\n  for(var i=0;i<fileList.length;i++){\n    (function(file){\n      if(!file.type || file.type.indexOf("image/")!==0) return;\n      var rd=new FileReader();\n      rd.onload=function(){\n        try{ addImageFrame(String(rd.result), file.name.replace(/\\.[^.]+$/,"").slice(0,32)||("img-"+(frames.length+1))); }\n        catch(e){ toast("Image too large to load."); }\n      };\n      rd.readAsDataURL(file);\n    })(fileList[i]);\n  }\n}\nfunction pullFromForge(){\n  var c=null;\n  try{ c=document.getElementById("pCanvas"); }catch(e){}\n  if(!c){ toast("Poster Forge canvas not found. Upload instead."); return; }\n  try{\n    var url=c.toDataURL("image/png");\n    addImageFrame(url, "forge-"+(frames.length+1));\n    toast("Forge poster added.");\n  }catch(e){ toast("Could not grab forge canvas."); }\n}\n/* ---------- templates ---------- */\nvar TEMPLATES={\n  cta:{name:"CALL TO ACTION", slides:[\n    {text:"JOIN THE FIGHT.", dur:2000},\n    {text:"THE BILLIONAIRES HAVE TWO PARTIES.", dur:2500},\n    {text:"WE ARE BUILDING OUR OWN POWER.", dur:2500}]},\n  facts:{name:"FACT DROP", slides:[\n    {text:"FACT 1: YOUR RENT WENT UP. YOUR WAGES DID NOT.", dur:2500},\n    {text:"FACT 2: THEY CALL IT INFLATION. IT IS PRICE GOUGING.", dur:2500},\n    {text:"FACT 3: 3 MEN OWN MORE THAN HALF THE COUNTRY.", dur:2500},\n    {text:"FACT 4: THEY NEED YOU DIVIDED. STAY DANGEROUS.", dur:2500},\n    {text:"EDIT THESE FACTS. MAKE THEM YOURS.", dur:2500}]},\n  beforeafter:{name:"BEFORE / AFTER", slides:[\n    {text:"BEFORE: SCROLLING. ANGRY. ALONE.", dur:3000},\n    {text:"AFTER: ORGANIZED. ARMED WITH TRUTH. UNSTOPPABLE.", dur:3000}]}\n};\nfunction loadTemplate(key){\n  var t=TEMPLATES[key]; if(!t) return;\n  frames=[];\n  for(var i=0;i<t.slides.length;i++){\n    frames.push(newFrame("tpl-"+key+"-"+(i+1), t.slides[i].text, t.slides[i].dur));\n  }\n  renderBuilder(); drawIdle();\n  toast(t.name+" loaded. Edit the text, then PLAY.");\n}\n/* ---------- backend save / library ---------- */\nfunction saveVideo(){\n  var idd=ident();\n  if(!idd.callsign){ toast("Claim a callsign first (Enlistment Ranks)."); return; }\n  if(!frames.length){ toast("Add slides first."); return; }\n  var title=$("vdTitle")?String($("vdTitle").value).slice(0,120):"";\n  if(!title){ toast("Give your video a title."); return; }\n  var out=[];\n  for(var i=0;i<frames.length;i++){\n    out.push({poster_id:String(frames[i].label||("slide-"+(i+1))).slice(0,64), text:String(frames[i].text||"").slice(0,140), duration_ms:frameDur(frames[i])});\n  }\n  post("video_create",{callsign:idd.callsign, device:idd.device, title:title, frames:JSON.stringify(out)}, function(j){\n    if(j&&j.ok){ toast("Saved. +15 XP. ID: "+j.id); loadLibrary(); }\n    else toast(PF.errCopy(j,"Save failed."));\n  });\n}\nfunction loadLibrary(){\n  api("video_list",{},function(j){\n    libVideos=(j&&j.videos)||[];\n    renderLibrary();\n  });\n}\nfunction renderLibrary(){\n  var el=$("vdLib"); if(!el) return;\n  var h="";\n  if(!libVideos.length) h+=\'<div class="x-note">No saved videos yet. Build one above.</div>\';\n  for(var i=0;i<libVideos.length;i++){\n    var v=libVideos[i];\n    h+=\'<div class="vd-librow"><b>\'+esc(v.title)+\'</b> <span class="x-note">by \'+esc(v.creator)+\' &middot; \'+(Math.round((v.duration||0)/100)/10)+\'s</span> \'\n      +\'<button class="c-btn vd-open" data-id="\'+esc(v.id)+\'">LOAD</button></div>\';\n  }\n  el.innerHTML=h;\n  var btns=document.querySelectorAll("#vdLib .vd-open");\n  for(var k=0;k<btns.length;k++){\n    btns[k].addEventListener("click", function(ev){\n      openVideo(ev.target.getAttribute("data-id"));\n    });\n  }\n}\nfunction openVideo(vid){\n  api("video_get",{video_id:vid},function(j){\n    if(!(j&&j.ok&&j.video)){ toast("Could not load video."); return; }\n    var v=j.video;\n    frames=[];\n    var fr=v.frames||[];\n    for(var i=0;i<fr.length;i++){\n      frames.push(newFrame(fr[i].poster_id||("slide-"+(i+1)), fr[i].text||"", fr[i].duration_ms||2000));\n    }\n    var ti=$("vdTitle"); if(ti) ti.value=v.title||"";\n    renderBuilder(); drawIdle();\n    toast("Loaded. Images live on your device: re-attach if needed.");\n  });\n}\nfunction drawIdle(){\n  if(!ctx) return;\n  if(frames.length) drawFrame(ctx, frames[0]);\n  else { ctx.fillStyle="#0a0a0a"; ctx.fillRect(0,0,VW,VH);\n    ctx.fillStyle="#666"; ctx.font="bold 28px monospace"; ctx.textAlign="center";\n    ctx.fillText("PREVIEW APPEARS HERE", VW/2, VH/2); }\n}\n/* ---------- layout + init ---------- */\nfunction render(){\n  var el=$("xVideo"); if(!el) return;\n  var id=ident();\n  var h="";\n  if(!id.callsign) h+=PF.gateHTML(\'Video Forge runs on callsigns.\',\'to forge video\');\n  h+=\'<div class="x-pane"><h4>1 &mdash; Templates</h4>\'\n    +\'<div class="x-note">Start from a proven sequence, then edit every slide.</div>\'\n    +\'<div class="vd-tpls">\'\n    +\'<button class="c-btn" id="vdTplCta">CALL TO ACTION (3)</button> \'\n    +\'<button class="c-btn" id="vdTplFacts">FACT DROP (5)</button> \'\n    +\'<button class="c-btn" id="vdTplBa">BEFORE/AFTER (2)</button>\'\n    +\'</div></div>\';\n  h+=\'<div class="x-pane"><h4>2 &mdash; Slideshow builder</h4>\'\n    +\'<div class="x-note">Upload poster images, pull the current forge canvas, or use text-only slides.</div>\'\n    +\'<div class="vd-addrow">\'\n    +\'<label class="c-btn vd-upload">UPLOAD IMAGES<input type="file" id="vdFile" accept="image/*" multiple style="display:none"></label> \'\n    +\'<button class="c-btn" id="vdForge">PULL FROM FORGE</button> \'\n    +\'<button class="c-btn" id="vdTextSlide">ADD TEXT SLIDE</button>\'\n    +\'</div>\'\n    +\'<div id="vdFrames"></div>\'\n    +\'<div class="x-note" id="vdTotal">0 slides</div></div>\';\n  h+=\'<div class="x-pane"><h4>3 &mdash; Preview (9:16)</h4>\'\n    +\'<div class="vd-stage"><canvas id="vdCanvas" width="720" height="1280" style="width:100%;max-width:320px;height:auto;background:#000;border:2px solid #c1121f"></canvas></div>\'\n    +\'<div class="vd-ctlrow">\'\n    +\'<button class="c-btn" id="vdPlayBtn">PLAY</button> \'\n    +\'<button class="c-btn" id="vdRecBtn">RECORD VIDEO</button> \'\n    +\'<a class="c-btn" id="vdDownload" style="display:none">DOWNLOAD .WEBM</a>\'\n    +\'</div>\'\n    +\'<div class="x-note">RECORD plays the full sequence and captures it as a WebM video. Works in Chrome, Edge, Firefox.</div></div>\';\n  h+=\'<div class="x-pane"><h4>4 &mdash; Save &amp; share</h4>\'\n    +\'<input aria-label="Video title" id="vdTitle" placeholder="Video title" maxlength="120" style="width:100%;max-width:420px;padding:8px;margin-bottom:8px">\'\n    +\'<div><button class="c-btn" id="vdSaveBtn">SAVE SEQUENCE (+15 XP)</button></div>\'\n    +\'<div class="x-note">Saves the slide definitions to the network. Images stay on your device; anyone loading your video re-attaches their own.</div>\'\n    +\'<div id="vdLib" style="margin-top:10px"></div></div>\';\n  el.innerHTML=h;\n  canvas=$("vdCanvas");\n  try{ ctx=canvas.getContext("2d"); }catch(e){ ctx=null; }\n  $("vdTplCta").addEventListener("click", function(){ loadTemplate("cta"); });\n  $("vdTplFacts").addEventListener("click", function(){ loadTemplate("facts"); });\n  $("vdTplBa").addEventListener("click", function(){ loadTemplate("beforeafter"); });\n  $("vdForge").addEventListener("click", pullFromForge);\n  $("vdTextSlide").addEventListener("click", function(){ frames.push(newFrame(null, "YOUR TEXT HERE", 2000)); renderBuilder(); drawIdle(); });\n  $("vdFile").addEventListener("change", function(ev){ handleFiles(ev.target.files); ev.target.value=""; });\n  $("vdPlayBtn").addEventListener("click", function(){\n    if(playing){ stopPlay(); if(recording) stopRecord(); }\n    else startPlay();\n  });\n  $("vdRecBtn").addEventListener("click", function(){\n    if(recording) stopRecord(); else startRecord();\n  });\n  $("vdSaveBtn").addEventListener("click", saveVideo);\n  renderBuilder(); drawIdle(); loadLibrary();\n}\nrender();\n})();\n\n/* Poster/Video/Political tab switching. */\n(function(){\n  var tabs=document.querySelectorAll(\'#pf-poster .p-tab\');\n  function show(which){\n    /* Generic over pfPane-* so new tabs (political) register by markup alone. */\n    var panes=document.querySelectorAll(\'#pf-poster [id^="pfPane-"]\');\n    for(var i=0;i<panes.length;i++){ panes[i].style.display=(panes[i].getAttribute(\'id\')===\'pfPane-\'+which)?\'\':\'none\'; }\n    for(var k=0;k<tabs.length;k++) tabs[k].classList.toggle(\'on\',tabs[k].getAttribute(\'data-ptab\')===which);\n  }\n  for(var k=0;k<tabs.length;k++){\n    (function(b){ b.addEventListener(\'click\',function(){ show(b.getAttribute(\'data-ptab\')); }); })(tabs[k]);\n  }\n})();\n\n/* ---------- STRIKE ORDERS creation loop (2026-10-05, fe/strike-orders-creative)\n   FORGE THIS handoff: the cell strike-orders panel writes pf_forge_launch_v1\n   (cross-page) and/or fires pf-forge-launch (same-page). On arrival the forge\n   shows the "Forging ammo for X" confirmation state — the loop closes here,\n   never a generic screen — pre-loads the entity headline, and on download\n   tags the pf-poster-made detail + POSTs strike_forge_log (zero XP,\n   idempotent) so the strike order completes entity-bound.\n   POLITICAL TAB HOOK: when the release train lands the Forge POLITICAL tab\n   (pick-fight consumer #1), it will render a [data-ptab="political"] tab and\n   this switches to it automatically — the launch payload already carries\n   tab:\'political\'. */\nvar pfStrikeLaunch=null;\nfunction pfApplyForgeLaunch(p){\n  if(!p||!p.strike||!p.strike.cell_id) return;\n  pfStrikeLaunch=p;\n  var title=(p.entity&&p.entity.title)||\'this week’s fight\';\n  try{\n    var bar=document.getElementById(\'pfStrikeBar\');\n    if(bar){\n      bar.style.display=\'block\';\n      bar.innerHTML=\'<b>FORGING AMMO FOR: \'+pfEsc(String(title).toUpperCase())+\'</b>\'+\n        \'<div style="font-size:12.5px;opacity:.85;margin-top:4px">Strike order accepted — forge it, download it, share it. Your cell counts it.</div>\';\n    }\n  }catch(e){}\n  /* Pre-load the entity into the headline if the forge is untouched. */\n  try{\n    var head=document.getElementById(\'pHead\');\n    if(head&&title){\n      var cur=String(head.value||\'\');\n      if(!cur.trim()||cur===\'EAT THE RICH\'){\n        head.value=String(title).toUpperCase().slice(0,60);\n        if(typeof sync===\'function\') sync();\n      }\n    }\n  }catch(e2){}\n  /* POLITICAL tab hook — no-op until the release train lands the tab. */\n  try{\n    var ptab=document.querySelector(\'#pf-poster .p-tab[data-ptab="political"]\');\n    if(ptab) ptab.click();\n  }catch(e3){}\n}\nfunction pfStrikeLogForge(){\n  if(!pfStrikeLaunch||!pfStrikeLaunch.strike||!pfStrikeLaunch.entity||!pfStrikeLaunch.entity.id) return;\n  var sk=\'pf_strike_logged_\'+String(pfStrikeLaunch.strike.cell_id).replace(/[^a-z0-9_-]/gi,\'\')+\'_\'\n    +String(pfStrikeLaunch.strike.week_start).slice(0,10)+\'_\'+String(pfStrikeLaunch.entity.id).replace(/[^a-z0-9_-]/gi,\'\');\n  try{ if(localStorage.getItem(sk)===\'1\') return; }catch(e){}\n  var id=null;\n  try{ id=pfIdent(); }catch(e2){ return; }\n  if(!id||!id.callsign) return;\n  try{\n    pfPost({type:\'cell\',cell_action:\'strike_forge_log\',\n      cell_id:String(pfStrikeLaunch.strike.cell_id).slice(0,64),\n      week_start:String(pfStrikeLaunch.strike.week_start).slice(0,10),\n      entity_kind:String(pfStrikeLaunch.entity.kind||\'\').slice(0,16),\n      entity_id:String(pfStrikeLaunch.entity.id||\'\').slice(0,64),\n      callsign:id.callsign,device:id.device||\'\'},\n      function(j){ try{\n        if(j&&j.ok){ localStorage.setItem(sk,\'1\'); pfToast(\'STRIKE LOGGED — your cell counts it.\'); }\n      }catch(e3){} });\n  }catch(e4){}\n}\nfunction pfConsumeForgeLaunch(){\n  var raw=null;\n  try{ raw=localStorage.getItem(\'pf_forge_launch_v1\'); }catch(e){}\n  if(!raw) return;\n  try{ localStorage.removeItem(\'pf_forge_launch_v1\'); }catch(e2){}\n  var p=null;\n  try{ p=JSON.parse(raw); }catch(e3){ return; }\n  if(!p||!p.ts||Date.now()-p.ts>15*60*1000) return; /* stale handoff */\n  pfApplyForgeLaunch(p);\n}\ntry{ document.addEventListener(\'pf-forge-launch\',function(ev){ try{ pfApplyForgeLaunch(ev&&ev.detail); }catch(x){} }); }catch(e5){}\npfConsumeForgeLaunch();\n<\/script>\n</div>\n</template>')}(),function(){"use strict";var t="pf_forge_prefill_v1",e=null;try{e=sessionStorage.getItem(t)}catch(t){return}if(e){var n=null;try{n=JSON.parse(e)}catch(t){return}if(n&&1===n.v&&n.plugin_id&&n.template_id){var a=null;try{a=window.PFStudio||null}catch(t){}if(a&&"function"==typeof a.applyPrefill){var i=!1;try{i=!!a.applyPrefill(n)}catch(t){i=!1}if(i){try{sessionStorage.removeItem(t)}catch(t){}r("Political payload loaded — "+(n.label||"forge it")+".")}else r("Could not load the political payload yet — it stays staged.")}else r("Political Forge templates are not live yet — your payload is staged for when they land.")}}function r(t){try{if(window.PF&&window.PF.toast)return void window.PF.toast(t)}catch(t){}try{var e=document.createElement("div");e.textContent=t,e.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999",document.body.appendChild(e),setTimeout(function(){e.remove()},4e3)}catch(t){}}}(),function(){"use strict";var t=window.PF;if(t&&!t.skip("poster-forge")){var e,n=window.PF_BACKEND_URL,a=[],i=["bill","scorecard","race","poll","prediction","rep","nonprofit","campaign"],r={bill:{label:"BILL",search_action:"bills_list",detail_action:"bills_get",item_key:"bills",id_param:"bill_id",template_ids:["tpl-bill-status"],source:"congress.gov",search_hint:"Search bills by number, title, or keyword…"},scorecard:{label:"SCORECARD",search_action:"reps_list",detail_action:"scorecard_get",item_key:"reps",id_param:"bioguide_id",template_ids:["tpl-scorecard"],source:"congress.gov",search_hint:"Search members of Congress by name…",client_filter:"name"},race:{label:"RACE",search_action:"races_list",detail_action:"races_get",item_key:"races",id_param:"race_id",template_ids:["tpl-race"],source:"PFN Race Desk",search_hint:"Search races by office, state, or candidate…"},poll:{label:"POLL",search_action:"polls_list",detail_action:"polls_get",item_key:"polls",id_param:"poll_id",template_ids:["tpl-poll-results"],source:"PFN Network Polls",search_hint:"Search network polls…",search_params:{status:"closed"}},prediction:{label:"PREDICTION",search_action:"predict_list",detail_action:"",item_key:"bills",id_param:"bill_id",template_ids:["tpl-prediction"],source:"PFN Predictions",search_hint:"Search settled predictions…"},rep:{label:"REP",search_action:"reps_list",detail_action:"",item_key:"reps",id_param:"bioguide_id",template_ids:["tpl-rep-contact"],source:"congress.gov",search_hint:"Search reps by name…",client_filter:"name"},nonprofit:{label:"NONPROFIT",search_action:"nonprofits_list",detail_action:"",item_key:"nonprofits",id_param:"nonprofit_id",template_ids:["tpl-nonprofit"],source:"IRS / ProPublica Nonprofit Explorer",search_hint:"Search nonprofits by name or mission…"},campaign:{label:"CAMPAIGN",search_action:"petition_list",detail_action:"",item_key:"petitions",id_param:"petition_id",template_ids:["tpl-campaign"],source:"PFN Campaigns",search_hint:"Search pressure campaigns…"}},o=[],s={"tpl-bill-status":{plugin:"bill",label:"BILL STATUS CARD",painter:"phq-bill-status",map:function(t,e){return{number:f(t,"number","bill_number")||f(e,"number","bill_number"),title:f(t,"title","short_title")||f(e,"title","short_title"),chamber:f(t,"chamber")||f(e,"chamber"),status:f(t,"status")||f(e,"status"),stage:f(t,"stuck_in","stuck"),sponsor:f(t,"sponsor_name","sponsor"),lastAction:f(t,"last_action"),lastActionDate:f(t,"last_action_date"),supportCount:h(f(t,"support_count","supports")),opposeCount:h(f(t,"oppose_count","opposes"))}}},"tpl-scorecard":{plugin:"scorecard",label:"VOTING SCORECARD",painter:"phq-scorecard",map:function(t,e){var n=(t&&t.votes||[]).slice(0,3).map(function(t){return{bill:f(t,"bill_title","question"),vote:f(t,"position"),for_us:t&&null!=t.for_us?t.for_us:t&&null!=t.forUs?t.forUs:null}});return{name:f(e,"name"),state:f(e,"state"),party:f(e,"party"),grade:null,verdict:null,votes:n}}},"tpl-race":{plugin:"race",label:"RACE CARD",painter:"phq-race",map:function(t){return{office:f(t,"office"),state:f(t,"state"),district:f(t,"district"),seat:f(t,"seat"),chamber:f(t,"chamber"),level:f(t,"level"),candidates:(t&&t.candidates||[]).map(function(t){return{name:f(t,"name"),party:f(t,"party")}}),rating:f(t,"rating"),ratingSource:f(t,"rating_source"),ratingDate:f(t,"rating_date"),stakes:f(t,"stakes"),summary:f(t,"summary")}}},"tpl-poll-results":{plugin:"poll",label:"POLL RESULTS",painter:"phq-poll-results",map:function(t){var e=h(f(t,"total_votes")),n=(t&&t.options||[]).map(function(t){var n=h(f(t,"count","votes"));return{label:f(t,"label"),votes:n,pct:null!=n&&e>0?Math.round(n/e*100):null}});return{question:f(t,"question"),status:f(t,"status"),closesAt:f(t,"closes_at"),totalVotes:e,options:n}}},"tpl-prediction":{plugin:"prediction",label:"PREDICTION RESULT",painter:"phq-prediction",map:function(t,e,n){var a=b(f(e,"my_pick","pick","prediction")),i=b(f(e,"result","resolved","outcome")),r=n&&n.record||{};return{statement:f(e,"title","short_title","statement","question"),outcome:a&&i?a===i?"correct":"missed":null,wins:h(f(r,"wins")),losses:h(f(r,"losses"))}}},"tpl-rep-contact":{plugin:"rep",label:"REP CONTACT CARD",painter:"phq-rep-contact",map:function(t){return{name:f(t,"name"),state:f(t,"state"),party:f(t,"party"),chamber:f(t,"chamber"),district:f(t,"district"),phone:f(t,"phone")}}},"tpl-nonprofit":{plugin:"nonprofit",label:"NONPROFIT SPOTLIGHT",painter:"phq-nonprofit",map:function(t){return{name:f(t,"name"),mission:f(t,"mission"),city:f(t,"city"),state:f(t,"state"),website:f(t,"website"),ein:f(t,"ein"),scope:f(t,"scope")}}},"tpl-campaign":{plugin:"campaign",label:"PRESSURE CARD",painter:"phq-pressure",map:function(t){return{title:f(t,"title"),target:f(t,"target"),demand:f(t,"description","demand"),signatures:h(f(t,"sig_count","signatures")),signaturesGoal:h(f(t,"goal","signaturesGoal"))}}}},l={plugin:null,query:"",results:[],item:null,template:null,painterData:null,detail:null,sourceLine:"",record:null,tid:0},c=0;(e=_())&&(e.getAttribute("data-pf-pol-mounted")||(e.setAttribute("data-pf-pol-mounted","1"),A(),function(){o=[];for(var t=0;t<i.length;t++)o.push(m(i[t]))}(),v("studio_plugins_list",{},function(t){t&&t.ok&&Array.isArray(t.plugins)&&t.plugins.length&&function(t){for(var e=[],n={},a=0;a<t.length;a++){var r=t[a]||{},s=String(r.id||""),l=m(s);l&&!n[s]&&(n[s]=1,e.push({id:s,label:r.label||l.label,available:!1!==r.available,search_action:r.search_action||l.search_action,detail_action:null!=r.detail_action?r.detail_action:l.detail_action,item_key:r.item_key||l.item_key,id_param:r.id_param||l.id_param,template_ids:Array.isArray(r.template_ids)&&r.template_ids.length?r.template_ids:l.template_ids,source:r.source||l.source,search_hint:l.search_hint,search_params:l.search_params,client_filter:l.client_filter}))}for(var c=0;c<i.length;c++)n[i[c]]||e.push(m(i[c]));o=e}(t.plugins),R()})));try{window.__pfPolitical={state:l,plugins:function(){return o},templates:s,apiCalls:a,_selectPlugin:L,_runSearch:P,_generate:j,_renderStale:N,_renderPreview:B,_sourceOf:T,_isStale:E,_templatesFor:g}}catch(t){}}function d(t){return document.getElementById(t)}function u(t){return String(null==t?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function p(e){try{if(t&&t.toast)return void t.toast(e)}catch(t){}try{var n=document.createElement("div");n.textContent=e,n.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999",document.body.appendChild(n),setTimeout(function(){n.remove()},2800)}catch(t){}}function f(t){for(var e=1;e<arguments.length;e++){var n=arguments[e];if(t&&null!=t[n]&&""!==t[n])return t[n]}return null}function h(t){return null==t||""===t?null:Number(t)}function v(t,e,i){try{a.push({action:t,params:e})}catch(t){}if(n){var r="pfPolCb"+Math.floor(1e9*Math.random()),o=document.createElement("script"),s=!1;window[r]=function(t){d(t)},o.onerror=function(){d(null)};var l="?action="+encodeURIComponent(t);for(var c in e)null!=e[c]&&""!==e[c]&&(l+="&"+encodeURIComponent(c)+"="+encodeURIComponent(e[c]));l+="&callback="+r,o.src=n+l,document.head.appendChild(o),setTimeout(function(){d(null)},12e3)}else i(null);function d(t){if(!s){s=!0;try{delete window[r]}catch(t){}o.parentNode&&o.parentNode.removeChild(o),i(t)}}}function m(t){var e=r[t];if(!e)return null;var n={id:t,available:!0};for(var a in e)n[a]=e[a];return n}function b(t){var e=String(null==t?"":t).toLowerCase();return"pass"===e||"will pass"===e?"pass":"fail"===e||"will fail"===e?"fail":e||null}function g(t){for(var e=[],n=t.template_ids||[],a=0;a<n.length;a++){var i=s[n[a]];i&&i.plugin===t.id&&e.push({id:n[a],def:i})}return e}function y(t,e){return String(e&&(null!=e[t.id_param]?e[t.id_param]:e.id)||"")}function w(t,e){switch(t.id){case"bill":return(f(e,"number","bill_number")||"Bill")+" — "+(f(e,"title","short_title")||"");case"scorecard":case"rep":return f(e,"name")||"Unnamed";case"race":return[f(e,"office"),f(e,"state")].filter(Boolean).join(" — ")||"Race";case"poll":return f(e,"question")||"Poll";case"prediction":return f(e,"title","short_title","statement")||"Prediction";case"nonprofit":return f(e,"name")||"Nonprofit";case"campaign":return f(e,"title")||"Campaign";default:return f(e,"title","name")||"Item"}}function x(t,e){switch(t.id){case"bill":return[f(e,"status"),f(e,"sponsor_name","sponsor")].filter(Boolean).join(" · ");case"scorecard":case"rep":var n=f(e,"state")||"";return"house"===String(f(e,"chamber")||"").toLowerCase()&&f(e,"district")&&(n+=" · District "+f(e,"district")),[n,f(e,"party")].filter(Boolean).join(" · ");case"race":return[f(e,"rating"),f(e,"rating_source")].filter(Boolean).join(" · ");case"poll":return[f(e,"status"),null!=e.total_votes?e.total_votes+" votes":null].filter(Boolean).join(" · ");case"prediction":var a=b(f(e,"my_pick","pick","prediction")),i=b(f(e,"result","resolved","outcome"));return a&&i?a===i?"CALLED IT":"MISSED":"UNSETTLED";case"nonprofit":return[f(e,"state"),String(f(e,"mission")||"").slice(0,80)].filter(Boolean).join(" · ");case"campaign":return[(null!=e.sig_count?e.sig_count:"")+"/"+(null!=e.goal?e.goal:""),f(e,"target")?"Target: "+f(e,"target"):null].filter(Boolean).join(" · ");default:return""}}function E(t){return!(!t||!0!==t.stale&&"true"!==t.stale)}function S(t){try{var e=new Date(t);return isNaN(e.getTime())?"":e.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}catch(t){return""}}function T(t,e,n){return"Source: "+(f(e,"source")||f(n,"source")||f(e,"rating_source")||f(n,"rating_source")||t.source||"PFN")+" · "+(S(f(e,"source_date","updated_at","updated","rating_date")||f(n,"source_date","updated_at","updated","rating_date"))||S(Date.now()))}function k(t,e){var n=e&&(e[t.item_key]||e.items||e.results)||[];return Array.isArray(n)?n:[]}function P(t,e){var n=l.plugin;if(n){var a,i=++c,r={q:t},o=n.search_params||{};for(var s in o)r[s]=o[s];e||(a=d("pfPolResults"))&&(a.innerHTML='<div class="c-load">Searching the wire&hellip;</div>'),v(n.search_action,r,function(a){if(i===c)if(e)!function(t,e,n){if(l._genToken!==c-1&&null!=l._genToken)return;for(var a=n?k(t,n):[],i=y(t,l.item),r=null,o=0;o<a.length;o++)if(y(t,a[o])===i){r=a[o];break}l._genDone(r)}(n,0,a);else if(a&&!1!==a.ok){var r=k(n,a);if(n.client_filter){var o=String(t||"").toLowerCase();o&&(r=r.filter(function(t){return-1!==String(f(t,n.client_filter)||"").toLowerCase().indexOf(o)}))}"prediction"===n.id&&a&&(l.record=a.record||a.my_record||a.caller_record||null),l.results=r.filter(function(t){return function(t,e){if("prediction"===t.id){var n=b(f(e,"my_pick","pick","prediction")),a=b(f(e,"result","resolved","outcome"));return!(!n||!a)}return!0}(n,t)}).slice(0,6),function(){var t=d("pfPolResults");if(!t)return;var e=l.plugin,n="";if(l.results.length){n='<div class="p-sub" style="margin:4px 0">3 — Pick a record</div>';for(var a=0;a<l.results.length;a++)(function(t,a){n+='<button class="pfpol-card" data-res="'+a+'"><div class="pfpol-ct">'+u(w(e,t))+'</div><div class="pfpol-cs">'+u(x(e,t))+"</div></button>"})(l.results[a],a)}else n='<div class="x-note">No '+u(e.label.toLowerCase())+" results for &ldquo;"+u(l.query)+"&rdquo;.</div>";t.innerHTML=n;for(var i=t.querySelectorAll("[data-res]"),r=0;r<i.length;r++)(function(t){t.addEventListener("click",function(){l.item=l.results[+t.getAttribute("data-res")],l.template=null,l.painterData=null,F()})})(i[r])}()}else!function(t){var e=d("pfPolResults");e&&(e.innerHTML='<div class="c-err">Couldn&rsquo;t reach the '+u(t.label.toLowerCase())+" wire. Check your connection and try again — nothing here is cached.</div>")}(n)})}}function _(){return d("xPolitical")}function A(){var t,e;t='<style>#pfPolt .pfpol-plugs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}#pfPolt .pfpol-plugwrap{display:flex;flex-direction:column;align-items:stretch}#pfPolt .pfpol-plug{min-width:104px;min-height:48px}#pfPolt .pfpol-plug[disabled]{opacity:.45;cursor:not-allowed}#pfPolt .pfpol-unavail{font-size:.72rem;color:#b8ab8e;margin-top:4px;text-align:center}#pfPolt .pfpol-card{display:block;width:100%;text-align:left;margin:8px 0;padding:10px 12px;background:#141414;border:1px solid #4a4a4a;color:#f5f0e1;cursor:pointer;font-family:inherit}#pfPolt .pfpol-card:active{border-color:#c1121f}#pfPolt .pfpol-ct{font-weight:900;font-size:.95rem;margin-bottom:4px}#pfPolt .pfpol-cs{font-size:.8rem;color:#b8ab8e}#pfPolt .pfpol-q{width:100%;box-sizing:border-box;min-height:48px;background:#141414;border:1px solid #4a4a4a;color:#f5f0e1;font-family:inherit;font-size:1rem;padding:10px 12px;margin:8px 0}#pfPolt .pfpol-tpls{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}#pfPolt .pfpol-stale{border:2px solid #e8b923;background:#1a1206;padding:12px;margin:10px 0}#pfPolt .pfpol-stale b{color:#e8b923}#pfPolt .pfpol-src{font-size:.78rem;color:#b8ab8e;margin:8px 0;letter-spacing:.04em}#pfPolt .pfpol-stage{margin:10px 0}#pfPolt canvas#pfPolCanvas{width:100%;max-width:340px;height:auto;background:#0d0d0d;border:2px solid #c1121f}#pfPolt .pfpol-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}#pfPolt .pfpol-back{background:none;border:none;color:#b8ab8e;cursor:pointer;font-size:.85rem;padding:8px 0;font-family:inherit}</style><div id="pfPolt"><div class="x-pane"><h4>POLITICAL — forge from live data</h4><div class="x-note">Pick a dataset, pull a live record, and the forge paints a poster from it. Nothing is baked from cached or invented facts — the poster is generated from a fresh data pull at generation time.</div><div id="pfPolBody"><div class="c-load">Reading the plugin wire&hellip;</div></div></div></div>',(e=_())&&(e.innerHTML=t)}function C(t){var e=d("pfPolBody");e&&(e.innerHTML=t)}function R(){for(var e='<div class="p-sub" style="margin-bottom:4px">1 — Pick a data plugin</div><div class="pfpol-plugs">',n=0;n<o.length;n++)(function(n){if(!t.skip("plugin-"+n.id)){var a=n.available&&n.search_action?"":" disabled";e+='<div class="pfpol-plugwrap"><button class="c-btn pfpol-plug" data-plug="'+u(n.id)+'"'+a+">"+u(n.label)+"</button>",a&&(e+='<div class="pfpol-unavail">data unavailable</div>'),e+="</div>"}})(o[n]);C(e+="</div>");for(var a=_().querySelectorAll("[data-plug]"),i=0;i<a.length;i++)(function(t){t.addEventListener("click",function(){t.hasAttribute("disabled")||L(t.getAttribute("data-plug"))})})(a[i])}function L(t){for(var e=0;e<o.length;e++)if(o[e].id===t){if(!o[e].available||!o[e].search_action)return;return l.plugin=o[e],l.query="",l.results=[],l.item=null,l.template=null,l.painterData=null,l.record=null,void I()}}function I(){var t=l.plugin;C('<button class="pfpol-back" id="pfPolToPlugins">&larr; all plugins</button><div class="p-sub" style="margin:4px 0">2 — Search '+u(t.label)+' (live)</div><input class="pfpol-q" id="pfPolQ" maxlength="80" autocomplete="off" placeholder="'+u(t.search_hint||"Search…")+'" aria-label="Search '+u(t.label)+'"><div id="pfPolResults"><div class="x-note">Type to search the live '+u(t.label.toLowerCase())+" wire.</div></div>"),d("pfPolToPlugins").addEventListener("click",function(){l.plugin=null,R()});var e=d("pfPolQ");e.addEventListener("input",function(){if(l.query=e.value,clearTimeout(l.tid),!String(e.value).trim())return l.results=[],void(d("pfPolResults").innerHTML='<div class="x-note">Type to search the live '+u(t.label.toLowerCase())+" wire.</div>");l.tid=setTimeout(function(){P(String(e.value).trim(),!1)},350)});try{e.focus()}catch(t){}}function F(){var t=l.plugin,e=g(t),n="";if(n+='<button class="pfpol-back" id="pfPolToSearch">&larr; back to search</button>',n+='<div class="p-sub" style="margin:4px 0">4 — Pick a poster style</div>',n+='<div class="x-note" style="margin-bottom:6px">'+u(w(t,l.item))+"</div>",e.length){n+='<div class="pfpol-tpls">';for(var a=0;a<e.length;a++)n+='<button class="c-btn" data-tpl="'+u(e[a].id)+'">'+u(e[a].def.label)+"</button>";n+="</div>"}else n+='<div class="c-err">No poster styles are wired for this plugin yet.</div>';C(n),d("pfPolToSearch").addEventListener("click",I);for(var i=_().querySelectorAll("[data-tpl]"),r=0;r<i.length;r++)(function(t){t.addEventListener("click",function(){var e=s[t.getAttribute("data-tpl")];e&&(l.template={id:t.getAttribute("data-tpl"),def:e},j())})})(i[r])}function j(){var t=l.plugin;C('<button class="pfpol-back" id="pfPolToTpl">&larr; back to styles</button><div class="c-load">Pulling live data for &ldquo;'+u(w(t,l.item))+"&rdquo;&hellip;</div>"),d("pfPolToTpl").addEventListener("click",F),function(t,e,n){if(l._genDone=n,t.detail_action){var a={};a[t.id_param]=y(t,e),v(t.detail_action,a,function(t){var e=null;t&&!1!==t.ok&&(e=t.detail||t.bill||t.race||t.poll||t.scorecard||t.rep||t.nonprofit||t.petition||t.prediction||null),n(e||null)})}else l._genToken=c,P(l.query,!0)}(t,l.item,function(e){if(!e)return C('<button class="pfpol-back" id="pfPolToTpl2">&larr; back to styles</button><div class="c-err">That record is no longer on the live wire. Pick another — the forge never paints from a dead row.</div>'),void d("pfPolToTpl2").addEventListener("click",F);var n={record:l.record},a=null;try{a=l.template.def.map(e,l.item,n)}catch(t){a=null}a?(l.detail=e,l.painterData=a,l.sourceLine=T(t,e,l.item),E(e)||E(l.item)?N():B()):C('<div class="c-err">Couldn&rsquo;t shape that record into a poster. Try another.</div>')})}function N(){var t,e;C('<button class="pfpol-back" id="pfPolToTpl3">&larr; back to styles</button><div class="pfpol-stale">'+(t=l.plugin,e=S(f(l.detail,"source_date","updated_at","updated","rating_date")||f(l.item,"source_date","updated_at","updated","rating_date")),"This "+t.label.toLowerCase()+" record is flagged <b>STALE</b>"+(e?" (last update: "+u(e)+")":"")+'. The poster would carry old facts. Generate anyway, or cancel and pick a fresh record.</div><div class="pfpol-row"><button class="c-btn" id="pfPolGenAnyway">GENERATE ANYWAY</button> <button class="c-btn" id="pfPolCancelStale">CANCEL</button></div>')),d("pfPolToTpl3").addEventListener("click",F),d("pfPolGenAnyway").addEventListener("click",B),d("pfPolCancelStale").addEventListener("click",function(){l.painterData=null,l.detail=null,F()})}function D(){try{return window.PF&&t.PHQShare?t.PHQShare:null}catch(t){return null}}function B(){l.plugin;var t=l.template.def;C('<button class="pfpol-back" id="pfPolToTpl4">&larr; back to styles</button><div class="p-sub" style="margin:4px 0">5 — Preview</div><div class="pfpol-stage"><canvas id="pfPolCanvas" width="1080" height="1350"></canvas></div><div class="pfpol-src" id="pfPolSrc">'+u(l.sourceLine)+'</div><div class="pfpol-row"><button class="c-btn" id="pfPolShareBtn">SHARE</button> <button class="c-btn" id="pfPolSaveBtn">SAVE</button></div><div class="x-note">Share/save ride the standard poster pipeline (callsign claim gate + the once-daily share credit). No extra XP is granted by this tab.</div>'),d("pfPolToTpl4").addEventListener("click",F);var e=null;try{var n=D();e=n&&n.paint?n.paint(t.painter,l.painterData):null}catch(t){e=null}if(!e)return C('<button class="pfpol-back" id="pfPolToTpl5">&larr; back to styles</button><div class="c-err">The &ldquo;'+u(t.label)+"&rdquo; poster engine isn&rsquo;t on this page yet — the painters are still rolling out. Your record is fine; try again after the next push.</div>"),void d("pfPolToTpl5").addEventListener("click",F);try{var a=d("pfPolCanvas"),i=a.getContext("2d");i.clearRect(0,0,a.width,a.height),i.drawImage(e,0,0,a.width,a.height)}catch(t){return void C('<div class="c-err">Preview failed to render. Try again.</div>')}d("pfPolShareBtn").addEventListener("click",O),d("pfPolSaveBtn").addEventListener("click",H)}function O(){var t=l.template.def,e=D();if(e&&e.share)try{e.share(t.painter,l.painterData,{title:t.label+" — "+w(l.plugin,l.item)})}catch(t){p("Share failed — try again.")}else p("Poster engine still loading — try again in a moment.")}function H(){var t=l.template.def,e=D();if(e&&e.save)try{e.save(t.painter,l.painterData,{title:t.label+" — "+w(l.plugin,l.item)})}catch(t){p("Save failed — try again.")}else p("Poster engine still loading — try again in a moment.")}}(),function(){"use strict";var t=window.PF;t&&!t.skip("feed")&&t.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-feed">\n<div class="fe-block pf-override-block" id="pf-feed">\n<h2>Propaganda Feed</h2>\n<div class="c-tag">Fresh ammo. Find it. Pump it. Track the spread.</div>\n<div id="xFeed"><div class="c-load">Loading the feed&hellip;</div></div>\n</div>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction fmtSched(t){ try{ var d=new Date(Number(t)||0); if(isNaN(d.getTime())) return "?";\n  return (d.getMonth()+1)+"/"+d.getDate()+" "+d.getHours()+":"+String(d.getMinutes()).padStart(2,"0"); }catch(e){ return "?"; } }\n/* R16 (2026-10-04): what schedule_add actually does — it queues a SHARE of a\n   content item to fire at a future time on a platform (epoch-ms\n   scheduled_for, Chicago wall-clock). The queue below is the check-back\n   surface: per-item countdowns make it an appointment mechanic. */\nfunction fdCountdown(ms){\n  if(ms<=0) return "any moment";\n  var s=Math.floor(ms/1000), d=Math.floor(s/86400), h=Math.floor((s%86400)/3600), m=Math.floor((s%3600)/60);\n  if(d>0) return d+"d "+h+"h";\n  if(h>0) return h+"h "+(m<10?"0":"")+m+"m";\n  return m+"m "+(s%60)+"s";\n}\n/* R16: fired-transition detection. schedule_list rows carry posted:1 once the\n   backend fires them. Ping once per queue id (localStorage): toast + the\n   FIRED state stays in the queue. The bell-inbox ping is the backend\'s job —\n   notify_enqueue is admin-only, so the server must enqueue on fire. */\nfunction fdFiredMap(){ try{ return JSON.parse(localStorage.getItem("pf_sched_fired_v1")||"{}"); }catch(e){ return {}; } }\nfunction fdFiredSave(m){ try{ localStorage.setItem("pf_sched_fired_v1",JSON.stringify(m)); }catch(e){} }\nfunction fdCheckFired(q){\n  try{\n    var seen=fdFiredMap(), changed=false;\n    for(var i=0;i<(q||[]).length;i++){\n      var it=q[i], id=String(it.id||"");\n      if(!id||seen[id]) continue;\n      if(it.posted){\n        seen[id]=1; changed=true;\n        toast("SCHEDULED DROP FIRED: "+String(it.content_id||"untitled")+" ("+String(it.platform||"")+")");\n      }\n    }\n    if(changed) fdFiredSave(seen);\n  }catch(e){}\n}\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction toast(m){ try{ PF.toast(m); }catch(e){} }\n/* 2026-10-04: friendly write-path errors — raw snake_case backend codes are\n   never shown to users (same pattern as games/armory.js writeErrCopy). */\nfunction fdWriteErr(e,fb){\n  var s=String(e==null?"":e).trim();\n  var fall=fb||"The wire fought back. Nothing changed — retry.";\n  if(!s||/network error/i.test(s)) return fall;\n  var map={\n    "bad sender":"That callsign didn\'t check out. Re-claim it in Daily Orders, then retry.",\n    "bad receiver":"That callsign isn\'t a valid target. Refresh and try again.",\n    "no self-tips":"You can\'t tip yourself. Pick someone else.",\n    "tip must be 5/10/25/50/100 XP":"Tips come in 5, 10, 25, 50, or 100 XP.",\n    "insufficient XP":"Not enough XP in the war chest. Go earn some.",\n    "bad voter":"That callsign didn\'t check out. Re-claim it in Daily Orders, then retry.",\n    "bad creator":"That creator tag didn\'t check out. Refresh the feed and try again.",\n    "no self-votes":"You can\'t vote on your own content.",\n    "bad callsign":"That callsign didn\'t check out. Re-claim it in Daily Orders, then retry.",\n    "missing content_id":"That post lost its ID. Refresh the feed and try again.",\n    "db error":"The ledger hiccuped. Retry in a moment."\n  };\n  if(map[s]) return map[s];\n  if(s.indexOf("_")!==-1) return fall; /* never show raw snake_case */\n  return s; /* backend prose already human-readable */\n}\n/* 2026-10-04: epoch-ms for a "YYYY-MM-DD HH:MM" wall-clock in America/Chicago.\n   schedule_add reads epoch-ms p.scheduled_for; the Intl offset is resolved\n   iteratively so DST transitions convert correctly.\n   NOTE: this whole widget ships inside an outer template literal, so every\n   regex backslash below MUST stay doubled (\\) or the inner script dies with\n   a SyntaxError at mount (2026-10-04 hotfix). */\nfunction chicagoToMs(str){\n  try{\n    var m=/^(\\d{4})-(\\d{2})-(\\d{2})[ T](\\d{2}):(\\d{2})$/.exec(String(str||"").trim());\n    if(!m) return 0;\n    var y=+m[1],mo=+m[2],d=+m[3],hh=+m[4],mi=+m[5];\n    if(mo<1||mo>12||d<1||d>31||hh>23||mi>59) return 0;\n    var target=Date.UTC(y,mo-1,d,hh,mi,0), guess=target;\n    for(var i=0;i<4;i++){\n      var tz=new Date(guess).toLocaleString("en-US",{timeZone:"America/Chicago",hour12:false,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});\n      var p=/(\\d+)\\/(\\d+)\\/(\\d+),?\\s*(\\d+):(\\d+)/.exec(tz);\n      if(!p) return 0;\n      var asUtc=Date.UTC(+p[3],+p[1]-1,+p[2],(+p[4])%24,+p[5],0);\n      var adj=target-asUtc;\n      guess=guess+adj;\n      if(Math.abs(adj)<60000) break;\n    }\n    return guess;\n  }catch(e){ return 0; }\n}\n/* Friendly copy for gated read failures (2026-10-03): raw backend strings\n   like \'missing credentials\' are never shown as UI copy. */\nfunction fdAuthHint(j){\n  var e=String((j&&j.err)||"");\n  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")\n    return \'<div class="x-note">This callsign predates the new auth system and can&rsquo;t reconnect on its own &mdash; contact MTCSTW to recover it.</div>\';\n  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)\n    return \'<div class="x-note">Your scheduled queue is behind a handshake. Re-claim your callsign in Enlistment Ranks (one tap), then refresh.\'+\n      /* 2026-10-06 CEO directive: every claim prompt needs the recovery path. */\n      (function(){ try{ return (window.PF && window.PF.recoverLinkHTML) ? window.PF.recoverLinkHTML() : \'\'; }catch(e2){ return \'\'; } })()+\n      \'</div>\';\n  return "";\n}\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  /* Private reads require auth_secret (IDOR fix). Route gated actions\n     through the shared claim-retry GET (2026-10-03): pre-auth callsign\n     holders with no stored secret get one auth_claim attempt instead of\n     failing \'missing credentials\' forever. */\n  if(action==="schedule_list"){\n    try{\n      if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }\n      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";\n      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;\n    }catch(e){}\n  }\n  var fn="pfFdCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\nfunction post(spAction,params,cb){\n  var body=Object.assign({type:"spread",sp_action:spAction},params);\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }\n  var bodyStr=JSON.stringify(body);\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */\n    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;\n      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}\n      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();\n    fetch(BACKEND,_po)\n      .then(function(r){ return r.json(); })\n      .then(function(j){ _po._pfClear(); done(j); })\n      .catch(function(){ _po._pfClear(); done(null); });\n  }catch(e){ done(null); }\n}\nfunction postX(type,typeAction,action,params,cb){\n  var b={type:type}; b[typeAction]=action;\n  var body=Object.assign(b,params);\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  /* Writes that require auth (e.g. reputation_vote) must carry auth_secret.\n     Route through PF.authPost like caption-combat\'s caption_submit. */\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,function(j){ done(j); }); return; }\n  var bodyStr=JSON.stringify(body);\n  try{\n    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */\n    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;\n      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}\n      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();\n    fetch(BACKEND,_po)\n      .then(function(r){ return r.json(); })\n      .then(function(j){ _po._pfClear(); done(j); })\n      .catch(function(){ _po._pfClear(); done(null); });\n  }catch(e){ done(null); }\n}\nfunction isTrusted(creator){\n  try{\n    if(REP&&REP.ok&&REP.trusted){\n      for(var i=0;i<REP.trusted.length;i++) if(String(REP.trusted[i]).toLowerCase()===String(creator||"").toLowerCase()) return true;\n    }\n  }catch(e){}\n  return false;\n}\nvar tab="trending", T=null, N=null, REP=null, SCHED=null, TIPS=null, FN=null, DUE=null;\nfunction load(){\n  var done=false, n=0;\n  function fin(){ if(done)return; done=true; render(); }\n  function one(){ n++; if(n>=7) fin(); }\n  setTimeout(fin,15000);\n  api("boost_board",{},function(j){ T=j; one(); });\n  api("content_list",{sort:"new",limit:25},function(j){ N=j; one(); });\n  api("reputation_get",{},function(j){ REP=j; one(); });\n  /* 2026-10-03: NEW tab gets its own backend feed (feed_new) instead of the\n     client-side re-sort of content_list; plus tip leaderboard + due queue. */\n  api("feed_new",{},function(j){ FN=j; one(); });\n  api("tip_leaderboard",{},function(j){ TIPS=j; one(); });\n  api("schedule_due",{},function(j){ DUE=j; one(); });\n  var id0=ident();\n  if(id0.callsign) api("schedule_list",{callsign:id0.callsign},function(j){ SCHED=j; one(); });\n  else { SCHED={ok:true,queue:[]}; one(); }\n}\nfunction items(){\n  var out=[];\n  try{\n    if(tab==="trending"&&T&&T.ok&&T.board) out=T.board;\n    else if(tab==="top"&&T&&T.ok&&T.board) out=T.board.slice().sort(function(a,b){ return (b.boosts||0)-(a.boosts||0); });\n    else if(tab==="new"&&FN&&FN.ok&&FN.feed) out=FN.feed;\n    else if(tab==="new"&&N&&N.ok&&N.items) out=N.items;\n    else if(N&&N.ok&&N.items) out=N.items;\n  }catch(e){}\n  return out;\n}\nfunction render(){\n  var el=document.getElementById("xFeed"); if(!el) return;\n  var id=ident(), h="";\n  h+=\'<div class="fd-tabs">\'\n    +\'<button class="c-btn fd-tab\'+(tab==="trending"?" fd-on":"")+\'" data-tab="trending">TRENDING</button>\'\n    +\'<button class="c-btn fd-tab\'+(tab==="new"?" fd-on":"")+\'" data-tab="new">NEW</button>\'\n    +\'<button class="c-btn fd-tab\'+(tab==="top"?" fd-on":"")+\'" data-tab="top">TOP</button>\'\n    +\'<button class="c-btn fd-tab\'+(tab==="boost"?" fd-on":"")+\'" data-tab="boost">BOOST</button>\'\n    +\'<button class="c-btn fd-tab\'+(tab==="vault"?" fd-on":"")+\'" data-tab="vault">VAULT</button>\'\n    +\'</div>\';\n  var list=items();\n  if(tab==="boost"){\n    h+=\'<div id="fdBoostWrap"><div class="c-load">Loading the boost board&hellip;</div></div>\';\n  } else if(tab==="vault"){\n    h+=\'<div id="fdVaultWrap"><div class="c-load">Opening the vault&hellip;</div></div>\';\n  } else {\n  if(!list.length){\n    h+=\'<div class="x-pane"><div class="x-note">Nothing here yet. Be the first to forge propaganda in Poster Forge &mdash; it lands here.</div></div>\';\n  }\n  for(var i=0;i<Math.min(list.length,25);i++){\n    var it=list[i], cid=esc(it.id||""), trusted=isTrusted(it.creator);\n    h+=\'<div class="x-pane fd-item">\'\n      +\'<div class="fd-title">\'+esc(it.title||it.id||"Untitled")\n      +(trusted?\' <span class="fd-trusted" title="Trusted creator" style="color:#7CFC00;font-size:12px">&#10003; TRUSTED</span>\':"")\n      +\'</div>\'\n      +\'<div class="x-note">by \'+esc(it.creator||"anon")+\' &bull; \'+(Number(it.shares)||0)+\' shares &bull; \'+(Number(it.boosts)||0)+\' boosts</div>\'\n      +\'<div class="fd-actions" style="margin-top:6px">\'\n      +\'<button class="c-btn fd-share" data-cid="\'+cid+\'" data-title="\'+esc(it.title||"")+\'">SHARE &amp; PUMP</button> \'\n      +\'<button class="c-btn fd-vote" data-cid="\'+cid+\'" data-creator="\'+esc(it.creator||"")+\'" data-v="1">&#9650;</button>\'\n      +\'<button class="c-btn fd-vote" data-cid="\'+cid+\'" data-creator="\'+esc(it.creator||"")+\'" data-v="-1">&#9660;</button> \'\n      +\'<button class="c-btn fd-tip" data-cid="\'+cid+\'" data-creator="\'+esc(it.creator||"")+\'">TIP</button> \'\n      +\'<button class="c-btn fd-sched" data-cid="\'+cid+\'" data-title="\'+esc(it.title||"")+\'">SCHEDULE</button> \'\n      +\'<button class="c-btn fd-intel" data-cid="\'+cid+\'">WHO&#39;S SHARING</button>\'\n      +\'</div><div class="fd-intelbox" data-cid="\'+cid+\'" style="display:none;margin-top:6px"></div></div>\';\n    }\n  }\n  /* Due now (2026-10-03: schedule_due, public) — network-wide firing queue. */\n  var due=[]; try{ if(DUE&&DUE.ok&&DUE.due) due=DUE.due; }catch(e){}\n  if(due.length){\n    h+=\'<div class="x-pane"><div class="fd-title">DUE NOW — FIRING (\'+due.length+\')</div>\';\n    for(var di=0;di<Math.min(due.length,5);di++){\n      var dd=due[di];\n      /* R16: mark the viewer\'s own drops in the firing queue. */\n      var mine=(id.callsign&&String(dd.callsign||"").toLowerCase()===String(id.callsign).toLowerCase())?\' <b style="color:#e8b64c">&#9733; YOURS</b>\':"";\n      h+=\'<div class="x-note">\'+esc(dd.content_id||"")+\' &mdash; \'+esc(dd.platform||"")+\' &mdash; queued by \'+esc(dd.callsign||"anon")+mine+\'</div>\';\n    }\n    if(due.length>5) h+=\'<div class="x-note">&hellip;and \'+(due.length-5)+\' more in the queue.</div>\';\n    h+=\'</div>\';\n  }\n  /* MY QUEUE — SCHEDULED DROPS (R16): the viewer\'s queue as an appointment\n     strip — countdown per drop, FIRED state on publish, cancel stays. */\n  var q=[]; try{ if(SCHED&&SCHED.ok&&SCHED.queue) q=SCHED.queue; }catch(e){}\n  fdCheckFired(q);\n  if(q.length){\n    h+=\'<div class="x-pane"><div class="fd-title">MY QUEUE &mdash; SCHEDULED DROPS (\'+q.length+\')</div>\';\n    for(var qi=0;qi<q.length;qi++){\n      var sq=q[qi];\n      var left=Number(sq.scheduled_for||0)-Date.now();\n      h+=\'<div class="x-note">\'+esc(sq.content_id||"")+\' &mdash; \'+esc(sq.platform||"")\n        +(sq.posted?\' <span class="cp-mdone">FIRED</span>\'\n          :\' &mdash; fires in <b>\'+esc(fdCountdown(left))+\'</b> (\'+esc(fmtSched(sq.scheduled_for))+\')\'\n          +\' <button class="c-btn ghost" data-sqc="\'+sq.id+\'">CANCEL</button>\')+\'</div>\';\n    }\n    h+=\'</div><div class="c-err" id="fdSchedErr"></div>\';\n  }\n  else if(SCHED&&!SCHED.ok){ h+=fdAuthHint(SCHED); }\n  /* Tip leaderboard (2026-10-03: tip_leaderboard, public) — tips were flowing\n     through tip_send, but nobody ever saw who the network backs. */\n  var tl=[]; try{ if(TIPS&&TIPS.ok&&TIPS.leaders) tl=TIPS.leaders; }catch(e2){}\n  if(tl.length){\n    h+=\'<div class="x-pane"><div class="fd-title">TOP TIPPED</div>\';\n    for(var ti2=0;ti2<Math.min(tl.length,10);ti2++){\n      h+=\'<div class="cp-mission"><div class="cp-mtext">\'+esc(tl[ti2].callsign)+\'</div>\'\n        +\'<div class="cp-mxp">\'+Number(tl[ti2].total||0)+\' XP (\'+Number(tl[ti2].n||0)+\')</div></div>\';\n    }\n    h+=\'</div>\';\n  }\n  h+=\'<div style="margin-top:10px"><button class="c-btn" id="fdRetry">Refresh</button></div>\';\n  el.innerHTML=h;\n  var tabs=el.querySelectorAll("button.fd-tab");\n  for(var t=0;t<tabs.length;t++){\n    (function(b){ b.onclick=function(){ tab=b.getAttribute("data-tab"); render(); }; })(tabs[t]);\n  }\n  var bw=document.getElementById("fdBoostWrap");\n  if(bw) fdInitBoost(bw);\n  var vw=document.getElementById("fdVaultWrap");\n  if(vw) fdInitVault(vw);\n  var sh=el.querySelectorAll("button.fd-share");\n  for(var s2=0;s2<sh.length;s2++){\n    (function(b){\n      b.onclick=function(){\n        var cid=b.getAttribute("data-cid"); if(!cid){ toast("No content id."); return; }\n        b.disabled=true;\n        post("share_log",{content_id:cid,sharer:id.callsign||"anon",device:id.device},function(j){\n          b.disabled=false;\n          if(j&&j.ok){ toast("Shared. Depth "+(j.depth||0)+" — keep pumping."); }\n          else { toast("Logged locally. Pump it anyway."); }\n          /* Hand off to the share system if present. */\n          try{\n            if(window.PFShare&&PFShare.shareText){ PFShare.shareText(b.getAttribute("data-title")+" — via MTCSTW"); }\n            else if(navigator.share){ navigator.share({title:b.getAttribute("data-title"),text:b.getAttribute("data-title")+" — JOIN THE FIGHT.",url:location.href}); }\n            else { toast("Copy the link and spread it."); }\n          }catch(e){}\n        });\n      };\n    })(sh[s2]);\n  }\n  /* Who\'s sharing: spread_stats breakdown per content item. */\n  var ib=el.querySelectorAll("button.fd-intel");\n  for(var ii=0;ii<ib.length;ii++){\n    (function(b){\n      b.onclick=function(){\n        var cid=b.getAttribute("data-cid");\n        var box=el.querySelector(\'div.fd-intelbox[data-cid="\'+cid+\'"]\');\n        if(!box) return;\n        if(box.style.display!=="none"){ box.style.display="none"; return; }\n        box.style.display="block";\n        box.innerHTML=\'<div class="x-note">Reading the spread&hellip;</div>\';\n        api("spread_stats",{content_id:cid},function(j){\n          if(!j||!j.ok){ box.innerHTML=\'<div class="x-note">No spread data yet.</div>\'; return; }\n          var h=\'<div class="x-note">\'\n            +\'<b>\'+(Number(j.total_shares)||0)+\'</b> shares &bull; \'\n            +\'<b>\'+(Number(j.unique_sharers)||0)+\'</b> sharers &bull; \'\n            +\'<b>\'+(Number(j.cells_reached)||0)+\'</b> cells &bull; \'\n            +\'depth <b>\'+(Number(j.max_depth)||0)+\'</b>\';\n          var tl=[]; try{ if(j.timeline) tl=j.timeline; }catch(e){}\n          if(tl.length){\n            h+=\'<br>14d: \';\n            var bars=[];\n            for(var d=0;d<tl.length;d++){ bars.push(Number(tl[d])||0); }\n            h+=esc(bars.join(" / "));\n          }\n          var tops=[]; try{ if(j.top_sharers) tops=j.top_sharers; }catch(e){}\n          if(tops.length){\n            h+=\'<br>Top pumpers: \';\n            var tn=[];\n            for(var t2=0;t2<Math.min(tops.length,5);t2++){ tn.push(esc(String(tops[t2].sharer||tops[t2]))); }\n            h+=tn.join(", ");\n          }\n          h+=\'</div>\';\n          box.innerHTML=h;\n        });\n      };\n    })(ib[ii]);\n  }\n  var rb=document.getElementById("fdRetry");\n  if(rb) rb.onclick=function(){ T=N=null; REP=null; SCHED=null; TIPS=null; FN=null; DUE=null; el.innerHTML=\'<div class="c-load">Loading the feed&hellip;</div>\'; load(); };\n  /* Up/down votes. */\n  var vs=el.querySelectorAll("button.fd-vote");\n  for(var vi=0;vi<vs.length;vi++){\n    (function(b){\n      b.onclick=function(){\n        var cid=b.getAttribute("data-cid"), v=b.getAttribute("data-v"), creator=b.getAttribute("data-creator");\n        if(!id.callsign){ toast("Claim a callsign to vote."); return; }\n        if(!creator){ toast("That post is missing its creator — refresh the feed and try again."); return; }\n        b.disabled=true;\n        /* 2026-10-04: backend contract — reputation_vote reads p.creator and\n           p.up (Number(p.up)>=0 -> upvote, else downvote); the vote direction\n           is mapped explicitly so a rename never records everything as down. */\n        postX("reputation","rep_action","reputation_vote",{creator:creator,voter:id.callsign,device:id.device,up:(Number(v)>0?1:-1)},function(j){\n          b.disabled=false;\n          if(j&&j.ok){ toast("Vote recorded."); }\n          else toast(fdWriteErr(j&&j.err||j&&j.error,"Vote failed."));\n        });\n      };\n    })(vs[vi]);\n  }\n  /* Tips: 10/25/50 XP to the creator. */\n  var ts=el.querySelectorAll("button.fd-tip");\n  for(var ti=0;ti<ts.length;ti++){\n    (function(b){\n      b.onclick=function(){\n        if(!id.callsign){ toast("Claim a callsign to tip."); return; }\n        var creator=b.getAttribute("data-creator"), cid=b.getAttribute("data-cid");\n        var amt=window.prompt("Tip "+creator+" how much XP? (10 / 25 / 50)", "25");\n        amt=Math.round(Number(amt)||0);\n        if(amt!==10&&amt!==25&&amt!==50){ toast("Pick 10, 25, or 50."); return; }\n        b.disabled=true;\n        /* 2026-10-04: backend contract — tip_send reads p.from_cs / p.to_cs\n           (not from/to); content_id is unread by the backend, dropped. */\n        postX("tip","t_action","tip_send",{from_cs:id.callsign,to_cs:creator,xp:amt,device:id.device},function(j){\n          b.disabled=false;\n          if(j&&j.ok){ toast("Tipped "+amt+" XP to "+creator+"."); }\n          else toast(fdWriteErr(j&&j.err||j&&j.error,"Tip failed."));\n        });\n      };\n    })(ts[ti]);\n  }\n  /* Schedule a share. */\n  var ss=el.querySelectorAll("button.fd-sched");\n  for(var si=0;si<ss.length;si++){\n    (function(b){\n      b.onclick=function(){\n        if(!id.callsign){ toast("Claim a callsign to schedule."); return; }\n        var cid=b.getAttribute("data-cid");\n        var plat=window.prompt("Platform? (twitter / tiktok / facebook / instagram)", "twitter")||"twitter";\n        var when=window.prompt("When? (YYYY-MM-DD HH:MM, Chicago time)", "");\n        if(!when){ return; }\n        /* 2026-10-04: backend contract — schedule_add reads epoch-ms\n           p.scheduled_for (must be future, within 30 days), not a string. */\n        var whenMs=chicagoToMs(when);\n        if(!whenMs){ toast("Use the format YYYY-MM-DD HH:MM — e.g. 2026-10-05 14:30."); return; }\n        if(whenMs<=Date.now()){ toast("That time is in the past. Pick a future slot."); return; }\n        b.disabled=true;\n        postX("schedule","s_action","schedule_add",{content_id:cid,callsign:id.callsign,device:id.device,platform:String(plat).toLowerCase().slice(0,16),scheduled_for:whenMs},function(j){\n          b.disabled=false;\n          if(j&&j.ok){ toast("Scheduled. It will fire from the queue."); load(); }\n          else toast(fdWriteErr(j&&j.err||j&&j.error,"Schedule failed."));\n        });\n      };\n    })(ss[si]);\n  }\n  /* Cancel a scheduled share (2026-10-03 H7). */\n  var scs=el.querySelectorAll("button[data-sqc]");\n  for(var sci=0;sci<scs.length;sci++){\n    (function(b){\n      b.onclick=function(){\n        var qid=b.getAttribute("data-sqc"); if(!qid) return;\n        b.disabled=true;\n        postX("schedule","s_action","schedule_cancel",{id:Number(qid),callsign:id.callsign,device:id.device},function(j){\n          if(j&&j.ok){ toast("Schedule cancelled."); SCHED=null; load(); }\n          else{\n            b.disabled=false;\n            var e2=document.getElementById("fdSchedErr");\n            if(e2) e2.textContent=fdWriteErr(j&&j.err||j&&j.error,"Cancel failed.");\n          }\n        });\n      };\n    })(scs[sci]);\n  }\n}\n/* ---------- BOOST tab (merged from games/amplify.js, PF v1.4.3, 2026-10-03) ----------\n   Amplify now lives as a tab of the Propaganda Feed. XP buttons call the same\n   boost_give / content_register backend actions, which feed the Feed ranking\n   (boost_board weights discovery). amplify.js deleted. */\nfunction fdInitBoost(root){\n if(!root) return;\n root.innerHTML =\n \'<div id="pf-amplify">\'\n +\'<div class="c-tag">Put your XP where your mouth is. Boost what matters. Boosts feed the Feed ranking.</div>\'\n +\'<div class="am-tabs">\'\n +\'<button class="am-tab on" data-t="posts">Posts</button>\'\n +\'<button class="am-tab" data-t="creators">Creators</button>\'\n +\'<button class="am-tab" data-t="campaigns">Campaigns</button>\'\n +\'</div>\'\n +\'<div id="amPick"><div class="c-load">Loading targets&hellip;</div></div>\'\n +\'<div class="am-amtrow">\'\n +\'<span class="am-label">XP to spend:</span> \'\n +\'<button class="am-chip on" data-a="10">10</button> \'\n +\'<button class="am-chip" data-a="25">25</button> \'\n +\'<button class="am-chip" data-a="50">50</button> \'\n +\'<button class="am-chip" data-a="100">100</button> \'\n +\'<input id="amCustom" class="am-custom" type="number" min="10" max="500" placeholder="Custom">\'\n +\'</div>\'\n +\'<button id="amGo" class="am-go" disabled>Select something to amplify</button>\'\n +\'<h3 class="am-h3">Live amplifications</h3>\'\n +\'<div id="amBoard"><div class="c-load">Loading the board&hellip;</div></div>\'\n +\'<h3 class="am-h3">Your amplifications</h3>\'\n +\'<div id="amMine"><div class="c-load">Loading&hellip;</div></div>\'\n +\'</div>\';\n\nvar BACKEND=window.PF_BACKEND_URL;\nvar sel=null;           /* {kind:\'post\'|\'creator\'|\'campaign\', id, title, reg} */\nvar amt=10;\nvar LS=\'pf_amplify_v1\';\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction toast(m){ try{ PF.toast(m); }catch(e){} }\nfunction needCs(){ var id=ident(); if(!id.callsign){ if(window.PF&&PF.requireCallsign){ PF.requireCallsign(function(){ refreshAll(); }); } else toast("Claim a callsign first."); return false; } return true; }\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  var fn="pfAmCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\nfunction post(spAction,params,cb){\n  var body=Object.assign({type:"spread",sp_action:spAction},params);\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,function(j){ cb(j||{ok:false,err:"Network error."}); }); return; }\n  cb({ok:false,err:"Auth unavailable."});\n}\nfunction loadMine(){ try{ return JSON.parse(localStorage.getItem(LS)||"[]"); }catch(e){ return []; } }\nfunction saveMine(a){ try{ localStorage.setItem(LS,JSON.stringify(a.slice(0,50))); }catch(e){} }\n\n/* ---------- target pickers ---------- */\nvar curTab=\'posts\';\nfunction setTab(t){\n  curTab=t; sel=null; updateGo();\n  var tabs=document.querySelectorAll(\'#pf-amplify .am-tab\');\n  for(var i=0;i<tabs.length;i++) tabs[i].classList.toggle(\'on\',tabs[i].getAttribute(\'data-t\')===t);\n  var box=document.getElementById(\'amPick\');\n  box.innerHTML=\'<div class="c-load">Loading targets&hellip;</div>\';\n  if(t===\'posts\') loadPosts(box);\n  else if(t===\'creators\') loadCreators(box);\n  else loadCampaigns(box);\n}\nfunction rowHtml(kind,id,title,sub,badge){\n  return \'<div class="am-row" data-kind="\'+esc(kind)+\'" data-id="\'+esc(id)+\'" data-title="\'+esc(title)+\'">\'+\n    \'<div class="am-rowmain"><div class="am-rowt">\'+esc(title)+\'</div><div class="am-rowsub">\'+esc(sub||"")+\'</div></div>\'+\n    (badge?\'<span class="am-badge">AMPLIFIED &times;\'+badge+\'</span>\':\'\')+\n    \'</div>\';\n}\nfunction bindRows(box){\n  var rows=box.querySelectorAll(\'.am-row\');\n  for(var i=0;i<rows.length;i++){\n    rows[i].addEventListener(\'click\',function(){\n      var rs=box.querySelectorAll(\'.am-row\');\n      for(var j=0;j<rs.length;j++) rs[j].classList.remove(\'sel\');\n      this.classList.add(\'sel\');\n      sel={kind:this.getAttribute(\'data-kind\'),id:this.getAttribute(\'data-id\'),title:this.getAttribute(\'data-title\')};\n      updateGo();\n    });\n  }\n}\nfunction loadPosts(box){\n  /* trending first (boosts already weight it), fall back to newest */\n  api(\'feed_trending\',{},function(j){\n    var feed=(j&&j.ok&&j.feed)||[];\n    if(!feed.length){\n      api(\'content_list\',{},function(j2){\n        var f2=(j2&&j2.ok&&j2.feed)||[];\n        renderPosts(box,f2);\n      });\n      return;\n    }\n    renderPosts(box,feed);\n  });\n}\nfunction renderPosts(box,feed){\n  if(!feed.length){ box.innerHTML=\'<div class="c-load">No content registered yet. Share something first.</div>\'; return; }\n  var h=\'\';\n  feed.slice(0,12).forEach(function(p){\n    var sub=(p.creator||"unknown")+" &middot; "+(p.type||"post")+" &middot; "+(p.shares||0)+" shares";\n    h+=rowHtml(\'post\',p.id,p.title||p.id,sub,p.boosts||0);\n  });\n  box.innerHTML=h; bindRows(box);\n}\nfunction loadCreators(box){\n  var list=[];\n  try{\n    if(window.PF&&PF.ROSTER){ list=PF.ROSTER; }\n    else if(window.PF&&PF.slrAll){ list=PF.slrAll(); }\n  }catch(e){}\n  if(!list||!list.length){ box.innerHTML=\'<div class="c-load">Roster not loaded.</div>\'; return; }\n  var h=\'\';\n  list.slice(0,20).forEach(function(c){\n    var name=c.name||c.callsign||c.slug||"creator";\n    var slug=c.slug||String(name).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");\n    var sub=(c.followers||c.reach||"")+(c.score?" &middot; "+c.score+" score":"");\n    h+=rowHtml(\'creator\',"creator_"+slug,name,sub,0);\n  });\n  box.innerHTML=h; bindRows(box);\n}\nfunction loadCampaigns(box){\n  api(\'campaign_missions\',{day_offset:0},function(j){\n    var ms=(j&&j.ok&&j.missions)||[];\n    if(!ms.length){ box.innerHTML=\'<div class="c-load">No active missions today.</div>\'; return; }\n    var h=\'\';\n    ms.forEach(function(m){\n      h+=rowHtml(\'campaign\',"campaign_"+m.id,m.title||("Mission "+m.id),(m.xp?("+"+m.xp+" XP"):""),0);\n    });\n    box.innerHTML=h; bindRows(box);\n  });\n}\n\n/* ---------- amount + go ---------- */\nfunction updateGo(){\n  var go=document.getElementById(\'amGo\');\n  var custom=document.getElementById(\'amCustom\');\n  var cv=parseInt(custom&&custom.value,10);\n  amt=(cv>=10&&cv<=500)?cv:amt;\n  if(sel){\n    go.disabled=false;\n    go.textContent="AMPLIFY — "+amt+" XP";\n  }else{\n    go.disabled=true;\n    go.textContent="Select something to amplify";\n  }\n}\nfunction doAmplify(){\n  if(!sel) return;\n  if(!needCs()) return;\n  var id=ident();\n  var useAmt=amt;\n  if(!confirm("Spend "+useAmt+" XP to amplify “"+sel.title+"”?")) return;\n  var goBtn=document.getElementById(\'amGo\');\n  if(goBtn) goBtn.disabled=true;\n  toast("Amplifying…");\n  function give(){\n    post(\'boost_give\',{content_id:sel.id,booster:id.callsign,device:id.device,xp:useAmt},function(j){\n      if(goBtn) goBtn.disabled=false;\n      if(j&&j.ok){\n        toast("Amplified! "+useAmt+" XP behind “"+sel.title+"”.");\n        /* R12 (Wave 6B): boost impact receipt — "your boost moved X to #N". */\n        try{ if(window.PF&&PF.boostReceipt) PF.boostReceipt(); }catch(e){}\n        try{ document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:-useAmt,key:"amplify_"+sel.id+"_"+useAmt,reason:"amplify: "+sel.title}})); }catch(e){}\n        var mine=loadMine();\n        mine.unshift({id:sel.id,title:sel.title,kind:sel.kind,xp:useAmt,ts:Date.now()});\n        saveMine(mine);\n        sel=null; updateGo(); renderMine(); loadBoard();\n      }else{\n        toast("Amplify failed: "+fdWriteErr(j&&j.err||j&&j.error,"unknown error"));\n      }\n    });\n  }\n  if(sel.kind===\'post\'){ give(); return; }\n  /* creators & campaigns need a content row first */\n  post(\'content_register\',{id:sel.id,kind:\'poster\',title:sel.title,callsign:id.callsign,device:id.device},function(){\n    give();\n  });\n}\n\n/* ---------- boards ---------- */\nfunction loadBoard(){\n  var box=document.getElementById(\'amBoard\');\n  api(\'boost_board\',{},function(j){\n    var b=(j&&j.ok&&j.board)||[];\n    if(!b.length){ box.innerHTML=\'<div class="c-load">Nothing amplified yet this week. Be the first.</div>\'; return; }\n    var h=\'\';\n    b.forEach(function(r,i){\n      h+=\'<div class="am-brow"><span class="am-rank">#\'+(i+1)+\'</span>\'+\n        \'<div class="am-rowmain"><div class="am-rowt">\'+esc(r.title||r.id)+\'</div>\'+\n        \'<div class="am-rowsub">\'+esc(r.creator||"")+\'</div></div>\'+\n        \'<span class="am-badge">AMPLIFIED &times;\'+(r.boosts||0)+\'</span>\'+\n        \'<span class="am-xp">\'+(r.xp||0)+\' XP</span></div>\';\n    });\n    box.innerHTML=h;\n  });\n}\nfunction renderMine(){\n  var box=document.getElementById(\'amMine\');\n  var mine=loadMine();\n  if(!mine.length){ box.innerHTML=\'<div class="c-load">You haven’t amplified anything yet.</div>\'; return; }\n  var h=\'\';\n  mine.slice(0,10).forEach(function(m){\n    var d=new Date(m.ts);\n    var when=(d.getMonth()+1)+"/"+d.getDate();\n    h+=\'<div class="am-brow"><div class="am-rowmain"><div class="am-rowt">\'+esc(m.title)+\'</div>\'+\n      \'<div class="am-rowsub">\'+esc(m.kind)+" &middot; "+when+\'</div></div>\'+\n      \'<span class="am-xp">-\'+m.xp+\' XP</span></div>\';\n  });\n  box.innerHTML=h;\n}\nfunction refreshAll(){ setTab(curTab); loadBoard(); renderMine(); }\n\n/* ---------- wire up ---------- */\nvar tabs=document.querySelectorAll(\'#pf-amplify .am-tab\');\nfor(var ti=0;ti<tabs.length;ti++){ tabs[ti].addEventListener(\'click\',function(){ setTab(this.getAttribute(\'data-t\')); }); }\nvar chips=document.querySelectorAll(\'#pf-amplify .am-chip\');\nfor(var ci=0;ci<chips.length;ci++){\n  chips[ci].addEventListener(\'click\',function(){\n    for(var k=0;k<chips.length;k++) chips[k].classList.remove(\'on\');\n    this.classList.add(\'on\');\n    amt=parseInt(this.getAttribute(\'data-a\'),10)||10;\n    var c=document.getElementById(\'amCustom\'); if(c) c.value=\'\';\n    updateGo();\n  });\n}\nvar cust=document.getElementById(\'amCustom\');\nif(cust){ cust.addEventListener(\'input\',function(){\n  var v=parseInt(cust.value,10);\n  if(v>=10&&v<=500){ for(var k=0;k<chips.length;k++) chips[k].classList.remove(\'on\'); amt=v; }\n  updateGo();\n});}\ndocument.getElementById(\'amGo\').addEventListener(\'click\',doAmplify);\nrefreshAll();\n}\n\n/* ---------- VAULT tab (merged from games/archive.js, PF v1.4.3, 2026-10-03) ----------\n   The Vault now lives as a tab of the Propaganda Feed (a browse filter over\n   the archive). Same archive_search / evergreen_list / resurface /\n   attribution_stats backend calls. archive.js deleted. */\nfunction fdInitVault(root){\n\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}\n  try{ var t=document.createElement("div"); t.textContent=m;\n  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";\n  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  var fn="pfArCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\nfunction post(cAction,params,cb){\n  var body=Object.assign({type:"archive",ar_action:cAction},params);\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }\n  var bodyStr=JSON.stringify(body);\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */\n    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;\n      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}\n      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();\n    fetch(BACKEND,_po)\n      .then(function(r){ return r.json(); })\n      .then(function(j){ _po._pfClear(); done(j); })\n      .catch(function(){ _po._pfClear(); done(null); });\n  }catch(e){ done(null); }\n}\nvar EV=null, results=null, lastQ="", lastSort="top";\nfunction card(r,showResurface,showAttr){\n  var h=\'<div class="x-pane ar-card">\'\n    +\'<div class="ar-headline">\'+esc(r.headline||r.content_id)+\'</div>\'\n    +\'<div class="ar-meta">by \'+esc(r.creator||"unknown")+\' &bull; \'+(Number(r.shares)||0)+\' shares</div>\';\n  if(showAttr){\n    h+=\'<button class="c-btn c-btn2 ar-attr" data-cid="\'+esc(r.content_id)+\'">WHO DID THIS CONVERT?</button>\'\n      +\'<div class="ar-attr-out" id="arAttr\'+esc(r.content_id)+\'"></div>\';\n  }\n  if(showResurface){\n    var id=ident();\n    if(id.callsign){\n      h+=\'<button class="c-btn ar-resurf" data-cid="\'+esc(r.content_id)+\'">RESURFACE (+5 XP)</button>\';\n    }\n  }\n  h+=\'</div>\';\n  return h;\n}\nfunction wireCards(el){\n  var rs=el.querySelectorAll("button.ar-resurf");\n  for(var i=0;i<rs.length;i++){\n    (function(btn){\n      btn.onclick=function(){\n        var id=ident(); if(!id.callsign){ toast("Claim a callsign first."); return; }\n        btn.disabled=true;\n        post("resurface",{callsign:id.callsign,device:id.device,content_id:btn.getAttribute("data-cid")},function(j){\n          if(!j||!j.ok){ toast(fdWriteErr(j&&j.err||j&&j.error,"Resurface failed.")); btn.disabled=false; return; }\n          toast("+5 XP — winner redeployed.");\n          btn.textContent="RESURFACED";\n        });\n      };\n    })(rs[i]);\n  }\n  var as=el.querySelectorAll("button.ar-attr");\n  for(var k=0;k<as.length;k++){\n    (function(btn){\n      var out=document.getElementById("arAttr"+btn.getAttribute("data-cid"));\n      var open=false;\n      btn.onclick=function(){\n        if(open){ out.innerHTML=""; open=false; return; }\n        open=true; out.innerHTML=\'<div class="x-note">Tracing conversions&hellip;</div>\';\n        api("attribution_stats",{content_id:btn.getAttribute("data-cid")},function(j){\n          if(!j||!j.ok){ out.innerHTML=\'<div class="x-note">No attribution data yet.</div>\'; return; }\n          out.innerHTML=\'<div class="ar-conv">\'\n            +\'<div>\'+(Number(j.enlistments)||0)+\' enlistments traced</div>\'\n            +\'<div>\'+(Number(j.referrals)||0)+\' referrals traced</div>\'\n            +\'<div>\'+(Number(j.xp_generated)||0)+\' XP generated</div></div>\';\n        });\n      };\n    })(as[k]);\n  }\n}\nfunction render(){\n  var el=root; if(!el) return;\n  var id=ident(), h="";\n  /* search bar — 2026-10-03: archive_search (public) with TOP/RECENT sort;\n     falls back to content_search if the dedicated search fails. */\n  h+=\'<div class="c-tag">Every poster ever forged. Search it. Resurface winners. See what converted.</div>\'\n  +\'<div class="x-pane"><h4>Search the vault</h4>\'\n    +\'<input aria-label="healthcare, wages, rent&hellip;" id="arQ" type="text" placeholder="healthcare, wages, rent&hellip;" value="\'+esc(lastQ)+\'" style="width:60%;padding:8px;font:14px monospace"/>\'\n    +\'<button class="c-btn" id="arSearch">SEARCH</button> \'\n    +\'<button class="c-btn ghost" id="arSortTop"\'+(lastSort==="top"?\' disabled\':"")+\'>TOP</button>\'\n    +\'<button class="c-btn ghost" id="arSortRecent"\'+(lastSort==="recent"?\' disabled\':"")+\'>RECENT</button>\'\n    +\'<div id="arResults" style="margin-top:10px"></div></div>\';\n  /* evergreen */\n  h+=\'<div class="x-pane"><h4>Evergreen winners</h4>\'\n    +\'<div class="x-note">Proven posters gone quiet for 30+ days. Redeploy them &mdash; winners win twice.</div>\'\n    +\'<div id="arEvergreen"><div class="c-load">Digging up winners&hellip;</div></div></div>\';\n  el.innerHTML=h;\n  var sb=document.getElementById("arSearch");\n  var qi=document.getElementById("arQ");\n  function doSearch(){\n    var q=qi.value.trim(); if(!q) return;\n    lastQ=q;\n    var ro=document.getElementById("arResults");\n    ro.innerHTML=\'<div class="c-load">Searching&hellip;</div>\';\n    function paint(rs){\n      var rh="";\n      if(!rs.length){ rh=\'<div class="x-note">Nothing in the vault matches "\'+esc(q)+\'". Forge it yourself.</div>\'; }\n      for(var i=0;i<Math.min(rs.length,20);i++){ rh+=card(rs[i],true,true); }\n      ro.innerHTML=rh; wireCards(ro);\n    }\n    api("archive_search",{q:q,sort:lastSort},function(j){\n      var rs=(j&&j.ok&&j.results)||[];\n      if(!j||!j.ok){\n        /* Fallback: the older content_search path. */\n        api("content_search",{q:q},function(j2){\n          paint((j2&&j2.ok&&j2.results)||[]);\n        });\n        return;\n      }\n      paint(rs);\n    });\n  }\n  sb.onclick=doSearch;\n  qi.onkeydown=function(e){ if(e.key==="Enter") doSearch(); };\n  var st=document.getElementById("arSortTop");\n  if(st) st.onclick=function(){ lastSort="top"; render(); };\n  var sr=document.getElementById("arSortRecent");\n  if(sr) sr.onclick=function(){ lastSort="recent"; render(); };\n  if(lastQ&&results){\n    var ro2=document.getElementById("arResults");\n    var rh2="";\n    for(var r=0;r<Math.min(results.length,20);r++){ rh2+=card(results[r],true,true); }\n    ro2.innerHTML=rh2; wireCards(ro2);\n  }\n  /* evergreen load */\n  var eg=document.getElementById("arEvergreen");\n  if(EV){ paintEvergreen(eg); }\n  else{\n    api("evergreen_list",{},function(j){\n      EV=(j&&j.ok&&j.winners)||[];\n      var e2=document.getElementById("arEvergreen");\n      if(e2) paintEvergreen(e2);\n    });\n    setTimeout(function(){ var e3=document.getElementById("arEvergreen"); if(e3&&e3.innerHTML.indexOf("c-load")>=0) paintEvergreen(e3); },15000);\n  }\n}\nfunction paintEvergreen(eg){\n  if(!eg) return;\n  if(!EV.length){ eg.innerHTML=\'<div class="x-note">No dormant winners yet. The vault is young.</div>\'; return; }\n  var h="";\n  for(var i=0;i<EV.length;i++){ h+=card(EV[i],true,false); }\n  eg.innerHTML=h; wireCards(eg);\n}\nrender();\n}\n\nload();\nsetInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },180000);\n})();\n<\/script>\n</div>\n</template>')}();
+/* PF v1.4.3 bundle-create-h.js — concatenated bundle, generated by build/bundle.js.
+   DO NOT EDIT. Regenerate with: node build/bundle.js [--debug]
+   Contains: poster-forge.js, poster-forge-political.js, feed.js
+   Each silo keeps its own PF.skip() kill switch (?pf_off=<silo>). */
+
+/* ===== poster-forge.js ===== */
+/* games/poster-forge.js  |  PF v1.4.3 | Poster Forge widget: template + slogan engine + meme maker
+   2026-10-03: Video Forge (games/video.js) merged as the VIDEO tab. video.js deleted.
+   KILL: ?pf_off=poster-forge  or  localStorage pf_disabled_v1='["poster-forge"]' */
+
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("poster-forge")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-poster">
+<div class="fe-block pf-override-block" id="pf-poster">
+
+<h2>The Poster Forge</h2>
+<div class="p-sub">Make propaganda. Download it. Plaster the internet.</div>
+<div id="pfStrikeBar" style="display:none"></div>
+<style>
+#pf-poster .p-tabs{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
+#pf-poster .p-tab.on{border-color:#c1121f;background:rgba(193,18,31,.18);color:#fff}
+#pfPane-video{margin-top:6px}
+#pfPane-political{margin-top:6px}
+#pfStrikeBar{display:none;border:2px solid #c1121f;background:rgba(193,18,31,.12);padding:10px 14px;margin:10px 0;font-family:Arial,sans-serif;color:#f5ead6}
+#pfStrikeBar b{letter-spacing:1px}
+</style>
+<div class="p-tabs" role="tablist">
+  <button class="c-btn p-tab on" data-ptab="poster" role="tab">POSTER</button>
+  <button class="c-btn p-tab" data-ptab="video" role="tab">VIDEO</button>
+  <button class="c-btn p-tab" data-ptab="political" role="tab">POLITICAL</button>
+</div>
+<div id="pfPane-poster">
+<canvas id="pCanvas" width="1080" height="1350"></canvas>
+
+<div class="p-ctl">
+  <label for="pTop">Top line</label>
+  <input id="pTop" maxlength="40" value="THE PROPAGANDA FACTORY">
+  <label for="pHead">Headline</label>
+  <input id="pHead" maxlength="60" value="EAT THE RICH">
+  <label for="pBot">Bottom line</label>
+  <input id="pBot" maxlength="40" value="MT CSTW DOT COM">
+  <label>Style</label>
+  <div class="p-styles" id="pStyles">
+    <button class="p-style on" data-s="0">The Call</button>
+    <button class="p-style" data-s="1">Wanted</button>
+    <button class="p-style" data-s="2">Red Wave</button>
+    <button class="p-style" data-s="3">Strike!</button>
+  </div>
+  <div class="p-row">
+    <button class="p-btn ghost" id="pRandom">&#9873; Agitate me</button>
+    <a class="p-btn" id="pDownload" href="#" download="pfn-propaganda-poster.png">Download</a>
+    <button class="p-btn ghost" id="pShare">Share</button>
+    <button class="p-btn" id="pBattle">ENTER INTO POSTER BATTLES →</button>
+  </div>
+  <div class="p-note">1080 &times; 1350 — made for the feed. Every download carries JOIN THE FIGHT. + MTCSTW.COM.</div>
+  <div id="pSpread"></div>
+  <div id="pImpact"></div>
+</div>
+</div>
+<div id="pfPane-video" style="display:none">
+<div id="xVideo"><div class="c-load">Loading the forge&hellip;</div></div>
+</div>
+<div id="pfPane-political" style="display:none">
+<div id="xPolitical"><div class="c-load">Loading the forge&hellip;</div></div>
+</div>
+
+<script>
+(function(){
+var SLOGANS=[
+ ["SICK LEFT RADICALS","EAT THE RICH","SEIZE THE MEMES OF PRODUCTION"],
+ ["THE PROPAGANDA FACTORY","GENERAL STRIKE","OCTOBER 1ST. EVERYWHERE."],
+ ["COMRADES","HOUSING IS A HUMAN RIGHT","LANDLORDS ARE A POLICY CHOICE"],
+ ["THE PROPAGANDA FACTORY","TAX THE RICH","OR WE WILL"],
+ ["SICK LEFT RADICALS","UNIONIZE EVERYWHERE","YOUR BOSS IS SCARED. GOOD."],
+ ["COMRADES","MEDICARE FOR ALL","YOUR INSULIN COSTS $6 TO MAKE"],
+ ["THE PROPAGANDA FACTORY","ABOLISH BILLIONAIRES","NO ONE EARNS A BILLION"],
+ ["SICK LEFT RADICALS","THE RENT IS TOO DAMN HIGH","ORGANIZE YOUR BUILDING"],
+ ["COMRADES","YOUR BOSS NEEDS YOU","YOU DON'T NEED YOUR BOSS"],
+ ["THE PROPAGANDA FACTORY","READ THEORY","THEN TOUCH GRASS. THEN ORGANIZE."],
+ ["SICK LEFT RADICALS","STRIKE!","WITHHOLD YOUR LABOR"],
+ ["COMRADES","SOLIDARITY FOREVER","THE UNION MAKES US STRONG"]
+];
+var CREAM="#f5ead6",RED="#c1121f",BLACK="#0d0d0d";
+var cv=document.getElementById("pCanvas"),ctx=cv.getContext("2d");
+var state={top:"THE PROPAGANDA FACTORY",head:"EAT THE RICH",bot:"MT CSTW DOT COM",style:0};
+var W=1080,H=1350;
+
+function wrap(text,maxW,base){
+  var words=text.toUpperCase().split(/\\s+/),lines=[],line="";
+  words.forEach(function(w){
+    var t=line?line+" "+w:w;
+    if(ctx.measureText(t).width>maxW&&line){lines.push(line);line=w;}else{line=t;}
+  });
+  if(line)lines.push(line);
+  var size=base;
+  ctx.font=size+"px 'Arial Black',Arial,sans-serif";
+  lines.forEach(function(l){ if(ctx.measureText(l).width>maxW){ var s=Math.floor(size*maxW/ctx.measureText(l).width); if(s<size)size=s; }});
+  if(size<40)size=40;
+  return {lines:lines,size:size};
+}
+function centerBlock(lines,size,y,lh,color){
+  ctx.fillStyle=color;ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.font=size+"px 'Arial Black',Arial,sans-serif";
+  lines.forEach(function(l,i){ctx.fillText(l,540,y+i*lh);});
+  return y+lines.length*lh;
+}
+function border(col,w,pad){ctx.strokeStyle=col;ctx.lineWidth=w;ctx.strokeRect(pad,pad,1080-2*pad,1350-2*pad);}
+function watermark(){
+  ctx.save();
+  /* Bottom CTA bar: JOIN THE FIGHT. + MTCSTW.COM (site CTA standard) */
+  var barH=90, barY=H-barH;
+  ctx.fillStyle="#c1121f";
+  ctx.fillRect(0,barY,W,barH);
+  ctx.fillStyle="#f5f0e6";ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.font="bold 44px 'Arial Black',Arial,sans-serif";
+  ctx.fillText("JOIN THE FIGHT.",W/2,barY+32);
+  ctx.font="28px Arial,sans-serif";
+  ctx.fillText("MTCSTW.COM",W/2,barY+68);
+  /* PFN watermark (top-right, smaller) */
+  var label="PFN";
+  ctx.font="28px 'Arial Black',Arial,sans-serif";
+  var tw=ctx.measureText(label).width,pad=12,bw=tw+pad*2,bh=40;
+  var bx=W-20-bw,by=20;
+  ctx.globalAlpha=0.8;
+  ctx.fillStyle="rgba(13,13,13,0.65)";
+  if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bx,by,bw,bh,8);ctx.fill();ctx.strokeStyle="#f5f0e6";ctx.lineWidth=2;ctx.stroke();}
+  else{ctx.fillRect(bx,by,bw,bh);}
+  ctx.globalAlpha=1;
+  ctx.fillStyle="#f5f0e6";ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.fillText(label,bx+bw/2,by+bh/2+2);
+  ctx.restore();
+}
+
+function draw(){
+  var s=state.style;
+  ctx.textAlign="center";ctx.textBaseline="middle";
+  if(s===0){ /* THE CALL — cream, red headline */
+    ctx.fillStyle=CREAM;ctx.fillRect(0,0,W,H);border(BLACK,26,26);border(RED,6,60);
+    ctx.fillStyle=RED;ctx.font="64px 'Arial Black',Arial,sans-serif";ctx.fillText(state.top,540,170);
+    ctx.fillStyle=BLACK;ctx.fillRect(80,230,920,6);
+    var t=wrap(state.head,860,170);var y=centerBlock(t.lines,t.size,640,t.size*1.12,RED);
+    ctx.fillStyle=BLACK;ctx.fillRect(80,H-260,920,10);
+    ctx.fillStyle=CREAM;ctx.fillRect(0,H-220,W,220);ctx.fillStyle=BLACK;ctx.fillRect(0,H-220,W,220);
+    ctx.fillStyle=CREAM;ctx.font="56px 'Arial Black',Arial,sans-serif";ctx.fillText(state.bot,540,H-110);
+  }else if(s===1){ /* WANTED — black, cream/red */
+    ctx.fillStyle=BLACK;ctx.fillRect(0,0,W,H);border(RED,26,26);border(CREAM,6,60);
+    ctx.fillStyle=CREAM;ctx.font="150px 'Arial Black',Arial,sans-serif";ctx.fillText("WANTED",540,190);
+    ctx.fillStyle=RED;ctx.font="56px 'Arial Black',Arial,sans-serif";ctx.fillText(state.top,540,300);
+    var t=wrap(state.head,860,150);centerBlock(t.lines,t.size,700,t.size*1.12,CREAM);
+    ctx.fillStyle=RED;ctx.fillRect(80,H-280,920,8);
+    ctx.fillStyle=CREAM;ctx.font="52px 'Arial Black',Arial,sans-serif";ctx.fillText(state.bot,540,H-150);
+  }else if(s===2){ /* RED WAVE — red bg */
+    ctx.fillStyle=RED;ctx.fillRect(0,0,W,H);border(BLACK,26,26);border(CREAM,6,60);
+    ctx.fillStyle=BLACK;ctx.font="64px 'Arial Black',Arial,sans-serif";ctx.fillText(state.top,540,170);
+    var t=wrap(state.head,860,170);centerBlock(t.lines,t.size,640,t.size*1.12,CREAM);
+    ctx.fillStyle=BLACK;ctx.fillRect(0,H-220,W,220);
+    ctx.fillStyle=CREAM;ctx.font="56px 'Arial Black',Arial,sans-serif";ctx.fillText(state.bot,540,H-110);
+  }else{ /* STRIKE — diagonal stripes */
+    ctx.fillStyle=CREAM;ctx.fillRect(0,0,W,H);
+    ctx.save();ctx.beginPath();ctx.rect(0,0,W,300);ctx.clip();
+    for(var i=-8;i<24;i++){ctx.fillStyle=i%2?BLACK:RED;ctx.save();ctx.translate(i*90,0);ctx.rotate(-0.5);ctx.fillRect(0,-200,45,700);ctx.restore();}
+    ctx.restore();
+    ctx.fillStyle=CREAM;ctx.font="72px 'Arial Black',Arial,sans-serif";
+    ctx.save();ctx.shadowColor=BLACK;ctx.shadowOffsetX=6;ctx.shadowOffsetY=6;ctx.fillText("STRIKE!",540,150);ctx.restore();
+    border(BLACK,26,26);
+    ctx.fillStyle=BLACK;ctx.font="60px 'Arial Black',Arial,sans-serif";ctx.fillText(state.top,540,420);
+    var t=wrap(state.head,860,170);centerBlock(t.lines,t.size,760,t.size*1.12,RED);
+    ctx.fillStyle=BLACK;ctx.fillRect(80,H-260,920,10);
+    ctx.fillStyle=BLACK;ctx.font="56px 'Arial Black',Arial,sans-serif";ctx.fillText(state.bot,540,H-130);
+  }
+  watermark();
+}
+function sync(){state.top=document.getElementById("pTop").value||" ";state.head=document.getElementById("pHead").value||" ";state.bot=document.getElementById("pBot").value||" ";draw();}
+["pTop","pHead","pBot"].forEach(function(id){document.getElementById(id).addEventListener("input",sync);});
+document.getElementById("pStyles").addEventListener("click",function(e){
+  var b=e.target.closest(".p-style");if(!b)return;
+  this.querySelectorAll(".p-style").forEach(function(x){x.classList.remove("on");});
+  b.classList.add("on");state.style=+b.dataset.s;draw();
+});
+document.getElementById("pRandom").onclick=function(){
+  var p=SLOGANS[Math.floor(Math.random()*SLOGANS.length)];
+  document.getElementById("pTop").value=p[0];document.getElementById("pHead").value=p[1];document.getElementById("pBot").value=p[2];
+  sync();
+};
+/* PFN metadata stamping: inject tEXt chunks so every PNG traces to the network. */
+var CRC_T=(function(){var t=[],c;for(var n=0;n<256;n++){c=n;for(var k=0;k<8;k++){c=c&1?0xEDB88320^(c>>>1):c>>>1;}t[n]=c>>>0;}return t;})();
+function pngCrc(type,data){var crc=0xFFFFFFFF,i;for(i=0;i<4;i++){crc=CRC_T[(crc^type.charCodeAt(i))&255]^(crc>>>8);}for(i=0;i<data.length;i++){crc=CRC_T[(crc^data[i])&255]^(crc>>>8);}return (crc^0xFFFFFFFF)>>>0;}
+function textChunk(keyword,text){
+  var enc=new TextEncoder();
+  var kw=enc.encode(keyword),tx=enc.encode(text);
+  var data=new Uint8Array(kw.length+1+tx.length);
+  data.set(kw,0);data[kw.length]=0;data.set(tx,kw.length+1);
+  var out=new Uint8Array(12+data.length),dv=new DataView(out.buffer);
+  dv.setUint32(0,data.length);
+  out[4]=116;out[5]=69;out[6]=88;out[7]=116; /* "tEXt" */
+  out.set(data,8);
+  dv.setUint32(8+data.length,pngCrc("tEXt",data));
+  return out;
+}
+function stampPng(buf){
+  var bytes=new Uint8Array(buf);
+  var sig=[137,80,78,71,13,10,26,10],i;
+  for(i=0;i<8;i++){if(bytes[i]!==sig[i])return buf;}
+  var meta=[
+    ["Title","PFN Agitprop Poster"],
+    ["Author","Propaganda Factory Network"],
+    ["Description","Seize the memes of production. Forged at mtcstw.com - workers of the feed, unite."],
+    ["Copyright","Copyright 2026 Propaganda Factory Network. Property of the working class."],
+    ["Software","PFN Poster Forge"],
+    ["Source","https://www.mtcstw.com"],
+    ["Comment","EAT THE RICH - solidarity forever."]
+  ];
+  var chunks=[],total=0;
+  meta.forEach(function(m){var c=textChunk(m[0],m[1]);chunks.push(c);total+=c.length;});
+  var dv=new DataView(bytes.buffer),pos=8;
+  while(pos+8<bytes.length){
+    var len=dv.getUint32(pos);
+    var type=String.fromCharCode(bytes[pos+4],bytes[pos+5],bytes[pos+6],bytes[pos+7]);
+    if(type==="IEND")break;
+    pos+=12+len;
+  }
+  var out=new Uint8Array(bytes.length+total);
+  out.set(bytes.subarray(0,pos),0);
+  var o=pos;
+  chunks.forEach(function(c){out.set(c,o);o+=c.length;});
+  out.set(bytes.subarray(pos),o);
+  return out.buffer;
+}
+function stampedBlob(cb){
+  /* Stamp the callsign on a throwaway copy — the forge canvas itself stays clean. */
+  var src=cv;
+  try{
+    if(window.PFShare&&window.PFShare.stampCallsign){
+      var c2=document.createElement('canvas');c2.width=cv.width;c2.height=cv.height;
+      c2.getContext('2d').drawImage(cv,0,0);
+      src=window.PFShare.stampCallsign(c2)||c2;
+    }
+  }catch(e){src=cv;}
+  src.toBlob(function(blob){
+    if(blob.arrayBuffer){blob.arrayBuffer().then(function(buf){cb(new Blob([stampPng(buf)],{type:"image/png"}));}).catch(function(){pfToast("Poster failed to render — tap Download again to retry.");});}
+    else{cb(blob);}
+  });
+}
+document.getElementById("pDownload").onclick=function(e){
+  e.preventDefault();
+  /* award XP + ping the trackers — ONCE PER DAY max (anti-farming).
+     Repeated downloads of the same or different posters on the same day
+     do not re-fire pf-poster-made. */
+  try{
+    var today=new Date().toISOString().slice(0,10);
+    var pfKey='pf_poster_day_v1';
+    var last=null;try{last=localStorage.getItem(pfKey);}catch(err){}
+    if(last!==today){
+      try{localStorage.setItem(pfKey,today);}catch(err){}
+      var pfDetail={day:today};
+      /* Strike-orders creation loop (fe/strike-orders-creative): tag the
+         entity binding so the order completes entity-bound. Zero XP impact
+         — same event, richer detail. */
+      if(pfStrikeLaunch&&pfStrikeLaunch.strike&&pfStrikeLaunch.entity&&pfStrikeLaunch.entity.id){
+        pfDetail.strike={cell_id:pfStrikeLaunch.strike.cell_id,week_start:pfStrikeLaunch.strike.week_start,
+          entity_kind:pfStrikeLaunch.entity.kind,entity_id:pfStrikeLaunch.entity.id};
+      }
+      document.dispatchEvent(new CustomEvent("pf-poster-made",{detail:pfDetail}));
+    }
+  }catch(err){}
+  /* Strike-orders creation loop: entity-bound completion receipt (zero XP,
+     idempotent server-side via INSERT OR IGNORE). Own once-per-order gate —
+     independent of the daily poster-XP gate above. */
+  try{ pfStrikeLogForge(); }catch(err2){}
+  pfLogShare();
+  stampedBlob(function(blob){
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement("a");
+    a.href=url;a.download="pfn-propaganda-poster.png";
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(function(){URL.revokeObjectURL(url);},4000);
+  });
+};
+document.getElementById("pShare").onclick=function(){
+  pfLogShare();
+  stampedBlob(function(blob){
+    var f=new File([blob],"pfn-propaganda-poster.png",{type:"image/png"});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:"PFN propaganda poster"}).catch(function(){});return;}
+    var url=URL.createObjectURL(blob);window.open(url,"_blank");
+  });
+};
+/* R6 (2026-10-04): one-tap forge -> Poster Battles pipeline. Registers the
+   poster so it has a content ID, then battle_propose carries the stamped
+   poster (the JOIN THE FIGHT. CTA is baked into the canvas by watermark())
+   as an optional image payload. Zero XP — navigation + competition only. */
+function pfBattleThumb(){
+  try{
+    var c2=document.createElement('canvas');
+    var w=540,h=Math.round(540*cv.height/cv.width);
+    c2.width=w;c2.height=h;
+    c2.getContext('2d').drawImage(cv,0,0,w,h);
+    return c2.toDataURL('image/jpeg',0.72);
+  }catch(e){ return ''; }
+}
+document.getElementById("pBattle").onclick=function(){
+  var id=pfIdent();
+  if(!id.callsign){ pfToast("Claim a callsign first (Enlistment Ranks)."); return; }
+  var btn=document.getElementById("pBattle");
+  var cid=pfContentId();
+  var BTN_LABEL="ENTER INTO POSTER BATTLES →";
+  btn.disabled=true; btn.textContent="ENTERING…";
+  function restore(){ try{ btn.disabled=false; btn.textContent=BTN_LABEL; }catch(e){} }
+  pfPost({type:"spread",sp_action:"content_register",id:cid,callsign:id.callsign,kind:"poster",title:String(state.head||"untitled").slice(0,200)},function(){
+    try{ pfRegistered[cid]=1; }catch(e){}
+    var img=pfBattleThumb();
+    if(img.length>400000){ restore(); pfToast("Poster too large to enter."); return; }
+    pfPost({type:"battle",b_action:"battle_propose",callsign:id.callsign,device:id.device,
+      title:String(state.head||"untitled").slice(0,120),ends_at:Date.now()+7*86400000,
+      image_data:img,content_id:cid},function(j){
+      restore();
+      if(j&&j.ok){ pfToast("Battle proposed! Your poster hits the arena after approval."); }
+      else pfToast(PF.errCopy(j,"Proposal failed."));
+    });
+  });
+};
+/* ---- Spread tracking + creator dashboard + boost economy ---- */
+var PFBE=window.PF_BACKEND_URL;
+function pfEsc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function pfIdent(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function pfToast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+/* Friendly copy for gated read failures (2026-10-03): raw backend strings
+   like 'missing credentials' are never shown as UI copy. */
+function pfAuthHint(j){
+  var e=String((j&&j.err)||"");
+  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")
+    return '<br><span class="x-note">This callsign predates the new auth system and can&rsquo;t reconnect on its own &mdash; contact MTCSTW to recover it.</span>';
+  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)
+    return '<br><span class="x-note">Your callsign needs to reconnect &mdash; re-claim it in Enlistment Ranks (one tap), then retry.</span>';
+  return "";
+}
+function pfApi(action,params,cb){
+  if(!PFBE){ cb(null); return; }
+  /* Private reads require auth_secret (IDOR fix). Route gated actions
+     through the shared claim-retry GET (2026-10-03): pre-auth callsign
+     holders with no stored secret get one auth_claim attempt instead of
+     failing 'missing credentials' forever. */
+  if(action==="creator_dashboard"){
+    try{
+      if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(PFBE,action,params,cb); return; }
+      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+    }catch(e){}
+  }
+  var fn="pfPfCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"),done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=PFBE+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function pfPost(body,cb){
+  if(window.PF&&PF.authPost){ PF.authPost(PFBE,body,cb); return; }
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    /* 2026-10-03 L6: abort backstop — a hung fallback POST previously left
+       boost buttons stuck disabled. */
+    var ctl2=null;
+    try{ ctl2=new AbortController(); }catch(e){}
+    var hung2=setTimeout(function(){ try{ if(ctl2) ctl2.abort(); }catch(e){} },15000);
+    fetch(PFBE,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body),signal:ctl2?ctl2.signal:undefined})
+      .then(function(r){ return r.json(); }).then(function(j){ try{clearTimeout(hung2);}catch(e){} done(j); })
+      .catch(function(){ try{clearTimeout(hung2);}catch(e){} done(null); });
+  }catch(e){ done(null); }
+}
+/* One content id per unique poster design. Same design = same id. */
+var pfContentIds={}, pfRegistered={}, pfLastShared=null;
+function pfContentId(){
+  var sig=[state.top,state.head,state.bot,state.style].join("|");
+  if(!pfContentIds[sig]) pfContentIds[sig]="pf-"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+  return pfContentIds[sig];
+}
+function pfLogShare(){
+  var id=pfIdent();
+  var cid=pfContentId(), title=state.head||"untitled";
+  try{ localStorage.setItem("pf_last_content_id",cid); }catch(e){}
+  pfLastShared=cid;
+  if(pfRegistered[cid]){ pfDoShareLog(cid,id); return; }
+  if(!id.callsign){ pfRenderSpread(); pfRenderImpact(); return; }
+  pfPost({type:"spread",sp_action:"content_register",id:cid,callsign:id.callsign,kind:"poster",title:title},function(j){
+    if(j&&j.ok) pfRegistered[cid]=1;
+    pfDoShareLog(cid,id);
+  });
+}
+function pfDoShareLog(cid,id){
+  if(id.callsign){
+    pfPost({type:"spread",sp_action:"share_log",content_id:cid,sharer:id.callsign},function(){ pfRenderSpread(); });
+  } else { pfRenderSpread(); }
+  pfRenderImpact();
+  try{ document.dispatchEvent(new CustomEvent("pf-content-shared",{detail:{content_id:cid}})); }catch(e){}
+}
+function pfBoostRow(cid,xpTotal){
+  return '<div class="p-boostrow"><span class="p-boosttotal">BOOSTED '+xpTotal+' XP</span> '
+    +[10,25,50].map(function(a){
+      return '<button class="p-btn ghost p-boostbtn" data-cid="'+pfEsc(cid)+'" data-amt="'+a+'">+'+a+' XP</button>';
+    }).join(" ")+'</div>';
+}
+function pfWireBoosts(root){
+  var btns=(root||document).querySelectorAll("button.p-boostbtn");
+  for(var i=0;i<btns.length;i++){
+    (function(btn){
+      if(btn._pfWired) return; btn._pfWired=1;
+      btn.onclick=function(){
+        var id=pfIdent();
+        if(!id.callsign){ pfToast("Claim a callsign first."); return; }
+        btn.disabled=true;
+        pfPost({type:"spread",sp_action:"boost_give",content_id:btn.getAttribute("data-cid"),booster:id.callsign,device:id.device,xp:btn.getAttribute("data-amt")},function(j){
+          btn.disabled=false;
+          if(!j||!j.ok){ pfToast(PF.errCopy(j,"Boost failed.")); return; }
+          pfToast("BOOSTED — "+j.total_boosts+" XP total on this piece.");
+          /* R12 (Wave 6B): boost impact receipt — "your boost moved X to #N". */
+          try{ if(window.PF&&PF.boostReceipt) PF.boostReceipt(); }catch(e){}
+          pfRenderSpread(); pfRenderImpact();
+          try{ document.dispatchEvent(new CustomEvent("pf-boost-given",{detail:{content_id:btn.getAttribute("data-cid")}})); }catch(e){}
+        });
+      };
+    })(btns[i]);
+  }
+}
+function pfRenderSpread(){
+  var el=document.getElementById("pSpread"); if(!el) return;
+  var cid=pfLastShared||pfContentId();
+  pfApi("spread_stats",{content_id:cid},function(j){
+    var h='<div class="x-pane"><h4>Spread — this poster</h4>';
+    if(j&&j.ok&&(j.total_shares>0||pfLastShared)){
+      h+='<div class="p-spreadnums"><span>'+j.total_shares+' SHARES</span><span>'+j.unique_sharers+' SHARERS</span><span>'+j.cells_reached+' CELLS</span><span>DEPTH '+j.max_depth+'</span></div>';
+      var tl=j.timeline||[], mx=1, ti;
+      for(ti=0;ti<tl.length;ti++){ if(tl[ti].shares>mx) mx=tl[ti].shares; }
+      if(tl.length){
+        h+='<div class="p-timeline">';
+        for(ti=0;ti<tl.length;ti++){
+          var ph=Math.max(2,Math.round(tl[ti].shares/mx*36));
+          h+='<div class="p-tbar" title="'+pfEsc(tl[ti].day)+': '+tl[ti].shares+'" style="height:'+ph+'px"></div>';
+        }
+        h+='</div><div class="x-note">Shares per day, last 14 days. Watch it travel.</div>';
+      }
+      h+=pfBoostRow(cid,0);
+      h+='<div class="x-note">Content ID: <span class="p-cid">'+pfEsc(cid)+'</span> — paste it into Poster Battles to enter.</div>';
+    } else {
+      h+='<div class="x-note">Download or share this poster and its spread stats appear here — shares, cells reached, depth.</div>';
+    }
+    h+='</div>';
+    el.innerHTML=h; pfWireBoosts(el);
+  });
+}
+function pfRenderImpact(){
+  var el=document.getElementById("pImpact"); if(!el) return;
+  var id=pfIdent();
+  if(!id.callsign){ el.innerHTML='<div class="x-pane"><h4>My impact</h4><div class="x-note">Claim a callsign to track your propaganda footprint.</div></div>'; return; }
+  pfApi("creator_dashboard",{callsign:id.callsign},function(j){
+    pfApi("boost_board",{},function(b){
+      var bmap={};
+      try{ ((b&&b.ok&&b.board)||[]).forEach(function(r){ bmap[r.id]=r.xp||0; }); }catch(e){}
+      var h='<div class="x-pane"><h4>My impact</h4>';
+      if(j&&j.ok){
+        h+='<div class="p-spreadnums"><span>'+j.total_content+' PIECES</span><span>'+j.total_shares+' SHARES</span><span>'+j.total_reach+' REACH</span></div>';
+        var top=j.top_content||[];
+        if(top.length){
+          h+='<div class="x-note">Your top propaganda, ranked by spread:</div>';
+          for(var i=0;i<Math.min(top.length,10);i++){
+            var t=top[i];
+            h+='<div class="p-toprow"><div class="p-toptitle">'+pfEsc(t.title||t.id)+'</div>'
+              +'<div class="x-note">'+t.shares+' shares &bull; '+t.sharers+' sharers &bull; '+t.cells+' cells</div>'
+              +pfBoostRow(t.id,bmap[t.id]||0)+'</div>';
+          }
+        } else { h+='<div class="x-note">No tracked pieces yet. Forge, share, and watch the numbers climb.</div>'; }
+      } else { h+='<div class="x-note">'+(pfAuthHint(j)||'Impact data loading&hellip;')+'</div>'; }
+      h+='</div>';
+      el.innerHTML=h; pfWireBoosts(el);
+    });
+  });
+}
+draw();
+pfRenderSpread();
+pfRenderImpact();
+window.__pfPoster={state:state,wrap:wrap,SLOGANS:SLOGANS,stampPng:stampPng};
+})();
+
+/* ---------- VIDEO tab (merged from games/video.js, PF v1.4.3, 2026-10-03) ----------
+   Video Forge now lives as a tab of the Poster Forge (homepage CREATE block).
+   All 4 steps preserved: templates, slideshow builder, 9:16 preview + WebM
+   recorder, save/share via the video_* backend actions. The video pane renders
+   on mount (hidden) exactly as the standalone widget did. */
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  var fn="pfVdCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function post(vAction,params,cb){
+  var body=Object.assign({type:"video",v_action:vAction},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+}
+/* ---------- state ---------- */
+var VW=720, VH=1280;
+var frames=[];            /* {label, text, duration_ms, img:Image|null, imgKey} */
+var imgCache={};          /* imgKey -> dataURL (session) */
+var playing=false, playIdx=0, frameStart=0, rafId=0;
+var recorder=null, recChunks=[], recording=false, recMime="";
+var canvas=null, ctx=null;
+var libVideos=[];
+function $(id){ return document.getElementById(id); }
+function frameDur(f){ return Math.max(500, Math.min(10000, parseInt(f.duration_ms,10)||2000)); }
+/* ---------- canvas render ---------- */
+function drawCover(c, img, W, H){
+  var iw=img.naturalWidth||img.width, ih=img.naturalHeight||img.height;
+  if(!iw||!ih) return;
+  var s=Math.max(W/iw, H/ih), dw=iw*s, dh=ih*s;
+  c.drawImage(img, (W-dw)/2, (H-dh)/2, dw, dh);
+}
+function wrapText(c, text, maxW){
+  var words=String(text).split(/\\s+/), lines=[], cur="";
+  for(var i=0;i<words.length;i++){
+    var t=cur?cur+" "+words[i]:words[i];
+    if(c.measureText(t).width>maxW && cur){ lines.push(cur); cur=words[i]; }
+    else cur=t;
+  }
+  if(cur) lines.push(cur);
+  return lines;
+}
+function drawFrame(c, f){
+  c.save();
+  c.fillStyle="#0a0a0a"; c.fillRect(0,0,VW,VH);
+  if(f.img){
+    try{ drawCover(c, f.img, VW, VH); }catch(e){}
+    var g=c.createLinearGradient(0,VH*0.45,0,VH);
+    g.addColorStop(0,"rgba(0,0,0,0)"); g.addColorStop(1,"rgba(0,0,0,0.82)");
+    c.fillStyle=g; c.fillRect(0,VH*0.45,VW,VH*0.55);
+  } else {
+    var g2=c.createLinearGradient(0,0,0,VH);
+    g2.addColorStop(0,"#1a0505"); g2.addColorStop(1,"#0a0a0a");
+    c.fillStyle=g2; c.fillRect(0,0,VW,VH);
+    c.strokeStyle="#c1121f"; c.lineWidth=10; c.strokeRect(24,24,VW-48,VH-48);
+    c.fillStyle="#c1121f"; c.font="bold 64px monospace"; c.textAlign="center";
+    c.fillText("MTCSTW", VW/2, 150);
+  }
+  var txt=String(f.text||"");
+  if(txt){
+    c.textAlign="center"; c.textBaseline="alphabetic";
+    var fs=64; c.font="bold "+fs+"px Impact, Arial Black, sans-serif";
+    var lines=wrapText(c, txt.toUpperCase(), VW-120);
+    while(lines.length>6 && fs>28){ fs-=6; c.font="bold "+fs+"px Impact, Arial Black, sans-serif"; lines=wrapText(c, txt.toUpperCase(), VW-120); }
+    var lh=fs*1.18, y0=VH-80-lines.length*lh;
+    for(var i=0;i<lines.length;i++){
+      var y=y0+i*lh;
+      c.lineWidth=Math.max(4,fs/10); c.strokeStyle="#000"; c.strokeText(lines[i], VW/2, y);
+      c.fillStyle="#fff"; c.fillText(lines[i], VW/2, y);
+    }
+  }
+  c.fillStyle="#c1121f"; c.font="bold 34px monospace"; c.textAlign="left";
+  c.fillText("MTCSTW.COM", 30, VH-30);
+  c.textAlign="right"; c.fillStyle="#888";
+  c.fillText("JOIN THE FIGHT.", VW-30, VH-30);
+  c.restore();
+}
+function tick(now){
+  if(!playing) return;
+  if(!frames.length){ stopPlay(); return; }
+  var f=frames[playIdx];
+  if(now-frameStart>=frameDur(f)){
+    playIdx++;
+    frameStart=now;
+    if(playIdx>=frames.length){
+      if(recording){ stopRecord(); return; }
+      playIdx=0;
+    }
+  }
+  if(playIdx<frames.length && ctx) drawFrame(ctx, frames[playIdx]);
+  rafId=requestAnimationFrame(tick);
+}
+function startPlay(){
+  if(!frames.length){ toast("Add slides first."); return; }
+  if(!canvas) return;
+  stopPlay();
+  playing=true; playIdx=0; frameStart=performance.now();
+  var pb=$("vdPlayBtn"); if(pb) pb.textContent="PAUSE";
+  rafId=requestAnimationFrame(tick);
+}
+function stopPlay(){
+  playing=false;
+  try{ cancelAnimationFrame(rafId); }catch(e){}
+  var pb=$("vdPlayBtn"); if(pb) pb.textContent="PLAY";
+}
+/* ---------- recorder ---------- */
+function pickMime(){
+  var cands=["video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm","video/mp4"];
+  for(var i=0;i<cands.length;i++){
+    try{ if(window.MediaRecorder && MediaRecorder.isTypeSupported(cands[i])) return cands[i]; }catch(e){}
+  }
+  return "";
+}
+function startRecord(){
+  if(recording) return;
+  if(!frames.length){ toast("Add slides first."); return; }
+  if(!canvas){ toast("Canvas not ready."); return; }
+  if(!(window.MediaRecorder&&canvas.captureStream)){ toast("Recording not supported in this browser."); return; }
+  recMime=pickMime();
+  if(!recMime){ toast("No supported video format."); return; }
+  recChunks=[];
+  try{
+    recorder=new MediaRecorder(canvas.captureStream(30), {mimeType:recMime, videoBitsPerSecond:5000000});
+  }catch(e){ toast("Recorder failed to start."); return; }
+  recorder.ondataavailable=function(ev){ if(ev.data&&ev.data.size) recChunks.push(ev.data); };
+  recorder.onstop=function(){
+    recording=false;
+    var rb=$("vdRecBtn"); if(rb) rb.textContent="RECORD VIDEO";
+    var blob=new Blob(recChunks, {type:recMime.split(";")[0]});
+    var url=URL.createObjectURL(blob);
+    var dl=$("vdDownload");
+    if(dl){ dl.href=url; dl.download="mtcstw-video.webm"; dl.style.display="inline-block"; }
+    toast("Video ready. Hit DOWNLOAD.");
+  };
+  stopPlay();
+  playing=true; playIdx=0; frameStart=performance.now();
+  var pb=$("vdPlayBtn"); if(pb) pb.textContent="PAUSE";
+  recorder.start(250);
+  recording=true;
+  var rb2=$("vdRecBtn"); if(rb2) rb2.textContent="STOP RECORDING";
+  rafId=requestAnimationFrame(tick);
+  toast("Recording...");
+}
+function stopRecord(){
+  recording=false;
+  try{ if(recorder&&recorder.state!=="inactive") recorder.stop(); }catch(e){}
+  stopPlay();
+  var rb=$("vdRecBtn"); if(rb) rb.textContent="RECORD VIDEO";
+}
+/* ---------- builder ---------- */
+function newFrame(label, text, dur){
+  return {label:label||("slide-"+(frames.length+1)), text:text||"", duration_ms:dur||2000, img:null, imgKey:null};
+}
+function renderBuilder(){
+  var el=$("vdFrames"); if(!el) return;
+  var h="";
+  if(!frames.length) h+='<div class="x-note">No slides yet. Upload poster images, pull from the forge, or load a template.</div>';
+  for(var i=0;i<frames.length;i++){
+    var f=frames[i];
+    h+='<div class="vd-frame" data-i="'+i+'">'
+      +'<div class="vd-fhead"><b>#'+(i+1)+'</b> '+(f.img?'<span class="vd-hasimg">IMG</span>':'<span class="vd-noimg">TEXT CARD</span>')
+      +' <span class="vd-flabel">'+esc(f.label)+'</span></div>'
+      +'<input aria-label="Text overlay (punchy)" class="vd-ftext" data-k="text" data-i="'+i+'" value="'+esc(f.text)+'" placeholder="Text overlay (punchy)" maxlength="140">'
+      +'<div class="vd-frow"><label>secs <input class="vd-fdur" data-i="'+i+'" type="number" min="1" max="10" step="0.5" value="'+(frameDur(f)/1000)+'"></label>'
+      +'<button class="c-btn vd-up" data-i="'+i+'">&uarr;</button>'
+      +'<button class="c-btn vd-down" data-i="'+i+'">&darr;</button>'
+      +'<button class="c-btn vd-del" data-i="'+i+'">DEL</button></div>'
+      +'</div>';
+  }
+  el.innerHTML=h;
+  var tot=0; for(var j=0;j<frames.length;j++) tot+=frameDur(frames[j]);
+  var tl=$("vdTotal"); if(tl) tl.textContent=frames.length+" slides, "+(tot/1000).toFixed(1)+"s total";
+  bindBuilderInputs();
+}
+function bindBuilderInputs(){
+  var texts=document.querySelectorAll("#vdFrames .vd-ftext");
+  for(var i=0;i<texts.length;i++){
+    texts[i].addEventListener("input", function(ev){
+      var t=ev.target, idx=parseInt(t.getAttribute("data-i"),10);
+      if(frames[idx]) frames[idx].text=t.value;
+    });
+  }
+  var durs=document.querySelectorAll("#vdFrames .vd-fdur");
+  for(var j=0;j<durs.length;j++){
+    durs[j].addEventListener("change", function(ev){
+      var t=ev.target, idx=parseInt(t.getAttribute("data-i"),10);
+      var v=parseFloat(t.value)||2;
+      v=Math.max(0.5, Math.min(10, v));
+      if(frames[idx]) frames[idx].duration_ms=Math.round(v*1000);
+    });
+  }
+  var ups=document.querySelectorAll("#vdFrames .vd-up");
+  for(var k=0;k<ups.length;k++){
+    ups[k].addEventListener("click", function(ev){
+      var idx=parseInt(ev.target.getAttribute("data-i"),10);
+      if(idx>0){ var t2=frames[idx-1]; frames[idx-1]=frames[idx]; frames[idx]=t2; renderBuilder(); }
+    });
+  }
+  var dns=document.querySelectorAll("#vdFrames .vd-down");
+  for(var m=0;m<dns.length;m++){
+    dns[m].addEventListener("click", function(ev){
+      var idx=parseInt(ev.target.getAttribute("data-i"),10);
+      if(idx<frames.length-1){ var t3=frames[idx+1]; frames[idx+1]=frames[idx]; frames[idx]=t3; renderBuilder(); }
+    });
+  }
+  var dels=document.querySelectorAll("#vdFrames .vd-del");
+  for(var n=0;n<dels.length;n++){
+    dels[n].addEventListener("click", function(ev){
+      var idx=parseInt(ev.target.getAttribute("data-i"),10);
+      frames.splice(idx,1); renderBuilder();
+    });
+  }
+}
+function addImageFrame(dataURL, label){
+  var f=newFrame(label||("img-"+(frames.length+1)), "", 2500);
+  var im=new Image();
+  im.onload=function(){ f.img=im; renderBuilder(); drawIdle(); };
+  im.onerror=function(){ toast("Could not load image."); };
+  im.src=dataURL;
+  frames.push(f);
+  renderBuilder();
+}
+function handleFiles(fileList){
+  for(var i=0;i<fileList.length;i++){
+    (function(file){
+      if(!file.type || file.type.indexOf("image/")!==0) return;
+      var rd=new FileReader();
+      rd.onload=function(){
+        try{ addImageFrame(String(rd.result), file.name.replace(/\\.[^.]+$/,"").slice(0,32)||("img-"+(frames.length+1))); }
+        catch(e){ toast("Image too large to load."); }
+      };
+      rd.readAsDataURL(file);
+    })(fileList[i]);
+  }
+}
+function pullFromForge(){
+  var c=null;
+  try{ c=document.getElementById("pCanvas"); }catch(e){}
+  if(!c){ toast("Poster Forge canvas not found. Upload instead."); return; }
+  try{
+    var url=c.toDataURL("image/png");
+    addImageFrame(url, "forge-"+(frames.length+1));
+    toast("Forge poster added.");
+  }catch(e){ toast("Could not grab forge canvas."); }
+}
+/* ---------- templates ---------- */
+var TEMPLATES={
+  cta:{name:"CALL TO ACTION", slides:[
+    {text:"JOIN THE FIGHT.", dur:2000},
+    {text:"THE BILLIONAIRES HAVE TWO PARTIES.", dur:2500},
+    {text:"WE ARE BUILDING OUR OWN POWER.", dur:2500}]},
+  facts:{name:"FACT DROP", slides:[
+    {text:"FACT 1: YOUR RENT WENT UP. YOUR WAGES DID NOT.", dur:2500},
+    {text:"FACT 2: THEY CALL IT INFLATION. IT IS PRICE GOUGING.", dur:2500},
+    {text:"FACT 3: 3 MEN OWN MORE THAN HALF THE COUNTRY.", dur:2500},
+    {text:"FACT 4: THEY NEED YOU DIVIDED. STAY DANGEROUS.", dur:2500},
+    {text:"EDIT THESE FACTS. MAKE THEM YOURS.", dur:2500}]},
+  beforeafter:{name:"BEFORE / AFTER", slides:[
+    {text:"BEFORE: SCROLLING. ANGRY. ALONE.", dur:3000},
+    {text:"AFTER: ORGANIZED. ARMED WITH TRUTH. UNSTOPPABLE.", dur:3000}]}
+};
+function loadTemplate(key){
+  var t=TEMPLATES[key]; if(!t) return;
+  frames=[];
+  for(var i=0;i<t.slides.length;i++){
+    frames.push(newFrame("tpl-"+key+"-"+(i+1), t.slides[i].text, t.slides[i].dur));
+  }
+  renderBuilder(); drawIdle();
+  toast(t.name+" loaded. Edit the text, then PLAY.");
+}
+/* ---------- backend save / library ---------- */
+function saveVideo(){
+  var idd=ident();
+  if(!idd.callsign){ toast("Claim a callsign first (Enlistment Ranks)."); return; }
+  if(!frames.length){ toast("Add slides first."); return; }
+  var title=$("vdTitle")?String($("vdTitle").value).slice(0,120):"";
+  if(!title){ toast("Give your video a title."); return; }
+  var out=[];
+  for(var i=0;i<frames.length;i++){
+    out.push({poster_id:String(frames[i].label||("slide-"+(i+1))).slice(0,64), text:String(frames[i].text||"").slice(0,140), duration_ms:frameDur(frames[i])});
+  }
+  post("video_create",{callsign:idd.callsign, device:idd.device, title:title, frames:JSON.stringify(out)}, function(j){
+    if(j&&j.ok){ toast("Saved. +15 XP. ID: "+j.id); loadLibrary(); }
+    else toast(PF.errCopy(j,"Save failed."));
+  });
+}
+function loadLibrary(){
+  api("video_list",{},function(j){
+    libVideos=(j&&j.videos)||[];
+    renderLibrary();
+  });
+}
+function renderLibrary(){
+  var el=$("vdLib"); if(!el) return;
+  var h="";
+  if(!libVideos.length) h+='<div class="x-note">No saved videos yet. Build one above.</div>';
+  for(var i=0;i<libVideos.length;i++){
+    var v=libVideos[i];
+    h+='<div class="vd-librow"><b>'+esc(v.title)+'</b> <span class="x-note">by '+esc(v.creator)+' &middot; '+(Math.round((v.duration||0)/100)/10)+'s</span> '
+      +'<button class="c-btn vd-open" data-id="'+esc(v.id)+'">LOAD</button></div>';
+  }
+  el.innerHTML=h;
+  var btns=document.querySelectorAll("#vdLib .vd-open");
+  for(var k=0;k<btns.length;k++){
+    btns[k].addEventListener("click", function(ev){
+      openVideo(ev.target.getAttribute("data-id"));
+    });
+  }
+}
+function openVideo(vid){
+  api("video_get",{video_id:vid},function(j){
+    if(!(j&&j.ok&&j.video)){ toast("Could not load video."); return; }
+    var v=j.video;
+    frames=[];
+    var fr=v.frames||[];
+    for(var i=0;i<fr.length;i++){
+      frames.push(newFrame(fr[i].poster_id||("slide-"+(i+1)), fr[i].text||"", fr[i].duration_ms||2000));
+    }
+    var ti=$("vdTitle"); if(ti) ti.value=v.title||"";
+    renderBuilder(); drawIdle();
+    toast("Loaded. Images live on your device: re-attach if needed.");
+  });
+}
+function drawIdle(){
+  if(!ctx) return;
+  if(frames.length) drawFrame(ctx, frames[0]);
+  else { ctx.fillStyle="#0a0a0a"; ctx.fillRect(0,0,VW,VH);
+    ctx.fillStyle="#666"; ctx.font="bold 28px monospace"; ctx.textAlign="center";
+    ctx.fillText("PREVIEW APPEARS HERE", VW/2, VH/2); }
+}
+/* ---------- layout + init ---------- */
+function render(){
+  var el=$("xVideo"); if(!el) return;
+  var id=ident();
+  var h="";
+  if(!id.callsign) h+=PF.gateHTML('Video Forge runs on callsigns.','to forge video');
+  h+='<div class="x-pane"><h4>1 &mdash; Templates</h4>'
+    +'<div class="x-note">Start from a proven sequence, then edit every slide.</div>'
+    +'<div class="vd-tpls">'
+    +'<button class="c-btn" id="vdTplCta">CALL TO ACTION (3)</button> '
+    +'<button class="c-btn" id="vdTplFacts">FACT DROP (5)</button> '
+    +'<button class="c-btn" id="vdTplBa">BEFORE/AFTER (2)</button>'
+    +'</div></div>';
+  h+='<div class="x-pane"><h4>2 &mdash; Slideshow builder</h4>'
+    +'<div class="x-note">Upload poster images, pull the current forge canvas, or use text-only slides.</div>'
+    +'<div class="vd-addrow">'
+    +'<label class="c-btn vd-upload">UPLOAD IMAGES<input type="file" id="vdFile" accept="image/*" multiple style="display:none"></label> '
+    +'<button class="c-btn" id="vdForge">PULL FROM FORGE</button> '
+    +'<button class="c-btn" id="vdTextSlide">ADD TEXT SLIDE</button>'
+    +'</div>'
+    +'<div id="vdFrames"></div>'
+    +'<div class="x-note" id="vdTotal">0 slides</div></div>';
+  h+='<div class="x-pane"><h4>3 &mdash; Preview (9:16)</h4>'
+    +'<div class="vd-stage"><canvas id="vdCanvas" width="720" height="1280" style="width:100%;max-width:320px;height:auto;background:#000;border:2px solid #c1121f"></canvas></div>'
+    +'<div class="vd-ctlrow">'
+    +'<button class="c-btn" id="vdPlayBtn">PLAY</button> '
+    +'<button class="c-btn" id="vdRecBtn">RECORD VIDEO</button> '
+    +'<a class="c-btn" id="vdDownload" style="display:none">DOWNLOAD .WEBM</a>'
+    +'</div>'
+    +'<div class="x-note">RECORD plays the full sequence and captures it as a WebM video. Works in Chrome, Edge, Firefox.</div></div>';
+  h+='<div class="x-pane"><h4>4 &mdash; Save &amp; share</h4>'
+    +'<input aria-label="Video title" id="vdTitle" placeholder="Video title" maxlength="120" style="width:100%;max-width:420px;padding:8px;margin-bottom:8px">'
+    +'<div><button class="c-btn" id="vdSaveBtn">SAVE SEQUENCE (+15 XP)</button></div>'
+    +'<div class="x-note">Saves the slide definitions to the network. Images stay on your device; anyone loading your video re-attaches their own.</div>'
+    +'<div id="vdLib" style="margin-top:10px"></div></div>';
+  el.innerHTML=h;
+  canvas=$("vdCanvas");
+  try{ ctx=canvas.getContext("2d"); }catch(e){ ctx=null; }
+  $("vdTplCta").addEventListener("click", function(){ loadTemplate("cta"); });
+  $("vdTplFacts").addEventListener("click", function(){ loadTemplate("facts"); });
+  $("vdTplBa").addEventListener("click", function(){ loadTemplate("beforeafter"); });
+  $("vdForge").addEventListener("click", pullFromForge);
+  $("vdTextSlide").addEventListener("click", function(){ frames.push(newFrame(null, "YOUR TEXT HERE", 2000)); renderBuilder(); drawIdle(); });
+  $("vdFile").addEventListener("change", function(ev){ handleFiles(ev.target.files); ev.target.value=""; });
+  $("vdPlayBtn").addEventListener("click", function(){
+    if(playing){ stopPlay(); if(recording) stopRecord(); }
+    else startPlay();
+  });
+  $("vdRecBtn").addEventListener("click", function(){
+    if(recording) stopRecord(); else startRecord();
+  });
+  $("vdSaveBtn").addEventListener("click", saveVideo);
+  renderBuilder(); drawIdle(); loadLibrary();
+}
+render();
+})();
+
+/* Poster/Video/Political tab switching. */
+(function(){
+  var tabs=document.querySelectorAll('#pf-poster .p-tab');
+  function show(which){
+    /* Generic over pfPane-* so new tabs (political) register by markup alone. */
+    var panes=document.querySelectorAll('#pf-poster [id^="pfPane-"]');
+    for(var i=0;i<panes.length;i++){ panes[i].style.display=(panes[i].getAttribute('id')==='pfPane-'+which)?'':'none'; }
+    for(var k=0;k<tabs.length;k++) tabs[k].classList.toggle('on',tabs[k].getAttribute('data-ptab')===which);
+  }
+  for(var k=0;k<tabs.length;k++){
+    (function(b){ b.addEventListener('click',function(){ show(b.getAttribute('data-ptab')); }); })(tabs[k]);
+  }
+})();
+
+/* ---------- STRIKE ORDERS creation loop (2026-10-05, fe/strike-orders-creative)
+   FORGE THIS handoff: the cell strike-orders panel writes pf_forge_launch_v1
+   (cross-page) and/or fires pf-forge-launch (same-page). On arrival the forge
+   shows the "Forging ammo for X" confirmation state — the loop closes here,
+   never a generic screen — pre-loads the entity headline, and on download
+   tags the pf-poster-made detail + POSTs strike_forge_log (zero XP,
+   idempotent) so the strike order completes entity-bound.
+   POLITICAL TAB HOOK: when the release train lands the Forge POLITICAL tab
+   (pick-fight consumer #1), it will render a [data-ptab="political"] tab and
+   this switches to it automatically — the launch payload already carries
+   tab:'political'. */
+var pfStrikeLaunch=null;
+function pfApplyForgeLaunch(p){
+  if(!p||!p.strike||!p.strike.cell_id) return;
+  pfStrikeLaunch=p;
+  var title=(p.entity&&p.entity.title)||'this week\u2019s fight';
+  try{
+    var bar=document.getElementById('pfStrikeBar');
+    if(bar){
+      bar.style.display='block';
+      bar.innerHTML='<b>FORGING AMMO FOR: '+pfEsc(String(title).toUpperCase())+'</b>'+
+        '<div style="font-size:12.5px;opacity:.85;margin-top:4px">Strike order accepted — forge it, download it, share it. Your cell counts it.</div>';
+    }
+  }catch(e){}
+  /* Pre-load the entity into the headline if the forge is untouched. */
+  try{
+    var head=document.getElementById('pHead');
+    if(head&&title){
+      var cur=String(head.value||'');
+      if(!cur.trim()||cur==='EAT THE RICH'){
+        head.value=String(title).toUpperCase().slice(0,60);
+        if(typeof sync==='function') sync();
+      }
+    }
+  }catch(e2){}
+  /* POLITICAL tab hook — no-op until the release train lands the tab. */
+  try{
+    var ptab=document.querySelector('#pf-poster .p-tab[data-ptab="political"]');
+    if(ptab) ptab.click();
+  }catch(e3){}
+}
+function pfStrikeLogForge(){
+  if(!pfStrikeLaunch||!pfStrikeLaunch.strike||!pfStrikeLaunch.entity||!pfStrikeLaunch.entity.id) return;
+  var sk='pf_strike_logged_'+String(pfStrikeLaunch.strike.cell_id).replace(/[^a-z0-9_-]/gi,'')+'_'
+    +String(pfStrikeLaunch.strike.week_start).slice(0,10)+'_'+String(pfStrikeLaunch.entity.id).replace(/[^a-z0-9_-]/gi,'');
+  try{ if(localStorage.getItem(sk)==='1') return; }catch(e){}
+  var id=null;
+  try{ id=pfIdent(); }catch(e2){ return; }
+  if(!id||!id.callsign) return;
+  try{
+    pfPost({type:'cell',cell_action:'strike_forge_log',
+      cell_id:String(pfStrikeLaunch.strike.cell_id).slice(0,64),
+      week_start:String(pfStrikeLaunch.strike.week_start).slice(0,10),
+      entity_kind:String(pfStrikeLaunch.entity.kind||'').slice(0,16),
+      entity_id:String(pfStrikeLaunch.entity.id||'').slice(0,64),
+      callsign:id.callsign,device:id.device||''},
+      function(j){ try{
+        if(j&&j.ok){ localStorage.setItem(sk,'1'); pfToast('STRIKE LOGGED — your cell counts it.'); }
+      }catch(e3){} });
+  }catch(e4){}
+}
+function pfConsumeForgeLaunch(){
+  var raw=null;
+  try{ raw=localStorage.getItem('pf_forge_launch_v1'); }catch(e){}
+  if(!raw) return;
+  try{ localStorage.removeItem('pf_forge_launch_v1'); }catch(e2){}
+  var p=null;
+  try{ p=JSON.parse(raw); }catch(e3){ return; }
+  if(!p||!p.ts||Date.now()-p.ts>15*60*1000) return; /* stale handoff */
+  pfApplyForgeLaunch(p);
+}
+try{ document.addEventListener('pf-forge-launch',function(ev){ try{ pfApplyForgeLaunch(ev&&ev.detail); }catch(x){} }); }catch(e5){}
+pfConsumeForgeLaunch();
+</scr`+`ipt>
+</div>
+</template>`);
+})();
+
+/* pf_forge_prefill_v1 reader (weave #2, 2026-10-05) — consumes the stash
+   written by Ammo Finder's FORGE THIS buttons (and, later, the Studio
+   plugin registry's own entry points).
+   Contract: sessionStorage['pf_forge_prefill_v1'] = JSON.stringify({
+     v:1, plugin_id, template_id, label, data, source, fetched_at,
+     stashed_at,
+     -- Synergy-1 attribution hook (S-20): creator-made templates may carry
+        sourced_by / sourced_name / sourced_url. When the Studio plugin
+        registry renders a template card, it renders the credit through
+        PF.credit(payload) — one voice everywhere. Absent = no credit line. --
+     sourced_by, sourced_name, sourced_url })
+   - If window.PFStudio.applyPrefill exists (the plugin registry's Forge
+     integration), the payload is handed off; the stash is cleared only
+     when applyPrefill reports success.
+   - Otherwise the payload is NOT dropped: the user gets one toast and
+     the stash stays for when the political templates land. Never a
+     silent no-op, never a lost payload. */
+(function () {
+  'use strict';
+  var KEY = 'pf_forge_prefill_v1';
+  var raw = null;
+  try { raw = sessionStorage.getItem(KEY); } catch (e) { return; }
+  if (!raw) return;
+  var payload = null;
+  try { payload = JSON.parse(raw); } catch (e) { return; }
+  if (!payload || payload.v !== 1 || !payload.plugin_id || !payload.template_id) return;
+  function toast(m) {
+    try {
+      if (window.PF && window.PF.toast) { window.PF.toast(m); return; }
+    } catch (e) {}
+    try {
+      var t = document.createElement('div');
+      t.textContent = m;
+      t.style.cssText = 'position:fixed;left:50%;top:16%;transform:translateX(-50%);' +
+        'background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;' +
+        'border:2px solid #fff;z-index:99999';
+      document.body.appendChild(t);
+      setTimeout(function () { t.remove(); }, 4000);
+    } catch (e2) {}
+  }
+  var studio = null;
+  try { studio = window.PFStudio || null; } catch (e2) {}
+  if (studio && typeof studio.applyPrefill === 'function') {
+    var applied = false;
+    try { applied = !!studio.applyPrefill(payload); } catch (e3) { applied = false; }
+    if (applied) {
+      try { sessionStorage.removeItem(KEY); } catch (e4) {}
+      toast('Political payload loaded — ' + (payload.label || 'forge it') + '.');
+    } else {
+      toast('Could not load the political payload yet — it stays staged.');
+    }
+    return;
+  }
+  /* Political templates not live yet: keep the stash, say so once. */
+  toast('Political Forge templates are not live yet — your payload is staged for when they land.');
+})();
+
+;
+
+/* ===== poster-forge-political.js ===== */
+/* games/poster-forge-political.js | PF v1.4.3 | Poster Forge POLITICAL tab.
+   Political data plugins for the Poster Forge (Political HQ creation-plugins
+   build): Bill, Scorecard, Race, Poll, Prediction, Rep, Nonprofit, Campaign.
+   Flow: plugin picker -> live search -> pick item -> template choices ->
+   LIVE detail re-query at generation time -> preview via PF.PHQShare.paint ->
+   SHARE / SAVE via PF.PHQShare (the existing PFShare share/save legs).
+   Honesty rails: every preview carries a source line ("Source: X - date");
+   backend-stale-flagged data shows a stale banner with GENERATE ANYWAY /
+   CANCEL before anything paints. No field is ever invented: mappers pass
+   through only live API fields (missing -> omitted; painters degrade to -).
+   XP (CEO directive 2026-10-05): this tab dispatches NO xp/tally events and
+   adds NO grant calls. SHARE/SAVE ride PF.PHQShare.share/save ->
+   PFShare.shareImage/saveImage -> creditShare -> the single existing
+   pf-share-image leg (once per day per device). Do not add grants here.
+   Backend contract (parallel workstream, studio_plugins_list manifest):
+     GET ?action=studio_plugins_list ->
+       {ok:true, plugins:[{id, label, available, search_action, detail_action,
+                           item_key, id_param, template_ids[], source}]}
+   Manifest unavailable -> hardcoded fallback (all available:true); each
+   search fails soft individually. Unknown plugin/template ids from the
+   manifest are skipped, never a broken generator.
+   KILL: ?pf_off=poster-forge (whole forge); per-plugin ?pf_off=plugin-<id>
+   hides that plugin's button. */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('poster-forge')) { return; }
+  var BACKEND = window.PF_BACKEND_URL;
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function toast(m) {
+    try { if (PF && PF.toast) { PF.toast(m); return; } } catch (e) {}
+    try {
+      var t = document.createElement('div'); t.textContent = m;
+      t.style.cssText = 'position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999';
+      document.body.appendChild(t); setTimeout(function () { t.remove(); }, 2800);
+    } catch (e2) {}
+  }
+  /* First non-empty field wins. Missing -> null (never invented). */
+  function pick(o) {
+    for (var i = 1; i < arguments.length; i++) {
+      var k = arguments[i];
+      if (o && o[k] != null && o[k] !== '') return o[k];
+    }
+    return null;
+  }
+  function num(v) { return (v == null || v === '') ? null : Number(v); }
+
+  /* JSONP read — same pattern as the other game silos. Fail-soft: cb(null). */
+  var API_CALLS = [];
+  function api(action, params, cb) {
+    try { API_CALLS.push({ action: action, params: params }); } catch (e) {}
+    if (!BACKEND) { cb(null); return; }
+    var fn = 'pfPolCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn; s.src = BACKEND + q; document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, 12000);
+  }
+
+  /* ---------------- plugin registry ---------------- */
+  var PLUGIN_ORDER = ['bill', 'scorecard', 'race', 'poll', 'prediction', 'rep', 'nonprofit', 'campaign'];
+  /* Hardcoded fallback when the manifest is unavailable: available:true,
+     each search fails soft on its own. search_action = the existing list
+     endpoint for that dataset (per CEO brief). */
+  var DEFAULTS = {
+    bill:       { label: 'BILL', search_action: 'bills_list', detail_action: 'bills_get', item_key: 'bills', id_param: 'bill_id', template_ids: ['tpl-bill-status'], source: 'congress.gov', search_hint: 'Search bills by number, title, or keyword\u2026' },
+    scorecard:  { label: 'SCORECARD', search_action: 'reps_list', detail_action: 'scorecard_get', item_key: 'reps', id_param: 'bioguide_id', template_ids: ['tpl-scorecard'], source: 'congress.gov', search_hint: 'Search members of Congress by name\u2026', client_filter: 'name' },
+    race:       { label: 'RACE', search_action: 'races_list', detail_action: 'races_get', item_key: 'races', id_param: 'race_id', template_ids: ['tpl-race'], source: 'PFN Race Desk', search_hint: 'Search races by office, state, or candidate\u2026' },
+    poll:       { label: 'POLL', search_action: 'polls_list', detail_action: 'polls_get', item_key: 'polls', id_param: 'poll_id', template_ids: ['tpl-poll-results'], source: 'PFN Network Polls', search_hint: 'Search network polls\u2026', search_params: { status: 'closed' } },
+    prediction: { label: 'PREDICTION', search_action: 'predict_list', detail_action: '', item_key: 'bills', id_param: 'bill_id', template_ids: ['tpl-prediction'], source: 'PFN Predictions', search_hint: 'Search settled predictions\u2026' },
+    rep:        { label: 'REP', search_action: 'reps_list', detail_action: '', item_key: 'reps', id_param: 'bioguide_id', template_ids: ['tpl-rep-contact'], source: 'congress.gov', search_hint: 'Search reps by name\u2026', client_filter: 'name' },
+    nonprofit:  { label: 'NONPROFIT', search_action: 'nonprofits_list', detail_action: '', item_key: 'nonprofits', id_param: 'nonprofit_id', template_ids: ['tpl-nonprofit'], source: 'IRS / ProPublica Nonprofit Explorer', search_hint: 'Search nonprofits by name or mission\u2026' },
+    campaign:   { label: 'CAMPAIGN', search_action: 'petition_list', detail_action: '', item_key: 'petitions', id_param: 'petition_id', template_ids: ['tpl-campaign'], source: 'PFN Campaigns', search_hint: 'Search pressure campaigns\u2026' }
+  };
+  var PLUGINS = [];
+  function defaultFor(id) {
+    var d = DEFAULTS[id];
+    if (!d) return null;
+    var c = { id: id, available: true };
+    for (var k in d) c[k] = d[k];
+    return c;
+  }
+  function buildFallback() {
+    PLUGINS = [];
+    for (var i = 0; i < PLUGIN_ORDER.length; i++) PLUGINS.push(defaultFor(PLUGIN_ORDER[i]));
+  }
+  /* Manifest merge: unknown plugin ids are skipped (nothing to map them
+     with); known ids take the manifest's available/search_action/
+     detail_action/template_ids, falling back to defaults per field. */
+  function applyManifest(list) {
+    var out = [], seen = {};
+    for (var i = 0; i < list.length; i++) {
+      var mp = list[i] || {}, id = String(mp.id || '');
+      var base = defaultFor(id);
+      if (!base || seen[id]) continue;
+      seen[id] = 1;
+      out.push({
+        id: id,
+        label: mp.label || base.label,
+        available: mp.available !== false,
+        search_action: mp.search_action || base.search_action,
+        detail_action: mp.detail_action != null ? mp.detail_action : base.detail_action,
+        item_key: mp.item_key || base.item_key,
+        id_param: mp.id_param || base.id_param,
+        template_ids: Array.isArray(mp.template_ids) && mp.template_ids.length ? mp.template_ids : base.template_ids,
+        source: mp.source || base.source,
+        search_hint: base.search_hint,
+        search_params: base.search_params,
+        client_filter: base.client_filter
+      });
+    }
+    /* Manifest wins on order for listed plugins; unlisted known plugins keep
+       their fallback slot (available:true) so a partial manifest never hides
+       a working dataset. */
+    for (var j = 0; j < PLUGIN_ORDER.length; j++) {
+      if (!seen[PLUGIN_ORDER[j]]) out.push(defaultFor(PLUGIN_ORDER[j]));
+    }
+    PLUGINS = out;
+  }
+
+  /* ---------------- templates ----------------
+     One template per plugin for v1; the manifest's template_ids[] selects
+     among registered templates. map(detail, item, ctx) -> painter data.
+     Every field comes from the live response; absent -> null/omitted. */
+  function normPick(v) {
+    var s = String(v == null ? '' : v).toLowerCase();
+    if (s === 'pass' || s === 'will pass') return 'pass';
+    if (s === 'fail' || s === 'will fail') return 'fail';
+    return s || null;
+  }
+  var TEMPLATES = {
+    'tpl-bill-status': { plugin: 'bill', label: 'BILL STATUS CARD', painter: 'phq-bill-status',
+      map: function (d, item) {
+        return {
+          number: pick(d, 'number', 'bill_number') || pick(item, 'number', 'bill_number'),
+          title: pick(d, 'title', 'short_title') || pick(item, 'title', 'short_title'),
+          chamber: pick(d, 'chamber') || pick(item, 'chamber'),
+          status: pick(d, 'status') || pick(item, 'status'),
+          stage: pick(d, 'stuck_in', 'stuck'),
+          sponsor: pick(d, 'sponsor_name', 'sponsor'),
+          lastAction: pick(d, 'last_action'),
+          lastActionDate: pick(d, 'last_action_date'),
+          supportCount: num(pick(d, 'support_count', 'supports')),
+          opposeCount: num(pick(d, 'oppose_count', 'opposes'))
+        };
+      } },
+    'tpl-scorecard': { plugin: 'scorecard', label: 'VOTING SCORECARD', painter: 'phq-scorecard',
+      map: function (d, item) {
+        var votes = ((d && d.votes) || []).slice(0, 3).map(function (v) {
+          return {
+            bill: pick(v, 'bill_title', 'question'),
+            vote: pick(v, 'position'),
+            /* for_us is a political judgment the API does not supply; pass
+               through only when present. (Painter gap filed: for_us null
+               currently renders as a red X — needs a tri-state.) */
+            for_us: (v && v.for_us != null) ? v.for_us : (v && v.forUs != null ? v.forUs : null)
+          };
+        });
+        return {
+          name: pick(item, 'name'),
+          state: pick(item, 'state'),
+          party: pick(item, 'party'),
+          grade: null, /* no backend grade feed; painter renders em-dash */
+          verdict: null,
+          votes: votes
+        };
+      } },
+    'tpl-race': { plugin: 'race', label: 'RACE CARD', painter: 'phq-race',
+      map: function (d) {
+        return {
+          office: pick(d, 'office'),
+          state: pick(d, 'state'),
+          district: pick(d, 'district'),
+          seat: pick(d, 'seat'),
+          chamber: pick(d, 'chamber'),
+          level: pick(d, 'level'),
+          candidates: ((d && d.candidates) || []).map(function (c) {
+            return { name: pick(c, 'name'), party: pick(c, 'party') };
+          }),
+          rating: pick(d, 'rating'),
+          ratingSource: pick(d, 'rating_source'),
+          ratingDate: pick(d, 'rating_date'),
+          stakes: pick(d, 'stakes'),
+          summary: pick(d, 'summary')
+        };
+      } },
+    'tpl-poll-results': { plugin: 'poll', label: 'POLL RESULTS', painter: 'phq-poll-results',
+      map: function (d) {
+        var total = num(pick(d, 'total_votes'));
+        var opts = ((d && d.options) || []).map(function (o) {
+          var c = num(pick(o, 'count', 'votes'));
+          return {
+            label: pick(o, 'label'),
+            votes: c,
+            pct: (c != null && total > 0) ? Math.round(c / total * 100) : null
+          };
+        });
+        return {
+          question: pick(d, 'question'),
+          status: pick(d, 'status'),
+          closesAt: pick(d, 'closes_at'),
+          totalVotes: total,
+          options: opts
+        };
+      } },
+    'tpl-prediction': { plugin: 'prediction', label: 'PREDICTION RESULT', painter: 'phq-prediction',
+      map: function (d, item, ctx) {
+        var pk = normPick(pick(item, 'my_pick', 'pick', 'prediction'));
+        var rs = normPick(pick(item, 'result', 'resolved', 'outcome'));
+        var rec = (ctx && ctx.record) || {};
+        return {
+          statement: pick(item, 'title', 'short_title', 'statement', 'question'),
+          outcome: (pk && rs) ? (pk === rs ? 'correct' : 'missed') : null,
+          wins: num(pick(rec, 'wins')),
+          losses: num(pick(rec, 'losses'))
+        };
+      } },
+    'tpl-rep-contact': { plugin: 'rep', label: 'REP CONTACT CARD', painter: 'phq-rep-contact',
+      map: function (d) {
+        return {
+          name: pick(d, 'name'),
+          state: pick(d, 'state'),
+          party: pick(d, 'party'),
+          chamber: pick(d, 'chamber'),
+          district: pick(d, 'district'),
+          phone: pick(d, 'phone')
+        };
+      } },
+    'tpl-nonprofit': { plugin: 'nonprofit', label: 'NONPROFIT SPOTLIGHT', painter: 'phq-nonprofit',
+      map: function (d) {
+        return {
+          name: pick(d, 'name'),
+          mission: pick(d, 'mission'),
+          city: pick(d, 'city'),
+          state: pick(d, 'state'),
+          website: pick(d, 'website'),
+          ein: pick(d, 'ein'),
+          scope: pick(d, 'scope')
+        };
+      } },
+    'tpl-campaign': { plugin: 'campaign', label: 'PRESSURE CARD', painter: 'phq-pressure',
+      map: function (d) {
+        return {
+          title: pick(d, 'title'),
+          target: pick(d, 'target'),
+          demand: pick(d, 'description', 'demand'),
+          signatures: num(pick(d, 'sig_count', 'signatures')),
+          signaturesGoal: num(pick(d, 'goal', 'signaturesGoal'))
+        };
+      } }
+  };
+  function templatesFor(plugin) {
+    var out = [], ids = plugin.template_ids || [];
+    for (var i = 0; i < ids.length; i++) {
+      var t = TEMPLATES[ids[i]];
+      if (t && t.plugin === plugin.id) out.push({ id: ids[i], def: t });
+    }
+    return out;
+  }
+
+  /* ---------------- state ---------------- */
+  var S = {
+    plugin: null, query: '', results: [], item: null, template: null,
+    painterData: null, detail: null, sourceLine: '', record: null, tid: 0
+  };
+  var searchSeq = 0;
+
+  function iid(plugin, item) {
+    return String((item && (item[plugin.id_param] != null ? item[plugin.id_param] : item.id)) || '');
+  }
+  function cardTitle(plugin, it) {
+    switch (plugin.id) {
+      case 'bill': return (pick(it, 'number', 'bill_number') || 'Bill') + ' — ' + (pick(it, 'title', 'short_title') || '');
+      case 'scorecard':
+      case 'rep': return pick(it, 'name') || 'Unnamed';
+      case 'race': return [pick(it, 'office'), pick(it, 'state')].filter(Boolean).join(' — ') || 'Race';
+      case 'poll': return pick(it, 'question') || 'Poll';
+      case 'prediction': return pick(it, 'title', 'short_title', 'statement') || 'Prediction';
+      case 'nonprofit': return pick(it, 'name') || 'Nonprofit';
+      case 'campaign': return pick(it, 'title') || 'Campaign';
+      default: return pick(it, 'title', 'name') || 'Item';
+    }
+  }
+  function cardSub(plugin, it) {
+    switch (plugin.id) {
+      case 'bill': return [pick(it, 'status'), pick(it, 'sponsor_name', 'sponsor')].filter(Boolean).join(' · ');
+      case 'scorecard':
+      case 'rep': {
+        var loc = pick(it, 'state') || '';
+        if (String(pick(it, 'chamber') || '').toLowerCase() === 'house' && pick(it, 'district')) loc += ' · District ' + pick(it, 'district');
+        return [loc, pick(it, 'party')].filter(Boolean).join(' · ');
+      }
+      case 'race': return [pick(it, 'rating'), pick(it, 'rating_source')].filter(Boolean).join(' · ');
+      case 'poll': return [pick(it, 'status'), it.total_votes != null ? (it.total_votes + ' votes') : null].filter(Boolean).join(' · ');
+      case 'prediction': {
+        var pk = normPick(pick(it, 'my_pick', 'pick', 'prediction'));
+        var rs = normPick(pick(it, 'result', 'resolved', 'outcome'));
+        return (pk && rs) ? (pk === rs ? 'CALLED IT' : 'MISSED') : 'UNSETTLED';
+      }
+      case 'nonprofit': return [pick(it, 'state'), String(pick(it, 'mission') || '').slice(0, 80)].filter(Boolean).join(' · ');
+      case 'campaign': return [(it.sig_count != null ? it.sig_count : '') + '/' + (it.goal != null ? it.goal : ''), pick(it, 'target') ? ('Target: ' + pick(it, 'target')) : null].filter(Boolean).join(' · ');
+      default: return '';
+    }
+  }
+  /* Prediction lists open + settled picks; only settled ones are posterable. */
+  function itemOk(plugin, it) {
+    if (plugin.id === 'prediction') {
+      var pk = normPick(pick(it, 'my_pick', 'pick', 'prediction'));
+      var rs = normPick(pick(it, 'result', 'resolved', 'outcome'));
+      return !!(pk && rs);
+    }
+    return true;
+  }
+
+  /* ---------------- honesty rails ---------------- */
+  function isStale(o) {
+    return !!(o && (o.stale === true || o.stale === 'true'));
+  }
+  function fmtDate(v) {
+    try {
+      var d = new Date(v);
+      if (isNaN(d.getTime())) return '';
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch (e) { return ''; }
+  }
+  function sourceOf(plugin, d, item) {
+    var src = pick(d, 'source') || pick(item, 'source') ||
+      pick(d, 'rating_source') || pick(item, 'rating_source') ||
+      plugin.source || 'PFN';
+    var dt = pick(d, 'source_date', 'updated_at', 'updated', 'rating_date') ||
+      pick(item, 'source_date', 'updated_at', 'updated', 'rating_date');
+    var ds = fmtDate(dt) || fmtDate(Date.now());
+    return 'Source: ' + src + ' · ' + ds;
+  }
+
+  /* ---------------- backend reads ---------------- */
+  function extractItems(plugin, j) {
+    var arr = (j && (j[plugin.item_key] || j.items || j.results)) || [];
+    return Array.isArray(arr) ? arr : [];
+  }
+  function runSearch(query, silent) {
+    var plugin = S.plugin;
+    if (!plugin) return;
+    var seq = ++searchSeq;
+    var params = { q: query };
+    var sp = plugin.search_params || {};
+    for (var k in sp) params[k] = sp[k];
+    if (!silent) setResultsLoading();
+    api(plugin.search_action, params, function (j) {
+      if (seq !== searchSeq) return; /* stale response — ignore */
+      if (silent) { finishSilentSearch(plugin, query, j); return; }
+      if (!j || j.ok === false) {
+        setResultsError(plugin);
+        return;
+      }
+      var items = extractItems(plugin, j);
+      if (plugin.client_filter) {
+        var ql = String(query || '').toLowerCase();
+        if (ql) items = items.filter(function (it) {
+          return String(pick(it, plugin.client_filter) || '').toLowerCase().indexOf(ql) !== -1;
+        });
+      }
+      /* predict_list also carries the caller's W/L record — capture it for
+         the prediction poster (live from the API, never invented). */
+      if (plugin.id === 'prediction' && j) {
+        S.record = j.record || j.my_record || j.caller_record || null;
+      }
+      S.results = items.filter(function (it) { return itemOk(plugin, it); }).slice(0, 6);
+      renderResults();
+    });
+  }
+  /* Live re-query at generation time for plugins without a detail endpoint:
+     re-run the search and match by id so the poster never bakes a stale row. */
+  function finishSilentSearch(plugin, query, j) {
+    if (S._genToken !== searchSeq - 1 && S._genToken != null) return;
+    var items = j ? extractItems(plugin, j) : [];
+    var want = iid(plugin, S.item), found = null;
+    for (var i = 0; i < items.length; i++) {
+      if (iid(plugin, items[i]) === want) { found = items[i]; break; }
+    }
+    S._genDone(found);
+  }
+  function fetchDetail(plugin, item, done) {
+    S._genDone = done;
+    if (plugin.detail_action) {
+      var p = {};
+      p[plugin.id_param] = iid(plugin, item);
+      api(plugin.detail_action, p, function (j) {
+        var d = null;
+        if (j && j.ok !== false) {
+          d = j.detail || j.bill || j.race || j.poll || j.scorecard ||
+            j.rep || j.nonprofit || j.petition || j.prediction || null;
+        }
+        done(d || null);
+      });
+    } else {
+      S._genToken = searchSeq; /* silent re-search; finishSilentSearch matches */
+      runSearch(S.query, true);
+    }
+  }
+
+  /* ---------------- UI ---------------- */
+  function root() { return $('xPolitical'); }
+  function pane(html) {
+    var r = root();
+    if (r) r.innerHTML = html;
+  }
+  function renderShell() {
+    pane(
+      '<style>' +
+      '#pfPolt .pfpol-plugs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}' +
+      '#pfPolt .pfpol-plugwrap{display:flex;flex-direction:column;align-items:stretch}' +
+      '#pfPolt .pfpol-plug{min-width:104px;min-height:48px}' +
+      '#pfPolt .pfpol-plug[disabled]{opacity:.45;cursor:not-allowed}' +
+      '#pfPolt .pfpol-unavail{font-size:.72rem;color:#b8ab8e;margin-top:4px;text-align:center}' +
+      '#pfPolt .pfpol-card{display:block;width:100%;text-align:left;margin:8px 0;padding:10px 12px;background:#141414;border:1px solid #4a4a4a;color:#f5f0e1;cursor:pointer;font-family:inherit}' +
+      '#pfPolt .pfpol-card:active{border-color:#c1121f}' +
+      '#pfPolt .pfpol-ct{font-weight:900;font-size:.95rem;margin-bottom:4px}' +
+      '#pfPolt .pfpol-cs{font-size:.8rem;color:#b8ab8e}' +
+      '#pfPolt .pfpol-q{width:100%;box-sizing:border-box;min-height:48px;background:#141414;border:1px solid #4a4a4a;color:#f5f0e1;font-family:inherit;font-size:1rem;padding:10px 12px;margin:8px 0}' +
+      '#pfPolt .pfpol-tpls{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}' +
+      '#pfPolt .pfpol-stale{border:2px solid #e8b923;background:#1a1206;padding:12px;margin:10px 0}' +
+      '#pfPolt .pfpol-stale b{color:#e8b923}' +
+      '#pfPolt .pfpol-src{font-size:.78rem;color:#b8ab8e;margin:8px 0;letter-spacing:.04em}' +
+      '#pfPolt .pfpol-stage{margin:10px 0}' +
+      '#pfPolt canvas#pfPolCanvas{width:100%;max-width:340px;height:auto;background:#0d0d0d;border:2px solid #c1121f}' +
+      '#pfPolt .pfpol-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}' +
+      '#pfPolt .pfpol-back{background:none;border:none;color:#b8ab8e;cursor:pointer;font-size:.85rem;padding:8px 0;font-family:inherit}' +
+      '</style>' +
+      '<div id="pfPolt">' +
+      '<div class="x-pane"><h4>POLITICAL — forge from live data</h4>' +
+      '<div class="x-note">Pick a dataset, pull a live record, and the forge paints a poster from it. Nothing is baked from cached or invented facts — the poster is generated from a fresh data pull at generation time.</div>' +
+      '<div id="pfPolBody"><div class="c-load">Reading the plugin wire&hellip;</div></div>' +
+      '</div></div>'
+    );
+  }
+  function body(html) {
+    var b = $('pfPolBody');
+    if (b) b.innerHTML = html;
+  }
+  function renderPlugins() {
+    var h = '<div class="p-sub" style="margin-bottom:4px">1 — Pick a data plugin</div><div class="pfpol-plugs">';
+    for (var i = 0; i < PLUGINS.length; i++) {
+      (function (p) {
+        if (PF.skip('plugin-' + p.id)) return; /* kill switch hides the button */
+        var dis = p.available && p.search_action ? '' : ' disabled';
+        h += '<div class="pfpol-plugwrap"><button class="c-btn pfpol-plug" data-plug="' + esc(p.id) + '"' + dis + '>' +
+          esc(p.label) + '</button>';
+        if (dis) h += '<div class="pfpol-unavail">data unavailable</div>';
+        h += '</div>';
+      })(PLUGINS[i]);
+    }
+    h += '</div>';
+    body(h);
+    var btns = root().querySelectorAll('[data-plug]');
+    for (var j = 0; j < btns.length; j++) {
+      (function (b) {
+        b.addEventListener('click', function () {
+          if (b.hasAttribute('disabled')) return; /* unavailable: not selectable */
+          selectPlugin(b.getAttribute('data-plug'));
+        });
+      })(btns[j]);
+    }
+  }
+  function selectPlugin(id) {
+    for (var i = 0; i < PLUGINS.length; i++) {
+      if (PLUGINS[i].id === id) {
+        if (!PLUGINS[i].available || !PLUGINS[i].search_action) return;
+        S.plugin = PLUGINS[i]; S.query = ''; S.results = []; S.item = null;
+        S.template = null; S.painterData = null; S.record = null;
+        renderSearch();
+        return;
+      }
+    }
+  }
+  function renderSearch() {
+    var p = S.plugin;
+    body(
+      '<button class="pfpol-back" id="pfPolToPlugins">&larr; all plugins</button>' +
+      '<div class="p-sub" style="margin:4px 0">2 — Search ' + esc(p.label) + ' (live)</div>' +
+      '<input class="pfpol-q" id="pfPolQ" maxlength="80" autocomplete="off" placeholder="' + esc(p.search_hint || 'Search\u2026') + '" aria-label="Search ' + esc(p.label) + '">' +
+      '<div id="pfPolResults"><div class="x-note">Type to search the live ' + esc(p.label.toLowerCase()) + ' wire.</div></div>'
+    );
+    $('pfPolToPlugins').addEventListener('click', function () { S.plugin = null; renderPlugins(); });
+    var q = $('pfPolQ');
+    q.addEventListener('input', function () {
+      S.query = q.value;
+      clearTimeout(S.tid);
+      if (!String(q.value).trim()) {
+        S.results = [];
+        $('pfPolResults').innerHTML = '<div class="x-note">Type to search the live ' + esc(p.label.toLowerCase()) + ' wire.</div>';
+        return;
+      }
+      S.tid = setTimeout(function () { runSearch(String(q.value).trim(), false); }, 350);
+    });
+    try { q.focus(); } catch (e) {}
+  }
+  function setResultsLoading() {
+    var r = $('pfPolResults');
+    if (r) r.innerHTML = '<div class="c-load">Searching the wire&hellip;</div>';
+  }
+  function setResultsError(plugin) {
+    var r = $('pfPolResults');
+    if (r) r.innerHTML = '<div class="c-err">Couldn&rsquo;t reach the ' + esc(plugin.label.toLowerCase()) +
+      ' wire. Check your connection and try again — nothing here is cached.</div>';
+  }
+  function renderResults() {
+    var r = $('pfPolResults');
+    if (!r) return;
+    var p = S.plugin, h = '';
+    if (!S.results.length) {
+      h = '<div class="x-note">No ' + esc(p.label.toLowerCase()) + ' results for &ldquo;' + esc(S.query) + '&rdquo;.</div>';
+    } else {
+      h = '<div class="p-sub" style="margin:4px 0">3 — Pick a record</div>';
+      for (var i = 0; i < S.results.length; i++) {
+        (function (it, idx) {
+          h += '<button class="pfpol-card" data-res="' + idx + '">' +
+            '<div class="pfpol-ct">' + esc(cardTitle(p, it)) + '</div>' +
+            '<div class="pfpol-cs">' + esc(cardSub(p, it)) + '</div></button>';
+        })(S.results[i], i);
+      }
+    }
+    r.innerHTML = h;
+    var cards = r.querySelectorAll('[data-res]');
+    for (var j = 0; j < cards.length; j++) {
+      (function (c) {
+        c.addEventListener('click', function () {
+          S.item = S.results[+c.getAttribute('data-res')];
+          S.template = null; S.painterData = null;
+          renderTemplates();
+        });
+      })(cards[j]);
+    }
+  }
+  function renderTemplates() {
+    var p = S.plugin, tpls = templatesFor(p), h = '';
+    h += '<button class="pfpol-back" id="pfPolToSearch">&larr; back to search</button>';
+    h += '<div class="p-sub" style="margin:4px 0">4 — Pick a poster style</div>';
+    h += '<div class="x-note" style="margin-bottom:6px">' + esc(cardTitle(p, S.item)) + '</div>';
+    if (!tpls.length) {
+      h += '<div class="c-err">No poster styles are wired for this plugin yet.</div>';
+    } else {
+      h += '<div class="pfpol-tpls">';
+      for (var i = 0; i < tpls.length; i++) {
+        h += '<button class="c-btn" data-tpl="' + esc(tpls[i].id) + '">' + esc(tpls[i].def.label) + '</button>';
+      }
+      h += '</div>';
+    }
+    body(h);
+    $('pfPolToSearch').addEventListener('click', renderSearch);
+    var btns = root().querySelectorAll('[data-tpl]');
+    for (var j = 0; j < btns.length; j++) {
+      (function (b) {
+        b.addEventListener('click', function () {
+          var t = TEMPLATES[b.getAttribute('data-tpl')];
+          if (!t) return;
+          S.template = { id: b.getAttribute('data-tpl'), def: t };
+          generate();
+        });
+      })(btns[j]);
+    }
+  }
+  function generate() {
+    var p = S.plugin;
+    body('<button class="pfpol-back" id="pfPolToTpl">&larr; back to styles</button>' +
+      '<div class="c-load">Pulling live data for &ldquo;' + esc(cardTitle(p, S.item)) + '&rdquo;&hellip;</div>');
+    $('pfPolToTpl').addEventListener('click', renderTemplates);
+    fetchDetail(p, S.item, function (d) {
+      if (!d) {
+        body('<button class="pfpol-back" id="pfPolToTpl2">&larr; back to styles</button>' +
+          '<div class="c-err">That record is no longer on the live wire. Pick another — the forge never paints from a dead row.</div>');
+        $('pfPolToTpl2').addEventListener('click', renderTemplates);
+        return;
+      }
+      var ctx = { record: S.record };
+      var pd = null;
+      try { pd = S.template.def.map(d, S.item, ctx); } catch (e) { pd = null; }
+      if (!pd) {
+        body('<div class="c-err">Couldn&rsquo;t shape that record into a poster. Try another.</div>');
+        return;
+      }
+      S.detail = d; S.painterData = pd;
+      S.sourceLine = sourceOf(p, d, S.item);
+      if (isStale(d) || isStale(S.item)) renderStale();
+      else renderPreview();
+    });
+  }
+  function staleDateLine() {
+    var p = S.plugin, d = S.detail;
+    var dt = pick(d, 'source_date', 'updated_at', 'updated', 'rating_date') ||
+      pick(S.item, 'source_date', 'updated_at', 'updated', 'rating_date');
+    var ds = fmtDate(dt);
+    return 'This ' + p.label.toLowerCase() + ' record is flagged <b>STALE</b>' +
+      (ds ? ' (last update: ' + esc(ds) + ')' : '') +
+      '. The poster would carry old facts. Generate anyway, or cancel and pick a fresh record.';
+  }
+  function renderStale() {
+    body('<button class="pfpol-back" id="pfPolToTpl3">&larr; back to styles</button>' +
+      '<div class="pfpol-stale">' + staleDateLine() + '</div>' +
+      '<div class="pfpol-row"><button class="c-btn" id="pfPolGenAnyway">GENERATE ANYWAY</button> ' +
+      '<button class="c-btn" id="pfPolCancelStale">CANCEL</button></div>');
+    $('pfPolToTpl3').addEventListener('click', renderTemplates);
+    $('pfPolGenAnyway').addEventListener('click', renderPreview);
+    $('pfPolCancelStale').addEventListener('click', function () {
+      S.painterData = null; S.detail = null;
+      renderTemplates();
+    });
+  }
+  function phq() {
+    try { return (window.PF && PF.PHQShare) ? PF.PHQShare : null; } catch (e) { return null; }
+  }
+  function renderPreview() {
+    var p = S.plugin, t = S.template.def;
+    var h = '<button class="pfpol-back" id="pfPolToTpl4">&larr; back to styles</button>' +
+      '<div class="p-sub" style="margin:4px 0">5 — Preview</div>' +
+      '<div class="pfpol-stage"><canvas id="pfPolCanvas" width="1080" height="1350"></canvas></div>' +
+      '<div class="pfpol-src" id="pfPolSrc">' + esc(S.sourceLine) + '</div>' +
+      '<div class="pfpol-row"><button class="c-btn" id="pfPolShareBtn">SHARE</button> ' +
+      '<button class="c-btn" id="pfPolSaveBtn">SAVE</button></div>' +
+      '<div class="x-note">Share/save ride the standard poster pipeline (callsign claim gate + the once-daily share credit). No extra XP is granted by this tab.</div>';
+    body(h);
+    $('pfPolToTpl4').addEventListener('click', renderTemplates);
+    var cv = null;
+    try {
+      var P = phq();
+      cv = P && P.paint ? P.paint(t.painter, S.painterData) : null;
+    } catch (e) { cv = null; }
+    if (!cv) {
+      body('<button class="pfpol-back" id="pfPolToTpl5">&larr; back to styles</button>' +
+        '<div class="c-err">The &ldquo;' + esc(t.label) + '&rdquo; poster engine isn&rsquo;t on this page yet — the painters are still rolling out. Your record is fine; try again after the next push.</div>');
+      $('pfPolToTpl5').addEventListener('click', renderTemplates);
+      return;
+    }
+    try {
+      var pv = $('pfPolCanvas'), x = pv.getContext('2d');
+      x.clearRect(0, 0, pv.width, pv.height);
+      x.drawImage(cv, 0, 0, pv.width, pv.height);
+    } catch (e) {
+      body('<div class="c-err">Preview failed to render. Try again.</div>');
+      return;
+    }
+    $('pfPolShareBtn').addEventListener('click', doShare);
+    $('pfPolSaveBtn').addEventListener('click', doSave);
+  }
+  /* SHARE / SAVE: straight through PF.PHQShare -> PFShare.shareImage/saveImage.
+     The existing claim gate, the idempotent callsign stamp, and the single
+     pf-share-image daily credit ride along untouched. This tab adds NO xp
+     events and NO grant calls (CEO directive 2026-10-05). */
+  function doShare() {
+    var t = S.template.def, P = phq();
+    if (!P || !P.share) { toast('Poster engine still loading — try again in a moment.'); return; }
+    try { P.share(t.painter, S.painterData, { title: t.label + ' — ' + cardTitle(S.plugin, S.item) }); }
+    catch (e) { toast('Share failed — try again.'); }
+  }
+  function doSave() {
+    var t = S.template.def, P = phq();
+    if (!P || !P.save) { toast('Poster engine still loading — try again in a moment.'); return; }
+    try { P.save(t.painter, S.painterData, { title: t.label + ' — ' + cardTitle(S.plugin, S.item) }); }
+    catch (e) { toast('Save failed — try again.'); }
+  }
+
+  /* ---------------- boot ---------------- */
+  function boot() {
+    var r = root();
+    if (!r) return; /* forge template not instantiated on this page */
+    if (r.getAttribute('data-pf-pol-mounted')) return;
+    r.setAttribute('data-pf-pol-mounted', '1');
+    renderShell();
+    buildFallback();
+    api('studio_plugins_list', {}, function (j) {
+      if (j && j.ok && Array.isArray(j.plugins) && j.plugins.length) applyManifest(j.plugins);
+      renderPlugins();
+    });
+  }
+  boot();
+
+  /* Test hook (DOM-stub smoke tests): state + registries + API call log. */
+  try {
+    window.__pfPolitical = {
+      state: S, plugins: function () { return PLUGINS; },
+      templates: TEMPLATES, apiCalls: API_CALLS,
+      _selectPlugin: selectPlugin, _runSearch: runSearch, _generate: generate,
+      _renderStale: renderStale, _renderPreview: renderPreview,
+      _sourceOf: sourceOf, _isStale: isStale, _templatesFor: templatesFor
+    };
+  } catch (e) {}
+})();
+
+;
+
+/* ===== feed.js ===== */
+/* games/feed.js  |  PF v1.4.3 | PROPAGANDA FEED: discovery layer for content.
+   LAYERING: a game silo like campaign.js. Distributors need supply — this is
+   the feed where they find posters/memes to pump. Tabs: TRENDING / NEW / TOP
+   / BOOST / VAULT.
+   2026-10-03: Amplify (games/amplify.js) merged as the BOOST tab; the Vault
+   (games/archive.js) merged as the VAULT tab. amplify.js and archive.js deleted.
+   Reads via JSONP (self-contained api()), share-logging via CORS POST.
+   It never reaches into another silo's internals.
+   KILL: ?pf_off=feed  or  localStorage pf_disabled_v1='["feed"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("feed")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-feed">
+<div class="fe-block pf-override-block" id="pf-feed">
+<h2>Propaganda Feed</h2>
+<div class="c-tag">Fresh ammo. Find it. Pump it. Track the spread.</div>
+<div id="xFeed"><div class="c-load">Loading the feed&hellip;</div></div>
+</div>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function fmtSched(t){ try{ var d=new Date(Number(t)||0); if(isNaN(d.getTime())) return "?";
+  return (d.getMonth()+1)+"/"+d.getDate()+" "+d.getHours()+":"+String(d.getMinutes()).padStart(2,"0"); }catch(e){ return "?"; } }
+/* R16 (2026-10-04): what schedule_add actually does — it queues a SHARE of a
+   content item to fire at a future time on a platform (epoch-ms
+   scheduled_for, Chicago wall-clock). The queue below is the check-back
+   surface: per-item countdowns make it an appointment mechanic. */
+function fdCountdown(ms){
+  if(ms<=0) return "any moment";
+  var s=Math.floor(ms/1000), d=Math.floor(s/86400), h=Math.floor((s%86400)/3600), m=Math.floor((s%3600)/60);
+  if(d>0) return d+"d "+h+"h";
+  if(h>0) return h+"h "+(m<10?"0":"")+m+"m";
+  return m+"m "+(s%60)+"s";
+}
+/* R16: fired-transition detection. schedule_list rows carry posted:1 once the
+   backend fires them. Ping once per queue id (localStorage): toast + the
+   FIRED state stays in the queue. The bell-inbox ping is the backend's job —
+   notify_enqueue is admin-only, so the server must enqueue on fire. */
+function fdFiredMap(){ try{ return JSON.parse(localStorage.getItem("pf_sched_fired_v1")||"{}"); }catch(e){ return {}; } }
+function fdFiredSave(m){ try{ localStorage.setItem("pf_sched_fired_v1",JSON.stringify(m)); }catch(e){} }
+function fdCheckFired(q){
+  try{
+    var seen=fdFiredMap(), changed=false;
+    for(var i=0;i<(q||[]).length;i++){
+      var it=q[i], id=String(it.id||"");
+      if(!id||seen[id]) continue;
+      if(it.posted){
+        seen[id]=1; changed=true;
+        toast("SCHEDULED DROP FIRED: "+String(it.content_id||"untitled")+" ("+String(it.platform||"")+")");
+      }
+    }
+    if(changed) fdFiredSave(seen);
+  }catch(e){}
+}
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ PF.toast(m); }catch(e){} }
+/* 2026-10-04: friendly write-path errors — raw snake_case backend codes are
+   never shown to users (same pattern as games/armory.js writeErrCopy). */
+function fdWriteErr(e,fb){
+  var s=String(e==null?"":e).trim();
+  var fall=fb||"The wire fought back. Nothing changed — retry.";
+  if(!s||/network error/i.test(s)) return fall;
+  var map={
+    "bad sender":"That callsign didn't check out. Re-claim it in Daily Orders, then retry.",
+    "bad receiver":"That callsign isn't a valid target. Refresh and try again.",
+    "no self-tips":"You can't tip yourself. Pick someone else.",
+    "tip must be 5/10/25/50/100 XP":"Tips come in 5, 10, 25, 50, or 100 XP.",
+    "insufficient XP":"Not enough XP in the war chest. Go earn some.",
+    "bad voter":"That callsign didn't check out. Re-claim it in Daily Orders, then retry.",
+    "bad creator":"That creator tag didn't check out. Refresh the feed and try again.",
+    "no self-votes":"You can't vote on your own content.",
+    "bad callsign":"That callsign didn't check out. Re-claim it in Daily Orders, then retry.",
+    "missing content_id":"That post lost its ID. Refresh the feed and try again.",
+    "db error":"The ledger hiccuped. Retry in a moment."
+  };
+  if(map[s]) return map[s];
+  if(s.indexOf("_")!==-1) return fall; /* never show raw snake_case */
+  return s; /* backend prose already human-readable */
+}
+/* 2026-10-04: epoch-ms for a "YYYY-MM-DD HH:MM" wall-clock in America/Chicago.
+   schedule_add reads epoch-ms p.scheduled_for; the Intl offset is resolved
+   iteratively so DST transitions convert correctly.
+   NOTE: this whole widget ships inside an outer template literal, so every
+   regex backslash below MUST stay doubled (\\) or the inner script dies with
+   a SyntaxError at mount (2026-10-04 hotfix). */
+function chicagoToMs(str){
+  try{
+    var m=/^(\\d{4})-(\\d{2})-(\\d{2})[ T](\\d{2}):(\\d{2})$/.exec(String(str||"").trim());
+    if(!m) return 0;
+    var y=+m[1],mo=+m[2],d=+m[3],hh=+m[4],mi=+m[5];
+    if(mo<1||mo>12||d<1||d>31||hh>23||mi>59) return 0;
+    var target=Date.UTC(y,mo-1,d,hh,mi,0), guess=target;
+    for(var i=0;i<4;i++){
+      var tz=new Date(guess).toLocaleString("en-US",{timeZone:"America/Chicago",hour12:false,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});
+      var p=/(\\d+)\\/(\\d+)\\/(\\d+),?\\s*(\\d+):(\\d+)/.exec(tz);
+      if(!p) return 0;
+      var asUtc=Date.UTC(+p[3],+p[1]-1,+p[2],(+p[4])%24,+p[5],0);
+      var adj=target-asUtc;
+      guess=guess+adj;
+      if(Math.abs(adj)<60000) break;
+    }
+    return guess;
+  }catch(e){ return 0; }
+}
+/* Friendly copy for gated read failures (2026-10-03): raw backend strings
+   like 'missing credentials' are never shown as UI copy. */
+function fdAuthHint(j){
+  var e=String((j&&j.err)||"");
+  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")
+    return '<div class="x-note">This callsign predates the new auth system and can&rsquo;t reconnect on its own &mdash; contact MTCSTW to recover it.</div>';
+  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)
+    return '<div class="x-note">Your scheduled queue is behind a handshake. Re-claim your callsign in Enlistment Ranks (one tap), then refresh.'+
+      /* 2026-10-06 CEO directive: every claim prompt needs the recovery path. */
+      (function(){ try{ return (window.PF && window.PF.recoverLinkHTML) ? window.PF.recoverLinkHTML() : ''; }catch(e2){ return ''; } })()+
+      '</div>';
+  return "";
+}
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  /* Private reads require auth_secret (IDOR fix). Route gated actions
+     through the shared claim-retry GET (2026-10-03): pre-auth callsign
+     holders with no stored secret get one auth_claim attempt instead of
+     failing 'missing credentials' forever. */
+  if(action==="schedule_list"){
+    try{
+      if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
+      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+    }catch(e){}
+  }
+  var fn="pfFdCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function post(spAction,params,cb){
+  var body=Object.assign({type:"spread",sp_action:spAction},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+}
+function postX(type,typeAction,action,params,cb){
+  var b={type:type}; b[typeAction]=action;
+  var body=Object.assign(b,params);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  /* Writes that require auth (e.g. reputation_vote) must carry auth_secret.
+     Route through PF.authPost like caption-combat's caption_submit. */
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,function(j){ done(j); }); return; }
+  var bodyStr=JSON.stringify(body);
+  try{
+    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+}
+function isTrusted(creator){
+  try{
+    if(REP&&REP.ok&&REP.trusted){
+      for(var i=0;i<REP.trusted.length;i++) if(String(REP.trusted[i]).toLowerCase()===String(creator||"").toLowerCase()) return true;
+    }
+  }catch(e){}
+  return false;
+}
+var tab="trending", T=null, N=null, REP=null, SCHED=null, TIPS=null, FN=null, DUE=null;
+function load(){
+  var done=false, n=0;
+  function fin(){ if(done)return; done=true; render(); }
+  function one(){ n++; if(n>=7) fin(); }
+  setTimeout(fin,15000);
+  api("boost_board",{},function(j){ T=j; one(); });
+  api("content_list",{sort:"new",limit:25},function(j){ N=j; one(); });
+  api("reputation_get",{},function(j){ REP=j; one(); });
+  /* 2026-10-03: NEW tab gets its own backend feed (feed_new) instead of the
+     client-side re-sort of content_list; plus tip leaderboard + due queue. */
+  api("feed_new",{},function(j){ FN=j; one(); });
+  api("tip_leaderboard",{},function(j){ TIPS=j; one(); });
+  api("schedule_due",{},function(j){ DUE=j; one(); });
+  var id0=ident();
+  if(id0.callsign) api("schedule_list",{callsign:id0.callsign},function(j){ SCHED=j; one(); });
+  else { SCHED={ok:true,queue:[]}; one(); }
+}
+function items(){
+  var out=[];
+  try{
+    if(tab==="trending"&&T&&T.ok&&T.board) out=T.board;
+    else if(tab==="top"&&T&&T.ok&&T.board) out=T.board.slice().sort(function(a,b){ return (b.boosts||0)-(a.boosts||0); });
+    else if(tab==="new"&&FN&&FN.ok&&FN.feed) out=FN.feed;
+    else if(tab==="new"&&N&&N.ok&&N.items) out=N.items;
+    else if(N&&N.ok&&N.items) out=N.items;
+  }catch(e){}
+  return out;
+}
+function render(){
+  var el=document.getElementById("xFeed"); if(!el) return;
+  var id=ident(), h="";
+  h+='<div class="fd-tabs">'
+    +'<button class="c-btn fd-tab'+(tab==="trending"?" fd-on":"")+'" data-tab="trending">TRENDING</button>'
+    +'<button class="c-btn fd-tab'+(tab==="new"?" fd-on":"")+'" data-tab="new">NEW</button>'
+    +'<button class="c-btn fd-tab'+(tab==="top"?" fd-on":"")+'" data-tab="top">TOP</button>'
+    +'<button class="c-btn fd-tab'+(tab==="boost"?" fd-on":"")+'" data-tab="boost">BOOST</button>'
+    +'<button class="c-btn fd-tab'+(tab==="vault"?" fd-on":"")+'" data-tab="vault">VAULT</button>'
+    +'</div>';
+  var list=items();
+  if(tab==="boost"){
+    h+='<div id="fdBoostWrap"><div class="c-load">Loading the boost board&hellip;</div></div>';
+  } else if(tab==="vault"){
+    h+='<div id="fdVaultWrap"><div class="c-load">Opening the vault&hellip;</div></div>';
+  } else {
+  if(!list.length){
+    h+='<div class="x-pane"><div class="x-note">Nothing here yet. Be the first to forge propaganda in Poster Forge &mdash; it lands here.</div></div>';
+  }
+  for(var i=0;i<Math.min(list.length,25);i++){
+    var it=list[i], cid=esc(it.id||""), trusted=isTrusted(it.creator);
+    h+='<div class="x-pane fd-item">'
+      +'<div class="fd-title">'+esc(it.title||it.id||"Untitled")
+      +(trusted?' <span class="fd-trusted" title="Trusted creator" style="color:#7CFC00;font-size:12px">&#10003; TRUSTED</span>':"")
+      +'</div>'
+      +'<div class="x-note">by '+esc(it.creator||"anon")+' &bull; '+(Number(it.shares)||0)+' shares &bull; '+(Number(it.boosts)||0)+' boosts</div>'
+      +'<div class="fd-actions" style="margin-top:6px">'
+      +'<button class="c-btn fd-share" data-cid="'+cid+'" data-title="'+esc(it.title||"")+'">SHARE &amp; PUMP</button> '
+      +'<button class="c-btn fd-vote" data-cid="'+cid+'" data-creator="'+esc(it.creator||"")+'" data-v="1">&#9650;</button>'
+      +'<button class="c-btn fd-vote" data-cid="'+cid+'" data-creator="'+esc(it.creator||"")+'" data-v="-1">&#9660;</button> '
+      +'<button class="c-btn fd-tip" data-cid="'+cid+'" data-creator="'+esc(it.creator||"")+'">TIP</button> '
+      +'<button class="c-btn fd-sched" data-cid="'+cid+'" data-title="'+esc(it.title||"")+'">SCHEDULE</button> '
+      +'<button class="c-btn fd-intel" data-cid="'+cid+'">WHO&#39;S SHARING</button>'
+      +'</div><div class="fd-intelbox" data-cid="'+cid+'" style="display:none;margin-top:6px"></div></div>';
+    }
+  }
+  /* Due now (2026-10-03: schedule_due, public) — network-wide firing queue. */
+  var due=[]; try{ if(DUE&&DUE.ok&&DUE.due) due=DUE.due; }catch(e){}
+  if(due.length){
+    h+='<div class="x-pane"><div class="fd-title">DUE NOW — FIRING ('+due.length+')</div>';
+    for(var di=0;di<Math.min(due.length,5);di++){
+      var dd=due[di];
+      /* R16: mark the viewer's own drops in the firing queue. */
+      var mine=(id.callsign&&String(dd.callsign||"").toLowerCase()===String(id.callsign).toLowerCase())?' <b style="color:#e8b64c">&#9733; YOURS</b>':"";
+      h+='<div class="x-note">'+esc(dd.content_id||"")+' &mdash; '+esc(dd.platform||"")+' &mdash; queued by '+esc(dd.callsign||"anon")+mine+'</div>';
+    }
+    if(due.length>5) h+='<div class="x-note">&hellip;and '+(due.length-5)+' more in the queue.</div>';
+    h+='</div>';
+  }
+  /* MY QUEUE — SCHEDULED DROPS (R16): the viewer's queue as an appointment
+     strip — countdown per drop, FIRED state on publish, cancel stays. */
+  var q=[]; try{ if(SCHED&&SCHED.ok&&SCHED.queue) q=SCHED.queue; }catch(e){}
+  fdCheckFired(q);
+  if(q.length){
+    h+='<div class="x-pane"><div class="fd-title">MY QUEUE &mdash; SCHEDULED DROPS ('+q.length+')</div>';
+    for(var qi=0;qi<q.length;qi++){
+      var sq=q[qi];
+      var left=Number(sq.scheduled_for||0)-Date.now();
+      h+='<div class="x-note">'+esc(sq.content_id||"")+' &mdash; '+esc(sq.platform||"")
+        +(sq.posted?' <span class="cp-mdone">FIRED</span>'
+          :' &mdash; fires in <b>'+esc(fdCountdown(left))+'</b> ('+esc(fmtSched(sq.scheduled_for))+')'
+          +' <button class="c-btn ghost" data-sqc="'+sq.id+'">CANCEL</button>')+'</div>';
+    }
+    h+='</div><div class="c-err" id="fdSchedErr"></div>';
+  }
+  else if(SCHED&&!SCHED.ok){ h+=fdAuthHint(SCHED); }
+  /* Tip leaderboard (2026-10-03: tip_leaderboard, public) — tips were flowing
+     through tip_send, but nobody ever saw who the network backs. */
+  var tl=[]; try{ if(TIPS&&TIPS.ok&&TIPS.leaders) tl=TIPS.leaders; }catch(e2){}
+  if(tl.length){
+    h+='<div class="x-pane"><div class="fd-title">TOP TIPPED</div>';
+    for(var ti2=0;ti2<Math.min(tl.length,10);ti2++){
+      h+='<div class="cp-mission"><div class="cp-mtext">'+esc(tl[ti2].callsign)+'</div>'
+        +'<div class="cp-mxp">'+Number(tl[ti2].total||0)+' XP ('+Number(tl[ti2].n||0)+')</div></div>';
+    }
+    h+='</div>';
+  }
+  h+='<div style="margin-top:10px"><button class="c-btn" id="fdRetry">Refresh</button></div>';
+  el.innerHTML=h;
+  var tabs=el.querySelectorAll("button.fd-tab");
+  for(var t=0;t<tabs.length;t++){
+    (function(b){ b.onclick=function(){ tab=b.getAttribute("data-tab"); render(); }; })(tabs[t]);
+  }
+  var bw=document.getElementById("fdBoostWrap");
+  if(bw) fdInitBoost(bw);
+  var vw=document.getElementById("fdVaultWrap");
+  if(vw) fdInitVault(vw);
+  var sh=el.querySelectorAll("button.fd-share");
+  for(var s2=0;s2<sh.length;s2++){
+    (function(b){
+      b.onclick=function(){
+        var cid=b.getAttribute("data-cid"); if(!cid){ toast("No content id."); return; }
+        b.disabled=true;
+        post("share_log",{content_id:cid,sharer:id.callsign||"anon",device:id.device},function(j){
+          b.disabled=false;
+          if(j&&j.ok){ toast("Shared. Depth "+(j.depth||0)+" — keep pumping."); }
+          else { toast("Logged locally. Pump it anyway."); }
+          /* Hand off to the share system if present. */
+          try{
+            if(window.PFShare&&PFShare.shareText){ PFShare.shareText(b.getAttribute("data-title")+" — via MTCSTW"); }
+            else if(navigator.share){ navigator.share({title:b.getAttribute("data-title"),text:b.getAttribute("data-title")+" — JOIN THE FIGHT.",url:location.href}); }
+            else { toast("Copy the link and spread it."); }
+          }catch(e){}
+        });
+      };
+    })(sh[s2]);
+  }
+  /* Who's sharing: spread_stats breakdown per content item. */
+  var ib=el.querySelectorAll("button.fd-intel");
+  for(var ii=0;ii<ib.length;ii++){
+    (function(b){
+      b.onclick=function(){
+        var cid=b.getAttribute("data-cid");
+        var box=el.querySelector('div.fd-intelbox[data-cid="'+cid+'"]');
+        if(!box) return;
+        if(box.style.display!=="none"){ box.style.display="none"; return; }
+        box.style.display="block";
+        box.innerHTML='<div class="x-note">Reading the spread&hellip;</div>';
+        api("spread_stats",{content_id:cid},function(j){
+          if(!j||!j.ok){ box.innerHTML='<div class="x-note">No spread data yet.</div>'; return; }
+          var h='<div class="x-note">'
+            +'<b>'+(Number(j.total_shares)||0)+'</b> shares &bull; '
+            +'<b>'+(Number(j.unique_sharers)||0)+'</b> sharers &bull; '
+            +'<b>'+(Number(j.cells_reached)||0)+'</b> cells &bull; '
+            +'depth <b>'+(Number(j.max_depth)||0)+'</b>';
+          var tl=[]; try{ if(j.timeline) tl=j.timeline; }catch(e){}
+          if(tl.length){
+            h+='<br>14d: ';
+            var bars=[];
+            for(var d=0;d<tl.length;d++){ bars.push(Number(tl[d])||0); }
+            h+=esc(bars.join(" / "));
+          }
+          var tops=[]; try{ if(j.top_sharers) tops=j.top_sharers; }catch(e){}
+          if(tops.length){
+            h+='<br>Top pumpers: ';
+            var tn=[];
+            for(var t2=0;t2<Math.min(tops.length,5);t2++){ tn.push(esc(String(tops[t2].sharer||tops[t2]))); }
+            h+=tn.join(", ");
+          }
+          h+='</div>';
+          box.innerHTML=h;
+        });
+      };
+    })(ib[ii]);
+  }
+  var rb=document.getElementById("fdRetry");
+  if(rb) rb.onclick=function(){ T=N=null; REP=null; SCHED=null; TIPS=null; FN=null; DUE=null; el.innerHTML='<div class="c-load">Loading the feed&hellip;</div>'; load(); };
+  /* Up/down votes. */
+  var vs=el.querySelectorAll("button.fd-vote");
+  for(var vi=0;vi<vs.length;vi++){
+    (function(b){
+      b.onclick=function(){
+        var cid=b.getAttribute("data-cid"), v=b.getAttribute("data-v"), creator=b.getAttribute("data-creator");
+        if(!id.callsign){ toast("Claim a callsign to vote."); return; }
+        if(!creator){ toast("That post is missing its creator — refresh the feed and try again."); return; }
+        b.disabled=true;
+        /* 2026-10-04: backend contract — reputation_vote reads p.creator and
+           p.up (Number(p.up)>=0 -> upvote, else downvote); the vote direction
+           is mapped explicitly so a rename never records everything as down. */
+        postX("reputation","rep_action","reputation_vote",{creator:creator,voter:id.callsign,device:id.device,up:(Number(v)>0?1:-1)},function(j){
+          b.disabled=false;
+          if(j&&j.ok){ toast("Vote recorded."); }
+          else toast(fdWriteErr(j&&j.err||j&&j.error,"Vote failed."));
+        });
+      };
+    })(vs[vi]);
+  }
+  /* Tips: 10/25/50 XP to the creator. */
+  var ts=el.querySelectorAll("button.fd-tip");
+  for(var ti=0;ti<ts.length;ti++){
+    (function(b){
+      b.onclick=function(){
+        if(!id.callsign){ toast("Claim a callsign to tip."); return; }
+        var creator=b.getAttribute("data-creator"), cid=b.getAttribute("data-cid");
+        var amt=window.prompt("Tip "+creator+" how much XP? (10 / 25 / 50)", "25");
+        amt=Math.round(Number(amt)||0);
+        if(amt!==10&&amt!==25&&amt!==50){ toast("Pick 10, 25, or 50."); return; }
+        b.disabled=true;
+        /* 2026-10-04: backend contract — tip_send reads p.from_cs / p.to_cs
+           (not from/to); content_id is unread by the backend, dropped. */
+        postX("tip","t_action","tip_send",{from_cs:id.callsign,to_cs:creator,xp:amt,device:id.device},function(j){
+          b.disabled=false;
+          if(j&&j.ok){ toast("Tipped "+amt+" XP to "+creator+"."); }
+          else toast(fdWriteErr(j&&j.err||j&&j.error,"Tip failed."));
+        });
+      };
+    })(ts[ti]);
+  }
+  /* Schedule a share. */
+  var ss=el.querySelectorAll("button.fd-sched");
+  for(var si=0;si<ss.length;si++){
+    (function(b){
+      b.onclick=function(){
+        if(!id.callsign){ toast("Claim a callsign to schedule."); return; }
+        var cid=b.getAttribute("data-cid");
+        var plat=window.prompt("Platform? (twitter / tiktok / facebook / instagram)", "twitter")||"twitter";
+        var when=window.prompt("When? (YYYY-MM-DD HH:MM, Chicago time)", "");
+        if(!when){ return; }
+        /* 2026-10-04: backend contract — schedule_add reads epoch-ms
+           p.scheduled_for (must be future, within 30 days), not a string. */
+        var whenMs=chicagoToMs(when);
+        if(!whenMs){ toast("Use the format YYYY-MM-DD HH:MM — e.g. 2026-10-05 14:30."); return; }
+        if(whenMs<=Date.now()){ toast("That time is in the past. Pick a future slot."); return; }
+        b.disabled=true;
+        postX("schedule","s_action","schedule_add",{content_id:cid,callsign:id.callsign,device:id.device,platform:String(plat).toLowerCase().slice(0,16),scheduled_for:whenMs},function(j){
+          b.disabled=false;
+          if(j&&j.ok){ toast("Scheduled. It will fire from the queue."); load(); }
+          else toast(fdWriteErr(j&&j.err||j&&j.error,"Schedule failed."));
+        });
+      };
+    })(ss[si]);
+  }
+  /* Cancel a scheduled share (2026-10-03 H7). */
+  var scs=el.querySelectorAll("button[data-sqc]");
+  for(var sci=0;sci<scs.length;sci++){
+    (function(b){
+      b.onclick=function(){
+        var qid=b.getAttribute("data-sqc"); if(!qid) return;
+        b.disabled=true;
+        postX("schedule","s_action","schedule_cancel",{id:Number(qid),callsign:id.callsign,device:id.device},function(j){
+          if(j&&j.ok){ toast("Schedule cancelled."); SCHED=null; load(); }
+          else{
+            b.disabled=false;
+            var e2=document.getElementById("fdSchedErr");
+            if(e2) e2.textContent=fdWriteErr(j&&j.err||j&&j.error,"Cancel failed.");
+          }
+        });
+      };
+    })(scs[sci]);
+  }
+}
+/* ---------- BOOST tab (merged from games/amplify.js, PF v1.4.3, 2026-10-03) ----------
+   Amplify now lives as a tab of the Propaganda Feed. XP buttons call the same
+   boost_give / content_register backend actions, which feed the Feed ranking
+   (boost_board weights discovery). amplify.js deleted. */
+function fdInitBoost(root){
+ if(!root) return;
+ root.innerHTML =
+ '<div id="pf-amplify">'
+ +'<div class="c-tag">Put your XP where your mouth is. Boost what matters. Boosts feed the Feed ranking.</div>'
+ +'<div class="am-tabs">'
+ +'<button class="am-tab on" data-t="posts">Posts</button>'
+ +'<button class="am-tab" data-t="creators">Creators</button>'
+ +'<button class="am-tab" data-t="campaigns">Campaigns</button>'
+ +'</div>'
+ +'<div id="amPick"><div class="c-load">Loading targets&hellip;</div></div>'
+ +'<div class="am-amtrow">'
+ +'<span class="am-label">XP to spend:</span> '
+ +'<button class="am-chip on" data-a="10">10</button> '
+ +'<button class="am-chip" data-a="25">25</button> '
+ +'<button class="am-chip" data-a="50">50</button> '
+ +'<button class="am-chip" data-a="100">100</button> '
+ +'<input id="amCustom" class="am-custom" type="number" min="10" max="500" placeholder="Custom">'
+ +'</div>'
+ +'<button id="amGo" class="am-go" disabled>Select something to amplify</button>'
+ +'<h3 class="am-h3">Live amplifications</h3>'
+ +'<div id="amBoard"><div class="c-load">Loading the board&hellip;</div></div>'
+ +'<h3 class="am-h3">Your amplifications</h3>'
+ +'<div id="amMine"><div class="c-load">Loading&hellip;</div></div>'
+ +'</div>';
+
+var BACKEND=window.PF_BACKEND_URL;
+var sel=null;           /* {kind:'post'|'creator'|'campaign', id, title, reg} */
+var amt=10;
+var LS='pf_amplify_v1';
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ PF.toast(m); }catch(e){} }
+function needCs(){ var id=ident(); if(!id.callsign){ if(window.PF&&PF.requireCallsign){ PF.requireCallsign(function(){ refreshAll(); }); } else toast("Claim a callsign first."); return false; } return true; }
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  var fn="pfAmCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function post(spAction,params,cb){
+  var body=Object.assign({type:"spread",sp_action:spAction},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,function(j){ cb(j||{ok:false,err:"Network error."}); }); return; }
+  cb({ok:false,err:"Auth unavailable."});
+}
+function loadMine(){ try{ return JSON.parse(localStorage.getItem(LS)||"[]"); }catch(e){ return []; } }
+function saveMine(a){ try{ localStorage.setItem(LS,JSON.stringify(a.slice(0,50))); }catch(e){} }
+
+/* ---------- target pickers ---------- */
+var curTab='posts';
+function setTab(t){
+  curTab=t; sel=null; updateGo();
+  var tabs=document.querySelectorAll('#pf-amplify .am-tab');
+  for(var i=0;i<tabs.length;i++) tabs[i].classList.toggle('on',tabs[i].getAttribute('data-t')===t);
+  var box=document.getElementById('amPick');
+  box.innerHTML='<div class="c-load">Loading targets&hellip;</div>';
+  if(t==='posts') loadPosts(box);
+  else if(t==='creators') loadCreators(box);
+  else loadCampaigns(box);
+}
+function rowHtml(kind,id,title,sub,badge){
+  return '<div class="am-row" data-kind="'+esc(kind)+'" data-id="'+esc(id)+'" data-title="'+esc(title)+'">'+
+    '<div class="am-rowmain"><div class="am-rowt">'+esc(title)+'</div><div class="am-rowsub">'+esc(sub||"")+'</div></div>'+
+    (badge?'<span class="am-badge">AMPLIFIED &times;'+badge+'</span>':'')+
+    '</div>';
+}
+function bindRows(box){
+  var rows=box.querySelectorAll('.am-row');
+  for(var i=0;i<rows.length;i++){
+    rows[i].addEventListener('click',function(){
+      var rs=box.querySelectorAll('.am-row');
+      for(var j=0;j<rs.length;j++) rs[j].classList.remove('sel');
+      this.classList.add('sel');
+      sel={kind:this.getAttribute('data-kind'),id:this.getAttribute('data-id'),title:this.getAttribute('data-title')};
+      updateGo();
+    });
+  }
+}
+function loadPosts(box){
+  /* trending first (boosts already weight it), fall back to newest */
+  api('feed_trending',{},function(j){
+    var feed=(j&&j.ok&&j.feed)||[];
+    if(!feed.length){
+      api('content_list',{},function(j2){
+        var f2=(j2&&j2.ok&&j2.feed)||[];
+        renderPosts(box,f2);
+      });
+      return;
+    }
+    renderPosts(box,feed);
+  });
+}
+function renderPosts(box,feed){
+  if(!feed.length){ box.innerHTML='<div class="c-load">No content registered yet. Share something first.</div>'; return; }
+  var h='';
+  feed.slice(0,12).forEach(function(p){
+    var sub=(p.creator||"unknown")+" &middot; "+(p.type||"post")+" &middot; "+(p.shares||0)+" shares";
+    h+=rowHtml('post',p.id,p.title||p.id,sub,p.boosts||0);
+  });
+  box.innerHTML=h; bindRows(box);
+}
+function loadCreators(box){
+  var list=[];
+  try{
+    if(window.PF&&PF.ROSTER){ list=PF.ROSTER; }
+    else if(window.PF&&PF.slrAll){ list=PF.slrAll(); }
+  }catch(e){}
+  if(!list||!list.length){ box.innerHTML='<div class="c-load">Roster not loaded.</div>'; return; }
+  var h='';
+  list.slice(0,20).forEach(function(c){
+    var name=c.name||c.callsign||c.slug||"creator";
+    var slug=c.slug||String(name).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+    var sub=(c.followers||c.reach||"")+(c.score?" &middot; "+c.score+" score":"");
+    h+=rowHtml('creator',"creator_"+slug,name,sub,0);
+  });
+  box.innerHTML=h; bindRows(box);
+}
+function loadCampaigns(box){
+  api('campaign_missions',{day_offset:0},function(j){
+    var ms=(j&&j.ok&&j.missions)||[];
+    if(!ms.length){ box.innerHTML='<div class="c-load">No active missions today.</div>'; return; }
+    var h='';
+    ms.forEach(function(m){
+      h+=rowHtml('campaign',"campaign_"+m.id,m.title||("Mission "+m.id),(m.xp?("+"+m.xp+" XP"):""),0);
+    });
+    box.innerHTML=h; bindRows(box);
+  });
+}
+
+/* ---------- amount + go ---------- */
+function updateGo(){
+  var go=document.getElementById('amGo');
+  var custom=document.getElementById('amCustom');
+  var cv=parseInt(custom&&custom.value,10);
+  amt=(cv>=10&&cv<=500)?cv:amt;
+  if(sel){
+    go.disabled=false;
+    go.textContent="AMPLIFY \u2014 "+amt+" XP";
+  }else{
+    go.disabled=true;
+    go.textContent="Select something to amplify";
+  }
+}
+function doAmplify(){
+  if(!sel) return;
+  if(!needCs()) return;
+  var id=ident();
+  var useAmt=amt;
+  if(!confirm("Spend "+useAmt+" XP to amplify \u201c"+sel.title+"\u201d?")) return;
+  var goBtn=document.getElementById('amGo');
+  if(goBtn) goBtn.disabled=true;
+  toast("Amplifying\u2026");
+  function give(){
+    post('boost_give',{content_id:sel.id,booster:id.callsign,device:id.device,xp:useAmt},function(j){
+      if(goBtn) goBtn.disabled=false;
+      if(j&&j.ok){
+        toast("Amplified! "+useAmt+" XP behind \u201c"+sel.title+"\u201d.");
+        /* R12 (Wave 6B): boost impact receipt — "your boost moved X to #N". */
+        try{ if(window.PF&&PF.boostReceipt) PF.boostReceipt(); }catch(e){}
+        try{ document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:-useAmt,key:"amplify_"+sel.id+"_"+useAmt,reason:"amplify: "+sel.title}})); }catch(e){}
+        var mine=loadMine();
+        mine.unshift({id:sel.id,title:sel.title,kind:sel.kind,xp:useAmt,ts:Date.now()});
+        saveMine(mine);
+        sel=null; updateGo(); renderMine(); loadBoard();
+      }else{
+        toast("Amplify failed: "+fdWriteErr(j&&j.err||j&&j.error,"unknown error"));
+      }
+    });
+  }
+  if(sel.kind==='post'){ give(); return; }
+  /* creators & campaigns need a content row first */
+  post('content_register',{id:sel.id,kind:'poster',title:sel.title,callsign:id.callsign,device:id.device},function(){
+    give();
+  });
+}
+
+/* ---------- boards ---------- */
+function loadBoard(){
+  var box=document.getElementById('amBoard');
+  api('boost_board',{},function(j){
+    var b=(j&&j.ok&&j.board)||[];
+    if(!b.length){ box.innerHTML='<div class="c-load">Nothing amplified yet this week. Be the first.</div>'; return; }
+    var h='';
+    b.forEach(function(r,i){
+      h+='<div class="am-brow"><span class="am-rank">#'+(i+1)+'</span>'+
+        '<div class="am-rowmain"><div class="am-rowt">'+esc(r.title||r.id)+'</div>'+
+        '<div class="am-rowsub">'+esc(r.creator||"")+'</div></div>'+
+        '<span class="am-badge">AMPLIFIED &times;'+(r.boosts||0)+'</span>'+
+        '<span class="am-xp">'+(r.xp||0)+' XP</span></div>';
+    });
+    box.innerHTML=h;
+  });
+}
+function renderMine(){
+  var box=document.getElementById('amMine');
+  var mine=loadMine();
+  if(!mine.length){ box.innerHTML='<div class="c-load">You haven\u2019t amplified anything yet.</div>'; return; }
+  var h='';
+  mine.slice(0,10).forEach(function(m){
+    var d=new Date(m.ts);
+    var when=(d.getMonth()+1)+"/"+d.getDate();
+    h+='<div class="am-brow"><div class="am-rowmain"><div class="am-rowt">'+esc(m.title)+'</div>'+
+      '<div class="am-rowsub">'+esc(m.kind)+" &middot; "+when+'</div></div>'+
+      '<span class="am-xp">-'+m.xp+' XP</span></div>';
+  });
+  box.innerHTML=h;
+}
+function refreshAll(){ setTab(curTab); loadBoard(); renderMine(); }
+
+/* ---------- wire up ---------- */
+var tabs=document.querySelectorAll('#pf-amplify .am-tab');
+for(var ti=0;ti<tabs.length;ti++){ tabs[ti].addEventListener('click',function(){ setTab(this.getAttribute('data-t')); }); }
+var chips=document.querySelectorAll('#pf-amplify .am-chip');
+for(var ci=0;ci<chips.length;ci++){
+  chips[ci].addEventListener('click',function(){
+    for(var k=0;k<chips.length;k++) chips[k].classList.remove('on');
+    this.classList.add('on');
+    amt=parseInt(this.getAttribute('data-a'),10)||10;
+    var c=document.getElementById('amCustom'); if(c) c.value='';
+    updateGo();
+  });
+}
+var cust=document.getElementById('amCustom');
+if(cust){ cust.addEventListener('input',function(){
+  var v=parseInt(cust.value,10);
+  if(v>=10&&v<=500){ for(var k=0;k<chips.length;k++) chips[k].classList.remove('on'); amt=v; }
+  updateGo();
+});}
+document.getElementById('amGo').addEventListener('click',doAmplify);
+refreshAll();
+}
+
+/* ---------- VAULT tab (merged from games/archive.js, PF v1.4.3, 2026-10-03) ----------
+   The Vault now lives as a tab of the Propaganda Feed (a browse filter over
+   the archive). Same archive_search / evergreen_list / resurface /
+   attribution_stats backend calls. archive.js deleted. */
+function fdInitVault(root){
+
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  var fn="pfArCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function post(cAction,params,cb){
+  var body=Object.assign({type:"archive",ar_action:cAction},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+}
+var EV=null, results=null, lastQ="", lastSort="top";
+function card(r,showResurface,showAttr){
+  var h='<div class="x-pane ar-card">'
+    +'<div class="ar-headline">'+esc(r.headline||r.content_id)+'</div>'
+    +'<div class="ar-meta">by '+esc(r.creator||"unknown")+' &bull; '+(Number(r.shares)||0)+' shares</div>';
+  if(showAttr){
+    h+='<button class="c-btn c-btn2 ar-attr" data-cid="'+esc(r.content_id)+'">WHO DID THIS CONVERT?</button>'
+      +'<div class="ar-attr-out" id="arAttr'+esc(r.content_id)+'"></div>';
+  }
+  if(showResurface){
+    var id=ident();
+    if(id.callsign){
+      h+='<button class="c-btn ar-resurf" data-cid="'+esc(r.content_id)+'">RESURFACE (+5 XP)</button>';
+    }
+  }
+  h+='</div>';
+  return h;
+}
+function wireCards(el){
+  var rs=el.querySelectorAll("button.ar-resurf");
+  for(var i=0;i<rs.length;i++){
+    (function(btn){
+      btn.onclick=function(){
+        var id=ident(); if(!id.callsign){ toast("Claim a callsign first."); return; }
+        btn.disabled=true;
+        post("resurface",{callsign:id.callsign,device:id.device,content_id:btn.getAttribute("data-cid")},function(j){
+          if(!j||!j.ok){ toast(fdWriteErr(j&&j.err||j&&j.error,"Resurface failed.")); btn.disabled=false; return; }
+          toast("+5 XP — winner redeployed.");
+          btn.textContent="RESURFACED";
+        });
+      };
+    })(rs[i]);
+  }
+  var as=el.querySelectorAll("button.ar-attr");
+  for(var k=0;k<as.length;k++){
+    (function(btn){
+      var out=document.getElementById("arAttr"+btn.getAttribute("data-cid"));
+      var open=false;
+      btn.onclick=function(){
+        if(open){ out.innerHTML=""; open=false; return; }
+        open=true; out.innerHTML='<div class="x-note">Tracing conversions&hellip;</div>';
+        api("attribution_stats",{content_id:btn.getAttribute("data-cid")},function(j){
+          if(!j||!j.ok){ out.innerHTML='<div class="x-note">No attribution data yet.</div>'; return; }
+          out.innerHTML='<div class="ar-conv">'
+            +'<div>'+(Number(j.enlistments)||0)+' enlistments traced</div>'
+            +'<div>'+(Number(j.referrals)||0)+' referrals traced</div>'
+            +'<div>'+(Number(j.xp_generated)||0)+' XP generated</div></div>';
+        });
+      };
+    })(as[k]);
+  }
+}
+function render(){
+  var el=root; if(!el) return;
+  var id=ident(), h="";
+  /* search bar — 2026-10-03: archive_search (public) with TOP/RECENT sort;
+     falls back to content_search if the dedicated search fails. */
+  h+='<div class="c-tag">Every poster ever forged. Search it. Resurface winners. See what converted.</div>'
+  +'<div class="x-pane"><h4>Search the vault</h4>'
+    +'<input aria-label="healthcare, wages, rent&hellip;" id="arQ" type="text" placeholder="healthcare, wages, rent&hellip;" value="'+esc(lastQ)+'" style="width:60%;padding:8px;font:14px monospace"/>'
+    +'<button class="c-btn" id="arSearch">SEARCH</button> '
+    +'<button class="c-btn ghost" id="arSortTop"'+(lastSort==="top"?' disabled':"")+'>TOP</button>'
+    +'<button class="c-btn ghost" id="arSortRecent"'+(lastSort==="recent"?' disabled':"")+'>RECENT</button>'
+    +'<div id="arResults" style="margin-top:10px"></div></div>';
+  /* evergreen */
+  h+='<div class="x-pane"><h4>Evergreen winners</h4>'
+    +'<div class="x-note">Proven posters gone quiet for 30+ days. Redeploy them &mdash; winners win twice.</div>'
+    +'<div id="arEvergreen"><div class="c-load">Digging up winners&hellip;</div></div></div>';
+  el.innerHTML=h;
+  var sb=document.getElementById("arSearch");
+  var qi=document.getElementById("arQ");
+  function doSearch(){
+    var q=qi.value.trim(); if(!q) return;
+    lastQ=q;
+    var ro=document.getElementById("arResults");
+    ro.innerHTML='<div class="c-load">Searching&hellip;</div>';
+    function paint(rs){
+      var rh="";
+      if(!rs.length){ rh='<div class="x-note">Nothing in the vault matches "'+esc(q)+'". Forge it yourself.</div>'; }
+      for(var i=0;i<Math.min(rs.length,20);i++){ rh+=card(rs[i],true,true); }
+      ro.innerHTML=rh; wireCards(ro);
+    }
+    api("archive_search",{q:q,sort:lastSort},function(j){
+      var rs=(j&&j.ok&&j.results)||[];
+      if(!j||!j.ok){
+        /* Fallback: the older content_search path. */
+        api("content_search",{q:q},function(j2){
+          paint((j2&&j2.ok&&j2.results)||[]);
+        });
+        return;
+      }
+      paint(rs);
+    });
+  }
+  sb.onclick=doSearch;
+  qi.onkeydown=function(e){ if(e.key==="Enter") doSearch(); };
+  var st=document.getElementById("arSortTop");
+  if(st) st.onclick=function(){ lastSort="top"; render(); };
+  var sr=document.getElementById("arSortRecent");
+  if(sr) sr.onclick=function(){ lastSort="recent"; render(); };
+  if(lastQ&&results){
+    var ro2=document.getElementById("arResults");
+    var rh2="";
+    for(var r=0;r<Math.min(results.length,20);r++){ rh2+=card(results[r],true,true); }
+    ro2.innerHTML=rh2; wireCards(ro2);
+  }
+  /* evergreen load */
+  var eg=document.getElementById("arEvergreen");
+  if(EV){ paintEvergreen(eg); }
+  else{
+    api("evergreen_list",{},function(j){
+      EV=(j&&j.ok&&j.winners)||[];
+      var e2=document.getElementById("arEvergreen");
+      if(e2) paintEvergreen(e2);
+    });
+    setTimeout(function(){ var e3=document.getElementById("arEvergreen"); if(e3&&e3.innerHTML.indexOf("c-load")>=0) paintEvergreen(e3); },15000);
+  }
+}
+function paintEvergreen(eg){
+  if(!eg) return;
+  if(!EV.length){ eg.innerHTML='<div class="x-note">No dormant winners yet. The vault is young.</div>'; return; }
+  var h="";
+  for(var i=0;i<EV.length;i++){ h+=card(EV[i],true,false); }
+  eg.innerHTML=h; wireCards(eg);
+}
+render();
+}
+
+load();
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },180000);
+})();
+</scr`+`ipt>
+</div>
+</template>`);
+})();
+
+;

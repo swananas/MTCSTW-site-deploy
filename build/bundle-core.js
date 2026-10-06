@@ -47,6 +47,10 @@ var CORE_FILES = [
   /* wave-live-rails (2026-10-05): site_config client — key dates, tuning
      knobs, small facts. Early: other modules read through PF.siteConfig. */
   'core/site-config.js',
+  /* Synergy-1 attribution (2026-10-05): the ONE reusable credit component
+     (PF.credit). Early — news-top, macro-gallery, and all later surfaces
+     render their credit lines through it. */
+  'core/pf-credit.js',
   /* wave-live-rails (2026-10-05): Top Stories rail client — one shared
      helper (PF.newsTop) so every section renders the same news cache. */
   'core/news-top.js',

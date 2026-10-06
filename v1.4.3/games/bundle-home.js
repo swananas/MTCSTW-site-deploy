@@ -4411,7 +4411,12 @@ pfConsumeForgeLaunch();
    plugin registry's own entry points).
    Contract: sessionStorage['pf_forge_prefill_v1'] = JSON.stringify({
      v:1, plugin_id, template_id, label, data, source, fetched_at,
-     stashed_at })
+     stashed_at,
+     -- Synergy-1 attribution hook (S-20): creator-made templates may carry
+        sourced_by / sourced_name / sourced_url. When the Studio plugin
+        registry renders a template card, it renders the credit through
+        PF.credit(payload) — one voice everywhere. Absent = no credit line. --
+     sourced_by, sourced_name, sourced_url })
    - If window.PFStudio.applyPrefill exists (the plugin registry's Forge
      integration), the payload is handed off; the stash is cleared only
      when applyPrefill reports success.

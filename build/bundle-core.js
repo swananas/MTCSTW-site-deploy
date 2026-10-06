@@ -83,6 +83,25 @@ var CORE_FILES = [
      footer chrome on every page. Last: mounts before the footer element,
      so the chrome strips (crossnav/16-footer) sit below it. */
   'core/20-nextop.js',
+  /* hud (Cohesion P0, 2026-10-06): persistent progress marker — callsign +
+     rank, XP-today ring, streak — with the YOUR CAMPAIGN 5-phase strip on
+     tap. After nextop (both are journey chrome); fixed-position, no footer
+     dependency. */
+  'core/30-hud.js',
+  /* pillars (Four-pillar spine, 2026-10-06, CEO directive): the one-click
+     action bar — SPREAD / DATA / ACT / ORGANIZE — mounted inside the HUD's
+     YOUR CAMPAIGN strip, plus the adventure-path chooser (soft paths,
+     device-local) that reorders the buttons, flavors the strip headline,
+     and biases the Next Move ladder via PF.pillars.biasOps(). After the HUD
+     (extends it; never rebuilds it). FRONTEND-ONLY, ZERO NEW XP. */
+  'core/31-pillars.js',
+  /* hubhome (User hub as true homepage, 2026-10-06, CEO directive): the
+     homepage becomes the recognized user's campaign hub — YOUR CAMPAIGN
+     hero (stats, Next Move, orders, cell, pillar bar, War Report teaser)
+     for device-local callsigns; the public landing is untouched for
+     anonymous visitors. Composes the HUD + pillars; duplicates neither.
+     FRONTEND-ONLY, ZERO NEW XP. Kill: ?pf_off=hubhome */
+  'core/32-hubhome.js',
   /* allfronts (2026-10-04): ALL FRONTS operation banner — fixed-top strip
      while an operation is live or launching within the hour. */
   'core/21-allfronts.js',

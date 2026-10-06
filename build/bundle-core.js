@@ -153,6 +153,14 @@ var MONEY_FILES = [
   /* FRED Everywhere Phase 1 (2026-10-05): the "economy they're governing"
      strip for the Follow the Money tab — policy transmission framing. */
   'core/fred-governing.js',
+  /* FRED Everywhere Phase 2 (2026-10-05): Tool 1 "Stack 'Em" — the full
+     comparison builder (MACRO section) + War Report curated + Academy
+     guided modes. Self-mounts by DOM presence outside the money suite. */
+  'games/fred-stackem.js',
+  /* FRED Everywhere Phase 2 (2026-10-05): Tool 2 explainer — embedded in
+     Follow the Money ("WHAT'S THIS COSTING YOU?"). Self-mounts by DOM
+     presence on economy / war-report / briefing pages. */
+  'games/fred-explain.js',
   'core/macro-share.js',
   'core/macro-gallery.js',
   'core/money-deep8.js',
@@ -162,11 +170,30 @@ var MONEY_FILES = [
   'games/ritual-calendar.js'
 ];
 
+/* FRED Everywhere Phase 2 (2026-10-05): the three user modeling tools —
+   Tool 1 Stack 'Em, Tool 2 explainer, Tool 3 Receipt check. Lazy chunk
+   (core/bundle-fred-tools.js) for non-money pages; the money page ships
+   its two tools inside the money chunk instead. */
+var FRED_TOOLS_FILES = [
+  'games/fred-stackem.js',
+  'games/fred-explain.js',
+  'games/fred-receipt.js'
+];
+
 var BUNDLES = {
   'core/bundle-core': CORE_FILES.slice(),
   /* 2026-10-05 (fix/money-minified-rebuild): lazy money chunk — NOT in the
      critical path. Fetched only when a money surface is present. */
   'core/bundle-money': MONEY_FILES.slice(),
+  /* FRED Everywhere Phase 2 (2026-10-05): the three user modeling tools as
+     a lazy chunk — Tool 1 Stack 'Em (curated/guided/full), Tool 2 explainer,
+     Tool 3 Receipt check. Fetched only when a tool host exists (#pf-economy,
+     #xWarReport, #xBrief, #pf-academy-hq) via core/fred-tools-loader.js.
+     The money page does NOT use this chunk: it ships fred-stackem.js +
+     fred-explain.js inside the money chunk (blocking, synchronous with
+     money-page.js section mounts). No page loads both chunks; every tool
+     file is idempotent (window.PF* guard) regardless. */
+  'core/bundle-fred-tools': FRED_TOOLS_FILES.slice(),
   /* M34: roster pages get the identical core PLUS the snapshot, in the same
      relative position the old bundle-core used (right after 00-bus.js). */
   'core/bundle-core-slr':
@@ -204,6 +231,12 @@ var BUNDLES = {
        ~1.5KB loader is all that stays in core: honors ?pf_off=money before
        fetching, loads the chunk only on #pf-money / #pf-political-hq. */
     'core/money-chunk-loader.js',
+    /* FRED Everywhere Phase 2 (2026-10-05): the three user modeling tools
+       (~1.2KB loader, same pattern as the money chunk loader). Loads
+       core/bundle-fred-tools.js only when a tool host exists (#pf-economy,
+       #xWarReport, #xBrief, #pf-academy-hq). Honors ?pf_off=fred before
+       fetching; fail-soft. KILL: ?pf_off=fred. */
+    'core/fred-tools-loader.js',
     /* creator-recruit: shared recruiting toolbar for roster cards + catalog
        pages. Last: needs PFShare (share-image.js) + the catalog renderers. */
     'pages/creator-recruit.js',

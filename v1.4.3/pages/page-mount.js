@@ -38,29 +38,61 @@
      staged <template id="pf-ov-*">. */
   var PAGE_ORDERS = {
     'pf-arcade': {
-      title: 'THE ARCADE', sub: 'Nine games. Zero mercy. Play them all.',
+      /* BLOSSOM S1 (2026-10-06): the arcade trims to its 6 casual games.
+         markets -> /call-it (CALL IT.), bracket-board -> /liquidation
+         (LIQUIDATION RECORDS), battles retired from the hub, slr-match-quiz
+         -> homepage (home-v2), predgame -> /call-it. */
+      title: 'THE ARCADE', sub: 'Six games. Zero mercy. Play them all.',
+      phase: 'fight',
       order: [
-        /* REDISTRIBUTION LAYER (2026-10-05): the White Market / casino hall
-           is unmounted. The 'markets' silo is rebranded as the War Room —
-           Frontline Forecasts (with interim BATTLE WAGERS / RAID / DRAW
-           panes inside it); the coin-flip UI moved to the new 'gambits'
-           silo right below it. The retired casino.js keeps its
-           ?pf_off=casino kill-switch vestigial (not rewired); its
-           ['casino','pf-ov-casino'] entry was removed, not replaced. */
-        ['markets', 'pf-ov-markets'],
+        /* TEARDOWN WS-2 (2026-10-06): the games table — lobby cards mount
+           first; each card's DEPLOY scrolls to its game below, in place. */
+        ['arcade-cards', 'pf-ov-arcade-cards'],
         ['gambits', 'pf-ov-gambits'],
         ['caption-combat', 'pf-ov-caption'],
         ['creator-guess', 'pf-ov-guess'],
         ['daily-interrogation', 'pf-ov-interrogation'],
         ['billionaire-supervillain', 'pf-ov-billionaire'],
-        ['bracket-board', 'pf-ov-bracket'],
-        ['battles', 'pf-ov-battles'],
         ['infighting', 'pf-ov-infight'],
-        ['slr-match-quiz', 'pf-ov-matchquiz'],
-        /* 2026-10-05 (fe/predict-game): CALL IT. prediction game. Stages
-           from games/bundle-predgame.js (footer JS_GAMES); category preselect
-           'all' on the arcade hub. Kill: ?pf_off=predgame. */
-        ['predgame', 'pf-ov-predgame']
+        /* Supply Line Raid (silo key 'raid', games/bundle-raid.js): the
+           cells-stack game plays from the arcade too — plan S2 sends it home
+           here. Cell-scoped rounds (cell_id from the loaded cell context,
+           never URL params); non-members get the join-a-cell nudge.
+           Entry[3] = the cell-scoped label banner injected above the section.
+           Kill: ?pf_off=raid. */
+        ['raid', 'pf-ov-raid', null, 'CELL-SCOPED · YOUR CELL RUNS THE LINE']
+      ]
+    },
+    /* BLOSSOM S1 (2026-10-06): CALL IT. — the prediction layer's own home,
+       split out of /arcade (plan S1). predgame (CALL IT. proper) +
+       markets (the War Room — Frontline Forecasts). Ship-time hand-steps:
+       Squarespace page /call-it + <div id="pf-call-it"></div>.
+       Kill: ?pf_off=predgame / ?pf_off=markets. Next Move exits to /cells
+       (FIGHT→ORGANIZE). */
+    'pf-call-it': {
+      title: 'CALL IT.', sub: 'Predictions. Call it before it happens.',
+      phase: 'fight',
+      exit: { text: 'NEXT MOVE →', href: '/cells' },
+      order: [
+        /* TEARDOWN WS-2: prediction table cards mount first. */
+        ['arcade-cards', 'pf-ov-arcade-cards'],
+        ['predgame', 'pf-ov-predgame'],
+        ['markets', 'pf-ov-markets']
+      ]
+    },
+    /* BLOSSOM S1 (2026-10-06): LIQUIDATION RECORDS — the bracket's own home,
+       split out of /arcade (plan S1). Fail-soft: builds regardless of what
+       /liquidation currently hosts (hand-step verification pending); mounts
+       only when #pf-liquidation exists. Kill: ?pf_off=bracket-board.
+       Next Move exits to /cells (FIGHT→ORGANIZE). */
+    'pf-liquidation': {
+      title: 'LIQUIDATION RECORDS', sub: 'The brackets. The carnage. The receipts.',
+      phase: 'fight',
+      exit: { text: 'NEXT MOVE →', href: '/cells' },
+      order: [
+        /* TEARDOWN WS-2: bracket card mounts first. */
+        ['arcade-cards', 'pf-ov-arcade-cards'],
+        ['bracket-board', 'pf-ov-bracket']
       ]
     },
     'pf-cells-page': {
@@ -226,6 +258,10 @@
     if (host.querySelector(':scope > .pf-page-head')) return;
     var head = document.createElement('div');
     head.className = 'pf-page-head';
+    /* BLOSSOM S1 (2026-10-06): spine phase declaration on the page header
+       (cohesion gate rule — plan §8). Set only when the PAGE_ORDER entry
+       declares one, so legacy pages are never mislabeled. */
+    try { if (cfg.phase) head.setAttribute('data-pf-spine-phase', cfg.phase); } catch (e) {}
     /* CONTRAST FIX (2026-10-04): the hero carries its own dark band so the
        near-white title is never at the mercy of the Squarespace section
        background — /economy, /arcade and /war-chest ship light-gray section
@@ -276,6 +312,30 @@
     return true;
   }
 
+  /* BLOSSOM S1 (2026-10-06): Next Move exit — every new page has an exit
+     (plan §2: no dead ends). Re-appended on every mountPage call so it stays
+     below late-mounting sections; idempotent. Fail-soft: skipped when the
+     PAGE_ORDER entry declares no exit. */
+  function mountExit(h, cfg) {
+    try {
+      if (!cfg.exit || !cfg.exit.href) return;
+      var x = h.querySelector(':scope > .pf-next-move');
+      if (!x) {
+        x = document.createElement('a');
+        x.className = 'pf-next-move';
+        x.style.cssText = 'display:block;text-align:center;margin:26px auto 60px;max-width:720px;' +
+          'font-family:Arial,sans-serif;font-size:15px;font-weight:800;letter-spacing:3px;' +
+          'color:#f5ead6;text-decoration:none;border:2px solid #c1121f;padding:14px 18px;' +
+          'background:rgba(193,18,31,.12);border-radius:3px;box-sizing:border-box;';
+        x.href = cfg.exit.href;
+        var sp = document.createElement('span');
+        sp.textContent = cfg.exit.text || 'NEXT MOVE →';
+        x.appendChild(sp);
+      }
+      h.appendChild(x); /* move to bottom */
+    } catch (e) { /* exit is best-effort */ }
+  }
+
   var mounted = {};
   /* 2026-10-05 (fe/events-move): tracks injected lazy-bundle anchors so a
      lazy entry's placeholder is created exactly once per page/silo. */
@@ -304,7 +364,8 @@
   var FE_MOUNT_IDS = [
     'pf-v2',
     'pf-cells-page', 'pf-cell-hq',
-    'pf-arcade', 'pf-create', 'pf-bank', 'pf-economy',
+    'pf-arcade', 'pf-call-it', 'pf-liquidation',
+    'pf-create', 'pf-bank', 'pf-economy',
     'pf-warchest', 'pf-ventures', 'pf-events', 'pf-warreport',
     'pf-war-card', 'pf-academy-hq', 'pf-dash-hq', 'pf-hq-mission',
     'pf-political-hq', 'pf-slr-roster', 'pf-catalog', 'pf-money',
@@ -404,6 +465,19 @@
         var section = document.createElement('section');
         section.className = 'pf-v2-game';
         section.setAttribute('data-game', silo);
+        /* BLOSSOM S1 (2026-10-06): optional entry[3] = a label banner
+           injected at the top of the section (e.g. the raid's CELL-SCOPED
+           kicker). Fail-soft: skipped when the entry has no label. */
+        try {
+          if (entry[3]) {
+            var lbl = document.createElement('div');
+            lbl.className = 'pf-sec-label';
+            lbl.style.cssText = 'font-family:Arial,sans-serif;font-size:11px;font-weight:800;' +
+              'letter-spacing:3px;color:#dc143c;text-align:center;margin:0 0 10px;';
+            lbl.textContent = entry[3];
+            section.appendChild(lbl);
+          }
+        } catch (e5) { /* label is best-effort */ }
         section.appendChild(frag);
         /* A lazy entry's placeholder anchor (if any) is replaced by the real
            section — no orphaned skeletons, no dead mount divs. */
@@ -421,6 +495,9 @@
         n++;
       } catch (e) { err('mount failed: ' + silo, e); mounted[key] = 1; }
     });
+    /* BLOSSOM S1: Next Move exit sits below every section, repositioned on
+       each (re)mount so late-mounting silos never strand it mid-page. */
+    mountExit(h, cfg);
     return n;
   }
 

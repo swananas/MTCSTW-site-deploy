@@ -44,7 +44,7 @@
 <div id="xPredgame"><div class="c-load">Reading the room&hellip;</div></div>
 <style>
 /* CALL IT. (2026-10-05) — prediction game expansion. Mobile-first, touch targets >= 44px. */
-#pf-predgame .pq-row{margin:12px 0;padding:12px;border:2px solid #3a3a3a;background:#0d0d0d}
+#pf-predgame .pq-row{margin:12px 0;padding:16px;border:1px solid #2a2a2a;border-top:3px solid #c1121f;background:#0a0a0a}
 #pf-predgame .pq-title{font-weight:900;font-size:1rem;color:#f5f0e1;margin-bottom:6px;line-height:1.3}
 #pf-predgame .pq-status{font-size:0.75rem;letter-spacing:0.14em;color:#b8ab8e;margin-bottom:8px}
 #pf-predgame .pq-rules{font-size:0.85rem;color:#b8ab8e;line-height:1.45;margin:8px 0}
@@ -252,6 +252,8 @@
 
   /* ---- section state ---- */
   var state = { questions: [], leaders: [], cat: 'all', record: { wins: 0, losses: 0 }, hasPicks: false,
+    /* TEARDOWN WS-2: pattern helpers for the question cards (fail-open). */
+    PAT: (window.PF && window.PF.patterns) || null,
     qTrunc: false, qTotal: 0, pTrunc: false, pTotal: 0 };
 
   function recordHTML() {
@@ -274,10 +276,28 @@
     }
     return null;
   }
+  /* TEARDOWN WS-2: compact closing-time figure for the question card's
+     data strip (the dominant live number). Null when unknown. */
+  function lockFig(lock_at) {
+    var t = Date.parse(lock_at);
+    if (isNaN(t)) return null;
+    var r = t - Date.now();
+    if (r <= 0) return null;
+    var o = Math.floor(r / 1e3), n = Math.floor(o / 86400),
+        hh = Math.floor(o % 86400 / 3600), mm = Math.floor(o % 3600 / 60);
+    return n > 0 ? (n + 'D ' + hh + 'H') : (hh > 0 ? (hh + 'H ' + mm + 'M') : (mm + 'M ' + (o % 60) + 'S'));
+  }
   function questionHTML(q) {
-    var h = '<div class="pq-row" data-q="' + esc(q.id) + '">';
+    /* TEARDOWN WS-2: each question renders as an Intel Card (P2). */
+    var h = '<div class="pq-row pf-pat pf-pat-intel" data-q="' + esc(q.id) + '">';
     if (q.category && CAT_LABEL[q.category]) h += '<div class="pq-cat">' + CAT_LABEL[q.category] + '</div>';
     h += '<div class="pq-title">' + esc(q.title) + '</div>';
+    /* Data Strip (P4): closing time is the dominant live number — real or
+       suppressed (P8 honesty). */
+    if (state.PAT && q.status === 'open') {
+      var lf = lockFig(q.lock_at);
+      if (lf) h += state.PAT.dataStrip({ figure: lf, label: 'UNTIL CALLS CLOSE', source: 'the call board', updated: 'just now' });
+    }
     if (q.rules) h += '<div class="pq-rules">' + esc(q.rules) + '</div>';
 
     if (q.status === 'voided') {
@@ -386,7 +406,10 @@
     return h;
   }
   function sectionHTML() {
-    return chipsHTML() + recordHTML() + '<div class="pq-qlist">' + listHTML() + '</div>' + leaderboardHTML();
+    /* Brand integration (2026-10-06, staged fix 5): cross-pillar handoffs —
+       wired declaratively by the share-everywhere scanner (same branded styling). */
+    return chipsHTML() + recordHTML() + '<div class="pq-qlist">' + listHTML() + '</div>' + leaderboardHTML() +
+      '<div data-pf-handoff="share-intel"></div><div data-pf-handoff="report-back"></div>';
   }
 
   /* ---- binding ---- */

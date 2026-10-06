@@ -194,6 +194,10 @@ var SECTIONS = {
     'feed.js'
   ],
   'bundle-arcade': [
+    /* TEARDOWN WS-2 (2026-10-06): the games table — lobby cards for /arcade,
+       /call-it and /liquidation. First: it mounts first in the page orders
+       below, and bundle-arcade.js loads on all three pages. */
+    'arcade-cards.js',
     /* /arcade — the 3 arcade games not already in bundle-home. */
     'caption-combat.js',
     'bracket-board.js',
@@ -208,16 +212,17 @@ var SECTIONS = {
     'casino-exits.js',
     /* THE WAR ROOM — FRONTLINE FORECASTS (rebranded 2026-10-05 from the
        White Market lobby): the layer's front door + markets panel + the
-       Phase-A interim BATTLE WAGERS / RAID / DRAW zones. Mounts first on
-       /arcade via page-mount.js. */
+       Phase-A interim BATTLE WAGERS / RAID / DRAW zones. Mounts on /call-it
+       via page-mount.js (moved off /arcade in BLOSSOM S1, 2026-10-06). */
     'markets.js',
     /* A3 Deployment Tracker (2026-10-04): /arcade lobby deep-links into
        unplayed medal games. Coordinator: rebuild bundles to ship. */
     'deploy-tracker.js'
-    /* Phase B (built 2026-10-05): 'supply-raid.js' (silo key 'raid',
-       bundle-cells, mounted on pf-cells-page / pf-cell-hq) and
-       'solidarity-draw.js' (silo key 'draw', bundle-home, mounted in the
-       Hall of Proof section on the homepage). */
+    /* Phase B (built 2026-10-05; extracted to bundle-raid 2026-10-06):
+       'supply-raid.js' (silo key 'raid', own bundle now, mounted on
+       pf-cells-page AND pf-arcade) and 'solidarity-draw.js' (silo key
+       'draw', bundle-home, mounted in the Hall of Proof section on the
+       homepage). */
   ],
   /* 2026-10-05 (fe/predict-game): CALL IT. — the prediction-game expansion.
      Standalone page bundle (silo key 'predgame'): the footer fetches it on
@@ -255,16 +260,19 @@ var SECTIONS = {
        ?pf_off=cell-territory-map / ?pf_off=cell-comp-seasons. Zero XP. */
     'cell-territory-map.js',
     'cell-comp-seasons.js',
-    /* REDISTRIBUTION LAYER Phase B (2026-10-05): Supply Line Raid — the
-       bespoke cell home (silo key 'raid'). Mounted on pf-cells-page via
-       page-mount.js; cell-scoped rounds (cell_id from the loaded cell
-       context, never URL params); hidden for non-members. */
-    'supply-raid.js',
     /* COMMUNITY REVIEW WAVE (2026-10-05): Review Pool — community review of
        Content Bank submissions (SOP v2). Silo key 'review-pool'; self-mounts
        into #pf-review-pool on Creator HQ / Studio, silent no-op elsewhere.
        Kill: ?pf_off=review-pool. */
     'review-pool.js'
+  ],
+  /* BLOSSOM S1 (2026-10-06): Supply Line Raid (silo key 'raid', template
+     id pf-ov-raid) extracts to its own bundle — it plays on /cells AND
+     /arcade (plan S2 sends the game home to the arcade). Standalone:
+     supply-raid.js reads cell_mine itself (backend call), no cells-stack
+     dependency. The footer loads this bundle on both pages. */
+  'bundle-raid': [
+    'supply-raid.js'
   ],
   'bundle-create': [
     /* /create (+ Creator HQ) — creator tooling.

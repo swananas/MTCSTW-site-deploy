@@ -238,6 +238,8 @@ function render(){
   /* --- retry --- */
   h+='<div style="margin-top:10px"><button class="c-btn" id="cpRetry">Refresh</button></div>';
   el.innerHTML=h;
+  /* 2026-10-06 share-everywhere (staged): share the pledge wall. */
+  try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(el,'pledge-wall',{link:'/'}); }catch(e){}
   /* COHESION (2026-10-06): terminal-state wiring — consumed here so the
      pledge confirmation hands off to the next-move engine exactly once. */
   if(pfTerminalPledge){

@@ -4,7 +4,7 @@
    #pf-whitemarket anchor is aliased to #pf-forecasts on load/hashchange).
    Zone chips: FORECASTS / MY POSITIONS / BATTLE WAGERS / GAMBITS / RAID / DRAW.
    - FORECASTS zone: open/locked market list (title, kind badge, sides with
-     pool share + implied odds, bettor counts, locks-in countdown), market
+     pool share, forecaster counts, locks-in countdown), market
      detail + stake slip (side picker, 10-250 XP, escrow confirm copy),
      MY POSITIONS tab.
    - BATTLE WAGERS zone: wager list + staking (moved out of the retired
@@ -38,7 +38,7 @@
 .wm-chip:hover{border-color:#c1121f;color:#fff}
 .wm-chip.wm-on{background:#c1121f;border-color:#c1121f;color:#fff}
 .wm-kind{display:inline-block;background:#c1121f;color:#fff;font:900 10px Arial,sans-serif;letter-spacing:.14em;padding:4px 8px;margin-right:8px;vertical-align:middle}
-.wm-mkt{border:1px solid #3d3d3d;background:#0d0d0d;padding:12px;margin:10px 0;cursor:pointer}
+.wm-mkt{cursor:pointer;margin:12px 0}
 .wm-mkt:hover{border-color:#c1121f}
 .wm-mkhead{font:700 14px Arial,sans-serif;color:#f5ead6;margin-bottom:4px}
 .wm-side{display:flex;justify-content:space-between;gap:8px;padding:7px 4px;border-top:1px solid #222;font:400 13px Arial,sans-serif;color:#c9bfa8}
@@ -55,7 +55,7 @@
 .wm-lose{color:#ff4d5e;font-weight:900}
 .wm-trust{border-top:1px solid #2a2a2a;margin-top:14px;padding:10px 4px 2px;font:400 11.5px Arial,sans-serif;color:#8a8171;line-height:1.6;letter-spacing:.02em}
 .wm-trust b{color:#c9bfa8}
-.wr-pot{background:#160808;border:2px solid #c1121f;color:#ff5a00;font:900 20px 'Arial Black',Arial,sans-serif;letter-spacing:2px;text-align:center;padding:12px;margin:10px 0}
+.wr-pot{background:#160808;border:2px solid #c1121f;color:#fff;font:900 20px 'Arial Black',Arial,sans-serif;letter-spacing:2px;text-align:center;padding:12px;margin:10px 0}
 .wr-line{font:900 34px 'Arial Black',Arial,sans-serif;color:#f5ead6;text-align:center;margin:10px 0}
 .wr-line.wr-dead{color:#ff4d5e}
 </style>
@@ -171,7 +171,8 @@ function fmtDate(ms){
   }catch(e){ return ""; }
 }
 /* ---- state ---- */
-var ML=null, MLtried=false;
+var ML=null, MLtried=false, MLt=0;   /* MLt: market_list loaded-at (data-strip recency) */
+var PAT=(window.PF&&window.PF.patterns)||null;  /* teardown WS-2: pattern helpers, fail-open */
 var W=null, L=null, C=null;   /* wagers / draw round / raid round */
 var zone="forecasts";         /* war-room zone: 'forecasts' | 'wagers' | 'raid' | 'draw' */
 var tab="markets";            /* forecasts tab: 'markets' | 'positions' */
@@ -189,6 +190,7 @@ function loadList(soft){
   api("market_list",p,function(j){
     ML=j||null; MLtried=true;
     if(j&&j.ok){
+      try{ MLt=Date.now(); }catch(e){}
       var ms=j.markets||[];
       for(var i=0;i<ms.length;i++){
         if(ms[i]&&ms[i].id&&ms[i].my_position) posCache[ms[i].id]=ms[i].my_position;
@@ -250,7 +252,36 @@ function gotoZone(z){
   if(z!=="forecasts") loadWar();
   render(); scrollZone();
 }
-/* ---- market rows ---- */
+/* ---- market rows (teardown WS-2: plain-stakes cards) ----
+   Trader jargon is banned from card copy: no "volume", no "liquidity", no
+   "odds"/"pays Nx" gambling framing. The card reads like an intel brief —
+   "65% say Dems take the Senate" — with the pool math as the honest source
+   line (ANTI-LEAK: pool handle only, never vote tallies). */
+function leaderOf(m){
+  var sides=m.sides||[], total=Number(m.total_pool)||0;
+  var best=null, bestPool=-1;
+  for(var i=0;i<sides.length;i++){ var sp=Number(sides[i].pool)||0; if(sp>bestPool){ bestPool=sp; best=sides[i]; } }
+  if(!best||total<=0) return null;
+  return {side:best, share:Math.round(bestPool/total*100)};
+}
+function forecasterCount(m){
+  var n=0, sides=m.sides||[];
+  for(var i=0;i<sides.length;i++) n+=Number(sides[i].bettors||0);
+  return n;
+}
+function plainStakes(m){
+  var L=leaderOf(m);
+  if(!L) return null;
+  return L.share+'% say '+sideName(L.side.side);
+}
+function mlAge(){
+  try{
+    if(!MLt) return 'just now';
+    var s=Math.max(0,Math.floor((Date.now()-MLt)/1000));
+    if(s<60) return 'just now';
+    return Math.floor(s/60)+' min ago';
+  }catch(e){ return 'just now'; }
+}
 function sideRows(m,clickable,selected){
   /* ANTI-LEAK (fanfav): share % / pays-Nx below are MARKET pool handle
      (bettor XP on each side) — never the fan-vote tally. Tallies are never
@@ -262,35 +293,54 @@ function sideRows(m,clickable,selected){
   for(var i=0;i<sides.length;i++){
     var sd=sides[i], sp=Number(sd.pool)||0, label=String(sd.side==null?"":sd.side);
     var share=total>0?Math.round(sp/total*100):0;
-    var odds=sp>0?("pays "+(total/sp).toFixed(1)+"x"):"no bets yet";
+    var fc=Number(sd.bettors||0);
+    /* Card/list copy: plain stakes only — no "pays Nx", no "no bets yet".
+       The detail (clickable) keeps the functional pool multiple, plainly labeled. */
+    var meta=share+'% &bull; '+fc+' forecaster'+(fc===1?'':'s');
+    if(clickable&&sp>0) meta=share+'% &bull; '+(total/sp).toFixed(1)+'x pool share &bull; '+fc+' forecaster'+(fc===1?'':'s');
     var cls="wm-side"+(clickable?" wm-pick":"")+(selected===label?" wm-sel":"");
     h+='<div class="'+cls+'"'+(clickable?' data-wside="'+esc(label)+'"':"")+'>'
       +'<span class="wm-sname">'+esc(sideName(label))+'</span>'
-      +'<span class="wm-sodds">'+share+'% &bull; '+esc(odds)+' &bull; '+sp+' XP ('+Number(sd.bettors||0)+')</span></div>';
+      +'<span class="wm-sodds">'+meta+'</span></div>';
   }
   return h||'<div class="x-note">No sides posted yet.</div>';
 }
 function statusLine(m){
   var st=String(m.status||"open").toLowerCase();
-  var total=Number(m.total_pool)||0, bc=0, sides=m.sides||[];
-  for(var i=0;i<sides.length;i++) bc+=Number(sides[i].bettors||0);
+  var fc=forecasterCount(m);
   var h="";
   if(st==="open"&&m.locks_at) h+="locks in "+fmtTime(Number(m.locks_at))+" &bull; ";
-  else if(st==="locked") h+="betting locked &bull; ";
+  else if(st==="locked") h+="calls closed &bull; ";
   else if(st==="resolving") h+="resolving &bull; ";
   else if(st==="resolved") h+="RESOLVED &mdash; winner: <b>"+esc(sideName(m.winner))+"</b> &bull; ";
-  else if(st==="refunded") h+="REFUNDED &bull; ";
-  h+="pool "+total+" XP &bull; "+bc+" bettor"+(bc===1?"":"s");
+  else if(st==="refunded") h+="REFUNDED &mdash; stakes returned &bull; ";
+  h+=fc+" forecaster"+(fc===1?"":"s")+" calling it";
   if(m.resolves_at&&(st==="open"||st==="locked")) h+=" &bull; resolves "+fmtDate(Number(m.resolves_at));
   return h;
 }
+/* The forecast card: Intel Card (P2) + Data Strip (P4) + Proof (P8) +
+   DEPLOY -> (opens the market detail IN PLACE) + Action Bar (P6). */
 function marketRow(m){
   var k=kindOf(m);
-  var h='<div class="wm-mkt" data-mid="'+esc(m.id)+'">';
-  h+='<div class="wm-mkhead"><span class="wm-kind">'+esc(k.tag)+'</span>'+esc(m.title||m.id)+'</div>';
-  h+='<div class="x-note">'+statusLine(m)+'</div>';
-  h+=sideRows(m,false,null);
-  h+='</div>';
+  var st=String(m.status||"open").toLowerCase();
+  var ps=plainStakes(m);
+  var L=leaderOf(m);
+  var fc=forecasterCount(m);
+  var kick=esc(k.tag);
+  if(st==="open"&&m.locks_at) kick+=" &middot; LOCKS IN "+esc(fmtTime(Number(m.locks_at)).toUpperCase());
+  else if(st!=="open") kick+=" &middot; "+esc(st.toUpperCase());
+  var h='<article class="pf-pat pf-pat-intel wm-mkt" data-mid="'+esc(m.id)+'">';
+  h+='<p class="pf-pat-intel-kicker">'+kick+'</p>';
+  h+='<h3 class="pf-pat-intel-head">'+esc(m.title||m.id)+'</h3>';
+  if(ps) h+='<p class="pf-pat-intel-data">'+esc(ps)+'</p>';
+  else h+='<p class="pf-pat-intel-data pat-gray">'+statusLine(m)+'</p>';
+  if(PAT&&L) h+=PAT.dataStrip({figure:L.share+'%',label:'say '+sideName(L.side.side),
+    source:'staked XP pool'+(fc>0?' \u00B7 '+fc+' forecasters':''),updated:mlAge()});
+  if(PAT&&fc>0) h+=PAT.proof({count:fc,text:'forecasters calling it'});
+  /* DEPLOY -> : in-place — opens the market detail right here, same page. */
+  h+='<div class="pf-pat-intel-actions"><a class="pf-pat-deploy" href="#pf-forecasts" data-wdeploy="'+esc(m.id)+'">DEPLOY \u2192</a></div>';
+  if(PAT) h+=PAT.actionBar({shareUrl:'/call-it',cellUrl:'/cells',reportUrl:'/#pf-orders'});
+  h+='</article>';
   return h;
 }
 function renderList(){
@@ -419,13 +469,14 @@ function renderWagers(id){
       continue;
     }
     h+='<div class="cs-wager"><div class="cs-wdesc">'+esc(w.description)+'</div>'
-      +'<div class="x-note">'+esc(w.kind)+' &bull; pot: '+(Number(w.total_pool)||0)+' XP &bull; closes '+fmtTime(w.closes_at)+'</div>';
+      +'<div class="x-note">'+esc(w.kind)+' &bull; '+(Number(w.total_pool)||0)+' XP on the line &bull; closes '+fmtTime(w.closes_at)+'</div>';
     var sides=w.sides||[];
     for(var s=0;s<sides.length;s++){
       var sd=sides[s], pool=Number(w.total_pool)||0, sb=Number(sd.total_bet)||0;
-      var odds=sb>0?("pays "+(pool/sb).toFixed(1)+"x"):"no stakes yet";
+      /* TEARDOWN WS-2: plain stakes — no "pays Nx" / "no stakes yet". */
+      var wshare=sb>0?((pool/sb).toFixed(1)+'x of the pool'):'no stakes on this side yet';
       h+='<div class="cs-side"><span class="cs-sname">'+esc(sd.side_name||sd.side)+'</span>'
-        +' <span class="cs-odds">'+esc(odds)+' ('+sb+' XP)</span>'
+        +' <span class="cs-odds">'+esc(wshare)+' &bull; '+sb+' XP staked</span>'
         +'<button class="c-btn cs-wbetbtn" data-wid="'+esc(w.id)+'" data-side="'+esc(sd.side)+'">STAKE</button></div>';
     }
     h+='<div class="cs-betrow"><input aria-label="XP amount" class="c-input cs-amt pf-input-sm" id="wrAmt_'+esc(w.id)+'" type="number" min="1" placeholder="XP amount" >'
@@ -463,16 +514,16 @@ function renderDraw(id){
   /* WM-EXITS (de-isolation): watch for round transitions — the previous round resolved. */
   try{ if(r&&window.PF&&PF.wmLotterySeen) PF.wmLotterySeen(r); }catch(wme){}
   var h='<div class="x-pane"><h4>The Solidarity Draw</h4>'
-    +'<div class="x-note">10 XP per ticket. Winner takes 80% &mdash; 20% arms the war chest. Drawn weekly.</div>';
+    +'<div class="x-note">10 XP per ticket. Every ticket feeds the mission pot &mdash; the winner takes 80%, 20% arms the war chest. Drawn weekly.</div>';
   if(!r){ h+='<div class="x-note">Draw loading&hellip;</div></div>'; return h; }
-  h+='<div class="wr-pot">'+(Number(r.pot)||0)+' XP POT</div>'
+  h+='<div class="wr-pot">'+(Number(r.pot)||0)+' XP &mdash; THE MISSION POT</div>'
     +'<div class="x-note">Draws in '+fmtTime(r.ends_at)+' &bull; '+(Number(r.total_tickets)||0)+' tickets in play &bull; you hold '+(Number(r.my_tickets)||0)+'</div>'
     +'<div class="cs-btnrow"><button class="c-btn" data-tk="1">1 TICKET</button>'
     +'<button class="c-btn" data-tk="5">5 TICKETS</button>'
     +'<button class="c-btn" data-tk="10">10 TICKETS</button></div>'
     +'<div class="cs-btnrow" style="margin-top:8px"><button class="c-btn" data-tk="1" id="wrDrawEnter" style="font-size:14px;padding:12px 26px;">ENTER THE DRAW</button></div>'
     +'<div class="c-err" id="wrDrawErr"></div></div>';
-  h+='<div class="wm-trust"><b>XP has no cash value. Stakes are final.</b><br>Odds = your tickets &divide; all tickets. Winner takes 80% &mdash; 20% arms the war chest.</div>';
+  h+='<div class="wm-trust"><b>XP has no cash value. Stakes are final.</b><br>Your share of the pot grows with your tickets. Winner takes 80% &mdash; 20% arms the war chest.</div>';
   return h;
 }
 /* ---- render + wire ---- */
@@ -489,7 +540,7 @@ function zoneNote(){
   return "One board, every forecast — stake XP on creator outcomes. One position per market. Winners split the pool.";
 }
 function trustLine(){
-  if(zone==="raid"||zone==="draw") return ""; /* panes carry their own odds lines */
+  if(zone==="raid"||zone==="draw") return ""; /* panes carry their own trust lines */
   return '<div class="wm-trust"><b>XP has no cash value. Stakes are final.</b><br>Parimutuel &mdash; winners split the pool. No house cut. Stakes run 10&ndash;250 XP.</div>';
 }
 function render(){
@@ -532,6 +583,23 @@ function wire(){
     (function(row){
       row.onclick=function(){ openDetail(row.getAttribute("data-mid")); };
     })(rows[r]);
+  }
+  /* TEARDOWN WS-2: DEPLOY -> opens the market in place (one tap, same page);
+     action-bar taps must not bubble up to the card's row handler. */
+  var dz=el.querySelectorAll("[data-wdeploy]");
+  for(var dzi=0;dzi<dz.length;dzi++){
+    (function(a){
+      a.onclick=function(ev){
+        try{ if(ev){ ev.preventDefault(); ev.stopPropagation(); } }catch(e2){}
+        openDetail(a.getAttribute("data-wdeploy"));
+      };
+    })(dz[dzi]);
+  }
+  var ab=el.querySelectorAll(".pf-pat-actions a");
+  for(var abi=0;abi<ab.length;abi++){
+    (function(a){
+      a.addEventListener("click",function(ev){ try{ ev.stopPropagation(); }catch(e2){} });
+    })(ab[abi]);
   }
   var bk=document.getElementById("wmBack")||document.getElementById("wmBack2");
   if(bk) bk.onclick=function(){ detailId=null; render(); };

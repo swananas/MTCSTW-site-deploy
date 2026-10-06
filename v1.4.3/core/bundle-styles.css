@@ -965,19 +965,17 @@ html,body{overflow-x:clip;}
   letter-spacing:1px;text-transform:uppercase;text-decoration:none;cursor:pointer;
   padding:8px 0}
 .pf-pat-deploy:hover{text-decoration:underline;color:#fff}
-.pf-pat-deploy .pat-arrow,.pf-pat-deploy::after{content:' \2192'}
+.pf-pat-deploy .pat-arrow{content:' \2192'}
 .pf-pat-deploy-red{display:inline-block;background:#c1121f;color:#fff;border:0;
   padding:12px 24px;font-family:'Arial Black',Arial,sans-serif;font-size:14px;
   letter-spacing:2px;text-transform:uppercase;text-decoration:none;cursor:pointer;
   text-align:center}
 .pf-pat-deploy-red:hover,.pf-pat-deploy-red:active{background:#8f0d17;color:#fff}
-.pf-pat-deploy-red::after{content:' \2192'}
 .pf-pat-report{display:inline-block;color:#fff;font-weight:bold;font-size:13px;
   letter-spacing:1px;text-transform:uppercase;text-decoration:underline;
   text-decoration-color:#8a8a8a;text-underline-offset:4px;cursor:pointer;
   padding:8px 0}
 .pf-pat-report:hover{color:#c1121f;text-decoration-color:#c1121f}
-.pf-pat-report::after{content:' \2192'}
 /* Ghost/second-order link for non-primary actions. Never red. */
 .pf-pat-textlink{color:#fff;font-size:13px;text-decoration:underline;
   text-decoration-color:#8a8a8a;text-underline-offset:3px}

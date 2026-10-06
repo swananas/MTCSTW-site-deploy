@@ -34,7 +34,16 @@
        response. Empty responses -> honest empty panels, never flat lines.
    ZERO ECONOMY: no XP anywhere in this module — recognition only.
    KILL: ?pf_off=peoples-cpi (master) or ?pf_off=peoples-cpi-chart /
-   ?pf_off=peoples-cpi-share (section kills). Spine phase: FIGHT. */
+   ?pf_off=peoples-cpi-share (section kills). Spine phase: FIGHT.
+   WS-6 TEARDOWN (2026-10-06, proposal PART 2 §6): the national headline is a
+   Data Strip (P4) at hero scale; basket-spotlight movers are price cards —
+   sparkline trend + recency badge + report count (P8 proof) + one-tap
+   confirm as REPORT BACK (P3) into /economy#pf-inflation-checkin/<item>.
+   Trend colors are gray/white ONLY (red never means up/down). Every figure
+   renders through stripFigure(): figure + label + source + recency stamp,
+   fail-closed. Confirms mint zero XP (zero XP awarded anywhere on the confirm
+   path); published aggregates stay callsign-gated in the existing
+   inflation-tracker report rail, which this module does not bypass. */
 (function () {
   'use strict';
   var PF = window.PF;
@@ -99,6 +108,89 @@
   function money(cents) {
     if (cents == null || isNaN(cents)) return '\u2014';
     return '$' + (Number(cents) / 100).toFixed(2);
+  }
+  /* WS-6 pattern access (fail-open: null when ?pf_off=patterns). */
+  function patterns() {
+    try { return (window.PF && PF.patterns) || null; } catch (e) { return null; }
+  }
+  /* Trend line colors — gray/white ONLY. Red never means up/down. */
+  var LINE_COMM = '#f5f0e6', LINE_OFF = '#8a8a8a';
+  /* Relative recency stamp for the trust line ("40 min ago", "3 h ago"). */
+  function relTime(ts) {
+    var t = Number(ts);
+    if (!isFinite(t) || t <= 0) return '';
+    if (t < 1e12) t *= 1000; /* seconds -> ms */
+    var diff = Date.now() - t;
+    if (diff < 0) diff = 0;
+    var m = Math.floor(diff / 60000);
+    if (m < 1) return 'just now';
+    if (m < 60) return m + ' min ago';
+    var h = Math.floor(m / 60);
+    if (h < 24) return h + ' h ago';
+    var d = Math.floor(h / 24);
+    if (d < 7) return d + ' d ago';
+    return fmtD(t);
+  }
+  function weekLabelCPI(ws) {
+    try {
+      var d = new Date(typeof ws === 'number' ? ws : String(ws) + 'T12:00:00');
+      if (isNaN(d.getTime())) return '';
+      return MONTHS[d.getMonth()] + ' ' + d.getDate();
+    } catch (e) { return ''; }
+  }
+  /* Recency for a price_board payload: real timestamp when the backend
+     supplies one, else the board window label — never empty, so the Data
+     Strip's recency stamp is always present. */
+  function boardRecency(b) {
+    var ts = (b && (b.updated_at || b.retrieved_at)) || null;
+    var rel = relTime(ts);
+    if (rel) return rel;
+    var we = (b && (b.week_end || b.end || b.week_start || b.start)) || null;
+    if (we) {
+      var lbl = weekLabelCPI(we);
+      if (lbl) return 'week of ' + lbl;
+    }
+    return 'this week';
+  }
+  /* WS-6 trust-stamp primitive: figure + label + source + recency, routed
+     through PF.patterns.dataStrip (P4) when available. FAIL-CLOSED: returns
+     '' unless all four trust elements are present — a figure without its
+     source line and recency stamp renders NOTHING. When the patterns module
+     is killed (?pf_off=patterns), the same four elements render in manual
+     markup instead of blanking the page. */
+  function stripFigure(o) {
+    var pt = patterns();
+    if (pt && pt.dataStrip) return pt.dataStrip(o);
+    var fig = String(o.figure == null ? '' : o.figure).trim();
+    var label = String(o.label == null ? '' : o.label).trim();
+    var src = String(o.source == null ? '' : o.source).trim();
+    var upd = String(o.updated == null ? '' : o.updated).trim();
+    if (!fig || !label || !src || !upd) return '';
+    return '<div class="pf-pat pf-pat-data">' +
+      '<p class="pf-pat-data-fig">' + esc(fig) + '</p>' +
+      '<p class="pf-pat-data-label">' + esc(label) + '</p>' +
+      '<div class="pf-pat-data-rule"></div>' +
+      '<p class="pf-pat-data-src">' + esc(src) + '</p>' +
+      '<p class="pf-pat-data-time">updated ' + esc(upd) + '</p></div>';
+  }
+  /* Inline 12-week sparkline — gray/white only. Null buckets break the
+     line; fewer than 2 live points -> the caller drops the slot. */
+  function sparkSVG(pts) {
+    var W = 220, H = 52, PL = 4, PR = 4, PT = 6, PB = 6;
+    var iw = W - PL - PR, ih = H - PT - PB;
+    var live = pts.filter(function (v) { return v != null; });
+    var mn = Math.min.apply(null, live), mx = Math.max.apply(null, live);
+    if (mx === mn) mx = mn + 1;
+    function sx(i) { return PL + (pts.length < 2 ? iw / 2 : (i / (pts.length - 1)) * iw); }
+    function sy(v) { return PT + ih - ((v - mn) / (mx - mn)) * ih; }
+    var d = '', pen = false;
+    for (var k = 0; k < pts.length; k++) {
+      if (pts[k] == null) { pen = false; continue; }
+      d += (pen ? 'L' : 'M') + sx(k).toFixed(1) + ' ' + sy(pts[k]).toFixed(1) + ' ';
+      pen = true;
+    }
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;display:block;" role="img" aria-label="12-week trend">' +
+      '<path d="' + d + '" fill="none" stroke="#d8d0c0" stroke-width="2"/></svg>';
   }
   var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   function fmtD(ts) {
@@ -169,11 +261,20 @@
         '.pf-cpi select{background:#1a1a1a;border:1px solid #3a3a3a;color:' + PAPER + ';border-radius:6px;padding:8px 10px;font-size:14px;margin:0 8px 8px 0;}',
         '.pf-cpi input{background:#1a1a1a;border:1px solid #3a3a4a;color:' + PAPER + ';border-radius:6px;padding:8px 10px;font-size:14px;margin:0 8px 8px 0;}',
         '.pf-cpi-legend{display:flex;gap:18px;flex-wrap:wrap;margin:10px 0 6px;font-size:13px;color:#d8d0c0;align-items:center;}',
-        '.pf-cpi-swatch{display:inline-block;width:26px;height:0;border-top:4px solid ' + RED + ';vertical-align:middle;margin-right:6px;}',
-        '.pf-cpi-swatch.off{border-top:4px dashed ' + PAPER + ';}',
+        '.pf-cpi-swatch{display:inline-block;width:26px;height:0;border-top:4px solid #f5f0e6;vertical-align:middle;margin-right:6px;}',
+        '.pf-cpi-swatch.off{border-top:4px dashed #8a8a8a;}',
         '.pf-cpi-tapline{font-size:13px;color:#e8c96a;min-height:20px;margin-top:6px;}',
-        '.pf-cpi-mover{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 4px;border-bottom:1px solid #2a2a2a;}',
-        '.pf-cpi-mover:last-child{border-bottom:0;}',
+        /* WS-6: hero-scale Data Strip (P4) for the national headline. */
+        '.pf-cpi-hero{margin:6px 0 4px;}',
+        '.pf-cpi-hero .pf-pat-data{padding:10px 8px;}',
+        '.pf-cpi-hero .pf-pat-data-fig{font-size:68px;line-height:1;}',
+        /* WS-6: price-card grid (basket spotlight). */
+        '.pf-cpi-cardgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin:14px 0;}',
+        '.pf-cpi-cardgrid .pf-pat-intel{margin:0;}',
+        '.pf-cpi-spark{margin:10px 0 4px;}',
+        '.pf-cpi-delta{font-size:13px;font-weight:700;color:#d8d0c0;margin:6px 0;}',
+        '.pf-cpi-recency{display:inline-block;font-size:10px;font-weight:800;letter-spacing:1.5px;background:#1a1a1a;border:1px solid #3a3a3a;color:#d8d0c0;padding:4px 9px;border-radius:3px;margin:8px 4px 0 0;}',
+        '.pf-cpi-capline{font-size:12px;color:#8f887a;margin:10px 0 8px;}',
         '.pf-cpi-railcard{background:#111;border:1px solid #2a2a2a;border-radius:8px;padding:14px;margin:0 0 10px;}',
         '.pf-cpi-railcard .v{font-size:28px;font-weight:900;color:#fff;}',
         '.pf-cpi-stale{display:inline-block;background:#3a2a00;color:#e8c96a;font-size:12px;font-weight:700;padding:3px 8px;border-radius:3px;margin-left:8px;}',
@@ -189,6 +290,11 @@
   }
 
   cssOnce();
+  /* WS-6: P6 Action Bar — every surface ends with the same three handoffs. */
+  var _pt0 = patterns();
+  var _actionBar = (_pt0 && _pt0.actionBar)
+    ? _pt0.actionBar({ shareUrl: '#pf-cpi-share', cellUrl: '/cells', reportUrl: '/economy#pf-inflation-checkin' })
+    : '';
   var root = document.createElement('div');
   root.className = 'pf-cpi';
   root.innerHTML =
@@ -205,7 +311,7 @@
     '<div class="pf-cpi-sub" style="text-align:center;max-width:560px;margin-left:auto;margin-right:auto;">The index is only as sharp as its reporters. Report what you paid this week \u2014 it takes a minute.</div>' +
     '<a class="pf-cpi-btn" href="/economy#pf-inflation-checkin">REPORT A PRICE \u2192</a>' +
     '<div style="margin-top:10px;"><a href="/economy" style="font-size:13px;">FULL TOOLKIT \u2192 /economy</a></div>' +
-    '</div>';
+    '</div>' + _actionBar;
   host.appendChild(root);
   function sec(id) { return document.getElementById(id); }
 
@@ -251,12 +357,26 @@
     var samples = 0, reporters = 0;
     live.forEach(function (r) { samples += Number(r.sample_count) || 0; reporters = Math.max(reporters, Number(r.contributors) || 0); });
     var sub = CPI_LABELS.COMMUNITY_SUB.replace('{N}', String(reporters)).replace('{window}', 'the trailing 30 days');
-    el.innerHTML = shell(badge +
-      '<div class="pf-cpi-big">' + esc(val.toFixed(1)) + '</div>' +
-      '<div class="pf-cpi-meta">week of ' + esc(fmtD(last.week_start)) + ' \u2014 ' + esc(fmtD(last.week_start + 6 * 864e5)) +
-      ' &nbsp;\u00b7&nbsp; ' + esc(String(last.items_with_data)) + ' of 12 items with data' +
-      (live.length ? ' &nbsp;\u00b7&nbsp; ' + esc(String(samples)) + ' reports \u00b7 ' + esc(String(reporters)) + ' reporters (trailing 30 days, national board)' : '') + '</div>' +
-      '<div class="pf-cpi-meta" style="margin-top:8px;">' + esc(sub) + '</div>');
+    /* WS-6: national headline = Data Strip (P4) at hero scale. Fail-closed:
+       stripFigure returns '' without figure+label+source+recency — the page
+       then shows the honest panel, never a naked figure. */
+    var strip = stripFigure({
+      figure: val.toFixed(1),
+      label: 'THE PEOPLE\u2019S PRICE INDEX \u2014 NATIONAL',
+      source: sub,
+      updated: boardRecency(b)
+    });
+    if (strip) {
+      el.innerHTML = shell(badge +
+        '<div class="pf-cpi-hero">' + strip + '</div>' +
+        '<div class="pf-cpi-meta">week of ' + esc(fmtD(last.week_start)) + ' \u2014 ' + esc(fmtD(last.week_start + 6 * 864e5)) +
+        ' &nbsp;\u00b7&nbsp; ' + esc(String(last.items_with_data)) + ' of 12 items with data' +
+        (live.length ? ' &nbsp;\u00b7&nbsp; ' + esc(String(samples)) + ' reports \u00b7 ' + esc(String(reporters)) + ' reporters (trailing 30 days, national board)' : '') + '</div>' +
+        '<div style="margin-top:14px;"><a class="pf-cpi-btn" href="/economy#pf-inflation-checkin">REPORT A PRICE \u2192</a></div>');
+      return;
+    }
+    el.innerHTML = shell('<div class="pf-cpi-empty">' + badge +
+      '<div style="margin:10px 0;">The index is missing its trust stamp (source or recency) \u2014 no figure shown until the feed is complete.</div></div>');
   }
 
   /* ============ 2. THE TWO LINES (Chart A) ============ */
@@ -313,19 +433,20 @@
       s += '<text x="' + sx(xi).toFixed(1) + '" y="' + (H - 10) + '" fill="#8f887a" font-size="11" text-anchor="middle">' + esc(fmtD(c[xi].x)) + '</text>';
     }
     var op = path(o);
-    if (op) s += '<path d="' + op + '" fill="none" stroke="' + PAPER + '" stroke-width="2.5" stroke-dasharray="7 5"/>';
+    /* WS-6: trend colors gray/white ONLY — red never means up/down. */
+    if (op) s += '<path d="' + op + '" fill="none" stroke="' + LINE_OFF + '" stroke-width="2.5" stroke-dasharray="7 5"/>';
     var cp = path(c);
-    if (cp) s += '<path d="' + cp + '" fill="none" stroke="' + RED + '" stroke-width="3"/>';
+    if (cp) s += '<path d="' + cp + '" fill="none" stroke="' + LINE_COMM + '" stroke-width="3"/>';
     /* hollow markers on monthly official observations (never drawn as weekly measurements) */
     o.forEach(function (p, k) {
       if (p.v == null || !p.monthly) return;
-      s += '<circle cx="' + sx(k).toFixed(1) + '" cy="' + sy(p.v).toFixed(1) + '" r="4.5" fill="' + INK + '" stroke="' + PAPER + '" stroke-width="2"><title>Monthly observation: ' + esc(String(p.period)) + '</title></circle>';
+      s += '<circle cx="' + sx(k).toFixed(1) + '" cy="' + sy(p.v).toFixed(1) + '" r="4.5" fill="' + INK + '" stroke="' + LINE_OFF + '" stroke-width="2"><title>Monthly observation: ' + esc(String(p.period)) + '</title></circle>';
     });
     /* tap targets — no hover dependency (spec §4.1) */
     c.forEach(function (p, k) {
       if (p.v == null) return;
       s += '<circle class="pf-cpi-dot" data-k="' + k + '" cx="' + sx(k).toFixed(1) + '" cy="' + sy(p.v).toFixed(1) + '" r="9" fill="transparent" style="cursor:pointer;"/>';
-      s += '<circle cx="' + sx(k).toFixed(1) + '" cy="' + sy(p.v).toFixed(1) + '" r="3.5" fill="' + RED + '"/>';
+      s += '<circle cx="' + sx(k).toFixed(1) + '" cy="' + sy(p.v).toFixed(1) + '" r="3.5" fill="' + LINE_COMM + '"/>';
     });
     s += '</svg>';
     var baseWeek = c.length ? fmtDL(c[0].x) : '';
@@ -341,7 +462,7 @@
       '<span><span class="pf-cpi-swatch"></span>' + esc(CPI_LABELS.COMMUNITY_FULL) + ' <span class="pf-cpi-badge crowd">' + CPI_LABELS.COMMUNITY_BADGE + '</span></span>' +
       '<span><span class="pf-cpi-swatch off"></span>' + esc(CPI_LABELS.OFFICIAL_FULL) + ' <span class="pf-cpi-badge off">' + CPI_LABELS.OFFICIAL_BADGE + '</span></span>' +
       '</div>' + s +
-      '<div class="pf-cpi-tapline" id="pf-cpi-tap">Tap a red point to inspect it.</div>' +
+      '<div class="pf-cpi-tapline" id="pf-cpi-tap">Tap a white point to inspect it.</div>' +
       '<div class="pf-cpi-fine">Hollow markers = monthly official observations (forward-filled to weeks \u2014 never presented as weekly measurements). Gaps in the red line = weeks with too few reports; we don\u2019t guess. ' + CPI_LABELS.METHODOLOGY_NOTE + '</div>';
     el.innerHTML = html;
     /* tap-to-inspect */
@@ -520,7 +641,71 @@
       '<div class="pf-cpi-fine"><a href="/economy#pf-inf-method">Full methodology on /economy \u2192</a></div>';
   }
 
-  /* ============ 4. BASKET SPOTLIGHT ============ */
+  /* ============ 4. BASKET SPOTLIGHT — price cards (WS-6) ============ */
+  /* Every price card: sparkline trend + recency badge + report count (P8) +
+     one-tap confirm. The confirm is a REPORT BACK (P3) into the /economy
+     check-in flow with the item pre-scoped — it feeds the same
+     callsign-authed report rail that publishes the aggregates. Zero XP:
+     nothing awarded anywhere on this path. */
+  function priceCard(r) {
+    var it = itemById(r.item_id);
+    var pt = patterns();
+    var n = Math.floor(Number(r.sample_count) || 0);
+    var stamp = boardRecency(state.board);
+    var strip = stripFigure({
+      figure: money(r.median_cents),
+      label: it.name.toUpperCase() + ' / ' + it.unit.toUpperCase() + ' \u2014 NATIONAL MEDIAN',
+      source: 'Community medians, not a government statistic.',
+      updated: stamp
+    });
+    var figHTML = strip ||
+      '<div class="pf-cpi-empty">Figure withheld \u2014 missing trust stamp.</div>';
+    var d = Number(r.delta_pct);
+    var deltaTxt = (!isNaN(d) && r.week_ago_median_cents)
+      ? (d > 0 ? '\u25b2 ' : (d < 0 ? '\u25bc ' : '\u25aa ')) + Math.abs(d).toFixed(1) + '% vs last wk'
+      : 'no last-week data';
+    /* P8: real count or suppressed — never invented. */
+    var proof = (pt && pt.proof) ? pt.proof({ count: n, text: 'reports this week' }) : '';
+    var dataLine = figHTML +
+      '<div class="pf-cpi-spark" data-cpi-spark="' + esc(r.item_id) + '"></div>' +
+      '<div class="pf-cpi-delta">' + esc(deltaTxt) + '</div>' +
+      proof +
+      '<div style="margin-top:8px;"><span class="pf-cpi-recency">UPDATED ' + esc(stamp.toUpperCase()) + '</span></div>' +
+      '<div class="pf-cpi-capline">Paid this price? One tap puts it on the board.</div>';
+    var href = '/economy#pf-inflation-checkin/' + r.item_id;
+    if (pt && pt.intelCard) {
+      return pt.intelCard({
+        kicker: 'BASKET SPOTLIGHT',
+        headline: it.name + ' / ' + it.unit,
+        dataLine: dataLine,
+        verb: 'report', href: href, label: 'REPORT BACK'
+      });
+    }
+    /* patterns killed — same card, manual markup, same trust elements. */
+    return '<article class="pf-pat pf-pat-intel">' +
+      '<p class="pf-pat-intel-kicker">BASKET SPOTLIGHT</p>' +
+      '<h3 class="pf-pat-intel-head">' + esc(it.name + ' / ' + it.unit) + '</h3>' +
+      '<div class="pf-pat-intel-data">' + dataLine + '</div>' +
+      '<div class="pf-pat-intel-actions"><a class="pf-pat-report" href="' + esc(href) + '">REPORT BACK \u2192</a></div></article>';
+  }
+  /* Per-item national sparklines ride the §6.3 contract gap (price_trends
+     rejects area_key=national) — fail-soft: the card is complete without
+     the sparkline; it lights up when the backend lands the extension. */
+  function loadSpark(itemId) {
+    jsonp('price_trends', { item_id: itemId, area_key: 'national', weeks: 12 }, function (j) {
+      var slot = null;
+      try { slot = document.querySelector('[data-cpi-spark="' + itemId + '"]'); } catch (e) {}
+      if (!slot || !slot.isConnected) return;
+      var buckets = (j && j.ok !== false && Array.isArray(j.buckets)) ? j.buckets : [];
+      var pts = buckets.map(function (bk) {
+        return (bk && bk.enough_data && bk.median_cents != null && Number(bk.sample_count) >= 5)
+          ? Number(bk.median_cents) : null;
+      });
+      var live = pts.filter(function (v) { return v != null; });
+      if (live.length < 2) { try { slot.remove(); } catch (e2) {} return; }
+      slot.innerHTML = sparkSVG(pts);
+    });
+  }
   function paintSpot() {
     var el = sec('pf-cpi-spot');
     if (!el) return;
@@ -534,24 +719,11 @@
     var movers = items.slice().sort(function (a, c) { return Math.abs(Number(c.delta_pct) || 0) - Math.abs(Number(a.delta_pct) || 0); }).slice(0, 4);
     var h = '<div class="pf-cpi-kicker">BASKET SPOTLIGHT</div>' +
       '<div class="pf-cpi-h2">THIS WEEK\u2019S MOVERS</div>' +
-      '<div class="pf-cpi-sub">Biggest median moves on the national board \u2014 community-reported, minimum-n enforced.</div>';
+      '<div class="pf-cpi-sub">Biggest median moves on the national board \u2014 community-reported, minimum-n enforced. Every card carries its trust stamp: figure, source, recency, and report count.</div>';
     if (!movers.length) {
       h += '<div class="pf-cpi-empty">Not enough reports yet to name movers. <a href="/economy#pf-inflation-checkin">Report a price</a>.</div>';
     } else {
-      h += movers.map(function (r) {
-        var it = itemById(r.item_id);
-        var d = Number(r.delta_pct);
-        var arrow = '', dc = '#b8b0a0';
-        if (!isNaN(d) && r.week_ago_median_cents) {
-          arrow = (d > 0 ? '\u25b2 ' : (d < 0 ? '\u25bc ' : '\u25aa ')) + Math.abs(d).toFixed(1) + '% vs last wk';
-          dc = d > 0 ? '#c98f8f' : (d < 0 ? '#9fc98f' : '#b8b0a0');
-        } else { arrow = 'no last-week data'; }
-        return '<div class="pf-cpi-mover">' +
-          '<div><div style="font-weight:900;font-size:16px;">' + esc(it.name) + ' <span style="color:#8f887a;font-weight:400;font-size:13px;">/ ' + esc(it.unit) + '</span></div>' +
-          '<div class="pf-cpi-meta">reported by ' + esc(String(r.contributors || 0)) + ' people</div></div>' +
-          '<div style="text-align:right;"><div style="font-size:22px;font-weight:900;">' + esc(money(r.median_cents)) + '</div>' +
-          '<div style="font-size:12px;color:' + dc + ';font-weight:700;">' + esc(arrow) + '</div></div></div>';
-      }).join('');
+      h += '<div class="pf-cpi-cardgrid">' + movers.map(priceCard).join('') + '</div>';
     }
     h += '<div style="margin-top:12px;"><a class="pf-cpi-btn ghost" href="/economy#pf-inflation-board">FULL BOARD \u2192</a></div>';
     /* Compact per-item chart (spec §4.2 Chart B): single community line. */
@@ -565,6 +737,7 @@
       '<div id="pf-cpi-b-out"><div class="pf-cpi-load">Pick an item to see its line.</div></div>' +
       '<div class="pf-cpi-fine">Sparse series (rent, electricity): gaps are missing data, not zero change \u2014 we don\u2019t guess.</div></div>';
     el.innerHTML = h;
+    movers.forEach(function (r) { loadSpark(r.item_id); });
     var bi = el.querySelector('#pf-cpi-b-item'), bw = el.querySelector('#pf-cpi-b-wks');
     if (bi) bi.onchange = function () { state.bItem = bi.value; loadChartB(); };
     if (bw) bw.onchange = function () { state.bWeeks = Number(bw.value) || 12; loadChartB(); };
@@ -616,7 +789,7 @@
       for (var xi = 0; xi < buckets.length; xi += step) {
         s += '<text x="' + sx(xi).toFixed(1) + '" y="' + (H - 8) + '" fill="#8f887a" font-size="11" text-anchor="middle">' + esc(fmtD(buckets[xi].week_start)) + '</text>';
       }
-      s += '<path d="' + d + '" fill="none" stroke="' + RED + '" stroke-width="3"/>';
+      s += '<path d="' + d + '" fill="none" stroke="' + LINE_COMM + '" stroke-width="3"/>';
       s += '</svg>';
       out.innerHTML = '<div style="margin:6px 0;"><span class="pf-cpi-badge crowd">' + CPI_LABELS.COMMUNITY_BADGE + '</span>' +
         '<span style="font-size:13px;color:#d8d0c0;">Weekly medians \u2014 ' + esc(it.name) + ' / ' + esc(it.unit) + ', national</span></div>' + s;
@@ -808,14 +981,15 @@
       cardBadge(x2, 190);
       x2.fillStyle = '#fff'; x2.font = 'bold 84px system-ui, sans-serif';
       x2.fillText(it.name.toUpperCase(), 540, 420);
-      x2.fillStyle = RED; x2.font = 'bold 130px system-ui, sans-serif';
+      x2.fillStyle = '#fff'; x2.font = 'bold 130px system-ui, sans-serif';
       x2.fillText(money(mover.median_cents), 540, 590);
       x2.fillStyle = '#b8b0a0'; x2.font = '34px system-ui, sans-serif';
       x2.fillText('per ' + it.unit, 540, 645);
       x2.fillText('reported by ' + (mover.contributors || 0) + ' people \u00b7 national, trailing 30 days', 540, 700);
       var d = Number(mover.delta_pct);
       if (!isNaN(d) && mover.week_ago_median_cents) {
-        x2.fillStyle = d > 0 ? '#c98f8f' : '#9fc98f';
+        /* WS-6: trend colors gray/white only — the arrow carries direction. */
+        x2.fillStyle = '#d8d0c0';
         x2.font = 'bold 40px system-ui, sans-serif';
         x2.fillText((d > 0 ? '\u25b2 +' : '\u25bc ') + Math.abs(d).toFixed(1) + '% vs last week', 540, 770);
       }

@@ -45,11 +45,14 @@
   }
   function skip(id) { try { return PF.skip('fred') || PF.skip(id); } catch (e) { return false; } }
 
-  /* The 6 suggested matchups (Design brief, remediated hooks). */
+  /* The 6 suggested matchups (Design brief, remediated hooks).
+     Phase 3 (2026-10-06): the wages-vs-inflation matchup re-points to the
+     median series (LES1252881600Q) — the CES-average-based matchup is
+     retired, not edited. */
   var MATCHUPS = [
-    { sid1: 'CES0500000003', sid2: 'CPIAUCNS',
+    { sid1: 'LES1252881600Q', sid2: 'CPIAUCNS',
       hook: 'Wages vs Inflation', question: 'Are paychecks beating prices?',
-      why: 'Wages vs prices is the real-raise question — both legs as 12-month change, so the units can\u2019t lie.' },
+      why: 'The median paycheck vs prices is the real-raise question — the median series isn\u2019t fooled by executive raises. Both legs as 12-month change, so the units can\u2019t lie.' },
     { sid1: 'MORTGAGE30US', sid2: 'FEDFUNDS',
       hook: 'Mortgage rates vs Fed rate', question: 'Who moved first?',
       why: 'The Fed sets one rate; lenders charge another. The gap between them is the policy transmission chain.' },
@@ -67,8 +70,12 @@
       why: 'The mortgage rate minus inflation is the real rate — what borrowing actually costs you.' }
   ];
 
+  /* Phase 3 (2026-10-06): DRCCLACBS, LES1252881600Q, CUSR0000SAF11 join
+     the free-pick list. CES0500000003 stays — the average-vs-median
+     inequality comparison is an approved free-mode use. */
   var SERIES12 = ['FEDFUNDS', 'UNRATE', 'DGS10', 'DGS2', 'MORTGAGE30US',
-    'CPIAUCNS', 'CPILFESL', 'PCEPI', 'GDP', 'CES0500000003', 'PAYEMS', 'CUUR0000SEHA'];
+    'CPIAUCNS', 'CPILFESL', 'PCEPI', 'GDP', 'CES0500000003', 'PAYEMS', 'CUUR0000SEHA',
+    'DRCCLACBS', 'LES1252881600Q', 'CUSR0000SAF11'];
   var PLAIN = {
     FEDFUNDS: 'Fed funds rate', UNRATE: 'Unemployment rate',
     DGS10: '10-year Treasury yield', DGS2: '2-year Treasury yield',
@@ -76,7 +83,8 @@
     CPIAUCNS: 'Consumer prices (CPI)', CPILFESL: 'Core consumer prices',
     PAYEMS: 'Nonfarm payrolls', PCEPI: 'PCE price index',
     GDP: 'Real GDP', CES0500000003: 'Average hourly earnings',
-    CUUR0000SEHA: 'Rent of primary residence'
+    CUUR0000SEHA: 'Rent of primary residence', DRCCLACBS: 'Credit-card delinquency',
+    LES1252881600Q: 'Median weekly earnings (real)', CUSR0000SAF11: 'Food at home (CPI)'
   };
   var WINDOWS = [['1y', '1Y'], ['3y', '3Y'], ['5y', '5Y'], ['10y', '10Y'], ['all', 'ALL']];
   var LEG_COLORS = ['#6aa5ff', '#e0685c', '#e8b923'];
@@ -708,7 +716,8 @@
    - No predictions, no financial advice — enforced server-side; this file
      renders beats verbatim and never invents copy.
    - Every figure: 4-fact citation + staleness badge + ʳ marker.
-   - Rent card is labeled via-mortgage until the rent series lands (Phase 3).
+   - Rent card is backed by the live CUUR0000SEHA rent series (Phase 3);
+     the via-mortgage label is retired.
    Read-only, zero XP. Cross-links are user-initiated taps only — no
    auto-advance, no streak/XP pressure between tools. */
 (function () {
@@ -724,13 +733,17 @@
   function skip(id) { try { return PF.skip('fred') || PF.skip(id); } catch (e) { return false; } }
 
   var TOPICS = [
-    { key: 'rent', label: 'RENT', sub: 'Rent (via mortgage rates — the rent series lands in Phase 3)' },
+    /* Phase 3 (2026-10-06): the rent series is live — the card is backed
+       by CUUR0000SEHA directly; the via-mortgage label is retired. */
+    { key: 'rent', label: 'RENT', sub: 'What renters actually pay, from the CPI rent index' },
     { key: 'groceries', label: 'GROCERIES', sub: 'What food prices are doing' },
     { key: 'job-hunt', label: 'JOB HUNT', sub: 'How tight the job market is' },
     { key: 'savings', label: 'SAVINGS', sub: 'What your cash earns' }
   ];
+  /* Phase 3 (2026-10-06): the 3 new series join the nerd-mode list. */
   var SERIES12 = ['FEDFUNDS', 'UNRATE', 'DGS10', 'DGS2', 'MORTGAGE30US',
-    'CPIAUCNS', 'CPILFESL', 'PCEPI', 'GDP', 'CES0500000003', 'PAYEMS', 'CUUR0000SEHA'];
+    'CPIAUCNS', 'CPILFESL', 'PCEPI', 'GDP', 'CES0500000003', 'PAYEMS', 'CUUR0000SEHA',
+    'DRCCLACBS', 'LES1252881600Q', 'CUSR0000SAF11'];
   var PLAIN = {
     FEDFUNDS: 'Fed funds rate', UNRATE: 'Unemployment rate',
     DGS10: '10-year Treasury yield', DGS2: '2-year Treasury yield',
@@ -738,7 +751,8 @@
     CPIAUCNS: 'Consumer prices (CPI)', CPILFESL: 'Core consumer prices',
     PAYEMS: 'Nonfarm payrolls', PCEPI: 'PCE price index',
     GDP: 'Real GDP', CES0500000003: 'Average hourly earnings',
-    CUUR0000SEHA: 'Rent of primary residence'
+    CUUR0000SEHA: 'Rent of primary residence', DRCCLACBS: 'Credit-card delinquency',
+    LES1252881600Q: 'Median weekly earnings (real)', CUSR0000SAF11: 'Food at home (CPI)'
   };
   var ROTATE = ['rent', 'groceries', 'job-hunt', 'savings'];
 
@@ -1094,8 +1108,15 @@
 
    Category picker (basket-scope rule, News Desk E7): a category ships
    only when both legs exist. v1: RENT (CUUR0000SEHA vs people's rent
-   reports). Groceries and gas are parked for Phase 3 (their official
-   component series aren't ingested yet) — shown disabled, labeled. */
+   reports). Phase 3 (2026-10-06): GROCERIES enabled — official leg
+   CUSR0000SAF11 verified and ingested; the people's leg has no grocery
+   basket aggregate yet, so it renders the honest "building" state while
+   the official panel shows. GAS stays disabled: the motor-fuel candidate
+   series (CUSR0000SETB01) failed ID verification at build — it resolves
+   to a gasoline sub-index, not the motor-fuel component — so there is no
+   verified official leg. The chip is gated, honestly labeled, and ships
+   only when a real motor-fuel series confirms.
+   Kill: ?pf_off=receipt-groceries (groceries chip only). */
 (function () {
   'use strict';
   var PF = window.PF;
@@ -1111,8 +1132,26 @@
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
-  var OFFICIAL_SID = 'CUUR0000SEHA'; /* rent of primary residence, BLS via FRED */
-  var PEOPLE_ITEM = 'rent_1br';
+  /* Category map (Phase 3). A category ships only when its official leg
+     exists; a missing people's leg renders the honest "building" state.
+     GAS has no verified official series (build verification 2026-10-06
+     rejected the candidate ID) — chip stays gated, never silent. */
+  var CATS = {
+    rent: {
+      label: 'RENT', official: 'CUUR0000SEHA', people: 'rent_1br',
+      offPlain: 'rent of primary residence',
+      pplFig: 'median reported 1BR rent', pplUnit: '/mo',
+      gapWord: 'rents', gapOff: 'official rent CPI'
+    },
+    groceries: {
+      label: 'GROCERIES', official: 'CUSR0000SAF11', people: null,
+      offPlain: 'food at home (CPI)',
+      pplThin: 'No people\u2019s grocery basket yet — item-level grocery ' +
+        'reports (milk, eggs, bread\u2026) exist, but there\u2019s no aggregate ' +
+        'to compare. Report prices to build it.'
+    },
+    gas: { label: 'GAS', official: null, people: 'gasoline' }
+  };
 
   var WHY_DIFFERENT = 'The official number is a national average built from ' +
     'thousands of surveyed prices. The people\u2019s number is what real people ' +
@@ -1185,7 +1224,9 @@
   }
 
   /* Official panel: blue-gray line chart of the FRED series. */
-  function officialPanel(obs, F, stale) {
+  function officialPanel(obs, F, stale, cat) {
+    cat = cat || CATS.rent;
+    var sid = cat.official;
     var pts = (obs || []).slice().reverse().slice(-12); /* oldest-first, last 12 */
     var W = 340, H = 120, PAD = 6;
     var vals = pts.map(function (p) { return +p.value; }).filter(isFinite);
@@ -1198,7 +1239,7 @@
         var y = (PAD + (1 - ((+p.value - lo) / (hi - lo))) * (H - PAD * 2)).toFixed(1);
         return (i ? 'L' : 'M') + x + ' ' + y;
       }).join(' ');
-      svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="display:block;width:100%;height:auto" role="img" aria-label="official rent inflation trend">' +
+      svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="display:block;width:100%;height:auto" role="img" aria-label="official ' + esc(cat.offPlain) + ' inflation trend">' +
         '<path d="' + d + '" fill="none" stroke="#6aa5ff" stroke-width="2.5"/></svg>';
     }
     var latest = (obs || [])[0];
@@ -1210,12 +1251,12 @@
     var h = '<div class="pf-rc-panel pf-rc-off">' +
       '<span class="pf-rc-badge">OFFICIAL — U.S. BUREAU OF LABOR STATISTICS VIA FRED</span>' +
       '<div class="pf-rc-fig">' + (yoy == null ? '—' : (yoy >= 0 ? '+' : '−') + Math.abs(yoy).toFixed(1) + '%') + '</div>' +
-      (stale && stale.stale && F && F.staleBadge ? F.staleBadge({ stale: true, days_old: stale.days_old, series_id: OFFICIAL_SID }) : '') +
-      '<div class="pf-rc-meta">rent of primary residence, 12-month change' +
-      (latest ? ' · ' + esc(F.fmtPeriod({ series_id: OFFICIAL_SID, period: latest.period })) : '') + '</div>' +
+      (stale && stale.stale && F && F.staleBadge ? F.staleBadge({ stale: true, days_old: stale.days_old, series_id: sid }) : '') +
+      '<div class="pf-rc-meta">' + esc(cat.offPlain) + ', 12-month change' +
+      (latest ? ' · ' + esc(F.fmtPeriod({ series_id: sid, period: latest.period })) : '') + '</div>' +
       svg;
     if (latest) {
-      var card = { series_id: OFFICIAL_SID, retrieved_at: latest.retrieved_at, period: latest.period };
+      var card = { series_id: sid, retrieved_at: latest.retrieved_at, period: latest.period };
       h += '<div class="pf-fred-cite">' + esc(F.citation(card)) + '</div>';
     }
     h += '</div>';
@@ -1224,12 +1265,18 @@
 
   /* People's panel: red-orange bars. enough_data is backend-owned
      (5 reports + 3 distinct callsigns). */
-  function peoplePanel(item) {
+  function peoplePanel(item, cat) {
+    cat = cat || CATS.rent;
     var h = '<div class="pf-rc-panel pf-rc-ppl">' +
       '<span class="pf-rc-badge">PEOPLE\u2019S — REPORTED BY THE MOVEMENT</span>';
     if (!item || !item.enough_data) {
-      h += '<div class="pf-rc-thin"><b>Not enough reports yet — add yours.</b><br>' +
-        '<span style="font-size:12px">The people\u2019s panel publishes at 5 reports from 3+ callsigns.</span></div>';
+      /* Groceries: no people's basket aggregate exists yet — honest
+         "building" state instead of a silent gap. */
+      var thin = cat.pplThin
+        ? '<b>No people\u2019s grocery basket yet.</b><br><span style="font-size:12px">' + esc(cat.pplThin) + '</span>'
+        : '<b>Not enough reports yet — add yours.</b><br>' +
+          '<span style="font-size:12px">The people\u2019s panel publishes at 5 reports from 3+ callsigns.</span>';
+      h += '<div class="pf-rc-thin">' + thin + '</div>';
       h += '<div class="pf-rc-caveat">' + esc(PEOPLE_CAVEAT) + '</div></div>';
       return { html: h, publishable: false };
     }
@@ -1358,10 +1405,35 @@
     }
   }
 
+  /* Category kill switch (Phase 3): ?pf_off=receipt-groceries. */
+  function groceryKill() {
+    try { return PF.skip('receipt-groceries'); } catch (e) { return false; }
+  }
+
+  /* Category buttons: groceries is live (official leg verified), gas stays
+     gated with an honest reason — no "PHASE 3" labels anywhere. */
+  function catButtons(cur) {
+    var out = '';
+    ['rent', 'groceries', 'gas'].forEach(function (k) {
+      var c = CATS[k];
+      if (k === 'groceries' && groceryKill()) return;
+      if (!c.official) {
+        out += '<button type="button" class="pf-rc-cat" disabled ' +
+          'title="No verified official motor-fuel series yet — the candidate ID failed verification at build. ' +
+          'This chip ships when the real series confirms.">GAS</button>';
+        return;
+      }
+      out += '<button type="button" class="pf-rc-cat' + (cur === k ? ' on' : '') + '"' +
+        ' data-rc-cat="' + k + '">' + c.label + (k === 'groceries' ? '<small>NEW</small>' : '') + '</button>';
+    });
+    return out;
+  }
+
   /* ---------- render ---------- */
-  function render(el, view, cat, data) {
+  function render(el, view, catKey, data) {
     cssOnce();
     var F = window.PFFred;
+    var cat = CATS[catKey] || CATS.rent;
     var h = '<div class="pf-rc"><div class="pf-rc-kicker">ECONOMY</div>' +
       '<h2 class="pf-rc-title">RECEIPT CHECK</h2>' +
       '<p class="pf-rc-sub">The government\u2019s number and the people\u2019s number — side by side, never blended.</p>';
@@ -1370,15 +1442,11 @@
         var lbl = v === 'official' ? 'OFFICIAL' : v === 'peoples' ? 'PEOPLE\u2019S' : 'SIDE-BY-SIDE';
         return '<button type="button" data-rc-view="' + v + '" class="' + (view === v ? 'on' : '') + '">' + lbl + '</button>';
       }).join('') + '</div></div>';
-    h += '<div class="pf-rc-cats">' +
-      '<button type="button" class="pf-rc-cat' + (cat === 'rent' ? ' on' : '') + '" data-rc-cat="rent">RENT</button>' +
-      '<button type="button" class="pf-rc-cat" disabled title="Phase 3 — needs the official food-at-home series">GROCERIES<small>PHASE 3</small></button>' +
-      '<button type="button" class="pf-rc-cat" disabled title="Phase 3 — needs the official motor-fuel series">GAS<small>PHASE 3</small></button>' +
-      '</div>';
+    h += '<div class="pf-rc-cats">' + catButtons(catKey) + '</div>';
 
     var offStale = data.offStale || null;
-    var off = officialPanel(data.obs, F, offStale);
-    var ppl = peoplePanel(data.item);
+    var off = officialPanel(data.obs, F, offStale, cat);
+    var ppl = peoplePanel(data.item, cat);
     var showOff = view !== 'peoples', showPpl = view !== 'official';
     h += '<div class="pf-rc-panels"' + (view === 'side' ? '' : ' style="grid-template-columns:1fr"') + '>';
     if (showOff) h += off.html;
@@ -1390,7 +1458,7 @@
     var gapText = '';
     if (offStale && offStale.stale && showOff && showPpl && ppl.publishable) {
       /* Comparison paused — same protocol copy fred_compare uses. */
-      gapText = 'Comparison paused — ' + OFFICIAL_SID + ' is ' + (offStale.days_old == null ? '?' : offStale.days_old) +
+      gapText = 'Comparison paused — ' + cat.official + ' is ' + (offStale.days_old == null ? '?' : offStale.days_old) +
         ' days past its expected refresh.';
       h += '<div class="pf-rc-gap"><b>THE GAP — </b>' + esc(gapText) +
         '<div class="pf-rc-method">' + esc(GAP_METHOD) + '</div></div>';
@@ -1400,9 +1468,9 @@
       var ann = (Math.pow(1 + ppl.delta / 100, 12) - 1) * 100;
       var gap = Math.abs(ann - off.yoy);
       var dir = ann >= off.yoy ? 'above' : 'below';
-      gapText = 'People report rents moving ' + (ppl.delta >= 0 ? '+' : '−') + Math.abs(ppl.delta).toFixed(1) +
+      gapText = 'People report ' + (cat.gapWord || 'prices') + ' moving ' + (ppl.delta >= 0 ? '+' : '−') + Math.abs(ppl.delta).toFixed(1) +
         '% this month — about a ' + (ann >= 0 ? '+' : '−') + Math.abs(ann).toFixed(1) +
-        '% annual pace; official rent CPI says ' + (off.yoy >= 0 ? '+' : '−') + Math.abs(off.yoy).toFixed(1) +
+        '% annual pace; ' + (cat.gapOff || 'the official index') + ' says ' + (off.yoy >= 0 ? '+' : '−') + Math.abs(off.yoy).toFixed(1) +
         '% over the year. That\u2019s roughly a ' + gap.toFixed(1) +
         '-point gap, with the people\u2019s number ' + dir + '.';
       h += '<div class="pf-rc-gap"><b>THE GAP — </b>' + esc(gapText) +
@@ -1421,18 +1489,57 @@
     el.innerHTML = h;
 
     el.querySelectorAll('[data-rc-view]').forEach(function (b) {
-      b.addEventListener('click', function () { render(el, b.getAttribute('data-rc-view'), cat, data); });
+      b.addEventListener('click', function () { render(el, b.getAttribute('data-rc-view'), catKey, data); });
+    });
+    el.querySelectorAll('[data-rc-cat]').forEach(function (b) {
+      b.addEventListener('click', function () { loadCat(el, view, b.getAttribute('data-rc-cat')); });
     });
     var sb = el.querySelector('[data-rc-share]');
     if (sb) sb.addEventListener('click', function () {
       doShare({
         off: { fig: off.yoy == null ? '—' : (off.yoy >= 0 ? '+' : '−') + Math.abs(off.yoy).toFixed(1) + '%',
-               cite: 'BLS via FRED · ' + OFFICIAL_SID },
+               cite: 'BLS via FRED · ' + cat.official },
         ppl: { fig: data.item ? fmtMoney(data.item.median_cents) + '/mo' : '—',
                src: (data.item ? data.item.sample_count + ' reports' : '') + ' · reported by the movement' },
         gapText: gapText
       }, sb);
     });
+  }
+
+  /* ---------- mount ---------- */
+  function loadCat(el, view, catKey) {
+    var cat = CATS[catKey] || CATS.rent;
+    var F = window.PFFred;
+    var obs = null, item = null, offMeta = null, done = 0;
+    function maybe() {
+      if (++done < 2) return;
+      render(el, view, catKey, { obs: obs, item: item, offStale: offMeta });
+    }
+    F.api('fred_series', { series_id: cat.official, limit: 15 }, function (j) {
+      obs = (j && j.ok && j.observations) || null;
+      if (j && j.ok) offMeta = { stale: !!j.stale, days_old: j.days_old == null ? null : j.days_old, stale_note: j.stale_note || null };
+      maybe();
+    });
+    /* People's panel: national board. enough_data is backend-owned
+       (5 reports + 3 distinct callsigns). Categories with no people's
+       leg (groceries) skip this call — the panel renders the honest
+       "building" state. */
+    if (!cat.people) { maybe(); }
+    else {
+      F.api('price_board', { area_key: 'national' }, function (j) {
+        try {
+          var items = (j && j.items) || [];
+          for (var i = 0; i < items.length; i++) {
+            if (items[i] && items[i].item_id === cat.people) { item = items[i]; break; }
+          }
+        } catch (e) {}
+        maybe();
+      });
+    }
+    /* Backstop: render whatever arrived after 15s. */
+    setTimeout(function () {
+      if (done < 2) { done = 2; render(el, view, catKey, { obs: obs, item: item, offStale: offMeta }); }
+    }, 15000);
   }
 
   function mount() {
@@ -1447,32 +1554,7 @@
     if (host.firstChild) host.insertBefore(el, host.firstChild);
     else host.appendChild(el);
     el.innerHTML = '<div class="pf-rc"><div class="pf-rc-loading">CHECKING THE RECEIPTS…</div></div>';
-
-    var obs = null, item = null, offMeta = null, done = 0;
-    function maybe() {
-      if (++done < 2) return;
-      render(el, 'side', 'rent', { obs: obs, item: item, offStale: offMeta });
-    }
-    F.api('fred_series', { series_id: OFFICIAL_SID, limit: 15 }, function (j) {
-      obs = (j && j.ok && j.observations) || null;
-      if (j && j.ok) offMeta = { stale: !!j.stale, days_old: j.days_old == null ? null : j.days_old, stale_note: j.stale_note || null };
-      maybe();
-    });
-    /* People's panel: national board. enough_data is backend-owned
-       (5 reports + 3 distinct callsigns). */
-    F.api('price_board', { area_key: 'national' }, function (j) {
-      try {
-        var items = (j && j.items) || [];
-        for (var i = 0; i < items.length; i++) {
-          if (items[i] && items[i].item_id === PEOPLE_ITEM) { item = items[i]; break; }
-        }
-      } catch (e) {}
-      maybe();
-    });
-    /* Backstop: render whatever arrived after 15s. */
-    setTimeout(function () {
-      if (done < 2) { done = 2; render(el, 'side', 'rent', { obs: obs, item: item, offStale: offMeta }); }
-    }, 15000);
+    loadCat(el, 'side', 'rent');
   }
 
   try {

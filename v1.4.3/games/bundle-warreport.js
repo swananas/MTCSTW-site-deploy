@@ -343,9 +343,11 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
 
   var DEPARTMENTS = ['News Desk', 'Economy Desk', 'Psych', 'Propaganda Studio', 'PR', 'Brand Consistency', 'Docs & Comms'];
 
-  /* The 6 vetted matchups (design brief Tool 1 suggested matchups). */
+  /* The 6 vetted matchups (design brief Tool 1 suggested matchups).
+     Phase 3 (2026-10-06): wages-inflation re-points to the median series
+     (LES1252881600Q) — the CES-average-based matchup is retired. */
   var MATCHUPS = [
-    { id: 'wages-inflation', a: 'CES0500000003', b: 'CPIAUCNS', hook: 'Are paychecks beating prices?' },
+    { id: 'wages-inflation', a: 'LES1252881600Q', b: 'CPIAUCNS', hook: 'Is the typical paycheck beating prices?' },
     { id: 'mortgage-fed', a: 'MORTGAGE30US', b: 'FEDFUNDS', hook: 'Who moved first?' },
     { id: 'jobs-unemployment', a: 'PAYEMS', b: 'UNRATE', hook: 'Hiring up, jobless up — how?' },
     { id: 'yield-curve', a: 'DGS10', b: 'DGS2', hook: "The market's fear gauge" },

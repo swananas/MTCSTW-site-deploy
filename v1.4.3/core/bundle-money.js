@@ -2294,7 +2294,10 @@
 
 /* ===== core/money-macro.js ===== */
 /* core/money-macro.js  |  PF v1.4.3 | FRED MACRO DASHBOARD (FRED Everywhere P1).
-   The full 11-series macro dashboard from ?action=fred_macro&scope=full&spark=1.
+   The full macro dashboard from ?action=fred_macro&scope=full&spark=1:
+   Phase 3 (2026-10-06) adds 4 cards — rent (CUUR0000SEHA), credit-card
+   delinquency (DRCCLACBS), median weekly earnings (LES1252881600Q),
+   food at home (CUSR0000SAF11) — for 15 series total.
    Each card: latest figure, change, sparkline, per-series staleness badge,
    4-fact citation ({Agency} via FRED · {SERIES_ID} · {period} · retrieved {date}).
    Rolling refresh per News Desk §1(a): daily series daily, weekly weekly,
@@ -2322,7 +2325,7 @@
 
   var EMPTY_HEAD = 'OFFICIAL DATA CONNECTING';
   var EMPTY_BODY = 'The macro dashboard is being wired to live FRED figures. ' +
-    'Nothing here is estimated or seeded — the 11 series cards appear the ' +
+    'Nothing here is estimated or seeded — the 15 series cards appear the ' +
     'moment the official feed is connected.';
   var WAITING_HEAD = 'FEED CONNECTED \u2014 FIRST REFRESH PENDING';
   var WAITING_BODY = 'The official feed is connected and the first data ' +
@@ -2414,7 +2417,7 @@
     return '<div class="pf-macro">' +
       '<div class="pf-macro-kicker">OFFICIAL DATA</div>' +
       '<h3 class="pf-macro-title">THE MACRO DASHBOARD</h3>' +
-      '<p class="pf-macro-sub">11 SERIES · ROLLING REFRESH · TAP ANY CARD FOR THE FULL CITATION</p>' + inner +
+      '<p class="pf-macro-sub">15 SERIES · ROLLING REFRESH · TAP ANY CARD FOR THE FULL CITATION</p>' + inner +
       '<div class="pf-macro-foot">OFFICIAL FIGURES VIA FRED \u00b7 NEVER BLENDED WITH CROWDSOURCED DATA</div></div>';
   }
 
@@ -2438,8 +2441,10 @@
       container.innerHTML = shell(emptyBlock(WAITING_HEAD, (j && j.note) || WAITING_BODY));
       return;
     }
-    /* Backend FULL_ORDER: FEDFUNDS, UNRATE, DGS10, MORTGAGE30US, CPIAUCNS,
-       CPILFESL, PAYEMS, PCEPI, GDP, CES0500000003, DGS2. Rendered in order. */
+    /* Backend FULL_ORDER (Phase 3, 15): FEDFUNDS, UNRATE, DGS10,
+       MORTGAGE30US, CPIAUCNS, CPILFESL, PAYEMS, PCEPI, GDP, CES0500000003,
+       DGS2, CUUR0000SEHA, CUSR0000SAF11, DRCCLACBS, LES1252881600Q.
+       Rendered in order. */
     container.innerHTML = shell(
       '<div class="pf-macro-grid">' +
       series.map(function (s) { return cardHtml(F, s || {}); }).join('') +
@@ -2481,7 +2486,9 @@
    - Mortgage is a borrowing cost — NEVER presented as rent.
    - CES0500000003: "average" adjacent; no second-person "your paycheck/raise".
    - GDP is real (inflation-adjusted) — the word "real" stays adjacent.
-   - Honest reads: News Desk Pairs 1 (wages vs prices), 2 (Fed → mortgage),
+   - Honest reads: News Desk Pairs 1 (wages vs prices — Phase 3 re-points
+     the pair to the MEDIAN series LES1252881600Q; the CES-average-based
+     read is retired, not edited), 2 (Fed → mortgage),
      6 (payrolls vs unemployment, neutralized), 7 (real GDP).
    - No predictions, no financial advice. Public identity MTCSTW only.
    Read-only, zero XP. Mounts via money-page SECTIONS ('governing').
@@ -2567,7 +2574,7 @@
   function readsHtml(F, cards) {
     function get(sid) { return F.cardFor({ series: cards }, sid); }
     var fed = get('FEDFUNDS'), mort = get('MORTGAGE30US');
-    var cpi = get('CPIAUCNS'), ces = get('CES0500000003');
+    var cpi = get('CPIAUCNS'), med = get('LES1252881600Q');
     var pay = get('PAYEMS'), unr = get('UNRATE'), gdp = get('GDP');
     var out = '';
 
@@ -2581,18 +2588,24 @@
       ' A mortgage is a borrowing cost — it is not rent.</p>' +
       '<div class="pf-gov-pair">FEDFUNDS → MORTGAGE30US · each figure cited on its card</div></div>';
 
-    /* Real-wage read: average earnings vs CPI, YoY vs YoY. */
+    /* Real-wage read: MEDIAN earnings vs CPI, YoY vs YoY (Phase 3 —
+       the CES-average-based read is retired, not edited; the retired copy
+       is tombstoned in F.READS, never rendered). */
     var wage = F.READS.pair1;
-    if (ces && cpi) {
-      var cw = ces.change_pct_label || ces.change_label || '';
+    if (med && cpi) {
+      var mw = med.change_pct_label || med.change_label || '';
       var cp = cpi.change_pct_label || cpi.change_label || '';
-      if (cw && cp) {
-        wage = 'Average hourly earnings are up ' + cw.replace('+', '') + ' over the year; consumer prices are up ' +
-          cp.replace('+', '') + '. The difference is the average raise in real terms — if it\'s negative, the average paycheck buys less than it did last year.';
+      if (mw && cp) {
+        wage = 'Median usual weekly earnings are ' + (med.value_label || '') +
+          ' (1982\u201384 dollars) \u2014 ' + mw.replace('+', '') +
+          ' in real terms over the year. Consumer prices are up ' +
+          cp.replace('+', '') + ' over the year. The median is the typical ' +
+          'worker\u2019s paycheck, not an average: executive raises pull the ' +
+          'average up and leave this untouched.';
       }
     }
     out += '<div class="pf-gov-read"><h5>THE REAL-WAGE READ</h5><p>' + esc(wage) + '</p>' +
-      '<div class="pf-gov-pair">CES0500000003 (AVERAGE) vs CPIAUCNS · YoY vs YoY · SA vs NSA labeled on cards</div></div>';
+      '<div class="pf-gov-pair">LES1252881600Q (MEDIAN) vs CPIAUCNS \u00b7 YoY vs YoY \u00b7 quarterly vs monthly \u00b7 SA vs NSA labeled on cards</div></div>';
 
     /* Labor health: payrolls vs unemployment. */
     var labor = F.READS.pair6;
@@ -2712,11 +2725,14 @@
   }
   function skip(id) { try { return PF.skip('fred') || PF.skip(id); } catch (e) { return false; } }
 
-  /* The 6 suggested matchups (Design brief, remediated hooks). */
+  /* The 6 suggested matchups (Design brief, remediated hooks).
+     Phase 3 (2026-10-06): the wages-vs-inflation matchup re-points to the
+     median series (LES1252881600Q) — the CES-average-based matchup is
+     retired, not edited. */
   var MATCHUPS = [
-    { sid1: 'CES0500000003', sid2: 'CPIAUCNS',
+    { sid1: 'LES1252881600Q', sid2: 'CPIAUCNS',
       hook: 'Wages vs Inflation', question: 'Are paychecks beating prices?',
-      why: 'Wages vs prices is the real-raise question — both legs as 12-month change, so the units can\u2019t lie.' },
+      why: 'The median paycheck vs prices is the real-raise question — the median series isn\u2019t fooled by executive raises. Both legs as 12-month change, so the units can\u2019t lie.' },
     { sid1: 'MORTGAGE30US', sid2: 'FEDFUNDS',
       hook: 'Mortgage rates vs Fed rate', question: 'Who moved first?',
       why: 'The Fed sets one rate; lenders charge another. The gap between them is the policy transmission chain.' },
@@ -2734,8 +2750,12 @@
       why: 'The mortgage rate minus inflation is the real rate — what borrowing actually costs you.' }
   ];
 
+  /* Phase 3 (2026-10-06): DRCCLACBS, LES1252881600Q, CUSR0000SAF11 join
+     the free-pick list. CES0500000003 stays — the average-vs-median
+     inequality comparison is an approved free-mode use. */
   var SERIES12 = ['FEDFUNDS', 'UNRATE', 'DGS10', 'DGS2', 'MORTGAGE30US',
-    'CPIAUCNS', 'CPILFESL', 'PCEPI', 'GDP', 'CES0500000003', 'PAYEMS', 'CUUR0000SEHA'];
+    'CPIAUCNS', 'CPILFESL', 'PCEPI', 'GDP', 'CES0500000003', 'PAYEMS', 'CUUR0000SEHA',
+    'DRCCLACBS', 'LES1252881600Q', 'CUSR0000SAF11'];
   var PLAIN = {
     FEDFUNDS: 'Fed funds rate', UNRATE: 'Unemployment rate',
     DGS10: '10-year Treasury yield', DGS2: '2-year Treasury yield',
@@ -2743,7 +2763,8 @@
     CPIAUCNS: 'Consumer prices (CPI)', CPILFESL: 'Core consumer prices',
     PAYEMS: 'Nonfarm payrolls', PCEPI: 'PCE price index',
     GDP: 'Real GDP', CES0500000003: 'Average hourly earnings',
-    CUUR0000SEHA: 'Rent of primary residence'
+    CUUR0000SEHA: 'Rent of primary residence', DRCCLACBS: 'Credit-card delinquency',
+    LES1252881600Q: 'Median weekly earnings (real)', CUSR0000SAF11: 'Food at home (CPI)'
   };
   var WINDOWS = [['1y', '1Y'], ['3y', '3Y'], ['5y', '5Y'], ['10y', '10Y'], ['all', 'ALL']];
   var LEG_COLORS = ['#6aa5ff', '#e0685c', '#e8b923'];
@@ -3375,7 +3396,8 @@
    - No predictions, no financial advice — enforced server-side; this file
      renders beats verbatim and never invents copy.
    - Every figure: 4-fact citation + staleness badge + ʳ marker.
-   - Rent card is labeled via-mortgage until the rent series lands (Phase 3).
+   - Rent card is backed by the live CUUR0000SEHA rent series (Phase 3);
+     the via-mortgage label is retired.
    Read-only, zero XP. Cross-links are user-initiated taps only — no
    auto-advance, no streak/XP pressure between tools. */
 (function () {
@@ -3391,13 +3413,17 @@
   function skip(id) { try { return PF.skip('fred') || PF.skip(id); } catch (e) { return false; } }
 
   var TOPICS = [
-    { key: 'rent', label: 'RENT', sub: 'Rent (via mortgage rates — the rent series lands in Phase 3)' },
+    /* Phase 3 (2026-10-06): the rent series is live — the card is backed
+       by CUUR0000SEHA directly; the via-mortgage label is retired. */
+    { key: 'rent', label: 'RENT', sub: 'What renters actually pay, from the CPI rent index' },
     { key: 'groceries', label: 'GROCERIES', sub: 'What food prices are doing' },
     { key: 'job-hunt', label: 'JOB HUNT', sub: 'How tight the job market is' },
     { key: 'savings', label: 'SAVINGS', sub: 'What your cash earns' }
   ];
+  /* Phase 3 (2026-10-06): the 3 new series join the nerd-mode list. */
   var SERIES12 = ['FEDFUNDS', 'UNRATE', 'DGS10', 'DGS2', 'MORTGAGE30US',
-    'CPIAUCNS', 'CPILFESL', 'PCEPI', 'GDP', 'CES0500000003', 'PAYEMS', 'CUUR0000SEHA'];
+    'CPIAUCNS', 'CPILFESL', 'PCEPI', 'GDP', 'CES0500000003', 'PAYEMS', 'CUUR0000SEHA',
+    'DRCCLACBS', 'LES1252881600Q', 'CUSR0000SAF11'];
   var PLAIN = {
     FEDFUNDS: 'Fed funds rate', UNRATE: 'Unemployment rate',
     DGS10: '10-year Treasury yield', DGS2: '2-year Treasury yield',
@@ -3405,7 +3431,8 @@
     CPIAUCNS: 'Consumer prices (CPI)', CPILFESL: 'Core consumer prices',
     PAYEMS: 'Nonfarm payrolls', PCEPI: 'PCE price index',
     GDP: 'Real GDP', CES0500000003: 'Average hourly earnings',
-    CUUR0000SEHA: 'Rent of primary residence'
+    CUUR0000SEHA: 'Rent of primary residence', DRCCLACBS: 'Credit-card delinquency',
+    LES1252881600Q: 'Median weekly earnings (real)', CUSR0000SAF11: 'Food at home (CPI)'
   };
   var ROTATE = ['rent', 'groceries', 'job-hunt', 'savings'];
 

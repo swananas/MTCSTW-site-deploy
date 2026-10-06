@@ -89,12 +89,12 @@ function pollHtml(p){
   var h='<div class="lo-poll" data-poll="'+esc(p.id)+'"><div class="lo-poll-q">'+esc(p.question)+'</div>';
   var opts=p.options||[];
   opts.forEach(function(o,i){
-    var c=(p.counts&&p.counts[i])||0, pct=p.total?Math.round(c/p.total*100):0;
+    var c=+((p.counts&&p.counts[i])||0), pct=p.total?Math.round(c/p.total*100):0;
     h+='<div class="lo-opt"><div class="lo-opt-row"><span>'+esc(o)+'</span><span>'+c+' &middot; '+pct+'%</span></div>'+
       '<div class="lo-bar"><div class="lo-fill" style="width:'+pct+'%"></div></div>'+
       (p.status==='open'?'<button class="c-btn lo-vote" data-poll="'+esc(p.id)+'" data-opt="'+i+'">VOTE</button>':'')+'</div>';
   });
-  h+='<div class="lo-poll-meta">'+p.total+' votes &middot; '+(p.status==='open'?'OPEN':'CLOSED')+'</div>';
+  h+='<div class="lo-poll-meta">'+esc(p.total)+' votes &middot; '+(p.status==='open'?'OPEN':'CLOSED')+'</div>';
   if(opMode&&p.status==='open') h+='<button class="c-btn lo-pclose" data-poll="'+esc(p.id)+'">CLOSE POLL</button>';
   if(opMode&&p.status==='closed') h+='<button class="c-btn lo-popen" data-poll="'+esc(p.id)+'">REOPEN</button>';
   h+='</div>';

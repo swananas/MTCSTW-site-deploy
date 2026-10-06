@@ -286,7 +286,7 @@ hasR('S-14 community line labeled', /People\u2019s Index \(community-reported\)/
 hasR('S-14 never-blended footnote', /never one/);
 hasR('S-14 svg rendered', /<svg/);
 hasR('M-01 gap headline', /wages ahead of/);
-hasR('M-01 two lines', /Wage growth/);
+hasR('M-01 two lines', /Median real earnings growth/);
 hasR('S-26 not triggered', /NOT TRIGGERED/);
 hasR('S-26 gauge vs 0.5', /trigger 0\.5 pp/);
 hasR('S-26 episode from data', /Mar 2020/);

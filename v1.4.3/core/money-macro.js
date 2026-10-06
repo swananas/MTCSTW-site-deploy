@@ -1,5 +1,8 @@
 /* core/money-macro.js  |  PF v1.4.3 | FRED MACRO DASHBOARD (FRED Everywhere P1).
-   The full 11-series macro dashboard from ?action=fred_macro&scope=full&spark=1.
+   The full macro dashboard from ?action=fred_macro&scope=full&spark=1:
+   Phase 3 (2026-10-06) adds 4 cards — rent (CUUR0000SEHA), credit-card
+   delinquency (DRCCLACBS), median weekly earnings (LES1252881600Q),
+   food at home (CUSR0000SAF11) — for 15 series total.
    Each card: latest figure, change, sparkline, per-series staleness badge,
    4-fact citation ({Agency} via FRED · {SERIES_ID} · {period} · retrieved {date}).
    Rolling refresh per News Desk §1(a): daily series daily, weekly weekly,
@@ -27,7 +30,7 @@
 
   var EMPTY_HEAD = 'OFFICIAL DATA CONNECTING';
   var EMPTY_BODY = 'The macro dashboard is being wired to live FRED figures. ' +
-    'Nothing here is estimated or seeded — the 11 series cards appear the ' +
+    'Nothing here is estimated or seeded — the 15 series cards appear the ' +
     'moment the official feed is connected.';
   var WAITING_HEAD = 'FEED CONNECTED \u2014 FIRST REFRESH PENDING';
   var WAITING_BODY = 'The official feed is connected and the first data ' +
@@ -119,7 +122,7 @@
     return '<div class="pf-macro">' +
       '<div class="pf-macro-kicker">OFFICIAL DATA</div>' +
       '<h3 class="pf-macro-title">THE MACRO DASHBOARD</h3>' +
-      '<p class="pf-macro-sub">11 SERIES · ROLLING REFRESH · TAP ANY CARD FOR THE FULL CITATION</p>' + inner +
+      '<p class="pf-macro-sub">15 SERIES · ROLLING REFRESH · TAP ANY CARD FOR THE FULL CITATION</p>' + inner +
       '<div class="pf-macro-foot">OFFICIAL FIGURES VIA FRED \u00b7 NEVER BLENDED WITH CROWDSOURCED DATA</div></div>';
   }
 
@@ -143,8 +146,10 @@
       container.innerHTML = shell(emptyBlock(WAITING_HEAD, (j && j.note) || WAITING_BODY));
       return;
     }
-    /* Backend FULL_ORDER: FEDFUNDS, UNRATE, DGS10, MORTGAGE30US, CPIAUCNS,
-       CPILFESL, PAYEMS, PCEPI, GDP, CES0500000003, DGS2. Rendered in order. */
+    /* Backend FULL_ORDER (Phase 3, 15): FEDFUNDS, UNRATE, DGS10,
+       MORTGAGE30US, CPIAUCNS, CPILFESL, PAYEMS, PCEPI, GDP, CES0500000003,
+       DGS2, CUUR0000SEHA, CUSR0000SAF11, DRCCLACBS, LES1252881600Q.
+       Rendered in order. */
     container.innerHTML = shell(
       '<div class="pf-macro-grid">' +
       series.map(function (s) { return cardHtml(F, s || {}); }).join('') +

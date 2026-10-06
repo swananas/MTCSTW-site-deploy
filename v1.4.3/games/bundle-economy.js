@@ -2996,12 +2996,13 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
     api('price_trends', { item_id: 'eggs', area_key: 'national', weeks: 24 }, function (j) { piJ = j; maybe(); });
   }
 
-  /* ---------- M-01: wage-vs-CPI gap ---------- */
+  /* ---------- M-01: median-paycheck-vs-CPI gap (Phase 3: re-pointed
+     from the CES average to the median series LES1252881600Q) ---------- */
   function mountWageGap(root) {
     if (PF.skip('wage-gap')) return;
     var sec = document.createElement('div');
-    sec.innerHTML = sectionShell('WAGES VS PRICES', 'Are paychecks keeping up?',
-      'Average hourly earnings growth vs price growth, year over year. Psych: neutral framing — no doom copy.');
+    sec.innerHTML = sectionShell('WAGES VS PRICES', 'Is the typical paycheck keeping up?',
+      'Median real earnings growth vs price growth, year over year. The median is the middle worker\u2019s pay, not an average — executive raises pull the average up and leave this untouched. Psych: neutral framing — no doom copy.');
     root.appendChild(sec);
     var body = sec.querySelector('.pf-fe-body');
     api('fred_wage_gap', { limit: 24 }, function (j) {
@@ -3010,7 +3011,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
       /* Stub state: series contracted, ingest not yet landed — wire on arrival. */
       if (!j.wage_live) {
         body.innerHTML = emptyHTML('WAGE DATA CONNECTING',
-          j.note || 'Average hourly earnings not ingested yet — this panel lights up once the earnings series lands.');
+          j.note || 'Median usual weekly earnings not ingested yet — this panel lights up once the earnings series lands.');
         return;
       }
       if (j.stale) {
@@ -3029,7 +3030,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
         return { t: Date.parse(r.period + '-01T00:00:00Z'), w: r.wage_yoy, c: r.cpi_yoy };
       }).filter(function (p) { return !isNaN(p.t); });
       var chart = svgLine([
-        { label: 'Wage growth — avg hourly earnings (SA)', color: '#e8b923',
+        { label: 'Median real earnings growth (SA)', color: '#e8b923',
           pts: pts.map(function (p) { return { t: p.t, y: p.w }; }) },
         { label: 'Price growth — CPI-U (NSA)', color: '#c1121f',
           pts: pts.map(function (p) { return { t: p.t, y: p.c }; }) }
@@ -3037,9 +3038,9 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
       var h = '<div class="pf-fe-chart">' +
         '<div class="pf-fe-gap">Gap: ' + esc(gapTxt) + ' <span style="font-size:12px;font-weight:400;color:#c9bfa8;">(' +
         esc(j.period_label || '') + ')</span></div>' + chart +
-        '<div class="pf-fe-note">Year-over-year growth, by month. Positive gap = paychecks growing faster than ' +
-        'prices; negative = prices growing faster. Earnings are average hourly earnings of all private employees, ' +
-        'seasonally adjusted (BLS). Prices are CPI-U, all items (BLS). Two labeled lines — never blended.</div>' +
+        '<div class="pf-fe-note">Year-over-year growth, by quarter for earnings and 3-month CPI average for prices. Positive gap = the typical paycheck growing faster than ' +
+        'prices; negative = prices growing faster. Earnings are median usual weekly earnings of full-time workers, in 1982\u201384 dollars, ' +
+        'seasonally adjusted (BLS) — the typical worker\u2019s paycheck, not an average. Prices are CPI-U, all items (BLS). Two labeled lines — never blended.</div>' +
         stampHTML(j.wage) + stampHTML(j.cpi) + '</div>';
       body.innerHTML = h;
     });
@@ -3132,8 +3133,10 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
 /* ===== fred-macro-rail.js ===== */
 /* games/fred-macro-rail.js  |  PF v1.4.3 | ECONOMY PAGE — MACRO CONTEXT RAIL.
    The official-data rail beside the People's Price Index: the three official
-   inflation reads as a family (CPIAUCNS + CPILFESL + PCEPI), average hourly
-   earnings (CES0500000003, labeled "average"), and the cost of money
+   inflation reads as a family (CPIAUCNS + CPILFESL + PCEPI), median usual
+   weekly real earnings (LES1252881600Q — Phase 3 re-points the rail's
+   earnings slot from the average to the median; the CES-average card is
+   retired from this rail, not edited), and the cost of money
    (MORTGAGE30US + FEDFUNDS). Mounts right after #pf-inflation-trends.
 
    Binding honesty (News Desk §1(c)):
@@ -3143,7 +3146,9 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
    - The three inflation reads render AS A FAMILY so no one can cherry-pick one.
    - Each leg carries its SA/NSA label inline (Prohibition 2).
    - Every figure: 4-fact citation. Stale figures render with the badge.
-   - CES0500000003: "average" adjacent; no second-person "your paycheck/raise".
+   - The earnings card is the MEDIAN — the typical worker's paycheck, not
+     an average. Second-person "your paycheck/raise" is honest against the
+     median series.
    - Mortgage is a borrowing cost — never presented as rent.
    - Monthly cadence: this rail moves on CPI release day and sits still
      otherwise. The header carries the vintage month.
@@ -3157,7 +3162,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
   if (window.pfMacroRailDone) return;
   window.pfMacroRailDone = true;
 
-  var ORDER = ['CPIAUCNS', 'CPILFESL', 'PCEPI', 'CES0500000003', 'MORTGAGE30US', 'FEDFUNDS'];
+  var ORDER = ['CPIAUCNS', 'CPILFESL', 'PCEPI', 'LES1252881600Q', 'MORTGAGE30US', 'FEDFUNDS'];
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -3198,10 +3203,12 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
   function cardHtml(F, s) {
     var sid = s.series_id || '';
     var title = esc(s.title || F.PLAIN[sid] || sid);
+    /* Phase 3: the rail's earnings card is the median series
+       (LES1252881600Q) — its backend unit_label already reads
+       "median usual weekly earnings, 1982-84 dollars", so no
+       "average"-adjacency guard is needed here. (The CES guard was
+       retired with the average card.) */
     var unitLine = esc(s.unit_label || '');
-    if (sid === 'CES0500000003' && unitLine.toLowerCase().indexOf('average') === -1) {
-      unitLine = 'average ' + unitLine;
-    }
     var change = s.change_basis === 'yoy'
       ? (s.change_pct_label || s.change_label)
       : (s.change_label || s.change_pct_label);
@@ -3225,7 +3232,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
     var byId = {};
     series.forEach(function (s) { if (s && s.series_id) byId[s.series_id] = s; });
     var fam = ['CPIAUCNS', 'CPILFESL', 'PCEPI'].map(function (id) { return byId[id]; }).filter(Boolean);
-    var rest = ['CES0500000003', 'MORTGAGE30US', 'FEDFUNDS'].map(function (id) { return byId[id]; }).filter(Boolean);
+    var rest = ['LES1252881600Q', 'MORTGAGE30US', 'FEDFUNDS'].map(function (id) { return byId[id]; }).filter(Boolean);
 
     var inner;
     if (!live || (!fam.length && !rest.length)) {

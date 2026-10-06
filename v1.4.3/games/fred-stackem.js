@@ -39,11 +39,14 @@
   }
   function skip(id) { try { return PF.skip('fred') || PF.skip(id); } catch (e) { return false; } }
 
-  /* The 6 suggested matchups (Design brief, remediated hooks). */
+  /* The 6 suggested matchups (Design brief, remediated hooks).
+     Phase 3 (2026-10-06): the wages-vs-inflation matchup re-points to the
+     median series (LES1252881600Q) — the CES-average-based matchup is
+     retired, not edited. */
   var MATCHUPS = [
-    { sid1: 'CES0500000003', sid2: 'CPIAUCNS',
+    { sid1: 'LES1252881600Q', sid2: 'CPIAUCNS',
       hook: 'Wages vs Inflation', question: 'Are paychecks beating prices?',
-      why: 'Wages vs prices is the real-raise question — both legs as 12-month change, so the units can\u2019t lie.' },
+      why: 'The median paycheck vs prices is the real-raise question — the median series isn\u2019t fooled by executive raises. Both legs as 12-month change, so the units can\u2019t lie.' },
     { sid1: 'MORTGAGE30US', sid2: 'FEDFUNDS',
       hook: 'Mortgage rates vs Fed rate', question: 'Who moved first?',
       why: 'The Fed sets one rate; lenders charge another. The gap between them is the policy transmission chain.' },
@@ -61,8 +64,12 @@
       why: 'The mortgage rate minus inflation is the real rate — what borrowing actually costs you.' }
   ];
 
+  /* Phase 3 (2026-10-06): DRCCLACBS, LES1252881600Q, CUSR0000SAF11 join
+     the free-pick list. CES0500000003 stays — the average-vs-median
+     inequality comparison is an approved free-mode use. */
   var SERIES12 = ['FEDFUNDS', 'UNRATE', 'DGS10', 'DGS2', 'MORTGAGE30US',
-    'CPIAUCNS', 'CPILFESL', 'PCEPI', 'GDP', 'CES0500000003', 'PAYEMS', 'CUUR0000SEHA'];
+    'CPIAUCNS', 'CPILFESL', 'PCEPI', 'GDP', 'CES0500000003', 'PAYEMS', 'CUUR0000SEHA',
+    'DRCCLACBS', 'LES1252881600Q', 'CUSR0000SAF11'];
   var PLAIN = {
     FEDFUNDS: 'Fed funds rate', UNRATE: 'Unemployment rate',
     DGS10: '10-year Treasury yield', DGS2: '2-year Treasury yield',
@@ -70,7 +77,8 @@
     CPIAUCNS: 'Consumer prices (CPI)', CPILFESL: 'Core consumer prices',
     PAYEMS: 'Nonfarm payrolls', PCEPI: 'PCE price index',
     GDP: 'Real GDP', CES0500000003: 'Average hourly earnings',
-    CUUR0000SEHA: 'Rent of primary residence'
+    CUUR0000SEHA: 'Rent of primary residence', DRCCLACBS: 'Credit-card delinquency',
+    LES1252881600Q: 'Median weekly earnings (real)', CUSR0000SAF11: 'Food at home (CPI)'
   };
   var WINDOWS = [['1y', '1Y'], ['3y', '3Y'], ['5y', '5Y'], ['10y', '10Y'], ['all', 'ALL']];
   var LEG_COLORS = ['#6aa5ff', '#e0685c', '#e8b923'];

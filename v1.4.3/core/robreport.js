@@ -2,8 +2,13 @@
    "Here's what they took from you — from their own filings." Self-mounting
    figure cards + household baskets over the curated anchors in
    core/robreport-data.js (News Desk-verified 2026-10-06).
-   READ-ONLY: no POST, no auth, ZERO XP. Self-mounts on div#pf-robreport
+   READ-ONLY: no auth, ZERO XP. Self-mounts on div#pf-robreport
    (silent no-op when absent); money-page.js also calls PFRobReport.mount.
+   READ SIGNAL (pipeline audit 2026-10-06): every mount fires the existing
+   anonymous pageview beacon (slug 'robreport') so card reads feed the
+   Efficiency Index site-pull signal. Fail-soft: the beacon never breaks
+   the widget; the backend rail is unauthenticated and rate-limited by
+   design (stats.js pageview).
    CPI rail: card 10 lights up a live People's median via the existing
    price_board GET when min-n data exists, else the curated typical-retail
    price stands. Share: per-card/per-basket PFShare posters (no free text in
@@ -366,6 +371,12 @@
   function mount(host) {
     if (!host || host.querySelector('.pf-rr')) return false;
     cssOnce();
+    /* READ SIGNAL: the report was viewed — fire the anonymous pageview
+       beacon (slug 'robreport'). Fail-soft; the widget never depends on
+       it. Dedupe is server-side (one counted view per IP per hour). */
+    try {
+      if (PF && PF.postAction) PF.postAction('stats', 's_action', 'pageview', { slug: 'robreport' }, function () {});
+    } catch (e) {}
     var h = '<div class="pf-rr">';
     h += '<div class="pf-rr-head">' +
          '<h3>THE ROBBERY REPORT</h3>' +

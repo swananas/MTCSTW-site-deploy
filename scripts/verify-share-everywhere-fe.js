@@ -36,6 +36,17 @@ var FILES = [
   'v1.4.3/games/campaign.js',
   'v1.4.3/games/bank-browse.js',
   'v1.4.3/games/service-medals.js',
+  /* share-out gaps (fe/share-out-gaps) */
+  'v1.4.3/games/predgame.js',
+  'v1.4.3/games/cell-war.js',
+  'v1.4.3/games/peoplesbank.js',
+  'v1.4.3/games/ventures.js',
+  'v1.4.3/games/governance.js',
+  'v1.4.3/games/events.js',
+  'v1.4.3/games/war-bonds.js',
+  'v1.4.3/games/blackout.js',
+  'v1.4.3/games/hall-of-proof.js',
+  'v1.4.3/games/master-calendar.js',
   'build/bundle-core.js'
 ];
 
@@ -52,7 +63,10 @@ else no('kill switch', 'missing');
 
 /* REG completeness: every new surface has title/tag/lines/cta */
 var REG_KEYS = ['territory-map', 'war-map', 'cell-war-front', 'cell-hq', 'cell-identity',
-  'predictions', 'pledge-wall', 'checkin', 'content-bank', 'achievements', 'enlistment-papers'];
+  'predictions', 'pledge-wall', 'checkin', 'content-bank', 'achievements', 'enlistment-papers',
+  /* share-out gaps (fe/share-out-gaps) */
+  'callit', 'cellwar-standings', 'war-bonds', 'bank-deposit', 'event-rsvp', 'gov-result',
+  'ventures', 'arcade-blackout', 'arcade-ambush', 'hall-of-proof', 'master-calendar'];
 var seSrc = read(SE);
 var regOk = true;
 REG_KEYS.forEach(function (k) {
@@ -94,7 +108,22 @@ var HOOKS = [
   ['v1.4.3/games/predict.js', "bar(root,'predictions'"],
   ['v1.4.3/games/campaign.js', "bar(el,'pledge-wall'"],
   ['v1.4.3/games/bank-browse.js', "bar(mount,'content-bank'"],
-  ['v1.4.3/games/service-medals.js', "bar(el,'achievements'"]
+  ['v1.4.3/games/service-medals.js', "bar(el,'achievements'"],
+  /* share-out gaps (fe/share-out-gaps) */
+  ['v1.4.3/games/predgame.js', 'pq-callshare'],
+  ['v1.4.3/games/predgame.js', "terminal({"],
+  ['v1.4.3/games/cell-war.js', "bar(host,'cellwar-standings'"],
+  ['v1.4.3/games/cell-identity.js', 'SHARE BANNER'],
+  ['v1.4.3/games/peoplesbank.js', 'pf:terminal'],
+  ['v1.4.3/games/peoplesbank.js', 'data-pf-terminal="bank-deposit"'],
+  ['v1.4.3/games/ventures.js', 'https://www.mtcstw.com/ventures'],
+  ['v1.4.3/games/governance.js', 'gv-share'],
+  ['v1.4.3/games/events.js', 'gameId:"event-rsvp"'],
+  ['v1.4.3/games/war-bonds.js', 'data-pf-share="war-bonds"'],
+  ['v1.4.3/games/war-bonds.js', 'pf_backed=1'],
+  ['v1.4.3/games/blackout.js', "bar(el,'arcade-blackout'"],
+  ['v1.4.3/games/hall-of-proof.js', "bar(main,'hall-of-proof'"],
+  ['v1.4.3/games/master-calendar.js', "bar(root,'master-calendar'"]
 ];
 var hooksOk = true;
 HOOKS.forEach(function (h) {
@@ -102,11 +131,40 @@ HOOKS.forEach(function (h) {
 });
 if (hooksOk) ok('surface hooks (' + HOOKS.length + ')');
 
+/* Terminal (game-over) hook infrastructure */
+if (has(SE, "PF.skip('share-terminal')")) ok('terminal kill switch');
+else no('terminal kill switch', 'missing');
+if (has(SE, "addEventListener('pf:terminal'") && has(SE, 'PFShareEverywhere.terminal')) ok('pf:terminal listener + public API');
+else no('pf:terminal wiring', 'listener or public terminal() missing');
+if (has(SE, "'cellwar-standings': paintCellWarStandings") && has(SE, "'war-bonds': paintWarBonds")) ok('dedicated painters registered');
+else no('dedicated painters', 'cellwar-standings/war-bonds not in PAINTERS');
+if (has(SE, 'pf-ambush-claimed')) ok('ambush claim bridge');
+else no('ambush bridge', 'pf-ambush-claimed bridge missing');
+/* terminal panel must not interpolate user data into HTML — textContent only */
+['k.textContent', 't.textContent', 'r.textContent', 's.textContent'].forEach(function (tc) {
+  if (has(SE, tc)) ok('terminal panel ' + tc);
+  else no('terminal panel escaping', tc + ' missing');
+});
+/* per-module kill switches on the touched silos */
+[['v1.4.3/games/predgame.js', "PF.skip('predgame')"],
+ ['v1.4.3/games/cell-war.js', "PF.skip"],
+ ['v1.4.3/games/peoplesbank.js', "PF.skip"],
+ ['v1.4.3/games/governance.js', "PF.skip"],
+ ['v1.4.3/games/events.js', "PF.skip"],
+ ['v1.4.3/games/war-bonds.js', 'pf_off=war-bonds'],
+ ['v1.4.3/games/blackout.js', "PF.skip"],
+ ['v1.4.3/games/ventures.js', "PF.skip"]
+].forEach(function (k) {
+  if (has(k[0], k[1])) ok('kill switch ' + k[0].split('/').pop());
+  else no('kill switch ' + k[0], 'missing');
+});
+
 /* Inner-script gate on the touched widget silos */
 try {
   cp.execSync('node scripts/check-inner-scripts.js ' +
     'v1.4.3/games/cell-territory-map.js v1.4.3/games/war-map.js ' +
-    'v1.4.3/games/cell-war-front.js v1.4.3/games/campaign.js',
+    'v1.4.3/games/cell-war-front.js v1.4.3/games/campaign.js ' +
+    'v1.4.3/games/war-bonds.js',
     { cwd: ROOT, stdio: 'pipe' });
   ok('inner-script gate');
 } catch (e) { no('inner-script gate', 'failed'); }
@@ -262,6 +320,59 @@ try {
     })(host2);
     if (shareBtn) ok('share button wired with data-pfshare');
     else no('share button', 'not found');
+
+    /* ---- share-out gaps: terminal() ---- */
+    if (typeof PSE.terminal !== 'function') { no('terminal()', 'not exposed'); }
+    else {
+      ok('terminal() exposed');
+      /* terminal renders a result panel + the site-wide bar into the host */
+      var thost = m.shim.document.createElement('div');
+      thost.nodeType = 1;
+      var tr = PSE.terminal({ gameId: 'bank-deposit', title: 'VAULT SECURED',
+        result: 'DEPOSITED TO THE VAULT', score: '+500 XP',
+        lines: ['Deposits build the war chest.'], link: '/bank', host: thost });
+      var panel = null;
+      (function walk3(el) {
+        if (el.getAttribute && el.getAttribute('data-pf-terminal-panel') === 'bank-deposit') panel = el;
+        (el.children || []).forEach(walk3);
+      })(thost);
+      var tbar = panel && panel.querySelector('[data-pfshare-bar="bank-deposit"]');
+      if (tr && panel && tbar) ok('terminal() panel + bar');
+      else no('terminal() panel', 'panel=' + !!panel + ' bar=' + !!tbar);
+      /* terminal is idempotent: a second call replaces, never duplicates */
+      PSE.terminal({ gameId: 'bank-deposit', title: 'T2', host: thost });
+      var panels = [];
+      (function walk4(el) {
+        if (el.getAttribute && el.getAttribute('data-pf-terminal-panel') === 'bank-deposit') panels.push(el);
+        (el.children || []).forEach(walk4);
+      })(thost);
+      if (panels.length === 1) ok('terminal() idempotent');
+      else no('terminal() idempotency', panels.length + ' panels');
+      /* detail-driven painter registered; resolves through resolvePoster */
+      var tdone = null;
+      PSE.resolvePoster('bank-deposit', function (cv) { tdone = cv; });
+      if (tdone && tdone._pfGeneric) ok('terminal painter via resolvePoster');
+      else no('terminal painter', 'no canvas resolved');
+      /* kill switch: ?pf_off=share-terminal stops the panel */
+      var skip0 = m.sandbox.PF.skip;
+      m.sandbox.PF.skip = function (mod) { return mod === 'share-terminal'; };
+      var thost2 = m.shim.document.createElement('div');
+      thost2.nodeType = 1;
+      var tr2 = PSE.terminal({ gameId: 'event-rsvp', title: "I'M GOING", host: thost2 });
+      var found2 = false;
+      (function walk5(el) {
+        if (el.getAttribute && el.getAttribute('data-pf-terminal-panel')) found2 = true;
+        (el.children || []).forEach(walk5);
+      })(thost2);
+      m.sandbox.PF.skip = skip0;
+      if (tr2 === false && !found2) ok('terminal kill switch');
+      else no('terminal kill switch', 'panel rendered while killed');
+      /* cellwar-standings painter: no live rows in the shim -> generic fallback */
+      var cdone = 'unset';
+      PSE.resolvePoster('cellwar-standings', function (cv) { cdone = cv; });
+      if (cdone && cdone._pfGeneric) ok('cellwar-standings painter fallback');
+      else no('cellwar-standings painter', 'no fallback canvas');
+    }
   }
 } catch (e) { no('runtime', 'exception: ' + (e && e.message)); }
 

@@ -131,6 +131,23 @@
     s.src = BACKEND + q; document.head.appendChild(s);
     setTimeout(function () { finish(null); }, 12000);
   }
+  /* Authenticated JSONP GET — PF.authGetJSONP attaches callsign/device/
+     auth_secret + claim-retry when available; falls back to raw api().
+     Required: the BE's GET rail enforces the IDOR guard (auth when
+     &callsign is present), so the secret must ride along. */
+  function apiAuth(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    try {
+      if (window.PF && PF.authGetJSONP) {
+        PF.authGetJSONP(BACKEND, action, params || {}, cb);
+        return;
+      }
+    } catch (e) {}
+    api(action, params, cb);
+  }
+  function isAuthErr(j) {
+    return /missing credentials|unauthorized|legacy_callsign|no secret issued/.test(String((j && (j.err || j.error)) || ''));
+  }
   /* CORS POST — {type:'predictq', p_action:...}, same convention as
      predict.js's {type:'predict', p_action:...}. PF.authPost attaches
      auth_secret automatically when available. */
@@ -447,7 +464,18 @@
     function gone(msg) { failSoft(root, msg); }
     if (!BACKEND) { gone('no backend URL — section hidden'); return; }
     var idt = ident();
-    api('predict_qlist', { callsign: idt.callsign, device: idt.device }, function (j) {
+    /* Authed read: the BE's GET rail requires auth when &callsign is present
+       (IDOR guard). apiAuth attaches the secret + claim-retry. If this
+       browser's callsign has no usable secret (e.g. legacy callsign), fall
+       back to the public board — questions show, my-picks don't. */
+    apiAuth('predict_qlist', { callsign: idt.callsign, device: idt.device }, function (j) {
+      if (j && j.ok === false && idt.callsign && isAuthErr(j)) {
+        api('predict_qlist', {}, function (j2) { onQlist(j2); });
+        return;
+      }
+      onQlist(j);
+    });
+    function onQlist(j) {
       /* Backend actions missing (parallel BE build not landed yet) or the
          request failed: the section hides itself, the page never breaks. */
       if (!j || j.ok === false) { gone('predict_qlist unavailable — section hidden'); return; }
@@ -476,7 +504,7 @@
           startTicker(root);
         } catch (e) { gone('render failed (soft)'); }
       });
-    });
+    }
   }
   PFG.mount = mountSectionInto;
   window.PFPredgameMount = mountSectionInto;

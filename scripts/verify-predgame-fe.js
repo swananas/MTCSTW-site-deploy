@@ -301,6 +301,46 @@ function runFile(env) {
     if (h.indexOf('strike back') !== -1) no('render: loss-chasing copy', "'strike back' must not appear");
   } catch (e) { no('render smoke', 'threw: ' + (e && e.stack || e.message || e)); }
 })();
+/* 8d2. qlist rides PF.authGetJSONP when available; auth failure falls back
+   to the public board (no callsign) instead of hiding the section. */
+(function () {
+  var env = makeEnv();
+  var authCalls = [];
+  env.win.PF.authGetJSONP = function (backendUrl, action, params, cb) {
+    authCalls.push({ action: action, params: params });
+    /* First call: simulate a logged-in callsign with no usable secret. */
+    if (authCalls.length === 1) { cb({ ok: false, err: 'missing credentials' }); return; }
+    cb(null);
+  };
+  try {
+    var sb = runFile(env);
+    var root = env.makeEl('div');
+    sb.window.PFPredgame.mount(root);
+    if (authCalls.length < 1) { no('auth qlist', 'PF.authGetJSONP not used for qlist'); return; }
+    if (authCalls[0].action === 'predict_qlist') ok('auth qlist: action is predict_qlist');
+    else no('auth qlist: action', 'wrong action: ' + authCalls[0].action);
+    /* Auth failure -> exactly one public fallback via raw api(). (The authed
+       read itself injects no script; the fallback does — that's expected.) */
+    if (env.pendingScripts.length < 1) { no('auth qlist fallback', 'no public fallback script injected'); return; }
+    var fsrc = env.pendingScripts[0].src || '';
+    if (fsrc.indexOf('action=predict_qlist') !== -1) ok('auth qlist fallback: public qlist requested');
+    else no('auth qlist fallback: action', 'wrong fallback action');
+    if (fsrc.indexOf('callsign=') === -1) ok('auth qlist fallback: no callsign on public read');
+    else no('auth qlist fallback: callsign', 'callsign leaked on public read');
+    var fcb = (fsrc.match(/[?&]callback=([^&]+)/) || [])[1];
+    if (!fcb || !sb.window[fcb]) { no('auth qlist fallback', 'callback not registered'); return; }
+    sb.window[fcb]({ ok: true, questions: [
+      { id: 'q9', title: 'Public board question?', category: 'elections',
+        options: [{ id: 'a', label: 'Yes' }, { id: 'b', label: 'No' }],
+        status: 'open', lock_at: new Date(Date.now() + 3600e3).toISOString(), rules: '' }
+    ], picks: [] });
+    var lsrc = (env.pendingScripts[1] && env.pendingScripts[1].src) || '';
+    var lcb = (lsrc.match(/[?&]callback=([^&]+)/) || [])[1];
+    if (lcb && sb.window[lcb]) sb.window[lcb]({ ok: true, leaders: [] });
+    if (root.innerHTML.indexOf('Public board question?') !== -1) ok('auth qlist fallback: board renders');
+    else no('auth qlist fallback: render', 'board did not render');
+  } catch (e) { no('auth qlist', 'threw: ' + (e && e.stack || e.message || e)); }
+})();
 /* 8e. qlist {ok:false} (backend actions missing) -> section hides. */
 (function () {
   var env = makeEnv();

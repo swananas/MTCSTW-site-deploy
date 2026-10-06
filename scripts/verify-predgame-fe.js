@@ -271,9 +271,14 @@ function runFile(env) {
           status: 'open', lock_at: new Date(Date.now() + 7200e3).toISOString(), rules: '' },
         { id: 'q3', title: 'Roster hits 100 affiliates?', category: 'movement',
           options: [{ id: 'a', label: 'Yes' }, { id: 'b', label: 'No' }],
-          status: 'resolved', resolution: { outcome: 'a', source_label: 'Roster page', source_url: 'https://example.com/roster' } }
+          status: 'resolved', winning_option: 'a', source_label: 'Roster page', source_url: 'https://example.com/roster' },
+        { id: 'q4', title: 'Unemployment under 4% next print?', category: 'economy',
+          options: [{ id: 'a', label: 'Under 4%' }, { id: 'b', label: '4% or above' }],
+          status: 'resolved', winning_option: 'b', source_label: 'BLS', source_url: 'https://example.com/bls',
+          economy_disclaimer: 'Game only — not financial advice.' }
       ],
-      picks: [{ question_id: 'q3', option_id: 'a', correct: true }]
+      picks: [{ question_id: 'q3', option_id: 'a', correct: 1 },
+              { question_id: 'q4', option_id: 'a', correct: 0 }]
     });
     if (env.pendingScripts.length < 2) { no('render smoke', 'leaderboard request not issued'); return; }
     var lsrc = env.pendingScripts[1].src || '';
@@ -287,11 +292,13 @@ function runFile(env) {
       ['NAIL THE CALL', 'XP line'], ['not financial advice', 'economy disclaimer'],
       ['YOUR RECORD', 'record strip'], ['TOP CALLERS', 'leaderboard'],
       ['TESTER', 'leader row'], ['RESOLVED', 'resolved state'],
-      ['source:', 'source attribution'], ['YOU CALLED IT', 'correct-pick state']
+      ['source:', 'source attribution'], ['YOU CALLED IT', 'correct-pick state'],
+      ['MISSED IT', 'miss-pick state'], ['the next board is already open', 'softened miss copy']
     ].forEach(function (pair) {
       if (h.indexOf(pair[0]) !== -1) ok('render: ' + pair[1]);
       else no('render: ' + pair[1], "'" + pair[0] + "' missing from section HTML");
     });
+    if (h.indexOf('strike back') !== -1) no('render: loss-chasing copy', "'strike back' must not appear");
   } catch (e) { no('render smoke', 'threw: ' + (e && e.stack || e.message || e)); }
 })();
 /* 8e. qlist {ok:false} (backend actions missing) -> section hides. */

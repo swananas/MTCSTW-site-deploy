@@ -182,7 +182,9 @@
   var SELF_MOUNT_HOSTS = [
     ['pf-ammo', 'ammo'],
     ['pf-creator-assist', 'creator-assist'],
-    ['pf-forged-tray', 'forged-tray']
+    ['pf-forged-tray', 'forged-tray'],
+    /* DATA BOUNTY PROMPTS (2026-10-06): host for games/data-bounties.js */
+    ['pf-data-bounties', 'databounties']
   ];
   for (var phi = 0; phi < SELF_MOUNT_HOSTS.length; phi++) {
     ensureDockHost(SELF_MOUNT_HOSTS[phi][0], SELF_MOUNT_HOSTS[phi][1]);

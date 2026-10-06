@@ -116,6 +116,10 @@
     'FEED THE INDEX</a>' +
     '<a style="' + RAIL_A + 'margin:0 6px 8px;" href="#pf-xp-economy">' +
     'PLAY THE ECONOMY</a>' +
+    /* 2026-10-06 (fe/blossom-s4, S4): /economy stays the working hub; the
+       public index page gets its own home — cross-link to /peoples-cpi. */
+    '<a style="' + RAIL_A + 'margin:0 6px 8px;" href="/peoples-cpi">' +
+    'THE INDEX \u2192</a>' +
     '</div></div>';
 
   /* Lead section: the Price Index is the home's flagship, so it stages first —

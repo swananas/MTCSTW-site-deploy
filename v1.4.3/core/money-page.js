@@ -1,11 +1,11 @@
 /* core/money-page.js  |  PF v1.4.3 | FOLLOW THE MONEY — page + tab shell.
    Context-aware mount for the money suite (phq-hub-ia-spec §4 — no code
    fork):
-     - <div id="pf-money"> present        -> FULL-PAGE shell (the /money page)
+     - <div id="pf-money"> present        -> FULL-PAGE shell (the /follow-the-money page)
      - only <div id="pf-political-hq">     -> INTERIM MONEY TAB (compact, lazy)
-     - PHQ context + money_page_url set   -> one-cycle REDIRECT CARD to /money
-   The /money page itself is a CEO hand-step (Squarespace page + #pf-money
-   Code block + nav entry). Until it exists, nothing here is blocked: the
+     - PHQ context + money_page_url set   -> one-cycle REDIRECT CARD to /follow-the-money
+   The /follow-the-money page itself is a CEO hand-step (Squarespace page + #pf-money
+   Code block + nav entry; BLOSSOM M1 2026-10-06: /money redirects here). Until it exists, nothing here is blocked: the
    suite ships as the 6th hub tab inside /political-hq.
    Cutover: Release Eng sets the `money_page_url` site-config value (default
    empty) in the same push that adds the loader detection entry + the
@@ -306,7 +306,10 @@
       ['BILL FILES', PHQ + '#phq-bills'],
       ['RACES', PHQ + '#phq-ballot'],
       ['PRESSURE CAMPAIGNS', PHQ + '#phq-action'],
-      ['POSTER FORGE', CREATE]
+      ['POSTER FORGE', CREATE],
+      /* SPACE-AUDIT FIX 2 (2026-10-06): /fund was orphaned — inbound link
+         from the money trail's exits rail. */
+      ['PROPAGANDA FUND', '/fund']
     ];
     nav.innerHTML = links.map(function (l) {
       return '<a href="' + esc(l[1]) + '">' + esc(l[0]) + '</a>';

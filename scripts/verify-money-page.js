@@ -285,13 +285,14 @@ function runModule(file, opts) {
   else no('tab mode', '#phq-money not appended');
 })();
 
-/* PHQ + money_page_url set: redirect card */
+/* PHQ + money_page_url set: redirect card (BLOSSOM M1 2026-10-06: the
+   money suite's canonical URL is /follow-the-money) */
 (function () {
-  var r = runModule(MP_MOD, { divs: ['pf-political-hq'], config: { money_page_url: '/money' } });
+  var r = runModule(MP_MOD, { divs: ['pf-political-hq'], config: { money_page_url: '/follow-the-money' } });
   var host = r.doc.getElementById('pf-political-hq');
   var card = host.children.filter(function (c) { return c.id === 'phq-money'; })[0];
-  var hasLink = card && (card.innerHTML || '').indexOf('/money') !== -1;
-  if (hasLink) ok('cutover: redirect card links /money');
+  var hasLink = card && (card.innerHTML || '').indexOf('/follow-the-money') !== -1;
+  if (hasLink) ok('cutover: redirect card links /follow-the-money');
   else no('redirect card', 'missing or no link');
 })();
 

@@ -367,7 +367,7 @@
   function shareAsText(j) {
     var txt = (j.headline || '') + '\n' + (j.read || []).join(' ') + '\n' +
       (j.citations || []).filter(Boolean).join('\n') +
-      '\nInfo, not advice. Data: FRED.\nhttps://www.mtcstw.com/money#pf-stackem';
+      '\nInfo, not advice. Data: FRED.\nhttps://www.mtcstw.com/follow-the-money#pf-stackem';
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(txt);
@@ -388,8 +388,8 @@
     try {
       if (window.PFShare && typeof window.PFShare.shareImage === 'function') {
         window.PFShare.shareImage(cv, 'pf-stackem.png', j.headline || 'Stacked numbers',
-          'stackem', { text: (j.headline || '') + ' https://www.mtcstw.com/money#pf-stackem via The Propaganda Factory',
-            link: 'https://www.mtcstw.com/money#pf-stackem' });
+          'stackem', { text: (j.headline || '') + ' https://www.mtcstw.com/follow-the-money#pf-stackem via The Propaganda Factory',
+            link: 'https://www.mtcstw.com/follow-the-money#pf-stackem' });
         return;
       }
     } catch (e) {}

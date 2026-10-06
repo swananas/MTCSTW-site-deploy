@@ -286,6 +286,12 @@ var SECTIONS = {
        Self-mounts into #pf-inflation-checkin / #pf-inflation-board /
        #pf-inflation-trends; silent no-op elsewhere. Zero XP. */
     'inflation-tracker.js',
+    /* Receipt uploads v1 (2026-10-05, fe/receipt-uploads): optional receipt
+       photo step in the check-in flow (attach-at-check-in only), My receipts
+       history, and the reviewer surface (orientation → calibration quiz →
+       assigned queue). Listens for inflation-tracker's 'pf:price-reported'
+       event. Zero XP. Kills: ?pf_off=receipt_uploads. */
+    'receipt-uploads.js',
     /* W4 A4 (2026-10-05): FRED /economy deepening — Fed-watch cards (S-05),
        housing context (S-07), official trend line (S-14), wage-vs-CPI gap
        (M-01), Sahm-rule recession watch (S-26). Self-mounts after the A1

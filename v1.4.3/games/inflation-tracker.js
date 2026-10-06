@@ -75,6 +75,9 @@
    KILL: ?pf_off=inflation (master) | ?pf_off=inflation-checkin |
          ?pf_off=inflation-board | ?pf_off=inflation-trends
          or localStorage pf_disabled_v1='["inflation"]' etc.
+   Receipt uploads (games/receipt-uploads.js) ride the 'pf:price-reported'
+   CustomEvent this module dispatches on every successful check-in and are
+   kill-switched independently: ?pf_off=receipt_uploads.
    Mounts: <div id="pf-inflation-checkin"></div>,
            <div id="pf-inflation-board"></div>,
            <div id="pf-inflation-trends"></div>.
@@ -341,6 +344,25 @@
     itemEl.onchange = updatePricePrompt;
     updatePricePrompt();
 
+    /* Receipt-upload event (fe/receipt-uploads, 2026-10-05): dispatched on
+       every successful check-in (published + same-day duplicate) so the
+       receipt module can inject the optional "Add receipt photo" step into
+       the card. The detail carries the report row id the receipt must link
+       to — no orphan uploads. The receipt module is kill-switched
+       independently (?pf_off=receipt_uploads). */
+    function emitPriceReported(rep, itemId, cents, area) {
+      try {
+        if (!rep || rep.id == null) return;
+        var item = itemById(itemId) || { name: 'that item' };
+        var ev = new CustomEvent('pf:price-reported', {
+          detail: { report_id: rep.id, item_id: itemId, item_name: item.name,
+                    price_cents: cents, area_key: area },
+          bubbles: true
+        });
+        mount.dispatchEvent(ev);
+      } catch (e) {}
+    }
+
     /* Receipt payoff (payoff map §2): instant acknowledgment + this week's
        sample count when the backend returns week_count. Defensive: absent,
        null, or non-numeric week_count falls back to the thanks line. */
@@ -387,6 +409,7 @@
         var status = rep.status;
         if (j.duplicate === true) {
           msg('You already reported ' + esc(item.name.toLowerCase()) + ' today. Come back tomorrow.');
+          emitPriceReported(rep, itemId, cents, area);
         } else if (status === 'published') {
           saveLastReport(itemId, cents);
           updateRefLine(item);
@@ -395,6 +418,7 @@
           msg('<span style="color:#9fd6a0;">' + receiptHTML(item, cents, area, j) + '</span>' +
             '<br><span style="' + SMALL + '">One report per item per day — come back tomorrow with the next one.</span>' + seeBoard);
           priceEl.value = '';
+          emitPriceReported(rep, itemId, cents, area);
           var sb = document.getElementById('pf-inf-ci-seeboard');
           if (sb) sb.onclick = function () {
             try { board.setAttribute('data-pf-inf-area', area); } catch (e) {}
@@ -444,9 +468,21 @@
   }
   function cardHTML(r, range) {
     var item = itemById(r.item_id);
+    /* Receipt-verification share (honesty rule §7.3): when the backend
+       supplies a verified_count, the aggregate discloses it — "median of
+       23 reports this week (6 community-verified)". Absent/non-numeric →
+       the old copy stands (fail-soft; the board never invents a share).
+       Verified points count 1× in v1 — the disclosure is status, never a
+       weight. No badge on aggregates, per §7.5. */
+    var vc = (r.verified_count != null && isFinite(Number(r.verified_count)))
+      ? Math.max(0, Math.round(Number(r.verified_count))) : null;
     var head = '<div style="font-size:15px;font-weight:bold;">' + esc(item.name) +
       ' <span style="font-weight:normal;color:#b8b0a0;">/ ' + esc(item.unit) + '</span></div>';
-    var honest = '<div style="' + HONEST + 'margin-top:8px;">community-reported · ' + esc(range) + '</div>';
+    var honest = '<div style="' + HONEST + 'margin-top:8px;">community-reported · ' + esc(range) +
+      (vc != null
+        ? '<br>Verified reports count the same as every report here — no weighting, status only. ' +
+          '<a href="#pf-inf-method" style="color:#e8a0a0;">How verification works</a>.'
+        : '') + '</div>';
     if (!r.enough_data || r.median_cents == null) {
       /* n<5 (or no median): NEVER a number. */
       return '<div style="background:#0d0d0d;border:1px solid #3a3a3a;border-radius:8px;padding:14px;">' +
@@ -457,6 +493,7 @@
       head +
       '<div style="font-size:30px;font-weight:bold;margin:6px 0 2px;">' + money(r.median_cents) + '</div>' +
       '<div style="' + SMALL + '">median of ' + esc(String(r.sample_count)) + ' reports this week' +
+      (vc != null ? ' (' + vc + ' community-verified)' : '') +
       (r.trimmed_mean_cents != null ? ' · trimmed avg ' + money(r.trimmed_mean_cents) : '') + '</div>' +
       '<div style="margin-top:8px;font-size:14px;">' + deltaHTML(r) + '</div>' +
       honest + '</div>';

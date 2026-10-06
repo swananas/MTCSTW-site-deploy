@@ -313,6 +313,10 @@
       '<div class="ph-row">' + ordersHtml() + warReportHtml() + '</div>' +
       pillarBarHtml() +
       frontLinesHtml() +
+      /* PLAY 10 — WINS THAT ECHO (2026-10-06): WINS strip slot — filled by
+         PF.wins.renderHubStrip in fill(). The bus hides the slot when muted
+         or empty, so anonymous/quiet states render exactly as before. */
+      '<div data-ph-wins data-pf-wins-slot="hubhero"></div>' +
       '<div class="ph-foot"><a href="#" data-ph-paths>Change your fights</a> \u00B7 the movement rolls on below</div>';
     if (host.firstChild) host.insertBefore(el, host.firstChild);
     else host.appendChild(el);
@@ -348,6 +352,14 @@
       if (cn) cn.innerHTML = cellHtml(d);
       var nx = el.querySelector('[data-ph-next]');
       if (nx) nx.innerHTML = nextMoveHtml(d);
+      /* PLAY 10 — WINS THAT ECHO: the WINS strip. Fail-open — absent
+         PF.wins leaves the slot hidden and the hero unchanged. */
+      try {
+        var wn = el.querySelector('[data-ph-wins]');
+        if (wn && window.PF && PF.wins && typeof PF.wins.renderHubStrip === 'function') {
+          PF.wins.renderHubStrip(wn);
+        }
+      } catch (e) {}
     } catch (e) {}
   }
 

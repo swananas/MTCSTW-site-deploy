@@ -186,7 +186,21 @@
         try {
           PF.postAction('readcreate', 'rc_action', 'poster_share',
             { story_url: storyUrl, proof_url: proof }, function (j) {
-              if (j && j.ok) { msg('+5 XP confirmed. The number travels with your name on it.', true); }
+              if (j && j.ok) {
+                msg('+5 XP confirmed. The number travels with your name on it.', true);
+                /* PLAY 10 — WINS THAT ECHO (2026-10-06): proof-verified
+                   poster deployment -> win event. Recognition only — the +5
+                   create_share leg is the backend's existing response,
+                   surfaced verbatim; this hook mints zero XP. */
+                try {
+                  if (window.PF && PF.wins && typeof PF.wins.emit === 'function') {
+                    PF.wins.emit('poster_deployed', '\uD83D\uDCE3 POSTER DEPLOYED',
+                      'Proof-verified share · the number travels with your name on it.',
+                      { dedupe: 'deploy:' + String(storyUrl || '') + ':' +
+                        new Date().toISOString().slice(0, 10) });
+                  }
+                } catch (e) {}
+              }
               else if (j && j.dup) { msg('Already counted — proof links are one-time.', true); }
               else msg('Not counted: ' + ((j && j.err) || 'verification failed') + '.');
             });

@@ -105,7 +105,7 @@
       sub: 'Your daily briefing, missions, and rank. Begin here every day.',
       first: 'socialproof', bundle: 'games/bundle-sec1.js' },
     { id: 'play', num: 2, ico: '🎮', title: 'PLAY',
-      sub: 'A taste of the arcade — the full nine-game lineup lives at /arcade.',
+      sub: 'A taste of the arcade — the full six-game lineup lives at /arcade.',
       first: 'spotlight', bundle: 'games/bundle-home.js' },
     { id: 'belong', num: 3, ico: '🏴', title: 'BELONG',
       sub: 'Join a cell. Fight the war. Recruit your friends.',

@@ -54,8 +54,8 @@ function _seg(p){var s=p.charAt(0)==='/'?p.slice(1):p;return s.charAt(s.length-1
 var _isSlr=_p==='/sick-left-radicals'||_p==='/sick-left-radicals/'||('|'+SLR_SLUGS+'|').indexOf('|'+_seg(_p)+'|')>-1;
 /* Dedicated-page mount divs (2026-10-03 homepage slimming): each new page
    carries one of these in a Code block; pages/page-mount.js mounts there. */
-var isArcade=!!document.getElementById('pf-arcade'), isCellsPage=!!document.getElementById('pf-cells-page'), isCreate=!!document.getElementById('pf-create'), isBank=!!document.getElementById('pf-bank'), isEconomy=!!document.getElementById('pf-economy'), isWarchest=!!document.getElementById('pf-warchest'), isVentures=!!document.getElementById('pf-ventures'), isEvents=!!document.getElementById('pf-events'), isWarReport=!!document.getElementById('pf-warreport'), isMoney=!!document.getElementById('pf-money'), isCommand=!!document.getElementById('pf-command');
-var onV2=!!document.getElementById('pf-v2')||!!document.getElementById('pf-war-card')||!!document.getElementById('pf-slr-roster')||!!document.getElementById('pf-catalog')||_isSlr||!!document.getElementById('pf-political-hq')||isArcade||isCellsPage||isCreate||isBank||isEconomy||isWarchest||isVentures||isEvents||isWarReport||isMoney||isCommand;
+var isArcade=!!document.getElementById('pf-arcade'), isCellsPage=!!document.getElementById('pf-cells-page'), isCreate=!!document.getElementById('pf-create'), isBank=!!document.getElementById('pf-bank'), isEconomy=!!document.getElementById('pf-economy'), isWarchest=!!document.getElementById('pf-warchest'), isVentures=!!document.getElementById('pf-ventures'), isEvents=!!document.getElementById('pf-events'), isWarReport=!!document.getElementById('pf-warreport'), isMoney=!!document.getElementById('pf-money'), isCommand=!!document.getElementById('pf-command'), isCallIt=!!document.getElementById('pf-call-it'), isLiquidation=!!document.getElementById('pf-liquidation');
+var onV2=!!document.getElementById('pf-v2')||!!document.getElementById('pf-war-card')||!!document.getElementById('pf-slr-roster')||!!document.getElementById('pf-catalog')||_isSlr||!!document.getElementById('pf-political-hq')||isArcade||isCellsPage||isCreate||isBank||isEconomy||isWarchest||isVentures||isEvents||isWarReport||isMoney||isCommand||isCallIt||isLiquidation;
 var VER=onV2?'v1.4.3':'v1.1.0';
 var BASE='https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@'+(onV2?V3:V1)+'/'+VER+'/';
 var CSS=onV2?['core/bundle-styles.css']:['core/01-styles.css','fixes/mobile.css'];
@@ -70,7 +70,8 @@ var PAGES_V2=['pages/bundle-pages.js'];
    mechanism in jsLazy(): PLAY/BELONG/CREATE/FUND/ACT/PROOF anchors all name
    games/bundle-home.js, loaded once when the first scrolls near).
    /arcade = bundle-arcade-h (the 5 arcade games that lived in bundle-home)
-   + bundle-arcade (the other 4).
+   + bundle-arcade (the other casual games) + bundle-predgame + bundle-raid
+   (Supply Line Raid, the cell-scoped 7th entry).
    /cells = bundle-cells-h (cells.js stages pf-ov-cells for the main Cells
    widget) + bundle-cells. /create = bundle-create-h (poster-forge, feed) +
    bundle-create. /bank, /economy, /war-chest, /ventures, /events,
@@ -83,6 +84,13 @@ var PAGES_V2=['pages/bundle-pages.js'];
    + games/bundle-predgame.js (CALL IT. section, self-mounts, 'economy'
    preselected; kill ?pf_off=predgame) + pages. /command-deck (#pf-command) = core + games/bundle-command.js
    (standalone page bundle, self-mounting via command/02-registry.js) + pages.
+   BLOSSOM S1 (2026-10-06): /call-it (#pf-call-it) = core + pages +
+   games/bundle-predgame.js (CALL IT.) + games/bundle-arcade.js (the War Room
+   — Frontline Forecasts). /liquidation (#pf-liquidation) = core + pages +
+   games/bundle-arcade.js (the bracket board). /arcade = core + pages +
+   bundle-arcade-h + bundle-arcade + bundle-raid (Supply Line Raid, the
+   cell-scoped 7th entry; predgame left the arcade for /call-it).
+   /cells = core + pages + bundle-cells-h + bundle-cells + bundle-raid.
    SLR roster/catalog = core + bundle-roster (efficiency.js paints the live
    Efficiency Index into their [data-eff-score] slots; nothing else in the
    bundle mounts there) + pages. */
@@ -92,12 +100,12 @@ var isSlrPage=!!document.getElementById('pf-slr-roster')||!!document.getElementB
    SLR roster/catalog) get the SLR core so every synchronous PF.ROSTER read
    keeps working; all other v2 pages get the slim bundle-core.js. On slim-core
    pages the DB still loads on demand via PF.ensureSLRDB() if ever needed. */
-var NEED_SLR=isHome||isArcade||isCreate||isWarCard||isSlrPage;
+var NEED_SLR=isHome||isArcade||isCreate||isWarCard||isSlrPage||isCallIt||isLiquidation;
 CORE_V2=[NEED_SLR?'core/bundle-core-slr.js':'core/bundle-core.js'];
 /* PWA (2026-10-05, fe/pwa): install.js, right after the core bundle (home of
    core/03-global.js). Relative = resolves against the v1.4.3 BASE. */
 var JS_PWA=['pwa/install.js'];
-var JS_GAMES=isHome?['games/bundle-sec1.js']:isArcade?['games/bundle-arcade-h.js','games/bundle-arcade.js','games/bundle-predgame.js']:isCellsPage?['games/bundle-cells-h.js','games/bundle-cells.js']:isCreate?['games/bundle-create-h.js','games/bundle-create.js']:isBank?['games/bundle-bank.js']:isEconomy?['games/bundle-economy.js']:isWarchest?['games/bundle-warchest.js']:isVentures?['games/bundle-ventures.js']:isEvents?['games/bundle-events.js']:isWarReport?['games/bundle-warreport.js']:isMoney?['core/bundle-money.js','games/bundle-predgame.js']:isCommand?['games/bundle-command.js']:isHQ?[]:isWarCard?['games/bundle-create.js','games/bundle-cells.js']:isSlrPage?['games/bundle-roster.js']:[];
+var JS_GAMES=isHome?['games/bundle-sec1.js']:isArcade?['games/bundle-arcade-h.js','games/bundle-arcade.js','games/bundle-raid.js']:isCallIt?['games/bundle-predgame.js','games/bundle-arcade.js']:isLiquidation?['games/bundle-arcade.js']:isCellsPage?['games/bundle-cells-h.js','games/bundle-cells.js','games/bundle-raid.js']:isCreate?['games/bundle-create-h.js','games/bundle-create.js']:isBank?['games/bundle-bank.js']:isEconomy?['games/bundle-economy.js']:isWarchest?['games/bundle-warchest.js']:isVentures?['games/bundle-ventures.js']:isEvents?['games/bundle-events.js']:isWarReport?['games/bundle-warreport.js']:isMoney?['core/bundle-money.js','games/bundle-predgame.js']:isCommand?['games/bundle-command.js']:isHQ?[]:isWarCard?['games/bundle-create.js','games/bundle-cells.js']:isSlrPage?['games/bundle-roster.js']:[];
 var JS_HQ=isHQ?['games/bundle-hq.js','games/bundle-predgame.js']:[]; /* 2026-10-05 (fe/predict-game): CALL IT. section for the BALLOT hub ('elections' preselected) */
 /* DEFECT 1 (2026-10-03): the v1.1.0 set carries no footer chrome. Append
    the slim footer-chrome bundle (DELETE MY DATA + NUKE meter + RUN

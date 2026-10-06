@@ -76,6 +76,7 @@
 #pf-predgame .pq-chip[aria-pressed="true"]{border-color:var(--pf-red);color:#f5f0e1;background:#1a0505}
 #pf-predgame .pq-cat{font-size:0.7rem;letter-spacing:0.16em;color:var(--pf-gold);font-weight:900;margin-bottom:6px}
 #pf-predgame .pq-gate{border:2px dashed #4a4a4a;padding:14px;color:#b8ab8e;font-size:0.9rem}
+#pf-predgame .pq-nextq{display:inline-block;margin-top:10px;min-height:44px;line-height:44px;padding:0 18px;font-weight:900;font-size:0.85rem;letter-spacing:0.1em;cursor:pointer;border:2px solid var(--pf-red);background:#1a0505;color:#f5f0e1;font-family:inherit;text-decoration:none}
 </style>
 </div>
 </template>`);
@@ -264,6 +265,15 @@
     }
     return h + '</div>';
   }
+  /* COHESION (2026-10-06): next open question for the CALLED IT link. */
+  function nextOpenQ(excludeId) {
+    for (var i = 0; i < state.questions.length; i++) {
+      var c = state.questions[i];
+      if (String(c.id) === String(excludeId)) continue;
+      if (c.status === 'open' && !c.my_pick && !isLocked(c)) return c;
+    }
+    return null;
+  }
   function questionHTML(q) {
     var h = '<div class="pq-row" data-q="' + esc(q.id) + '">';
     if (q.category && CAT_LABEL[q.category]) h += '<div class="pq-cat">' + CAT_LABEL[q.category] + '</div>';
@@ -289,6 +299,12 @@
       if (q.my_pick) {
         if (q.my_correct === true) {
           h += '<div class="pq-win">YOU CALLED IT. +' + PFG.XP_REWARD + ' XP.</div>';
+          /* COHESION (2026-10-06): prediction -> next-question. The link
+             scrolls the board to the next open question. */
+          var nx = nextOpenQ(q.id);
+          if (nx) {
+            h += '<a href="#" class="pq-nextq" data-act="nextq" data-qid="' + esc(String(nx.id)) + '">CALLED IT &mdash; NEXT QUESTION &rarr;</a>';
+          }
         } else if (q.my_correct === false) {
           h += '<div class="pq-loss">MISSED IT. You called <b>' + esc(optLabel(q, q.my_pick) || q.my_pick) + '</b> &mdash; the next board is already open.</div>';
         } else {
@@ -418,12 +434,62 @@
         }
       })(rows[j]);
     }
+    /* COHESION (2026-10-06): CALLED IT -> NEXT QUESTION scrolls the board to
+       the next open question and flashes its row. */
+    var nql = root.querySelectorAll ? root.querySelectorAll('.pq-nextq[data-act="nextq"]') : [];
+    for (var qi = 0; qi < nql.length; qi++) {
+      (function (link) {
+        link.onclick = function (ev) {
+          try { if (ev) ev.preventDefault(); } catch (e0) {}
+          var qid = link.getAttribute('data-qid'), target = null;
+          try {
+            var rs = root.querySelectorAll ? root.querySelectorAll('.pq-row') : [];
+            for (var r = 0; r < rs.length; r++) {
+              if (rs[r].getAttribute('data-q') === qid) { target = rs[r]; break; }
+            }
+          } catch (e1) {}
+          if (target) {
+            try { target.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e2) {}
+            try {
+              target.style.outline = '2px solid var(--pf-red)';
+              setTimeout(function () { try { target.style.outline = ''; } catch (e3) {} }, 1600);
+            } catch (e4) {}
+          }
+        };
+      })(nql[qi]);
+    }
   }
   function renderInto(root) {
     try {
       root.innerHTML = sectionHTML();
       bindSection(root);
+      /* COHESION (2026-10-06): terminal-state wiring — the first resolved
+         call the user made hands off to the next-move engine. One card per
+         board render; the engine queues if it isn't loaded yet. */
+      try { terminalHook(root); } catch (e) {}
     } catch (e) { failSoft(root, 'render failed (soft)'); }
+  }
+  function terminalHook(root) {
+    for (var i = 0; i < state.questions.length; i++) {
+      var q = state.questions[i];
+      if (q.status !== 'resolved' || !q.resolution || !q.my_pick) continue;
+      var row = null, slot = null;
+      try {
+        var rows = root.querySelectorAll ? root.querySelectorAll('.pq-row') : [];
+        for (var r = 0; r < rows.length; r++) {
+          if (rows[r].getAttribute('data-q') === String(q.id)) { row = rows[r]; break; }
+        }
+        if (row && row.querySelector) slot = row.querySelector('.pq-result');
+      } catch (e) {}
+      if (slot) {
+        try {
+          document.dispatchEvent(new CustomEvent('pf:terminal', {
+            detail: { slot: slot, context: 'predict-resolved' }
+          }));
+        } catch (e2) {}
+      }
+      return; /* first resolved call only */
+    }
   }
   /* Lock countdown ticker — one interval for the whole section. */
   var tickIv = null;

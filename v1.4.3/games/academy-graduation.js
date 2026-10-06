@@ -184,6 +184,18 @@
         'CLAIM YOUR CALLSIGN</button></div>';
     }
     /* Step 2: Route March day-1. Step 3: Daily Orders check-in. */
+    /* Cohesion P1 (2026-10-06): the graduation ceremony's hero CTA is the
+       cell handoff — "You're trained. Your cell is waiting." One-tap cell
+       browse. The other bridges stay as secondary routes. */
+    steps += '<div style="margin:.9rem 0;padding:1rem;border:3px solid #c1121f;background:#140a0a;">' +
+      '<div style="color:#c1121f;font-weight:900;letter-spacing:.14em;font-size:.95rem;margin-bottom:.3rem;">' +
+      'TRAINED. YOUR CELL IS WAITING &rarr;</div>' +
+      '<div style="font-size:.78rem;color:#f5f0e1;line-height:1.5;margin-bottom:.6rem;">' +
+      'Trained soldiers fight together. Find your cell — or build your own.</div>' +
+      '<a href="/cells" ' +
+      'style="display:inline-block;background:#c1121f;border:2px solid #c1121f;color:#fff;' +
+      'font-weight:900;letter-spacing:.12em;padding:.8rem 1.6rem;font-size:.85rem;text-decoration:none;">' +
+      'FIND YOUR CELL &rarr;</a></div>';
     steps += '<div style="margin:.55rem 0;"><button type="button" id="pf-grad-march" ' +
       'style="display:inline-block;background:transparent;border:2px solid #c1121f;color:#f5f0e1;' +
       'font-weight:900;letter-spacing:.12em;padding:.8rem 1.6rem;font-size:.85rem;cursor:pointer;">' +

@@ -83,6 +83,11 @@ var CORE_FILES = [
      footer chrome on every page. Last: mounts before the footer element,
      so the chrome strips (crossnav/16-footer) sit below it. */
   'core/20-nextop.js',
+  /* hud (Cohesion P0, 2026-10-06): persistent progress marker — callsign +
+     rank, XP-today ring, streak — with the YOUR CAMPAIGN 5-phase strip on
+     tap. After nextop (both are journey chrome); fixed-position, no footer
+     dependency. */
+  'core/30-hud.js',
   /* allfronts (2026-10-04): ALL FRONTS operation banner — fixed-top strip
      while an operation is live or launching within the hour. */
   'core/21-allfronts.js',

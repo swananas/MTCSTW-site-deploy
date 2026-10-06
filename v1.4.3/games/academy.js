@@ -390,6 +390,10 @@
 
   /* Shared button wiring for both renders. data-cid carries the course so a
      just-finished course triggers the certificate claim. */
+  /* COHESION (2026-10-06): set on a fresh lesson completion; wireButtons
+     consumes it after re-render and hands the done lesson pane off to the
+     next-move engine. The certificate/graduation ceremony is excluded. */
+  var pfTerminalLesson=null;
   function wireButtons(el,lessons,doneById,courseById){
     var id=ident();
     var bs=el.querySelectorAll("button.ac-done"), b;
@@ -405,6 +409,11 @@
               try{ document.dispatchEvent(new CustomEvent("pf-lesson-complete",{detail:{lesson:lid,xp:gained}})); }catch(e2){}
               toast(j.dup?"Already banked. No double pay.":"Lesson complete. +"+gained+" XP.");
               try{ if(window.PF&&PF.dope){ var ah=document.getElementById("pf-academy")||document.body; PF.dope.press(btn); PF.dope.confetti(ah,35); if(gained>0) PF.dope.xpFloat(ah,"+"+gained+" XP"); } }catch(dpe){}
+              /* COHESION (2026-10-06): hand the completed lesson pane to the
+                 next-move engine after re-render. Graduation (certificate)
+                 has its own ceremony — the flag is only set on the plain
+                 lesson path below. */
+              if(!j.dup) pfTerminalLesson=lid;
               /* Progression v1: if this was the course's last lesson, claim
                  the certificate (backend re-verifies; then full reload). */
               if(cid&&courseById&&courseById[cid]){
@@ -439,6 +448,19 @@
         };
       })(nx[n2]);
     }
+    /* COHESION (2026-10-06): terminal-state wiring — consumed here after
+       re-render so the completed lesson pane (now showing the checkmark)
+       hands off to the next-move engine exactly once. */
+    try{
+      if(pfTerminalLesson){
+        var _tl=String(pfTerminalLesson); pfTerminalLesson=null;
+        var _ts=null, _panes=el.querySelectorAll?el.querySelectorAll(".x-pane"):[];
+        for(var _pi=0;_pi<_panes.length;_pi++){
+          if((_panes[_pi].getAttribute("id")||"")==="ac-pane-"+_tl){ _ts=_panes[_pi]; break; }
+        }
+        if(_ts) document.dispatchEvent(new CustomEvent("pf:terminal",{detail:{slot:_ts,context:"lesson-complete"}}));
+      }
+    }catch(e4){}
   }
 
   /* Idempotent mount into any container element. Exposed for the homepage

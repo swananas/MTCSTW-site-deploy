@@ -996,6 +996,14 @@ function render(){
     document.getElementById("oLoot").textContent="+"+(res.gained+res.bonus+cmd)+" XP — "+loot+(res.bonus?" "+res.streak+"-day streak bonus!":"");
     document.getElementById("oErr").textContent="";
     render();
+    /* COHESION (2026-10-06): terminal-state wiring — all orders reported
+       hands off to the next-move engine. Routing only, zero new XP. */
+    if(res.reportNo>=PER_DAY){
+      try{
+        var tslot=document.getElementById("pf-orders")||box;
+        document.dispatchEvent(new CustomEvent("pf:terminal",{detail:{slot:tslot,context:"orders-complete"}}));
+      }catch(e){}
+    }
   }
   z.querySelectorAll("button.o-btn").forEach(function(b){
     b.onclick=function(){

@@ -34,8 +34,9 @@ var pillars = read('core/31-pillars.js');
 var pcode = code(pillars);
 var nextop = read('core/20-nextop.js');
 
-/* 2. four pillars, four paths */
-['SPREAD', 'DATA', 'ACT', 'ORGANIZE'].forEach(function (l) {
+/* 2. four pillars, four paths (CEO directive 2026-10-06: DATA pillar relabeled TRACK;
+   labels are SPREAD / TRACK / ACT / ORGANIZE — see also verify-teardown-hub.js §3) */
+['SPREAD', 'TRACK', 'ACT', 'ORGANIZE'].forEach(function (l) {
   ok('pillar label: ' + l, pillars.indexOf("label: '" + l + "'") !== -1);
 });
 ['propagandist', 'data', 'activist', 'organizer'].forEach(function (p) {

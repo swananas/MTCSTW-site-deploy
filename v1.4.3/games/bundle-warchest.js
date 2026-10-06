@@ -496,11 +496,26 @@ function renderRemitLink(){
    seen (or touched). The template above already renders a skeleton.
    In-memory vars keep the session cache — no refetch on scroll. */
 (function(){
-  var sec=null;
-  try{ sec=document.querySelector('section[data-game="movement"]'); }catch(e){}
-  var start=(window.PF&&PF.whenVisible)?PF.whenVisible(sec,function(){load();}):null;
-  if(start){ try{ if(sec) sec.addEventListener('pointerdown',start,{once:true}); }catch(e){} }
-  else load();
+  /* Ship-blocker fix (2026-10-05): the bundle IIFE runs before mountPage
+     stages the template, so section[data-game="movement"] doesn't exist yet.
+     Poll for the mount (30s max); only then arm whenVisible. Previously the
+     null section caused an immediate load() whose render() found no
+     #xMovement and returned early — leaving the loader stuck until the
+     180s refresh interval. */
+  var tries=0;
+  function init(){
+    tries++;
+    var sec=null;
+    try{ sec=document.querySelector('section[data-game="movement"]'); }catch(e){}
+    if(!sec){
+      if(tries<60) setTimeout(init,500);
+      return;
+    }
+    var start=(window.PF&&PF.whenVisible)?PF.whenVisible(sec,function(){load();}):null;
+    if(start){ try{ sec.addEventListener('pointerdown',start,{once:true}); }catch(e){} }
+    else load();
+  }
+  init();
 })();
 setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },180000);
 })();

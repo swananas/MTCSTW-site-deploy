@@ -51,6 +51,11 @@ var SECTIONS = {
        settings widget. Step two of onboarding personalization, right after
        the state picker. No XP, read-only. */
     'pick-fight.js',
+    /* 2026-10-05 (guided onboarding): 3-step first-run overlay — pick fight,
+       claim callsign, first mission. Lives in the critical path so the entry
+       chip + 30s auto-launch work for callsign-less non-scrollers. Reuses
+       pick-fight.js APIs (must stay after it) and PF.requireCallsign. */
+    'guided-onboarding.js',
     /* P1#6 (2026-10-05): hq-nudge promoted to START HERE (homepage audit).
        Static CTA card — must stage with the critical path so it mounts in
        ORDER position right after daily-orders, not late at section end. */
@@ -342,6 +347,12 @@ var SECTIONS = {
     /* /events — protest/event map (moved from Political HQ, fe/civic-events).
        Kill ?pf_off=civicevents — honored before the anchor is even injected. */
     'civic-events.js'
+  ],
+  /* 2026-10-05 (fe/liveops): /war-room — live ops pages (debate nights,
+     election night, breaking events). One reusable template per event.
+     Kill ?pf_off=liveops. Never fetched on any other page. */
+  'bundle-warroom': [
+    'liveops.js'
   ],
   'bundle-warreport': [
     /* /war-report — the weekly digest. */

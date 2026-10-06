@@ -119,12 +119,12 @@ var isSlrPage=!!document.getElementById('pf-slr-roster')||!!document.getElementB
    SLR roster/catalog) get the SLR core so every synchronous PF.ROSTER read
    keeps working; all other v2 pages get the slim bundle-core.js. On slim-core
    pages the DB still loads on demand via PF.ensureSLRDB() if ever needed. */
-var NEED_SLR=isHome||isArcade||isCreate||isWarCard||isSlrPage||isCallIt||isLiquidation;
+var NEED_SLR=isHome||isArcade||isCreate||isWarCard||isSlrPage||isLiquidation;
 CORE_V2=[NEED_SLR?'core/bundle-core-slr.js':'core/bundle-core.js'];
 /* PWA (2026-10-05, fe/pwa): install.js, right after the core bundle (home of
    core/03-global.js). Relative = resolves against the v1.4.3 BASE. */
 var JS_PWA=['pwa/install.js'];
-var JS_GAMES=isHome?['games/bundle-sec1.js']:isArcade?['games/bundle-arcade-h.js','games/bundle-arcade.js','games/bundle-raid.js']:isCallIt?['games/bundle-predgame.js','games/bundle-arcade.js']:isLiquidation?['games/bundle-arcade.js']:isCellsPage?['games/bundle-cells-h.js','games/bundle-cells.js','games/bundle-raid.js']:isCellWar?['games/bundle-cells.js','games/bundle-arcade.js']:isCreate?['games/bundle-create-h.js','games/bundle-create.js']:isBank?['games/bundle-bank.js']:isGovernance?['games/governance.js']:isEconomy?['games/bundle-economy.js']:isPeoplesCpi?['games/bundle-peoples-cpi.js']:isWarchest?['games/bundle-warchest.js']:isVentures?['games/bundle-ventures.js','games/bundle-warchest.js']:isEvents?['games/bundle-events.js']:isWarReport?['games/bundle-warreport.js']:isMoney?['core/bundle-money.js','games/bundle-predgame.js']:isFund?['games/bundle-fund.js']:isCommand?['games/bundle-command.js']:isHQ?[]:isWarCard?['games/bundle-create.js','games/bundle-cells.js']:isSlrPage?['games/bundle-roster.js']:[];
+var JS_GAMES=isHome?['games/bundle-sec1.js']:isArcade?['games/bundle-arcade-h.js','games/bundle-arcade.js','games/bundle-raid.js']:isCallIt?['games/bundle-predgame.js']:isLiquidation?['games/bundle-arcade.js']:isCellsPage?['games/bundle-cells-h.js','games/bundle-cells.js','games/bundle-raid.js']:isCellWar?['games/bundle-cells.js']:isCreate?['games/bundle-create-h.js','games/bundle-create.js']:isBank?['games/bundle-bank.js']:isGovernance?['games/governance.js']:isEconomy?['games/bundle-economy.js']:isPeoplesCpi?['games/bundle-peoples-cpi.js']:isWarchest?['games/bundle-warchest.js']:isVentures?['games/bundle-ventures.js','games/bundle-warchest.js']:isEvents?['games/bundle-events.js']:isWarReport?['games/bundle-warreport.js']:isMoney?['core/bundle-money.js','games/bundle-predgame.js']:isFund?['games/bundle-fund.js']:isCommand?['games/bundle-command.js']:isHQ?[]:isWarCard?['games/bundle-create.js','games/bundle-cells.js']:isSlrPage?['games/bundle-roster.js']:[];
 var JS_HQ=isHQ?['games/bundle-hq.js','games/bundle-predgame.js']:[]; /* 2026-10-05 (fe/predict-game): CALL IT. section for the BALLOT hub ('elections' preselected) */
 /* DEFECT 1 (2026-10-03): the v1.1.0 set carries no footer chrome. Append
    the slim footer-chrome bundle (DELETE MY DATA + NUKE meter + RUN
@@ -170,7 +170,10 @@ function loadBundle(n,cb){
    bundle-events.js. Safety nets: 15s timeout loads everything; no-IO
    fallback loads all. */
 function jsLazy(){
-  var host=document.getElementById('pf-v2')||document.getElementById('pf-events');
+  /* SPACE-AUDIT FIX 7 (2026-10-06): lazy hosts extended beyond #pf-v2 /
+     #pf-events — /call-it (markets) and /cell-war (battles) lazy-load their
+     single arcade silo on scroll instead of the full bundle. */
+  var host=document.getElementById('pf-v2')||document.getElementById('pf-events')||document.getElementById('pf-call-it')||document.getElementById('pf-cell-war')||document.getElementById('pf-liquidation');
   if(!host){return;}
   var anchors=host.querySelectorAll('.pf-sec-anchor[data-bundle]');
   var pending={};

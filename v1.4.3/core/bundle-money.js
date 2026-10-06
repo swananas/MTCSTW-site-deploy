@@ -1,1 +1,4701 @@
-!function(){"use strict";var e=window.PF;if(e&&!e.skip("wallshame")&&!window.pfWallShameDone){window.pfWallShameDone=!0;var t=window.PF_BACKEND_URL,a="phq-wallshame",n=[".pf-ws{max-width:680px;margin:0 auto;padding:8px 0}",".pf-ws-head{text-align:center;margin-bottom:6px}",".pf-ws-billtitle{font:700 18px Arial,sans-serif;color:#f5ead6}",".pf-ws-track{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:4px 6px 10px}",".pf-ws-card{flex:0 0 86%;scroll-snap-align:center;background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:26px 22px;color:#f5ead6;text-align:center}",".pf-ws-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#c1121f;margin-bottom:10px}",".pf-ws-bill{font:700 16px Arial,sans-serif;color:#e8b923;margin-bottom:12px}",'.pf-ws-name{font:900 34px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 6px}',".pf-ws-sub{font:700 16px Arial,sans-serif;color:#c9bfa8;margin-bottom:14px}",'.pf-ws-vote{font:900 20px "Arial Black",Arial,sans-serif;color:#c1121f;margin-bottom:10px}',".pf-ws-q{font:400 15px Arial,sans-serif;color:#f5ead6;margin-bottom:8px}",".pf-ws-count{font:700 14px Arial,sans-serif;color:#e8b923;margin-bottom:16px}",".pf-ws-actions{display:flex;gap:10px;justify-content:center}",'.pf-ws-btn{font:900 15px "Arial Black",Arial,sans-serif;background:#f5ead6;color:#0d0d0d;border:0;border-radius:6px;padding:12px 22px;cursor:pointer}',".pf-ws-btn-red{background:#c1121f;color:#ffffff}",".pf-ws-nav{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:6px}",".pf-ws-arrow{font:900 22px Arial,sans-serif;background:#1a1a1a;color:#f5ead6;border:1px solid #c1121f;border-radius:50%;width:44px;height:44px;cursor:pointer}",".pf-ws-dots{display:flex;gap:8px}",".pf-ws-dot{width:10px;height:10px;border-radius:50%;background:#3a3a3a;border:0;padding:0;cursor:pointer}",".pf-ws-dot.on{background:#c1121f}",".pf-ws-method{font:400 13px Arial,sans-serif;color:#c9bfa8;text-align:center;margin-top:12px;padding:0 12px}",".pf-ws-empty{font:400 16px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:28px 12px;border:1px dashed #3a3a3a;border-radius:8px}"].join("\n");try{window.PFWallShame={mount:function(e,a){if(!e||!a)return!1;try{if(a.querySelector&&a.querySelector(".pf-ws"))return!0}catch(e){}return function(e,a,n){if(t){var i="pfWsCb"+Math.floor(1e9*Math.random()),r=document.createElement("script"),o=!1;window[i]=function(e){p(e)},r.onerror=function(){p(null)};var l="?action="+encodeURIComponent(e);for(var s in a)null!=a[s]&&""!==a[s]&&(l+="&"+encodeURIComponent(s)+"="+encodeURIComponent(a[s]));l+="&callback="+i,r.src=t+l,document.head.appendChild(r),setTimeout(function(){p(null)},12e3)}else n(null);function p(e){if(!o){o=!0;try{delete window[i]}catch(e){}r.parentNode&&r.parentNode.removeChild(r),n(e)}}}("wall_of_shame",{bill_id:String(e)},function(e){if(e&&e.ok&&e.bill)try{p(a,e)}catch(e){s(a)}else s(a)}),!0}},e.WallShame=window.PFWallShame}catch(e){}}function i(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function r(t){try{e&&e.toast&&e.toast(t)}catch(e){}}function o(e,t){for(var a=Array.isArray(t.votes)?t.votes:[],n=a[0]||{},i=[],r={},o=0;o<a.length;o++){var l=String(a[o].vote_date||"");l&&!r[l]&&(r[l]=1,i.push(l))}return{billId:e.bill_id,billTitle:e.title,name:t.name,chamber:t.chamber,party:t.party,state:t.state,againstVotes:t.against_votes,position:n.position,question:n.question,voteDates:i.slice(0,3),sourceUrl:n.source_url}}function l(e,t,a){var n=(Array.isArray(t.votes)?t.votes:[])[0]||{},r=Math.max(0,parseInt(t.against_votes,10)||0);return'<div class="pf-ws-kicker">WALL OF SHAME</div><div class="pf-ws-bill">ON '+i(e.bill_id)+" — "+i(e.title)+'</div><h3 class="pf-ws-name">'+i(t.name)+'</h3><div class="pf-ws-sub">'+i(function(e){var t=String(e.chamber||"").toLowerCase();return((t="house"===t?"U.S. HOUSE":"senate"===t?"U.S. SENATE":String(e.chamber||"—"))+" · "+String(e.party||"—")+" · "+String(e.state||"—")).toUpperCase()}(t))+'</div><div class="pf-ws-vote">VOTED <b>'+i(n.position)+'</b> — AGAINST THE PROGRESSIVE POSITION</div><div class="pf-ws-q">ON: '+i(n.question)+'</div><div class="pf-ws-count">'+r+(1===r?" VOTE":" VOTES")+' AGAINST THE PROGRESSIVE POSITION ON RECORD</div><div class="pf-ws-actions"><button type="button" class="pf-ws-btn" data-ws-dl="'+a+'">DOWNLOAD</button><button type="button" class="pf-ws-btn pf-ws-btn-red" data-ws-sh="'+a+'">SHARE</button></div>'}function s(e){try{e.style.display="none",e.innerHTML=""}catch(e){}}function p(t,s){!function(){try{if(document.getElementById("pf-ws-css"))return;var e=document.createElement("style");e.id="pf-ws-css",e.textContent=n,document.head.appendChild(e)}catch(e){}}();var p=s.bill||{},d=Array.isArray(s.cards)?s.cards:[];t.innerHTML="";var c=document.createElement("div");if(c.className="pf-ws",!d.length)return c.innerHTML='<div class="pf-ws-empty">'+i("No recorded votes against the progressive position on this bill.")+"</div>",void t.appendChild(c);var f=document.createElement("div");f.className="pf-ws-head",f.innerHTML='<div class="pf-ws-kicker">WALL OF SHAME</div><div class="pf-ws-billtitle">'+i(p.bill_id)+" — "+i(p.title)+"</div>",c.appendChild(f);var u=document.createElement("div");u.className="pf-ws-track";for(var m=[],g=0;g<d.length;g++){var h=document.createElement("article");h.className="pf-ws-card",h.setAttribute("data-ws-i",String(g)),h.innerHTML=l(p,d[g],g),u.appendChild(h),m.push(o(p,d[g]))}c.appendChild(u);var x=document.createElement("div");x.className="pf-ws-nav";var v=document.createElement("button");v.type="button",v.className="pf-ws-arrow",v.setAttribute("data-ws-prev","1"),v.textContent="‹";var b=document.createElement("div");b.className="pf-ws-dots";var y=[];for(g=0;g<d.length;g++){var w=document.createElement("button");w.type="button",w.className="pf-ws-dot"+(0===g?" on":""),w.setAttribute("data-ws-dot",String(g)),b.appendChild(w),y.push(w)}var E=document.createElement("button");E.type="button",E.className="pf-ws-arrow",E.setAttribute("data-ws-next","1"),E.textContent="›",x.appendChild(v),x.appendChild(b),x.appendChild(E),c.appendChild(x);var A=document.createElement("div");A.className="pf-ws-method",A.textContent="METHOD: "+(s.method||"Ranked by recorded votes against the progressive position."),c.appendChild(A);var S=0;function k(e){S=e;for(var t=0;t<y.length;t++)y[t].className="pf-ws-dot"+(t===e?" on":"")}function T(e){k(e=Math.max(0,Math.min(y.length-1,e)));try{u.scrollTo({left:e*(u.clientWidth||320),behavior:"smooth"})}catch(e){}}u.addEventListener("scroll",function(){try{var e=u.clientWidth||1;k(Math.max(0,Math.min(y.length-1,Math.round(u.scrollLeft/e))))}catch(e){}}),c.addEventListener("click",function(t){var n=t&&t.target;if(n&&n.getAttribute)if(null==n.getAttribute("data-ws-prev"))if(null==n.getAttribute("data-ws-next")){var i=n.getAttribute("data-ws-dot");if(null==i){var o=n.getAttribute("data-ws-dl"),l=n.getAttribute("data-ws-sh");if(null!=o||null!=l){var s=parseInt(null!=o?o:l,10)||0,p=m[s];if(p)try{var d=e.PHQShare;if(!d)return void r("Share is still loading — try again.");null!=o?d.save(a,p):d.share(a,p)}catch(e){r("Poster failed — try again.")}}}else T(parseInt(i,10)||0)}else T(S+1);else T(S-1)}),t.appendChild(c)}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("money-tab")&&!window.pfMoneyTabDone){window.pfMoneyTabDone=!0;var t=window.PF_BACKEND_URL,a="phq-money",n=[".pf-mt{max-width:680px;margin:0 auto;padding:8px 0;color:#f5ead6}",".pf-mt-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#e8b923;text-align:center;margin-bottom:10px}",'.pf-mt-name{font:900 32px "Arial Black",Arial,sans-serif;color:#f5ead6;text-align:center;margin:0 0 4px}',".pf-mt-sub{font:700 15px Arial,sans-serif;color:#c9bfa8;text-align:center;margin-bottom:16px}",".pf-mt-totals{display:flex;gap:10px;justify-content:center;margin-bottom:18px;flex-wrap:wrap}",".pf-mt-total{background:#0d0d0d;border:1px solid #c1121f;border-radius:8px;padding:12px 16px;text-align:center;min-width:140px}",".pf-mt-tlabel{display:block;font:700 13px Arial,sans-serif;letter-spacing:2px;color:#c9bfa8;margin-bottom:6px}",'.pf-mt-tval{display:block;font:900 22px "Arial Black",Arial,sans-serif;color:#e8b923}',".pf-mt-sect{background:#0d0d0d;border:1px solid #3a3a3a;border-radius:8px;padding:14px 16px;margin-bottom:14px}",'.pf-mt-sect h4{font:900 16px "Arial Black",Arial,sans-serif;color:#f5ead6;letter-spacing:2px;margin:0 0 10px}',".pf-mt-barrow{display:flex;height:26px;border-radius:4px;overflow:hidden;margin:8px 0}",".pf-mt-seg-sm{background:#e8b923}",".pf-mt-seg-lg{background:#c1121f}",".pf-mt-barlegend{display:flex;justify-content:space-between;font:700 13px Arial,sans-serif;color:#c9bfa8;flex-wrap:wrap;gap:6px}",".pf-mt-list{list-style:none;margin:0;padding:0}",".pf-mt-list li{display:flex;align-items:baseline;gap:8px;padding:7px 0;border-bottom:1px solid #1e1e1e;font:400 15px Arial,sans-serif}",".pf-mt-list li:last-child{border-bottom:0}",".pf-mt-dname{color:#f5ead6;font-weight:700}",".pf-mt-demployer{color:#c9bfa8;font-size:13px}",".pf-mt-damt{margin-left:auto;color:#e8b923;font-weight:700;white-space:nowrap}",".pf-mt-est{display:inline-block;font:700 11px Arial,sans-serif;letter-spacing:1px;color:#0d0d0d;background:#e8b923;border-radius:3px;padding:2px 6px;margin-left:6px}",".pf-mt-actions{display:flex;gap:10px;justify-content:center;margin:16px 0}",'.pf-mt-btn{font:900 15px "Arial Black",Arial,sans-serif;background:#f5ead6;color:#0d0d0d;border:0;border-radius:6px;padding:12px 22px;cursor:pointer}',".pf-mt-btn-red{background:#c1121f;color:#ffffff}",".pf-mt-src{font:400 13px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:0 12px}",".pf-mt-empty{font:400 16px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:28px 12px;border:1px dashed #3a3a3a;border-radius:8px}"].join("\n");try{window.PFMoneyTab={mount:function(e,a){if(!e||!a)return!1;try{if(a.querySelector&&a.querySelector(".pf-mt"))return!0}catch(e){}return function(e,a,n){if(t){var i="pfMoneyCb"+Math.floor(1e9*Math.random()),r=document.createElement("script"),o=!1;window[i]=function(e){p(e)},r.onerror=function(){p(null)};var l="?action="+encodeURIComponent(e);for(var s in a)null!=a[s]&&""!==a[s]&&(l+="&"+encodeURIComponent(s)+"="+encodeURIComponent(a[s]));l+="&callback="+i,r.src=t+l,document.head.appendChild(r),setTimeout(function(){p(null)},12e3)}else n(null);function p(e){if(!o){o=!0;try{delete window[i]}catch(e){}r.parentNode&&r.parentNode.removeChild(r),n(e)}}}("money_legislator",{bioguide_id:String(e)},function(e){if(e&&e.ok)try{f(a,e)}catch(e){c(a)}else c(a)}),!0}},e.MoneyTab=window.PFMoneyTab}catch(e){}}function i(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function r(t){try{e&&e.toast&&e.toast(t)}catch(e){}}function o(e){return null==e||isNaN(Number(e))?"—":"$"+Number(e).toLocaleString("en-US")}function l(e){return null==e||isNaN(Number(e))?null:Number(e)}function s(e){var t=l(e);return null==t?"—":Math.round(10*t)/10+"%"}function p(e){return"Source: FEC · "+i(e.cycle||"—")+" cycle · retrieved "+i(function(e){if("number"==typeof e&&e>1e12)try{var t=new Date(e);return["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"][t.getUTCMonth()]+" "+t.getUTCDate()+", "+t.getUTCFullYear()}catch(e){}var a=String(null==e?"":e).trim(),n=a.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);if(n){var i=parseInt(n[2],10)-1;if(i>=0&&i<12)return["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"][i]+" "+parseInt(n[3],10)+", "+n[1]}return a||"—"}(e.retrieved_at))}function d(e){if("number"==typeof e&&e>1e12)try{var t=new Date(e);return t.getUTCFullYear()+"-"+String(t.getUTCMonth()+1).padStart(2,"0")+"-"+String(t.getUTCDate()).padStart(2,"0")}catch(e){}return e}function c(e){try{e.style.display="none",e.innerHTML=""}catch(e){}}function f(t,c){!function(){try{if(document.getElementById("pf-mt-css"))return;var e=document.createElement("style");e.id="pf-mt-css",e.textContent=n,document.head.appendChild(e)}catch(e){}}();var f=c.member||{},u=c.totals||null;t.innerHTML="";var m,g,h,x=document.createElement("div");if(x.className="pf-mt",!u)return x.innerHTML='<div class="pf-mt-empty">'+i("Money data isn't loaded yet — no figures shown rather than guesses.")+'</div><div class="pf-mt-src">'+p(c)+"</div>",void t.appendChild(x);x.innerHTML='<div class="pf-mt-kicker">FOLLOW THE MONEY</div><h3 class="pf-mt-name">'+i(f.name||"—")+'</h3><div class="pf-mt-sub">'+i(function(e){var t=String(e.office||e.chamber||"").toLowerCase();return(("h"===t||"house"===t||"rep"===t?"U.S. HOUSE":"s"===t||"senate"===t||"sen"===t?"U.S. SENATE":String(e.office||e.chamber||"—"))+" · "+String(e.party||"—")+" · "+String(e.state||"—")).toUpperCase()}(f))+'</div><div class="pf-mt-totals">'+function(e){return[["RAISED",o(e.raised)],["SPENT",o(e.spent)],["CASH ON HAND",o(e.cash)]].map(function(e){return'<div class="pf-mt-total"><span class="pf-mt-tlabel">'+i(e[0])+'</span><span class="pf-mt-tval">'+i(e[1])+"</span></div>"}).join("")}(u)+'</div><div class="pf-mt-sect">'+function(e){var t=l(e.small_dollar_pct),a=l(e.large_dollar_pct),n="<h4>SMALL-DOLLAR VS LARGE-DOLLAR</h4>";return null==t&&null==a?n+'<div class="pf-mt-barlegend"><span>—</span></div>':(t=null==t?0:t,a=null==a?0:a,n+'<div class="pf-mt-barrow"><div class="pf-mt-seg-sm" style="width:'+Math.max(0,Math.min(100,t))+'%"></div><div class="pf-mt-seg-lg" style="width:'+Math.max(0,Math.min(100,a))+'%"></div></div><div class="pf-mt-barlegend"><span>SMALL-DOLLAR (&lt;$200): '+s(t)+"</span><span>LARGE-DOLLAR: "+s(a)+"</span></div>")}(c)+'</div><div class="pf-mt-sect">'+(m=c.top_donors,g=Array.isArray(m)?m.slice(0,10):[],h="<h4>TOP DONORS</h4>",(g.length?h+'<ul class="pf-mt-list">'+g.map(function(e){var t=e.employer?'<span class="pf-mt-demployer">'+i(e.employer)+"</span>":"";return'<li><span class="pf-mt-dname">'+i(e.name||"—")+"</span>"+t+'<span class="pf-mt-damt">'+i(o(e.amount))+"</span></li>"}).join("")+"</ul>":h+'<div class="pf-mt-barlegend"><span>—</span></div>')+'</div><div class="pf-mt-sect">')+function(e){var t=Array.isArray(e)?e:[],a="<h4>TOP INDUSTRIES</h4>";return t.length?a+'<ul class="pf-mt-list">'+t.map(function(e){var t=e.estimated?'<span class="pf-mt-est">ESTIMATED FROM EMPLOYER DATA</span>':"";return'<li><span class="pf-mt-dname">'+i(e.industry||"—")+"</span>"+t+'<span class="pf-mt-damt">'+i(o(e.total))+"</span></li>"}).join("")+"</ul>":a+'<div class="pf-mt-barlegend"><span>—</span></div>'}(c.industries)+'</div><div class="pf-mt-actions"><button type="button" class="pf-mt-btn" data-mt-dl="1">DOWNLOAD</button><button type="button" class="pf-mt-btn pf-mt-btn-red" data-mt-sh="1">SHARE</button></div><div class="pf-mt-src">'+p(c)+"</div>";var v=function(e){var t,a,n=e.member||{},i=e.totals||{},r=Array.isArray(e.top_donors)?e.top_donors.slice(0,3):[],o=Array.isArray(e.industries)?e.industries.slice(0,3):[];return{bioguideId:n.bioguide_id,name:n.name,chamber:(t=n.office,a=String(t||"").toUpperCase(),"H"===a?"house":"S"===a?"senate":""),party:n.party,state:n.state,cycle:e.cycle,retrieved:d(e.retrieved_at),raised:i.raised,spent:i.spent,cash:i.cash,topDonors:r.map(function(e){return{name:e.name,employer:e.employer,amount:e.amount}}),topIndustries:o.map(function(e){return{industry:e.industry,amount:e.total}})}}(c);x.addEventListener("click",function(t){var n=t&&t.target;if(n&&n.getAttribute){var i=n.getAttribute("data-mt-dl"),o=n.getAttribute("data-mt-sh");if(null!=i||null!=o)try{var l=e.PHQShare;if(!l)return void r("Share is still loading — try again.");null!=i?l.save(a,v):l.share(a,v)}catch(e){r("Poster failed — try again.")}}}),t.appendChild(x)}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("money-vote")&&!window.pfMoneyVoteDone){window.pfMoneyVoteDone=!0;var t=window.PF_BACKEND_URL,a=[".pf-mv{max-width:680px;margin:0 auto;padding:8px 0;color:#f5ead6}",".pf-mv-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#e8b923;text-align:center;margin-bottom:10px}",'.pf-mv-title{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6;text-align:center;margin:0 0 6px}',".pf-mv-bill{font:700 15px Arial,sans-serif;color:#c9bfa8;text-align:center;margin-bottom:16px}",".pf-mv-row{background:#0d0d0d;border:1px solid #3a3a3a;border-radius:8px;padding:14px 16px;margin-bottom:12px}",'.pf-mv-name{font:900 20px "Arial Black",Arial,sans-serif;color:#f5ead6}',".pf-mv-sub{display:block;font:700 13px Arial,sans-serif;color:#c9bfa8;margin-top:4px}",".pf-mv-vote{font:700 15px Arial,sans-serif;color:#e8b923;margin:8px 0}",".pf-mv-vote b{color:#c1121f}",".pf-mv-inds{list-style:none;margin:0;padding:0}",".pf-mv-inds li{font:400 15px Arial,sans-serif;color:#c9bfa8;padding:4px 0}",".pf-mv-inds li b{color:#f5ead6}",".pf-mv-inds li .pf-mv-amt{color:#e8b923;font-weight:700}",".pf-mv-method{font:400 13px Arial,sans-serif;color:#c9bfa8;text-align:center;margin-top:12px;padding:0 12px;font-style:italic}",".pf-mv-empty{font:400 16px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:28px 12px;border:1px dashed #3a3a3a;border-radius:8px}"].join("\n");try{window.PFMoneyVote={mount:function(e,a){if(!e||!a)return!1;try{if(a.querySelector&&a.querySelector(".pf-mv"))return!0}catch(e){}return function(e,a,n){if(t){var i="pfMvCb"+Math.floor(1e9*Math.random()),r=document.createElement("script"),o=!1;window[i]=function(e){p(e)},r.onerror=function(){p(null)};var l="?action="+encodeURIComponent(e);for(var s in a)null!=a[s]&&""!==a[s]&&(l+="&"+encodeURIComponent(s)+"="+encodeURIComponent(a[s]));l+="&callback="+i,r.src=t+l,document.head.appendChild(r),setTimeout(function(){p(null)},12e3)}else n(null);function p(e){if(!o){o=!0;try{delete window[i]}catch(e){}r.parentNode&&r.parentNode.removeChild(r),n(e)}}}("money_vote_card",{bill_id:String(e)},function(e){if(e&&e.ok)try{l(a,e)}catch(e){o(a)}else o(a)}),!0}},e.MoneyVote=window.PFMoneyVote}catch(e){}}function n(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function i(e){return e.copy?n(e.copy):'received <span class="pf-mv-amt">'+n(null==(t=e.total)||isNaN(Number(t))?"—":"$"+Number(t).toLocaleString("en-US"))+"</span> from <b>"+n(e.industry||"—")+"</b>";var t}function r(e){var t=e.money&&Array.isArray(e.money.industries)?e.money.industries.slice(0,3):[],a="";return e.money&&(a=t.length?'<ul class="pf-mv-inds">'+t.map(function(e){return"<li>"+i(e)+"</li>"}).join("")+"</ul>":'<ul class="pf-mv-inds"><li>No industry donor data reported.</li></ul>'),'<article class="pf-mv-row"><div class="pf-mv-name">'+n(e.name||"—")+'<span class="pf-mv-sub">'+n(function(e){var t=String(e.chamber||"").toLowerCase();return((t="house"===t?"U.S. HOUSE":"senate"===t?"U.S. SENATE":String(e.chamber||"—"))+" · "+String(e.party||"—")+" · "+String(e.state||"—")).toUpperCase()}(e))+'</span></div><div class="pf-mv-vote">VOTED <b>'+n(e.position||"—")+"</b></div>"+a+"</article>"}function o(e){try{e.style.display="none",e.innerHTML=""}catch(e){}}function l(e,t){!function(){try{if(document.getElementById("pf-mv-css"))return;var e=document.createElement("style");e.id="pf-mv-css",e.textContent=a,document.head.appendChild(e)}catch(e){}}();var i=t.bill||{},o=Array.isArray(t.cards)?t.cards:[];e.innerHTML="";var l=document.createElement("div");if(l.className="pf-mv",!o.length)return l.innerHTML='<div class="pf-mv-empty">'+n("No vote records returned for this bill.")+"</div>",void e.appendChild(l);for(var s='<div class="pf-mv-kicker">FOLLOW THE MONEY</div><h3 class="pf-mv-title">'+n("Who funded both sides")+'</h3><div class="pf-mv-bill">'+n(i.bill_id||"—")+" — "+n(i.title||"—")+"</div>",p=0;p<o.length;p++)s+=r(o[p]||{});s+='<div class="pf-mv-method">'+n(t.methodology||"Donations are correlated with votes, not proof of cause.")+"</div>",l.innerHTML=s,e.appendChild(l)}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("ledgers")&&!window.pfLedgersDone){window.pfLedgersDone=!0;var t=window.PF_BACKEND_URL,a="phq-ledger",n=[".pf-ledger{max-width:680px;margin:0 auto;padding:8px 0}",".pf-ledger-head{text-align:center;margin-bottom:10px}",".pf-ledger-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#c1121f;margin-bottom:8px}",'.pf-ledger-title{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 6px}',".pf-ledger-sub{font:400 14px Arial,sans-serif;color:#c9bfa8;margin-bottom:4px}",".pf-ledger-row{background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:20px 20px 18px;margin:0 0 14px;color:#f5ead6}",".pf-ledger-rank{font:700 13px Arial,sans-serif;color:#e8b923;letter-spacing:3px;margin-bottom:6px}",'.pf-ledger-name{font:900 26px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 10px}','.pf-ledger-fig{font:900 19px "Arial Black",Arial,sans-serif;color:#f5ead6}',".pf-ledger-fig.gold{color:#e8b923}",".pf-ledger-fig.dim{color:#c9bfa8;font:400 15px Arial,sans-serif}",".pf-ledger-caveat{font:400 12px Arial,sans-serif;color:#c9bfa8;margin:2px 0 10px}",".pf-ledger-barwrap{background:#1a1a1a;border:1px solid #3a3a3a;border-radius:6px;height:22px;position:relative;margin:8px 0 4px;overflow:hidden}",".pf-ledger-bar{background:#c1121f;height:100%;min-width:3px}",".pf-ledger-ratio{font:700 13px Arial,sans-serif;color:#e8b923;margin-bottom:12px}",".pf-ledger-actions{display:flex;gap:10px;justify-content:center;margin-top:6px}",'.pf-ledger-btn{font:900 14px "Arial Black",Arial,sans-serif;background:#f5ead6;color:#0d0d0d;border:0;border-radius:6px;padding:11px 20px;cursor:pointer}',".pf-ledger-btn-red{background:#c1121f;color:#ffffff}",".pf-ledger-method{font:400 12px Arial,sans-serif;color:#c9bfa8;text-align:center;margin-top:12px;padding:0 12px;line-height:1.5}",".pf-ledger-empty{font:400 16px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:28px 12px;border:1px dashed #3a3a3a;border-radius:8px}"].join("\n"),i=!1;try{window.PFLedgers={mount:function(e){if(!e)return!1;try{if(e.querySelector&&e.querySelector(".pf-ledger"))return!0}catch(e){}return function(e,a,n){if(t){var i="pfLedgerCb"+Math.floor(1e9*Math.random()),r=document.createElement("script"),o=!1;window[i]=function(e){p(e)},r.onerror=function(){p(null)};var l="?action="+encodeURIComponent(e);for(var s in a)null!=a[s]&&""!==a[s]&&(l+="&"+encodeURIComponent(s)+"="+encodeURIComponent(a[s]));l+="&callback="+i,r.src=t+l,document.head.appendChild(r),setTimeout(function(){p(null)},12e3)}else n(null);function p(e){if(!o){o=!0;try{delete window[i]}catch(e){}r.parentNode&&r.parentNode.removeChild(r),n(e)}}}("ledger_list",{},function(t){if(t&&t.ok&&Array.isArray(t.entries))try{d(e,t)}catch(t){p(e)}else p(e)}),!0}},e.Ledgers=window.PFLedgers}catch(e){}}function r(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function o(t){try{e&&e.toast&&e.toast(t)}catch(e){}}function l(e){return{name:e.name,rank:e.rank,netWorthB:e.net_worth_b,netWorthAsOf:e.net_worth_as_of,spending:e.political_spending,spendingCycle:e.spending_cycle,ratio:e.spending_ratio,matchNote:e.match_note}}function s(e,t){var a,n,i,o,l="loaded"===e.spending_status&&null!=e.political_spending,s=0,p="";return l&&isFinite(Number(e.spending_ratio))&&Number(e.spending_ratio)>0&&(s=Math.max(.4,Math.min(100,100*Number(e.spending_ratio))),p='<div class="pf-ledger-ratio">'+r(function(e){var t=Number(e);if(!isFinite(t)||t<0)return"—";var a=100*t;return a>=1?Math.round(100*a)/100+"%":a>=.01?Math.round(1e3*a)/1e3+"%":a.toPrecision(2)+"%"}(e.spending_ratio))+" OF NET WORTH SPENT ON FEDERAL ELECTIONS</div>"),'<div class="pf-ledger-rank">#'+r(e.rank)+' — FORBES 2026</div><h3 class="pf-ledger-name">'+r(e.name)+'</h3><div class="pf-ledger-fig">NET WORTH '+r((i=e.net_worth_b,o=Number(i),isFinite(o)?"$"+Math.round(10*o)/10+"B":"—"))+'</div><div class="pf-ledger-caveat">Forbes '+r((a=e.net_worth_as_of,(n=String(a||"").match(/^(\d{4})-(\d{2})-(\d{2})$/))?["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"][parseInt(n[2],10)-1]+" "+parseInt(n[3],10)+", "+n[1]:"—"))+" snapshot · published-list-snapshot</div>"+(l?'<div class="pf-ledger-fig gold">SPENT '+r(function(e){var t=Number(e);return isFinite(t)?"$"+Math.round(t).toString().replace(/\B(?=(\d{3})+(?!\d))/g,","):"—"}(e.political_spending))+' ON FEDERAL ELECTIONS</div><div class="pf-ledger-caveat">FEC Schedule A, '+r(e.spending_cycle)+' cycle · name-matched — identity unverified</div><div class="pf-ledger-barwrap"><div class="pf-ledger-bar" style="width:'+s.toFixed(2)+'%"></div></div>'+p:'<div class="pf-ledger-fig dim">'+r("FEC data not yet loaded — no figures shown rather than invented.")+'</div><div class="pf-ledger-caveat">No figures shown rather than invented.</div>')+'<div class="pf-ledger-actions"><button type="button" class="pf-ledger-btn" data-ledger-dl="'+t+'">DOWNLOAD</button><button type="button" class="pf-ledger-btn pf-ledger-btn-red" data-ledger-sh="'+t+'">SHARE</button></div>'}function p(e){try{e.style.display="none",e.innerHTML=""}catch(e){}}function d(t,p){!function(){if(!i){i=!0;try{var e=document.createElement("style");e.type="text/css",e.appendChild(document.createTextNode(n)),document.head.appendChild(e)}catch(e){}}}();p.list;var d=Array.isArray(p.entries)?p.entries:[];t.innerHTML="";var c=document.createElement("div");if(c.className="pf-ledger",!d.length)return c.innerHTML='<div class="pf-ledger-empty">'+r("The ledger is empty — no billionaire rows returned.")+"</div>",void t.appendChild(c);var f=document.createElement("div");f.className="pf-ledger-head",f.innerHTML='<div class="pf-ledger-kicker">FOLLOW THE MONEY</div><h2 class="pf-ledger-title">THE LEDGER</h2><div class="pf-ledger-sub">Billionaire net worth vs. political spending — ranked by net worth</div>',c.appendChild(f);for(var u=[],m=0;m<d.length;m++){var g=document.createElement("article");g.className="pf-ledger-row",g.setAttribute("data-ledger-i",String(m)),g.innerHTML=s(d[m],m),c.appendChild(g),u.push(l(d[m]))}var h=document.createElement("div");h.className="pf-ledger-method",h.textContent="METHOD: "+(p.methodology||"Net worths hand-transcribed from Forbes' published 2026 list; spending from FEC Schedule A (name-matched)."),c.appendChild(h),c.addEventListener("click",function(t){var n=t&&t.target;if(n&&n.getAttribute){var i=n.getAttribute("data-ledger-dl"),r=n.getAttribute("data-ledger-sh");if(null!=i||null!=r){var l=parseInt(null!=i?i:r,10)||0,s=u[l];if(s)try{var p=e.PHQShare;if(!p)return void o("Share is still loading — try again.");null!=i?p.save(a,s):p.share(a,s)}catch(e){o("Poster failed — try again.")}}}}),t.appendChild(c)}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("boycotts")&&!window.pfBoycottsDone){window.pfBoycottsDone=!0;var t=window.PF_BACKEND_URL,a="phq-boycott",n=[".pf-bc{max-width:680px;margin:0 auto;padding:8px 0}",".pf-bc-head{text-align:center;margin-bottom:10px}",".pf-bc-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#e8b923;margin-bottom:8px}",'.pf-bc-title{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 4px}',".pf-bc-sub{font:400 14px Arial,sans-serif;color:#c9bfa8;margin-bottom:10px}",".pf-bc-disc{background:#1a1206;border:2px solid #e8b923;border-radius:8px;padding:12px 14px;font:700 13px Arial,sans-serif;color:#e8b923;text-align:center;margin:0 6px 14px;line-height:1.5}",".pf-bc-row{background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:20px 18px;color:#f5ead6;margin:0 6px 14px}",".pf-bc-rank{font:700 13px Arial,sans-serif;color:#c9bfa8;letter-spacing:3px;margin-bottom:6px}",'.pf-bc-emp{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 6px;line-height:1.1}','.pf-bc-amt{font:900 20px "Arial Black",Arial,sans-serif;color:#c1121f;margin-bottom:4px}',".pf-bc-cyc{font:400 13px Arial,sans-serif;color:#c9bfa8;margin-bottom:12px}",".pf-bc-camp{background:#161616;border:1px solid #3a3a3a;border-radius:8px;padding:12px;margin-bottom:10px}",".pf-bc-camp-t{font:700 15px Arial,sans-serif;color:#f5ead6;margin-bottom:4px}",".pf-bc-camp-s{font:400 12px Arial,sans-serif;color:#c9bfa8;margin-bottom:10px}",".pf-bc-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}",'.pf-bc-btn{font:900 14px "Arial Black",Arial,sans-serif;background:#f5ead6;color:#0d0d0d;border:0;border-radius:6px;padding:11px 20px;cursor:pointer;text-decoration:none;display:inline-block}',".pf-bc-btn-red{background:#c1121f;color:#ffffff}",".pf-bc-btn-gold{background:#e8b923;color:#0d0d0d}",".pf-bc-nocamp{font:400 13px Arial,sans-serif;color:#c9bfa8;font-style:italic;margin-bottom:4px}",".pf-bc-empty{font:400 16px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:28px 12px;border:1px dashed #3a3a3a;border-radius:8px}",".pf-bc-method{font:400 12px Arial,sans-serif;color:#c9bfa8;text-align:center;margin-top:12px;padding:0 12px;line-height:1.5}"].join("\n");try{window.PFBoycotts={mount:function(e){if(!e)return!1;try{if(e.querySelector&&e.querySelector(".pf-bc"))return!0}catch(e){}return function(e,a,n){if(t){var i="pfBcCb"+Math.floor(1e9*Math.random()),r=document.createElement("script"),o=!1;window[i]=function(e){p(e)},r.onerror=function(){p(null)};var l="?action="+encodeURIComponent(e);for(var s in a)null!=a[s]&&""!==a[s]&&(l+="&"+encodeURIComponent(s)+"="+encodeURIComponent(a[s]));l+="&callback="+i,r.src=t+l,document.head.appendChild(r),setTimeout(function(){p(null)},12e3)}else n(null);function p(e){if(!o){o=!0;try{delete window[i]}catch(e){}r.parentNode&&r.parentNode.removeChild(r),n(e)}}}("boycott_list",{},function(t){if(t&&t.ok)try{c(e,t)}catch(t){l(e)}else l(e)}),!0}},e.Boycotts=window.PFBoycotts}catch(e){}}function i(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function r(t){try{e&&e.toast&&e.toast(t)}catch(e){}}function o(e){try{return"$"+Number(e).toLocaleString("en-US",{maximumFractionDigits:0})}catch(t){return"$"+String(e)}}function l(e){try{e.style.display="none",e.innerHTML=""}catch(e){}}function s(){var t="https://www.mtcstw.com/political-hq";try{window.PF&&"function"==typeof e.shareUrl&&(t=e.shareUrl(t))}catch(e){}return t}function p(e){var t=(Array.isArray(e.linked_campaigns)?e.linked_campaigns:[])[0]||{};return{employer:e.employer,amount:e.total_donated,cycle:e.cycle,campaignTitle:t.title||"",campaignId:t.id||""}}function d(e){if(!e.length)return'<div class="pf-bc-nocamp">No linked pressure campaign yet.</div>';for(var t="",a=0;a<e.length;a++){var n=e[a]||{},r=String(n.status||"").toUpperCase();t+='<div class="pf-bc-camp"><div class="pf-bc-camp-t">'+i(n.title||n.id||"Pressure campaign")+"</div>"+(r?'<div class="pf-bc-camp-s">STATUS: '+i(r)+"</div>":"")+'<a class="pf-bc-btn pf-bc-btn-gold" data-bc-join="1" href="'+i(s())+'" target="_blank" rel="noopener">JOIN THE PRESSURE</a></div>'}return t}function c(t,l){!function(){try{if(document.getElementById("pf-bc-css"))return;var e=document.createElement("style");e.id="pf-bc-css",e.textContent=n,document.head.appendChild(e)}catch(e){}}();var s=Array.isArray(l.employers)?l.employers:[];t.innerHTML="";var c=document.createElement("div");c.className="pf-bc";var f=document.createElement("div");f.className="pf-bc-head",f.innerHTML='<div class="pf-bc-kicker">FOLLOW THE MONEY &rarr; JOIN THE FIGHT</div><h2 class="pf-bc-title">DONOR BOYCOTT LIST</h2><div class="pf-bc-sub">Top employers by employee FEC contributions'+(l.cycle_scope?" &middot; "+i(l.cycle_scope)+" cycle":"")+"</div>",c.appendChild(f);var u=document.createElement("div");if(u.className="pf-bc-disc",u.textContent=l.disclaimer||"Totals aggregate individual employee contributions reported to the FEC. Corporations cannot donate directly — an employer here means its employees gave, not the company.",c.appendChild(u),!s.length){var m=document.createElement("div");return m.className="pf-bc-empty",m.textContent=l.empty&&"donor data pending"===l.reason?"Donor data pending — the money tables are still loading. Check back soon.":"No donor data yet.",c.appendChild(m),void t.appendChild(c)}for(var g=[],h=0;h<s.length;h++){var x=s[h]||{},v=Array.isArray(x.linked_campaigns)?x.linked_campaigns:[],b=document.createElement("article");b.className="pf-bc-row",b.innerHTML='<div class="pf-bc-rank">#'+(h+1)+'</div><h3 class="pf-bc-emp">'+i(x.employer||"—")+'</h3><div class="pf-bc-amt">'+i(x.headline||"Employees gave "+o(x.total_donated)+" (FEC)")+'</div><div class="pf-bc-cyc">'+i(x.cycle||"")+(x.cycle?" cycle":"")+" &middot; "+(parseInt(x.contributions,10)||0)+" reported contributions &middot; source: FEC</div>"+d(v)+'<div class="pf-bc-actions"><button type="button" class="pf-bc-btn" data-bc-dl="'+h+'">DOWNLOAD</button><button type="button" class="pf-bc-btn pf-bc-btn-red" data-bc-sh="'+h+'">SHARE</button></div>',c.appendChild(b),g.push(p(x))}if(l.method){var y=document.createElement("div");y.className="pf-bc-method",y.textContent="METHOD: "+l.method,c.appendChild(y)}c.addEventListener("click",function(t){var n=t&&t.target;if(n&&n.getAttribute){var i=n.getAttribute("data-bc-dl"),o=n.getAttribute("data-bc-sh");if(null!=i||null!=o){var l=parseInt(null!=i?i:o,10)||0,s=g[l];if(s)try{var p=e.PHQShare;if(!p)return void r("Share is still loading — try again.");null!=i?p.save(a,s):p.share(a,s)}catch(e){r("Poster failed — try again.")}}}}),t.appendChild(c)}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("corp-card")&&!window.pfCorpCardDone){window.pfCorpCardDone=!0;var t=window.PF_BACKEND_URL,a="phq-corp",n="Per-company price data has no public source. Shown: what filings prove.",i=[".pf-cp{max-width:680px;margin:0 auto;padding:8px 0}",".pf-cp-card{background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:26px 22px;color:#f5ead6;text-align:center}",".pf-cp-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#c1121f;margin-bottom:10px}",'.pf-cp-name{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 4px}',".pf-cp-ticker{font:700 15px Arial,sans-serif;color:#e8b923;margin-bottom:16px}",".pf-cp-vs{display:flex;gap:12px;margin-bottom:8px}",".pf-cp-col{flex:1;background:#141414;border:1px solid #3a3a3a;border-radius:8px;padding:14px 8px}",".pf-cp-lab{font:700 12px Arial,sans-serif;letter-spacing:2px;color:#c9bfa8;margin-bottom:8px}",'.pf-cp-amt{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6}',".pf-cp-amt.red{color:#c1121f}",'.pf-cp-rate{font:900 22px "Arial Black",Arial,sans-serif;color:#e8b923;margin:14px 0 4px}',".pf-cp-ratelab{font:700 12px Arial,sans-serif;letter-spacing:2px;color:#c9bfa8;margin-bottom:12px}",".pf-cp-lob{font:700 16px Arial,sans-serif;color:#f5ead6;margin-bottom:4px}",".pf-cp-loblab{font:700 12px Arial,sans-serif;letter-spacing:2px;color:#c9bfa8;margin-bottom:14px}",".pf-cp-price{font:400 14px Arial,sans-serif;color:#c9bfa8;border:1px dashed #3a3a3a;border-radius:8px;padding:12px;margin:6px 0 14px}",".pf-cp-src{font:400 12px Arial,sans-serif;color:#8a8272;margin-bottom:16px}",".pf-cp-actions{display:flex;gap:10px;justify-content:center}",'.pf-cp-btn{font:900 15px "Arial Black",Arial,sans-serif;background:#f5ead6;color:#0d0d0d;border:0;border-radius:6px;padding:12px 22px;cursor:pointer}',".pf-cp-btn-red{background:#c1121f;color:#ffffff}",".pf-cp-empty{font:400 16px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:28px 12px;border:1px dashed #3a3a3a;border-radius:8px}"].join("\n");try{window.PFCorpCard={mount:function(e,a){if(!e||!a)return!1;try{if(a.querySelector&&a.querySelector(".pf-cp"))return!0}catch(e){}return function(e,a,n){if(t){var i="pfCpCb"+Math.floor(1e9*Math.random()),r=document.createElement("script"),o=!1;window[i]=function(e){p(e)},r.onerror=function(){p(null)};var l="?action="+encodeURIComponent(e);for(var s in a)null!=a[s]&&""!==a[s]&&(l+="&"+encodeURIComponent(s)+"="+encodeURIComponent(a[s]));l+="&callback="+i,r.src=t+l,document.head.appendChild(r),setTimeout(function(){p(null)},12e3)}else n(null);function p(e){if(!o){o=!0;try{delete window[i]}catch(e){}r.parentNode&&r.parentNode.removeChild(r),n(e)}}}("corp_card",{ticker:String(e).toUpperCase()},function(e){if(!e||!e.ok||!e.ticker)return e&&!1===e.ok&&e.err?(p(),void(a.innerHTML='<div class="pf-cp"><div class="pf-cp-empty">'+r("No corporate facts on file for this ticker — yet.")+"</div></div>")):void d(a);try{c(a,e)}catch(e){d(a)}}),!0}},e.CorpCard=window.PFCorpCard}catch(e){}}function r(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function o(t){try{e&&e.toast&&e.toast(t)}catch(e){}}function l(e){if(null==e)return"—";var t=Number(e);if(!isFinite(t))return"—";var a=t<0?"−":"",n=Math.abs(t);return n>=1e9?a+"$"+(n/1e9).toFixed(1)+"B":n>=1e6?a+"$"+(n/1e6).toFixed(1)+"M":n>=1e3?a+"$"+(n/1e3).toFixed(1)+"K":a+"$"+Math.round(n)}function s(e,t){for(var a={},n=[],i=0;i<(e||[]).length;i++){var r=e[i]||{},o="";"edgar"===r.kind?o="SEC EDGAR · 10-K FY"+(r.fy||t):"lda"===r.kind?o="LDA · "+(r.year||t)+" LD-2 FILINGS":r.name&&(o=String(r.name).toUpperCase()),o&&!a[o]&&(a[o]=1,n.push(o))}return n.length?"SOURCES: "+n.join(" · "):"SOURCES: PUBLIC FILINGS"}function p(){try{if(document.getElementById("pf-cp-css"))return;var e=document.createElement("style");e.id="pf-cp-css",e.textContent=i,document.head.appendChild(e)}catch(e){}}function d(e){try{e.style.display="none",e.innerHTML=""}catch(e){}}function c(t,i){p(),t.innerHTML="";var d=document.createElement("div");d.className="pf-cp";var c=i.price_hikes||{},f=c.empty&&(c.note||n)||n;d.innerHTML='<div class="pf-cp-card"><div class="pf-cp-kicker">THEIR PLAYBOOK</div><h3 class="pf-cp-name">'+r(i.name)+'</h3><div class="pf-cp-ticker">'+r(i.ticker)+" · FY"+r(i.year)+'</div><div class="pf-cp-vs"><div class="pf-cp-col"><div class="pf-cp-lab">STOCK BUYBACKS</div><div class="pf-cp-amt">'+r(l(i.buybacks))+'</div><div class="pf-cp-ratelab">SEC EDGAR · FY'+r(i.year)+'</div></div><div class="pf-cp-col"><div class="pf-cp-lab">INCOME TAXES PAID</div><div class="pf-cp-amt red">'+r(l(i.tax_paid))+'</div><div class="pf-cp-ratelab">SEC EDGAR · FY'+r(i.year)+'</div></div></div><div class="pf-cp-rate">EFFECTIVE TAX RATE: '+r(function(e){if(null==e)return"—";var t=Number(e);return isFinite(t)?(100*t).toFixed(1)+"%":"—"}(i.effective_rate))+'</div><div class="pf-cp-ratelab">TAXES PAID ÷ PRETAX INCOME · SEC EDGAR · FY'+r(i.year)+'</div><div class="pf-cp-lob">LOBBYING SPEND: '+r(l(i.lobbying_spend))+'</div><div class="pf-cp-loblab">LDA LD-2 FILINGS · '+r(i.year)+' · AS-FILED ESTIMATE</div><div class="pf-cp-price">PRICE HIKES: '+r(f)+'</div><div class="pf-cp-src">'+r(s(i.sources,i.year))+'</div><div class="pf-cp-actions"><button type="button" class="pf-cp-btn" data-cp-dl="1">DOWNLOAD</button><button type="button" class="pf-cp-btn pf-cp-btn-red" data-cp-sh="1">SHARE</button></div></div>';var u=function(e){return{ticker:e.ticker,name:e.name,year:e.year,buybacks:e.buybacks,taxPaid:e.tax_paid,effectiveRate:e.effective_rate,lobbyingSpend:e.lobbying_spend,sourceLine:s(e.sources,e.year)}}(i);d.addEventListener("click",function(t){var n=t&&t.target;if(n&&n.getAttribute){var i=n.getAttribute("data-cp-dl"),r=n.getAttribute("data-cp-sh");if(null!=i||null!=r)try{var l=e.PHQShare;if(!l)return void o("Share is still loading — try again.");null!=i?l.save(a,u):l.share(a,u)}catch(e){o("Poster failed — try again.")}}}),t.appendChild(d)}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("money")&&!window.pfMoneyPageDone){window.pfMoneyPageDone=!0;var t=window.PF_BACKEND_URL,a="https://www.mtcstw.com/political-hq",n="https://www.mtcstw.com/create",i=[".pf-mp{max-width:960px;margin:0 auto;padding:8px 0 24px;color:#f5ead6;font-family:Arial,sans-serif}",".pf-mp-kicker{font-weight:700;font-size:13px;letter-spacing:6px;color:#e8b923;text-align:center;margin-bottom:8px}",".pf-mp-title{font-weight:900;font-size:34px;text-align:center;margin:0 0 6px;letter-spacing:2px}",".pf-mp-mission{font-size:15px;color:#c9bfa8;text-align:center;margin:0 0 20px;font-style:italic}",".pf-mp-sec{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:10px;padding:18px;margin-bottom:14px}",".pf-mp-sec h3{font-weight:900;font-size:19px;letter-spacing:2px;margin:0 0 4px;color:#f5ead6}",".pf-mp-sec .pf-mp-sub{font-size:13px;color:#c9bfa8;margin:0 0 12px}",".pf-mp-pick{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}",".pf-mp-pick input{flex:1;min-width:180px;background:#1a1a1a;border:1px solid #3a3a3a;color:#f5ead6;border-radius:6px;padding:10px 12px;font-size:15px}",".pf-mp-btn{background:#c1121f;color:#fff;border:0;border-radius:6px;padding:10px 18px;font-weight:900;letter-spacing:1px;cursor:pointer;font-size:14px}",".pf-mp-btn.ghost{background:#1a1a1a;border:1px solid #3a3a3a;color:#f5ead6}",".pf-mp-cor{font-size:13px;color:#c9bfa8;border-top:1px solid #2a2a2a;margin-top:12px;padding-top:10px;font-style:italic}",".pf-mp-share{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}",".pf-mp-rail{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:18px 0 6px}",".pf-mp-rail a{color:#e8b923;font-weight:700;font-size:14px;letter-spacing:1px;text-decoration:none;border:1px solid #3a3a3a;border-radius:6px;padding:10px 16px;background:#0d0d0d}",".pf-mp-ac{display:block;text-align:center;margin:22px auto 0;max-width:420px;background:#c1121f;color:#fff;font-weight:900;letter-spacing:2px;font-size:16px;padding:14px;border-radius:8px;text-decoration:none}",".pf-mp-gauge{height:26px;border-radius:4px;overflow:hidden;display:flex;margin:10px 0}",".pf-mp-g-sm{background:#e8b923}.pf-mp-g-lg{background:#c1121f}",".pf-mp-gleg{display:flex;justify-content:space-between;font-size:13px;color:#c9bfa8;font-weight:700;flex-wrap:wrap;gap:6px}",".pf-mp-note{font-size:13px;color:#c9bfa8;text-align:center;padding:14px}",".pf-mp-redirect{max-width:560px;margin:24px auto;background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:28px 22px;text-align:center;color:#f5ead6;font-family:Arial,sans-serif}",".pf-mp-redirect h3{font-weight:900;font-size:22px;letter-spacing:2px;margin:0 0 10px}",".pf-mp-redirect p{color:#c9bfa8;font-size:14px;margin:0 0 16px}",".pf-mp-redirect a{display:inline-block;background:#c1121f;color:#fff;font-weight:900;letter-spacing:2px;padding:14px 28px;border-radius:8px;text-decoration:none;font-size:16px}"].join("\n"),r={bioguide:c("bioguide")||"",bill:c("bill")||""},o=[{key:"macro",kill:"money-macro",title:"MACRO",sub:"The headline numbers, straight from the Fed data vault.",mount:function(e){var t=document.createElement("div");e.appendChild(t);try{window.PFMacro&&PFMacro.mount(t)}catch(e){p("macro mount failed")}}},{key:"governing",kill:"money-governing",title:"THE ECONOMY THEY’RE GOVERNING",sub:"The numbers behind the policies — who they serve, who they squeeze.",mount:function(e){var t=document.createElement("div");e.appendChild(t);try{window.PFGoverning&&PFGoverning.mount(t)}catch(e){p("governing mount failed")}}},{key:"stackem",kill:"money-stackem",title:"STACK ’EM",sub:"STACK TWO NUMBERS. START AN ARGUMENT.",mount:function(e){var t=document.createElement("div");t.id="pf-stackem",e.appendChild(t);try{window.PFStackEm&&PFStackEm.mount(t)}catch(e){p("stackem mount failed")}}},{key:"explain",kill:"money-explain",title:"WHAT’S THIS COSTING YOU?",sub:"You tell it what’s hitting your wallet; it tells you what the numbers actually say.",mount:function(e){var t=document.createElement("div");t.id="pf-explain-money",e.appendChild(t);try{window.PFExplain&&PFExplain.mount(t,"money")}catch(e){p("explain mount failed")}}},{key:"gallery",kill:"macro-gallery",title:"THE MACRO WALL",sub:"Made with official data. See it. Remix it. Post it.",mount:function(e){var t=document.createElement("div");e.appendChild(t);try{window.PFMacroGallery&&PFMacroGallery.mount(t)}catch(e){p("macro gallery mount failed")}}},{key:"fec",kill:"money-fec-donors",title:"FEC DONOR FILES",sub:"Every legislator’s money, straight from the filings.",mount:function(e){var t=document.createElement("div");t.innerHTML='<div class="pf-mp-pick"><input id="pf-mp-bio" placeholder="Bioguide ID — e.g. A000055" value="'+s(r.bioguide)+'" aria-label="Legislator Bioguide ID"><button class="pf-mp-btn" id="pf-mp-bio-go">PULL THE FILE</button></div><div class="pf-mp-slot"></div><p class="pf-mp-note">Donor files come straight from FEC filings. Type a Bioguide ID (find it on the legislator’s directory page) — or open this page with <b>?bioguide=</b>.</p>',e.appendChild(t);var a=t.querySelector(".pf-mp-slot");function n(e){if(e){r.bioguide=e,a.innerHTML="";try{window.PFMoneyTab?PFMoneyTab.mount(e,a):a.innerHTML='<p class="pf-mp-note">Money module still loading — try again.</p>'}catch(e){p("fec mount failed :: "+(e&&e.message||e))}f(document.getElementById("pf-mp-gauge-slot"),e)}}t.querySelector("#pf-mp-bio-go").addEventListener("click",function(){n(t.querySelector("#pf-mp-bio").value.trim())}),r.bioguide&&n(r.bioguide)}},{key:"vote",kill:"money-vote",title:"THE MONEY BEHIND THE VOTE",sub:"Who funded both sides of the fight.",mount:function(t){var a=document.createElement("div");a.innerHTML='<div class="pf-mp-pick"><input id="pf-mp-bill" placeholder="Bill ID — e.g. H.R.3633" value="'+s(r.bill)+'" aria-label="Bill ID"><button class="pf-mp-btn" id="pf-mp-bill-go">FOLLOW THIS BILL</button></div><div class="pf-mp-slot"></div><div class="pf-mp-share" style="display:none"><button class="pf-mp-btn ghost" data-act="share">SHARE THIS CARD</button><button class="pf-mp-btn ghost" data-act="forge">FORGE THIS</button></div><p class="pf-mp-cor">Donations and votes are separate public records. Donations don’t prove motive — they show who’s in the room.</p><p class="pf-mp-note">Tip: open this page with <b>?bill=</b> to deep-link a bill.</p>',t.appendChild(a);var i=a.querySelector(".pf-mp-slot"),o=a.querySelector(".pf-mp-share"),c=null;function f(e){if(e){r.bill=e,i.innerHTML="",o.style.display="none",c=null;try{window.PFMoneyVote?PFMoneyVote.mount(e,i):i.innerHTML='<p class="pf-mp-note">Money module still loading — try again.</p>'}catch(e){p("vote mount failed :: "+(e&&e.message||e))}d("money_vote_card",{bill_id:e},function(e){try{e&&e.ok&&e.cards&&(c=e,o.style.display="flex")}catch(e){}}),function(e){var t=document.querySelector('[data-sec="wallshame"] .pf-mp-body');if(!t)return;if(l("wallshame"))return void(t.innerHTML="");t.innerHTML='<div class="pf-mp-slot"></div>';try{window.PFWallShame&&PFWallShame.mount(e,t.querySelector(".pf-mp-slot"))}catch(e){p("wall mount failed :: "+(e&&e.message||e))}}(e)}}a.querySelector("#pf-mp-bill-go").addEventListener("click",function(){f(a.querySelector("#pf-mp-bill").value.trim())}),o.addEventListener("click",function(t){var a=t.target&&t.target.getAttribute?t.target.getAttribute("data-act"):null;if(a&&c){var i,r,o=(i=c,r=(Array.isArray(i.cards)?i.cards:[]).slice(0,4).map(function(e){var t=e.money&&e.money.industries&&e.money.industries[0]||null;return{name:e.name||"—",copy:t&&t.copy||"",vote:e.position||""}}),{billTitle:i.bill&&i.bill.title||i.bill_id||"",billId:i.bill&&i.bill.bill_id||"",cycle:i.cycle||"",rows:r,source:"FEC (api.open.fec.gov)"});if("share"===a)try{e.PHQShare?e.PHQShare.share("phq-votedonor",o):p("PHQShare missing for vote share")}catch(e){p("vote share failed :: "+(e&&e.message||e))}else if("forge"===a)try{sessionStorage.setItem("pf_forge_prefill_v1",JSON.stringify({kind:"money-vote",painter:"phq-votedonor",data:o,caption:"THE MONEY BEHIND THE VOTE — "+(o.billTitle||"")})),window.location.href=n}catch(e){p("forge stash failed :: "+(e&&e.message||e))}}}),r.bill&&f(r.bill)}},{key:"wallshame",kill:"wallshame",title:"WALL OF SHAME",sub:"The votes against us, named and sourced.",mount:function(e){e.innerHTML='<p class="pf-mp-note">Pick a bill above — the wall fills with its worst votes.</p>'}},{key:"pac",kill:"pac-alerts",title:"SUPER PAC ALERTS",sub:"New money drops, as they land.",mount:function(e){var t=document.createElement("div");e.appendChild(t);try{window.PFPacAlerts&&PFPacAlerts.mount(t)}catch(e){p("pac mount failed")}}},{key:"trades",kill:"trades-tab",title:"TRADES ON THE HILL",sub:"What they bought and sold while writing the rules.",mount:function(e){var t=document.createElement("div");e.appendChild(t);try{window.PFTrades&&PFTrades.mount(t,{bioguideId:r.bioguide})}catch(e){p("trades mount failed")}}},{key:"gauge",kill:"money-small-dollar",title:"SMALL-DOLLAR RATIO",sub:"People-powered or donor-powered?",mount:function(e){var t=document.createElement("div");t.id="pf-mp-gauge-slot",e.appendChild(t),f(t,r.bioguide)}},{key:"corp",kill:"corp-card",title:"CORPORATE PLAYBOOK",sub:"Buybacks, tax dodges, lobbying — the filings don’t lie.",mount:function(e){var t=document.createElement("div");t.innerHTML='<div class="pf-mp-pick"><input id="pf-mp-ticker" placeholder="Ticker — e.g. XOM" aria-label="Company ticker"><button class="pf-mp-btn" id="pf-mp-ticker-go">PULL THE PLAYBOOK</button></div><div class="pf-mp-slot"></div><p class="pf-mp-note">Buybacks, tax rates, and lobbying spend — from SEC EDGAR 10-K filings and Senate lobbying disclosures. Shown: what filings prove.</p>',e.appendChild(t);var a=t.querySelector(".pf-mp-slot");t.querySelector("#pf-mp-ticker-go").addEventListener("click",function(){var e=t.querySelector("#pf-mp-ticker").value.trim().toUpperCase();if(e){a.innerHTML="";try{window.PFCorpCard?PFCorpCard.mount(e,a):a.innerHTML='<p class="pf-mp-note">Money module still loading — try again.</p>'}catch(e){p("corp mount failed :: "+(e&&e.message||e))}}})}},{key:"ledgers",kill:"ledgers",title:"BILLIONAIRE LEDGERS",sub:"The money behind the curtain, ledger by ledger.",mount:function(e){var t=document.createElement("div");e.appendChild(t);try{window.PFLedgers&&PFLedgers.mount(t)}catch(e){p("ledgers mount failed")}}},{key:"boycotts",kill:"boycotts",title:"DONOR BOYCOTTS",sub:"They fund the opposition — here’s the pressure.",mount:function(e){var t=document.createElement("div");e.appendChild(t);try{window.PFBoycotts&&PFBoycotts.mount(t)}catch(e){p("boycotts mount failed")}}},{key:"deep8",kill:null,title:"THE REST OF THE MONEY MAP",sub:"Eight more cuts, wiring up now.",mount:function(e){var t=document.createElement("div");e.appendChild(t);try{window.PFMoneyDeep&&PFMoneyDeep.mount(t)}catch(e){p("deep8 mount failed")}}}];try{window.PFMoney={skip:l,mountPage:g,mountTab:h}}catch(e){}try{"loading"===document.readyState?document.addEventListener("DOMContentLoaded",x):x()}catch(e){p("init failed")}}function l(t){return e.skip("money")||e.skip(t)}function s(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function p(t){try{e&&e.error&&e.error("money-page",t)}catch(e){}}function d(e,a,n){if(t){var i="pfMoneyPageCb"+Math.floor(1e9*Math.random()),r=document.createElement("script"),o=!1;window[i]=function(e){p(e)},r.onerror=function(){p(null)};var l="?action="+encodeURIComponent(e);for(var s in a)null!=a[s]&&""!==a[s]&&(l+="&"+encodeURIComponent(s)+"="+encodeURIComponent(a[s]));l+="&callback="+i,r.src=t+l,document.head.appendChild(r),setTimeout(function(){p(null)},12e3)}else n(null);function p(e){if(!o){o=!0;try{delete window[i]}catch(e){}r.parentNode&&r.parentNode.removeChild(r),n(e)}}}function c(e){try{var t=new RegExp("[?&]"+e+"=([^&#]*)").exec(window.location.search||"");return t?decodeURIComponent(t[1]):""}catch(e){return""}}function f(e,t){e&&(l("money-small-dollar")?e.innerHTML="":t?d("money_legislator",{bioguide_id:t},function(a){try{if(!a||!a.ok||a.empty||"number"!=typeof a.small_dollar_pct)return void(e.innerHTML='<p class="pf-mp-note">Small-dollar data isn’t loaded yet — no figures shown rather than guesses.</p>');var n=Math.max(0,Math.min(100,a.small_dollar_pct)),i=Math.max(0,Math.min(100,100-n)),r=a.member&&a.member.name||t;e.innerHTML='<div class="pf-mp-gauge"><div class="pf-mp-g-sm" style="width:'+n.toFixed(1)+'%"></div><div class="pf-mp-g-lg" style="width:'+i.toFixed(1)+'%"></div></div><div class="pf-mp-gleg"><span>SMALL-DOLLAR: '+n.toFixed(1)+"%</span><span>LARGE-DOLLAR: "+i.toFixed(1)+'%</span></div><p class="pf-mp-note">SOURCE: FEC · '+s(String(a.cycle||""))+" cycle · "+s(String(r))+"</p>"}catch(t){e.innerHTML='<p class="pf-mp-note">Small-dollar data isn’t loaded yet.</p>'}}):e.innerHTML='<p class="pf-mp-note">Pull a donor file above to see the small-dollar split.</p>')}function u(e){var t=document.createElement("nav");t.className="pf-mp-rail",t.setAttribute("aria-label","Money suite exits");var i=[["FIND YOUR REP",a+"#phq-people"],["BILL FILES",a+"#phq-bills"],["RACES",a+"#phq-ballot"],["PRESSURE CAMPAIGNS",a+"#phq-action"],["POSTER FORGE",n]];t.innerHTML=i.map(function(e){return'<a href="'+s(e[1])+'">'+s(e[0])+"</a>"}).join(""),e.appendChild(t);var r=document.createElement("a");r.className="pf-mp-ac",r.href=a+"#phq-action",r.textContent="BACK TO ACTION CENTER →",e.appendChild(r)}function m(e,t){!function(){try{if(document.getElementById("pf-mp-css"))return;var e=document.createElement("style");e.id="pf-mp-css",e.textContent=i,document.head.appendChild(e)}catch(e){}}();var a=document.createDocumentFragment();o.forEach(function(e){if(!e.kill||!l(e.kill)){var n,i,r,o=document.createElement("div");o.innerHTML=(n=e.key,i=e.title,r=e.sub,'<section class="pf-mp-sec" id="money-'+s(n)+'" data-sec="'+s(n)+'"><h3>'+s(i)+"</h3>"+(r?'<p class="pf-mp-sub">'+s(r)+"</p>":"")+'<div class="pf-mp-body"></div></section>');var d=o.firstChild;a.appendChild(d);var c=d.querySelector(".pf-mp-body");if(t)try{var f=new IntersectionObserver(function(t){t.forEach(function(t){if(t.isIntersecting){try{f.disconnect()}catch(e){}try{e.mount(c)}catch(t){p("lazy mount failed: "+e.key)}}})},{rootMargin:"200px"});f.observe(d)}catch(t){try{e.mount(c)}catch(e){}}else try{e.mount(c)}catch(t){p("mount failed: "+e.key+" :: "+(t&&t.message||t))}}}),e.appendChild(a)}function g(e){if(!e.querySelector(".pf-mp")){var t=document.createElement("div");t.className="pf-mp",t.innerHTML='<div class="pf-mp-kicker">MTCSTW.COM</div><h2 class="pf-mp-title">FOLLOW THE MONEY</h2><p class="pf-mp-mission">Follow the money. See who funds the votes.</p>',e.appendChild(t),m(t,!1),u(t)}}function h(e){if(!document.getElementById("phq-money")){var t=document.createElement("section");t.id="phq-money",t.className="pf-hub",t.setAttribute("data-hub","money");var a=document.createElement("div");a.className="pf-mp",a.innerHTML='<div class="pf-mp-kicker">SECTION 06 — FOLLOW THE MONEY</div><h2 class="pf-mp-title">FOLLOW THE MONEY</h2><p class="pf-mp-mission">Follow the money. See who funds the votes.</p>',t.appendChild(a),e.appendChild(t),m(a,!0),u(a)}}function x(){if(!function(){try{if(-1!==(window.location.href||"").indexOf("/config/"))return!0;var e=document.body;if(e&&(e.classList.contains("sqs-edit-mode")||e.classList.contains("sqs-editing")))return!0}catch(e){}return!1}()){var t=document.getElementById("pf-money"),a=document.getElementById("pf-political-hq");try{e.siteConfig&&e.siteConfig.ready?e.siteConfig.ready(n):n({})}catch(e){n({})}}function n(e){var n=e&&e.money_page_url||"";try{if(t)return void g(t);if(a){if(l("money-tab"))return;n?function(e,t){if(!document.getElementById("phq-money")){var a=document.createElement("section");a.id="phq-money",a.className="pf-hub",a.innerHTML='<div class="pf-mp-redirect"><h3>FOLLOW THE MONEY</h3><p>The money war room moved to its own page.</p><a href="'+s(t)+'">OPEN THE WAR ROOM →</a></div>',e.appendChild(a)}}(a,n):h(a)}}catch(e){p("boot failed :: "+(e&&e.message||e))}}}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("money")&&!e.skip("money-stock-trades")&&!window.pfTradesDone){window.pfTradesDone=!0;var t=window.PF_BACKEND_URL,a="AWAITING PUBLIC DATA — Trade disclosures are being wired up. This card goes live the moment the feed connects.",n=[".pf-tr{max-width:680px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}",".pf-tr-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}",".pf-tr-title{font-weight:900;font-size:22px;text-align:center;margin:0 0 12px;letter-spacing:1px}",".pf-tr-empty{border:1px dashed #3a3a3a;border-radius:8px;padding:26px 16px;text-align:center}",".pf-tr-empty .pf-tr-dash{font-size:40px;color:#3a3a3a;display:block;margin-bottom:8px}",".pf-tr-empty h4{font-weight:900;font-size:17px;letter-spacing:2px;margin:0 0 8px;color:#f5ead6}",".pf-tr-empty p{font-size:14px;color:#c9bfa8;margin:0 0 6px;line-height:1.5}",".pf-tr-empty .pf-tr-act{color:#e8b923;font-weight:700}",".pf-tr-list{list-style:none;margin:0;padding:0}",".pf-tr-list li{display:flex;gap:10px;align-items:baseline;padding:8px 0;border-bottom:1px solid #1e1e1e;font-size:15px}",".pf-tr-list li:last-child{border-bottom:0}",".pf-tr-tk{font-weight:900;color:#e8b923}",".pf-tr-ty{font-weight:700;color:#f5ead6;text-transform:uppercase}",".pf-tr-am{margin-left:auto;color:#c9bfa8}",".pf-tr-src{font-size:12px;color:#c9bfa8;text-align:center;margin-top:10px}"].join("\n");try{window.PFTrades={mount:function(e,n){if(!e)return!1;n=n||{};try{if(e.querySelector&&e.querySelector(".pf-tr"))return!0}catch(e){}var l=n.bioguideId||"";return function(e,a,n){if(t){var i="pfTradesCb"+Math.floor(1e9*Math.random()),r=document.createElement("script"),o=!1;window[i]=function(e){p(e)},r.onerror=function(){p(null)};var l="?action="+encodeURIComponent(e);for(var s in a)null!=a[s]&&""!==a[s]&&(l+="&"+encodeURIComponent(s)+"="+encodeURIComponent(a[s]));l+="&callback="+i,r.src=t+l,document.head.appendChild(r),setTimeout(function(){p(null)},12e3)}else n(null);function p(e){if(!o){o=!0;try{delete window[i]}catch(e){}r.parentNode&&r.parentNode.removeChild(r),n(e)}}}("money_trades",l?{bioguide_id:l}:{},function(t){try{t&&t.ok&&Array.isArray(t.trades)&&t.trades.length?function(e,t){r();var a=t&&Array.isArray(t.trades)?t.trades:[];if(a.length){var n=t&&t.name||"—",l=t&&t.source||"House/Senate Financial Disclosures",s='<div class="pf-tr"><div class="pf-tr-kicker">STOCK TRADES</div><h3 class="pf-tr-title">TRADES ON THE HILL — '+i(String(n).toUpperCase())+'</h3><ul class="pf-tr-list">'+a.slice(0,10).map(function(e){return'<li><span class="pf-tr-tk">'+i((e=e||{}).ticker||"—")+'</span> <span class="pf-tr-ty">'+i(e.type||"—")+'</span> <span class="pf-tr-am">'+i(e.amount_range||"—")+"</span></li>"}).join("")+'</ul><div class="pf-tr-src">SOURCE: '+i(l)+"</div></div>";e.innerHTML=s}else o(e,"NO PUBLIC RECORDS FOUND — Searched House/Senate financial disclosures. Nothing filed under this name.","none")}(e,t):o(e,a,"hold")}catch(t){o(e,a,"hold")}}),!0}}}catch(e){}}function i(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function r(){try{if(document.getElementById("pf-tr-css"))return;var e=document.createElement("style");e.id="pf-tr-css",e.textContent=n,document.head.appendChild(e)}catch(e){}}function o(e,t,a){r(),e.innerHTML='<div class="pf-tr"><div class="pf-tr-kicker">STOCK TRADES</div><h3 class="pf-tr-title">TRADES ON THE HILL</h3><div class="pf-tr-empty"><span class="pf-tr-dash">—</span><h4>'+i("none"===a?"NO PUBLIC RECORDS FOUND":"AWAITING PUBLIC DATA")+"</h4><p>"+i(t)+'</p><p class="pf-tr-act">Check back after the next filing window.</p></div><div class="pf-tr-src">SOURCE: House/Senate Financial Disclosures</div></div>'}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("money")&&!e.skip("pac-alerts")&&!window.pfPacAlertsDone){window.pfPacAlertsDone=!0;var t=window.PF_BACKEND_URL,a=[".pf-pa{max-width:680px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}",".pf-pa-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}",".pf-pa-title{font-weight:900;font-size:22px;text-align:center;margin:0 0 12px;letter-spacing:1px}",".pf-pa-empty{border:1px dashed #3a3a3a;border-radius:8px;padding:26px 16px;text-align:center}",".pf-pa-empty .pf-pa-dash{font-size:40px;color:#3a3a3a;display:block;margin-bottom:8px}",".pf-pa-empty h4{font-weight:900;font-size:17px;letter-spacing:2px;margin:0 0 8px;color:#f5ead6}",".pf-pa-empty p{font-size:14px;color:#c9bfa8;margin:0 0 6px;line-height:1.5}",".pf-pa-alert{border:1px solid #c1121f;border-top:6px solid #c1121f;border-radius:8px;background:#0d0d0d;padding:14px 16px;margin-bottom:12px}",".pf-pa-new{display:inline-block;background:#c1121f;color:#fff;font-weight:900;font-size:12px;letter-spacing:2px;padding:3px 8px;border-radius:3px;margin-bottom:8px}",".pf-pa-amt{font-weight:900;font-size:28px;color:#e8b923;margin:4px 0}",".pf-pa-name{font-weight:900;font-size:17px;color:#f5ead6;margin:0 0 4px}",".pf-pa-sum{font-size:14px;color:#c9bfa8;margin:0 0 8px;line-height:1.5}",".pf-pa-src{font-size:12px;color:#c9bfa8}"].join("\n");try{window.PFPacAlerts={mount:function(e){if(!e)return!1;try{if(e.querySelector&&e.querySelector(".pf-pa"))return!0}catch(e){}return function(e,a,n){if(t){var i="pfPacCb"+Math.floor(1e9*Math.random()),r=document.createElement("script"),o=!1;window[i]=function(e){p(e)},r.onerror=function(){p(null)};var l="?action="+encodeURIComponent(e);for(var s in a)null!=a[s]&&""!==a[s]&&(l+="&"+encodeURIComponent(s)+"="+encodeURIComponent(a[s]));l+="&callback="+i,r.src=t+l,document.head.appendChild(r),setTimeout(function(){p(null)},12e3)}else n(null);function p(e){if(!o){o=!0;try{delete window[i]}catch(e){}r.parentNode&&r.parentNode.removeChild(r),n(e)}}}("money_pac_alerts",{},function(t){try{t&&t.ok&&Array.isArray(t.alerts)?o(e,t):r(e)}catch(t){r(e)}}),!0}}}catch(e){}}function n(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function i(){try{if(document.getElementById("pf-pa-css"))return;var e=document.createElement("style");e.id="pf-pa-css",e.textContent=a,document.head.appendChild(e)}catch(e){}}function r(e){i(),e.innerHTML='<div class="pf-pa"><div class="pf-pa-kicker">SUPER PAC WIRE</div><h3 class="pf-pa-title">SUPER PAC ALERTS</h3><div class="pf-pa-empty"><span class="pf-pa-dash">—</span><h4>AWAITING PUBLIC DATA</h4><p>'+n("AWAITING PUBLIC DATA — The super PAC wire is being connected. New filings will land here the moment the feed is live.")+'</p></div><div class="pf-pa-src" style="font-size:12px;color:#c9bfa8;text-align:center;margin-top:10px">SOURCE: FEC</div></div>'}function o(e,t){i();var a=(t.alerts||[]).filter(function(e){return e&&(t=e.filing_date,a=Date.parse(t),!isNaN(a)&&Date.now()-a<=2592e6);var t,a});if(a.length){var o=t.source||"FEC (api.open.fec.gov)",l="";try{var s=t.retrieved_at,p=new Date("number"==typeof s?s:Date.parse(s));isNaN(p)||(l=" · DATA AS OF "+p.toLocaleDateString("en-US",{month:"short",year:"numeric"}).toUpperCase())}catch(e){}var d='<div class="pf-pa"><div class="pf-pa-kicker">SUPER PAC WIRE</div><h3 class="pf-pa-title">SUPER PAC ALERTS</h3>'+a.slice(0,5).map(function(e){return'<div class="pf-pa-alert"><span class="pf-pa-new">NEW FILING</span><div class="pf-pa-amt">'+n(null==(t=e.amount)||isNaN(Number(t))?"—":"$"+Number(t).toLocaleString("en-US",{maximumFractionDigits:0}))+'</div><div class="pf-pa-name">'+n(e.pac_name||"—")+'</div><p class="pf-pa-sum">'+n(e.summary||"")+'</p><div class="pf-pa-src">SOURCE: '+n(o)+l+"</div></div>";var t}).join("")+"</div>";e.innerHTML=d}else r(e)}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("money")&&!e.skip("money-macro")&&!window.pfMacroDone){window.pfMacroDone=!0;var t="OFFICIAL DATA CONNECTING",a="The macro dashboard is being wired to live FRED figures. Nothing here is estimated or seeded — the 16 series cards appear the moment the official feed is connected.",n=[".pf-macro{max-width:1100px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}",".pf-macro-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}",".pf-macro-title{font-weight:900;font-size:22px;text-align:center;margin:0 0 4px;letter-spacing:1px}",".pf-macro-sub{font-size:12px;color:#8a8271;text-align:center;letter-spacing:1px;margin:0 0 12px}",".pf-macro-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}","@media (max-width:900px){.pf-macro-grid{grid-template-columns:repeat(3,1fr)}}","@media (max-width:640px){.pf-macro-grid{grid-template-columns:repeat(2,1fr)}}",".pf-macro-card{display:block;border:1px solid #2a2a2a;border-top:6px solid #c1121f;border-radius:8px;background:#0d0d0d;padding:12px 12px 10px;color:#f5ead6;text-decoration:none;min-height:44px}",".pf-macro-head{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:8px}",".pf-macro-t{font-weight:900;font-size:11px;letter-spacing:1px;color:#e8b923}",".pf-macro-value{font-weight:900;font-size:24px;color:#f5ead6;margin:2px 0}",".pf-macro-unit{font-size:11px;color:#c9bfa8;margin-bottom:6px}",".pf-macro-period{font-size:12px;color:#c9bfa8}",".pf-macro-change{font-size:13px;font-weight:700;color:#f5ead6;margin:4px 0 2px}",".pf-macro-foot{font-size:11px;color:#8a8271;text-align:center;letter-spacing:1px;margin-top:6px}",".pf-macro-empty{border:1px dashed #3a3a3a;border-radius:8px;padding:26px 16px;text-align:center}",".pf-macro-empty .pf-macro-dash{font-size:40px;color:#3a3a3a;display:block;margin-bottom:8px}",".pf-macro-empty h4{font-weight:900;font-size:17px;letter-spacing:2px;margin:0 0 8px;color:#f5ead6}",".pf-macro-empty p{font-size:14px;color:#c9bfa8;margin:0;line-height:1.5}"].join("\n");try{window.PFMacro={mount:function(e){if(!e)return!1;try{if(e.querySelector&&e.querySelector(".pf-macro"))return!0}catch(e){}var t=window.PFFred;return t?(t.full(function(t){try{t&&t.ok?l(e,t):l(e,null)}catch(t){try{l(e,null)}catch(e){}}}),!0):(l(e,null),!0)}}}catch(e){}}function i(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function r(e){return'<div class="pf-macro"><div class="pf-macro-kicker">OFFICIAL DATA</div><h3 class="pf-macro-title">THE MACRO DASHBOARD</h3><p class="pf-macro-sub">16 SERIES · ROLLING REFRESH · TAP ANY CARD FOR THE FULL CITATION</p>'+e+'<div class="pf-macro-foot">OFFICIAL FIGURES VIA FRED · NEVER BLENDED WITH CROWDSOURCED DATA</div></div>'}function o(e,t){return'<div class="pf-macro-empty"><span class="pf-macro-dash">—</span><h4>'+i(e)+"</h4><p>"+i(t)+"</p></div>"}function l(e,l){!function(){try{if(document.getElementById("pf-macro-css"))return;var e=document.createElement("style");e.id="pf-macro-css",e.textContent=n,document.head.appendChild(e)}catch(e){}}();var s=window.PFFred,p=!(!l||!l.fred_live),d=l&&Array.isArray(l.series)?l.series:[];s?(s.cssOnce(),p?d.length?(e.innerHTML=r('<div class="pf-macro-grid">'+d.map(function(e){return function(e,t){var a=t.series_id||"",n=i(t.title||e.PLAIN[a]||a),r=(i(t.source_url||"https://fred.stlouisfed.org/series/"+a),"yoy"===t.change_basis?t.change_pct_label||t.change_label:t.change_label||t.change_pct_label),o=i(t.unit_label||"");"CES0500000003"===a&&-1===o.toLowerCase().indexOf("average")&&(o="average "+o);var l='<div class="pf-macro-value">'+i(null!=t.value_label?t.value_label:"—")+e.revMark(t)+"</div>"+(o?'<div class="pf-macro-unit">'+o+"</div>":"")+'<div class="pf-macro-period">'+i(e.fmtPeriod(t))+"</div>"+(r?'<div class="pf-macro-change">'+i(r)+"</div>":"")+e.sparkline(t.spark)+"<div>"+e.staleBadge(t)+'</div><div class="pf-fred-cite">'+i(e.citation(t))+"</div>";return'<div class="pf-macro-card pf-fred-tap" data-sid="'+i(a)+'" role="button" tabindex="0"><div class="pf-macro-head"><span class="pf-macro-t">'+n+"</span>"+e.saNsa(t)+"</div>"+l+"</div>"}(s,e||{})}).join("")+"</div>"),function(e,t,a){try{for(var n=t.querySelectorAll(".pf-macro-card"),i=0;i<n.length;i++)(function(t){for(var n=t.getAttribute("data-sid"),i=null,r=0;r<a.length;r++)if(a[r].series_id===n){i=a[r];break}function o(){i&&e.tapSheet(i)}t.addEventListener("click",o),t.addEventListener("keydown",function(e){"Enter"!==e.key&&" "!==e.key||(e.preventDefault(),o())})})(n[i])}catch(e){}}(s,e,d)):e.innerHTML=r(o("FEED CONNECTED — FIRST REFRESH PENDING",l&&l.note||"The official feed is connected and the first data refresh is still on its way. Nothing here is estimated or seeded.")):e.innerHTML=r(o(t,l&&l.note||a))):e.innerHTML=r(o(t,a))}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("money")&&!e.skip("money-governing")&&!window.pfGoverningDone){window.pfGoverningDone=!0;var t=["FEDFUNDS","MORTGAGE30US","CPIAUCNS","CES0500000003","PAYEMS","UNRATE","GDP"],a=[".pf-gov{max-width:1100px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}",".pf-gov-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}",".pf-gov-title{font-weight:900;font-size:20px;text-align:center;margin:0 0 4px;letter-spacing:1px}",".pf-gov-note{font-size:12px;color:#8a8271;text-align:center;letter-spacing:1px;margin:0 0 12px}",".pf-gov-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:12px}","@media (max-width:900px){.pf-gov-grid{grid-template-columns:repeat(4,1fr)}}","@media (max-width:640px){.pf-gov-grid{grid-template-columns:repeat(2,1fr)}}",".pf-gov-card{border:1px solid #2a2a2a;border-top:4px solid #c1121f;border-radius:8px;background:#0d0d0d;padding:10px;color:#f5ead6;min-height:44px;cursor:pointer}",".pf-gov-t{font-weight:900;font-size:10px;letter-spacing:1px;color:#e8b923;margin-bottom:6px}",".pf-gov-v{font-weight:900;font-size:20px;margin:2px 0}",".pf-gov-p{font-size:11px;color:#c9bfa8;margin-bottom:4px}",".pf-gov-reads{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}","@media (max-width:640px){.pf-gov-reads{grid-template-columns:1fr}}",".pf-gov-read{border:1px solid #2a2a2a;border-radius:8px;background:#0d0d0d;padding:12px}",".pf-gov-read h5{font-weight:900;font-size:12px;letter-spacing:2px;color:#e8b923;margin:0 0 8px}",".pf-gov-read p{font-size:13px;line-height:1.6;color:#f5ead6;margin:0}",".pf-gov-read .pf-gov-pair{font-size:10px;color:#8a8271;letter-spacing:1px;margin-top:8px}"].join("\n");try{window.PFGoverning={mount:function(e){if(!e)return!1;try{if(e.querySelector&&e.querySelector(".pf-gov"))return!0}catch(e){}var t=window.PFFred;return!t||(t.full(function(t){try{r(e,t&&t.ok?t:null)}catch(t){try{r(e,null)}catch(e){}}}),!0)}}}catch(e){}}function n(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function i(){try{var e=new Date,t=(e.getDay()+6)%7;e.setDate(e.getDate()-t);return["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][e.getMonth()]+" "+e.getDate()+", "+e.getFullYear()}catch(e){return""}}function r(e,r){!function(){try{if(document.getElementById("pf-gov-css"))return;var e=document.createElement("style");e.id="pf-gov-css",e.textContent=a,document.head.appendChild(e)}catch(e){}}();var o=window.PFFred;if(o){o.cssOnce();var l=!(!r||!r.fred_live),s=r&&Array.isArray(r.series)?r.series:[],p={};s.forEach(function(e){e&&e.series_id&&(p[e.series_id]=e)});var d,c=t.map(function(e){return p[e]}).filter(Boolean);d=l&&c.length?'<div class="pf-gov-grid">'+c.map(function(e){return function(e,t){var a=t.series_id||"",i=n(t.title||e.PLAIN[a]||a),r=n(t.unit_label||"");return"CES0500000003"===a&&-1===r.toLowerCase().indexOf("average")&&(r="average "+r),"GDP"===a&&-1===r.toLowerCase().indexOf("real")&&(r="real "+r),'<div class="pf-gov-card pf-fred-tap" data-sid="'+n(a)+'" role="button" tabindex="0"><div class="pf-gov-t">'+i+" "+e.saNsa(t)+'</div><div class="pf-gov-v">'+n(null!=t.value_label?t.value_label:"—")+e.revMark(t)+"</div>"+(r?'<div class="pf-gov-p">'+r+"</div>":"")+'<div class="pf-gov-p">'+n(e.fmtPeriod(t))+"</div><div>"+e.staleBadge(t)+'</div><div class="pf-fred-cite">'+n(e.citation(t))+"</div></div>"}(o,e)}).join("")+"</div>"+function(e,t){function a(a){return e.cardFor({series:t},a)}var i=a("FEDFUNDS"),r=a("MORTGAGE30US"),o=a("CPIAUCNS"),l=a("LES1252881600Q"),s=a("PAYEMS"),p=a("UNRATE"),d=(a("GDP"),""),c=e.READS.pair2;i&&r&&i.value_label&&r.value_label&&(c="The Fed sets "+i.value_label+"; lenders charge "+r.value_label+" for a 30-year mortgage. The gap is where banks and bond markets insert themselves between policy and the mortgage."),d+='<div class="pf-gov-read"><h5>POLICY → YOUR BORROWING COST</h5><p>'+n(c)+' A mortgage is a borrowing cost — it is not rent.</p><div class="pf-gov-pair">FEDFUNDS → MORTGAGE30US · each figure cited on its card</div></div>';var f=e.READS.pair1;if(l&&o){var u=l.change_pct_label||l.change_label||"",m=o.change_pct_label||o.change_label||"";u&&m&&(f="Median usual weekly earnings are "+(l.value_label||"")+" (1982–84 dollars) — "+u.replace("+","")+" in real terms over the year. Consumer prices are up "+m.replace("+","")+" over the year. The median is the typical worker’s paycheck, not an average: executive raises pull the average up and leave this untouched.")}d+='<div class="pf-gov-read"><h5>THE REAL-WAGE READ</h5><p>'+n(f)+'</p><div class="pf-gov-pair">LES1252881600Q (MEDIAN) vs CPIAUCNS · YoY vs YoY · quarterly vs monthly · SA vs NSA labeled on cards</div></div>';var g=e.READS.pair6;return s&&p&&s.change_label&&p.value_label&&(g="Payrolls "+s.change_label+" while unemployment sits at "+p.value_label+". Payrolls count jobs; unemployment counts people looking for work. They come from different surveys and can diverge for months — usually because the labor force grew faster than hiring. Neither is lying; they're answering different questions."),d+='<div class="pf-gov-read"><h5>LABOR: HEALTH VS NARRATIVE</h5><p>'+n(g)+'</p><div class="pf-gov-pair">PAYEMS vs UNRATE · both SA, both BLS</div></div>','<div class="pf-gov-reads">'+(d+='<div class="pf-gov-read"><h5>THE HEADLINE THEY QUOTE</h5><p>'+n(e.READS.pair7)+'</p><div class="pf-gov-pair">GDP (REAL, chained 2017$) vs CPIAUCNS</div></div>')+"</div>"}(o,c):'<div class="pf-fred-empty"><h4>OFFICIAL DATA CONNECTING</h4><p>'+n(r&&r.note||"The governing strip appears when the official feed connects. Nothing here is estimated.")+"</p></div>",e.innerHTML='<div class="pf-gov"><div class="pf-gov-kicker">FOLLOW THE MONEY</div><h4 class="pf-gov-title">THE ECONOMY THEY’RE GOVERNING</h4><p class="pf-gov-note">WEEKLY READ · REFRESHED MONDAY'+(i()?" · WEEK OF "+n(i().toUpperCase()):"")+"</p>"+d+"</div>";try{for(var f=e.querySelectorAll(".pf-gov-card"),u=0;u<f.length;u++)(function(e){var t=e.getAttribute("data-sid");function a(){var e=p[t];e&&o.tapSheet(e)}e.addEventListener("click",a),e.addEventListener("keydown",function(e){"Enter"!==e.key&&" "!==e.key||(e.preventDefault(),a())})})(f[u])}catch(e){}}}}(),function(){"use strict";var e=window.PF;if(e&&!window.PFStackEm){var t=[{sid1:"LES1252881600Q",sid2:"CPIAUCNS",hook:"Wages vs Inflation",question:"Are paychecks beating prices?",why:"The median paycheck vs prices is the real-raise question — the median series isn’t fooled by executive raises. Both legs as 12-month change, so the units can’t lie."},{sid1:"MORTGAGE30US",sid2:"FEDFUNDS",hook:"Mortgage rates vs Fed rate",question:"Who moved first?",why:"The Fed sets one rate; lenders charge another. The gap between them is the policy transmission chain."},{sid1:"PAYEMS",sid2:"UNRATE",hook:"Jobs vs Unemployment",question:"Hiring up, jobless up — how?",why:"Two surveys, two answers — payrolls count jobs, unemployment counts people looking for work."},{sid1:"DGS10",sid2:"DGS2",hook:"The Yield Curve",question:"The market’s fear gauge",why:"The 10-year minus the 2-year is the market’s fear gauge. It has called every recession in 50 years — and it also cries wolf. That’s the lesson."},{sid1:"CPIAUCNS",sid2:"PCEPI",hook:"Inflation gauges",question:"Headline vs the Fed’s favorite",why:"Two inflation baskets, two answers. The Fed watches PCE; you feel CPI. Same economy, different thermometers."},{sid1:"MORTGAGE30US",sid2:"CPIAUCNS",hook:"The Real Mortgage Rate",question:"What does a mortgage actually cost in real terms?",why:"The mortgage rate minus inflation is the real rate — what borrowing actually costs you."}],a=["FEDFUNDS","UNRATE","DGS10","DGS2","MORTGAGE30US","CPIAUCNS","CPILFESL","PCEPI","GDP","CES0500000003","PAYEMS","CUUR0000SEHA","DRCCLACBS","LES1252881600Q","CUSR0000SAF11"],n={FEDFUNDS:"Fed funds rate",UNRATE:"Unemployment rate",DGS10:"10-year Treasury yield",DGS2:"2-year Treasury yield",MORTGAGE30US:"30-year mortgage rate",CPIAUCNS:"Consumer prices (CPI)",CPILFESL:"Core consumer prices",PAYEMS:"Nonfarm payrolls",PCEPI:"PCE price index",GDP:"Real GDP",CES0500000003:"Average hourly earnings",CUUR0000SEHA:"Rent of primary residence",DRCCLACBS:"Credit-card delinquency",LES1252881600Q:"Median weekly earnings (real)",CUSR0000SAF11:"Food at home (CPI)"},i=[["1y","1Y"],["3y","3Y"],["5y","5Y"],["10y","10Y"],["all","ALL"]],r=["#6aa5ff","#e0685c","#e8b923"],o="pf-stackem-guided-done",l=[".pf-se{max-width:980px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}",".pf-se-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}",".pf-se-title{font-weight:900;font-size:22px;text-align:center;margin:0 0 4px;letter-spacing:1px}",".pf-se-sub{font-size:13px;color:#c9bfa8;text-align:center;margin:0 0 14px}",".pf-se-modes{display:flex;gap:8px;justify-content:center;margin-bottom:12px;flex-wrap:wrap}",".pf-se-mode{background:#1a1a1a;border:1px solid #3a3a3a;color:#c9bfa8;border-radius:6px;min-height:44px;padding:10px 18px;font-weight:700;font-size:13px;letter-spacing:1px;cursor:pointer}",".pf-se-mode.on{background:#c1121f;border-color:#c1121f;color:#fff}",".pf-se-matchups{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}","@media (max-width:640px){.pf-se-matchups{grid-template-columns:1fr 1fr}}",".pf-se-mu{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:8px;padding:12px;cursor:pointer;min-height:44px;text-align:left;color:#f5ead6}",".pf-se-mu.on{border-color:#c1121f;background:#160a0a}",".pf-se-mu b{display:block;font-size:14px;letter-spacing:0.5px;margin-bottom:4px}",".pf-se-mu span{font-size:12px;color:#c9bfa8;font-style:italic}",".pf-se-chips{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;margin-bottom:6px;-webkit-overflow-scrolling:touch}",".pf-se-chip{flex:0 0 auto;min-height:48px;padding:0 16px;background:#1a1a1a;border:1px solid #3a3a3a;color:#f5ead6;border-radius:24px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}",".pf-se-chip.on{background:#c1121f;border-color:#c1121f;color:#fff}",".pf-se-winrow{display:flex;gap:8px;justify-content:center;margin:10px 0;flex-wrap:wrap;align-items:center}",".pf-se-winrow .pf-se-wlabel{font-size:12px;color:#8a8271;letter-spacing:1px}",".pf-se-go{background:#c1121f;color:#fff;border:0;border-radius:6px;min-height:48px;padding:0 28px;font-weight:900;font-size:15px;letter-spacing:2px;cursor:pointer}",".pf-se-out{margin-top:14px}",".pf-se-head{font-weight:900;font-size:19px;line-height:1.4;margin:0 0 8px;color:#f5ead6}",".pf-se-read{font-size:14px;line-height:1.65;color:#f5ead6;margin:0 0 6px}",".pf-se-chartwrap{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:8px;padding:10px 6px 4px;margin:10px 0}",".pf-se-legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:12px;color:#c9bfa8;padding:4px 8px 8px}",".pf-se-legend i{display:inline-block;width:22px;height:3px;vertical-align:middle;margin-right:6px}",".pf-se-axisnote{font-size:10px;color:#8a8271;text-align:center;letter-spacing:0.5px;padding:2px 8px 8px}",".pf-se-dis{font-size:11px;color:#8a8271;line-height:1.6;border-left:3px solid #3a3a3a;padding:6px 10px;margin:8px 0}",".pf-se-follow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:14px 0}",".pf-se-fbtn{background:#1a1a1a;border:1px solid #3a3a3a;color:#e8b923;border-radius:6px;min-height:44px;padding:10px 16px;font-weight:700;font-size:13px;letter-spacing:1px;cursor:pointer;text-decoration:none;display:inline-block;line-height:22px}",".pf-se-share{display:block;width:100%;background:#c1121f;color:#fff;border:0;border-radius:6px;min-height:52px;font-weight:900;font-size:15px;letter-spacing:2px;cursor:pointer;margin-top:10px}",".pf-se-xlinks{border-top:1px solid #2a2a2a;margin-top:16px;padding-top:12px;text-align:center;font-size:13px;color:#8a8271}",".pf-se-xlinks a{color:#e8b923;font-weight:700;text-decoration:none;margin:0 10px;letter-spacing:0.5px}",".pf-se-why{background:#101418;border:1px solid #2a3a4a;border-radius:8px;padding:12px;font-size:13px;line-height:1.6;color:#c9bfa8;margin:10px 0}",".pf-se-why b{color:#e8b923;letter-spacing:1px}",".pf-se-prog{text-align:center;font-size:12px;color:#8a8271;letter-spacing:2px;margin-bottom:8px}",".pf-se-next{display:block;margin:12px auto 0;background:#c1121f;color:#fff;border:0;border-radius:6px;min-height:52px;padding:0 32px;font-weight:900;font-size:15px;letter-spacing:2px;cursor:pointer}",".pf-se-lock{font-size:12px;color:#8a8271;text-align:center;margin-top:8px;font-style:italic}",".pf-se-err{background:#1a0d0d;border:1px solid #c1121f;border-radius:8px;padding:14px;font-size:14px;color:#f5ead6;margin:10px 0}",".pf-se-loading{text-align:center;color:#8a8271;padding:30px 0;font-size:14px;letter-spacing:1px}"].join("\n");try{window.PFStackEm={mount:function(e){if(e&&!p("money-stackem"))try{h(e,!1)}catch(e){}},mountGuided:x,mountCurated:v},"loading"===document.readyState?document.addEventListener("DOMContentLoaded",b):b()}catch(e){}}function s(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function p(t){try{return e.skip("fred")||e.skip(t)}catch(e){return!1}}function d(){try{if(document.getElementById("pf-se-css"))return;var e=document.createElement("style");e.id="pf-se-css",e.textContent=l,document.head.appendChild(e)}catch(e){}}function c(e,t,a){try{for(var n=e.querySelectorAll(".pf-se-pt"),i=0;i<n.length;i++)(function(e){e.addEventListener("click",function(){var n=e.getAttribute("data-sid"),i=null;if((t.legs||[]).forEach(function(e){e.series_id===n&&(i=e)}),i&&a){var r=parseFloat(e.getAttribute("data-v")),o={series_id:n,title:i.title,value_label:isFinite(r)?r.toFixed(2):"—",unit_label:i.unit_label||"",period:e.getAttribute("data-p"),period_label:null,citation:i.latest&&i.latest.citation||"",sa_nsa:i.sa_nsa,source_url:i.latest&&i.latest.source_url||"https://fred.stlouisfed.org/series/"+n,stale:i.latest&&i.latest.stale,stale_note:i.latest&&i.latest.stale_note};try{a.tapSheet(o)}catch(e){}}})})(n[i])}catch(e){}}function f(e,t,a){a=a||{};var n="";return n+='<h3 class="pf-se-head">'+s(e.headline||"")+"</h3>",(e.read||[]).forEach(function(e){n+='<p class="pf-se-read">'+s(e)+"</p>"}),n+=function(e){var t=(e.legs||[]).filter(function(e){return e&&e.points&&e.points.length>1});if(!t.length)return"";var a=[];if(t.forEach(function(e){e.points.forEach(function(e){isFinite(+e.value)&&a.push(+e.value)})}),a.length<2)return"";var n=Math.min.apply(null,a),i=Math.max.apply(null,a);i-n<1e-9&&(n-=1,i+=1);var o=i-n;function l(e,t){return(8+e/(t-1)*704).toFixed(1)}function p(e){return(10+224*(1-(e-n)/o)).toFixed(1)}o=(i+=.04*o)-(n-=.04*o);var d='<svg viewBox="0 0 720 260" style="display:block;width:100%;height:auto;min-height:240px" role="img" aria-label="comparison chart">';n<0&&i>0&&(d+='<line x1="8" y1="'+p(0)+'" x2="712" y2="'+p(0)+'" stroke="#3a3a3a" stroke-width="1"/>');var c="";t.forEach(function(e,t){var a=e.points,n=a.length,i=a.map(function(e,t){return(t?"L":"M")+l(t,n)+" "+p(+e.value)}).join(" "),o=r[t%r.length];d+='<path d="'+i+'" fill="none" stroke="'+o+'" stroke-width="2.5"/>';for(var f=Math.max(1,Math.floor(n/40)),u=0;u<n;u+=f)(function(e,t,i){d+='<circle class="pf-se-pt" cx="'+l(a.indexOf(e),n)+'" cy="'+p(+e.value)+'" r="10" fill="transparent" data-sid="'+s(t.series_id)+'" data-v="'+s(String(e.value))+'" data-p="'+s(String(e.period))+'" data-c="'+s(i)+'"/>'})(a[u],e,o);var m=String(e.sa_nsa||"").toUpperCase(),g=0===m.indexOf("NSA")?" (NSA)":0===m.indexOf("SA")?" (SA)":"",h=s((e.title||e.series_id)+g);c+='<span><i style="background:'+o+'"></i>'+h+"</span>"}),d+='<text x="712" y="20" fill="#8a8271" font-size="10" text-anchor="end">'+i.toFixed(1)+"</text>",d+='<text x="712" y="238" fill="#8a8271" font-size="10" text-anchor="end">'+n.toFixed(1)+"</text>";var f=t[0].points[0].period,u=t[0].points[t[0].points.length-1].period;function m(e){var t=/^(\d{4})-(\d{2})/.exec(String(e));return t?t[1]:String(e).slice(0,10)}d+='<text x="8" y="252" fill="#8a8271" font-size="10">'+s(m(f))+"</text>",d+='<text x="712" y="252" fill="#8a8271" font-size="10" text-anchor="end">'+s(m(u))+"</text>",d+="</svg>";var g="axis starts at "+n.toFixed(1)+" — not zero";return("yoy"===e.basis||/% change/.test(e.legs[0].basis||""))&&(g+=" · "+s(e.legs[0].basis||"")),'<div class="pf-se-chartwrap"><div class="pf-se-legend">'+c+"</div>"+d+'<div class="pf-se-axisnote">'+g+"</div></div>"}(e),(e.disclosures||[]).forEach(function(e){n+='<div class="pf-se-dis">'+s(e.text||"")+"</div>"}),(e.citations||[]).forEach(function(e){e&&(n+='<div class="pf-fred-cite">'+s(e)+"</div>")}),a.noFollow||(n+='<div class="pf-se-follow"><button type="button" class="pf-se-fbtn" data-se-act="flip">FLIP IT</button><button type="button" class="pf-se-fbtn" data-se-act="again">TRY A MATCHUP</button><a class="pf-se-fbtn" data-se-act="explain" href="https://www.mtcstw.com/economy#pf-explain">WHAT DOES THIS MEAN FOR ME?</a></div>'),n+='<button type="button" class="pf-se-share" data-se-act="share">SHARE THE RECEIPTS</button>',a.noXlinks||(n+='<div class="pf-se-xlinks">Stacked it? Now <a href="https://www.mtcstw.com/economy#pf-explain">translate it</a> · <a href="https://www.mtcstw.com/economy#pf-receipt">check the receipts</a></div>'),'<div class="pf-se-out">'+n+"</div>"}function u(e,t,a){for(var n=String(t||"").split(/\s+/),i=[],r="",o=0;o<n.length;o++){var l=r?r+" "+n[o]:n[o];e.measureText(l).width>a&&r?(i.push(r),r=n[o]):r=l}return r&&i.push(r),i}function m(e){var t=(e.headline||"")+"\n"+(e.read||[]).join(" ")+"\n"+(e.citations||[]).filter(Boolean).join("\n")+"\nInfo, not advice. Data: FRED.\nhttps://www.mtcstw.com/follow-the-money#pf-stackem";try{if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(t),"Headline + sources copied — paste it anywhere."}catch(e){}return null}function g(e,t){var a=null;try{a=function(e){var t=1080,a=document.createElement("canvas");a.width=t,a.height=1080;var n=a.getContext("2d");if(!n)return null;n.fillStyle="#0d0d0d",n.fillRect(0,0,t,1080),n.fillStyle="#c1121f",n.fillRect(0,0,t,16);var i=540,o=92;n.textAlign="center",n.fillStyle="#e8b923",n.font="700 32px Arial,sans-serif",n.fillText("STACK ’EM · OFFICIAL DATA · FRED",i,o),o+=66,n.fillStyle="#f5ead6",n.font="900 46px Arial,sans-serif";for(var l=u(n,e.headline||"",940),s=0;s<l.length&&s<4;s++)n.fillText(l[s],i,o),o+=56;o+=16;var p=(e.legs||[]).filter(function(e){return e.points&&e.points.length>1}).slice(0,2);if(p.length){var d=o,c=240,f=[];p.forEach(function(e){e.points.forEach(function(e){isFinite(+e.value)&&f.push(+e.value)})});var m=Math.min.apply(null,f),g=Math.max.apply(null,f);g-m<1e-9&&(m-=1,g+=1),n.strokeStyle="#2a2a2a",n.lineWidth=2,n.strokeRect(90,d,900,c),p.forEach(function(e,t){var a=e.points,i=a.length;n.strokeStyle=r[t%r.length],n.lineWidth=4,n.beginPath(),a.forEach(function(e,t){var a=90+t/(i-1)*900,r=d+c-(+e.value-m)/(g-m)*c;t?n.lineTo(a,r):n.moveTo(a,r)}),n.stroke()}),n.fillStyle="#8a8271",n.font="400 24px Arial,sans-serif",n.fillText("axis starts at "+m.toFixed(1)+" — not zero",i,d+c+34),o=d+c+70,n.font="700 26px Arial,sans-serif",p.forEach(function(e,t){n.fillStyle=r[t%r.length];var a=String(e.sa_nsa||"").toUpperCase(),l=0===a.indexOf("NSA")?" (NSA)":0===a.indexOf("SA")?" (SA)":"";n.fillText("— "+(e.title||e.series_id)+l,i,o),o+=36}),o+=10}n.fillStyle="#c9bfa8",n.font="400 30px Arial,sans-serif";for(var h=(e.read||[]).slice(0,2).join(" "),x=u(n,h,920),v=0;v<x.length&&v<3;v++)n.fillText(x[v],i,o),o+=40;return o+=24,n.fillStyle="#8a8271",n.font="400 24px Arial,sans-serif",(e.citations||[]).forEach(function(e){if(e)for(var t=u(n,String(e),920),a=0;a<t.length&&a<2;a++)n.fillText(t[a],i,o),o+=32}),o+=10,n.fillStyle="#8a8271",n.font="italic 400 26px Arial,sans-serif",n.fillText("Info, not advice. Data: FRED.",i,o),o+=70,n.fillStyle="#f5ead6",n.font="700 40px Arial,sans-serif",n.fillText("MTCSTW.COM",i,o),o+=58,n.fillStyle="#c1121f",n.font="900 58px Arial,sans-serif",n.fillText("JOIN THE FIGHT.",i,o),a}(e)}catch(e){a=null}if(a){try{if(window.PFShare&&"function"==typeof window.PFShare.shareImage)return void window.PFShare.shareImage(a,"pf-stackem.png",e.headline||"Stacked numbers","stackem",{text:(e.headline||"")+" https://www.mtcstw.com/follow-the-money#pf-stackem via The Propaganda Factory",link:"https://www.mtcstw.com/follow-the-money#pf-stackem"})}catch(e){}try{var n=document.createElement("a");n.href=a.toDataURL("image/png"),n.download="pf-stackem.png",document.body.appendChild(n),n.click(),setTimeout(function(){try{n.parentNode.removeChild(n)}catch(e){}},500)}catch(a){var i=m(e);t&&(t.textContent=i||"SHARE FAILED — TRY AGAIN")}}else{var o=m(e);t&&(t.textContent=o||"SHARE FAILED — TRY AGAIN")}}function h(e,r){d();var o=window.PFFred;e.innerHTML='<div class="pf-se">'+function(e){var r="";return e||(r+='<div class="pf-se-kicker">MONEY SUITE · MACRO</div><h2 class="pf-se-title">STACK ’EM</h2><p class="pf-se-sub">Pick two numbers. Pick a window. Start an argument — with receipts.</p>'),r+='<div class="pf-se-modes"><button type="button" class="pf-se-mode on" data-se-mode="suggested">SUGGESTED MATCHUPS</button><button type="button" class="pf-se-mode" data-se-mode="free">FREE PICK</button></div>',r+='<div class="pf-se-matchups" data-se-matchups>'+t.map(function(e,t){return'<button type="button" class="pf-se-mu'+(0===t?" on":"")+'" data-se-mu="'+t+'"><b>'+s(e.hook)+"</b><span>"+s(e.question)+"</span></button>"}).join("")+"</div>",r+='<div class="pf-se-chips" data-se-free style="display:none">'+a.map(function(e,t){return'<button type="button" class="pf-se-chip" data-se-sid="'+s(e)+'" data-se-slot="">'+s(n[e]||e)+"</button>"}).join("")+"</div>",r+='<div class="pf-se-winrow"><span class="pf-se-wlabel">WINDOW</span>'+i.map(function(e,t){return'<button type="button" class="pf-se-chip'+(2===t?" on":"")+'" data-se-win="'+e[0]+'">'+e[1]+"</button>"}).join("")+"</div>",r+='<div style="text-align:center"><button type="button" class="pf-se-go" data-se-act="go">STACK ’EM</button></div>',r+"<div data-se-out></div>"}(r)+"</div>";var l={mode:"suggested",mu:0,freeA:null,freeB:null,win:"5y",last:null};function p(t){return e.querySelector(t)}function u(t){return e.querySelectorAll(t)}function m(e){if(o){var a;if(e)a={sid1:e.sid1,sid2:e.sid2,window:l.win,mode:"guided"};else if("suggested"===l.mode){var n=t[l.mu];a={sid1:n.sid1,sid2:n.sid2,window:l.win,mode:"guided"}}else{if(!l.freeA||!l.freeB)return void(p("[data-se-out]").innerHTML='<div class="pf-se-err">Pick two series first — tap any two chips above.</div>');a={sid1:l.freeA,sid2:l.freeB,window:l.win,mode:"free"}}p("[data-se-out]").innerHTML='<div class="pf-se-loading">PULLING THE NUMBERS…</div>',o.api("fred_compare",a,function(e){!function(e){var a=p("[data-se-out]");if(e&&!0===e.ok){l.last=e,a.innerHTML=f(e,0,{}),c(a,e,o),a.querySelectorAll("[data-se-act]").forEach(function(a){a.addEventListener("click",function(n){var i=a.getAttribute("data-se-act");if("share"===i)g(e,a);else if("flip"===i){var r=l.freeA;if(l.freeA=l.freeB,l.freeB=r,"suggested"===l.mode){var o=t[l.mu];m({sid1:o.sid2,sid2:o.sid1})}else l.freeA&&l.freeB&&m({sid1:l.freeA,sid2:l.freeB})}else if("again"===i)try{p("[data-se-matchups]").scrollIntoView({behavior:"smooth",block:"center"})}catch(e){}else if("explain"===i)try{var s=e.sid1&&"SAHM"!==e.sid1?e.sid1:e.sid2;a.href="https://www.mtcstw.com/economy#pf-explain?series="+encodeURIComponent(s)}catch(e){}})});try{a.scrollIntoView({behavior:"smooth",block:"nearest"})}catch(e){}}else{var n=e&&(e.message||e.note)||(e&&"pair_not_approved"===e.err?"That pair isn’t on the approved list — the 6 suggested matchups are the vetted set.":"FRED's got nothing here for this window. Pick another.");a.innerHTML='<div class="pf-se-err">'+s(n)+"</div>"}}(e)})}}u("[data-se-mode]").forEach(function(e){e.addEventListener("click",function(){u("[data-se-mode]").forEach(function(e){e.classList.remove("on")}),e.classList.add("on"),l.mode=e.getAttribute("data-se-mode"),p("[data-se-matchups]").style.display="suggested"===l.mode?"":"none",p("[data-se-free]").style.display="free"===l.mode?"":"none"})}),u("[data-se-mu]").forEach(function(e){e.addEventListener("click",function(){u("[data-se-mu]").forEach(function(e){e.classList.remove("on")}),e.classList.add("on"),l.mu=parseInt(e.getAttribute("data-se-mu"),10)||0})}),u("[data-se-win]").forEach(function(e){e.addEventListener("click",function(){u("[data-se-win]").forEach(function(e){e.classList.remove("on")}),e.classList.add("on"),l.win=e.getAttribute("data-se-win")})}),u("[data-se-free] [data-se-sid]").forEach(function(e){e.addEventListener("click",function(){var t=e.getAttribute("data-se-sid");l.freeA===t?l.freeA=null:l.freeB===t?l.freeB=null:l.freeA?l.freeB?(l.freeA=l.freeB,l.freeB=t):l.freeB=t:l.freeA=t,u("[data-se-free] [data-se-sid]").forEach(function(e){var t=e.getAttribute("data-se-sid");e.classList.toggle("on",t===l.freeA||t===l.freeB)})})}),p('[data-se-act="go"]').addEventListener("click",function(){m(null)}),m(null)}function x(e){if(!p("academy-stackem")){d();var a=window.PFFred,n=!1;try{n="1"===localStorage.getItem(o)}catch(e){}var i='<div class="pf-se"><div class="pf-se-kicker">ACADEMY · GUIDED</div><h2 class="pf-se-title">LEARN TO READ THE NUMBERS THEY USE AGAINST YOU.</h2>';if(n){i+='<p class="pf-se-sub">Guided set complete — free pick unlocked. Learning before lab.</p><div data-se-guidedfree></div></div>',e.innerHTML=i;try{h(e.querySelector("[data-se-guidedfree]"),!0)}catch(e){}}else{i+='<p class="pf-se-sub">Six matchups, one at a time. Finish the set to unlock free pick.</p><div data-se-gbody></div></div>',e.innerHTML=i;var r=e.querySelector("[data-se-gbody]"),l=0;a?u():r.innerHTML='<div class="pf-se-err">The data toolkit isn’t loaded yet — reload the page.</div>'}}function u(){var e=t[l];r.innerHTML='<div class="pf-se-prog">MATCHUP '+(l+1)+" OF "+t.length+'</div><h3 class="pf-se-head" style="text-align:center">'+s(e.hook)+'</h3><p class="pf-se-sub">“'+s(e.question)+'”</p><div class="pf-se-why"><b>WHY THIS PAIR — </b>'+s(e.why)+'</div><div class="pf-se-loading">PULLING THE NUMBERS…</div>',a.api("fred_compare",{sid1:e.sid1,sid2:e.sid2,window:"5y",mode:"guided"},function(n){if(!n||!0!==n.ok)return r.innerHTML='<div class="pf-se-err">Couldn’t load this matchup — try the next one.</div>'+m(),void v();var i=f(n,0,{noXlinks:!0});r.innerHTML='<div class="pf-se-prog">MATCHUP '+(l+1)+" OF "+t.length+'</div><h3 class="pf-se-head" style="text-align:center">'+s(e.hook)+'</h3><p class="pf-se-sub">“'+s(e.question)+'”</p><div class="pf-se-why"><b>WHY THIS PAIR — </b>'+s(e.why)+"</div>"+i+m(),c(r,n,a),r.querySelectorAll("[data-se-act]").forEach(function(e){e.addEventListener("click",function(){"share"===e.getAttribute("data-se-act")&&g(n,e)})}),v();try{r.scrollIntoView({behavior:"smooth",block:"start"})}catch(e){}})}function m(){return l+1<t.length?'<button type="button" class="pf-se-next" data-se-gnext>NEXT MATCHUP →</button>':'<button type="button" class="pf-se-next" data-se-gnext>FINISH THE SET</button>'}function v(){var a=r.querySelector("[data-se-gnext]");a&&a.addEventListener("click",function(){if(++l>=t.length){try{localStorage.setItem(o,"1")}catch(e){}x(e)}else u()})}}function v(e){if(!p("war-stack")){d();var a=window.PFFred,n=t[function(){try{var e=new Date,t=((e=new Date(Date.UTC(e.getUTCFullYear(),e.getUTCMonth(),e.getUTCDate()))).getUTCDay()+6)%7;e.setUTCDate(e.getUTCDate()-t+3);var a=new Date(Date.UTC(e.getUTCFullYear(),0,4)),n=(a.getUTCDay()+6)%7;return a.setUTCDate(a.getUTCDate()-n+3),Math.round((e-a)/6048e5)+1}catch(e){return 1}}()%t.length];e.innerHTML='<div class="pf-se"><div class="pf-se-kicker">WAR REPORT</div><h2 class="pf-se-title">THIS WEEK’S STACK</h2><p class="pf-se-sub">“'+s(n.question)+"” — "+s(n.hook)+'</p><div class="pf-se-loading">PULLING THE NUMBERS…</div></div>',a&&a.api("fred_compare",{sid1:n.sid1,sid2:n.sid2,window:"5y",mode:"guided"},function(t){var i=e.querySelector(".pf-se");t&&!0===t.ok&&i&&(i.innerHTML='<div class="pf-se-kicker">WAR REPORT</div><h2 class="pf-se-title">THIS WEEK’S STACK</h2><p class="pf-se-sub">“'+s(n.question)+"” — "+s(n.hook)+"</p>"+f(t,0,{noFollow:!0}),c(i,t,a),i.querySelectorAll("[data-se-act]").forEach(function(e){e.addEventListener("click",function(){"share"===e.getAttribute("data-se-act")&&g(t,e)})}))})}}function b(){try{var e=document.getElementById("xWarReport");if(e&&!document.getElementById("pf-war-stack")&&!p("war-stack")){var t=document.createElement("div");t.id="pf-war-stack";var a=e.querySelector("#pf-wrnum");a&&a.parentNode?a.parentNode.insertBefore(t,a.nextSibling):e.appendChild(t),v(t)}var n=document.getElementById("pf-academy-hq");if(n&&!document.getElementById("pf-academy-stackem")&&!p("academy-stackem")){var i=document.createElement("div");i.id="pf-academy-stackem",n.parentNode?n.parentNode.insertBefore(i,n.nextSibling):document.body.appendChild(i),x(i)}}catch(e){}}}(),function(){"use strict";var e=window.PF;if(e&&!window.PFExplain){var t=[{key:"rent",label:"RENT",sub:"What renters actually pay, from the CPI rent index"},{key:"groceries",label:"GROCERIES",sub:"What food prices are doing"},{key:"job-hunt",label:"JOB HUNT",sub:"How tight the job market is"},{key:"savings",label:"SAVINGS",sub:"What your cash earns"}],a=["FEDFUNDS","UNRATE","DGS10","DGS2","MORTGAGE30US","CPIAUCNS","CPILFESL","PCEPI","GDP","CES0500000003","PAYEMS","CUUR0000SEHA","DRCCLACBS","LES1252881600Q","CUSR0000SAF11"],n={FEDFUNDS:"Fed funds rate",UNRATE:"Unemployment rate",DGS10:"10-year Treasury yield",DGS2:"2-year Treasury yield",MORTGAGE30US:"30-year mortgage rate",CPIAUCNS:"Consumer prices (CPI)",CPILFESL:"Core consumer prices",PAYEMS:"Nonfarm payrolls",PCEPI:"PCE price index",GDP:"Real GDP",CES0500000003:"Average hourly earnings",CUUR0000SEHA:"Rent of primary residence",DRCCLACBS:"Credit-card delinquency",LES1252881600Q:"Median weekly earnings (real)",CUSR0000SAF11:"Food at home (CPI)"},i=["rent","groceries","job-hunt","savings"],r=[".pf-ex{max-width:860px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}",".pf-ex-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}",".pf-ex-title{font-weight:900;font-size:22px;text-align:center;margin:0 0 4px;letter-spacing:1px}",".pf-ex-sub{font-size:13px;color:#c9bfa8;text-align:center;margin:0 0 14px}",".pf-ex-topics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}","@media (max-width:640px){.pf-ex-topics{grid-template-columns:1fr 1fr}}",".pf-ex-tp{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:8px;padding:14px 8px;cursor:pointer;min-height:64px;color:#f5ead6;text-align:center}",".pf-ex-tp.on{border-color:#c1121f;background:#160a0a}",".pf-ex-tp b{display:block;font-size:15px;letter-spacing:1px;margin-bottom:4px}",".pf-ex-tp span{font-size:11px;color:#8a8271;line-height:1.4;display:block}",".pf-ex-nerd{display:block;text-align:center;margin:6px 0 12px;color:#e8b923;font-size:13px;font-weight:700;letter-spacing:1px;cursor:pointer;background:none;border:0;text-decoration:underline;min-height:44px;width:100%}",".pf-ex-chips{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;margin-bottom:6px;-webkit-overflow-scrolling:touch}",".pf-ex-chip{flex:0 0 auto;min-height:48px;padding:0 16px;background:#1a1a1a;border:1px solid #3a3a3a;color:#f5ead6;border-radius:24px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}",".pf-ex-chip.on{background:#c1121f;border-color:#c1121f;color:#fff}",".pf-ex-card{background:#0d0d0d;border:1px solid #2a2a2a;border-top:4px solid #c1121f;border-radius:8px;padding:16px;margin-top:10px}",".pf-ex-fig{font-weight:900;font-size:34px;margin:0 0 2px;color:#f5ead6;line-height:1.2}",".pf-ex-vin{font-size:12px;color:#c9bfa8;margin-bottom:8px}",".pf-ex-dis{font-size:12px;color:#c9bfa8;background:#141414;border:1px solid #2a2a2a;border-radius:6px;padding:10px 12px;line-height:1.6;margin:10px 0;font-style:italic}",".pf-ex-beat{border-top:1px solid #2a2a2a;margin:0}",".pf-ex-beat summary{cursor:pointer;min-height:48px;display:flex;align-items:center;font-weight:900;font-size:12px;letter-spacing:2px;color:#e8b923;list-style:none;padding:6px 0}",".pf-ex-beat summary::-webkit-details-marker{display:none}",'.pf-ex-beat summary::before{content:"+";margin-right:10px;font-size:16px}','.pf-ex-beat[open] summary::before{content:"\\2212"}',".pf-ex-beat p{font-size:14px;line-height:1.7;color:#f5ead6;margin:0 0 12px}",".pf-ex-topicnote{font-size:11px;color:#8a8271;font-style:italic;margin:0 0 8px}",".pf-ex-share{display:block;width:100%;background:#c1121f;color:#fff;border:0;border-radius:6px;min-height:52px;font-weight:900;font-size:14px;letter-spacing:2px;cursor:pointer;margin-top:10px}",".pf-ex-sharedis{font-size:11px;color:#8a8271;text-align:center;margin-top:6px;font-style:italic}",".pf-ex-follow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:14px 0 4px}",".pf-ex-fbtn{background:#1a1a1a;border:1px solid #3a3a3a;color:#e8b923;border-radius:6px;min-height:44px;padding:10px 16px;font-weight:700;font-size:13px;letter-spacing:1px;cursor:pointer;text-decoration:none;display:inline-block;line-height:22px}",".pf-ex-xlinks{border-top:1px solid #2a2a2a;margin-top:14px;padding-top:12px;text-align:center;font-size:13px;color:#8a8271}",".pf-ex-xlinks a{color:#e8b923;font-weight:700;text-decoration:none;margin:0 10px;letter-spacing:0.5px}",".pf-ex-err{background:#1a0d0d;border:1px solid #c1121f;border-radius:8px;padding:14px;font-size:14px;color:#f5ead6;margin:10px 0}",".pf-ex-loading{text-align:center;color:#8a8271;padding:30px 0;font-size:14px;letter-spacing:1px}"].join("\n");try{window.PFExplain={mount:u},"loading"===document.readyState?document.addEventListener("DOMContentLoaded",m):m()}catch(e){}}function o(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function l(t){try{return e.skip("fred")||e.skip(t)}catch(e){return!1}}function s(){try{if(document.getElementById("pf-ex-css"))return;var e=document.createElement("style");e.id="pf-ex-css",e.textContent=r,document.head.appendChild(e)}catch(e){}}function p(e,t,a){for(var n=String(t||"").split(/\s+/),i=[],r="",o=0;o<n.length;o++){var l=r?r+" "+n[o]:n[o];e.measureText(l).width>a&&r?(i.push(r),r=n[o]):r=l}return r&&i.push(r),i}function d(e){var t=(e.figure&&e.figure.headline||"")+"\n"+(e.figure&&e.figure.citation||"")+"\nInfo, not advice. Data: FRED.\nhttps://www.mtcstw.com/economy#pf-explain";try{if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(t),"Figure + source copied — paste it anywhere."}catch(e){}return null}function c(e,t){var a=null;try{a=function(e){var t=1080,a=document.createElement("canvas");a.width=t,a.height=1080;var n=a.getContext("2d");if(!n)return null;n.fillStyle="#0d0d0d",n.fillRect(0,0,t,1080),n.fillStyle="#c1121f",n.fillRect(0,0,t,16);var i=540,r=110;n.textAlign="center",n.fillStyle="#e8b923",n.font="700 32px Arial,sans-serif",n.fillText("YOUR MONEY, EXPLAINED · FRED",i,r),r+=90,n.fillStyle="#f5ead6",n.font="900 64px Arial,sans-serif";for(var o=p(n,e.figure&&e.figure.headline||"",940),l=0;l<o.length&&l<3;l++)n.fillText(o[l],i,r),r+=74;r+=30;var s="";(e.beats||[]).forEach(function(e){4===e.n&&(s=e.text)}),s=String(s).split(/\. /)[0]+".",n.fillStyle="#c9bfa8",n.font="400 32px Arial,sans-serif";for(var d=p(n,s,920),c=0;c<d.length&&c<4;c++)n.fillText(d[c],i,r),r+=42;r+=40,n.fillStyle="#8a8271",n.font="400 24px Arial,sans-serif";for(var f=p(n,e.figure&&e.figure.citation||"",920),u=0;u<f.length&&u<2;u++)n.fillText(f[u],i,r),r+=32;return r+=24,n.fillStyle="#8a8271",n.font="italic 400 26px Arial,sans-serif",n.fillText("Info, not advice. Data: FRED.",i,r),r+=90,n.fillStyle="#f5ead6",n.font="700 40px Arial,sans-serif",n.fillText("MTCSTW.COM",i,r),r+=58,n.fillStyle="#c1121f",n.font="900 58px Arial,sans-serif",n.fillText("JOIN THE FIGHT.",i,r),a}(e)}catch(e){a=null}if(a){try{if(window.PFShare&&"function"==typeof window.PFShare.shareImage)return void window.PFShare.shareImage(a,"pf-explainer.png",e.figure&&e.figure.headline||"Explainer","explain",{text:(e.figure&&e.figure.headline||"")+" https://www.mtcstw.com/economy#pf-explain via The Propaganda Factory",link:"https://www.mtcstw.com/economy#pf-explain"})}catch(e){}try{var n=document.createElement("a");n.href=a.toDataURL("image/png"),n.download="pf-explainer.png",document.body.appendChild(n),n.click(),setTimeout(function(){try{n.parentNode.removeChild(n)}catch(e){}},500)}catch(a){var i=d(e);t&&(t.textContent=i||"SHARE FAILED — TRY AGAIN")}}else{var r=d(e);t&&(t.textContent=r||"SHARE FAILED — TRY AGAIN")}}function f(e,t,a){a=a||{},s();var n=window.PFFred;n?(e.innerHTML='<div class="pf-ex"><div class="pf-ex-loading">READING THE NUMBERS…</div></div>',n.api("fred_explain",t,function(t){var i=e.querySelector(".pf-ex");if(i)if(t&&!0===t.ok){i.innerHTML=function(e,t,a){a=a||{};var n=e.figure||{},i='<div class="pf-ex-card">';return i+='<div class="pf-ex-fig">'+o(n.headline||"")+(n.revised?'<sup class="pf-fred-rev" title="revised observation">ʳ</sup>':"")+"</div>",i+='<div class="pf-ex-vin">'+o(n.period_label||"")+" "+(t?t.staleBadge({stale:n.stale,days_old:n.days_old,series_id:e.primary_series||e.series_id}):"")+"</div>",i+='<div class="pf-ex-dis">'+o(e.disclaimer||"")+"</div>",e.topic_note&&(i+='<p class="pf-ex-topicnote">'+o(e.topic_note)+"</p>"),(e.beats||[]).forEach(function(e){1!==e.n&&(i+='<details class="pf-ex-beat"'+(a.openAll?" open":"")+"><summary>"+o(e.title||"BEAT "+e.n)+"</summary><p>"+o(e.text||"")+"</p></details>")}),n.citation&&(i+='<div class="pf-fred-cite">'+o(n.citation)+"</div>"),i+='<button type="button" class="pf-ex-share" data-ex-act="share">PUT IT ON THEIR TIMELINE</button>',i+='<div class="pf-ex-sharedis">'+o(e.disclaimer_short||"")+"</div>",a.noFollow||(i+='<div class="pf-ex-follow">',(e.followups||[]).forEach(function(e){i+='<a class="pf-ex-fbtn" href="'+o(e.href||"#")+'">'+o(e.label||"")+"</a>"}),i+="</div>"),i+="</div>",a.noXlinks||(i+='<div class="pf-ex-xlinks">Translated it? Now <a href="https://www.mtcstw.com/follow-the-money#pf-stackem">stack two numbers</a> · <a href="https://www.mtcstw.com/economy#pf-receipt">check the receipts</a></div>'),i}(t,n,a);var r=i.querySelector('[data-ex-act="share"]');r&&r.addEventListener("click",function(){c(t,r)})}else i.innerHTML='<div class="pf-ex-err">'+o(t&&t.note||"Couldn’t load this explainer — try another topic.")+"</div>"})):e.innerHTML='<div class="pf-ex"><div class="pf-ex-err">The data toolkit isn’t loaded yet — reload the page.</div></div>'}function u(e,r){if(e&&!l({money:"money-explain",economy:"economy-explain",war:"war-explain",brief:"brief-explain"}[r||"economy"]||"economy-explain")){s();window.PFFred;var p={money:["WHAT’S THIS COSTING YOU?","You tell it what’s hitting your wallet; it tells you what the numbers actually say."],economy:["TRANSLATE THE ECONOMY.","The economy in words, not jargon."],war:["WHAT IT MEANS FOR YOU","This week’s number, translated."],brief:["YOUR MONEY, IN 30 SECONDS.","One number, translated."]},d=p[r||"economy"]||p.economy,c=null;try{var u=/[?&#]series=([A-Z0-9]+)/i.exec(window.location.hash||"");u&&n[u[1].toUpperCase()]&&(c=u[1].toUpperCase())}catch(e){}var m='<div class="pf-ex"><div class="pf-se-kicker pf-ex-kicker">'+("money"===r?"FOLLOW THE MONEY":"war"===r?"WAR REPORT":"brief"===r?"MORNING BRIEFING":"ECONOMY")+'</div><h2 class="pf-ex-title">'+d[0]+'</h2><p class="pf-ex-sub">'+d[1]+"</p>";if("war"!==r&&"brief"!==r){m+='<div class="pf-ex-topics">'+t.map(function(e,t){return'<button type="button" class="pf-ex-tp'+(c&&e.key,'" data-ex-topic="')+e.key+'"><b>'+e.label+"</b><span>"+o(e.sub)+"</span></button>"}).join("")+"</div>",m+='<button type="button" class="pf-ex-nerd" data-ex-nerd>“I know what I’m looking at” — pick the series directly</button>',m+='<div class="pf-ex-chips" data-ex-chips style="display:none">'+a.map(function(e){return'<button type="button" class="pf-ex-chip" data-ex-sid="'+e+'">'+o(n[e])+"</button>"}).join("")+"</div>",m+="<div data-ex-out></div></div>",e.innerHTML=m;var g=e.querySelector("[data-ex-out]");if(e.querySelectorAll("[data-ex-topic]").forEach(function(t){t.addEventListener("click",function(){e.querySelector("[data-ex-chips]").style.display="none",v(t.getAttribute("data-ex-topic"))})}),e.querySelector("[data-ex-nerd]").addEventListener("click",function(){var t=e.querySelector("[data-ex-chips]");t.style.display="none"===t.style.display?"":"none"}),e.querySelectorAll("[data-ex-sid]").forEach(function(t){t.addEventListener("click",function(){e.querySelectorAll("[data-ex-sid]").forEach(function(e){e.classList.remove("on")}),t.classList.add("on"),e.querySelectorAll("[data-ex-topic]").forEach(function(e){e.classList.remove("on")}),f(g,{series_id:t.getAttribute("data-ex-sid")},{})})}),c){e.querySelector("[data-ex-chips]").style.display="";var h=e.querySelector('[data-ex-sid="'+c+'"]');h&&h.classList.add("on"),f(g,{series_id:c},{})}else v("groceries")}else{m+="<div data-ex-single></div></div>",e.innerHTML=m;var x=i[function(){try{var e=new Date,t=((e=new Date(Date.UTC(e.getUTCFullYear(),e.getUTCMonth(),e.getUTCDate()))).getUTCDay()+6)%7;e.setUTCDate(e.getUTCDate()-t+3);var a=new Date(Date.UTC(e.getUTCFullYear(),0,4)),n=(a.getUTCDay()+6)%7;return a.setUTCDate(a.getUTCDate()-n+3),Math.round((e-a)/6048e5)+1}catch(e){return 1}}()%i.length];f(e.querySelector("[data-ex-single]"),{topic:x},{noXlinks:!0})}}function v(t){e.querySelectorAll("[data-ex-topic]").forEach(function(e){e.classList.toggle("on",e.getAttribute("data-ex-topic")===t)}),f(g,{topic:t},{})}}function m(){try{var e=document.getElementById("pf-economy");if(e&&!document.getElementById("pf-explain")&&!l("economy-explain")){var t=document.createElement("div");t.id="pf-explain";var a=e.querySelector("#pf-fred-rail")||document.getElementById("pf-inflation-trends");a&&a.parentNode?a.parentNode.insertBefore(t,a.nextSibling):e.appendChild(t),u(t,"economy")}var n=document.getElementById("xWarReport");if(n&&!document.getElementById("pf-war-explain")&&!l("war-explain")){var i=document.createElement("div");i.id="pf-war-explain",n.appendChild(i),u(i,"war")}var r=document.getElementById("xBrief");if(r&&!document.getElementById("pf-brief-explain")&&!l("brief-explain")){var o=document.createElement("div");o.id="pf-brief-explain";var s=document.getElementById("pf-fred-briefing");s&&s.parentNode?s.parentNode.insertBefore(o,s.nextSibling):r.appendChild(o),u(o,"brief")}}catch(t){}}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("macro-share")&&!window.pfMacroShareDone){window.pfMacroShareDone=!0;var t=window.PF_BACKEND_URL,a={UNRATE:"Unemployment: {value} ({period}). The official count, straight from the Bureau of Labor Statistics. They want you to feel the recovery — here is the receipt. FRED · UNRATE · retrieved {vintage}.",CPIAUCNS:"Prices up {change} year over year ({period}). That is the CPI — the official inflation receipt. Your paycheck did not keep up and they know it. FRED · CPIAUCNS · retrieved {vintage}.",CPILFESL:"Core inflation: {change} year over year ({period}). Strip out food and energy and the number still bites. FRED · CPILFESL · retrieved {vintage}.",PAYEMS:"{value} jobs on payrolls ({period}) — {change} vs last month. The official jobs count. Count what it means for your town. FRED · PAYEMS · retrieved {vintage}.",FEDFUNDS:"Fed funds rate: {value} ({period}). The price of money itself, set by people you will never meet. FRED · FEDFUNDS · retrieved {vintage}.",DGS10:"10-year Treasury: {value} ({period}). Wall Street's fear gauge, in one number. FRED · DGS10 · retrieved {vintage}.",MORTGAGE30US:"30-year mortgage: {value} ({period}). The American dream, repriced every week. FRED · MORTGAGE30US · retrieved {vintage}.",GDP:"Real GDP {change} ({period}). They will cite growth; you live the prices. FRED · GDP · retrieved {vintage}.",CPILFESL2:"",PCEPI:"PCE inflation: {change} year over year ({period}) — the Fed's favorite inflation gauge. FRED · PCEPI · retrieved {vintage}."},n=!1,i=[".pf-macro-sharewrap{position:relative}",".pf-macro-sharebtn{display:block;width:100%;margin-top:8px;background:#c1121f;color:#fff;border:0;border-radius:6px;padding:10px;font-weight:900;font-size:13px;letter-spacing:2px;cursor:pointer;font-family:Arial,sans-serif}",".pf-macro-sharebtn:active{transform:scale(.98)}"].join("\n");try{window.PFMacroShare={wire:f,shareFigure:p,shareSeries:function(e){if(!t)return!1;var a="pfMacroShareCb"+Math.floor(1e9*Math.random()),n=document.createElement("script"),i=!1;function r(t){if(!i){i=!0;try{delete window[a]}catch(e){}try{n.parentNode&&n.parentNode.removeChild(n)}catch(e){}var r=null;try{for(var o=t&&t.series||[],l=0;l<o.length;l++)if(o[l]&&o[l].series_id===e){r=o[l];break}}catch(e){}r&&p(r)}}window[a]=r,n.onerror=function(){r(null)},n.src=t+"?action=fred_macro&callback="+a;try{document.head.appendChild(n)}catch(e){return!1}return setTimeout(function(){r(null)},12e3),!0},buildCaption:l,_captions:a},"loading"===document.readyState?document.addEventListener("DOMContentLoaded",f):f()}catch(e){}}function r(e){try{var t=e&&null!=e.retrieved_at?Number(e.retrieved_at):NaN,a=isNaN(t)?null:new Date(t);return!a||isNaN(a.getTime())?"—":a.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}).toUpperCase()}catch(e){return"—"}}function o(t){var a="https://www.mtcstw.com/follow-the-money#macro-"+(t.series_id||"");try{e.shareUrl&&(a=e.shareUrl(a))}catch(e){}return a}function l(e){var t=e.series_id||"";return(a[t]||"Official figure: {value} ({period}), {change}. Straight from the Fed data vault — not a vibe, a vintage. FRED · {series} · retrieved {vintage}.").replace(/\{value\}/g,e.value_label||"—").replace(/\{period\}/g,e.period_label||e.period||"").replace(/\{change\}/g,e.change_label||"").replace(/\{vintage\}/g,r(e)).replace(/\{series\}/g,t)+" "+o(e)+" via The Propaganda Factory"}function s(e){var t=1080,a=document.createElement("canvas");a.width=t,a.height=1080;var n=a.getContext("2d");if(!n)return null;n.fillStyle="#0d0d0d",n.fillRect(0,0,t,1080),n.fillStyle="#c1121f",n.fillRect(0,0,t,16);var i=540,o=96;if(n.textAlign="center",n.textBaseline="alphabetic",n.fillStyle="#e8b923",n.font="700 34px Arial,sans-serif",n.fillText("OFFICIAL DATA · FRED",i,o),o+=28,e.sa_nsa){n.font="700 26px Arial,sans-serif";var l=String(e.sa_nsa),s=n.measureText(l).width+36;n.fillStyle="#2a2a2a",n.fillRect(i-s/2,o,s,44),n.fillStyle="#c9bfa8",n.fillText(l,i,o+32),o+=76}else o+=30;n.fillStyle="#f5ead6",n.font="900 52px Arial,sans-serif";for(var p=function(e,t,a){for(var n=String(t||"").split(/\s+/),i=[],r="",o=0;o<n.length;o++){var l=r?r+" "+n[o]:n[o];e.measureText(l).width>a&&r?(i.push(r),r=n[o]):r=l}return r&&i.push(r),i}(n,e.title||e.series_id||"",920),d=0;d<p.length&&d<2;d++)n.fillText(p[d],i,o),o+=62;return o+=18,n.font="900 170px Arial,sans-serif",n.fillText(e.value_label||"—",i,o+130),o+=210,n.fillStyle="#c9bfa8",n.font="400 34px Arial,sans-serif",e.unit_label&&(n.fillText(e.unit_label,i,o),o+=48),n.font="700 40px Arial,sans-serif",n.fillStyle="#f5ead6",n.fillText(e.period_label||e.period||"",i,o),o+=62,e.change_label&&(n.font="900 52px Arial,sans-serif",n.fillStyle="#e8b923",n.fillText(e.change_label,i,o),o+=70),n.fillStyle="#2a2a2a",n.fillRect(80,o+10,920,2),o+=56,n.fillStyle="#8a8271",n.font="400 28px Arial,sans-serif",n.fillText("FRED · "+(e.series_id||"")+" · RETRIEVED "+r(e),i,o),o+=60,n.fillStyle="#f5ead6",n.font="700 38px Arial,sans-serif",n.fillText("MTCSTW.COM",i,o),o+=56,n.fillStyle="#c1121f",n.font="900 54px Arial,sans-serif",n.fillText("JOIN THE FIGHT.",i,o),a}function p(t){if(!t||t.stale)return!1;var a=null;try{a=s(t)}catch(e){}if(!a)return!1;try{window.PFShare&&"function"==typeof window.PFShare.stampCallsign&&(a=window.PFShare.stampCallsign(a)||a)}catch(e){}var i=l(t),r="pf-macro-"+String(t.series_id||"stat").toLowerCase()+".png",p=function(){!function(t){if(!n){n=!0;var a=o(t),i=document.createElement("div");i.setAttribute("style","position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#0d0d0d;border-top:3px solid #c1121f;padding:14px 16px 18px;font-family:Arial,sans-serif;color:#f5ead6;"),i.innerHTML='<div style="font-weight:900;letter-spacing:1px;font-size:14px;margin-bottom:6px;">POSTED IT? CLAIM YOUR +5 XP</div><div style="font-size:13px;color:#c9bfa8;margin-bottom:8px;">Paste the link to your public post. The backend verifies it — no proof, no XP.</div><div style="display:flex;gap:8px;"><input data-pf-proof type="url" placeholder="https://… link to your post" maxlength="2000" style="flex:1;background:#141414;border:1px solid #3a3a3a;color:#f5ead6;border-radius:6px;padding:10px;font-size:14px;min-width:0;" /><button data-pf-proofgo style="background:#c1121f;color:#fff;border:0;border-radius:6px;padding:10px 14px;font-weight:900;font-size:14px;cursor:pointer;">CLAIM</button><button data-pf-proofx style="background:#2a2a2a;color:#c9bfa8;border:0;border-radius:6px;padding:10px 12px;font-size:14px;cursor:pointer;">LATER</button></div><div data-pf-proofmsg style="font-size:13px;margin-top:8px;min-height:18px;"></div>';try{i.querySelector("[data-pf-proofx]").addEventListener("click",r),i.querySelector("[data-pf-proofgo]").addEventListener("click",function(){var t=i.querySelector("[data-pf-proof]"),n=t&&t.value?String(t.value).trim():"";if(n){l("Verifying…");try{e.postAction("readcreate","rc_action","poster_share",{story_url:a,proof_url:n},function(e){e&&e.ok?l("+5 XP confirmed. The number travels with your name on it.",!0):e&&e.dup?l("Already counted — proof links are one-time.",!0):l("Not counted: "+(e&&e.err||"verification failed")+".")})}catch(e){l("Could not reach the backend — try again.")}}else l("Paste your post link first.")})}catch(e){}try{document.body.appendChild(i)}catch(e){n=!1}setTimeout(function(){n&&r()},12e4)}function r(){n=!1;try{i.parentNode&&i.parentNode.removeChild(i)}catch(e){}}function l(e,t){try{var a=i.querySelector("[data-pf-proofmsg]");a.textContent=e,a.style.color=t?"#7fd67f":"#e0685c"}catch(e){}}}(t)};try{if(window.PFShare&&"function"==typeof window.PFShare.shareImage)return window.PFShare.shareImage(a,r,t.title||"Macro stat","macro-strip",{text:i,link:o(t)}),p(),!0}catch(e){}try{var d=document.createElement("a");return d.href=a.toDataURL("image/png"),d.download=r,document.body.appendChild(d),d.click(),setTimeout(function(){try{d.parentNode.removeChild(d)}catch(e){}},500),p(),!0}catch(e){return!1}}function d(e){if(e&&!e.getAttribute("data-pf-share-wired")){var t=function(e){try{var t=e.getAttribute("data-macro");return t?JSON.parse(t):null}catch(e){return null}}(e);if(t&&!t.stale&&t.series_id){e.setAttribute("data-pf-share-wired","1"),function(){try{if(document.getElementById("pf-macro-share-css"))return;var e=document.createElement("style");e.id="pf-macro-share-css",e.textContent=i,document.head.appendChild(e)}catch(e){}}();try{var a=document.createElement("div");a.className="pf-macro-sharewrap",e.parentNode.insertBefore(a,e),a.appendChild(e);var n=document.createElement("button");n.type="button",n.className="pf-macro-sharebtn",n.textContent="POST THIS STAT",n.setAttribute("aria-label","Share this stat: "+(t.title||t.series_id)),n.addEventListener("click",function(e){try{e.preventDefault(),e.stopPropagation()}catch(e){}p(t)}),a.appendChild(n)}catch(t){try{e.removeAttribute("data-pf-share-wired")}catch(e){}}}}}function c(){var e=null;try{e=document.querySelectorAll(".pf-macro-card[data-macro]")}catch(e){return}for(var t=0;t<e.length;t++)try{d(e[t])}catch(e){}}function f(){c();try{new MutationObserver(function(){c()}).observe(document.body,{childList:!0,subtree:!0})}catch(e){}return!0}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("macro-gallery")&&!window.pfMacroGalleryDone){window.pfMacroGalleryDone=!0;var t=window.PF_BACKEND_URL,a=["FEDFUNDS","UNRATE","DGS10","MORTGAGE30US","CPIAUCNS","CPILFESL","PAYEMS","PCEPI","GDP"],n=[".pf-mgal{max-width:960px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}",".pf-mgal-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}",".pf-mgal-title{font-weight:900;font-size:22px;text-align:center;margin:0 0 6px;letter-spacing:1px}",".pf-mgal-sub{font-size:13px;color:#c9bfa8;text-align:center;margin:0 0 12px}",".pf-mgal-tools{display:flex;gap:8px;justify-content:center;align-items:center;margin-bottom:12px;flex-wrap:wrap}",".pf-mgal-tools label{font-size:12px;letter-spacing:1px;color:#8a8271;font-weight:700}",".pf-mgal-tools select{background:#141414;color:#f5ead6;border:1px solid #3a3a3a;border-radius:6px;padding:8px;font-size:14px}",".pf-mgal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}","@media (max-width:720px){.pf-mgal-grid{grid-template-columns:1fr}}",".pf-mgal-card{border:1px solid #2a2a2a;border-radius:8px;background:#0d0d0d;overflow:hidden;display:flex;flex-direction:column}",".pf-mgal-card.hq{border-top:6px solid #e8b923}",".pf-mgal-card.feat{border-top:6px solid #c1121f}",".pf-mgal-visual{min-height:180px;display:flex;align-items:center;justify-content:center;background:#111;padding:18px 14px;text-align:center}",".pf-mgal-visual img{max-width:100%;height:auto;display:block}",".pf-mgal-badges{display:flex;gap:6px;flex-wrap:wrap;padding:10px 12px 0}",".pf-mgal-badge{font-size:10px;font-weight:900;letter-spacing:1px;padding:3px 8px;border-radius:3px}",".pf-mgal-badge.data{background:#1d3a1d;color:#7fd67f}",".pf-mgal-badge.hq{background:#3a2f10;color:#e8b923}",".pf-mgal-badge.featb{background:#3a1010;color:#ff8a7a}",".pf-mgal-badge.series{background:#2a2a2a;color:#c9bfa8}",".pf-mgal-body{padding:10px 12px 12px;display:flex;flex-direction:column;gap:8px;flex:1}",".pf-mgal-fig{font-weight:900;font-size:26px;color:#f5ead6}",".pf-mgal-fig small{display:block;font-size:12px;color:#c9bfa8;font-weight:400;margin-top:4px}",".pf-mgal-cap{font-size:13px;color:#c9bfa8;line-height:1.45}",".pf-mgal-meta{font-size:11px;color:#8a8271;letter-spacing:.5px}",".pf-mgal-chain{font-size:11px;color:#e8b923;letter-spacing:.5px}",".pf-mgal-stamp{font-size:10px;color:#8a8271;letter-spacing:.5px;border-top:1px solid #2a2a2a;padding-top:8px}",".pf-mgal-cta{margin-top:auto;display:flex;gap:8px}",".pf-mgal-btn{flex:1;background:#c1121f;color:#fff;border:0;border-radius:6px;padding:10px;font-weight:900;font-size:12px;letter-spacing:1px;cursor:pointer}",".pf-mgal-btn.ghost{background:#2a2a2a;color:#f5ead6}",".pf-mgal-empty{border:1px dashed #3a3a3a;border-radius:8px;padding:26px 16px;text-align:center}",".pf-mgal-empty h4{font-weight:900;font-size:17px;letter-spacing:2px;margin:0 0 8px;color:#f5ead6}",".pf-mgal-empty p{font-size:14px;color:#c9bfa8;margin:0;line-height:1.5}",".pf-mgal-foot{font-size:11px;color:#8a8271;text-align:center;letter-spacing:1px;margin-top:10px}"].join("\n"),i={items:[],filter:"ALL",live:!1};try{window.PFMacroGallery={mount:function(e){if(!e)return!1;try{if(e.querySelector&&e.querySelector(".pf-mgal"))return!0}catch(e){}return function(e,a,n){if(t){var i="pfGalCb"+Math.floor(1e9*Math.random()),r=document.createElement("script"),o=!1;window[i]=function(e){p(e)},r.onerror=function(){p(null)};var l="?action="+encodeURIComponent(e);for(var s in a)null!=a[s]&&""!==a[s]&&(l+="&"+encodeURIComponent(s)+"="+encodeURIComponent(a[s]));l+="&callback="+i,r.src=t+l,document.head.appendChild(r),setTimeout(function(){p(null)},12e3)}else n(null);function p(e){if(!o){o=!0;try{delete window[i]}catch(e){}r.parentNode&&r.parentNode.removeChild(r),n(e)}}}("fred_gallery",{},function(t){try{t&&t.ok&&Array.isArray(t.items)?(i.items=t.items,i.live=!!t.fred_live,d(e)):(o(),e.innerHTML=s(p("WALL OFFLINE","The gallery feed is not connected. Nothing here is estimated or seeded — pieces appear once the feed lands.")))}catch(t){try{o(),e.innerHTML=s(p("WALL OFFLINE","The gallery could not load."))}catch(e){}}}),!0}}}catch(e){}}function r(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function o(){try{if(document.getElementById("pf-mgal-css"))return;var e=document.createElement("style");e.id="pf-mgal-css",e.textContent=n,document.head.appendChild(e)}catch(e){}}function l(e){var t,a,n="pf-mgal-card"+(e.hq_model?" hq":"")+(e.featured&&!e.hq_model?" feat":"");function i(e){try{return window.PF&&window.PF.credit?window.PF.credit(e):""}catch(e){return""}}e.hq_model?(t=function(e){var t=e.figure||{},a=r(t.value_label||"—"),n=r(t.period_label||t.period||""),i=r(t.change_label||t.change_pct_label||""),o=r(t.title||e.series_id||""),l=e.layout||"stat";return'<div class="pf-mgal-visual">'+("duel"===l?'<div><div style="font-size:12px;letter-spacing:2px;color:#e8b923;font-weight:700;">THIS PRINT</div><div class="pf-mgal-fig">'+a+'</div><div style="font-size:12px;letter-spacing:2px;color:#8a8271;font-weight:700;margin-top:10px;">PRIOR</div><div style="font-weight:900;font-size:20px;color:#c9bfa8;">'+r(null!=t.prior_value?String(t.prior_value):"—")+"</div>"+(i?'<div style="font-weight:700;font-size:14px;color:#e8b923;margin-top:6px;">'+i+"</div>":"")+'<div class="pf-mgal-fig"><small>'+n+"</small></div></div>":"banner"===l?'<div><div class="pf-mgal-fig" style="font-size:40px;">'+a+'</div><div style="font-size:15px;color:#c9bfa8;margin-top:8px;">'+o+" · "+n+"</div>"+(i?'<div style="font-weight:900;font-size:18px;color:#c1121f;margin-top:8px;">'+i+"</div>":"")+"</div>":"ticker"===l?'<div style="width:100%;"><div style="display:flex;justify-content:space-between;align-items:baseline;"><span style="font-weight:900;font-size:15px;letter-spacing:1px;color:#e8b923;">'+o+'</span><span style="font-weight:900;font-size:34px;color:#f5ead6;">'+a+'</span></div><div style="height:6px;background:#2a2a2a;border-radius:3px;margin:10px 0;"><div style="height:6px;width:62%;background:#c1121f;border-radius:3px;"></div></div><div style="font-size:12px;color:#8a8271;">'+n+(i?" · "+i:"")+"</div></div>":"quote"===l?'<div><div style="font-size:44px;color:#c1121f;font-weight:900;line-height:1;">&ldquo;</div><div class="pf-mgal-fig">'+a+'</div><div style="font-size:14px;color:#c9bfa8;margin-top:8px;">'+o+", "+n+"</div></div>":'<div><div style="font-size:12px;letter-spacing:3px;color:#e8b923;font-weight:700;">'+o+'</div><div class="pf-mgal-fig" style="font-size:44px;">'+a+"</div>"+(i?'<div style="font-weight:700;font-size:15px;color:#e8b923;margin-top:6px;">'+i+"</div>":"")+'<div class="pf-mgal-fig"><small>'+n+"</small></div></div>")+"</div>"}(e),a='<div class="pf-mgal-meta">HQ MODEL — here is what good looks like. The figure is the live official vintage; remix it and make it yours.</div>'+i({sourced_by:e.sourced_by||"hq"})):(t=e.artifact_url?'<div class="pf-mgal-visual"><img src="'+r(e.artifact_url)+'" alt="'+r("Macro piece by "+(e.callsign||"a creator"))+'" loading="lazy" /></div>':'<div class="pf-mgal-visual"><span style="color:#3a3a3a;font-size:40px;">—</span></div>',a=i({sourced_by:e.sourced_by||e.callsign})+(e.caption?'<div class="pf-mgal-cap">'+r(e.caption).slice(0,280)+"</div>":""));var o,l=e.remix_of?'<div class="pf-mgal-chain">REMIX OF '+r(e.remix_of)+" — the chain stays visible.</div>":"";return o=e.hq_model?'<div class="pf-mgal-cta"><button class="pf-mgal-btn" data-act="remix-model" data-sid="'+r(e.series_id||"")+'">REMIX THE MODEL</button></div>':'<div class="pf-mgal-cta"><button class="pf-mgal-btn" data-act="your-turn" data-sid="'+r(e.series_id||"")+'">YOUR TURN</button></div>','<div class="'+n+'" data-mgal-id="'+r(e.id||"")+'">'+function(e){var t='<span class="pf-mgal-badge data">MADE WITH FRED DATA</span>';return e.hq_model&&(t+='<span class="pf-mgal-badge hq">HQ MODEL</span>'),e.featured&&!e.hq_model&&(t+='<span class="pf-mgal-badge featb">HQ FEATURED</span>'),e.series_id&&(t+='<span class="pf-mgal-badge series">'+r(e.series_id)+"</span>"),'<div class="pf-mgal-badges">'+t+"</div>"}(e)+t+'<div class="pf-mgal-body">'+a+l+'<div class="pf-mgal-stamp">'+r(function(e){var t="FRED · "+(e.stamp_series||e.series_id||""),a=e.stamp_vintage||e.figure&&e.figure.vintage_date||"";if(a){var n=/^(\d{4})-(\d{2})/.exec(String(a));n&&(t+=" · VINTAGE "+["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"][parseInt(n[2],10)-1]+" "+n[1])}return t}(e))+"</div>"+o+"</div></div>"}function s(e){return'<div class="pf-mgal"><div class="pf-mgal-kicker">SOCIAL PROOF</div><h3 class="pf-mgal-title">THE MACRO WALL</h3><p class="pf-mgal-sub">Everything made with official FRED data. See it. Remix it. Post it.</p>'+e+'<div class="pf-mgal-foot">OFFICIAL FIGURES VIA FRED · CREATOR WORDS ARE THEIR OWN</div></div>'}function p(e,t){return'<div class="pf-mgal-empty"><h4>'+r(e)+"</h4><p>"+r(t)+"</p></div>"}function d(e){if(o(),i.live){var t=i.items,n=i.filter,r="ALL"===n?t:t.filter(function(e){return e.series_id===n}),c=['<option value="ALL">ALL SERIES</option>'].concat(a.map(function(e){return'<option value="'+e+'"'+(n===e?" selected":"")+">"+e+"</option>"})).join(""),f=r.length?'<div class="pf-mgal-grid">'+r.map(l).join("")+"</div>":p("THE WALL IS EMPTY","No pieces for this series yet. Be the first — grab a stat and post it.");e.innerHTML=s('<div class="pf-mgal-tools"><label for="pf-mgal-f">SERIES</label><select id="pf-mgal-f" data-mgal-filter>'+c+"</select></div>"+f);try{var u=e.querySelector("[data-mgal-filter]");u&&u.addEventListener("change",function(){i.filter=u.value||"ALL",d(e)});for(var m=e.querySelectorAll("[data-act]"),g=0;g<m.length;g++)(function(e){e.addEventListener("click",function(){var t=e.getAttribute("data-sid")||"",a=e.getAttribute("data-act");try{"remix-model"!==a&&"your-turn"!==a||!window.PFMacroShare||"function"!=typeof window.PFMacroShare.shareSeries||window.PFMacroShare.shareSeries(t)}catch(e){}})})(m[g])}catch(e){}}else e.innerHTML=s(p("WALL OFFLINE","The gallery feed is not connected. Nothing here is estimated or seeded — pieces appear once the feed lands."))}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("money")&&!window.pfMoneyDeepDone){window.pfMoneyDeepDone=!0;var t=[{id:"money-revolving",title:"THE REVOLVING DOOR",blurb:"The staffers and members who cash out to the industries they used to regulate — career timelines, public records only."},{id:"money-committee",title:"COMMITTEE CAPTURE",blurb:"Who funds the committees that write the rules for their own industries — donor rolls vs. committee votes, side by side."},{id:"money-leadership-pac",title:"LEADERSHIP PAC SLUSH",blurb:"Where leadership PAC money actually goes — every expense line, ranked. Ships with a written slush rubric."},{id:"money-gifts",title:"GIFTS & TRAVEL",blurb:"The trips, tickets, and trinkets disclosed on the public gift rolls — per-person rows, sourced line by line."},{id:"money-fara",title:"FOREIGN LOBBY (FARA)",blurb:"Who pays foreign agents to lobby Washington — principals, agents, and dollars from the public FARA filings."},{id:"money-thinktanks",title:"THINK TANK FUNDING",blurb:'Who funds the "independent experts" on your TV — funding pies from self-reported and public sources only.'},{id:"money-industry",title:"INDUSTRY JUICY CUTS",blurb:"The vote-vs-donor juxtaposition, cut by industry — Big Oil, Big Pharma, Big Tech, one card each."},{id:"money-crypto",title:"CRYPTO DARK MONEY",blurb:"Dark money is undisclosed by definition — this will be explainer content on the crypto influence machine, never invented figures."}],a=[".pf-md{max-width:920px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}",".pf-md-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}",".pf-md-title{font-weight:900;font-size:22px;text-align:center;margin:0 0 12px;letter-spacing:1px}",".pf-md-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}",".pf-md-slot{border:1px dashed #3a3a3a;border-radius:8px;padding:16px 14px;text-align:center;background:#0d0d0d}",".pf-md-slot h4{font-weight:900;font-size:15px;letter-spacing:2px;margin:0 0 8px;color:#f5ead6}",".pf-md-slot p{font-size:13px;color:#c9bfa8;margin:0 0 8px;line-height:1.5}",".pf-md-slot .pf-md-tag{display:inline-block;font-weight:700;font-size:11px;letter-spacing:2px;color:#0d0d0d;background:#e8b923;border-radius:3px;padding:2px 8px}",".pf-md-links{margin-top:10px}",".pf-md-links a{display:block;font-weight:800;font-size:11px;letter-spacing:2px;color:#e8b923;text-decoration:none;margin:8px 0}",".pf-md-links a:hover{text-decoration:underline}"].join("\n");try{window.PFMoneyDeep={mount:function(i){if(!i)return!1;try{if(i.querySelector&&i.querySelector(".pf-md"))return!0}catch(e){}!function(){try{if(document.getElementById("pf-md-css"))return;var e=document.createElement("style");e.id="pf-md-css",e.textContent=a,document.head.appendChild(e)}catch(e){}}();var r='<div class="pf-md"><div class="pf-md-kicker">DEEP CUTS</div><h3 class="pf-md-title">THE REST OF THE MONEY MAP</h3><div class="pf-md-grid">'+t.filter(function(t){return!(e&&e.skip(t.id))}).map(function(e){return'<div class="pf-md-slot" data-money-slot="'+n(e.id)+'"><h4>'+n(e.title)+"</h4><p>"+n(e.blurb)+'</p><span class="pf-md-tag">AWAITING PUBLIC DATA</span><div class="pf-md-links"><a href="/political-hq#pf-util-notify-prefs">NOTIFY ME WHEN THIS GOES LIVE</a><a href="/political-hq#phq-money">SEE WHAT\'S LIVE &rarr;</a></div></div>'}).join("")+"</div></div>";return i.innerHTML=r,!0},slots:t.map(function(e){return e.id})}}catch(e){}}function n(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("ritual-calendar")&&!window.pfRitualCalendarDone){window.pfRitualCalendarDone=!0;var t=window.PF_BACKEND_URL,a=null,n=!1;window.pfRitualRender=function(e,i){!function(e){if(n)e(a);else if(n=!0,t){var i="pfRitualCb"+Math.floor(1e9*Math.random()),r=!1,o=null;window[i]=function(e){l(e)},(o=document.createElement("script")).onerror=function(){l(null)},o.src=t+"?action=ritual_calendar&callback="+i,document.head.appendChild(o),setTimeout(function(){l(a)},12e3)}else e(null);function l(t){if(!r){r=!0;try{delete window[i]}catch(e){}try{o&&o.parentNode&&o.parentNode.removeChild(o)}catch(e){}a=t,e(t)}}}(function(t){if(t&&t.ok&&t.moments&&t.moments.length){var a,n;if(i){for(a='<div class="rc-grid">',n=0;n<t.moments.length;n++)a+=p(t.moments[n],!1);a+='</div><div class="rc-note">The calendar is display-only — showing up earns nothing by itself. A release-day order pays +10 XP through Daily Orders when a print drops.</div>'}else{var r=t.moments.filter(function(e){return e.live}),o=r.length?r:t.moments;for(a='<div class="rc-grid">',n=0;n<o.length;n++)a+=p(o[n],!0);a+="</div>"}e.innerHTML=a,function(e,t){for(var a=e.querySelectorAll("[data-rc-claim]"),n=0;n<a.length;n++)(function(e){e.addEventListener("click",function(){var a,n=e.getAttribute("data-rc-claim"),i=null;for(a=0;a<t.moments.length;a++)t.moments[a].key===n&&(i=t.moments[a]);if(i){var r=s();if(r){e.disabled=!0;try{document.dispatchEvent(new CustomEvent("pf-do-challenge-done",{detail:{week:(i.order_date||"")+"_"+i.series+"_"+r,xp:10}}))}catch(e){}var o=document.createElement("div");o.className="rc-done",o.textContent="Claimed — +10 XP when the mirror lands. One per release.",e.parentNode.appendChild(o)}}})})(a[n])}(e,t)}else e.style.display="none"})};var i=["#pf-ritual .rc-grid, #pf-ritual-rail .rc-grid{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}","#pf-ritual .rc-card, #pf-ritual-rail .rc-card{flex:1;min-width:200px;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:10px;padding:14px}","#pf-ritual .rc-card.live, #pf-ritual-rail .rc-card.live{border-color:#c1121f}","#pf-ritual .rc-k, #pf-ritual-rail .rc-k{font-size:11px;letter-spacing:3px;color:#e8b923;font-weight:700}","#pf-ritual .rc-t, #pf-ritual-rail .rc-t{font-weight:900;font-size:18px;color:#f5ead6;margin:4px 0;letter-spacing:1px}","#pf-ritual .rc-c, #pf-ritual-rail .rc-c{font-size:13px;color:#c9bfa8;margin:6px 0;line-height:1.5}","#pf-ritual .rc-p, #pf-ritual-rail .rc-p{font-size:14px;color:#f5ead6;font-style:italic;margin:8px 0;line-height:1.5}","#pf-ritual .rc-btn, #pf-ritual-rail .rc-btn{display:inline-block;background:#c1121f;color:#fff;font-weight:900;letter-spacing:1px;padding:10px 18px;border-radius:6px;text-decoration:none;font-size:13px;margin:6px 8px 0 0;border:0;cursor:pointer}","#pf-ritual .rc-btn.ghost, #pf-ritual-rail .rc-btn.ghost{background:#1a1a1a;border:1px solid #3a3a3a;color:#f5ead6}","#pf-ritual .rc-btn:disabled, #pf-ritual-rail .rc-btn:disabled{opacity:.45;cursor:default}","#pf-ritual .rc-note, #pf-ritual-rail .rc-note{font-size:12px;color:#8a7f68;margin-top:10px;line-height:1.5}","#pf-ritual .rc-order, #pf-ritual-rail .rc-order{margin-top:10px;border-top:1px dashed #3a3a3a;padding-top:10px}","#pf-ritual .rc-xp, #pf-ritual-rail .rc-xp{display:inline-block;background:#e8b923;color:#0d0d0d;font-weight:900;font-size:11px;letter-spacing:1px;padding:3px 8px;border-radius:4px;margin-left:8px}","#pf-ritual .rc-done, #pf-ritual-rail .rc-done{font-size:13px;color:#7fc97f;font-weight:700;margin-top:8px}"].join("\n");!function(){try{if(document.getElementById("pf-ritual-css"))return;var e=document.createElement("style");e.id="pf-ritual-css",e.textContent=i,document.head.appendChild(e)}catch(e){}}();var r=document.getElementById("pf-money");if(r){var o=document.createElement("div");return o.id="pf-ritual-rail",r.insertBefore(o,r.firstChild),void window.pfRitualRender(o,!0)}e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-ritual"><div class="fe-block pf-override-block pf-silo" id="pf-ritual"><h2>Ritual Calendar</h2><div class="c-tag">Three recurring network moments. Show up when you can — no streaks, no penalties, no guilt.</div><div id="xRitual"><div class="c-load">Reading the calendar&hellip;</div></div></div><script>(function(){var host=document.getElementById("xRitual");if(!host||!window.pfRitualRender) return;window.pfRitualRender(host,false);})();<\/script></template>')}function l(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function s(){try{return window.PFCallsign&&window.PFCallsign()||""}catch(e){return""}}function p(e,t){var a,n,i='<div class="rc-card'+(e.live?" live":"")+'">';if(i+='<div class="rc-k">'+l(e.label)+" &middot; "+l(function(e){return e.live?"HERE NOW":null==e.days_until?"DATE TBA":1===e.days_until?"TOMORROW":"IN "+e.days_until+" DAYS"}(e))+"</div>",i+='<div class="rc-t">'+l(e.label)+"</div>",!t){i+='<div class="rc-c">'+l(e.prompt)+"</div>";var r=(a=e.deep_link,n=String(null==a?"":a).trim(),/^(https?:)\/\//i.test(n)?n:"");r&&(i+='<a class="rc-btn ghost" href="'+l(r)+'" target="_blank" rel="noopener">READ THE BRIEFING</a>')}if(e.live&&e.order_date){var o=s();i+='<div class="rc-order"><span style="font-weight:900;color:#f5ead6;font-size:14px;">RELEASE-DAY ORDER</span><span class="rc-xp">+10 XP</span>',i+='<div class="rc-c">'+l(e.prompt)+"</div>",o?(i+='<button class="rc-btn" data-rc-claim="'+l(e.key)+'">I READ IT — CLAIM 10 XP</button>',i+='<div class="rc-note">One claim per release. Tap only after you have read the release briefing.</div>'):i+='<div class="rc-note">Claim a callsign in Daily Orders to earn XP for release-day orders.</div>',i+="</div>"}return i+="</div>"}}();
+/* PF v1.4.3 core/bundle-money.js — concatenated bundle, generated by build/bundle-core.js.
+   DO NOT EDIT. Regenerate with: node build/bundle-core.js [--debug]
+   Contains: core/wall-of-shame.js, core/money-tab.js, core/money-vote-card.js, core/ledger-list.js, core/boycott-list.js, core/corp-card.js, core/money-page.js, core/money-trades.js, core/money-pac-alerts.js, core/money-macro.js, core/fred-governing.js, games/fred-stackem.js, games/fred-explain.js, core/macro-share.js, core/macro-gallery.js, core/money-deep8.js, games/ritual-calendar.js
+   Each file keeps its own PF.skip() kill switch (?pf_off=<silo>). */
+
+/* ===== core/wall-of-shame.js ===== */
+/* core/wall-of-shame.js  |  PF v1.4.3 | WALL OF SHAME — bill-detail carousel.
+   Swipeable legislator carousel for the bill detail view: one card per
+   legislator the endpoint flags for recorded votes against the progressive
+   position, each card with DOWNLOAD + SHARE buttons wired through the
+   EXISTING share flow — PF.PHQShare.save/.share('phq-wallshame', {...}) —
+   so the callsign-claim gate, the idempotent stamp, and the share plumbing
+   all ride along. No new share plumbing, no XP anywhere on this frontend
+   (XP rides existing backend legs only).
+   Backend contract (parallel backend wave, be/wall-of-shame):
+     ?action=wall_of_shame&bill_id=H.R.3633 ->
+     {ok, bill:{bill_id,title}, progressive_position, method, total_against,
+      cards:[{bioguide_id,name,chamber,party,state,against_votes,
+              votes:[{vote_id,vote_date,question,position,source_url}]}]}
+   Fail-soft: endpoint down / bill unknown / malformed response -> the mount
+   section hides itself entirely, never a broken widget. Zero cards -> the
+   honest empty state ("No recorded votes against the progressive position
+   on this bill."). No invented votes/positions/photos — every pixel comes
+   from the endpoint response; missing fields degrade to em-dash.
+   Integration hook (Release Eng wires this when fe/legislation-tracker lands;
+   do NOT call it from this module — the bill detail view is a sibling file):
+     PFWallShame.mount(billId, document.getElementById('bill-wallshame-slot'))
+   KILL: ?pf_off=wallshame  or  localStorage pf_disabled_v1='["wallshame"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('wallshame')) { return; }
+  if (window.pfWallShameDone) return;
+  window.pfWallShameDone = true;
+
+  var BACKEND = window.PF_BACKEND_URL;
+  var PAINTER = 'phq-wallshame';
+  var EMPTY_MSG = 'No recorded votes against the progressive position on this bill.';
+  var METHOD_DEFAULT = 'Ranked by recorded votes against the progressive position.';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function toast(m) { try { if (PF && PF.toast) PF.toast(m); } catch (e) {} }
+
+  /* JSONP GET — mirrors core/20-nextop.js api(): backend + action + params +
+     callback script tag, 12s timeout, null on any failure. */
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var fn = 'pfWsCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, 12000);
+  }
+
+  var CSS = [
+    '.pf-ws{max-width:680px;margin:0 auto;padding:8px 0}',
+    '.pf-ws-head{text-align:center;margin-bottom:6px}',
+    '.pf-ws-billtitle{font:700 18px Arial,sans-serif;color:#f5ead6}',
+    '.pf-ws-track{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:4px 6px 10px}',
+    '.pf-ws-card{flex:0 0 86%;scroll-snap-align:center;background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:26px 22px;color:#f5ead6;text-align:center}',
+    '.pf-ws-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#c1121f;margin-bottom:10px}',
+    '.pf-ws-bill{font:700 16px Arial,sans-serif;color:#e8b923;margin-bottom:12px}',
+    '.pf-ws-name{font:900 34px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 6px}',
+    '.pf-ws-sub{font:700 16px Arial,sans-serif;color:#c9bfa8;margin-bottom:14px}',
+    '.pf-ws-vote{font:900 20px "Arial Black",Arial,sans-serif;color:#c1121f;margin-bottom:10px}',
+    '.pf-ws-q{font:400 15px Arial,sans-serif;color:#f5ead6;margin-bottom:8px}',
+    '.pf-ws-count{font:700 14px Arial,sans-serif;color:#e8b923;margin-bottom:16px}',
+    '.pf-ws-actions{display:flex;gap:10px;justify-content:center}',
+    '.pf-ws-btn{font:900 15px "Arial Black",Arial,sans-serif;background:#f5ead6;color:#0d0d0d;border:0;border-radius:6px;padding:12px 22px;cursor:pointer}',
+    '.pf-ws-btn-red{background:#c1121f;color:#ffffff}',
+    '.pf-ws-nav{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:6px}',
+    '.pf-ws-arrow{font:900 22px Arial,sans-serif;background:#1a1a1a;color:#f5ead6;border:1px solid #c1121f;border-radius:50%;width:44px;height:44px;cursor:pointer}',
+    '.pf-ws-dots{display:flex;gap:8px}',
+    '.pf-ws-dot{width:10px;height:10px;border-radius:50%;background:#3a3a3a;border:0;padding:0;cursor:pointer}',
+    '.pf-ws-dot.on{background:#c1121f}',
+    '.pf-ws-method{font:400 13px Arial,sans-serif;color:#c9bfa8;text-align:center;margin-top:12px;padding:0 12px}',
+    '.pf-ws-empty{font:400 16px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:28px 12px;border:1px dashed #3a3a3a;border-radius:8px}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-ws-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-ws-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  function chamberLabel(card) {
+    var ch = String(card.chamber || '').toLowerCase();
+    ch = ch === 'house' ? 'U.S. HOUSE' : (ch === 'senate' ? 'U.S. SENATE' : String(card.chamber || '—'));
+    return (ch + ' · ' + String(card.party || '—') + ' · ' + String(card.state || '—')).toUpperCase();
+  }
+
+  /* Endpoint card -> painter data object. Every pixel from the response;
+     nothing invented, missing fields degrade to em-dash in the painter. */
+  function painterData(bill, card) {
+    var votes = Array.isArray(card.votes) ? card.votes : [];
+    var v0 = votes[0] || {};
+    var dates = [], seen = {};
+    for (var i = 0; i < votes.length; i++) {
+      var k = String(votes[i].vote_date || '');
+      if (k && !seen[k]) { seen[k] = 1; dates.push(k); }
+    }
+    return {
+      billId: bill.bill_id, billTitle: bill.title,
+      name: card.name, chamber: card.chamber, party: card.party, state: card.state,
+      againstVotes: card.against_votes,
+      position: v0.position, question: v0.question,
+      voteDates: dates.slice(0, 3), sourceUrl: v0.source_url
+    };
+  }
+
+  function cardInner(bill, card, i) {
+    var votes = Array.isArray(card.votes) ? card.votes : [];
+    var v0 = votes[0] || {};
+    var n = Math.max(0, parseInt(card.against_votes, 10) || 0);
+    return '<div class="pf-ws-kicker">WALL OF SHAME</div>' +
+      '<div class="pf-ws-bill">ON ' + esc(bill.bill_id) + ' — ' + esc(bill.title) + '</div>' +
+      '<h3 class="pf-ws-name">' + esc(card.name) + '</h3>' +
+      '<div class="pf-ws-sub">' + esc(chamberLabel(card)) + '</div>' +
+      '<div class="pf-ws-vote">VOTED <b>' + esc(v0.position) + '</b> — AGAINST THE PROGRESSIVE POSITION</div>' +
+      '<div class="pf-ws-q">ON: ' + esc(v0.question) + '</div>' +
+      '<div class="pf-ws-count">' + n + (n === 1 ? ' VOTE' : ' VOTES') +
+        ' AGAINST THE PROGRESSIVE POSITION ON RECORD</div>' +
+      '<div class="pf-ws-actions">' +
+        '<button type="button" class="pf-ws-btn" data-ws-dl="' + i + '">DOWNLOAD</button>' +
+        '<button type="button" class="pf-ws-btn pf-ws-btn-red" data-ws-sh="' + i + '">SHARE</button>' +
+      '</div>';
+  }
+
+  function hide(container) {
+    try { container.style.display = 'none'; container.innerHTML = ''; } catch (e) {}
+  }
+
+  function render(container, j) {
+    cssOnce();
+    var bill = j.bill || {};
+    var cards = Array.isArray(j.cards) ? j.cards : [];
+    container.innerHTML = '';
+    var root = document.createElement('div');
+    root.className = 'pf-ws';
+    if (!cards.length) {
+      root.innerHTML = '<div class="pf-ws-empty">' + esc(EMPTY_MSG) + '</div>';
+      container.appendChild(root);
+      return;
+    }
+    var head = document.createElement('div');
+    head.className = 'pf-ws-head';
+    head.innerHTML = '<div class="pf-ws-kicker">WALL OF SHAME</div>' +
+      '<div class="pf-ws-billtitle">' + esc(bill.bill_id) + ' — ' + esc(bill.title) + '</div>';
+    root.appendChild(head);
+    var track = document.createElement('div');
+    track.className = 'pf-ws-track';
+    var datas = [];
+    for (var i = 0; i < cards.length; i++) {
+      var art = document.createElement('article');
+      art.className = 'pf-ws-card';
+      art.setAttribute('data-ws-i', String(i));
+      art.innerHTML = cardInner(bill, cards[i], i);
+      track.appendChild(art);
+      datas.push(painterData(bill, cards[i]));
+    }
+    root.appendChild(track);
+    /* nav: prev/next + dot indicators */
+    var nav = document.createElement('div');
+    nav.className = 'pf-ws-nav';
+    var prev = document.createElement('button');
+    prev.type = 'button'; prev.className = 'pf-ws-arrow'; prev.setAttribute('data-ws-prev', '1');
+    prev.textContent = '‹';
+    var dots = document.createElement('div');
+    dots.className = 'pf-ws-dots';
+    var dotBtns = [];
+    for (i = 0; i < cards.length; i++) {
+      var db = document.createElement('button');
+      db.type = 'button'; db.className = 'pf-ws-dot' + (i === 0 ? ' on' : '');
+      db.setAttribute('data-ws-dot', String(i));
+      dots.appendChild(db); dotBtns.push(db);
+    }
+    var next = document.createElement('button');
+    next.type = 'button'; next.className = 'pf-ws-arrow'; next.setAttribute('data-ws-next', '1');
+    next.textContent = '›';
+    nav.appendChild(prev); nav.appendChild(dots); nav.appendChild(next);
+    root.appendChild(nav);
+    /* method caption under the carousel */
+    var cap = document.createElement('div');
+    cap.className = 'pf-ws-method';
+    cap.textContent = 'METHOD: ' + (j.method || METHOD_DEFAULT);
+    root.appendChild(cap);
+    var cur = 0;
+    function setDots(k) {
+      cur = k;
+      for (var q = 0; q < dotBtns.length; q++) dotBtns[q].className = 'pf-ws-dot' + (q === k ? ' on' : '');
+    }
+    function goTo(k) {
+      k = Math.max(0, Math.min(dotBtns.length - 1, k));
+      setDots(k);
+      try { track.scrollTo({ left: k * (track.clientWidth || 320), behavior: 'smooth' }); } catch (e) {}
+    }
+    track.addEventListener('scroll', function () {
+      try {
+        var w = track.clientWidth || 1;
+        setDots(Math.max(0, Math.min(dotBtns.length - 1, Math.round(track.scrollLeft / w))));
+      } catch (e) {}
+    });
+    root.addEventListener('click', function (e) {
+      var t = e && e.target;
+      if (!t || !t.getAttribute) return;
+      if (t.getAttribute('data-ws-prev') != null) { goTo(cur - 1); return; }
+      if (t.getAttribute('data-ws-next') != null) { goTo(cur + 1); return; }
+      var di = t.getAttribute('data-ws-dot');
+      if (di != null) { goTo(parseInt(di, 10) || 0); return; }
+      var dl = t.getAttribute('data-ws-dl'), sh = t.getAttribute('data-ws-sh');
+      if (dl == null && sh == null) return;
+      var idx = parseInt(dl != null ? dl : sh, 10) || 0;
+      var pd = datas[idx];
+      if (!pd) return;
+      try {
+        var PHQ = PF.PHQShare;
+        if (!PHQ) { toast('Share is still loading — try again.'); return; }
+        if (dl != null) PHQ.save(PAINTER, pd);
+        else PHQ.share(PAINTER, pd);
+      } catch (e2) { toast('Poster failed — try again.'); }
+    });
+    container.appendChild(root);
+  }
+
+  function mount(billId, container) {
+    if (!billId || !container) return false;
+    try {
+      if (container.querySelector && container.querySelector('.pf-ws')) return true; /* already mounted */
+    } catch (e) {}
+    api('wall_of_shame', { bill_id: String(billId) }, function (j) {
+      if (!j || !j.ok || !j.bill) { hide(container); return; }
+      try { render(container, j); } catch (e) { hide(container); }
+    });
+    return true;
+  }
+
+  try {
+    window.PFWallShame = { mount: mount };
+    PF.WallShame = window.PFWallShame;
+  } catch (e) {}
+})();
+
+;
+
+/* ===== core/money-tab.js ===== */
+/* core/money-tab.js  |  PF v1.4.3 | FOLLOW THE MONEY — legislator money tab.
+   Money tab for the legislator detail view: cycle totals, small-dollar vs
+   large-dollar split, top-10 donors, top industries (with an
+   "estimated from employer data" badge where estimated=1). DOWNLOAD + SHARE
+   buttons wire through the EXISTING share flow —
+   PF.PHQShare.save/.share('phq-money', {...}) — so the callsign-claim gate,
+   the idempotent stamp, and the share plumbing all ride along. No new share
+   plumbing, no XP anywhere on this frontend (XP rides existing backend legs
+   only; viewing money data grants 0 XP and no read-XP leg anchors here —
+   core/read-xp.js only fires on #pf-readxp / Top Stories / Ammo surfaces).
+   Backend contract (LOCKED: be/follow-the-money @ dd9cab9 — the frontend
+   adapts; the backend is never modified):
+     ?action=money_legislator&bioguide_id=A000055 ->
+     {ok, cycle, source:'FEC (api.open.fec.gov)', retrieved_at,
+      member:{bioguide_id,fec_candidate_id,name,office,state,party},
+      totals:{raised,spent,cash}, small_dollar_pct, large_dollar_pct,
+      top_donors:[{name,employer,occupation,amount} x10],
+      industries:[{industry,total,estimated}]}
+   Tables empty until the FEC ingest runs -> {ok:true, empty:true, reason}.
+   small_dollar_pct / large_dollar_pct arrive as percentages ALREADY
+   (2.5 = 2.5%) — never multiply by 100. member.office is 'H'/'S' (FEC
+   candidate office), not a chamber string. retrieved_at is an epoch-ms
+   number as the ingest writes it.
+   Fail-soft: endpoint down / {ok:false} / malformed response -> the mount
+   section hides itself entirely, never a broken widget. ok:true but no
+   totals -> the honest empty state ("Money data isn't loaded yet — no
+   figures shown rather than guesses."). No invented figures — every number
+   shown carries its source in the footer.
+   Integration hook (Release Eng wires this from the legislator detail view;
+   do NOT call it from this module):
+     PFMoneyTab.mount('J000288', document.getElementById('legislator-money-slot'))
+   KILL: ?pf_off=money-tab  or  localStorage pf_disabled_v1='["money-tab"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('money-tab')) { return; }
+  if (window.pfMoneyTabDone) return;
+  window.pfMoneyTabDone = true;
+
+  var BACKEND = window.PF_BACKEND_URL;
+  var PAINTER = 'phq-money';
+  var EMPTY_MSG = "Money data isn't loaded yet — no figures shown rather than guesses.";
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function toast(m) { try { if (PF && PF.toast) PF.toast(m); } catch (e) {} }
+
+  /* JSONP GET — mirrors core/20-nextop.js api(): backend + action + params +
+     callback script tag, 12s timeout, null on any failure. */
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var fn = 'pfMoneyCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, 12000);
+  }
+
+  var CSS = [
+    '.pf-mt{max-width:680px;margin:0 auto;padding:8px 0;color:#f5ead6}',
+    '.pf-mt-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#e8b923;text-align:center;margin-bottom:10px}',
+    '.pf-mt-name{font:900 32px "Arial Black",Arial,sans-serif;color:#f5ead6;text-align:center;margin:0 0 4px}',
+    '.pf-mt-sub{font:700 15px Arial,sans-serif;color:#c9bfa8;text-align:center;margin-bottom:16px}',
+    '.pf-mt-totals{display:flex;gap:10px;justify-content:center;margin-bottom:18px;flex-wrap:wrap}',
+    '.pf-mt-total{background:#0d0d0d;border:1px solid #c1121f;border-radius:8px;padding:12px 16px;text-align:center;min-width:140px}',
+    '.pf-mt-tlabel{display:block;font:700 13px Arial,sans-serif;letter-spacing:2px;color:#c9bfa8;margin-bottom:6px}',
+    '.pf-mt-tval{display:block;font:900 22px "Arial Black",Arial,sans-serif;color:#e8b923}',
+    '.pf-mt-sect{background:#0d0d0d;border:1px solid #3a3a3a;border-radius:8px;padding:14px 16px;margin-bottom:14px}',
+    '.pf-mt-sect h4{font:900 16px "Arial Black",Arial,sans-serif;color:#f5ead6;letter-spacing:2px;margin:0 0 10px}',
+    '.pf-mt-barrow{display:flex;height:26px;border-radius:4px;overflow:hidden;margin:8px 0}',
+    '.pf-mt-seg-sm{background:#e8b923}',
+    '.pf-mt-seg-lg{background:#c1121f}',
+    '.pf-mt-barlegend{display:flex;justify-content:space-between;font:700 13px Arial,sans-serif;color:#c9bfa8;flex-wrap:wrap;gap:6px}',
+    '.pf-mt-list{list-style:none;margin:0;padding:0}',
+    '.pf-mt-list li{display:flex;align-items:baseline;gap:8px;padding:7px 0;border-bottom:1px solid #1e1e1e;font:400 15px Arial,sans-serif}',
+    '.pf-mt-list li:last-child{border-bottom:0}',
+    '.pf-mt-dname{color:#f5ead6;font-weight:700}',
+    '.pf-mt-demployer{color:#c9bfa8;font-size:13px}',
+    '.pf-mt-damt{margin-left:auto;color:#e8b923;font-weight:700;white-space:nowrap}',
+    '.pf-mt-est{display:inline-block;font:700 11px Arial,sans-serif;letter-spacing:1px;color:#0d0d0d;background:#e8b923;border-radius:3px;padding:2px 6px;margin-left:6px}',
+    '.pf-mt-actions{display:flex;gap:10px;justify-content:center;margin:16px 0}',
+    '.pf-mt-btn{font:900 15px "Arial Black",Arial,sans-serif;background:#f5ead6;color:#0d0d0d;border:0;border-radius:6px;padding:12px 22px;cursor:pointer}',
+    '.pf-mt-btn-red{background:#c1121f;color:#ffffff}',
+    '.pf-mt-src{font:400 13px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:0 12px}',
+    '.pf-mt-empty{font:400 16px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:28px 12px;border:1px dashed #3a3a3a;border-radius:8px}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-mt-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-mt-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  function money(n) {
+    if (n == null || isNaN(Number(n))) return '—';
+    return '$' + Number(n).toLocaleString('en-US');
+  }
+  /* BE member carries office:'H'/'S' (FEC candidate office), not a chamber
+     string. Map it; keep house/senate/rep/sen variants for robustness. */
+  function chamberLabel(leg) {
+    var raw = String(leg.office || leg.chamber || '').toLowerCase();
+    var ch = (raw === 'h' || raw === 'house' || raw === 'rep') ? 'U.S. HOUSE'
+      : ((raw === 's' || raw === 'senate' || raw === 'sen') ? 'U.S. SENATE'
+        : String(leg.office || leg.chamber || '—'));
+    return (ch + ' · ' + String(leg.party || '—') + ' · ' + String(leg.state || '—')).toUpperCase();
+  }
+  /* The BE sends small_dollar_pct / large_dollar_pct as percentages ALREADY
+     (Math.round((v / raised) * 1000) / 10) — pass through, never ×100. */
+  function pctOf(f) {
+    if (f == null || isNaN(Number(f))) return null;
+    return Number(f);
+  }
+  function pctLabel(f) {
+    var n = pctOf(f);
+    if (n == null) return '—';
+    return (Math.round(n * 10) / 10) + '%';
+  }
+  function retrDate(r) {
+    /* The ingest writes retrieved_at as epoch ms (Date.now()); the BE passes
+       it through. Format numeric epochs as a date; also parse YYYY-MM-DD. */
+    if (typeof r === 'number' && r > 1e12) {
+      try {
+        var d = new Date(r);
+        var MN = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        return MN[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + d.getUTCFullYear();
+      } catch (e) {}
+    }
+    var s = String(r == null ? '' : r).trim();
+    var m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (m) {
+      var MON = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+      var mi = parseInt(m[2], 10) - 1;
+      if (mi >= 0 && mi < 12) return MON[mi] + ' ' + parseInt(m[3], 10) + ', ' + m[1];
+    }
+    return s || '—';
+  }
+  function srcFooter(j) {
+    return 'Source: FEC · ' + esc(j.cycle || '—') + ' cycle · retrieved ' + esc(retrDate(j.retrieved_at));
+  }
+
+  /* Endpoint response -> painter data object. Every pixel from the response;
+     nothing invented, missing fields degrade to em-dash in the painter.
+     Adapts the LOCKED BE contract to the painter's internal shape:
+     BE totals.{raised,spent,cash}, member.office 'H'/'S' -> chamber string,
+     retrieved_at (epoch ms) -> 'YYYY-MM-DD' for the painter's fullDate(),
+     industries[].total -> painter's amount key. */
+  function officeChamber(off) {
+    var o = String(off || '').toUpperCase();
+    return o === 'H' ? 'house' : (o === 'S' ? 'senate' : '');
+  }
+  function retrievedISO(r) {
+    if (typeof r === 'number' && r > 1e12) {
+      try {
+        var d = new Date(r);
+        return d.getUTCFullYear() + '-' +
+          String(d.getUTCMonth() + 1).padStart(2, '0') + '-' +
+          String(d.getUTCDate()).padStart(2, '0');
+      } catch (e) {}
+    }
+    return r;
+  }
+  function painterData(j) {
+    var leg = j.member || {};
+    var t = j.totals || {};
+    var donors = Array.isArray(j.top_donors) ? j.top_donors.slice(0, 3) : [];
+    var inds = Array.isArray(j.industries) ? j.industries.slice(0, 3) : [];
+    return {
+      bioguideId: leg.bioguide_id, name: leg.name, chamber: officeChamber(leg.office),
+      party: leg.party, state: leg.state, cycle: j.cycle, retrieved: retrievedISO(j.retrieved_at),
+      raised: t.raised, spent: t.spent, cash: t.cash,
+      topDonors: donors.map(function (d) { return { name: d.name, employer: d.employer, amount: d.amount }; }),
+      topIndustries: inds.map(function (d) { return { industry: d.industry, amount: d.total }; })
+    };
+  }
+
+  function totalsRow(t) {
+    var cells = [
+      ['RAISED', money(t.raised)],
+      ['SPENT', money(t.spent)],
+      ['CASH ON HAND', money(t.cash)]
+    ];
+    return cells.map(function (c) {
+      return '<div class="pf-mt-total"><span class="pf-mt-tlabel">' + esc(c[0]) +
+        '</span><span class="pf-mt-tval">' + esc(c[1]) + '</span></div>';
+    }).join('');
+  }
+
+  function splitBar(j) {
+    var sm = pctOf(j.small_dollar_pct), lg = pctOf(j.large_dollar_pct);
+    var head = '<h4>SMALL-DOLLAR VS LARGE-DOLLAR</h4>';
+    if (sm == null && lg == null) return head + '<div class="pf-mt-barlegend"><span>—</span></div>';
+    sm = sm == null ? 0 : sm; lg = lg == null ? 0 : lg;
+    /* BE percentages pass straight through — no ×100. Clamp the bar to 100%. */
+    var smW = Math.max(0, Math.min(100, sm)), lgW = Math.max(0, Math.min(100, lg));
+    return head +
+      '<div class="pf-mt-barrow">' +
+        '<div class="pf-mt-seg-sm" style="width:' + smW + '%"></div>' +
+        '<div class="pf-mt-seg-lg" style="width:' + lgW + '%"></div>' +
+      '</div>' +
+      '<div class="pf-mt-barlegend">' +
+        '<span>SMALL-DOLLAR (&lt;$200): ' + pctLabel(sm) + '</span>' +
+        '<span>LARGE-DOLLAR: ' + pctLabel(lg) + '</span>' +
+      '</div>';
+  }
+
+  function donorList(donors) {
+    var ds = Array.isArray(donors) ? donors.slice(0, 10) : [];
+    var head = '<h4>TOP DONORS</h4>';
+    if (!ds.length) return head + '<div class="pf-mt-barlegend"><span>—</span></div>';
+    return head + '<ul class="pf-mt-list">' + ds.map(function (d) {
+      var emp = d.employer ? '<span class="pf-mt-demployer">' + esc(d.employer) + '</span>' : '';
+      return '<li><span class="pf-mt-dname">' + esc(d.name || '—') + '</span>' + emp +
+        '<span class="pf-mt-damt">' + esc(money(d.amount)) + '</span></li>';
+    }).join('') + '</ul>';
+  }
+
+  function industryList(inds) {
+    var xs = Array.isArray(inds) ? inds : [];
+    var head = '<h4>TOP INDUSTRIES</h4>';
+    if (!xs.length) return head + '<div class="pf-mt-barlegend"><span>—</span></div>';
+    return head + '<ul class="pf-mt-list">' + xs.map(function (d) {
+      /* BE contract: {industry,total,estimated} — total, not amount. */
+      var badge = d.estimated ? '<span class="pf-mt-est">ESTIMATED FROM EMPLOYER DATA</span>' : '';
+      return '<li><span class="pf-mt-dname">' + esc(d.industry || '—') + '</span>' + badge +
+        '<span class="pf-mt-damt">' + esc(money(d.total)) + '</span></li>';
+    }).join('') + '</ul>';
+  }
+
+  function hide(container) {
+    try { container.style.display = 'none'; container.innerHTML = ''; } catch (e) {}
+  }
+
+  function render(container, j) {
+    cssOnce();
+    var leg = j.member || {};
+    var t = j.totals || null;
+    container.innerHTML = '';
+    var root = document.createElement('div');
+    root.className = 'pf-mt';
+    if (!t) {
+      root.innerHTML = '<div class="pf-mt-empty">' + esc(EMPTY_MSG) + '</div>' +
+        '<div class="pf-mt-src">' + srcFooter(j) + '</div>';
+      container.appendChild(root);
+      return;
+    }
+    root.innerHTML =
+      '<div class="pf-mt-kicker">FOLLOW THE MONEY</div>' +
+      '<h3 class="pf-mt-name">' + esc(leg.name || '—') + '</h3>' +
+      '<div class="pf-mt-sub">' + esc(chamberLabel(leg)) + '</div>' +
+      '<div class="pf-mt-totals">' + totalsRow(t) + '</div>' +
+      '<div class="pf-mt-sect">' + splitBar(j) + '</div>' +
+      '<div class="pf-mt-sect">' + donorList(j.top_donors) + '</div>' +
+      '<div class="pf-mt-sect">' + industryList(j.industries) + '</div>' +
+      '<div class="pf-mt-actions">' +
+        '<button type="button" class="pf-mt-btn" data-mt-dl="1">DOWNLOAD</button>' +
+        '<button type="button" class="pf-mt-btn pf-mt-btn-red" data-mt-sh="1">SHARE</button>' +
+      '</div>' +
+      '<div class="pf-mt-src">' + srcFooter(j) + '</div>';
+    var pd = painterData(j);
+    root.addEventListener('click', function (e) {
+      var t = e && e.target;
+      if (!t || !t.getAttribute) return;
+      var dl = t.getAttribute('data-mt-dl'), sh = t.getAttribute('data-mt-sh');
+      if (dl == null && sh == null) return;
+      try {
+        var PHQ = PF.PHQShare;
+        if (!PHQ) { toast('Share is still loading — try again.'); return; }
+        if (dl != null) PHQ.save(PAINTER, pd);
+        else PHQ.share(PAINTER, pd);
+      } catch (e2) { toast('Poster failed — try again.'); }
+    });
+    container.appendChild(root);
+  }
+
+  function mount(bioguideId, container) {
+    if (!bioguideId || !container) return false;
+    try {
+      if (container.querySelector && container.querySelector('.pf-mt')) return true; /* already mounted */
+    } catch (e) {}
+    api('money_legislator', { bioguide_id: String(bioguideId) }, function (j) {
+      if (!j || !j.ok) { hide(container); return; }
+      try { render(container, j); } catch (e) { hide(container); }
+    });
+    return true;
+  }
+
+  try {
+    window.PFMoneyTab = { mount: mount };
+    PF.MoneyTab = window.PFMoneyTab;
+  } catch (e) {}
+})();
+
+;
+
+/* ===== core/money-vote-card.js ===== */
+/* core/money-vote-card.js  |  PF v1.4.3 | FOLLOW THE MONEY — vote-vs-donor card.
+   Vote-vs-donor card for the bill detail view: one row per legislator with
+   a recorded vote, showing their vote plus the top donor industries behind
+   each side. Copy discipline is strict: the header reads "Who funded both
+   sides", per-row body copy reads "received $X from [industry]", and the
+   methodology caption is always shown verbatim:
+     "Donations are correlated with votes, not proof of cause."
+   Causation claims are never rendered — correlation is shown, cause is never
+   claimed. Members whose money block is null render vote-only rows (never
+   hidden).
+   Backend contract (LOCKED: be/follow-the-money @ dd9cab9 — the frontend
+   adapts; the backend is never modified):
+     ?action=money_vote_card&bill_id=H.R.1 ->
+     {ok, bill:{bill_id,title}, cycle,
+      cards:[{bioguide_id,name,chamber,party,state,position,vote_id,
+              vote_date,question,source_url,money}]}
+       money = null | {cycle, source:'FEC (api.open.fec.gov)', retrieved_at,
+                       industries:[{industry,total,estimated,copy} x3]}
+   The BE prebuilds the copy line per industry row — verbatim
+   "received $X from [industry]" (copy rule: never implies causation).
+   The card consumes d.copy when present and only re-renders the same
+   shape as a fallback. Members whose money block is null render
+   vote-only rows (never hidden).
+   Fail-soft: endpoint down / {ok:false} / malformed response -> the mount
+   section hides itself entirely, never a broken widget. ok:true with zero
+   cards -> the honest empty state ("No vote records returned for this bill.").
+   No invented figures — every number shown comes from the response.
+   Integration hook (Release Eng wires this from the bill detail view on the
+   fe/legislation-tracker sibling branch; do NOT call it from this module):
+     PFMoneyVote.mount('H.R.3633', document.getElementById('bill-money-slot'))
+   KILL: ?pf_off=money-vote  or  localStorage pf_disabled_v1='["money-vote"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('money-vote')) { return; }
+  if (window.pfMoneyVoteDone) return;
+  window.pfMoneyVoteDone = true;
+
+  var BACKEND = window.PF_BACKEND_URL;
+  var HEADER = 'Who funded both sides';
+  var METHOD = 'Donations are correlated with votes, not proof of cause.';
+  var EMPTY_MSG = 'No vote records returned for this bill.';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /* JSONP GET — mirrors core/20-nextop.js api(): backend + action + params +
+     callback script tag, 12s timeout, null on any failure. */
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var fn = 'pfMvCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, 12000);
+  }
+
+  var CSS = [
+    '.pf-mv{max-width:680px;margin:0 auto;padding:8px 0;color:#f5ead6}',
+    '.pf-mv-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#e8b923;text-align:center;margin-bottom:10px}',
+    '.pf-mv-title{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6;text-align:center;margin:0 0 6px}',
+    '.pf-mv-bill{font:700 15px Arial,sans-serif;color:#c9bfa8;text-align:center;margin-bottom:16px}',
+    '.pf-mv-row{background:#0d0d0d;border:1px solid #3a3a3a;border-radius:8px;padding:14px 16px;margin-bottom:12px}',
+    '.pf-mv-name{font:900 20px "Arial Black",Arial,sans-serif;color:#f5ead6}',
+    '.pf-mv-sub{display:block;font:700 13px Arial,sans-serif;color:#c9bfa8;margin-top:4px}',
+    '.pf-mv-vote{font:700 15px Arial,sans-serif;color:#e8b923;margin:8px 0}',
+    '.pf-mv-vote b{color:#c1121f}',
+    '.pf-mv-inds{list-style:none;margin:0;padding:0}',
+    '.pf-mv-inds li{font:400 15px Arial,sans-serif;color:#c9bfa8;padding:4px 0}',
+    '.pf-mv-inds li b{color:#f5ead6}',
+    '.pf-mv-inds li .pf-mv-amt{color:#e8b923;font-weight:700}',
+    '.pf-mv-method{font:400 13px Arial,sans-serif;color:#c9bfa8;text-align:center;margin-top:12px;padding:0 12px;font-style:italic}',
+    '.pf-mv-empty{font:400 16px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:28px 12px;border:1px dashed #3a3a3a;border-radius:8px}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-mv-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-mv-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  function money(n) {
+    if (n == null || isNaN(Number(n))) return '—';
+    return '$' + Number(n).toLocaleString('en-US');
+  }
+  function chamberLabel(r) {
+    var ch = String(r.chamber || '').toLowerCase();
+    ch = ch === 'house' ? 'U.S. HOUSE' : (ch === 'senate' ? 'U.S. SENATE' : String(r.chamber || '—'));
+    return (ch + ' · ' + String(r.party || '—') + ' · ' + String(r.state || '—')).toUpperCase();
+  }
+
+  /* One legislator row. money:null -> vote-only row, never hidden.
+     The BE prebuilds the copy line ("received $X from [industry]") on each
+     industry row — consume d.copy verbatim when present; the composed
+     fallback renders the identical shape from d.total. */
+  function indLine(d) {
+    if (d.copy) return esc(d.copy);
+    return 'received <span class="pf-mv-amt">' + esc(money(d.total)) + '</span> from <b>' +
+      esc(d.industry || '—') + '</b>';
+  }
+  function rowHtml(r) {
+    var inds = (r.money && Array.isArray(r.money.industries)) ? r.money.industries.slice(0, 3) : [];
+    var indHtml = '';
+    if (r.money) {
+      if (inds.length) {
+        indHtml = '<ul class="pf-mv-inds">' + inds.map(function (d) {
+          return '<li>' + indLine(d) + '</li>';
+        }).join('') + '</ul>';
+      } else {
+        indHtml = '<ul class="pf-mv-inds"><li>No industry donor data reported.</li></ul>';
+      }
+    }
+    return '<article class="pf-mv-row">' +
+      '<div class="pf-mv-name">' + esc(r.name || '—') +
+        '<span class="pf-mv-sub">' + esc(chamberLabel(r)) + '</span></div>' +
+      '<div class="pf-mv-vote">VOTED <b>' + esc(r.position || '—') + '</b></div>' +
+      indHtml +
+      '</article>';
+  }
+
+  function hide(container) {
+    try { container.style.display = 'none'; container.innerHTML = ''; } catch (e) {}
+  }
+
+  function render(container, j) {
+    cssOnce();
+    var bill = j.bill || {};
+    var cards = Array.isArray(j.cards) ? j.cards : [];
+    container.innerHTML = '';
+    var root = document.createElement('div');
+    root.className = 'pf-mv';
+    if (!cards.length) {
+      root.innerHTML = '<div class="pf-mv-empty">' + esc(EMPTY_MSG) + '</div>';
+      container.appendChild(root);
+      return;
+    }
+    var html = '<div class="pf-mv-kicker">FOLLOW THE MONEY</div>' +
+      '<h3 class="pf-mv-title">' + esc(HEADER) + '</h3>' +
+      '<div class="pf-mv-bill">' + esc(bill.bill_id || '—') + ' — ' + esc(bill.title || '—') + '</div>';
+    for (var i = 0; i < cards.length; i++) html += rowHtml(cards[i] || {});
+    html += '<div class="pf-mv-method">' + esc(j.methodology || METHOD) + '</div>';
+    root.innerHTML = html;
+    container.appendChild(root);
+  }
+
+  function mount(billId, container) {
+    if (!billId || !container) return false;
+    try {
+      if (container.querySelector && container.querySelector('.pf-mv')) return true; /* already mounted */
+    } catch (e) {}
+    api('money_vote_card', { bill_id: String(billId) }, function (j) {
+      if (!j || !j.ok) { hide(container); return; }
+      try { render(container, j); } catch (e) { hide(container); }
+    });
+    return true;
+  }
+
+  try {
+    window.PFMoneyVote = { mount: mount };
+    PF.MoneyVote = window.PFMoneyVote;
+  } catch (e) {}
+})();
+
+;
+
+/* ===== core/ledger-list.js ===== */
+/* core/ledger-list.js  |  PF v1.4.3 | BILLIONAIRE LEDGERS — Follow-the-Money.
+   The ledger: billionaire net worth (Forbes 2026, hand-transcribed) vs
+   political spending (FEC, name-matched), ranked by net worth DESC with the
+   ratio as a bar. PFLedgers.mount(container) — JSONP fetch of
+   ?action=ledger_list, one ranked row per billionaire: name, net worth,
+   political spending, the ratio bar. Caveat line under EVERY figure
+   ("Forbes Mar 1, 2026" / "FEC name-matched — identity unverified").
+   Per-row DOWNLOAD + SHARE wired through the EXISTING share flow —
+   PF.PHQShare.save/.share('phq-ledger', {...}) — so the callsign-claim gate,
+   the idempotent stamp, and the share plumbing all ride along. No new share
+   plumbing, no XP anywhere on this frontend (XP rides existing backend legs
+   only; viewing this ledger grants 0 — Economy Desk sign-off pending).
+   Backend contract (parallel backend wave, be/billionaire-ledgers):
+     ?action=ledger_list ->
+     {ok, methodology, list:{forbes_list_url, forbes_snapshot_date,
+      transcribed_date, spending_status, spending_note, refresh_policy},
+      total, entries:[{name, rank, net_worth_b, net_worth_usd, net_worth_as_of,
+      net_worth_source_url, net_worth_label, political_spending,
+      spending_cycle, match_note, spending_status, spending_label,
+      spending_ratio}]}
+   Fail-soft: endpoint down / malformed response -> the mount section hides
+   itself entirely, never a broken widget. Zero rows -> the honest empty
+   state. Pre-FEC-key: every spending figure is NULL and each row says so —
+   no invented figures, ever; missing fields degrade to em-dash.
+   Integration hook (Release Eng wires this when the Political HQ surface
+   lands; do NOT call it from this module — never auto-mounts):
+     PFLedgers.mount(document.getElementById('ledger-slot'))
+   KILL: ?pf_off=ledgers  or  localStorage pf_disabled_v1='["ledgers"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('ledgers')) { return; }
+  if (window.pfLedgersDone) return;
+  window.pfLedgersDone = true;
+
+  var BACKEND = window.PF_BACKEND_URL;
+  var PAINTER = 'phq-ledger';
+  var EMPTY_MSG = 'The ledger is empty — no billionaire rows returned.';
+  var SPENDING_PENDING = 'FEC data not yet loaded — no figures shown rather than invented.';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function toast(m) { try { if (PF && PF.toast) PF.toast(m); } catch (e) {} }
+
+  /* JSONP GET — mirrors core/20-nextop.js api(): backend + action + params +
+     callback script tag, 12s timeout, null on any failure. */
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var fn = 'pfLedgerCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, 12000);
+  }
+
+  var CSS = [
+    '.pf-ledger{max-width:680px;margin:0 auto;padding:8px 0}',
+    '.pf-ledger-head{text-align:center;margin-bottom:10px}',
+    '.pf-ledger-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#c1121f;margin-bottom:8px}',
+    '.pf-ledger-title{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 6px}',
+    '.pf-ledger-sub{font:400 14px Arial,sans-serif;color:#c9bfa8;margin-bottom:4px}',
+    '.pf-ledger-row{background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:20px 20px 18px;margin:0 0 14px;color:#f5ead6}',
+    '.pf-ledger-rank{font:700 13px Arial,sans-serif;color:#e8b923;letter-spacing:3px;margin-bottom:6px}',
+    '.pf-ledger-name{font:900 26px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 10px}',
+    '.pf-ledger-fig{font:900 19px "Arial Black",Arial,sans-serif;color:#f5ead6}',
+    '.pf-ledger-fig.gold{color:#e8b923}',
+    '.pf-ledger-fig.dim{color:#c9bfa8;font:400 15px Arial,sans-serif}',
+    '.pf-ledger-caveat{font:400 12px Arial,sans-serif;color:#c9bfa8;margin:2px 0 10px}',
+    '.pf-ledger-barwrap{background:#1a1a1a;border:1px solid #3a3a3a;border-radius:6px;height:22px;position:relative;margin:8px 0 4px;overflow:hidden}',
+    '.pf-ledger-bar{background:#c1121f;height:100%;min-width:3px}',
+    '.pf-ledger-ratio{font:700 13px Arial,sans-serif;color:#e8b923;margin-bottom:12px}',
+    '.pf-ledger-actions{display:flex;gap:10px;justify-content:center;margin-top:6px}',
+    '.pf-ledger-btn{font:900 14px "Arial Black",Arial,sans-serif;background:#f5ead6;color:#0d0d0d;border:0;border-radius:6px;padding:11px 20px;cursor:pointer}',
+    '.pf-ledger-btn-red{background:#c1121f;color:#ffffff}',
+    '.pf-ledger-method{font:400 12px Arial,sans-serif;color:#c9bfa8;text-align:center;margin-top:12px;padding:0 12px;line-height:1.5}',
+    '.pf-ledger-empty{font:400 16px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:28px 12px;border:1px dashed #3a3a3a;border-radius:8px}'
+  ].join('\n');
+
+  var cssDone = false;
+  function cssOnce() {
+    if (cssDone) return; cssDone = true;
+    try {
+      var st = document.createElement('style');
+      st.type = 'text/css'; st.appendChild(document.createTextNode(CSS));
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  function fmtB(b) {
+    var n = Number(b);
+    if (!isFinite(n)) return '—';
+    return '$' + (Math.round(n * 10) / 10) + 'B';
+  }
+  function fmtUSD(n) {
+    var v = Number(n);
+    if (!isFinite(v)) return '—';
+    return '$' + Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+  function fmtPct(ratio) {
+    var r = Number(ratio);
+    if (!isFinite(r) || r < 0) return '—';
+    var pct = r * 100;
+    if (pct >= 1) return (Math.round(pct * 100) / 100) + '%';
+    if (pct >= 0.01) return (Math.round(pct * 1000) / 1000) + '%';
+    return pct.toPrecision(2) + '%';
+  }
+  function forbesDate(iso) {
+    var m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return '—';
+    var MON = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    return MON[parseInt(m[2], 10) - 1] + ' ' + parseInt(m[3], 10) + ', ' + m[1];
+  }
+
+  function painterData(e) {
+    return {
+      name: e.name, rank: e.rank,
+      netWorthB: e.net_worth_b, netWorthAsOf: e.net_worth_as_of,
+      spending: e.political_spending, spendingCycle: e.spending_cycle,
+      ratio: e.spending_ratio, matchNote: e.match_note
+    };
+  }
+
+  function rowInner(e, i) {
+    var spendLoaded = e.spending_status === 'loaded' && e.political_spending != null;
+    var barW = 0, ratioLine = '';
+    if (spendLoaded && isFinite(Number(e.spending_ratio)) && Number(e.spending_ratio) > 0) {
+      barW = Math.max(0.4, Math.min(100, Number(e.spending_ratio) * 100));
+      ratioLine = '<div class="pf-ledger-ratio">' + esc(fmtPct(e.spending_ratio)) +
+        ' OF NET WORTH SPENT ON FEDERAL ELECTIONS</div>';
+    }
+    return '<div class="pf-ledger-rank">#' + esc(e.rank) + ' — FORBES 2026</div>' +
+      '<h3 class="pf-ledger-name">' + esc(e.name) + '</h3>' +
+      '<div class="pf-ledger-fig">NET WORTH ' + esc(fmtB(e.net_worth_b)) + '</div>' +
+      '<div class="pf-ledger-caveat">Forbes ' + esc(forbesDate(e.net_worth_as_of)) +
+        ' snapshot · published-list-snapshot</div>' +
+      (spendLoaded
+        ? '<div class="pf-ledger-fig gold">SPENT ' + esc(fmtUSD(e.political_spending)) +
+          ' ON FEDERAL ELECTIONS</div>' +
+          '<div class="pf-ledger-caveat">FEC Schedule A, ' + esc(e.spending_cycle) +
+          ' cycle · name-matched — identity unverified</div>' +
+          '<div class="pf-ledger-barwrap"><div class="pf-ledger-bar" style="width:' +
+          barW.toFixed(2) + '%"></div></div>' + ratioLine
+        : '<div class="pf-ledger-fig dim">' + esc(SPENDING_PENDING) + '</div>' +
+          '<div class="pf-ledger-caveat">No figures shown rather than invented.</div>') +
+      '<div class="pf-ledger-actions">' +
+        '<button type="button" class="pf-ledger-btn" data-ledger-dl="' + i + '">DOWNLOAD</button>' +
+        '<button type="button" class="pf-ledger-btn pf-ledger-btn-red" data-ledger-sh="' + i + '">SHARE</button>' +
+      '</div>';
+  }
+
+  function hide(container) {
+    try { container.style.display = 'none'; container.innerHTML = ''; } catch (e) {}
+  }
+
+  function render(container, j) {
+    cssOnce();
+    var list = j.list || {};
+    var entries = Array.isArray(j.entries) ? j.entries : [];
+    container.innerHTML = '';
+    var root = document.createElement('div');
+    root.className = 'pf-ledger';
+    if (!entries.length) {
+      root.innerHTML = '<div class="pf-ledger-empty">' + esc(EMPTY_MSG) + '</div>';
+      container.appendChild(root);
+      return;
+    }
+    var head = document.createElement('div');
+    head.className = 'pf-ledger-head';
+    head.innerHTML = '<div class="pf-ledger-kicker">FOLLOW THE MONEY</div>' +
+      '<h2 class="pf-ledger-title">THE LEDGER</h2>' +
+      '<div class="pf-ledger-sub">Billionaire net worth vs. political spending — ranked by net worth</div>';
+    root.appendChild(head);
+    var datas = [];
+    for (var i = 0; i < entries.length; i++) {
+      var art = document.createElement('article');
+      art.className = 'pf-ledger-row';
+      art.setAttribute('data-ledger-i', String(i));
+      art.innerHTML = rowInner(entries[i], i);
+      root.appendChild(art);
+      datas.push(painterData(entries[i]));
+    }
+    var cap = document.createElement('div');
+    cap.className = 'pf-ledger-method';
+    cap.textContent = 'METHOD: ' + (j.methodology ||
+      'Net worths hand-transcribed from Forbes\' published 2026 list; spending from FEC Schedule A (name-matched).');
+    root.appendChild(cap);
+    root.addEventListener('click', function (ev) {
+      var t = ev && ev.target;
+      if (!t || !t.getAttribute) return;
+      var dl = t.getAttribute('data-ledger-dl'), sh = t.getAttribute('data-ledger-sh');
+      if (dl == null && sh == null) return;
+      var idx = parseInt(dl != null ? dl : sh, 10) || 0;
+      var pd = datas[idx];
+      if (!pd) return;
+      try {
+        var PHQ = PF.PHQShare;
+        if (!PHQ) { toast('Share is still loading — try again.'); return; }
+        if (dl != null) PHQ.save(PAINTER, pd);
+        else PHQ.share(PAINTER, pd);
+      } catch (e2) { toast('Poster failed — try again.'); }
+    });
+    container.appendChild(root);
+  }
+
+  function mount(container) {
+    if (!container) return false;
+    try {
+      if (container.querySelector && container.querySelector('.pf-ledger')) return true; /* already mounted */
+    } catch (e) {}
+    api('ledger_list', {}, function (j) {
+      if (!j || !j.ok || !Array.isArray(j.entries)) { hide(container); return; }
+      try { render(container, j); } catch (e) { hide(container); }
+    });
+    return true;
+  }
+
+  try {
+    window.PFLedgers = { mount: mount };
+    PF.Ledgers = window.PFLedgers;
+  } catch (e) {}
+})();
+
+;
+
+/* ===== core/boycott-list.js ===== */
+/* core/boycott-list.js  |  PF v1.4.3 | DONOR BOYCOTT LIST.
+   Ranked employer list for the Follow-the-Money expansion: top corporate
+   employers by employee FEC contributions, each row linked into pressure
+   campaigns — "They fund the opposition — here's the campaign pressuring
+   them." Ranked list, amounts, linked campaign cards with JOIN buttons,
+   per-employer DOWNLOAD/SHARE through the EXISTING share flow —
+   PF.PHQShare.save/.share('phq-boycott', {...}) — so the callsign-claim
+   gate, the idempotent stamp, and the share plumbing all ride along.
+   No new share plumbing, no XP anywhere on this frontend (viewing = 0;
+   sharing rides existing create_share:; campaign joins ride the existing
+   pressure-join leg on Political HQ).
+   Backend contract (parallel backend wave, be/donor-boycotts):
+     ?action=boycott_list ->
+     {ok, employers:[{employer, total_donated, cycle, contributions,
+                      headline, linked_campaigns:[{id,title,status}],
+                      source:'FEC'}],
+      total_employers, cycle_scope, disclaimer, method, source:'FEC'}
+     money tables absent -> {ok:true, empty:true, reason:'donor data pending'}
+   JOIN buttons deep-link to the Political HQ pressure pane where the
+   EXISTING campaign join flow lives (fe/pressure-campaigns) — reuse, not
+   a rebuild. The join flow is not duplicated here.
+   Copy rule (hard): rows render the endpoint headline ("Employees of X gave
+   $Y (FEC)") and the disclaimer is prominent — corporations cannot donate
+   directly; these are employee aggregates. Never "the company donated".
+   Fail-soft: endpoint down / malformed -> the mount section hides itself
+   entirely, never a broken widget. empty:true -> the honest empty state.
+   No invented employers/amounts/links — every pixel comes from the
+   endpoint response.
+   Integration hook (Release Eng wires this; do NOT call it from this
+   module — the Political HQ money surface is a sibling file):
+     PFBoycotts.mount(document.getElementById('phq-boycott-slot'))
+   KILL: ?pf_off=boycotts  or  localStorage pf_disabled_v1='["boycotts"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('boycotts')) { return; }
+  if (window.pfBoycottsDone) return;
+  window.pfBoycottsDone = true;
+
+  var BACKEND = window.PF_BACKEND_URL;
+  var PAINTER = 'phq-boycott';
+  var HQ_URL = 'https://www.mtcstw.com/political-hq';
+  var PENDING_MSG = 'Donor data pending — the money tables are still loading. Check back soon.';
+  var EMPTY_MSG = 'No donor data yet.';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function toast(m) { try { if (PF && PF.toast) PF.toast(m); } catch (e) {} }
+  function fmtMoney(n) {
+    try { return '$' + Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 }); }
+    catch (e) { return '$' + String(n); }
+  }
+
+  /* JSONP GET — mirrors core/wall-of-shame.js api(): backend + action +
+     params + callback script tag, 12s timeout, null on any failure. */
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var fn = 'pfBcCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, 12000);
+  }
+
+  var CSS = [
+    '.pf-bc{max-width:680px;margin:0 auto;padding:8px 0}',
+    '.pf-bc-head{text-align:center;margin-bottom:10px}',
+    '.pf-bc-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#e8b923;margin-bottom:8px}',
+    '.pf-bc-title{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 4px}',
+    '.pf-bc-sub{font:400 14px Arial,sans-serif;color:#c9bfa8;margin-bottom:10px}',
+    '.pf-bc-disc{background:#1a1206;border:2px solid #e8b923;border-radius:8px;padding:12px 14px;font:700 13px Arial,sans-serif;color:#e8b923;text-align:center;margin:0 6px 14px;line-height:1.5}',
+    '.pf-bc-row{background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:20px 18px;color:#f5ead6;margin:0 6px 14px}',
+    '.pf-bc-rank{font:700 13px Arial,sans-serif;color:#c9bfa8;letter-spacing:3px;margin-bottom:6px}',
+    '.pf-bc-emp{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 6px;line-height:1.1}',
+    '.pf-bc-amt{font:900 20px "Arial Black",Arial,sans-serif;color:#c1121f;margin-bottom:4px}',
+    '.pf-bc-cyc{font:400 13px Arial,sans-serif;color:#c9bfa8;margin-bottom:12px}',
+    '.pf-bc-camp{background:#161616;border:1px solid #3a3a3a;border-radius:8px;padding:12px;margin-bottom:10px}',
+    '.pf-bc-camp-t{font:700 15px Arial,sans-serif;color:#f5ead6;margin-bottom:4px}',
+    '.pf-bc-camp-s{font:400 12px Arial,sans-serif;color:#c9bfa8;margin-bottom:10px}',
+    '.pf-bc-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}',
+    '.pf-bc-btn{font:900 14px "Arial Black",Arial,sans-serif;background:#f5ead6;color:#0d0d0d;border:0;border-radius:6px;padding:11px 20px;cursor:pointer;text-decoration:none;display:inline-block}',
+    '.pf-bc-btn-red{background:#c1121f;color:#ffffff}',
+    '.pf-bc-btn-gold{background:#e8b923;color:#0d0d0d}',
+    '.pf-bc-nocamp{font:400 13px Arial,sans-serif;color:#c9bfa8;font-style:italic;margin-bottom:4px}',
+    '.pf-bc-empty{font:400 16px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:28px 12px;border:1px dashed #3a3a3a;border-radius:8px}',
+    '.pf-bc-method{font:400 12px Arial,sans-serif;color:#c9bfa8;text-align:center;margin-top:12px;padding:0 12px;line-height:1.5}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-bc-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-bc-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  function hide(container) {
+    try { container.style.display = 'none'; container.innerHTML = ''; } catch (e) {}
+  }
+
+  function hqLink() {
+    var u = HQ_URL;
+    try { if (window.PF && typeof PF.shareUrl === 'function') u = PF.shareUrl(u); } catch (e) {}
+    return u;
+  }
+
+  /* Endpoint row -> painter data object. Every pixel from the response;
+     missing fields degrade to em-dash in the painter. */
+  function painterData(row) {
+    var camps = Array.isArray(row.linked_campaigns) ? row.linked_campaigns : [];
+    var c0 = camps[0] || {};
+    return {
+      employer: row.employer, amount: row.total_donated, cycle: row.cycle,
+      campaignTitle: c0.title || '', campaignId: c0.id || ''
+    };
+  }
+
+  function campHTML(camps) {
+    if (!camps.length) {
+      return '<div class="pf-bc-nocamp">No linked pressure campaign yet.</div>';
+    }
+    var h = '';
+    for (var i = 0; i < camps.length; i++) {
+      var c = camps[i] || {};
+      var st = String(c.status || '').toUpperCase();
+      h += '<div class="pf-bc-camp">' +
+        '<div class="pf-bc-camp-t">' + esc(c.title || c.id || 'Pressure campaign') + '</div>' +
+        (st ? '<div class="pf-bc-camp-s">STATUS: ' + esc(st) + '</div>' : '') +
+        '<a class="pf-bc-btn pf-bc-btn-gold" data-bc-join="1" href="' + esc(hqLink()) +
+        '" target="_blank" rel="noopener">JOIN THE PRESSURE</a>' +
+        '</div>';
+    }
+    return h;
+  }
+
+  function render(container, j) {
+    cssOnce();
+    var rows = Array.isArray(j.employers) ? j.employers : [];
+    container.innerHTML = '';
+    var root = document.createElement('div');
+    root.className = 'pf-bc';
+    var head = document.createElement('div');
+    head.className = 'pf-bc-head';
+    head.innerHTML = '<div class="pf-bc-kicker">FOLLOW THE MONEY &rarr; JOIN THE FIGHT</div>' +
+      '<h2 class="pf-bc-title">DONOR BOYCOTT LIST</h2>' +
+      '<div class="pf-bc-sub">Top employers by employee FEC contributions' +
+      (j.cycle_scope ? ' &middot; ' + esc(j.cycle_scope) + ' cycle' : '') + '</div>';
+    root.appendChild(head);
+    /* The disclaimer is prominent — above the list, not buried. */
+    var disc = document.createElement('div');
+    disc.className = 'pf-bc-disc';
+    disc.textContent = j.disclaimer ||
+      'Totals aggregate individual employee contributions reported to the FEC. ' +
+      'Corporations cannot donate directly — an employer here means its employees gave, not the company.';
+    root.appendChild(disc);
+    if (!rows.length) {
+      var em = document.createElement('div');
+      em.className = 'pf-bc-empty';
+      em.textContent = (j.empty && j.reason === 'donor data pending') ? PENDING_MSG : EMPTY_MSG;
+      root.appendChild(em);
+      container.appendChild(root);
+      return;
+    }
+    var datas = [];
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i] || {};
+      var camps = Array.isArray(r.linked_campaigns) ? r.linked_campaigns : [];
+      var art = document.createElement('article');
+      art.className = 'pf-bc-row';
+      art.innerHTML =
+        '<div class="pf-bc-rank">#' + (i + 1) + '</div>' +
+        '<h3 class="pf-bc-emp">' + esc(r.employer || '—') + '</h3>' +
+        '<div class="pf-bc-amt">' + esc(r.headline || ('Employees gave ' + fmtMoney(r.total_donated) + ' (FEC)')) + '</div>' +
+        '<div class="pf-bc-cyc">' + esc(r.cycle || '') + (r.cycle ? ' cycle' : '') +
+          ' &middot; ' + (parseInt(r.contributions, 10) || 0) + ' reported contributions &middot; source: FEC</div>' +
+        campHTML(camps) +
+        '<div class="pf-bc-actions">' +
+          '<button type="button" class="pf-bc-btn" data-bc-dl="' + i + '">DOWNLOAD</button>' +
+          '<button type="button" class="pf-bc-btn pf-bc-btn-red" data-bc-sh="' + i + '">SHARE</button>' +
+        '</div>';
+      root.appendChild(art);
+      datas.push(painterData(r));
+    }
+    if (j.method) {
+      var cap = document.createElement('div');
+      cap.className = 'pf-bc-method';
+      cap.textContent = 'METHOD: ' + j.method;
+      root.appendChild(cap);
+    }
+    root.addEventListener('click', function (e) {
+      var t = e && e.target;
+      if (!t || !t.getAttribute) return;
+      var dl = t.getAttribute('data-bc-dl'), sh = t.getAttribute('data-bc-sh');
+      if (dl == null && sh == null) return;
+      var idx = parseInt(dl != null ? dl : sh, 10) || 0;
+      var pd = datas[idx];
+      if (!pd) return;
+      try {
+        var PHQ = PF.PHQShare;
+        if (!PHQ) { toast('Share is still loading — try again.'); return; }
+        if (dl != null) PHQ.save(PAINTER, pd);
+        else PHQ.share(PAINTER, pd);
+      } catch (e2) { toast('Poster failed — try again.'); }
+    });
+    container.appendChild(root);
+  }
+
+  function mount(container) {
+    if (!container) return false;
+    try {
+      if (container.querySelector && container.querySelector('.pf-bc')) return true; /* already mounted */
+    } catch (e) {}
+    api('boycott_list', {}, function (j) {
+      if (!j || !j.ok) { hide(container); return; }
+      try { render(container, j); } catch (e) { hide(container); }
+    });
+    return true;
+  }
+
+  try {
+    window.PFBoycotts = { mount: mount };
+    PF.Boycotts = window.PFBoycotts;
+  } catch (e) {}
+})();
+
+;
+
+/* ===== core/corp-card.js ===== */
+/* core/corp-card.js  |  PF v1.4.3 | CORPORATE PLAYBOOK — company facts card.
+   One devastating card per company for the Follow-the-Money surface: stock
+   buybacks vs income taxes paid side-by-side, the effective tax rate,
+   lobbying spend, and the honest price-hike empty state — every figure
+   labeled with its source and year, straight from public filings.
+   DOWNLOAD + SHARE wire through the EXISTING share flow —
+   PF.PHQShare.save/.share('phq-corp', {...}) — so the callsign-claim gate,
+   the idempotent stamp, and the share plumbing all ride along. No new share
+   plumbing, no XP anywhere on this frontend (XP rides existing backend
+   legs only; Economy Desk sign-off PENDING for any card XP — currently none).
+   Backend contract (parallel backend wave, be/corp-playbook):
+     ?action=corp_card&ticker=XOM ->
+     {ok, ticker, name, cik, year, buybacks, tax_paid, pretax_income,
+      effective_rate, lobbying_spend,
+      price_hikes:{empty:true, reason:'no public per-company source', note},
+      sources:[{name, kind, ...}], retrieved_at}
+   Sources: SEC EDGAR companyfacts (FY 10-K XBRL, public, no key) and the
+   Senate LDA LD-2 filings API (public, anonymous). Price hikes: NO public
+   per-company source exists — the endpoint returns an honest empty state
+   and so does this card ("Per-company price data has no public source.
+   Shown: what filings prove."). Never proxied with CPI, never guessed.
+   Fail-soft: endpoint down / unknown ticker / malformed response -> the mount
+   section hides itself entirely, never a broken widget. Missing money
+   fields degrade to em-dash. No invented figures — every pixel comes from
+   the endpoint response.
+   Integration hook (Release Eng wires this when fe/follow-the-money lands;
+   do NOT call it from this module — the company view is a sibling file):
+     PFCorpCard.mount('XOM', document.getElementById('corp-card-slot'))
+   KILL: ?pf_off=corp-card  or  localStorage pf_disabled_v1='["corp-card"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('corp-card')) { return; }
+  if (window.pfCorpCardDone) return;
+  window.pfCorpCardDone = true;
+
+  var BACKEND = window.PF_BACKEND_URL;
+  var PAINTER = 'phq-corp';
+  var EMPTY_MSG = 'No corporate facts on file for this ticker — yet.';
+  var PRICE_EMPTY = 'Per-company price data has no public source. Shown: what filings prove.';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function toast(m) { try { if (PF && PF.toast) PF.toast(m); } catch (e) {} }
+
+  /* JSONP GET — mirrors core/wall-of-shame.js api(): backend + action +
+     params + callback script tag, 12s timeout, null on any failure. */
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var fn = 'pfCpCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, 12000);
+  }
+
+  /* Whole-USD compact money: 19000000000 -> $19.0B. Null/invalid -> em-dash. */
+  function money(v) {
+    if (v == null) return '—';
+    var n = Number(v);
+    if (!isFinite(n)) return '—';
+    var sign = n < 0 ? '−' : '';
+    var a = Math.abs(n);
+    if (a >= 1e9) return sign + '$' + (a / 1e9).toFixed(1) + 'B';
+    if (a >= 1e6) return sign + '$' + (a / 1e6).toFixed(1) + 'M';
+    if (a >= 1e3) return sign + '$' + (a / 1e3).toFixed(1) + 'K';
+    return sign + '$' + Math.round(a);
+  }
+  function pct(v) {
+    if (v == null) return '—';
+    var n = Number(v);
+    if (!isFinite(n)) return '—';
+    return (n * 100).toFixed(1) + '%';
+  }
+
+  /* Source footer from the endpoint's sources[]: one label per public source,
+     each with its year. Never invented — only what the endpoint reports. */
+  function sourceLine(sources, year) {
+    var seen = {}, parts = [];
+    for (var i = 0; i < (sources || []).length; i++) {
+      var s = sources[i] || {};
+      var label = '';
+      if (s.kind === 'edgar') label = 'SEC EDGAR · 10-K FY' + (s.fy || year);
+      else if (s.kind === 'lda') label = 'LDA · ' + (s.year || year) + ' LD-2 FILINGS';
+      else if (s.name) label = String(s.name).toUpperCase();
+      if (label && !seen[label]) { seen[label] = 1; parts.push(label); }
+    }
+    return parts.length ? 'SOURCES: ' + parts.join(' · ') : 'SOURCES: PUBLIC FILINGS';
+  }
+
+  var CSS = [
+    '.pf-cp{max-width:680px;margin:0 auto;padding:8px 0}',
+    '.pf-cp-card{background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:26px 22px;color:#f5ead6;text-align:center}',
+    '.pf-cp-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#c1121f;margin-bottom:10px}',
+    '.pf-cp-name{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 4px}',
+    '.pf-cp-ticker{font:700 15px Arial,sans-serif;color:#e8b923;margin-bottom:16px}',
+    '.pf-cp-vs{display:flex;gap:12px;margin-bottom:8px}',
+    '.pf-cp-col{flex:1;background:#141414;border:1px solid #3a3a3a;border-radius:8px;padding:14px 8px}',
+    '.pf-cp-lab{font:700 12px Arial,sans-serif;letter-spacing:2px;color:#c9bfa8;margin-bottom:8px}',
+    '.pf-cp-amt{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6}',
+    '.pf-cp-amt.red{color:#c1121f}',
+    '.pf-cp-rate{font:900 22px "Arial Black",Arial,sans-serif;color:#e8b923;margin:14px 0 4px}',
+    '.pf-cp-ratelab{font:700 12px Arial,sans-serif;letter-spacing:2px;color:#c9bfa8;margin-bottom:12px}',
+    '.pf-cp-lob{font:700 16px Arial,sans-serif;color:#f5ead6;margin-bottom:4px}',
+    '.pf-cp-loblab{font:700 12px Arial,sans-serif;letter-spacing:2px;color:#c9bfa8;margin-bottom:14px}',
+    '.pf-cp-price{font:400 14px Arial,sans-serif;color:#c9bfa8;border:1px dashed #3a3a3a;border-radius:8px;padding:12px;margin:6px 0 14px}',
+    '.pf-cp-src{font:400 12px Arial,sans-serif;color:#8a8272;margin-bottom:16px}',
+    '.pf-cp-actions{display:flex;gap:10px;justify-content:center}',
+    '.pf-cp-btn{font:900 15px "Arial Black",Arial,sans-serif;background:#f5ead6;color:#0d0d0d;border:0;border-radius:6px;padding:12px 22px;cursor:pointer}',
+    '.pf-cp-btn-red{background:#c1121f;color:#ffffff}',
+    '.pf-cp-empty{font:400 16px Arial,sans-serif;color:#c9bfa8;text-align:center;padding:28px 12px;border:1px dashed #3a3a3a;border-radius:8px}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-cp-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-cp-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  function hide(container) {
+    try { container.style.display = 'none'; container.innerHTML = ''; } catch (e) {}
+  }
+
+  /* Endpoint response -> painter data object. Every pixel from the response;
+     missing fields degrade to em-dash in the painter, never invented. */
+  function painterData(j) {
+    return {
+      ticker: j.ticker, name: j.name, year: j.year,
+      buybacks: j.buybacks, taxPaid: j.tax_paid,
+      effectiveRate: j.effective_rate, lobbyingSpend: j.lobbying_spend,
+      sourceLine: sourceLine(j.sources, j.year)
+    };
+  }
+
+  function render(container, j) {
+    cssOnce();
+    container.innerHTML = '';
+    var root = document.createElement('div');
+    root.className = 'pf-cp';
+    var ph = j.price_hikes || {};
+    var note = (ph.empty && (ph.note || PRICE_EMPTY)) || PRICE_EMPTY;
+    root.innerHTML =
+      '<div class="pf-cp-card">' +
+        '<div class="pf-cp-kicker">THEIR PLAYBOOK</div>' +
+        '<h3 class="pf-cp-name">' + esc(j.name) + '</h3>' +
+        '<div class="pf-cp-ticker">' + esc(j.ticker) + ' · FY' + esc(j.year) + '</div>' +
+        '<div class="pf-cp-vs">' +
+          '<div class="pf-cp-col">' +
+            '<div class="pf-cp-lab">STOCK BUYBACKS</div>' +
+            '<div class="pf-cp-amt">' + esc(money(j.buybacks)) + '</div>' +
+            '<div class="pf-cp-ratelab">SEC EDGAR · FY' + esc(j.year) + '</div>' +
+          '</div>' +
+          '<div class="pf-cp-col">' +
+            '<div class="pf-cp-lab">INCOME TAXES PAID</div>' +
+            '<div class="pf-cp-amt red">' + esc(money(j.tax_paid)) + '</div>' +
+            '<div class="pf-cp-ratelab">SEC EDGAR · FY' + esc(j.year) + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="pf-cp-rate">EFFECTIVE TAX RATE: ' + esc(pct(j.effective_rate)) + '</div>' +
+        '<div class="pf-cp-ratelab">TAXES PAID ÷ PRETAX INCOME · SEC EDGAR · FY' + esc(j.year) + '</div>' +
+        '<div class="pf-cp-lob">LOBBYING SPEND: ' + esc(money(j.lobbying_spend)) + '</div>' +
+        '<div class="pf-cp-loblab">LDA LD-2 FILINGS · ' + esc(j.year) + ' · AS-FILED ESTIMATE</div>' +
+        '<div class="pf-cp-price">PRICE HIKES: ' + esc(note) + '</div>' +
+        '<div class="pf-cp-src">' + esc(sourceLine(j.sources, j.year)) + '</div>' +
+        '<div class="pf-cp-actions">' +
+          '<button type="button" class="pf-cp-btn" data-cp-dl="1">DOWNLOAD</button>' +
+          '<button type="button" class="pf-cp-btn pf-cp-btn-red" data-cp-sh="1">SHARE</button>' +
+        '</div>' +
+      '</div>';
+    var pd = painterData(j);
+    root.addEventListener('click', function (e) {
+      var t = e && e.target;
+      if (!t || !t.getAttribute) return;
+      var dl = t.getAttribute('data-cp-dl'), sh = t.getAttribute('data-cp-sh');
+      if (dl == null && sh == null) return;
+      try {
+        var PHQ = PF.PHQShare;
+        if (!PHQ) { toast('Share is still loading — try again.'); return; }
+        if (dl != null) PHQ.save(PAINTER, pd);
+        else PHQ.share(PAINTER, pd);
+      } catch (e2) { toast('Poster failed — try again.'); }
+    });
+    container.appendChild(root);
+  }
+
+  function mount(ticker, container) {
+    if (!ticker || !container) return false;
+    try {
+      if (container.querySelector && container.querySelector('.pf-cp')) return true; /* already mounted */
+    } catch (e) {}
+    api('corp_card', { ticker: String(ticker).toUpperCase() }, function (j) {
+      if (!j || !j.ok || !j.ticker) {
+        /* honest empty state on unknown ticker; full hide on transport failure */
+        if (j && j.ok === false && j.err) {
+          cssOnce();
+          container.innerHTML = '<div class="pf-cp"><div class="pf-cp-empty">' + esc(EMPTY_MSG) + '</div></div>';
+          return;
+        }
+        hide(container);
+        return;
+      }
+      try { render(container, j); } catch (e) { hide(container); }
+    });
+    return true;
+  }
+
+  try {
+    window.PFCorpCard = { mount: mount };
+    PF.CorpCard = window.PFCorpCard;
+  } catch (e) {}
+})();
+
+;
+
+/* ===== core/money-page.js ===== */
+/* core/money-page.js  |  PF v1.4.3 | FOLLOW THE MONEY — page + tab shell.
+   Context-aware mount for the money suite (phq-hub-ia-spec §4 — no code
+   fork):
+     - <div id="pf-money"> present        -> FULL-PAGE shell (the /follow-the-money page)
+     - only <div id="pf-political-hq">     -> INTERIM MONEY TAB (compact, lazy)
+     - PHQ context + money_page_url set   -> one-cycle REDIRECT CARD to /follow-the-money
+   The /follow-the-money page itself is a CEO hand-step (Squarespace page + #pf-money
+   Code block + nav entry; BLOSSOM M1 2026-10-06: /money redirects here). Until it exists, nothing here is blocked: the
+   suite ships as the 6th hub tab inside /political-hq.
+   Cutover: Release Eng sets the `money_page_url` site-config value (default
+   empty) in the same push that adds the loader detection entry + the
+   'pf-money' PAGE_ORDERS mapping. No silo-id changes — every ?pf_off= id
+   below survives the move, so operator kill state carries over.
+   Sections (kill ids): money-macro · money-fec-donors · money-vote · wallshame ·
+   pac-alerts · trades-tab · money-small-dollar · corp-card · ledgers ·
+   boycotts · money-deep8 (9 ids) · master kill: ?pf_off=money.
+   Copy contract: "received $X from" enforced, never "bought by"; every
+   figure carries SOURCE + DATA AS OF; juxtaposition cards always carry the
+   correlation line. Hub mission + tab label copy is PROVISIONAL — Psych veto.
+   No XP anywhere on this frontend (viewing = 0; shares ride the existing
+   create_share: backend leg). War Bonds = 0 XP (standing rule).
+   KILL: ?pf_off=money (master) or per-section ids above. */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF) { return; }
+  /* Master kill: ?pf_off=money darkens the entire suite (FE review #8). */
+  if (PF.skip('money')) { return; }
+  if (window.pfMoneyPageDone) return;
+  window.pfMoneyPageDone = true;
+
+  /* Master kill helper (FE review #8): ?pf_off=money darkens everything. */
+  function skip(id) { return PF.skip('money') || PF.skip(id); }
+
+  var BACKEND = window.PF_BACKEND_URL;
+  var PHQ = 'https://www.mtcstw.com/political-hq';
+  var CREATE = 'https://www.mtcstw.com/create';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function err(m) { try { if (PF && PF.error) PF.error('money-page', m); } catch (e) {} }
+  function isEditor() {
+    try {
+      var h = window.location.href || '';
+      if (h.indexOf('/config/') !== -1) return true;
+      var b = document.body;
+      if (b && (b.classList.contains('sqs-edit-mode') || b.classList.contains('sqs-editing'))) return true;
+    } catch (e) {}
+    return false;
+  }
+
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var fn = 'pfMoneyPageCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, 12000);
+  }
+
+  function qs(name) {
+    try {
+      var m = new RegExp('[?&]' + name + '=([^&#]*)').exec(window.location.search || '');
+      return m ? decodeURIComponent(m[1]) : '';
+    } catch (e) { return ''; }
+  }
+
+  var CSS = [
+    '.pf-mp{max-width:960px;margin:0 auto;padding:8px 0 24px;color:#f5ead6;font-family:Arial,sans-serif}',
+    '.pf-mp-kicker{font-weight:700;font-size:13px;letter-spacing:6px;color:#e8b923;text-align:center;margin-bottom:8px}',
+    '.pf-mp-title{font-weight:900;font-size:34px;text-align:center;margin:0 0 6px;letter-spacing:2px}',
+    '.pf-mp-mission{font-size:15px;color:#c9bfa8;text-align:center;margin:0 0 20px;font-style:italic}',
+    '.pf-mp-sec{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:10px;padding:18px;margin-bottom:14px}',
+    '.pf-mp-sec h3{font-weight:900;font-size:19px;letter-spacing:2px;margin:0 0 4px;color:#f5ead6}',
+    '.pf-mp-sec .pf-mp-sub{font-size:13px;color:#c9bfa8;margin:0 0 12px}',
+    '.pf-mp-pick{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}',
+    '.pf-mp-pick input{flex:1;min-width:180px;background:#1a1a1a;border:1px solid #3a3a3a;color:#f5ead6;border-radius:6px;padding:10px 12px;font-size:15px}',
+    '.pf-mp-btn{background:#c1121f;color:#fff;border:0;border-radius:6px;padding:10px 18px;font-weight:900;letter-spacing:1px;cursor:pointer;font-size:14px}',
+    '.pf-mp-btn.ghost{background:#1a1a1a;border:1px solid #3a3a3a;color:#f5ead6}',
+    '.pf-mp-cor{font-size:13px;color:#c9bfa8;border-top:1px solid #2a2a2a;margin-top:12px;padding-top:10px;font-style:italic}',
+    '.pf-mp-share{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}',
+    '.pf-mp-rail{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:18px 0 6px}',
+    '.pf-mp-rail a{color:#e8b923;font-weight:700;font-size:14px;letter-spacing:1px;text-decoration:none;border:1px solid #3a3a3a;border-radius:6px;padding:10px 16px;background:#0d0d0d}',
+    '.pf-mp-ac{display:block;text-align:center;margin:22px auto 0;max-width:420px;background:#c1121f;color:#fff;font-weight:900;letter-spacing:2px;font-size:16px;padding:14px;border-radius:8px;text-decoration:none}',
+    '.pf-mp-gauge{height:26px;border-radius:4px;overflow:hidden;display:flex;margin:10px 0}',
+    '.pf-mp-g-sm{background:#e8b923}.pf-mp-g-lg{background:#c1121f}',
+    '.pf-mp-gleg{display:flex;justify-content:space-between;font-size:13px;color:#c9bfa8;font-weight:700;flex-wrap:wrap;gap:6px}',
+    '.pf-mp-note{font-size:13px;color:#c9bfa8;text-align:center;padding:14px}',
+    '.pf-mp-redirect{max-width:560px;margin:24px auto;background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:28px 22px;text-align:center;color:#f5ead6;font-family:Arial,sans-serif}',
+    '.pf-mp-redirect h3{font-weight:900;font-size:22px;letter-spacing:2px;margin:0 0 10px}',
+    '.pf-mp-redirect p{color:#c9bfa8;font-size:14px;margin:0 0 16px}',
+    '.pf-mp-redirect a{display:inline-block;background:#c1121f;color:#fff;font-weight:900;letter-spacing:2px;padding:14px 28px;border-radius:8px;text-decoration:none;font-size:16px}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-mp-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-mp-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  /* Shared picker state: one legislator + one bill drive the linked sections. */
+  var state = { bioguide: qs('bioguide') || '', bill: qs('bill') || '' };
+
+  function sectionShell(id, title, sub) {
+    return '<section class="pf-mp-sec" id="money-' + esc(id) + '" data-sec="' + esc(id) + '">' +
+      '<h3>' + esc(title) + '</h3>' +
+      (sub ? '<p class="pf-mp-sub">' + esc(sub) + '</p>' : '') +
+      '<div class="pf-mp-body"></div></section>';
+  }
+
+  /* ---- section 1: FEC donor files (element money-fec-donors) ---- */
+  function mountFec(body) {
+    var wrap = document.createElement('div');
+    wrap.innerHTML =
+      '<div class="pf-mp-pick">' +
+      '<input id="pf-mp-bio" placeholder="Bioguide ID — e.g. A000055" value="' + esc(state.bioguide) + '" aria-label="Legislator Bioguide ID">' +
+      '<button class="pf-mp-btn" id="pf-mp-bio-go">PULL THE FILE</button></div>' +
+      '<div class="pf-mp-slot"></div>' +
+      '<p class="pf-mp-note">Donor files come straight from FEC filings. Type a Bioguide ID ' +
+      '(find it on the legislator\u2019s directory page) — or open this page with <b>?bioguide=</b>.</p>';
+    body.appendChild(wrap);
+    var slot = wrap.querySelector('.pf-mp-slot');
+    function load(bio) {
+      if (!bio) return;
+      state.bioguide = bio;
+      slot.innerHTML = '';
+      try {
+        if (window.PFMoneyTab) PFMoneyTab.mount(bio, slot);
+        else { slot.innerHTML = '<p class="pf-mp-note">Money module still loading — try again.</p>'; }
+      } catch (e) { err('fec mount failed :: ' + (e && e.message || e)); }
+      mountGauge(document.getElementById('pf-mp-gauge-slot'), bio);
+    }
+    wrap.querySelector('#pf-mp-bio-go').addEventListener('click', function () {
+      load(wrap.querySelector('#pf-mp-bio').value.trim());
+    });
+    if (state.bioguide) load(state.bioguide);
+  }
+
+  /* ---- section 6: small-dollar ratio gauge (element money-small-dollar) ---- */
+  function mountGauge(slot, bioguide) {
+    if (!slot) return;
+    if (skip('money-small-dollar')) { slot.innerHTML = ''; return; }
+    if (!bioguide) {
+      slot.innerHTML = '<p class="pf-mp-note">Pull a donor file above to see the small-dollar split.</p>';
+      return;
+    }
+    api('money_legislator', { bioguide_id: bioguide }, function (j) {
+      try {
+        if (!j || !j.ok || j.empty || typeof j.small_dollar_pct !== 'number') {
+          slot.innerHTML = '<p class="pf-mp-note">Small-dollar data isn\u2019t loaded yet — no figures shown rather than guesses.</p>';
+          return;
+        }
+        var sm = Math.max(0, Math.min(100, j.small_dollar_pct));
+        var lg = Math.max(0, Math.min(100, 100 - sm));
+        var name = (j.member && j.member.name) || bioguide;
+        slot.innerHTML =
+          '<div class="pf-mp-gauge"><div class="pf-mp-g-sm" style="width:' + sm.toFixed(1) + '%"></div>' +
+          '<div class="pf-mp-g-lg" style="width:' + lg.toFixed(1) + '%"></div></div>' +
+          '<div class="pf-mp-gleg"><span>SMALL-DOLLAR: ' + sm.toFixed(1) + '%</span>' +
+          '<span>LARGE-DOLLAR: ' + lg.toFixed(1) + '%</span></div>' +
+          '<p class="pf-mp-note">SOURCE: FEC \u00b7 ' + esc(String(j.cycle || '')) + ' cycle \u00b7 ' +
+          esc(String(name)) + '</p>';
+      } catch (e) { slot.innerHTML = '<p class="pf-mp-note">Small-dollar data isn\u2019t loaded yet.</p>'; }
+    });
+  }
+
+  /* ---- section 2+3: vote-vs-donor + wall of shame (bill-linked) ---- */
+  function mountVote(body) {
+    var wrap = document.createElement('div');
+    wrap.innerHTML =
+      '<div class="pf-mp-pick">' +
+      '<input id="pf-mp-bill" placeholder="Bill ID — e.g. H.R.3633" value="' + esc(state.bill) + '" aria-label="Bill ID">' +
+      '<button class="pf-mp-btn" id="pf-mp-bill-go">FOLLOW THIS BILL</button></div>' +
+      '<div class="pf-mp-slot"></div>' +
+      '<div class="pf-mp-share" style="display:none">' +
+      '<button class="pf-mp-btn ghost" data-act="share">SHARE THIS CARD</button>' +
+      '<button class="pf-mp-btn ghost" data-act="forge">FORGE THIS</button></div>' +
+      '<p class="pf-mp-cor">Donations and votes are separate public records. ' +
+      'Donations don\u2019t prove motive \u2014 they show who\u2019s in the room.</p>' +
+      '<p class="pf-mp-note">Tip: open this page with <b>?bill=</b> to deep-link a bill.</p>';
+    body.appendChild(wrap);
+    var slot = wrap.querySelector('.pf-mp-slot');
+    var shareRow = wrap.querySelector('.pf-mp-share');
+    var lastData = null;
+    function load(bill) {
+      if (!bill) return;
+      state.bill = bill;
+      slot.innerHTML = '';
+      shareRow.style.display = 'none';
+      lastData = null;
+      try {
+        if (window.PFMoneyVote) PFMoneyVote.mount(bill, slot);
+        else { slot.innerHTML = '<p class="pf-mp-note">Money module still loading — try again.</p>'; }
+      } catch (e) { err('vote mount failed :: ' + (e && e.message || e)); }
+      /* Fetch the same endpoint for the share payload + wall mount. */
+      api('money_vote_card', { bill_id: bill }, function (j) {
+        try {
+          if (j && j.ok && j.cards) { lastData = j; shareRow.style.display = 'flex'; }
+        } catch (e) {}
+      });
+      mountWall(bill);
+    }
+    wrap.querySelector('#pf-mp-bill-go').addEventListener('click', function () {
+      load(wrap.querySelector('#pf-mp-bill').value.trim());
+    });
+    shareRow.addEventListener('click', function (ev) {
+      var b = ev.target && ev.target.getAttribute ? ev.target.getAttribute('data-act') : null;
+      if (!b || !lastData) return;
+      var payload = votePosterPayload(lastData);
+      if (b === 'share') {
+        try {
+          if (PF.PHQShare) PF.PHQShare.share('phq-votedonor', payload);
+          else err('PHQShare missing for vote share');
+        } catch (e) { err('vote share failed :: ' + (e && e.message || e)); }
+      } else if (b === 'forge') {
+        try {
+          sessionStorage.setItem('pf_forge_prefill_v1', JSON.stringify({
+            kind: 'money-vote', painter: 'phq-votedonor', data: payload,
+            caption: 'THE MONEY BEHIND THE VOTE — ' + (payload.billTitle || '')
+          }));
+          window.location.href = CREATE;
+        } catch (e) { err('forge stash failed :: ' + (e && e.message || e)); }
+      }
+    });
+    if (state.bill) load(state.bill);
+  }
+
+  function votePosterPayload(j) {
+    var cards = Array.isArray(j.cards) ? j.cards : [];
+    var rows = cards.slice(0, 4).map(function (c) {
+      var m = (c.money && c.money.industries && c.money.industries[0]) || null;
+      return {
+        name: c.name || '\u2014',
+        copy: (m && m.copy) || '',
+        vote: c.position || ''
+      };
+    });
+    return {
+      billTitle: (j.bill && j.bill.title) || j.bill_id || '',
+      billId: (j.bill && j.bill.bill_id) || '',
+      cycle: j.cycle || '',
+      rows: rows,
+      source: 'FEC (api.open.fec.gov)'
+    };
+  }
+
+  function mountWall(bill) {
+    var sec = document.querySelector('[data-sec="wallshame"] .pf-mp-body');
+    if (!sec) return;
+    if (skip('wallshame')) { sec.innerHTML = ''; return; }
+    sec.innerHTML = '<div class="pf-mp-slot"></div>';
+    try {
+      if (window.PFWallShame) PFWallShame.mount(bill, sec.querySelector('.pf-mp-slot'));
+    } catch (e) { err('wall mount failed :: ' + (e && e.message || e)); }
+  }
+
+  /* ---- section 7: corporate playbook ---- */
+  function mountCorp(body) {
+    var wrap = document.createElement('div');
+    wrap.innerHTML =
+      '<div class="pf-mp-pick">' +
+      '<input id="pf-mp-ticker" placeholder="Ticker — e.g. XOM" aria-label="Company ticker">' +
+      '<button class="pf-mp-btn" id="pf-mp-ticker-go">PULL THE PLAYBOOK</button></div>' +
+      '<div class="pf-mp-slot"></div>' +
+      '<p class="pf-mp-note">Buybacks, tax rates, and lobbying spend — from SEC EDGAR 10-K filings ' +
+      'and Senate lobbying disclosures. Shown: what filings prove.</p>';
+    body.appendChild(wrap);
+    var slot = wrap.querySelector('.pf-mp-slot');
+    wrap.querySelector('#pf-mp-ticker-go').addEventListener('click', function () {
+      var t = wrap.querySelector('#pf-mp-ticker').value.trim().toUpperCase();
+      if (!t) return;
+      slot.innerHTML = '';
+      try {
+        if (window.PFCorpCard) PFCorpCard.mount(t, slot);
+        else { slot.innerHTML = '<p class="pf-mp-note">Money module still loading — try again.</p>'; }
+      } catch (e) { err('corp mount failed :: ' + (e && e.message || e)); }
+    });
+  }
+
+  /* ---- wiring: exits rail + AC return ---- */
+  function exitsRail(root) {
+    var nav = document.createElement('nav');
+    nav.className = 'pf-mp-rail';
+    nav.setAttribute('aria-label', 'Money suite exits');
+    var links = [
+      ['FIND YOUR REP', PHQ + '#phq-people'],
+      ['BILL FILES', PHQ + '#phq-bills'],
+      ['RACES', PHQ + '#phq-ballot'],
+      ['PRESSURE CAMPAIGNS', PHQ + '#phq-action'],
+      ['POSTER FORGE', CREATE],
+      /* SPACE-AUDIT FIX 2 (2026-10-06): /fund was orphaned — inbound link
+         from the money trail's exits rail. */
+      ['PROPAGANDA FUND', '/fund']
+    ];
+    nav.innerHTML = links.map(function (l) {
+      return '<a href="' + esc(l[1]) + '">' + esc(l[0]) + '</a>';
+    }).join('');
+    root.appendChild(nav);
+    var ac = document.createElement('a');
+    ac.className = 'pf-mp-ac';
+    ac.href = PHQ + '#phq-action';
+    ac.textContent = 'BACK TO ACTION CENTER \u2192';
+    root.appendChild(ac);
+  }
+
+  /* ---- builders: full page vs interim tab ---- */
+  var SECTIONS = [
+    { key: 'macro', kill: 'money-macro', title: 'MACRO',
+      sub: 'The headline numbers, straight from the Fed data vault.', mount: function (body) {
+        var d = document.createElement('div'); body.appendChild(d);
+        try { if (window.PFMacro) PFMacro.mount(d); } catch (e) { err('macro mount failed'); }
+      } },
+    /* FRED Everywhere Phase 1 (2026-10-05): "the economy they're governing"
+       strip — policy transmission (Fed → mortgage), the real-wage read,
+       labor-market health. Weekly cadence, Monday refresh note. */
+    { key: 'governing', kill: 'money-governing', title: 'THE ECONOMY THEY\u2019RE GOVERNING',
+      sub: 'The numbers behind the policies — who they serve, who they squeeze.', mount: function (body) {
+        var d = document.createElement('div'); body.appendChild(d);
+        try { if (window.PFGoverning) PFGoverning.mount(d); } catch (e) { err('governing mount failed'); }
+      } },
+    /* FRED Everywhere Phase 2 (2026-10-05): Tool 1 "Stack 'Em" — the full
+       comparison builder on the MACRO page. Suggested matchups default,
+       free pick guardrailed server-side. Kill: ?pf_off=money-stackem. */
+    { key: 'stackem', kill: 'money-stackem', title: 'STACK \u2019EM',
+      sub: 'STACK TWO NUMBERS. START AN ARGUMENT.', mount: function (body) {
+        var d = document.createElement('div'); d.id = 'pf-stackem'; body.appendChild(d);
+        try { if (window.PFStackEm) PFStackEm.mount(d); } catch (e) { err('stackem mount failed'); }
+      } },
+    /* FRED Everywhere Phase 2 (2026-10-05): Tool 2 explainer embedded in
+       Follow the Money — "WHAT'S THIS COSTING YOU?" Topic-first, series
+       picker ("nerd mode") one tap deeper. Kill: ?pf_off=money-explain. */
+    { key: 'explain', kill: 'money-explain', title: 'WHAT\u2019S THIS COSTING YOU?',
+      sub: 'You tell it what\u2019s hitting your wallet; it tells you what the numbers actually say.', mount: function (body) {
+        var d = document.createElement('div'); d.id = 'pf-explain-money'; body.appendChild(d);
+        try { if (window.PFExplain) PFExplain.mount(d, 'money'); } catch (e) { err('explain mount failed'); }
+      } },
+    /* P-14/P-16 (Wave A6/PW1): the macro wall — public gallery of everything
+       made with FRED data + HQ model pieces. Display only, zero XP. */
+    { key: 'gallery', kill: 'macro-gallery', title: 'THE MACRO WALL',
+      sub: 'Made with official data. See it. Remix it. Post it.', mount: function (body) {
+        var d = document.createElement('div'); body.appendChild(d);
+        try { if (window.PFMacroGallery) PFMacroGallery.mount(d); } catch (e) { err('macro gallery mount failed'); }
+      } },
+    { key: 'fec', kill: 'money-fec-donors', title: 'FEC DONOR FILES',
+      sub: 'Every legislator\u2019s money, straight from the filings.', mount: mountFec },
+    { key: 'vote', kill: 'money-vote', title: 'THE MONEY BEHIND THE VOTE',
+      sub: 'Who funded both sides of the fight.', mount: mountVote },
+    { key: 'wallshame', kill: 'wallshame', title: 'WALL OF SHAME',
+      sub: 'The votes against us, named and sourced.', mount: function (body) {
+        body.innerHTML = '<p class="pf-mp-note">Pick a bill above — the wall fills with its worst votes.</p>';
+      } },
+    { key: 'pac', kill: 'pac-alerts', title: 'SUPER PAC ALERTS',
+      sub: 'New money drops, as they land.', mount: function (body) {
+        var d = document.createElement('div'); body.appendChild(d);
+        try { if (window.PFPacAlerts) PFPacAlerts.mount(d); } catch (e) { err('pac mount failed'); }
+      } },
+    { key: 'trades', kill: 'trades-tab', title: 'TRADES ON THE HILL',
+      sub: 'What they bought and sold while writing the rules.', mount: function (body) {
+        var d = document.createElement('div'); body.appendChild(d);
+        try { if (window.PFTrades) PFTrades.mount(d, { bioguideId: state.bioguide }); } catch (e) { err('trades mount failed'); }
+      } },
+    { key: 'gauge', kill: 'money-small-dollar', title: 'SMALL-DOLLAR RATIO',
+      sub: 'People-powered or donor-powered?', mount: function (body) {
+        var d = document.createElement('div'); d.id = 'pf-mp-gauge-slot'; body.appendChild(d);
+        mountGauge(d, state.bioguide);
+      } },
+    { key: 'corp', kill: 'corp-card', title: 'CORPORATE PLAYBOOK',
+      sub: 'Buybacks, tax dodges, lobbying — the filings don\u2019t lie.', mount: mountCorp },
+    { key: 'ledgers', kill: 'ledgers', title: 'BILLIONAIRE LEDGERS',
+      sub: 'The money behind the curtain, ledger by ledger.', mount: function (body) {
+        var d = document.createElement('div'); body.appendChild(d);
+        try { if (window.PFLedgers) PFLedgers.mount(d); } catch (e) { err('ledgers mount failed'); }
+      } },
+    { key: 'boycotts', kill: 'boycotts', title: 'DONOR BOYCOTTS',
+      sub: 'They fund the opposition — here\u2019s the pressure.', mount: function (body) {
+        var d = document.createElement('div'); body.appendChild(d);
+        try { if (window.PFBoycotts) PFBoycotts.mount(d); } catch (e) { err('boycotts mount failed'); }
+      } },
+    { key: 'deep8', kill: null, title: 'THE REST OF THE MONEY MAP',
+      sub: 'Eight more cuts, wiring up now.', mount: function (body) {
+        var d = document.createElement('div'); body.appendChild(d);
+        try { if (window.PFMoneyDeep) PFMoneyDeep.mount(d); } catch (e) { err('deep8 mount failed'); }
+      } }
+  ];
+
+  function buildSections(root, lazy) {
+    cssOnce();
+    var frag = document.createDocumentFragment();
+    SECTIONS.forEach(function (s) {
+      if (s.kill && skip(s.kill)) return;
+      var tmp = document.createElement('div');
+      tmp.innerHTML = sectionShell(s.key, s.title, s.sub);
+      var sec = tmp.firstChild;
+      frag.appendChild(sec);
+      var body = sec.querySelector('.pf-mp-body');
+      if (lazy) {
+        /* Interim tab: sections mount on first intersection (PHQ budget). */
+        try {
+          var io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (en) {
+              if (en.isIntersecting) {
+                try { io.disconnect(); } catch (e) {}
+                try { s.mount(body); } catch (e) { err('lazy mount failed: ' + s.key); }
+              }
+            });
+          }, { rootMargin: '200px' });
+          io.observe(sec);
+        } catch (e) { try { s.mount(body); } catch (e2) {} }
+      } else {
+        try { s.mount(body); } catch (e) { err('mount failed: ' + s.key + ' :: ' + (e && e.message || e)); }
+      }
+    });
+    root.appendChild(frag);
+  }
+
+  function renderPage(host) {
+    if (host.querySelector('.pf-mp')) return;
+    var root = document.createElement('div');
+    root.className = 'pf-mp';
+    root.innerHTML =
+      '<div class="pf-mp-kicker">MTCSTW.COM</div>' +
+      '<h2 class="pf-mp-title">FOLLOW THE MONEY</h2>' +
+      '<p class="pf-mp-mission">Follow the money. See who funds the votes.</p>';
+    host.appendChild(root);
+    buildSections(root, false);
+    exitsRail(root);
+  }
+
+  function renderTab(host) {
+    if (document.getElementById('phq-money')) return;
+    var sec = document.createElement('section');
+    sec.id = 'phq-money';
+    sec.className = 'pf-hub';
+    sec.setAttribute('data-hub', 'money');
+    var root = document.createElement('div');
+    root.className = 'pf-mp';
+    root.innerHTML =
+      '<div class="pf-mp-kicker">SECTION 06 \u2014 FOLLOW THE MONEY</div>' +
+      '<h2 class="pf-mp-title">FOLLOW THE MONEY</h2>' +
+      '<p class="pf-mp-mission">Follow the money. See who funds the votes.</p>';
+    sec.appendChild(root);
+    host.appendChild(sec);
+    buildSections(root, true);
+    exitsRail(root);
+  }
+
+  function renderRedirect(host, url) {
+    if (document.getElementById('phq-money')) return;
+    var sec = document.createElement('section');
+    sec.id = 'phq-money';
+    sec.className = 'pf-hub';
+    sec.innerHTML =
+      '<div class="pf-mp-redirect"><h3>FOLLOW THE MONEY</h3>' +
+      '<p>The money war room moved to its own page.</p>' +
+      '<a href="' + esc(url) + '">OPEN THE WAR ROOM \u2192</a></div>';
+    host.appendChild(sec);
+  }
+
+  function boot() {
+    if (isEditor()) return;
+    var moneyDiv = document.getElementById('pf-money');
+    var phqDiv = document.getElementById('pf-political-hq');
+    function go(cfg) {
+      var url = (cfg && cfg.money_page_url) || '';
+      try {
+        if (moneyDiv) { renderPage(moneyDiv); return; }
+        if (phqDiv) {
+          if (skip('money-tab')) return;
+          if (url) renderRedirect(phqDiv, url);
+          else renderTab(phqDiv);
+        }
+      } catch (e) { err('boot failed :: ' + (e && e.message || e)); }
+    }
+    try {
+      if (PF.siteConfig && PF.siteConfig.ready) PF.siteConfig.ready(go);
+      else go({});
+    } catch (e) { go({}); }
+  }
+
+  try {
+    window.PFMoney = { skip: skip, mountPage: renderPage, mountTab: renderTab };
+  } catch (e) {}
+
+  /* Self-mounting silo: runs at bundle time; idempotent. */
+  try {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', boot);
+    } else { boot(); }
+  } catch (e) { err('init failed'); }
+})();
+
+;
+
+/* ===== core/money-trades.js ===== */
+/* core/money-trades.js  |  PF v1.4.3 | CONGRESSIONAL STOCK TRADES.
+   Person-card + trade-timeline for the Follow-the-Money suite
+   (element id money-stock-trades; /money page + interim PHQ money tab).
+   Never auto-mounts — the money-page shell calls PFTrades.mount(container,
+   {bioguideId}).
+   LEGAL HOLD: congressional trade disclosures are financial-disclosure data
+   under the narrow commercial-use hold — until the hold resolves, this card
+   renders ONLY the honest empty state. No endpoint exists yet
+   (?action=money_trades is reserved); when the backend lands, the card
+   lights up with zero frontend changes. Never invent a trade, a ticker, a
+   date, or an amount.
+   Expected contract (reserved):
+     ?action=money_trades&bioguide_id=A000055 ->
+     {ok, bioguide_id, name, source:'House/Senate Financial Disclosures',
+      retrieved_at, cycle, trades:[{ticker, asset, type:'buy'|'sell',
+      amount_range, filed_date, transaction_date}]}
+   Fail-soft: endpoint down / {ok:false} / malformed / hold active ->
+   the honest empty state ("AWAITING PUBLIC DATA"). Never a blank card,
+   never a spinner that spins forever, never "0" standing in for unknown.
+   No XP anywhere on this frontend (viewing = 0; sharing rides the existing
+   create_share: backend leg only when real data is present).
+   KILL: ?pf_off=money-stock-trades (master: ?pf_off=money) */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF) { return; }
+  if (PF.skip('money') || PF.skip('money-stock-trades')) { return; }
+  if (window.pfTradesDone) return;
+  window.pfTradesDone = true;
+
+  var BACKEND = window.PF_BACKEND_URL;
+  var HOLD_MSG = 'AWAITING PUBLIC DATA — Trade disclosures are being wired up. This card goes live the moment the feed connects.';
+  var EMPTY_MSG = 'NO PUBLIC RECORDS FOUND — Searched House/Senate financial disclosures. Nothing filed under this name.';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var fn = 'pfTradesCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, 12000);
+  }
+
+  var CSS = [
+    '.pf-tr{max-width:680px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}',
+    '.pf-tr-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}',
+    '.pf-tr-title{font-weight:900;font-size:22px;text-align:center;margin:0 0 12px;letter-spacing:1px}',
+    '.pf-tr-empty{border:1px dashed #3a3a3a;border-radius:8px;padding:26px 16px;text-align:center}',
+    '.pf-tr-empty .pf-tr-dash{font-size:40px;color:#3a3a3a;display:block;margin-bottom:8px}',
+    '.pf-tr-empty h4{font-weight:900;font-size:17px;letter-spacing:2px;margin:0 0 8px;color:#f5ead6}',
+    '.pf-tr-empty p{font-size:14px;color:#c9bfa8;margin:0 0 6px;line-height:1.5}',
+    '.pf-tr-empty .pf-tr-act{color:#e8b923;font-weight:700}',
+    '.pf-tr-list{list-style:none;margin:0;padding:0}',
+    '.pf-tr-list li{display:flex;gap:10px;align-items:baseline;padding:8px 0;border-bottom:1px solid #1e1e1e;font-size:15px}',
+    '.pf-tr-list li:last-child{border-bottom:0}',
+    '.pf-tr-tk{font-weight:900;color:#e8b923}',
+    '.pf-tr-ty{font-weight:700;color:#f5ead6;text-transform:uppercase}',
+    '.pf-tr-am{margin-left:auto;color:#c9bfa8}',
+    '.pf-tr-src{font-size:12px;color:#c9bfa8;text-align:center;margin-top:10px}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-tr-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-tr-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  function emptyState(container, msg, track) {
+    cssOnce();
+    container.innerHTML =
+      '<div class="pf-tr">' +
+      '<div class="pf-tr-kicker">STOCK TRADES</div>' +
+      '<h3 class="pf-tr-title">TRADES ON THE HILL</h3>' +
+      '<div class="pf-tr-empty"><span class="pf-tr-dash">\u2014</span>' +
+      '<h4>' + esc(track === 'none' ? 'NO PUBLIC RECORDS FOUND' : 'AWAITING PUBLIC DATA') + '</h4>' +
+      '<p>' + esc(msg) + '</p>' +
+      '<p class="pf-tr-act">Check back after the next filing window.</p></div>' +
+      '<div class="pf-tr-src">SOURCE: House/Senate Financial Disclosures</div>' +
+      '</div>';
+  }
+
+  function render(container, j, bioguideId) {
+    /* Real data path — reserved for when the hold lifts and the endpoint
+       exists. Every figure carries its source; missing fields are em-dash. */
+    cssOnce();
+    var trades = (j && Array.isArray(j.trades)) ? j.trades : [];
+    if (!trades.length) { emptyState(container, EMPTY_MSG, 'none'); return; }
+    var name = (j && j.name) || '\u2014';
+    var src = (j && j.source) || 'House/Senate Financial Disclosures';
+    var html = '<div class="pf-tr">' +
+      '<div class="pf-tr-kicker">STOCK TRADES</div>' +
+      '<h3 class="pf-tr-title">TRADES ON THE HILL — ' + esc(String(name).toUpperCase()) + '</h3>' +
+      '<ul class="pf-tr-list">' +
+      trades.slice(0, 10).map(function (t) {
+        t = t || {};
+        return '<li><span class="pf-tr-tk">' + esc(t.ticker || '\u2014') + '</span> ' +
+          '<span class="pf-tr-ty">' + esc(t.type || '\u2014') + '</span> ' +
+          '<span class="pf-tr-am">' + esc(t.amount_range || '\u2014') + '</span></li>';
+      }).join('') +
+      '</ul><div class="pf-tr-src">SOURCE: ' + esc(src) + '</div></div>';
+    container.innerHTML = html;
+  }
+
+  function mount(container, opts) {
+    if (!container) return false;
+    opts = opts || {};
+    try {
+      if (container.querySelector && container.querySelector('.pf-tr')) return true;
+    } catch (e) {}
+    var bioguideId = opts.bioguideId || '';
+    /* The disclosure feed is not live and the hold stands: render the
+       honest empty state without hitting a nonexistent endpoint. When the
+       endpoint exists, this same call lights up real data. */
+    api('money_trades', bioguideId ? { bioguide_id: bioguideId } : {}, function (j) {
+      try {
+        if (j && j.ok && Array.isArray(j.trades) && j.trades.length) render(container, j, bioguideId);
+        else emptyState(container, HOLD_MSG, 'hold');
+      } catch (e) { emptyState(container, HOLD_MSG, 'hold'); }
+    });
+    return true;
+  }
+
+  try { window.PFTrades = { mount: mount }; } catch (e) {}
+})();
+
+;
+
+/* ===== core/money-pac-alerts.js ===== */
+/* core/money-pac-alerts.js  |  PF v1.4.3 | SUPER PAC ALERTS.
+   Alert-card for the Follow-the-Money suite (element id pac-alerts;
+   /money page + interim PHQ money tab). Never auto-mounts — the money-page
+   shell calls PFPacAlerts.mount(container).
+   STALENESS SUPPRESSION (FE review §4): an alert asserts recency. A super
+   PAC alert whose underlying filing data is stale does not render as a
+   card at all — it falls back to the empty-state track. No endpoint exists
+   yet (?action=money_pac_alerts is reserved); until it lands, the honest
+   empty state renders. Never invent a PAC, a filing, a date, or a dollar.
+   Expected contract (reserved):
+     ?action=money_pac_alerts ->
+     {ok, source:'FEC (api.open.fec.gov)', retrieved_at,
+      alerts:[{pac_name, filing_date, amount, race, summary, source_url}]}
+   Alert cards suppress when (now - filing_date) > 30 days. The source-line
+   always carries "DATA AS OF <Mon YYYY>".
+   No XP anywhere on this frontend (viewing = 0; sharing rides the existing
+   create_share: backend leg only when real data is present).
+   KILL: ?pf_off=pac-alerts (master: ?pf_off=money) */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF) { return; }
+  if (PF.skip('money') || PF.skip('pac-alerts')) { return; }
+  if (window.pfPacAlertsDone) return;
+  window.pfPacAlertsDone = true;
+
+  var BACKEND = window.PF_BACKEND_URL;
+  var STALE_DAYS = 30; /* alert-cards assert recency; older than this, suppress */
+  var HOLD_MSG = 'AWAITING PUBLIC DATA — The super PAC wire is being connected. New filings will land here the moment the feed is live.';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var fn = 'pfPacCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, 12000);
+  }
+
+  var CSS = [
+    '.pf-pa{max-width:680px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}',
+    '.pf-pa-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}',
+    '.pf-pa-title{font-weight:900;font-size:22px;text-align:center;margin:0 0 12px;letter-spacing:1px}',
+    '.pf-pa-empty{border:1px dashed #3a3a3a;border-radius:8px;padding:26px 16px;text-align:center}',
+    '.pf-pa-empty .pf-pa-dash{font-size:40px;color:#3a3a3a;display:block;margin-bottom:8px}',
+    '.pf-pa-empty h4{font-weight:900;font-size:17px;letter-spacing:2px;margin:0 0 8px;color:#f5ead6}',
+    '.pf-pa-empty p{font-size:14px;color:#c9bfa8;margin:0 0 6px;line-height:1.5}',
+    '.pf-pa-alert{border:1px solid #c1121f;border-top:6px solid #c1121f;border-radius:8px;background:#0d0d0d;padding:14px 16px;margin-bottom:12px}',
+    '.pf-pa-new{display:inline-block;background:#c1121f;color:#fff;font-weight:900;font-size:12px;letter-spacing:2px;padding:3px 8px;border-radius:3px;margin-bottom:8px}',
+    '.pf-pa-amt{font-weight:900;font-size:28px;color:#e8b923;margin:4px 0}',
+    '.pf-pa-name{font-weight:900;font-size:17px;color:#f5ead6;margin:0 0 4px}',
+    '.pf-pa-sum{font-size:14px;color:#c9bfa8;margin:0 0 8px;line-height:1.5}',
+    '.pf-pa-src{font-size:12px;color:#c9bfa8}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-pa-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-pa-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  function money(n) {
+    if (n == null || isNaN(Number(n))) return '\u2014';
+    return '$' + Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 });
+  }
+
+  function emptyState(container) {
+    cssOnce();
+    container.innerHTML =
+      '<div class="pf-pa">' +
+      '<div class="pf-pa-kicker">SUPER PAC WIRE</div>' +
+      '<h3 class="pf-pa-title">SUPER PAC ALERTS</h3>' +
+      '<div class="pf-pa-empty"><span class="pf-pa-dash">\u2014</span>' +
+      '<h4>AWAITING PUBLIC DATA</h4>' +
+      '<p>' + esc(HOLD_MSG) + '</p></div>' +
+      '<div class="pf-pa-src" style="font-size:12px;color:#c9bfa8;text-align:center;margin-top:10px">SOURCE: FEC</div>' +
+      '</div>';
+  }
+
+  function isFresh(filingDate) {
+    var t = Date.parse(filingDate);
+    if (isNaN(t)) return false;
+    return (Date.now() - t) <= STALE_DAYS * 864e5;
+  }
+
+  function render(container, j) {
+    cssOnce();
+    var alerts = (j.alerts || []).filter(function (a) { return a && isFresh(a.filing_date); });
+    /* Suppression, not banner: stale alerts never render as cards. */
+    if (!alerts.length) { emptyState(container); return; }
+    var src = j.source || 'FEC (api.open.fec.gov)';
+    var asof = '';
+    try {
+      var rt = j.retrieved_at;
+      var d = new Date(typeof rt === 'number' ? rt : Date.parse(rt));
+      if (!isNaN(d)) asof = ' \u00b7 DATA AS OF ' + d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).toUpperCase();
+    } catch (e) {}
+    var html = '<div class="pf-pa">' +
+      '<div class="pf-pa-kicker">SUPER PAC WIRE</div>' +
+      '<h3 class="pf-pa-title">SUPER PAC ALERTS</h3>' +
+      alerts.slice(0, 5).map(function (a) {
+        return '<div class="pf-pa-alert"><span class="pf-pa-new">NEW FILING</span>' +
+          '<div class="pf-pa-amt">' + esc(money(a.amount)) + '</div>' +
+          '<div class="pf-pa-name">' + esc(a.pac_name || '\u2014') + '</div>' +
+          '<p class="pf-pa-sum">' + esc(a.summary || '') + '</p>' +
+          '<div class="pf-pa-src">SOURCE: ' + esc(src) + asof + '</div></div>';
+      }).join('') + '</div>';
+    container.innerHTML = html;
+  }
+
+  function mount(container) {
+    if (!container) return false;
+    try {
+      if (container.querySelector && container.querySelector('.pf-pa')) return true;
+    } catch (e) {}
+    api('money_pac_alerts', {}, function (j) {
+      try {
+        if (j && j.ok && Array.isArray(j.alerts)) render(container, j);
+        else emptyState(container);
+      } catch (e) { emptyState(container); }
+    });
+    return true;
+  }
+
+  try { window.PFPacAlerts = { mount: mount }; } catch (e) {}
+})();
+
+;
+
+/* ===== core/money-macro.js ===== */
+/* core/money-macro.js  |  PF v1.4.3 | FRED MACRO DASHBOARD (FRED Everywhere P1).
+   The full macro dashboard from ?action=fred_macro&scope=full&spark=1:
+   Phase 3 (2026-10-06) adds 5 cards — rent (CUUR0000SEHA), credit-card
+   delinquency (DRCCLACBS), median weekly earnings (LES1252881600Q),
+   food at home (CUSR0000SAF11), gasoline (CUSR0000SETB01) — for 16 series total.
+   Each card: latest figure, change, sparkline, per-series staleness badge,
+   4-fact citation ({Agency} via FRED · {SERIES_ID} · {period} · retrieved {date}).
+   Rolling refresh per News Desk §1(a): daily series daily, weekly weekly,
+   monthly on release day, quarterly on release day — the per-series staleness
+   badge (§4) is the refresh signal, not a single "last updated" line.
+
+   Honesty contract (binding):
+   - Stale figures STILL RENDER with the adjacent badge — never suppressed.
+   - Revisions carry the ʳ marker.
+   - CES0500000003 surfaces say "average" adjacent to the figure; second-person
+     "your paycheck/raise" is banned against it.
+   - Official U.S. macro figures only — never blended with crowdsourced
+     People's Index figures. Pure figures, no predictions, no advice.
+   - Tap a card → bottom sheet (value, period, source, retrieval date).
+   Never auto-mounts — the money-page shell calls PFMacro.mount(container).
+   No XP anywhere on this frontend (read-only official-data surface).
+   KILL: ?pf_off=money-macro (master: ?pf_off=money) */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF) { return; }
+  if (PF.skip('money') || PF.skip('money-macro')) { return; }
+  if (window.pfMacroDone) return;
+  window.pfMacroDone = true;
+
+  var EMPTY_HEAD = 'OFFICIAL DATA CONNECTING';
+  var EMPTY_BODY = 'The macro dashboard is being wired to live FRED figures. ' +
+    'Nothing here is estimated or seeded — the 16 series cards appear the ' +
+    'moment the official feed is connected.';
+  var WAITING_HEAD = 'FEED CONNECTED \u2014 FIRST REFRESH PENDING';
+  var WAITING_BODY = 'The official feed is connected and the first data ' +
+    'refresh is still on its way. Nothing here is estimated or seeded.';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  var CSS = [
+    '.pf-macro{max-width:1100px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}',
+    '.pf-macro-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}',
+    '.pf-macro-title{font-weight:900;font-size:22px;text-align:center;margin:0 0 4px;letter-spacing:1px}',
+    '.pf-macro-sub{font-size:12px;color:#8a8271;text-align:center;letter-spacing:1px;margin:0 0 12px}',
+    '.pf-macro-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}',
+    '@media (max-width:900px){.pf-macro-grid{grid-template-columns:repeat(3,1fr)}}',
+    '@media (max-width:640px){.pf-macro-grid{grid-template-columns:repeat(2,1fr)}}',
+    '.pf-macro-card{display:block;border:1px solid #2a2a2a;border-top:6px solid #c1121f;border-radius:8px;background:#0d0d0d;padding:12px 12px 10px;color:#f5ead6;text-decoration:none;min-height:44px}',
+    '.pf-macro-head{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:8px}',
+    '.pf-macro-t{font-weight:900;font-size:11px;letter-spacing:1px;color:#e8b923}',
+    '.pf-macro-value{font-weight:900;font-size:24px;color:#f5ead6;margin:2px 0}',
+    '.pf-macro-unit{font-size:11px;color:#c9bfa8;margin-bottom:6px}',
+    '.pf-macro-period{font-size:12px;color:#c9bfa8}',
+    '.pf-macro-change{font-size:13px;font-weight:700;color:#f5ead6;margin:4px 0 2px}',
+    '.pf-macro-foot{font-size:11px;color:#8a8271;text-align:center;letter-spacing:1px;margin-top:6px}',
+    '.pf-macro-empty{border:1px dashed #3a3a3a;border-radius:8px;padding:26px 16px;text-align:center}',
+    '.pf-macro-empty .pf-macro-dash{font-size:40px;color:#3a3a3a;display:block;margin-bottom:8px}',
+    '.pf-macro-empty h4{font-weight:900;font-size:17px;letter-spacing:2px;margin:0 0 8px;color:#f5ead6}',
+    '.pf-macro-empty p{font-size:14px;color:#c9bfa8;margin:0;line-height:1.5}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-macro-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-macro-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  function cardHtml(F, s) {
+    var sid = s.series_id || '';
+    var title = esc(s.title || F.PLAIN[sid] || sid);
+    var link = esc(s.source_url || ('https://fred.stlouisfed.org/series/' + sid));
+    /* YoY cards lead with the YoY label; rates/payrolls/GDP lead with the
+       per-period change label. */
+    var change = s.change_basis === 'yoy'
+      ? (s.change_pct_label || s.change_label)
+      : (s.change_label || s.change_pct_label);
+    /* CES0500000003: "average" adjacent to the figure, always. */
+    var unitLine = esc(s.unit_label || '');
+    if (sid === 'CES0500000003' && unitLine.toLowerCase().indexOf('average') === -1) {
+      unitLine = 'average ' + unitLine;
+    }
+    var body =
+      '<div class="pf-macro-value">' + esc(s.value_label != null ? s.value_label : '—') + F.revMark(s) + '</div>' +
+      (unitLine ? '<div class="pf-macro-unit">' + unitLine + '</div>' : '') +
+      '<div class="pf-macro-period">' + esc(F.fmtPeriod(s)) + '</div>' +
+      (change ? '<div class="pf-macro-change">' + esc(change) + '</div>' : '') +
+      F.sparkline(s.spark) +
+      '<div>' + F.staleBadge(s) + '</div>' +
+      '<div class="pf-fred-cite">' + esc(F.citation(s)) + '</div>';
+    return '<div class="pf-macro-card pf-fred-tap" data-sid="' + esc(sid) + '" role="button" tabindex="0">' +
+      '<div class="pf-macro-head"><span class="pf-macro-t">' + title + '</span>' + F.saNsa(s) + '</div>' +
+      body + '</div>';
+  }
+
+  function wireTaps(F, container, cards) {
+    try {
+      var els = container.querySelectorAll('.pf-macro-card');
+      for (var i = 0; i < els.length; i++) {
+        (function (el) {
+          var sid = el.getAttribute('data-sid');
+          var c = null;
+          for (var k = 0; k < cards.length; k++) if (cards[k].series_id === sid) { c = cards[k]; break; }
+          function open() { if (c) F.tapSheet(c); }
+          el.addEventListener('click', open);
+          el.addEventListener('keydown', function (ev) {
+            if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); open(); }
+          });
+        })(els[i]);
+      }
+    } catch (e) {}
+  }
+
+  function shell(inner) {
+    return '<div class="pf-macro">' +
+      '<div class="pf-macro-kicker">OFFICIAL DATA</div>' +
+      '<h3 class="pf-macro-title">THE MACRO DASHBOARD</h3>' +
+      '<p class="pf-macro-sub">16 SERIES · ROLLING REFRESH · TAP ANY CARD FOR THE FULL CITATION</p>' + inner +
+      '<div class="pf-macro-foot">OFFICIAL FIGURES VIA FRED \u00b7 NEVER BLENDED WITH CROWDSOURCED DATA</div></div>';
+  }
+
+  function emptyBlock(head, body) {
+    return '<div class="pf-macro-empty"><span class="pf-macro-dash">\u2014</span>' +
+      '<h4>' + esc(head) + '</h4><p>' + esc(body) + '</p></div>';
+  }
+
+  function render(container, j) {
+    cssOnce();
+    var F = window.PFFred;
+    var live = !!(j && j.fred_live);
+    var series = (j && Array.isArray(j.series)) ? j.series : [];
+    if (!F) { container.innerHTML = shell(emptyBlock(EMPTY_HEAD, EMPTY_BODY)); return; }
+    F.cssOnce();
+    if (!live) {
+      container.innerHTML = shell(emptyBlock(EMPTY_HEAD, (j && j.note) || EMPTY_BODY));
+      return;
+    }
+    if (!series.length) {
+      container.innerHTML = shell(emptyBlock(WAITING_HEAD, (j && j.note) || WAITING_BODY));
+      return;
+    }
+    /* Backend FULL_ORDER (Phase 3, 16): FEDFUNDS, UNRATE, DGS10,
+       MORTGAGE30US, CPIAUCNS, CPILFESL, PAYEMS, PCEPI, GDP, CES0500000003,
+       DGS2, CUUR0000SEHA, CUSR0000SAF11, CUSR0000SETB01, DRCCLACBS,
+       LES1252881600Q.
+       Rendered in order. */
+    container.innerHTML = shell(
+      '<div class="pf-macro-grid">' +
+      series.map(function (s) { return cardHtml(F, s || {}); }).join('') +
+      '</div>');
+    wireTaps(F, container, series);
+  }
+
+  function mount(container) {
+    if (!container) return false;
+    try {
+      if (container.querySelector && container.querySelector('.pf-macro')) return true;
+    } catch (e) {}
+    var F = window.PFFred;
+    if (!F) { render(container, null); return true; }
+    F.full(function (j) {
+      try {
+        if (j && j.ok) render(container, j);
+        else render(container, null);
+      } catch (e) { try { render(container, null); } catch (e2) {} }
+    });
+    return true;
+  }
+
+  try { window.PFMacro = { mount: mount }; } catch (e) {}
+})();
+
+;
+
+/* ===== core/fred-governing.js ===== */
+/* core/fred-governing.js  |  PF v1.4.3 | FOLLOW THE MONEY — THE ECONOMY THEY'RE GOVERNING.
+   The policy strip for Political HQ's Follow the Money tab: FEDFUNDS,
+   MORTGAGE30US, CPIAUCNS, CES0500000003, PAYEMS, GDP, UNRATE.
+   Framing: policy transmission (Fed rate → mortgage), the real-wage read,
+   labor-market health vs the narrative. Weekly cadence — the strip carries
+   a Monday refresh note and sits still otherwise.
+
+   Binding honesty:
+   - Every figure: 4-fact citation. Stale figures render with the badge.
+   - Mortgage is a borrowing cost — NEVER presented as rent.
+   - CES0500000003: "average" adjacent; no second-person "your paycheck/raise".
+   - GDP is real (inflation-adjusted) — the word "real" stays adjacent.
+   - Honest reads: News Desk Pairs 1 (wages vs prices — Phase 3 re-points
+     the pair to the MEDIAN series LES1252881600Q; the CES-average-based
+     read is retired, not edited), 2 (Fed → mortgage),
+     6 (payrolls vs unemployment, neutralized), 7 (real GDP).
+   - No predictions, no financial advice. Public identity MTCSTW only.
+   Read-only, zero XP. Mounts via money-page SECTIONS ('governing').
+   KILL: ?pf_off=money-governing (master: ?pf_off=money). */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF) { return; }
+  if (PF.skip('money') || PF.skip('money-governing')) { return; }
+  if (window.pfGoverningDone) return;
+  window.pfGoverningDone = true;
+
+  var ORDER = ['FEDFUNDS', 'MORTGAGE30US', 'CPIAUCNS', 'CES0500000003', 'PAYEMS', 'UNRATE', 'GDP'];
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  var CSS = [
+    '.pf-gov{max-width:1100px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}',
+    '.pf-gov-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}',
+    '.pf-gov-title{font-weight:900;font-size:20px;text-align:center;margin:0 0 4px;letter-spacing:1px}',
+    '.pf-gov-note{font-size:12px;color:#8a8271;text-align:center;letter-spacing:1px;margin:0 0 12px}',
+    '.pf-gov-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:12px}',
+    '@media (max-width:900px){.pf-gov-grid{grid-template-columns:repeat(4,1fr)}}',
+    '@media (max-width:640px){.pf-gov-grid{grid-template-columns:repeat(2,1fr)}}',
+    '.pf-gov-card{border:1px solid #2a2a2a;border-top:4px solid #c1121f;border-radius:8px;background:#0d0d0d;padding:10px;color:#f5ead6;min-height:44px;cursor:pointer}',
+    '.pf-gov-t{font-weight:900;font-size:10px;letter-spacing:1px;color:#e8b923;margin-bottom:6px}',
+    '.pf-gov-v{font-weight:900;font-size:20px;margin:2px 0}',
+    '.pf-gov-p{font-size:11px;color:#c9bfa8;margin-bottom:4px}',
+    '.pf-gov-reads{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}',
+    '@media (max-width:640px){.pf-gov-reads{grid-template-columns:1fr}}',
+    '.pf-gov-read{border:1px solid #2a2a2a;border-radius:8px;background:#0d0d0d;padding:12px}',
+    '.pf-gov-read h5{font-weight:900;font-size:12px;letter-spacing:2px;color:#e8b923;margin:0 0 8px}',
+    '.pf-gov-read p{font-size:13px;line-height:1.6;color:#f5ead6;margin:0}',
+    '.pf-gov-read .pf-gov-pair{font-size:10px;color:#8a8271;letter-spacing:1px;margin-top:8px}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-gov-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-gov-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  /* Monday-of-this-week label for the weekly refresh note. */
+  function mondayLabel() {
+    try {
+      var d = new Date();
+      var dow = (d.getDay() + 6) % 7; /* Monday=0 */
+      d.setDate(d.getDate() - dow);
+      var MO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return MO[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+    } catch (e) { return ''; }
+  }
+
+  function cardHtml(F, s) {
+    var sid = s.series_id || '';
+    var title = esc(s.title || F.PLAIN[sid] || sid);
+    var unitLine = esc(s.unit_label || '');
+    if (sid === 'CES0500000003' && unitLine.toLowerCase().indexOf('average') === -1) {
+      unitLine = 'average ' + unitLine;
+    }
+    if (sid === 'GDP' && unitLine.toLowerCase().indexOf('real') === -1) {
+      unitLine = 'real ' + unitLine;
+    }
+    return '<div class="pf-gov-card pf-fred-tap" data-sid="' + esc(sid) + '" role="button" tabindex="0">' +
+      '<div class="pf-gov-t">' + title + ' ' + F.saNsa(s) + '</div>' +
+      '<div class="pf-gov-v">' + esc(s.value_label != null ? s.value_label : '—') + F.revMark(s) + '</div>' +
+      (unitLine ? '<div class="pf-gov-p">' + unitLine + '</div>' : '') +
+      '<div class="pf-gov-p">' + esc(F.fmtPeriod(s)) + '</div>' +
+      '<div>' + F.staleBadge(s) + '</div>' +
+      '<div class="pf-fred-cite">' + esc(F.citation(s)) + '</div></div>';
+  }
+
+  /* Framing reads — parameterized with live figures where the backend
+     supplies them; the template sentences are the remediated News Desk
+     honest reads (Pairs 1/2/6/7). Past/present tense only. */
+  function readsHtml(F, cards) {
+    function get(sid) { return F.cardFor({ series: cards }, sid); }
+    var fed = get('FEDFUNDS'), mort = get('MORTGAGE30US');
+    var cpi = get('CPIAUCNS'), med = get('LES1252881600Q');
+    var pay = get('PAYEMS'), unr = get('UNRATE'), gdp = get('GDP');
+    var out = '';
+
+    /* Policy transmission: Fed rate → mortgage. */
+    var trans = F.READS.pair2;
+    if (fed && mort && fed.value_label && mort.value_label) {
+      trans = 'The Fed sets ' + fed.value_label + '; lenders charge ' + mort.value_label +
+        ' for a 30-year mortgage. The gap is where banks and bond markets insert themselves between policy and the mortgage.';
+    }
+    out += '<div class="pf-gov-read"><h5>POLICY → YOUR BORROWING COST</h5><p>' + esc(trans) +
+      ' A mortgage is a borrowing cost — it is not rent.</p>' +
+      '<div class="pf-gov-pair">FEDFUNDS → MORTGAGE30US · each figure cited on its card</div></div>';
+
+    /* Real-wage read: MEDIAN earnings vs CPI, YoY vs YoY (Phase 3 —
+       the CES-average-based read is retired, not edited; the retired copy
+       is tombstoned in F.READS, never rendered). */
+    var wage = F.READS.pair1;
+    if (med && cpi) {
+      var mw = med.change_pct_label || med.change_label || '';
+      var cp = cpi.change_pct_label || cpi.change_label || '';
+      if (mw && cp) {
+        wage = 'Median usual weekly earnings are ' + (med.value_label || '') +
+          ' (1982\u201384 dollars) \u2014 ' + mw.replace('+', '') +
+          ' in real terms over the year. Consumer prices are up ' +
+          cp.replace('+', '') + ' over the year. The median is the typical ' +
+          'worker\u2019s paycheck, not an average: executive raises pull the ' +
+          'average up and leave this untouched.';
+      }
+    }
+    out += '<div class="pf-gov-read"><h5>THE REAL-WAGE READ</h5><p>' + esc(wage) + '</p>' +
+      '<div class="pf-gov-pair">LES1252881600Q (MEDIAN) vs CPIAUCNS \u00b7 YoY vs YoY \u00b7 quarterly vs monthly \u00b7 SA vs NSA labeled on cards</div></div>';
+
+    /* Labor health: payrolls vs unemployment. */
+    var labor = F.READS.pair6;
+    if (pay && unr && pay.change_label && unr.value_label) {
+      labor = 'Payrolls ' + pay.change_label + ' while unemployment sits at ' + unr.value_label +
+        '. Payrolls count jobs; unemployment counts people looking for work. They come from different surveys and can diverge for months — usually because the labor force grew faster than hiring. Neither is lying; they\'re answering different questions.';
+    }
+    out += '<div class="pf-gov-read"><h5>LABOR: HEALTH VS NARRATIVE</h5><p>' + esc(labor) + '</p>' +
+      '<div class="pf-gov-pair">PAYEMS vs UNRATE · both SA, both BLS</div></div>';
+
+    /* GDP: what growth means and doesn't. */
+    out += '<div class="pf-gov-read"><h5>THE HEADLINE THEY QUOTE</h5><p>' + esc(F.READS.pair7) + '</p>' +
+      '<div class="pf-gov-pair">GDP (REAL, chained 2017$) vs CPIAUCNS</div></div>';
+
+    return '<div class="pf-gov-reads">' + out + '</div>';
+  }
+
+  function render(container, j) {
+    cssOnce();
+    var F = window.PFFred;
+    if (!F) return;
+    F.cssOnce();
+    var live = !!(j && j.fred_live);
+    var series = (j && Array.isArray(j.series)) ? j.series : [];
+    var byId = {};
+    series.forEach(function (s) { if (s && s.series_id) byId[s.series_id] = s; });
+    var cards = ORDER.map(function (id) { return byId[id]; }).filter(Boolean);
+    var inner;
+    if (!live || !cards.length) {
+      inner = '<div class="pf-fred-empty"><h4>OFFICIAL DATA CONNECTING</h4>' +
+        '<p>' + esc((j && j.note) || 'The governing strip appears when the official feed connects. Nothing here is estimated.') + '</p></div>';
+    } else {
+      inner = '<div class="pf-gov-grid">' +
+        cards.map(function (s) { return cardHtml(F, s); }).join('') + '</div>' +
+        readsHtml(F, cards);
+    }
+    container.innerHTML = '<div class="pf-gov">' +
+      '<div class="pf-gov-kicker">FOLLOW THE MONEY</div>' +
+      '<h4 class="pf-gov-title">THE ECONOMY THEY\u2019RE GOVERNING</h4>' +
+      '<p class="pf-gov-note">WEEKLY READ · REFRESHED MONDAY' +
+      (mondayLabel() ? ' · WEEK OF ' + esc(mondayLabel().toUpperCase()) : '') + '</p>' +
+      inner + '</div>';
+    /* Tap → bottom sheet. */
+    try {
+      var els = container.querySelectorAll('.pf-gov-card');
+      for (var i = 0; i < els.length; i++) {
+        (function (el) {
+          var sid = el.getAttribute('data-sid');
+          function open() { var c = byId[sid]; if (c) F.tapSheet(c); }
+          el.addEventListener('click', open);
+          el.addEventListener('keydown', function (ev) {
+            if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); open(); }
+          });
+        })(els[i]);
+      }
+    } catch (e) {}
+  }
+
+  function mount(container) {
+    if (!container) return false;
+    try {
+      if (container.querySelector && container.querySelector('.pf-gov')) return true;
+    } catch (e) {}
+    var F = window.PFFred;
+    if (!F) return true;
+    F.full(function (j) {
+      try { render(container, (j && j.ok) ? j : null); }
+      catch (e) { try { render(container, null); } catch (e2) {} }
+    });
+    return true;
+  }
+
+  try { window.PFGoverning = { mount: mount }; } catch (e) {}
+})();
+
+;
+
+/* ===== games/fred-stackem.js ===== */
+/* games/fred-stackem.js  |  PF v1.4.3 | TOOL 1 — "STACK 'EM" COMPARISON BUILDER.
+   Pick two economic series + a time window -> chart + auto-generated
+   plain-English read + share card. All pair math and honesty enforcement
+   happens server-side (?action=fred_compare); this file renders.
+
+   Mounts:
+     PFStackEm.mount(el)        — full builder (Money suite MACRO section).
+                                  money-page.js SECTIONS entry 'stackem'.
+                                  Kill: ?pf_off=money-stackem.
+     PFStackEm.mountCurated(el) — one curated matchup, read-only
+                                  (War Report). Self-mounts into #xWarReport.
+                                  Kill: ?pf_off=war-stack.
+     PFStackEm.mountGuided(el)  — Academy guided mode: the 6 matchups one
+                                  at a time with teaching copy; free pick
+                                  unlocks after the guided set is complete
+                                  ("learning before lab").
+                                  Self-mounts after #pf-academy-hq.
+                                  Kill: ?pf_off=academy-stackem.
+
+   Binding honesty (News Desk §§2-4, remediated):
+   - Every figure: 4-fact citation. Stale legs freeze the read server-side.
+   - Dual-axis: the backend normalizes (YoY % / indexed-100); this file
+     never draws raw dual axes.
+   - Suggested matchups default; free pick is guardrailed server-side.
+   - Headlines/read come from the backend generator (banned/allowed lists,
+     0.5pp margin rule, finalized vintages only) — never composed here.
+   - No predictions, no financial advice. Public identity MTCSTW only.
+   Read-only, zero XP. Cross-links are user-initiated taps only — no
+   auto-advance, no streak/XP pressure between tools. */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF) return;
+  if (window.PFStackEm) return;
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function skip(id) { try { return PF.skip('fred') || PF.skip(id); } catch (e) { return false; } }
+
+  /* The 6 suggested matchups (Design brief, remediated hooks).
+     Phase 3 (2026-10-06): the wages-vs-inflation matchup re-points to the
+     median series (LES1252881600Q) — the CES-average-based matchup is
+     retired, not edited. */
+  var MATCHUPS = [
+    { sid1: 'LES1252881600Q', sid2: 'CPIAUCNS',
+      hook: 'Wages vs Inflation', question: 'Are paychecks beating prices?',
+      why: 'The median paycheck vs prices is the real-raise question — the median series isn\u2019t fooled by executive raises. Both legs as 12-month change, so the units can\u2019t lie.' },
+    { sid1: 'MORTGAGE30US', sid2: 'FEDFUNDS',
+      hook: 'Mortgage rates vs Fed rate', question: 'Who moved first?',
+      why: 'The Fed sets one rate; lenders charge another. The gap between them is the policy transmission chain.' },
+    { sid1: 'PAYEMS', sid2: 'UNRATE',
+      hook: 'Jobs vs Unemployment', question: 'Hiring up, jobless up — how?',
+      why: 'Two surveys, two answers — payrolls count jobs, unemployment counts people looking for work.' },
+    { sid1: 'DGS10', sid2: 'DGS2',
+      hook: 'The Yield Curve', question: 'The market\u2019s fear gauge',
+      why: 'The 10-year minus the 2-year is the market\u2019s fear gauge. It has called every recession in 50 years — and it also cries wolf. That\u2019s the lesson.' },
+    { sid1: 'CPIAUCNS', sid2: 'PCEPI',
+      hook: 'Inflation gauges', question: 'Headline vs the Fed\u2019s favorite',
+      why: 'Two inflation baskets, two answers. The Fed watches PCE; you feel CPI. Same economy, different thermometers.' },
+    { sid1: 'MORTGAGE30US', sid2: 'CPIAUCNS',
+      hook: 'The Real Mortgage Rate', question: 'What does a mortgage actually cost in real terms?',
+      why: 'The mortgage rate minus inflation is the real rate — what borrowing actually costs you.' }
+  ];
+
+  /* Phase 3 (2026-10-06): DRCCLACBS, LES1252881600Q, CUSR0000SAF11 join
+     the free-pick list. CES0500000003 stays — the average-vs-median
+     inequality comparison is an approved free-mode use. */
+  var SERIES12 = ['FEDFUNDS', 'UNRATE', 'DGS10', 'DGS2', 'MORTGAGE30US',
+    'CPIAUCNS', 'CPILFESL', 'PCEPI', 'GDP', 'CES0500000003', 'PAYEMS', 'CUUR0000SEHA',
+    'DRCCLACBS', 'LES1252881600Q', 'CUSR0000SAF11'];
+  var PLAIN = {
+    FEDFUNDS: 'Fed funds rate', UNRATE: 'Unemployment rate',
+    DGS10: '10-year Treasury yield', DGS2: '2-year Treasury yield',
+    MORTGAGE30US: '30-year mortgage rate',
+    CPIAUCNS: 'Consumer prices (CPI)', CPILFESL: 'Core consumer prices',
+    PAYEMS: 'Nonfarm payrolls', PCEPI: 'PCE price index',
+    GDP: 'Real GDP', CES0500000003: 'Average hourly earnings',
+    CUUR0000SEHA: 'Rent of primary residence', DRCCLACBS: 'Credit-card delinquency',
+    LES1252881600Q: 'Median weekly earnings (real)', CUSR0000SAF11: 'Food at home (CPI)'
+  };
+  var WINDOWS = [['1y', '1Y'], ['3y', '3Y'], ['5y', '5Y'], ['10y', '10Y'], ['all', 'ALL']];
+  var LEG_COLORS = ['#6aa5ff', '#e0685c', '#e8b923'];
+  var DONE_KEY = 'pf-stackem-guided-done';
+
+  function isoWeek() {
+    try {
+      var d = new Date();
+      d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+      var dow = (d.getUTCDay() + 6) % 7;
+      d.setUTCDate(d.getUTCDate() - dow + 3);
+      var first = new Date(Date.UTC(d.getUTCFullYear(), 0, 4));
+      var fdow = (first.getUTCDay() + 6) % 7;
+      first.setUTCDate(first.getUTCDate() - fdow + 3);
+      return Math.round((d - first) / (7 * 24 * 3600 * 1000)) + 1;
+    } catch (e) { return 1; }
+  }
+
+  var CSS = [
+    '.pf-se{max-width:980px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}',
+    '.pf-se-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}',
+    '.pf-se-title{font-weight:900;font-size:22px;text-align:center;margin:0 0 4px;letter-spacing:1px}',
+    '.pf-se-sub{font-size:13px;color:#c9bfa8;text-align:center;margin:0 0 14px}',
+    '.pf-se-modes{display:flex;gap:8px;justify-content:center;margin-bottom:12px;flex-wrap:wrap}',
+    '.pf-se-mode{background:#1a1a1a;border:1px solid #3a3a3a;color:#c9bfa8;border-radius:6px;min-height:44px;padding:10px 18px;font-weight:700;font-size:13px;letter-spacing:1px;cursor:pointer}',
+    '.pf-se-mode.on{background:#c1121f;border-color:#c1121f;color:#fff}',
+    '.pf-se-matchups{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}',
+    '@media (max-width:640px){.pf-se-matchups{grid-template-columns:1fr 1fr}}',
+    '.pf-se-mu{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:8px;padding:12px;cursor:pointer;min-height:44px;text-align:left;color:#f5ead6}',
+    '.pf-se-mu.on{border-color:#c1121f;background:#160a0a}',
+    '.pf-se-mu b{display:block;font-size:14px;letter-spacing:0.5px;margin-bottom:4px}',
+    '.pf-se-mu span{font-size:12px;color:#c9bfa8;font-style:italic}',
+    '.pf-se-chips{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;margin-bottom:6px;-webkit-overflow-scrolling:touch}',
+    '.pf-se-chip{flex:0 0 auto;min-height:48px;padding:0 16px;background:#1a1a1a;border:1px solid #3a3a3a;color:#f5ead6;border-radius:24px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}',
+    '.pf-se-chip.on{background:#c1121f;border-color:#c1121f;color:#fff}',
+    '.pf-se-winrow{display:flex;gap:8px;justify-content:center;margin:10px 0;flex-wrap:wrap;align-items:center}',
+    '.pf-se-winrow .pf-se-wlabel{font-size:12px;color:#8a8271;letter-spacing:1px}',
+    '.pf-se-go{background:#c1121f;color:#fff;border:0;border-radius:6px;min-height:48px;padding:0 28px;font-weight:900;font-size:15px;letter-spacing:2px;cursor:pointer}',
+    '.pf-se-out{margin-top:14px}',
+    '.pf-se-head{font-weight:900;font-size:19px;line-height:1.4;margin:0 0 8px;color:#f5ead6}',
+    '.pf-se-read{font-size:14px;line-height:1.65;color:#f5ead6;margin:0 0 6px}',
+    '.pf-se-chartwrap{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:8px;padding:10px 6px 4px;margin:10px 0}',
+    '.pf-se-legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:12px;color:#c9bfa8;padding:4px 8px 8px}',
+    '.pf-se-legend i{display:inline-block;width:22px;height:3px;vertical-align:middle;margin-right:6px}',
+    '.pf-se-axisnote{font-size:10px;color:#8a8271;text-align:center;letter-spacing:0.5px;padding:2px 8px 8px}',
+    '.pf-se-dis{font-size:11px;color:#8a8271;line-height:1.6;border-left:3px solid #3a3a3a;padding:6px 10px;margin:8px 0}',
+    '.pf-se-follow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:14px 0}',
+    '.pf-se-fbtn{background:#1a1a1a;border:1px solid #3a3a3a;color:#e8b923;border-radius:6px;min-height:44px;padding:10px 16px;font-weight:700;font-size:13px;letter-spacing:1px;cursor:pointer;text-decoration:none;display:inline-block;line-height:22px}',
+    '.pf-se-share{display:block;width:100%;background:#c1121f;color:#fff;border:0;border-radius:6px;min-height:52px;font-weight:900;font-size:15px;letter-spacing:2px;cursor:pointer;margin-top:10px}',
+    '.pf-se-xlinks{border-top:1px solid #2a2a2a;margin-top:16px;padding-top:12px;text-align:center;font-size:13px;color:#8a8271}',
+    '.pf-se-xlinks a{color:#e8b923;font-weight:700;text-decoration:none;margin:0 10px;letter-spacing:0.5px}',
+    '.pf-se-why{background:#101418;border:1px solid #2a3a4a;border-radius:8px;padding:12px;font-size:13px;line-height:1.6;color:#c9bfa8;margin:10px 0}',
+    '.pf-se-why b{color:#e8b923;letter-spacing:1px}',
+    '.pf-se-prog{text-align:center;font-size:12px;color:#8a8271;letter-spacing:2px;margin-bottom:8px}',
+    '.pf-se-next{display:block;margin:12px auto 0;background:#c1121f;color:#fff;border:0;border-radius:6px;min-height:52px;padding:0 32px;font-weight:900;font-size:15px;letter-spacing:2px;cursor:pointer}',
+    '.pf-se-lock{font-size:12px;color:#8a8271;text-align:center;margin-top:8px;font-style:italic}',
+    '.pf-se-err{background:#1a0d0d;border:1px solid #c1121f;border-radius:8px;padding:14px;font-size:14px;color:#f5ead6;margin:10px 0}',
+    '.pf-se-loading{text-align:center;color:#8a8271;padding:30px 0;font-size:14px;letter-spacing:1px}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-se-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-se-css'; st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  /* ---------- SVG chart (single axis — the backend normalizes) ---------- */
+  function chartSvg(j, F) {
+    var legs = (j.legs || []).filter(function (l) {
+      return l && l.points && l.points.length > 1;
+    });
+    if (!legs.length) return '';
+    var W = 720, H = 260, PADL = 8, PADR = 8, PADT = 10, PADB = 26;
+    var all = [];
+    legs.forEach(function (l) {
+      l.points.forEach(function (p) { if (isFinite(+p.value)) all.push(+p.value); });
+    });
+    if (all.length < 2) return '';
+    var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all);
+    if (hi - lo < 1e-9) { lo -= 1; hi += 1; }
+    var span = hi - lo;
+    /* Scale-honesty: the axis minimum is always labeled. */
+    lo -= span * 0.04; hi += span * 0.04; span = hi - lo;
+    function X(i, n) { return (PADL + (i / (n - 1)) * (W - PADL - PADR)).toFixed(1); }
+    function Y(v) { return (PADT + (1 - (v - lo) / span) * (H - PADT - PADB)).toFixed(1); }
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="display:block;width:100%;height:auto;min-height:240px" role="img" aria-label="comparison chart">';
+    /* zero line when in range */
+    if (lo < 0 && hi > 0) {
+      svg += '<line x1="' + PADL + '" y1="' + Y(0) + '" x2="' + (W - PADR) + '" y2="' + Y(0) + '" stroke="#3a3a3a" stroke-width="1"/>';
+    }
+    var legend = '';
+    legs.forEach(function (l, li) {
+      var pts = l.points, n = pts.length;
+      var d = pts.map(function (p, i) {
+        return (i ? 'L' : 'M') + X(i, n) + ' ' + Y(+p.value);
+      }).join(' ');
+      var col = LEG_COLORS[li % LEG_COLORS.length];
+      svg += '<path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="2.5"/>';
+      /* tap targets: up to 40 points per leg -> bottom sheet */
+      var step = Math.max(1, Math.floor(n / 40));
+      for (var i = 0; i < n; i += step) {
+        (function (pt, leg, color) {
+          svg += '<circle class="pf-se-pt" cx="' + X(pts.indexOf(pt), n) + '" cy="' + Y(+pt.value) +
+            '" r="10" fill="transparent" data-sid="' + esc(leg.series_id) +
+            '" data-v="' + esc(String(pt.value)) + '" data-p="' + esc(String(pt.period)) +
+            '" data-c="' + esc(color) + '"/>';
+        })(pts[i], l, col);
+      }
+      /* Prohibition 2: seasonal adjustment shown inline for mixed pairs. */
+      var sa0 = String(l.sa_nsa || '').toUpperCase();
+      var saLbl = sa0.indexOf('NSA') === 0 ? ' (NSA)' : (sa0.indexOf('SA') === 0 ? ' (SA)' : '');
+      var nm = esc((l.title || l.series_id) + saLbl);
+      legend += '<span><i style="background:' + col + '"></i>' + nm + '</span>';
+    });
+    /* y min/max labels */
+    svg += '<text x="' + (W - PADR) + '" y="' + (PADT + 10) + '" fill="#8a8271" font-size="10" text-anchor="end">' + hi.toFixed(1) + '</text>';
+    svg += '<text x="' + (W - PADR) + '" y="' + (H - PADB + 4) + '" fill="#8a8271" font-size="10" text-anchor="end">' + lo.toFixed(1) + '</text>';
+    /* x first/last labels */
+    var p0 = legs[0].points[0].period, p1 = legs[0].points[legs[0].points.length - 1].period;
+    function shortP(p) {
+      var m = /^(\d{4})-(\d{2})/.exec(String(p));
+      if (m) return m[1];
+      return String(p).slice(0, 10);
+    }
+    svg += '<text x="' + PADL + '" y="' + (H - 8) + '" fill="#8a8271" font-size="10">' + esc(shortP(p0)) + '</text>';
+    svg += '<text x="' + (W - PADR) + '" y="' + (H - 8) + '" fill="#8a8271" font-size="10" text-anchor="end">' + esc(shortP(p1)) + '</text>';
+    svg += '</svg>';
+    var note = 'axis starts at ' + lo.toFixed(1) + ' — not zero';
+    if (j.basis === 'yoy' || /% change/.test(j.legs[0].basis || '')) note += ' · ' + esc(j.legs[0].basis || '');
+    return '<div class="pf-se-chartwrap"><div class="pf-se-legend">' + legend + '</div>' +
+      svg + '<div class="pf-se-axisnote">' + note + '</div></div>';
+  }
+
+  function wirePoints(wrap, j, F) {
+    try {
+      var pts = wrap.querySelectorAll('.pf-se-pt');
+      for (var i = 0; i < pts.length; i++) {
+        (function (el) {
+          el.addEventListener('click', function () {
+            var sid = el.getAttribute('data-sid');
+            var leg = null;
+            (j.legs || []).forEach(function (l) { if (l.series_id === sid) leg = l; });
+            if (!leg || !F) return;
+            var v = parseFloat(el.getAttribute('data-v'));
+            var card = {
+              series_id: sid, title: leg.title,
+              value_label: isFinite(v) ? v.toFixed(2) : '—',
+              unit_label: leg.unit_label || '',
+              period: el.getAttribute('data-p'),
+              period_label: null,
+              citation: (leg.latest && leg.latest.citation) || '',
+              sa_nsa: leg.sa_nsa,
+              source_url: (leg.latest && leg.latest.source_url) || ('https://fred.stlouisfed.org/series/' + sid),
+              stale: leg.latest && leg.latest.stale,
+              stale_note: leg.latest && leg.latest.stale_note
+            };
+            try { F.tapSheet(card); } catch (e) {}
+          });
+        })(pts[i]);
+      }
+    } catch (e) {}
+  }
+
+  /* ---------- output card ---------- */
+  function outputHtml(j, F, opts) {
+    opts = opts || {};
+    var h = '';
+    h += '<h3 class="pf-se-head">' + esc(j.headline || '') + '</h3>';
+    (j.read || []).forEach(function (s) { h += '<p class="pf-se-read">' + esc(s) + '</p>'; });
+    h += chartSvg(j, F);
+    (j.disclosures || []).forEach(function (d) {
+      h += '<div class="pf-se-dis">' + esc(d.text || '') + '</div>';
+    });
+    (j.citations || []).forEach(function (c) {
+      if (c) h += '<div class="pf-fred-cite">' + esc(c) + '</div>';
+    });
+    if (!opts.noFollow) {
+      h += '<div class="pf-se-follow">' +
+        '<button type="button" class="pf-se-fbtn" data-se-act="flip">FLIP IT</button>' +
+        '<button type="button" class="pf-se-fbtn" data-se-act="again">TRY A MATCHUP</button>' +
+        '<a class="pf-se-fbtn" data-se-act="explain" href="https://www.mtcstw.com/economy#pf-explain">WHAT DOES THIS MEAN FOR ME?</a>' +
+        '</div>';
+    }
+    h += '<button type="button" class="pf-se-share" data-se-act="share">SHARE THE RECEIPTS</button>';
+    if (!opts.noXlinks) h += xlinks();
+    return '<div class="pf-se-out">' + h + '</div>';
+  }
+
+  function xlinks() {
+    return '<div class="pf-se-xlinks">Stacked it? Now ' +
+      '<a href="https://www.mtcstw.com/economy#pf-explain">translate it</a> · ' +
+      '<a href="https://www.mtcstw.com/economy#pf-receipt">check the receipts</a></div>';
+  }
+
+  /* ---------- share card (canvas 1080x1080) ---------- */
+  function wrapText(x, text, maxW) {
+    var words = String(text || '').split(/\s+/), lines = [], cur = '';
+    for (var i = 0; i < words.length; i++) {
+      var t = cur ? cur + ' ' + words[i] : words[i];
+      if (x.measureText(t).width > maxW && cur) { lines.push(cur); cur = words[i]; }
+      else cur = t;
+    }
+    if (cur) lines.push(cur);
+    return lines;
+  }
+
+  function paintShare(j) {
+    var W = 1080, H = 1080;
+    var cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    var x = cv.getContext('2d');
+    if (!x) return null;
+    x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, W, H);
+    x.fillStyle = '#c1121f'; x.fillRect(0, 0, W, 16);
+    var cx = W / 2, y = 92;
+    x.textAlign = 'center';
+    x.fillStyle = '#e8b923'; x.font = '700 32px Arial,sans-serif';
+    x.fillText('STACK \u2019EM \u00B7 OFFICIAL DATA \u00B7 FRED', cx, y); y += 66;
+    /* headline */
+    x.fillStyle = '#f5ead6'; x.font = '900 46px Arial,sans-serif';
+    var hl = wrapText(x, j.headline || '', W - 140);
+    for (var i = 0; i < hl.length && i < 4; i++) { x.fillText(hl[i], cx, y); y += 56; }
+    y += 16;
+    /* mini chart: first two legs */
+    var legs = (j.legs || []).filter(function (l) { return l.points && l.points.length > 1; }).slice(0, 2);
+    if (legs.length) {
+      var chX = 90, chW = W - 180, chY = y, chH = 240;
+      var all = [];
+      legs.forEach(function (l) { l.points.forEach(function (p) { if (isFinite(+p.value)) all.push(+p.value); }); });
+      var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all);
+      if (hi - lo < 1e-9) { lo -= 1; hi += 1; }
+      x.strokeStyle = '#2a2a2a'; x.lineWidth = 2;
+      x.strokeRect(chX, chY, chW, chH);
+      legs.forEach(function (l, li) {
+        var pts = l.points, n = pts.length;
+        x.strokeStyle = LEG_COLORS[li % LEG_COLORS.length]; x.lineWidth = 4;
+        x.beginPath();
+        pts.forEach(function (p, pi) {
+          var px = chX + (pi / (n - 1)) * chW;
+          var py = chY + chH - ((+p.value - lo) / (hi - lo)) * chH;
+          if (pi) x.lineTo(px, py); else x.moveTo(px, py);
+        });
+        x.stroke();
+      });
+      x.fillStyle = '#8a8271'; x.font = '400 24px Arial,sans-serif';
+      x.fillText('axis starts at ' + lo.toFixed(1) + ' \u2014 not zero', cx, chY + chH + 34);
+      y = chY + chH + 70;
+      /* legend (Prohibition 2: SA/NSA inline) */
+      x.font = '700 26px Arial,sans-serif';
+      legs.forEach(function (l, li) {
+        x.fillStyle = LEG_COLORS[li % LEG_COLORS.length];
+        var sa1 = String(l.sa_nsa || '').toUpperCase();
+        var saLbl1 = sa1.indexOf('NSA') === 0 ? ' (NSA)' : (sa1.indexOf('SA') === 0 ? ' (SA)' : '');
+        x.fillText('\u2014 ' + (l.title || l.series_id) + saLbl1, cx, y);
+        y += 36;
+      });
+      y += 10;
+    }
+    /* read: first two sentences */
+    x.fillStyle = '#c9bfa8'; x.font = '400 30px Arial,sans-serif';
+    var rs = (j.read || []).slice(0, 2).join(' ');
+    var rl = wrapText(x, rs, W - 160);
+    for (var r2 = 0; r2 < rl.length && r2 < 3; r2++) { x.fillText(rl[r2], cx, y); y += 40; }
+    y += 24;
+    /* source strips */
+    x.fillStyle = '#8a8271'; x.font = '400 24px Arial,sans-serif';
+    (j.citations || []).forEach(function (c) {
+      if (!c) return;
+      var cl = wrapText(x, String(c), W - 160);
+      for (var c2 = 0; c2 < cl.length && c2 < 2; c2++) { x.fillText(cl[c2], cx, y); y += 32; }
+    });
+    y += 10;
+    x.fillStyle = '#8a8271'; x.font = 'italic 400 26px Arial,sans-serif';
+    x.fillText('Info, not advice. Data: FRED.', cx, y); y += 70;
+    /* CTA */
+    x.fillStyle = '#f5ead6'; x.font = '700 40px Arial,sans-serif';
+    x.fillText('MTCSTW.COM', cx, y); y += 58;
+    x.fillStyle = '#c1121f'; x.font = '900 58px Arial,sans-serif';
+    x.fillText('JOIN THE FIGHT.', cx, y);
+    return cv;
+  }
+
+  function shareAsText(j) {
+    var txt = (j.headline || '') + '\n' + (j.read || []).join(' ') + '\n' +
+      (j.citations || []).filter(Boolean).join('\n') +
+      '\nInfo, not advice. Data: FRED.\nhttps://www.mtcstw.com/follow-the-money#pf-stackem';
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt);
+        return 'Headline + sources copied — paste it anywhere.';
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  function doShare(j, btn) {
+    var cv = null;
+    try { cv = paintShare(j); } catch (e) { cv = null; }
+    if (!cv) {
+      var msg = shareAsText(j);
+      if (btn) btn.textContent = msg || 'SHARE FAILED — TRY AGAIN';
+      return;
+    }
+    try {
+      if (window.PFShare && typeof window.PFShare.shareImage === 'function') {
+        window.PFShare.shareImage(cv, 'pf-stackem.png', j.headline || 'Stacked numbers',
+          'stackem', { text: (j.headline || '') + ' https://www.mtcstw.com/follow-the-money#pf-stackem via The Propaganda Factory',
+            link: 'https://www.mtcstw.com/follow-the-money#pf-stackem' });
+        return;
+      }
+    } catch (e) {}
+    try {
+      var a = document.createElement('a');
+      a.href = cv.toDataURL('image/png');
+      a.download = 'pf-stackem.png';
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { try { a.parentNode.removeChild(a); } catch (e2) {} }, 500);
+    } catch (e2) {
+      var m2 = shareAsText(j);
+      if (btn) btn.textContent = m2 || 'SHARE FAILED — TRY AGAIN';
+    }
+  }
+
+  /* ---------- full builder ---------- */
+  function builderHtml(guided) {
+    var h = '';
+    if (!guided) {
+      h += '<div class="pf-se-kicker">MONEY SUITE · MACRO</div>' +
+        '<h2 class="pf-se-title">STACK \u2019EM</h2>' +
+        '<p class="pf-se-sub">Pick two numbers. Pick a window. Start an argument — with receipts.</p>';
+    }
+    h += '<div class="pf-se-modes">' +
+      '<button type="button" class="pf-se-mode on" data-se-mode="suggested">SUGGESTED MATCHUPS</button>' +
+      '<button type="button" class="pf-se-mode" data-se-mode="free">FREE PICK</button>' +
+      '</div>';
+    h += '<div class="pf-se-matchups" data-se-matchups>' +
+      MATCHUPS.map(function (m, i) {
+        return '<button type="button" class="pf-se-mu' + (i === 0 ? ' on' : '') + '" data-se-mu="' + i + '">' +
+          '<b>' + esc(m.hook) + '</b><span>' + esc(m.question) + '</span></button>';
+      }).join('') + '</div>';
+    h += '<div class="pf-se-chips" data-se-free style="display:none">' +
+      SERIES12.map(function (s, i) {
+        return '<button type="button" class="pf-se-chip" data-se-sid="' + esc(s) + '" data-se-slot="">' + esc(PLAIN[s] || s) + '</button>';
+      }).join('') + '</div>';
+    h += '<div class="pf-se-winrow"><span class="pf-se-wlabel">WINDOW</span>' +
+      WINDOWS.map(function (w, i) {
+        return '<button type="button" class="pf-se-chip' + (i === 2 ? ' on' : '') + '" data-se-win="' + w[0] + '">' + w[1] + '</button>';
+      }).join('') + '</div>';
+    h += '<div style="text-align:center"><button type="button" class="pf-se-go" data-se-act="go">STACK \u2019EM</button></div>';
+    h += '<div data-se-out></div>';
+    return h;
+  }
+
+  function mountBuilder(el, guided) {
+    cssOnce();
+    var F = window.PFFred;
+    el.innerHTML = '<div class="pf-se">' + builderHtml(guided) + '</div>';
+    var state = { mode: 'suggested', mu: 0, freeA: null, freeB: null, win: '5y', last: null };
+
+    function q(s) { return el.querySelector(s); }
+    function qa(s) { return el.querySelectorAll(s); }
+
+    qa('[data-se-mode]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        qa('[data-se-mode]').forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+        state.mode = b.getAttribute('data-se-mode');
+        q('[data-se-matchups]').style.display = state.mode === 'suggested' ? '' : 'none';
+        q('[data-se-free]').style.display = state.mode === 'free' ? '' : 'none';
+      });
+    });
+    qa('[data-se-mu]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        qa('[data-se-mu]').forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+        state.mu = parseInt(b.getAttribute('data-se-mu'), 10) || 0;
+      });
+    });
+    qa('[data-se-win]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        qa('[data-se-win]').forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+        state.win = b.getAttribute('data-se-win');
+      });
+    });
+    qa('[data-se-free] [data-se-sid]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var sid = b.getAttribute('data-se-sid');
+        if (state.freeA === sid) { state.freeA = null; }
+        else if (state.freeB === sid) { state.freeB = null; }
+        else if (!state.freeA) { state.freeA = sid; }
+        else if (!state.freeB) { state.freeB = sid; }
+        else { state.freeA = state.freeB; state.freeB = sid; }
+        qa('[data-se-free] [data-se-sid]').forEach(function (x) {
+          var s2 = x.getAttribute('data-se-sid');
+          x.classList.toggle('on', s2 === state.freeA || s2 === state.freeB);
+        });
+      });
+    });
+
+    function renderOut(j) {
+      var out = q('[data-se-out]');
+      if (!j || j.ok !== true) {
+        var msg = (j && (j.message || j.note)) ||
+          (j && j.err === 'pair_not_approved'
+            ? 'That pair isn\u2019t on the approved list — the 6 suggested matchups are the vetted set.'
+            : "FRED's got nothing here for this window. Pick another.");
+        out.innerHTML = '<div class="pf-se-err">' + esc(msg) + '</div>';
+        return;
+      }
+      state.last = j;
+      out.innerHTML = outputHtml(j, F, {});
+      wirePoints(out, j, F);
+      out.querySelectorAll('[data-se-act]').forEach(function (b) {
+        b.addEventListener('click', function (ev) {
+          var act = b.getAttribute('data-se-act');
+          if (act === 'share') { doShare(j, b); }
+          else if (act === 'flip') {
+            var t = state.freeA; state.freeA = state.freeB; state.freeB = t;
+            if (state.mode === 'suggested') {
+              var m = MATCHUPS[state.mu];
+              go({ sid1: m.sid2, sid2: m.sid1 });
+            } else if (state.freeA && state.freeB) { go({ sid1: state.freeA, sid2: state.freeB }); }
+          }
+          else if (act === 'again') {
+            try { q('[data-se-matchups]').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+          }
+          else if (act === 'explain') {
+            try {
+              var sid = (j.sid1 && j.sid1 !== 'SAHM') ? j.sid1 : j.sid2;
+              b.href = 'https://www.mtcstw.com/economy#pf-explain?series=' + encodeURIComponent(sid);
+            } catch (e) {}
+          }
+        });
+      });
+      try { out.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) {}
+    }
+
+    function go(override) {
+      if (!F) return;
+      var params;
+      if (override) {
+        params = { sid1: override.sid1, sid2: override.sid2, window: state.win, mode: 'guided' };
+      } else if (state.mode === 'suggested') {
+        var m = MATCHUPS[state.mu];
+        params = { sid1: m.sid1, sid2: m.sid2, window: state.win, mode: 'guided' };
+      } else {
+        if (!state.freeA || !state.freeB) {
+          q('[data-se-out]').innerHTML = '<div class="pf-se-err">Pick two series first — tap any two chips above.</div>';
+          return;
+        }
+        params = { sid1: state.freeA, sid2: state.freeB, window: state.win, mode: 'free' };
+      }
+      q('[data-se-out]').innerHTML = '<div class="pf-se-loading">PULLING THE NUMBERS…</div>';
+      F.api('fred_compare', params, function (j) { renderOut(j); });
+    }
+
+    q('[data-se-act="go"]').addEventListener('click', function () { go(null); });
+    /* Auto-run the default matchup on mount — the tool opens with a chart,
+       not an empty picker. */
+    go(null);
+  }
+
+  /* ---------- guided mode (Academy) ---------- */
+  function mountGuided(el) {
+    if (skip('academy-stackem')) return;
+    cssOnce();
+    var F = window.PFFred;
+    var done = false;
+    try { done = localStorage.getItem(DONE_KEY) === '1'; } catch (e) {}
+    var h = '<div class="pf-se"><div class="pf-se-kicker">ACADEMY · GUIDED</div>' +
+      '<h2 class="pf-se-title">LEARN TO READ THE NUMBERS THEY USE AGAINST YOU.</h2>';
+    if (done) {
+      h += '<p class="pf-se-sub">Guided set complete — free pick unlocked. Learning before lab.</p>' +
+        '<div data-se-guidedfree></div></div>';
+      el.innerHTML = h;
+      try { mountBuilder(el.querySelector('[data-se-guidedfree]'), true); } catch (e) {}
+      return;
+    }
+    h += '<p class="pf-se-sub">Six matchups, one at a time. Finish the set to unlock free pick.</p>' +
+      '<div data-se-gbody></div></div>';
+    el.innerHTML = h;
+    var body = el.querySelector('[data-se-gbody]');
+    var idx = 0;
+
+    function step() {
+      var m = MATCHUPS[idx];
+      body.innerHTML = '<div class="pf-se-prog">MATCHUP ' + (idx + 1) + ' OF ' + MATCHUPS.length + '</div>' +
+        '<h3 class="pf-se-head" style="text-align:center">' + esc(m.hook) + '</h3>' +
+        '<p class="pf-se-sub">\u201C' + esc(m.question) + '\u201D</p>' +
+        '<div class="pf-se-why"><b>WHY THIS PAIR — </b>' + esc(m.why) + '</div>' +
+        '<div class="pf-se-loading">PULLING THE NUMBERS…</div>';
+      F.api('fred_compare', { sid1: m.sid1, sid2: m.sid2, window: '5y', mode: 'guided' }, function (j) {
+        if (!j || j.ok !== true) {
+          body.innerHTML = '<div class="pf-se-err">Couldn\u2019t load this matchup — try the next one.</div>' +
+            nextBtn();
+          wireNext();
+          return;
+        }
+        var out = outputHtml(j, F, { noXlinks: true });
+        body.innerHTML = '<div class="pf-se-prog">MATCHUP ' + (idx + 1) + ' OF ' + MATCHUPS.length + '</div>' +
+          '<h3 class="pf-se-head" style="text-align:center">' + esc(m.hook) + '</h3>' +
+          '<p class="pf-se-sub">\u201C' + esc(m.question) + '\u201D</p>' +
+          '<div class="pf-se-why"><b>WHY THIS PAIR — </b>' + esc(m.why) + '</div>' +
+          out + nextBtn();
+        wirePoints(body, j, F);
+        body.querySelectorAll('[data-se-act]').forEach(function (b) {
+          b.addEventListener('click', function () {
+            if (b.getAttribute('data-se-act') === 'share') doShare(j, b);
+          });
+        });
+        wireNext();
+        try { body.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+      });
+    }
+    function nextBtn() {
+      return idx + 1 < MATCHUPS.length
+        ? '<button type="button" class="pf-se-next" data-se-gnext>NEXT MATCHUP \u2192</button>'
+        : '<button type="button" class="pf-se-next" data-se-gnext>FINISH THE SET</button>';
+    }
+    function wireNext() {
+      var b = body.querySelector('[data-se-gnext]');
+      if (!b) return;
+      b.addEventListener('click', function () {
+        idx++;
+        if (idx >= MATCHUPS.length) {
+          try { localStorage.setItem(DONE_KEY, '1'); } catch (e) {}
+          mountGuided(el); /* re-render: free pick unlocked */
+        } else { step(); }
+      });
+    }
+    if (!F) { body.innerHTML = '<div class="pf-se-err">The data toolkit isn\u2019t loaded yet — reload the page.</div>'; return; }
+    step();
+  }
+
+  /* ---------- curated mode (War Report) ---------- */
+  function mountCurated(el) {
+    if (skip('war-stack')) return;
+    cssOnce();
+    var F = window.PFFred;
+    /* Department rotation: the weekly pick rotates mechanically across the
+       6 vetted matchups by ISO week. Human editors may override the pick;
+       the standing rule (no more than two consecutive curated matchups
+       framing the same directional grievance) is editorial, not code. */
+    var m = MATCHUPS[isoWeek() % MATCHUPS.length];
+    el.innerHTML = '<div class="pf-se"><div class="pf-se-kicker">WAR REPORT</div>' +
+      '<h2 class="pf-se-title">THIS WEEK\u2019S STACK</h2>' +
+      '<p class="pf-se-sub">\u201C' + esc(m.question) + '\u201D — ' + esc(m.hook) + '</p>' +
+      '<div class="pf-se-loading">PULLING THE NUMBERS…</div></div>';
+    if (!F) return;
+    F.api('fred_compare', { sid1: m.sid1, sid2: m.sid2, window: '5y', mode: 'guided' }, function (j) {
+      var box = el.querySelector('.pf-se');
+      if (!j || j.ok !== true || !box) return;
+      box.innerHTML = '<div class="pf-se-kicker">WAR REPORT</div>' +
+        '<h2 class="pf-se-title">THIS WEEK\u2019S STACK</h2>' +
+        '<p class="pf-se-sub">\u201C' + esc(m.question) + '\u201D — ' + esc(m.hook) + '</p>' +
+        outputHtml(j, F, { noFollow: true });
+      wirePoints(box, j, F);
+      box.querySelectorAll('[data-se-act]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          if (b.getAttribute('data-se-act') === 'share') doShare(j, b);
+        });
+      });
+    });
+  }
+
+  function mount(el) {
+    if (!el || skip('money-stackem')) return;
+    try { mountBuilder(el, false); } catch (e) {}
+  }
+
+  /* Self-mount: War Report curated slot + Academy guided block. The Money
+     suite mounts explicitly via money-page.js SECTIONS. */
+  function selfMount() {
+    try {
+      var wr = document.getElementById('xWarReport');
+      if (wr && !document.getElementById('pf-war-stack') && !skip('war-stack')) {
+        var slot = document.createElement('div');
+        slot.id = 'pf-war-stack';
+        var anchor = wr.querySelector('#pf-wrnum');
+        if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(slot, anchor.nextSibling);
+        else wr.appendChild(slot);
+        mountCurated(slot);
+      }
+      var ahq = document.getElementById('pf-academy-hq');
+      if (ahq && !document.getElementById('pf-academy-stackem') && !skip('academy-stackem')) {
+        var g = document.createElement('div');
+        g.id = 'pf-academy-stackem';
+        if (ahq.parentNode) ahq.parentNode.insertBefore(g, ahq.nextSibling);
+        else document.body.appendChild(g);
+        mountGuided(g);
+      }
+    } catch (e) {}
+  }
+
+  try {
+    window.PFStackEm = { mount: mount, mountGuided: mountGuided, mountCurated: mountCurated };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', selfMount);
+    } else { selfMount(); }
+  } catch (e) {}
+})();
+
+;
+
+/* ===== games/fred-explain.js ===== */
+/* games/fred-explain.js  |  PF v1.4.3 | TOOL 2 — "WHAT DOES THIS MEAN FOR ME?"
+   Plain-English explainers on official FRED data. Two doors: 4 life-topic
+   cards (Rent, Groceries, Job Hunt, Savings) or direct series pick
+   ("nerd mode"). Fixed 5-beat structure, all copy server-generated
+   (?action=fred_explain) under the banned/allowed phrasing lists.
+
+   Mounts:
+     PFExplain.mount(el, context) — full explainer. Contexts: 'money'
+       (Follow the Money section, via money-page.js), 'economy', 'war',
+       'brief'. Self-mounts on #pf-economy (Economy page, secondary),
+       #xWarReport (one weekly explainer), #xBrief (Morning Briefing,
+       rotating topic).
+     Kills: money-explain · economy-explain · war-explain · brief-explain
+       (master ?pf_off=fred).
+
+   Binding honesty:
+   - Exact disclaimer on every render, visible without scrolling (inside
+     the always-visible beat-1 block); short form adjacent to every share
+     button. Beats 2–5 collapse to accordions on mobile.
+   - No predictions, no financial advice — enforced server-side; this file
+     renders beats verbatim and never invents copy.
+   - Every figure: 4-fact citation + staleness badge + ʳ marker.
+   - Rent card is backed by the live CUUR0000SEHA rent series (Phase 3);
+     the via-mortgage label is retired.
+   Read-only, zero XP. Cross-links are user-initiated taps only — no
+   auto-advance, no streak/XP pressure between tools. */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF) return;
+  if (window.PFExplain) return;
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function skip(id) { try { return PF.skip('fred') || PF.skip(id); } catch (e) { return false; } }
+
+  var TOPICS = [
+    /* Phase 3 (2026-10-06): the rent series is live — the card is backed
+       by CUUR0000SEHA directly; the via-mortgage label is retired. */
+    { key: 'rent', label: 'RENT', sub: 'What renters actually pay, from the CPI rent index' },
+    { key: 'groceries', label: 'GROCERIES', sub: 'What food prices are doing' },
+    { key: 'job-hunt', label: 'JOB HUNT', sub: 'How tight the job market is' },
+    { key: 'savings', label: 'SAVINGS', sub: 'What your cash earns' }
+  ];
+  /* Phase 3 (2026-10-06): the 3 new series join the nerd-mode list. */
+  var SERIES12 = ['FEDFUNDS', 'UNRATE', 'DGS10', 'DGS2', 'MORTGAGE30US',
+    'CPIAUCNS', 'CPILFESL', 'PCEPI', 'GDP', 'CES0500000003', 'PAYEMS', 'CUUR0000SEHA',
+    'DRCCLACBS', 'LES1252881600Q', 'CUSR0000SAF11'];
+  var PLAIN = {
+    FEDFUNDS: 'Fed funds rate', UNRATE: 'Unemployment rate',
+    DGS10: '10-year Treasury yield', DGS2: '2-year Treasury yield',
+    MORTGAGE30US: '30-year mortgage rate',
+    CPIAUCNS: 'Consumer prices (CPI)', CPILFESL: 'Core consumer prices',
+    PAYEMS: 'Nonfarm payrolls', PCEPI: 'PCE price index',
+    GDP: 'Real GDP', CES0500000003: 'Average hourly earnings',
+    CUUR0000SEHA: 'Rent of primary residence', DRCCLACBS: 'Credit-card delinquency',
+    LES1252881600Q: 'Median weekly earnings (real)', CUSR0000SAF11: 'Food at home (CPI)'
+  };
+  var ROTATE = ['rent', 'groceries', 'job-hunt', 'savings'];
+
+  function isoWeek() {
+    try {
+      var d = new Date();
+      d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+      var dow = (d.getUTCDay() + 6) % 7;
+      d.setUTCDate(d.getUTCDate() - dow + 3);
+      var first = new Date(Date.UTC(d.getUTCFullYear(), 0, 4));
+      var fdow = (first.getUTCDay() + 6) % 7;
+      first.setUTCDate(first.getUTCDate() - fdow + 3);
+      return Math.round((d - first) / (7 * 24 * 3600 * 1000)) + 1;
+    } catch (e) { return 1; }
+  }
+
+  var CSS = [
+    '.pf-ex{max-width:860px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}',
+    '.pf-ex-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}',
+    '.pf-ex-title{font-weight:900;font-size:22px;text-align:center;margin:0 0 4px;letter-spacing:1px}',
+    '.pf-ex-sub{font-size:13px;color:#c9bfa8;text-align:center;margin:0 0 14px}',
+    '.pf-ex-topics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}',
+    '@media (max-width:640px){.pf-ex-topics{grid-template-columns:1fr 1fr}}',
+    '.pf-ex-tp{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:8px;padding:14px 8px;cursor:pointer;min-height:64px;color:#f5ead6;text-align:center}',
+    '.pf-ex-tp.on{border-color:#c1121f;background:#160a0a}',
+    '.pf-ex-tp b{display:block;font-size:15px;letter-spacing:1px;margin-bottom:4px}',
+    '.pf-ex-tp span{font-size:11px;color:#8a8271;line-height:1.4;display:block}',
+    '.pf-ex-nerd{display:block;text-align:center;margin:6px 0 12px;color:#e8b923;font-size:13px;font-weight:700;letter-spacing:1px;cursor:pointer;background:none;border:0;text-decoration:underline;min-height:44px;width:100%}',
+    '.pf-ex-chips{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;margin-bottom:6px;-webkit-overflow-scrolling:touch}',
+    '.pf-ex-chip{flex:0 0 auto;min-height:48px;padding:0 16px;background:#1a1a1a;border:1px solid #3a3a3a;color:#f5ead6;border-radius:24px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}',
+    '.pf-ex-chip.on{background:#c1121f;border-color:#c1121f;color:#fff}',
+    '.pf-ex-card{background:#0d0d0d;border:1px solid #2a2a2a;border-top:4px solid #c1121f;border-radius:8px;padding:16px;margin-top:10px}',
+    '.pf-ex-fig{font-weight:900;font-size:34px;margin:0 0 2px;color:#f5ead6;line-height:1.2}',
+    '.pf-ex-vin{font-size:12px;color:#c9bfa8;margin-bottom:8px}',
+    '.pf-ex-dis{font-size:12px;color:#c9bfa8;background:#141414;border:1px solid #2a2a2a;border-radius:6px;padding:10px 12px;line-height:1.6;margin:10px 0;font-style:italic}',
+    '.pf-ex-beat{border-top:1px solid #2a2a2a;margin:0}',
+    '.pf-ex-beat summary{cursor:pointer;min-height:48px;display:flex;align-items:center;font-weight:900;font-size:12px;letter-spacing:2px;color:#e8b923;list-style:none;padding:6px 0}',
+    '.pf-ex-beat summary::-webkit-details-marker{display:none}',
+    '.pf-ex-beat summary::before{content:"+";margin-right:10px;font-size:16px}',
+    '.pf-ex-beat[open] summary::before{content:"\\2212"}',
+    '.pf-ex-beat p{font-size:14px;line-height:1.7;color:#f5ead6;margin:0 0 12px}',
+    '.pf-ex-topicnote{font-size:11px;color:#8a8271;font-style:italic;margin:0 0 8px}',
+    '.pf-ex-share{display:block;width:100%;background:#c1121f;color:#fff;border:0;border-radius:6px;min-height:52px;font-weight:900;font-size:14px;letter-spacing:2px;cursor:pointer;margin-top:10px}',
+    '.pf-ex-sharedis{font-size:11px;color:#8a8271;text-align:center;margin-top:6px;font-style:italic}',
+    '.pf-ex-follow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:14px 0 4px}',
+    '.pf-ex-fbtn{background:#1a1a1a;border:1px solid #3a3a3a;color:#e8b923;border-radius:6px;min-height:44px;padding:10px 16px;font-weight:700;font-size:13px;letter-spacing:1px;cursor:pointer;text-decoration:none;display:inline-block;line-height:22px}',
+    '.pf-ex-xlinks{border-top:1px solid #2a2a2a;margin-top:14px;padding-top:12px;text-align:center;font-size:13px;color:#8a8271}',
+    '.pf-ex-xlinks a{color:#e8b923;font-weight:700;text-decoration:none;margin:0 10px;letter-spacing:0.5px}',
+    '.pf-ex-err{background:#1a0d0d;border:1px solid #c1121f;border-radius:8px;padding:14px;font-size:14px;color:#f5ead6;margin:10px 0}',
+    '.pf-ex-loading{text-align:center;color:#8a8271;padding:30px 0;font-size:14px;letter-spacing:1px}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-ex-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-ex-css'; st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  function xlinks() {
+    return '<div class="pf-ex-xlinks">Translated it? Now ' +
+      '<a href="https://www.mtcstw.com/follow-the-money#pf-stackem">stack two numbers</a> · ' +
+      '<a href="https://www.mtcstw.com/economy#pf-receipt">check the receipts</a></div>';
+  }
+
+  function wrapText(x, text, maxW) {
+    var words = String(text || '').split(/\s+/), lines = [], cur = '';
+    for (var i = 0; i < words.length; i++) {
+      var t = cur ? cur + ' ' + words[i] : words[i];
+      if (x.measureText(t).width > maxW && cur) { lines.push(cur); cur = words[i]; }
+      else cur = t;
+    }
+    if (cur) lines.push(cur);
+    return lines;
+  }
+
+  function paintShare(j) {
+    var W = 1080, H = 1080;
+    var cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    var x = cv.getContext('2d');
+    if (!x) return null;
+    x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, W, H);
+    x.fillStyle = '#c1121f'; x.fillRect(0, 0, W, 16);
+    var cx = W / 2, y = 110;
+    x.textAlign = 'center';
+    x.fillStyle = '#e8b923'; x.font = '700 32px Arial,sans-serif';
+    x.fillText('YOUR MONEY, EXPLAINED \u00B7 FRED', cx, y); y += 90;
+    x.fillStyle = '#f5ead6'; x.font = '900 64px Arial,sans-serif';
+    var fl = wrapText(x, (j.figure && j.figure.headline) || '', W - 140);
+    for (var i = 0; i < fl.length && i < 3; i++) { x.fillText(fl[i], cx, y); y += 74; }
+    y += 30;
+    /* takeaway: beat 4, first sentence */
+    var b4 = '';
+    (j.beats || []).forEach(function (b) { if (b.n === 4) b4 = b.text; });
+    b4 = String(b4).split(/\. /)[0] + '.';
+    x.fillStyle = '#c9bfa8'; x.font = '400 32px Arial,sans-serif';
+    var tl = wrapText(x, b4, W - 160);
+    for (var t2 = 0; t2 < tl.length && t2 < 4; t2++) { x.fillText(tl[t2], cx, y); y += 42; }
+    y += 40;
+    x.fillStyle = '#8a8271'; x.font = '400 24px Arial,sans-serif';
+    var cite = (j.figure && j.figure.citation) || '';
+    var cl = wrapText(x, cite, W - 160);
+    for (var c2 = 0; c2 < cl.length && c2 < 2; c2++) { x.fillText(cl[c2], cx, y); y += 32; }
+    y += 24;
+    x.fillStyle = '#8a8271'; x.font = 'italic 400 26px Arial,sans-serif';
+    x.fillText('Info, not advice. Data: FRED.', cx, y); y += 90;
+    x.fillStyle = '#f5ead6'; x.font = '700 40px Arial,sans-serif';
+    x.fillText('MTCSTW.COM', cx, y); y += 58;
+    x.fillStyle = '#c1121f'; x.font = '900 58px Arial,sans-serif';
+    x.fillText('JOIN THE FIGHT.', cx, y);
+    return cv;
+  }
+
+  function shareAsText(j) {
+    var txt = ((j.figure && j.figure.headline) || '') + '\n' +
+      ((j.figure && j.figure.citation) || '') +
+      '\nInfo, not advice. Data: FRED.\nhttps://www.mtcstw.com/economy#pf-explain';
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt);
+        return 'Figure + source copied — paste it anywhere.';
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  function doShare(j, btn) {
+    var cv = null;
+    try { cv = paintShare(j); } catch (e) { cv = null; }
+    if (!cv) {
+      var msg = shareAsText(j);
+      if (btn) btn.textContent = msg || 'SHARE FAILED — TRY AGAIN';
+      return;
+    }
+    try {
+      if (window.PFShare && typeof window.PFShare.shareImage === 'function') {
+        window.PFShare.shareImage(cv, 'pf-explainer.png',
+          (j.figure && j.figure.headline) || 'Explainer', 'explain',
+          { text: ((j.figure && j.figure.headline) || '') + ' https://www.mtcstw.com/economy#pf-explain via The Propaganda Factory',
+            link: 'https://www.mtcstw.com/economy#pf-explain' });
+        return;
+      }
+    } catch (e) {}
+    try {
+      var a = document.createElement('a');
+      a.href = cv.toDataURL('image/png');
+      a.download = 'pf-explainer.png';
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { try { a.parentNode.removeChild(a); } catch (e2) {} }, 500);
+    } catch (e2) {
+      var m2 = shareAsText(j);
+      if (btn) btn.textContent = m2 || 'SHARE FAILED — TRY AGAIN';
+    }
+  }
+
+  function cardHtml(j, F, opts) {
+    opts = opts || {};
+    var fig = j.figure || {};
+    var h = '<div class="pf-ex-card">';
+    h += '<div class="pf-ex-fig">' + esc(fig.headline || '') +
+      (fig.revised ? '<sup class="pf-fred-rev" title="revised observation">ʳ</sup>' : '') + '</div>';
+    h += '<div class="pf-ex-vin">' + esc(fig.period_label || '') + ' ' +
+      (F ? F.staleBadge({ stale: fig.stale, days_old: fig.days_old, series_id: j.primary_series || j.series_id }) : '') + '</div>';
+    /* Disclaimer placement rule: full disclaimer visible without scrolling,
+       inside the always-visible beat-1 block. */
+    h += '<div class="pf-ex-dis">' + esc(j.disclaimer || '') + '</div>';
+    if (j.topic_note) h += '<p class="pf-ex-topicnote">' + esc(j.topic_note) + '</p>';
+    (j.beats || []).forEach(function (b) {
+      if (b.n === 1) return; /* beat 1 is the figure block above */
+      h += '<details class="pf-ex-beat"' + (opts.openAll ? ' open' : '') + '>' +
+        '<summary>' + esc(b.title || ('BEAT ' + b.n)) + '</summary>' +
+        '<p>' + esc(b.text || '') + '</p></details>';
+    });
+    if (fig.citation) h += '<div class="pf-fred-cite">' + esc(fig.citation) + '</div>';
+    h += '<button type="button" class="pf-ex-share" data-ex-act="share">PUT IT ON THEIR TIMELINE</button>';
+    h += '<div class="pf-ex-sharedis">' + esc(j.disclaimer_short || '') + '</div>';
+    if (!opts.noFollow) {
+      h += '<div class="pf-ex-follow">';
+      (j.followups || []).forEach(function (f) {
+        h += '<a class="pf-ex-fbtn" href="' + esc(f.href || '#') + '">' + esc(f.label || '') + '</a>';
+      });
+      h += '</div>';
+    }
+    h += '</div>';
+    if (!opts.noXlinks) h += xlinks();
+    return h;
+  }
+
+  function mountInto(el, params, opts) {
+    opts = opts || {};
+    cssOnce();
+    var F = window.PFFred;
+    if (!F) {
+      el.innerHTML = '<div class="pf-ex"><div class="pf-ex-err">The data toolkit isn\u2019t loaded yet — reload the page.</div></div>';
+      return;
+    }
+    el.innerHTML = '<div class="pf-ex"><div class="pf-ex-loading">READING THE NUMBERS…</div></div>';
+    F.api('fred_explain', params, function (j) {
+      var box = el.querySelector('.pf-ex');
+      if (!box) return;
+      if (!j || j.ok !== true) {
+        box.innerHTML = '<div class="pf-ex-err">' + esc((j && j.note) || 'Couldn\u2019t load this explainer — try another topic.') + '</div>';
+        return;
+      }
+      box.innerHTML = cardHtml(j, F, opts);
+      var sb = box.querySelector('[data-ex-act="share"]');
+      if (sb) sb.addEventListener('click', function () { doShare(j, sb); });
+    });
+  }
+
+  /* ---------- full explainer (topic cards + nerd mode) ---------- */
+  function mount(el, context) {
+    if (!el) return;
+    var killId = { money: 'money-explain', economy: 'economy-explain',
+      war: 'war-explain', brief: 'brief-explain' }[context || 'economy'] || 'economy-explain';
+    if (skip(killId)) return;
+    cssOnce();
+    var F = window.PFFred;
+    var titles = {
+      money: ['WHAT\u2019S THIS COSTING YOU?', 'You tell it what\u2019s hitting your wallet; it tells you what the numbers actually say.'],
+      economy: ['TRANSLATE THE ECONOMY.', 'The economy in words, not jargon.'],
+      war: ['WHAT IT MEANS FOR YOU', 'This week\u2019s number, translated.'],
+      brief: ['YOUR MONEY, IN 30 SECONDS.', 'One number, translated.']
+    };
+    var T = titles[context || 'economy'] || titles.economy;
+    var deep = null;
+    try {
+      var m = /[?&#]series=([A-Z0-9]+)/i.exec(window.location.hash || '');
+      if (m && PLAIN[m[1].toUpperCase()]) deep = m[1].toUpperCase();
+    } catch (e) {}
+
+    var h = '<div class="pf-ex"><div class="pf-se-kicker pf-ex-kicker">' +
+      (context === 'money' ? 'FOLLOW THE MONEY' : context === 'war' ? 'WAR REPORT' : context === 'brief' ? 'MORNING BRIEFING' : 'ECONOMY') + '</div>' +
+      '<h2 class="pf-ex-title">' + T[0] + '</h2><p class="pf-ex-sub">' + T[1] + '</p>';
+    if (context === 'war' || context === 'brief') {
+      /* One explainer, no picker: weekly rotation (war) / daily rotation (brief). */
+      h += '<div data-ex-single></div></div>';
+      el.innerHTML = h;
+      var tk = ROTATE[isoWeek() % ROTATE.length];
+      mountInto(el.querySelector('[data-ex-single]'), { topic: tk }, { noXlinks: true });
+      return;
+    }
+    h += '<div class="pf-ex-topics">' + TOPICS.map(function (t, i) {
+      return '<button type="button" class="pf-ex-tp' + ((deep && deep === t.key) || (!deep && i === 1) ? '' : '') +
+        '" data-ex-topic="' + t.key + '"><b>' + t.label + '</b><span>' + esc(t.sub) + '</span></button>';
+    }).join('') + '</div>';
+    h += '<button type="button" class="pf-ex-nerd" data-ex-nerd>“I know what I\u2019m looking at” — pick the series directly</button>';
+    h += '<div class="pf-ex-chips" data-ex-chips style="display:none">' +
+      SERIES12.map(function (s) {
+        return '<button type="button" class="pf-ex-chip" data-ex-sid="' + s + '">' + esc(PLAIN[s]) + '</button>';
+      }).join('') + '</div>';
+    h += '<div data-ex-out></div></div>';
+    el.innerHTML = h;
+
+    var out = el.querySelector('[data-ex-out]');
+    function pickTopic(key) {
+      el.querySelectorAll('[data-ex-topic]').forEach(function (x) {
+        x.classList.toggle('on', x.getAttribute('data-ex-topic') === key);
+      });
+      mountInto(out, { topic: key }, {});
+    }
+    el.querySelectorAll('[data-ex-topic]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        el.querySelector('[data-ex-chips]').style.display = 'none';
+        pickTopic(b.getAttribute('data-ex-topic'));
+      });
+    });
+    el.querySelector('[data-ex-nerd]').addEventListener('click', function () {
+      var c = el.querySelector('[data-ex-chips]');
+      c.style.display = c.style.display === 'none' ? '' : 'none';
+    });
+    el.querySelectorAll('[data-ex-sid]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        el.querySelectorAll('[data-ex-sid]').forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+        el.querySelectorAll('[data-ex-topic]').forEach(function (x) { x.classList.remove('on'); });
+        mountInto(out, { series_id: b.getAttribute('data-ex-sid') }, {});
+      });
+    });
+    /* Default: groceries topic, or the deep-linked series. */
+    if (deep) {
+      el.querySelector('[data-ex-chips]').style.display = '';
+      var chip = el.querySelector('[data-ex-sid="' + deep + '"]');
+      if (chip) chip.classList.add('on');
+      mountInto(out, { series_id: deep }, {});
+    } else {
+      pickTopic('groceries');
+    }
+  }
+
+  /* Self-mount: Economy page (secondary), War Report (weekly), Briefing. */
+  function selfMount() {
+    try {
+      var eco = document.getElementById('pf-economy');
+      if (eco && !document.getElementById('pf-explain') && !skip('economy-explain')) {
+        var e = document.createElement('div');
+        e.id = 'pf-explain';
+        var rail = eco.querySelector('#pf-fred-rail') || document.getElementById('pf-inflation-trends');
+        if (rail && rail.parentNode) rail.parentNode.insertBefore(e, rail.nextSibling);
+        else eco.appendChild(e);
+        mount(e, 'economy');
+      }
+      var wr = document.getElementById('xWarReport');
+      if (wr && !document.getElementById('pf-war-explain') && !skip('war-explain')) {
+        var w = document.createElement('div');
+        w.id = 'pf-war-explain';
+        wr.appendChild(w);
+        mount(w, 'war');
+      }
+      var br = document.getElementById('xBrief');
+      if (br && !document.getElementById('pf-brief-explain') && !skip('brief-explain')) {
+        var b = document.createElement('div');
+        b.id = 'pf-brief-explain';
+        var fbrief = document.getElementById('pf-fred-briefing');
+        if (fbrief && fbrief.parentNode) fbrief.parentNode.insertBefore(b, fbrief.nextSibling);
+        else br.appendChild(b);
+        mount(b, 'brief');
+      }
+    } catch (e) {}
+  }
+
+  try {
+    window.PFExplain = { mount: mount };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', selfMount);
+    } else { selfMount(); }
+  } catch (e) {}
+})();
+
+;
+
+/* ===== core/macro-share.js ===== */
+/* core/macro-share.js  |  PF v1.4.3 | P-07 ONE-TAP "POST THIS STAT" + P-10
+   CALLSIGN-STAMPED STAT CARDS (Wave A6 / propaganda PW1).
+   Any macro card -> one tap -> share image + pre-written caption +
+   callsign stamp, deep-link to post.
+   LOOP LAW: inform (the macro card shows the figure) -> invite back
+   (one tap) -> pay off (the EXISTING poster_share -> create_share: +5 leg
+   on server-verified proof; this module posts to that action unchanged).
+   SECURITY (P-07 gate): captions are PRE-WRITTEN ONLY — a locked per-series
+   template map assembled from figure fields. No user free-text ever enters
+   the image or the caption (caption injection barred by construction: there
+   is no input field anywhere in this flow except the proof URL, which goes
+   to the existing backend proof verifier, never into pixels).
+   P-10: every macro share image passes through PFShare.stampCallsign
+   (the existing idempotent stamper) explicitly here; the share pipeline
+   stamps again harmlessly (idempotent via cv._pfStamped).
+   No XP is granted by this module — the only XP touch is the backend's
+   existing poster_share response, surfaced verbatim. No xpGrant, no new
+   legs, no new amounts.
+   KILL: ?pf_off=macro-share  or  localStorage pf_disabled_v1='["macro-share"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF) { return; }
+  if (PF.skip('macro-share')) { return; }
+  if (window.pfMacroShareDone) return;
+  window.pfMacroShareDone = true;
+
+  var BACKEND = window.PF_BACKEND_URL;
+  var TIMEOUT_MS = 12000;
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /* Pre-written caption templates (News Desk owns this copy — gold-standard
+     accuracy: pure figures, series ID + vintage stamped, no commentary that
+     invents meaning). {value} {period} {change} {vintage} interpolate from
+     the figure rail ONLY. Fallback template for series without a bespoke
+     line. The deep link + attribution are appended by buildCaption. */
+  var CAPTIONS = {
+    UNRATE: 'Unemployment: {value} ({period}). The official count, straight from the Bureau of Labor Statistics. They want you to feel the recovery — here is the receipt. FRED · UNRATE · retrieved {vintage}.',
+    CPIAUCNS: 'Prices up {change} year over year ({period}). That is the CPI — the official inflation receipt. Your paycheck did not keep up and they know it. FRED · CPIAUCNS · retrieved {vintage}.',
+    CPILFESL: 'Core inflation: {change} year over year ({period}). Strip out food and energy and the number still bites. FRED · CPILFESL · retrieved {vintage}.',
+    PAYEMS: '{value} jobs on payrolls ({period}) — {change} vs last month. The official jobs count. Count what it means for your town. FRED · PAYEMS · retrieved {vintage}.',
+    FEDFUNDS: 'Fed funds rate: {value} ({period}). The price of money itself, set by people you will never meet. FRED · FEDFUNDS · retrieved {vintage}.',
+    DGS10: '10-year Treasury: {value} ({period}). Wall Street\'s fear gauge, in one number. FRED · DGS10 · retrieved {vintage}.',
+    MORTGAGE30US: '30-year mortgage: {value} ({period}). The American dream, repriced every week. FRED · MORTGAGE30US · retrieved {vintage}.',
+    GDP: 'Real GDP {change} ({period}). They will cite growth; you live the prices. FRED · GDP · retrieved {vintage}.',
+    CPILFESL2: '',
+    PCEPI: 'PCE inflation: {change} year over year ({period}) — the Fed\'s favorite inflation gauge. FRED · PCEPI · retrieved {vintage}.'
+  };
+  var CAPTION_FALLBACK = 'Official figure: {value} ({period}), {change}. Straight from the Fed data vault — not a vibe, a vintage. FRED · {series} · retrieved {vintage}.';
+
+  function fmtVintage(fig) {
+    try {
+      var rt = fig && fig.retrieved_at != null ? Number(fig.retrieved_at) : NaN;
+      var d = isNaN(rt) ? null : new Date(rt);
+      if (!d || isNaN(d.getTime())) return '—';
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase();
+    } catch (e) { return '—'; }
+  }
+
+  function deepLink(fig) {
+    var u = 'https://www.mtcstw.com/follow-the-money#macro-' + (fig.series_id || '');
+    try { if (PF.shareUrl) u = PF.shareUrl(u); } catch (e) {}
+    return u;
+  }
+
+  /* Caption assembly: locked template + figure fields ONLY. */
+  function buildCaption(fig) {
+    var sid = fig.series_id || '';
+    var tpl = CAPTIONS[sid] || CAPTION_FALLBACK;
+    var out = tpl
+      .replace(/\{value\}/g, fig.value_label || '—')
+      .replace(/\{period\}/g, fig.period_label || fig.period || '')
+      .replace(/\{change\}/g, fig.change_label || '')
+      .replace(/\{vintage\}/g, fmtVintage(fig))
+      .replace(/\{series\}/g, sid);
+    return out + ' ' + deepLink(fig) + ' via The Propaganda Factory';
+  }
+
+  /* ---------- canvas stat card (1080x1080, screenshot/repost friendly) ---------- */
+  function wrapText(x, text, maxW) {
+    var words = String(text || '').split(/\s+/), lines = [], cur = '';
+    for (var i = 0; i < words.length; i++) {
+      var t = cur ? cur + ' ' + words[i] : words[i];
+      if (x.measureText(t).width > maxW && cur) { lines.push(cur); cur = words[i]; }
+      else cur = t;
+    }
+    if (cur) lines.push(cur);
+    return lines;
+  }
+
+  function paintStatCard(fig) {
+    var W = 1080, H = 1080;
+    var cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    var x = cv.getContext('2d');
+    if (!x) return null;
+    x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, W, H);
+    x.fillStyle = '#c1121f'; x.fillRect(0, 0, W, 16);
+    var cx = W / 2, y = 96;
+    x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+    /* kicker */
+    x.fillStyle = '#e8b923'; x.font = '700 34px Arial,sans-serif';
+    x.fillText('OFFICIAL DATA · FRED', cx, y); y += 28;
+    /* SA/NSA chip */
+    if (fig.sa_nsa) {
+      x.font = '700 26px Arial,sans-serif';
+      var chip = String(fig.sa_nsa), cw = x.measureText(chip).width + 36;
+      x.fillStyle = '#2a2a2a'; x.fillRect(cx - cw / 2, y, cw, 44);
+      x.fillStyle = '#c9bfa8'; x.fillText(chip, cx, y + 32); y += 76;
+    } else { y += 30; }
+    /* title */
+    x.fillStyle = '#f5ead6'; x.font = '900 52px Arial,sans-serif';
+    var tl = wrapText(x, fig.title || fig.series_id || '', W - 160);
+    for (var i = 0; i < tl.length && i < 2; i++) { x.fillText(tl[i], cx, y); y += 62; }
+    y += 18;
+    /* value */
+    x.font = '900 170px Arial,sans-serif';
+    x.fillText(fig.value_label || '—', cx, y + 130); y += 210;
+    /* unit + period */
+    x.fillStyle = '#c9bfa8'; x.font = '400 34px Arial,sans-serif';
+    if (fig.unit_label) { x.fillText(fig.unit_label, cx, y); y += 48; }
+    x.font = '700 40px Arial,sans-serif'; x.fillStyle = '#f5ead6';
+    x.fillText(fig.period_label || fig.period || '', cx, y); y += 62;
+    /* change */
+    if (fig.change_label) {
+      x.font = '900 52px Arial,sans-serif'; x.fillStyle = '#e8b923';
+      x.fillText(fig.change_label, cx, y); y += 70;
+    }
+    /* source stamp */
+    x.fillStyle = '#2a2a2a'; x.fillRect(80, y + 10, W - 160, 2); y += 56;
+    x.fillStyle = '#8a8271'; x.font = '400 28px Arial,sans-serif';
+    x.fillText('FRED · ' + (fig.series_id || '') + ' · RETRIEVED ' + fmtVintage(fig), cx, y); y += 60;
+    /* footer CTA */
+    x.fillStyle = '#f5ead6'; x.font = '700 38px Arial,sans-serif';
+    x.fillText('MTCSTW.COM', cx, y); y += 56;
+    x.fillStyle = '#c1121f'; x.font = '900 54px Arial,sans-serif';
+    x.fillText('JOIN THE FIGHT.', cx, y);
+    return cv;
+  }
+
+  /* ---------- proof prompt (existing leg, unchanged) ---------- */
+  var proofOpen = false;
+  function proofPrompt(fig) {
+    if (proofOpen) return;
+    proofOpen = true;
+    var storyUrl = deepLink(fig);
+    var wrap = document.createElement('div');
+    wrap.setAttribute('style', 'position:fixed;left:0;right:0;bottom:0;z-index:99999;' +
+      'background:#0d0d0d;border-top:3px solid #c1121f;padding:14px 16px 18px;' +
+      'font-family:Arial,sans-serif;color:#f5ead6;');
+    wrap.innerHTML =
+      '<div style="font-weight:900;letter-spacing:1px;font-size:14px;margin-bottom:6px;">' +
+      'POSTED IT? CLAIM YOUR +5 XP</div>' +
+      '<div style="font-size:13px;color:#c9bfa8;margin-bottom:8px;">Paste the link to your public post. ' +
+      'The backend verifies it — no proof, no XP.</div>' +
+      '<div style="display:flex;gap:8px;">' +
+      '<input data-pf-proof type="url" placeholder="https://… link to your post" maxlength="2000" ' +
+      'style="flex:1;background:#141414;border:1px solid #3a3a3a;color:#f5ead6;border-radius:6px;' +
+      'padding:10px;font-size:14px;min-width:0;" />' +
+      '<button data-pf-proofgo style="background:#c1121f;color:#fff;border:0;border-radius:6px;' +
+      'padding:10px 14px;font-weight:900;font-size:14px;cursor:pointer;">CLAIM</button>' +
+      '<button data-pf-proofx style="background:#2a2a2a;color:#c9bfa8;border:0;border-radius:6px;' +
+      'padding:10px 12px;font-size:14px;cursor:pointer;">LATER</button></div>' +
+      '<div data-pf-proofmsg style="font-size:13px;margin-top:8px;min-height:18px;"></div>';
+    function close() {
+      proofOpen = false;
+      try { if (wrap.parentNode) wrap.parentNode.removeChild(wrap); } catch (e) {}
+    }
+    function msg(t, good) {
+      try {
+        var m = wrap.querySelector('[data-pf-proofmsg]');
+        m.textContent = t; m.style.color = good ? '#7fd67f' : '#e0685c';
+      } catch (e) {}
+    }
+    try {
+      wrap.querySelector('[data-pf-proofx]').addEventListener('click', close);
+      wrap.querySelector('[data-pf-proofgo]').addEventListener('click', function () {
+        var inp = wrap.querySelector('[data-pf-proof]');
+        var proof = inp && inp.value ? String(inp.value).trim() : '';
+        if (!proof) { msg('Paste your post link first.'); return; }
+        msg('Verifying…');
+        try {
+          PF.postAction('readcreate', 'rc_action', 'poster_share',
+            { story_url: storyUrl, proof_url: proof }, function (j) {
+              if (j && j.ok) { msg('+5 XP confirmed. The number travels with your name on it.', true); }
+              else if (j && j.dup) { msg('Already counted — proof links are one-time.', true); }
+              else msg('Not counted: ' + ((j && j.err) || 'verification failed') + '.');
+            });
+        } catch (e) { msg('Could not reach the backend — try again.'); }
+      });
+    } catch (e) {}
+    try { document.body.appendChild(wrap); } catch (e) { proofOpen = false; }
+    setTimeout(function () { if (proofOpen) close(); }, 120000); /* never trap */
+  }
+
+  /* ---------- the one-tap flow ---------- */
+  function shareFigure(fig) {
+    if (!fig || fig.stale) return false;
+    var cv = null;
+    try { cv = paintStatCard(fig); } catch (e) {}
+    if (!cv) return false;
+    /* P-10: explicit callsign stamp via the existing idempotent stamper. */
+    try {
+      if (window.PFShare && typeof window.PFShare.stampCallsign === 'function') {
+        cv = window.PFShare.stampCallsign(cv) || cv;
+      }
+    } catch (e) {}
+    var caption = buildCaption(fig);
+    var fname = 'pf-macro-' + String(fig.series_id || 'stat').toLowerCase() + '.png';
+    var done = function () { proofPrompt(fig); };
+    try {
+      if (window.PFShare && typeof window.PFShare.shareImage === 'function') {
+        /* The share pipeline stamps again (idempotent), runs the callsign
+           claim gate, fires the local share credit, and falls back to
+           download where the share sheet is unavailable. opts.text carries
+           the pre-written caption (no free-text anywhere). */
+        window.PFShare.shareImage(cv, fname, fig.title || 'Macro stat', 'macro-strip',
+          { text: caption, link: deepLink(fig) });
+        done();
+        return true;
+      }
+    } catch (e) {}
+    /* Fallback: plain download + proof prompt. */
+    try {
+      var a = document.createElement('a');
+      a.href = cv.toDataURL('image/png');
+      a.download = fname;
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { try { a.parentNode.removeChild(a); } catch (e2) {} }, 500);
+      done();
+      return true;
+    } catch (e2) { return false; }
+  }
+
+  function shareSeries(seriesId) {
+    /* Gallery "YOUR TURN" path: fetch the current figure, then one-tap it. */
+    if (!BACKEND) return false;
+    var fn = 'pfMacroShareCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), finished = false;
+    function fin(j) {
+      if (finished) return; finished = true;
+      try { delete window[fn]; } catch (e) {}
+      try { if (s.parentNode) s.parentNode.removeChild(s); } catch (e) {}
+      var card = null;
+      try {
+        var arr = (j && j.series) || [];
+        for (var i = 0; i < arr.length; i++) {
+          if (arr[i] && arr[i].series_id === seriesId) { card = arr[i]; break; }
+        }
+      } catch (e) {}
+      if (card) shareFigure(card);
+    }
+    window[fn] = fin;
+    s.onerror = function () { fin(null); };
+    s.src = BACKEND + '?action=fred_macro&callback=' + fn;
+    try { document.head.appendChild(s); } catch (e) { return false; }
+    setTimeout(function () { fin(null); }, TIMEOUT_MS);
+    return true;
+  }
+
+  /* ---------- decorator: wire POST THIS STAT into rendered macro cards ---------- */
+  var CSS = [
+    '.pf-macro-sharewrap{position:relative}',
+    '.pf-macro-sharebtn{display:block;width:100%;margin-top:8px;background:#c1121f;color:#fff;' +
+    'border:0;border-radius:6px;padding:10px;font-weight:900;font-size:13px;letter-spacing:2px;' +
+    'cursor:pointer;font-family:Arial,sans-serif}',
+    '.pf-macro-sharebtn:active{transform:scale(.98)}'
+  ].join('\n');
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-macro-share-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-macro-share-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  function parseFig(el) {
+    try {
+      var raw = el.getAttribute('data-macro');
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch (e) { return null; }
+  }
+
+  function wireCard(card) {
+    if (!card || card.getAttribute('data-pf-share-wired')) return;
+    var fig = parseFig(card);
+    if (!fig || fig.stale || !fig.series_id) return;
+    card.setAttribute('data-pf-share-wired', '1');
+    cssOnce();
+    try {
+      var wrap = document.createElement('div');
+      wrap.className = 'pf-macro-sharewrap';
+      card.parentNode.insertBefore(wrap, card);
+      wrap.appendChild(card);
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'pf-macro-sharebtn';
+      btn.textContent = 'POST THIS STAT';
+      btn.setAttribute('aria-label', 'Share this stat: ' + (fig.title || fig.series_id));
+      btn.addEventListener('click', function (ev) {
+        try { ev.preventDefault(); ev.stopPropagation(); } catch (e) {}
+        shareFigure(fig);
+      });
+      wrap.appendChild(btn);
+    } catch (e) {
+      try { card.removeAttribute('data-pf-share-wired'); } catch (e2) {}
+    }
+  }
+
+  function scan() {
+    var cards = null;
+    try { cards = document.querySelectorAll('.pf-macro-card[data-macro]'); } catch (e) { return; }
+    for (var i = 0; i < cards.length; i++) { try { wireCard(cards[i]); } catch (e) {} }
+  }
+
+  function wire() {
+    scan();
+    try {
+      var mo = new MutationObserver(function () { scan(); });
+      mo.observe(document.body, { childList: true, subtree: true });
+    } catch (e) {}
+    return true;
+  }
+
+  try {
+    window.PFMacroShare = { wire: wire, shareFigure: shareFigure, shareSeries: shareSeries,
+      buildCaption: buildCaption, _captions: CAPTIONS };
+    /* Auto-wire on load: the strip renders async, the observer catches it. */
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', wire);
+    } else { wire(); }
+  } catch (e) {}
+})();
+
+;
+
+/* ===== core/macro-gallery.js ===== */
+/* core/macro-gallery.js  |  PF v1.4.3 | P-14 MACRO GALLERY / REMIX WALL
+   (Wave A6 / propaganda PW1). The social-proof engine: everything made with
+   official FRED data, in one public wall.
+   - "Made with FRED data" badge on every piece; sortable by series;
+     remix chains visible (REMIX OF #id); "YOUR TURN" CTA on every piece.
+   - P-16 HQ model pieces render inline (hq_model:true): "HQ MODEL — here
+     is what good looks like" + "REMIX THE MODEL" CTA into the one-tap
+     share flow, so day one is never empty.
+   - Featured pieces carry the HQ imprimatur ("HQ FEATURED" badge) — the
+     flag is server-set only (gallery_feature, admin-gated); this module
+     never trusts a client-set flag, it only renders what the rail sends.
+   - DISPLAY ONLY. Zero XP anywhere in this module: no credit events, no
+     postAction, no xpGrant. (The remix CTA hands off to PFMacroShare —
+     any XP from a subsequent share flows through that module's existing
+     leg, never from the gallery.)
+   - Every number traceable to a FRED vintage: stamps render
+     FRED · <series> · VINTAGE <date> from the rail's stamp fields.
+     Official/crowd separation: the wall shows official-data pieces and
+     creator captions as two labeled lines — never one blended number.
+   - Fail-soft: no key / no rows -> honest empty states, never mock pieces.
+   KILL: ?pf_off=macro-gallery  or  localStorage pf_disabled_v1='["macro-gallery"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF) { return; }
+  if (PF.skip('macro-gallery')) { return; }
+  if (window.pfMacroGalleryDone) return;
+  window.pfMacroGalleryDone = true;
+
+  var BACKEND = window.PF_BACKEND_URL;
+  var TIMEOUT_MS = 12000;
+  var SERIES_ORDER = ['FEDFUNDS', 'UNRATE', 'DGS10', 'MORTGAGE30US',
+    'CPIAUCNS', 'CPILFESL', 'PAYEMS', 'PCEPI', 'GDP'];
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var fn = 'pfGalCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, TIMEOUT_MS);
+  }
+
+  var CSS = [
+    '.pf-mgal{max-width:960px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}',
+    '.pf-mgal-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}',
+    '.pf-mgal-title{font-weight:900;font-size:22px;text-align:center;margin:0 0 6px;letter-spacing:1px}',
+    '.pf-mgal-sub{font-size:13px;color:#c9bfa8;text-align:center;margin:0 0 12px}',
+    '.pf-mgal-tools{display:flex;gap:8px;justify-content:center;align-items:center;margin-bottom:12px;flex-wrap:wrap}',
+    '.pf-mgal-tools label{font-size:12px;letter-spacing:1px;color:#8a8271;font-weight:700}',
+    '.pf-mgal-tools select{background:#141414;color:#f5ead6;border:1px solid #3a3a3a;border-radius:6px;padding:8px;font-size:14px}',
+    '.pf-mgal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}',
+    '@media (max-width:720px){.pf-mgal-grid{grid-template-columns:1fr}}',
+    '.pf-mgal-card{border:1px solid #2a2a2a;border-radius:8px;background:#0d0d0d;overflow:hidden;display:flex;flex-direction:column}',
+    '.pf-mgal-card.hq{border-top:6px solid #e8b923}',
+    '.pf-mgal-card.feat{border-top:6px solid #c1121f}',
+    '.pf-mgal-visual{min-height:180px;display:flex;align-items:center;justify-content:center;background:#111;padding:18px 14px;text-align:center}',
+    '.pf-mgal-visual img{max-width:100%;height:auto;display:block}',
+    '.pf-mgal-badges{display:flex;gap:6px;flex-wrap:wrap;padding:10px 12px 0}',
+    '.pf-mgal-badge{font-size:10px;font-weight:900;letter-spacing:1px;padding:3px 8px;border-radius:3px}',
+    '.pf-mgal-badge.data{background:#1d3a1d;color:#7fd67f}',
+    '.pf-mgal-badge.hq{background:#3a2f10;color:#e8b923}',
+    '.pf-mgal-badge.featb{background:#3a1010;color:#ff8a7a}',
+    '.pf-mgal-badge.series{background:#2a2a2a;color:#c9bfa8}',
+    '.pf-mgal-body{padding:10px 12px 12px;display:flex;flex-direction:column;gap:8px;flex:1}',
+    '.pf-mgal-fig{font-weight:900;font-size:26px;color:#f5ead6}',
+    '.pf-mgal-fig small{display:block;font-size:12px;color:#c9bfa8;font-weight:400;margin-top:4px}',
+    '.pf-mgal-cap{font-size:13px;color:#c9bfa8;line-height:1.45}',
+    '.pf-mgal-meta{font-size:11px;color:#8a8271;letter-spacing:.5px}',
+    '.pf-mgal-chain{font-size:11px;color:#e8b923;letter-spacing:.5px}',
+    '.pf-mgal-stamp{font-size:10px;color:#8a8271;letter-spacing:.5px;border-top:1px solid #2a2a2a;padding-top:8px}',
+    '.pf-mgal-cta{margin-top:auto;display:flex;gap:8px}',
+    '.pf-mgal-btn{flex:1;background:#c1121f;color:#fff;border:0;border-radius:6px;padding:10px;font-weight:900;font-size:12px;letter-spacing:1px;cursor:pointer}',
+    '.pf-mgal-btn.ghost{background:#2a2a2a;color:#f5ead6}',
+    '.pf-mgal-empty{border:1px dashed #3a3a3a;border-radius:8px;padding:26px 16px;text-align:center}',
+    '.pf-mgal-empty h4{font-weight:900;font-size:17px;letter-spacing:2px;margin:0 0 8px;color:#f5ead6}',
+    '.pf-mgal-empty p{font-size:14px;color:#c9bfa8;margin:0;line-height:1.5}',
+    '.pf-mgal-foot{font-size:11px;color:#8a8271;text-align:center;letter-spacing:1px;margin-top:10px}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-mgal-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-mgal-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  /* Vintage stamp: 'FRED · UNRATE · VINTAGE SEP 2026'. null-safe. */
+  function stampOf(it) {
+    var s = 'FRED · ' + (it.stamp_series || it.series_id || '');
+    var v = it.stamp_vintage || (it.figure && it.figure.vintage_date) || '';
+    if (v) {
+      var m = /^(\d{4})-(\d{2})/.exec(String(v));
+      if (m) {
+        var MON = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        s += ' · VINTAGE ' + MON[parseInt(m[2], 10) - 1] + ' ' + m[1];
+      }
+    }
+    return s;
+  }
+
+  /* HQ model visual: distinct per-layout render from the figure payload.
+     All numbers come from the rail — nothing invented here. */
+  function modelVisual(it) {
+    var f = it.figure || {};
+    var val = esc(f.value_label || '—');
+    var per = esc(f.period_label || f.period || '');
+    var chg = esc(f.change_label || f.change_pct_label || '');
+    var title = esc(f.title || it.series_id || '');
+    var lay = it.layout || 'stat';
+    var inner = '';
+    if (lay === 'duel') {
+      inner = '<div><div style="font-size:12px;letter-spacing:2px;color:#e8b923;font-weight:700;">THIS PRINT</div>' +
+        '<div class="pf-mgal-fig">' + val + '</div>' +
+        '<div style="font-size:12px;letter-spacing:2px;color:#8a8271;font-weight:700;margin-top:10px;">PRIOR</div>' +
+        '<div style="font-weight:900;font-size:20px;color:#c9bfa8;">' + esc(f.prior_value != null ? String(f.prior_value) : '—') + '</div>' +
+        (chg ? '<div style="font-weight:700;font-size:14px;color:#e8b923;margin-top:6px;">' + chg + '</div>' : '') +
+        '<div class="pf-mgal-fig"><small>' + per + '</small></div></div>';
+    } else if (lay === 'banner') {
+      inner = '<div><div class="pf-mgal-fig" style="font-size:40px;">' + val + '</div>' +
+        '<div style="font-size:15px;color:#c9bfa8;margin-top:8px;">' + title + ' · ' + per + '</div>' +
+        (chg ? '<div style="font-weight:900;font-size:18px;color:#c1121f;margin-top:8px;">' + chg + '</div>' : '') + '</div>';
+    } else if (lay === 'ticker') {
+      inner = '<div style="width:100%;"><div style="display:flex;justify-content:space-between;align-items:baseline;">' +
+        '<span style="font-weight:900;font-size:15px;letter-spacing:1px;color:#e8b923;">' + title + '</span>' +
+        '<span style="font-weight:900;font-size:34px;color:#f5ead6;">' + val + '</span></div>' +
+        '<div style="height:6px;background:#2a2a2a;border-radius:3px;margin:10px 0;">' +
+        '<div style="height:6px;width:62%;background:#c1121f;border-radius:3px;"></div></div>' +
+        '<div style="font-size:12px;color:#8a8271;">' + per + (chg ? ' · ' + chg : '') + '</div></div>';
+    } else if (lay === 'quote') {
+      inner = '<div><div style="font-size:44px;color:#c1121f;font-weight:900;line-height:1;">&ldquo;</div>' +
+        '<div class="pf-mgal-fig">' + val + '</div>' +
+        '<div style="font-size:14px;color:#c9bfa8;margin-top:8px;">' + title + ', ' + per + '</div></div>';
+    } else { /* stat */
+      inner = '<div><div style="font-size:12px;letter-spacing:3px;color:#e8b923;font-weight:700;">' + title + '</div>' +
+        '<div class="pf-mgal-fig" style="font-size:44px;">' + val + '</div>' +
+        (chg ? '<div style="font-weight:700;font-size:15px;color:#e8b923;margin-top:6px;">' + chg + '</div>' : '') +
+        '<div class="pf-mgal-fig"><small>' + per + '</small></div></div>';
+    }
+    return '<div class="pf-mgal-visual">' + inner + '</div>';
+  }
+
+  function badges(it) {
+    var b = '<span class="pf-mgal-badge data">MADE WITH FRED DATA</span>';
+    if (it.hq_model) b += '<span class="pf-mgal-badge hq">HQ MODEL</span>';
+    if (it.featured && !it.hq_model) b += '<span class="pf-mgal-badge featb">HQ FEATURED</span>';
+    if (it.series_id) b += '<span class="pf-mgal-badge series">' + esc(it.series_id) + '</span>';
+    return '<div class="pf-mgal-badges">' + b + '</div>';
+  }
+
+  function card(it) {
+    var cls = 'pf-mgal-card' + (it.hq_model ? ' hq' : '') + ((it.featured && !it.hq_model) ? ' feat' : '');
+    var visual, bodyMeta;
+    /* Synergy-1 attribution: credit lines render through the shared
+       PF.credit component (same voice everywhere; honest empty when the
+       backend sent no attribution). Defensive — the component may be
+       kill-switched or absent on a stale bundle. */
+    function creditFor(src) {
+      try { return (window.PF && window.PF.credit) ? window.PF.credit(src) : ''; }
+      catch (e) { return ''; }
+    }
+    if (it.hq_model) {
+      visual = modelVisual(it);
+      bodyMeta = '<div class="pf-mgal-meta">HQ MODEL — here is what good looks like. ' +
+        'The figure is the live official vintage; remix it and make it yours.</div>' +
+        creditFor({ sourced_by: it.sourced_by || 'hq' });
+    } else {
+      visual = it.artifact_url
+        ? '<div class="pf-mgal-visual"><img src="' + esc(it.artifact_url) + '" alt="' +
+          esc('Macro piece by ' + (it.callsign || 'a creator')) + '" loading="lazy" /></div>'
+        : '<div class="pf-mgal-visual"><span style="color:#3a3a3a;font-size:40px;">—</span></div>';
+      bodyMeta = creditFor({ sourced_by: it.sourced_by || it.callsign }) +
+        (it.caption ? '<div class="pf-mgal-cap">' + esc(it.caption).slice(0, 280) + '</div>' : '');
+    }
+    var chain = it.remix_of
+      ? '<div class="pf-mgal-chain">REMIX OF ' + esc(it.remix_of) + ' — the chain stays visible.</div>'
+      : '';
+    var cta;
+    if (it.hq_model) {
+      cta = '<div class="pf-mgal-cta"><button class="pf-mgal-btn" data-act="remix-model" data-sid="' +
+        esc(it.series_id || '') + '">REMIX THE MODEL</button></div>';
+    } else {
+      cta = '<div class="pf-mgal-cta"><button class="pf-mgal-btn" data-act="your-turn" data-sid="' +
+        esc(it.series_id || '') + '">YOUR TURN</button></div>';
+    }
+    return '<div class="' + cls + '" data-mgal-id="' + esc(it.id || '') + '">' +
+      badges(it) + visual +
+      '<div class="pf-mgal-body">' + bodyMeta + chain +
+      '<div class="pf-mgal-stamp">' + esc(stampOf(it)) + '</div>' + cta + '</div></div>';
+  }
+
+  function shell(inner) {
+    return '<div class="pf-mgal">' +
+      '<div class="pf-mgal-kicker">SOCIAL PROOF</div>' +
+      '<h3 class="pf-mgal-title">THE MACRO WALL</h3>' +
+      '<p class="pf-mgal-sub">Everything made with official FRED data. See it. Remix it. Post it.</p>' +
+      inner +
+      '<div class="pf-mgal-foot">OFFICIAL FIGURES VIA FRED · CREATOR WORDS ARE THEIR OWN</div></div>';
+  }
+
+  function emptyBlock(head, body) {
+    return '<div class="pf-mgal-empty"><h4>' + esc(head) + '</h4><p>' + esc(body) + '</p></div>';
+  }
+
+  var state = { items: [], filter: 'ALL', live: false };
+
+  function render(container) {
+    cssOnce();
+    if (!state.live) {
+      container.innerHTML = shell(emptyBlock('WALL OFFLINE',
+        'The gallery feed is not connected. Nothing here is estimated or seeded — pieces appear once the feed lands.'));
+      return;
+    }
+    var items = state.items;
+    var f = state.filter;
+    var shown = f === 'ALL' ? items : items.filter(function (it) { return it.series_id === f; });
+    var opts = ['<option value="ALL">ALL SERIES</option>'].concat(SERIES_ORDER.map(function (s) {
+      return '<option value="' + s + '"' + (f === s ? ' selected' : '') + '>' + s + '</option>';
+    })).join('');
+    var grid = shown.length
+      ? '<div class="pf-mgal-grid">' + shown.map(card).join('') + '</div>'
+      : emptyBlock('THE WALL IS EMPTY', 'No pieces for this series yet. Be the first — grab a stat and post it.');
+    container.innerHTML = shell(
+      '<div class="pf-mgal-tools"><label for="pf-mgal-f">SERIES</label>' +
+      '<select id="pf-mgal-f" data-mgal-filter>' + opts + '</select></div>' + grid);
+    try {
+      var sel = container.querySelector('[data-mgal-filter]');
+      if (sel) sel.addEventListener('change', function () {
+        state.filter = sel.value || 'ALL';
+        render(container);
+      });
+      var btns = container.querySelectorAll('[data-act]');
+      for (var i = 0; i < btns.length; i++) {
+        (function (b) {
+          b.addEventListener('click', function () {
+            var sid = b.getAttribute('data-sid') || '';
+            var act = b.getAttribute('data-act');
+            try {
+              if ((act === 'remix-model' || act === 'your-turn') &&
+                  window.PFMacroShare && typeof window.PFMacroShare.shareSeries === 'function') {
+                window.PFMacroShare.shareSeries(sid);
+              }
+            } catch (e) {}
+          });
+        })(btns[i]);
+      }
+    } catch (e) {}
+  }
+
+  function mount(container) {
+    if (!container) return false;
+    try {
+      if (container.querySelector && container.querySelector('.pf-mgal')) return true;
+    } catch (e) {}
+    api('fred_gallery', {}, function (j) {
+      try {
+        if (j && j.ok && Array.isArray(j.items)) {
+          state.items = j.items;
+          state.live = !!j.fred_live;
+          render(container);
+        } else {
+          cssOnce();
+          container.innerHTML = shell(emptyBlock('WALL OFFLINE',
+            'The gallery feed is not connected. Nothing here is estimated or seeded — pieces appear once the feed lands.'));
+        }
+      } catch (e) {
+        try {
+          cssOnce();
+          container.innerHTML = shell(emptyBlock('WALL OFFLINE', 'The gallery could not load.'));
+        } catch (e2) {}
+      }
+    });
+    return true;
+  }
+
+  try { window.PFMacroGallery = { mount: mount }; } catch (e) {}
+})();
+
+;
+
+/* ===== core/money-deep8.js ===== */
+/* core/money-deep8.js  |  PF v1.4.3 | MONEY SUITE DEEP-8 EXTENSIONS.
+   Slot renderer for the 8 planned money-suite extensions
+   (phq-hub-ia-spec §3.6.8–6.15). Never auto-mounts — the money-page shell
+   calls PFMoneyDeep.mount(container).
+   STATUS: PLANNED — no branches, no backend tables, no endpoints. Each
+   slot renders its honest empty state ("AWAITING PUBLIC DATA") with its
+   kill id registered, so the /money page ships the full 15-element map
+   with zero invented data. When a backend lands for an element, a real
+   module replaces that slot — the kill id survives unchanged.
+   Per the Frontend review deferrals:
+   - money-crypto: dark money is undisclosed by definition; the slot frames
+     as explainer-only, never figures.
+   - money-thinktanks / money-fara: opaque/clunky sourcing; phase 2+.
+   - money-leadership-pac: needs a written slush rubric before any build.
+   - money-gifts / money-revolving / money-committee: phase 2 (real data).
+   - money-industry: reuses the vote-vs-donor juxtaposition when it lands.
+   KILL: ?pf_off=money (master) or per-element ?pf_off=money-<id> */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF) { return; }
+  if (PF.skip('money')) { return; }
+  if (window.pfMoneyDeepDone) return;
+  window.pfMoneyDeepDone = true;
+
+  /* id, title, variant, blurb — blurbs are provisional copy, Psych veto. */
+  var SLOTS = [
+    { id: 'money-revolving', title: 'THE REVOLVING DOOR',
+      blurb: 'The staffers and members who cash out to the industries they used to regulate — career timelines, public records only.' },
+    { id: 'money-committee', title: 'COMMITTEE CAPTURE',
+      blurb: 'Who funds the committees that write the rules for their own industries — donor rolls vs. committee votes, side by side.' },
+    { id: 'money-leadership-pac', title: 'LEADERSHIP PAC SLUSH',
+      blurb: 'Where leadership PAC money actually goes — every expense line, ranked. Ships with a written slush rubric.' },
+    { id: 'money-gifts', title: 'GIFTS & TRAVEL',
+      blurb: 'The trips, tickets, and trinkets disclosed on the public gift rolls — per-person rows, sourced line by line.' },
+    { id: 'money-fara', title: 'FOREIGN LOBBY (FARA)',
+      blurb: 'Who pays foreign agents to lobby Washington — principals, agents, and dollars from the public FARA filings.' },
+    { id: 'money-thinktanks', title: 'THINK TANK FUNDING',
+      blurb: 'Who funds the "independent experts" on your TV — funding pies from self-reported and public sources only.' },
+    { id: 'money-industry', title: 'INDUSTRY JUICY CUTS',
+      blurb: 'The vote-vs-donor juxtaposition, cut by industry — Big Oil, Big Pharma, Big Tech, one card each.' },
+    { id: 'money-crypto', title: 'CRYPTO DARK MONEY',
+      blurb: 'Dark money is undisclosed by definition — this will be explainer content on the crypto influence machine, never invented figures.' }
+  ];
+
+  var CSS = [
+    '.pf-md{max-width:920px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}',
+    '.pf-md-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}',
+    '.pf-md-title{font-weight:900;font-size:22px;text-align:center;margin:0 0 12px;letter-spacing:1px}',
+    '.pf-md-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}',
+    '.pf-md-slot{border:1px dashed #3a3a3a;border-radius:8px;padding:16px 14px;text-align:center;background:#0d0d0d}',
+    '.pf-md-slot h4{font-weight:900;font-size:15px;letter-spacing:2px;margin:0 0 8px;color:#f5ead6}',
+    '.pf-md-slot p{font-size:13px;color:#c9bfa8;margin:0 0 8px;line-height:1.5}',
+    '.pf-md-slot .pf-md-tag{display:inline-block;font-weight:700;font-size:11px;letter-spacing:2px;color:#0d0d0d;background:#e8b923;border-radius:3px;padding:2px 8px}',
+    '.pf-md-links{margin-top:10px}',
+    '.pf-md-links a{display:block;font-weight:800;font-size:11px;letter-spacing:2px;color:#e8b923;text-decoration:none;margin:8px 0}',
+    '.pf-md-links a:hover{text-decoration:underline}'
+  ].join('\n');
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-md-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-md-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  function mount(container) {
+    if (!container) return false;
+    try {
+      if (container.querySelector && container.querySelector('.pf-md')) return true;
+    } catch (e) {}
+    cssOnce();
+    var live = SLOTS.filter(function (s) { return !(PF && PF.skip(s.id)); });
+    var html = '<div class="pf-md">' +
+      '<div class="pf-md-kicker">DEEP CUTS</div>' +
+      '<h3 class="pf-md-title">THE REST OF THE MONEY MAP</h3>' +
+      '<div class="pf-md-grid">' +
+      live.map(function (s) {
+        return '<div class="pf-md-slot" data-money-slot="' + esc(s.id) + '">' +
+          '<h4>' + esc(s.title) + '</h4>' +
+          '<p>' + esc(s.blurb) + '</p>' +
+          '<span class="pf-md-tag">AWAITING PUBLIC DATA</span>' +
+          '<div class="pf-md-links">' +
+          '<a href="/political-hq#pf-util-notify-prefs">NOTIFY ME WHEN THIS GOES LIVE</a>' +
+          '<a href="/political-hq#phq-money">SEE WHAT\'S LIVE &rarr;</a>' +
+          '</div></div>';
+      }).join('') +
+      '</div></div>';
+    container.innerHTML = html;
+    return true;
+  }
+
+  try { window.PFMoneyDeep = { mount: mount, slots: SLOTS.map(function (s) { return s.id; }) }; } catch (e) {}
+})();
+
+;
+
+/* ===== games/ritual-calendar.js ===== */
+/* games/ritual-calendar.js  |  PF v1.4.3 | WEEKLY RITUAL CALENDAR.
+   Engagement build D, item #3 (gates: Psych CHANGES, Economy SIGNED).
+   Three recurring network moments — CPI day, jobs day, Fed day — as 0-XP
+   display: countdowns, the release-day shared prompt (invitation copy), and
+   a deep link to the release briefing. The engagement payoff rides the
+   EXISTING Daily Orders mirror: on a live release day the order card awards
+   dochall_<YYYYMMDD>_<series>_<callsign> (10 XP, once) through the standard
+   pf-do-challenge-done event (mirror-clamped to 15; 10 passes).
+   Mounts: #pf-money present -> full RAIL rendered directly (this file ships
+   in the money chunk too); otherwise the pf-ov-ritual template is staged
+   for page-mount (homepage ORDER entry -> compact SLOT). One JSONP read per
+   page view (module cache).
+   PSYCH GATE (binding, QC-verified): no absence-shame copy anywhere —
+   "you missed it", "fell behind", "don't miss" are banned; ritual
+   participation NEVER touches streak state (this module does not read or
+   write streaks — grep it); any push/notification is opt-in-only, default
+   off (this module sends none); participation stats are private — no
+   attendance boards, no "who showed up" lists.
+   FAIL-SOFT: backend down / empty / error -> the section hides. Never a
+   broken box, never a spinner forever (12s timeout -> hide).
+   KILL: ?pf_off=ritual-calendar  or  localStorage pf_disabled_v1='["ritual-calendar"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("ritual-calendar")) { return; }
+  if (window.pfRitualCalendarDone) return;
+  window.pfRitualCalendarDone = true;
+
+  var BACKEND = window.PF_BACKEND_URL;
+  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  function okURL(u){ var s=String(u==null?"":u).trim(); return /^(https?:)\/\//i.test(s)?s:""; }
+  function callsign(){ try{ return (window.PFCallsign&&window.PFCallsign())||""; }catch(e){ return ""; } }
+  var DATA=null, FETCHED=false;
+  function fetchCal(cb){
+    if(FETCHED){ cb(DATA); return; }
+    FETCHED=true;
+    if(!BACKEND){ cb(null); return; }
+    var fn="pfRitualCb"+Math.floor(Math.random()*1e9), done=false, s=null;
+    function fin(j){ if(done) return; done=true; try{delete window[fn];}catch(e){} try{ if(s&&s.parentNode) s.parentNode.removeChild(s); }catch(e2){} DATA=j; cb(j); }
+    window[fn]=function(j){ fin(j); };
+    s=document.createElement("script");
+    s.onerror=function(){ fin(null); };
+    s.src=BACKEND+"?action=ritual_calendar&callback="+fn;
+    document.head.appendChild(s);
+    setTimeout(function(){ fin(DATA); },12000);
+  }
+  function countdown(m){
+    if(m.live) return "HERE NOW";
+    if(m.days_until==null) return "DATE TBA";
+    if(m.days_until===1) return "TOMORROW";
+    return "IN "+m.days_until+" DAYS";
+  }
+  function cardHTML(m, compact){
+    var h='<div class="rc-card'+(m.live?' live':'')+'">';
+    h+='<div class="rc-k">'+esc(m.label)+' &middot; '+esc(countdown(m))+'</div>';
+    h+='<div class="rc-t">'+esc(m.label)+'</div>';
+    if(!compact){
+      h+='<div class="rc-c">'+esc(m.prompt)+'</div>';
+      var link=okURL(m.deep_link);
+      if(link) h+='<a class="rc-btn ghost" href="'+esc(link)+'" target="_blank" rel="noopener">READ THE BRIEFING</a>';
+    }
+    if(m.live && m.order_date){
+      var cs=callsign();
+      h+='<div class="rc-order"><span style="font-weight:900;color:#f5ead6;font-size:14px;">RELEASE-DAY ORDER</span><span class="rc-xp">+10 XP</span>';
+      h+='<div class="rc-c">'+esc(m.prompt)+'</div>';
+      if(cs){
+        h+='<button class="rc-btn" data-rc-claim="'+esc(m.key)+'">I READ IT — CLAIM 10 XP</button>';
+        h+='<div class="rc-note">One claim per release. Tap only after you have read the release briefing.</div>';
+      }else{
+        h+='<div class="rc-note">Claim a callsign in Daily Orders to earn XP for release-day orders.</div>';
+      }
+      h+='</div>';
+    }
+    h+='</div>';
+    return h;
+  }
+  function wireClaims(box, j){
+    var btns=box.querySelectorAll("[data-rc-claim]");
+    for(var b=0;b<btns.length;b++){
+      (function(btn){
+        btn.addEventListener("click", function(){
+          var key=btn.getAttribute("data-rc-claim"), m=null, i;
+          for(i=0;i<j.moments.length;i++) if(j.moments[i].key===key) m=j.moments[i];
+          if(!m) return;
+          var cs=callsign();
+          if(!cs) return;
+          btn.disabled=true;
+          try{
+            document.dispatchEvent(new CustomEvent("pf-do-challenge-done",{
+              detail:{ week: (m.order_date||"")+"_"+m.series+"_"+cs, xp: 10 }
+            }));
+          }catch(e){}
+          var d=document.createElement("div");
+          d.className="rc-done";
+          d.textContent="Claimed — +10 XP when the mirror lands. One per release.";
+          btn.parentNode.appendChild(d);
+        });
+      })(btns[b]);
+    }
+  }
+  /* Exposed for the staged-template inner script (page-mount execScripts
+     evals it in global scope after importing the template). */
+  window.pfRitualRender=function(host, railMode){
+    fetchCal(function(j){
+      if(!j || !j.ok || !j.moments || !j.moments.length){ host.style.display="none"; return; }
+      var h, i;
+      if(railMode){
+        h='<div class="rc-grid">';
+        for(i=0;i<j.moments.length;i++) h+=cardHTML(j.moments[i], false);
+        h+='</div><div class="rc-note">The calendar is display-only — showing up earns nothing by itself. A release-day order pays +10 XP through Daily Orders when a print drops.</div>';
+      }else{
+        var live=j.moments.filter(function(m){ return m.live; });
+        var show=live.length?live:j.moments;
+        h='<div class="rc-grid">';
+        for(i=0;i<show.length;i++) h+=cardHTML(show[i], true);
+        h+='</div>';
+      }
+      host.innerHTML=h;
+      wireClaims(host, j);
+    });
+  };
+
+  var CSS=[
+    '#pf-ritual .rc-grid, #pf-ritual-rail .rc-grid{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}',
+    '#pf-ritual .rc-card, #pf-ritual-rail .rc-card{flex:1;min-width:200px;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:10px;padding:14px}',
+    '#pf-ritual .rc-card.live, #pf-ritual-rail .rc-card.live{border-color:#c1121f}',
+    '#pf-ritual .rc-k, #pf-ritual-rail .rc-k{font-size:11px;letter-spacing:3px;color:#e8b923;font-weight:700}',
+    '#pf-ritual .rc-t, #pf-ritual-rail .rc-t{font-weight:900;font-size:18px;color:#f5ead6;margin:4px 0;letter-spacing:1px}',
+    '#pf-ritual .rc-c, #pf-ritual-rail .rc-c{font-size:13px;color:#c9bfa8;margin:6px 0;line-height:1.5}',
+    '#pf-ritual .rc-p, #pf-ritual-rail .rc-p{font-size:14px;color:#f5ead6;font-style:italic;margin:8px 0;line-height:1.5}',
+    '#pf-ritual .rc-btn, #pf-ritual-rail .rc-btn{display:inline-block;background:#c1121f;color:#fff;font-weight:900;letter-spacing:1px;padding:10px 18px;border-radius:6px;text-decoration:none;font-size:13px;margin:6px 8px 0 0;border:0;cursor:pointer}',
+    '#pf-ritual .rc-btn.ghost, #pf-ritual-rail .rc-btn.ghost{background:#1a1a1a;border:1px solid #3a3a3a;color:#f5ead6}',
+    '#pf-ritual .rc-btn:disabled, #pf-ritual-rail .rc-btn:disabled{opacity:.45;cursor:default}',
+    '#pf-ritual .rc-note, #pf-ritual-rail .rc-note{font-size:12px;color:#8a7f68;margin-top:10px;line-height:1.5}',
+    '#pf-ritual .rc-order, #pf-ritual-rail .rc-order{margin-top:10px;border-top:1px dashed #3a3a3a;padding-top:10px}',
+    '#pf-ritual .rc-xp, #pf-ritual-rail .rc-xp{display:inline-block;background:#e8b923;color:#0d0d0d;font-weight:900;font-size:11px;letter-spacing:1px;padding:3px 8px;border-radius:4px;margin-left:8px}',
+    '#pf-ritual .rc-done, #pf-ritual-rail .rc-done{font-size:13px;color:#7fc97f;font-weight:700;margin-top:8px}'
+  ].join('\n');
+  function cssOnce(){
+    try{
+      if(document.getElementById('pf-ritual-css')) return;
+      var st=document.createElement('style');
+      st.id='pf-ritual-css';
+      st.textContent=CSS;
+      document.head.appendChild(st);
+    }catch(e){}
+  }
+  cssOnce();
+
+  /* /money rail: render directly, no template staging. */
+  var money=document.getElementById('pf-money');
+  if(money){
+    var host=document.createElement('div');
+    host.id='pf-ritual-rail';
+    money.insertBefore(host, money.firstChild);
+    window.pfRitualRender(host, true);
+    return;
+  }
+  /* Homepage slot: stage the template; page-mount imports it in ORDER and
+     execScripts runs the inner script. */
+  var tplHtml=
+    '<div class="fe-block pf-override-block pf-silo" id="pf-ritual">'+
+    '<h2>Ritual Calendar</h2>'+
+    '<div class="c-tag">Three recurring network moments. Show up when you can — no streaks, no penalties, no guilt.</div>'+
+    '<div id="xRitual"><div class="c-load">Reading the calendar&hellip;</div></div>'+
+    '</div>'+
+    '<script>(function(){'+
+    'var host=document.getElementById("xRitual");'+
+    'if(!host||!window.pfRitualRender) return;'+
+    'window.pfRitualRender(host,false);'+
+    '})();<\/script>';
+  PF.holder().insertAdjacentHTML('beforeend', '<template id="pf-ov-ritual">'+tplHtml+'</template>');
+})();
+
+;

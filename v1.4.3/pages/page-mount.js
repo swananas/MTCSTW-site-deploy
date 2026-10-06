@@ -72,7 +72,9 @@
       exit: { text: 'NEXT MOVE →', href: '/cells' },
       order: [
         ['predgame', 'pf-ov-predgame'],
-        ['markets', 'pf-ov-markets']
+        /* SPACE-AUDIT FIX 7 (2026-10-06): lazy — /call-it no longer loads the
+           full bundle-arcade.js synchronously for this one silo. */
+        ['markets', 'pf-ov-markets', 'games/bundle-markets.js']
       ]
     },
     /* BLOSSOM S1 (2026-10-06): LIQUIDATION RECORDS — the bracket's own home,
@@ -121,9 +123,10 @@
            /cells in the Blossom S2 split. */
         ['cell-territory-map', 'pf-ov-territory-map'],
         ['cell-comp-seasons', 'pf-ov-cellcomp-seasons'],
-        /* Battles (kill: battles) — silo ships in bundle-arcade.js, loaded
-           on this page by the footer isCellWar mapping. */
-        ['battles', 'pf-ov-battles']
+        /* Battles (kill: battles) — silo ships in bundle-arcade.js for /arcade,
+           and lazy-loads via games/bundle-battles.js on /cell-war (SPACE-AUDIT
+           FIX 7, 2026-10-06: no more full arcade bundle for one silo). */
+        ['battles', 'pf-ov-battles', 'games/bundle-battles.js']
       ]
     },
     'pf-create': {

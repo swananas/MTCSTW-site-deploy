@@ -283,7 +283,10 @@
           '<span class="mc-v">' + fmtNum(bal) + ' XP</span></div>';
       } else if (!cs) {
         h += '<div class="mc-kv"><span class="mc-k">SERVER BALANCE</span>' +
-          '<span class="mc-v" style="font-size:12px;color:#b8a98a">CLAIM A CALLSIGN TO SYNC</span></div>';
+          '<span class="mc-v" style="font-size:12px;color:#b8a98a">CLAIM A CALLSIGN TO SYNC' +
+          /* 2026-10-06 CEO directive: every claim prompt needs the recovery path. */
+          (function(){ try{ return (window.PF && PF.recoverLinkHTML) ? PF.recoverLinkHTML() : ''; }catch(e){ return ''; } })() +
+          '</span></div>';
       }
       /* Visibility — citations + followers where available. */
       var cites = null;

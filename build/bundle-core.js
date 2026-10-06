@@ -119,6 +119,11 @@ var CORE_FILES = [
      CTA — PF.claimCTA / PF.mountClaimCTA. After 03-global (PF.requireCallsign
      + the delegated claim tap handler). Kill: ?pf_off=25-claim-cta. */
   'core/25-claim-cta.js',
+  /* callsign-recovery (CEO directive, 2026-10-06): lost-device recovery —
+     PF.openCallsignRecovery / PF.openRecoveryIssue / PF.recoverLinkHTML /
+     PF.mountRecoveryEntry + the delegated recovery taps. After 25-claim-cta
+     (claim prompts embed PF.recoverLinkHTML). Kill: ?pf_off=29-callsign-recovery. */
+  'core/29-callsign-recovery.js',
   /* crowd-credit (Cohesion §2, 2026-10-05): PF.crowdCredit — aggregated
      contributor counts with mandatory vintage labels for data outputs.
      Kill: ?pf_off=26-crowd-credit. */

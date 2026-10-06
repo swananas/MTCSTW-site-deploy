@@ -2334,6 +2334,9 @@ window.PFCallsign = function(){
       '<a href="' + esc(op.href) + '" style="display:inline-block;background:#c1121f;color:#fff;' +
       'font-weight:900;letter-spacing:0.12em;font-size:13px;text-decoration:none;' +
       'padding:12px 26px;border:2px solid #c1121f;">' + esc(op.cta) + '</a>' +
+      /* 2026-10-06 CEO directive: every claim prompt needs the recovery path.
+         Scoped to the enlist card (the claim prompt), not every nextop. */
+      (function(){ try{ return (op.__claimPrompt && window.PF && window.PF.recoverLinkHTML) ? window.PF.recoverLinkHTML() : ''; }catch(e){ return ''; } })() +
       '</div></div>';
   }
 
@@ -2393,6 +2396,8 @@ window.PFCallsign = function(){
       title: 'YOUR FIRST OP: ENLIST', cta: 'ENLIST \u2192', href: '/',
       sub: function () { return 'Claim your callsign. Your XP follows it everywhere.'; }
     };
+    enlist.__claimPrompt = true; /* 2026-10-06: this card is a claim prompt —
+      cardHtml adds the recovery link for it. */
     enlist.__st = {};
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { boot(enlist); });
     else boot(enlist);

@@ -130,7 +130,10 @@
     var id = ident();
     var h = '<h4>&#9876; SITUATION REPORT</h4>';
     if (!id.callsign) {
-      d.innerHTML = h + '<div class="sr-wire">Situation Reports are written for enlisted soldiers. Claim your callsign in Enlistment Ranks, then come back for your debrief.</div>';
+      d.innerHTML = h + '<div class="sr-wire">Situation Reports are written for enlisted soldiers. Claim your callsign in Enlistment Ranks, then come back for your debrief.' +
+        /* 2026-10-06 CEO directive: every claim prompt needs the recovery path. */
+        (function(){ try{ return (window.PF && PF.recoverLinkHTML) ? PF.recoverLinkHTML() : ''; }catch(e){ return ''; } })() +
+        '</div>';
       return d;
     }
     if (SR_LOADING && !SR_ERR) {

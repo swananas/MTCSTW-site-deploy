@@ -282,7 +282,9 @@
       /* No callsign yet — invitational, never a toll. The claim CTA owns
          the claim flow; we just point at it. */
       el.innerHTML = cardShell(headHtml() +
-        '<div style="font-size:.8rem;color:#b8ab8e;margin-top:.6rem;">Claim a callsign first, then link your Bluesky.</div>');
+        '<div style="font-size:.8rem;color:#b8ab8e;margin-top:.6rem;">Claim a callsign first, then link your Bluesky.</div>' +
+        /* 2026-10-06 CEO directive: every claim prompt needs the recovery path. */
+        (function(){ try{ return (window.PF && PF.recoverLinkHTML) ? PF.recoverLinkHTML() : ''; }catch(e){ return ''; } })());
       return;
     }
     if (mode === 'working') {

@@ -65,6 +65,13 @@ var CORE_FILES = [
   'core/04-ledger.js',
   'core/05-tally.js',
   'core/08-dopamine.js',
+  /* UGC dopamine layer (CEO directive, 2026-10-06): celebration moments,
+     quorum progress bars, contributor streaks, TOP HANDS spotlight strip,
+     leaderboard pulses, stacked-leg apex celebrations. Cross-cutting hooks
+     (bounty board, CPI price form, pledge wall) — core so every v2 page
+     gets it. Fail-soft, DOM-fallback when the dopamine backend isn't live.
+     Kill: ?pf_off=ugcdop. */
+  'core/ugc-dopamine.js',
   'core/09-referral.js',
   /* R26 (2026-10-04): shared power-up/shield inventory chip. Core so every
      page bundle can mount it via PF.mountInventoryChip. */

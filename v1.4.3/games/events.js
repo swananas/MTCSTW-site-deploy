@@ -2,10 +2,12 @@
    Event listings with RSVP, deep-linkable detail views (#e=<id>), the
    field-report wall, and the photo check-in composer (file input -> canvas
    downscale max 1200px -> JPEG re-encode strips EXIF -> client-side size
-   guard -> POST checkin_create). Zero XP anywhere in this silo — check-ins
-   are "for the record, not for points." Map links go OUT to Google Maps
-   (never embedded). Photo consent: only post what you're cleared to share;
-   no GPS is ever stored.
+   guard -> POST checkin_create). No new XP in this silo — check-ins are
+   "for the record, not for points"; RSVP rides the pre-existing irl +50 XP
+   path. Map links go OUT to Google Maps
+   (never embedded). Photo consent: no GPS ever stored; get consent before
+   posting photos with other people in them — faces on this public wall are
+   visible to everyone. Don't post anyone who hasn't agreed to be shown.
    KILL: ?pf_off=events  or  localStorage pf_disabled_v1='["events"]' */
 (function () {
   'use strict';
@@ -40,9 +42,29 @@ function api(action,params,cb){
   setTimeout(function(){ finish(null); },12000);
 }
 /* Events-platform writes ride type:'events' with an e_action discriminator
-   (townhall.js repaired to the same contract, 2026-10-05). */
+   (townhall.js repaired to the same contract, 2026-10-05).
+   RSVP is the exception: it rides the pre-existing irl rail
+   (type:'irl', i_action:'event_rsvp') — the +50 XP path in irl.js. The events
+   silo itself mints no new XP. */
 function post(cAction,params,cb){
   var body=Object.assign({type:"events",e_action:cAction},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+}
+/* RSVP helper: same shape as post(), but on the pre-existing irl rail. */
+function postIrl(cAction,params,cb){
+  var body=Object.assign({type:"irl",i_action:cAction},params);
   if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
   var bodyStr=JSON.stringify(body);
   function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
@@ -88,10 +110,12 @@ function doRsvp(eid,btn){
   if(!me.callsign){ toast("Claim your callsign first (Daily Orders)."); return; }
   if(rsvpBusy[eid]) return; rsvpBusy[eid]=1;
   if(btn) btn.disabled=true;
-  post("event_rsvp",{callsign:me.callsign,device:me.device,event_id:eid},function(j){
+  /* FIX (2026-10-05): no server action event_rsvp exists on the events rail —
+     RSVP rides the pre-existing irl rail (i_action:'event_rsvp', +50 XP). */
+  postIrl("event_rsvp",{callsign:me.callsign,device:me.device,event_id:eid},function(j){
     rsvpBusy[eid]=0;
     if(!j||!j.ok){ toast(j&&j.err?j.err:"RSVP failed."); if(btn) btn.disabled=false; return; }
-    toast("You\u2019re on the board. Show up.");
+    toast("You\u2019re on the board. +50 XP \u2014 show up.");
     cache.forEach(function(e){ if(String(e.id)===String(eid)) e.rsvp_count=(j.rsvps!=null?j.rsvps:((Number(e.rsvp_count)||0)+1)); });
     route(true);
   });
@@ -154,7 +178,7 @@ function loadWall(eid){
       if(c.photo_data) s+='<img src="'+esc(c.photo_data)+'" alt="field report photo" loading="lazy" style="max-width:100%;display:block;margin-bottom:6px;">';
       s+='<div style="font:12px monospace;color:#aaa;">'+esc(c.callsign||"anonymous")+' &mdash; '+esc(chiDate(c.ts))+'</div>';
       if(c.note) s+='<div style="font:13px Arial;margin:4px 0;">'+esc(c.note)+'</div>';
-      s+='<div><button data-ev-flag="'+esc(c.id)+'" style="font:10px monospace;color:#888;background:none;border:0;cursor:pointer;text-decoration:underline;">flag</button></div>';
+      s+='<div><button data-ev-flag="'+esc(c.id)+'" title="flag \u2014 including photos posted without consent." style="font:10px monospace;color:#888;background:none;border:0;cursor:pointer;text-decoration:underline;">flag</button></div>';
       s+='</div>';
     });
     wall.innerHTML=s;
@@ -165,7 +189,7 @@ function loadWall(eid){
         var reason="";
         try{ reason=String(prompt("Why flag this report?","")||"").trim().slice(0,140); }catch(e){}
         if(!reason) return;
-        post("checkin_flag",{callsign:me.callsign,checkin_id:b.getAttribute("data-ev-flag"),reason:reason},function(j){
+        post("checkin_flag",{callsign:me.callsign,id:b.getAttribute("data-ev-flag"),reason:reason},function(j){
           toast(j&&j.ok?"Flagged for review.":"Flag failed.");
         });
       });
@@ -201,29 +225,35 @@ function processPhoto(file,cb){
 }
 function wireComposer(eid){
   var btn=root.querySelector("#evCheckin"); if(!btn) return;
+  var fileEl=root.querySelector("#evPhoto");
+  /* FIX (2026-10-05): photo-first — the FILE REPORT button stays disabled
+     until a photo is chosen. The backend hard-requires photo_data, so
+     note-only submits are rejected here, not after a failed POST. */
+  function gate(){ btn.disabled=!(fileEl&&fileEl.files&&fileEl.files[0]); }
+  if(fileEl) fileEl.addEventListener("change",gate);
+  gate();
   btn.addEventListener("click",function(){
     var me=ident();
     if(!me.callsign){ toast("Claim your callsign first (Daily Orders)."); return; }
-    var fileEl=root.querySelector("#evPhoto"), noteEl=root.querySelector("#evNote");
+    var noteEl=root.querySelector("#evNote");
     var f=fileEl&&fileEl.files?fileEl.files[0]:null;
     var note=noteEl?(noteEl.value||"").trim().slice(0,280):"";
-    if(!f&&!note){ toast("Add a photo or a note."); return; }
+    if(!f){ toast("Add a photo from the field \u2014 check-ins are photo-first."); return; }
     btn.disabled=true;
     function submit(photo){
       var body={callsign:me.callsign,device:me.device,event_id:eid,note:note};
       if(photo){ body.photo_data=photo.data; body.photo_w=photo.w; body.photo_h=photo.h; }
       post("checkin_create",body,function(j){
-        btn.disabled=false;
-        if(!j||!j.ok){ toast(j&&j.err?j.err:"Check-in failed."); return; }
+        if(!j||!j.ok){ toast(j&&j.err?j.err:"Check-in failed."); gate(); return; }
         toast("On the record.");
+        if(noteEl) noteEl.value="";
         loadWall(eid);
+        gate();
       });
     }
-    if(f){
-      if((f.type||"").indexOf("image/")!==0){ toast("That file isn\u2019t an image."); btn.disabled=false; return; }
-      if(f.size>20*1024*1024){ toast("That photo is too big \u2014 20MB max."); btn.disabled=false; return; }
-      processPhoto(f,function(p){ if(p) submit(p); else btn.disabled=false; });
-    } else submit(null);
+    if((f.type||"").indexOf("image/")!==0){ toast("That file isn\u2019t an image."); gate(); return; }
+    if(f.size>20*1024*1024){ toast("That photo is too big \u2014 20MB max."); gate(); return; }
+    processPhoto(f,function(p){ if(p) submit(p); else gate(); });
   });
 }
 function renderDetail(id){
@@ -252,10 +282,11 @@ function renderDetail(id){
     h+='<h3 style="margin:14px 0 4px;">FIELD REPORTS</h3><div id="evWall"></div>';
     h+='<h3 style="margin:14px 0 4px;">FILE A FIELD REPORT</h3>';
     h+='<div style="border:1px solid #666;padding:12px;background:#0d0d0d;">';
-    h+='<div style="font:11px monospace;color:#888;margin-bottom:8px;">For the record, not for points. No GPS is ever stored. Only post photos you\u2019re cleared to share.</div>';
+    h+='<div style="font:11px monospace;color:#888;margin-bottom:8px;">For the record, not for points. No GPS is ever stored. Get consent before posting photos with other people in them \u2014 faces on this public wall are visible to everyone. Don\u2019t post anyone who hasn\u2019t agreed to be shown.</div>';
     h+='<label style="font:11px monospace;">PHOTO <input type="file" id="evPhoto" accept="image/*" style="font:12px monospace;"></label>';
-    h+='<div style="margin:6px 0;"><input id="evNote" placeholder="Field note (280 chars)" maxlength="280" style="font:12px monospace;padding:6px;width:100%;box-sizing:border-box;"></div>';
-    h+='<div><button id="evCheckin" style="font:bold 12px monospace;padding:7px 14px;cursor:pointer;">FILE REPORT</button></div>';
+    h+='<div style="font:11px monospace;color:#c1121f;margin:4px 0;">Add a photo from the field \u2014 check-ins are photo-first.</div>';
+    h+='<div style="margin:6px 0;"><input id="evNote" placeholder="Field note (280 chars, optional)" maxlength="280" style="font:12px monospace;padding:6px;width:100%;box-sizing:border-box;"></div>';
+    h+='<div><button id="evCheckin" disabled style="font:bold 12px monospace;padding:7px 14px;cursor:pointer;">FILE REPORT</button></div>';
     h+='</div>';
     root.innerHTML=h;
     bindBack(); bindRsvps(); wireComposer(e.id); loadWall(e.id);

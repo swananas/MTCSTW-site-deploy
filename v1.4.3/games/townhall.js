@@ -185,7 +185,7 @@ function doRsvp(id){
   var me=ident();
   if(!me.callsign){ toast("Claim your callsign first (Daily Orders)."); return; }
   /* 2026-10-05 (fe/events-platform): callsign-bound, idempotent, zero XP. */
-  post("townhall_rsvp",{callsign:me.callsign,id:id},function(j){
+  post("townhall_rsvp",{callsign:me.callsign,townhall_id:id},function(j){
     if(!j||!j.ok){ toast(j&&j.err?j.err:"RSVP failed."); return; }
     toast("You\u2019re in. Show up.");
     cache.forEach(function(h){ if(h.id===id) h.rsvp_count=j.rsvps; });

@@ -5,12 +5,37 @@
    Mounts two ways: (1) homepage via the pf-ov-academy template in the v2
    ORDER list; (2) Creator HQ (/request-access) direct into
    <div id="pf-academy-hq"></div>. It never reaches into another silo's internals.
+   TEARDOWN WS-12 (2026-10-06, CEO-approved): the training ground.
+   Lesson cards = Intel Card (P2) in a visible curriculum arc; Progression
+   Ring (P5) on the hero and every course (render-only, never mints XP).
+   EVERY lesson ends in a DEPLOYED ACTION (read -> do the mission in the
+   field -> REPORT BACK), never a quiz. FIRST LESSON completable before
+   enlistment (CEO decision 2): anonymous progress stays device-local
+   (localStorage, never posted, never attributed); on callsign claim the
+   SINGLE lesson migrates via the existing lesson_complete action (the
+   backend grants XP through xpGrant — the only XP path; no new mechanics,
+   no leaderboard/cell attribution until claimed). Streaks carry
+   anti-cruelty guardrails (Psych): device-local activity log, streak
+   freezes + weekly repair, participation-rate framing; leagues OPT-IN
+   (device-local); NO blame language (linted). Milestone unlocks are
+   callsign-gated and point at real responsibilities (proposal rights at
+   the People's Assembly, /political-hq). CTA discipline: DEPLOY -> is the
+   mission commitment only; REPORT BACK -> closes the loop; learning /
+   consumption CTAs use START/PLAY/BEGIN. Zero backend writes beyond the
+   shipped actions (lesson_complete, course_complete, academy_graduate) —
+   the server-side league board + cell participation feed are flagged as
+   CEO decision items. Fail-open throughout.
    KILL: ?pf_off=academy  or  localStorage pf_disabled_v1='["academy"]' */
 (function () {
   'use strict';
   var PF = window.PF;
   if (!PF || PF.skip("academy")) { return; }
   var BACKEND = window.PF_BACKEND_URL;
+  /* WS-12: PF.patterns helpers (Intel Card P2, Progression Ring P5, CTA
+     family P3). Guarded — every helper call below is fail-open and the
+     markup also carries the pf-pat classes directly, so a killed-off
+     patterns module only loses the helper-rendered chrome, never content. */
+  var PAT = (window.PF && window.PF.patterns) || null;
 
   function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
   function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
@@ -118,6 +143,47 @@
       document.head.appendChild(st);
     }catch(e){}
   }
+  /* WS-12 teardown chrome: hero, streak guardrails, milestones, arc cards,
+     deployed-action blocks, leagues, cell participation. */
+  function academyCss(){
+    try{
+      if(document.getElementById('ac-td12-css')) return;
+      var st=document.createElement('style');
+      st.id='ac-td12-css';
+      st.textContent=[
+        '.ac-hero{display:flex;gap:14px;align-items:center;margin:10px 0;padding:12px;border:1px solid #2a2a2a;border-radius:8px;background:#0d0d0d}',
+        '.ac-hero-meta{flex:1}',
+        '.ac-hero-line{font-weight:900;letter-spacing:1px;font-size:12px;color:#f5f0e1}',
+        '.ac-hero-part{font-weight:900;letter-spacing:1px;font-size:12px;color:#e8b923;margin-top:4px}',
+        '.ac-hero-kind{font-size:11px;color:#b8ab8e;margin-top:4px;line-height:1.5}',
+        '.ac-streak{margin:8px 0}',
+        '.ac-kind{font-size:11px;color:#b8ab8e;line-height:1.6;margin:6px 0}',
+        '.ac-miles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}',
+        '@media (max-width:640px){.ac-miles{grid-template-columns:1fr}}',
+        '.ac-miles-k{font-weight:900;font-size:11px;letter-spacing:3px;color:#c1121f;margin:4px 0 2px}',
+        '.ac-mile{border:1px solid #2a2a2a;border-radius:8px;background:#0d0d0d;padding:10px}',
+        '.ac-mile.ac-earned{border-color:#c1121f}',
+        '.ac-mile-name{font-weight:900;font-size:11px;letter-spacing:2px;color:#e8b923}',
+        '.ac-mile-line{font-size:11px;color:#c9bfa8;margin-top:4px;line-height:1.5}',
+        '.ac-mile-lock,.ac-mile-go{font-size:11px;color:#b8ab8e;margin-top:6px}',
+        '.ac-arc-k,.ac-league-k,.ac-cells-k{font-weight:900;font-size:11px;letter-spacing:3px;color:#c1121f;margin:14px 0 8px}',
+        '.ac-course{margin-bottom:12px}',
+        '.ac-course-head{display:flex;gap:12px;align-items:center;margin-bottom:8px}',
+        '.ac-lesson{margin:8px 0}',
+        '.ac-mission-line{font-size:12px;color:#c9bfa8;line-height:1.6;margin:8px 0}',
+        '.ac-mission-line b{color:#e8b923}',
+        '.ac-read-k,.ac-deploy-k{font-weight:900;font-size:10px;letter-spacing:2px;color:#e8b923;margin:10px 0 6px}',
+        '.ac-deploy{border-top:1px solid #2a2a2a;margin-top:10px;padding-top:6px}',
+        '.ac-mission{font-size:12px;color:#f5f0e1;line-height:1.6;margin:6px 0 10px}',
+        '.ac-lesson .c-btn{margin:4px 6px 4px 0}',
+        '.ac-done-note{font-size:12px;color:#7ddf8a;font-weight:700;margin:8px 0}',
+        '.ac-lock{font-size:12px;color:#b8ab8e;margin:8px 0;line-height:1.5}',
+        '.ac-league,.ac-cells{border:1px solid #2a2a2a;border-radius:8px;background:#0d0d0d;padding:12px;margin:10px 0}',
+        '.ac-expand{margin-top:8px}'
+      ].join('\n');
+      document.head.appendChild(st);
+    }catch(e){}
+  }
   var lastRender=null;
 
   /* Credit the backend grant into the local ledger for instant HUD display.
@@ -128,6 +194,146 @@
      ledger so all writers share one format (see core/00-bus.js). */
   function creditLocal(lid, xp){
     try{ if(window.PF&&PF.creditLocal) PF.creditLocal('academy_lesson_'+lid, xp); }catch(e){}
+  }
+
+  /* ================= WS-12: anonymous first-lesson progression ============
+     CEO DECISION 2 — the FIRST lesson is completable before enlistment.
+     Device-local guardrails (Psych/Security):
+       - the anon record lives in localStorage only — never posted, never
+         attributed to a leaderboard or a cell, keyed with the device id;
+       - exactly ONE lesson is ever migratable (the first lesson);
+       - on callsign claim, migration goes through the EXISTING
+         lesson_complete action — the backend grants the XP through xpGrant
+         (server-side, idempotent per callsign+lesson). That is the ONLY XP
+         path: no client-side minting, no new mechanics;
+       - fail-open: a failed migration stays device-local and retries on a
+         later load (attempts capped); the lesson never double-pays. */
+  var ANON_KEY='pf_academy_anon_v1';
+  function anonGet(){
+    try{ var o=JSON.parse(localStorage.getItem(ANON_KEY)||'null'); return (o&&o.lessonId)?o:null; }catch(e){ return null; }
+  }
+  function anonSet(o){ try{ localStorage.setItem(ANON_KEY,JSON.stringify(o||{})); }catch(e){} }
+  function firstLessonOf(lessons){
+    if(!lessons||!lessons.length) return null;
+    var s=lessons.slice().sort(function(a,b){ return (a.order_num||0)-(b.order_num||0); });
+    return s[0]||null;
+  }
+  function anonValidFor(lessons,rec){
+    if(!rec||!rec.lessonId) return false;
+    var fl=firstLessonOf(lessons);
+    return !!(fl&&String(fl.id)===String(rec.lessonId));
+  }
+  function migrateAnon(el){
+    var rec=anonGet(); if(!rec||rec.migrated||!rec.lessonId) return;
+    var id=ident(); if(!id.callsign) return;
+    var att=Number(rec.attempts||0);
+    if(att>=5) return; /* fail-open: stop retrying, record stays device-local */
+    /* SINGLE-LESSON migration, xpGrant-only: the backend grants the XP for
+       this one lesson exactly as a normal completion does. */
+    post('lesson_complete',{callsign:id.callsign,device:id.device,lesson_id:rec.lessonId},function(j){
+      if(j&&j.ok){
+        anonSet({lessonId:rec.lessonId,xp:rec.xp,ts:rec.ts,migrated:true,device:id.device});
+        var gained=Number(rec.xp)||0;
+        if(gained>0) creditLocal(rec.lessonId,gained);
+        try{ document.dispatchEvent(new CustomEvent('pf-lesson-complete',{detail:{lesson:rec.lessonId,xp:gained,migrated:true}})); }catch(e){}
+        toast('FIELD LESSON BANKED — +'+gained+' XP. HQ has it now.');
+        load(el);
+      } else {
+        rec.attempts=att+1; anonSet(rec);
+      }
+    });
+  }
+
+  /* ============ WS-12: streaks with anti-cruelty guardrails (Psych) =======
+     Device-local activity log (days the device reported back). Streak =
+     consecutive active days; freezes cover a missed day (earned one per
+     7-day milestone, capped at 3 banked); repair restores one missed day,
+     free, once a week. Copy rule: participation framing everywhere
+     ("showed up N of 7 days") — NO blame language, NO all-or-nothing
+     (linted in scripts/verify-teardown-academy.js). */
+  var ACT_KEY='pf_academy_act_v1';
+  var STRK_KEY='pf_academy_streak_v1';
+  function dayStr(d){
+    try{ var p=new Date(d==null?Date.now():d);
+      return p.getFullYear()+'-'+('0'+(p.getMonth()+1)).slice(-2)+'-'+('0'+p.getDate()).slice(-2);
+    }catch(e){ return ''; }
+  }
+  function actDays(){
+    try{ var a=JSON.parse(localStorage.getItem(ACT_KEY)||'[]');
+      return (Object.prototype.toString.call(a)==='[object Array]')?a:[]; }catch(e){ return []; }
+  }
+  function addActDay(day){
+    try{ var a=actDays(); if(a.indexOf(day)<0){ a.push(day); localStorage.setItem(ACT_KEY,JSON.stringify(a.slice(-120))); } }catch(e){}
+  }
+  function recordActivity(){ addActDay(dayStr()); }
+  function strk(){ try{ var o=JSON.parse(localStorage.getItem(STRK_KEY)||'{}'); return o||{}; }catch(e){ return {}; } }
+  function strkSet(o){ try{ localStorage.setItem(STRK_KEY,JSON.stringify(o||{})); }catch(e){} }
+  function streakInfo(){
+    var a=actDays(), set={}, i;
+    for(i=0;i<a.length;i++) set[a[i]]=1;
+    var t=new Date(), d0=new Date(t.getFullYear(),t.getMonth(),t.getDate());
+    var cur=0, d=new Date(d0.getTime());
+    if(!set[dayStr(d.getTime())]) d=new Date(d.getTime()-86400000); /* still standing on yesterday */
+    while(set[dayStr(d.getTime())]){ cur++; d=new Date(d.getTime()-86400000); }
+    var n7=0, missed=[], dd=new Date(d0.getTime());
+    for(var k=0;k<7;k++){
+      var ds=dayStr(dd.getTime());
+      if(set[ds]) n7++; else if(k>0) missed.push(ds); /* today isn't "missed" yet */
+      dd=new Date(dd.getTime()-86400000);
+    }
+    var s=strk(), freezes=Number(s.freezes||0), granted=Number(s.granted||0);
+    if(cur>0&&cur%7===0&&granted<cur&&freezes<3){ freezes++; granted=cur; s.freezes=freezes; s.granted=granted; strkSet(s); }
+    var wk=''; try{ var dw=new Date(); dw.setDate(dw.getDate()-dw.getDay()); wk=dayStr(dw.getTime()); }catch(e){}
+    var repairOpen=(s.repairWeek||'')!==wk;
+    return {streak:cur, of7:n7, missed:missed, freezes:freezes, repairOpen:repairOpen, week:wk};
+  }
+  function useFreeze(day){
+    try{
+      var s=strk(), f=Number(s.freezes||0); if(f<=0||!day) return false;
+      addActDay(day); s.freezes=f-1; strkSet(s); return true;
+    }catch(e){ return false; }
+  }
+  function repairDay(day){
+    try{
+      var s=strk(), info=streakInfo(); if(!info.repairOpen||!day) return false;
+      addActDay(day); s.repairWeek=info.week; strkSet(s); return true;
+    }catch(e){ return false; }
+  }
+
+  /* ============ WS-12: weekly leagues — OPT-IN, device-local ==============
+     Leagues rank cells on participation rate (how often the cell shows up),
+     never wins and losses. Opt-in is device-local; the live league board
+     needs the HQ feed (CEO decision item) — until then the card stays honest
+     about the opt-in state and never invents numbers (P8). */
+  var LEAGUE_KEY='pf_academy_leagues_v1';
+  function leagueGet(){
+    try{ return JSON.parse(localStorage.getItem(LEAGUE_KEY)||'{"opted":false}')||{opted:false}; }catch(e){ return {opted:false}; }
+  }
+  function leagueSet(o){ try{ localStorage.setItem(LEAGUE_KEY,JSON.stringify(o||{opted:false})); }catch(e){} }
+
+  /* ============ WS-12: milestone unlocks (callsign-gated) =================
+     Earned state derives from HQ lesson counts (device data, never invented).
+     Unlocked responsibilities point at REAL surfaces only: proposal rights
+     at the People's Assembly (/political-hq, governance.js); moderation
+     duty is claimed at the soldier's cell (/cells) — cell leads hold the
+     keys. Milestones stay locked (no attribution) until a callsign is held. */
+  var MILESTONES=[
+    {id:'ms-first',needLessons:1,name:'FIRST STEP',line:'First lesson banked — the arc is open.'},
+    {id:'ms-op',needCourses:1,name:'OPERATOR',line:'First course complete. Proposal rights unlock at the People\u2019s Assembly.',href:'/political-hq'},
+    {id:'ms-cadre',needLessons:5,name:'CADRE',line:'Five lessons in the field. Moderation duty: claim it at your cell — cell leads hold the keys.',href:'/cells'}
+  ];
+  /* Cell participation feed (participation-rate framing, never
+     all-or-nothing). Read defensively from academy_progress — suppressed
+     entirely when the HQ feed is absent (P8). The server-side feed is a CEO
+     decision item. */
+  var CELL_PART=null;
+
+  /* The deployed action every lesson ends in: read -> do the mission in the
+     field -> REPORT BACK. A backend-supplied field_action wins when present;
+     otherwise the honest generic (never a quiz). */
+  function missionFor(L){
+    try{ var m=L&&(L.field_action||L.mission); if(m) return String(m); }catch(e){}
+    return 'Take one real action from this lesson today — in your feed, in a comment, on the street — then report back what happened.';
   }
 
   /* JSONP GET with 12s timeout — same pattern as the other game silos. */
@@ -202,9 +408,16 @@
       if(j&&j.ok&&j.lessons) apArr=j.lessons;
       if(j&&j.ok&&j.courses) apCoursesArr=j.courses;
       if(j&&j.ok&&j.fred_guided_unlocked) fredGuided=true;
+      /* WS-12: cell participation feed (defensive; suppressed when absent) */
+      try{ CELL_PART=(j&&j.cell_participation)||null; }catch(e){}
       maybe();
     });
     else maybe();
+    /* WS-12: anonymous first-lesson migration — the claimed callsign carries
+       the device-local lesson to HQ through the existing lesson_complete
+       action (single lesson, xpGrant-only, idempotent). Fail-open: a failed
+       attempt stays device-local and retries on a later load. */
+    if(id.callsign){ try{ migrateAnon(el); }catch(e){} }
   }
 
   /* Progression v1: claim the certificate for a finished course, then reload
@@ -224,9 +437,129 @@
     catch(e){ return ''; }
   }
 
+  /* WS-12 teardown chrome: hero ring + anti-cruelty streak panel +
+     callsign-gated milestones + opt-in leagues + cell participation. */
+  function heroBlock(id, lessons, doneById, csrc){
+    var h="", si=streakInfo();
+    var n=0, li, earnedXp=0, totalXp=0;
+    for(li=0;li<lessons.length;li++){
+      var lxp=Number(lessons[li].xp_reward)||0; totalXp+=lxp;
+      if(doneById[lessons[li].id]){ n++; earnedXp+=lxp; }
+    }
+    h+='<div class="ac-hero">';
+    if(PAT) h+=PAT.ring({xp:earnedXp,cap:totalXp||1,streak:si.streak,size:88});
+    h+='<div class="ac-hero-meta">'
+      +'<div class="ac-hero-line">LESSONS BANKED — '+n+'/'+lessons.length+'</div>'
+      +'<div class="ac-hero-part">SHOWED UP '+si.of7+' OF THE LAST 7 DAYS</div>'
+      +'<div class="ac-hero-kind">Every lesson ends in the field — read it, do it, report back. No quizzes. No judgment.</div>'
+      +'</div></div>';
+    h+=streakPanel(si);
+    h+=milestonePanel(id, doneById, csrc, lessons);
+    h+=leaguePanel(id);
+    h+=cellPanel();
+    return h;
+  }
+  /* Anti-cruelty streak panel: freezes + weekly repair, participation
+     framing, zero blame language. */
+  function streakPanel(si){
+    var h='<div class="ac-streak" data-ac-streak="1">';
+    if(si.missed.length&&si.freezes>0){
+      h+='<div class="ac-kind">A day slipped by — no judgment here. Freeze the gap ('+si.freezes+' left) or pick up today. Either way, you\u2019re in the fight.</div>'
+        +'<button class="c-btn ac-freeze" data-day="'+esc(si.missed[0])+'">FREEZE THAT DAY</button>';
+    } else if(si.missed.length&&si.repairOpen){
+      h+='<div class="ac-kind">Life happens. Repair one missed day, free, once a week — the arc holds.</div>'
+        +'<button class="c-btn ac-repair" data-day="'+esc(si.missed[0])+'">REPAIR A DAY</button>';
+    } else if(!si.missed.length&&si.streak>0){
+      h+='<div class="ac-kind">Solid stretch — the arc holds because you keep showing up.</div>';
+    }
+    h+='</div>';
+    return h;
+  }
+  function milestonePanel(id, doneById, csrc, lessons){
+    var h='<div class="ac-miles"><div class="ac-miles-k" style="grid-column:1/-1">MILESTONES</div>';
+    var courseDone=0, ci, lessonDone=0, lk;
+    for(ci=0;ci<csrc.length;ci++){ if(csrc[ci].completed) courseDone++; }
+    for(lk in doneById){ if(Object.prototype.hasOwnProperty.call(doneById,lk)) lessonDone++; }
+    var locked=!id.callsign;
+    for(var m=0;m<MILESTONES.length;m++){
+      var M=MILESTONES[m], earned=false;
+      if(M.needCourses) earned=courseDone>=M.needCourses;
+      else if(M.needLessons) earned=lessonDone>=M.needLessons;
+      h+='<div class="ac-mile'+(earned&&!locked?' ac-earned':'')+'">'
+        +'<div class="ac-mile-name">'+esc(M.name)+(earned&&!locked?' \u2713':'')+'</div>'
+        +'<div class="ac-mile-line">'+esc(M.line)+'</div>';
+      if(earned&&!locked&&M.href) h+='<div class="ac-mile-go"><a class="c-btn ghost" href="'+esc(M.href)+'">TAKE ME THERE</a></div>';
+      else if(locked) h+='<div class="ac-mile-lock">Claim your callsign to hold milestones.</div>';
+      h+='</div>';
+    }
+    h+='</div>';
+    return h;
+  }
+  function leaguePanel(id){
+    if(!id.callsign) return '';
+    var lg=leagueGet();
+    var h='<div class="ac-league"><div class="ac-league-k">WEEKLY LEAGUES — CELLS CLIMB TOGETHER</div>';
+    if(!lg.opted){
+      h+='<div class="x-note">Opt in to stand with your cell in the weekly league. Leagues are scored on participation rate — how often the cell shows up — never wins and losses, never all-or-nothing.</div>'
+        +'<button class="c-btn ac-league-in">OPT IN</button>';
+    } else {
+      h+='<div class="x-note">You\u2019re in. The weekly board assembles Monday — HQ is wiring the live league feed. Your opt-in is recorded on this device.</div>'
+        +'<button class="c-btn ghost ac-league-out">opt out</button>';
+    }
+    h+='</div>';
+    return h;
+  }
+  function cellPanel(){
+    if(!CELL_PART||!CELL_PART.length) return ''; /* P8: suppressed without real data */
+    var h='<div class="ac-cells"><div class="ac-cells-k">CELL STREAKS — PARTICIPATION RATE</div>';
+    for(var i=0;i<CELL_PART.length;i++){
+      var c=CELL_PART[i], days=Number(c.days)||0, of=Number(c.of)||7;
+      h+='<div class="x-note">'+esc(c.cell||'your cell')+' showed up '+days+' of '+of+' days</div>';
+    }
+    h+='<div class="x-note ac-kind">Participation rate, never all-or-nothing — the cell shows up together.</div></div>';
+    return h;
+  }
+  /* A lesson card: Intel Card (P2) in the curriculum arc. Every lesson ends
+     in a DEPLOYED ACTION (read -> do the mission in the field -> REPORT
+     BACK), never a quiz. CTA discipline: START/PLAY/BEGIN open the lesson
+     (consumption); DEPLOY -> commits the mission; REPORT BACK -> closes it. */
+  function lessonCard(L, idx, total, courseName, courseId, id, doneById, locked, reqTitle, firstLesson, anon){
+    var isDone=!!doneById[L.id], xp=Number(L.xp_reward)||0;
+    var isAnonFirst=!id.callsign&&firstLesson&&String(firstLesson.id)===String(L.id);
+    var anonDone=!!(anon&&String(anon.lessonId)===String(L.id)&&!anon.migrated);
+    var h='<article class="pf-pat pf-pat-intel ac-lesson" id="ac-pane-'+esc(L.id)+'">';
+    h+='<p class="pf-pat-intel-kicker">LESSON '+(idx+1)+' OF '+total+' — '+esc(courseName)+'</p>';
+    h+='<h3 class="pf-pat-intel-head">'+esc(L.title)+((isDone||anonDone)?' <span style="color:#7CFC00">\u2713</span>':'')+'</h3>';
+    h+='<p class="pf-pat-intel-data">+'+xp+' XP · ENDS IN A DEPLOYED ACTION</p>';
+    h+='<p class="ac-mission-line"><b>WHAT YOU DO ABOUT IT —</b> '+esc(missionFor(L))+'</p>';
+    if(isDone){
+      h+='<div class="ac-done-note">Banked at HQ. Take the next lesson.</div>';
+    } else if(anonDone){
+      h+='<div class="ac-done-note">BANKED ON THIS DEVICE — claim your callsign to take it to HQ.</div>';
+      h+=PF.gateHTML('Your field lesson is banked on this device.','to bank it at HQ and continue the arc');
+    } else if(locked){
+      /* Psych rule: neutral, informational lock copy — no FOMO, no shaming. */
+      h+='<div class="ac-lock">Complete '+esc(reqTitle)+' to unlock.</div>';
+    } else if(!id.callsign&&!isAnonFirst){
+      h+='<div class="ac-lock">The arc opens with a callsign — your first lesson is open above, no enlistment needed to start.</div>';
+    } else {
+      h+='<button class="c-btn ac-start" data-lid="'+esc(L.id)+'">START</button>';
+      h+='<div class="ac-expand" id="ac-exp-'+esc(L.id)+'" style="display:none">'
+        +'<div class="ac-read"><div class="ac-read-k">READ</div><div class="x-note">'+richContent(L.content)+'</div>'+fredFooter(fredTokenIds(L.content))+'</div>'
+        +'<div class="ac-deploy"><div class="ac-deploy-k">DO THE MISSION IN THE FIELD</div>'
+        +'<div class="ac-mission">'+esc(missionFor(L))+'</div>'
+        +'<button class="c-btn ac-deploybtn" data-lid="'+esc(L.id)+'">DEPLOY &rarr;</button>'
+        +'<button class="c-btn ac-report" data-lid="'+esc(L.id)+'" data-xp="'+xp+'" data-cid="'+esc(courseId||'')+'">REPORT BACK &rarr;</button>'
+        +'</div></div>';
+    }
+    h+='</article>';
+    return h;
+  }
+
   function render(el,lessons,apLessons,courses,apCourses,fredGuided){
     var id=ident(), h="";
     lastRender={el:el,lessons:lessons,ap:apLessons,courses:courses,apCourses:apCourses,fg:fredGuided};
+    academyCss();
     if(!lessons.length){
       el.innerHTML='<div class="fe-block pf-override-block" id="pf-academy">'
         +'<h2>Propaganda Academy</h2>'
@@ -245,18 +578,20 @@
     var src=(apLessons&&apLessons.length)?apLessons:lessons;
     var doneById={};
     for(var di=0;di<src.length;di++){ if(src[di].done) doneById[src[di].id]=1; }
-    var n=0,i,L;
-    for(i=0;i<src.length;i++){ if(src[i].done) n++; }
-    var pct=src.length?Math.round(n/src.length*100):0;
+    var i,L;
     var hqSynced=!!(apLessons&&apLessons.length);
     h+='<div class="fe-block pf-override-block" id="pf-academy">'
       +'<h2>Propaganda Academy</h2>'
-      +'<div class="c-tag">Learn the craft. Earn your stripes. Pump with purpose.</div>';
-    if(!id.callsign){
-      h+=PF.gateHTML('The Academy enrolls callsign holders.','to enroll and bank XP');
-    } else {
-      h+='<div class="x-pane"><div class="x-note">PROGRESS: '+n+'/'+src.length+' lessons &mdash; '+pct+'%'+(hqSynced?' <span style="color:#7CFC00">&#10003; HQ-synced</span>':"")+'</div>'
-        +'<div style="background:#222;border:1px solid #555;height:14px;margin-top:6px"><div style="background:#c1121f;height:12px;width:'+pct+'%"></div></div></div>';
+      +'<div class="c-tag">Learn the craft. Earn your stripes. Pump with purpose.</div>'
+      +(hqSynced?'<div class="x-note"><span style="color:#7CFC00">&#10003; HQ-synced</span></div>':'');
+    /* CEO DECISION 2: anonymous visitors run the arc too — the first lesson
+       is open before enlistment. The rest of the arc waits for a callsign. */
+    var anon=anonGet();
+    if(anon&&!anonValidFor(lessons,anon)) anon=null;
+    var firstLesson=firstLessonOf(lessons);
+    h+=heroBlock(id, lessons, doneById, csrc);
+    if(!id.callsign&&firstLesson&&!(anon&&!anon.migrated)){
+      h+=PF.gateHTML('Your first lesson is open above — no enlistment needed. Claim a callsign to bank XP and run the whole arc.','to bank XP and continue the arc');
     }
     /* Group lessons by course; unassigned -> FIELD MANUAL catch-all. */
     var byCourse={}, unassigned=[];
@@ -268,25 +603,34 @@
     var courseById={};
     for(var ci2=0;ci2<csrc.length;ci2++){ courseById[csrc[ci2].id]=csrc[ci2]; }
     var ordered=csrc.slice().sort(function(a,b){ return (a.order_num||0)-(b.order_num||0); });
+    /* THE CURRICULUM ARC — courses in order, lessons as Intel Cards (P2),
+       Progression Ring (P5) per course, every lesson ending in a deployed
+       action. */
+    h+='<div class="ac-arc"><div class="ac-arc-k">THE CURRICULUM ARC</div>';
+    var oix=0;
     for(var oi=0;oi<ordered.length;oi++){
       var C=ordered[oi];
       var cl=(byCourse[C.id]||[]).slice().sort(function(a,b){ return (a.order_num||0)-(b.order_num||0); });
       if(!cl.length) continue;
-      var cdone=0,k;
-      for(k=0;k<cl.length;k++){ if(doneById[cl[k].id]) cdone++; }
-      var cpct=cl.length?Math.round(cdone/cl.length*100):0;
+      oix++;
+      var cdone=0,k,cEarned=0,cTotal=0;
+      for(k=0;k<cl.length;k++){
+        var klx=Number(cl[k].xp_reward)||0; cTotal+=klx;
+        if(doneById[cl[k].id]){ cdone++; cEarned+=klx; }
+      }
       var locked=id.callsign&&!C.unlocked;
-      h+='<div class="x-pane" id="ac-course-'+esc(C.id)+'">'
-        +'<div class="fd-title">'+esc(C.title)
+      var reqT=C.requires_course&&courseById[C.requires_course]?courseById[C.requires_course].title:'the previous course';
+      h+='<div class="x-pane ac-course" id="ac-course-'+esc(C.id)+'">'
+        +'<div class="ac-course-head">';
+      if(PAT) h+=PAT.ring({xp:cEarned,cap:cTotal||1,size:56});
+      h+='<div><div class="fd-title">COURSE '+oix+' OF '+ordered.length+' — '+esc(C.title)
         +(C.completed?' <span style="color:#7CFC00">&#10003;</span>':"")
         +(locked?' <span style="color:#b8ab8e">&#128274;</span>':"")+'</div>'
         +'<div class="x-note">'+esc(C.description||"")+'</div>'
-        +'<div class="x-note">'+cdone+'/'+cl.length+' lessons &mdash; '+cpct+'%</div>'
-        +'<div style="background:#222;border:1px solid #555;height:10px;margin:6px 0"><div style="background:#c1121f;height:8px;width:'+cpct+'%"></div></div>';
+        +'<div class="x-note">'+cdone+'/'+cl.length+' lessons</div></div></div>';
       if(locked){
-        var reqT=C.requires_course&&courseById[C.requires_course]?courseById[C.requires_course].title:'the previous course';
         /* Psych rule: neutral, informational lock copy — no FOMO, no shaming. */
-        h+='<div class="x-note" style="color:#b8ab8e">Complete '+esc(reqT)+' to unlock.</div>';
+        h+='<div class="ac-lock">Complete '+esc(reqT)+' to unlock.</div>';
       }
       if(C.completed&&C.completed_at){
         h+='<div style="border:2px solid #c1121f;background:#140808;padding:.7rem;margin:.6rem 0;text-align:center">'
@@ -295,79 +639,56 @@
       }
       for(k=0;k<cl.length;k++){
         L=cl[k];
-        var isDone=!!doneById[L.id], xp=Number(L.xp_reward)||0;
-        h+='<div class="x-pane" id="ac-pane-'+esc(L.id)+'" style="margin:.5rem 0">'
-          +'<div class="fd-title">'+esc(L.title)+(isDone?' <span style="color:#7CFC00">&#10003;</span>':"")+'</div>'
-          +'<div class="x-note">'+richContent(L.content)+'</div>'
-          +'<div class="x-note">+'+xp+' XP</div>';
-        if(id.callsign&&!isDone&&!locked){
-          h+='<button class="c-btn ac-done" data-lid="'+esc(L.id)+'" data-xp="'+xp+'" data-cid="'+esc(C.id)+'">MARK COMPLETE</button>';
-          if(k<cl.length-1){
-            h+=' <button class="c-btn ghost ac-next" data-next="'+esc(cl[k+1].id)+'">NEXT LESSON &rarr;</button>';
-          }
-        }
-        h+='</div>';
+        h+=lessonCard(L,k,cl.length,C.title,C.id,id,doneById,locked,reqT,firstLesson,anon);
       }
       h+='</div>';
     }
     if(unassigned.length){
-      h+='<div class="x-pane" id="ac-course-field-manual">'
-        +'<div class="fd-title">FIELD MANUAL</div>'
-        +'<div class="x-note">Extra training, no prerequisites.</div>';
+      var ux=0;
+      h+='<div class="x-pane ac-course" id="ac-course-field-manual">'
+        +'<div class="ac-course-head"><div><div class="fd-title">FIELD MANUAL</div>'
+        +'<div class="x-note">Extra training, no prerequisites.</div></div></div>';
       for(var ui=0;ui<unassigned.length;ui++){
         L=unassigned[ui];
-        var uDone=!!doneById[L.id], uxp=Number(L.xp_reward)||0;
-        h+='<div class="x-pane" id="ac-pane-'+esc(L.id)+'" style="margin:.5rem 0">'
-          +'<div class="fd-title">'+esc(L.title)+(uDone?' <span style="color:#7CFC00">&#10003;</span>':"")+'</div>'
-          +'<div class="x-note">'+richContent(L.content)+'</div>'
-          +'<div class="x-note">+'+uxp+' XP</div>';
-        if(id.callsign&&!uDone){
-          h+='<button class="c-btn ac-done" data-lid="'+esc(L.id)+'" data-xp="'+uxp+'" data-cid="">MARK COMPLETE</button>';
-        }
-        h+='</div>';
+        h+=lessonCard(L,ux++,unassigned.length,'FIELD MANUAL','',id,doneById,false,'',firstLesson,anon);
       }
       h+='</div>';
     }
+    h+='</div>';
     h+='<div style="margin-top:10px"><button class="c-btn" id="acRetry">Refresh</button></div>';
     h+='</div>';
     el.innerHTML=h;
     wireButtons(el,lessons,doneById,courseById);
   }
 
-  /* Pre-progression flat render (fallback when the backend has no courses). */
+  /* Pre-progression flat render (fallback when the backend has no courses).
+     Same teardown chrome as the arc render: hero ring, streak guardrails,
+     milestones, leagues, deployed-action lesson cards. */
   function renderFlat(el,lessons,apLessons){
     var id=ident(), h="";
+    academyCss();
     lessons=lessons.slice().sort(function(a,b){ return (a.order_num||0)-(b.order_num||0); });
     var src=(apLessons&&apLessons.length)?apLessons:lessons;
-    var n=0,i,L;
-    for(i=0;i<src.length;i++){ if(src[i].done) n++; }
-    var pct=src.length?Math.round(n/src.length*100):0;
+    var doneById={}, i, L;
+    for(i=0;i<src.length;i++){ if(src[i].done) doneById[src[i].id]=1; }
     var hqSynced=!!(apLessons&&apLessons.length);
     h+='<div class="fe-block pf-override-block" id="pf-academy">'
       +'<h2>Propaganda Academy</h2>'
-      +'<div class="c-tag">Learn the craft. Earn your stripes. Pump with purpose.</div>';
-    if(!id.callsign){
-      h+=PF.gateHTML('The Academy enrolls callsign holders.','to enroll and bank XP');
-    } else {
-      h+='<div class="x-pane"><div class="x-note">PROGRESS: '+n+'/'+src.length+' lessons &mdash; '+pct+'%'+(hqSynced?' <span style="color:#7CFC00">&#10003; HQ-synced</span>':"")+'</div>'
-        +'<div style="background:#222;border:1px solid #555;height:14px;margin-top:6px"><div style="background:#c1121f;height:12px;width:'+pct+'%"></div></div></div>';
+      +'<div class="c-tag">Learn the craft. Earn your stripes. Pump with purpose.</div>'
+      +(hqSynced?'<div class="x-note"><span style="color:#7CFC00">&#10003; HQ-synced</span></div>':'');
+    var anon=anonGet();
+    if(anon&&!anonValidFor(lessons,anon)) anon=null;
+    var firstLesson=firstLessonOf(lessons);
+    h+=heroBlock(id, lessons, doneById, []);
+    if(!id.callsign&&firstLesson&&!(anon&&!anon.migrated)){
+      h+=PF.gateHTML('Your first lesson is open above — no enlistment needed. Claim a callsign to bank XP and run the whole arc.','to bank XP and continue the arc');
     }
+    h+='<div class="ac-arc"><div class="ac-arc-k">THE CURRICULUM ARC</div>';
     for(i=0;i<lessons.length;i++){
       L=lessons[i];
-      var isDone=!!L.done, xp=Number(L.xp_reward)||0;
-      h+='<div class="x-pane" id="ac-pane-'+esc(L.id)+'">'
-        +'<div class="fd-title">'+(i+1)+'. '+esc(L.title)+(isDone?' <span style="color:#7CFC00">&#10003;</span>':"")+'</div>'
-        +'<div class="x-note">'+richContent(L.content)+'</div>'
-        +fredFooter(fredTokenIds(L.content))
-        +'<div class="x-note">+'+xp+' XP</div>';
-      if(id.callsign&&!isDone){
-        h+='<button class="c-btn ac-done" data-lid="'+esc(L.id)+'" data-xp="'+xp+'">MARK COMPLETE</button>';
-        if(i<lessons.length-1){
-          h+=' <button class="c-btn ghost ac-next" data-next="'+esc(lessons[i+1].id)+'">NEXT LESSON &rarr;</button>';
-        }
-      }
-      h+='</div>';
+      h+=lessonCard(L,i,lessons.length,'FIELD MANUAL','',id,doneById,false,'',firstLesson,anon);
     }
+    h+='</div>';
     h+='<div style="margin-top:10px"><button class="c-btn" id="acRetry">Refresh</button></div>';
     h+='</div>';
     el.innerHTML=h;
@@ -388,22 +709,93 @@
     wireButtons(el,lessons,null,null);
   }
 
-  /* Shared button wiring for both renders. data-cid carries the course so a
-     just-finished course triggers the certificate claim. */
+  /* Shared button wiring for both renders. CTA discipline (WS-12):
+       START/PLAY/BEGIN open lessons (consumption); DEPLOY -> commits the
+       mission (device-local marker — no backend, no XP); REPORT BACK ->
+       closes the loop (the deployed action — posts lesson_complete for
+       signed users, banks device-local for the anonymous first lesson).
+     data-cid carries the course so a just-finished course triggers the
+     certificate claim. */
   function wireButtons(el,lessons,doneById,courseById){
     var id=ident();
-    var bs=el.querySelectorAll("button.ac-done"), b;
+    /* START: consumption CTA — expands the read + deployed action. */
+    var ss=el.querySelectorAll("button.ac-start"), s2;
+    for(s2=0;s2<ss.length;s2++){
+      (function(btn){
+        btn.onclick=function(){
+          var ex=document.getElementById("ac-exp-"+btn.getAttribute("data-lid"));
+          if(ex){
+            var open=ex.style.display!=="none";
+            ex.style.display=open?"none":"";
+            btn.textContent=open?"START":"CLOSE";
+            if(!open){ try{ ex.scrollIntoView({behavior:"smooth",block:"nearest"}); }catch(e){} }
+          }
+        };
+      })(ss[s2]);
+    }
+    /* DEPLOY: the mission commitment — device-local, no backend, no XP. */
+    var dp=el.querySelectorAll("button.ac-deploybtn"), d2;
+    for(d2=0;d2<dp.length;d2++){
+      (function(btn){
+        btn.onclick=function(){
+          btn.disabled=true; btn.textContent="MISSION ACCEPTED — GET OUT THERE";
+          toast("Mission accepted. Do it in the field — then report back.");
+        };
+      })(dp[d2]);
+    }
+    /* Anti-cruelty guardrails: freeze + repair. */
+    var fz=el.querySelector("#pf-academy .ac-freeze");
+    if(fz) fz.onclick=function(){
+      if(useFreeze(fz.getAttribute("data-day"))){
+        toast("Day frozen. The streak holds — pick up today.");
+        load(el);
+      }
+    };
+    var rp=el.querySelector("#pf-academy .ac-repair");
+    if(rp) rp.onclick=function(){
+      if(repairDay(rp.getAttribute("data-day"))){
+        toast("Repaired. Life happens — welcome back to the arc.");
+        load(el);
+      }
+    };
+    /* Leagues: opt-in / opt-out, device-local. */
+    var li=el.querySelector("#pf-academy .ac-league-in");
+    if(li) li.onclick=function(){ leagueSet({opted:true,ts:Date.now()}); load(el); };
+    var lo=el.querySelector("#pf-academy .ac-league-out");
+    if(lo) lo.onclick=function(){ leagueSet({opted:false,ts:Date.now()}); load(el); };
+    /* REPORT BACK: the deployed action's close-the-loop — never a quiz. */
+    var bs=el.querySelectorAll("button.ac-report"), b;
     for(b=0;b<bs.length;b++){
       (function(btn){
         btn.onclick=function(){
           var lid=btn.getAttribute("data-lid"), cid=btn.getAttribute("data-cid");
-          btn.disabled=true; btn.textContent="RECORDING...";
-          post("lesson_complete",{callsign:id.callsign,device:id.device,lesson_id:lid},function(j){
+          var xp=Number(btn.getAttribute("data-xp"))||0;
+          var id2=ident();
+          btn.disabled=true; btn.textContent="REPORTING...";
+          if(!id2.callsign){
+            /* CEO DECISION 2: the anonymous first lesson — device-local
+               ONLY. No backend call, no XP granted, no attribution. The
+               single lesson migrates through lesson_complete on callsign
+               claim (xpGrant server-side). */
+            var fl=firstLessonOf(lessons);
+            if(fl&&String(fl.id)===String(lid)){
+              anonSet({lessonId:lid,xp:xp,ts:Date.now(),migrated:false,device:id2.device});
+              recordActivity();
+              try{ document.dispatchEvent(new CustomEvent("pf-lesson-complete",{detail:{lesson:lid,xp:0,anon:true}})); }catch(e){}
+              toast("BANKED ON THIS DEVICE — claim your callsign to take it to HQ.");
+              load(el); return;
+            }
+            btn.disabled=false; btn.textContent="REPORT BACK \u2192";
+            toast("That lesson needs a callsign — the first one is open to everyone.");
+            return;
+          }
+          post("lesson_complete",{callsign:id2.callsign,device:id2.device,lesson_id:lid},function(j){
             if(j&&j.ok){
-              var gained=(j.xp!=null?j.xp:Number(btn.getAttribute("data-xp"))||0);
+              var gained=(j.xp!=null?j.xp:xp);
               if(gained>0) creditLocal(lid, gained);
+              recordActivity();
               try{ document.dispatchEvent(new CustomEvent("pf-lesson-complete",{detail:{lesson:lid,xp:gained}})); }catch(e2){}
-              toast(j.dup?"Already banked. No double pay.":"Lesson complete. +"+gained+" XP.");
+              toast(j.dup?"Already banked. No double pay.":"Reported. +"+gained+" XP — the field thanks you.");
               try{ if(window.PF&&PF.dope){ var ah=document.getElementById("pf-academy")||document.body; PF.dope.press(btn); PF.dope.confetti(ah,35); if(gained>0) PF.dope.xpFloat(ah,"+"+gained+" XP"); } }catch(dpe){}
               /* Progression v1: if this was the course's last lesson, claim
                  the certificate (backend re-verifies; then full reload). */
@@ -421,7 +813,7 @@
               }
               load(el);
             } else {
-              btn.disabled=false; btn.textContent="MARK COMPLETE";
+              btn.disabled=false; btn.textContent="REPORT BACK \u2192";
               toast(PF.errCopy(j,"Could not record. Try again."));
             }
           });
@@ -430,15 +822,6 @@
     }
     var rb2=document.getElementById("acRetry");
     if(rb2) rb2.onclick=function(){ el.innerHTML='<div class="c-load">Loading the academy&hellip;</div>'; load(el); };
-    var nx=el.querySelectorAll("button.ac-next"), n2;
-    for(n2=0;n2<nx.length;n2++){
-      (function(btn){
-        btn.onclick=function(){
-          var t=document.getElementById("ac-pane-"+btn.getAttribute("data-next"));
-          if(t){ try{ t.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){ try{ t.scrollIntoView(); }catch(e2){} } }
-        };
-      })(nx[n2]);
-    }
   }
 
   /* Idempotent mount into any container element. Exposed for the homepage
@@ -450,6 +833,14 @@
     load(el);
   }
   window.PFAcademy={mount:mount};
+
+  /* WS-12: on callsign claim, migrate the single anonymous lesson through
+     lesson_complete (xpGrant server-side, idempotent). The gateHTML claim
+     flow reloads the page on success, so load()'s migrateAnon is the
+     authoritative retry — this listener is the best-effort first attempt. */
+  document.addEventListener('pf-callsign-claimed',function(){
+    try{ if(lastRender&&lastRender.el) migrateAnon(lastRender.el); }catch(e){}
+  });
 
   /* (1) Homepage: stage the template; the v2 ORDER list mounts it into #pf-v2. */
   try{

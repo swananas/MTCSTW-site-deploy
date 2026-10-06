@@ -212,7 +212,7 @@ function crossfireHtml(){
 }
 function seasonInfo(){
   if(SEASON){
-    return { name:String(SEASON.name||"THE 32-DAY OFFENSIVE"),
+    return { name:String(SEASON.name||"THE MIDTERM BLITZ"),
       endsAt:Number(SEASON.ends_at||ELECTION),
       goal:Number(SEASON.goal||1000), progress:Number(SEASON.progress||0) };
   }
@@ -220,7 +220,7 @@ function seasonInfo(){
   try{
     if(STAT){ pledges=Number(STAT.pledges)||0; acts=Number(STAT.actions)||0; goal=Number(STAT.goal)||1000; }
   }catch(e){}
-  return { name:"THE 32-DAY OFFENSIVE", endsAt:ELECTION, goal:goal, progress:pledges+acts };
+  return { name:"THE MIDTERM BLITZ", endsAt:ELECTION, goal:goal, progress:pledges+acts };
 }
 /* ---------- S1 ROUTE MARCH (2026-10-04): TODAY'S ROUTE MARCH card ---------- */
 function routeMarchHtml(){
@@ -726,6 +726,8 @@ function bannerCss(){
     +"#pf-seasonbar .sb-fill{height:100%;background:#c1121f}"
     +"#pf-seasonbar .sb-days{color:#e8b64c;white-space:nowrap}"
     +"#pf-seasonbar .sb-link{display:flex;align-items:center;gap:10px;flex:1;color:inherit;text-decoration:none;cursor:pointer}"
+    +"#pf-seasonbar .sb-x{background:none;border:none;color:#888;font:bold 16px monospace;cursor:pointer;padding:2px 6px;line-height:1}"
+    +"#pf-seasonbar .sb-x:hover{color:#fff}"
     /* 2026-10-03: FEATURED DROP slot (Daily Drop consolidation) — the drop's
        own styles, rescoped from #pf-drop to #pf-brief.br-*. */
     +"#pf-brief .br-dday{font-family:Arial,sans-serif;font-size:13px;letter-spacing:3px;color:#ff5a00;text-transform:uppercase;margin-bottom:12px}"
@@ -758,6 +760,8 @@ function bannerCss(){
 }
 function renderSeasonBanner(){
   bannerCss();
+  /* 2026-10-06: dismissible season bar — X persists in localStorage. */
+  try{ if(localStorage.getItem("pf_seasonbar_hide")==="1") return; }catch(e){}
   try{
     var sn=seasonInfo();
     var dl=Math.max(0,Math.ceil((sn.endsAt-Date.now())/86400000));
@@ -772,7 +776,18 @@ function renderSeasonBanner(){
     bar.innerHTML='<a class="sb-link" href="/#pf-warplan" title="See the war plan">'
       +'<span class="sb-name">\u2694 '+esc(sn.name)+'</span>'
       +'<span class="sb-bar"><span class="sb-fill" style="display:block;width:'+pct+'%"></span></span>'
-      +'<span class="sb-days">'+dl+'D LEFT &bull; '+pct+'%</span></a>';
+      +'<span class="sb-days">'+dl+'D LEFT &bull; '+pct+'%</span></a>'
+      +'<button class="sb-x" id="sbX" aria-label="Hide banner">&#10005;</button>';
+    /* X-out: hide + persist */
+    try{
+      var sbx=document.getElementById("sbX");
+      if(sbx&&!sbx._wired){ sbx._wired=1; sbx.addEventListener("click",function(ev){
+        try{ ev.stopPropagation(); ev.preventDefault(); }catch(e){}
+        try{ localStorage.setItem("pf_seasonbar_hide","1"); }catch(e2){}
+        var b=document.getElementById("pf-seasonbar");
+        try{ if(b) b.style.display="none"; document.body.style.paddingTop="0px"; }catch(e3){}
+      }); }
+    }catch(e){}
     /* keep clear of the dopamine comeback banner if it appears */
     var top=0;
     try{ if(document.getElementById("dpComeback")) top=42; }catch(e){}
@@ -905,7 +920,7 @@ function dropPaintPoster(done){
     x.fillStyle="#c1121f"; x.font="900 60px \\\"Arial Black\\\",Arial,sans-serif";
     x.fillText("\u2605 THE DAILY DROP \u2605",W/2,y); y+=92;
     x.fillStyle="#f5ead6"; x.font="700 38px Arial,sans-serif";
-    x.fillText("DAY "+DROP_N+" OF THE 32-DAY OFFENSIVE",W/2,y); y+=84;
+    x.fillText("DAY "+DROP_N+" OF THE MIDTERM BLITZ",W/2,y); y+=84;
     x.font="700 32px Arial,sans-serif";
     var tw=x.measureText(tag).width+80;
     x.fillStyle="#c1121f"; x.fillRect(W/2-tw/2,y-46,tw,66);

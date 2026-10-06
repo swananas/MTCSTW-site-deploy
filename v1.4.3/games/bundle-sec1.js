@@ -1691,6 +1691,7 @@ paint();setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) retur
 <div class="o-warpath" id="oWarPath"></div>
 <div class="o-reset" id="oReset"></div>
 <div id="oMissions"></div>
+<div id="oRelease"></div>
 <div class="o-raid" id="oRaid"></div>
 <div class="o-boost" id="oBoost"></div>
 <div class="o-patrons" id="oPatrons"></div>
@@ -2051,6 +2052,64 @@ function apiAction(action,cb){
   document.head.appendChild(s);
 }
 function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+/* Wave B1: RELEASE-DAY ORDER — "read the release" (CPI day / jobs day).
+   Pays 10 XP through the EXISTING dochall_ leg: mirror key
+   dochall_<YYYYMM>_<series> (fits the existing ['dochall_',15] mirror max),
+   tally dedupe dochall_<YYYYMM>_<series>_<callsign> (F-5 UNIQUE index =
+   once per release per callsign). Disjoint from the weekly dochall_<week>
+   key and from quiz/lesson legs (XP map §6). The order exists ONLY while
+   fred_release_prompts holds a live release event — never a fabricated
+   release day. */
+var LS_REL='pf_release_claimed_v1';
+var RELEASE_XP=10;
+function releaseKey(p){
+  var per=String(p.period||'').replace(/[^0-9]/g,'');
+  var sid=String(p.series_id||'').toUpperCase().replace(/[^A-Z0-9_]/g,'');
+  return 'dochall_'+per+'_'+sid;
+}
+function renderRelease(){
+  var box=document.getElementById('oRelease'); if(!box) return;
+  apiAction('fred_release_prompts',function(j){
+    try{
+      var prompts=(j&&j.ok&&j.prompts)?j.prompts:[];
+      if(!prompts.length){ box.innerHTML=''; return; }
+      var claimed=load(LS_REL,{});
+      var h='';
+      prompts.forEach(function(p){
+        var key=releaseKey(p), done=!!claimed[key];
+        var dago=(p.days_since_release!=null)?' \u00b7 '+p.days_since_release+'d ago':'';
+        h+='<div class="o-release'+(done?' done':'')+'">'
+          +'<div class="o-rhead">\u{1F4E1} RELEASE-DAY ORDER</div>'
+          +'<div class="o-mtext">'+escHtml(String(p.headline||'READ THE RELEASE'))+'</div>'
+          +'<div class="o-rfig">'+escHtml(String(p.figure||''))+'</div>'
+          +'<div class="o-rsub">'+escHtml(String(p.copy||''))+'</div>'
+          +'<div class="o-rmeta">Official figure \u00b7 <a href="'+escHtml(String(p.source_url||''))+'" target="_blank" rel="noopener">FRED &#8599;</a>'+dago+'</div>'
+          +(done?'<div><span class="o-donetag">Read &amp; banked</span></div>'
+                 :'<button class="o-btn o-relbtn" data-rkey="'+escHtml(key)+'">READ THE BRIEFING \u2014 +'+RELEASE_XP+' XP</button>')
+          +'</div>';
+      });
+      box.innerHTML=h;
+      box.querySelectorAll('button.o-relbtn').forEach(function(b){
+        b.onclick=function(){ claimRelease(b.getAttribute('data-rkey'), prompts); };
+      });
+    }catch(e){ try{ box.innerHTML=''; }catch(e2){} }
+  });
+}
+function claimRelease(key, prompts){
+  var p=null;
+  for(var i=0;i<prompts.length;i++){ if(releaseKey(prompts[i])===key){ p=prompts[i]; break; } }
+  if(!p) return;
+  var id=ident();
+  try{
+    document.dispatchEvent(new CustomEvent('pf-do-challenge-done',{detail:{
+      week:key.replace(/^dochall_/,''),
+      challenge:'read-the-release', xp:RELEASE_XP,
+      dedupe:key+'_'+(id.callsign||'nocall')
+    }}));
+  }catch(e){}
+  var claimed=load(LS_REL,{}); claimed[key]=1; save(LS_REL,claimed);
+  renderRelease();
+}
 function renderBoost(){
   var box=document.getElementById("oBoost"); if(!box) return;
   var b=boostRec(), t=today(), r=load(LS_R,{xp:0,got:{}});
@@ -2558,6 +2617,9 @@ function render(){
       }
     };
   });
+  /* B1: release-day order card (CPI/jobs day) — renders only while a live
+     release event exists. */
+  try{ renderRelease(); }catch(e){}
   function doReport(mi,platform,btn){
     var res=checkin(mi,platform);
     if(!res.ok) return;
@@ -4490,9 +4552,10 @@ function tierOf(xp){ var t=TIERS[0]; for(var i=0;i<TIERS.length;i++){ if(xp>=TIE
 /* settle(ev, gain): forward the TRUE awarded XP (after 50/day pool clipping)
    to the tally so the backend records exactly what the ledger granted —
    including 0 when the pool is spent. The tally records pool-capped events
-   ONLY on settle, never on the raw game event. */
-function settle(ev,gain,score){
-  try{ var d={ev:ev,xp:gain}; if(typeof score==='number') d.score=score; document.dispatchEvent(new CustomEvent("pf-tally-settle",{detail:d})); }catch(e){}
+   ONLY on settle, never on the raw game event. B1: optional dedupe is
+   forwarded as the tally dedupe_key (release-day order idempotency). */
+function settle(ev,gain,score,dedupe){
+  try{ var d={ev:ev,xp:gain}; if(typeof score==='number') d.score=score; if(dedupe) d.dedupe=String(dedupe); document.dispatchEvent(new CustomEvent("pf-tally-settle",{detail:d})); }catch(e){}
 }
 
 /* ---------- UNLOCKS ---------- */
@@ -4853,7 +4916,13 @@ document.addEventListener("pf-drop-claimed",function(e){ var d=(e&&e.detail&&e.d
 document.addEventListener("pf-billionaire-answered",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; settle("pf-billionaire-answered",award("billionaire_"+d,1,"once")); });
 document.addEventListener("pf-interrogation-answered",function(e){ var d=(e&&e.detail&&e.detail.day)||"day"; settle("pf-interrogation-answered",award("interrogation_"+d,1,"once")); });
 /* Do Meter Game-8 expansion bonuses: weekly-op completion + full-spectrum week. Exempt (bounded by week). */
-document.addEventListener("pf-do-challenge-done",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; var gain=award("dochall_"+w,15,"once",{exempt:1}); settle("pf-do-challenge-done",gain); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("CHALLENGE DONE — +15 XP"); }catch(e2){} } });
+document.addEventListener("pf-do-challenge-done",function(e){ var d=(e&&e.detail)||{}, w=d.week||"wk", amt=15;
+  /* B1 release-day order ("read the release"): 10 XP through the SAME
+     dochall_ leg (mirror max 15 / tally cap 15 — unchanged). Key
+     dochall_<YYYYMM>_<series> is disjoint from the weekly dochall_<week>
+     key. */
+  if(d.challenge==="read-the-release"&&typeof d.xp==="number"){ amt=Math.max(0,Math.min(15,Math.floor(d.xp))); }
+  var gain=award("dochall_"+w,amt,"once",{exempt:1}); settle("pf-do-challenge-done",gain,0,d.dedupe||""); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("CHALLENGE DONE — +"+amt+" XP"); }catch(e2){} } });
 document.addEventListener("pf-do-fullspectrum",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; var gain=award("dospec_"+w,20,"once",{exempt:1}); settle("pf-do-fullspectrum",gain); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("FULL SPECTRUM — +20 XP"); }catch(e2){} } });
 /* Recruit rewards: +25 XP per new recruit (War Card promise), exempt from the
    daily pool. Keyed on the running recruit total so the 6h poll can never

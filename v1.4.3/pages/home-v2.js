@@ -59,6 +59,10 @@
     ['poster-forge', 'pf-ov-poster'],
     ['feed', 'pf-ov-feed'],
     /* ——— SECTION 5: FUND — economy ——— */
+    /* TEARDOWN WS-9 (2026-10-06): the QUARTERMASTER store wall leads the
+       FUND section — 3-tier War Bond ladder (BACKER / PATRON /
+       QUARTERMASTER). One-time bonds + war-chest directory follow. */
+    ['quartermaster', 'pf-ov-quartermaster'],
     ['war-bonds', 'pf-ov-bonds'],
     /* A1 home (2026-10-05): People's Price Index HP feeder -> /economy. */
     ['inflation-teaser', 'pf-ov-inflation-teaser'],

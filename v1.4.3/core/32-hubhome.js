@@ -19,6 +19,14 @@
    FRONTEND-ONLY, ZERO NEW XP — reads only, all fail-open with a 10s guard:
    xp_today, streak_status, cell_mine, dopamine_status. Rank is device-local
    (pf_ranks_v1, same tiers as the HUD); absent = omitted, never guessed.
+   FRONT LINES (workstream 1, 2026-10-06 CEO directive): a compact link grid
+   under the pillar bar covers every major feature the four pillars don't
+   reach — CALL IT., People's CPI, Robbery Report, Follow the Money, Cell
+   War, Arcade, Create, Store, Fund, Governance, Academy, Data Bounties.
+   Every feature is one tap from the hub (two taps max anywhere-to-anywhere:
+   HUD pillar/link -> hub -> feature). Pillar bar is untouched — FRONT LINES
+   only carries what PF.pillars.go() doesn't already route (price check-in
+   via DATA, events via ACT, cells via ORGANIZE are pillar-covered).
    QUALITY BAR: low friction (reads in seconds), accurate (every figure from
    a real read or omitted), condensed (one hero, no walls).
    KILL: ?pf_off=hubhome  or  localStorage pf_disabled_v1='["hubhome"]' */
@@ -145,7 +153,17 @@
     '#pf-hubhero .ph-pillar .pp-s{display:block;font-size:8px;letter-spacing:.14em;color:#a89e88;margin-top:2px;}',
     '#pf-hubhero .ph-pillar:active{border-color:#c1121f;}',
     '#pf-hubhero .ph-foot{font-size:11px;color:#a89e88;text-align:center;}',
-    '#pf-hubhero .ph-foot a{color:#f5ead6;font-weight:800;}'
+    '#pf-hubhero .ph-foot a{color:#f5ead6;font-weight:800;}',
+    /* FRONT LINES: compact link grid for everything the pillar bar doesn't
+       cover. Reuses the ph-linkcard pattern (kicker + title) at small scale. */
+    '#pf-hubhero .ph-fl-k{font-size:10px;letter-spacing:4px;color:#c1121f;font-weight:800;margin:4px 0 8px;}',
+    '#pf-hubhero .ph-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;}',
+    '#pf-hubhero .ph-fl{display:block;background:#141414;border:1px solid #2a2a2a;border-radius:4px;',
+    'padding:8px 10px;text-decoration:none;color:#f5ead6;}',
+    '#pf-hubhero .ph-fl .l-k{font-size:9px;letter-spacing:2px;color:#c1121f;font-weight:800;margin-bottom:3px;}',
+    '#pf-hubhero .ph-fl .l-t{font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
+    '#pf-hubhero .ph-fl:active{border-color:#c1121f;}',
+    '@media (max-width:520px){#pf-hubhero .ph-grid{grid-template-columns:repeat(2,1fr);}}'
   ].join('');
 
   function injectCss() {
@@ -246,6 +264,38 @@
       '<div class="l-t">This week\u2019s dispatch \u2192</div></a>';
   }
 
+  /* FRONT LINES (workstream 1, 2026-10-06): every major feature the
+     four-pillar bar doesn't route, one tap from the hub. Pillar-covered
+     features are deliberately NOT duplicated here: price check-in (DATA ->
+     /economy#pf-inflation-checkin), Events (ACT -> /events), Cells (ORGANIZE
+     -> /cells), Daily Orders + War Report (link cards above).
+     Slugs per the CEO directive spec; destination pages mount their own
+     silos — this module only links. Fail-open: plain anchors, zero XP,
+     no writes. */
+  var FRONT_LINES = [
+    { k: 'PLAY',  t: 'Call it',          h: '/call-it' },
+    { k: 'DATA',  t: 'People\u2019s CPI', h: '/peoples-cpi' },
+    { k: 'MONEY', t: 'Robbery Report',   h: '/follow-the-money' },
+    { k: 'MONEY', t: 'Follow the Money', h: '/follow-the-money' },
+    { k: 'SQUAD', t: 'Cell War',         h: '/cell-war' },
+    { k: 'PLAY',  t: 'Arcade',           h: '/arcade' },
+    { k: 'MAKE',  t: 'Create',           h: '/create' },
+    { k: 'FUND',  t: 'Store',            h: '/store' },
+    { k: 'FUND',  t: 'Fund the fight',   h: '/fund' },
+    { k: 'ACT',   t: 'Governance',       h: '/governance' },
+    { k: 'LEARN', t: 'Academy',          h: '/request-access#pf-academy-hq' },
+    { k: 'DATA',  t: 'Data Bounties',    h: '/data-bounties' }
+  ];
+  function frontLinesHtml() {
+    var h = '<div class="ph-fl-k">FRONT LINES</div><div class="ph-grid" id="pf-hub-frontlines">';
+    for (var i = 0; i < FRONT_LINES.length; i++) {
+      h += '<a class="ph-fl" href="' + esc(FRONT_LINES[i].h) + '">' +
+        '<div class="l-k">' + esc(FRONT_LINES[i].k) + '</div>' +
+        '<div class="l-t">' + esc(FRONT_LINES[i].t) + ' \u2192</div></a>';
+    }
+    return h + '</div>';
+  }
+
   function renderShell(cs) {
     var host = homeHost();
     if (!host || document.getElementById('pf-hubhero')) return null;
@@ -262,6 +312,7 @@
       '<div data-ph-next></div>' +
       '<div class="ph-row">' + ordersHtml() + warReportHtml() + '</div>' +
       pillarBarHtml() +
+      frontLinesHtml() +
       '<div class="ph-foot"><a href="#" data-ph-paths>Change your fights</a> \u00B7 the movement rolls on below</div>';
     if (host.firstChild) host.insertBefore(el, host.firstChild);
     else host.appendChild(el);

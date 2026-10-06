@@ -62,6 +62,22 @@ ok('inserts as first child of #pf-v2', hcode.indexOf('insertBefore(el, host.firs
 });
 ok('claim-event flip (pf-callsign-claimed)', hub.indexOf('pf-callsign-claimed') !== -1);
 
+/* 8. FRONT LINES reachability (workstream 1, 2026-10-06): every major
+   feature not covered by the pillar bar is one tap from the hub.
+   Pillar-covered features stay out of the grid (no duplication):
+   price check-in (DATA -> /economy#pf-inflation-checkin), events (ACT ->
+   /events), cells (ORGANIZE -> /cells), Daily Orders + War Report (cards). */
+ok('FRONT LINES kicker', hub.indexOf('FRONT LINES') !== -1);
+var FRONT_LINE_HREFS = [
+  '/call-it', '/peoples-cpi', '/follow-the-money', '/cell-war',
+  '/arcade', '/create', '/store', '/fund', '/governance',
+  '/request-access#pf-academy-hq', '/data-bounties'
+];
+FRONT_LINE_HREFS.forEach(function (href) {
+  ok('front lines links: ' + href, hcode.indexOf("'" + href + "'") !== -1 || hcode.indexOf('"' + href + '"') !== -1);
+});
+ok('front lines grid has 12 entries', (hcode.match(/\{ k: '/g) || []).length === 12);
+
 /* ---------- runtime sandbox ---------- */
 function parseAttrs(str) {
   var attrs = {}, m, re = /([\w-]+)(?:="([^"]*)")?/g;
@@ -331,6 +347,16 @@ function fireClick(el) {
     var ch = hero.querySelector('[data-ph-paths]');
     fireClick(ch);
     ok('runtime: change-fights opens chooser', sb._openedChooser());
+    /* FRONT LINES reachability: 12 compact cards, every non-pillar feature
+       one tap from the hub. */
+    var fl = hero.querySelectorAll('.ph-fl');
+    ok('runtime: front lines grid = 12 cards', fl.length === 12);
+    var flHrefs = ['/call-it', '/peoples-cpi', '/follow-the-money', '/cell-war',
+      '/arcade', '/create', '/store', '/fund', '/governance',
+      '/request-access#pf-academy-hq', '/data-bounties'];
+    var missing = flHrefs.filter(function (href) { return html.indexOf(href) === -1; });
+    ok('runtime: front lines cover all 11 destinations', missing.length === 0,
+      missing.length ? 'missing: ' + missing.join(', ') : '');
   } catch (e) { ok('runtime: recognized executes', false, String(e && e.message || e)); }
 })();
 

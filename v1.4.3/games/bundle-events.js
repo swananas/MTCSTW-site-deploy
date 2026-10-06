@@ -85,9 +85,10 @@ function render(){
   var nowP=chiParts(Date.now());
   if(!viewY){ viewY=nowP.y; viewM=nowP.m; }
   /* Month grid. */
-  var firstWk=chiWeekday(Date.UTC(viewY,viewM-1,1));
-  /* chiWeekday needs a ts; Date.UTC(y,m-1,1) is UTC midnight — the Chicago
-     weekday of the 1st may differ by hours; good enough for grid layout. */
+  /* QC gate (2026-10-05, F2): use NOON UTC — UTC midnight is 6-7 PM the
+     PREVIOUS day in Chicago, which read the wrong weekday and skewed the
+     whole grid one column. Noon UTC is always the same Chicago day. */
+  var firstWk=chiWeekday(Date.UTC(viewY,viewM-1,1,12));
   var daysInM=new Date(Date.UTC(viewY,viewM,0)).getUTCDate();
   var h='<div class="mc-nav"><button class="c-btn" data-mc="prev">&larr;</button>'+
     '<span class="mc-title">'+MONTHS[viewM-1]+' '+viewY+'</span>'+

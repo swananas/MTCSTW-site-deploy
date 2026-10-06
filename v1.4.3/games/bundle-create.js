@@ -3692,6 +3692,9 @@ function funnelHtml(){
    problem so the dashboard never shows a broken strip. */
 function renderThisWeek(){
   try{
+    /* QC gate (2026-10-05, M5): the ?pf_off=mastercal kill covers this
+       strip too, not just the /events silo. */
+    if(window.PF&&window.PF.skip&&window.PF.skip('mastercal')) return '';
     if(!CAL||!CAL.ok||!CAL.events||!CAL.events.length) return '';
     var now=Date.now(), cutoff=now+7*86400000, items=[];
     for(var i=0;i<CAL.events.length&&items.length<5;i++){

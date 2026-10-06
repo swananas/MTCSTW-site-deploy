@@ -150,6 +150,11 @@ var CORE_FILES = [
    Order preserved from the old core position (wall-of-shame first). */
 var MONEY_FILES = [
   'core/wall-of-shame.js',
+  /* THE ROBBERY REPORT (fe/robbery-report-r2, 2026-10-06): curated margin
+     reverse-engineer figures (data + render). Rides the money chunk so it
+     mounts on the /follow-the-money page (Follow the Money). Kill: ?pf_off=robreport. */
+  'core/robreport-data.js',
+  'core/robreport.js',
   'core/money-tab.js',
   'core/money-vote-card.js',
   'core/ledger-list.js',

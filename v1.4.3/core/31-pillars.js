@@ -29,12 +29,8 @@
      - DATA / ACT / ORGANIZE resolve through the DESTINATION REGISTRY below
        (pillar -> current landing page): page silos register themselves at load,
 <<<<<<< HEAD
-       so when Blossom adds /prices, /call-it, /cell-war, /governance etc. the
-       HUD picks them up with no rebuild and no edit to this file.
-=======
        so when Blossom adds /peoples-cpi, /call-it, /cell-war, /governance etc.
        the HUD picks them up with no rebuild and no edit to this file.
->>>>>>> origin/fe/pillar-spine-multipath
    CEO STANDING RULE (2026-10-06): new pages are pre-authorized as natural
    expansion — they stay optimized for engagement by meeting the bar: one-click
    pillar access (this row), a Next Move exit (20-nextop.js mounts on every
@@ -234,11 +230,7 @@
      first = lowest priority) point at today's pages; PAGE SILOS register
      themselves — typically at load — to become the current landing page for
      their pillar. Blossom pattern:
-<<<<<<< HEAD
-       PF.pillars.registerDestination('data',     { url:'/prices',    mount:'pf-prices' });
-=======
        PF.pillars.registerDestination('data',     { url:'/peoples-cpi', mount:'pf-peoples-cpi' });
->>>>>>> origin/fe/pillar-spine-multipath
        PF.pillars.registerDestination('act',      { url:'/call-it',   mount:'pf-call-it' });
        PF.pillars.registerDestination('organize', { url:'/cell-war',   mount:'pf-cell-war' });
        PF.pillars.registerDestination('act',      { url:'/governance', mount:'pf-governance' });
@@ -313,13 +305,10 @@
      is the movement's data bounty — the money page's own data surface can
      register itself when it lands. */
   registerDestination('data', { url: '/economy', mount: 'pf-inflation-checkin', focus: 'pf-inf-ci-price' });
-<<<<<<< HEAD
-=======
   /* BLOSSOM (2026-10-06): /peoples-cpi is the primary DATA destination;
      registered after /economy so it takes the front of the list (newest
      registration wins). /economy stays as the fallback. */
   registerDestination('data', { url: '/peoples-cpi', mount: 'pf-peoples-cpi' });
->>>>>>> origin/fe/pillar-spine-multipath
   registerDestination('act', { url: '/events', mount: 'pf-events' });
   registerDestination('organize', { url: '/cells', mount: 'pf-cells-page' });
 
@@ -613,7 +602,6 @@
       clearPath: clearPath,
       biasOps: biasOps,
       openChooser: openChooser,
-<<<<<<< HEAD
       /* hubhome (2026-10-06): adventure-path display names for headline
          flavoring (e.g. "PROPAGANDIST + DATA SCOUT · YOUR CAMPAIGN"). */
       pathNames: pathNames,
@@ -621,8 +609,6 @@
          external surface (the homepage hub hero). Same GO handlers as the
          HUD bar — no duplication. */
       go: function (k) { try { if (GO[k]) { GO[k](); return true; } } catch (e) {} return false; },
-=======
->>>>>>> origin/fe/pillar-spine-multipath
       /* Destination registry: page silos register their pillar landing
          pages at load (see the registry contract above). */
       registerDestination: registerDestination,

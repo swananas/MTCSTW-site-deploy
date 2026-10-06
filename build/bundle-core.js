@@ -88,6 +88,13 @@ var CORE_FILES = [
      tap. After nextop (both are journey chrome); fixed-position, no footer
      dependency. */
   'core/30-hud.js',
+  /* pillars (Four-pillar spine, 2026-10-06, CEO directive): the one-click
+     action bar — SPREAD / DATA / ACT / ORGANIZE — mounted inside the HUD's
+     YOUR CAMPAIGN strip, plus the adventure-path chooser (soft paths,
+     device-local) that reorders the buttons, flavors the strip headline,
+     and biases the Next Move ladder via PF.pillars.biasOps(). After the HUD
+     (extends it; never rebuilds it). FRONTEND-ONLY, ZERO NEW XP. */
+  'core/31-pillars.js',
   /* allfronts (2026-10-04): ALL FRONTS operation banner — fixed-top strip
      while an operation is live or launching within the hour. */
   'core/21-allfronts.js',

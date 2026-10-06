@@ -282,6 +282,22 @@
       }
     }
     var order = ORDER[pageKey()] || ORDER['default'];
+    /* Pillar spine (2026-10-06, CEO directive): adventure-path bias. When the
+       user has picked a fight, their path's ops bubble to the front of the
+       ladder (stable — relative order preserved, briefing ops already
+       returned above). Fail-open: PF.pillars absent or no path = no bias. */
+    try {
+      var _bias = (window.PF && PF.pillars && typeof PF.pillars.biasOps === 'function')
+        ? PF.pillars.biasOps() : null;
+      if (_bias && _bias.length) {
+        var _bset = {}, _bfront = [], _brest = [];
+        for (var _bi = 0; _bi < _bias.length; _bi++) _bset[_bias[_bi]] = 1;
+        for (var _oi = 0; _oi < order.length; _oi++) {
+          if (_bset[order[_oi]]) _bfront.push(order[_oi]); else _brest.push(order[_oi]);
+        }
+        if (_bfront.length) order = _bfront.concat(_brest);
+      }
+    } catch (e) {}
     for (var i = 0; i < order.length; i++) {
       var op = OPS[order[i]];
       if (!op) continue;

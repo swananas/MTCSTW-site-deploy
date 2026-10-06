@@ -326,6 +326,14 @@
         var d = document.createElement('div'); body.appendChild(d);
         try { if (window.PFMacro) PFMacro.mount(d); } catch (e) { err('macro mount failed'); }
       } },
+    /* FRED Everywhere Phase 1 (2026-10-05): "the economy they're governing"
+       strip — policy transmission (Fed → mortgage), the real-wage read,
+       labor-market health. Weekly cadence, Monday refresh note. */
+    { key: 'governing', kill: 'money-governing', title: 'THE ECONOMY THEY\u2019RE GOVERNING',
+      sub: 'The numbers behind the policies — who they serve, who they squeeze.', mount: function (body) {
+        var d = document.createElement('div'); body.appendChild(d);
+        try { if (window.PFGoverning) PFGoverning.mount(d); } catch (e) { err('governing mount failed'); }
+      } },
     /* P-14/P-16 (Wave A6/PW1): the macro wall — public gallery of everything
        made with FRED data + HQ model pieces. Display only, zero XP. */
     { key: 'gallery', kill: 'macro-gallery', title: 'THE MACRO WALL',

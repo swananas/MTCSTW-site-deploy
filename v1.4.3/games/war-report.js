@@ -255,10 +255,11 @@ function paint(el,j){
       +'<div class="x-note">Command drafts the War Report every Monday. It lands here '
       +'(and in your inbox once email is wired). Check in all week so there is '
       + 'something worth writing about.</div></div>'
+      +'<div id="wrFredNumbers"></div>'
       +'<div id="wrFanFav"></div>'
       +emailPaneHtml()
       +nextActionRow();
-    wireEmail(); loadFanFav();
+    wireEmail(); loadFanFav(); mountWarNumbers();
     return;
   }
   var r=j.report;
@@ -270,10 +271,19 @@ function paint(el,j){
     +'<div class="x-note">Week of '+esc(r.week_start||"")+(when?" · drafted "+esc(when):"")+'</div>'
     +'<div class="wr-body" style="white-space:pre-wrap;font-family:monospace;font-size:13px;line-height:1.55;margin-top:8px">'
     +esc(meme.before)+meme.card+esc(meme.after)+'</div></div>'
+    +'<div id="wrFredNumbers"></div>'
     +'<div id="wrFanFav"></div>'
     +emailPaneHtml()
     +nextActionRow();
-  wireEmail(); loadFanFav();
+  wireEmail(); loadFanFav(); mountWarNumbers();
+}
+/* FRED Everywhere Phase 1: "the week in numbers" slot. The module guards
+   double-mounts itself; this is a no-op when the module isn't bundled. */
+function mountWarNumbers(){
+  try{
+    var slot=document.getElementById("wrFredNumbers");
+    if(slot && window.PFWarNumbers) PFWarNumbers.mount(slot);
+  }catch(e){}
 }
 function load(){
   var el=document.getElementById("xWarReport"); if(!el) return;

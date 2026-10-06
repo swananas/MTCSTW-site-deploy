@@ -28,7 +28,6 @@
        and SPREAD pre-loads that card's poster (fallback: page map).
      - DATA / ACT / ORGANIZE resolve through the DESTINATION REGISTRY below
        (pillar -> current landing page): page silos register themselves at load,
-<<<<<<< HEAD
        so when Blossom adds /peoples-cpi, /call-it, /cell-war, /governance etc.
        the HUD picks them up with no rebuild and no edit to this file.
    CEO STANDING RULE (2026-10-06): new pages are pre-authorized as natural

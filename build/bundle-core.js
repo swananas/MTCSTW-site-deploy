@@ -140,7 +140,12 @@ var CORE_FILES = [
   /* freshness (Cohesion §4, 2026-10-05): PF.freshBadge / PF.degradedVintage /
      PF.honestZero — LIVE badges only on <=15-min-fresh data, automatic label
      degradation, honest zero states. Kill: ?pf_off=27-freshness. */
-  'core/27-freshness.js'
+  'core/27-freshness.js',
+  /* breathe (2026-10-06, fe/breathing-room): PF.Breathe — shared
+     breathing-room helpers (sticky scrollspy section nav, collapsible
+     sections, show-more list disclosure). Companion to the BREATHE CSS
+     section in 02-design-system.css. Pilot: /follow-the-money. */
+  'core/30-breathe.js'
 ];
 
 /* 2026-10-05 (fix/money-minified-rebuild): money suite lazy chunk. The 10

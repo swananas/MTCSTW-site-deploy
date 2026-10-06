@@ -5251,18 +5251,21 @@ function render(){
   }
   if(okS){
     var seasonId=String(ST.season_id||ST.week_id||"");
-    var wkNo=Math.max(1,Math.min(4,Number(ST.week_no)||1));
-    var wkTot=Math.max(1,Number(ST.weeks_total)||4);
+    /* Backend contract: week_index / season_weeks (not week_no / weeks_total). */
+    var wkTot=Math.max(1,Number(ST.season_weeks)||4);
+    var wkNo=Math.max(1,Math.min(wkTot,Number(ST.week_index)||1));
     h+='<div class="cs-season">SEASON '+(seasonId?esc(seasonId):'LIVE')+'</div>';
     h+='<div class="cs-prog"><div class="cs-proglabel">WEEK '+wkNo+' OF '+wkTot+'</div>'+
       '<div class="cs-bar"><i style="width:'+Math.round(wkNo/wkTot*100)+'%"></i></div></div>';
-    var metrics=(ST.metrics&&ST.metrics.length)?ST.metrics:[];
-    if(!metrics.length){
+    /* Backend contract: metrics is an OBJECT keyed by metric name, each value
+       {metric_label, standings:[...]} — not an array of {metric, rows}. */
+    var mKeys=(ST.metrics&&typeof ST.metrics==="object")?Object.keys(ST.metrics):[];
+    if(!mKeys.length){
       h+='<div class="cs-empty">No competitions scored yet this season.<br>Get your cell in the fight.</div>';
     }
-    for(var mi=0;mi<metrics.length;mi++){
-      var m=metrics[mi]||{}, rows=(m.rows&&m.rows.length)?m.rows:[];
-      h+='<div class="cs-metric"><h3>'+esc(metricLabel(m.metric))+'</h3>';
+    for(var mi=0;mi<mKeys.length;mi++){
+      var mk=mKeys[mi], m=(ST.metrics[mk]||{}), rows=(m.standings&&m.standings.length)?m.standings:[];
+      h+='<div class="cs-metric"><h3>'+esc(m.metric_label||metricLabel(mk))+'</h3>';
       if(!rows.length){ h+='<div class="cs-empty">No scores yet.</div>'; }
       for(var i=0;i<rows.length;i++){
         var r=rows[i]||{};

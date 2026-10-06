@@ -132,30 +132,68 @@ var gotStatus = scripts.some(function (s) { return s.src.indexOf('action=cellcom
 var gotHist = scripts.some(function (s) { return s.src.indexOf('action=cellcomp_season_history') !== -1; });
 ok(gotStatus && gotHist, 'both season actions requested on load');
 
-/* state 1: live season + one sealed season */
+/* state 1: live season + one sealed season (REAL backend response shape:
+   metrics is an object keyed by metric -> {metric_label, standings:[...]};
+   week progress comes from week_index / season_weeks) */
 ok(respondTo('cellcomp_season_status', {
-  ok: true, season_id: '2026-10-05', week_no: 2, weeks_total: 4,
-  metrics: [{
-    metric: 'weekly_checkins',
-    rows: [
-      { cell_id: 'c1', cell_name: 'Alpha Cell', weekly_wins: 3, total_cnt: 120 },
-      { cell_id: 'c2', cell_name: 'Beta Cell', weekly_wins: 2, total_cnt: 150 }
-    ]
-  }]
-}), 'season status delivered');
+  ok: true, season_id: '2026-10-05', week_index: 2, season_weeks: 4,
+  metrics: {
+    weekly_checkins: {
+      metric_label: 'Weekly Check-ins',
+      standings: [
+        { cell_id: 'c1', cell_name: 'Alpha Cell', weekly_wins: 3, total_cnt: 120 },
+        { cell_id: 'c2', cell_name: 'Beta Cell', weekly_wins: 2, total_cnt: 150 }
+      ]
+    }
+  }
+}), 'season status delivered (real backend shape)');
 ok(respondTo('cellcomp_season_history', {
   ok: true,
   seasons: [{ season_id: '2026-09-07', champion_cell_id: 'c9', champion_cell_name: 'Old Guard', sealed_at: 1759363200 }]
 }), 'season history delivered');
 var s1 = global.__host.innerHTML;
 ok(s1.indexOf('WEEK 2 OF 4') !== -1, 'season progress week 2 of 4');
-ok(s1.indexOf('WEEKLY CHECKINS') !== -1, 'per-metric standings header');
+ok(s1.indexOf('Weekly Check-ins') !== -1, 'per-metric standings header uses metric_label');
 ok(s1.indexOf('Alpha Cell') !== -1 && s1.indexOf('Beta Cell') !== -1, 'standings rows rendered');
 ok(s1.indexOf('Alpha Cell') < s1.indexOf('Beta Cell'), 'leader (weekly wins) ranked first');
 ok(s1.indexOf('SEASON PTS') !== -1, 'weekly-win season points labeled');
 ok(s1.indexOf('tiebreak') !== -1, 'tiebreak totals labeled');
 ok(s1.indexOf('Old Guard') !== -1, 'past champion rendered from history');
 ok(s1.indexOf('never mint XP') !== -1, 'zero-XP honorific copy present');
+
+/* state 1b: SHAPE-ASSERTION — a real-shaped backend payload (metrics as an
+   object, week_index/season_weeks) must render standings rows and week
+   progress, NOT the "No competitions scored yet this season" / "WEEK 1 OF 4"
+   fallback that the old contract-mismatch code always produced. */
+global.__host = null; templates = {}; scripts = [];
+loadModule('../v1.4.3/games/cell-comp-seasons.js');
+ok(respondTo('cellcomp_season_status', {
+  ok: true, season_id: '2026-10-05', week_index: 3, season_weeks: 4,
+  metrics: {
+    weekly_checkins: {
+      metric_label: 'Weekly Check-ins',
+      standings: [
+        { cell_id: 'c1', cell_name: 'Alpha Cell', weekly_wins: 3, total_cnt: 120 },
+        { cell_id: 'c2', cell_name: 'Beta Cell', weekly_wins: 2, total_cnt: 150 },
+        { cell_id: 'c3', cell_name: 'Gamma Cell', weekly_wins: 1, total_cnt: 300 }
+      ]
+    },
+    posters: {
+      metric_label: 'Poster Propaganda',
+      standings: [
+        { cell_id: 'c2', cell_name: 'Beta Cell', weekly_wins: 2, total_cnt: 45 }
+      ]
+    }
+  }
+}), 'shape: real-shaped season status delivered');
+respondTo('cellcomp_season_history', { ok: true, seasons: [] });
+var ss = global.__host.innerHTML;
+ok(ss.indexOf('No competitions scored yet this season') === -1, 'shape: empty-state copy NOT rendered for real payload');
+ok(ss.indexOf('WEEK 3 OF 4') !== -1, 'shape: WEEK 3 OF 4 from week_index/season_weeks');
+var nRows = (ss.match(/class="cs-row/g) || []).length;
+ok(nRows === 4, 'shape: 4 standings rows rendered from metrics object (got ' + nRows + ')');
+ok(ss.indexOf('Alpha Cell') !== -1 && ss.indexOf('Gamma Cell') !== -1, 'shape: standings cell names rendered');
+ok(ss.indexOf('Weekly Check-ins') !== -1 && ss.indexOf('Poster Propaganda') !== -1, 'shape: metric_label values used as section headers');
 
 /* state 2: both reads fail -> fail-soft */
 global.__host = null; templates = {}; scripts = [];

@@ -143,6 +143,15 @@ console.log('== 5. seasons contract ==');
   if (has(cs, pair[0])) ok('seasons: ' + pair[1]);
   else no('seasons contract', pair[0] + ' missing');
 });
+/* Real backend shape (2026-10-05 gate fix): metrics is an OBJECT keyed by
+   metric -> {metric_label, standings:[...]}; week progress from
+   week_index / season_weeks. Regression guard for the mismatch that left
+   standings stuck on the empty state and WEEK 1 OF 4. */
+[['week_index', 'week_index week field'], ['season_weeks', 'season_weeks total'],
+ ['metric_label', 'metric_label display label'], ['standings', 'standings rows']].forEach(function (pair) {
+  if (has(cs, pair[0])) ok('seasons: ' + pair[1]);
+  else no('seasons contract (real shape)', pair[0] + ' missing');
+});
 if (has(cs, 'offline right now')) ok('seasons: fail-soft offline state');
 else no('seasons contract', 'offline state missing');
 if (has(cs, 'never mint XP')) ok('seasons: zero-XP honorific copy');

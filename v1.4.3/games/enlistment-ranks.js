@@ -52,6 +52,12 @@
 #pf-ranks .u-weeklyheroes a{font:bold 12px Arial,sans-serif;color:#ff5a00;letter-spacing:2px;text-decoration:none}
 #pf-ranks .u-weeklyheroes a:hover{text-decoration:underline}
 #pf-ranks .u-wempty{font-family:Arial,sans-serif;font-size:12px;color:#777;text-align:center;width:100%}
+/* PLAY 7 (2026-10-06): weekly FAN FAVORITE honorific card — pure display,
+   votes never become XP. Kill: ?pf_off=fan-favorite. */
+#pf-ranks .u-fanfav{width:100%;background:#1a1a1a;border:3px solid #c1121f;padding:10px;margin-bottom:4px;text-align:center}
+#pf-ranks .u-ffhonor{font-family:'Arial Black',Arial,sans-serif;font-size:13px;letter-spacing:4px;color:#c1121f;text-transform:uppercase}
+#pf-ranks .u-ffname{font-family:'Arial Black',Arial,sans-serif;font-size:20px;letter-spacing:2px;color:#f5ead6;text-transform:uppercase;margin:4px 0}
+#pf-ranks .u-ffsub{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase}
 /* ---------- PRESTIGE ---------- */
 #pf-ranks .p-wrap{margin-top:22px;border-top:2px solid #ff5a00;padding-top:18px;text-align:center}
 #pf-ranks .p-head{font-size:22px;letter-spacing:4px;color:#ff5a00;text-transform:uppercase;margin-bottom:4px}
@@ -326,13 +332,28 @@ function wallFromServer(cb){
   s.src=BACKEND_URL+"?action=wall&callback="+fn;
   document.head.appendChild(s);
 }
-function renderWall(serverWall){
+function renderWall(serverWall, fanFav){
   var el=document.getElementById("uWall");
   function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
   var names=getWall();
   if(serverWall&&serverWall.length){ names=serverWall.map(function(w){return esc(String(w.callsign).toUpperCase());}); }
   else { names=names.map(function(w){return esc(String(w).toUpperCase());}); }
-  if(!names.length){ el.innerHTML='<div class="u-wempty">No architects yet. The wall waits.</div>'; return; }
+  /* PLAY 7 (2026-10-06): the weekly FAN FAVORITE rides the Vanguard Wall
+     with its honorific — a PURE honorific, votes never become XP.
+     Kill: ?pf_off=fan-favorite. Fail-soft: absent/null favorite = no card. */
+  var ffHtml="";
+  try{
+    var skipFF = window.PF && PF.skip && PF.skip("fan-favorite");
+    if(!skipFF && fanFav && fanFav.slug){
+      var fslug=esc(String(fanFav.slug).toUpperCase());
+      var fweek=esc(String(fanFav.week||""));
+      var fvotes=esc(String(fanFav.votes||""));
+      ffHtml='<div class="u-fanfav"><div class="u-ffhonor">★ FAN FAVORITE ★</div>'+
+        '<div class="u-ffname">'+fslug+'</div>'+
+        '<div class="u-ffsub">Propagandist of the Week'+(fweek?" · "+fweek:"")+(fvotes?" · "+fvotes+" votes":"")+'</div></div>';
+    }
+  }catch(e){}
+  if(!names.length && !ffHtml){ el.innerHTML='<div class="u-wempty">No architects yet. The wall waits.</div>'; return; }
   /* R27 (Wave 6B): wall names link out — the Vanguard Wall (all-time legends)
      cross-links the Hall of Proof (weekly heroes). Per-callsign feat views
      don't exist yet; the Hall side owns that (flagged). */
@@ -342,7 +363,7 @@ function renderWall(serverWall){
      only while the wall arrived oldest-first. MERGE WITH OR AFTER
      fix/perf-wall-limit (BE): merging this early would show the
      OLDEST 24, a visible regression. */
-  el.innerHTML=names.slice(0,24).map(function(n){ return '<a class="u-wname" href="/#pf-hallofproof" title="See the Hall of Proof">'+n+'</a>'; }).join("");
+  el.innerHTML=ffHtml+names.slice(0,24).map(function(n){ return '<a class="u-wname" href="/#pf-hallofproof" title="See the Hall of Proof">'+n+'</a>'; }).join("");
 }
 function renderUnlocks(){
   var s=load(), idx=TIERS.indexOf(tierOf(s.xp));
@@ -730,7 +751,7 @@ document.addEventListener("pf-order-checkin",function(){ render(); });
 loadPrestige();
 render();
 syncFromServer();
-wallFromServer(function(j){ if(j&&j.ok&&j.wall) renderWall(j.wall); });
+wallFromServer(function(j){ if(j&&j.ok&&j.wall) renderWall(j.wall, j.fan_favorite); });
 })();
 </script>
 </div>

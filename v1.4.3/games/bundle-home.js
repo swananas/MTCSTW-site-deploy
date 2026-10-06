@@ -1687,6 +1687,23 @@ function render(){
   renderCell(el,state);
 }
 function renderLobby(el){
+  /* CELL IDENTITY (2026-10-05): guided founding wizard replaces the blank
+     form — a cell with no identity can't complete founding. Kill-switch
+     (?pf_off=cell-identity) falls back to the original blank form. */
+  function identEnabled(){ return window.PFCellIdentity && window.PFCellIdentity.enabled(); }
+  /* QC FIX (2026-10-05, Finding 3): lobby sort select. Curated SORTS labels
+     when the identity module is up; literals under the kill-switch. The ""
+     default maps to the backend's default activity ordering. */
+  function lobbySortHtml(){
+    var sets=(identEnabled()&&window.PFCellIdentity.SETS&&window.PFCellIdentity.SETS.SORTS)||
+      [["activity","Sort: activity"],["newest","Sort: newest"],["streak","Sort: streak"],["members","Sort: members"]];
+    var o='<select class="c-sel" id="cSort" aria-label="SORT RESULTS">';
+    for(var i=0;i<sets.length;i++) o+='<option value="'+esc(sets[i][0])+'">'+esc(sets[i][1])+'</option>';
+    return o+'</select>';
+  }
+  var formPaneHtml = identEnabled()
+    ? '<div class=\"c-pane\"><h4>Form a cell</h4><div id=\"cIdentWizard\"></div></div>'
+    : '<div class=\"c-pane\"><h4>Form a cell</h4>'+\n    '<input aria-label=\"CELL NAME\" id=\"cName\" maxlength=\"24\" placeholder=\"CELL NAME\" autocomplete=\"off\">'+\n    '<select class=\"c-sel\" id=\"cState\" aria-label=\"STATE AFFILIATION\">'+cellStateOpts(\"\",\"No state affiliation\")+'</select>'+\n    '<div class=\"x-note\">State affiliation unlocks location tasks and policymaker bounties.</div>'+\n    '<br><button class=\"c-btn\" id=\"cCreate\">Form cell</button>'+\n    '<div class=\"c-err\" id=\"cCreateErr\"></div></div>';
   /* SLIM (homepage): pitch + join form only. Steps + search are full-mode
      depth for /cells. */
   var stepsHtml=SLIM?"":
@@ -1699,6 +1716,9 @@ function renderLobby(el){
     '<div class="c-pane"><h4>Find a cell</h4>'+
     '<input aria-label="NAME OR STATE" id="cSearch" maxlength="32" placeholder="NAME OR STATE" autocomplete="off">'+
     '<select class="c-sel" id="cSearchState" aria-label="FILTER BY STATE">'+cellStateOpts("","All states")+'</select>'+
+    /* QC FIX (2026-10-05, Finding 3): the backend accepted sort= but the
+       lobby never sent it — the sort control lives in the search row. */
+    lobbySortHtml()+
     /* ENGAGE-A #4 (2026-10-05): cause/vibe/tag filters. Rendered only when
        the backend serves tags (cell-identity track schema); hidden until
        then — pre-identity-schema backends browse exactly as before. */
@@ -1711,12 +1731,7 @@ function renderLobby(el){
     '<br>Five callsigns. One streak. Every day the whole cell checks in, the streak climbs and everyone banks <b>+5% XP on Daily Orders</b> &mdash; up to <b>+50%</b>.</div>'+
     stepsHtml+
     '<div class="c-lobby">'+
-    '<div class="c-pane"><h4>Form a cell</h4>'+
-    '<input aria-label="CELL NAME" id="cName" maxlength="24" placeholder="CELL NAME" autocomplete="off">'+
-    '<select class="c-sel" id="cState" aria-label="STATE AFFILIATION">'+cellStateOpts("","No state affiliation")+'</select>'+
-    '<div class="x-note">State affiliation unlocks location tasks and policymaker bounties.</div>'+
-    '<br><button class="c-btn" id="cCreate">Form cell</button>'+
-    '<div class="c-err" id="cCreateErr"></div></div>'+
+    formPaneHtml+
     '<div class="c-pane"><h4>Join a cell</h4>'+
     '<input aria-label="INVITE CODE" id="cCode" maxlength="6" placeholder="INVITE CODE" autocomplete="off" style="text-transform:uppercase">'+
     '<input aria-label="WHO RECRUITED YOU (CALLSIGN)" id="cRef" maxlength="32" placeholder="WHO RECRUITED YOU (CALLSIGN)" autocomplete="off" style="text-transform:uppercase">'+
@@ -1726,6 +1741,14 @@ function renderLobby(el){
     searchHtml+
     '<div class="c-bounty">SHARE YOUR CELL CODE &mdash; every RECRUIT who checks in pays <b>+25 XP</b>. One recruit, one credit, everywhere.</div>'+
     (SLIM?'<div class="x-note">Full cell management &mdash; search, prestige, challenges &mdash; lives at <a href="/cells" style="color:#c1121f;">/cells</a>.</div>':'');
+  /* CELL IDENTITY (2026-10-05): wizard mounts when enabled; the blank form
+     is the kill-switch fallback. */
+  if(identEnabled()){
+    var wzel=document.getElementById("cIdentWizard");
+    if(wzel) window.PFCellIdentity.mountWizard(wzel,{
+      stateOptsHTML:cellStateOpts("","No state affiliation"),
+      onDone:function(){ refresh(); }});
+  } else {
   document.getElementById("cCreate").onclick=function(){
     var nm=document.getElementById("cName").value, id=ident(), err=document.getElementById("cCreateErr");
     err.textContent="";
@@ -1739,6 +1762,7 @@ function renderLobby(el){
       refresh();
     });
   };
+  }
   document.getElementById("cJoin").onclick=function(){
     var code=document.getElementById("cCode").value, ref=document.getElementById("cRef").value,
         id=ident(), err=document.getElementById("cJoinErr");
@@ -1799,7 +1823,8 @@ function renderLobby(el){
         id=ident(), err=document.getElementById("cSearchErr"),
         res=document.getElementById("cSearchRes");
     err.textContent=""; res.innerHTML='<div class="c-load">Searching&hellip;</div>';
-    var params={q:q,state:selVal("cSearchState"),cause:cFlt.cause,vibe:cFlt.vibe,tag:cFlt.tag};
+    /* QC FIX (2026-10-05, Finding 3): sort passes through to cell_search. */
+    var params={q:q,state:selVal("cSearchState"),sort:selVal("cSort"),cause:cFlt.cause,vibe:cFlt.vibe,tag:cFlt.tag};
     if(id.callsign) params.callsign=id.callsign;
     api("cell_search",params,function(j){
       if(!j||!j.ok){ err.textContent=cellWriteErr(j,"Network error."); res.innerHTML=""; return; }
@@ -1814,12 +1839,21 @@ function renderLobby(el){
            button carries the code, so there is no manual code entry.
            Unverified cells keep their code behind the founder's share flow:
            an invite-only note instead of a dead JOIN button.
-           ENGAGE-A #4: 'mine' rows render an IN YOUR CELL state. */
-        var jbtn=cc.mine
-          ?'<span class="x-note">&#10003; IN YOUR CELL</span>'
-          :cc.invite_code
-          ?'<button class="c-btn c-sm" data-code="'+esc(cc.invite_code)+'">JOIN</button>'
-          :'<span class="x-note">invite only</span>';
+           ENGAGE-A #4: 'mine' rows render an IN YOUR CELL state.
+           QC FIX (2026-10-05, Finding 1): application-entry cells never
+           expose invite_code in search (server-side). The affordance follows
+           entry style — APPLY for application cells, one-tap JOIN for open
+           cells with a code, honest "invite only" otherwise. */
+        var jbtn;
+        if(cc.mine){
+          jbtn='<span class="x-note">&#10003; IN YOUR CELL</span>';
+        }else if(identEnabled()&&window.PFCellIdentity.joinAffordanceHTML){
+          jbtn=window.PFCellIdentity.joinAffordanceHTML(cc);
+        }else{
+          jbtn=cc.invite_code
+            ?'<button class="c-btn c-sm" data-code="'+esc(cc.invite_code)+'">JOIN</button>'
+            :'<span class="x-note">invite only</span>';
+        }
         var tagHtml="";
         var tgchips=[];
         if(cc.cause) tgchips.push(esc(cc.cause));
@@ -1834,21 +1868,42 @@ function renderLobby(el){
           +jbtn+tagHtml+'</div>';
       }
       res.innerHTML=h;
+      function doCodeJoin(code,btn){
+        var id2=ident();
+        err.textContent="";
+        busyBtn(btn,true);
+        api("cell_join",{callsign:id2.callsign,device:id2.device,code:code},function(j2){
+          busyBtn(btn,false);
+          if(!j2||!j2.ok){ err.textContent=cellWriteErr(j2&&j2.err); return; }
+          toast("Welcome to "+j2.cell.name+". Check in daily.");
+          emitCellEv("pf-cell-joined", j2.cell);
+          refresh();
+        });
+      }
       var btns=res.querySelectorAll("button[data-code]");
       for(var b=0;b<btns.length;b++)(function(btn){
+        btn.onclick=function(){ doCodeJoin(btn.getAttribute("data-code"),btn); };
+      })(btns[b]);
+      /* CELL IDENTITY (2026-10-05): one-tap join affordance from the
+         identity module carries the code in data-idjoin; application cells
+         carry data-idapply and go through the apply flow (0 XP). */
+      var jbtns=res.querySelectorAll("button[data-idjoin]");
+      for(var b2=0;b2<jbtns.length;b2++)(function(btn){
+        btn.onclick=function(){ doCodeJoin(btn.getAttribute("data-idjoin"),btn); };
+      })(jbtns[b2]);
+      var abtns=res.querySelectorAll("button[data-idapply]");
+      for(var b3=0;b3<abtns.length;b3++)(function(btn){
         btn.onclick=function(){
-          var code=btn.getAttribute("data-code"), id2=ident();
+          var cid=btn.getAttribute("data-idapply");
           err.textContent="";
           busyBtn(btn,true);
-          api("cell_join",{callsign:id2.callsign,device:id2.device,code:code},function(j2){
+          window.PFCellIdentity.applyToCell(cid,function(j3){
             busyBtn(btn,false);
-            if(!j2||!j2.ok){ err.textContent=cellWriteErr(j2&&j2.err); return; }
-            toast("Welcome to "+j2.cell.name+". Check in daily.");
-            emitCellEv("pf-cell-joined", j2.cell);
-            refresh();
+            if(j3&&j3.ok) toast("Application sent. The founder reviews every request.");
+            else err.textContent=cellWriteErr(j3&&j3.err);
           });
         };
-      })(btns[b]);
+      })(abtns[b3]);
     });
   }
   if(sb) sb.onclick=doSearch;
@@ -2102,6 +2157,9 @@ function renderCell(el,s){
        the select reverts and the error shows in #cActErr. */
     html+='<div class="c-rename"><select class="c-sel" id="cStateEdit" aria-label="STATE AFFILIATION">'+cellStateOpts(String(c.state||""),"No state affiliation")+'</select>'+
       '<button class="c-btn" id="cStateBtn">Set state</button></div>';
+    /* CELL IDENTITY (2026-10-05): backfill prompt for founders whose cell
+       has no identity yet. Invitational, never shaming, never a penalty. */
+    html+='<div id="cIdentBackfill"></div>';
   }
   /* RECRUIT: any member can mint the recruit poster and share it. */
   html+='<button class="c-btn c-big" id="cRecruit">RECRUIT</button>';
@@ -2117,6 +2175,40 @@ function renderCell(el,s){
   html+='<div class="c-leave"><a id="cLeave">Leave cell</a></div><div class="c-err" id="cActErr"></div></div>';
   el.innerHTML=html;
   var id=ident(), errEl=document.getElementById("cActErr");
+  /* CELL IDENTITY (2026-10-05): founder backfill — load the identity, show
+     the invitational prompt only when the profile is incomplete. */
+  (function(){
+    if(!s.is_founder) return;
+    if(!(window.PFCellIdentity&&window.PFCellIdentity.enabled())) return;
+    var bf=document.getElementById("cIdentBackfill"); if(!bf) return;
+    window.PFCellIdentity.loadIdentity(c.id,function(ident2){
+      if(ident2&&ident2.profile_complete) return;
+      bf.innerHTML=window.PFCellIdentity.backfillBannerHTML(c.name);
+      var b=bf.querySelector("[data-idbackfill]");
+      if(b) b.onclick=function(){
+        window.PFCellIdentity.mountWizard(bf,{mode:"edit",cellId:c.id,
+          stateOptsHTML:cellStateOpts(String(c.state||""),"No state affiliation"),
+          initial:identityToInitial(ident2,c),
+          onDone:function(){ refresh(); }});
+      };
+    });
+  })();
+  function identityToInitial(ident2,cell){
+    if(!ident2) return {name:(cell&&cell.name)||"",state:(cell&&cell.state)||""};
+    var vibes=[],custom="";
+    (ident2.vibes||[]).forEach(function(v){
+      var k=v.key||v;
+      if(String(k).indexOf("custom:")===0) custom=String(k).slice(7);
+      else vibes.push(k);
+    });
+    return {name:(cell&&cell.name)||"",state:(cell&&cell.state)||"",
+      causes:(ident2.causes||[]).map(function(x){return x.key||x;}),
+      vibes:vibes,customVibe:custom,
+      specialties:(ident2.specialties||[]).map(function(x){return x.key||x;}),
+      cadence:ident2.meeting_cadence||"",entry:ident2.entry_style||"",
+      charter:ident2.charter||"",motto:ident2.motto||"",region:ident2.region||"",
+      palette:(ident2.palette==null?-1:Number(ident2.palette))};
+  }
   /* Cell health: members, 7d checkins, 30d recruits. */
   (function(){
     var hel=document.getElementById("cHealth"); if(!hel) return;

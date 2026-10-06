@@ -63,6 +63,24 @@
     }
   }
 
+  /* ---------- push prefs client (2026-10-05, fe/pwa) ---------- */
+  // The push settings UI lives on the account/settings surface (Political
+  // HQ, next to "Control the Signal"). push.js self-hides unless a live
+  // service-worker registration exists (Phase B), so loading it is a no-op
+  // everywhere else. Placed before the standalone bail so installed apps
+  // (iOS home-screen — the only place iOS push works) also get it.
+  try {
+    if (BASE && document.getElementById('pf-political-hq')) {
+      var pfPush = document.createElement('script');
+      pfPush.src = BASE + 'push.js';
+      pfPush.async = true;
+      pfPush.onerror = function () {
+        if (window.console) { console.log('[PF PWA] push.js failed to load'); }
+      };
+      document.head.appendChild(pfPush);
+    }
+  } catch (e) {}
+
   /* ---------- already installed? bail ---------- */
   var isStandalone = false;
   try {

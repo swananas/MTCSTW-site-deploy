@@ -94,6 +94,9 @@ var isSlrPage=!!document.getElementById('pf-slr-roster')||!!document.getElementB
    pages the DB still loads on demand via PF.ensureSLRDB() if ever needed. */
 var NEED_SLR=isHome||isArcade||isCreate||isWarCard||isSlrPage;
 CORE_V2=[NEED_SLR?'core/bundle-core-slr.js':'core/bundle-core.js'];
+/* PWA (2026-10-05, fe/pwa): install.js, right after the core bundle (home of
+   core/03-global.js). Relative = resolves against the v1.4.3 BASE. */
+var JS_PWA=['pwa/install.js'];
 var JS_GAMES=isHome?['games/bundle-sec1.js']:isArcade?['games/bundle-arcade-h.js','games/bundle-arcade.js','games/bundle-predgame.js']:isCellsPage?['games/bundle-cells-h.js','games/bundle-cells.js']:isCreate?['games/bundle-create-h.js','games/bundle-create.js']:isBank?['games/bundle-bank.js']:isEconomy?['games/bundle-economy.js']:isWarchest?['games/bundle-warchest.js']:isVentures?['games/bundle-ventures.js']:isEvents?['games/bundle-events.js']:isWarReport?['games/bundle-warreport.js']:isMoney?['core/bundle-money.js','games/bundle-predgame.js']:isCommand?['games/bundle-command.js']:isHQ?[]:isWarCard?['games/bundle-create.js','games/bundle-cells.js']:isSlrPage?['games/bundle-roster.js']:[];
 var JS_HQ=isHQ?['games/bundle-hq.js','games/bundle-predgame.js']:[]; /* 2026-10-05 (fe/predict-game): CALL IT. section for the BALLOT hub ('elections' preselected) */
 /* DEFECT 1 (2026-10-03): the v1.1.0 set carries no footer chrome. Append
@@ -101,9 +104,9 @@ var JS_HQ=isHQ?['games/bundle-hq.js','games/bundle-predgame.js']:[]; /* 2026-10-
    MISSION bar) so /store, /privacy, /terms and all other non-v2 pages
    get the full injected footer. Loads last, async=false, after the
    v1.1.0 silos — order preserved. */
-var JS_V1=['core/00-bus.js', 'core/03-global.js', 'core/04-ledger.js', 'core/05-tally.js', 'games/caption-combat.js', 'games/daily-orders.js', 'games/fan-vote.js', 'games/do-meter.js', 'games/media-nuke.js', 'games/poster-forge.js', 'games/daily-drop.js', 'games/service-medals.js', 'games/liquidation-bracket.js', 'core/06-override.js', 'core/08-engage.js', 'core/09-toast.js', 'core/10-ticker.js', 'fixes/homepage.js', 'fixes/about.js', 'fixes/faqs.js', 'fixes/roster.js', 'fixes/podcast.js', 'fixes/tax.js', 'fixes/terms.js', 'fixes/schema.js', 'fixes/article-visibility.js'];
+var JS_V1=['core/00-bus.js', 'core/03-global.js', /* PWA (2026-10-05, fe/pwa): install.js ships only in v1.4.3 — the v1.1.0 pin has no pwa/ tree, so it loads absolute-pinned to V3 like JS_CHROME (DEFECT-1 pattern). Pin-agnostic: install.js derives its own CDN base. */ 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@'+V3+'/v1.4.3/pwa/install.js', 'core/04-ledger.js', 'core/05-tally.js', 'games/caption-combat.js', 'games/daily-orders.js', 'games/fan-vote.js', 'games/do-meter.js', 'games/media-nuke.js', 'games/poster-forge.js', 'games/daily-drop.js', 'games/service-medals.js', 'games/liquidation-bracket.js', 'core/06-override.js', 'core/08-engage.js', 'core/09-toast.js', 'core/10-ticker.js', 'fixes/homepage.js', 'fixes/about.js', 'fixes/faqs.js', 'fixes/roster.js', 'fixes/podcast.js', 'fixes/tax.js', 'fixes/terms.js', 'fixes/schema.js', 'fixes/article-visibility.js'];
 var JS_CHROME=['https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@'+VCHROME+'/v1.4.3/core/bundle-footer-chrome.js'];
-var JS_SEQ=onV2?CORE_V2.concat(JS_GAMES).concat(JS_HQ).concat(PAGES_V2):JS_V1.concat(JS_CHROME);
+var JS_SEQ=onV2?CORE_V2.concat(JS_PWA).concat(JS_GAMES).concat(JS_HQ).concat(PAGES_V2):JS_V1.concat(JS_CHROME);
 function siloFail(n,e){if(window.console)console.error('[PF SILO FAILED] '+n+' :: '+(e&&e.message||e||'load error'));}
 window.addEventListener('error',function(e){
   var f=e.filename||'',i=f.indexOf('/v1.1.0/'),rest='';

@@ -180,10 +180,13 @@
   }
 
   /* ---- ANONYMOUS: P1 Briefing Hero + FRONT LINES -----------------------
-     Zero backend reads. The join button carries data-pf-claim-cs so the
-     existing delegated handler in 03-global.js opens the PF.requireCallsign
-     enlistment modal (href '/' is the no-JS fallback — the homepage, where
-     enlistment lives). */
+     Zero backend reads. P.hero renders the join anchor (href '/'); then
+     wireAnonJoin() stamps data-pf-claim-cs on it, and the delegated
+     [data-pf-claim-cs] click handler in 03-global.js owns the tap —
+     preventDefault + PF.requireCallsign opens the enlistment modal.
+     Load order matters: 33-patterns.js must evaluate before this module
+     (build/bundle-core.js orders it so); otherwise `if (!P) return` kills
+     the hub at load and this hero never renders. */
   function anonHeroHtml() {
     return '<div class="pf-pat" id="pf-anonhero">' +
       P.hero({

@@ -42,6 +42,15 @@ var DEBUG = process.argv.indexOf('--debug') !== -1;
    173KB SLR snapshot, for pages that mount roster consumers. */
 var CORE_FILES = [
   'core/00-bus.js',
+  /* teardown patterns (WS-0, 2026-10-06): the 8-pattern brand library —
+     PF.patterns render helpers (pure HTML strings, zero backend, zero XP,
+     fail-open, no writes). Second: needs nothing but the PF bus (00-bus),
+     and workstream modules (notably 32-hubhome.js) grab PF.patterns at
+     EVAL time — anything ordered before this silently no-ops when patterns
+     is absent. Every bundle that ships core includes it, so "last" buys
+     nothing and "early" keeps load-time consumers alive.
+     Kill: ?pf_off=patterns. */
+  'core/33-patterns.js',
   'core/07-slr-db.js',
   'core/03-global.js',
   /* wave-live-rails (2026-10-05): site_config client — key dates, tuning
@@ -160,12 +169,10 @@ var CORE_FILES = [
      PF.honestZero — LIVE badges only on <=15-min-fresh data, automatic label
      degradation, honest zero states. Kill: ?pf_off=27-freshness. */
   'core/27-freshness.js',
-  /* teardown patterns (WS-0, 2026-10-06): the 8-pattern brand library —
-     PF.patterns render helpers (pure HTML strings, zero backend, zero XP,
-     fail-open, no writes). Last: needs nothing but the PF bus (00-bus);
-     positioned last so the 12 section workstreams can consume it from any
-     page bundle that ships core. Kill: ?pf_off=patterns. */
-  'core/33-patterns.js'
+  /* teardown patterns was the LAST entry — moved to second (right after
+     00-bus.js, 2026-10-06): 32-hubhome.js grabs PF.patterns at eval time and
+     returns early when absent, so "last" silently killed the whole homepage
+     hub in the shipped bundle (Google-QC: the anon hero CTA never fired). */
 ];
 
 /* 2026-10-05 (fix/money-minified-rebuild): money suite lazy chunk. The 10

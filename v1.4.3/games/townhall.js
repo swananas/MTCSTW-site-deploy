@@ -39,7 +39,10 @@ function api(action,params,cb){
   setTimeout(function(){ finish(null); },12000);
 }
 function post(action,params,cb){
-  var body=Object.assign({type:"townhall",th_action:action},params);
+  /* 2026-10-05 (fe/events-platform): new backend contract — all
+     events-platform writes ride type:'events' with an e_action
+     discriminator (townhall dispatch moved into src/events.js). */
+  var body=Object.assign({type:"events",e_action:action},params);
   if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
   var bodyStr=JSON.stringify(body);
   function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
@@ -63,8 +66,10 @@ function fmtWhen(ms){
     return wd+" "+mo[d.getMonth()]+" "+d.getDate()+", "+h+":"+("0"+d.getMinutes()).slice(-2)+ap; }catch(e){ return ""; }
 }
 function mapsUrl(h){
-  var q=[h.venue,h.city,h.state].filter(function(x){return x;}).join(", ");
-  return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(q||h.legislator_name||"");
+  /* 2026-10-05 (fe/events-platform): new schema — address (was city),
+     official (was legislator_name). Old names kept as fallbacks. */
+  var q=[h.venue,h.address||h.city,h.state].filter(function(x){return x;}).join(", ");
+  return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(q||h.official||h.legislator_name||"");
 }
 var root=null, cache=[], curState="", openId=null, qcache={};
 function render(){
@@ -92,12 +97,16 @@ function render(){
   renderSoon(); renderList();
 }
 function card(h){
-  var when=fmtWhen(h.event_at);
-  var where=[h.venue,h.city,h.state].filter(function(x){return x;}).join(", ");
+  /* 2026-10-05 (fe/events-platform): new townhalls schema — official (was
+     legislator_name), starts_at (was event_at), address (was city),
+     district (was bioguide_id). Old names kept as fallbacks. */
+  var who=h.official||h.legislator_name||"";
+  var when=fmtWhen(h.starts_at||h.event_at);
+  var where=[h.venue,h.address||h.city,h.state].filter(function(x){return x;}).join(", ");
   var open=openId===h.id;
   var s='<div class="th-card" style="border:1px solid #444;padding:10px;margin:8px 0;background:#111;">';
   s+='<div style="font:bold 14px Arial;">'+esc(h.title)+'</div>';
-  s+='<div style="font:12px monospace;color:#aaa;margin:4px 0;">'+esc(h.legislator_name||"")+(h.bioguide_id?' <span style="color:#666;">'+esc(h.bioguide_id)+'</span>':"")+'</div>';
+  s+='<div style="font:12px monospace;color:#aaa;margin:4px 0;">'+esc(who)+(h.district?' <span style="color:#666;">'+esc(h.district)+'</span>':"")+'</div>';
   s+='<div style="font:12px monospace;">'+esc(when)+(where?' &mdash; '+esc(where):"")+'</div>';
   s+='<div style="font:12px monospace;color:#c1121f;font-weight:bold;margin:4px 0;">'+(h.rsvp_count||0)+' GOING</div>';
   s+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">';
@@ -126,24 +135,30 @@ function renderList(){
   if(openId) loadQuestions(openId);
 }
 function renderSoon(){
+  /* 2026-10-05 (fe/events-platform): townhall_upcoming is dead — the new
+     backend contract ships live+upcoming only via townhall_list, so the
+     72-hour strip derives from the cached list. */
   var el=root.querySelector("#thSoon"); if(!el) return;
-  api("townhall_upcoming",{},function(j){
-    if(!j||!j.ok||!j.halls||!j.halls.length){ el.innerHTML=""; return; }
-    var s='<div style="border:2px solid #c1121f;background:#1a0505;padding:8px;margin:8px 0;">';
-    s+='<div style="font:bold 12px monospace;color:#c1121f;">NEXT 72 HOURS &mdash; SHOW UP</div>';
-    j.halls.slice(0,5).forEach(function(h){
-      s+='<div style="font:12px monospace;margin:4px 0;">'+esc(fmtWhen(h.event_at))+' &mdash; <b>'+esc(h.legislator_name||"")+'</b> &mdash; '+esc([h.city,h.state].filter(function(x){return x;}).join(", "))+'</div>';
-    });
-    s+='</div>';
-    el.innerHTML=s;
+  var now=Date.now(), cut=now+72*3600000;
+  var soon=cache.filter(function(h){ var t=Number(h.starts_at||h.event_at)||0; return t>=now&&t<=cut; });
+  soon.sort(function(a,b){ return (Number(a.starts_at||a.event_at)||0)-(Number(b.starts_at||b.event_at)||0); });
+  if(!soon.length){ el.innerHTML=""; return; }
+  var s='<div style="border:2px solid #c1121f;background:#1a0505;padding:8px;margin:8px 0;">';
+  s+='<div style="font:bold 12px monospace;color:#c1121f;">NEXT 72 HOURS &mdash; SHOW UP</div>';
+  soon.slice(0,5).forEach(function(h){
+    s+='<div style="font:12px monospace;margin:4px 0;">'+esc(fmtWhen(h.starts_at||h.event_at))+' &mdash; <b>'+esc(h.official||h.legislator_name||"")+'</b> &mdash; '+esc([h.address||h.city,h.state].filter(function(x){return x;}).join(", "))+'</div>';
   });
+  s+='</div>';
+  el.innerHTML=s;
 }
 function load(){
-  api("townhall_list",{state:curState,upcoming:1},function(j){
+  /* 2026-10-05 (fe/events-platform): new contract — townhall_list[&state=],
+     live+upcoming only, rows under j.townhalls. */
+  api("townhall_list",{state:curState},function(j){
     if(!j||!j.ok){ var el=root.querySelector("#thList");
       if(el) el.innerHTML='<div style="font:12px monospace;color:#c1121f;">Schedule unavailable. Reload to retry.</div>';
       return; }
-    cache=j.halls||[]; renderList();
+    cache=j.townhalls||j.halls||[]; renderList(); renderSoon();
   });
 }
 function loadQuestions(id){
@@ -151,10 +166,10 @@ function loadQuestions(id){
   function paint(q){
     if(!q||!q.ok){ box.innerHTML='<div style="font:12px monospace;color:#888;">Question kit unavailable.</div>'; return; }
     if(!q.questions||!q.questions.length){ box.innerHTML='<div style="font:12px monospace;color:#888;">'+esc(q.note||"No voting record seeded for this legislator yet.")+'</div>'; return; }
-    var s='<div style="font:bold 12px monospace;margin-bottom:6px;">QUESTION KIT &mdash; '+esc(q.legislator||"")+' ('+(q.vote_count||0)+' recorded votes)</div>';
+    var s='<div style="font:bold 12px monospace;margin-bottom:6px;">QUESTION KIT &mdash; '+esc(q.official||q.legislator||"")+' ('+(q.vote_count||0)+' recorded votes)</div>';
     q.questions.forEach(function(it,ix){
       s+='<div style="margin:6px 0;padding:6px;border-left:3px solid #c1121f;background:#0d0d0d;">';
-      s+='<div style="font:13px Arial;">'+esc(it.text)+'</div>';
+      s+='<div style="font:13px Arial;">'+esc(it.text||it.question)+'</div>';
       if(it.citation&&it.citation.source_url){
         s+='<div style="font:10px monospace;color:#888;margin-top:4px;">SOURCE: <a href="'+esc(it.citation.source_url)+'" target="_blank" rel="noopener" style="color:#888;">'+esc(it.citation.bill_id||"roll call")+' &#8599;</a></div>';
       }
@@ -163,12 +178,14 @@ function loadQuestions(id){
     box.innerHTML=s;
   }
   if(qcache[id]){ paint(qcache[id]); return; }
-  api("townhall_questions",{town_hall_id:id},function(q){ qcache[id]=q; paint(q); });
+  /* 2026-10-05 (fe/events-platform): new contract — townhall_questions&id=. */
+  api("townhall_questions",{id:id},function(q){ qcache[id]=q; paint(q); });
 }
 function doRsvp(id){
   var me=ident();
   if(!me.callsign){ toast("Claim your callsign first (Daily Orders)."); return; }
-  post("townhall_rsvp",{callsign:me.callsign,town_hall_id:id},function(j){
+  /* 2026-10-05 (fe/events-platform): callsign-bound, idempotent, zero XP. */
+  post("townhall_rsvp",{callsign:me.callsign,townhall_id:id},function(j){
     if(!j||!j.ok){ toast(j&&j.err?j.err:"RSVP failed."); return; }
     toast("You\u2019re in. Show up.");
     cache.forEach(function(h){ if(h.id===id) h.rsvp_count=j.rsvps; });
@@ -182,12 +199,11 @@ function renderForm(){
   s+='<div style="font:bold 13px monospace;margin-bottom:8px;">SUBMIT A TOWN HALL</div>';
   s+='<div style="font:11px monospace;color:#c1121f;margin-bottom:8px;">Unverified submissions are rejected &mdash; every town hall must link a checkable source: the legislator&rsquo;s official schedule, a news report, or the event page.</div>';
   s+='<div style="display:grid;gap:6px;max-width:520px;">';
-  s+='<input id="thfLeg" placeholder="Legislator name (e.g. Mike Johnson)" style="font:12px monospace;padding:6px;" maxlength="120">';
-  s+='<input id="thfBio" placeholder="Bioguide ID (optional, e.g. J000299)" style="font:12px monospace;padding:6px;" maxlength="7">';
+  s+='<input id="thfLeg" placeholder="Official name (e.g. Mike Johnson)" style="font:12px monospace;padding:6px;" maxlength="120">';
   s+='<input id="thfTitle" placeholder="Event title" style="font:12px monospace;padding:6px;" maxlength="140">';
   s+='<label style="font:11px monospace;">DATE/TIME <input id="thfWhen" type="datetime-local" style="font:12px monospace;padding:6px;"></label>';
   s+='<input id="thfVenue" placeholder="Venue" style="font:12px monospace;padding:6px;" maxlength="200">';
-  s+='<div style="display:flex;gap:6px;"><input id="thfCity" placeholder="City" style="font:12px monospace;padding:6px;flex:1;" maxlength="120">';
+  s+='<div style="display:flex;gap:6px;"><input id="thfCity" placeholder="City / address" style="font:12px monospace;padding:6px;flex:1;" maxlength="200">';
   s+='<select id="thfState" style="font:12px monospace;padding:6px;"><option value="">ST</option>'+STATES.map(function(x){return '<option value="'+x+'">'+x+'</option>';}).join("")+'</select></div>';
   s+='<input id="thfSrc" placeholder="Source URL (required) https://..." style="font:12px monospace;padding:6px;" maxlength="500">';
   s+='<div><button id="thfGo" style="font:bold 12px monospace;padding:7px 14px;cursor:pointer;">SUBMIT FOR REVIEW</button> ';
@@ -201,10 +217,13 @@ function renderForm(){
     function gv(id){ var el=host.querySelector(id); return el?el.value.trim():""; }
     var when=gv("#thfWhen"), ms=0;
     try{ ms=new Date(when).getTime(); }catch(e){}
-    var params={callsign:me.callsign,legislator_name:gv("#thfLeg"),bioguide_id:gv("#thfBio"),
-      title:gv("#thfTitle"),event_at:ms,venue:gv("#thfVenue"),city:gv("#thfCity"),
+    /* 2026-10-05 (fe/events-platform): new contract — title, official, state,
+       venue, starts_at, source_url (required; rejected server-side without a
+       valid http(s) URL). Status=pending, never auto-live. */
+    var params={callsign:me.callsign,official:gv("#thfLeg"),
+      title:gv("#thfTitle"),starts_at:ms,venue:gv("#thfVenue"),address:gv("#thfCity"),
       state:gv("#thfState"),source_url:gv("#thfSrc")};
-    if(!params.legislator_name||!params.title||!ms||!params.source_url){ toast("Name, title, date/time, and source URL are required."); return; }
+    if(!params.official||!params.title||!ms||!params.source_url){ toast("Name, title, date/time, and source URL are required."); return; }
     post("townhall_submit",params,function(j){
       if(!j||!j.ok){ toast(j&&j.err?j.err:"Submit failed."); return; }
       toast("In the moderation queue.");

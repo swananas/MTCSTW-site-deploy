@@ -63,6 +63,12 @@ else no('workshop registration', "selfMount: 'pf-data-bounties' missing");
 if (has('v1.4.3/core/workshop.js', "['pf-data-bounties', 'databounties']"))
   ok('workshop dock host pre-creation');
 else no('dock host', 'SELF_MOUNT_HOSTS entry missing');
+/* XSS guard (security heartbeat FAIL-grade 2026-10-06): claimant-supplied
+   photo_url must pass a scheme allowlist (http/https only) before becoming
+   an <a href> — quote-escaping alone does not stop javascript:/data: URLs. */
+if (/function safeUrl\(u\)/.test(s) && /safeUrl\(pl\.photo_url\)/.test(s) && /\^https\?:\\\/\\\//.test(s))
+  ok('XSS: photo_url passes scheme allowlist (http/https only)');
+else no('XSS guard', 'safeUrl allowlist missing or not applied to photo_url href');
 
 console.log('== 3. runtime (vm + DOM shim) ==');
 function makeEnv(opts) {

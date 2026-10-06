@@ -90,6 +90,12 @@ editable caption) with a destination picker:
 - **PRICE REPORT** — routes to the People's Index price check-in with the
   photo draft attached.
 - **PROPAGANDA UPLOAD** — opens the Create workshop (`poster-forge`).
+- **WILD FIND 📸** (2026-10-06) — opens the wild-find type picker
+  (`PF.wildFinds`, one source of truth with the backend `WILDFIND_TYPES`
+  registry): protest signs, street art, stickers, price tags, landlord
+  absurdity, mutual aid, union, billboards, food deserts, marquees, ICE
+  watch, and more. Routes to the bounty board with the type preselected;
+  the type's safety rules show before confirm.
 
 A **MY DRAFTS** list in the composer re-opens or deletes saved drafts.
 Emits `pf-sharein-confirmed` (CustomEvent, `{id, dest}`) for future surfaces.

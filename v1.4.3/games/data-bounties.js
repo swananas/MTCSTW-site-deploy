@@ -75,6 +75,24 @@
       h+='<input class="db-in" data-f="caption" placeholder="Caption — what are we looking at?" maxlength="280">';
       h+='<input class="db-in" data-f="taken_at" placeholder="Taken time (optional)" type="datetime-local">';
       h+='<input class="db-in" data-f="area_key" placeholder="Area (e.g. gulf)" maxlength="64">';
+      /* WILD FINDS (2026-10-06): safety attestation — legal hard gate.
+         The backend rejects photo claims without safety_ok=true. */
+      var wfKey='', wfSafety='';
+      try {
+        if (window.PF && PF.wildFinds) {
+          wfKey = PF.wildFinds.subtypeFromTargetKey(b.target_key);
+          wfSafety = PF.wildFinds.safetyHTML(wfKey);
+        }
+      } catch (e) {}
+      if (!wfSafety) {
+        wfSafety = '<ul class="pf-wf-safety"><li>Stay in public space. No trespassing, no climbing, no blocked roads.</li>' +
+          '<li>No identifiable faces of private people. Crowd shots are fine; single faces are not.</li>' +
+          '<li>If it puts you or anyone at risk, walk away. No photo is worth it.</li></ul>';
+      }
+      h+='<div class="db-safetywrap"><div class="db-safetyt">SAFETY RULES — READ BEFORE YOU SHOOT</div>' + wfSafety +
+        '<label class="db-safety"><input type="checkbox" class="db-safety-ok"> ' +
+        'I confirm: public space only, no trespassing, no identifiable private faces, ' +
+        'never interfere with law enforcement. I understand ineligible photos are rejected.</label></div>';
     } else if (b.kind==='cpi_price') {
       h+='<input class="db-in" data-f="price_cents" placeholder="Price in cents (e.g. 399)" inputmode="numeric">';
       h+='<input class="db-in" data-f="area_key" placeholder="Area (e.g. gulf)" maxlength="64">';
@@ -100,7 +118,12 @@
   function renderBoard(host, bounties, title){    var id=ident();
     var h='<div class="db-board"><div class="db-head"><span class="db-kicker">MTCSTW.COM</span>'+
       '<h2>'+esc(title||'DATA BOUNTIES')+'</h2>'+
-      '<p class="db-sub">Your content becomes movement action — shares, campaigns, evidence, price data. Never sold. Never ad inventory.</p></div>';
+      '<p class="db-sub">Your content becomes movement action — shares, campaigns, evidence, price data. Never sold. Never ad inventory.</p>' +
+      '<div><button type="button" class="db-btn" data-pf-wildfind style="margin:8px 0 0;">\uD83D\uDCF8 FOUND SOMETHING IN THE WILD? LOG IT</button></div></div>';
+    /* WILD FINDS (2026-10-06): "what we're looking for" type strip. */
+    try {
+      if (window.PF && PF.wildFinds) h += PF.wildFinds.typeStripHTML();
+    } catch (e) {}
     if(!bounties.length){
       h+='<div class="db-empty">No open bounties right now. The machine posts new ones as data gaps appear — check back.</div>';
     }
@@ -109,6 +132,14 @@
       h+='<div class="db-kind">'+esc(KIND_LABEL[b.kind]||b.kind)+'</div>';
       h+='<div class="db-title">'+esc(b.title)+'</div>';
       if(b.detail) h+='<div class="db-detail">'+esc(b.detail)+'</div>';
+      /* WILD FINDS (2026-10-06): photo bounties show their type prompt. */
+      try {
+        if (b.kind==='photo_evidence' && window.PF && PF.wildFinds) {
+          var _wfk = PF.wildFinds.subtypeFromTargetKey(b.target_key);
+          var _wft = _wfk ? PF.wildFinds.get(_wfk) : null;
+          if (_wft) h+='<div class="db-wfprompt"><b>'+esc(_wft.icon+' '+_wft.label)+'</b> — '+esc(_wft.prompt)+'</div>';
+        }
+      } catch (e) {}
       h+='<div class="db-meta"><span class="db-xp">+'+Number(b.xp_amount||0)+' XP</span>'+
         surgeTag(b)+
         '<span class="db-hint">'+esc(KIND_HINT[b.kind]||'')+'</span></div>';
@@ -158,6 +189,13 @@
           else if(f==='price_cents'){ var pc=Math.round(Number(v)); if(pc>0) payload.price_cents=pc; }
           else payload[f]=v;
         });
+        /* WILD FINDS (2026-10-06): safety attestation — legal hard gate.
+           Client-side block + server-side rejection (defense in depth). */
+        var safetyBox=form.querySelector('.db-safety-ok');
+        if(safetyBox){
+          if(!safetyBox.checked){ say('Confirm the safety rules first — the checkbox is required.', true); return; }
+          payload.safety_ok=true;
+        }
         t.disabled=true;
         apiPost('databounty_claim',{bounty_id:bid, payload:payload}, function(j){
           t.disabled=false;
@@ -203,7 +241,16 @@
     '.db-claims{border-top:1px solid #3a3a3a;margin:10px 0;padding-top:10px}'+
     '.db-claims-t{font-size:11px;letter-spacing:2px;color:#e8b923;font-weight:800;margin-bottom:8px}'+
     '.db-claimrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;color:#c9bfa8;margin-bottom:8px}'+
-    '.db-cs{color:#f5ead6;font-weight:700}.db-plink{color:#e8b923}.db-cap{color:#a89e88}.db-conf{font-size:11px;color:#a89e88}';
+    '.db-cs{color:#f5ead6;font-weight:700}.db-plink{color:#e8b923}.db-cap{color:#a89e88}.db-conf{font-size:11px;color:#a89e88}'+
+    /* WILD FINDS (2026-10-06) */
+    '.db-wfprompt{font-size:13px;color:#e8b923;background:#1e1a08;border-left:3px solid #d4af37;padding:8px 10px;margin:0 0 10px;line-height:1.45}'+
+    '.db-wfprompt b{letter-spacing:1px}'+
+    '.db-safetywrap{background:#160f0f;border:1px solid #6b3a3a;padding:10px;margin:0 0 8px}'+
+    '.db-safetyt{font-size:11px;letter-spacing:2px;color:#ff8080;font-weight:800;margin-bottom:6px}'+
+    '.db-safetywrap .pf-wf-safety{font-size:12px;color:#c9bfa8;margin:0 0 8px;padding-left:18px;line-height:1.5}'+
+    '.db-safety{display:block;font-size:12.5px;color:#f5ead6;cursor:pointer;line-height:1.5}'+
+    '.db-safety input{vertical-align:middle;margin-right:6px;min-width:18px;min-height:18px}'+
+    '.pf-wf-stripwrap{margin:0 0 14px}.pf-wf-striphead{font-size:11px;letter-spacing:3px;color:#e8b923;font-weight:800;margin-bottom:6px;text-align:center}';
   try{ var st=document.createElement('style'); st.textContent=css; document.head.appendChild(st); }catch(e){}
 
   function refresh(){

@@ -87,6 +87,15 @@ var MISSIONS=[
 {t:"Post a screenshot of an SLR post you liked and say why it hit.",share:1},
 {t:"Rest. Like one SLR post, touch grass, come back tomorrow — the streak keeps."}
 ];
+/* WILD FINDS (CEO directive 2026-10-06): photo missions from the wild-find
+   type registry — the same "types of things we're looking for" as the
+   bounty board. Fail-open: registry missing = the 30 standing missions. */
+try {
+  if (window.PF && PF.wildFinds && typeof PF.wildFinds.missions === 'function') {
+    var _wfm = PF.wildFinds.missions();
+    for (var _wfi = 0; _wfi < _wfm.length; _wfi++) MISSIONS.push(_wfm[_wfi]);
+  }
+} catch (e) {}
 var LOOT=["The machine sees you, agitator.","Another brick in the wall. Their wall. We're taking it apart.","Noted in the ledger. History will remember this one.","Discipline is propaganda too.","Small actions, compounded. That's the whole theory.","The algorithm didn't see it coming.","Report filed. The network grows.","You are the media now. Act like it."];
 /* FIELD OPS — the lynchpin: one cross-game bonus mission per day, rotating.
    Doing the op in its home silo auto-completes it here and feeds the Do Meter. */

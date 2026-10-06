@@ -46,8 +46,16 @@ ok('ranks: fail-soft — null/absent favorite renders no card',
   has(ranks, /fanFav && fanFav\.slug/));
 ok('ranks: XSS — favorite fields escaped',
   has(ranks, /fslug=esc\(String\(fanFav\.slug\)/) &&
-  has(ranks, /fweek=esc\(String\(fanFav\.week/) &&
-  has(ranks, /fvotes=esc\(String\(fanFav\.votes/));
+  has(ranks, /fweek=esc\(String\(fanFav\.week/));
+/* Google-QC: fan-vote tallies NEVER public — the honorific card is name-only.
+   The ffHtml render block must contain no vote-count text, data attributes,
+   titles, or aria labels. (The "votes never become XP" comments elsewhere in
+   the file are excluded — this is scoped to the render markup.) */
+var ffStart = ranks.indexOf('if(!skipFF && fanFav && fanFav.slug)');
+var ffEnd = ranks.indexOf('catch(e){}', ffStart);
+var ffBlock = ffStart !== -1 && ffEnd !== -1 ? ranks.slice(ffStart, ffEnd) : '';
+ok('ranks: FAN FAVORITE is name-only — no vote counts render',
+  ffBlock.length > 0 && !/votes/i.test(ffBlock) && !/fvotes/.test(ffBlock));
 ok('ranks: empty wall + no favorite keeps the honest empty state',
   has(ranks, /if\(!names\.length && !ffHtml\)/));
 /* no-XP scoped to the ADDED fan-favorite block: extract renderWall and the

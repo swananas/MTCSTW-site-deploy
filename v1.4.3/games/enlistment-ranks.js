@@ -340,17 +340,18 @@ function renderWall(serverWall, fanFav){
   else { names=names.map(function(w){return esc(String(w).toUpperCase());}); }
   /* PLAY 7 (2026-10-06): the weekly FAN FAVORITE rides the Vanguard Wall
      with its honorific — a PURE honorific, votes never become XP.
-     Kill: ?pf_off=fan-favorite. Fail-soft: absent/null favorite = no card. */
+     Kill: ?pf_off=fan-favorite. Fail-soft: absent/null favorite = no card.
+     Google-QC 2026-10-06: vote counts NEVER render publicly — the card
+     is name-only (no counts in text, data attrs, titles, or aria). */
   var ffHtml="";
   try{
     var skipFF = window.PF && PF.skip && PF.skip("fan-favorite");
     if(!skipFF && fanFav && fanFav.slug){
       var fslug=esc(String(fanFav.slug).toUpperCase());
       var fweek=esc(String(fanFav.week||""));
-      var fvotes=esc(String(fanFav.votes||""));
       ffHtml='<div class="u-fanfav"><div class="u-ffhonor">★ FAN FAVORITE ★</div>'+
         '<div class="u-ffname">'+fslug+'</div>'+
-        '<div class="u-ffsub">Propagandist of the Week'+(fweek?" · "+fweek:"")+(fvotes?" · "+fvotes+" votes":"")+'</div></div>';
+        '<div class="u-ffsub">Propagandist of the Week'+(fweek?" · "+fweek:"")+'</div></div>';
     }
   }catch(e){}
   if(!names.length && !ffHtml){ el.innerHTML='<div class="u-wempty">No architects yet. The wall waits.</div>'; return; }

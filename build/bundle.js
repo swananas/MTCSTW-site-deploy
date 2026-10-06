@@ -58,6 +58,11 @@ var SECTIONS = {
     /* Civic Snapshot (2026-10-05): homepage "Today in Political HQ" widget —
        active campaign, polls closing soon, ballot deadlines. READ-ONLY. */
     'civic-snapshot.js',
+    /* Engagement build D item #3 (2026-10-05): weekly ritual calendar slot
+       (CPI/jobs/Fed moments + release-day order). START HERE widget; the
+       /money rail ships via the money chunk (build/bundle-core.js
+       MONEY_FILES) — same file, self-mounting by DOM presence. */
+    'ritual-calendar.js',
     'dopamine.js',
     'enlistment-ranks.js',
     /* Wave 5B (2026-10-04): theater rack + ribbon chase strip + Frontline
@@ -102,6 +107,9 @@ var SECTIONS = {
     'inflation-teaser.js',
     'campaign.js',
     'alerts.js',
+    /* Engagement build D item #8 (2026-10-05): FB group missions — on-site
+       check-in for manually-posted group missions (ACT section). */
+    'fb-missions.js',
     'fan-vote.js',
     /* W5-11 Blackout Op (2026-10-04): siren countdown + debrief reveal. */
     'blackout.js',
@@ -193,6 +201,10 @@ var SECTIONS = {
   'bundle-cells': [
     /* /cells (+ Creator HQ) — the cell lifecycle. */
     'cell-hq.js',
+    /* Engagement build D item #7 (2026-10-05): new-cell starter kits —
+       founder bounty + 3 starter missions, first 48h. Mounts into
+       #pf-cell-hq; server is the granter (no device-local awards). */
+    'cell-starter-kit.js',
     /* Cells G7 (2026-10-04): standalone treasury UI (fund/spend/trajectory). */
     'treasury.js',
     'cell-war.js',

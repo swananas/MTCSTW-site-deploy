@@ -299,6 +299,13 @@ var SECTIONS = {
        the shell and runs the initial route. Both ship here, NOT in
        bundle-create-h (the slim /create bundle stays poster-forge + feed). */
     '../core/workshop.js',
+    /* UX COMBINATION PLAY 1 (2026-10-06, fe/ux-create-loop): close the
+       creation loop — injects SHARE THIS INTEL / SUBMIT AS DAILY ORDER /
+       RALLY YOUR CELL onto the Poster Forge finished-piece screen.
+       Lazy MutationObserver injector; mounts whenever the forge's #pBattle
+       row lands in the DOM (workshop shell template clone or legacy mount).
+       Kill: ?pf_off=createloop. Zero XP, fail-open everywhere. */
+    'create-loop.js',
     'academy.js',
     /* Wave 6A R1 (2026-10-04): graduation -> daily-loop induction card.
        Hooks academy.js's pf-lesson-complete event; mounts on /request-access

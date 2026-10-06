@@ -95,6 +95,12 @@ var CORE_FILES = [
      and biases the Next Move ladder via PF.pillars.biasOps(). After the HUD
      (extends it; never rebuilds it). FRONTEND-ONLY, ZERO NEW XP. */
   'core/31-pillars.js',
+  /* command search (PLAY 8, 2026-10-06): unified pillar-aware search across
+     prices/creators/events/news/products/bounties — trigger in the HUD bar,
+     command-palette overlay, Intel Card results grouped by pillar. After
+     pillars (both extend the HUD; never rebuild it). FRONTEND-ONLY,
+     ZERO NEW XP, no writes. Kill: ?pf_off=search. */
+  'core/32-search.js',
   /* allfronts (2026-10-04): ALL FRONTS operation banner — fixed-top strip
      while an operation is live or launching within the hour. */
   'core/21-allfronts.js',

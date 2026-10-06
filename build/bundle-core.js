@@ -63,6 +63,12 @@ var CORE_FILES = [
   /* wave-live-rails (2026-10-05): Top Stories rail client — one shared
      helper (PF.newsTop) so every section renders the same news cache. */
   'core/news-top.js',
+  /* NEWS+STATS (2026-10-06, CEO directive): stats-resolver PF.newsStats —
+     every news surface carries live figures from our own data machine.
+     Right after news-top: it hooks PF.newsTop.render to wire strips into
+     every rail (briefing, Political HQ, homepage). Display only, zero XP,
+     fail-open. Kill: ?pf_off=newsstats. */
+  'core/34-newsstats.js',
   /* creator-stats (2026-10-05): unified stats reader — PF.creatorStats.
      After 03-global (PF_BACKEND_URL); lazy, no load-time DOM/DB dependency. */
   'core/creator-stats.js',

@@ -230,6 +230,11 @@
       var self = this;
       ensure(opts && opts.limit).then(function (p) {
         try { el.innerHTML = railHTML(p, opts); } catch (e) {}
+        /* NEWS+STATS (2026-10-06): wire live stats into the rail. Fail-open —
+           stories with no matching tags render exactly as before. */
+        try {
+          if (window.PF && PF.newsStats && p && p.stories) PF.newsStats.enhanceRail(el, p.stories);
+        } catch (e2) {}
       });
       return self;
     },

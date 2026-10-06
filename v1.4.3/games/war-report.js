@@ -590,13 +590,18 @@ function paint(el,j){
       +emailPaneHtml()
       +nextActionRow();
     wireEmail(); loadFanFav(); mountWarNumbers();
+    /* NEWS+STATS (2026-10-06): wire live stats into report body blocks.
+       Fail-open — blocks with no matching tags render untouched. */
+    try{ if(window.PF && PF.newsStats) PF.newsStats.enhanceWarReport(el); }catch(e){}
     return;
   }
   WR_LAST=j.report;
   el.innerHTML=reportHtml(j.report);
   wireWeekNav(); wireShare(); wireEmail(); loadFanFav(); mountWarNumbers();
   /* UX NEWS COMBOS: wire War Report orders -> Daily Order candidates. */
-  wrWireComboOrders(el,(j.report&&j.report.body)||"");
+  wrWireComboOrders(el,(j.report&&j.report.body)||"");  /* NEWS+STATS (2026-10-06): wire live stats into report body blocks.
+     Fail-open — blocks with no matching tags render untouched. */
+  try{ if(window.PF && PF.newsStats) PF.newsStats.enhanceWarReport(el); }catch(e){}
 }
 /* FRED Everywhere Phase 1: "the week in numbers" slot. The module guards
    double-mounts itself; this is a no-op when the module isn't bundled. */

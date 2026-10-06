@@ -4,9 +4,12 @@
    20 min. Every on-site section that shows top stories reads through THIS
    helper so they all render the same cache.
    Backend contract: public GET action news_top_get (?limit=N) →
-   {ok, stories:[{url,title,source,published_at,origin,manual}],
+   {ok, stories:[{url,title,source,published_at,origin,manual,sourced_by}],
     fetched_at, stale,
     macro_flags:[{type,label,detail,period_label,source_url}]}.
+   sourced_by (Synergy-1): normalized callsign of the creator who sourced a
+   manually pinned story ('' when not creator-sourced). Rendered through the
+   shared PF.credit component — the credit line appears only when present.
    macro_flags (Wave A2, S-10): release-day flags (jobs day / CPI day)
    drawn from FRED ingest freshness. Flag definitions owned by News Desk;
    this helper renders them plain-factually. Zero XP — display only.
@@ -201,10 +204,14 @@
       var n = Math.min(payload.stories.length, opts.limit || 8);
       for (var i = 0; i < n; i++) {
         var s = payload.stories[i];
+        /* Synergy-1 attribution: creator-sourced pins carry sourced_by —
+           the shared credit component renders it (or nothing, honestly). */
+        var cr = '';
+        try { cr = (PF.credit && s.sourced_by) ? PF.credit({ sourced_by: s.sourced_by }) : ''; } catch (e) {}
         h += '<li class="pf-newstop-item"><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' +
           esc(s.title) + '</a>' +
           '<span class="pf-newstop-meta">' + esc(s.source) +
-          (s.published_at ? ' &middot; ' + esc(timeAgo(s.published_at)) : '') + '</span></li>';
+          (s.published_at ? ' &middot; ' + esc(timeAgo(s.published_at)) : '') + '</span>' + cr + '</li>';
       }
       h += '</ul>';
       if (payload.stale) {

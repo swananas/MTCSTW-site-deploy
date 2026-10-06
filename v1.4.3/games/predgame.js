@@ -386,7 +386,10 @@
     return h;
   }
   function sectionHTML() {
-    return chipsHTML() + recordHTML() + '<div class="pq-qlist">' + listHTML() + '</div>' + leaderboardHTML();
+    /* Brand integration (2026-10-06, staged fix 5): cross-pillar handoffs —
+       wired declaratively by the share-everywhere scanner (same branded styling). */
+    return chipsHTML() + recordHTML() + '<div class="pq-qlist">' + listHTML() + '</div>' + leaderboardHTML() +
+      '<div data-pf-handoff="share-intel"></div><div data-pf-handoff="report-back"></div>';
   }
 
   /* ---- binding ---- */

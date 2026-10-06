@@ -354,6 +354,8 @@ function mountSectionInto(el){
         var root = x || el;
         root.innerHTML = sectionHTML(bills, rec, leaders);
         bindSection(root, bills);
+        /* 2026-10-06 share-everywhere (staged). */
+        try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(root,'predictions',{link:'/predict'}); }catch(e){}
       }catch(e){ failSoft('render failed (soft)'); }
     });
   });

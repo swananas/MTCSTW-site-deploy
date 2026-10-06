@@ -15,7 +15,7 @@
   <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:1.1rem;line-height:1.5;">Checkout opens the store in a new tab. War Bonds fund the fight &mdash; they grant no XP, ever.</div>
   <div style="border-top:2px solid #c1121f;margin:1.3rem 0 1rem;"></div>
   <div style="font-size:0.8rem;color:#b8ab8e;letter-spacing:0.14em;margin-bottom:0.6rem;">OR FUND MONTHLY</div>
-  <a href="https://mtcstw.substack.com" target="_blank" rel="noopener" style="display:inline-block;border:2px solid #c1121f;color:#f5f0e1;font-weight:700;letter-spacing:0.1em;text-decoration:none;padding:0.7rem 1.8rem;font-size:0.95rem;margin-bottom:1.1rem;">BECOME A PAID SUPPORTER &rarr;</a>
+  <a href="https://mtcstw.substack.com" target="_blank" rel="noopener" style="display:inline-block;border:2px solid #c1121f;color:#f5f0e1;font-weight:700;letter-spacing:0.1em;text-decoration:none;padding:0.7rem 1.8rem;font-size:0.95rem;margin-bottom:1.1rem;">FUND THE DISPATCH &rarr;</a>
   <div style="font-size:0.8rem;color:#b8ab8e;letter-spacing:0.14em;margin-bottom:0.6rem;">OR BACK A PROPAGANDIST DIRECTLY</div>
   <select id="pf-wb-pick" style="width:100%;max-width:420px;background:#141414;color:#f5f0e1;border:2px solid #c1121f;padding:0.7rem;font-size:1rem;font-family:inherit;margin-bottom:1rem;">
     <option value="">Pick your propagandist&hellip;</option>
@@ -87,7 +87,7 @@
       for(k in TIP_PLATFORMS){ if(p.indexOf(k)>-1){ isTip=true; break; } }
       if(!isTip||seen[l.url]) return;
       seen[l.url]=1;
-      out.push({label:l.platform||'Support', url:l.url});
+      out.push({label:l.platform||'Back', url:l.url});
     });
     return out;
   }

@@ -106,6 +106,11 @@ var SECTIONS = {
     'referral.js',
     'poster-forge-teaser.js',
     'feed-teaser.js',
+    /* TEARDOWN WS-9 (2026-10-06): the QUARTERMASTER store wall — 3-tier
+       War Bond ladder (BACKER / PATRON / QUARTERMASTER) on PF.patterns.
+       Leads the store surface; war-bonds.js (one-time bonds + war-chest
+       directory) follows. Kill: ?pf_off=quartermaster. */
+    'store-quartermaster.js',
     'war-bonds.js',
     /* A1 home (2026-10-05): /economy Price-Index Home coordinator —
        HP feeder widget for the People's Price Index (FUND section).

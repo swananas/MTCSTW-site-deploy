@@ -44,11 +44,11 @@
      privacy_erase flow). The JS silo strips any already-pasted static
      fallback on boot, so no footer re-paste is needed. -->
 <script>(function(){
-var V3='df27933',V1='76107b5';
+var V3='9a636c9',V1='76107b5';
 /* DEFECT 1 (2026-10-03): pin for core/bundle-footer-chrome.js (added in
    commit 133ee90). Kept separate from V3 so the live v1.4.3 set stays
    byte-identical; re-pin together on the next release. */
-var VCHROME='df27933';
+var VCHROME='9a636c9';
 /* MERGE (2026-10-05, integrate/big-update-fe <- wave-6b): V3/VCHROME keep
    HEAD's 41c13ac (newer; matches the --ours built-bundle resolution).
    V1 takes wave-6b's 76107b5 (newer; v1.1.0 tree byte-identical at both
@@ -66,6 +66,10 @@ var VCHROME='df27933';
    loader requests did not exist at that pin (404s). V3/VCHROME = b90ba1b
    (audited tip). Verified: all 56 v1.4.3 bundle paths referenced by this
    loader exist in `git ls-tree b90ba1b`. V1 stays 76107b5. */
+   /* RE-PIN (2026-10-07 ~11:30 CDT, Homepage V3 "Unclunk" ship — CEO ship call):
+   V3/VCHROME = 9a636c9 (V3 redesign: hero+H1, 31->7 widgets, homepage_init
+   composite, 140KB critical, mobile-first, mobile nav trim 5 items).
+   V1 stays 76107b5. */
 var SLR_SLUGS='an-iowan|bitchysitch|black-newsbeat-with-dr-kimeka-campbell|bona-bones|combatvetsagainsttrump|damn-pam-ham-from-effingham|deejay10|dofd|dogman_v1|dr-taylor-andrew|east-coast-it-notes|eat-the-rich|f-this-imperialistic-bs|films-for-action|guillotines-for-a-better-america|guillotines-for-billionares-2020|hex-reject|im-that-girl|ipostwhenifeelhot|itsdewberry|jeanine-pirreaux-comedy|jessicacymone|joey|joman|keithwashburn|kim-hunt-slaythegop|let-the-revolution-begin-peacefully-of-course|little-anarchist-brat|love-and-molotov|luigis-mansion-socialist-shitposting|mandifromtheinternet|mermaid-tm|mexiguerita22|minnesota-department-of-propaganda|moreno-neurospicy-news|mtcstw|nikalie-monroe|official-ghost-of-eli|progressively2026|public-enlightenment|quietmayhem|radically-sunny|sajidahtalks2025|sex-drugs-rock-n-roll|sissyfits|south-dakota-department-of-propaganda|splashofgenz|thatalabamafella|the-antifascist-frog|the-atheist-socialist|the-dr-greg-show|the-political-feminist|thelastcookout|therevcoms|undraylowery|us-department-of-health-and-human-shenanigans|us-federal-department-of-propaganda|vandala-effect|voix-noire|wisconsin-department-of-propaganda|worlds-strongest-mayo|your-friendly-neighborhood-schizophrenic';
 var _p=location.pathname;
 function _seg(p){var s=p.charAt(0)==='/'?p.slice(1):p;return s.charAt(s.length-1)==='/'?s.slice(0,-1):s;}

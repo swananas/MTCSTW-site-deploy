@@ -97,20 +97,42 @@ function medalState(){
 /* The 14-card feature grid — the Oct 6 synergy requirement: every major
    feature reachable within 2 taps. icon / name / one-liner / deep link. */
 var GRID=[
- ['\\uD83C\\uDFAE','Arcade','Six games. Zero mercy.','/arcade'],
- ['\\u26A1','Cells','Your squad, your war.','/cells'],
+ ['\\uD83C\\uDFAE','Arcade','Six games. Zero mercy.','/arcade','orders'],
+ ['\\u26A1','Cells','Your squad, your war.','/cells','social'],
  ['\\uD83C\\uDFA8','Create','The propaganda workshop.','/create'],
  ['\\uD83C\\uDFE6','Bank',"Your XP, weaponized.",'/bank'],
  ['\\uD83D\\uDCCA','Economy','Spend XP like it matters.','/economy'],
  ['\\uD83D\\uDCB0','War Chest','Fund the fight.','/war-chest'],
  ['\\uD83E\\uDD1D','Ventures','Pool up. Back creators.','/ventures'],
  ['\\uD83D\\uDCCD','Events','Boots on the ground.','/events'],
- ['\\uD83D\\uDCF0','War Report','The week in the war.','/war-report'],
+ ['\\uD83D\\uDCF0','War Report','The week in the war.','/war-report','vote'],
  ['\\uD83C\\uDF93','Academy','Learn the craft.','/request-access'],
  ['\\uD83D\\uDD2E','CALL IT.','Call it before it happens.','/call-it'],
  ['\\uD83C\\uDFC6','Liquidation','The brackets. The carnage.','/liquidation'],
- ['\\uD83C\\uDFDB\\uFE0F','Political HQ','Pressure where it hurts.','/political-hq'],
- ['\\uD83D\\uDD75\\uFE0F','Follow the Money','See who funds the votes.','/follow-the-money']];
+ ['\\uD83C\\uDFDB\\uFE0F','Political HQ','Pressure where it hurts.','/political-hq','briefing'],
+ ['\\uD83D\\uDD75\\uFE0F','Follow the Money','See who funds the votes.','/follow-the-money',null]];
+function fmtNum(n){ try{ return Number(n).toLocaleString('en-US'); }catch(e){ return String(n==null?'':n); } }
+/* Live stat line per tile-key (dashboard_init.tiles). CEO vision 2026-10-07:
+   super condensed info hub — cards carry live numbers, not just links.
+   Fail-soft: missing tile = no line, card still renders as a plain link. */
+function tileLine(key,t){
+  t=t||{};
+  try{
+    if(key==='orders'&&t.orders&&typeof t.orders.raiders==='number')
+      return '\\u2694 '+fmtNum(t.orders.raiders)+' reported today';
+    if(key==='vote'&&t.vote&&typeof t.vote.total==='number')
+      return '\\uD83D\\uDDF3 '+fmtNum(t.vote.total)+' votes this week';
+    if(key==='briefing'&&t.briefing&&t.briefing.head)
+      return '\\uD83D\\uDCF0 '+(t.briefing.tag?String(t.briefing.tag).toUpperCase()+': ':'')+String(t.briefing.head).slice(0,42)+'\\u2026';
+    if(key==='social'&&t.social){
+      var sc=t.social,bits=[];
+      if(sc.online_now!=null) bits.push(fmtNum(sc.online_now)+' online');
+      if(sc.active_cells) bits.push(fmtNum(sc.active_cells)+' cells active');
+      if(bits.length) return '\\uD83D\\uDD25 '+bits.join(' \\u00B7 ');
+    }
+  }catch(e){}
+  return '';
+}
 function css(){
   if(document.getElementById('pf-ud-css')) return;
   var s=document.createElement('style'); s.id='pf-ud-css';
@@ -150,7 +172,14 @@ function css(){
   +'.ud-stat{background:#0d0d0d;border:1px solid #2c2c2c;border-radius:6px;padding:14px 6px}'
   +'.ud-stat b{display:block;font-family:"Arial Black",Arial;font-size:22px;color:#e8b33c}'
   +'.ud-stat span{font:11px Arial;color:#a89e88;letter-spacing:1px}'
-  +'.ud-eth{font:12px Arial;color:#a89e88;margin:10px 2px 0;line-height:1.6;font-style:italic}';
+  +'.ud-eth{font:12px Arial;color:#a89e88;margin:10px 2px 0;line-height:1.6;font-style:italic}'
+  +'.ud-vp{font:bold 14px Arial;color:#f5ead6;line-height:1.6;margin:0 0 12px;padding-bottom:12px;border-bottom:1px solid #2c2c2c}'
+  +'.ud-tl{display:block;font:bold 11px Arial;color:#e8b33c;margin-top:3px}'
+  +'.ud-today{display:flex;align-items:baseline;gap:10px;padding:11px 2px;border-bottom:1px solid #1c1c1c;text-decoration:none;min-height:44px;box-sizing:border-box}'
+  +'.ud-today:last-child{border-bottom:0}'
+  +'.ud-today.ud-static{cursor:default}'
+  +'.ud-tk{flex:0 0 auto;font:bold 10px Arial;letter-spacing:2px;color:#dc143c;white-space:nowrap}'
+  +'.ud-th{flex:1;min-width:0;font:13px Arial;color:#f5ead6;line-height:1.5}';
   try{ document.head.appendChild(s); }catch(e){}
 }
 function sec(title,inner){
@@ -187,7 +216,8 @@ function renderIdentity(id,ms){
        once ever — the existing requireCallsign claim flow (same register
        POST, zero new XP mechanics). */
     return sec('WHO ARE YOU HERE?',
-      '<div class="ud-card"><div class="ud-id-cs">NO CALLSIGN YET</div>'
+      '<div class="ud-card"><div class="ud-vp">62 sick radicals. Real data on the billionaires. Daily missions. Free forever.</div>'
+      +'<div class="ud-id-cs">NO CALLSIGN YET</div>'
       +'<div class="ud-meta">One name. Every game, every cell, every medal — '
       +'your XP follows it everywhere.</div>'
       +'<button class="ud-claim" id="udClaim">CLAIM YOUR CALLSIGN</button></div>');
@@ -227,15 +257,56 @@ function rackHtml(ms){
   else h+='<div class="ud-meta">'+ms.got+'/'+ms.total+' medals this week — full rack = <b>FULL DEPLOYMENT</b> (+50 XP, Vanguard Wall).</div>';
   return h;
 }
-function renderGrid(){
+function renderGrid(t){
   var h='<div class="ud-grid">';
   for(var i=0;i<GRID.length;i++){
+    var tl=tileLine(GRID[i][4],t);
     h+='<a class="ud-cell" href="'+safeUrl(GRID[i][3])+'">'
       +'<span class="ud-ico">'+GRID[i][0]+'</span>'
       +'<span><span class="ud-nm">'+esc(GRID[i][1])+'</span><br>'
-      +'<span class="ud-ds">'+esc(GRID[i][2])+'</span></span></a>';
+      +'<span class="ud-ds">'+esc(GRID[i][2])+'</span>'
+      +(tl?'<br><span class="ud-tl">'+esc(tl)+'</span>':'')+'</span></a>';
   }
   return sec('EVERYTHING, TWO TAPS', h+'</div>');
+}
+/* TODAY — the condensed info lead (CEO vision 2026-10-07): today's truth
+   drop, today's missions, this week's vote, the movement right now — every
+   row a one-tap action. Tiles are public; renders for everyone. */
+function renderToday(t){
+  t=t||{};
+  var h='';
+  var b=t.briefing,o=t.orders,v=t.vote,sc=t.social;
+  if(b&&b.head){
+    h+='<a class="ud-today" href="/political-hq">'
+      +'<span class="ud-tk">TODAY\u2019S TRUTH'+(b.tag?' \u00B7 '+esc(String(b.tag).toUpperCase()):'')+'</span>'
+      +'<span class="ud-th">'+esc(b.head)+'</span>'
+      +'<span class="ud-go">READ \u2192</span></a>';
+  }
+  if(o&&typeof o.raiders==='number'){
+    h+='<a class="ud-today" href="/#pf-orders">'
+      +'<span class="ud-tk">TODAY\u2019S MISSIONS</span>'
+      +'<span class="ud-th">'+fmtNum(o.raiders)+' soldiers reported today</span>'
+      +'<span class="ud-go">DO \u2192</span></a>';
+  }
+  if(v&&typeof v.total==='number'){
+    h+='<a class="ud-today" href="/#pf-vote">'
+      +'<span class="ud-tk">FAN VOTE \u00B7 THIS WEEK</span>'
+      +'<span class="ud-th">'+fmtNum(v.total)+' votes cast</span>'
+      +'<span class="ud-go">VOTE \u2192</span></a>';
+  }
+  if(sc){
+    var bits=[];
+    if(sc.checkins_today) bits.push(fmtNum(sc.checkins_today)+' checked in today');
+    if(sc.xp_earned_today) bits.push(fmtNum(sc.xp_earned_today)+' XP earned today');
+    if(sc.active_cells) bits.push(fmtNum(sc.active_cells)+' cells active');
+    if(sc.online_now!=null) bits.push(fmtNum(sc.online_now)+' online now');
+    if(bits.length){
+      h+='<div class="ud-today ud-static"><span class="ud-tk">THE MOVEMENT RIGHT NOW</span>'
+        +'<span class="ud-th">'+esc(bits.join(' \u00B7 '))+'</span></div>';
+    }
+  }
+  if(!h) return '';
+  return sec('TODAY','<div class="ud-card" style="padding:6px 14px">'+h+'</div>');
 }
 function renderCalendar(cal){
   var evs=(cal&&cal.events)||[];
@@ -316,21 +387,25 @@ function load(){
     var h='';
     var signedIn=!!(j&&j.signed_in&&j.identity);
     var hasCallsign=!!idn.callsign;
+    var tiles=(j&&j.tiles)?j.tiles:{};
     if(!hasCallsign&&!signedIn){
-      /* Callsign-less: the one prompt (claim card). Grid + calendar still
-         render — the hub is useful before enlistment too. */
+      /* Callsign-less: the one prompt (claim card). TODAY + grid + calendar
+         still render — the hub is useful before enlistment too. */
       h+=renderIdentity(null,ms);
-      h+=renderGrid();
+      h+=renderToday(tiles);
+      h+=renderGrid(tiles);
       if(j&&j.calendar) h+=renderCalendar(j.calendar);
     } else if(!signedIn){
       /* Has a local callsign but the backend didn't auth it (secret missing
          or stale): honest line + full hub. */
       h+=renderSignedOut();
-      h+=renderGrid();
+      h+=renderToday(tiles);
+      h+=renderGrid(tiles);
       if(j&&j.calendar) h+=renderCalendar(j.calendar);
     } else {
       h+=renderIdentity(j.identity,ms);
-      h+=renderGrid();
+      h+=renderToday(tiles);
+      h+=renderGrid(tiles);
       if(j&&j.calendar) h+=renderCalendar(j.calendar);
       h+=renderActivity(j.activity,ms);
       h+=renderEcon(j.econ);

@@ -3,29 +3,20 @@
    2026-10-07: full motion system (140ms press states, staggered section
    entry, animated XP bars), skeleton loading, single-red palette, unified
    label voice, 44px tap targets, safe-area padding, in-place repaint after
-   callsign claim. Sections:
-
-   1. IDENTITY / USER HUB — callsign, XP, rank + progress to next, streak,
-      service-medals rack (device-local, service-medals.js schema, tap a
-      medal to reveal its name), weekly challenge status. No callsign ->
-      the one-prompt claim card (ONE clear prompt, once ever — reuses the
-      existing PF.requireCallsign flow, repaints in place on success).
-   2. FEATURE GRID — 16 compact link-cards (icon, name, one-liner, deep
-      link) + a conditional WAR ROOM card when tiles.warroom signals live.
-   3. THE INTEL DESK — the data-products layer: Karl, The Receipt, Who
-      Owns Your Town, Extraction Engine, People's Price Index.
-   4. MAKE IT YOURS — the UGC action machine: Dossier Builder, Town
-      Reports, Story Remixer.
-   5. ASK KARL — the AI copilot, native in the hub.
-   6. CALENDAR — 7-day strip + next-7-days rail from dashboard_init.calendar,
-      "full calendar -> /events". ALWAYS renders: falls back to the recurring
-      rhythm when the backend returns nothing (CEO directive 2026-10-07).
-   7. PERSONAL ACTIVITY — recent actions + weekly medal progress toward
-      FULL DEPLOYMENT + rank XP progress.
-   8. MY DATA — the caller's own movement-intelligence contributions
-      (prices reported, bounties completed, data submitted). Aggregated
-      counts only, never anyone else's data. Ethics line:
-      "your activity powers the movement's intelligence."
+   callsign claim.
+   CONDENSE PASS 2026-10-07 (CEO directive: "Show less, mean more" + #21
+   "Condense before adding"): 9 sections -> 6. The 24-card sprawl (16 grid
+   + 5 Intel + 3 Yours) becomes ONE "DO" section: top 6 + expand. Karl is
+   the gateway to the long tail. Medal rack -> compact "N/16" tap-expand.
+   Sections:
+   1. WHO AM I — callsign, XP, rank + progress, streak, compact medals
+      (N/16 tap-expand), weekly challenge. No callsign -> one-prompt claim.
+   2. TODAY — the condensed info lead: truth, missions, vote, movement.
+   3. ASK KARL — condensed prompt row; expands to full chat on tap. Karl
+      is the gateway: "looking for something else? ask me."
+   4. DO — top 6 actions + SHOW ALL expands to the full 24 + war room.
+   5. CALENDAR — next 3 events + expand; always renders (fallback rhythm).
+   6. MY DATA — one-liner stats + delete. Ethics line kept.
 
    Mounted by pages/page-mount.js on #pf-dashboard (Squarespace Code block
    hand-step). Template-first silo like master-calendar.js: stages
@@ -174,7 +165,7 @@ function css(){
   +'.ud-h{font-size:13px;margin:0 0 10px}'
   +'.ud-tk{font-size:11px;white-space:nowrap}'
   +'.ud-when{flex:0 0 92px;font:800 11px Arial;letter-spacing:2px;color:#e8b33c}'
-  +'.ud-card,.ud-cell,.ud-stat{background:#0d0d0d;border:1px solid #2c2c2c;border-radius:6px}'
+  +'.ud-card,.ud-cell{background:#0d0d0d;border:1px solid #2c2c2c;border-radius:6px}'
   +'.ud-card{padding:16px}'
   +'.ud-card.ud-dense{padding:6px 14px}'
   +'.ud-id-cs{font:24px "Arial Black",Arial;letter-spacing:2px;margin:0 0 2px}'
@@ -192,6 +183,9 @@ function css(){
   +'.ud-rack{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}'
   +'.ud-medal{width:44px;height:44px;display:grid;place-items:center;font-size:20px;border:1px solid #333;border-radius:6px;background:#141414;color:#555;cursor:pointer}'
   +'.ud-medal.got{border-color:#e8b33c;color:#e8b33c;background:#1c1503}'
+ +'.ud-medalcmp{display:flex;align-items:center;gap:8px;width:100%;background:#141414;border:1px solid #333;border-radius:6px;color:#f5ead6;font:800 13px Arial;letter-spacing:1px;padding:0 14px;min-height:48px;cursor:pointer;margin:10px 0 4px;text-align:left}'
+ +'.ud-medalcmp:active{transform:scale(.98);border-color:#e8b33c}'
+ +'.ud-rackwrap{margin:4px 0}'
   +'.ud-cap{font:800 11px Arial;color:#e8b33c;letter-spacing:2px;min-height:16px;margin-top:4px}'
   +'.ud-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}'
   +'@media(min-width:700px){.ud-grid{grid-template-columns:repeat(4,1fr)}}'
@@ -217,18 +211,13 @@ function css(){
   +'.ud-claim:active{background:#9c0e18;transform:scale(.98)}'
   +'.ud-more{display:block;text-align:center;margin:12px 0 0;font:800 12px Arial;letter-spacing:2px;color:#c1121f;text-decoration:none;min-height:44px;line-height:44px}'
   +'.ud-more:active{background:#1a0d0d;color:#f5ead6}'
-  +'.ud-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center}'
-  +'.ud-stat{padding:14px 6px}'
-  +'.ud-stat b{display:block;font:22px "Arial Black",Arial;color:#e8b33c}'
-  +'.ud-stat span{font-size:11px;color:#a89e88;letter-spacing:1px}'
-  +'.ud-eth{font:italic 12px/1.6 Arial;color:#a89e88;margin:10px 2px 0}'
   +'.ud-vp{font:800 14px/1.6 Arial;margin:0 0 12px;padding-bottom:12px;border-bottom:1px solid #2c2c2c}'
   +'.ud-today{padding:11px 2px 11px 10px;border-left:3px solid #c1121f;text-decoration:none;color:inherit}'
   +'.ud-today:last-child{border-bottom:0}'
   +'.ud-today.ud-static{cursor:default}'
   +'.ud-th{flex:1;min-width:0;font:700 15px/1.5 Arial}'
   +'.ud-calstrip{display:flex;gap:6px;margin:8px 0 12px}'
-  +'.ud-calday{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px;min-height:56px;justify-content:center}'
+  +'.ud-calday{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px;min-height:56px;justify-content:center;background:#141414;border:1px solid #2c2c2c;border-radius:6px}'
   +'.ud-caltoday{border-color:#c1121f;background:#1c0a0a}'
   +'.ud-calev{border-color:#e8b33c}'
   +'.ud-caldow{font:800 11px Arial;color:#a89e88;letter-spacing:1px}'
@@ -237,23 +226,10 @@ function css(){
   +'.ud-caldot{width:6px;height:6px;border-radius:50%;background:#e8b33c;margin-top:2px}'
   +'.ud-sk{border-radius:4px;background:linear-gradient(90deg,#141414,#1f1f1f,#141414);background-size:200% 100%;animation:udB 1.3s linear infinite}'
   +'@keyframes udB{to{background-position:-200% 0}}'
-  +'.ud-karl-log{max-height:280px;overflow-y:auto;margin:0 0 10px;display:flex;flex-direction:column;gap:8px}'
-  +'.ud-karl-msg,.ud-calday{background:#141414;border:1px solid #2c2c2c;border-radius:6px}'
-  +'.ud-karl-msg{font:13px/1.6 Arial;padding:10px 12px;white-space:pre-wrap;overflow-wrap:break-word}'
-  +'.ud-karl-msg.u{background:#1c0a0a;border-color:#c1121f}'
-  +'.ud-karl-msg.k{border-left:3px solid #e8b33c}'
-  +'.ud-karl-who{font:800 11px Arial;letter-spacing:2px;color:#e8b33c;margin-bottom:4px}'
-  +'.ud-karl-msg.u .ud-karl-who{color:#c1121f}'
-  +'.ud-karl-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}'
-  +'.ud-karl-chip{background:#141414;border:1px solid #e8b33c;color:#e8b33c;font-size:11px;letter-spacing:.5px;padding:8px 12px;border-radius:20px;cursor:pointer;min-height:36px}'
-  +'.ud-karl-chip:active{transform:scale(.97);background:#1c1503}'
-  +'.ud-karl-form{display:flex;gap:8px}'
-  +'.ud-karl-in{flex:1;min-width:0;background:#0a0a0a;border:1px solid #2c2c2c;border-radius:6px;color:#f5ead6;font-size:14px;padding:12px;min-height:48px}'
-  +'.ud-karl-in:focus{outline:none;border-color:#c1121f}'
-  +'.ud-karl-btn{background:#c1121f;color:#fff;border:0;border-radius:6px;font:800 13px Arial;letter-spacing:1px;padding:0 20px;cursor:pointer;min-height:48px;min-width:76px}'
-  +'.ud-karl-btn:active{background:#9c0e18;transform:scale(.97)}'
-  +'.ud-karl-btn:disabled{opacity:.5;cursor:default}'
-  +'.ud-karl-think{color:#a89e88;font-style:italic}'
+ +'.ud-karltap{display:flex;align-items:center;gap:10px;width:100%;background:transparent;border:0;color:inherit;padding:10px 2px;cursor:pointer;min-height:56px;text-align:left}'
+ +'.ud-karltap:active{background:#1a0d0d}'
+ +'.ud-hide{display:none}'
+ +'.ud-grid.showall .ud-hide{display:flex}'
   +'.ud-btn.ud-del{color:#c1121f}'
   +'.ud-ov{position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.82);display:grid;place-items:center;padding:20px}'
   +'.ud-dlg{border-color:#c1121f;max-width:520px;padding:20px;font:13px/1.6 Arial;animation:udD .18s ease both}'
@@ -332,35 +308,46 @@ function renderIdentity(id,ms){
     +'</div>');
 }
 function rackHtml(ms){
-  var h='<div class="ud-rack" role="img" aria-label="'+ms.got+' of '+ms.total+' weekly service medals earned">';
+  /* CONDENSED: "N/16 medals" tap-to-expand instead of the 16-glyph grid.
+     The full rack renders on tap; tap again to collapse. */
+  var h='<button class="ud-medalcmp" id="udMedalCmp" aria-expanded="false">'
+    +'<span class="ud-gold">\u2605 '+ms.got+'/'+ms.total+'</span>'
+    +'<span class="ud-mut"> MEDALS THIS WEEK</span>'
+    +(ms.fd?' <span class="ud-ok">\u2014 FULL DEPLOYMENT</span>':'')
+    +'</button>'
+    +'<div class="ud-rackwrap" id="udRackWrap" hidden>'
+    +'<div class="ud-rack" role="img" aria-label="'+ms.got+' of '+ms.total+' weekly service medals earned">';
   for(var i=0;i<MEDALS.length;i++){
     var got=!!(ms.m&&ms.m[MEDALS[i][0]]);
     h+='<span class="ud-medal'+(got?' got':'')+'" data-name="'+esc(MEDALS[i][2].toUpperCase())+'">'+MEDALS[i][1]+'</span>';
   }
   h+='</div><div class="ud-cap" aria-live="polite"></div>';
-  if(ms.fd) h+='<div class="ud-meta">\\u2605 <b class="ud-gold">FULL DEPLOYMENT</b> — rack complete this week.</div>';
-  else h+='<div class="ud-meta">'+ms.got+'/'+ms.total+' medals this week — full rack = <b>FULL DEPLOYMENT</b> (+50 XP, Vanguard Wall).</div>';
+  if(!ms.fd) h+='<div class="ud-meta">Full rack = <b>FULL DEPLOYMENT</b> (+50 XP, Vanguard Wall).</div>';
+  h+='</div>';
   return h;
 }
-/* Shared compact link-card grid renderer (feature grid + Intel Desk + Make
-   It Yours). Block layout, no <br>: stat lines clamp to one line. */
-function linkGrid(t,cs,tl){
-  var h='<div class="ud-grid">';
-  for(var i=0;i<cs.length;i++){ var c=cs[i],s=c[4]?tileLine(c[4],tl):'';
-    h+='<a class="ud-cell" href="'+safeUrl(c[3])+'"><span class="ud-ico">'+c[0]+'</span>'
-      +'<span class="ud-tx"><span class="ud-nm">'+esc(c[1])+'</span><span class="ud-ds">'+esc(c[2])+'</span>'
-      +(s?'<span class="ud-tl">'+esc(s)+'</span>':'')+'</span></a>'; }
-  return sec(t,h+'</div>');
-}
-/* WAR ROOM — the conditional feature-grid card: only when the backend
-   signals a live or scheduled event (tiles.warroom). Absent = skipped. */
-function renderFeatureGrid(t){
-  var cards=GRID.slice();
-  var wr=t&&t.warroom;
+/* DO — CONDENSED: the 24-card sprawl (16 grid + 5 Intel + 3 Yours)
+   becomes ONE section. First 6 visible; rest hidden via CSS, revealed
+   by SHOW ALL. Karl is the gateway: "looking for something else? ask me."
+   Nothing deleted — everything reachable, just not all on screen. */
+function renderDo(t){
+  t=t||{};
+  var all=GRID.concat(INTEL,MINE);
+  var wr=t.warroom;
   if(wr&&(wr.live||wr.scheduled||wr.url||wr.headline)){
-    cards.push(['\\uD83D\\uDEA8','WAR ROOM'+(wr.live?' \\u00B7 LIVE':''),wr.headline||'The fight is on.',wr.url||'/war-room']);
+    all.push(['\uD83D\uDEA8','WAR ROOM'+(wr.live?' \u00B7 LIVE':''),wr.headline||'The fight is on.',wr.url||'/war-room']);
   }
-  return linkGrid('EVERYTHING, TWO TAPS',cards,t);
+  var h='<div class="ud-grid" id="udDoGrid">';
+  for(var k=0;k<all.length;k++){
+    var c=all[k], s=c[4]?tileLine(c[4],t):'';
+    h+='<a class="ud-cell'+(k>=6?' ud-hide':'')+'" href="'+safeUrl(c[3])+'"><span class="ud-ico">'+c[0]+'</span>'
+      +'<span class="ud-tx"><span class="ud-nm">'+esc(c[1])+'</span><span class="ud-ds">'+esc(c[2])+'</span>'
+      +(s?'<span class="ud-tl">'+esc(s)+'</span>':'')+'</span></a>';
+  }
+  h+='</div>'
+    +'<button class="ud-more" id="udDoMore" aria-expanded="false">SHOW ALL '+all.length+' \u2192</button>'
+    +'<div class="ud-meta ud-mt6">Looking for something else? <a class="ud-link" href="#udKarlTap" id="udAskKarlLink">Ask Karl \u2192</a></div>';
+  return sec('DO', h);
 }
 /* TODAY — the condensed info lead (CEO vision 2026-10-07): today's truth
    drop, today's missions, this week's vote, the movement right now — every
@@ -450,23 +437,36 @@ function renderCalendar(cal){
   }
   strip+='</div>';
   var h=strip;
+  var rowsShown=0;
+  function evRow(e){
+    return '<div class="ud-row"><span class="ud-when">'+esc(e.date_label||calDayLabel(e.ts))+'</span>'
+      +'<span class="ud-what">'+esc(e.title||'')+'</span>'
+      +'<a class="ud-go" href="'+safeUrl(e.url||'/events')+'">GO \u2192</a></div>';
+  }
+  function fbRow(fe){
+    return '<div class="ud-row"><span class="ud-when">'+esc(fe[3].toUpperCase())+'</span>'
+      +'<span class="ud-what">'+esc(fe[0])+' <span class="ud-mut">\u00b7 '+esc(fe[1])+' \u00b7 '+(fe[3]==='daily'?'EVERY DAY':'EVERY WEEK')+'</span></span>'
+      +'<a class="ud-go" href="'+safeUrl(fe[2])+'">GO \u2192</a></div>';
+  }
+  /* CONDENSED: show 3, expand for the rest. */
+  var CAL_N=3;
   if(upcoming.length){
-    for(var j=0;j<upcoming.length;j++){
-      var e=upcoming[j];
-      h+='<div class="ud-row"><span class="ud-when">'+esc(e.date_label||calDayLabel(e.ts))+'</span>'
-        +'<span class="ud-what">'+esc(e.title||'')+'</span>'
-        +'<a class="ud-go" href="'+safeUrl(e.url||'/events')+'">GO →</a></div>';
+    for(var j=0;j<Math.min(upcoming.length,CAL_N);j++){ h+=evRow(upcoming[j]); rowsShown++; }
+    if(upcoming.length>CAL_N){
+      h+='<div id="udCalExtra" hidden>';
+      for(var j2=CAL_N;j2<upcoming.length;j2++){ h+=evRow(upcoming[j2]); }
+      h+='</div><button class="ud-more" id="udCalMore" aria-expanded="false">MORE EVENTS \u2192</button>';
     }
   } else {
     /* Fallback: the recurring rhythm, so the widget always has content. */
-    for(var f=0;f<Math.min(CAL_FALLBACK.length,5);f++){
-      var fe=CAL_FALLBACK[f];
-      h+='<div class="ud-row"><span class="ud-when">'+esc(fe[3].toUpperCase())+'</span>'
-        +'<span class="ud-what">'+esc(fe[0])+' <span class="ud-mut">· '+esc(fe[1])+' · '+(fe[3]==='daily'?'EVERY DAY':'EVERY WEEK')+'</span></span>'
-        +'<a class="ud-go" href="'+safeUrl(fe[2])+'">GO →</a></div>';
+    for(var f=0;f<Math.min(CAL_FALLBACK.length,CAL_N);f++){ h+=fbRow(CAL_FALLBACK[f]); rowsShown++; }
+    if(CAL_FALLBACK.length>CAL_N){
+      h+='<div id="udCalExtra" hidden>';
+      for(var f2=CAL_N;f2<CAL_FALLBACK.length;f2++){ h+=fbRow(CAL_FALLBACK[f2]); }
+      h+='</div><button class="ud-more" id="udCalMore" aria-expanded="false">MORE EVENTS \u2192</button>';
     }
   }
-  h+='<a class="ud-more" href="/events">FULL CALENDAR →</a>';
+  h+='<a class="ud-more" href="/events">FULL CALENDAR \u2192</a>';
   return sec('CALENDAR', '<div class="ud-card ud-dense">'+h+'</div>');
 }
 /* ASK KARL — the AI copilot, native in the hub (CEO directive 2026-10-07).
@@ -474,152 +474,49 @@ function renderCalendar(cal){
    live evidence, and receives the caller's hub context (callsign, XP, rank,
    today's missions, streak) so answers can reference their war.
    FAIL-SOFT: if Karl is unreachable, an honest line — never a spinner. */
-var KARL_URL='https://pf-karl.mtcstw.workers.dev/karl/ask';
-var KARL_SUGGEST=[
- 'What should I do today?',
- 'How do I earn more XP?',
- 'What is surplus value?',
- 'Explain the war chest'
-];
-function karlContext(idn,ms,j){
-  var ctx={};
-  try{
-    if(idn.callsign) ctx.callsign=idn.callsign;
-    if(j&&j.identity){
-      if(j.identity.xp!=null) ctx.xp=j.identity.xp;
-      if(j.identity.rank) ctx.rank=j.identity.rank;
-      if(j.identity.streak!=null) ctx.streak=j.identity.streak;
-    }
-    if(ms&&typeof ms.got==='number') ctx.medals_this_week=ms.got+'/'+ms.total;
-    if(j&&j.tiles){
-      if(j.tiles.orders&&typeof j.tiles.orders.raiders==='number')
-        ctx.reported_today=j.tiles.orders.raiders;
-      if(j.tiles.vote&&typeof j.tiles.vote.total==='number')
-        ctx.votes_this_week=j.tiles.vote.total;
-    }
-    if(j&&j.calendar&&j.calendar.events&&j.calendar.events.length){
-      ctx.upcoming=j.calendar.events.slice(0,5).map(function(e){
-        return (e.when||'')+' '+(e.what||'');
-      }).join('; ');
-    }
-  }catch(e){}
-  return ctx;
-}
+/* KARL — CONDENSED: The dashboard doesn't need its own chat UI.
+   The sitewide karl-companion.js (floating button) is the chat.
+   This section is just the gateway: one tap opens the companion.
+   Saves ~4KB of duplicated chat code. */
 function renderKarl(){
-  var chips='';
-  for(var i=0;i<KARL_SUGGEST.length;i++){
-    chips+='<button class="ud-karl-chip" data-q="'+esc(KARL_SUGGEST[i])+'">'+esc(KARL_SUGGEST[i])+'</button>';
-  }
-  var h='<div class="ud-card">'
-    +'<div class="ud-karl-log" id="udKarlLog" aria-live="polite">'
-    +'<div class="ud-karl-msg k"><div class="ud-karl-who">KARL</div>'
-    +'I&#39;m Karl — the movement&#39;s intelligence. Ask me about theory, the fight, or your war. I answer from the canon and live evidence, and I never guess.<div class="ud-meta ud-mt6">Tap a suggestion or type below.</div></div>'
-    +'</div>'
-    +'<div class="ud-karl-chips" id="udKarlChips">'+chips+'</div>'
-    +'<form class="ud-karl-form" id="udKarlForm">'
-    +'<input class="ud-karl-in" id="udKarlIn" type="text" maxlength="500" placeholder="Ask Karl anything…" autocomplete="off" aria-label="Ask Karl">'
-    +'<button class="ud-karl-btn" id="udKarlBtn" type="submit">ASK</button>'
-    +'</form></div>';
-  return sec('ASK KARL', h);
-}
-function karlAddMsg(who,text){
-  try{
-    var log=document.getElementById('udKarlLog');
-    if(!log) return;
-    log.insertAdjacentHTML('beforeend','<div class="ud-karl-msg '+who+'"><div class="ud-karl-who">'
-      +(who==='u'?'YOU':'KARL')+'</div><div>'+esc(String(text==null?'':text).slice(0,4000))+'</div></div>');
-    log.scrollTop=log.scrollHeight;
-  }catch(e){}
-}
-function karlAsk(question,ctx){
-  var btn=document.getElementById('udKarlBtn');
-  var inp=document.getElementById('udKarlIn');
-  if(btn) btn.disabled=true;
-  karlAddMsg('u',question);
-  var think=document.createElement('div');
-  think.className='ud-karl-msg k';
-  think.innerHTML='<div class="ud-karl-who">KARL</div><span class="ud-karl-think">Consulting the canon…</span>';
-  try{
-    var log=document.getElementById('udKarlLog');
-    if(log){ log.appendChild(think); log.scrollTop=log.scrollHeight; }
-  }catch(e){}
-  function done(answer,err){
-    try{ if(think.parentNode) think.parentNode.removeChild(think); }catch(e2){}
-    if(btn) btn.disabled=false;
-    if(inp){ inp.value=''; try{inp.focus();}catch(e3){} }
-    if(err){
-      karlAddMsg('k','Karl is unreachable right now — the evidence rail or the worker is down. Try again in a bit. — Karl');
-    }else{
-      karlAddMsg('k',answer);
-    }
-  }
-  try{
-    fetch(KARL_URL,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({question:String(question).slice(0,500),context:ctx||{}})
-    }).then(function(r){ return r.json(); }).then(function(j){
-      if(j&&j.ok&&j.answer){ done(j.answer); }
-      else if(j&&j.error==='rate_limited'){ done(null,true); karlAddMsg('k','Karl rests for this IP — quota resets hourly. — Karl'); }
-      else { done(null,true); }
-    }).catch(function(){ done(null,true); });
-    setTimeout(function(){
-      /* Terminal state: never leave "Consulting…" hanging. */
-      try{ if(think.parentNode){ think.parentNode.removeChild(think); karlAddMsg('k','Karl took too long — try again. — Karl'); if(btn) btn.disabled=false; } }catch(e){}
-    },20000);
-  }catch(e){ done(null,true); }
-}
-function bindKarl(root,ctx){
-  try{
-    var form=root.querySelector('#udKarlForm');
-    var inp=root.querySelector('#udKarlIn');
-    if(form&&inp){
-      form.addEventListener('submit',function(e){
-        try{ e.preventDefault(); }catch(e2){}
-        var q=inp.value.trim();
-        if(!q) return;
-        karlAsk(q,ctx);
-      });
-    }
-    var chips=root.querySelector('#udKarlChips');
-    if(chips){
-      chips.addEventListener('click',function(e){
-        var t=e.target;
-        while(t&&t!==chips&&!t.getAttribute('data-q')) t=t.parentNode;
-        var q=t&&t.getAttribute&&t.getAttribute('data-q');
-        if(q) karlAsk(q,ctx);
-      });
-    }
-  }catch(e){}
+  var h='<div class="ud-card ud-dense">'
+    +'<button class="ud-karltap" id="udKarlTap">'
+    +'<span class="ud-ico">\u2756</span>'
+    +'<span class="ud-tx"><span class="ud-nm">ASK KARL</span>'
+    +'<span class="ud-ds">The movement\u2019s intelligence. Ask anything \u2014 or find what\u2019s not on this page.</span></span>'
+    +'<span class="ud-go">ASK \u2192</span></button>'
+    +'</div>';
+  return sec('KARL', h);
 }
 function renderActivity(act,ms){
   if(!act) return '';
+  /* CONDENSED: last 3 actions only. The medal progress already lives
+     in the identity rack — no duplicate bar. */
   var h='';
   var rec=act.recent||[];
   if(rec.length){
     h+='<div class="ud-card ud-dense ud-mb10">';
-    for(var i=0;i<Math.min(rec.length,6);i++){
+    for(var i=0;i<Math.min(rec.length,3);i++){
       var e=rec[i], d=Number(e.delta)||0;
       h+='<div class="ud-act"><span>'+relTime(e.ts)+'</span><span>'+esc(actLabel(e.key,e.reason))+'</span>'
         +(d?'<span class="ud-xp">'+(d>0?'+':'')+d+' XP</span>':'')+'</div>';
     }
     h+='</div>';
   }
-  var fdPct=Math.round(ms.got/ms.total*100);
-  h+='<div class="ud-card"><div class="ud-meta ud-mb2">Weekly medals toward <b>FULL DEPLOYMENT</b>: <b>'+ms.got+'/'+ms.total+'</b></div>'
-    +'<div class="ud-bar ud-bar-gold"><i data-w="'+fdPct+'"></i></div></div>';
+  if(!h) return '';
   return sec('YOUR WEEK', h);
 }
 function renderEcon(econ){
   if(!econ) return '';
-  var h='<div class="ud-stats">'
-    +'<div class="ud-stat"><b>'+(Number(econ.prices_reported)||0)+'</b><span>PRICES REPORTED</span></div>'
-    +'<div class="ud-stat"><b>'+(Number(econ.bounties_completed)||0)+'</b><span>BOUNTIES DONE</span></div>'
-    +'<div class="ud-stat"><b>'+(Number(econ.data_submitted)||0)+'</b><span>DATA SUBMITTED</span></div>'
-    +'</div>'
-    +'<div class="ud-eth">&ldquo;Your activity powers the movement&rsquo;s intelligence.&rdquo; Aggregated, anonymous by default — never sold.</div>'
-    +'<a class="ud-more" href="/economy">ADD PRICE DATA →</a>'
-    +'<div class="ud-mt10"><button class="ud-btn ghost ud-del" id="udDeleteData">DELETE MY DATA</button></div>';
+  /* CONDENSED: one line of stats + delete. The ethics line stays —
+     it's the promise. */
+  var p=Number(econ.prices_reported)||0, b=Number(econ.bounties_completed)||0, d=Number(econ.data_submitted)||0;
+  var h='<div class="ud-card ud-dense">'
+    +'<div class="ud-meta"><b class="ud-gold">'+p+'</b> prices \u00b7 <b class="ud-gold">'+b+'</b> bounties \u00b7 <b class="ud-gold">'+d+'</b> data drops'
+    +' <span class="ud-mut">\u2014 your activity powers the movement\u2019s intelligence.</span></div>'
+    +'<div class="ud-mt8"><a class="ud-link" href="/economy">ADD PRICE DATA \u2192</a>'
+    +' <span class="ud-mut">\u00b7</span> <button class="ud-btn ghost ud-del" id="udDeleteData" style="min-height:36px;padding:0 12px;font-size:11px">DELETE MY DATA</button></div>'
+    +'</div>';
   return sec('MY DATA', h);
 }
 function renderSignedOut(){
@@ -628,9 +525,56 @@ function renderSignedOut(){
     +'your XP, rank, streak and activity — or claim one below.</div>'
     +'<button class="ud-claim" id="udClaim">CLAIM YOUR CALLSIGN</button></div>');
 }
-function bind(root,karlCtx){
-  /* ASK KARL — wire the chat form + suggestion chips. */
-  bindKarl(root,karlCtx||{});
+function bind(root){
+  /* CONDENSED expands: medal rack, Karl chat, DO grid, calendar. */
+  function wireToggle(btnId,wrapId){
+    try{
+      var b=root.querySelector('#'+btnId), w=root.querySelector('#'+wrapId);
+      if(b&&w) b.addEventListener('click',function(){
+        var open=w.hidden;
+        w.hidden=!open;
+        b.setAttribute('aria-expanded',open?'true':'false');
+      });
+    }catch(e){}
+  }
+  wireToggle('udMedalCmp','udRackWrap');
+  /* DO grid: SHOW ALL toggles the .showall class to reveal hidden cards. */
+  try{
+    var dm=root.querySelector('#udDoMore'), dg=root.querySelector('#udDoGrid');
+    if(dm&&dg) dm.addEventListener('click',function(){
+      var open=dg.classList.contains('showall');
+      if(open){ dg.classList.remove('showall'); dm.textContent=dm.textContent.replace(/SHOW LESS.*/,'SHOW ALL '+dg.querySelectorAll('.ud-cell').length+' \u2192'); }
+      else{ dg.classList.add('showall'); dm.textContent='SHOW LESS \u2192'; }
+      dm.setAttribute('aria-expanded',open?'false':'true');
+    });
+  }catch(e){}
+  wireToggle('udCalMore','udCalExtra');
+  /* KARL gateway: taps open the sitewide karl-companion (floating button).
+     The dashboard doesn't host its own chat — one Karl, everywhere. */
+  try{
+    var kt2=root.querySelector('#udKarlTap');
+    if(kt2) kt2.addEventListener('click',function(){
+      try{
+        /* The companion exposes a global opener; fall back to scrolling
+           to the floating button if it's not ready yet. */
+        if(window.PFKarlCompanion&&window.PFKarlCompanion.open){ window.PFKarlCompanion.open(); return; }
+        var fb=document.querySelector('[data-karl-fab]');
+        if(fb){ fb.click(); return; }
+      }catch(e){}
+      /* Last resort: the companion loads lazily; scroll to bottom-right
+         where it mounts. */
+      try{ window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'}); }catch(e2){}
+    });
+  }catch(e){}
+  /* "Ask Karl" link in the DO section scrolls to + opens Karl. */
+  try{
+    var akl=root.querySelector('#udAskKarlLink');
+    if(akl) akl.addEventListener('click',function(e){
+      try{ e.preventDefault(); }catch(x){}
+      var t2=root.querySelector('#udKarlTap');
+      if(t2){ t2.click(); t2.scrollIntoView({behavior:'smooth',block:'center'}); }
+    });
+  }catch(e){}
   /* MEDAL RACK — tap a medal to reveal its name (touch-friendly tooltip). */
   try{
     var racks=root.querySelectorAll('.ud-rack');
@@ -744,12 +688,12 @@ function load(){
     if(!hasCallsign&&!signedIn) h+=renderIdentity(null,ms);
     else if(!signedIn) h+=renderSignedOut();
     else h+=renderIdentity(j.identity,ms);
-    /* The hub core renders for everyone — useful before enlistment too. */
+    /* CONDENSED hub: 6 sections. WHO AM I / TODAY / KARL / DO /
+       CALENDAR / (signed-in: YOUR WEEK / MY DATA). Karl is the gateway
+       to the long tail — the DO grid shows 6, Karl finds the rest. */
     h+=renderToday(tiles);
     h+=renderKarl();
-    h+=renderFeatureGrid(tiles);
-    h+=linkGrid('THE INTEL DESK',INTEL);
-    h+=linkGrid('MAKE IT YOURS',MINE);
+    h+=renderDo(tiles);
     h+=renderCalendar(j?j.calendar:null);
     if(signedIn){
       h+=renderActivity(j.activity,ms);
@@ -760,7 +704,7 @@ function load(){
     /* Staggered section entry: 60ms per section, fade + slight rise. */
     try{ var _ss=root.querySelectorAll('.ud-sec'); for(var _si=0;_si<_ss.length;_si++){ _ss[_si].style.animationDelay=(60+_si*60)+'ms'; } }catch(e){}
     animBars();
-    bind(root,karlContext(idn,ms,j));
+    bind(root);
   }
   function fetch(){
     var my=++seq; painted=false;

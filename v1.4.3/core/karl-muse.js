@@ -412,6 +412,31 @@
   /* Record the visit on load (chunk loads after idle — still once per page). */
   try { recordVisit(); } catch (e) {}
 
+  /* Convergence (2026-10-07): the pf:action protocol — user actions in one
+     place ripple into Karl's story memory. Any silo can announce:
+       document.dispatchEvent(new CustomEvent('pf:action', { detail: { action: 'mission-reported' } }))
+     Known actions: mission-reported, vote-cast, checkin-done, callsign-claimed,
+     cell-joined, price-reported, bounty-done. Unknown actions are still
+     recorded (future-proof) but never trusted for numbers — Karl's guardrails
+     only use real user_state numbers from the dashboard stash. */
+  try {
+    document.addEventListener('pf:action', function (ev) {
+      try {
+        var d = (ev && ev.detail) || {};
+        var a = String(d.action || '').slice(0, 60);
+        if (!a) { return; }
+        var s = readStory();
+        var label = { 'mission-reported': 'Reported a mission',
+          'vote-cast': 'Cast a fan vote', 'checkin-done': 'Checked in',
+          'callsign-claimed': 'Claimed a callsign', 'cell-joined': 'Joined a cell',
+          'price-reported': 'Reported a price', 'bounty-done': 'Completed a bounty'
+        }[a] || ('Did: ' + a);
+        milestone(s, label);
+        writeStory(s);
+      } catch (e2) {}
+    });
+  } catch (e3) {}
+
   window.PFKarlMuse = {
     readUserState: readUserState,
     readStory: readStory,

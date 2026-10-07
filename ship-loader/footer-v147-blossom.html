@@ -44,15 +44,15 @@
      privacy_erase flow). The JS silo strips any already-pasted static
      fallback on boot, so no footer re-paste is needed. -->
 <script>(function(){
-var V3='0257de9',V1='76107b5';
-/* RE-PIN 2026-10-07 ~13:30 CDT: sitewide UX/UI perf optimization (perf/sitewide-ux-opt) — dashboard instant shell, skeleton gap fix, a11y contrast, 44px touch targets, calendar full-row anchors, medal tap-to-name. */
+var V3='6e937d9',V1='76107b5';
+/* RE-PIN 2026-10-07 ~13:40 CDT: PWA glitch fixes (fix/pwa-glitch-20261007, QC PASS Lane A) — manifest crossorigin anonymous (Android install prompt fix), single-boot guard, iOS nag session dismiss, version-agnostic pwaBase, SW JSONP cache-bloat skip. */
 /* RE-PIN 2026-10-07 ~13:15 CDT: bundle-pages.js rebuilt — pf-dashboard mount
    entry was missing from the stale build, so #pf-dashboard stayed empty.
    Now includes calendar widget. CEO directive: homepage still broken. */
 /* DEFECT 1 (2026-10-03): pin for core/bundle-footer-chrome.js (added in
    commit 133ee90). Kept separate from V3 so the live v1.4.3 set stays
    byte-identical; re-pin together on the next release. */
-var VCHROME='0257de9';
+var VCHROME='6e937d9';
    /* RE-PIN (2026-10-07 ~12:50 CDT, dashboard bundle 404 fix — CEO directive):
    V3/VCHROME = 5d7d981 (current integrate/big-update-fe tip). The 9a636c9 pin
    predates v1.4.3/games/bundle-userdash.js, so the homepage dashboard bundle

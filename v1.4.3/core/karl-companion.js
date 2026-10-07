@@ -377,6 +377,58 @@
     } catch (e) {}
   }
 
+  /* ============ TOPIC-AWARE FOLLOW-UPS (engagement sweep retry 2026-10-07)
+     The old code always offered one generic "Tell me more about that".
+     Derive the follow-up from the question's topic so it reads like Karl
+     listening, not a button factory. */
+  function followUpFor(q) {
+    var t = String(q || '').toLowerCase();
+    function has() {
+      for (var i = 0; i < arguments.length; i++) {
+        if (t.indexOf(arguments[i]) !== -1) { return true; }
+      }
+      return false;
+    }
+    if (has('marx','lenin','trotsky','mao','fanon','luxemburg','che','engels','capital','surplus','theory','communis','socialis','imperialis')) {
+      return 'Who else wrote about this?';
+    }
+    if (has('xp','rank','streak','medal','mission','vote','level')) {
+      return 'What\u2019s my fastest path forward?';
+    }
+    if (has('price','inflation','cpi','shrink','economy','wage','rent','cost of','grocery')) {
+      return 'How do I report a price?';
+    }
+    if (has('how do i','how to','where is','where\u2019s','where do')) {
+      return 'What should I do first?';
+    }
+    if (has('news','happening','trump','biden','congress','election','protest')) {
+      return 'What\u2019s the move on this?';
+    }
+    return 'Tell me more about that';
+  }
+
+  /* ============ REWARD FEEDBACK (engagement sweep retry 2026-10-07) ============
+     The karl_engage loop granted XP server-side but the user never saw it —
+     an invisible reward is no reward. The worker now returns the engage
+     outcome ({xp, lucky, capped, milestone, milestone_xp, streak, tier}).
+     Surface it: XP float on the answer, milestone pings. All guarded,
+     all fail-soft — a missing PF.dope never breaks the chat. */
+  function rewardNudge(msgEl, eng) {
+    if (!eng || typeof eng !== 'object') { return; }
+    try {
+      var dope = (window.PF && PF.dope) ? PF.dope : null;
+      if (!dope) { return; }
+      if (eng.xp > 0 && msgEl && dope.xpFloat) {
+        dope.xpFloat(msgEl, '+' + eng.xp + ' XP');
+      }
+      if (eng.lucky && dope.ping && panel) {
+        dope.ping(panel, 'LUCKY QUESTION \u2014 DOUBLE XP');
+      }
+      if (eng.milestone && eng.milestone_xp > 0 && dope.ping && panel) {
+        dope.ping(panel, eng.milestone + '-DAY KARL STREAK \u2014 +' + eng.milestone_xp + ' XP');
+      }
+    } catch (e) {}
+  }
   /* ============ STAGED TYPING (engagement sweep 2026-10-07) ============
      9 seconds of "Karl is thinking…" feels broken on a phone. Rotating
      personality lines make the wait feel like Karl working — because he is. */
@@ -444,12 +496,13 @@
       typing.stop();
       if (r && r.ok && r.answer) {
         var ansHtml = esc(String(r.answer)).replace(/\n/g, '<br>');
-        addMsg('karl', ansHtml);
+        var msgEl = addMsg('karl', ansHtml);
         /* Remember the thread — next question builds on this one. */
         pushHistory(q, r.answer);
-        /* Engagement: one-tap follow-up. The worker has the history now,
-           so "tell me more" actually goes deeper instead of repeating. */
-        var followChips = ['Tell me more about that'];
+        /* Engagement sweep (retry): the follow-up used to be wiped by the
+           unconditional addChips() after this block — it never survived.
+           Chips are now set exactly once per branch. */
+        var followChips = [followUpFor(q)];
         try {
           var sc = suggestionChips();
           for (var fi = 0; fi < sc.length && followChips.length < 3; fi++) {
@@ -457,7 +510,11 @@
           }
         } catch (e) {}
         addChips(followChips);
-      } else if (r && r.error === 'rate_limited') {
+        /* Reward feedback: the invisible +2 XP is now visible. */
+        rewardNudge(msgEl, r.engage);
+        return;
+      }
+      if (r && r.error === 'rate_limited') {
         addMsg('karl', 'I\u2019ve been talking a lot this hour — even comrades need a breather. The site index still works though: ask me <i>where</i> something is or <i>how</i> to do it, and I\u2019ll point you there instantly.<div class="sig">— Karl</div>');
       } else {
         addMsg('karl', 'The deep brain didn\u2019t pick up just now — the connection dropped somewhere between us. But I still know this site cold: ask me <i>where</i> something is or <i>how</i> to do it.<div class="sig">— Karl</div>');

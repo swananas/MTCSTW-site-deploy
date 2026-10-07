@@ -1,0 +1,620 @@
+/* games/dossier.js  |  PF v1.4.3 | UGC DOSSIER BUILDER.
+   CEO directive 2026-10-07 "Let it blossom" — UGC tools. Users take a Receipt
+   dossier, add their own context (title, why-it-matters, per-section notes),
+   preview it, and publish a shareable page at /dossier/<slug>.
+   Self-mounting silo: renders into #pf-dossier (Squarespace page /dossier
+   carries <div id="pf-dossier"></div> as a Code block — CEO hand-step).
+   page-mount.js PAGE_ORDERS['pf-dossier'] gives it the page header + widen.
+   Backend (be/ugc-dossier-builder):
+     GET  ?action=dossier_get&slug=   (public JSONP, read-only, 0 XP)
+     GET  ?action=dossier_feed        (public JSONP, read-only, 0 XP)
+     POST {type:'dossier', d_action:'dossier_publish', callsign, auth_secret,
+           pol_slug, pol_name, title, why, share_line, notes}
+           -> {ok:true, slug} (AUTH_MAP 'dossier:dossier_publish', POST_ONLY)
+   RULES:
+   - Original Receipt data is IMMUTABLE: rendered live from receipt_dossier,
+     source-stamped, never editable, never stored on the dossier row.
+   - User annotations are CLEARLY LABELED as user content. No passing off
+     opinions as data. Copy rule inherited from the Receipt: "took $X from
+     [industry]" / "raised $X" are donation facts — allowed; "sold their vote"
+     is a causal claim — BANNED, never rendered.
+   - 0 XP for viewing. Publishing routes through the existing share XP
+     mechanics (PFShare.shareImage -> pf-share-image -> creditShare).
+   - STICKY WEB: every published dossier links back to its source Receipt
+     (/receipt/<politician-slug>).
+   DESIGN (CEO direction 2026-10-07 "Let it blossom"): CLEAN, LIGHT. The
+   receipt-paper palette (paper-white, dashed perforation, monospace figures)
+   carries over from the Receipt; no bloated layouts, mobile-first.
+   BUTTER RULE: the 1080x1350 share painter runs ONLY on tap.
+   KILL: ?pf_off=dossier */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('dossier')) { return; }
+  if (window.pfDossierDone) return;
+  window.pfDossierDone = true;
+
+  /* Light receipt-paper palette (matches the Receipt; CEO: clean, light). */
+  var RED = '#c1121f', PAPER = '#fdfdfa', INK = '#1a1814', MUTED = '#8a8474',
+    HAIR = '#e7e1d0', DASH = '#d8d2bd', MONO = "'SF Mono',Menlo,Consolas,monospace";
+  var BACKEND = window.PF_BACKEND_URL;
+  var FONT = "font-family:'Helvetica Neue',Arial,sans-serif;";
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function slugify(name) {
+    return String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+  function unslugify(slug) {
+    return String(slug || '').replace(/-/g, ' ');
+  }
+  function err(m) { try { if (PF && PF.error) PF.error('dossier', m); } catch (e) {} }
+  function toast(m) {
+    try { if (PF && PF.toast) { PF.toast(m); return; } } catch (e) {}
+    try {
+      var t = document.createElement('div'); t.textContent = m;
+      t.style.cssText = 'position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999';
+      document.body.appendChild(t); setTimeout(function () { t.remove(); }, 2800);
+    } catch (e2) {}
+  }
+  function callsign() {
+    try { return window.PFCallsign ? window.PFCallsign() : ''; } catch (e) { return ''; }
+  }
+  function authSecret() {
+    try { return (PF && PF.getAuthSecret) ? PF.getAuthSecret() : ''; } catch (e) { return ''; }
+  }
+  function chiDate(ts) {
+    try {
+      return new Date(ts).toLocaleDateString('en-US',
+        { timeZone: 'America/Chicago', month: 'short', day: 'numeric', year: 'numeric' });
+    } catch (e) { return ''; }
+  }
+
+  /* JSONP, same contract as games/receipt.js. */
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var fn = 'pfDossierCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      try { if (s.parentNode) s.parentNode.removeChild(s); } catch (e) {}
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    s.async = true;
+    try { document.head.appendChild(s); } catch (e) { finish(null); }
+    setTimeout(function () { finish(null); }, 15000);
+  }
+
+  /* Authenticated JSON POST (receipt-uploads.js precedent). */
+  function postJSON(prAction, body, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var ctl = null;
+    try { ctl = new AbortController(); } catch (e) {}
+    var to = setTimeout(function () { try { ctl && ctl.abort(); } catch (e) {} }, 20000);
+    fetch(BACKEND + '?action=' + encodeURIComponent(prAction), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: ctl ? ctl.signal : undefined
+    }).then(function (r) {
+      clearTimeout(to);
+      return r.json().catch(function () { return null; });
+    }).then(function (j) { cb(j); })
+      .catch(function () { clearTimeout(to); cb(null); });
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Shared render bits (paper theme)                                  */
+  /* ---------------------------------------------------------------- */
+  function moneyLine(label, val) {
+    return '<div style="display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px dashed ' + DASH + ';font-size:14px;">'
+      + '<span style="color:' + MUTED + ';">' + esc(label) + '</span>'
+      + '<span style="font-weight:800;color:' + INK + ';font-family:' + MONO + ';">' + esc(val == null ? '—' : val) + '</span></div>';
+  }
+  function sectionCard(title, inner, stamp) {
+    return '<details open style="background:' + PAPER + ';border:1px solid ' + HAIR
+      + ';border-radius:3px;margin:0 0 10px;overflow:hidden;">'
+      + '<summary style="list-style:none;cursor:pointer;padding:13px 16px;font-size:12px;font-weight:900;letter-spacing:3px;color:' + RED
+      + ';border-bottom:2px dashed ' + DASH + ';outline:none;">\u25b8 ' + esc(title) + '</summary>'
+      + '<div style="padding:14px 16px;">' + inner
+      + (stamp ? '<div style="margin-top:12px;padding-top:10px;border-top:1px dashed ' + DASH + ';font-size:11px;color:' + MUTED + ';line-height:1.6;">'
+        + '<div>SOURCE: ' + esc(stamp.source || '') + '</div>'
+        + '<div>' + esc(stamp.staleness || '') + (stamp.rail ? ' · ' + esc(stamp.rail) : '') + '</div></div>' : '')
+      + '</div></details>';
+  }
+  function btnStyle(primary) {
+    return primary
+      ? 'background:' + RED + ';border:2px solid ' + RED + ';color:#fff;font-weight:900;letter-spacing:2px;padding:14px 34px;font-size:15px;cursor:pointer;border-radius:3px;'
+      : 'background:transparent;border:2px solid ' + INK + ';color:' + INK + ';font-weight:800;letter-spacing:2px;padding:11px 26px;font-size:14px;cursor:pointer;border-radius:3px;';
+  }
+  function inputStyle() {
+    return 'width:100%;box-sizing:border-box;background:#fff;border:2px solid ' + INK + ';color:' + INK
+      + ';padding:12px 14px;font-size:16px;border-radius:3px;outline:none;';
+  }
+  function labelHTML(t, max) {
+    return '<div style="font-size:11px;letter-spacing:3px;color:' + RED + ';font-weight:900;margin:16px 0 6px;">'
+      + esc(t) + (max ? ' <span style="color:' + MUTED + ';letter-spacing:1px;">(' + max + ')</span>' : '') + '</div>';
+  }
+  function divider() {
+    return '<div style="border-top:2px dashed ' + DASH + ';margin:18px 0;"></div>';
+  }
+
+  /* Read-only Receipt headline render (source-stamped; NOT editable). */
+  function renderSourceHeadline(d) {
+    var r = d.resolved, h = d.headline;
+    var office = r.office === 'S' ? 'U.S. Senate' : r.office === 'H' ? 'U.S. House' : '';
+    var sub = office + (r.state ? ' · ' + r.state : '') + (r.party ? ' · ' + r.party : '');
+    var html = '<div style="background:' + PAPER + ';border:1px solid ' + HAIR + ';border-top:4px solid ' + RED
+      + ';border-radius:3px;padding:20px 18px;margin-bottom:12px;' + FONT + 'color:' + INK + ';">'
+      + '<div style="font-size:11px;letter-spacing:4px;color:' + RED + ';font-weight:800;margin-bottom:8px;">SOURCED DATA — FROM THE RECEIPT · NOT EDITABLE</div>'
+      + '<div style="font-size:24px;font-weight:900;">' + esc(r.display_name) + '</div>'
+      + '<div style="font-size:13px;color:' + MUTED + ';margin:4px 0 12px;">' + esc(sub) + '</div>'
+      + '<div style="border-top:2px dashed ' + DASH + ';padding-top:12px;">';
+    if (h.money_live && h.total_raised_display) {
+      html += '<div style="font-size:11px;letter-spacing:3px;color:' + MUTED + ';margin-bottom:4px;">RAISED · 2026 CYCLE</div>'
+        + '<div style="font-size:38px;font-weight:900;color:' + RED + ';font-family:' + MONO + ';letter-spacing:-1px;">'
+        + esc(h.total_raised_display) + '</div>';
+    }
+    if (h.top_industries && h.top_industries.length) {
+      html += '<div style="font-size:11px;letter-spacing:3px;color:' + RED + ';font-weight:800;margin:12px 0 4px;">TOP INDUSTRIES</div>';
+      h.top_industries.forEach(function (t) {
+        html += '<div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px dashed ' + DASH + ';font-size:13px;">'
+          + '<span>' + esc(t.industry) + ' <span style="color:' + MUTED + ';">(est.)</span></span>'
+          + '<span style="font-weight:800;font-family:' + MONO + ';">' + esc(t.total_receipts_display || '?') + '</span></div>';
+      });
+    }
+    html += '</div>';
+    var stamps = [];
+    ['money_in', 'industries'].forEach(function (k) {
+      var sec = d.sections && d.sections[k];
+      if (sec && sec.status === 'live') stamps.push(sec.source + ' · ' + sec.staleness);
+    });
+    html += '<div style="margin-top:12px;padding-top:10px;border-top:1px dashed ' + DASH + ';font-size:11px;color:' + MUTED + ';line-height:1.6;">'
+      + 'SOURCES: ' + esc(stamps.join(' / ') || 'FEC') + '<br>Numbers pulled live from the Receipt — users can annotate, never edit.</div>';
+    html += '</div>';
+    return html;
+  }
+
+  /* Live section titles for annotation slots (live sections only). */
+  var SECTION_TITLES = { money_in: 'MONEY IN — FUNDRAISING', industries: 'TOP INDUSTRIES — CYCLE-WIDE' };
+  function liveSections(d) {
+    var out = [];
+    var S = d.sections || {};
+    Object.keys(SECTION_TITLES).forEach(function (k) {
+      if (S[k] && S[k].status === 'live') out.push({ key: k, title: SECTION_TITLES[k] });
+    });
+    return out;
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Builder                                                           */
+  /* ---------------------------------------------------------------- */
+  var build = { polName: '', polSlug: '', dossier: null, step: 1, annot: null };
+
+  function builderShell(host) {
+    host.innerHTML = '<div class="pf-dossier-build" style="max-width:680px;margin:0 auto;' + FONT + 'color:' + INK + ';">'
+      + '<div style="text-align:center;margin:6px 0 18px;">'
+      + '<div style="font-size:12px;letter-spacing:5px;color:' + RED + ';font-weight:800;margin-bottom:10px;">USER-GENERATED DOSSIERS</div>'
+      + '<div style="font-size:24px;font-weight:900;letter-spacing:.5px;margin-bottom:8px;">BUILD THE DOSSIER</div>'
+      + '<div style="font-size:14px;color:' + MUTED + ';line-height:1.6;">Pick a Receipt. Add your context. Publish the page.<br>Sourced numbers stay locked — your words sit beside them, clearly yours.</div>'
+      + '</div>'
+      + '<div id="pf-dossier-steps"></div>'
+      + divider()
+      + '<div id="pf-dossier-feed"></div>'
+      + '</div>';
+  }
+
+  function stepBadge(n, label) {
+    return '<div style="display:inline-block;font-size:11px;letter-spacing:3px;font-weight:900;color:' + RED + ';border:2px solid ' + RED
+      + ';border-radius:3px;padding:5px 10px;margin-bottom:12px;">STEP ' + n + ' · ' + esc(label) + '</div>';
+  }
+
+  /* Step 1: pick the politician (typeahead or Receipt URL). */
+  function renderStep1(host) {
+    build.step = 1;
+    var html = stepBadge(1, 'PICK THE POLITICIAN')
+      + '<div style="position:relative;">'
+      + '<input id="pf-dsq" type="text" autocomplete="off" placeholder="e.g. Bernie Sanders" aria-label="Politician name" style="' + inputStyle() + '">'
+      + '<div id="pf-dsta" style="position:absolute;top:100%;left:0;right:0;z-index:20;display:none;background:#fff;border:2px solid ' + HAIR + ';border-top:0;border-radius:0 0 3px 3px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.08);"></div>'
+      + '</div>'
+      + '<div style="text-align:center;margin:12px 0;font-size:13px;color:' + MUTED + ';">— or paste a Receipt URL —</div>'
+      + '<input id="pf-dsurl" type="text" autocomplete="off" placeholder="mtcstw.com/receipt/bernie-sanders" aria-label="Receipt URL" style="' + inputStyle() + '">'
+      + '<div style="text-align:center;margin-top:14px;">'
+      + '<button id="pf-dsgo" type="button" style="' + btnStyle(true) + '">START THE DOSSIER</button></div>'
+      + '<div id="pf-dserr" style="text-align:center;color:' + RED + ';font-size:14px;margin-top:10px;"></div>';
+    host.innerHTML = html;
+    wireStep1(host);
+  }
+
+  function wireStep1(host) {
+    var input = host.querySelector('#pf-dsq'), ta = host.querySelector('#pf-dsta');
+    var urlInput = host.querySelector('#pf-dsurl'), go = host.querySelector('#pf-dsgo');
+    var errEl = host.querySelector('#pf-dserr');
+    var timer = null, lastQ = '';
+    function showErr(m) { errEl.textContent = m; }
+    function hide() { ta.style.display = 'none'; ta.innerHTML = ''; }
+    function pick(name) { hide(); input.value = name; startFromName(host, name, showErr); }
+    go.addEventListener('click', function () {
+      var uv = urlInput.value.trim();
+      var m = uv.match(/\/receipt\/([a-z0-9-]+)/i);
+      if (m && m[1]) { startFromSlug(host, m[1], showErr); return; }
+      var v = input.value.trim();
+      if (v) startFromName(host, v, showErr);
+      else showErr('Pick a politician or paste a Receipt URL.');
+    });
+    input.addEventListener('input', function () {
+      var q = input.value.trim();
+      if (timer) clearTimeout(timer);
+      if (q.length < 2 || q === lastQ) { if (q.length < 2) hide(); return; }
+      timer = setTimeout(function () {
+        lastQ = q;
+        api('receipt_search', { q: q }, function (r) {
+          if (!r || !r.ok || !r.matches || !r.matches.length) { hide(); return; }
+          if (document.activeElement !== input) return;
+          var html = '';
+          r.matches.slice(0, 7).forEach(function (m2) {
+            html += '<button type="button" data-pf-dta="' + esc(m2.display_name) + '"'
+              + ' style="display:block;width:100%;text-align:left;background:transparent;border:0;border-bottom:1px dashed ' + DASH + ';color:' + INK
+              + ';padding:11px 14px;font-size:15px;cursor:pointer;">' + esc(m2.display_name)
+              + ' <span style="color:' + MUTED + ';font-size:12px;">'
+              + esc((m2.office === 'S' ? 'Senate' : m2.office === 'H' ? 'House' : '') + (m2.state ? ' · ' + m2.state : '')) + '</span></button>';
+          });
+          ta.innerHTML = html;
+          ta.style.display = 'block';
+          ta.querySelectorAll('[data-pf-dta]').forEach(function (b) {
+            b.addEventListener('mousedown', function (e) { e.preventDefault(); pick(b.getAttribute('data-pf-dta')); });
+          });
+        });
+      }, 220);
+    });
+    document.addEventListener('click', function (e) {
+      try { if (!ta.contains(e.target) && e.target !== input) hide(); } catch (x) { hide(); }
+    });
+  }
+
+  function startFromSlug(host, slug, showErr) {
+    api('receipt_dossier', { name: unslugify(slug) }, function (d) {
+      if (!d || !d.ok || !d.resolved) { showErr('That Receipt did not load. Try the name search.'); return; }
+      beginAnnotate(host, d);
+    });
+  }
+  function startFromName(host, name, showErr) {
+    api('receipt_dossier', { name: name }, function (d) {
+      if (!d || !d.ok) { showErr('The Receipt machine hiccuped — try again.'); return; }
+      if (!d.resolved) { showErr('No Receipt for that name yet — try the typeahead picks.'); return; }
+      beginAnnotate(host, d);
+    });
+  }
+
+  /* Step 2: annotate. */
+  function beginAnnotate(host, d) {
+    build.step = 2;
+    build.dossier = d;
+    build.polName = d.resolved.display_name;
+    build.polSlug = slugify(d.resolved.display_name);
+    build.annot = { title: '', share_line: '', why: '', notes: {} };
+    var secs = liveSections(d);
+    var html = stepBadge(2, 'ADD YOUR CONTEXT')
+      + '<div style="text-align:center;margin-bottom:6px;">'
+      + '<button id="pf-dsback" type="button" style="' + btnStyle(false) + ';padding:8px 18px;font-size:12px;">\u2190 PICK SOMEONE ELSE</button></div>'
+      + renderSourceHeadline(d)
+      + '<div style="font-size:12px;letter-spacing:3px;color:' + MUTED + ';font-weight:900;text-align:center;margin:6px 0 2px;">YOUR CONTEXT GOES BELOW — THE NUMBERS ABOVE STAY LOCKED</div>'
+      + labelHTML('DOSSIER TITLE', '90')
+      + '<input id="pf-dt-title" type="text" maxlength="90" placeholder="Give your dossier a headline" style="' + inputStyle() + '">'
+      + labelHTML('SHARE HEADLINE', '140')
+      + '<input id="pf-dt-share" type="text" maxlength="140" placeholder="The one line on the share image" style="' + inputStyle() + '">'
+      + labelHTML('WHY THIS MATTERS', '600')
+      + '<textarea id="pf-dt-why" rows="4" maxlength="600" placeholder="In your words: why should anyone care about this Receipt?" style="' + inputStyle() + 'resize:vertical;"></textarea>';
+    secs.forEach(function (s) {
+      html += labelHTML('YOUR NOTE — ' + s.title, '280')
+        + '<textarea data-pf-dnote="' + esc(s.key) + '" rows="2" maxlength="280" placeholder="Your annotation on this section (clearly yours)" style="' + inputStyle() + 'resize:vertical;"></textarea>';
+    });
+    if (!secs.length) {
+      html += '<div style="font-size:13px;color:' + MUTED + ';margin-top:12px;line-height:1.6;">No live sections on this Receipt yet — your title and why-it-matters carry the dossier.</div>';
+    }
+    html += '<div style="text-align:center;margin-top:20px;">'
+      + '<button id="pf-dt-preview" type="button" style="' + btnStyle(true) + '">PREVIEW THE DOSSIER</button></div>';
+    host.innerHTML = html;
+    host.querySelector('#pf-dsback').addEventListener('click', function () {
+      builderShell(document.getElementById('pf-dossier'));
+      renderStep1(document.getElementById('pf-dossier-steps'));
+      renderFeed(document.getElementById('pf-dossier-feed'));
+    });
+    host.querySelector('#pf-dt-preview').addEventListener('click', function () {
+      build.annot.title = host.querySelector('#pf-dt-title').value.trim();
+      build.annot.share_line = host.querySelector('#pf-dt-share').value.trim();
+      build.annot.why = host.querySelector('#pf-dt-why').value.trim();
+      host.querySelectorAll('[data-pf-dnote]').forEach(function (t) {
+        build.annot.notes[t.getAttribute('data-pf-dnote')] = t.value.trim();
+      });
+      if (!build.annot.title) { toast('Give your dossier a title first.'); return; }
+      if (!build.annot.why) { toast('Tell us why this matters first.'); return; }
+      renderPreview(host);
+    });
+  }
+
+  function annotToPayload() {
+    var secs = liveSections(build.dossier);
+    var notes = [];
+    secs.forEach(function (s) {
+      var t = (build.annot.notes[s.key] || '').trim();
+      if (t) notes.push({ section: s.title, text: t });
+    });
+    return {
+      pol_slug: build.polSlug, pol_name: build.polName,
+      title: build.annot.title, why: build.annot.why,
+      share_line: build.annot.share_line || (notes.length ? notes[0].text : ''),
+      notes: notes
+    };
+  }
+
+  /* Step 3: preview — the exact published layout. */
+  function renderPreview(host) {
+    build.step = 3;
+    var fake = {
+      slug: 'preview', pol_slug: build.polSlug, pol_name: build.polName,
+      callsign: callsign() || 'YOU',
+      title: build.annot.title, why: build.annot.why,
+      share_line: build.annot.share_line,
+      notes: annotToPayload().notes, created_at: Date.now()
+    };
+    host.innerHTML = stepBadge(3, 'PREVIEW — EXACTLY AS IT WILL PUBLISH')
+      + renderPublished(fake, build.dossier, true)
+      + '<div style="text-align:center;margin:18px 0 8px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">'
+      + '<button id="pf-dp-edit" type="button" style="' + btnStyle(false) + '">\u2190 EDIT</button>'
+      + '<button id="pf-dp-pub" type="button" style="' + btnStyle(true) + '">PUBLISH THE DOSSIER</button></div>'
+      + '<div style="text-align:center;font-size:12px;color:' + MUTED + ';margin-bottom:10px;">Publishing routes through your callsign. Zero XP for building or viewing — sharing counts through the usual share mechanics.</div>';
+    host.querySelector('#pf-dp-edit').addEventListener('click', function () {
+      beginAnnotate(host, build.dossier);
+      /* Restore the user's words. */
+      try {
+        host.querySelector('#pf-dt-title').value = build.annot.title;
+        host.querySelector('#pf-dt-share').value = build.annot.share_line;
+        host.querySelector('#pf-dt-why').value = build.annot.why;
+        host.querySelectorAll('[data-pf-dnote]').forEach(function (t) {
+          t.value = build.annot.notes[t.getAttribute('data-pf-dnote')] || '';
+        });
+      } catch (e) {}
+    });
+    host.querySelector('#pf-dp-pub').addEventListener('click', function () { publishDossier(host); });
+    try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
+  }
+
+  /* Step 4: publish. */
+  function publishDossier(host) {
+    function doPublish(cs) {
+      var body = annotToPayload();
+      body.type = 'dossier'; body.d_action = 'dossier_publish';
+      body.callsign = cs; body.auth_secret = authSecret();
+      host.querySelector('#pf-dp-pub').textContent = 'PUBLISHING…';
+      postJSON('dossier_publish', body, function (j) {
+        if (!j || !j.ok || !j.slug) {
+          err('publish failed: ' + (j && j.err));
+          toast('Publish failed — ' + ((j && j.err) || 'try again.'));
+          host.querySelector('#pf-dp-pub').textContent = 'PUBLISH THE DOSSIER';
+          return;
+        }
+        /* Sticky web: land on the published page via the deep link. */
+        try {
+          if (window.history && window.history.replaceState) {
+            window.history.replaceState(null, '', '/dossier/' + j.slug);
+          }
+        } catch (e) {}
+        renderPublishedPage(j.slug);
+      });
+    }
+    if (!callsign()) {
+      if (PF.requireCallsign) {
+        PF.requireCallsign(function (cs) { if (cs) doPublish(cs); else toast('Claim a callsign to publish.'); },
+          { context: 'to publish your dossier' });
+        return;
+      }
+      toast('Claim a callsign to publish.');
+      return;
+    }
+    doPublish(callsign());
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Published page                                                    */
+  /* ---------------------------------------------------------------- */
+  function renderPublished(doc, receipt, isPreview) {
+    var polSlug = doc.pol_slug || slugify(doc.pol_name || '');
+    var html = '<div style="' + FONT + 'color:' + INK + ';">'
+      + '<div style="text-align:center;margin:6px 0 14px;">'
+      + '<div style="font-size:11px;letter-spacing:4px;color:' + RED + ';font-weight:800;margin-bottom:8px;">USER-GENERATED DOSSIER</div>'
+      + '<div style="font-size:26px;font-weight:900;line-height:1.25;">' + esc(doc.title) + '</div>'
+      + '<div style="font-size:13px;color:' + MUTED + ';margin-top:8px;">by <strong style="color:' + INK + ';">'
+      + esc(doc.callsign) + '</strong>' + (doc.created_at && !isPreview ? ' · ' + esc(chiDate(doc.created_at)) : '') + '</div>'
+      + '</div>'
+      + (receipt ? renderSourceHeadline(receipt)
+        : '<div style="background:' + PAPER + ';border:1px solid ' + HAIR + ';border-radius:3px;padding:18px;margin-bottom:12px;text-align:center;color:' + MUTED + ';font-size:14px;">'
+          + 'The source Receipt is unavailable right now — the user\u2019s context below is still theirs.</div>')
+      + '<div style="font-size:12px;letter-spacing:4px;color:' + RED + ';font-weight:900;text-align:center;margin:18px 0 10px;">USER CONTEXT — ANNOTATIONS, NOT SOURCED DATA</div>';
+    html += '<div style="background:#fff;border:2px solid ' + INK + ';border-radius:3px;padding:18px;margin-bottom:10px;">'
+      + '<div style="font-size:11px;letter-spacing:3px;color:' + RED + ';font-weight:900;margin-bottom:8px;">USER ADDED · WHY THIS MATTERS</div>'
+      + '<div style="font-size:15px;line-height:1.65;">' + esc(doc.why) + '</div></div>';
+    (doc.notes || []).forEach(function (n) {
+      html += '<div style="background:#fff;border:2px solid ' + INK + ';border-radius:3px;padding:18px;margin-bottom:10px;">'
+        + '<div style="font-size:11px;letter-spacing:3px;color:' + RED + ';font-weight:900;margin-bottom:8px;">USER ADDED · ON ' + esc(n.section || 'THE RECEIPT') + '</div>'
+        + '<div style="font-size:15px;line-height:1.65;">' + esc(n.text) + '</div></div>';
+    });
+    /* Sticky web: back to the source Receipt. */
+    html += '<a href="/receipt/' + esc(polSlug) + '" style="display:block;background:' + PAPER + ';border:1px solid ' + HAIR
+      + ';border-radius:3px;padding:14px 16px;margin:14px 0 10px;text-decoration:none;color:' + INK + ';">'
+      + '<div style="font-size:12px;font-weight:900;letter-spacing:2px;color:' + RED + ';margin-bottom:6px;">\uD83E\uDDFE VIEW THE SOURCE RECEIPT</div>'
+      + '<div style="font-size:14px;line-height:1.5;">The full sourced dossier on <strong>' + esc(doc.pol_name || '') + '</strong> — every figure, every source.</div>'
+      + '<div style="font-size:12px;color:' + MUTED + ';margin-top:6px;">/receipt/' + esc(polSlug) + ' \u2192</div></a>';
+    if (!isPreview) {
+      html += '<div style="text-align:center;margin:8px 0 26px;">'
+        + '<button id="pf-dossier-share" type="button" style="' + btnStyle(true) + '">SHARE THIS DOSSIER</button></div>';
+    }
+    html += '<div style="font-size:11px;color:' + MUTED + ';text-align:center;line-height:1.6;margin-bottom:8px;">'
+      + 'Sourced numbers come from the Receipt and cannot be edited here. Annotations are user content and do not reflect the movement\u2019s data.</div>'
+      + '</div>';
+    return html;
+  }
+
+  function renderPublishedPage(slug) {
+    var host = document.getElementById('pf-dossier');
+    if (!host) return;
+    host.innerHTML = '<div style="max-width:680px;margin:0 auto;' + FONT + 'color:' + INK
+      + ';text-align:center;padding:30px 10px;">Pulling the dossier…</div>';
+    try {
+      if (window.history && window.history.replaceState && location.pathname !== '/dossier/' + slug) {
+        window.history.replaceState(null, '', '/dossier/' + slug);
+      }
+    } catch (e) {}
+    api('dossier_get', { slug: slug }, function (j) {
+      if (!j || !j.ok || !j.dossier) {
+        host.innerHTML = '<div style="max-width:680px;margin:0 auto;' + FONT + 'color:' + INK
+          + ';text-align:center;padding:30px 10px;">No dossier at that address. '
+          + '<a href="/dossier" style="color:' + RED + ';font-weight:800;">Build one →</a></div>';
+        return;
+      }
+      var doc = j.dossier;
+      api('receipt_dossier', { name: doc.pol_name }, function (d) {
+        host.innerHTML = renderPublished(doc, (d && d.ok && d.resolved) ? d : null, false);
+        var btn = host.querySelector('#pf-dossier-share');
+        if (btn) btn.addEventListener('click', function () { shareDossier(doc); });
+        try { window.scrollTo(0, 0); } catch (e) {}
+      });
+    });
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Feed                                                              */
+  /* ---------------------------------------------------------------- */
+  function renderFeed(host) {
+    host.innerHTML = '<div style="max-width:680px;margin:0 auto 30px;' + FONT + 'color:' + INK + ';">'
+      + '<div style="font-size:12px;letter-spacing:4px;color:' + RED + ';font-weight:900;text-align:center;margin-bottom:12px;">PUBLISHED DOSSIERS</div>'
+      + '<div id="pf-dossier-feedlist" style="text-align:center;color:' + MUTED + ';font-size:14px;padding:10px;">Loading the feed…</div></div>';
+    var list = host.querySelector('#pf-dossier-feedlist');
+    api('dossier_feed', {}, function (j) {
+      if (!j || !j.ok || !j.dossiers || !j.dossiers.length) {
+        list.innerHTML = 'No dossiers published yet. Build the first one above.';
+        return;
+      }
+      var html = '';
+      j.dossiers.forEach(function (d) {
+        html += '<a href="/dossier/' + esc(d.slug) + '" style="display:block;background:' + PAPER + ';border:1px solid ' + HAIR
+          + ';border-radius:3px;padding:14px 16px;margin:0 0 10px;text-decoration:none;color:' + INK + ';text-align:left;">'
+          + '<div style="font-size:16px;font-weight:900;line-height:1.35;">' + esc(d.title) + '</div>'
+          + '<div style="font-size:13px;color:' + MUTED + ';margin-top:6px;">on <strong style="color:' + INK + ';">' + esc(d.pol_name) + '</strong>'
+          + ' · by ' + esc(d.callsign) + (d.created_at ? ' · ' + esc(chiDate(d.created_at)) : '') + '</div>'
+          + (d.share_line ? '<div style="font-size:13px;margin-top:6px;line-height:1.5;">\u201C' + esc(d.share_line) + '\u201D</div>' : '')
+          + '</a>';
+      });
+      html += '<div style="font-size:11px;color:' + MUTED + ';text-align:center;margin-top:8px;line-height:1.6;">'
+        + 'Dossiers feed the movement — shares, campaigns, evidence. Never sold.</div>';
+      list.innerHTML = html;
+    });
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Share image — 1080x1350 canvas, light paper theme, tap-only       */
+  /* ---------------------------------------------------------------- */
+  function wrap(x, text, maxW) {
+    var words = String(text).split(/\s+/), lines = [], line = '';
+    words.forEach(function (w) {
+      var t = line ? line + ' ' + w : w;
+      if (x.measureText(t).width > maxW && line) { lines.push(line); line = w; }
+      else { line = t; }
+    });
+    if (line) lines.push(line);
+    return lines;
+  }
+  function paintDossier(doc) {
+    var W = 1080, H = 1350;
+    var cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    var x = cv.getContext('2d');
+    if (!x) return null;
+    /* Light paper: cream card on a soft field. */
+    x.fillStyle = '#f4f1e6'; x.fillRect(0, 0, W, H);
+    x.fillStyle = '#fdfdfa'; x.fillRect(70, 70, W - 140, H - 140);
+    x.strokeStyle = '#c1121f'; x.lineWidth = 10; x.strokeRect(70, 70, W - 140, H - 140);
+    x.strokeStyle = '#d8d2bd'; x.lineWidth = 2; x.setLineDash([14, 10]);
+    x.strokeRect(100, 100, W - 200, H - 200);
+    x.setLineDash([]);
+    x.textAlign = 'center';
+    var y = 210;
+    x.fillStyle = '#c1121f'; x.font = '700 32px Arial,sans-serif';
+    x.fillText('★ USER-GENERATED DOSSIER ★', W / 2, y); y += 70;
+    x.fillStyle = '#1a1814'; x.font = '900 58px "Arial Black",Arial,sans-serif';
+    wrap(x, String(doc.title || '').toUpperCase(), W - 260).slice(0, 3).forEach(function (l) {
+      x.fillText(l, W / 2, y); y += 70;
+    });
+    y += 20;
+    x.fillStyle = '#8a8474'; x.font = '700 34px Arial,sans-serif';
+    x.fillText('ON ' + String(doc.pol_name || '').toUpperCase() + '  ·  BY ' + String(doc.callsign || '').toUpperCase(), W / 2, y);
+    y += 80;
+    x.fillStyle = '#c1121f'; x.fillRect(140, y - 12, W - 280, 3); y += 60;
+    /* The user's top annotation — clearly user content. */
+    x.fillStyle = '#1a1814'; x.font = 'italic 700 44px Georgia,serif';
+    wrap(x, '“' + String(doc.share_line || doc.why || '').slice(0, 220) + '”', W - 280).slice(0, 5).forEach(function (l) {
+      x.fillText(l, W / 2, y); y += 60;
+    });
+    y += 40;
+    x.fillStyle = '#8a8474'; x.font = '700 30px Arial,sans-serif';
+    x.fillText('— a movement annotation, not sourced data', W / 2, y);
+    /* CTA standard: JOIN THE FIGHT. red bold above MTCSTW.COM */
+    x.fillStyle = '#c1121f'; x.font = '900 62px "Arial Black",Arial,sans-serif';
+    x.fillText('JOIN THE FIGHT.', W / 2, H - 240);
+    x.fillStyle = '#1a1814'; x.font = '900 46px "Arial Black",Arial,sans-serif';
+    x.fillText('MTCSTW.COM', W / 2, H - 165);
+    x.fillStyle = '#8a8474'; x.font = '400 30px Arial,sans-serif';
+    x.fillText('mtcstw.com/dossier/' + slugify(doc.slug), W / 2, H - 105);
+    return cv;
+  }
+  function shareDossier(doc) {
+    var cv = paintDossier(doc);
+    if (!cv) { toast('Poster failed — try again.'); return; }
+    try {
+      if (window.PFShare && window.PFShare.shareImage) {
+        /* Native share sheet w/ download fallback; fires pf-share-image so
+           the share counts through the existing XP mechanics. 0 XP for
+           viewing — only the share itself counts. */
+        window.PFShare.shareImage(cv, 'pfn-dossier-' + slugify(doc.slug) + '.png',
+          'DOSSIER: ' + doc.title + ' on ' + doc.pol_name, 'dossier');
+      }
+    } catch (e) { err('share failed: ' + (e && e.message)); }
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Mount                                                             */
+  /* ---------------------------------------------------------------- */
+  function mount() {
+    var host = document.getElementById('pf-dossier');
+    if (!host || host.getAttribute('data-pf-dossier-mounted')) return;
+    host.setAttribute('data-pf-dossier-mounted', '1');
+    /* Deep link: /dossier/<slug> renders the published page. */
+    try {
+      var m = (location.pathname || '').match(/\/dossier\/([a-z0-9-]+)\/?$/);
+      if (m && m[1] && m[1] !== 'dossier') { renderPublishedPage(m[1]); return; }
+    } catch (e) {}
+    builderShell(host);
+    renderStep1(host.querySelector('#pf-dossier-steps'));
+    renderFeed(host.querySelector('#pf-dossier-feed'));
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+  /* Late-mount guard: the footer loader may inject #pf-dossier after us. */
+  setTimeout(mount, 1500);
+})();

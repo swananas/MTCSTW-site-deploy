@@ -6,8 +6,11 @@
    displays with one voice; surfaces keep their local flavor, the HUD is
    the constant.
    FRONTEND-ONLY, ZERO NEW XP — pure routing + reads. No writes.
-   Reads (existing, all fail-open): xp_today, streak_status, cell_mine,
-   academy_progress. Rank is device-local (pf_ranks_v1, same tiers as
+   Reads: ONE batched `hud` endpoint (auth-gated via PF.authGetJSONP, fail-open),
+   replacing the 4-call page-load fan-out (xp_today + streak_status +
+   academy_progress + cell_mine). Instant shell: renders immediately from
+   localStorage (callsign + rank), patches numbers in when the call resolves.
+   Rank is device-local (pf_ranks_v1, same tiers as
    games/enlistment-ranks.js); absent = rank omitted, never guessed.
    DAILY TARGET: window.PF_HUD_TARGET or PF.hudDailyTarget (default 100) —
    THIS IS MATH DEPT'S KNOB. The ring fills toward it; the HUD sets no values.
@@ -229,33 +232,43 @@
     } catch (e2) {}
   }
 
+  function rerender(callsign, xpToday, streakCount, graduated, inCell) {
+    /* Patch path: drop the instant shell and render with live numbers,
+       preserving the strip's open/closed state. */
+    var open = false;
+    try {
+      var old = document.getElementById('pf-hud');
+      if (old) { open = old.classList.contains('open'); if (old.parentNode) old.parentNode.removeChild(old); }
+    } catch (e) {}
+    render(callsign, xpToday, streakCount, graduated, inCell);
+    if (open) {
+      try { var h = document.getElementById('pf-hud'); if (h) h.classList.add('open'); } catch (e2) {}
+    }
+  }
+
   function boot() {
     var cs = ident();
     if (!cs) { render('', 0, 0, false, false); return; }
-    var out = { xp: 0, streak: 0, grad: false, cell: false };
-    var pending = 4, done = false;
-    function fin() {
+    /* Instant shell: paint immediately from localStorage so the HUD is never
+       the thing the user waits on; the single batched call patches in. */
+    render(cs, 0, 0, false, false);
+    var done = false;
+    function settle(j) {
       if (done) return; done = true;
-      render(cs, out.xp, out.streak, out.grad, out.cell);
+      try {
+        if (j && j.ok) {
+          var xp = (j.xp_today !== undefined) ? (Number(j.xp_today) || 0) : 0;
+          var streak = (j.streak && j.streak.count !== undefined) ? (Number(j.streak.count) || 0) : 0;
+          rerender(cs, xp, streak, !!j.graduated, !!j.in_cell);
+        }
+        /* else: fail-open — the instant shell stands with zeros. */
+      } catch (e) {}
     }
-    function one() { if (--pending <= 0) fin(); }
-    setTimeout(fin, 10000);
-    api('xp_today', { callsign: cs }, function (j) {
-      try { if (j && j.ok && j.xp_today !== undefined) out.xp = Number(j.xp_today) || 0; } catch (e) {}
-      one();
-    });
-    api('streak_status', { callsign: cs }, function (j) {
-      try { if (j && j.ok && j.count !== undefined) out.streak = Number(j.count) || 0; } catch (e) {}
-      one();
-    });
-    api('academy_progress', { callsign: cs }, function (j) {
-      try { if (j && j.ok && j.graduated !== undefined) out.grad = !!j.graduated; } catch (e) {}
-      one();
-    });
-    api('cell_mine', { callsign: cs }, function (j) {
-      try { if (j && j.ok) out.cell = !!j.in_cell; } catch (e) {}
-      one();
-    });
+    setTimeout(settle, 10000);
+    /* ONE batched call (D1 structural 2026-10-06): auth attaches via
+       PF.authGetJSONP (callsign/device/auth_secret) — same gating as the
+       individual calls it replaces. Backend: src/hud.js `hud` action. */
+    api('hud', { callsign: cs }, settle);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();

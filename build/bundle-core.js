@@ -312,6 +312,10 @@ var BUNDLES = {
   'pages/bundle-pages': [
     'pages/home-v2.js',
     'pages/political-hq.js',
+    /* THE CORRUPTION INDEX (fe/corruption-index, 2026-10-07): /index page —
+       self-mounting into #pf-index (political-hq pattern). Leaderboard,
+       methodology, tap-to-expand breakdowns, phq-index-score share cards. */
+    'pages/index-page.js',
     'pages/slr-roster.js',
     'pages/slr-catalog.js',
     'pages/page-mount.js',

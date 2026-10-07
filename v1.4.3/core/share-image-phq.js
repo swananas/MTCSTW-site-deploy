@@ -103,7 +103,8 @@
     'phq-corp',
     'phq-votedonor',
     'phq-bill',
-    'phq-urgency'];
+    'phq-urgency',
+    'phq-index-score'];
   var TITLES = {
     'phq-pressure': 'PRESSURE CAMPAIGN',
     'phq-prediction': 'PREDICTION RESULT',
@@ -127,7 +128,8 @@
     'phq-corp': 'CORPORATE PLAYBOOK',
     'phq-votedonor': 'THE MONEY BEHIND THE VOTE',
     'phq-bill': 'BILL POSTER',
-    'phq-urgency': 'URGENCY POSTER'
+    'phq-urgency': 'URGENCY POSTER',
+    'phq-index-score': 'CAPTURE SCORE'
   };
   var DEEP = 'MTCSTW.COM/POLITICAL-HQ';
   var PENDING = {};
@@ -1696,6 +1698,63 @@
     bottomStack(x);
     return cv;
   }
+  /* Corruption Index score card (index-page) — id phq-index-score.
+     Data contract: {name, sub, score, label, topInputs:[{title, display}],
+     vintage ('Week of Oct 5, 2026'), methodology ('v1'), url}.
+     Copy rule: label is descriptive ("HIGHLY CAPTURED") — never accusatory.
+     1080x1350, house palette, JOIN THE FIGHT. CTA per the share standard. */
+  function paintIndexScore(d, cv, x) {
+    base(x); kicker(x);
+    badge(x, 'THE CORRUPTION INDEX', 280, '#c1121f', 40);
+    var y = 380;
+    var fit = fitFont(x, String(d.name || '\u2014').toUpperCase(), 84, 38, 910);
+    var lh = Math.round(fit * 1.0);
+    x.fillStyle = '#f5ead6';
+    wrap(x, String(d.name || '\u2014').toUpperCase(), 910).slice(0, 2)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += lh; });
+    y = Math.max(500, y + 6);
+    if (d.sub) {
+      x.fillStyle = '#c9bfa8'; x.font = '700 34px Arial,sans-serif';
+      x.fillText(String(d.sub).toUpperCase().slice(0, 60), W / 2, y); y += 52;
+    }
+    /* the score — biggest element on the card */
+    y = Math.max(640, y + 40);
+    x.fillStyle = '#e8b923';
+    fitFont(x, String(d.score == null ? '\u2014' : d.score), 200, 120, 700);
+    x.fillText(String(d.score == null ? '\u2014' : d.score), W / 2, y); y += 60;
+    x.fillStyle = '#c1121f';
+    fitFont(x, String(d.label || 'CAPTURED').toUpperCase(), 56, 32, 910);
+    x.fillText(String(d.label || 'CAPTURED').toUpperCase(), W / 2, y); y += 70;
+    x.fillStyle = '#c9bfa8'; x.font = '400 30px Arial,sans-serif';
+    x.fillText('7.6 \u2013 9.8 capture scale \u00b7 methodology ' +
+      String(d.methodology || 'v1'), W / 2, y); y += 60;
+    /* top live inputs */
+    var ins = Array.isArray(d.topInputs) ? d.topInputs.slice(0, 3) : [];
+    x.textAlign = 'left';
+    for (var i = 0; i < ins.length; i++) {
+      var t = String(ins[i].title || '').toUpperCase().slice(0, 34);
+      var v = String(ins[i].display || '\u2014').slice(0, 44);
+      x.fillStyle = '#e8b923'; x.font = '700 32px Arial,sans-serif';
+      x.fillText(t, 90, y);
+      x.fillStyle = '#f5ead6'; x.font = '400 32px Arial,sans-serif';
+      var tw = x.measureText(v).width;
+      x.fillText(v, Math.max(90, W - 90 - tw), y);
+      y += 54;
+    }
+    x.textAlign = 'center';
+    y = Math.max(1060, y + 10);
+    x.fillStyle = '#c9bfa8'; x.font = '400 30px Arial,sans-serif';
+    x.fillText('SCORED ' + String(d.vintage || '').toUpperCase(), W / 2, y); y += 46;
+    /* bottom: deep link -> CTA -> date (index-specific deep link; DEEP is
+       module-wide so this card paints its own stack). */
+    x.fillStyle = '#c1121f'; x.font = '900 44px "Arial Black",Arial,sans-serif';
+    x.fillText('MTCSTW.COM/INDEX', W / 2, H - 128);
+    x.fillStyle = '#c1121f'; x.font = '900 46px "Arial Black",Arial,sans-serif';
+    x.fillText('JOIN THE FIGHT.', W / 2, H - 84);
+    x.fillStyle = '#c9bfa8'; x.font = '400 30px Arial,sans-serif';
+    x.fillText(dateStr(), W / 2, H - 48);
+    return cv;
+  }
   /* ---------------------------------------------------------------- */
   /* Registry: additive registration — this file NEVER reassigns          */
   /* PF.PHQShare. The facade is created exactly once (by the lazy stub   */
@@ -1718,7 +1777,8 @@
     'phq-corp': paintCorp,
     'phq-votedonor': paintVoteDonor,
     'phq-bill': paintBill,
-    'phq-urgency': paintUrgency
+    'phq-urgency': paintUrgency,
+    'phq-index-score': paintIndexScore
   };
   var TITLES_LOCAL = {
     'phq-racecall': 'RACE CALLED',
@@ -1736,7 +1796,8 @@
     'phq-corp': 'CORPORATE PLAYBOOK',
     'phq-votedonor': 'THE MONEY BEHIND THE VOTE',
     'phq-bill': 'BILL POSTER',
-    'phq-urgency': 'URGENCY POSTER'
+    'phq-urgency': 'URGENCY POSTER',
+    'phq-index-score': 'CAPTURE SCORE'
   };
   var FACADE = null;       /* the PF.PHQShare facade (stub or standalone) */
   function paintTable() { try { return (FACADE && FACADE._paint) || {}; } catch (e) { return {}; } }

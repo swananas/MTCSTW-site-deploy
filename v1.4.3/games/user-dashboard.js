@@ -197,7 +197,22 @@ function css(){
   +'.ud-caldow{font:bold 9px Arial;color:#a89e88;letter-spacing:1px}'
   +'.ud-caltoday .ud-caldow{color:#dc143c}'
   +'.ud-calnum{font-family:"Arial Black",Arial;font-size:18px;color:#f5ead6;line-height:1}'
-  +'.ud-caldot{width:6px;height:6px;border-radius:50%;background:#e8b33c;margin-top:2px}';
+  +'.ud-caldot{width:6px;height:6px;border-radius:50%;background:#e8b33c;margin-top:2px}'
+  +'.ud-karl-log{max-height:280px;overflow-y:auto;margin:0 0 10px;display:flex;flex-direction:column;gap:8px}'
+  +'.ud-karl-msg{font:13px/1.6 Arial;color:#f5ead6;background:#141414;border:1px solid #2c2c2c;border-radius:6px;padding:10px 12px;white-space:pre-wrap;word-wrap:break-word}'
+  +'.ud-karl-msg.u{background:#1c0a0a;border-color:#c1121f}'
+  +'.ud-karl-msg.k{border-left:3px solid #e8b33c}'
+  +'.ud-karl-who{font:bold 10px Arial;letter-spacing:2px;color:#e8b33c;margin-bottom:4px}'
+  +'.ud-karl-msg.u .ud-karl-who{color:#dc143c}'
+  +'.ud-karl-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}'
+  +'.ud-karl-chip{background:#141414;border:1px solid #e8b33c;color:#e8b33c;font:11px Arial;letter-spacing:.5px;padding:8px 12px;border-radius:20px;cursor:pointer;min-height:36px}'
+  +'.ud-karl-chip:active{transform:scale(.97);background:#1c1503}'
+  +'.ud-karl-form{display:flex;gap:8px}'
+  +'.ud-karl-in{flex:1;min-width:0;background:#0a0a0a;border:1px solid #2c2c2c;border-radius:6px;color:#f5ead6;font:14px Arial;padding:12px;box-sizing:border-box;min-height:48px}'
+  +'.ud-karl-in:focus{outline:none;border-color:#c1121f}'
+  +'.ud-karl-btn{background:#c1121f;color:#fff;border:0;border-radius:6px;font:bold 13px Arial;letter-spacing:1px;padding:0 20px;cursor:pointer;min-height:48px;min-width:76px}'
+  +'.ud-karl-btn:disabled{opacity:.5;cursor:default}'
+  +'.ud-karl-think{color:#a89e88;font-style:italic}';
   try{ document.head.appendChild(s); }catch(e){}
 }
 function sec(title,inner){
@@ -397,6 +412,139 @@ function renderCalendar(cal){
   h+='<a class="ud-more" href="/events">FULL CALENDAR →</a>';
   return sec('CALENDAR', '<div class="ud-card" style="padding:6px 14px">'+h+'</div>');
 }
+/* ASK KARL — the AI copilot, native in the hub (CEO directive 2026-10-07).
+   Inline chat: no new page, no external link. Karl answers from theory +
+   live evidence, and receives the caller's hub context (callsign, XP, rank,
+   today's missions, streak) so answers can reference their war.
+   FAIL-SOFT: if Karl is unreachable, an honest line — never a spinner. */
+var KARL_URL='https://pf-karl.mtcstw.workers.dev/karl/ask';
+var KARL_SUGGEST=[
+ 'What should I do today?',
+ 'How do I earn more XP?',
+ 'What is surplus value?',
+ 'Explain the war chest'
+];
+function karlContext(idn,ms,j){
+  var ctx={};
+  try{
+    if(idn.callsign) ctx.callsign=idn.callsign;
+    if(j&&j.identity){
+      if(j.identity.xp!=null) ctx.xp=j.identity.xp;
+      if(j.identity.rank) ctx.rank=j.identity.rank;
+      if(j.identity.streak!=null) ctx.streak=j.identity.streak;
+    }
+    if(ms&&typeof ms.got==='number') ctx.medals_this_week=ms.got+'/'+ms.total;
+    if(j&&j.tiles){
+      if(j.tiles.orders&&typeof j.tiles.orders.raiders==='number')
+        ctx.reported_today=j.tiles.orders.raiders;
+      if(j.tiles.vote&&typeof j.tiles.vote.total==='number')
+        ctx.votes_this_week=j.tiles.vote.total;
+    }
+    if(j&&j.calendar&&j.calendar.events&&j.calendar.events.length){
+      ctx.upcoming=j.calendar.events.slice(0,5).map(function(e){
+        return (e.when||'')+' '+(e.what||'');
+      }).join('; ');
+    }
+  }catch(e){}
+  return ctx;
+}
+function renderKarl(){
+  var chips='';
+  for(var i=0;i<KARL_SUGGEST.length;i++){
+    chips+='<button class="ud-karl-chip" data-q="'+esc(KARL_SUGGEST[i])+'">'+esc(KARL_SUGGEST[i])+'</button>';
+  }
+  var h='<div class="ud-card">'
+    +'<div class="ud-karl-log" id="udKarlLog" aria-live="polite">'
+    +'<div class="ud-karl-msg k"><div class="ud-karl-who">KARL</div>'
+    +'I&#39;m Karl — the movement&#39;s intelligence. Ask me about theory, the fight, or your war. I answer from the canon and live evidence, and I never guess.<div class="ud-meta" style="margin-top:6px">Tap a suggestion or type below.</div></div>'
+    +'</div>'
+    +'<div class="ud-karl-chips" id="udKarlChips">'+chips+'</div>'
+    +'<form class="ud-karl-form" id="udKarlForm">'
+    +'<input class="ud-karl-in" id="udKarlIn" type="text" maxlength="500" placeholder="Ask Karl anything…" autocomplete="off" aria-label="Ask Karl">'
+    +'<button class="ud-karl-btn" id="udKarlBtn" type="submit">ASK</button>'
+    +'</form></div>';
+  return sec('ASK KARL', h);
+}
+function karlAddMsg(who,text){
+  try{
+    var log=document.getElementById('udKarlLog');
+    if(!log) return;
+    var d=document.createElement('div');
+    d.className='ud-karl-msg '+who;
+    var w=document.createElement('div');
+    w.className='ud-karl-who';
+    w.textContent=(who==='u'?'YOU':'KARL');
+    d.appendChild(w);
+    var b=document.createElement('div');
+    b.textContent=String(text==null?'':text).slice(0,4000);
+    d.appendChild(b);
+    log.appendChild(d);
+    log.scrollTop=log.scrollHeight;
+  }catch(e){}
+}
+function karlAsk(question,ctx){
+  var btn=document.getElementById('udKarlBtn');
+  var inp=document.getElementById('udKarlIn');
+  if(btn) btn.disabled=true;
+  karlAddMsg('u',question);
+  var think=document.createElement('div');
+  think.className='ud-karl-msg k';
+  think.innerHTML='<div class="ud-karl-who">KARL</div><span class="ud-karl-think">Consulting the canon…</span>';
+  try{
+    var log=document.getElementById('udKarlLog');
+    if(log){ log.appendChild(think); log.scrollTop=log.scrollHeight; }
+  }catch(e){}
+  function done(answer,err){
+    try{ if(think.parentNode) think.parentNode.removeChild(think); }catch(e2){}
+    if(btn) btn.disabled=false;
+    if(inp){ inp.value=''; try{inp.focus();}catch(e3){} }
+    if(err){
+      karlAddMsg('k','Karl is unreachable right now — the evidence rail or the worker is down. Try again in a bit. — Karl');
+    }else{
+      karlAddMsg('k',answer);
+    }
+  }
+  try{
+    fetch(KARL_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({question:String(question).slice(0,500),context:ctx||{}})
+    }).then(function(r){ return r.json(); }).then(function(j){
+      if(j&&j.ok&&j.answer){ done(j.answer); }
+      else if(j&&j.error==='rate_limited'){ done(null,true); karlAddMsg('k','Karl rests for this IP — quota resets hourly. — Karl'); }
+      else { done(null,true); }
+    }).catch(function(){ done(null,true); });
+    setTimeout(function(){
+      /* Terminal state: never leave "Consulting…" hanging. */
+      try{ if(think.parentNode){ think.parentNode.removeChild(think); karlAddMsg('k','Karl took too long — try again. — Karl'); if(btn) btn.disabled=false; } }catch(e){}
+    },20000);
+  }catch(e){ done(null,true); }
+}
+function bindKarl(root,ctx){
+  try{
+    var form=root.querySelector('#udKarlForm');
+    var inp=root.querySelector('#udKarlIn');
+    if(form&&inp){
+      form.addEventListener('submit',function(e){
+        try{ e.preventDefault(); }catch(e2){}
+        var q=inp.value.trim();
+        if(!q) return;
+        karlAsk(q,ctx);
+      });
+    }
+    var chips=root.querySelector('#udKarlChips');
+    if(chips){
+      chips.addEventListener('click',function(e){
+        var t=e.target;
+        while(t&&t!==chips&&!t.getAttribute('data-q')) t=t.parentNode;
+        if(t&&t.getAttribute){
+          var q=t.getAttribute('data-q');
+          if(q) karlAsk(q,ctx);
+        }
+      });
+    }
+  }catch(e){}
+}
 function renderActivity(act,ms){
   if(!act) return '';
   var h='';
@@ -433,7 +581,9 @@ function renderSignedOut(){
     +'your XP, rank, streak and activity — or claim one below.</div>'
     +'<button class="ud-claim" id="udClaim">CLAIM YOUR CALLSIGN</button></div>');
 }
-function bind(root){
+function bind(root,karlCtx){
+  /* ASK KARL — wire the chat form + suggestion chips. */
+  bindKarl(root,karlCtx||{});
   try{
     var b=root.querySelector('#udClaim');
     if(b) b.addEventListener('click',function(){
@@ -558,6 +708,7 @@ function load(){
          live identity/activity/econ when the API lands. */
       h+=renderMustering(idn.callsign,ms);
       h+=renderToday(tiles);
+      h+=renderKarl();
       h+=renderGrid(tiles);
       h+=renderCalendar(null);
     } else if(!hasCallsign&&!signedIn){
@@ -565,6 +716,7 @@ function load(){
          still render — the hub is useful before enlistment too. */
       h+=renderIdentity(null,ms);
       h+=renderToday(tiles);
+      h+=renderKarl();
       h+=renderGrid(tiles);
       h+=renderCalendar(j?j.calendar:null);
     } else if(!signedIn){
@@ -572,11 +724,13 @@ function load(){
          or stale): honest line + full hub. */
       h+=renderSignedOut();
       h+=renderToday(tiles);
+      h+=renderKarl();
       h+=renderGrid(tiles);
       h+=renderCalendar(j?j.calendar:null);
     } else {
       h+=renderIdentity(j.identity,ms);
       h+=renderToday(tiles);
+      h+=renderKarl();
       h+=renderGrid(tiles);
       h+=renderCalendar(j?j.calendar:null);
       h+=renderActivity(j.activity,ms);
@@ -584,7 +738,7 @@ function load(){
     }
     if(!h){ root.innerHTML='<div class="ud-meta">The HQ failed to muster. <a href="javascript:location.reload()" style="color:#dc143c">Reload</a>.</div>'; return; }
     root.innerHTML=h;
-    bind(root);
+    bind(root,karlContext(idn,ms,j));
     /* Only a real (non-shell) paint locks — the shell yields to live data. */
     if(!isShell) painted=true;
   }

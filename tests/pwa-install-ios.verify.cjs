@@ -69,7 +69,13 @@ stat(code, 'modal close id pf-pwa-ios-gotit', /pf-pwa-ios-gotit/);
 stat(code, 'modal carries Add to Home Screen steps', /Add to Home Screen/);
 stat(code, 'iOS tap path opens the modal', /showIOSGuide\(\)/);
 stat(code, 'iOS tap path no longer fires the 3s toast',
-  /dismiss\(false\);\s*\n?\s*showIOSGuide\(\);/);
+  /dismiss\(false\);\s*try\s*\{\s*sessionStorage\.setItem\('pf_pwa_dismissed',\s*'1'\);\s*\}\s*catch\s*\([^)]*\)\s*\{\}\s*showIOSGuide\(\);/);
+/* 2026-10-07 fix/pwa-glitch: the PWA glitch fixes. */
+stat(code, 'single-boot guard stops double execution', /window\.__pfPwaBooted/);
+stat(code, 'manifest uses anonymous CORS (not use-credentials)', /crossorigin:\s*'anonymous'/);
+if (/use-credentials/.test(code)) no('no use-credentials on manifest', 'credentialed manifest fetch fails CORS on jsDelivr');
+else ok('no use-credentials on manifest');
+stat(code, 'pwaBase is version-agnostic (no hardcoded v1.4.3)', /\\\/v\\d\+\\\.\\d\+\\\.\\d\+\\\//);
 /* Android/Chrome path untouched: deferred prompt + welcome toast. */
 stat(code, 'Android: beforeinstallprompt still captured', /addEventListener\('beforeinstallprompt'/);
 stat(code, 'Android: deferredPrompt.prompt() still called', /deferredPrompt\.prompt\(\)/);
@@ -192,6 +198,12 @@ function makeWorld() {
 }
 
 function bootTwo(w) {
+  /* Simulate a RETURNING visitor: the iOS prompt gate needs >= 2 visits
+     (or an engagement event). Pre-seeding keeps the scenarios focused on
+     the button/modal behavior, not the visit gate. (2026-10-07
+     fix/pwa-glitch: the old suite passed this gate only via the
+     double-execution visit-count bug that the single-boot guard removes.) */
+  w.sb.localStorage.setItem('pf_pwa_visits_v1', '2');
   vm.runInContext(src, w.sb, { filename: 'install.js#instanceA(bundle)' });
   vm.runInContext(src, w.sb, { filename: 'install.js#instanceB(standalone)' });
   w.sb.fire('load');
@@ -315,8 +327,11 @@ console.log('== 4. bundles carry the fix ==');
   try { bsrc = read(pair[1]); } catch (e) { no(pair[0] + ' readable', String(e)); return; }
   if (bsrc.indexOf('pf-pwa-ios-guide') !== -1) ok(pair[0] + ' contains the iOS guide modal');
   else no(pair[0] + ' contains the iOS guide modal', 'marker missing — rebuild bundles');
-  if (bsrc.indexOf("getElementById('pf-pwa-install')") !== -1) ok(pair[0] + ' contains the duplicate guard');
+  /* 2026-10-07: accept either quote style — terser normalizes to double quotes. */
+  if (/getElementById\((['"])pf-pwa-install\1\)/.test(bsrc)) ok(pair[0] + ' contains the duplicate guard');
   else no(pair[0] + ' contains the duplicate guard', 'marker missing — rebuild bundles');
+  if (bsrc.indexOf('__pfPwaBooted') !== -1) ok(pair[0] + ' contains the single-boot guard');
+  else no(pair[0] + ' contains the single-boot guard', 'marker missing — rebuild bundles');
 });
 
 console.log('\n' + passes + ' passed, ' + fails.length + ' failed.');

@@ -9,15 +9,25 @@
   var PF = window.PF || { skip: function () { return false; } };
   if (PF.skip('pwa')) { return; }
 
+  /* FIX 2026-10-07 (fix/pwa-glitch): install.js executes TWICE on v2 pages
+     (once bundled inside bundle-core, once as the standalone pwa/install.js
+     the footer loader appends). DOM-id guards stop duplicate buttons, but
+     the iOS visit counter incremented twice per page view, defeating the
+     "2nd visit" gate and nagging on the very first visit. */
+  if (window.__pfPwaBooted) { return; }
+  window.__pfPwaBooted = true;
+
   /* ---------- derive our own CDN base (pin-agnostic) ---------- */
   function pwaBase() {
     var scripts = document.getElementsByTagName('script');
     for (var i = 0; i < scripts.length; i++) {
       var s = scripts[i].src || '';
-      var idx = s.indexOf('/v1.4.3/');
-      if (idx > -1 && s.indexOf('MTCSTW-site-deploy') > -1) {
-        return s.slice(0, idx + 8) + 'pwa/';
-      }
+      if (s.indexOf('MTCSTW-site-deploy') === -1) { continue; }
+      /* FIX 2026-10-07 (fix/pwa-glitch): version-agnostic. The old code
+         hardcoded '/v1.4.3/', so the entire PWA silently disabled itself
+         on any version bump. */
+      var m = s.match(/\/v\d+\.\d+\.\d+\//);
+      if (m) { return s.slice(0, s.indexOf(m[0]) + m[0].length) + 'pwa/'; }
     }
     return null;
   }
@@ -38,7 +48,12 @@
     m.name = name; m.content = content;
     document.head.appendChild(m);
   }
-  addLink('manifest', BASE + 'manifest.json', { crossorigin: 'use-credentials' });
+  /* FIX 2026-10-07 (fix/pwa-glitch): crossorigin="use-credentials" makes the
+     manifest fetch credentialed, but jsDelivr answers ACAO:* with no
+     ACAC:true — the browser rejects the manifest outright (CORS), killing
+     the Android install prompt and iOS manifest metadata. Anonymous mode
+     works with the wildcard ACAO. */
+  addLink('manifest', BASE + 'manifest.json', { crossorigin: 'anonymous' });
   addLink('apple-touch-icon', BASE + 'apple-touch-icon.png');
   addMeta('theme-color', '#c81e1e');
   addMeta('mobile-web-app-capable', 'yes');
@@ -226,6 +241,11 @@
       setTimeout(function () {
         showButton('INSTALL APP', function () {
           dismiss(false);
+          /* FIX 2026-10-07 (fix/pwa-glitch): the old code removed the button
+             for this page only, so it nagged again on every page load after
+             the user had already seen the guide. Suppress for the session
+             once the guide has been shown. */
+          try { sessionStorage.setItem('pf_pwa_dismissed', '1'); } catch (e) {}
           showIOSGuide();
         });
       }, 4000);

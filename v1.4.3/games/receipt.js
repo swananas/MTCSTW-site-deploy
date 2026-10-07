@@ -205,6 +205,8 @@
         'How captured is <strong>' + name + '</strong> by money? See the score.')
       + linkCard('/extraction', '\uD83C\uDFED', 'THE EXTRACTION ENGINE',
         'The companies behind the money — extraction stories, fully sourced.')
+      + linkCard('/dossier', '\uD83D\uDCDD', 'BUILD A DOSSIER',
+        'Add your context to this Receipt — publish your own annotated dossier page.')
       + '</div>';
     host.insertAdjacentHTML('beforeend', html);
   }
@@ -264,9 +266,10 @@
     var btnAttrs = canShare
       ? ' style="background:' + RED + ';border:2px solid ' + RED + ';color:#fff;font-weight:900;letter-spacing:2px;padding:14px 40px;font-size:16px;cursor:pointer;border-radius:3px;"'
       : ' disabled style="opacity:.45;cursor:not-allowed;background:' + RED + ';border:2px solid ' + RED + ';color:#fff;font-weight:900;letter-spacing:2px;padding:14px 40px;font-size:16px;border-radius:3px;"';
-    var html = '<div style="text-align:center;margin:8px 0 30px;">'
+    var html = '<div style="text-align:center;margin:8px 0 30px;" data-mss-slot>'
       + '<button id="pf-receipt-share" type="button"' + btnAttrs + '>'
       + 'GET THE RECEIPT</button>'
+      + (canShare ? ' <button id="pf-receipt-mss" type="button" class="pf-mss-btn">MAKE SHAREABLE</button>' : '')
       + (canShare ? '' : '<div style="font-size:13px;color:' + MUTED + ';margin-top:8px;">Nothing to share yet — the dossier is still all honest-empty.</div>')
       + '</div>';
     host.insertAdjacentHTML('beforeend', html);
@@ -274,6 +277,42 @@
     if (btn && canShare) {
       btn.addEventListener('click', function () { shareReceipt(d); });
     }
+    /* MAKE SHAREABLE (fe/make-shareable-inline, 2026-10-07): inline Studio
+       creation panel on every dossier — preview via this dossier's own
+       1080x1350 painter, caption line, one-tap publish to the UGC feed +
+       native share sheet. No page navigation. */
+    var mss = host.querySelector('#pf-receipt-mss');
+    if (mss && canShare) {
+      mss.addEventListener('click', function () { openMakeShareable(d); });
+    }
+  }
+
+  function openMakeShareable(d) {
+    var M = null;
+    try { M = window.PFMakeShareable; } catch (e) {}
+    if (!M || !d || !d.resolved) return;
+    var slug = slugify(d.resolved.display_name);
+    M.openPanel({
+      kind: 'receipt', ref: slug,
+      title: 'THE RECEIPT: ' + d.resolved.display_name,
+      deep: '/receipt/' + slug, game: 'receipt'
+    });
+  }
+
+  /* Register this product's painter with the inline panel (once): the
+     resolver closes over lastDossier — one dossier is live at a time. */
+  function wireMakeShareable() {
+    var M = null;
+    try { M = window.PFMakeShareable; } catch (e) {}
+    if (!M || M._pfReceiptWired) return;
+    M._pfReceiptWired = true;
+    M.registerResolver('receipt', function (unit, done) {
+      var d = lastDossier;
+      if (!d || !d.resolved) { try { done(null); } catch (e) {} return; }
+      var cv = null;
+      try { cv = paintReceipt(d); } catch (e) {}
+      try { done(cv); } catch (e2) {}
+    });
   }
 
   function renderDisambiguation(host, d) {
@@ -491,6 +530,7 @@
     host.setAttribute('data-pf-receipt-mounted', '1');
     host.insertAdjacentHTML('afterbegin', shellHTML());
     wireTypeahead();
+    wireMakeShareable();
     /* Deep link: /receipt/<slug> auto-loads that dossier. */
     try {
       var m = (location.pathname || '').match(/\/receipt\/([a-z0-9-]+)\/?$/);

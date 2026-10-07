@@ -517,6 +517,14 @@ var SECTIONS = {
   'bundle-receipt': [
     'receipt.js'
   ],
+  /* 2026-10-07 (fe/ugc-dossier-builder): UGC DOSSIER BUILDER — the builder
+     + published /dossier/<slug> pages + published feed. Self-mounting silo
+     into #pf-dossier; fetched only on /dossier. Read-only, zero XP for
+     viewing; the 1080x1350 share painter runs on tap only (butter rule).
+     Kill: ?pf_off=dossier. */
+  'bundle-dossier': [
+    'dossier.js'
+  ],
 };
 
 /* HQ bundle: civic, governance, notify-prefs mount ONLY on /political-hq

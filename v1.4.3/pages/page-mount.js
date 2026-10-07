@@ -270,6 +270,37 @@
     'pf-ugc-remix': {
       title: 'STORY REMIXER', sub: 'Sourced stories, citizen evidence. The facts are frozen — the fight is yours.',
       order: []
+    },
+    /* 2026-10-07 (fe/data-receipt): THE RECEIPT — the politician money
+       dossier (Data Products Product 1). Self-mounting silo
+       (games/receipt.js renders into #pf-receipt); spine phase FIGHT.
+       Kill: ?pf_off=receipt. Squarespace hand-steps: page /receipt +
+       the #pf-receipt Code block (+ /receipt/<slug> deep links).
+       RESTORED fe/ugc-dossier-builder: dropped from this file by the
+       fe/town-page merge onto integrate/big-update-fe (loader flag was
+       dropped too); restored verbatim so /receipt mounts again. */
+    'pf-receipt': {
+      title: 'THE RECEIPT', sub: 'Type a politician\u2019s name. Get the money dossier. Every figure sourced.',
+      spine: 'FIGHT',
+      order: [
+        ['receipt', null]
+      ]
+    },
+    /* 2026-10-07 (fe/ugc-dossier-builder): UGC DOSSIER BUILDER — users take
+       a Receipt dossier, add their own context (title, why-it-matters,
+       per-section notes), preview, and publish a shareable page at
+       /dossier/<slug>. Self-mounting silo (games/dossier.js renders into
+       #pf-dossier). Original Receipt data is rendered live, source-stamped,
+       uneditable; user annotations are clearly labeled user content. 0 XP
+       for viewing; publishing shares through the existing share mechanics.
+       Kill: ?pf_off=dossier. Squarespace hand-steps: page /dossier +
+       the #pf-dossier Code block (+ /dossier/<slug> deep links). */
+    'pf-dossier': {
+      title: 'DOSSIER BUILDER', sub: 'Pick a Receipt. Add your context. Publish the page. The numbers stay locked — your words sit beside them.',
+      spine: 'FIGHT',
+      order: [
+        ['dossier', null]
+      ]
     }
   };
 
@@ -296,7 +327,16 @@
     /* 2026-10-07 (fe/karl-page, Data Product 5): KARL — the query layer
        front door. Self-renders into #pf-karl (core/karl-page.js).
        Kill: ?pf_off=karl. */
-    'karl': { div: 'pf-karl', kill: 'karl' }
+    'karl': { div: 'pf-karl', kill: 'karl' },
+    /* 2026-10-07 (fe/data-receipt): THE RECEIPT renders itself into
+       #pf-receipt. Kill: ?pf_off=receipt.
+       RESTORED fe/ugc-dossier-builder: dropped by the fe/town-page merge
+       onto integrate/big-update-fe; restored verbatim. */
+    'receipt': { div: 'pf-receipt', kill: 'receipt' },
+    /* 2026-10-07 (fe/ugc-dossier-builder): the UGC dossier builder +
+       published dossier pages render themselves into #pf-dossier.
+       Kill: ?pf_off=dossier. */
+    'dossier': { div: 'pf-dossier', kill: 'dossier' }
   };
 
   function execScripts(root, label) {
@@ -442,8 +482,8 @@
     'pf-warchest', 'pf-ventures', 'pf-events', 'pf-warreport',
     'pf-war-card', 'pf-academy-hq', 'pf-dash-hq', 'pf-hq-mission',
     'pf-political-hq', 'pf-slr-roster', 'pf-catalog', 'pf-money',
-    'pf-warroom', 'pf-live', 'pf-data-bounties',
-    'pf-karl', 'pf-ugc-remix'
+    'pf-warroom', 'pf-live', 'pf-data-bounties', 'pf-receipt',
+    'pf-karl', 'pf-ugc-remix', 'pf-dossier'
   ];
   function feWiden(host) {
     try {

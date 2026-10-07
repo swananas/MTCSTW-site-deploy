@@ -8,8 +8,9 @@
       prompt, once ever — reuses the existing PF.requireCallsign flow).
    2. FEATURE GRID — 14 compact link-cards (icon, name, one-liner, deep
       link). Routing, not embedding.
-   3. MASTER CALENDAR — next-7-days rail from dashboard_init.calendar,
-      "full calendar -> /events".
+   3. CALENDAR — 7-day strip + next-7-days rail from dashboard_init.calendar,
+      "full calendar -> /events". ALWAYS renders: falls back to the recurring
+      rhythm when the backend returns nothing (CEO directive 2026-10-07).
    4. PERSONAL ACTIVITY — recent actions + weekly medal progress toward
       FULL DEPLOYMENT + rank XP progress.
    5. MY DATA — the caller's own movement-intelligence contributions
@@ -179,7 +180,15 @@ function css(){
   +'.ud-today:last-child{border-bottom:0}'
   +'.ud-today.ud-static{cursor:default}'
   +'.ud-tk{flex:0 0 auto;font:bold 10px Arial;letter-spacing:2px;color:#dc143c;white-space:nowrap}'
-  +'.ud-th{flex:1;min-width:0;font:13px Arial;color:#f5ead6;line-height:1.5}';
+  +'.ud-th{flex:1;min-width:0;font:13px Arial;color:#f5ead6;line-height:1.5}'
+  +'.ud-calstrip{display:flex;gap:6px;margin:8px 0 12px}'
+  +'.ud-calday{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px;background:#141414;border:1px solid #2c2c2c;border-radius:6px;box-sizing:border-box;min-height:56px;justify-content:center}'
+  +'.ud-caltoday{border-color:#c1121f;background:#1c0a0a}'
+  +'.ud-calev{border-color:#e8b33c}'
+  +'.ud-caldow{font:bold 9px Arial;color:#a89e88;letter-spacing:1px}'
+  +'.ud-caltoday .ud-caldow{color:#dc143c}'
+  +'.ud-calnum{font-family:"Arial Black",Arial;font-size:18px;color:#f5ead6;line-height:1}'
+  +'.ud-caldot{width:6px;height:6px;border-radius:50%;background:#e8b33c;margin-top:2px}';
   try{ document.head.appendChild(s); }catch(e){}
 }
 function sec(title,inner){
@@ -308,6 +317,25 @@ function renderToday(t){
   if(!h) return '';
   return sec('TODAY','<div class="ud-card" style="padding:6px 14px">'+h+'</div>');
 }
+/* CALENDAR — the 7-day strip + upcoming events (CEO directive 2026-10-07).
+   Always renders: backend events from dashboard_init.calendar, with a
+   built-in fallback schedule so the widget is never an empty void.
+   Condensed, mobile-first, matches the hub's visual language. */
+var CAL_FALLBACK=[
+ ['Evening debrief','Discord #daily-mission','/events','daily'],
+ ['Morning briefing','Discord #morning-briefing','/events','daily'],
+ ['Daily mission','New orders drop','/#pf-orders','daily'],
+ ['Fan vote closes','Propagandist of the Week','/#pf-vote','Sun'],
+ ['War Report','The week in the war','/war-report','Mon'],
+ ['Service medals reset','New rack, new medals','/arcade','Mon']];
+function calDayLabel(ts){
+  try{
+    var d=new Date(Number(ts));
+    var days=['SUN','MON','TUE','WED','THU','FRI','SAT'];
+    var mon=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    return days[d.getDay()]+' '+mon[d.getMonth()]+' '+d.getDate();
+  }catch(e){ return ''; }
+}
 function renderCalendar(cal){
   var evs=(cal&&cal.events)||[];
   var now=Date.now(), upcoming=[];
@@ -317,16 +345,44 @@ function renderCalendar(cal){
   }
   upcoming.sort(function(a,b){ return (Number(a.ts)||0)-(Number(b.ts)||0); });
   upcoming=upcoming.slice(0,7);
-  if(!upcoming.length) return '';
-  var h='';
-  for(var j=0;j<upcoming.length;j++){
-    var e=upcoming[j];
-    h+='<div class="ud-row"><span class="ud-when">'+esc(e.date_label||'')+'</span>'
-      +'<span class="ud-what">'+esc(e.title||'')+'</span>'
-      +'<a class="ud-go" href="'+safeUrl(e.url||'/events')+'">GO →</a></div>';
+  /* 7-day strip header: visual calendar feel, always shows. */
+  var strip='<div class="ud-calstrip">';
+  var dayMs=86400000, today=new Date(); today.setHours(0,0,0,0);
+  var t0=today.getTime();
+  var dayNames=['S','M','T','W','T','F','S'];
+  for(var d=0;d<7;d++){
+    var dt=new Date(t0+d*dayMs);
+    var hasEv=false;
+    for(var k=0;k<upcoming.length;k++){
+      var ets=Number(upcoming[k].ts)||0;
+      var ed=new Date(ets); ed.setHours(0,0,0,0);
+      if(ed.getTime()===t0+d*dayMs){ hasEv=true; break; }
+    }
+    strip+='<div class="ud-calday'+(d===0?' ud-caltoday':'')+(hasEv?' ud-calev':'')+'">'
+      +'<span class="ud-caldow">'+dayNames[dt.getDay()]+'</span>'
+      +'<span class="ud-calnum">'+dt.getDate()+'</span>'
+      +(hasEv?'<span class="ud-caldot"></span>':'')+'</div>';
+  }
+  strip+='</div>';
+  var h=strip;
+  if(upcoming.length){
+    for(var j=0;j<upcoming.length;j++){
+      var e=upcoming[j];
+      h+='<div class="ud-row"><span class="ud-when">'+esc(e.date_label||calDayLabel(e.ts))+'</span>'
+        +'<span class="ud-what">'+esc(e.title||'')+'</span>'
+        +'<a class="ud-go" href="'+safeUrl(e.url||'/events')+'">GO →</a></div>';
+    }
+  } else {
+    /* Fallback: the recurring rhythm, so the widget always has content. */
+    for(var f=0;f<Math.min(CAL_FALLBACK.length,5);f++){
+      var fe=CAL_FALLBACK[f];
+      h+='<div class="ud-row"><span class="ud-when">'+esc(fe[3].toUpperCase())+'</span>'
+        +'<span class="ud-what">'+esc(fe[0])+' <span style="color:#a89e88">· '+esc(fe[1])+'</span></span>'
+        +'<a class="ud-go" href="'+safeUrl(fe[2])+'">GO →</a></div>';
+    }
   }
   h+='<a class="ud-more" href="/events">FULL CALENDAR →</a>';
-  return sec('THIS WEEK', '<div class="ud-card" style="padding:6px 14px">'+h+'</div>');
+  return sec('CALENDAR', '<div class="ud-card" style="padding:6px 14px">'+h+'</div>');
 }
 function renderActivity(act,ms){
   if(!act) return '';
@@ -464,19 +520,19 @@ function load(){
       h+=renderIdentity(null,ms);
       h+=renderToday(tiles);
       h+=renderGrid(tiles);
-      if(j&&j.calendar) h+=renderCalendar(j.calendar);
+      h+=renderCalendar(j?j.calendar:null);
     } else if(!signedIn){
       /* Has a local callsign but the backend didn't auth it (secret missing
          or stale): honest line + full hub. */
       h+=renderSignedOut();
       h+=renderToday(tiles);
       h+=renderGrid(tiles);
-      if(j&&j.calendar) h+=renderCalendar(j.calendar);
+      h+=renderCalendar(j?j.calendar:null);
     } else {
       h+=renderIdentity(j.identity,ms);
       h+=renderToday(tiles);
       h+=renderGrid(tiles);
-      if(j&&j.calendar) h+=renderCalendar(j.calendar);
+      h+=renderCalendar(j?j.calendar:null);
       h+=renderActivity(j.activity,ms);
       h+=renderEcon(j.econ);
     }

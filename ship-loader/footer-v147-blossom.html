@@ -340,8 +340,8 @@ function css(h){var l=document.createElement('link');l.rel='stylesheet';l.href=B
 l.onerror=function(){siloFail(h);};document.head.appendChild(l);}
 function jsSeq(){
   var pending=JS_SEQ.length;
-  function oneDone(){if(--pending===0){if(window.console)console.log('[PF] '+VER+' critical '+JS_SEQ.length+' files loaded');jsLazy();}}
-  if(pending===0){jsLazy();return;}
+  function oneDone(){if(--pending===0){if(window.console)console.log('[PF] '+VER+' critical '+JS_SEQ.length+' files loaded');jsLazy();jsCompanion();}}
+  if(pending===0){jsLazy();jsCompanion();return;}
   JS_SEQ.forEach(function(n){var s=document.createElement('script');
   /* DEFECT 1: JS_CHROME entries are absolute jsDelivr URLs — use verbatim. */
   s.src=(n.indexOf('https://')===0)?n:BASE+n;
@@ -374,6 +374,16 @@ function loadBundle(n,cb){
    protest/event map) lazy-loads here; irl + townhall ride the blocking
    bundle-events.js. Safety nets: 15s timeout loads everything; no-IO
    fallback loads all. */
+/* KARL COMPANION (2026-10-07, fe/karl-companion): the site's voice — floating
+   contextual assistant on every page. Lazy chunk, fetched after idle so the
+   critical path stays clean. Kill: ?pf_off=karl-companion. */
+function jsCompanion(){
+  if(window.PF&&window.PF.skip&&window.PF.skip('karl-companion'))return;
+  if(window.__pfKarlCompanionLoading)return;window.__pfKarlCompanionLoading=1;
+  function go(){try{loadBundle('core/bundle-karl-companion.js');}catch(e){}}
+  if('requestIdleCallback' in window){try{requestIdleCallback(go,{timeout:9000});return;}catch(e){}}
+  setTimeout(go,4000);
+}
 function jsLazy(){
   /* SPACE-AUDIT FIX 7 (2026-10-06): lazy hosts extended beyond #pf-v2 /
      #pf-events — /call-it (markets) and /cell-war (battles) lazy-load their

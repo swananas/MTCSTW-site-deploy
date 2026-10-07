@@ -1,9 +1,10 @@
 /* core/10-convert.js  |  PF v1.4.3 | Onsite conversion loops.
    1) Victory lap: after any game completion, a floating "NEXT MISSION" card
       points the player at one game they haven't touched this week — sessions
-      keep moving across games instead of ending.
-   2) Enlistment nudge: the first game a callsign-less visitor completes shows
-      a one-a-day prompt to claim a callsign so the XP banks.
+      keep moving across games instead of ending. 2026-10-06 (one-prompt):
+      max 1 per session (was 3); cards go through PF.popupQueue.
+   2) Enlistment nudge: KILLED 2026-10-06 (one-prompt) — THE ONE PROMPT owns
+      the callsign ask; this auto-fire was redundant.
    Pure presentation + event listeners; awards NOTHING itself.
    KILL: ?pf_off=10-convert  or  localStorage pf_disabled_v1='["10-convert"]' */
 (function(){ 'use strict';
@@ -80,9 +81,15 @@ function firstBlood(){
   try{ document.dispatchEvent(new CustomEvent('pf-first-blood',{detail:{day:dayStr()}})); }catch(e){}
 }
 
-/* ---- floating card primitives ---- */
+/* ---- floating card primitives ----
+   2026-10-06 (one-prompt): cards go through PF.popupQueue — one overlay at
+   a time, auto-fire counts against the session budget. Returns null when
+   denied; callers must guard. */
 var lapCount=0, lastLap=0;
 function cardShell(id){
+  try {
+    if (window.PF && PF.popupQueue && !PF.popupQueue.request('convert-card','auto')) return null;
+  } catch(e){}
   var d=document.createElement('div');
   d.id=id;
   d.style.cssText='position:fixed;right:12px;bottom:12px;z-index:9991;max-width:290px;'+
@@ -91,7 +98,7 @@ function cardShell(id){
   var x=document.createElement('span');
   x.textContent='\u00d7';
   x.style.cssText='position:absolute;top:4px;right:10px;font-size:18px;cursor:pointer;color:#b8ab8e;';
-  x.onclick=function(){ d.remove(); };
+  x.onclick=function(){ d.remove(); try{ if(window.PF&&PF.popupQueue) PF.popupQueue.release('convert-card'); }catch(e2){} };
   d.appendChild(x);
   document.body.appendChild(d);
   return d;
@@ -112,16 +119,20 @@ function goBtn(label, mission, dismiss){
   return b;
 }
 
-/* Victory lap: once per 10 min, max 3 per session, only when a mission is open. */
+/* Victory lap: once per 10 min, max 1 per session (2026-10-06 one-prompt:
+   was 3/session — demoted), only when a mission is open. */
 function afterGame(justPlayed){
   /* Enlistment nudge takes precedence for callsign-less visitors. */
   if(nudge()) return;
   var now=Date.now();
-  if(lapCount>=3||now-lastLap<10*60*1000) return;
+  if(lapCount>=1||now-lastLap<10*60*1000) return;
   var m=nextMission();
   if(!m||m.key===justPlayed) return;
-  lastLap=now; lapCount++;
+  lastLap=now;
   var d=cardShell('pf-next-mission');
+  if(!d) return; /* popup queue denied: another overlay is showing */
+  lapCount++; /* count only shown laps (2026-10-06 QC) */
+  function kill(){ try{ d.remove(); }catch(e){} try{ if(window.PF&&PF.popupQueue) PF.popupQueue.release('convert-card'); }catch(e2){} }
   var h=document.createElement('div');
   h.style.cssText='color:#c1121f;font-weight:900;letter-spacing:2px;font-size:12px;margin-bottom:6px;';
   h.textContent='\u2691 NEXT MISSION';
@@ -132,14 +143,16 @@ function afterGame(justPlayed){
   b.style.cssText='font-size:12px;color:#b8ab8e;';
   b.textContent=m.blurb;
   d.appendChild(h); d.appendChild(t); d.appendChild(b);
-  d.appendChild(goBtn('DEPLOY \u2192', m, function(){ d.remove(); }));
-  setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); }, 25000);
+  d.appendChild(goBtn('DEPLOY \u2192', m, kill));
+  setTimeout(kill, 25000);
 }
 
-/* Enlistment nudge: first completion of the session without a callsign.
-   Once per day. Returns true when it showed (so the victory lap yields). */
+/* Enlistment nudge: KILLED 2026-10-06 (one-prompt). THE ONE PROMPT owns the
+   callsign ask now — this auto-fire is redundant. Function kept (early
+   return) so the call site needs no edit. */
 var nudged=false;
 function nudge(){
+  return false; /* one-prompt owns the callsign ask */
   if(nudged) return false;
   var has=false;
   try{ has=PF.hasCallsign&&PF.hasCallsign(); }catch(e){}

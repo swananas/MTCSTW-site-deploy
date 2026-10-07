@@ -8,7 +8,9 @@
    row mounts inside the HUD's YOUR CAMPAIGN strip: one tap from the persistent
    HUD bar, which is on every page. The strip stays the HUD's; pillars add a row.
    ADVENTURE-PATH CHOOSER (multi-select, 2026-10-06 ~12:44 CDT CEO directive):
-   first-run (or anytime via the HUD strip) the user picks any combination of
+   2026-10-06 (one-prompt): first-run AUTO-FIRE removed — the chooser opens
+   only via the HUD-strip tap ([data-pf-path-change]). Anytime after that,
+   the user picks any combination of
    PROPAGANDIST, DATA SCOUT, ACTIVIST, ORGANIZER — checkboxes, not radio;
    all four is valid. Stored device-local only (localStorage
    pf_adventure_path_v1, JSON array; bare-string v1 values migrate to
@@ -531,17 +533,25 @@
   function openChooser() {
     try {
       if (document.getElementById('pf-path-chooser')) return;
+      /* 2026-10-06 (one-prompt): one overlay at a time via PF.popupQueue. */
+      try {
+        if (window.PF && PF.popupQueue && !PF.popupQueue.request('pillars-chooser', 'user')) return;
+      } catch (e2) {}
       injectCss();
       var wrap = document.createElement('div');
       wrap.innerHTML = chooserHtml();
       var c = wrap.firstChild;
-      if (!c || !document.body) return;
+      if (!c || !document.body) {
+        try { if (window.PF && PF.popupQueue) PF.popupQueue.release('pillars-chooser'); } catch (e4) {}
+        return;
+      }
       document.body.appendChild(c);
       var sel = {};
       var cur = getPaths();
       for (var i = 0; i < cur.length; i++) sel[cur[i]] = 1;
       function close() {
         try { if (c.parentNode) c.parentNode.removeChild(c); } catch (e) {}
+        try { if (window.PF && PF.popupQueue) PF.popupQueue.release('pillars-chooser'); } catch (e3) {}
       }
       var picks = c.querySelectorAll('[data-pf-path-pick]');
       for (var j = 0; j < picks.length; j++) {
@@ -656,11 +666,10 @@
   }
   var _firstRunFired = false;
   function maybeFirstRun() {
+    /* 2026-10-06 (one-prompt): auto-fire REMOVED. The adventure chooser now
+       opens only via the HUD-strip tap ([data-pf-path-change] in wireRow).
+       THE ONE PROMPT owns first-run. */
     if (_firstRunFired) return; _firstRunFired = true;
-    try {
-      if (localStorage.getItem(LS_SEEN) === '1') return;
-    } catch (e) { return; }
-    openChooser();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();

@@ -13,11 +13,10 @@
    - Step 3: scrolls to the mounted Daily Orders node (#pf-orders).
 
    Trigger: homepage only (#pf-v2 shell), callsign-less only, not in editor.
-   Auto-launch once per device ever (sticky pf_onboard_v1), 30s after load —
-   the first-minute card keeps priority at t=0; this is the path for visitors
-   who didn't engage it. Entry chip ("NEW HERE — TAKE THE 2-MINUTE START")
-   persists for callsign-less visitors as the re-enter path until they claim.
-   ?onboard=1 forces launch (demo/testing).
+   2026-10-06 (one-prompt): the t+30s AUTO-LAUNCH is removed — THE ONE PROMPT
+   owns first-run. This module keeps the entry chip ("NEW HERE — TAKE THE
+   2-MINUTE START") as the re-enter path until they claim, plus ?onboard=1
+   and PF.startOnboarding().
    z-index 99998 sits BELOW the callsign modal (99999) so step 2's modal
    renders on top.
    ZERO new backend actions. Measurement only: pf-onboard-shown,
@@ -32,7 +31,8 @@
 
   var KILL = 'guided-onboarding';
   var LS = 'pf_onboard_v1';
-  var AUTO_MS = 30000;
+  /* AUTO_MS retired 2026-10-06 (one-prompt): auto-launch removed, kept for
+     reference. */
   var Z = 99998;
 
   function esc(s) {
@@ -87,6 +87,10 @@
   function open() {
     if (overlay) return;
     if (hasCallsign()) return;
+    /* 2026-10-06 (one-prompt): one overlay at a time via PF.popupQueue. */
+    try {
+      if (window.PF && PF.popupQueue && !PF.popupQueue.request('guided-onboarding', 'user')) return;
+    } catch (e) {}
     overlay = document.createElement('div');
     overlay.id = 'pf-onboard';
     overlay.setAttribute('role', 'dialog');
@@ -146,6 +150,9 @@
     } catch (e3) {}
   }
   function close() {
+    try {
+      if (window.PF && PF.popupQueue) PF.popupQueue.release('guided-onboarding');
+    } catch (e) {}
     document.removeEventListener('keydown', escClose);
     document.removeEventListener('keydown', trapTab);
     try { if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay); } catch (e) {}
@@ -348,17 +355,14 @@
     if (overlay) { done(); }
   });
 
-  /* ---------- launch ---------- */
+  /* ---------- launch ----------
+     2026-10-06 (one-prompt): the t+30s AUTO-LAUNCH is removed. THE ONE
+     PROMPT (core/37-one-prompt.js) owns first-run; this module keeps the
+     "NEW HERE" entry chip + ?onboard=1 + PF.startOnboarding() as the
+     re-entry path. */
   showChip();
   if (hasCallsign()) { hideChip(); return; }
   if (forced()) { open(); render(1); return; }
-  if (state()) return; /* shown/dismissed/done before: chip only */
-  setTimeout(function () {
-    try {
-      if (hasCallsign() || state() || isEditor()) return;
-      open(); render(1);
-    } catch (e) {}
-  }, AUTO_MS);
 
   /* Public re-entry (console/testing): PF.startOnboarding() */
   try { PF.startOnboarding = function () { if (!hasCallsign()) { open(); render(1); } }; } catch (e) {}

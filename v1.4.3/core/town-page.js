@@ -345,6 +345,9 @@
         host.querySelector('[data-tn-sticky]').innerHTML = renderSticky(r.sticky, r.area);
         host.querySelector('[data-tn-sharewrap]').innerHTML =
           '<button class="pf-tn-share" data-tn-sharebtn>SHARE THIS TOWN</button>' +
+          /* UGC TOWN REPORT BUILDER (fe/ugc-town-report, 2026-10-07): the
+             deep-link contract — the builder prefills from ?zip=. */
+          '<a href="/town-report?zip=' + encodeURIComponent(r.zip) + '" class="pf-tn-share" style="display:block;text-align:center;text-decoration:none;background:#0d0d0d;border:1px solid #c1121f;color:#f5ead6;margin:10px auto 0;max-width:440px;">WRITE YOUR TOWN\'S REPORT →</a>' +
           '<div class="pf-tn-note">Zero XP for viewing. Sharing spreads the intel.</div>';
         var btn = host.querySelector('[data-tn-sharebtn]');
         if (btn) btn.addEventListener('click', function () { shareTown(lastReport); });

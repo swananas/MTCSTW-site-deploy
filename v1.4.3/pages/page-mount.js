@@ -301,6 +301,38 @@
       order: [
         ['dossier', null]
       ]
+    },
+/* WHO OWNS YOUR TOWN (fe/town-page, 2026-10-07, Data Product 2): /town.
+       order:[['town', null]] — the SELF map mounts the self-rendering silo
+       (core/town-page.js into #pf-town); page-mount contributes the header
+       + full-width widening + Next Move exit. Zero XP for viewing.
+       Ship-time hand-step: Squarespace page /town + Code block
+       <div id="pf-town"></div> + nav entry. Kill: ?pf_off=town.
+       RESTORED fe/ugc-town-report: dropped from this file by the
+       fe/town-page merge onto integrate/big-update-fe; restored verbatim
+       (the footer loader already routes isTown -> core/bundle-town.js). */
+    'pf-town': {
+      title: 'WHO OWNS YOUR TOWN', sub: 'Enter a zip. See who holds power in your backyard.',
+      exit: { href: '/receipt', text: 'NEXT MOVE: GET THE RECEIPT →' },
+      order: [
+        ['town', null]
+      ]
+    },
+    /* UGC TOWN REPORT BUILDER (fe/ugc-town-report, 2026-10-07): /town-report.
+       Feed of published reports (?id=<id> renders one report;
+       ?new=1 / ?zip=<zip> opens the builder). Self-mounting silo
+       (core/town-report.js into #pf-town-report); page-mount contributes
+       the header + full-width widening + Next Move exit. Town data
+       immutable (server snapshot), user content clearly labeled, 0 XP for
+       viewing. Ship-time hand-step: Squarespace page /town-report +
+       Code block <div id="pf-town-report"></div> + nav entry.
+       Kill: ?pf_off=townreport. */
+    'pf-town-report': {
+      title: 'MY TOWN REPORTS', sub: 'Your town\u2019s data. What you\u2019ve seen. Publish the page.',
+      exit: { href: '/town', text: 'NEXT MOVE: WHO OWNS YOUR TOWN →' },
+      order: [
+        ['townreport', null]
+      ]
     }
   };
 
@@ -336,7 +368,13 @@
     /* 2026-10-07 (fe/ugc-dossier-builder): the UGC dossier builder +
        published dossier pages render themselves into #pf-dossier.
        Kill: ?pf_off=dossier. */
-    'dossier': { div: 'pf-dossier', kill: 'dossier' }
+    'dossier': { div: 'pf-dossier', kill: 'dossier' },
+    /* WHO OWNS YOUR TOWN (fe/town-page): self-mounting silo into #pf-town.
+       Kill: ?pf_off=town. */
+    'town': { div: 'pf-town', kill: 'town' },
+    /* UGC TOWN REPORT BUILDER (fe/ugc-town-report): self-mounting silo
+       into #pf-town-report. Kill: ?pf_off=townreport. */
+    'townreport': { div: 'pf-town-report', kill: 'townreport' }
   };
 
   function execScripts(root, label) {
@@ -483,7 +521,8 @@
     'pf-war-card', 'pf-academy-hq', 'pf-dash-hq', 'pf-hq-mission',
     'pf-political-hq', 'pf-slr-roster', 'pf-catalog', 'pf-money',
     'pf-warroom', 'pf-live', 'pf-data-bounties', 'pf-receipt',
-    'pf-karl', 'pf-ugc-remix', 'pf-dossier'
+    'pf-karl', 'pf-ugc-remix', 'pf-dossier',
+    'pf-town', 'pf-town-report'
   ];
   function feWiden(host) {
     try {

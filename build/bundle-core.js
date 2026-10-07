@@ -300,13 +300,6 @@ var FRED_TOOLS_FILES = [
   'games/fred-receipt.js'
 ];
 
-/* WHO OWNS YOUR TOWN (fe/town-page, 2026-10-07, Data Product 2): lazy chunk.
-   Self-mounting silo (core/town-page.js -> #pf-town), fetched only on /town
-   via the footer loader's isTown branch. Kill: ?pf_off=town. */
-var TOWN_FILES = [
-  'core/town-page.js'
-];
-
 var BUNDLES = {
   'core/bundle-core': CORE_FILES.slice(),
   /* 2026-10-05 (fix/money-minified-rebuild): lazy money chunk — NOT in the
@@ -315,9 +308,6 @@ var BUNDLES = {
   /* KARL query layer (fe/karl-page, 2026-10-07): lazy Karl chunk — NOT in
      the critical path. Fetched only when #pf-karl is present (/karl). */
   'core/bundle-karl': KARL_FILES.slice(),
-  /* WHO OWNS YOUR TOWN (fe/town-page): lazy chunk — NOT in the critical
-     path. Fetched only on /town. */
-  'core/bundle-town': TOWN_FILES.slice(),
   /* FRED Everywhere Phase 2 (2026-10-05): the three user modeling tools as
      a lazy chunk — Tool 1 Stack 'Em (curated/guided/full), Tool 2 explainer,
      Tool 3 Receipt check. Fetched only when a tool host exists (#pf-economy,
@@ -334,10 +324,6 @@ var BUNDLES = {
   'pages/bundle-pages': [
     'pages/home-v2.js',
     'pages/political-hq.js',
-    /* THE CORRUPTION INDEX (fe/corruption-index, 2026-10-07): /index page —
-       self-mounting into #pf-index (political-hq pattern). Leaderboard,
-       methodology, tap-to-expand breakdowns, phq-index-score share cards. */
-    'pages/index-page.js',
     'pages/slr-roster.js',
     'pages/slr-catalog.js',
     'pages/page-mount.js',

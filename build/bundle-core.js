@@ -318,7 +318,11 @@ var TOWNREPORT_FILES = [
    the Karl AI worker handles deep questions. Zero critical-path weight.
    Kill: ?pf_off=karl-companion. */
 var COMPANION_FILES = [
-  'core/karl-companion.js'
+  'core/karl-companion.js',
+  /* KARL MUSE (fe/karl-muse, 2026-10-07): the muse engine — story memory,
+     user-state reading, next-move rules, taste model, muse worker context.
+     Same lazy chunk, same kill story. */
+  'core/karl-muse.js'
 ];
 
 /* FRED Everywhere Phase 2 (2026-10-05): the three user modeling tools —

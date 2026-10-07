@@ -445,7 +445,15 @@ function karlContext(idn,ms,j){
         return (e.when||'')+' '+(e.what||'');
       }).join('; ');
     }
+    /* KARL MUSE (fe/karl-muse, 2026-10-07): the dashboard gateway speaks as
+       the muse too. The worker switches to muse mode on ctx.muse. The ctx is
+       stashed globally so the sitewide companion can read the same signals. */
+    ctx.muse=true;
+    try{
+      if(window.PFKarlMuse&&PFKarlMuse.storySummary) ctx.story=PFKarlMuse.storySummary();
+    }catch(e){}
   }catch(e){}
+  try{ window.__pfKarlDashCtx=ctx; }catch(e){}
   return ctx;
 }
 function renderKarl(){

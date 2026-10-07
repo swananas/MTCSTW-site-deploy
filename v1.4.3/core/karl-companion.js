@@ -254,6 +254,13 @@
   }
 
   function suggestionChips() {
+    /* Muse: dynamic chips — the next move leads, taste biases the rest. */
+    try {
+      if (window.PFKarlMuse && PFKarlMuse.museChips) {
+        var mc = PFKarlMuse.museChips(pageInfo().chips);
+        if (mc && mc.length) { return mc; }
+      }
+    } catch (e) {}
     var pi = pageInfo();
     return pi.chips.slice(0, 3);
   }
@@ -279,6 +286,14 @@
   }
 
   function greet() {
+    /* Muse: the proactive greeting — who you are, where you stand, the move. */
+    try {
+      if (window.PFKarlMuse && PFKarlMuse.museGreeting) {
+        addMsg('karl', PFKarlMuse.museGreeting());
+        addChips(suggestionChips());
+        return;
+      }
+    } catch (e) {}
     var cs = callsign();
     var pi = pageInfo();
     var g;
@@ -302,6 +317,8 @@
     if (!q) { return; }
     addMsg('user', esc(q));
     chipsBox.innerHTML = '';
+    /* Muse: the question is a signal — feed the taste model. */
+    try { if (window.PFKarlMuse && PFKarlMuse.observeQuestion) { PFKarlMuse.observeQuestion(q); } } catch (e) {}
     var pi = pageInfo();
     /* 1. Local index first — instant, no rate limit. */
     var local = matchLocal(q);
@@ -326,6 +343,14 @@
     var ctx = { page: pi.label, path: pi.path };
     var cs = callsign();
     if (cs) { ctx.callsign = cs; }
+    /* Muse mode: the worker answers as the muse — inspirational, narrative-
+       aware, one clear next step. The user state travels with the question. */
+    try {
+      if (window.PFKarlMuse && PFKarlMuse.museContext) {
+        var mc = PFKarlMuse.museContext();
+        for (var mk in mc) { ctx[mk] = mc[mk]; }
+      }
+    } catch (e) {}
     askWorker(q, ctx).then(function (r) {
       try { tp.parentNode && tp.parentNode.removeChild(tp); } catch (e) {}
       if (r && r.ok && r.answer) {

@@ -548,8 +548,8 @@ function test3g(done) {
     var btn = b.form.querySelector('[data-ucl-check]');
     btn.dispatchEvent({ type: 'click' });
     wait(80).then(function () {
-      if (captured && captured.type === 'ugc' && captured.ugc_action === 'receipt_parse_assist')
-        ok('runtime: POST receipt_parse_assist via ugc_action');
+      if (captured && captured.type === 'ugcassist' && captured.ua_action === 'receipt_parse_assist')
+        ok('runtime: POST receipt_parse_assist via ua_action');
       else no('runtime: POST shape', JSON.stringify(captured));
       if (captured && captured.photo_url === 'https://example.com/photo.jpg' &&
           captured.manual && captured.manual.price_cents === 329 &&

@@ -254,8 +254,19 @@ function mergeCheckinState(j){
   render();
 }
 
+/* SERVER-WINS (2026-10-07, Google audit C5): the checkin below applies local
+   state optimistically (snappy UI), but the backend POST is authoritative.
+   If the POST fails, the device state is rolled back to the pre-checkin
+   snapshot, a corrective pf-order-checkin-reverted event lets bus consumers
+   (Do Meter, tally, ranks) undo their optimistic update, the widget repaints,
+   and the user gets a clear notice + retry. pendingCheckin holds the exact
+   POST payload + snapshots while a sync is in flight. */
+var pendingCheckin=null;
 function checkin(mi,platform){
   var d=dayRec(), o=d.o, rec=d.rec, t=today();
+  /* C5 snapshot: exact pre-checkin device state for server-failure rollback. */
+  var preO=null, preR=null;
+  try{ preO=localStorage.getItem(LS_O); preR=localStorage.getItem(LS_R); }catch(e){}
   var already=rec.done.some(function(x){ return String(x.m)===String(mi); });
   if(already) return {ok:false, err:"already"};
   platform=platform||null;
@@ -289,9 +300,20 @@ function checkin(mi,platform){
   var r=load(LS_R,{xp:0,got:{}}), key="order_"+t+"_"+mi;
   if(r.got[key]!==t){ r.got[key]=t; r.xp+=gained+bonus; save(LS_R,r); }
   fireEvent(t,mi,reportNo,gained+bonus+cmd,o.streak,platform);
+  /* C5 post-snapshots: the optimistic local state, exactly as written above.
+     Kept so a retry that succeeds restores it byte-for-byte without claiming
+     from the shared daily pool a second time. */
+  var postO=null, postR=null;
+  try{ postO=localStorage.getItem(LS_O); postR=localStorage.getItem(LS_R); }catch(e){}
   var id=ident();
   if(id.callsign){
-    apiPost({action:"checkin",callsign:id.callsign,day:t,mission:mi,platform:platform,spread:0,gained:gained+bonus+cmd},function(j){
+    var payload={action:"checkin",callsign:id.callsign,day:t,mission:mi,platform:platform,spread:0,gained:gained+bonus+cmd};
+    pendingCheckin={payload:payload,
+      detail:{day:t,mission:mi,reportNo:reportNo,xp:gained+bonus+cmd,streak:o.streak,platform:platform||null},
+      preO:preO,preR:preR,postO:postO,postR:postR};
+    apiPost(payload,function(j){
+      if(!j||!j.ok){ revertCheckin(); return; }
+      pendingCheckin=null;
       mergeCheckinState(j);
     });
   }
@@ -299,6 +321,74 @@ function checkin(mi,platform){
 }
 function fireEvent(t,mi,reportNo,xp,streak,platform){
   try{ document.dispatchEvent(new CustomEvent("pf-order-checkin",{detail:{day:t,mission:mi,reportNo:reportNo,xp:xp,streak:streak,platform:platform||null}})); }catch(e){}
+}
+/* C5 reconciliation: the server POST failed. Roll the device ledger back to
+   the pre-checkin snapshot, tell every bus consumer to undo their optimistic
+   update, repaint the widget, and show a notice + retry. The pending payload
+   is kept so RETRY re-fires the identical POST. */
+function revertCheckin(){
+  var p=pendingCheckin; if(!p) return;
+  try{
+    if(p.preO===null||p.preO===undefined) localStorage.removeItem(LS_O); else localStorage.setItem(LS_O,p.preO);
+    if(p.preR===null||p.preR===undefined) localStorage.removeItem(LS_R); else localStorage.setItem(LS_R,p.preR);
+  }catch(e){}
+  try{
+    var det={}; for(var k in p.detail){ if(Object.prototype.hasOwnProperty.call(p.detail,k)) det[k]=p.detail[k]; }
+    det.reverted=true;
+    document.dispatchEvent(new CustomEvent("pf-order-checkin-reverted",{detail:det}));
+  }catch(e){}
+  try{ render(); }catch(e){}
+  showCheckinError();
+}
+/* C5 UI: clear notice + retry affordance inside the widget's #oErr slot. */
+function showCheckinError(){
+  var el=document.getElementById("oErr");
+  if(!el) return;
+  el.innerHTML="";
+  var msg=document.createElement("div");
+  msg.textContent="\u26A0 Check-in didn't reach the server \u2014 progress was rolled back locally and nothing was recorded. Your streak is safe.";
+  var btn=document.createElement("button");
+  btn.className="o-retrybtn"; btn.textContent="RETRY SYNC"; btn.type="button";
+  btn.style.cssText="margin-top:8px;padding:10px 18px;min-height:44px;background:#c1121f;color:#fff;border:none;border-radius:6px;font-weight:700;letter-spacing:.08em;cursor:pointer;";
+  btn.onclick=function(){ retryCheckin(); };
+  el.appendChild(msg); el.appendChild(btn);
+}
+/* C5 retry: re-fire the identical server POST. Success restores the
+   optimistic local state (already pool-claimed once \u2014 no double claim),
+   re-fires pf-order-checkin, merges server truth, and clears the notice.
+   If the user did anything else since the rollback, the snapshots no longer
+   match \u2014 the retry stands down and they just REPORT BACK again. */
+function retryCheckin(){
+  var p=pendingCheckin; if(!p) return;
+  var el=document.getElementById("oErr");
+  var curO=null, curR=null;
+  try{ curO=localStorage.getItem(LS_O); curR=localStorage.getItem(LS_R); }catch(e){}
+  if(curO!==p.preO||curR!==p.preR){
+    pendingCheckin=null;
+    if(el) el.textContent="State changed since the failed check-in \u2014 tap REPORT BACK on the mission again.";
+    return;
+  }
+  if(el) el.textContent="Syncing\u2026";
+  apiPost(p.payload,function(j){
+    if(!j||!j.ok){
+      /* still down: restore the pre-checkin state and re-show the notice */
+      try{
+        if(p.preO===null||p.preO===undefined) localStorage.removeItem(LS_O); else localStorage.setItem(LS_O,p.preO);
+        if(p.preR===null||p.preR===undefined) localStorage.removeItem(LS_R); else localStorage.setItem(LS_R,p.preR);
+      }catch(e){}
+      try{ render(); }catch(e){}
+      showCheckinError();
+      return;
+    }
+    try{
+      if(p.postO===null||p.postO===undefined) localStorage.removeItem(LS_O); else localStorage.setItem(LS_O,p.postO);
+      if(p.postR===null||p.postR===undefined) localStorage.removeItem(LS_R); else localStorage.setItem(LS_R,p.postR);
+    }catch(e){}
+    try{ document.dispatchEvent(new CustomEvent("pf-order-checkin",{detail:p.detail})); }catch(e){}
+    pendingCheckin=null;
+    if(el) el.textContent="";
+    mergeCheckinState(j);
+  });
 }
 /* COMMAND BONUS: 3/3 missions + field op = FULL DEPLOYMENT, once per day.
    Draws from the shared 50/day pool via PF.claimDayXp — it can clip to 0 if

@@ -36,17 +36,19 @@
      The old Squarespace-built roster/catalog content is replaced in-page; the
      v1.1.0 fixes/roster.js patch no longer loads on these pages. Every other
      page loads the v1.1.0 production set pinned to 6e8b9a4.
-     V3 pin: 1e8bc47 (hud-batched-call merge + minified rebuild, 2026-10-06 ~23:25 CDT). -->
+     V3 pin: b90ba1b (ship-blocker re-pin 2026-10-07 ~04:45 CDT: fe/qc-gap-fixes tip
+     5dcbf6e was 28 commits behind the audited tip and 9 requested bundles 404'd
+     at that pin — re-pinned to the audited integration tip). -->
 <!-- 2026-10-05: the static DELETE MY DATA fallback anchor was removed here —
      it duplicated the functional link injected by core/16-footer.js (dialog +
      privacy_erase flow). The JS silo strips any already-pasted static
      fallback on boot, so no footer re-paste is needed. -->
 <script>(function(){
-var V3='5dcbf6e',V1='76107b5';
+var V3='b90ba1b',V1='76107b5';
 /* DEFECT 1 (2026-10-03): pin for core/bundle-footer-chrome.js (added in
    commit 133ee90). Kept separate from V3 so the live v1.4.3 set stays
    byte-identical; re-pin together on the next release. */
-var VCHROME='5dcbf6e';
+var VCHROME='b90ba1b';
 /* MERGE (2026-10-05, integrate/big-update-fe <- wave-6b): V3/VCHROME keep
    HEAD's 41c13ac (newer; matches the --ours built-bundle resolution).
    V1 takes wave-6b's 76107b5 (newer; v1.1.0 tree byte-identical at both
@@ -58,7 +60,12 @@ var VCHROME='5dcbf6e';
    RE-PIN (2026-10-07 ~00:35 CDT, fe/qc-gap-fixes merge 5dcbf6e — 6 surgical
    QC-gap fixes: sharein Escape-to-close, studio_plugins_list fail-soft,
    PWA async, page-mount hash re-scroll, data-bounties RETRY, /call-it
-   markets lazy entry): V3/VCHROME = 5dcbf6e. V1 stays 76107b5. */
+   markets lazy entry): V3/VCHROME = 5dcbf6e. V1 stays 76107b5.
+   RE-PIN (2026-10-07 ~04:45 CDT, fix/ship-audit-d — Claude audit BLOCKER:
+   5dcbf6e was 28 commits behind the audited integration tip; 9 bundles the
+   loader requests did not exist at that pin (404s). V3/VCHROME = b90ba1b
+   (audited tip). Verified: all 56 v1.4.3 bundle paths referenced by this
+   loader exist in `git ls-tree b90ba1b`. V1 stays 76107b5. */
 var SLR_SLUGS='an-iowan|bitchysitch|black-newsbeat-with-dr-kimeka-campbell|bona-bones|combatvetsagainsttrump|damn-pam-ham-from-effingham|deejay10|dofd|dogman_v1|dr-taylor-andrew|east-coast-it-notes|eat-the-rich|f-this-imperialistic-bs|films-for-action|guillotines-for-a-better-america|guillotines-for-billionares-2020|hex-reject|im-that-girl|ipostwhenifeelhot|itsdewberry|jeanine-pirreaux-comedy|jessicacymone|joey|joman|keithwashburn|kim-hunt-slaythegop|let-the-revolution-begin-peacefully-of-course|little-anarchist-brat|love-and-molotov|luigis-mansion-socialist-shitposting|mandifromtheinternet|mermaid-tm|mexiguerita22|minnesota-department-of-propaganda|moreno-neurospicy-news|mtcstw|nikalie-monroe|official-ghost-of-eli|progressively2026|public-enlightenment|quietmayhem|radically-sunny|sajidahtalks2025|sex-drugs-rock-n-roll|sissyfits|south-dakota-department-of-propaganda|splashofgenz|thatalabamafella|the-antifascist-frog|the-atheist-socialist|the-dr-greg-show|the-political-feminist|thelastcookout|therevcoms|undraylowery|us-department-of-health-and-human-shenanigans|us-federal-department-of-propaganda|vandala-effect|voix-noire|wisconsin-department-of-propaganda|worlds-strongest-mayo|your-friendly-neighborhood-schizophrenic';
 var _p=location.pathname;
 function _seg(p){var s=p.charAt(0)==='/'?p.slice(1):p;return s.charAt(s.length-1)==='/'?s.slice(0,-1):s;}

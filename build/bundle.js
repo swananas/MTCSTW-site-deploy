@@ -491,6 +491,11 @@ var SECTIONS = {
     /* Wave 5B (2026-10-04): Situation Report pane, prepended into #xWarReport. */
     'theater-sitrep.js'
   ],
+  /* USER DASHBOARD HUB (2026-10-07, fe/user-dashboard): /dashboard — the hub.
+     One silo, one composite call. The hub routes; it never embeds. */
+  'bundle-userdash': [
+    'user-dashboard.js'
+  ],
   'bundle-roster': [
     /* SLR roster/catalog pages — the live Efficiency Index painter. */
     'efficiency.js'

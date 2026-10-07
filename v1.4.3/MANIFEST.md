@@ -22,7 +22,7 @@ Composition as of 2026-10-05 (generated — do not hand-edit this list):
 - Page/section bundles in `build/bundle.js`: bundle-sec1, bundle-home,
   bundle-arcade(-h), bundle-cells(-h), bundle-create(-h), bundle-bank,
   bundle-economy, bundle-warchest, bundle-ventures, bundle-events,
-  bundle-warreport, bundle-roster, bundle-hq, bundle-hq-deep
+  bundle-warreport, bundle-userdash, bundle-roster, bundle-hq, bundle-hq-deep
 - `bundle-hq` (critical path, blocking): phq-hubs.js, civic.js,
   phq-jobs-panel.js, civic-duty.js — ~137KB. Everything below the fold rides
   `bundle-hq-deep.js` (async, injected by phq-hubs.js; PF.phqDeepReady()

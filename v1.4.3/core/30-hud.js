@@ -163,18 +163,12 @@
   function render(callsign, xpToday, streakCount, graduated, inCell) {
     if (document.getElementById('pf-hud')) return;
     var target = dailyTarget();
-    var ps = phaseStates(callsign, graduated, inCell);
+    var hh = phaseHtml(callsign, graduated, inCell);
     var rank = '';
     try {
       var lr = JSON.parse(localStorage.getItem('pf_ranks_v1') || '{"xp":0}');
       rank = tierOf(Number(lr.xp) || 0);
     } catch (e) {}
-    var ph = '';
-    for (var i = 0; i < PHASES.length; i++) {
-      var cls = 'pf-hud-phase' + (ps.done[i] ? ' done' : '') + (i === ps.current ? ' current' : '');
-      ph += '<div class="' + cls + '"><div class="p-name">' + PHASES[i].key + '</div><div class="p-dot"></div></div>';
-    }
-    var cur = PHASES[ps.current] || PHASES[0];
     var who = callsign
       ? '<div id="pf-hud-cs">' + esc(callsign) + '</div>' +
         (rank ? '<div id="pf-hud-rank">' + esc(rank) + '</div>' : '')
@@ -189,8 +183,8 @@
       '<div id="pf-hud-who">' + who + '</div>' + streak +
       '<div id="pf-hud-caret">&#9650;</div></div>' +
       '<div id="pf-hud-strip"><div id="pf-hud-strip-title">YOUR CAMPAIGN</div>' +
-      '<div id="pf-hud-phases">' + ph + '</div>' +
-      '<div id="pf-hud-hint">' + esc(cur.hint) + ' <a href="' + esc(cur.href) + '">MOVE &rarr;</a></div></div>';
+      '<div id="pf-hud-phases">' + hh.phases + '</div>' +
+      '<div id="pf-hud-hint">' + hh.hint + '</div></div>';
     document.body.appendChild(el);
     var bar = document.getElementById('pf-hud-bar');
     if (bar) bar.addEventListener('click', function () {
@@ -232,18 +226,61 @@
     } catch (e2) {}
   }
 
-  function rerender(callsign, xpToday, streakCount, graduated, inCell) {
-    /* Patch path: drop the instant shell and render with live numbers,
-       preserving the strip's open/closed state. */
-    var open = false;
-    try {
-      var old = document.getElementById('pf-hud');
-      if (old) { open = old.classList.contains('open'); if (old.parentNode) old.parentNode.removeChild(old); }
-    } catch (e) {}
-    render(callsign, xpToday, streakCount, graduated, inCell);
-    if (open) {
-      try { var h = document.getElementById('pf-hud'); if (h) h.classList.add('open'); } catch (e2) {}
+  function phaseHtml(callsign, graduated, inCell) {
+    var ps = phaseStates(callsign, graduated, inCell);
+    var ph = '';
+    for (var i = 0; i < PHASES.length; i++) {
+      var cls = 'pf-hud-phase' + (ps.done[i] ? ' done' : '') + (i === ps.current ? ' current' : '');
+      ph += '<div class="' + cls + '"><div class="p-name">' + PHASES[i].key + '</div><div class="p-dot"></div></div>';
     }
+    var cur = PHASES[ps.current] || PHASES[0];
+    return { phases: ph, hint: esc(cur.hint) + ' <a href="' + esc(cur.href) + '">MOVE &rarr;</a>' };
+  }
+
+  function patchHud(callsign, xpToday, streakCount, graduated, inCell) {
+    /* QC fix (2026-10-06): patch values IN PLACE — never replace #pf-hud.
+       31-pillars.js mounts #pf-pillars into #pf-hud-strip exactly once
+       (observer disconnects); destroying the host node orphaned it. */
+    var h = null;
+    try { h = document.getElementById('pf-hud'); } catch (e) {}
+    if (!h) { render(callsign, xpToday, streakCount, graduated, inCell); return; }
+    var target = dailyTarget();
+    try {
+      var oldRing = document.getElementById('pf-hud-ring');
+      if (oldRing && oldRing.parentNode) {
+        var tmp = document.createElement('div');
+        tmp.innerHTML = ringSvg(xpToday / target);
+        if (tmp.firstChild) oldRing.parentNode.replaceChild(tmp.firstChild, oldRing);
+      }
+    } catch (e2) {}
+    try {
+      var bar = document.getElementById('pf-hud-bar');
+      var oldStreak = document.getElementById('pf-hud-streak');
+      if (streakCount > 0) {
+        var sTmp = document.createElement('div');
+        sTmp.innerHTML = '<div id="pf-hud-streak">&#128293;' + streakCount + '</div>';
+        var newStreak = sTmp.firstChild;
+        if (newStreak) {
+          if (oldStreak && oldStreak.parentNode) oldStreak.parentNode.replaceChild(newStreak, oldStreak);
+          else if (bar) {
+            var caret = document.getElementById('pf-hud-caret');
+            if (caret && caret.parentNode === bar) bar.insertBefore(newStreak, caret);
+            else bar.appendChild(newStreak);
+          }
+        }
+      } else if (oldStreak && oldStreak.parentNode) {
+        oldStreak.parentNode.removeChild(oldStreak);
+      }
+    } catch (e3) {}
+    try {
+      var hh = phaseHtml(callsign, graduated, inCell);
+      var phasesHost = document.getElementById('pf-hud-phases');
+      if (phasesHost) phasesHost.innerHTML = hh.phases;
+      var hint = document.getElementById('pf-hud-hint');
+      if (hint) hint.innerHTML = hh.hint;
+    } catch (e4) {}
+    /* The who-block (callsign + device-local rank) is identical between the
+       instant shell and the patch — no touch needed. */
   }
 
   function boot() {
@@ -259,7 +296,7 @@
         if (j && j.ok) {
           var xp = (j.xp_today !== undefined) ? (Number(j.xp_today) || 0) : 0;
           var streak = (j.streak && j.streak.count !== undefined) ? (Number(j.streak.count) || 0) : 0;
-          rerender(cs, xp, streak, !!j.graduated, !!j.in_cell);
+          patchHud(cs, xp, streak, !!j.graduated, !!j.in_cell);
         }
         /* else: fail-open — the instant shell stands with zeros. */
       } catch (e) {}

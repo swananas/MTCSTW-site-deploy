@@ -120,7 +120,18 @@
     '.pf-ex .ex-confbar{height:6px;background:#2a2a2a;border-radius:3px;margin-top:4px;overflow:hidden}' +
     '.pf-ex .ex-confbar i{display:block;height:100%;background:#c1121f}' +
     '.pf-ex .ex-sentinel{height:2px}' +
-    '.pf-ex .ex-load{text-align:center;color:#8f8672;font-size:13px;padding:14px}';
+    '.pf-ex .ex-load{text-align:center;color:#8f8672;font-size:13px;padding:14px}' +
+    /* Flow 3 (cross-data): the movement feed — cross-rail cards. */
+    '.pf-ex .ex-mv{margin:0 0 16px}' +
+    '.pf-ex .ex-mv-rail{font:900 12px Arial;letter-spacing:3px;color:#e8b923;margin:14px 0 8px}' +
+    '.pf-ex .ex-mv-card{display:block;background:#101010;border:1px solid #2a2a2a;border-left:4px solid #e8b923;' +
+    'border-radius:8px;padding:12px 14px;margin:0 0 10px;text-decoration:none;color:#f5ead6}' +
+    '.pf-ex .ex-mv-card:active{transform:scale(.99)}' +
+    '.pf-ex .ex-mv-t{font:900 16px Arial,sans-serif;color:#fff;margin:0 0 4px}' +
+    '.pf-ex .ex-mv-h{font:700 13px Arial;color:#e8b923;margin:0 0 2px}' +
+    '.pf-ex .ex-mv-s{font-size:12px;color:#c9bfa8;line-height:1.45}' +
+    '.pf-ex .ex-mv-src{font-size:10px;color:#8f8672;margin-top:6px}' +
+    '.pf-ex .ex-mv-go{font:700 12px Arial;color:#c1121f;letter-spacing:1px;margin-top:6px}';
 
   function staleBadge(p) {
     if (!p || !p.live || !p.matched || p.days_old == null) return '';
@@ -160,6 +171,51 @@
       '</div>';
   }
 
+  /* ---------- Flow 3 (cross-data): THE MOVEMENT FEED ----------
+     The extraction feed becomes the movement's front page: cross-rail
+     cards (Receipt dossiers, town reports, Index entities) above the
+     company ledger. Each card links back to its source page. Empty rails
+     render nothing — honest-empty lives in the backend sections. */
+  var MV_RAILS = [
+    ['receipts', 'HOT RECEIPTS'],
+    ['towns', 'TOWN REPORTS'],
+    ['index', 'MOST CAPTURED']
+  ];
+  function mvCardHTML(c) {
+    var go = c.rail === 'receipt' ? 'GET THE RECEIPT →'
+      : c.rail === 'town' ? 'READ THE REPORT →'
+      : c.rail === 'index' ? (c.kind === 'company' ? 'EXTRACTION FILE →' : 'GET THE RECEIPT →')
+      : 'OPEN →';
+    return '<a class="ex-mv-card" href="' + esc(c.url || '#') + '">' +
+      '<div class="ex-mv-t">' + esc(c.title || '') + '</div>' +
+      (c.headline ? '<div class="ex-mv-h">' + esc(c.headline) + '</div>' : '') +
+      (c.sub ? '<div class="ex-mv-s">' + esc(c.sub) + '</div>' : '') +
+      (c.source ? '<div class="ex-mv-src">SOURCE: ' + esc(c.source) + '</div>' : '') +
+      '<div class="ex-mv-go">' + go + '</div></a>';
+  }
+  function loadMovement() {
+    var mv = document.getElementById('exMovement');
+    if (!mv) return;
+    get('movement_feed', { limit: 4 }, function (d) {
+      if (!d || !d.ok || !d.sections) return;
+      var html = '', any = false;
+      MV_RAILS.forEach(function (r) {
+        var sec = d.sections[r[0]];
+        if (!sec || sec.status !== 'live' || !(sec.cards || []).length) return;
+        any = true;
+        html += '<div class="ex-mv-rail">' + r[1] + '</div>';
+        sec.cards.forEach(function (c) { html += mvCardHTML(c); });
+      });
+      if (!any) {
+        html = '<div class="ex-note" style="text-align:center">The movement feed is warming up — ' +
+          'cross-rail highlights appear here as the rails land.</div>';
+      } else {
+        html = '<div class="ex-mv-rail" style="color:#c1121f">ACROSS THE MACHINE</div>' + html;
+      }
+      mv.innerHTML = '<div class="ex-mv">' + html + '</div>';
+    });
+  }
+
   /* ---------- feed ---------- */
   var feedState = { offset: 0, loading: false, done: false, listEl: null, sentEl: null };
   function renderFeed() {
@@ -174,6 +230,7 @@
       '<input id="exGenQ" type="text" placeholder="Company name…" autocomplete="off">' +
       '<button class="ex-btn" id="exGenGo">RUN THE ENGINE</button>' +
       '<div id="exGenOut"></div></div>' +
+      '<div id="exMovement"></div>' +
       '<div id="exFeedList"></div>' +
       '<div class="ex-sentinel" id="exSentinel"></div>' +
       '<div class="ex-load" id="exFeedMsg">Loading the ledger…</div></div>';
@@ -185,6 +242,7 @@
       if (e.key === 'Enter') runGenerate();
     });
     loadFeedPage();
+    loadMovement(); /* Flow 3: cross-rail movement feed above the ledger. */
     try {
       var io = new IntersectionObserver(function (entries) {
         if (entries[0] && entries[0].isIntersecting) loadFeedPage();
@@ -206,9 +264,7 @@
         var div = document.createElement('div');
         div.innerHTML = cardHTML(it);
         feedState.listEl.appendChild(div.firstChild);
-        try { if (it && it.slug) feedCache[it.slug] = it; } catch (e) {}
       });
-      wireMssButtons(feedState.listEl);
       feedState.offset += (d.items || []).length;
       if (!d.has_more || !(d.items || []).length) {
         feedState.done = true;
@@ -272,7 +328,6 @@
     html += '<details><summary>ENTITY RESOLUTION</summary><div class="ex-body">' + resolutionHTML(d.links) + '</div></details>';
     html += stickyWebHTML(web, p);
     html += '<button class="ex-btn2" data-ex-share="1">SHARE THIS DOSSIER</button>';
-    html += ' <button type="button" class="pf-mss-btn" data-mss-ex="' + esc(e.slug || '') + '" data-mss-ex-name="' + esc(e.display_name || 'company') + '">MAKE SHAREABLE</button>';
     if (!embedded) html += '<div style="margin-top:10px"><a class="pf-ex-link" href="/extraction">← BACK TO THE FEED</a></div>';
     return html;
   }
@@ -440,54 +495,6 @@
       } else download();
     } catch (ex) { download(); }
   }
-  /* MAKE SHAREABLE (fe/make-shareable-inline, 2026-10-07): inline Studio
-     creation panel on every extraction story. The story's own 1080x1350
-     painter (paintPoster) renders the preview — feed cards carry enough
-     headline data to paint without the full profile. One tap publishes to
-     the UGC feed + opens the native share sheet. No page navigation.
-     Zero XP for viewing. */
-  var profileCache = {}, feedCache = {};
-  function asProfileData(d) {
-    if (d && d.entity) return d; /* full profile shape already */
-    return {
-      entity: { display_name: (d && d.company) || 'UNKNOWN', slug: (d && d.slug) || '' },
-      headlines: (d && d.headlines) || {},
-      web: { profile_url: (d && d.profile_url) || ('/extraction?c=' + encodeURIComponent((d && d.slug) || '')) }
-    };
-  }
-  function openExtractionShareable(slug, name) {
-    var M = null;
-    try { M = window.PFMakeShareable; } catch (e) {}
-    if (!M) return;
-    M.openPanel({
-      kind: 'extraction', ref: slug || '',
-      title: 'EXTRACTION: ' + (name || slug || 'company'),
-      deep: '/extraction?c=' + encodeURIComponent(slug || ''), game: 'extraction'
-    });
-  }
-  function wireMakeShareableEx() {
-    var M = null;
-    try { M = window.PFMakeShareable; } catch (e) {}
-    if (!M || M._pfExtractionWired) return;
-    M._pfExtractionWired = true;
-    M.registerResolver('extraction', function (unit, done) {
-      var d = profileCache[unit.ref] || feedCache[unit.ref];
-      var cv = null;
-      try { if (d) cv = paintPoster(asProfileData(d)); } catch (e) {}
-      try { done(cv); } catch (e2) {}
-    });
-  }
-  function wireMssButtons(root) {
-    var btns = root.querySelectorAll ? root.querySelectorAll('[data-mss-ex]:not([data-mss-wired])') : [];
-    for (var i = 0; i < btns.length; i++) {
-      (function (b) {
-        b.setAttribute('data-mss-wired', '1');
-        b.addEventListener('click', function () {
-          openExtractionShareable(b.getAttribute('data-mss-ex'), b.getAttribute('data-mss-ex-name'));
-        });
-      })(btns[i]);
-    }
-  }
   function wireProfile(root, d) {
     var btns = root.querySelectorAll ? root.querySelectorAll('[data-ex-share]') : [];
     for (var i = 0; i < btns.length; i++) {
@@ -495,15 +502,9 @@
         b.addEventListener('click', function () { shareProfile(d); });
       })(btns[i]);
     }
-    try {
-      var e = (d && d.entity) || {};
-      if (e.slug) profileCache[e.slug] = d;
-    } catch (ex) {}
-    wireMssButtons(root);
   }
 
   /* ---------- boot ---------- */
-  wireMakeShareableEx();
   try {
     var css = document.createElement('style');
     css.textContent = CSS;

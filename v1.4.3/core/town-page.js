@@ -85,7 +85,18 @@
     '.pf-tn-sticky .pf-tn-links a{font-size:14px}',
     '.pf-tn-share{display:block;text-align:center;margin:22px auto 0;max-width:440px;background:#c1121f;color:#fff;font-weight:900;letter-spacing:2px;font-size:16px;padding:14px;border-radius:8px;border:0;cursor:pointer}',
     '.pf-tn-note{font-size:12px;color:#8a8272;text-align:center;margin-top:14px;font-style:italic}',
-    '.pf-tn-err{max-width:560px;margin:0 auto;text-align:center;color:#ff8a8a;font-size:14px;padding:18px;border:1px solid #5a1a1a;border-radius:10px;background:#1a0505}'
+    '.pf-tn-err{max-width:560px;margin:0 auto;text-align:center;color:#ff8a8a;font-size:14px;padding:18px;border:1px solid #5a1a1a;border-radius:10px;background:#1a0505}',
+    /* Flow 2 (cross-data): YOUR REPRESENTATIVES */
+    '.pf-tn-reps{margin-top:20px;border:1px solid #2a2a2a;border-radius:10px;padding:18px;background:#0d0d0d}',
+    '.pf-tn-reps h4{margin:0 0 2px;font-size:15px;letter-spacing:2px;font-weight:900}',
+    '.pf-tn-reps .pf-tn-dist{font-size:12px;color:#e8b923;font-weight:700;letter-spacing:1px;margin:0 0 4px}',
+    '.pf-tn-rep{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #1e1e1e}',
+    '.pf-tn-rep:last-of-type{border-bottom:0}',
+    '.pf-tn-rep .who{font-size:15px;font-weight:700}',
+    '.pf-tn-rep .meta{font-size:12px;color:#8a8272;margin-top:2px}',
+    '.pf-tn-rep a{font-size:12px;font-weight:900;color:#e8b923;text-decoration:none;letter-spacing:1px;white-space:nowrap}',
+    '.pf-tn-rep .soon{font-size:11px;color:#8a8272;font-style:italic;white-space:nowrap}',
+    '.pf-tn-reps .pf-tn-src{margin-top:12px}'
   ].join('\n');
 
   function cssOnce() {
@@ -336,11 +347,43 @@
 
   var lastReport = null;
 
+  /* Flow 2 (cross-data): YOUR REPRESENTATIVES — the zip's House rep +
+     both senators, each deep-linked to their Receipt dossier when indexed.
+     Honest-empty: reps without a dossier show "dossier coming soon", never
+     a dead link. */
+  function renderReps(r) {
+    if (!r || r.ok !== true || !r.reps || !r.reps.length) {
+      if (r && r.ok === true && r.note) {
+        return '<div class="pf-tn-reps"><h4>YOUR REPRESENTATIVES</h4>' +
+          '<p style="font-size:13px;color:#8a8272;margin:8px 0 0">' + esc(r.note) + '</p></div>';
+      }
+      return '';
+    }
+    var rows = r.reps.map(function (p) {
+      var meta = esc(p.chamber_label || '') +
+        (p.party ? ' · ' + esc(p.party) : '') +
+        (p.state ? ' · ' + esc(p.state) : '') +
+        (p.chamber === 'house' && p.district != null ? ' dist. ' + p.district : '');
+      var link = p.receipt_ready && p.receipt_url
+        ? '<a href="' + esc(safeUrl(p.receipt_url)) + '">GET THE RECEIPT →</a>'
+        : '<span class="soon">dossier coming soon</span>';
+      return '<div class="pf-tn-rep"><div><div class="who">' + esc(p.name) +
+        '</div><div class="meta">' + meta + '</div></div>' + link + '</div>';
+    }).join('');
+    return '<div class="pf-tn-reps"><h4>YOUR REPRESENTATIVES</h4>' +
+      (r.district_label ? '<div class="pf-tn-dist">PRIMARY DISTRICT: ' + esc(r.district_label) + '</div>' : '') +
+      (r.split_note ? '<p style="font-size:12px;color:#8a8272;margin:6px 0">' + esc(r.split_note) + '</p>' : '') +
+      rows +
+      '<div class="pf-tn-src">Source: ' + esc(r.source || 'congress_members (119th)') +
+      (r.vintage ? ' · ' + esc(r.vintage) : '') + '</div></div>';
+  }
+
   function lookup(zip) {
     var grid = host.querySelector('[data-tn-grid]');
     grid.innerHTML = ORDER.map(function (o) { return skeletonCard(o[1]); }).join('');
     host.querySelector('[data-tn-area]').textContent = '';
     host.querySelector('[data-tn-sticky]').innerHTML = '';
+    host.querySelector('[data-tn-reps]').innerHTML = '';
     host.querySelector('[data-tn-sharewrap]').innerHTML = '';
     api('town_power', { zip: zip }, function (r) {
       if (!r || r.ok !== true) {
@@ -382,6 +425,12 @@
         if (mss) mss.addEventListener('click', function () { openMakeShareable(lastReport); });
         try { history.replaceState(null, '', '/town?zip=' + encodeURIComponent(r.zip)); } catch (e) {}
       }, cards.length * 120 + 60);
+      /* Flow 2: representatives load alongside the sticky block. */
+      api('town_reps', { zip: zip }, function (rr) {
+        try {
+          host.querySelector('[data-tn-reps]').innerHTML = renderReps(rr);
+        } catch (e) {}
+      });
     });
   }
 
@@ -398,6 +447,7 @@
       '</div>' +
       '<div class="pf-tn-area" data-tn-area></div>' +
       '<div class="pf-tn-grid" data-tn-grid></div>' +
+      '<div data-tn-reps></div>' +
       '<div data-tn-sticky></div>' +
       '<div data-tn-sharewrap></div>' +
       /* KARL EMBEDDED (CEO 2026-10-07): inline query box — additive, sits

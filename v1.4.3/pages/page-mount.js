@@ -286,6 +286,17 @@
         ['receipt', null]
       ]
     },
+    /* 2026-10-07 (fe/cross-data-flows, from fe/extraction-engine 537b76e):
+       THE EXTRACTION ENGINE — pages/bundle-extraction.js self-renders into
+       #pf-extraction (feed + movement strip, ?c=<slug> profiles, generate
+       mode, share posters). order:[] — the bundle owns its rendering;
+       page-mount contributes the page header + full-width widening. Zero XP
+       for viewing. Ship-time hand-step: Squarespace page /extraction +
+       Code block <div id="pf-extraction"></div>. Kill: ?pf_off=extraction. */
+    'pf-extraction': {
+      title: 'THE EXTRACTION ENGINE', sub: 'Who got paid. What they did. Who got hurt. Every number sourced.',
+      order: []
+    },
     /* 2026-10-07 (fe/ugc-dossier-builder): UGC DOSSIER BUILDER — users take
        a Receipt dossier, add their own context (title, why-it-matters,
        per-section notes), preview, and publish a shareable page at
@@ -522,7 +533,7 @@
     'pf-political-hq', 'pf-slr-roster', 'pf-catalog', 'pf-money',
     'pf-warroom', 'pf-live', 'pf-data-bounties', 'pf-receipt',
     'pf-karl', 'pf-ugc-remix', 'pf-dossier',
-    'pf-town', 'pf-town-report'
+    'pf-town', 'pf-town-report', 'pf-extraction'
   ];
   function feWiden(host) {
     try {

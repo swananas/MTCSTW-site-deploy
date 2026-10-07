@@ -128,9 +128,10 @@ function afterGame(justPlayed){
   if(lapCount>=1||now-lastLap<10*60*1000) return;
   var m=nextMission();
   if(!m||m.key===justPlayed) return;
-  lastLap=now; lapCount++;
+  lastLap=now;
   var d=cardShell('pf-next-mission');
   if(!d) return; /* popup queue denied: another overlay is showing */
+  lapCount++; /* count only shown laps (2026-10-06 QC) */
   function kill(){ try{ d.remove(); }catch(e){} try{ if(window.PF&&PF.popupQueue) PF.popupQueue.release('convert-card'); }catch(e2){} }
   var h=document.createElement('div');
   h.style.cssText='color:#c1121f;font-weight:900;letter-spacing:2px;font-size:12px;margin-bottom:6px;';

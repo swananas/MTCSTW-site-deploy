@@ -34,8 +34,6 @@
   if (!PF || PF.skip('userdash')) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-userdash">
 <div class="fe-block pf-override-block pf-silo" id="pf-userdash">
-<h2>My HQ</h2>
-<div class="c-tag">Your war, your numbers, your next move — everything within two taps.</div>
 <div id="xUserDash"><div class="ud-sk" style="height:140px"></div><div class="ud-sk" style="height:320px;margin-top:22px"></div></div>
 </div>
 <script>
@@ -228,6 +226,11 @@ function css(){
   +'@keyframes udB{to{background-position:-200% 0}}'
  +'.ud-karltap{display:flex;align-items:center;gap:10px;width:100%;background:transparent;border:0;color:inherit;padding:10px 2px;cursor:pointer;min-height:56px;text-align:left}'
  +'.ud-karltap:active{background:#1a0d0d}'
+  /* Convergence (2026-10-07): KARL SUGGESTS — Karl's live next move rendered
+     as dashboard state. Filled by fillKarlSuggest() once PFKarlMuse loads. */
+  +'.ud-karl-suggest{margin:8px 2px 0;padding:9px 12px;background:#1c0a0a;border:1px solid #c1121f;border-radius:6px;font:12px/1.5 Arial;color:#f5f5f5}'
+  +'.ud-karl-suggest b{color:#e8b33c;letter-spacing:1px;font-size:11px}'
+  +'.ud-karl-suggest a{color:#e8b33c;font-weight:700}'
  +'.ud-hide{display:none}'
  +'.ud-grid.showall .ud-hide{display:flex}'
   +'.ud-btn.ud-del{color:#c1121f}'
@@ -485,8 +488,39 @@ function renderKarl(){
     +'<span class="ud-tx"><span class="ud-nm">ASK KARL</span>'
     +'<span class="ud-ds">The movement\u2019s intelligence. Ask anything \u2014 or find what\u2019s not on this page.</span></span>'
     +'<span class="ud-go">ASK \u2192</span></button>'
+    /* Convergence (2026-10-07): KARL SUGGESTS — Karl's live nextMove as
+       dashboard state. Filled by fillKarlSuggest() when the muse chunk loads;
+       hidden until then (fail-soft). */
+    +'<div class="ud-karl-suggest" id="udKarlSuggest" aria-live="polite" hidden></div>'
     +'</div>';
   return sec('KARL', h);
+}
+/* Convergence (2026-10-07): Karl's suggestions become dashboard state.
+   Polls for the lazy karl-muse chunk (max ~6s), then renders nextMove().
+   Fail-soft: the strip stays hidden when Karl is off (?pf_off=karl-muse). */
+function fillKarlSuggest(){
+  var tries=0;
+  (function tick(){
+    tries++;
+    var box=null;
+    try{ box=document.getElementById('udKarlSuggest'); }catch(e){}
+    if(!box) return;
+    var KM=null;
+    try{ KM=window.PFKarlMuse; }catch(e2){}
+    if(KM&&KM.nextMove){
+      try{
+        var m=KM.nextMove();
+        if(m&&m.headline){
+          box.removeAttribute('hidden');
+          box.innerHTML='<b>KARL SUGGESTS</b><br>'+esc(m.headline)
+            +(m.body?'<br>'+esc(m.body):'')
+            +(m.href&&m.link?' <a href="'+esc(m.href)+'">'+esc(m.link)+' \u2192</a>':'');
+        }
+      }catch(e3){}
+      return;
+    }
+    if(tries<12) setTimeout(tick,500);
+  })();
 }
 function renderActivity(act,ms){
   if(!act) return '';
@@ -566,6 +600,9 @@ function bind(root){
       try{ window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'}); }catch(e2){}
     });
   }catch(e){}
+  /* Convergence (2026-10-07): KARL SUGGESTS — fill Karl's live next move
+     into the dashboard once the muse chunk loads. */
+  try{ fillKarlSuggest(); }catch(e){}
   /* "Ask Karl" link in the DO section scrolls to + opens Karl. */
   try{
     var akl=root.querySelector('#udAskKarlLink');

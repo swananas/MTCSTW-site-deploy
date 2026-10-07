@@ -244,6 +244,19 @@
            #pf-live too. Kill: ?pf_off=livemode. */
         ['livemode', 'pf-ov-livemode']
       ]
+    },
+    /* WHO OWNS YOUR TOWN (fe/town-page, 2026-10-07, Data Product 2): /town.
+       order:[['town', null]] — the SELF map mounts the self-rendering silo
+       (core/town-page.js into #pf-town); page-mount contributes the header
+       + full-width widening + Next Move exit. Zero XP for viewing.
+       Ship-time hand-step: Squarespace page /town + Code block
+       <div id="pf-town"></div> + nav entry. Kill: ?pf_off=town. */
+    'pf-town': {
+      title: 'WHO OWNS YOUR TOWN', sub: 'Enter a zip. See who holds power in your backyard.',
+      exit: { href: '/receipt', text: 'NEXT MOVE: GET THE RECEIPT →' },
+      order: [
+        ['town', null]
+      ]
     }
   };
 
@@ -266,7 +279,10 @@
     'peoples-cpi': { div: 'pf-peoples-cpi', kill: 'peoples-cpi' },
     /* C4 (2026-10-06, Project Blossom): the Propaganda Fund structure page
        renders itself into #pf-fund. Kill: ?pf_off=fund. */
-    'fund': { div: 'pf-fund', kill: 'fund' }
+    'fund': { div: 'pf-fund', kill: 'fund' },
+    /* 2026-10-07 (fe/town-page, Data Product 2): WHO OWNS YOUR TOWN
+       renders itself into #pf-town. Kill: ?pf_off=town. */
+    'town': { div: 'pf-town', kill: 'town' }
   };
 
   function execScripts(root, label) {
@@ -412,7 +428,7 @@
     'pf-warchest', 'pf-ventures', 'pf-events', 'pf-warreport',
     'pf-war-card', 'pf-academy-hq', 'pf-dash-hq', 'pf-hq-mission',
     'pf-political-hq', 'pf-slr-roster', 'pf-catalog', 'pf-money',
-    'pf-warroom', 'pf-live', 'pf-data-bounties'
+    'pf-warroom', 'pf-live', 'pf-data-bounties', 'pf-town'
   ];
   function feWiden(host) {
     try {

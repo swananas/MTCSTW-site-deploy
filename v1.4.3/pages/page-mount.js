@@ -244,6 +244,22 @@
            #pf-live too. Kill: ?pf_off=livemode. */
         ['livemode', 'pf-ov-livemode']
       ]
+    },
+    /* KARL (fe/karl-page, 2026-10-07, Data Product 5): /karl — the query
+       layer front door. Clean, light: the input is the hero; fact-set cards
+       are minimal sourced numbers. Every answer deep-links into the rooms
+       (Receipt dossiers, town reports, extraction stories, index scores) —
+       the sticky web. Self-renders into #pf-karl (core/karl-page.js).
+       order:[['karl', null]] so page-mount positions the div + header +
+       full-width widening + Next Move exit. Zero XP for querying.
+       Ship-time hand-step: Squarespace page /karl + Code block
+       <div id="pf-karl"></div> + nav entry. Kill: ?pf_off=karl. */
+    'pf-karl': {
+      title: 'KARL', sub: 'Plain questions. Sourced answers. Never a guess.',
+      exit: { href: '/receipt', text: 'NEXT MOVE: GET THE RECEIPT →' },
+      order: [
+        ['karl', null]
+      ]
     }
   };
 
@@ -266,7 +282,11 @@
     'peoples-cpi': { div: 'pf-peoples-cpi', kill: 'peoples-cpi' },
     /* C4 (2026-10-06, Project Blossom): the Propaganda Fund structure page
        renders itself into #pf-fund. Kill: ?pf_off=fund. */
-    'fund': { div: 'pf-fund', kill: 'fund' }
+    'fund': { div: 'pf-fund', kill: 'fund' },
+    /* 2026-10-07 (fe/karl-page, Data Product 5): KARL — the query layer
+       front door. Self-renders into #pf-karl (core/karl-page.js).
+       Kill: ?pf_off=karl. */
+    'karl': { div: 'pf-karl', kill: 'karl' }
   };
 
   function execScripts(root, label) {
@@ -412,7 +432,8 @@
     'pf-warchest', 'pf-ventures', 'pf-events', 'pf-warreport',
     'pf-war-card', 'pf-academy-hq', 'pf-dash-hq', 'pf-hq-mission',
     'pf-political-hq', 'pf-slr-roster', 'pf-catalog', 'pf-money',
-    'pf-warroom', 'pf-live', 'pf-data-bounties'
+    'pf-warroom', 'pf-live', 'pf-data-bounties',
+    'pf-karl'
   ];
   function feWiden(host) {
     try {

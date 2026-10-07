@@ -281,6 +281,15 @@ var MONEY_FILES = [
   'games/ritual-calendar.js'
 ];
 
+/* KARL query layer (fe/karl-page, 2026-10-07, Data Product 5): the /karl
+   front door — self-mounting core/karl-page.js. Ships as the minified
+   core/bundle-karl.js lazy chunk, loaded on demand by the footer JS_GAMES
+   routing only when #pf-karl is present. Zero weight on every other page.
+   Kill: ?pf_off=karl (honored before the chunk loads). */
+var KARL_FILES = [
+  'core/karl-page.js'
+];
+
 /* FRED Everywhere Phase 2 (2026-10-05): the three user modeling tools —
    Tool 1 Stack 'Em, Tool 2 explainer, Tool 3 Receipt check. Lazy chunk
    (core/bundle-fred-tools.js) for non-money pages; the money page ships
@@ -296,6 +305,9 @@ var BUNDLES = {
   /* 2026-10-05 (fix/money-minified-rebuild): lazy money chunk — NOT in the
      critical path. Fetched only when a money surface is present. */
   'core/bundle-money': MONEY_FILES.slice(),
+  /* KARL query layer (fe/karl-page, 2026-10-07): lazy Karl chunk — NOT in
+     the critical path. Fetched only when #pf-karl is present (/karl). */
+  'core/bundle-karl': KARL_FILES.slice(),
   /* FRED Everywhere Phase 2 (2026-10-05): the three user modeling tools as
      a lazy chunk — Tool 1 Stack 'Em (curated/guided/full), Tool 2 explainer,
      Tool 3 Receipt check. Fetched only when a tool host exists (#pf-economy,

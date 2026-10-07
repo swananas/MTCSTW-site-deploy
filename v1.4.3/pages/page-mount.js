@@ -247,6 +247,18 @@
            #pf-live too. Kill: ?pf_off=livemode. */
         ['livemode', 'pf-ov-livemode']
       ]
+    },
+    /* 2026-10-07 (fe/data-receipt): THE RECEIPT — the politician money
+       dossier (Data Products Product 1). Self-mounting silo
+       (games/receipt.js renders into #pf-receipt); spine phase FIGHT.
+       Kill: ?pf_off=receipt. Squarespace hand-steps: page /receipt +
+       the #pf-receipt Code block (+ /receipt/<slug> deep links). */
+    'pf-receipt': {
+      title: 'THE RECEIPT', sub: 'Type a politician\u2019s name. Get the money dossier. Every figure sourced.',
+      spine: 'FIGHT',
+      order: [
+        ['receipt', null]
+      ]
     }
   };
 
@@ -269,7 +281,10 @@
     'peoples-cpi': { div: 'pf-peoples-cpi', kill: 'peoples-cpi' },
     /* C4 (2026-10-06, Project Blossom): the Propaganda Fund structure page
        renders itself into #pf-fund. Kill: ?pf_off=fund. */
-    'fund': { div: 'pf-fund', kill: 'fund' }
+    'fund': { div: 'pf-fund', kill: 'fund' },
+    /* 2026-10-07 (fe/data-receipt): THE RECEIPT renders itself into
+       #pf-receipt. Kill: ?pf_off=receipt. */
+    'receipt': { div: 'pf-receipt', kill: 'receipt' }
   };
 
   function execScripts(root, label) {
@@ -415,7 +430,7 @@
     'pf-warchest', 'pf-ventures', 'pf-events', 'pf-warreport',
     'pf-war-card', 'pf-academy-hq', 'pf-dash-hq', 'pf-hq-mission',
     'pf-political-hq', 'pf-slr-roster', 'pf-catalog', 'pf-money',
-    'pf-warroom', 'pf-live', 'pf-data-bounties'
+    'pf-warroom', 'pf-live', 'pf-data-bounties', 'pf-receipt'
   ];
   function feWiden(host) {
     try {

@@ -90,10 +90,17 @@ self.addEventListener('fetch', function (e) {
 
   // API: network-first, cache fallback
   if (isApi(url)) {
+    /* FIX 2026-10-07 (fix/pwa-glitch): JSONP requests carry a random
+       callback= name per call — caching them bloats Cache Storage with
+       entries that can never be reused. Skip those, and only cache
+       successful responses. */
+    var cacheable = !/[?&]callback=/.test(url.search);
     e.respondWith(
       fetch(req).then(function (res) {
-        var copy = res.clone();
-        caches.open(CACHE).then(function (c) { c.put(req, copy); });
+        if (cacheable && res && res.ok) {
+          var copy = res.clone();
+          caches.open(CACHE).then(function (c) { c.put(req, copy); });
+        }
         return res;
       }).catch(function () {
         return caches.match(req).then(function (hit) {

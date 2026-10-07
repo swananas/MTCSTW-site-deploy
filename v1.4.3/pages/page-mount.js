@@ -230,6 +230,21 @@
         ['war-report', 'pf-ov-warreport']
       ]
     },
+    /* USER DASHBOARD HUB (2026-10-07, fe/user-dashboard, CEO-approved):
+       /dashboard — MY HQ. A HUB, not a widget pile: identity card, the
+       14-card feature grid (the Oct 6 synergy requirement — everything
+       within 2 taps), this-week calendar rail, personal activity, and
+       the caller's own movement-intelligence contributions. One composite
+       backend call (dashboard_init); the hub routes, it never embeds.
+       Ship-time hand-step: Squarespace page /dashboard + Code block
+       <div id="pf-dashboard"></div>. Kill: ?pf_off=userdash. */
+    'pf-dashboard': {
+      title: 'MY HQ', sub: 'Your war, your numbers, your next move — everything within two taps.',
+      exit: { href: '/arcade', text: 'NEXT MOVE: FIGHT →' },
+      order: [
+        ['userdash', 'pf-ov-userdash']
+      ]
+    },
     /* 2026-10-05 (fe/liveops): War Room — live ops pages for debate nights,
        election night, breaking events. ?event=<slug> selects the event;
        no param renders the schedule. Ship-time hand-step: the Squarespace
@@ -533,7 +548,9 @@
     'pf-political-hq', 'pf-slr-roster', 'pf-catalog', 'pf-money',
     'pf-warroom', 'pf-live', 'pf-data-bounties', 'pf-receipt',
     'pf-karl', 'pf-ugc-remix', 'pf-dossier',
-    'pf-town', 'pf-town-report', 'pf-extraction'
+    'pf-town', 'pf-town-report', 'pf-extraction',
+    /* USER DASHBOARD HUB (2026-10-07, fe/user-dashboard): /dashboard mount. */
+    'pf-dashboard'
   ];
   function feWiden(host) {
     try {

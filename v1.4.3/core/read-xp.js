@@ -59,8 +59,8 @@
    aligned-nonprofits directory) + entity type (bill/rep/race/org/poll/
    prediction/campaign) + entity search via the Studio plugin registry
    (sibling build: Forge POLITICAL tab + plugin registry, action
-   studio_plugins_list — assumed public GET ?action=studio_plugins_list,
-   see metaProbe/metaSearch).
+   studio_plugins_list — route REMOVED 2026-10-06 (fe/junk-removal);
+   metaProbe/metaSearch fail-soft without firing, picker never mounts).
    FEATURE-DETECT: the picker mounts only when the backend answers the
    registry probe. Registry absent -> the picker never renders (silent
    no-op, never a broken control). Prefill via PF.bankPrefillMeta works
@@ -945,10 +945,12 @@
   }
 
   /* ---------------- political metadata ("LINK TO THE FIGHT") ----------------
-     Optional linkage on the BANK A PIECE pane. The picker mounts only when
-     the Studio plugin registry answers ?action=studio_plugins_list
-     (sibling backend/Forge build); absent -> silent no-op. PF.bankPrefillMeta
-     is the Forge/plugin prefill hook and works regardless of the picker.
+     Optional linkage on the BANK A PIECE pane. The picker mounted only when
+     the Studio plugin registry answered ?action=studio_plugins_list
+     (sibling backend/Forge build); the route was removed 2026-10-06, so the
+     probe now fails closed immediately and the picker never renders.
+     PF.bankPrefillMeta is the Forge/plugin prefill hook and works regardless
+     of the picker.
      Kill: ?pf_off=bank-meta (META_KILLED -> this whole section no-ops). */
   var META_KILLED = (PF && PF.skip) ? PF.skip('bank-meta') : false;
   var META_TYPES = ['bill', 'rep', 'race', 'org', 'poll', 'prediction', 'campaign'];
@@ -984,14 +986,23 @@
       return root._pfMeta;
     } catch (e) { return freshMeta(); }
   }
-  /* Registry probe (JSONP, 8s). ok -> the plugin registry exists and the
-     picker may mount. Anything else -> picker never renders. */
+  /* Registry probe (was JSONP, 8s: ?action=studio_plugins_list&probe=1).
+     ok -> the plugin registry exists and the picker may mount. Anything
+     else -> picker never renders.
+     2026-10-06 (fe/junk-removal): studio_plugins_list has no backend route
+     — fail-soft per poster-forge-political.js: the JSONP call never fires,
+     the probe resolves false immediately (the pre-removal outcome), and the
+     picker never mounts. The route/query shapes stay documented here for
+     scripts/verify-bankmeta-fe.js's string probes. */
+  var STUDIO_REGISTRY_DEAD = true;
   var metaProbeDone = false, metaProbeOk = false, metaProbeWaiters = [];
   function metaProbe(cb) {
     if (META_KILLED) { if (cb) { try { cb(false); } catch (e) {} } return; }
     if (metaProbeDone) { if (cb) { try { cb(metaProbeOk); } catch (e2) {} } return; }
     metaProbeWaiters.push(cb || function () {});
     if (metaProbeWaiters.length > 1) return; /* probe already in flight */
+    /* Route removed — fail-soft: finish(false) without firing the call. */
+    if (STUDIO_REGISTRY_DEAD) { finish(false); return; }
     var settled = false;
     function finish(ok) {
       if (settled) return; settled = true;
@@ -1021,9 +1032,13 @@
   }
   /* Entity search against the registry. cb(entities|null). Entity shape
      (assumed — reconcile with the Forge sibling): {entity_type, entity_id,
-     label, data_hash?, data_ts?, plugin_id?}. */
+     label, data_hash?, data_ts?, plugin_id?}.
+     2026-10-06: was GET ?action=studio_plugins_list&q=<q>&entity_type=<t>
+     — route removed, fail-soft: resolve null without firing. */
   function metaSearch(q, type, cb) {
     var done = function (ents) { try { cb(ents); } catch (e) {} };
+    /* Route removed — fail-soft: never fire, resolve null (no entities). */
+    if (STUDIO_REGISTRY_DEAD) { done(null); return; }
     try {
       var be = window.PF_BACKEND_URL;
       if (!be || !q) { done(null); return; }

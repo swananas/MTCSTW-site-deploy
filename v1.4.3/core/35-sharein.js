@@ -180,6 +180,17 @@
     try { var m = document.getElementById('pf-sharein-modal'); if (m && m.parentNode) m.parentNode.removeChild(m); } catch (e) {}
   }
 
+  /* Escape-to-close (workshop.js pattern): document-level, fires only while
+     this modal is actually in the DOM. Backdrop click + X already call
+     close(); this covers keyboard users. */
+  try {
+    document.addEventListener('keydown', function (e) {
+      try {
+        if (e && e.key === 'Escape' && document.getElementById('pf-sharein-modal')) close();
+      } catch (e2) {}
+    });
+  } catch (e3) {}
+
   /* Outward pipeline hook: the SHARE PUBLIC card rides the existing
      share-everywhere networks row (intent links), prefilled with the
      user's own caption + URL. */

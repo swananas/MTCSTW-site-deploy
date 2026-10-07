@@ -57,12 +57,23 @@
      canonical path, 8 new pages indexed (dossier, town-report, extraction,
      war-room, remix, peoples-cpi, cell-war, my-hq), 20 new PAGE_CTX entries,
      roster fallback for catalog/roster pages via mount-div detection.
+<!-- RE-PIN 2026-10-07 ~16:50 CDT: REQ-20261006-027 orphan integration on My HQ
+     (fe/req027-orphans 591a51d, merge 0b30b60, Muse-gate PASS self-review;
+     Google QC pending spend-cap reset 8/8) — anonymous-only ud-hero (V3 hero
+     verbatim, claim CTA), full ud-missions Daily Orders loop (today's
+     missions + REPORT BACK + streak line + loot claim; condensed extraction
+     of daily-orders.js, same ledger schema + checkin contract), theater rack
+     on #pf-theater-rack anchor in IDENTITY (theater.js moved bundle-home ->
+     bundle-userdash). Drive-by: fred-briefing.js removed from bundle-home
+     (was double-registered — fatal build error; permanent home /economy).
+     Bundle-userdash 72,047B (was 40,745B; +31.3KB — OVER the 40k budget,
+     flagged for CEO waiver; built lean, zero new backend calls). -->
 <!-- RE-PIN 2026-10-07 ~14:44 CDT: duplicate MY HQ header fix (fix/myhq-dup-header
      ebee345) — legacy <h2>My HQ</h2> + .c-tag removed from #pf-userdash template;
      page-mount .pf-page-head banner already renders MTCSTW.COM / MY HQ / tagline.
      QC PASS Lane A (Google 0 findings + Muse-gate). -->
 <script>(function(){
-var V3='361543a',V1='76107b5';
+var V3='0b30b60',V1='76107b5';
 /* RE-PIN 2026-10-07 ~14:30 CDT: dashboard butter pass merge (QC PASS Lane A) — motion, skeletons, single-red, INTEL DESK + MAKE IT YOURS. A11Y preserved. Bundle 40,432B (432B over budget — flagged). */
 /* RE-PIN 2026-10-07 ~14:20 CDT: Karl muse of the site (fe/karl-muse, QC PASS Lane A) — story memory, user-state reader, next-move rules, taste model, muse worker context. */
 /* RE-PIN 2026-10-07 ~14:00 CDT: Karl integration (ASK KARL chat in My HQ dashboard, QC PASS Lane B) — native inline chat, symbiotic user context, fail-soft. */
@@ -73,7 +84,7 @@ var V3='361543a',V1='76107b5';
 /* DEFECT 1 (2026-10-03): pin for core/bundle-footer-chrome.js (added in
    commit 133ee90). Kept separate from V3 so the live v1.4.3 set stays
    byte-identical; re-pin together on the next release. */
-var VCHROME='361543a';
+var VCHROME='0b30b60';
    /* RE-PIN (2026-10-07 ~12:50 CDT, dashboard bundle 404 fix — CEO directive):
    V3/VCHROME = 5d7d981 (current integrate/big-update-fe tip). The 9a636c9 pin
    predates v1.4.3/games/bundle-userdash.js, so the homepage dashboard bundle

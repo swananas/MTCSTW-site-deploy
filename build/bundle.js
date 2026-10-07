@@ -402,6 +402,11 @@ var SECTIONS = {
        silent no-op elsewhere. Read-only official data, zero XP.
        Kill: ?pf_off=economy-fred-rail (master ?pf_off=economy-fred). */
     'fred-macro-rail.js',
+    /* 2026-10-07 (CEO: integrate orphans): FRED morning briefing — 6 numbers,
+       30 seconds, weekdays only. Permanent home is /economy (was homepage
+       #xBrief, orphaned by V3). Self-mounting; silent no-op elsewhere.
+       Kill: ?pf_off=fred-briefing. */
+    'fred-briefing.js',
   ],
   /* 2026-10-06 (fe/blossom-s4): /peoples-cpi — the public People's Price
      Index (spec peoples-cpi-public-20261006.md). Self-mounting silo

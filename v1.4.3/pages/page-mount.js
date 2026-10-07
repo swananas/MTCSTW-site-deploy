@@ -148,7 +148,10 @@
     'pf-economy': {
       title: 'THE ECONOMY', sub: 'Spend XP like it matters. Because it does.',
       order: [
-        ['economy', 'pf-ov-economy']
+        ['economy', 'pf-ov-economy'],
+        /* 2026-10-07 (CEO: integrate orphans): FRED morning briefing lives
+           here — 6 numbers, 30 seconds, weekdays only. Self-mounting. */
+        ['fred-briefing', null]
       ]
     },
     /* S4/C1 (2026-10-06, Project Blossom): /peoples-cpi — the public

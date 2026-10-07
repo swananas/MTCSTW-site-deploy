@@ -207,10 +207,11 @@
        v3 (dedicated-home move pending Shane's call; kill switch intact). */
     try { if (document.querySelector('#pf-v2 section[data-game="hero"]')) return; } catch (e) {}
     if (!isWeekday()) return; /* weekdays only */
+    if (document.getElementById('pf-fred-briefing')) return;
     var host = document.getElementById('xBrief');
-    if (!host || document.getElementById('pf-fred-briefing')) return;
     var slot = document.createElement('div');
     slot.id = 'pf-fred-briefing';
+    if (host) {
     /* Insert after the war-plan block when present, else at the top. */
     var inserted = false;
     try {
@@ -229,6 +230,22 @@
         if (host.firstChild) host.insertBefore(slot, host.firstChild);
         else host.appendChild(slot);
       } catch (e) { return; }
+    }
+    } else {
+      /* 2026-10-07 (CEO: integrate orphans): /economy is the permanent home.
+         Mount after the economy block when on the economy page. */
+      var econMount = null;
+      try { econMount = document.getElementById('pf-economy'); } catch (e) {}
+      if (!econMount) return;
+      /* Find the staged economy block and append after it. */
+      var econBlock = null;
+      try { econBlock = econMount.querySelector('#pf-xp-economy'); } catch (e) {}
+      if (econBlock && econBlock.parentNode) {
+        try { econBlock.parentNode.insertBefore(slot, econBlock.nextSibling); }
+        catch (e) { try { econMount.appendChild(slot); } catch (e2) { return; } }
+      } else {
+        try { econMount.appendChild(slot); } catch (e) { return; }
+      }
     }
     var F = window.PFFred;
     if (!F) return;

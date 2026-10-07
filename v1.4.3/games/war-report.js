@@ -474,7 +474,7 @@ function api(action,params,cb){
      one auth_claim attempt instead of 'missing credentials' forever.
      D1 STRUCT (2026-10-06): warreport_list / warreport_get had no backend
      route (404) — their call sites are deleted, gate list trimmed. */
-  if(action==="warreport_latest"){
+  if(action==="warreport_latest"||action==="warreport_history"||action==="warreport_get"){
     try{
       if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
       var _sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : "";
@@ -631,10 +631,16 @@ function loadWeek(week_start){
   var el=document.getElementById("xWarReport"); if(!el) return;
   var id=ident(); if(!id.callsign) return;
   if(WR_CACHE[week_start]){ WR_CUR=week_start; paint(el,{ok:true,report:WR_CACHE[week_start]}); return; }
-  /* D1 STRUCT (2026-10-06): warreport_get has no backend route (404) — the
-     per-week fetch is dead, so a cache miss falls back to the latest report. */
-  toast("Couldn't pull that week.");
-  load();
+  /* 2026-10-07 (CEO: integrate orphans): per-week fetch via warreport_get. */
+  api("warreport_get",{callsign:id.callsign,week_start:week_start},function(j){
+    if(j&&j.ok&&j.report){
+      WR_CUR=week_start; WR_CACHE[week_start]=j.report;
+      paint(el,{ok:true,report:j.report});
+    } else {
+      toast("Couldn't pull that week.");
+      load();
+    }
+  });
 }
 function load(){
   var el=document.getElementById("xWarReport"); if(!el) return;
@@ -648,6 +654,17 @@ function load(){
       WR_CUR=j.report.week_start; WR_CACHE[WR_CUR]=j.report;
     }
     paint(el,j);
+    /* 2026-10-07 (CEO: integrate orphans): populate the week navigator from
+       the new warreport_history action (replaces the deleted warreport_list). */
+    try{
+      api("warreport_history",{callsign:id.callsign},function(h){
+        if(h&&h.ok&&h.history&&h.history.length){
+          WR_WEEKS=h.history;
+          /* Re-paint to show the navigator now that weeks are known. */
+          try{ paint(el,{ok:true,report:WR_CACHE[WR_CUR]||null}); }catch(e){}
+        }
+      });
+    }catch(e){}
   });
 }
 function initWr(){

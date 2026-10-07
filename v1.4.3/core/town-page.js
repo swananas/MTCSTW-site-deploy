@@ -324,6 +324,10 @@
         return;
       }
       lastReport = r;
+      /* KARL EMBEDDED: push the looked-up zip into the embed's context. */
+      try {
+        if (window.PFKarlEmbed) window.PFKarlEmbed.setContext({ zip: r.zip });
+      } catch (e) {}
       if (r.geo_live && r.area) {
         host.querySelector('[data-tn-area]').textContent = 'YOUR AREA: ' + r.area.coarse_area.toUpperCase();
       } else {
@@ -364,6 +368,12 @@
       '<div class="pf-tn-grid" data-tn-grid></div>' +
       '<div data-tn-sticky></div>' +
       '<div data-tn-sharewrap></div>' +
+      /* KARL EMBEDDED (CEO 2026-10-07): inline query box — additive, sits
+         alongside the page. Context (zip) pushed live via
+         window.PFKarlEmbed.setContext on every successful lookup. */
+      '<div id="pf-karl-embed" data-karl-title="Ask about your town"' +
+      ' data-karl-placeholder="Who owns the biggest employer here?"' +
+      ' data-karl-context="{}"></div>' +
       '</div>';
     var input = host.querySelector('[data-tn-zip]');
     var go = function () {

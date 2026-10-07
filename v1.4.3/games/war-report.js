@@ -463,10 +463,12 @@ function wrMemeItemHtml(d){
 /* MEME:END */
 function api(action,params,cb){
   if(!BACKEND){ cb(null); return; }
-  /* Private read: warreport_* reads are per-callsign (IDOR fix). Route through
+  /* Private read: warreport_latest is per-callsign (IDOR fix). Route through
      the shared claim-retry GET (2026-10-03) so pre-auth callsign holders get
-     one auth_claim attempt instead of 'missing credentials' forever. */
-  if(action==="warreport_latest"||action==="warreport_list"||action==="warreport_get"){
+     one auth_claim attempt instead of 'missing credentials' forever.
+     D1 STRUCT (2026-10-06): warreport_list / warreport_get had no backend
+     route (404) — their call sites are deleted, gate list trimmed. */
+  if(action==="warreport_latest"){
     try{
       if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
       var _sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : "";
@@ -623,29 +625,23 @@ function loadWeek(week_start){
   var el=document.getElementById("xWarReport"); if(!el) return;
   var id=ident(); if(!id.callsign) return;
   if(WR_CACHE[week_start]){ WR_CUR=week_start; paint(el,{ok:true,report:WR_CACHE[week_start]}); return; }
-  el.innerHTML='<div class="c-load">Pulling the week of '+esc(week_start)+'&hellip;</div>';
-  api("warreport_get",{callsign:id.callsign,week_start:week_start},function(j){
-    if(j&&j.ok&&j.report){ WR_CACHE[week_start]=j.report; WR_CUR=week_start; paint(el,j); }
-    else { toast("Couldn't pull that week."); load(); }
-  });
+  /* D1 STRUCT (2026-10-06): warreport_get has no backend route (404) — the
+     per-week fetch is dead, so a cache miss falls back to the latest report. */
+  toast("Couldn't pull that week.");
+  load();
 }
 function load(){
   var el=document.getElementById("xWarReport"); if(!el) return;
   var id=ident();
   if(!id.callsign){ paint(el,{ok:true,report:null}); return; }
-  /* Fetch the week list first so the navigator is populated, then latest. */
-  api("warreport_list",{callsign:id.callsign},function(jl){
-    if(jl&&jl.ok&&jl.weeks&&jl.weeks.length){
-      WR_WEEKS=jl.weeks;
-      api("warreport_latest",{callsign:id.callsign},function(j){
-        if(j&&j.ok&&j.report){
-          WR_CUR=j.report.week_start; WR_CACHE[WR_CUR]=j.report;
-        }
-        paint(el,j);
-      });
-    } else {
-      api("warreport_latest",{callsign:id.callsign},function(j){ paint(el,j); });
+  /* D1 STRUCT (2026-10-06): warreport_list has no backend route (404) — the
+     week-navigator list never populated, so read the latest report directly.
+     (Behavior matches the old always-failing fallback path.) */
+  api("warreport_latest",{callsign:id.callsign},function(j){
+    if(j&&j.ok&&j.report){
+      WR_CUR=j.report.week_start; WR_CACHE[WR_CUR]=j.report;
     }
+    paint(el,j);
   });
 }
 function initWr(){

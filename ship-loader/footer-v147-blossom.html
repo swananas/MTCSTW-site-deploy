@@ -44,12 +44,14 @@
      privacy_erase flow). The JS silo strips any already-pasted static
      fallback on boot, so no footer re-paste is needed. -->
 <script>(function(){
-var V3='d1b4dca',V1='76107b5';
-/* RE-PIN 2026-10-07 ~13:10 CDT: calendar widget added to My HQ dashboard (CEO). Bundle rebuilt 29KB. */
+var V3='f4de020',V1='76107b5';
+/* RE-PIN 2026-10-07 ~13:15 CDT: bundle-pages.js rebuilt — pf-dashboard mount
+   entry was missing from the stale build, so #pf-dashboard stayed empty.
+   Now includes calendar widget. CEO directive: homepage still broken. */
 /* DEFECT 1 (2026-10-03): pin for core/bundle-footer-chrome.js (added in
    commit 133ee90). Kept separate from V3 so the live v1.4.3 set stays
    byte-identical; re-pin together on the next release. */
-var VCHROME='d1b4dca';
+var VCHROME='f4de020';
    /* RE-PIN (2026-10-07 ~12:50 CDT, dashboard bundle 404 fix — CEO directive):
    V3/VCHROME = 5d7d981 (current integrate/big-update-fe tip). The 9a636c9 pin
    predates v1.4.3/games/bundle-userdash.js, so the homepage dashboard bundle

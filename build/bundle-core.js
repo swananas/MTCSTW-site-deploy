@@ -205,6 +205,11 @@ var CORE_FILES = [
      00-bus.js, 2026-10-06): 32-hubhome.js grabs PF.patterns at eval time and
      returns early when absent, so "last" silently killed the whole homepage
      hub in the shipped bundle (Google-QC: the anon hero CTA never fired). */
+  /* PLAY 4 (UX Combination Plays Wave 2, 2026-10-06): notification trigger
+     layer — PF.triggers.emit(event, params) client dispatcher + per-category
+     opt-in UI (Alert Triggers pane on Political HQ). Fail-open everywhere;
+     zero XP. Kill: ?pf_off=triggers (or ?pf_off=36-triggers). */
+  'core/36-triggers.js'
 ];
 
 /* 2026-10-05 (fix/money-minified-rebuild): money suite lazy chunk. The 10

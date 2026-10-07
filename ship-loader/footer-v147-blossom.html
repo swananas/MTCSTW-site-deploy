@@ -310,11 +310,20 @@ function pfSkeletons(){
   var sk=window._pfSkeleton;if(!sk)return;
   var home=document.getElementById('pf-v2');
   if(home)sk(home,{sections:['START HERE','PLAY','BELONG','CREATE','FUND','ACT','PROOF']});
+  /* SKELETON GAP FIX (2026-10-07, perf/sitewide-ux-opt): the 8 newest mount
+     hosts (My HQ dashboard + 7 BLOSSOM data/UGC pages) were never added to
+     this list, so they rendered as blank voids while bundles loaded. The
+     dashboard is now the site homepage — it gets its own sectioned skeleton
+     like the old homepage had. */
+  var dash=document.getElementById('pf-dashboard');
+  if(dash)sk(dash,{sections:['YOUR HQ','TODAY','ACTIONS','CALENDAR','ACTIVITY']});
   var ids=['pf-cells-page','pf-cell-hq','pf-arcade','pf-call-it','pf-liquidation',
     'pf-create','pf-bank','pf-economy','pf-peoples-cpi','pf-warchest','pf-ventures',
     'pf-events','pf-warreport','pf-war-card','pf-academy-hq','pf-dash-hq','pf-hq-mission',
     'pf-political-hq','pf-slr-roster','pf-catalog','pf-money','pf-fund','pf-command',
-    'pf-cell-war','pf-governance','pf-warroom','pf-live','pf-data-bounties'];
+    'pf-cell-war','pf-governance','pf-warroom','pf-live','pf-data-bounties',
+    'pf-dossier','pf-extraction','pf-karl','pf-receipt','pf-town','pf-town-report',
+    'pf-ugc-remix'];
   for(var i=0;i<ids.length;i++){
     var el=document.getElementById(ids[i]);
     if(el&&el!==home)sk(el,{});

@@ -508,13 +508,32 @@ function load(){
   var ms=medalState();
   var idn=ident();
   var painted=false;
-  function paint(j){
-    if(painted) return; painted=true;
+  /* INSTANT SHELL (2026-10-07, perf/sitewide-ux-opt): the static hub (claim
+     prompt or mustering card, TODAY, feature grid, calendar fallback) paints
+     immediately — zero network wait. dashboard_init upgrades it with live
+     data when it lands. Re-paint is safe: innerHTML replacement discards
+     old nodes, so bind() never double-attaches. */
+  function renderMustering(callsign,ms){
+    return sec('WHO AM I HERE?',
+      '<div class="ud-card"><div class="ud-id-cs">'+esc(callsign||'SOLDIER')+'</div>'
+      +'<div class="ud-meta">Mustering your record&hellip;</div>'
+      +rackHtml(ms)
+      +'</div>');
+  }
+  function paint(j,isShell){
+    if(painted) return;
     var h='';
     var signedIn=!!(j&&j.signed_in&&j.identity);
     var hasCallsign=!!idn.callsign;
     var tiles=(j&&j.tiles)?j.tiles:{};
-    if(!hasCallsign&&!signedIn){
+    if(isShell&&hasCallsign){
+      /* Shell for a returning soldier: local callsign + static hub now,
+         live identity/activity/econ when the API lands. */
+      h+=renderMustering(idn.callsign,ms);
+      h+=renderToday(tiles);
+      h+=renderGrid(tiles);
+      h+=renderCalendar(null);
+    } else if(!hasCallsign&&!signedIn){
       /* Callsign-less: the one prompt (claim card). TODAY + grid + calendar
          still render — the hub is useful before enlistment too. */
       h+=renderIdentity(null,ms);
@@ -539,11 +558,15 @@ function load(){
     if(!h){ root.innerHTML='<div class="ud-meta">The HQ failed to muster. <a href="javascript:location.reload()" style="color:#dc143c">Reload</a>.</div>'; return; }
     root.innerHTML=h;
     bind(root);
+    /* Only a real (non-shell) paint locks — the shell yields to live data. */
+    if(!isShell) painted=true;
   }
-  api('dashboard_init',{callsign:idn.callsign,device:idn.device,auth_secret:idn.auth_secret},paint);
+  /* Paint the static shell instantly; the API upgrades it when it lands. */
+  paint(null,true);
+  api('dashboard_init',{callsign:idn.callsign,device:idn.device,auth_secret:idn.auth_secret},function(j){ paint(j,false); });
   /* Terminal state: never spin on "Mustering…" forever. */
   setTimeout(function(){
-    if(!painted){ paint(null); }
+    paint(null,false);
   },15000);
 }
 load();

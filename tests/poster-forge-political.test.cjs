@@ -273,7 +273,10 @@ function testManifestGating() {
   var env = makeEnv('');
   mountXPolitical(env);
   env.loadModule();
-  env.respond({ ok: true, plugins: [{ id: 'bill', available: false }] });
+  /* studio_plugins_list route removed (junk-removal 2026-10-06): drive the
+     manifest gating directly via the test seam. */
+  env.win.__pfPolitical._applyManifest([{ id: 'bill', available: false }]);
+  env.win.__pfPolitical._renderPlugins();
   var billBtn = env.queryAll('[data-plug="bill"]')[0];
   ok('gating: unavailable plugin button rendered', !!billBtn);
   ok('gating: unavailable plugin disabled', billBtn && billBtn.hasAttribute('disabled'));

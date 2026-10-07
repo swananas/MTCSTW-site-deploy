@@ -683,10 +683,9 @@
     r.setAttribute('data-pf-pol-mounted', '1');
     renderShell();
     buildFallback();
-    api('studio_plugins_list', {}, function (j) {
-      if (j && j.ok && Array.isArray(j.plugins) && j.plugins.length) applyManifest(j.plugins);
-      renderPlugins();
-    });
+    /* studio_plugins_list has no backend route — fail-soft: render the
+       fallback plugin list built above. */
+    renderPlugins();
   }
   boot();
 
@@ -697,7 +696,8 @@
       templates: TEMPLATES, apiCalls: API_CALLS,
       _selectPlugin: selectPlugin, _runSearch: runSearch, _generate: generate,
       _renderStale: renderStale, _renderPreview: renderPreview,
-      _sourceOf: sourceOf, _isStale: isStale, _templatesFor: templatesFor
+      _sourceOf: sourceOf, _isStale: isStale, _templatesFor: templatesFor,
+      _applyManifest: applyManifest, _renderPlugins: renderPlugins
     };
   } catch (e) {}
 })();

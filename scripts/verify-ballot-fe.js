@@ -270,7 +270,10 @@ var g0b = makeGameEnv(undefined);
 vm.runInContext(read(GAME), g0b.sb, { filename: 'ballot-countdown.js' });
 if (!g0b.getMount()) ok('unset home state: tray not rendered');
 else no('unset', 'mount was touched');
-/* TX home state -> only TX card, loop copy present. */
+/* TX home state -> ballot_countdowns has no backend route (junk-removal
+   2026-10-06): the tray fail-softs to unrendered. The render-path assertions
+   (tray copy, loop buttons, home-state filter) are retired until the route
+   lands; renderTray stays in the module for that day. */
 var g1 = makeGameEnv('TX', FIX);
 vm.runInContext(read(GAME), g1.sb, { filename: 'ballot-countdown.js' });
 var BC = g1.sb.PF.ballotCountdowns;
@@ -278,12 +281,8 @@ if (!BC) { no('contract', 'PF.ballotCountdowns not exposed'); }
 else {
   ok('PF.ballotCountdowns exposed');
   var html = g1.getMount() ? g1.getMount().innerHTML : '';
-  if (html.indexOf('YOUR BALLOT COUNTDOWN') !== -1 && html.indexOf('7 DAYS LEFT TO REGISTER') !== -1) ok('tray renders TX countdown');
-  else no('tray render', 'expected copy missing');
-  if (html.indexOf('FORGE CARD') !== -1 && html.indexOf('PLEDGE TO VOTE') !== -1 && html.indexOf('CHECK REGISTRATION') !== -1) ok('tray loop buttons present');
-  else no('tray buttons', 'missing loop buttons');
-  if (html.indexOf('CALIFORNIA') === -1) ok('home-state filter: CA hidden for TX viewer');
-  else no('filter', 'CA leaked into TX tray');
+  if (!g1.getMount() || html.indexOf('YOUR BALLOT COUNTDOWN') === -1) ok('tray fail-soft: not rendered without backend route');
+  else no('tray render', 'tray rendered without data');
   /* T1: forge dispatches pf-xp with the draft-scoped key. */
   var card = BC.forge(FIX[0]);
   var xpEv = g1.dispatched.filter(function (e) { return e.type === 'pf-xp'; });

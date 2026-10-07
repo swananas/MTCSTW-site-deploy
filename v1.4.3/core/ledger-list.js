@@ -33,7 +33,6 @@
   if (window.pfLedgersDone) return;
   window.pfLedgersDone = true;
 
-  var BACKEND = window.PF_BACKEND_URL;
   var PAINTER = 'phq-ledger';
   var EMPTY_MSG = 'The ledger is empty — no billionaire rows returned.';
   var SPENDING_PENDING = 'FEC data not yet loaded — no figures shown rather than invented.';
@@ -43,30 +42,6 @@
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
   function toast(m) { try { if (PF && PF.toast) PF.toast(m); } catch (e) {} }
-
-  /* JSONP GET — mirrors core/20-nextop.js api(): backend + action + params +
-     callback script tag, 12s timeout, null on any failure. */
-  function api(action, params, cb) {
-    if (!BACKEND) { cb(null); return; }
-    var fn = 'pfLedgerCb' + Math.floor(Math.random() * 1e9);
-    var s = document.createElement('script'), done = false;
-    function finish(j) {
-      if (done) return; done = true;
-      try { delete window[fn]; } catch (e) {}
-      if (s.parentNode) s.parentNode.removeChild(s);
-      cb(j);
-    }
-    window[fn] = function (j) { finish(j); };
-    s.onerror = function () { finish(null); };
-    var q = '?action=' + encodeURIComponent(action);
-    for (var k in params) {
-      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
-    }
-    q += '&callback=' + fn;
-    s.src = BACKEND + q;
-    document.head.appendChild(s);
-    setTimeout(function () { finish(null); }, 12000);
-  }
 
   var CSS = [
     '.pf-ledger{max-width:680px;margin:0 auto;padding:8px 0}',
@@ -222,10 +197,8 @@
     try {
       if (container.querySelector && container.querySelector('.pf-ledger')) return true; /* already mounted */
     } catch (e) {}
-    api('ledger_list', {}, function (j) {
-      if (!j || !j.ok || !Array.isArray(j.entries)) { hide(container); return; }
-      try { render(container, j); } catch (e) { hide(container); }
-    });
+    /* ledger_list has no backend route — fail-soft: hide the section. */
+    hide(container);
     return true;
   }
 

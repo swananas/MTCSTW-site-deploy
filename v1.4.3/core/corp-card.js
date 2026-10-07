@@ -34,7 +34,6 @@
   if (window.pfCorpCardDone) return;
   window.pfCorpCardDone = true;
 
-  var BACKEND = window.PF_BACKEND_URL;
   var PAINTER = 'phq-corp';
   var EMPTY_MSG = 'No corporate facts on file for this ticker — yet.';
   var PRICE_EMPTY = 'Per-company price data has no public source. Shown: what filings prove.';
@@ -44,30 +43,6 @@
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
   function toast(m) { try { if (PF && PF.toast) PF.toast(m); } catch (e) {} }
-
-  /* JSONP GET — mirrors core/wall-of-shame.js api(): backend + action +
-     params + callback script tag, 12s timeout, null on any failure. */
-  function api(action, params, cb) {
-    if (!BACKEND) { cb(null); return; }
-    var fn = 'pfCpCb' + Math.floor(Math.random() * 1e9);
-    var s = document.createElement('script'), done = false;
-    function finish(j) {
-      if (done) return; done = true;
-      try { delete window[fn]; } catch (e) {}
-      if (s.parentNode) s.parentNode.removeChild(s);
-      cb(j);
-    }
-    window[fn] = function (j) { finish(j); };
-    s.onerror = function () { finish(null); };
-    var q = '?action=' + encodeURIComponent(action);
-    for (var k in params) {
-      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
-    }
-    q += '&callback=' + fn;
-    s.src = BACKEND + q;
-    document.head.appendChild(s);
-    setTimeout(function () { finish(null); }, 12000);
-  }
 
   /* Whole-USD compact money: 19000000000 -> $19.0B. Null/invalid -> em-dash. */
   function money(v) {
@@ -207,19 +182,8 @@
     try {
       if (container.querySelector && container.querySelector('.pf-cp')) return true; /* already mounted */
     } catch (e) {}
-    api('corp_card', { ticker: String(ticker).toUpperCase() }, function (j) {
-      if (!j || !j.ok || !j.ticker) {
-        /* honest empty state on unknown ticker; full hide on transport failure */
-        if (j && j.ok === false && j.err) {
-          cssOnce();
-          container.innerHTML = '<div class="pf-cp"><div class="pf-cp-empty">' + esc(EMPTY_MSG) + '</div></div>';
-          return;
-        }
-        hide(container);
-        return;
-      }
-      try { render(container, j); } catch (e) { hide(container); }
-    });
+    /* corp_card has no backend route — fail-soft: hide the section. */
+    hide(container);
     return true;
   }
 

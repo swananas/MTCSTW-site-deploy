@@ -52,7 +52,6 @@
 #pf-orders .o-date{font-family:Arial,sans-serif;font-size:12px;letter-spacing:3px;color:#c9bfa8;text-transform:uppercase;margin-bottom:6px}
 #pf-orders .o-combo{font-size:16px;letter-spacing:3px;color:#c1121f;text-transform:uppercase;margin-bottom:12px;min-height:20px}
 #pf-orders .o-meterwrap{margin-bottom:12px}
-#pf-orders .o-meterlabel{font-family:Arial,sans-serif;font-size:11px;letter-spacing:5px;color:#c9bfa8;text-transform:uppercase;margin-bottom:6px}
 #pf-orders .o-meter{display:flex;gap:6px;justify-content:center}
 #pf-orders .o-seg{flex:1;max-width:110px;height:18px;background:#2a2a2a;border:2px solid #555;transition:all .3s}
 #pf-orders .o-seg.fill{background:#c1121f;border-color:#c1121f}
@@ -71,7 +70,6 @@
 #pf-orders .o-platbtn{background:#1a1a1a;border:2px solid #f5ead6;color:#f5ead6;font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;padding:8px 12px;margin:3px;cursor:pointer;text-transform:uppercase}
 #pf-orders .o-platbtn:hover{background:#c1121f;border-color:#c1121f;color:#fff}
 #pf-orders .o-ptag{display:inline-block;margin-top:8px;background:#0d0d0d;border:2px solid #c1121f;color:#c1121f;font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;padding:6px 14px;text-transform:uppercase}
-#pf-orders .o-spreadline{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#c1121f;text-transform:uppercase;margin-top:6px}
 #pf-orders .o-prog{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase;margin:10px 0 4px}
 #pf-orders .o-streak{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#f5ead6;margin:6px 0 4px;text-transform:uppercase}
 #pf-orders .o-streak b{color:#c1121f;font-size:20px}
@@ -165,7 +163,6 @@
 #pf-dometer2 .d-bar i{position:absolute;bottom:0;left:0;right:0;background:#c1121f;display:block}
 #pf-dometer2 .d-bar.cur i{background:#c1121f}
 #pf-dometer2 .d-bar span{position:absolute;top:-18px;left:0;right:0;font-family:Arial,sans-serif;font-size:9px;color:#c9bfa8;letter-spacing:1px}
-#pf-dometer2 .d-note{font-family:Arial,sans-serif;font-size:10px;color:#777;margin-top:16px;letter-spacing:1px}
 #pf-dometer2 .d-boom{position:absolute;inset:0;background:rgba(13,13,13,.94);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:5}
 #pf-dometer2 .d-boom.show{display:flex}
 #pf-dometer2 .d-boom h3{color:#c1121f;font-size:34px;letter-spacing:3px;margin:0 0 8px;animation:dshake .5s}
@@ -232,8 +229,6 @@ body.homepage #page .page-section:first-child{
 
 /* TICKER FIX: dismissible, unified total, never blocks CTAs */
 #pf-do-mini .m-line{position:relative;pointer-events:auto;padding-right:28px}
-#pf-do-mini .m-x{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:#c9bfa8;font-size:14px;cursor:pointer;line-height:1;padding:2px 6px;font-family:Arial,sans-serif}
-#pf-do-mini .m-x:hover{color:#c1121f}
 #pf-do-mini.dismissed{display:none}
 
 

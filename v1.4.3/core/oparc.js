@@ -81,6 +81,4 @@
     return inflight;
   };
 
-  /* Manual cache bust (admin consoles, tests). */
-  PF.opArcClear = function () { cached = null; cachedAt = 0; };
 })();

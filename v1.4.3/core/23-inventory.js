@@ -119,7 +119,6 @@ function paintAll(){
 }
 document.addEventListener('pf-inventory-updated',paintAll);
 
-PF.inventoryChipHTML=chipHTML;
 PF.mountInventoryChip=function(host){
   if(!host)return;
   ensureCss();
@@ -130,7 +129,6 @@ PF.mountInventoryChip=function(host){
   powerups(function(){ /* repaint lands via pf-inventory-updated */ });
   srvShields(function(){ /* repaint lands via pf-inventory-updated */ });
 };
-PF.refreshInventory=function(){ _puAt=0; _shAt=0; powerups(function(){}); srvShields(function(){}); };
 /* W5-3 Streak Shields (server): powerup_list is the per-callsign private
    inventory read (GET, callsign auth) — the drop-granted shield pool, a
    different pool from the Daily Orders local forged shields above. Zero

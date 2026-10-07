@@ -39,7 +39,6 @@
 #pf-orders .o-date{font-family:Arial,sans-serif;font-size:12px;letter-spacing:3px;color:#c9bfa8;text-transform:uppercase;margin-bottom:6px}
 #pf-orders .o-combo{font-size:16px;letter-spacing:3px;color:#c1121f;text-transform:uppercase;margin-bottom:12px;min-height:20px}
 #pf-orders .o-meterwrap{margin-bottom:12px}
-#pf-orders .o-meterlabel{font-family:Arial,sans-serif;font-size:11px;letter-spacing:5px;color:#c9bfa8;text-transform:uppercase;margin-bottom:6px}
 #pf-orders .o-meter{display:flex;gap:6px;justify-content:center}
 #pf-orders .o-seg{flex:1;max-width:110px;height:18px;background:#2a2a2a;border:2px solid #555;transition:all .3s}
 #pf-orders .o-seg.fill{background:#c1121f;border-color:#c1121f}
@@ -58,7 +57,6 @@
 #pf-orders .o-platbtn{background:#1a1a1a;border:2px solid #f5ead6;color:#f5ead6;font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;padding:8px 12px;margin:3px;cursor:pointer;text-transform:uppercase}
 #pf-orders .o-platbtn:hover{background:#c1121f;border-color:#c1121f;color:#fff}
 #pf-orders .o-ptag{display:inline-block;margin-top:8px;background:#0d0d0d;border:2px solid #c1121f;color:#c1121f;font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;padding:6px 14px;text-transform:uppercase}
-#pf-orders .o-spreadline{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#c1121f;text-transform:uppercase;margin-top:6px}
 #pf-orders .o-prog{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase;margin:10px 0 4px}
 #pf-orders .o-streak{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#f5ead6;margin:6px 0 4px;text-transform:uppercase}
 #pf-orders .o-streak b{color:#c1121f;font-size:20px}
@@ -152,7 +150,6 @@
 #pf-dometer2 .d-bar i{position:absolute;bottom:0;left:0;right:0;background:#c1121f;display:block}
 #pf-dometer2 .d-bar.cur i{background:#c1121f}
 #pf-dometer2 .d-bar span{position:absolute;top:-18px;left:0;right:0;font-family:Arial,sans-serif;font-size:9px;color:#c9bfa8;letter-spacing:1px}
-#pf-dometer2 .d-note{font-family:Arial,sans-serif;font-size:10px;color:#777;margin-top:16px;letter-spacing:1px}
 #pf-dometer2 .d-boom{position:absolute;inset:0;background:rgba(13,13,13,.94);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:5}
 #pf-dometer2 .d-boom.show{display:flex}
 #pf-dometer2 .d-boom h3{color:#c1121f;font-size:34px;letter-spacing:3px;margin:0 0 8px;animation:dshake .5s}
@@ -219,8 +216,6 @@ body.homepage #page .page-section:first-child{
 
 /* TICKER FIX: dismissible, unified total, never blocks CTAs */
 #pf-do-mini .m-line{position:relative;pointer-events:auto;padding-right:28px}
-#pf-do-mini .m-x{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:#c9bfa8;font-size:14px;cursor:pointer;line-height:1;padding:2px 6px;font-family:Arial,sans-serif}
-#pf-do-mini .m-x:hover{color:#c1121f}
 #pf-do-mini.dismissed{display:none}
 
 
@@ -383,37 +378,32 @@ body:has(#pf-nuke-stick:not([hidden])) #pf-do-mini{bottom:calc(56px + env(safe-a
   box-shadow:0 0 0 4px var(--pf-dark),0 0 0 8px var(--pf-red);
   box-sizing:border-box; overflow:hidden;
 }
-.pf-silo h2,.pf-silo-title{
+.pf-silo h2{
   color:var(--pf-red-bright); font-size:28px; margin:0 0 6px;
   letter-spacing:2px; text-transform:uppercase;
   font-family:var(--pf-font-display);
 }
 /* Accessibility: visible focus for keyboard users */
 .pf-silo :focus-visible{outline:2px solid var(--pf-gold);outline-offset:2px;}
-.pf-btn:focus-visible,.pf-btn-ghost:focus-visible{outline:2px solid var(--pf-gold);outline-offset:3px;}
-.pf-silo-sub{
-  font-family:var(--pf-font-body); font-size:14px;
-  color:var(--pf-muted); margin:0 0 14px; line-height:1.5;
-}
+.pf-btn:focus-visible{outline:2px solid var(--pf-gold);outline-offset:3px;}
 
 /* ---------- 3. CARDS & PANES ---------- */
-.pf-card,.x-pane,.pb-pane,.pb-card,.pb-acct,.cs-frame,
-.vl-list,.gv-frame,.gv-prop,.gv-hist,.dp-frame,.dp-rel,
+.x-pane,.pb-pane,.pb-card,.pb-acct,.cs-frame,
+.vl-list,.gv-prop,.gv-hist,.dp-frame,.dp-rel,
 .vd-frame,.vd-stage,.dp-pane,.br-sec,.br-cell{
   background:var(--pf-dark-2); border:2px solid var(--pf-border);
   padding:14px 12px; margin:0 0 10px; text-align:left;
   box-sizing:border-box;
 }
-.pf-card h4,.x-pane h4,.pb-bankhead,.gv-ptitle,
+.x-pane h4,.pb-bankhead,.gv-ptitle,
 .dp-rtitle,.vd-fhead,.br-sect{
   color:var(--pf-cream); font-size:16px; letter-spacing:2px;
   margin:0 0 8px; text-transform:uppercase;
   font-family:var(--pf-font-display);
 }
-.pf-card-accent{border-color:var(--pf-red);background:var(--pf-dark-3);}
 
 /* ---------- 4. BUTTONS ---------- */
-.pf-btn,.c-btn,.cs-betbtn,.cs-takebtn,.gv-vote,.gv-yes,.gv-no-btn,
+.pf-btn,.c-btn,.cs-betbtn,.cs-takebtn,.gv-yes,
 .dp-acc,.dp-dec,.dp-end,.vd-open,.vd-upload,.br-ubtn,.cp-mbtn{
   display:inline-block; background:var(--pf-red); color:#fff; border:0;
   padding:12px 24px; font-family:var(--pf-font-display); font-size:13px;
@@ -423,13 +413,11 @@ body:has(#pf-nuke-stick:not([hidden])) #pf-do-mini{bottom:calc(56px + env(safe-a
 }
 .pf-btn:hover,.c-btn:hover,.cs-betbtn:hover{background:var(--pf-red-dark);}
 .pf-btn:disabled,.c-btn:disabled{opacity:.5;cursor:wait;}
-.pf-btn-ghost,.c-btn.ghost{
+.c-btn.ghost{
   background:transparent; border:2px solid var(--pf-cream); color:var(--pf-cream);
 }
-.pf-btn-ghost:hover,.c-btn.ghost:hover{background:var(--pf-red);border-color:var(--pf-red);color:#fff;}
-.pf-btn-danger{background:#5c1010;border:2px solid var(--pf-red);}
-.pf-btn-danger:hover{background:var(--pf-red);}
-.pf-btn-dim,.c-btn-dim{opacity:.55;}
+.c-btn.ghost:hover{background:var(--pf-red);border-color:var(--pf-red);color:#fff;}
+.c-btn-dim{opacity:.55;}
 .pf-btn-sm{padding:8px 14px;font-size:11px;}
 
 /* ---------- 4b. GLOBAL ACCESSIBILITY GUARDS (audit v3, M4+M5, 2026-10-04)
@@ -453,32 +441,31 @@ html,body{overflow-x:clip;}
 [id^="pf-"] img,.pf-silo img{max-width:100%;height:auto;}
 
 /* ---------- 5. FORMS ---------- */
-.pf-label,.vl-lab,.vd-flabel{
+.vl-lab,.vd-flabel{
   font-family:var(--pf-font-body); font-size:11px; letter-spacing:2px;
   color:var(--pf-muted); text-transform:uppercase;
   display:block; margin:10px 0 4px; text-align:left;
 }
-.pf-input,.c-input,.c-in,.vl-form input,.vl-form select,
-.vd-frame input,.vd-frame select,.gv-frame input,.gv-frame select,
+.c-input,.c-in,.vl-form input,.vl-form select,
+.vd-frame input,.vd-frame select,
 .dp-frame input,.dp-frame select{
   width:100%; box-sizing:border-box; background:var(--pf-dark);
   border:1px solid var(--pf-border-light); color:var(--pf-cream);
   font-family:var(--pf-font-body); font-size:16px; padding:10px; /* 16px prevents iOS auto-zoom */
 }
-.pf-input:focus,.c-input:focus{border-color:var(--pf-red);outline:none;}
-.pf-input::placeholder{color:var(--pf-dim);}
+.c-input:focus{border-color:var(--pf-red);outline:none;}
 #pCanvas{max-width:100%;height:auto;display:block;margin:0 auto;}
 .pf-input-sm{max-width:140px;}
 .pf-input-md{max-width:220px;}
 .pf-input-lg{max-width:320px;}
 
 /* ---------- 6. TEXT UTILITIES ---------- */
-.pf-note,.x-note,.c-tag{
+.x-note,.c-tag{
   font-family:var(--pf-font-body); font-size:12px;
   color:var(--pf-muted); margin:6px 0; line-height:1.6;
 }
 .c-tag{font-size:14px;margin-bottom:14px;}
-.pf-err,.c-err{
+.c-err{
   font-family:var(--pf-font-body); font-size:12px;
   color:var(--pf-red-bright); margin:8px 0; letter-spacing:1px;
 }
@@ -486,86 +473,46 @@ html,body{overflow-x:clip;}
   font-family:var(--pf-font-body); font-size:13px;
   color:var(--pf-dim); padding:16px 0;
 }
-.pf-dim{color:var(--pf-dim);}
-.pf-red{color:var(--pf-red);}
-.pf-gold{color:var(--pf-gold);}
-.pf-cream{color:var(--pf-cream);}
 
 /* ---------- 7. PROGRESS BARS ---------- */
-.pf-progress,.cp-barwrap,.gv-barwrap,.dp-barwrap,.sb-bar,.br-tierwrap{
+.cp-barwrap,.dp-barwrap,.sb-bar,.br-tierwrap{
   height:20px; background:var(--pf-dark-2);
   border:2px solid var(--pf-border-light);
   position:relative; overflow:hidden; margin:8px 0;
 }
-.pf-progress-fill,.cp-bar,.gv-bar,.dp-bar,.sb-fill,.br-tierfill{
+.cp-bar,.dp-bar,.sb-fill,.br-tierfill{
   height:100%; width:0%;
   background:repeating-linear-gradient(-45deg,var(--pf-red),var(--pf-red) 12px,var(--pf-red-dark) 12px,var(--pf-red-dark) 24px);
   transition:width .6s ease;
 }
-.pf-progress-label{
-  font-family:var(--pf-font-body); font-size:11px; letter-spacing:2px;
-  color:var(--pf-muted); text-transform:uppercase; margin-bottom:4px;
-}
 
 /* ---------- 8. STAT ROWS & BADGES ---------- */
-.pf-stat-row,.pb-balrow,.pb-row,.vl-row,.vl-stat,.br-stat{
+.pb-balrow,.pb-row,.vl-row,.vl-stat,.br-stat{
   display:flex; justify-content:space-between; align-items:center;
   padding:8px 0; border-bottom:1px solid #2a2a2a;
   font-family:var(--pf-font-body); font-size:13px; color:var(--pf-muted);
 }
-.pf-stat-row:last-child{border-bottom:0;}
-.pf-stat-row b,.pb-bval,.pb-cval,.pb-nwval,.vl-num,.br-v{
+.pb-bval,.pb-cval,.pb-nwval,.vl-num,.br-v{
   color:var(--pf-cream); font-family:var(--pf-font-mono); font-size:15px;
 }
-.pf-badge{
-  display:inline-block; background:var(--pf-red); color:#fff;
-  font-family:var(--pf-font-display); font-size:10px; letter-spacing:1px;
-  padding:3px 10px; text-transform:uppercase; white-space:nowrap;
-}
-.pf-badge-gold{background:var(--pf-gold);color:var(--pf-dark);}
-.pf-badge-ghost{background:transparent;border:1px solid var(--pf-dim);color:var(--pf-dim);}
 
 /* ---------- 9. GATES & EMPTY STATES ---------- */
-.pf-gate,.c-gate,.br-gate{
+.c-gate,.br-gate{
   font-family:var(--pf-font-body); font-size:14px; color:var(--pf-cream);
   margin:12px 0; padding:24px 16px; text-align:center;
   border:2px dashed var(--pf-border-light); background:var(--pf-dark-3);
 }
-.pf-gate .pf-btn{margin-top:12px;}
-.pf-empty{
-  font-family:var(--pf-font-body); font-size:13px; color:var(--pf-dim);
-  padding:16px 0; font-style:italic;
-}
 
 /* ---------- 10. URGENT / ALERT CARDS ---------- */
-.pf-urgent,.br-urg{
+.br-urg{
   border:3px solid var(--pf-red); background:#1d0a0a;
   padding:14px 12px; margin:0 0 10px; text-align:left;
 }
-.pf-urgent .pf-urgent-title{
-  color:var(--pf-red-bright); font-size:13px; letter-spacing:3px;
-  text-transform:uppercase; margin-bottom:6px;
-}
 
 /* ---------- 11. SECTIONS ---------- */
-.pf-section{margin:20px 0 10px;text-align:left;}
-.pf-section-title{
-  color:var(--pf-cream); font-size:15px; letter-spacing:3px;
-  text-transform:uppercase; margin:0 0 8px;
-  border-bottom:2px solid var(--pf-red); padding-bottom:6px;
-  font-family:var(--pf-font-display);
-}
 
 /* ---------- 12. LAYOUT UTILITIES ---------- */
-.pf-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0;}
-.pf-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:10px 0;}
-@media (max-width:560px){.pf-grid2,.pf-grid3{grid-template-columns:1fr;}}
-.pf-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0;}
-.pf-stack > *{margin-bottom:10px;}
-.pf-stack > *:last-child{margin-bottom:0;}
-.pf-center{text-align:center;}
-.pf-left{text-align:left;}
-.pf-mt{margin-top:12px;} .pf-mb{margin-bottom:12px;}
+.pf-mt{margin-top:12px;}
 
 /* ---------- 13. SILO-SPECIFIC MAPPINGS (standardized) ---------- */
 /* Mission cards */
@@ -626,7 +573,6 @@ html,body{overflow-x:clip;}
 .pb-neg{color:var(--pf-red-bright);}
 .pb-hist{margin-top:12px;}
 .pb-filters{display:flex;gap:8px;margin:8px 0;flex-wrap:wrap;}
-.pb-lobby{text-align:center;padding:20px 12px;}
 .pb-sub{font-family:var(--pf-font-body);font-size:13px;color:var(--pf-muted);margin:8px 0;}
 /* Vault admin */
 .vl-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0;}
@@ -674,7 +620,7 @@ html,body{overflow-x:clip;}
 .sb-name{font-size:12px;letter-spacing:2px;color:var(--pf-cream);}
 .sb-days{font-family:var(--pf-font-mono);font-size:11px;color:var(--pf-muted);}
 /* Diplomacy */
-.dp-rframe,.dp-acc,.dp-dec{margin:4px;}
+.dp-acc,.dp-dec{margin:4px;}
 /* Reduced motion */
 @media (prefers-reduced-motion:reduce){.dp-risk{animation:none;}}
 
@@ -965,7 +911,6 @@ html,body{overflow-x:clip;}
   letter-spacing:1px;text-transform:uppercase;text-decoration:none;cursor:pointer;
   padding:8px 0}
 .pf-pat-deploy:hover{text-decoration:underline;color:#fff}
-.pf-pat-deploy .pat-arrow{content:' \2192'}
 .pf-pat-deploy-red{display:inline-block;background:#c1121f;color:#fff;border:0;
   padding:12px 24px;font-family:'Arial Black',Arial,sans-serif;font-size:14px;
   letter-spacing:2px;text-transform:uppercase;text-decoration:none;cursor:pointer;

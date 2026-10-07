@@ -23,9 +23,6 @@
   PF.saveAuthSecret = function (s) {
     try { if (s) localStorage.setItem(LS_SECRET, String(s)); } catch (e) {}
   };
-  PF.clearAuthSecret = function () {
-    try { localStorage.removeItem(LS_SECRET); } catch (e) {}
-  };
 
   function callsign() {
     try { if (typeof window.PFCallsign === 'function') return String(window.PFCallsign() || '').toLowerCase(); } catch (e) {}

@@ -386,73 +386,23 @@ else {
   })();
 }
 
-/* --- PFLedgers.mount: happy path --- */
+/* --- PFLedgers.mount: ledger_list has no backend route (junk-removal
+   2026-10-06) — mount fails soft by hiding the section. The render/
+   download/share happy-path tests below are retired until the route lands;
+   the painter + fail-soft paths are still covered. --- */
 function mountWith(resp) {
   var e = makeEnv();
   var container = e.sb.document.createElement('div');
   var r = e.sb.PFLedgers.mount(container);
-  var sc = e.captured.scripts[e.captured.scripts.length - 1];
-  var m = String(sc.src || '').match(/callback=([^&]+)/);
-  if (!m) { no('jsonp', 'callback param missing from script src: ' + sc.src); return null; }
-  if (String(sc.src).indexOf('action=ledger_list') === -1)
-    no('jsonp', 'action missing: ' + sc.src);
-  else ok('mount fires JSONP ledger_list');
-  e.sb[m[1]](resp); /* backend answers */
+  if (r !== true) { no('mount ret', 'expected true, got ' + r); return null; }
+  ok('mount returns true');
+  if (container.style.display === 'none') ok('mount fail-soft: section hidden (no ledger_list route)');
+  else { no('mount hide', 'section not hidden'); return null; }
   return { env: e, container: container, mountRet: r };
 }
-(function () {
-  var t = mountWith(RESP_OK);
-  if (!t) return;
-  if (t.mountRet !== true) no('mount ret', 'expected true');
-  else ok('mount returns true');
-  var root = t.container.children[0];
-  if (!root || root.className !== 'pf-ledger') { no('ledger root', 'missing .pf-ledger'); return; }
-  ok('ledger root rendered');
-  var rows = root.children.filter(function (c) { return c.className === 'pf-ledger-row'; });
-  if (rows.length === 2) ok('one row per billionaire (2 rows)');
-  else no('rows', 'expected 2 rows, got ' + rows.length);
-  var html = allHtml(root);
-  if (html.indexOf('Elon Musk') !== -1 && html.indexOf('Warren Buffett') !== -1)
-    ok('ranked names rendered');
-  else no('names', 'missing');
-  if (html.indexOf('NET WORTH $839B') !== -1 && html.indexOf('Forbes') !== -1)
-    ok('net worth figure + Forbes caveat');
-  else no('net worth', 'missing');
-  if (html.indexOf('SPENT $839,000,000') !== -1 && html.indexOf('name-matched') !== -1)
-    ok('spending figure + name-matched caveat');
-  else no('spending', 'missing');
-  if (html.indexOf('FEC data not yet loaded') !== -1) ok('pending row honest empty line');
-  else no('pending line', 'missing');
-  if (html.indexOf('0.1%') !== -1) ok('ratio percentage rendered');
-  else no('ratio pct', 'missing');
-  if (html.indexOf('pf-ledger-bar') !== -1) ok('ratio bar markup present');
-  else no('ratio bar', 'missing');
-  if (html.indexOf('METHOD: Net worths hand-transcribed') !== -1) ok('method caption under ledger');
-  else no('method caption', 'missing');
-  /* DOWNLOAD -> PF.PHQShare.save('phq-ledger', {...}) via existing flow */
-  var click = (root._listeners.click || [])[0];
-  if (!click) { no('click delegation', 'no click listener on ledger root'); return; }
-  ok('click delegation wired');
-  click({ target: { getAttribute: function (k) { return k === 'data-ledger-dl' ? '0' : null; } } });
-  if (t.env.saveCalls.length === 1 && t.env.saveCalls[0].id === 'phq-ledger' &&
-      t.env.saveCalls[0].fn === 'pfn-phq-ledger.png' &&
-      t.env.saveCalls[0].cv && (t.env.saveCalls[0].cv._recs || []).length > 10)
-    ok('DOWNLOAD routes to PF.PHQShare.save with painted ledger canvas');
-  else no('download', 'routing failed');
-  /* SHARE -> PF.PHQShare.share('phq-ledger', {...}) */
-  click({ target: { getAttribute: function (k) { return k === 'data-ledger-sh' ? '1' : null; } } });
-  if (t.env.shareCalls.length === 1 && t.env.shareCalls[0].id === 'phq-ledger')
-    ok('SHARE routes to PF.PHQShare.share with painted ledger canvas');
-  else no('share', 'routing failed');
-  /* painter data comes from the endpoint entry, not invented — the SHARE click
-     above targeted index 1 (the pending Buffett row), so the poster must
-     carry the pending row's honest not-loaded line, not a zero. */
-  var scv = t.env.shareCalls[0] && t.env.shareCalls[0].cv;
-  if (scv && hasText(scv, 'WARREN BUFFETT') && hasText(scv, 'FEC DATA NOT YET LOADED'))
-    ok('shared poster carries endpoint data (row 2, pending path honest)');
-  else no('poster data', 'poster missing endpoint fields');
-})();
-
+/* Happy-path render/download/share tests retired with the dead ledger_list
+   route (junk-removal 2026-10-06) — they require a live backend. The painter
+   module (share-image-phq.js) is covered by its own static checks above. */
 /* --- mount: fail-soft paths --- */
 (function () {
   var t = mountWith({ ok: false });
@@ -467,11 +417,12 @@ function mountWith(resp) {
   else no('fail-soft null', 'section not hidden');
 })();
 (function () {
+  /* No backend route: the empty-entries case is indistinguishable from a
+     down endpoint — the section hides (fail-soft). */
   var t = mountWith({ ok: true, methodology: 'm', list: {}, total: 0, entries: [] });
-  var html = t ? allHtml(t.container) : '';
-  if (t && t.container.style.display !== 'none' && html.indexOf('The ledger is empty') !== -1)
-    ok('empty state: zero rows shows the honest empty message (section stays)');
-  else no('empty state', 'missing or section hidden');
+  if (t && t.container.style.display === 'none')
+    ok('empty state: zero rows hides the section (no ledger_list route)');
+  else no('empty state', 'section not hidden');
 })();
 
 /* --- mount: bad args + already-mounted guard --- */

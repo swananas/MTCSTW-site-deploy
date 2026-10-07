@@ -624,29 +624,17 @@ function loadWeek(week_start){
   var id=ident(); if(!id.callsign) return;
   if(WR_CACHE[week_start]){ WR_CUR=week_start; paint(el,{ok:true,report:WR_CACHE[week_start]}); return; }
   el.innerHTML='<div class="c-load">Pulling the week of '+esc(week_start)+'&hellip;</div>';
-  api("warreport_get",{callsign:id.callsign,week_start:week_start},function(j){
-    if(j&&j.ok&&j.report){ WR_CACHE[week_start]=j.report; WR_CUR=week_start; paint(el,j); }
-    else { toast("Couldn't pull that week."); load(); }
-  });
+  /* warreport_get has no backend route — fail-soft: same toast + reload the
+     404 path always produced. */
+  toast("Couldn't pull that week."); load();
 }
 function load(){
   var el=document.getElementById("xWarReport"); if(!el) return;
   var id=ident();
   if(!id.callsign){ paint(el,{ok:true,report:null}); return; }
-  /* Fetch the week list first so the navigator is populated, then latest. */
-  api("warreport_list",{callsign:id.callsign},function(jl){
-    if(jl&&jl.ok&&jl.weeks&&jl.weeks.length){
-      WR_WEEKS=jl.weeks;
-      api("warreport_latest",{callsign:id.callsign},function(j){
-        if(j&&j.ok&&j.report){
-          WR_CUR=j.report.week_start; WR_CACHE[WR_CUR]=j.report;
-        }
-        paint(el,j);
-      });
-    } else {
-      api("warreport_latest",{callsign:id.callsign},function(j){ paint(el,j); });
-    }
-  });
+  /* warreport_list has no backend route — go straight to latest (the only
+     read that exists); the week navigator stays empty until it lands. */
+  api("warreport_latest",{callsign:id.callsign},function(j){ paint(el,j); });
 }
 function initWr(){
   wrCss();

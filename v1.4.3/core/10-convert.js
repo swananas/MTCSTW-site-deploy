@@ -54,7 +54,6 @@ function nextMission(){
   for(var i=0;i<MISSIONS.length;i++){ if(!played(MISSIONS[i].key)) return MISSIONS[i]; }
   return null;
 }
-PF.nextMission=nextMission;
 
 /* COMBO: two different games in one day fires pf-combo once (the ledger pays
    +8 XP, exempt). Distinct-game days are the habit we're building. */

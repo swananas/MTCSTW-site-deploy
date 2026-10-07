@@ -259,10 +259,9 @@ document.getElementById("pDownload").onclick=function(e){
       document.dispatchEvent(new CustomEvent("pf-poster-made",{detail:pfDetail}));
     }
   }catch(err){}
-  /* Strike-orders creation loop: entity-bound completion receipt (zero XP,
-     idempotent server-side via INSERT OR IGNORE). Own once-per-order gate —
-     independent of the daily poster-XP gate above. */
-  try{ pfStrikeLogForge(); }catch(err2){}
+  /* Strike-orders creation loop: the strike_forge_log backend route does not
+     exist yet, so the entity-bound completion receipt is skipped for now.
+     (The pf-poster-made event above still carries the strike detail.) */
   pfLogShare();
   stampedBlob(function(blob){
     var url=URL.createObjectURL(blob);
@@ -480,7 +479,6 @@ function pfRenderImpact(){
 draw();
 pfRenderSpread();
 pfRenderImpact();
-window.__pfPoster={state:state,wrap:wrap,SLOGANS:SLOGANS,stampPng:stampPng};
 })();
 
 /* ---------- VIDEO tab (merged from games/video.js, PF v1.4.3, 2026-10-03) ----------
@@ -952,26 +950,6 @@ function pfApplyForgeLaunch(p){
     var ptab=document.querySelector('#pf-poster .p-tab[data-ptab="political"]');
     if(ptab) ptab.click();
   }catch(e3){}
-}
-function pfStrikeLogForge(){
-  if(!pfStrikeLaunch||!pfStrikeLaunch.strike||!pfStrikeLaunch.entity||!pfStrikeLaunch.entity.id) return;
-  var sk='pf_strike_logged_'+String(pfStrikeLaunch.strike.cell_id).replace(/[^a-z0-9_-]/gi,'')+'_'
-    +String(pfStrikeLaunch.strike.week_start).slice(0,10)+'_'+String(pfStrikeLaunch.entity.id).replace(/[^a-z0-9_-]/gi,'');
-  try{ if(localStorage.getItem(sk)==='1') return; }catch(e){}
-  var id=null;
-  try{ id=pfIdent(); }catch(e2){ return; }
-  if(!id||!id.callsign) return;
-  try{
-    pfPost({type:'cell',cell_action:'strike_forge_log',
-      cell_id:String(pfStrikeLaunch.strike.cell_id).slice(0,64),
-      week_start:String(pfStrikeLaunch.strike.week_start).slice(0,10),
-      entity_kind:String(pfStrikeLaunch.entity.kind||'').slice(0,16),
-      entity_id:String(pfStrikeLaunch.entity.id||'').slice(0,64),
-      callsign:id.callsign,device:id.device||''},
-      function(j){ try{
-        if(j&&j.ok){ localStorage.setItem(sk,'1'); pfToast('STRIKE LOGGED — your cell counts it.'); }
-      }catch(e3){} });
-  }catch(e4){}
 }
 function pfConsumeForgeLaunch(){
   var raw=null;

@@ -163,9 +163,11 @@ if (selfIdx !== -1) {
 } else no('xp', 'self-remix branch not found');
 
 console.log('== 7. gallery ==');
-if (has(bb, "'bank_list'") && has(bb, 'pubGet'))
-  ok('gallery: bank_list via public JSONP GET');
-else no('gallery', 'bank_list fetch missing');
+/* bank_list route absent (junk-removal 2026-10-06): no fetch; the gallery
+   goes straight to the graceful stocking state. */
+if (!has(bb, "'bank_list'") && has(bb, 'S.failed = true'))
+  ok('gallery: no dead bank_list fetch; fail-soft stocking state');
+else no('gallery', 'dead bank_list fetch still present');
 if (has(bb, 'STILL BEING STOCKED') && has(bb, 'never an error wall'))
   ok('gallery: graceful stocking state when bank_list absent');
 else no('gallery', 'graceful stocking state missing');
@@ -184,17 +186,20 @@ else no('gallery', 'sort controls missing');
 if (has(bb, 'LOAD MORE') && has(bb, 'has_more') && has(bb, 'offset'))
   ok('gallery: LOAD MORE pagination on has_more');
 else no('gallery', 'pagination missing');
-/* Backend contract (be/content-bank-metadata): bank_list returns flat fields
-   (id, no nesting, no has_more), reads entity_id filter. */
-if (has(bb, 'params.entity_id = S.entity') && !has(codeOnly(bb), 'params.entity = S.entity'))
-  ok('gallery: entity filter sent as entity_id');
-else no('gallery', 'entity_id filter param missing');
+/* bank_list has no backend route (junk-removal 2026-10-06): the gallery
+   renders the graceful stocking state; the entity_id/has_more wiring lives
+   in git history for when the route lands. */
+if (has(bb, 'S.failed = true') && has(bb, 'THE VAULT IS STILL BEING STOCKED'))
+  ok('gallery: fail-soft stocking state (no bank_list route)');
+else no('gallery', 'fail-soft stocking state missing');
 if (has(bb, 'viewItem') && has(bb, 'raw.submission_id || raw.id'))
   ok('gallery: rows normalized to view objects (id -> submission_id)');
 else no('gallery', 'viewItem normalization missing');
-if (has(bb, 'items.length === LIMIT'))
-  ok('gallery: has_more inferred from a full page');
-else no('gallery', 'has_more inference missing');
+/* has_more inference lived in the removed bank_list success path; the
+   gallery is fail-soft until the route lands. */
+if (has(bb, 'S.failed = true'))
+  ok('gallery: has_more n/a — fail-soft until bank_list lands');
+else no('gallery', 'fail-soft marker missing');
 if (has(bb, 'NOTHING BANKED HERE YET'))
   ok('gallery: empty-filter state copy');
 else no('gallery', 'empty state copy missing');
@@ -213,17 +218,23 @@ else no('remix', 'pf_entity type:id construction missing');
 if (has(bb, 'encodeURIComponent'))
   ok('remix: params URL-encoded');
 else no('remix', 'encodeURIComponent missing');
-if (has(bb, 'j.forge_ready === true') && has(bb, 'window.location.href'))
-  ok('remix: forge_ready -> navigate to Forge with params');
-else no('remix', 'forge navigation branch missing');
+/* bank_remix has no backend route (junk-removal 2026-10-06): doRemix fails
+   soft with the retry toast; the forge-handoff wiring lives in git history. */
+if (has(bb, "Remix didn\\'t land"))
+  ok('remix: fail-soft retry toast (no bank_remix route)');
+else no('remix', 'fail-soft retry toast missing');
 if (has(bb, 'PF.bankPrefillMeta') && (has(bb, "isn't live yet") || has(bb, "isn\\'t live yet") || has(bb, 'live yet')))
   ok('remix: Forge-absent fallback prefills the bank composer with a note');
 else no('remix', 'prefill fallback missing');
 if (has(bb, "'/create'") && has(bb, 'PF.bankForgePath'))
   ok('remix: default forge path /create + PF.bankForgePath override');
 else no('remix', 'forge path default/override missing');
-if (has(bb, "'bank_remix'") && has(bb, "'readcreate'") && has(bb, 'submission_id'))
-  ok('remix: POST bank_remix (readcreate) with submission_id');
+/* bank_remix POST removed (no backend route, junk-removal 2026-10-06) —
+   doRemix goes straight to the fail-soft. (The contract stays documented
+   in the module header for when the route lands.) */
+if (!has(bb, 'postMut') && !has(bb, 'PF.postAction'))
+  ok('remix: dead bank_remix POST machinery gone');
+else no('remix', 'dead bank_remix POST still present');
 /* Backend contract (be/content-bank-metadata): {ok, submission_id, remix:{...}}
    nested — read defensively via normRemix; forge_ready optional. */
 if (has(bb, 'function normRemix(j, sid)') && has(bb, 'j.remix'))

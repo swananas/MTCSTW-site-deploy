@@ -211,8 +211,73 @@
     host.insertAdjacentHTML('beforeend', html);
   }
 
+  /* ---------------------------------------------------------------- */
+  /* Flow 1 (cross-data): THEIR DISTRICT — the dossier embeds real town  */
+  /* data for the politician's turf (backend section their_district).     */
+  /* ---------------------------------------------------------------- */
+  var TOWN_CARD_ORDER = ['wages_rent', 'landlords', 'eviction', 'police',
+    'pollution', 'hospitals', 'federal'];
+
+  function districtCard(d) {
+    var td = d.sections ? d.sections.their_district : null;
+    if (!td) return '';
+    var title = td.district_label
+      ? 'THEIR DISTRICT — ' + td.district_label
+      : 'THEIR STATE — ' + (d.resolved && d.resolved.state ? d.resolved.state : '');
+    if (td.status !== 'live' || !td.town) {
+      return emptyCard(title, {
+        note: (td.note || 'District town data is not available yet.') +
+          ' The district crosswalk fills this in automatically — nothing estimated.',
+        source: td.source, staleness: td.staleness, rail_status: td.rail_status
+      });
+    }
+    var t = td.town;
+    var area = t.area ? t.area.coarse_area : '';
+    var inner = '<div style="font-size:14px;line-height:1.6;margin-bottom:10px;">' +
+      esc(td.note || '') + '</div>';
+    /* Top live town findings — real town_power data, source-stamped. */
+    var shown = 0;
+    TOWN_CARD_ORDER.forEach(function (k) {
+      if (shown >= 3) return;
+      var c = t.cards ? t.cards[k] : null;
+      if (!c || !c.live || !c.headline) return;
+      shown++;
+      var src = c.source
+        ? esc(c.source.name + (c.source.period ? ' · ' + c.source.period : '') +
+          (c.source.retrieved && c.source.retrieved !== 'unknown' ? ' · retrieved ' + c.source.retrieved : ''))
+        : 'Source: not yet published';
+      inner += '<div style="border-top:1px dashed ' + DASH + ';padding:10px 0;">' +
+        '<div style="font-size:11px;letter-spacing:2px;color:' + MUTED + ';font-weight:800;">' +
+        esc((c.headline_label || k).toUpperCase()) + '</div>' +
+        '<div style="font-size:22px;font-weight:900;font-family:' + MONO + ';margin:2px 0;">' +
+        esc(c.headline) + '</div>' +
+        '<div style="font-size:11px;color:' + MUTED + ';">' + src + '</div></div>';
+    });
+    if (!shown) {
+      inner += '<div style="font-size:13px;color:' + MUTED + ';">Town rails are still landing for this area — ' +
+        'the district is mapped, the numbers are coming.</div>';
+    }
+    /* Other district zips + full town report link. */
+    var zips = (td.zips || []).map(function (z) {
+      return '<a href="' + esc(z.town_url || ('/town?zip=' + z.zip5)) + '"' +
+        ' style="display:inline-block;margin:4px 6px 0 0;padding:8px 14px;border:1px solid ' + HAIR +
+        ';border-radius:3px;font-size:13px;font-weight:700;color:' + INK + ';text-decoration:none;' +
+        (z.primary ? 'background:' + PAPER + ';border:2px solid ' + RED + ';' : 'background:#fff;') + '">' +
+        esc(z.zip5) + (z.primary ? ' ★' : '') + '</a>';
+    }).join('');
+    inner += '<div style="margin-top:10px;"><div style="font-size:11px;letter-spacing:2px;color:' + MUTED +
+      ';font-weight:800;margin-bottom:4px;">DISTRICT ZIPS' + (area ? ' · ' + esc(area) : '') + '</div>' + zips + '</div>';
+    inner += '<div style="margin-top:12px;text-align:center;"><a href="/town?zip=' + esc(td.zips[0].zip5) + '"' +
+      ' style="display:inline-block;background:' + RED + ';color:#fff;font-weight:900;letter-spacing:2px;' +
+      'padding:12px 26px;font-size:14px;text-decoration:none;border-radius:3px;">SEE THE FULL TOWN REPORT →</a></div>';
+    return sectionCard(title, inner,
+      { source: td.source, staleness: td.staleness, rail: td.rail_status });
+  }
+
   function renderSections(host, d) {
     var S = d.sections, cards = [];
+    /* Flow 1: their district first — the dossier shows their backyard. */
+    cards.push(districtCard(d));
     /* Money in */
     if (S.money_in.status === 'live') {
       var m = S.money_in.data;
@@ -507,6 +572,31 @@
     x.fillText('mtcstw.com/receipt/' + slugify(r.display_name), W / 2, H - 96);
     return cv;
   }
+  /* Flow 3 (cross-data): log the dossier share so the movement feed can
+     rank "top Receipt dossiers by shares". Best-effort, fail-soft, never
+     blocks the share; uses the existing share_log POST (spread rail). */
+  function logReceiptShare(slug) {
+    try {
+      var cs = '';
+      try { cs = window.PFCallsign ? window.PFCallsign() : ''; } catch (e) {}
+      var body = JSON.stringify({ type: 'spread', sp_action: 'share_log',
+        content_id: 'receipt:' + slug, sharer: cs || 'anon', cell_id: '' });
+      var post = function () {
+        try {
+          if (window.PF && window.PF.authPost && cs) {
+            window.PF.authPost(BACKEND, JSON.parse(body), function () {});
+            return;
+          }
+          fetch(BACKEND, { method: 'POST',
+            headers: { 'Content-Type': 'application/json' }, body: body,
+            keepalive: true }).catch(function () {});
+        } catch (e) {}
+      };
+      if (document.readyState === 'complete') post();
+      else { try { window.addEventListener('load', post); } catch (e) { post(); } }
+    } catch (e) {}
+  }
+
   function shareReceipt(d) {
     var cv = paintReceipt(d);
     if (!cv) { try { if (PF && PF.toast) PF.toast('Poster failed — try again.'); } catch (e) {} return; }
@@ -517,6 +607,7 @@
            the share counts through the existing XP mechanics. */
         window.PFShare.shareImage(cv, 'pfn-receipt-' + slug + '.png',
           'THE RECEIPT: ' + d.resolved.display_name, 'receipt');
+        logReceiptShare(slug);
       }
     } catch (e) { err('share failed: ' + (e && e.message)); }
   }

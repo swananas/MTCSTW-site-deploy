@@ -180,11 +180,25 @@
       bars += '<div class="pf-idx-bar' + (i < r.inputs_live ? '' : ' off') + '"><i style="width:' +
         (i < r.inputs_live ? '100' : '0') + '%"></i></div>';
     }
+    /* Flow 4 (cross-data): every score deep-links — politicians to their
+       Receipt dossier, companies to their extraction profile (Receipts
+       don't apply to companies). */
+    var deep = '';
+    if (r.kind === 'company' && r.extraction_url) {
+      deep = '<div class="pf-idx-meta"><a href="' + esc(r.extraction_url) +
+        '" style="color:#e8b923;font-weight:700;text-decoration:none">EXTRACTION FILE →</a></div>';
+    } else if (r.receipt_url) {
+      deep = '<div class="pf-idx-meta"><a href="' + esc(r.receipt_url) +
+        '" style="color:#e8b923;font-weight:700;text-decoration:none">GET THE RECEIPT →</a></div>';
+    } else if (r.kind !== 'company' && r.slug) {
+      deep = '<div class="pf-idx-meta"><a href="/receipt/' + esc(r.slug) +
+        '" style="color:#e8b923;font-weight:700;text-decoration:none">GET THE RECEIPT →</a></div>';
+    }
     return '<li class="pf-idx-row" data-slug="' + esc(r.slug) + '" data-key="' + esc(r.entity_key) + '">' +
       '<div class="pf-idx-top">' +
       '<div class="pf-idx-rank">#' + r.rank + '</div>' +
       '<div class="pf-idx-who"><div class="pf-idx-name">' + esc(r.name) + '</div>' +
-      '<div class="pf-idx-meta">' + metaLine(r) + '</div></div>' +
+      '<div class="pf-idx-meta">' + metaLine(r) + '</div>' + deep + '</div>' +
       '<div class="pf-idx-score"><div class="pf-idx-num">' + esc(String(r.score)) + '</div>' +
       '<div class="pf-idx-label">' + esc(r.label) + '</div></div></div>' +
       '<div class="pf-idx-bars">' + bars + '</div>' +
@@ -211,14 +225,20 @@
     if (det.neighbors) {
       var links = '';
       if (det.neighbors.town_url) links += '<a href="/town">THEIR TOWN →</a>';
-      if (det.neighbors.extraction_url) links += '<a href="' + esc(det.neighbors.extraction_url) + '">EXTRACTION FILE →</a>';
       if (links) web = '<div class="pf-idx-web">' + links + '</div>';
     }
-    var receipt = '<a class="pf-idx-receipt" href="' + esc(det.neighbors ? det.neighbors.receipt_url : ('/receipt/' + det.entity.slug)) + '">GET THE FULL RECEIPT →</a>';
+    /* Flow 4 (cross-data): the primary deep-link is kind-aware. Politicians
+       -> GET THE FULL RECEIPT (verified: neighbors.receipt_url is
+       /receipt/<slug> and the receipt page deep-links it). Companies ->
+       GET THE EXTRACTION FILE (Receipts don't apply to companies). */
+    var isCo = det.entity && det.entity.kind === 'company';
+    var primary = isCo
+      ? '<a class="pf-idx-receipt" href="' + esc(det.neighbors && det.neighbors.extraction_url ? det.neighbors.extraction_url : ('/extraction/' + det.entity.slug)) + '">GET THE EXTRACTION FILE →</a>'
+      : '<a class="pf-idx-receipt" href="' + esc(det.neighbors && det.neighbors.receipt_url ? det.neighbors.receipt_url : ('/receipt/' + det.entity.slug)) + '">GET THE FULL RECEIPT →</a>';
     var head = det.scored
       ? ''
       : '<div class="pf-idx-in-e" style="margin-bottom:10px">INSUFFICIENT DATA — needs ' + esc(det.threshold || '') + '.</div>';
-    return head + ins + receipt + web + shareBtn;
+    return head + ins + primary + web + shareBtn;
   }
 
   function render() {

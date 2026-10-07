@@ -192,6 +192,8 @@ function css(){
   +'.ud-id-cs{font:24px "Arial Black",Arial;letter-spacing:2px;margin:0 0 2px}'
   +'.ud-id-none{font-size:16px;margin-top:12px}'
   +'.ud-id-rank{font:800 12px Arial;letter-spacing:2px;color:#e8b33c;margin:0 0 10px}'
+  +'.ud-sync{color:#a89e88;animation:udPulse 1.2s ease-in-out infinite}'
+  +'@keyframes udPulse{0%,100%{opacity:.55}50%{opacity:1}}'
   +'.ud-bar{height:10px;background:#1e1e1e;border:1px solid #333;border-radius:5px;overflow:hidden;margin:6px 0 4px}'
   +'.ud-bar>i{display:block;height:100%;width:0;background:#c1121f;transition:width .8s cubic-bezier(.2,.7,.3,1)}'
   +'.ud-bar-gold>i{background:#e8b33c}'
@@ -327,6 +329,22 @@ function renderIdentity(id,ms){
       +'<div class="ud-id-cs ud-id-none">NO CALLSIGN YET</div>'
       +'<div class="ud-meta ud-mt6">One name. Every game, every cell, every medal — '
       +'your XP follows it everywhere.</div></div>');
+  }
+  if(id._local){
+    /* PERF (2026-10-07): progressive first paint — the device knows the
+       callsign and medals before dashboard_init returns. XP/rank/streak
+       sync in when the backend lands; the theater anchor still renders so
+       the lazy deep bundle has its mount point. */
+    return sec('WHO AM I HERE?',
+      '<div class="ud-card">'
+      +'<div class="ud-id-cs">'+esc(id.callsign||'SOLDIER')+'</div>'
+      +'<div class="ud-id-rank ud-sync">SYNCING YOUR WAR RECORD…</div>'
+      +rackHtml(ms)
+      /* REQ-20261006-027: the Theater Rack anchor — games/theater.js mounts
+         here (in addition to legacy #pf-ranks). Campaign ribbons below the
+         weekly service medals: same military-awards language, longer horizon. */
+      +'<div id="pf-theater-rack"></div>'
+      +'</div>');
   }
   var r=id.rank||{}, st=id.streak||{}, ch=id.challenge||null;
   var xp=Number(id.xp)||0;
@@ -624,17 +642,28 @@ function bindMissionsLoot(idn){
 function renderMissions(j,idn){
   if(PF.skip("ud-missions")) return "";
   var signedIn=!!(j&&j.signed_in&&j.identity);
-  if(!signedIn){
+  /* PERF (2026-10-07): progressive — a stored callsign counts as locally
+     signed-in for the mission list (deterministic rotation + device
+     ledger); the streak line and raiders count upgrade when the backend
+     lands. */
+  var localIn=!signedIn&&!!(idn&&idn.callsign);
+  if(!signedIn&&!localIn){
     return '<div class="ud-sec" id="udMissions"><div class="ud-h">DAILY ORDERS</div>'
       +'<div class="ud-card"><div class="ud-vp">Today\\u2019s missions are live.</div>'
       +'<div class="ud-meta ud-mb10">3 orders a day. Report back. Build the streak. Crack the loot crate.</div>'
       +'<button class="ud-claim" id="udClaimMissions">CLAIM YOUR CALLSIGN TO PLAY</button></div></div>';
   }
   var set=umset(),d=udayRec(),rec=d.rec;
-  var st=(j.identity&&j.identity.streak)||{};
-  var streakLine='<span class="ud-streak">\\uD83D\\uDD25 '+Number(st.count||0)+'-day streak</span>';
-  if(st.at_risk) streakLine+=' <span class="ud-warn">— CHECK IN TODAY OR IT DIES</span>';
-  else if(st.checked_in_today) streakLine+=' <span class="ud-ok">— safe today</span>';
+  var st=(j&&j.identity&&j.identity.streak)||{};
+  var streakLine;
+  if(signedIn){
+    streakLine='<span class="ud-streak">\\uD83D\\uDD25 '+Number(st.count||0)+'-day streak</span>';
+    if(st.at_risk) streakLine+=' <span class="ud-warn">— CHECK IN TODAY OR IT DIES</span>';
+    else if(st.checked_in_today) streakLine+=' <span class="ud-ok">— safe today</span>';
+  }else{
+    streakLine='<span class="ud-streak">\\uD83D\\uDD25 '+Number((d.o&&d.o.streak)||0)+'-day streak</span>'
+      +' <span class="ud-mut">· syncing…</span>';
+  }
   var h='<div class="ud-sec" id="udMissions"><div class="ud-h">DAILY ORDERS</div><div class="ud-card ud-dense">';
   h+='<div class="ud-meta ud-mb10">'+streakLine+'</div>';
   for(var i=0;i<set.length;i++){
@@ -1070,18 +1099,43 @@ function load(){
   if(!root) return;
   if(isEditor()){ root.innerHTML='<div class="ud-meta">Dashboard mounts on the live page.</div>'; return; }
   css();
-  var skelHtml=root.innerHTML; /* the staged skeleton doubles as the repaint loader */
   var ms=medalState();
   var idn=ident();
-  var painted=false, seq=0;
+  var seq=0, liveDone=false;
   /* XP bars paint at 0 and ease to their value (.8s cubic-bezier). */
   function animBars(){
     try{ var b=root.querySelectorAll('.ud-bar>i[data-w]');
       for(var i=0;i<b.length;i++)(function(el,w){ setTimeout(function(){ el.style.width=w+'%'; },80); })(b[i],b[i].getAttribute('data-w'));
     }catch(e){}
   }
-  function paint(j){
-    if(painted) return; painted=true;
+  /* Preserve interactive state across the live-data enhancement repaint:
+     Karl's conversation + draft + focus (never wipe a chat in progress),
+     and the scroll position. */
+  function snapshot(){
+    var s={kLog:null,kVal:'',kFocus:false,y:0};
+    try{
+      var kl=document.getElementById('udKarlLog'); if(kl) s.kLog=kl.innerHTML;
+      var ki=document.getElementById('udKarlIn');
+      if(ki){ s.kVal=ki.value; try{ s.kFocus=(document.activeElement===ki); }catch(x){} }
+      s.y=window.scrollY||window.pageYOffset||0;
+    }catch(e){}
+    return s;
+  }
+  function restore(s){
+    try{
+      if(s.kLog!=null){ var kl=document.getElementById('udKarlLog'); if(kl) kl.innerHTML=s.kLog; }
+      var ki=document.getElementById('udKarlIn');
+      if(ki){ ki.value=s.kVal; if(s.kFocus){ try{ ki.focus(); }catch(x){} } }
+      if(s.y) window.scrollTo(0,s.y);
+    }catch(e){}
+  }
+  /* PERF (2026-10-07): progressive paint. isLocal=true paints instantly
+     from device state (callsign, medals, deterministic missions, static
+     grids, Karl form) — time-to-interactive no longer waits on the
+     dashboard_init round-trip. isLocal=false enhances with live data when
+     it lands, preserving chat/scroll. */
+  function paint(j,isLocal){
+    var snap=isLocal?null:snapshot();
     var signedIn=!!(j&&j.signed_in&&j.identity);
     var hasCallsign=!!idn.callsign;
     var tiles=(j&&j.tiles)?j.tiles:{};
@@ -1093,7 +1147,12 @@ function load(){
        public tiles. No Karl chat, no calendar: slimmed, per spec. */
     if(anon) h+=renderHero();
     if(anon) h+=renderIdentity(null,ms);
-    else if(!signedIn) h+=renderSignedOut();
+    else if(!signedIn){
+      /* Local first paint with a stored callsign: the syncing stub.
+         Live response without sign-in: the signed-out prompt (unchanged). */
+      if(hasCallsign) h+=isLocal?renderIdentity({callsign:idn.callsign,_local:true},ms):renderSignedOut();
+      else h+=renderIdentity(null,ms);
+    }
     else h+=renderIdentity(j.identity,ms);
     /* REQ-20261006-027: ud-missions sits between IDENTITY and FEATURE GRID —
        the full Daily Orders loop for the enlisted, a teaser for the rest. */
@@ -1118,19 +1177,28 @@ function load(){
     try{ root._udCtx={j:j,idn:idn}; }catch(e){}
     if(!h){ root.innerHTML='<div class="ud-meta">The HQ failed to muster. <a class="ud-link" href="javascript:location.reload()">Reload</a>.</div>'; return; }
     root.innerHTML=h;
-    /* Staggered section entry: 60ms per section, fade + slight rise. */
-    try{ var _ss=root.querySelectorAll('.ud-sec'); for(var _si=0;_si<_ss.length;_si++){ _ss[_si].style.animationDelay=(60+_si*60)+'ms'; } }catch(e){}
+    /* Staggered section entry only on first paint — the live enhancement
+       swaps data in place without replaying the entrance. */
+    if(isLocal){
+      try{ var _ss=root.querySelectorAll('.ud-sec'); for(var _si=0;_si<_ss.length;_si++){ _ss[_si].style.animationDelay=(60+_si*60)+'ms'; } }catch(e){}
+    }
     animBars();
     bind(root,karlContext(idn,ms,j),j,idn);
+    if(snap) restore(snap);
   }
   function fetch(){
-    var my=++seq; painted=false;
+    var my=++seq; liveDone=false;
+    /* Paint instantly from device state, then enhance when the backend
+       lands. A dead backend just leaves the "syncing…" lines — never a
+       spinner, never a blank page. */
+    paint(null,true);
     api('dashboard_init',{callsign:idn.callsign,device:idn.device,auth_secret:idn.auth_secret},
-      function(j){ if(my===seq) paint(j); });
-    /* Terminal state: never spin on the skeleton forever. */
-    setTimeout(function(){ if(my===seq&&!painted){ paint(null); } },15000);
+      function(j){ if(my===seq&&!liveDone){ liveDone=true; paint(j,false); } });
+    /* Terminal state: mark the live pass done so a late response can't
+       clobber a newer fetch (e.g. after a callsign claim). */
+    setTimeout(function(){ if(my===seq&&!liveDone){ liveDone=true; } },15000);
   }
-  root._repaint=function(){ try{ idn=ident(); root.innerHTML=skelHtml; fetch(); }catch(e){} };
+  root._repaint=function(){ try{ idn=ident(); ms=medalState(); fetch(); }catch(e){} };
   fetch();
 }
 load();

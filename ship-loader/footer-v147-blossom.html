@@ -329,6 +329,11 @@ function pfHints(){
     document.head.appendChild(pc);
     var pc2=document.createElement('link');pc2.rel='preconnect';pc2.href='https://cdn.statically.io';
     document.head.appendChild(pc2);
+    /* PERF (2026-10-07): the dashboard's dashboard_init JSONP fires as soon
+       as bundle-userdash.js parses — preconnect the API origin so DNS+TLS
+       don't serialize behind the script download. */
+    var pc3=document.createElement('link');pc3.rel='preconnect';pc3.href='https://pf-api.mtcstw.workers.dev';
+    document.head.appendChild(pc3);
     var first=JS_SEQ[0],url=(first.indexOf('https://')===0)?first:BASE+first;
     var pl=document.createElement('link');pl.rel='preload';pl.as='script';pl.href=url;
     document.head.appendChild(pl);
@@ -372,8 +377,8 @@ function css(h){var l=document.createElement('link');l.rel='stylesheet';l.href=B
 l.onerror=function(){siloFail(h);};document.head.appendChild(l);}
 function jsSeq(){
   var pending=JS_SEQ.length;
-  function oneDone(){if(--pending===0){if(window.console)console.log('[PF] '+VER+' critical '+JS_SEQ.length+' files loaded');jsLazy();jsCompanion();}}
-  if(pending===0){jsLazy();jsCompanion();return;}
+  function oneDone(){if(--pending===0){if(window.console)console.log('[PF] '+VER+' critical '+JS_SEQ.length+' files loaded');jsLazy();jsCompanion();jsUserdashDeep();}}
+  if(pending===0){jsLazy();jsCompanion();jsUserdashDeep();return;}
   JS_SEQ.forEach(function(n){var s=document.createElement('script');
   /* DEFECT 1: JS_CHROME entries are absolute jsDelivr URLs — use verbatim. */
   s.src=(n.indexOf('https://')===0)?n:BASE+n;
@@ -413,6 +418,21 @@ function jsCompanion(){
   if(window.PF&&window.PF.skip&&window.PF.skip('karl-companion'))return;
   if(window.__pfKarlCompanionLoading)return;window.__pfKarlCompanionLoading=1;
   function go(){try{loadBundle('core/bundle-karl-companion.js');}catch(e){}}
+  if('requestIdleCallback' in window){try{requestIdleCallback(go,{timeout:9000});return;}catch(e){}}
+  setTimeout(go,4000);
+}
+/* USERDASH DEEP (2026-10-07, perf): the dashboard's below-the-fold campaign
+   layer (Theater Rack + ribbon chase, games/theater.js). Rides
+   games/bundle-userdash-deep.js, fetched after idle on dashboard pages only
+   — the #pf-theater-rack anchor is already in the identity card, so the
+   rack fills in when the chunk lands. Saves ~11.6KB + 2 JSONP calls from
+   the critical dashboard path. Kill: ?pf_off=theater (checked in
+   theater.js itself on execution). */
+function jsUserdashDeep(){
+  if(!isDashboard)return;
+  if(window.PF&&window.PF.skip&&window.PF.skip('theater'))return;
+  if(window.__pfUserdashDeepLoading)return;window.__pfUserdashDeepLoading=1;
+  function go(){try{loadBundle('games/bundle-userdash-deep.js');}catch(e){}}
   if('requestIdleCallback' in window){try{requestIdleCallback(go,{timeout:9000});return;}catch(e){}}
   setTimeout(go,4000);
 }

@@ -76,10 +76,11 @@ var SECTIONS = {
     'ritual-calendar.js',
     'dopamine.js',
     'enlistment-ranks.js',
-    /* REQ-20261006-027 (2026-10-07): theater.js moved to bundle-userdash —
-       the theater rack's live surface is now My HQ's #pf-theater-rack anchor
-       (My HQ IDENTITY, below the medals rack). It rides the dashboard bundle
-       (critical on My HQ) instead of the lazy homepage bundle. */
+    /* REQ-20261006-027 (2026-10-07): theater.js moved off bundle-home — the
+       theater rack's live surface is My HQ's #pf-theater-rack anchor
+       (My HQ IDENTITY, below the medals rack).
+       PERF (2026-10-07): theater.js now rides bundle-userdash-deep (lazy,
+       after idle) instead of the critical dashboard bundle. */
     'service-medals.js',
     'first-wave.js',
     /* HOMEPAGE PLAY/BELONG/CREATE/FUND/ACT/PROOF — lazy-loaded as one bundle
@@ -506,10 +507,21 @@ var SECTIONS = {
   /* USER DASHBOARD HUB (2026-10-07, fe/user-dashboard): /dashboard — the hub.
      One silo, one composite call. The hub routes; it never embeds. */
   'bundle-userdash': [
-    'user-dashboard.js',
+    'user-dashboard.js'
+    /* PERF (2026-10-07): theater.js rides bundle-userdash-deep (lazy,
+       below the fold) instead of the critical dashboard bundle — saves
+       ~17KB + 2 JSONP calls from first paint. The #pf-theater-rack anchor
+       still renders in the identity card; theater.js fills it when the
+       deep bundle lands (jsUserdashDeep in the footer loader). */
+  ],
+  /* PERF (2026-10-07): dashboard deep bundle — the below-the-fold campaign
+     layer (Theater Rack + ribbon chase). Lazy-loaded by the footer after
+     idle, dashboard pages only. Kill: ?pf_off=theater (checked in
+     theater.js itself). */
+  'bundle-userdash-deep': [
     /* REQ-20261006-027 (2026-10-07): theater.js — the Theater Rack mounts on
-       My HQ's #pf-theater-rack anchor (IDENTITY, below the medals rack) in
-       addition to legacy #pf-ranks. Auth-gated, zero-XP, fail-soft. */
+       My HQ's #pf-theater-rack anchor (IDENTITY, below the medals rack).
+       Auth-gated, zero-XP, fail-soft. */
     'theater.js'
   ],
   'bundle-roster': [

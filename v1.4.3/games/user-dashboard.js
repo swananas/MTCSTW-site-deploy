@@ -103,8 +103,9 @@ var GRID=[
  ['\\uD83C\\uDFA8','Create','The propaganda workshop.','/create'],
  ['\\uD83C\\uDFE6','Bank',"Your XP, weaponized.",'/bank'],
  ['\\uD83D\\uDCCA','Economy','Spend XP like it matters.','/economy'],
- ['\\uD83D\\uDCB0','War Chest','Fund the fight.','/war-chest'],
- ['\\uD83E\\uDD1D','Ventures','Pool up. Back creators.','/ventures'],
+ /* UX (2026-10-07, perf/sitewide-ux-opt): /war-chest redirects to /ventures
+    (BLOSSOM M3) — two cards, one destination. Consolidated to one. */
+ ['\\uD83D\\uDCB0','War Chest','Fund the fight. Back creators.','/ventures'],
  ['\\uD83D\\uDCCD','Events','Boots on the ground.','/events'],
  ['\\uD83D\\uDCF0','War Report','The week in the war.','/war-report','vote'],
  ['\\uD83C\\uDF93','Academy','Learn the craft.','/request-access'],
@@ -161,9 +162,17 @@ function css(){
   +'.ud-ds{font-size:11px;color:#a89e88;margin-top:2px}'
   +'.ud-row{display:flex;align-items:baseline;gap:10px;padding:9px 2px;border-bottom:1px solid #1c1c1c;font:13px Arial;color:#f5ead6}'
   +'.ud-row:last-child{border-bottom:0}'
+  /* UX (2026-10-07, perf/sitewide-ux-opt): calendar rows are full-row anchors
+     (was: text-only "GO →" in a ~37px row). 44px touch floor like .ud-today. */
+  +'a.ud-row{text-decoration:none;min-height:44px;box-sizing:border-box;align-items:center}'
+  +'a.ud-row:active{background:#1a0a0a}'
   +'.ud-when{flex:0 0 92px;font:bold 11px Arial;color:#e8b33c;letter-spacing:1px}'
   +'.ud-what{flex:1;min-width:0}'
-  +'.ud-go{color:#dc143c;font-weight:800;text-decoration:none;white-space:nowrap}'
+  +'.ud-go{color:#ff4d5e;font-weight:800;text-decoration:none;white-space:nowrap}'
+  /* A11Y (2026-10-07, perf/sitewide-ux-opt): #dc143c on black is 3.9:1 —
+     fails WCAG AA for small text. #ff4d5e (already in the palette) is 6.3:1.
+     Visible keyboard focus: the CTA family had :hover only. */
+  +'.ud-cell:focus-visible,.ud-claim:focus-visible,.ud-more:focus-visible,.ud-today:focus-visible,.ud-go:focus-visible,.ud-delete:focus-visible{outline:2px solid #e8b33c;outline-offset:2px}'
   +'.ud-act{display:flex;align-items:baseline;gap:10px;padding:8px 2px;border-bottom:1px solid #1c1c1c;font:12px Arial;color:#a89e88}'
   +'.ud-act:last-child{border-bottom:0}'
   +'.ud-xp{margin-left:auto;font:bold 12px Arial;color:#e8b33c;white-space:nowrap}'
@@ -179,7 +188,7 @@ function css(){
   +'.ud-today{display:flex;align-items:baseline;gap:10px;padding:11px 2px;border-bottom:1px solid #1c1c1c;text-decoration:none;min-height:44px;box-sizing:border-box}'
   +'.ud-today:last-child{border-bottom:0}'
   +'.ud-today.ud-static{cursor:default}'
-  +'.ud-tk{flex:0 0 auto;font:bold 10px Arial;letter-spacing:2px;color:#dc143c;white-space:nowrap}'
+  +'.ud-tk{flex:0 0 auto;font:bold 10px Arial;letter-spacing:2px;color:#ff4d5e;white-space:nowrap}'
   +'.ud-th{flex:1;min-width:0;font:13px Arial;color:#f5ead6;line-height:1.5}'
   +'.ud-calstrip{display:flex;gap:6px;margin:8px 0 12px}'
   +'.ud-calday{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px;background:#141414;border:1px solid #2c2c2c;border-radius:6px;box-sizing:border-box;min-height:56px;justify-content:center}'
@@ -259,9 +268,11 @@ function rackHtml(ms){
   var h='<div class="ud-rack" role="img" aria-label="'+ms.got+' of '+ms.total+' weekly service medals earned">';
   for(var i=0;i<MEDALS.length;i++){
     var got=!!(ms.m&&ms.m[MEDALS[i][0]]);
-    h+='<span class="ud-medal'+(got?' got':'')+'" title="'+esc(MEDALS[i][2])+'">'+MEDALS[i][1]+'</span>';
+    /* UX (2026-10-07, perf/sitewide-ux-opt): title-tooltips are hover-only.
+       data-mname + bind() tap handler gives touch users the medal name. */
+    h+='<span class="ud-medal'+(got?' got':'')+'" title="'+esc(MEDALS[i][2])+'" data-mname="'+esc(MEDALS[i][2])+(got?' — earned':' — not yet')+'">'+MEDALS[i][1]+'</span>';
   }
-  h+='</div>';
+  h+='</div><div class="ud-meta" id="udMedalName" style="min-height:18px" aria-live="polite"></div>';
   if(ms.fd) h+='<div class="ud-meta">\\u2605 <b style="color:#e8b33c">FULL DEPLOYMENT</b> — rack complete this week.</div>';
   else h+='<div class="ud-meta">'+ms.got+'/'+ms.total+' medals this week — full rack = <b>FULL DEPLOYMENT</b> (+50 XP, Vanguard Wall).</div>';
   return h;
@@ -271,7 +282,9 @@ function renderGrid(t){
   for(var i=0;i<GRID.length;i++){
     var tl=tileLine(GRID[i][4],t);
     h+='<a class="ud-cell" href="'+safeUrl(GRID[i][3])+'">'
-      +'<span class="ud-ico">'+GRID[i][0]+'</span>'
+      /* A11Y (2026-10-07, perf/sitewide-ux-opt): icon emoji is decorative —
+         the card name carries the meaning. Hide from screen readers. */
+      +'<span class="ud-ico" aria-hidden="true">'+GRID[i][0]+'</span>'
       +'<span><span class="ud-nm">'+esc(GRID[i][1])+'</span><br>'
       +'<span class="ud-ds">'+esc(GRID[i][2])+'</span>'
       +(tl?'<br><span class="ud-tl">'+esc(tl)+'</span>':'')+'</span></a>';
@@ -368,17 +381,17 @@ function renderCalendar(cal){
   if(upcoming.length){
     for(var j=0;j<upcoming.length;j++){
       var e=upcoming[j];
-      h+='<div class="ud-row"><span class="ud-when">'+esc(e.date_label||calDayLabel(e.ts))+'</span>'
+      h+='<a class="ud-row" href="'+safeUrl(e.url||'/events')+'"><span class="ud-when">'+esc(e.date_label||calDayLabel(e.ts))+'</span>'
         +'<span class="ud-what">'+esc(e.title||'')+'</span>'
-        +'<a class="ud-go" href="'+safeUrl(e.url||'/events')+'">GO →</a></div>';
+        +'<span class="ud-go">GO →</span></a>';
     }
   } else {
     /* Fallback: the recurring rhythm, so the widget always has content. */
     for(var f=0;f<Math.min(CAL_FALLBACK.length,5);f++){
       var fe=CAL_FALLBACK[f];
-      h+='<div class="ud-row"><span class="ud-when">'+esc(fe[3].toUpperCase())+'</span>'
+      h+='<a class="ud-row" href="'+safeUrl(fe[2])+'"><span class="ud-when">'+esc(fe[3].toUpperCase())+'</span>'
         +'<span class="ud-what">'+esc(fe[0])+' <span style="color:#a89e88">· '+esc(fe[1])+'</span></span>'
-        +'<a class="ud-go" href="'+safeUrl(fe[2])+'">GO →</a></div>';
+        +'<span class="ud-go">GO →</span></a>';
     }
   }
   h+='<a class="ud-more" href="/events">FULL CALENDAR →</a>';
@@ -411,7 +424,7 @@ function renderEcon(econ){
     +'</div>'
     +'<div class="ud-eth">&ldquo;Your activity powers the movement&rsquo;s intelligence.&rdquo; Aggregated, anonymous by default — never sold.</div>'
     +'<a class="ud-more" href="/economy">ADD PRICE DATA →</a>'
-    +'<div style="margin-top:10px"><button class="ud-delete" id="udDeleteData" style="background:transparent;border:1px solid #c1121f;color:#c1121f;font:bold 11px Arial,sans-serif;letter-spacing:0.12em;padding:8px 14px;cursor:pointer;">DELETE MY DATA</button></div>';
+    +'<div style="margin-top:10px"><button class="ud-delete" id="udDeleteData" style="background:transparent;border:1px solid #ff4d5e;color:#ff4d5e;font:bold 11px Arial,sans-serif;letter-spacing:0.12em;padding:14px 18px;min-height:44px;box-sizing:border-box;cursor:pointer;">DELETE MY DATA</button></div>';
   return sec('MY DATA', h);
 }
 function renderSignedOut(){
@@ -441,6 +454,20 @@ function bind(root){
       udEraseDialog();
     });
   }catch(e2){}
+  /* MEDAL TAP-TO-NAME (2026-10-07, perf/sitewide-ux-opt): touch users can't
+     hover title-tooltips. Tapping a medal announces its name below the rack. */
+  try{
+    var medals=root.querySelectorAll('.ud-medal[data-mname]');
+    var nameEl=root.querySelector('#udMedalName');
+    for(var mi=0;mi<medals.length;mi++){
+      (function(m){
+        m.style.cursor='pointer';
+        m.addEventListener('click',function(){
+          try{ if(nameEl) nameEl.textContent=m.getAttribute('data-mname')||''; }catch(e){}
+        });
+      })(medals[mi]);
+    }
+  }catch(e3){}
 }
 /* Standalone erase dialog (fallback when the footer silo hasn't mounted). */
 function udEraseDialog(){

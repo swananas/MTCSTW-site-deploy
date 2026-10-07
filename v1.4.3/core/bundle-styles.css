@@ -1103,3 +1103,17 @@ html,body{overflow-x:clip;}
     scroll-behavior:auto!important;
   }
 }
+
+/* ===== v3 mobile nav trim (2026-10-07, core/42-mobile-nav-trim.css — hand-mirrored; see SYNC CHECKLIST) ===== */
+/* MOBILE NAV TRIM (no-JS fallback) — Squarespace 7.1 + legacy templates.
+   First 5 top-level items stay; everything from the 6th on is hidden.
+   Mobile viewports only; desktop nav untouched. CEO directive 2026-10-07 ~11:33 CDT. */
+@media (max-width:767px){
+  .header-menu-nav-list > .header-menu-nav-item:nth-child(n+6),
+  #mobileNav > .MobileNav-item:nth-child(n+6),
+  #mobileNav > li:nth-child(n+6),
+  .MobileNav > .MobileNav-item:nth-child(n+6),
+  [data-nc-group="mobile"] > *:nth-child(n+6){
+    display:none!important;
+  }
+}

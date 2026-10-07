@@ -1,0 +1,41 @@
+/* ============================================================================
+   SILO: core/42-mobile-nav-trim.css  |  PF v1.4.3
+   WHAT: No-JS fallback for the mobile nav trim (core/42-mobile-nav-trim.js).
+   WHY: Homepage V3 "Unclunk" push (CEO directive 2026-10-07 ~11:33 CDT) —
+   Squarespace's mobile hamburger menu is capped at 5 top-level items IN
+   CODE. If the JS hasn't run yet (or is killed via ?pf_off), this CSS still
+   hides everything past the 5th item on mobile viewports.
+   SCOPE: mobile viewports only ((max-width: 767px) — the same breakpoint
+   the JS uses). Desktop nav untouched. Folders count as one item (the
+   <li> is the folder toggle). Hiding items does not alter the 44px
+   touch-target rules in 41-mobile-first.css (they apply to #pf-v2 links;
+   the nav items keep their own Squarespace sizing).
+   ----------------------------------------------------------------------------
+   ★ SYNC CHECKLIST — READ BEFORE EDITING (see 01/02-design-system.css):
+   1. bundle-styles.css is the SERVED file (loader pulls it via jsDelivr).
+      It is HAND-MAINTAINED — there is no build script that regenerates it
+      from the source files. Editing this source file alone changes NOTHING live.
+   2. After ANY edit here, copy the new/changed rules into
+      v1.4.3/core/bundle-styles.css by hand (append at the bottom with the
+      other defect/audit fix blocks), and keep this file registered in the
+      SOURCES list of build/check-styles-sync.js.
+   3. Run `node build/check-styles-sync.js` — it FAILS if any source rule is
+      missing from the bundle. Fix the bundle, then hand off for re-pin.
+   KILL: ?pf_off=42-mobile-nav-trim kills the JS; this CSS is inert on
+   desktop and harmless on mobile without the JS (same 5-item cap).
+   ============================================================================ */
+
+/* ---------- MOBILE NAV TRIM (no-JS fallback) ----------
+   Squarespace 7.1: .header-menu-nav-list > .header-menu-nav-item.
+   Legacy templates: #mobileNav / .MobileNav / [data-nc-group="mobile"].
+   First 5 top-level items stay; everything from the 6th on is hidden.
+   Never hardcode item names — the nav is edited in Squarespace. */
+@media (max-width:767px){
+  .header-menu-nav-list > .header-menu-nav-item:nth-child(n+6),
+  #mobileNav > .MobileNav-item:nth-child(n+6),
+  #mobileNav > li:nth-child(n+6),
+  .MobileNav > .MobileNav-item:nth-child(n+6),
+  [data-nc-group="mobile"] > *:nth-child(n+6){
+    display:none!important;
+  }
+}

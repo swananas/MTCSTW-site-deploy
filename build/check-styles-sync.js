@@ -25,6 +25,7 @@ const SOURCES = [
   'v1.4.3/core/02-design-system.css',
   'v1.4.3/core/33-patterns.css',
   'v1.4.3/core/41-mobile-first.css',
+  'v1.4.3/core/42-mobile-nav-trim.css',
 ];
 const BUNDLE = 'v1.4.3/core/bundle-styles.css';
 

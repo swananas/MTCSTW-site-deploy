@@ -233,7 +233,13 @@ var CORE_FILES = [
      auto-fire budget) + inline first-moves checklist. Last in core: it
      orchestrates other modules' overlays, so it loads after them. Zero new
      XP, zero backend writes. Kill: ?pf_off=one-prompt. */
-  'core/37-one-prompt.js'
+  'core/37-one-prompt.js',
+  /* mobile-nav-trim (Homepage V3 "Unclunk", CEO directive 2026-10-07 ~11:33
+     CDT): cap Squarespace's mobile hamburger menu at 5 top-level items max
+     — IN CODE, not a Squarespace hand-step. Site chrome: also ships in
+     bundle-footer-chrome (crossnav precedent). Last: touches only the nav
+     list, no consumer deps. Kill: ?pf_off=42-mobile-nav-trim. */
+  'core/42-mobile-nav-trim.js'
 ];
 
 /* 2026-10-05 (fix/money-minified-rebuild): money suite lazy chunk. The 10
@@ -437,7 +443,11 @@ var BUNDLES = {
     /* commend (W5-7, 2026-10-04): commend buttons + chip on v1.1.0 pages too. */
     'core/commend.js',
     /* oparc (W5-10, 2026-10-04): PF.opArc() reader on v1.1.0 pages too. */
-    'core/oparc.js'
+    'core/oparc.js',
+    /* mobile-nav-trim (CEO directive 2026-10-07 ~11:33 CDT): 5-item mobile
+       nav cap on v1.1.0-branch pages too — the hamburger menu is site
+       chrome, same precedent as crossnav. */
+    'core/42-mobile-nav-trim.js'
   ]
 };
 

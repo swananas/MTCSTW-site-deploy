@@ -43,6 +43,8 @@
 <span class="sp-stat" id="pf-sp-xp" style="display:none"></span>
 <span class="sp-stat" id="pf-sp-cells" style="display:none"></span>
 <span class="sp-stat" id="pf-sp-online" style="display:none"></span>
+<!-- V3 (2026-10-07): do-meter headline number absorbed as one bar stat. -->
+<span class="sp-stat" id="pf-sp-domn" style="display:none"></span>
 <button id="pf-sp-x" aria-label="Dismiss">&times;</button>
 </div>
 <div id="pf-sp-proofwall" style="display:none"></div>
@@ -54,6 +56,38 @@ function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,
 function pwPlat(p){ p=String(p||"").toLowerCase();
   return p==="tiktok"?"TikTok":p==="instagram"?"IG":p==="facebook"?"FB":p==="youtube"?"YT":(p||"?"); }
 function fmt(n){ n=Math.round(Number(n)||0); return n>=1000?(n/1000).toFixed(1).replace(/\\.0$/,'')+'K':String(n); }
+function fmtDo(n){ n=Math.round(Number(n)||0);
+  if(n>=1000000){ var m=n/1000000; return (m>=100?String(Math.round(m)):m.toFixed(1).replace(/\\.0$/,''))+'M'; }
+  return fmt(n); }
+/* V3 (2026-10-07): do-meter headline number absorbed as one bar stat.
+   Primary: PF.homepageInit() composite (stats). Fallback: the tally layer's
+   PF_GLOBAL_TASKS / local pf_do_v1 — do-meter's own sources, zero extra
+   calls. Hides when no number is available. */
+function doTasksNum(d){
+  /* V3 composite ships stats.do_meter_total (from task_totals.total); the rest
+     are legacy key names kept as a defensive fallback. */
+  var cand=["do_meter_total","tasks_total","task_total","total_tasks","network_tasks","tasks_done","global_tasks"],
+      st=(d&&d.stats)||null, i, v;
+  if(st){ for(i=0;i<cand.length;i++){ v=Number(st[cand[i]]); if(v>0) return v; } }
+  try{ if(window.PF_GLOBAL_TASKS>0) return Number(window.PF_GLOBAL_TASKS); }catch(e){}
+  try{ var s=JSON.parse(localStorage.getItem("pf_do_v1")||"null");
+    if(s&&s.w===PF.isoWeekKey(PF.chiNow())&&Number(s.total)>0) return Number(s.total); }catch(e2){}
+  return 0;
+}
+function paintDoMeter(){
+  var el=$("pf-sp-domn"); if(!el) return;
+  var show=function(n){
+    if(n>0){ el.innerHTML="<b>"+fmtDo(n)+"</b> tasks done"; el.style.display=""; }
+    else { el.style.display="none"; }
+  };
+  try{
+    if(window.PF&&typeof PF.homepageInit==="function"){
+      PF.homepageInit().then(function(d){ show(doTasksNum(d)); },function(){ show(0); });
+      return;
+    }
+  }catch(e){}
+  show(doTasksNum(null));
+}
 function api(cb){
   if(!BACKEND){ cb(null); return; }
   var fn="pfSpCb"+Math.floor(Math.random()*1e9);
@@ -122,7 +156,19 @@ function paint(j){
     } else { pwel.style.display="none"; }
   }
 }
-function tick(){ api(paint); }
+function tick(){
+  /* V3 (2026-10-07): paint from the homepage_init composite (stats key) —
+     one shared call, not a separate social_proof fetch. Falls back to the
+     direct api() only when the composite helper is unavailable. */
+  try{
+    if(window.PF&&typeof PF.homepageInit==="function"){
+      PF.homepageInit().then(function(d){ paint(d&&d.stats); paintDoMeter(); },
+        function(){ paint(null); paintDoMeter(); });
+      return;
+    }
+  }catch(e){}
+  api(paint); paintDoMeter();
+}
 var x=$("pf-sp-x");
 if(x) x.onclick=function(){
   try{ sessionStorage.setItem('pf_sp_dismissed','1'); }catch(e){}
@@ -131,6 +177,9 @@ if(x) x.onclick=function(){
 };
 tick();
 setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} tick(); },300000);
+/* V3: repaint the absorbed do-meter stat when the tally layer syncs. */
+document.addEventListener("pf-global-tasks",function(){ paintDoMeter(); });
+document.addEventListener("pf-do-update",function(){ paintDoMeter(); });
 })();
 </scr`+`ipt>
 </div>

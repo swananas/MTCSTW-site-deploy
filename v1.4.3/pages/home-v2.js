@@ -1,7 +1,9 @@
-/* pages/home-v2.js  |  PF v1.4.3 | Mounts the slimmed homepage (2026-10-03):
-   18 widgets across the 7 funnel sections wherever the <div id="pf-v2"></div>
-   shell lives. The rest of the library moved to dedicated pages
-   (see pages/page-mount.js). Notify lives in the site header now (games/notify.js).
+/* pages/home-v2.js  |  PF v1.4.3 | Homepage v3 "Unclunk" (2026-10-07):
+   7 blocks, not 31 widgets. Each block is a consolidated surface; the full
+   widgets live on their dedicated pages (see HOMEPAGE-V3-SPEC.md for the
+   disposition map).
+   Blocks: hero → socialproof → brief → daily-orders → slr-match-quiz →
+   fan-vote → closer.
    KILL: ?pf_off=home-v2  or  localStorage pf_disabled_v1='["home-v2"]' */
 (function () {
   'use strict';
@@ -24,208 +26,222 @@
     if(b&&(b.classList.contains('sqs-edit-mode')||b.classList.contains('sqs-editing'))) return true;
     return false; }catch(e){ return false; } }
 
-  /* Homepage order, verified against the live page's section roots.
-     Daily Orders leads the habit loop: it's the stickiest dopamine lynchpin. */
-  /* 2026-10-03: homepage slimmed to 18 widgets across the same 7 funnel
-     sections — START HERE (hook→daily loop→identity) → PLAY (arcade
-     teasers) → BELONG → CREATE → FUND → ACT → PROOF. Full versions live
-     on dedicated pages: /arcade, /cells, /create, /bank, /economy,
-     /war-chest, /ventures, /events, /war-report. Notify moved to the
-     site header (games/notify.js); intel moved to /political-hq. */
+  /* === HERO (v3, 2026-10-07) ===
+     One H1, one subhead, one CTA. First-time visitor knows what this is
+     in 3 seconds. Static — no backend, no XP, cannot fail. */
+  function heroHTML(){
+    return '' +
+    '<div id="pf-hero" style="max-width:min(860px,94vw);margin:0 auto;padding:56px 20px 40px;text-align:center;box-sizing:border-box;">' +
+      '<div style="font-size:12px;letter-spacing:5px;color:#c1121f;font-weight:800;margin-bottom:14px;">THE PROPAGANDA FACTORY</div>' +
+      '<h1 style="font-family:\'Arial Black\',Arial,sans-serif;font-size:clamp(2rem,8vw,3.6rem);letter-spacing:2px;color:#f5ead6;margin:0 0 14px;text-transform:uppercase;line-height:1.1;">Join the Propaganda Factory</h1>' +
+      '<p style="font-size:clamp(1rem,3.5vw,1.25rem);color:#b8ab8e;line-height:1.6;margin:0 0 26px;max-width:600px;margin-left:auto;margin-right:auto;">62 sick radicals. Real data on the billionaires. Daily missions. Enlist in 30 seconds — free forever.</p>' +
+      '<a href="#" id="pf-hero-cta" style="display:inline-block;min-height:44px;line-height:44px;background:#c1121f;color:#fff;font-weight:800;font-size:17px;padding:6px 38px;text-decoration:none;letter-spacing:2px;border:2px solid #fff;">CLAIM YOUR CALLSIGN &rarr;</a>' +
+      '<div style="margin-top:16px;"><a href="#pf-brief" id="pf-hero-how" style="color:#b8ab8e;font-size:14px;text-decoration:underline;">See how it works &darr;</a></div>' +
+    '</div>';
+  }
+
+  /* === CLOSER (v3, 2026-10-07) ===
+     "Explore the machine" — link-card grid to every dedicated page.
+     Replaces the sitemap widget. Static — no backend, no XP. */
+  function closerHTML(){
+    var cards = [
+      ['/arcade', '\uD83C\uDFAE', 'ARCADE', 'Six propaganda games. Play daily, earn XP.'],
+      ['/cells', '\uD83C\uDFF4', 'CELLS', 'Join a cell or build your own.'],
+      ['/create', '\uD83D\uDEE0\uFE0F', 'CREATE', 'Forge posters, join the content pool.'],
+      ['/bank', '\uD83D\uDCB0', 'BANK', 'War Bonds. Fund the fight.'],
+      ['/economy', '\uD83D\uDCC8', 'ECONOMY', "The People's Price Index. Report prices."],
+      ['/war-report', '\uD83D\uDCF0', 'WAR REPORT', 'Every Monday: what we won.'],
+      ['/events', '\uD83E\uDD7E', 'EVENTS', 'Boots on the ground. RSVP, earn XP.'],
+      ['/sick-left-radicals', '\u2605', 'ROSTER', 'Meet all 62 Sick Left Radicals.'],
+      ['/request-access', '\uD83D\uDE80', 'CREATOR HQ', 'For creators: unlock the workshop.']
+    ];
+    var h = '<div id="pf-closer" style="max-width:min(860px,94vw);margin:0 auto;padding:40px 20px 60px;box-sizing:border-box;">' +
+      '<div style="font-size:12px;letter-spacing:5px;color:#c1121f;font-weight:800;margin-bottom:10px;text-align:center;">EXPLORE THE MACHINE</div>' +
+      '<div style="font-family:\'Arial Black\',Arial,sans-serif;font-size:clamp(1.4rem,5vw,2rem);color:#f5ead6;text-align:center;margin:0 0 24px;text-transform:uppercase;letter-spacing:1px;">Pick your front</div>' +
+      '<div id="pf-closer-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">';
+    for (var i = 0; i < cards.length; i++) {
+      var c = cards[i];
+      h += '<a href="' + c[0] + '" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:120px;background:#141414;border:2px solid #3a0d0d;color:#f5ead6;text-decoration:none;padding:18px 12px;box-sizing:border-box;text-align:center;">' +
+        '<span style="font-size:28px;margin-bottom:8px;">' + c[1] + '</span>' +
+        '<span style="font-weight:800;font-size:14px;letter-spacing:2px;margin-bottom:6px;">' + c[2] + '</span>' +
+        '<span style="font-size:12px;color:#a89e88;line-height:1.4;">' + c[3] + '</span></a>';
+    }
+    h += '</div></div>';
+    return h;
+  }
+
+  /* === HOMEPAGE_INIT BATCH HELPER (v3, 2026-10-07) ===
+     Batches the homepage's API calls into 1 composite backend call.
+     Tries the `homepage_init` GET action first; falls back to parallel
+     individual calls. Result cached 60s. Widgets use this instead of
+     firing their own fetches on load. */
+  (function initBatchHelper(){
+    if (!window.PF) return;
+    var cache = null, cacheAt = 0, inflight = null;
+    function beUrl(){
+      try {
+        if (window.PF && PF.beUrl) return PF.beUrl();
+      } catch(e){}
+      return 'https://pf-api.mtcstw.workers.dev';
+    }
+    function jsonp(action, params){
+      return new Promise(function(resolve){
+        try {
+          var url = beUrl() + '?action=' + encodeURIComponent(action);
+          if (params) Object.keys(params).forEach(function(k){
+            url += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+          });
+          var cb = 'pfHi' + Math.random().toString(36).slice(2);
+          url += '&callback=' + cb;
+          var done = false;
+          window[cb] = function(d){ done = true; try{ delete window[cb]; }catch(e){} s.remove(); resolve(d||null); };
+          var s = document.createElement('script');
+          s.src = url; s.async = true;
+          s.onerror = function(){ if(!done){ done = true; try{ delete window[cb]; }catch(e){} resolve(null); } };
+          document.head.appendChild(s);
+          setTimeout(function(){ if(!done){ done = true; try{ delete window[cb]; }catch(e){} try{ s.remove(); }catch(e2){} resolve(null); } }, 15000);
+        } catch(e){ resolve(null); }
+      });
+    }
+    /* Individual fallbacks, keyed by what each homepage block needs. These
+       fire only when the homepage_init composite itself is unreachable —
+       each is a real public GET the block used before the composite. */
+    var FALLBACKS = {
+      briefing: ['daily_content', {}],
+      orders: ['raid_turnout', {}],
+      stats: ['social_proof', {}],
+      tribes: ['quiz_tribes', {}],
+      vote: ['results', {}]
+    };
+    window.PF.homepageInit = function(force){
+      var now = Date.now();
+      if (!force && cache && (now - cacheAt) < 60000) return Promise.resolve(cache);
+      if (inflight) return inflight;
+      inflight = jsonp('homepage_init', {}).then(function(d){
+        if (d && (d.briefing || d.orders || d.stats)) {
+          cache = d; cacheAt = Date.now(); inflight = null;
+          return d;
+        }
+        /* Composite missing/empty — fan out in parallel. */
+        var keys = Object.keys(FALLBACKS);
+        return Promise.all(keys.map(function(k){
+          var f = FALLBACKS[k];
+          return jsonp(f[0], f[1]).then(function(r){ return [k, r]; });
+        })).then(function(pairs){
+          var out = {};
+          pairs.forEach(function(p){ out[p[0]] = p[1]; });
+          cache = out; cacheAt = Date.now(); inflight = null;
+          return out;
+        });
+      }).catch(function(){
+        inflight = null;
+        return cache || {};
+      });
+      return inflight;
+    };
+    /* Pre-warm the composite on page init: one call on load, shared by every
+       block via the 60s cache + inflight dedup. */
+    try { if (!isEditor()) window.PF.homepageInit(); } catch (e) {}
+  })();
+
+  /* === HOMEPAGE ORDER (v3) ===
+     7 blocks. Moved widgets live on dedicated pages (see spec).
+     Integrated widgets render compact inline inside their parent block. */
   var ORDER = [
-    /* ——— SECTION 1: START HERE — hook & daily loop ——— */
+    ['hero', 'pf-ov-hero'],
     ['socialproof', 'pf-ov-socialproof'],
     ['brief', 'pf-ov-brief'],
     ['daily-orders', 'pf-ov-orders'],
-    /* P1#6 (2026-10-05): hq-nudge promoted to START HERE — the flagship's
-       front door sits directly after the daily loop, not buried in CREATE. */
-    ['hq-nudge', 'pf-ov-hq-nudge'],
-    /* 2026-10-05 (fe/civic-snapshot): civic snapshot card, after hq-nudge. */
-    ['civicsnap', 'pf-ov-civicsnap'],
-    /* 2026-10-05 (engagement build D, item #3): weekly ritual calendar slot
-       (CPI/jobs/Fed moments). Compact mode here; full rail on /money. */
-    ['ritual-calendar', 'pf-ov-ritual'],
-    ['dopa', 'pf-ov-dopa'],
-    ['do-meter', 'pf-ov-dometer'],
-    ['enlistment-ranks', 'pf-ov-ranks'],
-    /* ——— SECTION 2: PLAY — arcade teasers; the full arcade lives at /arcade ——— */
-    ['spotlight', 'pf-ov-spotlight'],
     ['slr-match-quiz', 'pf-ov-matchquiz'],
-    ['infighting', 'pf-ov-infight'],
-    /* ——— SECTION 3: BELONG — cells & squads ——— */
-    ['cells', 'pf-ov-cells'],
-    ['referral', 'pf-ov-referral'],
-    /* ——— SECTION 4: CREATE — creator tools ——— */
-    ['poster-forge', 'pf-ov-poster'],
-    ['feed', 'pf-ov-feed'],
-    /* ——— SECTION 5: FUND — economy ——— */
-    /* TEARDOWN WS-9 (2026-10-06): the QUARTERMASTER store wall leads the
-       FUND section — 3-tier War Bond ladder (BACKER / PATRON /
-       QUARTERMASTER). One-time bonds + war-chest directory follow. */
-    ['quartermaster', 'pf-ov-quartermaster'],
-    ['war-bonds', 'pf-ov-bonds'],
-    /* A1 home (2026-10-05): People's Price Index HP feeder -> /economy. */
-    ['inflation-teaser', 'pf-ov-inflation-teaser'],
-    /* ——— SECTION 6: ACT — action ——— */
-    /* 2026-10-06 (fe/homepage-sitemap): SITE MAP sits first in ACT, directly
-       above the 32-Day Offensive. */
-    ['sitemap', 'pf-ov-sitemap'],
-    ['campaign', 'pf-ov-campaign'],
-    ['alerts', 'pf-ov-alerts'],
-    /* 2026-10-05 (engagement build D, item #8): FB group missions — on-site
-       check-in for missions posted manually to the 84K group. */
-    ['fb-missions', 'pf-ov-fbmissions'],
-    /* ——— SECTION 7: PROOF — social validation closer ——— */
     ['fan-vote', 'pf-ov-vote'],
-    /* 2026-10-05, Phase 3 #11: War Report Monday card — the weekly ritual's
-       front door. Hides entirely when there is no issue or the fetch fails. */
-    ['warreport-card', 'pf-ov-warreport-card'],
-    /* 2026-10-05, Phase 3 #14: SLR roster teaser — 3 featured fighters
-       (top propaganda scores, MTCSTW house entry excluded) -> /sick-left-radicals. */
-    ['roster-teaser', 'pf-ov-roster-teaser'],
-    /* W5-6 Hall of Proof (2026-10-04): winners wall closes the PROOF section. */
-    ['hall', 'pf-ov-hall'],
-    /* REDISTRIBUTION LAYER Phase B (2026-10-05): The Solidarity Draw's
-       bespoke home (silo key 'draw') — draw pot, tickets, pre-draw secret
-       commitment + post-draw verify. Lives inside the Hall of Proof section. */
-    ['draw', 'pf-ov-draw'],
-    /* 2026-10-05, Phase 3 #13: static podcast LISTEN card — media closer
-       at the end of the PROOF section. Pure static, cannot fail. */
-    ['podcast-card', 'pf-ov-podcast-card'],
-    /* 2026-10-05, Bluesky Component 2: "THE WIRE" — the SLR generator feed
-       + hand-picked posts, native house styling. PROOF closer, last. Builds
-       against a stub generator URI until Pod 1 publishes; fail-soft hides
-       the section until the feed is live. Kill: ?pf_off=bluesky-feed. */
-    ['bluesky', 'pf-ov-bsky']
+    ['closer', 'pf-ov-closer']
   ];
 
-  /* === SECTION HEADERS (2026-10-03) ===
-     The 7 funnel sections, rendered as visible headers. Each entry names
-     the first widget silo of its section; the header is injected before it.
-     bundle = the lazy bundle the footer loader fetches for the section
-     (bundle-sec1.js is already in the critical path). */
+  /* === SECTION HEADERS (v3) ===
+     3 flow groups. No "Section N of 7" kickers, no rules — just clean titles.
+     bundle = lazy bundle the footer loader fetches (sec1 already critical). */
   var SECTIONS = [
-    { id: 'start-here', num: 1, ico: '🔰', title: 'START HERE',
-      sub: 'Your daily briefing, missions, and rank. Begin here every day.',
-      first: 'socialproof', bundle: 'games/bundle-sec1.js' },
-    { id: 'play', num: 2, ico: '🎮', title: 'PLAY',
-      sub: 'A taste of the arcade — the full six-game lineup lives at /arcade.',
-      first: 'spotlight', bundle: 'games/bundle-home.js' },
-    { id: 'belong', num: 3, ico: '🏴', title: 'BELONG',
-      sub: 'Join a cell. Fight the war. Recruit your friends.',
-      first: 'cells', bundle: 'games/bundle-home.js' },
-    { id: 'create', num: 4, ico: '🛠️', title: 'CREATE',
-      sub: 'Learn, build, publish. The propaganda workshop.',
-      first: 'poster-forge', bundle: 'games/bundle-home.js' },
-    { id: 'fund', num: 5, ico: '💰', title: 'FUND',
-      sub: 'The people\u2019s economy. Fund the fight, see where it goes.',
-      first: 'war-bonds', bundle: 'games/bundle-home.js' },
-    { id: 'act', num: 6, ico: '⚡', title: 'ACT',
-      sub: 'Campaigns, alerts, and boots on the ground.',
-      first: 'campaign', bundle: 'games/bundle-home.js' },
-    { id: 'proof', num: 7, ico: '📣', title: 'PROOF',
-      sub: 'The network is real. Vote, and see it move.',
+    { id: 'start', title: '',
+      sub: '',
+      first: 'hero', bundle: 'games/bundle-sec1.js' },
+    { id: 'discover', title: 'DISCOVER',
+      sub: 'Find your fight.',
+      first: 'slr-match-quiz', bundle: 'games/bundle-home.js' },
+    { id: 'proof', title: 'PROOF',
+      sub: 'The network is real.',
       first: 'fan-vote', bundle: 'games/bundle-home.js' }
   ];
 
-  /* === COMPANION LINKS (2026-10-03) ===
-     "Next up" cross-links per widget: silo -> [[link text, target silo], ...].
-     Injected centrally so no widget file needs editing. Targets are silo keys
-     (smooth-scrolled via PF.gotoSilo); a target starting with '/' is a URL.
-     Silos that moved to dedicated pages point at their page URL. */
+  /* === COMPANION LINKS (v3) ===
+     "Next up" cross-links per block. Targets are silo keys (smooth-scrolled
+     via PF.gotoSilo); a target starting with '/' is a URL. */
   var NEXT_LINKS = {
-    'socialproof': [['Vote for your favorite \u2192', 'fan-vote'], ['Join the action \u2192', 'daily-orders']],
-    'brief': [['Get your missions \u2192', 'daily-orders'], ['See the network total \u2192', 'do-meter']],
-    'daily-orders': [['Claim your loot \u2192', 'dopa']],
-    'dopa': [['Protect the streak \u2192', 'daily-orders'], ['Check your rank \u2192', 'enlistment-ranks']],
-    'do-meter': [['Add to the total \u2192', 'daily-orders'], ['See who\u2019s moving \u2192', 'socialproof']],
-    'enlistment-ranks': [['Recruit and rank up faster \u2192', 'referral'], ['Join a cell \u2192', '/cells'], ['See what you\u2019d unlock \u2192', '/request-access']],
-    'spotlight': [['Play it full-size \u2192', '/arcade'], ['Find your match \u2192', 'slr-match-quiz']],
-    'slr-match-quiz': [['Meet your match \u2192', 'fan-vote'], ['Play the full arcade \u2192', '/arcade']],
-    'infighting': [['Back your fighter \u2192', 'fan-vote'], ['Enter the arena \u2192', '/arcade']],
-    'cells': [['Manage your cell \u2192', '/cells'], ['Recruit fighters \u2192', 'referral']],
-    'referral': [['Watch them rank up \u2192', 'enlistment-ranks'], ['Bring them to your cell \u2192', '/cells']],
-    /* 2026-10-06 (fe/homepage-decondense): poster-forge + feed are teasers now —
-       companion links route out to the full workshop instead of scrolling
-       between teaser cards. */
-    'poster-forge': [['Open the full workshop \u2192', '/create'], ['See the whole machine \u2192', '/network']],
-    'feed': [['Forge a poster \u2192', 'poster-forge'], ['Open the full workshop \u2192', '/create']],
-    'hq-nudge': [['See what you\u2019d unlock \u2192', '/request-access']],
-    'war-bonds': [['Manage your bonds \u2192', '/bank'], ['See where it goes \u2192', '/ventures']],
-    /* A1 home (2026-10-05): Price Index feeder exits. */
-    'inflation-teaser': [['Report a price \u2192', '/economy#pf-inflation-checkin'], ['See the full index \u2192', '/economy']],
-    /* 2026-10-06 (fe/homepage-sitemap): the site map's companion exits. */
-    'sitemap': [['Find your match \u2192', 'slr-match-quiz'], ['Join a cell \u2192', '/cells']],
-    'campaign': [['Get the alert \u2192', 'alerts'], ['Take it to the streets \u2192', '/events']],
-    'alerts': [['Know the terrain \u2192', '/political-hq'], ['Make a poster \u2192', 'poster-forge']],
-    'fan-vote': [['See live activity \u2192', 'socialproof'], ['Back your pick in battle \u2192', '/arcade']],
-    'warreport-card': [['Read the full archive \u2192', '/war-report'], ['Vote for your favorite \u2192', 'fan-vote']],
-    'roster-teaser': [['Meet all 62 fighters \u2192', '/sick-left-radicals'], ['Find your match \u2192', 'slr-match-quiz']],
-    'podcast-card': [['Read this week\u2019s report \u2192', '/war-report']],
-    'draw': [['See the winners wall \\u2192', 'hall'], ['Vote for your favorite \\u2192', 'fan-vote']],
-    /* 2026-10-05, Bluesky Component 2: THE WIRE — final PROOF closer. */
-    'bluesky': [['Find the roster \\u2192', '/sick-left-radicals']]
+    'hero': [['See how it works \u2192', 'brief']],
+    'socialproof': [['Vote for your favorite \u2192', 'fan-vote'], ['Get your missions \u2192', 'daily-orders']],
+    'brief': [['Get your missions \u2192', 'daily-orders']],
+    'daily-orders': [['Find your match \u2192', 'slr-match-quiz'], ['Explore the machine \u2192', 'closer']],
+    'slr-match-quiz': [['Meet all 62 fighters \u2192', '/sick-left-radicals'], ['Play the full arcade \u2192', '/arcade']],
+    'fan-vote': [['Explore the machine \u2192', 'closer']],
+    'closer': []
   };
 
-  /* Silo -> section id. Used to insert each widget's <section> in funnel
-     order even as bundles arrive out of order, and to map lazy bundles. */
+  /* Silo -> section id. */
   var SILO_SEC = {
-    'socialproof':'start-here','brief':'start-here','daily-orders':'start-here',
-    'hq-nudge':'start-here', /* P1#6 (2026-10-05): promoted with ORDER move */
-    'dopa':'start-here','do-meter':'start-here','enlistment-ranks':'start-here',
-    'spotlight':'play','slr-match-quiz':'play','infighting':'play',
-    'cells':'belong','referral':'belong',
-    'poster-forge':'create','feed':'create',
-    'war-bonds':'fund',
-    /* A1 home (2026-10-05): Price Index HP feeder lives in FUND. */
-    'inflation-teaser':'fund',
-    'campaign':'act','alerts':'act',
-    /* 2026-10-06 (fe/homepage-sitemap): site map lives in ACT, above campaign. */
-    'sitemap':'act',
-    'fan-vote':'proof',
-    /* W5-6 Hall of Proof (2026-10-04). */
-    'hall':'proof',
-    /* REDISTRIBUTION LAYER Phase B (2026-10-05): Solidarity Draw. */
-    'draw':'proof',
-    /* 2026-10-05, Phase 3 #11/#13/#14: new PROOF surfaces. */
-    'warreport-card':'proof','roster-teaser':'proof','podcast-card':'proof',
-    /* 2026-10-05, Bluesky Component 2: THE WIRE closes PROOF. */
-    'bluesky':'proof'
+    'hero': 'start',
+    'socialproof': 'start',
+    'brief': 'start',
+    'daily-orders': 'start',
+    'slr-match-quiz': 'discover',
+    'fan-vote': 'proof',
+    'closer': 'proof'
   };
 
-  /* Build the 7 section blocks at init: header + lazy-load anchor each.
-     Widgets mount BETWEEN their section's anchor and the next section's
-     anchor, so funnel order holds no matter what order bundles arrive in.
-     Idempotent: skips if sections already exist (re-init safe). */
+  /* Templates for the two static blocks (hero, closer). Widget templates
+     come from their bundles; these two are defined here. */
+  var STATIC_TEMPLATES = {
+    'hero': 'pf-ov-hero',
+    'closer': 'pf-ov-closer'
+  };
+
+  function stageStaticTemplates() {
+    var holder = (PF && PF.holder) ? PF.holder() : document.body;
+    if (!document.getElementById('pf-ov-hero')) {
+      holder.insertAdjacentHTML('beforeend',
+        '<template id="pf-ov-hero"><div class="fe-block pf-override-block">' + heroHTML() + '<' + '/div></template>');
+    }
+    if (!document.getElementById('pf-ov-closer')) {
+      holder.insertAdjacentHTML('beforeend',
+        '<template id="pf-ov-closer"><div class="fe-block pf-override-block">' + closerHTML() + '<' + '/div></template>');
+    }
+  }
+
+  /* Build the 3 section blocks at init: header + lazy-load anchor each. */
   function initSections() {
     var h = document.getElementById('pf-v2');
     if (!h || isEditor()) return;
     if (h.querySelector('.pf-section-head')) return;
     SECTIONS.forEach(function (s) {
+      if (!s.title) {
+        /* start section: no header, just the anchor */
+        var a0 = document.createElement('div');
+        a0.className = 'pf-sec-anchor';
+        a0.setAttribute('data-sec', s.id);
+        a0.setAttribute('data-bundle', s.bundle);
+        a0.style.cssText = 'height:1px;width:1px;';
+        h.appendChild(a0);
+        return;
+      }
       var div = document.createElement('div');
       div.className = 'pf-section-head';
       div.setAttribute('data-sec', s.id);
-      var kicker = document.createElement('div');
-      kicker.className = 'pf-sh-kicker';
-      kicker.textContent = 'Section ' + s.num + ' of ' + SECTIONS.length;
       var title = document.createElement('div');
       title.className = 'pf-sh-title';
-      var ico = document.createElement('span');
-      ico.className = 'pf-sh-ico';
-      ico.textContent = s.ico;
-      title.appendChild(ico);
-      title.appendChild(document.createTextNode(s.title));
-      var rule = document.createElement('div');
-      rule.className = 'pf-sh-rule';
+      title.textContent = s.title;
       var sub = document.createElement('div');
       sub.className = 'pf-sh-sub';
       sub.textContent = s.sub;
-      div.appendChild(kicker); div.appendChild(title);
-      div.appendChild(rule); div.appendChild(sub);
+      div.appendChild(title); div.appendChild(sub);
       h.appendChild(div);
-      /* Lazy-load anchor: the loader observes these and fetches each
-         section's bundle as the user scrolls near it. data-bundle names
-         the bundle file; sec1 is already in the critical path. */
       var a = document.createElement('div');
       a.className = 'pf-sec-anchor';
       a.setAttribute('data-sec', s.id);
@@ -235,40 +251,34 @@
     });
   }
 
-  /* Boots-on-the-Ground nudge card (2026-10-03): the homepage keeps only a
-     static nudge — the full event board moved to /events (games/irl.js).
-     Injected at the end of the ACT section, after alerts. Idempotent. */
+  /* Boots-on-the-Ground nudge card: static, minimal. Injected after fan-vote. */
   function mountEventsNudge() {
     var h = document.getElementById('pf-v2');
     if (!h || isEditor()) return;
     if (h.querySelector('.pf-events-nudge')) return;
     var card = document.createElement('div');
     card.className = 'pf-events-nudge';
-    card.style.cssText = 'max-width:680px;margin:18px auto;padding:26px 22px;text-align:center;box-sizing:border-box;' +
+    card.style.cssText = 'max-width:min(680px,94vw);margin:18px auto;padding:26px 22px;text-align:center;box-sizing:border-box;' +
       'background:linear-gradient(160deg,#0d0d0d 0%,#1c0707 60%,#0d0d0d 100%);' +
       'border:3px solid #c1121f;color:#f5ead6;font-family:Arial,sans-serif;';
     card.innerHTML =
       '<div style="font-size:12px;letter-spacing:4px;color:#c1121f;font-weight:800;margin-bottom:6px;">BOOTS ON THE GROUND</div>' +
       '<div style="font-family:\'Arial Black\',Arial,sans-serif;font-size:24px;letter-spacing:2px;margin:0 0 8px;text-transform:uppercase;">Take it to the streets.</div>' +
       '<div style="font-size:14px;color:#a89e88;line-height:1.5;margin-bottom:14px;">Phonebanks, canvasses, protests, meetups — the fight isn\u2019t only online. +50 XP per RSVP.</div>' +
-      '<a href="/events" style="display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:15px;padding:13px 30px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;">SEE WHAT\u2019S HAPPENING \u2192</a> ' +
-      '<a href="/events#pf-mastercal" style="display:inline-block;color:#f5ead6;font-weight:800;font-size:13px;padding:13px 18px;text-decoration:none;letter-spacing:1px;">WAR CALENDAR \u2192</a>';
-    var alertsSec = h.querySelector('section[data-game="alerts"]');
-    if (alertsSec && alertsSec.parentNode === h) {
-      alertsSec.parentNode.insertBefore(card, alertsSec.nextSibling);
+      '<a href="/events" style="display:inline-block;min-height:44px;line-height:44px;background:#c1121f;color:#fff;font-weight:800;font-size:15px;padding:0 30px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;">SEE WHAT\u2019S HAPPENING \u2192</a>';
+    var voteSec = h.querySelector('section[data-game="fan-vote"]');
+    if (voteSec && voteSec.parentNode === h) {
+      voteSec.parentNode.insertBefore(card, voteSec.nextSibling);
     } else {
-      /* alerts not mounted (or killed) — pin to the end of the ACT section. */
-      var proofHead = h.querySelector('.pf-section-head[data-sec="proof"]');
-      if (proofHead) h.insertBefore(card, proofHead);
+      var closerSec = h.querySelector('section[data-game="closer"]');
+      if (closerSec) h.insertBefore(card, closerSec);
       else h.appendChild(card);
     }
   }
 
-  /* Kept for the retry loop's call signature; headers now build at init. */
   function mountHeaders() { try { initSections(); } catch (e) {} }
 
-  /* Inject "Next up" companion links into each mounted widget.
-     Idempotent: skips widgets that already have .pf-next. */
+  /* Inject "Next up" companion links into each mounted block. */
   function mountNextLinks() {
     var h = document.getElementById('pf-v2');
     if (!h || isEditor()) return;
@@ -296,25 +306,43 @@
         }
         box.appendChild(a);
       });
-      /* Append inside the widget card (first child div) so it reads as
-         part of the widget; fall back to the section itself. */
       var card = sec.firstElementChild;
       if (card && card.tagName === 'DIV') card.appendChild(box);
       else sec.appendChild(box);
     });
   }
 
-  /* Click delegation for companion links — one listener for the whole page. */
   function bindNextLinks() {
     var h = document.getElementById('pf-v2');
     if (!h || h._pfNextBound) return;
     h._pfNextBound = true;
     h.addEventListener('click', function (ev) {
       var a = ev.target && ev.target.closest ? ev.target.closest('.pf-next-link[data-goto]') : null;
-      if (!a) return;
-      ev.preventDefault();
-      var target = a.getAttribute('data-goto');
-      if (target && window.PF && PF.gotoSilo) PF.gotoSilo(target);
+      if (a) {
+        ev.preventDefault();
+        var target = a.getAttribute('data-goto');
+        if (target && window.PF && PF.gotoSilo) PF.gotoSilo(target);
+        return;
+      }
+      /* Hero CTA: open the callsign claim flow. */
+      var cta = ev.target && ev.target.closest ? ev.target.closest('#pf-hero-cta') : null;
+      if (cta) {
+        ev.preventDefault();
+        try {
+          if (window.PF && PF.requireCallsign) { PF.requireCallsign(); return; }
+        } catch (e) {}
+        window.location.href = '/request-access';
+        return;
+      }
+      /* Hero "how it works": smooth scroll to brief. */
+      var how = ev.target && ev.target.closest ? ev.target.closest('#pf-hero-how') : null;
+      if (how) {
+        ev.preventDefault();
+        try {
+          var b = h.querySelector('section[data-game="brief"]');
+          if (b && b.scrollIntoView) b.scrollIntoView({ behavior: 'smooth' });
+        } catch (e) {}
+      }
     });
   }
 
@@ -324,16 +352,13 @@
       try { (0, eval)(scripts[i].textContent); }
       catch (e) {
         err('inner script failed in ' + label, e);
-        /* TERMINAL STATE (2026-10-04): a dead inner script must never leave
-           its loading skeleton spinning forever (see the cells.js 'Arial'
-           syntax error). Swap loading placeholders for an explicit error. */
         try {
           var loads = root.querySelectorAll('.c-load,.hq-load,.ca-load,.cw-load,.p-load');
           for (var j = 0; j < loads.length; j++) {
             var d = document.createElement('div');
             d.style.cssText = 'border:2px solid #c1121f;background:#1a0505;color:#f5f0e1;padding:12px;margin:8px 0;font-family:Arial,sans-serif;font-size:14px;';
             d.innerHTML = 'This widget failed to start. ' +
-              '<button style="background:#c1121f;color:#fff;border:0;font-weight:700;padding:8px 14px;cursor:pointer;" onclick="location.reload()">Reload</button>';
+              '<button style="background:#c1121f;color:#fff;border:0;font-weight:700;padding:8px 14px;cursor:pointer;min-height:44px;" onclick="location.reload()">Reload</button>';
             if (loads[j].parentNode) loads[j].parentNode.replaceChild(d, loads[j]);
           }
         } catch (e2) {}
@@ -342,14 +367,7 @@
     }
   }
 
-  /* Idempotent mounter — safe to call repeatedly. Lazy bundles call
-     PF.mountSilos() after staging their templates so newly-available
-     silos mount in ORDER without re-mounting existing ones.
-     Missing templates are normal (bundle not loaded yet / silo killed). */
   var mounted = {};
-  /* Insert a widget <section> in funnel order: right after its own
-     section anchor (and its section's already-mounted widgets), i.e.
-     before the NEXT section's header. Falls back to appendChild. */
   function placeWidget(h, section, silo) {
     try {
       var secId = SILO_SEC[silo];
@@ -375,7 +393,7 @@
       if (PF && PF.skip(silo)) { mounted[silo] = 1; return; }
       try {
         var tpl = document.getElementById(tplId);
-        if (!tpl || !tpl.content) return; /* bundle not staged yet — try next call */
+        if (!tpl || !tpl.content) return;
         var frag = document.importNode(tpl.content, true);
         var section = document.createElement('section');
         section.className = 'pf-v2-game';
@@ -390,15 +408,12 @@
     return n;
   }
 
-  /* Expose for lazy bundles. Guarded: only defined once. */
   if (PF && !PF.mountSilos) PF.mountSilos = mountSilos;
+  try { stageStaticTemplates(); } catch (e) {}
   try { initSections(); } catch (e) {}
   mountSilos();
   try { bindNextLinks(); mountNextLinks(); mountEventsNudge(); } catch (e) {}
 
-  /* Race-condition guard: if lazy bundles staged templates before this file
-     defined PF.mountSilos, the loader's onload skipped the mount. Retry until
-     all ORDER silos are mounted (or 30s elapses). */
   (function retryMount(){
     var tries = 0;
     var iv = setInterval(function(){

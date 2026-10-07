@@ -312,6 +312,55 @@ function paintArcHeader(){
     else el.insertBefore(d,el.firstChild);
   }catch(e){}
 }
+/* ---------- V3 (2026-10-07) CIVICSNAP ABSORB ----------
+   One inline line: "Today in Political HQ: [active campaign]" -> /political-hq.
+   Read from PF.homepageInit() (briefing) only — no separate API call.
+   DOM-insert only (never a full re-render), dedupes on .br-civic, fail-silent. */
+function civicCampaignTitle(d){
+  /* V3 composite ships civic.campaigns=[{id,title,...}] from pressure_list.
+     Take the first active campaign's title. Legacy probes kept as fallback. */
+  try{
+    var cv=d&&d.civic, arr=cv&&cv.campaigns;
+    if(arr&&arr.length&&arr[0]&&arr[0].title) return String(arr[0].title);
+  }catch(e0){}
+  var cand=["civic_campaign","phq_campaign","active_campaign","pressure_campaign","campaign"],
+      pools=[], i, k, p, c, t;
+  try{
+    var b=(d&&d.briefing)||null; if(b&&b.briefing) b=b.briefing;
+    if(b) pools.push(b);
+    if(b&&b.civic_snapshot) pools.push(b.civic_snapshot);
+    if(b&&b.snapshot) pools.push(b.snapshot);
+  }catch(e){}
+  for(i=0;i<pools.length;i++){
+    p=pools[i]; if(!p||typeof p!=="object") continue;
+    for(k=0;k<cand.length;k++){
+      c=p[cand[k]]; t="";
+      if(c&&typeof c==="object"){ t=c.title||c.name||""; }
+      else if(typeof c==="string"){ t=c; }
+      if(t) return String(t);
+    }
+  }
+  return "";
+}
+function paintCivicLine(){
+  try{
+    if(!(window.PF&&typeof PF.homepageInit==="function")) return;
+    PF.homepageInit().then(function(d){
+      try{
+        var t=civicCampaignTitle(d);
+        if(!t) return;
+        var el=document.getElementById("xBrief"); if(!el) return;
+        if(el.querySelector(".br-civic")) return;
+        var dv=document.createElement("div");
+        dv.className="br-civic";
+        dv.style.cssText="margin:10px 0 0;padding:8px 12px;border:1px solid #3a2c22;background:#0d0b06;color:#f5ead6;font:13px monospace;";
+        dv.innerHTML='TODAY IN POLITICAL HQ: <b style="color:#e8b64c">'+esc(t)+'</b>'
+          +' &nbsp;<a href="/political-hq" style="color:#c1121f;font-weight:bold;text-decoration:none;">ENTER &rarr;</a>';
+        el.insertBefore(dv,el.firstChild);
+      }catch(e){}
+    },function(){});
+  }catch(e2){}
+}
 /* ---------- W5-6 HALL OF PROOF MENTION (2026-10-04) ----------
    "You were mentioned" — paints when the hall_list read lands, never part
    of the N_CALLS countdown; fail-silent, dedupes on .br-hall. */
@@ -438,6 +487,7 @@ function render(){
     dropWire();
     renderSeasonBanner();
     paintArcHeader();
+    paintCivicLine();
     try {
       var nh0=document.getElementById("pf-brief-news");
       if(nh0&&window.PF&&PF.newsTop){ PF.newsTop.render(nh0,{limit:5}); }
@@ -708,6 +758,7 @@ function render(){
   dropWire();
   renderSeasonBanner();
   paintArcHeader();
+  paintCivicLine();
   tick();
 }
 /* per-second countdowns for flash timers */
@@ -917,6 +968,32 @@ function dropPaint(){
 }
 /* Backend content: today's drop from the server (?action=daily_content).
    The static DROPS array is the fallback — the slot renders identically. */
+/* V3 (2026-10-07, "unclunk"): seed the Featured Drop from the homepage_init
+   composite — its briefing key IS the daily_content response. No separate
+   daily_content call. Falls back to dropTryBackend when the composite is
+   unavailable. */
+function dropFromComposite(){
+  if (_dropRendered) return;
+  var done=function(){
+    if (_dropRendered) return; _dropRendered=true;
+    try { render(); } catch (e) {}
+    dropPaint();
+  };
+  try{
+    if (window.PF && typeof PF.homepageInit === "function") {
+      PF.homepageInit().then(function(d){
+        var b=d&&d.briefing;
+        if (b && b.ok !== false && b.head) {
+          DROP_NET={ tag:b.tag||"TRUTH", head:b.head, body:b.body||"" };
+        }
+        done();
+      }, function(){ done(); });
+      setTimeout(function(){ done(); },8000);
+      return;
+    }
+  }catch(e){}
+  dropTryBackend();
+}
 function dropTryBackend(){
   api("daily_content",{},function(j){
     if(_dropRendered) return; _dropRendered=true;
@@ -1051,12 +1128,25 @@ function dropWire(){
   }
 }
 bannerCss();
-dropTryBackend();
-load();
-/* D1 STRUCT (2026-10-06): re-poll stretched 3min -> 10min. Briefing content
-   changes on day boundaries (day key / streak / loot); per-second countdowns
-   are DOM-only via tick(). Skip-when-hidden preserved. */
-setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },600000);
+/* V3 homepage (2026-10-07, "unclunk"): anonymous visitors render the brief
+   from the homepage_init composite only — the 12-call load() fan-out is
+   skipped (nothing in it serves the anonymous gate+drop+news render).
+   Signed-in visitors keep the full personalized briefing. */
+var V3_ANON_BRIEF=false;
+try { V3_ANON_BRIEF=!!document.getElementById('pf-v2')&&!ident().callsign; } catch (e) {}
+if (V3_ANON_BRIEF) {
+  dropFromComposite();
+  /* Anonymous re-poll: refresh the composite past its 60s cache, repaint. */
+  setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){}
+    try{ if(window.PF&&typeof PF.homepageInit==="function") PF.homepageInit(true).then(function(){ try{render();}catch(e2){} },function(){}); }catch(e3){} },600000);
+} else {
+  dropTryBackend();
+  load();
+  /* D1 STRUCT (2026-10-06): re-poll stretched 3min -> 10min. Briefing content
+     changes on day boundaries (day key / streak / loot); per-second countdowns
+     are DOM-only via tick(). Skip-when-hidden preserved. */
+  setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },600000);
+}
 setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} tick(); },1000);
 /* keep the banner clear if the comeback banner mounts later */
 setInterval(function(){

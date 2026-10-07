@@ -31,6 +31,7 @@
 <div class="o-streak" id="oStreak"></div>
 <div class="o-next" id="oNext"></div>
 <div class="o-rankline" id="oRank"></div>
+<div class="o-absorb" id="oAbsorb"></div>
 <div class="o-loot" id="oLoot"></div>
 <div class="o-err" id="oErr"></div>
 <div class="o-note">3 orders (5 XP each) + 1 field op (+5) per day. Run all three plus the op for the +5 full-deployment command bonus. Every daily task on this page caps at 25 XP a day &mdash; your cell streak gets you there faster. Streak shields forgive a missed day. Today's Boost lets you tip earned XP to a creator at <span id="oBoostRate">1 XP = 2 signal</span>.</div>
@@ -553,6 +554,82 @@ function claimRelease(key, prompts){
   var claimed=load(LS_REL,{}); claimed[key]=1; save(LS_REL,claimed);
   renderRelease();
 }
+/* ============ V3 ABSORBS (2026-10-07): dopa (loot claim), referral (nudge).
+   Rank strip already lives on #oRank (paintRank replicates enlistment-ranks'
+   local rank lookup). Loot state comes from dopamine_status (AUTH read, signed
+   in only — loot is per-callsign and cannot ride the anonymous composite);
+   the claim is a user-gesture POST, never a load fetch. The recruit nudge
+   shows only when the referral silo is actually on the page. ============ */
+function renderAbsorb(){
+  var box=document.getElementById("oAbsorb"); if(!box) return;
+  var refOk=false;
+  try{ refOk=!!document.getElementById("pf-referral"); }catch(e){}
+  var h=refOk?'<div style="margin:6px 0"><a href="#pf-referral" id="oRecruitNudge" style="color:#c1121f;font-weight:700;text-decoration:none;letter-spacing:.08em;font-size:13px;min-height:44px;display:inline-block;line-height:44px;">Recruit a fighter &rarr;</a></div>':"";
+  box.innerHTML=h+'<div id="oLootAbs"></div>';
+  var nudge=document.getElementById("oRecruitNudge");
+  if(nudge) nudge.onclick=function(){ try{ var t=document.getElementById("pf-referral"); if(t) t.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e2){} };
+  var lootEl=document.getElementById("oLootAbs");
+  if(!lootEl) return;
+  var id=ident();
+  if(!id.callsign){ lootEl.innerHTML=""; return; }
+  dopamineLootAvail(id,function(avail){
+    if(avail===true) paintAbsorbLoot(lootEl,id);
+    else lootEl.innerHTML="";
+  });
+}
+/* Loot availability: GET dopamine_status -> {ok, loot:{claimed_today,...}}.
+   Signed-in only (auth read); mirrors dopamine.js's own call. */
+function dopamineLootAvail(id,cb){
+  var done=function(j){
+    var avail=null;
+    try{ var l=j&&j.loot; if(l&&l.claimed_today===false) avail=true;
+         else if(l&&l.claimed_today===true) avail=false; }catch(e){}
+    cb(avail);
+  };
+  try{
+    if(window.PF&&PF.authGetJSONP&&beUrl()){
+      PF.authGetJSONP(beUrl(),"dopamine_status",{callsign:id.callsign,device:id.device||""},done);
+      return;
+    }
+  }catch(e){}
+  done(null);
+}
+function paintAbsorbLoot(el,id){
+  el.innerHTML='<div style="margin:6px 0;padding:8px;border:1px dashed #e8b64c;color:#f5ead6;font-size:13px;">'
+    +'&#127873; LOOT CRATE READY &nbsp;<button class="o-btn" id="oLootOpen" style="margin-left:6px">OPEN IT</button></div>';
+  var btn=document.getElementById("oLootOpen");
+  if(btn) btn.onclick=function(){ claimAbsorbLoot(btn,id); };
+}
+/* Minimal replication of dopamine.js's loot claim (POST loot_open).
+   Dopamine's full crate pane is not pulled in. */
+function claimAbsorbLoot(btn,id){
+  btn.disabled=true; btn.textContent="CRACKING IT OPEN...";
+  var body={type:"loot",l_action:"loot_open",callsign:id.callsign,device:id.device||""};
+  var url=beUrl();
+  var done=function(j){
+    if(j&&j.ok&&j.reward){
+      var got=Number((j.reward&&j.reward.xp)||0);
+      btn.parentNode.innerHTML='CRATE CLAIMED &#10003;'+(got>0?(' +'+got+' XP'):'');
+      try{ if(window.PF&&PF.toast) PF.toast("Loot claimed. +"+got+" XP."); }catch(e){}
+      try{ document.dispatchEvent(new CustomEvent("pf-combo-hit")); }catch(e2){}
+      /* Bust the 60s homepage cache so the next render sees fresh loot state. */
+      try{ if(window.PF&&typeof PF.homepageInit==="function") PF.homepageInit(true); }catch(e3){}
+    } else {
+      btn.disabled=false; btn.textContent="OPEN IT";
+      var msg="Claim failed.";
+      try{ if(window.PF&&PF.errCopy) msg=PF.errCopy(j,"Claim failed."); }catch(e4){}
+      try{ if(window.PF&&PF.toast) PF.toast(msg); }catch(e5){}
+    }
+  };
+  try{
+    if(window.PF&&PF.authPost){ PF.authPost(url,body,done); return; }
+  }catch(e6){}
+  try{
+    fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+      .then(function(r){ return r.json(); }).then(function(j){ done(j); })
+      .catch(function(){ done(null); });
+  }catch(e7){ done(null); }
+}
 function renderBoost(){
   var box=document.getElementById("oBoost"); if(!box) return;
   var b=boostRec(), t=today(), r=load(LS_R,{xp:0,got:{}});
@@ -776,6 +853,23 @@ function paintRaidTurnout(){
   };
   try{ var c=JSON.parse(localStorage.getItem("pf_raid_turnout_v1")||"null");
     if(c&&Date.now()-c.at<3600000){ show(c.d,c); return; } }catch(e){}
+  /* V3 (2026-10-07): read raid_turnout from the homepage_init composite
+     (orders key) — no separate call. Falls back to the direct fetch. */
+  try{
+    if(window.PF&&typeof PF.homepageInit==="function"){
+      PF.homepageInit().then(function(d){
+        var o=d&&d.orders;
+        if(o&&typeof o.raiders==="number"){
+          try{ localStorage.setItem("pf_raid_turnout_v1",JSON.stringify({at:Date.now(),d:o.raiders,vintage:o.vintage,as_of:o.as_of})); }catch(e2){}
+          show(o.raiders,o);
+        } else { raidTurnoutDirect(show); }
+      },function(){ raidTurnoutDirect(show); });
+      return;
+    }
+  }catch(e3){}
+  raidTurnoutDirect(show);
+}
+function raidTurnoutDirect(show){
   var RAID_API=beUrl();
   var name="pfRT"+Date.now(), fired=false;
   window[name]=function(d){ if(fired) return; fired=true; try{ delete window[name]; }catch(e){}
@@ -1133,6 +1227,7 @@ function render(){
   document.getElementById("oProg").textContent=Math.min(doneCount,PER_DAY)+"/"+PER_DAY+" orders complete";
   renderBoost();
   renderPatrons();
+  try{ renderAbsorb(); }catch(eAbs){}
   paintBoostRate(); /* lever D4: static note ratio follows the server rate */
   renderRaid();
   document.getElementById("oStreak").innerHTML="Current streak: <b>"+(d.o.streak||0)+"</b> day"+((d.o.streak||0)===1?"":"s")+((d.o.shields||0)>0?" &nbsp;\uD83D\uDEE1\uFE0F x"+d.o.shields:"")
@@ -1154,7 +1249,7 @@ function render(){
   var nextMil=Object.keys(STREAK_BONUS).map(Number).filter(function(n){return n>s;}).sort(function(a,b){return a-b;})[0];
       document.getElementById("oNext").textContent=nextMil?("Streak bonus at "+nextMil+" days (+"+STREAK_BONUS[nextMil]+" XP)"):"Maximum streak bonus achieved. Legendary.";
   var r=load(LS_R,{xp:0});
-  function paintRank(xp){ var el=document.getElementById("oRank"); if(el) el.textContent=xp>0?("Rank: "+tierOf(xp)[0]+" · "+xp+" XP"):""; }
+  function paintRank(xp){ var el=document.getElementById("oRank"); if(el) el.textContent=xp>0?("RANK: "+tierOf(xp)[0]+" · "+Number(xp).toLocaleString("en-US")+" XP"):""; }
   paintRank(r.xp);
   var id=ident(), wrap=document.getElementById("oClaimWrap");
   /* Prefer the backend ledger balance when a callsign exists — keeps the rank

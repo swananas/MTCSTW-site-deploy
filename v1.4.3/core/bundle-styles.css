@@ -981,3 +981,125 @@ html,body{overflow-x:clip;}
    the action. Voice: flat, factual, no hype. */
 .pf-pat-proof{font-size:12px;color:#8a8a8a;margin:6px 0 0;line-height:1.5}
 .pf-pat-proof b{color:#fff}
+
+/* ===== v3 homepage mobile-first (2026-10-07, core/41-mobile-first.css — hand-mirrored; see SYNC CHECKLIST) ===== */
+/* ============================================================================
+   SILO: core/41-mobile-first.css  |  PF v1.4.3
+   WHAT: Mobile-first stylesheet for the homepage redesign v3 ("Unclunk").
+   WHY: The homepage is the first surface on a phone — every widget needs
+   thumb-friendly targets, fluid columns, and a hero that reads on a 360px
+   screen. All rules are scoped under #pf-v2 (homepage only) so dedicated
+   pages keep their own layouts untouched.
+   SCOPE: #pf-v2 only. IDs targeted: #pf-hero (home-v2.js hero template),
+   #pf-closer + #pf-closer-grid (home-v2.js closer template), plus the
+   .pf-v2-game widget wrappers and .pf-section-head headers.
+   ----------------------------------------------------------------------------
+   ★ SYNC CHECKLIST — READ BEFORE EDITING (see 01/02-design-system.css):
+   1. bundle-styles.css is the SERVED file (loader pulls it via jsDelivr).
+      It is HAND-MAINTAINED — there is no build script that regenerates it
+      from the source files. Editing this source file alone changes NOTHING live.
+   2. After ANY edit here, copy the new/changed rules into
+      v1.4.3/core/bundle-styles.css by hand (append at the bottom with the
+      other defect/audit fix blocks), and register this file in the SOURCES
+      list of build/check-styles-sync.js.
+   3. Run `node build/check-styles-sync.js` — it FAILS if any source rule is
+      missing from the bundle. Fix the bundle, then hand off for re-pin.
+   KILL: ?pf_off=home-v2 kills the homepage mount; CSS is inert without it.
+   ============================================================================ */
+
+/* ---------- 1. TOUCH TARGETS (WCAG 2.2 AA) ----------
+   Every button and link inside the homepage mount is at least 44x44.
+   !important outranks widget inline styles (same precedent as the M4
+   guard in 02-design-system.css). Inline prose links (display:inline)
+   ignore min-height/min-width, so copy links are unaffected. */
+#pf-v2 a,
+#pf-v2 button,
+#pf-v2 input[type="submit"],
+#pf-v2 input[type="button"]{
+  min-height:44px!important; min-width:44px!important;
+  box-sizing:border-box;
+}
+/* Button-style anchors (CTA, closer cards, companion links) carry their own
+   display + centering in the widget templates and 02-design-system.css;
+   prose links (display:inline) are untouched. */
+
+/* ---------- 2. FLUID WIDTHS ----------
+   Fixed max-widths (640/520/420px) become fluid so widgets never overflow
+   a phone viewport. Gutters come from the .pf-v2-game padding, not margins. */
+#pf-v2 .pf-v2-game,
+#pf-v2 .pf-section-head,
+#pf-v2 .pf-silo{
+  max-width:min(680px,92vw)!important;
+}
+
+/* ---------- 3. HERO (mobile-first) ----------
+   Vertical stack: kicker -> H1 -> subhead -> CTA -> secondary link.
+   H1 scales fluidly per the v3 spec. CTA stays a full-width tap zone. */
+#pf-v2 #pf-hero{
+  display:flex; flex-direction:column; align-items:center;
+  padding:40px 20px 32px;
+}
+#pf-v2 #pf-hero h1{
+  font-size:clamp(2rem,8vw,4rem)!important;
+  line-height:1.1;
+}
+#pf-v2 #pf-hero-cta{
+  width:100%; max-width:min(420px,92vw);
+  margin:0 auto; padding:12px 24px;
+}
+#pf-v2 #pf-hero-how{
+  display:inline-flex; min-height:44px;
+}
+
+/* ---------- 4. CLOSER GRID ----------
+   Link-card grid to dedicated pages. Desktop 3 columns (inline style),
+   tablet 2, phone 1. !important outranks the inline repeat(3,1fr). */
+#pf-v2 #pf-closer{
+  max-width:min(680px,92vw);
+}
+@media (max-width:768px){
+  #pf-v2 #pf-closer-grid{
+    grid-template-columns:repeat(2,1fr)!important;
+  }
+}
+@media (max-width:480px){
+  #pf-v2 #pf-closer-grid{
+    grid-template-columns:1fr!important;
+  }
+  #pf-v2 #pf-closer-grid a{
+    min-height:44px!important; padding:20px 16px;
+  }
+  #pf-v2 #pf-hero{padding:28px 16px 24px;}
+}
+
+/* ---------- 5. SECTION HEADERS (clean, no clutter) ----------
+   v3 flow groups: no "Section N of 7" kickers, no divider rules —
+   just the title + optional sub. Also drop the gold "zone border" on the
+   widget that follows a header (02-design-system.css anchor rule). */
+#pf-v2 .pf-section-head .pf-sh-kicker,
+#pf-v2 .pf-section-head .pf-sh-rule{
+  display:none!important;
+}
+#pf-v2 .pf-section-head{
+  margin:24px auto 12px;
+}
+#pf-v2 .pf-section-head .pf-sh-title{
+  font-size:22px;
+}
+#pf-v2 .pf-section-head + .pf-v2-game > *:first-child{
+  border-top:0!important;
+}
+
+/* ---------- 6. REDUCED MOTION ----------
+   Homepage-wide: no animations, no transitions, no smooth-scroll when the
+   user prefers reduced motion. (Design-system's .dp-risk rule still holds
+   elsewhere; this is the homepage-scoped equivalent.) */
+@media (prefers-reduced-motion:reduce){
+  #pf-v2 *,
+  #pf-v2 *::before,
+  #pf-v2 *::after{
+    animation:none!important;
+    transition:none!important;
+    scroll-behavior:auto!important;
+  }
+}

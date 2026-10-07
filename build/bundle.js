@@ -38,58 +38,43 @@ var DEBUG = process.argv.indexOf('--debug') !== -1;
    lives in exactly one bundle — the build enforces this below. */
 var SECTIONS = {
   'bundle-sec1': [
-    /* HOMEPAGE START HERE — hook & daily loop. In critical path (blocking). */
+    /* HOMEPAGE V3 START (2026-10-07, fe/home-redesign "unclunk"): the critical
+       path is ONLY what the first viewport needs — the brief block and the
+       social-proof bar. (Hero is a static template in pages/home-v2.js, no
+       game file.) Everything else that used to ride sec1 moves to
+       bundle-home (lazy, 800px pre-load margin). Target: critical JS <150KB
+       gzip (audit 2026-10-07). */
     'briefing.js',
-    /* FRED Everywhere Phase 1 (2026-10-05): Morning Briefing — 6 numbers,
-       30 seconds (DGS10, DGS2, FEDFUNDS+fedwatch, UNRATE+Sahm, CPIAUCNS,
-       MORTGAGE30US). Weekdays only. Self-mounts into #xBrief. Read-only,
-       zero XP. Kill: ?pf_off=fred-briefing. */
-    'fred-briefing.js',
-    'do-meter.js',
-    'daily-orders.js',
-    /* Political HQ integration #5 (2026-10-05): home-state preference —
-       onboarding state picker (stateless-first) + settings widget. Lives
-       with the claim flow in bundle-sec1 (critical path). No XP, read-only. */
-    'home-state.js',
-    /* Political HQ creation weave #5 (2026-10-05): pick-your-fight
-       preference — onboarding issue-area picker (max 3, skippable) +
-       settings widget. Step two of onboarding personalization, right after
-       the state picker. No XP, read-only. */
-    'pick-fight.js',
-    /* 2026-10-05 (guided onboarding): 3-step first-run overlay — pick fight,
-       claim callsign, first mission. Lives in the critical path so the entry
-       chip + 30s auto-launch work for callsign-less non-scrollers. Reuses
-       pick-fight.js APIs (must stay after it) and PF.requireCallsign. */
-    'guided-onboarding.js',
-    /* P1#6 (2026-10-05): hq-nudge promoted to START HERE (homepage audit).
-       Static CTA card — must stage with the critical path so it mounts in
-       ORDER position right after daily-orders, not late at section end. */
-    'political-hq-nudge.js',
-    /* Civic Snapshot (2026-10-05): homepage "Today in Political HQ" widget —
-       active campaign, polls closing soon, ballot deadlines. READ-ONLY. */
-    'civic-snapshot.js',
-    /* Engagement build D item #3 (2026-10-05): weekly ritual calendar slot
-       (CPI/jobs/Fed moments + release-day order). START HERE widget; the
-       /money rail ships via the money chunk (build/bundle-core.js
-       MONEY_FILES) — same file, self-mounting by DOM presence. */
-    'ritual-calendar.js',
-    'dopamine.js',
-    'enlistment-ranks.js',
-    /* Wave 5B (2026-10-04): theater rack + ribbon chase strip + Frontline
-       Streak + Theater Rank. Self-mounts into #pf-ranks and #xBrief. */
-    'theater.js',
-    'service-medals.js',
-    'social-proof.js',
-    /* LAUNCH WEEK (2026-10-05): FIRST WAVE — countdown/live banner, founder
-       badge, 7-day circuit card, founder roll. Self-mounting; site-wide
-       fixed banner bar (homepage hero-adjacent), homepage + /cells circuit
-       leg. READ-ONLY, zero XP. War-room /cells leg via bundle-cells-h
-       slim dup (same pattern as war-room-ticker.js). */
-    'first-wave.js'
+    'social-proof.js'
     /* notify.js is global chrome (header bell) — it ships in
        pages/bundle-pages.js via build/bundle-core.js, not a page bundle. */
   ],
   'bundle-home': [
+    /* HOMEPAGE V3 (2026-10-07, fe/home-redesign "unclunk"): daily-orders is
+       the first lazy block — the 800px IO pre-load margin in the footer
+       loader pulls bundle-home while the visitor reads the brief, so the
+       orders block is mounted by the time they scroll to it. */
+    'daily-orders.js',
+    /* V3 legacy (2026-10-07): these 13 files rode bundle-sec1 (critical) for
+       the OLD homepage. None is needed for the v3 first paint; all move to
+       the lazy bundle. Absorbed widgets (do-meter, civic-snapshot, dopamine,
+       enlistment-ranks) survive as inline integrations in the v3 blocks and
+       are inert here (mount points absent). fred-briefing + theater carry
+       v3 guards (no injection into the consolidated brief block). Kill
+       switches all preserved. */
+    'fred-briefing.js',
+    'do-meter.js',
+    'home-state.js',
+    'pick-fight.js',
+    'guided-onboarding.js',
+    'political-hq-nudge.js',
+    'civic-snapshot.js',
+    'ritual-calendar.js',
+    'dopamine.js',
+    'enlistment-ranks.js',
+    'theater.js',
+    'service-medals.js',
+    'first-wave.js',
     /* HOMEPAGE PLAY/BELONG/CREATE/FUND/ACT/PROOF — lazy-loaded as one bundle
        when those sections scroll near. Dedicated pages (/arcade, /cells,
        /create) fetch the slim bundle-arcade-h / bundle-cells-h /

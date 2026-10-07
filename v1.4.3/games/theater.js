@@ -341,6 +341,11 @@
   css();
   waitFor("#pf-ranks", function () { mountRack(); });
   waitFor("#xBrief", function () {
+    /* V3 homepage (2026-10-07, fe/home-redesign "unclunk"): the consolidated
+       brief block owns #xBrief — no injected chase strip. Rank display on v3
+       is the daily-orders rank strip. (Dedicated-home move for the full
+       theater rack pending Shane's call; kill switch intact.) */
+    try { if (document.querySelector('#pf-v2 section[data-game="hero"]')) return; } catch (e) {}
     paintChase();
     keepChaseAlive();
   });

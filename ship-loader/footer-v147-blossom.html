@@ -159,11 +159,14 @@ var PAGES_V2=['pages/bundle-pages.js'];
    bundle mounts there) + pages. */
 var isSlrPage=!!document.getElementById('pf-slr-roster')||!!document.getElementById('pf-catalog')||_isSlr;
 /* M34 (2026-10-03): the 173KB SLR snapshot lives only in bundle-core-slr.js.
-   Pages that mount roster consumers (homepage, /arcade, /create, Creator HQ,
+   Pages that mount roster consumers (/arcade, /create, Creator HQ,
    SLR roster/catalog) get the SLR core so every synchronous PF.ROSTER read
    keeps working; all other v2 pages get the slim bundle-core.js. On slim-core
-   pages the DB still loads on demand via PF.ensureSLRDB() if ever needed. */
-var NEED_SLR=isHome||isArcade||isCreate||isWarCard||isSlrPage||isLiquidation;
+   pages the DB still loads on demand via PF.ensureSLRDB() if ever needed.
+   v3 homepage (2026-10-07): homepage dropped off the SLR core — the v3
+   homepage has no synchronous roster consumers (quiz slim mode links out,
+   roster-teaser moved to /sick-left-radicals). Saves ~164KB raw. */
+var NEED_SLR=isArcade||isCreate||isWarCard||isSlrPage||isLiquidation;
 CORE_V2=[NEED_SLR?'core/bundle-core-slr.js':'core/bundle-core.js'];
 /* PWA (2026-10-05, fe/pwa): install.js, right after the core bundle (home of
    core/03-global.js). Relative = resolves against the v1.4.3 BASE. */

@@ -32,6 +32,9 @@
   <div id="pf-vote-msg" style="margin-top:1rem;font-size:0.9rem;color:#b8ab8e;"></div>
   <div><button id="pf-vote-copy" style="background:#141414;border:2px solid #c1121f;color:#f5f0e1;padding:0.6rem 1.4rem;margin-top:1rem;font-size:0.85rem;font-weight:700;letter-spacing:0.1em;cursor:pointer;font-family:inherit;">COPY TO SHARE</button></div>
   <div id="pf-vote-copymsg" style="margin-top:0.5rem;font-size:0.8rem;color:#c1121f;min-height:1.2em;"></div>
+  <!-- V3 (2026-10-07) absorbs: hall (winners strip) + draw (pot line). -->
+  <div id="pf-vote-champs" class="pfv-strip" style="display:none;margin-top:1rem;"></div>
+  <div id="pf-vote-pot" class="pfv-strip" style="display:none;"></div>
 </div>
 <script>
 (function(){
@@ -103,19 +106,36 @@
   /* GLOBAL TOTALS: fetched from the backend via JSONP, shared across all devices.
      Refresh on every page load so each user sees the live count. */
   var voteTotals = {};
+  function applyTotals(votes){
+    try {
+      if(votes){
+        voteTotals = votes;
+        var t=0,k; for(k in voteTotals){ t+=Number(voteTotals[k])||0; }
+        urgencyTotal=t; renderUrgency();
+      }
+      /* Never clobber the voted state when totals arrive. */
+      if(!voted()) renderBallot();
+    } catch(e){}
+  }
   function fetchTotals(){
+    /* V3 (2026-10-07): totals come from the homepage_init composite (vote
+       key) — no separate results call. Falls back to the direct fetch. */
+    try{
+      if(window.PF&&typeof PF.homepageInit==="function"){
+        PF.homepageInit().then(function(d){
+          var v=d&&d.vote;
+          if(v&&v.votes){ applyTotals(v.votes); } else { fetchTotalsDirect(); }
+        },function(){ fetchTotalsDirect(); });
+        return;
+      }
+    }catch(e){}
+    fetchTotalsDirect();
+  }
+  function fetchTotalsDirect(){
     if(!VOTE_API_URL || VOTE_API_URL.indexOf('PASTE') === 0) return;
     var cb = 'pfVoteCb_' + Date.now();
     window[cb] = function(data){
-      try {
-        if(data && data.votes){
-          voteTotals = data.votes;
-          var t=0,k; for(k in voteTotals){ t+=Number(voteTotals[k])||0; }
-          urgencyTotal=t; renderUrgency();
-        }
-        /* Never clobber the voted state when totals arrive. */
-        if(!voted()) renderBallot();
-      } catch(e){}
+      applyTotals(data && data.votes);
       try { delete window[cb]; } catch(e){}
       var s = document.getElementById(cb);
       if(s && s.parentNode) s.parentNode.removeChild(s);
@@ -470,6 +490,99 @@
   fetchTotals();
   renderStreak();
   checkKingmaker();
+  /* ============ V3 ABSORBS (2026-10-07): hall (winners strip) + draw (pot).
+     Read from PF.homepageInit() only — no separate API calls. Champions come
+     from the composite's hall.pins (last week's hall pins); the pot from
+     draw.round.pot (anonymous lottery_status). Both hide gracefully when
+     data is null. Zero XP, display only. ============ */
+  function voteChamps(d){
+    var out=[], i, k, p;
+    /* Primary: composite hall.pins = [{callsign,source,feat,detail,ts}]. */
+    try{
+      var pins=d&&d.hall&&d.hall.pins;
+      if(pins&&pins.length){
+        for(k=0;k<pins.length&&out.length<3;k++){
+          p=pins[k]; var cs=(p&&typeof p==="object")?(p.callsign||p.name):p;
+          if(/^[a-z0-9_]{3,20}$/.test(String(cs||""))) out.push(String(cs));
+        }
+        if(out.length) return out;
+      }
+    }catch(e){}
+    /* Fallback: legacy probes on d.vote. */
+    var v=(d&&d.vote)||null, pools=[];
+    if(v){
+      if(v.last_champions) pools.push(v.last_champions);
+      if(v.champions) pools.push(v.champions);
+      if(v.pins) pools.push(v.pins);
+      if(v.winners) pools.push(v.winners);
+    }
+    for(i=0;i<pools.length;i++){
+      var arr=pools[i]; if(!arr||!arr.length) continue;
+      for(k=0;k<arr.length&&out.length<3;k++){
+        p=arr[k]; var cs2=(p&&typeof p==="object")?(p.callsign||p.name):p;
+        if(/^[a-z0-9_]{3,20}$/.test(String(cs2||""))) out.push(String(cs2));
+      }
+      if(out.length) return out;
+    }
+    return [];
+  }
+  function votePot(d){
+    var i, n;
+    /* Primary: composite draw = lottery_status (anonymous). */
+    try{
+      var dr=d&&d.draw;
+      if(dr&&dr.round){ n=Number(dr.round.pot); if(n>0) return n; }
+      if(dr&&dr.last_draw){ n=Number(dr.last_draw.pot); if(n>0) return n; }
+    }catch(e){}
+    /* Fallback: legacy probes on d.vote. */
+    var v=(d&&d.vote)||null;
+    if(!v) return 0;
+    var cand=["pot","draw_pot","lottery_pot","round_pot"];
+    for(i=0;i<cand.length;i++){ n=Number(v[cand[i]]); if(n>0) return n; }
+    try{ if(v.round){ n=Number(v.round.pot); if(n>0) return n; } }catch(e2){}
+    try{ if(v.draw){ n=Number(v.draw.pot); if(n>0) return n; } }catch(e3){}
+    return 0;
+  }
+  function paintVoteAbsorbed(){
+    var champs=document.getElementById("pf-vote-champs");
+    var pot=document.getElementById("pf-vote-pot");
+    if(!champs&&!pot) return;
+    var paint=function(d){
+      try{
+        if(champs){
+          var cs=voteChamps(d);
+          if(cs.length){
+            champs.innerHTML='\\uD83C\\uDFC6 LAST WEEK\\u2019S CHAMPIONS: <b style="color:#f5f0e1;">'
+              +cs.map(function(c){ return esc(c); }).join(" \\u00B7 ")+"</b>";
+            champs.style.display="";
+          } else { champs.style.display="none"; }
+        }
+        if(pot){
+          var p=votePot(d);
+          if(p>0){
+            var hasDraw=false;
+            try{ hasDraw=!!document.getElementById("pf-draw"); }catch(e3){}
+            var line='Solidarity Draw pot: <b style="color:#ffd34d;">'
+              +Number(p).toLocaleString("en-US")+" XP</b>";
+            pot.innerHTML=hasDraw
+              ?(line+' &nbsp;<a href="#pf-draw" id="pf-vote-potgo" style="color:#c1121f;font-weight:700;text-decoration:none;">\\u2192</a>')
+              :line;
+            pot.style.display="";
+            var go=document.getElementById("pf-vote-potgo");
+            if(go) go.onclick=function(){ try{ var t=document.getElementById("pf-draw"); if(t) t.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e4){} };
+          } else { pot.style.display="none"; }
+        }
+      }catch(e5){}
+    };
+    try{
+      if(window.PF&&typeof PF.homepageInit==="function"){
+        PF.homepageInit().then(function(d){ paint(d); },function(){ paint(null); });
+        return;
+      }
+    }catch(e6){}
+    paint(null);
+  }
+  paintVoteAbsorbed();
   function castVote(c, btn){
     var dev=''; try { dev=(window.PFDeviceId&&PFDeviceId())||''; }catch(e){}
     if(!dev){ try{ if(window.PF&&PF.toast) PF.toast('Could not identify this device — vote not cast.'); }catch(e){} return; }

@@ -202,6 +202,10 @@
   }
 
   function boot() {
+    /* V3 homepage (2026-10-07, fe/home-redesign "unclunk"): the consolidated
+       brief block owns #xBrief — no injected strips. The widget is inert on
+       v3 (dedicated-home move pending Shane's call; kill switch intact). */
+    try { if (document.querySelector('#pf-v2 section[data-game="hero"]')) return; } catch (e) {}
     if (!isWeekday()) return; /* weekdays only */
     var host = document.getElementById('xBrief');
     if (!host || document.getElementById('pf-fred-briefing')) return;

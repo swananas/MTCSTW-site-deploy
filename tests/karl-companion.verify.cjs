@@ -75,5 +75,19 @@ ok(answered('take me to the economy'), 'take me to the economy -> answered');
 ok(!K._match('what is the theory of surplus value'), 'theory question NOT answered locally (goes to worker)');
 ok(!K._match('xyzzy plugh qqq'), 'gibberish not answered locally');
 
+/* SWEEP 2026-10-07: new data pages indexed, /follow-the-money canonical path. */
+ok(answered('where is the dossier builder'), 'dossier page -> answered');
+ok(href('where is the dossier builder') === '/dossier', 'dossier deep link correct');
+ok(answered('where is the extraction engine'), 'extraction page -> answered');
+ok(href('where is the extraction engine') === '/extraction', 'extraction deep link correct');
+ok(answered('take me to the war room'), 'war room -> answered');
+ok(href('take me to the war room') === '/war-room', 'war room deep link correct');
+ok(answered('where is follow the money'), 'follow the money -> answered');
+ok(href('where is follow the money') === '/follow-the-money', 'follow-the-money canonical path (not /money)');
+ok(answered('what is the peoples price index'), 'peoples cpi -> answered');
+ok(href('what is the peoples price index') === '/peoples-cpi', 'peoples-cpi deep link correct');
+ok(answered('where is the story remixer'), 'remix page -> answered');
+ok(href('where is the story remixer') === '/remix', 'remix deep link correct');
+
 console.log(failures === 0 ? '\nKARL-COMPANION: all checks passed' : '\nKARL-COMPANION: ' + failures + ' FAILURES');
 process.exit(failures === 0 ? 0 : 1);

@@ -70,7 +70,7 @@
     { p: '/create', t: 'CREATE', d: 'The propaganda workshop. Make it. Ship it.', k: ['create', 'make', 'poster', 'meme', 'workshop', 'forge'] },
     { p: '/bank', t: "THE PEOPLE'S BANK", d: 'Your XP, weaponized. Save it, move it, grow it.', k: ['bank', 'save', 'xp bank'] },
     { p: '/economy', t: 'THE ECONOMY', d: 'Spend XP like it matters. Because it does. FRED briefs here.', k: ['economy', 'fred', 'briefing', 'spend'] },
-    { p: '/money', t: 'FOLLOW THE MONEY', d: 'Follow the money. See who funds the votes.', k: ['money', 'donor', 'funds', 'pac', 'follow the money'] },
+    { p: '/follow-the-money', t: 'FOLLOW THE MONEY', d: 'Follow the money. See who funds the votes.', k: ['money', 'donor', 'funds', 'pac', 'follow the money'] },
     { p: '/fund', t: 'THE PROPAGANDA FUND', d: 'Every cent, accounted for.', k: ['fund', 'propaganda fund'] },
     { p: '/war-chest', t: 'THE WAR CHEST', d: 'Fund the fight. Watch where every cent goes.', k: ['war chest', 'warchest', 'chest'] },
     { p: '/ventures', t: 'JOINT VENTURES', d: 'Pool up. Back creators. Share the spoils.', k: ['venture', 'ventures', 'invest', 'pool'] },
@@ -90,7 +90,15 @@
     { p: '/about', t: 'ABOUT', d: 'What this machine is and why it exists.', k: ['about', 'what is'] },
     { p: '/faqs', t: 'FAQS', d: 'Questions, answered straight.', k: ['faq', 'help', 'question'] },
     { p: '/privacy', t: 'PRIVACY', d: 'Your data, your rules. Aggregate by default, never sold.', k: ['privacy', 'data', 'policy'] },
-    { p: '/terms', t: 'TERMS', d: 'The rules of the road.', k: ['terms', 'tos'] }
+    { p: '/terms', t: 'TERMS', d: 'The rules of the road.', k: ['terms', 'tos'] },
+    { p: '/dossier', t: 'DOSSIER BUILDER', d: 'Pick a Receipt. Add your context. Publish the page.', k: ['dossier', 'dossier builder', 'publish'] },
+    { p: '/town-report', t: 'MY TOWN REPORTS', d: 'Your town\u2019s data. What you\u2019ve seen. Publish the page.', k: ['town report', 'my town reports', 'publish'] },
+    { p: '/extraction', t: 'THE EXTRACTION ENGINE', d: 'Who got paid. What they did. Who got hurt. Every number sourced.', k: ['extraction', 'extraction engine', 'who got paid'] },
+    { p: '/war-room', t: 'THE WAR ROOM', d: 'Debate nights. Election night. History, live.', k: ['war room', 'debate', 'election night', 'live'] },
+    { p: '/remix', t: 'STORY REMIXER', d: 'Sourced stories, citizen evidence. Remix the facts into propaganda.', k: ['remix', 'story remixer', 'remix story'] },
+    { p: '/peoples-cpi', t: "THE PEOPLE'S PRICE INDEX", d: 'Crowdsourced prices. The real cost of living.', k: ['cpi', 'price index', 'prices', 'inflation', 'cost of living'] },
+    { p: '/cell-war', t: 'CELL WAR', d: 'Cell versus cell. Winner takes the week.', k: ['cell war', 'cell battle', 'war'] },
+    { p: '/my-hq', t: 'MY HQ', d: 'Your war, your numbers, your next move — everything within two taps.', k: ['my hq', 'dashboard', 'hq'] }
   ];
 
   var HOWTOS = [
@@ -112,18 +120,42 @@
 
   var PAGE_CTX = {
     '/': { label: 'My HQ dashboard', chips: ['How do I earn XP?', 'Where are my missions?', 'What is the nuke?'] },
+    '/my-hq': { label: 'My HQ dashboard', chips: ['How do I earn XP?', 'Where are my missions?', 'What is the nuke?'] },
     '/economy': { label: 'The Economy', chips: ['How do I spend XP?', "Where is FRED's briefing?", 'What is the People\u2019s Bank?'] },
     '/bank': { label: "The People's Bank", chips: ['How do I spend XP?', 'How do I earn XP?'] },
     '/cells': { label: 'Cells', chips: ['How do I join a cell?', 'What is a cell war?', 'How do contracts work?'] },
+    '/cell-war': { label: 'Cell War', chips: ['How does cell war work?', 'How do I join a cell?'] },
     '/arcade': { label: 'The Arcade', chips: ['What games are there?', 'How do medals work?'] },
     '/war-report': { label: 'War Report', chips: ['Where is my history?', 'How is the winner picked?'] },
     '/call-it': { label: 'CALL IT.', chips: ['How do predictions work?', 'What is the War Room?'] },
+    '/war-room': { label: 'The War Room', chips: ['What is the war room?', 'How do predictions work?'] },
     '/create': { label: 'Create', chips: ['How do I make a poster?', 'How do I share?'] },
+    '/remix': { label: 'Story Remixer', chips: ['How do I remix a story?', 'Where do stories come from?'] },
     '/events': { label: 'Events', chips: ['Anything near me?', 'How do I host?'] },
-    '/money': { label: 'Follow the Money', chips: ['Who funds my rep?', 'What is a dossier?'] },
+    '/follow-the-money': { label: 'Follow the Money', chips: ['Who funds my rep?', 'What is a dossier?'] },
     '/karl': { label: 'Karl', chips: ['Who funds my rep?', 'What did ExxonMobil do?'] },
     '/receipt': { label: 'Receipts', chips: ['Who funds my rep?', 'What is a dossier?'] },
-    '/town': { label: 'Your Town', chips: ['Who owns my zip?', 'What is power mapping?'] }
+    '/dossier': { label: 'Dossier Builder', chips: ['How do I build a dossier?', 'What is a receipt?'] },
+    '/town': { label: 'Your Town', chips: ['Who owns my zip?', 'What is power mapping?'] },
+    '/town-report': { label: 'My Town Reports', chips: ['How do I publish a report?', 'What goes in a town report?'] },
+    '/extraction': { label: 'The Extraction Engine', chips: ['Who got paid?', 'How are numbers sourced?'] },
+    '/peoples-cpi': { label: "The People's Price Index", chips: ['How do I submit a price?', 'What is the CPI?'] },
+    '/liquidation': { label: 'Liquidation Records', chips: ['What is liquidation?', 'How do brackets work?'] },
+    '/governance': { label: 'Governance', chips: ['How does the machine run?', 'Where do I vote?'] },
+    '/fund': { label: 'The Propaganda Fund', chips: ['Where does the money go?', 'How is it funded?'] },
+    '/ventures': { label: 'Joint Ventures', chips: ['How do ventures work?', 'How do I back a creator?'] },
+    '/war-chest': { label: 'The War Chest', chips: ['Where does the money go?', 'How do I contribute?'] },
+    '/store': { label: 'The Store', chips: ['What funds the fight?', 'What is a war bond?'] },
+    '/sick-left-radicals': { label: 'Sick Left Radicals', chips: ['How do I join the roster?', 'Who are the affiliates?'] },
+    '/creator-onboard': { label: 'Creator Onboarding', chips: ['How do I join?', 'What are the requirements?'] },
+    '/request-access': { label: 'Creator HQ Access', chips: ['How do I get access?', 'What is Creator HQ?'] },
+    '/academy': { label: 'The Academy', chips: ['What do I learn?', 'How do I graduate?'] },
+    '/political-hq': { label: 'Political HQ', chips: ['What happens here?', 'How do I plug in?'] },
+    '/podcast': { label: 'The Podcast', chips: ['Where do I listen?', 'What is the show about?'] },
+    '/about': { label: 'About', chips: ['What is this machine?', 'Why does it exist?'] },
+    '/faqs': { label: 'FAQs', chips: ['How do I start?', 'How do I earn XP?'] },
+    /* Synthetic key: set by pageInfo() div-detection for catalog + roster pages. */
+    'roster': { label: 'Sick Left Radicals', chips: ['How do I join the roster?', 'Who are the affiliates?'] }
   };
 
   var STOP = { the: 1, and: 1, 'for': 1, are: 1, with: 1, you: 1, your: 1, this: 1, that: 1, from: 1, what: 1, how: 1, where: 1, when: 1, who: 1, why: 1, can: 1, all: 1, any: 1, out: 1, its: 1, our: 1, has: 1, have: 1, had: 1, was: 1, were: 1, will: 1, would: 1, there: 1, their: 1, them: 1, then: 1, than: 1, into: 1, over: 1, such: 1, does: 1 };
@@ -169,6 +201,15 @@
     try { path = window.location.pathname || '/'; } catch (e) {}
     var key = PAGE_CTX[path] ? path : '/';
     if (path !== '/' && !PAGE_CTX[path]) { key = 'other'; }
+    /* SWEEP 2026-10-07: catalog + roster pages get roster context via mount-div
+       detection — covers all 62 affiliate pages without enumerating slugs. */
+    if (key === 'other') {
+      try {
+        if (document.getElementById('pf-catalog') || document.getElementById('pf-slr-roster')) {
+          key = 'roster';
+        }
+      } catch (e) {}
+    }
     var ctx = PAGE_CTX[key] || { label: 'the site', chips: ['What can I do here?', 'How do I earn XP?', 'Where is the war report?'] };
     return { path: path, label: ctx.label, chips: ctx.chips };
   }

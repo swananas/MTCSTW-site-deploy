@@ -509,7 +509,14 @@ var SECTIONS = {
   'bundle-roster': [
     /* SLR roster/catalog pages — the live Efficiency Index painter. */
     'efficiency.js'
-  ]
+  ],
+  /* 2026-10-07 (fe/data-receipt): THE RECEIPT — the politician money
+     dossier (Data Products Product 1). Self-mounting silo into #pf-receipt;
+     fetched only on /receipt. Read-only, zero XP for viewing; the share
+     painter runs on tap only (butter rule). Kill: ?pf_off=receipt. */
+  'bundle-receipt': [
+    'receipt.js'
+  ],
 };
 
 /* HQ bundle: civic, governance, notify-prefs mount ONLY on /political-hq

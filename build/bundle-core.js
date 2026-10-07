@@ -342,6 +342,17 @@ var BUNDLES = {
     /* 2026-10-06 share-everywhere: territory map + sitewide UGC share bars.
        Right after share-image so PFShare is registered first. */
     'core/share-everywhere.js',
+    /* 2026-10-07 make-shareable-inline: the inline Studio creation panel
+       (MAKE SHAREABLE on every data page — /receipt, /town, /extraction,
+       /index, /karl). Right after share-everywhere so PFShare.paintAsync
+       exists; every v2 page gets it (panel is page-agnostic, products
+       register their own painters). Kill: ?pf_off=make-shareable. */
+    'core/40-make-shareable.js',
+    /* 2026-10-07 corruption-index (Product 4 of 5): THE CORRUPTION INDEX
+       /index page — self-mounting into #pf-index. Leaderboard, methodology,
+       tap-to-expand breakdowns, phq-index-score share cards + MAKE SHAREABLE
+       per score. Zero XP. Kill: ?pf_off=corruption-index. */
+    'pages/index-page.js',
     /* PHQ share posters (2026-10-05, consolidated fe/phq-share-consolidation):
        ~1.5KB lazy stub ONLY. The full painter module
        (core/share-image-phq.js, 23 painters, ~87KB) loads on the first

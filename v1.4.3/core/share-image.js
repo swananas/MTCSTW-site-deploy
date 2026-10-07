@@ -635,14 +635,34 @@
     ORDER.forEach(ensureGame);
   }
 
+  /* fe/make-shareable-inline (2026-10-07): paintAsync(gameId, done) —
+     resolves the product's OWN painter for the inline Studio panel.
+     Custom painters registered via PFShare.setPoster (the CUSTOM registry)
+     are async by contract (fn(done)); REG ids paint synchronously through
+     drawPoster. One API for both, so the panel never duplicates image code
+     and never has to know which kind a painter is. done(canvas|null). */
+  function paintAsync(gameId, done) {
+    done = (typeof done === 'function') ? done : function () {};
+    var cp = null;
+    try { cp = CUSTOM[gameId]; } catch (e) {}
+    if (cp) {
+      try { cp(done); } catch (e) { try { done(null); } catch (e2) {} }
+      return true;
+    }
+    try { done(drawPoster(gameId)); } catch (e) { try { done(null); } catch (e2) {} }
+    return true;
+  }
+
   /* Public API — silos may override poster content later via PFShare.REG.
      poster(gameId, size, opts): opts.linkLabel (story only); opts.frame —
      'subscriber' paints the subscriber-exclusive gold frame, drawn only when
-     PF.isSubscriber() confirms subscriber status (R29, 2026-10-05). */
+     PF.isSubscriber() confirms subscriber status (R29, 2026-10-05).
+     paintAsync(gameId, done): CUSTOM painters first, REG fallback (above). */
   window.PFShare = {
     REG: REG,
     isIOS: isIOS,
     poster: drawPoster,
+    paintAsync: paintAsync,
     posterStory: function (gameId, opts) { try { return drawPoster(gameId, 'story', opts); } catch (e) { return null; } },
     claimGate: claimGate,
     SIZES: { classic: [1080, 1350], story: [1080, 1920] },

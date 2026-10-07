@@ -207,6 +207,8 @@
     var ins = (det.inputs || []).map(inputRowHTML).join('');
     var shareBtn = det.scored
       ? '<button class="pf-idx-share" data-share="' + esc(det.entity.slug) + '">SHARE THIS SCORE</button>' : '';
+    var mssBtn = det.scored
+      ? '<button class="pf-mss-btn" data-mss-index="' + esc(det.entity.slug) + '" style="width:100%;margin:8px 0 2px">MAKE SHAREABLE</button>' : '';
     var web = '';
     if (det.neighbors) {
       var links = '';
@@ -218,7 +220,7 @@
     var head = det.scored
       ? ''
       : '<div class="pf-idx-in-e" style="margin-bottom:10px">INSUFFICIENT DATA — needs ' + esc(det.threshold || '') + '.</div>';
-    return head + ins + receipt + web + shareBtn;
+    return head + ins + receipt + web + shareBtn + mssBtn;
   }
 
   function render() {
@@ -328,6 +330,13 @@
         shareScore(this.getAttribute('data-share'));
       };
     }
+    var mss = root.querySelectorAll('[data-mss-index]');
+    for (var j = 0; j < mss.length; j++) {
+      mss[j].onclick = function (ev) {
+        ev.stopPropagation();
+        openIndexShareable(this.getAttribute('data-mss-index'));
+      };
+    }
   }
 
   function findRow(slug) {
@@ -338,9 +347,9 @@
     return null;
   }
 
-  function shareScore(slug) {
+  function scoreCardData(slug) {
     var r = findRow(slug);
-    if (!r) return;
+    if (!r) return null;
     var det = null;
     for (var k in state.detailCache) {
       if (state.detailCache[k].entity && state.detailCache[k].entity.slug === slug) det = state.detailCache[k];
@@ -349,15 +358,61 @@
       .map(function (x) { return { title: x.title, display: x.raw_display }; }) : [];
     var sub = state.tab === 'companies' || r.industry ? (r.industry || 'COMPANY')
       : [r.office, r.state, r.party].filter(Boolean).join(' · ');
-    var data = { name: r.name, sub: sub, score: r.score, label: r.label,
+    return { name: r.name, sub: sub, score: r.score, label: r.label,
       topInputs: topInputs, vintage: vintageLine(state.scores.vintage_week),
       methodology: state.scores.methodology_version || 'v1' };
+  }
+
+  function shareScore(slug) {
+    var data = scoreCardData(slug);
+    if (!data) return;
     try {
       if (PF && PF.PHQShare && PF.PHQShare.share('phq-index-score', data, { link: '/index#' + slug })) return;
     } catch (e) {}
     try {
       if (PF) PF.toast('Poster failed — try again.');
     } catch (e2) {}
+  }
+
+  /* MAKE SHAREABLE (fe/make-shareable-inline, 2026-10-07): inline Studio
+     creation panel on every score. The score's own 1080x1350 painter
+     (phq-index-score, lazy PHQ module) renders the preview — the resolver
+     polls until the module lands, so first-tap never wedges. One tap
+     publishes to the UGC feed + opens the native share sheet. No page
+     navigation. Zero XP for viewing. */
+  function openIndexShareable(slug) {
+    var M = null;
+    try { M = window.PFMakeShareable; } catch (e) {}
+    if (!M) return;
+    var r = findRow(slug);
+    M.openPanel({
+      kind: 'index', ref: slug,
+      title: 'CORRUPTION INDEX: ' + (r && r.name ? r.name : slug),
+      deep: '/index#' + slug, game: 'index'
+    });
+  }
+  function wireMakeShareableIndex() {
+    var M = null;
+    try { M = window.PFMakeShareable; } catch (e) {}
+    if (!M || M._pfIndexWired) return;
+    M._pfIndexWired = true;
+    M.registerResolver('index', function (unit, done) {
+      var d = null;
+      try { d = scoreCardData(unit.ref); } catch (e) {}
+      if (!d) { try { done(null); } catch (e2) {} return; }
+      var PH = null;
+      try { PH = PF && PF.PHQShare; } catch (e) {}
+      if (!PH || typeof PH.paint !== 'function') { try { done(null); } catch (e2) {} return; }
+      try { if (typeof PH._ensure === 'function') PH._ensure(); } catch (e) {}
+      var tries = 0;
+      (function poll() {
+        var cv = null;
+        try { cv = PH.paint('phq-index-score', d); } catch (e) {}
+        if (cv) { try { done(cv); } catch (e2) {} return; }
+        if (++tries > 80) { try { done(null); } catch (e2) {} return; }
+        setTimeout(poll, 100);
+      })();
+    });
   }
 
   function deepLink() {
@@ -382,6 +437,7 @@
   }
 
   /* boot: scores + methodology in parallel */
+  wireMakeShareableIndex();
   jsonp('index_scores', {}, function (sc) {
     if (!sc || !sc.ok) { fail(); return; }
     state.scores = sc;

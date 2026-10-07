@@ -286,6 +286,32 @@
     lines.forEach(function (l, i) { x.fillText(l, cx, y + i * (size + 12)); });
   }
 
+  /* MAKE SHAREABLE (fe/make-shareable-inline, 2026-10-07): inline Studio
+     creation panel on every town report — the report's own 1080x1350
+     painter (drawShare) renders the preview, one tap publishes to the UGC
+     feed + opens the native share sheet. No page navigation. */
+  function openMakeShareable(r) {
+    var M = null;
+    try { M = window.PFMakeShareable; } catch (e) {}
+    if (!M || !r) return;
+    M.openPanel({
+      kind: 'town', ref: r.zip || '',
+      title: 'WHO OWNS ' + String(r.zip || 'YOUR TOWN').toUpperCase(),
+      deep: '/town?zip=' + encodeURIComponent(r.zip || ''), game: 'town'
+    });
+  }
+  function wireMakeShareable() {
+    var M = null;
+    try { M = window.PFMakeShareable; } catch (e) {}
+    if (!M || M._pfTownWired) return;
+    M._pfTownWired = true;
+    M.registerResolver('town', function (unit, done) {
+      var cv = null;
+      try { if (lastReport) cv = drawShare(lastReport); } catch (e) {}
+      try { done(cv); } catch (e2) {}
+    });
+  }
+
   function shareTown(r) {
     try {
       var cv = drawShare(r);
@@ -341,9 +367,12 @@
         host.querySelector('[data-tn-sticky]').innerHTML = renderSticky(r.sticky, r.area);
         host.querySelector('[data-tn-sharewrap]').innerHTML =
           '<button class="pf-tn-share" data-tn-sharebtn>SHARE THIS TOWN</button>' +
+          '<button class="pf-mss-btn" data-tn-mssbtn style="display:block;margin:10px auto 0;max-width:440px;width:100%">MAKE SHAREABLE</button>' +
           '<div class="pf-tn-note">Zero XP for viewing. Sharing spreads the intel.</div>';
         var btn = host.querySelector('[data-tn-sharebtn]');
         if (btn) btn.addEventListener('click', function () { shareTown(lastReport); });
+        var mss = host.querySelector('[data-tn-mssbtn]');
+        if (mss) mss.addEventListener('click', function () { openMakeShareable(lastReport); });
         try { history.replaceState(null, '', '/town?zip=' + encodeURIComponent(r.zip)); } catch (e) {}
       }, cards.length * 120 + 60);
     });
@@ -383,4 +412,5 @@
   }
 
   mount();
+  wireMakeShareable();
 })();

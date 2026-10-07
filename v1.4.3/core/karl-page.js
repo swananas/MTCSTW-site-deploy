@@ -168,6 +168,7 @@
       }
       render(hero(q) + answerHtml(q, r));
       wire();
+      wireMakeShareable(q, r);
       bindDisamb(q);
       try { document.getElementById('pf-karl-res').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
     });
@@ -186,6 +187,109 @@
     if (ret) bits.push(esc(ret));
     var stale = s.stale ? ' <span class="pf-karl-stale">&#9888; ' + esc(s.stale_note || 'stale') + '</span>' : '';
     return bits.join(' &middot; ') + stale;
+  }
+
+  /* MAKE SHAREABLE (fe/make-shareable-inline, 2026-10-07): inline Studio
+     creation panel on every Karl answer. The answer's own 1080x1350 painter
+     (paintKarlAnswer) renders the preview — facts + source stamps only, no
+     prose, per the Karl copy rules. One tap publishes to the UGC feed +
+     opens the native share sheet. No page navigation. Zero XP for viewing. */
+  var lastAnswer = null;
+  function hashQ(s) {
+    var h = 0; s = String(s || '');
+    for (var i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) | 0; }
+    return (h >>> 0).toString(36);
+  }
+  function kWrap(x, text, maxW) {
+    var words = String(text || '').split(/\s+/), lines = [], line = '';
+    for (var i = 0; i < words.length; i++) {
+      var t = line ? line + ' ' + words[i] : words[i];
+      if (x.measureText(t).width > maxW && line) { lines.push(line); line = words[i]; }
+      else line = t;
+    }
+    if (line) lines.push(line);
+    return lines;
+  }
+  function paintKarlAnswer(a) {
+    var W = 1080, H = 1350, cv, x;
+    try { cv = document.createElement('canvas'); } catch (e) { return null; }
+    cv.width = W; cv.height = H;
+    try { x = cv.getContext('2d'); } catch (e) { return null; }
+    if (!x) return null;
+    var r = a.r || {}, facts = (r.facts || []).slice(0, 3);
+    x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, W, H);
+    x.strokeStyle = '#c1121f'; x.lineWidth = 18; x.strokeRect(16, 16, W - 32, H - 32);
+    x.strokeStyle = '#f5ead6'; x.lineWidth = 3; x.strokeRect(52, 52, W - 104, H - 104);
+    x.textAlign = 'center';
+    var y = 150;
+    x.fillStyle = '#f5ead6'; x.font = '700 32px Arial,sans-serif';
+    x.fillText('\u2605 KARL \u2605', W / 2, y); y += 52;
+    x.fillStyle = '#c9bfa8'; x.font = '700 28px Arial,sans-serif';
+    x.fillText('ASK THE RAILS', W / 2, y); y += 80;
+    x.fillStyle = '#ffffff'; x.font = '900 56px "Arial Black",Arial,sans-serif';
+    kWrap(x, String(a.q || '').toUpperCase(), W - 170).slice(0, 3).forEach(function (l) {
+      x.fillText(l, W / 2, y); y += 68;
+    });
+    y += 30;
+    facts.forEach(function (f) {
+      x.fillStyle = '#c1121f'; x.font = '700 30px Arial,sans-serif';
+      kWrap(x, String(f.label || '').toUpperCase(), W - 170).slice(0, 1).forEach(function (l) {
+        x.fillText(l, W / 2, y); y += 42;
+      });
+      x.fillStyle = '#ffffff'; x.font = '900 64px "Arial Black",Arial,sans-serif';
+      kWrap(x, String(f.value_display || ''), W - 170).slice(0, 2).forEach(function (l) {
+        x.fillText(l, W / 2, y); y += 76;
+      });
+      y += 26;
+    });
+    var src = facts.length && facts[0].source ? facts[0].source : null;
+    if (src && src.name) {
+      x.fillStyle = '#8a8172'; x.font = '400 26px Arial,sans-serif';
+      kWrap(x, 'Source: ' + src.name + (src.period ? ' \u00b7 ' + src.period : ''), W - 170)
+        .slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 36; });
+      y += 20;
+    }
+    /* share-image CTA standard: JOIN THE FIGHT. red bold above MTCSTW.COM */
+    x.fillStyle = '#c1121f'; x.font = '900 52px "Arial Black",Arial,sans-serif';
+    x.fillText('JOIN THE FIGHT.', W / 2, H - 210);
+    x.fillStyle = '#f5ead6'; x.font = '900 40px "Arial Black",Arial,sans-serif';
+    x.fillText('MTCSTW.COM', W / 2, H - 148);
+    x.fillStyle = '#8a8172'; x.font = '400 26px Arial,sans-serif';
+    x.fillText('mtcstw.com/karl', W / 2, H - 96);
+    return cv;
+  }
+  function wireMakeShareable(q, r) {
+    lastAnswer = { q: q, r: r };
+    var M = null;
+    try { M = window.PFMakeShareable; } catch (e) {}
+    if (M && !M._pfKarlWired) {
+      M._pfKarlWired = true;
+      M.registerResolver('karl', function (unit, done) {
+        var cv = null;
+        try { if (lastAnswer) cv = paintKarlAnswer(lastAnswer); } catch (e) {}
+        try { done(cv); } catch (e2) {}
+      });
+      try {
+        if (window.PFShare && PFShare.setPoster) {
+          PFShare.setPoster('karl-answer', function (done) {
+            var c2 = null;
+            try { if (lastAnswer) c2 = paintKarlAnswer(lastAnswer); } catch (e) {}
+            try { done(c2); } catch (e2) {}
+          });
+        }
+      } catch (e) {}
+    }
+    if (!M) return;
+    var b = host.querySelector('[data-karl-mss]');
+    if (b) {
+      b.addEventListener('click', function () {
+        M.openPanel({
+          kind: 'karl', ref: 'q-' + hashQ(q),
+          title: 'KARL ANSWERED: ' + String(q || '').slice(0, 80),
+          deep: '/karl?q=' + encodeURIComponent(q), game: 'karl'
+        });
+      });
+    }
   }
 
   function answerHtml(q, r) {
@@ -242,6 +346,11 @@
           return '<a class="pf-karl-door' + (i ? ' alt' : '') + '" href="' + esc(url) + '">' + esc(l.label) + ' &rarr;</a>';
         }).join('') + '</div>';
     }
+    /* MAKE SHAREABLE: inline creation panel on every answer with facts. */
+    if ((r.facts || []).length) {
+      h += '<div style="text-align:center;margin:16px 0 6px" data-mss-slot>' +
+        '<button type="button" class="pf-mss-btn" data-karl-mss>MAKE SHAREABLE</button></div>';
+    }
     h += '</div>';
     return h;
   }
@@ -259,6 +368,7 @@
             if (!r2) { err('disambiguation query failed'); return; }
             render(hero(q) + answerHtml(q, r2));
             wire();
+            wireMakeShareable(q, r2);
           });
         });
       })(btns[i]);

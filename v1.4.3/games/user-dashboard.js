@@ -7,9 +7,20 @@
 
    1. IDENTITY / USER HUB — callsign, XP, rank + progress to next, streak,
       service-medals rack (device-local, service-medals.js schema, tap a
-      medal to reveal its name), weekly challenge status. No callsign ->
+      medal to reveal its name), theater rack anchor (#pf-theater-rack —
+      REQ-20261006-027: theater.js mounts here in addition to legacy
+      #pf-ranks), weekly challenge status. No callsign ->
       the one-prompt claim card (ONE clear prompt, once ever — reuses the
       existing PF.requireCallsign flow, repaints in place on success).
+   1b. UD-HERO (REQ-20261006-027) — anonymous-only hero: the V3 hero markup
+      (verbatim from pages/home-v2.js heroHTML), CTA wired to the hub's
+      claim flow. Renders ONLY when no callsign. Kill: ?pf_off=ud-hero.
+   1c. UD-MISSIONS (REQ-20261006-027) — the full Daily Orders loop between
+      IDENTITY and FEATURE GRID: today's missions + REPORT BACK + streak
+      line + loot claim. Condensed extraction of games/daily-orders.js
+      (verbatim mission rotation, same pf_orders_v1 schema, same checkin
+      contract — zero new backend logic). Anonymous gets a teaser card.
+      Kill: ?pf_off=ud-missions.
    2. FEATURE GRID — 16 compact link-cards (icon, name, one-liner, deep
       link) + a conditional WAR ROOM card when tiles.warroom signals live.
    3. THE INTEL DESK — the data-products layer: Karl, The Receipt, Who
@@ -266,6 +277,14 @@ function css(){
   +'.ud-btn.ghost{background:transparent;border:1px solid currentColor}'
   +'.ud-btn:active{background:#9c0e18;transform:scale(.98)}'
   +'.ud-btn.ghost:active{background:#1a0d0d}'
+  /* REQ-20261006-027 (ud-missions): mission rows + row buttons. Condensed
+     hub voice — same palette, 44px tap targets, no new visual language. */
+  +'.ud-mrow{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid #1c1c1c;min-height:44px}'
+  +'.ud-mrow:last-child{border-bottom:0}'
+  +'.ud-rbtn{background:#c1121f;color:#fff;border:0;font:800 12px Arial;letter-spacing:1px;padding:0 16px;min-height:44px;border-radius:6px;cursor:pointer;white-space:nowrap;flex:none}'
+  +'.ud-rbtn:active{background:#9c0e18;transform:scale(.98)}'
+  +'.ud-rbtn:disabled{opacity:.55;cursor:default}'
+  +'.ud-mdone{color:#e8b33c;font-weight:800;font-size:12px;letter-spacing:1px;white-space:nowrap;flex:none}';
   +'.ud-dlg-msg{font-size:12px;margin-top:12px;min-height:18px;color:#a89e88}';
   try{ document.head.appendChild(s); }catch(e){}
 }
@@ -330,6 +349,10 @@ function renderIdentity(id,ms){
     +'<div class="ud-meta">'+nextLine+'</div>'
     +'<div class="ud-meta ud-mt6">'+streakLine+'</div>'
     +rackHtml(ms)
+    /* REQ-20261006-027: the Theater Rack anchor — games/theater.js mounts
+       here (in addition to legacy #pf-ranks). Campaign ribbons below the
+       weekly service medals: same military-awards language, longer horizon. */
+    +'<div id="pf-theater-rack"></div>'
     +chLine
     +'</div>');
 }
@@ -353,6 +376,309 @@ function linkGrid(t,cs,tl){
       +'<span class="ud-tx"><span class="ud-nm">'+esc(c[1])+'</span><span class="ud-ds">'+esc(c[2])+'</span>'
       +(s?'<span class="ud-tl">'+esc(s)+'</span>':'')+'</span></a>'; }
   return sec(t,h+'</div>');
+}
+/* ================= UD-HERO (REQ-20261006-027) =================
+   Anonymous-only hero: the V3 hero markup, copied verbatim from
+   pages/home-v2.js heroHTML() (kicker, H1, subhead, CTA). Renders ONLY
+   when the visitor has no callsign — signed-in users see their hub, not
+   the pitch. The CTA (id udHeroClaim) is wired in bind() to the hub's
+   existing requireCallsign claim flow (in-place repaint, no reload).
+   "See how it works" anchors to the hub itself (#xUserDash) — the old
+   homepage's #pf-brief anchor is gone with the old homepage.
+   KILL: ?pf_off=ud-hero. */
+function renderHero(){
+  if(PF.skip('ud-hero')) return '';
+  return '<div class="ud-sec"><div id="pf-hero" style="max-width:min(860px,94vw);margin:0 auto;padding:56px 20px 40px;text-align:center;box-sizing:border-box;">'
+    +'<div style="font-size:12px;letter-spacing:5px;color:#c1121f;font-weight:800;margin-bottom:14px;">THE PROPAGANDA FACTORY</div>'
+    +'<h1 style="font-family:&#39;Arial Black&#39;,Arial,sans-serif;font-size:clamp(2rem,8vw,3.6rem);letter-spacing:2px;color:#f5ead6;margin:0 0 14px;text-transform:uppercase;line-height:1.1;">Join the Propaganda Factory</h1>'
+    +'<p style="font-size:clamp(1rem,3.5vw,1.25rem);color:#b8ab8e;line-height:1.6;margin:0 0 26px;max-width:600px;margin-left:auto;margin-right:auto;">62 sick radicals. Real data on the billionaires. Daily missions. Enlist in 30 seconds — free forever.</p>'
+    +'<a href="#" id="udHeroClaim" style="display:inline-block;min-height:44px;line-height:44px;background:#c1121f;color:#fff;font-weight:800;font-size:17px;padding:6px 38px;text-decoration:none;letter-spacing:2px;border:2px solid #fff;">CLAIM YOUR CALLSIGN &rarr;</a>'
+    +'<div style="margin-top:16px;"><a href="#xUserDash" style="color:#b8ab8e;font-size:14px;text-decoration:underline;">See how it works &darr;</a></div>'
+    +'</div></div>';
+}
+/* ================= UD-MISSIONS (REQ-20261006-027) =================
+   The Daily Orders loop, native in the hub — between IDENTITY and FEATURE
+   GRID. Condensed extraction of games/daily-orders.js:
+   - UMISS: the 30 missions, copied VERBATIM (same dayOfYear rotation, so
+     today's missions match the homepage silo exactly; wild-find missions
+     appended the same way when PF.wildFinds exists).
+   - Same pf_orders_v1 / pf_ranks_v1 device-ledger schema and the same
+     checkin backend contract (PF.postAction 'stats'/'checkin' with
+     auth_secret; server-wins merge; snapshot rollback on failure), so both
+     surfaces stay in sync. Streak-milestone + command bonuses route through
+     the shared PF.claimDayXp pool exactly like the silo.
+   - Streak line from dashboard_init.identity.streak (zero new backend
+     calls); loot claim replicates the silo's dopamine loot_open POST.
+   - Deliberate condensations: no platform picker (platform:null is accepted
+     by the checkin contract), no raid/boost/patron/release rows
+     (homepage-only), field-op DEPLOY links to the game's page (the op
+     auto-completes in its silo; op_done syncs back on the next checkin).
+   KILL: ?pf_off=ud-missions. */
+var UMISS=[
+"Like the latest post from 3 SLR creators you haven't engaged with this week.",
+"Share one SLR creator's post to your story or feed. Pick your favorite.",
+"Leave a genuine comment on a small SLR creator's latest video.",
+"Like 5 SLR posts in a row. Speed round.",
+"Comment one thoughtful question on any SLR creator's latest post.",
+"Share any SLR creator's post — not mutual aid, just straight propaganda. Any post works, pick a banger.",
+"Like and comment on the newest post from the lowest-ranked creator on the Ledger. Lift from the bottom.",
+"Send one SLR creator's page to a group chat. Convert the group chat.",
+"Quote-share an SLR post and add why it matters to you.",
+"Drop a brick emoji in the comments of 3 SLR posts. Mark the territory.",
+"Like every post from the last 7 days on one SLR creator's page. Deep like.",
+"Share one SLR video to a group or community you're in.",
+"Leave an encouraging comment on an SLR creator dealing with hate or burnout.",
+"Like and comment on 2 SLR creators outside your usual niche.",
+"Share the Liquidation Ledger and tag your #1 SLR creator.",
+"Comment your favorite SLR creator's catchphrase under their latest post.",
+"Like 3 SLR posts and reply to one commenter on each. Build the thread.",
+"Share an old banger from an SLR creator's archive. Deep cut.",
+"Comment on one SLR post with a class-first take that sharpens the argument.",
+"Like and share one SLR creator's announcement — a show, a stream, a drop.",
+"Duet or stitch one SLR creator's video with your own take.",
+"Comment on 3 SLR posts from creators with different propaganda scores. Spread it around.",
+"Share one SLR creator's post with someone who 'doesn't do politics'.",
+"Like the latest 5 posts from today's Propagandist of the Week.",
+"Leave a real comment — 3 sentences or more — on one SLR video.",
+"Share one SLR creator's catalog profile from this site with a friend.",
+"Comment on one SLR post tagging another SLR creator who'd vibe with it. Cross-pollinate.",
+"Like and share a post from the newest SLR recruit. Welcome them in.",
+"Post a screenshot of an SLR post you liked and say why it hit.",
+"Rest. Like one SLR post, touch grass, come back tomorrow — the streak keeps."
+];
+try{
+  if(window.PF&&PF.wildFinds&&typeof PF.wildFinds.missions==='function'){
+    var _ufm=PF.wildFinds.missions();
+    for(var _ufi=0;_ufi<_ufm.length;_ufi++) UMISS.push(_ufm[_ufi]);
+  }
+}catch(e){}
+/* Field ops: game key / label / deploy URL. Same order and same dayOfYear
+   formula as the homepage silo — today's op matches there exactly. */
+var UOPS=[
+["fan-vote","Cast your Fan Vote ballot","/#pf-vote"],
+["bracket-board","Call a Liquidation Bracket matchup","/liquidation"],
+["caption-combat","Fire a caption in Caption Combat","/arcade"],
+["poster-forge","Forge a propaganda poster","/create"],
+["slr-match-quiz","Find your SLR match","/sick-left-radicals"],
+["creator-guess","Play Guess the Creator","/arcade"],
+["daily-orders","Report back on today's headline mission","#udMissions"],
+["brief","Claim today's Daily Drop","/political-hq"]];
+var ULS_O="pf_orders_v1",ULS_R="pf_ranks_v1",U_DAILY_MAX=25,UBASE_XP=5,UCMD_XP=5;
+var USTREAK_BONUS={3:10,7:25,30:100};
+function uload(k,fb){ try{ return JSON.parse(localStorage.getItem(k)||JSON.stringify(fb)); }catch(e){ return fb; } }
+function usave(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+function udoy(){ var d=new Date(),s=new Date(d.getFullYear(),0,0); return Math.floor((d-s)/864e5); }
+function umset(){ var d=udoy(),out=[]; for(var i=0;i<3;i++) out.push((d*3+i)%UMISS.length); return out; }
+function uchiDay(off){
+  var d; try{ d=PF.chiNow(); }catch(e){ d=new Date(); }
+  if(off) d.setDate(d.getDate()+off);
+  return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
+}
+function udayRec(){
+  var o=uload(ULS_O,{streak:0,last:"",days:{}}),t=uchiDay(0),r=o.days[t];
+  if(!r||!r.done) r={done:[],xp:0,bonusPaid:false};
+  if(typeof r.xp!=="number") r.xp=0;
+  return {o:o,rec:r};
+}
+function usaveDay(o,rec){ o.days[uchiDay(0)]=rec; usave(ULS_O,o); }
+/* Server-wins merge — mirrors daily-orders.js mergeCheckinState. */
+function umergeState(j){
+  if(!j||!j.ok) return;
+  var r=uload(ULS_R,{xp:0,got:{}});
+  if(typeof j.xp==="number"&&j.xp>r.xp){ r.xp=j.xp; usave(ULS_R,r); }
+  var d=udayRec();
+  if(typeof j.streak==="number"&&j.streak>(d.o.streak||0)) d.o.streak=j.streak;
+  if(j.last_day&&(!d.o.last||j.last_day>d.o.last)) d.o.last=j.last_day;
+  var plats=j.today_platforms||[];
+  (j.today_done||[]).forEach(function(mm,ix){
+    var key=String(mm);
+    if(!d.rec.done.some(function(x){ return String(x.m)===key; })) d.rec.done.push({m:mm,p:plats[ix]||null,g:0});
+  });
+  if(j.op_done) d.rec.opDone=true;
+  usaveDay(d.o,d.rec);
+  umergePaint();
+}
+/* Full-deployment command bonus — mirrors daily-orders.js maybeCommandBonus. */
+function umaybeCmd(){
+  var d=udayRec(),t=uchiDay(0);
+  if(d.rec.done.length>=3&&d.rec.opDone&&!d.rec.cmdPaid){
+    d.rec.cmdPaid=true; usaveDay(d.o,d.rec);
+    var r=uload(ULS_R,{xp:0,got:{}}),key="order_cmd_"+t,got=0;
+    if(r.got[key]!==t){ r.got[key]=t; try{ got=(window.PF&&PF.claimDayXp)?PF.claimDayXp(UCMD_XP):UCMD_XP; }catch(e){ got=UCMD_XP; } r.xp+=got; usave(ULS_R,r); }
+    return got;
+  }
+  return 0;
+}
+function ucheckin(mi,btn){
+  var idn=ident(); if(!idn.callsign) return;
+  var d=udayRec(),o=d.o,rec=d.rec,t=uchiDay(0);
+  if(rec.done.some(function(x){ return String(x.m)===String(mi); })) return;
+  var preO=null,preR=null;
+  try{ preO=localStorage.getItem(ULS_O); preR=localStorage.getItem(ULS_R); }catch(e){}
+  var firstToday=rec.done.length===0;
+  var cellMult=(typeof window.pfCellMult==="function")?window.pfCellMult():1;
+  var want=Math.round(UBASE_XP*Math.max(1,cellMult));
+  var gained=0;
+  try{ gained=(window.PF&&PF.claimDayXp)?PF.claimDayXp(want):Math.min(want,Math.max(0,U_DAILY_MAX-(rec.xp||0))); }
+  catch(e){ gained=Math.min(want,Math.max(0,U_DAILY_MAX-(rec.xp||0))); }
+  var bonus=0;
+  if(firstToday){
+    if(o.last===uchiDay(-1)){ o.streak=(o.streak||0)+1; }
+    else if(o.last&&o.last!==t&&(o.shields||0)>0){ o.shields--; }
+    else { o.streak=1; }
+    o.last=t;
+    if(USTREAK_BONUS[o.streak]&&!rec.bonusPaid){
+      try{ bonus=(window.PF&&PF.claimDayXp)?PF.claimDayXp(USTREAK_BONUS[o.streak]):USTREAK_BONUS[o.streak]; }catch(e){ bonus=USTREAK_BONUS[o.streak]; }
+      rec.bonusPaid=true;
+    }
+    if(o.streak%7===0&&o.lastShieldAt!==o.streak){ o.shields=(o.shields||0)+1; o.lastShieldAt=o.streak; }
+  }
+  rec.done.push({m:String(mi),p:null,g:gained}); rec.xp=(rec.xp||0)+gained; usaveDay(o,rec);
+  var cmd=umaybeCmd();
+  var r=uload(ULS_R,{xp:0,got:{}}),key="order_"+t+"_"+mi;
+  if(r.got[key]!==t){ r.got[key]=t; r.xp+=gained; usave(ULS_R,r); }
+  try{ document.dispatchEvent(new CustomEvent("pf-order-checkin",{detail:{day:t,mission:mi,reportNo:rec.done.length,xp:gained+bonus+cmd,streak:o.streak||0,platform:null}})); }catch(e){}
+  umergePaint();
+  var payload={callsign:idn.callsign,device:idn.device,day:t,mission:mi,platform:null,spread:0,gained:gained+bonus+cmd};
+  try{
+    if(window.PF&&PF.postAction){
+      PF.postAction("stats","s_action","checkin",payload,function(j){
+        if(j&&j.ok){ umergeState(j); return; }
+        /* Server-wins rollback: restore the pre-checkin snapshot (removing
+           keys that didn't exist before), repaint, say so plainly —
+           mirrors the silo's C5 pattern, condensed. */
+        try{
+          if(preO==null){ try{ localStorage.removeItem(ULS_O); }catch(x){} } else localStorage.setItem(ULS_O,preO);
+          if(preR==null){ try{ localStorage.removeItem(ULS_R); }catch(x){} } else localStorage.setItem(ULS_R,preR);
+        }catch(e2){}
+        try{ document.dispatchEvent(new CustomEvent("pf-order-checkin-reverted",{detail:{day:t,mission:mi,reverted:true}})); }catch(e4){}
+        umergePaint();
+        try{ if(window.PF&&PF.toast) PF.toast("Report failed — rolled back. Tap REPORT BACK to retry."); }catch(e3){}
+      });
+    }
+  }catch(e){}
+}
+/* Re-render just the missions section in place (after checkin/merge). */
+function umergePaint(){
+  try{
+    var root=document.getElementById("xUserDash");
+    if(!root||!root._udCtx) return;
+    var c=root._udCtx,sec=document.getElementById("udMissions");
+    if(!sec) return;
+    var tmp=document.createElement("div");
+    tmp.innerHTML=renderMissions(c.j,c.idn);
+    var fresh=tmp.firstChild;
+    if(!fresh) return;
+    sec.parentNode.replaceChild(fresh,sec);
+    bindMissions(root,c.j,c.idn);
+  }catch(e){}
+}
+/* Loot availability + claim — replicates the silo's dopamine loot flow
+   (dopamine_status signed-in auth read; loot_open user-gesture POST). */
+function umLootAvail(idn,cb){
+  var done=function(j){
+    var av=null;
+    try{ var l=j&&j.loot; if(l&&l.claimed_today===false) av=true; else if(l&&l.claimed_today===true) av=false; }catch(e){}
+    cb(av);
+  };
+  try{
+    if(window.PF&&PF.authGetJSONP&&window.PF_BACKEND_URL){
+      PF.authGetJSONP(window.PF_BACKEND_URL,"dopamine_status",{callsign:idn.callsign,device:idn.device||""},done);
+      return;
+    }
+  }catch(e){}
+  done(null);
+}
+function umLootClaim(idn){
+  var body={type:"loot",l_action:"loot_open",callsign:idn.callsign,device:idn.device||""};
+  var url=window.PF_BACKEND_URL;
+  function done(j){
+    var el=document.getElementById("udMLootState");
+    if(j&&j.ok&&j.reward){
+      var got=Number((j.reward&&j.reward.xp)||0);
+      if(el) el.innerHTML='<span class="ud-mdone">CRATE CLAIMED ✓ +'+got+' XP</span>';
+      try{ if(window.PF&&PF.toast) PF.toast("Loot claimed. +"+got+" XP."); }catch(e){}
+      try{ document.dispatchEvent(new CustomEvent("pf-combo-hit")); }catch(e2){}
+    }else{
+      if(el) el.innerHTML='<button class="ud-rbtn" id="udMLootBtn">OPEN IT</button>';
+      bindMissionsLoot(idn);
+      try{ if(window.PF&&PF.toast) PF.toast("Claim failed — try again."); }catch(e3){}
+    }
+  }
+  try{ if(window.PF&&PF.authPost){ PF.authPost(url,body,done); return; } }catch(e){}
+  try{
+    fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+      .then(function(r){ return r.json(); }).then(function(j){ done(j||{ok:false}); })
+      .catch(function(){ done(null); });
+  }catch(e2){ done(null); }
+}
+function bindMissionsLoot(idn){
+  try{
+    var lb=document.getElementById("udMLootBtn");
+    if(lb) lb.addEventListener("click",function(){
+      lb.disabled=true; lb.textContent="CRACKING…";
+      umLootClaim(idn);
+    });
+  }catch(e){}
+}
+function renderMissions(j,idn){
+  if(PF.skip("ud-missions")) return "";
+  var signedIn=!!(j&&j.signed_in&&j.identity);
+  if(!signedIn){
+    return '<div class="ud-sec" id="udMissions"><div class="ud-h">DAILY ORDERS</div>'
+      +'<div class="ud-card"><div class="ud-vp">Today\\u2019s missions are live.</div>'
+      +'<div class="ud-meta ud-mb10">3 orders a day. Report back. Build the streak. Crack the loot crate.</div>'
+      +'<button class="ud-claim" id="udClaimMissions">CLAIM YOUR CALLSIGN TO PLAY</button></div></div>';
+  }
+  var set=umset(),d=udayRec(),rec=d.rec;
+  var st=(j.identity&&j.identity.streak)||{};
+  var streakLine='<span class="ud-streak">\\uD83D\\uDD25 '+Number(st.count||0)+'-day streak</span>';
+  if(st.at_risk) streakLine+=' <span class="ud-warn">— CHECK IN TODAY OR IT DIES</span>';
+  else if(st.checked_in_today) streakLine+=' <span class="ud-ok">— safe today</span>';
+  var h='<div class="ud-sec" id="udMissions"><div class="ud-h">DAILY ORDERS</div><div class="ud-card ud-dense">';
+  h+='<div class="ud-meta ud-mb10">'+streakLine+'</div>';
+  for(var i=0;i<set.length;i++){
+    var mi=set[i],m=UMISS[mi]||"";
+    var done=rec.done.some(function(x){ return String(x.m)===String(mi); });
+    h+='<div class="ud-mrow"><span class="ud-what">'+esc(m)+'</span>'
+      +(done?'<span class="ud-mdone">REPORTED ✓</span>'
+            :'<button class="ud-rbtn" data-um="'+mi+'">REPORT BACK</button>')
+      +'</div>';
+  }
+  var op=UOPS[udoy()%UOPS.length],opDone=!!rec.opDone;
+  h+='<div class="ud-mrow"><span class="ud-what"><b>FIELD OP</b> — '+esc(op[1])+'</span>'
+    +(opDone?'<span class="ud-mdone">COMPLETE ✓</span>'
+            :'<a class="ud-rbtn" style="text-decoration:none;display:inline-flex;align-items:center;" href="'+safeUrl(op[2])+'">DEPLOY →</a>')
+    +'</div>';
+  h+='<div class="ud-mrow" id="udMLootRow"><span class="ud-what">Daily loot crate</span><span class="ud-meta" id="udMLootState">checking…</span></div>';
+  var ord=j&&j.orders;
+  if(ord&&typeof ord.raiders==="number")
+    h+='<div class="ud-meta ud-mt6">'+fmtNum(ord.raiders)+' soldiers reported today</div>';
+  return h+'</div></div>';
+}
+function bindMissions(root,j,idn){
+  try{
+    var cm=root.querySelector("#udClaimMissions");
+    if(cm) cm.addEventListener("click",function(){ udClaimFlow(); });
+    var btns=root.querySelectorAll('button[data-um]');
+    for(var i=0;i<btns.length;i++){
+      (function(b){
+        b.addEventListener("click",function(){ ucheckin(b.getAttribute("data-um"),b); });
+      })(btns[i]);
+    }
+    if(idn&&idn.callsign){
+      umLootAvail(idn,function(av){
+        var st=document.getElementById("udMLootState");
+        if(!st) return;
+        if(av===true){ st.innerHTML='<button class="ud-rbtn" id="udMLootBtn">OPEN IT</button>'; bindMissionsLoot(idn); }
+        else if(av===false){ st.innerHTML='<span class="ud-mdone">CLAIMED ✓</span>'; }
+        else { st.textContent=""; }
+      });
+    }else{
+      var st2=document.getElementById("udMLootState");
+      if(st2) st2.textContent="";
+    }
+  }catch(e){}
 }
 /* WAR ROOM — the conditional feature-grid card: only when the backend
    signals a live or scheduled event (tiles.warroom). Absent = skipped. */
@@ -638,7 +964,19 @@ function renderSignedOut(){
     +'your XP, rank, streak and activity — or claim one below.</div>'
     +'<button class="ud-claim" id="udClaim">CLAIM YOUR CALLSIGN</button></div>');
 }
-function bind(root,karlCtx){
+/* CLAIM CALLSIGN — shared claim flow: in-place repaint (no location.reload):
+   re-read the identity, show the skeleton, re-run dashboard_init. Used by
+   #udClaim, #udHeroClaim (REQ-20261006-027 hero CTA) and #udClaimMissions
+   (missions teaser CTA). */
+function udClaimFlow(){
+  try{
+    if(window.PF&&PF.requireCallsign){ PF.requireCallsign(function(){
+      var xr=document.getElementById('xUserDash'); if(xr&&xr._repaint) xr._repaint();
+    },{context:'to open your HQ'}); return; }
+  }catch(e){}
+  try{ location.href='/'; }catch(e2){}
+}
+function bind(root,karlCtx,j,idn){
   /* ASK KARL — wire the chat form + suggestion chips. */
   bindKarl(root,karlCtx||{});
   /* MEDAL RACK — tap a medal to reveal its name (touch-friendly tooltip). */
@@ -658,19 +996,16 @@ function bind(root,karlCtx){
       })(racks[ri]);
     }
   }catch(e){}
-  /* CLAIM CALLSIGN — in-place repaint (no location.reload): re-read the
-     identity, show the skeleton, re-run dashboard_init. */
+  /* CLAIM CALLSIGN — in-place repaint (no location.reload): the shared
+     udClaimFlow (claim card, hero CTA, missions teaser CTA). */
   try{
     var b=root.querySelector('#udClaim');
-    if(b) b.addEventListener('click',function(){
-      try{
-        if(window.PF&&PF.requireCallsign){ PF.requireCallsign(function(){
-          var xr=document.getElementById('xUserDash'); if(xr&&xr._repaint) xr._repaint();
-        },{context:'to open your HQ'}); return; }
-      }catch(e){}
-      try{ location.href='/'; }catch(e2){}
-    });
+    if(b) b.addEventListener('click',function(){ udClaimFlow(); });
+    var hc=root.querySelector('#udHeroClaim');
+    if(hc) hc.addEventListener('click',function(e){ try{ e.preventDefault(); }catch(x){} udClaimFlow(); });
   }catch(e){}
+  /* UD-MISSIONS — REPORT BACK buttons, loot claim, teaser CTA. */
+  bindMissions(root,j,idn);
   /* DELETE MY DATA — reuses the footer silo's dialog if present, else runs the erase directly. */
   try{
     var d=root.querySelector('#udDeleteData');
@@ -751,26 +1086,42 @@ function load(){
     var hasCallsign=!!idn.callsign;
     var tiles=(j&&j.tiles)?j.tiles:{};
     var h='';
-    if(!hasCallsign&&!signedIn) h+=renderIdentity(null,ms);
+    var anon=!hasCallsign&&!signedIn;
+    /* REQ-20261006-027: anonymous visitors get the hero first (renders ONLY
+       when no callsign), then a slimmed dashboard teaser — the claim card,
+       the missions teaser, the feature grid + unlock line, and today's
+       public tiles. No Karl chat, no calendar: slimmed, per spec. */
+    if(anon) h+=renderHero();
+    if(anon) h+=renderIdentity(null,ms);
     else if(!signedIn) h+=renderSignedOut();
     else h+=renderIdentity(j.identity,ms);
-    /* The hub core renders for everyone — useful before enlistment too. */
-    h+=renderToday(tiles);
-    h+=renderKarl();
-    h+=renderFeatureGrid(tiles);
-    h+=linkGrid('THE INTEL DESK',INTEL);
-    h+=linkGrid('MAKE IT YOURS',MINE);
-    h+=renderCalendar(j?j.calendar:null);
-    if(signedIn){
-      h+=renderActivity(j.activity,ms);
-      h+=renderEcon(j.econ);
+    /* REQ-20261006-027: ud-missions sits between IDENTITY and FEATURE GRID —
+       the full Daily Orders loop for the enlisted, a teaser for the rest. */
+    h+=renderMissions(j,idn);
+    if(anon){
+      h+=renderFeatureGrid(tiles);
+      h+='<div class="ud-sec"><div class="ud-meta" style="text-align:center">Claim your callsign to unlock your XP, rank, streak and medals.</div></div>';
+      h+=renderToday(tiles);
+    }else{
+      /* The hub core renders for everyone — useful before enlistment too. */
+      h+=renderToday(tiles);
+      h+=renderKarl();
+      h+=renderFeatureGrid(tiles);
+      h+=linkGrid('THE INTEL DESK',INTEL);
+      h+=linkGrid('MAKE IT YOURS',MINE);
+      h+=renderCalendar(j?j.calendar:null);
+      if(signedIn){
+        h+=renderActivity(j.activity,ms);
+        h+=renderEcon(j.econ);
+      }
     }
+    try{ root._udCtx={j:j,idn:idn}; }catch(e){}
     if(!h){ root.innerHTML='<div class="ud-meta">The HQ failed to muster. <a class="ud-link" href="javascript:location.reload()">Reload</a>.</div>'; return; }
     root.innerHTML=h;
     /* Staggered section entry: 60ms per section, fade + slight rise. */
     try{ var _ss=root.querySelectorAll('.ud-sec'); for(var _si=0;_si<_ss.length;_si++){ _ss[_si].style.animationDelay=(60+_si*60)+'ms'; } }catch(e){}
     animBars();
-    bind(root,karlContext(idn,ms,j));
+    bind(root,karlContext(idn,ms,j),j,idn);
   }
   function fetch(){
     var my=++seq; painted=false;

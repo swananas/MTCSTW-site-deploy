@@ -7,7 +7,11 @@
    attached automatically). If an action 404s (backend not deployed yet) the
    surface renders a "Command is wiring this" placeholder — never a trace.
    Zero XP for viewing anything. All server strings escaped.
-   KILL: ?pf_off=theater  or  localStorage pf_disabled_v1='["theater"]' */
+   KILL: ?pf_off=theater  or  localStorage pf_disabled_v1='["theater"]'
+   REQ-20261006-027 (2026-10-07): the rack ALSO mounts on My HQ's
+   #pf-theater-rack anchor (My HQ IDENTITY, below the medals rack) — the
+   rack is the campaign layer above the weekly service medals. Auth-gated,
+   zero-XP, fail-soft — all preserved. */
 (function () {
   'use strict';
   var PF = window.PF;
@@ -145,6 +149,15 @@
       + "#pf-brief .th-dlabel{font:9px monospace;color:#888;letter-spacing:1px;text-align:center}"
       + "#pf-brief .th-dot.got .th-dlabel{color:#e8b64c}"
       + "#pf-brief .th-chase-wire{font:12px monospace;color:#ff5a00;letter-spacing:1px}";
+    /* REQ-20261006-027 (2026-10-07): the rack also mounts on My HQ's
+       #pf-theater-rack anchor (My HQ IDENTITY, below the medals rack).
+       One regex groups every "#pf-ranks .th-*" rule with its
+       "#pf-theater-rack .th-*" twin — no duplicated rule text, zero
+       behavior change on the legacy #pf-ranks surface. */
+    try {
+      s.textContent = String(s.textContent).replace(
+        /#pf-ranks (\.th-[a-z-]+)/g, "#pf-ranks $1,#pf-theater-rack $1");
+    } catch (e) {}
     document.head.appendChild(s);
   }
 
@@ -245,7 +258,10 @@
   }
   function mountRack() {
     if (document.getElementById("thRack")) return;
-    var host = document.getElementById("pf-ranks");
+    /* REQ-20261006-027: legacy #pf-ranks first, then My HQ's
+       #pf-theater-rack anchor (My HQ IDENTITY, below the medals rack). */
+    var host = document.getElementById("pf-ranks")
+      || document.getElementById("pf-theater-rack");
     if (!host) return;
     host.appendChild(rackShell());
     var id = ident();
@@ -339,7 +355,10 @@
   }
 
   css();
-  waitFor("#pf-ranks", function () { mountRack(); });
+  /* REQ-20261006-027: rack mounts on legacy #pf-ranks AND My HQ's
+     #pf-theater-rack anchor (whichever exists first; mountRack prefers
+     #pf-ranks). Auth-gated, zero-XP, fail-soft — all preserved. */
+  waitFor("#pf-ranks,#pf-theater-rack", function () { mountRack(); });
   waitFor("#xBrief", function () {
     /* V3 homepage (2026-10-07, fe/home-redesign "unclunk"): the consolidated
        brief block owns #xBrief — no injected chase strip. Rank display on v3

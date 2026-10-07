@@ -180,6 +180,19 @@
     try { var m = document.getElementById('pf-sharein-modal'); if (m && m.parentNode) m.parentNode.removeChild(m); } catch (e) {}
   }
 
+  /* Escape closes the open composer (2026-10-06: butter-list item that
+     didn't land). Guarded to the modal's own element so it only fires
+     when the composer is actually up — each overlay closes itself. */
+  try {
+    document.addEventListener('keydown', function (e) {
+      try {
+        if (!e || e.key !== 'Escape') return;
+        var m = document.getElementById('pf-sharein-modal');
+        if (m && m.parentNode) close();
+      } catch (e2) {}
+    });
+  } catch (e3) {}
+
   /* Outward pipeline hook: the SHARE PUBLIC card rides the existing
      share-everywhere networks row (intent links), prefilled with the
      user's own caption + URL. */

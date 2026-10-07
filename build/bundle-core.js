@@ -312,6 +312,15 @@ var TOWNREPORT_FILES = [
   'core/town-report.js'
 ];
 
+/* KARL COMPANION (fe/karl-companion, 2026-10-07): the site's voice — floating
+   contextual assistant on every page. Lazy chunk, loaded sitewide after idle
+   by the footer loader (jsCompanion). Local site index answers instantly;
+   the Karl AI worker handles deep questions. Zero critical-path weight.
+   Kill: ?pf_off=karl-companion. */
+var COMPANION_FILES = [
+  'core/karl-companion.js'
+];
+
 /* FRED Everywhere Phase 2 (2026-10-05): the three user modeling tools —
    Tool 1 Stack 'Em, Tool 2 explainer, Tool 3 Receipt check. Lazy chunk
    (core/bundle-fred-tools.js) for non-money pages; the money page ships
@@ -336,6 +345,9 @@ var BUNDLES = {
   /* UGC TOWN REPORT BUILDER (fe/ugc-town-report): lazy chunk — NOT in the
      critical path. Fetched only on /town-report. */
   'core/bundle-town-report': TOWNREPORT_FILES.slice(),
+  /* KARL COMPANION (fe/karl-companion): lazy chunk — NOT in the critical
+     path. Loaded sitewide after idle via the footer loader's jsCompanion. */
+  'core/bundle-karl-companion': COMPANION_FILES.slice(),
   /* FRED Everywhere Phase 2 (2026-10-05): the three user modeling tools as
      a lazy chunk — Tool 1 Stack 'Em (curated/guided/full), Tool 2 explainer,
      Tool 3 Receipt check. Fetched only when a tool host exists (#pf-economy,

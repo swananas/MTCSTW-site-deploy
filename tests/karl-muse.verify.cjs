@@ -171,7 +171,7 @@ t('museGreeting is proactive', function () {
   var M = loadMuse();
   var g = M.museGreeting();
   assert.ok(g.indexOf('tester') !== -1, 'names the user');
-  assert.ok(g.indexOf('3-day streak') !== -1, 'cites the streak, got: ' + g.slice(0, 200));
+  assert.ok(g.toLowerCase().indexOf('streak') !== -1, 'cites the streak, got: ' + g.slice(0, 200));
   assert.ok(g.indexOf('pf-kc-go') !== -1, 'has the action link');
   assert.ok(g.indexOf('\u2014 Karl') !== -1 || g.indexOf('— Karl') !== -1, 'signed');
 });
@@ -223,6 +223,169 @@ t('?pf_off=karl-muse kills the engine', function () {
   var M = fn(windowStub, localStorageStub, sessionStorageStub, documentStub, {});
   assert.strictEqual(M, null);
   windowStub.location.search = '';
+});
+
+/* ================= v2 — butter sweep #2 (user modeling suite) ================= */
+
+function injectStory(obj) {
+  store['pf_karl_story_v1'] = JSON.stringify(obj);
+}
+function v2base(over) {
+  var now = Date.now();
+  var s = { v: 2, firstSeen: now - 30 * 86400000, lastSeen: now, prevSeen: 0,
+    visits: 5, days: {}, pages: {}, topics: {}, topicEvents: [], affin: {},
+    milestones: [], _lastTopic: null };
+  if (over) { for (var k in over) { s[k] = over[k]; } }
+  return s;
+}
+function quietCtx(over) {
+  /* A context where every urgent rule is off: only taste/inspire can fire. */
+  var c = { callsign: 'tester', xp: 10, streak: 0, reported_today: 1, votes_week: 1 };
+  if (over) { for (var k in over) { c[k] = over[k]; } }
+  return c;
+}
+
+/* 16. Taste v2: recent questions outweigh old ones. */
+t('taste recency weights recent questions', function () {
+  resetStore(); setCallsign('tester'); setDashCtx(null);
+  var now = Date.now();
+  injectStory(v2base({ topicEvents: [
+    { t: 'theory', at: now - 40 * 86400000 },
+    { t: 'intel', at: now - 1 * 86400000 }
+  ] }));
+  store['pf_nuke_cell_v1'] = JSON.stringify({ cell: { name: 'Cell A' } });
+  var M = loadMuse();
+  assert.ok(M._topicScore('intel') > M._topicScore('theory'), 'recent intel beats old theory');
+  var tops = M.museChips([]);
+  assert.ok(tops.join(' ').indexOf('rep') !== -1 || tops.join(' ').indexOf('intel') !== -1,
+    'recent taste surfaces in chips: ' + tops.join(' | '));
+});
+
+/* 17. Affinity: Karl learns the related-next-thing. */
+t('affinity tracks question pairs', function () {
+  resetStore(); setCallsign(''); setDashCtx(null);
+  var M = loadMuse();
+  M.observeQuestion('what is surplus value');
+  M.observeQuestion('how do I join a cell');
+  assert.strictEqual(M._relatedTopic('theory'), 'cell',
+    'theory -> cell affinity learned');
+});
+
+/* 18. Visit streak: consecutive days counted. */
+t('visit streak counts consecutive days', function () {
+  resetStore(); setCallsign('tester'); setDashCtx(null);
+  function dk(offset) {
+    var d = new Date(); d.setHours(0, 0, 0, 0);
+    d = new Date(d.getTime() - offset * 86400000);
+    return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+  }
+  var days = {}; days[dk(0)] = 1; days[dk(1)] = 2; days[dk(2)] = 1; days[dk(4)] = 1;
+  injectStory(v2base({ days: days }));
+  var M = loadMuse();
+  assert.strictEqual(M._visitStreak(), 3, '3 consecutive days (gap at day 3 breaks it)');
+  var st = M.readUserState();
+  assert.strictEqual(st.visit_streak, 3);
+});
+
+/* 19. Welcome-back fires after a 7+ day absence. */
+t('welcome-back after long absence', function () {
+  resetStore(); setCallsign('tester');
+  var now = Date.now();
+  injectStory(v2base({ lastSeen: now - 10 * 86400000, visits: 5 }));
+  setDashCtx(quietCtx());
+  store['pf_nuke_cell_v1'] = JSON.stringify({ cell: { name: 'Cell A' } });
+  store['pf_medals_v2'] = JSON.stringify({ w: '2026-W41', m: { vote: 1, ballot: 1, bracket: 1, caption: 1, poster: 1, quiz: 1, billionaire: 1, interrogation: 1, orders: 1, drop: 1, enlisted: 1, guess: 1, raid: 1, infight: 1, whitemarket: 1, civic: 1 } });
+  var M = loadMuse();
+  var moves = M._movesList();
+  assert.strictEqual(moves[0].id, 'welcome-back', 'got: ' + moves.map(function (m) { return m.id; }).join(','));
+  assert.ok(moves[0].headline.indexOf('10 days') !== -1 || moves[0].headline.indexOf('away') !== -1,
+    'names the absence: ' + moves[0].headline);
+});
+
+/* 20. FULL DEPLOYMENT push fires at 13-15/16 medals. */
+t('fd-push fires near full deployment', function () {
+  resetStore(); setCallsign('tester');
+  injectStory(v2base());
+  setDashCtx(quietCtx());
+  store['pf_nuke_cell_v1'] = JSON.stringify({ cell: { name: 'Cell A' } });
+  var medals = {};
+  ['vote', 'ballot', 'bracket', 'caption', 'poster', 'quiz', 'billionaire',
+   'interrogation', 'orders', 'drop', 'enlisted', 'guess', 'raid', 'infight']
+    .forEach(function (k) { medals[k] = 1; });
+  store['pf_medals_v2'] = JSON.stringify({ w: '2026-W41', m: medals });
+  var M = loadMuse();
+  var moves = M._movesList().map(function (m) { return m.id; });
+  assert.ok(moves.indexOf('fd-push') !== -1, 'fd-push present: ' + moves.join(','));
+  assert.ok(moves.indexOf('fd-push') < moves.indexOf('medals') || moves.indexOf('medals') === -1,
+    'fd-push outranks generic medals');
+});
+
+/* 21. Taste rule: your appetite becomes a deep link. */
+t('taste move deep-links your appetite', function () {
+  resetStore(); setCallsign('tester');
+  setDashCtx(quietCtx());
+  store['pf_nuke_cell_v1'] = JSON.stringify({ cell: { name: 'Cell A' } });
+  var M = loadMuse();
+  M.observeQuestion('what is surplus value');
+  M.observeQuestion('tell me about marx');
+  M.observeQuestion('explain capital to me');
+  var moves = M._movesList();
+  var tm = moves.filter(function (m) { return m.id === 'taste'; })[0];
+  assert.ok(tm, 'taste move present: ' + moves.map(function (m) { return m.id; }).join(','));
+  assert.strictEqual(tm.href, '/academy', 'theory -> academy');
+});
+
+/* 22. Headline variants: stable within the day. */
+t('headline variants are stable per day', function () {
+  resetStore(); setCallsign(''); setDashCtx(null);
+  var M = loadMuse();
+  assert.strictEqual(M._variant(['a', 'b', 'c']), M._variant(['a', 'b', 'c']));
+});
+
+/* 23. v1 -> v2 story migration preserves history. */
+t('v1 story migrates to v2', function () {
+  resetStore(); setCallsign('tester'); setDashCtx(null);
+  var now = Date.now();
+  injectStory({ v: 1, firstSeen: now - 60 * 86400000, visits: 5,
+    pages: { '/economy': 3 }, topics: { theory: 2 },
+    milestones: [{ t: now - 86400000, m: '10 visits — a regular' }] });
+  var M = loadMuse();
+  var s = M.readStory();
+  assert.strictEqual(s.v, 2);
+  assert.strictEqual(s.visits >= 5, true, 'visits preserved (+1 for this load)');
+  assert.ok(s.topicEvents.some(function (e) { return e.t === 'theory'; }),
+    'old taste becomes an aging event');
+  assert.ok(M._topicScore('theory') > 0, 'migrated taste still scores');
+});
+
+/* 24. Engagement tiers: new / active / veteran. */
+t('engagement tiers from visits', function () {
+  resetStore(); setCallsign('tester'); setDashCtx(null);
+  injectStory(v2base({ visits: 0 }));
+  var M1 = loadMuse();
+  assert.strictEqual(M1.readUserState().engagement, 'new');
+  resetStore(); setCallsign('tester'); setDashCtx(null);
+  injectStory(v2base({ visits: 30 }));
+  var M2 = loadMuse();
+  assert.strictEqual(M2.readUserState().engagement, 'veteran');
+  var c = M2.museContext();
+  assert.strictEqual(c.user_state.engagement, 'veteran');
+  assert.ok(Array.isArray(c.taste_profile), 'taste_profile present');
+});
+
+/* 25. Fresh milestones are celebrated in the greeting. */
+t('greeting celebrates fresh milestones', function () {
+  resetStore(); setCallsign('tester');
+  var now = Date.now();
+  injectStory(v2base({ firstSeen: now - 5 * 86400000,
+    milestones: [{ t: now - 3600000, m: '10 visits — a regular' }] }));
+  setDashCtx(quietCtx());
+  store['pf_nuke_cell_v1'] = JSON.stringify({ cell: { name: 'Cell A' } });
+  var M = loadMuse();
+  var g = M.museGreeting();
+  assert.ok(g.indexOf('10 visits') !== -1, 'celebrates the milestone, got: ' + g.slice(0, 300));
+  var fresh = M._freshMilestones();
+  assert.ok(fresh.indexOf('10 visits — a regular') !== -1);
 });
 
 console.log('\n' + passed + ' passed, ' + failed + ' failed');

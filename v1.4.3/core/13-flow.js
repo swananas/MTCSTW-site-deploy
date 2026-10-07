@@ -11,7 +11,7 @@
 if(window.PF&&window.PF.skip('13-flow'))return;
 if(window.pfFlowLoaded)return; window.pfFlowLoaded=true;
 var PF=window.PF||(window.PF={});
-var LS_CELL='pf_flow_cell_v1', LS_CHIP='pf_flow_chip_v1';
+var LS_CELL='pf_flow_cell_v1'; /* LS_CHIP retired 2026-10-06 (one-prompt): floating chip removed */
 var ROTATE=[['vote','Cast a fan vote'],['contracts','Take a contract'],['cells','Rally your cell']];
 function callsign(){
   var cs='';
@@ -124,23 +124,10 @@ function watch(){
     mo.observe(holder,{childList:true,subtree:true});
   }catch(e){}
 }
-/* Flow chip: one gentle nudge per 10 minutes after an XP gain. */
-document.addEventListener('pf-xp',function(e){
-  var d=(e&&e.detail)||{};
-  if(Math.round(Number(d.gain)||0)<=0)return;
-  var last=0;
-  try{ last=Number(localStorage.getItem(LS_CHIP)||0); }catch(e2){}
-  if(Date.now()-last<10*60*1000)return;
-  try{ localStorage.setItem(LS_CHIP,String(Date.now())); }catch(e3){}
-  nextStep(function(st){
-    var chip=document.createElement('div');
-    chip.innerHTML='◈ Next: <b>'+String(st.label).replace(/</g,'&lt;')+'</b> →';
-    chip.style.cssText='position:fixed;right:14px;bottom:76px;background:#0d0d0f;color:#f4f1e8;border:2px solid #c1121f;font:bold 13px monospace;padding:10px 16px;z-index:99990;cursor:pointer;letter-spacing:1px;';
-    chip.onclick=function(){ try{chip.remove();}catch(e){} scrollToSilo(st.silo); };
-    document.body.appendChild(chip);
-    setTimeout(function(){ try{chip.remove();}catch(e){} },7000);
-  });
-});
+/* 2026-10-06 (one-prompt): the floating "◈ Next" chip is REMOVED — it was a
+   fourth floating element competing with the install button, nudge card, and
+   HUD. The inline "NEXT UP" strips above stay; PF.flowNext() stays for
+   programmatic use. */
 PF.flowNext=nextStep;
 watch();
 setTimeout(scan,4000);

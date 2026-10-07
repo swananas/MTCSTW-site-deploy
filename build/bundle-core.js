@@ -227,7 +227,13 @@ var CORE_FILES = [
      WILDFIND_TYPES), type picker, [data-pf-wildfind] launchers, Daily
      Orders missions. After 35-sharein (its photo picker reads the
      registry). Zero new XP. Kill: ?pf_off=wildfinds. */
-  'core/36-wildfinds.js'
+  'core/36-wildfinds.js',
+  /* one-prompt (CEO directive, 2026-10-06): THE ONE PROMPT first-run card +
+     PF.popupQueue site-wide popup backstop (one overlay at a time, 3/session
+     auto-fire budget) + inline first-moves checklist. Last in core: it
+     orchestrates other modules' overlays, so it loads after them. Zero new
+     XP, zero backend writes. Kill: ?pf_off=one-prompt. */
+  'core/37-one-prompt.js'
 ];
 
 /* 2026-10-05 (fix/money-minified-rebuild): money suite lazy chunk. The 10

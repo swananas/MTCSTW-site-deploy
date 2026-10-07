@@ -1,0 +1,326 @@
+/* core/37-one-prompt.js  |  PF v1.4.3 | THE ONE PROMPT + popup backstop.
+   CEO directive 2026-10-06 ("Too many pop ups via user reports"): a new
+   visitor got ~5 interruptions in the first 30s on the homepage — guided
+   onboarding (t+30s), adventure chooser, first-minute card, iOS install
+   button (t+4s), enlistment nudge — each built sensibly alone, never
+   budgeted together. The fix: ONE clear prompt that integrates a first-time
+   visitor effortlessly, everything else demoted or killed.
+
+   PART A — PF.popupQueue (site-wide backstop). Max ONE modal/fullscreen at a
+   time; auto-fire overlays additionally capped at 3 per session
+   (sessionStorage pf_popup_budget_v1). The one-prompt itself is exempt from
+   the budget (it is the one prompt). request(id, kind) -> boolean;
+   release(id) is idempotent. Consumers degrade gracefully when absent.
+
+   PART B — THE ONE PROMPT. Single fullscreen first-run card, ONCE EVER
+   (localStorage pf_oneprompt_v1), ~5s after homepage load (#pf-v2),
+   callsign-less only, never in the Squarespace editor. One headline stating
+   what the site is, one action CLAIM YOUR CALLSIGN -> the existing
+   PF.requireCallsign claim flow (same register POST, same +20 enlisted leg,
+   same 'pf-callsign-claimed' event). Dismiss ("just looking") -> never
+   shows again. After claim, the existing rites arbitration fires untouched
+   (still exactly one card); pick-your-fight + first mission continue INLINE
+   as a homepage checklist (#pf-oneprompt-checklist) — no more modals.
+   The guided-onboarding "NEW HERE" chip stays as the re-entry path.
+
+   ZERO new XP. ZERO new backend actions. Measurement only:
+   pf-oneprompt-shown, pf-oneprompt-claim, pf-oneprompt-dismissed,
+   pf-oneprompt-checklist-done.
+   KILL: ?pf_off=one-prompt  or  localStorage pf_disabled_v1='["one-prompt"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('one-prompt')) { return; }
+  if (window.pfOnePromptDone) { return; }
+  window.pfOnePromptDone = true;
+
+  var LS_PROMPT = 'pf_oneprompt_v1';
+  var LS_CHECKLIST = 'pf_checklist_v1';
+  var SS_BUDGET = 'pf_popup_budget_v1';
+  var BUDGET_MAX = 3;
+  var PROMPT_MS = 5000;
+  var Z = 99998; /* below the callsign modal (99999), same as guided-onboarding */
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function fire(name, detail) {
+    try { document.dispatchEvent(new CustomEvent(name, { detail: detail || {} })); } catch (e) {}
+  }
+  function isEditor() {
+    try {
+      var h = window.location.href || '';
+      if (h.indexOf('/config/') !== -1) return true;
+      var b = document.body;
+      if (b && (b.classList.contains('sqs-edit-mode') || b.classList.contains('sqs-editing'))) return true;
+      return false;
+    } catch (e) { return false; }
+  }
+  function isHomepage() {
+    try { return !!document.getElementById('pf-v2'); } catch (e) { return false; }
+  }
+  function hasCallsign() {
+    try { if (typeof window.PFCallsign === 'function' && window.PFCallsign()) return true; } catch (e) {}
+    try {
+      var o = JSON.parse(localStorage.getItem('pf_identity_v1') || '{}');
+      return !!(o && o.callsign);
+    } catch (e2) { return false; }
+  }
+
+  /* ---------------- PART A: PF.popupQueue ---------------- */
+  var openId = null;
+  function budgetUsed() {
+    try { return Number(sessionStorage.getItem(SS_BUDGET) || 0); } catch (e) { return 0; }
+  }
+  function budgetBump() {
+    try { sessionStorage.setItem(SS_BUDGET, String(budgetUsed() + 1)); } catch (e) {}
+  }
+  try {
+    if (!PF.popupQueue) {
+      PF.popupQueue = {
+        /* kind: 'auto' (fires without user action) | 'user' (tap-driven).
+           The one-prompt is exempt from the session budget — it IS the one. */
+        request: function (id, kind) {
+          try {
+            if (!id) return false;
+            if (openId && openId !== id) return false; /* one at a time */
+            if (openId === id) return true; /* idempotent re-request */
+            if (kind === 'auto' && id !== 'one-prompt' && budgetUsed() >= BUDGET_MAX) return false;
+            openId = id;
+            if (kind === 'auto' && id !== 'one-prompt') budgetBump();
+            return true;
+          } catch (e) { return false; }
+        },
+        release: function (id) {
+          try { if (openId && openId === id) openId = null; } catch (e) {}
+        },
+        /* introspection for tests/debugging */
+        _open: function () { return openId; },
+        _budgetUsed: budgetUsed
+      };
+    }
+  } catch (e) {}
+
+  function queueRequest(id, kind) {
+    try {
+      if (window.PF && PF.popupQueue && typeof PF.popupQueue.request === 'function') {
+        return PF.popupQueue.request(id, kind);
+      }
+    } catch (e) {}
+    return true; /* queue absent (module loaded standalone): old behavior */
+  }
+  function queueRelease(id) {
+    try {
+      if (window.PF && PF.popupQueue && typeof PF.popupQueue.release === 'function') {
+        PF.popupQueue.release(id);
+      }
+    } catch (e) {}
+  }
+
+  /* ---------------- PART B: THE ONE PROMPT ---------------- */
+  var overlay = null;
+
+  function open() {
+    if (overlay) return false;
+    if (hasCallsign()) return false;
+    if (!queueRequest('one-prompt', 'auto')) return false;
+    overlay = document.createElement('div');
+    overlay.id = 'pf-oneprompt';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', 'Welcome to the Propaganda Factory');
+    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:' + Z +
+      ';background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;' +
+      'padding:1rem;box-sizing:border-box;';
+    overlay.innerHTML =
+      '<div style="background:#0a0a0a;border:3px solid #c1121f;color:#f5ead6;' +
+      'font-family:\'Helvetica Neue\',Arial,sans-serif;padding:2rem 1.5rem;max-width:440px;width:100%;' +
+      'max-height:92vh;overflow-y:auto;box-sizing:border-box;text-align:center;position:relative;">' +
+      '<div style="font-size:.78rem;font-weight:900;letter-spacing:.24em;color:#c1121f;margin-bottom:.9rem;">' +
+      '&#9733; THE PROPAGANDA FACTORY &#9733;</div>' +
+      '<div style="font-size:1.5rem;font-weight:900;line-height:1.25;margin-bottom:.6rem;letter-spacing:.02em;">' +
+      'THE MEMES ARE THE WEAPON.<br>YOU ARE THE ARMY.</div>' +
+      '<div style="font-size:.85rem;color:#b8ab8e;line-height:1.6;margin-bottom:1.4rem;">' +
+      'A leftist creator network turning posts into power. One tap and ' +
+      'you&rsquo;re in &mdash; your XP follows you everywhere.</div>' +
+      '<button type="button" id="pf-op-claim" style="background:#c1121f;color:#fff;border:none;' +
+      'font-family:inherit;font-weight:900;letter-spacing:.12em;font-size:.95rem;' +
+      'padding:.9rem 2rem;cursor:pointer;min-height:48px;width:100%;box-sizing:border-box;">' +
+      'CLAIM YOUR CALLSIGN</button>' +
+      '<div style="margin-top:.8rem;"><button type="button" id="pf-op-no" style="background:none;border:0;' +
+      'color:#8a7f68;cursor:pointer;font-size:.78rem;text-decoration:underline;padding:.6rem;' +
+      'min-height:44px;font-family:inherit;">just looking</button></div>' +
+      /* CEO directive 2026-10-06: every claim prompt needs the recovery path. */
+      (function () { try { return (window.PF && PF.recoverLinkHTML) ? PF.recoverLinkHTML() : ''; } catch (e) { return ''; } })() +
+      '</div>';
+    document.body.appendChild(overlay);
+    fire('pf-oneprompt-shown');
+    function onClaim() {
+      fire('pf-oneprompt-claim');
+      lsSet(LS_PROMPT, 'claimed');
+      close();
+      /* The existing claim flow takes over (modal renders above at 99999).
+         Rites arbitration fires on pf-callsign-claimed; the checklist
+         mounts from the claim listener below. */
+      try {
+        if (PF.requireCallsign) PF.requireCallsign(function () {}, { context: 'to join the fight' });
+      } catch (e) {}
+    }
+    function onDismiss() {
+      fire('pf-oneprompt-dismissed');
+      lsSet(LS_PROMPT, 'dismissed');
+      close();
+      mountChecklist();
+    }
+    var c = overlay.querySelector('#pf-op-claim'), n = overlay.querySelector('#pf-op-no');
+    if (c) c.onclick = onClaim;
+    if (n) n.onclick = onDismiss;
+    overlay.onclick = function (e) { try { if (e.target === overlay) onDismiss(); } catch (e2) {} };
+    try {
+      var btn = overlay.querySelector('#pf-op-claim');
+      if (btn) btn.focus();
+    } catch (e3) {}
+    return true;
+  }
+  function close() {
+    queueRelease('one-prompt');
+    try { if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay); } catch (e) {}
+    overlay = null;
+  }
+
+  /* ---------------- PART C: inline checklist ---------------- */
+  var checklistEl = null;
+  var stepsDone = { fight: false, claim: false, mission: false };
+
+  function fightPicked() {
+    try {
+      if (window.PF && PF.pillars && typeof PF.pillars.pathNames === 'function') {
+        return PF.pillars.pathNames().length > 0;
+      }
+    } catch (e) {}
+    return false;
+  }
+  function stepRow(n, title, sub, btnLabel, btnId) {
+    var done = stepsDone[n];
+    return '<div data-op-step="' + n + '" style="display:flex;align-items:center;gap:.8rem;' +
+      'padding:.7rem 0;border-bottom:1px solid #2a2a2a;text-align:left;">' +
+      '<div style="flex:none;width:26px;height:26px;border:2px solid ' + (done ? '#c1121f' : '#4a4033') + ';' +
+      'color:' + (done ? '#c1121f' : '#4a4033') + ';font-weight:900;display:flex;align-items:center;' +
+      'justify-content:center;font-size:.85rem;box-sizing:border-box;">' + (done ? '&#10003;' : n === 'fight' ? '1' : n === 'claim' ? '2' : '3') + '</div>' +
+      '<div style="flex:1;min-width:0;"><div style="font-weight:900;font-size:.85rem;letter-spacing:.08em;' +
+      'color:' + (done ? '#8a7f68' : '#f5ead6') + ';' + (done ? 'text-decoration:line-through;' : '') + '">' + esc(title) + '</div>' +
+      '<div style="font-size:.72rem;color:#8a7f68;">' + esc(sub) + '</div></div>' +
+      (done ? '' : '<button type="button" id="' + btnId + '" style="flex:none;background:#c1121f;color:#fff;' +
+      'border:none;font-family:inherit;font-weight:900;font-size:.72rem;letter-spacing:.1em;' +
+      'padding:.55rem .9rem;cursor:pointer;min-height:40px;white-space:nowrap;">' + esc(btnLabel) + '</button>') +
+      '</div>';
+  }
+  function renderChecklist() {
+    if (!checklistEl) return;
+    /* re-evaluate */
+    stepsDone.fight = fightPicked();
+    stepsDone.claim = hasCallsign();
+    var all = stepsDone.fight && stepsDone.claim && stepsDone.mission;
+    if (all) {
+      fire('pf-oneprompt-checklist-done');
+      try { if (checklistEl.parentNode) checklistEl.parentNode.removeChild(checklistEl); } catch (e) {}
+      checklistEl = null;
+      lsSet(LS_CHECKLIST, 'done');
+      return;
+    }
+    checklistEl.innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem;">' +
+      '<div style="color:#c1121f;font-weight:900;letter-spacing:.22em;font-size:.72rem;">&#9873; YOUR FIRST MOVES</div>' +
+      '<button type="button" id="pf-op-cl-x" aria-label="Dismiss checklist" style="background:none;border:0;' +
+      'color:#8a7f68;cursor:pointer;font-size:1.2rem;line-height:1;padding:.4rem;min-width:40px;min-height:40px;">&times;</button>' +
+      '</div>' +
+      stepRow('fight', 'PICK YOUR FIGHT', 'Tunes what you see first.', 'PICK →', 'pf-op-cl-fight') +
+      (stepsDone.claim ? '' : stepRow('claim', 'CLAIM YOUR CALLSIGN', 'Your XP follows it everywhere.', 'CLAIM →', 'pf-op-cl-claim')) +
+      stepRow('mission', 'RUN YOUR FIRST MISSION', 'One vote. Sixty seconds.', 'FIRE →', 'pf-op-cl-mission');
+    var x = checklistEl.querySelector('#pf-op-cl-x');
+    if (x) x.onclick = function () {
+      lsSet(LS_CHECKLIST, 'dismissed');
+      try { if (checklistEl.parentNode) checklistEl.parentNode.removeChild(checklistEl); } catch (e2) {}
+      checklistEl = null;
+    };
+    var f = checklistEl.querySelector('#pf-op-cl-fight');
+    if (f) f.onclick = function () {
+      try {
+        if (window.PF && PF.pillars && typeof PF.pillars.openChooser === 'function') PF.pillars.openChooser();
+      } catch (e) {}
+      setTimeout(renderChecklist, 1200); /* re-check after the chooser closes */
+    };
+    var cl = checklistEl.querySelector('#pf-op-cl-claim');
+    if (cl) cl.onclick = function () {
+      try { if (PF.requireCallsign) PF.requireCallsign(function () {}, { context: 'to join the fight' }); } catch (e) {}
+    };
+    var m = checklistEl.querySelector('#pf-op-cl-mission');
+    if (m) m.onclick = function () {
+      try {
+        var t = document.getElementById('pf-vote');
+        if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        else window.location.hash = '#pf-vote';
+      } catch (e) {}
+    };
+  }
+  function mountChecklist() {
+    try {
+      if (checklistEl) { renderChecklist(); return; }
+      if (!isHomepage() || isEditor()) return;
+      if (lsGet(LS_CHECKLIST)) return; /* dismissed/done before */
+      if (hasCallsign() && fightPicked()) return; /* nothing left to do */
+      var host = document.getElementById('pf-v2');
+      if (!host || !host.parentNode) return;
+      /* Don't double up with the legacy first-minute card if it mounted. */
+      if (document.getElementById('pf-first-mission')) return;
+      checklistEl = document.createElement('div');
+      checklistEl.id = 'pf-oneprompt-checklist';
+      checklistEl.setAttribute('role', 'region');
+      checklistEl.setAttribute('aria-label', 'Your first moves');
+      checklistEl.style.cssText = 'background:#0b0b0c;border:3px solid #c1121f;max-width:680px;' +
+        'width:calc(100% - 2rem);margin:1rem auto;padding:1.1rem 1.25rem;box-sizing:border-box;' +
+        'font-family:\'Helvetica Neue\',Arial,sans-serif;';
+      host.parentNode.insertBefore(checklistEl, host);
+      renderChecklist();
+    } catch (e) {}
+  }
+
+  /* Claim from anywhere: prompt's job is done; checklist takes over. */
+  document.addEventListener('pf-callsign-claimed', function () {
+    try {
+      if (!lsGet(LS_PROMPT)) lsSet(LS_PROMPT, 'claimed-elsewhere');
+      if (overlay) close();
+      mountChecklist();
+    } catch (e) {}
+  });
+  /* First mission done via the fan vote. */
+  document.addEventListener('pf-vote-cast', function () {
+    try { stepsDone.mission = true; renderChecklist(); } catch (e) {}
+  });
+  /* Fight picked elsewhere (chooser closed): re-check on next paint. */
+  document.addEventListener('click', function () {
+    try { if (checklistEl && !stepsDone.fight && fightPicked()) renderChecklist(); } catch (e) {}
+  });
+
+  /* ---------------- launch ---------------- */
+  if (isEditor() || !isHomepage()) return;
+  if (hasCallsign()) { mountChecklist(); return; }
+  if (lsGet(LS_PROMPT)) { mountChecklist(); return; } /* resolved before: checklist only */
+  setTimeout(function () {
+    try {
+      if (hasCallsign() || lsGet(LS_PROMPT) || isEditor()) return;
+      open();
+    } catch (e) {}
+  }, PROMPT_MS);
+
+  /* Public re-entry (console/testing): PF.startOnePrompt() */
+  try {
+    PF.startOnePrompt = function () {
+      try { localStorage.removeItem(LS_PROMPT); } catch (e) {}
+      open();
+    };
+  } catch (e) {}
+})();

@@ -285,7 +285,12 @@ function fireClick(el) {
     ok('runtime: 4 pillar buttons', order.length === 4);
     ok('runtime: default order spread/data/act/organize',
       order.join(',') === 'spread,data,act,organize');
-    ok('runtime: first-run chooser opens', !!sb.document.getElementById('pf-path-chooser'));
+    /* 2026-10-06 (one-prompt): auto-fire REMOVED — the chooser must NOT
+       auto-open on first run. It opens via the HUD-strip tap. */
+    ok('runtime: first-run chooser does NOT auto-open', !sb.document.getElementById('pf-path-chooser'));
+    var ch0 = sb.document.querySelectorAll('#pf-pillars [data-pf-path-change]')[0];
+    fireClick(ch0);
+    ok('runtime: chooser opens via HUD-strip tap', !!sb.document.getElementById('pf-path-chooser'));
     var picks = sb.document.querySelectorAll('[data-pf-path-pick]');
     ok('runtime: chooser has 4 paths', picks.length === 4);
     ok('runtime: chooser has confirm button',

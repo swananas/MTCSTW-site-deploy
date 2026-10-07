@@ -29,6 +29,13 @@
   if (!PF || PF.skip('first-mission')) { return; }
   if (window.pfFirstMissionDone) return; window.pfFirstMissionDone = true;
 
+  /* 2026-10-06 (one-prompt): THE ONE PROMPT owns first-run now — its inline
+     checklist carries the first-mission CTA. Stand down while one-prompt is
+     active; resume as the fallback if one-prompt is killed
+     (?pf_off=one-prompt). PF.skip() is name-based, safe even if
+     37-one-prompt.js isn't loaded. */
+  try { if (window.PF && !PF.skip('one-prompt')) return; } catch (e) {}
+
   var GUARD_KEY = 'pf_firstmission_v1';
   var SLOT_ID = 'pf-first-mission-slot';
   var SLOT_MIN_H = '360px'; /* approx card height: reserves layout, kills CLS */

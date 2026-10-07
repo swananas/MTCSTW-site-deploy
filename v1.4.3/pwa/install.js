@@ -208,15 +208,38 @@
   }
 
   // iOS has no beforeinstallprompt: show the manual A2HS hint once per session.
+  // 2026-10-06 (one-prompt): NO LONGER t+4s on cold load — that stacked with
+  // the first-run popups. Now: 2nd visit, or after first engagement
+  // (callsign claim / vote / order check-in / XP gain).
   if (isiOS && !('serviceWorker' in navigator && false)) {
-    window.addEventListener('load', function () {
+    var VISIT_KEY = 'pf_pwa_visits_v1';
+    var iosShown = false;
+    function iosVisits() {
+      try { return Number(localStorage.getItem(VISIT_KEY) || 0); } catch (e) { return 0; }
+    }
+    function iosTryShow() {
+      if (iosShown) return;
+      var engaged = false;
+      try { engaged = sessionStorage.getItem('pf_pwa_engaged_v1') === '1'; } catch (e2) {}
+      if (iosVisits() < 2 && !engaged) return;
+      iosShown = true;
       setTimeout(function () {
         showButton('INSTALL APP', function () {
           dismiss(false);
           showIOSGuide();
         });
       }, 4000);
+    }
+    try { localStorage.setItem(VISIT_KEY, String(iosVisits() + 1)); } catch (e3) {}
+    ['pf-callsign-claimed', 'pf-vote-cast', 'pf-order-checkin', 'pf-xp'].forEach(function (ev) {
+      try {
+        document.addEventListener(ev, function () {
+          try { sessionStorage.setItem('pf_pwa_engaged_v1', '1'); } catch (e4) {}
+          iosTryShow();
+        });
+      } catch (e5) {}
     });
+    window.addEventListener('load', function () { iosTryShow(); });
   }
 
   /* ---------- R32 (2026-10-04): appinstalled -> one-time grant + battle-alert handoff.

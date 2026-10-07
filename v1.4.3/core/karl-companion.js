@@ -76,15 +76,15 @@
     { p: '/ventures', t: 'JOINT VENTURES', d: 'Pool up. Back creators. Share the spoils.', k: ['venture', 'ventures', 'invest', 'pool'] },
     { p: '/events', t: 'BOOTS ON THE GROUND', d: 'Digital is the rehearsal. The street is the show.', k: ['event', 'events', 'protest', 'irl', 'rally', 'street'] },
     { p: '/war-report', t: 'WAR REPORT', d: "The week in the war. Numbers, winners, what's next.", k: ['war report', 'report', 'weekly', 'week'] },
-    { p: '/governance', t: 'GOVERNANCE', d: 'How the machine runs itself.', k: ['governance', 'rules', 'vote', 'govern'] },
+    { p: '/governance', t: 'GOVERNANCE', d: 'The machine runs itself — and you get a vote in how.', k: ['governance', 'rules', 'vote', 'govern'] },
     { p: '/karl', t: 'KARL', d: 'Plain questions. Sourced answers. Never a guess.', k: ['karl'] },
     { p: '/receipt', t: 'RECEIPTS', d: 'Politician dossiers — who they are, who funds them.', k: ['receipt', 'dossier', 'politician', 'rep'] },
-    { p: '/town', t: 'YOUR TOWN', d: 'Power mapping for your zip code.', k: ['town', 'zip', 'local', 'my town'] },
+    { p: '/town', t: 'YOUR TOWN', d: 'Who owns your zip code? Power-mapping, street by street.', k: ['town', 'zip', 'local', 'my town'] },
     { p: '/sick-left-radicals', t: 'SICK LEFT RADICALS', d: 'The creator roster. Find your people.', k: ['roster', 'creator', 'sick left', 'radicals', 'affiliate'] },
     { p: '/creator-onboard', t: 'CREATOR ONBOARDING', d: 'Join the roster. Bring your audience.', k: ['onboard', 'join roster', 'become creator'] },
     { p: '/request-access', t: 'CREATOR HQ ACCESS', d: 'Request access to the members-only Creator HQ.', k: ['creator hq', 'request access', 'members'] },
     { p: '/academy', t: 'THE ACADEMY', d: 'Learn the craft. Graduate dangerous.', k: ['academy', 'learn', 'school', 'train'] },
-    { p: '/political-hq', t: 'POLITICAL HQ', d: 'The political war room.', k: ['political', 'phq'] },
+    { p: '/political-hq', t: 'POLITICAL HQ', d: 'The war room for the political fight. Strategy lives here.', k: ['political', 'phq'] },
     { p: '/store', t: 'THE STORE', d: 'Gear that funds the fight.', k: ['store', 'shop', 'merch', 'gear'] },
     { p: '/podcast', t: 'THE PODCAST', d: 'The Propaganda Factory, in your ears.', k: ['podcast', 'listen', 'audio'] },
     { p: '/about', t: 'ABOUT', d: 'What this machine is and why it exists.', k: ['about', 'what is'] },
@@ -358,6 +358,50 @@
     addChips(suggestionChips());
   }
 
+  /* ============ CONVERSATION MEMORY (engagement sweep 2026-10-07) ============
+     Karl remembers the thread. Last 3 Q&A pairs ride in sessionStorage and
+     go to the worker as context.history — so Karl builds on what was just
+     said instead of answering every question like it's the first. */
+  var HIST_KEY = 'pf_kc_hist_v1';
+  function readHistory() {
+    try {
+      var h = JSON.parse(sessionStorage.getItem(HIST_KEY) || '[]');
+      return (h && h.length) ? h.slice(-3) : [];
+    } catch (e) { return []; }
+  }
+  function pushHistory(q, a) {
+    try {
+      var h = readHistory();
+      h.push({ q: String(q).slice(0, 200), a: String(a).slice(0, 500) });
+      sessionStorage.setItem(HIST_KEY, JSON.stringify(h.slice(-3)));
+    } catch (e) {}
+  }
+
+  /* ============ STAGED TYPING (engagement sweep 2026-10-07) ============
+     9 seconds of "Karl is thinking…" feels broken on a phone. Rotating
+     personality lines make the wait feel like Karl working — because he is. */
+  var THINK_LINES = [
+    'Karl is thinking\u2026',
+    'Checking the rails\u2026',
+    'Consulting the canon\u2026',
+    'Asking around\u2026',
+    'Sharpening the answer\u2026'
+  ];
+  function stagedTyping() {
+    var tp = document.createElement('div');
+    tp.className = 'pf-kc-typing';
+    tp.textContent = THINK_LINES[0];
+    log.appendChild(tp);
+    log.scrollTop = log.scrollHeight;
+    var i = 0;
+    var iv = setInterval(function () {
+      i++;
+      if (i >= THINK_LINES.length) { clearInterval(iv); return; }
+      try { tp.textContent = THINK_LINES[i]; } catch (e) { clearInterval(iv); }
+    }, 2200);
+    return { el: tp, stop: function () { clearInterval(iv); try { tp.parentNode && tp.parentNode.removeChild(tp); } catch (e) {} } };
+  }
+
   function submitQ(q) {
     q = String(q || '').trim();
     if (!q) { return; }
@@ -381,14 +425,13 @@
       return;
     }
     /* 2. Worker — the deep brain. */
-    var tp = document.createElement('div');
-    tp.className = 'pf-kc-typing';
-    tp.textContent = 'Karl is thinking\u2026';
-    log.appendChild(tp);
-    log.scrollTop = log.scrollHeight;
+    var typing = stagedTyping();
     var ctx = { page: pi.label, path: pi.path };
     var cs = callsign();
     if (cs) { ctx.callsign = cs; }
+    /* Conversation memory: the thread goes with the question. */
+    var hist = readHistory();
+    if (hist.length) { ctx.history = hist; }
     /* Muse mode: the worker answers as the muse — inspirational, narrative-
        aware, one clear next step. The user state travels with the question. */
     try {
@@ -398,13 +441,26 @@
       }
     } catch (e) {}
     askWorker(q, ctx).then(function (r) {
-      try { tp.parentNode && tp.parentNode.removeChild(tp); } catch (e) {}
+      typing.stop();
       if (r && r.ok && r.answer) {
-        addMsg('karl', esc(String(r.answer)).replace(/\n/g, '<br>'));
+        var ansHtml = esc(String(r.answer)).replace(/\n/g, '<br>');
+        addMsg('karl', ansHtml);
+        /* Remember the thread — next question builds on this one. */
+        pushHistory(q, r.answer);
+        /* Engagement: one-tap follow-up. The worker has the history now,
+           so "tell me more" actually goes deeper instead of repeating. */
+        var followChips = ['Tell me more about that'];
+        try {
+          var sc = suggestionChips();
+          for (var fi = 0; fi < sc.length && followChips.length < 3; fi++) {
+            if (followChips.indexOf(sc[fi]) === -1) { followChips.push(sc[fi]); }
+          }
+        } catch (e) {}
+        addChips(followChips);
       } else if (r && r.error === 'rate_limited') {
-        addMsg('karl', 'I\u2019ve answered a lot this hour — I need a breather. The site index still works: ask me <i>where</i> something is or <i>how</i> to do it.<div class="sig">— Karl</div>');
+        addMsg('karl', 'I\u2019ve been talking a lot this hour — even comrades need a breather. The site index still works though: ask me <i>where</i> something is or <i>how</i> to do it, and I\u2019ll point you there instantly.<div class="sig">— Karl</div>');
       } else {
-        addMsg('karl', 'The rails didn\u2019t answer just now. Ask me where something is or how it works — that part lives right here.<div class="sig">— Karl</div>');
+        addMsg('karl', 'The deep brain didn\u2019t pick up just now — the connection dropped somewhere between us. But I still know this site cold: ask me <i>where</i> something is or <i>how</i> to do it.<div class="sig">— Karl</div>');
       }
       addChips(suggestionChips());
     });

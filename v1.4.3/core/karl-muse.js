@@ -575,6 +575,16 @@
     var move = nextMove();
     recordNudge(move.id);
     var g = 'I\u2019m <b>Karl</b> — the voice of this site. ' + esc(hourGreeting());
+    /* Welcome-back: returning soldiers get noticed. (Engagement sweep 2026-10-07) */
+    try {
+      var st0 = readStory();
+      if (cs && st0.visits > 1) {
+        var backs = ['Back again. Good — the fight needs regulars.',
+          'You came back. That already puts you ahead of most.',
+          'Another day, another front. Glad you\u2019re here.'];
+        g += '<br>' + esc(backs[st0.visits % backs.length]);
+      }
+    } catch (e) {}
     if (cs) { g += '<br>You\u2019re ' + esc(cs) + ', and I\u2019ve been watching your war.'; }
     /* Fresh milestones get celebrated — Karl notices growth. */
     try {

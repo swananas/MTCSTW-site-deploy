@@ -290,6 +290,22 @@ var KARL_FILES = [
   'core/karl-page.js'
 ];
 
+/* WHO OWNS YOUR TOWN (fe/town-page, 2026-10-07, Data Product 2): lazy chunk.
+   Self-mounting silo (core/town-page.js -> #pf-town), fetched only on /town
+   via the footer loader's isTown branch. RESTORED fe/ugc-town-report: the
+   entry was dropped from this file by a later merge. Kill: ?pf_off=town. */
+var TOWN_FILES = [
+  'core/town-page.js'
+];
+
+/* UGC TOWN REPORT BUILDER (fe/ugc-town-report, 2026-10-07): lazy chunk.
+   Self-mounting silo (core/town-report.js -> #pf-town-report), fetched only
+   on /town-report via the footer loader's isTownReport branch. Zero weight
+   on every other page. Kill: ?pf_off=townreport. */
+var TOWNREPORT_FILES = [
+  'core/town-report.js'
+];
+
 /* FRED Everywhere Phase 2 (2026-10-05): the three user modeling tools —
    Tool 1 Stack 'Em, Tool 2 explainer, Tool 3 Receipt check. Lazy chunk
    (core/bundle-fred-tools.js) for non-money pages; the money page ships
@@ -308,6 +324,12 @@ var BUNDLES = {
   /* KARL query layer (fe/karl-page, 2026-10-07): lazy Karl chunk — NOT in
      the critical path. Fetched only when #pf-karl is present (/karl). */
   'core/bundle-karl': KARL_FILES.slice(),
+  /* WHO OWNS YOUR TOWN (fe/town-page): lazy chunk — NOT in the critical
+     path. Fetched only on /town. */
+  'core/bundle-town': TOWN_FILES.slice(),
+  /* UGC TOWN REPORT BUILDER (fe/ugc-town-report): lazy chunk — NOT in the
+     critical path. Fetched only on /town-report. */
+  'core/bundle-town-report': TOWNREPORT_FILES.slice(),
   /* FRED Everywhere Phase 2 (2026-10-05): the three user modeling tools as
      a lazy chunk — Tool 1 Stack 'Em (curated/guided/full), Tool 2 explainer,
      Tool 3 Receipt check. Fetched only when a tool host exists (#pf-economy,

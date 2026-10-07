@@ -270,6 +270,38 @@
     'pf-ugc-remix': {
       title: 'STORY REMIXER', sub: 'Sourced stories, citizen evidence. The facts are frozen — the fight is yours.',
       order: []
+    },
+    /* WHO OWNS YOUR TOWN (fe/town-page, 2026-10-07, Data Product 2): /town.
+       order:[['town', null]] — the SELF map mounts the self-rendering silo
+       (core/town-page.js into #pf-town); page-mount contributes the header
+       + full-width widening + Next Move exit. Zero XP for viewing.
+       Ship-time hand-step: Squarespace page /town + Code block
+       <div id="pf-town"></div> + nav entry. Kill: ?pf_off=town.
+       RESTORED fe/ugc-town-report: dropped from this file by the
+       fe/town-page merge onto integrate/big-update-fe; restored verbatim
+       (the footer loader already routes isTown -> core/bundle-town.js). */
+    'pf-town': {
+      title: 'WHO OWNS YOUR TOWN', sub: 'Enter a zip. See who holds power in your backyard.',
+      exit: { href: '/receipt', text: 'NEXT MOVE: GET THE RECEIPT →' },
+      order: [
+        ['town', null]
+      ]
+    },
+    /* UGC TOWN REPORT BUILDER (fe/ugc-town-report, 2026-10-07): /town-report.
+       Feed of published reports (?id=<id> renders one report;
+       ?new=1 / ?zip=<zip> opens the builder). Self-mounting silo
+       (core/town-report.js into #pf-town-report); page-mount contributes
+       the header + full-width widening + Next Move exit. Town data
+       immutable (server snapshot), user content clearly labeled, 0 XP for
+       viewing. Ship-time hand-step: Squarespace page /town-report +
+       Code block <div id="pf-town-report"></div> + nav entry.
+       Kill: ?pf_off=townreport. */
+    'pf-town-report': {
+      title: 'MY TOWN REPORTS', sub: 'Your town\u2019s data. What you\u2019ve seen. Publish the page.',
+      exit: { href: '/town', text: 'NEXT MOVE: WHO OWNS YOUR TOWN →' },
+      order: [
+        ['townreport', null]
+      ]
     }
   };
 
@@ -296,7 +328,15 @@
     /* 2026-10-07 (fe/karl-page, Data Product 5): KARL — the query layer
        front door. Self-renders into #pf-karl (core/karl-page.js).
        Kill: ?pf_off=karl. */
-    'karl': { div: 'pf-karl', kill: 'karl' }
+    'karl': { div: 'pf-karl', kill: 'karl' },
+    /* 2026-10-07 (fe/town-page, Data Product 2): WHO OWNS YOUR TOWN
+       renders itself into #pf-town. Kill: ?pf_off=town.
+       RESTORED fe/ugc-town-report: dropped by the fe/town-page merge. */
+    'town': { div: 'pf-town', kill: 'town' },
+    /* 2026-10-07 (fe/ugc-town-report): the UGC town report builder +
+       published report pages render themselves into #pf-town-report.
+       Kill: ?pf_off=townreport. */
+    'townreport': { div: 'pf-town-report', kill: 'townreport' }
   };
 
   function execScripts(root, label) {
@@ -443,7 +483,7 @@
     'pf-war-card', 'pf-academy-hq', 'pf-dash-hq', 'pf-hq-mission',
     'pf-political-hq', 'pf-slr-roster', 'pf-catalog', 'pf-money',
     'pf-warroom', 'pf-live', 'pf-data-bounties',
-    'pf-karl', 'pf-ugc-remix'
+    'pf-karl', 'pf-ugc-remix', 'pf-town', 'pf-town-report'
   ];
   function feWiden(host) {
     try {

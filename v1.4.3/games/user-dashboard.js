@@ -43,8 +43,6 @@
   if (!PF || PF.skip('userdash')) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-userdash">
 <div class="fe-block pf-override-block pf-silo" id="pf-userdash">
-<h2>My HQ</h2>
-<div class="c-tag">Your war, your numbers, your next move — everything within two taps.</div>
 <div id="xUserDash"><div class="ud-sk" style="height:140px"></div><div class="ud-sk" style="height:320px;margin-top:22px"></div></div>
 </div>
 <script>

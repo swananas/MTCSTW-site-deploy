@@ -354,7 +354,8 @@ function renderEcon(econ){
     +'<div class="ud-stat"><b>'+(Number(econ.data_submitted)||0)+'</b><span>DATA SUBMITTED</span></div>'
     +'</div>'
     +'<div class="ud-eth">&ldquo;Your activity powers the movement&rsquo;s intelligence.&rdquo; Aggregated, anonymous by default — never sold.</div>'
-    +'<a class="ud-more" href="/economy">ADD PRICE DATA →</a>';
+    +'<a class="ud-more" href="/economy">ADD PRICE DATA →</a>'
+    +'<div style="margin-top:10px"><button class="ud-delete" id="udDeleteData" style="background:transparent;border:1px solid #c1121f;color:#c1121f;font:bold 11px Arial,sans-serif;letter-spacing:0.12em;padding:8px 14px;cursor:pointer;">DELETE MY DATA</button></div>';
   return sec('MY DATA', h);
 }
 function renderSignedOut(){
@@ -373,6 +374,75 @@ function bind(root){
       try{ location.href='/'; }catch(e2){}
     });
   }catch(e){}
+  /* DELETE MY DATA — reuses the footer silo's dialog if present, else runs the erase directly. */
+  try{
+    var d=root.querySelector('#udDeleteData');
+    if(d) d.addEventListener('click',function(){
+      try{
+        var fl=document.getElementById('pf-delete-data-link');
+        if(fl){ fl.click(); return; }
+      }catch(e){}
+      udEraseDialog();
+    });
+  }catch(e2){}
+}
+/* Standalone erase dialog (fallback when the footer silo hasn't mounted). */
+function udEraseDialog(){
+  var PF=window.PF||{};
+  var BACKEND=window.PF_BACKEND_URL;
+  function ident(){
+    var cs='',dev='';
+    try{ cs=window.PFCallsign?window.PFCallsign():''; }catch(e){}
+    try{ dev=window.PFDeviceId?window.PFDeviceId():''; }catch(e){}
+    return {callsign:cs,device:dev};
+  }
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  var id=ident();
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,0.82);display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;';
+  var box=document.createElement('div');
+  box.setAttribute('role','dialog'); box.setAttribute('aria-modal','true');
+  box.style.cssText='background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;max-width:520px;width:100%;padding:28px;font-family:"Helvetica Neue",Arial,sans-serif;line-height:1.6;box-sizing:border-box;';
+  box.innerHTML=
+    '<div style="color:#c1121f;font-weight:900;letter-spacing:0.1em;font-size:15px;margin-bottom:12px;">BURN YOUR RECORD</div>'
+    +'<p style="font-size:13px;margin:0 0 12px;">This wipes <b>everything</b> the Propaganda Factory holds on you'
+    +(id.callsign?' under callsign <b>'+esc(id.callsign)+'</b>':' on this browser')
+    +': your XP, streaks, medals, votes, cells, referrals, contact info. This cannot be undone.</p>'
+    +'<div style="display:flex;gap:12px;flex-wrap:wrap;">'
+    +'<button id="udDelYes" style="background:#c1121f;color:#fff;border:none;font-weight:900;letter-spacing:0.1em;font-size:12px;padding:12px 20px;cursor:pointer;">YES, ERASE IT ALL</button>'
+    +'<button id="udDelNo" style="background:transparent;color:#f5f0e1;border:2px solid #f5f0e1;font-weight:900;letter-spacing:0.1em;font-size:12px;padding:10px 18px;cursor:pointer;">CANCEL</button>'
+    +'</div><div id="udDelMsg" style="font-size:12px;margin-top:12px;min-height:18px;"></div>';
+  ov.appendChild(box); document.body.appendChild(ov);
+  function close(){ try{ov.parentNode.removeChild(ov);}catch(e){} }
+  ov.addEventListener('click',function(e){ if(e.target===ov) close(); });
+  document.getElementById('udDelNo').addEventListener('click',close);
+  document.getElementById('udDelYes').addEventListener('click',function(){
+    var btn=document.getElementById('udDelYes');
+    btn.disabled=true; btn.textContent='BURNING\u2026';
+    var body={type:'privacy',p_action:'privacy_erase',callsign:id.callsign,device:id.device,scope:'full'};
+    function done(j){
+      if(!(j&&j.ok)){
+        btn.disabled=false; btn.textContent='RETRY';
+        var m=document.getElementById('udDelMsg');
+        if(m) m.textContent='Erase failed. Your data is untouched — try again.';
+        return;
+      }
+      try{
+        var gone=[];
+        for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(k&&k.indexOf('pf_')===0) gone.push(k); }
+        gone.forEach(function(kk){ try{localStorage.removeItem(kk);}catch(e){} });
+      }catch(e2){}
+      box.innerHTML='<div style="color:#c1121f;font-weight:900;letter-spacing:0.1em;font-size:15px;margin-bottom:12px;">RECORD BURNED</div>'
+        +'<p style="font-size:13px;margin:0;">'+esc((j&&j.note)||'All your data has been erased.')+'</p>';
+      setTimeout(function(){ try{location.reload();}catch(e){} },3000);
+    }
+    try{
+      if(PF.authPost&&BACKEND){ PF.authPost(BACKEND,body,done); return; }
+      fetch(BACKEND,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+        .then(function(r){return r.json();}).then(function(j){done(j||{ok:false});})
+        .catch(function(){done(null);});
+    }catch(e){ done(null); }
+  });
 }
 function load(){
   var root=document.getElementById('xUserDash');

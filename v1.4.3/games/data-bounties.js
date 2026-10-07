@@ -191,6 +191,8 @@
       if(!t || !t.getAttribute) return;
       var act=t.getAttribute('data-act');
       if(!act) return;
+      /* Board-level retry (no .db-card ancestor): re-run the bounty fetch. */
+      if(act==='retry'){ try{ refresh(); }catch(e){} return; }
       var card=t.closest('.db-card'); if(!card) return;
       var bid=card.getAttribute('data-b');
       var msg=card.querySelector('.db-msg');
@@ -273,7 +275,9 @@
     var host=document.getElementById('pf-data-bounties');
     apiGet('databounty_list',{},function(j){
       if(host&&j&&j.ok) renderBoard(host, j.bounties||[]);
-      else if(host) host.innerHTML='<div class="db-board"><div class="db-empty">Bounty board is unreachable right now.</div></div>';
+      /* 2026-10-06 (butter-list): unreachable board gets a RETRY button
+         (data-act="retry" handled in wire()) instead of a dead end. */
+      else if(host) host.innerHTML='<div class="db-board"><div class="db-empty">Bounty board is unreachable right now.</div><div style="margin-top:10px"><button type="button" class="db-btn db-small" data-act="retry">RETRY</button></div></div>';
       /* cell strip: pin this member's cell-targeted bounties on the cell HQ */
       try{
         var hq=document.getElementById('pf-cell-hq');

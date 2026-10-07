@@ -151,7 +151,12 @@ function jsSeq(){
   if(pending===0){jsLazy();return;}
   JS_SEQ.forEach(function(n){var s=document.createElement('script');
   /* DEFECT 1: JS_CHROME entries are absolute jsDelivr URLs — use verbatim. */
-  s.src=(n.indexOf('https://')===0)?n:BASE+n;s.async=false;
+  s.src=(n.indexOf('https://')===0)?n:BASE+n;
+  /* PWA (2026-10-06, butter-list): install.js is already inlined in
+     bundle-core.js behind a double-execution guard — the standalone load
+     is redundant-but-guarded, so it defers (async); everything else stays
+     ordered (async=false). */
+  s.async=(JS_PWA.indexOf(n)>-1);
   s.onload=oneDone;s.onerror=function(){siloFail(n);oneDone();};
   document.head.appendChild(s);});
 }

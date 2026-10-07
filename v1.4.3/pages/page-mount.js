@@ -77,7 +77,10 @@
         /* TEARDOWN WS-2: prediction table cards mount first. */
         ['arcade-cards', 'pf-ov-arcade-cards'],
         ['predgame', 'pf-ov-predgame'],
-        ['markets', 'pf-ov-markets']
+        /* 2026-10-06 (butter-list): the markets chunk was never loaded, so
+           the War Room section silently skipped. Lazy entry[2] wires the
+           existing lazy-anchor + 25s fail-soft path (loader jsLazy). */
+        ['markets', 'pf-ov-markets', 'games/bundle-markets.js']
       ]
     },
     /* BLOSSOM S1 (2026-10-06): LIQUIDATION RECORDS — the bracket's own home,
@@ -556,6 +559,30 @@
   if (PF && !PF.mountPageSilos) PF.mountPageSilos = mountAll;
 
   mountAll();
+
+  /* Post-mount hash re-scroll (2026-10-06, butter-list): cold-load deep
+     links (#section) for page-mount pages. After mount, if location.hash
+     names an in-page id, scroll to it once it settles — mirrors
+     games/economy-home.js deepLink(): retry ~8x500ms, scroll when the
+     element exists, give up silently otherwise. Hash shapes owned by other
+     modules (#pf-tool=, #e=, query-style) are left alone. */
+  function hashRescroll() {
+    var h = '';
+    try { h = String(window.location.hash || ''); } catch (e) { return; }
+    if (!/^#[A-Za-z][\w:.-]*$/.test(h)) return;
+    var id = h.slice(1), tries = 0;
+    var t = setInterval(function () {
+      tries++;
+      var el = null;
+      try { el = document.getElementById(id); } catch (e2) {}
+      if (el || tries >= 8) {
+        try { if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+        catch (e3) { try { if (el) el.scrollIntoView(); } catch (e4) {} }
+        clearInterval(t);
+      }
+    }, 500);
+  }
+  try { hashRescroll(); } catch (e) {}
 
   /* DEFECT 3 (generalized): widen every PF mount div present on this page —
      covers mounts outside PAGE_ORDERS (homepage #pf-v2, HQ #pf-war-card,

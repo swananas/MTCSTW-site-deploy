@@ -122,6 +122,12 @@ var CORE_FILES = [
      and biases the Next Move ladder via PF.pillars.biasOps(). After the HUD
      (extends it; never rebuilds it). FRONTEND-ONLY, ZERO NEW XP. */
   'core/31-pillars.js',
+  /* command search (PLAY 8, 2026-10-06): unified pillar-aware search across
+     prices/creators/events/news/products/bounties — trigger in the HUD bar,
+     command-palette overlay, Intel Card results grouped by pillar. After
+     pillars (both extend the HUD; never rebuild it). FRONTEND-ONLY,
+     ZERO NEW XP, no writes. Kill: ?pf_off=search. */
+  'core/32-search.js',
   /* hubhome (User hub as true homepage, 2026-10-06, CEO directive): the
      homepage becomes the recognized user's campaign hub — YOUR CAMPAIGN
      hero (stats, Next Move, orders, cell, pillar bar, War Report teaser)
@@ -209,7 +215,19 @@ var CORE_FILES = [
      layer — PF.triggers.emit(event, params) client dispatcher + per-category
      opt-in UI (Alert Triggers pane on Political HQ). Fail-open everywhere;
      zero XP. Kill: ?pf_off=triggers (or ?pf_off=36-triggers). */
-  'core/36-triggers.js'
+  'core/36-triggers.js',
+  /* share-in (CEO directive, 2026-10-06): ?sharein=<url> deep link + PWA Web
+     Share Target (GET) inbound draft composer — PF.shareIn. Site-wide: the
+     share target can land on ANY page, so this lives in the core bundle,
+     not a lazy chunk. Zero XP by design, device-local drafts only, no
+     backend writes. Kill: ?pf_off=35-sharein. */
+  'core/35-sharein.js',
+  /* wild-finds (CEO directive, 2026-10-06): WILD FINDS folded into the
+     bounty type taxonomy — PF.wildFinds registry (mirrors backend
+     WILDFIND_TYPES), type picker, [data-pf-wildfind] launchers, Daily
+     Orders missions. After 35-sharein (its photo picker reads the
+     registry). Zero new XP. Kill: ?pf_off=wildfinds. */
+  'core/36-wildfinds.js'
 ];
 
 /* 2026-10-05 (fix/money-minified-rebuild): money suite lazy chunk. The 10

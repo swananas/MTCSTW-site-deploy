@@ -12,7 +12,14 @@
      9.  share painter: 1080x1350 canvas, headline + top lines + source line +
          JOIN THE FIGHT. CTA (red, bold); painter runs ONLY on tap (butter rule)
      10. copy rule: no "sold their vote" phrasing anywhere in served copy
-     11. kill switch ?pf_off=receipt darkens the silo */
+     11. kill switch ?pf_off=receipt darkens the silo
+     12. design: light receipt-paper theme (CEO direction) — #fdfdfa paper,
+         dark-cream DOM palette removed; share painter keeps the red/black
+         poster brand
+     13. dossier sections are native <details>, collapsed by default on mobile
+         (matchMedia max-width:640px), open on desktop
+     14. sticky web: KEEP DIGGING strip links /town, /index?name=<slug>,
+         /extraction from every dossier */
 import { readFileSync, existsSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
@@ -260,7 +267,7 @@ try {
   fireJsonp('receipt_dossier', fakeDossier('Bernie Sanders'));
   var out = els['pf-receipt-out'];
   var oh = out._html;
-  var need = ['THE RECEIPT', '$1,000,000', 'MONEY IN', 'TOP INDUSTRIES',
+  var need = ['ITEMIZED RECEIPT', '$1,000,000', 'MONEY IN', 'TOP INDUSTRIES',
     'LOBBYIST TIES', 'STOCK TRADES', 'VOTES', 'BILLS SPONSORED',
     'SOURCE:', 'NOT YET TRACKED'];
   var missing = need.filter(function (n) { return oh.indexOf(n) < 0; });
@@ -269,6 +276,18 @@ try {
   var soonCount = (oh.match(/NOT YET TRACKED/g) || []).length;
   if (soonCount >= 4) ok('7 wave-3 sections honest-empty (x' + soonCount + ')');
   else no('7 wave-3 honest-empty', 'only ' + soonCount + ' honest-empty cards');
+
+  /* 12-14. design direction: light paper, collapsible sections, sticky web */
+  if (rsrc.indexOf('#fdfdfa') >= 0 && rsrc.indexOf("CREAM = '#f5f0e1'") < 0 &&
+      rsrc.indexOf('#f5f0e1') < 0) ok('12 light receipt-paper theme (dark DOM palette gone)');
+  else no('12 light theme', 'paper markers missing or dark palette still in DOM code');
+  if (rsrc.indexOf('<details') >= 0 && rsrc.indexOf('max-width: 640px') >= 0)
+    ok('13 sections are <details>, collapsed on mobile');
+  else no('13 collapsible sections', 'details/mobile-collapse markers missing');
+  var webNeed = ['KEEP DIGGING', '/town', '/index?name=', '/extraction'];
+  var webMissing = webNeed.filter(function (n) { return oh.indexOf(n) < 0; });
+  if (!webMissing.length) ok('14 sticky web: /town + /index + /extraction neighbor links');
+  else no('14 sticky web', 'missing: ' + webMissing.join(','));
 
   /* 8. copy rule on served copy */
   var copyHay = rsrc.replace(/\/\*[\s\S]*?\*\//g, ' ');

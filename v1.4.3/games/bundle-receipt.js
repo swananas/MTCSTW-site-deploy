@@ -1,1 +1,520 @@
-!function(){"use strict";var e=window.PF;if(e&&!e.skip("receipt")&&!window.pfReceiptDone){window.pfReceiptDone=!0;var t="#c1121f",i="#f5f0e1",n="#0a0a0a",o="#b8ab8e",r=window.PF_BACKEND_URL;"loading"===document.readyState?document.addEventListener("DOMContentLoaded",g):g(),setTimeout(g,1500)}function a(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function s(e){return String(e||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")}function l(e,t,i){if(r){var n="pfReceiptCb"+Math.floor(1e9*Math.random()),o=document.createElement("script"),a=!1;window[n]=function(e){d(e)},o.onerror=function(){d(null)};var s="?action="+encodeURIComponent(e);for(var l in t)null!=t[l]&&""!==t[l]&&(s+="&"+encodeURIComponent(l)+"="+encodeURIComponent(t[l]));s+="&callback="+n,o.src=r+s,o.async=!0;try{document.head.appendChild(o)}catch(e){d(null)}setTimeout(function(){d(null)},15e3)}else i(null);function d(e){if(!a){a=!0;try{delete window[n]}catch(e){}try{o.parentNode&&o.parentNode.removeChild(o)}catch(e){}i(e)}}}function d(e,i,r){return'<section style="background:'+n+";border:2px solid #2a2a2a;border-top:4px solid "+t+';border-radius:3px;padding:16px 18px;margin:0 0 14px;"><div style="font-size:12px;font-weight:900;letter-spacing:3px;color:'+t+';margin-bottom:10px;">'+a(e)+"</div>"+i+(r?'<div style="margin-top:12px;padding-top:10px;border-top:1px solid #2a2a2a;font-size:11px;color:'+o+';line-height:1.6;"><div>SOURCE: '+a(r.source||"")+"</div><div>"+a(r.staleness||"")+(r.rail?" · "+a(r.rail):"")+"</div></div>":"")+"</section>"}function p(e,t){var n=t.note||"Not yet tracked — coming soon.";return d(e,'<div style="font-size:14px;color:'+o+';line-height:1.6;"><div style="font-size:13px;font-weight:800;letter-spacing:2px;color:'+i+';margin-bottom:6px;">NOT YET TRACKED — COMING SOON</div>'+a(n)+"</div>",{source:t.source,staleness:t.staleness,rail:t.rail_status})}function c(e,t){return'<div style="display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid #1e1e1e;font-size:14px;"><span style="color:'+o+';">'+a(e)+'</span><span style="font-weight:800;color:'+i+';">'+a(null==t?"—":t)+"</span></div>"}function f(i,n){var r=n.sections,l=[];if("live"===r.money_in.status){var f=r.money_in.data;l.push(d("MONEY IN — FUNDRAISING",'<div style="font-size:15px;font-weight:800;margin-bottom:8px;">'+a(f.headline||"")+"</div>"+c("Raised",f.receipts_display)+c("Spent",f.disbursements_display)+c("Cash on hand",f.cash_on_hand_display),{source:r.money_in.source,staleness:r.money_in.staleness,rail:r.money_in.rail_status}))}else l.push(p("MONEY IN — FUNDRAISING",r.money_in));if("live"===r.industries.status){var u=r.industries.data.top.map(function(e){return c(e.industry+" (est.)",e.total_receipts_display)}).join("");l.push(d("TOP INDUSTRIES — CYCLE-WIDE",'<div style="font-size:13px;color:'+o+';margin-bottom:8px;line-height:1.5;">The national money picture this cycle. Candidate-level industry breakdowns are not yet tracked — these figures describe the whole cycle, <strong>not this person</strong>.</div>'+u,{source:r.industries.source,staleness:r.industries.staleness,rail:r.industries.rail_status}))}else l.push(p("TOP INDUSTRIES",r.industries));l.push(p("LOBBYIST TIES",r.lobbying)),l.push(p("STOCK TRADES",r.trades)),l.push(p("VOTES",r.votes)),l.push(p("BILLS SPONSORED",r.bills));var g=0;!function r(){g>=l.length?function(i,n){var r=n.headline,a=r.money_live||r.top_industries&&r.top_industries.length,l='<div style="text-align:center;margin:8px 0 30px;"><button id="pf-receipt-share" type="button"'+(a?' style="background:'+t+";border:2px solid "+t+';color:#fff;font-weight:900;letter-spacing:2px;padding:14px 40px;font-size:16px;cursor:pointer;border-radius:3px;"':' disabled style="opacity:.45;cursor:not-allowed;background:'+t+";border:2px solid "+t+';color:#fff;font-weight:900;letter-spacing:2px;padding:14px 40px;font-size:16px;border-radius:3px;"')+">GET THE RECEIPT</button>"+(a?"":'<div style="font-size:13px;color:'+o+';margin-top:8px;">Nothing to share yet — the dossier is still all honest-empty.</div>')+"</div>";i.insertAdjacentHTML("beforeend",l);var d=i.querySelector("#pf-receipt-share");d&&a&&d.addEventListener("click",function(){!function(t){var i=function(e){var t=1080,i=1350,n=document.createElement("canvas");n.width=t,n.height=i;var o=n.getContext("2d");if(!o)return null;var r=e.resolved,a=e.headline,l=e.sections;o.fillStyle="#0d0d0d",o.fillRect(0,0,t,i),o.strokeStyle="#c1121f",o.lineWidth=18,o.strokeRect(16,16,t-32,i-32),o.strokeStyle="#f5ead6",o.lineWidth=3,o.strokeRect(52,52,t-104,i-104),o.textAlign="center";var d=150;o.fillStyle="#f5ead6",o.font="700 32px Arial,sans-serif",o.fillText("★ THE PROPAGANDA FACTORY ★",t/2,d),d+=64,o.fillStyle="#c1121f",o.font='900 64px "Arial Black",Arial,sans-serif',o.fillText("THE RECEIPT",t/2,d),d+=110,o.fillStyle="#f5ead6",o.font='900 72px "Arial Black",Arial,sans-serif',y(o,r.display_name.toUpperCase(),t-170).slice(0,2).forEach(function(e){o.fillText(e,t/2,d),d+=84});var p=("S"===r.office?"U.S. SENATE":"H"===r.office?"U.S. HOUSE":"")+(r.state?" · "+r.state:"")+(r.party?" · "+r.party:"");d+=6,o.fillStyle="#b8ab8e",o.font="700 34px Arial,sans-serif",o.fillText(p,t/2,d),d+=90;var c=[];a.money_live&&a.total_raised_display&&c.push("RAISED "+a.total_raised_display+" IN 2026");if("live"===l.money_in.status&&l.money_in.data){var f=l.money_in.data;f.cash_on_hand_display&&c.push("SITTING ON "+f.cash_on_hand_display+" CASH"),f.disbursements_display&&c.push("SPENT "+f.disbursements_display)}(a.top_industries||[]).slice(0,3).forEach(function(e){c.push("TOOK "+(e.total_receipts_display||"?")+" FROM "+String(e.industry).toUpperCase()+"*")}),c=c.slice(0,5),o.fillStyle="#f5ead6",o.font="700 40px Arial,sans-serif",c.forEach(function(e){y(o,e,t-200).slice(0,2).forEach(function(e){o.fillText(e,t/2,d),d+=54}),d+=14}),d+=30,o.fillStyle="#b8ab8e",o.font="400 28px Arial,sans-serif",o.fillText("* cycle-wide industry totals, estimated —",t/2,d),d+=40,o.fillText("candidate-level breakdowns not yet tracked.",t/2,d),d+=60;var u=l.money_in.source||"FEC";return o.fillStyle="#8a8172",o.font="400 26px Arial,sans-serif",y(o,"Sources: "+u,t-200).slice(0,2).forEach(function(e){o.fillText(e,t/2,d),d+=38}),o.fillStyle="#c1121f",o.font='900 58px "Arial Black",Arial,sans-serif',o.fillText("JOIN THE FIGHT.",t/2,i-220),o.fillStyle="#f5ead6",o.font='900 44px "Arial Black",Arial,sans-serif',o.fillText("MTCSTW.COM",t/2,i-150),o.fillStyle="#b8ab8e",o.font="400 28px Arial,sans-serif",o.fillText("mtcstw.com/receipt/"+s(r.display_name),t/2,i-96),n}(t);if(!i){try{e&&e.toast&&e.toast("Poster failed — try again.")}catch(e){}return}var n=s(t.resolved.display_name);try{window.PFShare&&window.PFShare.shareImage&&window.PFShare.shareImage(i,"pfn-receipt-"+n+".png","THE RECEIPT: "+t.resolved.display_name,"receipt")}catch(t){!function(t){try{e&&e.error&&e.error("receipt",t)}catch(e){}}("share failed: "+(t&&t.message))}}(n)})}(i,n):(i.insertAdjacentHTML("beforeend",l[g++]),window.requestIdleCallback?window.requestIdleCallback(r,{timeout:800}):setTimeout(r,60))}()}function u(e){var r=document.getElementById("pf-receipt-out");if(r){r.innerHTML='<div style="text-align:center;color:'+o+';font-size:14px;padding:26px;">Pulling the receipt…</div>';try{var d="/receipt/"+s(e);window.history&&window.history.replaceState&&location.pathname!==d&&window.history.replaceState(null,"",d)}catch(e){}l("receipt_dossier",{name:e},function(s){if(s&&s.ok)r.innerHTML="",s.disambiguation?function(e,r){var s='<div style="background:'+n+";border:2px solid "+t+';border-radius:3px;padding:18px;margin-bottom:14px;"><div style="font-size:14px;font-weight:900;letter-spacing:2px;margin-bottom:10px;">DID YOU MEAN…</div>';r.disambiguation.forEach(function(e){s+='<button type="button" data-pf-receipt-pick="'+a(e.display_name)+'" style="display:block;width:100%;text-align:left;background:#141414;border:1px solid #333;color:'+i+';padding:10px 12px;margin:6px 0;font-size:15px;cursor:pointer;border-radius:3px;">'+a(e.display_name)+' <span style="color:'+o+';font-size:12px;">'+a(("S"===e.office?"Senate":"H"===e.office?"House":"")+(e.state?" · "+e.state:""))+"</span></button>"}),s+="</div>",e.insertAdjacentHTML("beforeend",s),e.querySelectorAll("[data-pf-receipt-pick]").forEach(function(e){e.addEventListener("click",function(){u(e.getAttribute("data-pf-receipt-pick"))})})}(r,s):s.resolved?(!function(e,i){var n=i.resolved,r=i.headline,s=n.party?" · "+n.party:"",l="S"===n.office?"U.S. Senate":"H"===n.office?"U.S. House":"",d='<div style="background:linear-gradient(180deg,#161616,#0b0b0b);border:3px solid '+t+';border-radius:3px;padding:20px;text-align:center;margin-bottom:16px;"><div style="font-size:12px;letter-spacing:4px;color:'+t+';font-weight:800;margin-bottom:8px;">THE RECEIPT</div><div style="font-size:26px;font-weight:900;letter-spacing:1px;">'+a(n.display_name).toUpperCase()+'</div><div style="font-size:13px;color:'+o+';margin:6px 0 14px;">'+a(l+(n.state?" · "+n.state:"")+s)+"</div>";r.money_live&&r.total_raised_display?d+='<div style="font-size:15px;color:'+o+';margin-bottom:4px;">RAISED IN 2026</div><div style="font-size:38px;font-weight:900;color:'+t+';">'+a(r.total_raised_display)+"</div>":d+='<div style="font-size:14px;color:'+o+';">Fundraising figures not yet live — the FEC key hand-step is still open.</div>',d+="</div>",e.insertAdjacentHTML("beforeend",d)}(r,s),f(r,s)):function(e,n){if(n.suggestions&&n.suggestions.length){var r='<div style="text-align:center;color:'+o+';font-size:14px;margin-bottom:8px;">No exact match. Did you mean…</div>';n.suggestions.forEach(function(e){r+='<div style="text-align:center;"><button type="button" data-pf-receipt-pick="'+a(e.display_name)+'" style="background:transparent;border:2px solid '+t+";color:"+i+';padding:10px 22px;margin:5px;font-size:15px;font-weight:700;cursor:pointer;border-radius:3px;">'+a(e.display_name)+"</button></div>"}),e.insertAdjacentHTML("beforeend",r),e.querySelectorAll("[data-pf-receipt-pick]").forEach(function(e){e.addEventListener("click",function(){u(e.getAttribute("data-pf-receipt-pick"))})})}else e.insertAdjacentHTML("beforeend",'<div style="text-align:center;color:'+o+';font-size:14px;padding:18px;">No match in the index yet. The name index grows as the FEC rail ingests — check back.</div>')}(r,s);else{r.innerHTML='<div style="text-align:center;color:'+o+';font-size:14px;padding:26px;">The receipt machine hiccuped. <button type="button" id="pf-receipt-retry" style="background:'+t+';border:0;color:#fff;font-weight:800;padding:8px 18px;cursor:pointer;border-radius:3px;">RETRY</button></div>';var l=document.getElementById("pf-receipt-retry");l&&l.addEventListener("click",function(){u(e)})}})}}function y(e,t,i){var n=String(t).split(/\s+/),o=[],r="";return n.forEach(function(t){var n=r?r+" "+t:t;e.measureText(n).width>i&&r?(o.push(r),r=t):r=n}),r&&o.push(r),o}function g(){var e=document.getElementById("pf-receipt");if(e&&!e.getAttribute("data-pf-receipt-mounted")){e.setAttribute("data-pf-receipt-mounted","1"),e.insertAdjacentHTML("afterbegin",'<div class="pf-receipt" style="max-width:760px;margin:0 auto;font-family:\'Helvetica Neue\',Arial,sans-serif;color:'+i+';"><div style="text-align:center;margin:6px 0 18px;"><div style="font-size:13px;letter-spacing:5px;color:'+t+';font-weight:800;margin-bottom:10px;">FOLLOW THE MONEY</div><div style="font-size:22px;font-weight:900;letter-spacing:1px;margin-bottom:8px;">WHO DO YOU WANT THE RECEIPT ON?</div><div style="font-size:14px;color:'+o+';line-height:1.5;">Type a politician’s name. Get the money dossier.<br>Every figure sourced. Nothing estimated. Nothing invented.</div></div><div style="position:relative;max-width:520px;margin:0 auto;"><input id="pf-receipt-q" type="text" autocomplete="off" placeholder="e.g. Bernie Sanders" aria-label="Politician name" style="width:100%;box-sizing:border-box;background:#141414;border:2px solid '+t+";color:"+i+';padding:14px 16px;font-size:17px;border-radius:3px;outline:none;"><div id="pf-receipt-ta" style="position:absolute;top:100%;left:0;right:0;z-index:20;display:none;background:#141414;border:2px solid #333;border-top:0;border-radius:0 0 3px 3px;overflow:hidden;"></div></div><div style="text-align:center;margin-top:12px;"><button id="pf-receipt-go" type="button" style="background:'+t+";border:2px solid "+t+';color:#fff;font-weight:900;letter-spacing:2px;padding:12px 34px;font-size:15px;cursor:pointer;border-radius:3px;">PULL THE RECEIPT</button></div><div id="pf-receipt-out" style="margin-top:22px;"></div></div>'),function(){var e=document.getElementById("pf-receipt-q"),t=document.getElementById("pf-receipt-ta"),n=document.getElementById("pf-receipt-go");if(e&&t&&n){var r=null,s="";n.addEventListener("click",function(){var t=e.value.trim();t&&p(t)}),e.addEventListener("keydown",function(t){if("Enter"===t.key){var i=e.value.trim();i&&p(i)}"Escape"===t.key&&d()}),e.addEventListener("input",function(){var n=e.value.trim();r&&clearTimeout(r),n.length<2||n===s?n.length<2&&d():r=setTimeout(function(){s=n,l("receipt_search",{q:n},function(n){if(n&&n.ok&&n.matches&&n.matches.length){if(document.activeElement===e){var r="";n.matches.slice(0,7).forEach(function(e){r+='<button type="button" data-pf-ta="'+a(e.display_name)+'" style="display:block;width:100%;text-align:left;background:transparent;border:0;border-bottom:1px solid #2a2a2a;color:'+i+';padding:11px 14px;font-size:15px;cursor:pointer;">'+a(e.display_name)+' <span style="color:'+o+';font-size:12px;">'+a(("S"===e.office?"Senate":"H"===e.office?"House":"")+(e.state?" · "+e.state:""))+"</span></button>"}),t.innerHTML=r,t.style.display="block",t.querySelectorAll("[data-pf-ta]").forEach(function(e){e.addEventListener("mousedown",function(t){t.preventDefault(),p(e.getAttribute("data-pf-ta"))})})}}else d()})},220)}),document.addEventListener("click",function(i){try{t.contains(i.target)||i.target===e||d()}catch(e){d()}})}function d(){t.style.display="none",t.innerHTML=""}function p(t){d(),e.value=t,u(t)}}();try{var n=(location.pathname||"").match(/\/receipt\/([a-z0-9-]+)\/?$/);if(n&&n[1]){var r=document.getElementById("pf-receipt-q"),s=(d=n[1],String(d||"").replace(/-/g," "));r&&(r.value=s.replace(/\b\w/g,function(e){return e.toUpperCase()})),u(s)}}catch(e){}var d}}}();
+/* PF v1.4.3 bundle-receipt.js — concatenated bundle. DO NOT EDIT.
+   THE RECEIPT (fe/data-receipt). Generated by scripts/build-receipt-bundles.js.
+   Contains: receipt.js */
+
+/* ===== receipt.js ===== */
+/* games/receipt.js  |  PF v1.4.3 | THE RECEIPT — the money dossier.
+   Data Products Product 1 (CEO "Go on all" 2026-10-07). Type a politician's
+   name, get the full money dossier as a shareable image.
+   Self-mounting silo: renders into #pf-receipt (Squarespace page /receipt
+   carries <div id="pf-receipt"></div> as a Code block — CEO hand-step).
+   page-mount.js PAGE_ORDERS['pf-receipt'] gives it the page header + widen.
+   Backend: ?action=receipt_search (typeahead) / ?action=receipt_dossier
+   (server-side rail fan-out). Public JSONP, read-only, 0 XP for viewing;
+   the GET THE RECEIPT share routes through the existing share XP mechanics
+   (pf-share-image -> creditShare).
+   DESIGN (CEO direction 2026-10-07 "Let it blossom"): CLEAN, LIGHT receipt
+   paper. No bloated dossier layouts — the headline (total raised, top
+   industries, trade count) is immediately visible; sections are native
+   <details> cards, collapsed by default on mobile, open on desktop.
+   STICKY WEB: every dossier ends in a KEEP DIGGING strip — real links to
+   the natural neighbors: /town (their district's backyard), /index (their
+   corruption-index score, ?name=<slug> when the index supports it),
+   /extraction (extraction stories). Receipt -> Town -> Index through
+   relevance, not funnels. Deep-link contract for the UGC dossier-builder:
+   /receipt/<slug>, slug = lowercase-hyphenated display name
+   (e.g. /receipt/bernie-sanders).
+   BUTTER RULE: hero + headline paint first; dossier sections stagger-render
+   on idle so first paint stays light. The 1080x1350 share painter runs ONLY
+   on tap — the ~99% who never share never pay for it.
+   COPY RULE: "took $X from [industry]" / "raised $X" are donation facts;
+   "sold their vote" never appears. Sections are adjacent facts with dates.
+   KILL: ?pf_off=receipt */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('receipt')) { return; }
+  if (window.pfReceiptDone) return;
+  window.pfReceiptDone = true;
+
+  /* Light receipt-paper palette (CEO: clean, light — no bloated layouts). */
+  var RED = '#c1121f', PAPER = '#fdfdfa', INK = '#1a1814', MUTED = '#8a8474',
+    HAIR = '#e7e1d0', DASH = '#d8d2bd', MONO = "'SF Mono',Menlo,Consolas,monospace";
+  var BACKEND = window.PF_BACKEND_URL;
+  var FONT = "font-family:'Helvetica Neue',Arial,sans-serif;";
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function slugify(name) {
+    return String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+  function unslugify(slug) {
+    return String(slug || '').replace(/-/g, ' ');
+  }
+  function err(m) { try { if (PF && PF.error) PF.error('receipt', m); } catch (e) {} }
+  function isMobile() {
+    try { return window.matchMedia && window.matchMedia('(max-width: 640px)').matches; }
+    catch (e) { return false; }
+  }
+
+  /* JSONP, same contract as core/00-bus.js seedDayXp. */
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var fn = 'pfReceiptCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      try { if (s.parentNode) s.parentNode.removeChild(s); } catch (e) {}
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    s.async = true;
+    try { document.head.appendChild(s); } catch (e) { finish(null); }
+    setTimeout(function () { finish(null); }, 15000); /* fail-soft timeout */
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Shell                                                             */
+  /* ---------------------------------------------------------------- */
+  function shellHTML() {
+    return '<div class="pf-receipt" style="max-width:680px;margin:0 auto;' + FONT + 'color:' + INK + ';">'
+      + '<div style="text-align:center;margin:6px 0 18px;">'
+      + '<div style="font-size:12px;letter-spacing:5px;color:' + RED + ';font-weight:800;margin-bottom:10px;">FOLLOW THE MONEY</div>'
+      + '<div style="font-size:24px;font-weight:900;letter-spacing:.5px;margin-bottom:8px;">WHO DO YOU WANT THE RECEIPT ON?</div>'
+      + '<div style="font-size:14px;color:' + MUTED + ';line-height:1.6;">Type a politician\u2019s name. Get the money dossier.<br>Every figure sourced. Nothing estimated. Nothing invented.</div>'
+      + '</div>'
+      + '<div style="position:relative;max-width:520px;margin:0 auto;">'
+      + '<input id="pf-receipt-q" type="text" autocomplete="off" placeholder="e.g. Bernie Sanders" aria-label="Politician name"'
+      + ' style="width:100%;box-sizing:border-box;background:#fff;border:2px solid ' + INK + ';color:' + INK
+      + ';padding:14px 16px;font-size:17px;border-radius:3px;outline:none;">'
+      + '<div id="pf-receipt-ta" style="position:absolute;top:100%;left:0;right:0;z-index:20;display:none;background:#fff;border:2px solid ' + HAIR + ';border-top:0;border-radius:0 0 3px 3px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.08);"></div>'
+      + '</div>'
+      + '<div style="text-align:center;margin-top:12px;">'
+      + '<button id="pf-receipt-go" type="button" style="background:' + RED + ';border:2px solid ' + RED + ';color:#fff;font-weight:900;letter-spacing:2px;padding:12px 34px;font-size:15px;cursor:pointer;border-radius:3px;">PULL THE RECEIPT</button>'
+      + '</div>'
+      + '<div id="pf-receipt-out" style="margin-top:22px;"></div>'
+      + '</div>';
+  }
+
+  /* Receipt-paper section card: native <details>, collapsed on mobile. */
+  var MOBILE_COLLAPSE = isMobile();
+  function sectionCard(title, inner, stamp) {
+    return '<details' + (MOBILE_COLLAPSE ? '' : ' open') + ' style="background:' + PAPER
+      + ';border:1px solid ' + HAIR + ';border-radius:3px;margin:0 0 10px;overflow:hidden;">'
+      + '<summary style="list-style:none;cursor:pointer;padding:13px 16px;font-size:12px;font-weight:900;letter-spacing:3px;color:' + RED
+      + ';border-bottom:2px dashed ' + DASH + ';outline:none;">'
+      + '<span class="pf-r-chev" style="display:inline-block;margin-right:8px;transition:transform .15s;color:' + MUTED + ';">\u25b8</span>' + esc(title) + '</summary>'
+      + '<div style="padding:14px 16px;">' + inner
+      + (stamp ? '<div style="margin-top:12px;padding-top:10px;border-top:1px dashed ' + DASH + ';font-size:11px;color:' + MUTED + ';line-height:1.6;">'
+        + '<div>SOURCE: ' + esc(stamp.source || '') + '</div>'
+        + '<div>' + esc(stamp.staleness || '') + (stamp.rail ? ' · ' + esc(stamp.rail) : '') + '</div></div>' : '')
+      + '</div></details>';
+  }
+  function emptyCard(title, sec) {
+    var note = sec.note || 'Not yet tracked — coming soon.';
+    return sectionCard(title,
+      '<div style="font-size:13px;font-weight:800;letter-spacing:2px;color:' + MUTED + ';margin-bottom:6px;">NOT YET TRACKED — COMING SOON</div>'
+      + '<div style="font-size:14px;color:' + MUTED + ';line-height:1.6;">' + esc(note) + '</div>',
+      { source: sec.source, staleness: sec.staleness, rail: sec.rail_status });
+  }
+  function moneyLine(label, val) {
+    return '<div style="display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px dashed ' + DASH + ';font-size:14px;">'
+      + '<span style="color:' + MUTED + ';">' + esc(label) + '</span>'
+      + '<span style="font-weight:800;color:' + INK + ';font-family:' + MONO + ';">' + esc(val == null ? '—' : val) + '</span></div>';
+  }
+  function wireDetails(host) {
+    /* Chevron rotation on toggle (cosmetic only — native <details> does the work). */
+    host.querySelectorAll('details').forEach(function (el) {
+      el.addEventListener('toggle', function () {
+        var ch = el.querySelector('.pf-r-chev');
+        if (ch) ch.style.transform = el.open ? 'rotate(90deg)' : 'rotate(0deg)';
+        try {
+          var s = el.querySelector('summary');
+          if (s) s.setAttribute('aria-expanded', el.open ? 'true' : 'false');
+        } catch (e) {}
+      });
+    });
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Dossier render — headline first (always visible), sections stagger */
+  /* ---------------------------------------------------------------- */
+  var lastDossier = null;
+
+  function renderHeadline(host, d) {
+    var r = d.resolved, h = d.headline;
+    var party = r.party ? ' · ' + r.party : '';
+    var office = r.office === 'S' ? 'U.S. Senate' : r.office === 'H' ? 'U.S. House' : '';
+    var html = '<div style="background:' + PAPER + ';border:1px solid ' + HAIR + ';border-top:4px solid ' + RED
+      + ';border-radius:3px;padding:22px 20px;text-align:center;margin-bottom:12px;">'
+      + '<div style="font-size:11px;letter-spacing:4px;color:' + RED + ';font-weight:800;margin-bottom:10px;">ITEMIZED RECEIPT</div>'
+      + '<div style="font-size:27px;font-weight:900;letter-spacing:.5px;">' + esc(r.display_name) + '</div>'
+      + '<div style="font-size:13px;color:' + MUTED + ';margin:6px 0 16px;">' + esc(office + (r.state ? ' · ' + r.state : '') + party) + '</div>'
+      + '<div style="border-top:2px dashed ' + DASH + ';border-bottom:2px dashed ' + DASH + ';padding:14px 0;margin:0 -20px 16px;">';
+    if (h.money_live && h.total_raised_display) {
+      html += '<div style="font-size:12px;letter-spacing:3px;color:' + MUTED + ';margin-bottom:6px;">RAISED · 2026 CYCLE</div>'
+        + '<div style="font-size:44px;font-weight:900;color:' + RED + ';font-family:' + MONO + ';letter-spacing:-1px;">' + esc(h.total_raised_display) + '</div>';
+    } else {
+      html += '<div style="font-size:14px;color:' + MUTED + ';font-family:' + MONO + ';">FUNDRAISING — NOT YET LIVE<br><span style="font-size:12px;">the FEC key hand-step is still open</span></div>';
+    }
+    html += '</div>';
+    /* Top industries — always headline-visible, honestly labeled. */
+    if (h.top_industries && h.top_industries.length) {
+      html += '<div style="text-align:left;margin-bottom:14px;">'
+        + '<div style="font-size:11px;letter-spacing:3px;color:' + RED + ';font-weight:800;margin-bottom:6px;">TOP INDUSTRIES</div>';
+      h.top_industries.forEach(function (t) {
+        html += '<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed ' + DASH + ';font-size:13px;">'
+          + '<span>' + esc(t.industry) + ' <span style="color:' + MUTED + ';">(est.)</span></span>'
+          + '<span style="font-weight:800;font-family:' + MONO + ';">' + esc(t.total_receipts_display || '?') + '</span></div>';
+      });
+      html += '<div style="font-size:11px;color:' + MUTED + ';margin-top:6px;line-height:1.5;">Cycle-wide totals, estimated — the national money picture, not this person.</div></div>';
+    }
+    /* Trade count — honest when the rail is parked. */
+    html += '<div style="display:flex;justify-content:space-between;gap:10px;font-size:13px;padding-top:2px;">'
+      + '<span style="color:' + MUTED + ';">STOCK TRADES</span>'
+      + '<span style="font-weight:800;color:' + MUTED + ';font-family:' + MONO + ';">not yet tracked</span></div>'
+      + '</div>';
+    host.insertAdjacentHTML('beforeend', html);
+  }
+
+  /* Sticky web: the dossier's natural neighbors. Receipt -> Town -> Index
+     through relevance, not funnels. */
+  function renderNeighbors(host, d) {
+    var r = d.resolved, slug = slugify(r.display_name);
+    var name = esc(r.display_name);
+    function linkCard(href, icon, title, copy) {
+      return '<a href="' + href + '" style="display:block;background:' + PAPER + ';border:1px solid ' + HAIR
+        + ';border-radius:3px;padding:14px 16px;margin:0 0 10px;text-decoration:none;color:' + INK + ';">'
+        + '<div style="font-size:12px;font-weight:900;letter-spacing:2px;color:' + RED + ';margin-bottom:6px;">'
+        + icon + ' ' + esc(title) + '</div>'
+        + '<div style="font-size:14px;line-height:1.5;">' + copy + '</div>'
+        + '<div style="font-size:12px;color:' + MUTED + ';margin-top:6px;">' + esc(href) + ' \u2192</div></a>';
+    }
+    var html = '<div style="margin:4px 0 16px;">'
+      + '<div style="font-size:12px;letter-spacing:4px;color:' + MUTED + ';font-weight:800;text-align:center;margin-bottom:12px;">KEEP DIGGING</div>'
+      + linkCard('/town', '\uD83C\uDFD8\uFE0F', 'WHO OWNS YOUR TOWN',
+        'Power starts local. Type a zip — see who owns the backyard '
+        + (r.state ? 'back in <strong>' + esc(r.state) + '</strong>' : 'back home') + '.')
+      + linkCard('/index?name=' + encodeURIComponent(slug), '\uD83D\uDCCA', 'THE CORRUPTION INDEX',
+        'How captured is <strong>' + name + '</strong> by money? See the score.')
+      + linkCard('/extraction', '\uD83C\uDFED', 'THE EXTRACTION ENGINE',
+        'The companies behind the money — extraction stories, fully sourced.')
+      + '</div>';
+    host.insertAdjacentHTML('beforeend', html);
+  }
+
+  function renderSections(host, d) {
+    var S = d.sections, cards = [];
+    /* Money in */
+    if (S.money_in.status === 'live') {
+      var m = S.money_in.data;
+      cards.push(sectionCard('MONEY IN — FUNDRAISING',
+        '<div style="font-size:15px;font-weight:800;margin-bottom:8px;">' + esc(m.headline || '') + '</div>'
+        + moneyLine('Raised', m.receipts_display)
+        + moneyLine('Spent', m.disbursements_display)
+        + moneyLine('Cash on hand', m.cash_on_hand_display),
+        { source: S.money_in.source, staleness: S.money_in.staleness, rail: S.money_in.rail_status }));
+    } else {
+      cards.push(emptyCard('MONEY IN — FUNDRAISING', S.money_in));
+    }
+    /* Industries */
+    if (S.industries.status === 'live') {
+      var rows = S.industries.data.top.map(function (x) {
+        return moneyLine(x.industry + ' (est.)', x.total_receipts_display);
+      }).join('');
+      cards.push(sectionCard('TOP INDUSTRIES — CYCLE-WIDE',
+        '<div style="font-size:13px;color:' + MUTED + ';margin-bottom:8px;line-height:1.5;">'
+        + 'The national money picture this cycle. Candidate-level industry breakdowns are not yet tracked — '
+        + 'these figures describe the whole cycle, <strong>not this person</strong>.</div>' + rows,
+        { source: S.industries.source, staleness: S.industries.staleness, rail: S.industries.rail_status }));
+    } else {
+      cards.push(emptyCard('TOP INDUSTRIES', S.industries));
+    }
+    /* Wave-3 honest empties */
+    cards.push(emptyCard('LOBBYIST TIES', S.lobbying));
+    cards.push(emptyCard('STOCK TRADES', S.trades));
+    cards.push(emptyCard('VOTES', S.votes));
+    cards.push(emptyCard('BILLS SPONSORED', S.bills));
+
+    /* Stagger on idle: hero + headline paint first, sections stream in. */
+    var i = 0;
+    function next() {
+      if (i >= cards.length) {
+        renderNeighbors(host, d);
+        renderShareBtn(host, d);
+        wireDetails(host);
+        return;
+      }
+      host.insertAdjacentHTML('beforeend', cards[i++]);
+      if (window.requestIdleCallback) { window.requestIdleCallback(next, { timeout: 800 }); }
+      else { setTimeout(next, 60); }
+    }
+    next();
+  }
+
+  function renderShareBtn(host, d) {
+    var h = d.headline;
+    var canShare = h.money_live || (h.top_industries && h.top_industries.length);
+    var btnAttrs = canShare
+      ? ' style="background:' + RED + ';border:2px solid ' + RED + ';color:#fff;font-weight:900;letter-spacing:2px;padding:14px 40px;font-size:16px;cursor:pointer;border-radius:3px;"'
+      : ' disabled style="opacity:.45;cursor:not-allowed;background:' + RED + ';border:2px solid ' + RED + ';color:#fff;font-weight:900;letter-spacing:2px;padding:14px 40px;font-size:16px;border-radius:3px;"';
+    var html = '<div style="text-align:center;margin:8px 0 30px;">'
+      + '<button id="pf-receipt-share" type="button"' + btnAttrs + '>'
+      + 'GET THE RECEIPT</button>'
+      + (canShare ? '' : '<div style="font-size:13px;color:' + MUTED + ';margin-top:8px;">Nothing to share yet — the dossier is still all honest-empty.</div>')
+      + '</div>';
+    host.insertAdjacentHTML('beforeend', html);
+    var btn = host.querySelector('#pf-receipt-share');
+    if (btn && canShare) {
+      btn.addEventListener('click', function () { shareReceipt(d); });
+    }
+  }
+
+  function renderDisambiguation(host, d) {
+    var html = '<div style="background:' + PAPER + ';border:2px solid ' + RED + ';border-radius:3px;padding:18px;margin-bottom:14px;">'
+      + '<div style="font-size:14px;font-weight:900;letter-spacing:2px;margin-bottom:10px;color:' + RED + ';">DID YOU MEAN…</div>';
+    d.disambiguation.forEach(function (m) {
+      html += '<button type="button" data-pf-receipt-pick="' + esc(m.display_name) + '"'
+        + ' style="display:block;width:100%;text-align:left;background:#fff;border:1px solid ' + HAIR + ';color:' + INK
+        + ';padding:10px 12px;margin:6px 0;font-size:15px;cursor:pointer;border-radius:3px;">'
+        + esc(m.display_name) + ' <span style="color:' + MUTED + ';font-size:12px;">'
+        + esc((m.office === 'S' ? 'Senate' : m.office === 'H' ? 'House' : '') + (m.state ? ' · ' + m.state : '')) + '</span></button>';
+    });
+    html += '</div>';
+    host.insertAdjacentHTML('beforeend', html);
+    host.querySelectorAll('[data-pf-receipt-pick]').forEach(function (b) {
+      b.addEventListener('click', function () { loadDossier(b.getAttribute('data-pf-receipt-pick')); });
+    });
+  }
+
+  function renderSuggestions(host, d) {
+    if (!d.suggestions || !d.suggestions.length) {
+      host.insertAdjacentHTML('beforeend',
+        '<div style="text-align:center;color:' + MUTED + ';font-size:14px;padding:18px;">'
+        + 'No match in the index yet. The name index grows as the FEC rail ingests — check back.</div>');
+      return;
+    }
+    var html = '<div style="text-align:center;color:' + MUTED + ';font-size:14px;margin-bottom:8px;">No exact match. Did you mean…</div>';
+    d.suggestions.forEach(function (m) {
+      html += '<div style="text-align:center;"><button type="button" data-pf-receipt-pick="' + esc(m.display_name) + '"'
+        + ' style="background:' + PAPER + ';border:2px solid ' + RED + ';color:' + INK + ';padding:10px 22px;margin:5px;font-size:15px;font-weight:700;cursor:pointer;border-radius:3px;">'
+        + esc(m.display_name) + '</button></div>';
+    });
+    host.insertAdjacentHTML('beforeend', html);
+    host.querySelectorAll('[data-pf-receipt-pick]').forEach(function (b) {
+      b.addEventListener('click', function () { loadDossier(b.getAttribute('data-pf-receipt-pick')); });
+    });
+  }
+
+  function loadDossier(name) {
+    var out = document.getElementById('pf-receipt-out');
+    if (!out) return;
+    out.innerHTML = '<div style="text-align:center;color:' + MUTED + ';font-size:14px;padding:26px;">Pulling the receipt…</div>';
+    try {
+      var slug = slugify(name);
+      var url = '/receipt/' + slug;
+      if (window.history && window.history.replaceState && location.pathname !== url) {
+        window.history.replaceState(null, '', url);
+      }
+    } catch (e) {}
+    api('receipt_dossier', { name: name }, function (d) {
+      if (!d || !d.ok) {
+        out.innerHTML = '<div style="text-align:center;color:' + MUTED + ';font-size:14px;padding:26px;">'
+          + 'The receipt machine hiccuped. <button type="button" id="pf-receipt-retry" style="background:' + RED
+          + ';border:0;color:#fff;font-weight:800;padding:8px 18px;cursor:pointer;border-radius:3px;">RETRY</button></div>';
+        var rb = document.getElementById('pf-receipt-retry');
+        if (rb) rb.addEventListener('click', function () { loadDossier(name); });
+        return;
+      }
+      lastDossier = d;
+      out.innerHTML = '';
+      if (d.disambiguation) { renderDisambiguation(out, d); return; }
+      if (!d.resolved) { renderSuggestions(out, d); return; }
+      renderHeadline(out, d);
+      renderSections(out, d);
+    });
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Typeahead                                                         */
+  /* ---------------------------------------------------------------- */
+  function wireTypeahead() {
+    var input = document.getElementById('pf-receipt-q');
+    var ta = document.getElementById('pf-receipt-ta');
+    var go = document.getElementById('pf-receipt-go');
+    if (!input || !ta || !go) return;
+    var timer = null, lastQ = '';
+    function hide() { ta.style.display = 'none'; ta.innerHTML = ''; }
+    function pick(name) { hide(); input.value = name; loadDossier(name); }
+    go.addEventListener('click', function () {
+      var v = input.value.trim();
+      if (v) pick(v);
+    });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { var v = input.value.trim(); if (v) pick(v); }
+      if (e.key === 'Escape') hide();
+    });
+    input.addEventListener('input', function () {
+      var q = input.value.trim();
+      if (timer) clearTimeout(timer);
+      if (q.length < 2 || q === lastQ) { if (q.length < 2) hide(); return; }
+      timer = setTimeout(function () {
+        lastQ = q;
+        api('receipt_search', { q: q }, function (r) {
+          if (!r || !r.ok || !r.matches || !r.matches.length) { hide(); return; }
+          if (document.activeElement !== input) return;
+          var html = '';
+          r.matches.slice(0, 7).forEach(function (m) {
+            html += '<button type="button" data-pf-ta="' + esc(m.display_name) + '"'
+              + ' style="display:block;width:100%;text-align:left;background:transparent;border:0;border-bottom:1px dashed ' + DASH + ';color:' + INK
+              + ';padding:11px 14px;font-size:15px;cursor:pointer;">' + esc(m.display_name)
+              + ' <span style="color:' + MUTED + ';font-size:12px;">'
+              + esc((m.office === 'S' ? 'Senate' : m.office === 'H' ? 'House' : '') + (m.state ? ' · ' + m.state : '')) + '</span></button>';
+          });
+          ta.innerHTML = html;
+          ta.style.display = 'block';
+          ta.querySelectorAll('[data-pf-ta]').forEach(function (b) {
+            b.addEventListener('mousedown', function (e) {
+              e.preventDefault();
+              pick(b.getAttribute('data-pf-ta'));
+            });
+          });
+        });
+      }, 220);
+    });
+    document.addEventListener('click', function (e) {
+      try { if (!ta.contains(e.target) && e.target !== input) hide(); } catch (x) { hide(); }
+    });
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Share image — 1080x1350 canvas, client-side from the dossier JSON */
+  /* ---------------------------------------------------------------- */
+  function wrap(x, text, maxW) {
+    var words = String(text).split(/\s+/), lines = [], line = '';
+    words.forEach(function (w) {
+      var t = line ? line + ' ' + w : w;
+      if (x.measureText(t).width > maxW && line) { lines.push(line); line = w; }
+      else { line = t; }
+    });
+    if (line) lines.push(line);
+    return lines;
+  }
+  function paintReceipt(d) {
+    var W = 1080, H = 1350;
+    var cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    var x = cv.getContext('2d');
+    if (!x) return null;
+    var r = d.resolved, h = d.headline, S = d.sections;
+    x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, W, H);
+    x.strokeStyle = '#c1121f'; x.lineWidth = 18; x.strokeRect(16, 16, W - 32, H - 32);
+    x.strokeStyle = '#f5ead6'; x.lineWidth = 3; x.strokeRect(52, 52, W - 104, H - 104);
+    x.textAlign = 'center';
+    var y = 150;
+    x.fillStyle = '#f5ead6'; x.font = '700 32px Arial,sans-serif';
+    x.fillText('\u2605 THE PROPAGANDA FACTORY \u2605', W / 2, y); y += 64;
+    x.fillStyle = '#c1121f'; x.font = '900 64px "Arial Black",Arial,sans-serif';
+    x.fillText('THE RECEIPT', W / 2, y); y += 110;
+    x.fillStyle = '#f5ead6'; x.font = '900 72px "Arial Black",Arial,sans-serif';
+    wrap(x, r.display_name.toUpperCase(), W - 170).slice(0, 2).forEach(function (l) {
+      x.fillText(l, W / 2, y); y += 84;
+    });
+    var sub = (r.office === 'S' ? 'U.S. SENATE' : r.office === 'H' ? 'U.S. HOUSE' : '')
+      + (r.state ? ' \u00b7 ' + r.state : '') + (r.party ? ' \u00b7 ' + r.party : '');
+    y += 6;
+    x.fillStyle = '#b8ab8e'; x.font = '700 34px Arial,sans-serif';
+    x.fillText(sub, W / 2, y); y += 90;
+
+    /* Top 5 lines: money facts first, then industries. */
+    var lines = [];
+    if (h.money_live && h.total_raised_display) {
+      lines.push('RAISED ' + h.total_raised_display + ' IN 2026');
+    }
+    if (S.money_in.status === 'live' && S.money_in.data) {
+      var m = S.money_in.data;
+      if (m.cash_on_hand_display) lines.push('SITTING ON ' + m.cash_on_hand_display + ' CASH');
+      if (m.disbursements_display) lines.push('SPENT ' + m.disbursements_display);
+    }
+    (h.top_industries || []).slice(0, 3).forEach(function (t) {
+      lines.push('TOOK ' + (t.total_receipts_display || '?') + ' FROM ' + String(t.industry).toUpperCase() + '*');
+    });
+    lines = lines.slice(0, 5);
+    x.fillStyle = '#f5ead6'; x.font = '700 40px Arial,sans-serif';
+    lines.forEach(function (l) {
+      wrap(x, l, W - 200).slice(0, 2).forEach(function (wl) { x.fillText(wl, W / 2, y); y += 54; });
+      y += 14;
+    });
+    y += 30;
+    x.fillStyle = '#b8ab8e'; x.font = '400 28px Arial,sans-serif';
+    x.fillText('* cycle-wide industry totals, estimated —', W / 2, y); y += 40;
+    x.fillText('candidate-level breakdowns not yet tracked.', W / 2, y); y += 60;
+    var src = S.money_in.source || 'FEC';
+    x.fillStyle = '#8a8172'; x.font = '400 26px Arial,sans-serif';
+    wrap(x, 'Sources: ' + src, W - 200).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 38; });
+
+    /* CTA standard: JOIN THE FIGHT. red bold above MTCSTW.COM */
+    x.fillStyle = '#c1121f'; x.font = '900 58px "Arial Black",Arial,sans-serif';
+    x.fillText('JOIN THE FIGHT.', W / 2, H - 220);
+    x.fillStyle = '#f5ead6'; x.font = '900 44px "Arial Black",Arial,sans-serif';
+    x.fillText('MTCSTW.COM', W / 2, H - 150);
+    x.fillStyle = '#b8ab8e'; x.font = '400 28px Arial,sans-serif';
+    x.fillText('mtcstw.com/receipt/' + slugify(r.display_name), W / 2, H - 96);
+    return cv;
+  }
+  function shareReceipt(d) {
+    var cv = paintReceipt(d);
+    if (!cv) { try { if (PF && PF.toast) PF.toast('Poster failed — try again.'); } catch (e) {} return; }
+    var slug = slugify(d.resolved.display_name);
+    try {
+      if (window.PFShare && window.PFShare.shareImage) {
+        /* Native share sheet w/ download fallback; fires pf-share-image so
+           the share counts through the existing XP mechanics. */
+        window.PFShare.shareImage(cv, 'pfn-receipt-' + slug + '.png',
+          'THE RECEIPT: ' + d.resolved.display_name, 'receipt');
+      }
+    } catch (e) { err('share failed: ' + (e && e.message)); }
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Mount                                                             */
+  /* ---------------------------------------------------------------- */
+  function mount() {
+    var host = document.getElementById('pf-receipt');
+    if (!host || host.getAttribute('data-pf-receipt-mounted')) return;
+    host.setAttribute('data-pf-receipt-mounted', '1');
+    host.insertAdjacentHTML('afterbegin', shellHTML());
+    wireTypeahead();
+    /* Deep link: /receipt/<slug> auto-loads that dossier. */
+    try {
+      var m = (location.pathname || '').match(/\/receipt\/([a-z0-9-]+)\/?$/);
+      if (m && m[1]) {
+        var q = document.getElementById('pf-receipt-q');
+        var name = unslugify(m[1]);
+        if (q) q.value = name.replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+        loadDossier(name);
+      }
+    } catch (e) {}
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+  /* Late-mount guard: the footer loader may inject #pf-receipt after us. */
+  setTimeout(mount, 1500);
+})();
+
+;

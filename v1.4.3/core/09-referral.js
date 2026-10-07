@@ -92,7 +92,6 @@ try{
   else { setTimeout(scrubBadCreatorRef,6000); }
 }catch(e){}
 PF.storedCreatorRef=storedCreatorRef;
-PF.scrubBadCreatorRef=scrubBadCreatorRef;
 
 /* PF.shareUrl(url) — every shared link carries the sharer's callsign so
    arrivals attribute back. Used by share-image.js, do-meter, vote cards.
@@ -111,7 +110,6 @@ PF.shareUrl=function(url){
   }
   return url+(url.indexOf('?')>=0?'&':'?')+'ref='+encodeURIComponent(cs);
 };
-PF.myCallsign=myCallsign;
 PF.hasCallsign=function(){ return !!myCallsign(); };
 PF.storedRef=storedRef;
 

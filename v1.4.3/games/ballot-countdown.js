@@ -40,7 +40,6 @@
   if (window.pfBallotCdDone) return;
   window.pfBallotCdDone = true;
 
-  var BACKEND = window.PF_BACKEND_URL;
   var MOUNT_ID = 'pf-forged-ballot';
 
   function esc(s) {
@@ -71,21 +70,8 @@
   function fetchCountdowns(cb) {
     if (FETCHED) { cb(CACHE); return; }
     FETCHED = true;
-    if (!BACKEND) { cb(null); return; }
-    var fn = 'pfBcCb' + Math.floor(Math.random() * 1e9);
-    var s = document.createElement('script'), done = false;
-    function finish(j) {
-      if (done) return; done = true;
-      try { delete window[fn]; } catch (e) {}
-      if (s.parentNode) s.parentNode.removeChild(s);
-      CACHE = (j && j.ok && j.countdowns) ? j.countdowns : null;
-      cb(CACHE);
-    }
-    window[fn] = function (j) { finish(j); };
-    s.onerror = function () { finish(null); };
-    s.src = BACKEND + '?action=ballot_countdowns&callback=' + fn;
-    document.head.appendChild(s);
-    setTimeout(function () { finish(CACHE); }, 12000);
+    /* ballot_countdowns has no backend route — fail-soft: no countdowns. */
+    cb(null);
   }
 
   /* ---------- XP: existing mirror legs only, ballot-scoped keys ---------- */

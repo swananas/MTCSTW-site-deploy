@@ -37,7 +37,6 @@
   if (window.pfBoycottsDone) return;
   window.pfBoycottsDone = true;
 
-  var BACKEND = window.PF_BACKEND_URL;
   var PAINTER = 'phq-boycott';
   var HQ_URL = 'https://www.mtcstw.com/political-hq';
   var PENDING_MSG = 'Donor data pending — the money tables are still loading. Check back soon.';
@@ -51,30 +50,6 @@
   function fmtMoney(n) {
     try { return '$' + Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 }); }
     catch (e) { return '$' + String(n); }
-  }
-
-  /* JSONP GET — mirrors core/wall-of-shame.js api(): backend + action +
-     params + callback script tag, 12s timeout, null on any failure. */
-  function api(action, params, cb) {
-    if (!BACKEND) { cb(null); return; }
-    var fn = 'pfBcCb' + Math.floor(Math.random() * 1e9);
-    var s = document.createElement('script'), done = false;
-    function finish(j) {
-      if (done) return; done = true;
-      try { delete window[fn]; } catch (e) {}
-      if (s.parentNode) s.parentNode.removeChild(s);
-      cb(j);
-    }
-    window[fn] = function (j) { finish(j); };
-    s.onerror = function () { finish(null); };
-    var q = '?action=' + encodeURIComponent(action);
-    for (var k in params) {
-      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
-    }
-    q += '&callback=' + fn;
-    s.src = BACKEND + q;
-    document.head.appendChild(s);
-    setTimeout(function () { finish(null); }, 12000);
   }
 
   var CSS = [
@@ -227,10 +202,8 @@
     try {
       if (container.querySelector && container.querySelector('.pf-bc')) return true; /* already mounted */
     } catch (e) {}
-    api('boycott_list', {}, function (j) {
-      if (!j || !j.ok) { hide(container); return; }
-      try { render(container, j); } catch (e) { hide(container); }
-    });
+    /* boycott_list has no backend route — fail-soft: hide the section. */
+    hide(container);
     return true;
   }
 

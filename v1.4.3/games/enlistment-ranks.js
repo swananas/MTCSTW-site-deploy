@@ -334,7 +334,6 @@ function wallFromServer(cb){
 }
 function renderWall(serverWall, fanFav){
   var el=document.getElementById("uWall");
-  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
   var names=getWall();
   if(serverWall&&serverWall.length){ names=serverWall.map(function(w){return esc(String(w.callsign).toUpperCase());}); }
   else { names=names.map(function(w){return esc(String(w).toUpperCase());}); }
@@ -621,7 +620,7 @@ function pPost(cb){
       .catch(function(){ try{clearTimeout(hung);}catch(e){} cb({ok:false,err:"network error"}); });
   }catch(e){ cb({ok:false,err:"network error"}); }
 }
-function escH(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function renderPrestige(st){
   var el=document.getElementById("pBody"); if(!el) return;
   var cs=pCallsign();
@@ -630,12 +629,12 @@ function renderPrestige(st){
   var h="";
   /* Prestige badge */
   if(st.prestige_level>0){
-    h+='<div class="p-badge">&#9733;'+escH(st.badge)+'&#9733;</div>';
+    h+='<div class="p-badge">&#9733;'+esc(st.badge)+'&#9733;</div>';
     h+='<div class="p-rankline">Prestige '+st.prestige_level+' operative</div>';
   } else {
     h+='<div class="p-badge" style="border-color:#555;color:#777;font-size:20px;">NO PRESTIGE</div>';
   }
-  h+='<div class="p-rankline">Network rank: '+escH(st.rank_display)+' &middot; '+Number(st.xp||0).toLocaleString()+' XP</div>';
+  h+='<div class="p-rankline">Network rank: '+esc(st.rank_display)+' &middot; '+Number(st.xp||0).toLocaleString()+' XP</div>';
   if(st.max_prestige){
     h+='<div class="p-max">&#9733;&#9733;&#9733; Maximum prestige achieved. Legend status. &#9733;&#9733;&#9733;</div>';
   } else {
@@ -643,7 +642,7 @@ function renderPrestige(st){
     /* Rank requirement */
     var rankPct=rq.rank_ok?100:Math.min(100,Math.round(rq.xp_have/rq.xp_needed*100));
     h+='<div class="p-req '+(rq.rank_ok?"ok":"no")+'">'
-      +'<div class="p-reqt">Requirement 1: '+escH(rq.rank_needed)+'</div>'
+      +'<div class="p-reqt">Requirement 1: '+esc(rq.rank_needed)+'</div>'
       +'<div class="p-bar"><i style="width:'+rankPct+'%"></i></div>'
       +'<div class="p-reqd">'+(rq.rank_ok?'<span class="yes">MET</span> — VANGUARD confirmed.'
         :'<span class="no">NOT MET</span> — '+Number(rq.xp_have).toLocaleString()+' / 25,000 XP')+'</div></div>';
@@ -659,12 +658,12 @@ function renderPrestige(st){
     var b=st.benefits;
     h+='<div class="p-benefits">'
       +'<div><b>Current:</b> '+Number(b.daily_cap).toLocaleString()+' XP/day cap &middot; bank deposits &times;'+b.bank_deposit_mult+'</div>'
-      +'<div><b>Prestige '+st.next_prestige+' ('+escH(st.next_badge)+'):</b> '+Number(b.daily_cap_next).toLocaleString()+' XP/day cap &middot; bank deposits &times;'+b.bank_deposit_mult_next+'</div>'
+      +'<div><b>Prestige '+st.next_prestige+' ('+esc(st.next_badge)+'):</b> '+Number(b.daily_cap_next).toLocaleString()+' XP/day cap &middot; bank deposits &times;'+b.bank_deposit_mult_next+'</div>'
       +'<div>Each prestige resets you to SYMPATHIZER at 0 XP. You keep your streaks, your unlocks, and your name on the wall.</div>'
       +'</div>';
     /* Prestige button */
     if(st.eligible){
-      h+='<button class="p-btn" id="pGo">Prestige &#9733;'+escH(st.next_badge)+'</button>';
+      h+='<button class="p-btn" id="pGo">Prestige &#9733;'+esc(st.next_badge)+'</button>';
       h+='<div class="p-warn">WARNING: This resets your XP to 0 and your rank to SYMPATHIZER. Your prestige level becomes '+st.next_prestige+'. This cannot be undone.</div>';
     } else {
       h+='<button class="p-btn" disabled>Prestige locked</button>';
@@ -695,9 +694,9 @@ function pConfirm(st){
   m.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;";
   var box=document.createElement("div");
   box.style.cssText="background:#0d0d0d;border:4px solid #ff5a00;max-width:440px;width:100%;box-sizing:border-box;padding:28px 24px;text-align:center;font-family:Arial,sans-serif;";
-  box.innerHTML='<div style="color:#ff5a00;font-family:\\'Arial Black\\',Arial,sans-serif;font-size:22px;letter-spacing:3px;margin-bottom:12px;">PRESTIGE &#9733;'+escH(st.next_badge)+'</div>'
-    +'<div style="color:#f5ead6;font-size:14px;line-height:1.6;margin-bottom:8px;">You are about to burn <b>'+Number(st.xp||0).toLocaleString()+' XP</b> and fall from <b>'+escH(st.rank)+'</b> back to <b>SYMPATHIZER</b>.</div>'
-    +'<div style="color:#c9bfa8;font-size:13px;line-height:1.6;margin-bottom:20px;">In return: <b style="color:#ff5a00">'+Number(st.benefits.daily_cap_next).toLocaleString()+' XP/day</b> cap, <b style="color:#ff5a00">&times;'+st.benefits.bank_deposit_mult_next+'</b> bank deposits, and the <b style="color:#ff5a00">&#9733;'+escH(st.next_badge)+'</b> badge next to your name. Forever.</div>'
+  box.innerHTML='<div style="color:#ff5a00;font-family:\\'Arial Black\\',Arial,sans-serif;font-size:22px;letter-spacing:3px;margin-bottom:12px;">PRESTIGE &#9733;'+esc(st.next_badge)+'</div>'
+    +'<div style="color:#f5ead6;font-size:14px;line-height:1.6;margin-bottom:8px;">You are about to burn <b>'+Number(st.xp||0).toLocaleString()+' XP</b> and fall from <b>'+esc(st.rank)+'</b> back to <b>SYMPATHIZER</b>.</div>'
+    +'<div style="color:#c9bfa8;font-size:13px;line-height:1.6;margin-bottom:20px;">In return: <b style="color:#ff5a00">'+Number(st.benefits.daily_cap_next).toLocaleString()+' XP/day</b> cap, <b style="color:#ff5a00">&times;'+st.benefits.bank_deposit_mult_next+'</b> bank deposits, and the <b style="color:#ff5a00">&#9733;'+esc(st.next_badge)+'</b> badge next to your name. Forever.</div>'
     +'<div style="display:flex;gap:12px;justify-content:center;">'
     +'<button id="pCancel" style="background:#333;color:#f5ead6;border:none;font-family:\\'Arial Black\\',Arial,sans-serif;font-size:14px;letter-spacing:2px;padding:12px 24px;cursor:pointer;">STAND DOWN</button>'
     +'<button id="pConfirm" style="background:#ff5a00;color:#0d0d0d;border:none;font-family:\\'Arial Black\\',Arial,sans-serif;font-size:14px;letter-spacing:2px;padding:12px 24px;cursor:pointer;">BURN IT</button>'

@@ -2,6 +2,10 @@
    CEO greenlight 2026-10-05 (weave #8: political data into creation).
    Mounts into <div id="pf-bank-browse"></div> (Creator HQ Content Bank area).
    Silent no-op everywhere else.
+   2026-10-06 junk-removal: the bank_list / bank_remix backend routes do not
+   exist — the gallery renders the graceful "still stocking the vault" state
+   and remix fails soft with the retry toast. The contract below is preserved
+   for when the backend sibling lands (full wiring in git history).
    Backend contract (be/content-bank-metadata @ 5fec332 — reconciled):
      public GET ?action=bank_list&issue_area=&entity_type=&entity_id=&sort=
      &limit=&offset=  ->  {ok:true, items:[{
@@ -51,8 +55,6 @@
   var mount = document.getElementById('pf-bank-browse');
   if (!mount) { return; } /* silent no-op: the gallery lives in Creator HQ / Content Bank only */
 
-  var BACKEND = window.PF_BACKEND_URL;
-
   function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
   function safeUrl(u){
     var s = String(u || "").trim();
@@ -62,7 +64,6 @@
     try{ var t=document.createElement("div"); t.textContent=m;
       t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
       document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
-  function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
 
   /* Canonical 12 — same list as core/read-xp.js META_AREAS. */
   var AREAS = [
@@ -135,48 +136,6 @@
       s.textContent = CSS.replace(/^<style>|<\/style>$/g, '');
       (document.head || document.documentElement).appendChild(s);
     } catch (e) {}
-  }
-
-  /* ---------- backend ---------- */
-  /* Public reads: JSONP GET, 10s timeout — no identity attached. */
-  function pubGet(action, params, cb){
-    if(!BACKEND){ cb(null); return; }
-    var fn="pfBbCb"+Math.floor(Math.random()*1e9);
-    var s=document.createElement("script"), done=false;
-    function cleanup(){ try{delete window[fn];}catch(e){} try{if(s.parentNode)s.parentNode.removeChild(s);}catch(e2){} }
-    function finish(j){ if(done)return; done=true; cleanup(); cb(j); }
-    window[fn]=function(j){ finish(j); };
-    s.onerror=function(){ finish(null); };
-    var q="?action="+encodeURIComponent(action);
-    for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
-    q+="&callback="+fn; s.src=BACKEND+q; (document.head||document.documentElement).appendChild(s);
-    setTimeout(function(){ finish(null); },10000);
-  }
-  /* Mutations: POST {type:'readcreate', rc_action:'bank_remix'}. Prefers
-     PF.postAction (auth + abort); raw fetch is the backstop. */
-  function postMut(params, cb){
-    var done = function(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} };
-    if (window.PF && PF.postAction) {
-      var id = ident();
-      var p = { submission_id: params.submission_id };
-      if (id.callsign) p.callsign = id.callsign;
-      if (id.device) p.device = id.device;
-      PF.postAction('readcreate','rc_action','bank_remix',p,done); return;
-    }
-    if(!BACKEND){ done(null); return; }
-    try{
-      var id2 = ident();
-      var body = {type:'readcreate', rc_action:'bank_remix', submission_id: params.submission_id};
-      if (id2.callsign) body.callsign = id2.callsign;
-      if (id2.device) body.device = id2.device;
-      var o={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}, c=null, t=null;
-      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
-        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
-      fetch(BACKEND,o)
-        .then(function(r){ return r.json(); })
-        .then(function(j){ if(t) clearTimeout(t); done(j); })
-        .catch(function(){ if(t) clearTimeout(t); done(null); });
-    }catch(e){ done(null); }
   }
 
   /* ---------- render ---------- */
@@ -329,30 +288,11 @@
     S.loading = true;
     if (reset) { S.offset = 0; S.items = []; S.hasMore = false; S.failed = false; }
     paint();
-    var params = { sort: S.sort, limit: LIMIT, offset: S.offset };
-    if (S.area) params.issue_area = S.area;
-    if (S.type) params.entity_type = S.type;
-    if (S.entity) params.entity_id = S.entity;
-    pubGet('bank_list', params, function (j){
-      S.loading = false;
-      if (!j || j.ok === false || !j.items) {
-        /* Backend sibling not landed yet (or the wire hiccuped): the
-           graceful stocking state, never an error wall. */
-        S.failed = true;
-        paint();
-        return;
-      }
-      var items = j.items || [];
-      /* Backend contract (be/content-bank-metadata): bank_list returns FLAT
-         fields — id (not submission_id), entity_type/entity_id/issue_area/
-         plugin_id/template_id/data_hash/data_ts as top-level fields, no
-         political_meta nesting, no has_more. Build the view object the
-         card renderer expects, and infer has_more from a full page. */
-      for (var i = 0; i < items.length; i++) S.items.push(viewItem(items[i]));
-      S.offset = S.items.length;
-      S.hasMore = items.length === LIMIT && items.length > 0;
-      paint();
-    });
+    /* bank_list has no backend route — fail-soft: the graceful stocking
+       state, never an error wall. */
+    S.loading = false;
+    S.failed = true;
+    paint();
   }
 
   /* ---------- remix ---------- */
@@ -387,47 +327,11 @@
   function doRemix(sid, btn){
     if (!sid) return;
     try { if (btn) btn.disabled = true; } catch (e) {}
-    postMut({ submission_id: sid }, function (j){
-      try { if (btn) btn.disabled = false; } catch (e2) {}
-      if (!j || j.ok === false) {
-        toast('Remix didn\'t land — the wire fought back. Retry.');
-        return;
-      }
-      /* Backend contract (be/content-bank-metadata): {ok, submission_id,
-         remix:{plugin_id, template_id, entity_type, entity_id, parent_id,
-         data_hash, data_ts}} — nested, no forge_ready/forge_path. Read
-         defensively so either shape works; forge_ready stays optional
-         (the prefill fallback covers its absence). */
-      var r = normRemix(j, sid);
-      if (j.forge_ready === true) {
-        var path = j.forge_path || forgePath();
-        try { window.location.href = path + '?' + remixQuery(r); }
-        catch (e3) { toast('Forge handoff failed — retry.'); }
-        return;
-      }
-      /* Forge not live yet: stage the remix in the bank composer. */
-      var staged = false;
-      try {
-        if (PF.bankPrefillMeta) {
-          staged = PF.bankPrefillMeta({
-            entity_type: r.entity_type, entity_id: r.entity_id,
-            plugin_id: r.plugin_id, template_id: r.template_id,
-            data_hash: r.data_hash, data_ts: r.data_ts,
-            parent_id: r.parent_id,
-            note: 'Remix staged below — the Forge isn\'t live yet. Hit SUBMIT FOR REVIEW when it\'s ready.'
-          });
-        }
-      } catch (e4) {}
-      if (staged) {
-        toast('Remix staged in the bank composer.');
-        try {
-          var bank = document.getElementById('pf-readxp-bank');
-          if (bank && bank.scrollIntoView) bank.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } catch (e5) {}
-      } else {
-        toast('Remix ready — open the Content Bank composer to finish it.');
-      }
-    });
+    /* bank_remix has no backend route — fail-soft: the retry toast.
+       The Forge-handoff path (normRemix/remixQuery/forgePath) stays wired
+       for when the route lands. */
+    try { if (btn) btn.disabled = false; } catch (e2) {}
+    toast('Remix didn\'t land — the wire fought back. Retry.');
   }
 
   /* ---------- events ---------- */

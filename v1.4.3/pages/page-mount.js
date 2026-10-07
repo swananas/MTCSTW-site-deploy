@@ -260,6 +260,16 @@
       order: [
         ['karl', null]
       ]
+    },
+    /* UGC STORY REMIXER (fe/ugc-story-remixer, 2026-10-07): self-renders
+       into #pf-ugc-remix via pages/bundle-ugc-remix.js (published-remix
+       feed, ?r=<id> shareable remix pages, evidence+take composer).
+       page-mount contributes the page header + full-width widening.
+       Zero XP for viewing. Ship-time hand-step: Squarespace page /remix
+       + Code block <div id="pf-ugc-remix"></div>. Kill: ?pf_off=ugcremix. */
+    'pf-ugc-remix': {
+      title: 'STORY REMIXER', sub: 'Sourced stories, citizen evidence. The facts are frozen — the fight is yours.',
+      order: []
     }
   };
 
@@ -433,7 +443,7 @@
     'pf-war-card', 'pf-academy-hq', 'pf-dash-hq', 'pf-hq-mission',
     'pf-political-hq', 'pf-slr-roster', 'pf-catalog', 'pf-money',
     'pf-warroom', 'pf-live', 'pf-data-bounties',
-    'pf-karl'
+    'pf-karl', 'pf-ugc-remix'
   ];
   function feWiden(host) {
     try {

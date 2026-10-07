@@ -142,19 +142,44 @@ function fmtHours(ms){
   return h+"H "+(m<10?"0":"")+m+"M";
 }
 var BAL=null,STREAK=null,LOOT=null,FLASH=null,COMEBACK=null,COMEBACK_ERR=null,PROP=null,CELL=null,MISS=null,STAT=null,SEASON=null,BRIEF=null,SEASHIST=null,CIRCUIT=null,WARPLAN=null,OPARC=null,HALL=null,ECON=null,XCROSS=null;
-var N_CALLS=16;
+var N_CALLS=12;
 function load(){
   var id=ident(), done=false, n=0;
   function fin(){ if(done)return; done=true; render(); }
   function one(){ n++; if(n>=N_CALLS) fin(); }
   setTimeout(fin,15000);
   /* Dedicated endpoints first (no-ops until the backend ships). */
-  api("briefing",{callsign:id.callsign,device:id.device},function(j){ BRIEF=(j&&j.ok)?j:null; one(); });
+  api("briefing",{callsign:id.callsign,device:id.device},function(j){
+    BRIEF=(j&&j.ok)?j:null;
+    /* D1 STRUCT (2026-10-06): xp_balance / streak_status / loot_status /
+       proposal_list are strict subsets of the briefing aggregate — derived
+       client-side instead of firing duplicate calls. flash_active and
+       cell_mine stay dedicated: briefing carries flash ends_in only as a
+       formatted string (no numeric countdown) and has no active_week. */
+    try{
+      var b=BRIEF&&BRIEF.briefing;
+      if(b){
+        BAL={balance:Number((b.soldier&&b.soldier.xp)||0)};
+        /* briefing's streak_hours_left is true hours; the old streak_status
+           field was ms (misnamed), so the *3600000 in render() is now
+           correct for the derived value. */
+        STREAK={ok:true,
+          count:Number((b.soldier&&b.soldier.streak_count)||0),
+          at_risk:!!(b.soldier&&b.soldier.streak_at_risk),
+          hours_left:Number((b.soldier&&b.soldier.streak_hours_left)||0)};
+        LOOT={ok:true,can_claim:!!(b.today&&b.today.loot_available)};
+        /* proposals_closing_soon is pre-filtered server-side to open
+           proposals closing within 24h — exactly the set the old
+           proposal_list loop counted. */
+        PROP={closingSoon:(b.proposals_closing_soon||[]).length};
+      }
+    }catch(e){}
+    one();
+  });
   api("season_current",{},function(j){ SEASON=(j&&j.ok)?j.season:null; one(); });
-  /* Aggregate the silos directly — this is the cement. */
-  api("xp_balance",{callsign:id.callsign},function(j){ BAL=j; one(); });
-  api("streak_status",{callsign:id.callsign,device:id.device},function(j){ STREAK=(j&&j.ok)?j:null; one(); });
-  api("loot_status",{callsign:id.callsign,device:id.device},function(j){ LOOT=(j&&j.ok)?j:null; one(); });
+  /* Aggregate the silos directly — this is the cement.
+     (D1 STRUCT 2026-10-06: xp_balance / streak_status / loot_status /
+     proposal_list removed — derived from the briefing aggregate above.) */
   /* S1 Route March (2026-10-04): today's circuit — auth-gated per-callsign read. */
   api("circuit_status",{callsign:id.callsign,device:id.device},function(j){ CIRCUIT=(j&&j.ok)?j:null; one(); });
   /* W5-4 War Plan (2026-10-04): the morning aggregate — march preview +
@@ -167,12 +192,37 @@ function load(){
   /* W5-5 Crossfire Circuit (2026-10-04): hot-zone state — auth-gated read. */
   api("crossfire_status",{callsign:id.callsign,device:id.device},function(j){ XCROSS=(j&&j.ok)?j:null; one(); });
   api("comeback_check",{callsign:id.callsign,device:id.device},function(j){ COMEBACK=(j&&j.ok&&j.eligible)?j:null; COMEBACK_ERR=(j&&!j.ok)?j:null; one(); });
-  api("proposal_list",{},function(j){ PROP=j; one(); });
+  /* (D1 STRUCT 2026-10-06: proposal_list removed — the closing-soon count is
+     derived from the briefing aggregate in the briefing callback above.) */
+  /* D1 STRUCT (2026-10-06): cell_mine is a DEDICATED call (not a duplicate).
+     The briefing aggregate's cell block has no active_week, which the
+     YOUR CELL section renders — so the dedicated call stays. */
   api("cell_mine",{callsign:id.callsign,device:id.device},function(j){ CELL=(j&&j.ok)?j:null; one(); });
   api("campaign_missions",{callsign:id.callsign,device:id.device},function(j){ MISS=j; one(); });
   api("campaign_status",{},function(j){ STAT=j; one(); });
   /* 2026-10-03: season_history (public) — past seasons surface in §5. */
   api("season_history",{},function(j){ SEASHIST=(j&&j.ok&&j.seasons)||null; one(); });
+  /* W5-10 Operation Arcs (2026-10-04): arc read is a Promise from core/oparc.js
+     — never part of the N_CALLS countdown; fail-silent, paints when it lands. */
+  try{
+    if(window.PF&&typeof PF.opArc==="function"){
+      PF.opArc().then(function(a){ OPARC=a; paintArcHeader(); },function(){});
+    }
+  }catch(e){}
+  /* W5-6 Hall of Proof (2026-10-04): "you were mentioned" read — never part
+     of the N_CALLS countdown; fail-silent, paints when it lands. */
+  try{
+    api("hall_list",{},function(j){ HALL=(j&&j.ok)?j:null; paintHallMention(); });
+  }catch(e){}
+  /* R34 (2026-10-04): econ_calendar — auctions ending / drops starting as
+     appointment mechanics inside the briefing. Degrades silently until W6B-1
+     ships the action. */
+  api("econ_calendar",{},function(j){ ECON=(j&&j.ok)?j:null; one(); });
+}
+/* D1 STRUCT (2026-10-06) FIX — PRE-EXISTING BUG (introduced b99352d 2026-10-04):
+   crossfireHtml() was nested inside load(), so render()'s unconditional
+   h+=crossfireHtml() threw ReferenceError on every signed-in briefing render.
+   Hoisted to top level; behavior otherwise unchanged. */
   /* ---------- W5-5 CROSSFIRE CIRCUIT (2026-10-04): a live flash window turns
    the next Route March stop into a hot zone. One auth-gated read
    (crossfire_status); the combo claim is POST-only. The zone is picked
@@ -202,23 +252,6 @@ function crossfireHtml(){
   }
   h+='</div>';
   return h;
-}
-/* W5-10 Operation Arcs (2026-10-04): arc read is a Promise from core/oparc.js
-     — never part of the N_CALLS countdown; fail-silent, paints when it lands. */
-  try{
-    if(window.PF&&typeof PF.opArc==="function"){
-      PF.opArc().then(function(a){ OPARC=a; paintArcHeader(); },function(){});
-    }
-  }catch(e){}
-  /* W5-6 Hall of Proof (2026-10-04): "you were mentioned" read — never part
-     of the N_CALLS countdown; fail-silent, paints when it lands. */
-  try{
-    api("hall_list",{},function(j){ HALL=(j&&j.ok)?j:null; paintHallMention(); });
-  }catch(e){}
-  /* R34 (2026-10-04): econ_calendar — auctions ending / drops starting as
-     appointment mechanics inside the briefing. Degrades silently until W6B-1
-     ships the action. */
-  api("econ_calendar",{},function(j){ ECON=(j&&j.ok)?j:null; one(); });
 }
 function seasonInfo(){
   if(SEASON){
@@ -442,9 +475,10 @@ function render(){
       btn:"OPEN CRATE",go:"pf-dopa"});
   }catch(e){}
   try{
-    var ps=(PROP&&PROP.proposals)||[], now=Date.now(), closing=0;
-    for(var pi=0;pi<ps.length;pi++){ var p=ps[pi];
-      if(String(p.status||"open")==="open"&&Number(p.closes_at||0)>now&&Number(p.closes_at||0)-now<86400000) closing++; }
+    /* D1 STRUCT (2026-10-06): the closing-soon count is derived from the
+       briefing aggregate's proposals_closing_soon (open proposals closing
+       within 24h) — no dedicated proposal_list call. */
+    var closing=Number((PROP&&PROP.closingSoon)||0);
     if(closing>0) urg.push({t:closing+" VOTE"+(closing>1?"S":"")+" CLOSING",d:"Assembly proposals close within 24 hours. Your weight matters.",
       btn:"VOTE NOW",go:"pf-gov"});
   }catch(e){}
@@ -1019,7 +1053,10 @@ function dropWire(){
 bannerCss();
 dropTryBackend();
 load();
-setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },180000);
+/* D1 STRUCT (2026-10-06): re-poll stretched 3min -> 10min. Briefing content
+   changes on day boundaries (day key / streak / loot); per-second countdowns
+   are DOM-only via tick(). Skip-when-hidden preserved. */
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },600000);
 setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} tick(); },1000);
 /* keep the banner clear if the comeback banner mounts later */
 setInterval(function(){

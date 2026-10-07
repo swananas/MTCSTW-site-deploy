@@ -388,7 +388,9 @@
     { key: 'pac', kill: 'pac-alerts', title: 'SUPER PAC ALERTS',
       sub: 'New money drops, as they land.', mount: function (body) {
         var d = document.createElement('div'); body.appendChild(d);
-        try { if (window.PFPacAlerts) PFPacAlerts.mount(d); } catch (e) { err('pac mount failed'); }
+        /* pac_spikes is state-scoped (backend requires a 2-letter state);
+           deep-linkable via ?state=XX — no state, honest empty state. */
+        try { if (window.PFPacAlerts) PFPacAlerts.mount(d, { state: qs('state') }); } catch (e) { err('pac mount failed'); }
       } },
     { key: 'trades', kill: 'trades-tab', title: 'TRADES ON THE HILL',
       sub: 'What they bought and sold while writing the rules.', mount: function (body) {

@@ -29,7 +29,9 @@
      badge renders; if the backend isn't live yet, nothing renders and the
      page works exactly as before.
    - receipt_parse_assist (POST): { photo_url, manual: { price_cents, item,
-     date } } via PF.postAction('ugc','ugc_action','receipt_parse_assist',…).
+     date } } via PF.postAction('ugcassist','ua_action','receipt_parse_assist',…).
+     (2026-10-07 contract-gap fix: was 'ugc'/'ugc_action' — BE serves this on
+     the 'ugcassist' rail with ua_action.)
      Response honored shapes: { ok, suggest_review, assist: {
      parsed_price_cents } } (parsed.price_cents also accepted). The $X/$Y
      prompt line renders ONLY when both numbers are real numbers from the
@@ -396,7 +398,7 @@
         } catch (e) {}
       }
       if (PF && PF.postAction) {
-        PF.postAction('ugc', 'ugc_action', 'receipt_parse_assist', payload, onResp);
+        PF.postAction('ugcassist', 'ua_action', 'receipt_parse_assist', payload, onResp);
         /* Belt-and-braces timeout: a hung helper must not strand the button. */
         setTimeout(function () { if (!answered) onResp(null); }, 16000);
       } else {

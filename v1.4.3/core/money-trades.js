@@ -5,18 +5,26 @@
    {bioguideId}).
    LEGAL HOLD: congressional trade disclosures are financial-disclosure data
    under the narrow commercial-use hold — until the hold resolves, this card
-   renders ONLY the honest empty state. No endpoint exists yet
-   (?action=money_trades is reserved); when the backend lands, the card
-   lights up with zero frontend changes. Never invent a trade, a ticker, a
-   date, or an amount.
-   Expected contract (reserved):
-     ?action=money_trades&bioguide_id=A000055 ->
-     {ok, bioguide_id, name, source:'House/Senate Financial Disclosures',
-      retrieved_at, cycle, trades:[{ticker, asset, type:'buy'|'sell',
-      amount_range, filed_date, transaction_date}]}
-   Fail-soft: endpoint down / {ok:false} / malformed / hold active ->
-   the honest empty state ("AWAITING PUBLIC DATA"). Never a blank card,
-   never a spinner that spins forever, never "0" standing in for unknown.
+   renders ONLY the honest empty state.
+   BACKEND RAIL (2026-10-07 contract-gap fix): ?action=trades_legislator
+   (the old ?action=money_trades was a reserved name that never existed).
+   LOCKED BE contract (be/stock-trades; STOCK-TRADES-FE-INTEGRATION.md) —
+   the frontend adapts to the backend, never vice versa:
+     ?action=trades_legislator&bioguide_id=J000288 ->
+     {ok, bioguide_id,
+      member:{bioguide_id,name,chamber,party,state,committees:[]},
+      trades:[{ticker,tx_type,amount_range,asset_name,tx_date,
+               disclosure_date,days_to_disclose,late_filing,filing_url}],
+      empty, reason:'disclosure_hold', note, source, source_url,
+      retrieved_at:'YYYY-MM-DD',
+      eiga:{empty:true,reason:'pending_ceo_decision',note}}
+   Params: bioguide_id is REQUIRED — the backend rejects without it, so the
+   mount only queries when a legislator is picked. Under the hold trades is
+   ALWAYS [] (reason:'disclosure_hold') -> the honest empty state below.
+   Trade items carry tx_type ('buy'|'sell'), NOT 'type'.
+   Fail-soft: endpoint down / {ok:false} / malformed -> the honest empty
+   state ("AWAITING PUBLIC DATA"). Never a blank card, never a spinner that
+   spins forever, never "0" standing in for unknown.
    No XP anywhere on this frontend (viewing = 0; sharing rides the existing
    create_share: backend leg only when real data is present).
    KILL: ?pf_off=money-stock-trades (master: ?pf_off=money) */
@@ -102,24 +110,32 @@
   }
 
   function render(container, j, bioguideId) {
-    /* Real data path — reserved for when the hold lifts and the endpoint
-       exists. Every figure carries its source; missing fields are em-dash. */
+    /* Real data path — the hold keeps trades:[] server-side, so this lights
+       up with zero frontend changes when the hold lifts. Every figure
+       carries its source; missing fields are em-dash. Trade items carry
+       tx_type ('buy'|'sell') per the locked contract. */
     cssOnce();
     var trades = (j && Array.isArray(j.trades)) ? j.trades : [];
     if (!trades.length) { emptyState(container, EMPTY_MSG, 'none'); return; }
-    var name = (j && j.name) || '\u2014';
+    var member = (j && j.member) || {};
+    var name = member.name || '\u2014';
     var src = (j && j.source) || 'House/Senate Financial Disclosures';
+    var asof = '';
+    try {
+      var rt = j.retrieved_at;
+      if (rt) asof = ' \u00b7 FIGURES AS OF ' + String(rt).slice(0, 10).toUpperCase();
+    } catch (e) {}
     var html = '<div class="pf-tr">' +
       '<div class="pf-tr-kicker">STOCK TRADES</div>' +
-      '<h3 class="pf-tr-title">TRADES ON THE HILL — ' + esc(String(name).toUpperCase()) + '</h3>' +
+      '<h3 class="pf-tr-title">TRADES ON THE HILL \u2014 ' + esc(String(name).toUpperCase()) + '</h3>' +
       '<ul class="pf-tr-list">' +
       trades.slice(0, 10).map(function (t) {
         t = t || {};
         return '<li><span class="pf-tr-tk">' + esc(t.ticker || '\u2014') + '</span> ' +
-          '<span class="pf-tr-ty">' + esc(t.type || '\u2014') + '</span> ' +
+          '<span class="pf-tr-ty">' + esc(t.tx_type || '\u2014') + '</span> ' +
           '<span class="pf-tr-am">' + esc(t.amount_range || '\u2014') + '</span></li>';
       }).join('') +
-      '</ul><div class="pf-tr-src">SOURCE: ' + esc(src) + '</div></div>';
+      '</ul><div class="pf-tr-src">SOURCE: ' + esc(src) + asof + '</div></div>';
     container.innerHTML = html;
   }
 
@@ -130,10 +146,13 @@
       if (container.querySelector && container.querySelector('.pf-tr')) return true;
     } catch (e) {}
     var bioguideId = opts.bioguideId || '';
-    /* The disclosure feed is not live and the hold stands: render the
-       honest empty state without hitting a nonexistent endpoint. When the
-       endpoint exists, this same call lights up real data. */
-    api('money_trades', bioguideId ? { bioguide_id: bioguideId } : {}, function (j) {
+    /* The disclosure hold stands server-side (trades:[] + reason:
+       'disclosure_hold'), but the rail is real: query trades_legislator and
+       let the backend's honest empty state drive the card. Without a
+       legislator picked, the backend rejects — skip the call and render the
+       empty state directly. */
+    if (!bioguideId) { emptyState(container, HOLD_MSG, 'hold'); return true; }
+    api('trades_legislator', { bioguide_id: bioguideId }, function (j) {
       try {
         if (j && j.ok && Array.isArray(j.trades) && j.trades.length) render(container, j, bioguideId);
         else emptyState(container, HOLD_MSG, 'hold');

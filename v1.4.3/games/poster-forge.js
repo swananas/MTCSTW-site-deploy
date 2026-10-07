@@ -242,6 +242,16 @@ document.getElementById("pDownload").onclick=function(e){
   /* award XP + ping the trackers — ONCE PER DAY max (anti-farming).
      Repeated downloads of the same or different posters on the same day
      do not re-fire pf-poster-made. */
+  /* Strike-orders creation loop: hoist the entity binding so both the
+     pf-poster-made event (once/day) and the strike_forge_log receipt
+     (every download — server dedupes) can use it. */
+  var pfStrikeDetail=null;
+  try{
+    if(pfStrikeLaunch&&pfStrikeLaunch.strike&&pfStrikeLaunch.entity&&pfStrikeLaunch.entity.id){
+      pfStrikeDetail={cell_id:pfStrikeLaunch.strike.cell_id,week_start:pfStrikeLaunch.strike.week_start,
+        entity_kind:pfStrikeLaunch.entity.kind,entity_id:pfStrikeLaunch.entity.id};
+    }
+  }catch(e2){}
   try{
     var today=new Date().toISOString().slice(0,10);
     var pfKey='pf_poster_day_v1';
@@ -252,16 +262,19 @@ document.getElementById("pDownload").onclick=function(e){
       /* Strike-orders creation loop (fe/strike-orders-creative): tag the
          entity binding so the order completes entity-bound. Zero XP impact
          — same event, richer detail. */
-      if(pfStrikeLaunch&&pfStrikeLaunch.strike&&pfStrikeLaunch.entity&&pfStrikeLaunch.entity.id){
-        pfDetail.strike={cell_id:pfStrikeLaunch.strike.cell_id,week_start:pfStrikeLaunch.strike.week_start,
-          entity_kind:pfStrikeLaunch.entity.kind,entity_id:pfStrikeLaunch.entity.id};
-      }
+      if(pfStrikeDetail){ pfDetail.strike=pfStrikeDetail; }
       document.dispatchEvent(new CustomEvent("pf-poster-made",{detail:pfDetail}));
     }
   }catch(err){}
-  /* Strike-orders creation loop: the strike_forge_log backend route does not
-     exist yet, so the entity-bound completion receipt is skipped for now.
-     (The pf-poster-made event above still carries the strike detail.) */
+  /* Strike-orders creation loop: the entity-bound completion receipt rides
+     the real strike_forge_log rail (2026-10-07 contract-gap fix — the route
+     exists: POST {type:'cell',cell_action:'strike_forge_log'}, member-only,
+     zero XP, idempotent server-side). Fire-and-forget — a failed log never
+     blocks the download. Fires on every strike-launched download, not just
+     the first of the day (the server dedupes). */
+  if(pfStrikeDetail&&window.PF&&window.PF.postAction){
+    try{ window.PF.postAction('cell','cell_action','strike_forge_log',pfStrikeDetail,function(){}); }catch(e){}
+  }
   pfLogShare();
   stampedBlob(function(blob){
     var url=URL.createObjectURL(blob);

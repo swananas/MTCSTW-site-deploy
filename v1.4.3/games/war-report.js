@@ -323,6 +323,10 @@ function emailPaneHtml(){
     +'<div class="x-note">The email wire is being laid. Leave yours — you are first in line the Monday it goes live.</div>'
     +'<div style="margin-top:8px"><input id="wrEmail" type="email" placeholder="you@example.com" aria-label="Email address" style="width:62%;max-width:320px;padding:8px;font:14px monospace" maxlength="120"> '
     +'<button class="c-btn ghost" id="wrEmailBtn">NOTIFY ME</button></div>'
+    /* 2026-10-07 contract-gap fix: 13+ self-certification (COPPA/GDPR-K,
+       2026-10-03 privacy/terms) — the backend enforces it too, like
+       contact_set. The form can't promise storage without it. */
+    +'<div style="margin-top:8px"><label style="font:12px monospace;color:#c9bfa8"><input type="checkbox" id="wrAge13" style="vertical-align:-2px"> I am 13 or older</label></div>'
     +'<div class="c-err" id="wrEmailErr" style="margin-top:6px"></div></div>';
 }
 function wireEmail(){
@@ -331,11 +335,13 @@ function wireEmail(){
     var inp=document.getElementById("wrEmail"), err=document.getElementById("wrEmailErr");
     var em=inp?inp.value.trim():"";
     if(!wrEmailValid(em)){ if(err) err.textContent="That email doesn't look right."; return; }
+    var age13=document.getElementById("wrAge13");
+    if(!(age13&&age13.checked)){ if(err) err.textContent="Please confirm you are 13 or older."; return; }
     b.disabled=true; if(err) err.textContent="";
     var id=ident();
-    wrPost({type:"warreport",wr_action:"warreport_email_capture",email:em,callsign:id.callsign||"",device:id.device||""},function(j){
+    wrPost({type:"warreport",wr_action:"warreport_email_capture",email:em,callsign:id.callsign||"",device:id.device||"",age13:1},function(j){
       b.disabled=false;
-      if(j&&j.ok){ if(inp) inp.value=""; toast("You're on the list. See you Monday."); }
+      if(j&&j.ok){ if(inp) inp.value=""; if(age13) age13.checked=false; toast("You're on the list. See you Monday."); }
       else if(err) err.textContent="Couldn't save that — try again in a bit.";
     });
   };

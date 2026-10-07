@@ -244,6 +244,16 @@
            #pf-live too. Kill: ?pf_off=livemode. */
         ['livemode', 'pf-ov-livemode']
       ]
+    },
+    /* THE EXTRACTION ENGINE (fe/extraction-engine, 2026-10-07, Data Product 3):
+       order:[] — pages/bundle-extraction.js self-renders into #pf-extraction
+       (feed, ?c=<slug> profiles, generate mode, share posters). page-mount
+       contributes the page header + full-width widening. Zero XP for viewing.
+       Ship-time hand-step: Squarespace page /extraction + Code block
+       <div id="pf-extraction"></div>. Kill: ?pf_off=extraction. */
+    'pf-extraction': {
+      title: 'THE EXTRACTION ENGINE', sub: 'Who got paid. What they did. Who got hurt. Every number sourced.',
+      order: []
     }
   };
 
@@ -412,7 +422,8 @@
     'pf-warchest', 'pf-ventures', 'pf-events', 'pf-warreport',
     'pf-war-card', 'pf-academy-hq', 'pf-dash-hq', 'pf-hq-mission',
     'pf-political-hq', 'pf-slr-roster', 'pf-catalog', 'pf-money',
-    'pf-warroom', 'pf-live', 'pf-data-bounties'
+    'pf-warroom', 'pf-live', 'pf-data-bounties',
+    'pf-extraction'
   ];
   function feWiden(host) {
     try {

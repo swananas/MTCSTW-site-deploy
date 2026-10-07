@@ -73,7 +73,8 @@
    no guilt copy, zero economy as before.
    ZERO ECONOMY: this build grants no XP, shows no XP, promises no XP.
    KILL: ?pf_off=inflation (master) | ?pf_off=inflation-checkin |
-         ?pf_off=inflation-board | ?pf_off=inflation-trends
+         ?pf_off=inflation-board | ?pf_off=inflation-trends |
+         ?pf_off=flywheel-credit (all contributor-credit lines)
          or localStorage pf_disabled_v1='["inflation"]' etc.
    WS-6 TEARDOWN (2026-10-06, proposal PART 2 §6): board cards are price
    cards — Data Strip (P4) figure + gray/white delta + sparkline trend +
@@ -90,7 +91,8 @@
    kill-switched independently: ?pf_off=receipt_uploads.
    Mounts: <div id="pf-inflation-checkin"></div>,
            <div id="pf-inflation-board"></div>,
-           <div id="pf-inflation-trends"></div>.
+           <div id="pf-inflation-trends"></div>,
+           <div id="pf-nowcast-credit"></div> (dormant until U-02 ships).
    Needs: core/00-bus.js (PF, PF.skip), core/03-global.js (PF_BACKEND_URL).
    Share: core/share-image.js (window.PFShare) when present — poster is drawn
    locally on canvas and handed to PFShare.shareImage; plain download is the
@@ -364,6 +366,39 @@
   var SMALL = 'font-size:12px;color:#b8b0a0;';
   var HONEST = 'font-size:11px;color:#8f887a;margin-top:10px;';
 
+  /* ================= FLYWHEEL CREDIT (synergy-flywheel) =================
+     "Attribution meets data": honest, labeled contributor counts on every
+     crowd-data surface. Rules: counts are FACTUAL aggregates (distinct
+     callsigns) — never per-user tallies; every count labels WHAT it counts
+     + its VINTAGE; 0 → "no contributors yet" (never a fake zero);
+     null/unavailable → '' (render nothing, fail-soft). Display-only; grants nothing.
+     Kill: ?pf_off=flywheel-credit gates every credit line below. */
+  function creditOff() { try { return PF.skip('flywheel-credit'); } catch (e) { return false; } }
+  /* crowdCredit(n, what, vintage) -> escaped HTML. Shared helper for all
+     crowd-data surfaces (price boards, local indices, spike alerts U-03). */
+  function crowdCredit(n, what, vintage) {
+    if (creditOff()) return '';
+    if (n == null || isNaN(Number(n))) return '';
+    var nn = Number(n);
+    if (nn <= 0) return '<span style="' + SMALL + '">no ' + esc(what) + ' yet</span>';
+    return '<span style="' + SMALL + '">' + esc(String(nn)) + ' ' + esc(what) +
+      (vintage ? ' · ' + esc(vintage) : '') + '</span>';
+  }
+  /* poweredBy(n, vintage, cta) -> "powered by N contributors · vintage" line
+     for index/board headlines; honest empty state carries a report CTA. */
+  function poweredBy(n, vintage, cta) {
+    if (creditOff()) return '';
+    if (n == null || isNaN(Number(n))) return '';
+    var nn = Number(n);
+    if (nn > 0) {
+      return '<div style="' + SMALL + 'margin:2px 0 10px;">powered by <b>' +
+        esc(String(nn)) + '</b> contributors · ' + esc(vintage) + '</div>';
+    }
+    return '<div style="' + SMALL + 'margin:2px 0 10px;">no contributors yet' +
+      (cta ? ' — ' + esc(cta) : '') + '</div>';
+  }
+  try { PF.crowdCredit = crowdCredit; PF.poweredBy = poweredBy; } catch (e) {}
+
   /* ================= 1. PRICE CHECK-IN ================= */
   function mountCheckin() {
     if (PF.skip('inflation-checkin')) return;
@@ -580,7 +615,7 @@
        degrade to a plain count line rather than breaking the card. */
     try {
       if (window.PF && PF.crowdCredit)
-        return PF.crowdCredit(r.contributors, r.vintage || 'trailing 30 days');
+        return PF.crowdCredit(r.contributors, 'contributors', r.vintage || 'trailing 30 days');
     } catch (e) {}
     var n = Math.floor(Number(r.contributors) || 0);
     return '<span style="' + SMALL + '">' + (n > 0 ? n + ' contributors' : 'no contributors yet') +
@@ -815,6 +850,7 @@
         ? '<div style="margin-top:12px;"><button id="pf-inf-bd-share" style="' + BTN_GHOST + '">SHARE THIS BOARD</button></div>' : '';
       return '<h3 style="margin:12px 0 8px;font-size:16px;">' + esc(label) +
         ' <span style="' + SMALL + '">community-reported · ' + esc(range) + '</span></h3>' +
+        poweredBy(j.contributors, 'trailing 30 days', 'report a price and start it') +
         '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;">' + cards + '</div>' + shareBtn;
     }
     function wireShare(j) {
@@ -1036,7 +1072,8 @@
         var n = 0;
         buckets.forEach(function (b) { n += Number(b.sample_count) || 0; });
         var h = '<h3 style="margin:4px 0 8px;font-size:16px;">' + esc(item.name) + ' / ' + esc(item.unit) +
-          ' — weekly medians <span style="' + SMALL + '">community-reported, n=' + n + '</span></h3>';
+          ' — weekly medians <span style="' + SMALL + '">community-reported, n=' + n + ' reports</span></h3>' +
+          poweredBy(j.contributors, 'trailing ' + weeks + ' weeks', 'report a price and start it');
         if (!buckets.length) {
           h += '<div style="color:#b8b0a0;">No trend data yet for this item. Report a price to start it.</div>';
         } else {
@@ -1047,7 +1084,11 @@
         h += '<h3 style="margin:18px 0 8px;font-size:16px;">PEOPLE\u2019S INDEX vs OFFICIAL CPI-U</h3>';
         var pi = Array.isArray(j.peoples_index) ? j.peoples_index : [];
         if (pi.length) {
-          h += '<div style="font-size:13px;font-weight:bold;margin-bottom:4px;">People\u2019s Index <span style="' + SMALL + '">community-reported, n=' + n + '</span></div>';
+          /* Suppression respected: the "powered by" headline renders only
+             when the index has >=1 data point this window. */
+          var piHasData = pi.some(function (p) { return p.value != null; });
+          h += '<div style="font-size:13px;font-weight:bold;margin-bottom:4px;">People\u2019s Index</div>' +
+            (piHasData ? poweredBy(j.contributors, 'trailing ' + weeks + ' weeks', 'report a price and start it') : '');
           h += barsHTML(pi.map(function (p) { return { week_start: p.week_start, value: p.value }; }), false);
         } else {
           h += '<div style="color:#b8b0a0;font-size:14px;">People\u2019s Index: not enough community data yet.</div>';
@@ -1076,8 +1117,73 @@
     render();
   }
 
+  /* ================= 4. NOWCAST CROWD CREDIT (dormant until U-02 ships) ====
+     Consumer contract — the U-02 producer must emit this shape:
+       nowcast: { week_start, value|null,
+                  hit_rate: {correct, total} | null,
+                  reports_n, contributors_n, window_label, experimental: true }
+     Sources (first hit wins): #pf-nowcast-credit[data-pf-nowcast] JSON →
+       window.__PF_NOWCAST__ → `nowcast` field on cpi_compare
+       (include_nowcast=1). Absent everywhere → renders nothing (dormant,
+       never a fake credit).
+     Copy: "based on N community price reports from M contributors" + hit-rate
+     honesty ("called the direction right X of last Y") or "backtesting in
+     progress — no hit rate yet." Display-only; grants nothing. */
+  function mountNowcastCredit() {
+    if (creditOff()) return;
+    var mount = document.getElementById('pf-nowcast-credit');
+    if (!mount) return; /* silent no-op */
+
+    function pick(obj) {
+      if (!obj || typeof obj !== 'object') return null;
+      var nc = obj.nowcast || obj;
+      if (!nc || typeof nc !== 'object') return null;
+      if (nc.reports_n == null && nc.contributors_n == null && !nc.hit_rate) return null;
+      return nc;
+    }
+    function render(nc) {
+      if (!nc) { mount.innerHTML = ''; return; } /* dormant */
+      var rn = Number(nc.reports_n), cn = Number(nc.contributors_n);
+      var vintage = nc.window_label ? String(nc.window_label) : 'recent weeks';
+      var credit = (!isNaN(rn) && !isNaN(cn) && (rn > 0 || cn > 0))
+        ? 'based on ' + esc(String(rn)) + ' community price reports from ' +
+          esc(String(cn)) + ' contributors (' + esc(vintage) + ')'
+        : 'no contributors yet';
+      var hr = nc.hit_rate, hrLine;
+      if (hr && !isNaN(Number(hr.correct)) && !isNaN(Number(hr.total)) && Number(hr.total) > 0) {
+        hrLine = 'Hit rate: called the direction right ' + esc(String(hr.correct)) +
+          ' of the last ' + esc(String(hr.total)) + ' CPI releases.';
+      } else {
+        hrLine = 'Backtesting in progress — no hit rate yet.';
+      }
+      mount.innerHTML =
+        '<div style="' + CSS + '">' +
+        '<h3 style="margin:0 0 4px;font-size:16px;letter-spacing:1px;">EXPERIMENTAL NOWCAST</h3>' +
+        '<div style="' + SMALL + '">' + credit + '</div>' +
+        '<div style="' + HONEST + '">' + hrLine +
+        ' The nowcast is experimental — compare the direction, not the digits.</div>' +
+        '</div>';
+    }
+    var fromAttr = null;
+    try {
+      var raw = mount.getAttribute('data-pf-nowcast');
+      fromAttr = raw ? pick(JSON.parse(raw)) : null;
+    } catch (e) { fromAttr = null; }
+    if (fromAttr) { render(fromAttr); return; }
+    var fromWin = null;
+    try { fromWin = pick(window.__PF_NOWCAST__); } catch (e) {}
+    if (fromWin) { render(fromWin); return; }
+    /* Last resort: ask the backend (U-02 will serve `nowcast` on cpi_compare
+       with include_nowcast=1). Fail-soft: absence keeps the mount empty. */
+    getJSON('cpi_compare', { include_nowcast: '1' }, function (c) {
+      try { if (!mount.isConnected) return; } catch (e) {}
+      render(pick(c && c.nowcast));
+    });
+  }
+
   /* ---------------- init ---------------- */
   try { mountCheckin(); } catch (e) { if (PF && PF.error) PF.error('inflation-tracker', e); }
   try { mountBoard(); } catch (e) { if (PF && PF.error) PF.error('inflation-tracker', e); }
   try { mountTrends(); } catch (e) { if (PF && PF.error) PF.error('inflation-tracker', e); }
+  try { mountNowcastCredit(); } catch (e) { if (PF && PF.error) PF.error('inflation-tracker', e); }
 })();

@@ -62,7 +62,11 @@ var SECTIONS = {
        are inert here (mount points absent). fred-briefing + theater carry
        v3 guards (no injection into the consolidated brief block). Kill
        switches all preserved. */
-    'fred-briefing.js',
+    /* REQ-20261006-027 drive-by (2026-10-07): fred-briefing.js removed here —
+       it was double-registered (bundle-home + bundle-economy since orphan
+       item #1, 5d7d981), which is a FATAL build error ("file in two
+       bundles"). Its permanent home is /economy (bundle-economy, per the
+       orphan plan); the homepage #xBrief surface was orphaned by V3. */
     'do-meter.js',
     'home-state.js',
     'pick-fight.js',
@@ -72,7 +76,10 @@ var SECTIONS = {
     'ritual-calendar.js',
     'dopamine.js',
     'enlistment-ranks.js',
-    'theater.js',
+    /* REQ-20261006-027 (2026-10-07): theater.js moved to bundle-userdash —
+       the theater rack's live surface is now My HQ's #pf-theater-rack anchor
+       (My HQ IDENTITY, below the medals rack). It rides the dashboard bundle
+       (critical on My HQ) instead of the lazy homepage bundle. */
     'service-medals.js',
     'first-wave.js',
     /* HOMEPAGE PLAY/BELONG/CREATE/FUND/ACT/PROOF — lazy-loaded as one bundle
@@ -499,7 +506,11 @@ var SECTIONS = {
   /* USER DASHBOARD HUB (2026-10-07, fe/user-dashboard): /dashboard — the hub.
      One silo, one composite call. The hub routes; it never embeds. */
   'bundle-userdash': [
-    'user-dashboard.js'
+    'user-dashboard.js',
+    /* REQ-20261006-027 (2026-10-07): theater.js — the Theater Rack mounts on
+       My HQ's #pf-theater-rack anchor (IDENTITY, below the medals rack) in
+       addition to legacy #pf-ranks. Auth-gated, zero-XP, fail-soft. */
+    'theater.js'
   ],
   'bundle-roster': [
     /* SLR roster/catalog pages — the live Efficiency Index painter. */

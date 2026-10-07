@@ -302,8 +302,11 @@ var FRED_TOOLS_FILES = [
 
 /* WHO OWNS YOUR TOWN (fe/town-page, 2026-10-07, Data Product 2): lazy chunk.
    Self-mounting silo (core/town-page.js -> #pf-town), fetched only on /town
-   via the footer loader's isTown branch. Kill: ?pf_off=town. */
+   via the footer loader's isTown branch. Ships core/karl-embed.js first —
+   the town page's inline Karl box (KARL EMBEDDED, CEO 2026-10-07) mounts on
+   the #pf-karl-embed div town-page.js renders. Kill: ?pf_off=town. */
 var TOWN_FILES = [
+  'core/karl-embed.js',
   'core/town-page.js'
 ];
 

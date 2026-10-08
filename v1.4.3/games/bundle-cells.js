@@ -636,7 +636,7 @@
      cell_mine, cell_create, cell_join, cell_checkin, cell_cover,
      cell_leave, cell_rename, cell_promote, cell_bounty_claim,
      cell_prestige, cell_health, cell_search, cell_leaderboard,
-     cell_links, cellwar_standings, cellwar_history
+     cell_links, cellwar_standings, cellwar_history, cell_pulse
    NOTE: cell_members and cell_activity are not backend actions. Member
    rosters come from cell_mine (primary cell) + cell_prestige (any cell).
    The "pulse" panel derives recent activity from cell_health.
@@ -1019,6 +1019,18 @@
       cb(j);
     });
   }
+  /* Political Pulse (2026-10-05, weave #2): cell-scoped politics items.
+     Member-gated read; auth_secret auto-attached by api(). Fail-soft:
+     a null/!ok response means the section stays hidden, never an error. */
+  function loadPulse(cellId, cb){
+    if (S.detailPulse && S.detailPulse.cell_id === cellId) { cb(S.detailPulse); return; }
+    S.loading['pu_'+cellId] = true;
+    api('cell_pulse', withIdent({cell_id: cellId}), function(j){
+      S.loading['pu_'+cellId] = false;
+      if (j && j.ok) S.detailPulse = j;
+      cb(j);
+    });
+  }
   function loadWar(cb){
     if (S.war && Date.now()-S.war._t < 60000) { cb(S.war); return; }
     S.loading.war = true;
@@ -1226,11 +1238,11 @@
     /* 2026-10-06 share-everywhere. */
     try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(p,'cell-hq',{link:'/cells'}); }catch(e){}
     var body = document.getElementById('hqDetBody');
-    /* Parallel: prestige + health. */
-    var gotP = false, gotH = false, jP = null, jH = null;
+    /* Parallel: prestige + health + political pulse. */
+    var gotP = false, gotH = false, gotU = false, jP = null, jH = null, jU = null;
     function maybePaint(){
-      if (!gotP || !gotH) return;
-      paintDetail(body, cell, isFounder, isPrimary, jP, jH, mine);
+      if (!gotP || !gotH || !gotU) return;
+      paintDetail(body, cell, isFounder, isPrimary, jP, jH, jU, mine);
     }
     loadPrestige(cid, function(j){ gotP=true; jP=j; maybePaint(); });
     loadHealth(cid, function(j){ gotH=true; jH=j; maybePaint(); });
@@ -1244,7 +1256,7 @@
     });
   }
 
-  function paintDetail(body, cell, isFounder, isPrimary, jP, jH, mine){
+  function paintDetail(body, cell, isFounder, isPrimary, jP, jH, jU, mine){
     if ((!jP || !jP.ok) && (!jH || !jH.ok)){
       body.innerHTML = netErr(); wireRetries(body); return;
     }
@@ -1310,6 +1322,19 @@
         '<span class="hq-stat">'+esc(String(hh.checkins_last_7d||0))+' check-ins (7d)</span>' +
         '<span class="hq-stat">'+esc(String(hh.recruits_last_30d||0))+' recruits (30d)</span></div>' +
         '<div class="hq-note" style="margin-top:8px"><b>Recent pulse:</b> ' + pulseLine(hh) + '</div></div>';
+    }
+    /* POLITICAL PULSE (2026-10-05, weave #2): politics folded into cell
+       activity. Hidden ENTIRELY when empty (or when the read fails) —
+       an empty politics section is noise, not content. Collapsible
+       otherwise; collapse state persists per browser. */
+    if (jU && jU.ok && (jU.items||[]).length){
+      var puCollapsed = false;
+      try{ puCollapsed = localStorage.getItem('pf_hq_pulse_collapsed') === '1'; }catch(e){}
+      h += '<div class="hq-card" id="hqPulseCard"><h3>&#128308; Political pulse' +
+        '<button class="hq-btn sm ghost" data-hq="pulse-toggle" style="margin-left:8px">' +
+        (puCollapsed ? 'EXPAND' : 'COLLAPSE') + '</button></h3>' +
+        '<div id="hqPulseBody"' + (puCollapsed ? ' style="display:none"' : '') + '>' +
+        pulseItemsHtml(jU.items) + '</div></div>';
     }
     /* Founder controls. */
     if (isFounder){
@@ -2391,7 +2416,7 @@
 
   /* ---------- event delegation ---------- */
   function refreshMineThen(tab){
-    invalidateMine(); S.detailPrestige=null; S.detailHealth=null;
+    invalidateMine(); S.detailPrestige=null; S.detailHealth=null; S.detailPulse=null;
     S.tab = tab || 'mine';
     mount.querySelectorAll('.hq-tab').forEach(function(x){
       x.classList.toggle('on', x.getAttribute('data-tab')===S.tab);

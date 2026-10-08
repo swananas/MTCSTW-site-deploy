@@ -13931,6 +13931,18 @@ if(document.readyState==='loading'){
       document.body.appendChild(t); setTimeout(function () { t.remove(); }, 2800);
     } catch (e2) {}
   }
+  /* Friendly copy for claim failures (2026-10-05): raw backend strings
+     like 'missing credentials' are never shown as UI copy. Mirrors the
+     pattern in games/war-report.js, games/poster-forge.js, games/reserve.js. */
+  function ddErrCopy(e) {
+    e = String(e || '');
+    if (e.indexOf('claim unavailable') !== -1 || e === 'legacy_callsign')
+      return 'Could not reach Command. This callsign predates the new auth system and can\'t reconnect on its own — contact MTCSTW to recover it.';
+    if (e === 'missing credentials' || e === 'unauthorized' ||
+        e === 'bad callsign' || e.indexOf('missing credentials') !== -1)
+      return 'The cache needs a callsign to crack. Claim yours in Enlistment Ranks (one tap), then crack it open.';
+    return 'The cache jammed. Try again.';
+  }
   /* JSONP GET for the public status read. */
   function api(action, params, cb) {
     if (!BACKEND) { cb(null); return; }
@@ -14116,7 +14128,7 @@ if(document.readyState==='loading'){
           } else {
             btn.disabled = false; btn.textContent = 'CRACK IT OPEN';
             var msg = (j && j.err === 'not here') ? 'Cold trail. The cache moved on.'
-              : ((j && j.err) || 'The cache jammed. Try again.');
+              : ddErrCopy(j && (j.err || j.error));
             if (err) err.textContent = msg;
           }
         });

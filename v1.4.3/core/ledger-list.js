@@ -46,7 +46,7 @@
   var CSS = [
     '.pf-ledger{max-width:680px;margin:0 auto;padding:8px 0}',
     '.pf-ledger-head{text-align:center;margin-bottom:10px}',
-    '.pf-ledger-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#c1121f;margin-bottom:8px}',
+    '.pf-ledger-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#e5383b;margin-bottom:8px}',
     '.pf-ledger-title{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 6px}',
     '.pf-ledger-sub{font:400 14px Arial,sans-serif;color:#c9bfa8;margin-bottom:4px}',
     '.pf-ledger-row{background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:20px 20px 18px;margin:0 0 14px;color:#f5ead6}',

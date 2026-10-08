@@ -369,7 +369,7 @@ function render(){
       +'<span class="x-note">'+Number(pq0.xp_reward||0)+' XP &bull; '+esc(pq0.platform||'?').toUpperCase()+' &bull; '+esc(pq0.hashtag||'')+'</span><br>'
       +'<span class="x-note">by '+esc(pq0.claimer||'?')+' &mdash; '+fmtDate(pq0.submitted_at)+'</span> '
       +'<a href="'+esc(pq0.proof_url||'#')+'" target="_blank" rel="noopener" style="color:#dc143c;font-size:12px">VERIFY POST</a>'
-      +(prc>0?' <span class="x-note" style="color:#c1121f;font-weight:bold">REJECTS: '+prc+(prc>=3?' — REPEAT OFFENDER':'')+'</span>':'')+'<br>'
+      +(prc>0?' <span class="x-note" style="color:#e5383b;font-weight:bold">REJECTS: '+prc+(prc>=3?' — REPEAT OFFENDER':'')+'</span>':'')+'<br>'
       +'<button class="c-btn c-btn-sm" data-pap="'+pq0.id+'">APPROVE</button> '
       +'<button class="c-btn c-btn-dim c-btn-sm" data-prj="'+pq0.id+'">REJECT</button></div>';
   }
@@ -403,7 +403,7 @@ function render(){
       +'<span class="x-note">'+Number(pq0.xp_reward||0)+' XP &bull; '+esc(pq0.platform||'?').toUpperCase()+' &bull; '+esc(pq0.hashtag||'')+'</span><br>'
       +'<span class="x-note">by '+esc(pq0.claimer||'?')+' &mdash; '+fmtDate(pq0.submitted_at)+'</span> '
       +'<a href="'+esc(pq0.proof_url||'#')+'" target="_blank" rel="noopener" style="color:#dc143c;font-size:12px">VERIFY POST</a>'
-      +(prc>0?' <span class="x-note" style="color:#c1121f;font-weight:bold">REJECTS: '+prc+(prc>=3?' — REPEAT OFFENDER':'')+'</span>':'')+'<br>'
+      +(prc>0?' <span class="x-note" style="color:#e5383b;font-weight:bold">REJECTS: '+prc+(prc>=3?' — REPEAT OFFENDER':'')+'</span>':'')+'<br>'
       +'<button class="c-btn c-btn-sm" data-pap="'+pq0.id+'">APPROVE</button> '
       +'<button class="c-btn c-btn-dim c-btn-sm" data-prj="'+pq0.id+'">REJECT</button></div>';
   }

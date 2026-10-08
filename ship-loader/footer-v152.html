@@ -1,4 +1,11 @@
 <!-- PF FOOTER v152 — SHIP 549a4a5 (2026-10-08).
+     FIX BRANCH fe/homepage-ux-zuck (2026-10-08, CEO "Fix all" — repo-side, NOT
+     yet deployed): (1) a11y skip link — pfSkipLink() injects
+     <a href="#main" class="pf-skip-link"> as the first body element on every
+     route + guarantees an id="main" anchor on the primary mount host;
+     (2) homepage lazy-load — PAGES_V2 splits into bundle-pages-home.js
+     (blocking) vs bundle-pages.js (JS_IDLE via requestIdleCallback), and
+     pwa/install.js also defers to JS_IDLE on the homepage. Nothing removed.
      Butter pass: full visual upgrade of all user interactions (CEO 2026-10-07).
      Homepage 3-bug fixes: dead hero (pf-dashboard now in onV2 detection +
      bundle-userdash.js loads wherever #pf-dashboard exists), Karl/commends
@@ -62,6 +69,11 @@
      it duplicated the functional link injected by core/16-footer.js (dialog +
      privacy_erase flow). The JS silo strips any already-pasted static
      fallback on boot, so no footer re-paste is needed. -->
+<!-- PF SKIP LINK (2026-10-08, a11y audit fix): keyboard "Skip to main content"
+     link, injected by pfSkipLink() below as the first body element. Visually
+     hidden until focused; focused colors (#e5383b on #0a0a0a = 4.68:1) pass
+     WCAG 4.5:1. Inline here so it works with zero CSS-bundle dependency. -->
+<style>.pf-skip-link{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;z-index:2147483002;background:#0a0a0a;color:#e5383b;font:700 14px Arial,sans-serif;padding:12px 18px;text-decoration:none;border:2px solid #e5383b;border-radius:0 0 8px 0;box-sizing:border-box}.pf-skip-link:focus,.pf-skip-link:active{left:0;top:0;width:auto;height:auto;overflow:visible}</style>
 <script>(function(){
 var V3='549a4a5',V1='76107b5';
 /* DEFECT 1 (2026-10-03): pin for core/bundle-footer-chrome.js (added in
@@ -119,7 +131,12 @@ var isHome=!!document.getElementById('pf-v2');
 var isHQ=!!document.getElementById('pf-political-hq');
 var isWarCard=!!document.getElementById('pf-war-card');
 var CORE_V2=['core/bundle-core.js']; /* placeholder — resolved to the SLR core below once page flags exist */
-var PAGES_V2=['pages/bundle-pages.js'];
+/* LAZY-LOAD SPLIT (2026-10-08, homepage perf audit fix): the homepage keeps
+   only pages/bundle-pages-home.js (home-v2, home-personalize, page-mount,
+   notify, flash-siren) in the critical path; the rest of the pages bundle
+   (share chrome, page-specific mounts) defers to JS_IDLE below. Other v2
+   pages keep the full bundle-pages.js blocking. */
+var PAGES_V2=isHome?['pages/bundle-pages-home.js']:['pages/bundle-pages.js'];
 /* Per-page game map: each v2 page fetches only the game bundles it mounts
    (mounted by pages/page-mount.js PAGE_ORDERS, or home-v2.js on #pf-v2).
    Homepage = bundle-sec1 blocking + bundle-home lazy (the .pf-sec-anchor
@@ -180,8 +197,17 @@ var isSlrPage=!!document.getElementById('pf-slr-roster')||!!document.getElementB
 var NEED_SLR=isHome||isArcade||isCreate||isWarCard||isSlrPage||isLiquidation;
 CORE_V2=[NEED_SLR?'core/bundle-core-slr.js':'core/bundle-core.js'];
 /* PWA (2026-10-05, fe/pwa): install.js, right after the core bundle (home of
-   core/03-global.js). Relative = resolves against the v1.4.3 BASE. */
-var JS_PWA=['pwa/install.js'];
+   core/03-global.js). Relative = resolves against the v1.4.3 BASE.
+   LAZY-LOAD (2026-10-08): on the homepage install.js defers to JS_IDLE
+   (requestIdleCallback) — the PWA prompt is not first-paint content. */
+var JS_PWA=isHome?[]:['pwa/install.js'];
+/* LAZY-LOAD (2026-10-08, homepage perf audit fix): non-critical homepage
+   bundles load after first paint via requestIdleCallback — pwa/install.js
+   (PWA install prompt; double-execution-guarded inside bundle-core.js) and
+   pages/bundle-pages.js (share chrome, page-specific mounts; every file is
+   DOM-guarded or self-mounting, kill switches honored at eval). Nothing
+   removed, just moved: "don't kill, just move." */
+var JS_IDLE=isHome?['pwa/install.js','pages/bundle-pages.js']:[];
 var JS_GAMES=isHome?['games/bundle-sec1.js']:isArcade?
 ['games/bundle-arcade-h.js','games/bundle-arcade.js','games/bundle-raid.js']:isCallIt?['games/bundle-predgame.js']:isLiquidation?['games/bundle-arcade.js']:isCellsPage?['games/bundle-cells-h.js','games/bundle-cells.js','games/bundle-raid.js']:isCellWar?['games/bundle-cells.js']:isCreate?['games/bundle-create-h.js','games/bundle-create.js']:isBank?['games/bundle-bank.js']:isGovernance?['games/governance.js']:isEconomy?['games/bundle-economy.js']:isPeoplesCpi?['games/bundle-peoples-cpi.js']:isWarchest?['games/bundle-warchest.js']:isVentures?['games/bundle-ventures.js','games/bundle-warchest.js']:isEvents?['games/bundle-events.js']:isWarReport?['games/bundle-warreport.js']:isWarRoom?['games/bundle-warroom.js','games/bundle-livemode.js']:isMoney?['core/bundle-money.js','games/bundle-predgame.js']:isFund?['games/bundle-fund.js']:isCommand?['games/bundle-command.js']:isHQ?[]:isWarCard?['games/bundle-create.js','games/bundle-cells.js']:isSlrPage?['games/bundle-roster.js']:[];
 /* USER DASHBOARD HUB (2026-10-07, fix/homepage-3-bugs): the hub mounts on
@@ -305,6 +331,32 @@ function pfHints(){
     document.head.appendChild(pl);
   }catch(e){}
 }
+/* SKIP LINK (2026-10-08, a11y audit fix): inject
+   <a href="#main" class="pf-skip-link">Skip to main content</a> as the first
+   body element on every route (the route shells live in Squarespace, so the
+   loader injects it — runs before any bundle). Also guarantees an element
+   with id="main": the primary PF mount host gets a zero-impact anchor div
+   (existing host ids are never clobbered). On non-PF pages falls back to
+   the first <main> element. */
+function pfSkipLink(){
+  try{
+    var b=document.body;if(!b||document.getElementById('pf-skip'))return;
+    var a=document.createElement('a');
+    a.id='pf-skip';a.href='#main';a.className='pf-skip-link';
+    a.textContent='Skip to main content';
+    b.insertBefore(a,b.firstChild);
+    if(document.getElementById('main'))return;
+    var ids=['pf-v2','pf-dashboard','pf-political-hq','pf-war-card','pf-cells-page','pf-cell-hq','pf-arcade','pf-call-it','pf-liquidation','pf-create','pf-bank','pf-economy','pf-peoples-cpi','pf-warchest','pf-ventures','pf-events','pf-warreport','pf-slr-roster','pf-catalog','pf-money','pf-fund','pf-command','pf-cell-war','pf-governance','pf-warroom','pf-live','pf-data-bounties'];
+    var host=null,i;
+    for(i=0;i<ids.length;i++){host=document.getElementById(ids[i]);if(host)break;}
+    if(!host){var mains=document.getElementsByTagName('main');if(mains.length)host=mains[0];}
+    if(host&&!document.getElementById('main')){
+      var m=document.createElement('div');
+      m.id='main';m.setAttribute('tabindex','-1');m.setAttribute('aria-label','Main content');
+      host.insertBefore(m,host.firstChild);
+    }
+  }catch(e){}
+}
 /* BUTTER (2026-10-06) CEO site-wide: skeleton every async mount host.
    #pf-v2 gets the 7-section homepage version; every other known mount host
    (mirrors pages/page-mount.js FE_MOUNT_IDS plus the loader-detected page
@@ -334,8 +386,8 @@ function css(h){var l=document.createElement('link');l.rel='stylesheet';l.href=B
 l.onerror=function(){siloFail(h);};document.head.appendChild(l);}
 function jsSeq(){
   var pending=JS_SEQ.length;
-  function oneDone(){if(--pending===0){if(window.console)console.log('[PF] '+VER+' critical '+JS_SEQ.length+' files loaded');jsLazy();jsCompanion();}}
-  if(pending===0){jsLazy();jsCompanion();return;}
+  function oneDone(){if(--pending===0){if(window.console)console.log('[PF] '+VER+' critical '+JS_SEQ.length+' files loaded');jsLazy();jsCompanion();jsIdle();}}
+  if(pending===0){jsLazy();jsCompanion();jsIdle();return;}
   JS_SEQ.forEach(function(n){var s=document.createElement('script');
   /* DEFECT 1: JS_CHROME entries are absolute jsDelivr URLs — use verbatim. */
   s.src=(n.indexOf('https://')===0)?n:BASE+n;
@@ -393,6 +445,12 @@ function jsCompanion(){
   if('requestIdleCallback' in window){try{requestIdleCallback(go,{timeout:9000});return;}catch(e){}}
   setTimeout(go,4000);
 }
+function jsIdle(){
+  if(!JS_IDLE.length)return;
+  function go(){for(var i=0;i<JS_IDLE.length;i++)loadBundle(JS_IDLE[i]);}
+  if('requestIdleCallback' in window){try{requestIdleCallback(go,{timeout:8000});return;}catch(e){}}
+  setTimeout(go,2500);
+}
 function jsLazy(){
   /* SPACE-AUDIT FIX 7 (2026-10-06): lazy hosts extended beyond #pf-v2 /
      #pf-events — /call-it (markets) and /cell-war (battles) lazy-load their
@@ -428,5 +486,5 @@ function jsLazy(){
   }else{fireAll();return;}
   setTimeout(function(){fireAll();},15000);
 }
-pfHints();pfSkeletons();CSS.forEach(css);cdnProbe();jsSeq();
+pfSkipLink();pfHints();pfSkeletons();CSS.forEach(css);cdnProbe();jsSeq();
 })();</script>

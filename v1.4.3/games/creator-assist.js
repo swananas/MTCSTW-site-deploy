@@ -191,7 +191,7 @@ function baWriteErr(e,fb){
     "#pf-ca .ca-pane{display:none}" +
     "#pf-ca .ca-pane.on{display:block}" +
     "#pf-ca .ca-card{background:#141414;border:1px solid #333;border-left:4px solid #c1121f;padding:12px 14px;margin:10px 0}" +
-    "#pf-ca .ca-topic{font:bold 12px Arial;color:#c1121f;letter-spacing:2px;margin-bottom:8px;text-transform:uppercase}" +
+    "#pf-ca .ca-topic{font:bold 12px Arial;color:#e5383b;letter-spacing:2px;margin-bottom:8px;text-transform:uppercase}" +
     "#pf-ca .ca-text{font-size:14px;line-height:1.5;margin:8px 0;white-space:pre-wrap}" +
     "#pf-ca .ca-tags{font-size:13px;color:#9db4c8;margin:8px 0;line-height:1.6}" +
     "#pf-ca .ca-copy{background:#c1121f;border:none;color:#fff;font:bold 12px Arial;padding:8px 16px;cursor:pointer;letter-spacing:1px;margin-top:6px}" +
@@ -199,7 +199,7 @@ function baWriteErr(e,fb){
     "#pf-ca .ca-copy:disabled{background:#555;cursor:default}" +
     "#pf-ca .ca-hint{font-size:12px;color:#888;margin:10px 0;font-style:italic}" +
     "#pf-ca .ca-load{padding:24px;text-align:center;color:#888}" +
-    "#pf-ca .ca-err{padding:24px;text-align:center;color:#c1121f}" +
+    "#pf-ca .ca-err{padding:24px;text-align:center;color:#e5383b}" +
     "#pf-ca .ca-err button{background:#c1121f;border:none;color:#fff;font:bold 12px Arial;padding:8px 16px;cursor:pointer;margin-top:8px}" +
     /* Wave 4 A4 (2026-10-04): sealed mystery bounty cards. */
     "#pf-ca .bn-sealed{position:relative;background:#1a0d0d;border:1px solid #c1121f;border-left:4px solid #c1121f;padding:14px;margin:10px 0;overflow:hidden}" +

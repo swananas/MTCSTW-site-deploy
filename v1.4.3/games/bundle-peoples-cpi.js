@@ -854,29 +854,66 @@
     var cv = document.createElement('canvas');
     cv.width = 1080; cv.height = 1350;
     var x = cv.getContext('2d');
-    x.fillStyle = '#141414'; x.fillRect(0, 0, 1080, 1350);
-    x.fillStyle = RED; x.fillRect(0, 0, 1080, 26); x.fillRect(0, 1324, 1080, 26);
+    /* ---- butter: editorial kit (factgen standard) ---- */
+    x.fillStyle = '#0e0d0c'; x.fillRect(0, 0, 1080, 1350);
+    x.save(); x.globalAlpha = 0.032; x.strokeStyle = '#ffffff'; x.lineWidth = 1;
+    for (var btD = -1350; btD < 2430; btD += 26) {
+      x.beginPath(); x.moveTo(btD, 0); x.lineTo(btD + 1350, 1350); x.stroke();
+    }
+    x.restore();
+    var btVg = x.createRadialGradient(540, 540, 216, 540, 675, 1147);
+    btVg.addColorStop(0, 'rgba(0,0,0,0)'); btVg.addColorStop(1, 'rgba(0,0,0,0.55)');
+    x.fillStyle = btVg; x.fillRect(0, 0, 1080, 1350);
+    var btBar = x.createLinearGradient(0, 0, 0, 10);
+    btBar.addColorStop(0, RED); btBar.addColorStop(1, '#7d0b16');
+    x.fillStyle = btBar; x.fillRect(0, 0, 1080, 10);
+    x.save(); x.globalAlpha = 0.05; x.fillStyle = '#f2ecdc';
+    x.font = '900 620px Arial,sans-serif'; x.textAlign = 'center';
+    x.fillText('★', 540, 810); x.restore();
     return { cv: cv, x: x };
   }
   function cardFooter(x, vintage) {
     x.textAlign = 'center';
-    x.fillStyle = '#8f887a'; x.font = '24px system-ui, sans-serif';
-    x.fillText(String(vintage).slice(0, 90), 540, 1150);
-    x.fillStyle = '#8f887a'; x.font = '22px system-ui, sans-serif';
-    x.fillText(CPI_LABELS.COMMUNITY_FULL, 540, 1185);
-    x.fillStyle = RED; x.font = 'bold 54px system-ui, sans-serif';
-    x.fillText('JOIN THE FIGHT.', 540, 1252);
-    x.fillStyle = '#f5f0e6'; x.font = 'bold 34px system-ui, sans-serif';
-    x.fillText('MTCSTW.COM/peoples-cpi', 540, 1300);
+    x.fillStyle = '#6f6350'; x.font = 'italic 400 24px Georgia,serif';
+    x.fillText(String(vintage).slice(0, 90), 540, 1120);
+    x.fillStyle = '#a89a7d'; x.font = '700 22px Arial,sans-serif';
+    try { x.letterSpacing = '4px'; } catch (e) {}
+    x.fillText(CPI_LABELS.COMMUNITY_FULL, 540, 1158);
+    try { x.letterSpacing = '0px'; } catch (e2) {}
+    /* ---- butter footer: CTA standard ---- */
+    var fy = 1196;
+    x.strokeStyle = 'rgba(201,162,39,0.45)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(120, fy); x.lineTo(960, fy); x.stroke();
+    fy += 56;
+    x.font = '900 44px Arial,sans-serif'; x.fillStyle = '#f2ecdc';
+    try { x.letterSpacing = '8px'; } catch (e3) {}
+    var btCta = 'JOIN THE FIGHT';
+    var btCtaW = x.measureText(btCta).width;
+    x.fillText(btCta, 540, fy);
+    x.fillStyle = RED; x.fillText('.', 540 + btCtaW/2 - 4, fy);
+    try { x.letterSpacing = '0px'; } catch (e4) {}
+    fy += 52;
+    x.fillStyle = RED; x.font = '900 32px Arial,sans-serif';
+    try { x.letterSpacing = '10px'; } catch (e5) {}
+    x.fillText('MTCSTW.COM/peoples-cpi', 540, fy);
+    try { x.letterSpacing = '0px'; } catch (e6) {}
+    var btBar2 = x.createLinearGradient(0, 1340, 0, 1350);
+    btBar2.addColorStop(0, '#7d0b16'); btBar2.addColorStop(1, RED);
+    x.fillStyle = btBar2; x.fillRect(0, 1340, 1080, 10);
   }
   function cardBadge(x, y) {
     x.fillStyle = RED;
     var label = CPI_LABELS.COMMUNITY_BADGE;
-    x.font = 'bold 26px system-ui, sans-serif';
-    var wpx = x.measureText(label).width + 36;
+    x.font = '700 26px Arial,sans-serif';
+    try { x.letterSpacing = '4px'; } catch (e) {}
+    var wpx = x.measureText(label).width + 56;
+    try { x.letterSpacing = '0px'; } catch (e2) {}
     x.fillRect(540 - wpx / 2, y, wpx, 44);
     x.fillStyle = '#fff'; x.textAlign = 'center';
+    x.font = '700 26px Arial,sans-serif';
+    try { x.letterSpacing = '4px'; } catch (e3) {}
     x.fillText(label, 540, y + 31);
+    try { x.letterSpacing = '0px'; } catch (e4) {}
   }
   function paintShare() {
     var el = sec('pf-cpi-share');
@@ -967,13 +1004,23 @@
     if (which === 'headline' && last && first) {
       var c = baseCard(), x = c.x;
       var val = (Math.round(100 * last.value / first.value * 10) / 10).toFixed(1);
-      x.textAlign = 'center'; x.fillStyle = '#f5f0e6';
-      x.font = 'bold 64px system-ui, sans-serif';
+      x.textAlign = 'center'; x.fillStyle = '#c9a227';
+      x.font = '700 34px Arial,sans-serif';
+      try { x.letterSpacing = '8px'; } catch (e) {}
       x.fillText('THE PEOPLE\u2019S PRICE INDEX', 540, 150);
-      cardBadge(x, 190);
-      x.fillStyle = '#fff'; x.font = 'bold 190px system-ui, sans-serif';
+      try { x.letterSpacing = '0px'; } catch (e2) {}
+      x.strokeStyle = 'rgba(201,162,39,0.5)'; x.lineWidth = 1;
+      x.beginPath(); x.moveTo(390, 176); x.lineTo(690, 176); x.stroke();
+      cardBadge(x, 210);
+      /* the figure: monumental gold gradient, drop shadow */
+      x.font = '900 190px Georgia,"Times New Roman",serif';
+      x.fillStyle = 'rgba(0,0,0,0.55)';
+      x.fillText(val, 545, 527);
+      var btGg = x.createLinearGradient(0, 340, 0, 520);
+      btGg.addColorStop(0, '#f0d060'); btGg.addColorStop(1, '#8a6d1c');
+      x.fillStyle = btGg;
       x.fillText(val, 540, 520);
-      x.fillStyle = '#b8b0a0'; x.font = '34px system-ui, sans-serif';
+      x.fillStyle = '#a89a7d'; x.font = 'italic 400 32px Georgia,serif';
       x.fillText('rebased 100 \u00b7 week of ' + fmtD(last.week_start) + ' \u2014 ' + fmtD(last.week_start + 6 * 864e5), 540, 600);
       x.fillText(last.items_with_data + ' of 12 items with data', 540, 650);
       cardFooter(x, 'vintage: week of ' + fmtD(last.week_start));
@@ -987,15 +1034,24 @@
       if (!mover) return;
       var it = itemById(mover.item_id);
       var c2 = baseCard(), x2 = c2.x;
-      x2.textAlign = 'center'; x2.fillStyle = '#f5f0e6';
-      x2.font = 'bold 56px system-ui, sans-serif';
+      x2.textAlign = 'center'; x2.fillStyle = '#c9a227';
+      x2.font = '700 34px Arial,sans-serif';
+      try { x2.letterSpacing = '8px'; } catch (e3) {}
       x2.fillText('ITEM SPOTLIGHT', 540, 150);
-      cardBadge(x2, 190);
-      x2.fillStyle = '#fff'; x2.font = 'bold 84px system-ui, sans-serif';
+      try { x2.letterSpacing = '0px'; } catch (e4) {}
+      cardBadge(x2, 210);
+      x2.fillStyle = '#f2ecdc'; x2.font = '900 80px Georgia,"Times New Roman",serif';
       x2.fillText(it.name.toUpperCase(), 540, 420);
-      x2.fillStyle = '#fff'; x2.font = 'bold 130px system-ui, sans-serif';
-      x2.fillText(money(mover.median_cents), 540, 590);
-      x2.fillStyle = '#b8b0a0'; x2.font = '34px system-ui, sans-serif';
+      /* the figure: monumental gold gradient, drop shadow */
+      x2.font = '900 130px Georgia,"Times New Roman",serif';
+      var btFig2 = money(mover.median_cents);
+      x2.fillStyle = 'rgba(0,0,0,0.55)';
+      x2.fillText(btFig2, 545, 597);
+      var btGg2 = x2.createLinearGradient(0, 470, 0, 590);
+      btGg2.addColorStop(0, '#f0d060'); btGg2.addColorStop(1, '#8a6d1c');
+      x2.fillStyle = btGg2;
+      x2.fillText(btFig2, 540, 590);
+      x2.fillStyle = '#a89a7d'; x2.font = 'italic 400 32px Georgia,serif';
       x2.fillText('per ' + it.unit, 540, 645);
       x2.fillText('reported by ' + (mover.contributors || 0) + ' people \u00b7 national, trailing 30 days', 540, 700);
       var d = Number(mover.delta_pct);
@@ -1019,10 +1075,12 @@
       img.onload = function () {
         try {
           var c3 = baseCard(), x3 = c3.x;
-          x3.textAlign = 'center'; x3.fillStyle = '#f5f0e6';
-          x3.font = 'bold 56px system-ui, sans-serif';
+          x3.textAlign = 'center'; x3.fillStyle = '#c9a227';
+          x3.font = '700 34px Arial,sans-serif';
+          try { x3.letterSpacing = '8px'; } catch (e5) {}
           x3.fillText('TWO WAYS OF COUNTING', 540, 120);
-          x3.font = '28px system-ui, sans-serif'; x3.fillStyle = '#b8b0a0';
+          try { x3.letterSpacing = '0px'; } catch (e6) {}
+          x3.font = 'italic 400 28px Georgia,serif'; x3.fillStyle = '#a89a7d';
           x3.fillText('Two separate lines. Never merged.', 540, 168);
           var cw = 940, chh = cw * 330 / 660;
           x3.drawImage(img, 70, 210, cw, chh);

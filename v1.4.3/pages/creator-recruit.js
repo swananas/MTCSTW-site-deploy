@@ -33,7 +33,7 @@
   if (window.pfCreatorRecruitDone) { return; }
   window.pfCreatorRecruitDone = true;
 
-  var RED = '#c1121f', CREAM = '#f5f0e1', BLACK = '#0a0a0a', MUTED = '#b8ab8e';
+  var RED = '#c1121f', RED_TX = '#e5383b' /* CONTRAST FIX 2026-10-08: text-safe red, 4.68:1 on #0a0a0a */, CREAM = '#f5f0e1', BLACK = '#0a0a0a', MUTED = '#b8ab8e';
   var SITE = 'https://www.mtcstw.com';
 
   function esc(s) {
@@ -357,7 +357,7 @@
     box.style.cssText = 'border:3px solid ' + RED + ';background:#141010;padding:1.4rem 1.2rem;' +
       'text-align:center;margin:2.2rem auto 0;max-width:560px;box-sizing:border-box;';
     var inner =
-      '<div style="color:' + RED + ';font-weight:900;letter-spacing:0.14em;font-size:1rem;margin-bottom:0.5rem;">' +
+      '<div style="color:' + RED_TX + ';font-weight:900;letter-spacing:0.14em;font-size:1rem;margin-bottom:0.5rem;">' +
       '\u2691 BRING THEM IN</div>' +
       '<div style="color:' + CREAM + ';font-size:0.92rem;line-height:1.55;margin-bottom:1rem;">' +
       'Know a propagandist who belongs on this roster? Send them the enlistment link with ' +

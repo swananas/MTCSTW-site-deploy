@@ -177,7 +177,7 @@ function render(){
   h+='<div class="x-pane"><h4>Enter the arena</h4>'
     +'<div class="x-note">Submit a forged poster by its content ID (shown in the Poster Forge after you share).</div>'
     /* R6 (2026-10-04): reverse link — forge -> battles one-tap pipeline. */
-    +'<div class="x-note" style="margin:0.5rem 0 0.75rem;"><a href="/create" style="color:#c1121f;font-weight:900;letter-spacing:0.12em;text-decoration:none;border-bottom:2px solid #c1121f;">FORGE A CONTENDER &rarr;</a></div>';
+    +'<div class="x-note" style="margin:0.5rem 0 0.75rem;"><a href="/create" style="color:#e5383b;font-weight:900;letter-spacing:0.12em;text-decoration:none;border-bottom:2px solid #c1121f;">FORGE A CONTENDER &rarr;</a></div>';
   if(open.length){
     var lastCid=""; try{ lastCid=localStorage.getItem("pf_last_content_id")||""; }catch(e){}
     h+='<select id="btBattleSel">'+open.map(function(b){

@@ -79,7 +79,7 @@
     '.pf-mv-name{font:900 20px "Arial Black",Arial,sans-serif;color:#f5ead6}',
     '.pf-mv-sub{display:block;font:700 13px Arial,sans-serif;color:#c9bfa8;margin-top:4px}',
     '.pf-mv-vote{font:700 15px Arial,sans-serif;color:#e8b923;margin:8px 0}',
-    '.pf-mv-vote b{color:#c1121f}',
+    '.pf-mv-vote b{color:#e5383b}',
     '.pf-mv-inds{list-style:none;margin:0;padding:0}',
     '.pf-mv-inds li{font:400 15px Arial,sans-serif;color:#c9bfa8;padding:4px 0}',
     '.pf-mv-inds li b{color:#f5ead6}',

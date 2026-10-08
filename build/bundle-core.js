@@ -370,21 +370,32 @@ var BUNDLES = {
      relative position the old bundle-core used (right after 00-bus.js). */
   'core/bundle-core-slr':
     ['core/00-bus.js', 'core/07-slr-db-data.js'].concat(CORE_FILES.slice(1)),
-  'pages/bundle-pages': [
+  /* LAZY-LOAD SPLIT (2026-10-08, homepage perf audit fix): the homepage
+     critical path keeps only what the first paint needs. bundle-pages-home
+     (blocking on the homepage): home-v2 (section mounter), home-personalize
+     (hero CTA, above-fold), page-mount (mount + widen + retry guard), notify
+     (header bell chrome), flash-siren (site-wide banner, above-fold).
+     Everything else (share chrome, page-specific mounts, lazy loaders)
+     ships in bundle-pages, which the footer defers to requestIdleCallback
+     on the homepage. All files are DOM-guarded / self-mounting — nothing
+     removed, just moved. Other v2 pages keep bundle-pages blocking. */
+  'pages/bundle-pages-home': [
     'pages/home-v2.js',
     /* 2026-10-07 Project 3 (fe/home-personalize): My HQ user-activity
        personalization (hero CTA + rank greeting, streak nudge, voted-creator
        card). Fires on #pf-v2 only; anonymous visitors get the default
        homepage untouched. Kill: ?pf_off=home-personalize. */
     'pages/home-personalize.js',
-    'pages/political-hq.js',
-    'pages/slr-roster.js',
-    'pages/slr-catalog.js',
     'pages/page-mount.js',
     'games/notify.js',
     /* A2 flash siren: site-wide banner, self-mounting + fail-silent. Global
        chrome (every v2 page) — was a dead file at 4ce7391, never bundled. */
     'games/flash-siren.js',
+  ],
+  'pages/bundle-pages': [
+    'pages/political-hq.js',
+    'pages/slr-roster.js',
+    'pages/slr-catalog.js',
     /* ENGAGE-A #2 (2026-10-05): micro-reactions on data surfaces.
        Zero XP by design (one reaction/callsign/surface/day server-side,
        aggregate counts only). Self-mounts on [data-react-surface]; global

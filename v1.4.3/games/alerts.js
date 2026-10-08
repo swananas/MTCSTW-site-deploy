@@ -17,7 +17,7 @@
   font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;color:#9c8f78;
   padding:9px 12px;border:1px solid #2c2c2c;border-radius:6px;background:#0d0d0d;
   max-width:680px;margin:0 auto;text-align:center}
-#pf-alerts .pf-quietstrip b{color:#c1121f;letter-spacing:2px}
+#pf-alerts .pf-quietstrip b{color:#e5383b;letter-spacing:2px}
 #pf-alerts.pf-quiet #pf-alerts-body{display:none}
 #pf-alerts.pf-quiet .pf-quietstrip{display:flex}
 #pf-alerts.pf-quiet .pf-next{display:none}
@@ -105,7 +105,7 @@ function render(j){
   if(!ok){
     /* FAIL SOFT: exactly as today — visible section, honest quiet pane. */
     setQuiet(false);
-    h+='<div class="x-pane"><div class="x-note">No active alerts. The wire is quiet &mdash; for now. When a moment breaks, it lands here first. <a href="/create?tab=bounties" style="color:#c1121f;font-weight:700;text-decoration:none">HIT THE OPEN BOUNTIES &#8594;</a></div></div>';
+    h+='<div class="x-pane"><div class="x-note">No active alerts. The wire is quiet &mdash; for now. When a moment breaks, it lands here first. <a href="/create?tab=bounties" style="color:#e5383b;font-weight:700;text-decoration:none">HIT THE OPEN BOUNTIES &#8594;</a></div></div>';
     h+='<div style="margin-top:10px"><button class="c-btn" id="alRetry">Refresh</button></div>';
     el.innerHTML=h;
     var rb0=document.getElementById("alRetry");

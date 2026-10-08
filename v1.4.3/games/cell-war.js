@@ -12,7 +12,7 @@
 </div>
 <style>
 #pf-cell-war .cw-wrap{background:linear-gradient(160deg,#0d0d0d 0%,#1c0707 60%,#0d0d0d 100%);border:3px solid #c1121f;padding:26px 22px;max-width:680px;margin:18px auto;text-align:center;box-shadow:0 0 24px rgba(193,18,31,.35);color:#f5ead6;font-family:Arial,sans-serif}
-#pf-cell-war .cw-kicker{font-size:12px;letter-spacing:4px;color:#c1121f;font-weight:800;margin-bottom:6px}
+#pf-cell-war .cw-kicker{font-size:12px;letter-spacing:4px;color:#e5383b;font-weight:800;margin-bottom:6px}
 #pf-cell-war .cw-stakes{font-size:13px;letter-spacing:3px;color:#e8b64c;font-weight:800;margin-bottom:10px;text-transform:uppercase}
 #pf-cell-war h2{font-family:'Arial Black',Arial,sans-serif;color:#f5ead6;font-size:30px;margin:0 0 4px;letter-spacing:2px;text-transform:uppercase}
 #pf-cell-war h2 .cw-week{color:#c1121f}
@@ -21,7 +21,7 @@
 #pf-cell-war .cw-champ small{display:block;font-weight:400;font-size:12px;margin-top:4px;letter-spacing:0}
 #pf-cell-war .cw-row{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;background:#161616;border:1px solid #333;padding:10px 12px;margin-bottom:8px;text-align:left}
 #pf-cell-war .cw-row.cw-mine{border:2px solid #ffb347;background:#1e1508}
-#pf-cell-war .cw-pos{font-family:'Arial Black',Arial,sans-serif;font-size:20px;color:#c1121f;text-align:center}
+#pf-cell-war .cw-pos{font-family:'Arial Black',Arial,sans-serif;font-size:20px;color:#e5383b;text-align:center}
 #pf-cell-war .cw-row.cw-mine .cw-pos{color:#ffb347}
 #pf-cell-war .cw-name{font-weight:800;font-size:15px;color:#f5ead6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #pf-cell-war .cw-sub{font-size:12px;color:#a89e88;margin-top:2px}

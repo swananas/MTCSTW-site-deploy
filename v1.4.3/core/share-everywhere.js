@@ -585,7 +585,7 @@
       var st = document.createElement('style');
       st.setAttribute('data-pf-se-css', '1');
       st.textContent = [
-        '.pf-se-kicker{color:#c1121f;font-weight:900;letter-spacing:.28em;font-size:.68rem;',
+        '.pf-se-kicker{color:#e5383b;font-weight:900;letter-spacing:.28em;font-size:.68rem;',
         'margin:0 0 .55rem;font-family:Arial,Helvetica,sans-serif}',
         '.pf-se-net{display:inline-block;background:#c1121f;border:2px solid #c1121f;color:#fff;',
         'padding:.6rem 1.05rem;margin:.25rem;font-size:.7rem;font-weight:900;letter-spacing:.14em;',
@@ -604,7 +604,7 @@
         '.pf-se-share:hover{background:#e01424;border-color:#e01424;transform:translateY(-1px);',
         'box-shadow:0 8px 24px rgba(193,18,31,.55)}',
         '.pf-se-share:active{transform:scale(.97)}',
-        '.pf-se-save{background:transparent;border:2px solid #c1121f;color:#c1121f}',
+        '.pf-se-save{background:transparent;border:2px solid #c1121f;color:#e5383b}',
         '.pf-se-save:hover{background:rgba(193,18,31,.14);transform:translateY(-1px);',
         'box-shadow:0 4px 14px rgba(193,18,31,.25)}',
         '.pf-se-save:active{transform:scale(.97)}',
@@ -765,7 +765,7 @@
       d.style.cssText = 'border:2px solid #c1121f;background:#0d0d0d;max-width:680px;margin:1.2rem auto;' +
         'padding:0.9rem 1rem;text-align:center;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box;';
       var k = document.createElement('div');
-      k.style.cssText = 'color:#c1121f;font-weight:900;letter-spacing:0.22em;font-size:0.72rem;margin-bottom:0.4rem;';
+      k.style.cssText = 'color:#e5383b;font-weight:900;letter-spacing:0.22em;font-size:0.72rem;margin-bottom:0.4rem;';
       k.textContent = opts.kicker || def.kicker;
       var l = document.createElement('div');
       l.style.cssText = 'color:#c9bfa8;font-size:0.85rem;margin-bottom:0.7rem;line-height:1.5;';
@@ -1095,7 +1095,7 @@
       d.style.cssText = 'border:2px solid #c1121f;background:#0d0d0d;max-width:680px;margin:1rem auto;' +
         'padding:0.9rem 1rem;text-align:center;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box;';
       var k = document.createElement('div');
-      k.style.cssText = 'color:#c1121f;font-weight:900;letter-spacing:0.22em;font-size:0.72rem;margin-bottom:0.4rem;';
+      k.style.cssText = 'color:#e5383b;font-weight:900;letter-spacing:0.22em;font-size:0.72rem;margin-bottom:0.4rem;';
       k.textContent = '\u2605 INTEL DROP \u2014 REVIEW BEFORE POSTING';
       var t = document.createElement('div');
       t.style.cssText = 'color:#f5ead6;font-weight:900;font-size:1rem;margin-bottom:0.25rem;';

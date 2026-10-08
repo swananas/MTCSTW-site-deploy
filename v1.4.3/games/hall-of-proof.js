@@ -15,15 +15,15 @@
 <div class="fe-block pf-override-block pf-silo" id="pf-hallofproof">
 <style>
 #pf-hallofproof{background:#0a0a0a;border-top:3px solid #c1121f;border-bottom:3px solid #c1121f;padding:22px 16px;font-family:Arial,sans-serif;color:#f5ead6;text-align:center}
-#pf-hallofproof .hp-kicker{font-size:11px;letter-spacing:3px;color:#c1121f;font-weight:bold;margin-bottom:6px}
+#pf-hallofproof .hp-kicker{font-size:11px;letter-spacing:3px;color:#e5383b;font-weight:bold;margin-bottom:6px}
 #pf-hallofproof h2{margin:0 0 4px;font-size:24px;letter-spacing:1px;color:#f5ead6}
 #pf-hallofproof .hp-sub{font-size:12px;color:#9c8f78;margin-bottom:16px}
 #pf-hallofproof .hp-banner{background:#1a0505;border:1px solid #c1121f;border-radius:6px;padding:12px;max-width:640px;margin:0 auto 18px;font-size:13px}
-#pf-hallofproof .hp-banner b{color:#c1121f}
+#pf-hallofproof .hp-banner b{color:#e5383b}
 #pf-hallofproof .hp-groups{max-width:720px;margin:0 auto;text-align:left}
 #pf-hallofproof .hp-group{margin-bottom:14px;background:#111;border:1px solid #2c2c2c;border-radius:6px;overflow:hidden}
 #pf-hallofproof .hp-ghead{padding:8px 12px;background:#161616;font-size:13px;font-weight:bold;color:#f5ead6;border-bottom:1px solid #2c2c2c}
-#pf-hallofproof .hp-ghead .hp-count{color:#c1121f;margin-left:6px;font-size:12px}
+#pf-hallofproof .hp-ghead .hp-count{color:#e5383b;margin-left:6px;font-size:12px}
 #pf-hallofproof .hp-pin{padding:7px 12px;font-size:13px;border-bottom:1px solid #1d1d1d;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
 #pf-hallofproof .hp-pin:last-child{border-bottom:none}
 #pf-hallofproof .hp-cs{font-family:monospace;color:#ffd34d;font-weight:bold}

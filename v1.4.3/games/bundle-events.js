@@ -97,7 +97,7 @@ function mcCss(){
     +'.mc-sortbar{display:flex;align-items:center;gap:10px;margin:0 0 12px;flex-wrap:wrap}'
     +'.mc-sortlabel{font:bold 11px monospace;letter-spacing:1px;color:#e8b64c}'
     +'.mc-tbadge{display:inline-block;background:#222;border:1px solid #555;color:#fff;font:bold 10px monospace;letter-spacing:1px;padding:3px 8px;margin:0 0 6px}'
-    +'.mc-xp{font:bold 11px monospace;color:#c1121f;letter-spacing:1px;margin:6px 0 2px}'
+    +'.mc-xp{font:bold 11px monospace;color:#e5383b;letter-spacing:1px;margin:6px 0 2px}'
     +'.mc-actions{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:10px}'
     +'.mc-tlink{font:bold 11px monospace;color:#fff;text-decoration:underline}'
     +'.mc-youin{font:bold 12px monospace;color:#27ae60;letter-spacing:1px;margin:8px 0 2px}'
@@ -191,7 +191,7 @@ function mcHero(){
     mission:'Pick your fight. Impact first.',
     sub:'Every mobilization, deadline, and briefing — ranked by what moves the needle.'})+'</div>';
   return '<div class="mc-hero"><div style="border-top:4px solid #c1121f;background:#0a0a0a;padding:14px 16px;">'
-    +'<div style="color:#c1121f;font-weight:900;font-size:12px;letter-spacing:2px;">WAR CALENDAR</div>'
+    +'<div style="color:#e5383b;font-weight:900;font-size:12px;letter-spacing:2px;">WAR CALENDAR</div>'
     +'<div style="color:#fff;font-weight:900;font-size:18px;">Pick your fight. Impact first.</div></div></div>';
 }
 /* ---------- P8 social proof: real counts render, anything else is suppressed ---------- */
@@ -1015,7 +1015,7 @@ function render(){
   /* 2026-10-05 (fe/events-move): /events cross-link — town halls ↔ protest/
      event map (wiring-map §7.1–7.2). Same-page anchor; no-op fail-soft if the
      lazy map chunk is killed or not yet loaded. */
-  html+='<a href="#pf-civicevents" style="font:bold 11px monospace;color:#c1121f;text-decoration:underline;">NEARBY PROTESTS &amp; EVENTS &#8595;</a>';
+  html+='<a href="#pf-civicevents" style="font:bold 11px monospace;color:#e5383b;text-decoration:underline;">NEARBY PROTESTS &amp; EVENTS &#8595;</a>';
   /* wiring-map §7.1 exit: AC return rail. The Action Center silo is in-flight
      (fe/action-center-dashboard); link the page it will live on, no invented
      anchor. */
@@ -1039,7 +1039,7 @@ function card(h){
   s+='<div style="font:bold 14px Arial;">'+esc(h.title)+'</div>';
   s+='<div style="font:12px monospace;color:#aaa;margin:4px 0;">'+esc(who)+(h.district?' <span style="color:#666;">'+esc(h.district)+'</span>':"")+'</div>';
   s+='<div style="font:12px monospace;">'+esc(when)+(where?' &mdash; '+esc(where):"")+'</div>';
-  s+='<div style="font:12px monospace;color:#c1121f;font-weight:bold;margin:4px 0;">'+(h.rsvp_count||0)+' GOING</div>';
+  s+='<div style="font:12px monospace;color:#e5383b;font-weight:bold;margin:4px 0;">'+(h.rsvp_count||0)+' GOING</div>';
   s+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">';
   s+='<button data-thq="'+esc(h.id)+'" style="font:bold 11px monospace;padding:5px 9px;cursor:pointer;">QUESTION KIT</button>';
   s+='<button data-thr="'+esc(h.id)+'" style="font:bold 11px monospace;padding:5px 9px;cursor:pointer;">RSVP</button>';
@@ -1075,7 +1075,7 @@ function renderSoon(){
   soon.sort(function(a,b){ return (Number(a.starts_at||a.event_at)||0)-(Number(b.starts_at||b.event_at)||0); });
   if(!soon.length){ el.innerHTML=""; return; }
   var s='<div style="border:2px solid #c1121f;background:#1a0505;padding:8px;margin:8px 0;">';
-  s+='<div style="font:bold 12px monospace;color:#c1121f;">NEXT 72 HOURS &mdash; SHOW UP</div>';
+  s+='<div style="font:bold 12px monospace;color:#e5383b;">NEXT 72 HOURS &mdash; SHOW UP</div>';
   soon.slice(0,5).forEach(function(h){
     s+='<div style="font:12px monospace;margin:4px 0;">'+esc(fmtWhen(h.starts_at||h.event_at))+' &mdash; <b>'+esc(h.official||h.legislator_name||"")+'</b> &mdash; '+esc([h.address||h.city,h.state].filter(function(x){return x;}).join(", "))+'</div>';
   });
@@ -1087,7 +1087,7 @@ function load(){
      live+upcoming only, rows under j.townhalls. */
   api("townhall_list",{state:curState},function(j){
     if(!j||!j.ok){ var el=root.querySelector("#thList");
-      if(el) el.innerHTML='<div style="font:12px monospace;color:#c1121f;">Schedule unavailable. Reload to retry.</div>';
+      if(el) el.innerHTML='<div style="font:12px monospace;color:#e5383b;">Schedule unavailable. Reload to retry.</div>';
       return; }
     cache=j.townhalls||j.halls||[]; renderList(); renderSoon();
   });
@@ -1128,7 +1128,7 @@ function renderForm(){
   if(host.innerHTML){ host.innerHTML=""; return; }
   var s='<div style="border:1px solid #666;padding:12px;margin:8px 0;background:#0d0d0d;">';
   s+='<div style="font:bold 13px monospace;margin-bottom:8px;">SUBMIT A TOWN HALL</div>';
-  s+='<div style="font:11px monospace;color:#c1121f;margin-bottom:8px;">Unverified submissions are rejected &mdash; every town hall must link a checkable source: the legislator&rsquo;s official schedule, a news report, or the event page.</div>';
+  s+='<div style="font:11px monospace;color:#e5383b;margin-bottom:8px;">Unverified submissions are rejected &mdash; every town hall must link a checkable source: the legislator&rsquo;s official schedule, a news report, or the event page.</div>';
   s+='<div style="display:grid;gap:6px;max-width:520px;">';
   s+='<input id="thfLeg" placeholder="Official name (e.g. Mike Johnson)" style="font:12px monospace;padding:6px;" maxlength="120">';
   s+='<input id="thfTitle" placeholder="Event title" style="font:12px monospace;padding:6px;" maxlength="140">';
@@ -1340,7 +1340,7 @@ function evCard(e){
   var icon=TYPE_ICON[String(e.type||"").toLowerCase()]||"\uD83D\uDCCD";
   var past=normTs(e.event_at)<Date.now();
   var s='<div class="x-pane" style="border:1px solid #444;padding:10px;margin:8px 0;background:#111;">';
-  s+='<div style="font:bold 11px monospace;color:#c1121f;">'+icon+' '+esc(String(e.type||"event").toUpperCase())+(past?' <span style="color:#666;">&mdash; PAST</span>':"")+'</div>';
+  s+='<div style="font:bold 11px monospace;color:#e5383b;">'+icon+' '+esc(String(e.type||"event").toUpperCase())+(past?' <span style="color:#666;">&mdash; PAST</span>':"")+'</div>';
   s+='<h4 style="margin:4px 0;"><a href="#e='+esc(e.id)+'" style="color:#fff;">'+esc(e.title)+'</a></h4>';
   s+='<div style="font:12px monospace;color:#aaa;">'+esc(chiDate(e.event_at))+(e.location?" &mdash; "+esc(e.location):"")+'</div>';
   s+='<div style="font:12px monospace;margin:4px 0;">'+(Number(e.rsvp_count)||0)+' GOING</div>';
@@ -1493,7 +1493,7 @@ function renderDetail(id){
     var icon=TYPE_ICON[String(e.type||"").toLowerCase()]||"\uD83D\uDCCD";
     var h=backHtml();
     h+='<div class="x-pane" style="border:1px solid #444;padding:12px;background:#111;">';
-    h+='<div style="font:bold 11px monospace;color:#c1121f;">'+icon+' '+esc(String(e.type||"event").toUpperCase())+'</div>';
+    h+='<div style="font:bold 11px monospace;color:#e5383b;">'+icon+' '+esc(String(e.type||"event").toUpperCase())+'</div>';
     h+='<h3 style="margin:4px 0;">'+esc(e.title)+'</h3>';
     h+='<div style="font:12px monospace;color:#aaa;">'+esc(chiDate(e.event_at))+(e.location?" &mdash; "+esc(e.location):"")+'</div>';
     if(e.description) h+='<div style="font:13px Arial;margin:8px 0;">'+esc(e.description)+'</div>';
@@ -1507,7 +1507,7 @@ function renderDetail(id){
     h+='<div style="border:1px solid #666;padding:12px;background:#0d0d0d;">';
     h+='<div style="font:11px monospace;color:#888;margin-bottom:8px;">For the record, not for points. No GPS is ever stored. Get consent before posting photos with other people in them \u2014 faces on this public wall are visible to everyone. Don\u2019t post anyone who hasn\u2019t agreed to be shown.</div>';
     h+='<label style="font:11px monospace;">PHOTO <input type="file" id="evPhoto" accept="image/*" style="font:12px monospace;"></label>';
-    h+='<div style="font:11px monospace;color:#c1121f;margin:4px 0;">Add a photo from the field \u2014 check-ins are photo-first.</div>';
+    h+='<div style="font:11px monospace;color:#e5383b;margin:4px 0;">Add a photo from the field \u2014 check-ins are photo-first.</div>';
     h+='<div style="margin:6px 0;"><input id="evNote" placeholder="Field note (280 chars, optional)" maxlength="280" style="font:12px monospace;padding:6px;width:100%;box-sizing:border-box;"></div>';
     h+='<div><button id="evCheckin" disabled style="font:bold 12px monospace;padding:7px 14px;cursor:pointer;">FILE REPORT</button></div>';
     h+='</div>';

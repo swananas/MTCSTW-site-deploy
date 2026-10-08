@@ -35,7 +35,7 @@
   if (!PF || PF.skip("raid")) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-raid">
 <style>
-.rd-scope{font:700 11px Arial,sans-serif;letter-spacing:2px;color:#c1121f;margin-bottom:4px}
+.rd-scope{font:700 11px Arial,sans-serif;letter-spacing:2px;color:#e5383b;margin-bottom:4px}
 .rd-line{font:900 44px "Arial Black",Arial,sans-serif;color:#f5ead6;letter-spacing:1px;margin:10px 0;text-align:center;text-shadow:0 0 18px rgba(193,18,31,.55)}
 .rd-line.rd-dead{color:#ff4d5e;text-shadow:0 0 18px rgba(255,77,94,.6)}
 .rd-jrnl{margin-top:12px;border-top:1px solid #2a2a2a;padding-top:8px}

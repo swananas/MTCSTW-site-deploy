@@ -147,7 +147,7 @@ function abstainBtnHTML(pid,small){
 /* ===== teardown WS-11: silo-local CSS (injected once at mount) ===== */
 var GOV_CSS=[
 ".pf-gov{max-width:760px;margin:0 auto;padding:4px 0 30px;background:#0a0a0a;color:#fff;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box;}",
-".gv-kicker{color:#c1121f;text-transform:uppercase;letter-spacing:3px;font-weight:800;font-size:12px;margin:0 0 8px;}",
+".gv-kicker{color:#e5383b;text-transform:uppercase;letter-spacing:3px;font-weight:800;font-size:12px;margin:0 0 8px;}",
 ".gv-sec{margin:26px 0 0;padding:0 4px;}",
 ".gv-sec-t{font-size:19px;font-weight:800;margin:0 0 6px;text-transform:uppercase;letter-spacing:1px;}",
 ".gv-note{color:#8a8a8a;font-size:13px;line-height:1.6;margin:0 0 10px;}",
@@ -157,16 +157,16 @@ var GOV_CSS=[
 ".gv-full{background:#0d0d0d;border:2px solid #c1121f;margin:0 0 18px;padding:20px 18px;}",
 ".gv-full h3{font-size:22px;font-weight:900;margin:0 0 10px;line-height:1.25;color:#fff;}",
 ".gv-case{border-left:3px solid #4a4a4a;padding:2px 0 2px 12px;margin:12px 0;}",
-".gv-case-k{color:#c1121f;font-size:11px;letter-spacing:2px;font-weight:800;margin:0 0 4px;}",
+".gv-case-k{color:#e5383b;font-size:11px;letter-spacing:2px;font-weight:800;margin:0 0 4px;}",
 ".gv-case p{margin:0;font-size:14px;line-height:1.6;color:#e8e2d2;}",
 ".gv-shield{background:#12060a;border:1px dashed #c1121f;color:#e8e2d2;font-size:12.5px;padding:10px 12px;margin:12px 0;line-height:1.5;}",
 ".gv-quorum{font-size:12px;letter-spacing:2px;font-weight:800;color:#8a8a8a;margin:10px 0;}",
-".gv-quorum .segs{letter-spacing:0;color:#c1121f;}",
+".gv-quorum .segs{letter-spacing:0;color:#e5383b;}",
 ".gv-count{font-weight:900;letter-spacing:2px;font-size:15px;margin:8px 0;}",
 ".gv-urg-1 .gv-count{color:#fff;}",
-".gv-urg-2 .gv-count{color:#c1121f;}",
+".gv-urg-2 .gv-count{color:#e5383b;}",
 ".gv-urg-3{border-color:#c1121f;}",
-".gv-urg-3 .gv-count{color:#c1121f;animation:gvPulse 1.6s ease-in-out infinite;}",
+".gv-urg-3 .gv-count{color:#e5383b;animation:gvPulse 1.6s ease-in-out infinite;}",
 "@keyframes gvPulse{0%,100%{opacity:1;}50%{opacity:.55;}}",
 /* cast targets: REPORT-family, non-red, thumb-zone */
 ".gv-cast-row{display:flex;gap:10px;margin:16px 0 4px;flex-wrap:wrap;}",
@@ -182,8 +182,8 @@ var GOV_CSS=[
 ".gv-inline-meta{color:#8a8a8a;font-size:12px;margin:0;}",
 ".gv-inline-vote{display:flex;gap:8px;}",
 ".gv-cast.gv-small{flex:0 1 auto;min-height:48px;padding:10px 14px;font-size:13px;}",
-".gv-inline.gv-urg-2 .gv-inline-meta{color:#c1121f;font-weight:800;}",
-".gv-inline.gv-urg-3 .gv-inline-meta{color:#c1121f;font-weight:900;animation:gvPulse 1.6s ease-in-out infinite;}",
+".gv-inline.gv-urg-2 .gv-inline-meta{color:#e5383b;font-weight:800;}",
+".gv-inline.gv-urg-3 .gv-inline-meta{color:#e5383b;font-weight:900;animation:gvPulse 1.6s ease-in-out infinite;}",
 /* first-vote micro-flow */
 ".gv-firstvote{border:2px solid #c1121f;background:#12060a;padding:18px;margin:16px 0;}",
 ".gv-firstvote h4{margin:0 0 10px;font-size:16px;letter-spacing:2px;color:#fff;}",
@@ -197,19 +197,19 @@ var GOV_CSS=[
 ".gv-badge{display:inline-block;font-weight:900;letter-spacing:2px;font-size:13px;padding:6px 14px;margin:0 0 10px;}",
 ".gv-badge.gv-pass{background:#fff;color:#0a0a0a;}",
 ".gv-badge.gv-fail{background:#0a0a0a;color:#8a8a8a;border:2px solid #8a8a8a;}",
-".gv-badge.gv-tie{background:#0a0a0a;color:#c1121f;border:2px solid #c1121f;}",
+".gv-badge.gv-tie{background:#0a0a0a;color:#e5383b;border:2px solid #c1121f;}",
 ".gv-result h3{font-size:19px;font-weight:900;margin:0 0 8px;color:#fff;}",
 ".gv-outcome{font-size:14px;line-height:1.6;color:#e8e2d2;margin:0 0 10px;}",
 ".gv-outcome b{color:#fff;}",
 /* closing-soon ping */
 ".gv-ping{background:#1a0505;border:2px solid #c1121f;color:#e8e2d2;padding:12px 14px;margin:12px 0;font-size:14px;line-height:1.5;}",
-".gv-ping b{color:#c1121f;}",
+".gv-ping b{color:#e5383b;}",
 ".gv-ping a{color:#fff;font-weight:800;}",
 /* form */
 ".gv-form{background:#0d0d0d;border:1px solid #4a4a4a;padding:18px;margin:0 0 10px;}",
 ".gv-form input[type=text],.gv-form textarea{width:100%;background:#141414;color:#fff;border:1px solid #4a4a4a;padding:10px;font-size:14px;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box;margin:0 0 10px;}",
 ".gv-form input[type=number]{background:#141414;color:#fff;border:1px solid #4a4a4a;padding:8px;font-size:14px;width:70px;}",
-".gv-err{color:#c1121f;font-size:13px;min-height:18px;margin:6px 0 0;}",
+".gv-err{color:#e5383b;font-size:13px;min-height:18px;margin:6px 0 0;}",
 ".gv-btn-red{display:inline-block;background:#c1121f;color:#fff;font-weight:900;letter-spacing:1px;font-size:15px;padding:14px 26px;border:none;cursor:pointer;font-family:Arial,Helvetica,sans-serif;}",
 ".gv-btn-ghost{display:inline-block;background:transparent;color:#8a8a8a;border:1px solid #4a4a4a;font-weight:700;font-size:13px;padding:10px 18px;cursor:pointer;font-family:Arial,Helvetica,sans-serif;margin-left:8px;}"
 ].join("");

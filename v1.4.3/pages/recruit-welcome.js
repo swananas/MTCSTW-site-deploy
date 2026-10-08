@@ -154,7 +154,7 @@
       '3 &mdash; SEE TODAY\u2019S NEXT OP &darr;</button></div>';
 
     card.innerHTML =
-      '<div style="color:#c1121f;font-weight:900;letter-spacing:.16em;font-size:1.05rem;margin-bottom:.3rem;">' +
+      '<div style="color:#e5383b;font-weight:900;letter-spacing:.16em;font-size:1.05rem;margin-bottom:.3rem;">' +
       '&#9873; ' + esc(name.toUpperCase()) + ' RECRUITED YOU</div>' +
       '<div style="font-size:.85rem;color:#b8ab8e;line-height:1.55;">' +
       esc(name) + ' fights with the Sick Left Radicals. Now it\u2019s your turn &mdash; ' +

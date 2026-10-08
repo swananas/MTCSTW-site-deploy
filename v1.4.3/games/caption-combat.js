@@ -205,7 +205,7 @@ function ccRenderPol(j){
   var card=document.createElement("div");
   card.style.cssText="border:1px solid #3a3226;background:#14100b;padding:0.9rem 1rem;margin:0.6rem 0;";
   var badge=document.createElement("div");
-  badge.style.cssText="color:#c1121f;font-size:0.72rem;font-weight:800;letter-spacing:0.14em;margin-bottom:0.35rem;";
+  badge.style.cssText="color:#e5383b;font-size:0.72rem;font-weight:800;letter-spacing:0.14em;margin-bottom:0.35rem;";
   badge.textContent=p.badge||"POLITICAL";
   var title=document.createElement("div");
   title.style.cssText="color:#f5f0e1;font-size:1.05rem;font-weight:800;margin-bottom:0.3rem;";
@@ -272,7 +272,7 @@ function markSubmitted(){
   btn.style.pointerEvents="none";
   var note=document.createElement("div");
   note.className="c-rules";
-  note.style.color="#c1121f";
+  note.style.color="#e5383b";
   note.style.marginTop="10px";
   note.textContent="Entry logged for the week of "+weekStr+". One entry per person per week.";
   btn.parentNode.appendChild(note);
@@ -340,7 +340,7 @@ document.getElementById("cSubmit").onclick=function(){
       }else{
         /* mailto didn't fire (no email app / cancelled) - keep the entry open */
         var warn=document.createElement("div");
-        warn.className="c-rules";warn.style.color="#c1121f";warn.style.marginTop="10px";
+        warn.className="c-rules";warn.style.color="#e5383b";warn.style.marginTop="10px";
         warn.textContent="Your email app didn't open - your caption is safe above. Tap SUBMIT again to retry sending (entry not locked yet).";
         self.parentNode.appendChild(warn);
         setTimeout(function(){warn.remove();},9000);

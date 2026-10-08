@@ -120,7 +120,7 @@
     bar.setAttribute('aria-label', 'First Wave launch banner');
     bar.innerHTML =
       '<div style="max-width:1100px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-sizing:border-box;">'
-      + '<span style="color:#c1121f;font-weight:900;letter-spacing:0.25em;font-size:0.7rem;">&#9733; FIRST WAVE &#9733;</span>'
+      + '<span style="color:#e5383b;font-weight:900;letter-spacing:0.25em;font-size:0.7rem;">&#9733; FIRST WAVE &#9733;</span>'
       + '<span style="color:#f5ead6;font-weight:900;font-size:1.05rem;letter-spacing:0.06em;">' + esc(head) + '</span>'
       + '<span style="color:#c9bfa8;font-size:0.9rem;">' + esc(sub) + '</span>'
       + '</div>';
@@ -147,7 +147,7 @@
           slot.innerHTML =
             '<div style="display:inline-block;background:#0b0b0c;border:2px solid #c1121f;'
             + 'padding:10px 18px;margin:10px auto;font-family:\'Helvetica Neue\',Arial,sans-serif;text-align:center;">'
-            + '<div style="color:#c1121f;font-weight:900;letter-spacing:0.3em;font-size:0.72rem;">FIRST WAVE</div>'
+            + '<div style="color:#e5383b;font-weight:900;letter-spacing:0.3em;font-size:0.72rem;">FIRST WAVE</div>'
             + '<div style="color:#c9bfa8;font-size:0.85rem;margin-top:4px;">You were here when it started.</div>'
             + '</div>';
           host.parentNode.insertBefore(slot, host.nextSibling);
@@ -245,13 +245,13 @@
         var linkId = (day.key === 'route-march') ? ' id="pf-fw-day5-link"' : '';
         var tag = doneD
           ? '<span style="color:#7ddf8a;font-weight:900;">&#10003; DONE</span>'
-          : '<span style="color:#c1121f;font-weight:900;">&#9679; OPEN</span>';
+          : '<span style="color:#e5383b;font-weight:900;">&#9679; OPEN</span>';
         var stake = (day.key === 'ventures')
           ? '<div style="color:#8a8172;font-size:0.72rem;margin-top:6px;">XP has no cash value. Stakes are final.</div>'
           : '';
         rows +=
           '<div style="display:flex;align-items:center;gap:12px;padding:10px 4px;border-top:1px solid #2a2a2a;">'
-          + '<div style="min-width:44px;color:#c1121f;font-weight:900;font-size:0.8rem;letter-spacing:0.1em;">DAY ' + day.day + '</div>'
+          + '<div style="min-width:44px;color:#e5383b;font-weight:900;font-size:0.8rem;letter-spacing:0.1em;">DAY ' + day.day + '</div>'
           + '<div style="flex:1;min-width:0;">'
           + '<a' + linkId + ' href="' + esc(url) + '" style="color:#f5ead6;font-weight:900;font-size:0.95rem;text-decoration:none;letter-spacing:0.04em;">' + esc(day.name) + ' &rarr;</a>'
           + '<div style="color:#a89e88;font-size:0.8rem;margin-top:2px;">' + esc(day.sub) + '</div>'
@@ -263,7 +263,7 @@
       var head = allDone
         ? '<div style="color:#7ddf8a;font-weight:900;letter-spacing:0.2em;font-size:0.78rem;">&#9733; FIRST WAVE &#8212; FULL MUSTER &#9733;</div>'
           + '<div style="color:#f5ead6;font-weight:900;font-size:1.25rem;margin-top:6px;letter-spacing:0.05em;">YOU STOOD ALL SEVEN.</div>'
-        : '<div style="color:#c1121f;font-weight:900;letter-spacing:0.25em;font-size:0.78rem;">&#9733; THE FIRST WAVE CIRCUIT &#9733;</div>'
+        : '<div style="color:#e5383b;font-weight:900;letter-spacing:0.25em;font-size:0.78rem;">&#9733; THE FIRST WAVE CIRCUIT &#9733;</div>'
           + '<div style="color:#f5ead6;font-weight:900;font-size:1.25rem;margin-top:6px;letter-spacing:0.05em;">SEVEN DAYS. SEVEN ACTIONS. FOUNDERS FINISH.</div>';
       var el = document.createElement('div');
       el.id = 'pf-firstwave-circuit';
@@ -329,7 +329,7 @@
           '<div style="background:#0a0a0a;border-top:3px solid #c1121f;border-bottom:3px solid #c1121f;'
           + 'padding:22px 16px;max-width:1100px;margin:18px auto;color:#f5ead6;'
           + 'font-family:\'Helvetica Neue\',Arial,sans-serif;box-sizing:border-box;text-align:center;">'
-          + '<div style="color:#c1121f;font-weight:900;letter-spacing:0.3em;font-size:0.72rem;">&#9733; THE FOUNDER ROLL &#9733;</div>'
+          + '<div style="color:#e5383b;font-weight:900;letter-spacing:0.3em;font-size:0.72rem;">&#9733; THE FOUNDER ROLL &#9733;</div>'
           + '<div style="color:#f5ead6;font-weight:900;font-size:1.3rem;margin:8px 0 4px;letter-spacing:0.05em;">THEY WERE HERE WHEN IT STARTED.</div>'
           + '<div style="color:#a89e88;font-size:0.85rem;margin-bottom:10px;">This roll is closed forever. No late entries. No exceptions.</div>'
           + '<div style="max-width:560px;margin:0 auto;text-align:left;">' + (rows || '<div style="color:#a89e88;font-size:0.9rem;text-align:center;">The roll is being written. Enlist during the First Wave and your name lands here.</div>') + '</div>'

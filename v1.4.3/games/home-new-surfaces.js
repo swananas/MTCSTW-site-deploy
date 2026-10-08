@@ -110,7 +110,7 @@
 <div style="font-family:'Arial Black',Arial,sans-serif;font-size:26px;letter-spacing:2px;margin:0 0 8px;text-transform:uppercase;">&#127897; The Propaganda Factory Podcast</div>
 <div style="font-size:14px;color:#a89e88;line-height:1.5;margin:0 auto 14px;max-width:540px;">The week in propaganda, straight to your ears. New episodes on the feed — take the fight with you.</div>
 <a href="https://rss.com/podcasts/the-propaganda-factory" target="_blank" rel="noopener" style="display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:15px;padding:13px 30px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;">LISTEN NOW &#8594;</a>
-<div style="font-size:11px;letter-spacing:3px;color:#c1121f;font-weight:800;margin-top:12px;">MTCSTW.COM &mdash; JOIN THE FIGHT.</div>
+<div style="font-size:11px;letter-spacing:3px;color:#e5383b;font-weight:800;margin-top:12px;">MTCSTW.COM &mdash; JOIN THE FIGHT.</div>
 </div>
 </div>
 </template>`);

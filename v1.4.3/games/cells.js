@@ -260,7 +260,7 @@ function loadBoard(){
         '<span class="c-bstat">'+c.streak+' streak &middot; '+c.members+'/5</span></div>';
     }).join("");
     el.innerHTML=html;
-    if(SLIM){ el.insertAdjacentHTML('beforeend','<div class="x-note"><a href="/cells" style="color:#c1121f;">Full cell leaderboard &rarr;</a></div>'); }
+    if(SLIM){ el.insertAdjacentHTML('beforeend','<div class="x-note"><a href="/cells" style="color:#e5383b;">Full cell leaderboard &rarr;</a></div>'); }
   });
 }
 /* CELLS G14 (2026-10-04): CELL MUSTER board \
@@ -279,10 +279,10 @@ function loadMuster(){
     wrap.style.display="";
     var op=j.op;
     var head='<div class="x-note">'+esc(op.name)+
-      (op.live?' &mdash; <b style="color:#c1121f;">LIVE</b>: check in to score muster points':' &mdash; final standings')+'</div>';
+      (op.live?' &mdash; <b style="color:#e5383b;">LIVE</b>: check in to score muster points':' &mdash; final standings')+'</div>';
     var terr=["+20","+10","+5"];
     var rows=j.board.slice(0,10).map(function(r){
-      var bonus=r.rank<=3?' &middot; <b style="color:#c1121f;">'+terr[r.rank-1]+' territory</b>':"";
+      var bonus=r.rank<=3?' &middot; <b style="color:#e5383b;">'+terr[r.rank-1]+' territory</b>':"";
       return '<div class="c-lrow"><span class="c-lname">#'+r.rank+' '+esc(r.cell_name)+'</span>'+
         '<span class="c-lstat">'+r.points+' muster &middot; '+r.fighters+' fighters'+bonus+'</span></div>';
     }).join("");
@@ -413,7 +413,7 @@ function renderLobby(el){
     '</div>'+
     searchHtml+
     '<div class="c-bounty">SHARE YOUR CELL CODE &mdash; every RECRUIT who checks in pays <b>+25 XP</b>. One recruit, one credit, everywhere.</div>'+
-    (SLIM?'<div class="x-note">Full cell management &mdash; search, prestige, challenges &mdash; lives at <a href="/cells" style="color:#c1121f;">/cells</a>.</div>':'');
+    (SLIM?'<div class="x-note">Full cell management &mdash; search, prestige, challenges &mdash; lives at <a href="/cells" style="color:#e5383b;">/cells</a>.</div>':'');
   /* CELL IDENTITY (2026-10-05): wizard mounts when enabled; the blank form
      is the kill-switch fallback. */
   if(identEnabled()){
@@ -589,7 +589,7 @@ function renderLobby(el){
 function verifiedBanner(c){
   if(!c||!c.verified) return "";
   return '<div class="c-vbanner" style="background:#0d0d0d;border:2px solid #c1121f;margin:0 0 12px;padding:10px 12px;text-align:center;">'+
-    '<span style="color:#c1121f;font-weight:900;letter-spacing:2px;font-size:15px;">\u2713 VERIFIED CELL</span>'+
+    '<span style="color:#e5383b;font-weight:900;letter-spacing:2px;font-size:15px;">\u2713 VERIFIED CELL</span>'+
     '<div class="x-note" style="margin-top:4px;">2+ callsigns strong &middot; Hall-pinnable</div></div>';
 }
 function renderCellSlim(el,s){
@@ -608,7 +608,7 @@ function renderCellSlim(el,s){
   if(s.cover_for){
     html+='<button class="c-btn c-cover" id="cCover">Cover '+esc(s.cover_for)+' &mdash; save the streak</button>';
   }
-  html+='<div class="x-note"><a href="/cells" style="color:#c1121f;">Manage your cell &rarr;</a> members, prestige, challenges, the full board.</div>';
+  html+='<div class="x-note"><a href="/cells" style="color:#e5383b;">Manage your cell &rarr;</a> members, prestige, challenges, the full board.</div>';
   html+='<div class="c-err" id="cActErr"></div></div>';
   el.innerHTML=html;
   var errEl=document.getElementById("cActErr");
@@ -826,7 +826,7 @@ function renderCell(el,s){
     }
     prHtml='<div class="c-prestige" style="background:#120404;border:2px solid #c1121f;margin:12px 0;padding:14px;text-align:center;">'+
       '<div style="font-size:22px;letter-spacing:2px;">'+pr.flame+'</div>'+
-      '<div style="color:#c1121f;font-weight:900;font-size:18px;letter-spacing:3px;">'+esc(pr.tier.name)+'</div>'+
+      '<div style="color:#e5383b;font-weight:900;font-size:18px;letter-spacing:3px;">'+esc(pr.tier.name)+'</div>'+
       '<div class="x-note" style="margin-bottom:8px;">'+pr.power+' prestige power &middot; '+pr.prestiged_count+' prestiged '+(pr.prestiged_count===1?"fighter":"fighters")+'</div>'+
       benHtml+progHtml+'</div>';
   } else {
@@ -1162,7 +1162,7 @@ function renderCell(el,s){
           h+='<div class="x-pane"><h4>'+esc(ch.title)+cellStateTag(ch)+'</h4>'
             +'<div class="x-note">'+esc(ch.detail||"")+'</div>'
             +(purse?'<div class="x-note"><b>\uD83C\uDFC6 PURSE: '+purse.toLocaleString()+' XP</b></div>':'')
-            +(won?'<div class="x-note">\uD83C\uDFC6 WINNER: <b>'+esc(won)+'</b> &mdash; <a href="/#pf-v2" style="color:#c1121f;">HALL OF PROOF \u2192</a></div>':'')
+            +(won?'<div class="x-note">\uD83C\uDFC6 WINNER: <b>'+esc(won)+'</b> &mdash; <a href="/#pf-v2" style="color:#e5383b;">HALL OF PROOF \u2192</a></div>':'')
             +'<div class="x-note">'+(isDone?"Decided.":"Ends: "+esc(ch.ends||"soon"))+'</div>'
             +(isDone
               ?(purse?'<div class="x-note"><b>\uD83C\uDFC6 PURSE: '+purse.toLocaleString()+' XP</b> — auto-pays to '+(won?'<b>'+esc(won)+'</b>':'the winning cell')+' via the backend. No manual payout.</div>':'')

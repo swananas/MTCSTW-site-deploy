@@ -133,7 +133,7 @@ function afterGame(justPlayed){
   lapCount++; /* count only shown laps (2026-10-06 QC) */
   function kill(){ try{ d.remove(); }catch(e){} try{ if(window.PF&&PF.popupQueue) PF.popupQueue.release('convert-card'); }catch(e2){} }
   var h=document.createElement('div');
-  h.style.cssText='color:#c1121f;font-weight:900;letter-spacing:2px;font-size:12px;margin-bottom:6px;';
+  h.style.cssText='color:#e5383b;font-weight:900;letter-spacing:2px;font-size:12px;margin-bottom:6px;';
   h.textContent='\u2691 NEXT MISSION';
   var t=document.createElement('div');
   t.style.cssText='font-size:15px;font-weight:900;margin-bottom:2px;';
@@ -162,7 +162,7 @@ function nudge(){
   try{ localStorage.setItem('pf_enlist_nudge_v1',today); }catch(e){}
   var d=cardShell('pf-enlist-nudge');
   var h=document.createElement('div');
-  h.style.cssText='color:#c1121f;font-weight:900;letter-spacing:2px;font-size:12px;margin-bottom:6px;';
+  h.style.cssText='color:#e5383b;font-weight:900;letter-spacing:2px;font-size:12px;margin-bottom:6px;';
   h.textContent='\u2691 BANK THIS XP';
   var t=document.createElement('div');
   t.style.cssText='font-size:13px;margin-bottom:2px;';

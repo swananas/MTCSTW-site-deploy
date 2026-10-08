@@ -18,7 +18,7 @@
 <style>
 #pf-war-map .wm-wrap{background:linear-gradient(165deg,#0b0b0c 0%,#200808 55%,#0b0b0c 100%);border:3px solid #c1121f;padding:26px 22px;max-width:700px;margin:18px auto;text-align:center;box-shadow:0 0 28px rgba(193,18,31,.4), inset 0 0 60px rgba(0,0,0,.6);color:#f5ead6;font-family:Arial,sans-serif;position:relative;overflow:hidden}
 #pf-war-map .wm-wrap:before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,.18) 3px 4px)}
-#pf-war-map .wm-kicker{font-size:12px;letter-spacing:5px;color:#c1121f;font-weight:800;margin-bottom:6px}
+#pf-war-map .wm-kicker{font-size:12px;letter-spacing:5px;color:#e5383b;font-weight:800;margin-bottom:6px}
 #pf-war-map h2{font-family:'Arial Black',Arial,sans-serif;color:#f5ead6;font-size:32px;margin:0 0 4px;letter-spacing:3px;text-transform:uppercase;text-shadow:2px 2px 0 #000}
 #pf-war-map .wm-week{font-family:'Courier New',monospace;font-size:14px;color:#ffb347;letter-spacing:2px;margin-bottom:10px}
 #pf-war-map .wm-live{display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:13px;letter-spacing:2px;padding:8px 18px;margin:6px 0 12px;animation:wmPulse 1.6s infinite;border:2px solid #fff}
@@ -29,7 +29,7 @@
 #pf-war-map .wm-leader .wm-lsub{font-size:12px;color:#d8c9a3;letter-spacing:1px}
 #pf-war-map .wm-row{display:grid;grid-template-columns:36px 1fr auto;gap:10px;align-items:center;background:rgba(10,10,10,.75);border:1px solid #4a4a4a;padding:10px 12px;margin-bottom:8px;text-align:left;position:relative}
 #pf-war-map .wm-row.wm-mine{border:2px solid #ffb347;background:rgba(42,21,3,.85)}
-#pf-war-map .wm-pos{font-family:'Arial Black',Arial,sans-serif;font-size:22px;color:#c1121f;text-align:center;text-shadow:1px 1px 0 #000}
+#pf-war-map .wm-pos{font-family:'Arial Black',Arial,sans-serif;font-size:22px;color:#e5383b;text-align:center;text-shadow:1px 1px 0 #000}
 #pf-war-map .wm-row.wm-mine .wm-pos{color:#ffb347}
 #pf-war-map .wm-name{font-weight:800;font-size:15px;color:#f5ead6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.5px}
 #pf-war-map .wm-tag{display:inline-block;background:#ffb347;color:#000;font-size:10px;font-weight:800;padding:1px 7px;margin-left:6px;letter-spacing:1px;vertical-align:middle}
@@ -41,7 +41,7 @@
 #pf-war-map .wm-minebox{border:2px dashed #ffb347;background:rgba(42,21,3,.6);padding:10px 12px;margin:12px 0;font-size:13px;color:#f5ead6;letter-spacing:.5px}
 #pf-war-map .wm-minebox b{color:#ffb347}
 #pf-war-map .wm-flips{margin:14px 0 4px;text-align:left}
-#pf-war-map .wm-flips h4{font-size:11px;letter-spacing:3px;color:#c1121f;margin:0 0 8px;font-weight:800}
+#pf-war-map .wm-flips h4{font-size:11px;letter-spacing:3px;color:#e5383b;margin:0 0 8px;font-weight:800}
 #pf-war-map .wm-flip{display:block;background:rgba(20,20,20,.8);border-left:4px solid #c1121f;padding:8px 10px;margin-bottom:6px;font-size:13px;color:#f5ead6;text-decoration:none}
 #pf-war-map .wm-flip:hover{background:rgba(40,12,12,.9)}
 #pf-war-map .wm-flip .wm-ago{font-size:11px;color:#b3a687;margin-left:6px;font-family:'Courier New',monospace}

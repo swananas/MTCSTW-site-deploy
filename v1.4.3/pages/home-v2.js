@@ -32,7 +32,7 @@
   function heroHTML(){
     return '' +
     '<div id="pf-hero" style="max-width:min(860px,94vw);margin:0 auto;padding:56px 20px 40px;text-align:center;box-sizing:border-box;">' +
-      '<div style="font-size:12px;letter-spacing:5px;color:#c1121f;font-weight:800;margin-bottom:14px;">THE PROPAGANDA FACTORY</div>' +
+      '<div style="font-size:12px;letter-spacing:5px;color:#e5383b;font-weight:800;margin-bottom:14px;">THE PROPAGANDA FACTORY</div>' +
       '<h1 style="font-family:\'Arial Black\',Arial,sans-serif;font-size:clamp(2rem,8vw,3.6rem);letter-spacing:2px;color:#f5ead6;margin:0 0 14px;text-transform:uppercase;line-height:1.1;">Join the Propaganda Factory</h1>' +
       '<p style="font-size:clamp(1rem,3.5vw,1.25rem);color:#b8ab8e;line-height:1.6;margin:0 0 26px;max-width:600px;margin-left:auto;margin-right:auto;">62 sick radicals. Real data on the billionaires. Daily missions. Enlist in 30 seconds — free forever.</p>' +
       '<a href="#" id="pf-hero-cta" style="display:inline-block;min-height:44px;line-height:44px;background:#c1121f;color:#fff;font-weight:800;font-size:17px;padding:6px 38px;text-decoration:none;letter-spacing:2px;border:2px solid #fff;">CLAIM YOUR CALLSIGN &rarr;</a>' +
@@ -56,7 +56,7 @@
       ['/request-access', '\uD83D\uDE80', 'CREATOR HQ', 'For creators: unlock the workshop.']
     ];
     var h = '<div id="pf-closer" style="max-width:min(860px,94vw);margin:0 auto;padding:40px 20px 60px;box-sizing:border-box;">' +
-      '<div style="font-size:12px;letter-spacing:5px;color:#c1121f;font-weight:800;margin-bottom:10px;text-align:center;">EXPLORE THE MACHINE</div>' +
+      '<div style="font-size:12px;letter-spacing:5px;color:#e5383b;font-weight:800;margin-bottom:10px;text-align:center;">EXPLORE THE MACHINE</div>' +
       '<div style="font-family:\'Arial Black\',Arial,sans-serif;font-size:clamp(1.4rem,5vw,2rem);color:#f5ead6;text-align:center;margin:0 0 24px;text-transform:uppercase;letter-spacing:1px;">Pick your front</div>' +
       '<div id="pf-closer-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">';
     for (var i = 0; i < cards.length; i++) {
@@ -262,7 +262,7 @@
       'background:linear-gradient(160deg,#0d0d0d 0%,#1c0707 60%,#0d0d0d 100%);' +
       'border:3px solid #c1121f;color:#f5ead6;font-family:Arial,sans-serif;';
     card.innerHTML =
-      '<div style="font-size:12px;letter-spacing:4px;color:#c1121f;font-weight:800;margin-bottom:6px;">BOOTS ON THE GROUND</div>' +
+      '<div style="font-size:12px;letter-spacing:4px;color:#e5383b;font-weight:800;margin-bottom:6px;">BOOTS ON THE GROUND</div>' +
       '<div style="font-family:\'Arial Black\',Arial,sans-serif;font-size:24px;letter-spacing:2px;margin:0 0 8px;text-transform:uppercase;">Take it to the streets.</div>' +
       '<div style="font-size:14px;color:#a89e88;line-height:1.5;margin-bottom:14px;">Phonebanks, canvasses, protests, meetups — the fight isn\u2019t only online. +50 XP per RSVP.</div>' +
       '<a href="/events" style="display:inline-block;min-height:44px;line-height:44px;background:#c1121f;color:#fff;font-weight:800;font-size:15px;padding:0 30px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;">SEE WHAT\u2019S HAPPENING \u2192</a>';

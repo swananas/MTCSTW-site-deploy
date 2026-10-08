@@ -564,7 +564,7 @@ function renderAbsorb(){
   var box=document.getElementById("oAbsorb"); if(!box) return;
   var refOk=false;
   try{ refOk=!!document.getElementById("pf-referral"); }catch(e){}
-  var h=refOk?'<div style="margin:6px 0"><a href="#pf-referral" id="oRecruitNudge" style="color:#c1121f;font-weight:700;text-decoration:none;letter-spacing:.08em;font-size:13px;min-height:44px;display:inline-block;line-height:44px;">Recruit a fighter &rarr;</a></div>':"";
+  var h=refOk?'<div style="margin:6px 0"><a href="#pf-referral" id="oRecruitNudge" style="color:#e5383b;font-weight:700;text-decoration:none;letter-spacing:.08em;font-size:13px;min-height:44px;display:inline-block;line-height:44px;">Recruit a fighter &rarr;</a></div>':"";
   box.innerHTML=h+'<div id="oLootAbs"></div>';
   var nudge=document.getElementById("oRecruitNudge");
   if(nudge) nudge.onclick=function(){ try{ var t=document.getElementById("pf-referral"); if(t) t.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e2){} };
@@ -902,17 +902,17 @@ function renderRaid(){
   var cur=raidCurrent(), st=raidLoad(), t=raidToday(), done=st.done===t;
   box.innerHTML=
    '<div id="pf-raid" style="max-width:640px;margin:0 auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:\\\'Helvetica Neue\\\',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;text-align:center;">'
-  +'<div style="font-size:1.15rem;font-weight:900;letter-spacing:0.18em;color:#c1121f;">&#9876; TODAY\u2019S HEADLINE MISSION &#9876;</div>'
+  +'<div style="font-size:1.15rem;font-weight:900;letter-spacing:0.18em;color:#e5383b;">&#9876; TODAY\u2019S HEADLINE MISSION &#9876;</div>'
   +'<div style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;">One target. One day. The whole network hits it at once.<br>Like. Comment. Share. Report back.</div>'
-  +'<div><div style=\"font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\">TODAY\u2019S TARGET</div>'
+  +'<div><div style=\"font-size:0.85rem;letter-spacing:0.2em;color:#e5383b;\">TODAY\u2019S TARGET</div>'
   +'<div style=\"font-size:1.5rem;font-weight:900;margin:0.4rem 0;\"><a href=\"'+escHtml(cur.tu)+'\" style=\"color:#f5f0e1;text-decoration:underline;text-decoration-color:#c1121f;\">'+escHtml(cur.tn)+'</a></div>'
   +'<div style=\"font-size:0.9rem;color:#b8ab8e;\">'+escHtml(cur.th)+(cur.tp?' \u00b7 '+escHtml(cur.tp):'')+'</div>'
   +'<div style=\"font-size:0.95rem;margin:0.8rem 0;padding:0.8rem;border:2px dashed #c1121f;\">'+escHtml(cur.tgt.m)+'</div></div>'
   +'<div id="oRaidTurnout" style="font-size:0.85rem;color:#b8ab8e;margin:0.6rem 0;min-height:1.2em;"></div>'
-  +'<div id="oRaidClock" style="font-size:0.85rem;color:#c1121f;letter-spacing:0.15em;margin:0.8rem 0;"></div>'
+  +'<div id="oRaidClock" style="font-size:0.85rem;color:#e5383b;letter-spacing:0.15em;margin:0.8rem 0;"></div>'
   +'<div><button id="oRaidReport" style="background:#c1121f;border:none;color:#f5f0e1;padding:0.8rem 2rem;font-size:1rem;font-weight:900;letter-spacing:0.1em;cursor:pointer;font-family:inherit;">'+(done?"REPORTED \u2713":"REPORT BACK")+'</button></div>'
   +'<div id="oRaidMsg" style="margin-top:0.8rem;font-size:0.9rem;color:#b8ab8e;min-height:1.4em;">'+(done?"Raid logged. See you tomorrow, soldier.":"")+'</div>'
-  +'<div id="oRaidStreak" style="font-size:0.85rem;color:#c1121f;margin-top:0.4rem;letter-spacing:0.1em;"></div>'
+  +'<div id="oRaidStreak" style="font-size:0.85rem;color:#e5383b;margin-top:0.4rem;letter-spacing:0.1em;"></div>'
   +'</div>';
   var btn=document.getElementById("oRaidReport");
   if(done){ btn.disabled=true; btn.style.opacity="0.5"; }
@@ -1065,7 +1065,7 @@ function wrMondayLink(){
   var isMon=false;
   try{ isMon=PF.chiNow().getDay()===1; }catch(e){}
   return '<span style="margin-left:12px;color:#b8ab8e;font-size:12px">'
-    +'<a href="/#pf-warreport" style="color:#c1121f;font-weight:700;text-decoration:none">'
+    +'<a href="/#pf-warreport" style="color:#e5383b;font-weight:700;text-decoration:none">'
     +(isMon?"MONDAY: THE WAR REPORT &#8594;":"CATCH UP: THE WAR REPORT &#8594;")
     +'</a></span>';
 }

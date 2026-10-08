@@ -60,7 +60,7 @@
   function fetchFallback() {
     var b = ownBase();
     var url = b ? b + '/src/data/slr-master-db.json'
-      : 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@main/src/data/slr-master-db.json';
+      : 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@4f896b0e9b3033a1b21317d4386e215339ff6455/src/data/slr-master-db.json';
     return fetch(url, { cache: 'no-store' })
       .then(function (r) { if (!r.ok) throw new Error('slr-db HTTP ' + r.status); return r.json(); })
       .then(function (d) {
@@ -87,13 +87,14 @@
      it. Concurrent callers share one promise; the 15s backstop plus the JSON
      fallback mean a failed load resolves to [] instead of hanging — every
      consumer already degrades on an empty roster.
-     AUTO-UPDATE (2026-10-07): before touching the bundled snapshot, try the
-     live master DB JSON from @main with a short timeout. A push to
-     src/data/slr-master-db.json on main auto-propagates to all catalog/roster
-     pages within jsDelivr cache time — no code ship, no pin change, no footer
-     edit. On any failure the bundled snapshot path runs unchanged. */
+     AUTO-UPDATE (2026-10-07, PINNED 2026-10-08 per roster-@main audit fix):
+     before touching the bundled snapshot, try the master DB JSON with a short
+     timeout. The URL is pinned to a commit SHA (was @main) so roster data is
+     deterministic — a push to src/data/slr-master-db.json now needs a pin
+     bump in LIVE_DB_URL to propagate. On any failure the bundled snapshot
+     path runs unchanged. */
   var _slrPending = null;
-  var LIVE_DB_URL = 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@main/src/data/slr-master-db.json';
+  var LIVE_DB_URL = 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@4f896b0e9b3033a1b21317d4386e215339ff6455/src/data/slr-master-db.json';
   var LIVE_TIMEOUT_MS = 3000;
   function fetchLive() {
     return new Promise(function (resolve) {
@@ -121,13 +122,14 @@
   function dataUrl() {
     var b = ownBase();
     return (b ? b + '/v1.4.3/core/07-slr-db-data.js'
-      : 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@main/v1.4.3/core/07-slr-db-data.js');
+      : 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@4f896b0e9b3033a1b21317d4386e215339ff6455/v1.4.3/core/07-slr-db-data.js');
   }
   PF.ensureSLRDB = function () {
     var s0 = window.PF_SLR_DB_SNAPSHOT;
-    /* AUTO-UPDATE: live JSON first (fresh data, no ship needed). The bundled
-       snapshot stays as the synchronous fast path only when the live fetch
-       hasn't resolved yet — the live result wins whenever it arrives valid. */
+    /* PINNED-UPDATE (was AUTO-UPDATE; pinned 2026-10-08): pinned JSON first
+       (deterministic data). The bundled snapshot stays as the synchronous
+       fast path only when the pinned fetch hasn't resolved yet — the pinned
+       result wins whenever it arrives valid. */
     if (MEMBERS.length && !MEMBERS._liveStale) return Promise.resolve(MEMBERS);
     if (_slrPending) return _slrPending;
     _slrPending = new Promise(function (resolve) {

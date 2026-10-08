@@ -973,13 +973,13 @@
         '.ac-kind{font-size:11px;color:#b8ab8e;line-height:1.6;margin:6px 0}',
         '.ac-miles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}',
         '@media (max-width:640px){.ac-miles{grid-template-columns:1fr}}',
-        '.ac-miles-k{font-weight:900;font-size:11px;letter-spacing:3px;color:#c1121f;margin:4px 0 2px}',
+        '.ac-miles-k{font-weight:900;font-size:11px;letter-spacing:3px;color:#e5383b;margin:4px 0 2px}',
         '.ac-mile{border:1px solid #2a2a2a;border-radius:8px;background:#0d0d0d;padding:10px}',
         '.ac-mile.ac-earned{border-color:#c1121f}',
         '.ac-mile-name{font-weight:900;font-size:11px;letter-spacing:2px;color:#e8b923}',
         '.ac-mile-line{font-size:11px;color:#c9bfa8;margin-top:4px;line-height:1.5}',
         '.ac-mile-lock,.ac-mile-go{font-size:11px;color:#b8ab8e;margin-top:6px}',
-        '.ac-arc-k,.ac-league-k,.ac-cells-k{font-weight:900;font-size:11px;letter-spacing:3px;color:#c1121f;margin:14px 0 8px}',
+        '.ac-arc-k,.ac-league-k,.ac-cells-k{font-weight:900;font-size:11px;letter-spacing:3px;color:#e5383b;margin:14px 0 8px}',
         '.ac-course{margin-bottom:12px}',
         '.ac-course-head{display:flex;gap:12px;align-items:center;margin-bottom:8px}',
         '.ac-lesson{margin:8px 0}',
@@ -1447,7 +1447,7 @@
       }
       if(C.completed&&C.completed_at){
         h+='<div style="border:2px solid #c1121f;background:#140808;padding:.7rem;margin:.6rem 0;text-align:center">'
-          +'<div style="color:#c1121f;font-weight:900;letter-spacing:.14em;font-size:.85rem">&#9733; CERTIFICATE &#9733;</div>'
+          +'<div style="color:#e5383b;font-weight:900;letter-spacing:.14em;font-size:.85rem">&#9733; CERTIFICATE &#9733;</div>'
           +'<div style="color:#f5f0e1;font-size:.8rem;margin-top:.25rem">'+esc(C.title)+' &mdash; earned by '+esc(id.callsign||'callsign')+(C.completed_at?' on '+esc(fmtDate(C.completed_at)):"")+'</div>'
           /* Brand-integration (2026-10-06): academy → cells. */
           +'<div style="margin-top:.5rem"><a href="/cells" style="color:#e8b923;font-weight:800;font-size:.8rem;letter-spacing:.1em;text-decoration:none">&#9733; TAKE THIS TO YOUR CELL &rarr;</a></div></div>';
@@ -1912,7 +1912,7 @@
        cell handoff — "You're trained. Your cell is waiting." One-tap cell
        browse. The other bridges stay as secondary routes. */
     steps += '<div style="margin:.9rem 0;padding:1rem;border:3px solid #c1121f;background:#140a0a;">' +
-      '<div style="color:#c1121f;font-weight:900;letter-spacing:.14em;font-size:.95rem;margin-bottom:.3rem;">' +
+      '<div style="color:#e5383b;font-weight:900;letter-spacing:.14em;font-size:.95rem;margin-bottom:.3rem;">' +
       'TRAINED. YOUR CELL IS WAITING &rarr;</div>' +
       '<div style="font-size:.78rem;color:#f5f0e1;line-height:1.5;margin-bottom:.6rem;">' +
       'Trained soldiers fight together. Find your cell — or build your own.</div>' +
@@ -1951,7 +1951,7 @@
       'SHARE YOUR GRADUATION</button></div>';
 
     card.innerHTML =
-      '<div style="color:#c1121f;font-weight:900;letter-spacing:.18em;font-size:1.15rem;margin-bottom:.4rem;">' +
+      '<div style="color:#e5383b;font-weight:900;letter-spacing:.18em;font-size:1.15rem;margin-bottom:.4rem;">' +
       '&#9733; ACADEMY GRADUATE &#9733;</div>' +
       '<div style="font-size:.9rem;color:#f5f0e1;line-height:1.6;margin-bottom:.8rem;">' +
       'All ' + total + ' lessons complete. The training wheels are off, soldier &mdash; ' +
@@ -2342,7 +2342,7 @@ function baWriteErr(e,fb){
     "#pf-ca .ca-pane{display:none}" +
     "#pf-ca .ca-pane.on{display:block}" +
     "#pf-ca .ca-card{background:#141414;border:1px solid #333;border-left:4px solid #c1121f;padding:12px 14px;margin:10px 0}" +
-    "#pf-ca .ca-topic{font:bold 12px Arial;color:#c1121f;letter-spacing:2px;margin-bottom:8px;text-transform:uppercase}" +
+    "#pf-ca .ca-topic{font:bold 12px Arial;color:#e5383b;letter-spacing:2px;margin-bottom:8px;text-transform:uppercase}" +
     "#pf-ca .ca-text{font-size:14px;line-height:1.5;margin:8px 0;white-space:pre-wrap}" +
     "#pf-ca .ca-tags{font-size:13px;color:#9db4c8;margin:8px 0;line-height:1.6}" +
     "#pf-ca .ca-copy{background:#c1121f;border:none;color:#fff;font:bold 12px Arial;padding:8px 16px;cursor:pointer;letter-spacing:1px;margin-top:6px}" +
@@ -2350,7 +2350,7 @@ function baWriteErr(e,fb){
     "#pf-ca .ca-copy:disabled{background:#555;cursor:default}" +
     "#pf-ca .ca-hint{font-size:12px;color:#888;margin:10px 0;font-style:italic}" +
     "#pf-ca .ca-load{padding:24px;text-align:center;color:#888}" +
-    "#pf-ca .ca-err{padding:24px;text-align:center;color:#c1121f}" +
+    "#pf-ca .ca-err{padding:24px;text-align:center;color:#e5383b}" +
     "#pf-ca .ca-err button{background:#c1121f;border:none;color:#fff;font:bold 12px Arial;padding:8px 16px;cursor:pointer;margin-top:8px}" +
     /* Wave 4 A4 (2026-10-04): sealed mystery bounty cards. */
     "#pf-ca .bn-sealed{position:relative;background:#1a0d0d;border:1px solid #c1121f;border-left:4px solid #c1121f;padding:14px;margin:10px 0;overflow:hidden}" +
@@ -3339,31 +3339,90 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
     cv.width = 1080; cv.height = 1350;
     try { x = cv.getContext('2d'); } catch (e2) {}
     if (!x) return null;
-    x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, 1080, 1350);
-    x.strokeStyle = '#c1121f'; x.lineWidth = 18; x.strokeRect(16, 16, 1048, 1318);
-    x.strokeStyle = '#f5ead6'; x.lineWidth = 3; x.strokeRect(52, 52, 976, 1246);
+    x.fillStyle = '#0e0d0c'; x.fillRect(0, 0, 1080, 1350);
+    /* ---- butter: editorial kit (factgen standard) ---- */
+    var btR='#c1121f', btRD='#7d0b16', btC='#f2ecdc', btG='#c9a227',
+        btM='#a89a7d', btF='#6f6350';
+    x.save(); x.globalAlpha = 0.032; x.strokeStyle = '#ffffff'; x.lineWidth = 1;
+    for (var btD = -1350; btD < 2430; btD += 26) {
+      x.beginPath(); x.moveTo(btD, 0); x.lineTo(btD + 1350, 1350); x.stroke();
+    }
+    x.restore();
+    var btVg = x.createRadialGradient(540, 540, 216, 540, 675, 1147);
+    btVg.addColorStop(0, 'rgba(0,0,0,0)'); btVg.addColorStop(1, 'rgba(0,0,0,0.55)');
+    x.fillStyle = btVg; x.fillRect(0, 0, 1080, 1350);
+    var btBar = x.createLinearGradient(0, 0, 0, 10);
+    btBar.addColorStop(0, btR); btBar.addColorStop(1, btRD);
+    x.fillStyle = btBar; x.fillRect(0, 0, 1080, 10);
+    x.save(); x.globalAlpha = 0.05; x.fillStyle = btC;
+    x.font = '900 620px Arial,sans-serif'; x.textAlign = 'center';
+    x.fillText('\u2605', 540, 810); x.restore();
     x.textAlign = 'center';
-    var y = 170;
-    x.fillStyle = '#f5ead6'; x.font = '700 34px Arial,sans-serif';
-    x.fillText('\u2605 AMMO FINDER \u2605', 540, y); y += 110;
-    x.fillStyle = '#ffffff'; x.font = '900 68px "Arial Black",Arial,sans-serif';
+    var y = 130;
+    /* kicker: letterspaced gold */
+    x.fillStyle = btG; x.font = '700 27px Arial,sans-serif';
+    try { x.letterSpacing = '10px'; } catch (e) {}
+    x.fillText('AMMO FINDER', 540, y);
+    try { x.letterSpacing = '0px'; } catch (e) {}
+    y += 36;
+    x.strokeStyle = 'rgba(201,162,39,0.5)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(390, y); x.lineTo(690, y); x.stroke();
+    y += 78;
+    /* headline: editorial serif */
+    x.fillStyle = btC; x.font = '900 62px Georgia,"Times New Roman",serif';
     var lines = posterWrap(x, p.headline || 'UNTITLED', 910);
-    for (var i = 0; i < Math.min(lines.length, 4); i++) { x.fillText(lines[i], 540, y); y += 84; }
-    y += 30;
-    x.fillStyle = '#f5ead6'; x.font = '700 40px Arial,sans-serif';
+    for (var i = 0; i < Math.min(lines.length, 4); i++) { x.fillText(lines[i], 540, y); y += 76; }
+    y += 10;
+    /* red diamond rule */
+    x.strokeStyle = btR; x.lineWidth = 2;
+    x.beginPath(); x.moveTo(350, y); x.lineTo(514, y); x.stroke();
+    x.beginPath(); x.moveTo(566, y); x.lineTo(730, y); x.stroke();
+    x.save(); x.translate(540, y); x.rotate(Math.PI / 4);
+    x.fillStyle = btR; x.fillRect(-9, -9, 18, 18); x.restore();
+    y += 64;
+    x.fillStyle = btM; x.font = 'italic 400 38px Georgia,serif';
     var byline = p.outlet + (p.date ? ', ' + p.date : '');
     var bl = posterWrap(x, byline, 910);
-    for (var b = 0; b < Math.min(bl.length, 2); b++) { x.fillText(bl[b], 540, y); y += 54; }
-    y += 24;
-    x.fillStyle = '#c9bfa8'; x.font = '400 32px Arial,sans-serif';
+    for (var b = 0; b < Math.min(bl.length, 2); b++) { x.fillText(bl[b], 540, y); y += 52; }
+    y += 20;
+    /* source citation: hairline box with the real outlet */
+    x.font = '700 24px Arial,sans-serif';
+    try { x.letterSpacing = '4px'; } catch (e) {}
+    var srcT = 'SOURCE \u2014 ' + String(p.outlet || 'UNKNOWN OUTLET').toUpperCase().slice(0, 34);
+    var sw = Math.min(x.measureText(srcT).width + 90, 920);
+    x.strokeStyle = 'rgba(242,236,220,0.35)'; x.lineWidth = 1.5;
+    x.strokeRect(540 - sw / 2, y, sw, 54);
+    x.fillStyle = btC;
+    x.fillText(srcT, 540, y + 37);
+    try { x.letterSpacing = '0px'; } catch (e) {}
+    y += 96;
+    x.fillStyle = btF; x.font = '400 30px Arial,sans-serif';
     var ul = posterWrap(x, p.url || '', 910);
-    for (var u = 0; u < Math.min(ul.length, 3); u++) { x.fillText(ul[u], 540, y); y += 44; }
-    /* share-image CTA standard: every share image carries JOIN THE FIGHT.
-       above/below MTCSTW.COM. */
-    x.fillStyle = '#c1121f'; x.font = '900 46px "Arial Black",Arial,sans-serif';
-    x.fillText('MTCSTW.COM', 540, 1350 - 168);
-    x.fillStyle = '#c1121f'; x.font = '900 44px "Arial Black",Arial,sans-serif';
-    x.fillText('JOIN THE FIGHT.', 540, 1350 - 108);
+    for (var u = 0; u < Math.min(ul.length, 3); u++) { x.fillText(ul[u], 540, y); y += 42; }
+    /* ---- butter footer: CTA standard ---- */
+    var fy = 1350 - 215;
+    x.strokeStyle = 'rgba(201,162,39,0.45)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(120, fy); x.lineTo(960, fy); x.stroke();
+    fy += 58;
+    x.font = '900 44px Arial,sans-serif'; x.fillStyle = btC;
+    try { x.letterSpacing = '8px'; } catch (e) {}
+    var btCta = 'JOIN THE FIGHT';
+    var btCtaW = x.measureText(btCta).width;
+    x.fillText(btCta, 540, fy);
+    x.fillStyle = btR;
+    x.fillText('.', 540 + btCtaW / 2 - 4, fy);
+    try { x.letterSpacing = '0px'; } catch (e) {}
+    fy += 52;
+    x.fillStyle = btR; x.font = '900 32px Arial,sans-serif';
+    try { x.letterSpacing = '10px'; } catch (e) {}
+    x.fillText('MTCSTW.COM', 540, fy);
+    try { x.letterSpacing = '0px'; } catch (e) {}
+    fy += 42;
+    x.fillStyle = btF; x.font = '400 24px Arial,sans-serif';
+    try { x.fillText(new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase(), 540, fy); } catch (e) {}
+    var btBar2 = x.createLinearGradient(0, 1340, 0, 1350);
+    btBar2.addColorStop(0, btRD); btBar2.addColorStop(1, btR);
+    x.fillStyle = btBar2; x.fillRect(0, 1340, 1080, 10);
     return cv;
   }
   function makePoster(i, btn) {
@@ -4701,7 +4760,7 @@ function renderThisWeek(){
       if(ev.ts>=now-3600000&&ev.ts<=cutoff) items.push(ev);
     }
     if(!items.length) return '';
-    var h='<div class="x-pane"><h4>This week <a href="/events#pf-mastercal" style="font:bold 10px monospace;color:#c1121f;margin-left:8px;">FULL CALENDAR &rarr;</a></h4>';
+    var h='<div class="x-pane"><h4>This week <a href="/events#pf-mastercal" style="font:bold 10px monospace;color:#e5383b;margin-left:8px;">FULL CALENDAR &rarr;</a></h4>';
     for(var j=0;j<items.length;j++){
       var e2=items[j];
       var u2=String(e2.url||'/events');
@@ -4710,7 +4769,7 @@ function renderThisWeek(){
       if(!/^(https?:\\/\\/|\\/)/i.test(u2)) u2='/events';
       h+='<div class="cp-mission"><div class="cp-mtext">'+esc(e2.title)+
         '<br><span style="font-size:11px;color:#a89e88;">'+esc(e2.date_label)+'</span></div>'+
-        '<div class="cp-mxp"><a href="'+esc(u2)+'" style="color:#c1121f;font-weight:800;">GO &rarr;</a></div></div>';
+        '<div class="cp-mxp"><a href="'+esc(u2)+'" style="color:#e5383b;font-weight:800;">GO &rarr;</a></div></div>';
     }
     return h+'</div>';
   }catch(e){ return ''; }
@@ -5040,25 +5099,87 @@ function erPaintMilestone(){
   try{
     var W=1080,H=1350,cv=document.createElement("canvas"); cv.width=W; cv.height=H;
     var x=cv.getContext("2d"); if(!x){ toast("Canvas unavailable."); return; }
-    x.fillStyle="#0d0d0d"; x.fillRect(0,0,W,H);
-    x.strokeStyle="#c1121f"; x.lineWidth=18; x.strokeRect(16,16,W-32,H-32);
-    x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(52,52,W-104,H-104);
+    /* ---- butter: editorial kit (factgen standard) ---- */
+    var btR="#c1121f", btRD="#7d0b16", btC="#f2ecdc", btG="#c9a227",
+        btM="#a89a7d", btF="#6f6350";
+    x.fillStyle="#0e0d0c"; x.fillRect(0,0,W,H);
+    x.save(); x.globalAlpha=0.032; x.strokeStyle="#ffffff"; x.lineWidth=1;
+    for(var btD=-H; btD<W+H; btD+=26){
+      x.beginPath(); x.moveTo(btD,0); x.lineTo(btD+H,H); x.stroke();
+    }
+    x.restore();
+    var btVg=x.createRadialGradient(W/2,H*0.40,H*0.16,W/2,H*0.50,H*0.85);
+    btVg.addColorStop(0,"rgba(0,0,0,0)"); btVg.addColorStop(1,"rgba(0,0,0,0.55)");
+    x.fillStyle=btVg; x.fillRect(0,0,W,H);
+    var btBar=x.createLinearGradient(0,0,0,10);
+    btBar.addColorStop(0,btR); btBar.addColorStop(1,btRD);
+    x.fillStyle=btBar; x.fillRect(0,0,W,10);
+    x.save(); x.globalAlpha=0.05; x.fillStyle=btC;
+    x.font="900 620px Arial,sans-serif"; x.textAlign="center";
+    x.fillText("★",W/2,H*0.60); x.restore();
     x.textAlign="center";
-    var y=180;
-    x.fillStyle="#f5ead6"; x.font="700 34px Arial,sans-serif";
-    x.fillText("\u2605 THE PROPAGANDA FACTORY \u2605",W/2,y); y+=120;
-    x.fillStyle="#e8b64c"; x.font="900 110px \\"Arial Black\\",Arial,sans-serif";
-    x.fillText(ms.toLocaleString()+"+",W/2,y); y+=120;
-    x.fillStyle="#f5ead6"; x.font="900 56px \\"Arial Black\\",Arial,sans-serif";
-    x.fillText("TIPS AND COUNTING",W/2,y); y+=100;
-    x.fillStyle="#c9bfa8"; x.font="400 38px Arial,sans-serif";
-    x.fillText(n.toLocaleString()+" creators getting funded.",W/2,y); y+=70;
+    var y=170;
+    /* kicker: letterspaced gold */
+    x.fillStyle=btG; x.font="700 27px Arial,sans-serif";
+    try{ x.letterSpacing="10px"; }catch(e){}
+    x.fillText("THE PROPAGANDA FACTORY",W/2,y);
+    try{ x.letterSpacing="0px"; }catch(e2){}
+    y+=36;
+    x.strokeStyle="rgba(201,162,39,0.5)"; x.lineWidth=1;
+    x.beginPath(); x.moveTo(W/2-150,y); x.lineTo(W/2+150,y); x.stroke();
+    y+=100;
+    /* the figure: monumental gold gradient, drop shadow */
+    x.font='900 120px Georgia,"Times New Roman",serif';
+    var btFig=ms.toLocaleString()+"+";
+    x.fillStyle="rgba(0,0,0,0.55)";
+    x.fillText(btFig,W/2+6,y+8);
+    var btGg=x.createLinearGradient(0,y-120,0,y);
+    btGg.addColorStop(0,"#f0d060"); btGg.addColorStop(1,"#8a6d1c");
+    x.fillStyle=btGg;
+    x.fillText(btFig,W/2,y); y+=110;
+    x.fillStyle=btC; x.font='900 58px Georgia,"Times New Roman",serif';
+    try{ x.letterSpacing="4px"; }catch(e3){}
+    x.fillText("TIPS AND COUNTING",W/2,y);
+    try{ x.letterSpacing="0px"; }catch(e4){}
+    y+=100;
+    /* red diamond rule */
+    x.strokeStyle=btR; x.lineWidth=2;
+    x.beginPath(); x.moveTo(W/2-190,y); x.lineTo(W/2-26,y); x.stroke();
+    x.beginPath(); x.moveTo(W/2+26,y); x.lineTo(W/2+190,y); x.stroke();
+    x.save(); x.translate(W/2,y); x.rotate(Math.PI/4);
+    x.fillStyle=btR; x.fillRect(-9,-9,18,18); x.restore();
+    y+=84;
+    x.fillStyle=btM; x.font='italic 400 38px Georgia,"Times New Roman",serif';
+    x.fillText(n.toLocaleString()+" creators getting funded.",W/2,y); y+=64;
     x.fillText("The machine funds its own.",W/2,y);
-    /* Footer: MTCSTW.COM + JOIN THE FIGHT. (red, bold) — the share-image CTA standard. */
-    x.fillStyle="#c1121f"; x.font="900 48px \\"Arial Black\\",Arial,sans-serif";
-    x.fillText("MTCSTW.COM",W/2,H-168);
-    x.font="900 44px \\"Arial Black\\",Arial,sans-serif";
-    x.fillText("JOIN THE FIGHT.",W/2,H-108);
+    /* source citation: the funding ledger */
+    x.fillStyle=btF; x.font="400 24px Arial,sans-serif";
+    try{ x.letterSpacing="2px"; }catch(e5){}
+    x.fillText("SOURCE — THE PROPAGANDA FACTORY FUNDING LEDGER",W/2,H-250);
+    try{ x.letterSpacing="0px"; }catch(e6){}
+    /* ---- butter footer: CTA standard ---- */
+    var fy=H-215;
+    x.strokeStyle="rgba(201,162,39,0.45)"; x.lineWidth=1;
+    x.beginPath(); x.moveTo(120,fy); x.lineTo(W-120,fy); x.stroke();
+    fy+=58;
+    x.font="900 44px Arial,sans-serif"; x.fillStyle=btC;
+    try{ x.letterSpacing="8px"; }catch(e7){}
+    var btCta="JOIN THE FIGHT";
+    var btCtaW=x.measureText(btCta).width;
+    x.fillText(btCta,W/2,fy);
+    x.fillStyle=btR; x.fillText(".",W/2+btCtaW/2-4,fy);
+    try{ x.letterSpacing="0px"; }catch(e8){}
+    fy+=52;
+    x.fillStyle=btR; x.font="900 32px Arial,sans-serif";
+    try{ x.letterSpacing="10px"; }catch(e9){}
+    x.fillText("MTCSTW.COM",W/2,fy);
+    try{ x.letterSpacing="0px"; }catch(e10){}
+    fy+=42;
+    x.fillStyle=btF; x.font="400 24px Arial,sans-serif";
+    try{ x.fillText(new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}).toUpperCase(),W/2,fy); }catch(e11){}
+    var btBar2=x.createLinearGradient(0,H-10,0,H);
+    btBar2.addColorStop(0,btRD); btBar2.addColorStop(1,btR);
+    x.fillStyle=btBar2; x.fillRect(0,H-10,W,10);
     if(window.PFShare&&PFShare.shareImage) PFShare.shareImage(cv,"pfn-funding-milestone.png","Creators getting funded","funding");
     else toast("Share engine still loading.");
   }catch(e){ toast("Poster failed — try again."); }
@@ -6362,7 +6483,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
 <div class="fe-block pf-override-block" id="pf-factgen">
 <style>
 #pf-factgen{max-width:720px;margin:2rem auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:'Helvetica Neue',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;}
-#pf-factgen .fg-kicker{font-size:0.8rem;letter-spacing:0.28em;color:#c1121f;font-weight:900;text-align:center;}
+#pf-factgen .fg-kicker{font-size:0.8rem;letter-spacing:0.28em;color:#e5383b;font-weight:900;text-align:center;}
 #pf-factgen h2{font-size:1.9rem;font-weight:900;letter-spacing:0.08em;color:#f5f0e1;text-align:center;margin:0.4rem 0 0.2rem;}
 #pf-factgen .fg-sub{font-size:0.95rem;color:#b8ab8e;text-align:center;margin-bottom:1.2rem;}
 #pf-factgen .fg-row{display:flex;gap:0.6rem;margin-bottom:0.8rem;}
@@ -6981,7 +7102,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
     var x = cv.getContext('2d');
     if (!x) return null;
     /* ground */
-    x.fillStyle = '#0a0a0a'; x.fillRect(0, 0, W, H);
+    x.fillStyle = '#0e0d0c'; x.fillRect(0, 0, W, H);
     /* photo background, darkened so the ink stays readable */
     if (photo) {
       try {
@@ -6992,34 +7113,57 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
         x.globalAlpha = 1;
       } catch (e) {}
     }
-    /* red top rule — the brand's unit of thought */
-    x.fillStyle = '#c1121f'; x.fillRect(0, 0, W, 26);
-    x.fillStyle = '#f5ead6'; x.textAlign = 'center';
-    /* kicker */
+    /* ---- butter: pinstripe + vignette over the photo ---- */
+    x.save(); x.globalAlpha = 0.032; x.strokeStyle = '#ffffff'; x.lineWidth = 1;
+    for (var btD = -H; btD < W + H; btD += 26) {
+      x.beginPath(); x.moveTo(btD, 0); x.lineTo(btD + H, H); x.stroke();
+    }
+    x.restore();
+    var btVg = x.createRadialGradient(W / 2, H * 0.40, H * 0.16, W / 2, H * 0.50, H * 0.85);
+    btVg.addColorStop(0, 'rgba(0,0,0,0)'); btVg.addColorStop(1, 'rgba(0,0,0,0.55)');
+    x.fillStyle = btVg; x.fillRect(0, 0, W, H);
+    /* masthead bar: red gradient — the brand's unit of thought */
+    var btBar = x.createLinearGradient(0, 0, 0, 26);
+    btBar.addColorStop(0, '#c1121f'); btBar.addColorStop(1, '#7d0b16');
+    x.fillStyle = btBar; x.fillRect(0, 0, W, 26);
+    x.fillStyle = '#f2ecdc'; x.textAlign = 'center';
+    /* kicker: letterspaced gold */
     var val = function (k) { return String(values[k] == null ? '' : values[k]).trim(); };
-    x.font = '800 44px Arial, sans-serif';
-    x.fillStyle = '#c1121f';
+    x.font = '800 40px Arial, sans-serif';
+    x.fillStyle = '#c9a227';
+    try { x.letterSpacing = '6px'; } catch (e2) {}
     wrap(x, val('kicker') || kit.slots[0].def, W / 2, 120, W - 160, 52);
-    /* headline — the dominant figure */
-    x.fillStyle = '#f5ead6';
-    x.font = '900 118px "Arial Black", Arial, sans-serif';
+    try { x.letterSpacing = '0px'; } catch (e3) {}
+    /* headline — the dominant figure: monumental serif */
+    x.fillStyle = '#f2ecdc';
     var size = fitHead(x, val('headline') || kit.slots[1].def, W - 140, 300, 118);
-    x.font = '900 ' + size + 'px "Arial Black", Arial, sans-serif';
+    x.font = '900 ' + size + 'px Georgia,"Times New Roman",serif';
     wrap(x, val('headline') || kit.slots[1].def, W / 2, 300, W - 140, size * 1.12);
-    /* remaining slots as body lines */
-    x.font = '700 44px Arial, sans-serif';
+    /* remaining slots as body lines: quiet serif */
+    x.font = '400 42px Georgia,"Times New Roman",serif';
+    x.fillStyle = '#a89a7d';
     var y = 660;
     for (var i = 2; i < kit.slots.length; i++) {
       y = wrap(x, val(kit.slots[i].key) || kit.slots[i].def, W / 2, y, W - 160, 58) + 56;
-      if (y > 1060) break;
+      if (y > 1040) break;
     }
-    /* share-image CTA standard: JOIN THE FIGHT. (red, bold) + MTCSTW.COM */
-    x.fillStyle = '#c1121f';
-    x.font = '900 52px Arial, sans-serif';
-    x.fillText('JOIN THE FIGHT.', W / 2, 1170);
-    x.fillStyle = '#f5ead6';
-    x.font = '800 56px Arial, sans-serif';
-    x.fillText('MTCSTW.COM', W / 2, 1240);
+    /* ---- butter footer: gold hairline + CTA standard ---- */
+    x.strokeStyle = 'rgba(201,162,39,0.45)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(120, 1100); x.lineTo(W - 120, 1100); x.stroke();
+    x.fillStyle = '#f2ecdc'; x.font = '900 44px Arial,sans-serif';
+    try { x.letterSpacing = '8px'; } catch (e4) {}
+    var btCta = 'JOIN THE FIGHT';
+    var btCtaW = x.measureText(btCta).width;
+    x.fillText(btCta, W / 2, 1158);
+    x.fillStyle = '#c1121f'; x.fillText('.', W / 2 + btCtaW / 2 - 4, 1158);
+    try { x.letterSpacing = '0px'; } catch (e5) {}
+    x.fillStyle = '#c1121f'; x.font = '900 32px Arial,sans-serif';
+    try { x.letterSpacing = '10px'; } catch (e6) {}
+    x.fillText('MTCSTW.COM', W / 2, 1212);
+    try { x.letterSpacing = '0px'; } catch (e7) {}
+    var btBar2 = x.createLinearGradient(0, H - 10, 0, H);
+    btBar2.addColorStop(0, '#7d0b16'); btBar2.addColorStop(1, '#c1121f');
+    x.fillStyle = btBar2; x.fillRect(0, H - 10, W, 10);
     return cv;
   }
   function wrap(x, text, cx, y, maxW, lh) {
@@ -7035,7 +7179,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
   function fitHead(x, text, maxW, maxSize, minSize) {
     var s = maxSize;
     while (s > minSize) {
-      x.font = '900 ' + s + 'px "Arial Black", Arial, sans-serif';
+      x.font = '900 ' + s + 'px Georgia,"Times New Roman",serif';
       if (x.measureText(text).width <= maxW) return s;
       s -= 6;
     }
@@ -7049,7 +7193,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
     var css =
       '.pf-press{font-family:Arial,sans-serif;color:#f5ead6;max-width:720px;margin:0 auto;padding:0 12px 40px}' +
       '.pf-press-fight{margin:26px 0}' +
-      '.pf-press-fight-k{font-size:12px;letter-spacing:5px;color:#c1121f;font-weight:800;margin:0 0 4px}' +
+      '.pf-press-fight-k{font-size:12px;letter-spacing:5px;color:#e5383b;font-weight:800;margin:0 0 4px}' +
       '.pf-press-fight-d{font-size:13px;color:#8a8a8a;margin:0 0 12px;line-height:1.5}' +
       '.pf-press-kits{display:grid;grid-template-columns:1fr 1fr;gap:10px}' +
       '.pf-press-kit{background:#0a0a0a;border:2px solid #2a2a2a;border-top:4px solid #c1121f;padding:16px 12px;text-align:center;min-height:44px}' +
@@ -7057,7 +7201,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
       '.pf-press-kit.locked{opacity:.55;border-top-color:#2a2a2a}' +
       '.pf-press-kit .lockline{font-size:11px;color:#8a8a8a;margin-top:8px;line-height:1.5}' +
       '.pf-press-path{margin:18px 0;border:1px solid #2a2a2a;background:#0a0a0a;padding:14px}' +
-      '.pf-press-path-k{font-size:11px;letter-spacing:4px;color:#c1121f;font-weight:800;margin:0 0 10px}' +
+      '.pf-press-path-k{font-size:11px;letter-spacing:4px;color:#e5383b;font-weight:800;margin:0 0 10px}' +
       '.pf-press-path-row{display:flex;gap:14px;align-items:flex-start}' +
       '.pf-press-step{font-size:12px;color:#8a8a8a;line-height:1.45;margin:0 0 8px}' +
       '.pf-press-step.on{color:#f5ead6}' +

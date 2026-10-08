@@ -1,6 +1,6 @@
 /* core/32-search.js  |  PF v1.4.3 | ONE SEARCH ACROSS EVERYTHING (PLAY 8, CEO directive 2026-10-06 ~14:37 CDT).
-   A unified pillar-aware command bar. A search trigger mounts INSIDE the HUD
-   bar (#pf-hud-bar, extends core/30-hud.js — never rebuilds it); tapping it
+   A unified pillar-aware command bar. The search trigger is the header's own
+   magnifier button (#pf-topbar-search, rendered by the shell); tapping it
    (or "/" or Cmd+K) opens the command palette overlay with the search box.
    Esc closes.
    ONE INDEX, FOUR PILLARS: CPI/price items, creator roster (Sick Left
@@ -19,7 +19,7 @@
    no backend writes, no XP minted or promised, no persistence at all
    (device-local only — nothing leaves the browser, nothing is stored).
    DATA never touches identity: reads are anonymous (credentials:'omit').
-   Mount: trigger inside #pf-hud-bar; palette overlay on document.body.
+   Mount: header button #pf-topbar-search; palette overlay on document.body.
    Silent no-op when the HUD host is absent (same contract as 31-pillars.js).
    KILL: ?pf_off=search  or  localStorage pf_disabled_v1='["search"]' */
 (function () {
@@ -51,12 +51,10 @@
     '--pf-s-bg:var(--pf-hud-bg,rgba(8,8,8,.94));--pf-s-border:var(--pf-hud-border,#2a2a2a);',
     '--pf-s-accent:var(--pf-hud-accent,#c1121f);--pf-s-text:var(--pf-hud-text,#f5ead6);',
     '--pf-s-dim:var(--pf-hud-dim,#a89e88);--pf-s-gold:var(--pf-hud-gold,#e8b33c);}',
-    /* search trigger inside the HUD bar: looks like a slim search box */
-    '#pf-search-btn{flex:0 0 auto;display:flex;align-items:center;gap:6px;background:#101010;',
-    'border:1px solid var(--pf-s-border);border-radius:20px;color:var(--pf-s-dim);',
-    'font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;',
-    'padding:7px 12px;cursor:pointer;}',
-    '#pf-search-btn:active{transform:scale(.96);border-color:var(--pf-s-accent);color:var(--pf-s-text);}',
+    /* fallback button (only when the shell predates the header button) */
+    '#pf-search-fallback{position:fixed;right:14px;bottom:120px;z-index:9990;width:48px;height:48px;',
+    'border-radius:50%;background:#101010;border:1px solid var(--pf-s-border);color:var(--pf-s-text);',
+    'font-size:20px;cursor:pointer;}',
     /* command palette overlay */
     '#pf-search{position:fixed;inset:0;z-index:100001;background:rgba(0,0,0,.72);',
     'display:flex;align-items:flex-start;justify-content:center;padding:12vh 14px 14px;',
@@ -571,53 +569,63 @@
     } catch (e) {}
   }
 
-  /* ---- mount the trigger inside the HUD bar ---- */
-  function mountBtn(bar) {
+  /* ---- mount the trigger: the header's own search button ----
+     HEADER REDESIGN (2026-10-08): one magnifying-glass button in the sticky
+     header (#pf-topbar-search, rendered by the shell). No more SEARCH pill
+     in a second bar. Falls back to a floating button on pages whose shell
+     predates the header (defensive; all v2 shells ship the button). */
+  function mountHeaderBtn() {
     try {
-      if (!bar || document.getElementById('pf-search-btn')) return true;
-      var caret = document.getElementById('pf-hud-caret');
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.id = 'pf-search-btn';
-      b.setAttribute('aria-label', 'Search the war room');
-      b.innerHTML = '&#8981; <span>SEARCH</span>';
+      var b = document.getElementById('pf-topbar-search');
+      if (!b) return false;
+      if (b.dataset.pfSearchWired) return true;
+      b.dataset.pfSearchWired = '1';
       b.addEventListener('click', function (ev) {
-        try { ev.stopPropagation(); } catch (e) {} /* never toggles the strip */
+        try { ev.stopPropagation(); } catch (e) {}
         if (isOpen()) close(); else open();
       });
-      if (caret && caret.parentNode === bar) bar.insertBefore(b, caret);
-      else bar.appendChild(b);
+      return true;
+    } catch (e) { return false; }
+  }
+  function mountFallbackBtn() {
+    try {
+      if (document.getElementById('pf-search-fallback')) return true;
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.id = 'pf-search-fallback';
+      b.setAttribute('aria-label', 'Search the site');
+      b.innerHTML = '&#8981;';
+      b.addEventListener('click', function () { if (isOpen()) close(); else open(); });
+      document.body.appendChild(b);
       return true;
     } catch (e) { return false; }
   }
   function boot() {
     injectCss();
-    var bar = null;
-    try { bar = document.getElementById('pf-hud-bar'); } catch (e) {}
-    if (bar && mountBtn(bar)) { wireKeys(); return; }
+    if (mountHeaderBtn()) { wireKeys(); return; }
     var done = false, tries = 0;
     function found() {
       if (done) return; done = true;
       try { obs.disconnect(); } catch (e) {}
-      var b2 = null;
-      try { b2 = document.getElementById('pf-hud-bar'); } catch (e2) {}
-      if (b2 && mountBtn(b2)) wireKeys();
+      if (mountHeaderBtn()) { wireKeys(); return; }
+      mountFallbackBtn(); wireKeys();
     }
     var obs = null;
     try {
       obs = new MutationObserver(function () {
-        try { if (document.getElementById('pf-hud-bar')) found(); } catch (e) {}
+        try { if (document.getElementById('pf-topbar-search')) found(); } catch (e) {}
       });
       if (document.body) obs.observe(document.body, { childList: true, subtree: true });
     } catch (e) {}
     var iv = setInterval(function () {
       tries++;
-      var b3 = null;
-      try { b3 = document.getElementById('pf-hud-bar'); } catch (e) {}
-      if (b3) { try { clearInterval(iv); } catch (e2) {} found(); return; }
-      if (tries > 45) { /* ~90s hard stop: silent no-op, same as 31-pillars */
+      var b = null;
+      try { b = document.getElementById('pf-topbar-search'); } catch (e) {}
+      if (b) { try { clearInterval(iv); } catch (e2) {} found(); return; }
+      if (tries > 45) { /* ~90s hard stop: fallback button, silent */
         try { clearInterval(iv); } catch (e3) {}
         try { if (obs) obs.disconnect(); } catch (e4) {}
+        if (!done) { done = true; mountFallbackBtn(); wireKeys(); }
       }
     }, 2000);
   }

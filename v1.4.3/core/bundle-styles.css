@@ -1418,7 +1418,7 @@ button.pf-chip:hover,a.pf-chip:hover{border-color:var(--pf-red);color:#fff;}
   transition:color .18s var(--pf-ease);}
 .pf-op-no:hover{color:var(--pf-cream);}
 .pf-op-no-wrap{margin-top:.8rem;}
-.pf-op-checklist{background:#0b0b0c;border:3px solid var(--pf-red);max-width:680px;
+.pf-op-checklist{background:#0b0b0c;border:3px solid var(--pf-red);max-width:1080px;
   width:calc(100% - 2rem);margin:1rem auto;padding:1.1rem 1.25rem;box-sizing:border-box;
   font-family:'Helvetica Neue',Arial,sans-serif;animation:pfFadeUp .4s var(--pf-ease);}
 .pf-op-cl-headrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem;}

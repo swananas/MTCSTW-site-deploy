@@ -633,8 +633,8 @@
      Hard stop at ~90s: silent no-op when the host is absent. */
   function boot() {
     injectCss();
-    var hudEl = null;
-    try { hudEl = document.getElementById('pf-hud'); } catch (e) {}
+    var hudEl = null; /* HEADER REDESIGN 2026-10-08: strip now lives in #pf-topbar-panel */
+    try { hudEl = document.getElementById('pf-hud-strip'); } catch (e) {}
     if (hudEl && mountRow(hudEl)) { maybeFirstRun(); return; }
     var done = false, tries = 0;
     function found() {
@@ -642,13 +642,13 @@
       try { obs.disconnect(); } catch (e) {}
       /* The adventure-path chooser rides the HUD host: no host, no chooser —
          silent no-op per the module contract. */
-      if (mountRow(document.getElementById('pf-hud'))) maybeFirstRun();
+      if (mountRow(document.getElementById('pf-hud-strip'))) maybeFirstRun();
     }
     var obs = null;
     try {
       obs = new MutationObserver(function () {
         try {
-          if (document.getElementById('pf-hud')) found();
+          if (document.getElementById('pf-hud-strip')) found();
         } catch (e) {}
       });
       if (document.body) obs.observe(document.body, { childList: true, subtree: true });
@@ -656,7 +656,7 @@
     var iv = setInterval(function () {
       tries++;
       try {
-        if (document.getElementById('pf-hud')) { clearInterval(iv); found(); return; }
+        if (document.getElementById('pf-hud-strip')) { clearInterval(iv); found(); return; }
       } catch (e2) {}
       if (tries >= 180) { /* ~90s: host absent — silent no-op */
         clearInterval(iv);

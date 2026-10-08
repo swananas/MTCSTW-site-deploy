@@ -250,6 +250,12 @@
     '.pf-kc-btn:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(193,18,31,.45),0 4px 12px rgba(0,0,0,.5)}',
     '.pf-kc-btn:active{transform:scale(.96)}',
     '.pf-kc-btn:focus-visible,.pf-kc-chip:focus-visible{outline:2px solid #e8b33c;outline-offset:2px}',
+    /* ZUCK LENS (fe/homepage-ux-zuck, 2026-10-08): one-prompt onboarding —
+       on the homepage the floating launcher waits until the visitor scrolls
+       past the hero (or has a callsign), so nothing competes with the claim
+       CTA at first paint. */
+    '.pf-kc-btn.pf-kc-wait{opacity:0;pointer-events:none;transform:translateY(24px)}',
+    '@media(prefers-reduced-motion:reduce){.pf-kc-btn.pf-kc-wait{transform:none}}',
     '.pf-kc-btn .dot{width:9px;height:9px;border-radius:50%;background:#fff;animation:pfkc-pulse 2s infinite}',
     '@keyframes pfkc-pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(255,255,255,.5)}50%{opacity:.4;box-shadow:0 0 0 6px rgba(255,255,255,0)}}',
     /* Panel — layered war-room comms channel. */
@@ -572,6 +578,30 @@
     btn.className = 'pf-kc-btn';
     btn.setAttribute('aria-label', 'Ask Karl');
     btn.innerHTML = '<span class="dot"></span>ASK KARL';
+    /* ZUCK LENS (fe/homepage-ux-zuck, 2026-10-08): one-prompt onboarding —
+       on the homepage, first-time visitors see ONE action at first paint
+       (the claim CTA). The launcher waits until they scroll past the hero
+       or have a callsign. Kill: ?pf_off=karl-defer (shows immediately). */
+    try {
+      var _kcDefer = !(window.PF && PF.skip && PF.skip('karl-defer'));
+      if (_kcDefer && !callsign() && document.getElementById('pf-dashboard')) {
+        btn.classList.add('pf-kc-wait');
+        var _kcRevealed = false;
+        var _kcMaybe = function () {
+          if (_kcRevealed) return;
+          try {
+            var y = window.pageYOffset || (document.documentElement && document.documentElement.scrollTop) || 0;
+            if (y > 480 || callsign()) {
+              _kcRevealed = true;
+              btn.classList.remove('pf-kc-wait');
+              window.removeEventListener('scroll', _kcMaybe);
+            }
+          } catch (e2) {}
+        };
+        window.addEventListener('scroll', _kcMaybe, { passive: true });
+        setTimeout(_kcMaybe, 5000);
+      }
+    } catch (e) {}
     panel = document.createElement('div');
     panel.className = 'pf-kc-panel';
     panel.setAttribute('role', 'dialog');

@@ -18,9 +18,12 @@
       #pf-ranks), weekly challenge status. No callsign ->
       the one-prompt claim card (ONE clear prompt, once ever — reuses the
       existing PF.requireCallsign flow, repaints in place on success).
-   1b. UD-HERO (REQ-20261006-027) — anonymous-only hero: the V3 hero markup
-      (verbatim from pages/home-v2.js heroHTML), CTA wired to the hub's
-      claim flow. Renders ONLY when no callsign. Kill: ?pf_off=ud-hero.
+   1b. UD-HERO (REQ-20261006-027; merged fe/homepage-ux-zuck 2026-10-08) —
+      anonymous-only hero: ONE card (kicker, H1, subhead, social-proof line,
+      claim CTA, identity framing "This is who you'll be here"). The old
+      WHO ARE YOU HERE? claim card is folded in — no duplicate pitch/CTA.
+      CTA wired to the hub's claim flow. Renders ONLY when no callsign.
+      Kill: ?pf_off=ud-hero.
    1c. UD-MISSIONS (REQ-20261006-027) — the full Daily Orders loop between
       IDENTITY and FEATURE GRID: today's missions + REPORT BACK + streak
       line + loot claim. Condensed extraction of games/daily-orders.js
@@ -60,7 +63,7 @@
   if (!PF || PF.skip('userdash')) { return; }
   PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-userdash">
 <div class="fe-block pf-override-block pf-silo" id="pf-userdash">
-<div id="xUserDash"><div class="ud-sk" style="height:140px"></div><div class="ud-sk" style="height:320px;margin-top:22px"></div></div>
+<div id="xUserDash"><div class="ud-sk" style="height:440px"></div><div class="ud-sk" style="height:280px;margin-top:22px"></div><div class="ud-sk" style="height:520px;margin-top:22px"></div><div class="ud-sk" style="height:240px;margin-top:22px"></div></div>
 </div>
 <script>
 (function(){
@@ -140,6 +143,18 @@ var GRID=[
  ['\\uD83D\\uDD75\\uFE0F','Follow the Money','See who funds the votes.','/follow-the-money',null],
  ['\\uD83D\\uDC65','SLR Roster','62 sick radicals.','/sick-left-radicals',null],
  ['\\uD83D\\uDED2','War Bonds Store','Fund the fight.','/store',null]];
+/* ZUCK LENS (fe/homepage-ux-zuck, 2026-10-08): the curated storefront for
+   first-time visitors. 6 cards, plain language, zero insider jargon —
+   frictionless entry. Each card carries a live stat line where the tiles
+   have one (tile-key 5th element, same tileLine() as the full grid).
+   The full 16-card grid stays for enlisted users. */
+var UGRID_ANON=[
+ ['\\uD83C\\uDFAE','Play','Six games. Zero mercy.','/arcade','orders'],
+ ['\\u26A1','Daily Missions','Three orders. Report back.','#udMissions','orders'],
+ ['\\uD83D\\uDDF3','Fan Vote','Crown this week\\u2019s propagandist.','/#pf-vote','vote'],
+ ['\\u2605','Meet the 62','The Sick Left Radicals.','/sick-left-radicals',null],
+ ['\\uD83E\\uDDEF','The Receipts','Follow the money.','/follow-the-money',null],
+ ['\\uD83C\\uDFA8','Make a Poster','Forge propaganda.','/create',null]];
 /* THE INTEL DESK — the data-products layer. Glyphs are text-mode symbols
    (never emoji) so they render in the hub's voice. */
 var INTEL=[
@@ -392,14 +407,28 @@ function linkGrid(t,cs,tl){
    "See how it works" anchors to the hub itself (#xUserDash) — the old
    homepage's #pf-brief anchor is gone with the old homepage.
    KILL: ?pf_off=ud-hero. */
-function renderHero(){
+function renderHero(tiles){
   if(PF.skip('ud-hero')) return '';
+  /* ZUCK LENS (fe/homepage-ux-zuck, 2026-10-08): ONE hero card, identity as
+     inevitable. The old WHO ARE YOU HERE? claim card is folded in here —
+     no duplicate pitch, no duplicate CTA. Framed as profile creation, not
+     signup: "This is who you'll be here." Social proof line carries the
+     network's real numbers (380K+ followers / 8M+ reach are public) plus a
+     live "N online now" when the tiles have it — FOMO, not pitch.
+     KILL: ?pf_off=ud-hero. */
+  var proof='380K+ FOLLOWERS \u00B7 8M+ NETWORK REACH \u00B7 62 CREATORS';
+  try{
+    var sc=tiles&&tiles.social;
+    if(sc&&sc.online_now!=null) proof+=' \u00B7 '+fmtNum(sc.online_now)+' ONLINE NOW';
+  }catch(e){}
   return '<div class="ud-sec"><div id="pf-hero" style="max-width:min(860px,94vw);margin:0 auto;padding:56px 20px 40px;text-align:center;box-sizing:border-box;">'
     +'<div style="font-size:12px;letter-spacing:5px;color:#c1121f;font-weight:800;margin-bottom:14px;">THE PROPAGANDA FACTORY</div>'
     +'<h1 style="font-family:&#39;Arial Black&#39;,Arial,sans-serif;font-size:clamp(2rem,8vw,3.6rem);letter-spacing:2px;color:#f5ead6;margin:0 0 14px;text-transform:uppercase;line-height:1.1;">Join the Propaganda Factory</h1>'
-    +'<p style="font-size:clamp(1rem,3.5vw,1.25rem);color:#b8ab8e;line-height:1.6;margin:0 0 26px;max-width:600px;margin-left:auto;margin-right:auto;">62 sick radicals. Real data on the billionaires. Daily missions. Enlist in 30 seconds — free forever.</p>'
+    +'<p style="font-size:clamp(1rem,3.5vw,1.25rem);color:#b8ab8e;line-height:1.6;margin:0 0 14px;max-width:600px;margin-left:auto;margin-right:auto;">62 sick radicals. Real data on the billionaires. Daily missions. Enlist in 30 seconds \u2014 free forever.</p>'
+    +'<div style="font-size:12px;letter-spacing:3px;color:#e8b33c;font-weight:800;margin:0 0 26px;">'+esc(proof)+'</div>'
     +'<a href="#" id="udHeroClaim" style="display:inline-block;min-height:44px;line-height:44px;background:#c1121f;color:#fff;font-weight:800;font-size:17px;padding:6px 38px;text-decoration:none;letter-spacing:2px;border:2px solid #fff;">CLAIM YOUR CALLSIGN &rarr;</a>'
-    +'<div style="margin-top:16px;"><a href="#xUserDash" style="color:#b8ab8e;font-size:14px;text-decoration:underline;">See how it works &darr;</a></div>'
+    +'<div style="margin-top:14px;font-size:13px;color:#a89e88;line-height:1.6;">This is who you\u2019ll be here \u2014 <b style="color:#f5ead6">one name</b>. Every game, every cell, every medal.</div>'
+    +'<div style="margin-top:12px;"><a href="#udMissions" style="color:#b8ab8e;font-size:14px;text-decoration:underline;">See how it works &darr;</a></div>'
     +'</div></div>';
 }
 /* ================= UD-MISSIONS (REQ-20261006-027) =================
@@ -688,19 +717,46 @@ function bindMissions(root,j,idn){
 }
 /* WAR ROOM — the conditional feature-grid card: only when the backend
    signals a live or scheduled event (tiles.warroom). Absent = skipped. */
-function renderFeatureGrid(t){
+function renderFeatureGrid(t,anon){
   var cards=GRID.slice();
   var wr=t&&t.warroom;
   if(wr&&(wr.live||wr.scheduled||wr.url||wr.headline)){
     cards.push(['\\uD83D\\uDEA8','WAR ROOM'+(wr.live?' \\u00B7 LIVE':''),wr.headline||'The fight is on.',wr.url||'/war-room']);
   }
+  /* ZUCK LENS (fe/homepage-ux-zuck): anonymous visitors get the curated
+     6-card storefront ("START HERE"), not the 16-card warehouse. */
+  if(anon) return linkGrid('START HERE',UGRID_ANON,t);
   return linkGrid('EVERYTHING, TWO TAPS',cards,t);
 }
 /* TODAY — the condensed info lead (CEO vision 2026-10-07): today's truth
    drop, today's missions, this week's vote, the movement right now — every
    row a one-tap action. Tiles are public; renders for everyone. */
-function renderToday(t){
+function renderToday(t,anon){
   t=t||{};
+  /* ZUCK LENS (fe/homepage-ux-zuck, 2026-10-08): anonymous visitors see the
+     party, not the schedule — 2 public rows, plain language, social
+     framing. "Morning briefing — GO →" is insider clutter to a newcomer. */
+  if(anon){
+    var ah='',av=t.vote,asc=t.social;
+    if(av&&typeof av.total==='number'){
+      ah+='<a class="ud-today" href="/#pf-vote">'
+        +'<span class="ud-tk">HAPPENING NOW \u00B7 FAN VOTE</span>'
+        +'<span class="ud-th">'+fmtNum(av.total)+' votes this week \u2014 pick the week\u2019s propagandist</span>'
+        +'<span class="ud-go">VOTE \u2192</span></a>';
+    }
+    if(asc){
+      var abits=[];
+      if(asc.online_now!=null) abits.push(fmtNum(asc.online_now)+' online now');
+      if(asc.checkins_today) abits.push(fmtNum(asc.checkins_today)+' in the fight today');
+      if(asc.active_cells) abits.push(fmtNum(asc.active_cells)+' cells active');
+      if(abits.length){
+        ah+='<div class="ud-today ud-static"><span class="ud-tk">THE MOVEMENT RIGHT NOW</span>'
+          +'<span class="ud-th">'+esc(abits.join(' \u00B7 '))+'</span></div>';
+      }
+    }
+    if(!ah) return '';
+    return sec('TODAY','<div class="ud-card ud-dense">'+ah+'</div>');
+  }
   var h='';
   var b=t.briefing,o=t.orders,v=t.vote,sc=t.social;
   if(b&&b.head){
@@ -1071,6 +1127,38 @@ function udEraseDialog(){
     }catch(e){ done(null); }
   });
 }
+/* ZUCK LENS (fe/homepage-ux-zuck, 2026-10-08): legacy-block suppression.
+   The old homepage's Squarespace-native blocks (Next Op card, Front Lines
+   bar, headline cards) still sit under the dashboard on the homepage page.
+   The definitive fix is 5 minutes in the Squarespace editor (remove the
+   blocks from the homepage page — they all live on dedicated routes).
+   Until then, this guard hides them by content fingerprint so the dashboard
+   is the single surface. Conservative: only sections that DON'T contain the
+   dashboard, only matching strong fingerprints, editor mode untouched.
+   KILL: ?pf_off=legacy-hide. */
+function suppressLegacy(){
+  if(PF.skip('legacy-hide')) return;
+  if(isEditor()) return;
+  try{
+    var dash=document.getElementById('pf-dashboard');
+    if(!dash) return;
+    var marks=['FRONT LINES','ORDERS AWAIT DEBRIEF','Liquidate the Billionaires','Liberate the Food'];
+    var els=document.querySelectorAll('section,div.sqs-block,div.page-section');
+    for(var i=0;i<els.length;i++){
+      var el=els[i];
+      if(el===dash||el.contains(dash)||dash.contains(el)) continue;
+      var txt='';
+      try{ txt=(el.innerText||'').slice(0,3000); }catch(e){}
+      for(var m=0;m<marks.length;m++){
+        if(txt.indexOf(marks[m])>=0){
+          el.style.display='none';
+          el.setAttribute('data-pf-legacy-hidden','1');
+          break;
+        }
+      }
+    }
+  }catch(e){}
+}
 function load(){
   var root=document.getElementById('xUserDash');
   if(!root) return;
@@ -1093,24 +1181,24 @@ function load(){
     var tiles=(j&&j.tiles)?j.tiles:{};
     var h='';
     var anon=!hasCallsign&&!signedIn;
-    /* REQ-20261006-027: anonymous visitors get the hero first (renders ONLY
-       when no callsign), then a slimmed dashboard teaser — the claim card,
-       the missions teaser, the feature grid + unlock line, and today's
-       public tiles. No Karl chat, no calendar: slimmed, per spec. */
-    if(anon) h+=renderHero();
-    if(anon) h+=renderIdentity(null,ms);
+    /* ZUCK LENS (fe/homepage-ux-zuck, 2026-10-08): anonymous visitors get the
+       merged hero (identity framing + social proof folded in — the old
+       WHO ARE YOU HERE? claim card is gone), the missions teaser, the
+       curated 6-card storefront + unlock line, and today's public tiles.
+       No Karl chat, no calendar: slimmed, per spec. */
+    if(anon) h+=renderHero(tiles);
     else if(!signedIn) h+=renderSignedOut();
     else h+=renderIdentity(j.identity,ms);
     /* REQ-20261006-027: ud-missions sits between IDENTITY and FEATURE GRID —
        the full Daily Orders loop for the enlisted, a teaser for the rest. */
     h+=renderMissions(j,idn);
     if(anon){
-      h+=renderFeatureGrid(tiles);
+      h+=renderFeatureGrid(tiles,true);
       h+='<div class="ud-sec"><div class="ud-meta" style="text-align:center">Claim your callsign to unlock your XP, rank, streak and medals.</div></div>';
-      h+=renderToday(tiles);
+      h+=renderToday(tiles,true);
     }else{
       /* The hub core renders for everyone — useful before enlistment too. */
-      h+=renderToday(tiles);
+      h+=renderToday(tiles,false);
       h+=renderKarl();
       h+=renderFeatureGrid(tiles);
       h+=linkGrid('THE INTEL DESK',INTEL);
@@ -1124,8 +1212,22 @@ function load(){
     try{ root._udCtx={j:j,idn:idn}; }catch(e){}
     if(!h){ root.innerHTML='<div class="ud-meta">The HQ failed to muster. <a class="ud-link" href="javascript:location.reload()">Reload</a>.</div>'; return; }
     root.innerHTML=h;
-    /* Staggered section entry: 60ms per section, fade + slight rise. */
-    try{ var _ss=root.querySelectorAll('.ud-sec'); for(var _si=0;_si<_ss.length;_si++){ _ss[_si].style.animationDelay=(60+_si*60)+'ms'; } }catch(e){}
+    /* Staggered section entry: 60ms per section, fade + slight rise.
+       ZUCK LENS (fe/homepage-ux-zuck, 2026-10-08): perceived speed is
+       speed — cap the stagger to the first 3 sections on mobile so the
+       rest paint at once instead of feeling sluggish. */
+    try{
+      var _ss=root.querySelectorAll('.ud-sec');
+      var _mob=window.matchMedia&&window.matchMedia('(max-width:700px)').matches;
+      for(var _si=0;_si<_ss.length;_si++){
+        var _d=60+_si*60;
+        if(_mob&&_si>2) _d=60;
+        _ss[_si].style.animationDelay=_d+'ms';
+      }
+    }catch(e){}
+    /* ZUCK LENS (fe/homepage-ux-zuck): hide the legacy editor blocks so
+       the dashboard is the single surface (definitive fix is the editor). */
+    suppressLegacy();
     animBars();
     bind(root,karlContext(idn,ms,j),j,idn);
   }

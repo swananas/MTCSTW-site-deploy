@@ -7104,7 +7104,7 @@ try{ render(); }catch(e){
   <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:0.8rem;line-height:1.5;">The week&rsquo;s team-board winner takes an extra <b style="color:#f5f0e1;">5%</b> of the pool.</div>
   <div id="pf-wb-buy" style="margin-bottom:1.3rem;"></div>
   <!-- share-out gaps #3: "I BACKED THE FIGHT" post-purchase share bar (runtime-wired by the scanner) -->
-  <div id="pf-wb-sharehost" style="margin-bottom:1.3rem;"><div data-pf-share="war-bonds" data-pf-share-link="/war-bonds"></div></div>
+  <div id="pf-wb-sharehost" style="margin-bottom:1.3rem;"><div data-pf-share="war-bonds" data-pf-share-link="/store"></div></div>
   <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:1.1rem;line-height:1.5;">Checkout opens the store in a new tab. War Bonds fund the fight &mdash; they grant no XP, ever.</div>
   <div style="border-top:2px solid #c1121f;margin:1.3rem 0 1rem;"></div>
   <div style="font-size:0.8rem;color:#b8ab8e;letter-spacing:0.14em;margin-bottom:0.6rem;">OR FUND MONTHLY</div>
@@ -7150,10 +7150,10 @@ try{ render(); }catch(e){
   /* WAR BOND CHECKOUT: Squarespace product URLs, one per denomination
      (products created 2026-09-26; "Unnamed Product" stray removed). */
   var WAR_BOND_URLS = {
-    "5":  "https://www.mtcstw.com/store/p/war-bond-5",
-    "10": "https://www.mtcstw.com/store/p/war-bond-10",
-    "25": "https://www.mtcstw.com/store/p/war-bond-25",
-    "50": "https://www.mtcstw.com/store/p/war-bond-50"
+    "5":  "https://www.mtcstw.com/store",
+    "10": "https://www.mtcstw.com/store",
+    "25": "https://www.mtcstw.com/store",
+    "50": "https://www.mtcstw.com/store"
   };
   /* Roster-driven: all 62 SLR members from the master database (no hardcoded list). */
   var ALL_CREATORS = [];

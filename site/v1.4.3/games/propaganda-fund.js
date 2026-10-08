@@ -75,8 +75,8 @@
 
   /* The four live War Bond products — the real checkout surface. */
   var AMOUNTS = [5, 10, 25, 50];
-  var BOND_URL = '/store/p/war-bond-';
-  var BONDS_PAGE = '/war-bonds';
+  var BOND_URL = '/store';
+  var BONDS_PAGE = '/store';
   var ENLIST_URL = '/#pf-orders'; /* Daily Orders enlistment widget */
   var CELLS_URL = '/cells';
   var MONEY_TRAIL_URL = '/follow-the-money'; /* integration-audit Next Move exit, kept */

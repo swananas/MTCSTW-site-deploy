@@ -313,10 +313,10 @@
 
   /* ---- static sources: always available, even with the backend down ---- */
   var PRODUCTS = [
-    { title: 'WAR BOND — $5', sub: '$5 · fund the fight.', url: '/store/p/war-bond-5' },
-    { title: 'WAR BOND — $10', sub: '$10 · fund the fight.', url: '/store/p/war-bond-10' },
-    { title: 'WAR BOND — $25', sub: '$25 · fund the fight.', url: '/store/p/war-bond-25' },
-    { title: 'WAR BOND — $50', sub: '$50 · fund the fight.', url: '/store/p/war-bond-50' }
+    { title: 'WAR BOND — $5', sub: '$5 · fund the fight.', url: '/store' },
+    { title: 'WAR BOND — $10', sub: '$10 · fund the fight.', url: '/store' },
+    { title: 'WAR BOND — $25', sub: '$25 · fund the fight.', url: '/store' },
+    { title: 'WAR BOND — $50', sub: '$50 · fund the fight.', url: '/store' }
   ].map(function (p) {
     return { pillar: 'spread', kicker: 'PRODUCT', title: p.title, sub: p.sub, url: p.url,
       hay: p.title + ' war bond product store buy fund fight ' + p.sub };

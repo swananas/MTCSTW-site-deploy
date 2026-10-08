@@ -48,7 +48,7 @@
       ['/arcade', '\uD83C\uDFAE', 'ARCADE', 'Six propaganda games. Play daily, earn XP.'],
       ['/cells', '\uD83C\uDFF4', 'CELLS', 'Join a cell or build your own.'],
       ['/create', '\uD83D\uDEE0\uFE0F', 'CREATE', 'Forge posters, join the content pool.'],
-      ['/bank', '\uD83D\uDCB0', 'BANK', 'War Bonds. Fund the fight.'],
+      ['/store', '\uD83D\uDCB0', 'STORE', 'War Bonds. Fund the fight.'],
       ['/economy', '\uD83D\uDCC8', 'ECONOMY', "The People's Price Index. Report prices."],
       ['/war-report', '\uD83D\uDCF0', 'WAR REPORT', 'Every Monday: what we won.'],
       ['/events', '\uD83E\uDD7E', 'EVENTS', 'Boots on the ground. RSVP, earn XP.'],

@@ -363,13 +363,17 @@ function formAttribution(){
 function banner(){
   var ref=storedRef();
   if(!ref||myCallsign()) return;
+  /* 2026-10-08 XSS fix (upset-risk hunt C): ref rides in from ?ref= (URL-
+     controlled) and clean() does not strip HTML — escape before innerHTML. */
+  var refH=String(ref).toUpperCase().replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   try{ if(localStorage.getItem(LS_DIS)==='1') return; }catch(e){}
   var d=document.createElement('div');
   d.id='pf-ref-banner';
   d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9990;background:#c1121f;color:#f5ead6;'+
     'font:bold 13px/1.4 monospace;letter-spacing:1px;text-align:center;padding:10px 44px 10px 12px;'+
     'box-shadow:0 2px 18px rgba(0,0,0,.5);';
-  d.innerHTML='&#9873; SGT '+ref.toUpperCase()+' RECRUITED YOU &mdash; '+
+  d.innerHTML='&#9873; SGT '+refH+' RECRUITED YOU &mdash; '+
     '<a href="#" id="pf-ref-go" style="color:#fff;text-decoration:underline;">ENLIST TO JOIN THE FIGHT</a>';
   var x=document.createElement('span');
   x.textContent='\u00d7'; x.style.cssText='position:absolute;right:12px;top:6px;font-size:20px;cursor:pointer;color:#f5ead6;';

@@ -669,7 +669,8 @@
   }
   function chamberLine(d) {
     var ch = String(d.chamber || '').toLowerCase();
-    ch = ch === 'house' ? 'U.S. HOUSE' : (ch === 'senate' ? 'U.S. SENATE' : String(d.chamber || '—'));
+    ch = (ch === 'house' || ch === 'rep') ? 'U.S. HOUSE'
+      : ((ch === 'senate' || ch === 'sen') ? 'U.S. SENATE' : String(d.chamber || '—'));
     return (ch + ' \u00b7 ' + String(d.party || '—') + ' \u00b7 ' + String(d.state || '—')).toUpperCase();
   }
   function fullDate(ws) {

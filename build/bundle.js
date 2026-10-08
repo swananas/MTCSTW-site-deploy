@@ -68,7 +68,8 @@ var SECTIONS = {
     'war-bonds.js',
     'campaign.js',
     'alerts.js',
-    'fan-vote.js'
+    'fan-vote.js',
+    'fact-generator.js'
   ],
   /* SLIM DEDICATED-PAGE BUNDLES (2026-10-04, M1 dead-weight fix): /arcade,
      /cells and /create used to fetch the full bundle-home (~83KB gz) to get

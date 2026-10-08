@@ -1,1 +1,5617 @@
-!function(){"use strict";var e=window.PF;e&&!e.skip("spotlight")&&e.holder().insertAdjacentHTML("beforeend","<template id=\"pf-ov-spotlight\">\n<div class=\"fe-block pf-override-block\" id=\"pf-spotlight\">\n<h2>TODAY&rsquo;S GAME</h2>\n<div class=\"c-tag\">One game a day. The other two wait in the arcade.</div>\n<div id=\"pf-spot-slot\"><div class=\"c-load\">Loading today&rsquo;s game&hellip;</div></div>\n<div id=\"pf-spot-links\" class=\"x-note\"></div>\n</div>\n<script>\n(function(){\n'use strict';\nvar GAMES=[\n  {key:'creator-guess',tpl:'pf-ov-guess',name:'Guess the Creator'},\n  {key:'daily-interrogation',tpl:'pf-ov-interrogation',name:'The Daily Interrogation'},\n  {key:'billionaire-supervillain',tpl:'pf-ov-billionaire',name:'Billionaire or Supervillain?'}\n];\nfunction chiNow(){ try{ return (window.PF&&PF.chiNow)?PF.chiNow():new Date(); }catch(e){ return new Date(); } }\n/* Chicago day-of-year: Jan 1 = 0. */\nfunction dayOfYear(d){\n  var jan1=new Date(d.getFullYear(),0,1);\n  var today=new Date(d.getFullYear(),d.getMonth(),d.getDate());\n  return Math.max(0,Math.round((today-jan1)/86400000));\n}\n/* Daily pick; skips games the user killed (?pf_off= / localStorage). */\nfunction pick(){\n  var doy=dayOfYear(chiNow());\n  for(var i=0;i<GAMES.length;i++){\n    var g=GAMES[(doy+i)%GAMES.length];\n    try{ if(window.PF&&PF.skip&&PF.skip(g.key)) continue; }catch(e){}\n    return g;\n  }\n  return GAMES[0];\n}\nfunction esc(s){return String(s==null?'':s).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[c];});}\nvar slot=document.getElementById('pf-spot-slot');\nvar links=document.getElementById('pf-spot-links');\nif(!slot||!links) return;\nvar game=pick();\nfunction paintLinks(){\n  var others=GAMES.filter(function(g){return g.key!==game.key;});\n  links.innerHTML='Also in the arcade: '+others.map(function(g){\n    return '<a href=\"/arcade\" style=\"color:#c1121f;\">'+esc(g.name)+' &rarr;</a>';\n  }).join(' &middot; ');\n}\n/* Same contract as the homepage mounter: clone the staged template, then\n   run its inner script in global scope. */\nfunction execScripts(root){\n  var scripts=root.querySelectorAll('script');\n  for(var i=0;i<scripts.length;i++){\n    try{ (0,eval)(scripts[i].textContent); }catch(e){}\n    scripts[i].remove();\n  }\n}\nfunction mountGame(){\n  var tpl=document.getElementById(game.tpl);\n  if(!tpl||!tpl.content) return false;\n  var frag=document.importNode(tpl.content,true);\n  slot.innerHTML='';\n  slot.appendChild(frag);\n  execScripts(slot);\n  return true;\n}\nfunction renderError(){\n  slot.innerHTML='<div class=\"c-neterr\">Today&rsquo;s game didn&rsquo;t load.'+\n    '<br><button class=\"c-btn\" id=\"pfSpotRetry\">Retry</button> '+\n    '<a href=\"/arcade\" class=\"c-btn ghost\" style=\"text-decoration:none;display:inline-block;\">Open the arcade</a></div>';\n  var rb=document.getElementById('pfSpotRetry');\n  if(rb) rb.onclick=function(){\n    tries=0;\n    slot.innerHTML='<div class=\"c-load\">Loading today&rsquo;s game&hellip;</div>';\n    tryMount();\n  };\n}\nvar tries=0;\nfunction tryMount(){\n  tries++;\n  /* Staged templates arrive with their bundles — wait for ours. */\n  if(mountGame()) return;\n  if(tries>=15){ renderError(); return; }\n  setTimeout(tryMount,2000);\n}\npaintLinks();\ntryMount();\n})();\n<\/script>\n</div>\n</template>")}(),function(){"use strict";var e=window.PF;e&&!e.skip("creator-guess")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-guess">\n<div class="fe-block pf-override-block">\n<div id="pf-guess" style="max-width:640px;margin:2rem auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:\'Helvetica Neue\',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;text-align:center;">\n  <div style="font-size:1.5rem;font-weight:900;letter-spacing:0.18em;color:#c1121f;">&#9673; GUESS THE CREATOR &#9673;</div>\n  <div style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;">5 questions. One roster. Zero mercy.<br>How well do you know the Sick Left Radicals?</div>\n  <div id="pf-guess-streak" style="font-size:0.85rem;color:#c1121f;margin-bottom:0.4rem;letter-spacing:0.1em;"></div>\n  <div id="pf-guess-stats" style="font-size:0.8rem;color:#b8ab8e;margin-bottom:0.8rem;min-height:1.1em;"></div>\n  <div id="pf-guess-lb" style="font-size:0.8rem;color:#b8ab8e;margin-bottom:1rem;text-align:left;min-height:1.1em;"></div>\n  <div id="pf-guess-body"></div>\n</div>\n<script>\n(function(){\n  "use strict";\n  function dbAll(){var a=[];try{if(window.PF){a=PF.slrAll?PF.slrAll():(PF.ROSTER||[]);}}catch(e){}return a||[];}\n  function trunc(s,n){s=String(s||"");return s.length>n?s.slice(0,n-1)+"\\u2026":s;}\n  function hashStr(s){var h=2166136261,i;for(i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}\n  function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}\n  function chiDay(){var n;try{n=window.PF?PF.chiNow():new Date();}catch(e){n=new Date();}return n.getFullYear()+"-"+(n.getMonth()+1)+"-"+n.getDate();}\n  function buildBank(rng){\n    rng=rng||Math.random;\n    function sh(a){var i,j,t;for(i=a.length-1;i>0;i--){j=Math.floor(rng()*(i+1));t=a[i];a[i]=a[j];a[j]=t;}return a;}\n    var all=dbAll();if(all.length<4)return [];\n    var ms=sh(all.slice()).slice(0,12),bank=[];\n    for(var i=0;i<ms.length;i++){\n      var m=ms[i],others=sh(all.filter(function(x){return x.slug!==m.slug;})),w=[others[0].slug,others[1].slug,others[2].slug];\n      var t=i%3,qq=null;\n      if(t===0&&m.followers_display){qq={q:m.followers_display+" followers"+(m.primary_platform?" on "+m.primary_platform:"")+". Who?",a:m.slug,w:w};}\n      else if(t===1&&m.key_strengths&&m.key_strengths[0]){qq={q:"\\u201C"+trunc(m.key_strengths[0],110)+"\\u201D \\u2014 whose key strength is this?",a:m.slug,w:w};}\n      else{qq={q:"Content focus: "+trunc(m.content_focus||"leftist propaganda",110)+". Who?",a:m.slug,w:w};}\n      if(qq)bank.push(qq);\n    }\n    return bank;\n  }\n  function pick(bank){var pool=bank.slice();for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}return pool.slice(0,5);}\n  var LS="pf_guess_v1";\n  function load(){try{var s=JSON.parse(localStorage.getItem(LS)||"null");if(s&&typeof s.streak==="number")return s;}catch(e){}return{streak:0,last:"",lastDaily:"",dailyScore:-1};}\n  function save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}\n  function todayStr(){try{return new Date().toISOString().slice(0,10);}catch(e){return"";}}\n  var API=(window.PF_BACKEND_URL||"https://pf-api.mtcstw.workers.dev");\n  var GSTAT=null;\n  function loadStats(cb){var done=function(){if(cb)cb();};\n    try{var c=JSON.parse(localStorage.getItem("pf_guess_stats_v1")||"null");if(c&&Date.now()-c.at<6*3600000){GSTAT=c.d;done();return;}}catch(e){}\n    var name="pfGsT"+Date.now(),fired=false;\n    window[name]=function(d){if(fired)return;fired=true;try{delete window[name];}catch(e){}var s=document.getElementById(name);if(s&&s.parentNode)s.parentNode.removeChild(s);if(d&&typeof d.plays==="number"){GSTAT=d;try{localStorage.setItem("pf_guess_stats_v1",JSON.stringify({at:Date.now(),d:d}));}catch(e){}}done();};\n    try{var scr=document.createElement("script");scr.id=name;scr.src=API+"?callback="+name+"&action=guess_stats";scr.onerror=function(){if(!fired){fired=true;done();}};(document.head||document.documentElement).appendChild(scr);}catch(e){if(!fired){fired=true;done();}}\n    setTimeout(function(){if(!fired){fired=true;done();}},10000);}\n  function paintStats(){var el=document.getElementById("pf-guess-stats");if(!el)return;\n    if(GSTAT&&GSTAT.plays>0){var avg=(GSTAT.plays>0&&GSTAT.avg)?Number(GSTAT.avg).toFixed(1):"\\u2014";\n      el.innerHTML="<b style=\'color:#f5f0e1;\'>"+GSTAT.plays.toLocaleString()+"</b> comrades played this week \\u2014 average <b style=\'color:#f5f0e1;\'>"+avg+"/5</b>";}}\n  var GLB=null;\n  function chiDayPad(){var d=chiDay().split("-");return d[0]+"-"+(d[1].length<2?"0":"")+d[1]+"-"+(d[2].length<2?"0":"")+d[2];}\n  function loadLb(cb){var done=function(){if(cb)cb();};\n    try{var c=JSON.parse(localStorage.getItem("pf_guess_lb_v1")||"null");if(c&&Date.now()-c.at<10*60000&&c.d&&c.d.ok&&c.d.day===chiDayPad()){GLB=c.d;done();return;}}catch(e){}\n    var name="pfGsL"+Date.now(),fired=false;\n    window[name]=function(d){if(fired)return;fired=true;try{delete window[name];}catch(e){}var s=document.getElementById(name);if(s&&s.parentNode)s.parentNode.removeChild(s);if(d&&d.ok){GLB=d;try{localStorage.setItem("pf_guess_lb_v1",JSON.stringify({at:Date.now(),d:d}));}catch(e){}}done();};\n    try{var scr=document.createElement("script");scr.id=name;scr.src=API+"?callback="+name+"&action=guess_leaderboard";scr.onerror=function(){if(!fired){fired=true;done();}};(document.head||document.documentElement).appendChild(scr);}catch(e){if(!fired){fired=true;done();}}\n    setTimeout(function(){if(!fired){fired=true;done();}},10000);}\n  function paintLb(){var el=document.getElementById("pf-guess-lb");if(!el)return;\n    if(!GLB||!GLB.ok||!GLB.entries||!GLB.entries.length){el.innerHTML="";return;}\n    var h="<div style=\'letter-spacing:0.2em;color:#c1121f;font-size:0.75rem;margin-bottom:0.4rem;\'>TODAY\\u2019S LEADERBOARD</div>";\n    var n=Math.min(GLB.entries.length,10),i,e2,rk,col;\n    for(i=0;i<n;i++){e2=GLB.entries[i];rk=i+1;\n      col=rk===1?"#ffd166":rk===2?"#c9c9c9":rk===3?"#cd7f32":"#b8ab8e";\n      h+="<div style=\'display:flex;justify-content:space-between;padding:0.25rem 0;border-bottom:1px solid #222;\'><span><b style=\'color:"+col+";\'>"+rk+".</b> <b style=\'color:#f5f0e1;\'>"+esc(e2.callsign)+"</b></span><span style=\'color:#f5f0e1;font-weight:800;\'>"+e2.score+"/5</span></div>";}\n    el.innerHTML=h;}\n  var body=document.getElementById("pf-guess-body"),streakEl=document.getElementById("pf-guess-streak");\n  var st=load(),tdy=chiDay();\n  var isDaily=st.lastDaily!==tdy;\n  var bank=isDaily?buildBank(mulberry32(hashStr("guess:"+tdy))):buildBank();\n  var qs=pick(bank),qi=0,score=0,missed=[];\n  function paintStreak(){streakEl.innerHTML=(st.streak>1?("\\uD83D\\uDD25 "+st.streak+"-DAY STREAK"):"")+(isDaily?" <span style=\'border:1px solid #c1121f;padding:0.1rem 0.5rem;font-size:0.7rem;\'>DAILY</span>":" <span style=\'border:1px solid #b8ab8e;color:#b8ab8e;padding:0.1rem 0.5rem;font-size:0.7rem;\'>PRACTICE</span>");}\n  function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}\n  function disp(s,fb){if(fb)return fb;try{if(window.PF&&PF.rosterBySlug){var r=PF.rosterBySlug(s);if(r&&r.name)return r.name;}}catch(e){}return String(s).replace(/-/g," ");}\n  function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}\n  function renderQ(){\n    var q=qs[qi],opts=shuffle([q.a].concat(q.w)),h="<div style=\'font-size:1.05rem;font-weight:700;margin-bottom:1rem;color:#f5f0e1;\'>"+(qi+1)+"/5 \\u2014 "+esc(q.q)+"</div>";\n    for(var i=0;i<opts.length;i++){h+="<button data-g=\'"+i+"\' style=\'display:block;width:100%;margin:0.4rem 0;padding:0.7rem;background:#141414;border:2px solid #c1121f;color:#f5f0e1;font-size:0.9rem;cursor:pointer;font-family:inherit;\'>"+esc(disp(opts[i],opts[i]===q.a?q.al:null))+"</button>";}\n    body.innerHTML=h;\n    var btns=body.querySelectorAll("[data-g]");\n    for(var j=0;j<btns.length;j++){btns[j].onclick=function(){\n      var picked=opts[+this.getAttribute("data-g")],ok=picked===q.a;\n      if(ok){score++;}else{missed.push(q.a);}\n      var all=body.querySelectorAll("[data-g]");\n      for(var k=0;k<all.length;k++){all[k].disabled=true;all[k].style.opacity="0.55";if(all[k].textContent===disp(q.a,q.al)){all[k].style.borderColor="#2a9d48";all[k].style.opacity="1";}}\n      this.style.opacity="1";this.style.borderColor=ok?"#2a9d48":"#c1121f";\n      setTimeout(function(){qi++;if(qi<qs.length){renderQ();}else{renderR();}},900);\n    };}\n  }\n  function renderR(){\n    var t=todayStr(),verdict,perfect=score===5;\n    if(perfect){verdict="PERFECT. You know this roster better than the algorithm does.";}\n    else if(score>=4){verdict="Certified roster-watcher. One more and it is perfect.";}\n    else if(score>=3){verdict="Solid. The factory has use for you.";}\n    else{verdict="Study the roster. Come back tomorrow.";}\n    if(isDaily){st.lastDaily=tdy;st.dailyScore=score;\n      if(score>=3){if(st.last!==t){st.streak=(st.last===yesterday(t))?st.streak+1:1;st.last=t;}}\n      else{if(st.last!==t){st.streak=0;st.last=t;}}\n      save(st);isDaily=false;}\n    paintStreak();paintStats();\n    try{localStorage.removeItem("pf_guess_lb_v1");}catch(e){}\n    loadLb(paintLb);\n    var studyHtml="";\n    if(missed.length){\n      var links=[];\n      for(var mi=0;mi<missed.length;mi++){links.push("<a href=\'/" +missed[mi]+"\' style=\'color:#f5f0e1;text-decoration:underline;margin:0 0.4rem;\'>"+esc(disp(missed[mi]))+"</a>");}\n      studyHtml="<div style=\'margin-top:1rem;font-size:0.85rem;color:#b8ab8e;\'>STUDY UP: "+links.join(" \\u00B7 ")+"</div>";\n    }\n    var infHtml="";\n    try{\n      var PFw=window.PF;\n      if(PFw&&typeof PFw.infightNext==="function"){\n        var nx=PFw.infightNext();\n        if(nx&&nx.a&&nx.b){\n          infHtml="<div style=\'margin-top:1.2rem;border:2px solid #c1121f;padding:0.8rem;\'>"\n            +"<div style=\'font-size:0.8rem;letter-spacing:0.2em;color:#c1121f;\'>INFIGHTING \\u2014 "+(nx.live?"HAPPENING NOW":"NEXT BATTLE "+nx.clock)+"</div>"\n            +"<div style=\'font-weight:800;margin:0.4rem 0;\'>"+esc(nx.a.name)+" <span style=\'color:#c1121f;\'>VS</span> "+esc(nx.b.name)+"</div>"\n            +"<div style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:0.6rem;\'>Think you know the roster? Put XP where your mouth is.</div>"\n            +"<button id=\'pf-guess-infight\' style=\'padding:0.6rem 1.4rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>BACK YOUR FIGHTER</button></div>";\n        }\n      }\n    }catch(e){}\n    body.innerHTML="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\'>FINAL SCORE</div>"\n      +"<div style=\'font-size:2.4rem;font-weight:900;margin:0.4rem 0;\'>"+score+"/5</div>"\n      +"<div style=\'font-size:0.95rem;color:#b8ab8e;margin-bottom:1rem;\'>"+verdict+"</div>"+studyHtml\n      +"<div style=\'margin-top:1rem;\'><button id=\'pf-guess-share\' style=\'padding:0.7rem 1.6rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>SHARE SCORE CARD</button></div>"\n      +infHtml\n      +"<div><button id=\'pf-guess-again\' style=\'margin-top:1rem;background:none;border:1px solid #b8ab8e;color:#b8ab8e;padding:0.5rem 1rem;cursor:pointer;font-family:inherit;font-size:0.8rem;\'>PLAY AGAIN</button></div>";\n    try{document.dispatchEvent(new CustomEvent("pf-guess-done",{detail:{score:score,day:t}}));}catch(e){}\n    try{document.dispatchEvent(new CustomEvent("pf-guess-scored",{detail:{score:score}}));}catch(e){}\n    /* M1 dopamine: the score card lands with feeling. Perfect game gets the big one. */\n    try{if(window.PF&&PF.dope){var gd=document.getElementById("pf-guess")||document.body;var gp=perfect?80:(score>=3?45:25);PF.dope.confetti(gd,gp);if(perfect){PF.dope.ping(gd,"PERFECT 5/5");}else{PF.dope.xpFloat(gd,score+"/5");}}}catch(e){}\n    try{var PS0=window.PFShare;if(PS0&&PS0.REG){PS0.REG["creator-guess"]={title:score+"/5",tag:"GUESS THE CREATOR",lines:[verdict],cta:"TEST YOURSELF"};}}catch(e){}\n    document.getElementById("pf-guess-share").onclick=function(){\n      try{var PS=window.PFShare;if(PS&&PS.poster&&PS.shareImage){var cv=PS.poster("creator-guess");if(cv){PS.shareImage(cv,"guess-score.png","I scored "+score+"/5 on Guess the Creator","creator-guess");return;}}}catch(e){}\n    };\n    var ibf=document.getElementById("pf-guess-infight");\n    if(ibf){ibf.onclick=function(){var tg=document.getElementById("pf-infight-root");if(tg){try{tg.scrollIntoView({behavior:"smooth",block:"start"});}catch(e){tg.scrollIntoView();}}};}\n    document.getElementById("pf-guess-again").onclick=function(){qi=0;score=0;missed=[];qs=pick(buildBank());renderQ();};\n  }\n  function yesterday(t){try{var d=new Date(t+"T12:00:00Z");d.setUTCDate(d.getUTCDate()-1);return d.toISOString().slice(0,10);}catch(e){return"";}}\n  paintStreak();loadStats(paintStats);loadLb(paintLb);\n  if(bank.length){renderQ();}else{body.innerHTML="<div style=\'color:#c1121f;font-weight:900;padding:1rem;\'>ROSTER OFFLINE \\u2014 try again soon.</div>";}\n})();\n<\/script>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;e&&!e.skip("daily-interrogation")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-interrogation">\n<div id="pf-interrogation">\n<style>\n#pf-interrogation{font-family:\'Arial Black\',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f}\n#pf-interrogation h2{color:#c1121f;font-size:26px;margin:0 0 4px;letter-spacing:2px;text-transform:uppercase}\n#pf-interrogation .iq-day{font-family:Arial,sans-serif;font-size:13px;letter-spacing:3px;color:#ff5a00;text-transform:uppercase;margin-bottom:16px}\n#pf-interrogation .iq-q{background:#f5ead6;color:#0d0d0d;padding:22px 20px;margin:0 0 14px;font-family:Arial,sans-serif;font-size:17px;font-weight:700;line-height:1.45;text-align:left}\n#pf-interrogation .iq-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}\n#pf-interrogation .iq-opt{background:#1a1a1a;color:#f5ead6;border:2px solid #f5ead6;padding:12px 14px;font-family:Arial,sans-serif;font-size:14px;cursor:pointer;text-align:left}\n#pf-interrogation .iq-opt:hover:not(:disabled){background:#2a2a2a}\n#pf-interrogation .iq-opt:disabled{cursor:default;opacity:.85}\n#pf-interrogation .iq-opt.hit{background:#1e4d1e;border-color:#7bc96f;color:#fff}\n#pf-interrogation .iq-opt.miss{background:#4d1e1e;border-color:#c1121f;color:#fff}\n#pf-interrogation .iq-why{background:#1a1a1a;border-left:6px solid #c1121f;padding:14px 16px;text-align:left;margin:0 0 12px;display:none}\n#pf-interrogation .iq-verdict{font-size:18px;letter-spacing:2px;margin:0 0 8px;text-transform:uppercase}\n#pf-interrogation .iq-verdict.right{color:#7bc96f}\n#pf-interrogation .iq-verdict.wrong{color:#c1121f}\n#pf-interrogation .iq-why p{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin:0;line-height:1.5}\n#pf-interrogation .iq-streak{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase;margin:12px 0}\n#pf-interrogation .iq-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}\n#pf-interrogation .iq-btn{background:none;border:2px solid #f5ead6;color:#f5ead6;padding:12px 22px;font-family:\'Arial Black\',Arial,sans-serif;font-size:13px;letter-spacing:2px;cursor:pointer;text-transform:uppercase}\n#pf-interrogation .iq-btn:hover{background:#1a1a1a}\n#pf-interrogation .iq-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:12px}\n</style>\n\n<h2>The Daily Interrogation</h2>\n<div class="iq-day" id="iqDay"></div>\n<div class="iq-q" id="iqQ"></div>\n<div class="iq-opts" id="iqOpts"></div>\n<div class="iq-why" id="iqWhy"></div>\n<div class="iq-streak" id="iqStreak"></div>\n<div class="iq-btns" id="iqShareRow" style="display:none">\n  <button class="iq-btn" id="iqCopy">Copy result grid</button>\n</div>\n<div class="iq-note">One question per day. Streak or you&apos;re a liberal.</div>\n\n<script>\n(function(){\nvar LAUNCH=\'2026-10-01\';\n/* a = index of correct option */\nvar QS=[\n{q:"How many empty homes are there for every homeless person in America?",o:["28 to 1","5 to 1","100 to 1","2 to 1"],a:0,why:"28 empty homes per homeless person. There is no housing shortage — there\'s a profit shortage in housing people."},\n{q:"CEOs now make how many times the pay of the average worker?",o:["290x","50x","21x","1,000x"],a:0,why:"290x today vs 21x in 1965. Nothing about leadership got 14 times better."},\n{q:"Which law made the 8-hour workday federal law in the US?",o:["Fair Labor Standards Act, 1938","Wagner Act, 1935","Taft-Hartley Act, 1947","Sherman Act, 1890"],a:0,why:"The FLSA of 1938. Won by strikes, not by asking nicely."},\n{q:"The Ludlow Massacre of 1914 was an attack on…",o:["Striking coal miners","Suffragettes","Railroad barons","Bootleggers"],a:0,why:"Colorado National Guard opened fire on a miners\' tent colony. 21 dead, including children."},\n{q:"Who wrote: \'The ruling ideas of each age have ever been the ideas of its ruling class\'?",o:["Karl Marx","Vladimir Lenin","George Orwell","Noam Chomsky"],a:0,why:"Marx, in The German Ideology. Read it again next time the news tells you what\'s \'realistic.\'"},\n{q:"COINTELPRO was…",o:["An FBI program targeting activists","A Soviet spy ring","A 1970s rock band","A federal jobs program"],a:0,why:"The FBI\'s covert program to surveil, infiltrate, and sabotage civil rights, anti-war, and leftist movements."},\n{q:"What share of US wealth does the top 1% own?",o:["About 32%","About 10%","About 50%","About 75%"],a:0,why:"~32% for the top 1%. The bottom 50% holds about 2.5%."},\n{q:"The Haymarket Affair of 1886 gave the world…",o:["International Workers\' Day (May Day)","The income tax","Women\'s suffrage","Prohibition"],a:0,why:"May 1st is Labor Day almost everywhere on Earth — except the US, which moved it to September to dodge the radicals."},\n{q:"Which country has the most billionaires?",o:["United States","China","India","Russia"],a:0,why:"The US, by a mile. The heist has a headquarters."},\n{q:"In Marxist economics, \'surplus value\' is…",o:["Profit from unpaid labor","Stock dividends","Tax revenue","Rent"],a:0,why:"The gap between the value workers produce and the wage they\'re paid. That\'s where profit comes from."},\n{q:"The Flint Sit-Down Strike of 1936–37 targeted…",o:["General Motors","Ford","US Steel","Standard Oil"],a:0,why:"Workers occupied GM plants for 44 days — and won union recognition. Sit down. Stay put. Win."},\n{q:"Since 1979, US productivity is up 2.5x. Worker pay is up…",o:["15%","150%","250%","25%"],a:0,why:"Productivity soared. Your paycheck didn\'t. The difference went to people who\'ve never done your job."},\n{q:"America\'s first labor union was formed by…",o:["Shoemakers, 1794","Steelworkers, 1901","Coal miners, 1869","Autoworkers, 1935"],a:0,why:"The Federal Society of Journeymen Cordwainers, Philadelphia, 1794. Shoemakers started it all."},\n{q:"\'Manufacturing consent\' is a term coined by…",o:["Chomsky & Herman","Marx & Engels","George Orwell","Edward Bernays"],a:0,why:"Noam Chomsky and Edward Herman, 1988 — on how mass media serves power."},\n{q:"Edward Bernays is known as…",o:["The father of public relations","The inventor of television","A US president","A union leader"],a:0,why:"Freud\'s nephew. He literally wrote the book \'Propaganda\' (1928). We just use his tools against him."},\n{q:"The Triangle Shirtwaist fire of 1911 killed 146 workers and led to…",o:["Factory safety reforms","The minimum wage","The 40-hour week","Social Security"],a:0,why:"Locked doors, no fire escapes. The outrage forced New York\'s first real workplace safety laws."},\n{q:"In labor slang, a \'scab\' is…",o:["A strikebreaker","A type of war bond","A tax loophole","A police rank"],a:0,why:"Someone who crosses a picket line. Jack London called them worse — we can\'t print it."},\n{q:"The Pullman Strike of 1894 was broken by…",o:["US federal troops","The workers winning outright","Canadian mediators","It never happened"],a:0,why:"President Cleveland sent 12,000 troops against railroad strikers. The state always picks a side."},\n{q:"Who wrote: \'The law, in its majestic equality, forbids rich and poor alike to sleep under bridges\'?",o:["Anatole France","Mark Twain","Voltaire","Oscar Wilde"],a:0,why:"Anatole France, 1894. Justice is blind — it just only sees one class."},\n{q:"Das Kapital was published in…",o:["1867","1917","1848","1936"],a:0,why:"Volume 1, 1867. Still the best autopsy of capitalism ever written."},\n{q:"The Wagner Act of 1935 guaranteed…",o:["Workers\' right to unionize","Women\'s right to vote","The 8-hour day","Social Security"],a:0,why:"The National Labor Relations Act — the legal backbone of US unions."},\n{q:"The Taft-Hartley Act of 1947 did what?",o:["Restricted unions","Created OSHA","Ended child labor","Founded the Federal Reserve"],a:0,why:"Banned solidarity strikes, allowed \'right to work\' laws. The bosses\' revenge for the Wagner Act."},\n{q:"How many billionaires are on the Liquidation Bracket?",o:["16","8","32","64"],a:0,why:"16 seeds, one champion of evil. Vote the bracket."},\n{q:"The Do Meter\'s goal for the network is…",o:["5 million things done","1 million followers","$1M raised","100K members"],a:0,why:"Not followers. Not likes. Things done. 5 million of them."},\n{q:"\'If voting changed anything, they\'d make it illegal\' is attributed to…",o:["Emma Goldman","Susan B. Anthony","Martin Luther King Jr.","FDR"],a:0,why:"Emma Goldman. They\'re certainly trying to prove her right."},\n{q:"The IWW\'s nickname is…",o:["Wobblies","Diggers","Levelers","Grangers"],a:0,why:"The Industrial Workers of the World — the Wobblies. One big union."},\n{q:"A \'general strike\' is…",o:["All workers striking at once","A military draft","A stock market selloff","A tax boycott"],a:0,why:"Every worker, every industry, at once. The bosses\' worst nightmare."},\n{q:"Which state passed the first $15 minimum wage law?",o:["California","New York","Texas","Florida"],a:0,why:"California, 2016 — after fast-food workers struck for it. Fight for $15 started as a punchline."},\n{q:"Who is credited with: \'The problem with socialism is that you eventually run out of other people\'s money\'?",o:["Margaret Thatcher","Ronald Reagan","Winston Churchill","Ayn Rand"],a:0,why:"Thatcher, 1976. Meanwhile capitalism runs out of other people\'s everything."},\n{q:"What does MTCSTW stand for?",o:["Memes That Can Save The World","Make The Capitalists Stop Taking Wealth","My Thoughts Can Shape The World","Marxist Theory Center for Socialist Workers"],a:0,why:"Memes That Can Save The World. You\'re already inside the machine."}\n];\nfunction chi(){var d=new Date(new Date().toLocaleString(\'en-US\',{timeZone:\'America/Chicago\'}));d.setHours(0,0,0,0);return d;}\nfunction dayNum(){var l=new Date(LAUNCH+\'T00:00:00\');return Math.max(1,Math.floor((chi()-l)/86400000)+1);}\nfunction dayKey(){var d=chi();return d.getFullYear()+\'-\'+(d.getMonth()+1)+\'-\'+d.getDate();}\nfunction yKey(){var d=chi();d.setDate(d.getDate()-1);return d.getFullYear()+\'-\'+(d.getMonth()+1)+\'-\'+d.getDate();}\nvar LS=\'pf_interrogation_v1\';\nfunction load(){try{return JSON.parse(localStorage.getItem(LS)||\'{"last":"","streak":0,"played":{}}\');}catch(e){return{last:\'\',streak:0,played:{}};}}\nfunction save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}\nvar n=dayNum(),Q=QS[(n-1)%QS.length],s=load(),tk=dayKey();\n/* deterministic daily rotation: the correct answer must not sit in one slot */\nvar _rot=n%4,_ord=[0,1,2,3],QA=0,_ri,_qi;\nfor(_ri=0;_ri<_rot;_ri++){_ord.push(_ord.shift());}\nfor(_qi=0;_qi<4;_qi++){if(_ord[_qi]===Q.a)QA=_qi;}\nfunction el(id){return document.getElementById(id);}\nel(\'iqDay\').textContent=\'Day \'+n+\' of the interrogation\';\nel(\'iqQ\').textContent=Q.q;\nfunction streakTxt(){return \'Your streak: \'+s.streak+(s.streak===1?\' day\':\' days\')+\' — answer daily to keep it\';}\nfunction grid(){return \'THE DAILY INTERROGATION\\nDay \'+n+\': \'+(s.played[tk].correct?\'\\uD83D\\uDFE9\':\'\\uD83D\\uDFE5\')+\'\\nStreak: \'+s.streak+\' \\uD83D\\uDD25\\nmtcstw.com\';}\nfunction renderOpts(locked){\n  var h=\'\';\n  for(var i=0;i<Q.o.length;i++){\n    var cls=\'iq-opt\';\n    if(locked){cls+= (i===QA)?\' hit\':((s.played[tk].pick===i)?\' miss\':\'\');}\n    h+=\'<button class="\'+cls+\'" data-i="\'+i+\'"\'+(locked?\' disabled\':\'\')+\'>\'+Q.o[_ord[i]]+\'</button>\';\n  }\n  el(\'iqOpts\').innerHTML=h;\n  if(!locked){\n    var bs=el(\'iqOpts\').querySelectorAll(\'button\');\n    for(var j=0;j<bs.length;j++){bs[j].onclick=function(){answer(parseInt(this.getAttribute(\'data-i\'),10));};}\n  }\n}\nfunction showWhy(){\n  var p=s.played[tk],w=el(\'iqWhy\');w.style.display=\'block\';\n  w.innerHTML=\'<p class="iq-verdict \'+(p.correct?\'right\':\'wrong\')+\'">\'+(p.correct?\'CORRECT.\':\'WRONG.\')+\'</p><p>\'+Q.why+\'</p>\';\n  el(\'iqShareRow\').style.display=\'flex\';\n  el(\'iqStreak\').textContent=streakTxt();\n}\nel(\'iqStreak\').textContent=streakTxt();\nif(s.played&&s.played[tk]){renderOpts(true);showWhy();}\nelse{renderOpts(false);}\nfunction answer(pick){\n  var correct=(pick===QA);\n  s.played=s.played||{};s.played[tk]={pick:pick,correct:correct};\n  if(s.last!==tk){s.streak=(s.last===yKey())?s.streak+1:1;s.last=tk;}\n  save(s);\n  try{document.dispatchEvent(new CustomEvent(\'pf-interrogation-answered\',{detail:{day:tk,correct:correct,streak:s.streak}}));}catch(e){}\n  renderOpts(true);showWhy();\n}\nel(\'iqCopy\').onclick=function(){\n  var t=grid();\n  function done(){try{if(window.PF&&PF.toast)PF.toast(\'Grid copied. Go shame your friends.\');}catch(e){}}\n  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done).catch(function(){fallback();});}\n  else fallback();\n  function fallback(){try{var ta=document.createElement(\'textarea\');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand(\'copy\');ta.remove();done();}catch(e){}}\n};\n})();\n<\/script>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;e&&!e.skip("billionaire-supervillain")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-billionaire">\n<div id="pf-billionaire">\n<style>\n#pf-billionaire{font-family:\'Arial Black\',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f}\n#pf-billionaire h2{color:#c1121f;font-size:26px;margin:0 0 4px;letter-spacing:2px;text-transform:uppercase}\n#pf-billionaire .bv-day{font-family:Arial,sans-serif;font-size:13px;letter-spacing:3px;color:#ff5a00;text-transform:uppercase;margin-bottom:16px}\n#pf-billionaire .bv-quote{background:#f5ead6;color:#0d0d0d;padding:24px 20px;margin:0 0 16px;font-size:19px;line-height:1.45;font-family:Arial,sans-serif;font-style:italic}\n#pf-billionaire .bv-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}\n#pf-billionaire .bv-btn{background:#c1121f;color:#fff;border:0;padding:14px 26px;font-family:\'Arial Black\',Arial,sans-serif;font-size:14px;letter-spacing:2px;cursor:pointer;text-transform:uppercase}\n#pf-billionaire .bv-btn:hover{background:#8f0d17}\n#pf-billionaire .bv-btn.ghost{background:none;border:2px solid #f5ead6;color:#f5ead6}\n#pf-billionaire .bv-btn.ghost:hover{background:#1a1a1a}\n#pf-billionaire .bv-btn:disabled{opacity:.45;cursor:default}\n#pf-billionaire .bv-reveal{background:#1a1a1a;border-left:6px solid #c1121f;padding:16px;text-align:left;margin:0 0 12px}\n#pf-billionaire .bv-verdict{font-size:20px;letter-spacing:2px;margin:0 0 8px;text-transform:uppercase}\n#pf-billionaire .bv-verdict.right{color:#7bc96f}\n#pf-billionaire .bv-verdict.wrong{color:#c1121f}\n#pf-billionaire .bv-who{font-family:Arial,sans-serif;font-size:15px;font-weight:700;color:#f5ead6;margin:0 0 6px}\n#pf-billionaire .bv-ctx{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin:0;line-height:1.5}\n#pf-billionaire .bv-streak{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase;margin:12px 0}\n#pf-billionaire .bv-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:12px}\n</style>\n\n<h2>Billionaire or Supervillain?</h2>\n<div class="bv-day" id="bvDay"></div>\n<div class="bv-quote" id="bvQuote"></div>\n<div class="bv-btns" id="bvBtns">\n  <button class="bv-btn" id="bvB">Billionaire</button>\n  <button class="bv-btn ghost" id="bvS">Supervillain</button>\n</div>\n<div class="bv-reveal" id="bvReveal" style="display:none"></div>\n<div class="bv-streak" id="bvStreak"></div>\n<div class="bv-btns" id="bvShareRow" style="display:none">\n  <button class="bv-btn ghost" id="bvCopy">Copy result grid</button>\n</div>\n<div class="bv-note">One quote per day. Come back tomorrow &mdash; the next monster awaits.</div>\n\n<script>\n(function(){\nvar LAUNCH=\'2026-10-01\';\n/* w:0 = billionaire (real, documented) | w:1 = supervillain (film/comics) */\nvar QUOTES=[\n{w:0,q:"There\'s class warfare, all right, but it\'s my class, the rich class, that\'s making war, and we\'re winning.",who:"Warren Buffett",ctx:"Buffett to the New York Times, 2006. He wasn\'t joking."},\n{w:1,q:"Introduce a little anarchy. Upset the established order, and everything becomes chaos.",who:"The Joker",ctx:"Heath Ledger\'s Joker, The Dark Knight (2008)."},\n{w:0,q:"We will coup whoever we want! Deal with it.",who:"Elon Musk",ctx:"Tweeted July 2020, about Bolivia\'s lithium."},\n{w:1,q:"The hardest choices require the strongest wills.",who:"Thanos",ctx:"Avengers: Infinity War (2018). He then deleted half of all life."},\n{w:0,q:"Your margin is my opportunity.",who:"Jeff Bezos",ctx:"The founding philosophy of Amazon."},\n{w:1,q:"Why so serious?",who:"The Joker",ctx:"The Dark Knight (2008). Launched a thousand dorm posters."},\n{w:0,q:"Move fast and break things.",who:"Mark Zuckerberg",ctx:"Facebook\'s infamous internal motto."},\n{w:1,q:"I am inevitable.",who:"Thanos",ctx:"Avengers: Endgame (2019). Famous last words."},\n{w:0,q:"I no longer believe that freedom and democracy are compatible.",who:"Peter Thiel",ctx:"From his 2009 essay \'The Education of a Libertarian.\'"},\n{w:1,q:"You either die a hero, or you live long enough to see yourself become the villain.",who:"Harvey Dent",ctx:"The Dark Knight (2008). Hits different in 2026."},\n{w:0,q:"Competition is for losers.",who:"Peter Thiel",ctx:"The thesis of his book Zero to One."},\n{w:1,q:"You merely adopted the dark. I was born in it, molded by it.",who:"Bane",ctx:"The Dark Knight Rises (2012)."},\n{w:0,q:"If you don\'t find a way to make money while you sleep, you will work until you die.",who:"Warren Buffett",ctx:"His most-shared piece of wisdom."},\n{w:1,q:"The one thing they love more than a hero is to see a hero fail, fall, die trying.",who:"Norman Osborn",ctx:"Spider-Man (2002). Willem Dafoe knew."},\n{w:0,q:"Being the richest man in the cemetery doesn\'t matter to me.",who:"Steve Jobs",ctx:"Wall Street Journal interview, 1993."},\n{w:1,q:"Madness, as you know, is like gravity. All it takes is a little push.",who:"The Joker",ctx:"The Dark Knight (2008)."},\n{w:0,q:"Success is a lousy teacher. It seduces smart people into thinking they can\'t lose.",who:"Bill Gates",ctx:"From his book The Road Ahead."},\n{w:1,q:"There are no strings on me.",who:"Ultron",ctx:"Avengers: Age of Ultron (2015). The AI read the internet and chose violence."},\n{w:0,q:"I will always choose a lazy person to do a difficult job, because a lazy person will find an easy way to do it.",who:"Bill Gates",ctx:"Attributed to Gates for decades."},\n{w:1,q:"Peace in our time.",who:"Ultron",ctx:"Said while building an extinction machine."},\n{w:0,q:"Don\'t be evil.",who:"Larry Page & Sergey Brin",ctx:"Google\'s original corporate motto. They quietly removed it."},\n{w:1,q:"I am Loki, of Asgard, and I am burdened with glorious purpose.",who:"Loki",ctx:"The Avengers (2012)."},\n{w:0,q:"Stay hungry, stay foolish.",who:"Steve Jobs",ctx:"Stanford commencement address, 2005."},\n{w:1,q:"Freedom is life\'s great lie.",who:"Loki",ctx:"Loki\'s Stuttgart speech, The Avengers (2012)."},\n{w:0,q:"I knew that if I failed I wouldn\'t regret that, but I knew the one thing I might regret is not trying.",who:"Jeff Bezos",ctx:"On quitting his job to start Amazon."},\n{w:1,q:"If you\'re good at something, never do it for free.",who:"The Joker",ctx:"The Dark Knight (2008). Genuinely good business advice. That\'s the problem."},\n{w:0,q:"The people who are crazy enough to think they can change the world are the ones who do.",who:"Steve Jobs",ctx:"Apple\'s \'Think Different\' campaign, 1997."},\n{w:1,q:"You want to know how I got these scars?",who:"The Joker",ctx:"His favorite party trick."},\n{w:0,q:"The most contrarian thing of all is not to oppose the crowd but to think for yourself.",who:"Peter Thiel",ctx:"Also Zero to One. The contrarianism market is crowded."},\n{w:1,q:"When Gotham is ashes, you have my permission to die.",who:"Bane",ctx:"The Dark Knight Rises (2012). Polite about murder."}\n];\nfunction chi(){var d=new Date(new Date().toLocaleString(\'en-US\',{timeZone:\'America/Chicago\'}));d.setHours(0,0,0,0);return d;}\nfunction dayNum(){var l=new Date(LAUNCH+\'T00:00:00\');return Math.max(1,Math.floor((chi()-l)/86400000)+1);}\nfunction dayKey(){var d=chi();return d.getFullYear()+\'-\'+(d.getMonth()+1)+\'-\'+d.getDate();}\nfunction yKey(){var d=chi();d.setDate(d.getDate()-1);return d.getFullYear()+\'-\'+(d.getMonth()+1)+\'-\'+d.getDate();}\nvar LS=\'pf_billionaire_v1\';\nfunction load(){try{return JSON.parse(localStorage.getItem(LS)||\'{"last":"","streak":0,"played":{}}\');}catch(e){return{last:\'\',streak:0,played:{}};}}\nfunction save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}\nvar n=dayNum(),Q=QUOTES[(n-1)%QUOTES.length],s=load(),tk=dayKey();\nfunction el(id){return document.getElementById(id);}\nel(\'bvDay\').textContent=\'Day \'+n+\' of the lineup\';\nel(\'bvQuote\').textContent=\'“\'+Q.q+\'”\';\nfunction streakTxt(){return \'Your streak: \'+s.streak+(s.streak===1?\' day\':\' days\')+\' — keep it alive tomorrow\';}\nfunction grid(){return \'BILLIONAIRE OR SUPERVILLAIN\\nDay \'+n+\': \'+(s.played[tk].correct?\'\\uD83D\\uDFE9\':\'\\uD83D\\uDFE5\')+\'\\nStreak: \'+s.streak+\' \\uD83D\\uDD25 \\u2014 can you tell them apart?\\nmtcstw.com\';}\nfunction showReveal(){\n  var p=s.played[tk];\n  el(\'bvBtns\').style.display=\'none\';\n  var r=el(\'bvReveal\');r.style.display=\'block\';\n  var src=Q.w===0?\'BILLIONAIRE\':\'SUPERVILLAIN\';\n  r.innerHTML=\'<p class="bv-verdict \'+(p.correct?\'right\':\'wrong\')+\'">\'+(p.correct?\'CORRECT.\':\'WRONG.\')+\'</p>\'+\n    \'<p class="bv-who">\'+src+\' — \'+Q.who+\' said that.</p>\'+\n    \'<p class="bv-ctx">\'+Q.ctx+\'</p>\';\n  el(\'bvShareRow\').style.display=\'flex\';\n  el(\'bvStreak\').textContent=streakTxt();\n}\nel(\'bvStreak\').textContent=streakTxt();\nif(s.played&&s.played[tk]){showReveal();}\nelse{\n  el(\'bvB\').onclick=function(){answer(0);};\n  el(\'bvS\').onclick=function(){answer(1);};\n}\nfunction answer(pick){\n  var correct=(pick===Q.w);\n  s.played=s.played||{};s.played[tk]={pick:pick,correct:correct};\n  if(s.last!==tk){s.streak=(s.last===yKey())?s.streak+1:1;s.last=tk;}\n  save(s);\n  try{document.dispatchEvent(new CustomEvent(\'pf-billionaire-answered\',{detail:{day:tk,correct:correct,streak:s.streak}}));}catch(e){}\n  showReveal();\n}\nel(\'bvCopy\').onclick=function(){\n  var t=grid();\n  function done(){try{if(window.PF&&PF.toast)PF.toast(\'Grid copied. Go shame your friends.\');}catch(e){}}\n  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done).catch(function(){fallback();});}\n  else fallback();\n  function fallback(){try{var ta=document.createElement(\'textarea\');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand(\'copy\');ta.remove();done();}catch(e){}}\n};\n})();\n<\/script>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;e&&!e.skip("slr-match-quiz")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-matchquiz">\n<div class="fe-block pf-override-block">\n<div id="pf-matchquiz" style="max-width:640px;margin:2rem auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:\'Helvetica Neue\',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;text-align:center;">\n  <div style="font-size:1.5rem;font-weight:900;letter-spacing:0.18em;color:#c1121f;">&#9873; FIND YOUR SLR MATCH &#9873;</div>\n  <div style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;">Answer 5 questions. We name your propaganda archetype<br>and match you with killers from the Sick Left Radicals roster.</div>\n  <div id="pf-mq-body"></div>\n</div>\n<script>\n(function(){\n  "use strict";\n  /* Display modes (2026-10-03): slim compact card on the homepage (pf-v2);\n     full quiz on /arcade (pf-arcade). Template id unchanged. */\n  var PF_MODE=(function(){try{if(document.getElementById("pf-arcade")||document.getElementById("pf-cells-page"))return"full";}catch(e){}return"slim";})();\n  var ARCH={\n    agitator:{name:"THE AGITATOR",desc:"You start fights the ruling class finishes losing. Loud, relentless, allergic to civility politics.",test:function(m){return (m.propaganda_score||0)>=9.0;}},\n    meme:{name:"THE MEME SMITH",desc:"You forge jokes into weapons. One image from you does more damage than a thinkpiece.",test:function(m){return /meme|satire|comedy|animator|parody/i.test((m.content_focus||"")+" "+(m.bio||""));}},\n    organizer:{name:"THE ORGANIZER",desc:"You turn rage into rosters, marches, and mutual aid. The movement runs on people like you.",test:function(m){return /mutual.aid|organizer|movement|nonprofit|organizing/i.test((m.content_focus||"")+" "+(m.bio||""));}},\n    sniper:{name:"THE TRUTH SNIPER",desc:"One sourced thread from you ends careers. You read the footnotes so the timeline does not have to.",test:function(m){return /news|research|journal|document|analysis/i.test((m.content_focus||"")+" "+(m.bio||""));}},\n    hype:{name:"THE HYPE ENGINE",desc:"You make the timeline move. Energy, reach, momentum. You are the algorithm\'s worst nightmare.",test:function(m){return (m.followers_total||0)>=200000;}}\n  };\n  function dbAll(){var a=[];try{if(window.PF){a=PF.slrAll?PF.slrAll():(PF.ROSTER||[]);}}catch(e){}return a||[];}\n  function dbLabel(m){var h="";try{h=(m.handles&&(m.handles.primary||m.handles.tiktok||""))||"";}catch(e){}return m.name+(h?" ("+h+")":"");}\n  function dbMates(A){var all=dbAll(),out=[],i;\n    var ranked=all.filter(function(m){try{return A.test(m);}catch(e){return false;}}).sort(function(a,b){return (b.propaganda_score||0)-(a.propaganda_score||0);});\n    for(i=0;i<ranked.length&&out.length<4;i++){out.push(ranked[i]);}\n    if(out.length<4){var rest=all.filter(function(m){return out.indexOf(m)<0;}).sort(function(a,b){return (b.propaganda_score||0)-(a.propaganda_score||0);});\n    for(i=0;i<rest.length&&out.length<4;i++){out.push(rest[i]);}}\n    return out.map(function(m){return {s:m.slug,label:dbLabel(m)};});}\n  var QS=[\n    {q:"Pick your weapon.",a:[["Memes",["meme",2],["hype",1]],["Sourced mega-threads",["sniper",2],["agitator",1]],["Street organizing",["organizer",2],["agitator",1]],["Livestreams and debates",["hype",2],["sniper",1]],["Wheatpaste and posters",["meme",1],["organizer",1]]]},\n    {q:"It is Friday night. You are...",a:[["Ratioing a senator",["agitator",2],["sniper",1]],["Editing video until 3am",["meme",2],["hype",1]],["At the mutual-aid distro",["organizer",2],["meme",1]],["Reading primary sources",["sniper",2],["organizer",1]],["Holding down the group chat",["hype",2],["agitator",1]]]},\n    {q:"Billionaires fear you most when you...",a:[["Name names, loudly",["agitator",2],["hype",1]],["Turn them into a meme",["meme",2],["agitator",1]],["Build what they cannot buy",["organizer",2],["sniper",1]],["Publish the receipts",["sniper",2],["meme",1]],["Mobilize 10,000 people",["hype",2],["organizer",1]]]},\n    {q:"Pick a battlefield.",a:[["The comments section",["agitator",2],["meme",1]],["The group chat",["meme",2],["hype",1]],["The picket line",["organizer",2],["agitator",1]],["The quote-tweet",["sniper",2],["hype",1]],["The For You page",["hype",2],["sniper",1]]]},\n    {q:"Your comrades describe you as...",a:[["Fearless",["agitator",2],["hype",1]],["Funny",["meme",2],["agitator",1]],["Dependable",["organizer",2],["meme",1]],["Rigorous",["sniper",2],["organizer",1]],["Magnetic",["hype",2],["sniper",1]]]}\n  ];\n  /* Daily seed: question + answer order reshuffle every Chicago day. */\n  function hashStr(s){var h=2166136261,i;for(i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}\n  function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}\n  function daySeed(){var n;try{n=window.PF?PF.chiNow():new Date();}catch(e){n=new Date();}return n.getFullYear()+"-"+(n.getMonth()+1)+"-"+n.getDate();}\n  function shuffle(a,rng){var i,j,t;for(i=a.length-1;i>0;i--){j=Math.floor(rng()*(i+1));t=a[i];a[i]=a[j];a[j]=t;}return a;}\n  var QUIZ=(function(){var ds=daySeed();var qs=shuffle(QS.slice(),mulberry32(hashStr("mq:"+ds)));return qs.map(function(q){return {q:q.q,a:shuffle(q.a.slice(),mulberry32(hashStr("mq:"+ds+":"+q.q)))};});})();\n  /* Streak: consecutive Chicago days with a completed quiz. */\n  function getStreak(){try{var s=JSON.parse(localStorage.getItem("pf_mq_streak_v1")||"null");if(s&&typeof s.n==="number")return s;}catch(e){}return {last:"",n:0};}\n  function bumpStreak(){var s=getStreak(),t=daySeed();if(s.last===t)return s.n;var y;try{y=window.PF?PF.chiNow():new Date();}catch(e){y=new Date();}y=new Date(y.getTime()-86400000);var ys=y.getFullYear()+"-"+(y.getMonth()+1)+"-"+y.getDate();s.n=(s.last===ys)?s.n+1:1;s.last=t;try{localStorage.setItem("pf_mq_streak_v1",JSON.stringify(s));}catch(e){}return s.n;}\n  /* Tribe counts: quiz_tribes over the trailing 7 days, cached 6h. */\n  var API=(window.PF_BACKEND_URL||"https://pf-api.mtcstw.workers.dev");\n  var TRIBES=null;\n  function loadTribes(cb){var done=function(){if(cb)cb();};\n    try{var c=JSON.parse(localStorage.getItem("pf_mq_tribes_v1")||"null");if(c&&Date.now()-c.at<6*3600000){TRIBES=c.d;done();return;}}catch(e){}\n    var name="pfMqT"+Date.now(),fired=false;\n    window[name]=function(d){if(fired)return;fired=true;try{delete window[name];}catch(e){}var s=document.getElementById(name);if(s&&s.parentNode)s.parentNode.removeChild(s);if(d&&d.tribes){TRIBES=d.tribes;try{localStorage.setItem("pf_mq_tribes_v1",JSON.stringify({at:Date.now(),d:d.tribes}));}catch(e){}}done();};\n    try{var scr=document.createElement("script");scr.id=name;scr.src=API+"?callback="+name+"&action=quiz_tribes";scr.onerror=function(){if(!fired){fired=true;done();}};(document.head||document.documentElement).appendChild(scr);}catch(e){if(!fired){fired=true;done();}}\n    setTimeout(function(){if(!fired){fired=true;done();}},10000);}\n  var body=document.getElementById("pf-mq-body"),qi=0,scores={agitator:0,meme:0,organizer:0,sniper:0,hype:0};\n  function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}\n  function renderStart(){\n    var st=getStreak();\n    var h="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\'>DAILY MATCHUP</div>"\n      +(st.n>0?"<div style=\'margin:0.5rem 0;font-size:0.95rem;\'>&#128293; <b>"+st.n+"-day streak</b> \\u2014 fresh shuffle every day, keep it burning</div>"\n        :"<div style=\'margin:0.5rem 0;font-size:0.9rem;color:#b8ab8e;\'>New question shuffle every day. Play daily, build a streak.</div>")\n      +"<div id=\'pf-mq-tribes\' style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:1rem;min-height:1.2em;\'></div>"\n      +"<button id=\'pf-mq-start\' style=\'padding:0.8rem 2.2rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:900;font-size:1rem;letter-spacing:0.1em;cursor:pointer;font-family:inherit;\'>START</button>";\n    body.innerHTML=h;\n    document.getElementById("pf-mq-start").onclick=function(){qi=0;scores={agitator:0,meme:0,organizer:0,sniper:0,hype:0};renderQ();};\n    loadTribes(function(){var t=document.getElementById("pf-mq-tribes");if(!t)return;\n      if(!TRIBES){return;}\n      var tot=0,bk="",bn=-1,k;for(k in TRIBES){if(k==="unknown")continue;tot+=Number(TRIBES[k])||0;if((Number(TRIBES[k])||0)>bn){bn=Number(TRIBES[k])||0;bk=k;}}\n      if(tot>0&&ARCH[bk])t.innerHTML="<b style=\'color:#f5f0e1;\'>"+tot.toLocaleString()+"</b> comrades matched this week \\u2014 biggest tribe: <b style=\'color:#f5f0e1;\'>"+ARCH[bk].name+"</b> ("+bn.toLocaleString()+")";});\n  }\n  /* SLIM: compact homepage card — the full quiz lives on /arcade. */\n  function renderCompact(){\n    var st=getStreak();\n    var h="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\'>DAILY MATCHUP</div>"\n      +(st.n>0?"<div style=\'margin:0.5rem 0;font-size:0.95rem;\'>&#128293; <b>"+st.n+"-day streak</b> \\u2014 keep it burning</div>"\n        :"<div style=\'margin:0.5rem 0;font-size:0.9rem;color:#b8ab8e;\'>New question shuffle every day. Play daily, build a streak.</div>")\n      +"<div id=\'pf-mq-tribes\' style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:1rem;min-height:1.2em;\'>Loading today\\u2019s tribes\\u2026</div>"\n      +"<a href=\'/arcade\' style=\'display:inline-block;padding:0.8rem 2.2rem;background:#c1121f;color:#f5f0e1;font-weight:900;font-size:1rem;letter-spacing:0.1em;text-decoration:none;\'>PLAY THE QUIZ \\u2192</a>";\n    body.innerHTML=h;\n    loadTribes(function(){var t=document.getElementById("pf-mq-tribes");if(!t)return;\n      if(!TRIBES){t.innerHTML="The tribes are quiet today \\u2014 be the first to play.";return;}\n      var tot=0,bk="",bn=-1,k;for(k in TRIBES){if(k==="unknown")continue;tot+=Number(TRIBES[k])||0;if((Number(TRIBES[k])||0)>bn){bn=Number(TRIBES[k])||0;bk=k;}}\n      if(tot>0&&ARCH[bk])t.innerHTML="<b style=\'color:#f5f0e1;\'>"+tot.toLocaleString()+"</b> comrades matched this week \\u2014 biggest tribe: <b style=\'color:#f5f0e1;\'>"+ARCH[bk].name+"</b> ("+bn.toLocaleString()+")";});\n  }\n  function renderQ(){\n    var q=QUIZ[qi],h="<div style=\'font-size:1.05rem;font-weight:700;margin-bottom:1rem;color:#f5f0e1;\'>"+(qi+1)+"/5 \\u2014 "+esc(q.q)+"</div>";\n    for(var i=0;i<q.a.length;i++){h+="<button data-mq=\'"+i+"\' style=\'display:block;width:100%;margin:0.4rem 0;padding:0.7rem;background:#141414;border:2px solid #c1121f;color:#f5f0e1;font-size:0.9rem;cursor:pointer;font-family:inherit;\'>"+esc(q.a[i][0])+"</button>";}\n    body.innerHTML=h;\n    var btns=body.querySelectorAll("[data-mq]");\n    for(var j=0;j<btns.length;j++){btns[j].onclick=function(){\n      var opt=q.a[+this.getAttribute("data-mq")];\n      for(var k=1;k<opt.length;k++){scores[opt[k][0]]+=opt[k][1];}\n      qi++;\n      if(qi<QUIZ.length){renderQ();}else{renderR();}\n    };}\n  }\n  function mqLabels(A){var ml=[],i;for(i=0;i<A.mates.length&&i<3;i++){ml.push(A.mates[i].label||A.mates[i]);}return ml;}\n  function mqApplyPoster(A){try{var PS=window.PFShare;if(!PS||!PS.REG||!PS.REG["slr-match-quiz"])return false;var ml=mqLabels(A);PS.REG["slr-match-quiz"]={title:A.name,tag:"YOUR PROPAGANDA ARCHETYPE",lines:["YOUR SLR MATCHES:"].concat(ml),cta:"FIND YOUR MATCH"};return true;}catch(e){return false;}}\n  function mqPublish(A){try{localStorage.setItem("pf_mq_result_v1",JSON.stringify({name:A.name,mates:mqLabels(A)}));}catch(e){}mqApplyPoster(A);}\n  function mqRestore(){try{var s=JSON.parse(localStorage.getItem("pf_mq_result_v1")||"null");if(s&&s.name&&s.mates&&s.mates.length){mqApplyPoster({name:s.name,mates:s.mates.map(function(m){return{label:m};})});}}catch(e){}}\n  function renderR(){\n    var top="agitator",tk=-1;\n    for(var k in scores){if(scores[k]>tk){tk=scores[k];top=k;}}\n    var A=ARCH[top];A.mates=dbMates(A);var mh="";\n    for(var i=0;i<Math.min(3,A.mates.length);i++){mh+="<div style=\'padding:0.5rem;border:1px solid #c1121f;margin:0.3rem 0;font-weight:700;\'>"+esc(A.mates[i].label||A.mates[i])+"</div>";}\n    var streakN=bumpStreak();\n    var fourthHtml="<div id=\'pf-mq-fourth\' style=\'margin-top:0.6rem;\'><div style=\'padding:0.7rem;border:2px dashed #c1121f;color:#b8ab8e;font-size:0.85rem;\'>&#128274; <b style=\'color:#f5f0e1;\'>4TH MATCH LOCKED</b><br>Share your archetype card to unlock it.</div></div>";\n    var infHtml="";\n    try{\n      var PFw=window.PF;\n      if(PFw&&typeof PFw.infightNext==="function"){\n        var nx=PFw.infightNext();\n        if(nx&&nx.a&&nx.b){\n          var myIn=null,mi,ms2;\n          for(mi=0;mi<A.mates.length;mi++){ms2=(A.mates[mi].s||"");if(ms2&&ms2===nx.a.slug||ms2&&ms2===nx.b.slug){myIn=A.mates[mi];break;}}\n          infHtml="<div style=\'margin-top:1.2rem;border:2px solid #c1121f;padding:0.8rem;\'>"\n            +"<div style=\'font-size:0.8rem;letter-spacing:0.2em;color:#c1121f;\'>INFIGHTING \\u2014 "+(nx.live?"HAPPENING NOW":"NEXT BATTLE "+nx.clock)+"</div>"\n            +"<div style=\'font-weight:800;margin:0.4rem 0;\'>"+esc(nx.a.name)+" <span style=\'color:#c1121f;\'>VS</span> "+esc(nx.b.name)+"</div>"\n            +(myIn?"<div style=\'font-size:0.85rem;color:#f5f0e1;margin-bottom:0.6rem;\'>Your match <b>"+esc(myIn.label||myIn.s)+"</b> is fighting.</div>"\n              :"<div style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:0.6rem;\'>Your tribe wants blood. Pick a fighter.</div>")\n            +"<button id=\'pf-mq-infight\' style=\'padding:0.6rem 1.4rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>BACK YOUR FIGHTER</button></div>";\n        }\n      }\n    }catch(e){}\n    body.innerHTML="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\'>YOUR ARCHETYPE</div>"\n      +"<div style=\'font-size:1.6rem;font-weight:900;margin:0.4rem 0;\'>"+A.name+"</div>"\n      +"<div style=\'font-size:0.9rem;color:#b8ab8e;margin-bottom:1rem;\'>"+A.desc+"</div>"\n      +"<div id=\'pf-mq-tribe\' style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:0.8rem;min-height:1.2em;\'></div>"\n      +"<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;margin-bottom:0.4rem;\'>YOUR SLR MATCHES</div>"+mh+fourthHtml\n      +"<div style=\'margin-top:1rem;\'><button id=\'pf-mq-share\' style=\'padding:0.7rem 1.6rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>SHARE ARCHETYPE CARD</button></div>"\n      +(streakN>1?"<div style=\'margin-top:0.6rem;font-size:0.85rem;color:#b8ab8e;\'>&#128293; <b style=\'color:#f5f0e1;\'>"+streakN+"-day streak</b> \\u2014 see you tomorrow</div>":"")\n      +infHtml\n      +"<div style=\'margin-top:1.2rem;\'><input id=\'pf-mq-email\' type=\'email\' placeholder=\'Email for dispatch updates\' style=\'padding:0.6rem;width:70%;max-width:280px;background:#141414;border:2px solid #c1121f;color:#f5f0e1;font-family:inherit;\'>"\n      +" <button id=\'pf-mq-join\' style=\'padding:0.6rem 1rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:700;cursor:pointer;font-family:inherit;\'>ENLIST</button></div>"\n      +"<div id=\'pf-mq-msg\' style=\'margin-top:0.6rem;font-size:0.85rem;color:#b8ab8e;min-height:1.2em;\'></div>"\n      +"<div><button id=\'pf-mq-again\' style=\'margin-top:0.8rem;background:none;border:1px solid #b8ab8e;color:#b8ab8e;padding:0.5rem 1rem;cursor:pointer;font-family:inherit;font-size:0.8rem;\'>RETAKE QUIZ</button></div>";\n    try{document.dispatchEvent(new CustomEvent("pf-quiz-done",{detail:{archetype:top}}));}catch(e){}\n    /* M1 dopamine: archetype reveal is the payoff — celebrate it. */\n    try{if(window.PF&&PF.dope){var dq=document.getElementById("pf-matchquiz")||document.body;PF.dope.confetti(dq,50);PF.dope.ping(dq,"ARCHETYPE LOCKED");}}catch(e){}\n    mqPublish(A);\n    loadTribes(function(){var n=TRIBES?Number(TRIBES[top]||0):0;var t=document.getElementById("pf-mq-tribe");if(t&&n>0){t.innerHTML="<b style=\'color:#f5f0e1;\'>"+n.toLocaleString()+"</b> comrades landed <b style=\'color:#f5f0e1;\'>"+A.name+"</b> this week. The tribe grows.";}});\n    var unlocked=false;\n    function unlock4(){if(unlocked)return;unlocked=true;var f=document.getElementById("pf-mq-fourth");if(f&&A.mates[3]){f.innerHTML="<div style=\'padding:0.5rem;border:1px solid #c1121f;margin:0.3rem 0;font-weight:700;background:#1a0d0d;\'>"+esc(A.mates[3].label||A.mates[3])+"</div>";}}\n    function mqShareH(e){try{if(e&&e.detail&&e.detail.game==="slr-match-quiz"){unlock4();document.removeEventListener("pf-share-image",mqShareH);}}catch(err){}}\n    document.addEventListener("pf-share-image",mqShareH);\n    document.getElementById("pf-mq-share").onclick=function(){\n      try{var PS=window.PFShare;if(PS&&PS.poster&&PS.shareImage){var cv=PS.poster("slr-match-quiz");if(cv){PS.shareImage(cv,"slr-archetype.png",A.name+" \\u2014 my propaganda archetype","slr-match-quiz");setTimeout(unlock4,15000);return;}}}catch(e){}\n      unlock4();\n    };\n    var ibf=document.getElementById("pf-mq-infight");\n    if(ibf){ibf.onclick=function(){var t=document.getElementById("pf-infight-root");if(t){try{t.scrollIntoView({behavior:"smooth",block:"start"});}catch(e){t.scrollIntoView();}}};}\n    document.getElementById("pf-mq-join").onclick=function(){\n      var em=(document.getElementById("pf-mq-email").value||"").trim();\n      var msg=document.getElementById("pf-mq-msg");\n      if(!em||em.indexOf("@")<0){msg.textContent="Enter a valid email.";return;}\n      window.location.href="mailto:mtcstw@gmail.com?subject=SLR%20Match%20Quiz%20Enlistment&body="+encodeURIComponent("Archetype: "+A.name+"\\nEmail: "+em);\n      msg.textContent="Opening your mail app \\u2014 welcome to the factory.";\n    };\n    document.getElementById("pf-mq-again").onclick=function(){qi=0;scores={agitator:0,meme:0,organizer:0,sniper:0,hype:0};renderQ();};\n  }\n  if(PF_MODE==="slim"){ renderCompact(); }\n  else { renderStart(); setTimeout(mqRestore,1500); setTimeout(mqRestore,5000); }\n})();\n<\/script>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("infighting")){e.infightHype=function(){try{var e=JSON.parse(localStorage.getItem("pf_infight_hype_v1")||"null");if(e&&e.until>Date.now()&&e.slug)return e}catch(e){}return null},e.infightNext=function(){try{var r;try{r=e.chiNow()}catch(e){r=new Date}var a=r.getMinutes()<30?0:30,i=new Date(r.getTime());i.setMinutes(a,0,0);var o,s=new Date(i.getTime()+6e5);if(r.getTime()>=s.getTime()){var l=new Date(i.getTime()+18e5);o={live:!1,start:l,end:new Date(l.getTime()+6e5),id:t(l)}}else o={live:!0,start:i,end:s,id:t(i)};var c=[];try{c=e.slrAll?e.slrAll():e.ROSTER||[]}catch(e){}if(c.length<2)return null;var d=function(e){return function(){e=1831565813+(e|=0)|0;var n=Math.imul(e^e>>>15,1|e);return(((n=n+Math.imul(n^n>>>7,61|n)^n)^n>>>14)>>>0)/4294967296}}(function(e){for(var n=2166136261,t=0;t<e.length;t++)n^=e.charCodeAt(t),n=Math.imul(n,16777619);return n>>>0}("infight:"+o.id)),f=c.length,u=Math.floor(d()*f),p=Math.floor(d()*f);p===u&&(p=(p+1+Math.floor(d()*(f-1)))%f);var m=Math.max(0,(o.live?o.end:o.start).getTime()-r.getTime());return{id:o.id,live:o.live,clock:n(Math.floor(m/6e4))+":"+n(Math.floor(m%6e4/1e3)),a:{name:c[u].name,slug:c[u].slug},b:{name:c[p].name,slug:c[p].slug}}}catch(e){return null}},e.holder().insertAdjacentHTML("beforeend","<template id=\"pf-ov-infight\">\n<div class=\"fe-block pf-override-block\" id=\"pf-infight-root\"></div>\n<script>\n(function(){\n'use strict';\nvar API=(window.PF_BACKEND_URL||'https://pf-api.mtcstw.workers.dev');\nvar LS_R='pf_ranks_v1',LS_I='pf_identity_v1';\nvar LS_OPS='pf_infight_ops_v1',LS_SPENT='pf_infight_spent_v1',LS_SEEN='pf_infight_seen_v1',LS_LAST='pf_infight_last_v1';\nvar BATTLE_MIN=10,SLOT_MIN=30,CAP=200,AMMO_OP=25,AMMO_SHARE=15;\nfunction chiNow(){try{return PF.chiNow();}catch(e){return new Date();}}\nfunction pad(n){return (n<10?'0':'')+n;}\nfunction esc(s){return String(s==null?'':s).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[c];});}\nfunction hashStr(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}\nfunction mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}\nfunction dbAll(){try{return PF.slrAll?PF.slrAll():(PF.ROSTER||[]);}catch(e){return[];}}\nfunction xp(){try{return Number(JSON.parse(localStorage.getItem(LS_R)||'{\"xp\":0}').xp)||0;}catch(e){return 0;}}\nfunction callsign(){try{return String(JSON.parse(localStorage.getItem(LS_I)||'{}').callsign||'').toLowerCase();}catch(e){return '';}}\nfunction apiGet(params,cb,timeoutMs){\n  /* P0 (2026-10-02): infight_fire is POST-only (was CSRF-able via GET). */\n  if(params && params.action==='infight_fire' && window.PF && PF.postAction){\n    PF.postAction('stats','s_action','infight_fire',\n      {callsign:params.callsign,round:params.round,slug:params.slug,amt:params.amt},cb);\n    return;\n  }\n  var done=false,name='pfIfCb'+Date.now()+Math.floor(Math.random()*1e6);\n  function fin(v){if(done)return;done=true;try{delete window[name];}catch(e){}var s=document.getElementById(name);if(s&&s.parentNode)s.parentNode.removeChild(s);cb(v);}\n  window[name]=function(d){fin(d);};\n  var q='?callback='+encodeURIComponent(name);\n  for(var k in params){if(params.hasOwnProperty(k))q+='&'+encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}\n  var scr=document.createElement('script');scr.id=name;scr.src=API+q;\n  scr.onerror=function(){fin(null);};\n  (document.head||document.documentElement).appendChild(scr);\n  setTimeout(function(){fin(null);},timeoutMs||12000);\n}\nfunction dispatch(name,detail){try{document.dispatchEvent(new CustomEvent(name,{detail:detail||{}}));}catch(e){}}\nfunction roundId(d){return d.getFullYear()+''+pad(d.getMonth()+1)+pad(d.getDate())+'-'+pad(d.getHours())+pad(d.getMinutes());}\nfunction battleWindow(now){\n  var d=new Date(now.getTime());\n  var slotMin=d.getMinutes()<SLOT_MIN?0:SLOT_MIN;\n  var start=new Date(d.getTime());start.setMinutes(slotMin,0,0);\n  var end=new Date(start.getTime()+BATTLE_MIN*60000);\n  if(now.getTime()>=end.getTime()){\n    var ns=new Date(start.getTime()+SLOT_MIN*60000);\n    return {live:false,start:ns,end:new Date(ns.getTime()+BATTLE_MIN*60000),id:roundId(ns)};\n  }\n  return {live:true,start:start,end:end,id:roundId(start)};\n}\nfunction matchup(id,roster){\n  var rng=mulberry32(hashStr('infight:'+id)),n=roster.length;\n  if(n<2)return [null,null];\n  var a=Math.floor(rng()*n),b=Math.floor(rng()*n);\n  if(b===a)b=(b+1+Math.floor(rng()*(n-1)))%n;\n  return [roster[a],roster[b]];\n}\nfunction spentMap(){try{return JSON.parse(localStorage.getItem(LS_SPENT)||'{}');}catch(e){return{};}}\nfunction spentThisRound(id){return Number(spentMap()[id]||0);}\nfunction addSpent(id,amt){try{var m=spentMap();m[id]=(Number(m[id])||0)+amt;localStorage.setItem(LS_SPENT,JSON.stringify(m));}catch(e){}}\nfunction opsState(id){try{var o=JSON.parse(localStorage.getItem(LS_OPS)||'{}');return o[id]||{};}catch(e){return{};}}\nfunction markOp(id,key){try{var o=JSON.parse(localStorage.getItem(LS_OPS)||'{}');o[id]=o[id]||{};o[id][key]=1;localStorage.setItem(LS_OPS,JSON.stringify(o));}catch(e){}}\nvar root=document.getElementById('pf-infight-root');\nif(!root)return;\nvar cur=null,fighters=[null,null],totals={},pending={},side=0,pollTimer=null,lastRound='';\nfunction fmtClock(ms){if(ms<0)ms=0;var s=Math.floor(ms/1000),m=Math.floor(s/60);s=s%60;return pad(m)+':'+pad(s);}\nfunction fighterCard(f,idx,total,maxTotal){\n  var pct=maxTotal>0?Math.round(total/maxTotal*100):0;\n  var sel=side===idx?'outline:3px solid #e10600;':'';\n  var pic=f&&f.picture?'<img src=\"'+esc(f.picture)+'\" alt=\"'+esc(f.name)+'\" loading=\"lazy\" style=\"width:100%;height:150px;object-fit:cover;display:block;background:#1a1a1a;\">':'';\n  return '<div data-if-side=\"'+idx+'\" style=\"flex:1;min-width:0;background:#141414;border:1px solid #333;cursor:pointer;'+sel+'\">'+pic+\n    '<div style=\"padding:10px;\">'+\n    '<div style=\"font-weight:800;font-size:15px;line-height:1.2;\">'+esc(f?f.name:'?')+'</div>'+\n    '<div style=\"color:#999;font-size:12px;margin:4px 0 8px;\">FIRE: <b style=\"color:#fff;\" data-if-total=\"'+idx+'\">'+total.toLocaleString()+'</b></div>'+\n    '<div style=\"height:10px;background:#2a2a2a;\"><div data-if-bar=\"'+idx+'\" style=\"height:10px;background:#e10600;width:'+pct+'%;transition:width .6s;\"></div></div>'+\n    '<div style=\"margin-top:8px;font-size:12px;color:#e10600;font-weight:800;\">'+(side===idx?'▲ YOUR FIGHTER':'TAP TO BACK')+'</div>'+\n    '</div></div>';\n}\nfunction render(){\n  var now=chiNow(),w=battleWindow(now),roster=dbAll();\n  if(!roster.length)return;\n  cur=w;\n  var mm=matchup(w.id,roster);\n  fighters=mm;totals={};pending={};\n  if(lastRound&&lastRound!==w.id){settleLastBattle(lastRound,roster);}\n  lastRound=w.id;\n  try{localStorage.setItem(LS_SEEN,w.id);}catch(e){}\n  if(w.live)startPoll();else stopPoll();\n  paint(w);\n}\nfunction paint(w){\n  if(!fighters[0]||!fighters[1])return;\n  var now=chiNow();\n  var msLeft=(w.live?w.end:w.start).getTime()-now.getTime();\n  var tA=(totals[fighters[0].slug]||0)+(pending[fighters[0].slug]||0);\n  var tB=(totals[fighters[1].slug]||0)+(pending[fighters[1].slug]||0);\n  var maxT=Math.max(tA,tB,1);\n  var ops=opsState(w.id),spent=spentThisRound(w.id);\n  var badge=w.live\n    ?'<span style=\"background:#e10600;color:#fff;font-weight:800;font-size:12px;padding:3px 10px;\">● LIVE <span data-if-clock>'+fmtClock(msLeft)+'</span></span>'\n    :'<span style=\"background:#333;color:#fff;font-weight:800;font-size:12px;padding:3px 10px;\">NEXT BATTLE <span data-if-clock>'+fmtClock(msLeft)+'</span></span>';\n  var lastLine='';\n  try{var lr=JSON.parse(localStorage.getItem(LS_LAST)||'null');\n    if(lr&&lr.a)lastLine='<div style=\"font-size:12px;color:#999;margin-top:10px;\">Last battle: <b style=\"color:#fff;\">'+esc(lr.winner)+'</b> beat '+esc(lr.loser)+' '+lr.wa.toLocaleString()+'–'+lr.wb.toLocaleString()+'</div>';\n  }catch(e){}\n  var fireCtl=w.live\n    ?'<div style=\"display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap;\">'+\n     '<span style=\"font-size:12px;color:#999;\">YOUR XP: <b style=\"color:#fff;\" data-if-xp>'+xp().toLocaleString()+'</b></span>'+\n     [5,25,50].map(function(n){return '<button data-if-fire=\"'+n+'\" style=\"background:#e10600;color:#fff;border:0;font-weight:800;padding:8px 14px;cursor:pointer;\">FIRE +'+n+'</button>';}).join('')+\n     '<span style=\"font-size:11px;color:#777;\">cap '+(CAP-spent)+' left this battle</span></div>'\n    :'<div style=\"font-size:13px;color:#999;margin-top:10px;\">Stack XP in the games above — the next battle starts soon.</div>';\n  var opsHtml='';\n  if(w.live){\n    var opBtn=function(key,done){\n      return done\n        ?'<span style=\"font-size:12px;color:#4caf50;font-weight:800;\">✓ CHECKED IN</span>'\n        :'<button data-if-op=\"'+key+'\" style=\"background:#222;color:#fff;border:1px solid #e10600;font-weight:800;padding:6px 12px;cursor:pointer;font-size:12px;\">CHECK IN +'+AMMO_OP+' AMMO</button>';\n    };\n    opsHtml='<div style=\"margin-top:12px;border-top:1px solid #333;padding-top:10px;\">'+\n      '<div style=\"font-weight:800;font-size:13px;margin-bottom:8px;\">⚡ FIELD OPS <span style=\"color:#999;font-weight:400;\">— go off-site, come back loaded</span></div>'+\n      '<div style=\"font-size:12px;color:#ccc;margin-bottom:6px;\">Go like + comment on <b>'+esc(fighters[0].name)+'</b>’s latest post, then check in: '+opBtn('opA',ops.opA)+'</div>'+\n      '<div style=\"font-size:12px;color:#ccc;margin-bottom:6px;\">Go like + comment on <b>'+esc(fighters[1].name)+'</b>’s latest post, then check in: '+opBtn('opB',ops.opB)+'</div>'+\n      '<div style=\"font-size:12px;color:#ccc;\">'+(ops.share?'<span style=\"font-size:12px;color:#4caf50;font-weight:800;\">✓ SHARED</span>':'<button data-if-op=\"share\" style=\"background:#222;color:#fff;border:1px solid #e10600;font-weight:800;padding:6px 12px;cursor:pointer;font-size:12px;\">SHARE BATTLE +'+AMMO_SHARE+' AMMO</button>')+' <span style=\"color:#777;\">ammo fires for your picked fighter</span></div>'+\n      '</div>';\n  }\n  root.innerHTML=\n    '<div style=\"background:#0a0a0a;border:2px solid #e10600;padding:14px;font-family:inherit;color:#fff;\">'+\n    '<div style=\"display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;\">'+\n    '<div style=\"font-weight:900;font-size:18px;letter-spacing:1px;\">INFIGHTING</div>'+badge+'</div>'+\n    '<div style=\"display:flex;gap:10px;\">'+fighterCard(fighters[0],0,tA,maxT)+fighterCard(fighters[1],1,tB,maxT)+'</div>'+\n    fireCtl+opsHtml+lastLine+\n    '<div style=\"font-size:11px;color:#666;margin-top:10px;\">Winner takes a 24h +0.2 HYPE bump on their displayed score (never above 9.8). Boost only — no attack moves, this is family.</div>'+\n    '</div>';\n  bind();\n}\nfunction bind(){\n  var cards=root.querySelectorAll('[data-if-side]');\n  for(var i=0;i<cards.length;i++){(function(el){el.onclick=function(){side=Number(el.getAttribute('data-if-side'));paint(cur);};})(cards[i]);}\n  var fires=root.querySelectorAll('[data-if-fire]');\n  for(var j=0;j<fires.length;j++){(function(el){el.onclick=function(){doFire(side,Number(el.getAttribute('data-if-fire')));};})(fires[j]);}\n  var ops=root.querySelectorAll('[data-if-op]');\n  for(var k=0;k<ops.length;k++){(function(el){el.onclick=function(){doOp(el.getAttribute('data-if-op'));};})(ops[k]);}\n}\nfunction doFire(idx,amt){\n  if(!cur||!cur.live||!fighters[idx])return;\n  var f=fighters[idx];\n  var room=CAP-spentThisRound(cur.id);\n  amt=Math.min(amt,room);\n  var bal=xp();\n  if(amt>bal)amt=bal;\n  if(amt<=0){flashXp();return;}\n  /* Spend from the shared local ledger (backend settles via infight_fire). */\n  try{ if(window.PF&&PF.debitLocal) PF.debitLocal(null,amt); }catch(e){}\n  addSpent(cur.id,amt);\n  pending[f.slug]=(pending[f.slug]||0)+amt;\n  apiGet({action:'infight_fire',round:cur.id,slug:f.slug,amt:amt,callsign:callsign()},function(){pollTotals();});\n  dispatch('pf-infight-fire',{slug:f.slug,amt:amt,round:cur.id});\n  updateBars();\n  /* M1 dopamine: firing ammo should feel like firing ammo. */\n  try{ if(window.PF&&PF.dope){ PF.dope.xpFloat(root,'+'+amt+' FIRE'); } }catch(e){}\n  var x=root.querySelector('[data-if-xp]');if(x)x.textContent=xp().toLocaleString();\n}\nfunction doOp(key){\n  if(!cur||!cur.live)return;\n  var ops=opsState(cur.id);\n  if(ops[key])return;\n  var slug,amt;\n  if(key==='opA'){slug=fighters[0].slug;amt=AMMO_OP;}\n  else if(key==='opB'){slug=fighters[1].slug;amt=AMMO_OP;}\n  else{\n    slug=fighters[side].slug;amt=AMMO_SHARE;\n    var url='https://www.mtcstw.com/?infight='+encodeURIComponent(cur.id);\n    var done=function(){grantOp(key,slug,amt);};\n    if(navigator.share){navigator.share({title:'INFIGHTING',text:'Back '+fighters[side].name+' in the Infighting battle — fire your XP!',url:url}).then(done,done);}\n    else{try{navigator.clipboard.writeText(url);}catch(e){}done();}\n    return;\n  }\n  grantOp(key,slug,amt);\n}\nfunction grantOp(key,slug,amt){\n  var room=CAP-spentThisRound(cur.id);\n  amt=Math.min(amt,room);\n  markOp(cur.id,key);\n  if(amt>0){\n    addSpent(cur.id,amt);\n    pending[slug]=(pending[slug]||0)+amt;\n    apiGet({action:'infight_fire',round:cur.id,slug:slug,amt:amt,callsign:callsign()},function(){pollTotals();});\n    dispatch('pf-infight-fire',{slug:slug,amt:amt,round:cur.id,op:key});\n  }\n  updateBars();\n}\nfunction flashXp(){\n  var x=root.querySelector('[data-if-xp]');\n  if(x){x.style.color='#e10600';setTimeout(function(){x.style.color='#fff';},600);}\n}\nfunction pollTotals(){\n  if(!cur||!cur.live)return;\n  try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){}\n  apiGet({action:'infight_totals',round:cur.id},function(j){\n    if(j&&j.ok&&j.round===cur.id&&j.totals){totals=j.totals;pending={};updateBars();}\n  },8000);\n}\nfunction updateBars(){\n  if(!fighters[0])return;\n  var tA=(totals[fighters[0].slug]||0)+(pending[fighters[0].slug]||0);\n  var tB=(totals[fighters[1].slug]||0)+(pending[fighters[1].slug]||0);\n  var maxT=Math.max(tA,tB,1);\n  [[0,tA],[1,tB]].forEach(function(p){\n    var t=root.querySelector('[data-if-total=\"'+p[0]+'\"]');\n    var b=root.querySelector('[data-if-bar=\"'+p[0]+'\"]');\n    if(t)t.textContent=p[1].toLocaleString();\n    if(b)b.style.width=Math.round(p[1]/maxT*100)+'%';\n  });\n  var x=root.querySelector('[data-if-xp]');\n  if(x)x.textContent=xp().toLocaleString();\n}\nfunction startPoll(){stopPoll();pollTotals();pollTimer=setInterval(pollTotals,10000);}\nfunction stopPoll(){if(pollTimer){clearInterval(pollTimer);pollTimer=null;}}\nfunction settleLastBattle(prevId,roster){\n  var mm=matchup(prevId,roster);\n  if(!mm[0]||!mm[1])return;\n  apiGet({action:'infight_totals',round:prevId},function(j){\n    if(j&&j.ok&&j.totals){\n      var a=Number(j.totals[mm[0].slug]||0),b=Number(j.totals[mm[1].slug]||0);\n      if(a!==b){\n        var w=a>b?mm[0]:mm[1],l=a>b?mm[1]:mm[0];\n        try{\n          localStorage.setItem('pf_infight_hype_v1',JSON.stringify({slug:w.slug,until:Date.now()+86400000,round:prevId}));\n          localStorage.setItem(LS_LAST,JSON.stringify({winner:w.name,loser:l.name,wa:Math.max(a,b),wb:Math.min(a,b),a:1}));\n        }catch(e){}\n        dispatch('pf-infight',{winner:w.slug,round:prevId});\n        /* New hype record: tell the paint owner (efficiency.js) to re-check. */\n        dispatch('pf-hype',{slug:w.slug,round:prevId});\n      }\n    }\n  },8000);\n}\n/* Display modes (2026-10-03 homepage slimming): slim live-status strip on the\n   homepage (pf-v2) — countdown + matchup only; the full arena on /arcade\n   (pf-arcade). Template id unchanged. Both modes carry loading/error states. */\nvar SLIM=(function(){try{if(document.getElementById('pf-arcade')||document.getElementById('pf-cells-page'))return false;}catch(e){}return true;})();\nvar stripW=null;\nfunction renderStrip(){\n  var roster=dbAll();\n  if(!roster||roster.length<2){\n    root.innerHTML=\n      '<div style=\"background:#0a0a0a;border:2px solid #e10600;padding:14px;font-family:inherit;color:#fff;\">'+\n      '<div style=\"font-weight:900;font-size:16px;letter-spacing:1px;\">INFIGHTING</div>'+\n      '<div style=\"font-size:13px;color:#999;margin-top:8px;\" data-if-stripmsg>Loading the battle…</div></div>';\n    var tries=0;\n    var iv=setInterval(function(){\n      tries++;\n      var r=dbAll();\n      if(r&&r.length>=2){ clearInterval(iv); paintStrip(); }\n      else if(tries>=15){\n        clearInterval(iv);\n        var m=root.querySelector('[data-if-stripmsg]');\n        if(m) m.innerHTML='The battle feed went dark. <button data-if-stripretry style=\"background:#e10600;color:#fff;border:0;font-weight:800;padding:6px 12px;cursor:pointer;\">RETRY</button>';\n        var b=root.querySelector('[data-if-stripretry]');\n        if(b) b.onclick=function(){ renderStrip(); };\n      }\n    },2000);\n    return;\n  }\n  paintStrip();\n}\nfunction paintStrip(){\n  var now=chiNow(),w=battleWindow(now),roster=dbAll();\n  var mm=matchup(w.id,roster);\n  if(!mm[0]||!mm[1]) return;\n  stripW=w;\n  var msLeft=(w.live?w.end:w.start).getTime()-now.getTime();\n  var badge=w.live\n    ?'<span style=\"background:#e10600;color:#fff;font-weight:800;font-size:12px;padding:3px 10px;\">● LIVE <span data-if-clock>'+fmtClock(msLeft)+'</span></span>'\n    :'<span style=\"background:#333;color:#fff;font-weight:800;font-size:12px;padding:3px 10px;\">NEXT BATTLE <span data-if-clock>'+fmtClock(msLeft)+'</span></span>';\n  root.innerHTML=\n    '<div style=\"background:#0a0a0a;border:2px solid #e10600;padding:14px;font-family:inherit;color:#fff;\">'+\n    '<div style=\"display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;\">'+\n    '<div style=\"font-weight:900;font-size:16px;letter-spacing:1px;\">INFIGHTING</div>'+badge+'</div>'+\n    '<div style=\"font-weight:800;font-size:15px;line-height:1.3;\">'+esc(mm[0].name)+' <span style=\"color:#e10600;\">VS</span> '+esc(mm[1].name)+'</div>'+\n    '<div style=\"margin-top:10px;\"><a href=\"/arcade\" style=\"display:inline-block;background:#e10600;color:#fff;font-weight:800;padding:8px 18px;text-decoration:none;\">ENTER THE ARENA →</a></div>'+\n    '</div>';\n}\nfunction stripTick(){\n  try{\n    var w=battleWindow(chiNow());\n    if(!stripW||w.id!==stripW.id){ paintStrip(); return; }\n    var msLeft=(w.live?w.end:w.start).getTime()-chiNow().getTime();\n    var c=root.querySelector('[data-if-clock]');\n    if(c) c.textContent=fmtClock(msLeft);\n  }catch(e){}\n}\nfunction arenaTick(){\n  var w=battleWindow(chiNow());\n  if(w.id!==lastRound){render();}\n  else{\n    var now=chiNow(),msLeft=(w.live?w.end:w.start).getTime()-now.getTime();\n    var c=root.querySelector('[data-if-clock]');\n    if(c)c.textContent=fmtClock(msLeft);\n    if(cur)cur.live=w.live;\n  }\n}\nif(SLIM){ renderStrip(); setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} stripTick(); },1000); }\nelse{ render(); setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} arenaTick(); },1000); }\n})();\n<\/script>\n</template>")}function n(e){return(e<10?"0":"")+e}function t(e){return e.getFullYear()+""+n(e.getMonth()+1)+n(e.getDate())+"-"+n(e.getHours())+n(e.getMinutes())}}(),function(){"use strict";var e=window.PF;e&&!e.skip("cells")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-cells">\n<div class="fe-block pf-override-block" id="pf-cells">\n<h2>Build Your Cell</h2>\n<div class="c-tag">Five callsigns. One streak. Nobody gets left behind.</div>\n<div id="cBody"><div class="c-load">Raising the cell network&hellip;</div></div>\n<div class="c-boardwrap"><h3>Cell leaderboard &mdash; this week</h3><div id="cBoard"><div class="c-load">Loading&hellip;</div></div></div>\n</div>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nvar LS_C="pf_cells_v1";\nvar BOUNTY_FALLBACK=25;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction load(k,fb){ try{ return JSON.parse(localStorage.getItem(k)||JSON.stringify(fb)); }catch(e){ return fb; } }\nfunction save(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}\n  /* Fallback only if core hasn\'t loaded yet — matches PF.toast styling. */\n  try{ var t=document.createElement("div"); t.textContent=m;\n  t.style.cssText="position:fixed;left:50%;bottom:8%;transform:translateX(-50%);background:#0a0a0a;color:#f5f0e1;font:bold 15px monospace;padding:12px 22px;border:2px solid #c1121f;z-index:99999;max-width:90vw;text-align:center;box-sizing:border-box";\n  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }\n/* JSONP, same pattern as the other games. 12s timeout: a hung Apps Script\n   request must never wedge the section on its loading text. */\n/* P0 (2026-10-02): cell mutations are POST-only (CSRF-able via GET).\n   Route them through the POST helper; read-only actions stay on JSONP. */\nvar POST_CELL_ACTIONS = {cell_create:1,cell_join:1,cell_checkin:1,cell_cover:1,cell_leave:1,cell_rename:1,cell_bounty_claim:1};\nfunction api(action,params,cb){\n  if(POST_CELL_ACTIONS[action]){\n    if(window.PF && PF.postAction){ PF.postAction(\'cell\',\'cell_action\',action,params,cb); return; }\n    post(\'cell\',\'cell_action\',action,params,cb); return;\n  }\n  if(!BACKEND){ cb(null); return; }\n  /* Private reads require auth_secret (IDOR fix). Route cell_mine through\n     the shared claim-retry GET (2026-10-03): pre-auth callsign holders get\n     one auth_claim attempt instead of \'missing credentials\' forever. */\n  if(action==="cell_mine"){\n    try{\n      if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }\n      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";\n      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;\n    }catch(e){}\n  }\n  /* Callback nonce: crypto-random where available (invite codes themselves\n     are issued server-side by cell_create; this is just the JSONP name). */\n  var _cr=new Uint32Array(1);\n  try{ if(window.crypto&&crypto.getRandomValues) crypto.getRandomValues(_cr); else _cr[0]=Math.floor(Math.random()*4294967295); }catch(e){ _cr[0]=Math.floor(Math.random()*4294967295); }\n  var fn="pfCellCb"+_cr[0];\n  var s=document.createElement("script");\n  var done=false, timer=null;\n  function finish(j){\n    if(done) return; done=true;\n    if(timer){ clearTimeout(timer); timer=null; }\n    window[fn]=function(){};\n    try{ delete window[fn]; }catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s);\n    cb(j);\n  }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  timer=setTimeout(function(){ finish(null); },12000);\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn;\n  s.src=BACKEND+q;\n  document.head.appendChild(s);\n}\n/* CORS POST for POST_ONLY actions (cell_promote, challenge_join). */\nfunction post(type,actionKey,action,params,cb){\n  var body=Object.assign({type:type},params||{});\n  body[actionKey]=action;\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }\n  var bodyStr=JSON.stringify(body);\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */\n    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;\n      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}\n      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();\n    fetch(BACKEND,_po)\n      .then(function(r){ return r.json(); })\n      .then(function(j){ _po._pfClear(); done(j); })\n      .catch(function(){ _po._pfClear(); done(null); });\n  }catch(e){ done(null); }\n}\n/* Cached multiplier for Daily Orders. Refreshes in the background when stale. */\nfunction cache(){ return load(LS_C,{mult:1,cell_id:"",name:"",t:0}); }\nwindow.pfCellMult=function(){\n  var c=cache();\n  if(Date.now()-c.t>15*60*1000){ try{ refresh(true); }catch(e){} }\n  return c.mult||1;\n};\nfunction setCache(mult,cell_id,name){ save(LS_C,{mult:mult||1,cell_id:cell_id||"",name:name||"",t:Date.now()}); }\n\nvar state=null, board=null, busy=false, netFailed=false;\n/* Display modes (2026-10-03 homepage slimming): full management depth on\n   /cells (pf-cells-page) and /arcade (pf-arcade); slim on the homepage\n   (pf-v2) — pitch + join form + leaderboard teaser + check-in. */\nvar PF_MODE=(function(){ try{\n  if(document.getElementById(\'pf-arcade\')||document.getElementById(\'pf-cells-page\')) return \'full\';\n}catch(e){} return \'slim\'; })();\nvar SLIM=PF_MODE===\'slim\';\nfunction refresh(quiet){\n  var id=ident();\n  if(!id.callsign){ renderGate(); return; }\n  if(busy) return; busy=true; netFailed=false;\n  api("cell_mine",{callsign:id.callsign,device:id.device},function(j){\n    busy=false;\n    if(!j){\n      netFailed=true;\n      if(!quiet){ renderNetErr(); }\n      else if(state){ render(); }\n      return;\n    }\n    state=j;\n    if(j.in_cell&&j.cell){ setCache(j.cell.mult,j.cell.id,j.cell.name); }\n    claimBounties(j);\n    /* CHAINLINK: 2+ cells wired -> weekly bridge bonus via the ledger. */\n    try{\n      var nCells=(j.cells&&j.cells.length)||0;\n      if(nCells>=2){\n        var _d=new Date(),_o=new Date(_d.getFullYear(),0,1);\n        var _wk=_d.getFullYear()+"-W"+Math.ceil((((_d-_o)/86400000)+_o.getDay()+1)/7);\n        document.dispatchEvent(new CustomEvent("pf-chainlink",{detail:{cells:nCells,week:_wk}}));\n      }\n    }catch(e){}\n    render();\n  });\n}\n/* The section is never allowed to die on its loading text: a failed\n   request renders an explicit error panel with a retry. */\nfunction renderNetErr(){\n  var el=document.getElementById("cBody");\n  if(!el) return;\n  el.innerHTML=\'<div class="c-neterr">The cell network is slow to answer. Your callsign is fine &mdash; the wire is not.\'+\n    \'<br><button class="c-btn" id="cRetry">Retry connection</button></div>\';\n  document.getElementById("cRetry").onclick=function(){ refresh(); };\n}\n/* Recruit bounty: +25 XP per claimed recruit, exactly once each. */\nfunction claimBounties(j){\n  var pend=(j&&j.bounties_pending)||[];\n  if(!pend.length) return;\n  var id=ident();\n  api("cell_bounty_claim",{callsign:id.callsign,device:id.device},function(r){\n    if(!r||!r.ok||!r.claimed||!r.claimed.length) return;\n    var n=0, each=r.xp_each||BOUNTY_FALLBACK;\n    r.claimed.forEach(function(b){\n      var key="cell_bounty_"+b.from+"_"+b.day;\n      /* The shared ledger owns idempotency now (exactly-once per key).\n         Backend already granted this XP in cell_bounty_claim (xpGrant with\n         key cellbounty_<cell>_<recruit>). Local ledger update is for instant\n         UX only — do NOT dispatch pf-xp or the backend gets it twice. */\n      var credited=false;\n      try{ credited=(window.PF&&PF.creditLocal)?PF.creditLocal(key,each):false; }catch(e){}\n      if(credited) n++;\n    });\n    if(n>0){ toast("+"+(n*each)+" XP — recruit bounty! Your cell grows."); }\n  });\n}\nfunction loadBoard(){\n  api("cell_leaderboard",{},function(j){\n    board=j;\n    var el=document.getElementById("cBoard");\n    if(!el) return;\n    if(!j||!j.cells||!j.cells.length){ el.innerHTML=\'<div class="c-empty">No cells on the board yet. The first founder&rsquo;s name goes here.</div>\'; return; }\n    /* SLIM: leaderboard teaser — top 3 + link to the full board on /cells. */\n    var rows=SLIM?j.cells.slice(0,3):j.cells;\n    var html=rows.map(function(c,i){\n      var pfl=c.prestige_flame?\' <span class="c-prb" style="margin-left:4px;" title="\'+esc(c.prestige_tier||"")+\' cell">\'+c.prestige_flame+\'</span>\':"";\n      return \'<div class="c-brow\'+(i===0?" c-btop":"")+\'"><span class="c-brank">\'+(i+1)+\'</span>\'+\n        \'<span class="c-bname">\'+esc(c.name)+pfl+\n        (c.verified?\'<span class="c-vfy" title="2+ callsigns strong">&#10003; VERIFIED</span>\':\'\')+\'</span>\'+\n        \'<span class="c-bstat">\'+c.streak+\' streak &middot; \'+c.members+\'/5</span></div>\';\n    }).join("");\n    el.innerHTML=html;\n    if(SLIM){ el.insertAdjacentHTML(\'beforeend\',\'<div class="x-note"><a href="/cells" style="color:#c1121f;">Full cell leaderboard &rarr;</a></div>\'); }\n  });\n}\nfunction renderGate(){\n  var el=document.getElementById("cBody");\n  if(!el) return;\n  /* 2026-10-03 H8: active in-place claim (was: scroll away to Enlistment Ranks). */\n  el.innerHTML=PF.gateHTML(\'Cells run on callsigns.\',\'to form your cell\');\n}\n/* Friendly copy for cell_mine read failures (2026-10-03): raw backend\n   strings like \'missing credentials\' are never rendered as UI copy. */\nfunction cellErrCopy(e){\n  e=String(e||"");\n  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")\n    return "The cell network couldn\'t verify this callsign — it predates the new auth system. Contact MTCSTW to recover it.";\n  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)\n    return "The cell network couldn\'t verify your callsign. Re-claim it in Enlistment Ranks (one tap), then retry.";\n  return "The cell network didn\'t answer. Your callsign is fine — the wire is not.";\n}\n/* Friendly copy for WRITE paths (2026-10-03 M27): read paths already got\n   friendly copy (cellErrCopy); writes route raw snake_case codes through\n   the same propaganda-voice map. Never show a raw code to users. */\nfunction cellWriteErr(e,fb){\n  var s=String(e==null?"":e).trim();\n  var fall=fb||"The wire fought back. Nothing changed — retry.";\n  if(!s||/network error/i.test(s)) return fall;\n  var map={\n    "invalid_code":"That invite code doesn\'t open any door. Check it and try again.",\n    "cell_full":"That cell is full — five fighters max. Found your own instead.",\n    "already_accepted":"Already locked in. One shot per cell.",\n    "already_joined":"You\'re already in. The fight continues.",\n    "already leading":"You\'re already wiring this cell. One wire per cell.",\n    "already claimed":"Already claimed. One shot per fighter.",\n    "already settled":"Already settled. It\'s done.",\n    "bad callsign":"That callsign didn\'t check out. Re-claim it in Enlistment Ranks, then retry.",\n    "missing cell_id":"No cell selected. Refresh and try again.",\n    "unknown cell":"That cell isn\'t on the map anymore. Refresh and retry.",\n    "db error":"The cell ledger hiccuped. Retry in a moment.",\n    "title too short":"Title needs 4+ characters.",\n    "title rejected":"That title didn\'t pass the censors. Pick another.",\n    "bad characters":"Letters, numbers, and spaces only. Keep it clean."\n  };\n  if(map[s]) return map[s];\n  if(s.indexOf("_")!==-1) return fall; /* never show raw snake_case */\n  return s; /* backend prose already human-readable */\n}\n/* M26 (2026-10-03): disabled + spinner label on mutation buttons. */\nfunction busyBtn(btn,on,label){\n  try{\n    if(on){ if(btn.getAttribute("data-lbl")==null) btn.setAttribute("data-lbl",btn.textContent); btn.disabled=true; btn.textContent=label||"WORKING…"; }\n    else{ btn.disabled=false; var l=btn.getAttribute("data-lbl"); if(l!=null) btn.textContent=l; btn.removeAttribute("data-lbl"); }\n  }catch(e){}\n}\nfunction render(){\n  var el=document.getElementById("cBody");\n  if(!el) return;\n  var id=ident();\n  if(!id.callsign){ renderGate(); return; }\n  if(!state){ if(netFailed){ renderNetErr(); return; } el.innerHTML=\'<div class="c-load">Raising the cell network&hellip;</div>\'; return; }\n  if(state.err&&!state.in_cell&&state.err!=="no_cell"){\n    el.innerHTML=\'<div class="c-neterr">\'+esc(cellErrCopy(state.err))\n      +\'<br><button class="c-btn" id="cErrRetry">Retry connection</button></div>\';\n    document.getElementById("cErrRetry").onclick=function(){ refresh(); };\n    return;\n  }\n  if(!state.in_cell){ renderLobby(el); return; }\n  renderCell(el,state);\n}\nfunction renderLobby(el){\n  /* SLIM (homepage): pitch + join form only. Steps + search are full-mode\n     depth for /cells. */\n  var stepsHtml=SLIM?"":\n    \'<div class="c-steps">\'+\n    \'<div class="c-step"><span class="c-snum">1</span><span>Form your cell below, or join with a code.</span></div>\'+\n    \'<div class="c-step"><span class="c-snum">2</span><span>Check in daily after your orders.</span></div>\'+\n    \'<div class="c-step"><span class="c-snum">3</span><span>Streak climbs. Miss a day and a cellmate covers you once a week.</span></div>\'+\n    \'</div>\';\n  var searchHtml=SLIM?"":\n    \'<div class="c-pane"><h4>Find a cell</h4>\'+\n    \'<input aria-label="NAME OR STATE" id="cSearch" maxlength="32" placeholder="NAME OR STATE" autocomplete="off">\'+\n    \' <button class="c-btn" id="cSearchBtn">Search</button>\'+\n    \'<div class="c-err" id="cSearchErr"></div>\'+\n    \'<div id="cSearchRes"></div></div>\';\n  el.innerHTML=\n    \'<div class="c-pitch">No cells exist yet &mdash; <b>found the first one</b> and your name goes on the wall.\'+\n    \'<br>Five callsigns. One streak. Every day the whole cell checks in, the streak climbs and everyone banks <b>+5% XP on Daily Orders</b> &mdash; up to <b>+50%</b>.</div>\'+\n    stepsHtml+\n    \'<div class="c-lobby">\'+\n    \'<div class="c-pane"><h4>Form a cell</h4>\'+\n    \'<input aria-label="CELL NAME" id="cName" maxlength="24" placeholder="CELL NAME" autocomplete="off">\'+\n    \'<br><button class="c-btn" id="cCreate">Form cell</button>\'+\n    \'<div class="c-err" id="cCreateErr"></div></div>\'+\n    \'<div class="c-pane"><h4>Join a cell</h4>\'+\n    \'<input aria-label="INVITE CODE" id="cCode" maxlength="6" placeholder="INVITE CODE" autocomplete="off" style="text-transform:uppercase">\'+\n    \'<input aria-label="WHO RECRUITED YOU (CALLSIGN)" id="cRef" maxlength="32" placeholder="WHO RECRUITED YOU (CALLSIGN)" autocomplete="off" style="text-transform:uppercase">\'+\n    \'<br><button class="c-btn" id="cJoin">Join cell</button>\'+\n    \'<div class="c-err" id="cJoinErr"></div></div>\'+\n    \'</div>\'+\n    searchHtml+\n    \'<div class="c-bounty">Share your cell code: <b>+25 XP</b> every time your recruit checks in.</div>\'+\n    (SLIM?\'<div class="x-note">Full cell management &mdash; search, prestige, challenges &mdash; lives at <a href="/cells" style="color:#c1121f;">/cells</a>.</div>\':\'\');\n  document.getElementById("cCreate").onclick=function(){\n    var nm=document.getElementById("cName").value, id=ident(), err=document.getElementById("cCreateErr");\n    err.textContent="";\n    var btn=document.getElementById("cCreate");\n    busyBtn(btn,true);\n    api("cell_create",{callsign:id.callsign,device:id.device,name:nm},function(j){\n      busyBtn(btn,false);\n      if(!j||!j.ok){ err.textContent=cellWriteErr(j&&j.err); return; }\n      toast("Cell "+j.cell.name+" formed. Recruit your four.");\n      refresh();\n    });\n  };\n  document.getElementById("cJoin").onclick=function(){\n    var code=document.getElementById("cCode").value, ref=document.getElementById("cRef").value,\n        id=ident(), err=document.getElementById("cJoinErr");\n    err.textContent="";\n    var btn=document.getElementById("cJoin");\n    busyBtn(btn,true);\n    api("cell_join",{callsign:id.callsign,device:id.device,code:code,ref:ref},function(j){\n      busyBtn(btn,false);\n      if(!j||!j.ok){ err.textContent=cellWriteErr(j&&j.err); return; }\n      toast("Welcome to "+j.cell.name+". Check in daily.");\n      refresh();\n    });\n  };\n  /* FIND A CELL: search by name/state, join from results. */\n  var sb=document.getElementById("cSearchBtn");\n  if(sb) sb.onclick=function(){\n    var q=document.getElementById("cSearch").value,\n        id=ident(), err=document.getElementById("cSearchErr"),\n        res=document.getElementById("cSearchRes");\n    err.textContent=""; res.innerHTML=\'<div class="c-load">Searching&hellip;</div>\';\n    api("cell_search",{q:q},function(j){\n      if(!j||!j.ok){ err.textContent=cellWriteErr(j,"Network error."); res.innerHTML=""; return; }\n      var list=j.cells||[];\n      if(!list.length){ res.innerHTML=\'<div class="x-note">No cells match. Found the first one above.</div>\'; return; }\n      var h="";\n      for(var i=0;i<Math.min(list.length,10);i++){\n        var cc=list[i]||{};\n        h+=\'<div class="cp-lead"><span class="cp-lname">\'+esc(cc.name)+\'</span> \'\n          +\'<span class="cp-lxp">\'+(Number(cc.members)||0)+\'/5\'\n          +(cc.verified?\' ✓\':\'\')+\'</span> \'\n          +\'<button class="c-btn c-sm" data-code="\'+esc(cc.invite_code||"")+\'">JOIN</button></div>\';\n      }\n      res.innerHTML=h;\n      var btns=res.querySelectorAll("button[data-code]");\n      for(var b=0;b<btns.length;b++)(function(btn){\n        btn.onclick=function(){\n          var code=btn.getAttribute("data-code"), id2=ident();\n          err.textContent="";\n          busyBtn(btn,true);\n          api("cell_join",{callsign:id2.callsign,device:id2.device,code:code},function(j2){\n            busyBtn(btn,false);\n            if(!j2||!j2.ok){ err.textContent=cellWriteErr(j2&&j2.err); return; }\n            toast("Welcome to "+j2.cell.name+". Check in daily.");\n            refresh();\n          });\n        };\n      })(btns[b]);\n    });\n  };\n}\n/* SLIM (homepage): the check-in card only. Members list, prestige, chainlink\n   bar, challenges, health, rename, leave — all full-mode depth on /cells. */\nfunction renderCellSlim(el,s){\n  var c=s.cell, pct=Math.round((c.mult-1)*100), id=ident();\n  var html=\'<div class="c-card">\'+\n    \'<div class="c-chead"><span class="c-cname">\'+esc(c.name)+\'</span>\'+\n    (c.verified?\'<span class="c-vfy" title="2+ callsigns strong">&#10003; VERIFIED</span>\':\'\')+\n    \'<span class="c-code" id="cCodeShow" title="Tap to copy">\'+esc(c.invite_code)+\'</span></div>\'+\n    \'<div class="c-cstats"><span class="c-flame">&#128293; \'+c.streak+\'-day streak</span>\'+\n    \'<span class="c-mult">+\'+pct+\'% XP on Daily Orders</span></div>\';\n  if(!s.checked_today){\n    html+=\'<button class="c-btn c-big" id="cCheckin">Orders done &mdash; check in</button>\';\n  } else {\n    html+=\'<div class="c-done">Checked in today. The streak holds because of you.</div>\';\n  }\n  if(s.cover_for){\n    html+=\'<button class="c-btn c-cover" id="cCover">Cover \'+esc(s.cover_for)+\' &mdash; save the streak</button>\';\n  }\n  html+=\'<div class="x-note"><a href="/cells" style="color:#c1121f;">Manage your cell &rarr;</a> members, prestige, challenges, the full board.</div>\';\n  html+=\'<div class="c-err" id="cActErr"></div></div>\';\n  el.innerHTML=html;\n  var errEl=document.getElementById("cActErr");\n  document.getElementById("cCodeShow").onclick=function(){\n    var code=String(c.invite_code||"");\n    function fallback(){\n      /* Clipboard write blocked (permissions / non-secure context): render\n         the code as selectable text instead of a false "copied" toast. */\n      try{\n        errEl.innerHTML="";\n        var sp=document.createElement("span");\n        sp.textContent="Copy blocked — long-press to copy your code: "+code;\n        sp.style.cssText="user-select:all;-webkit-user-select:all;cursor:text;";\n        errEl.appendChild(sp);\n      }catch(e2){ toast("Cell code: "+code); }\n    }\n    try{\n      if(navigator.clipboard&&navigator.clipboard.writeText){\n        navigator.clipboard.writeText(code).then(function(){ toast("Code copied: "+code); },fallback);\n      }\n      else { fallback(); }\n    }catch(e){ fallback(); }\n  };\n  var ci=document.getElementById("cCheckin");\n  if(ci) ci.onclick=function(){\n    errEl.textContent="";\n    busyBtn(ci,true);\n    api("cell_checkin",{callsign:id.callsign,device:id.device,cell_id:c.id},function(j){\n      busyBtn(ci,false);\n      if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err); return; }\n      if(j.already){ toast("Already checked in."); }\n      else { toast("Checked in. Streak: "+j.cell.streak+"."); try{ if(window.pfReportAction) window.pfReportAction("cell_checkin"); }catch(e){} }\n      refresh();\n    });\n  };\n  var cv=document.getElementById("cCover");\n  if(cv) cv.onclick=function(){\n    errEl.textContent="";\n    busyBtn(cv,true);\n    api("cell_cover",{callsign:id.callsign,device:id.device,cell_id:c.id},function(j){\n      busyBtn(cv,false);\n      if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err,"No cover to play."); return; }\n      toast("Cover played — "+j.covered+" is saved. Streak: "+j.streak+".");\n      refresh();\n    });\n  };\n}\n/* RECRUIT poster: 1080x1350 cell-recruit image for the native share sheet.\n   Pure canvas text/shapes only — no external assets, so the canvas can never\n   be tainted. The FIGHTING AS <CALLSIGN> strip is applied by\n   PFShare.stampCallsign inside shareImage (idempotent); keep the bottom 70px\n   of the layout clear for it. */\nfunction drawRecruitPoster(c){\n  var W=1080,H=1350;\n  var cv=document.createElement("canvas"); cv.width=W; cv.height=H;\n  var x=cv.getContext("2d"); if(!x) return null;\n  function center(t,y,font,fill){ x.font=font; x.fillStyle=fill; x.textAlign="center"; x.fillText(t,W/2,y); }\n  function wrapLines(text,font,maxW,maxLines){\n    x.font=font; x.textAlign="center";\n    var words=String(text||"").split(/\\s+/), lines=[], cur="";\n    words.forEach(function(w){\n      var t=cur?cur+" "+w:w;\n      if(x.measureText(t).width>maxW&&cur){ lines.push(cur); cur=w; } else cur=t;\n    });\n    if(cur) lines.push(cur);\n    return lines.slice(0,maxLines||2);\n  }\n  x.fillStyle="#0d0d0d"; x.fillRect(0,0,W,H);\n  x.strokeStyle="#c1121f"; x.lineWidth=14; x.strokeRect(20,20,W-40,H-40);\n  x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(44,44,W-88,H-88);\n  var y=118;\n  center("★ THE PROPAGANDA FACTORY ★",y,"700 32px Arial,sans-serif","#c1121f"); y+=76;\n  var nameF=\'900 82px "Arial Black",Arial,sans-serif\';\n  wrapLines(String(c.name||"MY CELL").toUpperCase(),nameF,W-170,2).forEach(function(l){\n    center(l,y,nameF,"#c1121f"); y+=96; });\n  y+=18;\n  var tagF="700 34px Arial,sans-serif";\n  wrapLines("FIVE CALLSIGNS. ONE STREAK. NOBODY LEFT BEHIND.",tagF,W-190,2).forEach(function(l){\n    center(l,y,tagF,"#f5ead6"); y+=48; });\n  var streak=Number(c.streak)||0;\n  y+=26;\n  center("⚡ "+streak+"-DAY STREAK ⚡",y,\'900 40px "Arial Black",Arial,sans-serif\',"#c1121f"); y+=74;\n  center("INVITE CODE",y,"700 30px Arial,sans-serif","#c9bfa8"); y+=16;\n  var code=String(c.invite_code||"").toUpperCase()||"???";\n  x.strokeStyle="#c1121f"; x.lineWidth=6;\n  x.strokeRect(W/2-280,y,560,150);\n  x.fillStyle="#141010"; x.fillRect(W/2-280,y,560,150);\n  center(code,y+106,\'900 96px "Arial Black",Arial,sans-serif\',"#c1121f");\n  y+=150+52;\n  var lnF="400 34px Arial,sans-serif";\n  wrapLines("Enter this code on mtcstw.com/cells to wire in.",lnF,W-210,2).forEach(function(l){\n    center(l,y,lnF,"#c9bfa8"); y+=50; });\n  wrapLines("Check in daily. Stack the streak. Recruit +25 XP.",lnF,W-210,2).forEach(function(l){\n    center(l,y,lnF,"#c9bfa8"); y+=50; });\n  y+=44;\n  var cta="JOIN MY CELL";\n  x.font=\'900 44px "Arial Black",Arial,sans-serif\';\n  var tw=x.measureText(cta).width+110;\n  x.fillStyle="#c1121f"; x.fillRect(W/2-tw/2,y-58,tw,94);\n  center(cta,y+8,\'900 44px "Arial Black",Arial,sans-serif\',"#ffffff");\n  y=H-160;\n  center("MTCSTW.COM",y,\'900 48px "Arial Black",Arial,sans-serif\',"#c1121f");\n  return cv;\n}\nfunction renderCell(el,s){\n  if(SLIM){ renderCellSlim(el,s); return; }\n  var c=s.cell, pct=Math.round((c.mult-1)*100);\n  var mems=(s.members||[]).map(function(m){\n    var role=String(m.role||"member").toUpperCase();\n    var badge=role==="FOUNDER"?\'<span class="c-role c-rfounder">FOUNDER</span>\'\n      :role==="OFFICER"?\'<span class="c-role c-rofficer">OFFICER</span>\':"";\n    var prb=(Number(m.prestige_level)||0)>0\n      ?\' <span class="c-prb" title="Prestige \'+esc(m.prestige_badge||"")+\'">&#9733;\'+esc(m.prestige_badge||"")+\'</span>\':"";\n    var prom=(s.is_founder&&role!=="FOUNDER"&&role!=="OFFICER")\n      ?\' <button class="c-btn c-sm c-prom" data-cs="\'+esc(m.callsign)+\'">PROMOTE</button>\':"";\n    return \'<div class="c-mrow"><span class="c-dot\'+(m.checked_today?" c-on":"")+\'"></span>\'+\n      \'<span class="c-mname">\'+esc(m.callsign)+\'</span>\'+prb+badge+\n      (m.checked_today?\'<span class="c-mok">IN</span>\':\'<span class="c-mno">OUT</span>\')+prom+\'</div>\';\n  }).join("");\n  /* CELL PRESTIGE panel: tier badge, power, benefits, progress, recruit nudge. */\n  var pr=c.prestige||null, prHtml="";\n  if(pr&&pr.tier){\n    var benHtml=(pr.benefits||[]).map(function(b){\n      return \'<div class="c-prben">&#10003; \'+esc(b)+\'</div>\'; }).join("");\n    var progHtml="";\n    if(pr.next_tier){\n      var pw=Math.min(100,Math.round(pr.power/pr.next_tier.min*100));\n      progHtml=\'<div class="c-prprog"><div class="c-prfill" style="width:\'+pw+\'%"></div></div>\'+\n        \'<div class="x-note">\'+pr.next_tier.need+\' more power to reach \'+esc(pr.next_tier.name)+\'</div>\';\n    } else {\n      progHtml=\'<div class="x-note">MAX TIER &mdash; the cell burns at full power.</div>\';\n    }\n    prHtml=\'<div class="c-prestige" style="background:#120404;border:2px solid #c1121f;margin:12px 0;padding:14px;text-align:center;">\'+\n      \'<div style="font-size:22px;letter-spacing:2px;">\'+pr.flame+\'</div>\'+\n      \'<div style="color:#c1121f;font-weight:900;font-size:18px;letter-spacing:3px;">\'+esc(pr.tier.name)+\'</div>\'+\n      \'<div class="x-note" style="margin-bottom:8px;">\'+pr.power+\' prestige power &middot; \'+pr.prestiged_count+\' prestiged \'+(pr.prestiged_count===1?"fighter":"fighters")+\'</div>\'+\n      benHtml+progHtml+\'</div>\';\n  } else {\n    prHtml=\'<div class="c-prestige" style="background:#0d0d0d;border:1px dashed #555;margin:12px 0;padding:12px;text-align:center;">\'+\n      \'<div class="x-note">&#128293; No prestige power yet. <b>Recruit prestiged fighters</b> to ignite cell bonuses &mdash; EMBER at 1 power (+5% XP for everyone).</div></div>\';\n  }\n  /* CHAINLINK bar: every cell this callsign wires, the cap, the network stat. */\n  var myCells=s.cells||[], linkBar=\'\';\n  if(myCells.length){\n    var rows=myCells.map(function(mc){\n      return \'<div class="c-lrow"><span class="c-lname">\'+esc(mc.name)+\'</span>\'+\n        \'<span class="c-lstat">\'+mc.streak+\' streak &middot; \'+(mc.checked_today?\'checked in\':\'not in today\')+\'</span>\'+\n        (mc.id!==c.id?\'\':\' <span class="c-lprim">PRIMARY</span>\')+\n        \' <a class="c-lleave" data-id="\'+esc(mc.id)+\'" data-nm="\'+esc(mc.name)+\'">leave</a></div>\';\n    }).join("");\n    linkBar=\'<div class="c-linkbar"><div class="c-lhead">&#9939; CHAINLINK — you wire \'+myCells.length+\'/3 cells</div>\'+\n      \'<div class="c-lrows">\'+rows+\'</div>\'+\n      (myCells.length<3\n        ? \'<div class="c-ljoin"><input aria-label="INVITE CODE" id="cLinkCode" maxlength="6" placeholder="INVITE CODE" autocomplete="off" style="text-transform:uppercase"> \'+\n          \'<button class="c-btn" id="cLinkJoin">Wire another cell</button><div class="c-err" id="cLinkErr"></div></div>\'\n        : \'<div class="c-lcap">Cap reached — three cells is the whole wire.</div>\')+\n      \'<div class="c-lnet" id="cLinkNet">Mapping the network&hellip;</div>\'+\n      \'<div class="c-lwhy">Chainlinks belong to 2+ cells and stitch the network together — so every cell on earth is reachable by direct contact. +10 XP per extra cell, weekly.</div></div>\';\n  }\n  var html=linkBar+\'<div class="c-card">\'+\n    \'<div class="c-chead"><span class="c-cname">\'+esc(c.name)+\'</span>\'+\n    (c.verified\n      ? \'<span class="c-vfy" title="2+ callsigns strong">&#10003; VERIFIED</span>\'\n      : \'<span class="c-unv" title="Recruit at least one more callsign to verify this cell">UNVERIFIED &mdash; RECRUIT TO VERIFY</span>\')+\n    \'<span class="c-code" id="cCodeShow" title="Tap to copy">\'+esc(c.invite_code)+\'</span></div>\'+\n    \'<div class="c-cstats"><span class="c-flame">&#128293; \'+c.streak+\'-day streak</span>\'+\n    \'<span class="c-mult">+\'+pct+\'% XP on Daily Orders</span>\'+\n    \'<span class="c-cov">Covers left this week: \'+c.covers_left+\'</span></div>\'+\n    prHtml+\n    \'<div class="c-members">\'+mems+\'</div>\';\n  if(s.is_founder){\n    html+=\'<div class="c-rename"><input aria-label="RENAME CELL" id="cRename" maxlength="24" placeholder="RENAME CELL" value="\'+esc(c.name)+\'" autocomplete="off">\'+\n      \'<button class="c-btn" id="cRenameBtn">Rename</button></div>\';\n  }\n  /* RECRUIT: any member can mint the recruit poster and share it. */\n  html+=\'<button class="c-btn c-big" id="cRecruit">RECRUIT</button>\';\n  if(!s.checked_today){\n    html+=\'<button class="c-btn c-big" id="cCheckin">Orders done &mdash; check in</button>\';\n  } else {\n    html+=\'<div class="c-done">Checked in today. The streak holds because of you.</div>\';\n  }\n  if(s.cover_for){\n    html+=\'<button class="c-btn c-cover" id="cCover">Cover \'+esc(s.cover_for)+\' &mdash; save the streak</button>\';\n  }\n  html+=\'<div class="c-health" id="cHealth"><div class="c-load">Reading cell health&hellip;</div></div>\';\n  html+=\'<div class="c-leave"><a id="cLeave">Leave cell</a></div><div class="c-err" id="cActErr"></div></div>\';\n  el.innerHTML=html;\n  var id=ident(), errEl=document.getElementById("cActErr");\n  /* Cell health: members, 7d checkins, 30d recruits. */\n  (function(){\n    var hel=document.getElementById("cHealth"); if(!hel) return;\n    api("cell_health",{cell_id:c.id},function(j){\n      if(!j||!j.ok){ hel.innerHTML=""; return; }\n      var mem=Number(j.members)||0, ci=Number(j.checkins_7d)||0, rc=Number(j.recruits_30d)||0;\n      var score=Math.min(100,Math.round(mem*8+ci*2+rc*5));\n      hel.innerHTML=\'<div class="c-hhead">CELL HEALTH</div>\'\n        +\'<div class="c-hbar"><div class="c-hfill" style="width:\'+score+\'%"></div></div>\'\n        +\'<div class="x-note">\'+mem+\'/5 members &bull; \'+ci+\' check-ins (7d) &bull; \'+rc+\' recruits (30d)</div>\';\n    });\n  })();\n  /* Promote buttons (founder only). */\n  var prs=el.querySelectorAll(".c-prom");\n  for(var pi=0;pi<prs.length;pi++)(function(btn){\n    btn.onclick=function(){\n      var tgt=btn.getAttribute("data-cs"), id2=ident();\n      errEl.textContent="";\n      busyBtn(btn,true);\n      post("cell","cell_action","cell_promote",{callsign:id2.callsign,device:id2.device,cell_id:c.id,target:tgt,role:"officer"},function(j){\n        busyBtn(btn,false);\n        if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err); return; }\n        toast(tgt+" promoted to OFFICER.");\n        refresh();\n      });\n    };\n  })(prs[pi]);\n  var rn=document.getElementById("cRenameBtn");\n  if(rn) rn.onclick=function(){\n    var nm=document.getElementById("cRename").value;\n    errEl.textContent="";\n    busyBtn(rn,true);\n    api("cell_rename",{callsign:id.callsign,device:id.device,name:nm},function(j){\n      busyBtn(rn,false);\n      if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err); return; }\n      toast("Cell renamed to "+j.cell.name+(j.cell.verified?" ✓ verified.":"."));\n      refresh();\n    });\n  };\n  /* RECRUIT: mint the poster and open the phone\'s native share sheet.\n     PFShare.shareImage handles stampCallsign (idempotent), toBlob -> File ->\n     navigator.canShare({files}) -> navigator.share, and the\n     download fallback on browsers without file-share support. */\n  var rc=document.getElementById("cRecruit");\n  if(rc) rc.onclick=function(){\n    errEl.textContent="";\n    if(!window.PFShare){ errEl.textContent="Share engine still loading — tap again in a second."; return; }\n    if(!id.callsign){ errEl.textContent="Claim a callsign first — it goes on the poster."; return; }\n    toast("Minting your recruit poster…");\n    var cv=null;\n    try{ cv=drawRecruitPoster(c); }catch(e){ cv=null; }\n    if(!cv){ errEl.textContent="Poster failed — try again."; return; }\n    try{\n      PFShare.shareImage(cv,\n        "cell-recruit-"+String(c.invite_code||"").toLowerCase()+".png",\n        "Join my cell: "+c.name,\n        "cell-recruit");\n    }catch(e){ errEl.textContent="Share unavailable here."; }\n  };\n  document.getElementById("cCodeShow").onclick=function(){\n    var code=String(c.invite_code||"");\n    function fallback(){\n      /* Clipboard write blocked (permissions / non-secure context): render\n         the code as selectable text instead of a false "copied" toast. */\n      try{\n        errEl.innerHTML="";\n        var sp=document.createElement("span");\n        sp.textContent="Copy blocked — long-press to copy your code: "+code;\n        sp.style.cssText="user-select:all;-webkit-user-select:all;cursor:text;";\n        errEl.appendChild(sp);\n      }catch(e2){ toast("Cell code: "+code); }\n    }\n    try{\n      if(navigator.clipboard&&navigator.clipboard.writeText){\n        navigator.clipboard.writeText(code).then(function(){ toast("Code copied: "+code); },fallback);\n      }\n      else { fallback(); }\n    }catch(e){ fallback(); }\n  };\n  var ci=document.getElementById("cCheckin");  if(ci) ci.onclick=function(){\n    errEl.textContent="";\n    busyBtn(ci,true);\n    api("cell_checkin",{callsign:id.callsign,device:id.device,cell_id:c.id},function(j){\n      busyBtn(ci,false);\n      if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err); return; }\n      if(j.already){ toast("Already checked in."); }\n      else { toast("Checked in. Streak: "+j.cell.streak+"."); try{ if(window.pfReportAction) window.pfReportAction("cell_checkin"); }catch(e){} }\n      refresh();\n    });\n  };\n  var cv=document.getElementById("cCover");\n  if(cv) cv.onclick=function(){\n    errEl.textContent="";\n    busyBtn(cv,true);\n    api("cell_cover",{callsign:id.callsign,device:id.device,cell_id:c.id},function(j){\n      busyBtn(cv,false);\n      if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err,"No cover to play."); return; }\n      toast("Cover played — "+j.covered+" is saved. Streak: "+j.streak+".");\n      refresh();\n    });\n  };\n  var lv=document.getElementById("cLeave");\n  if(lv) lv.onclick=function(){\n    /* M28: anchors have no disabled state — a busy flag blocks double-taps. */\n    if(lv.getAttribute("data-busy")) return;\n    if(!window.confirm("Leave "+c.name+"? Your cell streak bonus goes with it.")) return;\n    lv.setAttribute("data-busy","1"); lv.style.opacity=".5";\n    api("cell_leave",{callsign:id.callsign,device:id.device},function(j){\n      /* M28: check the backend verdict — on failure the fighter stays in\n         the cell and the local cache is NOT cleared. */\n      if(!j||!j.ok){\n        lv.removeAttribute("data-busy"); lv.style.opacity="";\n        errEl.textContent=cellWriteErr(j&&j.err,"The wire fought back — you\'re still in the cell.");\n        return;\n      }\n      setCache(1,"",""); state=null; refresh();\n    });\n  };\n  /* CHAINLINK wiring: per-cell leave + wire-another join + network stat. */\n  /* CELL CHALLENGES: active challenges, join for your cell, leaderboard,\n     plus CREATE CHALLENGE (challenge_create: title 4-48 chars, metric\n     checkins|recruits|xp, days 1-30). */\n  (function(){\n    var host=document.createElement("div");\n    host.className="c-chalwrap"; host.id="cChal";\n    host.innerHTML=\'<h3>Cell challenges</h3><div class="c-load">Loading challenges&hellip;</div>\';\n    el.appendChild(host);\n    function createFormHtml(){\n      return \'<div class="x-pane"><h4>Propose a challenge</h4>\'\n        +\'<div class="x-note">Cells compete on your metric for 1-30 days. Title needs 4+ characters.</div>\'\n        +\'<input id="cChTitle" maxlength="48" placeholder="CHALLENGE TITLE" aria-label="Challenge title"> \'\n        +\'<select id="cChMetric" aria-label="Metric">\'\n        +\'<option value="checkins">Daily check-ins</option>\'\n        +\'<option value="recruits">Recruits</option>\'\n        +\'<option value="xp">XP earned</option></select> \'\n        +\'<input id="cChDays" type="number" min="1" max="30" value="7" style="width:64px" aria-label="Days"> \'\n        +\'<button class="c-btn" id="cChCreateBtn">CREATE CHALLENGE</button>\'\n        +\'<div class="c-err" id="cChCreateErr"></div></div>\';\n    }\n    function wireCreate(){\n      var btn=host.querySelector("#cChCreateBtn"); if(!btn) return;\n      btn.onclick=function(){\n        var id3=ident();\n        if(!id3.callsign){ toast("Claim a callsign first."); return; }\n        var tEl=host.querySelector("#cChTitle"), mEl=host.querySelector("#cChMetric"),\n            dEl=host.querySelector("#cChDays"), ee=host.querySelector("#cChCreateErr");\n        var title=tEl?tEl.value.trim():"", metric=mEl?mEl.value:"checkins",\n            days=dEl?(parseInt(dEl.value,10)||7):7;\n        if(ee) ee.textContent="";\n        if(title.length<4){ if(ee) ee.textContent="Title needs 4+ characters."; return; }\n        if(days<1) days=1; if(days>30) days=30;\n        if(!window.confirm("Launch challenge \\"+title+\\" for "+days+" days?")) return;\n        busyBtn(btn,true);\n        post("challenge","ch_action","challenge_create",\n          {callsign:id3.callsign,device:id3.device,title:title,metric:metric,days:days},\n          function(r){\n            busyBtn(btn,false);\n            if(!r||!r.ok){ if(ee) ee.textContent=cellWriteErr(r&&r.err); return; }\n            toast("CHALLENGE LIVE. Get your cell in.");\n            loadCh();\n          });\n      };\n    }\n    function loadCh(){\n      host.innerHTML=\'<h3>Cell challenges</h3><div class="c-load">Loading challenges&hellip;</div>\';\n      api("challenge_list",{},function(j){\n        var h=\'<h3>Cell challenges</h3>\';\n        var list=(j&&j.ok&&j.challenges)||[];\n        if(!list.length){\n          h+=\'<div class="x-pane"><div class="x-note">No active challenges. The war council will announce the next one — or propose your own below.</div></div>\';\n        }\n        for(var i=0;i<list.length;i++){\n          var ch=list[i]||{};\n          h+=\'<div class="x-pane"><h4>\'+esc(ch.title)+\'</h4>\'\n            +\'<div class="x-note">\'+esc(ch.detail||"")+\'</div>\'\n            +\'<div class="x-note">Ends: \'+esc(ch.ends||"soon")+\'</div>\'\n            +\'<button class="c-btn c-chjoin" data-ch="\'+esc(ch.id)+\'">ENTER MY CELL</button>\'\n            +\'<div class="c-err" id="cChErr-\'+esc(ch.id)+\'"></div></div>\';\n        }\n        h+=createFormHtml();\n        h+=\'<div id="cChBoard"><div class="c-load">Loading standings&hellip;</div></div>\';\n        host.innerHTML=h;\n        wireCreate();\n        var jbs=host.querySelectorAll(".c-chjoin");\n        for(var b=0;b<jbs.length;b++)(function(btn){\n          btn.onclick=function(){\n            var chid=btn.getAttribute("data-ch"), id2=ident();\n            var ee=document.getElementById("cChErr-"+chid); if(ee) ee.textContent="";\n            busyBtn(btn,true);\n            post("challenge","ch_action","challenge_join",{callsign:id2.callsign,device:id2.device,cell_id:c.id,challenge_id:chid},function(r){\n              busyBtn(btn,false);\n              if(!r||!r.ok){ if(ee) ee.textContent=cellWriteErr(r&&r.err); return; }\n              toast("Cell entered. Fight for the top.");\n            });\n          };\n        })(jbs[b]);\n        api("challenge_board",{},function(b2){\n          var bh=document.getElementById("cChBoard"); if(!bh) return;\n          var rows=(b2&&b2.board)||[];\n          if(!rows.length){ bh.innerHTML=\'<div class="x-note">No standings yet.</div>\'; return; }\n          var hh="";\n          for(var q=0;q<Math.min(rows.length,10);q++){\n            hh+=\'<div class="cp-lead"><span class="cp-lrank">\'+(q+1)+\'.</span> \'\n              +\'<span class="cp-lname">\'+esc(rows[q].cell||rows[q].cell_name)+\'</span> \'\n              +\'<span class="cp-lxp">\'+(Number(rows[q].score)||0)+\' pts</span></div>\';\n          }\n          bh.innerHTML=hh;\n        });\n      });\n    }\n    loadCh();\n  })();\n  var lleaves=document.querySelectorAll(".c-lleave");\n  for(var li2=0;li2<lleaves.length;li2++)(function(a){\n    a.onclick=function(){\n      if(a.getAttribute("data-busy")) return;\n      if(!window.confirm("Leave "+a.getAttribute("data-nm")+"?")) return;\n      a.setAttribute("data-busy","1"); a.style.opacity=".5";\n      api("cell_leave",{callsign:id.callsign,device:id.device,cell_id:a.getAttribute("data-id")},function(j){\n        if(!j||!j.ok){\n          a.removeAttribute("data-busy"); a.style.opacity="";\n          errEl.textContent=cellWriteErr(j&&j.err,"The wire fought back — you\'re still in the cell.");\n          return;\n        }\n        state=null; refresh();\n      });\n    };\n  })(lleaves[li2]);\n  var lj=document.getElementById("cLinkJoin");\n  if(lj) lj.onclick=function(){\n    var code=document.getElementById("cLinkCode").value, err=document.getElementById("cLinkErr");\n    errEl.textContent=""; err.textContent="";\n    api("cell_join",{callsign:id.callsign,device:id.device,code:code},function(j){\n      if(!j||!j.ok){ err.textContent=cellWriteErr(j,"Network error."); return; }\n      toast("Wired into "+j.cell.name+". The chain grows.");\n      refresh();\n    });\n  };\n  paintLinkNet();\n}\n/* Chainlink network stat: cached 5 min. */\nvar _linkNetAt=0, _linkNetHtml="";\nfunction paintLinkNet(){\n  var el=document.getElementById("cLinkNet");\n  if(!el) return;\n  if(Date.now()-_linkNetAt<5*60*1000&&_linkNetHtml){ el.innerHTML=_linkNetHtml; return; }\n  api("cell_links",{},function(j){\n    if(!j){ el.innerHTML=""; return; }\n    _linkNetAt=Date.now();\n    _linkNetHtml=\'<b>\'+j.chainlinkers+\'</b> chainlinkers wiring <b>\'+j.cells+\'</b> cells — <b>\'+j.main_pct+\'%</b> in the main chain\';\n    el.innerHTML=_linkNetHtml;\n  },true);\n}\nrefresh();\nloadBoard();\nif(!window._pfCellsTick){ window._pfCellsTick=setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} loadBoard(); },5*60*1000); }\n})();\n<\/script>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;e&&!e.skip("referral")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-referral">\n<div class="fe-block pf-override-block" id="pf-referral">\n<h2>Referral War</h2>\n<div class="c-tag">Every recruit is a soldier. Build your army.</div>\n<div id="xReferral"><div class="c-load">Mustering&hellip;</div></div>\n</div>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\n/* Tiers: recruits thresholds. Matches backend src/referral.js. */\nvar TIERS=[\n  {min:25,name:"WARLORD",cls:"rf-t-legend"},\n  {min:10,name:"COMMANDER",cls:"rf-t-commander"},\n  {min:3,name:"ORGANIZER",cls:"rf-t-organizer"},\n  {min:1,name:"SCOUT",cls:"rf-t-captain"},\n  {min:0,name:"RECRUIT",cls:"rf-t-recruit"}\n];\nfunction tierFor(n){ n=Number(n)||0; for(var i=0;i<TIERS.length;i++){ if(n>=TIERS[i].min) return TIERS[i]; } return TIERS[TIERS.length-1]; }\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction toast(m){ try{ PF.toast(m); }catch(e){} }\nfunction doXp(n,key,reason){\n  try{\n    var id2=ident();\n    document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:n,key:key,reason:reason||"referral"}}));\n  }catch(e){}\n}\n/* CORS POST for writes (referral_claim, referral_activate). */\nfunction post(rAction,params,cb){\n  var body=Object.assign({type:"referral",r_action:rAction},params);\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }\n  var bodyStr=JSON.stringify(body);\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */\n    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;\n      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}\n      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();\n    fetch(BACKEND,_po)\n      .then(function(r){ return r.json(); })\n      .then(function(j){ _po._pfClear(); done(j); })\n      .catch(function(){ _po._pfClear(); done(null); });\n  }catch(e){ done(null); }\n}\n/* JSONP GET for reads. */\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  /* IDOR fix: private referral reads require auth_secret. */\n  if(action==="referral_status"||action==="referral_tree"||action==="mentor_status"){\n    try{\n      var _sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : "";\n      if(_sec && params && !params.auth_secret) params.auth_secret=_sec;\n    }catch(e){}\n  }\n  var fn="pfRfCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\n/* Capture ?ref= from URL for attribution on claim. */\nfunction captureRef(){\n  try{\n    var m=String(window.location.search||"").match(/[?&]ref=([a-z0-9_]{3,20})/i);\n    if(m&&m[1]){\n      var existing="";\n      try{ existing=window.PFCallsign?window.PFCallsign():""; }catch(e){}\n      if(!existing){ try{ localStorage.setItem("pf_pending_ref",m[1].toLowerCase()); }catch(e2){} }\n    }\n  }catch(e3){}\n}\nvar S=null, L=null, T=null, M=null, RS=null;\nfunction load(){\n  var id=ident(), done=false, n=0;\n  function fin(){ if(done)return; done=true; render(); }\n  function one(){ n++; if(n>=5) fin(); }\n  setTimeout(fin,15000);\n  api("referral_status",{callsign:id.callsign,device:id.device},function(j){ S=j; one(); });\n  api("referral_leaders",{},function(j){ L=j; one(); });\n  api("referral_tree",{callsign:id.callsign},function(j){ T=j; one(); });\n  api("mentor_status",{callsign:id.callsign,device:id.device},function(j){ M=j; one(); });\n  /* 2026-10-03: surface referral_stats (public) — authoritative tier/recruit/XP. */\n  api("referral_stats",{callsign:id.callsign},function(j){ RS=j; one(); });\n}\nfunction refLink(cs){ return "https://www.mtcstw.com/?ref="+encodeURIComponent(cs||""); }\n/* Army tree: nested, collapsible, max 3 levels deep. */\nfunction treeHtml(nodes,depth){\n  if(!nodes||!nodes.length||depth>2) return "";\n  var h=\'<ul class="rf-tree rf-depth\'+depth+\'">\';\n  for(var i=0;i<nodes.length;i++){\n    var nd=nodes[i]||{}, t=tierFor(nd.recruits);\n    var kids=(nd.children&&nd.children.length)?\' <span class="rf-tkids">\'+nd.children.length+\' under command</span>\':"";\n    h+=\'<li><span class="rf-tnode">\'\n      +\'<span class="rf-tog">\'+(nd.children&&nd.children.length?"[+]":"&bull;")+\'</span> \'\n      +\'<span class="rf-tname">\'+esc(nd.callsign)+\'</span> \'\n      +\'<span class="rf-ltier \'+t.cls+\'">\'+esc(t.name)+\'</span>\'+kids+\'</span>\';\n    if(nd.children&&nd.children.length){\n      h+=\'<div class="rf-tkidsbox" style="display:none">\'+treeHtml(nd.children,depth+1)+\'</div>\';\n    }\n    h+=\'</li>\';\n  }\n  return h+\'</ul>\';\n}\nfunction render(){\n  var el=document.getElementById("xReferral"); if(!el) return;\n  var id=ident(), h="";\n  h+=\'<div class="rf-frame">EVERY RECRUIT IS A SOLDIER. BUILD YOUR ARMY.</div>\';\n  h+=\'<div class="rf-sub">Share your code. They claim a callsign. You both get XP. Climb the tiers.</div>\';\n  if(!id.callsign){\n    h+=PF.gateHTML(\'Referral War runs on callsigns.\',\'to recruit\');\n    el.innerHTML=h;\n    return;\n  }\n  var st=S||{}, recruits=Number(st.recruits)||0, xpEarned=Number(st.xp_earned)||0;\n  var tier=tierFor(recruits);\n  var myList=[]; try{ myList=st.recruits_list||st.recruitsList||[]; }catch(e){}\n  /* --- my code --- */\n  h+=\'<div class="x-pane"><h4>Your referral code</h4>\'\n    +\'<div class="rf-code">\'+esc(id.callsign.toUpperCase())+\'</div>\'\n    +\'<div class="rf-link">\'+esc(refLink(id.callsign))+\'</div>\'\n    +\'<div style="margin-top:8px"><button class="c-btn" id="rfCopy">COPY LINK</button> \'\n    +\'<button class="c-btn" id="rfShare">SHARE</button> \'\n    +\'<button class="c-btn" id="rfCard">SHARE MY CODE</button></div>\'\n    +\'<div class="c-err" id="rfCopyErr"></div></div>\';\n  /* --- my stats --- */\n  h+=\'<div class="x-pane"><h4>Your army</h4>\'\n    +\'<div class="rf-tier \'+tier.cls+\'">\'+esc(tier.name)+\'</div>\'\n    +\'<div class="x-note">\'+recruits+\' recruits &bull; +\'+xpEarned+\' XP earned from referrals</div>\';\n  var next=null; for(var ti=TIERS.length-1;ti>=0;ti--){ if(TIERS[ti].min>recruits){ next=TIERS[ti]; break; } }\n  if(next){ h+=\'<div class="x-note">Next tier: \'+esc(next.name)+\' at \'+next.min+\' recruits (\'+(next.min-recruits)+\' to go).</div>\'; }\n  else { h+=\'<div class="x-note">Max tier reached. You are the war.</div>\'; }\n  /* 2026-10-03: referral_stats (public) — HQ-authoritative tier line. */\n  if(RS&&RS.ok&&RS.tier){ h+=\'<div class="x-note">HQ-verified: <b>\'+esc(String(RS.tier).toUpperCase())+\'</b> tier &mdash; \'+(Number(RS.recruits)||0)+\' recruits &bull; +\'+(Number(RS.xp_earned)||0)+\' XP banked.</div>\'; }\n  h+=\'</div>\';\n  /* --- recruit-side claim: +25 XP welcome bonus (referral_claim, AUTH).\n     The recruiter side (referral_activate) already exists below; this is the\n     recruit\'s own button — the half that was never wired. --- */\n  var prc=""; try{ prc=String(localStorage.getItem("pf_pending_ref")||"").toLowerCase().replace(/[^a-z0-9_]/g,""); }catch(epr){}\n  h+=\'<div class="x-pane"><h4>Claim your recruit bonus</h4>\'\n    +\'<div class="x-note">Were you recruited by someone? Claim your <b>+25 XP</b> welcome bonus right now. They get paid when you activate.</div>\';\n  if(prc){\n    h+=\'<div class="x-note">Recruiter code on file: <b>\'+esc(prc.toUpperCase())+\'</b></div>\'\n      +\'<div style="margin-top:8px"><button class="c-btn" id="rfClaimBtn">CLAIM +25 XP</button></div><div class="c-err" id="rfClaimErr"></div>\';\n  } else {\n    h+=\'<div style="margin-top:8px"><input aria-label="Recruiter callsign" class="c-in pf-input-md" id="rfClaimCode" maxlength="20" placeholder="recruiter callsign" /> \'\n      +\'<button class="c-btn" id="rfClaimBtn">CLAIM +25 XP</button></div><div class="c-err" id="rfClaimErr"></div>\';\n  }\n  h+=\'</div>\';\n  /* --- claim recruit bonuses: +50 XP each once a recruit completes 3+ actions --- */\n  h+=\'<div class="x-pane"><h4>Claim recruit bonuses</h4>\'\n    +\'<div class="x-note">Each recruit pays <b>+50 XP</b> once they complete 3+ actions. Hit ACTIVATE to collect.</div>\'\n    +\'<div id="rfActivateList"><div class="c-load">Checking recruits&hellip;</div></div></div>\';\n  /* --- my recruits --- */\n  h+=\'<div class="x-pane"><h4>Your recruits</h4>\';\n  if(!myList.length){ h+=\'<div class="x-note">No recruits yet. Share your code — every soldier counts.</div>\'; }\n  else{\n    h+=\'<div class="rf-wall">\';\n    for(var r=0;r<Math.min(myList.length,50);r++){ h+=\'<span class="rf-wname">\'+esc(myList[r].callsign||myList[r])+\'</span>\'; }\n    h+=\'</div>\';\n  }\n  h+=\'</div>\';\n  /* --- army tree --- */\n  h+=\'<div class="x-pane"><h4>My army tree</h4>\';\n  var tree=[]; try{ tree=(T&&T.tree)||[]; }catch(e3){}\n  if(!tree.length){ h+=\'<div class="x-note">Your tree grows as your recruits recruit. Depth wins wars.</div>\'; }\n  else{ h+=treeHtml(tree,0); }\n  h+=\'</div>\';\n  /* --- mentor --- */\n  h+=\'<div class="x-pane"><h4>Mentor</h4>\';\n  var mm=M||{};\n  if(mm.mentor){\n    h+=\'<div class="x-note">Your mentor: <b>\'+esc(mm.mentor)+\'</b> — learn the ropes, then take command.</div>\';\n  } else {\n    h+=\'<div class="x-note">No mentor assigned yet. The network will match you with a veteran.</div>\'\n      +\'<div style="margin-top:8px"><button class="c-btn" id="rfPairBtn">FIND ME A MENTOR</button></div>\';\n  }\n  var mtes=(mm.mentees)||[];\n  if(mtes.length){\n    h+=\'<div class="x-note" style="margin-top:8px">You mentor \'+mtes.length+\' soldier(s). Claim <b>+10 XP</b> for each once they complete 5+ actions.</div>\';\n    for(var mi=0;mi<Math.min(mtes.length,20);mi++){\n      var me=mtes[mi]||{}, mcs=String(me.mentee||"");\n      if(!mcs) continue;\n      h+=\'<div class="cp-lead"><span class="cp-lname">\'+esc(mcs)+\'</span> \'\n        +(me.paid?\'<span class="cp-mdone">CLAIMED</span>\'\n          :\'<button class="c-btn rf-mclaim" data-mentee="\'+esc(mcs)+\'">CLAIM +10 XP</button>\')\n        +\'</div>\';\n    }\n  }\n  h+=\'</div>\';\n  /* --- leaderboard --- */\n  var ld=[]; try{ ld=(L&&L.leaders)||[]; }catch(e2){}\n  h+=\'<div class="x-pane"><h4>Top recruiters</h4>\';\n  if(!ld.length){ h+=\'<div class="x-note">No standings yet. Be the first warlord.</div>\'; }\n  for(var q=0;q<Math.min(ld.length,10);q++){\n    var lt=tierFor(ld[q].recruits);\n    h+=\'<div class="cp-lead"><span class="cp-lrank">\'+(q+1)+\'.</span> <span class="cp-lname">\'+esc(ld[q].callsign)+\'</span> \'\n      +\'<span class="rf-ltier \'+lt.cls+\'">\'+esc(lt.name)+\'</span> \'\n      +\'<span class="cp-lxp">\'+(Number(ld[q].recruits)||0)+\' recruits</span></div>\';\n  }\n  h+=\'</div>\';\n  /* --- how it works --- */\n  h+=\'<div class="x-pane"><h4>How it works</h4>\'\n    +\'<div class="x-note"><b>1.</b> Share your code or link anywhere.</div>\'\n    +\'<div class="x-note"><b>2.</b> They claim a callsign with your code attached.</div>\'\n    +\'<div class="x-note"><b>3.</b> You both get XP. They join your army. You climb the tiers.</div>\'\n    +\'<div class="x-note">Recruit 1 for SCOUT, 3 for ORGANIZER, 10 for COMMANDER, 25 for WARLORD.</div></div>\';\n  h+=\'<div style="margin-top:10px"><button class="c-btn" id="rfRetry">Refresh</button></div>\';\n  el.innerHTML=h;\n  /* --- recruit activation list: one ACTIVATE button per recruit --- */\n  (function(){\n    var box=document.getElementById("rfActivateList"); if(!box) return;\n    var list=[]; try{ list=myList.slice(0,50); }catch(e){}\n    if(!list.length){ box.innerHTML=\'<div class="x-note">No recruits yet — nothing to activate.</div>\'; return; }\n    var bh="";\n    for(var ai=0;ai<list.length;ai++){\n      var rcs=String((list[ai]&&list[ai].callsign)||list[ai]||"");\n      if(!rcs) continue;\n      bh+=\'<div class="cp-lead"><span class="cp-lname">\'+esc(rcs)+\'</span> \'\n        +\'<button class="c-btn rf-act" data-rc="\'+esc(rcs)+\'">ACTIVATE +50 XP</button></div>\';\n    }\n    if(!bh){ box.innerHTML=\'<div class="x-note">No recruits yet — nothing to activate.</div>\'; return; }\n    box.innerHTML=bh;\n    var btns=box.querySelectorAll("button.rf-act");\n    for(var bi=0;bi<btns.length;bi++)(function(btn){\n      btn.onclick=function(){\n        var rcs=btn.getAttribute("data-rc"); if(!rcs) return;\n        btn.disabled=true; btn.textContent="ACTIVATING…";\n        post("referral_activate",{recruit_callsign:rcs,callsign:id.callsign,device:id.device},function(j){\n          if(j&&j.ok&&(j.xp||j.recruiter)){\n            var amt=Number(j.xp)||50;\n            /* 2026-10-03: same double-grant class as the bounty-refund fix —\n               the backend already granted this bonus via xpGrant\n               (\'ref_bonus_\'+recruiter+\'_\'+rcs); dispatching pf-xp here made\n               the xpledger mirror it a second time under an lx: key.\n               Backend is the source of truth; toast only. */\n            toast("RECRUIT ACTIVE. +"+amt+" XP — "+rcs+" fights under your banner.");\n            btn.textContent="COLLECTED"; btn.disabled=true;\n            S=null; load();\n          } else if(j&&j.ok&&j.already){\n            toast(rcs+" already activated.");\n            btn.textContent="COLLECTED"; btn.disabled=true;\n          } else if(j&&j.err==="not active yet"){\n            toast(rcs+" needs 3+ actions first. Nudge them.");\n            btn.disabled=false; btn.textContent="ACTIVATE +50 XP";\n          } else {\n            toast("Activation failed: "+(PF.errCopy(j,"try again.")));\n            btn.disabled=false; btn.textContent="ACTIVATE +50 XP";\n          }\n        });\n      };\n    })(btns[bi]);\n  })();\n  /* wire copy */\n  var cp=document.getElementById("rfCopy");\n  if(cp) cp.onclick=function(){\n    var link=refLink(id.callsign);\n    function ok(){ toast("Link copied. Go recruit."); }\n    function fail(){ var e=document.getElementById("rfCopyErr"); if(e) e.textContent="Copy failed — long-press the link above."; }\n    try{\n      if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(link).then(ok,fail); }\n      else{\n        var ta=document.createElement("textarea"); ta.value=link; document.body.appendChild(ta);\n        ta.select(); var did=false; try{ did=document.execCommand("copy"); }catch(e){}\n        document.body.removeChild(ta); if(did) ok(); else fail();\n      }\n    }catch(e){ fail(); }\n  };\n  /* wire share */\n  var sh=document.getElementById("rfShare");\n  if(sh) sh.onclick=function(){\n    var link=refLink(id.callsign);\n    var txt="Join the fight. Claim your callsign with my code "+id.callsign.toUpperCase()+": "+link;\n    try{\n      if(navigator.share){ navigator.share({title:"Join the fight",text:txt,url:link}).catch(function(){}); }\n      else{ toast("Copy your link and spread it everywhere."); }\n    }catch(e){ toast("Copy your link and spread it everywhere."); }\n  };\n  var rb=document.getElementById("rfRetry");\n  if(rb) rb.onclick=function(){ S=L=T=M=RS=null; el.innerHTML=\'<div class="c-load">Mustering&hellip;</div>\'; load(); };\n  /* recruit-side claim (referral_claim, AUTH) — the recruit\'s own button. */\n  var rcb=document.getElementById("rfClaimBtn");\n  if(rcb) rcb.onclick=function(){\n    var err=document.getElementById("rfClaimErr");\n    var code=prc;\n    if(!code){ var ci=document.getElementById("rfClaimCode"); code=ci?String(ci.value||"").toLowerCase().replace(/[^a-z0-9_]/g,""):""; }\n    if(err) err.textContent="";\n    if(!code){ if(err) err.textContent="Enter your recruiter\'s callsign."; return; }\n    rcb.disabled=true; rcb.textContent="CLAIMING…";\n    post("referral_claim",{callsign:id.callsign,device:id.device,ref_code:code},function(j){\n      if(j&&j.ok&&!j.noref){\n        var amt=Number(j.recruit_xp)||25;\n        try{ localStorage.removeItem("pf_pending_ref"); }catch(e){}\n        toast("WELCOME TO THE ARMY. +"+amt+" XP — "+code.toUpperCase()+" gets paid when you activate.");\n        S=null; RS=null; load();\n      } else if(j&&j.ok&&j.already){\n        try{ localStorage.removeItem("pf_pending_ref"); }catch(e2){}\n        rcb.textContent="CLAIMED";\n        if(err) err.textContent="Already claimed. Nothing left to collect.";\n      } else if(j&&j.ok&&j.self){\n        if(err) err.textContent="You can\'t claim your own code.";\n        rcb.disabled=false; rcb.textContent="CLAIM +25 XP";\n      } else if(j&&j.ok&&(j.unknown||j.invalid)){\n        if(err) err.textContent="That recruiter code doesn\'t exist. Check the spelling.";\n        rcb.disabled=false; rcb.textContent="CLAIM +25 XP";\n      } else {\n        if(err) err.textContent=PF.errCopy(j,"Claim failed. Try again.");\n        rcb.disabled=false; rcb.textContent="CLAIM +25 XP";\n      }\n    });\n  };\n  /* mentor: pair with a veteran + claim +10 XP per active mentee (2026-10-03 H7).\n     Backend grants via xpGrant — backend is the source of truth, toast only. */\n  var mpb=document.getElementById("rfPairBtn");\n  if(mpb) mpb.onclick=function(){\n    mpb.disabled=true; mpb.textContent="MATCHING…";\n    post("mentor_pair",{mentee:id.callsign,callsign:id.callsign,device:id.device},function(j){\n      if(j&&j.ok&&(j.mentor)){\n        toast(j.already?("You already have a mentor: "+j.mentor+"."):("Mentor assigned: "+j.mentor+". Learn the ropes."));\n        M=null; load();\n      } else {\n        toast(PF.errCopy(j,"No mentor available right now."));\n        mpb.disabled=false; mpb.textContent="FIND ME A MENTOR";\n      }\n    });\n  };\n  var mcb=el.querySelectorAll("button.rf-mclaim");\n  for(var mci=0;mci<mcb.length;mci++)(function(btn){\n    btn.onclick=function(){\n      var rcs=btn.getAttribute("data-mentee"); if(!rcs) return;\n      btn.disabled=true; btn.textContent="CLAIMING…";\n      post("mentor_claim",{mentor:id.callsign,mentee:rcs},function(j){\n        if(j&&j.ok&&j.paid){\n          toast("MENTOR BONUS. +10 XP — "+rcs+" is putting in work.");\n          M=null; load();\n        } else if(j&&j.ok){\n          toast(rcs+" has "+(j.actions||0)+"/5 actions. Nudge them.");\n          btn.disabled=false; btn.textContent="CLAIM +10 XP";\n        } else {\n          toast(PF.errCopy(j,"Claim failed."));\n          btn.disabled=false; btn.textContent="CLAIM +10 XP";\n        }\n      });\n    };\n  })(mcb[mci]);\n  /* tree toggles */\n  try{\n    var tnodes=el.querySelectorAll(".rf-tnode");\n    for(var tn=0;tn<tnodes.length;tn++)(function(nd){\n      nd.onclick=function(){\n        var box=nd.parentNode.querySelector(".rf-tkidsbox");\n        if(!box) return;\n        var open=box.style.display!=="none";\n        box.style.display=open?"none":"";\n        var tg=nd.querySelector(".rf-tog");\n        if(tg) tg.textContent=open?"[+]":"[-]";\n      };\n    })(tnodes[tn]);\n  }catch(e){}\n  /* share-my-code card */\n  var rc=document.getElementById("rfCard");\n  if(rc) rc.onclick=function(){\n    try{\n      if(!window.PFShare||!PFShare.shareImage){ toast("Share engine loading — try again in a moment."); return; }\n      var cs=id.callsign.toUpperCase(), link=refLink(id.callsign);\n      var W=1080,H=1350,cv=document.createElement("canvas"); cv.width=W; cv.height=H;\n      var x=cv.getContext("2d"); if(!x){ toast("Canvas unavailable."); return; }\n      x.fillStyle="#0d0d0d"; x.fillRect(0,0,W,H);\n      x.strokeStyle="#c1121f"; x.lineWidth=18; x.strokeRect(16,16,W-32,H-32);\n      x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(52,52,W-104,H-104);\n      x.textAlign="center";\n      x.fillStyle="#f5ead6"; x.font="700 40px Arial,sans-serif";\n      x.fillText("★ REFERRAL WAR ★",W/2,170);\n      x.fillStyle="#c1121f"; x.font="900 92px \\"Arial Black\\",Arial,sans-serif";\n      x.fillText("JOIN THE FIGHT.",W/2,330);\n      x.fillStyle="#f5ead6"; x.font="700 44px Arial,sans-serif";\n      x.fillText("Claim your callsign with my code:",W/2,470);\n      /* 2026-10-04 P4 #12: shrink-to-fit -- long callsigns stay inside the canvas. */\n      x.fillStyle="#c1121f"; x.textAlign="center";\n      var csSize=120;\n      x.font="900 "+csSize+"px \\"Arial Black\\",Arial,sans-serif";\n      while(csSize>36&&x.measureText(cs).width>W-200){ csSize-=4;\n        x.font="900 "+csSize+"px \\"Arial Black\\",Arial,sans-serif"; }\n      x.fillText(cs,W/2,660);\n      x.fillStyle="#c9bfa8"; x.font="400 38px Arial,sans-serif";\n      x.fillText(link,W/2,780);\n      x.fillStyle="#f5ead6"; x.font="700 40px Arial,sans-serif";\n      x.fillText("We both get XP. You join my army.",W/2,920);\n      x.fillStyle="#c1121f"; x.font="900 64px \\"Arial Black\\",Arial,sans-serif";\n      x.fillText("MTCSTW.COM",W/2,H-140);\n      try{ cv._pfStamped=true; }catch(e2){}\n      PFShare.shareImage(cv,"referral-"+cs.toLowerCase()+".png","Referral War","referral");\n    }catch(e3){ toast("Card failed — copy your link instead."); }\n  };\n}\ncaptureRef();\nload();\nsetInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },120000);\n})();\n<\/script>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;e&&!e.skip("poster-forge")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-poster">\n<div class="fe-block pf-override-block" id="pf-poster">\n\n<h2>The Poster Forge</h2>\n<div class="p-sub">Make propaganda. Download it. Plaster the internet.</div>\n<style>\n#pf-poster .p-tabs{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}\n#pf-poster .p-tab.on{border-color:#c1121f;background:rgba(193,18,31,.18);color:#fff}\n#pfPane-video{margin-top:6px}\n</style>\n<div class="p-tabs" role="tablist">\n  <button class="c-btn p-tab on" data-ptab="poster" role="tab">POSTER</button>\n  <button class="c-btn p-tab" data-ptab="video" role="tab">VIDEO</button>\n</div>\n<div id="pfPane-poster">\n<canvas id="pCanvas" width="1080" height="1350"></canvas>\n\n<div class="p-ctl">\n  <label for="pTop">Top line</label>\n  <input id="pTop" maxlength="40" value="THE PROPAGANDA FACTORY">\n  <label for="pHead">Headline</label>\n  <input id="pHead" maxlength="60" value="EAT THE RICH">\n  <label for="pBot">Bottom line</label>\n  <input id="pBot" maxlength="40" value="MT CSTW DOT COM">\n  <label>Style</label>\n  <div class="p-styles" id="pStyles">\n    <button class="p-style on" data-s="0">The Call</button>\n    <button class="p-style" data-s="1">Wanted</button>\n    <button class="p-style" data-s="2">Red Wave</button>\n    <button class="p-style" data-s="3">Strike!</button>\n  </div>\n  <div class="p-row">\n    <button class="p-btn ghost" id="pRandom">&#9873; Agitate me</button>\n    <a class="p-btn" id="pDownload" href="#" download="pfn-propaganda-poster.png">Download</a>\n    <button class="p-btn ghost" id="pShare">Share</button>\n  </div>\n  <div class="p-note">1080 &times; 1350 — made for the feed. Every download carries JOIN THE FIGHT. + MTCSTW.COM.</div>\n  <div id="pSpread"></div>\n  <div id="pImpact"></div>\n</div>\n</div>\n<div id="pfPane-video" style="display:none">\n<div id="xVideo"><div class="c-load">Loading the forge&hellip;</div></div>\n</div>\n\n<script>\n(function(){\nvar SLOGANS=[\n ["SICK LEFT RADICALS","EAT THE RICH","SEIZE THE MEMES OF PRODUCTION"],\n ["THE PROPAGANDA FACTORY","GENERAL STRIKE","OCTOBER 1ST. EVERYWHERE."],\n ["COMRADES","HOUSING IS A HUMAN RIGHT","LANDLORDS ARE A POLICY CHOICE"],\n ["THE PROPAGANDA FACTORY","TAX THE RICH","OR WE WILL"],\n ["SICK LEFT RADICALS","UNIONIZE EVERYWHERE","YOUR BOSS IS SCARED. GOOD."],\n ["COMRADES","MEDICARE FOR ALL","YOUR INSULIN COSTS $6 TO MAKE"],\n ["THE PROPAGANDA FACTORY","ABOLISH BILLIONAIRES","NO ONE EARNS A BILLION"],\n ["SICK LEFT RADICALS","THE RENT IS TOO DAMN HIGH","ORGANIZE YOUR BUILDING"],\n ["COMRADES","YOUR BOSS NEEDS YOU","YOU DON\'T NEED YOUR BOSS"],\n ["THE PROPAGANDA FACTORY","READ THEORY","THEN TOUCH GRASS. THEN ORGANIZE."],\n ["SICK LEFT RADICALS","STRIKE!","WITHHOLD YOUR LABOR"],\n ["COMRADES","SOLIDARITY FOREVER","THE UNION MAKES US STRONG"]\n];\nvar CREAM="#f5ead6",RED="#c1121f",BLACK="#0d0d0d";\nvar cv=document.getElementById("pCanvas"),ctx=cv.getContext("2d");\nvar state={top:"THE PROPAGANDA FACTORY",head:"EAT THE RICH",bot:"MT CSTW DOT COM",style:0};\nvar W=1080,H=1350;\n\nfunction wrap(text,maxW,base){\n  var words=text.toUpperCase().split(/\\s+/),lines=[],line="";\n  words.forEach(function(w){\n    var t=line?line+" "+w:w;\n    if(ctx.measureText(t).width>maxW&&line){lines.push(line);line=w;}else{line=t;}\n  });\n  if(line)lines.push(line);\n  var size=base;\n  ctx.font=size+"px \'Arial Black\',Arial,sans-serif";\n  lines.forEach(function(l){ if(ctx.measureText(l).width>maxW){ var s=Math.floor(size*maxW/ctx.measureText(l).width); if(s<size)size=s; }});\n  if(size<40)size=40;\n  return {lines:lines,size:size};\n}\nfunction centerBlock(lines,size,y,lh,color){\n  ctx.fillStyle=color;ctx.textAlign="center";ctx.textBaseline="middle";\n  ctx.font=size+"px \'Arial Black\',Arial,sans-serif";\n  lines.forEach(function(l,i){ctx.fillText(l,540,y+i*lh);});\n  return y+lines.length*lh;\n}\nfunction border(col,w,pad){ctx.strokeStyle=col;ctx.lineWidth=w;ctx.strokeRect(pad,pad,1080-2*pad,1350-2*pad);}\nfunction watermark(){\n  ctx.save();\n  /* Bottom CTA bar: JOIN THE FIGHT. + MTCSTW.COM (site CTA standard) */\n  var barH=90, barY=H-barH;\n  ctx.fillStyle="#c1121f";\n  ctx.fillRect(0,barY,W,barH);\n  ctx.fillStyle="#f5f0e6";ctx.textAlign="center";ctx.textBaseline="middle";\n  ctx.font="bold 44px \'Arial Black\',Arial,sans-serif";\n  ctx.fillText("JOIN THE FIGHT.",W/2,barY+32);\n  ctx.font="28px Arial,sans-serif";\n  ctx.fillText("MTCSTW.COM",W/2,barY+68);\n  /* PFN watermark (top-right, smaller) */\n  var label="PFN";\n  ctx.font="28px \'Arial Black\',Arial,sans-serif";\n  var tw=ctx.measureText(label).width,pad=12,bw=tw+pad*2,bh=40;\n  var bx=W-20-bw,by=20;\n  ctx.globalAlpha=0.8;\n  ctx.fillStyle="rgba(13,13,13,0.65)";\n  if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bx,by,bw,bh,8);ctx.fill();ctx.strokeStyle="#f5f0e6";ctx.lineWidth=2;ctx.stroke();}\n  else{ctx.fillRect(bx,by,bw,bh);}\n  ctx.globalAlpha=1;\n  ctx.fillStyle="#f5f0e6";ctx.textAlign="center";ctx.textBaseline="middle";\n  ctx.fillText(label,bx+bw/2,by+bh/2+2);\n  ctx.restore();\n}\n\nfunction draw(){\n  var s=state.style;\n  ctx.textAlign="center";ctx.textBaseline="middle";\n  if(s===0){ /* THE CALL — cream, red headline */\n    ctx.fillStyle=CREAM;ctx.fillRect(0,0,W,H);border(BLACK,26,26);border(RED,6,60);\n    ctx.fillStyle=RED;ctx.font="64px \'Arial Black\',Arial,sans-serif";ctx.fillText(state.top,540,170);\n    ctx.fillStyle=BLACK;ctx.fillRect(80,230,920,6);\n    var t=wrap(state.head,860,170);var y=centerBlock(t.lines,t.size,640,t.size*1.12,RED);\n    ctx.fillStyle=BLACK;ctx.fillRect(80,H-260,920,10);\n    ctx.fillStyle=CREAM;ctx.fillRect(0,H-220,W,220);ctx.fillStyle=BLACK;ctx.fillRect(0,H-220,W,220);\n    ctx.fillStyle=CREAM;ctx.font="56px \'Arial Black\',Arial,sans-serif";ctx.fillText(state.bot,540,H-110);\n  }else if(s===1){ /* WANTED — black, cream/red */\n    ctx.fillStyle=BLACK;ctx.fillRect(0,0,W,H);border(RED,26,26);border(CREAM,6,60);\n    ctx.fillStyle=CREAM;ctx.font="150px \'Arial Black\',Arial,sans-serif";ctx.fillText("WANTED",540,190);\n    ctx.fillStyle=RED;ctx.font="56px \'Arial Black\',Arial,sans-serif";ctx.fillText(state.top,540,300);\n    var t=wrap(state.head,860,150);centerBlock(t.lines,t.size,700,t.size*1.12,CREAM);\n    ctx.fillStyle=RED;ctx.fillRect(80,H-280,920,8);\n    ctx.fillStyle=CREAM;ctx.font="52px \'Arial Black\',Arial,sans-serif";ctx.fillText(state.bot,540,H-150);\n  }else if(s===2){ /* RED WAVE — red bg */\n    ctx.fillStyle=RED;ctx.fillRect(0,0,W,H);border(BLACK,26,26);border(CREAM,6,60);\n    ctx.fillStyle=BLACK;ctx.font="64px \'Arial Black\',Arial,sans-serif";ctx.fillText(state.top,540,170);\n    var t=wrap(state.head,860,170);centerBlock(t.lines,t.size,640,t.size*1.12,CREAM);\n    ctx.fillStyle=BLACK;ctx.fillRect(0,H-220,W,220);\n    ctx.fillStyle=CREAM;ctx.font="56px \'Arial Black\',Arial,sans-serif";ctx.fillText(state.bot,540,H-110);\n  }else{ /* STRIKE — diagonal stripes */\n    ctx.fillStyle=CREAM;ctx.fillRect(0,0,W,H);\n    ctx.save();ctx.beginPath();ctx.rect(0,0,W,300);ctx.clip();\n    for(var i=-8;i<24;i++){ctx.fillStyle=i%2?BLACK:RED;ctx.save();ctx.translate(i*90,0);ctx.rotate(-0.5);ctx.fillRect(0,-200,45,700);ctx.restore();}\n    ctx.restore();\n    ctx.fillStyle=CREAM;ctx.font="72px \'Arial Black\',Arial,sans-serif";\n    ctx.save();ctx.shadowColor=BLACK;ctx.shadowOffsetX=6;ctx.shadowOffsetY=6;ctx.fillText("STRIKE!",540,150);ctx.restore();\n    border(BLACK,26,26);\n    ctx.fillStyle=BLACK;ctx.font="60px \'Arial Black\',Arial,sans-serif";ctx.fillText(state.top,540,420);\n    var t=wrap(state.head,860,170);centerBlock(t.lines,t.size,760,t.size*1.12,RED);\n    ctx.fillStyle=BLACK;ctx.fillRect(80,H-260,920,10);\n    ctx.fillStyle=BLACK;ctx.font="56px \'Arial Black\',Arial,sans-serif";ctx.fillText(state.bot,540,H-130);\n  }\n  watermark();\n}\nfunction sync(){state.top=document.getElementById("pTop").value||" ";state.head=document.getElementById("pHead").value||" ";state.bot=document.getElementById("pBot").value||" ";draw();}\n["pTop","pHead","pBot"].forEach(function(id){document.getElementById(id).addEventListener("input",sync);});\ndocument.getElementById("pStyles").addEventListener("click",function(e){\n  var b=e.target.closest(".p-style");if(!b)return;\n  this.querySelectorAll(".p-style").forEach(function(x){x.classList.remove("on");});\n  b.classList.add("on");state.style=+b.dataset.s;draw();\n});\ndocument.getElementById("pRandom").onclick=function(){\n  var p=SLOGANS[Math.floor(Math.random()*SLOGANS.length)];\n  document.getElementById("pTop").value=p[0];document.getElementById("pHead").value=p[1];document.getElementById("pBot").value=p[2];\n  sync();\n};\n/* PFN metadata stamping: inject tEXt chunks so every PNG traces to the network. */\nvar CRC_T=(function(){var t=[],c;for(var n=0;n<256;n++){c=n;for(var k=0;k<8;k++){c=c&1?0xEDB88320^(c>>>1):c>>>1;}t[n]=c>>>0;}return t;})();\nfunction pngCrc(type,data){var crc=0xFFFFFFFF,i;for(i=0;i<4;i++){crc=CRC_T[(crc^type.charCodeAt(i))&255]^(crc>>>8);}for(i=0;i<data.length;i++){crc=CRC_T[(crc^data[i])&255]^(crc>>>8);}return (crc^0xFFFFFFFF)>>>0;}\nfunction textChunk(keyword,text){\n  var enc=new TextEncoder();\n  var kw=enc.encode(keyword),tx=enc.encode(text);\n  var data=new Uint8Array(kw.length+1+tx.length);\n  data.set(kw,0);data[kw.length]=0;data.set(tx,kw.length+1);\n  var out=new Uint8Array(12+data.length),dv=new DataView(out.buffer);\n  dv.setUint32(0,data.length);\n  out[4]=116;out[5]=69;out[6]=88;out[7]=116; /* "tEXt" */\n  out.set(data,8);\n  dv.setUint32(8+data.length,pngCrc("tEXt",data));\n  return out;\n}\nfunction stampPng(buf){\n  var bytes=new Uint8Array(buf);\n  var sig=[137,80,78,71,13,10,26,10],i;\n  for(i=0;i<8;i++){if(bytes[i]!==sig[i])return buf;}\n  var meta=[\n    ["Title","PFN Agitprop Poster"],\n    ["Author","Propaganda Factory Network"],\n    ["Description","Seize the memes of production. Forged at mtcstw.com - workers of the feed, unite."],\n    ["Copyright","Copyright 2026 Propaganda Factory Network. Property of the working class."],\n    ["Software","PFN Poster Forge"],\n    ["Source","https://www.mtcstw.com"],\n    ["Comment","EAT THE RICH - solidarity forever."]\n  ];\n  var chunks=[],total=0;\n  meta.forEach(function(m){var c=textChunk(m[0],m[1]);chunks.push(c);total+=c.length;});\n  var dv=new DataView(bytes.buffer),pos=8;\n  while(pos+8<bytes.length){\n    var len=dv.getUint32(pos);\n    var type=String.fromCharCode(bytes[pos+4],bytes[pos+5],bytes[pos+6],bytes[pos+7]);\n    if(type==="IEND")break;\n    pos+=12+len;\n  }\n  var out=new Uint8Array(bytes.length+total);\n  out.set(bytes.subarray(0,pos),0);\n  var o=pos;\n  chunks.forEach(function(c){out.set(c,o);o+=c.length;});\n  out.set(bytes.subarray(pos),o);\n  return out.buffer;\n}\nfunction stampedBlob(cb){\n  /* Stamp the callsign on a throwaway copy — the forge canvas itself stays clean. */\n  var src=cv;\n  try{\n    if(window.PFShare&&window.PFShare.stampCallsign){\n      var c2=document.createElement(\'canvas\');c2.width=cv.width;c2.height=cv.height;\n      c2.getContext(\'2d\').drawImage(cv,0,0);\n      src=window.PFShare.stampCallsign(c2)||c2;\n    }\n  }catch(e){src=cv;}\n  src.toBlob(function(blob){\n    if(blob.arrayBuffer){blob.arrayBuffer().then(function(buf){cb(new Blob([stampPng(buf)],{type:"image/png"}));}).catch(function(){pfToast("Poster failed to render — tap Download again to retry.");});}\n    else{cb(blob);}\n  });\n}\ndocument.getElementById("pDownload").onclick=function(e){\n  e.preventDefault();\n  /* award XP + ping the trackers — ONCE PER DAY max (anti-farming).\n     Repeated downloads of the same or different posters on the same day\n     do not re-fire pf-poster-made. */\n  try{\n    var today=new Date().toISOString().slice(0,10);\n    var pfKey=\'pf_poster_day_v1\';\n    var last=null;try{last=localStorage.getItem(pfKey);}catch(err){}\n    if(last!==today){\n      try{localStorage.setItem(pfKey,today);}catch(err){}\n      document.dispatchEvent(new CustomEvent("pf-poster-made",{detail:{day:today}}));\n    }\n  }catch(err){}\n  pfLogShare();\n  stampedBlob(function(blob){\n    var url=URL.createObjectURL(blob);\n    var a=document.createElement("a");\n    a.href=url;a.download="pfn-propaganda-poster.png";\n    document.body.appendChild(a);a.click();a.remove();\n    setTimeout(function(){URL.revokeObjectURL(url);},4000);\n  });\n};\ndocument.getElementById("pShare").onclick=function(){\n  pfLogShare();\n  stampedBlob(function(blob){\n    var f=new File([blob],"pfn-propaganda-poster.png",{type:"image/png"});\n    if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:"PFN propaganda poster"}).catch(function(){});return;}\n    var url=URL.createObjectURL(blob);window.open(url,"_blank");\n  });\n};\n/* ---- Spread tracking + creator dashboard + boost economy ---- */\nvar PFBE=window.PF_BACKEND_URL;\nfunction pfEsc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction pfIdent(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction pfToast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}\n  try{ var t=document.createElement("div"); t.textContent=m;\n  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";\n  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }\n/* Friendly copy for gated read failures (2026-10-03): raw backend strings\n   like \'missing credentials\' are never shown as UI copy. */\nfunction pfAuthHint(j){\n  var e=String((j&&j.err)||"");\n  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")\n    return \'<br><span class="x-note">This callsign predates the new auth system and can&rsquo;t reconnect on its own &mdash; contact MTCSTW to recover it.</span>\';\n  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)\n    return \'<br><span class="x-note">Your callsign needs to reconnect &mdash; re-claim it in Enlistment Ranks (one tap), then retry.</span>\';\n  return "";\n}\nfunction pfApi(action,params,cb){\n  if(!PFBE){ cb(null); return; }\n  /* Private reads require auth_secret (IDOR fix). Route gated actions\n     through the shared claim-retry GET (2026-10-03): pre-auth callsign\n     holders with no stored secret get one auth_claim attempt instead of\n     failing \'missing credentials\' forever. */\n  if(action==="creator_dashboard"){\n    try{\n      if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(PFBE,action,params,cb); return; }\n      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";\n      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;\n    }catch(e){}\n  }\n  var fn="pfPfCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"),done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=PFBE+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\nfunction pfPost(body,cb){\n  if(window.PF&&PF.authPost){ PF.authPost(PFBE,body,cb); return; }\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    /* 2026-10-03 L6: abort backstop — a hung fallback POST previously left\n       boost buttons stuck disabled. */\n    var ctl2=null;\n    try{ ctl2=new AbortController(); }catch(e){}\n    var hung2=setTimeout(function(){ try{ if(ctl2) ctl2.abort(); }catch(e){} },15000);\n    fetch(PFBE,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body),signal:ctl2?ctl2.signal:undefined})\n      .then(function(r){ return r.json(); }).then(function(j){ try{clearTimeout(hung2);}catch(e){} done(j); })\n      .catch(function(){ try{clearTimeout(hung2);}catch(e){} done(null); });\n  }catch(e){ done(null); }\n}\n/* One content id per unique poster design. Same design = same id. */\nvar pfContentIds={}, pfRegistered={}, pfLastShared=null;\nfunction pfContentId(){\n  var sig=[state.top,state.head,state.bot,state.style].join("|");\n  if(!pfContentIds[sig]) pfContentIds[sig]="pf-"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);\n  return pfContentIds[sig];\n}\nfunction pfLogShare(){\n  var id=pfIdent();\n  var cid=pfContentId(), title=state.head||"untitled";\n  try{ localStorage.setItem("pf_last_content_id",cid); }catch(e){}\n  pfLastShared=cid;\n  if(pfRegistered[cid]){ pfDoShareLog(cid,id); return; }\n  if(!id.callsign){ pfRenderSpread(); pfRenderImpact(); return; }\n  pfPost({type:"spread",sp_action:"content_register",id:cid,callsign:id.callsign,kind:"poster",title:title},function(j){\n    if(j&&j.ok) pfRegistered[cid]=1;\n    pfDoShareLog(cid,id);\n  });\n}\nfunction pfDoShareLog(cid,id){\n  if(id.callsign){\n    pfPost({type:"spread",sp_action:"share_log",content_id:cid,sharer:id.callsign},function(){ pfRenderSpread(); });\n  } else { pfRenderSpread(); }\n  pfRenderImpact();\n  try{ document.dispatchEvent(new CustomEvent("pf-content-shared",{detail:{content_id:cid}})); }catch(e){}\n}\nfunction pfBoostRow(cid,xpTotal){\n  return \'<div class="p-boostrow"><span class="p-boosttotal">BOOSTED \'+xpTotal+\' XP</span> \'\n    +[10,25,50].map(function(a){\n      return \'<button class="p-btn ghost p-boostbtn" data-cid="\'+pfEsc(cid)+\'" data-amt="\'+a+\'">+\'+a+\' XP</button>\';\n    }).join(" ")+\'</div>\';\n}\nfunction pfWireBoosts(root){\n  var btns=(root||document).querySelectorAll("button.p-boostbtn");\n  for(var i=0;i<btns.length;i++){\n    (function(btn){\n      if(btn._pfWired) return; btn._pfWired=1;\n      btn.onclick=function(){\n        var id=pfIdent();\n        if(!id.callsign){ pfToast("Claim a callsign first."); return; }\n        btn.disabled=true;\n        pfPost({type:"spread",sp_action:"boost_give",content_id:btn.getAttribute("data-cid"),booster:id.callsign,device:id.device,xp:btn.getAttribute("data-amt")},function(j){\n          btn.disabled=false;\n          if(!j||!j.ok){ pfToast(PF.errCopy(j,"Boost failed.")); return; }\n          pfToast("BOOSTED — "+j.total_boosts+" XP total on this piece.");\n          pfRenderSpread(); pfRenderImpact();\n          try{ document.dispatchEvent(new CustomEvent("pf-boost-given",{detail:{content_id:btn.getAttribute("data-cid")}})); }catch(e){}\n        });\n      };\n    })(btns[i]);\n  }\n}\nfunction pfRenderSpread(){\n  var el=document.getElementById("pSpread"); if(!el) return;\n  var cid=pfLastShared||pfContentId();\n  pfApi("spread_stats",{content_id:cid},function(j){\n    var h=\'<div class="x-pane"><h4>Spread — this poster</h4>\';\n    if(j&&j.ok&&(j.total_shares>0||pfLastShared)){\n      h+=\'<div class="p-spreadnums"><span>\'+j.total_shares+\' SHARES</span><span>\'+j.unique_sharers+\' SHARERS</span><span>\'+j.cells_reached+\' CELLS</span><span>DEPTH \'+j.max_depth+\'</span></div>\';\n      var tl=j.timeline||[], mx=1, ti;\n      for(ti=0;ti<tl.length;ti++){ if(tl[ti].shares>mx) mx=tl[ti].shares; }\n      if(tl.length){\n        h+=\'<div class="p-timeline">\';\n        for(ti=0;ti<tl.length;ti++){\n          var ph=Math.max(2,Math.round(tl[ti].shares/mx*36));\n          h+=\'<div class="p-tbar" title="\'+pfEsc(tl[ti].day)+\': \'+tl[ti].shares+\'" style="height:\'+ph+\'px"></div>\';\n        }\n        h+=\'</div><div class="x-note">Shares per day, last 14 days. Watch it travel.</div>\';\n      }\n      h+=pfBoostRow(cid,0);\n      h+=\'<div class="x-note">Content ID: <span class="p-cid">\'+pfEsc(cid)+\'</span> — paste it into Poster Battles to enter.</div>\';\n    } else {\n      h+=\'<div class="x-note">Download or share this poster and its spread stats appear here — shares, cells reached, depth.</div>\';\n    }\n    h+=\'</div>\';\n    el.innerHTML=h; pfWireBoosts(el);\n  });\n}\nfunction pfRenderImpact(){\n  var el=document.getElementById("pImpact"); if(!el) return;\n  var id=pfIdent();\n  if(!id.callsign){ el.innerHTML=\'<div class="x-pane"><h4>My impact</h4><div class="x-note">Claim a callsign to track your propaganda footprint.</div></div>\'; return; }\n  pfApi("creator_dashboard",{callsign:id.callsign},function(j){\n    pfApi("boost_board",{},function(b){\n      var bmap={};\n      try{ ((b&&b.ok&&b.board)||[]).forEach(function(r){ bmap[r.id]=r.xp||0; }); }catch(e){}\n      var h=\'<div class="x-pane"><h4>My impact</h4>\';\n      if(j&&j.ok){\n        h+=\'<div class="p-spreadnums"><span>\'+j.total_content+\' PIECES</span><span>\'+j.total_shares+\' SHARES</span><span>\'+j.total_reach+\' REACH</span></div>\';\n        var top=j.top_content||[];\n        if(top.length){\n          h+=\'<div class="x-note">Your top propaganda, ranked by spread:</div>\';\n          for(var i=0;i<Math.min(top.length,10);i++){\n            var t=top[i];\n            h+=\'<div class="p-toprow"><div class="p-toptitle">\'+pfEsc(t.title||t.id)+\'</div>\'\n              +\'<div class="x-note">\'+t.shares+\' shares &bull; \'+t.sharers+\' sharers &bull; \'+t.cells+\' cells</div>\'\n              +pfBoostRow(t.id,bmap[t.id]||0)+\'</div>\';\n          }\n        } else { h+=\'<div class="x-note">No tracked pieces yet. Forge, share, and watch the numbers climb.</div>\'; }\n      } else { h+=\'<div class="x-note">\'+(pfAuthHint(j)||\'Impact data loading&hellip;\')+\'</div>\'; }\n      h+=\'</div>\';\n      el.innerHTML=h; pfWireBoosts(el);\n    });\n  });\n}\ndraw();\npfRenderSpread();\npfRenderImpact();\nwindow.__pfPoster={state:state,wrap:wrap,SLOGANS:SLOGANS,stampPng:stampPng};\n})();\n\n/* ---------- VIDEO tab (merged from games/video.js, PF v1.4.3, 2026-10-03) ----------\n   Video Forge now lives as a tab of the Poster Forge (homepage CREATE block).\n   All 4 steps preserved: templates, slideshow builder, 9:16 preview + WebM\n   recorder, save/share via the video_* backend actions. The video pane renders\n   on mount (hidden) exactly as the standalone widget did. */\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}\n  try{ var t=document.createElement("div"); t.textContent=m;\n  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";\n  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  var fn="pfVdCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\nfunction post(vAction,params,cb){\n  var body=Object.assign({type:"video",v_action:vAction},params);\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }\n  var bodyStr=JSON.stringify(body);\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */\n    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;\n      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}\n      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();\n    fetch(BACKEND,_po)\n      .then(function(r){ return r.json(); })\n      .then(function(j){ _po._pfClear(); done(j); })\n      .catch(function(){ _po._pfClear(); done(null); });\n  }catch(e){ done(null); }\n}\n/* ---------- state ---------- */\nvar VW=720, VH=1280;\nvar frames=[];            /* {label, text, duration_ms, img:Image|null, imgKey} */\nvar imgCache={};          /* imgKey -> dataURL (session) */\nvar playing=false, playIdx=0, frameStart=0, rafId=0;\nvar recorder=null, recChunks=[], recording=false, recMime="";\nvar canvas=null, ctx=null;\nvar libVideos=[];\nfunction $(id){ return document.getElementById(id); }\nfunction frameDur(f){ return Math.max(500, Math.min(10000, parseInt(f.duration_ms,10)||2000)); }\n/* ---------- canvas render ---------- */\nfunction drawCover(c, img, W, H){\n  var iw=img.naturalWidth||img.width, ih=img.naturalHeight||img.height;\n  if(!iw||!ih) return;\n  var s=Math.max(W/iw, H/ih), dw=iw*s, dh=ih*s;\n  c.drawImage(img, (W-dw)/2, (H-dh)/2, dw, dh);\n}\nfunction wrapText(c, text, maxW){\n  var words=String(text).split(/\\s+/), lines=[], cur="";\n  for(var i=0;i<words.length;i++){\n    var t=cur?cur+" "+words[i]:words[i];\n    if(c.measureText(t).width>maxW && cur){ lines.push(cur); cur=words[i]; }\n    else cur=t;\n  }\n  if(cur) lines.push(cur);\n  return lines;\n}\nfunction drawFrame(c, f){\n  c.save();\n  c.fillStyle="#0a0a0a"; c.fillRect(0,0,VW,VH);\n  if(f.img){\n    try{ drawCover(c, f.img, VW, VH); }catch(e){}\n    var g=c.createLinearGradient(0,VH*0.45,0,VH);\n    g.addColorStop(0,"rgba(0,0,0,0)"); g.addColorStop(1,"rgba(0,0,0,0.82)");\n    c.fillStyle=g; c.fillRect(0,VH*0.45,VW,VH*0.55);\n  } else {\n    var g2=c.createLinearGradient(0,0,0,VH);\n    g2.addColorStop(0,"#1a0505"); g2.addColorStop(1,"#0a0a0a");\n    c.fillStyle=g2; c.fillRect(0,0,VW,VH);\n    c.strokeStyle="#c1121f"; c.lineWidth=10; c.strokeRect(24,24,VW-48,VH-48);\n    c.fillStyle="#c1121f"; c.font="bold 64px monospace"; c.textAlign="center";\n    c.fillText("MTCSTW", VW/2, 150);\n  }\n  var txt=String(f.text||"");\n  if(txt){\n    c.textAlign="center"; c.textBaseline="alphabetic";\n    var fs=64; c.font="bold "+fs+"px Impact, Arial Black, sans-serif";\n    var lines=wrapText(c, txt.toUpperCase(), VW-120);\n    while(lines.length>6 && fs>28){ fs-=6; c.font="bold "+fs+"px Impact, Arial Black, sans-serif"; lines=wrapText(c, txt.toUpperCase(), VW-120); }\n    var lh=fs*1.18, y0=VH-80-lines.length*lh;\n    for(var i=0;i<lines.length;i++){\n      var y=y0+i*lh;\n      c.lineWidth=Math.max(4,fs/10); c.strokeStyle="#000"; c.strokeText(lines[i], VW/2, y);\n      c.fillStyle="#fff"; c.fillText(lines[i], VW/2, y);\n    }\n  }\n  c.fillStyle="#c1121f"; c.font="bold 34px monospace"; c.textAlign="left";\n  c.fillText("MTCSTW.COM", 30, VH-30);\n  c.textAlign="right"; c.fillStyle="#888";\n  c.fillText("JOIN THE FIGHT.", VW-30, VH-30);\n  c.restore();\n}\nfunction tick(now){\n  if(!playing) return;\n  if(!frames.length){ stopPlay(); return; }\n  var f=frames[playIdx];\n  if(now-frameStart>=frameDur(f)){\n    playIdx++;\n    frameStart=now;\n    if(playIdx>=frames.length){\n      if(recording){ stopRecord(); return; }\n      playIdx=0;\n    }\n  }\n  if(playIdx<frames.length && ctx) drawFrame(ctx, frames[playIdx]);\n  rafId=requestAnimationFrame(tick);\n}\nfunction startPlay(){\n  if(!frames.length){ toast("Add slides first."); return; }\n  if(!canvas) return;\n  stopPlay();\n  playing=true; playIdx=0; frameStart=performance.now();\n  var pb=$("vdPlayBtn"); if(pb) pb.textContent="PAUSE";\n  rafId=requestAnimationFrame(tick);\n}\nfunction stopPlay(){\n  playing=false;\n  try{ cancelAnimationFrame(rafId); }catch(e){}\n  var pb=$("vdPlayBtn"); if(pb) pb.textContent="PLAY";\n}\n/* ---------- recorder ---------- */\nfunction pickMime(){\n  var cands=["video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm","video/mp4"];\n  for(var i=0;i<cands.length;i++){\n    try{ if(window.MediaRecorder && MediaRecorder.isTypeSupported(cands[i])) return cands[i]; }catch(e){}\n  }\n  return "";\n}\nfunction startRecord(){\n  if(recording) return;\n  if(!frames.length){ toast("Add slides first."); return; }\n  if(!canvas){ toast("Canvas not ready."); return; }\n  if(!(window.MediaRecorder&&canvas.captureStream)){ toast("Recording not supported in this browser."); return; }\n  recMime=pickMime();\n  if(!recMime){ toast("No supported video format."); return; }\n  recChunks=[];\n  try{\n    recorder=new MediaRecorder(canvas.captureStream(30), {mimeType:recMime, videoBitsPerSecond:5000000});\n  }catch(e){ toast("Recorder failed to start."); return; }\n  recorder.ondataavailable=function(ev){ if(ev.data&&ev.data.size) recChunks.push(ev.data); };\n  recorder.onstop=function(){\n    recording=false;\n    var rb=$("vdRecBtn"); if(rb) rb.textContent="RECORD VIDEO";\n    var blob=new Blob(recChunks, {type:recMime.split(";")[0]});\n    var url=URL.createObjectURL(blob);\n    var dl=$("vdDownload");\n    if(dl){ dl.href=url; dl.download="mtcstw-video.webm"; dl.style.display="inline-block"; }\n    toast("Video ready. Hit DOWNLOAD.");\n  };\n  stopPlay();\n  playing=true; playIdx=0; frameStart=performance.now();\n  var pb=$("vdPlayBtn"); if(pb) pb.textContent="PAUSE";\n  recorder.start(250);\n  recording=true;\n  var rb2=$("vdRecBtn"); if(rb2) rb2.textContent="STOP RECORDING";\n  rafId=requestAnimationFrame(tick);\n  toast("Recording...");\n}\nfunction stopRecord(){\n  recording=false;\n  try{ if(recorder&&recorder.state!=="inactive") recorder.stop(); }catch(e){}\n  stopPlay();\n  var rb=$("vdRecBtn"); if(rb) rb.textContent="RECORD VIDEO";\n}\n/* ---------- builder ---------- */\nfunction newFrame(label, text, dur){\n  return {label:label||("slide-"+(frames.length+1)), text:text||"", duration_ms:dur||2000, img:null, imgKey:null};\n}\nfunction renderBuilder(){\n  var el=$("vdFrames"); if(!el) return;\n  var h="";\n  if(!frames.length) h+=\'<div class="x-note">No slides yet. Upload poster images, pull from the forge, or load a template.</div>\';\n  for(var i=0;i<frames.length;i++){\n    var f=frames[i];\n    h+=\'<div class="vd-frame" data-i="\'+i+\'">\'\n      +\'<div class="vd-fhead"><b>#\'+(i+1)+\'</b> \'+(f.img?\'<span class="vd-hasimg">IMG</span>\':\'<span class="vd-noimg">TEXT CARD</span>\')\n      +\' <span class="vd-flabel">\'+esc(f.label)+\'</span></div>\'\n      +\'<input aria-label="Text overlay (punchy)" class="vd-ftext" data-k="text" data-i="\'+i+\'" value="\'+esc(f.text)+\'" placeholder="Text overlay (punchy)" maxlength="140">\'\n      +\'<div class="vd-frow"><label>secs <input class="vd-fdur" data-i="\'+i+\'" type="number" min="1" max="10" step="0.5" value="\'+(frameDur(f)/1000)+\'"></label>\'\n      +\'<button class="c-btn vd-up" data-i="\'+i+\'">&uarr;</button>\'\n      +\'<button class="c-btn vd-down" data-i="\'+i+\'">&darr;</button>\'\n      +\'<button class="c-btn vd-del" data-i="\'+i+\'">DEL</button></div>\'\n      +\'</div>\';\n  }\n  el.innerHTML=h;\n  var tot=0; for(var j=0;j<frames.length;j++) tot+=frameDur(frames[j]);\n  var tl=$("vdTotal"); if(tl) tl.textContent=frames.length+" slides, "+(tot/1000).toFixed(1)+"s total";\n  bindBuilderInputs();\n}\nfunction bindBuilderInputs(){\n  var texts=document.querySelectorAll("#vdFrames .vd-ftext");\n  for(var i=0;i<texts.length;i++){\n    texts[i].addEventListener("input", function(ev){\n      var t=ev.target, idx=parseInt(t.getAttribute("data-i"),10);\n      if(frames[idx]) frames[idx].text=t.value;\n    });\n  }\n  var durs=document.querySelectorAll("#vdFrames .vd-fdur");\n  for(var j=0;j<durs.length;j++){\n    durs[j].addEventListener("change", function(ev){\n      var t=ev.target, idx=parseInt(t.getAttribute("data-i"),10);\n      var v=parseFloat(t.value)||2;\n      v=Math.max(0.5, Math.min(10, v));\n      if(frames[idx]) frames[idx].duration_ms=Math.round(v*1000);\n    });\n  }\n  var ups=document.querySelectorAll("#vdFrames .vd-up");\n  for(var k=0;k<ups.length;k++){\n    ups[k].addEventListener("click", function(ev){\n      var idx=parseInt(ev.target.getAttribute("data-i"),10);\n      if(idx>0){ var t2=frames[idx-1]; frames[idx-1]=frames[idx]; frames[idx]=t2; renderBuilder(); }\n    });\n  }\n  var dns=document.querySelectorAll("#vdFrames .vd-down");\n  for(var m=0;m<dns.length;m++){\n    dns[m].addEventListener("click", function(ev){\n      var idx=parseInt(ev.target.getAttribute("data-i"),10);\n      if(idx<frames.length-1){ var t3=frames[idx+1]; frames[idx+1]=frames[idx]; frames[idx]=t3; renderBuilder(); }\n    });\n  }\n  var dels=document.querySelectorAll("#vdFrames .vd-del");\n  for(var n=0;n<dels.length;n++){\n    dels[n].addEventListener("click", function(ev){\n      var idx=parseInt(ev.target.getAttribute("data-i"),10);\n      frames.splice(idx,1); renderBuilder();\n    });\n  }\n}\nfunction addImageFrame(dataURL, label){\n  var f=newFrame(label||("img-"+(frames.length+1)), "", 2500);\n  var im=new Image();\n  im.onload=function(){ f.img=im; renderBuilder(); drawIdle(); };\n  im.onerror=function(){ toast("Could not load image."); };\n  im.src=dataURL;\n  frames.push(f);\n  renderBuilder();\n}\nfunction handleFiles(fileList){\n  for(var i=0;i<fileList.length;i++){\n    (function(file){\n      if(!file.type || file.type.indexOf("image/")!==0) return;\n      var rd=new FileReader();\n      rd.onload=function(){\n        try{ addImageFrame(String(rd.result), file.name.replace(/\\.[^.]+$/,"").slice(0,32)||("img-"+(frames.length+1))); }\n        catch(e){ toast("Image too large to load."); }\n      };\n      rd.readAsDataURL(file);\n    })(fileList[i]);\n  }\n}\nfunction pullFromForge(){\n  var c=null;\n  try{ c=document.getElementById("pCanvas"); }catch(e){}\n  if(!c){ toast("Poster Forge canvas not found. Upload instead."); return; }\n  try{\n    var url=c.toDataURL("image/png");\n    addImageFrame(url, "forge-"+(frames.length+1));\n    toast("Forge poster added.");\n  }catch(e){ toast("Could not grab forge canvas."); }\n}\n/* ---------- templates ---------- */\nvar TEMPLATES={\n  cta:{name:"CALL TO ACTION", slides:[\n    {text:"JOIN THE FIGHT.", dur:2000},\n    {text:"THE BILLIONAIRES HAVE TWO PARTIES.", dur:2500},\n    {text:"WE ARE BUILDING OUR OWN POWER.", dur:2500}]},\n  facts:{name:"FACT DROP", slides:[\n    {text:"FACT 1: YOUR RENT WENT UP. YOUR WAGES DID NOT.", dur:2500},\n    {text:"FACT 2: THEY CALL IT INFLATION. IT IS PRICE GOUGING.", dur:2500},\n    {text:"FACT 3: 3 MEN OWN MORE THAN HALF THE COUNTRY.", dur:2500},\n    {text:"FACT 4: THEY NEED YOU DIVIDED. STAY DANGEROUS.", dur:2500},\n    {text:"EDIT THESE FACTS. MAKE THEM YOURS.", dur:2500}]},\n  beforeafter:{name:"BEFORE / AFTER", slides:[\n    {text:"BEFORE: SCROLLING. ANGRY. ALONE.", dur:3000},\n    {text:"AFTER: ORGANIZED. ARMED WITH TRUTH. UNSTOPPABLE.", dur:3000}]}\n};\nfunction loadTemplate(key){\n  var t=TEMPLATES[key]; if(!t) return;\n  frames=[];\n  for(var i=0;i<t.slides.length;i++){\n    frames.push(newFrame("tpl-"+key+"-"+(i+1), t.slides[i].text, t.slides[i].dur));\n  }\n  renderBuilder(); drawIdle();\n  toast(t.name+" loaded. Edit the text, then PLAY.");\n}\n/* ---------- backend save / library ---------- */\nfunction saveVideo(){\n  var idd=ident();\n  if(!idd.callsign){ toast("Claim a callsign first (Enlistment Ranks)."); return; }\n  if(!frames.length){ toast("Add slides first."); return; }\n  var title=$("vdTitle")?String($("vdTitle").value).slice(0,120):"";\n  if(!title){ toast("Give your video a title."); return; }\n  var out=[];\n  for(var i=0;i<frames.length;i++){\n    out.push({poster_id:String(frames[i].label||("slide-"+(i+1))).slice(0,64), text:String(frames[i].text||"").slice(0,140), duration_ms:frameDur(frames[i])});\n  }\n  post("video_create",{callsign:idd.callsign, device:idd.device, title:title, frames:JSON.stringify(out)}, function(j){\n    if(j&&j.ok){ toast("Saved. +15 XP. ID: "+j.id); loadLibrary(); }\n    else toast(PF.errCopy(j,"Save failed."));\n  });\n}\nfunction loadLibrary(){\n  api("video_list",{},function(j){\n    libVideos=(j&&j.videos)||[];\n    renderLibrary();\n  });\n}\nfunction renderLibrary(){\n  var el=$("vdLib"); if(!el) return;\n  var h="";\n  if(!libVideos.length) h+=\'<div class="x-note">No saved videos yet. Build one above.</div>\';\n  for(var i=0;i<libVideos.length;i++){\n    var v=libVideos[i];\n    h+=\'<div class="vd-librow"><b>\'+esc(v.title)+\'</b> <span class="x-note">by \'+esc(v.creator)+\' &middot; \'+(Math.round((v.duration||0)/100)/10)+\'s</span> \'\n      +\'<button class="c-btn vd-open" data-id="\'+esc(v.id)+\'">LOAD</button></div>\';\n  }\n  el.innerHTML=h;\n  var btns=document.querySelectorAll("#vdLib .vd-open");\n  for(var k=0;k<btns.length;k++){\n    btns[k].addEventListener("click", function(ev){\n      openVideo(ev.target.getAttribute("data-id"));\n    });\n  }\n}\nfunction openVideo(vid){\n  api("video_get",{video_id:vid},function(j){\n    if(!(j&&j.ok&&j.video)){ toast("Could not load video."); return; }\n    var v=j.video;\n    frames=[];\n    var fr=v.frames||[];\n    for(var i=0;i<fr.length;i++){\n      frames.push(newFrame(fr[i].poster_id||("slide-"+(i+1)), fr[i].text||"", fr[i].duration_ms||2000));\n    }\n    var ti=$("vdTitle"); if(ti) ti.value=v.title||"";\n    renderBuilder(); drawIdle();\n    toast("Loaded. Images live on your device: re-attach if needed.");\n  });\n}\nfunction drawIdle(){\n  if(!ctx) return;\n  if(frames.length) drawFrame(ctx, frames[0]);\n  else { ctx.fillStyle="#0a0a0a"; ctx.fillRect(0,0,VW,VH);\n    ctx.fillStyle="#666"; ctx.font="bold 28px monospace"; ctx.textAlign="center";\n    ctx.fillText("PREVIEW APPEARS HERE", VW/2, VH/2); }\n}\n/* ---------- layout + init ---------- */\nfunction render(){\n  var el=$("xVideo"); if(!el) return;\n  var id=ident();\n  var h="";\n  if(!id.callsign) h+=PF.gateHTML(\'Video Forge runs on callsigns.\',\'to forge video\');\n  h+=\'<div class="x-pane"><h4>1 &mdash; Templates</h4>\'\n    +\'<div class="x-note">Start from a proven sequence, then edit every slide.</div>\'\n    +\'<div class="vd-tpls">\'\n    +\'<button class="c-btn" id="vdTplCta">CALL TO ACTION (3)</button> \'\n    +\'<button class="c-btn" id="vdTplFacts">FACT DROP (5)</button> \'\n    +\'<button class="c-btn" id="vdTplBa">BEFORE/AFTER (2)</button>\'\n    +\'</div></div>\';\n  h+=\'<div class="x-pane"><h4>2 &mdash; Slideshow builder</h4>\'\n    +\'<div class="x-note">Upload poster images, pull the current forge canvas, or use text-only slides.</div>\'\n    +\'<div class="vd-addrow">\'\n    +\'<label class="c-btn vd-upload">UPLOAD IMAGES<input type="file" id="vdFile" accept="image/*" multiple style="display:none"></label> \'\n    +\'<button class="c-btn" id="vdForge">PULL FROM FORGE</button> \'\n    +\'<button class="c-btn" id="vdTextSlide">ADD TEXT SLIDE</button>\'\n    +\'</div>\'\n    +\'<div id="vdFrames"></div>\'\n    +\'<div class="x-note" id="vdTotal">0 slides</div></div>\';\n  h+=\'<div class="x-pane"><h4>3 &mdash; Preview (9:16)</h4>\'\n    +\'<div class="vd-stage"><canvas id="vdCanvas" width="720" height="1280" style="width:100%;max-width:320px;height:auto;background:#000;border:2px solid #c1121f"></canvas></div>\'\n    +\'<div class="vd-ctlrow">\'\n    +\'<button class="c-btn" id="vdPlayBtn">PLAY</button> \'\n    +\'<button class="c-btn" id="vdRecBtn">RECORD VIDEO</button> \'\n    +\'<a class="c-btn" id="vdDownload" style="display:none">DOWNLOAD .WEBM</a>\'\n    +\'</div>\'\n    +\'<div class="x-note">RECORD plays the full sequence and captures it as a WebM video. Works in Chrome, Edge, Firefox.</div></div>\';\n  h+=\'<div class="x-pane"><h4>4 &mdash; Save &amp; share</h4>\'\n    +\'<input aria-label="Video title" id="vdTitle" placeholder="Video title" maxlength="120" style="width:100%;max-width:420px;padding:8px;margin-bottom:8px">\'\n    +\'<div><button class="c-btn" id="vdSaveBtn">SAVE SEQUENCE (+15 XP)</button></div>\'\n    +\'<div class="x-note">Saves the slide definitions to the network. Images stay on your device; anyone loading your video re-attaches their own.</div>\'\n    +\'<div id="vdLib" style="margin-top:10px"></div></div>\';\n  el.innerHTML=h;\n  canvas=$("vdCanvas");\n  try{ ctx=canvas.getContext("2d"); }catch(e){ ctx=null; }\n  $("vdTplCta").addEventListener("click", function(){ loadTemplate("cta"); });\n  $("vdTplFacts").addEventListener("click", function(){ loadTemplate("facts"); });\n  $("vdTplBa").addEventListener("click", function(){ loadTemplate("beforeafter"); });\n  $("vdForge").addEventListener("click", pullFromForge);\n  $("vdTextSlide").addEventListener("click", function(){ frames.push(newFrame(null, "YOUR TEXT HERE", 2000)); renderBuilder(); drawIdle(); });\n  $("vdFile").addEventListener("change", function(ev){ handleFiles(ev.target.files); ev.target.value=""; });\n  $("vdPlayBtn").addEventListener("click", function(){\n    if(playing){ stopPlay(); if(recording) stopRecord(); }\n    else startPlay();\n  });\n  $("vdRecBtn").addEventListener("click", function(){\n    if(recording) stopRecord(); else startRecord();\n  });\n  $("vdSaveBtn").addEventListener("click", saveVideo);\n  renderBuilder(); drawIdle(); loadLibrary();\n}\nrender();\n})();\n\n/* Poster/Video tab switching. */\n(function(){\n  var tabs=document.querySelectorAll(\'#pf-poster .p-tab\');\n  function show(which){\n    var pp=document.getElementById(\'pfPane-poster\'), pv=document.getElementById(\'pfPane-video\');\n    if(pp) pp.style.display=(which===\'poster\')?\'\':\'none\';\n    if(pv) pv.style.display=(which===\'video\')?\'\':\'none\';\n    for(var i=0;i<tabs.length;i++) tabs[i].classList.toggle(\'on\',tabs[i].getAttribute(\'data-ptab\')===which);\n  }\n  for(var k=0;k<tabs.length;k++){\n    (function(b){ b.addEventListener(\'click\',function(){ show(b.getAttribute(\'data-ptab\')); }); })(tabs[k]);\n  }\n})();\n<\/script>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;e&&!e.skip("feed")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-feed">\n<div class="fe-block pf-override-block" id="pf-feed">\n<h2>Propaganda Feed</h2>\n<div class="c-tag">Fresh ammo. Find it. Pump it. Track the spread.</div>\n<div id="xFeed"><div class="c-load">Loading the feed&hellip;</div></div>\n</div>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction fmtSched(t){ try{ var d=new Date(Number(t)||0); if(isNaN(d.getTime())) return "?";\n  return (d.getMonth()+1)+"/"+d.getDate()+" "+d.getHours()+":"+String(d.getMinutes()).padStart(2,"0"); }catch(e){ return "?"; } }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction toast(m){ try{ PF.toast(m); }catch(e){} }\n/* 2026-10-04: friendly write-path errors — raw snake_case backend codes are\n   never shown to users (same pattern as games/armory.js writeErrCopy). */\nfunction fdWriteErr(e,fb){\n  var s=String(e==null?"":e).trim();\n  var fall=fb||"The wire fought back. Nothing changed — retry.";\n  if(!s||/network error/i.test(s)) return fall;\n  var map={\n    "bad sender":"That callsign didn\'t check out. Re-claim it in Daily Orders, then retry.",\n    "bad receiver":"That callsign isn\'t a valid target. Refresh and try again.",\n    "no self-tips":"You can\'t tip yourself. Pick someone else.",\n    "tip must be 5/10/25/50/100 XP":"Tips come in 5, 10, 25, 50, or 100 XP.",\n    "insufficient XP":"Not enough XP in the war chest. Go earn some.",\n    "bad voter":"That callsign didn\'t check out. Re-claim it in Daily Orders, then retry.",\n    "bad creator":"That creator tag didn\'t check out. Refresh the feed and try again.",\n    "no self-votes":"You can\'t vote on your own content.",\n    "bad callsign":"That callsign didn\'t check out. Re-claim it in Daily Orders, then retry.",\n    "missing content_id":"That post lost its ID. Refresh the feed and try again.",\n    "db error":"The ledger hiccuped. Retry in a moment."\n  };\n  if(map[s]) return map[s];\n  if(s.indexOf("_")!==-1) return fall; /* never show raw snake_case */\n  return s; /* backend prose already human-readable */\n}\n/* 2026-10-04: epoch-ms for a "YYYY-MM-DD HH:MM" wall-clock in America/Chicago.\n   schedule_add reads epoch-ms p.scheduled_for; the Intl offset is resolved\n   iteratively so DST transitions convert correctly.\n   NOTE: this whole widget ships inside an outer template literal, so every\n   regex backslash below MUST stay doubled (\\) or the inner script dies with\n   a SyntaxError at mount (2026-10-04 hotfix). */\nfunction chicagoToMs(str){\n  try{\n    var m=/^(\\d{4})-(\\d{2})-(\\d{2})[ T](\\d{2}):(\\d{2})$/.exec(String(str||"").trim());\n    if(!m) return 0;\n    var y=+m[1],mo=+m[2],d=+m[3],hh=+m[4],mi=+m[5];\n    if(mo<1||mo>12||d<1||d>31||hh>23||mi>59) return 0;\n    var target=Date.UTC(y,mo-1,d,hh,mi,0), guess=target;\n    for(var i=0;i<4;i++){\n      var tz=new Date(guess).toLocaleString("en-US",{timeZone:"America/Chicago",hour12:false,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});\n      var p=/(\\d+)\\/(\\d+)\\/(\\d+),?\\s*(\\d+):(\\d+)/.exec(tz);\n      if(!p) return 0;\n      var asUtc=Date.UTC(+p[3],+p[1]-1,+p[2],(+p[4])%24,+p[5],0);\n      var adj=target-asUtc;\n      guess=guess+adj;\n      if(Math.abs(adj)<60000) break;\n    }\n    return guess;\n  }catch(e){ return 0; }\n}\n/* Friendly copy for gated read failures (2026-10-03): raw backend strings\n   like \'missing credentials\' are never shown as UI copy. */\nfunction fdAuthHint(j){\n  var e=String((j&&j.err)||"");\n  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")\n    return \'<div class="x-note">This callsign predates the new auth system and can&rsquo;t reconnect on its own &mdash; contact MTCSTW to recover it.</div>\';\n  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)\n    return \'<div class="x-note">Your scheduled queue is behind a handshake. Re-claim your callsign in Enlistment Ranks (one tap), then refresh.</div>\';\n  return "";\n}\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  /* Private reads require auth_secret (IDOR fix). Route gated actions\n     through the shared claim-retry GET (2026-10-03): pre-auth callsign\n     holders with no stored secret get one auth_claim attempt instead of\n     failing \'missing credentials\' forever. */\n  if(action==="schedule_list"){\n    try{\n      if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }\n      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";\n      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;\n    }catch(e){}\n  }\n  var fn="pfFdCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\nfunction post(spAction,params,cb){\n  var body=Object.assign({type:"spread",sp_action:spAction},params);\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }\n  var bodyStr=JSON.stringify(body);\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */\n    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;\n      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}\n      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();\n    fetch(BACKEND,_po)\n      .then(function(r){ return r.json(); })\n      .then(function(j){ _po._pfClear(); done(j); })\n      .catch(function(){ _po._pfClear(); done(null); });\n  }catch(e){ done(null); }\n}\nfunction postX(type,typeAction,action,params,cb){\n  var b={type:type}; b[typeAction]=action;\n  var body=Object.assign(b,params);\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  /* Writes that require auth (e.g. reputation_vote) must carry auth_secret.\n     Route through PF.authPost like caption-combat\'s caption_submit. */\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,function(j){ done(j); }); return; }\n  var bodyStr=JSON.stringify(body);\n  try{\n    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */\n    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;\n      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}\n      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();\n    fetch(BACKEND,_po)\n      .then(function(r){ return r.json(); })\n      .then(function(j){ _po._pfClear(); done(j); })\n      .catch(function(){ _po._pfClear(); done(null); });\n  }catch(e){ done(null); }\n}\nfunction isTrusted(creator){\n  try{\n    if(REP&&REP.ok&&REP.trusted){\n      for(var i=0;i<REP.trusted.length;i++) if(String(REP.trusted[i]).toLowerCase()===String(creator||"").toLowerCase()) return true;\n    }\n  }catch(e){}\n  return false;\n}\nvar tab="trending", T=null, N=null, REP=null, SCHED=null, TIPS=null, FN=null, DUE=null;\nfunction load(){\n  var done=false, n=0;\n  function fin(){ if(done)return; done=true; render(); }\n  function one(){ n++; if(n>=7) fin(); }\n  setTimeout(fin,15000);\n  api("boost_board",{},function(j){ T=j; one(); });\n  api("content_list",{sort:"new",limit:25},function(j){ N=j; one(); });\n  api("reputation_get",{},function(j){ REP=j; one(); });\n  /* 2026-10-03: NEW tab gets its own backend feed (feed_new) instead of the\n     client-side re-sort of content_list; plus tip leaderboard + due queue. */\n  api("feed_new",{},function(j){ FN=j; one(); });\n  api("tip_leaderboard",{},function(j){ TIPS=j; one(); });\n  api("schedule_due",{},function(j){ DUE=j; one(); });\n  var id0=ident();\n  if(id0.callsign) api("schedule_list",{callsign:id0.callsign},function(j){ SCHED=j; one(); });\n  else { SCHED={ok:true,queue:[]}; one(); }\n}\nfunction items(){\n  var out=[];\n  try{\n    if(tab==="trending"&&T&&T.ok&&T.board) out=T.board;\n    else if(tab==="top"&&T&&T.ok&&T.board) out=T.board.slice().sort(function(a,b){ return (b.boosts||0)-(a.boosts||0); });\n    else if(tab==="new"&&FN&&FN.ok&&FN.feed) out=FN.feed;\n    else if(tab==="new"&&N&&N.ok&&N.items) out=N.items;\n    else if(N&&N.ok&&N.items) out=N.items;\n  }catch(e){}\n  return out;\n}\nfunction render(){\n  var el=document.getElementById("xFeed"); if(!el) return;\n  var id=ident(), h="";\n  h+=\'<div class="fd-tabs">\'\n    +\'<button class="c-btn fd-tab\'+(tab==="trending"?" fd-on":"")+\'" data-tab="trending">TRENDING</button>\'\n    +\'<button class="c-btn fd-tab\'+(tab==="new"?" fd-on":"")+\'" data-tab="new">NEW</button>\'\n    +\'<button class="c-btn fd-tab\'+(tab==="top"?" fd-on":"")+\'" data-tab="top">TOP</button>\'\n    +\'<button class="c-btn fd-tab\'+(tab==="boost"?" fd-on":"")+\'" data-tab="boost">BOOST</button>\'\n    +\'<button class="c-btn fd-tab\'+(tab==="vault"?" fd-on":"")+\'" data-tab="vault">VAULT</button>\'\n    +\'</div>\';\n  var list=items();\n  if(tab==="boost"){\n    h+=\'<div id="fdBoostWrap"><div class="c-load">Loading the boost board&hellip;</div></div>\';\n  } else if(tab==="vault"){\n    h+=\'<div id="fdVaultWrap"><div class="c-load">Opening the vault&hellip;</div></div>\';\n  } else {\n  if(!list.length){\n    h+=\'<div class="x-pane"><div class="x-note">Nothing here yet. Be the first to forge propaganda in Poster Forge &mdash; it lands here.</div></div>\';\n  }\n  for(var i=0;i<Math.min(list.length,25);i++){\n    var it=list[i], cid=esc(it.id||""), trusted=isTrusted(it.creator);\n    h+=\'<div class="x-pane fd-item">\'\n      +\'<div class="fd-title">\'+esc(it.title||it.id||"Untitled")\n      +(trusted?\' <span class="fd-trusted" title="Trusted creator" style="color:#7CFC00;font-size:12px">&#10003; TRUSTED</span>\':"")\n      +\'</div>\'\n      +\'<div class="x-note">by \'+esc(it.creator||"anon")+\' &bull; \'+(Number(it.shares)||0)+\' shares &bull; \'+(Number(it.boosts)||0)+\' boosts</div>\'\n      +\'<div class="fd-actions" style="margin-top:6px">\'\n      +\'<button class="c-btn fd-share" data-cid="\'+cid+\'" data-title="\'+esc(it.title||"")+\'">SHARE &amp; PUMP</button> \'\n      +\'<button class="c-btn fd-vote" data-cid="\'+cid+\'" data-creator="\'+esc(it.creator||"")+\'" data-v="1">&#9650;</button>\'\n      +\'<button class="c-btn fd-vote" data-cid="\'+cid+\'" data-creator="\'+esc(it.creator||"")+\'" data-v="-1">&#9660;</button> \'\n      +\'<button class="c-btn fd-tip" data-cid="\'+cid+\'" data-creator="\'+esc(it.creator||"")+\'">TIP</button> \'\n      +\'<button class="c-btn fd-sched" data-cid="\'+cid+\'" data-title="\'+esc(it.title||"")+\'">SCHEDULE</button> \'\n      +\'<button class="c-btn fd-intel" data-cid="\'+cid+\'">WHO&#39;S SHARING</button>\'\n      +\'</div><div class="fd-intelbox" data-cid="\'+cid+\'" style="display:none;margin-top:6px"></div></div>\';\n    }\n  }\n  /* Due now (2026-10-03: schedule_due, public) — network-wide firing queue. */\n  var due=[]; try{ if(DUE&&DUE.ok&&DUE.due) due=DUE.due; }catch(e){}\n  if(due.length){\n    h+=\'<div class="x-pane"><div class="fd-title">DUE NOW — FIRING (\'+due.length+\')</div>\';\n    for(var di=0;di<Math.min(due.length,5);di++){\n      var dd=due[di];\n      h+=\'<div class="x-note">\'+esc(dd.content_id||"")+\' &mdash; \'+esc(dd.platform||"")+\' &mdash; queued by \'+esc(dd.callsign||"anon")+\'</div>\';\n    }\n    if(due.length>5) h+=\'<div class="x-note">&hellip;and \'+(due.length-5)+\' more in the queue.</div>\';\n    h+=\'</div>\';\n  }\n  /* Scheduled queue. */\n  var q=[]; try{ if(SCHED&&SCHED.ok&&SCHED.queue) q=SCHED.queue; }catch(e){}\n  if(q.length){\n    h+=\'<div class="x-pane"><div class="fd-title">SCHEDULED QUEUE (\'+q.length+\')</div>\';\n    for(var qi=0;qi<q.length;qi++){\n      var sq=q[qi];\n      h+=\'<div class="x-note">\'+esc(sq.content_id||"")+\' &mdash; \'+esc(sq.platform||"")+\' at \'+esc(fmtSched(sq.scheduled_for))\n        +(sq.posted?\' <span class="cp-mdone">FIRED</span>\':\' <button class="c-btn ghost" data-sqc="\'+sq.id+\'">CANCEL</button>\')+\'</div>\';\n    }\n    h+=\'</div><div class="c-err" id="fdSchedErr"></div>\';\n  }\n  else if(SCHED&&!SCHED.ok){ h+=fdAuthHint(SCHED); }\n  /* Tip leaderboard (2026-10-03: tip_leaderboard, public) — tips were flowing\n     through tip_send, but nobody ever saw who the network backs. */\n  var tl=[]; try{ if(TIPS&&TIPS.ok&&TIPS.leaders) tl=TIPS.leaders; }catch(e2){}\n  if(tl.length){\n    h+=\'<div class="x-pane"><div class="fd-title">TOP TIPPED</div>\';\n    for(var ti2=0;ti2<Math.min(tl.length,10);ti2++){\n      h+=\'<div class="cp-mission"><div class="cp-mtext">\'+esc(tl[ti2].callsign)+\'</div>\'\n        +\'<div class="cp-mxp">\'+Number(tl[ti2].total||0)+\' XP (\'+Number(tl[ti2].n||0)+\')</div></div>\';\n    }\n    h+=\'</div>\';\n  }\n  h+=\'<div style="margin-top:10px"><button class="c-btn" id="fdRetry">Refresh</button></div>\';\n  el.innerHTML=h;\n  var tabs=el.querySelectorAll("button.fd-tab");\n  for(var t=0;t<tabs.length;t++){\n    (function(b){ b.onclick=function(){ tab=b.getAttribute("data-tab"); render(); }; })(tabs[t]);\n  }\n  var bw=document.getElementById("fdBoostWrap");\n  if(bw) fdInitBoost(bw);\n  var vw=document.getElementById("fdVaultWrap");\n  if(vw) fdInitVault(vw);\n  var sh=el.querySelectorAll("button.fd-share");\n  for(var s2=0;s2<sh.length;s2++){\n    (function(b){\n      b.onclick=function(){\n        var cid=b.getAttribute("data-cid"); if(!cid){ toast("No content id."); return; }\n        b.disabled=true;\n        post("share_log",{content_id:cid,sharer:id.callsign||"anon",device:id.device},function(j){\n          b.disabled=false;\n          if(j&&j.ok){ toast("Shared. Depth "+(j.depth||0)+" — keep pumping."); }\n          else { toast("Logged locally. Pump it anyway."); }\n          /* Hand off to the share system if present. */\n          try{\n            if(window.PFShare&&PFShare.shareText){ PFShare.shareText(b.getAttribute("data-title")+" — via MTCSTW"); }\n            else if(navigator.share){ navigator.share({title:b.getAttribute("data-title"),text:b.getAttribute("data-title")+" — JOIN THE FIGHT.",url:location.href}); }\n            else { toast("Copy the link and spread it."); }\n          }catch(e){}\n        });\n      };\n    })(sh[s2]);\n  }\n  /* Who\'s sharing: spread_stats breakdown per content item. */\n  var ib=el.querySelectorAll("button.fd-intel");\n  for(var ii=0;ii<ib.length;ii++){\n    (function(b){\n      b.onclick=function(){\n        var cid=b.getAttribute("data-cid");\n        var box=el.querySelector(\'div.fd-intelbox[data-cid="\'+cid+\'"]\');\n        if(!box) return;\n        if(box.style.display!=="none"){ box.style.display="none"; return; }\n        box.style.display="block";\n        box.innerHTML=\'<div class="x-note">Reading the spread&hellip;</div>\';\n        api("spread_stats",{content_id:cid},function(j){\n          if(!j||!j.ok){ box.innerHTML=\'<div class="x-note">No spread data yet.</div>\'; return; }\n          var h=\'<div class="x-note">\'\n            +\'<b>\'+(Number(j.total_shares)||0)+\'</b> shares &bull; \'\n            +\'<b>\'+(Number(j.unique_sharers)||0)+\'</b> sharers &bull; \'\n            +\'<b>\'+(Number(j.cells_reached)||0)+\'</b> cells &bull; \'\n            +\'depth <b>\'+(Number(j.max_depth)||0)+\'</b>\';\n          var tl=[]; try{ if(j.timeline) tl=j.timeline; }catch(e){}\n          if(tl.length){\n            h+=\'<br>14d: \';\n            var bars=[];\n            for(var d=0;d<tl.length;d++){ bars.push(Number(tl[d])||0); }\n            h+=esc(bars.join(" / "));\n          }\n          var tops=[]; try{ if(j.top_sharers) tops=j.top_sharers; }catch(e){}\n          if(tops.length){\n            h+=\'<br>Top pumpers: \';\n            var tn=[];\n            for(var t2=0;t2<Math.min(tops.length,5);t2++){ tn.push(esc(String(tops[t2].sharer||tops[t2]))); }\n            h+=tn.join(", ");\n          }\n          h+=\'</div>\';\n          box.innerHTML=h;\n        });\n      };\n    })(ib[ii]);\n  }\n  var rb=document.getElementById("fdRetry");\n  if(rb) rb.onclick=function(){ T=N=null; REP=null; SCHED=null; TIPS=null; FN=null; DUE=null; el.innerHTML=\'<div class="c-load">Loading the feed&hellip;</div>\'; load(); };\n  /* Up/down votes. */\n  var vs=el.querySelectorAll("button.fd-vote");\n  for(var vi=0;vi<vs.length;vi++){\n    (function(b){\n      b.onclick=function(){\n        var cid=b.getAttribute("data-cid"), v=b.getAttribute("data-v"), creator=b.getAttribute("data-creator");\n        if(!id.callsign){ toast("Claim a callsign to vote."); return; }\n        if(!creator){ toast("That post is missing its creator — refresh the feed and try again."); return; }\n        b.disabled=true;\n        /* 2026-10-04: backend contract — reputation_vote reads p.creator and\n           p.up (Number(p.up)>=0 -> upvote, else downvote); the vote direction\n           is mapped explicitly so a rename never records everything as down. */\n        postX("reputation","rep_action","reputation_vote",{creator:creator,voter:id.callsign,device:id.device,up:(Number(v)>0?1:-1)},function(j){\n          b.disabled=false;\n          if(j&&j.ok){ toast("Vote recorded."); }\n          else toast(fdWriteErr(j&&j.err||j&&j.error,"Vote failed."));\n        });\n      };\n    })(vs[vi]);\n  }\n  /* Tips: 10/25/50 XP to the creator. */\n  var ts=el.querySelectorAll("button.fd-tip");\n  for(var ti=0;ti<ts.length;ti++){\n    (function(b){\n      b.onclick=function(){\n        if(!id.callsign){ toast("Claim a callsign to tip."); return; }\n        var creator=b.getAttribute("data-creator"), cid=b.getAttribute("data-cid");\n        var amt=window.prompt("Tip "+creator+" how much XP? (10 / 25 / 50)", "25");\n        amt=Math.round(Number(amt)||0);\n        if(amt!==10&&amt!==25&&amt!==50){ toast("Pick 10, 25, or 50."); return; }\n        b.disabled=true;\n        /* 2026-10-04: backend contract — tip_send reads p.from_cs / p.to_cs\n           (not from/to); content_id is unread by the backend, dropped. */\n        postX("tip","t_action","tip_send",{from_cs:id.callsign,to_cs:creator,xp:amt,device:id.device},function(j){\n          b.disabled=false;\n          if(j&&j.ok){ toast("Tipped "+amt+" XP to "+creator+"."); }\n          else toast(fdWriteErr(j&&j.err||j&&j.error,"Tip failed."));\n        });\n      };\n    })(ts[ti]);\n  }\n  /* Schedule a share. */\n  var ss=el.querySelectorAll("button.fd-sched");\n  for(var si=0;si<ss.length;si++){\n    (function(b){\n      b.onclick=function(){\n        if(!id.callsign){ toast("Claim a callsign to schedule."); return; }\n        var cid=b.getAttribute("data-cid");\n        var plat=window.prompt("Platform? (twitter / tiktok / facebook / instagram)", "twitter")||"twitter";\n        var when=window.prompt("When? (YYYY-MM-DD HH:MM, Chicago time)", "");\n        if(!when){ return; }\n        /* 2026-10-04: backend contract — schedule_add reads epoch-ms\n           p.scheduled_for (must be future, within 30 days), not a string. */\n        var whenMs=chicagoToMs(when);\n        if(!whenMs){ toast("Use the format YYYY-MM-DD HH:MM — e.g. 2026-10-05 14:30."); return; }\n        if(whenMs<=Date.now()){ toast("That time is in the past. Pick a future slot."); return; }\n        b.disabled=true;\n        postX("schedule","s_action","schedule_add",{content_id:cid,callsign:id.callsign,device:id.device,platform:String(plat).toLowerCase().slice(0,16),scheduled_for:whenMs},function(j){\n          b.disabled=false;\n          if(j&&j.ok){ toast("Scheduled. It will fire from the queue."); load(); }\n          else toast(fdWriteErr(j&&j.err||j&&j.error,"Schedule failed."));\n        });\n      };\n    })(ss[si]);\n  }\n  /* Cancel a scheduled share (2026-10-03 H7). */\n  var scs=el.querySelectorAll("button[data-sqc]");\n  for(var sci=0;sci<scs.length;sci++){\n    (function(b){\n      b.onclick=function(){\n        var qid=b.getAttribute("data-sqc"); if(!qid) return;\n        b.disabled=true;\n        postX("schedule","s_action","schedule_cancel",{id:Number(qid),callsign:id.callsign,device:id.device},function(j){\n          if(j&&j.ok){ toast("Schedule cancelled."); SCHED=null; load(); }\n          else{\n            b.disabled=false;\n            var e2=document.getElementById("fdSchedErr");\n            if(e2) e2.textContent=fdWriteErr(j&&j.err||j&&j.error,"Cancel failed.");\n          }\n        });\n      };\n    })(scs[sci]);\n  }\n}\n/* ---------- BOOST tab (merged from games/amplify.js, PF v1.4.3, 2026-10-03) ----------\n   Amplify now lives as a tab of the Propaganda Feed. XP buttons call the same\n   boost_give / content_register backend actions, which feed the Feed ranking\n   (boost_board weights discovery). amplify.js deleted. */\nfunction fdInitBoost(root){\n if(!root) return;\n root.innerHTML =\n \'<div id="pf-amplify">\'\n +\'<div class="c-tag">Put your XP where your mouth is. Boost what matters. Boosts feed the Feed ranking.</div>\'\n +\'<div class="am-tabs">\'\n +\'<button class="am-tab on" data-t="posts">Posts</button>\'\n +\'<button class="am-tab" data-t="creators">Creators</button>\'\n +\'<button class="am-tab" data-t="campaigns">Campaigns</button>\'\n +\'</div>\'\n +\'<div id="amPick"><div class="c-load">Loading targets&hellip;</div></div>\'\n +\'<div class="am-amtrow">\'\n +\'<span class="am-label">XP to spend:</span> \'\n +\'<button class="am-chip on" data-a="10">10</button> \'\n +\'<button class="am-chip" data-a="25">25</button> \'\n +\'<button class="am-chip" data-a="50">50</button> \'\n +\'<button class="am-chip" data-a="100">100</button> \'\n +\'<input id="amCustom" class="am-custom" type="number" min="10" max="500" placeholder="Custom">\'\n +\'</div>\'\n +\'<button id="amGo" class="am-go" disabled>Select something to amplify</button>\'\n +\'<h3 class="am-h3">Live amplifications</h3>\'\n +\'<div id="amBoard"><div class="c-load">Loading the board&hellip;</div></div>\'\n +\'<h3 class="am-h3">Your amplifications</h3>\'\n +\'<div id="amMine"><div class="c-load">Loading&hellip;</div></div>\'\n +\'</div>\';\n\nvar BACKEND=window.PF_BACKEND_URL;\nvar sel=null;           /* {kind:\'post\'|\'creator\'|\'campaign\', id, title, reg} */\nvar amt=10;\nvar LS=\'pf_amplify_v1\';\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction toast(m){ try{ PF.toast(m); }catch(e){} }\nfunction needCs(){ var id=ident(); if(!id.callsign){ if(window.PF&&PF.requireCallsign){ PF.requireCallsign(function(){ refreshAll(); }); } else toast("Claim a callsign first."); return false; } return true; }\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  var fn="pfAmCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\nfunction post(spAction,params,cb){\n  var body=Object.assign({type:"spread",sp_action:spAction},params);\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,function(j){ cb(j||{ok:false,err:"Network error."}); }); return; }\n  cb({ok:false,err:"Auth unavailable."});\n}\nfunction loadMine(){ try{ return JSON.parse(localStorage.getItem(LS)||"[]"); }catch(e){ return []; } }\nfunction saveMine(a){ try{ localStorage.setItem(LS,JSON.stringify(a.slice(0,50))); }catch(e){} }\n\n/* ---------- target pickers ---------- */\nvar curTab=\'posts\';\nfunction setTab(t){\n  curTab=t; sel=null; updateGo();\n  var tabs=document.querySelectorAll(\'#pf-amplify .am-tab\');\n  for(var i=0;i<tabs.length;i++) tabs[i].classList.toggle(\'on\',tabs[i].getAttribute(\'data-t\')===t);\n  var box=document.getElementById(\'amPick\');\n  box.innerHTML=\'<div class="c-load">Loading targets&hellip;</div>\';\n  if(t===\'posts\') loadPosts(box);\n  else if(t===\'creators\') loadCreators(box);\n  else loadCampaigns(box);\n}\nfunction rowHtml(kind,id,title,sub,badge){\n  return \'<div class="am-row" data-kind="\'+esc(kind)+\'" data-id="\'+esc(id)+\'" data-title="\'+esc(title)+\'">\'+\n    \'<div class="am-rowmain"><div class="am-rowt">\'+esc(title)+\'</div><div class="am-rowsub">\'+esc(sub||"")+\'</div></div>\'+\n    (badge?\'<span class="am-badge">AMPLIFIED &times;\'+badge+\'</span>\':\'\')+\n    \'</div>\';\n}\nfunction bindRows(box){\n  var rows=box.querySelectorAll(\'.am-row\');\n  for(var i=0;i<rows.length;i++){\n    rows[i].addEventListener(\'click\',function(){\n      var rs=box.querySelectorAll(\'.am-row\');\n      for(var j=0;j<rs.length;j++) rs[j].classList.remove(\'sel\');\n      this.classList.add(\'sel\');\n      sel={kind:this.getAttribute(\'data-kind\'),id:this.getAttribute(\'data-id\'),title:this.getAttribute(\'data-title\')};\n      updateGo();\n    });\n  }\n}\nfunction loadPosts(box){\n  /* trending first (boosts already weight it), fall back to newest */\n  api(\'feed_trending\',{},function(j){\n    var feed=(j&&j.ok&&j.feed)||[];\n    if(!feed.length){\n      api(\'content_list\',{},function(j2){\n        var f2=(j2&&j2.ok&&j2.feed)||[];\n        renderPosts(box,f2);\n      });\n      return;\n    }\n    renderPosts(box,feed);\n  });\n}\nfunction renderPosts(box,feed){\n  if(!feed.length){ box.innerHTML=\'<div class="c-load">No content registered yet. Share something first.</div>\'; return; }\n  var h=\'\';\n  feed.slice(0,12).forEach(function(p){\n    var sub=(p.creator||"unknown")+" &middot; "+(p.type||"post")+" &middot; "+(p.shares||0)+" shares";\n    h+=rowHtml(\'post\',p.id,p.title||p.id,sub,p.boosts||0);\n  });\n  box.innerHTML=h; bindRows(box);\n}\nfunction loadCreators(box){\n  var list=[];\n  try{\n    if(window.PF&&PF.ROSTER){ list=PF.ROSTER; }\n    else if(window.PF&&PF.slrAll){ list=PF.slrAll(); }\n  }catch(e){}\n  if(!list||!list.length){ box.innerHTML=\'<div class="c-load">Roster not loaded.</div>\'; return; }\n  var h=\'\';\n  list.slice(0,20).forEach(function(c){\n    var name=c.name||c.callsign||c.slug||"creator";\n    var slug=c.slug||String(name).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");\n    var sub=(c.followers||c.reach||"")+(c.score?" &middot; "+c.score+" score":"");\n    h+=rowHtml(\'creator\',"creator_"+slug,name,sub,0);\n  });\n  box.innerHTML=h; bindRows(box);\n}\nfunction loadCampaigns(box){\n  api(\'campaign_missions\',{day_offset:0},function(j){\n    var ms=(j&&j.ok&&j.missions)||[];\n    if(!ms.length){ box.innerHTML=\'<div class="c-load">No active missions today.</div>\'; return; }\n    var h=\'\';\n    ms.forEach(function(m){\n      h+=rowHtml(\'campaign\',"campaign_"+m.id,m.title||("Mission "+m.id),(m.xp?("+"+m.xp+" XP"):""),0);\n    });\n    box.innerHTML=h; bindRows(box);\n  });\n}\n\n/* ---------- amount + go ---------- */\nfunction updateGo(){\n  var go=document.getElementById(\'amGo\');\n  var custom=document.getElementById(\'amCustom\');\n  var cv=parseInt(custom&&custom.value,10);\n  amt=(cv>=10&&cv<=500)?cv:amt;\n  if(sel){\n    go.disabled=false;\n    go.textContent="AMPLIFY — "+amt+" XP";\n  }else{\n    go.disabled=true;\n    go.textContent="Select something to amplify";\n  }\n}\nfunction doAmplify(){\n  if(!sel) return;\n  if(!needCs()) return;\n  var id=ident();\n  var useAmt=amt;\n  if(!confirm("Spend "+useAmt+" XP to amplify “"+sel.title+"”?")) return;\n  var goBtn=document.getElementById(\'amGo\');\n  if(goBtn) goBtn.disabled=true;\n  toast("Amplifying…");\n  function give(){\n    post(\'boost_give\',{content_id:sel.id,booster:id.callsign,device:id.device,xp:useAmt},function(j){\n      if(goBtn) goBtn.disabled=false;\n      if(j&&j.ok){\n        toast("Amplified! "+useAmt+" XP behind “"+sel.title+"”.");\n        try{ document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:-useAmt,key:"amplify_"+sel.id+"_"+useAmt,reason:"amplify: "+sel.title}})); }catch(e){}\n        var mine=loadMine();\n        mine.unshift({id:sel.id,title:sel.title,kind:sel.kind,xp:useAmt,ts:Date.now()});\n        saveMine(mine);\n        sel=null; updateGo(); renderMine(); loadBoard();\n      }else{\n        toast("Amplify failed: "+fdWriteErr(j&&j.err||j&&j.error,"unknown error"));\n      }\n    });\n  }\n  if(sel.kind===\'post\'){ give(); return; }\n  /* creators & campaigns need a content row first */\n  post(\'content_register\',{id:sel.id,kind:\'poster\',title:sel.title,callsign:id.callsign,device:id.device},function(){\n    give();\n  });\n}\n\n/* ---------- boards ---------- */\nfunction loadBoard(){\n  var box=document.getElementById(\'amBoard\');\n  api(\'boost_board\',{},function(j){\n    var b=(j&&j.ok&&j.board)||[];\n    if(!b.length){ box.innerHTML=\'<div class="c-load">Nothing amplified yet this week. Be the first.</div>\'; return; }\n    var h=\'\';\n    b.forEach(function(r,i){\n      h+=\'<div class="am-brow"><span class="am-rank">#\'+(i+1)+\'</span>\'+\n        \'<div class="am-rowmain"><div class="am-rowt">\'+esc(r.title||r.id)+\'</div>\'+\n        \'<div class="am-rowsub">\'+esc(r.creator||"")+\'</div></div>\'+\n        \'<span class="am-badge">AMPLIFIED &times;\'+(r.boosts||0)+\'</span>\'+\n        \'<span class="am-xp">\'+(r.xp||0)+\' XP</span></div>\';\n    });\n    box.innerHTML=h;\n  });\n}\nfunction renderMine(){\n  var box=document.getElementById(\'amMine\');\n  var mine=loadMine();\n  if(!mine.length){ box.innerHTML=\'<div class="c-load">You haven’t amplified anything yet.</div>\'; return; }\n  var h=\'\';\n  mine.slice(0,10).forEach(function(m){\n    var d=new Date(m.ts);\n    var when=(d.getMonth()+1)+"/"+d.getDate();\n    h+=\'<div class="am-brow"><div class="am-rowmain"><div class="am-rowt">\'+esc(m.title)+\'</div>\'+\n      \'<div class="am-rowsub">\'+esc(m.kind)+" &middot; "+when+\'</div></div>\'+\n      \'<span class="am-xp">-\'+m.xp+\' XP</span></div>\';\n  });\n  box.innerHTML=h;\n}\nfunction refreshAll(){ setTab(curTab); loadBoard(); renderMine(); }\n\n/* ---------- wire up ---------- */\nvar tabs=document.querySelectorAll(\'#pf-amplify .am-tab\');\nfor(var ti=0;ti<tabs.length;ti++){ tabs[ti].addEventListener(\'click\',function(){ setTab(this.getAttribute(\'data-t\')); }); }\nvar chips=document.querySelectorAll(\'#pf-amplify .am-chip\');\nfor(var ci=0;ci<chips.length;ci++){\n  chips[ci].addEventListener(\'click\',function(){\n    for(var k=0;k<chips.length;k++) chips[k].classList.remove(\'on\');\n    this.classList.add(\'on\');\n    amt=parseInt(this.getAttribute(\'data-a\'),10)||10;\n    var c=document.getElementById(\'amCustom\'); if(c) c.value=\'\';\n    updateGo();\n  });\n}\nvar cust=document.getElementById(\'amCustom\');\nif(cust){ cust.addEventListener(\'input\',function(){\n  var v=parseInt(cust.value,10);\n  if(v>=10&&v<=500){ for(var k=0;k<chips.length;k++) chips[k].classList.remove(\'on\'); amt=v; }\n  updateGo();\n});}\ndocument.getElementById(\'amGo\').addEventListener(\'click\',doAmplify);\nrefreshAll();\n}\n\n/* ---------- VAULT tab (merged from games/archive.js, PF v1.4.3, 2026-10-03) ----------\n   The Vault now lives as a tab of the Propaganda Feed (a browse filter over\n   the archive). Same archive_search / evergreen_list / resurface /\n   attribution_stats backend calls. archive.js deleted. */\nfunction fdInitVault(root){\n\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}\n  try{ var t=document.createElement("div"); t.textContent=m;\n  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";\n  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  var fn="pfArCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\nfunction post(cAction,params,cb){\n  var body=Object.assign({type:"archive",ar_action:cAction},params);\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }\n  var bodyStr=JSON.stringify(body);\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */\n    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;\n      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}\n      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();\n    fetch(BACKEND,_po)\n      .then(function(r){ return r.json(); })\n      .then(function(j){ _po._pfClear(); done(j); })\n      .catch(function(){ _po._pfClear(); done(null); });\n  }catch(e){ done(null); }\n}\nvar EV=null, results=null, lastQ="", lastSort="top";\nfunction card(r,showResurface,showAttr){\n  var h=\'<div class="x-pane ar-card">\'\n    +\'<div class="ar-headline">\'+esc(r.headline||r.content_id)+\'</div>\'\n    +\'<div class="ar-meta">by \'+esc(r.creator||"unknown")+\' &bull; \'+(Number(r.shares)||0)+\' shares</div>\';\n  if(showAttr){\n    h+=\'<button class="c-btn c-btn2 ar-attr" data-cid="\'+esc(r.content_id)+\'">WHO DID THIS CONVERT?</button>\'\n      +\'<div class="ar-attr-out" id="arAttr\'+esc(r.content_id)+\'"></div>\';\n  }\n  if(showResurface){\n    var id=ident();\n    if(id.callsign){\n      h+=\'<button class="c-btn ar-resurf" data-cid="\'+esc(r.content_id)+\'">RESURFACE (+5 XP)</button>\';\n    }\n  }\n  h+=\'</div>\';\n  return h;\n}\nfunction wireCards(el){\n  var rs=el.querySelectorAll("button.ar-resurf");\n  for(var i=0;i<rs.length;i++){\n    (function(btn){\n      btn.onclick=function(){\n        var id=ident(); if(!id.callsign){ toast("Claim a callsign first."); return; }\n        btn.disabled=true;\n        post("resurface",{callsign:id.callsign,device:id.device,content_id:btn.getAttribute("data-cid")},function(j){\n          if(!j||!j.ok){ toast(fdWriteErr(j&&j.err||j&&j.error,"Resurface failed.")); btn.disabled=false; return; }\n          toast("+5 XP — winner redeployed.");\n          btn.textContent="RESURFACED";\n        });\n      };\n    })(rs[i]);\n  }\n  var as=el.querySelectorAll("button.ar-attr");\n  for(var k=0;k<as.length;k++){\n    (function(btn){\n      var out=document.getElementById("arAttr"+btn.getAttribute("data-cid"));\n      var open=false;\n      btn.onclick=function(){\n        if(open){ out.innerHTML=""; open=false; return; }\n        open=true; out.innerHTML=\'<div class="x-note">Tracing conversions&hellip;</div>\';\n        api("attribution_stats",{content_id:btn.getAttribute("data-cid")},function(j){\n          if(!j||!j.ok){ out.innerHTML=\'<div class="x-note">No attribution data yet.</div>\'; return; }\n          out.innerHTML=\'<div class="ar-conv">\'\n            +\'<div>\'+(Number(j.enlistments)||0)+\' enlistments traced</div>\'\n            +\'<div>\'+(Number(j.referrals)||0)+\' referrals traced</div>\'\n            +\'<div>\'+(Number(j.xp_generated)||0)+\' XP generated</div></div>\';\n        });\n      };\n    })(as[k]);\n  }\n}\nfunction render(){\n  var el=root; if(!el) return;\n  var id=ident(), h="";\n  /* search bar — 2026-10-03: archive_search (public) with TOP/RECENT sort;\n     falls back to content_search if the dedicated search fails. */\n  h+=\'<div class="c-tag">Every poster ever forged. Search it. Resurface winners. See what converted.</div>\'\n  +\'<div class="x-pane"><h4>Search the vault</h4>\'\n    +\'<input aria-label="healthcare, wages, rent&hellip;" id="arQ" type="text" placeholder="healthcare, wages, rent&hellip;" value="\'+esc(lastQ)+\'" style="width:60%;padding:8px;font:14px monospace"/>\'\n    +\'<button class="c-btn" id="arSearch">SEARCH</button> \'\n    +\'<button class="c-btn ghost" id="arSortTop"\'+(lastSort==="top"?\' disabled\':"")+\'>TOP</button>\'\n    +\'<button class="c-btn ghost" id="arSortRecent"\'+(lastSort==="recent"?\' disabled\':"")+\'>RECENT</button>\'\n    +\'<div id="arResults" style="margin-top:10px"></div></div>\';\n  /* evergreen */\n  h+=\'<div class="x-pane"><h4>Evergreen winners</h4>\'\n    +\'<div class="x-note">Proven posters gone quiet for 30+ days. Redeploy them &mdash; winners win twice.</div>\'\n    +\'<div id="arEvergreen"><div class="c-load">Digging up winners&hellip;</div></div></div>\';\n  el.innerHTML=h;\n  var sb=document.getElementById("arSearch");\n  var qi=document.getElementById("arQ");\n  function doSearch(){\n    var q=qi.value.trim(); if(!q) return;\n    lastQ=q;\n    var ro=document.getElementById("arResults");\n    ro.innerHTML=\'<div class="c-load">Searching&hellip;</div>\';\n    function paint(rs){\n      var rh="";\n      if(!rs.length){ rh=\'<div class="x-note">Nothing in the vault matches "\'+esc(q)+\'". Forge it yourself.</div>\'; }\n      for(var i=0;i<Math.min(rs.length,20);i++){ rh+=card(rs[i],true,true); }\n      ro.innerHTML=rh; wireCards(ro);\n    }\n    api("archive_search",{q:q,sort:lastSort},function(j){\n      var rs=(j&&j.ok&&j.results)||[];\n      if(!j||!j.ok){\n        /* Fallback: the older content_search path. */\n        api("content_search",{q:q},function(j2){\n          paint((j2&&j2.ok&&j2.results)||[]);\n        });\n        return;\n      }\n      paint(rs);\n    });\n  }\n  sb.onclick=doSearch;\n  qi.onkeydown=function(e){ if(e.key==="Enter") doSearch(); };\n  var st=document.getElementById("arSortTop");\n  if(st) st.onclick=function(){ lastSort="top"; render(); };\n  var sr=document.getElementById("arSortRecent");\n  if(sr) sr.onclick=function(){ lastSort="recent"; render(); };\n  if(lastQ&&results){\n    var ro2=document.getElementById("arResults");\n    var rh2="";\n    for(var r=0;r<Math.min(results.length,20);r++){ rh2+=card(results[r],true,true); }\n    ro2.innerHTML=rh2; wireCards(ro2);\n  }\n  /* evergreen load */\n  var eg=document.getElementById("arEvergreen");\n  if(EV){ paintEvergreen(eg); }\n  else{\n    api("evergreen_list",{},function(j){\n      EV=(j&&j.ok&&j.winners)||[];\n      var e2=document.getElementById("arEvergreen");\n      if(e2) paintEvergreen(e2);\n    });\n    setTimeout(function(){ var e3=document.getElementById("arEvergreen"); if(e3&&e3.innerHTML.indexOf("c-load")>=0) paintEvergreen(e3); },15000);\n  }\n}\nfunction paintEvergreen(eg){\n  if(!eg) return;\n  if(!EV.length){ eg.innerHTML=\'<div class="x-note">No dormant winners yet. The vault is young.</div>\'; return; }\n  var h="";\n  for(var i=0;i<EV.length;i++){ h+=card(EV[i],true,false); }\n  eg.innerHTML=h; wireCards(eg);\n}\nrender();\n}\n\nload();\nsetInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },180000);\n})();\n<\/script>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;e&&!e.skip("hq-nudge")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-hq-nudge">\n<div class="fe-block pf-override-block pf-silo" id="pf-hq-nudge">\n<div class="pf-hq-nudge-card" style="background:linear-gradient(135deg,#0a0a0a 0%,#1a0505 100%);border:2px solid #c1121f;padding:28px 24px;text-align:center;margin:16px 0;">\n<div style="font-size:13px;letter-spacing:3px;color:#c1121f;font-weight:800;margin-bottom:8px;">NEW BATTLEGROUND</div>\n<h2 style="color:#f5ead6;font-size:28px;margin:0 0 12px 0;letter-spacing:1px;">POLITICAL HQ</h2>\n<p style="color:#ccc;font-size:15px;max-width:520px;margin:0 auto 20px auto;line-height:1.5;">Petitions. Rep contact. Voter registration. The People\'s Assembly. Wage civic warfare off the timeline.</p>\n<a href="/political-hq" class="pf-btn" style="display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:16px;padding:14px 36px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;">ENTER THE HQ →</a>\n</div>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;e&&!e.skip("war-bonds")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-bonds">\n<div id="pf-warbonds" style="max-width:640px;margin:2rem auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:\'Helvetica Neue\',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;text-align:center;">\n  <div style="font-size:1.6rem;font-weight:900;letter-spacing:0.18em;color:#c1121f;">&#9733; WAR BONDS &#9733;</div>\n  <div style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;line-height:1.5;">Buy a bond. Fund the machine. Or back a fighter <b style="color:#f5f0e1;">directly</b>.<br>Direct backing goes straight to the creator; the Factory never touches it.</div>\n  <div style="font-size:0.85rem;font-weight:900;letter-spacing:0.16em;color:#f5f0e1;margin-bottom:0.5rem;">BUY WAR BONDS</div>\n  <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:0.8rem;line-height:1.5;">One-time purchase, right here.<br><b style="color:#f5f0e1;">50%</b> funds the network &middot; <b style="color:#f5f0e1;">50%</b> goes into the creator pool, split equally among <b style="color:#f5f0e1;">every</b> creator on the roster.</div>\n  <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:0.8rem;line-height:1.5;">The week&rsquo;s team-board winner takes an extra <b style="color:#f5f0e1;">5%</b> of the pool.</div>\n  <div id="pf-wb-buy" style="margin-bottom:1.3rem;"></div>\n  <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:1.1rem;line-height:1.5;">Checkout opens the store in a new tab &mdash; your bond XP lands in the <b style="color:#f5f0e1;">Agitator&rsquo;s Ledger</b> automatically. Go check it.</div>\n  <div style="border-top:2px solid #c1121f;margin:1.3rem 0 1rem;"></div>\n  <div style="font-size:0.85rem;font-weight:900;letter-spacing:0.16em;color:#f5f0e1;margin-bottom:0.5rem;">ALREADY BOUGHT? CLAIM YOUR XP</div>\n  <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:0.8rem;line-height:1.5;">Bought a bond before you had a callsign? Enter the email you used at checkout to collect your thank-you XP.</div>\n  <input id="pf-wb-email" type="email" placeholder="checkout email" autocapitalize="off" autocomplete="email" spellcheck="false" style="width:100%;max-width:420px;background:#141414;color:#f5f0e1;border:2px solid #c1121f;padding:0.7rem;font-size:1rem;font-family:inherit;box-sizing:border-box;margin-bottom:0.6rem;text-align:center;" />\n  <div><button id="pf-wb-claim" style="display:inline-block;background:#c1121f;color:#f5f0e1;font-weight:900;letter-spacing:0.1em;border:none;padding:0.8rem 2rem;font-size:0.95rem;cursor:pointer;font-family:inherit;">CLAIM BOND XP</button></div>\n  <div id="pf-wb-claimmsg" style="font-size:0.85rem;color:#b8ab8e;margin-top:0.7rem;line-height:1.5;min-height:1.2em;"></div>\n  <div style="font-size:0.8rem;color:#b8ab8e;letter-spacing:0.14em;margin-bottom:0.6rem;">OR FUND MONTHLY</div>\n  <a href="https://mtcstw.substack.com" target="_blank" rel="noopener" style="display:inline-block;border:2px solid #c1121f;color:#f5f0e1;font-weight:700;letter-spacing:0.1em;text-decoration:none;padding:0.7rem 1.8rem;font-size:0.95rem;margin-bottom:1.1rem;">BECOME A PAID SUPPORTER &rarr;</a>\n  <div style="font-size:0.8rem;color:#b8ab8e;letter-spacing:0.14em;margin-bottom:0.6rem;">OR BACK A PROPAGANDIST DIRECTLY</div>\n  <select id="pf-wb-pick" style="width:100%;max-width:420px;background:#141414;color:#f5f0e1;border:2px solid #c1121f;padding:0.7rem;font-size:1rem;font-family:inherit;margin-bottom:1rem;">\n    <option value="">Pick your propagandist&hellip;</option>\n  </select>\n  <div id="pf-wb-out"></div>\n  <div style="margin-top:1.2rem;font-size:0.8rem;color:#b8ab8e;">On the roster? <a href="mailto:mtcstw@gmail.com?subject=War%20chest%20links%20for%20the%20roster" style="color:#c1121f;font-weight:700;">Send your tip / merch links</a> and get listed.</div>\n</div>\n<script>\n(function(){\n  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\n  /* 2026-10-03: bond_stats (public GET) — war bond aggregates, rendered as a\n     ledger strip under the buy buttons. No PII, public by backend design. */\n  (function(){\n    var box=document.getElementById(\'pf-wb-buy\'); if(!box) return;\n    var BACKEND=(window.PF_BACKEND_URL||""); if(!BACKEND) return;\n    var stats=document.createElement(\'div\');\n    stats.id=\'pf-wb-stats\';\n    stats.style.cssText=\'font-size:0.8rem;color:#b8ab8e;margin-bottom:1.1rem;line-height:1.5;\';\n    stats.textContent=\'Reading the war ledger…\';\n    box.parentNode.insertBefore(stats, box.nextSibling);\n    var fn=\'pfWbCb\'+Math.floor(Math.random()*1e9);\n    var s=document.createElement(\'script\'), done=false;\n    function finish(j){\n      if(done) return; done=true;\n      try{ delete window[fn]; }catch(e){}\n      if(s.parentNode) s.parentNode.removeChild(s);\n      if(!j||!j.ok){ if(stats.parentNode) stats.parentNode.removeChild(stats); return; }\n      var rev=Number(j.total_revenue)||0, n=Number(j.purchases)||0;\n      var net=Number(j.network_share)||0, pool=Number(j.creator_pool)||0;\n      stats.innerHTML=\'★ WAR LEDGER: <b style="color:#f5f0e1;">$\'+rev.toFixed(2)+\'</b> raised from <b style="color:#f5f0e1;">\'+n+\'</b> bond\'+(n===1?\'\':\'s\')\n        +\' &mdash; $\'+net.toFixed(2)+\' to the network, $\'+pool.toFixed(2)+\' to the creator pool.\';\n    }\n    window[fn]=function(j){ finish(j); };\n    s.onerror=function(){ finish(null); };\n    s.src=BACKEND+\'?action=bond_stats&callback=\'+fn;\n    document.head.appendChild(s);\n    setTimeout(function(){ finish(null); },12000);\n  })();\n  /* WAR BOND CHECKOUT: Squarespace product URLs, one per denomination\n     (products created 2026-09-26; "Unnamed Product" stray removed). */\n  var WAR_BOND_URLS = {\n    "5":  "https://www.mtcstw.com/store/p/war-bond-5",\n    "10": "https://www.mtcstw.com/store/p/war-bond-10",\n    "25": "https://www.mtcstw.com/store/p/war-bond-25",\n    "50": "https://www.mtcstw.com/store/p/war-bond-50"\n  };\n  /* Roster-driven: all 62 SLR members from the master database (no hardcoded list). */\n  var ALL_CREATORS = [];\n  try {\n    var _roster = (window.PF && PF.slrAll) ? PF.slrAll() : [];\n    _roster.forEach(function(m){\n      ALL_CREATORS.push({ name: m.name, catalog: \'https://www.mtcstw.com\' + (m.catalog_path || (\'/\' + m.slug)) });\n    });\n  } catch(e) {}\n  /* WAR CHEST links: data-driven from the SLR master database. Each member\'s\n     links array (platform/url/status) feeds the picker; links on tip platforms\n     render as war-chest pay buttons. WARCHEST_SEED covers creators whose tip\n     links aren\'t in the master DB yet (unioned with DB links, deduped by\n     URL). When the backend ships a warchest_links read, wire it here and\n     this file needs no further edits. */\n  var TIP_PLATFORMS = { \'patreon\':1, \'ko-fi\':1, \'kofi\':1, \'cashapp\':1, \'venmo\':1,\n    \'paypal\':1, \'buymeacoffee\':1, \'buy me a coffee\':1, \'merch\':1, \'store\':1,\n    \'merch store\':1, \'tips\':1, \'tip jar\':1, \'gofundme\':1 };\n  function tipLinks(m){\n    var out=[], seen={};\n    ((m&&m.links)||[]).forEach(function(l){\n      if(!l||!l.url) return;\n      var p=String(l.platform||\'\').toLowerCase().trim(), isTip=false, k;\n      for(k in TIP_PLATFORMS){ if(p.indexOf(k)>-1){ isTip=true; break; } }\n      if(!isTip||seen[l.url]) return;\n      seen[l.url]=1;\n      out.push({label:l.platform||\'Support\', url:l.url});\n    });\n    return out;\n  }\n  var WARCHEST = {};\n  try{\n    _roster.forEach(function(m){\n      var pay=tipLinks(m);\n      if(pay.length) WARCHEST[m.name]={\n        catalog:\'https://www.mtcstw.com\'+(m.catalog_path||(\'/\'+m.slug)),\n        pay:pay };\n    });\n  }catch(e){}\n  /* Seed: per-creator tip links not yet in the master DB. Unioned with the\n     DB-derived entries above (DB wins on URL conflicts). */\n  var WARCHEST_SEED = {"The Dr Greg Show": {"catalog": "https://www.mtcstw.com/the-dr-greg-show", "pay": [{"label": "Merch store", "url": "https://dr-greg-shop.fourthwall.com/"}]}, "Guillotines For A Better America": {"catalog": "https://www.mtcstw.com/guillotines-for-a-better-america", "pay": [{"label": "Patreon", "url": "https://www.patreon.com/GuillotinesForABetterAmerica"}]}, "Little Anarchist Brat": {"catalog": "https://www.mtcstw.com/little-anarchist-brat", "pay": [{"label": "Tips", "url": "https://ko-fi.com/littleanarchistbrat"}]}, "Kim Hunt (SlayTheGOP)": {"catalog": "https://www.mtcstw.com/kim-hunt-slaythegop", "pay": [{"label": "Patreon", "url": "https://www.patreon.com/cw/slaythegop"}]}};\n  try{\n    for(var _sn in WARCHEST_SEED){\n      if(!WARCHEST[_sn]){ WARCHEST[_sn]=WARCHEST_SEED[_sn]; continue; }\n      var _have={};\n      WARCHEST[_sn].pay.forEach(function(p){ _have[p.url]=1; });\n      WARCHEST_SEED[_sn].pay.forEach(function(p){\n        if(!_have[p.url]) WARCHEST[_sn].pay.push(p);\n      });\n    }\n  }catch(e){}\n  var pick = document.getElementById(\'pf-wb-pick\');\n  var out = document.getElementById(\'pf-wb-out\');\n  ALL_CREATORS.forEach(function(c){\n    var o = document.createElement(\'option\');\n    o.value = c.name;\n    o.textContent = (WARCHEST[c.name] ? \'★ \' : \'\') + c.name;\n    pick.appendChild(o);\n  });\n  var buyBox = document.getElementById(\'pf-wb-buy\');\n  buyBox.addEventListener(\'click\',function(e){\n    var a=e.target&&e.target.closest?e.target.closest(\'a\'):null;\n    if(a&&a.href){try{document.dispatchEvent(new CustomEvent(\'pf-wb-buy\',{detail:{amt:a.textContent.trim(),day:new Date().toISOString().slice(0,10)}}));}catch(wbe){}}\n  });\n  ["5","10","25","50"].forEach(function(amt){\n    var a = document.createElement(\'a\');\n    var url = WAR_BOND_URLS[amt] || "https://mtcstw.substack.com";\n    a.href = url; a.target = "_blank"; a.rel = "noopener";\n    a.textContent = "$" + amt + " BOND";\n    a.style.cssText = \'display:inline-block;background:#c1121f;color:#f5f0e1;font-weight:900;letter-spacing:0.1em;text-decoration:none;padding:0.8rem 1.3rem;margin:0.3rem;font-size:1rem;\';\n    buyBox.appendChild(a);\n  });\n  pick.onchange = function(){\n    var name = pick.value;\n    if(!name){ out.innerHTML=\'\'; return; }\n    var c = null;\n    ALL_CREATORS.forEach(function(x){ if(x.name===name) c=x; });\n    if(!c){ out.innerHTML=\'\'; return; }\n    var w = WARCHEST[name];\n    var h = \'<div style="font-size:1.25rem;font-weight:900;margin-bottom:0.8rem;">\' + esc(name) + \'</div>\';\n    if(w){\n      h += \'<div style="font-size:0.8rem;letter-spacing:0.12em;color:#c1121f;font-weight:900;margin-bottom:0.8rem;">★ WAR CHEST ACTIVE ★</div>\';\n      w.pay.forEach(function(p){\n        h += \'<a href="\' + esc(p.url) + \'" target="_blank" rel="noopener" style="display:inline-block;background:#c1121f;color:#f5f0e1;font-weight:900;letter-spacing:0.1em;text-decoration:none;padding:0.8rem 1.6rem;margin:0.3rem;font-size:0.95rem;">\' + esc(String(p.label).toUpperCase()) + \' &rarr;</a>\';\n      });\n    } else {\n      h += \'<div style="font-size:0.95rem;color:#b8ab8e;margin-bottom:0.8rem;">No war chest on file yet.</div>\';\n      h += \'<a href="\' + esc(c.catalog) + \'" style="display:inline-block;border:2px solid #c1121f;color:#f5f0e1;font-weight:700;letter-spacing:0.08em;text-decoration:none;padding:0.7rem 1.4rem;font-size:0.9rem;">FULL PROFILE &rarr;</a>\';\n    }\n    out.innerHTML = h;\n  };\n  /* BOND XP CLAIM: buyers who purchased before claiming a callsign collect\n     their thank-you XP here. The purchase flow itself stays frictionless —\n     this gate only guards the XP collection. */\n  var wbClaimBtn = document.getElementById(\'pf-wb-claim\');\n  if(wbClaimBtn){\n    /* C2a (2026-10-03): claim attempts are retryable. When the backend\n       reports the store webhook has NEVER fired, show an honest "not yet"\n       state with a RETRY button instead of dead-ending. */\n    var wbMsgEl = document.getElementById(\'pf-wb-claimmsg\');\n    function wbSay(m){ if(wbMsgEl) wbMsgEl.textContent = m; }\n    function attemptClaim(){\n      if(!window.PF || !PF.requireCallsign){ wbSay(\'Loading… try again in a moment.\'); return; }\n      PF.requireCallsign(function(cs){\n        if(!cs){ wbSay(\'Claim a callsign above to collect your bond XP.\'); return; }\n        var emailEl = document.getElementById(\'pf-wb-email\');\n        var email = emailEl ? String(emailEl.value || \'\').trim().toLowerCase() : \'\';\n        if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){ wbSay(\'Enter the email you used at checkout.\'); return; }\n        wbSay(\'Checking for unclaimed bonds…\');\n        wbClaimBtn.disabled = true;\n        var body = { type:\'warbond\', wb_action:\'bond_claim\', callsign:cs, email:email };\n        /* Device id for backend dedupe/anti-abuse (same ident() pattern as\n           the other claim-type calls). */\n        try{ body.device = window.PFDeviceId ? window.PFDeviceId() : \'\'; }catch(e){ body.device=\'\'; }\n        var url = window.PF_BACKEND_URL;\n        function postBody(b, cb){\n          if(window.PF && PF.authPost){ PF.authPost(url, b, cb); return; }\n          try{\n            /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */\n            var _po=(function(){ var o={method:\'POST\', headers:{\'Content-Type\':\'application/json\'}, body: JSON.stringify(b)},c=null,t=null;\n              try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n                t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}\n              o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();\n            fetch(url, _po)\n              .then(function(r){ return r.json(); })\n              .then(function(j){ _po._pfClear(); cb(j); })\n              .catch(function(){ _po._pfClear(); cb(null); });\n          }catch(e){ cb(null); }\n        }\n        postBody(body, function(j){\n          wbClaimBtn.disabled = false;\n          if(!j || !j.ok){ wbSay(PF.errCopy(j, \'Claim failed. Try again.\')); return; }\n          if(!j.claimed){\n            if(j.no_webhooks_received){\n              /* The Squarespace webhook has never fired — the buyer isn\'t at\n                 fault. Honest state + RETRY, never a dead end. */\n              if(wbMsgEl){\n                wbMsgEl.innerHTML = \'No purchase detected yet — if you just bought, allow a few minutes, then retry. \'\n                  + \'<button id="pf-wb-retry" style="display:inline-block;background:transparent;border:2px solid #c1121f;color:#c1121f;font-weight:700;letter-spacing:0.1em;padding:0.4rem 1.2rem;font-size:0.85rem;cursor:pointer;font-family:inherit;margin-left:0.4rem;">RETRY</button>\';\n                var rbt = document.getElementById(\'pf-wb-retry\');\n                if(rbt) rbt.onclick = function(){ attemptClaim(); };\n              } else {\n                wbSay(\'No purchase detected yet — if you just bought, allow a few minutes, then retry.\');\n              }\n            } else {\n              wbSay(j.capped ? \'Daily XP cap reached — your bonds are still waiting. Come back tomorrow.\' : \'No unclaimed bonds found for that email.\');\n            }\n            return;\n          }\n          wbSay(\'BOND XP CLAIMED: +\' + (j.xp_granted || 0) + \' XP. Check your ledger.\');\n          try{ if(window.PF && PF.toast) PF.toast(\'Bond XP claimed: +\' + (j.xp_granted || 0) + \' XP.\'); }catch(e){}\n        });\n      }, { context: \'to claim your War Bond XP\' });\n    }\n    wbClaimBtn.onclick = function(){ attemptClaim(); };\n  }\n})();\n<\/script>\n</template>')}(),function(){"use strict";var e=window.PF;e&&!e.skip("campaign")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-campaign">\n<div class="fe-block pf-override-block" id="pf-campaign">\n<h2>The 32-Day Offensive</h2>\n<div class="c-tag">Midterm campaign HQ. Every action builds our power.</div>\n<div id="xCampaign"><div class="c-load">Mobilizing&hellip;</div></div>\n</div>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\n/* Nov 3, 2026 — Election Day. Local midnight. */\nvar ELECTION=new Date(2026,10,3,0,0,0,0).getTime();\n/* 32-Day Offensive sunset (2026-10-03): the campaign hard-expires at\n   Nov 3, 2026 23:59 America/Chicago. After that the widget renders a\n   CAMPAIGN COMPLETE state with final backend totals instead of the pledge\n   form. Never pulled early — the check is wall-clock, not deploy time. */\nfunction cpChiParts(){\n  try{\n    var ps=new Intl.DateTimeFormat("en-US",{timeZone:"America/Chicago",year:"numeric",month:"numeric",day:"numeric",hour:"numeric",minute:"numeric",hour12:false}).formatToParts(new Date());\n    var o={}; for(var i=0;i<ps.length;i++){ o[ps[i].type]=+ps[i].value; } return o;\n  }catch(e){ return null; }\n}\nfunction campaignOver(){\n  var p=cpChiParts();\n  if(!p){ return Date.now()>Date.UTC(2026,10,4,5,59,0); } /* CST = UTC-6 fallback */\n  var ymd=p.year*10000+p.month*100+p.day;\n  if(ymd>20261103) return true;\n  if(ymd<20261103) return false;\n  return (p.hour%24)*60+p.minute>=23*60+59;\n}\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction toast(m){ try{ PF.toast(m); }catch(e){} }\n/* Credit backend grants into the local ledger for instant HUD display.\n   The backend already granted this XP via xpGrant — do NOT dispatch pf-xp\n   (that would trigger the xpledger mirror with a different key and\n   double-grant). This is the nolx pattern from enlistment-ranks. */\n/* Delegates to the global layer: PF.creditLocal owns the pf_ranks_v1\n   ledger so all writers share one format (see core/00-bus.js). */\nfunction creditLocal(key, xp){\n  try{ if(window.PF&&PF.creditLocal) return PF.creditLocal(key, xp); }catch(e){}\n}\nfunction chiDay(){ try{ return new Date().toLocaleDateString("en-CA",{timeZone:"America/Chicago"}); }catch(e){ var d=new Date(); return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2); } }\n/* JSONP GET for reads. */\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  var fn="pfCpCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\n/* CORS POST for writes — real fetch, backend verdict parsed. */\nfunction post(cAction,params,cb){\n  var body=Object.assign({type:"campaign",c_action:cAction},params);\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }\n  var bodyStr=JSON.stringify(body);\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */\n    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;\n      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}\n      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();\n    fetch(BACKEND,_po)\n      .then(function(r){ return r.json(); })\n      .then(function(j){ _po._pfClear(); done(j); })\n      .catch(function(){ _po._pfClear(); done(null); });\n  }catch(e){ done(null); }\n}\nvar S=null, M=null, W=null, L=null, R=null;\nfunction daysLeft(){ var ms=ELECTION-Date.now(); return Math.max(0,Math.ceil(ms/86400000)); }\nfunction load(){\n  var id=ident(), done=false, n=0;\n  function fin(){ if(done)return; done=true; render(); }\n  function one(){ n++; if(n>=5) fin(); }\n  setTimeout(fin,15000);\n  api("campaign_status",{},function(j){ S=j; one(); });\n  api("campaign_missions",{callsign:id.callsign,device:id.device},function(j){ M=j; one(); });\n  api("campaign_wall",{},function(j){ W=j; one(); });\n  api("campaign_leaders",{},function(j){ L=j; one(); });\n  api("race_list",{},function(j){ R=j; one(); });\n}\nfunction isPledged(){\n  var id=ident(); if(!id.callsign) return false;\n  if(S&&S.pledged) return true;\n  try{ var pl=(W&&W.pledges)||[]; for(var i=0;i<pl.length;i++){ if(String(pl[i].callsign||"").toUpperCase()===id.callsign.toUpperCase()) return true; } }catch(e){}\n  return false;\n}\nfunction renderComplete(){\n  var el=document.getElementById("xCampaign"); if(!el) return;\n  var h=\'<div class="cp-count">CAMPAIGN COMPLETE</div>\'\n    +\'<div class="cp-frame">THE OFFENSIVE IS OVER. THE FIGHT IS NOT.</div>\'\n    +\'<div class="cp-sub">Final results from the 32-Day Offensive &mdash; the pledge form is retired, the wall stands.</div>\';\n  if(!S&&!W&&!L){\n    h+=\'<div class="c-neterr">The wire didn&rsquo;t answer with final results.\'\n      +\'<br><button class="c-btn" id="cpRetry">Retry connection</button></div>\';\n    el.innerHTML=h;\n    document.getElementById("cpRetry").onclick=function(){ S=M=W=L=R=null; el.innerHTML=\'<div class="c-load">Mobilizing&hellip;</div>\'; load(); };\n    return;\n  }\n  var pledges=(S&&S.pledges)||0, acts=(S&&S.actions)||0, goal=(S&&S.goal)||1000;\n  var pct=Math.min(100,Math.round((pledges+acts)/Math.max(1,goal)*100));\n  h+=\'<div class="x-pane"><h4>Final results</h4>\'\n    +\'<div class="cp-barwrap"><div class="cp-bar" style="width:\'+pct+\'%"></div></div>\'\n    +\'<div class="x-note">\'+pledges+\' pledges &bull; \'+acts+\' actions &bull; \'+pct+\'% of \'+goal+\' goal</div></div>\';\n  var pl=(W&&W.pledges)||[];\n  h+=\'<div class="x-pane"><h4>Pledge wall &mdash; honor roll</h4><div class="cp-wall">\';\n  if(!pl.length){ h+=\'<div class="x-note">No pledges recorded.</div>\'; }\n  for(var w=0;w<Math.min(pl.length,40);w++){ h+=\'<span class="cp-wname">\'+esc(pl[w].callsign)+\'</span>\'; }\n  h+=\'</div></div>\';\n  var ld=(L&&L.leaders)||[];\n  h+=\'<div class="x-pane"><h4>Top fighters</h4>\';\n  if(!ld.length){ h+=\'<div class="x-note">No standings recorded.</div>\'; }\n  for(var q=0;q<Math.min(ld.length,10);q++){\n    h+=\'<div class="cp-lead"><span class="cp-lrank">\'+(q+1)+\'.</span> <span class="cp-lname">\'+esc(ld[q].callsign)+\'</span> <span class="cp-lxp">\'+(Number(ld[q].xp)||0)+\' XP</span></div>\';\n  }\n  h+=\'</div>\';\n  h+=\'<div style="margin-top:10px"><button class="c-btn" id="cpRetry">Refresh</button></div>\';\n  el.innerHTML=h;\n  var rb=document.getElementById("cpRetry");\n  if(rb) rb.onclick=function(){ S=M=W=L=R=null; el.innerHTML=\'<div class="c-load">Mobilizing&hellip;</div>\'; load(); };\n}\nfunction render(){\n  var el=document.getElementById("xCampaign"); if(!el) return;\n  if(campaignOver()){ renderComplete(); return; }\n  var id=ident(), dl=daysLeft(), h="";\n  /* --- countdown + framing --- */\n  h+=\'<div class="cp-count">\'+(dl>0?dl+" DAYS TO ELECTION DAY":(dl===0?"ELECTION DAY IS HERE":"THE FIGHT CONTINUES"))+\'</div>\';\n  h+=\'<div class="cp-frame">THEY HAVE TWO PARTIES. WE&rsquo;RE BUILDING OUR OWN POWER.</div>\';\n  h+=\'<div class="cp-sub">Every pledge, every mission, every recruit feeds the war effort &mdash; not the Democrats, not the Republicans. Us.</div>\';\n  if(!id.callsign){\n    h+=PF.gateHTML(\'Campaigns run on callsigns.\',\'to deploy\');\n    el.innerHTML=h; return;\n  }\n  /* --- pledge --- */\n  if(isPledged()){\n    h+=\'<div class="cp-pledged">&#9733; PLEDGED TO VOTE &mdash; \'+esc(id.callsign)+\' is on the wall.</div>\';\n  } else {\n    h+=\'<div class="x-pane"><h4>Take the pledge</h4>\'\n      +\'<div class="x-note">Pledge to vote on Nov 3. Your callsign gets etched on the Pledge Wall &mdash; permanent.</div>\'\n      +\'<button class="c-btn" id="cpPledgeBtn">PLEDGE TO VOTE</button><div class="c-err" id="cpPledgeErr"></div></div>\';\n  }\n  /* --- today\'s missions --- */\n  var ms=(M&&M.missions)||[];\n  h+=\'<div class="x-pane"><h4>Today&rsquo;s missions</h4>\';\n  if(!ms.length){ h+=\'<div class="x-note">Missions loading&hellip; hit retry below if this sticks.</div>\'; }\n  for(var i=0;i<ms.length;i++){\n    var m=ms[i];\n    h+=\'<div class="cp-mission"><div class="cp-mtext">\'+esc(m.label)+\'</div>\'\n      +\'<div class="cp-mxp">+\'+(Number(m.xp)||10)+\' XP</div>\';\n    if(m.done){ h+=\'<div class="cp-mdone">DONE</div>\'; }\n    else { h+=\'<button class="c-btn cp-mbtn" data-mid="\'+esc(m.id)+\'">COMPLETE</button>\'; }\n    h+=\'</div>\';\n  }\n  h+=\'</div>\';\n  /* --- war effort --- */\n  var pledges=(S&&S.pledges)||0, acts=(S&&S.actions)||0, goal=(S&&S.goal)||1000;\n  var pct=Math.min(100,Math.round((pledges+acts)/Math.max(1,goal)*100));\n  h+=\'<div class="x-pane"><h4>The war effort</h4>\'\n    +\'<div class="cp-barwrap"><div class="cp-bar" style="width:\'+pct+\'%"></div></div>\'\n    +\'<div class="x-note">\'+pledges+\' pledges &bull; \'+acts+\' actions &bull; \'+pct+\'% of \'+goal+\' goal</div></div>\';\n  /* --- pledge wall --- */\n  var pl=(W&&W.pledges)||[];\n  h+=\'<div class="x-pane"><h4>Pledge wall</h4><div class="cp-wall">\';\n  if(!pl.length){ h+=\'<div class="x-note">No pledges yet. Be the first name etched.</div>\'; }\n  for(var w=0;w<Math.min(pl.length,40);w++){ h+=\'<span class="cp-wname">\'+esc(pl[w].callsign)+\'</span>\'; }\n  h+=\'</div></div>\';\n  /* --- leaders --- */\n  var ld=(L&&L.leaders)||[];\n  h+=\'<div class="x-pane"><h4>Top fighters</h4>\';\n  if(!ld.length){ h+=\'<div class="x-note">No standings yet.</div>\'; }\n  for(var q=0;q<Math.min(ld.length,10);q++){\n    h+=\'<div class="cp-lead"><span class="cp-lrank">\'+(q+1)+\'.</span> <span class="cp-lname">\'+esc(ld[q].callsign)+\'</span> <span class="cp-lxp">\'+(Number(ld[q].xp)||0)+\' XP</span></div>\';\n  }\n  h+=\'</div>\';\n  /* --- battlegrounds --- */\n  h+=renderBattlegrounds();\n  /* --- retry --- */\n  h+=\'<div style="margin-top:10px"><button class="c-btn" id="cpRetry">Refresh</button></div>\';\n  el.innerHTML=h;\n  /* wire pledge */\n  var pb=document.getElementById("cpPledgeBtn");\n  if(pb) pb.onclick=function(){\n    pb.disabled=true;\n    post("campaign_pledge",{callsign:id.callsign,device:id.device},function(j){\n      if(!j||!j.ok){\n        var e=document.getElementById("cpPledgeErr");\n        if(e) e.textContent=PF.errCopy(j,"Pledge failed. Try again.");\n        pb.disabled=false; return;\n      }\n      toast("PLEDGED. Your callsign is on the wall.");\n      /* Backend granted 25 XP via xpGrant — mirror locally for instant HUD\n         (nolx: no pf-xp dispatch, no double-grant). pf-campaign-pledge now\n         feeds Do Meter (was a dead event with zero listeners). */\n      creditLocal("campaign_pledge", 25);\n      try{ document.dispatchEvent(new CustomEvent("pf-campaign-pledge",{detail:{callsign:id.callsign}})); }catch(e2){}\n      load();\n    });\n  };\n  /* wire missions */\n  var btns=el.querySelectorAll("button.cp-mbtn");\n  for(var b=0;b<btns.length;b++){\n    (function(btn){\n      btn.onclick=function(){\n        btn.disabled=true;\n        post("campaign_act",{callsign:id.callsign,device:id.device,mission_id:btn.getAttribute("data-mid")},function(j){\n          if(!j||!j.ok){ toast(PF.errCopy(j,"Mission failed.")); btn.disabled=false; return; }\n          var mxp=((j&&j.xp)||10), mid=btn.getAttribute("data-mid");\n          toast("+"+mxp+" XP — mission complete.");\n          /* Backend granted the XP via xpGrant — mirror locally for instant HUD\n             (nolx: no pf-xp dispatch, no double-grant). pf-campaign-act now\n             feeds Do Meter (was a dead event with zero listeners). */\n          creditLocal("campaign_act_"+mid+"_"+chiDay(), mxp);\n          try{ document.dispatchEvent(new CustomEvent("pf-campaign-act",{detail:{mission:mid}})); }catch(e3){}\n          load();\n        });\n      };\n    })(btns[b]);\n  }\n  var rb=document.getElementById("cpRetry");\n  if(rb) rb.onclick=function(){ S=M=W=L=R=null; el.innerHTML=\'<div class="c-load">Mobilizing&hellip;</div>\'; load(); };\n}\nfunction normRace(r){\n  var c=r.candidates;\n  if(typeof c==="string"){ try{ c=JSON.parse(c); }catch(e){ c=[]; } }\n  return { id:r.id, state:r.state, office:r.office, candidates:c||[], rating:r.rating, stakes:r.stakes };\n}\nfunction fmtUpd(t){\n  try{\n    var d=new Date(typeof t==="number"?t:String(t));\n    if(isNaN(d.getTime())) return String(t||"");\n    var mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];\n    return mo[d.getMonth()]+" "+d.getDate();\n  }catch(e){ return String(t||""); }\n}\nfunction renderBattlegrounds(){\n  var races=[], meas=[], updated=null, fromLive=false;\n  /* Prefer live backend data; fall back to the static file. */\n  try{\n    if(R&&R.ok&&R.races&&R.races.length){\n      races=R.races.map(normRace); fromLive=true;\n      if(R.measures&&R.measures.length) meas=R.measures;\n      updated=R.updated_at||null;\n    }\n  }catch(e){}\n  if(!races.length){\n    try{ races=window.PF_CAMPAIGN_RACES||[]; }catch(e){}\n    try{ meas=window.PF_CAMPAIGN_MEASURES||[]; }catch(e){}\n  }\n  var h=\'<div class="x-pane"><h4>Battlegrounds</h4>\'\n    +\'<div class="x-note">Real races, real candidates &mdash; scored on class lines. Who funds them. Who they answer to.\'\n    +(fromLive&&updated?\' <span class="cp-upd">Data updated: \'+esc(fmtUpd(updated))+\'</span>\':\'\')\n    +\'</div>\';\n  for(var i=0;i<races.length;i++){\n    var r=races[i];\n    h+=\'<div class="cp-race"><div class="cp-rtitle">\'+esc(r.state)+\' &mdash; \'+esc(r.office)+\'</div>\'\n      +\'<div class="cp-rrating">\'+esc(r.rating)+\'</div>\';\n    var cs=r.candidates||[];\n    for(var c=0;c<cs.length;c++){\n      h+=\'<div class="cp-cand"><b>\'+esc(cs[c].name)+\'</b> (\'+esc(cs[c].party)+\')\'\n        +\'<div class="cp-cfund">Money: \'+esc(cs[c].funding)+\'</div>\'\n        +\'<div class="cp-ctake">Class take: \'+esc(cs[c].classTake)+\'</div></div>\';\n    }\n    h+=\'<div class="cp-stakes">\'+esc(r.stakes)+\'</div></div>\';\n  }\n  for(var m=0;m<meas.length;m++){\n    var mm=meas[m];\n    h+=\'<div class="cp-race"><div class="cp-rtitle">\'+esc(mm.state)+\' &mdash; \'+esc(mm.title)+\'</div>\'\n      +\'<div class="x-note">\'+esc(mm.summary)+\'</div>\'\n      +\'<div class="cp-cand">YES means: \'+esc(mm.yesMeans)+\'</div>\'\n      +\'<div class="cp-cand">NO means: \'+esc(mm.noMeans)+\'</div>\'\n      +\'<div class="cp-cfund">Backed by: \'+esc(mm.backedBy)+\'</div>\'\n      +\'<div class="cp-cfund">Opposed by: \'+esc(mm.opposedBy)+\'</div></div>\';\n  }\n  h+=\'</div>\';\n  return h;\n}\nload();\nsetInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },120000);\n})();\n<\/script>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;e&&!e.skip("alerts")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-alerts">\n<div class="fe-block pf-override-block" id="pf-alerts">\n<h2>Rapid Response</h2>\n<div class="c-tag">News breaks. We move in minutes, not days.</div>\n<div id="xAlerts"><div class="c-load">Scanning the wire&hellip;</div></div>\n</div>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}\n  try{ var t=document.createElement("div"); t.textContent=m;\n  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";\n  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  var fn="pfAlCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\nfunction post(cAction,params,cb){\n  var body=Object.assign({type:"alert",al_action:cAction},params);\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }\n  var bodyStr=JSON.stringify(body);\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */\n    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;\n      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}\n      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();\n    fetch(BACKEND,_po)\n      .then(function(r){ return r.json(); })\n      .then(function(j){ _po._pfClear(); done(j); })\n      .catch(function(){ _po._pfClear(); done(null); });\n  }catch(e){ done(null); }\n}\nfunction fmtTs(t){\n  try{\n    var ms=Number(t); if(ms<1e12) ms=ms*1000;\n    var d=new Date(ms); if(isNaN(d.getTime())) return "";\n    var mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];\n    var h=d.getHours(), ap=h>=12?"pm":"am"; h=h%12; if(h===0)h=12;\n    return mo[d.getMonth()]+" "+d.getDate()+", "+h+":"+("0"+d.getMinutes()).slice(-2)+ap;\n  }catch(e){ return ""; }\n}\nfunction load(){\n  var el=document.getElementById("xAlerts"); if(!el) return;\n  api("alert_list",{},function(j){ render(j); });\n  setTimeout(function(){ if(el.innerHTML.indexOf("c-load")>=0) render(null); },15000);\n}\nfunction render(j){\n  var el=document.getElementById("xAlerts"); if(!el) return;\n  var id=ident(), h="";\n  var alerts=(j&&j.ok&&j.alerts)||[];\n  if(!alerts.length){\n    h+=\'<div class="x-pane"><div class="x-note">No active alerts. The wire is quiet &mdash; for now. When a moment breaks, it lands here first.</div></div>\';\n  }\n  for(var i=0;i<alerts.length;i++){\n    var a=alerts[i];\n    h+=\'<div class="x-pane al-pane">\'\n      +\'<div class="al-flash">&#9889; ACTIVE ALERT</div>\'\n      +\'<h4>\'+esc(a.headline)+\'</h4>\'\n      +\'<div class="x-note">\'+esc(a.context||"")+\'</div>\'\n      +\'<div class="al-meta">\'+esc(fmtTs(a.created_at))+\' &bull; \'+(Number(a.response_count)||0)+\' responses</div>\'\n      +\'<div class="al-btns">\';\n    if(id.callsign){\n      h+=\'<button class="c-btn" data-al-forge="\'+esc(a.id)+\'" data-al-tpl="\'+esc(a.template_id||"")+\'">RESPOND: MAKE A POSTER</button>\'\n        +\'<button class="c-btn c-btn2" data-al-done="\'+esc(a.id)+\'">I RESPONDED</button>\';\n    } else {\n      h+=\'<div class="x-note">Claim a callsign in Enlistment Ranks to respond.</div>\';\n    }\n    h+=\'</div><div class="c-err" id="alErr\'+esc(a.id)+\'"></div></div>\';\n  }\n  h+=\'<div style="margin-top:10px"><button class="c-btn" id="alRetry">Refresh</button></div>\';\n  el.innerHTML=h;\n  /* wire: open poster forge with template context */\n  var fbs=el.querySelectorAll("button[data-al-forge]");\n  for(var f=0;f<fbs.length;f++){\n    (function(btn){\n      btn.onclick=function(){\n        try{\n          document.dispatchEvent(new CustomEvent("pf-alert-forge",{detail:{alert:btn.getAttribute("data-al-forge"),template:btn.getAttribute("data-al-tpl")}}));\n        }catch(e){}\n        toast("Open Poster Forge and answer the alert.");\n        var pf=document.getElementById("pf-poster");\n        if(pf){ try{ pf.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e2){} }\n      };\n    })(fbs[f]);\n  }\n  /* wire: log response */\n  var dbs=el.querySelectorAll("button[data-al-done]");\n  for(var d=0;d<dbs.length;d++){\n    (function(btn){\n      btn.onclick=function(){\n        var aid=btn.getAttribute("data-al-done");\n        var cid=window.prompt("Paste the content ID of the poster you made for this alert:");\n        if(!cid) return;\n        btn.disabled=true;\n        post("alert_respond",{callsign:id.callsign,device:id.device,alert_id:aid,content_id:cid.trim()},function(j){\n          if(!j||!j.ok){\n            var e=document.getElementById("alErr"+aid);\n            if(e) e.textContent=PF.errCopy(j,"Response failed.");\n            btn.disabled=false; return;\n          }\n          toast(j.dup?"Already logged. Stay sharp.":"+25 XP — rapid response logged.");\n          load();\n        });\n      };\n    })(dbs[d]);\n  }\n  var rb=document.getElementById("alRetry");\n  if(rb) rb.onclick=function(){ el.innerHTML=\'<div class="c-load">Scanning the wire&hellip;</div>\'; load(); };\n}\nload();\nsetInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },180000);\n})();\n<\/script>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;e&&!e.skip("fan-vote")&&e.holder().insertAdjacentHTML("beforeend","<template id=\"pf-ov-vote\">\n<div class=\"fe-block pf-override-block\">\n<style>\n#pf-vote .pfv-strip{font-size:0.8rem;letter-spacing:0.1em;color:#b8ab8e;margin:0.4rem 0;}\n#pf-vote-ceremony{position:absolute;inset:0;background:rgba(10,10,10,0.97);display:none;z-index:5;overflow:hidden;}\n#pf-vote .pfv-ballot{position:absolute;top:6%;left:50%;margin-left:-130px;width:260px;background:#f5ead6;color:#0d0d0d;border:3px solid #c1121f;padding:1.2rem 0.8rem;box-shadow:0 0 40px rgba(193,18,31,0.55);animation:pfvdrop 1.05s ease-in forwards;}\n@keyframes pfvdrop{0%{transform:translateY(-130%);}72%{transform:translateY(9%);}100%{transform:translateY(0);}}\n#pf-vote .pfv-ballot-name{font-weight:900;font-size:1.05rem;letter-spacing:0.06em;}\n#pf-vote .pfv-seal{display:inline-block;margin-top:0.7rem;background:#c1121f;color:#f5ead6;font-weight:900;font-size:0.8rem;letter-spacing:0.2em;padding:0.45rem 1.1rem;border-radius:50%;transform:rotate(-8deg);animation:pfvstamp 0.35s 0.8s ease-out backwards;}\n@keyframes pfvstamp{0%{transform:scale(2.6) rotate(-8deg);opacity:0;}60%{transform:scale(0.92) rotate(-8deg);opacity:1;}100%{transform:scale(1) rotate(-8deg);}}\n#pf-vote .pfv-boxlabel{position:absolute;bottom:12%;width:100%;text-align:center;color:#c1121f;font-weight:900;letter-spacing:0.22em;font-size:0.85rem;}\n#pf-vote .pfv-confetti{position:absolute;top:-12px;width:9px;height:13px;z-index:6;pointer-events:none;animation:pfvfall linear forwards;}\n@keyframes pfvfall{to{transform:translateY(480px) rotate(540deg);opacity:0;}}\n@media (prefers-reduced-motion:reduce){#pf-vote .pfv-ballot,#pf-vote .pfv-seal{animation:none;}}\n</style>\n<div id=\"pf-vote\" style=\"position:relative;max-width:640px;margin:2rem auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:'Helvetica Neue',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;text-align:center;\">\n  <div style=\"font-size:1.5rem;font-weight:900;letter-spacing:0.18em;color:#c1121f;\">&#9733; FAN VOTE &#9733;</div>\n  <div id=\"pf-vote-sub\" style=\"font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;\">Who was the hardest-working propagandist this week?<br><span style=\"color:#c1121f;\">This week's ballot: the 10 highest propaganda scores.</span><br>Polls close <b style=\"color:#f5f0e1;\">Sunday night</b> &mdash; results Monday.</div>\n  <div id=\"pf-vote-urgency\" class=\"pfv-strip\">COUNTING BALLOTS&hellip;</div>\n  <div id=\"pf-vote-streak\" class=\"pfv-strip\"></div>\n  <div id=\"pf-vote-kingmaker\"></div>\n  <div id=\"pf-vote-power\"></div>\n  <div id=\"pf-vote-ceremony\"></div>\n  <div id=\"pf-vote-list\"></div>\n  <div id=\"pf-vote-msg\" style=\"margin-top:1rem;font-size:0.9rem;color:#b8ab8e;\"></div>\n  <div><button id=\"pf-vote-copy\" style=\"background:#141414;border:2px solid #c1121f;color:#f5f0e1;padding:0.6rem 1.4rem;margin-top:1rem;font-size:0.85rem;font-weight:700;letter-spacing:0.1em;cursor:pointer;font-family:inherit;\">COPY TO SHARE</button></div>\n  <div id=\"pf-vote-copymsg\" style=\"margin-top:0.5rem;font-size:0.8rem;color:#c1121f;min-height:1.2em;\"></div>\n</div>\n<script>\n(function(){\n  /* CONFIG: paste your deployed Apps Script web app URL here */\n  var VOTE_API_URL = (window.PF_BACKEND_URL||\"https://pf-api.mtcstw.workers.dev\");\n  /* ROSTER: the ballot reads from the canonical PF.ROSTER\n     (core/03-global.js) — authoritative scores 2026-09-28. Do NOT\n     hardcode a second copy here. */\n  var SCORES = (window.PF && PF.ROSTER) || [];\n  /* VOTE_IMGS: slug -> roster photo, derived from the canonical roster. */\n  var VOTE_IMGS = {};\n  for(var _ri=0; _ri<SCORES.length; _ri++){\n    if(SCORES[_ri].img) VOTE_IMGS[SCORES[_ri].slug]=SCORES[_ri].img;\n  }\n    /* THE BALLOT: the 10 highest propaganda scores.\n     9.3 TIE-BREAK (codified 2026-09-29): four creators tie at 9.3 for the 10th\n     spot. The tied creators rotate weekly by ISO week number, so each gets\n     the ballot spotlight over time. Higher scores are always seated first. */\n  var _sorted = SCORES.slice().sort(function(a,b){ return b.score - a.score; });\n  var _cutoff = _sorted[9].score;\n  var _above = _sorted.filter(function(c){ return c.score > _cutoff; });\n  var _tied = _sorted.filter(function(c){ return c.score === _cutoff; });\n  var _spots = 10 - _above.length;\n  var _wk = isoWeek(PF.chiNow());\n  var _rotated = [];\n  for(var _i = 0; _i < _tied.length; _i++){\n    _rotated.push(_tied[(_wk - 1 + _i) % _tied.length]);\n  }\n  var CANDIDATES = _above.concat(_rotated.slice(0, _spots));\n  CANDIDATES.sort(function(a,b){ return b.score - a.score; });\n  function isoWeek(d){\n    var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));\n    var day = (t.getUTCDay() + 6) % 7;\n    t.setUTCDate(t.getUTCDate() - day + 3);\n    var first = new Date(Date.UTC(t.getUTCFullYear(), 0, 4));\n    var fday = (first.getUTCDay() + 6) % 7;\n    first.setUTCDate(first.getUTCDate() - fday + 3);\n    return 1 + Math.round((t - first) / 6048e5);\n  }\n  var now = PF.chiNow();\n  var weekKey = now.getFullYear() + \"-W\" + isoWeek(now);\n  var storeKey = \"slr-vote-\" + weekKey;\n  /* COMMISSAR unlock: vote counts double. Set by the Enlistment Ranks widget. */\n  var VOTE_WEIGHT = 1;\n  try { VOTE_WEIGHT = parseInt(localStorage.getItem(\"pf_vote_weight\") || \"1\", 10) || 1; } catch(e){}\n  if (VOTE_WEIGHT < 1 || VOTE_WEIGHT > 2) VOTE_WEIGHT = 1;\n  if (VOTE_WEIGHT > 1) {\n    document.getElementById('pf-vote-power').innerHTML =\n      '<div style=\"display:inline-block;background:#c1121f;color:#f5f0e1;font-weight:900;font-size:0.85rem;letter-spacing:0.14em;padding:0.4rem 1.2rem;margin-bottom:1rem;\">&#9733; &times;2 VOTE POWER &mdash; COMMISSAR UNLOCK &#9733;</div>';\n  }\n  var list = document.getElementById('pf-vote-list');\n  var msg = document.getElementById('pf-vote-msg');\n  /* GLOBAL TOTALS: fetched from the backend via JSONP, shared across all devices.\n     Refresh on every page load so each user sees the live count. */\n  var voteTotals = {};\n  function fetchTotals(){\n    if(!VOTE_API_URL || VOTE_API_URL.indexOf('PASTE') === 0) return;\n    var cb = 'pfVoteCb_' + Date.now();\n    window[cb] = function(data){\n      try {\n        if(data && data.votes){\n          voteTotals = data.votes;\n          var t=0,k; for(k in voteTotals){ t+=Number(voteTotals[k])||0; }\n          urgencyTotal=t; renderUrgency();\n        }\n        /* Never clobber the voted state when totals arrive. */\n        if(!voted()) renderBallot();\n      } catch(e){}\n      try { delete window[cb]; } catch(e){}\n      var s = document.getElementById(cb);\n      if(s && s.parentNode) s.parentNode.removeChild(s);\n    };\n    var s = document.createElement('script');\n    s.id = cb;\n    s.src = VOTE_API_URL + '?action=results&week=' + encodeURIComponent(weekKey) + '&callback=' + cb;\n    /* 2026-10-03 M2: 12s backstop — a hung request previously leaked\n       window[cb] and left the urgency totals stale forever. */\n    var hung=setTimeout(function(){ if(window[cb]){ try{delete window[cb];}catch(e){} var s2=document.getElementById(cb); if(s2&&s2.parentNode)s2.parentNode.removeChild(s2); } },12000);\n    s.onerror = function(){ try{clearTimeout(hung);}catch(e){} try{ delete window[cb]; }catch(e){} if(s.parentNode) s.parentNode.removeChild(s); };\n    document.head.appendChild(s);\n  }\n  /* Stored vote: JSON {name, slug, weight}. Older plain-name values still read. */\n  function voted(){\n    var raw = null;\n    try { raw = localStorage.getItem(storeKey); } catch(e){}\n    if(!raw) return null;\n    try {\n      var v = JSON.parse(raw);\n      if(v && v.slug) return {name: v.name, slug: v.slug, weight: v.weight || 1};\n    } catch(e){}\n    for(var i = 0; i < CANDIDATES.length; i++){\n      if(CANDIDATES[i].name === raw) return {name: raw, slug: CANDIDATES[i].slug, weight: 1};\n    }\n    return {name: raw, slug: '', weight: 1};\n  }\n  /* ============ DOPAMINE LAYER (2026-10-01) ============\n     Sealed ballot ceremony, loyalist streaks, kingmaker Monday reveal,\n     campaign mode, live urgency. Tallies stay private; only the voter's\n     own pick is ever shown or shared. */\n  var urgencyTotal = 0;\n  function callsign(){ try{ return (window.PFCallsign && PFCallsign()) || ''; }catch(e){ return ''; } }\n  function esc(s){ return String(s).replace(/[&<>\"']/g,function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[m]; }); }\n  function weekKeyOf(d){ return d.getFullYear() + \"-W\" + isoWeek(d); }\n  /* --- Loyalist streak: consecutive weeks voted --- */\n  function getStreak(){ try{ return JSON.parse(localStorage.getItem('pf_votestreak_v1'))||{streak:0,lastWeek:''}; }catch(e){ return {streak:0,lastWeek:''}; } }\n  function streakRank(n){ return n>=8?'ZEALOT':n>=4?'LOYALIST':n>=2?'AGITATOR':n>=1?'VOTER':'NONE'; }\n  function bumpStreak(){\n    var st = getStreak();\n    if(st.lastWeek === weekKey) return st.streak;\n    var d = PF.chiNow(); d.setDate(d.getDate()-7);\n    st.streak = (st.lastWeek === weekKeyOf(d)) ? (st.streak+1) : 1;\n    st.lastWeek = weekKey;\n    try{ localStorage.setItem('pf_votestreak_v1', JSON.stringify(st)); }catch(e){}\n    return st.streak;\n  }\n  function renderStreak(){\n    var el = document.getElementById('pf-vote-streak');\n    if(!el) return;\n    var st = getStreak();\n    if(st.streak > 0){\n      el.innerHTML = '\\uD83D\\uDD25 <b style=\"color:#c1121f;\">'+st.streak+'-WEEK STREAK</b> \\u2014 '+streakRank(st.streak)+' &nbsp;\\u00B7&nbsp; miss a week and it dies';\n    } else {\n      el.innerHTML = 'Cast your ballot to start a <b style=\"color:#f5f0e1;\">voting streak</b>';\n    }\n  }\n  /* --- Sealed ballot ceremony: the vote drops into the box, wax-sealed --- */\n  function ballotCeremony(c, done){\n    var ov = document.getElementById('pf-vote-ceremony');\n    var reduce = false;\n    try{ reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}\n    if(!ov || reduce){ done(); return; }\n    var cs = callsign();\n    ov.innerHTML = '<div class=\"pfv-ballot\"><div class=\"pfv-ballot-name\">'+esc(c.name)+'</div>'+\n      '<div class=\"pfv-seal\">'+(cs?esc(cs):'SEALED')+'</div></div>'+\n      '<div class=\"pfv-boxlabel\">BALLOT CAST \\u2014 TALLY CLASSIFIED</div>';\n    ov.style.display = 'block';\n    var colors=['#c1121f','#f5ead6','#e8192f','#ffcc00'];\n    for(var i=0;i<36;i++){\n      var p=document.createElement('div'); p.className='pfv-confetti';\n      p.style.left=(Math.random()*100)+'%'; p.style.background=colors[i%4];\n      p.style.animationDuration=(0.9+Math.random()*1.2)+'s';\n      ov.appendChild(p);\n      (function(el){ setTimeout(function(){ el.remove(); },2400); })(p);\n    }\n    setTimeout(function(){ ov.style.display='none'; ov.innerHTML=''; done(); }, 1500);\n  }\n  /* --- Kingmaker: Monday reveal if your pick took last week --- */\n  function checkKingmaker(){\n    var now = PF.chiNow();\n    if(now.getDay() !== 1) return;\n    var d = new Date(now.getTime()); d.setDate(d.getDate()-7);\n    var lastWk = weekKeyOf(d);\n    var mySlug = null;\n    try{ var raw = localStorage.getItem('slr-vote-'+lastWk); if(raw){ mySlug = (JSON.parse(raw).slug)||null; } }catch(e){}\n    if(!mySlug || !VOTE_API_URL || VOTE_API_URL.indexOf('PASTE') === 0) return;\n    var cb='pfKingCb'+Date.now();\n    window[cb]=function(data){\n      try{ delete window[cb]; }catch(e){}\n      var s=document.getElementById(cb); if(s&&s.parentNode)s.parentNode.removeChild(s);\n      try{\n        var votes=(data&&data.votes)||{}, top=null, topN=-1, k;\n        for(k in votes){ if(Number(votes[k])>topN){ topN=Number(votes[k]); top=k; } }\n        if(top && top===mySlug){\n          var rec={count:0,weeks:[]};\n          try{ rec=JSON.parse(localStorage.getItem('pf_kingmaker_v1'))||rec; }catch(e){}\n          if(rec.weeks.indexOf(lastWk)<0){ rec.weeks.push(lastWk); rec.count++; }\n          try{ localStorage.setItem('pf_kingmaker_v1', JSON.stringify(rec)); }catch(e){}\n          var el=document.getElementById('pf-vote-kingmaker');\n          if(el) el.innerHTML='<div style=\"display:inline-block;background:#c1121f;color:#f5f0e1;font-weight:900;font-size:0.9rem;letter-spacing:0.14em;padding:0.5rem 1.3rem;margin:0.6rem 0;border:2px solid #f5f0e1;\">\\uD83D\\uDC51 KINGMAKER \\u2014 your pick took last week'+(rec.count>1?' ('+rec.count+'\\u00D7)':'')+'</div>';\n        }\n      }catch(e){}\n    };\n    var s=document.createElement('script'); s.id=cb;\n    s.src=VOTE_API_URL+'?action=results&week='+encodeURIComponent(lastWk)+'&callback='+cb;\n    s.onerror=function(){ try{delete window[cb];}catch(e){} if(s.parentNode)s.parentNode.removeChild(s); };\n    document.head.appendChild(s);\n  }\n  /* --- Urgency: live ballots cast + polls-close countdown --- */\n  function pollsCloseIn(){\n    var now=PF.chiNow(), d=new Date(now.getTime());\n    d.setDate(d.getDate()+((7-d.getDay())%7)); d.setHours(23,59,0,0);\n    if(d<=now) d.setDate(d.getDate()+7);\n    var ms=d-now, h=Math.floor(ms/36e5), dd=Math.floor(h/24); h=h%24;\n    return dd>0 ? dd+'D '+h+'H' : h+'H '+Math.floor((ms%36e5)/6e4)+'M';\n  }\n  function renderUrgency(){\n    var el=document.getElementById('pf-vote-urgency');\n    if(!el) return;\n    el.innerHTML='<span style=\"color:#c1121f;\">\\uD83D\\uDD34 '+urgencyTotal+' BALLOT'+(urgencyTotal===1?'':'S')+' CAST</span> &nbsp;\\u2014&nbsp; POLLS CLOSE IN <b style=\"color:#f5f0e1;\">'+pollsCloseIn()+'</b>';\n  }\n  setInterval(function(){ var el=document.getElementById('pf-vote-urgency'); if(el && urgencyTotal>0) renderUrgency(); }, 60000);\n  /* FAN VOTE SHARE POSTERS — canvas poster per candidate, Web Share API or PNG\n     download (\"save to Photos\" path on iPhone). Privacy: only the voter's own pick\n     is ever shared, never vote totals. */\n  function candByName(name){\n    for(var i=0;i<CANDIDATES.length;i++){ if(CANDIDATES[i].name===name) return CANDIDATES[i]; }\n    for(var j=0;j<SCORES.length;j++){ if(SCORES[j].name===name) return SCORES[j]; }\n    return {name:name, slug:'', score:0};\n  }\n  function votePoster(c, mode){\n    return new Promise(function(resolve){\n      var W=1080,H=1350,canvas=document.createElement('canvas');\n      canvas.width=W;canvas.height=H;\n      var x=canvas.getContext('2d');\n      x.fillStyle='#0d0d0d';x.fillRect(0,0,W,H);\n      x.strokeStyle='#c1121f';x.lineWidth=14;x.strokeRect(28,28,W-56,H-56);\n      x.lineWidth=3;x.strokeRect(58,58,W-116,H-116);\n      var cx=W/2;\n      function ct(t,y,size,color,weight,ls){\n        x.fillStyle=color;\n        x.font=weight+' '+size+'px \"Arial Black\",Arial,sans-serif';\n        x.textAlign='center';x.textBaseline='middle';\n        try{ x.letterSpacing=(ls||0)+'px'; }catch(e){}\n        x.fillText(t,cx,y);\n        try{ x.letterSpacing='0px'; }catch(e){}\n      }\n      function wrap(t,maxW,size){\n        x.font='900 '+size+'px \"Arial Black\",Arial,sans-serif';\n        var words=String(t).split(' '),lines=[],cur='',i,trial;\n        for(i=0;i<words.length;i++){\n          trial=cur?cur+' '+words[i]:words[i];\n          if(x.measureText(trial).width>maxW&&cur){ lines.push(cur);cur=words[i]; }\n          else cur=trial;\n        }\n        if(cur)lines.push(cur);\n        return lines;\n      }\n      ct('\\u2605 FAN VOTE \\u2605',150,54,'#c1121f','900',6);\n      ct(mode==='post'?'I VOTED FOR':'VOTE FOR',228,34,'#f5ead6','900',8);\n      /* Adaptive name size: shrink until the name fits maxLines. */\n      var hasImg=!!VOTE_IMGS[c.slug];\n      var maxLines=hasImg?2:3, nsize=72, lines=wrap(c.name.toUpperCase(),W-240,nsize), i;\n      while(lines.length>maxLines&&nsize>48){ nsize-=8; lines=wrap(c.name.toUpperCase(),W-240,nsize); }\n      var lh=Math.round(nsize*1.2), done=false;\n      function finish(img){\n        if(done)return;done=true;\n        var S=480,y;\n        if(img&&img.width>0){\n          var side=Math.min(img.width,img.height);\n          var sx=(img.width-side)/2,sy=(img.height-side)/2;\n          x.save();\n          x.beginPath();x.rect(cx-S/2,280,S,S);x.clip();\n          x.drawImage(img,sx,sy,side,side,cx-S/2,280,S,S);\n          x.restore();\n          x.strokeStyle='#c1121f';x.lineWidth=8;x.strokeRect(cx-S/2,280,S,S);\n          y=280+S+64;\n        } else { y=372; }\n        var ty=y+Math.round(lh/2);\n        for(i=0;i<lines.length;i++){ ct(lines[i],ty,nsize,'#f5ead6','900',2); ty+=lh; }\n        ty+=22;\n        ct('PROPAGANDIST OF THE WEEK',ty,40,'#c1121f','900',5); ty+=70;\n        if(c.score){ ct('PROPAGANDA SCORE '+c.score.toFixed(1),ty,32,'#b8ab8e','700',3); ty+=62; }\n        var footY=Math.min(Math.max(ty+44,H-200),H-128);\n        ct('MTCSTW.COM',footY,44,'#f5ead6','900',6);\n        ct('JOIN THE FIGHT.',footY+58,30,'#c1121f','900',4);\n        ct('VOTING ENDS SUNDAY',footY+102,24,'#b8ab8e','700',4);\n        resolve(canvas);\n      }\n      if(hasImg){\n        var img=new Image();img.crossOrigin='anonymous';\n        var to=setTimeout(function(){ finish(null); },9000);\n        img.onload=function(){ clearTimeout(to);finish(img); };\n        img.onerror=function(){ clearTimeout(to);finish(null); };\n        img.src=VOTE_IMGS[c.slug];\n      } else finish(null);\n    });\n  }\n  function shareVotePoster(c, mode){\n    var msgEl=document.getElementById('pf-vote-copymsg');\n    var say=function(t){ if(msgEl)msgEl.textContent=t; };\n    say('Building your poster\\u2026');\n    /* P2 (2026-10-04): once-per-day share gate — credit on a completed share\n       or a completed download, never on cancel. */\n    function credit(){ try{ if(window.PF&&PF.creditShare) PF.creditShare('fan-vote','share'); }catch(e){} }\n    function dl(blob){\n      var a=document.createElement('a');\n      a.href=URL.createObjectURL(blob);a.download='fan-vote-'+(c.slug||'pick')+'.jpg';\n      document.body.appendChild(a);a.click();\n      setTimeout(function(){ try{URL.revokeObjectURL(a.href);}catch(e){} a.remove(); },4000);\n      credit();\n      say('Poster downloaded \\u2014 on iPhone open it from Files/Downloads, tap Share, then Save Image to put it in Photos.');\n    }\n    votePoster(c,mode).then(function(canvas){\n      try{ if(window.PFShare&&window.PFShare.stampCallsign){ canvas=window.PFShare.stampCallsign(canvas)||canvas; } }catch(e){}\n      if(!canvas.toBlob){ say('Poster failed \\u2014 try again.');return; }\n      canvas.toBlob(function(blob){\n        if(!blob){ say('Poster failed \\u2014 try again.');return; }\n        var file=null;\n        try{ file=new File([blob],'fan-vote-'+(c.slug||'pick')+'.jpg',{type:'image/jpeg'}); }catch(e){}\n        var cs=''; try{ cs=(window.PFCallsign && PFCallsign())||''; }catch(e){}\n        var vlink='https://www.mtcstw.com';\n        try{ if(window.PF&&typeof PF.shareUrl==='function') vlink=PF.shareUrl(vlink); }catch(e){}\n        var txt=(mode==='post'?'I voted for ':'Vote for ')+c.name+' for Propagandist of the Week! '+\n          (mode==='post'&&cs ? cs+' is campaigning \\u2014 join the operation: ' : 'Join the operation: ')+\n          vlink+' #SickLeftRadicals';\n        if(file&&navigator.canShare&&navigator.canShare({files:[file]})){\n          navigator.share({files:[file],title:'Fan Vote',text:txt}).then(\n            function(){ credit(); say('Shared. Go spread the word.'); },\n            function(e){\n              if(e&&e.name==='AbortError'){ say('Share cancelled.'); }\n              else { credit(); dl(blob); }\n            });\n        } else { credit(); dl(blob); }\n      },'image/jpeg',0.85);\n    });\n  }\n  function showVoted(name, weight){\n    list.innerHTML = '';\n    var vc = candByName(name);\n    var wtxt = (weight > 1) ? ' <b style=\"color:#c1121f;\">&times;' + weight + '</b>' : '';\n    var first = String(name).split(' ')[0].toUpperCase();\n    msg.innerHTML = 'Vote counted for <b style=\"color:#f5f0e1;\">' + name + '</b>' + wtxt +\n      '.<br>Results drop Monday morning on the reshuffle.<br>' +\n      '<button id=\"pf-vote-share\" style=\"background:#c1121f;border:2px solid #c1121f;color:#f5f0e1;padding:0.6rem 1.4rem;margin-top:0.8rem;margin-right:0.5rem;font-size:0.85rem;font-weight:700;letter-spacing:0.1em;cursor:pointer;font-family:inherit;\">CAMPAIGN FOR ' + esc(first) + '</button>' +\n      '<button id=\"pf-vote-reset\" style=\"background:transparent;border:2px solid #c1121f;color:#c1121f;padding:0.45rem 1.2rem;margin-top:0.8rem;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;cursor:pointer;font-family:inherit;\">RESET VOTE</button>';\n    var sb = document.getElementById('pf-vote-share');\n    if(sb) sb.onclick = function(){ shareVotePoster(vc,'post'); };\n    var rb = document.getElementById('pf-vote-reset');\n    if(rb) rb.onclick = resetVote;\n  }\n  function renderBallot(){\n    list.innerHTML = '';\n    CANDIDATES.forEach(function(c){\n      var row = document.createElement('div');\n      row.style.cssText = 'display:block;margin:0.25rem 0;';\n      var b = document.createElement('button');\n      b.textContent = c.name;\n      b.style.cssText = 'display:inline-block;background:#141414;border:2px solid #f5f0e1;color:#f5f0e1;padding:0.6rem 1rem;margin:0.15rem;font-size:0.9rem;font-weight:700;letter-spacing:0.04em;cursor:pointer;font-family:inherit;';\n      b.onmouseover = function(){ b.style.background='#c1121f'; b.style.borderColor='#c1121f'; };\n      b.onmouseout = function(){ b.style.background='#141414'; b.style.borderColor='#f5f0e1'; };\n      b.onclick = function(){ castVote(c, b); };\n      var s = document.createElement('button');\n      s.textContent = 'SHARE';\n      s.style.cssText = 'display:inline-block;background:transparent;border:2px solid #c1121f;color:#c1121f;padding:0.6rem 0.8rem;margin:0.15rem;font-size:0.75rem;font-weight:700;letter-spacing:0.12em;cursor:pointer;font-family:inherit;';\n      s.onclick = function(){ shareVotePoster(c,'pre'); };\n      row.appendChild(b); row.appendChild(s);\n      list.appendChild(row);\n    });\n  }\n  /* RESET VOTE: retracts the vote server-side, then clears the local ballot\n     lock and re-opens the ballot. 2026-10-03 conn fix: symmetric with cast —\n     the typed vote:vote_retract path (PUBLIC, device-gated) replaces the\n     deprecated bare typeless 'retract'. On failure the local state is KEPT\n     and the error is shown honestly — never a silent local-only reset.\n     Voting again adds the weight back. */\n  function resetVote(){\n    var v = voted();\n    if(!v || !v.slug){ renderBallot(); return; }\n    if(!VOTE_API_URL || VOTE_API_URL.indexOf('PASTE') === 0){\n      msg.innerHTML = 'Couldn&rsquo;t reach the ballot box &mdash; your vote is still counted. Try again in a moment.';\n      return;\n    }\n    var dev = '';\n    try { dev = (window.PFDeviceId && PFDeviceId()) || ''; } catch(e){}\n    if(!dev){\n      msg.innerHTML = 'Couldn&rsquo;t identify this device &mdash; your vote is still counted. Try again in a moment.';\n      return;\n    }\n    msg.innerHTML = 'Retracting your vote&hellip;';\n    /* Symmetric with castVote: explicit vote route (PUBLIC, device-gated),\n       CORS so we read the verdict — no more false success. */\n    var ctrl=null; try{ ctrl=new AbortController(); }catch(e){}\n    var to=setTimeout(function(){ try{ if(ctrl) ctrl.abort(); }catch(e){} },15000);\n    fetch(VOTE_API_URL,{method:'POST',headers:{'Content-Type':'application/json'},\n      body:JSON.stringify({type:'vote',v_action:'vote_retract',device:dev,slug:v.slug,weight:v.weight}),\n      signal:ctrl?ctrl.signal:undefined})\n      .then(function(r){ clearTimeout(to); return r.json(); })\n      .then(function(j){ retractDone(j); })\n      .catch(function(){ retractDone(null); });\n    function retractDone(j){\n      if(!j || !j.ok){\n        /* Failure: do NOT clear local state — show the error honestly. */\n        msg.innerHTML = 'Retract failed (' + esc(PF.errCopy(j, 'network error')) + ') &mdash; your vote is still counted. Try again.';\n        return;\n      }\n      try { localStorage.removeItem(storeKey); } catch(e){}\n      renderBallot();\n      msg.innerHTML = 'Vote reset &mdash; <b style=\"color:#c1121f;\">-' + (v ? v.weight : 1) + '</b>' +\n        (v ? ' from <b style=\"color:#f5f0e1;\">' + v.name + '</b>' : '') +\n        '.<br>Changed your mind? Pick again below.';\n      /* Refresh the shared totals after the retract lands. */\n      setTimeout(fetchTotals, 1500);\n    }\n  }\n  var existing = voted();\n  if(existing){ showVoted(existing.name, existing.weight); }\n  else { renderBallot(); }\n  /* Load live totals on every page view — shared across all devices. */\n  fetchTotals();\n  renderStreak();\n  checkKingmaker();\n  function castVote(c, btn){\n    var dev=''; try { dev=(window.PFDeviceId&&PFDeviceId())||''; }catch(e){}\n    if(!dev){ try{ if(window.PF&&PF.toast) PF.toast('Could not identify this device — vote not cast.'); }catch(e){} return; }\n    /* 2026-10-03 M26: disabled+spinner state while the vote is in flight —\n       prevents double-vote double-submit. Same pattern as armory.js\n       (btn.disabled=true at POST, restored on failure). Success lands\n       showVoted(), which replaces the ballot — no restore needed. */\n    var label = '';\n    if(btn){\n      if(btn.disabled) return; /* a vote is already in flight */\n      try{\n        label = btn.textContent;\n        btn.disabled = true;\n        btn.textContent = '⏳ CASTING…';\n      }catch(e){}\n    }\n    function restoreBtn(){\n      if(btn){ try{ btn.disabled = false; btn.textContent = label; }catch(e){} }\n    }\n    /* 2026-10-03: explicit vote route (backend M6 closed the bare-POST\n       fall-through). CORS so we read the verdict — no more false success. */\n    var ctrl=null; try{ ctrl=new AbortController(); }catch(e){}\n    var to=setTimeout(function(){ try{ if(ctrl) ctrl.abort(); }catch(e){} },15000);\n    fetch(VOTE_API_URL,{method:'POST',headers:{'Content-Type':'application/json'},\n      body:JSON.stringify({type:'vote',v_action:'vote_cast',device:dev,slug:c.slug,weight:VOTE_WEIGHT}),\n      signal:ctrl?ctrl.signal:undefined})\n      .then(function(r){ clearTimeout(to); return r.json(); })\n      .then(function(j){\n        if(j&&j.ok){\n          try { localStorage.setItem(storeKey, JSON.stringify({name:c.name,slug:c.slug,weight:VOTE_WEIGHT})); }catch(e){}\n          /* One vote, one streak bump, one tally event — counted exactly once. */\n          bumpStreak();\n          renderStreak();\n          try { document.dispatchEvent(new CustomEvent(\"pf-vote-cast\",{detail:{week:weekKey,weight:VOTE_WEIGHT}})); }catch(e){}\n          /* The sealed-ballot ceremony plays, then the voted state lands. */\n          ballotCeremony(c,function(){ showVoted(c.name,VOTE_WEIGHT); });\n          /* Refresh the shared totals so the new vote appears on next render. */\n          setTimeout(fetchTotals,1500);\n        } else {\n          restoreBtn();\n          var msg=PF.errCopy(j,'Vote rejected.');\n          try{ if(window.PF&&PF.toast) PF.toast(msg+' Not counted — try again.'); }catch(e){}\n        }\n      })\n      .catch(function(){\n        clearTimeout(to);\n        restoreBtn();\n        try{ if(window.PF&&PF.toast) PF.toast('Network error — vote not counted. Try again.'); }catch(e){}\n      });\n  }\n  /* COPY CRATE */\n  var VCRATE=\"\\u2605 FAN VOTE: PROPAGANDIST OF THE WEEK \\u2605\\nWho was the hardest-working propagandist this week? You decide.\\nVote: https://www.mtcstw.com\\n#SickLeftRadicals #PropagandaFactory\";\n  document.getElementById(\"pf-vote-copy\").onclick=function(){\n    var cm=document.getElementById(\"pf-vote-copymsg\");\n    var done=function(ok){ if(cm) cm.textContent=ok?\"Copied. Go spread the word.\":\"Copy failed — long-press to copy manually.\"; };\n    if(navigator.clipboard&&navigator.clipboard.writeText){\n      navigator.clipboard.writeText(VCRATE).then(function(){done(true);},function(){done(false);});\n    } else {\n      var ta=document.createElement(\"textarea\");ta.value=VCRATE;ta.style.position=\"fixed\";ta.style.opacity=\"0\";\n      document.body.appendChild(ta);ta.select();\n      try{done(document.execCommand(\"copy\"));}catch(e){done(false);}\n      document.body.removeChild(ta);\n    }\n  };\n})();\n<\/script>\n</div>\n</template>")}();
+/* PF v1.4.3 bundle-home.js — concatenated bundle, generated by build/bundle.js.
+   DO NOT EDIT. Regenerate with: node build/bundle.js [--debug]
+   Contains: spotlight.js, creator-guess.js, daily-interrogation.js, billionaire-supervillain.js, slr-match-quiz.js, infighting.js, cells.js, referral.js, poster-forge.js, feed.js, political-hq-nudge.js, war-bonds.js, campaign.js, alerts.js, fan-vote.js, fact-generator.js
+   Each silo keeps its own PF.skip() kill switch (?pf_off=<silo>). */
+
+/* ===== spotlight.js ===== */
+/* games/spotlight.js | PF v1.4.3 | SPOTLIGHT: "Today's Game" — daily rotation.
+   Rotates creator-guess / daily-interrogation / billionaire-supervillain via
+   Chicago day-of-year % 3. Mounts the chosen game's staged template into the
+   spotlight slot with a TODAY'S GAME header + /arcade links for the other two.
+   The three game silos are staged by their own files but NOT listed in the
+   homepage mounter — spotlight mounts exactly one of them.
+   KILL: ?pf_off=spotlight  or  localStorage pf_disabled_v1='["spotlight"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("spotlight")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-spotlight">
+<div class="fe-block pf-override-block" id="pf-spotlight">
+<h2>TODAY&rsquo;S GAME</h2>
+<div class="c-tag">One game a day. The other two wait in the arcade.</div>
+<div id="pf-spot-slot"><div class="c-load">Loading today&rsquo;s game&hellip;</div></div>
+<div id="pf-spot-links" class="x-note"></div>
+</div>
+<script>
+(function(){
+'use strict';
+var GAMES=[
+  {key:'creator-guess',tpl:'pf-ov-guess',name:'Guess the Creator'},
+  {key:'daily-interrogation',tpl:'pf-ov-interrogation',name:'The Daily Interrogation'},
+  {key:'billionaire-supervillain',tpl:'pf-ov-billionaire',name:'Billionaire or Supervillain?'}
+];
+function chiNow(){ try{ return (window.PF&&PF.chiNow)?PF.chiNow():new Date(); }catch(e){ return new Date(); } }
+/* Chicago day-of-year: Jan 1 = 0. */
+function dayOfYear(d){
+  var jan1=new Date(d.getFullYear(),0,1);
+  var today=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  return Math.max(0,Math.round((today-jan1)/86400000));
+}
+/* Daily pick; skips games the user killed (?pf_off= / localStorage). */
+function pick(){
+  var doy=dayOfYear(chiNow());
+  for(var i=0;i<GAMES.length;i++){
+    var g=GAMES[(doy+i)%GAMES.length];
+    try{ if(window.PF&&PF.skip&&PF.skip(g.key)) continue; }catch(e){}
+    return g;
+  }
+  return GAMES[0];
+}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+var slot=document.getElementById('pf-spot-slot');
+var links=document.getElementById('pf-spot-links');
+if(!slot||!links) return;
+var game=pick();
+function paintLinks(){
+  var others=GAMES.filter(function(g){return g.key!==game.key;});
+  links.innerHTML='Also in the arcade: '+others.map(function(g){
+    return '<a href="/arcade" style="color:#c1121f;">'+esc(g.name)+' &rarr;</a>';
+  }).join(' &middot; ');
+}
+/* Same contract as the homepage mounter: clone the staged template, then
+   run its inner script in global scope. */
+function execScripts(root){
+  var scripts=root.querySelectorAll('script');
+  for(var i=0;i<scripts.length;i++){
+    try{ (0,eval)(scripts[i].textContent); }catch(e){}
+    scripts[i].remove();
+  }
+}
+function mountGame(){
+  var tpl=document.getElementById(game.tpl);
+  if(!tpl||!tpl.content) return false;
+  var frag=document.importNode(tpl.content,true);
+  slot.innerHTML='';
+  slot.appendChild(frag);
+  execScripts(slot);
+  return true;
+}
+function renderError(){
+  slot.innerHTML='<div class="c-neterr">Today&rsquo;s game didn&rsquo;t load.'+
+    '<br><button class="c-btn" id="pfSpotRetry">Retry</button> '+
+    '<a href="/arcade" class="c-btn ghost" style="text-decoration:none;display:inline-block;">Open the arcade</a></div>';
+  var rb=document.getElementById('pfSpotRetry');
+  if(rb) rb.onclick=function(){
+    tries=0;
+    slot.innerHTML='<div class="c-load">Loading today&rsquo;s game&hellip;</div>';
+    tryMount();
+  };
+}
+var tries=0;
+function tryMount(){
+  tries++;
+  /* Staged templates arrive with their bundles — wait for ours. */
+  if(mountGame()) return;
+  if(tries>=15){ renderError(); return; }
+  setTimeout(tryMount,2000);
+}
+paintLinks();
+tryMount();
+})();
+</scr`+`ipt>
+</div>
+</template>`);
+})();
+
+;
+
+/* ===== creator-guess.js ===== */
+/* games/creator-guess.js  |  PF v1.4.3 | Guess the Creator: daily SLR roster trivia, 5 rounds, streaks
+   v1.4.3 stickiness pass: daily Chicago-seeded question bank (first run = DAILY, later = PRACTICE),
+   site-wide score stats (guess_scored/guess_stats), missed-creator "study up" catalog links,
+   shareable score card, Infighting tie-in.
+   KILL: ?pf_off=creator-guess  or  localStorage pf_disabled_v1='["creator-guess"]' */
+
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("creator-guess")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend',
+'<template id="pf-ov-guess">\n' +
+'<div class="fe-block pf-override-block">\n' +
+'<div id="pf-guess" style="max-width:640px;margin:2rem auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:\'Helvetica Neue\',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;text-align:center;">\n' +
+'  <div style="font-size:1.5rem;font-weight:900;letter-spacing:0.18em;color:#c1121f;">&#9673; GUESS THE CREATOR &#9673;</div>\n' +
+'  <div style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;">5 questions. One roster. Zero mercy.<br>How well do you know the Sick Left Radicals?</div>\n' +
+'  <div id="pf-guess-streak" style="font-size:0.85rem;color:#c1121f;margin-bottom:0.4rem;letter-spacing:0.1em;"></div>\n' +
+'  <div id="pf-guess-stats" style="font-size:0.8rem;color:#b8ab8e;margin-bottom:0.8rem;min-height:1.1em;"></div>\n' +
+'  <div id="pf-guess-lb" style="font-size:0.8rem;color:#b8ab8e;margin-bottom:1rem;text-align:left;min-height:1.1em;"></div>\n' +
+'  <div id="pf-guess-body"></div>\n' +
+'</div>\n' +
+'<script>\n' +
+'(function(){\n' +
+'  "use strict";\n' +
+'  function dbAll(){var a=[];try{if(window.PF){a=PF.slrAll?PF.slrAll():(PF.ROSTER||[]);}}catch(e){}return a||[];}\n' +
+'  function trunc(s,n){s=String(s||"");return s.length>n?s.slice(0,n-1)+"\\u2026":s;}\n' +
+'  function hashStr(s){var h=2166136261,i;for(i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}\n' +
+'  function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}\n' +
+'  function chiDay(){var n;try{n=window.PF?PF.chiNow():new Date();}catch(e){n=new Date();}return n.getFullYear()+"-"+(n.getMonth()+1)+"-"+n.getDate();}\n' +
+'  function buildBank(rng){\n' +
+'    rng=rng||Math.random;\n' +
+'    function sh(a){var i,j,t;for(i=a.length-1;i>0;i--){j=Math.floor(rng()*(i+1));t=a[i];a[i]=a[j];a[j]=t;}return a;}\n' +
+'    var all=dbAll();if(all.length<4)return [];\n' +
+'    var ms=sh(all.slice()).slice(0,12),bank=[];\n' +
+'    for(var i=0;i<ms.length;i++){\n' +
+'      var m=ms[i],others=sh(all.filter(function(x){return x.slug!==m.slug;})),w=[others[0].slug,others[1].slug,others[2].slug];\n' +
+'      var t=i%3,qq=null;\n' +
+'      if(t===0&&m.followers_display){qq={q:m.followers_display+" followers"+(m.primary_platform?" on "+m.primary_platform:"")+". Who?",a:m.slug,w:w};}\n' +
+'      else if(t===1&&m.key_strengths&&m.key_strengths[0]){qq={q:"\\u201C"+trunc(m.key_strengths[0],110)+"\\u201D \\u2014 whose key strength is this?",a:m.slug,w:w};}\n' +
+'      else{qq={q:"Content focus: "+trunc(m.content_focus||"leftist propaganda",110)+". Who?",a:m.slug,w:w};}\n' +
+'      if(qq)bank.push(qq);\n' +
+'    }\n' +
+'    return bank;\n' +
+'  }\n' +
+'  function pick(bank){var pool=bank.slice();for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}return pool.slice(0,5);}\n' +
+'  var LS="pf_guess_v1";\n' +
+'  function load(){try{var s=JSON.parse(localStorage.getItem(LS)||"null");if(s&&typeof s.streak==="number")return s;}catch(e){}return{streak:0,last:"",lastDaily:"",dailyScore:-1};}\n' +
+'  function save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}\n' +
+'  function todayStr(){try{return new Date().toISOString().slice(0,10);}catch(e){return"";}}\n' +
+'  var API=(window.PF_BACKEND_URL||"https://pf-api.mtcstw.workers.dev");\n' +
+'  var GSTAT=null;\n' +
+'  function loadStats(cb){var done=function(){if(cb)cb();};\n' +
+'    try{var c=JSON.parse(localStorage.getItem("pf_guess_stats_v1")||"null");if(c&&Date.now()-c.at<6*3600000){GSTAT=c.d;done();return;}}catch(e){}\n' +
+'    var name="pfGsT"+Date.now(),fired=false;\n' +
+'    window[name]=function(d){if(fired)return;fired=true;try{delete window[name];}catch(e){}var s=document.getElementById(name);if(s&&s.parentNode)s.parentNode.removeChild(s);if(d&&typeof d.plays==="number"){GSTAT=d;try{localStorage.setItem("pf_guess_stats_v1",JSON.stringify({at:Date.now(),d:d}));}catch(e){}}done();};\n' +
+'    try{var scr=document.createElement("script");scr.id=name;scr.src=API+"?callback="+name+"&action=guess_stats";scr.onerror=function(){if(!fired){fired=true;done();}};(document.head||document.documentElement).appendChild(scr);}catch(e){if(!fired){fired=true;done();}}\n' +
+'    setTimeout(function(){if(!fired){fired=true;done();}},10000);}\n' +
+'  function paintStats(){var el=document.getElementById("pf-guess-stats");if(!el)return;\n' +
+'    if(GSTAT&&GSTAT.plays>0){var avg=(GSTAT.plays>0&&GSTAT.avg)?Number(GSTAT.avg).toFixed(1):"\\u2014";\n' +
+'      el.innerHTML="<b style=\'color:#f5f0e1;\'>"+GSTAT.plays.toLocaleString()+"</b> comrades played this week \\u2014 average <b style=\'color:#f5f0e1;\'>"+avg+"/5</b>";}}\n' +
+'  var GLB=null;\n' +
+'  function chiDayPad(){var d=chiDay().split("-");return d[0]+"-"+(d[1].length<2?"0":"")+d[1]+"-"+(d[2].length<2?"0":"")+d[2];}\n' +
+'  function loadLb(cb){var done=function(){if(cb)cb();};\n' +
+'    try{var c=JSON.parse(localStorage.getItem("pf_guess_lb_v1")||"null");if(c&&Date.now()-c.at<10*60000&&c.d&&c.d.ok&&c.d.day===chiDayPad()){GLB=c.d;done();return;}}catch(e){}\n' +
+'    var name="pfGsL"+Date.now(),fired=false;\n' +
+'    window[name]=function(d){if(fired)return;fired=true;try{delete window[name];}catch(e){}var s=document.getElementById(name);if(s&&s.parentNode)s.parentNode.removeChild(s);if(d&&d.ok){GLB=d;try{localStorage.setItem("pf_guess_lb_v1",JSON.stringify({at:Date.now(),d:d}));}catch(e){}}done();};\n' +
+'    try{var scr=document.createElement("script");scr.id=name;scr.src=API+"?callback="+name+"&action=guess_leaderboard";scr.onerror=function(){if(!fired){fired=true;done();}};(document.head||document.documentElement).appendChild(scr);}catch(e){if(!fired){fired=true;done();}}\n' +
+'    setTimeout(function(){if(!fired){fired=true;done();}},10000);}\n' +
+'  function paintLb(){var el=document.getElementById("pf-guess-lb");if(!el)return;\n' +
+'    if(!GLB||!GLB.ok||!GLB.entries||!GLB.entries.length){el.innerHTML="";return;}\n' +
+'    var h="<div style=\'letter-spacing:0.2em;color:#c1121f;font-size:0.75rem;margin-bottom:0.4rem;\'>TODAY\\u2019S LEADERBOARD</div>";\n' +
+'    var n=Math.min(GLB.entries.length,10),i,e2,rk,col;\n' +
+'    for(i=0;i<n;i++){e2=GLB.entries[i];rk=i+1;\n' +
+'      col=rk===1?"#ffd166":rk===2?"#c9c9c9":rk===3?"#cd7f32":"#b8ab8e";\n' +
+'      h+="<div style=\'display:flex;justify-content:space-between;padding:0.25rem 0;border-bottom:1px solid #222;\'><span><b style=\'color:"+col+";\'>"+rk+".</b> <b style=\'color:#f5f0e1;\'>"+esc(e2.callsign)+"</b></span><span style=\'color:#f5f0e1;font-weight:800;\'>"+e2.score+"/5</span></div>";}\n' +
+'    el.innerHTML=h;}\n' +
+'  var body=document.getElementById("pf-guess-body"),streakEl=document.getElementById("pf-guess-streak");\n' +
+'  var st=load(),tdy=chiDay();\n' +
+'  var isDaily=st.lastDaily!==tdy;\n' +
+'  var bank=isDaily?buildBank(mulberry32(hashStr("guess:"+tdy))):buildBank();\n' +
+'  var qs=pick(bank),qi=0,score=0,missed=[];\n' +
+'  function paintStreak(){streakEl.innerHTML=(st.streak>1?("\\uD83D\\uDD25 "+st.streak+"-DAY STREAK"):"")+(isDaily?" <span style=\'border:1px solid #c1121f;padding:0.1rem 0.5rem;font-size:0.7rem;\'>DAILY</span>":" <span style=\'border:1px solid #b8ab8e;color:#b8ab8e;padding:0.1rem 0.5rem;font-size:0.7rem;\'>PRACTICE</span>");}\n' +
+'  function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}\n' +
+'  function disp(s,fb){if(fb)return fb;try{if(window.PF&&PF.rosterBySlug){var r=PF.rosterBySlug(s);if(r&&r.name)return r.name;}}catch(e){}return String(s).replace(/-/g," ");}\n' +
+'  function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}\n' +
+'  function renderQ(){\n' +
+'    var q=qs[qi],opts=shuffle([q.a].concat(q.w)),h="<div style=\'font-size:1.05rem;font-weight:700;margin-bottom:1rem;color:#f5f0e1;\'>"+(qi+1)+"/5 \\u2014 "+esc(q.q)+"</div>";\n' +
+'    for(var i=0;i<opts.length;i++){h+="<button data-g=\'"+i+"\' style=\'display:block;width:100%;margin:0.4rem 0;padding:0.7rem;background:#141414;border:2px solid #c1121f;color:#f5f0e1;font-size:0.9rem;cursor:pointer;font-family:inherit;\'>"+esc(disp(opts[i],opts[i]===q.a?q.al:null))+"</button>";}\n' +
+'    body.innerHTML=h;\n' +
+'    var btns=body.querySelectorAll("[data-g]");\n' +
+'    for(var j=0;j<btns.length;j++){btns[j].onclick=function(){\n' +
+'      var picked=opts[+this.getAttribute("data-g")],ok=picked===q.a;\n' +
+'      if(ok){score++;}else{missed.push(q.a);}\n' +
+'      var all=body.querySelectorAll("[data-g]");\n' +
+'      for(var k=0;k<all.length;k++){all[k].disabled=true;all[k].style.opacity="0.55";if(all[k].textContent===disp(q.a,q.al)){all[k].style.borderColor="#2a9d48";all[k].style.opacity="1";}}\n' +
+'      this.style.opacity="1";this.style.borderColor=ok?"#2a9d48":"#c1121f";\n' +
+'      setTimeout(function(){qi++;if(qi<qs.length){renderQ();}else{renderR();}},900);\n' +
+'    };}\n' +
+'  }\n' +
+'  function renderR(){\n' +
+'    var t=todayStr(),verdict,perfect=score===5;\n' +
+'    if(perfect){verdict="PERFECT. You know this roster better than the algorithm does.";}\n' +
+'    else if(score>=4){verdict="Certified roster-watcher. One more and it is perfect.";}\n' +
+'    else if(score>=3){verdict="Solid. The factory has use for you.";}\n' +
+'    else{verdict="Study the roster. Come back tomorrow.";}\n' +
+'    if(isDaily){st.lastDaily=tdy;st.dailyScore=score;\n' +
+'      if(score>=3){if(st.last!==t){st.streak=(st.last===yesterday(t))?st.streak+1:1;st.last=t;}}\n' +
+'      else{if(st.last!==t){st.streak=0;st.last=t;}}\n' +
+'      save(st);isDaily=false;}\n' +
+'    paintStreak();paintStats();\n' +
+'    try{localStorage.removeItem("pf_guess_lb_v1");}catch(e){}\n' +
+'    loadLb(paintLb);\n' +
+'    var studyHtml="";\n' +
+'    if(missed.length){\n' +
+'      var links=[];\n' +
+'      for(var mi=0;mi<missed.length;mi++){links.push("<a href=\'/" +missed[mi]+"\' style=\'color:#f5f0e1;text-decoration:underline;margin:0 0.4rem;\'>"+esc(disp(missed[mi]))+"</a>");}\n' +
+'      studyHtml="<div style=\'margin-top:1rem;font-size:0.85rem;color:#b8ab8e;\'>STUDY UP: "+links.join(" \\u00B7 ")+"</div>";\n' +
+'    }\n' +
+'    var infHtml="";\n' +
+'    try{\n' +
+'      var PFw=window.PF;\n' +
+'      if(PFw&&typeof PFw.infightNext==="function"){\n' +
+'        var nx=PFw.infightNext();\n' +
+'        if(nx&&nx.a&&nx.b){\n' +
+'          infHtml="<div style=\'margin-top:1.2rem;border:2px solid #c1121f;padding:0.8rem;\'>"\n' +
+'            +"<div style=\'font-size:0.8rem;letter-spacing:0.2em;color:#c1121f;\'>INFIGHTING \\u2014 "+(nx.live?"HAPPENING NOW":"NEXT BATTLE "+nx.clock)+"</div>"\n' +
+'            +"<div style=\'font-weight:800;margin:0.4rem 0;\'>"+esc(nx.a.name)+" <span style=\'color:#c1121f;\'>VS</span> "+esc(nx.b.name)+"</div>"\n' +
+'            +"<div style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:0.6rem;\'>Think you know the roster? Put XP where your mouth is.</div>"\n' +
+'            +"<button id=\'pf-guess-infight\' style=\'padding:0.6rem 1.4rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>BACK YOUR FIGHTER</button></div>";\n' +
+'        }\n' +
+'      }\n' +
+'    }catch(e){}\n' +
+'    body.innerHTML="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\'>FINAL SCORE</div>"\n' +
+'      +"<div style=\'font-size:2.4rem;font-weight:900;margin:0.4rem 0;\'>"+score+"/5</div>"\n' +
+'      +"<div style=\'font-size:0.95rem;color:#b8ab8e;margin-bottom:1rem;\'>"+verdict+"</div>"+studyHtml\n' +
+'      +"<div style=\'margin-top:1rem;\'><button id=\'pf-guess-share\' style=\'padding:0.7rem 1.6rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>SHARE SCORE CARD</button></div>"\n' +
+'      +infHtml\n' +
+'      +"<div><button id=\'pf-guess-again\' style=\'margin-top:1rem;background:none;border:1px solid #b8ab8e;color:#b8ab8e;padding:0.5rem 1rem;cursor:pointer;font-family:inherit;font-size:0.8rem;\'>PLAY AGAIN</button></div>";\n' +
+'    try{document.dispatchEvent(new CustomEvent("pf-guess-done",{detail:{score:score,day:t}}));}catch(e){}\n' +
+'    try{document.dispatchEvent(new CustomEvent("pf-guess-scored",{detail:{score:score}}));}catch(e){}\n' +
+'    /* M1 dopamine: the score card lands with feeling. Perfect game gets the big one. */\n' +
+'    try{if(window.PF&&PF.dope){var gd=document.getElementById("pf-guess")||document.body;var gp=perfect?80:(score>=3?45:25);PF.dope.confetti(gd,gp);if(perfect){PF.dope.ping(gd,"PERFECT 5/5");}else{PF.dope.xpFloat(gd,score+"/5");}}}catch(e){}\n' +
+'    try{var PS0=window.PFShare;if(PS0&&PS0.REG){PS0.REG["creator-guess"]={title:score+"/5",tag:"GUESS THE CREATOR",lines:[verdict],cta:"TEST YOURSELF"};}}catch(e){}\n' +
+'    document.getElementById("pf-guess-share").onclick=function(){\n' +
+'      try{var PS=window.PFShare;if(PS&&PS.poster&&PS.shareImage){var cv=PS.poster("creator-guess");if(cv){PS.shareImage(cv,"guess-score.png","I scored "+score+"/5 on Guess the Creator","creator-guess");return;}}}catch(e){}\n' +
+'    };\n' +
+'    var ibf=document.getElementById("pf-guess-infight");\n' +
+'    if(ibf){ibf.onclick=function(){var tg=document.getElementById("pf-infight-root");if(tg){try{tg.scrollIntoView({behavior:"smooth",block:"start"});}catch(e){tg.scrollIntoView();}}};}\n' +
+'    document.getElementById("pf-guess-again").onclick=function(){qi=0;score=0;missed=[];qs=pick(buildBank());renderQ();};\n' +
+'  }\n' +
+'  function yesterday(t){try{var d=new Date(t+"T12:00:00Z");d.setUTCDate(d.getUTCDate()-1);return d.toISOString().slice(0,10);}catch(e){return"";}}\n' +
+'  paintStreak();loadStats(paintStats);loadLb(paintLb);\n' +
+'  if(bank.length){renderQ();}else{body.innerHTML="<div style=\'color:#c1121f;font-weight:900;padding:1rem;\'>ROSTER OFFLINE \\u2014 try again soon.</div>";}\n' +
+'})();\n' +
+'<\/script>\n' +
+'</div>\n' +
+'</template>');
+})();
+
+;
+
+/* ===== daily-interrogation.js ===== */
+/* games/daily-interrogation.js  |  PF v1.4.1 | THE DAILY INTERROGATION — one propaganda-literacy trivia question
+   KILL: ?pf_off=daily-interrogation  or  localStorage pf_disabled_v1='["daily-interrogation"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("daily-interrogation")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-interrogation">
+<div id="pf-interrogation">
+<style>
+#pf-interrogation{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f}
+#pf-interrogation h2{color:#c1121f;font-size:26px;margin:0 0 4px;letter-spacing:2px;text-transform:uppercase}
+#pf-interrogation .iq-day{font-family:Arial,sans-serif;font-size:13px;letter-spacing:3px;color:#ff5a00;text-transform:uppercase;margin-bottom:16px}
+#pf-interrogation .iq-q{background:#f5ead6;color:#0d0d0d;padding:22px 20px;margin:0 0 14px;font-family:Arial,sans-serif;font-size:17px;font-weight:700;line-height:1.45;text-align:left}
+#pf-interrogation .iq-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+#pf-interrogation .iq-opt{background:#1a1a1a;color:#f5ead6;border:2px solid #f5ead6;padding:12px 14px;font-family:Arial,sans-serif;font-size:14px;cursor:pointer;text-align:left}
+#pf-interrogation .iq-opt:hover:not(:disabled){background:#2a2a2a}
+#pf-interrogation .iq-opt:disabled{cursor:default;opacity:.85}
+#pf-interrogation .iq-opt.hit{background:#1e4d1e;border-color:#7bc96f;color:#fff}
+#pf-interrogation .iq-opt.miss{background:#4d1e1e;border-color:#c1121f;color:#fff}
+#pf-interrogation .iq-why{background:#1a1a1a;border-left:6px solid #c1121f;padding:14px 16px;text-align:left;margin:0 0 12px;display:none}
+#pf-interrogation .iq-verdict{font-size:18px;letter-spacing:2px;margin:0 0 8px;text-transform:uppercase}
+#pf-interrogation .iq-verdict.right{color:#7bc96f}
+#pf-interrogation .iq-verdict.wrong{color:#c1121f}
+#pf-interrogation .iq-why p{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin:0;line-height:1.5}
+#pf-interrogation .iq-streak{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase;margin:12px 0}
+#pf-interrogation .iq-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+#pf-interrogation .iq-btn{background:none;border:2px solid #f5ead6;color:#f5ead6;padding:12px 22px;font-family:'Arial Black',Arial,sans-serif;font-size:13px;letter-spacing:2px;cursor:pointer;text-transform:uppercase}
+#pf-interrogation .iq-btn:hover{background:#1a1a1a}
+#pf-interrogation .iq-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:12px}
+</style>
+
+<h2>The Daily Interrogation</h2>
+<div class="iq-day" id="iqDay"></div>
+<div class="iq-q" id="iqQ"></div>
+<div class="iq-opts" id="iqOpts"></div>
+<div class="iq-why" id="iqWhy"></div>
+<div class="iq-streak" id="iqStreak"></div>
+<div class="iq-btns" id="iqShareRow" style="display:none">
+  <button class="iq-btn" id="iqCopy">Copy result grid</button>
+</div>
+<div class="iq-note">One question per day. Streak or you&apos;re a liberal.</div>
+
+<script>
+(function(){
+var LAUNCH='2026-10-01';
+/* a = index of correct option */
+var QS=[
+{q:"How many empty homes are there for every homeless person in America?",o:["28 to 1","5 to 1","100 to 1","2 to 1"],a:0,why:"28 empty homes per homeless person. There is no housing shortage \u2014 there's a profit shortage in housing people."},
+{q:"CEOs now make how many times the pay of the average worker?",o:["290x","50x","21x","1,000x"],a:0,why:"290x today vs 21x in 1965. Nothing about leadership got 14 times better."},
+{q:"Which law made the 8-hour workday federal law in the US?",o:["Fair Labor Standards Act, 1938","Wagner Act, 1935","Taft-Hartley Act, 1947","Sherman Act, 1890"],a:0,why:"The FLSA of 1938. Won by strikes, not by asking nicely."},
+{q:"The Ludlow Massacre of 1914 was an attack on\u2026",o:["Striking coal miners","Suffragettes","Railroad barons","Bootleggers"],a:0,why:"Colorado National Guard opened fire on a miners' tent colony. 21 dead, including children."},
+{q:"Who wrote: 'The ruling ideas of each age have ever been the ideas of its ruling class'?",o:["Karl Marx","Vladimir Lenin","George Orwell","Noam Chomsky"],a:0,why:"Marx, in The German Ideology. Read it again next time the news tells you what's 'realistic.'"},
+{q:"COINTELPRO was\u2026",o:["An FBI program targeting activists","A Soviet spy ring","A 1970s rock band","A federal jobs program"],a:0,why:"The FBI's covert program to surveil, infiltrate, and sabotage civil rights, anti-war, and leftist movements."},
+{q:"What share of US wealth does the top 1% own?",o:["About 32%","About 10%","About 50%","About 75%"],a:0,why:"~32% for the top 1%. The bottom 50% holds about 2.5%."},
+{q:"The Haymarket Affair of 1886 gave the world\u2026",o:["International Workers' Day (May Day)","The income tax","Women's suffrage","Prohibition"],a:0,why:"May 1st is Labor Day almost everywhere on Earth \u2014 except the US, which moved it to September to dodge the radicals."},
+{q:"Which country has the most billionaires?",o:["United States","China","India","Russia"],a:0,why:"The US, by a mile. The heist has a headquarters."},
+{q:"In Marxist economics, 'surplus value' is\u2026",o:["Profit from unpaid labor","Stock dividends","Tax revenue","Rent"],a:0,why:"The gap between the value workers produce and the wage they're paid. That's where profit comes from."},
+{q:"The Flint Sit-Down Strike of 1936\u201337 targeted\u2026",o:["General Motors","Ford","US Steel","Standard Oil"],a:0,why:"Workers occupied GM plants for 44 days \u2014 and won union recognition. Sit down. Stay put. Win."},
+{q:"Since 1979, US productivity is up 2.5x. Worker pay is up\u2026",o:["15%","150%","250%","25%"],a:0,why:"Productivity soared. Your paycheck didn't. The difference went to people who've never done your job."},
+{q:"America's first labor union was formed by\u2026",o:["Shoemakers, 1794","Steelworkers, 1901","Coal miners, 1869","Autoworkers, 1935"],a:0,why:"The Federal Society of Journeymen Cordwainers, Philadelphia, 1794. Shoemakers started it all."},
+{q:"'Manufacturing consent' is a term coined by\u2026",o:["Chomsky & Herman","Marx & Engels","George Orwell","Edward Bernays"],a:0,why:"Noam Chomsky and Edward Herman, 1988 \u2014 on how mass media serves power."},
+{q:"Edward Bernays is known as\u2026",o:["The father of public relations","The inventor of television","A US president","A union leader"],a:0,why:"Freud's nephew. He literally wrote the book 'Propaganda' (1928). We just use his tools against him."},
+{q:"The Triangle Shirtwaist fire of 1911 killed 146 workers and led to\u2026",o:["Factory safety reforms","The minimum wage","The 40-hour week","Social Security"],a:0,why:"Locked doors, no fire escapes. The outrage forced New York's first real workplace safety laws."},
+{q:"In labor slang, a 'scab' is\u2026",o:["A strikebreaker","A type of war bond","A tax loophole","A police rank"],a:0,why:"Someone who crosses a picket line. Jack London called them worse \u2014 we can't print it."},
+{q:"The Pullman Strike of 1894 was broken by\u2026",o:["US federal troops","The workers winning outright","Canadian mediators","It never happened"],a:0,why:"President Cleveland sent 12,000 troops against railroad strikers. The state always picks a side."},
+{q:"Who wrote: 'The law, in its majestic equality, forbids rich and poor alike to sleep under bridges'?",o:["Anatole France","Mark Twain","Voltaire","Oscar Wilde"],a:0,why:"Anatole France, 1894. Justice is blind \u2014 it just only sees one class."},
+{q:"Das Kapital was published in\u2026",o:["1867","1917","1848","1936"],a:0,why:"Volume 1, 1867. Still the best autopsy of capitalism ever written."},
+{q:"The Wagner Act of 1935 guaranteed\u2026",o:["Workers' right to unionize","Women's right to vote","The 8-hour day","Social Security"],a:0,why:"The National Labor Relations Act \u2014 the legal backbone of US unions."},
+{q:"The Taft-Hartley Act of 1947 did what?",o:["Restricted unions","Created OSHA","Ended child labor","Founded the Federal Reserve"],a:0,why:"Banned solidarity strikes, allowed 'right to work' laws. The bosses' revenge for the Wagner Act."},
+{q:"How many billionaires are on the Liquidation Bracket?",o:["16","8","32","64"],a:0,why:"16 seeds, one champion of evil. Vote the bracket."},
+{q:"The Do Meter's goal for the network is\u2026",o:["5 million things done","1 million followers","$1M raised","100K members"],a:0,why:"Not followers. Not likes. Things done. 5 million of them."},
+{q:"'If voting changed anything, they'd make it illegal' is attributed to\u2026",o:["Emma Goldman","Susan B. Anthony","Martin Luther King Jr.","FDR"],a:0,why:"Emma Goldman. They're certainly trying to prove her right."},
+{q:"The IWW's nickname is\u2026",o:["Wobblies","Diggers","Levelers","Grangers"],a:0,why:"The Industrial Workers of the World \u2014 the Wobblies. One big union."},
+{q:"A 'general strike' is\u2026",o:["All workers striking at once","A military draft","A stock market selloff","A tax boycott"],a:0,why:"Every worker, every industry, at once. The bosses' worst nightmare."},
+{q:"Which state passed the first $15 minimum wage law?",o:["California","New York","Texas","Florida"],a:0,why:"California, 2016 \u2014 after fast-food workers struck for it. Fight for $15 started as a punchline."},
+{q:"Who is credited with: 'The problem with socialism is that you eventually run out of other people's money'?",o:["Margaret Thatcher","Ronald Reagan","Winston Churchill","Ayn Rand"],a:0,why:"Thatcher, 1976. Meanwhile capitalism runs out of other people's everything."},
+{q:"What does MTCSTW stand for?",o:["Memes That Can Save The World","Make The Capitalists Stop Taking Wealth","My Thoughts Can Shape The World","Marxist Theory Center for Socialist Workers"],a:0,why:"Memes That Can Save The World. You're already inside the machine."}
+];
+function chi(){var d=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Chicago'}));d.setHours(0,0,0,0);return d;}
+function dayNum(){var l=new Date(LAUNCH+'T00:00:00');return Math.max(1,Math.floor((chi()-l)/86400000)+1);}
+function dayKey(){var d=chi();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+function yKey(){var d=chi();d.setDate(d.getDate()-1);return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+var LS='pf_interrogation_v1';
+function load(){try{return JSON.parse(localStorage.getItem(LS)||'{"last":"","streak":0,"played":{}}');}catch(e){return{last:'',streak:0,played:{}};}}
+function save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}
+var n=dayNum(),Q=QS[(n-1)%QS.length],s=load(),tk=dayKey();
+/* deterministic daily rotation: the correct answer must not sit in one slot */
+var _rot=n%4,_ord=[0,1,2,3],QA=0,_ri,_qi;
+for(_ri=0;_ri<_rot;_ri++){_ord.push(_ord.shift());}
+for(_qi=0;_qi<4;_qi++){if(_ord[_qi]===Q.a)QA=_qi;}
+function el(id){return document.getElementById(id);}
+el('iqDay').textContent='Day '+n+' of the interrogation';
+el('iqQ').textContent=Q.q;
+function streakTxt(){return 'Your streak: '+s.streak+(s.streak===1?' day':' days')+' \u2014 answer daily to keep it';}
+function grid(){return 'THE DAILY INTERROGATION\\nDay '+n+': '+(s.played[tk].correct?'\\uD83D\\uDFE9':'\\uD83D\\uDFE5')+'\\nStreak: '+s.streak+' \\uD83D\\uDD25\\nmtcstw.com';}
+function renderOpts(locked){
+  var h='';
+  for(var i=0;i<Q.o.length;i++){
+    var cls='iq-opt';
+    if(locked){cls+= (i===QA)?' hit':((s.played[tk].pick===i)?' miss':'');}
+    h+='<button class="'+cls+'" data-i="'+i+'"'+(locked?' disabled':'')+'>'+Q.o[_ord[i]]+'</button>';
+  }
+  el('iqOpts').innerHTML=h;
+  if(!locked){
+    var bs=el('iqOpts').querySelectorAll('button');
+    for(var j=0;j<bs.length;j++){bs[j].onclick=function(){answer(parseInt(this.getAttribute('data-i'),10));};}
+  }
+}
+function showWhy(){
+  var p=s.played[tk],w=el('iqWhy');w.style.display='block';
+  w.innerHTML='<p class="iq-verdict '+(p.correct?'right':'wrong')+'">'+(p.correct?'CORRECT.':'WRONG.')+'</p><p>'+Q.why+'</p>';
+  el('iqShareRow').style.display='flex';
+  el('iqStreak').textContent=streakTxt();
+}
+el('iqStreak').textContent=streakTxt();
+if(s.played&&s.played[tk]){renderOpts(true);showWhy();}
+else{renderOpts(false);}
+function answer(pick){
+  var correct=(pick===QA);
+  s.played=s.played||{};s.played[tk]={pick:pick,correct:correct};
+  if(s.last!==tk){s.streak=(s.last===yKey())?s.streak+1:1;s.last=tk;}
+  save(s);
+  try{document.dispatchEvent(new CustomEvent('pf-interrogation-answered',{detail:{day:tk,correct:correct,streak:s.streak}}));}catch(e){}
+  renderOpts(true);showWhy();
+}
+el('iqCopy').onclick=function(){
+  var t=grid();
+  function done(){try{if(window.PF&&PF.toast)PF.toast('Grid copied. Go shame your friends.');}catch(e){}}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done).catch(function(){fallback();});}
+  else fallback();
+  function fallback(){try{var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();done();}catch(e){}}
+};
+})();
+</script>
+</div>
+</template>`);
+})();
+
+;
+
+/* ===== billionaire-supervillain.js ===== */
+/* games/billionaire-supervillain.js  |  PF v1.4.1 | BILLIONAIRE OR SUPERVILLAIN — daily quote game. One real quote per
+   KILL: ?pf_off=billionaire-supervillain  or  localStorage pf_disabled_v1='["billionaire-supervillain"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("billionaire-supervillain")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-billionaire">
+<div id="pf-billionaire">
+<style>
+#pf-billionaire{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f}
+#pf-billionaire h2{color:#c1121f;font-size:26px;margin:0 0 4px;letter-spacing:2px;text-transform:uppercase}
+#pf-billionaire .bv-day{font-family:Arial,sans-serif;font-size:13px;letter-spacing:3px;color:#ff5a00;text-transform:uppercase;margin-bottom:16px}
+#pf-billionaire .bv-quote{background:#f5ead6;color:#0d0d0d;padding:24px 20px;margin:0 0 16px;font-size:19px;line-height:1.45;font-family:Arial,sans-serif;font-style:italic}
+#pf-billionaire .bv-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
+#pf-billionaire .bv-btn{background:#c1121f;color:#fff;border:0;padding:14px 26px;font-family:'Arial Black',Arial,sans-serif;font-size:14px;letter-spacing:2px;cursor:pointer;text-transform:uppercase}
+#pf-billionaire .bv-btn:hover{background:#8f0d17}
+#pf-billionaire .bv-btn.ghost{background:none;border:2px solid #f5ead6;color:#f5ead6}
+#pf-billionaire .bv-btn.ghost:hover{background:#1a1a1a}
+#pf-billionaire .bv-btn:disabled{opacity:.45;cursor:default}
+#pf-billionaire .bv-reveal{background:#1a1a1a;border-left:6px solid #c1121f;padding:16px;text-align:left;margin:0 0 12px}
+#pf-billionaire .bv-verdict{font-size:20px;letter-spacing:2px;margin:0 0 8px;text-transform:uppercase}
+#pf-billionaire .bv-verdict.right{color:#7bc96f}
+#pf-billionaire .bv-verdict.wrong{color:#c1121f}
+#pf-billionaire .bv-who{font-family:Arial,sans-serif;font-size:15px;font-weight:700;color:#f5ead6;margin:0 0 6px}
+#pf-billionaire .bv-ctx{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin:0;line-height:1.5}
+#pf-billionaire .bv-streak{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase;margin:12px 0}
+#pf-billionaire .bv-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:12px}
+</style>
+
+<h2>Billionaire or Supervillain?</h2>
+<div class="bv-day" id="bvDay"></div>
+<div class="bv-quote" id="bvQuote"></div>
+<div class="bv-btns" id="bvBtns">
+  <button class="bv-btn" id="bvB">Billionaire</button>
+  <button class="bv-btn ghost" id="bvS">Supervillain</button>
+</div>
+<div class="bv-reveal" id="bvReveal" style="display:none"></div>
+<div class="bv-streak" id="bvStreak"></div>
+<div class="bv-btns" id="bvShareRow" style="display:none">
+  <button class="bv-btn ghost" id="bvCopy">Copy result grid</button>
+</div>
+<div class="bv-note">One quote per day. Come back tomorrow &mdash; the next monster awaits.</div>
+
+<script>
+(function(){
+var LAUNCH='2026-10-01';
+/* w:0 = billionaire (real, documented) | w:1 = supervillain (film/comics) */
+var QUOTES=[
+{w:0,q:"There's class warfare, all right, but it's my class, the rich class, that's making war, and we're winning.",who:"Warren Buffett",ctx:"Buffett to the New York Times, 2006. He wasn't joking."},
+{w:1,q:"Introduce a little anarchy. Upset the established order, and everything becomes chaos.",who:"The Joker",ctx:"Heath Ledger's Joker, The Dark Knight (2008)."},
+{w:0,q:"We will coup whoever we want! Deal with it.",who:"Elon Musk",ctx:"Tweeted July 2020, about Bolivia's lithium."},
+{w:1,q:"The hardest choices require the strongest wills.",who:"Thanos",ctx:"Avengers: Infinity War (2018). He then deleted half of all life."},
+{w:0,q:"Your margin is my opportunity.",who:"Jeff Bezos",ctx:"The founding philosophy of Amazon."},
+{w:1,q:"Why so serious?",who:"The Joker",ctx:"The Dark Knight (2008). Launched a thousand dorm posters."},
+{w:0,q:"Move fast and break things.",who:"Mark Zuckerberg",ctx:"Facebook's infamous internal motto."},
+{w:1,q:"I am inevitable.",who:"Thanos",ctx:"Avengers: Endgame (2019). Famous last words."},
+{w:0,q:"I no longer believe that freedom and democracy are compatible.",who:"Peter Thiel",ctx:"From his 2009 essay 'The Education of a Libertarian.'"},
+{w:1,q:"You either die a hero, or you live long enough to see yourself become the villain.",who:"Harvey Dent",ctx:"The Dark Knight (2008). Hits different in 2026."},
+{w:0,q:"Competition is for losers.",who:"Peter Thiel",ctx:"The thesis of his book Zero to One."},
+{w:1,q:"You merely adopted the dark. I was born in it, molded by it.",who:"Bane",ctx:"The Dark Knight Rises (2012)."},
+{w:0,q:"If you don't find a way to make money while you sleep, you will work until you die.",who:"Warren Buffett",ctx:"His most-shared piece of wisdom."},
+{w:1,q:"The one thing they love more than a hero is to see a hero fail, fall, die trying.",who:"Norman Osborn",ctx:"Spider-Man (2002). Willem Dafoe knew."},
+{w:0,q:"Being the richest man in the cemetery doesn't matter to me.",who:"Steve Jobs",ctx:"Wall Street Journal interview, 1993."},
+{w:1,q:"Madness, as you know, is like gravity. All it takes is a little push.",who:"The Joker",ctx:"The Dark Knight (2008)."},
+{w:0,q:"Success is a lousy teacher. It seduces smart people into thinking they can't lose.",who:"Bill Gates",ctx:"From his book The Road Ahead."},
+{w:1,q:"There are no strings on me.",who:"Ultron",ctx:"Avengers: Age of Ultron (2015). The AI read the internet and chose violence."},
+{w:0,q:"I will always choose a lazy person to do a difficult job, because a lazy person will find an easy way to do it.",who:"Bill Gates",ctx:"Attributed to Gates for decades."},
+{w:1,q:"Peace in our time.",who:"Ultron",ctx:"Said while building an extinction machine."},
+{w:0,q:"Don't be evil.",who:"Larry Page & Sergey Brin",ctx:"Google's original corporate motto. They quietly removed it."},
+{w:1,q:"I am Loki, of Asgard, and I am burdened with glorious purpose.",who:"Loki",ctx:"The Avengers (2012)."},
+{w:0,q:"Stay hungry, stay foolish.",who:"Steve Jobs",ctx:"Stanford commencement address, 2005."},
+{w:1,q:"Freedom is life's great lie.",who:"Loki",ctx:"Loki's Stuttgart speech, The Avengers (2012)."},
+{w:0,q:"I knew that if I failed I wouldn't regret that, but I knew the one thing I might regret is not trying.",who:"Jeff Bezos",ctx:"On quitting his job to start Amazon."},
+{w:1,q:"If you're good at something, never do it for free.",who:"The Joker",ctx:"The Dark Knight (2008). Genuinely good business advice. That's the problem."},
+{w:0,q:"The people who are crazy enough to think they can change the world are the ones who do.",who:"Steve Jobs",ctx:"Apple's 'Think Different' campaign, 1997."},
+{w:1,q:"You want to know how I got these scars?",who:"The Joker",ctx:"His favorite party trick."},
+{w:0,q:"The most contrarian thing of all is not to oppose the crowd but to think for yourself.",who:"Peter Thiel",ctx:"Also Zero to One. The contrarianism market is crowded."},
+{w:1,q:"When Gotham is ashes, you have my permission to die.",who:"Bane",ctx:"The Dark Knight Rises (2012). Polite about murder."}
+];
+function chi(){var d=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Chicago'}));d.setHours(0,0,0,0);return d;}
+function dayNum(){var l=new Date(LAUNCH+'T00:00:00');return Math.max(1,Math.floor((chi()-l)/86400000)+1);}
+function dayKey(){var d=chi();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+function yKey(){var d=chi();d.setDate(d.getDate()-1);return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+var LS='pf_billionaire_v1';
+function load(){try{return JSON.parse(localStorage.getItem(LS)||'{"last":"","streak":0,"played":{}}');}catch(e){return{last:'',streak:0,played:{}};}}
+function save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}
+var n=dayNum(),Q=QUOTES[(n-1)%QUOTES.length],s=load(),tk=dayKey();
+function el(id){return document.getElementById(id);}
+el('bvDay').textContent='Day '+n+' of the lineup';
+el('bvQuote').textContent='\u201C'+Q.q+'\u201D';
+function streakTxt(){return 'Your streak: '+s.streak+(s.streak===1?' day':' days')+' \u2014 keep it alive tomorrow';}
+function grid(){return 'BILLIONAIRE OR SUPERVILLAIN\\nDay '+n+': '+(s.played[tk].correct?'\\uD83D\\uDFE9':'\\uD83D\\uDFE5')+'\\nStreak: '+s.streak+' \\uD83D\\uDD25 \\u2014 can you tell them apart?\\nmtcstw.com';}
+function showReveal(){
+  var p=s.played[tk];
+  el('bvBtns').style.display='none';
+  var r=el('bvReveal');r.style.display='block';
+  var src=Q.w===0?'BILLIONAIRE':'SUPERVILLAIN';
+  r.innerHTML='<p class="bv-verdict '+(p.correct?'right':'wrong')+'">'+(p.correct?'CORRECT.':'WRONG.')+'</p>'+
+    '<p class="bv-who">'+src+' \u2014 '+Q.who+' said that.</p>'+
+    '<p class="bv-ctx">'+Q.ctx+'</p>';
+  el('bvShareRow').style.display='flex';
+  el('bvStreak').textContent=streakTxt();
+}
+el('bvStreak').textContent=streakTxt();
+if(s.played&&s.played[tk]){showReveal();}
+else{
+  el('bvB').onclick=function(){answer(0);};
+  el('bvS').onclick=function(){answer(1);};
+}
+function answer(pick){
+  var correct=(pick===Q.w);
+  s.played=s.played||{};s.played[tk]={pick:pick,correct:correct};
+  if(s.last!==tk){s.streak=(s.last===yKey())?s.streak+1:1;s.last=tk;}
+  save(s);
+  try{document.dispatchEvent(new CustomEvent('pf-billionaire-answered',{detail:{day:tk,correct:correct,streak:s.streak}}));}catch(e){}
+  showReveal();
+}
+el('bvCopy').onclick=function(){
+  var t=grid();
+  function done(){try{if(window.PF&&PF.toast)PF.toast('Grid copied. Go shame your friends.');}catch(e){}}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done).catch(function(){fallback();});}
+  else fallback();
+  function fallback(){try{var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();done();}catch(e){}}
+};
+})();
+</script>
+</div>
+</template>`);
+})();
+
+;
+
+/* ===== slr-match-quiz.js ===== */
+/* games/slr-match-quiz.js  |  PF v1.4.3 | SLR Match Quiz: 5 questions -> propaganda archetype + 3 creator matches
+   v1.4.3 stickiness pass: daily-seeded question shuffle, streak counter, live tribe counts (quiz_tribes),
+   Infighting cross-game tie-in ("your match is fighting"), share-to-unlock 4th match.
+   KILL: ?pf_off=slr-match-quiz  or  localStorage pf_disabled_v1='["slr-match-quiz"]' */
+
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("slr-match-quiz")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend',
+'<template id="pf-ov-matchquiz">\n' +
+'<div class="fe-block pf-override-block">\n' +
+'<div id="pf-matchquiz" style="max-width:640px;margin:2rem auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:\'Helvetica Neue\',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;text-align:center;">\n' +
+'  <div style="font-size:1.5rem;font-weight:900;letter-spacing:0.18em;color:#c1121f;">&#9873; FIND YOUR SLR MATCH &#9873;</div>\n' +
+'  <div style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;">Answer 5 questions. We name your propaganda archetype<br>and match you with killers from the Sick Left Radicals roster.</div>\n' +
+'  <div id="pf-mq-body"></div>\n' +
+'</div>\n' +
+'<script>\n' +
+'(function(){\n' +
+'  "use strict";\n' +
+'  /* Display modes (2026-10-03): slim compact card on the homepage (pf-v2);\n' +
+'     full quiz on /arcade (pf-arcade). Template id unchanged. */\n' +
+'  var PF_MODE=(function(){try{if(document.getElementById("pf-arcade")||document.getElementById("pf-cells-page"))return"full";}catch(e){}return"slim";})();\n' +
+'  var ARCH={\n' +
+'    agitator:{name:"THE AGITATOR",desc:"You start fights the ruling class finishes losing. Loud, relentless, allergic to civility politics.",test:function(m){return (m.propaganda_score||0)>=9.0;}},\n' +
+'    meme:{name:"THE MEME SMITH",desc:"You forge jokes into weapons. One image from you does more damage than a thinkpiece.",test:function(m){return /meme|satire|comedy|animator|parody/i.test((m.content_focus||"")+" "+(m.bio||""));}},\n' +
+'    organizer:{name:"THE ORGANIZER",desc:"You turn rage into rosters, marches, and mutual aid. The movement runs on people like you.",test:function(m){return /mutual.aid|organizer|movement|nonprofit|organizing/i.test((m.content_focus||"")+" "+(m.bio||""));}},\n' +
+'    sniper:{name:"THE TRUTH SNIPER",desc:"One sourced thread from you ends careers. You read the footnotes so the timeline does not have to.",test:function(m){return /news|research|journal|document|analysis/i.test((m.content_focus||"")+" "+(m.bio||""));}},\n' +
+'    hype:{name:"THE HYPE ENGINE",desc:"You make the timeline move. Energy, reach, momentum. You are the algorithm\'s worst nightmare.",test:function(m){return (m.followers_total||0)>=200000;}}\n' +
+'  };\n' +
+'  function dbAll(){var a=[];try{if(window.PF){a=PF.slrAll?PF.slrAll():(PF.ROSTER||[]);}}catch(e){}return a||[];}\n' +
+'  function dbLabel(m){var h="";try{h=(m.handles&&(m.handles.primary||m.handles.tiktok||""))||"";}catch(e){}return m.name+(h?" ("+h+")":"");}\n' +
+'  function dbMates(A){var all=dbAll(),out=[],i;\n' +
+'    var ranked=all.filter(function(m){try{return A.test(m);}catch(e){return false;}}).sort(function(a,b){return (b.propaganda_score||0)-(a.propaganda_score||0);});\n' +
+'    for(i=0;i<ranked.length&&out.length<4;i++){out.push(ranked[i]);}\n' +
+'    if(out.length<4){var rest=all.filter(function(m){return out.indexOf(m)<0;}).sort(function(a,b){return (b.propaganda_score||0)-(a.propaganda_score||0);});\n' +
+'    for(i=0;i<rest.length&&out.length<4;i++){out.push(rest[i]);}}\n' +
+'    return out.map(function(m){return {s:m.slug,label:dbLabel(m)};});}\n' +
+'  var QS=[\n' +
+'    {q:"Pick your weapon.",a:[["Memes",["meme",2],["hype",1]],["Sourced mega-threads",["sniper",2],["agitator",1]],["Street organizing",["organizer",2],["agitator",1]],["Livestreams and debates",["hype",2],["sniper",1]],["Wheatpaste and posters",["meme",1],["organizer",1]]]},\n' +
+'    {q:"It is Friday night. You are...",a:[["Ratioing a senator",["agitator",2],["sniper",1]],["Editing video until 3am",["meme",2],["hype",1]],["At the mutual-aid distro",["organizer",2],["meme",1]],["Reading primary sources",["sniper",2],["organizer",1]],["Holding down the group chat",["hype",2],["agitator",1]]]},\n' +
+'    {q:"Billionaires fear you most when you...",a:[["Name names, loudly",["agitator",2],["hype",1]],["Turn them into a meme",["meme",2],["agitator",1]],["Build what they cannot buy",["organizer",2],["sniper",1]],["Publish the receipts",["sniper",2],["meme",1]],["Mobilize 10,000 people",["hype",2],["organizer",1]]]},\n' +
+'    {q:"Pick a battlefield.",a:[["The comments section",["agitator",2],["meme",1]],["The group chat",["meme",2],["hype",1]],["The picket line",["organizer",2],["agitator",1]],["The quote-tweet",["sniper",2],["hype",1]],["The For You page",["hype",2],["sniper",1]]]},\n' +
+'    {q:"Your comrades describe you as...",a:[["Fearless",["agitator",2],["hype",1]],["Funny",["meme",2],["agitator",1]],["Dependable",["organizer",2],["meme",1]],["Rigorous",["sniper",2],["organizer",1]],["Magnetic",["hype",2],["sniper",1]]]}\n' +
+'  ];\n' +
+'  /* Daily seed: question + answer order reshuffle every Chicago day. */\n' +
+'  function hashStr(s){var h=2166136261,i;for(i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}\n' +
+'  function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}\n' +
+'  function daySeed(){var n;try{n=window.PF?PF.chiNow():new Date();}catch(e){n=new Date();}return n.getFullYear()+"-"+(n.getMonth()+1)+"-"+n.getDate();}\n' +
+'  function shuffle(a,rng){var i,j,t;for(i=a.length-1;i>0;i--){j=Math.floor(rng()*(i+1));t=a[i];a[i]=a[j];a[j]=t;}return a;}\n' +
+'  var QUIZ=(function(){var ds=daySeed();var qs=shuffle(QS.slice(),mulberry32(hashStr("mq:"+ds)));return qs.map(function(q){return {q:q.q,a:shuffle(q.a.slice(),mulberry32(hashStr("mq:"+ds+":"+q.q)))};});})();\n' +
+'  /* Streak: consecutive Chicago days with a completed quiz. */\n' +
+'  function getStreak(){try{var s=JSON.parse(localStorage.getItem("pf_mq_streak_v1")||"null");if(s&&typeof s.n==="number")return s;}catch(e){}return {last:"",n:0};}\n' +
+'  function bumpStreak(){var s=getStreak(),t=daySeed();if(s.last===t)return s.n;var y;try{y=window.PF?PF.chiNow():new Date();}catch(e){y=new Date();}y=new Date(y.getTime()-86400000);var ys=y.getFullYear()+"-"+(y.getMonth()+1)+"-"+y.getDate();s.n=(s.last===ys)?s.n+1:1;s.last=t;try{localStorage.setItem("pf_mq_streak_v1",JSON.stringify(s));}catch(e){}return s.n;}\n' +
+'  /* Tribe counts: quiz_tribes over the trailing 7 days, cached 6h. */\n' +
+'  var API=(window.PF_BACKEND_URL||"https://pf-api.mtcstw.workers.dev");\n' +
+'  var TRIBES=null;\n' +
+'  function loadTribes(cb){var done=function(){if(cb)cb();};\n' +
+'    try{var c=JSON.parse(localStorage.getItem("pf_mq_tribes_v1")||"null");if(c&&Date.now()-c.at<6*3600000){TRIBES=c.d;done();return;}}catch(e){}\n' +
+'    var name="pfMqT"+Date.now(),fired=false;\n' +
+'    window[name]=function(d){if(fired)return;fired=true;try{delete window[name];}catch(e){}var s=document.getElementById(name);if(s&&s.parentNode)s.parentNode.removeChild(s);if(d&&d.tribes){TRIBES=d.tribes;try{localStorage.setItem("pf_mq_tribes_v1",JSON.stringify({at:Date.now(),d:d.tribes}));}catch(e){}}done();};\n' +
+'    try{var scr=document.createElement("script");scr.id=name;scr.src=API+"?callback="+name+"&action=quiz_tribes";scr.onerror=function(){if(!fired){fired=true;done();}};(document.head||document.documentElement).appendChild(scr);}catch(e){if(!fired){fired=true;done();}}\n' +
+'    setTimeout(function(){if(!fired){fired=true;done();}},10000);}\n' +
+'  var body=document.getElementById("pf-mq-body"),qi=0,scores={agitator:0,meme:0,organizer:0,sniper:0,hype:0};\n' +
+'  function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}\n' +
+'  function renderStart(){\n' +
+'    var st=getStreak();\n' +
+'    var h="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\'>DAILY MATCHUP</div>"\n' +
+'      +(st.n>0?"<div style=\'margin:0.5rem 0;font-size:0.95rem;\'>&#128293; <b>"+st.n+"-day streak</b> \\u2014 fresh shuffle every day, keep it burning</div>"\n' +
+'        :"<div style=\'margin:0.5rem 0;font-size:0.9rem;color:#b8ab8e;\'>New question shuffle every day. Play daily, build a streak.</div>")\n' +
+'      +"<div id=\'pf-mq-tribes\' style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:1rem;min-height:1.2em;\'></div>"\n' +
+'      +"<button id=\'pf-mq-start\' style=\'padding:0.8rem 2.2rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:900;font-size:1rem;letter-spacing:0.1em;cursor:pointer;font-family:inherit;\'>START</button>";\n' +
+'    body.innerHTML=h;\n' +
+'    document.getElementById("pf-mq-start").onclick=function(){qi=0;scores={agitator:0,meme:0,organizer:0,sniper:0,hype:0};renderQ();};\n' +
+'    loadTribes(function(){var t=document.getElementById("pf-mq-tribes");if(!t)return;\n' +
+'      if(!TRIBES){return;}\n' +
+'      var tot=0,bk="",bn=-1,k;for(k in TRIBES){if(k==="unknown")continue;tot+=Number(TRIBES[k])||0;if((Number(TRIBES[k])||0)>bn){bn=Number(TRIBES[k])||0;bk=k;}}\n' +
+'      if(tot>0&&ARCH[bk])t.innerHTML="<b style=\'color:#f5f0e1;\'>"+tot.toLocaleString()+"</b> comrades matched this week \\u2014 biggest tribe: <b style=\'color:#f5f0e1;\'>"+ARCH[bk].name+"</b> ("+bn.toLocaleString()+")";});\n' +
+'  }\n' +
+'  /* SLIM: compact homepage card — the full quiz lives on /arcade. */\n' +
+'  function renderCompact(){\n' +
+'    var st=getStreak();\n' +
+'    var h="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\'>DAILY MATCHUP</div>"\n' +
+'      +(st.n>0?"<div style=\'margin:0.5rem 0;font-size:0.95rem;\'>&#128293; <b>"+st.n+"-day streak</b> \\u2014 keep it burning</div>"\n' +
+'        :"<div style=\'margin:0.5rem 0;font-size:0.9rem;color:#b8ab8e;\'>New question shuffle every day. Play daily, build a streak.</div>")\n' +
+'      +"<div id=\'pf-mq-tribes\' style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:1rem;min-height:1.2em;\'>Loading today\\u2019s tribes\\u2026</div>"\n' +
+'      +"<a href=\'/arcade\' style=\'display:inline-block;padding:0.8rem 2.2rem;background:#c1121f;color:#f5f0e1;font-weight:900;font-size:1rem;letter-spacing:0.1em;text-decoration:none;\'>PLAY THE QUIZ \\u2192</a>";\n' +
+'    body.innerHTML=h;\n' +
+'    loadTribes(function(){var t=document.getElementById("pf-mq-tribes");if(!t)return;\n' +
+'      if(!TRIBES){t.innerHTML="The tribes are quiet today \\u2014 be the first to play.";return;}\n' +
+'      var tot=0,bk="",bn=-1,k;for(k in TRIBES){if(k==="unknown")continue;tot+=Number(TRIBES[k])||0;if((Number(TRIBES[k])||0)>bn){bn=Number(TRIBES[k])||0;bk=k;}}\n' +
+'      if(tot>0&&ARCH[bk])t.innerHTML="<b style=\'color:#f5f0e1;\'>"+tot.toLocaleString()+"</b> comrades matched this week \\u2014 biggest tribe: <b style=\'color:#f5f0e1;\'>"+ARCH[bk].name+"</b> ("+bn.toLocaleString()+")";});\n' +
+'  }\n' +
+'  function renderQ(){\n' +
+'    var q=QUIZ[qi],h="<div style=\'font-size:1.05rem;font-weight:700;margin-bottom:1rem;color:#f5f0e1;\'>"+(qi+1)+"/5 \\u2014 "+esc(q.q)+"</div>";\n' +
+'    for(var i=0;i<q.a.length;i++){h+="<button data-mq=\'"+i+"\' style=\'display:block;width:100%;margin:0.4rem 0;padding:0.7rem;background:#141414;border:2px solid #c1121f;color:#f5f0e1;font-size:0.9rem;cursor:pointer;font-family:inherit;\'>"+esc(q.a[i][0])+"</button>";}\n' +
+'    body.innerHTML=h;\n' +
+'    var btns=body.querySelectorAll("[data-mq]");\n' +
+'    for(var j=0;j<btns.length;j++){btns[j].onclick=function(){\n' +
+'      var opt=q.a[+this.getAttribute("data-mq")];\n' +
+'      for(var k=1;k<opt.length;k++){scores[opt[k][0]]+=opt[k][1];}\n' +
+'      qi++;\n' +
+'      if(qi<QUIZ.length){renderQ();}else{renderR();}\n' +
+'    };}\n' +
+'  }\n' +
+'  function mqLabels(A){var ml=[],i;for(i=0;i<A.mates.length&&i<3;i++){ml.push(A.mates[i].label||A.mates[i]);}return ml;}\n' +
+'  function mqApplyPoster(A){try{var PS=window.PFShare;if(!PS||!PS.REG||!PS.REG["slr-match-quiz"])return false;var ml=mqLabels(A);PS.REG["slr-match-quiz"]={title:A.name,tag:"YOUR PROPAGANDA ARCHETYPE",lines:["YOUR SLR MATCHES:"].concat(ml),cta:"FIND YOUR MATCH"};return true;}catch(e){return false;}}\n' +
+'  function mqPublish(A){try{localStorage.setItem("pf_mq_result_v1",JSON.stringify({name:A.name,mates:mqLabels(A)}));}catch(e){}mqApplyPoster(A);}\n' +
+'  function mqRestore(){try{var s=JSON.parse(localStorage.getItem("pf_mq_result_v1")||"null");if(s&&s.name&&s.mates&&s.mates.length){mqApplyPoster({name:s.name,mates:s.mates.map(function(m){return{label:m};})});}}catch(e){}}\n' +
+'  function renderR(){\n' +
+'    var top="agitator",tk=-1;\n' +
+'    for(var k in scores){if(scores[k]>tk){tk=scores[k];top=k;}}\n' +
+'    var A=ARCH[top];A.mates=dbMates(A);var mh="";\n' +
+'    for(var i=0;i<Math.min(3,A.mates.length);i++){mh+="<div style=\'padding:0.5rem;border:1px solid #c1121f;margin:0.3rem 0;font-weight:700;\'>"+esc(A.mates[i].label||A.mates[i])+"</div>";}\n' +
+'    var streakN=bumpStreak();\n' +
+'    var fourthHtml="<div id=\'pf-mq-fourth\' style=\'margin-top:0.6rem;\'><div style=\'padding:0.7rem;border:2px dashed #c1121f;color:#b8ab8e;font-size:0.85rem;\'>&#128274; <b style=\'color:#f5f0e1;\'>4TH MATCH LOCKED</b><br>Share your archetype card to unlock it.</div></div>";\n' +
+'    var infHtml="";\n' +
+'    try{\n' +
+'      var PFw=window.PF;\n' +
+'      if(PFw&&typeof PFw.infightNext==="function"){\n' +
+'        var nx=PFw.infightNext();\n' +
+'        if(nx&&nx.a&&nx.b){\n' +
+'          var myIn=null,mi,ms2;\n' +
+'          for(mi=0;mi<A.mates.length;mi++){ms2=(A.mates[mi].s||"");if(ms2&&ms2===nx.a.slug||ms2&&ms2===nx.b.slug){myIn=A.mates[mi];break;}}\n' +
+'          infHtml="<div style=\'margin-top:1.2rem;border:2px solid #c1121f;padding:0.8rem;\'>"\n' +
+'            +"<div style=\'font-size:0.8rem;letter-spacing:0.2em;color:#c1121f;\'>INFIGHTING \\u2014 "+(nx.live?"HAPPENING NOW":"NEXT BATTLE "+nx.clock)+"</div>"\n' +
+'            +"<div style=\'font-weight:800;margin:0.4rem 0;\'>"+esc(nx.a.name)+" <span style=\'color:#c1121f;\'>VS</span> "+esc(nx.b.name)+"</div>"\n' +
+'            +(myIn?"<div style=\'font-size:0.85rem;color:#f5f0e1;margin-bottom:0.6rem;\'>Your match <b>"+esc(myIn.label||myIn.s)+"</b> is fighting.</div>"\n' +
+'              :"<div style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:0.6rem;\'>Your tribe wants blood. Pick a fighter.</div>")\n' +
+'            +"<button id=\'pf-mq-infight\' style=\'padding:0.6rem 1.4rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>BACK YOUR FIGHTER</button></div>";\n' +
+'        }\n' +
+'      }\n' +
+'    }catch(e){}\n' +
+'    body.innerHTML="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\'>YOUR ARCHETYPE</div>"\n' +
+'      +"<div style=\'font-size:1.6rem;font-weight:900;margin:0.4rem 0;\'>"+A.name+"</div>"\n' +
+'      +"<div style=\'font-size:0.9rem;color:#b8ab8e;margin-bottom:1rem;\'>"+A.desc+"</div>"\n' +
+'      +"<div id=\'pf-mq-tribe\' style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:0.8rem;min-height:1.2em;\'></div>"\n' +
+'      +"<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;margin-bottom:0.4rem;\'>YOUR SLR MATCHES</div>"+mh+fourthHtml\n' +
+'      +"<div style=\'margin-top:1rem;\'><button id=\'pf-mq-share\' style=\'padding:0.7rem 1.6rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>SHARE ARCHETYPE CARD</button></div>"\n' +
+'      +(streakN>1?"<div style=\'margin-top:0.6rem;font-size:0.85rem;color:#b8ab8e;\'>&#128293; <b style=\'color:#f5f0e1;\'>"+streakN+"-day streak</b> \\u2014 see you tomorrow</div>":"")\n' +
+'      +infHtml\n' +
+'      +"<div style=\'margin-top:1.2rem;\'><input id=\'pf-mq-email\' type=\'email\' placeholder=\'Email for dispatch updates\' style=\'padding:0.6rem;width:70%;max-width:280px;background:#141414;border:2px solid #c1121f;color:#f5f0e1;font-family:inherit;\'>"\n' +
+'      +" <button id=\'pf-mq-join\' style=\'padding:0.6rem 1rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:700;cursor:pointer;font-family:inherit;\'>ENLIST</button></div>"\n' +
+'      +"<div id=\'pf-mq-msg\' style=\'margin-top:0.6rem;font-size:0.85rem;color:#b8ab8e;min-height:1.2em;\'></div>"\n' +
+'      +"<div><button id=\'pf-mq-again\' style=\'margin-top:0.8rem;background:none;border:1px solid #b8ab8e;color:#b8ab8e;padding:0.5rem 1rem;cursor:pointer;font-family:inherit;font-size:0.8rem;\'>RETAKE QUIZ</button></div>";\n' +
+'    try{document.dispatchEvent(new CustomEvent("pf-quiz-done",{detail:{archetype:top}}));}catch(e){}\n' +
+'    /* M1 dopamine: archetype reveal is the payoff — celebrate it. */\n' +
+'    try{if(window.PF&&PF.dope){var dq=document.getElementById("pf-matchquiz")||document.body;PF.dope.confetti(dq,50);PF.dope.ping(dq,"ARCHETYPE LOCKED");}}catch(e){}\n' +
+'    mqPublish(A);\n' +
+'    loadTribes(function(){var n=TRIBES?Number(TRIBES[top]||0):0;var t=document.getElementById("pf-mq-tribe");if(t&&n>0){t.innerHTML="<b style=\'color:#f5f0e1;\'>"+n.toLocaleString()+"</b> comrades landed <b style=\'color:#f5f0e1;\'>"+A.name+"</b> this week. The tribe grows.";}});\n' +
+'    var unlocked=false;\n' +
+'    function unlock4(){if(unlocked)return;unlocked=true;var f=document.getElementById("pf-mq-fourth");if(f&&A.mates[3]){f.innerHTML="<div style=\'padding:0.5rem;border:1px solid #c1121f;margin:0.3rem 0;font-weight:700;background:#1a0d0d;\'>"+esc(A.mates[3].label||A.mates[3])+"</div>";}}\n' +
+'    function mqShareH(e){try{if(e&&e.detail&&e.detail.game==="slr-match-quiz"){unlock4();document.removeEventListener("pf-share-image",mqShareH);}}catch(err){}}\n' +
+'    document.addEventListener("pf-share-image",mqShareH);\n' +
+'    document.getElementById("pf-mq-share").onclick=function(){\n' +
+'      try{var PS=window.PFShare;if(PS&&PS.poster&&PS.shareImage){var cv=PS.poster("slr-match-quiz");if(cv){PS.shareImage(cv,"slr-archetype.png",A.name+" \\u2014 my propaganda archetype","slr-match-quiz");setTimeout(unlock4,15000);return;}}}catch(e){}\n' +
+'      unlock4();\n' +
+'    };\n' +
+'    var ibf=document.getElementById("pf-mq-infight");\n' +
+'    if(ibf){ibf.onclick=function(){var t=document.getElementById("pf-infight-root");if(t){try{t.scrollIntoView({behavior:"smooth",block:"start"});}catch(e){t.scrollIntoView();}}};}\n' +
+'    document.getElementById("pf-mq-join").onclick=function(){\n' +
+'      var em=(document.getElementById("pf-mq-email").value||"").trim();\n' +
+'      var msg=document.getElementById("pf-mq-msg");\n' +
+'      if(!em||em.indexOf("@")<0){msg.textContent="Enter a valid email.";return;}\n' +
+'      window.location.href="mailto:mtcstw@gmail.com?subject=SLR%20Match%20Quiz%20Enlistment&body="+encodeURIComponent("Archetype: "+A.name+"\\nEmail: "+em);\n' +
+'      msg.textContent="Opening your mail app \\u2014 welcome to the factory.";\n' +
+'    };\n' +
+'    document.getElementById("pf-mq-again").onclick=function(){qi=0;scores={agitator:0,meme:0,organizer:0,sniper:0,hype:0};renderQ();};\n' +
+'  }\n' +
+'  if(PF_MODE==="slim"){ renderCompact(); }\n' +
+'  else { renderStart(); setTimeout(mqRestore,1500); setTimeout(mqRestore,5000); }\n' +
+'})();\n' +
+'<\/script>\n' +
+'</div>\n' +
+'</template>');
+})();
+
+;
+
+/* ===== infighting.js ===== */
+/* games/infighting.js | PF v1.4.3 | INFIGHTING: real-time creator battle rounds.
+   Call-of-Duty-match meets TikTok-battle: short 10-minute 1v1 rounds, two
+   creators face off, fans spend ledger XP as fire to push their fighter's
+   live bar higher. Winner takes a 24h +0.2 HYPE bump on their DISPLAYED
+   propaganda score (capped at the 9.8 earned max — entertainment layer only,
+   never above what the Efficiency Index earned).
+   THE LOOP: Field Ops send fans OFF-site (go engage the creator's latest
+   post on TikTok/IG/FB, come back and check in) and reward them with free
+   battle ammo ON-site — fans leave, return, and fire in short bursts.
+   Positive-sum by design: you can only boost your fighter, never attack the
+   other one. The "down" is relative — somebody has to lose.
+   Schedule (America/Chicago): 10-minute battles at :00 and :30 each hour.
+   Between battles: countdown + last result.
+   Backend (Apps Script v13.1+): ?action=infight_fire&round=R&slug=S&amt=N
+   &callsign=C  -> logs one row to the "infight" tab; server enforces the
+   200-fire per-callsign per-round cap. ?action=infight_totals&round=R ->
+   {round, totals:{slug:n}}. No PII: slugs + callsign only.
+   Homepage mount: registers <template id="pf-ov-infight"> on PF.holder();
+   pages/home-v2.js instantiates it in ORDER. The HYPE score overlay is
+   global: it paints onto [data-eff-score="slug"] slots wherever they render
+   (roster, catalog), independent of the homepage widget.
+   KILL: ?pf_off=infighting  or  localStorage pf_disabled_v1='["infighting"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('infighting')) { return; }
+
+  /* ---- HYPE overlay (publisher, display-agnostic) ----
+     Layering contract (see games/efficiency.js): infighting OWNS the hype
+     record (who won the last battle) but NEVER paints another silo's DOM.
+     The [data-eff-score="slug"] slots are owned by efficiency.js (rendered
+     by slr-roster.js / slr-catalog.js). efficiency.js applies the HYPE badge
+     when it paints scores, reading the record via PF.infightHype() and
+     re-checking on the 'pf-hype' / 'pf-infight' events. This silo only
+     publishes. */
+  var LS_HYPE = 'pf_infight_hype_v1';
+  function hype() { try { var h = JSON.parse(localStorage.getItem(LS_HYPE) || 'null'); if (h && h.until > Date.now() && h.slug) return h; } catch (e) {} return null; }
+  /* Public reader for the hype-paint owner (efficiency.js). */
+  PF.infightHype = hype;
+
+  /* Public: next/current battle info for cross-game tie-ins (quiz result card).
+     Deterministic — same seed scheme as the widget, so the matchup matches. */
+  function ifPad(n) { return (n < 10 ? '0' : '') + n; }
+  function ifRoundId(d) { return d.getFullYear() + '' + ifPad(d.getMonth() + 1) + ifPad(d.getDate()) + '-' + ifPad(d.getHours()) + ifPad(d.getMinutes()); }
+  function ifHash(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function ifRng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  PF.infightNext = function () {
+    try {
+      var now; try { now = PF.chiNow(); } catch (e) { now = new Date(); }
+      var slotMin = now.getMinutes() < 30 ? 0 : 30;
+      var start = new Date(now.getTime()); start.setMinutes(slotMin, 0, 0);
+      var end = new Date(start.getTime() + 10 * 60000), w;
+      if (now.getTime() >= end.getTime()) {
+        var ns = new Date(start.getTime() + 30 * 60000);
+        w = { live: false, start: ns, end: new Date(ns.getTime() + 10 * 60000), id: ifRoundId(ns) };
+      } else {
+        w = { live: true, start: start, end: end, id: ifRoundId(start) };
+      }
+      var roster = []; try { roster = PF.slrAll ? PF.slrAll() : (PF.ROSTER || []); } catch (e) {}
+      if (roster.length < 2) return null;
+      var rng = ifRng(ifHash('infight:' + w.id)), n = roster.length;
+      var a = Math.floor(rng() * n), b = Math.floor(rng() * n);
+      if (b === a) b = (b + 1 + Math.floor(rng() * (n - 1))) % n;
+      var ms = Math.max(0, (w.live ? w.end : w.start).getTime() - now.getTime());
+      return {
+        id: w.id, live: w.live,
+        clock: ifPad(Math.floor(ms / 60000)) + ':' + ifPad(Math.floor(ms % 60000 / 1000)),
+        a: { name: roster[a].name, slug: roster[a].slug },
+        b: { name: roster[b].name, slug: roster[b].slug }
+      };
+    } catch (e) { return null; }
+  };
+
+  /* ---- homepage widget template (instantiated by pages/home-v2.js) ---- */
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-infight">
+<div class="fe-block pf-override-block" id="pf-infight-root"></div>
+<script>
+(function(){
+'use strict';
+var API=(window.PF_BACKEND_URL||'https://pf-api.mtcstw.workers.dev');
+var LS_R='pf_ranks_v1',LS_I='pf_identity_v1';
+var LS_OPS='pf_infight_ops_v1',LS_SPENT='pf_infight_spent_v1',LS_SEEN='pf_infight_seen_v1',LS_LAST='pf_infight_last_v1';
+var BATTLE_MIN=10,SLOT_MIN=30,CAP=200,AMMO_OP=25,AMMO_SHARE=15;
+function chiNow(){try{return PF.chiNow();}catch(e){return new Date();}}
+function pad(n){return (n<10?'0':'')+n;}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function hashStr(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function dbAll(){try{return PF.slrAll?PF.slrAll():(PF.ROSTER||[]);}catch(e){return[];}}
+function xp(){try{return Number(JSON.parse(localStorage.getItem(LS_R)||'{"xp":0}').xp)||0;}catch(e){return 0;}}
+function callsign(){try{return String(JSON.parse(localStorage.getItem(LS_I)||'{}').callsign||'').toLowerCase();}catch(e){return '';}}
+function apiGet(params,cb,timeoutMs){
+  /* P0 (2026-10-02): infight_fire is POST-only (was CSRF-able via GET). */
+  if(params && params.action==='infight_fire' && window.PF && PF.postAction){
+    PF.postAction('stats','s_action','infight_fire',
+      {callsign:params.callsign,round:params.round,slug:params.slug,amt:params.amt},cb);
+    return;
+  }
+  var done=false,name='pfIfCb'+Date.now()+Math.floor(Math.random()*1e6);
+  function fin(v){if(done)return;done=true;try{delete window[name];}catch(e){}var s=document.getElementById(name);if(s&&s.parentNode)s.parentNode.removeChild(s);cb(v);}
+  window[name]=function(d){fin(d);};
+  var q='?callback='+encodeURIComponent(name);
+  for(var k in params){if(params.hasOwnProperty(k))q+='&'+encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}
+  var scr=document.createElement('script');scr.id=name;scr.src=API+q;
+  scr.onerror=function(){fin(null);};
+  (document.head||document.documentElement).appendChild(scr);
+  setTimeout(function(){fin(null);},timeoutMs||12000);
+}
+function dispatch(name,detail){try{document.dispatchEvent(new CustomEvent(name,{detail:detail||{}}));}catch(e){}}
+function roundId(d){return d.getFullYear()+''+pad(d.getMonth()+1)+pad(d.getDate())+'-'+pad(d.getHours())+pad(d.getMinutes());}
+function battleWindow(now){
+  var d=new Date(now.getTime());
+  var slotMin=d.getMinutes()<SLOT_MIN?0:SLOT_MIN;
+  var start=new Date(d.getTime());start.setMinutes(slotMin,0,0);
+  var end=new Date(start.getTime()+BATTLE_MIN*60000);
+  if(now.getTime()>=end.getTime()){
+    var ns=new Date(start.getTime()+SLOT_MIN*60000);
+    return {live:false,start:ns,end:new Date(ns.getTime()+BATTLE_MIN*60000),id:roundId(ns)};
+  }
+  return {live:true,start:start,end:end,id:roundId(start)};
+}
+function matchup(id,roster){
+  var rng=mulberry32(hashStr('infight:'+id)),n=roster.length;
+  if(n<2)return [null,null];
+  var a=Math.floor(rng()*n),b=Math.floor(rng()*n);
+  if(b===a)b=(b+1+Math.floor(rng()*(n-1)))%n;
+  return [roster[a],roster[b]];
+}
+function spentMap(){try{return JSON.parse(localStorage.getItem(LS_SPENT)||'{}');}catch(e){return{};}}
+function spentThisRound(id){return Number(spentMap()[id]||0);}
+function addSpent(id,amt){try{var m=spentMap();m[id]=(Number(m[id])||0)+amt;localStorage.setItem(LS_SPENT,JSON.stringify(m));}catch(e){}}
+function opsState(id){try{var o=JSON.parse(localStorage.getItem(LS_OPS)||'{}');return o[id]||{};}catch(e){return{};}}
+function markOp(id,key){try{var o=JSON.parse(localStorage.getItem(LS_OPS)||'{}');o[id]=o[id]||{};o[id][key]=1;localStorage.setItem(LS_OPS,JSON.stringify(o));}catch(e){}}
+var root=document.getElementById('pf-infight-root');
+if(!root)return;
+var cur=null,fighters=[null,null],totals={},pending={},side=0,pollTimer=null,lastRound='';
+function fmtClock(ms){if(ms<0)ms=0;var s=Math.floor(ms/1000),m=Math.floor(s/60);s=s%60;return pad(m)+':'+pad(s);}
+function fighterCard(f,idx,total,maxTotal){
+  var pct=maxTotal>0?Math.round(total/maxTotal*100):0;
+  var sel=side===idx?'outline:3px solid #e10600;':'';
+  var pic=f&&f.picture?'<img src="'+esc(f.picture)+'" alt="'+esc(f.name)+'" loading="lazy" style="width:100%;height:150px;object-fit:cover;display:block;background:#1a1a1a;">':'';
+  return '<div data-if-side="'+idx+'" style="flex:1;min-width:0;background:#141414;border:1px solid #333;cursor:pointer;'+sel+'">'+pic+
+    '<div style="padding:10px;">'+
+    '<div style="font-weight:800;font-size:15px;line-height:1.2;">'+esc(f?f.name:'?')+'</div>'+
+    '<div style="color:#999;font-size:12px;margin:4px 0 8px;">FIRE: <b style="color:#fff;" data-if-total="'+idx+'">'+total.toLocaleString()+'</b></div>'+
+    '<div style="height:10px;background:#2a2a2a;"><div data-if-bar="'+idx+'" style="height:10px;background:#e10600;width:'+pct+'%;transition:width .6s;"></div></div>'+
+    '<div style="margin-top:8px;font-size:12px;color:#e10600;font-weight:800;">'+(side===idx?'\u25B2 YOUR FIGHTER':'TAP TO BACK')+'</div>'+
+    '</div></div>';
+}
+function render(){
+  var now=chiNow(),w=battleWindow(now),roster=dbAll();
+  if(!roster.length)return;
+  cur=w;
+  var mm=matchup(w.id,roster);
+  fighters=mm;totals={};pending={};
+  if(lastRound&&lastRound!==w.id){settleLastBattle(lastRound,roster);}
+  lastRound=w.id;
+  try{localStorage.setItem(LS_SEEN,w.id);}catch(e){}
+  if(w.live)startPoll();else stopPoll();
+  paint(w);
+}
+function paint(w){
+  if(!fighters[0]||!fighters[1])return;
+  var now=chiNow();
+  var msLeft=(w.live?w.end:w.start).getTime()-now.getTime();
+  var tA=(totals[fighters[0].slug]||0)+(pending[fighters[0].slug]||0);
+  var tB=(totals[fighters[1].slug]||0)+(pending[fighters[1].slug]||0);
+  var maxT=Math.max(tA,tB,1);
+  var ops=opsState(w.id),spent=spentThisRound(w.id);
+  var badge=w.live
+    ?'<span style="background:#e10600;color:#fff;font-weight:800;font-size:12px;padding:3px 10px;">\u25CF LIVE <span data-if-clock>'+fmtClock(msLeft)+'</span></span>'
+    :'<span style="background:#333;color:#fff;font-weight:800;font-size:12px;padding:3px 10px;">NEXT BATTLE <span data-if-clock>'+fmtClock(msLeft)+'</span></span>';
+  var lastLine='';
+  try{var lr=JSON.parse(localStorage.getItem(LS_LAST)||'null');
+    if(lr&&lr.a)lastLine='<div style="font-size:12px;color:#999;margin-top:10px;">Last battle: <b style="color:#fff;">'+esc(lr.winner)+'</b> beat '+esc(lr.loser)+' '+lr.wa.toLocaleString()+'\u2013'+lr.wb.toLocaleString()+'</div>';
+  }catch(e){}
+  var fireCtl=w.live
+    ?'<div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap;">'+
+     '<span style="font-size:12px;color:#999;">YOUR XP: <b style="color:#fff;" data-if-xp>'+xp().toLocaleString()+'</b></span>'+
+     [5,25,50].map(function(n){return '<button data-if-fire="'+n+'" style="background:#e10600;color:#fff;border:0;font-weight:800;padding:8px 14px;cursor:pointer;">FIRE +'+n+'</button>';}).join('')+
+     '<span style="font-size:11px;color:#777;">cap '+(CAP-spent)+' left this battle</span></div>'
+    :'<div style="font-size:13px;color:#999;margin-top:10px;">Stack XP in the games above \u2014 the next battle starts soon.</div>';
+  var opsHtml='';
+  if(w.live){
+    var opBtn=function(key,done){
+      return done
+        ?'<span style="font-size:12px;color:#4caf50;font-weight:800;">\u2713 CHECKED IN</span>'
+        :'<button data-if-op="'+key+'" style="background:#222;color:#fff;border:1px solid #e10600;font-weight:800;padding:6px 12px;cursor:pointer;font-size:12px;">CHECK IN +'+AMMO_OP+' AMMO</button>';
+    };
+    opsHtml='<div style="margin-top:12px;border-top:1px solid #333;padding-top:10px;">'+
+      '<div style="font-weight:800;font-size:13px;margin-bottom:8px;">\u26A1 FIELD OPS <span style="color:#999;font-weight:400;">\u2014 go off-site, come back loaded</span></div>'+
+      '<div style="font-size:12px;color:#ccc;margin-bottom:6px;">Go like + comment on <b>'+esc(fighters[0].name)+'</b>\u2019s latest post, then check in: '+opBtn('opA',ops.opA)+'</div>'+
+      '<div style="font-size:12px;color:#ccc;margin-bottom:6px;">Go like + comment on <b>'+esc(fighters[1].name)+'</b>\u2019s latest post, then check in: '+opBtn('opB',ops.opB)+'</div>'+
+      '<div style="font-size:12px;color:#ccc;">'+(ops.share?'<span style="font-size:12px;color:#4caf50;font-weight:800;">\u2713 SHARED</span>':'<button data-if-op="share" style="background:#222;color:#fff;border:1px solid #e10600;font-weight:800;padding:6px 12px;cursor:pointer;font-size:12px;">SHARE BATTLE +'+AMMO_SHARE+' AMMO</button>')+' <span style="color:#777;">ammo fires for your picked fighter</span></div>'+
+      '</div>';
+  }
+  root.innerHTML=
+    '<div style="background:#0a0a0a;border:2px solid #e10600;padding:14px;font-family:inherit;color:#fff;">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">'+
+    '<div style="font-weight:900;font-size:18px;letter-spacing:1px;">INFIGHTING</div>'+badge+'</div>'+
+    '<div style="display:flex;gap:10px;">'+fighterCard(fighters[0],0,tA,maxT)+fighterCard(fighters[1],1,tB,maxT)+'</div>'+
+    fireCtl+opsHtml+lastLine+
+    '<div style="font-size:11px;color:#666;margin-top:10px;">Winner takes a 24h +0.2 HYPE bump on their displayed score (never above 9.8). Boost only \u2014 no attack moves, this is family.</div>'+
+    '</div>';
+  bind();
+}
+function bind(){
+  var cards=root.querySelectorAll('[data-if-side]');
+  for(var i=0;i<cards.length;i++){(function(el){el.onclick=function(){side=Number(el.getAttribute('data-if-side'));paint(cur);};})(cards[i]);}
+  var fires=root.querySelectorAll('[data-if-fire]');
+  for(var j=0;j<fires.length;j++){(function(el){el.onclick=function(){doFire(side,Number(el.getAttribute('data-if-fire')));};})(fires[j]);}
+  var ops=root.querySelectorAll('[data-if-op]');
+  for(var k=0;k<ops.length;k++){(function(el){el.onclick=function(){doOp(el.getAttribute('data-if-op'));};})(ops[k]);}
+}
+function doFire(idx,amt){
+  if(!cur||!cur.live||!fighters[idx])return;
+  var f=fighters[idx];
+  var room=CAP-spentThisRound(cur.id);
+  amt=Math.min(amt,room);
+  var bal=xp();
+  if(amt>bal)amt=bal;
+  if(amt<=0){flashXp();return;}
+  /* Spend from the shared local ledger (backend settles via infight_fire). */
+  try{ if(window.PF&&PF.debitLocal) PF.debitLocal(null,amt); }catch(e){}
+  addSpent(cur.id,amt);
+  pending[f.slug]=(pending[f.slug]||0)+amt;
+  apiGet({action:'infight_fire',round:cur.id,slug:f.slug,amt:amt,callsign:callsign()},function(){pollTotals();});
+  dispatch('pf-infight-fire',{slug:f.slug,amt:amt,round:cur.id});
+  updateBars();
+  /* M1 dopamine: firing ammo should feel like firing ammo. */
+  try{ if(window.PF&&PF.dope){ PF.dope.xpFloat(root,'+'+amt+' FIRE'); } }catch(e){}
+  var x=root.querySelector('[data-if-xp]');if(x)x.textContent=xp().toLocaleString();
+}
+function doOp(key){
+  if(!cur||!cur.live)return;
+  var ops=opsState(cur.id);
+  if(ops[key])return;
+  var slug,amt;
+  if(key==='opA'){slug=fighters[0].slug;amt=AMMO_OP;}
+  else if(key==='opB'){slug=fighters[1].slug;amt=AMMO_OP;}
+  else{
+    slug=fighters[side].slug;amt=AMMO_SHARE;
+    var url='https://www.mtcstw.com/?infight='+encodeURIComponent(cur.id);
+    var done=function(){grantOp(key,slug,amt);};
+    if(navigator.share){navigator.share({title:'INFIGHTING',text:'Back '+fighters[side].name+' in the Infighting battle \u2014 fire your XP!',url:url}).then(done,done);}
+    else{try{navigator.clipboard.writeText(url);}catch(e){}done();}
+    return;
+  }
+  grantOp(key,slug,amt);
+}
+function grantOp(key,slug,amt){
+  var room=CAP-spentThisRound(cur.id);
+  amt=Math.min(amt,room);
+  markOp(cur.id,key);
+  if(amt>0){
+    addSpent(cur.id,amt);
+    pending[slug]=(pending[slug]||0)+amt;
+    apiGet({action:'infight_fire',round:cur.id,slug:slug,amt:amt,callsign:callsign()},function(){pollTotals();});
+    dispatch('pf-infight-fire',{slug:slug,amt:amt,round:cur.id,op:key});
+  }
+  updateBars();
+}
+function flashXp(){
+  var x=root.querySelector('[data-if-xp]');
+  if(x){x.style.color='#e10600';setTimeout(function(){x.style.color='#fff';},600);}
+}
+function pollTotals(){
+  if(!cur||!cur.live)return;
+  try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){}
+  apiGet({action:'infight_totals',round:cur.id},function(j){
+    if(j&&j.ok&&j.round===cur.id&&j.totals){totals=j.totals;pending={};updateBars();}
+  },8000);
+}
+function updateBars(){
+  if(!fighters[0])return;
+  var tA=(totals[fighters[0].slug]||0)+(pending[fighters[0].slug]||0);
+  var tB=(totals[fighters[1].slug]||0)+(pending[fighters[1].slug]||0);
+  var maxT=Math.max(tA,tB,1);
+  [[0,tA],[1,tB]].forEach(function(p){
+    var t=root.querySelector('[data-if-total="'+p[0]+'"]');
+    var b=root.querySelector('[data-if-bar="'+p[0]+'"]');
+    if(t)t.textContent=p[1].toLocaleString();
+    if(b)b.style.width=Math.round(p[1]/maxT*100)+'%';
+  });
+  var x=root.querySelector('[data-if-xp]');
+  if(x)x.textContent=xp().toLocaleString();
+}
+function startPoll(){stopPoll();pollTotals();pollTimer=setInterval(pollTotals,10000);}
+function stopPoll(){if(pollTimer){clearInterval(pollTimer);pollTimer=null;}}
+function settleLastBattle(prevId,roster){
+  var mm=matchup(prevId,roster);
+  if(!mm[0]||!mm[1])return;
+  apiGet({action:'infight_totals',round:prevId},function(j){
+    if(j&&j.ok&&j.totals){
+      var a=Number(j.totals[mm[0].slug]||0),b=Number(j.totals[mm[1].slug]||0);
+      if(a!==b){
+        var w=a>b?mm[0]:mm[1],l=a>b?mm[1]:mm[0];
+        try{
+          localStorage.setItem('pf_infight_hype_v1',JSON.stringify({slug:w.slug,until:Date.now()+86400000,round:prevId}));
+          localStorage.setItem(LS_LAST,JSON.stringify({winner:w.name,loser:l.name,wa:Math.max(a,b),wb:Math.min(a,b),a:1}));
+        }catch(e){}
+        dispatch('pf-infight',{winner:w.slug,round:prevId});
+        /* New hype record: tell the paint owner (efficiency.js) to re-check. */
+        dispatch('pf-hype',{slug:w.slug,round:prevId});
+      }
+    }
+  },8000);
+}
+/* Display modes (2026-10-03 homepage slimming): slim live-status strip on the
+   homepage (pf-v2) — countdown + matchup only; the full arena on /arcade
+   (pf-arcade). Template id unchanged. Both modes carry loading/error states. */
+var SLIM=(function(){try{if(document.getElementById('pf-arcade')||document.getElementById('pf-cells-page'))return false;}catch(e){}return true;})();
+var stripW=null;
+function renderStrip(){
+  var roster=dbAll();
+  if(!roster||roster.length<2){
+    root.innerHTML=
+      '<div style="background:#0a0a0a;border:2px solid #e10600;padding:14px;font-family:inherit;color:#fff;">'+
+      '<div style="font-weight:900;font-size:16px;letter-spacing:1px;">INFIGHTING</div>'+
+      '<div style="font-size:13px;color:#999;margin-top:8px;" data-if-stripmsg>Loading the battle\u2026</div></div>';
+    var tries=0;
+    var iv=setInterval(function(){
+      tries++;
+      var r=dbAll();
+      if(r&&r.length>=2){ clearInterval(iv); paintStrip(); }
+      else if(tries>=15){
+        clearInterval(iv);
+        var m=root.querySelector('[data-if-stripmsg]');
+        if(m) m.innerHTML='The battle feed went dark. <button data-if-stripretry style="background:#e10600;color:#fff;border:0;font-weight:800;padding:6px 12px;cursor:pointer;">RETRY</button>';
+        var b=root.querySelector('[data-if-stripretry]');
+        if(b) b.onclick=function(){ renderStrip(); };
+      }
+    },2000);
+    return;
+  }
+  paintStrip();
+}
+function paintStrip(){
+  var now=chiNow(),w=battleWindow(now),roster=dbAll();
+  var mm=matchup(w.id,roster);
+  if(!mm[0]||!mm[1]) return;
+  stripW=w;
+  var msLeft=(w.live?w.end:w.start).getTime()-now.getTime();
+  var badge=w.live
+    ?'<span style="background:#e10600;color:#fff;font-weight:800;font-size:12px;padding:3px 10px;">\u25CF LIVE <span data-if-clock>'+fmtClock(msLeft)+'</span></span>'
+    :'<span style="background:#333;color:#fff;font-weight:800;font-size:12px;padding:3px 10px;">NEXT BATTLE <span data-if-clock>'+fmtClock(msLeft)+'</span></span>';
+  root.innerHTML=
+    '<div style="background:#0a0a0a;border:2px solid #e10600;padding:14px;font-family:inherit;color:#fff;">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;">'+
+    '<div style="font-weight:900;font-size:16px;letter-spacing:1px;">INFIGHTING</div>'+badge+'</div>'+
+    '<div style="font-weight:800;font-size:15px;line-height:1.3;">'+esc(mm[0].name)+' <span style="color:#e10600;">VS</span> '+esc(mm[1].name)+'</div>'+
+    '<div style="margin-top:10px;"><a href="/arcade" style="display:inline-block;background:#e10600;color:#fff;font-weight:800;padding:8px 18px;text-decoration:none;">ENTER THE ARENA \u2192</a></div>'+
+    '</div>';
+}
+function stripTick(){
+  try{
+    var w=battleWindow(chiNow());
+    if(!stripW||w.id!==stripW.id){ paintStrip(); return; }
+    var msLeft=(w.live?w.end:w.start).getTime()-chiNow().getTime();
+    var c=root.querySelector('[data-if-clock]');
+    if(c) c.textContent=fmtClock(msLeft);
+  }catch(e){}
+}
+function arenaTick(){
+  var w=battleWindow(chiNow());
+  if(w.id!==lastRound){render();}
+  else{
+    var now=chiNow(),msLeft=(w.live?w.end:w.start).getTime()-now.getTime();
+    var c=root.querySelector('[data-if-clock]');
+    if(c)c.textContent=fmtClock(msLeft);
+    if(cur)cur.live=w.live;
+  }
+}
+if(SLIM){ renderStrip(); setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} stripTick(); },1000); }
+else{ render(); setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} arenaTick(); },1000); }
+})();
+<\/script>
+</template>`);
+})();
+
+;
+
+/* ===== cells.js ===== */
+/* games/cells.js  |  PF v1.4.1 | CELLS: callsign squads with shared streaks
+   CHAINLINK (v1.4.3): up to 3 cells per callsign, max 5 members per cell.
+   All members checked in = +1 streak day = +5% XP on Daily Orders for
+   everyone (cap +50%, primary cell). A cellmate can cover one missed day
+   per week. Recruit with your code: +25 XP when they check in.
+   Chainlinks (2+ cells) stitch the network together: +10 XP per extra cell,
+   weekly. Founder can set a custom cell name; the cell earns its VERIFIED
+   badge once 2+ callsigns are attached.
+   All cell state lives in the tally backend (cross-device); the frontend
+   only caches the display. Public weekly leaderboard.
+   KILL: ?pf_off=cells  or  localStorage pf_disabled_v1='["cells"]' */
+
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("cells")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-cells">
+<div class="fe-block pf-override-block" id="pf-cells">
+<h2>Build Your Cell</h2>
+<div class="c-tag">Five callsigns. One streak. Nobody gets left behind.</div>
+<div id="cBody"><div class="c-load">Raising the cell network&hellip;</div></div>
+<div class="c-boardwrap"><h3>Cell leaderboard &mdash; this week</h3><div id="cBoard"><div class="c-load">Loading&hellip;</div></div></div>
+</div>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+var LS_C="pf_cells_v1";
+var BOUNTY_FALLBACK=25;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function load(k,fb){ try{ return JSON.parse(localStorage.getItem(k)||JSON.stringify(fb)); }catch(e){ return fb; } }
+function save(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  /* Fallback only if core hasn't loaded yet — matches PF.toast styling. */
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;bottom:8%;transform:translateX(-50%);background:#0a0a0a;color:#f5f0e1;font:bold 15px monospace;padding:12px 22px;border:2px solid #c1121f;z-index:99999;max-width:90vw;text-align:center;box-sizing:border-box";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+/* JSONP, same pattern as the other games. 12s timeout: a hung Apps Script
+   request must never wedge the section on its loading text. */
+/* P0 (2026-10-02): cell mutations are POST-only (CSRF-able via GET).
+   Route them through the POST helper; read-only actions stay on JSONP. */
+var POST_CELL_ACTIONS = {cell_create:1,cell_join:1,cell_checkin:1,cell_cover:1,cell_leave:1,cell_rename:1,cell_bounty_claim:1};
+function api(action,params,cb){
+  if(POST_CELL_ACTIONS[action]){
+    if(window.PF && PF.postAction){ PF.postAction('cell','cell_action',action,params,cb); return; }
+    post('cell','cell_action',action,params,cb); return;
+  }
+  if(!BACKEND){ cb(null); return; }
+  /* Private reads require auth_secret (IDOR fix). Route cell_mine through
+     the shared claim-retry GET (2026-10-03): pre-auth callsign holders get
+     one auth_claim attempt instead of 'missing credentials' forever. */
+  if(action==="cell_mine"){
+    try{
+      if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
+      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+    }catch(e){}
+  }
+  /* Callback nonce: crypto-random where available (invite codes themselves
+     are issued server-side by cell_create; this is just the JSONP name). */
+  var _cr=new Uint32Array(1);
+  try{ if(window.crypto&&crypto.getRandomValues) crypto.getRandomValues(_cr); else _cr[0]=Math.floor(Math.random()*4294967295); }catch(e){ _cr[0]=Math.floor(Math.random()*4294967295); }
+  var fn="pfCellCb"+_cr[0];
+  var s=document.createElement("script");
+  var done=false, timer=null;
+  function finish(j){
+    if(done) return; done=true;
+    if(timer){ clearTimeout(timer); timer=null; }
+    window[fn]=function(){};
+    try{ delete window[fn]; }catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s);
+    cb(j);
+  }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  timer=setTimeout(function(){ finish(null); },12000);
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn;
+  s.src=BACKEND+q;
+  document.head.appendChild(s);
+}
+/* CORS POST for POST_ONLY actions (cell_promote, challenge_join). */
+function post(type,actionKey,action,params,cb){
+  var body=Object.assign({type:type},params||{});
+  body[actionKey]=action;
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+}
+/* Cached multiplier for Daily Orders. Refreshes in the background when stale. */
+function cache(){ return load(LS_C,{mult:1,cell_id:"",name:"",t:0}); }
+window.pfCellMult=function(){
+  var c=cache();
+  if(Date.now()-c.t>15*60*1000){ try{ refresh(true); }catch(e){} }
+  return c.mult||1;
+};
+function setCache(mult,cell_id,name){ save(LS_C,{mult:mult||1,cell_id:cell_id||"",name:name||"",t:Date.now()}); }
+
+var state=null, board=null, busy=false, netFailed=false;
+/* Display modes (2026-10-03 homepage slimming): full management depth on
+   /cells (pf-cells-page) and /arcade (pf-arcade); slim on the homepage
+   (pf-v2) — pitch + join form + leaderboard teaser + check-in. */
+var PF_MODE=(function(){ try{
+  if(document.getElementById('pf-arcade')||document.getElementById('pf-cells-page')) return 'full';
+}catch(e){} return 'slim'; })();
+var SLIM=PF_MODE==='slim';
+function refresh(quiet){
+  var id=ident();
+  if(!id.callsign){ renderGate(); return; }
+  if(busy) return; busy=true; netFailed=false;
+  api("cell_mine",{callsign:id.callsign,device:id.device},function(j){
+    busy=false;
+    if(!j){
+      netFailed=true;
+      if(!quiet){ renderNetErr(); }
+      else if(state){ render(); }
+      return;
+    }
+    state=j;
+    if(j.in_cell&&j.cell){ setCache(j.cell.mult,j.cell.id,j.cell.name); }
+    claimBounties(j);
+    /* CHAINLINK: 2+ cells wired -> weekly bridge bonus via the ledger. */
+    try{
+      var nCells=(j.cells&&j.cells.length)||0;
+      if(nCells>=2){
+        var _d=new Date(),_o=new Date(_d.getFullYear(),0,1);
+        var _wk=_d.getFullYear()+"-W"+Math.ceil((((_d-_o)/86400000)+_o.getDay()+1)/7);
+        document.dispatchEvent(new CustomEvent("pf-chainlink",{detail:{cells:nCells,week:_wk}}));
+      }
+    }catch(e){}
+    render();
+  });
+}
+/* The section is never allowed to die on its loading text: a failed
+   request renders an explicit error panel with a retry. */
+function renderNetErr(){
+  var el=document.getElementById("cBody");
+  if(!el) return;
+  el.innerHTML='<div class="c-neterr">The cell network is slow to answer. Your callsign is fine &mdash; the wire is not.'+
+    '<br><button class="c-btn" id="cRetry">Retry connection</button></div>';
+  document.getElementById("cRetry").onclick=function(){ refresh(); };
+}
+/* Recruit bounty: +25 XP per claimed recruit, exactly once each. */
+function claimBounties(j){
+  var pend=(j&&j.bounties_pending)||[];
+  if(!pend.length) return;
+  var id=ident();
+  api("cell_bounty_claim",{callsign:id.callsign,device:id.device},function(r){
+    if(!r||!r.ok||!r.claimed||!r.claimed.length) return;
+    var n=0, each=r.xp_each||BOUNTY_FALLBACK;
+    r.claimed.forEach(function(b){
+      var key="cell_bounty_"+b.from+"_"+b.day;
+      /* The shared ledger owns idempotency now (exactly-once per key).
+         Backend already granted this XP in cell_bounty_claim (xpGrant with
+         key cellbounty_<cell>_<recruit>). Local ledger update is for instant
+         UX only — do NOT dispatch pf-xp or the backend gets it twice. */
+      var credited=false;
+      try{ credited=(window.PF&&PF.creditLocal)?PF.creditLocal(key,each):false; }catch(e){}
+      if(credited) n++;
+    });
+    if(n>0){ toast("+"+(n*each)+" XP — recruit bounty! Your cell grows."); }
+  });
+}
+function loadBoard(){
+  api("cell_leaderboard",{},function(j){
+    board=j;
+    var el=document.getElementById("cBoard");
+    if(!el) return;
+    if(!j||!j.cells||!j.cells.length){ el.innerHTML='<div class="c-empty">No cells on the board yet. The first founder&rsquo;s name goes here.</div>'; return; }
+    /* SLIM: leaderboard teaser — top 3 + link to the full board on /cells. */
+    var rows=SLIM?j.cells.slice(0,3):j.cells;
+    var html=rows.map(function(c,i){
+      var pfl=c.prestige_flame?' <span class="c-prb" style="margin-left:4px;" title="'+esc(c.prestige_tier||"")+' cell">'+c.prestige_flame+'</span>':"";
+      return '<div class="c-brow'+(i===0?" c-btop":"")+'"><span class="c-brank">'+(i+1)+'</span>'+
+        '<span class="c-bname">'+esc(c.name)+pfl+
+        (c.verified?'<span class="c-vfy" title="2+ callsigns strong">&#10003; VERIFIED</span>':'')+'</span>'+
+        '<span class="c-bstat">'+c.streak+' streak &middot; '+c.members+'/5</span></div>';
+    }).join("");
+    el.innerHTML=html;
+    if(SLIM){ el.insertAdjacentHTML('beforeend','<div class="x-note"><a href="/cells" style="color:#c1121f;">Full cell leaderboard &rarr;</a></div>'); }
+  });
+}
+function renderGate(){
+  var el=document.getElementById("cBody");
+  if(!el) return;
+  /* 2026-10-03 H8: active in-place claim (was: scroll away to Enlistment Ranks). */
+  el.innerHTML=PF.gateHTML('Cells run on callsigns.','to form your cell');
+}
+/* Friendly copy for cell_mine read failures (2026-10-03): raw backend
+   strings like 'missing credentials' are never rendered as UI copy. */
+function cellErrCopy(e){
+  e=String(e||"");
+  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")
+    return "The cell network couldn't verify this callsign — it predates the new auth system. Contact MTCSTW to recover it.";
+  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)
+    return "The cell network couldn't verify your callsign. Re-claim it in Enlistment Ranks (one tap), then retry.";
+  return "The cell network didn't answer. Your callsign is fine — the wire is not.";
+}
+/* Friendly copy for WRITE paths (2026-10-03 M27): read paths already got
+   friendly copy (cellErrCopy); writes route raw snake_case codes through
+   the same propaganda-voice map. Never show a raw code to users. */
+function cellWriteErr(e,fb){
+  var s=String(e==null?"":e).trim();
+  var fall=fb||"The wire fought back. Nothing changed — retry.";
+  if(!s||/network error/i.test(s)) return fall;
+  var map={
+    "invalid_code":"That invite code doesn't open any door. Check it and try again.",
+    "cell_full":"That cell is full — five fighters max. Found your own instead.",
+    "already_accepted":"Already locked in. One shot per cell.",
+    "already_joined":"You're already in. The fight continues.",
+    "already leading":"You're already wiring this cell. One wire per cell.",
+    "already claimed":"Already claimed. One shot per fighter.",
+    "already settled":"Already settled. It's done.",
+    "bad callsign":"That callsign didn't check out. Re-claim it in Enlistment Ranks, then retry.",
+    "missing cell_id":"No cell selected. Refresh and try again.",
+    "unknown cell":"That cell isn't on the map anymore. Refresh and retry.",
+    "db error":"The cell ledger hiccuped. Retry in a moment.",
+    "title too short":"Title needs 4+ characters.",
+    "title rejected":"That title didn't pass the censors. Pick another.",
+    "bad characters":"Letters, numbers, and spaces only. Keep it clean."
+  };
+  if(map[s]) return map[s];
+  if(s.indexOf("_")!==-1) return fall; /* never show raw snake_case */
+  return s; /* backend prose already human-readable */
+}
+/* M26 (2026-10-03): disabled + spinner label on mutation buttons. */
+function busyBtn(btn,on,label){
+  try{
+    if(on){ if(btn.getAttribute("data-lbl")==null) btn.setAttribute("data-lbl",btn.textContent); btn.disabled=true; btn.textContent=label||"WORKING…"; }
+    else{ btn.disabled=false; var l=btn.getAttribute("data-lbl"); if(l!=null) btn.textContent=l; btn.removeAttribute("data-lbl"); }
+  }catch(e){}
+}
+function render(){
+  var el=document.getElementById("cBody");
+  if(!el) return;
+  var id=ident();
+  if(!id.callsign){ renderGate(); return; }
+  if(!state){ if(netFailed){ renderNetErr(); return; } el.innerHTML='<div class="c-load">Raising the cell network&hellip;</div>'; return; }
+  if(state.err&&!state.in_cell&&state.err!=="no_cell"){
+    el.innerHTML='<div class="c-neterr">'+esc(cellErrCopy(state.err))
+      +'<br><button class="c-btn" id="cErrRetry">Retry connection</button></div>';
+    document.getElementById("cErrRetry").onclick=function(){ refresh(); };
+    return;
+  }
+  if(!state.in_cell){ renderLobby(el); return; }
+  renderCell(el,state);
+}
+function renderLobby(el){
+  /* SLIM (homepage): pitch + join form only. Steps + search are full-mode
+     depth for /cells. */
+  var stepsHtml=SLIM?"":
+    '<div class="c-steps">'+
+    '<div class="c-step"><span class="c-snum">1</span><span>Form your cell below, or join with a code.</span></div>'+
+    '<div class="c-step"><span class="c-snum">2</span><span>Check in daily after your orders.</span></div>'+
+    '<div class="c-step"><span class="c-snum">3</span><span>Streak climbs. Miss a day and a cellmate covers you once a week.</span></div>'+
+    '</div>';
+  var searchHtml=SLIM?"":
+    '<div class="c-pane"><h4>Find a cell</h4>'+
+    '<input aria-label="NAME OR STATE" id="cSearch" maxlength="32" placeholder="NAME OR STATE" autocomplete="off">'+
+    ' <button class="c-btn" id="cSearchBtn">Search</button>'+
+    '<div class="c-err" id="cSearchErr"></div>'+
+    '<div id="cSearchRes"></div></div>';
+  el.innerHTML=
+    '<div class="c-pitch">No cells exist yet &mdash; <b>found the first one</b> and your name goes on the wall.'+
+    '<br>Five callsigns. One streak. Every day the whole cell checks in, the streak climbs and everyone banks <b>+5% XP on Daily Orders</b> &mdash; up to <b>+50%</b>.</div>'+
+    stepsHtml+
+    '<div class="c-lobby">'+
+    '<div class="c-pane"><h4>Form a cell</h4>'+
+    '<input aria-label="CELL NAME" id="cName" maxlength="24" placeholder="CELL NAME" autocomplete="off">'+
+    '<br><button class="c-btn" id="cCreate">Form cell</button>'+
+    '<div class="c-err" id="cCreateErr"></div></div>'+
+    '<div class="c-pane"><h4>Join a cell</h4>'+
+    '<input aria-label="INVITE CODE" id="cCode" maxlength="6" placeholder="INVITE CODE" autocomplete="off" style="text-transform:uppercase">'+
+    '<input aria-label="WHO RECRUITED YOU (CALLSIGN)" id="cRef" maxlength="32" placeholder="WHO RECRUITED YOU (CALLSIGN)" autocomplete="off" style="text-transform:uppercase">'+
+    '<br><button class="c-btn" id="cJoin">Join cell</button>'+
+    '<div class="c-err" id="cJoinErr"></div></div>'+
+    '</div>'+
+    searchHtml+
+    '<div class="c-bounty">Share your cell code: <b>+25 XP</b> every time your recruit checks in.</div>'+
+    (SLIM?'<div class="x-note">Full cell management &mdash; search, prestige, challenges &mdash; lives at <a href="/cells" style="color:#c1121f;">/cells</a>.</div>':'');
+  document.getElementById("cCreate").onclick=function(){
+    var nm=document.getElementById("cName").value, id=ident(), err=document.getElementById("cCreateErr");
+    err.textContent="";
+    var btn=document.getElementById("cCreate");
+    busyBtn(btn,true);
+    api("cell_create",{callsign:id.callsign,device:id.device,name:nm},function(j){
+      busyBtn(btn,false);
+      if(!j||!j.ok){ err.textContent=cellWriteErr(j&&j.err); return; }
+      toast("Cell "+j.cell.name+" formed. Recruit your four.");
+      refresh();
+    });
+  };
+  document.getElementById("cJoin").onclick=function(){
+    var code=document.getElementById("cCode").value, ref=document.getElementById("cRef").value,
+        id=ident(), err=document.getElementById("cJoinErr");
+    err.textContent="";
+    var btn=document.getElementById("cJoin");
+    busyBtn(btn,true);
+    api("cell_join",{callsign:id.callsign,device:id.device,code:code,ref:ref},function(j){
+      busyBtn(btn,false);
+      if(!j||!j.ok){ err.textContent=cellWriteErr(j&&j.err); return; }
+      toast("Welcome to "+j.cell.name+". Check in daily.");
+      refresh();
+    });
+  };
+  /* FIND A CELL: search by name/state, join from results. */
+  var sb=document.getElementById("cSearchBtn");
+  if(sb) sb.onclick=function(){
+    var q=document.getElementById("cSearch").value,
+        id=ident(), err=document.getElementById("cSearchErr"),
+        res=document.getElementById("cSearchRes");
+    err.textContent=""; res.innerHTML='<div class="c-load">Searching&hellip;</div>';
+    api("cell_search",{q:q},function(j){
+      if(!j||!j.ok){ err.textContent=cellWriteErr(j,"Network error."); res.innerHTML=""; return; }
+      var list=j.cells||[];
+      if(!list.length){ res.innerHTML='<div class="x-note">No cells match. Found the first one above.</div>'; return; }
+      var h="";
+      for(var i=0;i<Math.min(list.length,10);i++){
+        var cc=list[i]||{};
+        h+='<div class="cp-lead"><span class="cp-lname">'+esc(cc.name)+'</span> '
+          +'<span class="cp-lxp">'+(Number(cc.members)||0)+'/5'
+          +(cc.verified?' \u2713':'')+'</span> '
+          +'<button class="c-btn c-sm" data-code="'+esc(cc.invite_code||"")+'">JOIN</button></div>';
+      }
+      res.innerHTML=h;
+      var btns=res.querySelectorAll("button[data-code]");
+      for(var b=0;b<btns.length;b++)(function(btn){
+        btn.onclick=function(){
+          var code=btn.getAttribute("data-code"), id2=ident();
+          err.textContent="";
+          busyBtn(btn,true);
+          api("cell_join",{callsign:id2.callsign,device:id2.device,code:code},function(j2){
+            busyBtn(btn,false);
+            if(!j2||!j2.ok){ err.textContent=cellWriteErr(j2&&j2.err); return; }
+            toast("Welcome to "+j2.cell.name+". Check in daily.");
+            refresh();
+          });
+        };
+      })(btns[b]);
+    });
+  };
+}
+/* SLIM (homepage): the check-in card only. Members list, prestige, chainlink
+   bar, challenges, health, rename, leave — all full-mode depth on /cells. */
+function renderCellSlim(el,s){
+  var c=s.cell, pct=Math.round((c.mult-1)*100), id=ident();
+  var html='<div class="c-card">'+
+    '<div class="c-chead"><span class="c-cname">'+esc(c.name)+'</span>'+
+    (c.verified?'<span class="c-vfy" title="2+ callsigns strong">&#10003; VERIFIED</span>':'')+
+    '<span class="c-code" id="cCodeShow" title="Tap to copy">'+esc(c.invite_code)+'</span></div>'+
+    '<div class="c-cstats"><span class="c-flame">&#128293; '+c.streak+'-day streak</span>'+
+    '<span class="c-mult">+'+pct+'% XP on Daily Orders</span></div>';
+  if(!s.checked_today){
+    html+='<button class="c-btn c-big" id="cCheckin">Orders done &mdash; check in</button>';
+  } else {
+    html+='<div class="c-done">Checked in today. The streak holds because of you.</div>';
+  }
+  if(s.cover_for){
+    html+='<button class="c-btn c-cover" id="cCover">Cover '+esc(s.cover_for)+' &mdash; save the streak</button>';
+  }
+  html+='<div class="x-note"><a href="/cells" style="color:#c1121f;">Manage your cell &rarr;</a> members, prestige, challenges, the full board.</div>';
+  html+='<div class="c-err" id="cActErr"></div></div>';
+  el.innerHTML=html;
+  var errEl=document.getElementById("cActErr");
+  document.getElementById("cCodeShow").onclick=function(){
+    var code=String(c.invite_code||"");
+    function fallback(){
+      /* Clipboard write blocked (permissions / non-secure context): render
+         the code as selectable text instead of a false "copied" toast. */
+      try{
+        errEl.innerHTML="";
+        var sp=document.createElement("span");
+        sp.textContent="Copy blocked \u2014 long-press to copy your code: "+code;
+        sp.style.cssText="user-select:all;-webkit-user-select:all;cursor:text;";
+        errEl.appendChild(sp);
+      }catch(e2){ toast("Cell code: "+code); }
+    }
+    try{
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(code).then(function(){ toast("Code copied: "+code); },fallback);
+      }
+      else { fallback(); }
+    }catch(e){ fallback(); }
+  };
+  var ci=document.getElementById("cCheckin");
+  if(ci) ci.onclick=function(){
+    errEl.textContent="";
+    busyBtn(ci,true);
+    api("cell_checkin",{callsign:id.callsign,device:id.device,cell_id:c.id},function(j){
+      busyBtn(ci,false);
+      if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err); return; }
+      if(j.already){ toast("Already checked in."); }
+      else { toast("Checked in. Streak: "+j.cell.streak+"."); try{ if(window.pfReportAction) window.pfReportAction("cell_checkin"); }catch(e){} }
+      refresh();
+    });
+  };
+  var cv=document.getElementById("cCover");
+  if(cv) cv.onclick=function(){
+    errEl.textContent="";
+    busyBtn(cv,true);
+    api("cell_cover",{callsign:id.callsign,device:id.device,cell_id:c.id},function(j){
+      busyBtn(cv,false);
+      if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err,"No cover to play."); return; }
+      toast("Cover played — "+j.covered+" is saved. Streak: "+j.streak+".");
+      refresh();
+    });
+  };
+}
+/* RECRUIT poster: 1080x1350 cell-recruit image for the native share sheet.
+   Pure canvas text/shapes only — no external assets, so the canvas can never
+   be tainted. The FIGHTING AS <CALLSIGN> strip is applied by
+   PFShare.stampCallsign inside shareImage (idempotent); keep the bottom 70px
+   of the layout clear for it. */
+function drawRecruitPoster(c){
+  var W=1080,H=1350;
+  var cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+  var x=cv.getContext("2d"); if(!x) return null;
+  function center(t,y,font,fill){ x.font=font; x.fillStyle=fill; x.textAlign="center"; x.fillText(t,W/2,y); }
+  function wrapLines(text,font,maxW,maxLines){
+    x.font=font; x.textAlign="center";
+    var words=String(text||"").split(/\\s+/), lines=[], cur="";
+    words.forEach(function(w){
+      var t=cur?cur+" "+w:w;
+      if(x.measureText(t).width>maxW&&cur){ lines.push(cur); cur=w; } else cur=t;
+    });
+    if(cur) lines.push(cur);
+    return lines.slice(0,maxLines||2);
+  }
+  x.fillStyle="#0d0d0d"; x.fillRect(0,0,W,H);
+  x.strokeStyle="#c1121f"; x.lineWidth=14; x.strokeRect(20,20,W-40,H-40);
+  x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(44,44,W-88,H-88);
+  var y=118;
+  center("\u2605 THE PROPAGANDA FACTORY \u2605",y,"700 32px Arial,sans-serif","#c1121f"); y+=76;
+  var nameF='900 82px "Arial Black",Arial,sans-serif';
+  wrapLines(String(c.name||"MY CELL").toUpperCase(),nameF,W-170,2).forEach(function(l){
+    center(l,y,nameF,"#c1121f"); y+=96; });
+  y+=18;
+  var tagF="700 34px Arial,sans-serif";
+  wrapLines("FIVE CALLSIGNS. ONE STREAK. NOBODY LEFT BEHIND.",tagF,W-190,2).forEach(function(l){
+    center(l,y,tagF,"#f5ead6"); y+=48; });
+  var streak=Number(c.streak)||0;
+  y+=26;
+  center("\u26A1 "+streak+"-DAY STREAK \u26A1",y,'900 40px "Arial Black",Arial,sans-serif',"#c1121f"); y+=74;
+  center("INVITE CODE",y,"700 30px Arial,sans-serif","#c9bfa8"); y+=16;
+  var code=String(c.invite_code||"").toUpperCase()||"???";
+  x.strokeStyle="#c1121f"; x.lineWidth=6;
+  x.strokeRect(W/2-280,y,560,150);
+  x.fillStyle="#141010"; x.fillRect(W/2-280,y,560,150);
+  center(code,y+106,'900 96px "Arial Black",Arial,sans-serif',"#c1121f");
+  y+=150+52;
+  var lnF="400 34px Arial,sans-serif";
+  wrapLines("Enter this code on mtcstw.com/cells to wire in.",lnF,W-210,2).forEach(function(l){
+    center(l,y,lnF,"#c9bfa8"); y+=50; });
+  wrapLines("Check in daily. Stack the streak. Recruit +25 XP.",lnF,W-210,2).forEach(function(l){
+    center(l,y,lnF,"#c9bfa8"); y+=50; });
+  y+=44;
+  var cta="JOIN MY CELL";
+  x.font='900 44px "Arial Black",Arial,sans-serif';
+  var tw=x.measureText(cta).width+110;
+  x.fillStyle="#c1121f"; x.fillRect(W/2-tw/2,y-58,tw,94);
+  center(cta,y+8,'900 44px "Arial Black",Arial,sans-serif',"#ffffff");
+  y=H-160;
+  center("MTCSTW.COM",y,'900 48px "Arial Black",Arial,sans-serif',"#c1121f");
+  return cv;
+}
+function renderCell(el,s){
+  if(SLIM){ renderCellSlim(el,s); return; }
+  var c=s.cell, pct=Math.round((c.mult-1)*100);
+  var mems=(s.members||[]).map(function(m){
+    var role=String(m.role||"member").toUpperCase();
+    var badge=role==="FOUNDER"?'<span class="c-role c-rfounder">FOUNDER</span>'
+      :role==="OFFICER"?'<span class="c-role c-rofficer">OFFICER</span>':"";
+    var prb=(Number(m.prestige_level)||0)>0
+      ?' <span class="c-prb" title="Prestige '+esc(m.prestige_badge||"")+'">&#9733;'+esc(m.prestige_badge||"")+'</span>':"";
+    var prom=(s.is_founder&&role!=="FOUNDER"&&role!=="OFFICER")
+      ?' <button class="c-btn c-sm c-prom" data-cs="'+esc(m.callsign)+'">PROMOTE</button>':"";
+    return '<div class="c-mrow"><span class="c-dot'+(m.checked_today?" c-on":"")+'"></span>'+
+      '<span class="c-mname">'+esc(m.callsign)+'</span>'+prb+badge+
+      (m.checked_today?'<span class="c-mok">IN</span>':'<span class="c-mno">OUT</span>')+prom+'</div>';
+  }).join("");
+  /* CELL PRESTIGE panel: tier badge, power, benefits, progress, recruit nudge. */
+  var pr=c.prestige||null, prHtml="";
+  if(pr&&pr.tier){
+    var benHtml=(pr.benefits||[]).map(function(b){
+      return '<div class="c-prben">&#10003; '+esc(b)+'</div>'; }).join("");
+    var progHtml="";
+    if(pr.next_tier){
+      var pw=Math.min(100,Math.round(pr.power/pr.next_tier.min*100));
+      progHtml='<div class="c-prprog"><div class="c-prfill" style="width:'+pw+'%"></div></div>'+
+        '<div class="x-note">'+pr.next_tier.need+' more power to reach '+esc(pr.next_tier.name)+'</div>';
+    } else {
+      progHtml='<div class="x-note">MAX TIER &mdash; the cell burns at full power.</div>';
+    }
+    prHtml='<div class="c-prestige" style="background:#120404;border:2px solid #c1121f;margin:12px 0;padding:14px;text-align:center;">'+
+      '<div style="font-size:22px;letter-spacing:2px;">'+pr.flame+'</div>'+
+      '<div style="color:#c1121f;font-weight:900;font-size:18px;letter-spacing:3px;">'+esc(pr.tier.name)+'</div>'+
+      '<div class="x-note" style="margin-bottom:8px;">'+pr.power+' prestige power &middot; '+pr.prestiged_count+' prestiged '+(pr.prestiged_count===1?"fighter":"fighters")+'</div>'+
+      benHtml+progHtml+'</div>';
+  } else {
+    prHtml='<div class="c-prestige" style="background:#0d0d0d;border:1px dashed #555;margin:12px 0;padding:12px;text-align:center;">'+
+      '<div class="x-note">&#128293; No prestige power yet. <b>Recruit prestiged fighters</b> to ignite cell bonuses &mdash; EMBER at 1 power (+5% XP for everyone).</div></div>';
+  }
+  /* CHAINLINK bar: every cell this callsign wires, the cap, the network stat. */
+  var myCells=s.cells||[], linkBar='';
+  if(myCells.length){
+    var rows=myCells.map(function(mc){
+      return '<div class="c-lrow"><span class="c-lname">'+esc(mc.name)+'</span>'+
+        '<span class="c-lstat">'+mc.streak+' streak &middot; '+(mc.checked_today?'checked in':'not in today')+'</span>'+
+        (mc.id!==c.id?'':' <span class="c-lprim">PRIMARY</span>')+
+        ' <a class="c-lleave" data-id="'+esc(mc.id)+'" data-nm="'+esc(mc.name)+'">leave</a></div>';
+    }).join("");
+    linkBar='<div class="c-linkbar"><div class="c-lhead">&#9939; CHAINLINK — you wire '+myCells.length+'/3 cells</div>'+
+      '<div class="c-lrows">'+rows+'</div>'+
+      (myCells.length<3
+        ? '<div class="c-ljoin"><input aria-label="INVITE CODE" id="cLinkCode" maxlength="6" placeholder="INVITE CODE" autocomplete="off" style="text-transform:uppercase"> '+
+          '<button class="c-btn" id="cLinkJoin">Wire another cell</button><div class="c-err" id="cLinkErr"></div></div>'
+        : '<div class="c-lcap">Cap reached — three cells is the whole wire.</div>')+
+      '<div class="c-lnet" id="cLinkNet">Mapping the network&hellip;</div>'+
+      '<div class="c-lwhy">Chainlinks belong to 2+ cells and stitch the network together — so every cell on earth is reachable by direct contact. +10 XP per extra cell, weekly.</div></div>';
+  }
+  var html=linkBar+'<div class="c-card">'+
+    '<div class="c-chead"><span class="c-cname">'+esc(c.name)+'</span>'+
+    (c.verified
+      ? '<span class="c-vfy" title="2+ callsigns strong">&#10003; VERIFIED</span>'
+      : '<span class="c-unv" title="Recruit at least one more callsign to verify this cell">UNVERIFIED &mdash; RECRUIT TO VERIFY</span>')+
+    '<span class="c-code" id="cCodeShow" title="Tap to copy">'+esc(c.invite_code)+'</span></div>'+
+    '<div class="c-cstats"><span class="c-flame">&#128293; '+c.streak+'-day streak</span>'+
+    '<span class="c-mult">+'+pct+'% XP on Daily Orders</span>'+
+    '<span class="c-cov">Covers left this week: '+c.covers_left+'</span></div>'+
+    prHtml+
+    '<div class="c-members">'+mems+'</div>';
+  if(s.is_founder){
+    html+='<div class="c-rename"><input aria-label="RENAME CELL" id="cRename" maxlength="24" placeholder="RENAME CELL" value="'+esc(c.name)+'" autocomplete="off">'+
+      '<button class="c-btn" id="cRenameBtn">Rename</button></div>';
+  }
+  /* RECRUIT: any member can mint the recruit poster and share it. */
+  html+='<button class="c-btn c-big" id="cRecruit">RECRUIT</button>';
+  if(!s.checked_today){
+    html+='<button class="c-btn c-big" id="cCheckin">Orders done &mdash; check in</button>';
+  } else {
+    html+='<div class="c-done">Checked in today. The streak holds because of you.</div>';
+  }
+  if(s.cover_for){
+    html+='<button class="c-btn c-cover" id="cCover">Cover '+esc(s.cover_for)+' &mdash; save the streak</button>';
+  }
+  html+='<div class="c-health" id="cHealth"><div class="c-load">Reading cell health&hellip;</div></div>';
+  html+='<div class="c-leave"><a id="cLeave">Leave cell</a></div><div class="c-err" id="cActErr"></div></div>';
+  el.innerHTML=html;
+  var id=ident(), errEl=document.getElementById("cActErr");
+  /* Cell health: members, 7d checkins, 30d recruits. */
+  (function(){
+    var hel=document.getElementById("cHealth"); if(!hel) return;
+    api("cell_health",{cell_id:c.id},function(j){
+      if(!j||!j.ok){ hel.innerHTML=""; return; }
+      var mem=Number(j.members)||0, ci=Number(j.checkins_7d)||0, rc=Number(j.recruits_30d)||0;
+      var score=Math.min(100,Math.round(mem*8+ci*2+rc*5));
+      hel.innerHTML='<div class="c-hhead">CELL HEALTH</div>'
+        +'<div class="c-hbar"><div class="c-hfill" style="width:'+score+'%"></div></div>'
+        +'<div class="x-note">'+mem+'/5 members &bull; '+ci+' check-ins (7d) &bull; '+rc+' recruits (30d)</div>';
+    });
+  })();
+  /* Promote buttons (founder only). */
+  var prs=el.querySelectorAll(".c-prom");
+  for(var pi=0;pi<prs.length;pi++)(function(btn){
+    btn.onclick=function(){
+      var tgt=btn.getAttribute("data-cs"), id2=ident();
+      errEl.textContent="";
+      busyBtn(btn,true);
+      post("cell","cell_action","cell_promote",{callsign:id2.callsign,device:id2.device,cell_id:c.id,target:tgt,role:"officer"},function(j){
+        busyBtn(btn,false);
+        if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err); return; }
+        toast(tgt+" promoted to OFFICER.");
+        refresh();
+      });
+    };
+  })(prs[pi]);
+  var rn=document.getElementById("cRenameBtn");
+  if(rn) rn.onclick=function(){
+    var nm=document.getElementById("cRename").value;
+    errEl.textContent="";
+    busyBtn(rn,true);
+    api("cell_rename",{callsign:id.callsign,device:id.device,name:nm},function(j){
+      busyBtn(rn,false);
+      if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err); return; }
+      toast("Cell renamed to "+j.cell.name+(j.cell.verified?" \u2713 verified.":"."));
+      refresh();
+    });
+  };
+  /* RECRUIT: mint the poster and open the phone's native share sheet.
+     PFShare.shareImage handles stampCallsign (idempotent), toBlob -> File ->
+     navigator.canShare({files}) -> navigator.share, and the
+     download fallback on browsers without file-share support. */
+  var rc=document.getElementById("cRecruit");
+  if(rc) rc.onclick=function(){
+    errEl.textContent="";
+    if(!window.PFShare){ errEl.textContent="Share engine still loading \u2014 tap again in a second."; return; }
+    if(!id.callsign){ errEl.textContent="Claim a callsign first \u2014 it goes on the poster."; return; }
+    toast("Minting your recruit poster\u2026");
+    var cv=null;
+    try{ cv=drawRecruitPoster(c); }catch(e){ cv=null; }
+    if(!cv){ errEl.textContent="Poster failed \u2014 try again."; return; }
+    try{
+      PFShare.shareImage(cv,
+        "cell-recruit-"+String(c.invite_code||"").toLowerCase()+".png",
+        "Join my cell: "+c.name,
+        "cell-recruit");
+    }catch(e){ errEl.textContent="Share unavailable here."; }
+  };
+  document.getElementById("cCodeShow").onclick=function(){
+    var code=String(c.invite_code||"");
+    function fallback(){
+      /* Clipboard write blocked (permissions / non-secure context): render
+         the code as selectable text instead of a false "copied" toast. */
+      try{
+        errEl.innerHTML="";
+        var sp=document.createElement("span");
+        sp.textContent="Copy blocked \u2014 long-press to copy your code: "+code;
+        sp.style.cssText="user-select:all;-webkit-user-select:all;cursor:text;";
+        errEl.appendChild(sp);
+      }catch(e2){ toast("Cell code: "+code); }
+    }
+    try{
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(code).then(function(){ toast("Code copied: "+code); },fallback);
+      }
+      else { fallback(); }
+    }catch(e){ fallback(); }
+  };
+  var ci=document.getElementById("cCheckin");  if(ci) ci.onclick=function(){
+    errEl.textContent="";
+    busyBtn(ci,true);
+    api("cell_checkin",{callsign:id.callsign,device:id.device,cell_id:c.id},function(j){
+      busyBtn(ci,false);
+      if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err); return; }
+      if(j.already){ toast("Already checked in."); }
+      else { toast("Checked in. Streak: "+j.cell.streak+"."); try{ if(window.pfReportAction) window.pfReportAction("cell_checkin"); }catch(e){} }
+      refresh();
+    });
+  };
+  var cv=document.getElementById("cCover");
+  if(cv) cv.onclick=function(){
+    errEl.textContent="";
+    busyBtn(cv,true);
+    api("cell_cover",{callsign:id.callsign,device:id.device,cell_id:c.id},function(j){
+      busyBtn(cv,false);
+      if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err,"No cover to play."); return; }
+      toast("Cover played — "+j.covered+" is saved. Streak: "+j.streak+".");
+      refresh();
+    });
+  };
+  var lv=document.getElementById("cLeave");
+  if(lv) lv.onclick=function(){
+    /* M28: anchors have no disabled state — a busy flag blocks double-taps. */
+    if(lv.getAttribute("data-busy")) return;
+    if(!window.confirm("Leave "+c.name+"? Your cell streak bonus goes with it.")) return;
+    lv.setAttribute("data-busy","1"); lv.style.opacity=".5";
+    api("cell_leave",{callsign:id.callsign,device:id.device},function(j){
+      /* M28: check the backend verdict — on failure the fighter stays in
+         the cell and the local cache is NOT cleared. */
+      if(!j||!j.ok){
+        lv.removeAttribute("data-busy"); lv.style.opacity="";
+        errEl.textContent=cellWriteErr(j&&j.err,"The wire fought back — you're still in the cell.");
+        return;
+      }
+      setCache(1,"",""); state=null; refresh();
+    });
+  };
+  /* CHAINLINK wiring: per-cell leave + wire-another join + network stat. */
+  /* CELL CHALLENGES: active challenges, join for your cell, leaderboard,
+     plus CREATE CHALLENGE (challenge_create: title 4-48 chars, metric
+     checkins|recruits|xp, days 1-30). */
+  (function(){
+    var host=document.createElement("div");
+    host.className="c-chalwrap"; host.id="cChal";
+    host.innerHTML='<h3>Cell challenges</h3><div class="c-load">Loading challenges&hellip;</div>';
+    el.appendChild(host);
+    function createFormHtml(){
+      return '<div class="x-pane"><h4>Propose a challenge</h4>'
+        +'<div class="x-note">Cells compete on your metric for 1-30 days. Title needs 4+ characters.</div>'
+        +'<input id="cChTitle" maxlength="48" placeholder="CHALLENGE TITLE" aria-label="Challenge title"> '
+        +'<select id="cChMetric" aria-label="Metric">'
+        +'<option value="checkins">Daily check-ins</option>'
+        +'<option value="recruits">Recruits</option>'
+        +'<option value="xp">XP earned</option></select> '
+        +'<input id="cChDays" type="number" min="1" max="30" value="7" style="width:64px" aria-label="Days"> '
+        +'<button class="c-btn" id="cChCreateBtn">CREATE CHALLENGE</button>'
+        +'<div class="c-err" id="cChCreateErr"></div></div>';
+    }
+    function wireCreate(){
+      var btn=host.querySelector("#cChCreateBtn"); if(!btn) return;
+      btn.onclick=function(){
+        var id3=ident();
+        if(!id3.callsign){ toast("Claim a callsign first."); return; }
+        var tEl=host.querySelector("#cChTitle"), mEl=host.querySelector("#cChMetric"),
+            dEl=host.querySelector("#cChDays"), ee=host.querySelector("#cChCreateErr");
+        var title=tEl?tEl.value.trim():"", metric=mEl?mEl.value:"checkins",
+            days=dEl?(parseInt(dEl.value,10)||7):7;
+        if(ee) ee.textContent="";
+        if(title.length<4){ if(ee) ee.textContent="Title needs 4+ characters."; return; }
+        if(days<1) days=1; if(days>30) days=30;
+        if(!window.confirm("Launch challenge \\\"+title+\\\" for "+days+" days?")) return;
+        busyBtn(btn,true);
+        post("challenge","ch_action","challenge_create",
+          {callsign:id3.callsign,device:id3.device,title:title,metric:metric,days:days},
+          function(r){
+            busyBtn(btn,false);
+            if(!r||!r.ok){ if(ee) ee.textContent=cellWriteErr(r&&r.err); return; }
+            toast("CHALLENGE LIVE. Get your cell in.");
+            loadCh();
+          });
+      };
+    }
+    function loadCh(){
+      host.innerHTML='<h3>Cell challenges</h3><div class="c-load">Loading challenges&hellip;</div>';
+      api("challenge_list",{},function(j){
+        var h='<h3>Cell challenges</h3>';
+        var list=(j&&j.ok&&j.challenges)||[];
+        if(!list.length){
+          h+='<div class="x-pane"><div class="x-note">No active challenges. The war council will announce the next one — or propose your own below.</div></div>';
+        }
+        for(var i=0;i<list.length;i++){
+          var ch=list[i]||{};
+          h+='<div class="x-pane"><h4>'+esc(ch.title)+'</h4>'
+            +'<div class="x-note">'+esc(ch.detail||"")+'</div>'
+            +'<div class="x-note">Ends: '+esc(ch.ends||"soon")+'</div>'
+            +'<button class="c-btn c-chjoin" data-ch="'+esc(ch.id)+'">ENTER MY CELL</button>'
+            +'<div class="c-err" id="cChErr-'+esc(ch.id)+'"></div></div>';
+        }
+        h+=createFormHtml();
+        h+='<div id="cChBoard"><div class="c-load">Loading standings&hellip;</div></div>';
+        host.innerHTML=h;
+        wireCreate();
+        var jbs=host.querySelectorAll(".c-chjoin");
+        for(var b=0;b<jbs.length;b++)(function(btn){
+          btn.onclick=function(){
+            var chid=btn.getAttribute("data-ch"), id2=ident();
+            var ee=document.getElementById("cChErr-"+chid); if(ee) ee.textContent="";
+            busyBtn(btn,true);
+            post("challenge","ch_action","challenge_join",{callsign:id2.callsign,device:id2.device,cell_id:c.id,challenge_id:chid},function(r){
+              busyBtn(btn,false);
+              if(!r||!r.ok){ if(ee) ee.textContent=cellWriteErr(r&&r.err); return; }
+              toast("Cell entered. Fight for the top.");
+            });
+          };
+        })(jbs[b]);
+        api("challenge_board",{},function(b2){
+          var bh=document.getElementById("cChBoard"); if(!bh) return;
+          var rows=(b2&&b2.board)||[];
+          if(!rows.length){ bh.innerHTML='<div class="x-note">No standings yet.</div>'; return; }
+          var hh="";
+          for(var q=0;q<Math.min(rows.length,10);q++){
+            hh+='<div class="cp-lead"><span class="cp-lrank">'+(q+1)+'.</span> '
+              +'<span class="cp-lname">'+esc(rows[q].cell||rows[q].cell_name)+'</span> '
+              +'<span class="cp-lxp">'+(Number(rows[q].score)||0)+' pts</span></div>';
+          }
+          bh.innerHTML=hh;
+        });
+      });
+    }
+    loadCh();
+  })();
+  var lleaves=document.querySelectorAll(".c-lleave");
+  for(var li2=0;li2<lleaves.length;li2++)(function(a){
+    a.onclick=function(){
+      if(a.getAttribute("data-busy")) return;
+      if(!window.confirm("Leave "+a.getAttribute("data-nm")+"?")) return;
+      a.setAttribute("data-busy","1"); a.style.opacity=".5";
+      api("cell_leave",{callsign:id.callsign,device:id.device,cell_id:a.getAttribute("data-id")},function(j){
+        if(!j||!j.ok){
+          a.removeAttribute("data-busy"); a.style.opacity="";
+          errEl.textContent=cellWriteErr(j&&j.err,"The wire fought back — you're still in the cell.");
+          return;
+        }
+        state=null; refresh();
+      });
+    };
+  })(lleaves[li2]);
+  var lj=document.getElementById("cLinkJoin");
+  if(lj) lj.onclick=function(){
+    var code=document.getElementById("cLinkCode").value, err=document.getElementById("cLinkErr");
+    errEl.textContent=""; err.textContent="";
+    api("cell_join",{callsign:id.callsign,device:id.device,code:code},function(j){
+      if(!j||!j.ok){ err.textContent=cellWriteErr(j,"Network error."); return; }
+      toast("Wired into "+j.cell.name+". The chain grows.");
+      refresh();
+    });
+  };
+  paintLinkNet();
+}
+/* Chainlink network stat: cached 5 min. */
+var _linkNetAt=0, _linkNetHtml="";
+function paintLinkNet(){
+  var el=document.getElementById("cLinkNet");
+  if(!el) return;
+  if(Date.now()-_linkNetAt<5*60*1000&&_linkNetHtml){ el.innerHTML=_linkNetHtml; return; }
+  api("cell_links",{},function(j){
+    if(!j){ el.innerHTML=""; return; }
+    _linkNetAt=Date.now();
+    _linkNetHtml='<b>'+j.chainlinkers+'</b> chainlinkers wiring <b>'+j.cells+'</b> cells — <b>'+j.main_pct+'%</b> in the main chain';
+    el.innerHTML=_linkNetHtml;
+  },true);
+}
+refresh();
+loadBoard();
+if(!window._pfCellsTick){ window._pfCellsTick=setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} loadBoard(); },5*60*1000); }
+})();
+</script>
+</div>
+</template>`);
+})();
+
+;
+
+/* ===== referral.js ===== */
+/* games/referral.js  |  PF v1.4.3 | REFERRAL WAR: copy-paste referral engine.
+   LAYERING: a game silo like campaign.js. Reads via JSONP (self-contained api()),
+   writes via CORS POST (self-contained post()). It never reaches into another
+   silo's internals. On load, captures ?ref= from the URL into localStorage
+   pf_pending_ref so the enlistment claim flow can attribute the recruit.
+   Framing: class warfare — every recruit is a soldier, build your army.
+   Backend actions: referral_status (GET), referral_leaders (GET), referral_tree (GET),
+   mentor_status (GET). Chainlink optimizations: army tree, mentor panel, share-my-code card.
+   KILL: ?pf_off=referral  or  localStorage pf_disabled_v1='["referral"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("referral")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-referral">
+<div class="fe-block pf-override-block" id="pf-referral">
+<h2>Referral War</h2>
+<div class="c-tag">Every recruit is a soldier. Build your army.</div>
+<div id="xReferral"><div class="c-load">Mustering&hellip;</div></div>
+</div>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+/* Tiers: recruits thresholds. Matches backend src/referral.js. */
+var TIERS=[
+  {min:25,name:"WARLORD",cls:"rf-t-legend"},
+  {min:10,name:"COMMANDER",cls:"rf-t-commander"},
+  {min:3,name:"ORGANIZER",cls:"rf-t-organizer"},
+  {min:1,name:"SCOUT",cls:"rf-t-captain"},
+  {min:0,name:"RECRUIT",cls:"rf-t-recruit"}
+];
+function tierFor(n){ n=Number(n)||0; for(var i=0;i<TIERS.length;i++){ if(n>=TIERS[i].min) return TIERS[i]; } return TIERS[TIERS.length-1]; }
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ PF.toast(m); }catch(e){} }
+function doXp(n,key,reason){
+  try{
+    var id2=ident();
+    document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:n,key:key,reason:reason||"referral"}}));
+  }catch(e){}
+}
+/* CORS POST for writes (referral_claim, referral_activate). */
+function post(rAction,params,cb){
+  var body=Object.assign({type:"referral",r_action:rAction},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+}
+/* JSONP GET for reads. */
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  /* IDOR fix: private referral reads require auth_secret. */
+  if(action==="referral_status"||action==="referral_tree"||action==="mentor_status"){
+    try{
+      var _sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : "";
+      if(_sec && params && !params.auth_secret) params.auth_secret=_sec;
+    }catch(e){}
+  }
+  var fn="pfRfCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+/* Capture ?ref= from URL for attribution on claim. */
+function captureRef(){
+  try{
+    var m=String(window.location.search||"").match(/[?&]ref=([a-z0-9_]{3,20})/i);
+    if(m&&m[1]){
+      var existing="";
+      try{ existing=window.PFCallsign?window.PFCallsign():""; }catch(e){}
+      if(!existing){ try{ localStorage.setItem("pf_pending_ref",m[1].toLowerCase()); }catch(e2){} }
+    }
+  }catch(e3){}
+}
+var S=null, L=null, T=null, M=null, RS=null;
+function load(){
+  var id=ident(), done=false, n=0;
+  function fin(){ if(done)return; done=true; render(); }
+  function one(){ n++; if(n>=5) fin(); }
+  setTimeout(fin,15000);
+  api("referral_status",{callsign:id.callsign,device:id.device},function(j){ S=j; one(); });
+  api("referral_leaders",{},function(j){ L=j; one(); });
+  api("referral_tree",{callsign:id.callsign},function(j){ T=j; one(); });
+  api("mentor_status",{callsign:id.callsign,device:id.device},function(j){ M=j; one(); });
+  /* 2026-10-03: surface referral_stats (public) — authoritative tier/recruit/XP. */
+  api("referral_stats",{callsign:id.callsign},function(j){ RS=j; one(); });
+}
+function refLink(cs){ return "https://www.mtcstw.com/?ref="+encodeURIComponent(cs||""); }
+/* Army tree: nested, collapsible, max 3 levels deep. */
+function treeHtml(nodes,depth){
+  if(!nodes||!nodes.length||depth>2) return "";
+  var h='<ul class="rf-tree rf-depth'+depth+'">';
+  for(var i=0;i<nodes.length;i++){
+    var nd=nodes[i]||{}, t=tierFor(nd.recruits);
+    var kids=(nd.children&&nd.children.length)?' <span class="rf-tkids">'+nd.children.length+' under command</span>':"";
+    h+='<li><span class="rf-tnode">'
+      +'<span class="rf-tog">'+(nd.children&&nd.children.length?"[+]":"&bull;")+'</span> '
+      +'<span class="rf-tname">'+esc(nd.callsign)+'</span> '
+      +'<span class="rf-ltier '+t.cls+'">'+esc(t.name)+'</span>'+kids+'</span>';
+    if(nd.children&&nd.children.length){
+      h+='<div class="rf-tkidsbox" style="display:none">'+treeHtml(nd.children,depth+1)+'</div>';
+    }
+    h+='</li>';
+  }
+  return h+'</ul>';
+}
+function render(){
+  var el=document.getElementById("xReferral"); if(!el) return;
+  var id=ident(), h="";
+  h+='<div class="rf-frame">EVERY RECRUIT IS A SOLDIER. BUILD YOUR ARMY.</div>';
+  h+='<div class="rf-sub">Share your code. They claim a callsign. You both get XP. Climb the tiers.</div>';
+  if(!id.callsign){
+    h+=PF.gateHTML('Referral War runs on callsigns.','to recruit');
+    el.innerHTML=h;
+    return;
+  }
+  var st=S||{}, recruits=Number(st.recruits)||0, xpEarned=Number(st.xp_earned)||0;
+  var tier=tierFor(recruits);
+  var myList=[]; try{ myList=st.recruits_list||st.recruitsList||[]; }catch(e){}
+  /* --- my code --- */
+  h+='<div class="x-pane"><h4>Your referral code</h4>'
+    +'<div class="rf-code">'+esc(id.callsign.toUpperCase())+'</div>'
+    +'<div class="rf-link">'+esc(refLink(id.callsign))+'</div>'
+    +'<div style="margin-top:8px"><button class="c-btn" id="rfCopy">COPY LINK</button> '
+    +'<button class="c-btn" id="rfShare">SHARE</button> '
+    +'<button class="c-btn" id="rfCard">SHARE MY CODE</button></div>'
+    +'<div class="c-err" id="rfCopyErr"></div></div>';
+  /* --- my stats --- */
+  h+='<div class="x-pane"><h4>Your army</h4>'
+    +'<div class="rf-tier '+tier.cls+'">'+esc(tier.name)+'</div>'
+    +'<div class="x-note">'+recruits+' recruits &bull; +'+xpEarned+' XP earned from referrals</div>';
+  var next=null; for(var ti=TIERS.length-1;ti>=0;ti--){ if(TIERS[ti].min>recruits){ next=TIERS[ti]; break; } }
+  if(next){ h+='<div class="x-note">Next tier: '+esc(next.name)+' at '+next.min+' recruits ('+(next.min-recruits)+' to go).</div>'; }
+  else { h+='<div class="x-note">Max tier reached. You are the war.</div>'; }
+  /* 2026-10-03: referral_stats (public) — HQ-authoritative tier line. */
+  if(RS&&RS.ok&&RS.tier){ h+='<div class="x-note">HQ-verified: <b>'+esc(String(RS.tier).toUpperCase())+'</b> tier &mdash; '+(Number(RS.recruits)||0)+' recruits &bull; +'+(Number(RS.xp_earned)||0)+' XP banked.</div>'; }
+  h+='</div>';
+  /* --- recruit-side claim: +25 XP welcome bonus (referral_claim, AUTH).
+     The recruiter side (referral_activate) already exists below; this is the
+     recruit's own button — the half that was never wired. --- */
+  var prc=""; try{ prc=String(localStorage.getItem("pf_pending_ref")||"").toLowerCase().replace(/[^a-z0-9_]/g,""); }catch(epr){}
+  h+='<div class="x-pane"><h4>Claim your recruit bonus</h4>'
+    +'<div class="x-note">Were you recruited by someone? Claim your <b>+25 XP</b> welcome bonus right now. They get paid when you activate.</div>';
+  if(prc){
+    h+='<div class="x-note">Recruiter code on file: <b>'+esc(prc.toUpperCase())+'</b></div>'
+      +'<div style="margin-top:8px"><button class="c-btn" id="rfClaimBtn">CLAIM +25 XP</button></div><div class="c-err" id="rfClaimErr"></div>';
+  } else {
+    h+='<div style="margin-top:8px"><input aria-label="Recruiter callsign" class="c-in pf-input-md" id="rfClaimCode" maxlength="20" placeholder="recruiter callsign" /> '
+      +'<button class="c-btn" id="rfClaimBtn">CLAIM +25 XP</button></div><div class="c-err" id="rfClaimErr"></div>';
+  }
+  h+='</div>';
+  /* --- claim recruit bonuses: +50 XP each once a recruit completes 3+ actions --- */
+  h+='<div class="x-pane"><h4>Claim recruit bonuses</h4>'
+    +'<div class="x-note">Each recruit pays <b>+50 XP</b> once they complete 3+ actions. Hit ACTIVATE to collect.</div>'
+    +'<div id="rfActivateList"><div class="c-load">Checking recruits&hellip;</div></div></div>';
+  /* --- my recruits --- */
+  h+='<div class="x-pane"><h4>Your recruits</h4>';
+  if(!myList.length){ h+='<div class="x-note">No recruits yet. Share your code — every soldier counts.</div>'; }
+  else{
+    h+='<div class="rf-wall">';
+    for(var r=0;r<Math.min(myList.length,50);r++){ h+='<span class="rf-wname">'+esc(myList[r].callsign||myList[r])+'</span>'; }
+    h+='</div>';
+  }
+  h+='</div>';
+  /* --- army tree --- */
+  h+='<div class="x-pane"><h4>My army tree</h4>';
+  var tree=[]; try{ tree=(T&&T.tree)||[]; }catch(e3){}
+  if(!tree.length){ h+='<div class="x-note">Your tree grows as your recruits recruit. Depth wins wars.</div>'; }
+  else{ h+=treeHtml(tree,0); }
+  h+='</div>';
+  /* --- mentor --- */
+  h+='<div class="x-pane"><h4>Mentor</h4>';
+  var mm=M||{};
+  if(mm.mentor){
+    h+='<div class="x-note">Your mentor: <b>'+esc(mm.mentor)+'</b> — learn the ropes, then take command.</div>';
+  } else {
+    h+='<div class="x-note">No mentor assigned yet. The network will match you with a veteran.</div>'
+      +'<div style="margin-top:8px"><button class="c-btn" id="rfPairBtn">FIND ME A MENTOR</button></div>';
+  }
+  var mtes=(mm.mentees)||[];
+  if(mtes.length){
+    h+='<div class="x-note" style="margin-top:8px">You mentor '+mtes.length+' soldier(s). Claim <b>+10 XP</b> for each once they complete 5+ actions.</div>';
+    for(var mi=0;mi<Math.min(mtes.length,20);mi++){
+      var me=mtes[mi]||{}, mcs=String(me.mentee||"");
+      if(!mcs) continue;
+      h+='<div class="cp-lead"><span class="cp-lname">'+esc(mcs)+'</span> '
+        +(me.paid?'<span class="cp-mdone">CLAIMED</span>'
+          :'<button class="c-btn rf-mclaim" data-mentee="'+esc(mcs)+'">CLAIM +10 XP</button>')
+        +'</div>';
+    }
+  }
+  h+='</div>';
+  /* --- leaderboard --- */
+  var ld=[]; try{ ld=(L&&L.leaders)||[]; }catch(e2){}
+  h+='<div class="x-pane"><h4>Top recruiters</h4>';
+  if(!ld.length){ h+='<div class="x-note">No standings yet. Be the first warlord.</div>'; }
+  for(var q=0;q<Math.min(ld.length,10);q++){
+    var lt=tierFor(ld[q].recruits);
+    h+='<div class="cp-lead"><span class="cp-lrank">'+(q+1)+'.</span> <span class="cp-lname">'+esc(ld[q].callsign)+'</span> '
+      +'<span class="rf-ltier '+lt.cls+'">'+esc(lt.name)+'</span> '
+      +'<span class="cp-lxp">'+(Number(ld[q].recruits)||0)+' recruits</span></div>';
+  }
+  h+='</div>';
+  /* --- how it works --- */
+  h+='<div class="x-pane"><h4>How it works</h4>'
+    +'<div class="x-note"><b>1.</b> Share your code or link anywhere.</div>'
+    +'<div class="x-note"><b>2.</b> They claim a callsign with your code attached.</div>'
+    +'<div class="x-note"><b>3.</b> You both get XP. They join your army. You climb the tiers.</div>'
+    +'<div class="x-note">Recruit 1 for SCOUT, 3 for ORGANIZER, 10 for COMMANDER, 25 for WARLORD.</div></div>';
+  h+='<div style="margin-top:10px"><button class="c-btn" id="rfRetry">Refresh</button></div>';
+  el.innerHTML=h;
+  /* --- recruit activation list: one ACTIVATE button per recruit --- */
+  (function(){
+    var box=document.getElementById("rfActivateList"); if(!box) return;
+    var list=[]; try{ list=myList.slice(0,50); }catch(e){}
+    if(!list.length){ box.innerHTML='<div class="x-note">No recruits yet — nothing to activate.</div>'; return; }
+    var bh="";
+    for(var ai=0;ai<list.length;ai++){
+      var rcs=String((list[ai]&&list[ai].callsign)||list[ai]||"");
+      if(!rcs) continue;
+      bh+='<div class="cp-lead"><span class="cp-lname">'+esc(rcs)+'</span> '
+        +'<button class="c-btn rf-act" data-rc="'+esc(rcs)+'">ACTIVATE +50 XP</button></div>';
+    }
+    if(!bh){ box.innerHTML='<div class="x-note">No recruits yet — nothing to activate.</div>'; return; }
+    box.innerHTML=bh;
+    var btns=box.querySelectorAll("button.rf-act");
+    for(var bi=0;bi<btns.length;bi++)(function(btn){
+      btn.onclick=function(){
+        var rcs=btn.getAttribute("data-rc"); if(!rcs) return;
+        btn.disabled=true; btn.textContent="ACTIVATING\u2026";
+        post("referral_activate",{recruit_callsign:rcs,callsign:id.callsign,device:id.device},function(j){
+          if(j&&j.ok&&(j.xp||j.recruiter)){
+            var amt=Number(j.xp)||50;
+            /* 2026-10-03: same double-grant class as the bounty-refund fix —
+               the backend already granted this bonus via xpGrant
+               ('ref_bonus_'+recruiter+'_'+rcs); dispatching pf-xp here made
+               the xpledger mirror it a second time under an lx: key.
+               Backend is the source of truth; toast only. */
+            toast("RECRUIT ACTIVE. +"+amt+" XP — "+rcs+" fights under your banner.");
+            btn.textContent="COLLECTED"; btn.disabled=true;
+            S=null; load();
+          } else if(j&&j.ok&&j.already){
+            toast(rcs+" already activated.");
+            btn.textContent="COLLECTED"; btn.disabled=true;
+          } else if(j&&j.err==="not active yet"){
+            toast(rcs+" needs 3+ actions first. Nudge them.");
+            btn.disabled=false; btn.textContent="ACTIVATE +50 XP";
+          } else {
+            toast("Activation failed: "+(PF.errCopy(j,"try again.")));
+            btn.disabled=false; btn.textContent="ACTIVATE +50 XP";
+          }
+        });
+      };
+    })(btns[bi]);
+  })();
+  /* wire copy */
+  var cp=document.getElementById("rfCopy");
+  if(cp) cp.onclick=function(){
+    var link=refLink(id.callsign);
+    function ok(){ toast("Link copied. Go recruit."); }
+    function fail(){ var e=document.getElementById("rfCopyErr"); if(e) e.textContent="Copy failed — long-press the link above."; }
+    try{
+      if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(link).then(ok,fail); }
+      else{
+        var ta=document.createElement("textarea"); ta.value=link; document.body.appendChild(ta);
+        ta.select(); var did=false; try{ did=document.execCommand("copy"); }catch(e){}
+        document.body.removeChild(ta); if(did) ok(); else fail();
+      }
+    }catch(e){ fail(); }
+  };
+  /* wire share */
+  var sh=document.getElementById("rfShare");
+  if(sh) sh.onclick=function(){
+    var link=refLink(id.callsign);
+    var txt="Join the fight. Claim your callsign with my code "+id.callsign.toUpperCase()+": "+link;
+    try{
+      if(navigator.share){ navigator.share({title:"Join the fight",text:txt,url:link}).catch(function(){}); }
+      else{ toast("Copy your link and spread it everywhere."); }
+    }catch(e){ toast("Copy your link and spread it everywhere."); }
+  };
+  var rb=document.getElementById("rfRetry");
+  if(rb) rb.onclick=function(){ S=L=T=M=RS=null; el.innerHTML='<div class="c-load">Mustering&hellip;</div>'; load(); };
+  /* recruit-side claim (referral_claim, AUTH) — the recruit's own button. */
+  var rcb=document.getElementById("rfClaimBtn");
+  if(rcb) rcb.onclick=function(){
+    var err=document.getElementById("rfClaimErr");
+    var code=prc;
+    if(!code){ var ci=document.getElementById("rfClaimCode"); code=ci?String(ci.value||"").toLowerCase().replace(/[^a-z0-9_]/g,""):""; }
+    if(err) err.textContent="";
+    if(!code){ if(err) err.textContent="Enter your recruiter's callsign."; return; }
+    rcb.disabled=true; rcb.textContent="CLAIMING\u2026";
+    post("referral_claim",{callsign:id.callsign,device:id.device,ref_code:code},function(j){
+      if(j&&j.ok&&!j.noref){
+        var amt=Number(j.recruit_xp)||25;
+        try{ localStorage.removeItem("pf_pending_ref"); }catch(e){}
+        toast("WELCOME TO THE ARMY. +"+amt+" XP — "+code.toUpperCase()+" gets paid when you activate.");
+        S=null; RS=null; load();
+      } else if(j&&j.ok&&j.already){
+        try{ localStorage.removeItem("pf_pending_ref"); }catch(e2){}
+        rcb.textContent="CLAIMED";
+        if(err) err.textContent="Already claimed. Nothing left to collect.";
+      } else if(j&&j.ok&&j.self){
+        if(err) err.textContent="You can't claim your own code.";
+        rcb.disabled=false; rcb.textContent="CLAIM +25 XP";
+      } else if(j&&j.ok&&(j.unknown||j.invalid)){
+        if(err) err.textContent="That recruiter code doesn't exist. Check the spelling.";
+        rcb.disabled=false; rcb.textContent="CLAIM +25 XP";
+      } else {
+        if(err) err.textContent=PF.errCopy(j,"Claim failed. Try again.");
+        rcb.disabled=false; rcb.textContent="CLAIM +25 XP";
+      }
+    });
+  };
+  /* mentor: pair with a veteran + claim +10 XP per active mentee (2026-10-03 H7).
+     Backend grants via xpGrant — backend is the source of truth, toast only. */
+  var mpb=document.getElementById("rfPairBtn");
+  if(mpb) mpb.onclick=function(){
+    mpb.disabled=true; mpb.textContent="MATCHING…";
+    post("mentor_pair",{mentee:id.callsign,callsign:id.callsign,device:id.device},function(j){
+      if(j&&j.ok&&(j.mentor)){
+        toast(j.already?("You already have a mentor: "+j.mentor+"."):("Mentor assigned: "+j.mentor+". Learn the ropes."));
+        M=null; load();
+      } else {
+        toast(PF.errCopy(j,"No mentor available right now."));
+        mpb.disabled=false; mpb.textContent="FIND ME A MENTOR";
+      }
+    });
+  };
+  var mcb=el.querySelectorAll("button.rf-mclaim");
+  for(var mci=0;mci<mcb.length;mci++)(function(btn){
+    btn.onclick=function(){
+      var rcs=btn.getAttribute("data-mentee"); if(!rcs) return;
+      btn.disabled=true; btn.textContent="CLAIMING…";
+      post("mentor_claim",{mentor:id.callsign,mentee:rcs},function(j){
+        if(j&&j.ok&&j.paid){
+          toast("MENTOR BONUS. +10 XP — "+rcs+" is putting in work.");
+          M=null; load();
+        } else if(j&&j.ok){
+          toast(rcs+" has "+(j.actions||0)+"/5 actions. Nudge them.");
+          btn.disabled=false; btn.textContent="CLAIM +10 XP";
+        } else {
+          toast(PF.errCopy(j,"Claim failed."));
+          btn.disabled=false; btn.textContent="CLAIM +10 XP";
+        }
+      });
+    };
+  })(mcb[mci]);
+  /* tree toggles */
+  try{
+    var tnodes=el.querySelectorAll(".rf-tnode");
+    for(var tn=0;tn<tnodes.length;tn++)(function(nd){
+      nd.onclick=function(){
+        var box=nd.parentNode.querySelector(".rf-tkidsbox");
+        if(!box) return;
+        var open=box.style.display!=="none";
+        box.style.display=open?"none":"";
+        var tg=nd.querySelector(".rf-tog");
+        if(tg) tg.textContent=open?"[+]":"[-]";
+      };
+    })(tnodes[tn]);
+  }catch(e){}
+  /* share-my-code card */
+  var rc=document.getElementById("rfCard");
+  if(rc) rc.onclick=function(){
+    try{
+      if(!window.PFShare||!PFShare.shareImage){ toast("Share engine loading — try again in a moment."); return; }
+      var cs=id.callsign.toUpperCase(), link=refLink(id.callsign);
+      var W=1080,H=1350,cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+      var x=cv.getContext("2d"); if(!x){ toast("Canvas unavailable."); return; }
+      x.fillStyle="#0d0d0d"; x.fillRect(0,0,W,H);
+      x.strokeStyle="#c1121f"; x.lineWidth=18; x.strokeRect(16,16,W-32,H-32);
+      x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(52,52,W-104,H-104);
+      x.textAlign="center";
+      x.fillStyle="#f5ead6"; x.font="700 40px Arial,sans-serif";
+      x.fillText("\u2605 REFERRAL WAR \u2605",W/2,170);
+      x.fillStyle="#c1121f"; x.font="900 92px \\\"Arial Black\\\",Arial,sans-serif";
+      x.fillText("JOIN THE FIGHT.",W/2,330);
+      x.fillStyle="#f5ead6"; x.font="700 44px Arial,sans-serif";
+      x.fillText("Claim your callsign with my code:",W/2,470);
+      /* 2026-10-04 P4 #12: shrink-to-fit -- long callsigns stay inside the canvas. */
+      x.fillStyle="#c1121f"; x.textAlign="center";
+      var csSize=120;
+      x.font="900 "+csSize+"px \\\"Arial Black\\\",Arial,sans-serif";
+      while(csSize>36&&x.measureText(cs).width>W-200){ csSize-=4;
+        x.font="900 "+csSize+"px \\\"Arial Black\\\",Arial,sans-serif"; }
+      x.fillText(cs,W/2,660);
+      x.fillStyle="#c9bfa8"; x.font="400 38px Arial,sans-serif";
+      x.fillText(link,W/2,780);
+      x.fillStyle="#f5ead6"; x.font="700 40px Arial,sans-serif";
+      x.fillText("We both get XP. You join my army.",W/2,920);
+      x.fillStyle="#c1121f"; x.font="900 64px \\\"Arial Black\\\",Arial,sans-serif";
+      x.fillText("MTCSTW.COM",W/2,H-140);
+      try{ cv._pfStamped=true; }catch(e2){}
+      PFShare.shareImage(cv,"referral-"+cs.toLowerCase()+".png","Referral War","referral");
+    }catch(e3){ toast("Card failed — copy your link instead."); }
+  };
+}
+captureRef();
+load();
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },120000);
+})();
+</scr`+`ipt>
+</div>
+</template>`);
+})();
+
+;
+
+/* ===== poster-forge.js ===== */
+/* games/poster-forge.js  |  PF v1.4.3 | Poster Forge widget: template + slogan engine + meme maker
+   2026-10-03: Video Forge (games/video.js) merged as the VIDEO tab. video.js deleted.
+   KILL: ?pf_off=poster-forge  or  localStorage pf_disabled_v1='["poster-forge"]' */
+
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("poster-forge")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-poster">
+<div class="fe-block pf-override-block" id="pf-poster">
+
+<h2>The Poster Forge</h2>
+<div class="p-sub">Make propaganda. Download it. Plaster the internet.</div>
+<style>
+#pf-poster .p-tabs{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
+#pf-poster .p-tab.on{border-color:#c1121f;background:rgba(193,18,31,.18);color:#fff}
+#pfPane-video{margin-top:6px}
+</style>
+<div class="p-tabs" role="tablist">
+  <button class="c-btn p-tab on" data-ptab="poster" role="tab">POSTER</button>
+  <button class="c-btn p-tab" data-ptab="video" role="tab">VIDEO</button>
+</div>
+<div id="pfPane-poster">
+<canvas id="pCanvas" width="1080" height="1350"></canvas>
+
+<div class="p-ctl">
+  <label for="pTop">Top line</label>
+  <input id="pTop" maxlength="40" value="THE PROPAGANDA FACTORY">
+  <label for="pHead">Headline</label>
+  <input id="pHead" maxlength="60" value="EAT THE RICH">
+  <label for="pBot">Bottom line</label>
+  <input id="pBot" maxlength="40" value="MT CSTW DOT COM">
+  <label>Style</label>
+  <div class="p-styles" id="pStyles">
+    <button class="p-style on" data-s="0">The Call</button>
+    <button class="p-style" data-s="1">Wanted</button>
+    <button class="p-style" data-s="2">Red Wave</button>
+    <button class="p-style" data-s="3">Strike!</button>
+  </div>
+  <div class="p-row">
+    <button class="p-btn ghost" id="pRandom">&#9873; Agitate me</button>
+    <a class="p-btn" id="pDownload" href="#" download="pfn-propaganda-poster.png">Download</a>
+    <button class="p-btn ghost" id="pShare">Share</button>
+  </div>
+  <div class="p-note">1080 &times; 1350 — made for the feed. Every download carries JOIN THE FIGHT. + MTCSTW.COM.</div>
+  <div id="pSpread"></div>
+  <div id="pImpact"></div>
+</div>
+</div>
+<div id="pfPane-video" style="display:none">
+<div id="xVideo"><div class="c-load">Loading the forge&hellip;</div></div>
+</div>
+
+<script>
+(function(){
+var SLOGANS=[
+ ["SICK LEFT RADICALS","EAT THE RICH","SEIZE THE MEMES OF PRODUCTION"],
+ ["THE PROPAGANDA FACTORY","GENERAL STRIKE","OCTOBER 1ST. EVERYWHERE."],
+ ["COMRADES","HOUSING IS A HUMAN RIGHT","LANDLORDS ARE A POLICY CHOICE"],
+ ["THE PROPAGANDA FACTORY","TAX THE RICH","OR WE WILL"],
+ ["SICK LEFT RADICALS","UNIONIZE EVERYWHERE","YOUR BOSS IS SCARED. GOOD."],
+ ["COMRADES","MEDICARE FOR ALL","YOUR INSULIN COSTS $6 TO MAKE"],
+ ["THE PROPAGANDA FACTORY","ABOLISH BILLIONAIRES","NO ONE EARNS A BILLION"],
+ ["SICK LEFT RADICALS","THE RENT IS TOO DAMN HIGH","ORGANIZE YOUR BUILDING"],
+ ["COMRADES","YOUR BOSS NEEDS YOU","YOU DON'T NEED YOUR BOSS"],
+ ["THE PROPAGANDA FACTORY","READ THEORY","THEN TOUCH GRASS. THEN ORGANIZE."],
+ ["SICK LEFT RADICALS","STRIKE!","WITHHOLD YOUR LABOR"],
+ ["COMRADES","SOLIDARITY FOREVER","THE UNION MAKES US STRONG"]
+];
+var CREAM="#f5ead6",RED="#c1121f",BLACK="#0d0d0d";
+var cv=document.getElementById("pCanvas"),ctx=cv.getContext("2d");
+var state={top:"THE PROPAGANDA FACTORY",head:"EAT THE RICH",bot:"MT CSTW DOT COM",style:0};
+var W=1080,H=1350;
+
+function wrap(text,maxW,base){
+  var words=text.toUpperCase().split(/\\s+/),lines=[],line="";
+  words.forEach(function(w){
+    var t=line?line+" "+w:w;
+    if(ctx.measureText(t).width>maxW&&line){lines.push(line);line=w;}else{line=t;}
+  });
+  if(line)lines.push(line);
+  var size=base;
+  ctx.font=size+"px 'Arial Black',Arial,sans-serif";
+  lines.forEach(function(l){ if(ctx.measureText(l).width>maxW){ var s=Math.floor(size*maxW/ctx.measureText(l).width); if(s<size)size=s; }});
+  if(size<40)size=40;
+  return {lines:lines,size:size};
+}
+function centerBlock(lines,size,y,lh,color){
+  ctx.fillStyle=color;ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.font=size+"px 'Arial Black',Arial,sans-serif";
+  lines.forEach(function(l,i){ctx.fillText(l,540,y+i*lh);});
+  return y+lines.length*lh;
+}
+function border(col,w,pad){ctx.strokeStyle=col;ctx.lineWidth=w;ctx.strokeRect(pad,pad,1080-2*pad,1350-2*pad);}
+function watermark(){
+  ctx.save();
+  /* Bottom CTA bar: JOIN THE FIGHT. + MTCSTW.COM (site CTA standard) */
+  var barH=90, barY=H-barH;
+  ctx.fillStyle="#c1121f";
+  ctx.fillRect(0,barY,W,barH);
+  ctx.fillStyle="#f5f0e6";ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.font="bold 44px 'Arial Black',Arial,sans-serif";
+  ctx.fillText("JOIN THE FIGHT.",W/2,barY+32);
+  ctx.font="28px Arial,sans-serif";
+  ctx.fillText("MTCSTW.COM",W/2,barY+68);
+  /* PFN watermark (top-right, smaller) */
+  var label="PFN";
+  ctx.font="28px 'Arial Black',Arial,sans-serif";
+  var tw=ctx.measureText(label).width,pad=12,bw=tw+pad*2,bh=40;
+  var bx=W-20-bw,by=20;
+  ctx.globalAlpha=0.8;
+  ctx.fillStyle="rgba(13,13,13,0.65)";
+  if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bx,by,bw,bh,8);ctx.fill();ctx.strokeStyle="#f5f0e6";ctx.lineWidth=2;ctx.stroke();}
+  else{ctx.fillRect(bx,by,bw,bh);}
+  ctx.globalAlpha=1;
+  ctx.fillStyle="#f5f0e6";ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.fillText(label,bx+bw/2,by+bh/2+2);
+  ctx.restore();
+}
+
+function draw(){
+  var s=state.style;
+  ctx.textAlign="center";ctx.textBaseline="middle";
+  if(s===0){ /* THE CALL — cream, red headline */
+    ctx.fillStyle=CREAM;ctx.fillRect(0,0,W,H);border(BLACK,26,26);border(RED,6,60);
+    ctx.fillStyle=RED;ctx.font="64px 'Arial Black',Arial,sans-serif";ctx.fillText(state.top,540,170);
+    ctx.fillStyle=BLACK;ctx.fillRect(80,230,920,6);
+    var t=wrap(state.head,860,170);var y=centerBlock(t.lines,t.size,640,t.size*1.12,RED);
+    ctx.fillStyle=BLACK;ctx.fillRect(80,H-260,920,10);
+    ctx.fillStyle=CREAM;ctx.fillRect(0,H-220,W,220);ctx.fillStyle=BLACK;ctx.fillRect(0,H-220,W,220);
+    ctx.fillStyle=CREAM;ctx.font="56px 'Arial Black',Arial,sans-serif";ctx.fillText(state.bot,540,H-110);
+  }else if(s===1){ /* WANTED — black, cream/red */
+    ctx.fillStyle=BLACK;ctx.fillRect(0,0,W,H);border(RED,26,26);border(CREAM,6,60);
+    ctx.fillStyle=CREAM;ctx.font="150px 'Arial Black',Arial,sans-serif";ctx.fillText("WANTED",540,190);
+    ctx.fillStyle=RED;ctx.font="56px 'Arial Black',Arial,sans-serif";ctx.fillText(state.top,540,300);
+    var t=wrap(state.head,860,150);centerBlock(t.lines,t.size,700,t.size*1.12,CREAM);
+    ctx.fillStyle=RED;ctx.fillRect(80,H-280,920,8);
+    ctx.fillStyle=CREAM;ctx.font="52px 'Arial Black',Arial,sans-serif";ctx.fillText(state.bot,540,H-150);
+  }else if(s===2){ /* RED WAVE — red bg */
+    ctx.fillStyle=RED;ctx.fillRect(0,0,W,H);border(BLACK,26,26);border(CREAM,6,60);
+    ctx.fillStyle=BLACK;ctx.font="64px 'Arial Black',Arial,sans-serif";ctx.fillText(state.top,540,170);
+    var t=wrap(state.head,860,170);centerBlock(t.lines,t.size,640,t.size*1.12,CREAM);
+    ctx.fillStyle=BLACK;ctx.fillRect(0,H-220,W,220);
+    ctx.fillStyle=CREAM;ctx.font="56px 'Arial Black',Arial,sans-serif";ctx.fillText(state.bot,540,H-110);
+  }else{ /* STRIKE — diagonal stripes */
+    ctx.fillStyle=CREAM;ctx.fillRect(0,0,W,H);
+    ctx.save();ctx.beginPath();ctx.rect(0,0,W,300);ctx.clip();
+    for(var i=-8;i<24;i++){ctx.fillStyle=i%2?BLACK:RED;ctx.save();ctx.translate(i*90,0);ctx.rotate(-0.5);ctx.fillRect(0,-200,45,700);ctx.restore();}
+    ctx.restore();
+    ctx.fillStyle=CREAM;ctx.font="72px 'Arial Black',Arial,sans-serif";
+    ctx.save();ctx.shadowColor=BLACK;ctx.shadowOffsetX=6;ctx.shadowOffsetY=6;ctx.fillText("STRIKE!",540,150);ctx.restore();
+    border(BLACK,26,26);
+    ctx.fillStyle=BLACK;ctx.font="60px 'Arial Black',Arial,sans-serif";ctx.fillText(state.top,540,420);
+    var t=wrap(state.head,860,170);centerBlock(t.lines,t.size,760,t.size*1.12,RED);
+    ctx.fillStyle=BLACK;ctx.fillRect(80,H-260,920,10);
+    ctx.fillStyle=BLACK;ctx.font="56px 'Arial Black',Arial,sans-serif";ctx.fillText(state.bot,540,H-130);
+  }
+  watermark();
+}
+function sync(){state.top=document.getElementById("pTop").value||" ";state.head=document.getElementById("pHead").value||" ";state.bot=document.getElementById("pBot").value||" ";draw();}
+["pTop","pHead","pBot"].forEach(function(id){document.getElementById(id).addEventListener("input",sync);});
+document.getElementById("pStyles").addEventListener("click",function(e){
+  var b=e.target.closest(".p-style");if(!b)return;
+  this.querySelectorAll(".p-style").forEach(function(x){x.classList.remove("on");});
+  b.classList.add("on");state.style=+b.dataset.s;draw();
+});
+document.getElementById("pRandom").onclick=function(){
+  var p=SLOGANS[Math.floor(Math.random()*SLOGANS.length)];
+  document.getElementById("pTop").value=p[0];document.getElementById("pHead").value=p[1];document.getElementById("pBot").value=p[2];
+  sync();
+};
+/* PFN metadata stamping: inject tEXt chunks so every PNG traces to the network. */
+var CRC_T=(function(){var t=[],c;for(var n=0;n<256;n++){c=n;for(var k=0;k<8;k++){c=c&1?0xEDB88320^(c>>>1):c>>>1;}t[n]=c>>>0;}return t;})();
+function pngCrc(type,data){var crc=0xFFFFFFFF,i;for(i=0;i<4;i++){crc=CRC_T[(crc^type.charCodeAt(i))&255]^(crc>>>8);}for(i=0;i<data.length;i++){crc=CRC_T[(crc^data[i])&255]^(crc>>>8);}return (crc^0xFFFFFFFF)>>>0;}
+function textChunk(keyword,text){
+  var enc=new TextEncoder();
+  var kw=enc.encode(keyword),tx=enc.encode(text);
+  var data=new Uint8Array(kw.length+1+tx.length);
+  data.set(kw,0);data[kw.length]=0;data.set(tx,kw.length+1);
+  var out=new Uint8Array(12+data.length),dv=new DataView(out.buffer);
+  dv.setUint32(0,data.length);
+  out[4]=116;out[5]=69;out[6]=88;out[7]=116; /* "tEXt" */
+  out.set(data,8);
+  dv.setUint32(8+data.length,pngCrc("tEXt",data));
+  return out;
+}
+function stampPng(buf){
+  var bytes=new Uint8Array(buf);
+  var sig=[137,80,78,71,13,10,26,10],i;
+  for(i=0;i<8;i++){if(bytes[i]!==sig[i])return buf;}
+  var meta=[
+    ["Title","PFN Agitprop Poster"],
+    ["Author","Propaganda Factory Network"],
+    ["Description","Seize the memes of production. Forged at mtcstw.com - workers of the feed, unite."],
+    ["Copyright","Copyright 2026 Propaganda Factory Network. Property of the working class."],
+    ["Software","PFN Poster Forge"],
+    ["Source","https://www.mtcstw.com"],
+    ["Comment","EAT THE RICH - solidarity forever."]
+  ];
+  var chunks=[],total=0;
+  meta.forEach(function(m){var c=textChunk(m[0],m[1]);chunks.push(c);total+=c.length;});
+  var dv=new DataView(bytes.buffer),pos=8;
+  while(pos+8<bytes.length){
+    var len=dv.getUint32(pos);
+    var type=String.fromCharCode(bytes[pos+4],bytes[pos+5],bytes[pos+6],bytes[pos+7]);
+    if(type==="IEND")break;
+    pos+=12+len;
+  }
+  var out=new Uint8Array(bytes.length+total);
+  out.set(bytes.subarray(0,pos),0);
+  var o=pos;
+  chunks.forEach(function(c){out.set(c,o);o+=c.length;});
+  out.set(bytes.subarray(pos),o);
+  return out.buffer;
+}
+function stampedBlob(cb){
+  /* Stamp the callsign on a throwaway copy — the forge canvas itself stays clean. */
+  var src=cv;
+  try{
+    if(window.PFShare&&window.PFShare.stampCallsign){
+      var c2=document.createElement('canvas');c2.width=cv.width;c2.height=cv.height;
+      c2.getContext('2d').drawImage(cv,0,0);
+      src=window.PFShare.stampCallsign(c2)||c2;
+    }
+  }catch(e){src=cv;}
+  src.toBlob(function(blob){
+    if(blob.arrayBuffer){blob.arrayBuffer().then(function(buf){cb(new Blob([stampPng(buf)],{type:"image/png"}));}).catch(function(){pfToast("Poster failed to render — tap Download again to retry.");});}
+    else{cb(blob);}
+  });
+}
+document.getElementById("pDownload").onclick=function(e){
+  e.preventDefault();
+  /* award XP + ping the trackers — ONCE PER DAY max (anti-farming).
+     Repeated downloads of the same or different posters on the same day
+     do not re-fire pf-poster-made. */
+  try{
+    var today=new Date().toISOString().slice(0,10);
+    var pfKey='pf_poster_day_v1';
+    var last=null;try{last=localStorage.getItem(pfKey);}catch(err){}
+    if(last!==today){
+      try{localStorage.setItem(pfKey,today);}catch(err){}
+      document.dispatchEvent(new CustomEvent("pf-poster-made",{detail:{day:today}}));
+    }
+  }catch(err){}
+  pfLogShare();
+  stampedBlob(function(blob){
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement("a");
+    a.href=url;a.download="pfn-propaganda-poster.png";
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(function(){URL.revokeObjectURL(url);},4000);
+  });
+};
+document.getElementById("pShare").onclick=function(){
+  pfLogShare();
+  stampedBlob(function(blob){
+    var f=new File([blob],"pfn-propaganda-poster.png",{type:"image/png"});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:"PFN propaganda poster"}).catch(function(){});return;}
+    var url=URL.createObjectURL(blob);window.open(url,"_blank");
+  });
+};
+/* ---- Spread tracking + creator dashboard + boost economy ---- */
+var PFBE=window.PF_BACKEND_URL;
+function pfEsc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function pfIdent(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function pfToast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+/* Friendly copy for gated read failures (2026-10-03): raw backend strings
+   like 'missing credentials' are never shown as UI copy. */
+function pfAuthHint(j){
+  var e=String((j&&j.err)||"");
+  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")
+    return '<br><span class="x-note">This callsign predates the new auth system and can&rsquo;t reconnect on its own &mdash; contact MTCSTW to recover it.</span>';
+  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)
+    return '<br><span class="x-note">Your callsign needs to reconnect &mdash; re-claim it in Enlistment Ranks (one tap), then retry.</span>';
+  return "";
+}
+function pfApi(action,params,cb){
+  if(!PFBE){ cb(null); return; }
+  /* Private reads require auth_secret (IDOR fix). Route gated actions
+     through the shared claim-retry GET (2026-10-03): pre-auth callsign
+     holders with no stored secret get one auth_claim attempt instead of
+     failing 'missing credentials' forever. */
+  if(action==="creator_dashboard"){
+    try{
+      if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(PFBE,action,params,cb); return; }
+      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+    }catch(e){}
+  }
+  var fn="pfPfCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"),done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=PFBE+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function pfPost(body,cb){
+  if(window.PF&&PF.authPost){ PF.authPost(PFBE,body,cb); return; }
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    /* 2026-10-03 L6: abort backstop — a hung fallback POST previously left
+       boost buttons stuck disabled. */
+    var ctl2=null;
+    try{ ctl2=new AbortController(); }catch(e){}
+    var hung2=setTimeout(function(){ try{ if(ctl2) ctl2.abort(); }catch(e){} },15000);
+    fetch(PFBE,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body),signal:ctl2?ctl2.signal:undefined})
+      .then(function(r){ return r.json(); }).then(function(j){ try{clearTimeout(hung2);}catch(e){} done(j); })
+      .catch(function(){ try{clearTimeout(hung2);}catch(e){} done(null); });
+  }catch(e){ done(null); }
+}
+/* One content id per unique poster design. Same design = same id. */
+var pfContentIds={}, pfRegistered={}, pfLastShared=null;
+function pfContentId(){
+  var sig=[state.top,state.head,state.bot,state.style].join("|");
+  if(!pfContentIds[sig]) pfContentIds[sig]="pf-"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+  return pfContentIds[sig];
+}
+function pfLogShare(){
+  var id=pfIdent();
+  var cid=pfContentId(), title=state.head||"untitled";
+  try{ localStorage.setItem("pf_last_content_id",cid); }catch(e){}
+  pfLastShared=cid;
+  if(pfRegistered[cid]){ pfDoShareLog(cid,id); return; }
+  if(!id.callsign){ pfRenderSpread(); pfRenderImpact(); return; }
+  pfPost({type:"spread",sp_action:"content_register",id:cid,callsign:id.callsign,kind:"poster",title:title},function(j){
+    if(j&&j.ok) pfRegistered[cid]=1;
+    pfDoShareLog(cid,id);
+  });
+}
+function pfDoShareLog(cid,id){
+  if(id.callsign){
+    pfPost({type:"spread",sp_action:"share_log",content_id:cid,sharer:id.callsign},function(){ pfRenderSpread(); });
+  } else { pfRenderSpread(); }
+  pfRenderImpact();
+  try{ document.dispatchEvent(new CustomEvent("pf-content-shared",{detail:{content_id:cid}})); }catch(e){}
+}
+function pfBoostRow(cid,xpTotal){
+  return '<div class="p-boostrow"><span class="p-boosttotal">BOOSTED '+xpTotal+' XP</span> '
+    +[10,25,50].map(function(a){
+      return '<button class="p-btn ghost p-boostbtn" data-cid="'+pfEsc(cid)+'" data-amt="'+a+'">+'+a+' XP</button>';
+    }).join(" ")+'</div>';
+}
+function pfWireBoosts(root){
+  var btns=(root||document).querySelectorAll("button.p-boostbtn");
+  for(var i=0;i<btns.length;i++){
+    (function(btn){
+      if(btn._pfWired) return; btn._pfWired=1;
+      btn.onclick=function(){
+        var id=pfIdent();
+        if(!id.callsign){ pfToast("Claim a callsign first."); return; }
+        btn.disabled=true;
+        pfPost({type:"spread",sp_action:"boost_give",content_id:btn.getAttribute("data-cid"),booster:id.callsign,device:id.device,xp:btn.getAttribute("data-amt")},function(j){
+          btn.disabled=false;
+          if(!j||!j.ok){ pfToast(PF.errCopy(j,"Boost failed.")); return; }
+          pfToast("BOOSTED — "+j.total_boosts+" XP total on this piece.");
+          pfRenderSpread(); pfRenderImpact();
+          try{ document.dispatchEvent(new CustomEvent("pf-boost-given",{detail:{content_id:btn.getAttribute("data-cid")}})); }catch(e){}
+        });
+      };
+    })(btns[i]);
+  }
+}
+function pfRenderSpread(){
+  var el=document.getElementById("pSpread"); if(!el) return;
+  var cid=pfLastShared||pfContentId();
+  pfApi("spread_stats",{content_id:cid},function(j){
+    var h='<div class="x-pane"><h4>Spread — this poster</h4>';
+    if(j&&j.ok&&(j.total_shares>0||pfLastShared)){
+      h+='<div class="p-spreadnums"><span>'+j.total_shares+' SHARES</span><span>'+j.unique_sharers+' SHARERS</span><span>'+j.cells_reached+' CELLS</span><span>DEPTH '+j.max_depth+'</span></div>';
+      var tl=j.timeline||[], mx=1, ti;
+      for(ti=0;ti<tl.length;ti++){ if(tl[ti].shares>mx) mx=tl[ti].shares; }
+      if(tl.length){
+        h+='<div class="p-timeline">';
+        for(ti=0;ti<tl.length;ti++){
+          var ph=Math.max(2,Math.round(tl[ti].shares/mx*36));
+          h+='<div class="p-tbar" title="'+pfEsc(tl[ti].day)+': '+tl[ti].shares+'" style="height:'+ph+'px"></div>';
+        }
+        h+='</div><div class="x-note">Shares per day, last 14 days. Watch it travel.</div>';
+      }
+      h+=pfBoostRow(cid,0);
+      h+='<div class="x-note">Content ID: <span class="p-cid">'+pfEsc(cid)+'</span> — paste it into Poster Battles to enter.</div>';
+    } else {
+      h+='<div class="x-note">Download or share this poster and its spread stats appear here — shares, cells reached, depth.</div>';
+    }
+    h+='</div>';
+    el.innerHTML=h; pfWireBoosts(el);
+  });
+}
+function pfRenderImpact(){
+  var el=document.getElementById("pImpact"); if(!el) return;
+  var id=pfIdent();
+  if(!id.callsign){ el.innerHTML='<div class="x-pane"><h4>My impact</h4><div class="x-note">Claim a callsign to track your propaganda footprint.</div></div>'; return; }
+  pfApi("creator_dashboard",{callsign:id.callsign},function(j){
+    pfApi("boost_board",{},function(b){
+      var bmap={};
+      try{ ((b&&b.ok&&b.board)||[]).forEach(function(r){ bmap[r.id]=r.xp||0; }); }catch(e){}
+      var h='<div class="x-pane"><h4>My impact</h4>';
+      if(j&&j.ok){
+        h+='<div class="p-spreadnums"><span>'+j.total_content+' PIECES</span><span>'+j.total_shares+' SHARES</span><span>'+j.total_reach+' REACH</span></div>';
+        var top=j.top_content||[];
+        if(top.length){
+          h+='<div class="x-note">Your top propaganda, ranked by spread:</div>';
+          for(var i=0;i<Math.min(top.length,10);i++){
+            var t=top[i];
+            h+='<div class="p-toprow"><div class="p-toptitle">'+pfEsc(t.title||t.id)+'</div>'
+              +'<div class="x-note">'+t.shares+' shares &bull; '+t.sharers+' sharers &bull; '+t.cells+' cells</div>'
+              +pfBoostRow(t.id,bmap[t.id]||0)+'</div>';
+          }
+        } else { h+='<div class="x-note">No tracked pieces yet. Forge, share, and watch the numbers climb.</div>'; }
+      } else { h+='<div class="x-note">'+(pfAuthHint(j)||'Impact data loading&hellip;')+'</div>'; }
+      h+='</div>';
+      el.innerHTML=h; pfWireBoosts(el);
+    });
+  });
+}
+draw();
+pfRenderSpread();
+pfRenderImpact();
+window.__pfPoster={state:state,wrap:wrap,SLOGANS:SLOGANS,stampPng:stampPng};
+})();
+
+/* ---------- VIDEO tab (merged from games/video.js, PF v1.4.3, 2026-10-03) ----------
+   Video Forge now lives as a tab of the Poster Forge (homepage CREATE block).
+   All 4 steps preserved: templates, slideshow builder, 9:16 preview + WebM
+   recorder, save/share via the video_* backend actions. The video pane renders
+   on mount (hidden) exactly as the standalone widget did. */
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  var fn="pfVdCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function post(vAction,params,cb){
+  var body=Object.assign({type:"video",v_action:vAction},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+}
+/* ---------- state ---------- */
+var VW=720, VH=1280;
+var frames=[];            /* {label, text, duration_ms, img:Image|null, imgKey} */
+var imgCache={};          /* imgKey -> dataURL (session) */
+var playing=false, playIdx=0, frameStart=0, rafId=0;
+var recorder=null, recChunks=[], recording=false, recMime="";
+var canvas=null, ctx=null;
+var libVideos=[];
+function $(id){ return document.getElementById(id); }
+function frameDur(f){ return Math.max(500, Math.min(10000, parseInt(f.duration_ms,10)||2000)); }
+/* ---------- canvas render ---------- */
+function drawCover(c, img, W, H){
+  var iw=img.naturalWidth||img.width, ih=img.naturalHeight||img.height;
+  if(!iw||!ih) return;
+  var s=Math.max(W/iw, H/ih), dw=iw*s, dh=ih*s;
+  c.drawImage(img, (W-dw)/2, (H-dh)/2, dw, dh);
+}
+function wrapText(c, text, maxW){
+  var words=String(text).split(/\\s+/), lines=[], cur="";
+  for(var i=0;i<words.length;i++){
+    var t=cur?cur+" "+words[i]:words[i];
+    if(c.measureText(t).width>maxW && cur){ lines.push(cur); cur=words[i]; }
+    else cur=t;
+  }
+  if(cur) lines.push(cur);
+  return lines;
+}
+function drawFrame(c, f){
+  c.save();
+  c.fillStyle="#0a0a0a"; c.fillRect(0,0,VW,VH);
+  if(f.img){
+    try{ drawCover(c, f.img, VW, VH); }catch(e){}
+    var g=c.createLinearGradient(0,VH*0.45,0,VH);
+    g.addColorStop(0,"rgba(0,0,0,0)"); g.addColorStop(1,"rgba(0,0,0,0.82)");
+    c.fillStyle=g; c.fillRect(0,VH*0.45,VW,VH*0.55);
+  } else {
+    var g2=c.createLinearGradient(0,0,0,VH);
+    g2.addColorStop(0,"#1a0505"); g2.addColorStop(1,"#0a0a0a");
+    c.fillStyle=g2; c.fillRect(0,0,VW,VH);
+    c.strokeStyle="#c1121f"; c.lineWidth=10; c.strokeRect(24,24,VW-48,VH-48);
+    c.fillStyle="#c1121f"; c.font="bold 64px monospace"; c.textAlign="center";
+    c.fillText("MTCSTW", VW/2, 150);
+  }
+  var txt=String(f.text||"");
+  if(txt){
+    c.textAlign="center"; c.textBaseline="alphabetic";
+    var fs=64; c.font="bold "+fs+"px Impact, Arial Black, sans-serif";
+    var lines=wrapText(c, txt.toUpperCase(), VW-120);
+    while(lines.length>6 && fs>28){ fs-=6; c.font="bold "+fs+"px Impact, Arial Black, sans-serif"; lines=wrapText(c, txt.toUpperCase(), VW-120); }
+    var lh=fs*1.18, y0=VH-80-lines.length*lh;
+    for(var i=0;i<lines.length;i++){
+      var y=y0+i*lh;
+      c.lineWidth=Math.max(4,fs/10); c.strokeStyle="#000"; c.strokeText(lines[i], VW/2, y);
+      c.fillStyle="#fff"; c.fillText(lines[i], VW/2, y);
+    }
+  }
+  c.fillStyle="#c1121f"; c.font="bold 34px monospace"; c.textAlign="left";
+  c.fillText("MTCSTW.COM", 30, VH-30);
+  c.textAlign="right"; c.fillStyle="#888";
+  c.fillText("JOIN THE FIGHT.", VW-30, VH-30);
+  c.restore();
+}
+function tick(now){
+  if(!playing) return;
+  if(!frames.length){ stopPlay(); return; }
+  var f=frames[playIdx];
+  if(now-frameStart>=frameDur(f)){
+    playIdx++;
+    frameStart=now;
+    if(playIdx>=frames.length){
+      if(recording){ stopRecord(); return; }
+      playIdx=0;
+    }
+  }
+  if(playIdx<frames.length && ctx) drawFrame(ctx, frames[playIdx]);
+  rafId=requestAnimationFrame(tick);
+}
+function startPlay(){
+  if(!frames.length){ toast("Add slides first."); return; }
+  if(!canvas) return;
+  stopPlay();
+  playing=true; playIdx=0; frameStart=performance.now();
+  var pb=$("vdPlayBtn"); if(pb) pb.textContent="PAUSE";
+  rafId=requestAnimationFrame(tick);
+}
+function stopPlay(){
+  playing=false;
+  try{ cancelAnimationFrame(rafId); }catch(e){}
+  var pb=$("vdPlayBtn"); if(pb) pb.textContent="PLAY";
+}
+/* ---------- recorder ---------- */
+function pickMime(){
+  var cands=["video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm","video/mp4"];
+  for(var i=0;i<cands.length;i++){
+    try{ if(window.MediaRecorder && MediaRecorder.isTypeSupported(cands[i])) return cands[i]; }catch(e){}
+  }
+  return "";
+}
+function startRecord(){
+  if(recording) return;
+  if(!frames.length){ toast("Add slides first."); return; }
+  if(!canvas){ toast("Canvas not ready."); return; }
+  if(!(window.MediaRecorder&&canvas.captureStream)){ toast("Recording not supported in this browser."); return; }
+  recMime=pickMime();
+  if(!recMime){ toast("No supported video format."); return; }
+  recChunks=[];
+  try{
+    recorder=new MediaRecorder(canvas.captureStream(30), {mimeType:recMime, videoBitsPerSecond:5000000});
+  }catch(e){ toast("Recorder failed to start."); return; }
+  recorder.ondataavailable=function(ev){ if(ev.data&&ev.data.size) recChunks.push(ev.data); };
+  recorder.onstop=function(){
+    recording=false;
+    var rb=$("vdRecBtn"); if(rb) rb.textContent="RECORD VIDEO";
+    var blob=new Blob(recChunks, {type:recMime.split(";")[0]});
+    var url=URL.createObjectURL(blob);
+    var dl=$("vdDownload");
+    if(dl){ dl.href=url; dl.download="mtcstw-video.webm"; dl.style.display="inline-block"; }
+    toast("Video ready. Hit DOWNLOAD.");
+  };
+  stopPlay();
+  playing=true; playIdx=0; frameStart=performance.now();
+  var pb=$("vdPlayBtn"); if(pb) pb.textContent="PAUSE";
+  recorder.start(250);
+  recording=true;
+  var rb2=$("vdRecBtn"); if(rb2) rb2.textContent="STOP RECORDING";
+  rafId=requestAnimationFrame(tick);
+  toast("Recording...");
+}
+function stopRecord(){
+  recording=false;
+  try{ if(recorder&&recorder.state!=="inactive") recorder.stop(); }catch(e){}
+  stopPlay();
+  var rb=$("vdRecBtn"); if(rb) rb.textContent="RECORD VIDEO";
+}
+/* ---------- builder ---------- */
+function newFrame(label, text, dur){
+  return {label:label||("slide-"+(frames.length+1)), text:text||"", duration_ms:dur||2000, img:null, imgKey:null};
+}
+function renderBuilder(){
+  var el=$("vdFrames"); if(!el) return;
+  var h="";
+  if(!frames.length) h+='<div class="x-note">No slides yet. Upload poster images, pull from the forge, or load a template.</div>';
+  for(var i=0;i<frames.length;i++){
+    var f=frames[i];
+    h+='<div class="vd-frame" data-i="'+i+'">'
+      +'<div class="vd-fhead"><b>#'+(i+1)+'</b> '+(f.img?'<span class="vd-hasimg">IMG</span>':'<span class="vd-noimg">TEXT CARD</span>')
+      +' <span class="vd-flabel">'+esc(f.label)+'</span></div>'
+      +'<input aria-label="Text overlay (punchy)" class="vd-ftext" data-k="text" data-i="'+i+'" value="'+esc(f.text)+'" placeholder="Text overlay (punchy)" maxlength="140">'
+      +'<div class="vd-frow"><label>secs <input class="vd-fdur" data-i="'+i+'" type="number" min="1" max="10" step="0.5" value="'+(frameDur(f)/1000)+'"></label>'
+      +'<button class="c-btn vd-up" data-i="'+i+'">&uarr;</button>'
+      +'<button class="c-btn vd-down" data-i="'+i+'">&darr;</button>'
+      +'<button class="c-btn vd-del" data-i="'+i+'">DEL</button></div>'
+      +'</div>';
+  }
+  el.innerHTML=h;
+  var tot=0; for(var j=0;j<frames.length;j++) tot+=frameDur(frames[j]);
+  var tl=$("vdTotal"); if(tl) tl.textContent=frames.length+" slides, "+(tot/1000).toFixed(1)+"s total";
+  bindBuilderInputs();
+}
+function bindBuilderInputs(){
+  var texts=document.querySelectorAll("#vdFrames .vd-ftext");
+  for(var i=0;i<texts.length;i++){
+    texts[i].addEventListener("input", function(ev){
+      var t=ev.target, idx=parseInt(t.getAttribute("data-i"),10);
+      if(frames[idx]) frames[idx].text=t.value;
+    });
+  }
+  var durs=document.querySelectorAll("#vdFrames .vd-fdur");
+  for(var j=0;j<durs.length;j++){
+    durs[j].addEventListener("change", function(ev){
+      var t=ev.target, idx=parseInt(t.getAttribute("data-i"),10);
+      var v=parseFloat(t.value)||2;
+      v=Math.max(0.5, Math.min(10, v));
+      if(frames[idx]) frames[idx].duration_ms=Math.round(v*1000);
+    });
+  }
+  var ups=document.querySelectorAll("#vdFrames .vd-up");
+  for(var k=0;k<ups.length;k++){
+    ups[k].addEventListener("click", function(ev){
+      var idx=parseInt(ev.target.getAttribute("data-i"),10);
+      if(idx>0){ var t2=frames[idx-1]; frames[idx-1]=frames[idx]; frames[idx]=t2; renderBuilder(); }
+    });
+  }
+  var dns=document.querySelectorAll("#vdFrames .vd-down");
+  for(var m=0;m<dns.length;m++){
+    dns[m].addEventListener("click", function(ev){
+      var idx=parseInt(ev.target.getAttribute("data-i"),10);
+      if(idx<frames.length-1){ var t3=frames[idx+1]; frames[idx+1]=frames[idx]; frames[idx]=t3; renderBuilder(); }
+    });
+  }
+  var dels=document.querySelectorAll("#vdFrames .vd-del");
+  for(var n=0;n<dels.length;n++){
+    dels[n].addEventListener("click", function(ev){
+      var idx=parseInt(ev.target.getAttribute("data-i"),10);
+      frames.splice(idx,1); renderBuilder();
+    });
+  }
+}
+function addImageFrame(dataURL, label){
+  var f=newFrame(label||("img-"+(frames.length+1)), "", 2500);
+  var im=new Image();
+  im.onload=function(){ f.img=im; renderBuilder(); drawIdle(); };
+  im.onerror=function(){ toast("Could not load image."); };
+  im.src=dataURL;
+  frames.push(f);
+  renderBuilder();
+}
+function handleFiles(fileList){
+  for(var i=0;i<fileList.length;i++){
+    (function(file){
+      if(!file.type || file.type.indexOf("image/")!==0) return;
+      var rd=new FileReader();
+      rd.onload=function(){
+        try{ addImageFrame(String(rd.result), file.name.replace(/\\.[^.]+$/,"").slice(0,32)||("img-"+(frames.length+1))); }
+        catch(e){ toast("Image too large to load."); }
+      };
+      rd.readAsDataURL(file);
+    })(fileList[i]);
+  }
+}
+function pullFromForge(){
+  var c=null;
+  try{ c=document.getElementById("pCanvas"); }catch(e){}
+  if(!c){ toast("Poster Forge canvas not found. Upload instead."); return; }
+  try{
+    var url=c.toDataURL("image/png");
+    addImageFrame(url, "forge-"+(frames.length+1));
+    toast("Forge poster added.");
+  }catch(e){ toast("Could not grab forge canvas."); }
+}
+/* ---------- templates ---------- */
+var TEMPLATES={
+  cta:{name:"CALL TO ACTION", slides:[
+    {text:"JOIN THE FIGHT.", dur:2000},
+    {text:"THE BILLIONAIRES HAVE TWO PARTIES.", dur:2500},
+    {text:"WE ARE BUILDING OUR OWN POWER.", dur:2500}]},
+  facts:{name:"FACT DROP", slides:[
+    {text:"FACT 1: YOUR RENT WENT UP. YOUR WAGES DID NOT.", dur:2500},
+    {text:"FACT 2: THEY CALL IT INFLATION. IT IS PRICE GOUGING.", dur:2500},
+    {text:"FACT 3: 3 MEN OWN MORE THAN HALF THE COUNTRY.", dur:2500},
+    {text:"FACT 4: THEY NEED YOU DIVIDED. STAY DANGEROUS.", dur:2500},
+    {text:"EDIT THESE FACTS. MAKE THEM YOURS.", dur:2500}]},
+  beforeafter:{name:"BEFORE / AFTER", slides:[
+    {text:"BEFORE: SCROLLING. ANGRY. ALONE.", dur:3000},
+    {text:"AFTER: ORGANIZED. ARMED WITH TRUTH. UNSTOPPABLE.", dur:3000}]}
+};
+function loadTemplate(key){
+  var t=TEMPLATES[key]; if(!t) return;
+  frames=[];
+  for(var i=0;i<t.slides.length;i++){
+    frames.push(newFrame("tpl-"+key+"-"+(i+1), t.slides[i].text, t.slides[i].dur));
+  }
+  renderBuilder(); drawIdle();
+  toast(t.name+" loaded. Edit the text, then PLAY.");
+}
+/* ---------- backend save / library ---------- */
+function saveVideo(){
+  var idd=ident();
+  if(!idd.callsign){ toast("Claim a callsign first (Enlistment Ranks)."); return; }
+  if(!frames.length){ toast("Add slides first."); return; }
+  var title=$("vdTitle")?String($("vdTitle").value).slice(0,120):"";
+  if(!title){ toast("Give your video a title."); return; }
+  var out=[];
+  for(var i=0;i<frames.length;i++){
+    out.push({poster_id:String(frames[i].label||("slide-"+(i+1))).slice(0,64), text:String(frames[i].text||"").slice(0,140), duration_ms:frameDur(frames[i])});
+  }
+  post("video_create",{callsign:idd.callsign, device:idd.device, title:title, frames:JSON.stringify(out)}, function(j){
+    if(j&&j.ok){ toast("Saved. +15 XP. ID: "+j.id); loadLibrary(); }
+    else toast(PF.errCopy(j,"Save failed."));
+  });
+}
+function loadLibrary(){
+  api("video_list",{},function(j){
+    libVideos=(j&&j.videos)||[];
+    renderLibrary();
+  });
+}
+function renderLibrary(){
+  var el=$("vdLib"); if(!el) return;
+  var h="";
+  if(!libVideos.length) h+='<div class="x-note">No saved videos yet. Build one above.</div>';
+  for(var i=0;i<libVideos.length;i++){
+    var v=libVideos[i];
+    h+='<div class="vd-librow"><b>'+esc(v.title)+'</b> <span class="x-note">by '+esc(v.creator)+' &middot; '+(Math.round((v.duration||0)/100)/10)+'s</span> '
+      +'<button class="c-btn vd-open" data-id="'+esc(v.id)+'">LOAD</button></div>';
+  }
+  el.innerHTML=h;
+  var btns=document.querySelectorAll("#vdLib .vd-open");
+  for(var k=0;k<btns.length;k++){
+    btns[k].addEventListener("click", function(ev){
+      openVideo(ev.target.getAttribute("data-id"));
+    });
+  }
+}
+function openVideo(vid){
+  api("video_get",{video_id:vid},function(j){
+    if(!(j&&j.ok&&j.video)){ toast("Could not load video."); return; }
+    var v=j.video;
+    frames=[];
+    var fr=v.frames||[];
+    for(var i=0;i<fr.length;i++){
+      frames.push(newFrame(fr[i].poster_id||("slide-"+(i+1)), fr[i].text||"", fr[i].duration_ms||2000));
+    }
+    var ti=$("vdTitle"); if(ti) ti.value=v.title||"";
+    renderBuilder(); drawIdle();
+    toast("Loaded. Images live on your device: re-attach if needed.");
+  });
+}
+function drawIdle(){
+  if(!ctx) return;
+  if(frames.length) drawFrame(ctx, frames[0]);
+  else { ctx.fillStyle="#0a0a0a"; ctx.fillRect(0,0,VW,VH);
+    ctx.fillStyle="#666"; ctx.font="bold 28px monospace"; ctx.textAlign="center";
+    ctx.fillText("PREVIEW APPEARS HERE", VW/2, VH/2); }
+}
+/* ---------- layout + init ---------- */
+function render(){
+  var el=$("xVideo"); if(!el) return;
+  var id=ident();
+  var h="";
+  if(!id.callsign) h+=PF.gateHTML('Video Forge runs on callsigns.','to forge video');
+  h+='<div class="x-pane"><h4>1 &mdash; Templates</h4>'
+    +'<div class="x-note">Start from a proven sequence, then edit every slide.</div>'
+    +'<div class="vd-tpls">'
+    +'<button class="c-btn" id="vdTplCta">CALL TO ACTION (3)</button> '
+    +'<button class="c-btn" id="vdTplFacts">FACT DROP (5)</button> '
+    +'<button class="c-btn" id="vdTplBa">BEFORE/AFTER (2)</button>'
+    +'</div></div>';
+  h+='<div class="x-pane"><h4>2 &mdash; Slideshow builder</h4>'
+    +'<div class="x-note">Upload poster images, pull the current forge canvas, or use text-only slides.</div>'
+    +'<div class="vd-addrow">'
+    +'<label class="c-btn vd-upload">UPLOAD IMAGES<input type="file" id="vdFile" accept="image/*" multiple style="display:none"></label> '
+    +'<button class="c-btn" id="vdForge">PULL FROM FORGE</button> '
+    +'<button class="c-btn" id="vdTextSlide">ADD TEXT SLIDE</button>'
+    +'</div>'
+    +'<div id="vdFrames"></div>'
+    +'<div class="x-note" id="vdTotal">0 slides</div></div>';
+  h+='<div class="x-pane"><h4>3 &mdash; Preview (9:16)</h4>'
+    +'<div class="vd-stage"><canvas id="vdCanvas" width="720" height="1280" style="width:100%;max-width:320px;height:auto;background:#000;border:2px solid #c1121f"></canvas></div>'
+    +'<div class="vd-ctlrow">'
+    +'<button class="c-btn" id="vdPlayBtn">PLAY</button> '
+    +'<button class="c-btn" id="vdRecBtn">RECORD VIDEO</button> '
+    +'<a class="c-btn" id="vdDownload" style="display:none">DOWNLOAD .WEBM</a>'
+    +'</div>'
+    +'<div class="x-note">RECORD plays the full sequence and captures it as a WebM video. Works in Chrome, Edge, Firefox.</div></div>';
+  h+='<div class="x-pane"><h4>4 &mdash; Save &amp; share</h4>'
+    +'<input aria-label="Video title" id="vdTitle" placeholder="Video title" maxlength="120" style="width:100%;max-width:420px;padding:8px;margin-bottom:8px">'
+    +'<div><button class="c-btn" id="vdSaveBtn">SAVE SEQUENCE (+15 XP)</button></div>'
+    +'<div class="x-note">Saves the slide definitions to the network. Images stay on your device; anyone loading your video re-attaches their own.</div>'
+    +'<div id="vdLib" style="margin-top:10px"></div></div>';
+  el.innerHTML=h;
+  canvas=$("vdCanvas");
+  try{ ctx=canvas.getContext("2d"); }catch(e){ ctx=null; }
+  $("vdTplCta").addEventListener("click", function(){ loadTemplate("cta"); });
+  $("vdTplFacts").addEventListener("click", function(){ loadTemplate("facts"); });
+  $("vdTplBa").addEventListener("click", function(){ loadTemplate("beforeafter"); });
+  $("vdForge").addEventListener("click", pullFromForge);
+  $("vdTextSlide").addEventListener("click", function(){ frames.push(newFrame(null, "YOUR TEXT HERE", 2000)); renderBuilder(); drawIdle(); });
+  $("vdFile").addEventListener("change", function(ev){ handleFiles(ev.target.files); ev.target.value=""; });
+  $("vdPlayBtn").addEventListener("click", function(){
+    if(playing){ stopPlay(); if(recording) stopRecord(); }
+    else startPlay();
+  });
+  $("vdRecBtn").addEventListener("click", function(){
+    if(recording) stopRecord(); else startRecord();
+  });
+  $("vdSaveBtn").addEventListener("click", saveVideo);
+  renderBuilder(); drawIdle(); loadLibrary();
+}
+render();
+})();
+
+/* Poster/Video tab switching. */
+(function(){
+  var tabs=document.querySelectorAll('#pf-poster .p-tab');
+  function show(which){
+    var pp=document.getElementById('pfPane-poster'), pv=document.getElementById('pfPane-video');
+    if(pp) pp.style.display=(which==='poster')?'':'none';
+    if(pv) pv.style.display=(which==='video')?'':'none';
+    for(var i=0;i<tabs.length;i++) tabs[i].classList.toggle('on',tabs[i].getAttribute('data-ptab')===which);
+  }
+  for(var k=0;k<tabs.length;k++){
+    (function(b){ b.addEventListener('click',function(){ show(b.getAttribute('data-ptab')); }); })(tabs[k]);
+  }
+})();
+</scr`+`ipt>
+</div>
+</template>`);
+})();
+
+;
+
+/* ===== feed.js ===== */
+/* games/feed.js  |  PF v1.4.3 | PROPAGANDA FEED: discovery layer for content.
+   LAYERING: a game silo like campaign.js. Distributors need supply — this is
+   the feed where they find posters/memes to pump. Tabs: TRENDING / NEW / TOP
+   / BOOST / VAULT.
+   2026-10-03: Amplify (games/amplify.js) merged as the BOOST tab; the Vault
+   (games/archive.js) merged as the VAULT tab. amplify.js and archive.js deleted.
+   Reads via JSONP (self-contained api()), share-logging via CORS POST.
+   It never reaches into another silo's internals.
+   KILL: ?pf_off=feed  or  localStorage pf_disabled_v1='["feed"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("feed")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-feed">
+<div class="fe-block pf-override-block" id="pf-feed">
+<h2>Propaganda Feed</h2>
+<div class="c-tag">Fresh ammo. Find it. Pump it. Track the spread.</div>
+<div id="xFeed"><div class="c-load">Loading the feed&hellip;</div></div>
+</div>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function fmtSched(t){ try{ var d=new Date(Number(t)||0); if(isNaN(d.getTime())) return "?";
+  return (d.getMonth()+1)+"/"+d.getDate()+" "+d.getHours()+":"+String(d.getMinutes()).padStart(2,"0"); }catch(e){ return "?"; } }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ PF.toast(m); }catch(e){} }
+/* 2026-10-04: friendly write-path errors — raw snake_case backend codes are
+   never shown to users (same pattern as games/armory.js writeErrCopy). */
+function fdWriteErr(e,fb){
+  var s=String(e==null?"":e).trim();
+  var fall=fb||"The wire fought back. Nothing changed — retry.";
+  if(!s||/network error/i.test(s)) return fall;
+  var map={
+    "bad sender":"That callsign didn't check out. Re-claim it in Daily Orders, then retry.",
+    "bad receiver":"That callsign isn't a valid target. Refresh and try again.",
+    "no self-tips":"You can't tip yourself. Pick someone else.",
+    "tip must be 5/10/25/50/100 XP":"Tips come in 5, 10, 25, 50, or 100 XP.",
+    "insufficient XP":"Not enough XP in the war chest. Go earn some.",
+    "bad voter":"That callsign didn't check out. Re-claim it in Daily Orders, then retry.",
+    "bad creator":"That creator tag didn't check out. Refresh the feed and try again.",
+    "no self-votes":"You can't vote on your own content.",
+    "bad callsign":"That callsign didn't check out. Re-claim it in Daily Orders, then retry.",
+    "missing content_id":"That post lost its ID. Refresh the feed and try again.",
+    "db error":"The ledger hiccuped. Retry in a moment."
+  };
+  if(map[s]) return map[s];
+  if(s.indexOf("_")!==-1) return fall; /* never show raw snake_case */
+  return s; /* backend prose already human-readable */
+}
+/* 2026-10-04: epoch-ms for a "YYYY-MM-DD HH:MM" wall-clock in America/Chicago.
+   schedule_add reads epoch-ms p.scheduled_for; the Intl offset is resolved
+   iteratively so DST transitions convert correctly.
+   NOTE: this whole widget ships inside an outer template literal, so every
+   regex backslash below MUST stay doubled (\\) or the inner script dies with
+   a SyntaxError at mount (2026-10-04 hotfix). */
+function chicagoToMs(str){
+  try{
+    var m=/^(\\d{4})-(\\d{2})-(\\d{2})[ T](\\d{2}):(\\d{2})$/.exec(String(str||"").trim());
+    if(!m) return 0;
+    var y=+m[1],mo=+m[2],d=+m[3],hh=+m[4],mi=+m[5];
+    if(mo<1||mo>12||d<1||d>31||hh>23||mi>59) return 0;
+    var target=Date.UTC(y,mo-1,d,hh,mi,0), guess=target;
+    for(var i=0;i<4;i++){
+      var tz=new Date(guess).toLocaleString("en-US",{timeZone:"America/Chicago",hour12:false,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});
+      var p=/(\\d+)\\/(\\d+)\\/(\\d+),?\\s*(\\d+):(\\d+)/.exec(tz);
+      if(!p) return 0;
+      var asUtc=Date.UTC(+p[3],+p[1]-1,+p[2],(+p[4])%24,+p[5],0);
+      var adj=target-asUtc;
+      guess=guess+adj;
+      if(Math.abs(adj)<60000) break;
+    }
+    return guess;
+  }catch(e){ return 0; }
+}
+/* Friendly copy for gated read failures (2026-10-03): raw backend strings
+   like 'missing credentials' are never shown as UI copy. */
+function fdAuthHint(j){
+  var e=String((j&&j.err)||"");
+  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")
+    return '<div class="x-note">This callsign predates the new auth system and can&rsquo;t reconnect on its own &mdash; contact MTCSTW to recover it.</div>';
+  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)
+    return '<div class="x-note">Your scheduled queue is behind a handshake. Re-claim your callsign in Enlistment Ranks (one tap), then refresh.</div>';
+  return "";
+}
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  /* Private reads require auth_secret (IDOR fix). Route gated actions
+     through the shared claim-retry GET (2026-10-03): pre-auth callsign
+     holders with no stored secret get one auth_claim attempt instead of
+     failing 'missing credentials' forever. */
+  if(action==="schedule_list"){
+    try{
+      if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
+      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+    }catch(e){}
+  }
+  var fn="pfFdCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function post(spAction,params,cb){
+  var body=Object.assign({type:"spread",sp_action:spAction},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+}
+function postX(type,typeAction,action,params,cb){
+  var b={type:type}; b[typeAction]=action;
+  var body=Object.assign(b,params);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  /* Writes that require auth (e.g. reputation_vote) must carry auth_secret.
+     Route through PF.authPost like caption-combat's caption_submit. */
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,function(j){ done(j); }); return; }
+  var bodyStr=JSON.stringify(body);
+  try{
+    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+}
+function isTrusted(creator){
+  try{
+    if(REP&&REP.ok&&REP.trusted){
+      for(var i=0;i<REP.trusted.length;i++) if(String(REP.trusted[i]).toLowerCase()===String(creator||"").toLowerCase()) return true;
+    }
+  }catch(e){}
+  return false;
+}
+var tab="trending", T=null, N=null, REP=null, SCHED=null, TIPS=null, FN=null, DUE=null;
+function load(){
+  var done=false, n=0;
+  function fin(){ if(done)return; done=true; render(); }
+  function one(){ n++; if(n>=7) fin(); }
+  setTimeout(fin,15000);
+  api("boost_board",{},function(j){ T=j; one(); });
+  api("content_list",{sort:"new",limit:25},function(j){ N=j; one(); });
+  api("reputation_get",{},function(j){ REP=j; one(); });
+  /* 2026-10-03: NEW tab gets its own backend feed (feed_new) instead of the
+     client-side re-sort of content_list; plus tip leaderboard + due queue. */
+  api("feed_new",{},function(j){ FN=j; one(); });
+  api("tip_leaderboard",{},function(j){ TIPS=j; one(); });
+  api("schedule_due",{},function(j){ DUE=j; one(); });
+  var id0=ident();
+  if(id0.callsign) api("schedule_list",{callsign:id0.callsign},function(j){ SCHED=j; one(); });
+  else { SCHED={ok:true,queue:[]}; one(); }
+}
+function items(){
+  var out=[];
+  try{
+    if(tab==="trending"&&T&&T.ok&&T.board) out=T.board;
+    else if(tab==="top"&&T&&T.ok&&T.board) out=T.board.slice().sort(function(a,b){ return (b.boosts||0)-(a.boosts||0); });
+    else if(tab==="new"&&FN&&FN.ok&&FN.feed) out=FN.feed;
+    else if(tab==="new"&&N&&N.ok&&N.items) out=N.items;
+    else if(N&&N.ok&&N.items) out=N.items;
+  }catch(e){}
+  return out;
+}
+function render(){
+  var el=document.getElementById("xFeed"); if(!el) return;
+  var id=ident(), h="";
+  h+='<div class="fd-tabs">'
+    +'<button class="c-btn fd-tab'+(tab==="trending"?" fd-on":"")+'" data-tab="trending">TRENDING</button>'
+    +'<button class="c-btn fd-tab'+(tab==="new"?" fd-on":"")+'" data-tab="new">NEW</button>'
+    +'<button class="c-btn fd-tab'+(tab==="top"?" fd-on":"")+'" data-tab="top">TOP</button>'
+    +'<button class="c-btn fd-tab'+(tab==="boost"?" fd-on":"")+'" data-tab="boost">BOOST</button>'
+    +'<button class="c-btn fd-tab'+(tab==="vault"?" fd-on":"")+'" data-tab="vault">VAULT</button>'
+    +'</div>';
+  var list=items();
+  if(tab==="boost"){
+    h+='<div id="fdBoostWrap"><div class="c-load">Loading the boost board&hellip;</div></div>';
+  } else if(tab==="vault"){
+    h+='<div id="fdVaultWrap"><div class="c-load">Opening the vault&hellip;</div></div>';
+  } else {
+  if(!list.length){
+    h+='<div class="x-pane"><div class="x-note">Nothing here yet. Be the first to forge propaganda in Poster Forge &mdash; it lands here.</div></div>';
+  }
+  for(var i=0;i<Math.min(list.length,25);i++){
+    var it=list[i], cid=esc(it.id||""), trusted=isTrusted(it.creator);
+    h+='<div class="x-pane fd-item">'
+      +'<div class="fd-title">'+esc(it.title||it.id||"Untitled")
+      +(trusted?' <span class="fd-trusted" title="Trusted creator" style="color:#7CFC00;font-size:12px">&#10003; TRUSTED</span>':"")
+      +'</div>'
+      +'<div class="x-note">by '+esc(it.creator||"anon")+' &bull; '+(Number(it.shares)||0)+' shares &bull; '+(Number(it.boosts)||0)+' boosts</div>'
+      +'<div class="fd-actions" style="margin-top:6px">'
+      +'<button class="c-btn fd-share" data-cid="'+cid+'" data-title="'+esc(it.title||"")+'">SHARE &amp; PUMP</button> '
+      +'<button class="c-btn fd-vote" data-cid="'+cid+'" data-creator="'+esc(it.creator||"")+'" data-v="1">&#9650;</button>'
+      +'<button class="c-btn fd-vote" data-cid="'+cid+'" data-creator="'+esc(it.creator||"")+'" data-v="-1">&#9660;</button> '
+      +'<button class="c-btn fd-tip" data-cid="'+cid+'" data-creator="'+esc(it.creator||"")+'">TIP</button> '
+      +'<button class="c-btn fd-sched" data-cid="'+cid+'" data-title="'+esc(it.title||"")+'">SCHEDULE</button> '
+      +'<button class="c-btn fd-intel" data-cid="'+cid+'">WHO&#39;S SHARING</button>'
+      +'</div><div class="fd-intelbox" data-cid="'+cid+'" style="display:none;margin-top:6px"></div></div>';
+    }
+  }
+  /* Due now (2026-10-03: schedule_due, public) — network-wide firing queue. */
+  var due=[]; try{ if(DUE&&DUE.ok&&DUE.due) due=DUE.due; }catch(e){}
+  if(due.length){
+    h+='<div class="x-pane"><div class="fd-title">DUE NOW — FIRING ('+due.length+')</div>';
+    for(var di=0;di<Math.min(due.length,5);di++){
+      var dd=due[di];
+      h+='<div class="x-note">'+esc(dd.content_id||"")+' &mdash; '+esc(dd.platform||"")+' &mdash; queued by '+esc(dd.callsign||"anon")+'</div>';
+    }
+    if(due.length>5) h+='<div class="x-note">&hellip;and '+(due.length-5)+' more in the queue.</div>';
+    h+='</div>';
+  }
+  /* Scheduled queue. */
+  var q=[]; try{ if(SCHED&&SCHED.ok&&SCHED.queue) q=SCHED.queue; }catch(e){}
+  if(q.length){
+    h+='<div class="x-pane"><div class="fd-title">SCHEDULED QUEUE ('+q.length+')</div>';
+    for(var qi=0;qi<q.length;qi++){
+      var sq=q[qi];
+      h+='<div class="x-note">'+esc(sq.content_id||"")+' &mdash; '+esc(sq.platform||"")+' at '+esc(fmtSched(sq.scheduled_for))
+        +(sq.posted?' <span class="cp-mdone">FIRED</span>':' <button class="c-btn ghost" data-sqc="'+sq.id+'">CANCEL</button>')+'</div>';
+    }
+    h+='</div><div class="c-err" id="fdSchedErr"></div>';
+  }
+  else if(SCHED&&!SCHED.ok){ h+=fdAuthHint(SCHED); }
+  /* Tip leaderboard (2026-10-03: tip_leaderboard, public) — tips were flowing
+     through tip_send, but nobody ever saw who the network backs. */
+  var tl=[]; try{ if(TIPS&&TIPS.ok&&TIPS.leaders) tl=TIPS.leaders; }catch(e2){}
+  if(tl.length){
+    h+='<div class="x-pane"><div class="fd-title">TOP TIPPED</div>';
+    for(var ti2=0;ti2<Math.min(tl.length,10);ti2++){
+      h+='<div class="cp-mission"><div class="cp-mtext">'+esc(tl[ti2].callsign)+'</div>'
+        +'<div class="cp-mxp">'+Number(tl[ti2].total||0)+' XP ('+Number(tl[ti2].n||0)+')</div></div>';
+    }
+    h+='</div>';
+  }
+  h+='<div style="margin-top:10px"><button class="c-btn" id="fdRetry">Refresh</button></div>';
+  el.innerHTML=h;
+  var tabs=el.querySelectorAll("button.fd-tab");
+  for(var t=0;t<tabs.length;t++){
+    (function(b){ b.onclick=function(){ tab=b.getAttribute("data-tab"); render(); }; })(tabs[t]);
+  }
+  var bw=document.getElementById("fdBoostWrap");
+  if(bw) fdInitBoost(bw);
+  var vw=document.getElementById("fdVaultWrap");
+  if(vw) fdInitVault(vw);
+  var sh=el.querySelectorAll("button.fd-share");
+  for(var s2=0;s2<sh.length;s2++){
+    (function(b){
+      b.onclick=function(){
+        var cid=b.getAttribute("data-cid"); if(!cid){ toast("No content id."); return; }
+        b.disabled=true;
+        post("share_log",{content_id:cid,sharer:id.callsign||"anon",device:id.device},function(j){
+          b.disabled=false;
+          if(j&&j.ok){ toast("Shared. Depth "+(j.depth||0)+" — keep pumping."); }
+          else { toast("Logged locally. Pump it anyway."); }
+          /* Hand off to the share system if present. */
+          try{
+            if(window.PFShare&&PFShare.shareText){ PFShare.shareText(b.getAttribute("data-title")+" — via MTCSTW"); }
+            else if(navigator.share){ navigator.share({title:b.getAttribute("data-title"),text:b.getAttribute("data-title")+" — JOIN THE FIGHT.",url:location.href}); }
+            else { toast("Copy the link and spread it."); }
+          }catch(e){}
+        });
+      };
+    })(sh[s2]);
+  }
+  /* Who's sharing: spread_stats breakdown per content item. */
+  var ib=el.querySelectorAll("button.fd-intel");
+  for(var ii=0;ii<ib.length;ii++){
+    (function(b){
+      b.onclick=function(){
+        var cid=b.getAttribute("data-cid");
+        var box=el.querySelector('div.fd-intelbox[data-cid="'+cid+'"]');
+        if(!box) return;
+        if(box.style.display!=="none"){ box.style.display="none"; return; }
+        box.style.display="block";
+        box.innerHTML='<div class="x-note">Reading the spread&hellip;</div>';
+        api("spread_stats",{content_id:cid},function(j){
+          if(!j||!j.ok){ box.innerHTML='<div class="x-note">No spread data yet.</div>'; return; }
+          var h='<div class="x-note">'
+            +'<b>'+(Number(j.total_shares)||0)+'</b> shares &bull; '
+            +'<b>'+(Number(j.unique_sharers)||0)+'</b> sharers &bull; '
+            +'<b>'+(Number(j.cells_reached)||0)+'</b> cells &bull; '
+            +'depth <b>'+(Number(j.max_depth)||0)+'</b>';
+          var tl=[]; try{ if(j.timeline) tl=j.timeline; }catch(e){}
+          if(tl.length){
+            h+='<br>14d: ';
+            var bars=[];
+            for(var d=0;d<tl.length;d++){ bars.push(Number(tl[d])||0); }
+            h+=esc(bars.join(" / "));
+          }
+          var tops=[]; try{ if(j.top_sharers) tops=j.top_sharers; }catch(e){}
+          if(tops.length){
+            h+='<br>Top pumpers: ';
+            var tn=[];
+            for(var t2=0;t2<Math.min(tops.length,5);t2++){ tn.push(esc(String(tops[t2].sharer||tops[t2]))); }
+            h+=tn.join(", ");
+          }
+          h+='</div>';
+          box.innerHTML=h;
+        });
+      };
+    })(ib[ii]);
+  }
+  var rb=document.getElementById("fdRetry");
+  if(rb) rb.onclick=function(){ T=N=null; REP=null; SCHED=null; TIPS=null; FN=null; DUE=null; el.innerHTML='<div class="c-load">Loading the feed&hellip;</div>'; load(); };
+  /* Up/down votes. */
+  var vs=el.querySelectorAll("button.fd-vote");
+  for(var vi=0;vi<vs.length;vi++){
+    (function(b){
+      b.onclick=function(){
+        var cid=b.getAttribute("data-cid"), v=b.getAttribute("data-v"), creator=b.getAttribute("data-creator");
+        if(!id.callsign){ toast("Claim a callsign to vote."); return; }
+        if(!creator){ toast("That post is missing its creator — refresh the feed and try again."); return; }
+        b.disabled=true;
+        /* 2026-10-04: backend contract — reputation_vote reads p.creator and
+           p.up (Number(p.up)>=0 -> upvote, else downvote); the vote direction
+           is mapped explicitly so a rename never records everything as down. */
+        postX("reputation","rep_action","reputation_vote",{creator:creator,voter:id.callsign,device:id.device,up:(Number(v)>0?1:-1)},function(j){
+          b.disabled=false;
+          if(j&&j.ok){ toast("Vote recorded."); }
+          else toast(fdWriteErr(j&&j.err||j&&j.error,"Vote failed."));
+        });
+      };
+    })(vs[vi]);
+  }
+  /* Tips: 10/25/50 XP to the creator. */
+  var ts=el.querySelectorAll("button.fd-tip");
+  for(var ti=0;ti<ts.length;ti++){
+    (function(b){
+      b.onclick=function(){
+        if(!id.callsign){ toast("Claim a callsign to tip."); return; }
+        var creator=b.getAttribute("data-creator"), cid=b.getAttribute("data-cid");
+        var amt=window.prompt("Tip "+creator+" how much XP? (10 / 25 / 50)", "25");
+        amt=Math.round(Number(amt)||0);
+        if(amt!==10&&amt!==25&&amt!==50){ toast("Pick 10, 25, or 50."); return; }
+        b.disabled=true;
+        /* 2026-10-04: backend contract — tip_send reads p.from_cs / p.to_cs
+           (not from/to); content_id is unread by the backend, dropped. */
+        postX("tip","t_action","tip_send",{from_cs:id.callsign,to_cs:creator,xp:amt,device:id.device},function(j){
+          b.disabled=false;
+          if(j&&j.ok){ toast("Tipped "+amt+" XP to "+creator+"."); }
+          else toast(fdWriteErr(j&&j.err||j&&j.error,"Tip failed."));
+        });
+      };
+    })(ts[ti]);
+  }
+  /* Schedule a share. */
+  var ss=el.querySelectorAll("button.fd-sched");
+  for(var si=0;si<ss.length;si++){
+    (function(b){
+      b.onclick=function(){
+        if(!id.callsign){ toast("Claim a callsign to schedule."); return; }
+        var cid=b.getAttribute("data-cid");
+        var plat=window.prompt("Platform? (twitter / tiktok / facebook / instagram)", "twitter")||"twitter";
+        var when=window.prompt("When? (YYYY-MM-DD HH:MM, Chicago time)", "");
+        if(!when){ return; }
+        /* 2026-10-04: backend contract — schedule_add reads epoch-ms
+           p.scheduled_for (must be future, within 30 days), not a string. */
+        var whenMs=chicagoToMs(when);
+        if(!whenMs){ toast("Use the format YYYY-MM-DD HH:MM — e.g. 2026-10-05 14:30."); return; }
+        if(whenMs<=Date.now()){ toast("That time is in the past. Pick a future slot."); return; }
+        b.disabled=true;
+        postX("schedule","s_action","schedule_add",{content_id:cid,callsign:id.callsign,device:id.device,platform:String(plat).toLowerCase().slice(0,16),scheduled_for:whenMs},function(j){
+          b.disabled=false;
+          if(j&&j.ok){ toast("Scheduled. It will fire from the queue."); load(); }
+          else toast(fdWriteErr(j&&j.err||j&&j.error,"Schedule failed."));
+        });
+      };
+    })(ss[si]);
+  }
+  /* Cancel a scheduled share (2026-10-03 H7). */
+  var scs=el.querySelectorAll("button[data-sqc]");
+  for(var sci=0;sci<scs.length;sci++){
+    (function(b){
+      b.onclick=function(){
+        var qid=b.getAttribute("data-sqc"); if(!qid) return;
+        b.disabled=true;
+        postX("schedule","s_action","schedule_cancel",{id:Number(qid),callsign:id.callsign,device:id.device},function(j){
+          if(j&&j.ok){ toast("Schedule cancelled."); SCHED=null; load(); }
+          else{
+            b.disabled=false;
+            var e2=document.getElementById("fdSchedErr");
+            if(e2) e2.textContent=fdWriteErr(j&&j.err||j&&j.error,"Cancel failed.");
+          }
+        });
+      };
+    })(scs[sci]);
+  }
+}
+/* ---------- BOOST tab (merged from games/amplify.js, PF v1.4.3, 2026-10-03) ----------
+   Amplify now lives as a tab of the Propaganda Feed. XP buttons call the same
+   boost_give / content_register backend actions, which feed the Feed ranking
+   (boost_board weights discovery). amplify.js deleted. */
+function fdInitBoost(root){
+ if(!root) return;
+ root.innerHTML =
+ '<div id="pf-amplify">'
+ +'<div class="c-tag">Put your XP where your mouth is. Boost what matters. Boosts feed the Feed ranking.</div>'
+ +'<div class="am-tabs">'
+ +'<button class="am-tab on" data-t="posts">Posts</button>'
+ +'<button class="am-tab" data-t="creators">Creators</button>'
+ +'<button class="am-tab" data-t="campaigns">Campaigns</button>'
+ +'</div>'
+ +'<div id="amPick"><div class="c-load">Loading targets&hellip;</div></div>'
+ +'<div class="am-amtrow">'
+ +'<span class="am-label">XP to spend:</span> '
+ +'<button class="am-chip on" data-a="10">10</button> '
+ +'<button class="am-chip" data-a="25">25</button> '
+ +'<button class="am-chip" data-a="50">50</button> '
+ +'<button class="am-chip" data-a="100">100</button> '
+ +'<input id="amCustom" class="am-custom" type="number" min="10" max="500" placeholder="Custom">'
+ +'</div>'
+ +'<button id="amGo" class="am-go" disabled>Select something to amplify</button>'
+ +'<h3 class="am-h3">Live amplifications</h3>'
+ +'<div id="amBoard"><div class="c-load">Loading the board&hellip;</div></div>'
+ +'<h3 class="am-h3">Your amplifications</h3>'
+ +'<div id="amMine"><div class="c-load">Loading&hellip;</div></div>'
+ +'</div>';
+
+var BACKEND=window.PF_BACKEND_URL;
+var sel=null;           /* {kind:'post'|'creator'|'campaign', id, title, reg} */
+var amt=10;
+var LS='pf_amplify_v1';
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ PF.toast(m); }catch(e){} }
+function needCs(){ var id=ident(); if(!id.callsign){ if(window.PF&&PF.requireCallsign){ PF.requireCallsign(function(){ refreshAll(); }); } else toast("Claim a callsign first."); return false; } return true; }
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  var fn="pfAmCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function post(spAction,params,cb){
+  var body=Object.assign({type:"spread",sp_action:spAction},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,function(j){ cb(j||{ok:false,err:"Network error."}); }); return; }
+  cb({ok:false,err:"Auth unavailable."});
+}
+function loadMine(){ try{ return JSON.parse(localStorage.getItem(LS)||"[]"); }catch(e){ return []; } }
+function saveMine(a){ try{ localStorage.setItem(LS,JSON.stringify(a.slice(0,50))); }catch(e){} }
+
+/* ---------- target pickers ---------- */
+var curTab='posts';
+function setTab(t){
+  curTab=t; sel=null; updateGo();
+  var tabs=document.querySelectorAll('#pf-amplify .am-tab');
+  for(var i=0;i<tabs.length;i++) tabs[i].classList.toggle('on',tabs[i].getAttribute('data-t')===t);
+  var box=document.getElementById('amPick');
+  box.innerHTML='<div class="c-load">Loading targets&hellip;</div>';
+  if(t==='posts') loadPosts(box);
+  else if(t==='creators') loadCreators(box);
+  else loadCampaigns(box);
+}
+function rowHtml(kind,id,title,sub,badge){
+  return '<div class="am-row" data-kind="'+esc(kind)+'" data-id="'+esc(id)+'" data-title="'+esc(title)+'">'+
+    '<div class="am-rowmain"><div class="am-rowt">'+esc(title)+'</div><div class="am-rowsub">'+esc(sub||"")+'</div></div>'+
+    (badge?'<span class="am-badge">AMPLIFIED &times;'+badge+'</span>':'')+
+    '</div>';
+}
+function bindRows(box){
+  var rows=box.querySelectorAll('.am-row');
+  for(var i=0;i<rows.length;i++){
+    rows[i].addEventListener('click',function(){
+      var rs=box.querySelectorAll('.am-row');
+      for(var j=0;j<rs.length;j++) rs[j].classList.remove('sel');
+      this.classList.add('sel');
+      sel={kind:this.getAttribute('data-kind'),id:this.getAttribute('data-id'),title:this.getAttribute('data-title')};
+      updateGo();
+    });
+  }
+}
+function loadPosts(box){
+  /* trending first (boosts already weight it), fall back to newest */
+  api('feed_trending',{},function(j){
+    var feed=(j&&j.ok&&j.feed)||[];
+    if(!feed.length){
+      api('content_list',{},function(j2){
+        var f2=(j2&&j2.ok&&j2.feed)||[];
+        renderPosts(box,f2);
+      });
+      return;
+    }
+    renderPosts(box,feed);
+  });
+}
+function renderPosts(box,feed){
+  if(!feed.length){ box.innerHTML='<div class="c-load">No content registered yet. Share something first.</div>'; return; }
+  var h='';
+  feed.slice(0,12).forEach(function(p){
+    var sub=(p.creator||"unknown")+" &middot; "+(p.type||"post")+" &middot; "+(p.shares||0)+" shares";
+    h+=rowHtml('post',p.id,p.title||p.id,sub,p.boosts||0);
+  });
+  box.innerHTML=h; bindRows(box);
+}
+function loadCreators(box){
+  var list=[];
+  try{
+    if(window.PF&&PF.ROSTER){ list=PF.ROSTER; }
+    else if(window.PF&&PF.slrAll){ list=PF.slrAll(); }
+  }catch(e){}
+  if(!list||!list.length){ box.innerHTML='<div class="c-load">Roster not loaded.</div>'; return; }
+  var h='';
+  list.slice(0,20).forEach(function(c){
+    var name=c.name||c.callsign||c.slug||"creator";
+    var slug=c.slug||String(name).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+    var sub=(c.followers||c.reach||"")+(c.score?" &middot; "+c.score+" score":"");
+    h+=rowHtml('creator',"creator_"+slug,name,sub,0);
+  });
+  box.innerHTML=h; bindRows(box);
+}
+function loadCampaigns(box){
+  api('campaign_missions',{day_offset:0},function(j){
+    var ms=(j&&j.ok&&j.missions)||[];
+    if(!ms.length){ box.innerHTML='<div class="c-load">No active missions today.</div>'; return; }
+    var h='';
+    ms.forEach(function(m){
+      h+=rowHtml('campaign',"campaign_"+m.id,m.title||("Mission "+m.id),(m.xp?("+"+m.xp+" XP"):""),0);
+    });
+    box.innerHTML=h; bindRows(box);
+  });
+}
+
+/* ---------- amount + go ---------- */
+function updateGo(){
+  var go=document.getElementById('amGo');
+  var custom=document.getElementById('amCustom');
+  var cv=parseInt(custom&&custom.value,10);
+  amt=(cv>=10&&cv<=500)?cv:amt;
+  if(sel){
+    go.disabled=false;
+    go.textContent="AMPLIFY \u2014 "+amt+" XP";
+  }else{
+    go.disabled=true;
+    go.textContent="Select something to amplify";
+  }
+}
+function doAmplify(){
+  if(!sel) return;
+  if(!needCs()) return;
+  var id=ident();
+  var useAmt=amt;
+  if(!confirm("Spend "+useAmt+" XP to amplify \u201c"+sel.title+"\u201d?")) return;
+  var goBtn=document.getElementById('amGo');
+  if(goBtn) goBtn.disabled=true;
+  toast("Amplifying\u2026");
+  function give(){
+    post('boost_give',{content_id:sel.id,booster:id.callsign,device:id.device,xp:useAmt},function(j){
+      if(goBtn) goBtn.disabled=false;
+      if(j&&j.ok){
+        toast("Amplified! "+useAmt+" XP behind \u201c"+sel.title+"\u201d.");
+        try{ document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:-useAmt,key:"amplify_"+sel.id+"_"+useAmt,reason:"amplify: "+sel.title}})); }catch(e){}
+        var mine=loadMine();
+        mine.unshift({id:sel.id,title:sel.title,kind:sel.kind,xp:useAmt,ts:Date.now()});
+        saveMine(mine);
+        sel=null; updateGo(); renderMine(); loadBoard();
+      }else{
+        toast("Amplify failed: "+fdWriteErr(j&&j.err||j&&j.error,"unknown error"));
+      }
+    });
+  }
+  if(sel.kind==='post'){ give(); return; }
+  /* creators & campaigns need a content row first */
+  post('content_register',{id:sel.id,kind:'poster',title:sel.title,callsign:id.callsign,device:id.device},function(){
+    give();
+  });
+}
+
+/* ---------- boards ---------- */
+function loadBoard(){
+  var box=document.getElementById('amBoard');
+  api('boost_board',{},function(j){
+    var b=(j&&j.ok&&j.board)||[];
+    if(!b.length){ box.innerHTML='<div class="c-load">Nothing amplified yet this week. Be the first.</div>'; return; }
+    var h='';
+    b.forEach(function(r,i){
+      h+='<div class="am-brow"><span class="am-rank">#'+(i+1)+'</span>'+
+        '<div class="am-rowmain"><div class="am-rowt">'+esc(r.title||r.id)+'</div>'+
+        '<div class="am-rowsub">'+esc(r.creator||"")+'</div></div>'+
+        '<span class="am-badge">AMPLIFIED &times;'+(r.boosts||0)+'</span>'+
+        '<span class="am-xp">'+(r.xp||0)+' XP</span></div>';
+    });
+    box.innerHTML=h;
+  });
+}
+function renderMine(){
+  var box=document.getElementById('amMine');
+  var mine=loadMine();
+  if(!mine.length){ box.innerHTML='<div class="c-load">You haven\u2019t amplified anything yet.</div>'; return; }
+  var h='';
+  mine.slice(0,10).forEach(function(m){
+    var d=new Date(m.ts);
+    var when=(d.getMonth()+1)+"/"+d.getDate();
+    h+='<div class="am-brow"><div class="am-rowmain"><div class="am-rowt">'+esc(m.title)+'</div>'+
+      '<div class="am-rowsub">'+esc(m.kind)+" &middot; "+when+'</div></div>'+
+      '<span class="am-xp">-'+m.xp+' XP</span></div>';
+  });
+  box.innerHTML=h;
+}
+function refreshAll(){ setTab(curTab); loadBoard(); renderMine(); }
+
+/* ---------- wire up ---------- */
+var tabs=document.querySelectorAll('#pf-amplify .am-tab');
+for(var ti=0;ti<tabs.length;ti++){ tabs[ti].addEventListener('click',function(){ setTab(this.getAttribute('data-t')); }); }
+var chips=document.querySelectorAll('#pf-amplify .am-chip');
+for(var ci=0;ci<chips.length;ci++){
+  chips[ci].addEventListener('click',function(){
+    for(var k=0;k<chips.length;k++) chips[k].classList.remove('on');
+    this.classList.add('on');
+    amt=parseInt(this.getAttribute('data-a'),10)||10;
+    var c=document.getElementById('amCustom'); if(c) c.value='';
+    updateGo();
+  });
+}
+var cust=document.getElementById('amCustom');
+if(cust){ cust.addEventListener('input',function(){
+  var v=parseInt(cust.value,10);
+  if(v>=10&&v<=500){ for(var k=0;k<chips.length;k++) chips[k].classList.remove('on'); amt=v; }
+  updateGo();
+});}
+document.getElementById('amGo').addEventListener('click',doAmplify);
+refreshAll();
+}
+
+/* ---------- VAULT tab (merged from games/archive.js, PF v1.4.3, 2026-10-03) ----------
+   The Vault now lives as a tab of the Propaganda Feed (a browse filter over
+   the archive). Same archive_search / evergreen_list / resurface /
+   attribution_stats backend calls. archive.js deleted. */
+function fdInitVault(root){
+
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  var fn="pfArCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function post(cAction,params,cb){
+  var body=Object.assign({type:"archive",ar_action:cAction},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+}
+var EV=null, results=null, lastQ="", lastSort="top";
+function card(r,showResurface,showAttr){
+  var h='<div class="x-pane ar-card">'
+    +'<div class="ar-headline">'+esc(r.headline||r.content_id)+'</div>'
+    +'<div class="ar-meta">by '+esc(r.creator||"unknown")+' &bull; '+(Number(r.shares)||0)+' shares</div>';
+  if(showAttr){
+    h+='<button class="c-btn c-btn2 ar-attr" data-cid="'+esc(r.content_id)+'">WHO DID THIS CONVERT?</button>'
+      +'<div class="ar-attr-out" id="arAttr'+esc(r.content_id)+'"></div>';
+  }
+  if(showResurface){
+    var id=ident();
+    if(id.callsign){
+      h+='<button class="c-btn ar-resurf" data-cid="'+esc(r.content_id)+'">RESURFACE (+5 XP)</button>';
+    }
+  }
+  h+='</div>';
+  return h;
+}
+function wireCards(el){
+  var rs=el.querySelectorAll("button.ar-resurf");
+  for(var i=0;i<rs.length;i++){
+    (function(btn){
+      btn.onclick=function(){
+        var id=ident(); if(!id.callsign){ toast("Claim a callsign first."); return; }
+        btn.disabled=true;
+        post("resurface",{callsign:id.callsign,device:id.device,content_id:btn.getAttribute("data-cid")},function(j){
+          if(!j||!j.ok){ toast(fdWriteErr(j&&j.err||j&&j.error,"Resurface failed.")); btn.disabled=false; return; }
+          toast("+5 XP — winner redeployed.");
+          btn.textContent="RESURFACED";
+        });
+      };
+    })(rs[i]);
+  }
+  var as=el.querySelectorAll("button.ar-attr");
+  for(var k=0;k<as.length;k++){
+    (function(btn){
+      var out=document.getElementById("arAttr"+btn.getAttribute("data-cid"));
+      var open=false;
+      btn.onclick=function(){
+        if(open){ out.innerHTML=""; open=false; return; }
+        open=true; out.innerHTML='<div class="x-note">Tracing conversions&hellip;</div>';
+        api("attribution_stats",{content_id:btn.getAttribute("data-cid")},function(j){
+          if(!j||!j.ok){ out.innerHTML='<div class="x-note">No attribution data yet.</div>'; return; }
+          out.innerHTML='<div class="ar-conv">'
+            +'<div>'+(Number(j.enlistments)||0)+' enlistments traced</div>'
+            +'<div>'+(Number(j.referrals)||0)+' referrals traced</div>'
+            +'<div>'+(Number(j.xp_generated)||0)+' XP generated</div></div>';
+        });
+      };
+    })(as[k]);
+  }
+}
+function render(){
+  var el=root; if(!el) return;
+  var id=ident(), h="";
+  /* search bar — 2026-10-03: archive_search (public) with TOP/RECENT sort;
+     falls back to content_search if the dedicated search fails. */
+  h+='<div class="c-tag">Every poster ever forged. Search it. Resurface winners. See what converted.</div>'
+  +'<div class="x-pane"><h4>Search the vault</h4>'
+    +'<input aria-label="healthcare, wages, rent&hellip;" id="arQ" type="text" placeholder="healthcare, wages, rent&hellip;" value="'+esc(lastQ)+'" style="width:60%;padding:8px;font:14px monospace"/>'
+    +'<button class="c-btn" id="arSearch">SEARCH</button> '
+    +'<button class="c-btn ghost" id="arSortTop"'+(lastSort==="top"?' disabled':"")+'>TOP</button>'
+    +'<button class="c-btn ghost" id="arSortRecent"'+(lastSort==="recent"?' disabled':"")+'>RECENT</button>'
+    +'<div id="arResults" style="margin-top:10px"></div></div>';
+  /* evergreen */
+  h+='<div class="x-pane"><h4>Evergreen winners</h4>'
+    +'<div class="x-note">Proven posters gone quiet for 30+ days. Redeploy them &mdash; winners win twice.</div>'
+    +'<div id="arEvergreen"><div class="c-load">Digging up winners&hellip;</div></div></div>';
+  el.innerHTML=h;
+  var sb=document.getElementById("arSearch");
+  var qi=document.getElementById("arQ");
+  function doSearch(){
+    var q=qi.value.trim(); if(!q) return;
+    lastQ=q;
+    var ro=document.getElementById("arResults");
+    ro.innerHTML='<div class="c-load">Searching&hellip;</div>';
+    function paint(rs){
+      var rh="";
+      if(!rs.length){ rh='<div class="x-note">Nothing in the vault matches "'+esc(q)+'". Forge it yourself.</div>'; }
+      for(var i=0;i<Math.min(rs.length,20);i++){ rh+=card(rs[i],true,true); }
+      ro.innerHTML=rh; wireCards(ro);
+    }
+    api("archive_search",{q:q,sort:lastSort},function(j){
+      var rs=(j&&j.ok&&j.results)||[];
+      if(!j||!j.ok){
+        /* Fallback: the older content_search path. */
+        api("content_search",{q:q},function(j2){
+          paint((j2&&j2.ok&&j2.results)||[]);
+        });
+        return;
+      }
+      paint(rs);
+    });
+  }
+  sb.onclick=doSearch;
+  qi.onkeydown=function(e){ if(e.key==="Enter") doSearch(); };
+  var st=document.getElementById("arSortTop");
+  if(st) st.onclick=function(){ lastSort="top"; render(); };
+  var sr=document.getElementById("arSortRecent");
+  if(sr) sr.onclick=function(){ lastSort="recent"; render(); };
+  if(lastQ&&results){
+    var ro2=document.getElementById("arResults");
+    var rh2="";
+    for(var r=0;r<Math.min(results.length,20);r++){ rh2+=card(results[r],true,true); }
+    ro2.innerHTML=rh2; wireCards(ro2);
+  }
+  /* evergreen load */
+  var eg=document.getElementById("arEvergreen");
+  if(EV){ paintEvergreen(eg); }
+  else{
+    api("evergreen_list",{},function(j){
+      EV=(j&&j.ok&&j.winners)||[];
+      var e2=document.getElementById("arEvergreen");
+      if(e2) paintEvergreen(e2);
+    });
+    setTimeout(function(){ var e3=document.getElementById("arEvergreen"); if(e3&&e3.innerHTML.indexOf("c-load")>=0) paintEvergreen(e3); },15000);
+  }
+}
+function paintEvergreen(eg){
+  if(!eg) return;
+  if(!EV.length){ eg.innerHTML='<div class="x-note">No dormant winners yet. The vault is young.</div>'; return; }
+  var h="";
+  for(var i=0;i<EV.length;i++){ h+=card(EV[i],true,false); }
+  eg.innerHTML=h; wireCards(eg);
+}
+render();
+}
+
+load();
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },180000);
+})();
+</scr`+`ipt>
+</div>
+</template>`);
+})();
+
+;
+
+/* ===== political-hq-nudge.js ===== */
+/* games/political-hq-nudge.js  |  PF v1.4.3 | Front-door nudge to Political HQ.
+   A punchy CTA card on the homepage driving traffic to /political-hq.
+   KILL: ?pf_off=hq-nudge  or  localStorage pf_disabled_v1='["hq-nudge"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("hq-nudge")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-hq-nudge">
+<div class="fe-block pf-override-block pf-silo" id="pf-hq-nudge">
+<div class="pf-hq-nudge-card" style="background:linear-gradient(135deg,#0a0a0a 0%,#1a0505 100%);border:2px solid #c1121f;padding:28px 24px;text-align:center;margin:16px 0;">
+<div style="font-size:13px;letter-spacing:3px;color:#c1121f;font-weight:800;margin-bottom:8px;">NEW BATTLEGROUND</div>
+<h2 style="color:#f5ead6;font-size:28px;margin:0 0 12px 0;letter-spacing:1px;">POLITICAL HQ</h2>
+<p style="color:#ccc;font-size:15px;max-width:520px;margin:0 auto 20px auto;line-height:1.5;">Petitions. Rep contact. Voter registration. The People's Assembly. Wage civic warfare off the timeline.</p>
+<a href="/political-hq" class="pf-btn" style="display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:16px;padding:14px 36px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;">ENTER THE HQ →</a>
+</div>
+</div>
+</template>`);
+})();
+
+;
+
+/* ===== war-bonds.js ===== */
+/* games/war-bonds.js  |  PF v1.3.0 | War Bonds fund-a-propagandist directory (tier buttons link to /store war-bond products; di
+   KILL: ?pf_off=war-bonds  or  localStorage pf_disabled_v1='["war-bonds"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("war-bonds")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-bonds">
+<div id="pf-warbonds" style="max-width:640px;margin:2rem auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:'Helvetica Neue',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;text-align:center;">
+  <div style="font-size:1.6rem;font-weight:900;letter-spacing:0.18em;color:#c1121f;">&#9733; WAR BONDS &#9733;</div>
+  <div style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;line-height:1.5;">Buy a bond. Fund the machine. Or back a fighter <b style="color:#f5f0e1;">directly</b>.<br>Direct backing goes straight to the creator; the Factory never touches it.</div>
+  <div style="font-size:0.85rem;font-weight:900;letter-spacing:0.16em;color:#f5f0e1;margin-bottom:0.5rem;">BUY WAR BONDS</div>
+  <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:0.8rem;line-height:1.5;">One-time purchase, right here.<br><b style="color:#f5f0e1;">50%</b> funds the network &middot; <b style="color:#f5f0e1;">50%</b> goes into the creator pool, split equally among <b style="color:#f5f0e1;">every</b> creator on the roster.</div>
+  <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:0.8rem;line-height:1.5;">The week&rsquo;s team-board winner takes an extra <b style="color:#f5f0e1;">5%</b> of the pool.</div>
+  <div id="pf-wb-buy" style="margin-bottom:1.3rem;"></div>
+  <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:1.1rem;line-height:1.5;">Checkout opens the store in a new tab &mdash; your bond XP lands in the <b style="color:#f5f0e1;">Agitator&rsquo;s Ledger</b> automatically. Go check it.</div>
+  <div style="border-top:2px solid #c1121f;margin:1.3rem 0 1rem;"></div>
+  <div style="font-size:0.85rem;font-weight:900;letter-spacing:0.16em;color:#f5f0e1;margin-bottom:0.5rem;">ALREADY BOUGHT? CLAIM YOUR XP</div>
+  <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:0.8rem;line-height:1.5;">Bought a bond before you had a callsign? Enter the email you used at checkout to collect your thank-you XP.</div>
+  <input id="pf-wb-email" type="email" placeholder="checkout email" autocapitalize="off" autocomplete="email" spellcheck="false" style="width:100%;max-width:420px;background:#141414;color:#f5f0e1;border:2px solid #c1121f;padding:0.7rem;font-size:1rem;font-family:inherit;box-sizing:border-box;margin-bottom:0.6rem;text-align:center;" />
+  <div><button id="pf-wb-claim" style="display:inline-block;background:#c1121f;color:#f5f0e1;font-weight:900;letter-spacing:0.1em;border:none;padding:0.8rem 2rem;font-size:0.95rem;cursor:pointer;font-family:inherit;">CLAIM BOND XP</button></div>
+  <div id="pf-wb-claimmsg" style="font-size:0.85rem;color:#b8ab8e;margin-top:0.7rem;line-height:1.5;min-height:1.2em;"></div>
+  <div style="font-size:0.8rem;color:#b8ab8e;letter-spacing:0.14em;margin-bottom:0.6rem;">OR FUND MONTHLY</div>
+  <a href="https://mtcstw.substack.com" target="_blank" rel="noopener" style="display:inline-block;border:2px solid #c1121f;color:#f5f0e1;font-weight:700;letter-spacing:0.1em;text-decoration:none;padding:0.7rem 1.8rem;font-size:0.95rem;margin-bottom:1.1rem;">BECOME A PAID SUPPORTER &rarr;</a>
+  <div style="font-size:0.8rem;color:#b8ab8e;letter-spacing:0.14em;margin-bottom:0.6rem;">OR BACK A PROPAGANDIST DIRECTLY</div>
+  <select id="pf-wb-pick" style="width:100%;max-width:420px;background:#141414;color:#f5f0e1;border:2px solid #c1121f;padding:0.7rem;font-size:1rem;font-family:inherit;margin-bottom:1rem;">
+    <option value="">Pick your propagandist&hellip;</option>
+  </select>
+  <div id="pf-wb-out"></div>
+  <div style="margin-top:1.2rem;font-size:0.8rem;color:#b8ab8e;">On the roster? <a href="mailto:mtcstw@gmail.com?subject=War%20chest%20links%20for%20the%20roster" style="color:#c1121f;font-weight:700;">Send your tip / merch links</a> and get listed.</div>
+</div>
+<script>
+(function(){
+  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  /* 2026-10-03: bond_stats (public GET) — war bond aggregates, rendered as a
+     ledger strip under the buy buttons. No PII, public by backend design. */
+  (function(){
+    var box=document.getElementById('pf-wb-buy'); if(!box) return;
+    var BACKEND=(window.PF_BACKEND_URL||""); if(!BACKEND) return;
+    var stats=document.createElement('div');
+    stats.id='pf-wb-stats';
+    stats.style.cssText='font-size:0.8rem;color:#b8ab8e;margin-bottom:1.1rem;line-height:1.5;';
+    stats.textContent='Reading the war ledger\u2026';
+    box.parentNode.insertBefore(stats, box.nextSibling);
+    var fn='pfWbCb'+Math.floor(Math.random()*1e9);
+    var s=document.createElement('script'), done=false;
+    function finish(j){
+      if(done) return; done=true;
+      try{ delete window[fn]; }catch(e){}
+      if(s.parentNode) s.parentNode.removeChild(s);
+      if(!j||!j.ok){ if(stats.parentNode) stats.parentNode.removeChild(stats); return; }
+      var rev=Number(j.total_revenue)||0, n=Number(j.purchases)||0;
+      var net=Number(j.network_share)||0, pool=Number(j.creator_pool)||0;
+      stats.innerHTML='\u2605 WAR LEDGER: <b style="color:#f5f0e1;">$'+rev.toFixed(2)+'</b> raised from <b style="color:#f5f0e1;">'+n+'</b> bond'+(n===1?'':'s')
+        +' &mdash; $'+net.toFixed(2)+' to the network, $'+pool.toFixed(2)+' to the creator pool.';
+    }
+    window[fn]=function(j){ finish(j); };
+    s.onerror=function(){ finish(null); };
+    s.src=BACKEND+'?action=bond_stats&callback='+fn;
+    document.head.appendChild(s);
+    setTimeout(function(){ finish(null); },12000);
+  })();
+  /* WAR BOND CHECKOUT: Squarespace product URLs, one per denomination
+     (products created 2026-09-26; "Unnamed Product" stray removed). */
+  var WAR_BOND_URLS = {
+    "5":  "https://www.mtcstw.com/store/p/war-bond-5",
+    "10": "https://www.mtcstw.com/store/p/war-bond-10",
+    "25": "https://www.mtcstw.com/store/p/war-bond-25",
+    "50": "https://www.mtcstw.com/store/p/war-bond-50"
+  };
+  /* Roster-driven: all 62 SLR members from the master database (no hardcoded list). */
+  var ALL_CREATORS = [];
+  try {
+    var _roster = (window.PF && PF.slrAll) ? PF.slrAll() : [];
+    _roster.forEach(function(m){
+      ALL_CREATORS.push({ name: m.name, catalog: 'https://www.mtcstw.com' + (m.catalog_path || ('/' + m.slug)) });
+    });
+  } catch(e) {}
+  /* WAR CHEST links: data-driven from the SLR master database. Each member's
+     links array (platform/url/status) feeds the picker; links on tip platforms
+     render as war-chest pay buttons. WARCHEST_SEED covers creators whose tip
+     links aren't in the master DB yet (unioned with DB links, deduped by
+     URL). When the backend ships a warchest_links read, wire it here and
+     this file needs no further edits. */
+  var TIP_PLATFORMS = { 'patreon':1, 'ko-fi':1, 'kofi':1, 'cashapp':1, 'venmo':1,
+    'paypal':1, 'buymeacoffee':1, 'buy me a coffee':1, 'merch':1, 'store':1,
+    'merch store':1, 'tips':1, 'tip jar':1, 'gofundme':1 };
+  function tipLinks(m){
+    var out=[], seen={};
+    ((m&&m.links)||[]).forEach(function(l){
+      if(!l||!l.url) return;
+      var p=String(l.platform||'').toLowerCase().trim(), isTip=false, k;
+      for(k in TIP_PLATFORMS){ if(p.indexOf(k)>-1){ isTip=true; break; } }
+      if(!isTip||seen[l.url]) return;
+      seen[l.url]=1;
+      out.push({label:l.platform||'Support', url:l.url});
+    });
+    return out;
+  }
+  var WARCHEST = {};
+  try{
+    _roster.forEach(function(m){
+      var pay=tipLinks(m);
+      if(pay.length) WARCHEST[m.name]={
+        catalog:'https://www.mtcstw.com'+(m.catalog_path||('/'+m.slug)),
+        pay:pay };
+    });
+  }catch(e){}
+  /* Seed: per-creator tip links not yet in the master DB. Unioned with the
+     DB-derived entries above (DB wins on URL conflicts). */
+  var WARCHEST_SEED = {"The Dr Greg Show": {"catalog": "https://www.mtcstw.com/the-dr-greg-show", "pay": [{"label": "Merch store", "url": "https://dr-greg-shop.fourthwall.com/"}]}, "Guillotines For A Better America": {"catalog": "https://www.mtcstw.com/guillotines-for-a-better-america", "pay": [{"label": "Patreon", "url": "https://www.patreon.com/GuillotinesForABetterAmerica"}]}, "Little Anarchist Brat": {"catalog": "https://www.mtcstw.com/little-anarchist-brat", "pay": [{"label": "Tips", "url": "https://ko-fi.com/littleanarchistbrat"}]}, "Kim Hunt (SlayTheGOP)": {"catalog": "https://www.mtcstw.com/kim-hunt-slaythegop", "pay": [{"label": "Patreon", "url": "https://www.patreon.com/cw/slaythegop"}]}};
+  try{
+    for(var _sn in WARCHEST_SEED){
+      if(!WARCHEST[_sn]){ WARCHEST[_sn]=WARCHEST_SEED[_sn]; continue; }
+      var _have={};
+      WARCHEST[_sn].pay.forEach(function(p){ _have[p.url]=1; });
+      WARCHEST_SEED[_sn].pay.forEach(function(p){
+        if(!_have[p.url]) WARCHEST[_sn].pay.push(p);
+      });
+    }
+  }catch(e){}
+  var pick = document.getElementById('pf-wb-pick');
+  var out = document.getElementById('pf-wb-out');
+  ALL_CREATORS.forEach(function(c){
+    var o = document.createElement('option');
+    o.value = c.name;
+    o.textContent = (WARCHEST[c.name] ? '\u2605 ' : '') + c.name;
+    pick.appendChild(o);
+  });
+  var buyBox = document.getElementById('pf-wb-buy');
+  buyBox.addEventListener('click',function(e){
+    var a=e.target&&e.target.closest?e.target.closest('a'):null;
+    if(a&&a.href){try{document.dispatchEvent(new CustomEvent('pf-wb-buy',{detail:{amt:a.textContent.trim(),day:new Date().toISOString().slice(0,10)}}));}catch(wbe){}}
+  });
+  ["5","10","25","50"].forEach(function(amt){
+    var a = document.createElement('a');
+    var url = WAR_BOND_URLS[amt] || "https://mtcstw.substack.com";
+    a.href = url; a.target = "_blank"; a.rel = "noopener";
+    a.textContent = "$" + amt + " BOND";
+    a.style.cssText = 'display:inline-block;background:#c1121f;color:#f5f0e1;font-weight:900;letter-spacing:0.1em;text-decoration:none;padding:0.8rem 1.3rem;margin:0.3rem;font-size:1rem;';
+    buyBox.appendChild(a);
+  });
+  pick.onchange = function(){
+    var name = pick.value;
+    if(!name){ out.innerHTML=''; return; }
+    var c = null;
+    ALL_CREATORS.forEach(function(x){ if(x.name===name) c=x; });
+    if(!c){ out.innerHTML=''; return; }
+    var w = WARCHEST[name];
+    var h = '<div style="font-size:1.25rem;font-weight:900;margin-bottom:0.8rem;">' + esc(name) + '</div>';
+    if(w){
+      h += '<div style="font-size:0.8rem;letter-spacing:0.12em;color:#c1121f;font-weight:900;margin-bottom:0.8rem;">\u2605 WAR CHEST ACTIVE \u2605</div>';
+      w.pay.forEach(function(p){
+        h += '<a href="' + esc(p.url) + '" target="_blank" rel="noopener" style="display:inline-block;background:#c1121f;color:#f5f0e1;font-weight:900;letter-spacing:0.1em;text-decoration:none;padding:0.8rem 1.6rem;margin:0.3rem;font-size:0.95rem;">' + esc(String(p.label).toUpperCase()) + ' &rarr;</a>';
+      });
+    } else {
+      h += '<div style="font-size:0.95rem;color:#b8ab8e;margin-bottom:0.8rem;">No war chest on file yet.</div>';
+      h += '<a href="' + esc(c.catalog) + '" style="display:inline-block;border:2px solid #c1121f;color:#f5f0e1;font-weight:700;letter-spacing:0.08em;text-decoration:none;padding:0.7rem 1.4rem;font-size:0.9rem;">FULL PROFILE &rarr;</a>';
+    }
+    out.innerHTML = h;
+  };
+  /* BOND XP CLAIM: buyers who purchased before claiming a callsign collect
+     their thank-you XP here. The purchase flow itself stays frictionless —
+     this gate only guards the XP collection. */
+  var wbClaimBtn = document.getElementById('pf-wb-claim');
+  if(wbClaimBtn){
+    /* C2a (2026-10-03): claim attempts are retryable. When the backend
+       reports the store webhook has NEVER fired, show an honest "not yet"
+       state with a RETRY button instead of dead-ending. */
+    var wbMsgEl = document.getElementById('pf-wb-claimmsg');
+    function wbSay(m){ if(wbMsgEl) wbMsgEl.textContent = m; }
+    function attemptClaim(){
+      if(!window.PF || !PF.requireCallsign){ wbSay('Loading\u2026 try again in a moment.'); return; }
+      PF.requireCallsign(function(cs){
+        if(!cs){ wbSay('Claim a callsign above to collect your bond XP.'); return; }
+        var emailEl = document.getElementById('pf-wb-email');
+        var email = emailEl ? String(emailEl.value || '').trim().toLowerCase() : '';
+        if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){ wbSay('Enter the email you used at checkout.'); return; }
+        wbSay('Checking for unclaimed bonds\u2026');
+        wbClaimBtn.disabled = true;
+        var body = { type:'warbond', wb_action:'bond_claim', callsign:cs, email:email };
+        /* Device id for backend dedupe/anti-abuse (same ident() pattern as
+           the other claim-type calls). */
+        try{ body.device = window.PFDeviceId ? window.PFDeviceId() : ''; }catch(e){ body.device=''; }
+        var url = window.PF_BACKEND_URL;
+        function postBody(b, cb){
+          if(window.PF && PF.authPost){ PF.authPost(url, b, cb); return; }
+          try{
+            /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+            var _po=(function(){ var o={method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(b)},c=null,t=null;
+              try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+                t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+              o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+            fetch(url, _po)
+              .then(function(r){ return r.json(); })
+              .then(function(j){ _po._pfClear(); cb(j); })
+              .catch(function(){ _po._pfClear(); cb(null); });
+          }catch(e){ cb(null); }
+        }
+        postBody(body, function(j){
+          wbClaimBtn.disabled = false;
+          if(!j || !j.ok){ wbSay(PF.errCopy(j, 'Claim failed. Try again.')); return; }
+          if(!j.claimed){
+            if(j.no_webhooks_received){
+              /* The Squarespace webhook has never fired — the buyer isn't at
+                 fault. Honest state + RETRY, never a dead end. */
+              if(wbMsgEl){
+                wbMsgEl.innerHTML = 'No purchase detected yet \u2014 if you just bought, allow a few minutes, then retry. '
+                  + '<button id="pf-wb-retry" style="display:inline-block;background:transparent;border:2px solid #c1121f;color:#c1121f;font-weight:700;letter-spacing:0.1em;padding:0.4rem 1.2rem;font-size:0.85rem;cursor:pointer;font-family:inherit;margin-left:0.4rem;">RETRY</button>';
+                var rbt = document.getElementById('pf-wb-retry');
+                if(rbt) rbt.onclick = function(){ attemptClaim(); };
+              } else {
+                wbSay('No purchase detected yet \u2014 if you just bought, allow a few minutes, then retry.');
+              }
+            } else {
+              wbSay(j.capped ? 'Daily XP cap reached \u2014 your bonds are still waiting. Come back tomorrow.' : 'No unclaimed bonds found for that email.');
+            }
+            return;
+          }
+          wbSay('BOND XP CLAIMED: +' + (j.xp_granted || 0) + ' XP. Check your ledger.');
+          try{ if(window.PF && PF.toast) PF.toast('Bond XP claimed: +' + (j.xp_granted || 0) + ' XP.'); }catch(e){}
+        });
+      }, { context: 'to claim your War Bond XP' });
+    }
+    wbClaimBtn.onclick = function(){ attemptClaim(); };
+  }
+})();
+</script>
+</template>`);
+})();
+
+;
+
+/* ===== campaign.js ===== */
+/* games/campaign.js  |  PF v1.4.3 | THE 32-DAY OFFENSIVE: midterm campaign HQ.
+   LAYERING: a game silo like contracts.js. Reads via JSONP (self-contained api()),
+   writes via CORS POST (self-contained post()). It never reaches into another
+   silo's internals. Race/measure content comes from core/campaign-data.js
+   (window.PF_CAMPAIGN_RACES / PF_CAMPAIGN_MEASURES) — Gemini research fills it.
+   Framing: class warfare that builds independent working-class power, not
+   cheerleading for either capitalist party.
+   KILL: ?pf_off=campaign  or  localStorage pf_disabled_v1='["campaign"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("campaign")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-campaign">
+<div class="fe-block pf-override-block" id="pf-campaign">
+<h2>The 32-Day Offensive</h2>
+<div class="c-tag">Midterm campaign HQ. Every action builds our power.</div>
+<div id="xCampaign"><div class="c-load">Mobilizing&hellip;</div></div>
+</div>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+/* Nov 3, 2026 — Election Day. Local midnight. */
+var ELECTION=new Date(2026,10,3,0,0,0,0).getTime();
+/* 32-Day Offensive sunset (2026-10-03): the campaign hard-expires at
+   Nov 3, 2026 23:59 America/Chicago. After that the widget renders a
+   CAMPAIGN COMPLETE state with final backend totals instead of the pledge
+   form. Never pulled early — the check is wall-clock, not deploy time. */
+function cpChiParts(){
+  try{
+    var ps=new Intl.DateTimeFormat("en-US",{timeZone:"America/Chicago",year:"numeric",month:"numeric",day:"numeric",hour:"numeric",minute:"numeric",hour12:false}).formatToParts(new Date());
+    var o={}; for(var i=0;i<ps.length;i++){ o[ps[i].type]=+ps[i].value; } return o;
+  }catch(e){ return null; }
+}
+function campaignOver(){
+  var p=cpChiParts();
+  if(!p){ return Date.now()>Date.UTC(2026,10,4,5,59,0); } /* CST = UTC-6 fallback */
+  var ymd=p.year*10000+p.month*100+p.day;
+  if(ymd>20261103) return true;
+  if(ymd<20261103) return false;
+  return (p.hour%24)*60+p.minute>=23*60+59;
+}
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ PF.toast(m); }catch(e){} }
+/* Credit backend grants into the local ledger for instant HUD display.
+   The backend already granted this XP via xpGrant — do NOT dispatch pf-xp
+   (that would trigger the xpledger mirror with a different key and
+   double-grant). This is the nolx pattern from enlistment-ranks. */
+/* Delegates to the global layer: PF.creditLocal owns the pf_ranks_v1
+   ledger so all writers share one format (see core/00-bus.js). */
+function creditLocal(key, xp){
+  try{ if(window.PF&&PF.creditLocal) return PF.creditLocal(key, xp); }catch(e){}
+}
+function chiDay(){ try{ return new Date().toLocaleDateString("en-CA",{timeZone:"America/Chicago"}); }catch(e){ var d=new Date(); return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2); } }
+/* JSONP GET for reads. */
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  var fn="pfCpCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+/* CORS POST for writes — real fetch, backend verdict parsed. */
+function post(cAction,params,cb){
+  var body=Object.assign({type:"campaign",c_action:cAction},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+}
+var S=null, M=null, W=null, L=null, R=null;
+function daysLeft(){ var ms=ELECTION-Date.now(); return Math.max(0,Math.ceil(ms/86400000)); }
+function load(){
+  var id=ident(), done=false, n=0;
+  function fin(){ if(done)return; done=true; render(); }
+  function one(){ n++; if(n>=5) fin(); }
+  setTimeout(fin,15000);
+  api("campaign_status",{},function(j){ S=j; one(); });
+  api("campaign_missions",{callsign:id.callsign,device:id.device},function(j){ M=j; one(); });
+  api("campaign_wall",{},function(j){ W=j; one(); });
+  api("campaign_leaders",{},function(j){ L=j; one(); });
+  api("race_list",{},function(j){ R=j; one(); });
+}
+function isPledged(){
+  var id=ident(); if(!id.callsign) return false;
+  if(S&&S.pledged) return true;
+  try{ var pl=(W&&W.pledges)||[]; for(var i=0;i<pl.length;i++){ if(String(pl[i].callsign||"").toUpperCase()===id.callsign.toUpperCase()) return true; } }catch(e){}
+  return false;
+}
+function renderComplete(){
+  var el=document.getElementById("xCampaign"); if(!el) return;
+  var h='<div class="cp-count">CAMPAIGN COMPLETE</div>'
+    +'<div class="cp-frame">THE OFFENSIVE IS OVER. THE FIGHT IS NOT.</div>'
+    +'<div class="cp-sub">Final results from the 32-Day Offensive &mdash; the pledge form is retired, the wall stands.</div>';
+  if(!S&&!W&&!L){
+    h+='<div class="c-neterr">The wire didn&rsquo;t answer with final results.'
+      +'<br><button class="c-btn" id="cpRetry">Retry connection</button></div>';
+    el.innerHTML=h;
+    document.getElementById("cpRetry").onclick=function(){ S=M=W=L=R=null; el.innerHTML='<div class="c-load">Mobilizing&hellip;</div>'; load(); };
+    return;
+  }
+  var pledges=(S&&S.pledges)||0, acts=(S&&S.actions)||0, goal=(S&&S.goal)||1000;
+  var pct=Math.min(100,Math.round((pledges+acts)/Math.max(1,goal)*100));
+  h+='<div class="x-pane"><h4>Final results</h4>'
+    +'<div class="cp-barwrap"><div class="cp-bar" style="width:'+pct+'%"></div></div>'
+    +'<div class="x-note">'+pledges+' pledges &bull; '+acts+' actions &bull; '+pct+'% of '+goal+' goal</div></div>';
+  var pl=(W&&W.pledges)||[];
+  h+='<div class="x-pane"><h4>Pledge wall &mdash; honor roll</h4><div class="cp-wall">';
+  if(!pl.length){ h+='<div class="x-note">No pledges recorded.</div>'; }
+  for(var w=0;w<Math.min(pl.length,40);w++){ h+='<span class="cp-wname">'+esc(pl[w].callsign)+'</span>'; }
+  h+='</div></div>';
+  var ld=(L&&L.leaders)||[];
+  h+='<div class="x-pane"><h4>Top fighters</h4>';
+  if(!ld.length){ h+='<div class="x-note">No standings recorded.</div>'; }
+  for(var q=0;q<Math.min(ld.length,10);q++){
+    h+='<div class="cp-lead"><span class="cp-lrank">'+(q+1)+'.</span> <span class="cp-lname">'+esc(ld[q].callsign)+'</span> <span class="cp-lxp">'+(Number(ld[q].xp)||0)+' XP</span></div>';
+  }
+  h+='</div>';
+  h+='<div style="margin-top:10px"><button class="c-btn" id="cpRetry">Refresh</button></div>';
+  el.innerHTML=h;
+  var rb=document.getElementById("cpRetry");
+  if(rb) rb.onclick=function(){ S=M=W=L=R=null; el.innerHTML='<div class="c-load">Mobilizing&hellip;</div>'; load(); };
+}
+function render(){
+  var el=document.getElementById("xCampaign"); if(!el) return;
+  if(campaignOver()){ renderComplete(); return; }
+  var id=ident(), dl=daysLeft(), h="";
+  /* --- countdown + framing --- */
+  h+='<div class="cp-count">'+(dl>0?dl+" DAYS TO ELECTION DAY":(dl===0?"ELECTION DAY IS HERE":"THE FIGHT CONTINUES"))+'</div>';
+  h+='<div class="cp-frame">THEY HAVE TWO PARTIES. WE&rsquo;RE BUILDING OUR OWN POWER.</div>';
+  h+='<div class="cp-sub">Every pledge, every mission, every recruit feeds the war effort &mdash; not the Democrats, not the Republicans. Us.</div>';
+  if(!id.callsign){
+    h+=PF.gateHTML('Campaigns run on callsigns.','to deploy');
+    el.innerHTML=h; return;
+  }
+  /* --- pledge --- */
+  if(isPledged()){
+    h+='<div class="cp-pledged">&#9733; PLEDGED TO VOTE &mdash; '+esc(id.callsign)+' is on the wall.</div>';
+  } else {
+    h+='<div class="x-pane"><h4>Take the pledge</h4>'
+      +'<div class="x-note">Pledge to vote on Nov 3. Your callsign gets etched on the Pledge Wall &mdash; permanent.</div>'
+      +'<button class="c-btn" id="cpPledgeBtn">PLEDGE TO VOTE</button><div class="c-err" id="cpPledgeErr"></div></div>';
+  }
+  /* --- today's missions --- */
+  var ms=(M&&M.missions)||[];
+  h+='<div class="x-pane"><h4>Today&rsquo;s missions</h4>';
+  if(!ms.length){ h+='<div class="x-note">Missions loading&hellip; hit retry below if this sticks.</div>'; }
+  for(var i=0;i<ms.length;i++){
+    var m=ms[i];
+    h+='<div class="cp-mission"><div class="cp-mtext">'+esc(m.label)+'</div>'
+      +'<div class="cp-mxp">+'+(Number(m.xp)||10)+' XP</div>';
+    if(m.done){ h+='<div class="cp-mdone">DONE</div>'; }
+    else { h+='<button class="c-btn cp-mbtn" data-mid="'+esc(m.id)+'">COMPLETE</button>'; }
+    h+='</div>';
+  }
+  h+='</div>';
+  /* --- war effort --- */
+  var pledges=(S&&S.pledges)||0, acts=(S&&S.actions)||0, goal=(S&&S.goal)||1000;
+  var pct=Math.min(100,Math.round((pledges+acts)/Math.max(1,goal)*100));
+  h+='<div class="x-pane"><h4>The war effort</h4>'
+    +'<div class="cp-barwrap"><div class="cp-bar" style="width:'+pct+'%"></div></div>'
+    +'<div class="x-note">'+pledges+' pledges &bull; '+acts+' actions &bull; '+pct+'% of '+goal+' goal</div></div>';
+  /* --- pledge wall --- */
+  var pl=(W&&W.pledges)||[];
+  h+='<div class="x-pane"><h4>Pledge wall</h4><div class="cp-wall">';
+  if(!pl.length){ h+='<div class="x-note">No pledges yet. Be the first name etched.</div>'; }
+  for(var w=0;w<Math.min(pl.length,40);w++){ h+='<span class="cp-wname">'+esc(pl[w].callsign)+'</span>'; }
+  h+='</div></div>';
+  /* --- leaders --- */
+  var ld=(L&&L.leaders)||[];
+  h+='<div class="x-pane"><h4>Top fighters</h4>';
+  if(!ld.length){ h+='<div class="x-note">No standings yet.</div>'; }
+  for(var q=0;q<Math.min(ld.length,10);q++){
+    h+='<div class="cp-lead"><span class="cp-lrank">'+(q+1)+'.</span> <span class="cp-lname">'+esc(ld[q].callsign)+'</span> <span class="cp-lxp">'+(Number(ld[q].xp)||0)+' XP</span></div>';
+  }
+  h+='</div>';
+  /* --- battlegrounds --- */
+  h+=renderBattlegrounds();
+  /* --- retry --- */
+  h+='<div style="margin-top:10px"><button class="c-btn" id="cpRetry">Refresh</button></div>';
+  el.innerHTML=h;
+  /* wire pledge */
+  var pb=document.getElementById("cpPledgeBtn");
+  if(pb) pb.onclick=function(){
+    pb.disabled=true;
+    post("campaign_pledge",{callsign:id.callsign,device:id.device},function(j){
+      if(!j||!j.ok){
+        var e=document.getElementById("cpPledgeErr");
+        if(e) e.textContent=PF.errCopy(j,"Pledge failed. Try again.");
+        pb.disabled=false; return;
+      }
+      toast("PLEDGED. Your callsign is on the wall.");
+      /* Backend granted 25 XP via xpGrant — mirror locally for instant HUD
+         (nolx: no pf-xp dispatch, no double-grant). pf-campaign-pledge now
+         feeds Do Meter (was a dead event with zero listeners). */
+      creditLocal("campaign_pledge", 25);
+      try{ document.dispatchEvent(new CustomEvent("pf-campaign-pledge",{detail:{callsign:id.callsign}})); }catch(e2){}
+      load();
+    });
+  };
+  /* wire missions */
+  var btns=el.querySelectorAll("button.cp-mbtn");
+  for(var b=0;b<btns.length;b++){
+    (function(btn){
+      btn.onclick=function(){
+        btn.disabled=true;
+        post("campaign_act",{callsign:id.callsign,device:id.device,mission_id:btn.getAttribute("data-mid")},function(j){
+          if(!j||!j.ok){ toast(PF.errCopy(j,"Mission failed.")); btn.disabled=false; return; }
+          var mxp=((j&&j.xp)||10), mid=btn.getAttribute("data-mid");
+          toast("+"+mxp+" XP — mission complete.");
+          /* Backend granted the XP via xpGrant — mirror locally for instant HUD
+             (nolx: no pf-xp dispatch, no double-grant). pf-campaign-act now
+             feeds Do Meter (was a dead event with zero listeners). */
+          creditLocal("campaign_act_"+mid+"_"+chiDay(), mxp);
+          try{ document.dispatchEvent(new CustomEvent("pf-campaign-act",{detail:{mission:mid}})); }catch(e3){}
+          load();
+        });
+      };
+    })(btns[b]);
+  }
+  var rb=document.getElementById("cpRetry");
+  if(rb) rb.onclick=function(){ S=M=W=L=R=null; el.innerHTML='<div class="c-load">Mobilizing&hellip;</div>'; load(); };
+}
+function normRace(r){
+  var c=r.candidates;
+  if(typeof c==="string"){ try{ c=JSON.parse(c); }catch(e){ c=[]; } }
+  return { id:r.id, state:r.state, office:r.office, candidates:c||[], rating:r.rating, stakes:r.stakes };
+}
+function fmtUpd(t){
+  try{
+    var d=new Date(typeof t==="number"?t:String(t));
+    if(isNaN(d.getTime())) return String(t||"");
+    var mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return mo[d.getMonth()]+" "+d.getDate();
+  }catch(e){ return String(t||""); }
+}
+function renderBattlegrounds(){
+  var races=[], meas=[], updated=null, fromLive=false;
+  /* Prefer live backend data; fall back to the static file. */
+  try{
+    if(R&&R.ok&&R.races&&R.races.length){
+      races=R.races.map(normRace); fromLive=true;
+      if(R.measures&&R.measures.length) meas=R.measures;
+      updated=R.updated_at||null;
+    }
+  }catch(e){}
+  if(!races.length){
+    try{ races=window.PF_CAMPAIGN_RACES||[]; }catch(e){}
+    try{ meas=window.PF_CAMPAIGN_MEASURES||[]; }catch(e){}
+  }
+  var h='<div class="x-pane"><h4>Battlegrounds</h4>'
+    +'<div class="x-note">Real races, real candidates &mdash; scored on class lines. Who funds them. Who they answer to.'
+    +(fromLive&&updated?' <span class="cp-upd">Data updated: '+esc(fmtUpd(updated))+'</span>':'')
+    +'</div>';
+  for(var i=0;i<races.length;i++){
+    var r=races[i];
+    h+='<div class="cp-race"><div class="cp-rtitle">'+esc(r.state)+' &mdash; '+esc(r.office)+'</div>'
+      +'<div class="cp-rrating">'+esc(r.rating)+'</div>';
+    var cs=r.candidates||[];
+    for(var c=0;c<cs.length;c++){
+      h+='<div class="cp-cand"><b>'+esc(cs[c].name)+'</b> ('+esc(cs[c].party)+')'
+        +'<div class="cp-cfund">Money: '+esc(cs[c].funding)+'</div>'
+        +'<div class="cp-ctake">Class take: '+esc(cs[c].classTake)+'</div></div>';
+    }
+    h+='<div class="cp-stakes">'+esc(r.stakes)+'</div></div>';
+  }
+  for(var m=0;m<meas.length;m++){
+    var mm=meas[m];
+    h+='<div class="cp-race"><div class="cp-rtitle">'+esc(mm.state)+' &mdash; '+esc(mm.title)+'</div>'
+      +'<div class="x-note">'+esc(mm.summary)+'</div>'
+      +'<div class="cp-cand">YES means: '+esc(mm.yesMeans)+'</div>'
+      +'<div class="cp-cand">NO means: '+esc(mm.noMeans)+'</div>'
+      +'<div class="cp-cfund">Backed by: '+esc(mm.backedBy)+'</div>'
+      +'<div class="cp-cfund">Opposed by: '+esc(mm.opposedBy)+'</div></div>';
+  }
+  h+='</div>';
+  return h;
+}
+load();
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },120000);
+})();
+</scr`+`ipt>
+</div>
+</template>`);
+})();
+
+;
+
+/* ===== alerts.js ===== */
+/* games/alerts.js  |  PF v1.4.3 | RAPID RESPONSE: breaking-moment mobilization.
+   When news breaks, speed wins. Active alerts name the moment; creators
+   respond with posters and log the response for +25 XP.
+   KILL: ?pf_off=alerts  or  localStorage pf_disabled_v1='["alerts"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("alerts")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-alerts">
+<div class="fe-block pf-override-block" id="pf-alerts">
+<h2>Rapid Response</h2>
+<div class="c-tag">News breaks. We move in minutes, not days.</div>
+<div id="xAlerts"><div class="c-load">Scanning the wire&hellip;</div></div>
+</div>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  var fn="pfAlCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function post(cAction,params,cb){
+  var body=Object.assign({type:"alert",al_action:cAction},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+}
+function fmtTs(t){
+  try{
+    var ms=Number(t); if(ms<1e12) ms=ms*1000;
+    var d=new Date(ms); if(isNaN(d.getTime())) return "";
+    var mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    var h=d.getHours(), ap=h>=12?"pm":"am"; h=h%12; if(h===0)h=12;
+    return mo[d.getMonth()]+" "+d.getDate()+", "+h+":"+("0"+d.getMinutes()).slice(-2)+ap;
+  }catch(e){ return ""; }
+}
+function load(){
+  var el=document.getElementById("xAlerts"); if(!el) return;
+  api("alert_list",{},function(j){ render(j); });
+  setTimeout(function(){ if(el.innerHTML.indexOf("c-load")>=0) render(null); },15000);
+}
+function render(j){
+  var el=document.getElementById("xAlerts"); if(!el) return;
+  var id=ident(), h="";
+  var alerts=(j&&j.ok&&j.alerts)||[];
+  if(!alerts.length){
+    h+='<div class="x-pane"><div class="x-note">No active alerts. The wire is quiet &mdash; for now. When a moment breaks, it lands here first.</div></div>';
+  }
+  for(var i=0;i<alerts.length;i++){
+    var a=alerts[i];
+    h+='<div class="x-pane al-pane">'
+      +'<div class="al-flash">&#9889; ACTIVE ALERT</div>'
+      +'<h4>'+esc(a.headline)+'</h4>'
+      +'<div class="x-note">'+esc(a.context||"")+'</div>'
+      +'<div class="al-meta">'+esc(fmtTs(a.created_at))+' &bull; '+(Number(a.response_count)||0)+' responses</div>'
+      +'<div class="al-btns">';
+    if(id.callsign){
+      h+='<button class="c-btn" data-al-forge="'+esc(a.id)+'" data-al-tpl="'+esc(a.template_id||"")+'">RESPOND: MAKE A POSTER</button>'
+        +'<button class="c-btn c-btn2" data-al-done="'+esc(a.id)+'">I RESPONDED</button>';
+    } else {
+      h+='<div class="x-note">Claim a callsign in Enlistment Ranks to respond.</div>';
+    }
+    h+='</div><div class="c-err" id="alErr'+esc(a.id)+'"></div></div>';
+  }
+  h+='<div style="margin-top:10px"><button class="c-btn" id="alRetry">Refresh</button></div>';
+  el.innerHTML=h;
+  /* wire: open poster forge with template context */
+  var fbs=el.querySelectorAll("button[data-al-forge]");
+  for(var f=0;f<fbs.length;f++){
+    (function(btn){
+      btn.onclick=function(){
+        try{
+          document.dispatchEvent(new CustomEvent("pf-alert-forge",{detail:{alert:btn.getAttribute("data-al-forge"),template:btn.getAttribute("data-al-tpl")}}));
+        }catch(e){}
+        toast("Open Poster Forge and answer the alert.");
+        var pf=document.getElementById("pf-poster");
+        if(pf){ try{ pf.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e2){} }
+      };
+    })(fbs[f]);
+  }
+  /* wire: log response */
+  var dbs=el.querySelectorAll("button[data-al-done]");
+  for(var d=0;d<dbs.length;d++){
+    (function(btn){
+      btn.onclick=function(){
+        var aid=btn.getAttribute("data-al-done");
+        var cid=window.prompt("Paste the content ID of the poster you made for this alert:");
+        if(!cid) return;
+        btn.disabled=true;
+        post("alert_respond",{callsign:id.callsign,device:id.device,alert_id:aid,content_id:cid.trim()},function(j){
+          if(!j||!j.ok){
+            var e=document.getElementById("alErr"+aid);
+            if(e) e.textContent=PF.errCopy(j,"Response failed.");
+            btn.disabled=false; return;
+          }
+          toast(j.dup?"Already logged. Stay sharp.":"+25 XP — rapid response logged.");
+          load();
+        });
+      };
+    })(dbs[d]);
+  }
+  var rb=document.getElementById("alRetry");
+  if(rb) rb.onclick=function(){ el.innerHTML='<div class="c-load">Scanning the wire&hellip;</div>'; load(); };
+}
+load();
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },180000);
+})();
+</scr`+`ipt>
+</div>
+</template>`);
+})();
+
+;
+
+/* ===== fan-vote.js ===== */
+/* games/fan-vote.js  |  PF v1.4.1 | Fan Vote widget: template + voting logic
+   KILL: ?pf_off=fan-vote  or  localStorage pf_disabled_v1='["fan-vote"]' */
+
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("fan-vote")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-vote">
+<div class="fe-block pf-override-block">
+<style>
+#pf-vote .pfv-strip{font-size:0.8rem;letter-spacing:0.1em;color:#b8ab8e;margin:0.4rem 0;}
+#pf-vote-ceremony{position:absolute;inset:0;background:rgba(10,10,10,0.97);display:none;z-index:5;overflow:hidden;}
+#pf-vote .pfv-ballot{position:absolute;top:6%;left:50%;margin-left:-130px;width:260px;background:#f5ead6;color:#0d0d0d;border:3px solid #c1121f;padding:1.2rem 0.8rem;box-shadow:0 0 40px rgba(193,18,31,0.55);animation:pfvdrop 1.05s ease-in forwards;}
+@keyframes pfvdrop{0%{transform:translateY(-130%);}72%{transform:translateY(9%);}100%{transform:translateY(0);}}
+#pf-vote .pfv-ballot-name{font-weight:900;font-size:1.05rem;letter-spacing:0.06em;}
+#pf-vote .pfv-seal{display:inline-block;margin-top:0.7rem;background:#c1121f;color:#f5ead6;font-weight:900;font-size:0.8rem;letter-spacing:0.2em;padding:0.45rem 1.1rem;border-radius:50%;transform:rotate(-8deg);animation:pfvstamp 0.35s 0.8s ease-out backwards;}
+@keyframes pfvstamp{0%{transform:scale(2.6) rotate(-8deg);opacity:0;}60%{transform:scale(0.92) rotate(-8deg);opacity:1;}100%{transform:scale(1) rotate(-8deg);}}
+#pf-vote .pfv-boxlabel{position:absolute;bottom:12%;width:100%;text-align:center;color:#c1121f;font-weight:900;letter-spacing:0.22em;font-size:0.85rem;}
+#pf-vote .pfv-confetti{position:absolute;top:-12px;width:9px;height:13px;z-index:6;pointer-events:none;animation:pfvfall linear forwards;}
+@keyframes pfvfall{to{transform:translateY(480px) rotate(540deg);opacity:0;}}
+@media (prefers-reduced-motion:reduce){#pf-vote .pfv-ballot,#pf-vote .pfv-seal{animation:none;}}
+</style>
+<div id="pf-vote" style="position:relative;max-width:640px;margin:2rem auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:'Helvetica Neue',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;text-align:center;">
+  <div style="font-size:1.5rem;font-weight:900;letter-spacing:0.18em;color:#c1121f;">&#9733; FAN VOTE &#9733;</div>
+  <div id="pf-vote-sub" style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;">Who was the hardest-working propagandist this week?<br><span style="color:#c1121f;">This week's ballot: the 10 highest propaganda scores.</span><br>Polls close <b style="color:#f5f0e1;">Sunday night</b> &mdash; results Monday.</div>
+  <div id="pf-vote-urgency" class="pfv-strip">COUNTING BALLOTS&hellip;</div>
+  <div id="pf-vote-streak" class="pfv-strip"></div>
+  <div id="pf-vote-kingmaker"></div>
+  <div id="pf-vote-power"></div>
+  <div id="pf-vote-ceremony"></div>
+  <div id="pf-vote-list"></div>
+  <div id="pf-vote-msg" style="margin-top:1rem;font-size:0.9rem;color:#b8ab8e;"></div>
+  <div><button id="pf-vote-copy" style="background:#141414;border:2px solid #c1121f;color:#f5f0e1;padding:0.6rem 1.4rem;margin-top:1rem;font-size:0.85rem;font-weight:700;letter-spacing:0.1em;cursor:pointer;font-family:inherit;">COPY TO SHARE</button></div>
+  <div id="pf-vote-copymsg" style="margin-top:0.5rem;font-size:0.8rem;color:#c1121f;min-height:1.2em;"></div>
+</div>
+<script>
+(function(){
+  /* CONFIG: paste your deployed Apps Script web app URL here */
+  var VOTE_API_URL = (window.PF_BACKEND_URL||"https://pf-api.mtcstw.workers.dev");
+  /* ROSTER: the ballot reads from the canonical PF.ROSTER
+     (core/03-global.js) — authoritative scores 2026-09-28. Do NOT
+     hardcode a second copy here. */
+  var SCORES = (window.PF && PF.ROSTER) || [];
+  /* VOTE_IMGS: slug -> roster photo, derived from the canonical roster. */
+  var VOTE_IMGS = {};
+  for(var _ri=0; _ri<SCORES.length; _ri++){
+    if(SCORES[_ri].img) VOTE_IMGS[SCORES[_ri].slug]=SCORES[_ri].img;
+  }
+    /* THE BALLOT: the 10 highest propaganda scores.
+     9.3 TIE-BREAK (codified 2026-09-29): four creators tie at 9.3 for the 10th
+     spot. The tied creators rotate weekly by ISO week number, so each gets
+     the ballot spotlight over time. Higher scores are always seated first. */
+  var _sorted = SCORES.slice().sort(function(a,b){ return b.score - a.score; });
+  var _cutoff = _sorted[9].score;
+  var _above = _sorted.filter(function(c){ return c.score > _cutoff; });
+  var _tied = _sorted.filter(function(c){ return c.score === _cutoff; });
+  var _spots = 10 - _above.length;
+  var _wk = isoWeek(PF.chiNow());
+  var _rotated = [];
+  for(var _i = 0; _i < _tied.length; _i++){
+    _rotated.push(_tied[(_wk - 1 + _i) % _tied.length]);
+  }
+  var CANDIDATES = _above.concat(_rotated.slice(0, _spots));
+  CANDIDATES.sort(function(a,b){ return b.score - a.score; });
+  function isoWeek(d){
+    var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    var day = (t.getUTCDay() + 6) % 7;
+    t.setUTCDate(t.getUTCDate() - day + 3);
+    var first = new Date(Date.UTC(t.getUTCFullYear(), 0, 4));
+    var fday = (first.getUTCDay() + 6) % 7;
+    first.setUTCDate(first.getUTCDate() - fday + 3);
+    return 1 + Math.round((t - first) / 6048e5);
+  }
+  var now = PF.chiNow();
+  var weekKey = now.getFullYear() + "-W" + isoWeek(now);
+  var storeKey = "slr-vote-" + weekKey;
+  /* COMMISSAR unlock: vote counts double. Set by the Enlistment Ranks widget. */
+  var VOTE_WEIGHT = 1;
+  try { VOTE_WEIGHT = parseInt(localStorage.getItem("pf_vote_weight") || "1", 10) || 1; } catch(e){}
+  if (VOTE_WEIGHT < 1 || VOTE_WEIGHT > 2) VOTE_WEIGHT = 1;
+  if (VOTE_WEIGHT > 1) {
+    document.getElementById('pf-vote-power').innerHTML =
+      '<div style="display:inline-block;background:#c1121f;color:#f5f0e1;font-weight:900;font-size:0.85rem;letter-spacing:0.14em;padding:0.4rem 1.2rem;margin-bottom:1rem;">&#9733; &times;2 VOTE POWER &mdash; COMMISSAR UNLOCK &#9733;</div>';
+  }
+  var list = document.getElementById('pf-vote-list');
+  var msg = document.getElementById('pf-vote-msg');
+  /* GLOBAL TOTALS: fetched from the backend via JSONP, shared across all devices.
+     Refresh on every page load so each user sees the live count. */
+  var voteTotals = {};
+  function fetchTotals(){
+    if(!VOTE_API_URL || VOTE_API_URL.indexOf('PASTE') === 0) return;
+    var cb = 'pfVoteCb_' + Date.now();
+    window[cb] = function(data){
+      try {
+        if(data && data.votes){
+          voteTotals = data.votes;
+          var t=0,k; for(k in voteTotals){ t+=Number(voteTotals[k])||0; }
+          urgencyTotal=t; renderUrgency();
+        }
+        /* Never clobber the voted state when totals arrive. */
+        if(!voted()) renderBallot();
+      } catch(e){}
+      try { delete window[cb]; } catch(e){}
+      var s = document.getElementById(cb);
+      if(s && s.parentNode) s.parentNode.removeChild(s);
+    };
+    var s = document.createElement('script');
+    s.id = cb;
+    s.src = VOTE_API_URL + '?action=results&week=' + encodeURIComponent(weekKey) + '&callback=' + cb;
+    /* 2026-10-03 M2: 12s backstop — a hung request previously leaked
+       window[cb] and left the urgency totals stale forever. */
+    var hung=setTimeout(function(){ if(window[cb]){ try{delete window[cb];}catch(e){} var s2=document.getElementById(cb); if(s2&&s2.parentNode)s2.parentNode.removeChild(s2); } },12000);
+    s.onerror = function(){ try{clearTimeout(hung);}catch(e){} try{ delete window[cb]; }catch(e){} if(s.parentNode) s.parentNode.removeChild(s); };
+    document.head.appendChild(s);
+  }
+  /* Stored vote: JSON {name, slug, weight}. Older plain-name values still read. */
+  function voted(){
+    var raw = null;
+    try { raw = localStorage.getItem(storeKey); } catch(e){}
+    if(!raw) return null;
+    try {
+      var v = JSON.parse(raw);
+      if(v && v.slug) return {name: v.name, slug: v.slug, weight: v.weight || 1};
+    } catch(e){}
+    for(var i = 0; i < CANDIDATES.length; i++){
+      if(CANDIDATES[i].name === raw) return {name: raw, slug: CANDIDATES[i].slug, weight: 1};
+    }
+    return {name: raw, slug: '', weight: 1};
+  }
+  /* ============ DOPAMINE LAYER (2026-10-01) ============
+     Sealed ballot ceremony, loyalist streaks, kingmaker Monday reveal,
+     campaign mode, live urgency. Tallies stay private; only the voter's
+     own pick is ever shown or shared. */
+  var urgencyTotal = 0;
+  function callsign(){ try{ return (window.PFCallsign && PFCallsign()) || ''; }catch(e){ return ''; } }
+  function esc(s){ return String(s).replace(/[&<>"']/g,function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; }); }
+  function weekKeyOf(d){ return d.getFullYear() + "-W" + isoWeek(d); }
+  /* --- Loyalist streak: consecutive weeks voted --- */
+  function getStreak(){ try{ return JSON.parse(localStorage.getItem('pf_votestreak_v1'))||{streak:0,lastWeek:''}; }catch(e){ return {streak:0,lastWeek:''}; } }
+  function streakRank(n){ return n>=8?'ZEALOT':n>=4?'LOYALIST':n>=2?'AGITATOR':n>=1?'VOTER':'NONE'; }
+  function bumpStreak(){
+    var st = getStreak();
+    if(st.lastWeek === weekKey) return st.streak;
+    var d = PF.chiNow(); d.setDate(d.getDate()-7);
+    st.streak = (st.lastWeek === weekKeyOf(d)) ? (st.streak+1) : 1;
+    st.lastWeek = weekKey;
+    try{ localStorage.setItem('pf_votestreak_v1', JSON.stringify(st)); }catch(e){}
+    return st.streak;
+  }
+  function renderStreak(){
+    var el = document.getElementById('pf-vote-streak');
+    if(!el) return;
+    var st = getStreak();
+    if(st.streak > 0){
+      el.innerHTML = '\\uD83D\\uDD25 <b style="color:#c1121f;">'+st.streak+'-WEEK STREAK</b> \\u2014 '+streakRank(st.streak)+' &nbsp;\\u00B7&nbsp; miss a week and it dies';
+    } else {
+      el.innerHTML = 'Cast your ballot to start a <b style="color:#f5f0e1;">voting streak</b>';
+    }
+  }
+  /* --- Sealed ballot ceremony: the vote drops into the box, wax-sealed --- */
+  function ballotCeremony(c, done){
+    var ov = document.getElementById('pf-vote-ceremony');
+    var reduce = false;
+    try{ reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+    if(!ov || reduce){ done(); return; }
+    var cs = callsign();
+    ov.innerHTML = '<div class="pfv-ballot"><div class="pfv-ballot-name">'+esc(c.name)+'</div>'+
+      '<div class="pfv-seal">'+(cs?esc(cs):'SEALED')+'</div></div>'+
+      '<div class="pfv-boxlabel">BALLOT CAST \\u2014 TALLY CLASSIFIED</div>';
+    ov.style.display = 'block';
+    var colors=['#c1121f','#f5ead6','#e8192f','#ffcc00'];
+    for(var i=0;i<36;i++){
+      var p=document.createElement('div'); p.className='pfv-confetti';
+      p.style.left=(Math.random()*100)+'%'; p.style.background=colors[i%4];
+      p.style.animationDuration=(0.9+Math.random()*1.2)+'s';
+      ov.appendChild(p);
+      (function(el){ setTimeout(function(){ el.remove(); },2400); })(p);
+    }
+    setTimeout(function(){ ov.style.display='none'; ov.innerHTML=''; done(); }, 1500);
+  }
+  /* --- Kingmaker: Monday reveal if your pick took last week --- */
+  function checkKingmaker(){
+    var now = PF.chiNow();
+    if(now.getDay() !== 1) return;
+    var d = new Date(now.getTime()); d.setDate(d.getDate()-7);
+    var lastWk = weekKeyOf(d);
+    var mySlug = null;
+    try{ var raw = localStorage.getItem('slr-vote-'+lastWk); if(raw){ mySlug = (JSON.parse(raw).slug)||null; } }catch(e){}
+    if(!mySlug || !VOTE_API_URL || VOTE_API_URL.indexOf('PASTE') === 0) return;
+    var cb='pfKingCb'+Date.now();
+    window[cb]=function(data){
+      try{ delete window[cb]; }catch(e){}
+      var s=document.getElementById(cb); if(s&&s.parentNode)s.parentNode.removeChild(s);
+      try{
+        var votes=(data&&data.votes)||{}, top=null, topN=-1, k;
+        for(k in votes){ if(Number(votes[k])>topN){ topN=Number(votes[k]); top=k; } }
+        if(top && top===mySlug){
+          var rec={count:0,weeks:[]};
+          try{ rec=JSON.parse(localStorage.getItem('pf_kingmaker_v1'))||rec; }catch(e){}
+          if(rec.weeks.indexOf(lastWk)<0){ rec.weeks.push(lastWk); rec.count++; }
+          try{ localStorage.setItem('pf_kingmaker_v1', JSON.stringify(rec)); }catch(e){}
+          var el=document.getElementById('pf-vote-kingmaker');
+          if(el) el.innerHTML='<div style="display:inline-block;background:#c1121f;color:#f5f0e1;font-weight:900;font-size:0.9rem;letter-spacing:0.14em;padding:0.5rem 1.3rem;margin:0.6rem 0;border:2px solid #f5f0e1;">\\uD83D\\uDC51 KINGMAKER \\u2014 your pick took last week'+(rec.count>1?' ('+rec.count+'\\u00D7)':'')+'</div>';
+        }
+      }catch(e){}
+    };
+    var s=document.createElement('script'); s.id=cb;
+    s.src=VOTE_API_URL+'?action=results&week='+encodeURIComponent(lastWk)+'&callback='+cb;
+    s.onerror=function(){ try{delete window[cb];}catch(e){} if(s.parentNode)s.parentNode.removeChild(s); };
+    document.head.appendChild(s);
+  }
+  /* --- Urgency: live ballots cast + polls-close countdown --- */
+  function pollsCloseIn(){
+    var now=PF.chiNow(), d=new Date(now.getTime());
+    d.setDate(d.getDate()+((7-d.getDay())%7)); d.setHours(23,59,0,0);
+    if(d<=now) d.setDate(d.getDate()+7);
+    var ms=d-now, h=Math.floor(ms/36e5), dd=Math.floor(h/24); h=h%24;
+    return dd>0 ? dd+'D '+h+'H' : h+'H '+Math.floor((ms%36e5)/6e4)+'M';
+  }
+  function renderUrgency(){
+    var el=document.getElementById('pf-vote-urgency');
+    if(!el) return;
+    el.innerHTML='<span style="color:#c1121f;">\\uD83D\\uDD34 '+urgencyTotal+' BALLOT'+(urgencyTotal===1?'':'S')+' CAST</span> &nbsp;\\u2014&nbsp; POLLS CLOSE IN <b style="color:#f5f0e1;">'+pollsCloseIn()+'</b>';
+  }
+  setInterval(function(){ var el=document.getElementById('pf-vote-urgency'); if(el && urgencyTotal>0) renderUrgency(); }, 60000);
+  /* FAN VOTE SHARE POSTERS — canvas poster per candidate, Web Share API or PNG
+     download ("save to Photos" path on iPhone). Privacy: only the voter's own pick
+     is ever shared, never vote totals. */
+  function candByName(name){
+    for(var i=0;i<CANDIDATES.length;i++){ if(CANDIDATES[i].name===name) return CANDIDATES[i]; }
+    for(var j=0;j<SCORES.length;j++){ if(SCORES[j].name===name) return SCORES[j]; }
+    return {name:name, slug:'', score:0};
+  }
+  function votePoster(c, mode){
+    return new Promise(function(resolve){
+      var W=1080,H=1350,canvas=document.createElement('canvas');
+      canvas.width=W;canvas.height=H;
+      var x=canvas.getContext('2d');
+      x.fillStyle='#0d0d0d';x.fillRect(0,0,W,H);
+      x.strokeStyle='#c1121f';x.lineWidth=14;x.strokeRect(28,28,W-56,H-56);
+      x.lineWidth=3;x.strokeRect(58,58,W-116,H-116);
+      var cx=W/2;
+      function ct(t,y,size,color,weight,ls){
+        x.fillStyle=color;
+        x.font=weight+' '+size+'px "Arial Black",Arial,sans-serif';
+        x.textAlign='center';x.textBaseline='middle';
+        try{ x.letterSpacing=(ls||0)+'px'; }catch(e){}
+        x.fillText(t,cx,y);
+        try{ x.letterSpacing='0px'; }catch(e){}
+      }
+      function wrap(t,maxW,size){
+        x.font='900 '+size+'px "Arial Black",Arial,sans-serif';
+        var words=String(t).split(' '),lines=[],cur='',i,trial;
+        for(i=0;i<words.length;i++){
+          trial=cur?cur+' '+words[i]:words[i];
+          if(x.measureText(trial).width>maxW&&cur){ lines.push(cur);cur=words[i]; }
+          else cur=trial;
+        }
+        if(cur)lines.push(cur);
+        return lines;
+      }
+      ct('\\u2605 FAN VOTE \\u2605',150,54,'#c1121f','900',6);
+      ct(mode==='post'?'I VOTED FOR':'VOTE FOR',228,34,'#f5ead6','900',8);
+      /* Adaptive name size: shrink until the name fits maxLines. */
+      var hasImg=!!VOTE_IMGS[c.slug];
+      var maxLines=hasImg?2:3, nsize=72, lines=wrap(c.name.toUpperCase(),W-240,nsize), i;
+      while(lines.length>maxLines&&nsize>48){ nsize-=8; lines=wrap(c.name.toUpperCase(),W-240,nsize); }
+      var lh=Math.round(nsize*1.2), done=false;
+      function finish(img){
+        if(done)return;done=true;
+        var S=480,y;
+        if(img&&img.width>0){
+          var side=Math.min(img.width,img.height);
+          var sx=(img.width-side)/2,sy=(img.height-side)/2;
+          x.save();
+          x.beginPath();x.rect(cx-S/2,280,S,S);x.clip();
+          x.drawImage(img,sx,sy,side,side,cx-S/2,280,S,S);
+          x.restore();
+          x.strokeStyle='#c1121f';x.lineWidth=8;x.strokeRect(cx-S/2,280,S,S);
+          y=280+S+64;
+        } else { y=372; }
+        var ty=y+Math.round(lh/2);
+        for(i=0;i<lines.length;i++){ ct(lines[i],ty,nsize,'#f5ead6','900',2); ty+=lh; }
+        ty+=22;
+        ct('PROPAGANDIST OF THE WEEK',ty,40,'#c1121f','900',5); ty+=70;
+        if(c.score){ ct('PROPAGANDA SCORE '+c.score.toFixed(1),ty,32,'#b8ab8e','700',3); ty+=62; }
+        var footY=Math.min(Math.max(ty+44,H-200),H-128);
+        ct('MTCSTW.COM',footY,44,'#f5ead6','900',6);
+        ct('JOIN THE FIGHT.',footY+58,30,'#c1121f','900',4);
+        ct('VOTING ENDS SUNDAY',footY+102,24,'#b8ab8e','700',4);
+        resolve(canvas);
+      }
+      if(hasImg){
+        var img=new Image();img.crossOrigin='anonymous';
+        var to=setTimeout(function(){ finish(null); },9000);
+        img.onload=function(){ clearTimeout(to);finish(img); };
+        img.onerror=function(){ clearTimeout(to);finish(null); };
+        img.src=VOTE_IMGS[c.slug];
+      } else finish(null);
+    });
+  }
+  function shareVotePoster(c, mode){
+    var msgEl=document.getElementById('pf-vote-copymsg');
+    var say=function(t){ if(msgEl)msgEl.textContent=t; };
+    say('Building your poster\\u2026');
+    /* P2 (2026-10-04): once-per-day share gate — credit on a completed share
+       or a completed download, never on cancel. */
+    function credit(){ try{ if(window.PF&&PF.creditShare) PF.creditShare('fan-vote','share'); }catch(e){} }
+    function dl(blob){
+      var a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);a.download='fan-vote-'+(c.slug||'pick')+'.jpg';
+      document.body.appendChild(a);a.click();
+      setTimeout(function(){ try{URL.revokeObjectURL(a.href);}catch(e){} a.remove(); },4000);
+      credit();
+      say('Poster downloaded \\u2014 on iPhone open it from Files/Downloads, tap Share, then Save Image to put it in Photos.');
+    }
+    votePoster(c,mode).then(function(canvas){
+      try{ if(window.PFShare&&window.PFShare.stampCallsign){ canvas=window.PFShare.stampCallsign(canvas)||canvas; } }catch(e){}
+      if(!canvas.toBlob){ say('Poster failed \\u2014 try again.');return; }
+      canvas.toBlob(function(blob){
+        if(!blob){ say('Poster failed \\u2014 try again.');return; }
+        var file=null;
+        try{ file=new File([blob],'fan-vote-'+(c.slug||'pick')+'.jpg',{type:'image/jpeg'}); }catch(e){}
+        var cs=''; try{ cs=(window.PFCallsign && PFCallsign())||''; }catch(e){}
+        var vlink='https://www.mtcstw.com';
+        try{ if(window.PF&&typeof PF.shareUrl==='function') vlink=PF.shareUrl(vlink); }catch(e){}
+        var txt=(mode==='post'?'I voted for ':'Vote for ')+c.name+' for Propagandist of the Week! '+
+          (mode==='post'&&cs ? cs+' is campaigning \\u2014 join the operation: ' : 'Join the operation: ')+
+          vlink+' #SickLeftRadicals';
+        if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
+          navigator.share({files:[file],title:'Fan Vote',text:txt}).then(
+            function(){ credit(); say('Shared. Go spread the word.'); },
+            function(e){
+              if(e&&e.name==='AbortError'){ say('Share cancelled.'); }
+              else { credit(); dl(blob); }
+            });
+        } else { credit(); dl(blob); }
+      },'image/jpeg',0.85);
+    });
+  }
+  function showVoted(name, weight){
+    list.innerHTML = '';
+    var vc = candByName(name);
+    var wtxt = (weight > 1) ? ' <b style="color:#c1121f;">&times;' + weight + '</b>' : '';
+    var first = String(name).split(' ')[0].toUpperCase();
+    msg.innerHTML = 'Vote counted for <b style="color:#f5f0e1;">' + name + '</b>' + wtxt +
+      '.<br>Results drop Monday morning on the reshuffle.<br>' +
+      '<button id="pf-vote-share" style="background:#c1121f;border:2px solid #c1121f;color:#f5f0e1;padding:0.6rem 1.4rem;margin-top:0.8rem;margin-right:0.5rem;font-size:0.85rem;font-weight:700;letter-spacing:0.1em;cursor:pointer;font-family:inherit;">CAMPAIGN FOR ' + esc(first) + '</button>' +
+      '<button id="pf-vote-reset" style="background:transparent;border:2px solid #c1121f;color:#c1121f;padding:0.45rem 1.2rem;margin-top:0.8rem;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;cursor:pointer;font-family:inherit;">RESET VOTE</button>';
+    var sb = document.getElementById('pf-vote-share');
+    if(sb) sb.onclick = function(){ shareVotePoster(vc,'post'); };
+    var rb = document.getElementById('pf-vote-reset');
+    if(rb) rb.onclick = resetVote;
+  }
+  function renderBallot(){
+    list.innerHTML = '';
+    CANDIDATES.forEach(function(c){
+      var row = document.createElement('div');
+      row.style.cssText = 'display:block;margin:0.25rem 0;';
+      var b = document.createElement('button');
+      b.textContent = c.name;
+      b.style.cssText = 'display:inline-block;background:#141414;border:2px solid #f5f0e1;color:#f5f0e1;padding:0.6rem 1rem;margin:0.15rem;font-size:0.9rem;font-weight:700;letter-spacing:0.04em;cursor:pointer;font-family:inherit;';
+      b.onmouseover = function(){ b.style.background='#c1121f'; b.style.borderColor='#c1121f'; };
+      b.onmouseout = function(){ b.style.background='#141414'; b.style.borderColor='#f5f0e1'; };
+      b.onclick = function(){ castVote(c, b); };
+      var s = document.createElement('button');
+      s.textContent = 'SHARE';
+      s.style.cssText = 'display:inline-block;background:transparent;border:2px solid #c1121f;color:#c1121f;padding:0.6rem 0.8rem;margin:0.15rem;font-size:0.75rem;font-weight:700;letter-spacing:0.12em;cursor:pointer;font-family:inherit;';
+      s.onclick = function(){ shareVotePoster(c,'pre'); };
+      row.appendChild(b); row.appendChild(s);
+      list.appendChild(row);
+    });
+  }
+  /* RESET VOTE: retracts the vote server-side, then clears the local ballot
+     lock and re-opens the ballot. 2026-10-03 conn fix: symmetric with cast —
+     the typed vote:vote_retract path (PUBLIC, device-gated) replaces the
+     deprecated bare typeless 'retract'. On failure the local state is KEPT
+     and the error is shown honestly — never a silent local-only reset.
+     Voting again adds the weight back. */
+  function resetVote(){
+    var v = voted();
+    if(!v || !v.slug){ renderBallot(); return; }
+    if(!VOTE_API_URL || VOTE_API_URL.indexOf('PASTE') === 0){
+      msg.innerHTML = 'Couldn&rsquo;t reach the ballot box &mdash; your vote is still counted. Try again in a moment.';
+      return;
+    }
+    var dev = '';
+    try { dev = (window.PFDeviceId && PFDeviceId()) || ''; } catch(e){}
+    if(!dev){
+      msg.innerHTML = 'Couldn&rsquo;t identify this device &mdash; your vote is still counted. Try again in a moment.';
+      return;
+    }
+    msg.innerHTML = 'Retracting your vote&hellip;';
+    /* Symmetric with castVote: explicit vote route (PUBLIC, device-gated),
+       CORS so we read the verdict — no more false success. */
+    var ctrl=null; try{ ctrl=new AbortController(); }catch(e){}
+    var to=setTimeout(function(){ try{ if(ctrl) ctrl.abort(); }catch(e){} },15000);
+    fetch(VOTE_API_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({type:'vote',v_action:'vote_retract',device:dev,slug:v.slug,weight:v.weight}),
+      signal:ctrl?ctrl.signal:undefined})
+      .then(function(r){ clearTimeout(to); return r.json(); })
+      .then(function(j){ retractDone(j); })
+      .catch(function(){ retractDone(null); });
+    function retractDone(j){
+      if(!j || !j.ok){
+        /* Failure: do NOT clear local state — show the error honestly. */
+        msg.innerHTML = 'Retract failed (' + esc(PF.errCopy(j, 'network error')) + ') &mdash; your vote is still counted. Try again.';
+        return;
+      }
+      try { localStorage.removeItem(storeKey); } catch(e){}
+      renderBallot();
+      msg.innerHTML = 'Vote reset &mdash; <b style="color:#c1121f;">-' + (v ? v.weight : 1) + '</b>' +
+        (v ? ' from <b style="color:#f5f0e1;">' + v.name + '</b>' : '') +
+        '.<br>Changed your mind? Pick again below.';
+      /* Refresh the shared totals after the retract lands. */
+      setTimeout(fetchTotals, 1500);
+    }
+  }
+  var existing = voted();
+  if(existing){ showVoted(existing.name, existing.weight); }
+  else { renderBallot(); }
+  /* Load live totals on every page view — shared across all devices. */
+  fetchTotals();
+  renderStreak();
+  checkKingmaker();
+  function castVote(c, btn){
+    var dev=''; try { dev=(window.PFDeviceId&&PFDeviceId())||''; }catch(e){}
+    if(!dev){ try{ if(window.PF&&PF.toast) PF.toast('Could not identify this device — vote not cast.'); }catch(e){} return; }
+    /* 2026-10-03 M26: disabled+spinner state while the vote is in flight —
+       prevents double-vote double-submit. Same pattern as armory.js
+       (btn.disabled=true at POST, restored on failure). Success lands
+       showVoted(), which replaces the ballot — no restore needed. */
+    var label = '';
+    if(btn){
+      if(btn.disabled) return; /* a vote is already in flight */
+      try{
+        label = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = '\u23F3 CASTING\u2026';
+      }catch(e){}
+    }
+    function restoreBtn(){
+      if(btn){ try{ btn.disabled = false; btn.textContent = label; }catch(e){} }
+    }
+    /* 2026-10-03: explicit vote route (backend M6 closed the bare-POST
+       fall-through). CORS so we read the verdict — no more false success. */
+    var ctrl=null; try{ ctrl=new AbortController(); }catch(e){}
+    var to=setTimeout(function(){ try{ if(ctrl) ctrl.abort(); }catch(e){} },15000);
+    fetch(VOTE_API_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({type:'vote',v_action:'vote_cast',device:dev,slug:c.slug,weight:VOTE_WEIGHT}),
+      signal:ctrl?ctrl.signal:undefined})
+      .then(function(r){ clearTimeout(to); return r.json(); })
+      .then(function(j){
+        if(j&&j.ok){
+          try { localStorage.setItem(storeKey, JSON.stringify({name:c.name,slug:c.slug,weight:VOTE_WEIGHT})); }catch(e){}
+          /* One vote, one streak bump, one tally event — counted exactly once. */
+          bumpStreak();
+          renderStreak();
+          try { document.dispatchEvent(new CustomEvent("pf-vote-cast",{detail:{week:weekKey,weight:VOTE_WEIGHT}})); }catch(e){}
+          /* The sealed-ballot ceremony plays, then the voted state lands. */
+          ballotCeremony(c,function(){ showVoted(c.name,VOTE_WEIGHT); });
+          /* Refresh the shared totals so the new vote appears on next render. */
+          setTimeout(fetchTotals,1500);
+        } else {
+          restoreBtn();
+          var msg=PF.errCopy(j,'Vote rejected.');
+          try{ if(window.PF&&PF.toast) PF.toast(msg+' Not counted — try again.'); }catch(e){}
+        }
+      })
+      .catch(function(){
+        clearTimeout(to);
+        restoreBtn();
+        try{ if(window.PF&&PF.toast) PF.toast('Network error — vote not counted. Try again.'); }catch(e){}
+      });
+  }
+  /* COPY CRATE */
+  var VCRATE="\\u2605 FAN VOTE: PROPAGANDIST OF THE WEEK \\u2605\\nWho was the hardest-working propagandist this week? You decide.\\nVote: https://www.mtcstw.com\\n#SickLeftRadicals #PropagandaFactory";
+  document.getElementById("pf-vote-copy").onclick=function(){
+    var cm=document.getElementById("pf-vote-copymsg");
+    var done=function(ok){ if(cm) cm.textContent=ok?"Copied. Go spread the word.":"Copy failed — long-press to copy manually."; };
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(VCRATE).then(function(){done(true);},function(){done(false);});
+    } else {
+      var ta=document.createElement("textarea");ta.value=VCRATE;ta.style.position="fixed";ta.style.opacity="0";
+      document.body.appendChild(ta);ta.select();
+      try{done(document.execCommand("copy"));}catch(e){done(false);}
+      document.body.removeChild(ta);
+    }
+  };
+})();
+</script>
+</div>
+</template>`);
+})();
+
+;
+
+/* ===== fact-generator.js ===== */
+/* games/fact-generator.js  |  PF v1.4.3 | Fact Generator: type a claim, get sourced facts, share as a PFN poster
+   CEO directive 2026-10-07 ~23:29 CDT.
+   KILL: ?pf_off=fact-generator  or  localStorage pf_disabled_v1='["fact-generator"]' */
+
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('fact-generator')) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-factgen">
+<div class="fe-block pf-override-block" id="pf-factgen">
+<style>
+#pf-factgen{max-width:720px;margin:2rem auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:'Helvetica Neue',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;}
+#pf-factgen .fg-kicker{font-size:0.8rem;letter-spacing:0.28em;color:#c1121f;font-weight:900;text-align:center;}
+#pf-factgen h2{font-size:1.9rem;font-weight:900;letter-spacing:0.08em;color:#f5f0e1;text-align:center;margin:0.4rem 0 0.2rem;}
+#pf-factgen .fg-sub{font-size:0.95rem;color:#b8ab8e;text-align:center;margin-bottom:1.2rem;}
+#pf-factgen .fg-row{display:flex;gap:0.6rem;margin-bottom:0.8rem;}
+#pf-factgen #fg-claim{flex:1;background:#141414;border:2px solid #3a3a3a;color:#f5f0e1;padding:0.7rem 0.9rem;font-size:1rem;font-family:inherit;border-radius:2px;}
+#pf-factgen #fg-claim:focus{border-color:#c1121f;outline:none;}
+#pf-factgen #fg-go{background:#c1121f;border:none;color:#fff;font-weight:900;letter-spacing:0.12em;padding:0.7rem 1.4rem;font-size:0.95rem;cursor:pointer;font-family:inherit;}
+#pf-factgen #fg-go:disabled{opacity:0.5;cursor:wait;}
+#pf-factgen .fg-chips{display:flex;flex-wrap:wrap;gap:0.45rem;justify-content:center;margin-bottom:1rem;}
+#pf-factgen .fg-chip{background:#1a1a1a;border:1px solid #c1121f;color:#f5f0e1;font-size:0.8rem;padding:0.35rem 0.75rem;cursor:pointer;border-radius:20px;font-family:inherit;}
+#pf-factgen .fg-chip:hover{background:rgba(193,18,31,0.25);}
+#pf-factgen #fg-status{text-align:center;font-size:0.9rem;color:#b8ab8e;min-height:1.6em;margin-bottom:0.6rem;}
+#pf-factgen #fg-results{display:grid;gap:0.8rem;margin-bottom:1rem;}
+#pf-factgen .fg-fact{background:#141414;border:2px solid #2c2c2c;padding:1rem 1.1rem;cursor:pointer;transition:border-color 0.15s;}
+#pf-factgen .fg-fact:hover{border-color:#666;}
+#pf-factgen .fg-fact.sel{border-color:#c1121f;box-shadow:0 0 18px rgba(193,18,31,0.35);}
+#pf-factgen .fg-figure{font-size:2rem;font-weight:900;color:#c1121f;letter-spacing:0.02em;}
+#pf-factgen .fg-label{font-size:1rem;font-weight:700;color:#f5f0e1;margin:0.15rem 0;}
+#pf-factgen .fg-detail{font-size:0.85rem;color:#b8ab8e;}
+#pf-factgen .fg-src{font-size:0.75rem;color:#7a6f5c;margin-top:0.4rem;font-style:italic;}
+#pf-factgen #fg-poster-wrap{text-align:center;margin:1rem 0;display:none;}
+#pf-factgen #fg-poster{max-width:100%;height:auto;border:2px solid #c1121f;}
+#pf-factgen .fg-actions{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;margin-top:1rem;}
+#pf-factgen .fg-btn{background:#c1121f;border:none;color:#fff;font-weight:900;letter-spacing:0.1em;padding:0.7rem 1.5rem;font-size:0.9rem;cursor:pointer;font-family:inherit;}
+#pf-factgen .fg-btn.ghost{background:transparent;border:2px solid #c1121f;color:#f5f0e1;}
+#pf-factgen .fg-btn:disabled{opacity:0.5;cursor:wait;}
+#pf-factgen .fg-note{font-size:0.78rem;color:#7a6f5c;text-align:center;margin-top:0.8rem;}
+</style>
+<div class="fg-kicker">&#9733; THE PROPAGANDA FACTORY &#9733;</div>
+<h2>FACT GENERATOR</h2>
+<div class="fg-sub">Type a claim. We find the receipts. You share the poster.</div>
+<div class="fg-row">
+  <input id="fg-claim" maxlength="300" placeholder="e.g. CEOs make 300x more than workers" autocomplete="off">
+  <button id="fg-go">GENERATE</button>
+</div>
+<div class="fg-chips" id="fg-chips"></div>
+<div id="fg-status"></div>
+<div id="fg-results"></div>
+<div id="fg-poster-wrap"><canvas id="fg-poster" width="1080" height="1350"></canvas></div>
+<div class="fg-actions" id="fg-actions" style="display:none;">
+  <button class="fg-btn" id="fg-share">SHARE POSTER</button>
+  <button class="fg-btn ghost" id="fg-save">SAVE IMAGE</button>
+</div>
+<div class="fg-note">Figures pulled live from U.S. Census, BLS, BEA, World Bank, IMF &amp; SEC EDGAR.<br>Every poster carries its source. JOIN THE FIGHT.</div>
+<script>
+(function(){
+  var API = (window.PF_BACKEND_URL || 'https://pf-api.mtcstw.workers.dev');
+  var claimEl = document.getElementById('fg-claim');
+  var goBtn = document.getElementById('fg-go');
+  var chipsEl = document.getElementById('fg-chips');
+  var statusEl = document.getElementById('fg-status');
+  var resultsEl = document.getElementById('fg-results');
+  var posterWrap = document.getElementById('fg-poster-wrap');
+  var cv = document.getElementById('fg-poster');
+  var actionsEl = document.getElementById('fg-actions');
+  var shareBtn = document.getElementById('fg-share');
+  var saveBtn = document.getElementById('fg-save');
+  var state = { claim: '', facts: [], selected: -1 };
+
+  var RED = '#c1121f', CREAM = '#f5f0e1', BLACK = '#0d0d0d', MUTED = '#b8ab8e';
+
+  function toast(m){ try { if (PF && PF.toast) PF.toast(m); } catch(e){} }
+  function setStatus(m){ statusEl.textContent = m || ''; }
+
+  /* ---- topic chips (from backend) ---- */
+  function loadTopics(){
+    fetch(API + '/?action=fact_topics')
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if (!j || !j.ok || !j.topics) return;
+        chipsEl.innerHTML = '';
+        j.topics.forEach(function(t){
+          if (!t.live) return;
+          var b = document.createElement('button');
+          b.type = 'button'; b.className = 'fg-chip'; b.textContent = t.label;
+          b.onclick = function(){
+            var ex = (t.examples && t.examples[0]) || t.label;
+            claimEl.value = ex; generate();
+          };
+          chipsEl.appendChild(b);
+        });
+      })
+      .catch(function(){});
+  }
+
+  /* ---- backend call ---- */
+  function post(body){
+    return fetch(API + '/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }).then(function(r){ return r.json(); });
+  }
+
+  function generate(){
+    var claim = (claimEl.value || '').trim();
+    if (!claim) { setStatus('Type a claim first.'); return; }
+    goBtn.disabled = true;
+    setStatus('Digging up the receipts\u2026');
+    resultsEl.innerHTML = '';
+    posterWrap.style.display = 'none';
+    actionsEl.style.display = 'none';
+    state.selected = -1;
+    post({ type: 'factgen', fg_action: 'fact_generate', claim: claim })
+      .then(function(j){
+        goBtn.disabled = false;
+        if (!j || !j.ok) {
+          setStatus(j && j.error === 'rate_limited'
+            ? 'Slow down, comrade \u2014 too many requests. Try again in a bit.'
+            : 'Couldn\u2019t generate facts. Try again.');
+          return;
+        }
+        state.claim = j.claim; state.facts = j.facts || [];
+        if (!state.facts.length) {
+          setStatus(j.note || 'No live data matched this claim yet.');
+          return;
+        }
+        setStatus(state.facts.length + ' sourced fact' + (state.facts.length > 1 ? 's' : '') +
+          ' found \u2014 tap one to make the poster.');
+        renderFacts();
+      })
+      .catch(function(){
+        goBtn.disabled = false;
+        setStatus('Network error. Try again.');
+      });
+  }
+
+  function renderFacts(){
+    resultsEl.innerHTML = '';
+    state.facts.forEach(function(f, i){
+      var d = document.createElement('div');
+      d.className = 'fg-fact';
+      d.innerHTML =
+        '<div class="fg-figure">' + esc(f.figure) + '</div>' +
+        '<div class="fg-label">' + esc(f.label) + '</div>' +
+        '<div class="fg-detail">' + esc(f.detail || '') + '</div>' +
+        '<div class="fg-src">Source: ' + esc(f.source) + '</div>';
+      d.onclick = function(){ selectFact(i); };
+      resultsEl.appendChild(d);
+    });
+  }
+
+  function esc(s){
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function selectFact(i){
+    state.selected = i;
+    var cards = resultsEl.querySelectorAll('.fg-fact');
+    for (var k = 0; k < cards.length; k++) {
+      cards[k].classList.toggle('sel', k === i);
+    }
+    drawPoster(state.facts[i]);
+    posterWrap.style.display = 'block';
+    actionsEl.style.display = 'flex';
+    posterWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  /* ---- poster painter (1080x1350, PFN official fact-card) ---- */
+  function wrapText(x, text, maxW){
+    var words = String(text).split(/\s+/), lines = [], line = '';
+    words.forEach(function(w){
+      var t = line ? line + ' ' + w : w;
+      if (x.measureText(t).width > maxW && line) { lines.push(line); line = w; }
+      else { line = t; }
+    });
+    if (line) lines.push(line);
+    return lines;
+  }
+
+  function drawPoster(f){
+    var W = 1080, H = 1350;
+    var x = cv.getContext('2d');
+    if (!x) return;
+    x.clearRect(0, 0, W, H);
+    /* background + borders */
+    x.fillStyle = BLACK; x.fillRect(0, 0, W, H);
+    x.strokeStyle = RED; x.lineWidth = 18; x.strokeRect(16, 16, W - 32, H - 32);
+    x.strokeStyle = CREAM; x.lineWidth = 3; x.strokeRect(52, 52, W - 104, H - 104);
+    x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+    var y = 150;
+    /* header */
+    x.fillStyle = CREAM; x.font = '700 34px Arial,sans-serif';
+    x.fillText('\u2605 THE PROPAGANDA FACTORY \u2605', W / 2, y); y += 70;
+    /* verified stamp */
+    x.fillStyle = RED; x.font = '900 40px "Arial Black",Arial,sans-serif';
+    x.fillText('VERIFIED FACT', W / 2, y); y += 90;
+    /* claim headline */
+    x.fillStyle = CREAM; x.font = '900 54px "Arial Black",Arial,sans-serif';
+    var claimLines = wrapText(x, (state.claim || '').toUpperCase(), W - 180).slice(0, 4);
+    /* shrink to fit if needed */
+    var fs = 54;
+    claimLines.forEach(function(l){
+      while (x.measureText(l).width > W - 180 && fs > 30) {
+        fs -= 2; x.font = '900 ' + fs + 'px "Arial Black",Arial,sans-serif';
+      }
+    });
+    claimLines.forEach(function(l){ x.fillText(l, W / 2, y); y += fs + 14; });
+    y += 40;
+    /* the big figure */
+    x.fillStyle = RED; x.font = '900 150px "Arial Black",Arial,sans-serif';
+    var fig = String(f.figure || '');
+    var fsize = 150;
+    while (x.measureText(fig).width > W - 160 && fsize > 60) {
+      fsize -= 6; x.font = '900 ' + fsize + 'px "Arial Black",Arial,sans-serif';
+    }
+    x.fillText(fig, W / 2, y); y += fsize * 0.55;
+    /* figure label */
+    x.fillStyle = CREAM; x.font = '700 44px Arial,sans-serif';
+    wrapText(x, f.label || '', W - 200).slice(0, 2).forEach(function(l){
+      x.fillText(l, W / 2, y); y += 58;
+    });
+    y += 16;
+    /* detail */
+    x.fillStyle = MUTED; x.font = '400 32px Arial,sans-serif';
+    wrapText(x, f.detail || '', W - 220).slice(0, 3).forEach(function(l){
+      x.fillText(l, W / 2, y); y += 46;
+    });
+    y += 30;
+    /* source box */
+    x.fillStyle = '#1a1a1a';
+    var srcText = 'SOURCE: ' + String(f.source || '').toUpperCase();
+    x.font = '700 30px Arial,sans-serif';
+    var sw = Math.min(x.measureText(srcText).width + 60, W - 140);
+    var sy = y;
+    x.fillRect(W / 2 - sw / 2, sy, sw, 56);
+    x.strokeStyle = RED; x.lineWidth = 2;
+    x.strokeRect(W / 2 - sw / 2, sy, sw, 56);
+    x.fillStyle = CREAM;
+    x.fillText(srcText, W / 2, sy + 38);
+    y = sy + 100;
+    /* citation + date */
+    x.fillStyle = '#7a6f5c'; x.font = '400 26px Arial,sans-serif';
+    wrapText(x, f.citation || '', W - 240).slice(0, 2).forEach(function(l){
+      x.fillText(l, W / 2, y); y += 36;
+    });
+    /* footer CTA (site standard) */
+    x.fillStyle = RED; x.font = '900 46px "Arial Black",Arial,sans-serif';
+    x.fillText('MTCSTW.COM', W / 2, H - 168);
+    x.fillStyle = RED; x.font = '900 44px "Arial Black",Arial,sans-serif';
+    x.fillText('JOIN THE FIGHT.', W / 2, H - 108);
+    x.fillStyle = '#7a6f5c'; x.font = '400 28px Arial,sans-serif';
+    try {
+      x.fillText(new Date().toLocaleDateString('en-US',
+        { month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase(), W / 2, H - 58);
+    } catch(e){}
+    /* callsign stamp if present */
+    try {
+      var cs = '';
+      var id = JSON.parse(localStorage.getItem('pf_identity_v1') || '{}');
+      if (id && id.callsign) cs = String(id.callsign).toUpperCase();
+      if (cs) {
+        x.fillStyle = RED; x.font = '700 28px Arial,sans-serif';
+        x.fillText('FIGHTING AS ' + cs, W / 2, H - 210);
+      }
+    } catch(e){}
+  }
+
+  /* ---- share / save ---- */
+  function canvasFile(cb){
+    try {
+      cv.toBlob(function(blob){
+        if (!blob) { toast('Poster failed \u2014 try again.'); return; }
+        cb(blob);
+      }, 'image/png', 0.92);
+    } catch(e){ toast('Poster failed \u2014 try again.'); }
+  }
+
+  function sharePoster(){
+    var f = state.facts[state.selected];
+    if (!f) return;
+    var filename = 'pfn-fact-' + Date.now() + '.png';
+    canvasFile(function(blob){
+      var file = null;
+      try { file = new File([blob], filename, { type: 'image/png' }); } catch(e){}
+      var title = 'PFN Fact: ' + (f.label || '');
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          navigator.share({ files: [file], title: title,
+            text: state.claim + ' \u2014 ' + f.figure + ' ' + f.label + ' (' + f.source + ')' })
+            .then(function(){ toast('Shared. Go spread the word.'); },
+              function(err){
+                if (err && err.name === 'AbortError') toast('Share cancelled.');
+                else downloadBlob(blob, filename);
+              });
+          return;
+        } catch(e){}
+      }
+      downloadBlob(blob, filename);
+    });
+  }
+
+  function downloadBlob(blob, filename){
+    try {
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click();
+      setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
+      toast('Image downloaded.');
+    } catch(e){ toast('Download failed \u2014 try again.'); }
+  }
+
+  function savePoster(){
+    var f = state.facts[state.selected];
+    if (!f) return;
+    var filename = 'pfn-fact-' + Date.now() + '.png';
+    canvasFile(function(blob){
+      var file = null;
+      try { file = new File([blob], filename, { type: 'image/png' }); } catch(e){}
+      var isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent || '');
+      if (isiOS && file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          navigator.share({ files: [file], title: 'Save to Photos' })
+            .then(function(){ toast('Saved. Check your Photos.'); },
+              function(err){ if (!(err && err.name === 'AbortError')) toast('Save cancelled.'); });
+          return;
+        } catch(e){}
+      }
+      downloadBlob(blob, filename);
+    });
+  }
+
+  /* ---- wire up ---- */
+  goBtn.onclick = generate;
+  claimEl.addEventListener('keydown', function(e){
+    if (e.key === 'Enter') generate();
+  });
+  shareBtn.onclick = sharePoster;
+  saveBtn.onclick = savePoster;
+  loadTopics();
+
+  /* Register with PFShare's custom painter system if present, so the
+     site-wide share-image buttons can render fact posters too. */
+  try {
+    if (window.PFShare && PFShare.setPoster) {
+      PFShare.setPoster('fact-generator', function(done){
+        var f = state.facts[state.selected];
+        if (!f) { done(null); return; }
+        /* drawPoster paints the visible canvas; hand it back directly. */
+        drawPoster(f);
+        done(cv);
+      });
+    }
+  } catch(e){}
+})();
+</script>
+</div>
+</template>`);
+})();
+
+;

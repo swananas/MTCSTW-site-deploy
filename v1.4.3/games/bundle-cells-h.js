@@ -1,1 +1,830 @@
-!function(){"use strict";var e=window.PF;e&&!e.skip("cells")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-cells">\n<div class="fe-block pf-override-block" id="pf-cells">\n<h2>Build Your Cell</h2>\n<div class="c-tag">Five callsigns. One streak. Nobody gets left behind.</div>\n<div id="cBody"><div class="c-load">Raising the cell network&hellip;</div></div>\n<div class="c-boardwrap"><h3>Cell leaderboard &mdash; this week</h3><div id="cBoard"><div class="c-load">Loading&hellip;</div></div></div>\n</div>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nvar LS_C="pf_cells_v1";\nvar BOUNTY_FALLBACK=25;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction load(k,fb){ try{ return JSON.parse(localStorage.getItem(k)||JSON.stringify(fb)); }catch(e){ return fb; } }\nfunction save(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}\n  /* Fallback only if core hasn\'t loaded yet — matches PF.toast styling. */\n  try{ var t=document.createElement("div"); t.textContent=m;\n  t.style.cssText="position:fixed;left:50%;bottom:8%;transform:translateX(-50%);background:#0a0a0a;color:#f5f0e1;font:bold 15px monospace;padding:12px 22px;border:2px solid #c1121f;z-index:99999;max-width:90vw;text-align:center;box-sizing:border-box";\n  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }\n/* JSONP, same pattern as the other games. 12s timeout: a hung Apps Script\n   request must never wedge the section on its loading text. */\n/* P0 (2026-10-02): cell mutations are POST-only (CSRF-able via GET).\n   Route them through the POST helper; read-only actions stay on JSONP. */\nvar POST_CELL_ACTIONS = {cell_create:1,cell_join:1,cell_checkin:1,cell_cover:1,cell_leave:1,cell_rename:1,cell_bounty_claim:1};\nfunction api(action,params,cb){\n  if(POST_CELL_ACTIONS[action]){\n    if(window.PF && PF.postAction){ PF.postAction(\'cell\',\'cell_action\',action,params,cb); return; }\n    post(\'cell\',\'cell_action\',action,params,cb); return;\n  }\n  if(!BACKEND){ cb(null); return; }\n  /* Private reads require auth_secret (IDOR fix). Route cell_mine through\n     the shared claim-retry GET (2026-10-03): pre-auth callsign holders get\n     one auth_claim attempt instead of \'missing credentials\' forever. */\n  if(action==="cell_mine"){\n    try{\n      if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }\n      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";\n      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;\n    }catch(e){}\n  }\n  /* Callback nonce: crypto-random where available (invite codes themselves\n     are issued server-side by cell_create; this is just the JSONP name). */\n  var _cr=new Uint32Array(1);\n  try{ if(window.crypto&&crypto.getRandomValues) crypto.getRandomValues(_cr); else _cr[0]=Math.floor(Math.random()*4294967295); }catch(e){ _cr[0]=Math.floor(Math.random()*4294967295); }\n  var fn="pfCellCb"+_cr[0];\n  var s=document.createElement("script");\n  var done=false, timer=null;\n  function finish(j){\n    if(done) return; done=true;\n    if(timer){ clearTimeout(timer); timer=null; }\n    window[fn]=function(){};\n    try{ delete window[fn]; }catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s);\n    cb(j);\n  }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  timer=setTimeout(function(){ finish(null); },12000);\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn;\n  s.src=BACKEND+q;\n  document.head.appendChild(s);\n}\n/* CORS POST for POST_ONLY actions (cell_promote, challenge_join). */\nfunction post(type,actionKey,action,params,cb){\n  var body=Object.assign({type:type},params||{});\n  body[actionKey]=action;\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }\n  var bodyStr=JSON.stringify(body);\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */\n    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;\n      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}\n      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();\n    fetch(BACKEND,_po)\n      .then(function(r){ return r.json(); })\n      .then(function(j){ _po._pfClear(); done(j); })\n      .catch(function(){ _po._pfClear(); done(null); });\n  }catch(e){ done(null); }\n}\n/* Cached multiplier for Daily Orders. Refreshes in the background when stale. */\nfunction cache(){ return load(LS_C,{mult:1,cell_id:"",name:"",t:0}); }\nwindow.pfCellMult=function(){\n  var c=cache();\n  if(Date.now()-c.t>15*60*1000){ try{ refresh(true); }catch(e){} }\n  return c.mult||1;\n};\nfunction setCache(mult,cell_id,name){ save(LS_C,{mult:mult||1,cell_id:cell_id||"",name:name||"",t:Date.now()}); }\n\nvar state=null, board=null, busy=false, netFailed=false;\n/* Display modes (2026-10-03 homepage slimming): full management depth on\n   /cells (pf-cells-page) and /arcade (pf-arcade); slim on the homepage\n   (pf-v2) — pitch + join form + leaderboard teaser + check-in. */\nvar PF_MODE=(function(){ try{\n  if(document.getElementById(\'pf-arcade\')||document.getElementById(\'pf-cells-page\')) return \'full\';\n}catch(e){} return \'slim\'; })();\nvar SLIM=PF_MODE===\'slim\';\nfunction refresh(quiet){\n  var id=ident();\n  if(!id.callsign){ renderGate(); return; }\n  if(busy) return; busy=true; netFailed=false;\n  api("cell_mine",{callsign:id.callsign,device:id.device},function(j){\n    busy=false;\n    if(!j){\n      netFailed=true;\n      if(!quiet){ renderNetErr(); }\n      else if(state){ render(); }\n      return;\n    }\n    state=j;\n    if(j.in_cell&&j.cell){ setCache(j.cell.mult,j.cell.id,j.cell.name); }\n    claimBounties(j);\n    /* CHAINLINK: 2+ cells wired -> weekly bridge bonus via the ledger. */\n    try{\n      var nCells=(j.cells&&j.cells.length)||0;\n      if(nCells>=2){\n        var _d=new Date(),_o=new Date(_d.getFullYear(),0,1);\n        var _wk=_d.getFullYear()+"-W"+Math.ceil((((_d-_o)/86400000)+_o.getDay()+1)/7);\n        document.dispatchEvent(new CustomEvent("pf-chainlink",{detail:{cells:nCells,week:_wk}}));\n      }\n    }catch(e){}\n    render();\n  });\n}\n/* The section is never allowed to die on its loading text: a failed\n   request renders an explicit error panel with a retry. */\nfunction renderNetErr(){\n  var el=document.getElementById("cBody");\n  if(!el) return;\n  el.innerHTML=\'<div class="c-neterr">The cell network is slow to answer. Your callsign is fine &mdash; the wire is not.\'+\n    \'<br><button class="c-btn" id="cRetry">Retry connection</button></div>\';\n  document.getElementById("cRetry").onclick=function(){ refresh(); };\n}\n/* Recruit bounty: +25 XP per claimed recruit, exactly once each. */\nfunction claimBounties(j){\n  var pend=(j&&j.bounties_pending)||[];\n  if(!pend.length) return;\n  var id=ident();\n  api("cell_bounty_claim",{callsign:id.callsign,device:id.device},function(r){\n    if(!r||!r.ok||!r.claimed||!r.claimed.length) return;\n    var n=0, each=r.xp_each||BOUNTY_FALLBACK;\n    r.claimed.forEach(function(b){\n      var key="cell_bounty_"+b.from+"_"+b.day;\n      /* The shared ledger owns idempotency now (exactly-once per key).\n         Backend already granted this XP in cell_bounty_claim (xpGrant with\n         key cellbounty_<cell>_<recruit>). Local ledger update is for instant\n         UX only — do NOT dispatch pf-xp or the backend gets it twice. */\n      var credited=false;\n      try{ credited=(window.PF&&PF.creditLocal)?PF.creditLocal(key,each):false; }catch(e){}\n      if(credited) n++;\n    });\n    if(n>0){ toast("+"+(n*each)+" XP — recruit bounty! Your cell grows."); }\n  });\n}\nfunction loadBoard(){\n  api("cell_leaderboard",{},function(j){\n    board=j;\n    var el=document.getElementById("cBoard");\n    if(!el) return;\n    if(!j||!j.cells||!j.cells.length){ el.innerHTML=\'<div class="c-empty">No cells on the board yet. The first founder&rsquo;s name goes here.</div>\'; return; }\n    /* SLIM: leaderboard teaser — top 3 + link to the full board on /cells. */\n    var rows=SLIM?j.cells.slice(0,3):j.cells;\n    var html=rows.map(function(c,i){\n      var pfl=c.prestige_flame?\' <span class="c-prb" style="margin-left:4px;" title="\'+esc(c.prestige_tier||"")+\' cell">\'+c.prestige_flame+\'</span>\':"";\n      return \'<div class="c-brow\'+(i===0?" c-btop":"")+\'"><span class="c-brank">\'+(i+1)+\'</span>\'+\n        \'<span class="c-bname">\'+esc(c.name)+pfl+\n        (c.verified?\'<span class="c-vfy" title="2+ callsigns strong">&#10003; VERIFIED</span>\':\'\')+\'</span>\'+\n        \'<span class="c-bstat">\'+c.streak+\' streak &middot; \'+c.members+\'/5</span></div>\';\n    }).join("");\n    el.innerHTML=html;\n    if(SLIM){ el.insertAdjacentHTML(\'beforeend\',\'<div class="x-note"><a href="/cells" style="color:#c1121f;">Full cell leaderboard &rarr;</a></div>\'); }\n  });\n}\nfunction renderGate(){\n  var el=document.getElementById("cBody");\n  if(!el) return;\n  /* 2026-10-03 H8: active in-place claim (was: scroll away to Enlistment Ranks). */\n  el.innerHTML=PF.gateHTML(\'Cells run on callsigns.\',\'to form your cell\');\n}\n/* Friendly copy for cell_mine read failures (2026-10-03): raw backend\n   strings like \'missing credentials\' are never rendered as UI copy. */\nfunction cellErrCopy(e){\n  e=String(e||"");\n  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")\n    return "The cell network couldn\'t verify this callsign — it predates the new auth system. Contact MTCSTW to recover it.";\n  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)\n    return "The cell network couldn\'t verify your callsign. Re-claim it in Enlistment Ranks (one tap), then retry.";\n  return "The cell network didn\'t answer. Your callsign is fine — the wire is not.";\n}\n/* Friendly copy for WRITE paths (2026-10-03 M27): read paths already got\n   friendly copy (cellErrCopy); writes route raw snake_case codes through\n   the same propaganda-voice map. Never show a raw code to users. */\nfunction cellWriteErr(e,fb){\n  var s=String(e==null?"":e).trim();\n  var fall=fb||"The wire fought back. Nothing changed — retry.";\n  if(!s||/network error/i.test(s)) return fall;\n  var map={\n    "invalid_code":"That invite code doesn\'t open any door. Check it and try again.",\n    "cell_full":"That cell is full — five fighters max. Found your own instead.",\n    "already_accepted":"Already locked in. One shot per cell.",\n    "already_joined":"You\'re already in. The fight continues.",\n    "already leading":"You\'re already wiring this cell. One wire per cell.",\n    "already claimed":"Already claimed. One shot per fighter.",\n    "already settled":"Already settled. It\'s done.",\n    "bad callsign":"That callsign didn\'t check out. Re-claim it in Enlistment Ranks, then retry.",\n    "missing cell_id":"No cell selected. Refresh and try again.",\n    "unknown cell":"That cell isn\'t on the map anymore. Refresh and retry.",\n    "db error":"The cell ledger hiccuped. Retry in a moment.",\n    "title too short":"Title needs 4+ characters.",\n    "title rejected":"That title didn\'t pass the censors. Pick another.",\n    "bad characters":"Letters, numbers, and spaces only. Keep it clean."\n  };\n  if(map[s]) return map[s];\n  if(s.indexOf("_")!==-1) return fall; /* never show raw snake_case */\n  return s; /* backend prose already human-readable */\n}\n/* M26 (2026-10-03): disabled + spinner label on mutation buttons. */\nfunction busyBtn(btn,on,label){\n  try{\n    if(on){ if(btn.getAttribute("data-lbl")==null) btn.setAttribute("data-lbl",btn.textContent); btn.disabled=true; btn.textContent=label||"WORKING…"; }\n    else{ btn.disabled=false; var l=btn.getAttribute("data-lbl"); if(l!=null) btn.textContent=l; btn.removeAttribute("data-lbl"); }\n  }catch(e){}\n}\nfunction render(){\n  var el=document.getElementById("cBody");\n  if(!el) return;\n  var id=ident();\n  if(!id.callsign){ renderGate(); return; }\n  if(!state){ if(netFailed){ renderNetErr(); return; } el.innerHTML=\'<div class="c-load">Raising the cell network&hellip;</div>\'; return; }\n  if(state.err&&!state.in_cell&&state.err!=="no_cell"){\n    el.innerHTML=\'<div class="c-neterr">\'+esc(cellErrCopy(state.err))\n      +\'<br><button class="c-btn" id="cErrRetry">Retry connection</button></div>\';\n    document.getElementById("cErrRetry").onclick=function(){ refresh(); };\n    return;\n  }\n  if(!state.in_cell){ renderLobby(el); return; }\n  renderCell(el,state);\n}\nfunction renderLobby(el){\n  /* SLIM (homepage): pitch + join form only. Steps + search are full-mode\n     depth for /cells. */\n  var stepsHtml=SLIM?"":\n    \'<div class="c-steps">\'+\n    \'<div class="c-step"><span class="c-snum">1</span><span>Form your cell below, or join with a code.</span></div>\'+\n    \'<div class="c-step"><span class="c-snum">2</span><span>Check in daily after your orders.</span></div>\'+\n    \'<div class="c-step"><span class="c-snum">3</span><span>Streak climbs. Miss a day and a cellmate covers you once a week.</span></div>\'+\n    \'</div>\';\n  var searchHtml=SLIM?"":\n    \'<div class="c-pane"><h4>Find a cell</h4>\'+\n    \'<input aria-label="NAME OR STATE" id="cSearch" maxlength="32" placeholder="NAME OR STATE" autocomplete="off">\'+\n    \' <button class="c-btn" id="cSearchBtn">Search</button>\'+\n    \'<div class="c-err" id="cSearchErr"></div>\'+\n    \'<div id="cSearchRes"></div></div>\';\n  el.innerHTML=\n    \'<div class="c-pitch">No cells exist yet &mdash; <b>found the first one</b> and your name goes on the wall.\'+\n    \'<br>Five callsigns. One streak. Every day the whole cell checks in, the streak climbs and everyone banks <b>+5% XP on Daily Orders</b> &mdash; up to <b>+50%</b>.</div>\'+\n    stepsHtml+\n    \'<div class="c-lobby">\'+\n    \'<div class="c-pane"><h4>Form a cell</h4>\'+\n    \'<input aria-label="CELL NAME" id="cName" maxlength="24" placeholder="CELL NAME" autocomplete="off">\'+\n    \'<br><button class="c-btn" id="cCreate">Form cell</button>\'+\n    \'<div class="c-err" id="cCreateErr"></div></div>\'+\n    \'<div class="c-pane"><h4>Join a cell</h4>\'+\n    \'<input aria-label="INVITE CODE" id="cCode" maxlength="6" placeholder="INVITE CODE" autocomplete="off" style="text-transform:uppercase">\'+\n    \'<input aria-label="WHO RECRUITED YOU (CALLSIGN)" id="cRef" maxlength="32" placeholder="WHO RECRUITED YOU (CALLSIGN)" autocomplete="off" style="text-transform:uppercase">\'+\n    \'<br><button class="c-btn" id="cJoin">Join cell</button>\'+\n    \'<div class="c-err" id="cJoinErr"></div></div>\'+\n    \'</div>\'+\n    searchHtml+\n    \'<div class="c-bounty">Share your cell code: <b>+25 XP</b> every time your recruit checks in.</div>\'+\n    (SLIM?\'<div class="x-note">Full cell management &mdash; search, prestige, challenges &mdash; lives at <a href="/cells" style="color:#c1121f;">/cells</a>.</div>\':\'\');\n  document.getElementById("cCreate").onclick=function(){\n    var nm=document.getElementById("cName").value, id=ident(), err=document.getElementById("cCreateErr");\n    err.textContent="";\n    var btn=document.getElementById("cCreate");\n    busyBtn(btn,true);\n    api("cell_create",{callsign:id.callsign,device:id.device,name:nm},function(j){\n      busyBtn(btn,false);\n      if(!j||!j.ok){ err.textContent=cellWriteErr(j&&j.err); return; }\n      toast("Cell "+j.cell.name+" formed. Recruit your four.");\n      refresh();\n    });\n  };\n  document.getElementById("cJoin").onclick=function(){\n    var code=document.getElementById("cCode").value, ref=document.getElementById("cRef").value,\n        id=ident(), err=document.getElementById("cJoinErr");\n    err.textContent="";\n    var btn=document.getElementById("cJoin");\n    busyBtn(btn,true);\n    api("cell_join",{callsign:id.callsign,device:id.device,code:code,ref:ref},function(j){\n      busyBtn(btn,false);\n      if(!j||!j.ok){ err.textContent=cellWriteErr(j&&j.err); return; }\n      toast("Welcome to "+j.cell.name+". Check in daily.");\n      refresh();\n    });\n  };\n  /* FIND A CELL: search by name/state, join from results. */\n  var sb=document.getElementById("cSearchBtn");\n  if(sb) sb.onclick=function(){\n    var q=document.getElementById("cSearch").value,\n        id=ident(), err=document.getElementById("cSearchErr"),\n        res=document.getElementById("cSearchRes");\n    err.textContent=""; res.innerHTML=\'<div class="c-load">Searching&hellip;</div>\';\n    api("cell_search",{q:q},function(j){\n      if(!j||!j.ok){ err.textContent=cellWriteErr(j,"Network error."); res.innerHTML=""; return; }\n      var list=j.cells||[];\n      if(!list.length){ res.innerHTML=\'<div class="x-note">No cells match. Found the first one above.</div>\'; return; }\n      var h="";\n      for(var i=0;i<Math.min(list.length,10);i++){\n        var cc=list[i]||{};\n        h+=\'<div class="cp-lead"><span class="cp-lname">\'+esc(cc.name)+\'</span> \'\n          +\'<span class="cp-lxp">\'+(Number(cc.members)||0)+\'/5\'\n          +(cc.verified?\' ✓\':\'\')+\'</span> \'\n          +\'<button class="c-btn c-sm" data-code="\'+esc(cc.invite_code||"")+\'">JOIN</button></div>\';\n      }\n      res.innerHTML=h;\n      var btns=res.querySelectorAll("button[data-code]");\n      for(var b=0;b<btns.length;b++)(function(btn){\n        btn.onclick=function(){\n          var code=btn.getAttribute("data-code"), id2=ident();\n          err.textContent="";\n          busyBtn(btn,true);\n          api("cell_join",{callsign:id2.callsign,device:id2.device,code:code},function(j2){\n            busyBtn(btn,false);\n            if(!j2||!j2.ok){ err.textContent=cellWriteErr(j2&&j2.err); return; }\n            toast("Welcome to "+j2.cell.name+". Check in daily.");\n            refresh();\n          });\n        };\n      })(btns[b]);\n    });\n  };\n}\n/* SLIM (homepage): the check-in card only. Members list, prestige, chainlink\n   bar, challenges, health, rename, leave — all full-mode depth on /cells. */\nfunction renderCellSlim(el,s){\n  var c=s.cell, pct=Math.round((c.mult-1)*100), id=ident();\n  var html=\'<div class="c-card">\'+\n    \'<div class="c-chead"><span class="c-cname">\'+esc(c.name)+\'</span>\'+\n    (c.verified?\'<span class="c-vfy" title="2+ callsigns strong">&#10003; VERIFIED</span>\':\'\')+\n    \'<span class="c-code" id="cCodeShow" title="Tap to copy">\'+esc(c.invite_code)+\'</span></div>\'+\n    \'<div class="c-cstats"><span class="c-flame">&#128293; \'+c.streak+\'-day streak</span>\'+\n    \'<span class="c-mult">+\'+pct+\'% XP on Daily Orders</span></div>\';\n  if(!s.checked_today){\n    html+=\'<button class="c-btn c-big" id="cCheckin">Orders done &mdash; check in</button>\';\n  } else {\n    html+=\'<div class="c-done">Checked in today. The streak holds because of you.</div>\';\n  }\n  if(s.cover_for){\n    html+=\'<button class="c-btn c-cover" id="cCover">Cover \'+esc(s.cover_for)+\' &mdash; save the streak</button>\';\n  }\n  html+=\'<div class="x-note"><a href="/cells" style="color:#c1121f;">Manage your cell &rarr;</a> members, prestige, challenges, the full board.</div>\';\n  html+=\'<div class="c-err" id="cActErr"></div></div>\';\n  el.innerHTML=html;\n  var errEl=document.getElementById("cActErr");\n  document.getElementById("cCodeShow").onclick=function(){\n    var code=String(c.invite_code||"");\n    function fallback(){\n      /* Clipboard write blocked (permissions / non-secure context): render\n         the code as selectable text instead of a false "copied" toast. */\n      try{\n        errEl.innerHTML="";\n        var sp=document.createElement("span");\n        sp.textContent="Copy blocked — long-press to copy your code: "+code;\n        sp.style.cssText="user-select:all;-webkit-user-select:all;cursor:text;";\n        errEl.appendChild(sp);\n      }catch(e2){ toast("Cell code: "+code); }\n    }\n    try{\n      if(navigator.clipboard&&navigator.clipboard.writeText){\n        navigator.clipboard.writeText(code).then(function(){ toast("Code copied: "+code); },fallback);\n      }\n      else { fallback(); }\n    }catch(e){ fallback(); }\n  };\n  var ci=document.getElementById("cCheckin");\n  if(ci) ci.onclick=function(){\n    errEl.textContent="";\n    busyBtn(ci,true);\n    api("cell_checkin",{callsign:id.callsign,device:id.device,cell_id:c.id},function(j){\n      busyBtn(ci,false);\n      if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err); return; }\n      if(j.already){ toast("Already checked in."); }\n      else { toast("Checked in. Streak: "+j.cell.streak+"."); try{ if(window.pfReportAction) window.pfReportAction("cell_checkin"); }catch(e){} }\n      refresh();\n    });\n  };\n  var cv=document.getElementById("cCover");\n  if(cv) cv.onclick=function(){\n    errEl.textContent="";\n    busyBtn(cv,true);\n    api("cell_cover",{callsign:id.callsign,device:id.device,cell_id:c.id},function(j){\n      busyBtn(cv,false);\n      if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err,"No cover to play."); return; }\n      toast("Cover played — "+j.covered+" is saved. Streak: "+j.streak+".");\n      refresh();\n    });\n  };\n}\n/* RECRUIT poster: 1080x1350 cell-recruit image for the native share sheet.\n   Pure canvas text/shapes only — no external assets, so the canvas can never\n   be tainted. The FIGHTING AS <CALLSIGN> strip is applied by\n   PFShare.stampCallsign inside shareImage (idempotent); keep the bottom 70px\n   of the layout clear for it. */\nfunction drawRecruitPoster(c){\n  var W=1080,H=1350;\n  var cv=document.createElement("canvas"); cv.width=W; cv.height=H;\n  var x=cv.getContext("2d"); if(!x) return null;\n  function center(t,y,font,fill){ x.font=font; x.fillStyle=fill; x.textAlign="center"; x.fillText(t,W/2,y); }\n  function wrapLines(text,font,maxW,maxLines){\n    x.font=font; x.textAlign="center";\n    var words=String(text||"").split(/\\s+/), lines=[], cur="";\n    words.forEach(function(w){\n      var t=cur?cur+" "+w:w;\n      if(x.measureText(t).width>maxW&&cur){ lines.push(cur); cur=w; } else cur=t;\n    });\n    if(cur) lines.push(cur);\n    return lines.slice(0,maxLines||2);\n  }\n  x.fillStyle="#0d0d0d"; x.fillRect(0,0,W,H);\n  x.strokeStyle="#c1121f"; x.lineWidth=14; x.strokeRect(20,20,W-40,H-40);\n  x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(44,44,W-88,H-88);\n  var y=118;\n  center("★ THE PROPAGANDA FACTORY ★",y,"700 32px Arial,sans-serif","#c1121f"); y+=76;\n  var nameF=\'900 82px "Arial Black",Arial,sans-serif\';\n  wrapLines(String(c.name||"MY CELL").toUpperCase(),nameF,W-170,2).forEach(function(l){\n    center(l,y,nameF,"#c1121f"); y+=96; });\n  y+=18;\n  var tagF="700 34px Arial,sans-serif";\n  wrapLines("FIVE CALLSIGNS. ONE STREAK. NOBODY LEFT BEHIND.",tagF,W-190,2).forEach(function(l){\n    center(l,y,tagF,"#f5ead6"); y+=48; });\n  var streak=Number(c.streak)||0;\n  y+=26;\n  center("⚡ "+streak+"-DAY STREAK ⚡",y,\'900 40px "Arial Black",Arial,sans-serif\',"#c1121f"); y+=74;\n  center("INVITE CODE",y,"700 30px Arial,sans-serif","#c9bfa8"); y+=16;\n  var code=String(c.invite_code||"").toUpperCase()||"???";\n  x.strokeStyle="#c1121f"; x.lineWidth=6;\n  x.strokeRect(W/2-280,y,560,150);\n  x.fillStyle="#141010"; x.fillRect(W/2-280,y,560,150);\n  center(code,y+106,\'900 96px "Arial Black",Arial,sans-serif\',"#c1121f");\n  y+=150+52;\n  var lnF="400 34px Arial,sans-serif";\n  wrapLines("Enter this code on mtcstw.com/cells to wire in.",lnF,W-210,2).forEach(function(l){\n    center(l,y,lnF,"#c9bfa8"); y+=50; });\n  wrapLines("Check in daily. Stack the streak. Recruit +25 XP.",lnF,W-210,2).forEach(function(l){\n    center(l,y,lnF,"#c9bfa8"); y+=50; });\n  y+=44;\n  var cta="JOIN MY CELL";\n  x.font=\'900 44px "Arial Black",Arial,sans-serif\';\n  var tw=x.measureText(cta).width+110;\n  x.fillStyle="#c1121f"; x.fillRect(W/2-tw/2,y-58,tw,94);\n  center(cta,y+8,\'900 44px "Arial Black",Arial,sans-serif\',"#ffffff");\n  y=H-160;\n  center("MTCSTW.COM",y,\'900 48px "Arial Black",Arial,sans-serif\',"#c1121f");\n  return cv;\n}\nfunction renderCell(el,s){\n  if(SLIM){ renderCellSlim(el,s); return; }\n  var c=s.cell, pct=Math.round((c.mult-1)*100);\n  var mems=(s.members||[]).map(function(m){\n    var role=String(m.role||"member").toUpperCase();\n    var badge=role==="FOUNDER"?\'<span class="c-role c-rfounder">FOUNDER</span>\'\n      :role==="OFFICER"?\'<span class="c-role c-rofficer">OFFICER</span>\':"";\n    var prb=(Number(m.prestige_level)||0)>0\n      ?\' <span class="c-prb" title="Prestige \'+esc(m.prestige_badge||"")+\'">&#9733;\'+esc(m.prestige_badge||"")+\'</span>\':"";\n    var prom=(s.is_founder&&role!=="FOUNDER"&&role!=="OFFICER")\n      ?\' <button class="c-btn c-sm c-prom" data-cs="\'+esc(m.callsign)+\'">PROMOTE</button>\':"";\n    return \'<div class="c-mrow"><span class="c-dot\'+(m.checked_today?" c-on":"")+\'"></span>\'+\n      \'<span class="c-mname">\'+esc(m.callsign)+\'</span>\'+prb+badge+\n      (m.checked_today?\'<span class="c-mok">IN</span>\':\'<span class="c-mno">OUT</span>\')+prom+\'</div>\';\n  }).join("");\n  /* CELL PRESTIGE panel: tier badge, power, benefits, progress, recruit nudge. */\n  var pr=c.prestige||null, prHtml="";\n  if(pr&&pr.tier){\n    var benHtml=(pr.benefits||[]).map(function(b){\n      return \'<div class="c-prben">&#10003; \'+esc(b)+\'</div>\'; }).join("");\n    var progHtml="";\n    if(pr.next_tier){\n      var pw=Math.min(100,Math.round(pr.power/pr.next_tier.min*100));\n      progHtml=\'<div class="c-prprog"><div class="c-prfill" style="width:\'+pw+\'%"></div></div>\'+\n        \'<div class="x-note">\'+pr.next_tier.need+\' more power to reach \'+esc(pr.next_tier.name)+\'</div>\';\n    } else {\n      progHtml=\'<div class="x-note">MAX TIER &mdash; the cell burns at full power.</div>\';\n    }\n    prHtml=\'<div class="c-prestige" style="background:#120404;border:2px solid #c1121f;margin:12px 0;padding:14px;text-align:center;">\'+\n      \'<div style="font-size:22px;letter-spacing:2px;">\'+pr.flame+\'</div>\'+\n      \'<div style="color:#c1121f;font-weight:900;font-size:18px;letter-spacing:3px;">\'+esc(pr.tier.name)+\'</div>\'+\n      \'<div class="x-note" style="margin-bottom:8px;">\'+pr.power+\' prestige power &middot; \'+pr.prestiged_count+\' prestiged \'+(pr.prestiged_count===1?"fighter":"fighters")+\'</div>\'+\n      benHtml+progHtml+\'</div>\';\n  } else {\n    prHtml=\'<div class="c-prestige" style="background:#0d0d0d;border:1px dashed #555;margin:12px 0;padding:12px;text-align:center;">\'+\n      \'<div class="x-note">&#128293; No prestige power yet. <b>Recruit prestiged fighters</b> to ignite cell bonuses &mdash; EMBER at 1 power (+5% XP for everyone).</div></div>\';\n  }\n  /* CHAINLINK bar: every cell this callsign wires, the cap, the network stat. */\n  var myCells=s.cells||[], linkBar=\'\';\n  if(myCells.length){\n    var rows=myCells.map(function(mc){\n      return \'<div class="c-lrow"><span class="c-lname">\'+esc(mc.name)+\'</span>\'+\n        \'<span class="c-lstat">\'+mc.streak+\' streak &middot; \'+(mc.checked_today?\'checked in\':\'not in today\')+\'</span>\'+\n        (mc.id!==c.id?\'\':\' <span class="c-lprim">PRIMARY</span>\')+\n        \' <a class="c-lleave" data-id="\'+esc(mc.id)+\'" data-nm="\'+esc(mc.name)+\'">leave</a></div>\';\n    }).join("");\n    linkBar=\'<div class="c-linkbar"><div class="c-lhead">&#9939; CHAINLINK — you wire \'+myCells.length+\'/3 cells</div>\'+\n      \'<div class="c-lrows">\'+rows+\'</div>\'+\n      (myCells.length<3\n        ? \'<div class="c-ljoin"><input aria-label="INVITE CODE" id="cLinkCode" maxlength="6" placeholder="INVITE CODE" autocomplete="off" style="text-transform:uppercase"> \'+\n          \'<button class="c-btn" id="cLinkJoin">Wire another cell</button><div class="c-err" id="cLinkErr"></div></div>\'\n        : \'<div class="c-lcap">Cap reached — three cells is the whole wire.</div>\')+\n      \'<div class="c-lnet" id="cLinkNet">Mapping the network&hellip;</div>\'+\n      \'<div class="c-lwhy">Chainlinks belong to 2+ cells and stitch the network together — so every cell on earth is reachable by direct contact. +10 XP per extra cell, weekly.</div></div>\';\n  }\n  var html=linkBar+\'<div class="c-card">\'+\n    \'<div class="c-chead"><span class="c-cname">\'+esc(c.name)+\'</span>\'+\n    (c.verified\n      ? \'<span class="c-vfy" title="2+ callsigns strong">&#10003; VERIFIED</span>\'\n      : \'<span class="c-unv" title="Recruit at least one more callsign to verify this cell">UNVERIFIED &mdash; RECRUIT TO VERIFY</span>\')+\n    \'<span class="c-code" id="cCodeShow" title="Tap to copy">\'+esc(c.invite_code)+\'</span></div>\'+\n    \'<div class="c-cstats"><span class="c-flame">&#128293; \'+c.streak+\'-day streak</span>\'+\n    \'<span class="c-mult">+\'+pct+\'% XP on Daily Orders</span>\'+\n    \'<span class="c-cov">Covers left this week: \'+c.covers_left+\'</span></div>\'+\n    prHtml+\n    \'<div class="c-members">\'+mems+\'</div>\';\n  if(s.is_founder){\n    html+=\'<div class="c-rename"><input aria-label="RENAME CELL" id="cRename" maxlength="24" placeholder="RENAME CELL" value="\'+esc(c.name)+\'" autocomplete="off">\'+\n      \'<button class="c-btn" id="cRenameBtn">Rename</button></div>\';\n  }\n  /* RECRUIT: any member can mint the recruit poster and share it. */\n  html+=\'<button class="c-btn c-big" id="cRecruit">RECRUIT</button>\';\n  if(!s.checked_today){\n    html+=\'<button class="c-btn c-big" id="cCheckin">Orders done &mdash; check in</button>\';\n  } else {\n    html+=\'<div class="c-done">Checked in today. The streak holds because of you.</div>\';\n  }\n  if(s.cover_for){\n    html+=\'<button class="c-btn c-cover" id="cCover">Cover \'+esc(s.cover_for)+\' &mdash; save the streak</button>\';\n  }\n  html+=\'<div class="c-health" id="cHealth"><div class="c-load">Reading cell health&hellip;</div></div>\';\n  html+=\'<div class="c-leave"><a id="cLeave">Leave cell</a></div><div class="c-err" id="cActErr"></div></div>\';\n  el.innerHTML=html;\n  var id=ident(), errEl=document.getElementById("cActErr");\n  /* Cell health: members, 7d checkins, 30d recruits. */\n  (function(){\n    var hel=document.getElementById("cHealth"); if(!hel) return;\n    api("cell_health",{cell_id:c.id},function(j){\n      if(!j||!j.ok){ hel.innerHTML=""; return; }\n      var mem=Number(j.members)||0, ci=Number(j.checkins_7d)||0, rc=Number(j.recruits_30d)||0;\n      var score=Math.min(100,Math.round(mem*8+ci*2+rc*5));\n      hel.innerHTML=\'<div class="c-hhead">CELL HEALTH</div>\'\n        +\'<div class="c-hbar"><div class="c-hfill" style="width:\'+score+\'%"></div></div>\'\n        +\'<div class="x-note">\'+mem+\'/5 members &bull; \'+ci+\' check-ins (7d) &bull; \'+rc+\' recruits (30d)</div>\';\n    });\n  })();\n  /* Promote buttons (founder only). */\n  var prs=el.querySelectorAll(".c-prom");\n  for(var pi=0;pi<prs.length;pi++)(function(btn){\n    btn.onclick=function(){\n      var tgt=btn.getAttribute("data-cs"), id2=ident();\n      errEl.textContent="";\n      busyBtn(btn,true);\n      post("cell","cell_action","cell_promote",{callsign:id2.callsign,device:id2.device,cell_id:c.id,target:tgt,role:"officer"},function(j){\n        busyBtn(btn,false);\n        if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err); return; }\n        toast(tgt+" promoted to OFFICER.");\n        refresh();\n      });\n    };\n  })(prs[pi]);\n  var rn=document.getElementById("cRenameBtn");\n  if(rn) rn.onclick=function(){\n    var nm=document.getElementById("cRename").value;\n    errEl.textContent="";\n    busyBtn(rn,true);\n    api("cell_rename",{callsign:id.callsign,device:id.device,name:nm},function(j){\n      busyBtn(rn,false);\n      if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err); return; }\n      toast("Cell renamed to "+j.cell.name+(j.cell.verified?" ✓ verified.":"."));\n      refresh();\n    });\n  };\n  /* RECRUIT: mint the poster and open the phone\'s native share sheet.\n     PFShare.shareImage handles stampCallsign (idempotent), toBlob -> File ->\n     navigator.canShare({files}) -> navigator.share, and the\n     download fallback on browsers without file-share support. */\n  var rc=document.getElementById("cRecruit");\n  if(rc) rc.onclick=function(){\n    errEl.textContent="";\n    if(!window.PFShare){ errEl.textContent="Share engine still loading — tap again in a second."; return; }\n    if(!id.callsign){ errEl.textContent="Claim a callsign first — it goes on the poster."; return; }\n    toast("Minting your recruit poster…");\n    var cv=null;\n    try{ cv=drawRecruitPoster(c); }catch(e){ cv=null; }\n    if(!cv){ errEl.textContent="Poster failed — try again."; return; }\n    try{\n      PFShare.shareImage(cv,\n        "cell-recruit-"+String(c.invite_code||"").toLowerCase()+".png",\n        "Join my cell: "+c.name,\n        "cell-recruit");\n    }catch(e){ errEl.textContent="Share unavailable here."; }\n  };\n  document.getElementById("cCodeShow").onclick=function(){\n    var code=String(c.invite_code||"");\n    function fallback(){\n      /* Clipboard write blocked (permissions / non-secure context): render\n         the code as selectable text instead of a false "copied" toast. */\n      try{\n        errEl.innerHTML="";\n        var sp=document.createElement("span");\n        sp.textContent="Copy blocked — long-press to copy your code: "+code;\n        sp.style.cssText="user-select:all;-webkit-user-select:all;cursor:text;";\n        errEl.appendChild(sp);\n      }catch(e2){ toast("Cell code: "+code); }\n    }\n    try{\n      if(navigator.clipboard&&navigator.clipboard.writeText){\n        navigator.clipboard.writeText(code).then(function(){ toast("Code copied: "+code); },fallback);\n      }\n      else { fallback(); }\n    }catch(e){ fallback(); }\n  };\n  var ci=document.getElementById("cCheckin");  if(ci) ci.onclick=function(){\n    errEl.textContent="";\n    busyBtn(ci,true);\n    api("cell_checkin",{callsign:id.callsign,device:id.device,cell_id:c.id},function(j){\n      busyBtn(ci,false);\n      if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err); return; }\n      if(j.already){ toast("Already checked in."); }\n      else { toast("Checked in. Streak: "+j.cell.streak+"."); try{ if(window.pfReportAction) window.pfReportAction("cell_checkin"); }catch(e){} }\n      refresh();\n    });\n  };\n  var cv=document.getElementById("cCover");\n  if(cv) cv.onclick=function(){\n    errEl.textContent="";\n    busyBtn(cv,true);\n    api("cell_cover",{callsign:id.callsign,device:id.device,cell_id:c.id},function(j){\n      busyBtn(cv,false);\n      if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err,"No cover to play."); return; }\n      toast("Cover played — "+j.covered+" is saved. Streak: "+j.streak+".");\n      refresh();\n    });\n  };\n  var lv=document.getElementById("cLeave");\n  if(lv) lv.onclick=function(){\n    /* M28: anchors have no disabled state — a busy flag blocks double-taps. */\n    if(lv.getAttribute("data-busy")) return;\n    if(!window.confirm("Leave "+c.name+"? Your cell streak bonus goes with it.")) return;\n    lv.setAttribute("data-busy","1"); lv.style.opacity=".5";\n    api("cell_leave",{callsign:id.callsign,device:id.device},function(j){\n      /* M28: check the backend verdict — on failure the fighter stays in\n         the cell and the local cache is NOT cleared. */\n      if(!j||!j.ok){\n        lv.removeAttribute("data-busy"); lv.style.opacity="";\n        errEl.textContent=cellWriteErr(j&&j.err,"The wire fought back — you\'re still in the cell.");\n        return;\n      }\n      setCache(1,"",""); state=null; refresh();\n    });\n  };\n  /* CHAINLINK wiring: per-cell leave + wire-another join + network stat. */\n  /* CELL CHALLENGES: active challenges, join for your cell, leaderboard,\n     plus CREATE CHALLENGE (challenge_create: title 4-48 chars, metric\n     checkins|recruits|xp, days 1-30). */\n  (function(){\n    var host=document.createElement("div");\n    host.className="c-chalwrap"; host.id="cChal";\n    host.innerHTML=\'<h3>Cell challenges</h3><div class="c-load">Loading challenges&hellip;</div>\';\n    el.appendChild(host);\n    function createFormHtml(){\n      return \'<div class="x-pane"><h4>Propose a challenge</h4>\'\n        +\'<div class="x-note">Cells compete on your metric for 1-30 days. Title needs 4+ characters.</div>\'\n        +\'<input id="cChTitle" maxlength="48" placeholder="CHALLENGE TITLE" aria-label="Challenge title"> \'\n        +\'<select id="cChMetric" aria-label="Metric">\'\n        +\'<option value="checkins">Daily check-ins</option>\'\n        +\'<option value="recruits">Recruits</option>\'\n        +\'<option value="xp">XP earned</option></select> \'\n        +\'<input id="cChDays" type="number" min="1" max="30" value="7" style="width:64px" aria-label="Days"> \'\n        +\'<button class="c-btn" id="cChCreateBtn">CREATE CHALLENGE</button>\'\n        +\'<div class="c-err" id="cChCreateErr"></div></div>\';\n    }\n    function wireCreate(){\n      var btn=host.querySelector("#cChCreateBtn"); if(!btn) return;\n      btn.onclick=function(){\n        var id3=ident();\n        if(!id3.callsign){ toast("Claim a callsign first."); return; }\n        var tEl=host.querySelector("#cChTitle"), mEl=host.querySelector("#cChMetric"),\n            dEl=host.querySelector("#cChDays"), ee=host.querySelector("#cChCreateErr");\n        var title=tEl?tEl.value.trim():"", metric=mEl?mEl.value:"checkins",\n            days=dEl?(parseInt(dEl.value,10)||7):7;\n        if(ee) ee.textContent="";\n        if(title.length<4){ if(ee) ee.textContent="Title needs 4+ characters."; return; }\n        if(days<1) days=1; if(days>30) days=30;\n        if(!window.confirm("Launch challenge \\"+title+\\" for "+days+" days?")) return;\n        busyBtn(btn,true);\n        post("challenge","ch_action","challenge_create",\n          {callsign:id3.callsign,device:id3.device,title:title,metric:metric,days:days},\n          function(r){\n            busyBtn(btn,false);\n            if(!r||!r.ok){ if(ee) ee.textContent=cellWriteErr(r&&r.err); return; }\n            toast("CHALLENGE LIVE. Get your cell in.");\n            loadCh();\n          });\n      };\n    }\n    function loadCh(){\n      host.innerHTML=\'<h3>Cell challenges</h3><div class="c-load">Loading challenges&hellip;</div>\';\n      api("challenge_list",{},function(j){\n        var h=\'<h3>Cell challenges</h3>\';\n        var list=(j&&j.ok&&j.challenges)||[];\n        if(!list.length){\n          h+=\'<div class="x-pane"><div class="x-note">No active challenges. The war council will announce the next one — or propose your own below.</div></div>\';\n        }\n        for(var i=0;i<list.length;i++){\n          var ch=list[i]||{};\n          h+=\'<div class="x-pane"><h4>\'+esc(ch.title)+\'</h4>\'\n            +\'<div class="x-note">\'+esc(ch.detail||"")+\'</div>\'\n            +\'<div class="x-note">Ends: \'+esc(ch.ends||"soon")+\'</div>\'\n            +\'<button class="c-btn c-chjoin" data-ch="\'+esc(ch.id)+\'">ENTER MY CELL</button>\'\n            +\'<div class="c-err" id="cChErr-\'+esc(ch.id)+\'"></div></div>\';\n        }\n        h+=createFormHtml();\n        h+=\'<div id="cChBoard"><div class="c-load">Loading standings&hellip;</div></div>\';\n        host.innerHTML=h;\n        wireCreate();\n        var jbs=host.querySelectorAll(".c-chjoin");\n        for(var b=0;b<jbs.length;b++)(function(btn){\n          btn.onclick=function(){\n            var chid=btn.getAttribute("data-ch"), id2=ident();\n            var ee=document.getElementById("cChErr-"+chid); if(ee) ee.textContent="";\n            busyBtn(btn,true);\n            post("challenge","ch_action","challenge_join",{callsign:id2.callsign,device:id2.device,cell_id:c.id,challenge_id:chid},function(r){\n              busyBtn(btn,false);\n              if(!r||!r.ok){ if(ee) ee.textContent=cellWriteErr(r&&r.err); return; }\n              toast("Cell entered. Fight for the top.");\n            });\n          };\n        })(jbs[b]);\n        api("challenge_board",{},function(b2){\n          var bh=document.getElementById("cChBoard"); if(!bh) return;\n          var rows=(b2&&b2.board)||[];\n          if(!rows.length){ bh.innerHTML=\'<div class="x-note">No standings yet.</div>\'; return; }\n          var hh="";\n          for(var q=0;q<Math.min(rows.length,10);q++){\n            hh+=\'<div class="cp-lead"><span class="cp-lrank">\'+(q+1)+\'.</span> \'\n              +\'<span class="cp-lname">\'+esc(rows[q].cell||rows[q].cell_name)+\'</span> \'\n              +\'<span class="cp-lxp">\'+(Number(rows[q].score)||0)+\' pts</span></div>\';\n          }\n          bh.innerHTML=hh;\n        });\n      });\n    }\n    loadCh();\n  })();\n  var lleaves=document.querySelectorAll(".c-lleave");\n  for(var li2=0;li2<lleaves.length;li2++)(function(a){\n    a.onclick=function(){\n      if(a.getAttribute("data-busy")) return;\n      if(!window.confirm("Leave "+a.getAttribute("data-nm")+"?")) return;\n      a.setAttribute("data-busy","1"); a.style.opacity=".5";\n      api("cell_leave",{callsign:id.callsign,device:id.device,cell_id:a.getAttribute("data-id")},function(j){\n        if(!j||!j.ok){\n          a.removeAttribute("data-busy"); a.style.opacity="";\n          errEl.textContent=cellWriteErr(j&&j.err,"The wire fought back — you\'re still in the cell.");\n          return;\n        }\n        state=null; refresh();\n      });\n    };\n  })(lleaves[li2]);\n  var lj=document.getElementById("cLinkJoin");\n  if(lj) lj.onclick=function(){\n    var code=document.getElementById("cLinkCode").value, err=document.getElementById("cLinkErr");\n    errEl.textContent=""; err.textContent="";\n    api("cell_join",{callsign:id.callsign,device:id.device,code:code},function(j){\n      if(!j||!j.ok){ err.textContent=cellWriteErr(j,"Network error."); return; }\n      toast("Wired into "+j.cell.name+". The chain grows.");\n      refresh();\n    });\n  };\n  paintLinkNet();\n}\n/* Chainlink network stat: cached 5 min. */\nvar _linkNetAt=0, _linkNetHtml="";\nfunction paintLinkNet(){\n  var el=document.getElementById("cLinkNet");\n  if(!el) return;\n  if(Date.now()-_linkNetAt<5*60*1000&&_linkNetHtml){ el.innerHTML=_linkNetHtml; return; }\n  api("cell_links",{},function(j){\n    if(!j){ el.innerHTML=""; return; }\n    _linkNetAt=Date.now();\n    _linkNetHtml=\'<b>\'+j.chainlinkers+\'</b> chainlinkers wiring <b>\'+j.cells+\'</b> cells — <b>\'+j.main_pct+\'%</b> in the main chain\';\n    el.innerHTML=_linkNetHtml;\n  },true);\n}\nrefresh();\nloadBoard();\nif(!window._pfCellsTick){ window._pfCellsTick=setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} loadBoard(); },5*60*1000); }\n})();\n<\/script>\n</div>\n</template>')}();
+/* PF v1.4.3 bundle-cells-h.js — concatenated bundle, generated by build/bundle.js.
+   DO NOT EDIT. Regenerate with: node build/bundle.js [--debug]
+   Contains: cells.js
+   Each silo keeps its own PF.skip() kill switch (?pf_off=<silo>). */
+
+/* ===== cells.js ===== */
+/* games/cells.js  |  PF v1.4.1 | CELLS: callsign squads with shared streaks
+   CHAINLINK (v1.4.3): up to 3 cells per callsign, max 5 members per cell.
+   All members checked in = +1 streak day = +5% XP on Daily Orders for
+   everyone (cap +50%, primary cell). A cellmate can cover one missed day
+   per week. Recruit with your code: +25 XP when they check in.
+   Chainlinks (2+ cells) stitch the network together: +10 XP per extra cell,
+   weekly. Founder can set a custom cell name; the cell earns its VERIFIED
+   badge once 2+ callsigns are attached.
+   All cell state lives in the tally backend (cross-device); the frontend
+   only caches the display. Public weekly leaderboard.
+   KILL: ?pf_off=cells  or  localStorage pf_disabled_v1='["cells"]' */
+
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("cells")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-cells">
+<div class="fe-block pf-override-block" id="pf-cells">
+<h2>Build Your Cell</h2>
+<div class="c-tag">Five callsigns. One streak. Nobody gets left behind.</div>
+<div id="cBody"><div class="c-load">Raising the cell network&hellip;</div></div>
+<div class="c-boardwrap"><h3>Cell leaderboard &mdash; this week</h3><div id="cBoard"><div class="c-load">Loading&hellip;</div></div></div>
+</div>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+var LS_C="pf_cells_v1";
+var BOUNTY_FALLBACK=25;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function load(k,fb){ try{ return JSON.parse(localStorage.getItem(k)||JSON.stringify(fb)); }catch(e){ return fb; } }
+function save(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  /* Fallback only if core hasn't loaded yet — matches PF.toast styling. */
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;bottom:8%;transform:translateX(-50%);background:#0a0a0a;color:#f5f0e1;font:bold 15px monospace;padding:12px 22px;border:2px solid #c1121f;z-index:99999;max-width:90vw;text-align:center;box-sizing:border-box";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+/* JSONP, same pattern as the other games. 12s timeout: a hung Apps Script
+   request must never wedge the section on its loading text. */
+/* P0 (2026-10-02): cell mutations are POST-only (CSRF-able via GET).
+   Route them through the POST helper; read-only actions stay on JSONP. */
+var POST_CELL_ACTIONS = {cell_create:1,cell_join:1,cell_checkin:1,cell_cover:1,cell_leave:1,cell_rename:1,cell_bounty_claim:1};
+function api(action,params,cb){
+  if(POST_CELL_ACTIONS[action]){
+    if(window.PF && PF.postAction){ PF.postAction('cell','cell_action',action,params,cb); return; }
+    post('cell','cell_action',action,params,cb); return;
+  }
+  if(!BACKEND){ cb(null); return; }
+  /* Private reads require auth_secret (IDOR fix). Route cell_mine through
+     the shared claim-retry GET (2026-10-03): pre-auth callsign holders get
+     one auth_claim attempt instead of 'missing credentials' forever. */
+  if(action==="cell_mine"){
+    try{
+      if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
+      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+    }catch(e){}
+  }
+  /* Callback nonce: crypto-random where available (invite codes themselves
+     are issued server-side by cell_create; this is just the JSONP name). */
+  var _cr=new Uint32Array(1);
+  try{ if(window.crypto&&crypto.getRandomValues) crypto.getRandomValues(_cr); else _cr[0]=Math.floor(Math.random()*4294967295); }catch(e){ _cr[0]=Math.floor(Math.random()*4294967295); }
+  var fn="pfCellCb"+_cr[0];
+  var s=document.createElement("script");
+  var done=false, timer=null;
+  function finish(j){
+    if(done) return; done=true;
+    if(timer){ clearTimeout(timer); timer=null; }
+    window[fn]=function(){};
+    try{ delete window[fn]; }catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s);
+    cb(j);
+  }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  timer=setTimeout(function(){ finish(null); },12000);
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn;
+  s.src=BACKEND+q;
+  document.head.appendChild(s);
+}
+/* CORS POST for POST_ONLY actions (cell_promote, challenge_join). */
+function post(type,actionKey,action,params,cb){
+  var body=Object.assign({type:type},params||{});
+  body[actionKey]=action;
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+}
+/* Cached multiplier for Daily Orders. Refreshes in the background when stale. */
+function cache(){ return load(LS_C,{mult:1,cell_id:"",name:"",t:0}); }
+window.pfCellMult=function(){
+  var c=cache();
+  if(Date.now()-c.t>15*60*1000){ try{ refresh(true); }catch(e){} }
+  return c.mult||1;
+};
+function setCache(mult,cell_id,name){ save(LS_C,{mult:mult||1,cell_id:cell_id||"",name:name||"",t:Date.now()}); }
+
+var state=null, board=null, busy=false, netFailed=false;
+/* Display modes (2026-10-03 homepage slimming): full management depth on
+   /cells (pf-cells-page) and /arcade (pf-arcade); slim on the homepage
+   (pf-v2) — pitch + join form + leaderboard teaser + check-in. */
+var PF_MODE=(function(){ try{
+  if(document.getElementById('pf-arcade')||document.getElementById('pf-cells-page')) return 'full';
+}catch(e){} return 'slim'; })();
+var SLIM=PF_MODE==='slim';
+function refresh(quiet){
+  var id=ident();
+  if(!id.callsign){ renderGate(); return; }
+  if(busy) return; busy=true; netFailed=false;
+  api("cell_mine",{callsign:id.callsign,device:id.device},function(j){
+    busy=false;
+    if(!j){
+      netFailed=true;
+      if(!quiet){ renderNetErr(); }
+      else if(state){ render(); }
+      return;
+    }
+    state=j;
+    if(j.in_cell&&j.cell){ setCache(j.cell.mult,j.cell.id,j.cell.name); }
+    claimBounties(j);
+    /* CHAINLINK: 2+ cells wired -> weekly bridge bonus via the ledger. */
+    try{
+      var nCells=(j.cells&&j.cells.length)||0;
+      if(nCells>=2){
+        var _d=new Date(),_o=new Date(_d.getFullYear(),0,1);
+        var _wk=_d.getFullYear()+"-W"+Math.ceil((((_d-_o)/86400000)+_o.getDay()+1)/7);
+        document.dispatchEvent(new CustomEvent("pf-chainlink",{detail:{cells:nCells,week:_wk}}));
+      }
+    }catch(e){}
+    render();
+  });
+}
+/* The section is never allowed to die on its loading text: a failed
+   request renders an explicit error panel with a retry. */
+function renderNetErr(){
+  var el=document.getElementById("cBody");
+  if(!el) return;
+  el.innerHTML='<div class="c-neterr">The cell network is slow to answer. Your callsign is fine &mdash; the wire is not.'+
+    '<br><button class="c-btn" id="cRetry">Retry connection</button></div>';
+  document.getElementById("cRetry").onclick=function(){ refresh(); };
+}
+/* Recruit bounty: +25 XP per claimed recruit, exactly once each. */
+function claimBounties(j){
+  var pend=(j&&j.bounties_pending)||[];
+  if(!pend.length) return;
+  var id=ident();
+  api("cell_bounty_claim",{callsign:id.callsign,device:id.device},function(r){
+    if(!r||!r.ok||!r.claimed||!r.claimed.length) return;
+    var n=0, each=r.xp_each||BOUNTY_FALLBACK;
+    r.claimed.forEach(function(b){
+      var key="cell_bounty_"+b.from+"_"+b.day;
+      /* The shared ledger owns idempotency now (exactly-once per key).
+         Backend already granted this XP in cell_bounty_claim (xpGrant with
+         key cellbounty_<cell>_<recruit>). Local ledger update is for instant
+         UX only — do NOT dispatch pf-xp or the backend gets it twice. */
+      var credited=false;
+      try{ credited=(window.PF&&PF.creditLocal)?PF.creditLocal(key,each):false; }catch(e){}
+      if(credited) n++;
+    });
+    if(n>0){ toast("+"+(n*each)+" XP — recruit bounty! Your cell grows."); }
+  });
+}
+function loadBoard(){
+  api("cell_leaderboard",{},function(j){
+    board=j;
+    var el=document.getElementById("cBoard");
+    if(!el) return;
+    if(!j||!j.cells||!j.cells.length){ el.innerHTML='<div class="c-empty">No cells on the board yet. The first founder&rsquo;s name goes here.</div>'; return; }
+    /* SLIM: leaderboard teaser — top 3 + link to the full board on /cells. */
+    var rows=SLIM?j.cells.slice(0,3):j.cells;
+    var html=rows.map(function(c,i){
+      var pfl=c.prestige_flame?' <span class="c-prb" style="margin-left:4px;" title="'+esc(c.prestige_tier||"")+' cell">'+c.prestige_flame+'</span>':"";
+      return '<div class="c-brow'+(i===0?" c-btop":"")+'"><span class="c-brank">'+(i+1)+'</span>'+
+        '<span class="c-bname">'+esc(c.name)+pfl+
+        (c.verified?'<span class="c-vfy" title="2+ callsigns strong">&#10003; VERIFIED</span>':'')+'</span>'+
+        '<span class="c-bstat">'+c.streak+' streak &middot; '+c.members+'/5</span></div>';
+    }).join("");
+    el.innerHTML=html;
+    if(SLIM){ el.insertAdjacentHTML('beforeend','<div class="x-note"><a href="/cells" style="color:#c1121f;">Full cell leaderboard &rarr;</a></div>'); }
+  });
+}
+function renderGate(){
+  var el=document.getElementById("cBody");
+  if(!el) return;
+  /* 2026-10-03 H8: active in-place claim (was: scroll away to Enlistment Ranks). */
+  el.innerHTML=PF.gateHTML('Cells run on callsigns.','to form your cell');
+}
+/* Friendly copy for cell_mine read failures (2026-10-03): raw backend
+   strings like 'missing credentials' are never rendered as UI copy. */
+function cellErrCopy(e){
+  e=String(e||"");
+  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")
+    return "The cell network couldn't verify this callsign — it predates the new auth system. Contact MTCSTW to recover it.";
+  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)
+    return "The cell network couldn't verify your callsign. Re-claim it in Enlistment Ranks (one tap), then retry.";
+  return "The cell network didn't answer. Your callsign is fine — the wire is not.";
+}
+/* Friendly copy for WRITE paths (2026-10-03 M27): read paths already got
+   friendly copy (cellErrCopy); writes route raw snake_case codes through
+   the same propaganda-voice map. Never show a raw code to users. */
+function cellWriteErr(e,fb){
+  var s=String(e==null?"":e).trim();
+  var fall=fb||"The wire fought back. Nothing changed — retry.";
+  if(!s||/network error/i.test(s)) return fall;
+  var map={
+    "invalid_code":"That invite code doesn't open any door. Check it and try again.",
+    "cell_full":"That cell is full — five fighters max. Found your own instead.",
+    "already_accepted":"Already locked in. One shot per cell.",
+    "already_joined":"You're already in. The fight continues.",
+    "already leading":"You're already wiring this cell. One wire per cell.",
+    "already claimed":"Already claimed. One shot per fighter.",
+    "already settled":"Already settled. It's done.",
+    "bad callsign":"That callsign didn't check out. Re-claim it in Enlistment Ranks, then retry.",
+    "missing cell_id":"No cell selected. Refresh and try again.",
+    "unknown cell":"That cell isn't on the map anymore. Refresh and retry.",
+    "db error":"The cell ledger hiccuped. Retry in a moment.",
+    "title too short":"Title needs 4+ characters.",
+    "title rejected":"That title didn't pass the censors. Pick another.",
+    "bad characters":"Letters, numbers, and spaces only. Keep it clean."
+  };
+  if(map[s]) return map[s];
+  if(s.indexOf("_")!==-1) return fall; /* never show raw snake_case */
+  return s; /* backend prose already human-readable */
+}
+/* M26 (2026-10-03): disabled + spinner label on mutation buttons. */
+function busyBtn(btn,on,label){
+  try{
+    if(on){ if(btn.getAttribute("data-lbl")==null) btn.setAttribute("data-lbl",btn.textContent); btn.disabled=true; btn.textContent=label||"WORKING…"; }
+    else{ btn.disabled=false; var l=btn.getAttribute("data-lbl"); if(l!=null) btn.textContent=l; btn.removeAttribute("data-lbl"); }
+  }catch(e){}
+}
+function render(){
+  var el=document.getElementById("cBody");
+  if(!el) return;
+  var id=ident();
+  if(!id.callsign){ renderGate(); return; }
+  if(!state){ if(netFailed){ renderNetErr(); return; } el.innerHTML='<div class="c-load">Raising the cell network&hellip;</div>'; return; }
+  if(state.err&&!state.in_cell&&state.err!=="no_cell"){
+    el.innerHTML='<div class="c-neterr">'+esc(cellErrCopy(state.err))
+      +'<br><button class="c-btn" id="cErrRetry">Retry connection</button></div>';
+    document.getElementById("cErrRetry").onclick=function(){ refresh(); };
+    return;
+  }
+  if(!state.in_cell){ renderLobby(el); return; }
+  renderCell(el,state);
+}
+function renderLobby(el){
+  /* SLIM (homepage): pitch + join form only. Steps + search are full-mode
+     depth for /cells. */
+  var stepsHtml=SLIM?"":
+    '<div class="c-steps">'+
+    '<div class="c-step"><span class="c-snum">1</span><span>Form your cell below, or join with a code.</span></div>'+
+    '<div class="c-step"><span class="c-snum">2</span><span>Check in daily after your orders.</span></div>'+
+    '<div class="c-step"><span class="c-snum">3</span><span>Streak climbs. Miss a day and a cellmate covers you once a week.</span></div>'+
+    '</div>';
+  var searchHtml=SLIM?"":
+    '<div class="c-pane"><h4>Find a cell</h4>'+
+    '<input aria-label="NAME OR STATE" id="cSearch" maxlength="32" placeholder="NAME OR STATE" autocomplete="off">'+
+    ' <button class="c-btn" id="cSearchBtn">Search</button>'+
+    '<div class="c-err" id="cSearchErr"></div>'+
+    '<div id="cSearchRes"></div></div>';
+  el.innerHTML=
+    '<div class="c-pitch">No cells exist yet &mdash; <b>found the first one</b> and your name goes on the wall.'+
+    '<br>Five callsigns. One streak. Every day the whole cell checks in, the streak climbs and everyone banks <b>+5% XP on Daily Orders</b> &mdash; up to <b>+50%</b>.</div>'+
+    stepsHtml+
+    '<div class="c-lobby">'+
+    '<div class="c-pane"><h4>Form a cell</h4>'+
+    '<input aria-label="CELL NAME" id="cName" maxlength="24" placeholder="CELL NAME" autocomplete="off">'+
+    '<br><button class="c-btn" id="cCreate">Form cell</button>'+
+    '<div class="c-err" id="cCreateErr"></div></div>'+
+    '<div class="c-pane"><h4>Join a cell</h4>'+
+    '<input aria-label="INVITE CODE" id="cCode" maxlength="6" placeholder="INVITE CODE" autocomplete="off" style="text-transform:uppercase">'+
+    '<input aria-label="WHO RECRUITED YOU (CALLSIGN)" id="cRef" maxlength="32" placeholder="WHO RECRUITED YOU (CALLSIGN)" autocomplete="off" style="text-transform:uppercase">'+
+    '<br><button class="c-btn" id="cJoin">Join cell</button>'+
+    '<div class="c-err" id="cJoinErr"></div></div>'+
+    '</div>'+
+    searchHtml+
+    '<div class="c-bounty">Share your cell code: <b>+25 XP</b> every time your recruit checks in.</div>'+
+    (SLIM?'<div class="x-note">Full cell management &mdash; search, prestige, challenges &mdash; lives at <a href="/cells" style="color:#c1121f;">/cells</a>.</div>':'');
+  document.getElementById("cCreate").onclick=function(){
+    var nm=document.getElementById("cName").value, id=ident(), err=document.getElementById("cCreateErr");
+    err.textContent="";
+    var btn=document.getElementById("cCreate");
+    busyBtn(btn,true);
+    api("cell_create",{callsign:id.callsign,device:id.device,name:nm},function(j){
+      busyBtn(btn,false);
+      if(!j||!j.ok){ err.textContent=cellWriteErr(j&&j.err); return; }
+      toast("Cell "+j.cell.name+" formed. Recruit your four.");
+      refresh();
+    });
+  };
+  document.getElementById("cJoin").onclick=function(){
+    var code=document.getElementById("cCode").value, ref=document.getElementById("cRef").value,
+        id=ident(), err=document.getElementById("cJoinErr");
+    err.textContent="";
+    var btn=document.getElementById("cJoin");
+    busyBtn(btn,true);
+    api("cell_join",{callsign:id.callsign,device:id.device,code:code,ref:ref},function(j){
+      busyBtn(btn,false);
+      if(!j||!j.ok){ err.textContent=cellWriteErr(j&&j.err); return; }
+      toast("Welcome to "+j.cell.name+". Check in daily.");
+      refresh();
+    });
+  };
+  /* FIND A CELL: search by name/state, join from results. */
+  var sb=document.getElementById("cSearchBtn");
+  if(sb) sb.onclick=function(){
+    var q=document.getElementById("cSearch").value,
+        id=ident(), err=document.getElementById("cSearchErr"),
+        res=document.getElementById("cSearchRes");
+    err.textContent=""; res.innerHTML='<div class="c-load">Searching&hellip;</div>';
+    api("cell_search",{q:q},function(j){
+      if(!j||!j.ok){ err.textContent=cellWriteErr(j,"Network error."); res.innerHTML=""; return; }
+      var list=j.cells||[];
+      if(!list.length){ res.innerHTML='<div class="x-note">No cells match. Found the first one above.</div>'; return; }
+      var h="";
+      for(var i=0;i<Math.min(list.length,10);i++){
+        var cc=list[i]||{};
+        h+='<div class="cp-lead"><span class="cp-lname">'+esc(cc.name)+'</span> '
+          +'<span class="cp-lxp">'+(Number(cc.members)||0)+'/5'
+          +(cc.verified?' \u2713':'')+'</span> '
+          +'<button class="c-btn c-sm" data-code="'+esc(cc.invite_code||"")+'">JOIN</button></div>';
+      }
+      res.innerHTML=h;
+      var btns=res.querySelectorAll("button[data-code]");
+      for(var b=0;b<btns.length;b++)(function(btn){
+        btn.onclick=function(){
+          var code=btn.getAttribute("data-code"), id2=ident();
+          err.textContent="";
+          busyBtn(btn,true);
+          api("cell_join",{callsign:id2.callsign,device:id2.device,code:code},function(j2){
+            busyBtn(btn,false);
+            if(!j2||!j2.ok){ err.textContent=cellWriteErr(j2&&j2.err); return; }
+            toast("Welcome to "+j2.cell.name+". Check in daily.");
+            refresh();
+          });
+        };
+      })(btns[b]);
+    });
+  };
+}
+/* SLIM (homepage): the check-in card only. Members list, prestige, chainlink
+   bar, challenges, health, rename, leave — all full-mode depth on /cells. */
+function renderCellSlim(el,s){
+  var c=s.cell, pct=Math.round((c.mult-1)*100), id=ident();
+  var html='<div class="c-card">'+
+    '<div class="c-chead"><span class="c-cname">'+esc(c.name)+'</span>'+
+    (c.verified?'<span class="c-vfy" title="2+ callsigns strong">&#10003; VERIFIED</span>':'')+
+    '<span class="c-code" id="cCodeShow" title="Tap to copy">'+esc(c.invite_code)+'</span></div>'+
+    '<div class="c-cstats"><span class="c-flame">&#128293; '+c.streak+'-day streak</span>'+
+    '<span class="c-mult">+'+pct+'% XP on Daily Orders</span></div>';
+  if(!s.checked_today){
+    html+='<button class="c-btn c-big" id="cCheckin">Orders done &mdash; check in</button>';
+  } else {
+    html+='<div class="c-done">Checked in today. The streak holds because of you.</div>';
+  }
+  if(s.cover_for){
+    html+='<button class="c-btn c-cover" id="cCover">Cover '+esc(s.cover_for)+' &mdash; save the streak</button>';
+  }
+  html+='<div class="x-note"><a href="/cells" style="color:#c1121f;">Manage your cell &rarr;</a> members, prestige, challenges, the full board.</div>';
+  html+='<div class="c-err" id="cActErr"></div></div>';
+  el.innerHTML=html;
+  var errEl=document.getElementById("cActErr");
+  document.getElementById("cCodeShow").onclick=function(){
+    var code=String(c.invite_code||"");
+    function fallback(){
+      /* Clipboard write blocked (permissions / non-secure context): render
+         the code as selectable text instead of a false "copied" toast. */
+      try{
+        errEl.innerHTML="";
+        var sp=document.createElement("span");
+        sp.textContent="Copy blocked \u2014 long-press to copy your code: "+code;
+        sp.style.cssText="user-select:all;-webkit-user-select:all;cursor:text;";
+        errEl.appendChild(sp);
+      }catch(e2){ toast("Cell code: "+code); }
+    }
+    try{
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(code).then(function(){ toast("Code copied: "+code); },fallback);
+      }
+      else { fallback(); }
+    }catch(e){ fallback(); }
+  };
+  var ci=document.getElementById("cCheckin");
+  if(ci) ci.onclick=function(){
+    errEl.textContent="";
+    busyBtn(ci,true);
+    api("cell_checkin",{callsign:id.callsign,device:id.device,cell_id:c.id},function(j){
+      busyBtn(ci,false);
+      if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err); return; }
+      if(j.already){ toast("Already checked in."); }
+      else { toast("Checked in. Streak: "+j.cell.streak+"."); try{ if(window.pfReportAction) window.pfReportAction("cell_checkin"); }catch(e){} }
+      refresh();
+    });
+  };
+  var cv=document.getElementById("cCover");
+  if(cv) cv.onclick=function(){
+    errEl.textContent="";
+    busyBtn(cv,true);
+    api("cell_cover",{callsign:id.callsign,device:id.device,cell_id:c.id},function(j){
+      busyBtn(cv,false);
+      if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err,"No cover to play."); return; }
+      toast("Cover played — "+j.covered+" is saved. Streak: "+j.streak+".");
+      refresh();
+    });
+  };
+}
+/* RECRUIT poster: 1080x1350 cell-recruit image for the native share sheet.
+   Pure canvas text/shapes only — no external assets, so the canvas can never
+   be tainted. The FIGHTING AS <CALLSIGN> strip is applied by
+   PFShare.stampCallsign inside shareImage (idempotent); keep the bottom 70px
+   of the layout clear for it. */
+function drawRecruitPoster(c){
+  var W=1080,H=1350;
+  var cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+  var x=cv.getContext("2d"); if(!x) return null;
+  function center(t,y,font,fill){ x.font=font; x.fillStyle=fill; x.textAlign="center"; x.fillText(t,W/2,y); }
+  function wrapLines(text,font,maxW,maxLines){
+    x.font=font; x.textAlign="center";
+    var words=String(text||"").split(/\\s+/), lines=[], cur="";
+    words.forEach(function(w){
+      var t=cur?cur+" "+w:w;
+      if(x.measureText(t).width>maxW&&cur){ lines.push(cur); cur=w; } else cur=t;
+    });
+    if(cur) lines.push(cur);
+    return lines.slice(0,maxLines||2);
+  }
+  x.fillStyle="#0d0d0d"; x.fillRect(0,0,W,H);
+  x.strokeStyle="#c1121f"; x.lineWidth=14; x.strokeRect(20,20,W-40,H-40);
+  x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(44,44,W-88,H-88);
+  var y=118;
+  center("\u2605 THE PROPAGANDA FACTORY \u2605",y,"700 32px Arial,sans-serif","#c1121f"); y+=76;
+  var nameF='900 82px "Arial Black",Arial,sans-serif';
+  wrapLines(String(c.name||"MY CELL").toUpperCase(),nameF,W-170,2).forEach(function(l){
+    center(l,y,nameF,"#c1121f"); y+=96; });
+  y+=18;
+  var tagF="700 34px Arial,sans-serif";
+  wrapLines("FIVE CALLSIGNS. ONE STREAK. NOBODY LEFT BEHIND.",tagF,W-190,2).forEach(function(l){
+    center(l,y,tagF,"#f5ead6"); y+=48; });
+  var streak=Number(c.streak)||0;
+  y+=26;
+  center("\u26A1 "+streak+"-DAY STREAK \u26A1",y,'900 40px "Arial Black",Arial,sans-serif',"#c1121f"); y+=74;
+  center("INVITE CODE",y,"700 30px Arial,sans-serif","#c9bfa8"); y+=16;
+  var code=String(c.invite_code||"").toUpperCase()||"???";
+  x.strokeStyle="#c1121f"; x.lineWidth=6;
+  x.strokeRect(W/2-280,y,560,150);
+  x.fillStyle="#141010"; x.fillRect(W/2-280,y,560,150);
+  center(code,y+106,'900 96px "Arial Black",Arial,sans-serif',"#c1121f");
+  y+=150+52;
+  var lnF="400 34px Arial,sans-serif";
+  wrapLines("Enter this code on mtcstw.com/cells to wire in.",lnF,W-210,2).forEach(function(l){
+    center(l,y,lnF,"#c9bfa8"); y+=50; });
+  wrapLines("Check in daily. Stack the streak. Recruit +25 XP.",lnF,W-210,2).forEach(function(l){
+    center(l,y,lnF,"#c9bfa8"); y+=50; });
+  y+=44;
+  var cta="JOIN MY CELL";
+  x.font='900 44px "Arial Black",Arial,sans-serif';
+  var tw=x.measureText(cta).width+110;
+  x.fillStyle="#c1121f"; x.fillRect(W/2-tw/2,y-58,tw,94);
+  center(cta,y+8,'900 44px "Arial Black",Arial,sans-serif',"#ffffff");
+  y=H-160;
+  center("MTCSTW.COM",y,'900 48px "Arial Black",Arial,sans-serif',"#c1121f");
+  return cv;
+}
+function renderCell(el,s){
+  if(SLIM){ renderCellSlim(el,s); return; }
+  var c=s.cell, pct=Math.round((c.mult-1)*100);
+  var mems=(s.members||[]).map(function(m){
+    var role=String(m.role||"member").toUpperCase();
+    var badge=role==="FOUNDER"?'<span class="c-role c-rfounder">FOUNDER</span>'
+      :role==="OFFICER"?'<span class="c-role c-rofficer">OFFICER</span>':"";
+    var prb=(Number(m.prestige_level)||0)>0
+      ?' <span class="c-prb" title="Prestige '+esc(m.prestige_badge||"")+'">&#9733;'+esc(m.prestige_badge||"")+'</span>':"";
+    var prom=(s.is_founder&&role!=="FOUNDER"&&role!=="OFFICER")
+      ?' <button class="c-btn c-sm c-prom" data-cs="'+esc(m.callsign)+'">PROMOTE</button>':"";
+    return '<div class="c-mrow"><span class="c-dot'+(m.checked_today?" c-on":"")+'"></span>'+
+      '<span class="c-mname">'+esc(m.callsign)+'</span>'+prb+badge+
+      (m.checked_today?'<span class="c-mok">IN</span>':'<span class="c-mno">OUT</span>')+prom+'</div>';
+  }).join("");
+  /* CELL PRESTIGE panel: tier badge, power, benefits, progress, recruit nudge. */
+  var pr=c.prestige||null, prHtml="";
+  if(pr&&pr.tier){
+    var benHtml=(pr.benefits||[]).map(function(b){
+      return '<div class="c-prben">&#10003; '+esc(b)+'</div>'; }).join("");
+    var progHtml="";
+    if(pr.next_tier){
+      var pw=Math.min(100,Math.round(pr.power/pr.next_tier.min*100));
+      progHtml='<div class="c-prprog"><div class="c-prfill" style="width:'+pw+'%"></div></div>'+
+        '<div class="x-note">'+pr.next_tier.need+' more power to reach '+esc(pr.next_tier.name)+'</div>';
+    } else {
+      progHtml='<div class="x-note">MAX TIER &mdash; the cell burns at full power.</div>';
+    }
+    prHtml='<div class="c-prestige" style="background:#120404;border:2px solid #c1121f;margin:12px 0;padding:14px;text-align:center;">'+
+      '<div style="font-size:22px;letter-spacing:2px;">'+pr.flame+'</div>'+
+      '<div style="color:#c1121f;font-weight:900;font-size:18px;letter-spacing:3px;">'+esc(pr.tier.name)+'</div>'+
+      '<div class="x-note" style="margin-bottom:8px;">'+pr.power+' prestige power &middot; '+pr.prestiged_count+' prestiged '+(pr.prestiged_count===1?"fighter":"fighters")+'</div>'+
+      benHtml+progHtml+'</div>';
+  } else {
+    prHtml='<div class="c-prestige" style="background:#0d0d0d;border:1px dashed #555;margin:12px 0;padding:12px;text-align:center;">'+
+      '<div class="x-note">&#128293; No prestige power yet. <b>Recruit prestiged fighters</b> to ignite cell bonuses &mdash; EMBER at 1 power (+5% XP for everyone).</div></div>';
+  }
+  /* CHAINLINK bar: every cell this callsign wires, the cap, the network stat. */
+  var myCells=s.cells||[], linkBar='';
+  if(myCells.length){
+    var rows=myCells.map(function(mc){
+      return '<div class="c-lrow"><span class="c-lname">'+esc(mc.name)+'</span>'+
+        '<span class="c-lstat">'+mc.streak+' streak &middot; '+(mc.checked_today?'checked in':'not in today')+'</span>'+
+        (mc.id!==c.id?'':' <span class="c-lprim">PRIMARY</span>')+
+        ' <a class="c-lleave" data-id="'+esc(mc.id)+'" data-nm="'+esc(mc.name)+'">leave</a></div>';
+    }).join("");
+    linkBar='<div class="c-linkbar"><div class="c-lhead">&#9939; CHAINLINK — you wire '+myCells.length+'/3 cells</div>'+
+      '<div class="c-lrows">'+rows+'</div>'+
+      (myCells.length<3
+        ? '<div class="c-ljoin"><input aria-label="INVITE CODE" id="cLinkCode" maxlength="6" placeholder="INVITE CODE" autocomplete="off" style="text-transform:uppercase"> '+
+          '<button class="c-btn" id="cLinkJoin">Wire another cell</button><div class="c-err" id="cLinkErr"></div></div>'
+        : '<div class="c-lcap">Cap reached — three cells is the whole wire.</div>')+
+      '<div class="c-lnet" id="cLinkNet">Mapping the network&hellip;</div>'+
+      '<div class="c-lwhy">Chainlinks belong to 2+ cells and stitch the network together — so every cell on earth is reachable by direct contact. +10 XP per extra cell, weekly.</div></div>';
+  }
+  var html=linkBar+'<div class="c-card">'+
+    '<div class="c-chead"><span class="c-cname">'+esc(c.name)+'</span>'+
+    (c.verified
+      ? '<span class="c-vfy" title="2+ callsigns strong">&#10003; VERIFIED</span>'
+      : '<span class="c-unv" title="Recruit at least one more callsign to verify this cell">UNVERIFIED &mdash; RECRUIT TO VERIFY</span>')+
+    '<span class="c-code" id="cCodeShow" title="Tap to copy">'+esc(c.invite_code)+'</span></div>'+
+    '<div class="c-cstats"><span class="c-flame">&#128293; '+c.streak+'-day streak</span>'+
+    '<span class="c-mult">+'+pct+'% XP on Daily Orders</span>'+
+    '<span class="c-cov">Covers left this week: '+c.covers_left+'</span></div>'+
+    prHtml+
+    '<div class="c-members">'+mems+'</div>';
+  if(s.is_founder){
+    html+='<div class="c-rename"><input aria-label="RENAME CELL" id="cRename" maxlength="24" placeholder="RENAME CELL" value="'+esc(c.name)+'" autocomplete="off">'+
+      '<button class="c-btn" id="cRenameBtn">Rename</button></div>';
+  }
+  /* RECRUIT: any member can mint the recruit poster and share it. */
+  html+='<button class="c-btn c-big" id="cRecruit">RECRUIT</button>';
+  if(!s.checked_today){
+    html+='<button class="c-btn c-big" id="cCheckin">Orders done &mdash; check in</button>';
+  } else {
+    html+='<div class="c-done">Checked in today. The streak holds because of you.</div>';
+  }
+  if(s.cover_for){
+    html+='<button class="c-btn c-cover" id="cCover">Cover '+esc(s.cover_for)+' &mdash; save the streak</button>';
+  }
+  html+='<div class="c-health" id="cHealth"><div class="c-load">Reading cell health&hellip;</div></div>';
+  html+='<div class="c-leave"><a id="cLeave">Leave cell</a></div><div class="c-err" id="cActErr"></div></div>';
+  el.innerHTML=html;
+  var id=ident(), errEl=document.getElementById("cActErr");
+  /* Cell health: members, 7d checkins, 30d recruits. */
+  (function(){
+    var hel=document.getElementById("cHealth"); if(!hel) return;
+    api("cell_health",{cell_id:c.id},function(j){
+      if(!j||!j.ok){ hel.innerHTML=""; return; }
+      var mem=Number(j.members)||0, ci=Number(j.checkins_7d)||0, rc=Number(j.recruits_30d)||0;
+      var score=Math.min(100,Math.round(mem*8+ci*2+rc*5));
+      hel.innerHTML='<div class="c-hhead">CELL HEALTH</div>'
+        +'<div class="c-hbar"><div class="c-hfill" style="width:'+score+'%"></div></div>'
+        +'<div class="x-note">'+mem+'/5 members &bull; '+ci+' check-ins (7d) &bull; '+rc+' recruits (30d)</div>';
+    });
+  })();
+  /* Promote buttons (founder only). */
+  var prs=el.querySelectorAll(".c-prom");
+  for(var pi=0;pi<prs.length;pi++)(function(btn){
+    btn.onclick=function(){
+      var tgt=btn.getAttribute("data-cs"), id2=ident();
+      errEl.textContent="";
+      busyBtn(btn,true);
+      post("cell","cell_action","cell_promote",{callsign:id2.callsign,device:id2.device,cell_id:c.id,target:tgt,role:"officer"},function(j){
+        busyBtn(btn,false);
+        if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err); return; }
+        toast(tgt+" promoted to OFFICER.");
+        refresh();
+      });
+    };
+  })(prs[pi]);
+  var rn=document.getElementById("cRenameBtn");
+  if(rn) rn.onclick=function(){
+    var nm=document.getElementById("cRename").value;
+    errEl.textContent="";
+    busyBtn(rn,true);
+    api("cell_rename",{callsign:id.callsign,device:id.device,name:nm},function(j){
+      busyBtn(rn,false);
+      if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err); return; }
+      toast("Cell renamed to "+j.cell.name+(j.cell.verified?" \u2713 verified.":"."));
+      refresh();
+    });
+  };
+  /* RECRUIT: mint the poster and open the phone's native share sheet.
+     PFShare.shareImage handles stampCallsign (idempotent), toBlob -> File ->
+     navigator.canShare({files}) -> navigator.share, and the
+     download fallback on browsers without file-share support. */
+  var rc=document.getElementById("cRecruit");
+  if(rc) rc.onclick=function(){
+    errEl.textContent="";
+    if(!window.PFShare){ errEl.textContent="Share engine still loading \u2014 tap again in a second."; return; }
+    if(!id.callsign){ errEl.textContent="Claim a callsign first \u2014 it goes on the poster."; return; }
+    toast("Minting your recruit poster\u2026");
+    var cv=null;
+    try{ cv=drawRecruitPoster(c); }catch(e){ cv=null; }
+    if(!cv){ errEl.textContent="Poster failed \u2014 try again."; return; }
+    try{
+      PFShare.shareImage(cv,
+        "cell-recruit-"+String(c.invite_code||"").toLowerCase()+".png",
+        "Join my cell: "+c.name,
+        "cell-recruit");
+    }catch(e){ errEl.textContent="Share unavailable here."; }
+  };
+  document.getElementById("cCodeShow").onclick=function(){
+    var code=String(c.invite_code||"");
+    function fallback(){
+      /* Clipboard write blocked (permissions / non-secure context): render
+         the code as selectable text instead of a false "copied" toast. */
+      try{
+        errEl.innerHTML="";
+        var sp=document.createElement("span");
+        sp.textContent="Copy blocked \u2014 long-press to copy your code: "+code;
+        sp.style.cssText="user-select:all;-webkit-user-select:all;cursor:text;";
+        errEl.appendChild(sp);
+      }catch(e2){ toast("Cell code: "+code); }
+    }
+    try{
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(code).then(function(){ toast("Code copied: "+code); },fallback);
+      }
+      else { fallback(); }
+    }catch(e){ fallback(); }
+  };
+  var ci=document.getElementById("cCheckin");  if(ci) ci.onclick=function(){
+    errEl.textContent="";
+    busyBtn(ci,true);
+    api("cell_checkin",{callsign:id.callsign,device:id.device,cell_id:c.id},function(j){
+      busyBtn(ci,false);
+      if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err); return; }
+      if(j.already){ toast("Already checked in."); }
+      else { toast("Checked in. Streak: "+j.cell.streak+"."); try{ if(window.pfReportAction) window.pfReportAction("cell_checkin"); }catch(e){} }
+      refresh();
+    });
+  };
+  var cv=document.getElementById("cCover");
+  if(cv) cv.onclick=function(){
+    errEl.textContent="";
+    busyBtn(cv,true);
+    api("cell_cover",{callsign:id.callsign,device:id.device,cell_id:c.id},function(j){
+      busyBtn(cv,false);
+      if(!j||!j.ok){ errEl.textContent=cellWriteErr(j&&j.err,"No cover to play."); return; }
+      toast("Cover played — "+j.covered+" is saved. Streak: "+j.streak+".");
+      refresh();
+    });
+  };
+  var lv=document.getElementById("cLeave");
+  if(lv) lv.onclick=function(){
+    /* M28: anchors have no disabled state — a busy flag blocks double-taps. */
+    if(lv.getAttribute("data-busy")) return;
+    if(!window.confirm("Leave "+c.name+"? Your cell streak bonus goes with it.")) return;
+    lv.setAttribute("data-busy","1"); lv.style.opacity=".5";
+    api("cell_leave",{callsign:id.callsign,device:id.device},function(j){
+      /* M28: check the backend verdict — on failure the fighter stays in
+         the cell and the local cache is NOT cleared. */
+      if(!j||!j.ok){
+        lv.removeAttribute("data-busy"); lv.style.opacity="";
+        errEl.textContent=cellWriteErr(j&&j.err,"The wire fought back — you're still in the cell.");
+        return;
+      }
+      setCache(1,"",""); state=null; refresh();
+    });
+  };
+  /* CHAINLINK wiring: per-cell leave + wire-another join + network stat. */
+  /* CELL CHALLENGES: active challenges, join for your cell, leaderboard,
+     plus CREATE CHALLENGE (challenge_create: title 4-48 chars, metric
+     checkins|recruits|xp, days 1-30). */
+  (function(){
+    var host=document.createElement("div");
+    host.className="c-chalwrap"; host.id="cChal";
+    host.innerHTML='<h3>Cell challenges</h3><div class="c-load">Loading challenges&hellip;</div>';
+    el.appendChild(host);
+    function createFormHtml(){
+      return '<div class="x-pane"><h4>Propose a challenge</h4>'
+        +'<div class="x-note">Cells compete on your metric for 1-30 days. Title needs 4+ characters.</div>'
+        +'<input id="cChTitle" maxlength="48" placeholder="CHALLENGE TITLE" aria-label="Challenge title"> '
+        +'<select id="cChMetric" aria-label="Metric">'
+        +'<option value="checkins">Daily check-ins</option>'
+        +'<option value="recruits">Recruits</option>'
+        +'<option value="xp">XP earned</option></select> '
+        +'<input id="cChDays" type="number" min="1" max="30" value="7" style="width:64px" aria-label="Days"> '
+        +'<button class="c-btn" id="cChCreateBtn">CREATE CHALLENGE</button>'
+        +'<div class="c-err" id="cChCreateErr"></div></div>';
+    }
+    function wireCreate(){
+      var btn=host.querySelector("#cChCreateBtn"); if(!btn) return;
+      btn.onclick=function(){
+        var id3=ident();
+        if(!id3.callsign){ toast("Claim a callsign first."); return; }
+        var tEl=host.querySelector("#cChTitle"), mEl=host.querySelector("#cChMetric"),
+            dEl=host.querySelector("#cChDays"), ee=host.querySelector("#cChCreateErr");
+        var title=tEl?tEl.value.trim():"", metric=mEl?mEl.value:"checkins",
+            days=dEl?(parseInt(dEl.value,10)||7):7;
+        if(ee) ee.textContent="";
+        if(title.length<4){ if(ee) ee.textContent="Title needs 4+ characters."; return; }
+        if(days<1) days=1; if(days>30) days=30;
+        if(!window.confirm("Launch challenge \\\"+title+\\\" for "+days+" days?")) return;
+        busyBtn(btn,true);
+        post("challenge","ch_action","challenge_create",
+          {callsign:id3.callsign,device:id3.device,title:title,metric:metric,days:days},
+          function(r){
+            busyBtn(btn,false);
+            if(!r||!r.ok){ if(ee) ee.textContent=cellWriteErr(r&&r.err); return; }
+            toast("CHALLENGE LIVE. Get your cell in.");
+            loadCh();
+          });
+      };
+    }
+    function loadCh(){
+      host.innerHTML='<h3>Cell challenges</h3><div class="c-load">Loading challenges&hellip;</div>';
+      api("challenge_list",{},function(j){
+        var h='<h3>Cell challenges</h3>';
+        var list=(j&&j.ok&&j.challenges)||[];
+        if(!list.length){
+          h+='<div class="x-pane"><div class="x-note">No active challenges. The war council will announce the next one — or propose your own below.</div></div>';
+        }
+        for(var i=0;i<list.length;i++){
+          var ch=list[i]||{};
+          h+='<div class="x-pane"><h4>'+esc(ch.title)+'</h4>'
+            +'<div class="x-note">'+esc(ch.detail||"")+'</div>'
+            +'<div class="x-note">Ends: '+esc(ch.ends||"soon")+'</div>'
+            +'<button class="c-btn c-chjoin" data-ch="'+esc(ch.id)+'">ENTER MY CELL</button>'
+            +'<div class="c-err" id="cChErr-'+esc(ch.id)+'"></div></div>';
+        }
+        h+=createFormHtml();
+        h+='<div id="cChBoard"><div class="c-load">Loading standings&hellip;</div></div>';
+        host.innerHTML=h;
+        wireCreate();
+        var jbs=host.querySelectorAll(".c-chjoin");
+        for(var b=0;b<jbs.length;b++)(function(btn){
+          btn.onclick=function(){
+            var chid=btn.getAttribute("data-ch"), id2=ident();
+            var ee=document.getElementById("cChErr-"+chid); if(ee) ee.textContent="";
+            busyBtn(btn,true);
+            post("challenge","ch_action","challenge_join",{callsign:id2.callsign,device:id2.device,cell_id:c.id,challenge_id:chid},function(r){
+              busyBtn(btn,false);
+              if(!r||!r.ok){ if(ee) ee.textContent=cellWriteErr(r&&r.err); return; }
+              toast("Cell entered. Fight for the top.");
+            });
+          };
+        })(jbs[b]);
+        api("challenge_board",{},function(b2){
+          var bh=document.getElementById("cChBoard"); if(!bh) return;
+          var rows=(b2&&b2.board)||[];
+          if(!rows.length){ bh.innerHTML='<div class="x-note">No standings yet.</div>'; return; }
+          var hh="";
+          for(var q=0;q<Math.min(rows.length,10);q++){
+            hh+='<div class="cp-lead"><span class="cp-lrank">'+(q+1)+'.</span> '
+              +'<span class="cp-lname">'+esc(rows[q].cell||rows[q].cell_name)+'</span> '
+              +'<span class="cp-lxp">'+(Number(rows[q].score)||0)+' pts</span></div>';
+          }
+          bh.innerHTML=hh;
+        });
+      });
+    }
+    loadCh();
+  })();
+  var lleaves=document.querySelectorAll(".c-lleave");
+  for(var li2=0;li2<lleaves.length;li2++)(function(a){
+    a.onclick=function(){
+      if(a.getAttribute("data-busy")) return;
+      if(!window.confirm("Leave "+a.getAttribute("data-nm")+"?")) return;
+      a.setAttribute("data-busy","1"); a.style.opacity=".5";
+      api("cell_leave",{callsign:id.callsign,device:id.device,cell_id:a.getAttribute("data-id")},function(j){
+        if(!j||!j.ok){
+          a.removeAttribute("data-busy"); a.style.opacity="";
+          errEl.textContent=cellWriteErr(j&&j.err,"The wire fought back — you're still in the cell.");
+          return;
+        }
+        state=null; refresh();
+      });
+    };
+  })(lleaves[li2]);
+  var lj=document.getElementById("cLinkJoin");
+  if(lj) lj.onclick=function(){
+    var code=document.getElementById("cLinkCode").value, err=document.getElementById("cLinkErr");
+    errEl.textContent=""; err.textContent="";
+    api("cell_join",{callsign:id.callsign,device:id.device,code:code},function(j){
+      if(!j||!j.ok){ err.textContent=cellWriteErr(j,"Network error."); return; }
+      toast("Wired into "+j.cell.name+". The chain grows.");
+      refresh();
+    });
+  };
+  paintLinkNet();
+}
+/* Chainlink network stat: cached 5 min. */
+var _linkNetAt=0, _linkNetHtml="";
+function paintLinkNet(){
+  var el=document.getElementById("cLinkNet");
+  if(!el) return;
+  if(Date.now()-_linkNetAt<5*60*1000&&_linkNetHtml){ el.innerHTML=_linkNetHtml; return; }
+  api("cell_links",{},function(j){
+    if(!j){ el.innerHTML=""; return; }
+    _linkNetAt=Date.now();
+    _linkNetHtml='<b>'+j.chainlinkers+'</b> chainlinkers wiring <b>'+j.cells+'</b> cells — <b>'+j.main_pct+'%</b> in the main chain';
+    el.innerHTML=_linkNetHtml;
+  },true);
+}
+refresh();
+loadBoard();
+if(!window._pfCellsTick){ window._pfCellsTick=setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} loadBoard(); },5*60*1000); }
+})();
+</script>
+</div>
+</template>`);
+})();
+
+;

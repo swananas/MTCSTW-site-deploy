@@ -1,1 +1,529 @@
-!function(){"use strict";var n=window.PF;n&&!n.skip("economy")&&n.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-economy">\n<div class="fe-block pf-override-block pf-silo" id="pf-economy">\n<h2>Run the Economy</h2>\n<div class="c-tag">Earn it. Spend it. Weaponize it. The loop that keeps the machine alive.</div>\n<div id="xEconomy"><div class="c-load">Counting the war chest&hellip;</div></div>\n</div>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}\n  try{ var t=document.createElement("div"); t.textContent=m;\n  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";\n  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }\n/* Friendly copy for gated read failures (2026-10-03): raw backend strings\n   like \'missing credentials\' are never shown as UI copy. */\nfunction ecAuthHint(j){\n  var e=String((j&&j.err)||"");\n  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")\n    return \'<br><span class="x-note">This callsign predates the new auth system and can&rsquo;t reconnect on its own &mdash; contact MTCSTW to recover it.</span>\';\n  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)\n    return \'<br><span class="x-note">Your callsign needs to reconnect &mdash; re-claim it in Enlistment Ranks (one tap), then retry.</span>\';\n  return "";\n}\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  /* Private reads require auth_secret (IDOR fix). Route gated actions\n     through the shared claim-retry GET (2026-10-03): pre-auth callsign\n     holders with no stored secret get one auth_claim attempt instead of\n     failing \'missing credentials\' forever. */\n  if(action==="cosmetic_list"||action==="stake_list"||action==="powerup_status"){\n    try{\n      if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }\n      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";\n      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;\n    }catch(e){}\n  }\n  var fn="pfEcCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\nfunction post(type,key,cAction,params,cb){\n  var body={type:type}; body[key]=cAction;\n  for(var k in params) body[k]=params[k];\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */\n    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)},c=null,t=null;\n      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}\n      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();\n    fetch(BACKEND,_po)\n      .then(function(r){ return r.json(); }).then(function(j){ _po._pfClear(); done(j); }).catch(function(){ _po._pfClear(); done(null); });\n  }catch(e){ done(null); }\n}\nfunction fmtDur(ms){\n  if(ms<=0) return "now";\n  var s=Math.floor(ms/1000), d=Math.floor(s/86400); s%=86400;\n  var h=Math.floor(s/3600); s%=3600; var m=Math.floor(s/60);\n  var out=""; if(d>0)out+=d+"d "; if(h>0||d>0)out+=h+"h "; out+=m+"m";\n  return out.trim();\n}\nfunction fmtDate(t){\n  try{ var d=new Date(Number(t)); if(isNaN(d.getTime())) return ""; \n    var mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];\n    return mo[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear(); }catch(e){ return ""; }\n}\n/* Admin gate for AUTH+ADMIN dual-gated actions (seller-or-admin closes).\n   Same key as vault.js / dashboard.js: sessionStorage \'pf_admin_secret\'. */\nfunction isAdmin(){ try{ return !!sessionStorage.getItem("pf_admin_secret"); }catch(e){ return false; } }\n/* Admin-write POST: rides X-Admin-Secret like vault.js (AUTH+ADMIN dual gates\n   need the header; PF.authPost doesn\'t carry it). Carries auth_secret too so\n   the AUTH half of the gate passes. Falls back to the normal authed post\n   when no admin secret is stored. */\nfunction adminPost(type,key,cAction,params,cb){\n  var secret=""; try{ secret=sessionStorage.getItem("pf_admin_secret")||""; }catch(e){}\n  if(!secret){ post(type,key,cAction,params,cb); return; }\n  var body={type:type}; body[key]=cAction;\n  for(var k in params) body[k]=params[k];\n  try{ var s2=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():""; if(s2) body.auth_secret=s2; }catch(e2){}\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e3){} }\n  try{\n    /* 15s abort on the admin POST (same L2 backstop as the fallback). */\n    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json","X-Admin-Secret":secret},body:JSON.stringify(body)},c=null,t=null;\n      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n        t=setTimeout(function(){ try{ c.abort(); }catch(e4){} },15000); } }catch(e5){}\n      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e6){} } }; return o; })();\n    fetch(BACKEND,_po)\n      .then(function(r){ return r.json(); }).then(function(j){ _po._pfClear(); done(j); }).catch(function(){ _po._pfClear(); done(null); });\n  }catch(e7){ done(null); }\n}\nvar AU=null,CO=null,ST=null,PU=null,DR=null,TRB=null,SP=null,TRCELL="";\nvar STAKE_YIELDS={7:5,30:15,90:40};\nfunction load(){\n  var id=ident(), done=false, n=0, need=7;\n  function fin(){ if(done)return; done=true; render(); }\n  function one(){ n++; if(n>=need) fin(); }\n  setTimeout(fin,15000);\n  api("auction_list",{},function(j){ AU=j; one(); });\n  api("cosmetic_list",{callsign:id.callsign},function(j){ CO=j; one(); });\n  api("stake_list",{callsign:id.callsign},function(j){ ST=j; one(); });\n  api("powerup_status",{callsign:id.callsign},function(j){ PU=j; one(); });\n  api("drop_list",{},function(j){ DR=j; one(); });\n  api("sponsor_active",{},function(j){ SP=j; one(); });\n  if(TRCELL) api("treasury_balance",{cell_id:TRCELL},function(j){ TRB=j; one(); });\n  else one();\n}\nfunction gate(){\n  var id=ident();\n  if(!id.callsign) return PF.gateHTML(\'The economy runs on callsigns.\',\'to spend\');\n  return "";\n}\nfunction render(){\n  var el=document.getElementById("xEconomy"); if(!el) return;\n  var id=ident(), h="", g=gate();\n  if(g){ el.innerHTML=g; return; }\n  h+=renderAuctions(id);\n  h+=renderCosmetics(id);\n  h+=renderStaking(id);\n  h+=renderTreasury(id);\n  h+=renderSponsor(id);\n  h+=renderPowerups(id);\n  h+=renderTitles(id);\n  h+=renderDrops(id);\n  h+=renderPrizes(id);\n  h+=\'<div style="margin-top:10px"><button class="c-btn" id="ecRetry">Refresh</button></div>\';\n  el.innerHTML=h;\n  wireAuctions(id,el); wireCosmetics(id,el); wireStaking(id,el); wireTreasury(id,el);\n  wireSponsor(id,el); wirePowerups(id,el); wireTitles(id,el); wireDrops(id,el);\n  wirePrizes(id,el);\n  var rb=document.getElementById("ecRetry");\n  if(rb) rb.onclick=function(){ AU=CO=ST=PU=DR=TRB=SP=null; el.innerHTML=\'<div class="c-load">Counting&hellip;</div>\'; load(); };\n}\n/* ---------- AUCTIONS ---------- */\nfunction renderAuctions(id){\n  var h=\'<div class="x-pane"><h4>Auctions</h4><div class="x-note">Bid XP for featured placement. Outbid, outshine. Refunded if outbid.</div>\';\n  var list=(AU&&AU.auctions)||[];\n  if(!list.length) h+=\'<div class="x-note">No auctions running.</div>\';\n  for(var i=0;i<list.length;i++){\n    var a=list[i], left=Number(a.ends_at)-Date.now();\n    var mine=a.seller&&id.callsign&&String(a.seller).toLowerCase()===String(id.callsign).toLowerCase();\n    var noBids=(Number(a.bid_count)||0)===0;\n    /* 2026-10-03: auction_close (AUTH+ADMIN, seller-or-admin). Shown to the\n       seller and to admins (vault key); the backend enforces either way. */\n    var canClose=(mine||isAdmin())&&!Number(a.settled||0);\n    h+=\'<div class="cp-mission"><div class="cp-mtext"><b>\'+esc(a.slot)+\'</b>\'\n      +\'<div class="x-note">Top bid: <b>\'+Number(a.current_bid||0)+\' XP</b> by \'+esc(a.leader||"—")\n      +\' &bull; ends in \'+esc(fmtDur(left))+\'</div></div>\'\n      +\'<div><input aria-label="XP" class="c-in pf-input-sm" id="ecBidAmt_\'+esc(a.id)+\'" type="number" min="1" placeholder="XP" /> \'\n      +\'<button class="c-btn" data-aid="\'+esc(a.id)+\'">BID</button>\'\n      +(mine&&noBids?\' <button class="c-btn ghost" data-acancel="\'+esc(a.id)+\'">CANCEL</button>\':"")\n      +(canClose?\' <button class="c-btn ghost" data-aclose="\'+esc(a.id)+\'">CLOSE</button>\':"")\n      +\'</div></div>\';\n  }\n  h+=\'</div>\'; return h;\n}\nfunction wireAuctions(id,el){\n  var btns=el.querySelectorAll(\'button[data-aid]\');\n  for(var i=0;i<btns.length;i++){ (function(btn){\n    btn.onclick=function(){\n      var aid=btn.getAttribute("data-aid");\n      var inp=document.getElementById("ecBidAmt_"+aid);\n      var amt=Math.round(Number(inp&&inp.value)||0);\n      if(amt<=0){ toast("Enter a bid amount."); return; }\n      btn.disabled=true;\n      post("sink","s_action","auction_bid",{callsign:id.callsign,device:id.device,auction_id:aid,amount:amt},function(j){\n        if(!j||!j.ok){ toast(PF.errCopy(j,"Bid failed.")); btn.disabled=false; return; }\n        toast("BID PLACED — "+amt+" XP.");\n        setTimeout(function(){ AU=null; load(); },800);\n      });\n    };\n  })(btns[i]); }\n  /* seller cancel: only the seller, only before any bids (2026-10-03 H7) */\n  var cbs=el.querySelectorAll(\'button[data-acancel]\');\n  for(var c2=0;c2<cbs.length;c2++){ (function(btn){\n    btn.onclick=function(){\n      var aid=btn.getAttribute("data-acancel");\n      if(!window.confirm("Cancel this auction? It must have no bids.")) return;\n      btn.disabled=true;\n      post("sink","s_action","auction_cancel",{callsign:id.callsign,device:id.device,auction_id:aid},function(j){\n        if(!j||!j.ok){ toast(PF.errCopy(j,"Cancel failed.")); btn.disabled=false; return; }\n        toast("AUCTION CANCELLED.");\n        setTimeout(function(){ AU=null; load(); },800);\n      });\n    };\n  })(cbs[c2]); }\n  /* seller/admin close (2026-10-03): settles the auction — winner\'s bid goes\n     to the pot, losers are refunded. AUTH+ADMIN dual gate, enforced backend. */\n  var cls=el.querySelectorAll(\'button[data-aclose]\');\n  for(var c3=0;c3<cls.length;c3++){ (function(btn){\n    btn.onclick=function(){\n      var aid=btn.getAttribute("data-aclose");\n      if(!window.confirm("Close this auction and settle it? Losers are refunded; the winner\'s bid goes to the pot.")) return;\n      btn.disabled=true;\n      adminPost("sink","s_action","auction_close",{callsign:id.callsign,device:id.device,auction_id:aid},function(j){\n        if(!j||!j.ok){\n          toast(PF.errCopy(j,"Close failed."));\n          btn.disabled=false; return;\n        }\n        toast("AUCTION CLOSED — winner "+(j.winner||"none")+" at "+(Number(j.winning_bid)||0)+" XP; "+(Number(j.losers_refunded)||0)+" loser(s) refunded.");\n        setTimeout(function(){ AU=null; load(); },800);\n      });\n    };\n  })(cls[c3]); }\n}\n/* ---------- COSMETICS ---------- */\nfunction renderCosmetics(id){\n  var h=\'<div class="x-pane"><h4>Cosmetics</h4><div class="x-note">Wear your war record. Pure status.</div><div class="cp-wall">\';\n  var items=(CO&&CO.items)||[];\n  if(!items.length) h+=\'<div class="x-note">Shop empty.</div>\';\n  for(var i=0;i<items.length;i++){\n    var c=items[i];\n    h+=\'<div class="cp-mission"><div class="cp-mtext"><b>\'+esc(c.name)+\'</b>\'\n      +\'<div class="x-note">\'+esc(c.kind||"")+\' &bull; \'+Number(c.cost||0)+\' XP</div></div>\';\n    if(c.owned) h+=\'<div class="cp-mdone">OWNED</div>\';\n    else h+=\'<button class="c-btn" data-cid="\'+esc(c.id)+\'">BUY</button>\';\n    h+=\'</div>\';\n  }\n  h+=\'</div></div>\'; return h;\n}\nfunction wireCosmetics(id,el){\n  var btns=el.querySelectorAll(\'button[data-cid]\');\n  for(var i=0;i<btns.length;i++){ (function(btn){\n    btn.onclick=function(){\n      var cid=btn.getAttribute("data-cid"); btn.disabled=true;\n      post("sink","s_action","cosmetic_buy",{callsign:id.callsign,device:id.device,item_id:cid},function(j){\n        if(!j||!j.ok){ toast(PF.errCopy(j,"Purchase failed.")); btn.disabled=false; return; }\n        toast("OWNED. Wear it loud.");\n        setTimeout(function(){ CO=null; load(); },800);\n      });\n    };\n  })(btns[i]); }\n}\n/* ---------- STAKING ---------- */\nfunction renderStaking(id){\n  var h=\'<div class="x-pane"><h4>Staking</h4><div class="x-note">Lock XP. Earn yield. Commitment pays.</div>\'\n    +\'<div><input aria-label="XP to lock" class="c-in pf-input-sm" id="ecStakeAmt" type="number" min="1" placeholder="XP to lock" /> \'\n    +\'<select class="c-in" id="ecStakeDur"><option value="7">7 days — 5%</option><option value="30">30 days — 15%</option><option value="90">90 days — 40%</option></select> \'\n    +\'<button class="c-btn" id="ecStakeBtn">LOCK</button></div><div style="height:8px"></div>\';\n  var stakes=(ST&&ST.stakes)||[];\n  if(!stakes.length) h+=\'<div class="x-note">No active stakes. Your XP is doing nothing. Fix that.\'+ecAuthHint(ST)+\'</div>\';\n  for(var i=0;i<stakes.length;i++){\n    var s=stakes[i], now=Date.now(), unlocked=now>=Number(s.unlocks_at);\n    var yld=STAKE_YIELDS[s.duration_days]||0;\n    var payout=Math.round(Number(s.amount)*(1+yld/100));\n    h+=\'<div class="cp-mission"><div class="cp-mtext"><b>\'+Number(s.amount)+\' XP</b> locked\'\n      +\'<div class="x-note">Yield: \'+yld+\'% → <b>\'+payout+\' XP</b> &bull; \'+(s.claimed?"claimed":(unlocked?"UNLOCKED":"unlocks in "+esc(fmtDur(Number(s.unlocks_at)-now))))+\'</div></div>\';\n    if(!s.claimed&&unlocked) h+=\'<button class="c-btn" data-sid="\'+s.id+\'">CLAIM</button>\';\n    else if(!s.claimed) h+=\'<div class="x-note">LOCKED</div>\';\n    else h+=\'<div class="cp-mdone">PAID</div>\';\n    h+=\'</div>\';\n  }\n  h+=\'</div>\'; return h;\n}\nfunction wireStaking(id,el){\n  var b=document.getElementById("ecStakeBtn");\n  if(b) b.onclick=function(){\n    var amt=Math.round(Number(document.getElementById("ecStakeAmt").value)||0);\n    var dur=Number(document.getElementById("ecStakeDur").value)||7;\n    if(amt<=0){ toast("Enter an amount."); return; }\n    b.disabled=true;\n    post("stake","st_action","stake_lock",{callsign:id.callsign,device:id.device,amount:amt,duration_days:dur},function(j){\n      if(!j||!j.ok){ toast(PF.errCopy(j,"Stake failed.")); b.disabled=false; return; }\n      toast("LOCKED. Patience is a weapon.");\n      setTimeout(function(){ ST=null; load(); },800);\n    });\n  };\n  var btns=el.querySelectorAll(\'button[data-sid]\');\n  for(var i=0;i<btns.length;i++){ (function(btn){\n    btn.onclick=function(){\n      var sid=btn.getAttribute("data-sid"); btn.disabled=true;\n      post("stake","st_action","stake_claim",{callsign:id.callsign,device:id.device,stake_id:sid},function(j){\n        if(!j||!j.ok){ toast(PF.errCopy(j,"Claim failed.")); btn.disabled=false; return; }\n        toast("+"+(j.payout||0)+" XP CLAIMED.");\n        setTimeout(function(){ ST=null; load(); },800);\n      });\n    };\n  })(btns[i]); }\n}\n/* ---------- TREASURY ---------- */\nfunction renderTreasury(id){\n  var h=\'<div class="x-pane"><h4>Cell Treasury</h4><div class="x-note">Collective war chest. Throw XP in; founders spend it on the cell.</div>\'\n    +\'<div><input aria-label="cell id" class="c-in pf-input-sm" id="ecTCell" type="text" placeholder="cell id" value="\'+esc(TRCELL)+\'" /> \'\n    +\'<button class="c-btn" id="ecTView">VIEW</button></div><div style="height:8px"></div>\';\n  if(TRB&&TRB.ok){\n    h+=\'<div class="cp-mtext"><b>BALANCE: \'+Number(TRB.balance||0)+\' XP</b></div>\'\n      +\'<div><input aria-label="XP" class="c-in pf-input-sm" id="ecTFund" type="number" min="1" placeholder="XP" /> \'\n      +\'<button class="c-btn" id="ecTFundBtn">THROW DOWN</button></div>\'\n      /* 2026-10-03: treasury_spend (AUTH, officers-only — backend enforces). */\n      +\'<div style="margin-top:10px"><div class="x-note"><b>Officers:</b> spend from the war chest.</div>\'\n      +\'<input aria-label="XP" class="c-in pf-input-sm" id="ecTSAmt" type="number" min="1" placeholder="XP" /> \'\n      +\'<input aria-label="purpose" class="c-in pf-input-md" id="ecTSPurp" type="text" maxlength="200" placeholder="purpose (e.g. poster prize)" /> \'\n      +\'<button class="c-btn" id="ecTSBtn">SPEND</button><div class="c-err" id="ecTSErr"></div></div>\';\n    var rec=TRB.recent||[];\n    if(rec.length){ h+=\'<div class="x-note pf-mt" >Recent:</div>\';\n      for(var i=0;i<Math.min(rec.length,5);i++) h+=\'<div class="x-note">\'+esc(rec[i].callsign)+\' \'+esc(rec[i].kind||"threw down")+\' \'+Number(rec[i].amount||0)+\' XP</div>\';\n    }\n  } else if(TRCELL){ h+=\'<div class="x-note">No treasury data for that cell.</div>\'; }\n  h+=\'</div>\'; return h;\n}\nfunction wireTreasury(id,el){\n  var v=document.getElementById("ecTView");\n  if(v) v.onclick=function(){\n    TRCELL=String(document.getElementById("ecTCell").value||"").trim();\n    TRB=null; render();\n    if(TRCELL) api("treasury_balance",{cell_id:TRCELL},function(j){ TRB=j; render(); });\n  };\n  var d=document.getElementById("ecTFundBtn");\n  if(d) d.onclick=function(){\n    var amt=Math.round(Number(document.getElementById("ecTFund").value)||0);\n    if(!TRCELL){ toast("Enter a cell id first."); return; }\n    if(amt<=0){ toast("Enter an amount."); return; }\n    d.disabled=true;\n    post("treasury","t_action","treasury_donate",{callsign:id.callsign,device:id.device,cell_id:TRCELL,amount:amt},function(j){\n      if(!j||!j.ok){ toast(PF.errCopy(j,"Transfer failed.")); d.disabled=false; return; }\n      toast("THREW DOWN "+amt+" XP to the war chest.");\n      api("treasury_balance",{cell_id:TRCELL},function(jj){ TRB=jj; render(); });\n    });\n  };\n  /* treasury spend (2026-10-03): officers-only per backend; the UI lets any\n     officer attempt it and shows the backend\'s verdict honestly. */\n  var sp=document.getElementById("ecTSBtn");\n  if(sp) sp.onclick=function(){\n    var err=document.getElementById("ecTSErr");\n    var amt=Math.round(Number(document.getElementById("ecTSAmt").value)||0);\n    var purp=String(document.getElementById("ecTSPurp").value||"").trim();\n    if(err) err.textContent="";\n    if(!TRCELL){ toast("Enter a cell id first."); return; }\n    if(amt<=0){ if(err) err.textContent="Enter an amount."; return; }\n    if(!purp){ if(err) err.textContent="Give the spend a purpose."; return; }\n    if(!window.confirm("Spend "+amt+" XP from the war chest on: "+purp+"?")) return;\n    sp.disabled=true; sp.textContent="SPENDING…";\n    post("treasury","t_action","treasury_spend",{callsign:id.callsign,device:id.device,cell_id:TRCELL,amount:amt,purpose:purp},function(j){\n      sp.disabled=false; sp.textContent="SPEND";\n      if(!j||!j.ok){\n        var e=String((j&&j.err)||"");\n        if(err) err.textContent=(e==="officers only")?"Officers only — the backend said no.":PF.errCopy(e,"Spend failed.");\n        return;\n      }\n      toast("SPENT "+amt+" XP — "+purp+".");\n      api("treasury_balance",{cell_id:TRCELL},function(jj){ TRB=jj; render(); });\n    });\n  };\n}\n/* ---------- SPONSOR ---------- */\nfunction renderSponsor(id){\n  /* 2026-10-03: sponsor_active (public) — show what\'s riding the wire now. */\n  var live="";\n  var items=(SP&&SP.ok&&SP.sponsored)||[];\n  if(items.length){\n    live=\'<div class="x-note" style="margin-bottom:8px"><b>LIVE NOW (\'+items.length+\'):</b></div>\';\n    for(var i=0;i<Math.min(items.length,10);i++){\n      var s=items[i], left=Number(s.expires_at)-Date.now();\n      live+=\'<div class="x-note">\'+esc(s.content_id||"")+\' &bull; <b>\'+esc(String(s.tier||"").toUpperCase())+\'</b>-WIDE\'\n        +\' &bull; expires in \'+esc(fmtDur(left))+\'</div>\';\n    }\n    live+=\'<div style="height:8px"></div>\';\n  }\n  return \'<div class="x-pane"><h4>Sponsored Drops</h4>\'\n    +live\n    +\'<div class="x-note">Pay XP to push your poster. 100 XP = your cell sees it. 500 XP = the whole network sees it.</div>\'\n    +\'<div><input aria-label="content id" class="c-in pf-input-md" id="ecSpCid" type="text" placeholder="content id" /> \'\n    +\'<select class="c-in" id="ecSpTier"><option value="100">CELL-WIDE — 100 XP</option><option value="500">NETWORK-WIDE — 500 XP</option></select> \'\n    +\'<button class="c-btn" id="ecSpBtn">SPONSOR</button></div></div>\';\n}\nfunction wireSponsor(id,el){\n  var b=document.getElementById("ecSpBtn");\n  if(b) b.onclick=function(){\n    var cid=String(document.getElementById("ecSpCid").value||"").trim();\n    var amt=Number(document.getElementById("ecSpTier").value)||100;\n    if(!cid){ toast("Paste a content id (from Poster Forge share panel)."); return; }\n    b.disabled=true;\n    post("sponsor","sp_action","sponsor_buy",{callsign:id.callsign,device:id.device,content_id:cid,amount:amt},function(j){\n      if(!j||!j.ok){ toast(PF.errCopy(j,"Sponsor failed.")); b.disabled=false; return; }\n      toast("SPONSORED. Your poster rides the wire.");\n      b.disabled=false;\n    });\n  };\n}\n/* ---------- POWER-UPS ---------- */\nfunction renderPowerups(id){\n  var h=\'<div class="x-pane"><h4>Power-Ups</h4><div class="x-note">Spend XP to earn XP faster. The engine feeds itself.</div>\'+ecAuthHint(PU);\n  var act=(PU&&PU.active)||[];\n  if(act.length){ h+=\'<div class="x-note">Active:</div>\';\n    for(var i=0;i<act.length;i++) h+=\'<div class="cp-mdone">\'+esc(act[i].kind)+\' — expires in \'+esc(fmtDur(Number(act[i].expires_at)-Date.now()))+\'</div>\';\n  }\n  h+=\'<div class="cp-mission"><div class="cp-mtext"><b>2x EARN — 24 HOURS</b><div class="x-note">200 XP</div></div>\'\n    +\'<button class="c-btn" data-puk="2x_24h">BUY</button></div>\'\n    +\'<div class="cp-mission"><div class="cp-mtext"><b>2x EARN — 7 DAYS</b><div class="x-note">1000 XP</div></div>\'\n    +\'<button class="c-btn" data-puk="2x_7d">BUY</button></div></div>\';\n  return h;\n}\nfunction wirePowerups(id,el){\n  var btns=el.querySelectorAll(\'button[data-puk]\');\n  for(var i=0;i<btns.length;i++){ (function(btn){\n    btn.onclick=function(){\n      var kind=btn.getAttribute("data-puk"); btn.disabled=true;\n      post("powerup","p_action","powerup_buy",{callsign:id.callsign,device:id.device,kind:kind},function(j){\n        if(!j||!j.ok){ toast(PF.errCopy(j,"Purchase failed.")); btn.disabled=false; return; }\n        toast("POWERED UP. Grind twice as hard.");\n        setTimeout(function(){ PU=null; load(); },800);\n      });\n    };\n  })(btns[i]); }\n}\n/* ---------- TITLES ---------- */\nfunction renderTitles(id){\n  return \'<div class="x-pane"><h4>Custom Titles</h4>\'\n    +\'<div class="x-note">500 XP. A title next to your callsign, forever. Status is the oldest currency.</div>\'\n    +\'<div><input aria-label="e.g. STREET GENERAL" class="c-in pf-input-md" id="ecTitle" type="text" maxlength="40" placeholder="e.g. STREET GENERAL" /> \'\n    +\'<button class="c-btn" id="ecTitleBtn">BUY (500 XP)</button></div></div>\';\n}\nfunction wireTitles(id,el){\n  var b=document.getElementById("ecTitleBtn");\n  if(b) b.onclick=function(){\n    var t=String(document.getElementById("ecTitle").value||"").trim();\n    if(!t){ toast("Enter a title."); return; }\n    b.disabled=true;\n    post("title","ti_action","title_buy",{callsign:id.callsign,device:id.device,title:t},function(j){\n      if(!j||!j.ok){ toast(PF.errCopy(j,"Purchase failed.")); b.disabled=false; return; }\n      toast("TITLE SET: "+t);\n      b.disabled=false;\n    });\n  };\n}\n/* ---------- SYNC DROPS ---------- */\nfunction renderDrops(id){\n  var h=\'<div class="x-pane"><h4>Synchronized Drops</h4><div class="x-note">Everyone posts the same hit at the same minute. That is how you trend.</div>\';\n  var list=(DR&&DR.drops)||[];\n  if(!list.length) h+=\'<div class="x-note">No drops scheduled. Watch this space.</div>\';\n  for(var i=0;i<list.length;i++){\n    var d=list[i], left=Number(d.drop_at)-Date.now();\n    h+=\'<div class="cp-mission"><div class="cp-mtext"><b>\'+esc(d.title)+\'</b>\'\n      +\'<div class="x-note">\'+esc(d.content_id||"")+\' &bull; \'+(left>0?(\'drops in \'+esc(fmtDur(left))):\'LIVE — POST IT NOW\')\n      +\' &bull; \'+Number(d.commit_count||0)+\' committed</div></div>\'\n      +\'<button class="c-btn" data-did="\'+esc(d.id)+\'">COMMIT</button></div>\';\n  }\n  h+=\'</div>\'; return h;\n}\n/* ---------- PRIZE POOLS (read-only) ----------\n   2026-10-03: prize_contrib_list (public) — per-pool contribution breakdown.\n   Prize creation lives in movement.js; this is the ledger view. */\nfunction renderPrizes(id){\n  return \'<div class="x-pane"><h4>Prize Pools</h4>\'\n    +\'<div class="x-note">Who bankrolled the prize pools. Paste a pool id (see Movement).</div>\'\n    +\'<div><input aria-label="pool id" class="c-in pf-input-md" id="ecPoolId" type="text" placeholder="pool id" /> \'\n    +\'<button class="c-btn" id="ecPoolBtn">VIEW CONTRIBUTORS</button></div>\'\n    +\'<div id="ecPoolOut" style="margin-top:8px"></div></div>\';\n}\nfunction wirePrizes(id,el){\n  var b=document.getElementById("ecPoolBtn");\n  if(b) b.onclick=function(){\n    var out=document.getElementById("ecPoolOut");\n    var pid=String(document.getElementById("ecPoolId").value||"").trim().slice(0,64);\n    if(!pid){ if(out) out.innerHTML=\'<div class="x-note">Enter a pool id.</div>\'; return; }\n    b.disabled=true;\n    if(out) out.innerHTML=\'<div class="c-load">Reading the pool&hellip;</div>\';\n    api("prize_contrib_list",{pool_id:pid},function(j){\n      b.disabled=false;\n      if(!j||!j.ok){\n        if(out) out.innerHTML=\'<div class="x-note">\'+esc(PF.errCopy(j,"No data for that pool."))+\'</div>\';\n        return;\n      }\n      var h=\'<div class="cp-mtext"><b>POOL TOTAL: \'+Number(j.total||0)+\' XP</b></div>\';\n      var cs=(j.contributors)||[];\n      if(!cs.length) h+=\'<div class="x-note">No contributions yet. Be the first to throw down.</div>\';\n      for(var i=0;i<Math.min(cs.length,20);i++){\n        var c=cs[i];\n        h+=\'<div class="cp-mission"><div class="cp-mtext">\'+esc(c.contributor)+\'</div>\'\n          +\'<div class="cp-mxp">\'+Number(c.total||0)+\' XP (\'+Number(c.contributions||0)+\')</div></div>\';\n      }\n      if(out) out.innerHTML=h;\n    });\n  };\n}\nfunction wireDrops(id,el){\n  var btns=el.querySelectorAll(\'button[data-did]\');\n  for(var i=0;i<btns.length;i++){ (function(btn){\n    btn.onclick=function(){\n      var did=btn.getAttribute("data-did"); btn.disabled=true;\n      post("drop","d_action","drop_join",{callsign:id.callsign,device:id.device,drop_id:did},function(j){\n        if(!j||!j.ok){ toast(PF.errCopy(j,"Commit failed.")); btn.disabled=false; return; }\n        toast(j.dup?"Already committed.":"COMMITTED. +10 XP. Be ready at drop time.");\n        setTimeout(function(){ DR=null; load(); },800);\n      });\n    };\n  })(btns[i]); }\n}\n/* On-demand data (2026-10-02): fetch only when the widget is actually\n   seen (or touched). The template above already renders a skeleton.\n   In-memory vars keep the session cache — no refetch on scroll. */\n(function(){\n  var sec=null;\n  try{ sec=document.querySelector(\'section[data-game="economy"]\'); }catch(e){}\n  var start=(window.PF&&PF.whenVisible)?PF.whenVisible(sec,function(){load();}):null;\n  if(start){ try{ if(sec) sec.addEventListener(\'pointerdown\',start,{once:true}); }catch(e){} }\n  else load();\n})();\nsetInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },180000);\n})();\n<\/script>\n</div>\n</template>')}();
+/* PF v1.4.3 bundle-economy.js — concatenated bundle, generated by build/bundle.js.
+   DO NOT EDIT. Regenerate with: node build/bundle.js [--debug]
+   Contains: economy.js
+   Each silo keeps its own PF.skip() kill switch (?pf_off=<silo>). */
+
+/* ===== economy.js ===== */
+/* games/economy.js  |  PF v1.4.3 | XP ECONOMY: the closed loop — auctions, cosmetics,
+   staking, cell treasuries, sponsored drops, power-ups, custom titles, sync drops.
+   Reads via JSONP (self-contained api()), writes via CORS POST (self-contained post()).
+   KILL: ?pf_off=economy  or  localStorage pf_disabled_v1='["economy"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("economy")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-economy">
+<div class="fe-block pf-override-block pf-silo" id="pf-economy">
+<h2>Run the Economy</h2>
+<div class="c-tag">Earn it. Spend it. Weaponize it. The loop that keeps the machine alive.</div>
+<div id="xEconomy"><div class="c-load">Counting the war chest&hellip;</div></div>
+</div>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+/* Friendly copy for gated read failures (2026-10-03): raw backend strings
+   like 'missing credentials' are never shown as UI copy. */
+function ecAuthHint(j){
+  var e=String((j&&j.err)||"");
+  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")
+    return '<br><span class="x-note">This callsign predates the new auth system and can&rsquo;t reconnect on its own &mdash; contact MTCSTW to recover it.</span>';
+  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)
+    return '<br><span class="x-note">Your callsign needs to reconnect &mdash; re-claim it in Enlistment Ranks (one tap), then retry.</span>';
+  return "";
+}
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  /* Private reads require auth_secret (IDOR fix). Route gated actions
+     through the shared claim-retry GET (2026-10-03): pre-auth callsign
+     holders with no stored secret get one auth_claim attempt instead of
+     failing 'missing credentials' forever. */
+  if(action==="cosmetic_list"||action==="stake_list"||action==="powerup_status"){
+    try{
+      if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
+      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+    }catch(e){}
+  }
+  var fn="pfEcCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function post(type,key,cAction,params,cb){
+  var body={type:type}; body[key]=cAction;
+  for(var k in params) body[k]=params[k];
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); }).then(function(j){ _po._pfClear(); done(j); }).catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+}
+function fmtDur(ms){
+  if(ms<=0) return "now";
+  var s=Math.floor(ms/1000), d=Math.floor(s/86400); s%=86400;
+  var h=Math.floor(s/3600); s%=3600; var m=Math.floor(s/60);
+  var out=""; if(d>0)out+=d+"d "; if(h>0||d>0)out+=h+"h "; out+=m+"m";
+  return out.trim();
+}
+function fmtDate(t){
+  try{ var d=new Date(Number(t)); if(isNaN(d.getTime())) return ""; 
+    var mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return mo[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear(); }catch(e){ return ""; }
+}
+/* Admin gate for AUTH+ADMIN dual-gated actions (seller-or-admin closes).
+   Same key as vault.js / dashboard.js: sessionStorage 'pf_admin_secret'. */
+function isAdmin(){ try{ return !!sessionStorage.getItem("pf_admin_secret"); }catch(e){ return false; } }
+/* Admin-write POST: rides X-Admin-Secret like vault.js (AUTH+ADMIN dual gates
+   need the header; PF.authPost doesn't carry it). Carries auth_secret too so
+   the AUTH half of the gate passes. Falls back to the normal authed post
+   when no admin secret is stored. */
+function adminPost(type,key,cAction,params,cb){
+  var secret=""; try{ secret=sessionStorage.getItem("pf_admin_secret")||""; }catch(e){}
+  if(!secret){ post(type,key,cAction,params,cb); return; }
+  var body={type:type}; body[key]=cAction;
+  for(var k in params) body[k]=params[k];
+  try{ var s2=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():""; if(s2) body.auth_secret=s2; }catch(e2){}
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e3){} }
+  try{
+    /* 15s abort on the admin POST (same L2 backstop as the fallback). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json","X-Admin-Secret":secret},body:JSON.stringify(body)},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e4){} },15000); } }catch(e5){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e6){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); }).then(function(j){ _po._pfClear(); done(j); }).catch(function(){ _po._pfClear(); done(null); });
+  }catch(e7){ done(null); }
+}
+var AU=null,CO=null,ST=null,PU=null,DR=null,TRB=null,SP=null,TRCELL="";
+var STAKE_YIELDS={7:5,30:15,90:40};
+function load(){
+  var id=ident(), done=false, n=0, need=7;
+  function fin(){ if(done)return; done=true; render(); }
+  function one(){ n++; if(n>=need) fin(); }
+  setTimeout(fin,15000);
+  api("auction_list",{},function(j){ AU=j; one(); });
+  api("cosmetic_list",{callsign:id.callsign},function(j){ CO=j; one(); });
+  api("stake_list",{callsign:id.callsign},function(j){ ST=j; one(); });
+  api("powerup_status",{callsign:id.callsign},function(j){ PU=j; one(); });
+  api("drop_list",{},function(j){ DR=j; one(); });
+  api("sponsor_active",{},function(j){ SP=j; one(); });
+  if(TRCELL) api("treasury_balance",{cell_id:TRCELL},function(j){ TRB=j; one(); });
+  else one();
+}
+function gate(){
+  var id=ident();
+  if(!id.callsign) return PF.gateHTML('The economy runs on callsigns.','to spend');
+  return "";
+}
+function render(){
+  var el=document.getElementById("xEconomy"); if(!el) return;
+  var id=ident(), h="", g=gate();
+  if(g){ el.innerHTML=g; return; }
+  h+=renderAuctions(id);
+  h+=renderCosmetics(id);
+  h+=renderStaking(id);
+  h+=renderTreasury(id);
+  h+=renderSponsor(id);
+  h+=renderPowerups(id);
+  h+=renderTitles(id);
+  h+=renderDrops(id);
+  h+=renderPrizes(id);
+  h+='<div style="margin-top:10px"><button class="c-btn" id="ecRetry">Refresh</button></div>';
+  el.innerHTML=h;
+  wireAuctions(id,el); wireCosmetics(id,el); wireStaking(id,el); wireTreasury(id,el);
+  wireSponsor(id,el); wirePowerups(id,el); wireTitles(id,el); wireDrops(id,el);
+  wirePrizes(id,el);
+  var rb=document.getElementById("ecRetry");
+  if(rb) rb.onclick=function(){ AU=CO=ST=PU=DR=TRB=SP=null; el.innerHTML='<div class="c-load">Counting&hellip;</div>'; load(); };
+}
+/* ---------- AUCTIONS ---------- */
+function renderAuctions(id){
+  var h='<div class="x-pane"><h4>Auctions</h4><div class="x-note">Bid XP for featured placement. Outbid, outshine. Refunded if outbid.</div>';
+  var list=(AU&&AU.auctions)||[];
+  if(!list.length) h+='<div class="x-note">No auctions running.</div>';
+  for(var i=0;i<list.length;i++){
+    var a=list[i], left=Number(a.ends_at)-Date.now();
+    var mine=a.seller&&id.callsign&&String(a.seller).toLowerCase()===String(id.callsign).toLowerCase();
+    var noBids=(Number(a.bid_count)||0)===0;
+    /* 2026-10-03: auction_close (AUTH+ADMIN, seller-or-admin). Shown to the
+       seller and to admins (vault key); the backend enforces either way. */
+    var canClose=(mine||isAdmin())&&!Number(a.settled||0);
+    h+='<div class="cp-mission"><div class="cp-mtext"><b>'+esc(a.slot)+'</b>'
+      +'<div class="x-note">Top bid: <b>'+Number(a.current_bid||0)+' XP</b> by '+esc(a.leader||"—")
+      +' &bull; ends in '+esc(fmtDur(left))+'</div></div>'
+      +'<div><input aria-label="XP" class="c-in pf-input-sm" id="ecBidAmt_'+esc(a.id)+'" type="number" min="1" placeholder="XP" /> '
+      +'<button class="c-btn" data-aid="'+esc(a.id)+'">BID</button>'
+      +(mine&&noBids?' <button class="c-btn ghost" data-acancel="'+esc(a.id)+'">CANCEL</button>':"")
+      +(canClose?' <button class="c-btn ghost" data-aclose="'+esc(a.id)+'">CLOSE</button>':"")
+      +'</div></div>';
+  }
+  h+='</div>'; return h;
+}
+function wireAuctions(id,el){
+  var btns=el.querySelectorAll('button[data-aid]');
+  for(var i=0;i<btns.length;i++){ (function(btn){
+    btn.onclick=function(){
+      var aid=btn.getAttribute("data-aid");
+      var inp=document.getElementById("ecBidAmt_"+aid);
+      var amt=Math.round(Number(inp&&inp.value)||0);
+      if(amt<=0){ toast("Enter a bid amount."); return; }
+      btn.disabled=true;
+      post("sink","s_action","auction_bid",{callsign:id.callsign,device:id.device,auction_id:aid,amount:amt},function(j){
+        if(!j||!j.ok){ toast(PF.errCopy(j,"Bid failed.")); btn.disabled=false; return; }
+        toast("BID PLACED — "+amt+" XP.");
+        setTimeout(function(){ AU=null; load(); },800);
+      });
+    };
+  })(btns[i]); }
+  /* seller cancel: only the seller, only before any bids (2026-10-03 H7) */
+  var cbs=el.querySelectorAll('button[data-acancel]');
+  for(var c2=0;c2<cbs.length;c2++){ (function(btn){
+    btn.onclick=function(){
+      var aid=btn.getAttribute("data-acancel");
+      if(!window.confirm("Cancel this auction? It must have no bids.")) return;
+      btn.disabled=true;
+      post("sink","s_action","auction_cancel",{callsign:id.callsign,device:id.device,auction_id:aid},function(j){
+        if(!j||!j.ok){ toast(PF.errCopy(j,"Cancel failed.")); btn.disabled=false; return; }
+        toast("AUCTION CANCELLED.");
+        setTimeout(function(){ AU=null; load(); },800);
+      });
+    };
+  })(cbs[c2]); }
+  /* seller/admin close (2026-10-03): settles the auction — winner's bid goes
+     to the pot, losers are refunded. AUTH+ADMIN dual gate, enforced backend. */
+  var cls=el.querySelectorAll('button[data-aclose]');
+  for(var c3=0;c3<cls.length;c3++){ (function(btn){
+    btn.onclick=function(){
+      var aid=btn.getAttribute("data-aclose");
+      if(!window.confirm("Close this auction and settle it? Losers are refunded; the winner's bid goes to the pot.")) return;
+      btn.disabled=true;
+      adminPost("sink","s_action","auction_close",{callsign:id.callsign,device:id.device,auction_id:aid},function(j){
+        if(!j||!j.ok){
+          toast(PF.errCopy(j,"Close failed."));
+          btn.disabled=false; return;
+        }
+        toast("AUCTION CLOSED — winner "+(j.winner||"none")+" at "+(Number(j.winning_bid)||0)+" XP; "+(Number(j.losers_refunded)||0)+" loser(s) refunded.");
+        setTimeout(function(){ AU=null; load(); },800);
+      });
+    };
+  })(cls[c3]); }
+}
+/* ---------- COSMETICS ---------- */
+function renderCosmetics(id){
+  var h='<div class="x-pane"><h4>Cosmetics</h4><div class="x-note">Wear your war record. Pure status.</div><div class="cp-wall">';
+  var items=(CO&&CO.items)||[];
+  if(!items.length) h+='<div class="x-note">Shop empty.</div>';
+  for(var i=0;i<items.length;i++){
+    var c=items[i];
+    h+='<div class="cp-mission"><div class="cp-mtext"><b>'+esc(c.name)+'</b>'
+      +'<div class="x-note">'+esc(c.kind||"")+' &bull; '+Number(c.cost||0)+' XP</div></div>';
+    if(c.owned) h+='<div class="cp-mdone">OWNED</div>';
+    else h+='<button class="c-btn" data-cid="'+esc(c.id)+'">BUY</button>';
+    h+='</div>';
+  }
+  h+='</div></div>'; return h;
+}
+function wireCosmetics(id,el){
+  var btns=el.querySelectorAll('button[data-cid]');
+  for(var i=0;i<btns.length;i++){ (function(btn){
+    btn.onclick=function(){
+      var cid=btn.getAttribute("data-cid"); btn.disabled=true;
+      post("sink","s_action","cosmetic_buy",{callsign:id.callsign,device:id.device,item_id:cid},function(j){
+        if(!j||!j.ok){ toast(PF.errCopy(j,"Purchase failed.")); btn.disabled=false; return; }
+        toast("OWNED. Wear it loud.");
+        setTimeout(function(){ CO=null; load(); },800);
+      });
+    };
+  })(btns[i]); }
+}
+/* ---------- STAKING ---------- */
+function renderStaking(id){
+  var h='<div class="x-pane"><h4>Staking</h4><div class="x-note">Lock XP. Earn yield. Commitment pays.</div>'
+    +'<div><input aria-label="XP to lock" class="c-in pf-input-sm" id="ecStakeAmt" type="number" min="1" placeholder="XP to lock" /> '
+    +'<select class="c-in" id="ecStakeDur"><option value="7">7 days — 5%</option><option value="30">30 days — 15%</option><option value="90">90 days — 40%</option></select> '
+    +'<button class="c-btn" id="ecStakeBtn">LOCK</button></div><div style="height:8px"></div>';
+  var stakes=(ST&&ST.stakes)||[];
+  if(!stakes.length) h+='<div class="x-note">No active stakes. Your XP is doing nothing. Fix that.'+ecAuthHint(ST)+'</div>';
+  for(var i=0;i<stakes.length;i++){
+    var s=stakes[i], now=Date.now(), unlocked=now>=Number(s.unlocks_at);
+    var yld=STAKE_YIELDS[s.duration_days]||0;
+    var payout=Math.round(Number(s.amount)*(1+yld/100));
+    h+='<div class="cp-mission"><div class="cp-mtext"><b>'+Number(s.amount)+' XP</b> locked'
+      +'<div class="x-note">Yield: '+yld+'% → <b>'+payout+' XP</b> &bull; '+(s.claimed?"claimed":(unlocked?"UNLOCKED":"unlocks in "+esc(fmtDur(Number(s.unlocks_at)-now))))+'</div></div>';
+    if(!s.claimed&&unlocked) h+='<button class="c-btn" data-sid="'+s.id+'">CLAIM</button>';
+    else if(!s.claimed) h+='<div class="x-note">LOCKED</div>';
+    else h+='<div class="cp-mdone">PAID</div>';
+    h+='</div>';
+  }
+  h+='</div>'; return h;
+}
+function wireStaking(id,el){
+  var b=document.getElementById("ecStakeBtn");
+  if(b) b.onclick=function(){
+    var amt=Math.round(Number(document.getElementById("ecStakeAmt").value)||0);
+    var dur=Number(document.getElementById("ecStakeDur").value)||7;
+    if(amt<=0){ toast("Enter an amount."); return; }
+    b.disabled=true;
+    post("stake","st_action","stake_lock",{callsign:id.callsign,device:id.device,amount:amt,duration_days:dur},function(j){
+      if(!j||!j.ok){ toast(PF.errCopy(j,"Stake failed.")); b.disabled=false; return; }
+      toast("LOCKED. Patience is a weapon.");
+      setTimeout(function(){ ST=null; load(); },800);
+    });
+  };
+  var btns=el.querySelectorAll('button[data-sid]');
+  for(var i=0;i<btns.length;i++){ (function(btn){
+    btn.onclick=function(){
+      var sid=btn.getAttribute("data-sid"); btn.disabled=true;
+      post("stake","st_action","stake_claim",{callsign:id.callsign,device:id.device,stake_id:sid},function(j){
+        if(!j||!j.ok){ toast(PF.errCopy(j,"Claim failed.")); btn.disabled=false; return; }
+        toast("+"+(j.payout||0)+" XP CLAIMED.");
+        setTimeout(function(){ ST=null; load(); },800);
+      });
+    };
+  })(btns[i]); }
+}
+/* ---------- TREASURY ---------- */
+function renderTreasury(id){
+  var h='<div class="x-pane"><h4>Cell Treasury</h4><div class="x-note">Collective war chest. Throw XP in; founders spend it on the cell.</div>'
+    +'<div><input aria-label="cell id" class="c-in pf-input-sm" id="ecTCell" type="text" placeholder="cell id" value="'+esc(TRCELL)+'" /> '
+    +'<button class="c-btn" id="ecTView">VIEW</button></div><div style="height:8px"></div>';
+  if(TRB&&TRB.ok){
+    h+='<div class="cp-mtext"><b>BALANCE: '+Number(TRB.balance||0)+' XP</b></div>'
+      +'<div><input aria-label="XP" class="c-in pf-input-sm" id="ecTFund" type="number" min="1" placeholder="XP" /> '
+      +'<button class="c-btn" id="ecTFundBtn">THROW DOWN</button></div>'
+      /* 2026-10-03: treasury_spend (AUTH, officers-only — backend enforces). */
+      +'<div style="margin-top:10px"><div class="x-note"><b>Officers:</b> spend from the war chest.</div>'
+      +'<input aria-label="XP" class="c-in pf-input-sm" id="ecTSAmt" type="number" min="1" placeholder="XP" /> '
+      +'<input aria-label="purpose" class="c-in pf-input-md" id="ecTSPurp" type="text" maxlength="200" placeholder="purpose (e.g. poster prize)" /> '
+      +'<button class="c-btn" id="ecTSBtn">SPEND</button><div class="c-err" id="ecTSErr"></div></div>';
+    var rec=TRB.recent||[];
+    if(rec.length){ h+='<div class="x-note pf-mt" >Recent:</div>';
+      for(var i=0;i<Math.min(rec.length,5);i++) h+='<div class="x-note">'+esc(rec[i].callsign)+' '+esc(rec[i].kind||"threw down")+' '+Number(rec[i].amount||0)+' XP</div>';
+    }
+  } else if(TRCELL){ h+='<div class="x-note">No treasury data for that cell.</div>'; }
+  h+='</div>'; return h;
+}
+function wireTreasury(id,el){
+  var v=document.getElementById("ecTView");
+  if(v) v.onclick=function(){
+    TRCELL=String(document.getElementById("ecTCell").value||"").trim();
+    TRB=null; render();
+    if(TRCELL) api("treasury_balance",{cell_id:TRCELL},function(j){ TRB=j; render(); });
+  };
+  var d=document.getElementById("ecTFundBtn");
+  if(d) d.onclick=function(){
+    var amt=Math.round(Number(document.getElementById("ecTFund").value)||0);
+    if(!TRCELL){ toast("Enter a cell id first."); return; }
+    if(amt<=0){ toast("Enter an amount."); return; }
+    d.disabled=true;
+    post("treasury","t_action","treasury_donate",{callsign:id.callsign,device:id.device,cell_id:TRCELL,amount:amt},function(j){
+      if(!j||!j.ok){ toast(PF.errCopy(j,"Transfer failed.")); d.disabled=false; return; }
+      toast("THREW DOWN "+amt+" XP to the war chest.");
+      api("treasury_balance",{cell_id:TRCELL},function(jj){ TRB=jj; render(); });
+    });
+  };
+  /* treasury spend (2026-10-03): officers-only per backend; the UI lets any
+     officer attempt it and shows the backend's verdict honestly. */
+  var sp=document.getElementById("ecTSBtn");
+  if(sp) sp.onclick=function(){
+    var err=document.getElementById("ecTSErr");
+    var amt=Math.round(Number(document.getElementById("ecTSAmt").value)||0);
+    var purp=String(document.getElementById("ecTSPurp").value||"").trim();
+    if(err) err.textContent="";
+    if(!TRCELL){ toast("Enter a cell id first."); return; }
+    if(amt<=0){ if(err) err.textContent="Enter an amount."; return; }
+    if(!purp){ if(err) err.textContent="Give the spend a purpose."; return; }
+    if(!window.confirm("Spend "+amt+" XP from the war chest on: "+purp+"?")) return;
+    sp.disabled=true; sp.textContent="SPENDING\u2026";
+    post("treasury","t_action","treasury_spend",{callsign:id.callsign,device:id.device,cell_id:TRCELL,amount:amt,purpose:purp},function(j){
+      sp.disabled=false; sp.textContent="SPEND";
+      if(!j||!j.ok){
+        var e=String((j&&j.err)||"");
+        if(err) err.textContent=(e==="officers only")?"Officers only — the backend said no.":PF.errCopy(e,"Spend failed.");
+        return;
+      }
+      toast("SPENT "+amt+" XP — "+purp+".");
+      api("treasury_balance",{cell_id:TRCELL},function(jj){ TRB=jj; render(); });
+    });
+  };
+}
+/* ---------- SPONSOR ---------- */
+function renderSponsor(id){
+  /* 2026-10-03: sponsor_active (public) — show what's riding the wire now. */
+  var live="";
+  var items=(SP&&SP.ok&&SP.sponsored)||[];
+  if(items.length){
+    live='<div class="x-note" style="margin-bottom:8px"><b>LIVE NOW ('+items.length+'):</b></div>';
+    for(var i=0;i<Math.min(items.length,10);i++){
+      var s=items[i], left=Number(s.expires_at)-Date.now();
+      live+='<div class="x-note">'+esc(s.content_id||"")+' &bull; <b>'+esc(String(s.tier||"").toUpperCase())+'</b>-WIDE'
+        +' &bull; expires in '+esc(fmtDur(left))+'</div>';
+    }
+    live+='<div style="height:8px"></div>';
+  }
+  return '<div class="x-pane"><h4>Sponsored Drops</h4>'
+    +live
+    +'<div class="x-note">Pay XP to push your poster. 100 XP = your cell sees it. 500 XP = the whole network sees it.</div>'
+    +'<div><input aria-label="content id" class="c-in pf-input-md" id="ecSpCid" type="text" placeholder="content id" /> '
+    +'<select class="c-in" id="ecSpTier"><option value="100">CELL-WIDE — 100 XP</option><option value="500">NETWORK-WIDE — 500 XP</option></select> '
+    +'<button class="c-btn" id="ecSpBtn">SPONSOR</button></div></div>';
+}
+function wireSponsor(id,el){
+  var b=document.getElementById("ecSpBtn");
+  if(b) b.onclick=function(){
+    var cid=String(document.getElementById("ecSpCid").value||"").trim();
+    var amt=Number(document.getElementById("ecSpTier").value)||100;
+    if(!cid){ toast("Paste a content id (from Poster Forge share panel)."); return; }
+    b.disabled=true;
+    post("sponsor","sp_action","sponsor_buy",{callsign:id.callsign,device:id.device,content_id:cid,amount:amt},function(j){
+      if(!j||!j.ok){ toast(PF.errCopy(j,"Sponsor failed.")); b.disabled=false; return; }
+      toast("SPONSORED. Your poster rides the wire.");
+      b.disabled=false;
+    });
+  };
+}
+/* ---------- POWER-UPS ---------- */
+function renderPowerups(id){
+  var h='<div class="x-pane"><h4>Power-Ups</h4><div class="x-note">Spend XP to earn XP faster. The engine feeds itself.</div>'+ecAuthHint(PU);
+  var act=(PU&&PU.active)||[];
+  if(act.length){ h+='<div class="x-note">Active:</div>';
+    for(var i=0;i<act.length;i++) h+='<div class="cp-mdone">'+esc(act[i].kind)+' — expires in '+esc(fmtDur(Number(act[i].expires_at)-Date.now()))+'</div>';
+  }
+  h+='<div class="cp-mission"><div class="cp-mtext"><b>2x EARN — 24 HOURS</b><div class="x-note">200 XP</div></div>'
+    +'<button class="c-btn" data-puk="2x_24h">BUY</button></div>'
+    +'<div class="cp-mission"><div class="cp-mtext"><b>2x EARN — 7 DAYS</b><div class="x-note">1000 XP</div></div>'
+    +'<button class="c-btn" data-puk="2x_7d">BUY</button></div></div>';
+  return h;
+}
+function wirePowerups(id,el){
+  var btns=el.querySelectorAll('button[data-puk]');
+  for(var i=0;i<btns.length;i++){ (function(btn){
+    btn.onclick=function(){
+      var kind=btn.getAttribute("data-puk"); btn.disabled=true;
+      post("powerup","p_action","powerup_buy",{callsign:id.callsign,device:id.device,kind:kind},function(j){
+        if(!j||!j.ok){ toast(PF.errCopy(j,"Purchase failed.")); btn.disabled=false; return; }
+        toast("POWERED UP. Grind twice as hard.");
+        setTimeout(function(){ PU=null; load(); },800);
+      });
+    };
+  })(btns[i]); }
+}
+/* ---------- TITLES ---------- */
+function renderTitles(id){
+  return '<div class="x-pane"><h4>Custom Titles</h4>'
+    +'<div class="x-note">500 XP. A title next to your callsign, forever. Status is the oldest currency.</div>'
+    +'<div><input aria-label="e.g. STREET GENERAL" class="c-in pf-input-md" id="ecTitle" type="text" maxlength="40" placeholder="e.g. STREET GENERAL" /> '
+    +'<button class="c-btn" id="ecTitleBtn">BUY (500 XP)</button></div></div>';
+}
+function wireTitles(id,el){
+  var b=document.getElementById("ecTitleBtn");
+  if(b) b.onclick=function(){
+    var t=String(document.getElementById("ecTitle").value||"").trim();
+    if(!t){ toast("Enter a title."); return; }
+    b.disabled=true;
+    post("title","ti_action","title_buy",{callsign:id.callsign,device:id.device,title:t},function(j){
+      if(!j||!j.ok){ toast(PF.errCopy(j,"Purchase failed.")); b.disabled=false; return; }
+      toast("TITLE SET: "+t);
+      b.disabled=false;
+    });
+  };
+}
+/* ---------- SYNC DROPS ---------- */
+function renderDrops(id){
+  var h='<div class="x-pane"><h4>Synchronized Drops</h4><div class="x-note">Everyone posts the same hit at the same minute. That is how you trend.</div>';
+  var list=(DR&&DR.drops)||[];
+  if(!list.length) h+='<div class="x-note">No drops scheduled. Watch this space.</div>';
+  for(var i=0;i<list.length;i++){
+    var d=list[i], left=Number(d.drop_at)-Date.now();
+    h+='<div class="cp-mission"><div class="cp-mtext"><b>'+esc(d.title)+'</b>'
+      +'<div class="x-note">'+esc(d.content_id||"")+' &bull; '+(left>0?('drops in '+esc(fmtDur(left))):'LIVE — POST IT NOW')
+      +' &bull; '+Number(d.commit_count||0)+' committed</div></div>'
+      +'<button class="c-btn" data-did="'+esc(d.id)+'">COMMIT</button></div>';
+  }
+  h+='</div>'; return h;
+}
+/* ---------- PRIZE POOLS (read-only) ----------
+   2026-10-03: prize_contrib_list (public) — per-pool contribution breakdown.
+   Prize creation lives in movement.js; this is the ledger view. */
+function renderPrizes(id){
+  return '<div class="x-pane"><h4>Prize Pools</h4>'
+    +'<div class="x-note">Who bankrolled the prize pools. Paste a pool id (see Movement).</div>'
+    +'<div><input aria-label="pool id" class="c-in pf-input-md" id="ecPoolId" type="text" placeholder="pool id" /> '
+    +'<button class="c-btn" id="ecPoolBtn">VIEW CONTRIBUTORS</button></div>'
+    +'<div id="ecPoolOut" style="margin-top:8px"></div></div>';
+}
+function wirePrizes(id,el){
+  var b=document.getElementById("ecPoolBtn");
+  if(b) b.onclick=function(){
+    var out=document.getElementById("ecPoolOut");
+    var pid=String(document.getElementById("ecPoolId").value||"").trim().slice(0,64);
+    if(!pid){ if(out) out.innerHTML='<div class="x-note">Enter a pool id.</div>'; return; }
+    b.disabled=true;
+    if(out) out.innerHTML='<div class="c-load">Reading the pool&hellip;</div>';
+    api("prize_contrib_list",{pool_id:pid},function(j){
+      b.disabled=false;
+      if(!j||!j.ok){
+        if(out) out.innerHTML='<div class="x-note">'+esc(PF.errCopy(j,"No data for that pool."))+'</div>';
+        return;
+      }
+      var h='<div class="cp-mtext"><b>POOL TOTAL: '+Number(j.total||0)+' XP</b></div>';
+      var cs=(j.contributors)||[];
+      if(!cs.length) h+='<div class="x-note">No contributions yet. Be the first to throw down.</div>';
+      for(var i=0;i<Math.min(cs.length,20);i++){
+        var c=cs[i];
+        h+='<div class="cp-mission"><div class="cp-mtext">'+esc(c.contributor)+'</div>'
+          +'<div class="cp-mxp">'+Number(c.total||0)+' XP ('+Number(c.contributions||0)+')</div></div>';
+      }
+      if(out) out.innerHTML=h;
+    });
+  };
+}
+function wireDrops(id,el){
+  var btns=el.querySelectorAll('button[data-did]');
+  for(var i=0;i<btns.length;i++){ (function(btn){
+    btn.onclick=function(){
+      var did=btn.getAttribute("data-did"); btn.disabled=true;
+      post("drop","d_action","drop_join",{callsign:id.callsign,device:id.device,drop_id:did},function(j){
+        if(!j||!j.ok){ toast(PF.errCopy(j,"Commit failed.")); btn.disabled=false; return; }
+        toast(j.dup?"Already committed.":"COMMITTED. +10 XP. Be ready at drop time.");
+        setTimeout(function(){ DR=null; load(); },800);
+      });
+    };
+  })(btns[i]); }
+}
+/* On-demand data (2026-10-02): fetch only when the widget is actually
+   seen (or touched). The template above already renders a skeleton.
+   In-memory vars keep the session cache — no refetch on scroll. */
+(function(){
+  var sec=null;
+  try{ sec=document.querySelector('section[data-game="economy"]'); }catch(e){}
+  var start=(window.PF&&PF.whenVisible)?PF.whenVisible(sec,function(){load();}):null;
+  if(start){ try{ if(sec) sec.addEventListener('pointerdown',start,{once:true}); }catch(e){} }
+  else load();
+})();
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },180000);
+})();
+</scr`+`ipt>
+</div>
+</template>`);
+})();
+
+;

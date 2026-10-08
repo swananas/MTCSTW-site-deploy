@@ -367,6 +367,11 @@ var BUNDLES = {
     ['core/00-bus.js', 'core/07-slr-db-data.js'].concat(CORE_FILES.slice(1)),
   'pages/bundle-pages': [
     'pages/home-v2.js',
+    /* 2026-10-07 Project 3 (fe/home-personalize): My HQ user-activity
+       personalization (hero CTA + rank greeting, streak nudge, voted-creator
+       card). Fires on #pf-v2 only; anonymous visitors get the default
+       homepage untouched. Kill: ?pf_off=home-personalize. */
+    'pages/home-personalize.js',
     'pages/political-hq.js',
     'pages/slr-roster.js',
     'pages/slr-catalog.js',

@@ -124,23 +124,45 @@
       } catch (e_pc) {}
       return '<li style="margin:0 0 0.5rem;"><a href="' + esc(l.url) + '" target="_blank" rel="noopener" style="color:' + RED_TX + ';font-weight:700;text-decoration:none;border-bottom:2px solid ' + RED + ';">' + esc(l.platform) + '</a>' + pc + '</li>';
     }).join('');
+    /* F1a: the follow-links section carries the anchor Track 01 jumps to. */
+    var followHead = '<h2 id="pf-cat-follow" style="color:' + RED + ';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;scroll-margin-top:84px;">Find them here</h2>';
 
-    /* 3 related creators: nearest scores, deterministic-ish pick */
-    var others = all.filter(function (x) { return x.slug !== m.slug; });
-    others.sort(function (a, b) { return Math.abs(a.propaganda_score - m.propaganda_score) - Math.abs(b.propaganda_score - m.propaganda_score); });
-    var related = others.slice(0, 3).map(function (x) {
+    /* PROJECT BLOSSOM F2 (2026-10-06): real affinity matching via the
+       shared DB layer — platforms + content_focus + score + reach,
+       deterministic. Replaces the old identical-trio nearest-score sort. */
+    var related = [];
+    try {
+      related = (PF.slrRelated ? PF.slrRelated(m.slug, 3) : []).filter(function (x) { return x && x.slug !== m.slug; });
+    } catch (e) { related = []; }
+    var relatedHtml = related.map(function (x) {
       return '<div><a href="' + esc(x.catalog_path) + '" style="color:' + CREAM + ';text-decoration:none;font-weight:700;">• ' + esc(x.name) + '</a>'
-        + ' <span style="color:' + MUTED + ';font-size:0.85rem;">— ' + x.propaganda_score.toFixed(1) + '/10</span></div>';
+        + ' <span style="color:' + MUTED + ';font-size:0.85rem;">— ' + PF.slrScoreText(x.slug) + '/10</span></div>';
     }).join('');
 
+    /* PROJECT BLOSSOM F1 (2026-10-06): TWO-TRACK EXITS. The old single
+       "WANT IN?" link dead-ended 95% of visitors (fans had no path).
+       Track 01 follows the creator (their links); Track 02 joins the
+       movement (/creator-onboard + callsign ENLIST entry). No dead ends:
+       when the member has no links, Track 01 falls back to the roster. */
+    var exitsHtml = twoTrackExits(m);
+
     root.innerHTML =
-      '<div style="background:' + BLACK + ';padding:2.5rem 1rem 3rem;box-sizing:border-box;">'
+      '<div style="background:' + BLACK + ';padding:2.5rem 1rem 3rem;box-sizing:border-box;" data-pf-spine-phase="enlist">'
       + '<div style="max-width:720px;margin:0 auto;font-family:\'Helvetica Neue\',Arial,sans-serif;">'
-      + '<div style="text-align:center;margin-bottom:0.5rem;"><a href="/sick-left-radicals" style="color:' + MUTED + ';font-size:0.8rem;letter-spacing:0.2em;text-decoration:none;">← ALL SICK LEFT RADICALS</a></div>'
+      /* PROJECT BLOSSOM F4 (2026-10-06): catalog breadcrumbs —
+         Home / Sick Left Radicals / {Name}. Replaces the bare back-link. */
+      + '<nav aria-label="Breadcrumb" style="text-align:center;margin-bottom:1rem;font-size:0.78rem;letter-spacing:0.08em;color:' + MUTED + ';">'
+      + '<a href="/" style="color:' + MUTED + ';text-decoration:none;">Home</a>'
+      + '<span style="margin:0 0.5rem;color:' + RED + ';">/</span>'
+      + '<a href="/sick-left-radicals" style="color:' + MUTED + ';text-decoration:none;">Sick Left Radicals</a>'
+      + '<span style="margin:0 0.5rem;color:' + RED + ';">/</span>'
+      + '<span aria-current="page" style="color:' + CREAM + ';font-weight:700;">' + esc(m.name) + '</span></nav>'
       + img
       + '<h1 style="text-align:center;color:' + CREAM + ';font-size:2rem;font-weight:900;margin:1.4rem 0 0.2rem;">' + esc(m.name) + '</h1>'
       + (handleBits.length ? '<div style="text-align:center;color:' + MUTED + ';font-size:0.9rem;margin-bottom:0.6rem;">' + esc(handleBits.join(' · ')) + '</div>' : '')
-      + '<div data-eff-score="' + esc(m.slug) + '" style="text-align:center;margin-bottom:0.4rem;font-size:1.05rem;color:' + CREAM + ';">Propaganda Score: <strong style="color:' + RED_TX + ';">' + m.propaganda_score.toFixed(1) + '/10</strong>'
+      /* F3: score from the single source of truth (PF.slrScoreText), not a
+         direct DB read — index and catalog can never drift apart again. */
+      + '<div data-eff-score="' + esc(m.slug) + '" style="text-align:center;margin-bottom:0.4rem;font-size:1.05rem;color:' + CREAM + ';">Propaganda Score: <strong style="color:' + RED + ';">' + PF.slrScoreText(m.slug) + '/10</strong>'
       + (m.score_provisional ? ' <span style="font-size:0.7rem;color:' + MUTED + ';">(provisional)</span>' : '') + '</div>'
       /* R31: aggregate reputation line — filled by repLine() below. */
       + '<div id="pf-repline" style="text-align:center;margin-bottom:0.4rem;font-size:0.95rem;color:' + MUTED + ';min-height:0;"></div>'
@@ -161,15 +183,48 @@
       + (VOTE_SKIP_SLUGS.indexOf(m.slug) === -1 ? '<div style="text-align:center;margin:0 0 1.6rem;"><a href="/create#pf-feed?creator=' + encodeURIComponent(m.slug) + '" style="color:' + MUTED + ';font-size:0.8rem;letter-spacing:0.1em;text-decoration:none;border-bottom:1px solid ' + MUTED + ';">THE CREATE FEED &rarr;</a></div>' : '')
       + para(m.bio)
       + (offer ? '<h2 style="color:' + RED + ';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;">What they offer</h2><ul style="padding-left:1.2rem;margin:0;">' + offer + '</ul>' : '')
-      + (links ? '<h2 style="color:' + RED + ';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;">Find them here</h2><ul style="list-style:none;padding:0;margin:0;">' + links + '</ul>' : '')
+      + (links ? followHead + '<ul style="list-style:none;padding:0;margin:0;">' + links + '</ul>' : '')
       + (strengths ? '<h2 style="color:' + RED + ';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;">Key strengths</h2><ul style="padding-left:1.2rem;margin:0;">' + strengths + '</ul>' : '')
-      + '<div style="text-align:center;margin-top:2.5rem;"><a href="/creator-onboard" style="color:' + RED_TX + ';font-weight:900;letter-spacing:0.12em;text-decoration:none;border-bottom:2px solid ' + RED + ';">WANT IN? JOIN THE SICK LEFT RADICALS →</a></div>'
+      + exitsHtml
       + fundBlock(m, RED, CREAM, MUTED)
-      + (related ? '<h2 style="color:' + MUTED + ';font-size:1rem;font-weight:700;letter-spacing:0.1em;margin:2.5rem 0 0.8rem;">RELATED CREATORS</h2><div style="display:flex;flex-direction:column;gap:0.5rem;">' + related + '</div>' : '')
+      + (relatedHtml ? '<h2 style="color:' + MUTED + ';font-size:1rem;font-weight:700;letter-spacing:0.1em;margin:2.5rem 0 0.8rem;">RELATED CREATORS</h2><div style="display:flex;flex-direction:column;gap:0.5rem;">' + relatedHtml + '</div>' : '')
       + nextFighter(m, all)
       + '</div></div>';
   }
 
+  /* PROJECT BLOSSOM F1 — two-track exit block. Mobile-first: stacked
+     tracks; side-by-side on >=560px via inline media query. Propaganda
+     craft: kicker + red track borders, cream type on black. */
+  function twoTrackExits(m) {
+    var hasLinks = (m.links || []).length > 0;
+    var trackA = hasLinks
+      ? '<a href="#pf-cat-follow" style="display:block;flex:1;min-width:0;background:#0d0d0d;border:2px solid #3a3a3a;color:' + CREAM + ';text-decoration:none;padding:1.1rem 1rem;box-sizing:border-box;">'
+        + '<div style="font-size:0.68rem;letter-spacing:0.24em;color:' + MUTED + ';font-weight:700;margin-bottom:0.4rem;">TRACK 01 — THEIR WORK</div>'
+        + '<div style="font-size:1.05rem;font-weight:900;letter-spacing:0.06em;">FOLLOW ' + esc(String(m.name || '').toUpperCase().slice(0, 28)) + ' &rarr;</div>'
+        + '<div style="font-size:0.78rem;color:' + MUTED + ';margin-top:0.3rem;">Off-site · their platforms</div></a>'
+      : '<a href="/sick-left-radicals" style="display:block;flex:1;min-width:0;background:#0d0d0d;border:2px solid #3a3a3a;color:' + CREAM + ';text-decoration:none;padding:1.1rem 1rem;box-sizing:border-box;">'
+        + '<div style="font-size:0.68rem;letter-spacing:0.24em;color:' + MUTED + ';font-weight:700;margin-bottom:0.4rem;">TRACK 01 — THE ROSTER</div>'
+        + '<div style="font-size:1.05rem;font-weight:900;letter-spacing:0.06em;">MEET THE FIGHTERS &rarr;</div>'
+        + '<div style="font-size:0.78rem;color:' + MUTED + ';margin-top:0.3rem;">61 more propagandists</div></a>';
+    var trackB =
+      '<a href="/creator-onboard" style="display:block;flex:1;min-width:0;background:#140808;border:2px solid ' + RED + ';color:' + CREAM + ';text-decoration:none;padding:1.1rem 1rem;box-sizing:border-box;">'
+      + '<div style="font-size:0.68rem;letter-spacing:0.24em;color:' + RED + ';font-weight:700;margin-bottom:0.4rem;">TRACK 02 — THE MOVEMENT</div>'
+      + '<div style="font-size:1.05rem;font-weight:900;letter-spacing:0.06em;">JOIN THE FIGHT &rarr;</div>'
+      + '<div style="font-size:0.78rem;color:' + MUTED + ';margin-top:0.3rem;">Apply · claim your callsign</div></a>';
+    return '<section class="pf-cat-exits" aria-label="Your next move" style="margin:2.5rem auto 0;max-width:640px;">'
+      + '<style>@media(min-width:560px){.pf-cat-tracks{display:flex!important;gap:0.8rem;}}</style>'
+      + '<div style="text-align:center;font-size:0.72rem;letter-spacing:0.3em;color:' + RED + ';font-weight:900;margin-bottom:0.9rem;">CHOOSE YOUR TRACK</div>'
+      + '<div class="pf-cat-tracks" style="display:flex;flex-direction:column;gap:0.8rem;">' + trackA + trackB + '</div>'
+      /* Callsign ENLIST entry (F1b): mounts the shared claim CTA when the
+         visitor has no callsign; fail-soft — the /creator-onboard link
+         above covers the join path regardless. */
+      + '<div id="pf-cat-claimslot" style="margin-top:0.8rem;"></div>'
+      /* Cohesion Next Move engine slot (fail-soft: PF.nextMove doesn't
+         exist yet — this div is its future mount point; nothing renders
+         until the engine lands). */
+      + '<div id="pf-cat-nextmove"></div>'
+      + '</section>';
+  }
   /* S7 FUND THEIR FIGHT (2026-10-04): after the enlist links — one click
      from admiration to money. /ventures?creator=<slug> preloads this
      creator in the subscribe UI (BLOSSOM M3 2026-10-06: was /war-chest,
@@ -259,26 +314,25 @@
       var root = el || takeoverMount();
       render(root, member, members);
       PF.log('slr-catalog', 'rendered ' + slug);
-      /* AUTO-UPDATE (2026-10-07): when live master DB data arrives after the
-         snapshot render, re-render with fresh counts. Fail-soft throughout. */
+      /* PROJECT BLOSSOM F1b: callsign ENLIST entry — mount the shared
+         claim CTA into the two-track block's claim slot. Fail-soft:
+         mountClaimCTA no-ops when the visitor already has a callsign. */
       try {
-        document.addEventListener('pf-slr-live', function onLive() {
-          try {
-            var fresh = PF.slrMember ? PF.slrMember(slug) : null;
-            if (fresh && fresh.followers_as_of !== member.followers_as_of) {
-              member = fresh;
-              var all2 = PF.slrAll ? PF.slrAll() : members;
-              render(root, member, all2);
-              PF.log('slr-catalog', 're-rendered ' + slug + ' with live data');
-              try {
-                if (window.PF && PF.creatorStats) PF.creatorStats.ready(function () {
-                  try { PF.creatorStats.paint(root); } catch (e_lp) {}
-                });
-              } catch (e_lp2) {}
-            }
-          } catch (e_lr) {}
-        });
-      } catch (e_ll) {}
+        if (window.PF && PF.mountClaimCTA) {
+          PF.mountClaimCTA(root.querySelector('#pf-cat-claimslot'),
+            'to join the Sick Left Radicals');
+        }
+      } catch (e_claim) {}
+      /* PROJECT BLOSSOM: cohesion Next Move engine slot — use
+         PF.nextMove.render where it exists, fail-soft when absent
+         (the engine hasn't landed yet; the two-track block above is the
+         exit surface until it does). */
+      try {
+        if (window.PF && PF.nextMove && typeof PF.nextMove.render === 'function') {
+          PF.nextMove.render(root.querySelector('#pf-cat-nextmove'),
+            { page: 'catalog', slug: slug });
+        }
+      } catch (e_nm) {}
       /* Unified stats (2026-10-05): paint the live follower count over the
          snapshot fallback text. Fail-soft inside the helper. */
       try {

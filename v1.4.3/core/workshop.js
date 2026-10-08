@@ -319,7 +319,10 @@
 
   function firstMount(def) {
     var section = document.createElement('section');
-    section.className = 'pf-ws-tool';
+    /* PROJECT BLOSSOM (2026-10-06): the staged tool gets the BREATHE
+       rhythm shell (spacing + anchor offset). One tool shows at a time,
+       so no section nav — the tool rail is the nav. */
+    section.className = 'pf-ws-tool pf-br-sec';
     section.setAttribute('data-ws-tool', def.id);
     section.setAttribute('tabindex', '-1');
     section.setAttribute('aria-label', def.title);

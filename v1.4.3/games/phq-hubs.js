@@ -381,6 +381,16 @@
     var tabs = nav.querySelectorAll('.pf-hq-tab');
     for (var i = 0; i < tabs.length; i++) {
       (function (b) {
+        /* PROJECT BLOSSOM M4 (2026-10-06): anchor tabs are plain rail
+           links (e.g. money -> /follow-the-money), not hub tabs — the
+           visibility pass never hides them. */
+        try {
+          if (b.tagName === 'A' && b.getAttribute('href')) {
+            b.style.display = '';
+            b.setAttribute('aria-hidden', 'false');
+            return;
+          }
+        } catch (e0) {}
         var hub = hubById(b.getAttribute('data-hub'));
         if (!hub) return;
         var sec = hubSectionEl(hub);

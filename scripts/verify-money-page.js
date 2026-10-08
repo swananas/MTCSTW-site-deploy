@@ -13,8 +13,9 @@
       registration, AC-return rail, forge stash contract
    3. Mocked-browser runtime tests (vm + canvas-2d stub + minimal DOM stub):
       PFMoney.skip master kill; page mode renders all sections; PHQ mode
-      renders the interim tab (lazy) or the redirect card when
-      money_page_url is set; PFTrades/PFPacAlerts honest empty states;
+      renders the interim tab (lazy); with money_page_url set the money tab
+      becomes a plain tab-rail link to /follow-the-money (Blossom M4);
+      PFTrades/PFPacAlerts honest empty states;
       pac-alert staleness suppression; PFMoneyDeep 8 slots with per-slot
       kill; phq-votedonor painter renders on fixture data with the
       correlation line.
@@ -75,8 +76,8 @@ else no('deep8 kills', 'missing');
 if (/getElementById\(['"]pf-money['"]\)/.test(mpcode) && /getElementById\(['"]pf-political-hq['"]\)/.test(mpcode))
   ok('context-aware: detects #pf-money and #pf-political-hq');
 else no('context-aware mount', 'missing div detection');
-if (/money_page_url/.test(mpcode)) ok('redirect card gated on money_page_url config');
-else no('redirect card', 'missing config gate');
+if (/money_page_url/.test(mpcode)) ok('rail-link cutover gated on money_page_url config');
+else no('rail-link cutover', 'missing config gate');
 if (/IntersectionObserver/.test(mpcode)) ok('interim tab lazy-mounts sections');
 else no('lazy mount', 'missing IntersectionObserver');
 
@@ -148,6 +149,13 @@ function makeDom() {
         if (i !== -1) e.children.splice(i, 1);
         return c;
       },
+      replaceChild: function (nn, oo) {
+        var i = e.children.indexOf(oo);
+        if (i !== -1) e.children[i] = nn;
+        else e.children.push(nn);
+        nn.parentNode = e; oo.parentNode = null;
+        return oo;
+      },
       querySelector: function (sel) {
         var all = [];
         (function walk(n) {
@@ -191,7 +199,28 @@ function makeDom() {
     head: el('head'), body: el('body'),
     addEventListener: function () {},
     readyState: 'complete',
-    querySelector: function () { return null; }
+    /* Blossom M4: find rail tabs inside #pf-hq-subnav for the money-tab
+       cutover (document-level compound selectors used by money-page.js). */
+    querySelector: function (sel) {
+      var pool = [];
+      Object.keys(els).forEach(function (k) { pool.push(els[k]); });
+      (function walk(n) { (n.children || []).forEach(function (c) { pool.push(c); walk(c); }); })(doc.body);
+      function inSubnav(n) {
+        var p = n.parentNode;
+        while (p) { if (p.id === 'pf-hq-subnav') return true; p = p.parentNode; }
+        return false;
+      }
+      for (var i = 0; i < pool.length; i++) {
+        var n = pool[i];
+        if (!inSubnav(n)) continue;
+        var isLink = (n.tagName === 'A') && n.getAttribute('data-hub') === 'money';
+        var isBtn = n.tagName !== 'A' && (n.className || '').split(' ').indexOf('pf-hq-tab') !== -1 &&
+          n.getAttribute('data-hub') === 'money';
+        if (sel === '#pf-hq-subnav a[data-hub="money"]' && isLink) return n;
+        if (sel === '#pf-hq-subnav .pf-hq-tab[data-hub="money"]' && isBtn) return n;
+      }
+      return null;
+    }
   };
   doc._reg = function (id, e) { els[id] = e; doc.body.appendChild(e); };
   return doc;
@@ -213,10 +242,8 @@ function canvasStub() {
   };
 }
 
-function runModule(file, opts) {
+function runModuleOnDoc(file, doc, opts) {
   opts = opts || {};
-  var doc = makeDom();
-  (opts.divs || []).forEach(function (id) { doc._reg(id, doc.createElement('div')); });
   var skipIds = opts.skipIds || [];
   var config = opts.config || {};
   var sandbox = {
@@ -245,6 +272,13 @@ function runModule(file, opts) {
   vm.createContext(sandbox);
   vm.runInContext(read(file), sandbox, { filename: file });
   return { sandbox: sandbox, doc: doc };
+}
+
+function runModule(file, opts) {
+  opts = opts || {};
+  var doc = makeDom();
+  (opts.divs || []).forEach(function (id) { doc._reg(id, doc.createElement('div')); });
+  return runModuleOnDoc(file, doc, opts);
 }
 
 /* PFMoney.skip master kill */
@@ -285,6 +319,7 @@ function runModule(file, opts) {
   else no('tab mode', '#phq-money not appended');
 })();
 
+<<<<<<< HEAD
 /* PHQ + money_page_url set: redirect card (BLOSSOM M1 2026-10-06: the
    money suite's canonical URL is /follow-the-money) */
 (function () {
@@ -294,6 +329,36 @@ function runModule(file, opts) {
   var hasLink = card && (card.innerHTML || '').indexOf('/follow-the-money') !== -1;
   if (hasLink) ok('cutover: redirect card links /follow-the-money');
   else no('redirect card', 'missing or no link');
+=======
+/* PHQ + money_page_url set: money tab becomes a rail link (Blossom M4 —
+   the "money war room moved" redirect card is gone) */
+(function () {
+  var doc = makeDom();
+  doc._reg('pf-political-hq', doc.createElement('div'));
+  var nav = doc.createElement('nav');
+  nav.id = 'pf-hq-subnav';
+  ['action', 'money'].forEach(function (id) {
+    var b = doc.createElement('button');
+    b.className = 'pf-hq-tab';
+    b.setAttribute('data-hub', id);
+    b.textContent = id === 'money' ? 'FOLLOW THE MONEY' : id.toUpperCase();
+    nav.appendChild(b);
+  });
+  doc._reg('pf-hq-subnav', nav);
+  var r = runModuleOnDoc(MP_MOD, doc, { config: { money_page_url: '/follow-the-money' } });
+  var link = doc.querySelector('#pf-hq-subnav a[data-hub="money"]');
+  var btnLeft = doc.querySelector('#pf-hq-subnav .pf-hq-tab[data-hub="money"]');
+  if (link && link.href === '/follow-the-money') ok('cutover: money tab is a rail link to /follow-the-money');
+  else no('cutover rail link', 'anchor missing or wrong href');
+  if (link && link.textContent === 'FOLLOW THE MONEY') ok('cutover: rail link keeps the tab label');
+  else no('cutover rail label', 'wrong text');
+  if (!btnLeft) ok('cutover: money button replaced, no duplicate tab');
+  else no('cutover duplicate', 'button still present');
+  var host = doc.getElementById('pf-political-hq');
+  var cardHtml = (host.children || []).map(function (c) { return c.innerHTML || ''; }).join('');
+  if (cardHtml.indexOf('money war room moved') === -1) ok('cutover: no redirect card copy mounted');
+  else no('cutover card copy', 'still mounted');
+>>>>>>> fe/blossom-craft
 })();
 
 /* trades: honest empty state, no endpoint needed */

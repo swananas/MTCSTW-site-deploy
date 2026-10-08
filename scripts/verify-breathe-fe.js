@@ -73,8 +73,42 @@ var ds = stripComments(read(DS_CSS)), bc = stripComments(read(BUNDLE_CSS));
 if (has(path.join(ROOT, 'build', 'bundle-core.js'), "'core/30-breathe.js'")) ok('30-breathe.js in CORE_FILES');
 else no('30-breathe.js in CORE_FILES', 'not registered');
 var coreMin = read(CORE_BUNDLE), slrMin = read(CORE_SLR);
-if (/\.Breathe=/.test(coreMin) && /\.Breathe=/.test(slrMin)) ok('PF.Breathe present in both core bundles (post-minify)');
+/* 2026-10-06 (blossom): the minifier emits `PF.Breathe = {...}` with spaces —
+   the old /\.Breathe=/ regex never matched. */
+if (/\.Breathe\s*=/.test(coreMin) && /\.Breathe\s*=/.test(slrMin)) ok('PF.Breathe present in both core bundles (post-minify)');
 else no('PF.Breathe in bundles', 'property missing after minify');
+/* PROJECT BLOSSOM (2026-10-06): PF.BreathePages page-level module. */
+if (has(path.join(ROOT, 'build', 'bundle-core.js'), "'core/31-breathe-pages.js'")) ok('31-breathe-pages.js in CORE_FILES');
+else no('31-breathe-pages.js in CORE_FILES', 'not registered');
+if (/\.BreathePages\s*=/.test(coreMin) && /\.BreathePages\s*=/.test(slrMin)) ok('PF.BreathePages present in both core bundles (post-minify)');
+else no('PF.BreathePages in bundles', 'property missing after minify');
+try { cp.execSync('node --check ' + JSON.stringify(path.join(V, 'core', '31-breathe-pages.js')), { stdio: 'pipe' }); ok('syntax 31-breathe-pages.js'); }
+catch (e) { no('syntax 31-breathe-pages.js', 'node --check failed'); }
+var bp = stripComments(read(path.join(V, 'core', '31-breathe-pages.js')));
+if (bp.indexOf('applyPage') !== -1 && bp.indexOf('pf-br-sec') !== -1) ok('BreathePages: rhythm shell applied per section');
+else no('BreathePages rhythm', 'missing');
+if (bp.indexOf('sectionNav') !== -1) ok('BreathePages: sectionNav wired for multi-section pages');
+else no('BreathePages nav', 'missing');
+if (bp.indexOf('data-pf-br-sec') !== -1 && bp.indexOf('data-pf-br-nav') !== -1) ok('BreathePages: idempotent markers (sections + nav)');
+else no('BreathePages idempotency', 'missing markers');
+if (bp.indexOf("PF.skip('breathe-pages')") !== -1) ok('BreathePages kill switch (?pf_off=breathe-pages)');
+else no('BreathePages kill switch', 'missing');
+/* page-mount.js wiring: BREATHE_PAGES allowlist + applyBreathe call. */
+try { cp.execSync('node --check ' + JSON.stringify(path.join(V, 'pages', 'page-mount.js')), { stdio: 'pipe' }); ok('syntax page-mount.js'); }
+catch (e) { no('syntax page-mount.js', 'node --check failed'); }
+var pm = stripComments(read(path.join(V, 'pages', 'page-mount.js')));
+['pf-economy', 'pf-warreport', 'pf-cells-page', 'pf-events', 'pf-arcade', 'pf-bank', 'pf-warchest'].forEach(function (pid) {
+  if (pm.indexOf("'" + pid + "'") !== -1) ok('page-mount BREATHE_PAGES includes ' + pid);
+  else no('BREATHE_PAGES ' + pid, 'not wired');
+});
+if (pm.indexOf('PF.BreathePages.applyPage') !== -1) ok('page-mount calls PF.BreathePages.applyPage');
+else no('page-mount applyBreathe', 'not called');
+/* workshop shell rhythm. */
+try { cp.execSync('node --check ' + JSON.stringify(path.join(V, 'core', 'workshop.js')), { stdio: 'pipe' }); ok('syntax workshop.js'); }
+catch (e) { no('syntax workshop.js', 'node --check failed'); }
+var ws = stripComments(read(path.join(V, 'core', 'workshop.js')));
+if (ws.indexOf('pf-ws-tool pf-br-sec') !== -1) ok('workshop: staged tools carry pf-br-sec rhythm');
+else no('workshop rhythm', 'missing');
 ['sectionNav', 'collapsible', 'showMore'].forEach(function (fn) {
   if (read(BREATHE_MOD).indexOf(fn + ': ' + fn) !== -1 || read(BREATHE_MOD).indexOf(fn) !== -1) ok('PF.Breathe.' + fn + ' exported');
   else no('PF.Breathe.' + fn, 'not exported');
@@ -265,6 +299,163 @@ try {
   else no('showMore zero-op', 'modified a short list');
 } catch (e) {
   no('runtime', String((e && e.stack) || e).slice(0, 300));
+}
+
+/* ============ 4. BreathePages mocked-browser runtime ============ */
+console.log('== 4. BreathePages runtime ==');
+try {
+  /* extend the section-3 DOM stub: tag.class + tag-list selectors */
+  var _qsa = sb.document.createElement('div').querySelectorAll;
+  /* fresh sandbox so BreathePages loads against the real 30-breathe */
+  var sb2 = {};
+  sb2.window = sb2;
+  var roots2 = [];
+  function mk2(tag) {
+    var el = {
+      tagName: String(tag).toUpperCase(), children: [], _attrs: {}, _listeners: {},
+      style: {}, parentNode: null, className: '', _innerHTML: '', textContent: '', id: ''
+    };
+    el.appendChild = function (c) { c.parentNode = el; el.children.push(c); return c; };
+    el.insertBefore = function (c, ref) {
+      c.parentNode = el;
+      var ix = ref ? el.children.indexOf(ref) : -1;
+      if (ix === -1) el.children.push(c); else el.children.splice(ix, 0, c);
+      return c;
+    };
+    el.removeChild = function (c) {
+      var ix = el.children.indexOf(c);
+      if (ix !== -1) el.children.splice(ix, 1);
+      c.parentNode = null;
+      return c;
+    };
+    el.setAttribute = function (k, v) { el._attrs[String(k)] = String(v); };
+    el.getAttribute = function (k) {
+      return Object.prototype.hasOwnProperty.call(el._attrs, k) ? el._attrs[k] : null;
+    };
+    el.removeAttribute = function (k) { delete el._attrs[k]; };
+    el.addEventListener = function (t, fn) { (el._listeners[t] = el._listeners[t] || []).push(fn); };
+    el.fire = function (t, ev) { (el._listeners[t] || []).forEach(function (fn) { fn.call(el, ev || {}); }); };
+    function hasCls(n, c) { return n.className && n.className.split(' ').indexOf(c) !== -1; }
+    el.querySelectorAll = function (sel) {
+      var out = [];
+      function match(n) {
+        if (sel === 'section.pf-v2-game') return n.tagName === 'SECTION' && hasCls(n, 'pf-v2-game');
+        if (sel === 'h1,h2,h3') return n.tagName === 'H1' || n.tagName === 'H2' || n.tagName === 'H3';
+        if (sel === '[data-pf-br-nav]') return n.getAttribute('data-pf-br-nav') !== null;
+        if (sel.charAt(0) === '.') return hasCls(n, sel.slice(1));
+        return false;
+      }
+      (function walk(n) {
+        n.children.forEach(function (c) { if (match(c)) out.push(c); walk(c); });
+      })(el);
+      return out;
+    };
+    el.querySelector = function (sel) { var a = el.querySelectorAll(sel); return a.length ? a[0] : null; };
+    Object.defineProperty(el, 'classList', {
+      get: function () {
+        return {
+          add: function (c) {
+            var parts = el.className.split(' ').filter(Boolean);
+            if (parts.indexOf(c) === -1) parts.push(c);
+            el.className = parts.join(' ');
+          },
+          contains: function (c) { return el.className.split(' ').indexOf(c) !== -1; }
+        };
+      }
+    });
+    Object.defineProperty(el, 'innerHTML', {
+      get: function () { return el._innerHTML; },
+      set: function (v) { el._innerHTML = String(v); }
+    });
+    el.scrollIntoView = function () { el._scrolled = true; };
+    return el;
+  }
+  function findById(id) {
+    var found = null;
+    roots2.forEach(function (r) {
+      (function walk(n) {
+        if (found) return;
+        if (n.id === id) { found = n; return; }
+        n.children.forEach(walk);
+      })(r);
+    });
+    return found;
+  }
+  sb2.document = {
+    createElement: function (t) { return mk2(t); },
+    getElementById: function (id) { return findById(id); },
+    addEventListener: function () {}
+  };
+  sb2.matchMedia = function () { return { matches: false }; };
+  sb2.PF = { skip: function () { return false; } };
+  sb2.IntersectionObserver = function () { this.observe = function () {}; this.disconnect = function () {}; };
+  vm.createContext(sb2);
+  vm.runInContext(read(BREATHE_MOD), sb2, { filename: '30-breathe.js' });
+  vm.runInContext(read(path.join(V, 'core', '31-breathe-pages.js')), sb2, { filename: '31-breathe-pages.js' });
+  var BP = sb2.PF.BreathePages;
+  if (!BP || typeof BP.applyPage !== 'function') { no('BreathePages load', 'applyPage missing'); }
+  else {
+    ok('BreathePages loads with applyPage');
+    function pageHost(nSecs) {
+      var host = mk2('div'); host.id = 'pf-cells-page'; roots2.push(host);
+      var head = mk2('div'); head.className = 'pf-page-head'; host.appendChild(head);
+      for (var i = 0; i < nSecs; i++) {
+        var s = mk2('section'); s.className = 'pf-v2-game';
+        s.setAttribute('data-game', 'silo-' + i);
+        var h = mk2('h2'); h.textContent = 'Section Title ' + i; s.appendChild(h);
+        var b = mk2('div'); b.textContent = 'body'; s.appendChild(b);
+        host.appendChild(s);
+      }
+      return host;
+    }
+    /* <6 sections: rhythm, no nav */
+    var h2 = pageHost(2);
+    BP.applyPage(h2, 'pf-cells-page');
+    var r2 = h2.querySelectorAll('section.pf-v2-game');
+    var rhythmOk = r2.length === 2 && r2.every(function (s) {
+      return s.classList.contains('pf-br-sec') && s.getAttribute('data-pf-br-sec') === '1' && !!s.id;
+    });
+    if (rhythmOk) ok('applyPage: rhythm shell + ids on all sections (<6: no nav)');
+    else no('applyPage rhythm', 'missing pf-br-sec/ids');
+    if (h2.querySelectorAll('[data-pf-br-nav]').length === 0) ok('applyPage: no nav below threshold');
+    else no('applyPage nav threshold', 'nav built for 2 sections');
+    /* >=6 sections: nav with heading-derived labels */
+    var h7 = pageHost(7);
+    BP.applyPage(h7, 'pf-cells-page');
+    var navs = h7.querySelectorAll('[data-pf-br-nav]');
+    if (navs.length === 1) ok('applyPage: exactly one nav host for 7 sections');
+    else no('applyPage nav count', 'got ' + navs.length);
+    var pills = navs.length ? navs[0].querySelectorAll('.pf-bnav-pill') : [];
+    if (pills.length === 7) ok('applyPage: 7 pills for 7 rendered sections');
+    else no('applyPage pills', 'got ' + pills.length);
+    if (pills.length === 7 && pills[3].textContent === 'Section Title 3') ok('applyPage: pill labels from section headings');
+    else no('applyPage labels', 'wrong label text');
+    /* idempotency: second pass changes nothing */
+    var pillsBefore = pills.length;
+    BP.applyPage(h7, 'pf-cells-page');
+    var navs2 = h7.querySelectorAll('[data-pf-br-nav]');
+    if (navs2.length === 1 && navs2[0].querySelectorAll('.pf-bnav-pill').length === pillsBefore) ok('applyPage: idempotent re-run');
+    else no('applyPage idempotency', 'nav duplicated');
+    /* late silo: nav rebuilds when the section set grows */
+    var s8 = mk2('section'); s8.className = 'pf-v2-game';
+    s8.setAttribute('data-game', 'late-silo');
+    var h8 = mk2('h2'); h8.textContent = 'Late Section'; s8.appendChild(h8);
+    h7.appendChild(s8);
+    BP.applyPage(h7, 'pf-cells-page');
+    var pillsAfter = h7.querySelectorAll('[data-pf-br-nav]')[0].querySelectorAll('.pf-bnav-pill').length;
+    if (pillsAfter === 8) ok('applyPage: nav rebuilds when a late silo lands');
+    else no('applyPage late silo', 'pills=' + pillsAfter);
+    /* breathe killed: total no-op */
+    var sb3 = { window: null, document: sb2.document, matchMedia: sb2.matchMedia,
+      IntersectionObserver: sb2.IntersectionObserver, PF: { skip: function () { return true; } } };
+    sb3.window = sb3;
+    vm.createContext(sb3);
+    vm.runInContext(read(path.join(V, 'core', '31-breathe-pages.js')), sb3, { filename: '31-breathe-pages.js' });
+    if (!sb3.PF.BreathePages) ok('BreathePages: ?pf_off=breathe-pages kills the module');
+    else no('BreathePages kill', 'still defined');
+  }
+} catch (e) {
+  no('BreathePages runtime', String((e && e.stack) || e).slice(0, 300));
 }
 
 /* ============ summary ============ */

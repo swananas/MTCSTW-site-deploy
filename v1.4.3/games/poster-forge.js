@@ -245,8 +245,21 @@ function stampedBlob(cb){
     else{cb(blob);}
   });
 }
+function _pfClaimGate(fn){
+  try{ var g=window.PFShare&&window.PFShare.claimGate; if(typeof g==='function'){ g(fn); return; } }catch(e){}
+  try{ fn(); }catch(e2){}
+}
+/* A10 (2026-10-04): callsign-claim intercept on the bespoke download path
+   below (same gate share-image.js uses at its share/save chokepoint).
+   Claimed users: zero change — the callback fires immediately. Unclaimed
+   users: inline claim prompt; zero XP for the gate itself; dismiss proceeds
+   unstamped. Never wedges the download. preventDefault stays synchronous
+   on the click handler. */
 document.getElementById("pDownload").onclick=function(e){
   e.preventDefault();
+  _pfClaimGate(function(){ _pfDownloadPoster(); });
+};
+function _pfDownloadPoster(){
   /* award XP + ping the trackers — ONCE PER DAY max (anti-farming).
      Repeated downloads of the same or different posters on the same day
      do not re-fire pf-poster-made. */
@@ -291,7 +304,8 @@ document.getElementById("pDownload").onclick=function(e){
     document.body.appendChild(a);a.click();a.remove();
     setTimeout(function(){URL.revokeObjectURL(url);},4000);
   });
-};
+  });
+}
 document.getElementById("pShare").onclick=function(){
   pfLogShare();
   stampedBlob(function(blob){

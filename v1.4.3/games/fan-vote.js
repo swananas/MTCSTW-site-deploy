@@ -346,7 +346,19 @@
       } else finish(null);
     });
   }
+  function _pfClaimGate(fn){
+    try{ var g=window.PFShare&&window.PFShare.claimGate; if(typeof g==='function'){ g(fn); return; } }catch(e){}
+    try{ fn(); }catch(e2){}
+  }
+  /* A10 (2026-10-04): callsign-claim intercept on the bespoke download path
+     below (same gate share-image.js uses at its share/save chokepoint).
+     Claimed users: zero change — the callback fires immediately. Unclaimed
+     users: inline claim prompt; zero XP for the gate itself; dismiss proceeds
+     unstamped. Never wedges the download. */
   function shareVotePoster(c, mode){
+    _pfClaimGate(function(){ _shareVotePoster(c, mode); });
+  }
+  function _shareVotePoster(c, mode){
     var msgEl=document.getElementById('pf-vote-copymsg');
     var say=function(t){ if(msgEl)msgEl.textContent=t; };
     say('Building your poster\\u2026');
@@ -383,6 +395,7 @@
             });
         } else { credit(); dl(blob); }
       },'image/jpeg',0.85);
+    });
     });
   }
   function showVoted(name, weight){

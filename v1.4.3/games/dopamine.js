@@ -680,7 +680,19 @@ try{
    core/share-image.js — Web Share with files when navigator.canShare allows,
    iOS-safe download fallbacks, real toast on failure. Credits the once-per-day
    share gate only on a completed share or download — never on cancel. */
+function _pfClaimGate(fn){
+  try{ var g=window.PFShare&&window.PFShare.claimGate; if(typeof g==='function'){ g(fn); return; } }catch(e){}
+  try{ fn(); }catch(e2){}
+}
+/* A10 (2026-10-04): callsign-claim intercept on the bespoke download path
+   below (same gate share-image.js uses at its share/save chokepoint).
+   Claimed users: zero change — the callback fires immediately. Unclaimed
+   users: inline claim prompt; zero XP for the gate itself; dismiss proceeds
+   unstamped. Never wedges the download. */
 function shareLoot(reward,rk){
+  _pfClaimGate(function(){ _shareLoot(reward,rk); });
+}
+function _shareLoot(reward,rk){
   try{
     var c=document.createElement("canvas"); c.width=1080; c.height=1080;
     var g=c.getContext("2d");
@@ -821,6 +833,7 @@ function shareLoot(reward,rk){
       }
     }catch(e){ toast("Poster failed \\u2014 try again."); }
   }catch(e){ toast("Poster failed \\u2014 try again."); }
+  });
 }
 function comebackBanner(xp){
   ovCss();

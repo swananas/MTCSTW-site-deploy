@@ -761,7 +761,19 @@ function drawBoostCard(){
   ctx.fillText("JOIN THE FIGHT.",540,1236);
   return cv;
 }
+function _pfClaimGate(fn){
+  try{ var g=window.PFShare&&window.PFShare.claimGate; if(typeof g==='function'){ g(fn); return; } }catch(e){}
+  try{ fn(); }catch(e2){}
+}
+/* A10 (2026-10-04): callsign-claim intercept on the bespoke download paths
+   below (same gate share-image.js uses at its share/save chokepoint).
+   Claimed users: zero change — the callback fires immediately. Unclaimed
+   users: inline claim prompt; zero XP for the gate itself; dismiss proceeds
+   unstamped. Never wedges the download. */
 function shareBoostCard(){
+  _pfClaimGate(function(){ _shareBoostCard(); });
+}
+function _shareBoostCard(){
   var boostShareErr=function(msg){
     /* Reuses the file's existing .o-err error style; auto-dismisses like the share note. */
     try{
@@ -797,6 +809,7 @@ function shareBoostCard(){
     if(cv.toBlob){ cv.toBlob(function(bl){ go(URL.createObjectURL(bl),bl); },"image/png"); }
     else{ var u=cv.toDataURL("image/png"); fetch(u).then(function(r){return r.blob();}).then(function(bl){ go(URL.createObjectURL(bl),bl); }).catch(function(){ boostShareErr("Boost card image failed to build — tap Share again to retry."); }); }
   }catch(e){}
+  });
 }
 
 /* ============ HEADLINE MISSION (Boost Raid consolidation, 2026-10-03) ============
@@ -1406,6 +1419,9 @@ function drawOrdersCard(){
   return cv;
 }
 function shareOrdersImage(btn){
+  _pfClaimGate(function(){ _shareOrdersImage(btn); });
+}
+function _shareOrdersImage(btn){
   if(btn)btn.disabled=true;
   /* Remove any prior share note. */
   var prior=document.getElementById('oShareNote');if(prior)prior.remove();
@@ -1447,6 +1463,7 @@ function shareOrdersImage(btn){
     if(cv.toBlob){cv.toBlob(function(b){done(URL.createObjectURL(b),b);},'image/png');}
     else{ var u=cv.toDataURL('image/png');fetch(u).then(function(r){return r.blob();}).then(function(b){done(URL.createObjectURL(b),b);}).catch(function(){if(btn)btn.disabled=false;note('Image failed to build — tap the button again to retry.','#c1121f');});}
   }catch(e){if(btn)btn.disabled=false;}
+  });
 }
 var _shareBtn=document.getElementById('oShareImg');
 if(_shareBtn){_shareBtn.addEventListener('click',function(){shareOrdersImage(_shareBtn);});}

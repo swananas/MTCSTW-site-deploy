@@ -315,5 +315,15 @@
 
     refresh();
     setInterval(refresh, POLL_MS);
+
+    /* Cross-silo hook (W5-11): lets the mystery-bounty UI ask "is a blackout
+       live right now?" without duplicating the flags contract. */
+    try {
+      window.PFBlackout = window.PFBlackout || {};
+      window.PFBlackout.isLive = function (cb) {
+        try { readOpStatus(function (op) { try { cb(!!(op && op.live && isBlackoutOp(op))); } catch (e) { cb(false); } }); }
+        catch (e) { try { cb(false); } catch (e2) {} }
+      };
+    } catch (e) {}
   }
 })();

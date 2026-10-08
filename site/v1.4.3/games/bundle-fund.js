@@ -262,10 +262,14 @@
     var link = P
       ? P.textLink(MONEY_TRAIL_URL, 'FOLLOW THE MONEY \u2192')
       : '<a class="pf-pat-textlink" href="' + MONEY_TRAIL_URL + '">FOLLOW THE MONEY \u2192</a>';
+    var storeLink = P
+      ? P.textLink(BONDS_PAGE, 'BROWSE THE STORE \u2192')
+      : '<a class="pf-pat-textlink" href="' + BONDS_PAGE + '">BROWSE THE STORE \u2192</a>';
     return '<div class="pf-fund-next"><p class="pf-fund-sec-k">NEXT MOVE</p>' +
       '<p style="font-size:15px;font-weight:700;margin:0 0 8px;">FOLLOW THE MONEY, LIVE</p>' +
       '<p class="pf-fund-sec-s" style="text-align:center;">The money trail is already open \u2014 see who funds the votes while the treasury report is compiled.</p>' +
-      '<div>' + link + '</div></div>';
+      '<div style="padding:12px 0 6px">' + link + '</div>' +
+      '<div style="padding:6px 0 12px">' + storeLink + '</div></div>';
   }
 
   function buildHTML(F, P) {

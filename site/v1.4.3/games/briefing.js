@@ -282,7 +282,7 @@ function routeMarchHtml(){
   if(CIRCUIT.claimed){
     h+='<div class="x-note" style="margin-top:8px">\\u2713 MARCH COMPLETE &mdash; DAY '+sd+' &bull; +'
       +Number(CIRCUIT.payout||0)+' XP claimed. Tomorrow pays +'+Number(CIRCUIT.next_payout||10)
-      +' XP. Miss a day and the streak resets.</div>';
+      +' XP. Miss a day and the streak resets.<br><a href="/store" style="display:inline-block;color:#e5383b;font-weight:700;margin-top:8px;min-height:44px;line-height:44px">GEAR UP AT THE STORE &rarr;</a></div>';
   } else if(CIRCUIT.can_claim){
     h+='<div style="margin-top:10px"><button class="c-btn br-rmbtn" data-act="circuit">CLAIM +'
       +Number(CIRCUIT.next_payout||10)+' XP &mdash; DAY '+sd+'</button></div>';

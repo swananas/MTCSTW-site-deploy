@@ -1,0 +1,620 @@
+/* core/03-global.js  |  PF v1.4.1 | Backend URL, pfReportAction, global total fetch, achievement share image
+   KILL: ?pf_off=03-global  or  localStorage pf_disabled_v1='["03-global"]' */
+/* PF GLOBAL ACTIONS: unified site-wide total, visible to everyone.
+   Each widget calls pfReportAction('action_type') on completion.
+   The total is fetched from the backend and displayed in #pf-global-total.
+   2026-10-04: also owns the site-wide first-touch ?ref=<callsign> capture
+   (pf_pending_ref) so referrals landing on ANY page attribute — it used to
+   live only in the homepage Referral War game. */
+window.PF_BACKEND_URL = "https://pf-api.mtcstw.workers.dev";
+/* P0 (2026-10-02): shared POST helper for POST_ONLY actions.
+   Usage: PF.postAction('cell','cell_action','cell_create',{callsign:cs},cb)
+   Attaches auth_secret automatically. Falls back to PF.authPost (with
+   claim/retry) when available. Network fail -> cb(null). */
+window.PF = window.PF || {};
+window.PF.postAction = function(type, actionKey, action, params, cb){
+  var url = window.PF_BACKEND_URL;
+  if(!url){ try{ cb(null); }catch(e){} return; }
+  var body = Object.assign({type:type}, params||{});
+  body[actionKey] = action;
+  if(window.PF && window.PF.authPost){ window.PF.authPost(url, body, cb); return; }
+  var secret = '';
+  try{ secret = (window.PF && window.PF.getAuthSecret) ? window.PF.getAuthSecret() : ''; }catch(e){}
+  if(secret) body.auth_secret = secret;
+  /* L2 (2026-10-03): 15s abort on this fallback too (was: hung POST spins forever). */
+  var _po=(function(){ var o={method:'POST', headers:{'Content-Type':'application/json'}, body:''},c=null,t=null;
+    try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+      t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+    o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+  _po.body = JSON.stringify(body);
+  function done(j){ try{ cb(j); }catch(e){} }
+  try{
+    fetch(url, _po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+};
+/* Per-device identity + callsign. Attached to every backend action report so
+   per-user rows in the Sheet key to the local device and the user's callsign.
+   Votes stay anonymous by design — no identity is ever sent on vote rows. */
+window.PFDeviceId = function(){
+  try{
+    var k='pf_device_v1', id=localStorage.getItem(k);
+    if(!id){ id='d-'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);
+      try{ localStorage.setItem(k,id); }catch(e){} }
+    return id;
+  }catch(e){ return ''; }
+};
+window.PFCallsign = function(){
+  try{ return String((JSON.parse(localStorage.getItem('pf_identity_v1')||'{}')).callsign||''); }
+  catch(e){ return ''; }
+};
+/* R29 (2026-10-05): "Subscriber" = creator-subscription holder.
+   The authoritative PM decision (BUILD_MASTER_PLAN.md:95) defines R29 as
+   creator-subscription perks ("1.1x XP on tips to the subscribed creator",
+   "Perks lapse with the subscription") — the subscriptions table is the
+   source of truth, NOT war-bond purchase. PF.isSubscriber reads the cached
+   flag in localStorage 'pf_subscriber_v1'; PF.refreshSubscriber() derives
+   it from the subscription_list read action (subDispatch, authed per
+   callsign) and must run after subscribe/unsubscribe and once when the
+   identity is available. One shared helper so the badge
+   (enlistment-ranks), ticker treatment (war-room-ticker) and subscriber
+   poster frame (share-image) all read the same source. PF.setSubscriber is
+   the write side (also used to clear the flag locally on unsubscribe). */
+window.PF.isSubscriber = function(){
+  try{ return !!localStorage.getItem('pf_subscriber_v1'); }catch(e){ return false; }
+};
+window.PF.setSubscriber = function(on){
+  try{ if(on) localStorage.setItem('pf_subscriber_v1','1'); else localStorage.removeItem('pf_subscriber_v1'); }catch(e){}
+};
+/* Derive subscriber status from the authoritative source: the
+   subscription_list read action (GET ?action=subscription_list, auth-gated
+   per callsign, or POST {type:'sub', s_action:'subscription_list'}).
+   A callsign counts as a subscriber while it holds >=1 active row AS A
+   SUBSCRIBER in the subscriptions table (supporting[] non-empty).
+   Fail-closed: a failed read keeps the last cached value — it never
+   invents or clears status. */
+window.PF.refreshSubscriber = function(cb){
+  var done = function(v){ try{ if(cb) cb(v); }catch(e){} };
+  try{
+    var cs = (window.PFCallsign ? window.PFCallsign() : '');
+    if(!cs || !window.PF_BACKEND_URL || !window.PF.postAction){
+      done(window.PF.isSubscriber()); return;
+    }
+    window.PF.postAction('sub','s_action','subscription_list',{callsign:cs},function(j){
+      try{
+        if(j && j.ok && Array.isArray(j.supporting)){
+          window.PF.setSubscriber(j.supporting.length > 0);
+        }
+      }catch(e){}
+      done(window.PF.isSubscriber());
+    });
+  }catch(e){ done(false); }
+};
+/* R29: one authoritative refresh shortly after load for returning
+   subscribers (auth + callsign helpers may load after this file). */
+try{ setTimeout(function(){
+  try{ if(window.PFCallsign && window.PFCallsign() && window.PF.refreshSubscriber) window.PF.refreshSubscriber(); }catch(e){}
+}, 3000); }catch(e2){}
+/* 2026-10-04 (creator audit): site-wide first-touch ?ref=<callsign> capture.
+   MOVED here from the homepage-only Referral War game (games/referral.js)
+   so referrals landing on ANY page — notably /request-access — are captured
+   into pf_pending_ref for the enlistment claim flow. First touch wins; a
+   visitor who already holds a callsign keeps their own identity (a ref can
+   never overwrite or self-credit an existing callsign). Exposed as
+   PF.capturePendingRef for late-arriving silos. */
+window.PF.capturePendingRef = function(){
+  try{
+    var m = String(window.location.search||'').match(/[?&]ref=([a-z0-9_]{3,20})/i);
+    if(!m || !m[1]) return false;
+    var hasCs = ''; try{ hasCs = window.PFCallsign ? window.PFCallsign() : ''; }catch(e0){}
+    if(hasCs) return false;
+    var hasRef = ''; try{ hasRef = localStorage.getItem('pf_pending_ref') || ''; }catch(e1){}
+    if(hasRef) return true; /* first touch wins — keep the original ref */
+    try{ localStorage.setItem('pf_pending_ref', m[1].toLowerCase()); }catch(e2){}
+    return true;
+  }catch(e3){ return false; }
+};
+try{ window.PF.capturePendingRef(); }catch(e4){}
+/* H13 (2026-10-03): dismissing the claim modal no longer silences EVERY
+   callsign gate for the session. Dismissals are scoped per-gate (keyed by
+   the modal's context string) and re-arm after 30 minutes — a dismiss is
+   "not now", never "stop asking forever". */
+var PF_CS_REMIND_MIN = 30;
+var PF_CS_DISMISS_KEY = 'pf_cs_dismissed_v2';
+function pfCsGateKey(opts){
+  var ctx = String((opts && opts.context) || 'to continue').toLowerCase();
+  return ctx.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 64) || 'default';
+}
+function pfCsDismissals(){
+  try { return JSON.parse(sessionStorage.getItem(PF_CS_DISMISS_KEY) || '{}'); }
+  catch(e){ return {}; }
+}
+function pfCsDismissed(key){
+  var d = pfCsDismissals();
+  var t = d[key] || 0;
+  if(!t) return false;
+  if(Date.now() - t > PF_CS_REMIND_MIN * 60000){
+    /* the 30-minute nag timed out — clear and let the gate ask again */
+    try{ delete d[key]; sessionStorage.setItem(PF_CS_DISMISS_KEY, JSON.stringify(d)); }catch(e){}
+    return false;
+  }
+  return true;
+}
+function pfCsDismiss(key){
+  try{
+    var d = pfCsDismissals();
+    d[key] = Date.now();
+    sessionStorage.setItem(PF_CS_DISMISS_KEY, JSON.stringify(d));
+  }catch(e){}
+}
+/* One-time migration: retire the legacy session-wide gag so pre-H13
+   dismissals can't haunt the new per-gate logic. */
+try{ sessionStorage.removeItem('pf_cs_dismissed'); }catch(e){}
+/* PF.requireCallsign(callback, opts) — reusable callsign claim gate.
+   If the user has a callsign, callback(callsign) fires immediately.
+   If not, an inline modal prompts them to claim one (same register flow as
+   Daily Orders: validate → POST register → save secret → localStorage →
+   'pf-callsign-claimed' event). On success, callback(newCallsign) fires.
+   Dismissing silences only THIS gate for 30 minutes (H13); other gates keep
+   working. opts.context: e.g. "to claim your War Bond XP" — shown in
+   the prompt copy and used to scope the dismissal. */
+window.PF.requireCallsign = function(callback, opts){
+  opts = opts || {};
+  var done = function(cs){ try{ callback(cs || ''); }catch(e){} };
+  var cs = '';
+  try{ cs = window.PFCallsign ? window.PFCallsign() : ''; }catch(e){}
+  if(cs){ done(cs); return; }
+  if(pfCsDismissed(pfCsGateKey(opts))){ done(''); return; }
+  pfClaimModal(done, opts);
+};
+function pfClaimModal(done, opts){
+  var context = String((opts && opts.context) || 'to continue');
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  var old = document.getElementById('pf-cs-modal');
+  if(old && old.parentNode){ try{ old.parentNode.removeChild(old); }catch(e){} }
+  var overlay = document.createElement('div');
+  overlay.id = 'pf-cs-modal';
+  overlay.setAttribute('role','dialog');
+  overlay.setAttribute('aria-label','Claim your callsign');
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:1rem;box-sizing:border-box;';
+  var box = document.createElement('div');
+  box.style.cssText = 'background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:"Helvetica Neue",Arial,sans-serif;padding:1.75rem;max-width:420px;width:100%;box-sizing:border-box;text-align:center;position:relative;';
+  box.innerHTML =
+    '<div id="pf-cs-x" role="button" tabindex="0" aria-label="Close" style="position:absolute;top:0.4rem;right:0.7rem;cursor:pointer;font-size:1.4rem;color:#b8ab8e;line-height:1;">&times;</div>' +
+    '<div style="font-size:1.25rem;font-weight:900;letter-spacing:0.14em;color:#c1121f;margin-bottom:0.6rem;">&#9733; CLAIM YOUR CALLSIGN &#9733;</div>' +
+    '<div style="font-size:0.9rem;color:#b8ab8e;line-height:1.55;margin-bottom:1rem;">You need a callsign ' + esc(context) + '. Pick one &mdash; it&rsquo;s your name in the fight, and your XP follows it everywhere.</div>' +
+    '<input id="pf-cs-input" maxlength="20" placeholder="your_callsign" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" style="width:100%;background:#141414;color:#f5f0e1;border:2px solid #c1121f;padding:0.7rem;font-size:1rem;font-family:inherit;box-sizing:border-box;margin-bottom:0.5rem;text-align:center;" />' +
+    '<div id="pf-cs-err" style="font-size:0.8rem;color:#ff6b6b;min-height:1.3em;margin-bottom:0.5rem;"></div>' +
+    /* 2026-10-03 privacy/terms: 13+ self-certification (COPPA/GDPR-K). */
+    '<label style="display:block;margin:0 0 0.7rem;font-size:0.8rem;color:#b8ab8e;cursor:pointer;text-align:left;"><input type="checkbox" id="pf-cs-age13" style="vertical-align:middle;margin-right:6px;transform:scale(1.2);">I confirm I am 13 or older.</label>' +
+    '<button id="pf-cs-btn" style="display:inline-block;background:#c1121f;color:#f5f0e1;font-weight:900;letter-spacing:0.12em;border:none;padding:0.8rem 2.2rem;font-size:1rem;cursor:pointer;font-family:inherit;">CLAIM IT</button>' +
+    /* 2026-10-06 CEO directive: every claim prompt needs the recovery path.
+       data-pf-recover-cs is owned by core/29-callsign-recovery.js. */
+    (function(){ try{ return (window.PF && PF.recoverLinkHTML) ? PF.recoverLinkHTML() : ''; }catch(e){ return ''; } })();
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  var finished = false;
+  function finish(cs, dismissed){
+    if(finished) return; finished = true;
+    try{ if(overlay.parentNode) overlay.parentNode.removeChild(overlay); }catch(e){}
+    if(dismissed){ pfCsDismiss(pfCsGateKey(opts)); }
+    done(cs || '');
+  }
+  var input = box.querySelector('#pf-cs-input');
+  var errBox = box.querySelector('#pf-cs-err');
+  var btn = box.querySelector('#pf-cs-btn');
+  function setErr(m){ if(errBox) errBox.textContent = m; }
+  function doClaim(){
+    var cs = String(input.value || '').trim().toLowerCase();
+    if(!/^[a-z0-9_]{3,20}$/.test(cs)){ setErr('Callsign: 3-20 chars, letters/numbers/underscore.'); return; }
+    /* 2026-10-03 privacy/terms: 13+ self-certification (COPPA/GDPR-K). */
+    var ageBox = box.querySelector('#pf-cs-age13');
+    if(!(ageBox && ageBox.checked)){ setErr('Please confirm you are 13 or older.'); return; }
+    setErr('Claiming\u2026'); btn.disabled = true;
+    var body = { action:'register', callsign:cs, device:'', age13:1 };
+    try{ body.device = window.PFDeviceId ? window.PFDeviceId() : ''; }catch(e){}
+    try{ var prf = localStorage.getItem('pf_pending_ref'); if(prf && /^[a-z0-9_]{3,20}$/.test(prf)) body.ref = prf; }catch(e){}
+    var url = window.PF_BACKEND_URL;
+    if(!url){ setErr('Network error. Try again.'); btn.disabled = false; return; }
+    /* 15s abort: a hung register POST must wedge-proof the modal — same
+       pattern as PF.authPost's rawPost (core/14-auth.js). */
+    var ctl=null, timer=null;
+    try{
+      if(window.AbortController){ ctl=new AbortController();
+        timer=setTimeout(function(){ try{ ctl.abort(); }catch(e){} },15000); }
+    }catch(e){ ctl=null; timer=null; }
+    var opts={ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) };
+    if(ctl) opts.signal=ctl.signal;
+    fetch(url, opts)
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if(timer){ clearTimeout(timer); timer=null; }
+        if(!j){ setErr('Network error. Try again.'); btn.disabled = false; return; }
+        if(!j.ok){ setErr(j.error === 'taken' ? 'That callsign is taken.' : 'Bad callsign.'); btn.disabled = false; return; }
+        try{ localStorage.removeItem('pf_pending_ref'); }catch(e2){}
+        try{
+          if(j.auth_secret && window.PF && PF.saveAuthSecret){ PF.saveAuthSecret(j.auth_secret); }
+          else if(window.PF && PF.claimAuthSecret){ PF.claimAuthSecret(cs, function(){}); }
+        }catch(e3){}
+        try{
+          var ik = 'pf_identity_v1', cur = {};
+          try{ cur = JSON.parse(localStorage.getItem(ik) || '{}'); }catch(e4){}
+          cur.callsign = cs;
+          localStorage.setItem(ik, JSON.stringify(cur));
+        }catch(e5){}
+        try{ document.dispatchEvent(new CustomEvent('pf-callsign-claimed', { detail:{ callsign: cs } })); }catch(e6){}
+        try{ if(window.PF && PF.toast) PF.toast('Callsign claimed. Welcome to the fight, ' + cs.toUpperCase() + '.'); }catch(e7){}
+        finish(cs, false);
+      })
+      .catch(function(){ if(timer){ clearTimeout(timer); timer=null; } setErr('Network error. Try again.'); btn.disabled = false; });
+  }
+  btn.onclick = doClaim;
+  input.onkeydown = function(e){ if(e.key === 'Enter'){ doClaim(); } };
+  var x = box.querySelector('#pf-cs-x');
+  function dismiss(){ finish('', true); }
+  if(x){ x.onclick = dismiss; x.onkeydown = function(e){ if(e.key==='Enter'||e.key===' '){ dismiss(); } }; }
+  overlay.onclick = function(e){ if(e.target === overlay) dismiss(); };
+  try{ input.focus(); }catch(e){}
+}
+/* PF.gateHTML(msg, ctx) — 2026-10-03 H8: the ACTIVE callsign gate.
+   Replaces every passive "claim yours in Enlistment Ranks" banner. Renders
+   the standard c-gate div with an in-place CLAIM A CALLSIGN button wired to
+   PF.requireCallsign (no more scrolling away to another widget). On a
+   successful claim the page reloads so every silo unlocks at once.
+   ctx: short purpose string for the modal, e.g. 'to enter battles'. */
+window.PF.gateHTML = function(msg, ctx){
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  return '<div class="c-gate">'+String(msg||'This runs on callsigns.')
+    +'<br><button class="c-btn" data-pf-claim-cs="1"'
+    +(ctx?(' data-pf-claim-ctx="'+esc(ctx)+'"'):'')
+    +'>CLAIM A CALLSIGN</button>'
+    /* 2026-10-06 CEO directive: every claim prompt needs the recovery path. */
+    +(function(){ try{ return (window.PF && PF.recoverLinkHTML) ? PF.recoverLinkHTML() : ''; }catch(e){ return ''; } })()
+    +'</div>';
+};
+document.addEventListener('click', function(e){
+  var t = null;
+  try{ t = (e.target && e.target.closest) ? e.target.closest('[data-pf-claim-cs]') : null; }catch(_e){}
+  if(!t || !window.PF || !PF.requireCallsign) return;
+  try{ e.preventDefault(); }catch(_e2){}
+  var ctx = 'to continue';
+  try{ ctx = t.getAttribute('data-pf-claim-ctx') || ctx; }catch(_e3){}
+  PF.requireCallsign(function(cs){
+    if(cs){ try{ location.reload(); }catch(_e4){} }
+  }, { context: ctx });
+});
+window.pfReportAction = function(actionType){
+  if(!window.PF_BACKEND_URL) return;
+  try {
+    var dev='',cs='';
+    try{ dev=window.PFDeviceId(); cs=window.PFCallsign(); }catch(e){}
+    fetch(window.PF_BACKEND_URL, {method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({type:'action', action_type: actionType, device: dev, callsign: cs, auth_secret:(window.PF&&PF.getAuthSecret?PF.getAuthSecret():'')})});
+  } catch(e){}
+  /* Refresh the displayed total after reporting. */
+  setTimeout(window.pfFetchGlobalTotal, 1500);
+};
+window.pfFetchGlobalTotal = function(){
+  if(!window.PF_BACKEND_URL) return;
+  var cb = 'pfGlobalCb_' + Date.now();
+  window[cb] = function(data){
+    try {
+      var total = (data && data.total) || 0;
+      var els = document.querySelectorAll('.pf-global-total-num');
+      for(var i=0; i<els.length; i++){ els[i].textContent = total; }
+    } catch(e){}
+    try { delete window[cb]; } catch(e){}
+    var s = document.getElementById(cb);
+    if(s && s.parentNode) s.parentNode.removeChild(s);
+  };
+  var s = document.createElement('script');
+  s.id = cb;
+  s.src = window.PF_BACKEND_URL + '?action=action_totals&callback=' + cb;
+  s.onerror = function(){ try{ delete window[cb]; }catch(e){} if(s.parentNode) s.parentNode.removeChild(s); };
+  document.head.appendChild(s);
+};
+/* Load the global total on page view. */
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', window.pfFetchGlobalTotal);
+} else {
+  window.pfFetchGlobalTotal();
+}
+/* Cross-device daily-XP pool: seed the local 50/day bucket from the backend
+   once per day when the user has a callsign (and again if they claim one
+   mid-session). Silent no-op without a callsign or backend. */
+try{
+  if(window.PF && typeof PF.seedDayXp === 'function'){
+    if(document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', function(){ try{ PF.seedDayXp(); }catch(e){} });
+    } else { PF.seedDayXp(); }
+    document.addEventListener('pf-callsign-claimed', function(){ try{ PF.seedDayXp(true); }catch(e){} });
+  }
+}catch(e){}
+/* Site-wide TASK total (points-weighted, same unit as the Do Meter's local
+   count): ?action=task_totals -> {total}. The Do Meter shows this as its
+   headline number and falls back to the local week count until the tally
+   backend ships the endpoint. */
+window.PF_GLOBAL_TASKS = 0;
+window.pfFetchGlobalTasks = function(){
+  if(!window.PF_BACKEND_URL) return;
+  var cb = 'pfTasksCb_' + Date.now();
+  window[cb] = function(data){
+    try{
+      var t = (data && data.total) || 0;
+      if(t > 0){
+        window.PF_GLOBAL_TASKS = t;
+        try{ document.dispatchEvent(new CustomEvent('pf-global-tasks', {detail:{total:t}})); }catch(e){}
+      }
+    }catch(e){}
+    try{ delete window[cb]; }catch(e){}
+    var s = document.getElementById(cb);
+    if(s && s.parentNode) s.parentNode.removeChild(s);
+  };
+  var s = document.createElement('script');
+  s.id = cb;
+  s.src = window.PF_BACKEND_URL + '?action=task_totals&callback=' + cb;
+  s.onerror = function(){ try{ delete window[cb]; }catch(e){} if(s.parentNode) s.parentNode.removeChild(s); };
+  document.head.appendChild(s);
+};
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', window.pfFetchGlobalTasks);
+} else {
+  window.pfFetchGlobalTasks();
+}
+/* PF.ROSTER — LIVE legacy-shape view of the master SLR database (core/07-slr-db.js).
+   M34 (2026-10-03): the 62-member snapshot ships synchronously only inside
+   core/bundle-core-slr.js (roster pages: homepage, /arcade, /create,
+   Creator HQ, SLR roster/catalog). On slim-core pages it loads on demand via
+   PF.ensureSLRDB(); until then PF.ROSTER reads [] and consumers degrade.
+   Do NOT hardcode roster lists in game files — edit
+   src/data/slr-master-db.json and rebuild. */
+Object.defineProperty(PF, 'ROSTER', {
+  configurable: true,
+  get: function () { try { return PF.slrLegacy || []; } catch (e) { return []; } }
+});
+/* Roster lookups. Safe when PF.ROSTER is absent (returns null/fallback). */
+PF.rosterBySlug = function(slug){
+  try{
+    var R = PF.ROSTER || [];
+    for(var i=0;i<R.length;i++){ if(R[i].slug===slug) return R[i]; }
+  }catch(e){}
+  return null;
+};
+PF.rosterName = function(slug, fb){
+  var r = PF.rosterBySlug(slug);
+  if(r && r.name) return r.name;
+  if(fb) return fb;
+  return String(slug==null?'':slug).replace(/-/g,' ');
+};
+/* Auto-report widget actions to the global backend.
+   Listens for the CustomEvents each widget already fires. */
+(function(){
+if(window.PF&&window.PF.skip('03-global'))return;
+  var MAP = {
+    'pf-order-checkin': ['daily_orders', 'Daily Orders'],
+    'pf-caption-submit': ['caption_combat', 'Caption Combat'],
+    'pf-poster-made': ['poster_forge', 'Poster Forge'],
+    'pf-vote-cast': ['fan_vote', 'Fan Vote'],
+    'pf-bracket-ballot': ['bracket_vote', 'Bracket'],
+    'pf-bracket-liquidated': ['bracket_liquidation', 'Liquidation'],
+    'pf-quiz-done': ['quiz_complete', 'Quiz'],
+    'pf-traitor-vote': ['traitor_vote', 'Class Traitor'],
+    'pf-enlisted': ['enlistment', 'Enlistment']
+  };
+  /* Floating share button: appears after any action, shares an achievement image. */
+  var shareBtn = null;
+  function ensureShareBtn(){
+    if(shareBtn) return shareBtn;
+    shareBtn = document.createElement('button');
+    shareBtn.textContent = 'SHARE';
+    shareBtn.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:99999;background:#c1121f;color:#f5ead6;border:3px solid #f5ead6;font-family:"Arial Black",Arial,sans-serif;font-size:18px;font-weight:900;padding:14px 22px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.5);display:none;';
+    shareBtn.onclick = function(){
+      var g = window._pfLastGame || 'Mission';
+      var d = window._pfLastDetail || 'Task complete.';
+      if(window.pfShareAchievement) window.pfShareAchievement(g, d);
+      shareBtn.style.display = 'none';
+    };
+    document.body.appendChild(shareBtn);
+    return shareBtn;
+  }
+  for(var evt in MAP){
+    (function(eventName, info){
+      document.addEventListener(eventName, function(e){
+        /* Backend reporting lives in core/05-tally.js ONLY. This loop used to
+           call pfReportAction too, which POSTed every action a second time and
+           double-counted the site-wide totals. Counted once now. */
+        /* Store for sharing. */
+        window._pfLastGame = info[1];
+        var det = '';
+        try { det = (e.detail && (e.detail.mission || e.detail.caption || e.detail.day || '')) || ''; } catch(x){}
+        window._pfLastDetail = (det ? det + ' \u2014 ' : '') + 'Task complete on mtcstw.com';
+        /* Show the share button for 30 seconds. */
+        var b = ensureShareBtn();
+        b.style.display = 'block';
+        setTimeout(function(){ b.style.display = 'none'; }, 30000);
+      });
+    })(evt, MAP[evt]);
+  }
+})();
+/* PF SHARE: generate a propaganda-styled achievement image and share it.
+   Called by each widget's Share button: pfShareAchievement('Daily Orders', 'Mission complete: ...'). */
+window.pfShareAchievement = function(gameName, detailText){
+  try {
+    var c = document.createElement('canvas');
+    c.width = 1080; c.height = 1080;
+    var x = c.getContext('2d');
+    /* BUTTER PASS (2026-10-07) — editorial restyle, visual-only. Data, the
+       shrink-to-fit/ellipsis logic, callsign stamp and share plumbing are
+       untouched. */
+    var W = 1080, H = 1080;
+    var bg = x.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, '#131316'); bg.addColorStop(0.5, '#0a0a0c'); bg.addColorStop(1, '#060607');
+    x.fillStyle = bg; x.fillRect(0,0,W,H);
+    var vg = x.createRadialGradient(540, 360, 80, 540, 540, 700);
+    vg.addColorStop(0, 'rgba(245,234,214,0.035)'); vg.addColorStop(1, 'rgba(0,0,0,0.32)');
+    x.fillStyle = vg; x.fillRect(0,0,W,H);
+    x.strokeStyle = '#33302a'; x.lineWidth = 2; x.strokeRect(60,60,960,960);
+    /* red gradient hairline — the one structural red accent */
+    var rh = x.createLinearGradient(0, 0, W, 0);
+    rh.addColorStop(0, 'rgba(193,18,31,0)'); rh.addColorStop(0.5, '#c1121f'); rh.addColorStop(1, 'rgba(193,18,31,0)');
+    x.fillStyle = rh; x.fillRect(90, 34, W - 180, 5);
+    /* Header — letterspaced authority label, not a shout. */
+    x.fillStyle = '#c9bfa8'; x.font = '700 32px Arial, sans-serif';
+    x.textAlign = 'center';
+    (function tracked(t, cx, y, ls) {
+      var chs = String(t).split(''), ws = [], tot = 0, i, w;
+      for (i = 0; i < chs.length; i++) { w = x.measureText(chs[i]).width; ws.push(w); tot += w; }
+      tot += ls * Math.max(0, chs.length - 1);
+      var pen = cx - tot / 2, prev = x.textAlign; x.textAlign = 'left';
+      for (i = 0; i < chs.length; i++) { x.fillText(chs[i], pen, y); pen += ws[i] + ls; }
+      x.textAlign = prev;
+    })('THE PROPAGANDA FACTORY', 540, 140, 9);
+    /* Game name — serif headline, shrink-to-fit so long names (e.g.
+       'BILLIONAIRE OR SUPERVILLAIN?') stay inside the 920px inner border
+       instead of overflowing the canvas at a fixed 96px. */
+    x.fillStyle = '#c1121f';
+    var gn = (gameName || 'MISSION').toUpperCase();
+    var gnSize = 96;
+    var fam = function (s) { return 'bold ' + s + 'px Georgia, "Times New Roman", serif'; };
+    x.font = fam(gnSize);
+    while (gnSize > 36 && x.measureText(gn).width > 920) {
+      gnSize -= 4;
+      x.font = fam(gnSize);
+    }
+    /* Ellipsis cap: names still wider than 920px at the 36px floor get
+       truncated with … so they can't overflow the inner border. */
+    if (x.measureText(gn).width > 920) {
+      while (gn.length > 1 && x.measureText(gn.slice(0, -1) + '…').width > 920)
+        gn = gn.slice(0, -1);
+      gn = gn.trim() + '…';
+    }
+    x.fillText(gn, 540, 320);
+    /* Gold divider. */
+    x.fillStyle = '#e8b923'; x.font = '40px Arial';
+    x.fillText('\u25C6', 540, 400);
+    /* Detail text (wrapped), editorial serif. */
+    x.fillStyle = '#f5ead6'; x.font = '400 46px Georgia, "Times New Roman", serif';
+    var words = String(detailText || '').split(' ');
+    var lines = [], line = '';
+    for(var i=0; i<words.length; i++){
+      var t = line + words[i] + ' ';
+      if(x.measureText(t).width > 880 && line){ lines.push(line.trim()); line = words[i] + ' '; }
+      else { line = t; }
+    }
+    if(line.trim()) lines.push(line.trim());
+    var y = 510;
+    for(var j=0; j<Math.min(lines.length, 6); j++){ x.fillText(lines[j], 540, y); y += 68; }
+    /* Timestamp. */
+    x.fillStyle = '#8a8471'; x.font = '34px Arial, sans-serif';
+    var d = new Date();
+    x.fillText(d.toLocaleDateString() + ' ' + d.toLocaleTimeString(), 540, 920);
+    /* Footer. */
+    x.fillStyle = '#f5ead6'; x.font = '700 34px Arial, sans-serif';
+    (function tracked2(t, cx, y2, ls) {
+      var chs = String(t).split(''), ws = [], tot = 0, k, w;
+      for (k = 0; k < chs.length; k++) { w = x.measureText(chs[k]).width; ws.push(w); tot += w; }
+      tot += ls * Math.max(0, chs.length - 1);
+      var pen = cx - tot / 2, prev = x.textAlign; x.textAlign = 'left';
+      for (k = 0; k < chs.length; k++) { x.fillText(chs[k], pen, y2); pen += ws[k] + ls; }
+      x.textAlign = prev;
+    })('MTCSTW.COM', 540, 990, 10);
+    x.fillStyle = '#c1121f'; x.font = '900 40px Arial Black, Arial, sans-serif';
+    x.fillText('JOIN THE FIGHT.', 540, 1046);
+    /* Callsign attribution on every achievement image. */
+    try{ if(window.PFShare&&window.PFShare.stampCallsign) window.PFShare.stampCallsign(c); }catch(e){}
+    /* Share or download. */
+    c.toBlob(function(blob){
+      if(!blob) return;
+      var file = new File([blob], 'propaganda-achievement.png', {type:'image/png'});
+      var shareData = {files:[file], title:'Propaganda Factory', text: gameName + ': ' + detailText};
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        navigator.share(shareData).catch(function(){});
+      } else {
+        /* Fallback: download. */
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'propaganda-achievement.png';
+        document.body.appendChild(a); a.click();
+        setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 1000);
+      }
+    }, 'image/png');
+  } catch(e){}
+};
+
+/* PF STORAGE NOTICE (2026-10-03 privacy/terms): the site keeps XP, streaks,
+   vote flags and callsigns in the browser's local storage, loads code from
+   the jsDelivr CDN, and runs on Squarespace (standard Squarespace cookies).
+   One dismissible notice — never a blocking banner. Dismissal persists in
+   localStorage 'pf_storage_notice_v1'.
+   KILL: ?pf_off=03-global */
+(function(){
+  try{
+    if(window.PF && window.PF.skip && window.PF.skip('03-global')) return;
+    try{ if(localStorage.getItem('pf_storage_notice_v1')==='1') return; }catch(e){}
+    function show(){
+      try{
+        if(document.getElementById('pf-storage-notice')) return;
+        var bar=document.createElement('div');
+        bar.id='pf-storage-notice';
+        bar.setAttribute('role','note');
+        bar.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:99990;background:#0a0a0a;border-top:3px solid #c1121f;color:#f5f0e1;font-family:"Helvetica Neue",Arial,sans-serif;font-size:12px;line-height:1.5;padding:10px 52px 10px 16px;box-sizing:border-box;text-align:left;';
+        bar.innerHTML='<b style="color:#c1121f;letter-spacing:0.08em;">HEADS UP, SOLDIER</b> &mdash; this site remembers you in your own browser: XP, streaks, vote flags and your callsign live in local storage (clear your browser data and it&rsquo;s gone). Our code loads from the jsDelivr CDN and Squarespace hosts the site &mdash; standard Squarespace cookies apply. We never sell your data. Ever.' +
+          '<button id="pf-storage-x" aria-label="Dismiss" style="position:absolute;top:8px;right:12px;background:#c1121f;color:#f5f0e1;border:none;font-weight:900;font-size:11px;letter-spacing:0.1em;padding:6px 12px;cursor:pointer;font-family:inherit;">GOT IT</button>';
+        document.body.appendChild(bar);
+        document.getElementById('pf-storage-x').onclick=function(){
+          try{ localStorage.setItem('pf_storage_notice_v1','1'); }catch(e){}
+          try{ bar.parentNode.removeChild(bar); }catch(e2){}
+        };
+      }catch(e){}
+    }
+    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',show);
+    else show();
+  }catch(e){}
+})();
+
+/* R12 (Wave 6B, 2026-10-04): BOOST IMPACT RECEIPT — after any boost_give
+   success, ask the backend how this callsign's boosts moved creators
+   (GET ?action=boost_trending&callsign=X -> {ok, moved:[{creator, deltaRank,
+   rank}], top:[...]}) and show a small dismissible receipt:
+   "Your boost moved <creator> to #N", linking into feed trending.
+   Contract-coded (W6B-1 ships boost_trending in parallel) — fails silent if
+   the action is absent or returns nothing. Zero XP: pure routing. */
+window.PF.boostReceipt = function(){
+  try{
+    var url = window.PF_BACKEND_URL; if(!url) return;
+    var cs=''; try{ cs=(window.PFCallsign&&window.PFCallsign())||''; }catch(e){}
+    if(!cs) return;
+    function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    var fn='pfBoostTrend'+Math.floor(Math.random()*1e9), done=false;
+    function fin(j){
+      if(done) return; done=true;
+      try{ delete window[fn]; }catch(e){}
+      try{ var sc=document.getElementById(fn); if(sc&&sc.parentNode) sc.parentNode.removeChild(sc); }catch(e){}
+      try{
+        var moved=(j&&j.ok&&j.moved)||[];
+        if(!moved.length) return;
+        var m=moved[0]||{};
+        var name=String(m.creator||'a creator'), rank=Number(m.rank||0);
+        if(!rank||document.getElementById('pfBoostReceipt')) return;
+        var d=document.createElement('div');
+        d.id='pfBoostReceipt';
+        d.style.cssText='position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:99995;background:#0a0a0a;border:2px solid #c1121f;color:#f5ead6;font-family:Arial,sans-serif;font-size:13px;line-height:1.5;padding:12px 16px;max-width:92vw;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.6)';
+        d.innerHTML='Your boost moved <b style="color:#e8b64c">'+esc(name)+'</b> to <b>#'+rank+'</b> on trending.'
+          +'<br><a href="/create#pf-feed" style="color:#ff5a00;font-weight:bold;text-decoration:none">SEE TRENDING \u2192</a>'
+          +' &nbsp;<button id="pfBoostRx" aria-label="Dismiss" style="background:none;border:1px solid #666;color:#999;padding:2px 8px;cursor:pointer;font-size:12px">\u2715</button>';
+        document.body.appendChild(d);
+        document.getElementById('pfBoostRx').onclick=function(){ try{ d.parentNode.removeChild(d); }catch(e){} };
+        setTimeout(function(){ try{ if(d.parentNode) d.parentNode.removeChild(d); }catch(e){} },15000);
+      }catch(e){}
+    }
+    window[fn]=function(j){ fin(j); };
+    var s=document.createElement('script');
+    s.id=fn; s.onerror=function(){ fin(null); };
+    s.src=url+'?action=boost_trending&callsign='+encodeURIComponent(cs)+'&callback='+fn;
+    try{ document.head.appendChild(s); }catch(e){ fin(null); return; }
+    setTimeout(function(){ fin(null); },10000);
+  }catch(e){}
+};

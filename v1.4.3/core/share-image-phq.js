@@ -652,6 +652,107 @@
   }
 
   /* ---------------------------------------------------------------- */
+  /* Surface 5 — Wall of Shame Card                                     */
+  /* ---------------------------------------------------------------- */
+  /* One legislator shamed for recorded votes against the progressive
+     position on a single bill. Monogram initials stand in for a photo —
+     the directory ships no photo URLs, so none are invented or hotlinked.
+     Every pixel from the data object; missing fields render '—'. */
+  function initialsOf(name) {
+    var p = String(name || '').trim().split(/\s+/).filter(function (w) { return !!w; });
+    if (!p.length) return '?';
+    if (p.length === 1) return p[0].slice(0, 2).toUpperCase();
+    return (p[0].charAt(0) + p[p.length - 1].charAt(0)).toUpperCase();
+  }
+  function chamberLine(d) {
+    var ch = String(d.chamber || '').toLowerCase();
+    ch = ch === 'house' ? 'U.S. HOUSE' : (ch === 'senate' ? 'U.S. SENATE' : String(d.chamber || '—'));
+    return (ch + ' \u00b7 ' + String(d.party || '—') + ' \u00b7 ' + String(d.state || '—')).toUpperCase();
+  }
+  function fullDate(ws) {
+    var s = String(ws == null ? '' : ws).trim();
+    var m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (m) {
+      var MON = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+      var mi = parseInt(m[2], 10) - 1;
+      if (mi >= 0 && mi < 12) return MON[mi] + ' ' + parseInt(m[3], 10) + ', ' + m[1];
+    }
+    return (s || '—').toUpperCase().slice(0, 24);
+  }
+  function voteDates(d) {
+    var out = [], seen = {}, vs = Array.isArray(d.voteDates) ? d.voteDates : [];
+    for (var i = 0; i < vs.length && out.length < 3; i++) {
+      var k = String(vs[i] || '');
+      if (k && !seen[k]) { seen[k] = 1; out.push(fullDate(k)); }
+    }
+    return out;
+  }
+  function shortUrl(u) {
+    var s = String(u || '').trim().replace(/^https?:\/\//i, '').replace(/^www\./i, '');
+    return (s || '—').toUpperCase().slice(0, 52);
+  }
+  function paintWallShame(d, cv, x) {
+    base(x); kicker(x);
+    badge(x, 'WALL OF SHAME', 280, '#c1121f', 40);
+    var cs = callsignOf();
+    var y = 400;
+    /* the bill */
+    x.fillStyle = '#e8b923';
+    fitFont(x, String(d.billId || '—').toUpperCase(), 64, 40, 910);
+    x.fillText(String(d.billId || '—').toUpperCase(), W / 2, y); y += 58;
+    x.fillStyle = '#f5ead6'; x.font = '700 38px Arial,sans-serif';
+    wrap(x, String(d.billTitle || '—').toUpperCase(), 910).slice(0, 2)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += 50; });
+    /* monogram — no photo URLs exist; initials stand in, never hotlinked */
+    y = Math.max(590, y + 22);
+    var mr = 56;
+    x.fillStyle = '#c1121f'; x.beginPath(); x.arc(W / 2, y, mr, 0, Math.PI * 2); x.fill();
+    x.strokeStyle = '#f5ead6'; x.lineWidth = 4;
+    x.beginPath(); x.arc(W / 2, y, mr - 6, 0, Math.PI * 2); x.stroke();
+    x.fillStyle = '#f5ead6'; x.font = '900 60px "Arial Black",Arial,sans-serif';
+    var tb = x.textBaseline; x.textBaseline = 'middle';
+    x.fillText(initialsOf(d.name), W / 2, y + 3);
+    x.textBaseline = tb;
+    y += mr + 30;
+    /* the shamed — biggest element on the card */
+    var fit = fitFont(x, String(d.name || '—').toUpperCase(), 96, 44, 910);
+    var lh = Math.round(fit * 0.98);
+    x.fillStyle = '#f5ead6';
+    wrap(x, String(d.name || '—').toUpperCase(), 910).slice(0, 2)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += lh; });
+    /* chamber / party / state */
+    y += 2;
+    x.fillStyle = '#c9bfa8'; x.font = '700 36px Arial,sans-serif';
+    wrap(x, chamberLine(d), 910).slice(0, 1)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += 46; });
+    /* the vote — the thumb-stopper, shrink-to-fit single line */
+    y = Math.max(930, y + 12);
+    var vline = 'VOTED ' + String(d.position || '—').toUpperCase() + ' \u2014 AGAINST THE PROGRESSIVE POSITION';
+    x.fillStyle = '#c1121f';
+    fitFont(x, vline, 48, 28, 910);
+    x.fillText(vline, W / 2, y); y += 50;
+    x.fillStyle = '#f5ead6'; x.font = '700 36px Arial,sans-serif';
+    wrap(x, 'ON: ' + String(d.question || '—').toUpperCase(), 910).slice(0, 2)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += 46; });
+    var n = Math.max(0, parseInt(d.againstVotes, 10) || 0);
+    x.fillStyle = '#e8b923';
+    fitFont(x, n + (n === 1 ? ' VOTE' : ' VOTES') + ' AGAINST THE PROGRESSIVE POSITION', 40, 26, 910);
+    x.fillText(n + (n === 1 ? ' VOTE' : ' VOTES') + ' AGAINST THE PROGRESSIVE POSITION', W / 2, y); y += 46;
+    /* dates + source, one line each */
+    var dz = voteDates(d);
+    x.fillStyle = '#c9bfa8'; x.font = '400 30px Arial,sans-serif';
+    x.fillText('VOTED: ' + (dz.length ? dz.join(' \u00b7 ') : '—'), W / 2, y); y += 40;
+    x.font = '400 28px Arial,sans-serif';
+    var sl = 'SOURCE: ' + shortUrl(d.sourceUrl);
+    fitFont(x, sl, 28, 20, 910, '400');
+    x.fillText(sl, W / 2, y); y += 40;
+    y = Math.max(1080, y + 6);
+    if (cs) y = csLine(cv, x, y, cs);
+    bottomStack(x, 'fight');
+    return cv;
+  }
+
+  /* ---------------------------------------------------------------- */
   /* Surface 4 — Cell Competition Winner Card                           */
   /* ---------------------------------------------------------------- */
   function paintCellwin(d, cv, x) {

@@ -1949,3 +1949,38 @@ button:focus:not(:focus-visible),a:focus:not(:focus-visible){
   max-width: 220px !important;
   box-sizing: border-box !important;
 }
+
+/* ===== ZUCK TEST ROUND 2 FIXES (2026-10-08) ===== */
+/* Proper fixes: no hacks, proper touch targets, readable type */
+
+@media (max-width: 600px) {
+  /* Action bars: vertical stack, 14px min, 44px touch targets */
+  .pf-pat-actions {
+    flex-direction: column !important;
+  }
+  .pf-pat-actions a, .pf-pat-actions span {
+    flex: none !important;
+    width: 100% !important;
+    font-size: 14px !important;
+    min-height: 44px !important;
+    padding: 12px 16px !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid #2a2a2a !important;
+    box-sizing: border-box !important;
+    word-break: normal !important;
+  }
+  .pf-pat-actions a:last-child, .pf-pat-actions span:last-child {
+    border-bottom: 0 !important;
+  }
+
+  /* Hover states only for real cursors */
+  @media (hover: none) {
+    .pf-pat-actions a:hover { color: #fff !important; }
+  }
+}
+
+/* Safe area with fallback */
+#pf-commend-chip, #pf-commend-form {
+  padding-bottom: 16px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+}

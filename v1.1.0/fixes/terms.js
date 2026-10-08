@@ -46,22 +46,6 @@
     setTimeout(addSections,8000);
     })();
   } catch (err) { PF.error("terms.js", err); }
-  /* --- fix 2/2 (verbatim) --- */
-  try {
-    (function(){
-    if(window.top!==window.self)return;
-    if(/\/config\//.test(location.href))return;
-    function add(){
-    if(document.getElementById('pf-terms-link'))return;
-    try{
-    var pp=document.querySelector('a[href="/privacy"]');
-    if(!pp)return;
-    pp.insertAdjacentHTML('afterend',' | <a id="pf-terms-link" href="/terms">Terms of Service</a>');
-    }catch(e){}
-    }
-    setTimeout(add,2000);
-    setTimeout(add,5000);
-    setTimeout(add,10000);
-    })();
-  } catch (err) { PF.error("terms.js", err); }
+  /* --- fix 2/2 DISABLED 2026-10-08: /terms is delinked (no copy exists).
+     The footer terms-link injector is off. Route shell stays in place. --- */
 })();

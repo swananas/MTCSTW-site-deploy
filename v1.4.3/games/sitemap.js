@@ -51,7 +51,6 @@
 <div class="pfsm-links">
 <a class="pfsm-a" href="/request-access"><span class="pfsm-t">The Academy</span><span class="pfsm-d">Propaganda school. Train, graduate, earn your stripes.</span></a>
 <a class="pfsm-a" href="/create"><span class="pfsm-t">The Workshop</span><span class="pfsm-d">Forge posters. Publish the fight.</span></a>
-<a class="pfsm-a" href="/network"><span class="pfsm-t">The Network</span><span class="pfsm-d">The whole machine, mapped.</span></a>
 </div>
 </details>
 <details class="pfsm-g">
@@ -68,8 +67,6 @@
 <div class="pfsm-links">
 <a class="pfsm-a" href="/creator-onboard"><span class="pfsm-t">Creators: Enlist</span><span class="pfsm-d">The roster wants you. Prove yourself.</span></a>
 <a class="pfsm-a" href="/sick-left-radicals"><span class="pfsm-t">The Roster</span><span class="pfsm-d">62 fighters of the sick left. Find your match.</span></a>
-<a class="pfsm-a" href="/about"><span class="pfsm-t">About</span><span class="pfsm-d">Who we are. Why we fight.</span></a>
-<a class="pfsm-a" href="/faqs"><span class="pfsm-t">FAQs</span><span class="pfsm-d">Questions, answered. No mercy.</span></a>
 <a class="pfsm-a" href="/liquidation"><span class="pfsm-t">The Liquidation Ledger</span><span class="pfsm-d">Records of the fallen.</span></a>
 </div>
 </details>

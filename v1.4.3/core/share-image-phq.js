@@ -150,6 +150,19 @@
   function fmtNum(n) {
     try { return Number(n).toLocaleString('en-US'); } catch (e) { return String(n); }
   }
+  /* Whole-USD compact money for the corp card: 19000000000 -> $19.0B.
+     Null/invalid -> em-dash, never invented. */
+  function moneyB(v) {
+    if (v == null) return '\u2014';
+    var n = Number(v);
+    if (!isFinite(n)) return '\u2014';
+    var sign = n < 0 ? '\u2212' : '';
+    var a = Math.abs(n);
+    if (a >= 1e9) return sign + '$' + (a / 1e9).toFixed(1) + 'B';
+    if (a >= 1e6) return sign + '$' + (a / 1e6).toFixed(1) + 'M';
+    if (a >= 1e3) return sign + '$' + (a / 1e3).toFixed(1) + 'K';
+    return sign + '$' + Math.round(a);
+  }
   function dateStr() {
     try {
       return new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase();

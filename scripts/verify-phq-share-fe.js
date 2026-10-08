@@ -228,6 +228,15 @@ var FIX = {
     name: 'MIKE JOHNSON', chamber: 'house', party: 'R', state: 'LA',
     againstVotes: 1, position: 'Yea', question: 'On Passage',
     voteDates: ['2026-09-15'], sourceUrl: 'https://www.congress.gov/bill/119th-congress/house-bill/3633'
+  },
+  /* Synthetic paint-test money values (clearly not real company data);
+     the ticker is a real public ticker. Full detail assertions live in
+     scripts/verify-corpplay-fe.js. */
+  'phq-corp': {
+    ticker: 'XOM', name: 'SYNTHETIC OIL CORP', year: 2024,
+    buybacks: 19000000000, taxPaid: 9500000000, effectiveRate: 0.2139,
+    lobbyingSpend: 2350000,
+    sourceLine: 'SOURCES: SEC EDGAR · 10-K FY2024 · LDA · 2024 LD-2 FILINGS'
   }
 };
 

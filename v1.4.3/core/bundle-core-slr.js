@@ -1,1 +1,4529 @@
-!function(){"use strict";if(!window.PF||!window.PF.v){var e=[];try{e=JSON.parse(localStorage.getItem("pf_disabled_v1")||"[]")}catch(e){}try{var t=location.search.match(/[?&]pf_off=([^&]+)/);t&&(e=e.concat(decodeURIComponent(t[1]).split(",")))}catch(e){}window.PF={v:"1.4.2",disabled:e,skip:function(t){return-1!==e.indexOf(t)},log:function(e,t){try{console.log(o(e,t))}catch(e){}},error:function(e,t){var a=t&&t.message?t.message:String(t);try{console.error(o(e,"ERROR: "+a))}catch(e){}},friendlyErr:function(e){return e&&(e.err||e.error||e.message)||""},errCopy:function(e,t){var o=e;o&&"object"==typeof o&&(o=o.err||o.error||o.message);var a=String(null==o?"":o).trim(),n=t||"The wire fought back. Nothing changed — retry.";if(!a||/network error/i.test(a))return n;var i={cap:"Daily cap reached. The wire resets at midnight Chicago time — come back swinging.","bad bet_type":"That bet didn’t take. Pick a live line and try again.",unauthorized:"Your callsign needs to reconnect — re-claim it in Enlistment Ranks (one tap), then retry.","missing credentials":"Your callsign needs to reconnect — re-claim it in Enlistment Ranks (one tap), then retry.","bad callsign":"That callsign didn’t check out. Re-claim it in Enlistment Ranks, then retry.",legacy_callsign:"This callsign predates the new auth system — contact MTCSTW to recover it.","claim unavailable":"This callsign predates the new auth system — contact MTCSTW to recover it.","insufficient XP":"Not enough XP in the war chest. Go earn some.","db error":"The ledger hiccuped. Retry in a moment.","not owned":"You don’t own that one yet.","already owned":"Already yours. One per fighter.","already claimed":"Already claimed. One shot per fighter.","already joined":"You’re already in. The fight continues.",cell_full:"That cell is full — five fighters max. Found your own instead.","seller or admin only":"Only the seller or an admin can close this.","not active yet":"Not live yet. The fight hasn’t started.","no such item":"That one isn’t on the board anymore. Refresh.","bad kind":"That slot didn’t take. Refresh and try again.",invalid_code:"That code doesn’t open anything. Check it and try again."};return i[a]?i[a]:-1!==a.indexOf("_")?n:a},holder:function(){var e=document.getElementById("pf-silo-holder");return e||((e=document.createElement("div")).id="pf-silo-holder",e.style.display="none",(document.body||document.documentElement).appendChild(e)),e},toast:function(e){try{PF._toastQ=PF._toastQ||[],PF._toastQ.push(String(e)),PF._toastBusy||PF._toastNext()}catch(e){}},_toastBox:function(){var e=null;try{e=document.getElementById("pf-toast-live")}catch(e){}return e||((e=document.createElement("div")).id="pf-toast-live",e.setAttribute("role","status"),e.setAttribute("aria-live","polite"),e.style.cssText="position:fixed;left:0;right:0;bottom:8%;z-index:99999;pointer-events:none;text-align:center;",(document.body||document.documentElement).appendChild(e)),e},_toastNext:function(){try{var e=PF._toastQ||[];if(!e.length)return void(PF._toastBusy=!1);PF._toastBusy=!0;var t=e.shift(),o=PF._toastBox(),a=document.createElement("div");a.textContent=t,a.style.cssText="display:inline-block;background:#0a0a0a;color:#f5f0e1;font:bold 15px monospace;padding:12px 22px;border:2px solid #c1121f;max-width:90vw;text-align:center;box-sizing:border-box",o.appendChild(a),setTimeout(function(){try{a.remove()}catch(e){}PF._toastNext()},3e3)}catch(e){try{PF._toastBusy=!1}catch(e){}}},report:function(e){try{"function"==typeof window.pfReportAction&&window.pfReportAction(e)}catch(e){}},gotoSilo:function(e){var t=0;function o(){try{return document.querySelector('section[data-game="'+e+'"]')}catch(e){return null}}function a(e){try{e.scrollIntoView({behavior:"smooth",block:"start"})}catch(t){try{e.scrollIntoView()}catch(e){}}}var n=o();if(n)a(n);else var i=setInterval(function(){t++;var e=o();e?(clearInterval(i),a(e)):t>=10&&clearInterval(i)},500)},hidden:function(){try{return!(!document.hidden&&!document.webkitHidden)}catch(e){return!1}},whenVisible:function(e,t){var o=!1;function a(){if(!o){o=!0;try{t()}catch(e){}}}try{if(!e||!("IntersectionObserver"in window))return a(),a;var n=new IntersectionObserver(function(e){if(e&&e[0]&&e[0].isIntersecting){try{n.disconnect()}catch(e){}a()}},{rootMargin:"200px"});n.observe(e),setTimeout(a,15e3)}catch(e){a()}return a},creditLocal:function(e,t){try{var o=null;try{o=JSON.parse(localStorage.getItem("pf_ranks_v1")||"null")}catch(e){}if(o&&"object"==typeof o||(o={xp:0,got:{}}),o.got||(o.got={}),o.got[e])return!1;o.got[e]=1,o.xp+=Number(t)||0;try{localStorage.setItem("pf_ranks_v1",JSON.stringify(o))}catch(e){}return!0}catch(e){return!1}},debitLocal:function(e,t){try{var o=null;try{o=JSON.parse(localStorage.getItem("pf_ranks_v1")||"null")}catch(e){}o&&"object"==typeof o||(o={xp:0,got:{}}),o.got||(o.got={});var a=Math.max(0,Number(t)||0);if(e){if(!o.got[e])return!1;delete o.got[e]}o.xp=Math.max(0,(Number(o.xp)||0)-a);try{localStorage.setItem("pf_ranks_v1",JSON.stringify(o))}catch(e){}return!0}catch(e){return!1}},chiNow:function(){try{return new Date((new Date).toLocaleString("en-US",{timeZone:"America/Chicago"}))}catch(e){return new Date}},mondayOf:function(e){var t=new Date(e),o=(t.getDay()+6)%7;return t.setHours(0,0,0,0),t.setDate(t.getDate()-o),t},isoWeekKey:function(e){var t=new Date(Date.UTC(e.getFullYear(),e.getMonth(),e.getDate())),o=(t.getUTCDay()+6)%7;t.setUTCDate(t.getUTCDate()-o+3);var a=new Date(Date.UTC(t.getUTCFullYear(),0,4)),n=(a.getUTCDay()+6)%7;a.setUTCDate(a.getUTCDate()-n+3);var i=1+Math.round((t-a)/6048e5);return t.getUTCFullYear()+"-W"+String(i).padStart(2,"0")},DAILY_XP_CAP:50,_xpDayKey:"pf_xpday_v1",_xpDayStr:function(){try{var e=this.chiNow();return e.getFullYear()+"-"+("0"+(e.getMonth()+1)).slice(-2)+"-"+("0"+e.getDate()).slice(-2)}catch(e){return""}},dayXpEarned:function(){try{var e=JSON.parse(localStorage.getItem(this._xpDayKey)||"null");if(e&&e.d===this._xpDayStr())return e.xp||0}catch(e){}return 0},claimDayXp:function(e){e=Math.max(0,Math.floor(Number(e)||0));var t=this._xpDayStr(),o=null;try{o=JSON.parse(localStorage.getItem(this._xpDayKey)||"null")}catch(e){}o&&o.d===t||(o={d:t,xp:0});var a=Math.max(0,this.DAILY_XP_CAP-(o.xp||0)),n=Math.min(e,a);o.xp=(o.xp||0)+n;try{localStorage.setItem(this._xpDayKey,JSON.stringify(o))}catch(e){}return n},seedDayXp:function(e){try{var t=null;try{t=JSON.parse(localStorage.getItem("pf_identity_v1")||"{}")}catch(e){}var o=t&&t.callsign?String(t.callsign):"";if(!o||!window.PF_BACKEND_URL)return;var a=this._xpDayStr(),n="pf_xpseed_v1";try{if(localStorage.getItem(n)===a)return}catch(e){}if(!e){try{if(window.sessionStorage&&sessionStorage.getItem(n)===a)return}catch(e){}try{window.sessionStorage&&sessionStorage.setItem(n,a)}catch(e){}}var i=this,r="pfSeedCb"+Math.floor(1e9*Math.random());window[r]=function(e){try{delete window[r]}catch(e){}try{if(e&&e.ok&&"number"==typeof e.xp_today&&e.xp_today>0){var t=null;try{t=JSON.parse(localStorage.getItem(i._xpDayKey)||"null")}catch(e){}if(t&&t.d===a||(t={d:a,xp:0}),e.xp_today>(t.xp||0)){t.xp=Math.min(i.DAILY_XP_CAP,Math.floor(e.xp_today));try{localStorage.setItem(i._xpDayKey,JSON.stringify(t))}catch(e){}}}try{localStorage.setItem(n,a)}catch(e){}}catch(e){}};var s=document.createElement("script");s.onerror=function(){try{delete window[r]}catch(e){}},s.src=window.PF_BACKEND_URL+"?action=xp_today&callsign="+encodeURIComponent(o)+"&callback="+r,document.head.appendChild(s)}catch(e){}},batchGet:function(e){var t=this;if(!t.jsonp)return Promise.resolve((e||[]).map(function(){return{ok:!1,data:null}}));var o=(e||[]).map(function(e){return t.jsonp(e.action,e.params||{}).then(function(t){return{action:e.action,ok:!(!t||!1===t.ok),data:t}})});return Promise.all(o)},jsonp:function(e,t){return new Promise(function(o){try{var a=window.PF_BACKEND_URL;if(!a)return void o(null);var n="pfBatchCb"+Math.floor(1e9*Math.random()),i=document.createElement("script"),r=!1;function d(e){if(!r){r=!0;try{delete window[n]}catch(e){}i.parentNode&&i.parentNode.removeChild(i),o(e||null)}}window[n]=function(e){d(e)},i.onerror=function(){d(null)};var s="?action="+encodeURIComponent(e),l=t||{};for(var c in l)null!=l[c]&&""!==l[c]&&(s+="&"+encodeURIComponent(c)+"="+encodeURIComponent(l[c]));s+="&callback="+n,i.src=a+s,document.head.appendChild(i),setTimeout(function(){d(null)},12e3)}catch(p){o(null)}})}}}function o(e,t){return"[PF:"+e+"] "+t}}(),window.PF_SLR_DB_SNAPSHOT={meta:{version:"2026-10-02",total_members:62,existing:41,new:21,source:"creators-db.json (41, group C enriched) + slr-missing-candidates.json (21 approved)",catalog_scrape_applied:!0,rules:["followers_total is the single numeric audience field (counted once)","new members carry provisional scores 7.6-9.8","no guessed URLs; links tagged confirmed/probable/unverified"],content_updated:"2026-10-03"},members:[{slug:"sex-drugs-rock-n-roll",name:"Sex Drugs Rock n Roll",handles:{primary:"@sexdrugsrocknroll"},primary_platform:"Facebook",propaganda_score:9.8,score_provisional:!1,followers_total:258708,followers_display:"258.7K+",followers_by_platform:{},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/98feb69f-1dd8-4726-a377-5fa357f011fd/333410538_180133698048476_3682545244627213546_n.jpg?format=750w",catalog_path:"/sex-drugs-rock-n-roll",links:[{platform:"Facebook",url:"https://www.facebook.com/SDRandR2",status:"confirmed"}],key_strengths:["258,708 verified followers — the third-largest audience on the board, a broadcast tower aimed from the left","Propaganda with the volume cranked: loud, irreverent, allergic to respectability","One of the few pages that can move a quarter-million people with a single post — reach as a material asset"],offer:["Rock-and-roll politics: loud, unapologetic, allergic to respectability — the oldest rebellion aimed at the newest tyranny","Content: memes, rants, and gleeful blasphemy against the powerful — the kind of thing that made rock dangerous","Culture war: winning by being more fun, more alive, and more willing to say the thing"],bio:"**Sex Drugs Rock n Roll** — because of course that's the name. A Facebook page that takes the oldest rebellion in the book and aims it at the newest tyranny. This is rock-and-roll politics: loud, unapologetic, allergic to respectability, and absolutely uninterested in asking permission. The content is the full package — memes, rants, and the kind of gleeful blasphemy against the powerful that made rock dangerous in the first place. The page understands something fundamental: the culture war is real, and the left wins it by being more fun, more alive, and more willing to say the thing. Why it's on the roster: because a 9.8 doesn't go to the careful. It goes to the ones who make the revolution feel like the best party you've ever been to. Sex Drugs Rock n Roll is that party.",content_focus:"Rock-and-roll leftist politics: memes, rants, anti-establishment blasphemy aimed at the powerful; culture-war content meant to make the revolution feel like the best party.",is_new:!1,seo_title:"Sex Drugs Rock n Roll | Sick Left Radicals | MTCSTW",seo_description:"Sex Drugs Rock n Roll: one of the heaviest guns on the roster — 258K of rock & revolt. Propaganda score 9.8.",image_alt:"Sex Drugs Rock n Roll, Rock-and-roll leftist politics: memes, rants, anti-establishment... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"mtcstw",name:"MTCSTW",handles:{primary:""},primary_platform:null,propaganda_score:9.8,score_provisional:!1,followers_total:38e4,followers_display:"380K+",followers_by_platform:{combined:{count:38e4,confidence:"confirmed"}},followers_as_of:"2026-09-28",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/1810c8c9-3148-41f0-b03f-99e7cd29ff12/mtcstw.jpg?format=750w",catalog_path:"/mtcstw",links:[{platform:"Instagram",url:"https://www.instagram.com/mtcstw",status:"confirmed"},{platform:"Web",url:"https://www.mtcstw.com/",status:"confirmed"},{platform:"Substack",url:"https://mtcstw.substack.com/p/media-nuke-incoming",status:"confirmed"},{platform:"Podcast",url:"https://rss.com/podcasts/the-propaganda-factory",status:"confirmed"},{platform:"Podcast_2",url:"https://www.iheart.com/podcast/269-the-propaganda-factory-305807045/",status:"confirmed"},{platform:"Instagram_2",url:"https://www.instagram.com/propfac",status:"probable"}],key_strengths:["Network command: built and curates a 62-creator network with 8M+ combined reach","Prolific creative engine: 380K+ followers across platforms — 50 songs in 2026, a Substack with a paid tier, and the Propaganda Factory store","Self-funding war chest: revenue from music, merch, and content funds the network"],offer:["The Sick Left Radicals network: 62 vetted leftist creators, 8M+ combined reach","Music and media: 50 songs in 2026, Substack with a paid tier","Merch: the Propaganda Factory store","Writing: Substack with a paid tier"],bio:"MTCSTW is the operation behind the operation: the founder, strategist, and lead propagandist of the Sick Left Radicals network. A one-person media company with a 62-creator amplifier. MTCSTW built the roster, wrote the playbook, and set the aesthetic — red, black, and unignorable.",content_focus:"Network command + leftist propaganda across media: podcast (long-form analysis), Substack essays, music, merch, and the SLR creator network.",is_new:!1,seo_title:"MTCSTW | Sick Left Radicals | MTCSTW",seo_description:"MTCSTW (@mtcstw): the operation behind the Sick Left Radicals network — 62 creators, 8M+ reach, for-profit propaganda. Propaganda score 9.8.",image_alt:"MTCSTW, Network command + leftist propaganda across media: podcast (long-form... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"radically-sunny",name:"Radically Sunny",handles:{primary:"@radicallysunny"},primary_platform:null,propaganda_score:9.7,score_provisional:!1,followers_total:3e5,followers_display:"300K+",followers_by_platform:{tiktok:{count:2633,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/17574d4c-499d-4904-8fd6-1d37c1ec1565/sunny.jpg?format=750w",catalog_path:"/radically-sunny",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@radicallysunnycreations",status:"confirmed"},{platform:"Facebook",url:"https://www.facebook.com/share/19up85ZhZz/?mibextid=wwXIfr",status:"confirmed"},{platform:"Merch",url:"https://radicallysunny.threadless.com/designs/do-better-be-better/kids",status:"confirmed"}],key_strengths:["300K+ for healing-era illustration with a soft-left spine — wizard frogs and ransom-note collages about power","Merch that recruits: a tote reading 'Radicalized by human decency,' plus a Threadless shop and Patreon","The morale wing — bright, affirming posters that travel, feeding the soldiers' souls"],offer:["Radical optimism: relentless optimism paired with unrelenting radicalism — smiling while you flip the table","Leftist commentary: sharp leftist commentary delivered with genuine warmth, making the future feel winnable","Emotional corrective: proof you can be furious at the system and still be a joy to follow"],bio:"**Radically Sunny** is the kind of name that shouldn't work and absolutely does. A Facebook page that pairs relentless optimism with unrelenting radicalism — the political equivalent of smiling while you flip the table. The content is the good stuff: sharp leftist commentary delivered with genuine warmth, the kind of page that makes you feel like the future is winnable rather than just survivable. In a movement that can sometimes mistake despair for seriousness, Radically Sunny is a corrective — proof that you can be furious at the system and still be a joy to follow. Why she's on the roster: because the 9.7s are the ones that change the emotional temperature of the whole network. Radically Sunny makes the revolution feel like something you *want* to be part of, not just something you have to endure.",content_focus:"Leftist commentary with radical optimism; illustrative art/posters (soft-left, bright, affirming); recruiting merch ('Radicalized by human decency' tote).",is_new:!1,seo_title:"Radically Sunny | Sick Left Radicals | MTCSTW",seo_description:"Radically Sunny: the morale wing — healing-era digital illustration for the revolution. Propaganda score 9.7.",image_alt:"Radically Sunny, Leftist commentary with radical optimism; illustrative art/posters... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"east-coast-it-notes",name:"East Coast It Notes",handles:{primary:"@eastcoastitnotes"},primary_platform:"Instagram",propaganda_score:9.6,score_provisional:!1,followers_total:84755,followers_display:"84.8K+",followers_by_platform:{},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/4c39a158-5fa1-4997-a70b-fd90646f3327/444136406_1004276784618065_4047333174202600285_n.jpg?format=750w",catalog_path:"/east-coast-it-notes",links:[{platform:"Facebook",url:"https://www.facebook.com/eastcoastitnotes",status:"confirmed"},{platform:"Instagram",url:"https://www.instagram.com/eastcoastitnotes",status:"confirmed"}],key_strengths:["84,755 followers for revolution drawn on post-it notes — propaganda in its purest form: pictures with words","Satirical strips that slip past defenses against 'political art' and land the class-war punch anyway","Woven into the Liquidate the Billionaires movement; sat down for a full hour on The Propaganda Factory podcast"],offer:["Comic art: post-it note comics since 2019 — cheeky, satirical, unpretentious class-war as office humor","Movement ties: work woven into the Liquidate the Billionaires movement; featured in a full hour-long episode (E11, April 2025) of The Propaganda Factory podcast","Shareable propaganda: pictures with words, reproducible, shareable, impossible to forget"],bio:"East Coast It Notes draws the revolution on post-it notes. The comic artist behind the series started the strip in 2019 and built it out of the humblest medium in the office supply aisle — tiny sticky squares of ink that talk about everything and anything, cheeky and satirical and utterly unpretentious. That's the whole point: propaganda doesn't need a print shop, it needs a pen and something true to say. A leftist comic artist out of LeftBook, he's woven his work into the Liquidate the Billionaires movement, and he's family enough to The Propaganda Factory that he sat down for a full hour-long episode (E11, April 2025) to talk background, craft, and worldview. When the movement's own podcast brings you in for an hour, you've earned your seat at the table. Why it hits: the format is disarming and the politics aren't. A post-it note comic slips past the defenses people raise against \"political art\" and lands the punch anyway — class war as office humor. East Coast It Notes belongs in the Sick Left Radicals network because comics are propaganda in its purest form: pictures with words, reproducible, shareable, impossible to forget.",content_focus:"Leftist comic art drawn on Post-It notes — cheeky, satirical, unpretentious; class-war as office humor; everyday thoughts and awkward moments turned into bite-sized political jokes.",is_new:!1,seo_title:"East Coast It Notes | Sick Left Radicals | MTCSTW",seo_description:"East Coast It Notes: the revolution drawn on post-it notes — comic art with 84,755 followers. Propaganda score 9.6.",image_alt:"East Coast It Notes, Leftist comic art drawn on Post-It notes — cheeky, satirical,... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"joman",name:"Joman",handles:{primary:"@joman"},primary_platform:"TikTok",propaganda_score:9.6,score_provisional:!1,followers_total:29e4,followers_display:"290K+",followers_by_platform:{},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/93ba1214-8a77-401a-b925-d1aa204fcc25/joman.jpg?format=750w",catalog_path:"/joman",links:[{platform:"Linktree",url:"https://linktr.ee/jomanmusic",status:"confirmed"},{platform:"Substack",url:"https://jomanmusic.substack.com",status:"confirmed"},{platform:"Website",url:"https://jomanmusic.com",status:"confirmed"}],key_strengths:["290K+ across eight platforms — music producer, singer, songwriter, video editor, DJ, and Jomactor","Builds things, not just content: short film 'Fairy Godmother' announced April 2026, open honesty about the artist's grind","The empire's soundtrack — a propagandist who can score the movement, edit the video, and star in the film"],offer:["Socialist music: explicitly socialist, explicitly revolutionary music — actual class-war anthems for the current fight","Independent circuit: working the independent circuit via Linktree, building audience directly, no label, no permission slip","Emotional propaganda: music that bypasses the argumentative brain and goes straight for the feeling — you don't debate a chorus, you sing it"],bio:"Every movement has a soundtrack, and **Joman** is writing ours. A musician and producer building explicitly socialist, explicitly revolutionary music — not protest-folk nostalgia, not vague uplift, but actual class-war anthems for the current fight. The link is a Linktree — the modern musician's storefront, and it tells you everything: this is an artist working the independent circuit, building audience directly, no label, no permission slip. The music does what propaganda is supposed to do: bypass the argumentative brain and go straight for the feeling. You don't debate a chorus. You sing it. Why he's in the network: because revolutions need drums. The pages do the explaining; Joman does the *feeling*. A 9.6 because the left has always won on culture first, and Joman is making the culture.",content_focus:"Socialist revolutionary music (class-war anthems); written commentary on Substack (e.g., anti-fascist posts); video content; DJing and short film work.",is_new:!1,seo_title:"Joman | Sick Left Radicals | MTCSTW",seo_description:"Joman (@jomanmusic): SLR's music maker — artist, DJ & propagandist across 8 platforms. Propaganda score 9.6.",image_alt:"Joman, Socialist revolutionary music (class-war anthems); written commentary... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"quietmayhem",name:"quietmayhem",handles:{primary:""},primary_platform:null,propaganda_score:9.6,score_provisional:!1,followers_total:10700,followers_display:"10.7K+",followers_by_platform:{},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/cbe3277c-eb76-481e-aea6-0650defeba71/IMG_9095.jpeg?format=750w",catalog_path:"/quietmayhem",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@quietmayhem",status:"confirmed"},{platform:"Substack",url:"https://quietmayhem.substack.com",status:"confirmed"}],key_strengths:["Forensic bill breakdowns scored like report cards — H.R. 1 got 36/110 and an F, with donor fingerprints traced","Not just analysis: the Money Out of Politics Movement runs real infrastructure — D.C. address, fundraiser, Discord","Names names, shows the money trail, then puts boots on pavement — the March for Integrity aimed 2M people at D.C."],offer:["TikTok-native politics: short-form political content (@quietmayhem) — funny, furious, surgically precise about who the enemy is","Platform fluency: quick, punchy, built for the scroll — class-war content engineered for where the audience lives","Independent voice: no studio, no budget, no permission — a phone, a point of view, and the guts to post"],bio:"**quietmayhem** is the TikTok handle, and the name is a lie — there's nothing quiet about it. A TikTok creator (@quietmayhem) building the kind of short-form political content that actually moves people: funny, furious, and surgically precise about who the enemy is. The format is TikTok-native — quick, punchy, built for the scroll — but the politics are anything but shallow. This is class-war content engineered for the platform where the audience actually lives, delivered with the confidence of someone who knows the algorithm is a battlefield, not a neutral referee. Why they're on the roster: because the 9.6s are the ones doing it at the highest level. quietmayhem is proof that you don't need a studio, a budget, or permission — you need a phone, a point of view, and the guts to post.",content_focus:"Forensic bill breakdowns (H.R. 1 'One Big Beautiful Bill Act', H.R. 217 Chip-In for Veterans Act, Richard Star Act, Mayhem's Monday Morning Mashup); money-in-politics corruption analysis; 'Power to the People' organizing CTAs (March for Integrity, Money Out of Politics Movement).",is_new:!1,seo_title:"quietmayhem | Sick Left Radicals | MTCSTW",seo_description:"quietmayhem: writer & propagandist across TikTok, Substack & YouTube. Propaganda score 9.6.",image_alt:"quietmayhem, Forensic bill breakdowns (H.R. 1 'One Big Beautiful Bill Act', H.R.... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"dr-taylor-andrew",name:"Dr. Taylor Andrew",handles:{primary:"@docdrustudios"},primary_platform:"TikTok",propaganda_score:9.4,score_provisional:!1,followers_total:357e3,followers_display:"357K+",followers_by_platform:{tiktok:{count:229600,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/e0c85fe4-f2fd-431d-87ee-d1323181e7b2/drtaylor.jpg?format=750w",catalog_path:"/dr-taylor-andrew",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@docdrustudios",status:"confirmed"},{platform:"Substack",url:"https://substack.com/@docdrustudios",status:"confirmed"}],key_strengths:["357K cross-platform flamethrower aimed at American racism — racists named, shown receipts, made examples of","Confrontation-as-content at industrial volume: ~3,900 videos, posting multiple times a day","Million-view clips: 'Apricot Adolf basically bankrupted the country' and Texas ICE-protest commentary"],offer:["Direct-to-camera commentary: multiple posts daily confronting American racism, public accountability callouts naming racists with receipts",'Recurring formats: "When you become THE canon event for the wrong person" series, 🦝 Ranger Spotlight',"Patreon podcast: The Social Script","TikTok presence: ~3,900 videos and counting, clips clearing 1M+ views"],bio:'**Dr. Taylor Andrew** — *"No, not THAT kind of Dr."* — is a direct-to-camera flamethrower aimed at American racism, posting multiple times a day with zero interest in your comfort. His signature move is the public accountability callout: racists get named, shown receipts, and made an example of, with the on-screen text *"Keep it \'in house\'? Nah, racists get exposed over here."* Recurring formats include the **"When you become THE canon event for the wrong person"** series and the **🦝 Ranger Spotlight**, plus a Patreon podcast, *The Social Script*. Why it hits: the man\'s clips move. *"Apricot Adolf basically bankrupted the country"* and his ICE-protest commentary in Texas both cleared a million+ views, and his reel on why nobody Black is shocked by anything anymore pulled 19K likes and 2.7K comments of pure fire. He says the thing liberals whisper and racists fear: white supremacy isn\'t new, it\'s just televised now. Why he belongs: this is confrontation-as-content at industrial volume — ~3,900 videos and counting. Raw, unapologetic, and allergic to respectability.',content_focus:"Confrontation-as-content aimed at American racism and white supremacy; viral million-view clips ('Apricot Adolf basically bankrupted the country', Texas ICE-protest commentary).",is_new:!1,seo_title:"Dr. Taylor Andrew | Sick Left Radicals | MTCSTW",seo_description:"Dr. Taylor Andrew (@docdrustudios): PhD creator breaking down politics & power to 357K across platforms. Propaganda score 9.4.",image_alt:"Dr. Taylor Andrew, Confrontation-as-content aimed at American racism and white... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"the-atheist-socialist",name:"The Atheist Socialist",handles:{primary:""},primary_platform:null,propaganda_score:9.4,score_provisional:!1,followers_total:28537,followers_display:"28.5K+",followers_by_platform:{},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/41d05b04-2f25-44fe-8c52-b100c31be1c4/Image+15.jpeg?format=750w",catalog_path:"/the-atheist-socialist",links:[{platform:"Facebook",url:"https://www.facebook.com/afpeofficial",status:"confirmed"}],key_strengths:["28,537 strong in the anti-clerical lane — no gods, no masters, no excuses, swinging at the pulpit daily","Battle-tested in long-form debate: featured guest on 'Ask an Atheist: Tas' with the movement's heavy hitters","Says the quiet part loud about the church's alliance with empire — sacred cows turned into hamburger"],offer:["Godless socialism: pairing godless critique of religion with materialist critique of capitalism — the opiate and the exploitation as a package deal","Content: sharp, unapologetic memes and commentary treating both church and boss as institutions demanding obedience and money","Heretic energy: against both God and capital, and the most fun follow on the timeline"],bio:"**The Atheist Socialist** is doing the Lord's work, minus the Lord. A Facebook page that pairs godless critique of religion with a materialist critique of capitalism — because the opiate of the masses and the exploitation of the masses are, famously, a package deal. The content is sharp, unapologetic, and deeply unfashionable in the most fashionable way: memes and commentary that treat both the church and the boss as what they are — institutions that demand your obedience and your money. The page has the confidence of someone who has read the theory *and* touched grass. Why it's on the roster: because the left needs its heretics. The Atheist Socialist is proof that you can be against both God and capital and still be the most fun follow on the timeline.",content_focus:"Godless socialism: sharp, unapologetic memes and commentary treating both church and boss as institutions demanding obedience and money; church-empire alliance critique.",is_new:!1,seo_title:"The Atheist Socialist | Sick Left Radicals | MTCSTW",seo_description:"The Atheist Socialist: godless class analysis on Facebook. Propaganda score 9.4.",image_alt:"The Atheist Socialist, Godless socialism: sharp, unapologetic memes and commentary treating... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"us-department-of-health-and-human-shenanigans",name:"US Dept of Health and Human Shenanigans",handles:{primary:""},primary_platform:null,propaganda_score:9.4,score_provisional:!1,followers_total:13468,followers_display:"13.5K+",followers_by_platform:{},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/a72ddfa7-d761-42d7-a8c7-a06b6bb59e5f/92ED7C57-277B-452D-9361-D1F328033503.jpeg?format=750w",catalog_path:"/us-department-of-health-and-human-shenanigans",links:[{platform:"Facebook",url:"https://www.facebook.com/profile.php?id=61552053042512",status:"confirmed"}],key_strengths:["Best name on the roster, full stop — the rename IS the argument about a system where care is rationed by wealth","Health policy as satire: the agencies that fail the working class held up for mockery in their own bureaucratic costume","Smallest of the mock agencies at 13,468 verified — but even 13,468 aimed from the left counts, especially this funny"],offer:["Bureaucratic satire: official-sounding pronouncements about the shenanigans actually happening in American health policy","Public health fury: fury at the dismantling of public health infrastructure, the anti-science grifters, the deadly absurdity","Network role: part of the Departments network doing the Lord's work (minus the Lord, plus the shenanigans)"],bio:"The **U.S. Department of Health and Human Shenanigans** is the fake agency we need for the real crisis. A Facebook page that takes the actual Department of Health and Human Services — currently being run like a demolition derby by people who think vaccines are a personality trait — and gives it the treatment it deserves. The bit is bureaucratic satire in service of public health: official-sounding pronouncements about the shenanigans actually happening in American health policy. Underneath the joke is fury — at the dismantling of public health infrastructure, at the anti-science grifters, at the sheer deadly absurdity of it all. Why it's on the roster: because the Departments are a network, and this one is doing the Lord's work (minus the Lord, plus the shenanigans). A 9.4 for making the collapse of public health funny enough to share and serious enough to matter.",content_focus:"Bureaucratic satire of U.S. health policy; public-health advocacy through humor — mocking agencies failing the working class in their own bureaucratic costume.",is_new:!1,seo_title:"US Dept of Health and Human Shenanigans | MTCSTW",seo_description:"U.S. Dept. of Health and Human Shenanigans: the federal government you deserve — satire with teeth. Propaganda score 9.4.",image_alt:"US Dept of Health and Human Shenanigans, Bureaucratic satire of U.S. health policy; public-health advocacy... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"f-this-imperialistic-bs",name:"F this imperialistic bs",handles:{primary:""},primary_platform:null,propaganda_score:9.3,score_provisional:!1,followers_total:35340,followers_display:"35.3K+",followers_by_platform:{},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/a8617435-9f9e-41b1-9633-f6e1faad3b86/Image+12.jpeg?format=750w",catalog_path:"/f-this-imperialistic-bs",links:[{platform:"Facebook",url:"https://www.facebook.com/leftsideisthebestside",status:"confirmed"}],key_strengths:["35,340 strong on zero-ambiguity anti-imperialism: 'The Left side Is The Best side'","Meme-heavy and prolific: four-panel collages with 'Caption this!' challenges that detonate in the comments","Cross-posted into leftist groups to keep the agitation circulating beyond the page's own audience"],offer:['Meme warfare: four-panel meme collages with "Caption this!" challenges, text-only provocations',"Anti-imperialist agitation: empire, capital, and the liberal order attacked with the bluntest tools available","Cross-posting: agitation circulating beyond the page's own audience into leftist Facebook groups"],bio:"Zero ambiguity in the branding and zero ambiguity in the politics: F this imperialistic bs runs on the thesis that \"The Left side Is The Best side,\" and the signature caption style invites the comment section to talk shit at right-wingers directly. This is anti-imperialism as a contact sport. The format is meme-heavy and prolific: four-panel meme collages posted with a \"Caption this!\" challenge, text-only provocations, and cross-posting into leftist Facebook groups to keep the agitation circulating beyond the page's own audience. A February 2026 post during Black History Month paired a holiday greeting with a deliberately incendiary jab about who does and doesn't appear in the Epstein files — the kind of line designed to detonate in the comments and pull the conversation left. The content never drifts from the mission: empire, capital, and the liberal order that services them, all attacked with the bluntest tools available. It's not subtle, and it doesn't want to be — imperialism isn't subtle either. One note: Facebook's own profile tooling returned the page as restricted, but the public posts are fully readable via the page. A hammer for the network's anti-imperialist wing.",content_focus:"Anti-imperialist meme warfare: four-panel meme collages with 'Caption this!' challenges, text-only provocations; targets: empire, capital, and the liberal order. Example: Feb 2026 Black History Month post pairing holiday greeting with incendiary jab about the Epstein files.",is_new:!1,seo_title:"F this imperialistic bs | Sick Left Radicals | MTCSTW",seo_description:"F this imperialistic bs: zero-ambiguity anti-imperialist politics on Facebook. Propaganda score 9.3.",image_alt:"F this imperialistic bs, Anti-imperialist meme warfare: four-panel meme collages with 'Caption... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"guillotines-for-a-better-america",name:"Guillotines For A Better America",handles:{primary:""},primary_platform:null,propaganda_score:9.3,score_provisional:!1,followers_total:63970,followers_display:"64K+",followers_by_platform:{},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/2bca2109-901d-4085-b5de-243ab0fd5cae/Image+3.jpeg?format=750w",catalog_path:"/guillotines-for-a-better-america",links:[{platform:"Facebook",url:"https://www.facebook.com/profile.php?id=100063489695105",status:"confirmed"},{platform:"Patreon",url:"https://www.patreon.com/guillotinesforabetteramerica",status:"confirmed"}],key_strengths:["63,970 followers of class-war clarity from a disabled creator who lives it — commentary from inside the blast radius","Dragged the pulled 60 Minutes/CECOT segment and vanishing SNAP benefits into the open — blunt, profane, sourced","Praxis in the small print: merch through union shops and mom-and-pop printers, never sweatshop dropshippers"],offer:["Class-war commentary: blunt, profane commentary written from inside the blast radius — covering the pulled 60 Minutes CECOT segment, SNAP benefits threats, and more","Lived experience: run by a disabled creator living in poverty, caring for a disabled father — class war as rent, meds, and the disability check","Ethical merch: planned through union shops or small mom-and-pop printers, explicitly not sweatshop dropshippers","Patreon: patreon.com/guillotinesforabetteramerica","Audience: 63,970 followers of class-war clarity"],bio:"No cosplay here. This page is run by a disabled creator living in poverty, caring for a disabled father in a slumlord-run apartment complex — and they say so openly, right on their Patreon. That's the whole thesis of the page in one fact: class war isn't a theory, it's the rent, the meds, the disability check that doesn't stretch. The content matches the life. Recent posts take on the pulled 60 Minutes segment on CECOT and the deportees caged there — yanked, the page reports, on orders from Bari Weiss at CBS — and warn that November SNAP benefits may simply not arrive for millions already hanging on by a thread. The voice is blunt and profane in the best way: the regime is openly called fascist, its enablers get names you can't print on a family site. This is commentary written from inside the blast radius, not from a think tank. And the praxis holds up in the small print: merch is planned through union shops or small mom-and-pop printers — explicitly not sweatshop dropshippers. The page has also survived Facebook demonetization (reinstated, no explanation) and an admin stint in a hospital and skilled nursing, and it keeps posting. Active as of this week. **63,970 followers** of class-war clarity from someone who lives it. That's exactly who the Propaganda Factory exists to amplify.",content_focus:"Class-war commentary from lived experience: rent, meds, disability checks; regime critiques (CECOT deportations, SNAP benefits threats); anti-sweatshop ethical merch plans.",is_new:!1,seo_title:"Guillotines For A Better America | MTCSTW",seo_description:"Guillotines For A Better America: class-war memes & merch, no cosplay. Propaganda score 9.3.",image_alt:"Guillotines For A Better America, Class-war commentary from lived experience: rent, meds, disability... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"guillotines-for-billionares-2020",name:"Guillotines For Billionares 2020",handles:{primary:""},primary_platform:null,propaganda_score:9.3,score_provisional:!1,followers_total:56e3,followers_display:"56K+",followers_by_platform:{},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/a171e925-f264-4c9f-a02d-45126911f5d7/Image+4.jpeg?format=750w",catalog_path:"/guillotines-for-billionares-2020",links:[{platform:"Facebook",url:"https://www.facebook.com/Guillotinesforbillionaires",status:"confirmed"}],key_strengths:["The name is the whole platform: the old world's most feared symbol aimed at this one's billionaires","56K+ stated audience — extreme wealth named as violence with better PR","A placeholder salute while the page is dark: fighting names the algorithm would rather you never find"],offer:["Class-war branding: the guillotine aimed at billionaires — direct, unapologetic, allergic to the polite fiction that extreme wealth is anything but violence with better PR","Stated audience: 56K+","Network role: placeholder salute and marker — if the page resurfaces with a confirmed link and count, it gets the full treatment"],bio:"The name is the whole platform, and it's a good one: the guillotine, the symbol the old world feared most, aimed at the billionaires of this one. (Yes, \"Billionares\" — that's the page's own spelling, and we keep it as they wrote it.) This page rides with the same class-war current as its sibling, Guillotines For A Better America — direct, unapologetic, allergic to the polite fiction that extreme wealth is anything but violence with better PR. The stated audience is **56K+**, and the format does what the best radical pages do: take the symbols of the old order and turn them into marching orders for the new one. Honest accounting, though: this page has no public trace outside the SLR roster itself — no indexed posts, no visible bio, nothing that lets us confirm the count or read recent content, and the Facebook page sits behind the login wall. It may have been renamed, unpublished, or taken down; we can't verify which. So consider this a placeholder salute and a marker: if the page resurfaces with a confirmed link and count, it gets the full treatment it deserves. Why it's on the roster at all: the network is built for exactly this — pages with fighting names and fighting audiences that the algorithm would rather you never find.",content_focus:"Class-war branding: the guillotine aimed at billionaires — extreme wealth named as violence with better PR.",is_new:!1,seo_title:"Guillotines For Billionares 2020 | MTCSTW",seo_description:"Guillotines For Billionares 2020: the name is the platform — eat-the-rich agitation. Propaganda score 9.3.",image_alt:"Guillotines For Billionares 2020, Class-war branding: the guillotine aimed at billionaires — extreme... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"south-dakota-department-of-propaganda",name:"South Dakota Dept of Propaganda",handles:{primary:""},primary_platform:null,propaganda_score:9.3,score_provisional:!1,followers_total:75e3,followers_display:"75K+",followers_by_platform:{},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/20a7a31c-ac26-464b-9b4d-91b9b9480a2d/F25BC730-04D2-4653-A308-1E8D3D96146F.jpeg?format=750w",catalog_path:"/south-dakota-department-of-propaganda",links:[{platform:"Web",url:"https://buymeacoffee.com/infota",status:"confirmed"},{platform:"Web_2",url:"https://www.patreon.com/southdakota?l=de",status:"unverified"},{platform:"Podcast",url:"https://castbox.fm/channel/id5342624",status:"confirmed"},{platform:"Web_3",url:"https://www.redbubble.com/i/sticker/South-Dakota-Department-of-Propaganda-by-SDDP/81036375.EJUG5",status:"confirmed"}],key_strengths:["75K+ for guerrilla-newsdesk satire: fake 'breaking news' screenshots, deadpan and double-take worthy","Doesn't just mock — documents: July 2026 street coverage with a 'MAKE CORRUPTION ILLEGAL AGAIN' overpass banner","A fork-in-the-road cartoon puts MAGA's choice in one frame: 'Support a pedophile' or 'Admit you were conned'"],offer:["Fake-agency satire: the voice of a state propaganda bureau in service of left politics — official-sounding pronouncements from an institution that doesn't exist","Network role: part of the beloved Departments of Propaganda network (Minnesota, South Dakota, Wisconsin, Federal)","Status: currently a placeholder — a lost comrade in the war for truth; if the page resurfaces, it gets the full treatment"],bio:"The **South Dakota Department of Propaganda** is the lost comrade of the Departments — the one whose website went dark and whose signal got quiet. The roster lists it with a dead link and a note: *southdakotatruth.com — potential lost comrade in the war for truth.* But the Department deserves its page, because the Departments of Propaganda (Minnesota, South Dakota, Wisconsin, the Federal Department) are some of the most beloved fake agencies on the left internet. The bit — official-sounding pronouncements from an institution that doesn't exist, in service of a politics that absolutely does — is evergreen. This page is a placeholder and a promise: if South Dakota resurfaces, it gets the full treatment. Until then, we hold the line and keep the seat warm.",content_focus:"Satirical leftist memes about South Dakota and national politics (esp. Kristi Noem/SD GOP), podcast episodes on SD political news, fake-news-style satirical graphics, Redbubble merch. One satirical ICE-meme graphic was fact-checked by Lead Stories (2025-07).",is_new:!1,seo_title:"South Dakota Dept of Propaganda | MTCSTW",seo_description:"South Dakota Department of Propaganda: agitation from deep red territory. Propaganda score 9.3.",image_alt:"South Dakota Dept of Propaganda, Satirical leftist memes about South Dakota and national politics... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"films-for-action",name:"Films For Action",handles:{primary:""},primary_platform:null,propaganda_score:9.2,score_provisional:!1,followers_total:1e6,followers_display:"1M+",followers_by_platform:{facebook:{count:8e5,confidence:"confirmed"},instagram:{count:7e3,confidence:"confirmed"},x:{count:14e3,confidence:"confirmed"},youtube:{count:8e3,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/39ac9f31-c3f6-4419-b9b4-c0552a8523d5/468674838_968765711953278_4106206849352114286_n.jpg?format=750w",catalog_path:"/films-for-action",links:[{platform:"Web",url:"https://www.filmsforaction.org/watch/how-capitalism-destroys-radical-movements/",status:"confirmed"}],key_strengths:["1M+ followers and nearly two decades as the left's free film school — founded 2006, nonprofit","The Wall of Films: 500+ hand-picked documentaries on social change, every one watchable free online","Praxis built in: host screenings, share the films, hand copies to teachers — real campaigns launched from them"],offer:["Wall of Films: 500+ documentaries hand-picked for their power to shift awareness and inspire action, every one watchable free online","Planet Local Voices series: 33 episodes on ecological economies, local food systems, and healthy communities","Subject organization: activism, climate change, war & peace, consumerism, big media — with an explicit directive to host screenings and share","Nonprofit since 2006: based in Lawrence, Kansas, recommended by School Library Journal as a teaching resource for media literacy"],bio:"## Films For Action — The Left's Film School, Free Forever. Films For Action is the media arsenal of the network. Founded in 2006 as a nonprofit in Lawrence, Kansas, it's been doing one thing for nearly two decades: cataloging the best documentaries and short films about social change — and giving them all away free. The crown jewel is the **Wall of Films**: 500+ documentaries, hand-picked for their power to shift awareness and inspire action, every one watchable free online. Their current front page features the Planet Local Voices series — 33 episodes on ecological economies, local food systems, and healthy communities. The site is organized by subject (activism, climate change, war & peace, consumerism, big media), and it comes with an explicit directive: *host screenings, share these films, give copies to your elected officials and teachers.* Co-founder Tim Hjersted called it \"probably the most comprehensive collection of videos dedicated to social change online,\" and the School Library Journal agrees — it's recommended as a teaching resource for media literacy. The local chapter history is real too: film screenings in Lawrence that launched actual campaigns, from killing a Wal-Mart expansion to passing a Peak Oil resolution. **Why they belong:** Propaganda needs source material, and this is the archive. Every radical with a screen should know this library exists.",content_focus:"Curated documentary walls organized by topic: Activism, Animal Rights, Climate Change, Corporations, Community, Consumerism, Drug Prohibition, Education, Food Sustainability, War & Peace and more; browseable by subject, date and popularity.",is_new:!1,seo_title:"Films For Action | Sick Left Radicals | MTCSTW",seo_description:"Films For Action: the left's free film school — documentaries & media for liberation. Propaganda score 9.2.",image_alt:"Films For Action, Curated documentary walls organized by topic: Activism, Animal... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"voix-noire",name:"Voix Noire",handles:{primary:"@thevoixnoire"},primary_platform:"Instagram",propaganda_score:9.2,score_provisional:!1,followers_total:5e4,followers_display:"50K+",followers_by_platform:{},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/b03798e0-9849-451d-878d-32637fb2e0a7/Image+16.jpeg?format=750w",catalog_path:"/voix-noire",links:[{platform:"Facebook",url:"https://www.facebook.com/VoixNoire",status:"confirmed"},{platform:"Web",url:"https://www.voixnoire.com/request",status:"confirmed"},{platform:"Instagram",url:"https://www.instagram.com/thevoixnoire",status:"confirmed"},{platform:"Facebook_2",url:"https://www.facebook.com/TheVoixNoire/",status:"confirmed"},{platform:"X",url:"https://x.com/voix_noire",status:"confirmed"},{platform:"Web_2",url:"https://www.patreon.com/creightonleigh",status:"confirmed"}],key_strengths:["$4 million+ distributed and 10,000+ families served since 2016 — reparations-based mutual aid that actually moves","Emergency groceries every single day of the year, plus UBI + Groceries: $300 in food and $300 in cash monthly","Founder takes no pay — ten years in, the longest-running proof that mutual aid is a supply line, not a hashtag"],offer:["Black radical media: a platform centering Black radical thought, culture, and politics — VoixNoire.com","Internationalist politics: unapologetic Black leftism treating liberation as a global project","Independent infrastructure: building Black radical media infrastructure, unwilling to water down for mainstream palatability"],bio:"**Voix Noire** — the Black Voice. A platform at VoixNoire.com that centers Black radical thought, culture, and politics with the seriousness it deserves and the style it demands. The name is French, the politics are internationalist, and the content is the good stuff: unapologetic Black leftism that treats liberation as a global project, not a national brand. This is the kind of platform the network exists to amplify — independent, principled, and unwilling to water down the message for mainstream palatability. Why it's on the roster: because the revolution is Black-led or it isn't a revolution. Voix Noire is doing the work of building Black radical media infrastructure, and that's worth a 9.2 all day.",content_focus:"Mutual aid and community support: emergency groceries, UBI-style cash support, crisis aid for Black women and marginalized genders and their children; fundraising and visibility campaigns on social media.",is_new:!1,seo_title:"Voix Noire | Sick Left Radicals | MTCSTW",seo_description:"Voix Noire: mutual aid that actually moves — organizing beyond the feed. Propaganda score 9.2.",image_alt:"Voix Noire, Mutual aid and community support: emergency groceries, UBI-style cash... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"bona-bones",name:"Bona Bones",handles:{primary:"@bona.bones"},primary_platform:"TikTok",propaganda_score:8.8,score_provisional:!1,followers_total:158600,followers_display:"158.6K+",followers_by_platform:{tiktok:{count:158600,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/e3e41864-12b4-468b-9502-4af04d7dca32/bona-bones-new.jpg?format=750w",catalog_path:"/bona-bones",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@bona.bones",status:"confirmed"},{platform:"Tiktok_2",url:"https://www.tiktok.com/@bona.bones/video/7621201060119514399?_r=1&_d=secCgYIASAHKAESPgo8W7hDQ8KvZefyRh2dZIMPcTFxzocl9ih3DVDYpImiEmijPh%2B7iU9bOhoG8srfLqmOZ5bqWQX1EdPhbWCjGgA%3D&_svg=3&checksum=2fb57d8ac8b8d8669deab9fb73a05eb224a73dfa0311930d3439361e7c2c5889&item_author_type=1&link_reflow_popup_iteration_sha",status:"confirmed"},{platform:"Web",url:"https://www.bonabones.com/",status:"confirmed"},{platform:"Web_2",url:"https://calendar.ku.edu/event/design-symposium-lecture-series-julian-narino",status:"confirmed"},{platform:"Web_3",url:"https://spacehey.com/bonabones",status:"confirmed"}],key_strengths:["Professional stop-motion animator (Robot Chicken, Crossing Swords) running an animation studio out of her timeline","1,914 videos, 10.7M likes — labor-intensive art that hits like a brick through a bank window","Free mentorship for aspiring animators: building the bench, no gatekeeping"],offer:["Stop-motion animation: professional animator (Robot Chicken, Crossing Swords credits), 1,914 TikTok videos, 10.7 million likes","Teaching: animation instructor at the Kansas City Art Institute, currently directing animation at The Rabbit hOle children's museum","Free mentorship: open mentorship for aspiring animators — building the bench, no gatekeeping","Anti-AI advocacy: publicly torching AI-slop accounts while boosting real human stop-motion creators"],bio:"## Bona Bones — Stop-Motion Animation for the Class War. Bona Bones is a professional stop-motion animator out of Kansas City, Missouri, and her TikTok is a masterclass in making labor-intensive art hit like a brick through a bank window. With 1,914 videos and 10.7 million likes, she's not dabbling — she's running an animation studio out of her timeline. Her résumé reads like a working-class success story with the serial numbers filed off: animation on *Robot Chicken* and *Crossing Swords*, teaching at the Kansas City Art Institute, and currently directing animation at The Rabbit hOle, a pioneering children's museum. She also offers free mentorship to aspiring animators — building the bench, no gatekeeping. What makes her SLR material isn't just craft, it's conviction. Her profile rocks a \"FUCK ICE / Have A Nice Day\" avatar graphic, and she's publicly torching AI-slop accounts while boosting real human stop-motion creators like her mutual Plim. In an era of infinite generated garbage, she's standing up for artists who move their hands frame by frame. **Why she belongs:** The movement needs people who can *make things* — and teach others to make them. Bona Bones is craft, pedagogy, and militant anti-capitalist aesthetics in one feed.",content_focus:"Stop-motion animation, animation education and process videos on TikTok, leftist political commentary (roster avatar at one point was a 'FUCK ICE / Have A Nice Day' graphic).",is_new:!1,seo_title:"Bona Bones | Sick Left Radicals | MTCSTW",seo_description:"Bona Bones (@bona.bones): professional stop-motion animator — Robot Chicken credits, 10.7M likes of class-war craft. Propaganda score 8.8.",image_alt:"Bona Bones, Stop-motion animation, animation education and process videos on... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"black-newsbeat-with-dr-kimeka-campbell",name:"Black NewsBeat",handles:{primary:"@blacknewsbeat"},primary_platform:"Facebook",propaganda_score:8.1,score_provisional:!1,followers_total:44e3,followers_display:"44K+",followers_by_platform:{},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/ce3e6160-d4a4-4f7b-960c-a2d52a3b00c2/blacknewsbeat.jpg?format=750w",catalog_path:"/black-newsbeat-with-dr-kimeka-campbell",links:[{platform:"Web",url:"https://www.kimeka.org/blacknewsbeat",status:"confirmed"},{platform:"Web_2",url:"https://www.theatermania.com/shows/harrisburg/black-newsbeat-w-dr-kimeka-campbell_1786812/",status:"confirmed"}],key_strengths:["Harrisburg's own late-night talk show — live twice a month, streaming from Facebook to WPGV TV","Sticky formats: Movies & Melanin, Sweeping the Streets, Sessions with the Candidates — down-ballot power under the lens","Juneteenth HBG 2026 coverage proved one show can move a whole city"],offer:["Late-night talk show: live twice a month at Open Stage in downtown Harrisburg, pay-what-you-can tickets, streaming on Facebook and WPGV TV",'"Movies & Melanin" pop-culture breakdowns, "Sweeping the Streets" grassroots spotlights, "Sessions with the Candidates" local-race coverage',"Movement space: poets, musicians, organizers, educators, and storytellers centering Black and Brown life in Central PA"],bio:'**Black NewsBeat with Dr. Kimeka Campbell** is Harrisburg\'s own late-night talk show — live twice a month at Open Stage in downtown Harrisburg, pay-what-you-can tickets, and streaming everywhere from Facebook to WPGV TV. Launched February 2021 out of a joint venture with Open Stage and the Young Professionals of Color, it\'s part talk show, part movement space: poets, musicians, organizers, educators, and storytellers centering Black and Brown life in Central PA. Why it hits: the formats are *sticky*. **"Movies & Melanin"** breaks down pop culture through the culture. **"Sweeping the Streets"** spotlights grassroots work nobody else covers. **"Sessions with the Candidates"** puts local races under the lens — prothonotary debates, justice access, transparency — the down-ballot stuff that actually touches your life. Her Juneteenth HBG 2026 coverage pulled in local press flowers and proved the show can move a whole city. Why she belongs: national discourse is starving for local power. Black NewsBeat builds the bench — community, culture, and conversation on its own terms.',content_focus:"Black and Brown Central-PA culture, civic engagement and local politics (e.g., candidate interviews), arts and poetry, social justice issues, pop-culture segments.",is_new:!1,seo_title:"Black NewsBeat | Sick Left Radicals | MTCSTW",seo_description:"Black NewsBeat with Dr. Kimeka Campbell: Black-centered news across Facebook, Instagram & TikTok. Propaganda score 8.1.",image_alt:"Black NewsBeat, Black and Brown Central-PA culture, civic engagement and local... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"hex-reject",name:"Hex Reject",handles:{primary:"@hexreject"},primary_platform:"TikTok",propaganda_score:9,score_provisional:!1,followers_total:53e3,followers_display:"53K+",followers_by_platform:{tiktok:{count:38200,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/f4aabf78-85f8-4753-a61a-a055255169ad/hexreject.jpg?format=750w",catalog_path:"/hex-reject",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@hexreject",status:"confirmed"},{platform:"Tiktok_2",url:"https://www.tiktok.com/@hexreject?_r=1",status:"confirmed"},{platform:"Web",url:"https://hexreject.com/",status:"confirmed"},{platform:"Web_2",url:"https://www.whatnot.com/user/hexreject",status:"confirmed"}],key_strengths:["53K following hand-drawn, no-AI visual magick — 'made with magick, support human artists'","Full armory: pattern tiles, prints, stickers, tarot cards, bamboo apparel — imagery that carries the message","Art thieves get invoiced, DMCA'd, and publicly named — fiercely independent, anti-corporate to the bone"],offer:['Hand-drawn design: spooky, whimsical, maximalist design work — "hand drawn, no ai. made with magick. support human artists."',"Products: seamless pattern tiles, art prints, stickers, tarot cards, bamboo apparel — featuring raccoons (the beloved Jimothy), black hearts, stars, and gothic whimsy",'Artist protection: signature watermarks "HEX REJECT — thou shalt not steal"; art thieves get invoiced, DMCA\'d, and publicly named',"Cause licensing: using designs for rights-based or cause-driven work directs proceeds to rights-based work","Social presence: TikTok, Instagram, and Threads as @hexreject"],bio:'Every propaganda operation needs an armory, and **Hex Reject** is ours. Sydney — an elder-emo witch and hand-drawn artist — builds spooky, whimsical, maximalist design work with one iron rule stamped across every piece: **"hand drawn, no ai. made with magick. support human artists."** Her signature watermarks read *"HEX REJECT — thou shalt not steal,"* and she means it: art thieves get invoiced, DMCA\'d, and publicly named. What she makes: seamless pattern tiles, art prints, stickers, tarot cards, bamboo apparel — a whole visual language of raccoons (the beloved **Jimothy**), black hearts, stars, and gothic whimsy in electric colorways. Her own licensing terms go further than most: using her designs for rights-based or cause-driven work directs proceeds to rights-based work. That\'s an artist who understands the assignment. Why she\'s in the network: Hex Reject proves the other half of the equation. We make the message; she makes the imagery that carries it. Hand-drawn, anti-corporate, fiercely independent — this is what human-made culture looks like when it refuses to be scraped and sold. Follow Hex Reject on Facebook — also on TikTok, Instagram, and Threads as **@hexreject**.',content_focus:"Witchy whimsical digital art and product design — no political commentary on the public face; this is the caution case: the art account IS their public identity. Leftist affiliation is via the SLR roster, not the content itself.",is_new:!1,seo_title:"Hex Reject | Sick Left Radicals | MTCSTW",seo_description:"Hex Reject (@hexreject): the propaganda armory — art & agitation across four platforms. Propaganda score 9.0.",image_alt:"Hex Reject, Witchy whimsical digital art and product design — no political... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"ipostwhenifeelhot",name:"ipostwhenifeelhot",handles:{primary:""},primary_platform:null,propaganda_score:9,score_provisional:!1,followers_total:26e3,followers_display:"26K+",followers_by_platform:{},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/58515df6-8c5c-44f0-a14d-a659467de64c/0cbc7aae323c3554a790c47e2a58ea85%7Etplv-tiktokx-cropcenter_1080_1080.jpeg?format=750w",catalog_path:"/ipostwhenifeelhot",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@ipostwhenifeelhot",status:"confirmed"}],key_strengths:["26K+ deep on the philosophy of 'I post when I feel it' — raw beats polished when the goal is radicalization","Dual-role trench fighter: propagandist AND organizer, a known quantity in the leftist TikTok ecosystem","Authenticity the algorithm can't fake — voices that fire off because something had to be said"],offer:['Comedy commentary: "Professional yapper" — pure unfiltered comedic commentary, the vibe of "your brutally honest best friend who says what everyone\'s thinking."',"Political roasts: savage roasts of MAGA logic, billionaire worship, and right-wing delusion with main-character energy","Delivery mechanism: laughter as the delivery mechanism, political clarity as the payload","Audience: 26K followers"],bio:"**Hot.** That's the brand, that's the bio, that's the entire operating system. ipostwhenifeelhot is a self-declared **\"Professional yapper\"** — **26K followers** of pure unfiltered comedic commentary where the vibe is \"your brutally honest best friend who says what everyone's thinking.\" What makes this work as propaganda: the delivery mechanism is laughter, and the payload is political clarity. The page runs on savage roasts of MAGA logic, billionaire worship, and right-wing delusion — delivered with the timing of someone who has main-character energy and knows exactly how to use it. The hot takes are genuinely hot. The yapping is genuinely professional. Why she's on the roster: because the algorithm rewards charisma, and charisma with a class analysis is a weapon. ipostwhenifeelhot is what happens when someone with 26K people hanging on every post decides to aim the comedy at the people who deserve it.",content_focus:"Leftist propaganda and organizing content (per roster role); specifics unverified.",is_new:!1,seo_title:"ipostwhenifeelhot | Sick Left Radicals | MTCSTW",seo_description:"ipostwhenifeelhot: TikTok propagandist & organizer, 26K+ deep. Propaganda score 9.0.",image_alt:"ipostwhenifeelhot, Leftist propaganda and organizing content (per roster role);... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"wisconsin-department-of-propaganda",name:"Wisconsin Dept of Propaganda",handles:{primary:""},primary_platform:null,propaganda_score:8.9,score_provisional:!1,followers_total:57e3,followers_display:"57K+",followers_by_platform:{},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/7cdd29fd-900f-47ba-91ec-e9ce2e30ab6d/Screenshot+2025-04-21+at+12.14.54%E2%80%AFPM.png?format=750w",catalog_path:"/wisconsin-department-of-propaganda",links:[{platform:"Facebook",url:"https://www.facebook.com/WisconsinDOP",status:"confirmed"}],key_strengths:["57K+ for dairyland class consciousness — the language of officialdom turned against the state itself","The classic of the genre: a Department of Propaganda for Wisconsin, sharp, funny, unapologetic","Keeping the seat warm while the bureau is dark — when it's back online, 57K followers of satire come with it"],offer:["Fake state agency: Wisconsin's chapter of the Departments network — official-sounding leftist pronouncements with bureaucratic aesthetics and deadpan confidence","Labor history honored: a fake agency for a real state with a labor history worth honoring and a present worth organizing","Network chapter: a proud chapter of the Departments network bringing the bit to America's Dairyland"],bio:"The **Wisconsin Department of Propaganda** is the Badger State's fake agency — part of the Departments network bringing official-sounding leftist pronouncements to America's Dairyland. The bit is the same beautiful absurdity: bureaucratic aesthetics, deadpan confidence, and the implication that somewhere in Madison there's an office churning out propaganda for the people. Wisconsin gets its own chapter because Wisconsin deserves one — a state with a labor history worth honoring and a present worth organizing. Why it's on the roster: because the Departments are a network, and Wisconsin is a proud chapter. The fake agency for a real state with real organizing to do.",content_focus:"Leftist propaganda (per roster role); specifics unverified.",is_new:!1,seo_title:"Wisconsin Dept of Propaganda | Sick Left Radicals | MTCSTW",seo_description:"Wisconsin Department of Propaganda: state-level meme bureau, 57K+ strong. Propaganda score 8.9.",image_alt:"Wisconsin Dept of Propaganda, Leftist propaganda (per roster role); specifics unverified. — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"the-antifascist-frog",name:"The Antifascist Frog",handles:{primary:"@theantifascistfrog"},primary_platform:"TikTok",propaganda_score:9,score_provisional:!1,followers_total:56500,followers_display:"56.5K+",followers_by_platform:{tiktok:{count:56500,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/ea682dd0-4794-424b-ad07-f8f590a13875/antifascist-frog.jpg?format=750w",catalog_path:"/the-antifascist-frog",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@theantifascistfrog/video/7557153362249026846",status:"confirmed"},{platform:"Website",url:"https://theantifascistfrog.com/",status:"confirmed"}],key_strengths:["Unmaceable: pepper spray discharged point-blank into the suit's air intake — stayed inside nearly an hour, then came back the next night","Absurdity as strategy: converted a federal mace attack into a citywide inflatable uprising (chickens, dinosaurs, sharks)",'Decorated amphibian: Willamette Week\'s "Portlander of the Year: The Frog" (Dec 2025); arrested Jan 9, 2026; owns a second frog costume'],offer:["Frog protest documentation: the @theantifascistfrog TikTok (56.5K followers) chronicles the Portland frog protests as they happen",'Tactical frivolity: protesting in an inflatable frog costume since June 2025, ridiculing the "violent extremist" narrative one squeak at a time',"Movement ignition: the October 2025 mace incident sparked the Portland Frog Brigade / Operation Inflation — dozens of protesters in inflatable costumes"],bio:'Every protest needs its jester, and **THE ANTIFASCIST FROG** is hopping ours. Since June 2025, an inflatable frog has been showing up at Portland demonstrations — mocking the "violent extremist protester" narrative with pure, squeaky, tactical frivolity. The TikTok account @theantifascistfrog documents the frog protests for 56.5K followers, and the frog follows MTCSTW back. The protester inside the suit is widely reported as Seth "Toad" Todd, 24, nonbinary, of Clackamas — the account and the person are two different things, and both are glorious. On October 2, 2025, outside the ICE facility in Portland\'s South Waterfront, a federal agent discharged pepper spray directly into the suit\'s air intake vent. He stayed in the suit nearly an hour. His review: "It was just a little peppermint taste. You know, I\'ve tasted spicier. I\'m Mexican. What do you expect?" He was back protesting the next night — and he owns a second frog costume, because of course he does. Why he\'s in the network: because the frog turned a mace attack into a movement. The incident detonated the "Portland Frog Brigade" — "Operation Inflation" — dozens of protesters in inflatable costumes (chickens, dinosaurs, sharks) answering state violence with absurdity. Willamette Week named him "Portlander of the Year: The Frog" in December 2025. Arrested January 9, 2026 at a South Waterfront protest, and still hopping. A 9.0 because you can\'t pepper-spray an idea — especially one in an inflatable frog suit.',content_focus:"Anti-ICE protest action, antifascist resistance, humorous nonviolent protest; merch line ('Don't Obey' frog designs) funds refugee/immigrant support.",is_new:!1,seo_title:"The Antifascist Frog | Sick Left Radicals | MTCSTW",seo_description:"The Antifascist Frog (@theantifascistfrog): Anti-ICE protest action, antifascist resistance, humorous nonviolent protest; merch line... on TikTok. 56.5K+...",image_alt:"The Antifascist Frog, Anti-ICE protest action, antifascist resistance, humorous nonviolent... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"jeanine-pirreaux-comedy",name:"Jeanine Pirreaux Comedy",handles:{primary:""},primary_platform:null,propaganda_score:8.6,score_provisional:!1,followers_total:48e3,followers_display:"48K+",followers_by_platform:{tiktok:{count:48e3,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/c5fe9f42-a07a-483b-844c-472d6f2c792b/moreno.jpg?format=750w",catalog_path:"/jeanine-pirreaux-comedy",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@jeaninepirreauxcomedy/video/7619800153091837197?_r=1&_d=secCgYIASAHKAESPgo8UAOWQZK75GCF3cRiUiSC%2B069hQhIT7I5Gv5IGIPjILRrDseN7bF8ctpDyUiiVxNlq25qGttAjCo7QYXLGgA%3D&_svg=3&checksum=a4fef0e4c64107ad6621aae4ff65f5a2346680f97e59824f8fe0d54761000da7&item_author_type=2&link_reflow_popup_it",status:"confirmed"},{platform:"Tiktok_2",url:"https://www.tiktok.com/@jeaninepirreauxcomedy/video/7619800153091837197",status:"confirmed"}],key_strengths:["48K for a glorious Trojan horse: Jeanine Pirro's aesthetic and cadence weaponized against the people she protects","Nightly-indictment format: Pentagon spending, DOGE grift, Trump's MSG boos — viral bits with receipts","Satire with a pipeline to material solidarity — her bio links a Give2Cuba donation drive"],offer:["Comedy commentary: foul-mouthed, wine-glass-wielding cultural commentator roasting MAGA hypocrisy, billionaire worship, and right-wing delusion","Delivery system: comedy as the delivery system, politics as the payload — punching up in the oldest and most effective radical tradition","Audience: 13K+ followers there for someone finally saying the unsayable about the people who deserve it"],bio:"Some comedians tell jokes. **Jeanine Pirreaux** does something sharper — she weaponizes the accent, the attitude, and the absolute refusal to be a respectable lady, and aims it all at the powerful. The premise is delicious: a foul-mouthed, wine-glass-wielding cultural commentator who roasts MAGA hypocrisy, billionaire worship, and right-wing delusion with the timing of a professional and the fury of someone who has genuinely had enough. The comedy is the delivery system. The politics are the payload. What makes this propaganda-grade: comedy that punches up is one of the oldest and most effective radical traditions, and Pirreaux is working in it with real skill. The **13K+ follower** audience isn't there for neutral chuckles — they're there because someone is finally saying the unsayable about the people who deserve it, in a voice that makes the medicine go down like a cocktail. Why she's on the roster: because laughter is a recruitment tool and rage is a renewable resource. Jeanine Pirreaux Comedy turns both into content the algorithm can't help but spread.",content_focus:"Political satire and commentary: Trump administration mockery, MAGA-world figures (Kristi Noem, Corey Lewandowski, Pam Bondi), Jeanine Pirro lore.",is_new:!1,seo_title:"Jeanine Pirreaux Comedy | Sick Left Radicals | MTCSTW",seo_description:"Jeanine Pirreaux Comedy: the Fox News firebrand's evil twin — satire that bites. Propaganda score 8.6.",image_alt:"Jeanine Pirreaux Comedy, Political satire and commentary: Trump administration mockery,... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"your-friendly-neighborhood-schizophrenic",name:"Your Friendly Neighborhood Schizophrenic",handles:{primary:""},primary_platform:null,propaganda_score:8.5,score_provisional:!1,followers_total:45e3,followers_display:"45K+",followers_by_platform:{},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/c6d5e34d-d2b8-44d5-b3d9-a74a244b1708/Image.jpeg?format=750w",catalog_path:"/your-friendly-neighborhood-schizophrenic",links:[{platform:"Facebook",url:"https://www.facebook.com/realzombiiezilla",status:"confirmed"}],key_strengths:["45K+ for an openly schizophrenic artist making leftist art — disability and neurodivergence centered, not sidelined","The name is the political project: in a society that criminalizes and discards disabled people, this page fights back","A movement that doesn't center its most marginalized loses — this page keeps disabled artists in the fight"],offer:["Open schizophrenia talk: talking about schizophrenia openly, honestly, and with humor — refusing to let stigma have the last word","Mental health as political: making the connection between mental health under capitalism and radical politics with a warm, funny, unflinchingly real voice","Destigmatization: representation that actually saves lives — the left is for everybody, including (especially) people the system calls crazy"],bio:"**Your Friendly Neighborhood Schizophrenic** — a Facebook page (realzombiiezilla) that does something genuinely brave: talk about schizophrenia openly, honestly, and with humor — from a leftist who refuses to let stigma have the last word. The content is personal, political, and disarming. Mental health under capitalism is a political issue — the system pathologizes difference while refusing to provide care — and this page makes that connection with a voice that's warm, funny, and unflinchingly real. It's the kind of representation that actually saves lives. Why it's on the roster: because the left is for everybody, including (especially) people the system calls crazy. Your Friendly Neighborhood Schizophrenic is doing the work of destigmatization with radical politics, and that's worth an 8.5.",content_focus:"",is_new:!1,seo_title:"Your Friendly Neighborhood Schizophrenic | MTCSTW",seo_description:"Your Friendly Neighborhood Schizophrenic: art from the margins. Propaganda score 8.5.",image_alt:"Your Friendly Neighborhood Schizophrenic — Sick Left Radicals creator",content_updated:"2026-10-02"},{slug:"undraylowery",name:"undraylowery",handles:{primary:""},primary_platform:null,propaganda_score:8.7,score_provisional:!1,followers_total:16e3,followers_display:"16K+",followers_by_platform:{tiktok:{count:16e3,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/359534bb-e03e-4411-82d1-c391d1415550/IMG_9096.jpeg?format=750w",catalog_path:"/undraylowery",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@undraylowery/live?_r=1&_svg=3&checksum=efa069ecd825824d84da280af382c5265b322e29c85dda5da8789a22d216b0ab&enter_from_merge=share&enter_method=share&sec_user_id=MS4wLjABAAAATsyHKylqdhRXKWKI0l06D6q5I6waE1pWgpoxrZxeUZrnqVc5K4pfJbfXlJ2MKzeH&share_app_id=1233&share_from_user_id=700045869803",status:"confirmed"},{platform:"Tiktok_2",url:"https://www.tiktok.com/@undraylowery/live",status:"confirmed"}],key_strengths:["Running the Undray Lowery Live Show and the Vibe Show — live, in the room, talking politics in real time","Torched the MAGA January 6th line head-on: 'January 6 was okay to Trump' — 392 likes, 43 comments of pure scrap","Live hosts are the front porch of the movement — where lurkers turn into radicals, show after show"],offer:["TikTok truth-telling: TikTok creator (@undraylowery) with direct, no-gimmicks content — Black, radical, unwilling to soften for white comfort","Full spectrum: anti-capitalist, anti-racist, anti-imperialist, pro-people","Unsoftenable: the kind of creator the platform would love to shadowban and can't quite manage to"],bio:"**undraylowery** is a TikTok creator (@undraylowery) building the kind of content that makes the algorithm nervous: Black, radical, and utterly unwilling to soften the message for white comfort. The format is direct — talking head, no gimmicks, just truth delivered with the confidence of someone who knows exactly what time it is. The content is the full spectrum: anti-capitalist, anti-racist, anti-imperialist, pro-people. This is the kind of creator the platform would love to shadowban and can't quite manage to. Why he's on the roster: because the network needs its truth-tellers, and undraylowery is telling it like it is. An 8.7 for the courage to be unsoftenable.",content_focus:"Live 'Vibe Show' streams; entertainment/music vibe content (from indexed metadata).",is_new:!1,seo_title:"undraylowery | Sick Left Radicals | MTCSTW",seo_description:"undraylowery (@undraylowery on TikTok): leftist creator in the Sick Left Radicals network. Propaganda score 8.7.",image_alt:"undraylowery, Live 'Vibe Show' streams; entertainment/music vibe content (from... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"minnesota-department-of-propaganda",name:"Minnesota Dept of Propaganda",handles:{primary:"@minnesotadop"},primary_platform:"TikTok",propaganda_score:8.6,score_provisional:!1,followers_total:166967,followers_display:"167K+",followers_by_platform:{tiktok:{count:166967,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/93204040-73a4-4d60-aee3-9dade8b2d8f6/Image+5.jpeg?format=750w",catalog_path:"/minnesota-department-of-propaganda",links:[{platform:"Facebook",url:"https://www.facebook.com/MNDeptofPropaganda",status:"confirmed"}],key_strengths:["166,967 followers — one of the loudest leftist meme pages in the network, run like a fake socialist bureaucracy","Signature move: turning the angriest right-wing commenters into honorary 'new top fans'","'MAKE NAZIS AFRAID AGAIN' in plain text does numbers — no graphic design budget required"],offer:["Fake-agency satire: the voice of a state propaganda bureau, except the propaganda is for the left — official-sounding pronouncements with deadpan confidence","Organizing energy: Minnesota's active progressive ecosystem gets its unofficial, unhinged press office","Network role: part of the Departments of Propaganda network (Minnesota, South Dakota, Wisconsin, Federal) doing the most shareable political comedy on the platform"],bio:"The **Minnesota Department of Propaganda** is part of the beautiful, absurd, and weirdly effective tradition of fake government agencies doing real political work. A Facebook page that adopts the voice of a state propaganda bureau — except the propaganda is for the left. The bit is the delivery mechanism: official-sounding pronouncements, bureaucratic aesthetics, and the deadpan confidence of an institution that absolutely does not exist. Underneath the joke is serious organizing energy — Minnesota has one of the most active progressive ecosystems in the country, and this page is its unofficial, unhinged press office. Why it's on the roster: because the Departments of Propaganda are a network unto themselves (Minnesota, South Dakota, Wisconsin, the Federal Department...), and they're doing some of the most shareable political comedy on the platform. The bit works because it's true: we *do* need a Department of Propaganda. Ours just happens to be run by shitposters.",content_focus:"",is_new:!1,seo_title:"Minnesota Dept of Propaganda | Sick Left Radicals | MTCSTW",seo_description:"Minnesota Department of Propaganda: satirical fake-government memes from the North Star State. Propaganda score 8.6.",image_alt:"Minnesota Dept of Propaganda — Sick Left Radicals creator",content_updated:"2026-10-02"},{slug:"the-dr-greg-show",name:"The Dr Greg Show",handles:{primary:""},primary_platform:null,propaganda_score:8.5,score_provisional:!1,followers_total:35e3,followers_display:"35K+",followers_by_platform:{combined:{count:35e3,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/2fe8e3e6-ffbe-4b2c-8239-2509928cf636/drgreg.jpg?format=750w",catalog_path:"/the-dr-greg-show",links:[{platform:"Facebook",url:"https://www.facebook.com/drgregshow",status:"confirmed"},{platform:"Instagram",url:"https://www.instagram.com/drgregshow",status:"confirmed"},{platform:"Tiktok",url:"https://www.tiktok.com/@drgregshow",status:"confirmed"},{platform:"Website",url:"https://www.drgregshow.com",status:"confirmed"},{platform:"X",url:"https://x.com/DrGregShow",status:"confirmed"},{platform:"Youtube",url:"https://www.youtube.com/@drgregshow",status:"confirmed"},{platform:"Youtube_2",url:"https://www.youtube.com/watch?v=MptQMJNe-FA",status:"confirmed"},{platform:"Patreon",url:"https://www.patreon.com/cw/DrGregShow",status:"confirmed"}],key_strengths:["PhD molecular biologist debating science deniers live every night at 9PM PT","500+ live debates, 7M+ views — anti-vaxxers, flat-earthers, and RFK stans dismantled claim by claim","Streams double as field manuals: 1,300+ political actions logged by the community"],offer:["Live debates: goes live every night at 9PM PT debating science deniers face-to-face, claim by claim, in front of a live audience (500+ live debates, 7M+ total views)","Credentials: PhD in molecular biology (UC Riverside), 17 years at the bench, published in Nature Nanotechnology and ACS Nano, U.S. patent holder","Political action: community has logged over 1,300 political actions; streams double as field manuals (measles immune amnesia deep dives, fake-paper-reading callouts, AI-generated pro-Trump influencer exposure)"],bio:"**Dr. Greg Newkirk** is the lab coat in the fight. PhD in molecular biology (UC Riverside), 17 years at the bench, published in *Nature Nanotechnology* and *ACS Nano*, U.S. patent holder — and now he goes **live every night at 9PM PT** to debate science deniers to their faces, claim by claim, in front of a live audience. Tagline: *\"Fighting misinformation so you don't have to.\"* 7M+ total views. 500+ live debates. Why it hits: he doesn't lecture *about* the enemy — he sits across from them. Anti-vaxxers, terrain-theory pushers, flat-earthers, RFK stans: they come on the show absolutely sure they know more than every scientist alive, and every night we find out. His community has logged over **1,300 political actions**, and his streams double as field manuals — measles immune amnesia deep dives, fake-paper-reading callouts, AI-generated pro-Trump influencer exposure. Why he belongs: the right's pipeline runs on wellness grift and junk science. Greg Newkirk is the counter-artillery: a credentialed brawler who makes evidence entertaining and humiliation educational.",content_focus:"Debunking anti-vaccine claims, germ theory denial, terrain theory, evolution denial, climate denial, GMOs, cancer claims, COVID origins, AI claims — live call-in debates with papers on screen. Site features 219 transcribed streams / 659 hours (Sep 2025–Sep 2026). Also a Propaganda Factory podcast guest.",is_new:!1,seo_title:"The Dr Greg Show | Sick Left Radicals | MTCSTW",seo_description:"The Dr Greg Show (@drgregshow): leftist commentary across TikTok, YouTube & Facebook. Propaganda score 8.5.",image_alt:"The Dr Greg Show, Debunking anti-vaccine claims, germ theory denial, terrain theory,... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"damn-pam-ham-from-effingham",name:"thepamham",handles:{primary:""},primary_platform:null,propaganda_score:8.5,score_provisional:!1,followers_total:22600,followers_display:"22.6K+",followers_by_platform:{tiktok:{count:22600,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/2dac9586-3b41-43d1-9ee0-750f074a4f19/IMG_9097.jpeg?format=750w",catalog_path:"/damn-pam-ham-from-effingham",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@thepamham",status:"confirmed"}],key_strengths:["22,600 for a live-heavy operation — broadcasting to the comrades in real time, no edits, no second takes","Live is the hardest format on the platform, and she keeps showing up for it — active as recently as mid-September 2026","Regular live shows build loyal, interactive, organized audiences — street-level voice from Effingham, on camera, right now"],offer:["TikTok commentary: TikTok creator (@thepamham) with sharp, funny, working-class commentary — political content that doesn't feel like homework","Heartland leftism: Effingham in the name because place matters — the kind of leftism the coastal media pretends doesn't exist","Name game: a name that's pure poetry and content that's pure fire"],bio:"**Damn Pam Ham from Effingham** — say it three times fast, then go follow. A TikTok creator (@thepamham) with a name that's pure poetry and content that's pure fire. The bit is the name, but the substance is the politics: sharp, funny, working-class commentary from someone who understands that the best political content doesn't feel like homework. Effingham is in the name because place matters — this is heartland leftism, the kind the coastal media pretends doesn't exist. Why she's on the roster: because the network needs its Pams. Damn Pam Ham from Effingham is proof that the revolution will be entertaining, and that it will come from places the pundits can't find on a map.",content_focus:"Leftist propagandist content (per SLR roster classification); specific themes not discernible from indexed profile metadata.",is_new:!1,seo_title:"thepamham | Sick Left Radicals | MTCSTW",seo_description:"Damn Pam Ham from Effingham (@thepamham): TikTok live wire for the cause. Propaganda score 8.5.",image_alt:"thepamham, Leftist propagandist content (per SLR roster classification);... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"luigis-mansion-socialist-shitposting",name:"Luigi's Mansion",handles:{primary:""},primary_platform:null,propaganda_score:8.4,score_provisional:!1,followers_total:22e3,followers_display:"22K+",followers_by_platform:{},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/bb188351-bce4-430a-bc0f-0a954bca5b76/Screenshot+2025-04-21+at+2.56.42%E2%80%AFAM.png?format=750w",catalog_path:"/luigis-mansion-socialist-shitposting",links:[{platform:"Facebook",url:"https://www.facebook.com/profile.php?id=61570275063401",status:"confirmed"}],key_strengths:["22K+ for gamer-meme DNA fused with class-war shitposting — speed, irreverence, jokes that radicalize","The name smuggles the politics inside the joke: nobody became a leftist from a white paper, plenty did from a meme page","A ghost in the machine while the page is dark — 22K comrades don't vanish from memory just because Meta hid the door"],offer:["Socialist shitposting: memes, irony-poisoned commentary, and the joy of Nintendo's most anxious ghost-hunter as a vessel for class consciousness","Meme-war wing: making socialism feel like an in-joke you're invited to rather than a lecture you're subjected to","Luigi framing: the second banana, the overlooked brother, the one who does the actual work — the working class"],bio:"**Luigi's Mansion Socialist Shitposting** is the kind of page name that makes you do a double-take and then immediately hit follow. A Facebook page built on the sacred tradition of socialist shitposting — memes, irony-poisoned commentary, and the particular joy of watching Nintendo's most anxious ghost-hunter become a vessel for class consciousness. The format is shitposting, but the politics are serious: this is the meme-war wing of the movement, the pages that make socialism feel like an in-joke you're invited to rather than a lecture you're subjected to. The Luigi framing is perfect — the second banana, the overlooked brother, the one who does the actual work while Mario gets the credit. Sound like anyone you know? (The working class.) Why it's on the roster: because the meme pages are the infantry. Luigi's Mansion Socialist Shitposting is holding the line in the group chats and comment sections where elections are actually decided.",content_focus:"",is_new:!1,seo_title:"Luigi's Mansion | Sick Left Radicals | MTCSTW",seo_description:"Luigi's Mansion Socialist Shitposting: the network's ghost in the machine — 22K+ of socialist shitposting. Propaganda score 8.4.",image_alt:"Luigi's Mansion — Sick Left Radicals creator",content_updated:"2026-10-02"},{slug:"let-the-revolution-begin-peacefully-of-course",name:"Let the Revolution Begin",handles:{primary:""},primary_platform:null,propaganda_score:8.3,score_provisional:!1,followers_total:109815,followers_display:"109.8K+",followers_by_platform:{},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/dc47842f-21d9-4b1a-b322-09995c7fc1fc/Image+13.jpeg?format=750w",catalog_path:"/let-the-revolution-begin-peacefully-of-course",links:[{platform:"Facebook",url:"https://www.facebook.com/LetTheRevolutionBeginPeacefully",status:"confirmed"}],key_strengths:["109,815 strong and battle-tested since the Bernie era — sharing Sanders' Reaganomics takedowns back in 2017","Memes sharp enough for the Humor Times to pick up more than once for 'Seen & Heard on the Web'","Network family in the realest sense: sat down for an impromptu Propaganda Factory podcast episode in May 2025"],offer:["Revolutionary branding: a manifesto with a punchline — revolutionary politics with a wink that disarms before it radicalizes","Content: memes, commentary, and calls to action aimed at the comfortable lie that the current order is the only order","“Peacefully of Course” as funny, shareable framing that lets radical content travel further"],bio:'The name is a whole manifesto with a punchline: **Let the Revolution Begin. Peacefully of Course.** — the period after "Begin" doing more work than most essays. This is a Facebook page that understands the assignment: revolutionary politics with a wink, the kind of branding that disarms before it radicalizes. The content is classic SLR fare — memes, commentary, and calls to action aimed at the comfortable lie that the current order is the only order. The "Peacefully of Course" is doing double duty: it\'s funny, and it\'s the kind of plausible deniability that lets radical content travel further than earnest manifestos. Why it\'s on the roster: because the network needs its humorists and its ironists, not just its lecturers. Let the Revolution Begin. Peacefully of Course. is the spoonful of sugar — except the medicine is revolution.',content_focus:"Leftist memes, political commentary, calls to action; revolutionary branding with humor",is_new:!1,seo_title:"Let the Revolution Begin | Sick Left Radicals | MTCSTW",seo_description:"Let the Revolution Begin. Peacefully of Course.: 109K+ of peaceful revolutionary agitation. Propaganda score 8.3.",image_alt:"Let the Revolution Begin, Leftist memes, political commentary, calls to action; revolutionary... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"kim-hunt-slaythegop",name:"SlayTheGOP",handles:{primary:"@slaythegop"},primary_platform:"TikTok",propaganda_score:8.2,score_provisional:!1,followers_total:65e4,followers_display:"650K+",followers_by_platform:{instagram:{count:33e4,confidence:"confirmed"},tiktok:{count:17e4,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@d516e50/v1.4.3/assets/roster-photos/kim-hunt-slaythegop.jpg",catalog_path:"/kim-hunt-slaythegop",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@slaythegop",status:"confirmed"},{platform:"Patreon",url:"https://www.patreon.com/cw/slaythegop",status:"confirmed"},{platform:"Buy_me_a_coffee",url:"https://buymeacoffee.com/slaythegop",status:"confirmed"}],key_strengths:["650K+ for a Portland commentator with a poli-sci degree who hits GOP governance, ICE cruelty, AND Democratic cowardice","Doxxed and fired for speaking openly — her community raised $68,000+ and she turned the firing into full-time advocacy","Radicals aren't people who've never bled — they're people who bleed and get louder"],offer:["Anti-GOP content: TikTok creator (@slaythegop) doing anti-Republican content with the gloves off — sharp, funny, unwilling to pretend the GOP is normal","TikTok-native: direct address, quick cuts, righteous anger that plays perfectly in short form","Target: the absurdity and cruelty of the modern Republican Party, delivered with genuine had-enough energy"],bio:"**Kim Hunt** — better known as **SlayTheGOP** — is a TikTok creator (@slaythegop) doing exactly what the handle promises. This is anti-Republican content with the gloves off: sharp, funny, and utterly unwilling to pretend the GOP is a normal political party. The format is TikTok-native — direct address, quick cuts, the kind of righteous anger that plays perfectly in short form. The content is aimed squarely at the absurdity and cruelty of the modern Republican Party, delivered with the energy of someone who has genuinely had enough. Why she's on the roster: because the network needs its slayers. Kim Hunt is doing the unglamorous work of telling the truth about the GOP, one TikTok at a time, to an audience that's hungry for it.",content_focus:"Anti-Republican political commentary; GOP governance, ICE cruelty, Democratic cowardice; written essays on Patreon",is_new:!1,seo_title:"SlayTheGOP | Sick Left Radicals | MTCSTW",seo_description:"Kim Hunt (@slaythegop): Portland political commentator slaying the GOP to 650K+. Propaganda score 8.2.",image_alt:"SlayTheGOP, Anti-Republican political commentary; GOP governance, ICE cruelty,... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"little-anarchist-brat",name:"Little Anarchist Brat",handles:{primary:""},primary_platform:null,propaganda_score:8.2,score_provisional:!1,followers_total:9e3,followers_display:"9K+",followers_by_platform:{},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/cc78e80e-5d40-4369-b277-49b85e4a6caf/Image+14.jpeg?format=750w",catalog_path:"/little-anarchist-brat",links:[{platform:"Ko-fi",url:"https://ko-fi.com/littleanarchistbrat",status:"confirmed"},{platform:"Website",url:"https://littleanarchistbrat.ghost.io/",status:"confirmed"}],key_strengths:["The theory wing made flesh: long-form, deeply sourced essays on a Ghost blog — 'Anarchism as Practice'","'What is Solidarity' works through Kropotkin, Bakunin, and Malatesta while naming the classics' colonial baggage head-on","'Decolonizing Anarchism' and Angela Davis-rooted 'Radical Anarchism' — handing the network its why"],offer:["Anarchist writing: long-form anarchist writing for people done being polite about the state, the boss, and the whole rotten edifice","Independent platform: Ghost publication — independent, subscriber-supported, no algorithm deciding who sees it","Voice: sharp, funny, and utterly unwilling to meet power halfway"],bio:"**Little Anarchist Brat** is exactly what it says on the tin — and the tin is a Ghost publication at littleanarchistbrat.ghost.io. This is long-form anarchist writing for people who are done being polite about the state, the boss, and the whole rotten edifice. The format matters: Ghost means independent, subscriber-supported, no algorithm deciding who sees it. That's the anarchist media model in miniature — own your platform, own your audience, say what needs saying. The writing is sharp, funny, and utterly unwilling to meet power halfway. Why she's on the roster: because the network needs its writers, not just its memers. Little Anarchist Brat is doing the theoretical work with a smirk, and the smirk is what makes it spread.",content_focus:"Long-form anarchist essays and theory: decolonizing anarchism, solidarity, individualism, anarchism as practice",is_new:!1,seo_title:"Little Anarchist Brat | Sick Left Radicals | MTCSTW",seo_description:"Little Anarchist Brat: anarchism as practice — blog & dispatches. Propaganda score 8.2.",image_alt:"Little Anarchist Brat, Long-form anarchist essays and theory: decolonizing anarchism,... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"im-that-girl",name:"I'm that girl.",handles:{primary:""},primary_platform:null,propaganda_score:8.1,score_provisional:!1,followers_total:74681,followers_display:"74.7K+",followers_by_platform:{facebook:{count:74681,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/8c5e2e2b-1616-41a1-b8e7-09093a858938/imthatgirl.jpg?format=750w",catalog_path:"/im-that-girl",links:[{platform:"Facebook",url:"https://www.facebook.com/ImThatGirl2017",status:"confirmed"}],key_strengths:["74,681 verified followers — a real crowd for an independent leftist page on a platform that throttles us by default","Frontline meme warfare: daily agitprop that radicalizes the timeline one share at a time","A transmission tower keeping the movement's signal alive behind enemy lines"],offer:["Comedy and motivation: part comedy page, part motivational machine, part unfiltered confessional — a one-woman empowerment generator","Award-winning comedy: award-winning comedian, mental health advocate, storyteller, and founder of the viral I Am That Girl Movement","Engagement: 74,681 followers, 9.4% engagement rate, 3.8% interaction rate, 1.2% click rate on 120K daily impressions","ImThatGirl365 movement: mental health advocacy with the IATG 365-Day Challenge (book and guided workbook), a Facebook group of 3,600+ members, and architecture for sustained healing work",'Signature voice: "You are not difficult. You are the standard. Raise the bar." / "Some women are lost in the fire. Some women are built from it. I\'m that girl."'],bio:"Some pages make you think. **I'm that girl.** makes you feel powerful and seen — and then gets you laughing so hard you forget you were ever afraid of your own fire. Part comedy page, part motivational machine, part absolute unfiltered confessional, this is a one-woman empowerment generator. The bio says it all: *\"I am an award-winning comedian, mental health advocate, storyteller, and the founder of the viral I Am That Girl Movement. I turn my pain into punchlines and my trauma into triumphs, using humor to heal, inspire, and empower others.\"* That's not branding — that's a mission statement. The numbers are serious: **74,681 followers** on a page with a **9.4% engagement rate** and a **3.8% interaction rate** — those are not casual-scroll metrics, that's an audience that shows up. She reaches a broad audience with her content and holds a **1.2% click rate** on 120K daily impressions. The audience is **overwhelmingly female**, and the content is built for exactly who it reaches. The posts are the kind of thing you screenshot and send to your best friend at 2 AM: *\"You are not difficult. You are the standard. Raise the bar.\"* *\"Some women are lost in the fire. Some women are built from it. I'm that girl.\"* Affirmations that land like uppercuts. Comedy that cuts deeper than the sadness it came from. What elevates her beyond feel-good content: the **ImThatGirl365 movement**, a mental health advocacy project with real structure behind it — the IATG 365-Day Challenge (a book and guided workbook), a Facebook group of **3,600+ members**, and a whole architecture for turning viral reach into sustained healing work. She's not just posting into the void; she's building the room. Why she's on this roster: because the personal is political and the political is personal. A woman who can take 74,681 people from \"I'm not enough\" to \"I am that girl\" in a single scroll is doing propaganda work — she's just doing it for the side of healing, humor, and refusing to shrink.",content_focus:"Comedy, motivation, mental-health advocacy, empowerment affirmations; memes as agitprop for the healing side",is_new:!1,seo_title:"I'm that girl. | Sick Left Radicals | MTCSTW",seo_description:"I'm that girl.: frontline meme warfare on Facebook. Propaganda score 8.1.",image_alt:"I'm that girl., Comedy, motivation, mental-health advocacy, empowerment affirmations;... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"joey",name:"Joey",handles:{primary:"@joey_doesit"},primary_platform:"TikTok",propaganda_score:8,score_provisional:!1,followers_total:55e3,followers_display:"55K+",followers_by_platform:{tiktok:{count:55e3,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/f1a0c773-0ab7-4d33-837d-ac95db8d5079/joey.jpg?format=750w",catalog_path:"/joey",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@joey_doesit",status:"confirmed"},{platform:"Tiktok_2",url:"https://www.tiktok.com/@joey_doesit/live?_r=1&_svg=3&checksum=6df23e3b20eaadd6bb039aade5f2832551258f898eee12b40fdd9bb23b35591e&enter_from_merge=share&enter_method=share&sec_user_id=MS4wLjABAAAAgv-wFN_cZOuZuSionEG24q2UlDBM0DS1_nlzJx5v1CdrHFi2iR_cmcZk1obY8htt&share_app_id=1233&share_from_user_id=7137996114359",status:"confirmed"}],key_strengths:["55K for open-mic combat: live debates every single night at 9:30PM PST — MAGA callers walk straight into the ring","1,000+ videos, hundreds of live debates, clips that travel — nobody else on the roster debates fascists at this cadence","Runs a Spanish-language backup so the debates cross the language line"],offer:["TikTok commentary: short-form video commentary (@joey_doesit) taking the piss out of the powerful","Format fluency: quick cuts, direct address, casual confidence — political content that feels like hanging out rather than homework","Comedy delivery: comedy does the heavy lifting; the politics ride along"],bio:"**Joey does it.** That's the handle — @joey_doesit — and the whole thesis. Joey is a TikTok creator doing the thing: short-form video commentary that takes the piss out of the powerful and hands the punchline to the rest of us. The format is the message here. TikTok is where the audience lives, and Joey is fluent in it — quick cuts, direct address, the kind of casual confidence that makes political content feel like hanging out rather than homework. The comedy does the heavy lifting; the politics ride along in the back seat and get out at your stop. Why he's on the roster: because the left needs creators who meet people where they are, in the formats they actually watch. Joey does it — and \"it\" is making radical content feel effortless.",content_focus:"Nightly live political debates (vs MAGA callers); short-form leftist comedy commentary",is_new:!1,seo_title:"Joey | Sick Left Radicals | MTCSTW",seo_description:"Joey (@joey_doesit): nightly live leftist debates on TikTok, 9:30PM PST. Propaganda score 8.0.",image_alt:"Joey, Nightly live political debates (vs MAGA callers); short-form leftist... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"the-political-feminist",name:"The Political Feminist",handles:{primary:""},primary_platform:null,propaganda_score:8,score_provisional:!1,followers_total:55631,followers_display:"55.6K+",followers_by_platform:{facebook:{count:55631,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/42973f27-05d9-4fb4-add8-b2d250122635/Image+11.jpeg?format=750w",catalog_path:"/the-political-feminist",links:[{platform:"Facebook",url:"https://www.facebook.com/PoliticalFeminist",status:"confirmed"}],key_strengths:["55,631 for three lanes that all hit: leftist politics, feminist science literacy, unfiltered humor","Propaganda as witness: testimony about her Palestinian husband, 50+ years told he's worth less","Sharp science lane: debunked a distorted contraception-cancer headline against what the Swedish research actually said"],offer:["Feminist commentary: feminist political commentary treating the patriarchy as a political system, not a personal problem","Content: sharp takes on reproductive rights, labor, and being a woman under capitalism — feminism with class analysis, not branding","Voice: the confidence of someone who has stopped asking for permission"],bio:"**The Political Feminist** is exactly what it says: feminist political commentary with the gloves off. A Facebook page that treats the patriarchy as what it is — a political system, not a personal problem — and aims its analysis squarely at the institutions that uphold it. The content is the good stuff: sharp takes on reproductive rights, labor, and the particular hell of being a woman under capitalism, delivered with the confidence of someone who has stopped asking for permission. The page understands that feminism without class analysis is just branding, and it doesn't do branding. Why she's on the roster: because the network needs its feminists, and the feminists need their teeth. The Political Feminist has teeth.",content_focus:"Feminist political commentary with class analysis; reproductive rights, labor, feminist science literacy, unfiltered humor",is_new:!1,seo_title:"The Political Feminist | Sick Left Radicals | MTCSTW",seo_description:"The Political Feminist: feminist agitation on Facebook. Propaganda score 8.0.",image_alt:"The Political Feminist, Feminist political commentary with class analysis; reproductive... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"us-federal-department-of-propaganda",name:"US Federal Dept of Propaganda",handles:{primary:""},primary_platform:null,propaganda_score:8,score_provisional:!1,followers_total:136178,followers_display:"136.2K+",followers_by_platform:{facebook:{count:136178,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/078a027e-83ca-40f3-b4a2-4b18af237d39/DEBB08C7-0B3C-4AF4-A5FF-DCD9AABB1C5D.jpeg?format=750w",catalog_path:"/us-federal-department-of-propaganda",links:[{platform:"Facebook",url:"https://www.facebook.com/profile.php?id=100088623907567",status:"confirmed"}],key_strengths:["136,178 verified — the flagship of the mock-bureaucratic wing and one of the largest pages in the 8M-strong network","Steals the state's aesthetic — seals, letterhead energy — and points it at the people real agencies manage","Satire as counter-propaganda, issued with a straight face"],offer:["Fake federal agency: the voice of the U.S. government, except one that actually serves the people — official-sounding pronouncements with deadpan confidence","National range: weighing in on national politics, federal policy, and the state of the union with moral clarity","Network HQ: the headquarters of the Departments network — the fake agency that makes the other fake agencies feel official"],bio:"The **U.S. Federal Department of Propaganda** is the mothership — the fake federal agency overseeing all the fake state agencies. A Facebook page that adopts the voice of the United States government, except the government it's pretending to be is one that actually serves the people. The bit is the same beautiful absurdity as the state Departments: official-sounding pronouncements, bureaucratic aesthetics, deadpan confidence. But the Federal Department has range — it can weigh in on national politics, federal policy, and the general state of the union with the authority of an institution that doesn't exist and the moral clarity of one that should. Why it's on the roster: because the Departments are a network, and every network needs its headquarters. The U.S. Federal Department of Propaganda is the HQ — the fake agency that makes all the other fake agencies feel official.",content_focus:"Mock-bureaucratic leftist satire of U.S. federal politics and policy; anchor of the Departments network",is_new:!1,seo_title:"US Federal Dept of Propaganda | Sick Left Radicals | MTCSTW",seo_description:"U.S. Federal Department of Propaganda: a Department of Propaganda that does its job — 136K strong. Propaganda score 8.0.",image_alt:"US Federal Dept of Propaganda, Mock-bureaucratic leftist satire of U.S. federal politics and policy;... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"deejay10",name:"deejay1.0",handles:{primary:""},primary_platform:null,propaganda_score:8,score_provisional:!1,followers_total:18e3,followers_display:"18K+",followers_by_platform:{tiktok:{count:18e3,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/46250049-fb06-4100-9c96-e1cf1c311483/IMG_9094.jpeg?format=750w",catalog_path:"/deejay10",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@deejay1.0",status:"confirmed"}],key_strengths:["WE ARE ONE Movement Coordinator linking pages and lining up messaging across the network","18K+ followers as the byproduct of organizing work — infrastructure, not just content","Connective tissue: turning a crowd of solo acts into a coordinated propaganda front"],offer:["Organizing: SLR Propaganda, Organizer, and WE ARE ONE Movement Coordinator — content pipeline feeding real-world movement building","Network infrastructure: connecting pages, lining up messaging, making the network act like a network instead of thirty solo acts","TikTok presence: 18K+ followers and climbing"],bio:"**deejay1.0** isn't just a poster — they're an organizer. On TikTok they run as **SLR Propaganda, Organizer, and WE ARE ONE Movement Coordinator**, which means their content pipeline feeds directly into real-world movement building. That's a rare breed in the creator space: someone whose follower count (18K+ and climbing) is the *byproduct* of organizing work, not the other way around. The WE ARE ONE Movement tie matters. While most leftist creators are broadcasting into the algorithm, coordinators like deejay1.0 are doing the unglamorous infrastructure work — connecting pages, lining up messaging, making sure the network acts like a network instead of thirty solo acts yelling into the same feed. Why it hits: reach without organization is just content. Organization turns 18K followers into a bloc. Every network needs its connective tissue, and deejay1.0 is holding threads together on the platform where the left's audience actually lives. Why they belong: the Sick Left Radicals aren't a group chat — they're a coordinated propaganda front. Organizers are the spine.",content_focus:"Political organizing and network coordination (WE ARE ONE Movement); leftist content as infrastructure",is_new:!1,seo_title:"deejay1.0 | Sick Left Radicals | MTCSTW",seo_description:"deejay1.0: propagandist, organizer & WE ARE ONE Movement coordinator on TikTok. Propaganda score 8.0.",image_alt:"deejay1.0, Political organizing and network coordination (WE ARE ONE Movement);... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"eat-the-rich",name:"EAT THE RICH",handles:{primary:""},primary_platform:null,propaganda_score:7.9,score_provisional:!1,followers_total:54e3,followers_display:"54K+",followers_by_platform:{facebook:{count:54e3,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/1efc59a3-abeb-40a6-a142-eef5365c657a/0F1BBCA4-91AB-4AF5-B25B-67B63ADD44DB.jpeg?format=750w",catalog_path:"/eat-the-rich",links:[{platform:"Facebook",url:"https://www.facebook.com/EattherichStirfried",status:"confirmed"}],key_strengths:["54K+ followers on a three-word recruiting poster: EAT THE RICH — no ambiguity, no respectability politics","Class-war education, not memes: the 2019 'Brief introduction to Marxism' explainer pulled 8,000 views","Holding the line with the flag flying while the page is down — study material for the curious and the converted"],offer:['Class-war education: leftist political education posts, including the September 2019 explainer "A Brief introduction to Marxism" (nearly 8,000 views)',"Study material: not memes for the already-converted — substantive political education","Network presence: 54,000+ followers; currently holding its place in the network (page may be unpublished, renamed, or taken down — send word if you've got a lead)"],bio:"EAT THE RICH did exactly what the name promises: class-war education, served straight. The Facebook page at EattherichStirfried was home to leftist political education posts — including a September 2019 explainer, \"A Brief introduction to Marxism,\" laying out how workers owning society changes everything, which pulled nearly 8,000 views. Not memes for the already-converted — study material. And it mattered enough that other outlets linked back to the page's posts when documenting the political fights of the era. The name alone is a recruiting poster. Three words, no ambiguity, no respectability politics. In a media ecosystem that wants every leftist to soften the message, a page called EAT THE RICH with 54,000+ followers was a banner planted in the ground. The honest report: the page currently returns nothing at its old address — possibly unpublished, renamed, or taken down. We're holding its place in the network with the flag flying. If you've got a lead on where the kitchen moved, send word.",content_focus:"Class-war education — study material, not memes (leftist political education posts).",is_new:!1,seo_title:"EAT THE RICH | Sick Left Radicals | MTCSTW",seo_description:"EAT THE RICH: class-war education served straight on Facebook. Propaganda score 7.9.",image_alt:"EAT THE RICH, Class-war education — study material, not memes (leftist political... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"keithwashburn",name:"keithwashburn",handles:{primary:""},primary_platform:null,propaganda_score:7.9,score_provisional:!1,followers_total:2e4,followers_display:"20K+",followers_by_platform:{tiktok:{count:2e4,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/3a9cf639-db15-4130-994f-18668106b4bc/IMG_9094.jpeg?format=750w",catalog_path:"/keithwashburn",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@keithwashburn",status:"confirmed"}],key_strengths:["20K+ TikTok followers and a seat at the WE ARE ONE unity table — cross-movement solidarity that actually wins things","A connector and coalition-builder: turning a crowd of angry individuals into a formation that marches in step","The bridge-builder lane — the network's spine alongside its bomb-throwers"],offer:["TikTok commentary: short-form political commentary (@keithwashburn) — direct, personal, no production team","Information war: showing up, posting through it, refusing to let the algorithm have the last word","Network role: one of the grinders holding territory in the information war"],bio:"**keithwashburn** is a TikTok creator (@keithwashburn) doing the unglamorous work of the information war: showing up, posting through it, and refusing to let the algorithm have the last word. The format is short-form video — direct, personal, no production team. That's the point. In an era where the right has an entire media ecosystem, the left's counterweight is thousands of individual creators like keithwashburn, each holding a small piece of the line. The content is political commentary for people who get their news from their phone — which is to say, most people. Why he's on the roster: because the network isn't just the stars. It's the grinders. keithwashburn is one of the grinders, and the grinders are what hold territory.",content_focus:"Short-form political commentary for people who get their news from their phone.",is_new:!1,seo_title:"keithwashburn | Sick Left Radicals | MTCSTW",seo_description:"keithwashburn (@keithwashburn on TikTok): leftist creator in the Sick Left Radicals network. Propaganda score 7.9.",image_alt:"keithwashburn, Short-form political commentary for people who get their news from... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"moreno-neurospicy-news",name:"Moreno Neurospicy News",handles:{primary:"@adhd_pirate1"},primary_platform:"TikTok",propaganda_score:7.8,score_provisional:!1,followers_total:13e4,followers_display:"130K+",followers_by_platform:{},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/c5fe9f42-a07a-483b-844c-472d6f2c792b/moreno.jpg?format=750w",catalog_path:"/moreno-neurospicy-news",links:[{platform:"Facebook",url:"https://www.facebook.com/share/19owNJnCKm/?mibextid=wwXIfr",status:"confirmed"},{platform:"Tiktok",url:"https://www.tiktok.com/@adhd_pirate1",status:"confirmed"},{platform:"Tiktok_2",url:"https://www.tiktok.com/@adhd_pirate/video/7220559663094402350",status:"confirmed"},{platform:"Patreon",url:"https://www.patreon.com/adhd_pirate/about",status:"confirmed"}],key_strengths:["One-person wire service filing 3,000+ dispatches on queer, Indigenous, and ICE news the corporate press won't touch","Volume and velocity: date-stamped dispatches that call the news cycle before it breaks","130K+ across TikTok, Facebook, Substack, and Patreon — the network's daily newsroom"],offer:["One-person wire service — date-stamped news dispatches covering queer news, Indigenous news, and ICE-related news, 3,000+ videos deep","Archive account — @neurospicy_news keeps the back catalog and overflow humming","TikTok presence — @adhd_pirate1 and @neurospicy_news"],bio:"**Moreno Neurospicy News** runs a one-person wire service from the left's front lines. Every segment is date-stamped like a dispatch from a war nobody's covering — **\"6/16/26 ICE ENTERS ITS 'SLAVERY PHASE'\"**, **\"6/7/26 OWNER OF ICE DETENTION FACILITY IS AN IMMIGRANT\"** — and the beat is carved in the bio: *queer news, Indigenous news, ICE-related news.* That's 3,000+ videos deep. Moreno's whole operation is volume and velocity: the stories corporate outlets won't touch, delivered fast, with the receipts up front and the fury in the delivery. The signature move is the headline that sounds too outrageous to be true and turns out to be the news cycle exactly. Meanwhile a second account, **@neurospicy_news**, keeps the archive and overflow humming. Why they belong in the network: Sick Left Radicals runs on signal the algorithm suppresses. Moreno is the newsroom of the operation — queer, Indigenous, anti-ICE coverage with the consistency of a daily paper and the independence to never soften a frame. Also on TikTok as **@adhd_pirate1** and **@neurospicy_news**.",content_focus:"Leftist news/commentary: queer, Indigenous, and ICE news; anti-capitalist analysis (e.g. the wellness industry as a $6.3T scam profiting from burnout).",is_new:!1,seo_title:"Moreno Neurospicy News | Sick Left Radicals | MTCSTW",seo_description:"Moreno Neurospicy News (@adhd_pirate1): leftist news on queer, Indigenous & ICE issues across TikTok, Substack & Patreon. Propaganda score 7.8.",image_alt:"Moreno Neurospicy News, Leftist news/commentary: queer, Indigenous, and ICE news;... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"dogman_v1",name:"dogman_v1",handles:{primary:""},primary_platform:null,propaganda_score:7.7,score_provisional:!1,followers_total:21900,followers_display:"21.9K+",followers_by_platform:{tiktok:{count:21900,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@d516e50/v1.4.3/assets/roster-photos/dogman_v1.jpg",catalog_path:"/dogman_v1",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@dogman_v1",status:"confirmed"}],key_strengths:["1,109 videos on a BACKUP account — deplatformed once and came back louder","The cockroach the algorithm can't kill: banned, shadowbanned, still swinging daily","40K+ likes on a backup handle — the audience followed the voice, not the account"],offer:['TikTok presence: 21,900 followers, 40,700 likes, 1,109 videos on the backup account (bio: "TTBackup Dogman_v3")',"Deplatforming survival: proof of concept that the message outlasts the account — banned, rebuilt, kept swinging","Relentless output: years of showing up daily through bans and shadowbans"],bio:"**Dogman — @dogman_v1.** Twenty-one thousand nine hundred followers. Forty thousand seven hundred likes. One thousand one hundred and nine videos. And the bio says it all: **\"TTBackup Dogman_v3.\"** Read that again. This is the *backup* account. The main got taken down — as happens to every radical who starts landing punches on this app — and Dogman just built another one and kept swinging. Over a thousand videos deep on a backup handle isn't a content strategy, it's a refusal to die. That's not a creator; that's a cockroach the algorithm can't kill, and we mean that as the highest compliment in the business. The numbers tell the work ethic: 1,109 videos is years of showing up, daily, through bans and shadowbans and whatever else the trust-and-safety ghouls threw at the wall. Forty thousand likes on a backup account means the audience followed the voice, not the handle. That's loyalty you can't buy and reach you can't fake. Why they belong in Sick Left Radicals: every propaganda network needs its survivors — the ones who've been deplatformed and came back louder. Dogman is proof of concept that the message outlasts the account. When the network needs someone who cannot be silenced, only inconvenienced, this is the file you pull.",content_focus:"Leftist TikTok commentary at high volume through bans and shadowbans (1,109 videos on the backup alone).",is_new:!1,seo_title:"dogman_v1 | Sick Left Radicals | MTCSTW",seo_description:"dogman_v1 (@dogman_v1 on TikTok): leftist creator in the Sick Left Radicals network. Propaganda score 7.7.",image_alt:"dogman_v1, Leftist TikTok commentary at high volume through bans and shadowbans... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"bitchysitch",name:"bitchysitch",handles:{primary:""},primary_platform:null,propaganda_score:7.6,score_provisional:!1,followers_total:9969,followers_display:"10K+",followers_by_platform:{tiktok:{count:9969,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/fe64f79d-180f-4f57-ac52-fef5aa60d0f4/IMG_9099.jpeg?format=750w",catalog_path:"/bitchysitch",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@bitchysitch",status:"confirmed"}],key_strengths:["Nearly 10K TikTok followers and 1.3M likes behind 171 verified videos","Dual-role comrade: propagandist AND organizer, building infrastructure beyond the feed","Movement work happening in DMs and organizing spaces — the network's connective tissue"],offer:['TikTok presence: 9,968 followers, 171 videos, 1.3 million total likes — bio reads "new found influencer"',"Network role: SLR Propagandist and Organizer (dual role)","Organizing work: infrastructure-building beyond the feed, in DMs and movement spaces"],bio:"Honest flag: this one is thin. The TikTok profile exists and is verified live — 9,968 followers, 171 videos, 1.3 million total likes, bio reading \"new found influencer\" — but there's no public window into the actual videos themselves: no indexable content, no reachable video feed, no traceable themes. So anything about the content style would be a guess, and we don't guess here. What's verifiable: the account is real, active presence on TikTok, and its network role is dual — SLR Propagandist *and* Organizer. That organizer tag matters; it suggests work happening beyond the feed, in DMs and movement spaces, which is exactly the kind of infrastructure-building this network is supposed to surface. Recommendation: keep the link, keep the count, keep the role — but leave the content praise blank until we can actually watch what they're making. A comrade's output deserves a review grounded in the work, not in the stats. Revisit with a TikTok deep-dive pass.",content_focus:"Unknown/unverified — the catalog deliberately leaves content praise blank pending a TikTok deep-dive pass.",is_new:!1,seo_title:"bitchysitch | Sick Left Radicals | MTCSTW",seo_description:"bitchysitch (@bitchysitch on TikTok): leftist creator in the Sick Left Radicals network. Propaganda score 7.6.",image_alt:"bitchysitch, Unknown/unverified — the catalog deliberately leaves content praise... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"nikalie-monroe",name:"Nikalie",handles:{tiktok:"@nikalie.monroe"},primary_platform:"Tiktok",propaganda_score:9.1,score_provisional:!0,followers_total:558600,followers_display:"558.6K",followers_by_platform:{tiktok:{count:558600,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/nikalie-monroe.jpg",catalog_path:"/nikalie-monroe",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@nikalie.monroe",status:"confirmed"},{platform:"Bio link (gofundme fundraiser)",url:"https://gofund.me/cd1b825f7",status:"confirmed"},{platform:"Other",url:"https://thetab.com/2025/11/10/churches-respond-as-influencer-exposes-them-for-ignoring-desperate-mother-in-43-part-series",status:"confirmed"}],key_strengths:["558.6K combined audience (verified 2026-10-01)",'hard-left agitator — bio "FDT, F*ck ICE, Free Palestine, BLM, 💗 immigrants, pro choice"; Army veteran, lesbian, KY substance-abuse counselor',"biggest reach of any true leftist in the pool; bio reads like an SLR affiliate page already"],offer:['hard-left agitator — bio "FDT, F*ck ICE, Free Palestine, BLM, 💗 immigrants, pro choice"; Army veteran, lesbian, KY substance-abuse counselor',"biggest reach of any true leftist in the pool; bio reads like an SLR affiliate page already","558.6K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"],bio:'TikTok-only footprint (558.6K). No own Instagram, YouTube, X, Facebook, Substack, podcast, merch, Patreon, or website discoverable — only TikTok plus third-party press/reactor coverage of her viral church social-experiment series. hard-left agitator — bio "FDT, F*ck ICE, Free Palestine, BLM, 💗 immigrants, pro choice"; Army veteran, lesbian, KY substance-abuse counselor',content_focus:'hard-left agitator — bio "FDT, F*ck ICE, Free Palestine, BLM, 💗 immigrants, pro choice"; Army veteran, lesbian, KY substance-abuse counselor',is_new:!0,seo_title:"Nikalie | Sick Left Radicals | MTCSTW",seo_description:'Nikalie (@nikalie.monroe): hard-left agitator — bio "FDT, F*ck ICE, Free Palestine, BLM, 💗 immigrants, pro choice";... on Tiktok. 558.6K followers....',image_alt:'Nikalie, hard-left agitator — bio "FDT, F*ck ICE, Free Palestine, BLM, 💗... — Sick Left Radicals',content_updated:"2026-10-02"},{slug:"progressively2026",name:"realprogressive111",handles:{tiktok:"@progressively2026"},primary_platform:"Tiktok",propaganda_score:8.9,score_provisional:!0,followers_total:332400,followers_display:"332.4K",followers_by_platform:{tiktok:{count:332400,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/progressively2026.jpg",catalog_path:"/progressively2026",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@progressively2026",status:"confirmed"}],key_strengths:["332.4K combined audience (verified 2026-10-01)","daily progressive political news commentary with dated posts; TikTok LIVE streams","biggest progressive-Dem account in the pool; daily output, strong engagement (a video at 1.3M plays)"],offer:["daily progressive political news commentary with dated posts; TikTok LIVE streams","biggest progressive-Dem account in the pool; daily output, strong engagement (a video at 1.3M plays)","332.4K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"],bio:"TikTok-dominant (332.4K, daily videos + LIVE); claims Facebook/YouTube presences on her own videos but neither is verifiable by handle. No bio link. daily progressive political news commentary with dated posts; TikTok LIVE streams",content_focus:"daily progressive political news commentary with dated posts; TikTok LIVE streams",is_new:!0,seo_title:"realprogressive111 | Sick Left Radicals | MTCSTW",seo_description:"realprogressive111 (@progressively2026): daily progressive political news commentary with dated posts; TikTok LIVE streams on Tiktok. 332.4K followers....",image_alt:"realprogressive111, daily progressive political news commentary with dated posts; TikTok... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"vandala-effect",name:"Bella Vandala",handles:{tiktok:"@vandala_effect"},primary_platform:"Tiktok",propaganda_score:8.6,score_provisional:!0,followers_total:176600,followers_display:"176.6K",followers_by_platform:{tiktok:{count:176600,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/vandala-effect.jpg",catalog_path:"/vandala-effect",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@vandala_effect",status:"confirmed"},{platform:"Tiktok",url:"https://www.tiktok.com/@bella_vandala",status:"confirmed"},{platform:"Youtube",url:"https://www.youtube.com/watch?v=fxWwuC57yjM",status:"probable"},{platform:"Substack",url:"https://substack.com/@bellavandala",status:"probable"}],key_strengths:["176.6K combined audience (verified 2026-10-01)",'leftist political commentary with viral takedown content (236.4K-likes "How the mighty have fallen" video), uses #generalstrike; bio "Working on get banned agai',"proven leftist political creator with viral reach and high per-post engagement"],offer:['leftist political commentary with viral takedown content (236.4K-likes "How the mighty have fallen" video), uses #generalstrike; bio "Working on get banned again ❤️"','leftist political commentary with viral takedown content (236.4K-likes "How the mighty have fallen" video), uses #generalstrike; bio "Working on get banned agai',"176.6K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"],bio:'TikTok base (176.6K, rebuilt from a banned original @bella_vandala account), a \'Vandala Effect\' podcast on YouTube (probable own channel), and a Substack presence under @bellavandala. No verified Instagram, X, Facebook, merch store, or link-in-bio URL found. leftist political commentary with viral takedown content (236.4K-likes "How the mighty have fallen" video), uses #generalstrike; bio "Working on get banned again ❤️"',content_focus:'leftist political commentary with viral takedown content (236.4K-likes "How the mighty have fallen" video), uses #generalstrike; bio "Working on get banned again ❤️"',is_new:!0,seo_title:"Bella Vandala | Sick Left Radicals | MTCSTW",seo_description:'Bella Vandala (@vandala_effect): leftist political commentary with viral takedown content (236.4K-likes "How the mighty... on Tiktok. 176.6K followers....',image_alt:"Bella Vandala, leftist political commentary with viral takedown content... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"therevcoms",name:"The Revcoms",handles:{tiktok:"@therevcoms",youtube:"@therevcoms",instagram:"@therevcoms"},primary_platform:"Tiktok",propaganda_score:8.4,score_provisional:!0,followers_total:109600,followers_display:"109.6K",followers_by_platform:{tiktok:{count:108e3,confidence:"confirmed"},instagram:{count:1600,confidence:"probable"}},followers_as_of:"2026-10-01",picture:"https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/therevcoms.jpg",catalog_path:"/therevcoms",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@therevcoms",status:"confirmed"},{platform:"Linkinbio",url:"https://linktr.ee/therevcoms",status:"confirmed"},{platform:"Youtube",url:"https://www.youtube.com/@therevcoms",status:"probable"},{platform:"Instagram",url:"https://www.instagram.com/therevcoms/",status:"probable"},{platform:"X",url:"https://x.com/TheRevcoms",status:"confirmed"},{platform:"Facebook",url:"https://www.facebook.com/therevcoms",status:"probable"},{platform:"Other",url:"https://bsky.app/profile/revcom.us",status:"confirmed"},{platform:"Website",url:"https://revcom.us/en",status:"confirmed"}],key_strengths:["109.6K combined audience (verified 2026-10-01)",'self-described "Revolutionary Communists. Followers of @BobAvakianOfficial & the New Communism"',"strongest ideological alignment in the pool — explicitly communist propaganda, exactly the SLR lane"],offer:['self-described "Revolutionary Communists. Followers of @BobAvakianOfficial & the New Communism"',"strongest ideological alignment in the pool — explicitly communist propaganda, exactly the SLR lane","109.6K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"],bio:'Multi-platform org account for Bob Avakian\'s Revolutionary Communists (revcom.us): strongest on TikTok (108K); IG ~1.6K, X ~5K, YouTube channel, Facebook, Bluesky, Linktree, Patreon, official site, and a weekly podcast (RNL Show); no Substack found. self-described "Revolutionary Communists. Followers of @BobAvakianOfficial & the New Communism"',content_focus:'self-described "Revolutionary Communists. Followers of @BobAvakianOfficial & the New Communism"',is_new:!0,seo_title:"The Revcoms | Sick Left Radicals | MTCSTW",seo_description:'The Revcoms (@therevcoms): self-described "Revolutionary Communists. Followers of @BobAvakianOfficial & the New... on Tiktok. 109.6K followers. Propaganda...',image_alt:'The Revcoms, self-described "Revolutionary Communists. Followers of... — Sick Left Radicals',content_updated:"2026-10-02"},{slug:"itsdewberry",name:"Dew",handles:{tiktok:"@itsdewberry"},primary_platform:"Tiktok",propaganda_score:8.5,score_provisional:!0,followers_total:141900,followers_display:"141.9K",followers_by_platform:{tiktok:{count:141900,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/itsdewberry.jpg",catalog_path:"/itsdewberry",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@itsdewberry",status:"confirmed"}],key_strengths:["141.9K combined audience (verified 2026-10-01)",'progressive political commentary from SE Texas — bio "Don\'t be a bigot!"',"large, consistent progressive commentator; regional Texas voice"],offer:['progressive political commentary from SE Texas — bio "Don\'t be a bigot!"',"large, consistent progressive commentator; regional Texas voice","141.9K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"],bio:'TikTok-only footprint (141.9K): Dew, progressive commentator from SE Texas; only monetization trace is PayPal/Cash App tip handles; no IG/YouTube/X/FB/website/link-in-bio discoverable. progressive political commentary from SE Texas — bio "Don\'t be a bigot!"',content_focus:'progressive political commentary from SE Texas — bio "Don\'t be a bigot!"',is_new:!0,seo_title:"Dew | Sick Left Radicals | MTCSTW",seo_description:'Dew (@itsdewberry): progressive political commentary from SE Texas — bio "Don\'t be a bigot!" on Tiktok. 141.9K followers. Propaganda score 8.5.',image_alt:"Dew, progressive political commentary from SE Texas — bio \"Don't be a... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"thatalabamafella",name:"alabamafella",handles:{tiktok:"@thatalabamafella"},primary_platform:"Tiktok",propaganda_score:8.5,score_provisional:!0,followers_total:139800,followers_display:"139.8K",followers_by_platform:{tiktok:{count:139800,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/thatalabamafella.jpg",catalog_path:"/thatalabamafella",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@thatalabamafella",status:"confirmed"},{platform:"Linkinbio",url:"https://linktr.ee/alabamafella",status:"confirmed"},{platform:"Other",url:"https://www.youtube.com/watch?v=zf_yawHlpBs",status:"confirmed"}],key_strengths:["139.8K combined audience (verified 2026-10-01)",'"working class fella. it\'s cool to be anti racist and a feminist." — pro-working-class, anti-Trump, Gaza, Alabama utility corruption',"big openly anti-racist/feminist pro-working-class Southern voice; strong SLR fit"],offer:['"working class fella. it\'s cool to be anti racist and a feminist." — pro-working-class, anti-Trump, Gaza, Alabama utility corruption',"big openly anti-racist/feminist pro-working-class Southern voice; strong SLR fit","139.8K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"],bio:'TikTok-only footprint (139.8K): Jeff Alabama, Mobile DSA founder, pro-working-class/anti-racist/feminist Southern voice; linktr.ee bio link contents unverifiable; interview presence on Raised Red, Living Blue; no IG/YouTube/X/FB discoverable. "working class fella. it\'s cool to be anti racist and a feminist." — pro-working-class, anti-Trump, Gaza, Alabama utility corruption',content_focus:'"working class fella. it\'s cool to be anti racist and a feminist." — pro-working-class, anti-Trump, Gaza, Alabama utility corruption',is_new:!0,seo_title:"alabamafella | Sick Left Radicals | MTCSTW",seo_description:'alabamafella (@thatalabamafella): "working class fella. it\'s cool to be anti racist and a feminist." — pro-working-class,... on Tiktok. 139.8K followers....',image_alt:'alabamafella, "working class fella. it\'s cool to be anti racist and a feminist." —... — Sick Left Radicals',content_updated:"2026-10-02"},{slug:"official-ghost-of-eli",name:"Eli Noah",handles:{tiktok:"@official.ghost.of.eli"},primary_platform:"Tiktok",propaganda_score:8.2,score_provisional:!0,followers_total:73900,followers_display:"73.9K",followers_by_platform:{tiktok:{count:73900,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/official-ghost-of-eli.jpg",catalog_path:"/official-ghost-of-eli",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@official.ghost.of.eli",status:"confirmed"},{platform:"Bio link (gofundme — gaza family fundraiser he is boosting, not his own)",url:"https://gofund.me/c4df1f30",status:"confirmed"},{platform:"Other",url:"https://chuffed.org/project/lgbtqeastafrica",status:"confirmed"},{platform:"Gofundme (own)",url:"https://www.gofundme.com/f/help-eli-escape-and-rebuild",status:"confirmed"}],key_strengths:["73.9K combined audience (verified 2026-10-01)",'trans military service member — viral "placed on administrative leave" video; bio "Fuck 🧊 [ICE], Free 🇵🇸🇨🇩🇸🇩"; boycotts, frequent LIVE',"strong leftist profile with viral reach (one video 7.4M plays); trans-military angle is unique"],offer:['trans military service member — viral "placed on administrative leave" video; bio "Fuck 🧊 [ICE], Free 🇵🇸🇨🇩🇸🇩"; boycotts, frequent LIVE',"strong leftist profile with viral reach (one video 7.4M plays); trans-military angle is unique","73.9K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"],bio:'TikTok-only creator footprint (73.9K, 359 videos, anti-ICE / Free Palestine content); no Instagram/YouTube/X/Facebook/Substack/podcast/merch/Patreon/website found — fundraising links in bio only. NOTE: \'A Ghost of Eli\' (@aghostofeli) is an unrelated TTRPG creator; do not conflate. trans military service member — viral "placed on administrative leave" video; bio "Fuck 🧊 [ICE], Free 🇵🇸🇨🇩🇸🇩"; boycotts, frequent LIVE',content_focus:'trans military service member — viral "placed on administrative leave" video; bio "Fuck 🧊 [ICE], Free 🇵🇸🇨🇩🇸🇩"; boycotts, frequent LIVE',is_new:!0,seo_title:"Eli Noah | Sick Left Radicals | MTCSTW",seo_description:'Eli Noah (@official.ghost.of.eli): trans military service member — viral "placed on administrative leave" video; bio "Fuck 🧊... on Tiktok. 73.9K followers....',image_alt:'Eli Noah, trans military service member — viral "placed on administrative... — Sick Left Radicals',content_updated:"2026-10-02"},{slug:"combatvetsagainsttrump",name:"Thomas Sidle",handles:{tiktok:"@combatvetsagainsttrump"},primary_platform:"Tiktok",propaganda_score:8.1,score_provisional:!0,followers_total:50700,followers_display:"50.7K",followers_by_platform:{tiktok:{count:50700,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/combatvetsagainsttrump.jpg",catalog_path:"/combatvetsagainsttrump",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@combatvetsagainsttrump",status:"confirmed"},{platform:"Linkinbio",url:"https://linktr.ee/tom_aka_drake161",status:"confirmed"},{platform:"Bio link (change.org petition)",url:"https://c.org/WQm2cnpvfs",status:"confirmed"},{platform:"Org website",url:"https://www.fightagainstfascism.org",status:"probable"}],key_strengths:["50.7K combined audience (verified 2026-10-01)","combat veteran anti-Trump/anti-GOP content; regular TikTok LIVE streamer","large anti-Trump vet account, high engagement, live-streamer"],offer:["combat veteran anti-Trump/anti-GOP content; regular TikTok LIVE streamer","large anti-Trump vet account, high engagement, live-streamer","50.7K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"],bio:"TikTok-only footprint (50.7K, 971 videos, combat vet anti-Trump content, regular LIVE streamer); also affiliated with @combatvetsagainsttrumpFAFOFndr / @FAFOofficial on TikTok. No Instagram/YouTube/X/Facebook/Substack/podcast/merch/Patreon/website found. combat veteran anti-Trump/anti-GOP content; regular TikTok LIVE streamer",content_focus:"combat veteran anti-Trump/anti-GOP content; regular TikTok LIVE streamer",is_new:!0,seo_title:"Thomas Sidle | Sick Left Radicals | MTCSTW",seo_description:"Thomas Sidle (@combatvetsagainsttrump): combat veteran anti-Trump/anti-GOP content; regular TikTok LIVE streamer on Tiktok. 50.7K followers. Propaganda...",image_alt:"Thomas Sidle, combat veteran anti-Trump/anti-GOP content; regular TikTok LIVE... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"dofd",name:"Defense of Democracy",handles:{tiktok:"@_dofd",instagram:"@dofdnational"},primary_platform:"Tiktok",propaganda_score:8,score_provisional:!0,followers_total:74600,followers_display:"74.6K",followers_by_platform:{tiktok:{count:47200,confidence:"confirmed"},instagram:{count:11700,confidence:"probable"}},followers_as_of:"2026-10-01",picture:"https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/dofd.jpg",catalog_path:"/dofd",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@_dofd",status:"confirmed"},{platform:"Website",url:"https://defenseofdemocracy.org/",status:"confirmed"},{platform:"Podcast",url:"https://www.buzzsprout.com/2188992",status:"confirmed"},{platform:"Podcast",url:"https://www.iheart.com/podcast/269-defense-of-democracy-podca-116196255/",status:"confirmed"},{platform:"Podcast",url:"https://www.listennotes.com/podcasts/defense-of-democracy-podcast-addison-k-witt-OdVxKzvIMAa/",status:"probable"},{platform:"Linkinbio",url:"https://linktr.ee/defenseofdemocracy",status:"probable"},{platform:"Instagram",url:"https://www.instagram.com/dofdnational",status:"probable"},{platform:"Youtube",url:"https://www.youtube.com/shorts/pW5YHf3Q8XM",status:"probable"},{platform:"Other",url:"https://givebutter.com/MvJX52",status:"probable"},{platform:"Youtube",url:"https://www.youtube.com/watch?v=QJmZMcy38jE",status:"unverified"}],key_strengths:["74.6K combined audience (verified 2026-10-01)","anti-fascist org — resisting book bans, curriculum censorship, voter suppression; LGBTQ+ defense, ICE monitoring, school-board organizing","real leftist organization with consistent multi-platform output; recruit conversation would be with the org"],offer:["anti-fascist org — resisting book bans, curriculum censorship, voter suppression; LGBTQ+ defense, ICE monitoring, school-board organizing","real leftist organization with consistent multi-platform output; recruit conversation would be with the org","74.6K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"],bio:"Org footprint: TikTok 47.2K + website (501c4) + Buzzsprout podcast (122 eps, syndicated) + IG ~11.7K / FB ~11.3K / X ~4.4K (all probable via Feedspot); exact FB/X/YT profile URLs not pinned down — needs one live-browser pass over defenseofdemocracy.org social icons. anti-fascist org — resisting book bans, curriculum censorship, voter suppression; LGBTQ+ defense, ICE monitoring, school-board organizing",content_focus:"anti-fascist org — resisting book bans, curriculum censorship, voter suppression; LGBTQ+ defense, ICE monitoring, school-board organizing",is_new:!0,seo_title:"Defense of Democracy | Sick Left Radicals | MTCSTW",seo_description:"Defense of Democracy (@_dofd): anti-fascist org — resisting book bans, curriculum censorship, voter suppression; LGBTQ+... on Tiktok. 74.6K followers....",image_alt:"Defense of Democracy, anti-fascist org — resisting book bans, curriculum censorship, voter... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"mermaid-tm",name:"MermaidTM",handles:{tiktok:"@mermaid.tm"},primary_platform:"Tiktok",propaganda_score:8.3,score_provisional:!0,followers_total:85600,followers_display:"85.6K",followers_by_platform:{tiktok:{count:85600,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/mermaid-tm.jpg",catalog_path:"/mermaid-tm",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@mermaid.tm",status:"confirmed"},{platform:"Tiktok",url:"https://www.tiktok.com/@mermaid.tm",status:"probable"},{platform:"Linkinbio",url:"https://linktr.ee/mermaidtm",status:"confirmed"},{platform:"Patreon",url:"https://www.patreon.com/MermaidTM",status:"confirmed"},{platform:"Link-in-bio (alt)",url:"https://lnk.bio/MermaidTM",status:"confirmed"}],key_strengths:["85.6K combined audience (verified 2026-10-01)",'"Political Pink Princess" — political commentary + regular political LIVE streams',"established political commentator with monetized audience and live presence"],offer:['"Political Pink Princess" — political commentary + regular political LIVE streams',"established political commentator with monetized audience and live presence","85.6K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"],bio:"TikTok-first (85.6K, daily LIVE, 'Political Pink Princess') with confirmed IG @mermaid.tm (~76.4K), Patreon, Linktree + lnk.bio hub (Substack/BlueSky exist there, URLs uncaptured), probable X @TheMermaidTM; no YouTube/Facebook/website found. \"Political Pink Princess\" — political commentary + regular political LIVE streams",content_focus:'"Political Pink Princess" — political commentary + regular political LIVE streams',is_new:!0,seo_title:"MermaidTM | Sick Left Radicals | MTCSTW",seo_description:'MermaidTM (@mermaid.tm): "Political Pink Princess" — political commentary + regular political LIVE streams on Tiktok. 85.6K followers. Propaganda score 8.3.',image_alt:'MermaidTM, "Political Pink Princess" — political commentary + regular political... — Sick Left Radicals',content_updated:"2026-10-02"},{slug:"jessicacymone",name:"Jessica Cymone",handles:{tiktok:"@jessicacymone",instagram:"@jessicacymone"},primary_platform:"Tiktok",propaganda_score:8.1,score_provisional:!0,followers_total:58500,followers_display:"58.5K",followers_by_platform:{tiktok:{count:58500,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/jessicacymone.jpg",catalog_path:"/jessicacymone",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@jessicacymone",status:"confirmed"},{platform:"Linkinbio",url:"https://linktr.ee/jessicacymone",status:"probable"},{platform:"Website",url:"https://iamjessicacymone.com/",status:"confirmed"},{platform:"Instagram",url:"https://www.instagram.com/jessicacymone",status:"probable"},{platform:"Website",url:"https://iamjessicacymone.com",status:"confirmed"},{platform:"Youtube",url:"https://www.youtube.com/watch?v=O-fhhR4kclE",status:"probable"}],key_strengths:["58.5K combined audience (verified 2026-10-01)",'progressive political talk + music, "deep conversations"; @WeAreWhatsLeft affiliation',"progressive political creator with the batch's largest audience; left-coalition affiliation"],offer:['progressive political talk + music, "deep conversations"; @WeAreWhatsLeft affiliation',"progressive political creator with the batch's largest audience; left-coalition affiliation","58.5K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"],bio:'Actor/model/livestreamer; TikTok (58.5K) is the hub with a Linktree in bio and a personal site; IG presence probable but uncounted; no discoverable YouTube, X, Facebook, Substack, podcast, merch, or Patreon. progressive political talk + music, "deep conversations"; @WeAreWhatsLeft affiliation',content_focus:'progressive political talk + music, "deep conversations"; @WeAreWhatsLeft affiliation',is_new:!0,seo_title:"Jessica Cymone | Sick Left Radicals | MTCSTW",seo_description:'Jessica Cymone (@jessicacymone): progressive political talk + music, "deep conversations"; @WeAreWhatsLeft affiliation on Tiktok. 58.5K followers....',image_alt:'Jessica Cymone, progressive political talk + music, "deep conversations";... — Sick Left Radicals',content_updated:"2026-10-02"},{slug:"mexiguerita22",name:"Mexiguerita22",handles:{tiktok:"@mexiguerita22",youtube:"@mexiguerita22"},primary_platform:"Tiktok",propaganda_score:9.2,score_provisional:!0,followers_total:751800,followers_display:"751.8K",followers_by_platform:{tiktok:{count:498800,confidence:"confirmed"},facebook:{count:253e3,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/mexiguerita22.jpg",catalog_path:"/mexiguerita22",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@mexiguerita22",status:"confirmed"},{platform:"Other",url:"https://gofund.me/637d758d0",status:"confirmed"},{platform:"Youtube",url:"https://www.youtube.com/@mexiguerita22",status:"confirmed"},{platform:"Facebook",url:"https://www.facebook.com/profile.php?id=61583093663842",status:"confirmed"}],key_strengths:["751.8K combined audience (verified 2026-10-01)","Mexican activist/author/creator — anti-Trump immigration solidarity, extremely consistent poster","near-500K activist; Spanish-language immigration-left lane adds roster diversity"],offer:["Mexican activist/author/creator — anti-Trump immigration solidarity, extremely consistent poster","near-500K activist; Spanish-language immigration-left lane adds roster diversity","751.8K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"],bio:"Dual-platform (TikTok 498.8K + confirmed YouTube Shorts channel); self-described author/activist (book 'Magic, Mayhem and Madness' by Melodia Moreno) but no verifiable storefront, website, or other platforms. Mexican activist/author/creator — anti-Trump immigration solidarity, extremely consistent poster",content_focus:"Mexican activist/author/creator — anti-Trump immigration solidarity, extremely consistent poster",is_new:!0,seo_title:"Mexiguerita22 | Sick Left Radicals | MTCSTW",seo_description:"Mexiguerita22 (@mexiguerita22): Mexican activist/author/creator — anti-Trump immigration solidarity, extremely consistent... on Tiktok. 751.8K followers....",image_alt:"Mexiguerita22, Mexican activist/author/creator — anti-Trump immigration solidarity,... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"mandifromtheinternet",name:"mandifromtheinternet",handles:{tiktok:"@mandifromtheinternet",instagram:"@sabocat_teacher"},primary_platform:"Tiktok",propaganda_score:8.6,score_provisional:!0,followers_total:182900,followers_display:"182.9K",followers_by_platform:{tiktok:{count:182900,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/mandifromtheinternet.jpg",catalog_path:"/mandifromtheinternet",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@mandifromtheinternet",status:"confirmed"},{platform:"Linkinbio",url:"https://linktr.ee/sabocat",status:"confirmed"},{platform:"Tiktok",url:"https://www.tiktok.com/@sabocat",status:"confirmed"},{platform:"X",url:"https://twitter.com/sabocat_teacher",status:"confirmed"},{platform:"Instagram",url:"https://www.instagram.com/sabocat_teacher/",status:"confirmed"},{platform:"Website",url:"https://www.sabocatteacher.com/",status:"confirmed"},{platform:"Substack",url:"https://sabocat612.substack.com",status:"confirmed"}],key_strengths:["182.9K combined audience (verified 2026-10-01)","leftist internet commentary — openly leftist bio, anarchist-leaning","huge openly-leftist account with relentless posting cadence and massive engagement"],offer:["leftist internet commentary — openly leftist bio, anarchist-leaning","huge openly-leftist account with relentless posting cadence and massive engagement","182.9K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"],bio:"Mandi Jung, St. Paul public school teacher ('Sabocat'); core on TikTok (182.9K, anarchist-leaning bio markers); verified personal site, X, IG, and Substack under sabocat branding; no YouTube/FB/merch/Patreon found. leftist internet commentary — openly leftist bio, anarchist-leaning",content_focus:"leftist internet commentary — openly leftist bio, anarchist-leaning",is_new:!0,seo_title:"mandifromtheinternet | Sick Left Radicals | MTCSTW",seo_description:"mandifromtheinternet (@mandifromtheinternet): leftist internet commentary — openly leftist bio, anarchist-leaning on Tiktok. 182.9K followers. Propaganda...",image_alt:"mandifromtheinternet, leftist internet commentary — openly leftist bio, anarchist-leaning — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"sajidahtalks2025",name:"sajidahtalks2025",handles:{tiktok:"@sajidahtalks2025"},primary_platform:"Tiktok",propaganda_score:7.8,score_provisional:!0,followers_total:21900,followers_display:"21.9K",followers_by_platform:{tiktok:{count:21900,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/sajidahtalks2025.jpg",catalog_path:"/sajidahtalks2025",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@sajidahtalks2025",status:"confirmed"},{platform:"Linkinbio",url:"https://linktr.ee/sajidahtalks2025",status:"probable"}],key_strengths:["21.9K combined audience (verified 2026-10-01)","political activist — Palestine, immigration, Sudan solidarity; live streams","explicit leftist solidarity content, active poster, well above minimum"],offer:["political activist — Palestine, immigration, Sudan solidarity; live streams","explicit leftist solidarity content, active poster, well above minimum","21.9K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"],bio:"TikTok-only footprint found (21.9K, Palestine/immigration/Sudan solidarity streams); no discoverable Instagram, YouTube, X, Facebook, Substack, podcast, merch, Patreon, or personal website — only the bio Linktree (contents unread). political activist — Palestine, immigration, Sudan solidarity; live streams",content_focus:"political activist — Palestine, immigration, Sudan solidarity; live streams",is_new:!0,seo_title:"sajidahtalks2025 | Sick Left Radicals | MTCSTW",seo_description:"sajidahtalks2025 (@sajidahtalks2025): political activist — Palestine, immigration, Sudan solidarity; live streams on Tiktok. 21.9K followers. Propaganda...",image_alt:"sajidahtalks2025, political activist — Palestine, immigration, Sudan solidarity; live... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"public-enlightenment",name:"public_enlightenment",handles:{tiktok:"@public_enlightenment",instagram:"@enlightened_public",youtube:"@public_enlightenment"},primary_platform:"Tiktok",propaganda_score:7.9,score_provisional:!0,followers_total:31200,followers_display:"31.2K",followers_by_platform:{tiktok:{count:30200,confidence:"confirmed"},substack:{count:1e3,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@46c34bf/v1.4.3/assets/roster-photos/public-enlightenment.jpg",catalog_path:"/public-enlightenment",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@public_enlightenment",status:"confirmed"},{platform:"Substack",url:"https://publicenlightenment.com",status:"confirmed"},{platform:"Substack",url:"https://substack.com/@brianhansbury",status:"confirmed"},{platform:"Patreon",url:"https://www.patreon.com/PublicEnlightenment",status:"confirmed"},{platform:"Website",url:"https://publicenlightenment.com",status:"confirmed"},{platform:"Instagram",url:"https://www.instagram.com/enlightened_public",status:"probable"},{platform:"Youtube",url:"https://www.youtube.com/@public_enlightenment",status:"probable"},{platform:"Twitch",url:"https://www.twitch.tv/publicenlightenment",status:"probable"},{platform:"Link-in-bio",url:"https://linktr.ee/public_enlightenment",status:"probable"}],key_strengths:["31.2K combined audience (verified 2026-10-01)","pro-democracy news aggregator, anti-disinformation; slightly liberal-institutional tone but on-mission","news/propaganda lane fit; anti-disinformation work aligns with network mission"],offer:["pro-democracy news aggregator, anti-disinformation; slightly liberal-institutional tone but on-mission","news/propaganda lane fit; anti-disinformation work aligns with network mission","31.2K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"],bio:"Full multi-platform operation (TikTok + YouTube + Instagram + Substack 1K+ subs + Patreon + Bluesky + Twitch) run by Brian Hansbury with a real website and paid membership tier. pro-democracy news aggregator, anti-disinformation; slightly liberal-institutional tone but on-mission",content_focus:"pro-democracy news aggregator, anti-disinformation; slightly liberal-institutional tone but on-mission",is_new:!0,seo_title:"public_enlightenment | Sick Left Radicals | MTCSTW",seo_description:"public_enlightenment (@public_enlightenment): pro-democracy news aggregator, anti-disinformation; slightly liberal-institutional tone... on Tiktok. 31.2K...",image_alt:"public_enlightenment, pro-democracy news aggregator, anti-disinformation; slightly... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"love-and-molotov",name:"Randi Lisandro",handles:{tiktok:"@love_and_molotov"},primary_platform:"Tiktok",propaganda_score:7.9,score_provisional:!0,followers_total:28e3,followers_display:"28K",followers_by_platform:{tiktok:{count:28e3,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@46c34bf/v1.4.3/assets/roster-photos/love-and-molotov.jpg",catalog_path:"/love-and-molotov",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@love_and_molotov",status:"confirmed"},{platform:"Bio link",url:"https://www.powerthepolls.org/",status:"confirmed"}],key_strengths:["28K combined audience (verified 2026-10-01)","feminist call-out/critique content, links powerthepolls.org","feminist agitator branding fits the network aesthetic; critique content is on-mission"],offer:["feminist call-out/critique content, links powerthepolls.org","feminist agitator branding fits the network aesthetic; critique content is on-mission","28K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"],bio:"TikTok-only feminist call-out creator (Randi Misandry); only external link is powerthepolls.org; no verifiable off-TikTok presence of her own. feminist call-out/critique content, links powerthepolls.org",content_focus:"feminist call-out/critique content, links powerthepolls.org",is_new:!0,seo_title:"Randi Lisandro | Sick Left Radicals | MTCSTW",seo_description:"Randi Lisandro (@love_and_molotov): feminist call-out/critique content, links powerthepolls.org on Tiktok. 28K followers. Propaganda score 7.9.",image_alt:"Randi Lisandro, feminist call-out/critique content, links powerthepolls.org — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"thelastcookout",name:"Liv2bgr8",handles:{tiktok:"@thelastcookout"},primary_platform:"Tiktok",propaganda_score:7.8,score_provisional:!0,followers_total:23200,followers_display:"23.2K",followers_by_platform:{tiktok:{count:23200,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@46c34bf/v1.4.3/assets/roster-photos/thelastcookout.jpg",catalog_path:"/thelastcookout",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@thelastcookout",status:"confirmed"},{platform:"Website",url:"https://www.thelastcookout.com",status:"confirmed"},{platform:"Link-in-bio",url:"https://linktr.ee/Liv2bgr8",status:"confirmed"}],key_strengths:["23.2K combined audience (verified 2026-10-01)","Black community empowerment, self-ID'd social justice activist; runs podcast + newsletter","PROMOTED from honorable mentions 2026-10-01 per the network. Multi-platform (podcast + newsletter) plus community-organizing angle"],offer:["Black community empowerment, self-ID'd social justice activist; runs podcast + newsletter","PROMOTED from honorable mentions 2026-10-01 per the network. Multi-platform (podcast + newsletter) plus community-organizing angle","23.2K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"],bio:"TikTok-led Black-community activist brand; owns thelastcookout.com with merch + email newsletter and a podcast that is announced but has no discoverable platform feeds. Black community empowerment, self-ID'd social justice activist; runs podcast + newsletter",content_focus:"Black community empowerment, self-ID'd social justice activist; runs podcast + newsletter",is_new:!0,seo_title:"Liv2bgr8 | Sick Left Radicals | MTCSTW",seo_description:"Liv2bgr8 (@thelastcookout): Black community empowerment, self-ID'd social justice activist; runs podcast + newsletter on Tiktok. 23.2K followers. Propaganda...",image_alt:"Liv2bgr8, Black community empowerment, self-ID'd social justice activist; runs... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"an-iowan",name:"An_Iowan",handles:{tiktok:"@an_iowan"},primary_platform:"Tiktok",propaganda_score:7.8,score_provisional:!0,followers_total:26800,followers_display:"26.8K",followers_by_platform:{tiktok:{count:26800,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@46c34bf/v1.4.3/assets/roster-photos/an-iowan.jpg",catalog_path:"/an-iowan",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@an_iowan",status:"confirmed"}],key_strengths:["26.8K combined audience (verified 2026-10-01)","Iowa progressive / Resistance circuit voice","PROMOTED from honorable mentions 2026-10-01 per the network. Highest remaining reach of the qualified pool"],offer:["Iowa progressive / Resistance circuit voice","PROMOTED from honorable mentions 2026-10-01 per the network. Highest remaining reach of the qualified pool","26.8K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"],bio:"TikTok-only presence in the Iowa Resistance circuit; no other public platforms, website, or monetization discovered. Iowa progressive / Resistance circuit voice",content_focus:"Iowa progressive / Resistance circuit voice",is_new:!0,seo_title:"An_Iowan | Sick Left Radicals | MTCSTW",seo_description:"An_Iowan (@an_iowan): Iowa progressive / Resistance circuit voice on Tiktok. 26.8K followers. Propaganda score 7.8.",image_alt:"An_Iowan, Iowa progressive / Resistance circuit voice — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"splashofgenz",name:"Emily Ann Gregson",handles:{tiktok:"@splashofgenz"},primary_platform:"Tiktok",propaganda_score:7.7,score_provisional:!0,followers_total:2e4,followers_display:"20K",followers_by_platform:{tiktok:{count:2e4,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@46c34bf/v1.4.3/assets/roster-photos/splashofgenz.jpg",catalog_path:"/splashofgenz",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@splashofgenz",status:"confirmed"},{platform:"Link-in-bio",url:"https://linktr.ee/splashofgenz",status:"confirmed"}],key_strengths:["20K combined audience (verified 2026-10-01)","Gen Z political commentary, viral-scale engagement (318K-play LEGO explainer)","PROMOTED from honorable mentions 2026-10-01 per the network. Youth lane + proven viral reach"],offer:["Gen Z political commentary, viral-scale engagement (318K-play LEGO explainer)","PROMOTED from honorable mentions 2026-10-01 per the network. Youth lane + proven viral reach","20K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"],bio:"TikTok-native political commentator (~20K) with linked Instagram and Facebook per her own bios, plus OnlyFans; no YouTube, X, Substack, podcast, or merch discoverable. Gen Z political commentary, viral-scale engagement (318K-play LEGO explainer)",content_focus:"Gen Z political commentary, viral-scale engagement (318K-play LEGO explainer)",is_new:!0,seo_title:"Emily Ann Gregson | Sick Left Radicals | MTCSTW",seo_description:"Emily Ann Gregson (@splashofgenz): Gen Z political commentary, viral-scale engagement (318K-play LEGO explainer) on Tiktok. 20K followers. Propaganda score:...",image_alt:"Emily Ann Gregson, Gen Z political commentary, viral-scale engagement (318K-play LEGO... — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"sissyfits",name:"Sissyfits",handles:{tiktok:"@sissyfits"},primary_platform:"Tiktok",propaganda_score:7.7,score_provisional:!0,followers_total:16500,followers_display:"16.5K",followers_by_platform:{tiktok:{count:16500,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@46c34bf/v1.4.3/assets/roster-photos/sissyfits.jpg",catalog_path:"/sissyfits",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@sissyfits",status:"confirmed"},{platform:"Link-in-bio",url:"https://linktr.ee/Sissyfits",status:"confirmed"}],key_strengths:["16.5K combined audience (verified 2026-10-01)","self-ID'd 'Annoying Leftist', prolific poster","PROMOTED from honorable mentions 2026-10-01 per the network. Explicit leftist identity + massive output"],offer:["self-ID'd 'Annoying Leftist', prolific poster","PROMOTED from honorable mentions 2026-10-01 per the network. Explicit leftist identity + massive output","16.5K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"],bio:"TikTok-only creator ('Annoying Leftist', 4,878 videos) with no discoverable off-TikTok footprint beyond a link-in-bio whose contents could not be retrieved. self-ID'd 'Annoying Leftist', prolific poster",content_focus:"self-ID'd 'Annoying Leftist', prolific poster",is_new:!0,seo_title:"Sissyfits | Sick Left Radicals | MTCSTW",seo_description:"Sissyfits (@sissyfits): self-ID'd 'Annoying Leftist', prolific poster on Tiktok. 16.5K followers. Propaganda score 7.7.",image_alt:"Sissyfits, self-ID'd 'Annoying Leftist', prolific poster — Sick Left Radicals",content_updated:"2026-10-02"},{slug:"worlds-strongest-mayo",name:"worlds_strongest_mayo",handles:{tiktok:"@worlds_strongest_mayo"},primary_platform:"Tiktok",propaganda_score:7.6,score_provisional:!0,followers_total:12600,followers_display:"12.6K",followers_by_platform:{tiktok:{count:12600,confidence:"confirmed"}},followers_as_of:"2026-10-01",picture:"https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@46c34bf/v1.4.3/assets/roster-photos/worlds-strongest-mayo.jpg",catalog_path:"/worlds-strongest-mayo",links:[{platform:"Tiktok",url:"https://www.tiktok.com/@worlds_strongest_mayo",status:"confirmed"}],key_strengths:["12.6K combined audience (verified 2026-10-01)","anti-MAGA political satirist, disproportionate engagement for size","Added to the roster 2026-10-01. Satire lane + strong engagement"],offer:["anti-MAGA political satirist, disproportionate engagement for size","Added to the roster 2026-10-01. Satire lane + strong engagement","12.6K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"],bio:"TikTok-only creator (12.6K, 730 videos, 2.6M likes, anti-MAGA political satire); no discoverable Instagram, YouTube, X, Facebook, Substack, podcast, link-in-bio, merch, Patreon, or website. anti-MAGA political satirist, disproportionate engagement for size",content_focus:"anti-MAGA political satirist, disproportionate engagement for size",is_new:!0,seo_title:"worlds_strongest_mayo | Sick Left Radicals | MTCSTW",seo_description:"worlds_strongest_mayo (@worlds_strongest_mayo): anti-MAGA political satirist, disproportionate engagement for size on Tiktok. 12.6K followers. Propaganda...",image_alt:"worlds_strongest_mayo, anti-MAGA political satirist, disproportionate engagement for size — Sick Left Radicals",content_updated:"2026-10-02"}]},function(){"use strict";var e=window.PF;if(e&&!e.skip("slr-db")){var t=[],o=null,a=window.PF_SLR_DB_SNAPSHOT;a&&r(a)&&e.log("slr-db","snapshot applied: "+t.length+" members");var n=null;e.ensureSLRDB=function(){var o=window.PF_SLR_DB_SNAPSHOT;return o&&r(o)||t.length?Promise.resolve(t):n||(n=new Promise(function(o){var a,n=(a=s())?a+"/v1.4.3/core/07-slr-db-data.js":"https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@main/v1.4.3/core/07-slr-db-data.js",i=!1;function l(){if(!i){i=!0;var a=window.PF_SLR_DB_SNAPSHOT;a&&r(a)?(e.log("slr-db","lazy snapshot applied: "+t.length+" members"),o(t)):function(){var o=s();return fetch(o?o+"/src/data/slr-master-db.json":"https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@main/src/data/slr-master-db.json",{cache:"no-store"}).then(function(e){if(!e.ok)throw new Error("slr-db HTTP "+e.status);return e.json()}).then(function(e){if(!r(e))throw new Error("slr-db bad payload");return t}).catch(function(o){t=[];try{e.slrLegacy=[]}catch(e){}return e.error("slr-db",o),t})}().then(o)}}try{var c=document.createElement("script");c.src=n,c.async=!0,c.onload=l,c.onerror=l,document.head.appendChild(c),setTimeout(l,15e3)}catch(e){l()}}))};try{Object.defineProperty(e,"slrReady",{configurable:!0,get:function(){return e.ensureSLRDB()}})}catch(t){e.slrReady=e.ensureSLRDB()}e.slrAll=function(){return t},e.slrMeta=function(){return o},e.slrMember=function(e){for(var o=0;o<t.length;o++)if(t[o].slug===e)return t[o];return null}}function i(e){var t=e.handles||{};return{name:e.name,slug:e.slug,score:e.propaganda_score,handle:t.primary||t.tiktok||"",platform:e.primary_platform||"",img:e.picture||"",imgAlt:e.image_alt||e.name+" — Sick Left Radicals",seoTitle:e.seo_title||"",seoDesc:e.seo_description||""}}function r(a){if(a&&a.members&&a.members.length){t=a.members,o=a.meta||null;try{e.slrLegacy=t.map(i)}catch(t){e.slrLegacy=[]}return!0}return!1}function s(){try{var e="";if(document.currentScript&&document.currentScript.src&&(e=document.currentScript.src),!e)for(var t=document.getElementsByTagName("script"),o=t.length-1;o>=0;o--)if(t[o].src&&(-1!==t[o].src.indexOf("07-slr-db")||-1!==t[o].src.indexOf("bundle-core"))){e=t[o].src;break}var a=e.match(/^(https:\/\/cdn\.jsdelivr\.net\/gh\/[^@]+@[^\/]+)\//);if(a)return a[1]}catch(e){}return null}}(),window.PF_BACKEND_URL="https://pf-api.mtcstw.workers.dev",window.PF=window.PF||{},window.PF.postAction=function(e,t,o,a,n){var i=window.PF_BACKEND_URL;if(i){var r=Object.assign({type:e},a||{});if(r[t]=o,window.PF&&window.PF.authPost)window.PF.authPost(i,r,n);else{var s="";try{s=window.PF&&window.PF.getAuthSecret?window.PF.getAuthSecret():""}catch(e){}s&&(r.auth_secret=s);var l=function(){var e={method:"POST",headers:{"Content-Type":"application/json"},body:""},t=null,o=null;try{window.AbortController&&(t=new AbortController,e.signal=t.signal,o=setTimeout(function(){try{t.abort()}catch(e){}},15e3))}catch(e){}return e._pfClear=function(){if(o)try{clearTimeout(o)}catch(e){}},e}();l.body=JSON.stringify(r);try{fetch(i,l).then(function(e){return e.json()}).then(function(e){l._pfClear(),c(e)}).catch(function(){l._pfClear(),c(null)})}catch(e){c(null)}}}else try{n(null)}catch(e){}function c(e){try{n(e)}catch(e){}}},window.PFDeviceId=function(){try{var e="pf_device_v1",t=localStorage.getItem(e);if(!t){t="d-"+Math.random().toString(36).slice(2,10)+Date.now().toString(36);try{localStorage.setItem(e,t)}catch(e){}}return t}catch(e){return""}},window.PFCallsign=function(){try{return String(JSON.parse(localStorage.getItem("pf_identity_v1")||"{}").callsign||"")}catch(e){return""}},window.PF.capturePendingRef=function(){try{var e=String(window.location.search||"").match(/[?&]ref=([a-z0-9_]{3,20})/i);if(!e||!e[1])return!1;var t="";try{t=window.PFCallsign?window.PFCallsign():""}catch(e){}if(t)return!1;var o="";try{o=localStorage.getItem("pf_pending_ref")||""}catch(e){}if(o)return!0;try{localStorage.setItem("pf_pending_ref",e[1].toLowerCase())}catch(e){}return!0}catch(e){return!1}};try{window.PF.capturePendingRef()}catch(e){}var e="pf_cs_dismissed_v2";function t(e){return String(e&&e.context||"to continue").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,64)||"default"}function o(){try{return JSON.parse(sessionStorage.getItem(e)||"{}")}catch(e){return{}}}try{sessionStorage.removeItem("pf_cs_dismissed")}catch(e){}window.PF.requireCallsign=function(a,n){n=n||{};var i=function(e){try{a(e||"")}catch(e){}},r="";try{r=window.PFCallsign?window.PFCallsign():""}catch(e){}r?i(r):function(t){var a=o(),n=a[t]||0;if(!n)return!1;if(Date.now()-n>18e5){try{delete a[t],sessionStorage.setItem(e,JSON.stringify(a))}catch(e){}return!1}return!0}(t(n))?i(""):function(a,n){var i=String(n&&n.context||"to continue");function r(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}var s=document.getElementById("pf-cs-modal");if(s&&s.parentNode)try{s.parentNode.removeChild(s)}catch(e){}var l=document.createElement("div");l.id="pf-cs-modal",l.setAttribute("role","dialog"),l.setAttribute("aria-label","Claim your callsign"),l.style.cssText="position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:1rem;box-sizing:border-box;";var c=document.createElement("div");c.style.cssText='background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:"Helvetica Neue",Arial,sans-serif;padding:1.75rem;max-width:420px;width:100%;box-sizing:border-box;text-align:center;position:relative;',c.innerHTML='<div id="pf-cs-x" role="button" tabindex="0" aria-label="Close" style="position:absolute;top:0.4rem;right:0.7rem;cursor:pointer;font-size:1.4rem;color:#b8ab8e;line-height:1;">&times;</div><div style="font-size:1.25rem;font-weight:900;letter-spacing:0.14em;color:#c1121f;margin-bottom:0.6rem;">&#9733; CLAIM YOUR CALLSIGN &#9733;</div><div style="font-size:0.9rem;color:#b8ab8e;line-height:1.55;margin-bottom:1rem;">You need a callsign '+r(i)+'. Pick one &mdash; it&rsquo;s your name in the fight, and your XP follows it everywhere.</div><input id="pf-cs-input" maxlength="20" placeholder="your_callsign" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" style="width:100%;background:#141414;color:#f5f0e1;border:2px solid #c1121f;padding:0.7rem;font-size:1rem;font-family:inherit;box-sizing:border-box;margin-bottom:0.5rem;text-align:center;" /><div id="pf-cs-err" style="font-size:0.8rem;color:#ff6b6b;min-height:1.3em;margin-bottom:0.5rem;"></div><label style="display:block;margin:0 0 0.7rem;font-size:0.8rem;color:#b8ab8e;cursor:pointer;text-align:left;"><input type="checkbox" id="pf-cs-age13" style="vertical-align:middle;margin-right:6px;transform:scale(1.2);">I confirm I am 13 or older.</label><button id="pf-cs-btn" style="display:inline-block;background:#c1121f;color:#f5f0e1;font-weight:900;letter-spacing:0.12em;border:none;padding:0.8rem 2.2rem;font-size:1rem;cursor:pointer;font-family:inherit;">CLAIM IT</button>',l.appendChild(c),document.body.appendChild(l);var d=!1;function p(i,r){if(!d){d=!0;try{l.parentNode&&l.parentNode.removeChild(l)}catch(e){}r&&function(t){try{var a=o();a[t]=Date.now(),sessionStorage.setItem(e,JSON.stringify(a))}catch(e){}}(t(n)),a(i||"")}}var f=c.querySelector("#pf-cs-input"),h=c.querySelector("#pf-cs-err"),u=c.querySelector("#pf-cs-btn");function m(e){h&&(h.textContent=e)}function g(){var e=String(f.value||"").trim().toLowerCase();if(/^[a-z0-9_]{3,20}$/.test(e)){var t=c.querySelector("#pf-cs-age13");if(t&&t.checked){m("Claiming…"),u.disabled=!0;var o={action:"register",callsign:e,device:"",age13:1};try{o.device=window.PFDeviceId?window.PFDeviceId():""}catch(e){}try{var a=localStorage.getItem("pf_pending_ref");a&&/^[a-z0-9_]{3,20}$/.test(a)&&(o.ref=a)}catch(e){}var n=window.PF_BACKEND_URL;if(!n)return m("Network error. Try again."),void(u.disabled=!1);var i=null,r=null;try{window.AbortController&&(i=new AbortController,r=setTimeout(function(){try{i.abort()}catch(e){}},15e3))}catch(e){i=null,r=null}var s={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)};i&&(s.signal=i.signal),fetch(n,s).then(function(e){return e.json()}).then(function(t){if(r&&(clearTimeout(r),r=null),!t)return m("Network error. Try again."),void(u.disabled=!1);if(!t.ok)return m("taken"===t.error?"That callsign is taken.":"Bad callsign."),void(u.disabled=!1);try{localStorage.removeItem("pf_pending_ref")}catch(e){}try{t.auth_secret&&window.PF&&PF.saveAuthSecret?PF.saveAuthSecret(t.auth_secret):window.PF&&PF.claimAuthSecret&&PF.claimAuthSecret(e,function(){})}catch(e){}try{var o="pf_identity_v1",a={};try{a=JSON.parse(localStorage.getItem(o)||"{}")}catch(e){}a.callsign=e,localStorage.setItem(o,JSON.stringify(a))}catch(e){}try{document.dispatchEvent(new CustomEvent("pf-callsign-claimed",{detail:{callsign:e}}))}catch(e){}try{window.PF&&PF.toast&&PF.toast("Callsign claimed. Welcome to the fight, "+e.toUpperCase()+".")}catch(e){}p(e,!1)}).catch(function(){r&&(clearTimeout(r),r=null),m("Network error. Try again."),u.disabled=!1})}else m("Please confirm you are 13 or older.")}else m("Callsign: 3-20 chars, letters/numbers/underscore.")}u.onclick=g,f.onkeydown=function(e){"Enter"===e.key&&g()};var w=c.querySelector("#pf-cs-x");function y(){p("",!0)}w&&(w.onclick=y,w.onkeydown=function(e){"Enter"!==e.key&&" "!==e.key||y()});l.onclick=function(e){e.target===l&&y()};try{f.focus()}catch(e){}}(i,n)},window.PF.gateHTML=function(e,t){return'<div class="c-gate">'+String(e||"This runs on callsigns.")+'<br><button class="c-btn" data-pf-claim-cs="1"'+(t?' data-pf-claim-ctx="'+(o=t,String(null==o?"":o).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")+'"'):"")+">CLAIM A CALLSIGN</button></div>";var o},document.addEventListener("click",function(e){var t=null;try{t=e.target&&e.target.closest?e.target.closest("[data-pf-claim-cs]"):null}catch(e){}if(t&&window.PF&&PF.requireCallsign){try{e.preventDefault()}catch(e){}var o="to continue";try{o=t.getAttribute("data-pf-claim-ctx")||o}catch(e){}PF.requireCallsign(function(e){if(e)try{location.reload()}catch(e){}},{context:o})}}),window.pfReportAction=function(e){if(window.PF_BACKEND_URL){try{var t="",o="";try{t=window.PFDeviceId(),o=window.PFCallsign()}catch(e){}fetch(window.PF_BACKEND_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({type:"action",action_type:e,device:t,callsign:o,auth_secret:window.PF&&PF.getAuthSecret?PF.getAuthSecret():""})})}catch(e){}setTimeout(window.pfFetchGlobalTotal,1500)}},window.pfFetchGlobalTotal=function(){if(window.PF_BACKEND_URL){var e="pfGlobalCb_"+Date.now();window[e]=function(t){try{for(var o=t&&t.total||0,a=document.querySelectorAll(".pf-global-total-num"),n=0;n<a.length;n++)a[n].textContent=o}catch(e){}try{delete window[e]}catch(e){}var i=document.getElementById(e);i&&i.parentNode&&i.parentNode.removeChild(i)};var t=document.createElement("script");t.id=e,t.src=window.PF_BACKEND_URL+"?action=action_totals&callback="+e,t.onerror=function(){try{delete window[e]}catch(e){}t.parentNode&&t.parentNode.removeChild(t)},document.head.appendChild(t)}},"loading"===document.readyState?document.addEventListener("DOMContentLoaded",window.pfFetchGlobalTotal):window.pfFetchGlobalTotal();try{window.PF&&"function"==typeof PF.seedDayXp&&("loading"===document.readyState?document.addEventListener("DOMContentLoaded",function(){try{PF.seedDayXp()}catch(e){}}):PF.seedDayXp(),document.addEventListener("pf-callsign-claimed",function(){try{PF.seedDayXp(!0)}catch(e){}}))}catch(e){}window.PF_GLOBAL_TASKS=0,window.pfFetchGlobalTasks=function(){if(window.PF_BACKEND_URL){var e="pfTasksCb_"+Date.now();window[e]=function(t){try{var o=t&&t.total||0;if(o>0){window.PF_GLOBAL_TASKS=o;try{document.dispatchEvent(new CustomEvent("pf-global-tasks",{detail:{total:o}}))}catch(e){}}}catch(e){}try{delete window[e]}catch(e){}var a=document.getElementById(e);a&&a.parentNode&&a.parentNode.removeChild(a)};var t=document.createElement("script");t.id=e,t.src=window.PF_BACKEND_URL+"?action=task_totals&callback="+e,t.onerror=function(){try{delete window[e]}catch(e){}t.parentNode&&t.parentNode.removeChild(t)},document.head.appendChild(t)}},"loading"===document.readyState?document.addEventListener("DOMContentLoaded",window.pfFetchGlobalTasks):window.pfFetchGlobalTasks(),Object.defineProperty(PF,"ROSTER",{configurable:!0,get:function(){try{return PF.slrLegacy||[]}catch(e){return[]}}}),PF.rosterBySlug=function(e){try{for(var t=PF.ROSTER||[],o=0;o<t.length;o++)if(t[o].slug===e)return t[o]}catch(e){}return null},PF.rosterName=function(e,t){var o=PF.rosterBySlug(e);return o&&o.name?o.name:t||String(null==e?"":e).replace(/-/g," ")},function(){if(!window.PF||!window.PF.skip("03-global")){var e={"pf-order-checkin":["daily_orders","Daily Orders"],"pf-caption-submit":["caption_combat","Caption Combat"],"pf-poster-made":["poster_forge","Poster Forge"],"pf-vote-cast":["fan_vote","Fan Vote"],"pf-bracket-ballot":["bracket_vote","Bracket"],"pf-bracket-liquidated":["bracket_liquidation","Liquidation"],"pf-quiz-done":["quiz_complete","Quiz"],"pf-traitor-vote":["traitor_vote","Class Traitor"],"pf-enlisted":["enlistment","Enlistment"]},t=null;for(var o in e)(function(e,o){document.addEventListener(e,function(e){window._pfLastGame=o[1];var a="";try{a=e.detail&&(e.detail.mission||e.detail.caption||e.detail.day||"")||""}catch(e){}window._pfLastDetail=(a?a+" — ":"")+"Task complete on mtcstw.com";var n=t||((t=document.createElement("button")).textContent="SHARE",t.style.cssText='position:fixed;bottom:24px;right:24px;z-index:99999;background:#c1121f;color:#f5ead6;border:3px solid #f5ead6;font-family:"Arial Black",Arial,sans-serif;font-size:18px;font-weight:900;padding:14px 22px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.5);display:none;',t.onclick=function(){var e=window._pfLastGame||"Mission",o=window._pfLastDetail||"Task complete.";window.pfShareAchievement&&window.pfShareAchievement(e,o),t.style.display="none"},document.body.appendChild(t),t);n.style.display="block",setTimeout(function(){n.style.display="none"},3e4)})})(o,e[o])}}(),window.pfShareAchievement=function(e,t){try{var o=document.createElement("canvas");o.width=1080,o.height=1080;var a=o.getContext("2d");a.fillStyle="#0d0d0d",a.fillRect(0,0,1080,1080),a.strokeStyle="#c1121f",a.lineWidth=24,a.strokeRect(24,24,1032,1032),a.strokeStyle="#f5ead6",a.lineWidth=4,a.strokeRect(60,60,960,960),a.fillStyle="#c1121f",a.font="900 72px Arial Black, Arial, sans-serif",a.textAlign="center",a.fillText("THE PROPAGANDA FACTORY",540,160),a.fillStyle="#c1121f";var n=(e||"MISSION").toUpperCase(),i=96;for(a.font="900 "+i+"px Arial Black, Arial, sans-serif";i>36&&a.measureText(n).width>920;)i-=4,a.font="900 "+i+"px Arial Black, Arial, sans-serif";if(a.measureText(n).width>920){for(;n.length>1&&a.measureText(n.slice(0,-1)+"…").width>920;)n=n.slice(0,-1);n=n.trim()+"…"}a.fillText(n,540,320),a.fillStyle="#f5ead6",a.font="64px Arial",a.fillText("★ ★ ★",540,420),a.fillStyle="#f5ead6",a.font="48px Arial, sans-serif";for(var r=String(t||"").split(" "),s=[],l="",c=0;c<r.length;c++){var d=l+r[c]+" ";a.measureText(d).width>880&&l?(s.push(l.trim()),l=r[c]+" "):l=d}l.trim()&&s.push(l.trim());for(var p=520,f=0;f<Math.min(s.length,6);f++)a.fillText(s[f],540,p),p+=70;a.fillStyle="#b8ab8e",a.font="36px Arial, sans-serif";var h=new Date;a.fillText(h.toLocaleDateString()+" "+h.toLocaleTimeString(),540,920),a.fillStyle="#c1121f",a.font="900 48px Arial Black, Arial, sans-serif",a.fillText("MTCSTW.COM",540,990),a.fillStyle="#c1121f",a.font="900 40px Arial Black, Arial, sans-serif",a.fillText("JOIN THE FIGHT.",540,1046);try{window.PFShare&&window.PFShare.stampCallsign&&window.PFShare.stampCallsign(o)}catch(e){}o.toBlob(function(o){if(o){var a=new File([o],"propaganda-achievement.png",{type:"image/png"}),n={files:[a],title:"Propaganda Factory",text:e+": "+t};if(navigator.canShare&&navigator.canShare({files:[a]}))navigator.share(n).catch(function(){});else{var i=document.createElement("a");i.href=URL.createObjectURL(o),i.download="propaganda-achievement.png",document.body.appendChild(i),i.click(),setTimeout(function(){document.body.removeChild(i),URL.revokeObjectURL(i.href)},1e3)}}},"image/png")}catch(e){}},function(){try{if(window.PF&&window.PF.skip&&window.PF.skip("03-global"))return;try{if("1"===localStorage.getItem("pf_storage_notice_v1"))return}catch(t){}function e(){try{if(document.getElementById("pf-storage-notice"))return;var e=document.createElement("div");e.id="pf-storage-notice",e.setAttribute("role","note"),e.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:99990;background:#0a0a0a;border-top:3px solid #c1121f;color:#f5f0e1;font-family:"Helvetica Neue",Arial,sans-serif;font-size:12px;line-height:1.5;padding:10px 52px 10px 16px;box-sizing:border-box;text-align:left;',e.innerHTML='<b style="color:#c1121f;letter-spacing:0.08em;">HEADS UP, SOLDIER</b> &mdash; this site remembers you in your own browser: XP, streaks, vote flags and your callsign live in local storage (clear your browser data and it&rsquo;s gone). Our code loads from the jsDelivr CDN and Squarespace hosts the site &mdash; standard Squarespace cookies apply. We never sell your data. Ever.<button id="pf-storage-x" aria-label="Dismiss" style="position:absolute;top:8px;right:12px;background:#c1121f;color:#f5f0e1;border:none;font-weight:900;font-size:11px;letter-spacing:0.1em;padding:6px 12px;cursor:pointer;font-family:inherit;">GOT IT</button>',document.body.appendChild(e),document.getElementById("pf-storage-x").onclick=function(){try{localStorage.setItem("pf_storage_notice_v1","1")}catch(e){}try{e.parentNode.removeChild(e)}catch(e){}}}catch(e){}}"loading"===document.readyState?document.addEventListener("DOMContentLoaded",e):e()}catch(o){}}(),function(){"use strict";var e=window.PF;if(e&&!e.authWired){e.authWired=!0;var t="pf_auth_secret";e.getAuthSecret=function(){try{return String(localStorage.getItem(t)||"")}catch(e){return""}},e.saveAuthSecret=function(e){try{e&&localStorage.setItem(t,String(e))}catch(e){}},e.clearAuthSecret=function(){try{localStorage.removeItem(t)}catch(e){}},e.claimAuthSecret=function(t,o){if(t=String(t||"").toLowerCase(),/^[a-z0-9_]{3,20}$/.test(t)){var a="";try{a=window.PF_BACKEND_URL||""}catch(e){}if(a)i(a,{type:"auth",auth_action:"auth_claim",callsign:t,device:n()},function(t){t&&t.ok&&t.auth_secret&&e.saveAuthSecret(t.auth_secret);try{o(t)}catch(e){}});else try{o({ok:!1,err:"no backend"})}catch(e){}}else try{o({ok:!1,err:"bad callsign"})}catch(e){}};var o=!1;try{o=e.skip("auth")}catch(e){}e.authGetJSONP=function(t,i,r,s,l){var c=(l=l||{}).timeout||12e3;function d(e){try{s(e||{ok:!1,err:"Network error."})}catch(e){}}if(t&&i){var p=Object.assign({},r||{}),f=a();f&&!p.callsign&&(p.callsign=f);var h=n();h&&!p.device&&(p.device=h);var u=e.getAuthSecret();u&&!p.auth_secret&&(p.auth_secret=u),function(e,o){var a="?action="+encodeURIComponent(i);for(var n in e)null!=e[n]&&""!==e[n]&&(a+="&"+encodeURIComponent(n)+"="+encodeURIComponent(e[n]));var r="pfAJP"+Math.floor(1e9*Math.random()),s=document.createElement("script"),l=!1;function d(e){if(!l){l=!0;try{delete window[r]}catch(e){}s.parentNode&&s.parentNode.removeChild(s),o(e)}}window[r]=function(e){d(e)},s.onerror=function(){d(null)},s.src=t+a+"&callback="+r,document.head.appendChild(s),setTimeout(function(){d(null)},c)}(p,function(a){var n=a&&(a.err||a.error);if(a&&!a.ok&&!l._retried&&!o&&!e.getAuthSecret()&&("missing credentials"===n||-1!==String(n||"").indexOf("missing credentials"))){var c=String(p.callsign||f||"").toLowerCase();if(c)return void e.claimAuthSecret(c,function(o){if(o&&o.ok&&o.auth_secret){var n=Object.assign({},l);n._retried=!0,e.authGetJSONP(t,i,r,s,n)}else o&&-1!==String(o.err||o.error||"").indexOf("claim unavailable")?d({ok:!1,err:"legacy_callsign"}):d(a)})}d(a)})}else d(null)},e.authPost=function(t,n,r,s){if(t){var l=Object.assign({},n||{}),c=e.getAuthSecret();c&&(l.auth_secret=c),i(t,l,function(n){var i=!e.getAuthSecret(),c=n&&(n.err||n.error);if(n&&!n.ok&&("unauthorized"===c||-1!==String(c||"").indexOf("no secret issued")||i&&("missing credentials"===c||-1!==String(c||"").indexOf("missing credentials")))&&!s&&!o){var d=function(e){for(var t=["callsign","from_cs","booster","creator","lender","subscriber","sponsor","requester"],o=0;o<t.length;o++)try{var n=String(e[t[o]]||"").toLowerCase().replace(/[^a-z0-9_]/g,"");if(/^[a-z0-9_]{3,20}$/.test(n))return n}catch(e){}return a()}(l);if(d)return void e.claimAuthSecret(d,function(o){if(o&&o.ok&&o.auth_secret)e.authPost(t,l,r,!0);else try{r(n)}catch(e){}})}try{r(n)}catch(e){}})}else try{r({ok:!1,err:"no backend"})}catch(e){}}}function a(){try{if("function"==typeof window.PFCallsign)return String(window.PFCallsign()||"").toLowerCase()}catch(e){}try{return String(JSON.parse(localStorage.getItem("pf_identity_v1")||"{}").callsign||"").toLowerCase()}catch(e){}return""}function n(){try{if("function"==typeof window.PFDeviceId)return String(window.PFDeviceId()||"")}catch(e){}return""}function i(e,t,o){function a(e){try{o(e||{ok:!1,err:"Network error."})}catch(e){}}try{var n=null,i=null,r=!1;function l(e){r||(r=!0,i&&(clearTimeout(i),i=null),a(e))}try{window.AbortController&&(n=new AbortController,i=setTimeout(function(){try{n.abort()}catch(e){}},15e3))}catch(c){n=null,i=null}var s={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(t)};n&&(s.signal=n.signal),fetch(e,s).then(function(e){return e.json()}).then(function(e){l(e)}).catch(function(){l(null)})}catch(d){a(null)}}}(),function(){"use strict";var e=window.PF||{skip:function(){return!1}};if(!e.skip("pwa")){var t=function(){for(var e=document.getElementsByTagName("script"),t=0;t<e.length;t++){var o=e[t].src||"",a=o.indexOf("/v1.4.3/");if(a>-1&&o.indexOf("MTCSTW-site-deploy")>-1)return o.slice(0,a+8)+"pwa/"}return null}();if(t){if(r("manifest",t+"manifest.json",{crossorigin:"use-credentials"}),r("apple-touch-icon",t+"apple-touch-icon.png"),s("theme-color","#c81e1e"),s("mobile-web-app-capable","yes"),s("apple-mobile-web-app-capable","yes"),s("apple-mobile-web-app-status-bar-style","black-translucent"),s("apple-mobile-web-app-title","MTCSTW"),"serviceWorker"in navigator)try{navigator.serviceWorker.register(t+"sw.js").then(function(){window.console&&console.log("[PF PWA] SW registered")},function(e){window.console&&console.log("[PF PWA] SW unavailable (needs same-origin hosting):",e&&e.message)})}catch(e){window.console&&console.log("[PF PWA] SW registration blocked:",e&&e.message)}var o=!1;try{o=window.matchMedia("(display-mode: standalone)").matches||!0===window.navigator.standalone}catch(e){}if(!o){try{if("1"===sessionStorage.getItem("pf_pwa_dismissed"))return}catch(e){}var a=null,n=null,i=/iphone|ipad|ipod/i.test(navigator.userAgent||"");window.addEventListener("beforeinstallprompt",function(e){e.preventDefault(),a=e,d("INSTALL APP",function(){a&&(a.prompt(),a.userChoice.then(function(e){e&&"accepted"===e.outcome?(l("Welcome to the factory."),c(!0)):c(!1),a=null}))})}),i&&(navigator,1)&&window.addEventListener("load",function(){setTimeout(function(){d("INSTALL APP",function(){c(!1),l("Tap Share → Add to Home Screen.")})},4e3)})}}}function r(e,t,o){if(!document.querySelector('link[rel="'+e+'"]')){var a=document.createElement("link");if(a.rel=e,a.href=t,o)for(var n in o)a.setAttribute(n,o[n]);document.head.appendChild(a)}}function s(e,t){if(!document.querySelector('meta[name="'+e+'"]')){var o=document.createElement("meta");o.name=e,o.content=t,document.head.appendChild(o)}}function l(t){try{if(e.toast)return void e.toast(t)}catch(e){}try{var o=document.createElement("div");o.textContent=t,o.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999",document.body.appendChild(o),setTimeout(function(){o.remove()},2400)}catch(e){}}function c(e){if(n&&n.parentNode&&(n.parentNode.removeChild(n),n=null),e)try{sessionStorage.setItem("pf_pwa_dismissed","1")}catch(e){}}function d(e,t){n||((n=document.createElement("button")).id="pf-pwa-install",n.innerHTML='<span style="font-size:16px;margin-right:8px">▼</span>'+e+'<span id="pf-pwa-x" style="margin-left:12px;opacity:.7;cursor:pointer">✕</span>',n.style.cssText="position:fixed;right:14px;bottom:14px;z-index:99998;background:#c1121f;color:#fff;border:2px solid #0a0a0a;border-radius:10px;font:bold 14px monospace;letter-spacing:1px;padding:12px 16px;cursor:pointer;box-shadow:0 4px 18px rgba(193,18,31,.55)",n.addEventListener("click",function(e){e.target&&"pf-pwa-x"===e.target.id?c(!0):t()}),document.body.appendChild(n))}}(),function(){function e(e){try{return JSON.parse(localStorage.getItem(e))}catch(e){return null}}function t(e){var t=document.createElement("div");t.textContent=e,t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999",document.body.appendChild(t),setTimeout(function(){t.remove()},2600)}function o(t){var o=e("pf_do_v1");return o&&o.byType&&o.byType[t]||0}window.PF&&window.PF.skip("04-ledger")||window.pfRx||(window.pfRx=1,document.addEventListener("click",function(a){var n=a.target.closest("a.r-act");if(n){var i,r,s=(n.getAttribute("href")||"").toLowerCase();if(0===s.indexOf("#pf-bracket"))i="b",r=10;else if(0===s.indexOf("#pf-vote"))i="v",r=10;else{if(0!==s.indexOf("#slr-quiz"))return;i="q",r=15}a.preventDefault();var l="pfx-"+i,c="b"===i?"bracket_":"v"===i?"fanvote_":"quiz";if(function(){var t=(e("pf_ranks_v1")||{got:{}}).got||{};if(t[l])return!0;for(var o in t)if(t.hasOwnProperty(o)&&0===o.indexOf(c))return!0;return!1}())t("Already claimed");else{var d="b"===i?o("pf-bracket-ballot")>0:"v"===i?o("pf-vote-cast")>0||function(){for(var e=0;e<localStorage.length;e++)if(0===(localStorage.key(e)||"").indexOf("slr-vote-"))return!0;return!1}():o("pf-quiz-done")>0;if(d)!function(o,a){var n=!1;try{n=!(!window.PF||!PF.creditLocal)&&PF.creditLocal(o,a)}catch(e){n=!1}if(!n)return!1;var i=e("pf_ranks_v1")||{xp:0},r=Number(i.xp)||0;try{document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:a,total:r,key:o,reason:"r-act"}}))}catch(e){}t("+"+a+" XP claimed!")}(l,r);else{for(var p="b"===i?"LIQUIDATION BRACKET":"v"===i?"FAN VOTE":"FIND YOUR SLR MATCH",f=document.querySelectorAll("h1,h2,h3"),h=0;h<f.length;h++)if(f[h].textContent.toUpperCase().indexOf(p)>-1){f[h].scrollIntoView({behavior:"smooth",block:"center"});break}t("Complete for +"+r+" XP")}}}},!0))}(),function(){"use strict";if(!(window.PF&&window.PF.skip("05-tally")||window.pfTallyLoaded)){window.pfTallyLoaded=!0;var e={"pf-order-checkin":10,"pf-drop-claimed":1,"pf-caption-submit":10,"pf-poster-made":1,"pf-quiz-done":15,"pf-guess-done":1,"pf-raid-report":2,"pf-infight-fire":0,"pf-vote-cast":10,"pf-bracket-ballot":10,"pf-bracket-liquidated":10,"pf-traitor-vote":5,"pf-wb-buy":25,"pf-enlisted":20,"pf-billionaire-answered":1,"pf-interrogation-answered":1,"pf-share-image":1,"pf-boost-tipped":0,"pf-checkin":2,"pf-guess-scored":0,"pf-do-challenge-done":15,"pf-do-fullspectrum":20},t={"pf-order-checkin":1,"pf-drop-claimed":2,"pf-caption-submit":2,"pf-poster-made":2,"pf-quiz-done":1,"pf-guess-done":2,"pf-raid-report":2,"pf-infight-fire":3,"pf-vote-cast":1,"pf-bracket-ballot":1,"pf-bracket-liquidated":2,"pf-traitor-vote":1,"pf-wb-buy":5,"pf-enlisted":3,"pf-billionaire-answered":1,"pf-interrogation-answered":1,"pf-share-image":2,"pf-boost-tipped":1,"pf-checkin":1,"pf-guess-scored":0,"pf-do-challenge-done":3,"pf-do-fullspectrum":5},o={"pf-guess-done":1,"pf-raid-report":1,"pf-poster-made":1,"pf-share-image":1,"pf-drop-claimed":1,"pf-billionaire-answered":1,"pf-interrogation-answered":1,"pf-checkin":1,"pf-guess-scored":1,"pf-do-challenge-done":1,"pf-do-fullspectrum":1};Object.keys(e).forEach(function(n){document.addEventListener(n,function(i){if(!o[n]){var r=e[n];try{i&&i.detail&&"number"==typeof i.detail.xp&&(r=Math.max(0,Math.floor(i.detail.xp)))}catch(e){}var s="";try{i&&i.detail&&i.detail.creator&&(s=String(i.detail.creator)+":"+Math.floor(Number(i.detail.tipped)||0))}catch(e){}try{i&&i.detail&&i.detail.archetype&&(s="archetype:"+String(i.detail.archetype).slice(0,24))}catch(e){}try{i&&i.detail&&"number"==typeof i.detail.score&&(s="score:"+Math.max(0,Math.min(5,Math.floor(i.detail.score))))}catch(e){}a(n.replace(/^pf-/,"").replace(/-/g,"_"),r,t[n]||1,s)}})}),document.addEventListener("pf-tally-settle",function(n){var i=n&&n.detail&&n.detail.ev;if(i&&o[i]){var r=e[i];try{n&&n.detail&&"number"==typeof n.detail.xp&&(r=Math.max(0,Math.floor(n.detail.xp)))}catch(e){}var s="";try{n&&n.detail&&"number"==typeof n.detail.score&&(s="score:"+Math.max(0,Math.min(5,Math.floor(n.detail.score))))}catch(e){}a(i.replace(/^pf-/,"").replace(/-/g,"_"),r,t[i]||1,s)}})}function a(e,t,o,a){try{if(window.PF_BACKEND_URL){var n="",i="";try{window.PFDeviceId&&(n=window.PFDeviceId()),window.PFCallsign&&(i=window.PFCallsign())}catch(e){}fetch(window.PF_BACKEND_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({type:"action",action_type:e,xp:t,pts:o,device:n,callsign:i,meta:a||"",auth_secret:window.PF&&PF.getAuthSecret?PF.getAuthSecret():""})}).catch(function(){}),"function"==typeof window.pfFetchGlobalTotal&&setTimeout(window.pfFetchGlobalTotal,1500),"function"==typeof window.pfFetchGlobalTasks&&setTimeout(window.pfFetchGlobalTasks,1500)}}catch(e){}}}(),function(){if(window.PF||(window.PF={}),!PF.dope){var e=["#c1121f","#f5ead6","#e8b10c","#8c2b2b"],t=!1;try{t=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches}catch(e){}PF.dope={confetti:function(n,i){if(!t){try{if(window.PF&&PF.skip&&PF.skip("dopamine"))return}catch(e){}o();var r,s,l=a(n),c=Math.max(0,Math.min(120,0|i||20));for(r=0;r<c;r++)(s=document.createElement("div")).className="pf-dope-confetti",s.style.left=100*Math.random()+"%",s.style.background=e[r%e.length],s.style.animationDuration=1.2+1.6*Math.random()+"s",l.appendChild(s),function(e){setTimeout(function(){e.parentNode&&e.parentNode.removeChild(e)},3400)}(s)}},xpFloat:function(e,n){if(!t&&n){try{if(window.PF&&PF.skip&&PF.skip("dopamine"))return}catch(e){}o();var i=a(e),r=document.createElement("div");r.className="pf-dope-xpf",r.textContent=String(n),i.appendChild(r),setTimeout(function(){r.parentNode&&r.parentNode.removeChild(r)},1600)}},ping:function(e,n){if(!t&&n){try{if(window.PF&&PF.skip&&PF.skip("dopamine"))return}catch(e){}o();var i=a(e),r=document.createElement("div");r.className="pf-dope-ping",r.textContent=String(n),i.appendChild(r),setTimeout(function(){r.parentNode&&r.parentNode.removeChild(r)},2200)}},press:function(e){if(!t&&e&&e.classList){try{if(window.PF&&PF.skip&&PF.skip("dopamine"))return}catch(e){}o(),e.classList.remove("pf-dope-press"),e.offsetWidth,e.classList.add("pf-dope-press")}}}}function o(){if(!document.getElementById("pf-dope-css")){var e=document.createElement("style");e.id="pf-dope-css",e.textContent=".pf-dope-host{position:relative}.pf-dope-confetti{position:absolute;top:-12px;width:9px;height:13px;z-index:60;pointer-events:none;animation:pfdopefall linear forwards}@keyframes pfdopefall{to{transform:translateY(560px) rotate(720deg);opacity:0}}.pf-dope-xpf{position:absolute;left:50%;top:38%;transform:translateX(-50%);z-index:61;pointer-events:none;white-space:nowrap;font:bold 22px/1 monospace;letter-spacing:1px;color:#f5ead6;text-shadow:0 0 12px #c1121f,0 2px 0 #000;animation:pfdopexp 1.5s ease-out forwards}@keyframes pfdopexp{0%{opacity:0;transform:translateX(-50%) translateY(14px) scale(.7)}18%{opacity:1;transform:translateX(-50%) translateY(0) scale(1.12)}38%{transform:translateX(-50%) translateY(-6px) scale(1)}100%{opacity:0;transform:translateX(-50%) translateY(-64px) scale(.96)}}.pf-dope-ping{position:absolute;top:30%;left:50%;transform:translateX(-50%);z-index:62;pointer-events:none;white-space:nowrap;max-width:94%;background:#c1121f;color:#fff;font:bold 14px monospace;letter-spacing:2px;padding:10px 18px;border:2px solid #f5ead6;animation:pfdopeping .45s ease-out}@keyframes pfdopeping{0%{transform:translateX(-50%) scale(.7);opacity:0}60%{transform:translateX(-50%) scale(1.06);opacity:1}100%{transform:translateX(-50%) scale(1);opacity:1}}.pf-dope-press{animation:pfdopepress .28s ease-out}@keyframes pfdopepress{0%{transform:scale(1)}40%{transform:scale(.93)}100%{transform:scale(1)}}@media (prefers-reduced-motion: reduce){.pf-dope-confetti,.pf-dope-xpf,.pf-dope-ping,.pf-dope-press{animation:none!important}}",document.head.appendChild(e)}}function a(e){var t=e&&1===e.nodeType?e:document.body;return t.classList.contains("pf-dope-host")||t.classList.add("pf-dope-host"),t}}(),function(){"use strict";if(!(window.PF&&window.PF.skip("09-referral")||window.pfReferralLoaded)){window.pfReferralLoaded=!0;var e=window.PF||(window.PF={}),t="pf_ref_v1",o="pf_recruits_seen_v1",a="pf_ref_dismissed_v1";try{var n=(location.search||"").match(/[?&]ref=([^&]+)/);if(n&&n[1]){var i=u(decodeURIComponent(n[1].replace(/\+/g," ")));if(i&&!g())try{localStorage.setItem(t,i)}catch(e){}}}catch(e){}var r="pf_creator_ref_v1";try{var s=(location.search||"").match(/[?&]creator=([^&]+)/);if(s&&s[1]){var l=decodeURIComponent(s[1].replace(/\+/g," ")).toLowerCase().trim();if(/^[a-z0-9_-]{1,40}$/.test(l)&&"creator"!==l&&!w()&&(!b()||y(l)))try{localStorage.setItem(r,l)}catch(e){}}}catch(e){}try{e&&"function"==typeof e.ensureSLRDB?e.ensureSLRDB().then(function(){k()}):setTimeout(k,6e3)}catch(e){}e.storedCreatorRef=w,e.scrubBadCreatorRef=k;var c=!1;e.shareUrl=function(t){t=String(t||"https://www.mtcstw.com/");var o=m();if(!o){if(!c){c=!0;try{e&&e.toast&&e.toast("No callsign on this device — shared links carry no referral credit. Claim a callsign to get credit for your recruits.")}catch(e){}}return t}return t+(t.indexOf("?")>=0?"&":"?")+"ref="+encodeURIComponent(o)},e.myCallsign=m,e.hasCallsign=function(){return!!m()},e.storedRef=g;var d=!1;try{d=!!localStorage.getItem("pf_recruit_logged_v1")}catch(e){}document.addEventListener("pf-callsign-claimed",function(e){var t=m(),o=g();if(o&&t&&o!==t&&!d){d=!0,v(o,0,function(e){if(e)try{localStorage.setItem("pf_recruit_logged_v1","1")}catch(e){}else d=!1});try{document.dispatchEvent(new CustomEvent("pf-referred",{detail:{recruiter:o}}))}catch(e){}}setTimeout(S,4e3)});var p=!1;try{p=!!localStorage.getItem("pf_creator_recruit_logged_v1")}catch(e){}document.addEventListener("pf-callsign-claimed",function(){var e=w();if(e&&"creator"!==e&&0!==e.indexOf("creator:")&&!p){p=!0,v("creator:"+e,0,function(e){if(e)try{localStorage.setItem("pf_creator_recruit_logged_v1","1")}catch(e){}else p=!1});try{document.dispatchEvent(new CustomEvent("pf-creator-referred",{detail:{creator:e}}))}catch(e){}}}),setTimeout(S,3e3);var f="— Recruited by ";try{if("1"===sessionStorage.getItem("pf_ref_autoclaim")){sessionStorage.removeItem("pf_ref_autoclaim");var h=0;!function e(){var t=null;try{t=document.getElementById("oClaimToggle")}catch(e){}if(t)try{t.click()}catch(e){}else++h<40&&setTimeout(e,500)}()}}catch(e){}"loading"===document.readyState?(document.addEventListener("DOMContentLoaded",C),document.addEventListener("DOMContentLoaded",T),document.addEventListener("DOMContentLoaded",x)):(setTimeout(C,800),setTimeout(T,800),setTimeout(x,800))}function u(e){return String(null==e?"":e).toLowerCase().trim().slice(0,32)}function m(){var e="";try{"function"==typeof window.PFCallsign&&(e=window.PFCallsign()||"")}catch(e){}if(!e)try{e=String(JSON.parse(localStorage.getItem("pf_identity_v1")||"{}").callsign||"")}catch(e){}return u(e)}function g(){try{return u(localStorage.getItem(t)||"")}catch(e){return""}}function w(){try{return String(localStorage.getItem(r)||"").toLowerCase().trim()}catch(e){return""}}function y(t){try{if(e&&"function"==typeof e.slrMember&&e.slrMember(t))return!0;if(e&&"function"==typeof e.slrAll)for(var o=e.slrAll()||[],a=0;a<o.length;a++)if(String(o[a]&&o[a].slug||"").toLowerCase()===t)return!0}catch(e){}return!1}function b(){try{return!(!e||"function"!=typeof e.slrAll||!(e.slrAll()||[]).length)}catch(e){return!1}}function k(){var e=w();if(e&&b()&&("creator"===e||!y(e))){try{localStorage.removeItem(r)}catch(e){}try{var t=document.getElementById("pf-creator-ref");t&&t.parentNode&&t.parentNode.removeChild(t)}catch(e){}}}function v(t,o,a){function n(e,n){if(!e){try{console.warn("[PF] recruit_log FAILED after "+(o+1)+" attempt(s) — recruiter="+String(t||"")+(n?" — "+n:""))}catch(e){}try{document.dispatchEvent(new CustomEvent("pf-recruit-log-failed",{detail:{recruiter:String(t||"")}}))}catch(e){}}try{"function"==typeof a&&a(e)}catch(e){}}o=o||0;var i=String(t||"");if(/^creator:creator($|:)/.test(i))n(!1,"recruiter collides with callsign 'creator'");else if(/^(creator:)?[a-z0-9_-]{1,40}$/.test(i))try{if(!window.PF_BACKEND_URL)return void n(!1,"no backend URL");var r="",s="";try{window.PFDeviceId&&(r=window.PFDeviceId())}catch(e){}try{s=m()}catch(e){}fetch(window.PF_BACKEND_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({type:"action",action_type:"recruit_log",xp:0,pts:0,device:String(r||"").slice(0,64),callsign:String(s||"").slice(0,64),meta:"recruiter:"+i.slice(0,64),auth_secret:window.PF&&e.getAuthSecret?e.getAuthSecret():""})}).then(function(){n(!0)}).catch(function(e){o<2?setTimeout(function(){v(t,o+1,a)},0===o?1500:4e3):n(!1,e&&e.message||"network error")})}catch(e){n(!1,String(e&&e.message||e))}else n(!1,"bad recruiter shape")}function _(){try{return/(^|\/)request-access(\/|$)/.test(location.pathname||"")}catch(e){return!1}}function T(){if(_()){var t=w();if(t&&!document.getElementById("pf-creator-ref")&&(!b()||y(t))){var o=null;try{o=e&&"function"==typeof e.slrMember?e.slrMember(t):null}catch(e){}if(o&&o.name)n(o.name);else try{e&&"function"==typeof e.ensureSLRDB?e.ensureSLRDB().then(function(){var o=null;try{o=e.slrMember(t)}catch(e){}n(o&&o.name||null)}):n(null)}catch(e){n(null)}}}function a(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function n(e){if(!document.getElementById("pf-creator-ref"))try{var o=String(e||t),n=document.createElement("div");n.id="pf-creator-ref";var i="0px";try{document.getElementById("pf-ref-banner")&&(i="38px")}catch(e){}n.style.cssText="position:fixed;top:"+i+";left:0;right:0;z-index:9989;background:#0d0d0d;color:#f5ead6;border-bottom:3px solid #c1121f;font:bold 13px/1.4 monospace;letter-spacing:1px;text-align:center;padding:10px 12px;box-shadow:0 2px 18px rgba(0,0,0,.5);",n.innerHTML="&#9873; RECRUITED BY "+a(o.toUpperCase())+" &mdash; enlist with "+a(o)+" as your reference.",document.body.appendChild(n)}catch(e){}}}function S(){var e=m();if(e&&window.PF_BACKEND_URL){var t={n:0,t:0};try{t=JSON.parse(localStorage.getItem(o)||'{"n":0,"t":0}')}catch(e){}if(!(Date.now()-(t.t||0)<216e5)){var a="pfrc_"+Math.floor(1e9*Math.random());window[a]=function(e){try{delete window[a]}catch(e){}var n=0;try{n=Math.max(0,parseInt(e&&e.recruits,10)||0)}catch(e){}var i=Math.max(0,n-(t.n||0));try{localStorage.setItem(o,JSON.stringify({n:n,t:Date.now()}))}catch(e){}if(i>0)try{document.dispatchEvent(new CustomEvent("pf-recruit-credited",{detail:{recruits:i,total:n}}))}catch(e){}};var n=document.createElement("script");n.src=window.PF_BACKEND_URL+"?action=recruit_count&callsign="+encodeURIComponent(e)+"&callback="+a,n.onerror=function(){try{delete window[a]}catch(e){}n.parentNode&&n.parentNode.removeChild(n)},document.head.appendChild(n),setTimeout(function(){n.parentNode&&n.parentNode.removeChild(n)},15e3)}}}function x(){if(_()){var t=w();t&&function(o){var a=null;try{a=e&&"function"==typeof e.slrMember?e.slrMember(t):null}catch(e){}if(a&&a.name)o(a.name);else try{e&&"function"==typeof e.ensureSLRDB?e.ensureSLRDB().then(function(){var a=null;try{a=e.slrMember(t)}catch(e){}o(a&&a.name||t)}):o(t)}catch(e){o(t)}}(function(e){var o="\n\n"+f+e+" (sick-left-radicals/"+t+") —";function a(e){e&&!e._pfCreatorWired&&(e._pfCreatorWired=!0,e.addEventListener("submit",function(){try{var t=e.querySelector("textarea")||e.querySelector('input[type="text"]');if(!t||String(t.value||"").indexOf(f)>=0)return;t.value=String(t.value||"").replace(/\s+$/,"")+o}catch(e){}},!0))}function n(){try{for(var e=document.querySelectorAll("form"),t=0;t<e.length;t++)a(e[t])}catch(e){}}"loading"===document.readyState?document.addEventListener("DOMContentLoaded",n):n(),setTimeout(n,3e3)})}}function C(){var e=g();if(e&&!m()){try{if("1"===localStorage.getItem(a))return}catch(e){}var t=document.createElement("div");t.id="pf-ref-banner",t.style.cssText="position:fixed;top:0;left:0;right:0;z-index:9990;background:#c1121f;color:#f5ead6;font:bold 13px/1.4 monospace;letter-spacing:1px;text-align:center;padding:10px 44px 10px 12px;box-shadow:0 2px 18px rgba(0,0,0,.5);",t.innerHTML="&#9873; SGT "+e.toUpperCase()+' RECRUITED YOU &mdash; <a href="#" id="pf-ref-go" style="color:#fff;text-decoration:underline;">ENLIST TO JOIN THE FIGHT</a>';var o=document.createElement("span");o.textContent="×",o.style.cssText="position:absolute;right:12px;top:6px;font-size:20px;cursor:pointer;color:#f5ead6;",o.onclick=function(){t.remove();try{localStorage.setItem(a,"1")}catch(e){}},t.appendChild(o),document.body.appendChild(t),document.getElementById("pf-ref-go").onclick=function(e){e.preventDefault();var t=document.getElementById("pf-orders"),o=document.getElementById("oClaimToggle");if(t&&o)t.scrollIntoView({behavior:"smooth",block:"start"}),setTimeout(function(){var e=document.getElementById("oClaimToggle");if(e)try{e.click()}catch(e){}},900);else{try{sessionStorage.setItem("pf_ref_autoclaim","1")}catch(e){}try{location.href=new URL("/#pf-orders",location.origin).toString()}catch(e){location.href="/#pf-orders"}}return!1}}}}(),function(){"use strict";if(!(window.PF&&window.PF.skip("10-convert")||window.pfConvertLoaded)){window.pfConvertLoaded=!0;var e=window.PF||(window.PF={}),t={"pf-order-checkin":"orders","pf-drop-claimed":"drop","pf-quiz-done":"quiz","pf-guess-done":"guess","pf-bracket-ballot":"bracket","pf-raid-report":"raid","pf-vote-cast":"vote","pf-poster-made":"forge","pf-caption-submit":"caption","pf-do-challenge-done":"dometer","pf-billionaire-answered":"billionaire","pf-interrogation-answered":"interrogation","pf-infight-fire":"infight","pf-contract-claimed":"contracts"},o=[{key:"orders",label:"Daily Orders",blurb:"Report in. 30 seconds.",anchor:"#pf-orders",page:"/"},{key:"vote",label:"Fan Vote",blurb:"Crown this week’s propagandist.",anchor:"#pf-vote",page:"/"},{key:"quiz",label:"SLR Match Quiz",blurb:"Find your fighter archetype.",anchor:"#pf-matchquiz",page:"/"},{key:"guess",label:"Guess the Creator",blurb:"Name that propagandist.",anchor:"#pf-guess",page:"/arcade"},{key:"bracket",label:"Liquidation Bracket",blurb:"Pick the bracket. Win glory.",anchor:"#pf-bracket",page:"/arcade"},{key:"raid",label:"Boost Raid",blurb:"Storm a target together.",anchor:"#pf-orders",page:"/"},{key:"dometer",label:"Do Meter",blurb:"Log a task. Fuel the meter.",anchor:"#pf-dometer2",page:"/"},{key:"forge",label:"Poster Forge",blurb:"Mint a propaganda poster.",anchor:"#pf-poster",page:"/"},{key:"caption",label:"Caption Combat",blurb:"Write the winning caption.",anchor:"#pf-caption",page:"/arcade"},{key:"drop",label:"Daily Drop",blurb:"Claim today’s drop.",anchor:"#pf-brief",page:"/"},{key:"contracts",label:"Mercenary Contracts",blurb:"Take a contract. Get paid.",anchor:"#pf-contracts",page:"/cells"}];Object.keys(t).forEach(function(o){document.addEventListener(o,function(){!function(e){try{localStorage.setItem("pf_played_"+r()+"_"+e,"1")}catch(e){}}(t[o]),function(e){var t="pf_combo_"+c(),o=[];try{o=JSON.parse(localStorage.getItem(t)||"[]")}catch(e){o=[]}if(o.indexOf(e)<0){o.push(e);try{localStorage.setItem(t,JSON.stringify(o))}catch(e){}}if(2===o.length){var a=t+"_fired",n=!1;try{n="1"===localStorage.getItem(a)}catch(e){}if(n)return;try{localStorage.setItem(a,"1")}catch(e){}try{document.dispatchEvent(new CustomEvent("pf-combo",{detail:{day:c(),games:o}}))}catch(e){}}}(t[o]),function(){var t="pf_firstblood_"+c(),o=!1;try{o="1"===localStorage.getItem(t)}catch(e){}if(o)return;try{localStorage.setItem(t,"1")}catch(e){}try{window.PF&&e.dope&&e.dope.ping(document.body,"FIRST BLOOD — first strike of the day")}catch(e){}try{document.dispatchEvent(new CustomEvent("pf-first-blood",{detail:{day:c()}}))}catch(e){}}(),function(t){if(function(){if(i)return!1;var t=!1;try{t=e.hasCallsign&&e.hasCallsign()}catch(e){}if(t)return!1;var o="";try{o=(new Date).toISOString().slice(0,10)}catch(e){}try{if(localStorage.getItem("pf_enlist_nudge_v1")===o)return!1}catch(e){}i=!0;try{localStorage.setItem("pf_enlist_nudge_v1",o)}catch(e){}var a=d("pf-enlist-nudge"),n=document.createElement("div");n.style.cssText="color:#c1121f;font-weight:900;letter-spacing:2px;font-size:12px;margin-bottom:6px;",n.textContent="⚑ BANK THIS XP";var r=document.createElement("div");r.style.cssText="font-size:13px;margin-bottom:2px;",r.textContent="Claim a callsign and every point you earn follows you across devices.",a.appendChild(n),a.appendChild(r),a.appendChild(p("CLAIM CALLSIGN →",{anchor:"#pf-orders",page:"/"},function(){a.remove()}));var s=setInterval(function(){var e=document.getElementById("oClaimToggle");if(e){try{e.click()}catch(e){}clearInterval(s)}},1200);return setTimeout(function(){clearInterval(s),a.parentNode&&a.parentNode.removeChild(a)},3e4),!0}())return;var o=Date.now();if(a>=3||o-n<6e5)return;var r=l();if(!r||r.key===t)return;n=o,a++;var s=d("pf-next-mission"),c=document.createElement("div");c.style.cssText="color:#c1121f;font-weight:900;letter-spacing:2px;font-size:12px;margin-bottom:6px;",c.textContent="⚑ NEXT MISSION";var f=document.createElement("div");f.style.cssText="font-size:15px;font-weight:900;margin-bottom:2px;",f.textContent=r.label;var h=document.createElement("div");h.style.cssText="font-size:12px;color:#b8ab8e;",h.textContent=r.blurb,s.appendChild(c),s.appendChild(f),s.appendChild(h),s.appendChild(p("DEPLOY →",r,function(){s.remove()})),setTimeout(function(){s.parentNode&&s.parentNode.removeChild(s)},25e3)}(t[o])})}),e.nextMission=l;var a=0,n=0,i=!1}function r(){try{var e=new Date,t=new Date(e.getFullYear(),0,1),o=Math.ceil(((e-t)/864e5+t.getDay()+1)/7);return e.getFullYear()+"-W"+o}catch(e){return"W0"}}function s(e){try{return"1"===localStorage.getItem("pf_played_"+r()+"_"+e)}catch(e){return!1}}function l(){for(var e=0;e<o.length;e++)if(!s(o[e].key))return o[e];return null}function c(){try{return(new Date).toISOString().slice(0,10)}catch(e){return"d0"}}function d(e){var t=document.createElement("div");t.id=e,t.style.cssText="position:fixed;right:12px;bottom:12px;z-index:9991;max-width:290px;background:#0d0d0d;border:3px solid #c1121f;color:#f5ead6;padding:14px 14px 12px;font-family:monospace;box-shadow:0 4px 30px rgba(193,18,31,.45);";var o=document.createElement("span");return o.textContent="×",o.style.cssText="position:absolute;top:4px;right:10px;font-size:18px;cursor:pointer;color:#b8ab8e;",o.onclick=function(){t.remove()},t.appendChild(o),document.body.appendChild(t),t}function p(e,t,o){var a=t.anchor,n=t.page||"/",i=document.createElement("button");return i.textContent=e,i.style.cssText="background:#c1121f;border:none;color:#f5f0e1;font:bold 13px monospace;letter-spacing:2px;padding:9px 18px;margin-top:10px;cursor:pointer;width:100%;",i.onclick=function(){var e=document.querySelector(a);if(e)try{e.scrollIntoView({behavior:"smooth",block:"start"})}catch(e){}else if(n&&window.location.pathname!==n)try{window.location.href=n+a}catch(e){}o()},i}}(),function(){"use strict";if(!(window.PF&&window.PF.skip("11-xpledger")||window.pfXPLedgerLoaded)){window.pfXPLedgerLoaded=!0;var e=window.PF||(window.PF={}),t="pf_xpqueue_v1",o="pf_xpgenesis_v1";document.addEventListener("pf-xp",function(e){var t=e&&e.detail||{},o=Math.round(Number(t.gain)||0),a=String(t.key||"");0!==o&&a&&l(n(),o,a,t.reason||"game award")}),setInterval(c,3e5),setTimeout(c,2e4),setTimeout(function(){try{if("1"===localStorage.getItem(o))return;var e=n();if(!e)return;var t=0;try{t=Math.round(Number(JSON.parse(localStorage.getItem("pf_ranks_v1")||"{}").xp)||0)}catch(e){}localStorage.setItem(o,"1"),t>0&&l(e,t,"genesis:"+a(),"genesis seeding")}catch(e){}},8e3),e.xpBalance=function(e){try{var t=n();if(!t||!window.PF_BACKEND_URL)return void(e&&e(null));var o="pfxb_"+Math.floor(1e9*Math.random());window[o]=function(t){try{delete window[o]}catch(e){}e&&e(t&&"number"==typeof t.balance?t.balance:null)};var a=document.createElement("script");a.src=window.PF_BACKEND_URL+"?action=xp_balance&callsign="+encodeURIComponent(t)+"&callback="+o,a.onerror=function(){try{delete window[o]}catch(e){}e&&e(null)},document.head.appendChild(a),setTimeout(function(){a.parentNode&&a.parentNode.removeChild(a)},15e3)}catch(t){e&&e(null)}}}function a(){try{return window.PFDeviceId?window.PFDeviceId():""}catch(e){return""}}function n(){var e="";try{"function"==typeof window.PFCallsign&&(e=window.PFCallsign()||"")}catch(e){}if(!e)try{e=String(JSON.parse(localStorage.getItem("pf_identity_v1")||"{}").callsign||"")}catch(e){}return String(null==e?"":e).toLowerCase().trim().slice(0,32)}function i(){try{return JSON.parse(localStorage.getItem(t)||"[]")}catch(e){return[]}}function r(e){try{localStorage.setItem(t,JSON.stringify(e.slice(-50)))}catch(e){}}function s(t,o){try{if(!window.PF_BACKEND_URL)return void(o&&o(null));var a={type:"xp",xp_action:"grant",callsign:t.cs,device:t.dev,delta:t.delta,key:t.key,reason:t.reason||""};if(window.PF&&e.authPost)return void e.authPost(window.PF_BACKEND_URL,a,function(e){o&&o(!(!e||!e.ok))});try{var n=window.PF&&e.getAuthSecret?e.getAuthSecret():"";n&&(a.auth_secret=n)}catch(e){}fetch(window.PF_BACKEND_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify(a)}).then(function(){o&&o(!0)}).catch(function(){o&&o(!1)})}catch(e){o&&o(!1)}}function l(e,t,o,n){if(e&&t&&o){var l={cs:e,dev:a(),delta:Math.round(t),key:"lx:"+a()+":"+o,reason:String(n||"").slice(0,128)};s(l,function(e){if(!e){var t=i();t.push(l),r(t)}})}}function c(){var e=i();e.length&&(r([]),function t(o){o>=e.length||s(e[o],function(a){if(!a){var n=i();return n.push(e[o]),void r(n)}t(o+1)})}(0))}}(),function(){"use strict";if(!(window.PF&&window.PF.skip("12-notify")||window.pfNotifyLoaded)){window.pfNotifyLoaded=!0;var e=window.PF||(window.PF={});e.notify=function(t,o){try{if(!window.PF_BACKEND_URL||!t||!o)return;var a={type:"discord",d_action:"notify",kind:String(t).slice(0,32),text:String(o).slice(0,1800)};try{var n=window.PF&&e.getAuthSecret?e.getAuthSecret():"";n&&(a.auth_secret=n)}catch(e){}fetch(window.PF_BACKEND_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify(a)}).catch(function(){})}catch(e){}}}}(),function(){"use strict";if(!(window.PF&&window.PF.skip("13-flow")||window.pfFlowLoaded)){window.pfFlowLoaded=!0;var e=window.PF||(window.PF={}),t="pf_flow_cell_v1",o="pf_flow_chip_v1",a=[["vote","Cast a fan vote"],["contracts","Take a contract"],["cells","Rally your cell"]],n={"pf-ranks":"ranks","pf-vote":"vote","pf-cells":"cells","pf-contracts":"contracts","pf-peoplesbank":"peoplesbank"};document.addEventListener("pf-xp",function(e){var t=e&&e.detail||{};if(!(Math.round(Number(t.gain)||0)<=0)){var a=0;try{a=Number(localStorage.getItem(o)||0)}catch(e){}if(!(Date.now()-a<6e5)){try{localStorage.setItem(o,String(Date.now()))}catch(e){}s(function(e){var t=document.createElement("div");t.innerHTML="◈ Next: <b>"+String(e.label).replace(/</g,"&lt;")+"</b> →",t.style.cssText="position:fixed;right:14px;bottom:76px;background:#0d0d0f;color:#f4f1e8;border:2px solid #c1121f;font:bold 13px monospace;padding:10px 16px;z-index:99990;cursor:pointer;letter-spacing:1px;",t.onclick=function(){try{t.remove()}catch(e){}l(e.silo)},document.body.appendChild(t),setTimeout(function(){try{t.remove()}catch(e){}},7e3)})}}}),e.flowNext=s,function t(){var o=null;try{o=e.holder()}catch(e){}if(o){d();try{new MutationObserver(function(){d()}).observe(o,{childList:!0,subtree:!0})}catch(e){}}else setTimeout(t,1500)}(),setTimeout(d,4e3)}function i(){var e="";try{"function"==typeof window.PFCallsign&&(e=window.PFCallsign()||"")}catch(e){}if(!e)try{e=String(JSON.parse(localStorage.getItem("pf_identity_v1")||"{}").callsign||"")}catch(e){}return String(null==e?"":e).toLowerCase().trim().slice(0,32)}function r(){try{return(new Date).toLocaleDateString("en-CA",{timeZone:"America/Chicago"})}catch(t){var e=new Date;return e.getFullYear()+"-"+("0"+(e.getMonth()+1)).slice(-2)+"-"+("0"+e.getDate()).slice(-2)}}function s(o){i()?function(o){var a=i();if(a){try{var n=JSON.parse(localStorage.getItem(t)||"null");if(n&&n.day===r())return void o(!!n.inCell)}catch(e){}if(window.PF_BACKEND_URL){var s="pffl_"+Math.floor(1e9*Math.random()),l=!1;window[s]=function(e){if(!l){l=!0;try{delete window[s]}catch(e){}var a=!1;try{a=!(!e||!(e.in_cell||e.cells&&e.cells.length))}catch(e){}try{localStorage.setItem(t,JSON.stringify({day:r(),inCell:a}))}catch(e){}o(a)}};var c=document.createElement("script"),d=window.PF_BACKEND_URL+"?action=cell_mine&callsign="+encodeURIComponent(a);try{var p=window.PF&&e.getAuthSecret?e.getAuthSecret():"";p&&(d+="&auth_secret="+encodeURIComponent(p))}catch(e){}c.src=d+"&callback="+s,c.onerror=function(){if(!l){l=!0;try{delete window[s]}catch(e){}c.parentNode&&c.parentNode.removeChild(c),o(!1)}},document.head.appendChild(c),setTimeout(function(){if(!l){l=!0;try{delete window[s]}catch(e){}c.parentNode&&c.parentNode.removeChild(c),o(!1)}},12e3)}else o(!1)}else o(!1)}(function(e){if(e)if(function(e){try{return"1"===localStorage.getItem(e)}catch(e){return!1}}("pf_peoplesbank_seen_v1")){var t=a[Math.floor(Date.now()/864e5)%a.length];o({silo:t[0],label:t[1]})}else o({silo:"peoplesbank",label:"Open your War Chest"});else o({silo:"cells",label:"Join a cell"})}):o({silo:"ranks",label:"Enlist for a callsign"})}function l(e){try{var t=document.getElementById("pf-"+e);if(t)return t.scrollIntoView({behavior:"smooth",block:"start"}),!0}catch(e){}return!1}function c(e){if(e&&!e.dataset.pfFlow){var t="";try{t=e.id||""}catch(e){}if(t&&n[t]){e.dataset.pfFlow="1";var o=document.createElement("div");o.className="pf-flow-strip",o.innerHTML='<span class="pf-flow-next">◈ NEXT UP: <b>…</b></span>',o.style.cssText="margin-top:14px;padding:9px 14px;border:1px dashed #c1121f;font:12px monospace;letter-spacing:1px;color:#f4f1e8;cursor:pointer;text-align:center;",o.onclick=function(){s(function(e){l(e.silo)})},s(function(e){if(e.silo===n[t]){var a=["ranks","vote","cells","peoplesbank"],i=a.indexOf(e.silo),r=a[(i+1)%a.length];e={silo:r,label:{ranks:"Enlist for a callsign",vote:"Cast a fan vote",cells:"Join a cell",peoplesbank:"Open your War Chest"}[r]}}try{o.querySelector(".pf-flow-next").innerHTML="◈ NEXT UP: <b>"+String(e.label).replace(/</g,"&lt;")+"</b> →"}catch(e){}}),e.appendChild(o)}}}function d(){var t=null;try{t=e.holder()}catch(e){}if(t)for(var o=t.querySelectorAll(".fe-block"),a=0;a<o.length;a++)c(o[a])}}(),function(){"use strict";function e(){try{if(document.querySelector("script[data-pf-seo]"))return;var e=document.createElement("script");e.type="application/ld+json",e.setAttribute("data-pf-seo","org"),e.textContent=JSON.stringify({"@context":"https://schema.org","@type":"Organization",name:"The Propaganda Factory",alternateName:"MTCSTW",url:"https://www.mtcstw.com/",description:"The Propaganda Factory (MTCSTW): 62 vetted leftist creators, 8M+ combined reach, one machine. Propaganda, games, and organizing tools for the movement.",sameAs:["https://www.instagram.com/mtcstw","https://www.instagram.com/propfac","https://mtcstw.substack.com/","https://rss.com/podcasts/the-propaganda-factory"]}),document.head.appendChild(e)}catch(e){}}window.PF&&window.PF.skip("15-seo")||window.pfSeoLoaded||(window.pfSeoLoaded=!0,"loading"===document.readyState?document.addEventListener("DOMContentLoaded",e):e())}(),function(){"use strict";var e=window.PF;e&&e.skip("campaign-data")||(window.PF_CAMPAIGN_RACES=[{id:"nc-senate",state:"NC",office:"U.S. Senate",candidates:[{name:"Roy Cooper",party:"D",funding:"Ex-governor, broad donor base",classTake:"Career Dem — better than the alternative, answers to the party machine."},{name:"Michael Whatley",party:"R",funding:"Ex-RNC chair, corporate GOP money",classTake:"Party operative. Serves the donor class that installed him."}],rating:"Leans D (Cooper +9)",stakes:"Open seat. Top pickup opportunity — a win here breaks the GOP firewall."},{id:"ga-senate",state:"GA",office:"U.S. Senate",candidates:[{name:"Jon Ossoff",party:"D",funding:"$20M+ Q2, mostly small-dollar and national Dems",classTake:"Incumbent. Votes with labor more often than not, still a party man."},{name:"Mike Collins",party:"R",funding:"MAGA-backed, Trump-endorsed",classTake:"MAGA champion. Serves billionaires and the Trump machine."}],rating:"Leans D (Ossoff +8)",stakes:"Ossoff outraised Collins 10-to-1. Georgia is the firewall."},{id:"mi-senate",state:"MI",office:"U.S. Senate",candidates:[{name:"Abdul El-Sayed",party:"D",funding:"Progressive small-dollar, beat the moderate in the primary",classTake:"41-year-old epidemiologist. Medicare for All. The real deal — a generational left bet."},{name:"Mike Rogers",party:"R",funding:"Corporate GOP, ex-congressman",classTake:"Standard corporate Republican. Serves whoever writes the checks."}],rating:"Toss-up (El-Sayed +3.4)",stakes:"The most important progressive bet on the map. If El-Sayed wins, it proves the left can take Senate seats."},{id:"oh-senate-special",state:"OH",office:"U.S. Senate (special)",candidates:[{name:"Sherrod Brown",party:"D",funding:"Labor-backed, union money",classTake:"Pro-labor record. One of the few Dems who actually fights for workers."},{name:"Jon Husted",party:"R",funding:"Appointed incumbent, GOP establishment",classTake:"Corporate appointee. Votes the donor line."}],rating:"Toss-up (Brown +3.7)",stakes:"Special election. Brown's labor record vs. an appointed seat-warmer."},{id:"tx-senate",state:"TX",office:"U.S. Senate",candidates:[{name:"James Talarico",party:"D",funding:"Progressive, small-dollar surge",classTake:"Young progressive. Running on workers, not donors."},{name:"Ken Paxton",party:"R",funding:"Trump-backed, scandal-plagued AG",classTake:"Indicted AG backed by Trump over GOP establishment objections. Corruption as a platform."}],rating:"Toss-up (Talarico +2.7)",stakes:"Open seat. Paxton's scandals make Texas competitive — a left upset here rewrites the map."},{id:"ne-senate",state:"NE",office:"U.S. Senate",candidates:[{name:"Dan Osborn",party:"I",funding:"Independent, union-backed",classTake:"Independent. Union steamfitter running against a billionaire. This is the class war on a ballot."},{name:"Pete Ricketts",party:"R",funding:"Billionaire incumbent",classTake:"Billionaire. Literally. Serves himself and his class."}],rating:"Toss-up (Ricketts +4)",stakes:"Worker vs. billionaire. The purest class fight on the Senate map."},{id:"me-senate",state:"ME",office:"U.S. Senate",candidates:[{name:"Troy Jackson",party:"D",funding:"Labor-backed logger",classTake:"Logger, labor-backed. Working-class roots, party label."},{name:"Susan Collins",party:"R",funding:"Incumbent, corporate GOP",classTake:"30 years of 'concern' while voting the corporate line."}],rating:"Toss-up (even)",stakes:"Collins is the last of the 'moderate' Republicans. A loss ends the myth."},{id:"ak-senate",state:"AK",office:"U.S. Senate",candidates:[{name:"Mary Peltola",party:"D",funding:"Pro-labor, Native Alaskan",classTake:"Pro-labor, pro-subsistence. Fights for working Alaskans."},{name:"Dan Sullivan",party:"R",funding:"Incumbent, oil money",classTake:"Oil money's senator. Serves the extractors."}],rating:"Toss-up (Peltola +2.3)",stakes:"Labor vs. oil. Alaska's working class against the extraction industry."}],window.PF_CAMPAIGN_MEASURES=[{id:"wages-2026",state:"Multiple",title:"Minimum wage increases",summary:"Wage-hike measures are on ballots in multiple states. The subminimum tipped wage is under attack everywhere.",yesMeans:"Workers get a raise.",noMeans:"Corporate lobbyists keep wages low.",backedBy:"Labor unions, worker centers",opposedBy:"Restaurant lobby, Chamber of Commerce"},{id:"rent-2026",state:"Multiple",title:"Rent stabilization",summary:"Rent caps and tenant protections are on the ballot in high-cost states. Landlords are spending millions to kill them.",yesMeans:"Tenants get protection from gouging.",noMeans:"Landlords keep unlimited pricing power.",backedBy:"Tenant unions, DSA chapters",opposedBy:"Real estate lobby, landlord PACs"},{id:"labor-rights-2026",state:"Multiple",title:"Worker & labor rights",summary:"Right-to-work repeals, public-sector bargaining rights, and gig-worker protections are live fights.",yesMeans:"Workers keep the right to organize.",noMeans:"Bosses get a freer hand to crush unions.",backedBy:"AFL-CIO, SEIU, Teamsters",opposedBy:"Corporate business coalitions"}])}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("17-nuke-strip")){!function(){if(!document.getElementById("pf-nuke-strip-css")){try{var e=document.createElement("style");e.id="pf-nuke-strip-css",e.textContent="#pf-nuke-stick{position:fixed;left:0;right:0;bottom:0;z-index:9000;background:rgba(13,13,13,.97);border-top:2px solid #c1121f;color:#f5ead6;font-family:monospace;box-shadow:0 -4px 18px rgba(0,0,0,.5)}#pf-nuke-stick[hidden]{display:none!important}#pf-nuke-stick .pns-meter{height:6px;background:#2b2b2b}#pf-nuke-stick .pns-fill{height:100%;width:0;background:linear-gradient(90deg,#c1121f,#e8192f);transition:width .5s}#pf-nuke-stick .pns-fill.pulse{filter:brightness(1.7)}#pf-nuke-stick .pns-row{display:flex;align-items:center;gap:8px;padding:5px 10px}#pf-nuke-stick .pns-tap{flex:1;display:flex;gap:10px;align-items:center;background:none;border:0;color:#f5ead6;font:inherit;font-size:12px;text-align:left;cursor:pointer;padding:4px 0;min-width:0}#pf-nuke-stick .pns-pct{font-weight:700;color:#ff4d5e;white-space:nowrap}#pf-nuke-stick .pns-you{color:#f5ead6;white-space:nowrap}#pf-nuke-stick .pns-cell{color:#c9bfa8;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#pf-nuke-stick .pns-x{background:none;border:0;color:#c9bfa8;font-size:18px;line-height:1;cursor:pointer;padding:4px 6px}#pf-nuke-stick .pns-act{background:#c1121f;color:#fff;border:0;font:700 12px monospace;letter-spacing:1px;padding:9px 10px;cursor:pointer;white-space:nowrap;flex:1}#pf-nuke-stick .pns-act.rally{background:transparent;border:1px solid #c1121f;color:#f5ead6}#pf-nuke-stick.flash{animation:pnsflash .6s}@keyframes pnsflash{0%,100%{border-top-color:#c1121f}50%{border-top-color:#ffcc00;box-shadow:0 -4px 26px rgba(255,204,0,.35)}}@media (prefers-reduced-motion:reduce){#pf-nuke-stick .pns-fill{transition:none}#pf-nuke-stick .pns-fill.pulse{filter:none}#pf-nuke-stick.flash{animation:none}}",document.head.appendChild(e)}catch(e){}}}();var t=window.PF_BACKEND_URL||"https://pf-api.mtcstw.workers.dev",o=5e4,a=0,n=0,i=0,r="local",s=!1,l=null,c=!1,d=0,p=0,f="pf_nuke_local_v2",h={"pf-order-checkin":10,"pf-bracket-ballot":5,"pf-bracket-liquidated":10,"pf-vote-cast":5,"pf-quiz-done":5,"pf-guess-done":10,"pf-raid-report":15,"pf-traitor-vote":5,"pf-caption-submit":10,"pf-poster-made":10,"pf-drop-claimed":15,"pf-enlisted":10,"pf-wb-buy":25,"pf-billionaire-answered":5,"pf-interrogation-answered":5,"pf-share-image":5,"pf-creator-xp":null},u={};Object.keys(h).forEach(function(e){try{document.addEventListener(e,function(t){var o=h[e],a=t&&t.detail||{};if(null===o&&(o="number"==typeof a.xp&&isFinite(a.xp)?Math.max(0,Math.round(a.xp)):0),o>0){var n=e+"|"+JSON.stringify(a),i=Date.now();if(u[n]&&i-u[n]<5e3)return void setTimeout(function(){E(),S()},300);u[n]=i,v(o)}setTimeout(function(){E(),S()},300)})}catch(e){}}),window.pfNukeStrip={state:function(){return{xp:a,comrades:i,mode:r,goal:o}},youToday:_};var m,g=0,w=0;m=function(){try{O()}catch(e){}},"complete"===document.readyState||"interactive"===document.readyState?m():document.addEventListener("DOMContentLoaded",m)}function y(e){return String(Math.floor(e)).replace(/\B(?=(\d{3})+(?!\d))/g,",")}function b(){return(new Date).toISOString().slice(0,10)}function k(){try{var e=JSON.parse(localStorage.getItem(f)||"null");if(e&&e.d)return e}catch(e){}return{d:b(),xp:0}}function v(e){var t=k(),o=b();t.d!==o&&(t={d:o,xp:0}),t.xp+=e,function(e){try{localStorage.setItem(f,JSON.stringify(e))}catch(e){}}(t)}function _(){var e=k();return e.d!==b()?0:e.xp}function T(e){var t=b(),o=null;try{o=JSON.parse(localStorage.getItem("pf_nuke_miles_v1")||"null")}catch(e){}if(o&&o.d===t&&o[e])return!1;var a={d:t};o&&o.d===t&&(a.m25=o.m25,a.m60=o.m60,a.m100=o.m100),a[e]=1;try{localStorage.setItem("pf_nuke_miles_v1",JSON.stringify(a))}catch(e){}return!0}function S(){try{document.dispatchEvent(new CustomEvent("pf-nuke-update",{detail:{xp:a,comrades:i,mode:r,goal:o}}))}catch(e){}}function x(e){g=e?0:Math.min(g+1,99)}function C(t,l,c){a=t,i=l,r=c;var f=Math.min(100,t/o*100);!function(t){try{var o=window.PF&&e.dope?e.dope:null,a=Date.now(),n=document.getElementById("pnsFill");n&&t>d&&(n.classList.remove("pulse"),n.offsetWidth,n.classList.add("pulse"),o&&d>0&&a-p>2500&&(p=a,o.xpFloat(P(),"+"+y(t-d)+" XP"))),d=t}catch(e){}}(t),function(e,t){a=e,n=t,s=!0;var o=document.getElementById("pf-nuke-stick");if(!o)return;var i=document.getElementById("pnsFill");i&&(i.style.width=Math.min(100,t)+"%");var r=document.getElementById("pnsPct");r&&(r.textContent="NUKE "+Math.floor(Math.min(100,t))+"%");var l=document.getElementById("pnsYou");l&&(l.textContent="YOU "+y(_())+" XP TODAY");var c=I(),d=document.getElementById("pnsMission");d&&(c.left>0?d.textContent="RUN MISSION ("+c.left+" LEFT)":c.op?d.textContent="SPREAD THE WORD":d.textContent="FIELD OP OPEN");var p=document.getElementById("pnsRally"),f=document.getElementById("pnsCell");R(function(e){document.body.contains(o)&&(e?(f&&(f.textContent="CELL "+e.members+"/5",f.style.display=""),p&&(p.textContent="RALLY "+String(e.name||"CELL").toUpperCase().slice(0,14))):(f&&(f.textContent="CELL NO CELL",f.style.display=""),p&&(p.textContent="BUILD YOUR CELL")))});try{var h=document.getElementById("slr-nuke");if(h&&document.body.contains(h)){var u=h.getBoundingClientRect();D(o,u.bottom<0||u.top>window.innerHeight)}}catch(e){}}(t,f);try{var h=window.PF&&e.dope?e.dope:null;if("network"===c&&h){var u=P();f>=25&&T("m25")&&(h.ping(u,"CHARGING — QUARTER TO DETONATION"),L()),f>=60&&T("m60")&&(h.ping(u,"CRITICAL MASS — 60% CHARGED"),L()),f>=100&&T("m100")&&(h.confetti(u,60),h.ping(u,"☢ MEDIA NUKE ARMED — command is issuing the target"),L())}}catch(e){}S()}function P(){var e=document.getElementById("pf-nuke-stick");return e&&!e.hidden?e:document.body}function E(){if(w++,!(g>=6&&w%3!=0||g>=3&&w%2!=0))if(t){var e="pfNukeStripCb"+Date.now()+Math.floor(1e6*Math.random());window[e]=function(t){try{delete window[e]}catch(e){}var o=document.getElementById(e);o&&o.parentNode&&o.parentNode.removeChild(o),t&&t.ok?(x(!0),C(Number(t.xp_today)||0,Number(t.comrades)||0,"network")):(x(!1),C(_(),0,"local"))};var o=document.createElement("script");o.id=e,o.src=t+"?action=xp_today&callback="+e;var a=setTimeout(function(){if(window[e]){try{delete window[e]}catch(e){}o.parentNode&&o.parentNode.removeChild(o),x(!1),C(_(),0,"local")}},12e3);o.onerror=function(){try{clearTimeout(a)}catch(e){}try{delete window[e]}catch(e){}o.parentNode&&o.parentNode.removeChild(o),x(!1),C(_(),0,"local")},document.head.appendChild(o)}else C(_(),0,"local")}function L(){try{var e=document.getElementById("pf-nuke-stick");if(!e||e.hidden)return;e.classList.remove("flash"),e.offsetWidth,e.classList.add("flash"),setTimeout(function(){try{e.classList.remove("flash")}catch(e){}},700)}catch(e){}}function I(){var e=0,t=!1;try{var o=JSON.parse(localStorage.getItem("pf_orders_v1")||"null"),a=o&&o.days&&o.days[function(){try{return(new Date).toLocaleDateString("en-CA",{timeZone:"America/Chicago"})}catch(e){return b()}}()];a&&a.done&&(a.done.forEach(function(o){o&&"field-op"===o.m?t=!0:e++}),a.opDone&&(t=!0))}catch(e){}return{left:Math.max(0,3-e),op:t}}function A(e){try{var t=document.getElementById(e);t&&t.scrollIntoView&&t.scrollIntoView({behavior:"smooth",block:"start"})}catch(e){}}function R(e){if(c)e(l);else{var o="",a="";try{o=window.PFCallsign?window.PFCallsign():""}catch(e){}try{a=window.PFDeviceId?window.PFDeviceId():""}catch(e){}if(o&&t){try{var n=JSON.parse(localStorage.getItem("pf_nuke_cell_v1")||"null");if(n&&n.t&&Date.now()-n.t<6e5&&n.cs===o)return c=!0,i=n.cell,l=i&&"object"==typeof i?("number"==typeof i.members&&isFinite(i.members)||(i.members=0),i.name||(i.name="YOUR CELL"),i):null,void e(l)}catch(e){}var i,r="pfNukeCellCb"+Date.now();window[r]=function(t){try{delete window[r]}catch(e){}var a,n=document.getElementById(r);if(n&&n.parentNode&&n.parentNode.removeChild(n),c=!0,t&&t.in_cell&&t.cell){l={name:t.cell.name||"YOUR CELL",code:t.cell.invite_code||"",members:(a=t.cell.members,Array.isArray(a)?a.length:"number"==typeof a&&isFinite(a)?Math.max(0,Math.floor(a)):0)};try{localStorage.setItem("pf_nuke_cell_v1",JSON.stringify({t:Date.now(),cs:o,cell:l}))}catch(e){}}else l=null;e(l)};var s=document.createElement("script");s.id=r;var d=t+"?action=cell_mine&callsign="+encodeURIComponent(o)+"&device="+encodeURIComponent(a);try{var p=window.PF&&window.PF.getAuthSecret?window.PF.getAuthSecret():"";p&&(d+="&auth_secret="+encodeURIComponent(p))}catch(e){}s.src=d+"&callback="+r;var f=setTimeout(function(){if(window[r]){try{delete window[r]}catch(e){}var t=document.getElementById(r);t&&t.parentNode&&t.parentNode.removeChild(t),c=!0,e(null)}},12e3);s.onerror=function(){try{clearTimeout(f)}catch(e){}try{delete window[r]}catch(e){}s.parentNode&&s.parentNode.removeChild(s),c=!0,e(null)},document.head.appendChild(s)}else e(null)}}function F(e){try{if(!window.PFShare)return null;var t=["Nuke at "+Math.floor(n)+"% — "+y(a)+" / 50,000 XP today."];return e&&e.code?t.push("Rally with "+e.name+" — invite code "+e.code+"."):t.push("Run missions. Charge the blast. Own the news cycle."),PFShare.REG["nuke-rally"]={title:"☢ MEDIA NUKE ☢",tag:"The network is charging the blast",lines:t,cta:"JOIN THE FIGHT."},PFShare.poster("nuke-rally")}catch(e){return null}}function M(){R(function(e){if(e&&e.code){var t=F(e);if(t&&window.PFShare)return void PFShare.shareImage(t,"nuke-rally.png","Media Nuke — rally "+e.name,"media-nuke")}A("pf-cells")})}function N(){var e,t=I();t.left>0||!t.op?A("pf-orders"):(e=F(null))&&window.PFShare?PFShare.shareImage(e,"nuke-charge.png","Media Nuke — charge the blast","media-nuke"):A("pf-orders")}function D(e,t){var o=!1;try{o=!!sessionStorage.getItem("pf_nuke_stick_hide")}catch(e){}e.hidden=o||!t}function O(){var t=function(){var e=document.getElementById("pf-nuke-stick");if(e)return e;try{if(sessionStorage.getItem("pf_nuke_stick_hide"))return null}catch(e){}try{document.body.insertAdjacentHTML("beforeend",'<div id="pf-nuke-stick" hidden><div class="pns-meter"><div class="pns-fill" id="pnsFill"></div></div><div class="pns-row"><button class="pns-tap" id="pnsTap"><span class="pns-pct" id="pnsPct">NUKE --%</span><span class="pns-you" id="pnsYou"></span><span class="pns-cell" id="pnsCell"></span></button><button class="pns-x" id="pnsX" aria-label="Hide nuke bar">×</button></div><div class="pns-row"><button class="pns-act" id="pnsMission">RUN MISSION</button><button class="pns-act rally" id="pnsRally">RALLY CELL</button></div></div>')}catch(e){return null}var t=document.getElementById("pf-nuke-stick");return t?(document.getElementById("pnsX").addEventListener("click",function(){t.hidden=!0;try{sessionStorage.setItem("pf_nuke_stick_hide","1")}catch(e){}}),document.getElementById("pnsTap").addEventListener("click",function(){A("slr-nuke")}),document.getElementById("pnsMission").addEventListener("click",N),document.getElementById("pnsRally").addEventListener("click",M),t):null}();if(t){var o=0;!function e(){o++;var a=document.getElementById("slr-nuke");a?function(e,t){try{new IntersectionObserver(function(e){e.forEach(function(e){s&&D(t,!e.isIntersecting)})},{threshold:.02}).observe(e)}catch(a){var o=function(){try{var o=e.getBoundingClientRect();s&&D(t,o.bottom<0||o.top>window.innerHeight)}catch(e){}};try{window.addEventListener("scroll",o,{passive:!0})}catch(e){}o()}}(a,t):o<8?setTimeout(e,1e3):setTimeout(function(){D(t,!0)},800)}()}E(),setInterval(function(){try{if(window.PF&&e.hidden&&e.hidden())return}catch(e){}E()},6e4)}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("16-footer")){var t=window.PF_BACKEND_URL,o=["footer",".Footer","#footer","#footer-sections",".Footer-inner",".Footer-blocks",".Footer-nav",'[role="contentinfo"]',".site-footer","#site-footer",".footer-inner",'section[class*="footer"]','section[class*="Footer"]','div[class*="Footer"]','[data-section-id*="footer" i]',"section[data-section-theme] footer",'section[data-section-theme][class*="footer" i]','div[data-section-theme][class*="footer" i]'].filter(function(e){try{return document.querySelectorAll(e),!0}catch(e){return!1}}).join(", "),a="color:#c1121f;font-weight:900;letter-spacing:0.12em;font-size:11px;text-decoration:underline;cursor:pointer;margin-left:14px;white-space:nowrap;",n=!1;"loading"===document.readyState?document.addEventListener("DOMContentLoaded",d):d()}function i(){var e;try{e=document.querySelectorAll(o)}catch(e){return null}return e&&e.length?e[0]:null}function r(e){var t=null;try{t=e.querySelectorAll('nav, .footer-nav, .Footer-nav, [class*="nav"]')}catch(e){return null}for(var o=0;o<t.length;o++){var a=t[o],n=!1;try{for(;a&&a!==e;){if("pf-crossnav"===a.id){n=!0;break}a=a.parentNode}}catch(e){}if(!n)return t[o]}return null}function s(){var o=document.createElement("a");return o.id="pf-delete-data-link",o.href="#",o.textContent="DELETE MY DATA",o.setAttribute("aria-label","Delete my data"),o.style.cssText=a,o.addEventListener("click",function(o){o.preventDefault(),function(){if(n)return;n=!0;var o=function(){var e="",t="";try{e=window.PFCallsign?window.PFCallsign():""}catch(e){}try{t=window.PFDeviceId?window.PFDeviceId():""}catch(e){}return{callsign:e,device:t}}(),a=document.createElement("div");a.id="pf-delete-data-overlay",a.style.cssText="position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,0.82);display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;";var i=document.createElement("div");function r(){try{a.parentNode.removeChild(a)}catch(e){}n=!1}function s(e){var t=document.getElementById("pfDeleteMsg");t&&(t.textContent=e)}i.setAttribute("role","dialog"),i.setAttribute("aria-modal","true"),i.style.cssText='background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;max-width:520px;width:100%;padding:28px;font-family:"Helvetica Neue",Arial,sans-serif;line-height:1.6;box-sizing:border-box;',i.innerHTML='<div style="color:#c1121f;font-weight:900;letter-spacing:0.1em;font-size:15px;margin-bottom:12px;">BURN YOUR RECORD</div><p style="font-size:13px;margin:0 0 12px;">This wipes <b>everything</b> the Propaganda Factory holds on you'+(o.callsign?" under callsign <b>"+c(o.callsign)+"</b>":" on this browser")+": your XP, streaks, medals, votes, cells, referrals, contact info"+(o.callsign?", and the callsign itself":"")+'. Your real-money War Bond purchases stay in our books (the law makes us keep those) but your name comes off them.</p><p style="font-size:13px;margin:0 0 18px;color:#b8ab8e;">This cannot be undone. There is no appeal, no undelete, no "oops".</p><div style="display:flex;gap:12px;flex-wrap:wrap;"><button id="pfDeleteConfirm" style="background:#c1121f;color:#fff;border:none;font-weight:900;letter-spacing:0.1em;font-size:12px;padding:12px 20px;cursor:pointer;font-family:inherit;">YES, ERASE IT ALL</button><button id="pfDeleteCancel" style="background:transparent;color:#f5f0e1;border:2px solid #f5f0e1;font-weight:900;letter-spacing:0.1em;font-size:12px;padding:10px 18px;cursor:pointer;font-family:inherit;">CANCEL</button></div><div id="pfDeleteMsg" style="font-size:12px;margin-top:12px;min-height:18px;"></div>',a.appendChild(i),document.body.appendChild(a),document.getElementById("pfDeleteCancel").addEventListener("click",r),a.addEventListener("click",function(e){e.target===a&&r()}),document.getElementById("pfDeleteConfirm").addEventListener("click",function(){var a=document.getElementById("pfDeleteConfirm");a.disabled=!0,a.textContent="BURNING…",s(""),function(o,a){if(e.authPost&&t)e.authPost(t,o,a);else try{fetch(t,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)}).then(function(e){return e.json()}).then(function(e){a(e||{ok:!1,err:"Network error."})}).catch(function(){a(null)})}catch(e){a(null)}}({type:"privacy",p_action:"privacy_erase",callsign:o.callsign,device:o.device,scope:"full"},function(t){if(!t||!t.ok)return a.disabled=!1,a.textContent="RETRY",void s("Erase failed: "+e.errCopy(t,"no reply from Command.")+" Your data is untouched — try again.");!function(){try{for(var e=[],t=0;t<localStorage.length;t++){var o=localStorage.key(t);o&&0===o.indexOf("pf_")&&e.push(o)}e.forEach(function(e){try{localStorage.removeItem(e)}catch(e){}})}catch(e){}try{localStorage.removeItem("pf_identity_v1"),localStorage.removeItem("pf_auth_secret"),localStorage.removeItem("pf_device_v1")}catch(e){}try{for(var a=[],n=0;n<sessionStorage.length;n++){var i=sessionStorage.key(n);i&&0===i.indexOf("pf_")&&a.push(i)}a.forEach(function(e){try{sessionStorage.removeItem(e)}catch(e){}})}catch(e){}}(),i.innerHTML='<div style="color:#c1121f;font-weight:900;letter-spacing:0.1em;font-size:15px;margin-bottom:12px;">RECORD BURNED</div><p style="font-size:13px;margin:0;">'+c(t&&t.note||"All your data has been erased. Gone like it was never here.")+'</p><p style="font-size:12px;margin:12px 0 0;color:#b8ab8e;">This page will reload in a few seconds.</p>',function(t){try{if(e.toast)return void e.toast(t)}catch(e){}try{var o=document.createElement("div");o.textContent=t,o.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999",document.body.appendChild(o),setTimeout(function(){try{o.remove()}catch(e){}},2800)}catch(e){}}("Data erased."),setTimeout(function(){try{location.reload()}catch(e){}},3e3)})})}()}),o}function l(){if(!p()){var e=i();if(e){var t=s(),o=r(e);o?o.appendChild(t):e.appendChild(t)}}}function c(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function d(){l();var e=0,t=setInterval(function(){e++,l(),(p()||e>=120)&&(clearInterval(t),p()||function(){if(p())return;try{var e=document.createElement("div");e.id="pf-delete-fixed",e.style.cssText="position:fixed;right:14px;bottom:14px;z-index:99998;background:#0a0a0a;border:1px solid #c1121f;padding:8px 10px;";var t=s();e.appendChild(t),document.body.appendChild(e)}catch(e){}}())},500),o=null;try{o=new MutationObserver(function(){var e=i();if(e&&"pf-delete-fixed"!==e.id){var t=document.getElementById("pf-delete-data-link");t&&t.parentNode&&"pf-delete-fixed"===t.parentNode.id?function(e,t){try{var o=document.getElementById("pf-delete-fixed"),n=r(t);n?n.appendChild(e):t.appendChild(e),e.style.cssText=a,o&&o.parentNode&&o.parentNode.removeChild(o)}catch(e){}}(t,e):l()}else e||l()}),document.body&&o.observe(document.body,{childList:!0,subtree:!0})}catch(e){}}function p(){return!!document.getElementById("pf-delete-data-link")}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("19-crossnav")&&!window.pfCrossnavDone&&(window.pfCrossnavDone=!0,!function(){try{if(-1!==(window.location.href||"").indexOf("/config/"))return!0;var e=document.body;return!(!e||!e.classList.contains("sqs-edit-mode")&&!e.classList.contains("sqs-editing"))}catch(e){return!1}}())){var t=[["ARCADE","/arcade"],["CELLS","/cells"],["CREATE","/create"],["BANK","/bank"],["ECONOMY","/economy"],["WAR CHEST","/war-chest"],["VENTURES","/ventures"],["EVENTS","/events"],["WAR REPORT","/war-report"]],o=["footer",".Footer","#footer","#footer-sections",".Footer-inner",".Footer-blocks",".Footer-nav",'[role="contentinfo"]',".site-footer","#site-footer",".footer-inner",'section[class*="footer"]','section[class*="Footer"]','div[class*="Footer"]','[data-section-id*="footer" i]',"section[data-section-theme] footer",'section[data-section-theme][class*="footer" i]','div[data-section-theme][class*="footer" i]'].filter(function(e){try{return document.querySelectorAll(e),!0}catch(e){return!1}}).join(", "),a=[{id:"pf-xn-deploy",host:"pf-v2",tries:0,build:function(){var e=document.createElement("div");e.id="pf-xn-deploy";var t=document.createElement("div");t.className="pf-xn-dk",t.textContent="DEPLOY — PICK YOUR THEATER";var o=document.createElement("div");o.className="pf-xn-dt",o.textContent="THE WAR DOESN’T WIN ITSELF";var a=document.createElement("div");a.className="pf-xn-ds",a.textContent="You scrolled this far. Now pick a weapon.";var n=document.createElement("div");n.className="pf-xn-dg";return[{h:"FIGHT WITH A CELL",p:"No soldier fights alone. Join a cell, stack daily streaks, multiply your XP.",a:"JOIN A CELL",href:"/cells",sub:null},{h:"RUN THE WAR ECONOMY",p:"Your XP, weaponized. Bank it, grow it — then spend it like it matters.",a:"OPEN THE BANK",href:"/bank",sub:["Spend it in the Economy →","/economy"]},{h:"THE CASINO PAYS IN XP",p:"Nine games. Zero mercy. The house always loses to the movement.",a:"ENTER THE ARCADE",href:"/arcade",sub:null}].forEach(function(e){var t=document.createElement("div");t.className="pf-xn-dc";var o=document.createElement("div");o.className="pf-xn-dch",o.textContent=e.h;var a=document.createElement("div");a.className="pf-xn-dcp",a.textContent=e.p;var i=document.createElement("a");if(i.className="pf-xn-dca",i.href=e.href,i.textContent=e.a,t.appendChild(o),t.appendChild(a),t.appendChild(i),e.sub){var r=document.createElement("a");r.className="pf-xn-dcsub",r.href=e.sub[1],r.textContent=e.sub[0],t.appendChild(r)}n.appendChild(t)}),e.appendChild(t),e.appendChild(o),e.appendChild(a),e.appendChild(n),e},place:function(e){if(document.getElementById("pf-xn-deploy"))return!0;var t=null;try{t=document.querySelector('#pf-v2 .pf-section-head[data-sec="proof"]')}catch(e){}if(t&&t.parentNode)try{return t.nextSibling?t.parentNode.insertBefore(e,t.nextSibling):t.parentNode.appendChild(e),!0}catch(e){return!1}return!1}},{id:"pf-xn-recruit",host:"pf-cells-page",tries:0,build:function(){return f("pf-xn-recruit","YOUR CELL GROWS WHEN YOU GROW IT","Hit RECRUIT on your cell card and put the poster on your socials. Every recruit is +25 XP and one more fighter in the war.","FIND THE RECRUIT BUTTON",null,u)},place:function(e){return p("pf-cells-page",e,this)}},{id:"pf-xn-toeconomy",host:"pf-bank",tries:0,build:function(){return f("pf-xn-toeconomy","SPEND IT LIKE IT MATTERS","The People’s Bank grows your XP. The Economy is where it becomes firepower.","ENTER THE ECONOMY","/economy",null)},place:function(e){return p("pf-bank",e,this)}},{id:"pf-xn-tobank",host:"pf-economy",tries:0,build:function(){return f("pf-xn-tobank","STACK IT BEFORE YOU SPEND IT","The Economy burns XP fast. The People’s Bank grows it while you fight — park your war funds first.","OPEN THE BANK","/bank",null)},place:function(e){return p("pf-economy",e,this)}},{id:"pf-xn-casino",host:"pf-arcade",tries:0,build:function(){var e=f("pf-xn-casino","★ THE XP CASINO PAYS IN XP ★","Slots, wagers, double-or-nothing nerve. Your XP is the chip — and the house always loses to the movement.","ROLL THE DICE",null,h);return e.classList.add("pf-xn-pulse"),e},place:function(e){return p("pf-arcade",e,this)}}];"loading"===document.readyState?document.addEventListener("DOMContentLoaded",g):g();var n=0,i=0,r=!1,s=setInterval(function(){try{r||!(r=d())&&++n>=120&&(r=!0),i++,(!m()||i>=60)&&clearInterval(s)}catch(e){}},1e3);try{var l=new MutationObserver(function(){try{document.getElementById("pf-crossnav")||d()}catch(e){}});document.body?l.observe(document.body,{childList:!0,subtree:!0}):document.addEventListener("DOMContentLoaded",function(){try{l.observe(document.body,{childList:!0,subtree:!0})}catch(e){}})}catch(e){}}function c(e){try{e.scrollIntoView({behavior:"smooth",block:"start"})}catch(t){try{e.scrollIntoView()}catch(e){}}}function d(){if(document.getElementById("pf-crossnav"))return!0;var e=function(){var e;try{e=document.querySelectorAll(o)}catch(e){return null}return e&&e.length?e[0]:null}();if(!e)return!1;try{e.insertBefore(function(){var e=document.createElement("div");e.id="pf-crossnav";var o=document.createElement("div");o.className="pf-xn-kicker",o.textContent="THE FRONT LINES — EVERY THEATER OF THE WAR";var a=document.createElement("nav");return a.className="pf-xn-nav",a.setAttribute("aria-label","Propaganda Factory sections"),t.forEach(function(e){var t=document.createElement("a");t.href=e[1],t.textContent=e[0],a.appendChild(t)}),e.appendChild(o),e.appendChild(a),e}(),e.firstChild)}catch(e){return!1}return!0}function p(e,t,o){if(document.getElementById(t.id))return!0;var a=document.getElementById(e);if(!a)return!1;var n=null;try{n=a.querySelector(":scope > .pf-page-head")}catch(e){}if(n)try{return n.nextSibling?a.insertBefore(t,n.nextSibling):a.appendChild(t),!0}catch(e){return!1}if(o.tries=(o.tries||0)+1,o.tries>10)try{return a.insertBefore(t,a.firstChild),!0}catch(e){return!1}return!1}function f(e,t,o,a,n,i){var r=document.createElement("div");r.id=e,r.className="pf-xn-banner";var s=document.createElement("div");s.className="pf-xn-bt",s.textContent=t;var l=document.createElement("div");if(l.className="pf-xn-bs",l.textContent=o,r.appendChild(s),r.appendChild(l),a){var c=document.createElement("a");c.className="pf-xn-bl",c.textContent=a,n?c.href=n:(c.href="#",c.addEventListener("click",function(e){e.preventDefault()})),i&&c.addEventListener("click",function(e){e.preventDefault(),i()}),r.appendChild(c)}else i&&r.addEventListener("click",i);return r}function h(){var e=null;try{e=document.querySelector('section[data-game="casino"]')}catch(e){}if(e)c(e);else try{window.location.href="/arcade"}catch(e){}}function u(){var e=null;try{e=document.getElementById("cRecruit")}catch(e){}if(e)c(e);else{var t=null;try{t=document.querySelector('section[data-game="cells"]')}catch(e){}t&&c(t)}}function m(){var e=!1;return a.forEach(function(t){var o=!1;try{o=!!document.getElementById(t.id)}catch(e){}if(!o){var a=!1;try{a=!!document.getElementById(t.host)}catch(e){}if(a){e=!0;var n=null;try{n=t.build()}catch(e){return}try{t.place.call(t,n)||(n=null)}catch(e){}}}}),e}function g(){try{!function(){if(!document.getElementById("pf-crossnav-css")){var e=document.createElement("style");e.id="pf-crossnav-css",e.textContent="#pf-crossnav{border-top:3px solid #c1121f;border-bottom:3px solid #c1121f;background:#0a0a0a;padding:14px 10px 12px;margin:0 0 22px;text-align:center;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box}#pf-crossnav .pf-xn-kicker{color:#c1121f;font-weight:900;letter-spacing:.28em;font-size:10px;margin-bottom:10px}#pf-crossnav .pf-xn-nav{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}#pf-crossnav .pf-xn-nav a{color:#f5ead6;font-weight:700;font-size:11px;letter-spacing:.16em;text-decoration:none;border:1px solid #3d3d3d;padding:9px 12px;background:#141414;display:inline-block;box-sizing:border-box}#pf-crossnav .pf-xn-nav a:hover{border-color:#c1121f;color:#fff;background:#1d0b0b}.pf-xn-banner{border:2px solid #c1121f;background:#0d0d0d;color:#f5ead6;text-align:center;padding:16px 14px;margin:0 auto 20px;max-width:760px;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box;cursor:pointer}.pf-xn-banner .pf-xn-bt{font-family:'Arial Black',Arial,sans-serif;font-size:17px;letter-spacing:.12em;color:#ff4d5e;margin-bottom:6px}.pf-xn-banner .pf-xn-bs{font-size:13px;color:#c9bfa8;line-height:1.5}.pf-xn-banner .pf-xn-bl{display:inline-block;margin-top:10px;background:#c1121f;color:#fff;font-weight:900;font-size:12px;letter-spacing:.14em;padding:11px 22px;text-decoration:none}#pf-xn-deploy{margin:26px auto;max-width:880px;text-align:center;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box;padding:0 12px}#pf-xn-deploy .pf-xn-dk{color:#c1121f;font-weight:900;letter-spacing:.3em;font-size:11px;margin-bottom:8px}#pf-xn-deploy .pf-xn-dt{font-family:'Arial Black',Arial,sans-serif;font-size:26px;letter-spacing:.08em;color:#f5ead6;margin-bottom:6px}#pf-xn-deploy .pf-xn-ds{font-size:13px;color:#a89e88;margin-bottom:16px}#pf-xn-deploy .pf-xn-dg{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}#pf-xn-deploy .pf-xn-dc{border:2px solid #c1121f;background:#0d0d0d;padding:18px 14px;box-sizing:border-box}#pf-xn-deploy .pf-xn-dch{font-family:'Arial Black',Arial,sans-serif;font-size:16px;letter-spacing:.1em;color:#ff4d5e;margin-bottom:8px}#pf-xn-deploy .pf-xn-dcp{font-size:12.5px;color:#c9bfa8;line-height:1.55;margin-bottom:12px;min-height:58px}#pf-xn-deploy .pf-xn-dca{display:inline-block;background:#c1121f;color:#fff;font-weight:900;font-size:12px;letter-spacing:.14em;padding:11px 20px;text-decoration:none}#pf-xn-deploy .pf-xn-dcsub{display:block;margin-top:10px;font-size:11.5px;color:#c9bfa8;text-decoration:underline;letter-spacing:.06em}@media (max-width:640px){#pf-xn-deploy .pf-xn-dg{grid-template-columns:1fr}#pf-xn-deploy .pf-xn-dcp{min-height:0}#pf-crossnav .pf-xn-nav a{font-size:10px;padding:8px 9px;letter-spacing:.1em}}.pf-xn-pulse{animation:pfxnpulse 2.2s ease-in-out infinite}@keyframes pfxnpulse{0%,100%{box-shadow:0 0 0 0 rgba(193,18,31,.55)}50%{box-shadow:0 0 22px 4px rgba(193,18,31,.55)}}@media (prefers-reduced-motion:reduce){.pf-xn-pulse{animation:none}}";try{document.head.appendChild(e)}catch(e){}}}()}catch(e){}try{d()}catch(e){}try{m()}catch(e){}}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("nextop")){try{if(-1!==(window.location.href||"").indexOf("/config/"))return;var t=document.body;if(t&&(t.classList.contains("sqs-edit-mode")||t.classList.contains("sqs-editing")))return}catch(e){}var o=window.PF_BACKEND_URL,a=["pf-v2","pf-arcade","pf-cells-page","pf-create","pf-bank","pf-economy","pf-warchest","pf-ventures","pf-events","pf-warreport","pf-catalog","pf-slr-roster","pf-war-card","pf-political-hq"],n={streakrisk:{title:"STREAK AT RISK",cta:"SAVE IT →",href:"/",ready:function(e){return null!==e.streakRisk},done:function(e){return!e.streakRisk},sub:function(e){return"Last chance — check in before midnight Chicago or the streak breaks."}},loot:{title:"THE CRATE IS LOADED",cta:"OPEN THE CRATE →",href:"/",ready:function(e){return null!==e.lootClaimed},done:function(e){return e.lootClaimed},sub:function(e){return"Today’s supply crate sits unclaimed. Midnight Chicago, it resets."}},streak:{title:"PROTECT THE STREAK",cta:"CHECK IN →",href:"/",ready:function(e){return null!==e.streakChecked},done:function(e){return e.streakChecked},sub:function(e){return(e.streakCount>0?e.streakCount+"-day streak. ":"")+"One tap keeps it alive."}},cellnone:{title:"YOU FIGHT ALONE",cta:"FIND YOUR CELL →",href:"/cells",ready:function(e){return null!==e.cellIn},done:function(e){return e.cellIn},sub:function(e){return"No cell, no squad XP. Join one or build your own."}},cellcheck:{title:"YOUR CELL NEEDS YOU",cta:"CHECK IN →",href:"/cells",ready:function(e){return null!==e.cellIn&&null!==e.cellChecked},done:function(e){return!e.cellIn||e.cellChecked},sub:function(e){return"Your cell hasn’t checked in today. First tap starts the cell streak."}},xpzero:{title:"ZERO XP ON THE BOARD",cta:"MAKE SOMETHING →",href:"/create",ready:function(e){return null!==e.xpToday},done:function(e){return e.xpToday>0},sub:function(e){return"The meter is counting and you’re flat. Forge one poster."}},flash:{title:"FLASH MULTIPLIER LIVE",cta:"RIDE THE FLASH →",href:"/",ready:function(e){return e.flashKnown},done:function(e){return!e.flash},sub:function(e){return e.flash?c(e.flash.label||"Flash event")+" ×"+(e.flash.mult||2)+" — ride it before it burns out.":""}},matchquiz:{title:"FIND YOUR SLR MATCH",cta:"TAKE THE QUIZ →",href:"/arcade",ready:function(){return!0},done:function(){return!1},sub:function(){return"5 questions. 3 creator matches. Know your lane."}},roster:{title:"SCOUT THE ROSTER",cta:"MEET THE RADICALS →",href:"/sick-left-radicals",ready:function(){return!0},done:function(){return!1},sub:function(){return"62 fighters strong. Find the one you’d go to war with."}},recruit:{title:"RECRUIT ONE SOLDIER",cta:"GET YOUR LINK →",href:"/cells",ready:function(){return!0},done:function(){return!1},sub:function(){return"+75 XP per recruit. Your cell grows, your war chest grows."}}},i={"pf-v2":["streakrisk","loot","streak","cellcheck","cellnone","flash","xpzero","matchquiz"],"pf-arcade":["streakrisk","loot","streak","matchquiz","cellcheck","xpzero"],"pf-cells-page":["cellnone","cellcheck","streakrisk","streak","loot","recruit"],"pf-create":["xpzero","streakrisk","loot","streak","cellcheck","matchquiz"],"pf-bank":["streakrisk","loot","streak","cellcheck","xpzero","matchquiz"],"pf-economy":["streakrisk","loot","streak","cellcheck","xpzero","matchquiz"],"pf-warchest":["streakrisk","loot","streak","cellcheck","xpzero","roster"],"pf-ventures":["streakrisk","loot","streak","cellcheck","xpzero","matchquiz"],"pf-events":["streakrisk","loot","streak","cellcheck","xpzero","matchquiz"],"pf-warreport":["streakrisk","loot","streak","cellcheck","xpzero","matchquiz"],"pf-catalog":["streakrisk","loot","streak","matchquiz","roster"],"pf-slr-roster":["matchquiz","roster","streakrisk","loot","streak"],"pf-war-card":["cellcheck","cellnone","streakrisk","loot","recruit"],"pf-political-hq":["streakrisk","loot","streak","cellcheck","xpzero","matchquiz"],default:["streakrisk","loot","streak","cellcheck","cellnone","xpzero","matchquiz"]},r=["footer",".Footer","#footer","#footer-sections",".Footer-inner",".Footer-blocks",'[role="contentinfo"]',".site-footer","#site-footer",'section[class*="footer"]','section[class*="Footer"]','div[class*="Footer"]','[data-section-id*="footer" i]'].filter(function(e){try{return document.querySelectorAll(e),!0}catch(e){return!1}}).join(", "),s=function(){var e="",t="";try{e=window.PFCallsign?window.PFCallsign():""}catch(e){}try{t=window.PFDeviceId?window.PFDeviceId():""}catch(e){}return{callsign:e,device:t}}();if(s.callsign)!function(e,t){var o={lootClaimed:null,streakCount:0,streakChecked:null,streakRisk:null,cellIn:null,cellChecked:null,xpToday:null,flash:null,flashKnown:!1},a=4,n=!1;function i(){n||(n=!0,t(o))}function r(){--a<=0&&i()}setTimeout(i,12e3),d("dopamine_status",{callsign:e.callsign,device:e.device},function(e){try{e&&e.ok&&(e.loot&&void 0!==e.loot.claimed_today&&(o.lootClaimed=!!e.loot.claimed_today),e.streak&&(o.streakCount=Number(e.streak.count||0),o.streakRisk=!!e.streak.at_risk),o.flashKnown=!0,e.flash&&e.flash.length&&(o.flash={label:e.flash[0].label,mult:e.flash[0].multiplier}))}catch(e){}r()}),d("streak_status",{callsign:e.callsign,device:e.device},function(e){try{e&&e.ok&&void 0!==e.checked_in_today&&(o.streakChecked=!!e.checked_in_today),e&&e.ok&&null===o.streakRisk&&void 0!==e.at_risk&&(o.streakRisk=!!e.at_risk)}catch(e){}r()}),d("cell_mine",{callsign:e.callsign,device:e.device},function(t){try{if(t&&t.ok){o.cellIn=!!t.in_cell;var a=t.cells||[];if(a.length&&void 0!==a[0].checked_today)o.cellChecked=!!a[0].checked_today;else if(t.members)for(var n=0;n<t.members.length;n++)if(String(t.members[n].callsign||"").toLowerCase()===String(e.callsign).toLowerCase()&&void 0!==t.members[n].checked_today){o.cellChecked=!!t.members[n].checked_today;break}}}catch(e){}r()}),d("xp_today",{callsign:e.callsign,device:e.device},function(e){try{e&&e.ok&&void 0!==e.xp_today&&(o.xpToday=Number(e.xp_today)||0)}catch(e){}r()})}(s,function(e){var t=p(e);t.__st=e,"loading"===document.readyState?document.addEventListener("DOMContentLoaded",function(){h(t)}):h(t)});else{var l={title:"YOUR FIRST OP: ENLIST",cta:"ENLIST →",href:"/",sub:function(){return"Claim your callsign. Your XP follows it everywhere."},__st:{}};"loading"===document.readyState?document.addEventListener("DOMContentLoaded",function(){h(l)}):h(l)}}function c(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function d(t,a,n){if(o){try{if(window.PF&&e.authGetJSONP)return void e.authGetJSONP(o,t,a,n)}catch(e){}try{var i=window.PF&&e.getAuthSecret?e.getAuthSecret():"";i&&a&&!a.auth_secret&&(a.auth_secret=i)}catch(e){}var r="pfNoCb"+Math.floor(1e9*Math.random()),s=document.createElement("script"),l=!1;window[r]=function(e){p(e)},s.onerror=function(){p(null)};var c="?action="+encodeURIComponent(t);for(var d in a)null!=a[d]&&""!==a[d]&&(c+="&"+encodeURIComponent(d)+"="+encodeURIComponent(a[d]));c+="&callback="+r,s.src=o+c,document.head.appendChild(s),setTimeout(function(){p(null)},12e3)}else n(null);function p(e){if(!l){l=!0;try{delete window[r]}catch(e){}s.parentNode&&s.parentNode.removeChild(s),n(e)}}}function p(e){for(var t=i[function(){try{for(var e=0;e<a.length;e++)if(document.getElementById(a[e]))return a[e];var t=String(window.location.pathname||"").replace(/\/+$/,"")||"/",o={"/":"pf-v2","/arcade":"pf-arcade","/cells":"pf-cells-page","/create":"pf-create","/bank":"pf-bank","/economy":"pf-economy","/war-chest":"pf-warchest","/ventures":"pf-ventures","/events":"pf-events","/war-report":"pf-warreport","/sick-left-radicals":"pf-slr-roster"};if(o[t])return o[t]}catch(e){}return"default"}()]||i.default,o=0;o<t.length;o++){var r=n[t[o]];if(r)try{if(r.ready(e)&&!r.done(e))return r}catch(e){}}return n.matchquiz}function f(e){if(document.getElementById("pf-nextop"))return!0;var t=function(){try{var e=document.querySelectorAll(r);if(e&&e.length)return e[0]}catch(e){}return null}();if(!t||!t.parentNode)return!1;var o=document.createElement("div");o.innerHTML=e;var a=o.firstChild;try{t.parentNode.insertBefore(a,t)}catch(e){return!1}return!0}function h(t){try{!function(e){if(!f(e)){var t=0,o=setInterval(function(){t++,(f(e)||t>=120)&&clearInterval(o)},500);try{var a=new MutationObserver(function(){if(f(e)&&a)try{a.disconnect()}catch(e){}});document.body&&a.observe(document.body,{childList:!0,subtree:!0})}catch(e){}}}(function(e,t){return'<div id="pf-nextop" style="max-width:720px;margin:28px auto;padding:0;background:#0a0a0a;border:1px solid #333;border-top:4px solid #c1121f;box-sizing:border-box;font-family:Arial,sans-serif;text-align:center;"><div style="padding:20px 18px 18px;"><div style="font-size:11px;letter-spacing:5px;color:#dc143c;font-weight:800;margin-bottom:8px;">NEXT OP</div><div style="font-family:\'Arial Black\',Arial,sans-serif;font-size:22px;letter-spacing:1px;color:#f5ead6;margin:0 0 8px;">'+c(e.title)+'</div><div style="font-size:14px;color:#a89e88;line-height:1.55;margin:0 0 14px;">'+c(e.sub(t))+'</div><a href="'+c(e.href)+'" style="display:inline-block;background:#c1121f;color:#fff;font-weight:900;letter-spacing:0.12em;font-size:13px;text-decoration:none;padding:12px 26px;border:2px solid #c1121f;">'+c(e.cta)+"</a></div></div>"}(t,t.__st))}catch(t){try{e.error("nextop","mount failed :: "+(t&&t.message||t))}catch(e){}}}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("routemarch")){try{if(-1!==(window.location.href||"").indexOf("/config/"))return;var t=document.body;if(t&&(t.classList.contains("sqs-edit-mode")||t.classList.contains("sqs-editing")))return}catch(e){}var o=window.PF_BACKEND_URL,a=["footer",".Footer","#footer","#footer-sections",".Footer-inner",".Footer-blocks",'[role="contentinfo"]',".site-footer","#site-footer",'section[class*="footer"]','section[class*="Footer"]','div[class*="Footer"]'];"loading"===document.readyState?document.addEventListener("DOMContentLoaded",l):l()}function n(){var e="",t="";try{e=window.PFCallsign?window.PFCallsign():""}catch(e){}try{t=window.PFDeviceId?window.PFDeviceId():""}catch(e){}return{callsign:e,device:t}}function i(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function r(t,a){!function(){if(!document.getElementById("pf-rm-css")){var e=document.createElement("style");e.id="pf-rm-css",e.textContent="#pf-routemarch{max-width:1100px;margin:18px auto;padding:14px 16px;border:2px solid #c1121f;background:#0d0d0d;font-family:monospace}#pf-routemarch .pf-rm-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}#pf-routemarch .pf-rm-title{font:bold 14px monospace;color:#fff;letter-spacing:2px}#pf-routemarch .pf-rm-title b{color:#ff6b6b}#pf-routemarch .pf-rm-day{font:bold 11px monospace;color:#e8b64c;letter-spacing:1px;white-space:nowrap}#pf-routemarch .pf-rm-stops{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px}#pf-routemarch .pf-rm-stop{flex:1 1 120px;display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid #444;background:#141414;color:#bbb;text-decoration:none;font:12px monospace}#pf-routemarch .pf-rm-stop.done{border-color:#2f7a3d;color:#7ddf8a}#pf-routemarch .pf-rm-stop.cur{border-color:#c1121f;color:#fff;background:#1a0505}#pf-routemarch .pf-rm-dot{font-weight:bold}#pf-routemarch .pf-rm-name{font:bold 11px monospace;color:#ff6b6b;letter-spacing:1px;margin-bottom:6px}#pf-routemarch .pf-rm-claim{margin-top:10px;text-align:center}#pf-routemarch .pf-rm-note{margin-top:8px;font:12px monospace;color:#888;text-align:center}#pf-routemarch .c-btn{background:#c1121f;color:#fff;border:0;font:bold 14px monospace;letter-spacing:1px;padding:12px 26px;cursor:pointer}#pf-routemarch .c-btn:disabled{opacity:.55;cursor:default}",document.head.appendChild(e)}}();var r=t.stops,s=Number(t.streak_day||1),l=document.createElement("div");l.id="pf-routemarch";for(var c='<div class="pf-rm-name">'+i(String(t.route_name||"ROUTE MARCH"))+'</div><div class="pf-rm-bar"><span class="pf-rm-title">⚔ STOP <b>'+(a+1)+"</b> OF "+r.length+'</span><span class="pf-rm-day">DAY '+s+" &bull; NEXT +"+Number(t.next_payout||10)+' XP</span></div><div class="pf-rm-stops">',d=0;d<r.length;d++){var p=r[d];c+='<a class="'+("pf-rm-stop"+(p.done?" done":"")+(d===a?" cur":""))+'" href="'+i(p.page||"/")+'"><span class="pf-rm-dot">'+(p.done?"✓":d+1)+"</span><span>"+i(p.action_label||"")+"</span></a>"}c+="</div>";var f=a===r.length-1;t.claimed?c+='<div class="pf-rm-note">✓ MARCH COMPLETE — DAY '+s+" &bull; +"+Number(t.payout||0)+" XP claimed. Miss a day and the streak resets.</div>":f&&t.can_claim?c+='<div class="pf-rm-claim"><button class="c-btn" id="pf-rm-claimbtn">CLAIM +'+Number(t.next_payout||10)+" XP — DAY "+s+"</button></div>":c+='<div class="pf-rm-note">'+Number(t.completed||0)+" of "+r.length+" stops done. Finish the march to claim +"+Number(t.next_payout||10)+" XP.</div>",l.innerHTML=c;try{var h=l.querySelector("#pf-rm-claimbtn");h&&(h.onclick=function(){h.disabled=!0,h.textContent="CLAIMING...";var t=n(),a={type:"circuit",c_action:"circuit_claim",callsign:t.callsign,device:t.device};function i(t){if(t&&t.ok){l.innerHTML='<div class="pf-rm-note" style="color:#7ddf8a;font-weight:bold">✓ ROUTE MARCH COMPLETE. +'+Number(t.payout||0)+" XP — DAY "+Number(t.streak_day||1)+". Tomorrow pays +"+Number(t.next_payout||0)+" XP.</div>";try{window.PF&&e.toast&&e.toast("ROUTE MARCH COMPLETE. +"+Number(t.payout||0)+" XP.")}catch(e){}}else{var o="Claim failed.";try{o=window.PF&&e.errCopy?e.errCopy(t,o):String(t&&(t.err||t.error)||o)}catch(e){}try{window.PF&&e.toast&&e.toast(o)}catch(e){}h.disabled=!1,h.textContent="CLAIM BONUS"}}try{window.PF&&e.authPost?e.authPost(o,a,i):i({ok:!1,err:"auth unavailable"})}catch(e){i({ok:!1,err:"network error"})}})}catch(e){}return l}function s(e,t){if(document.getElementById("pf-routemarch"))return!0;var o=function(){for(var e=0;e<a.length;e++){var t=a[e],o=null;try{o=document.querySelectorAll(t)}catch(e){continue}if(o&&o.length)return o[0]}return null}();if(!o||!o.parentNode)return!1;var n=r(e,t);try{o.parentNode.insertBefore(n,o)}catch(e){return!1}return!0}function l(){var t=n();t.callsign&&function(t,a,n){if(o){try{if(window.PF&&e.authGetJSONP)return void e.authGetJSONP(o,t,a,n)}catch(e){}try{var i=window.PF&&e.getAuthSecret?e.getAuthSecret():"";i&&a&&!a.auth_secret&&(a.auth_secret=i)}catch(e){}var r="pfRmCb"+Math.floor(1e9*Math.random()),s=document.createElement("script"),l=!1;window[r]=function(e){p(e)},s.onerror=function(){p(null)};var c="?action="+encodeURIComponent(t);for(var d in a)null!=a[d]&&""!==a[d]&&(c+="&"+encodeURIComponent(d)+"="+encodeURIComponent(a[d]));c+="&callback="+r,s.src=o+c,document.head.appendChild(s),setTimeout(function(){p(null)},12e3)}else n(null);function p(e){if(!l){l=!0;try{delete window[r]}catch(e){}s.parentNode&&s.parentNode.removeChild(s),n(e)}}}("circuit_status",{callsign:t.callsign,device:t.device},function(e){if(e&&e.ok&&e.stops&&e.stops.length){for(var t=function(){var e="/";try{e=window.location.pathname||"/"}catch(e){}return e.length>1&&"/"===e.charAt(e.length-1)&&(e=e.slice(0,-1)),e.toLowerCase()}(),o=-1,a=0;a<e.stops.length;a++)if(String(e.stops[a].page||"/").toLowerCase()===t){o=a;break}if(!(o<0)){var n=0;!function t(){s(e,o)||++n<40&&setTimeout(t,500)}()}}})}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("deaddrop")){try{if(-1!==(window.location.href||"").indexOf("/config/"))return;var t=document.body;if(t&&(t.classList.contains("sqs-edit-mode")||t.classList.contains("sqs-editing")))return}catch(e){}var o=window.PF_BACKEND_URL,a=["footer",".Footer","#footer","#footer-sections",".Footer-inner",".Footer-blocks",'[role="contentinfo"]',".site-footer","#site-footer",'section[class*="footer"]','section[class*="Footer"]','div[class*="Footer"]','[data-section-id*="footer" i]'];"loading"===document.readyState?document.addEventListener("DOMContentLoaded",l):l()}function n(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function i(e){var t='<section class="br-sec" data-game="dead-drop" id="pf-deaddrop-card"><div class="dd-card"><div class="dd-kicker">◈ DEAD DROP</div>';return t+='<div class="dd-riddle">&ldquo;'+n(e.riddle||"The briefing is assembling&hellip;")+"&rdquo;</div>",e.found_today?t+='<div class="dd-meta">Cache cracked. Streak: <b>'+Number(e.streak||0)+"</b> day"+(1===Number(e.streak)?"":"s")+". New cache drops at midnight.</div>":t+='<div class="dd-meta">Somewhere on this site a cache waits. Find it before midnight. Pays <b>+'+Number(e.next_payout||15)+" XP</b>"+(e.streak>0?" &middot; streak <b>"+Number(e.streak)+"</b>":"")+".</div>",t+="</div></section>"}function r(e){if(document.getElementById("pf-deaddrop"))return!0;var t=function(){for(var e=0;e<a.length;e++)try{var t=document.querySelector(a[e]);if(t)return t}catch(e){}return null}(),o=document.createElement("div");o.innerHTML=e;var n=o.firstChild;return!(!t||!t.parentNode)&&(t.parentNode.insertBefore(n,t),!0)}function s(t,a){var i=function(e,t){var o='<div class="dd-card" id="pf-deaddrop"><div class="dd-kicker">◈ DEAD DROP</div><div class="dd-cache"><div class="dd-box" id="pf-dd-box">📦</div><div><div class="dd-riddle" style="margin:0">&ldquo;'+n(e.riddle)+'&rdquo;</div><div class="dd-meta">You followed the riddle. The cache is real.</div></div></div>';return e.found_today?o+='<div class="dd-meta" style="margin-top:10px">Already cracked today. Streak: <b>'+Number(e.streak||0)+"</b>. New cache at midnight.</div>":t.callsign?o+='<div class="dd-meta" style="margin-top:10px">Pays <b>+'+Number(e.next_payout||15)+" XP</b>"+(e.streak>0?" &middot; streak <b>"+Number(e.streak)+"</b>":"")+'. Gone at midnight.</div><div class="dd-cta"><button class="c-btn" id="pf-dd-claim">CRACK IT OPEN</button><div class="dd-err" id="pf-dd-err"></div></div>':o+='<div class="dd-meta" style="margin-top:10px">Claim a callsign in Enlistment Ranks to crack it open for <b>+'+Number(e.next_payout||15)+" XP</b>.</div>",o+"</div>"}(t,a);function s(){var n=document.getElementById("pf-dd-claim");n&&(n.onclick=function(){var i=document.getElementById("pf-dd-err"),r=document.getElementById("pf-dd-box");n.disabled=!0,n.textContent="CRACKING IT OPEN...",r&&(r.classList.remove("dd-burst"),r.classList.add("dd-shake")),function(t,a,n){var i={type:"deaddrop",dd_action:"drop_find",callsign:t.callsign,device:t.device,page:a};if(window.PF&&e.authPost)e.authPost(o,i,n);else try{fetch(o,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(i)}).then(function(e){return e.json()}).then(function(e){r(e)}).catch(function(){r(null)})}catch(e){r(null)}function r(e){try{n(e||{ok:!1,err:"Network error."})}catch(e){}}}(a,t.page,function(t){if(r&&r.classList.remove("dd-shake"),t&&t.ok){var o=document.getElementById("pf-deaddrop");r&&r.classList.add("dd-burst");var a=Number(t.xp||0),s=Number(t.streak||0);o&&(o.innerHTML='<div class="dd-kicker">◈ DEAD DROP — CRACKED</div><div class="dd-reward"><div class="dd-rxp">+'+a+' XP</div><div class="dd-rsub">Cache secured. Streak: <b>'+s+"</b> day"+(1===s?"":"s")+"."+(t.already?" (already claimed)":"")+"<br>New cache drops at midnight. Read the briefing.</div></div>");try{window.PF&&e.dope&&(e.dope.confetti(document.getElementById("pf-deaddrop"),40),e.dope.xpFloat(document.getElementById("pf-deaddrop"),"+"+a+" XP"))}catch(e){}try{document.dispatchEvent(new CustomEvent("pf-combo-hit"))}catch(e){}!function(t){try{if(window.PF&&e.toast)return void e.toast(t)}catch(e){}try{var o=document.createElement("div");o.textContent=t,o.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999",document.body.appendChild(o),setTimeout(function(){o.remove()},2800)}catch(e){}}(t.already?"Cache already cracked. +"+a+" XP banked.":"+"+a+" XP. The machine provides.")}else{n.disabled=!1,n.textContent="CRACK IT OPEN";var l=t&&"not here"===t.err?"Cold trail. The cache moved on.":t&&t.err||"The cache jammed. Try again.";i&&(i.textContent=l)}})})}if(r(i))s();else var l=0,c=setInterval(function(){l++,(r(i)||l>=120)&&(clearInterval(c),s())},500)}function l(){!function(){if(!document.getElementById("pf-dd-css")){var e=document.createElement("style");e.id="pf-dd-css",e.textContent=".dd-card{border:2px solid #c1121f;background:#0d0d0f;color:#f2f2f2;border-radius:10px;padding:16px 18px;margin:14px 0;position:relative;overflow:hidden}.dd-kicker{font:700 11px/1.4 monospace;letter-spacing:.18em;color:#c1121f;margin-bottom:6px}.dd-riddle{font:700 17px/1.45 Georgia,serif;font-style:italic;margin:6px 0 10px}.dd-meta{font:12px/1.6 monospace;color:#bdbdbd}.dd-meta b{color:#ffd166}.dd-cache{display:flex;gap:14px;align-items:center}.dd-box{font-size:44px;line-height:1;filter:drop-shadow(0 0 12px rgba(193,18,31,.55));transition:transform .25s}.dd-box.dd-shake{animation:ddshake .5s}@keyframes ddshake{0%,100%{transform:translateX(0) rotate(0)}25%{transform:translateX(-7px) rotate(-8deg)}50%{transform:translateX(6px) rotate(6deg)}75%{transform:translateX(-4px) rotate(-4deg)}}.dd-box.dd-burst{animation:ddburst .6s forwards}@keyframes ddburst{0%{transform:scale(1)}40%{transform:scale(1.35) rotate(10deg)}100%{transform:scale(1.1)}}.dd-cta{margin-top:12px}.dd-reward{text-align:center;padding:8px 0 2px}.dd-rxp{font:800 34px/1.2 monospace;color:#ffd166}.dd-rsub{font:12px/1.6 monospace;color:#bdbdbd;margin-top:4px}.dd-err{font:12px/1.5 monospace;color:#ff6b6b;margin-top:8px}",document.head.appendChild(e)}}();var e=function(){var e="",t="";try{e=window.PFCallsign?window.PFCallsign():""}catch(e){}try{t=window.PFDeviceId?window.PFDeviceId():""}catch(e){}return{callsign:e,device:t}}(),t=String(window.location.pathname||"").replace(/\/+$/,"")||"/";!function(e,t,a){if(o){var n="pfDdCb"+Math.floor(1e9*Math.random()),i=document.createElement("script"),r=!1;window[n]=function(e){c(e)},i.onerror=function(){c(null)};var s="?action="+encodeURIComponent(e);for(var l in t)null!=t[l]&&""!==t[l]&&(s+="&"+encodeURIComponent(l)+"="+encodeURIComponent(t[l]));s+="&callback="+n,i.src=o+s,document.head.appendChild(i),setTimeout(function(){c(null)},12e3)}else a(null);function c(e){if(!r){r=!0;try{delete window[n]}catch(e){}i.parentNode&&i.parentNode.removeChild(i),a(e)}}}("dead_drop_status",{device:e.device},function(o){o&&o.ok&&(!function(e){if(!document.getElementById("pf-deaddrop-card"))var t=0,o=setInterval(function(){t++;var a=document.getElementById("xBrief");if(a&&(a.querySelector(".br-sec")||t>40)){if(clearInterval(o),document.getElementById("pf-deaddrop-card"))return;try{var n=a.querySelector(".br-sec");n?n.insertAdjacentHTML("beforebegin",i(e)):a.insertAdjacentHTML("beforeend",i(e))}catch(e){}}t>60&&clearInterval(o)},500)}(o),t===String(o.page||"")&&("loading"===document.readyState?document.addEventListener("DOMContentLoaded",function(){s(o,e)}):s(o,e)))})}}();
+/* PF v1.4.3 core/bundle-core-slr.js — concatenated bundle, generated by build/bundle-core.js.
+   DO NOT EDIT. Regenerate with: node build/bundle-core.js [--debug]
+   Contains: core/00-bus.js, core/07-slr-db-data.js, core/07-slr-db.js, core/03-global.js, core/14-auth.js, pwa/install.js, core/04-ledger.js, core/05-tally.js, core/08-dopamine.js, core/09-referral.js, core/10-convert.js, core/11-xpledger.js, core/12-notify.js, core/13-flow.js, core/15-seo.js, core/campaign-data.js, core/17-nuke-strip.js, core/16-footer.js, core/19-crossnav.js, core/20-nextop.js, core/22-routemarch.js, core/22-dead-drop.js
+   Each file keeps its own PF.skip() kill switch (?pf_off=<silo>). */
+
+/* ===== core/00-bus.js ===== */
+/* core/00-bus.js  |  PF v1.4.2 | THE CONNECTOR LAYER. Loads first. Owns window.PF: the event bus every
+   KILL: ?pf_off=game-id,other  or  localStorage pf_disabled_v1='["game-id"]' */
+(function () {
+  'use strict';
+  if (window.PF && window.PF.v) return; /* never double-init */
+  var disabled = [];
+  try { disabled = JSON.parse(localStorage.getItem('pf_disabled_v1') || '[]'); } catch (e) {}
+  try {
+    var m = location.search.match(/[?&]pf_off=([^&]+)/);
+    if (m) disabled = disabled.concat(decodeURIComponent(m[1]).split(','));
+  } catch (e) {}
+  function tag(silo, msg) { return '[PF:' + silo + '] ' + msg; }
+  window.PF = {
+    v: '1.4.2',
+    disabled: disabled,
+    skip: function (silo) { return disabled.indexOf(silo) !== -1; },
+    log: function (silo, msg) { try { console.log(tag(silo, msg)); } catch (e) {} },
+    error: function (silo, err) {
+      var msg = err && err.message ? err.message : String(err);
+      try { console.error(tag(silo, 'ERROR: ' + msg)); } catch (e) {}
+    },
+    /* friendlyErr(j) (2026-10-04): shared read of the backend's error field.
+       XP/bank actions return `error:` while most frontends only read `j.err`
+       — this reads j.err || j.error || j.message so no field shape drops
+       the message. */
+    friendlyErr: function (j) {
+      return (j && (j.err || j.error || j.message)) || '';
+    },
+    /* errCopy(code, fallback) (2026-10-04): route raw backend codes
+       ('cap', 'bad bet_type', 'unauthorized', 'missing credentials', ...)
+       through friendly propaganda-voice copy before they reach the user.
+       Same semantics as the armory writeErrCopy / cells cellWriteErr
+       pattern: mapped codes -> friendly copy; empty/network-error -> the
+       fallback; unmapped snake_case -> fallback (never show raw codes);
+       anything else is backend prose, passed through as-is. */
+    errCopy: function (code, fallback) {
+      /* code may be a raw string OR the full response object — a response
+         is read through friendlyErr so `error:`-shaped backends never drop
+         the message. */
+      var c = code;
+      if (c && typeof c === 'object') c = c.err || c.error || c.message;
+      var s = String(c == null ? '' : c).trim();
+      var fall = fallback || 'The wire fought back. Nothing changed \u2014 retry.';
+      if (!s || /network error/i.test(s)) return fall;
+      var map = {
+        'cap': 'Daily cap reached. The wire resets at midnight Chicago time \u2014 come back swinging.',
+        'bad bet_type': 'That bet didn\u2019t take. Pick a live line and try again.',
+        'unauthorized': 'Your callsign needs to reconnect \u2014 re-claim it in Enlistment Ranks (one tap), then retry.',
+        'missing credentials': 'Your callsign needs to reconnect \u2014 re-claim it in Enlistment Ranks (one tap), then retry.',
+        'bad callsign': 'That callsign didn\u2019t check out. Re-claim it in Enlistment Ranks, then retry.',
+        'legacy_callsign': 'This callsign predates the new auth system \u2014 contact MTCSTW to recover it.',
+        'claim unavailable': 'This callsign predates the new auth system \u2014 contact MTCSTW to recover it.',
+        'insufficient XP': 'Not enough XP in the war chest. Go earn some.',
+        'db error': 'The ledger hiccuped. Retry in a moment.',
+        'not owned': 'You don\u2019t own that one yet.',
+        'already owned': 'Already yours. One per fighter.',
+        'already claimed': 'Already claimed. One shot per fighter.',
+        'already joined': 'You\u2019re already in. The fight continues.',
+        'cell_full': 'That cell is full \u2014 five fighters max. Found your own instead.',
+        'seller or admin only': 'Only the seller or an admin can close this.',
+        'not active yet': 'Not live yet. The fight hasn\u2019t started.',
+        'no such item': 'That one isn\u2019t on the board anymore. Refresh.',
+        'bad kind': 'That slot didn\u2019t take. Refresh and try again.',
+        'invalid_code': 'That code doesn\u2019t open anything. Check it and try again.'
+      };
+      if (map[s]) return map[s];
+      if (s.indexOf('_') !== -1) return fall; /* never show raw snake_case */
+      return s; /* backend prose already human-readable */
+    },
+    /* Event naming: legacy flat names ('pf-share-image') keep working.
+       New cross-silo events use namespaced form 'pf:domain:action'
+       (pf:battle:won, pf:loot:opened, pf:streak:milestone, pf:recruit:activated).
+       Rules: producers fire-and-forget, consumers fail silently
+       (document.addEventListener / dispatchEvent), no consumer touches
+       financial settlement or auth. */
+    holder: function () {
+      var h = document.getElementById('pf-silo-holder');
+      if (!h) {
+        h = document.createElement('div');
+        h.id = 'pf-silo-holder'; h.style.display = 'none';
+        (document.body || document.documentElement).appendChild(h);
+      }
+      return h;
+    },
+    toast: function (msg) {
+      /* canonical global toast — bottom-center, ~3s, propaganda poster
+         aesthetic (black bg, red border, cream text). Core loads before
+         every silo, so all games can call PF.toast directly.
+         Queued (2026-10-02): rapid messages stack sequentially instead of
+         overlapping — one visible at a time, FIFO.
+         2026-10-03 (M23): messages render inside ONE persistent live-region
+         container (role="status" aria-live="polite", same pattern as
+         social-proof.js) so screen readers announce them. The attributes
+         are set once on the container — individual messages are not
+         redundant live regions themselves. */
+      try {
+        PF._toastQ = PF._toastQ || [];
+        PF._toastQ.push(String(msg));
+        if (!PF._toastBusy) PF._toastNext();
+      } catch (e) {}
+    },
+    _toastBox: function () {
+      /* the single persistent toast live-region, created exactly once */
+      var box = null;
+      try { box = document.getElementById('pf-toast-live'); } catch (e) {}
+      if (!box) {
+        box = document.createElement('div');
+        box.id = 'pf-toast-live';
+        box.setAttribute('role', 'status');
+        box.setAttribute('aria-live', 'polite');
+        box.style.cssText = 'position:fixed;left:0;right:0;bottom:8%;z-index:99999;pointer-events:none;text-align:center;';
+        (document.body || document.documentElement).appendChild(box);
+      }
+      return box;
+    },
+    _toastNext: function () {
+      try {
+        var q = PF._toastQ || [];
+        if (!q.length) { PF._toastBusy = false; return; }
+        PF._toastBusy = true;
+        var msg = q.shift();
+        var box = PF._toastBox();
+        var t = document.createElement('div'); t.textContent = msg;
+        t.style.cssText = 'display:inline-block;background:#0a0a0a;color:#f5f0e1;font:bold 15px monospace;padding:12px 22px;border:2px solid #c1121f;max-width:90vw;text-align:center;box-sizing:border-box';
+        box.appendChild(t);
+        setTimeout(function () { try { t.remove(); } catch (e) {} PF._toastNext(); }, 3000);
+      } catch (e) { try { PF._toastBusy = false; } catch (e2) {} }
+    },
+    report: function (action) {
+      /* canonical backend report; core/03-global.js owns the transport */
+      try { if (typeof window.pfReportAction === 'function') window.pfReportAction(action); } catch (e) {}
+    },
+    gotoSilo: function (silo) {
+      /* PF.gotoSilo('poster-forge') — smooth-scroll to any homepage widget.
+         Used by .pf-next companion links (2026-10-02). If the target isn't
+         mounted yet (lazy bundle), retry for up to 5s. */
+      var tries = 0;
+      function find() {
+        try {
+          return document.querySelector('section[data-game="' + silo + '"]');
+        } catch (e) { return null; }
+      }
+      function scroll(el) {
+        try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+        catch (e) { try { el.scrollIntoView(); } catch (e2) {} }
+      }
+      var el = find();
+      if (el) { scroll(el); return; }
+      var iv = setInterval(function () {
+        tries++;
+        var s2 = find();
+        if (s2) { clearInterval(iv); scroll(s2); }
+        else if (tries >= 10) { clearInterval(iv); }
+      }, 500);
+    },
+    /* Visibility helper (2026-10-02): aggressive pollers should skip backend
+       calls when the tab is hidden. PF.hidden() returns true when the page
+       is not visible. Usage in a poller:
+         setInterval(function(){ if(PF.hidden()) return; ...poll...; }, 5000); */
+    hidden: function () {
+      try { return !!(document.hidden || document.webkitHidden); } catch (e) { return false; }
+    },
+    /* whenVisible(el, fn) — run fn once when el scrolls into view.
+       Returns a trigger function: calling it fires fn immediately (also once).
+       Use for on-demand data: skeleton renders at mount, backend fetch waits
+       until the widget is actually seen (or the user interacts with it).
+       Backstop: fires after 15s regardless so slow IO never strands a widget. */
+    whenVisible: function (el, fn) {
+      var done = false;
+      function go() {
+        if (done) return; done = true;
+        try { fn(); } catch (e) {}
+      }
+      try {
+        if (!el || !('IntersectionObserver' in window)) { go(); return go; }
+        var ob = new IntersectionObserver(function (es) {
+          if (es && es[0] && es[0].isIntersecting) { try { ob.disconnect(); } catch (e) {} go(); }
+        }, { rootMargin: '200px' });
+        ob.observe(el);
+        setTimeout(go, 15000);
+      } catch (e) { go(); }
+      return go;
+    },
+    /* creditLocal(key, xp) — the ONE writer for the local XP ledger
+       (localStorage pf_ranks_v1). Idempotent per key: repeat calls with the
+       same key are no-ops. Widgets must not hand-roll this; the global layer
+       owns the ledger so concurrent writers can't drift the format. */
+    creditLocal: function (key, xp) {
+      try {
+        var r = null;
+        try { r = JSON.parse(localStorage.getItem('pf_ranks_v1') || 'null'); } catch (e) {}
+        if (!r || typeof r !== 'object') r = { xp: 0, got: {} };
+        if (!r.got) r.got = {};
+        if (r.got[key]) return false;
+        r.got[key] = 1; r.xp += (Number(xp) || 0);
+        try { localStorage.setItem('pf_ranks_v1', JSON.stringify(r)); } catch (e) {}
+        return true;
+      } catch (e) { return false; }
+    },
+    /* debitLocal(key, xp) — the ONE writer for local XP spends, mirroring
+       creditLocal. Two modes:
+       - key provided: exactly-once REVERSAL of that specific credit. Only
+         debits when the key was previously credited (got[key] set), then
+         removes the key. Returns true when XP was actually removed.
+       - key falsy: unconditional spend from the general balance (the backend
+         already settled it — the local ledger mirrors it for instant UX,
+         never dispatch pf-xp for these). Always returns true on success.
+       Widgets must not hand-roll pf_ranks_v1 writes. */
+    debitLocal: function (key, xp) {
+      try {
+        var r = null;
+        try { r = JSON.parse(localStorage.getItem('pf_ranks_v1') || 'null'); } catch (e) {}
+        if (!r || typeof r !== 'object') r = { xp: 0, got: {} };
+        if (!r.got) r.got = {};
+        var amt = Math.max(0, Number(xp) || 0);
+        if (key) {
+          if (!r.got[key]) return false;
+          delete r.got[key];
+        }
+        r.xp = Math.max(0, (Number(r.xp) || 0) - amt);
+        try { localStorage.setItem('pf_ranks_v1', JSON.stringify(r)); } catch (e) {}
+        return true;
+      } catch (e) { return false; }
+    },
+    /* Shared date helpers (single copies; games must not redefine these).
+       chiNow: now in America/Chicago. mondayOf: Monday 00:00 of d's week.
+       isoWeekKey: 'YYYY-Www' ISO week key for weekly localStorage buckets. */
+    chiNow: function () { try { return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' })); } catch (e) { return new Date(); } },
+    mondayOf: function (d) { var x = new Date(d); var day = (x.getDay() + 6) % 7; x.setHours(0, 0, 0, 0); x.setDate(x.getDate() - day); return x; },
+    isoWeekKey: function (d) { var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); var day = (t.getUTCDay() + 6) % 7; t.setUTCDate(t.getUTCDate() - day + 3); var first = new Date(Date.UTC(t.getUTCFullYear(), 0, 4)); var fday = (first.getUTCDay() + 6) % 7; first.setUTCDate(first.getUTCDate() - fday + 3); var w = 1 + Math.round((t - first) / (7 * 864e5)); return t.getUTCFullYear() + '-W' + String(w).padStart(2, '0'); },
+    /* Daily XP economy: every comrade caps at 50 XP per day (America/Chicago)
+       from daily tasks. Weekly tasks, one-time bonuses, recruit bounties, and
+       the weekly FULL DEPLOYMENT medal are exempt — they're bounded by
+       week/event already. All daily XP awards MUST route through claimDayXp
+       so the cap holds no matter what order tasks are completed in. */
+    DAILY_XP_CAP: 50,
+    _xpDayKey: 'pf_xpday_v1',
+    _xpDayStr: function () { try { var n = this.chiNow(); return n.getFullYear() + '-' + ('0' + (n.getMonth() + 1)).slice(-2) + '-' + ('0' + n.getDate()).slice(-2); } catch (e) { return ''; } },
+    dayXpEarned: function () {
+      try {
+        var s = JSON.parse(localStorage.getItem(this._xpDayKey) || 'null');
+        if (s && s.d === this._xpDayStr()) return s.xp || 0;
+      } catch (e) {}
+      return 0;
+    },
+    claimDayXp: function (want) {
+      /* Returns the XP actually allowed (0..want) and records it. */
+      want = Math.max(0, Math.floor(Number(want) || 0));
+      var t = this._xpDayStr(), s = null;
+      try { s = JSON.parse(localStorage.getItem(this._xpDayKey) || 'null'); } catch (e) {}
+      if (!s || s.d !== t) s = { d: t, xp: 0 };
+      var room = Math.max(0, this.DAILY_XP_CAP - (s.xp || 0));
+      var allow = Math.min(want, room);
+      s.xp = (s.xp || 0) + allow;
+      try { localStorage.setItem(this._xpDayKey, JSON.stringify(s)); } catch (e) {}
+      return allow;
+    },
+    seedDayXp: function (force) {
+      /* Cross-device 50/day: when the user has a callsign, ask the backend how
+         much pool XP that callsign already earned today (America/Chicago) and
+         raise the local bucket to match — so phone + laptop share one pool.
+         Once per day; silent on failure. The backend counts only pool-routed
+         action types, so exempt bonuses never shrink anyone's room. */
+      try {
+        var id = null;
+        try { id = JSON.parse(localStorage.getItem('pf_identity_v1') || '{}'); } catch (e) {}
+        var cs = id && id.callsign ? String(id.callsign) : '';
+        if (!cs || !window.PF_BACKEND_URL) return;
+        var t = this._xpDayStr(), flag = 'pf_xpseed_v1';
+        try { if (localStorage.getItem(flag) === t) return; } catch (e) {}
+        if (!force) {
+          try { if (window.sessionStorage && sessionStorage.getItem(flag) === t) return; } catch (e) {}
+          try { if (window.sessionStorage) sessionStorage.setItem(flag, t); } catch (e) {}
+        }
+        var self = this;
+        var fn = 'pfSeedCb' + Math.floor(Math.random() * 1e9);
+        window[fn] = function (j) {
+          try { delete window[fn]; } catch (e) {}
+          try {
+            if (j && j.ok && typeof j.xp_today === 'number' && j.xp_today > 0) {
+              var s = null;
+              try { s = JSON.parse(localStorage.getItem(self._xpDayKey) || 'null'); } catch (e) {}
+              if (!s || s.d !== t) s = { d: t, xp: 0 };
+              if (j.xp_today > (s.xp || 0)) {
+                s.xp = Math.min(self.DAILY_XP_CAP, Math.floor(j.xp_today));
+                try { localStorage.setItem(self._xpDayKey, JSON.stringify(s)); } catch (e) {}
+              }
+            }
+            try { localStorage.setItem(flag, t); } catch (e) {}
+          } catch (e) {}
+        };
+        var sc = document.createElement('script');
+        sc.onerror = function () { try { delete window[fn]; } catch (e) {} };
+        sc.src = window.PF_BACKEND_URL + '?action=xp_today&callsign=' + encodeURIComponent(cs) + '&callback=' + fn;
+        document.head.appendChild(sc);
+      } catch (e) {}
+    },
+    /* JSONP batching: fire multiple backend GETs in parallel, resolve as one.
+       PF.batchGet([{action:'briefing',params:{callsign:cs}},{action:'flash_active'}])
+         .then(function(results){ // results[i] = {action, ok, data} }) */
+    batchGet: function (calls) {
+      var self = this;
+      if (!self.jsonp) return Promise.resolve((calls || []).map(function () { return { ok: false, data: null }; }));
+      var ps = (calls || []).map(function (c) {
+        return self.jsonp(c.action, c.params || {}).then(function (data) {
+          return { action: c.action, ok: !!(data && data.ok !== false), data: data };
+        });
+      });
+      return Promise.all(ps);
+    },
+    /* Single JSONP GET returning a Promise. Shared transport for batchGet. */
+    jsonp: function (action, params) {
+      var self = this;
+      return new Promise(function (resolve) {
+        try {
+          var base = window.PF_BACKEND_URL;
+          if (!base) { resolve(null); return; }
+          var fn = 'pfBatchCb' + Math.floor(Math.random() * 1e9);
+          var s = document.createElement('script'), done = false;
+          function finish(j) {
+            if (done) return; done = true;
+            try { delete window[fn]; } catch (e) {}
+            if (s.parentNode) s.parentNode.removeChild(s);
+            resolve(j || null);
+          }
+          window[fn] = function (j) { finish(j); };
+          s.onerror = function () { finish(null); };
+          var q = '?action=' + encodeURIComponent(action);
+          var p = params || {};
+          for (var k in p) {
+            if (p[k] != null && p[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(p[k]);
+          }
+          q += '&callback=' + fn;
+          s.src = base + q;
+          document.head.appendChild(s);
+          setTimeout(function () { finish(null); }, 12000);
+        } catch (e) { resolve(null); }
+      });
+    }
+  };
+})();
+
+;
+
+/* ===== core/07-slr-db-data.js ===== */
+/* GENERATED by src/data/build-master-db.py — do not hand-edit. Rebuild after editing slr-master-db.json. */
+window.PF_SLR_DB_SNAPSHOT = {"meta": {"version": "2026-10-02", "total_members": 62, "existing": 41, "new": 21, "source": "creators-db.json (41, group C enriched) + slr-missing-candidates.json (21 approved)", "catalog_scrape_applied": true, "rules": ["followers_total is the single numeric audience field (counted once)", "new members carry provisional scores 7.6-9.8", "no guessed URLs; links tagged confirmed/probable/unverified"], "content_updated": "2026-10-03"}, "members": [{"slug": "sex-drugs-rock-n-roll", "name": "Sex Drugs Rock n Roll", "handles": {"primary": "@sexdrugsrocknroll"}, "primary_platform": "Facebook", "propaganda_score": 9.8, "score_provisional": false, "followers_total": 258708, "followers_display": "258.7K+", "followers_by_platform": {}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/98feb69f-1dd8-4726-a377-5fa357f011fd/333410538_180133698048476_3682545244627213546_n.jpg?format=750w", "catalog_path": "/sex-drugs-rock-n-roll", "links": [{"platform": "Facebook", "url": "https://www.facebook.com/SDRandR2", "status": "confirmed"}], "key_strengths": ["258,708 verified followers — the third-largest audience on the board, a broadcast tower aimed from the left", "Propaganda with the volume cranked: loud, irreverent, allergic to respectability", "One of the few pages that can move a quarter-million people with a single post — reach as a material asset"], "offer": ["Rock-and-roll politics: loud, unapologetic, allergic to respectability — the oldest rebellion aimed at the newest tyranny", "Content: memes, rants, and gleeful blasphemy against the powerful — the kind of thing that made rock dangerous", "Culture war: winning by being more fun, more alive, and more willing to say the thing"], "bio": "**Sex Drugs Rock n Roll** — because of course that's the name. A Facebook page that takes the oldest rebellion in the book and aims it at the newest tyranny. This is rock-and-roll politics: loud, unapologetic, allergic to respectability, and absolutely uninterested in asking permission. The content is the full package — memes, rants, and the kind of gleeful blasphemy against the powerful that made rock dangerous in the first place. The page understands something fundamental: the culture war is real, and the left wins it by being more fun, more alive, and more willing to say the thing. Why it's on the roster: because a 9.8 doesn't go to the careful. It goes to the ones who make the revolution feel like the best party you've ever been to. Sex Drugs Rock n Roll is that party.", "content_focus": "Rock-and-roll leftist politics: memes, rants, anti-establishment blasphemy aimed at the powerful; culture-war content meant to make the revolution feel like the best party.", "is_new": false, "seo_title": "Sex Drugs Rock n Roll | Sick Left Radicals | MTCSTW", "seo_description": "Sex Drugs Rock n Roll: one of the heaviest guns on the roster — 258K of rock & revolt. Propaganda score 9.8.", "image_alt": "Sex Drugs Rock n Roll, Rock-and-roll leftist politics: memes, rants, anti-establishment... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "mtcstw", "name": "MTCSTW", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 9.8, "score_provisional": false, "followers_total": 380000, "followers_display": "380K+", "followers_by_platform": {"combined": {"count": 380000, "confidence": "confirmed"}}, "followers_as_of": "2026-09-28", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/1810c8c9-3148-41f0-b03f-99e7cd29ff12/mtcstw.jpg?format=750w", "catalog_path": "/mtcstw", "links": [{"platform": "Instagram", "url": "https://www.instagram.com/mtcstw", "status": "confirmed"}, {"platform": "Web", "url": "https://www.mtcstw.com/", "status": "confirmed"}, {"platform": "Substack", "url": "https://mtcstw.substack.com/p/media-nuke-incoming", "status": "confirmed"}, {"platform": "Podcast", "url": "https://rss.com/podcasts/the-propaganda-factory", "status": "confirmed"}, {"platform": "Podcast_2", "url": "https://www.iheart.com/podcast/269-the-propaganda-factory-305807045/", "status": "confirmed"}, {"platform": "Instagram_2", "url": "https://www.instagram.com/propfac", "status": "probable"}], "key_strengths": ["Network command: built and curates a 62-creator network with 8M+ combined reach", "Prolific creative engine: 380K+ followers across platforms — 50 songs in 2026, a Substack with a paid tier, and the Propaganda Factory store", "Self-funding war chest: revenue from music, merch, and content funds the network"], "offer": ["The Sick Left Radicals network: 62 vetted leftist creators, 8M+ combined reach", "Music and media: 50 songs in 2026, Substack with a paid tier", "Merch: the Propaganda Factory store", "Writing: Substack with a paid tier"], "bio": "MTCSTW is the operation behind the operation: the founder, strategist, and lead propagandist of the Sick Left Radicals network. A one-person media company with a 62-creator amplifier. MTCSTW built the roster, wrote the playbook, and set the aesthetic — red, black, and unignorable.", "content_focus": "Network command + leftist propaganda across media: podcast (long-form analysis), Substack essays, music, merch, and the SLR creator network.", "is_new": false, "seo_title": "MTCSTW | Sick Left Radicals | MTCSTW", "seo_description": "MTCSTW (@mtcstw): the operation behind the Sick Left Radicals network — 62 creators, 8M+ reach, for-profit propaganda. Propaganda score 9.8.", "image_alt": "MTCSTW, Network command + leftist propaganda across media: podcast (long-form... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "radically-sunny", "name": "Radically Sunny", "handles": {"primary": "@radicallysunny"}, "primary_platform": null, "propaganda_score": 9.7, "score_provisional": false, "followers_total": 300000, "followers_display": "300K+", "followers_by_platform": {"tiktok": {"count": 2633, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/17574d4c-499d-4904-8fd6-1d37c1ec1565/sunny.jpg?format=750w", "catalog_path": "/radically-sunny", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@radicallysunnycreations", "status": "confirmed"}, {"platform": "Facebook", "url": "https://www.facebook.com/share/19up85ZhZz/?mibextid=wwXIfr", "status": "confirmed"}, {"platform": "Merch", "url": "https://radicallysunny.threadless.com/designs/do-better-be-better/kids", "status": "confirmed"}], "key_strengths": ["300K+ for healing-era illustration with a soft-left spine — wizard frogs and ransom-note collages about power", "Merch that recruits: a tote reading 'Radicalized by human decency,' plus a Threadless shop and Patreon", "The morale wing — bright, affirming posters that travel, feeding the soldiers' souls"], "offer": ["Radical optimism: relentless optimism paired with unrelenting radicalism — smiling while you flip the table", "Leftist commentary: sharp leftist commentary delivered with genuine warmth, making the future feel winnable", "Emotional corrective: proof you can be furious at the system and still be a joy to follow"], "bio": "**Radically Sunny** is the kind of name that shouldn't work and absolutely does. A Facebook page that pairs relentless optimism with unrelenting radicalism — the political equivalent of smiling while you flip the table. The content is the good stuff: sharp leftist commentary delivered with genuine warmth, the kind of page that makes you feel like the future is winnable rather than just survivable. In a movement that can sometimes mistake despair for seriousness, Radically Sunny is a corrective — proof that you can be furious at the system and still be a joy to follow. Why she's on the roster: because the 9.7s are the ones that change the emotional temperature of the whole network. Radically Sunny makes the revolution feel like something you *want* to be part of, not just something you have to endure.", "content_focus": "Leftist commentary with radical optimism; illustrative art/posters (soft-left, bright, affirming); recruiting merch ('Radicalized by human decency' tote).", "is_new": false, "seo_title": "Radically Sunny | Sick Left Radicals | MTCSTW", "seo_description": "Radically Sunny: the morale wing — healing-era digital illustration for the revolution. Propaganda score 9.7.", "image_alt": "Radically Sunny, Leftist commentary with radical optimism; illustrative art/posters... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "east-coast-it-notes", "name": "East Coast It Notes", "handles": {"primary": "@eastcoastitnotes"}, "primary_platform": "Instagram", "propaganda_score": 9.6, "score_provisional": false, "followers_total": 84755, "followers_display": "84.8K+", "followers_by_platform": {}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/4c39a158-5fa1-4997-a70b-fd90646f3327/444136406_1004276784618065_4047333174202600285_n.jpg?format=750w", "catalog_path": "/east-coast-it-notes", "links": [{"platform": "Facebook", "url": "https://www.facebook.com/eastcoastitnotes", "status": "confirmed"}, {"platform": "Instagram", "url": "https://www.instagram.com/eastcoastitnotes", "status": "confirmed"}], "key_strengths": ["84,755 followers for revolution drawn on post-it notes — propaganda in its purest form: pictures with words", "Satirical strips that slip past defenses against 'political art' and land the class-war punch anyway", "Woven into the Liquidate the Billionaires movement; sat down for a full hour on The Propaganda Factory podcast"], "offer": ["Comic art: post-it note comics since 2019 — cheeky, satirical, unpretentious class-war as office humor", "Movement ties: work woven into the Liquidate the Billionaires movement; featured in a full hour-long episode (E11, April 2025) of The Propaganda Factory podcast", "Shareable propaganda: pictures with words, reproducible, shareable, impossible to forget"], "bio": "East Coast It Notes draws the revolution on post-it notes. The comic artist behind the series started the strip in 2019 and built it out of the humblest medium in the office supply aisle — tiny sticky squares of ink that talk about everything and anything, cheeky and satirical and utterly unpretentious. That's the whole point: propaganda doesn't need a print shop, it needs a pen and something true to say. A leftist comic artist out of LeftBook, he's woven his work into the Liquidate the Billionaires movement, and he's family enough to The Propaganda Factory that he sat down for a full hour-long episode (E11, April 2025) to talk background, craft, and worldview. When the movement's own podcast brings you in for an hour, you've earned your seat at the table. Why it hits: the format is disarming and the politics aren't. A post-it note comic slips past the defenses people raise against \"political art\" and lands the punch anyway — class war as office humor. East Coast It Notes belongs in the Sick Left Radicals network because comics are propaganda in its purest form: pictures with words, reproducible, shareable, impossible to forget.", "content_focus": "Leftist comic art drawn on Post-It notes — cheeky, satirical, unpretentious; class-war as office humor; everyday thoughts and awkward moments turned into bite-sized political jokes.", "is_new": false, "seo_title": "East Coast It Notes | Sick Left Radicals | MTCSTW", "seo_description": "East Coast It Notes: the revolution drawn on post-it notes — comic art with 84,755 followers. Propaganda score 9.6.", "image_alt": "East Coast It Notes, Leftist comic art drawn on Post-It notes — cheeky, satirical,... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "joman", "name": "Joman", "handles": {"primary": "@joman"}, "primary_platform": "TikTok", "propaganda_score": 9.6, "score_provisional": false, "followers_total": 290000, "followers_display": "290K+", "followers_by_platform": {}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/93ba1214-8a77-401a-b925-d1aa204fcc25/joman.jpg?format=750w", "catalog_path": "/joman", "links": [{"platform": "Linktree", "url": "https://linktr.ee/jomanmusic", "status": "confirmed"}, {"platform": "Substack", "url": "https://jomanmusic.substack.com", "status": "confirmed"}, {"platform": "Website", "url": "https://jomanmusic.com", "status": "confirmed"}], "key_strengths": ["290K+ across eight platforms — music producer, singer, songwriter, video editor, DJ, and Jomactor", "Builds things, not just content: short film 'Fairy Godmother' announced April 2026, open honesty about the artist's grind", "The empire's soundtrack — a propagandist who can score the movement, edit the video, and star in the film"], "offer": ["Socialist music: explicitly socialist, explicitly revolutionary music — actual class-war anthems for the current fight", "Independent circuit: working the independent circuit via Linktree, building audience directly, no label, no permission slip", "Emotional propaganda: music that bypasses the argumentative brain and goes straight for the feeling — you don't debate a chorus, you sing it"], "bio": "Every movement has a soundtrack, and **Joman** is writing ours. A musician and producer building explicitly socialist, explicitly revolutionary music — not protest-folk nostalgia, not vague uplift, but actual class-war anthems for the current fight. The link is a Linktree — the modern musician's storefront, and it tells you everything: this is an artist working the independent circuit, building audience directly, no label, no permission slip. The music does what propaganda is supposed to do: bypass the argumentative brain and go straight for the feeling. You don't debate a chorus. You sing it. Why he's in the network: because revolutions need drums. The pages do the explaining; Joman does the *feeling*. A 9.6 because the left has always won on culture first, and Joman is making the culture.", "content_focus": "Socialist revolutionary music (class-war anthems); written commentary on Substack (e.g., anti-fascist posts); video content; DJing and short film work.", "is_new": false, "seo_title": "Joman | Sick Left Radicals | MTCSTW", "seo_description": "Joman (@jomanmusic): SLR's music maker — artist, DJ & propagandist across 8 platforms. Propaganda score 9.6.", "image_alt": "Joman, Socialist revolutionary music (class-war anthems); written commentary... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "quietmayhem", "name": "quietmayhem", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 9.6, "score_provisional": false, "followers_total": 10700, "followers_display": "10.7K+", "followers_by_platform": {}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/cbe3277c-eb76-481e-aea6-0650defeba71/IMG_9095.jpeg?format=750w", "catalog_path": "/quietmayhem", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@quietmayhem", "status": "confirmed"}, {"platform": "Substack", "url": "https://quietmayhem.substack.com", "status": "confirmed"}], "key_strengths": ["Forensic bill breakdowns scored like report cards — H.R. 1 got 36/110 and an F, with donor fingerprints traced", "Not just analysis: the Money Out of Politics Movement runs real infrastructure — D.C. address, fundraiser, Discord", "Names names, shows the money trail, then puts boots on pavement — the March for Integrity aimed 2M people at D.C."], "offer": ["TikTok-native politics: short-form political content (@quietmayhem) — funny, furious, surgically precise about who the enemy is", "Platform fluency: quick, punchy, built for the scroll — class-war content engineered for where the audience lives", "Independent voice: no studio, no budget, no permission — a phone, a point of view, and the guts to post"], "bio": "**quietmayhem** is the TikTok handle, and the name is a lie — there's nothing quiet about it. A TikTok creator (@quietmayhem) building the kind of short-form political content that actually moves people: funny, furious, and surgically precise about who the enemy is. The format is TikTok-native — quick, punchy, built for the scroll — but the politics are anything but shallow. This is class-war content engineered for the platform where the audience actually lives, delivered with the confidence of someone who knows the algorithm is a battlefield, not a neutral referee. Why they're on the roster: because the 9.6s are the ones doing it at the highest level. quietmayhem is proof that you don't need a studio, a budget, or permission — you need a phone, a point of view, and the guts to post.", "content_focus": "Forensic bill breakdowns (H.R. 1 'One Big Beautiful Bill Act', H.R. 217 Chip-In for Veterans Act, Richard Star Act, Mayhem's Monday Morning Mashup); money-in-politics corruption analysis; 'Power to the People' organizing CTAs (March for Integrity, Money Out of Politics Movement).", "is_new": false, "seo_title": "quietmayhem | Sick Left Radicals | MTCSTW", "seo_description": "quietmayhem: writer & propagandist across TikTok, Substack & YouTube. Propaganda score 9.6.", "image_alt": "quietmayhem, Forensic bill breakdowns (H.R. 1 'One Big Beautiful Bill Act', H.R.... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "dr-taylor-andrew", "name": "Dr. Taylor Andrew", "handles": {"primary": "@docdrustudios"}, "primary_platform": "TikTok", "propaganda_score": 9.4, "score_provisional": false, "followers_total": 357000, "followers_display": "357K+", "followers_by_platform": {"tiktok": {"count": 229600, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/e0c85fe4-f2fd-431d-87ee-d1323181e7b2/drtaylor.jpg?format=750w", "catalog_path": "/dr-taylor-andrew", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@docdrustudios", "status": "confirmed"}, {"platform": "Substack", "url": "https://substack.com/@docdrustudios", "status": "confirmed"}], "key_strengths": ["357K cross-platform flamethrower aimed at American racism — racists named, shown receipts, made examples of", "Confrontation-as-content at industrial volume: ~3,900 videos, posting multiple times a day", "Million-view clips: 'Apricot Adolf basically bankrupted the country' and Texas ICE-protest commentary"], "offer": ["Direct-to-camera commentary: multiple posts daily confronting American racism, public accountability callouts naming racists with receipts", "Recurring formats: \"When you become THE canon event for the wrong person\" series, 🦝 Ranger Spotlight", "Patreon podcast: The Social Script", "TikTok presence: ~3,900 videos and counting, clips clearing 1M+ views"], "bio": "**Dr. Taylor Andrew** — *\"No, not THAT kind of Dr.\"* — is a direct-to-camera flamethrower aimed at American racism, posting multiple times a day with zero interest in your comfort. His signature move is the public accountability callout: racists get named, shown receipts, and made an example of, with the on-screen text *\"Keep it 'in house'? Nah, racists get exposed over here.\"* Recurring formats include the **\"When you become THE canon event for the wrong person\"** series and the **🦝 Ranger Spotlight**, plus a Patreon podcast, *The Social Script*. Why it hits: the man's clips move. *\"Apricot Adolf basically bankrupted the country\"* and his ICE-protest commentary in Texas both cleared a million+ views, and his reel on why nobody Black is shocked by anything anymore pulled 19K likes and 2.7K comments of pure fire. He says the thing liberals whisper and racists fear: white supremacy isn't new, it's just televised now. Why he belongs: this is confrontation-as-content at industrial volume — ~3,900 videos and counting. Raw, unapologetic, and allergic to respectability.", "content_focus": "Confrontation-as-content aimed at American racism and white supremacy; viral million-view clips ('Apricot Adolf basically bankrupted the country', Texas ICE-protest commentary).", "is_new": false, "seo_title": "Dr. Taylor Andrew | Sick Left Radicals | MTCSTW", "seo_description": "Dr. Taylor Andrew (@docdrustudios): PhD creator breaking down politics & power to 357K across platforms. Propaganda score 9.4.", "image_alt": "Dr. Taylor Andrew, Confrontation-as-content aimed at American racism and white... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "the-atheist-socialist", "name": "The Atheist Socialist", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 9.4, "score_provisional": false, "followers_total": 28537, "followers_display": "28.5K+", "followers_by_platform": {}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/41d05b04-2f25-44fe-8c52-b100c31be1c4/Image+15.jpeg?format=750w", "catalog_path": "/the-atheist-socialist", "links": [{"platform": "Facebook", "url": "https://www.facebook.com/afpeofficial", "status": "confirmed"}], "key_strengths": ["28,537 strong in the anti-clerical lane — no gods, no masters, no excuses, swinging at the pulpit daily", "Battle-tested in long-form debate: featured guest on 'Ask an Atheist: Tas' with the movement's heavy hitters", "Says the quiet part loud about the church's alliance with empire — sacred cows turned into hamburger"], "offer": ["Godless socialism: pairing godless critique of religion with materialist critique of capitalism — the opiate and the exploitation as a package deal", "Content: sharp, unapologetic memes and commentary treating both church and boss as institutions demanding obedience and money", "Heretic energy: against both God and capital, and the most fun follow on the timeline"], "bio": "**The Atheist Socialist** is doing the Lord's work, minus the Lord. A Facebook page that pairs godless critique of religion with a materialist critique of capitalism — because the opiate of the masses and the exploitation of the masses are, famously, a package deal. The content is sharp, unapologetic, and deeply unfashionable in the most fashionable way: memes and commentary that treat both the church and the boss as what they are — institutions that demand your obedience and your money. The page has the confidence of someone who has read the theory *and* touched grass. Why it's on the roster: because the left needs its heretics. The Atheist Socialist is proof that you can be against both God and capital and still be the most fun follow on the timeline.", "content_focus": "Godless socialism: sharp, unapologetic memes and commentary treating both church and boss as institutions demanding obedience and money; church-empire alliance critique.", "is_new": false, "seo_title": "The Atheist Socialist | Sick Left Radicals | MTCSTW", "seo_description": "The Atheist Socialist: godless class analysis on Facebook. Propaganda score 9.4.", "image_alt": "The Atheist Socialist, Godless socialism: sharp, unapologetic memes and commentary treating... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "us-department-of-health-and-human-shenanigans", "name": "US Dept of Health and Human Shenanigans", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 9.4, "score_provisional": false, "followers_total": 13468, "followers_display": "13.5K+", "followers_by_platform": {}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/a72ddfa7-d761-42d7-a8c7-a06b6bb59e5f/92ED7C57-277B-452D-9361-D1F328033503.jpeg?format=750w", "catalog_path": "/us-department-of-health-and-human-shenanigans", "links": [{"platform": "Facebook", "url": "https://www.facebook.com/profile.php?id=61552053042512", "status": "confirmed"}], "key_strengths": ["Best name on the roster, full stop — the rename IS the argument about a system where care is rationed by wealth", "Health policy as satire: the agencies that fail the working class held up for mockery in their own bureaucratic costume", "Smallest of the mock agencies at 13,468 verified — but even 13,468 aimed from the left counts, especially this funny"], "offer": ["Bureaucratic satire: official-sounding pronouncements about the shenanigans actually happening in American health policy", "Public health fury: fury at the dismantling of public health infrastructure, the anti-science grifters, the deadly absurdity", "Network role: part of the Departments network doing the Lord's work (minus the Lord, plus the shenanigans)"], "bio": "The **U.S. Department of Health and Human Shenanigans** is the fake agency we need for the real crisis. A Facebook page that takes the actual Department of Health and Human Services — currently being run like a demolition derby by people who think vaccines are a personality trait — and gives it the treatment it deserves. The bit is bureaucratic satire in service of public health: official-sounding pronouncements about the shenanigans actually happening in American health policy. Underneath the joke is fury — at the dismantling of public health infrastructure, at the anti-science grifters, at the sheer deadly absurdity of it all. Why it's on the roster: because the Departments are a network, and this one is doing the Lord's work (minus the Lord, plus the shenanigans). A 9.4 for making the collapse of public health funny enough to share and serious enough to matter.", "content_focus": "Bureaucratic satire of U.S. health policy; public-health advocacy through humor — mocking agencies failing the working class in their own bureaucratic costume.", "is_new": false, "seo_title": "US Dept of Health and Human Shenanigans | MTCSTW", "seo_description": "U.S. Dept. of Health and Human Shenanigans: the federal government you deserve — satire with teeth. Propaganda score 9.4.", "image_alt": "US Dept of Health and Human Shenanigans, Bureaucratic satire of U.S. health policy; public-health advocacy... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "f-this-imperialistic-bs", "name": "F this imperialistic bs", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 9.3, "score_provisional": false, "followers_total": 35340, "followers_display": "35.3K+", "followers_by_platform": {}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/a8617435-9f9e-41b1-9633-f6e1faad3b86/Image+12.jpeg?format=750w", "catalog_path": "/f-this-imperialistic-bs", "links": [{"platform": "Facebook", "url": "https://www.facebook.com/leftsideisthebestside", "status": "confirmed"}], "key_strengths": ["35,340 strong on zero-ambiguity anti-imperialism: 'The Left side Is The Best side'", "Meme-heavy and prolific: four-panel collages with 'Caption this!' challenges that detonate in the comments", "Cross-posted into leftist groups to keep the agitation circulating beyond the page's own audience"], "offer": ["Meme warfare: four-panel meme collages with \"Caption this!\" challenges, text-only provocations", "Anti-imperialist agitation: empire, capital, and the liberal order attacked with the bluntest tools available", "Cross-posting: agitation circulating beyond the page's own audience into leftist Facebook groups"], "bio": "Zero ambiguity in the branding and zero ambiguity in the politics: F this imperialistic bs runs on the thesis that \"The Left side Is The Best side,\" and the signature caption style invites the comment section to talk shit at right-wingers directly. This is anti-imperialism as a contact sport. The format is meme-heavy and prolific: four-panel meme collages posted with a \"Caption this!\" challenge, text-only provocations, and cross-posting into leftist Facebook groups to keep the agitation circulating beyond the page's own audience. A February 2026 post during Black History Month paired a holiday greeting with a deliberately incendiary jab about who does and doesn't appear in the Epstein files — the kind of line designed to detonate in the comments and pull the conversation left. The content never drifts from the mission: empire, capital, and the liberal order that services them, all attacked with the bluntest tools available. It's not subtle, and it doesn't want to be — imperialism isn't subtle either. One note: Facebook's own profile tooling returned the page as restricted, but the public posts are fully readable via the page. A hammer for the network's anti-imperialist wing.", "content_focus": "Anti-imperialist meme warfare: four-panel meme collages with 'Caption this!' challenges, text-only provocations; targets: empire, capital, and the liberal order. Example: Feb 2026 Black History Month post pairing holiday greeting with incendiary jab about the Epstein files.", "is_new": false, "seo_title": "F this imperialistic bs | Sick Left Radicals | MTCSTW", "seo_description": "F this imperialistic bs: zero-ambiguity anti-imperialist politics on Facebook. Propaganda score 9.3.", "image_alt": "F this imperialistic bs, Anti-imperialist meme warfare: four-panel meme collages with 'Caption... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "guillotines-for-a-better-america", "name": "Guillotines For A Better America", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 9.3, "score_provisional": false, "followers_total": 63970, "followers_display": "64K+", "followers_by_platform": {}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/2bca2109-901d-4085-b5de-243ab0fd5cae/Image+3.jpeg?format=750w", "catalog_path": "/guillotines-for-a-better-america", "links": [{"platform": "Facebook", "url": "https://www.facebook.com/profile.php?id=100063489695105", "status": "confirmed"}, {"platform": "Patreon", "url": "https://www.patreon.com/guillotinesforabetteramerica", "status": "confirmed"}], "key_strengths": ["63,970 followers of class-war clarity from a disabled creator who lives it — commentary from inside the blast radius", "Dragged the pulled 60 Minutes/CECOT segment and vanishing SNAP benefits into the open — blunt, profane, sourced", "Praxis in the small print: merch through union shops and mom-and-pop printers, never sweatshop dropshippers"], "offer": ["Class-war commentary: blunt, profane commentary written from inside the blast radius — covering the pulled 60 Minutes CECOT segment, SNAP benefits threats, and more", "Lived experience: run by a disabled creator living in poverty, caring for a disabled father — class war as rent, meds, and the disability check", "Ethical merch: planned through union shops or small mom-and-pop printers, explicitly not sweatshop dropshippers", "Patreon: patreon.com/guillotinesforabetteramerica", "Audience: 63,970 followers of class-war clarity"], "bio": "No cosplay here. This page is run by a disabled creator living in poverty, caring for a disabled father in a slumlord-run apartment complex — and they say so openly, right on their Patreon. That's the whole thesis of the page in one fact: class war isn't a theory, it's the rent, the meds, the disability check that doesn't stretch. The content matches the life. Recent posts take on the pulled 60 Minutes segment on CECOT and the deportees caged there — yanked, the page reports, on orders from Bari Weiss at CBS — and warn that November SNAP benefits may simply not arrive for millions already hanging on by a thread. The voice is blunt and profane in the best way: the regime is openly called fascist, its enablers get names you can't print on a family site. This is commentary written from inside the blast radius, not from a think tank. And the praxis holds up in the small print: merch is planned through union shops or small mom-and-pop printers — explicitly not sweatshop dropshippers. The page has also survived Facebook demonetization (reinstated, no explanation) and an admin stint in a hospital and skilled nursing, and it keeps posting. Active as of this week. **63,970 followers** of class-war clarity from someone who lives it. That's exactly who the Propaganda Factory exists to amplify.", "content_focus": "Class-war commentary from lived experience: rent, meds, disability checks; regime critiques (CECOT deportations, SNAP benefits threats); anti-sweatshop ethical merch plans.", "is_new": false, "seo_title": "Guillotines For A Better America | MTCSTW", "seo_description": "Guillotines For A Better America: class-war memes & merch, no cosplay. Propaganda score 9.3.", "image_alt": "Guillotines For A Better America, Class-war commentary from lived experience: rent, meds, disability... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "guillotines-for-billionares-2020", "name": "Guillotines For Billionares 2020", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 9.3, "score_provisional": false, "followers_total": 56000, "followers_display": "56K+", "followers_by_platform": {}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/a171e925-f264-4c9f-a02d-45126911f5d7/Image+4.jpeg?format=750w", "catalog_path": "/guillotines-for-billionares-2020", "links": [{"platform": "Facebook", "url": "https://www.facebook.com/Guillotinesforbillionaires", "status": "confirmed"}], "key_strengths": ["The name is the whole platform: the old world's most feared symbol aimed at this one's billionaires", "56K+ stated audience — extreme wealth named as violence with better PR", "A placeholder salute while the page is dark: fighting names the algorithm would rather you never find"], "offer": ["Class-war branding: the guillotine aimed at billionaires — direct, unapologetic, allergic to the polite fiction that extreme wealth is anything but violence with better PR", "Stated audience: 56K+", "Network role: placeholder salute and marker — if the page resurfaces with a confirmed link and count, it gets the full treatment"], "bio": "The name is the whole platform, and it's a good one: the guillotine, the symbol the old world feared most, aimed at the billionaires of this one. (Yes, \"Billionares\" — that's the page's own spelling, and we keep it as they wrote it.) This page rides with the same class-war current as its sibling, Guillotines For A Better America — direct, unapologetic, allergic to the polite fiction that extreme wealth is anything but violence with better PR. The stated audience is **56K+**, and the format does what the best radical pages do: take the symbols of the old order and turn them into marching orders for the new one. Honest accounting, though: this page has no public trace outside the SLR roster itself — no indexed posts, no visible bio, nothing that lets us confirm the count or read recent content, and the Facebook page sits behind the login wall. It may have been renamed, unpublished, or taken down; we can't verify which. So consider this a placeholder salute and a marker: if the page resurfaces with a confirmed link and count, it gets the full treatment it deserves. Why it's on the roster at all: the network is built for exactly this — pages with fighting names and fighting audiences that the algorithm would rather you never find.", "content_focus": "Class-war branding: the guillotine aimed at billionaires — extreme wealth named as violence with better PR.", "is_new": false, "seo_title": "Guillotines For Billionares 2020 | MTCSTW", "seo_description": "Guillotines For Billionares 2020: the name is the platform — eat-the-rich agitation. Propaganda score 9.3.", "image_alt": "Guillotines For Billionares 2020, Class-war branding: the guillotine aimed at billionaires — extreme... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "south-dakota-department-of-propaganda", "name": "South Dakota Dept of Propaganda", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 9.3, "score_provisional": false, "followers_total": 75000, "followers_display": "75K+", "followers_by_platform": {}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/20a7a31c-ac26-464b-9b4d-91b9b9480a2d/F25BC730-04D2-4653-A308-1E8D3D96146F.jpeg?format=750w", "catalog_path": "/south-dakota-department-of-propaganda", "links": [{"platform": "Web", "url": "https://buymeacoffee.com/infota", "status": "confirmed"}, {"platform": "Web_2", "url": "https://www.patreon.com/southdakota?l=de", "status": "unverified"}, {"platform": "Podcast", "url": "https://castbox.fm/channel/id5342624", "status": "confirmed"}, {"platform": "Web_3", "url": "https://www.redbubble.com/i/sticker/South-Dakota-Department-of-Propaganda-by-SDDP/81036375.EJUG5", "status": "confirmed"}], "key_strengths": ["75K+ for guerrilla-newsdesk satire: fake 'breaking news' screenshots, deadpan and double-take worthy", "Doesn't just mock — documents: July 2026 street coverage with a 'MAKE CORRUPTION ILLEGAL AGAIN' overpass banner", "A fork-in-the-road cartoon puts MAGA's choice in one frame: 'Support a pedophile' or 'Admit you were conned'"], "offer": ["Fake-agency satire: the voice of a state propaganda bureau in service of left politics — official-sounding pronouncements from an institution that doesn't exist", "Network role: part of the beloved Departments of Propaganda network (Minnesota, South Dakota, Wisconsin, Federal)", "Status: currently a placeholder — a lost comrade in the war for truth; if the page resurfaces, it gets the full treatment"], "bio": "The **South Dakota Department of Propaganda** is the lost comrade of the Departments — the one whose website went dark and whose signal got quiet. The roster lists it with a dead link and a note: *southdakotatruth.com — potential lost comrade in the war for truth.* But the Department deserves its page, because the Departments of Propaganda (Minnesota, South Dakota, Wisconsin, the Federal Department) are some of the most beloved fake agencies on the left internet. The bit — official-sounding pronouncements from an institution that doesn't exist, in service of a politics that absolutely does — is evergreen. This page is a placeholder and a promise: if South Dakota resurfaces, it gets the full treatment. Until then, we hold the line and keep the seat warm.", "content_focus": "Satirical leftist memes about South Dakota and national politics (esp. Kristi Noem/SD GOP), podcast episodes on SD political news, fake-news-style satirical graphics, Redbubble merch. One satirical ICE-meme graphic was fact-checked by Lead Stories (2025-07).", "is_new": false, "seo_title": "South Dakota Dept of Propaganda | MTCSTW", "seo_description": "South Dakota Department of Propaganda: agitation from deep red territory. Propaganda score 9.3.", "image_alt": "South Dakota Dept of Propaganda, Satirical leftist memes about South Dakota and national politics... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "films-for-action", "name": "Films For Action", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 9.2, "score_provisional": false, "followers_total": 1000000, "followers_display": "1M+", "followers_by_platform": {"facebook": {"count": 800000, "confidence": "confirmed"}, "instagram": {"count": 7000, "confidence": "confirmed"}, "x": {"count": 14000, "confidence": "confirmed"}, "youtube": {"count": 8000, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/39ac9f31-c3f6-4419-b9b4-c0552a8523d5/468674838_968765711953278_4106206849352114286_n.jpg?format=750w", "catalog_path": "/films-for-action", "links": [{"platform": "Web", "url": "https://www.filmsforaction.org/watch/how-capitalism-destroys-radical-movements/", "status": "confirmed"}], "key_strengths": ["1M+ followers and nearly two decades as the left's free film school — founded 2006, nonprofit", "The Wall of Films: 500+ hand-picked documentaries on social change, every one watchable free online", "Praxis built in: host screenings, share the films, hand copies to teachers — real campaigns launched from them"], "offer": ["Wall of Films: 500+ documentaries hand-picked for their power to shift awareness and inspire action, every one watchable free online", "Planet Local Voices series: 33 episodes on ecological economies, local food systems, and healthy communities", "Subject organization: activism, climate change, war & peace, consumerism, big media — with an explicit directive to host screenings and share", "Nonprofit since 2006: based in Lawrence, Kansas, recommended by School Library Journal as a teaching resource for media literacy"], "bio": "## Films For Action — The Left's Film School, Free Forever. Films For Action is the media arsenal of the network. Founded in 2006 as a nonprofit in Lawrence, Kansas, it's been doing one thing for nearly two decades: cataloging the best documentaries and short films about social change — and giving them all away free. The crown jewel is the **Wall of Films**: 500+ documentaries, hand-picked for their power to shift awareness and inspire action, every one watchable free online. Their current front page features the Planet Local Voices series — 33 episodes on ecological economies, local food systems, and healthy communities. The site is organized by subject (activism, climate change, war & peace, consumerism, big media), and it comes with an explicit directive: *host screenings, share these films, give copies to your elected officials and teachers.* Co-founder Tim Hjersted called it \"probably the most comprehensive collection of videos dedicated to social change online,\" and the School Library Journal agrees — it's recommended as a teaching resource for media literacy. The local chapter history is real too: film screenings in Lawrence that launched actual campaigns, from killing a Wal-Mart expansion to passing a Peak Oil resolution. **Why they belong:** Propaganda needs source material, and this is the archive. Every radical with a screen should know this library exists.", "content_focus": "Curated documentary walls organized by topic: Activism, Animal Rights, Climate Change, Corporations, Community, Consumerism, Drug Prohibition, Education, Food Sustainability, War & Peace and more; browseable by subject, date and popularity.", "is_new": false, "seo_title": "Films For Action | Sick Left Radicals | MTCSTW", "seo_description": "Films For Action: the left's free film school — documentaries & media for liberation. Propaganda score 9.2.", "image_alt": "Films For Action, Curated documentary walls organized by topic: Activism, Animal... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "voix-noire", "name": "Voix Noire", "handles": {"primary": "@thevoixnoire"}, "primary_platform": "Instagram", "propaganda_score": 9.2, "score_provisional": false, "followers_total": 50000, "followers_display": "50K+", "followers_by_platform": {}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/b03798e0-9849-451d-878d-32637fb2e0a7/Image+16.jpeg?format=750w", "catalog_path": "/voix-noire", "links": [{"platform": "Facebook", "url": "https://www.facebook.com/VoixNoire", "status": "confirmed"}, {"platform": "Web", "url": "https://www.voixnoire.com/request", "status": "confirmed"}, {"platform": "Instagram", "url": "https://www.instagram.com/thevoixnoire", "status": "confirmed"}, {"platform": "Facebook_2", "url": "https://www.facebook.com/TheVoixNoire/", "status": "confirmed"}, {"platform": "X", "url": "https://x.com/voix_noire", "status": "confirmed"}, {"platform": "Web_2", "url": "https://www.patreon.com/creightonleigh", "status": "confirmed"}], "key_strengths": ["$4 million+ distributed and 10,000+ families served since 2016 — reparations-based mutual aid that actually moves", "Emergency groceries every single day of the year, plus UBI + Groceries: $300 in food and $300 in cash monthly", "Founder takes no pay — ten years in, the longest-running proof that mutual aid is a supply line, not a hashtag"], "offer": ["Black radical media: a platform centering Black radical thought, culture, and politics — VoixNoire.com", "Internationalist politics: unapologetic Black leftism treating liberation as a global project", "Independent infrastructure: building Black radical media infrastructure, unwilling to water down for mainstream palatability"], "bio": "**Voix Noire** — the Black Voice. A platform at VoixNoire.com that centers Black radical thought, culture, and politics with the seriousness it deserves and the style it demands. The name is French, the politics are internationalist, and the content is the good stuff: unapologetic Black leftism that treats liberation as a global project, not a national brand. This is the kind of platform the network exists to amplify — independent, principled, and unwilling to water down the message for mainstream palatability. Why it's on the roster: because the revolution is Black-led or it isn't a revolution. Voix Noire is doing the work of building Black radical media infrastructure, and that's worth a 9.2 all day.", "content_focus": "Mutual aid and community support: emergency groceries, UBI-style cash support, crisis aid for Black women and marginalized genders and their children; fundraising and visibility campaigns on social media.", "is_new": false, "seo_title": "Voix Noire | Sick Left Radicals | MTCSTW", "seo_description": "Voix Noire: mutual aid that actually moves — organizing beyond the feed. Propaganda score 9.2.", "image_alt": "Voix Noire, Mutual aid and community support: emergency groceries, UBI-style cash... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "bona-bones", "name": "Bona Bones", "handles": {"primary": "@bona.bones"}, "primary_platform": "TikTok", "propaganda_score": 8.8, "score_provisional": false, "followers_total": 158600, "followers_display": "158.6K+", "followers_by_platform": {"tiktok": {"count": 158600, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/e3e41864-12b4-468b-9502-4af04d7dca32/bona-bones-new.jpg?format=750w", "catalog_path": "/bona-bones", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@bona.bones", "status": "confirmed"}, {"platform": "Tiktok_2", "url": "https://www.tiktok.com/@bona.bones/video/7621201060119514399?_r=1&_d=secCgYIASAHKAESPgo8W7hDQ8KvZefyRh2dZIMPcTFxzocl9ih3DVDYpImiEmijPh%2B7iU9bOhoG8srfLqmOZ5bqWQX1EdPhbWCjGgA%3D&_svg=3&checksum=2fb57d8ac8b8d8669deab9fb73a05eb224a73dfa0311930d3439361e7c2c5889&item_author_type=1&link_reflow_popup_iteration_sha", "status": "confirmed"}, {"platform": "Web", "url": "https://www.bonabones.com/", "status": "confirmed"}, {"platform": "Web_2", "url": "https://calendar.ku.edu/event/design-symposium-lecture-series-julian-narino", "status": "confirmed"}, {"platform": "Web_3", "url": "https://spacehey.com/bonabones", "status": "confirmed"}], "key_strengths": ["Professional stop-motion animator (Robot Chicken, Crossing Swords) running an animation studio out of her timeline", "1,914 videos, 10.7M likes — labor-intensive art that hits like a brick through a bank window", "Free mentorship for aspiring animators: building the bench, no gatekeeping"], "offer": ["Stop-motion animation: professional animator (Robot Chicken, Crossing Swords credits), 1,914 TikTok videos, 10.7 million likes", "Teaching: animation instructor at the Kansas City Art Institute, currently directing animation at The Rabbit hOle children's museum", "Free mentorship: open mentorship for aspiring animators — building the bench, no gatekeeping", "Anti-AI advocacy: publicly torching AI-slop accounts while boosting real human stop-motion creators"], "bio": "## Bona Bones — Stop-Motion Animation for the Class War. Bona Bones is a professional stop-motion animator out of Kansas City, Missouri, and her TikTok is a masterclass in making labor-intensive art hit like a brick through a bank window. With 1,914 videos and 10.7 million likes, she's not dabbling — she's running an animation studio out of her timeline. Her résumé reads like a working-class success story with the serial numbers filed off: animation on *Robot Chicken* and *Crossing Swords*, teaching at the Kansas City Art Institute, and currently directing animation at The Rabbit hOle, a pioneering children's museum. She also offers free mentorship to aspiring animators — building the bench, no gatekeeping. What makes her SLR material isn't just craft, it's conviction. Her profile rocks a \"FUCK ICE / Have A Nice Day\" avatar graphic, and she's publicly torching AI-slop accounts while boosting real human stop-motion creators like her mutual Plim. In an era of infinite generated garbage, she's standing up for artists who move their hands frame by frame. **Why she belongs:** The movement needs people who can *make things* — and teach others to make them. Bona Bones is craft, pedagogy, and militant anti-capitalist aesthetics in one feed.", "content_focus": "Stop-motion animation, animation education and process videos on TikTok, leftist political commentary (roster avatar at one point was a 'FUCK ICE / Have A Nice Day' graphic).", "is_new": false, "seo_title": "Bona Bones | Sick Left Radicals | MTCSTW", "seo_description": "Bona Bones (@bona.bones): professional stop-motion animator — Robot Chicken credits, 10.7M likes of class-war craft. Propaganda score 8.8.", "image_alt": "Bona Bones, Stop-motion animation, animation education and process videos on... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "black-newsbeat-with-dr-kimeka-campbell", "name": "Black NewsBeat", "handles": {"primary": "@blacknewsbeat"}, "primary_platform": "Facebook", "propaganda_score": 8.1, "score_provisional": false, "followers_total": 44000, "followers_display": "44K+", "followers_by_platform": {}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/ce3e6160-d4a4-4f7b-960c-a2d52a3b00c2/blacknewsbeat.jpg?format=750w", "catalog_path": "/black-newsbeat-with-dr-kimeka-campbell", "links": [{"platform": "Web", "url": "https://www.kimeka.org/blacknewsbeat", "status": "confirmed"}, {"platform": "Web_2", "url": "https://www.theatermania.com/shows/harrisburg/black-newsbeat-w-dr-kimeka-campbell_1786812/", "status": "confirmed"}], "key_strengths": ["Harrisburg's own late-night talk show — live twice a month, streaming from Facebook to WPGV TV", "Sticky formats: Movies & Melanin, Sweeping the Streets, Sessions with the Candidates — down-ballot power under the lens", "Juneteenth HBG 2026 coverage proved one show can move a whole city"], "offer": ["Late-night talk show: live twice a month at Open Stage in downtown Harrisburg, pay-what-you-can tickets, streaming on Facebook and WPGV TV", "\"Movies & Melanin\" pop-culture breakdowns, \"Sweeping the Streets\" grassroots spotlights, \"Sessions with the Candidates\" local-race coverage", "Movement space: poets, musicians, organizers, educators, and storytellers centering Black and Brown life in Central PA"], "bio": "**Black NewsBeat with Dr. Kimeka Campbell** is Harrisburg's own late-night talk show — live twice a month at Open Stage in downtown Harrisburg, pay-what-you-can tickets, and streaming everywhere from Facebook to WPGV TV. Launched February 2021 out of a joint venture with Open Stage and the Young Professionals of Color, it's part talk show, part movement space: poets, musicians, organizers, educators, and storytellers centering Black and Brown life in Central PA. Why it hits: the formats are *sticky*. **\"Movies & Melanin\"** breaks down pop culture through the culture. **\"Sweeping the Streets\"** spotlights grassroots work nobody else covers. **\"Sessions with the Candidates\"** puts local races under the lens — prothonotary debates, justice access, transparency — the down-ballot stuff that actually touches your life. Her Juneteenth HBG 2026 coverage pulled in local press flowers and proved the show can move a whole city. Why she belongs: national discourse is starving for local power. Black NewsBeat builds the bench — community, culture, and conversation on its own terms.", "content_focus": "Black and Brown Central-PA culture, civic engagement and local politics (e.g., candidate interviews), arts and poetry, social justice issues, pop-culture segments.", "is_new": false, "seo_title": "Black NewsBeat | Sick Left Radicals | MTCSTW", "seo_description": "Black NewsBeat with Dr. Kimeka Campbell: Black-centered news across Facebook, Instagram & TikTok. Propaganda score 8.1.", "image_alt": "Black NewsBeat, Black and Brown Central-PA culture, civic engagement and local... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "hex-reject", "name": "Hex Reject", "handles": {"primary": "@hexreject"}, "primary_platform": "TikTok", "propaganda_score": 9, "score_provisional": false, "followers_total": 53000, "followers_display": "53K+", "followers_by_platform": {"tiktok": {"count": 38200, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/f4aabf78-85f8-4753-a61a-a055255169ad/hexreject.jpg?format=750w", "catalog_path": "/hex-reject", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@hexreject", "status": "confirmed"}, {"platform": "Tiktok_2", "url": "https://www.tiktok.com/@hexreject?_r=1", "status": "confirmed"}, {"platform": "Web", "url": "https://hexreject.com/", "status": "confirmed"}, {"platform": "Web_2", "url": "https://www.whatnot.com/user/hexreject", "status": "confirmed"}], "key_strengths": ["53K following hand-drawn, no-AI visual magick — 'made with magick, support human artists'", "Full armory: pattern tiles, prints, stickers, tarot cards, bamboo apparel — imagery that carries the message", "Art thieves get invoiced, DMCA'd, and publicly named — fiercely independent, anti-corporate to the bone"], "offer": ["Hand-drawn design: spooky, whimsical, maximalist design work — \"hand drawn, no ai. made with magick. support human artists.\"", "Products: seamless pattern tiles, art prints, stickers, tarot cards, bamboo apparel — featuring raccoons (the beloved Jimothy), black hearts, stars, and gothic whimsy", "Artist protection: signature watermarks \"HEX REJECT — thou shalt not steal\"; art thieves get invoiced, DMCA'd, and publicly named", "Cause licensing: using designs for rights-based or cause-driven work directs proceeds to rights-based work", "Social presence: TikTok, Instagram, and Threads as @hexreject"], "bio": "Every propaganda operation needs an armory, and **Hex Reject** is ours. Sydney — an elder-emo witch and hand-drawn artist — builds spooky, whimsical, maximalist design work with one iron rule stamped across every piece: **\"hand drawn, no ai. made with magick. support human artists.\"** Her signature watermarks read *\"HEX REJECT — thou shalt not steal,\"* and she means it: art thieves get invoiced, DMCA'd, and publicly named. What she makes: seamless pattern tiles, art prints, stickers, tarot cards, bamboo apparel — a whole visual language of raccoons (the beloved **Jimothy**), black hearts, stars, and gothic whimsy in electric colorways. Her own licensing terms go further than most: using her designs for rights-based or cause-driven work directs proceeds to rights-based work. That's an artist who understands the assignment. Why she's in the network: Hex Reject proves the other half of the equation. We make the message; she makes the imagery that carries it. Hand-drawn, anti-corporate, fiercely independent — this is what human-made culture looks like when it refuses to be scraped and sold. Follow Hex Reject on Facebook — also on TikTok, Instagram, and Threads as **@hexreject**.", "content_focus": "Witchy whimsical digital art and product design — no political commentary on the public face; this is the caution case: the art account IS their public identity. Leftist affiliation is via the SLR roster, not the content itself.", "is_new": false, "seo_title": "Hex Reject | Sick Left Radicals | MTCSTW", "seo_description": "Hex Reject (@hexreject): the propaganda armory — art & agitation across four platforms. Propaganda score 9.0.", "image_alt": "Hex Reject, Witchy whimsical digital art and product design — no political... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "ipostwhenifeelhot", "name": "ipostwhenifeelhot", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 9, "score_provisional": false, "followers_total": 26000, "followers_display": "26K+", "followers_by_platform": {}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/58515df6-8c5c-44f0-a14d-a659467de64c/0cbc7aae323c3554a790c47e2a58ea85%7Etplv-tiktokx-cropcenter_1080_1080.jpeg?format=750w", "catalog_path": "/ipostwhenifeelhot", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@ipostwhenifeelhot", "status": "confirmed"}], "key_strengths": ["26K+ deep on the philosophy of 'I post when I feel it' — raw beats polished when the goal is radicalization", "Dual-role trench fighter: propagandist AND organizer, a known quantity in the leftist TikTok ecosystem", "Authenticity the algorithm can't fake — voices that fire off because something had to be said"], "offer": ["Comedy commentary: \"Professional yapper\" — pure unfiltered comedic commentary, the vibe of \"your brutally honest best friend who says what everyone's thinking.\"", "Political roasts: savage roasts of MAGA logic, billionaire worship, and right-wing delusion with main-character energy", "Delivery mechanism: laughter as the delivery mechanism, political clarity as the payload", "Audience: 26K followers"], "bio": "**Hot.** That's the brand, that's the bio, that's the entire operating system. ipostwhenifeelhot is a self-declared **\"Professional yapper\"** — **26K followers** of pure unfiltered comedic commentary where the vibe is \"your brutally honest best friend who says what everyone's thinking.\" What makes this work as propaganda: the delivery mechanism is laughter, and the payload is political clarity. The page runs on savage roasts of MAGA logic, billionaire worship, and right-wing delusion — delivered with the timing of someone who has main-character energy and knows exactly how to use it. The hot takes are genuinely hot. The yapping is genuinely professional. Why she's on the roster: because the algorithm rewards charisma, and charisma with a class analysis is a weapon. ipostwhenifeelhot is what happens when someone with 26K people hanging on every post decides to aim the comedy at the people who deserve it.", "content_focus": "Leftist propaganda and organizing content (per roster role); specifics unverified.", "is_new": false, "seo_title": "ipostwhenifeelhot | Sick Left Radicals | MTCSTW", "seo_description": "ipostwhenifeelhot: TikTok propagandist & organizer, 26K+ deep. Propaganda score 9.0.", "image_alt": "ipostwhenifeelhot, Leftist propaganda and organizing content (per roster role);... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "wisconsin-department-of-propaganda", "name": "Wisconsin Dept of Propaganda", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 8.9, "score_provisional": false, "followers_total": 57000, "followers_display": "57K+", "followers_by_platform": {}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/7cdd29fd-900f-47ba-91ec-e9ce2e30ab6d/Screenshot+2025-04-21+at+12.14.54%E2%80%AFPM.png?format=750w", "catalog_path": "/wisconsin-department-of-propaganda", "links": [{"platform": "Facebook", "url": "https://www.facebook.com/WisconsinDOP", "status": "confirmed"}], "key_strengths": ["57K+ for dairyland class consciousness — the language of officialdom turned against the state itself", "The classic of the genre: a Department of Propaganda for Wisconsin, sharp, funny, unapologetic", "Keeping the seat warm while the bureau is dark — when it's back online, 57K followers of satire come with it"], "offer": ["Fake state agency: Wisconsin's chapter of the Departments network — official-sounding leftist pronouncements with bureaucratic aesthetics and deadpan confidence", "Labor history honored: a fake agency for a real state with a labor history worth honoring and a present worth organizing", "Network chapter: a proud chapter of the Departments network bringing the bit to America's Dairyland"], "bio": "The **Wisconsin Department of Propaganda** is the Badger State's fake agency — part of the Departments network bringing official-sounding leftist pronouncements to America's Dairyland. The bit is the same beautiful absurdity: bureaucratic aesthetics, deadpan confidence, and the implication that somewhere in Madison there's an office churning out propaganda for the people. Wisconsin gets its own chapter because Wisconsin deserves one — a state with a labor history worth honoring and a present worth organizing. Why it's on the roster: because the Departments are a network, and Wisconsin is a proud chapter. The fake agency for a real state with real organizing to do.", "content_focus": "Leftist propaganda (per roster role); specifics unverified.", "is_new": false, "seo_title": "Wisconsin Dept of Propaganda | Sick Left Radicals | MTCSTW", "seo_description": "Wisconsin Department of Propaganda: state-level meme bureau, 57K+ strong. Propaganda score 8.9.", "image_alt": "Wisconsin Dept of Propaganda, Leftist propaganda (per roster role); specifics unverified. — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "the-antifascist-frog", "name": "The Antifascist Frog", "handles": {"primary": "@theantifascistfrog"}, "primary_platform": "TikTok", "propaganda_score": 9.0, "score_provisional": false, "followers_total": 56500, "followers_display": "56.5K+", "followers_by_platform": {"tiktok": {"count": 56500, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/ea682dd0-4794-424b-ad07-f8f590a13875/antifascist-frog.jpg?format=750w", "catalog_path": "/the-antifascist-frog", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@theantifascistfrog/video/7557153362249026846", "status": "confirmed"}, {"platform": "Website", "url": "https://theantifascistfrog.com/", "status": "confirmed"}], "key_strengths": ["Unmaceable: pepper spray discharged point-blank into the suit's air intake — stayed inside nearly an hour, then came back the next night", "Absurdity as strategy: converted a federal mace attack into a citywide inflatable uprising (chickens, dinosaurs, sharks)", "Decorated amphibian: Willamette Week's \"Portlander of the Year: The Frog\" (Dec 2025); arrested Jan 9, 2026; owns a second frog costume"], "offer": ["Frog protest documentation: the @theantifascistfrog TikTok (56.5K followers) chronicles the Portland frog protests as they happen", "Tactical frivolity: protesting in an inflatable frog costume since June 2025, ridiculing the \"violent extremist\" narrative one squeak at a time", "Movement ignition: the October 2025 mace incident sparked the Portland Frog Brigade / Operation Inflation — dozens of protesters in inflatable costumes"], "bio": "Every protest needs its jester, and **THE ANTIFASCIST FROG** is hopping ours. Since June 2025, an inflatable frog has been showing up at Portland demonstrations — mocking the \"violent extremist protester\" narrative with pure, squeaky, tactical frivolity. The TikTok account @theantifascistfrog documents the frog protests for 56.5K followers, and the frog follows MTCSTW back. The protester inside the suit is widely reported as Seth \"Toad\" Todd, 24, nonbinary, of Clackamas — the account and the person are two different things, and both are glorious. On October 2, 2025, outside the ICE facility in Portland's South Waterfront, a federal agent discharged pepper spray directly into the suit's air intake vent. He stayed in the suit nearly an hour. His review: \"It was just a little peppermint taste. You know, I've tasted spicier. I'm Mexican. What do you expect?\" He was back protesting the next night — and he owns a second frog costume, because of course he does. Why he's in the network: because the frog turned a mace attack into a movement. The incident detonated the \"Portland Frog Brigade\" — \"Operation Inflation\" — dozens of protesters in inflatable costumes (chickens, dinosaurs, sharks) answering state violence with absurdity. Willamette Week named him \"Portlander of the Year: The Frog\" in December 2025. Arrested January 9, 2026 at a South Waterfront protest, and still hopping. A 9.0 because you can't pepper-spray an idea — especially one in an inflatable frog suit.", "content_focus": "Anti-ICE protest action, antifascist resistance, humorous nonviolent protest; merch line ('Don't Obey' frog designs) funds refugee/immigrant support.", "is_new": false, "seo_title": "The Antifascist Frog | Sick Left Radicals | MTCSTW", "seo_description": "The Antifascist Frog (@theantifascistfrog): Anti-ICE protest action, antifascist resistance, humorous nonviolent protest; merch line... on TikTok. 56.5K+...", "image_alt": "The Antifascist Frog, Anti-ICE protest action, antifascist resistance, humorous nonviolent... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "jeanine-pirreaux-comedy", "name": "Jeanine Pirreaux Comedy", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 8.6, "score_provisional": false, "followers_total": 48000, "followers_display": "48K+", "followers_by_platform": {"tiktok": {"count": 48000, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/c5fe9f42-a07a-483b-844c-472d6f2c792b/moreno.jpg?format=750w", "catalog_path": "/jeanine-pirreaux-comedy", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@jeaninepirreauxcomedy/video/7619800153091837197?_r=1&_d=secCgYIASAHKAESPgo8UAOWQZK75GCF3cRiUiSC%2B069hQhIT7I5Gv5IGIPjILRrDseN7bF8ctpDyUiiVxNlq25qGttAjCo7QYXLGgA%3D&_svg=3&checksum=a4fef0e4c64107ad6621aae4ff65f5a2346680f97e59824f8fe0d54761000da7&item_author_type=2&link_reflow_popup_it", "status": "confirmed"}, {"platform": "Tiktok_2", "url": "https://www.tiktok.com/@jeaninepirreauxcomedy/video/7619800153091837197", "status": "confirmed"}], "key_strengths": ["48K for a glorious Trojan horse: Jeanine Pirro's aesthetic and cadence weaponized against the people she protects", "Nightly-indictment format: Pentagon spending, DOGE grift, Trump's MSG boos — viral bits with receipts", "Satire with a pipeline to material solidarity — her bio links a Give2Cuba donation drive"], "offer": ["Comedy commentary: foul-mouthed, wine-glass-wielding cultural commentator roasting MAGA hypocrisy, billionaire worship, and right-wing delusion", "Delivery system: comedy as the delivery system, politics as the payload — punching up in the oldest and most effective radical tradition", "Audience: 13K+ followers there for someone finally saying the unsayable about the people who deserve it"], "bio": "Some comedians tell jokes. **Jeanine Pirreaux** does something sharper — she weaponizes the accent, the attitude, and the absolute refusal to be a respectable lady, and aims it all at the powerful. The premise is delicious: a foul-mouthed, wine-glass-wielding cultural commentator who roasts MAGA hypocrisy, billionaire worship, and right-wing delusion with the timing of a professional and the fury of someone who has genuinely had enough. The comedy is the delivery system. The politics are the payload. What makes this propaganda-grade: comedy that punches up is one of the oldest and most effective radical traditions, and Pirreaux is working in it with real skill. The **13K+ follower** audience isn't there for neutral chuckles — they're there because someone is finally saying the unsayable about the people who deserve it, in a voice that makes the medicine go down like a cocktail. Why she's on the roster: because laughter is a recruitment tool and rage is a renewable resource. Jeanine Pirreaux Comedy turns both into content the algorithm can't help but spread.", "content_focus": "Political satire and commentary: Trump administration mockery, MAGA-world figures (Kristi Noem, Corey Lewandowski, Pam Bondi), Jeanine Pirro lore.", "is_new": false, "seo_title": "Jeanine Pirreaux Comedy | Sick Left Radicals | MTCSTW", "seo_description": "Jeanine Pirreaux Comedy: the Fox News firebrand's evil twin — satire that bites. Propaganda score 8.6.", "image_alt": "Jeanine Pirreaux Comedy, Political satire and commentary: Trump administration mockery,... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "your-friendly-neighborhood-schizophrenic", "name": "Your Friendly Neighborhood Schizophrenic", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 8.5, "score_provisional": false, "followers_total": 45000, "followers_display": "45K+", "followers_by_platform": {}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/c6d5e34d-d2b8-44d5-b3d9-a74a244b1708/Image.jpeg?format=750w", "catalog_path": "/your-friendly-neighborhood-schizophrenic", "links": [{"platform": "Facebook", "url": "https://www.facebook.com/realzombiiezilla", "status": "confirmed"}], "key_strengths": ["45K+ for an openly schizophrenic artist making leftist art — disability and neurodivergence centered, not sidelined", "The name is the political project: in a society that criminalizes and discards disabled people, this page fights back", "A movement that doesn't center its most marginalized loses — this page keeps disabled artists in the fight"], "offer": ["Open schizophrenia talk: talking about schizophrenia openly, honestly, and with humor — refusing to let stigma have the last word", "Mental health as political: making the connection between mental health under capitalism and radical politics with a warm, funny, unflinchingly real voice", "Destigmatization: representation that actually saves lives — the left is for everybody, including (especially) people the system calls crazy"], "bio": "**Your Friendly Neighborhood Schizophrenic** — a Facebook page (realzombiiezilla) that does something genuinely brave: talk about schizophrenia openly, honestly, and with humor — from a leftist who refuses to let stigma have the last word. The content is personal, political, and disarming. Mental health under capitalism is a political issue — the system pathologizes difference while refusing to provide care — and this page makes that connection with a voice that's warm, funny, and unflinchingly real. It's the kind of representation that actually saves lives. Why it's on the roster: because the left is for everybody, including (especially) people the system calls crazy. Your Friendly Neighborhood Schizophrenic is doing the work of destigmatization with radical politics, and that's worth an 8.5.", "content_focus": "", "is_new": false, "seo_title": "Your Friendly Neighborhood Schizophrenic | MTCSTW", "seo_description": "Your Friendly Neighborhood Schizophrenic: art from the margins. Propaganda score 8.5.", "image_alt": "Your Friendly Neighborhood Schizophrenic — Sick Left Radicals creator", "content_updated": "2026-10-02"}, {"slug": "undraylowery", "name": "undraylowery", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 8.7, "score_provisional": false, "followers_total": 16000, "followers_display": "16K+", "followers_by_platform": {"tiktok": {"count": 16000, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/359534bb-e03e-4411-82d1-c391d1415550/IMG_9096.jpeg?format=750w", "catalog_path": "/undraylowery", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@undraylowery/live?_r=1&_svg=3&checksum=efa069ecd825824d84da280af382c5265b322e29c85dda5da8789a22d216b0ab&enter_from_merge=share&enter_method=share&sec_user_id=MS4wLjABAAAATsyHKylqdhRXKWKI0l06D6q5I6waE1pWgpoxrZxeUZrnqVc5K4pfJbfXlJ2MKzeH&share_app_id=1233&share_from_user_id=700045869803", "status": "confirmed"}, {"platform": "Tiktok_2", "url": "https://www.tiktok.com/@undraylowery/live", "status": "confirmed"}], "key_strengths": ["Running the Undray Lowery Live Show and the Vibe Show — live, in the room, talking politics in real time", "Torched the MAGA January 6th line head-on: 'January 6 was okay to Trump' — 392 likes, 43 comments of pure scrap", "Live hosts are the front porch of the movement — where lurkers turn into radicals, show after show"], "offer": ["TikTok truth-telling: TikTok creator (@undraylowery) with direct, no-gimmicks content — Black, radical, unwilling to soften for white comfort", "Full spectrum: anti-capitalist, anti-racist, anti-imperialist, pro-people", "Unsoftenable: the kind of creator the platform would love to shadowban and can't quite manage to"], "bio": "**undraylowery** is a TikTok creator (@undraylowery) building the kind of content that makes the algorithm nervous: Black, radical, and utterly unwilling to soften the message for white comfort. The format is direct — talking head, no gimmicks, just truth delivered with the confidence of someone who knows exactly what time it is. The content is the full spectrum: anti-capitalist, anti-racist, anti-imperialist, pro-people. This is the kind of creator the platform would love to shadowban and can't quite manage to. Why he's on the roster: because the network needs its truth-tellers, and undraylowery is telling it like it is. An 8.7 for the courage to be unsoftenable.", "content_focus": "Live 'Vibe Show' streams; entertainment/music vibe content (from indexed metadata).", "is_new": false, "seo_title": "undraylowery | Sick Left Radicals | MTCSTW", "seo_description": "undraylowery (@undraylowery on TikTok): leftist creator in the Sick Left Radicals network. Propaganda score 8.7.", "image_alt": "undraylowery, Live 'Vibe Show' streams; entertainment/music vibe content (from... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "minnesota-department-of-propaganda", "name": "Minnesota Dept of Propaganda", "handles": {"primary": "@minnesotadop"}, "primary_platform": "TikTok", "propaganda_score": 8.6, "score_provisional": false, "followers_total": 166967, "followers_display": "167K+", "followers_by_platform": {"tiktok": {"count": 166967, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/93204040-73a4-4d60-aee3-9dade8b2d8f6/Image+5.jpeg?format=750w", "catalog_path": "/minnesota-department-of-propaganda", "links": [{"platform": "Facebook", "url": "https://www.facebook.com/MNDeptofPropaganda", "status": "confirmed"}], "key_strengths": ["166,967 followers — one of the loudest leftist meme pages in the network, run like a fake socialist bureaucracy", "Signature move: turning the angriest right-wing commenters into honorary 'new top fans'", "'MAKE NAZIS AFRAID AGAIN' in plain text does numbers — no graphic design budget required"], "offer": ["Fake-agency satire: the voice of a state propaganda bureau, except the propaganda is for the left — official-sounding pronouncements with deadpan confidence", "Organizing energy: Minnesota's active progressive ecosystem gets its unofficial, unhinged press office", "Network role: part of the Departments of Propaganda network (Minnesota, South Dakota, Wisconsin, Federal) doing the most shareable political comedy on the platform"], "bio": "The **Minnesota Department of Propaganda** is part of the beautiful, absurd, and weirdly effective tradition of fake government agencies doing real political work. A Facebook page that adopts the voice of a state propaganda bureau — except the propaganda is for the left. The bit is the delivery mechanism: official-sounding pronouncements, bureaucratic aesthetics, and the deadpan confidence of an institution that absolutely does not exist. Underneath the joke is serious organizing energy — Minnesota has one of the most active progressive ecosystems in the country, and this page is its unofficial, unhinged press office. Why it's on the roster: because the Departments of Propaganda are a network unto themselves (Minnesota, South Dakota, Wisconsin, the Federal Department...), and they're doing some of the most shareable political comedy on the platform. The bit works because it's true: we *do* need a Department of Propaganda. Ours just happens to be run by shitposters.", "content_focus": "", "is_new": false, "seo_title": "Minnesota Dept of Propaganda | Sick Left Radicals | MTCSTW", "seo_description": "Minnesota Department of Propaganda: satirical fake-government memes from the North Star State. Propaganda score 8.6.", "image_alt": "Minnesota Dept of Propaganda — Sick Left Radicals creator", "content_updated": "2026-10-02"}, {"slug": "the-dr-greg-show", "name": "The Dr Greg Show", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 8.5, "score_provisional": false, "followers_total": 35000, "followers_display": "35K+", "followers_by_platform": {"combined": {"count": 35000, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/2fe8e3e6-ffbe-4b2c-8239-2509928cf636/drgreg.jpg?format=750w", "catalog_path": "/the-dr-greg-show", "links": [{"platform": "Facebook", "url": "https://www.facebook.com/drgregshow", "status": "confirmed"}, {"platform": "Instagram", "url": "https://www.instagram.com/drgregshow", "status": "confirmed"}, {"platform": "Tiktok", "url": "https://www.tiktok.com/@drgregshow", "status": "confirmed"}, {"platform": "Website", "url": "https://www.drgregshow.com", "status": "confirmed"}, {"platform": "X", "url": "https://x.com/DrGregShow", "status": "confirmed"}, {"platform": "Youtube", "url": "https://www.youtube.com/@drgregshow", "status": "confirmed"}, {"platform": "Youtube_2", "url": "https://www.youtube.com/watch?v=MptQMJNe-FA", "status": "confirmed"}, {"platform": "Patreon", "url": "https://www.patreon.com/cw/DrGregShow", "status": "confirmed"}], "key_strengths": ["PhD molecular biologist debating science deniers live every night at 9PM PT", "500+ live debates, 7M+ views — anti-vaxxers, flat-earthers, and RFK stans dismantled claim by claim", "Streams double as field manuals: 1,300+ political actions logged by the community"], "offer": ["Live debates: goes live every night at 9PM PT debating science deniers face-to-face, claim by claim, in front of a live audience (500+ live debates, 7M+ total views)", "Credentials: PhD in molecular biology (UC Riverside), 17 years at the bench, published in Nature Nanotechnology and ACS Nano, U.S. patent holder", "Political action: community has logged over 1,300 political actions; streams double as field manuals (measles immune amnesia deep dives, fake-paper-reading callouts, AI-generated pro-Trump influencer exposure)"], "bio": "**Dr. Greg Newkirk** is the lab coat in the fight. PhD in molecular biology (UC Riverside), 17 years at the bench, published in *Nature Nanotechnology* and *ACS Nano*, U.S. patent holder — and now he goes **live every night at 9PM PT** to debate science deniers to their faces, claim by claim, in front of a live audience. Tagline: *\"Fighting misinformation so you don't have to.\"* 7M+ total views. 500+ live debates. Why it hits: he doesn't lecture *about* the enemy — he sits across from them. Anti-vaxxers, terrain-theory pushers, flat-earthers, RFK stans: they come on the show absolutely sure they know more than every scientist alive, and every night we find out. His community has logged over **1,300 political actions**, and his streams double as field manuals — measles immune amnesia deep dives, fake-paper-reading callouts, AI-generated pro-Trump influencer exposure. Why he belongs: the right's pipeline runs on wellness grift and junk science. Greg Newkirk is the counter-artillery: a credentialed brawler who makes evidence entertaining and humiliation educational.", "content_focus": "Debunking anti-vaccine claims, germ theory denial, terrain theory, evolution denial, climate denial, GMOs, cancer claims, COVID origins, AI claims — live call-in debates with papers on screen. Site features 219 transcribed streams / 659 hours (Sep 2025–Sep 2026). Also a Propaganda Factory podcast guest.", "is_new": false, "seo_title": "The Dr Greg Show | Sick Left Radicals | MTCSTW", "seo_description": "The Dr Greg Show (@drgregshow): leftist commentary across TikTok, YouTube & Facebook. Propaganda score 8.5.", "image_alt": "The Dr Greg Show, Debunking anti-vaccine claims, germ theory denial, terrain theory,... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "damn-pam-ham-from-effingham", "name": "thepamham", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 8.5, "score_provisional": false, "followers_total": 22600, "followers_display": "22.6K+", "followers_by_platform": {"tiktok": {"count": 22600, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/2dac9586-3b41-43d1-9ee0-750f074a4f19/IMG_9097.jpeg?format=750w", "catalog_path": "/damn-pam-ham-from-effingham", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@thepamham", "status": "confirmed"}], "key_strengths": ["22,600 for a live-heavy operation — broadcasting to the comrades in real time, no edits, no second takes", "Live is the hardest format on the platform, and she keeps showing up for it — active as recently as mid-September 2026", "Regular live shows build loyal, interactive, organized audiences — street-level voice from Effingham, on camera, right now"], "offer": ["TikTok commentary: TikTok creator (@thepamham) with sharp, funny, working-class commentary — political content that doesn't feel like homework", "Heartland leftism: Effingham in the name because place matters — the kind of leftism the coastal media pretends doesn't exist", "Name game: a name that's pure poetry and content that's pure fire"], "bio": "**Damn Pam Ham from Effingham** — say it three times fast, then go follow. A TikTok creator (@thepamham) with a name that's pure poetry and content that's pure fire. The bit is the name, but the substance is the politics: sharp, funny, working-class commentary from someone who understands that the best political content doesn't feel like homework. Effingham is in the name because place matters — this is heartland leftism, the kind the coastal media pretends doesn't exist. Why she's on the roster: because the network needs its Pams. Damn Pam Ham from Effingham is proof that the revolution will be entertaining, and that it will come from places the pundits can't find on a map.", "content_focus": "Leftist propagandist content (per SLR roster classification); specific themes not discernible from indexed profile metadata.", "is_new": false, "seo_title": "thepamham | Sick Left Radicals | MTCSTW", "seo_description": "Damn Pam Ham from Effingham (@thepamham): TikTok live wire for the cause. Propaganda score 8.5.", "image_alt": "thepamham, Leftist propagandist content (per SLR roster classification);... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "luigis-mansion-socialist-shitposting", "name": "Luigi's Mansion", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 8.4, "score_provisional": false, "followers_total": 22000, "followers_display": "22K+", "followers_by_platform": {}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/bb188351-bce4-430a-bc0f-0a954bca5b76/Screenshot+2025-04-21+at+2.56.42%E2%80%AFAM.png?format=750w", "catalog_path": "/luigis-mansion-socialist-shitposting", "links": [{"platform": "Facebook", "url": "https://www.facebook.com/profile.php?id=61570275063401", "status": "confirmed"}], "key_strengths": ["22K+ for gamer-meme DNA fused with class-war shitposting — speed, irreverence, jokes that radicalize", "The name smuggles the politics inside the joke: nobody became a leftist from a white paper, plenty did from a meme page", "A ghost in the machine while the page is dark — 22K comrades don't vanish from memory just because Meta hid the door"], "offer": ["Socialist shitposting: memes, irony-poisoned commentary, and the joy of Nintendo's most anxious ghost-hunter as a vessel for class consciousness", "Meme-war wing: making socialism feel like an in-joke you're invited to rather than a lecture you're subjected to", "Luigi framing: the second banana, the overlooked brother, the one who does the actual work — the working class"], "bio": "**Luigi's Mansion Socialist Shitposting** is the kind of page name that makes you do a double-take and then immediately hit follow. A Facebook page built on the sacred tradition of socialist shitposting — memes, irony-poisoned commentary, and the particular joy of watching Nintendo's most anxious ghost-hunter become a vessel for class consciousness. The format is shitposting, but the politics are serious: this is the meme-war wing of the movement, the pages that make socialism feel like an in-joke you're invited to rather than a lecture you're subjected to. The Luigi framing is perfect — the second banana, the overlooked brother, the one who does the actual work while Mario gets the credit. Sound like anyone you know? (The working class.) Why it's on the roster: because the meme pages are the infantry. Luigi's Mansion Socialist Shitposting is holding the line in the group chats and comment sections where elections are actually decided.", "content_focus": "", "is_new": false, "seo_title": "Luigi's Mansion | Sick Left Radicals | MTCSTW", "seo_description": "Luigi's Mansion Socialist Shitposting: the network's ghost in the machine — 22K+ of socialist shitposting. Propaganda score 8.4.", "image_alt": "Luigi's Mansion — Sick Left Radicals creator", "content_updated": "2026-10-02"}, {"slug": "let-the-revolution-begin-peacefully-of-course", "name": "Let the Revolution Begin", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 8.3, "score_provisional": false, "followers_total": 109815, "followers_display": "109.8K+", "followers_by_platform": {}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/dc47842f-21d9-4b1a-b322-09995c7fc1fc/Image+13.jpeg?format=750w", "catalog_path": "/let-the-revolution-begin-peacefully-of-course", "links": [{"platform": "Facebook", "url": "https://www.facebook.com/LetTheRevolutionBeginPeacefully", "status": "confirmed"}], "key_strengths": ["109,815 strong and battle-tested since the Bernie era — sharing Sanders' Reaganomics takedowns back in 2017", "Memes sharp enough for the Humor Times to pick up more than once for 'Seen & Heard on the Web'", "Network family in the realest sense: sat down for an impromptu Propaganda Factory podcast episode in May 2025"], "offer": ["Revolutionary branding: a manifesto with a punchline — revolutionary politics with a wink that disarms before it radicalizes", "Content: memes, commentary, and calls to action aimed at the comfortable lie that the current order is the only order", "“Peacefully of Course” as funny, shareable framing that lets radical content travel further"], "bio": "The name is a whole manifesto with a punchline: **Let the Revolution Begin. Peacefully of Course.** — the period after \"Begin\" doing more work than most essays. This is a Facebook page that understands the assignment: revolutionary politics with a wink, the kind of branding that disarms before it radicalizes. The content is classic SLR fare — memes, commentary, and calls to action aimed at the comfortable lie that the current order is the only order. The \"Peacefully of Course\" is doing double duty: it's funny, and it's the kind of plausible deniability that lets radical content travel further than earnest manifestos. Why it's on the roster: because the network needs its humorists and its ironists, not just its lecturers. Let the Revolution Begin. Peacefully of Course. is the spoonful of sugar — except the medicine is revolution.", "content_focus": "Leftist memes, political commentary, calls to action; revolutionary branding with humor", "is_new": false, "seo_title": "Let the Revolution Begin | Sick Left Radicals | MTCSTW", "seo_description": "Let the Revolution Begin. Peacefully of Course.: 109K+ of peaceful revolutionary agitation. Propaganda score 8.3.", "image_alt": "Let the Revolution Begin, Leftist memes, political commentary, calls to action; revolutionary... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "kim-hunt-slaythegop", "name": "SlayTheGOP", "handles": {"primary": "@slaythegop"}, "primary_platform": "TikTok", "propaganda_score": 8.2, "score_provisional": false, "followers_total": 650000, "followers_display": "650K+", "followers_by_platform": {"instagram": {"count": 330000, "confidence": "confirmed"}, "tiktok": {"count": 170000, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@d516e50/v1.4.3/assets/roster-photos/kim-hunt-slaythegop.jpg", "catalog_path": "/kim-hunt-slaythegop", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@slaythegop", "status": "confirmed"}, {"platform": "Patreon", "url": "https://www.patreon.com/cw/slaythegop", "status": "confirmed"}, {"platform": "Buy_me_a_coffee", "url": "https://buymeacoffee.com/slaythegop", "status": "confirmed"}], "key_strengths": ["650K+ for a Portland commentator with a poli-sci degree who hits GOP governance, ICE cruelty, AND Democratic cowardice", "Doxxed and fired for speaking openly — her community raised $68,000+ and she turned the firing into full-time advocacy", "Radicals aren't people who've never bled — they're people who bleed and get louder"], "offer": ["Anti-GOP content: TikTok creator (@slaythegop) doing anti-Republican content with the gloves off — sharp, funny, unwilling to pretend the GOP is normal", "TikTok-native: direct address, quick cuts, righteous anger that plays perfectly in short form", "Target: the absurdity and cruelty of the modern Republican Party, delivered with genuine had-enough energy"], "bio": "**Kim Hunt** — better known as **SlayTheGOP** — is a TikTok creator (@slaythegop) doing exactly what the handle promises. This is anti-Republican content with the gloves off: sharp, funny, and utterly unwilling to pretend the GOP is a normal political party. The format is TikTok-native — direct address, quick cuts, the kind of righteous anger that plays perfectly in short form. The content is aimed squarely at the absurdity and cruelty of the modern Republican Party, delivered with the energy of someone who has genuinely had enough. Why she's on the roster: because the network needs its slayers. Kim Hunt is doing the unglamorous work of telling the truth about the GOP, one TikTok at a time, to an audience that's hungry for it.", "content_focus": "Anti-Republican political commentary; GOP governance, ICE cruelty, Democratic cowardice; written essays on Patreon", "is_new": false, "seo_title": "SlayTheGOP | Sick Left Radicals | MTCSTW", "seo_description": "Kim Hunt (@slaythegop): Portland political commentator slaying the GOP to 650K+. Propaganda score 8.2.", "image_alt": "SlayTheGOP, Anti-Republican political commentary; GOP governance, ICE cruelty,... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "little-anarchist-brat", "name": "Little Anarchist Brat", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 8.2, "score_provisional": false, "followers_total": 9000, "followers_display": "9K+", "followers_by_platform": {}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/cc78e80e-5d40-4369-b277-49b85e4a6caf/Image+14.jpeg?format=750w", "catalog_path": "/little-anarchist-brat", "links": [{"platform": "Ko-fi", "url": "https://ko-fi.com/littleanarchistbrat", "status": "confirmed"}, {"platform": "Website", "url": "https://littleanarchistbrat.ghost.io/", "status": "confirmed"}], "key_strengths": ["The theory wing made flesh: long-form, deeply sourced essays on a Ghost blog — 'Anarchism as Practice'", "'What is Solidarity' works through Kropotkin, Bakunin, and Malatesta while naming the classics' colonial baggage head-on", "'Decolonizing Anarchism' and Angela Davis-rooted 'Radical Anarchism' — handing the network its why"], "offer": ["Anarchist writing: long-form anarchist writing for people done being polite about the state, the boss, and the whole rotten edifice", "Independent platform: Ghost publication — independent, subscriber-supported, no algorithm deciding who sees it", "Voice: sharp, funny, and utterly unwilling to meet power halfway"], "bio": "**Little Anarchist Brat** is exactly what it says on the tin — and the tin is a Ghost publication at littleanarchistbrat.ghost.io. This is long-form anarchist writing for people who are done being polite about the state, the boss, and the whole rotten edifice. The format matters: Ghost means independent, subscriber-supported, no algorithm deciding who sees it. That's the anarchist media model in miniature — own your platform, own your audience, say what needs saying. The writing is sharp, funny, and utterly unwilling to meet power halfway. Why she's on the roster: because the network needs its writers, not just its memers. Little Anarchist Brat is doing the theoretical work with a smirk, and the smirk is what makes it spread.", "content_focus": "Long-form anarchist essays and theory: decolonizing anarchism, solidarity, individualism, anarchism as practice", "is_new": false, "seo_title": "Little Anarchist Brat | Sick Left Radicals | MTCSTW", "seo_description": "Little Anarchist Brat: anarchism as practice — blog & dispatches. Propaganda score 8.2.", "image_alt": "Little Anarchist Brat, Long-form anarchist essays and theory: decolonizing anarchism,... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "im-that-girl", "name": "I'm that girl.", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 8.1, "score_provisional": false, "followers_total": 74681, "followers_display": "74.7K+", "followers_by_platform": {"facebook": {"count": 74681, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/8c5e2e2b-1616-41a1-b8e7-09093a858938/imthatgirl.jpg?format=750w", "catalog_path": "/im-that-girl", "links": [{"platform": "Facebook", "url": "https://www.facebook.com/ImThatGirl2017", "status": "confirmed"}], "key_strengths": ["74,681 verified followers — a real crowd for an independent leftist page on a platform that throttles us by default", "Frontline meme warfare: daily agitprop that radicalizes the timeline one share at a time", "A transmission tower keeping the movement's signal alive behind enemy lines"], "offer": ["Comedy and motivation: part comedy page, part motivational machine, part unfiltered confessional — a one-woman empowerment generator", "Award-winning comedy: award-winning comedian, mental health advocate, storyteller, and founder of the viral I Am That Girl Movement", "Engagement: 74,681 followers, 9.4% engagement rate, 3.8% interaction rate, 1.2% click rate on 120K daily impressions", "ImThatGirl365 movement: mental health advocacy with the IATG 365-Day Challenge (book and guided workbook), a Facebook group of 3,600+ members, and architecture for sustained healing work", "Signature voice: \"You are not difficult. You are the standard. Raise the bar.\" / \"Some women are lost in the fire. Some women are built from it. I'm that girl.\""], "bio": "Some pages make you think. **I'm that girl.** makes you feel powerful and seen — and then gets you laughing so hard you forget you were ever afraid of your own fire. Part comedy page, part motivational machine, part absolute unfiltered confessional, this is a one-woman empowerment generator. The bio says it all: *\"I am an award-winning comedian, mental health advocate, storyteller, and the founder of the viral I Am That Girl Movement. I turn my pain into punchlines and my trauma into triumphs, using humor to heal, inspire, and empower others.\"* That's not branding — that's a mission statement. The numbers are serious: **74,681 followers** on a page with a **9.4% engagement rate** and a **3.8% interaction rate** — those are not casual-scroll metrics, that's an audience that shows up. She reaches a broad audience with her content and holds a **1.2% click rate** on 120K daily impressions. The audience is **overwhelmingly female**, and the content is built for exactly who it reaches. The posts are the kind of thing you screenshot and send to your best friend at 2 AM: *\"You are not difficult. You are the standard. Raise the bar.\"* *\"Some women are lost in the fire. Some women are built from it. I'm that girl.\"* Affirmations that land like uppercuts. Comedy that cuts deeper than the sadness it came from. What elevates her beyond feel-good content: the **ImThatGirl365 movement**, a mental health advocacy project with real structure behind it — the IATG 365-Day Challenge (a book and guided workbook), a Facebook group of **3,600+ members**, and a whole architecture for turning viral reach into sustained healing work. She's not just posting into the void; she's building the room. Why she's on this roster: because the personal is political and the political is personal. A woman who can take 74,681 people from \"I'm not enough\" to \"I am that girl\" in a single scroll is doing propaganda work — she's just doing it for the side of healing, humor, and refusing to shrink.", "content_focus": "Comedy, motivation, mental-health advocacy, empowerment affirmations; memes as agitprop for the healing side", "is_new": false, "seo_title": "I'm that girl. | Sick Left Radicals | MTCSTW", "seo_description": "I'm that girl.: frontline meme warfare on Facebook. Propaganda score 8.1.", "image_alt": "I'm that girl., Comedy, motivation, mental-health advocacy, empowerment affirmations;... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "joey", "name": "Joey", "handles": {"primary": "@joey_doesit"}, "primary_platform": "TikTok", "propaganda_score": 8, "score_provisional": false, "followers_total": 55000, "followers_display": "55K+", "followers_by_platform": {"tiktok": {"count": 55000, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/f1a0c773-0ab7-4d33-837d-ac95db8d5079/joey.jpg?format=750w", "catalog_path": "/joey", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@joey_doesit", "status": "confirmed"}, {"platform": "Tiktok_2", "url": "https://www.tiktok.com/@joey_doesit/live?_r=1&_svg=3&checksum=6df23e3b20eaadd6bb039aade5f2832551258f898eee12b40fdd9bb23b35591e&enter_from_merge=share&enter_method=share&sec_user_id=MS4wLjABAAAAgv-wFN_cZOuZuSionEG24q2UlDBM0DS1_nlzJx5v1CdrHFi2iR_cmcZk1obY8htt&share_app_id=1233&share_from_user_id=7137996114359", "status": "confirmed"}], "key_strengths": ["55K for open-mic combat: live debates every single night at 9:30PM PST — MAGA callers walk straight into the ring", "1,000+ videos, hundreds of live debates, clips that travel — nobody else on the roster debates fascists at this cadence", "Runs a Spanish-language backup so the debates cross the language line"], "offer": ["TikTok commentary: short-form video commentary (@joey_doesit) taking the piss out of the powerful", "Format fluency: quick cuts, direct address, casual confidence — political content that feels like hanging out rather than homework", "Comedy delivery: comedy does the heavy lifting; the politics ride along"], "bio": "**Joey does it.** That's the handle — @joey_doesit — and the whole thesis. Joey is a TikTok creator doing the thing: short-form video commentary that takes the piss out of the powerful and hands the punchline to the rest of us. The format is the message here. TikTok is where the audience lives, and Joey is fluent in it — quick cuts, direct address, the kind of casual confidence that makes political content feel like hanging out rather than homework. The comedy does the heavy lifting; the politics ride along in the back seat and get out at your stop. Why he's on the roster: because the left needs creators who meet people where they are, in the formats they actually watch. Joey does it — and \"it\" is making radical content feel effortless.", "content_focus": "Nightly live political debates (vs MAGA callers); short-form leftist comedy commentary", "is_new": false, "seo_title": "Joey | Sick Left Radicals | MTCSTW", "seo_description": "Joey (@joey_doesit): nightly live leftist debates on TikTok, 9:30PM PST. Propaganda score 8.0.", "image_alt": "Joey, Nightly live political debates (vs MAGA callers); short-form leftist... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "the-political-feminist", "name": "The Political Feminist", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 8, "score_provisional": false, "followers_total": 55631, "followers_display": "55.6K+", "followers_by_platform": {"facebook": {"count": 55631, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/42973f27-05d9-4fb4-add8-b2d250122635/Image+11.jpeg?format=750w", "catalog_path": "/the-political-feminist", "links": [{"platform": "Facebook", "url": "https://www.facebook.com/PoliticalFeminist", "status": "confirmed"}], "key_strengths": ["55,631 for three lanes that all hit: leftist politics, feminist science literacy, unfiltered humor", "Propaganda as witness: testimony about her Palestinian husband, 50+ years told he's worth less", "Sharp science lane: debunked a distorted contraception-cancer headline against what the Swedish research actually said"], "offer": ["Feminist commentary: feminist political commentary treating the patriarchy as a political system, not a personal problem", "Content: sharp takes on reproductive rights, labor, and being a woman under capitalism — feminism with class analysis, not branding", "Voice: the confidence of someone who has stopped asking for permission"], "bio": "**The Political Feminist** is exactly what it says: feminist political commentary with the gloves off. A Facebook page that treats the patriarchy as what it is — a political system, not a personal problem — and aims its analysis squarely at the institutions that uphold it. The content is the good stuff: sharp takes on reproductive rights, labor, and the particular hell of being a woman under capitalism, delivered with the confidence of someone who has stopped asking for permission. The page understands that feminism without class analysis is just branding, and it doesn't do branding. Why she's on the roster: because the network needs its feminists, and the feminists need their teeth. The Political Feminist has teeth.", "content_focus": "Feminist political commentary with class analysis; reproductive rights, labor, feminist science literacy, unfiltered humor", "is_new": false, "seo_title": "The Political Feminist | Sick Left Radicals | MTCSTW", "seo_description": "The Political Feminist: feminist agitation on Facebook. Propaganda score 8.0.", "image_alt": "The Political Feminist, Feminist political commentary with class analysis; reproductive... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "us-federal-department-of-propaganda", "name": "US Federal Dept of Propaganda", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 8, "score_provisional": false, "followers_total": 136178, "followers_display": "136.2K+", "followers_by_platform": {"facebook": {"count": 136178, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/078a027e-83ca-40f3-b4a2-4b18af237d39/DEBB08C7-0B3C-4AF4-A5FF-DCD9AABB1C5D.jpeg?format=750w", "catalog_path": "/us-federal-department-of-propaganda", "links": [{"platform": "Facebook", "url": "https://www.facebook.com/profile.php?id=100088623907567", "status": "confirmed"}], "key_strengths": ["136,178 verified — the flagship of the mock-bureaucratic wing and one of the largest pages in the 8M-strong network", "Steals the state's aesthetic — seals, letterhead energy — and points it at the people real agencies manage", "Satire as counter-propaganda, issued with a straight face"], "offer": ["Fake federal agency: the voice of the U.S. government, except one that actually serves the people — official-sounding pronouncements with deadpan confidence", "National range: weighing in on national politics, federal policy, and the state of the union with moral clarity", "Network HQ: the headquarters of the Departments network — the fake agency that makes the other fake agencies feel official"], "bio": "The **U.S. Federal Department of Propaganda** is the mothership — the fake federal agency overseeing all the fake state agencies. A Facebook page that adopts the voice of the United States government, except the government it's pretending to be is one that actually serves the people. The bit is the same beautiful absurdity as the state Departments: official-sounding pronouncements, bureaucratic aesthetics, deadpan confidence. But the Federal Department has range — it can weigh in on national politics, federal policy, and the general state of the union with the authority of an institution that doesn't exist and the moral clarity of one that should. Why it's on the roster: because the Departments are a network, and every network needs its headquarters. The U.S. Federal Department of Propaganda is the HQ — the fake agency that makes all the other fake agencies feel official.", "content_focus": "Mock-bureaucratic leftist satire of U.S. federal politics and policy; anchor of the Departments network", "is_new": false, "seo_title": "US Federal Dept of Propaganda | Sick Left Radicals | MTCSTW", "seo_description": "U.S. Federal Department of Propaganda: a Department of Propaganda that does its job — 136K strong. Propaganda score 8.0.", "image_alt": "US Federal Dept of Propaganda, Mock-bureaucratic leftist satire of U.S. federal politics and policy;... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "deejay10", "name": "deejay1.0", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 8, "score_provisional": false, "followers_total": 18000, "followers_display": "18K+", "followers_by_platform": {"tiktok": {"count": 18000, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/46250049-fb06-4100-9c96-e1cf1c311483/IMG_9094.jpeg?format=750w", "catalog_path": "/deejay10", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@deejay1.0", "status": "confirmed"}], "key_strengths": ["WE ARE ONE Movement Coordinator linking pages and lining up messaging across the network", "18K+ followers as the byproduct of organizing work — infrastructure, not just content", "Connective tissue: turning a crowd of solo acts into a coordinated propaganda front"], "offer": ["Organizing: SLR Propaganda, Organizer, and WE ARE ONE Movement Coordinator — content pipeline feeding real-world movement building", "Network infrastructure: connecting pages, lining up messaging, making the network act like a network instead of thirty solo acts", "TikTok presence: 18K+ followers and climbing"], "bio": "**deejay1.0** isn't just a poster — they're an organizer. On TikTok they run as **SLR Propaganda, Organizer, and WE ARE ONE Movement Coordinator**, which means their content pipeline feeds directly into real-world movement building. That's a rare breed in the creator space: someone whose follower count (18K+ and climbing) is the *byproduct* of organizing work, not the other way around. The WE ARE ONE Movement tie matters. While most leftist creators are broadcasting into the algorithm, coordinators like deejay1.0 are doing the unglamorous infrastructure work — connecting pages, lining up messaging, making sure the network acts like a network instead of thirty solo acts yelling into the same feed. Why it hits: reach without organization is just content. Organization turns 18K followers into a bloc. Every network needs its connective tissue, and deejay1.0 is holding threads together on the platform where the left's audience actually lives. Why they belong: the Sick Left Radicals aren't a group chat — they're a coordinated propaganda front. Organizers are the spine.", "content_focus": "Political organizing and network coordination (WE ARE ONE Movement); leftist content as infrastructure", "is_new": false, "seo_title": "deejay1.0 | Sick Left Radicals | MTCSTW", "seo_description": "deejay1.0: propagandist, organizer & WE ARE ONE Movement coordinator on TikTok. Propaganda score 8.0.", "image_alt": "deejay1.0, Political organizing and network coordination (WE ARE ONE Movement);... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "eat-the-rich", "name": "EAT THE RICH", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 7.9, "score_provisional": false, "followers_total": 54000, "followers_display": "54K+", "followers_by_platform": {"facebook": {"count": 54000, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/1efc59a3-abeb-40a6-a142-eef5365c657a/0F1BBCA4-91AB-4AF5-B25B-67B63ADD44DB.jpeg?format=750w", "catalog_path": "/eat-the-rich", "links": [{"platform": "Facebook", "url": "https://www.facebook.com/EattherichStirfried", "status": "confirmed"}], "key_strengths": ["54K+ followers on a three-word recruiting poster: EAT THE RICH — no ambiguity, no respectability politics", "Class-war education, not memes: the 2019 'Brief introduction to Marxism' explainer pulled 8,000 views", "Holding the line with the flag flying while the page is down — study material for the curious and the converted"], "offer": ["Class-war education: leftist political education posts, including the September 2019 explainer \"A Brief introduction to Marxism\" (nearly 8,000 views)", "Study material: not memes for the already-converted — substantive political education", "Network presence: 54,000+ followers; currently holding its place in the network (page may be unpublished, renamed, or taken down — send word if you've got a lead)"], "bio": "EAT THE RICH did exactly what the name promises: class-war education, served straight. The Facebook page at EattherichStirfried was home to leftist political education posts — including a September 2019 explainer, \"A Brief introduction to Marxism,\" laying out how workers owning society changes everything, which pulled nearly 8,000 views. Not memes for the already-converted — study material. And it mattered enough that other outlets linked back to the page's posts when documenting the political fights of the era. The name alone is a recruiting poster. Three words, no ambiguity, no respectability politics. In a media ecosystem that wants every leftist to soften the message, a page called EAT THE RICH with 54,000+ followers was a banner planted in the ground. The honest report: the page currently returns nothing at its old address — possibly unpublished, renamed, or taken down. We're holding its place in the network with the flag flying. If you've got a lead on where the kitchen moved, send word.", "content_focus": "Class-war education — study material, not memes (leftist political education posts).", "is_new": false, "seo_title": "EAT THE RICH | Sick Left Radicals | MTCSTW", "seo_description": "EAT THE RICH: class-war education served straight on Facebook. Propaganda score 7.9.", "image_alt": "EAT THE RICH, Class-war education — study material, not memes (leftist political... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "keithwashburn", "name": "keithwashburn", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 7.9, "score_provisional": false, "followers_total": 20000, "followers_display": "20K+", "followers_by_platform": {"tiktok": {"count": 20000, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/3a9cf639-db15-4130-994f-18668106b4bc/IMG_9094.jpeg?format=750w", "catalog_path": "/keithwashburn", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@keithwashburn", "status": "confirmed"}], "key_strengths": ["20K+ TikTok followers and a seat at the WE ARE ONE unity table — cross-movement solidarity that actually wins things", "A connector and coalition-builder: turning a crowd of angry individuals into a formation that marches in step", "The bridge-builder lane — the network's spine alongside its bomb-throwers"], "offer": ["TikTok commentary: short-form political commentary (@keithwashburn) — direct, personal, no production team", "Information war: showing up, posting through it, refusing to let the algorithm have the last word", "Network role: one of the grinders holding territory in the information war"], "bio": "**keithwashburn** is a TikTok creator (@keithwashburn) doing the unglamorous work of the information war: showing up, posting through it, and refusing to let the algorithm have the last word. The format is short-form video — direct, personal, no production team. That's the point. In an era where the right has an entire media ecosystem, the left's counterweight is thousands of individual creators like keithwashburn, each holding a small piece of the line. The content is political commentary for people who get their news from their phone — which is to say, most people. Why he's on the roster: because the network isn't just the stars. It's the grinders. keithwashburn is one of the grinders, and the grinders are what hold territory.", "content_focus": "Short-form political commentary for people who get their news from their phone.", "is_new": false, "seo_title": "keithwashburn | Sick Left Radicals | MTCSTW", "seo_description": "keithwashburn (@keithwashburn on TikTok): leftist creator in the Sick Left Radicals network. Propaganda score 7.9.", "image_alt": "keithwashburn, Short-form political commentary for people who get their news from... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "moreno-neurospicy-news", "name": "Moreno Neurospicy News", "handles": {"primary": "@adhd_pirate1"}, "primary_platform": "TikTok", "propaganda_score": 7.8, "score_provisional": false, "followers_total": 130000, "followers_display": "130K+", "followers_by_platform": {}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/c5fe9f42-a07a-483b-844c-472d6f2c792b/moreno.jpg?format=750w", "catalog_path": "/moreno-neurospicy-news", "links": [{"platform": "Facebook", "url": "https://www.facebook.com/share/19owNJnCKm/?mibextid=wwXIfr", "status": "confirmed"}, {"platform": "Tiktok", "url": "https://www.tiktok.com/@adhd_pirate1", "status": "confirmed"}, {"platform": "Tiktok_2", "url": "https://www.tiktok.com/@adhd_pirate/video/7220559663094402350", "status": "confirmed"}, {"platform": "Patreon", "url": "https://www.patreon.com/adhd_pirate/about", "status": "confirmed"}], "key_strengths": ["One-person wire service filing 3,000+ dispatches on queer, Indigenous, and ICE news the corporate press won't touch", "Volume and velocity: date-stamped dispatches that call the news cycle before it breaks", "130K+ across TikTok, Facebook, Substack, and Patreon — the network's daily newsroom"], "offer": ["One-person wire service — date-stamped news dispatches covering queer news, Indigenous news, and ICE-related news, 3,000+ videos deep", "Archive account — @neurospicy_news keeps the back catalog and overflow humming", "TikTok presence — @adhd_pirate1 and @neurospicy_news"], "bio": "**Moreno Neurospicy News** runs a one-person wire service from the left's front lines. Every segment is date-stamped like a dispatch from a war nobody's covering — **\"6/16/26 ICE ENTERS ITS 'SLAVERY PHASE'\"**, **\"6/7/26 OWNER OF ICE DETENTION FACILITY IS AN IMMIGRANT\"** — and the beat is carved in the bio: *queer news, Indigenous news, ICE-related news.* That's 3,000+ videos deep. Moreno's whole operation is volume and velocity: the stories corporate outlets won't touch, delivered fast, with the receipts up front and the fury in the delivery. The signature move is the headline that sounds too outrageous to be true and turns out to be the news cycle exactly. Meanwhile a second account, **@neurospicy_news**, keeps the archive and overflow humming. Why they belong in the network: Sick Left Radicals runs on signal the algorithm suppresses. Moreno is the newsroom of the operation — queer, Indigenous, anti-ICE coverage with the consistency of a daily paper and the independence to never soften a frame. Also on TikTok as **@adhd_pirate1** and **@neurospicy_news**.", "content_focus": "Leftist news/commentary: queer, Indigenous, and ICE news; anti-capitalist analysis (e.g. the wellness industry as a $6.3T scam profiting from burnout).", "is_new": false, "seo_title": "Moreno Neurospicy News | Sick Left Radicals | MTCSTW", "seo_description": "Moreno Neurospicy News (@adhd_pirate1): leftist news on queer, Indigenous & ICE issues across TikTok, Substack & Patreon. Propaganda score 7.8.", "image_alt": "Moreno Neurospicy News, Leftist news/commentary: queer, Indigenous, and ICE news;... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "dogman_v1", "name": "dogman_v1", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 7.7, "score_provisional": false, "followers_total": 21900, "followers_display": "21.9K+", "followers_by_platform": {"tiktok": {"count": 21900, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@d516e50/v1.4.3/assets/roster-photos/dogman_v1.jpg", "catalog_path": "/dogman_v1", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@dogman_v1", "status": "confirmed"}], "key_strengths": ["1,109 videos on a BACKUP account — deplatformed once and came back louder", "The cockroach the algorithm can't kill: banned, shadowbanned, still swinging daily", "40K+ likes on a backup handle — the audience followed the voice, not the account"], "offer": ["TikTok presence: 21,900 followers, 40,700 likes, 1,109 videos on the backup account (bio: \"TTBackup Dogman_v3\")", "Deplatforming survival: proof of concept that the message outlasts the account — banned, rebuilt, kept swinging", "Relentless output: years of showing up daily through bans and shadowbans"], "bio": "**Dogman — @dogman_v1.** Twenty-one thousand nine hundred followers. Forty thousand seven hundred likes. One thousand one hundred and nine videos. And the bio says it all: **\"TTBackup Dogman_v3.\"** Read that again. This is the *backup* account. The main got taken down — as happens to every radical who starts landing punches on this app — and Dogman just built another one and kept swinging. Over a thousand videos deep on a backup handle isn't a content strategy, it's a refusal to die. That's not a creator; that's a cockroach the algorithm can't kill, and we mean that as the highest compliment in the business. The numbers tell the work ethic: 1,109 videos is years of showing up, daily, through bans and shadowbans and whatever else the trust-and-safety ghouls threw at the wall. Forty thousand likes on a backup account means the audience followed the voice, not the handle. That's loyalty you can't buy and reach you can't fake. Why they belong in Sick Left Radicals: every propaganda network needs its survivors — the ones who've been deplatformed and came back louder. Dogman is proof of concept that the message outlasts the account. When the network needs someone who cannot be silenced, only inconvenienced, this is the file you pull.", "content_focus": "Leftist TikTok commentary at high volume through bans and shadowbans (1,109 videos on the backup alone).", "is_new": false, "seo_title": "dogman_v1 | Sick Left Radicals | MTCSTW", "seo_description": "dogman_v1 (@dogman_v1 on TikTok): leftist creator in the Sick Left Radicals network. Propaganda score 7.7.", "image_alt": "dogman_v1, Leftist TikTok commentary at high volume through bans and shadowbans... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "bitchysitch", "name": "bitchysitch", "handles": {"primary": ""}, "primary_platform": null, "propaganda_score": 7.6, "score_provisional": false, "followers_total": 9969, "followers_display": "10K+", "followers_by_platform": {"tiktok": {"count": 9969, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://images.squarespace-cdn.com/content/v1/6802d7140c0cc229f7f710a8/fe64f79d-180f-4f57-ac52-fef5aa60d0f4/IMG_9099.jpeg?format=750w", "catalog_path": "/bitchysitch", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@bitchysitch", "status": "confirmed"}], "key_strengths": ["Nearly 10K TikTok followers and 1.3M likes behind 171 verified videos", "Dual-role comrade: propagandist AND organizer, building infrastructure beyond the feed", "Movement work happening in DMs and organizing spaces — the network's connective tissue"], "offer": ["TikTok presence: 9,968 followers, 171 videos, 1.3 million total likes — bio reads \"new found influencer\"", "Network role: SLR Propagandist and Organizer (dual role)", "Organizing work: infrastructure-building beyond the feed, in DMs and movement spaces"], "bio": "Honest flag: this one is thin. The TikTok profile exists and is verified live — 9,968 followers, 171 videos, 1.3 million total likes, bio reading \"new found influencer\" — but there's no public window into the actual videos themselves: no indexable content, no reachable video feed, no traceable themes. So anything about the content style would be a guess, and we don't guess here. What's verifiable: the account is real, active presence on TikTok, and its network role is dual — SLR Propagandist *and* Organizer. That organizer tag matters; it suggests work happening beyond the feed, in DMs and movement spaces, which is exactly the kind of infrastructure-building this network is supposed to surface. Recommendation: keep the link, keep the count, keep the role — but leave the content praise blank until we can actually watch what they're making. A comrade's output deserves a review grounded in the work, not in the stats. Revisit with a TikTok deep-dive pass.", "content_focus": "Unknown/unverified — the catalog deliberately leaves content praise blank pending a TikTok deep-dive pass.", "is_new": false, "seo_title": "bitchysitch | Sick Left Radicals | MTCSTW", "seo_description": "bitchysitch (@bitchysitch on TikTok): leftist creator in the Sick Left Radicals network. Propaganda score 7.6.", "image_alt": "bitchysitch, Unknown/unverified — the catalog deliberately leaves content praise... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "nikalie-monroe", "name": "Nikalie", "handles": {"tiktok": "@nikalie.monroe"}, "primary_platform": "Tiktok", "propaganda_score": 9.1, "score_provisional": true, "followers_total": 558600, "followers_display": "558.6K", "followers_by_platform": {"tiktok": {"count": 558600, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/nikalie-monroe.jpg", "catalog_path": "/nikalie-monroe", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@nikalie.monroe", "status": "confirmed"}, {"platform": "Bio link (gofundme fundraiser)", "url": "https://gofund.me/cd1b825f7", "status": "confirmed"}, {"platform": "Other", "url": "https://thetab.com/2025/11/10/churches-respond-as-influencer-exposes-them-for-ignoring-desperate-mother-in-43-part-series", "status": "confirmed"}], "key_strengths": ["558.6K combined audience (verified 2026-10-01)", "hard-left agitator — bio \"FDT, F*ck ICE, Free Palestine, BLM, 💗 immigrants, pro choice\"; Army veteran, lesbian, KY substance-abuse counselor", "biggest reach of any true leftist in the pool; bio reads like an SLR affiliate page already"], "offer": ["hard-left agitator — bio \"FDT, F*ck ICE, Free Palestine, BLM, 💗 immigrants, pro choice\"; Army veteran, lesbian, KY substance-abuse counselor", "biggest reach of any true leftist in the pool; bio reads like an SLR affiliate page already", "558.6K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"], "bio": "TikTok-only footprint (558.6K). No own Instagram, YouTube, X, Facebook, Substack, podcast, merch, Patreon, or website discoverable — only TikTok plus third-party press/reactor coverage of her viral church social-experiment series. hard-left agitator — bio \"FDT, F*ck ICE, Free Palestine, BLM, 💗 immigrants, pro choice\"; Army veteran, lesbian, KY substance-abuse counselor", "content_focus": "hard-left agitator — bio \"FDT, F*ck ICE, Free Palestine, BLM, 💗 immigrants, pro choice\"; Army veteran, lesbian, KY substance-abuse counselor", "is_new": true, "seo_title": "Nikalie | Sick Left Radicals | MTCSTW", "seo_description": "Nikalie (@nikalie.monroe): hard-left agitator — bio \"FDT, F*ck ICE, Free Palestine, BLM, 💗 immigrants, pro choice\";... on Tiktok. 558.6K followers....", "image_alt": "Nikalie, hard-left agitator — bio \"FDT, F*ck ICE, Free Palestine, BLM, 💗... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "progressively2026", "name": "realprogressive111", "handles": {"tiktok": "@progressively2026"}, "primary_platform": "Tiktok", "propaganda_score": 8.9, "score_provisional": true, "followers_total": 332400, "followers_display": "332.4K", "followers_by_platform": {"tiktok": {"count": 332400, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/progressively2026.jpg", "catalog_path": "/progressively2026", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@progressively2026", "status": "confirmed"}], "key_strengths": ["332.4K combined audience (verified 2026-10-01)", "daily progressive political news commentary with dated posts; TikTok LIVE streams", "biggest progressive-Dem account in the pool; daily output, strong engagement (a video at 1.3M plays)"], "offer": ["daily progressive political news commentary with dated posts; TikTok LIVE streams", "biggest progressive-Dem account in the pool; daily output, strong engagement (a video at 1.3M plays)", "332.4K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"], "bio": "TikTok-dominant (332.4K, daily videos + LIVE); claims Facebook/YouTube presences on her own videos but neither is verifiable by handle. No bio link. daily progressive political news commentary with dated posts; TikTok LIVE streams", "content_focus": "daily progressive political news commentary with dated posts; TikTok LIVE streams", "is_new": true, "seo_title": "realprogressive111 | Sick Left Radicals | MTCSTW", "seo_description": "realprogressive111 (@progressively2026): daily progressive political news commentary with dated posts; TikTok LIVE streams on Tiktok. 332.4K followers....", "image_alt": "realprogressive111, daily progressive political news commentary with dated posts; TikTok... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "vandala-effect", "name": "Bella Vandala", "handles": {"tiktok": "@vandala_effect"}, "primary_platform": "Tiktok", "propaganda_score": 8.6, "score_provisional": true, "followers_total": 176600, "followers_display": "176.6K", "followers_by_platform": {"tiktok": {"count": 176600, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/vandala-effect.jpg", "catalog_path": "/vandala-effect", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@vandala_effect", "status": "confirmed"}, {"platform": "Tiktok", "url": "https://www.tiktok.com/@bella_vandala", "status": "confirmed"}, {"platform": "Youtube", "url": "https://www.youtube.com/watch?v=fxWwuC57yjM", "status": "probable"}, {"platform": "Substack", "url": "https://substack.com/@bellavandala", "status": "probable"}], "key_strengths": ["176.6K combined audience (verified 2026-10-01)", "leftist political commentary with viral takedown content (236.4K-likes \"How the mighty have fallen\" video), uses #generalstrike; bio \"Working on get banned agai", "proven leftist political creator with viral reach and high per-post engagement"], "offer": ["leftist political commentary with viral takedown content (236.4K-likes \"How the mighty have fallen\" video), uses #generalstrike; bio \"Working on get banned again ❤️\"", "leftist political commentary with viral takedown content (236.4K-likes \"How the mighty have fallen\" video), uses #generalstrike; bio \"Working on get banned agai", "176.6K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"], "bio": "TikTok base (176.6K, rebuilt from a banned original @bella_vandala account), a 'Vandala Effect' podcast on YouTube (probable own channel), and a Substack presence under @bellavandala. No verified Instagram, X, Facebook, merch store, or link-in-bio URL found. leftist political commentary with viral takedown content (236.4K-likes \"How the mighty have fallen\" video), uses #generalstrike; bio \"Working on get banned again ❤️\"", "content_focus": "leftist political commentary with viral takedown content (236.4K-likes \"How the mighty have fallen\" video), uses #generalstrike; bio \"Working on get banned again ❤️\"", "is_new": true, "seo_title": "Bella Vandala | Sick Left Radicals | MTCSTW", "seo_description": "Bella Vandala (@vandala_effect): leftist political commentary with viral takedown content (236.4K-likes \"How the mighty... on Tiktok. 176.6K followers....", "image_alt": "Bella Vandala, leftist political commentary with viral takedown content... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "therevcoms", "name": "The Revcoms", "handles": {"tiktok": "@therevcoms", "youtube": "@therevcoms", "instagram": "@therevcoms"}, "primary_platform": "Tiktok", "propaganda_score": 8.4, "score_provisional": true, "followers_total": 109600, "followers_display": "109.6K", "followers_by_platform": {"tiktok": {"count": 108000, "confidence": "confirmed"}, "instagram": {"count": 1600, "confidence": "probable"}}, "followers_as_of": "2026-10-01", "picture": "https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/therevcoms.jpg", "catalog_path": "/therevcoms", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@therevcoms", "status": "confirmed"}, {"platform": "Linkinbio", "url": "https://linktr.ee/therevcoms", "status": "confirmed"}, {"platform": "Youtube", "url": "https://www.youtube.com/@therevcoms", "status": "probable"}, {"platform": "Instagram", "url": "https://www.instagram.com/therevcoms/", "status": "probable"}, {"platform": "X", "url": "https://x.com/TheRevcoms", "status": "confirmed"}, {"platform": "Facebook", "url": "https://www.facebook.com/therevcoms", "status": "probable"}, {"platform": "Other", "url": "https://bsky.app/profile/revcom.us", "status": "confirmed"}, {"platform": "Website", "url": "https://revcom.us/en", "status": "confirmed"}], "key_strengths": ["109.6K combined audience (verified 2026-10-01)", "self-described \"Revolutionary Communists. Followers of @BobAvakianOfficial & the New Communism\"", "strongest ideological alignment in the pool — explicitly communist propaganda, exactly the SLR lane"], "offer": ["self-described \"Revolutionary Communists. Followers of @BobAvakianOfficial & the New Communism\"", "strongest ideological alignment in the pool — explicitly communist propaganda, exactly the SLR lane", "109.6K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"], "bio": "Multi-platform org account for Bob Avakian's Revolutionary Communists (revcom.us): strongest on TikTok (108K); IG ~1.6K, X ~5K, YouTube channel, Facebook, Bluesky, Linktree, Patreon, official site, and a weekly podcast (RNL Show); no Substack found. self-described \"Revolutionary Communists. Followers of @BobAvakianOfficial & the New Communism\"", "content_focus": "self-described \"Revolutionary Communists. Followers of @BobAvakianOfficial & the New Communism\"", "is_new": true, "seo_title": "The Revcoms | Sick Left Radicals | MTCSTW", "seo_description": "The Revcoms (@therevcoms): self-described \"Revolutionary Communists. Followers of @BobAvakianOfficial & the New... on Tiktok. 109.6K followers. Propaganda...", "image_alt": "The Revcoms, self-described \"Revolutionary Communists. Followers of... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "itsdewberry", "name": "Dew", "handles": {"tiktok": "@itsdewberry"}, "primary_platform": "Tiktok", "propaganda_score": 8.5, "score_provisional": true, "followers_total": 141900, "followers_display": "141.9K", "followers_by_platform": {"tiktok": {"count": 141900, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/itsdewberry.jpg", "catalog_path": "/itsdewberry", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@itsdewberry", "status": "confirmed"}], "key_strengths": ["141.9K combined audience (verified 2026-10-01)", "progressive political commentary from SE Texas — bio \"Don't be a bigot!\"", "large, consistent progressive commentator; regional Texas voice"], "offer": ["progressive political commentary from SE Texas — bio \"Don't be a bigot!\"", "large, consistent progressive commentator; regional Texas voice", "141.9K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"], "bio": "TikTok-only footprint (141.9K): Dew, progressive commentator from SE Texas; only monetization trace is PayPal/Cash App tip handles; no IG/YouTube/X/FB/website/link-in-bio discoverable. progressive political commentary from SE Texas — bio \"Don't be a bigot!\"", "content_focus": "progressive political commentary from SE Texas — bio \"Don't be a bigot!\"", "is_new": true, "seo_title": "Dew | Sick Left Radicals | MTCSTW", "seo_description": "Dew (@itsdewberry): progressive political commentary from SE Texas — bio \"Don't be a bigot!\" on Tiktok. 141.9K followers. Propaganda score 8.5.", "image_alt": "Dew, progressive political commentary from SE Texas — bio \"Don't be a... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "thatalabamafella", "name": "alabamafella", "handles": {"tiktok": "@thatalabamafella"}, "primary_platform": "Tiktok", "propaganda_score": 8.5, "score_provisional": true, "followers_total": 139800, "followers_display": "139.8K", "followers_by_platform": {"tiktok": {"count": 139800, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/thatalabamafella.jpg", "catalog_path": "/thatalabamafella", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@thatalabamafella", "status": "confirmed"}, {"platform": "Linkinbio", "url": "https://linktr.ee/alabamafella", "status": "confirmed"}, {"platform": "Other", "url": "https://www.youtube.com/watch?v=zf_yawHlpBs", "status": "confirmed"}], "key_strengths": ["139.8K combined audience (verified 2026-10-01)", "\"working class fella. it's cool to be anti racist and a feminist.\" — pro-working-class, anti-Trump, Gaza, Alabama utility corruption", "big openly anti-racist/feminist pro-working-class Southern voice; strong SLR fit"], "offer": ["\"working class fella. it's cool to be anti racist and a feminist.\" — pro-working-class, anti-Trump, Gaza, Alabama utility corruption", "big openly anti-racist/feminist pro-working-class Southern voice; strong SLR fit", "139.8K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"], "bio": "TikTok-only footprint (139.8K): Jeff Alabama, Mobile DSA founder, pro-working-class/anti-racist/feminist Southern voice; linktr.ee bio link contents unverifiable; interview presence on Raised Red, Living Blue; no IG/YouTube/X/FB discoverable. \"working class fella. it's cool to be anti racist and a feminist.\" — pro-working-class, anti-Trump, Gaza, Alabama utility corruption", "content_focus": "\"working class fella. it's cool to be anti racist and a feminist.\" — pro-working-class, anti-Trump, Gaza, Alabama utility corruption", "is_new": true, "seo_title": "alabamafella | Sick Left Radicals | MTCSTW", "seo_description": "alabamafella (@thatalabamafella): \"working class fella. it's cool to be anti racist and a feminist.\" — pro-working-class,... on Tiktok. 139.8K followers....", "image_alt": "alabamafella, \"working class fella. it's cool to be anti racist and a feminist.\" —... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "official-ghost-of-eli", "name": "Eli Noah", "handles": {"tiktok": "@official.ghost.of.eli"}, "primary_platform": "Tiktok", "propaganda_score": 8.2, "score_provisional": true, "followers_total": 73900, "followers_display": "73.9K", "followers_by_platform": {"tiktok": {"count": 73900, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/official-ghost-of-eli.jpg", "catalog_path": "/official-ghost-of-eli", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@official.ghost.of.eli", "status": "confirmed"}, {"platform": "Bio link (gofundme — gaza family fundraiser he is boosting, not his own)", "url": "https://gofund.me/c4df1f30", "status": "confirmed"}, {"platform": "Other", "url": "https://chuffed.org/project/lgbtqeastafrica", "status": "confirmed"}, {"platform": "Gofundme (own)", "url": "https://www.gofundme.com/f/help-eli-escape-and-rebuild", "status": "confirmed"}], "key_strengths": ["73.9K combined audience (verified 2026-10-01)", "trans military service member — viral \"placed on administrative leave\" video; bio \"Fuck 🧊 [ICE], Free 🇵🇸🇨🇩🇸🇩\"; boycotts, frequent LIVE", "strong leftist profile with viral reach (one video 7.4M plays); trans-military angle is unique"], "offer": ["trans military service member — viral \"placed on administrative leave\" video; bio \"Fuck 🧊 [ICE], Free 🇵🇸🇨🇩🇸🇩\"; boycotts, frequent LIVE", "strong leftist profile with viral reach (one video 7.4M plays); trans-military angle is unique", "73.9K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"], "bio": "TikTok-only creator footprint (73.9K, 359 videos, anti-ICE / Free Palestine content); no Instagram/YouTube/X/Facebook/Substack/podcast/merch/Patreon/website found — fundraising links in bio only. NOTE: 'A Ghost of Eli' (@aghostofeli) is an unrelated TTRPG creator; do not conflate. trans military service member — viral \"placed on administrative leave\" video; bio \"Fuck 🧊 [ICE], Free 🇵🇸🇨🇩🇸🇩\"; boycotts, frequent LIVE", "content_focus": "trans military service member — viral \"placed on administrative leave\" video; bio \"Fuck 🧊 [ICE], Free 🇵🇸🇨🇩🇸🇩\"; boycotts, frequent LIVE", "is_new": true, "seo_title": "Eli Noah | Sick Left Radicals | MTCSTW", "seo_description": "Eli Noah (@official.ghost.of.eli): trans military service member — viral \"placed on administrative leave\" video; bio \"Fuck 🧊... on Tiktok. 73.9K followers....", "image_alt": "Eli Noah, trans military service member — viral \"placed on administrative... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "combatvetsagainsttrump", "name": "Thomas Sidle", "handles": {"tiktok": "@combatvetsagainsttrump"}, "primary_platform": "Tiktok", "propaganda_score": 8.1, "score_provisional": true, "followers_total": 50700, "followers_display": "50.7K", "followers_by_platform": {"tiktok": {"count": 50700, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/combatvetsagainsttrump.jpg", "catalog_path": "/combatvetsagainsttrump", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@combatvetsagainsttrump", "status": "confirmed"}, {"platform": "Linkinbio", "url": "https://linktr.ee/tom_aka_drake161", "status": "confirmed"}, {"platform": "Bio link (change.org petition)", "url": "https://c.org/WQm2cnpvfs", "status": "confirmed"}, {"platform": "Org website", "url": "https://www.fightagainstfascism.org", "status": "probable"}], "key_strengths": ["50.7K combined audience (verified 2026-10-01)", "combat veteran anti-Trump/anti-GOP content; regular TikTok LIVE streamer", "large anti-Trump vet account, high engagement, live-streamer"], "offer": ["combat veteran anti-Trump/anti-GOP content; regular TikTok LIVE streamer", "large anti-Trump vet account, high engagement, live-streamer", "50.7K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"], "bio": "TikTok-only footprint (50.7K, 971 videos, combat vet anti-Trump content, regular LIVE streamer); also affiliated with @combatvetsagainsttrumpFAFOFndr / @FAFOofficial on TikTok. No Instagram/YouTube/X/Facebook/Substack/podcast/merch/Patreon/website found. combat veteran anti-Trump/anti-GOP content; regular TikTok LIVE streamer", "content_focus": "combat veteran anti-Trump/anti-GOP content; regular TikTok LIVE streamer", "is_new": true, "seo_title": "Thomas Sidle | Sick Left Radicals | MTCSTW", "seo_description": "Thomas Sidle (@combatvetsagainsttrump): combat veteran anti-Trump/anti-GOP content; regular TikTok LIVE streamer on Tiktok. 50.7K followers. Propaganda...", "image_alt": "Thomas Sidle, combat veteran anti-Trump/anti-GOP content; regular TikTok LIVE... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "dofd", "name": "Defense of Democracy", "handles": {"tiktok": "@_dofd", "instagram": "@dofdnational"}, "primary_platform": "Tiktok", "propaganda_score": 8.0, "score_provisional": true, "followers_total": 74600, "followers_display": "74.6K", "followers_by_platform": {"tiktok": {"count": 47200, "confidence": "confirmed"}, "instagram": {"count": 11700, "confidence": "probable"}}, "followers_as_of": "2026-10-01", "picture": "https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/dofd.jpg", "catalog_path": "/dofd", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@_dofd", "status": "confirmed"}, {"platform": "Website", "url": "https://defenseofdemocracy.org/", "status": "confirmed"}, {"platform": "Podcast", "url": "https://www.buzzsprout.com/2188992", "status": "confirmed"}, {"platform": "Podcast", "url": "https://www.iheart.com/podcast/269-defense-of-democracy-podca-116196255/", "status": "confirmed"}, {"platform": "Podcast", "url": "https://www.listennotes.com/podcasts/defense-of-democracy-podcast-addison-k-witt-OdVxKzvIMAa/", "status": "probable"}, {"platform": "Linkinbio", "url": "https://linktr.ee/defenseofdemocracy", "status": "probable"}, {"platform": "Instagram", "url": "https://www.instagram.com/dofdnational", "status": "probable"}, {"platform": "Youtube", "url": "https://www.youtube.com/shorts/pW5YHf3Q8XM", "status": "probable"}, {"platform": "Other", "url": "https://givebutter.com/MvJX52", "status": "probable"}, {"platform": "Youtube", "url": "https://www.youtube.com/watch?v=QJmZMcy38jE", "status": "unverified"}], "key_strengths": ["74.6K combined audience (verified 2026-10-01)", "anti-fascist org — resisting book bans, curriculum censorship, voter suppression; LGBTQ+ defense, ICE monitoring, school-board organizing", "real leftist organization with consistent multi-platform output; recruit conversation would be with the org"], "offer": ["anti-fascist org — resisting book bans, curriculum censorship, voter suppression; LGBTQ+ defense, ICE monitoring, school-board organizing", "real leftist organization with consistent multi-platform output; recruit conversation would be with the org", "74.6K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"], "bio": "Org footprint: TikTok 47.2K + website (501c4) + Buzzsprout podcast (122 eps, syndicated) + IG ~11.7K / FB ~11.3K / X ~4.4K (all probable via Feedspot); exact FB/X/YT profile URLs not pinned down — needs one live-browser pass over defenseofdemocracy.org social icons. anti-fascist org — resisting book bans, curriculum censorship, voter suppression; LGBTQ+ defense, ICE monitoring, school-board organizing", "content_focus": "anti-fascist org — resisting book bans, curriculum censorship, voter suppression; LGBTQ+ defense, ICE monitoring, school-board organizing", "is_new": true, "seo_title": "Defense of Democracy | Sick Left Radicals | MTCSTW", "seo_description": "Defense of Democracy (@_dofd): anti-fascist org — resisting book bans, curriculum censorship, voter suppression; LGBTQ+... on Tiktok. 74.6K followers....", "image_alt": "Defense of Democracy, anti-fascist org — resisting book bans, curriculum censorship, voter... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "mermaid-tm", "name": "MermaidTM", "handles": {"tiktok": "@mermaid.tm"}, "primary_platform": "Tiktok", "propaganda_score": 8.3, "score_provisional": true, "followers_total": 85600, "followers_display": "85.6K", "followers_by_platform": {"tiktok": {"count": 85600, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/mermaid-tm.jpg", "catalog_path": "/mermaid-tm", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@mermaid.tm", "status": "confirmed"}, {"platform": "Tiktok", "url": "https://www.tiktok.com/@mermaid.tm", "status": "probable"}, {"platform": "Linkinbio", "url": "https://linktr.ee/mermaidtm", "status": "confirmed"}, {"platform": "Patreon", "url": "https://www.patreon.com/MermaidTM", "status": "confirmed"}, {"platform": "Link-in-bio (alt)", "url": "https://lnk.bio/MermaidTM", "status": "confirmed"}], "key_strengths": ["85.6K combined audience (verified 2026-10-01)", "\"Political Pink Princess\" — political commentary + regular political LIVE streams", "established political commentator with monetized audience and live presence"], "offer": ["\"Political Pink Princess\" — political commentary + regular political LIVE streams", "established political commentator with monetized audience and live presence", "85.6K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"], "bio": "TikTok-first (85.6K, daily LIVE, 'Political Pink Princess') with confirmed IG @mermaid.tm (~76.4K), Patreon, Linktree + lnk.bio hub (Substack/BlueSky exist there, URLs uncaptured), probable X @TheMermaidTM; no YouTube/Facebook/website found. \"Political Pink Princess\" — political commentary + regular political LIVE streams", "content_focus": "\"Political Pink Princess\" — political commentary + regular political LIVE streams", "is_new": true, "seo_title": "MermaidTM | Sick Left Radicals | MTCSTW", "seo_description": "MermaidTM (@mermaid.tm): \"Political Pink Princess\" — political commentary + regular political LIVE streams on Tiktok. 85.6K followers. Propaganda score 8.3.", "image_alt": "MermaidTM, \"Political Pink Princess\" — political commentary + regular political... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "jessicacymone", "name": "Jessica Cymone", "handles": {"tiktok": "@jessicacymone", "instagram": "@jessicacymone"}, "primary_platform": "Tiktok", "propaganda_score": 8.1, "score_provisional": true, "followers_total": 58500, "followers_display": "58.5K", "followers_by_platform": {"tiktok": {"count": 58500, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/jessicacymone.jpg", "catalog_path": "/jessicacymone", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@jessicacymone", "status": "confirmed"}, {"platform": "Linkinbio", "url": "https://linktr.ee/jessicacymone", "status": "probable"}, {"platform": "Website", "url": "https://iamjessicacymone.com/", "status": "confirmed"}, {"platform": "Instagram", "url": "https://www.instagram.com/jessicacymone", "status": "probable"}, {"platform": "Website", "url": "https://iamjessicacymone.com", "status": "confirmed"}, {"platform": "Youtube", "url": "https://www.youtube.com/watch?v=O-fhhR4kclE", "status": "probable"}], "key_strengths": ["58.5K combined audience (verified 2026-10-01)", "progressive political talk + music, \"deep conversations\"; @WeAreWhatsLeft affiliation", "progressive political creator with the batch's largest audience; left-coalition affiliation"], "offer": ["progressive political talk + music, \"deep conversations\"; @WeAreWhatsLeft affiliation", "progressive political creator with the batch's largest audience; left-coalition affiliation", "58.5K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"], "bio": "Actor/model/livestreamer; TikTok (58.5K) is the hub with a Linktree in bio and a personal site; IG presence probable but uncounted; no discoverable YouTube, X, Facebook, Substack, podcast, merch, or Patreon. progressive political talk + music, \"deep conversations\"; @WeAreWhatsLeft affiliation", "content_focus": "progressive political talk + music, \"deep conversations\"; @WeAreWhatsLeft affiliation", "is_new": true, "seo_title": "Jessica Cymone | Sick Left Radicals | MTCSTW", "seo_description": "Jessica Cymone (@jessicacymone): progressive political talk + music, \"deep conversations\"; @WeAreWhatsLeft affiliation on Tiktok. 58.5K followers....", "image_alt": "Jessica Cymone, progressive political talk + music, \"deep conversations\";... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "mexiguerita22", "name": "Mexiguerita22", "handles": {"tiktok": "@mexiguerita22", "youtube": "@mexiguerita22"}, "primary_platform": "Tiktok", "propaganda_score": 9.2, "score_provisional": true, "followers_total": 751800, "followers_display": "751.8K", "followers_by_platform": {"tiktok": {"count": 498800, "confidence": "confirmed"}, "facebook": {"count": 253000, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/mexiguerita22.jpg", "catalog_path": "/mexiguerita22", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@mexiguerita22", "status": "confirmed"}, {"platform": "Other", "url": "https://gofund.me/637d758d0", "status": "confirmed"}, {"platform": "Youtube", "url": "https://www.youtube.com/@mexiguerita22", "status": "confirmed"}, {"platform": "Facebook", "url": "https://www.facebook.com/profile.php?id=61583093663842", "status": "confirmed"}], "key_strengths": ["751.8K combined audience (verified 2026-10-01)", "Mexican activist/author/creator — anti-Trump immigration solidarity, extremely consistent poster", "near-500K activist; Spanish-language immigration-left lane adds roster diversity"], "offer": ["Mexican activist/author/creator — anti-Trump immigration solidarity, extremely consistent poster", "near-500K activist; Spanish-language immigration-left lane adds roster diversity", "751.8K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"], "bio": "Dual-platform (TikTok 498.8K + confirmed YouTube Shorts channel); self-described author/activist (book 'Magic, Mayhem and Madness' by Melodia Moreno) but no verifiable storefront, website, or other platforms. Mexican activist/author/creator — anti-Trump immigration solidarity, extremely consistent poster", "content_focus": "Mexican activist/author/creator — anti-Trump immigration solidarity, extremely consistent poster", "is_new": true, "seo_title": "Mexiguerita22 | Sick Left Radicals | MTCSTW", "seo_description": "Mexiguerita22 (@mexiguerita22): Mexican activist/author/creator — anti-Trump immigration solidarity, extremely consistent... on Tiktok. 751.8K followers....", "image_alt": "Mexiguerita22, Mexican activist/author/creator — anti-Trump immigration solidarity,... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "mandifromtheinternet", "name": "mandifromtheinternet", "handles": {"tiktok": "@mandifromtheinternet", "instagram": "@sabocat_teacher"}, "primary_platform": "Tiktok", "propaganda_score": 8.6, "score_provisional": true, "followers_total": 182900, "followers_display": "182.9K", "followers_by_platform": {"tiktok": {"count": 182900, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/mandifromtheinternet.jpg", "catalog_path": "/mandifromtheinternet", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@mandifromtheinternet", "status": "confirmed"}, {"platform": "Linkinbio", "url": "https://linktr.ee/sabocat", "status": "confirmed"}, {"platform": "Tiktok", "url": "https://www.tiktok.com/@sabocat", "status": "confirmed"}, {"platform": "X", "url": "https://twitter.com/sabocat_teacher", "status": "confirmed"}, {"platform": "Instagram", "url": "https://www.instagram.com/sabocat_teacher/", "status": "confirmed"}, {"platform": "Website", "url": "https://www.sabocatteacher.com/", "status": "confirmed"}, {"platform": "Substack", "url": "https://sabocat612.substack.com", "status": "confirmed"}], "key_strengths": ["182.9K combined audience (verified 2026-10-01)", "leftist internet commentary — openly leftist bio, anarchist-leaning", "huge openly-leftist account with relentless posting cadence and massive engagement"], "offer": ["leftist internet commentary — openly leftist bio, anarchist-leaning", "huge openly-leftist account with relentless posting cadence and massive engagement", "182.9K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"], "bio": "Mandi Jung, St. Paul public school teacher ('Sabocat'); core on TikTok (182.9K, anarchist-leaning bio markers); verified personal site, X, IG, and Substack under sabocat branding; no YouTube/FB/merch/Patreon found. leftist internet commentary — openly leftist bio, anarchist-leaning", "content_focus": "leftist internet commentary — openly leftist bio, anarchist-leaning", "is_new": true, "seo_title": "mandifromtheinternet | Sick Left Radicals | MTCSTW", "seo_description": "mandifromtheinternet (@mandifromtheinternet): leftist internet commentary — openly leftist bio, anarchist-leaning on Tiktok. 182.9K followers. Propaganda...", "image_alt": "mandifromtheinternet, leftist internet commentary — openly leftist bio, anarchist-leaning — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "sajidahtalks2025", "name": "sajidahtalks2025", "handles": {"tiktok": "@sajidahtalks2025"}, "primary_platform": "Tiktok", "propaganda_score": 7.8, "score_provisional": true, "followers_total": 21900, "followers_display": "21.9K", "followers_by_platform": {"tiktok": {"count": 21900, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@0df774e/v1.4.3/assets/roster-photos/sajidahtalks2025.jpg", "catalog_path": "/sajidahtalks2025", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@sajidahtalks2025", "status": "confirmed"}, {"platform": "Linkinbio", "url": "https://linktr.ee/sajidahtalks2025", "status": "probable"}], "key_strengths": ["21.9K combined audience (verified 2026-10-01)", "political activist — Palestine, immigration, Sudan solidarity; live streams", "explicit leftist solidarity content, active poster, well above minimum"], "offer": ["political activist — Palestine, immigration, Sudan solidarity; live streams", "explicit leftist solidarity content, active poster, well above minimum", "21.9K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"], "bio": "TikTok-only footprint found (21.9K, Palestine/immigration/Sudan solidarity streams); no discoverable Instagram, YouTube, X, Facebook, Substack, podcast, merch, Patreon, or personal website — only the bio Linktree (contents unread). political activist — Palestine, immigration, Sudan solidarity; live streams", "content_focus": "political activist — Palestine, immigration, Sudan solidarity; live streams", "is_new": true, "seo_title": "sajidahtalks2025 | Sick Left Radicals | MTCSTW", "seo_description": "sajidahtalks2025 (@sajidahtalks2025): political activist — Palestine, immigration, Sudan solidarity; live streams on Tiktok. 21.9K followers. Propaganda...", "image_alt": "sajidahtalks2025, political activist — Palestine, immigration, Sudan solidarity; live... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "public-enlightenment", "name": "public_enlightenment", "handles": {"tiktok": "@public_enlightenment", "instagram": "@enlightened_public", "youtube": "@public_enlightenment"}, "primary_platform": "Tiktok", "propaganda_score": 7.9, "score_provisional": true, "followers_total": 31200, "followers_display": "31.2K", "followers_by_platform": {"tiktok": {"count": 30200, "confidence": "confirmed"}, "substack": {"count": 1000, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@46c34bf/v1.4.3/assets/roster-photos/public-enlightenment.jpg", "catalog_path": "/public-enlightenment", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@public_enlightenment", "status": "confirmed"}, {"platform": "Substack", "url": "https://publicenlightenment.com", "status": "confirmed"}, {"platform": "Substack", "url": "https://substack.com/@brianhansbury", "status": "confirmed"}, {"platform": "Patreon", "url": "https://www.patreon.com/PublicEnlightenment", "status": "confirmed"}, {"platform": "Website", "url": "https://publicenlightenment.com", "status": "confirmed"}, {"platform": "Instagram", "url": "https://www.instagram.com/enlightened_public", "status": "probable"}, {"platform": "Youtube", "url": "https://www.youtube.com/@public_enlightenment", "status": "probable"}, {"platform": "Twitch", "url": "https://www.twitch.tv/publicenlightenment", "status": "probable"}, {"platform": "Link-in-bio", "url": "https://linktr.ee/public_enlightenment", "status": "probable"}], "key_strengths": ["31.2K combined audience (verified 2026-10-01)", "pro-democracy news aggregator, anti-disinformation; slightly liberal-institutional tone but on-mission", "news/propaganda lane fit; anti-disinformation work aligns with network mission"], "offer": ["pro-democracy news aggregator, anti-disinformation; slightly liberal-institutional tone but on-mission", "news/propaganda lane fit; anti-disinformation work aligns with network mission", "31.2K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"], "bio": "Full multi-platform operation (TikTok + YouTube + Instagram + Substack 1K+ subs + Patreon + Bluesky + Twitch) run by Brian Hansbury with a real website and paid membership tier. pro-democracy news aggregator, anti-disinformation; slightly liberal-institutional tone but on-mission", "content_focus": "pro-democracy news aggregator, anti-disinformation; slightly liberal-institutional tone but on-mission", "is_new": true, "seo_title": "public_enlightenment | Sick Left Radicals | MTCSTW", "seo_description": "public_enlightenment (@public_enlightenment): pro-democracy news aggregator, anti-disinformation; slightly liberal-institutional tone... on Tiktok. 31.2K...", "image_alt": "public_enlightenment, pro-democracy news aggregator, anti-disinformation; slightly... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "love-and-molotov", "name": "Randi Lisandro", "handles": {"tiktok": "@love_and_molotov"}, "primary_platform": "Tiktok", "propaganda_score": 7.9, "score_provisional": true, "followers_total": 28000, "followers_display": "28K", "followers_by_platform": {"tiktok": {"count": 28000, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@46c34bf/v1.4.3/assets/roster-photos/love-and-molotov.jpg", "catalog_path": "/love-and-molotov", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@love_and_molotov", "status": "confirmed"}, {"platform": "Bio link", "url": "https://www.powerthepolls.org/", "status": "confirmed"}], "key_strengths": ["28K combined audience (verified 2026-10-01)", "feminist call-out/critique content, links powerthepolls.org", "feminist agitator branding fits the network aesthetic; critique content is on-mission"], "offer": ["feminist call-out/critique content, links powerthepolls.org", "feminist agitator branding fits the network aesthetic; critique content is on-mission", "28K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"], "bio": "TikTok-only feminist call-out creator (Randi Misandry); only external link is powerthepolls.org; no verifiable off-TikTok presence of her own. feminist call-out/critique content, links powerthepolls.org", "content_focus": "feminist call-out/critique content, links powerthepolls.org", "is_new": true, "seo_title": "Randi Lisandro | Sick Left Radicals | MTCSTW", "seo_description": "Randi Lisandro (@love_and_molotov): feminist call-out/critique content, links powerthepolls.org on Tiktok. 28K followers. Propaganda score 7.9.", "image_alt": "Randi Lisandro, feminist call-out/critique content, links powerthepolls.org — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "thelastcookout", "name": "Liv2bgr8", "handles": {"tiktok": "@thelastcookout"}, "primary_platform": "Tiktok", "propaganda_score": 7.8, "score_provisional": true, "followers_total": 23200, "followers_display": "23.2K", "followers_by_platform": {"tiktok": {"count": 23200, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@46c34bf/v1.4.3/assets/roster-photos/thelastcookout.jpg", "catalog_path": "/thelastcookout", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@thelastcookout", "status": "confirmed"}, {"platform": "Website", "url": "https://www.thelastcookout.com", "status": "confirmed"}, {"platform": "Link-in-bio", "url": "https://linktr.ee/Liv2bgr8", "status": "confirmed"}], "key_strengths": ["23.2K combined audience (verified 2026-10-01)", "Black community empowerment, self-ID'd social justice activist; runs podcast + newsletter", "PROMOTED from honorable mentions 2026-10-01 per the network. Multi-platform (podcast + newsletter) plus community-organizing angle"], "offer": ["Black community empowerment, self-ID'd social justice activist; runs podcast + newsletter", "PROMOTED from honorable mentions 2026-10-01 per the network. Multi-platform (podcast + newsletter) plus community-organizing angle", "23.2K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"], "bio": "TikTok-led Black-community activist brand; owns thelastcookout.com with merch + email newsletter and a podcast that is announced but has no discoverable platform feeds. Black community empowerment, self-ID'd social justice activist; runs podcast + newsletter", "content_focus": "Black community empowerment, self-ID'd social justice activist; runs podcast + newsletter", "is_new": true, "seo_title": "Liv2bgr8 | Sick Left Radicals | MTCSTW", "seo_description": "Liv2bgr8 (@thelastcookout): Black community empowerment, self-ID'd social justice activist; runs podcast + newsletter on Tiktok. 23.2K followers. Propaganda...", "image_alt": "Liv2bgr8, Black community empowerment, self-ID'd social justice activist; runs... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "an-iowan", "name": "An_Iowan", "handles": {"tiktok": "@an_iowan"}, "primary_platform": "Tiktok", "propaganda_score": 7.8, "score_provisional": true, "followers_total": 26800, "followers_display": "26.8K", "followers_by_platform": {"tiktok": {"count": 26800, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@46c34bf/v1.4.3/assets/roster-photos/an-iowan.jpg", "catalog_path": "/an-iowan", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@an_iowan", "status": "confirmed"}], "key_strengths": ["26.8K combined audience (verified 2026-10-01)", "Iowa progressive / Resistance circuit voice", "PROMOTED from honorable mentions 2026-10-01 per the network. Highest remaining reach of the qualified pool"], "offer": ["Iowa progressive / Resistance circuit voice", "PROMOTED from honorable mentions 2026-10-01 per the network. Highest remaining reach of the qualified pool", "26.8K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"], "bio": "TikTok-only presence in the Iowa Resistance circuit; no other public platforms, website, or monetization discovered. Iowa progressive / Resistance circuit voice", "content_focus": "Iowa progressive / Resistance circuit voice", "is_new": true, "seo_title": "An_Iowan | Sick Left Radicals | MTCSTW", "seo_description": "An_Iowan (@an_iowan): Iowa progressive / Resistance circuit voice on Tiktok. 26.8K followers. Propaganda score 7.8.", "image_alt": "An_Iowan, Iowa progressive / Resistance circuit voice — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "splashofgenz", "name": "Emily Ann Gregson", "handles": {"tiktok": "@splashofgenz"}, "primary_platform": "Tiktok", "propaganda_score": 7.7, "score_provisional": true, "followers_total": 20000, "followers_display": "20K", "followers_by_platform": {"tiktok": {"count": 20000, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@46c34bf/v1.4.3/assets/roster-photos/splashofgenz.jpg", "catalog_path": "/splashofgenz", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@splashofgenz", "status": "confirmed"}, {"platform": "Link-in-bio", "url": "https://linktr.ee/splashofgenz", "status": "confirmed"}], "key_strengths": ["20K combined audience (verified 2026-10-01)", "Gen Z political commentary, viral-scale engagement (318K-play LEGO explainer)", "PROMOTED from honorable mentions 2026-10-01 per the network. Youth lane + proven viral reach"], "offer": ["Gen Z political commentary, viral-scale engagement (318K-play LEGO explainer)", "PROMOTED from honorable mentions 2026-10-01 per the network. Youth lane + proven viral reach", "20K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"], "bio": "TikTok-native political commentator (~20K) with linked Instagram and Facebook per her own bios, plus OnlyFans; no YouTube, X, Substack, podcast, or merch discoverable. Gen Z political commentary, viral-scale engagement (318K-play LEGO explainer)", "content_focus": "Gen Z political commentary, viral-scale engagement (318K-play LEGO explainer)", "is_new": true, "seo_title": "Emily Ann Gregson | Sick Left Radicals | MTCSTW", "seo_description": "Emily Ann Gregson (@splashofgenz): Gen Z political commentary, viral-scale engagement (318K-play LEGO explainer) on Tiktok. 20K followers. Propaganda score:...", "image_alt": "Emily Ann Gregson, Gen Z political commentary, viral-scale engagement (318K-play LEGO... — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "sissyfits", "name": "Sissyfits", "handles": {"tiktok": "@sissyfits"}, "primary_platform": "Tiktok", "propaganda_score": 7.7, "score_provisional": true, "followers_total": 16500, "followers_display": "16.5K", "followers_by_platform": {"tiktok": {"count": 16500, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@46c34bf/v1.4.3/assets/roster-photos/sissyfits.jpg", "catalog_path": "/sissyfits", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@sissyfits", "status": "confirmed"}, {"platform": "Link-in-bio", "url": "https://linktr.ee/Sissyfits", "status": "confirmed"}], "key_strengths": ["16.5K combined audience (verified 2026-10-01)", "self-ID'd 'Annoying Leftist', prolific poster", "PROMOTED from honorable mentions 2026-10-01 per the network. Explicit leftist identity + massive output"], "offer": ["self-ID'd 'Annoying Leftist', prolific poster", "PROMOTED from honorable mentions 2026-10-01 per the network. Explicit leftist identity + massive output", "16.5K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"], "bio": "TikTok-only creator ('Annoying Leftist', 4,878 videos) with no discoverable off-TikTok footprint beyond a link-in-bio whose contents could not be retrieved. self-ID'd 'Annoying Leftist', prolific poster", "content_focus": "self-ID'd 'Annoying Leftist', prolific poster", "is_new": true, "seo_title": "Sissyfits | Sick Left Radicals | MTCSTW", "seo_description": "Sissyfits (@sissyfits): self-ID'd 'Annoying Leftist', prolific poster on Tiktok. 16.5K followers. Propaganda score 7.7.", "image_alt": "Sissyfits, self-ID'd 'Annoying Leftist', prolific poster — Sick Left Radicals", "content_updated": "2026-10-02"}, {"slug": "worlds-strongest-mayo", "name": "worlds_strongest_mayo", "handles": {"tiktok": "@worlds_strongest_mayo"}, "primary_platform": "Tiktok", "propaganda_score": 7.6, "score_provisional": true, "followers_total": 12600, "followers_display": "12.6K", "followers_by_platform": {"tiktok": {"count": 12600, "confidence": "confirmed"}}, "followers_as_of": "2026-10-01", "picture": "https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@46c34bf/v1.4.3/assets/roster-photos/worlds-strongest-mayo.jpg", "catalog_path": "/worlds-strongest-mayo", "links": [{"platform": "Tiktok", "url": "https://www.tiktok.com/@worlds_strongest_mayo", "status": "confirmed"}], "key_strengths": ["12.6K combined audience (verified 2026-10-01)", "anti-MAGA political satirist, disproportionate engagement for size", "Added to the roster 2026-10-01. Satire lane + strong engagement"], "offer": ["anti-MAGA political satirist, disproportionate engagement for size", "Added to the roster 2026-10-01. Satire lane + strong engagement", "12.6K audience in the Sick Left Radicals amplifier — Tiktok native, leftist to the bone"], "bio": "TikTok-only creator (12.6K, 730 videos, 2.6M likes, anti-MAGA political satire); no discoverable Instagram, YouTube, X, Facebook, Substack, podcast, link-in-bio, merch, Patreon, or website. anti-MAGA political satirist, disproportionate engagement for size", "content_focus": "anti-MAGA political satirist, disproportionate engagement for size", "is_new": true, "seo_title": "worlds_strongest_mayo | Sick Left Radicals | MTCSTW", "seo_description": "worlds_strongest_mayo (@worlds_strongest_mayo): anti-MAGA political satirist, disproportionate engagement for size on Tiktok. 12.6K followers. Propaganda...", "image_alt": "worlds_strongest_mayo, anti-MAGA political satirist, disproportionate engagement for size — Sick Left Radicals", "content_updated": "2026-10-02"}]};
+
+;
+
+/* ===== core/07-slr-db.js ===== */
+/* core/07-slr-db.js  |  PF v1.4.2 | Master SLR database.
+   The 62-member snapshot is generated into 07-slr-db-data.js (from
+   src/data/slr-master-db.json). M34 (2026-10-03): the snapshot ships INSIDE
+   the core bundle only on roster pages (core/bundle-core-slr.js); the slim
+   core/bundle-core.js omits it. When the snapshot is present it is applied
+   SYNCHRONOUSLY, so PF.ROSTER, PF.slrAll() and PF.slrMember() are populated
+   before any game silo runs — no async race for the synchronous consumers.
+   When it is absent, PF.ensureSLRDB() injects the pinned data script on
+   first need (promise-cached, concurrent calls deduped, 15s backstop, JSON
+   fallback, resolves to [] on failure so consumers degrade gracefully).
+   PF.slrReady is a lazy getter over ensureSLRDB(), so existing
+   PF.slrReady.then(...) consumers work on both core variants unchanged.
+   API: PF.slrReady (promise), PF.ensureSLRDB(), PF.slrAll(), PF.slrMember(slug),
+        PF.slrMeta(), PF.slrLegacy (legacy-shape array backing the PF.ROSTER getter).
+   KILL: ?pf_off=slr-db  or  localStorage pf_disabled_v1='["slr-db"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('slr-db')) { return; }
+
+  var MEMBERS = [];
+  var META = null;
+
+  function toLegacy(m) {
+    var h = m.handles || {};
+    return {
+      name: m.name, slug: m.slug, score: m.propaganda_score,
+      handle: h.primary || h.tiktok || '', platform: m.primary_platform || '',
+      img: m.picture || '', imgAlt: m.image_alt || (m.name + ' — Sick Left Radicals'),
+      seoTitle: m.seo_title || '', seoDesc: m.seo_description || ''
+    };
+  }
+
+  function apply(d) {
+    if (d && d.members && d.members.length) {
+      MEMBERS = d.members;
+      META = d.meta || null;
+      try { PF.slrLegacy = MEMBERS.map(toLegacy); } catch (e) { PF.slrLegacy = []; }
+      return true;
+    }
+    return false;
+  }
+
+  function ownBase() {
+    try {
+      var src = '';
+      if (document.currentScript && document.currentScript.src) src = document.currentScript.src;
+      if (!src) {
+        var ss = document.getElementsByTagName('script');
+        for (var i = ss.length - 1; i >= 0; i--) {
+          if (ss[i].src && (ss[i].src.indexOf('07-slr-db') !== -1 || ss[i].src.indexOf('bundle-core') !== -1)) { src = ss[i].src; break; }
+        }
+      }
+      var m = src.match(/^(https:\/\/cdn\.jsdelivr\.net\/gh\/[^@]+@[^\/]+)\//);
+      if (m) return m[1];
+    } catch (e) {}
+    return null;
+  }
+
+  function fetchFallback() {
+    var b = ownBase();
+    var url = b ? b + '/src/data/slr-master-db.json'
+      : 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@main/src/data/slr-master-db.json';
+    return fetch(url, { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('slr-db HTTP ' + r.status); return r.json(); })
+      .then(function (d) {
+        if (!apply(d)) throw new Error('slr-db bad payload');
+        return MEMBERS;
+      })
+      .catch(function (err) {
+        MEMBERS = [];
+        try { PF.slrLegacy = []; } catch (e) {}
+        PF.error('slr-db', err);
+        return MEMBERS;
+      });
+  }
+
+  /* Synchronous fast path (unchanged): on bundle-core-slr pages the snapshot
+     rode in with the bundle — apply before any game silo runs. */
+  var snap = window.PF_SLR_DB_SNAPSHOT;
+  if (snap && apply(snap)) {
+    PF.log('slr-db', 'snapshot applied: ' + MEMBERS.length + ' members');
+  }
+
+  /* ---- Lazy load (M34): PF.ensureSLRDB() ----
+     Injects the pinned core/07-slr-db-data.js script exactly once and applies
+     it. Concurrent callers share one promise; the 15s backstop plus the JSON
+     fallback mean a failed load resolves to [] instead of hanging — every
+     consumer already degrades on an empty roster. */
+  var _slrPending = null;
+  function dataUrl() {
+    var b = ownBase();
+    return (b ? b + '/v1.4.3/core/07-slr-db-data.js'
+      : 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@main/v1.4.3/core/07-slr-db-data.js');
+  }
+  PF.ensureSLRDB = function () {
+    var s0 = window.PF_SLR_DB_SNAPSHOT;
+    if (s0 && apply(s0)) return Promise.resolve(MEMBERS);
+    if (MEMBERS.length) return Promise.resolve(MEMBERS);
+    if (_slrPending) return _slrPending;
+    _slrPending = new Promise(function (resolve) {
+      var url = dataUrl(), done = false;
+      function fin() {
+        if (done) return; done = true;
+        var s2 = window.PF_SLR_DB_SNAPSHOT;
+        if (s2 && apply(s2)) {
+          PF.log('slr-db', 'lazy snapshot applied: ' + MEMBERS.length + ' members');
+          resolve(MEMBERS);
+        } else {
+          /* Backstop: the pinned JSON carries the same {meta, members} shape. */
+          fetchFallback().then(resolve);
+        }
+      }
+      try {
+        var el = document.createElement('script');
+        el.src = url; el.async = true;
+        el.onload = fin; el.onerror = fin;
+        document.head.appendChild(el);
+        setTimeout(fin, 15000);
+      } catch (e) { fin(); }
+    });
+    return _slrPending;
+  };
+
+  /* PF.slrReady — lazy getter: the first .then() pulls the DB in on demand.
+     Existing consumers (pages/slr-roster.js, pages/slr-catalog.js,
+     games/efficiency.js) need no changes on either core variant. */
+  try {
+    Object.defineProperty(PF, 'slrReady', {
+      configurable: true,
+      get: function () { return PF.ensureSLRDB(); }
+    });
+  } catch (e) {
+    PF.slrReady = PF.ensureSLRDB();
+  }
+
+  PF.slrAll = function () { return MEMBERS; };
+  PF.slrMeta = function () { return META; };
+  PF.slrMember = function (slug) {
+    for (var i = 0; i < MEMBERS.length; i++) {
+      if (MEMBERS[i].slug === slug) return MEMBERS[i];
+    }
+    return null;
+  };
+})();
+
+;
+
+/* ===== core/03-global.js ===== */
+/* core/03-global.js  |  PF v1.4.1 | Backend URL, pfReportAction, global total fetch, achievement share image
+   KILL: ?pf_off=03-global  or  localStorage pf_disabled_v1='["03-global"]' */
+/* PF GLOBAL ACTIONS: unified site-wide total, visible to everyone.
+   Each widget calls pfReportAction('action_type') on completion.
+   The total is fetched from the backend and displayed in #pf-global-total.
+   2026-10-04: also owns the site-wide first-touch ?ref=<callsign> capture
+   (pf_pending_ref) so referrals landing on ANY page attribute — it used to
+   live only in the homepage Referral War game. */
+window.PF_BACKEND_URL = "https://pf-api.mtcstw.workers.dev";
+/* P0 (2026-10-02): shared POST helper for POST_ONLY actions.
+   Usage: PF.postAction('cell','cell_action','cell_create',{callsign:cs},cb)
+   Attaches auth_secret automatically. Falls back to PF.authPost (with
+   claim/retry) when available. Network fail -> cb(null). */
+window.PF = window.PF || {};
+window.PF.postAction = function(type, actionKey, action, params, cb){
+  var url = window.PF_BACKEND_URL;
+  if(!url){ try{ cb(null); }catch(e){} return; }
+  var body = Object.assign({type:type}, params||{});
+  body[actionKey] = action;
+  if(window.PF && window.PF.authPost){ window.PF.authPost(url, body, cb); return; }
+  var secret = '';
+  try{ secret = (window.PF && window.PF.getAuthSecret) ? window.PF.getAuthSecret() : ''; }catch(e){}
+  if(secret) body.auth_secret = secret;
+  /* L2 (2026-10-03): 15s abort on this fallback too (was: hung POST spins forever). */
+  var _po=(function(){ var o={method:'POST', headers:{'Content-Type':'application/json'}, body:''},c=null,t=null;
+    try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+      t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+    o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+  _po.body = JSON.stringify(body);
+  function done(j){ try{ cb(j); }catch(e){} }
+  try{
+    fetch(url, _po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+};
+/* Per-device identity + callsign. Attached to every backend action report so
+   per-user rows in the Sheet key to the local device and the user's callsign.
+   Votes stay anonymous by design — no identity is ever sent on vote rows. */
+window.PFDeviceId = function(){
+  try{
+    var k='pf_device_v1', id=localStorage.getItem(k);
+    if(!id){ id='d-'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);
+      try{ localStorage.setItem(k,id); }catch(e){} }
+    return id;
+  }catch(e){ return ''; }
+};
+window.PFCallsign = function(){
+  try{ return String((JSON.parse(localStorage.getItem('pf_identity_v1')||'{}')).callsign||''); }
+  catch(e){ return ''; }
+};
+/* 2026-10-04 (creator audit): site-wide first-touch ?ref=<callsign> capture.
+   MOVED here from the homepage-only Referral War game (games/referral.js)
+   so referrals landing on ANY page — notably /request-access — are captured
+   into pf_pending_ref for the enlistment claim flow. First touch wins; a
+   visitor who already holds a callsign keeps their own identity (a ref can
+   never overwrite or self-credit an existing callsign). Exposed as
+   PF.capturePendingRef for late-arriving silos. */
+window.PF.capturePendingRef = function(){
+  try{
+    var m = String(window.location.search||'').match(/[?&]ref=([a-z0-9_]{3,20})/i);
+    if(!m || !m[1]) return false;
+    var hasCs = ''; try{ hasCs = window.PFCallsign ? window.PFCallsign() : ''; }catch(e0){}
+    if(hasCs) return false;
+    var hasRef = ''; try{ hasRef = localStorage.getItem('pf_pending_ref') || ''; }catch(e1){}
+    if(hasRef) return true; /* first touch wins — keep the original ref */
+    try{ localStorage.setItem('pf_pending_ref', m[1].toLowerCase()); }catch(e2){}
+    return true;
+  }catch(e3){ return false; }
+};
+try{ window.PF.capturePendingRef(); }catch(e4){}
+/* H13 (2026-10-03): dismissing the claim modal no longer silences EVERY
+   callsign gate for the session. Dismissals are scoped per-gate (keyed by
+   the modal's context string) and re-arm after 30 minutes — a dismiss is
+   "not now", never "stop asking forever". */
+var PF_CS_REMIND_MIN = 30;
+var PF_CS_DISMISS_KEY = 'pf_cs_dismissed_v2';
+function pfCsGateKey(opts){
+  var ctx = String((opts && opts.context) || 'to continue').toLowerCase();
+  return ctx.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 64) || 'default';
+}
+function pfCsDismissals(){
+  try { return JSON.parse(sessionStorage.getItem(PF_CS_DISMISS_KEY) || '{}'); }
+  catch(e){ return {}; }
+}
+function pfCsDismissed(key){
+  var d = pfCsDismissals();
+  var t = d[key] || 0;
+  if(!t) return false;
+  if(Date.now() - t > PF_CS_REMIND_MIN * 60000){
+    /* the 30-minute nag timed out — clear and let the gate ask again */
+    try{ delete d[key]; sessionStorage.setItem(PF_CS_DISMISS_KEY, JSON.stringify(d)); }catch(e){}
+    return false;
+  }
+  return true;
+}
+function pfCsDismiss(key){
+  try{
+    var d = pfCsDismissals();
+    d[key] = Date.now();
+    sessionStorage.setItem(PF_CS_DISMISS_KEY, JSON.stringify(d));
+  }catch(e){}
+}
+/* One-time migration: retire the legacy session-wide gag so pre-H13
+   dismissals can't haunt the new per-gate logic. */
+try{ sessionStorage.removeItem('pf_cs_dismissed'); }catch(e){}
+/* PF.requireCallsign(callback, opts) — reusable callsign claim gate.
+   If the user has a callsign, callback(callsign) fires immediately.
+   If not, an inline modal prompts them to claim one (same register flow as
+   Daily Orders: validate → POST register → save secret → localStorage →
+   'pf-callsign-claimed' event). On success, callback(newCallsign) fires.
+   Dismissing silences only THIS gate for 30 minutes (H13); other gates keep
+   working. opts.context: e.g. "to claim your War Bond XP" — shown in
+   the prompt copy and used to scope the dismissal. */
+window.PF.requireCallsign = function(callback, opts){
+  opts = opts || {};
+  var done = function(cs){ try{ callback(cs || ''); }catch(e){} };
+  var cs = '';
+  try{ cs = window.PFCallsign ? window.PFCallsign() : ''; }catch(e){}
+  if(cs){ done(cs); return; }
+  if(pfCsDismissed(pfCsGateKey(opts))){ done(''); return; }
+  pfClaimModal(done, opts);
+};
+function pfClaimModal(done, opts){
+  var context = String((opts && opts.context) || 'to continue');
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  var old = document.getElementById('pf-cs-modal');
+  if(old && old.parentNode){ try{ old.parentNode.removeChild(old); }catch(e){} }
+  var overlay = document.createElement('div');
+  overlay.id = 'pf-cs-modal';
+  overlay.setAttribute('role','dialog');
+  overlay.setAttribute('aria-label','Claim your callsign');
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:1rem;box-sizing:border-box;';
+  var box = document.createElement('div');
+  box.style.cssText = 'background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:"Helvetica Neue",Arial,sans-serif;padding:1.75rem;max-width:420px;width:100%;box-sizing:border-box;text-align:center;position:relative;';
+  box.innerHTML =
+    '<div id="pf-cs-x" role="button" tabindex="0" aria-label="Close" style="position:absolute;top:0.4rem;right:0.7rem;cursor:pointer;font-size:1.4rem;color:#b8ab8e;line-height:1;">&times;</div>' +
+    '<div style="font-size:1.25rem;font-weight:900;letter-spacing:0.14em;color:#c1121f;margin-bottom:0.6rem;">&#9733; CLAIM YOUR CALLSIGN &#9733;</div>' +
+    '<div style="font-size:0.9rem;color:#b8ab8e;line-height:1.55;margin-bottom:1rem;">You need a callsign ' + esc(context) + '. Pick one &mdash; it&rsquo;s your name in the fight, and your XP follows it everywhere.</div>' +
+    '<input id="pf-cs-input" maxlength="20" placeholder="your_callsign" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" style="width:100%;background:#141414;color:#f5f0e1;border:2px solid #c1121f;padding:0.7rem;font-size:1rem;font-family:inherit;box-sizing:border-box;margin-bottom:0.5rem;text-align:center;" />' +
+    '<div id="pf-cs-err" style="font-size:0.8rem;color:#ff6b6b;min-height:1.3em;margin-bottom:0.5rem;"></div>' +
+    /* 2026-10-03 privacy/terms: 13+ self-certification (COPPA/GDPR-K). */
+    '<label style="display:block;margin:0 0 0.7rem;font-size:0.8rem;color:#b8ab8e;cursor:pointer;text-align:left;"><input type="checkbox" id="pf-cs-age13" style="vertical-align:middle;margin-right:6px;transform:scale(1.2);">I confirm I am 13 or older.</label>' +
+    '<button id="pf-cs-btn" style="display:inline-block;background:#c1121f;color:#f5f0e1;font-weight:900;letter-spacing:0.12em;border:none;padding:0.8rem 2.2rem;font-size:1rem;cursor:pointer;font-family:inherit;">CLAIM IT</button>';
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  var finished = false;
+  function finish(cs, dismissed){
+    if(finished) return; finished = true;
+    try{ if(overlay.parentNode) overlay.parentNode.removeChild(overlay); }catch(e){}
+    if(dismissed){ pfCsDismiss(pfCsGateKey(opts)); }
+    done(cs || '');
+  }
+  var input = box.querySelector('#pf-cs-input');
+  var errBox = box.querySelector('#pf-cs-err');
+  var btn = box.querySelector('#pf-cs-btn');
+  function setErr(m){ if(errBox) errBox.textContent = m; }
+  function doClaim(){
+    var cs = String(input.value || '').trim().toLowerCase();
+    if(!/^[a-z0-9_]{3,20}$/.test(cs)){ setErr('Callsign: 3-20 chars, letters/numbers/underscore.'); return; }
+    /* 2026-10-03 privacy/terms: 13+ self-certification (COPPA/GDPR-K). */
+    var ageBox = box.querySelector('#pf-cs-age13');
+    if(!(ageBox && ageBox.checked)){ setErr('Please confirm you are 13 or older.'); return; }
+    setErr('Claiming\u2026'); btn.disabled = true;
+    var body = { action:'register', callsign:cs, device:'', age13:1 };
+    try{ body.device = window.PFDeviceId ? window.PFDeviceId() : ''; }catch(e){}
+    try{ var prf = localStorage.getItem('pf_pending_ref'); if(prf && /^[a-z0-9_]{3,20}$/.test(prf)) body.ref = prf; }catch(e){}
+    var url = window.PF_BACKEND_URL;
+    if(!url){ setErr('Network error. Try again.'); btn.disabled = false; return; }
+    /* 15s abort: a hung register POST must wedge-proof the modal — same
+       pattern as PF.authPost's rawPost (core/14-auth.js). */
+    var ctl=null, timer=null;
+    try{
+      if(window.AbortController){ ctl=new AbortController();
+        timer=setTimeout(function(){ try{ ctl.abort(); }catch(e){} },15000); }
+    }catch(e){ ctl=null; timer=null; }
+    var opts={ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) };
+    if(ctl) opts.signal=ctl.signal;
+    fetch(url, opts)
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if(timer){ clearTimeout(timer); timer=null; }
+        if(!j){ setErr('Network error. Try again.'); btn.disabled = false; return; }
+        if(!j.ok){ setErr(j.error === 'taken' ? 'That callsign is taken.' : 'Bad callsign.'); btn.disabled = false; return; }
+        try{ localStorage.removeItem('pf_pending_ref'); }catch(e2){}
+        try{
+          if(j.auth_secret && window.PF && PF.saveAuthSecret){ PF.saveAuthSecret(j.auth_secret); }
+          else if(window.PF && PF.claimAuthSecret){ PF.claimAuthSecret(cs, function(){}); }
+        }catch(e3){}
+        try{
+          var ik = 'pf_identity_v1', cur = {};
+          try{ cur = JSON.parse(localStorage.getItem(ik) || '{}'); }catch(e4){}
+          cur.callsign = cs;
+          localStorage.setItem(ik, JSON.stringify(cur));
+        }catch(e5){}
+        try{ document.dispatchEvent(new CustomEvent('pf-callsign-claimed', { detail:{ callsign: cs } })); }catch(e6){}
+        try{ if(window.PF && PF.toast) PF.toast('Callsign claimed. Welcome to the fight, ' + cs.toUpperCase() + '.'); }catch(e7){}
+        finish(cs, false);
+      })
+      .catch(function(){ if(timer){ clearTimeout(timer); timer=null; } setErr('Network error. Try again.'); btn.disabled = false; });
+  }
+  btn.onclick = doClaim;
+  input.onkeydown = function(e){ if(e.key === 'Enter'){ doClaim(); } };
+  var x = box.querySelector('#pf-cs-x');
+  function dismiss(){ finish('', true); }
+  if(x){ x.onclick = dismiss; x.onkeydown = function(e){ if(e.key==='Enter'||e.key===' '){ dismiss(); } }; }
+  overlay.onclick = function(e){ if(e.target === overlay) dismiss(); };
+  try{ input.focus(); }catch(e){}
+}
+/* PF.gateHTML(msg, ctx) — 2026-10-03 H8: the ACTIVE callsign gate.
+   Replaces every passive "claim yours in Enlistment Ranks" banner. Renders
+   the standard c-gate div with an in-place CLAIM A CALLSIGN button wired to
+   PF.requireCallsign (no more scrolling away to another widget). On a
+   successful claim the page reloads so every silo unlocks at once.
+   ctx: short purpose string for the modal, e.g. 'to enter battles'. */
+window.PF.gateHTML = function(msg, ctx){
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  return '<div class="c-gate">'+String(msg||'This runs on callsigns.')
+    +'<br><button class="c-btn" data-pf-claim-cs="1"'
+    +(ctx?(' data-pf-claim-ctx="'+esc(ctx)+'"'):'')
+    +'>CLAIM A CALLSIGN</button></div>';
+};
+document.addEventListener('click', function(e){
+  var t = null;
+  try{ t = (e.target && e.target.closest) ? e.target.closest('[data-pf-claim-cs]') : null; }catch(_e){}
+  if(!t || !window.PF || !PF.requireCallsign) return;
+  try{ e.preventDefault(); }catch(_e2){}
+  var ctx = 'to continue';
+  try{ ctx = t.getAttribute('data-pf-claim-ctx') || ctx; }catch(_e3){}
+  PF.requireCallsign(function(cs){
+    if(cs){ try{ location.reload(); }catch(_e4){} }
+  }, { context: ctx });
+});
+window.pfReportAction = function(actionType){
+  if(!window.PF_BACKEND_URL) return;
+  try {
+    var dev='',cs='';
+    try{ dev=window.PFDeviceId(); cs=window.PFCallsign(); }catch(e){}
+    fetch(window.PF_BACKEND_URL, {method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({type:'action', action_type: actionType, device: dev, callsign: cs, auth_secret:(window.PF&&PF.getAuthSecret?PF.getAuthSecret():'')})});
+  } catch(e){}
+  /* Refresh the displayed total after reporting. */
+  setTimeout(window.pfFetchGlobalTotal, 1500);
+};
+window.pfFetchGlobalTotal = function(){
+  if(!window.PF_BACKEND_URL) return;
+  var cb = 'pfGlobalCb_' + Date.now();
+  window[cb] = function(data){
+    try {
+      var total = (data && data.total) || 0;
+      var els = document.querySelectorAll('.pf-global-total-num');
+      for(var i=0; i<els.length; i++){ els[i].textContent = total; }
+    } catch(e){}
+    try { delete window[cb]; } catch(e){}
+    var s = document.getElementById(cb);
+    if(s && s.parentNode) s.parentNode.removeChild(s);
+  };
+  var s = document.createElement('script');
+  s.id = cb;
+  s.src = window.PF_BACKEND_URL + '?action=action_totals&callback=' + cb;
+  s.onerror = function(){ try{ delete window[cb]; }catch(e){} if(s.parentNode) s.parentNode.removeChild(s); };
+  document.head.appendChild(s);
+};
+/* Load the global total on page view. */
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', window.pfFetchGlobalTotal);
+} else {
+  window.pfFetchGlobalTotal();
+}
+/* Cross-device daily-XP pool: seed the local 50/day bucket from the backend
+   once per day when the user has a callsign (and again if they claim one
+   mid-session). Silent no-op without a callsign or backend. */
+try{
+  if(window.PF && typeof PF.seedDayXp === 'function'){
+    if(document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', function(){ try{ PF.seedDayXp(); }catch(e){} });
+    } else { PF.seedDayXp(); }
+    document.addEventListener('pf-callsign-claimed', function(){ try{ PF.seedDayXp(true); }catch(e){} });
+  }
+}catch(e){}
+/* Site-wide TASK total (points-weighted, same unit as the Do Meter's local
+   count): ?action=task_totals -> {total}. The Do Meter shows this as its
+   headline number and falls back to the local week count until the tally
+   backend ships the endpoint. */
+window.PF_GLOBAL_TASKS = 0;
+window.pfFetchGlobalTasks = function(){
+  if(!window.PF_BACKEND_URL) return;
+  var cb = 'pfTasksCb_' + Date.now();
+  window[cb] = function(data){
+    try{
+      var t = (data && data.total) || 0;
+      if(t > 0){
+        window.PF_GLOBAL_TASKS = t;
+        try{ document.dispatchEvent(new CustomEvent('pf-global-tasks', {detail:{total:t}})); }catch(e){}
+      }
+    }catch(e){}
+    try{ delete window[cb]; }catch(e){}
+    var s = document.getElementById(cb);
+    if(s && s.parentNode) s.parentNode.removeChild(s);
+  };
+  var s = document.createElement('script');
+  s.id = cb;
+  s.src = window.PF_BACKEND_URL + '?action=task_totals&callback=' + cb;
+  s.onerror = function(){ try{ delete window[cb]; }catch(e){} if(s.parentNode) s.parentNode.removeChild(s); };
+  document.head.appendChild(s);
+};
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', window.pfFetchGlobalTasks);
+} else {
+  window.pfFetchGlobalTasks();
+}
+/* PF.ROSTER — LIVE legacy-shape view of the master SLR database (core/07-slr-db.js).
+   M34 (2026-10-03): the 62-member snapshot ships synchronously only inside
+   core/bundle-core-slr.js (roster pages: homepage, /arcade, /create,
+   Creator HQ, SLR roster/catalog). On slim-core pages it loads on demand via
+   PF.ensureSLRDB(); until then PF.ROSTER reads [] and consumers degrade.
+   Do NOT hardcode roster lists in game files — edit
+   src/data/slr-master-db.json and rebuild. */
+Object.defineProperty(PF, 'ROSTER', {
+  configurable: true,
+  get: function () { try { return PF.slrLegacy || []; } catch (e) { return []; } }
+});
+/* Roster lookups. Safe when PF.ROSTER is absent (returns null/fallback). */
+PF.rosterBySlug = function(slug){
+  try{
+    var R = PF.ROSTER || [];
+    for(var i=0;i<R.length;i++){ if(R[i].slug===slug) return R[i]; }
+  }catch(e){}
+  return null;
+};
+PF.rosterName = function(slug, fb){
+  var r = PF.rosterBySlug(slug);
+  if(r && r.name) return r.name;
+  if(fb) return fb;
+  return String(slug==null?'':slug).replace(/-/g,' ');
+};
+/* Auto-report widget actions to the global backend.
+   Listens for the CustomEvents each widget already fires. */
+(function(){
+if(window.PF&&window.PF.skip('03-global'))return;
+  var MAP = {
+    'pf-order-checkin': ['daily_orders', 'Daily Orders'],
+    'pf-caption-submit': ['caption_combat', 'Caption Combat'],
+    'pf-poster-made': ['poster_forge', 'Poster Forge'],
+    'pf-vote-cast': ['fan_vote', 'Fan Vote'],
+    'pf-bracket-ballot': ['bracket_vote', 'Bracket'],
+    'pf-bracket-liquidated': ['bracket_liquidation', 'Liquidation'],
+    'pf-quiz-done': ['quiz_complete', 'Quiz'],
+    'pf-traitor-vote': ['traitor_vote', 'Class Traitor'],
+    'pf-enlisted': ['enlistment', 'Enlistment']
+  };
+  /* Floating share button: appears after any action, shares an achievement image. */
+  var shareBtn = null;
+  function ensureShareBtn(){
+    if(shareBtn) return shareBtn;
+    shareBtn = document.createElement('button');
+    shareBtn.textContent = 'SHARE';
+    shareBtn.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:99999;background:#c1121f;color:#f5ead6;border:3px solid #f5ead6;font-family:"Arial Black",Arial,sans-serif;font-size:18px;font-weight:900;padding:14px 22px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.5);display:none;';
+    shareBtn.onclick = function(){
+      var g = window._pfLastGame || 'Mission';
+      var d = window._pfLastDetail || 'Task complete.';
+      if(window.pfShareAchievement) window.pfShareAchievement(g, d);
+      shareBtn.style.display = 'none';
+    };
+    document.body.appendChild(shareBtn);
+    return shareBtn;
+  }
+  for(var evt in MAP){
+    (function(eventName, info){
+      document.addEventListener(eventName, function(e){
+        /* Backend reporting lives in core/05-tally.js ONLY. This loop used to
+           call pfReportAction too, which POSTed every action a second time and
+           double-counted the site-wide totals. Counted once now. */
+        /* Store for sharing. */
+        window._pfLastGame = info[1];
+        var det = '';
+        try { det = (e.detail && (e.detail.mission || e.detail.caption || e.detail.day || '')) || ''; } catch(x){}
+        window._pfLastDetail = (det ? det + ' \u2014 ' : '') + 'Task complete on mtcstw.com';
+        /* Show the share button for 30 seconds. */
+        var b = ensureShareBtn();
+        b.style.display = 'block';
+        setTimeout(function(){ b.style.display = 'none'; }, 30000);
+      });
+    })(evt, MAP[evt]);
+  }
+})();
+/* PF SHARE: generate a propaganda-styled achievement image and share it.
+   Called by each widget's Share button: pfShareAchievement('Daily Orders', 'Mission complete: ...'). */
+window.pfShareAchievement = function(gameName, detailText){
+  try {
+    var c = document.createElement('canvas');
+    c.width = 1080; c.height = 1080;
+    var x = c.getContext('2d');
+    /* Background: black with red border. */
+    x.fillStyle = '#0d0d0d'; x.fillRect(0,0,1080,1080);
+    x.strokeStyle = '#c1121f'; x.lineWidth = 24; x.strokeRect(24,24,1032,1032);
+    x.strokeStyle = '#f5ead6'; x.lineWidth = 4; x.strokeRect(60,60,960,960);
+    /* Header. */
+    x.fillStyle = '#c1121f'; x.font = '900 72px Arial Black, Arial, sans-serif';
+    x.textAlign = 'center';
+    x.fillText('THE PROPAGANDA FACTORY', 540, 160);
+    /* Game name — shrink-to-fit so long names (e.g. 'BILLIONAIRE OR
+       SUPERVILLAIN?') stay inside the 920px inner border instead of
+       overflowing the canvas at a fixed 96px. */
+    x.fillStyle = '#c1121f';
+    var gn = (gameName || 'MISSION').toUpperCase();
+    var gnSize = 96;
+    x.font = '900 ' + gnSize + 'px Arial Black, Arial, sans-serif';
+    while (gnSize > 36 && x.measureText(gn).width > 920) {
+      gnSize -= 4;
+      x.font = '900 ' + gnSize + 'px Arial Black, Arial, sans-serif';
+    }
+    /* Ellipsis cap: names still wider than 920px at the 36px floor get
+       truncated with … so they can't overflow the inner border. */
+    if (x.measureText(gn).width > 920) {
+      while (gn.length > 1 && x.measureText(gn.slice(0, -1) + '…').width > 920)
+        gn = gn.slice(0, -1);
+      gn = gn.trim() + '…';
+    }
+    x.fillText(gn, 540, 320);
+    /* Star divider. */
+    x.fillStyle = '#f5ead6'; x.font = '64px Arial';
+    x.fillText('\u2605 \u2605 \u2605', 540, 420);
+    /* Detail text (wrapped). */
+    x.fillStyle = '#f5ead6'; x.font = '48px Arial, sans-serif';
+    var words = String(detailText || '').split(' ');
+    var lines = [], line = '';
+    for(var i=0; i<words.length; i++){
+      var t = line + words[i] + ' ';
+      if(x.measureText(t).width > 880 && line){ lines.push(line.trim()); line = words[i] + ' '; }
+      else { line = t; }
+    }
+    if(line.trim()) lines.push(line.trim());
+    var y = 520;
+    for(var j=0; j<Math.min(lines.length, 6); j++){ x.fillText(lines[j], 540, y); y += 70; }
+    /* Timestamp. */
+    x.fillStyle = '#b8ab8e'; x.font = '36px Arial, sans-serif';
+    var d = new Date();
+    x.fillText(d.toLocaleDateString() + ' ' + d.toLocaleTimeString(), 540, 920);
+    /* Footer. */
+    x.fillStyle = '#c1121f'; x.font = '900 48px Arial Black, Arial, sans-serif';
+    x.fillText('MTCSTW.COM', 540, 990);
+    x.fillStyle = '#c1121f'; x.font = '900 40px Arial Black, Arial, sans-serif';
+    x.fillText('JOIN THE FIGHT.', 540, 1046);
+    /* Callsign attribution on every achievement image. */
+    try{ if(window.PFShare&&window.PFShare.stampCallsign) window.PFShare.stampCallsign(c); }catch(e){}
+    /* Share or download. */
+    c.toBlob(function(blob){
+      if(!blob) return;
+      var file = new File([blob], 'propaganda-achievement.png', {type:'image/png'});
+      var shareData = {files:[file], title:'Propaganda Factory', text: gameName + ': ' + detailText};
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        navigator.share(shareData).catch(function(){});
+      } else {
+        /* Fallback: download. */
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'propaganda-achievement.png';
+        document.body.appendChild(a); a.click();
+        setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 1000);
+      }
+    }, 'image/png');
+  } catch(e){}
+};
+
+/* PF STORAGE NOTICE (2026-10-03 privacy/terms): the site keeps XP, streaks,
+   vote flags and callsigns in the browser's local storage, loads code from
+   the jsDelivr CDN, and runs on Squarespace (standard Squarespace cookies).
+   One dismissible notice — never a blocking banner. Dismissal persists in
+   localStorage 'pf_storage_notice_v1'.
+   KILL: ?pf_off=03-global */
+(function(){
+  try{
+    if(window.PF && window.PF.skip && window.PF.skip('03-global')) return;
+    try{ if(localStorage.getItem('pf_storage_notice_v1')==='1') return; }catch(e){}
+    function show(){
+      try{
+        if(document.getElementById('pf-storage-notice')) return;
+        var bar=document.createElement('div');
+        bar.id='pf-storage-notice';
+        bar.setAttribute('role','note');
+        bar.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:99990;background:#0a0a0a;border-top:3px solid #c1121f;color:#f5f0e1;font-family:"Helvetica Neue",Arial,sans-serif;font-size:12px;line-height:1.5;padding:10px 52px 10px 16px;box-sizing:border-box;text-align:left;';
+        bar.innerHTML='<b style="color:#c1121f;letter-spacing:0.08em;">HEADS UP, SOLDIER</b> &mdash; this site remembers you in your own browser: XP, streaks, vote flags and your callsign live in local storage (clear your browser data and it&rsquo;s gone). Our code loads from the jsDelivr CDN and Squarespace hosts the site &mdash; standard Squarespace cookies apply. We never sell your data. Ever.' +
+          '<button id="pf-storage-x" aria-label="Dismiss" style="position:absolute;top:8px;right:12px;background:#c1121f;color:#f5f0e1;border:none;font-weight:900;font-size:11px;letter-spacing:0.1em;padding:6px 12px;cursor:pointer;font-family:inherit;">GOT IT</button>';
+        document.body.appendChild(bar);
+        document.getElementById('pf-storage-x').onclick=function(){
+          try{ localStorage.setItem('pf_storage_notice_v1','1'); }catch(e){}
+          try{ bar.parentNode.removeChild(bar); }catch(e2){}
+        };
+      }catch(e){}
+    }
+    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',show);
+    else show();
+  }catch(e){}
+})();
+
+;
+
+/* ===== core/14-auth.js ===== */
+/* core/14-auth.js  |  PF v1.4.3 | Per-callsign auth wiring for the backend auth layer.
+   - PF.getAuthSecret() / PF.saveAuthSecret(s): localStorage 'pf_auth_secret'
+   - PF.authPost(backendUrl, bodyObj, cb): CORS POST with auth_secret attached.
+     On 401/unauthorized with no stored secret, tries auth_claim once for the
+     stored callsign, saves the secret, and retries the original request once.
+   - PF.claimAuthSecret(callsign, cb): one-time claim for pre-auth users.
+   - PF.authGetJSONP(backendUrl, action, params, cb, opts): authenticated JSONP
+     GET with the same claim-retry self-heal as authPost (plus a 12s timeout).
+     Legacy callsigns that cannot be claimed surface err:'legacy_callsign'.
+   Backend contract: ~/workspace/mtcstw-api/src/auth.js
+   KILL: ?pf_off=auth (disables the 401 auto-claim; secrets still attach) */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.authWired) return;
+  PF.authWired = true;
+
+  var LS_SECRET = 'pf_auth_secret';
+
+  PF.getAuthSecret = function () {
+    try { return String(localStorage.getItem(LS_SECRET) || ''); } catch (e) { return ''; }
+  };
+  PF.saveAuthSecret = function (s) {
+    try { if (s) localStorage.setItem(LS_SECRET, String(s)); } catch (e) {}
+  };
+  PF.clearAuthSecret = function () {
+    try { localStorage.removeItem(LS_SECRET); } catch (e) {}
+  };
+
+  function callsign() {
+    try { if (typeof window.PFCallsign === 'function') return String(window.PFCallsign() || '').toLowerCase(); } catch (e) {}
+    try { return String((JSON.parse(localStorage.getItem('pf_identity_v1') || '{}')).callsign || '').toLowerCase(); } catch (e) {}
+    return '';
+  }
+  function deviceId() {
+    try { if (typeof window.PFDeviceId === 'function') return String(window.PFDeviceId() || ''); } catch (e) {}
+    return '';
+  }
+
+  /* Extract the acting callsign from a POST body for the claim-retry path.
+     Mirrors the backend's actor-field priority loosely; falls back to the
+     stored identity. */
+  function actorFromBody(body) {
+    var fields = ['callsign', 'from_cs', 'booster', 'creator', 'lender', 'subscriber', 'sponsor', 'requester'];
+    for (var i = 0; i < fields.length; i++) {
+      try {
+        var v = String(body[fields[i]] || '').toLowerCase().replace(/[^a-z0-9_]/g, '');
+        if (/^[a-z0-9_]{3,20}$/.test(v)) return v;
+      } catch (e) {}
+    }
+    return callsign();
+  }
+
+  function rawPost(backendUrl, bodyObj, cb) {
+    function done(j) { try { cb(j || { ok: false, err: 'Network error.' }); } catch (e) {} }
+    try {
+      /* 15s timeout: a hung POST must fail closed (done(null)) rather than
+         hang the UI forever (e.g. the War Bonds claim button). */
+      var ctl = null, timer = null, settled = false;
+      function finish(j) { if (settled) return; settled = true;
+        if (timer) { clearTimeout(timer); timer = null; }
+        done(j); }
+      try {
+        if (window.AbortController) {
+          ctl = new AbortController();
+          timer = setTimeout(function () { try { ctl.abort(); } catch (e) {} }, 15000);
+        }
+      } catch (e) { ctl = null; timer = null; }
+      var opts = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(bodyObj) };
+      if (ctl) opts.signal = ctl.signal;
+      fetch(backendUrl, opts)
+        .then(function (r) { return r.json(); })
+        .then(function (j) { finish(j); })
+        .catch(function () { finish(null); });
+    } catch (e) { done(null); }
+  }
+
+  /* One-time claim for pre-auth callsigns. POST {type:'auth',auth_action:'auth_claim'} */
+  PF.claimAuthSecret = function (cs, cb) {
+    cs = String(cs || '').toLowerCase();
+    if (!/^[a-z0-9_]{3,20}$/.test(cs)) { try { cb({ ok: false, err: 'bad callsign' }); } catch (e) {} return; }
+    var backend = '';
+    try { backend = window.PF_BACKEND_URL || ''; } catch (e) {}
+    if (!backend) { try { cb({ ok: false, err: 'no backend' }); } catch (e) {} return; }
+    rawPost(backend, { type: 'auth', auth_action: 'auth_claim', callsign: cs, device: deviceId() }, function (j) {
+      if (j && j.ok && j.auth_secret) PF.saveAuthSecret(j.auth_secret);
+      try { cb(j); } catch (e) {}
+    });
+  };
+
+  /* M1 (2026-10-03): honor the KILL via PF.skip — it covers both the
+     ?pf_off=auth query param and localStorage pf_disabled_v1. */
+  var authDisabled = false;
+  try { authDisabled = PF.skip("auth"); } catch (e) {}
+
+  /* Authenticated JSONP GET with claim-retry (2026-10-03). Mirrors the
+     PF.authPost self-heal for read paths: attaches callsign/device/secret
+     when available; on 'missing credentials' with no stored secret, performs
+     a one-time auth_claim, stores the secret, and retries the read once.
+     Legacy callsigns that cannot be claimed surface err:'legacy_callsign'
+     (distinct code, no loop). 12s timeout so reads can't hang forever. */
+  PF.authGetJSONP = function (backendUrl, action, params, cb, opts) {
+    opts = opts || {};
+    var timeoutMs = opts.timeout || 12000;
+    function done(j) { try { cb(j || { ok: false, err: 'Network error.' }); } catch (e) {} }
+    if (!backendUrl || !action) { done(null); return; }
+    function fire(p, cb2) {
+      var q = "?action=" + encodeURIComponent(action);
+      for (var k in p) { if (p[k] != null && p[k] !== "") q += "&" + encodeURIComponent(k) + "=" + encodeURIComponent(p[k]); }
+      var fn = "pfAJP" + Math.floor(Math.random() * 1e9);
+      var s = document.createElement("script"), settled = false;
+      function finish(j) {
+        if (settled) return; settled = true;
+        try { delete window[fn]; } catch (e) {}
+        if (s.parentNode) s.parentNode.removeChild(s);
+        cb2(j);
+      }
+      window[fn] = function (j) { finish(j); };
+      s.onerror = function () { finish(null); };
+      s.src = backendUrl + q + "&callback=" + fn;
+      document.head.appendChild(s);
+      setTimeout(function () { finish(null); }, timeoutMs);
+    }
+    var p = Object.assign({}, params || {});
+    var cs = callsign();
+    if (cs && !p.callsign) p.callsign = cs;
+    var dev = deviceId();
+    if (dev && !p.device) p.device = dev;
+    var sec = PF.getAuthSecret();
+    if (sec && !p.auth_secret) p.auth_secret = sec;
+    fire(p, function (j) {
+      /* Claim-retry: the backend said 'missing credentials' because this
+         browser never stored a secret. One claim attempt, then one retry.
+         Never loops: _retried is set on the retry, and a 'claim
+         unavailable' claim response surfaces a distinct code instead. */
+      /* Reads both `err` and `error` shapes — some backend actions return
+         `error:` and the claim-retry must fire on either. */
+      var ec = j && (j.err || j.error);
+      var needClaim = j && !j.ok && !opts._retried && !authDisabled && !PF.getAuthSecret() &&
+        (ec === 'missing credentials' || String(ec || '').indexOf('missing credentials') !== -1);
+      if (needClaim) {
+        var claimCs = String(p.callsign || cs || '').toLowerCase();
+        if (claimCs) {
+          PF.claimAuthSecret(claimCs, function (cj) {
+            if (cj && cj.ok && cj.auth_secret) {
+              var o2 = Object.assign({}, opts); o2._retried = true;
+              PF.authGetJSONP(backendUrl, action, params, cb, o2);
+            } else if (cj && String((cj.err || cj.error) || '').indexOf('claim unavailable') !== -1) {
+              /* Legacy callsign: no secret can ever be issued for it —
+                 distinct code so callers can show recovery copy, no loop. */
+              done({ ok: false, err: 'legacy_callsign' });
+            } else {
+              done(j);
+            }
+          });
+          return;
+        }
+      }
+      done(j);
+    });
+  };
+
+  /* Canonical authenticated POST. Attaches auth_secret; on 401/unauthorized
+     with no stored secret, attempts a one-time auth_claim for the acting
+     callsign and retries the original request once. */
+  PF.authPost = function (backendUrl, bodyObj, cb, _retried) {
+    if (!backendUrl) { try { cb({ ok: false, err: 'no backend' }); } catch (e) {} return; }
+    /* Clone the caller's object — the secret is written into the clone, never
+       the input (a silo may reuse or inspect its body object afterwards). */
+    var body = Object.assign({}, bodyObj || {});
+    var secret = PF.getAuthSecret();
+    if (secret) body.auth_secret = secret;
+    rawPost(backendUrl, body, function (j) {
+      /* Claim-retry: fire when the callsign has no usable secret. Covers
+         'unauthorized' (wrong secret), 'no secret issued' (never claimed),
+         AND 'missing credentials' (nothing stored locally yet — the case
+         for every pre-auth user, where no claim would ever otherwise fire,
+         e.g. Armory buy/equip from a fresh browser). One attempt, then the
+         original error stands. */
+      var noStored = !PF.getAuthSecret();
+      /* Both error shapes, same as authGetJSONP above. */
+      var ec = j && (j.err || j.error);
+      var needClaim = j && !j.ok && (
+        ec === 'unauthorized' ||
+        String(ec || '').indexOf('no secret issued') !== -1 ||
+        (noStored && (ec === 'missing credentials' ||
+          String(ec || '').indexOf('missing credentials') !== -1))
+      ) && !_retried && !authDisabled;
+      if (needClaim) {
+        var cs = actorFromBody(body);
+        if (cs) {
+          PF.claimAuthSecret(cs, function (cj) {
+            if (cj && cj.ok && cj.auth_secret) {
+              /* Retry once with the fresh secret. */
+              PF.authPost(backendUrl, body, cb, true);
+            } else {
+              try { cb(j); } catch (e) {}
+            }
+          });
+          return;
+        }
+      }
+      try { cb(j); } catch (e) {}
+    });
+  };
+})();
+
+;
+
+/* ===== pwa/install.js ===== */
+/* pwa/install.js  |  PF v1.4.3 | PWA bootstrap.
+   Injects the web manifest + iOS meta tags, attempts service-worker
+   registration, and surfaces an INSTALL APP prompt when the browser fires
+   beforeinstallprompt (Android/Chrome) or when iOS A2HS is available.
+   It never reaches into another silo's internals.
+   KILL: ?pf_off=pwa  or  localStorage pf_disabled_v1='["pwa"]' */
+(function () {
+  'use strict';
+  var PF = window.PF || { skip: function () { return false; } };
+  if (PF.skip('pwa')) { return; }
+
+  /* ---------- derive our own CDN base (pin-agnostic) ---------- */
+  function pwaBase() {
+    var scripts = document.getElementsByTagName('script');
+    for (var i = 0; i < scripts.length; i++) {
+      var s = scripts[i].src || '';
+      var idx = s.indexOf('/v1.4.3/');
+      if (idx > -1 && s.indexOf('MTCSTW-site-deploy') > -1) {
+        return s.slice(0, idx + 8) + 'pwa/';
+      }
+    }
+    return null;
+  }
+  var BASE = pwaBase();
+  if (!BASE) { return; }
+
+  /* ---------- inject manifest + platform meta ---------- */
+  function addLink(rel, href, extra) {
+    if (document.querySelector('link[rel="' + rel + '"]')) { return; }
+    var l = document.createElement('link');
+    l.rel = rel; l.href = href;
+    if (extra) { for (var k in extra) { l.setAttribute(k, extra[k]); } }
+    document.head.appendChild(l);
+  }
+  function addMeta(name, content) {
+    if (document.querySelector('meta[name="' + name + '"]')) { return; }
+    var m = document.createElement('meta');
+    m.name = name; m.content = content;
+    document.head.appendChild(m);
+  }
+  addLink('manifest', BASE + 'manifest.json', { crossorigin: 'use-credentials' });
+  addLink('apple-touch-icon', BASE + 'apple-touch-icon.png');
+  addMeta('theme-color', '#c81e1e');
+  addMeta('mobile-web-app-capable', 'yes');
+  addMeta('apple-mobile-web-app-capable', 'yes');
+  addMeta('apple-mobile-web-app-status-bar-style', 'black-translucent');
+  addMeta('apple-mobile-web-app-title', 'MTCSTW');
+
+  /* ---------- service worker (same-origin required) ---------- */
+  // Browsers hard-require the SW script to be same-origin with the site.
+  // Served from jsDelivr this registration WILL fail with a SecurityError;
+  // we catch it and run in manifest-only mode (iOS A2HS + install signals).
+  // Full offline support needs sw.js at https://www.mtcstw.com/sw.js —
+  // see pwa/README.md for the hosting options.
+  if ('serviceWorker' in navigator) {
+    try {
+      navigator.serviceWorker.register(BASE + 'sw.js').then(
+        function () { if (window.console) console.log('[PF PWA] SW registered'); },
+        function (err) { if (window.console) console.log('[PF PWA] SW unavailable (needs same-origin hosting):', err && err.message); }
+      );
+    } catch (e) {
+      if (window.console) console.log('[PF PWA] SW registration blocked:', e && e.message);
+    }
+  }
+
+  /* ---------- already installed? bail ---------- */
+  var isStandalone = false;
+  try {
+    isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true;
+  } catch (e) {}
+  if (isStandalone) { return; }
+  try {
+    if (sessionStorage.getItem('pf_pwa_dismissed') === '1') { return; }
+  } catch (e) {}
+
+  /* ---------- install prompt UI ---------- */
+  var deferredPrompt = null;
+  var btn = null;
+
+  function toast(m) {
+    try { if (PF.toast) { PF.toast(m); return; } } catch (e) {}
+    try {
+      var t = document.createElement('div');
+      t.textContent = m;
+      t.style.cssText = 'position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999';
+      document.body.appendChild(t);
+      setTimeout(function () { t.remove(); }, 2400);
+    } catch (e2) {}
+  }
+
+  function dismiss(permanent) {
+    if (btn && btn.parentNode) { btn.parentNode.removeChild(btn); btn = null; }
+    if (permanent) { try { sessionStorage.setItem('pf_pwa_dismissed', '1'); } catch (e) {} }
+  }
+
+  function showButton(label, onTap) {
+    if (btn) { return; }
+    btn = document.createElement('button');
+    btn.id = 'pf-pwa-install';
+    btn.innerHTML = '<span style="font-size:16px;margin-right:8px">\u25BC</span>' + label
+      + '<span id="pf-pwa-x" style="margin-left:12px;opacity:.7;cursor:pointer">\u2715</span>';
+    btn.style.cssText = 'position:fixed;right:14px;bottom:14px;z-index:99998;'
+      + 'background:#c1121f;color:#fff;border:2px solid #0a0a0a;border-radius:10px;'
+      + 'font:bold 14px monospace;letter-spacing:1px;padding:12px 16px;cursor:pointer;'
+      + 'box-shadow:0 4px 18px rgba(193,18,31,.55)';
+    btn.addEventListener('click', function (e) {
+      if (e.target && e.target.id === 'pf-pwa-x') { dismiss(true); return; }
+      onTap();
+    });
+    document.body.appendChild(btn);
+  }
+
+  var isiOS = /iphone|ipad|ipod/i.test(navigator.userAgent || '');
+
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    showButton('INSTALL APP', function () {
+      if (!deferredPrompt) { return; }
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function (choice) {
+        if (choice && choice.outcome === 'accepted') {
+          toast('Welcome to the factory.');
+          dismiss(true);
+        } else {
+          dismiss(false);
+        }
+        deferredPrompt = null;
+      });
+    });
+  });
+
+  // iOS has no beforeinstallprompt: show the manual A2HS hint once per session.
+  if (isiOS && !('serviceWorker' in navigator && false)) {
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+        showButton('INSTALL APP', function () {
+          dismiss(false);
+          toast('Tap Share \u2192 Add to Home Screen.');
+        });
+      }, 4000);
+    });
+  }
+})();
+
+;
+
+/* ===== core/04-ledger.js ===== */
+/* core/04-ledger.js  |  PF v1.4.1 | Shared ledger: storage helpers, toast, XP awards, r-act click handler
+   KILL: ?pf_off=04-ledger  or  localStorage pf_disabled_v1='["04-ledger"]' */
+(function(){if(window.PF&&window.PF.skip('04-ledger'))return;if(window.pfRx)return;window.pfRx=1;function G(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}function S(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}function T(m){var t=document.createElement('div');t.textContent=m;t.style.cssText='position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999';document.body.appendChild(t);setTimeout(function(){t.remove()},2600)}function A(k,x){var ok=false;try{ok=(window.PF&&PF.creditLocal)?PF.creditLocal(k,x):false}catch(e){ok=false}if(!ok)return false;var r=G('pf_ranks_v1')||{xp:0};var t=Number(r.xp)||0;try{document.dispatchEvent(new CustomEvent('pf-xp',{detail:{gain:x,total:t,key:k,reason:'r-act'}}))}catch(e){}T('+'+x+' XP claimed!');return true}function C(e){var s=G('pf_do_v1');return s&&s.byType&&s.byType[e]||0}document.addEventListener('click',function(e){var a=e.target.closest('a.r-act');if(!a)return;var h=(a.getAttribute('href')||'').toLowerCase(),id,xp;if(h.indexOf('#pf-bracket')===0){id='b';xp=10}else if(h.indexOf('#pf-vote')===0){id='v';xp=10}else if(h.indexOf('#slr-quiz')===0){id='q';xp=15}else return;e.preventDefault();var k='pfx-'+id;var pre=id==='b'?'bracket_':id==='v'?'fanvote_':'quiz';
+/* Counted-once guard: the game silos auto-award XP when the action completes
+   (got keys 'bracket_<week>', 'fanvote_<week>', 'quiz'). This claim link must
+   never award a second time for the same task. */
+var already=function(){var g=(G('pf_ranks_v1')||{got:{}}).got||{};if(g[k])return true;for(var kk in g){if(g.hasOwnProperty(kk)&&kk.indexOf(pre)===0)return true;}return false;};
+if(already()){T('Already claimed');return}var d=id==='b'?C('pf-bracket-ballot')>0:id==='v'?(C('pf-vote-cast')>0||function(){for(var i=0;i<localStorage.length;i++)if((localStorage.key(i)||'').indexOf('slr-vote-')===0)return true;return false}()):C('pf-quiz-done')>0;if(d){A(k,xp)}else{var s=id==='b'?'LIQUIDATION BRACKET':id==='v'?'FAN VOTE':'FIND YOUR SLR MATCH';var hs=document.querySelectorAll('h1,h2,h3');for(var i=0;i<hs.length;i++)if(hs[i].textContent.toUpperCase().indexOf(s)>-1){hs[i].scrollIntoView({behavior:'smooth',block:'center'});break}T('Complete for +'+xp+' XP')}},true)})();
+
+;
+
+/* ===== core/05-tally.js ===== */
+/* core/05-tally.js  |  PF v1.4.1 | Site-wide tally: reports every counted game event to the backend so
+   KILL: ?pf_off=05-tally  or  localStorage pf_disabled_v1='["05-tally"]' */
+(function(){ 'use strict'; if(window.PF&&window.PF.skip('05-tally'))return;
+if(window.pfTallyLoaded)return; window.pfTallyLoaded=true;
+/* Mirrors the rank-XP economy: daily tasks sum to 50/day (PF.DAILY_XP_CAP);
+   weekly tasks keep their own values; tally-only events keep theirs.
+   detail.xp overrides when a game reports its actual capped award — including
+   0 when the daily pool is spent (never fall back to the default then, or the
+   backend would record XP the user never earned). */
+var XP_DEFAULTS={ 'pf-order-checkin':10, 'pf-drop-claimed':1, 'pf-caption-submit':10, 'pf-poster-made':1, 'pf-quiz-done':15, 'pf-guess-done':1, 'pf-raid-report':2, 'pf-infight-fire':0, 'pf-vote-cast':10, 'pf-bracket-ballot':10, 'pf-bracket-liquidated':10, 'pf-traitor-vote':5, 'pf-wb-buy':25, 'pf-enlisted':20, 'pf-billionaire-answered':1, 'pf-interrogation-answered':1, 'pf-share-image':1, 'pf-boost-tipped':0, 'pf-checkin':2, 'pf-guess-scored':0, 'pf-do-challenge-done':15, 'pf-do-fullspectrum':20 };
+/* Do-meter point scale — MUST match the PTS table in games/do-meter.js.
+   Single source of truth: this table is what the backend records. */
+var PTS_DEFAULTS={ 'pf-order-checkin':1, 'pf-drop-claimed':2, 'pf-caption-submit':2, 'pf-poster-made':2, 'pf-quiz-done':1, 'pf-guess-done':2, 'pf-raid-report':2, 'pf-infight-fire':3, 'pf-vote-cast':1, 'pf-bracket-ballot':1, 'pf-bracket-liquidated':2, 'pf-traitor-vote':1, 'pf-wb-buy':5, 'pf-enlisted':3, 'pf-billionaire-answered':1, 'pf-interrogation-answered':1, 'pf-share-image':2, 'pf-boost-tipped':1, 'pf-checkin':1, 'pf-guess-scored':0, 'pf-do-challenge-done':3, 'pf-do-fullspectrum':5 };
+/* Pool-capped events whose TRUE award is forwarded by enlistment-ranks via
+   pf-tally-settle. The raw game event fires BEFORE the award is computed, so
+   recording the default here would over-record whenever the 50/day pool is
+   spent (or under-record the rank-panel check-in/share, which award without
+   dispatching a game event at all). The tally records these ONLY on settle —
+   never on the raw event — so the backend always matches the user's ledger. */
+var POOL_SETTLED={ 'pf-guess-done':1, 'pf-raid-report':1, 'pf-poster-made':1, 'pf-share-image':1, 'pf-drop-claimed':1, 'pf-billionaire-answered':1, 'pf-interrogation-answered':1, 'pf-checkin':1, 'pf-guess-scored':1, 'pf-do-challenge-done':1, 'pf-do-fullspectrum':1 };
+var TASKS=Object.keys(XP_DEFAULTS);
+function report(actionType, xp, pts, meta){
+  try{
+    if(window.PF_BACKEND_URL){
+      var dev='',cs='';
+      try{ if(window.PFDeviceId) dev=window.PFDeviceId(); if(window.PFCallsign) cs=window.PFCallsign(); }catch(e){}
+      fetch(window.PF_BACKEND_URL,{method:'POST',mode:'no-cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify({type:'action',action_type:actionType,xp:xp,pts:pts,device:dev,callsign:cs,meta:meta||'',auth_secret:(window.PF&&PF.getAuthSecret?PF.getAuthSecret():'')})}).catch(function(){});
+      if(typeof window.pfFetchGlobalTotal==='function'){ setTimeout(window.pfFetchGlobalTotal, 1500); }
+      if(typeof window.pfFetchGlobalTasks==='function'){ setTimeout(window.pfFetchGlobalTasks, 1500); }
+    }
+  }catch(e){}
+}
+TASKS.forEach(function(ev){
+  document.addEventListener(ev,function(e){
+    if(POOL_SETTLED[ev]) return; /* true award arrives via pf-tally-settle */
+    var xp=XP_DEFAULTS[ev];
+    try{ if(e&&e.detail&&typeof e.detail.xp==='number'){ xp=Math.max(0,Math.floor(e.detail.xp)); } }catch(err){}
+    var meta='';
+    try{ if(e&&e.detail&&e.detail.creator){ meta=String(e.detail.creator)+':'+(Math.floor(Number(e.detail.tipped)||0)); } }catch(err){}
+    try{ if(e&&e.detail&&e.detail.archetype){ meta='archetype:'+String(e.detail.archetype).slice(0,24); } }catch(err){}
+    try{ if(e&&e.detail&&typeof e.detail.score==='number'){ meta='score:'+Math.max(0,Math.min(5,Math.floor(e.detail.score))); } }catch(err){}
+    var actionType=ev.replace(/^pf-/,'').replace(/-/g,'_');
+    report(actionType, xp, PTS_DEFAULTS[ev]||1, meta);
+  });
+});
+/* True-award settlement from enlistment-ranks (pool-capped events only).
+   Score-bearing events (pf-guess-scored) forward their score in meta so the
+   backend records the actual score, not just the completion. */
+document.addEventListener("pf-tally-settle",function(e){
+  var ev=e&&e.detail&&e.detail.ev;
+  if(!ev||!POOL_SETTLED[ev]) return;
+  var xp=XP_DEFAULTS[ev];
+  try{ if(e&&e.detail&&typeof e.detail.xp==='number'){ xp=Math.max(0,Math.floor(e.detail.xp)); } }catch(err){}
+  var meta='';
+  try{ if(e&&e.detail&&typeof e.detail.score==='number'){ meta='score:'+Math.max(0,Math.min(5,Math.floor(e.detail.score))); } }catch(err){}
+  report(ev.replace(/^pf-/,'').replace(/-/g,'_'), xp, PTS_DEFAULTS[ev]||1, meta);
+});
+})();
+
+;
+
+/* ===== core/08-dopamine.js ===== */
+/* PF DOPAMINE — shared celebration primitives for the per-game dopamine pass.
+ * One implementation every game uses instead of bespoke one-off effects:
+ * confetti bursts, floating XP popups, milestone pings, tap-press feedback.
+ * Pure presentation layer: awards NOTHING, dispatches no economy events,
+ * never touches the tally. Safe to call anywhere; no-ops gracefully when
+ * PF.dope is missing (games must guard with window.PF&&PF.dope).
+ * KILL: ?pf_off=dopamine  or  localStorage pf_disabled_v1='["dopamine"]'
+ * Usage:
+ *   PF.dope.confetti(hostEl, 24)    — burst of n confetti pieces over hostEl
+ *   PF.dope.xpFloat(hostEl, '+15 XP') — floating XP text that rises and fades
+ *   PF.dope.ping(hostEl, '7-DAY STREAK') — centered milestone toast
+ *   PF.dope.press(btnEl)            — quick tap bounce on a button
+ */
+(function(){
+  if(!window.PF) window.PF={};
+  if(PF.dope) return;
+  var COLORS=['#c1121f','#f5ead6','#e8b10c','#8c2b2b'];
+  var reduced=false;
+  try{ reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+
+  function style(){
+    if(document.getElementById('pf-dope-css')) return;
+    var s=document.createElement('style');
+    s.id='pf-dope-css';
+    s.textContent=
+      '.pf-dope-host{position:relative}'
+      +'.pf-dope-confetti{position:absolute;top:-12px;width:9px;height:13px;z-index:60;pointer-events:none;animation:pfdopefall linear forwards}'
+      +'@keyframes pfdopefall{to{transform:translateY(560px) rotate(720deg);opacity:0}}'
+      +'.pf-dope-xpf{position:absolute;left:50%;top:38%;transform:translateX(-50%);z-index:61;pointer-events:none;white-space:nowrap;font:bold 22px/1 monospace;letter-spacing:1px;color:#f5ead6;text-shadow:0 0 12px #c1121f,0 2px 0 #000;animation:pfdopexp 1.5s ease-out forwards}'
+      +'@keyframes pfdopexp{0%{opacity:0;transform:translateX(-50%) translateY(14px) scale(.7)}18%{opacity:1;transform:translateX(-50%) translateY(0) scale(1.12)}38%{transform:translateX(-50%) translateY(-6px) scale(1)}100%{opacity:0;transform:translateX(-50%) translateY(-64px) scale(.96)}}'
+      +'.pf-dope-ping{position:absolute;top:30%;left:50%;transform:translateX(-50%);z-index:62;pointer-events:none;white-space:nowrap;max-width:94%;background:#c1121f;color:#fff;font:bold 14px monospace;letter-spacing:2px;padding:10px 18px;border:2px solid #f5ead6;animation:pfdopeping .45s ease-out}'
+      +'@keyframes pfdopeping{0%{transform:translateX(-50%) scale(.7);opacity:0}60%{transform:translateX(-50%) scale(1.06);opacity:1}100%{transform:translateX(-50%) scale(1);opacity:1}}'
+      +'.pf-dope-press{animation:pfdopepress .28s ease-out}'
+      +'@keyframes pfdopepress{0%{transform:scale(1)}40%{transform:scale(.93)}100%{transform:scale(1)}}'
+      +'@media (prefers-reduced-motion: reduce){.pf-dope-confetti,.pf-dope-xpf,.pf-dope-ping,.pf-dope-press{animation:none!important}}';
+    document.head.appendChild(s);
+  }
+
+  function host(el){
+    var h=(el&&el.nodeType===1)?el:document.body;
+    if(!h.classList.contains('pf-dope-host')) h.classList.add('pf-dope-host');
+    return h;
+  }
+
+  function confetti(el,n){
+    if(reduced) return;
+    try{ if(window.PF&&PF.skip&&PF.skip('dopamine')) return; }catch(e){}
+    style();
+    var h=host(el), count=Math.max(0,Math.min(120,n|0||20)), i, p;
+    for(i=0;i<count;i++){
+      p=document.createElement('div');
+      p.className='pf-dope-confetti';
+      p.style.left=(Math.random()*100)+'%';
+      p.style.background=COLORS[i%COLORS.length];
+      p.style.animationDuration=(1.2+Math.random()*1.6)+'s';
+      h.appendChild(p);
+      (function(node){ setTimeout(function(){ if(node.parentNode) node.parentNode.removeChild(node); },3400); })(p);
+    }
+  }
+
+  function xpFloat(el,text){
+    if(reduced||!text) return;
+    try{ if(window.PF&&PF.skip&&PF.skip('dopamine')) return; }catch(e){}
+    style();
+    var h=host(el), d=document.createElement('div');
+    d.className='pf-dope-xpf';
+    d.textContent=String(text);
+    h.appendChild(d);
+    setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); },1600);
+  }
+
+  function ping(el,text){
+    if(reduced||!text) return;
+    try{ if(window.PF&&PF.skip&&PF.skip('dopamine')) return; }catch(e){}
+    style();
+    var h=host(el), d=document.createElement('div');
+    d.className='pf-dope-ping';
+    d.textContent=String(text);
+    h.appendChild(d);
+    setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); },2200);
+  }
+
+  function press(el){
+    if(reduced||!el||!el.classList) return;
+    try{ if(window.PF&&PF.skip&&PF.skip('dopamine')) return; }catch(e){}
+    style();
+    el.classList.remove('pf-dope-press');
+    void el.offsetWidth;
+    el.classList.add('pf-dope-press');
+  }
+
+  PF.dope={confetti:confetti,xpFloat:xpFloat,ping:ping,press:press};
+})();
+
+;
+
+/* ===== core/09-referral.js ===== */
+/* core/09-referral.js  |  PF v1.4.3 | Referral attribution + recruit rewards.
+   Closes the loop the Creator War Card advertises ("every recruit who checks in
+   pays +25 XP"): share URLs carry ?ref=CALLSIGN, arrivals are captured, and when
+   a referred visitor enlists the backend logs a recruit_log row. The referrer's
+   client polls recruit_count and the ledger awards +25 XP per recruit (exempt).
+   KILL: ?pf_off=09-referral  or  localStorage pf_disabled_v1='["09-referral"]' */
+(function(){ 'use strict';
+if(window.PF&&window.PF.skip('09-referral'))return;
+if(window.pfReferralLoaded)return; window.pfReferralLoaded=true;
+var PF=window.PF||(window.PF={});
+var LS_REF='pf_ref_v1', LS_SEEN='pf_recruits_seen_v1', LS_DIS='pf_ref_dismissed_v1';
+
+function clean(s){
+  /* Match backend norm() exactly: lowercase, trim, 32 chars. Underscores are
+     significant — stripping them forks the economy per spelling. */
+  return String(s==null?'':s).toLowerCase().trim().slice(0,32);
+}
+function myCallsign(){
+  var cs='';
+  try{ if(typeof window.PFCallsign==='function') cs=window.PFCallsign()||''; }catch(e){}
+  if(!cs){ try{ cs=String((JSON.parse(localStorage.getItem('pf_identity_v1')||'{}')).callsign||''); }catch(e){} }
+  return clean(cs);
+}
+function storedRef(){
+  try{ return clean(localStorage.getItem(LS_REF)||''); }catch(e){ return ''; }
+}
+/* First-touch attribution: keep the FIRST ref that brought this device. */
+try{
+  var q=(location.search||'').match(/[?&]ref=([^&]+)/);
+  if(q&&q[1]){
+    var r=clean(decodeURIComponent(q[1].replace(/\+/g,' ')));
+    if(r&&!storedRef()){ try{ localStorage.setItem(LS_REF,r); }catch(e){} }
+  }
+}catch(e){}
+
+/* First-touch CREATOR attribution: ?creator=<slug> from the SLR catalog
+   "COPY ENLIST LINK" / BRING THEM IN links. Kept in its own key with its own
+   first-touch semantics — the ?ref=<callsign> leg above is untouched and both
+   params can coexist on one device (enlistUrl appends both). Slugs are
+   validated to the roster charset so a junk param can never poison storage. */
+var LS_CREATOR='pf_creator_ref_v1';
+function storedCreatorRef(){
+  try{ return String(localStorage.getItem(LS_CREATOR)||'').toLowerCase().trim(); }catch(e){ return ''; }
+}
+/* 2026-10-04 (creator audit): validate ?creator= against the roster at
+   capture time. Synchronous when the DB snapshot is already in the bundle
+   (roster pages); on slim-core pages the lazy loader resolves a moment
+   later and scrubBadCreatorRef() removes any bogus stored ref — junk
+   ?creator= values can never poison storage. */
+function rosterHas(slug){
+  try{
+    if(PF&&typeof PF.slrMember==='function'&&PF.slrMember(slug)) return true;
+    if(PF&&typeof PF.slrAll==='function'){
+      var all=PF.slrAll()||[];
+      for(var i=0;i<all.length;i++){
+        if(String((all[i]&&all[i].slug)||'').toLowerCase()===slug) return true;
+      }
+    }
+  }catch(e){}
+  return false;
+}
+function rosterReady(){
+  try{ return !!(PF&&typeof PF.slrAll==='function'&&(PF.slrAll()||[]).length); }catch(e){ return false; }
+}
+function scrubBadCreatorRef(){
+  var cr=storedCreatorRef();
+  if(!cr||!rosterReady()) return; /* DB not in yet — nothing to validate against */
+  /* the 'creator' collision guard lives here too: a ref that would parse as
+     the callsign 'creator' must never be stored (see the claim listener). */
+  if(cr==='creator'||!rosterHas(cr)){
+    try{ localStorage.removeItem(LS_CREATOR); }catch(e){}
+    try{ var b=document.getElementById('pf-creator-ref'); if(b&&b.parentNode) b.parentNode.removeChild(b); }catch(e2){}
+  }
+}
+try{
+  var cq=(location.search||'').match(/[?&]creator=([^&]+)/);
+  if(cq&&cq[1]){
+    var cr=decodeURIComponent(cq[1].replace(/\+/g,' ')).toLowerCase().trim();
+    /* charset gate + 'creator' collision guard + first-touch + synchronous
+       roster validation when the DB is already loaded. */
+    if(/^[a-z0-9_-]{1,40}$/.test(cr)&&cr!=='creator'&&!storedCreatorRef()){
+      if(!rosterReady()||rosterHas(cr)){
+        try{ localStorage.setItem(LS_CREATOR,cr); }catch(e){}
+      }
+    }
+  }
+}catch(e){}
+/* Async leg: on slim-core pages the DB arrives after capture — validate the
+   stored ref once it resolves and scrub anything that isn't a real slug. */
+try{
+  if(PF&&typeof PF.ensureSLRDB==='function'){ PF.ensureSLRDB().then(function(){ scrubBadCreatorRef(); }); }
+  else { setTimeout(scrubBadCreatorRef,6000); }
+}catch(e){}
+PF.storedCreatorRef=storedCreatorRef;
+PF.scrubBadCreatorRef=scrubBadCreatorRef;
+
+/* PF.shareUrl(url) — every shared link carries the sharer's callsign so
+   arrivals attribute back. Used by share-image.js, do-meter, vote cards.
+   2026-10-04: a no-callsign sharer used to lose ?ref= SILENTLY — warn once
+   per page load that attribution needs a callsign. */
+var _noCsWarned=false;
+PF.shareUrl=function(url){
+  url=String(url||'https://www.mtcstw.com/');
+  var cs=myCallsign();
+  if(!cs){
+    if(!_noCsWarned){
+      _noCsWarned=true;
+      try{ if(PF&&PF.toast) PF.toast('No callsign on this device \u2014 shared links carry no referral credit. Claim a callsign to get credit for your recruits.'); }catch(e){}
+    }
+    return url;
+  }
+  return url+(url.indexOf('?')>=0?'&':'?')+'ref='+encodeURIComponent(cs);
+};
+PF.myCallsign=myCallsign;
+PF.hasCallsign=function(){ return !!myCallsign(); };
+PF.storedRef=storedRef;
+
+/* Backend write: recruit_log row (xp=0/pts=0 so the site-wide totals are
+   untouched). meta carries 'recruiter:<callsign>' or 'recruiter:creator:<slug>'.
+   2026-10-04: no-cors is fire-and-forget by nature (opaque response), but a
+   network failure REJECTS — so retry twice with backoff and, on final
+   failure, log visibly (console.warn + pf-recruit-log-failed event) instead
+   of dying silent. cb(ok) reports the outcome; the caller persists its
+   once-flag ONLY on success so a failed send stays retryable on a later
+   claim instead of being lost forever. */
+function logRecruit(recruiter,attempt,cb){
+  attempt=attempt||0;
+  function done(ok,err){
+    if(!ok){
+      try{ console.warn('[PF] recruit_log FAILED after '+(attempt+1)+' attempt(s) — recruiter='+String(recruiter||'')+(err?(' — '+err):'')); }catch(e){}
+      try{ document.dispatchEvent(new CustomEvent('pf-recruit-log-failed',{detail:{recruiter:String(recruiter||'')}})); }catch(e2){}
+    }
+    try{ if(typeof cb==='function') cb(ok); }catch(e3){}
+  }
+  var rstr=String(recruiter||'');
+  /* Collision guard: never emit a meta that a ':'-splitting backend would
+     credit to a callsign literally named "creator". */
+  if(/^creator:creator($|:)/.test(rstr)){ done(false,"recruiter collides with callsign 'creator'"); return; }
+  if(!/^(creator:)?[a-z0-9_-]{1,40}$/.test(rstr)){ done(false,'bad recruiter shape'); return; }
+  try{
+    if(!window.PF_BACKEND_URL){ done(false,'no backend URL'); return; }
+    var dev='',cs='';
+    try{ if(window.PFDeviceId) dev=window.PFDeviceId(); }catch(e){}
+    try{ cs=myCallsign(); }catch(e){}
+    fetch(window.PF_BACKEND_URL,{method:'POST',mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({type:'action',action_type:'recruit_log',xp:0,pts:0,
+        device:String(dev||'').slice(0,64),callsign:String(cs||'').slice(0,64),
+        meta:'recruiter:'+rstr.slice(0,64),auth_secret:(window.PF&&PF.getAuthSecret?PF.getAuthSecret():'')})})
+      .then(function(){ done(true); })
+      .catch(function(err){
+        if(attempt<2){ setTimeout(function(){ logRecruit(recruiter,attempt+1,cb); },attempt===0?1500:4000); }
+        else { done(false,(err&&err.message)||'network error'); }
+      });
+  }catch(e){ done(false,String((e&&e.message)||e)); }
+}
+
+/* When a referred visitor enlists, credit the recruiter. Fires once per
+   device (a second callsign claim on the same device must not double-count). */
+var loggedOnce=false;
+try{ loggedOnce=!!localStorage.getItem('pf_recruit_logged_v1'); }catch(e){}
+document.addEventListener('pf-callsign-claimed',function(e){
+  var me=myCallsign(), ref=storedRef();
+  if(ref&&me&&ref!==me&&!loggedOnce){
+    loggedOnce=true; /* in-memory: no double-fire this session */
+    logRecruit(ref,0,function(ok){
+      /* persist the once-flag ONLY on success — a failed send stays
+         retryable on a later claim instead of being lost forever. */
+      if(ok){ try{ localStorage.setItem('pf_recruit_logged_v1','1'); }catch(e2){} }
+      else { loggedOnce=false; }
+    });
+    try{ document.dispatchEvent(new CustomEvent('pf-referred',{detail:{recruiter:ref}})); }catch(e3){}
+  }
+  setTimeout(pollCount, 4000); /* the claimer may also be a recruiter — refresh */
+});
+
+/* Creator attribution: when a creator-referred visitor enlists, log a
+   recruit_log row with meta 'recruiter:creator:<slug>' — pre-attributing the
+   referral the BRING THEM IN / COPY ENLIST LINK flow promised. Separate
+   once-flag from the callsign leg; the 'creator:' prefix means backend
+   recruit_count polls (which match 'recruiter:<callsign>' from the start)
+   never credit it to a callsign, and the callsign leg above is untouched. */
+var creatorLoggedOnce=false;
+try{ creatorLoggedOnce=!!localStorage.getItem('pf_creator_recruit_logged_v1'); }catch(e){}
+document.addEventListener('pf-callsign-claimed',function(){
+  var slug=storedCreatorRef();
+  /* 2026-10-04 guard: never emit recruiter:creator:<slug> when <slug> could
+     parse as the callsign 'creator' — a backend that splits meta on ':' and
+     takes the first token would falsely credit a callsign literally named
+     "creator". (':' can't reach here via the charset gate, but 'creator'
+     alone can — belt and suspenders, matching the logRecruit guard.) */
+  if(!slug||slug==='creator'||slug.indexOf('creator:')===0) return;
+  if(!creatorLoggedOnce){
+    creatorLoggedOnce=true;
+    logRecruit('creator:'+slug,0,function(ok){
+      if(ok){ try{ localStorage.setItem('pf_creator_recruit_logged_v1','1'); }catch(e2){} }
+      else { creatorLoggedOnce=false; }
+    });
+    try{ document.dispatchEvent(new CustomEvent('pf-creator-referred',{detail:{creator:slug}})); }catch(e3){}
+  }
+});
+
+/* /request-access: a creator-referred arrival sees their reference confirmed
+   ("with <name> as your reference"). Name resolves from the SLR roster —
+   synchronously when the snapshot is bundled, or via the lazy loader on
+   slim-core pages (falls back to the raw slug if the DB never resolves). */
+function onRequestAccess(){
+  try{ return /(^|\/)request-access(\/|$)/.test(location.pathname||''); }catch(e){ return false; }
+}
+function creatorNotice(){
+  if(!onRequestAccess()) return;
+  var slug=storedCreatorRef();
+  if(!slug||document.getElementById('pf-creator-ref')) return;
+  /* 2026-10-04: never paint the banner for a ref that isn't a real roster
+     slug (the async scrub removes it; this avoids the flash). */
+  if(rosterReady()&&!rosterHas(slug)) return;
+  function escH(s){
+    return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function paint(name){
+    if(document.getElementById('pf-creator-ref')) return;
+    try{
+      var label=String(name||slug), d=document.createElement('div');
+      d.id='pf-creator-ref';
+      var top='0px';
+      try{ if(document.getElementById('pf-ref-banner')) top='38px'; }catch(e){}
+      d.style.cssText='position:fixed;top:'+top+';left:0;right:0;z-index:9989;'+
+        'background:#0d0d0d;color:#f5ead6;border-bottom:3px solid #c1121f;'+
+        'font:bold 13px/1.4 monospace;letter-spacing:1px;text-align:center;'+
+        'padding:10px 12px;box-shadow:0 2px 18px rgba(0,0,0,.5);';
+      d.innerHTML='&#9873; RECRUITED BY '+escH(label.toUpperCase())+' &mdash; '+
+        'enlist with '+escH(label)+' as your reference.';
+      document.body.appendChild(d);
+    }catch(e2){}
+  }
+  var m=null;
+  try{ m=(PF&&typeof PF.slrMember==='function')?PF.slrMember(slug):null; }catch(e){}
+  if(m&&m.name){ paint(m.name); return; }
+  try{
+    if(PF&&typeof PF.ensureSLRDB==='function'){
+      PF.ensureSLRDB().then(function(){
+        var m2=null;
+        try{ m2=PF.slrMember(slug); }catch(e){}
+        paint((m2&&m2.name)||null);
+      });
+    } else { paint(null); }
+  }catch(e){ paint(null); }
+}
+
+/* Recruit-count poll: JSONP recruit_count -> dispatch pf-recruit-credited
+   with the NEW recruits only. Cached 6h; the ledger keys the award on the
+   running total so repeats are harmless. */
+function pollCount(){
+  var me=myCallsign();
+  if(!me||!window.PF_BACKEND_URL) return;
+  var cache={n:0,t:0};
+  try{ cache=JSON.parse(localStorage.getItem(LS_SEEN)||'{"n":0,"t":0}'); }catch(e){}
+  var now=Date.now();
+  if(now-(cache.t||0)<6*3600*1000) return;
+  var fn='pfrc_'+Math.floor(Math.random()*1e9);
+  window[fn]=function(j){
+    try{ delete window[fn]; }catch(e){}
+    var total=0;
+    try{ total=Math.max(0,parseInt(j&&j.recruits,10)||0); }catch(e2){}
+    var fresh=Math.max(0,total-(cache.n||0));
+    try{ localStorage.setItem(LS_SEEN,JSON.stringify({n:total,t:Date.now()})); }catch(e3){}
+    if(fresh>0){
+      try{ document.dispatchEvent(new CustomEvent('pf-recruit-credited',
+        {detail:{recruits:fresh,total:total}})); }catch(e4){}
+    }
+  };
+  var s=document.createElement('script');
+  s.src=window.PF_BACKEND_URL+'?action=recruit_count&callsign='+encodeURIComponent(me)+'&callback='+fn;
+  s.onerror=function(){ try{ delete window[fn]; }catch(e){} if(s.parentNode)s.parentNode.removeChild(s); };
+  document.head.appendChild(s);
+  setTimeout(function(){ if(s.parentNode)s.parentNode.removeChild(s); },15000);
+}
+setTimeout(pollCount, 3000);
+
+/* /request-access form attribution (2026-10-04, creator audit): the native
+   Squarespace form has no creator/referral field, so a stored creator ref
+   would die with the banner if the applicant never claims a callsign. At
+   submit time (capture phase, so it runs before Squarespace's own handler)
+   we append a reference marker to the pitch/long-text field — it rides the
+   normal form payload into the emailed submission. Idempotent per form and
+   per value; the RECRUITED BY banner already shows the applicant the ref. */
+var FORM_MARKER_PREFIX='\u2014 Recruited by ';
+function formAttribution(){
+  if(!onRequestAccess()) return;
+  var slug=storedCreatorRef();
+  if(!slug) return;
+  function withName(cb){
+    var m=null;
+    try{ m=(PF&&typeof PF.slrMember==='function')?PF.slrMember(slug):null; }catch(e){}
+    if(m&&m.name){ cb(m.name); return; }
+    try{
+      if(PF&&typeof PF.ensureSLRDB==='function'){
+        PF.ensureSLRDB().then(function(){
+          var m2=null; try{ m2=PF.slrMember(slug); }catch(e){}
+          cb((m2&&m2.name)||slug);
+        });
+      } else { cb(slug); }
+    }catch(e){ cb(slug); }
+  }
+  withName(function(name){
+    var marker='\n\n'+FORM_MARKER_PREFIX+name+' (sick-left-radicals/'+slug+') \u2014';
+    function arm(form){
+      if(!form||form._pfCreatorWired) return;
+      form._pfCreatorWired=true;
+      form.addEventListener('submit',function(){
+        try{
+          var t=form.querySelector('textarea')||form.querySelector('input[type="text"]');
+          if(!t||String(t.value||'').indexOf(FORM_MARKER_PREFIX)>=0) return;
+          t.value=String(t.value||'').replace(/\s+$/,'')+marker;
+        }catch(e){}
+      },true);
+    }
+    function scan(){
+      try{
+        var forms=document.querySelectorAll('form');
+        for(var i=0;i<forms.length;i++) arm(forms[i]);
+      }catch(e){}
+    }
+    /* Squarespace renders the form block after our scripts run — scan now
+       and once more late so we catch it. */
+    if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded',scan); }
+    else { scan(); }
+    setTimeout(scan,3000);
+  });
+}
+
+/* Recruit landing banner: a referred visitor with no callsign yet gets
+   "SGT X RECRUITED YOU — enlist to join the fight". Dismissible, once. */
+function banner(){
+  var ref=storedRef();
+  if(!ref||myCallsign()) return;
+  try{ if(localStorage.getItem(LS_DIS)==='1') return; }catch(e){}
+  var d=document.createElement('div');
+  d.id='pf-ref-banner';
+  d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9990;background:#c1121f;color:#f5ead6;'+
+    'font:bold 13px/1.4 monospace;letter-spacing:1px;text-align:center;padding:10px 44px 10px 12px;'+
+    'box-shadow:0 2px 18px rgba(0,0,0,.5);';
+  d.innerHTML='&#9873; SGT '+ref.toUpperCase()+' RECRUITED YOU &mdash; '+
+    '<a href="#" id="pf-ref-go" style="color:#fff;text-decoration:underline;">ENLIST TO JOIN THE FIGHT</a>';
+  var x=document.createElement('span');
+  x.textContent='\u00d7'; x.style.cssText='position:absolute;right:12px;top:6px;font-size:20px;cursor:pointer;color:#f5ead6;';
+  x.onclick=function(){ d.remove(); try{ localStorage.setItem(LS_DIS,'1'); }catch(e){} };
+  d.appendChild(x);
+  document.body.appendChild(d);
+  document.getElementById('pf-ref-go').onclick=function(ev){
+    ev.preventDefault();
+    var t=document.getElementById('pf-orders');
+    var tg=document.getElementById('oClaimToggle');
+    if(t&&tg){
+      t.scrollIntoView({behavior:'smooth',block:'start'});
+      setTimeout(function(){
+        var tg2=document.getElementById('oClaimToggle');
+        if(tg2){ try{ tg2.click(); }catch(e){} }
+      },900);
+    } else {
+      /* Off-homepage: the enlist widget (#pf-orders / #oClaimToggle) only
+         exists on the homepage, so a tap here was a dead click. Route to
+         the homepage enlist section and auto-open the claim UI on arrival —
+         the stored ref survives in localStorage, so attribution is intact. */
+      try{ sessionStorage.setItem('pf_ref_autoclaim','1'); }catch(e2){}
+      try{ location.href=new URL('/#pf-orders',location.origin).toString(); }
+      catch(e3){ location.href='/#pf-orders'; }
+    }
+    return false;
+  };
+}
+
+/* Off-homepage ENLIST routing, arrival leg: set by the banner above before
+   navigating to /#pf-orders. Auto-opens the claim UI once the homepage
+   widget mounts (single-use, same tab, ~20s backstop). */
+try{
+  if(sessionStorage.getItem('pf_ref_autoclaim')==='1'){
+    sessionStorage.removeItem('pf_ref_autoclaim');
+    var _acTries=0;
+    (function _autoClaim(){
+      var tg=null;
+      try{ tg=document.getElementById('oClaimToggle'); }catch(e){}
+      if(tg){ try{ tg.click(); }catch(e2){} return; }
+      if(++_acTries<40) setTimeout(_autoClaim,500);
+    })();
+  }
+}catch(e){}
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',banner);
+  document.addEventListener('DOMContentLoaded',creatorNotice);
+  document.addEventListener('DOMContentLoaded',formAttribution);
+} else { setTimeout(banner,800); setTimeout(creatorNotice,800); setTimeout(formAttribution,800); }
+})();
+
+;
+
+/* ===== core/10-convert.js ===== */
+/* core/10-convert.js  |  PF v1.4.3 | Onsite conversion loops.
+   1) Victory lap: after any game completion, a floating "NEXT MISSION" card
+      points the player at one game they haven't touched this week — sessions
+      keep moving across games instead of ending.
+   2) Enlistment nudge: the first game a callsign-less visitor completes shows
+      a one-a-day prompt to claim a callsign so the XP banks.
+   Pure presentation + event listeners; awards NOTHING itself.
+   KILL: ?pf_off=10-convert  or  localStorage pf_disabled_v1='["10-convert"]' */
+(function(){ 'use strict';
+if(window.PF&&window.PF.skip('10-convert'))return;
+if(window.pfConvertLoaded)return; window.pfConvertLoaded=true;
+var PF=window.PF||(window.PF={});
+
+/* Completion events -> game keys. */
+var EV2GAME={
+  'pf-order-checkin':'orders','pf-drop-claimed':'drop','pf-quiz-done':'quiz',
+  'pf-guess-done':'guess','pf-bracket-ballot':'bracket','pf-raid-report':'raid',
+  'pf-vote-cast':'vote','pf-poster-made':'forge','pf-caption-submit':'caption',
+  'pf-do-challenge-done':'dometer','pf-billionaire-answered':'billionaire',
+  'pf-interrogation-answered':'interrogation','pf-infight-fire':'infight',
+  'pf-contract-claimed':'contracts'
+};
+var MISSIONS=[
+  {key:'orders',  label:'Daily Orders',    blurb:'Report in. 30 seconds.',        anchor:'#pf-orders',  page:'/'},
+  {key:'vote',    label:'Fan Vote',        blurb:'Crown this week\u2019s propagandist.', anchor:'#pf-vote',    page:'/'},
+  {key:'quiz',    label:'SLR Match Quiz',  blurb:'Find your fighter archetype.',  anchor:'#pf-matchquiz', page:'/'},
+  {key:'guess',   label:'Guess the Creator', blurb:'Name that propagandist.',     anchor:'#pf-guess',    page:'/arcade'},
+  {key:'bracket', label:'Liquidation Bracket', blurb:'Pick the bracket. Win glory.', anchor:'#pf-bracket', page:'/arcade'},
+  {key:'raid',    label:'Boost Raid',      blurb:'Storm a target together.',     anchor:'#pf-orders',  page:'/'},
+  {key:'dometer', label:'Do Meter',        blurb:'Log a task. Fuel the meter.',   anchor:'#pf-dometer2', page:'/'},
+  {key:'forge',   label:'Poster Forge',    blurb:'Mint a propaganda poster.',    anchor:'#pf-poster',   page:'/'},
+  {key:'caption', label:'Caption Combat',  blurb:'Write the winning caption.',   anchor:'#pf-caption',  page:'/arcade'},
+  {key:'drop',    label:'Daily Drop',      blurb:'Claim today\u2019s drop.',       anchor:'#pf-brief',    page:'/'},
+  {key:'contracts', label:'Mercenary Contracts', blurb:'Take a contract. Get paid.', anchor:'#pf-contracts', page:'/cells'}
+];
+function weekKey(){
+  try{
+    var d=new Date(), onejan=new Date(d.getFullYear(),0,1);
+    var w=Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7);
+    return d.getFullYear()+'-W'+w;
+  }catch(e){ return 'W0'; }
+}
+function played(key){
+  try{ return localStorage.getItem('pf_played_'+weekKey()+'_'+key)==='1'; }catch(e){ return false; }
+}
+function markPlayed(key){
+  try{ localStorage.setItem('pf_played_'+weekKey()+'_'+key,'1'); }catch(e){}
+}
+Object.keys(EV2GAME).forEach(function(ev){
+  document.addEventListener(ev,function(){ markPlayed(EV2GAME[ev]); comboTrack(EV2GAME[ev]); firstBlood(); afterGame(EV2GAME[ev]); });
+});
+function nextMission(){
+  for(var i=0;i<MISSIONS.length;i++){ if(!played(MISSIONS[i].key)) return MISSIONS[i]; }
+  return null;
+}
+PF.nextMission=nextMission;
+
+/* COMBO: two different games in one day fires pf-combo once (the ledger pays
+   +8 XP, exempt). Distinct-game days are the habit we're building. */
+function dayStr(){ try{ return new Date().toISOString().slice(0,10); }catch(e){ return 'd0'; } }
+function comboTrack(key){
+  var k='pf_combo_'+dayStr(), arr=[];
+  try{ arr=JSON.parse(localStorage.getItem(k)||'[]'); }catch(e){ arr=[]; }
+  if(arr.indexOf(key)<0){ arr.push(key); try{ localStorage.setItem(k,JSON.stringify(arr)); }catch(e){} }
+  if(arr.length===2){
+    var fk=k+'_fired', fired=false;
+    try{ fired=localStorage.getItem(fk)==='1'; }catch(e){}
+    if(fired) return;
+    try{ localStorage.setItem(fk,'1'); }catch(e){}
+    try{ document.dispatchEvent(new CustomEvent('pf-combo',{detail:{day:dayStr(),games:arr}})); }catch(e){}
+  }
+}
+/* FIRST BLOOD: the day's first logged task gets a callout + tiny award. */
+function firstBlood(){
+  var k='pf_firstblood_'+dayStr(), done=false;
+  try{ done=localStorage.getItem(k)==='1'; }catch(e){}
+  if(done) return;
+  try{ localStorage.setItem(k,'1'); }catch(e){}
+  try{ if(window.PF&&PF.dope) PF.dope.ping(document.body,'FIRST BLOOD \u2014 first strike of the day'); }catch(e){}
+  try{ document.dispatchEvent(new CustomEvent('pf-first-blood',{detail:{day:dayStr()}})); }catch(e){}
+}
+
+/* ---- floating card primitives ---- */
+var lapCount=0, lastLap=0;
+function cardShell(id){
+  var d=document.createElement('div');
+  d.id=id;
+  d.style.cssText='position:fixed;right:12px;bottom:12px;z-index:9991;max-width:290px;'+
+    'background:#0d0d0d;border:3px solid #c1121f;color:#f5ead6;padding:14px 14px 12px;'+
+    'font-family:monospace;box-shadow:0 4px 30px rgba(193,18,31,.45);';
+  var x=document.createElement('span');
+  x.textContent='\u00d7';
+  x.style.cssText='position:absolute;top:4px;right:10px;font-size:18px;cursor:pointer;color:#b8ab8e;';
+  x.onclick=function(){ d.remove(); };
+  d.appendChild(x);
+  document.body.appendChild(d);
+  return d;
+}
+function goBtn(label, mission, dismiss){
+  var anchor=mission.anchor, page=mission.page||'/';
+  var b=document.createElement('button');
+  b.textContent=label;
+  b.style.cssText='background:#c1121f;border:none;color:#f5f0e1;font:bold 13px monospace;'+
+    'letter-spacing:2px;padding:9px 18px;margin-top:10px;cursor:pointer;width:100%;';
+  b.onclick=function(){
+    var t=document.querySelector(anchor);
+    if(t){ try{ t.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){} }
+    else if(page&&window.location.pathname!==page){ try{ window.location.href=page+anchor; }catch(e){} }
+    /* else: right page but widget not mounted — nothing to scroll to. */
+    dismiss();
+  };
+  return b;
+}
+
+/* Victory lap: once per 10 min, max 3 per session, only when a mission is open. */
+function afterGame(justPlayed){
+  /* Enlistment nudge takes precedence for callsign-less visitors. */
+  if(nudge()) return;
+  var now=Date.now();
+  if(lapCount>=3||now-lastLap<10*60*1000) return;
+  var m=nextMission();
+  if(!m||m.key===justPlayed) return;
+  lastLap=now; lapCount++;
+  var d=cardShell('pf-next-mission');
+  var h=document.createElement('div');
+  h.style.cssText='color:#c1121f;font-weight:900;letter-spacing:2px;font-size:12px;margin-bottom:6px;';
+  h.textContent='\u2691 NEXT MISSION';
+  var t=document.createElement('div');
+  t.style.cssText='font-size:15px;font-weight:900;margin-bottom:2px;';
+  t.textContent=m.label;
+  var b=document.createElement('div');
+  b.style.cssText='font-size:12px;color:#b8ab8e;';
+  b.textContent=m.blurb;
+  d.appendChild(h); d.appendChild(t); d.appendChild(b);
+  d.appendChild(goBtn('DEPLOY \u2192', m, function(){ d.remove(); }));
+  setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); }, 25000);
+}
+
+/* Enlistment nudge: first completion of the session without a callsign.
+   Once per day. Returns true when it showed (so the victory lap yields). */
+var nudged=false;
+function nudge(){
+  if(nudged) return false;
+  var has=false;
+  try{ has=PF.hasCallsign&&PF.hasCallsign(); }catch(e){}
+  if(has) return false;
+  var today=''; try{ today=new Date().toISOString().slice(0,10); }catch(e){}
+  try{ if(localStorage.getItem('pf_enlist_nudge_v1')===today) return false; }catch(e){}
+  nudged=true;
+  try{ localStorage.setItem('pf_enlist_nudge_v1',today); }catch(e){}
+  var d=cardShell('pf-enlist-nudge');
+  var h=document.createElement('div');
+  h.style.cssText='color:#c1121f;font-weight:900;letter-spacing:2px;font-size:12px;margin-bottom:6px;';
+  h.textContent='\u2691 BANK THIS XP';
+  var t=document.createElement('div');
+  t.style.cssText='font-size:13px;margin-bottom:2px;';
+  t.textContent='Claim a callsign and every point you earn follows you across devices.';
+  d.appendChild(h); d.appendChild(t);
+  d.appendChild(goBtn('CLAIM CALLSIGN \u2192', {anchor:'#pf-orders',page:'/'}, function(){ d.remove(); }));
+  /* Expand the claim box on arrival. */
+  var iv=setInterval(function(){
+    var tg=document.getElementById('oClaimToggle');
+    if(tg){ try{ tg.click(); }catch(e){} clearInterval(iv); }
+  },1200);
+  setTimeout(function(){ clearInterval(iv); if(d.parentNode) d.parentNode.removeChild(d); }, 30000);
+  return true;
+}
+})();
+
+;
+
+/* ===== core/11-xpledger.js ===== */
+/* core/11-xpledger.js  |  PF v1.4.3 | Backend XP ledger mirror.
+   LAYER: cross-cutting core service. The device-local pf_ranks_v1 ledger stays
+   the instant UX layer; this module mirrors every granted delta to the backend
+   xp_ledger with a per-device idempotency key, so contracts can escrow and
+   spend against REAL balances. Game silos never touch this file directly —
+   they dispatch economy events; enlistment-ranks award() and 04-ledger A()
+   dispatch pf-xp {gain,key}; this layer mirrors it.
+   - PF.xpBalance(cb)        -> backend balance for my callsign
+   - PF.xpSpend(amount,key,reason,cb) -> negative grant (escrow-style spends)
+   Genesis: on first run, the device's existing balance is seeded once with
+   key 'genesis:<device>' so the backend starts honest.
+   KILL: ?pf_off=11-xpledger  or  localStorage pf_disabled_v1='["11-xpledger"]' */
+(function(){ 'use strict';
+if(window.PF&&window.PF.skip('11-xpledger'))return;
+if(window.pfXPLedgerLoaded)return; window.pfXPLedgerLoaded=true;
+var PF=window.PF||(window.PF={});
+var LS_Q='pf_xpqueue_v1', LS_G='pf_xpgenesis_v1';
+
+function device(){ try{ return window.PFDeviceId?window.PFDeviceId():''; }catch(e){ return ''; } }
+function callsign(){
+  var cs='';
+  try{ if(typeof window.PFCallsign==='function') cs=window.PFCallsign()||''; }catch(e){}
+  if(!cs){ try{ cs=String((JSON.parse(localStorage.getItem('pf_identity_v1')||'{}')).callsign||''); }catch(e){} }
+  return String(cs==null?'':cs).toLowerCase().trim().slice(0,32);
+}
+function queue(){ try{ return JSON.parse(localStorage.getItem(LS_Q)||'[]'); }catch(e){ return []; } }
+function saveQ(q){ try{ localStorage.setItem(LS_Q,JSON.stringify(q.slice(-50))); }catch(e){} }
+
+function postGrant(item, cb){
+  try{
+    if(!window.PF_BACKEND_URL){ if(cb)cb(null); return; }
+    var body={type:'xp',xp_action:'grant',
+        callsign:item.cs, device:item.dev, delta:item.delta,
+        key:item.key, reason:item.reason||''};
+    /* Use authenticated POST (CORS, not no-cors) so 401s are visible and
+       trigger the auth_claim retry. Falls back to no-cors fire-and-forget
+       only if the auth layer failed to load. */
+    if(window.PF&&PF.authPost){
+      PF.authPost(window.PF_BACKEND_URL, body, function(j){
+        if(cb)cb(j&&j.ok?true:false);
+      });
+      return;
+    }
+    try{ var sec=window.PF&&PF.getAuthSecret?PF.getAuthSecret():''; if(sec) body.auth_secret=sec; }catch(e2){}
+    fetch(window.PF_BACKEND_URL,{method:'POST',mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify(body)})
+      .then(function(){ if(cb)cb(true); })
+      .catch(function(){ if(cb)cb(false); });
+  }catch(e){ if(cb)cb(false); }
+}
+/* no-cors POSTs are fire-and-forget (opaque response): a network failure is
+   the only signal we get, so failures queue for retry; successes are trusted
+   to the idempotency key. */
+function mirror(cs, delta, key, reason){
+  if(!cs||!delta||!key) return;
+  var item={cs:cs, dev:device(), delta:Math.round(delta), key:'lx:'+device()+':'+key, reason:String(reason||'').slice(0,128)};
+  postGrant(item, function(ok){
+    if(ok) return;
+    var q=queue(); q.push(item); saveQ(q);
+  });
+}
+function flush(){
+  var q=queue();
+  if(!q.length) return;
+  saveQ([]);
+  (function next(i){
+    if(i>=q.length) return;
+    postGrant(q[i], function(ok){
+      if(!ok){ var r=queue(); r.push(q[i]); saveQ(r); return; }
+      next(i+1);
+    });
+  })(0);
+}
+
+/* Every granted delta arrives here. */
+document.addEventListener('pf-xp', function(e){
+  var d=(e&&e.detail)||{};
+  var gain=Math.round(Number(d.gain)||0), key=String(d.key||'');
+  if(gain===0||!key) return;
+  mirror(callsign(), gain, key, d.reason||'game award');
+});
+setInterval(flush, 5*60*1000);
+setTimeout(flush, 20000);
+
+/* Genesis seeding: the backend starts at the device's current balance, once. */
+setTimeout(function(){
+  try{
+    if(localStorage.getItem(LS_G)==='1') return;
+    var cs=callsign(); if(!cs) return;
+    var cur=0;
+    try{ cur=Math.round(Number((JSON.parse(localStorage.getItem('pf_ranks_v1')||'{}')).xp)||0); }catch(e){}
+    localStorage.setItem(LS_G,'1');
+    if(cur>0) mirror(cs, cur, 'genesis:'+device(), 'genesis seeding');
+  }catch(e){}
+}, 8000);
+
+/* Public API for silos (contracts escrow display, etc.). */
+PF.xpBalance=function(cb){
+  try{
+    var cs=callsign();
+    if(!cs||!window.PF_BACKEND_URL){ if(cb)cb(null); return; }
+    var fn='pfxb_'+Math.floor(Math.random()*1e9);
+    window[fn]=function(j){
+      try{ delete window[fn]; }catch(e){}
+      if(cb)cb(j&&typeof j.balance==='number'?j.balance:null);
+    };
+    var s=document.createElement('script');
+    s.src=window.PF_BACKEND_URL+'?action=xp_balance&callsign='+encodeURIComponent(cs)+'&callback='+fn;
+    s.onerror=function(){ try{ delete window[fn]; }catch(e){} if(cb)cb(null); };
+    document.head.appendChild(s);
+    setTimeout(function(){ if(s.parentNode)s.parentNode.removeChild(s); },15000);
+  }catch(e){ if(cb)cb(null); }
+};
+/* xp_spend removed 2026-10-02: the backend deleted the unauthenticated
+   xp_spend action (pure attack surface), and nothing in the frontend calls
+   PF.xpSpend. Escrow-style spends go through the contract POST actions. */
+})();
+
+;
+
+/* ===== core/12-notify.js ===== */
+/* core/12-notify.js  |  PF v1.4.3 | Outbound notifications (Discord).
+   LAYER: cross-cutting core service. PF.notify(kind, text) fire-and-forgets
+   to the backend discord relay — the webhook URL lives in the backend's
+   Script Properties and never touches client code. Game silos call this;
+   they never touch Discord directly.
+   KILL: ?pf_off=12-notify  or  localStorage pf_disabled_v1='["12-notify"]' */
+(function(){ 'use strict';
+if(window.PF&&window.PF.skip('12-notify'))return;
+if(window.pfNotifyLoaded)return; window.pfNotifyLoaded=true;
+var PF=window.PF||(window.PF={});
+PF.notify=function(kind, text){
+  try{
+    if(!window.PF_BACKEND_URL||!kind||!text) return;
+    var body={type:'discord',d_action:'notify',
+        kind:String(kind).slice(0,32), text:String(text).slice(0,1800)};
+    try{ var sec=window.PF&&PF.getAuthSecret?PF.getAuthSecret():''; if(sec) body.auth_secret=sec; }catch(e2){}
+    fetch(window.PF_BACKEND_URL,{method:'POST',mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify(body)}).catch(function(){});
+  }catch(e){}
+};
+})();
+
+;
+
+/* ===== core/13-flow.js ===== */
+/* core/13-flow.js  |  PF v1.4.3 | STICKY FLOW LAYER: cross-pollination.
+   LAYER: cross-cutting core service, loads after the game silos. It never
+   touches another silo's internals — it observes PF.holder() and injects a
+   slim "NEXT UP" strip into every game panel, routing users along the
+   enlist -> cell -> war chest -> venture chain, then rotating variety picks.
+   A throttled flow chip also appears after XP gains. All state is local;
+   nothing here talks to the backend except one cached cell_mine check.
+   KILL: ?pf_off=13-flow  or  localStorage pf_disabled_v1='["13-flow"]' */
+(function(){
+'use strict';
+if(window.PF&&window.PF.skip('13-flow'))return;
+if(window.pfFlowLoaded)return; window.pfFlowLoaded=true;
+var PF=window.PF||(window.PF={});
+var LS_CELL='pf_flow_cell_v1', LS_CHIP='pf_flow_chip_v1';
+var ROTATE=[['vote','Cast a fan vote'],['contracts','Take a contract'],['cells','Rally your cell']];
+function callsign(){
+  var cs='';
+  try{ if(typeof window.PFCallsign==='function') cs=window.PFCallsign()||''; }catch(e){}
+  if(!cs){ try{ cs=String((JSON.parse(localStorage.getItem('pf_identity_v1')||'{}')).callsign||''); }catch(e){} }
+  /* Match backend norm(): lowercase, trim, 32 chars. Underscores significant. */
+  return String(cs==null?'':cs).toLowerCase().trim().slice(0,32);
+}
+function chiDay(){ try{ return new Date().toLocaleDateString('en-CA',{timeZone:'America/Chicago'}); }catch(e){
+  var d=new Date(); return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); } }
+/* Cached cell membership: one JSONP check per day. */
+function inCell(cb){
+  var cs=callsign();
+  if(!cs){ cb(false); return; }
+  try{
+    var c=JSON.parse(localStorage.getItem(LS_CELL)||'null');
+    if(c&&c.day===chiDay()){ cb(!!c.inCell); return; }
+  }catch(e){}
+  if(!window.PF_BACKEND_URL){ cb(false); return; }
+  var fn='pffl_'+Math.floor(Math.random()*1e9);
+  var fired=false;
+  window[fn]=function(j){
+    if(fired) return; fired=true;
+    try{ delete window[fn]; }catch(e){}
+    var v=false;
+    try{ v=!!(j&&(j.in_cell||(j.cells&&j.cells.length))); }catch(e2){}
+    try{ localStorage.setItem(LS_CELL,JSON.stringify({day:chiDay(),inCell:v})); }catch(e3){}
+    cb(v);
+  };
+  var s=document.createElement('script');
+  /* C3 (2026-10-03): cell_mine is auth-gated — attach PF.getAuthSecret()
+     (briefing.js pattern). No callsign already returns cb(false) above;
+     an auth failure just yields no cell data, which is the safe default. */
+  var _fsrc=window.PF_BACKEND_URL+'?action=cell_mine&callsign='+encodeURIComponent(cs);
+  try{ var _fsec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():''; if(_fsec) _fsrc+='&auth_secret='+encodeURIComponent(_fsec); }catch(e){}
+  s.src=_fsrc+'&callback='+fn;
+  s.onerror=function(){ if(fired) return; fired=true;
+    try{ delete window[fn]; }catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s);
+    cb(false); };
+  document.head.appendChild(s);
+  /* Timeout: clean up the global callback AND the tag, then render the
+     error state via cb(false) — a hung backend must not stall the flow
+     strip forever. */
+  setTimeout(function(){
+    if(fired) return; fired=true;
+    try{ delete window[fn]; }catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s);
+    cb(false);
+  },12000);
+}
+function seen(key){ try{ return localStorage.getItem(key)==='1'; }catch(e){ return false; } }
+function nextStep(cb){
+  var cs=callsign();
+  if(!cs){ cb({silo:'ranks',label:'Enlist for a callsign'}); return; }
+  inCell(function(inc){
+    if(!inc){ cb({silo:'cells',label:'Join a cell'}); return; }
+    if(!seen('pf_peoplesbank_seen_v1')){ cb({silo:'peoplesbank',label:'Open your War Chest'}); return; }
+    var r=ROTATE[Math.floor(Date.now()/86400000)%ROTATE.length];
+    cb({silo:r[0],label:r[1]});
+  });
+}
+function scrollToSilo(silo){
+  try{
+    var el=document.getElementById('pf-'+silo);
+    if(el){ el.scrollIntoView({behavior:'smooth',block:'start'}); return true; }
+  }catch(e){}
+  return false;
+}
+var PANEL_SILO={ 'pf-ranks':'ranks','pf-vote':'vote','pf-cells':'cells','pf-contracts':'contracts',
+  'pf-peoplesbank':'peoplesbank' };
+function stripFor(block){
+  if(!block||block.dataset.pfFlow)return;
+  var pid='';
+  try{ pid=block.id||''; }catch(e){}
+  if(!pid||!PANEL_SILO[pid])return;
+  block.dataset.pfFlow='1';
+  var strip=document.createElement('div');
+  strip.className='pf-flow-strip';
+  strip.innerHTML='<span class="pf-flow-next">◈ NEXT UP: <b>…</b></span>';
+  strip.style.cssText='margin-top:14px;padding:9px 14px;border:1px dashed #c1121f;font:12px monospace;letter-spacing:1px;color:#f4f1e8;cursor:pointer;text-align:center;';
+  strip.onclick=function(){ nextStep(function(st){ scrollToSilo(st.silo); }); };
+  nextStep(function(st){
+    if(st.silo===PANEL_SILO[pid]){ /* suggest the step AFTER this panel instead */
+      var order=['ranks','vote','cells','peoplesbank'];
+      var ix=order.indexOf(st.silo);
+      var nx=order[(ix+1)%order.length];
+      var lbl={ranks:'Enlist for a callsign',vote:'Cast a fan vote',cells:'Join a cell',peoplesbank:'Open your War Chest'}[nx];
+      st={silo:nx,label:lbl};
+    }
+    try{ strip.querySelector('.pf-flow-next').innerHTML='◈ NEXT UP: <b>'+String(st.label).replace(/</g,'&lt;')+'</b> →'; }catch(e){}
+  });
+  block.appendChild(strip);
+}
+function scan(){
+  var holder=null;
+  try{ holder=PF.holder(); }catch(e){}
+  if(!holder)return;
+  var blocks=holder.querySelectorAll('.fe-block');
+  for(var i=0;i<blocks.length;i++) stripFor(blocks[i]);
+}
+var mo=null;
+function watch(){
+  var holder=null;
+  try{ holder=PF.holder(); }catch(e){}
+  if(!holder){ setTimeout(watch,1500); return; }
+  scan();
+  try{
+    mo=new MutationObserver(function(){ scan(); });
+    mo.observe(holder,{childList:true,subtree:true});
+  }catch(e){}
+}
+/* Flow chip: one gentle nudge per 10 minutes after an XP gain. */
+document.addEventListener('pf-xp',function(e){
+  var d=(e&&e.detail)||{};
+  if(Math.round(Number(d.gain)||0)<=0)return;
+  var last=0;
+  try{ last=Number(localStorage.getItem(LS_CHIP)||0); }catch(e2){}
+  if(Date.now()-last<10*60*1000)return;
+  try{ localStorage.setItem(LS_CHIP,String(Date.now())); }catch(e3){}
+  nextStep(function(st){
+    var chip=document.createElement('div');
+    chip.innerHTML='◈ Next: <b>'+String(st.label).replace(/</g,'&lt;')+'</b> →';
+    chip.style.cssText='position:fixed;right:14px;bottom:76px;background:#0d0d0f;color:#f4f1e8;border:2px solid #c1121f;font:bold 13px monospace;padding:10px 16px;z-index:99990;cursor:pointer;letter-spacing:1px;';
+    chip.onclick=function(){ try{chip.remove();}catch(e){} scrollToSilo(st.silo); };
+    document.body.appendChild(chip);
+    setTimeout(function(){ try{chip.remove();}catch(e){} },7000);
+  });
+});
+PF.flowNext=nextStep;
+watch();
+setTimeout(scan,4000);
+})();
+
+;
+
+/* ===== core/15-seo.js ===== */
+/* core/15-seo.js  |  PF v1.4.3 | Structured data (JSON-LD) for SEO.
+   Injects schema.org Organization markup so search engines understand the
+   network entity. Google processes JS-injected JSON-LD on render.
+   Static OG tags (og:title/og:image) live in Squarespace page settings —
+   this file covers only what JS can do: JSON-LD.
+   KILL: ?pf_off=15-seo  or  localStorage pf_disabled_v1='["15-seo"]' */
+(function(){ 'use strict';
+if(window.PF&&window.PF.skip('15-seo'))return;
+if(window.pfSeoLoaded)return; window.pfSeoLoaded=true;
+
+function inject(){
+  try{
+    if(document.querySelector('script[data-pf-seo]'))return;
+    var org={
+      "@context":"https://schema.org",
+      "@type":"Organization",
+      "name":"The Propaganda Factory",
+      "alternateName":"MTCSTW",
+      "url":"https://www.mtcstw.com/",
+      "description":"The Propaganda Factory (MTCSTW): 62 vetted leftist creators, 8M+ combined reach, one machine. Propaganda, games, and organizing tools for the movement.",
+      "sameAs":[
+        "https://www.instagram.com/mtcstw",
+        "https://www.instagram.com/propfac",
+        "https://mtcstw.substack.com/",
+        "https://rss.com/podcasts/the-propaganda-factory"
+      ]
+    };
+    var s=document.createElement('script');
+    s.type='application/ld+json';
+    s.setAttribute('data-pf-seo','org');
+    s.textContent=JSON.stringify(org);
+    document.head.appendChild(s);
+  }catch(e){}
+}
+
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',inject);
+}else{ inject(); }
+})();
+
+;
+
+/* ===== core/campaign-data.js ===== */
+/* core/campaign-data.js  |  PF v1.4.3 | Static campaign content: battleground
+   races + ballot measures for the 32-Day Offensive. Data verified via live
+   research Oct 2, 2026 (RCP averages, Ballotpedia, CNN/USA Today). Polling
+   moves — treat ratings as snapshots, not predictions.
+   KILL: ?pf_off=campaign-data  or  localStorage pf_disabled_v1='["campaign-data"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (PF && PF.skip("campaign-data")) { return; }
+
+  /* Race shape: {id, state, office, candidates:[{name, party, funding, classTake}],
+     rating, stakes}. classTake = one line on who the candidate actually serves. */
+  window.PF_CAMPAIGN_RACES = [
+    {
+      id: "nc-senate",
+      state: "NC",
+      office: "U.S. Senate",
+      candidates: [
+        { name: "Roy Cooper", party: "D", funding: "Ex-governor, broad donor base", classTake: "Career Dem — better than the alternative, answers to the party machine." },
+        { name: "Michael Whatley", party: "R", funding: "Ex-RNC chair, corporate GOP money", classTake: "Party operative. Serves the donor class that installed him." }
+      ],
+      rating: "Leans D (Cooper +9)",
+      stakes: "Open seat. Top pickup opportunity — a win here breaks the GOP firewall."
+    },
+    {
+      id: "ga-senate",
+      state: "GA",
+      office: "U.S. Senate",
+      candidates: [
+        { name: "Jon Ossoff", party: "D", funding: "$20M+ Q2, mostly small-dollar and national Dems", classTake: "Incumbent. Votes with labor more often than not, still a party man." },
+        { name: "Mike Collins", party: "R", funding: "MAGA-backed, Trump-endorsed", classTake: "MAGA champion. Serves billionaires and the Trump machine." }
+      ],
+      rating: "Leans D (Ossoff +8)",
+      stakes: "Ossoff outraised Collins 10-to-1. Georgia is the firewall."
+    },
+    {
+      id: "mi-senate",
+      state: "MI",
+      office: "U.S. Senate",
+      candidates: [
+        { name: "Abdul El-Sayed", party: "D", funding: "Progressive small-dollar, beat the moderate in the primary", classTake: "41-year-old epidemiologist. Medicare for All. The real deal — a generational left bet." },
+        { name: "Mike Rogers", party: "R", funding: "Corporate GOP, ex-congressman", classTake: "Standard corporate Republican. Serves whoever writes the checks." }
+      ],
+      rating: "Toss-up (El-Sayed +3.4)",
+      stakes: "The most important progressive bet on the map. If El-Sayed wins, it proves the left can take Senate seats."
+    },
+    {
+      id: "oh-senate-special",
+      state: "OH",
+      office: "U.S. Senate (special)",
+      candidates: [
+        { name: "Sherrod Brown", party: "D", funding: "Labor-backed, union money", classTake: "Pro-labor record. One of the few Dems who actually fights for workers." },
+        { name: "Jon Husted", party: "R", funding: "Appointed incumbent, GOP establishment", classTake: "Corporate appointee. Votes the donor line." }
+      ],
+      rating: "Toss-up (Brown +3.7)",
+      stakes: "Special election. Brown's labor record vs. an appointed seat-warmer."
+    },
+    {
+      id: "tx-senate",
+      state: "TX",
+      office: "U.S. Senate",
+      candidates: [
+        { name: "James Talarico", party: "D", funding: "Progressive, small-dollar surge", classTake: "Young progressive. Running on workers, not donors." },
+        { name: "Ken Paxton", party: "R", funding: "Trump-backed, scandal-plagued AG", classTake: "Indicted AG backed by Trump over GOP establishment objections. Corruption as a platform." }
+      ],
+      rating: "Toss-up (Talarico +2.7)",
+      stakes: "Open seat. Paxton's scandals make Texas competitive — a left upset here rewrites the map."
+    },
+    {
+      id: "ne-senate",
+      state: "NE",
+      office: "U.S. Senate",
+      candidates: [
+        { name: "Dan Osborn", party: "I", funding: "Independent, union-backed", classTake: "Independent. Union steamfitter running against a billionaire. This is the class war on a ballot." },
+        { name: "Pete Ricketts", party: "R", funding: "Billionaire incumbent", classTake: "Billionaire. Literally. Serves himself and his class." }
+      ],
+      rating: "Toss-up (Ricketts +4)",
+      stakes: "Worker vs. billionaire. The purest class fight on the Senate map."
+    },
+    {
+      id: "me-senate",
+      state: "ME",
+      office: "U.S. Senate",
+      candidates: [
+        { name: "Troy Jackson", party: "D", funding: "Labor-backed logger", classTake: "Logger, labor-backed. Working-class roots, party label." },
+        { name: "Susan Collins", party: "R", funding: "Incumbent, corporate GOP", classTake: "30 years of 'concern' while voting the corporate line." }
+      ],
+      rating: "Toss-up (even)",
+      stakes: "Collins is the last of the 'moderate' Republicans. A loss ends the myth."
+    },
+    {
+      id: "ak-senate",
+      state: "AK",
+      office: "U.S. Senate",
+      candidates: [
+        { name: "Mary Peltola", party: "D", funding: "Pro-labor, Native Alaskan", classTake: "Pro-labor, pro-subsistence. Fights for working Alaskans." },
+        { name: "Dan Sullivan", party: "R", funding: "Incumbent, oil money", classTake: "Oil money's senator. Serves the extractors." }
+      ],
+      rating: "Toss-up (Peltola +2.3)",
+      stakes: "Labor vs. oil. Alaska's working class against the extraction industry."
+    }
+  ];
+
+  /* Measure shape: {id, state, title, summary, yesMeans, noMeans, backedBy, opposedBy}
+     Specific 2026 measures TBD — categories below are the class-war fights to watch. */
+  window.PF_CAMPAIGN_MEASURES = [
+    {
+      id: "wages-2026",
+      state: "Multiple",
+      title: "Minimum wage increases",
+      summary: "Wage-hike measures are on ballots in multiple states. The subminimum tipped wage is under attack everywhere.",
+      yesMeans: "Workers get a raise.",
+      noMeans: "Corporate lobbyists keep wages low.",
+      backedBy: "Labor unions, worker centers",
+      opposedBy: "Restaurant lobby, Chamber of Commerce"
+    },
+    {
+      id: "rent-2026",
+      state: "Multiple",
+      title: "Rent stabilization",
+      summary: "Rent caps and tenant protections are on the ballot in high-cost states. Landlords are spending millions to kill them.",
+      yesMeans: "Tenants get protection from gouging.",
+      noMeans: "Landlords keep unlimited pricing power.",
+      backedBy: "Tenant unions, DSA chapters",
+      opposedBy: "Real estate lobby, landlord PACs"
+    },
+    {
+      id: "labor-rights-2026",
+      state: "Multiple",
+      title: "Worker & labor rights",
+      summary: "Right-to-work repeals, public-sector bargaining rights, and gig-worker protections are live fights.",
+      yesMeans: "Workers keep the right to organize.",
+      noMeans: "Bosses get a freer hand to crush unions.",
+      backedBy: "AFL-CIO, SEIU, Teamsters",
+      opposedBy: "Corporate business coalitions"
+    }
+  ];
+})();
+
+;
+
+/* ===== core/17-nuke-strip.js ===== */
+/* core/17-nuke-strip.js  |  PF v1.4.3 | GLOBAL NUKE STRIP.
+   The Media Nuke's sticky action bar, extracted 2026-10-03 (homepage
+   consolidation: games/media-nuke.js deleted, its main progress block folded
+   into the Do Meter's network blast meter).
+   Injects site-wide on every page: fixed-bottom strip with the live blast
+   meter (50,000 XP/day goal), your daily charge, cell pulse, and the
+   RUN MISSION + RALLY CELL actions. Same style as the old sticky nuke bar.
+   Self-contained: own xp_today sync (?action=xp_today), own event-sourced
+   daily-XP counter (pf_nuke_local_v2 — the ONLY writer, so a task can never
+   charge the blast twice), own once-per-day milestone pings (shared
+   pf_nuke_miles_v1 keys with the Do Meter's folded meter, so celebrations
+   never double-fire).
+   Exposes window.pfNukeStrip.state() and dispatches "pf-nuke-update" for the
+   Do Meter's folded nuke meter.
+   KILL: ?pf_off=17-nuke-strip  or  localStorage pf_disabled_v1='["17-nuke-strip"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("17-nuke-strip")) { return; }
+
+  /* ---------- styles (same as the old sticky nuke bar) ---------- */
+  (function injectCss(){
+    if(document.getElementById("pf-nuke-strip-css")) return;
+    var css=
+      "#pf-nuke-stick{position:fixed;left:0;right:0;bottom:0;z-index:9000;background:rgba(13,13,13,.97);border-top:2px solid #c1121f;color:#f5ead6;font-family:monospace;box-shadow:0 -4px 18px rgba(0,0,0,.5)}"
+      +"#pf-nuke-stick[hidden]{display:none!important}"
+      +"#pf-nuke-stick .pns-meter{height:6px;background:#2b2b2b}"
+      +"#pf-nuke-stick .pns-fill{height:100%;width:0;background:linear-gradient(90deg,#c1121f,#e8192f);transition:width .5s}"
+      +"#pf-nuke-stick .pns-fill.pulse{filter:brightness(1.7)}"
+      +"#pf-nuke-stick .pns-row{display:flex;align-items:center;gap:8px;padding:5px 10px}"
+      +"#pf-nuke-stick .pns-tap{flex:1;display:flex;gap:10px;align-items:center;background:none;border:0;color:#f5ead6;font:inherit;font-size:12px;text-align:left;cursor:pointer;padding:4px 0;min-width:0}"
+      +"#pf-nuke-stick .pns-pct{font-weight:700;color:#ff4d5e;white-space:nowrap}"
+      +"#pf-nuke-stick .pns-you{color:#f5ead6;white-space:nowrap}"
+      +"#pf-nuke-stick .pns-cell{color:#c9bfa8;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}"
+      +"#pf-nuke-stick .pns-x{background:none;border:0;color:#c9bfa8;font-size:18px;line-height:1;cursor:pointer;padding:4px 6px}"
+      +"#pf-nuke-stick .pns-act{background:#c1121f;color:#fff;border:0;font:700 12px monospace;letter-spacing:1px;padding:9px 10px;cursor:pointer;white-space:nowrap;flex:1}"
+      +"#pf-nuke-stick .pns-act.rally{background:transparent;border:1px solid #c1121f;color:#f5ead6}"
+      +"#pf-nuke-stick.flash{animation:pnsflash .6s}"
+      +"@keyframes pnsflash{0%,100%{border-top-color:#c1121f}50%{border-top-color:#ffcc00;box-shadow:0 -4px 26px rgba(255,204,0,.35)}}"
+      +"@media (prefers-reduced-motion:reduce){#pf-nuke-stick .pns-fill{transition:none}#pf-nuke-stick .pns-fill.pulse{filter:none}#pf-nuke-stick.flash{animation:none}}";
+    try{
+      var s=document.createElement("style"); s.id="pf-nuke-strip-css";
+      s.textContent=css; document.head.appendChild(s);
+    }catch(e){}
+  })();
+
+  var BACKEND_URL = window.PF_BACKEND_URL || "https://pf-api.mtcstw.workers.dev";
+  var GOAL = 50000;
+
+  var STICK_HTML='<div id="pf-nuke-stick" hidden>'+
+  '<div class="pns-meter"><div class="pns-fill" id="pnsFill"></div></div>'+
+  '<div class="pns-row"><button class="pns-tap" id="pnsTap"><span class="pns-pct" id="pnsPct">NUKE --%</span>'+
+  '<span class="pns-you" id="pnsYou"></span><span class="pns-cell" id="pnsCell"></span></button>'+
+  '<button class="pns-x" id="pnsX" aria-label="Hide nuke bar">\u00d7</button></div>'+
+  '<div class="pns-row"><button class="pns-act" id="pnsMission">RUN MISSION</button>'+
+  '<button class="pns-act rally" id="pnsRally">RALLY CELL</button></div></div>';
+
+  var stickXp=0, stickPct=0, stickComrades=0, stickMode="local";
+  var stickReady=false, stickCell=null, stickCellTried=false;
+  var _lastStickXp=0, _stickFloatAt=0;
+
+  function ready(fn){
+    if(document.readyState==="complete"||document.readyState==="interactive"){ fn(); }
+    else{ document.addEventListener("DOMContentLoaded",fn); }
+  }
+  function fmt(n){ return String(Math.floor(n)).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
+  function chiDay(){ try{ return new Date().toLocaleDateString("en-CA",{timeZone:"America/Chicago"}); }catch(e){ return nukeDay(); } }
+
+  /* ---------- event-sourced daily XP counter (single writer) ----------
+     Increments exactly once per dispatched game event, resets at midnight.
+     Charge values mirror the XP table in core/05-tally.js so the local
+     fallback bar matches the backend's xp_today scale. null = take XP from
+     event.detail.xp. */
+  var NUKE_LS="pf_nuke_local_v2";
+  var NUKE_PTS={"pf-order-checkin":10,"pf-bracket-ballot":5,"pf-bracket-liquidated":10,
+   "pf-vote-cast":5,"pf-quiz-done":5,"pf-guess-done":10,"pf-raid-report":15,
+   "pf-traitor-vote":5,"pf-caption-submit":10,"pf-poster-made":10,
+   "pf-drop-claimed":15,"pf-enlisted":10,"pf-wb-buy":25,"pf-billionaire-answered":5,
+   "pf-interrogation-answered":5,"pf-share-image":5,"pf-creator-xp":null};
+  function nukeDay(){ return new Date().toISOString().slice(0,10); }
+  function nukeLoad(){ try{ var s=JSON.parse(localStorage.getItem(NUKE_LS)||"null"); if(s&&s.d) return s; }catch(e){} return {d:nukeDay(),xp:0}; }
+  function nukeSave(s){ try{ localStorage.setItem(NUKE_LS,JSON.stringify(s)); }catch(e){} }
+  function nukeAdd(n){ var s=nukeLoad(), t=nukeDay(); if(s.d!==t) s={d:t,xp:0}; s.xp+=n; nukeSave(s); }
+  function localXpToday(){ var s=nukeLoad(); if(s.d!==nukeDay()) return 0; return s.xp; }
+
+  /* Once-per-day milestone flags, persisted across reloads so a refresh never
+     re-fires a celebration. Keys shared with the Do Meter's folded nuke meter. */
+  function mileHit(key){
+    var day=nukeDay(), rec=null;
+    try{ rec=JSON.parse(localStorage.getItem("pf_nuke_miles_v1")||"null"); }catch(e){}
+    if(rec&&rec.d===day&&rec[key]) return false;
+    var next={d:day};
+    if(rec&&rec.d===day){ next.m25=rec.m25; next.m60=rec.m60; next.m100=rec.m100; }
+    next[key]=1;
+    try{ localStorage.setItem("pf_nuke_miles_v1",JSON.stringify(next)); }catch(e){}
+    return true;
+  }
+
+  /* Deduplicate identical events: ignore a repeat of the exact same event
+     (type + detail) within 5 seconds — one action = one charge. */
+  var _nukeSeen={};
+  Object.keys(NUKE_PTS).forEach(function(ev){
+    try{ document.addEventListener(ev,function(e){
+      var pts=NUKE_PTS[ev], d=(e&&e.detail)||{};
+      if(pts===null){ pts=(typeof d.xp==="number"&&isFinite(d.xp))?Math.max(0,Math.round(d.xp)):0; }
+      if(pts>0){
+        var key=ev+"|"+JSON.stringify(d), now=Date.now();
+        if(_nukeSeen[key]&&now-_nukeSeen[key]<5000){ setTimeout(function(){ tick(); broadcast(); },300); return; }
+        _nukeSeen[key]=now;
+        nukeAdd(pts);
+      }
+      setTimeout(function(){ tick(); broadcast(); },300);
+    }); }catch(err){}
+  });
+
+  /* ---------- state for consumers (Do Meter's folded meter) ---------- */
+  function broadcast(){
+    try{ document.dispatchEvent(new CustomEvent("pf-nuke-update",{detail:{xp:stickXp,comrades:stickComrades,mode:stickMode,goal:GOAL}})); }catch(e){}
+  }
+  window.pfNukeStrip={
+    state:function(){ return {xp:stickXp,comrades:stickComrades,mode:stickMode,goal:GOAL}; },
+    youToday:localXpToday
+  };
+
+  /* ---------- network sync ---------- */
+  /* GAP AUDIT v2 P1 (2026-10-03): longer backoff on a dead backend. The 60s
+     poll already skips hidden tabs (PF.hidden()); consecutive network
+     failures now also stretch the interval — 3+ fails poll every 2nd tick,
+     6+ fails every 3rd tick. First success resets to 60s. */
+  var _syncFails=0, _tickN=0;
+  function noteSync(ok){ _syncFails=ok?0:Math.min(_syncFails+1,99); }
+  function onSync(xp,comrades,mode){
+    stickXp=xp; stickComrades=comrades; stickMode=mode;
+    var pct=Math.min(100,(xp/GOAL)*100);
+    stickGrowth(xp);
+    updateStick(xp,pct);
+    /* Milestones — dopamine via shared PF.dope, each once per day. */
+    try{
+      var dope=(window.PF&&PF.dope)?PF.dope:null;
+      if(mode==="network"&&dope){
+        var host=barHost();
+        if(pct>=25&&mileHit("m25")){ dope.ping(host,"CHARGING \u2014 QUARTER TO DETONATION"); stickFlash(); }
+        if(pct>=60&&mileHit("m60")){ dope.ping(host,"CRITICAL MASS \u2014 60% CHARGED"); stickFlash(); }
+        if(pct>=100&&mileHit("m100")){ dope.confetti(host,60); dope.ping(host,"\u2622 MEDIA NUKE ARMED \u2014 command is issuing the target"); stickFlash(); }
+      }
+    }catch(e){}
+    broadcast();
+  }
+  function barHost(){ var b=document.getElementById("pf-nuke-stick"); return (b&&!b.hidden)?b:document.body; }
+  function tick(){
+    _tickN++;
+    if(_syncFails>=6&&(_tickN%3!==0)) return;
+    if(_syncFails>=3&&(_tickN%2!==0)) return;
+    if(BACKEND_URL){
+      var cb="pfNukeStripCb"+Date.now()+Math.floor(Math.random()*1e6);
+      window[cb]=function(d){
+        try{ delete window[cb]; }catch(e){}
+        var sc=document.getElementById(cb); if(sc&&sc.parentNode) sc.parentNode.removeChild(sc);
+        if(d&&d.ok){ noteSync(true); onSync(Number(d.xp_today)||0,Number(d.comrades)||0,"network"); }
+        else{ noteSync(false); onSync(localXpToday(),0,"local"); }
+      };
+      var sc=document.createElement("script"); sc.id=cb;
+      sc.src=BACKEND_URL+"?action=xp_today&callback="+cb;
+      /* 12s backstop — a hung request must not freeze the bar or leak window[cb]. */
+      var hung=setTimeout(function(){ if(window[cb]){ try{delete window[cb];}catch(e){} if(sc.parentNode) sc.parentNode.removeChild(sc); noteSync(false); onSync(localXpToday(),0,"local"); } },12000);
+      sc.onerror=function(){ try{clearTimeout(hung);}catch(e){} try{delete window[cb];}catch(e){} if(sc.parentNode) sc.parentNode.removeChild(sc); noteSync(false); onSync(localXpToday(),0,"local"); };
+      document.head.appendChild(sc);
+    }else{
+      onSync(localXpToday(),0,"local");
+    }
+  }
+  /* Bar pulse + floating charge delta whenever the bar grows. Pure
+     presentation; the XP accounting is untouched. */
+  function stickGrowth(xp){
+    try{
+      var dope=(window.PF&&PF.dope)?PF.dope:null, nowT=Date.now();
+      var fill=document.getElementById("pnsFill");
+      if(fill&&xp>_lastStickXp){
+        fill.classList.remove("pulse"); void fill.offsetWidth; fill.classList.add("pulse");
+        if(dope&&_lastStickXp>0&&nowT-_stickFloatAt>2500){
+          _stickFloatAt=nowT;
+          dope.xpFloat(barHost(),"+"+fmt(xp-_lastStickXp)+" XP");
+        }
+      }
+      _lastStickXp=xp;
+    }catch(e){}
+  }
+  function stickFlash(){
+    try{
+      var bar=document.getElementById("pf-nuke-stick"); if(!bar||bar.hidden) return;
+      bar.classList.remove("flash"); void bar.offsetWidth; bar.classList.add("flash");
+      setTimeout(function(){ try{ bar.classList.remove("flash"); }catch(e){} },700);
+    }catch(e){}
+  }
+
+  /* ---------- stick actions ---------- */
+  /* Mission button state, read live from Daily Orders local state. */
+  function missionState(){
+    var done=0, op=false;
+    try{
+      var o=JSON.parse(localStorage.getItem("pf_orders_v1")||"null");
+      var rec=o&&o.days&&o.days[chiDay()];
+      if(rec&&rec.done){
+        rec.done.forEach(function(x){ if(x&&x.m==="field-op") op=true; else done++; });
+        if(rec.opDone) op=true;
+      }
+    }catch(e){}
+    return {left:Math.max(0,3-done), op:op};
+  }
+  function scrollToId(id){
+    try{ var el=document.getElementById(id); if(el&&el.scrollIntoView) el.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){}
+  }
+  /* This device's cell (invite code + member count), one JSONP per session.
+     2026-10-03 fix (CELL undefined/5): the backend's pubCell() returns
+     `members` as a NUMBER (mems.length), not an array — so the old
+     `(j.cell.members||[]).length` read `.length` off a number and produced
+     undefined (then cached the bad shape in pf_nuke_cell_v1, so it survived
+     reloads). normCellMembers accepts both shapes; cached rows from older
+     writes are normalized too. */
+  function normCellMembers(m){
+    if(Array.isArray(m)) return m.length;
+    if(typeof m==="number"&&isFinite(m)) return Math.max(0,Math.floor(m));
+    return 0;
+  }
+  function normCachedCell(c){
+    if(!c||typeof c!=="object") return null;
+    if(typeof c.members!=="number"||!isFinite(c.members)) c.members=0;
+    if(!c.name) c.name="YOUR CELL";
+    return c;
+  }
+  function cellInfo(cb){
+    if(stickCellTried){ cb(stickCell); return; }
+    var cs="", dev="";
+    try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){}
+    try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){}
+    /* No callsign yet (not claimed / identity not loaded): do NOT latch —
+       retry on the next tick so the cell name appears once it arrives. */
+    if(!cs||!BACKEND_URL){ cb(null); return; }
+    try{
+      var cached=JSON.parse(localStorage.getItem("pf_nuke_cell_v1")||"null");
+      if(cached&&cached.t&&Date.now()-cached.t<600000&&cached.cs===cs){ stickCellTried=true; stickCell=normCachedCell(cached.cell); cb(stickCell); return; }
+    }catch(e){}
+    var fn="pfNukeCellCb"+Date.now();
+    window[fn]=function(j){
+      try{ delete window[fn]; }catch(e){}
+      var sc=document.getElementById(fn); if(sc&&sc.parentNode) sc.parentNode.removeChild(sc);
+      stickCellTried=true;
+      if(j&&j.in_cell&&j.cell){
+        stickCell={name:j.cell.name||"YOUR CELL",code:j.cell.invite_code||"",members:normCellMembers(j.cell.members)};
+        try{ localStorage.setItem("pf_nuke_cell_v1",JSON.stringify({t:Date.now(),cs:cs,cell:stickCell})); }catch(e){}
+      } else stickCell=null;
+      cb(stickCell);
+    };
+    var sc=document.createElement("script"); sc.id=fn;
+    /* cell_mine is auth-gated — attach the auth secret when present. */
+    var src=BACKEND_URL+"?action=cell_mine&callsign="+encodeURIComponent(cs)+"&device="+encodeURIComponent(dev);
+    try{ var sec=(window.PF&&window.PF.getAuthSecret)?window.PF.getAuthSecret():""; if(sec) src+="&auth_secret="+encodeURIComponent(sec); }catch(e){}
+    sc.src=src+"&callback="+fn;
+    /* 12s backstop — a hung request must not leave rally taps silently dead. */
+    var hung2=setTimeout(function(){ if(window[fn]){ try{delete window[fn];}catch(e){} var sc2=document.getElementById(fn); if(sc2&&sc2.parentNode) sc2.parentNode.removeChild(sc2); stickCellTried=true; cb(null); } },12000);
+    sc.onerror=function(){ try{clearTimeout(hung2);}catch(e){} try{delete window[fn];}catch(e){} if(sc.parentNode) sc.parentNode.removeChild(sc); stickCellTried=true; cb(null); };
+    document.head.appendChild(sc);
+  }
+  /* Rally / spread share card: live nuke % + cell invite, JOIN THE FIGHT CTA.
+     Sharing fires pf-share-image (+5 XP) — the share itself charges the blast. */
+  function mintNukeCard(cell){
+    try{
+      if(!window.PFShare) return null;
+      var lines=["Nuke at "+Math.floor(stickPct)+"% \u2014 "+fmt(stickXp)+" / 50,000 XP today."];
+      if(cell&&cell.code) lines.push("Rally with "+cell.name+" \u2014 invite code "+cell.code+".");
+      else lines.push("Run missions. Charge the blast. Own the news cycle.");
+      PFShare.REG["nuke-rally"]={
+        title:"\u2622 MEDIA NUKE \u2622",
+        tag:"The network is charging the blast",
+        lines:lines,
+        cta:"JOIN THE FIGHT."
+      };
+      return PFShare.poster("nuke-rally");
+    }catch(e){ return null; }
+  }
+  function rallyTap(){
+    cellInfo(function(cell){
+      if(cell&&cell.code){
+        var cv=mintNukeCard(cell);
+        if(cv&&window.PFShare){ PFShare.shareImage(cv,"nuke-rally.png","Media Nuke \u2014 rally "+cell.name,"media-nuke"); return; }
+      }
+      scrollToId("pf-cells");
+    });
+  }
+  function spreadTap(){
+    var cv=mintNukeCard(null);
+    if(cv&&window.PFShare) PFShare.shareImage(cv,"nuke-charge.png","Media Nuke \u2014 charge the blast","media-nuke");
+    else scrollToId("pf-orders");
+  }
+  function missionTap(){
+    var ms=missionState();
+    if(ms.left>0||!ms.op) scrollToId("pf-orders");
+    else spreadTap();
+  }
+
+  /* ---------- stick build + visibility ---------- */
+  function buildStick(){
+    var existing=document.getElementById("pf-nuke-stick");
+    if(existing) return existing;
+    try{ if(sessionStorage.getItem("pf_nuke_stick_hide")) return null; }catch(e){}
+    try{ document.body.insertAdjacentHTML("beforeend",STICK_HTML); }catch(e){ return null; }
+    var bar=document.getElementById("pf-nuke-stick"); if(!bar) return null;
+    document.getElementById("pnsX").addEventListener("click",function(){
+      bar.hidden=true; try{ sessionStorage.setItem("pf_nuke_stick_hide","1"); }catch(e){}
+    });
+    document.getElementById("pnsTap").addEventListener("click",function(){ scrollToId("slr-nuke"); });
+    document.getElementById("pnsMission").addEventListener("click",missionTap);
+    document.getElementById("pnsRally").addEventListener("click",rallyTap);
+    return bar;
+  }
+  function showBar(bar,show){
+    var hide=false;
+    try{ hide=!!sessionStorage.getItem("pf_nuke_stick_hide"); }catch(e){}
+    bar.hidden=hide||!show;
+  }
+  /* On pages with the Do Meter's nuke meter, the strip appears once the meter
+     scrolls out of view (the old behavior). Everywhere else it shows as pure
+     global chrome after a short delay. */
+  function observeAnchor(anchor,bar){
+    try{
+      var io=new IntersectionObserver(function(es){
+        es.forEach(function(e){ if(stickReady) showBar(bar,!e.isIntersecting); });
+      },{threshold:0.02});
+      io.observe(anchor);
+    }catch(e){
+      var onScroll=function(){
+        try{ var r=anchor.getBoundingClientRect(); if(stickReady) showBar(bar,(r.bottom<0||r.top>window.innerHeight)); }catch(err){}
+      };
+      try{ window.addEventListener("scroll",onScroll,{passive:true}); }catch(err){}
+      onScroll();
+    }
+  }
+  function updateStick(xp,pct){
+    stickXp=xp; stickPct=pct; stickReady=true;
+    var bar=document.getElementById("pf-nuke-stick"); if(!bar) return;
+    var fill=document.getElementById("pnsFill"); if(fill) fill.style.width=Math.min(100,pct)+"%";
+    var p=document.getElementById("pnsPct"); if(p) p.textContent="NUKE "+Math.floor(Math.min(100,pct))+"%";
+    var y=document.getElementById("pnsYou"); if(y) y.textContent="YOU "+fmt(localXpToday())+" XP TODAY";
+    var ms=missionState(), mb=document.getElementById("pnsMission");
+    if(mb){
+      if(ms.left>0) mb.textContent="RUN MISSION ("+ms.left+" LEFT)";
+      else if(!ms.op) mb.textContent="FIELD OP OPEN";
+      else mb.textContent="SPREAD THE WORD";
+    }
+    var rb=document.getElementById("pnsRally"), c=document.getElementById("pnsCell");
+    /* The callback fires asynchronously when the cell JSONP resolves, so the
+       ticker re-renders on cell data arrival (and on the 60s tick while the
+       callsign is still missing). "CELL NO CELL" is the explicit fallback
+       when there is no cell / data hasn't loaded yet. */
+    cellInfo(function(cell){
+      if(!document.body.contains(bar)) return;
+      if(cell){
+        if(c){ c.textContent="CELL "+cell.members+"/5"; c.style.display=""; }
+        if(rb) rb.textContent="RALLY "+String(cell.name||"CELL").toUpperCase().slice(0,14);
+      }else{
+        if(c){ c.textContent="CELL NO CELL"; c.style.display=""; }
+        if(rb) rb.textContent="BUILD YOUR CELL";
+      }
+    });
+    /* Visibility re-check: the observer's first fire can precede backend data
+       (stickReady false), leaving the bar hidden while the meter is out of view.
+       Re-evaluate now that data is in. */
+    try{
+      var anchor=document.getElementById("slr-nuke");
+      if(anchor&&document.body.contains(anchor)){
+        var r=anchor.getBoundingClientRect();
+        showBar(bar,(r.bottom<0||r.top>window.innerHeight));
+      }
+    }catch(e){}
+  }
+
+  /* ---------- boot ---------- */
+  function init(){
+    var bar=buildStick();
+    if(bar){
+      var tries=0;
+      (function findAnchor(){
+        tries++;
+        var anchor=document.getElementById("slr-nuke");
+        if(anchor){ observeAnchor(anchor,bar); return; }
+        if(tries<8){ setTimeout(findAnchor,1000); return; }
+        /* No nuke meter on this page: pure global chrome. */
+        setTimeout(function(){ showBar(bar,true); },800);
+      })();
+    }
+    tick();
+    setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} tick(); },60000);
+  }
+  ready(function(){
+    try{ init(); }catch(e){/* no-op: never break the page */}
+  });
+})();
+
+;
+
+/* ===== core/16-footer.js ===== */
+/* core/16-footer.js  |  PF v1.4.3 | FOOTER DATA-RIGHTS LINK.
+   Injects a "DELETE MY DATA" link into the site's footer element on every
+   page. Click opens a confirmation dialog; confirm calls the backend
+   privacy_erase endpoint for the full scope (callsign + device), wipes all
+   site localStorage keys, then shows a success state.
+   Works for logged-out visitors too (device-only erase).
+   LAYERING: core-level UI injection, same pattern as the storage notice in
+   core/03-global.js. No page dependency — runs on every page.
+   KILL: ?pf_off=16-footer */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('16-footer')) { return; }
+  var BACKEND = window.PF_BACKEND_URL;
+
+  function ident() {
+    var cs = '', dev = '';
+    try { cs = window.PFCallsign ? window.PFCallsign() : ''; } catch (e) {}
+    try { dev = window.PFDeviceId ? window.PFDeviceId() : ''; } catch (e) {}
+    return { callsign: cs, device: dev };
+  }
+  function toast(m) {
+    try { if (PF.toast) { PF.toast(m); return; } } catch (e) {}
+    try {
+      var t = document.createElement('div'); t.textContent = m;
+      t.style.cssText = 'position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999';
+      document.body.appendChild(t); setTimeout(function () { try { t.remove(); } catch (e2) {} }, 2800);
+    } catch (e3) {}
+  }
+  function post(body, cb) {
+    if (PF.authPost && BACKEND) { PF.authPost(BACKEND, body, cb); return; }
+    /* Fallback: plain CORS POST (no auth self-heal). */
+    try {
+      fetch(BACKEND, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (j) { cb(j || { ok: false, err: 'Network error.' }); })
+        .catch(function () { cb(null); });
+    } catch (e) { cb(null); }
+  }
+
+  /* ---- footer injection ---- */
+  /* Store/product/privacy/terms pages render footers late and/or under
+     different markup (Squarespace commerce + system pages), so the selector
+     list is deliberately broad. */
+  var FOOTER_SEL_ARR = [
+    'footer',
+    '.Footer',
+    '#footer',
+    '#footer-sections',
+    '.Footer-inner',
+    '.Footer-blocks',
+    '.Footer-nav',
+    '[role="contentinfo"]',
+    '.site-footer',
+    '#site-footer',
+    '.footer-inner',
+    'section[class*="footer"]',
+    'section[class*="Footer"]',
+    'div[class*="Footer"]',
+    '[data-section-id*="footer" i]',
+    'section[data-section-theme] footer',
+    'section[data-section-theme][class*="footer" i]',
+    'div[data-section-theme][class*="footer" i]'
+  ];
+  /* One bad selector in a comma list makes querySelectorAll throw and kills
+     the whole lookup, so validate each selector once and keep only the
+     ones this browser accepts (guards against Selectors-4 `i`-flag or
+     quirks in older engines). */
+  var FOOTER_SELS = FOOTER_SEL_ARR.filter(function (sel) {
+    try { document.querySelectorAll(sel); return true; } catch (e) { return false; }
+  }).join(', ');
+  function findFooter() {
+    var footers;
+    try { footers = document.querySelectorAll(FOOTER_SELS); } catch (e) { return null; }
+    if (footers && footers.length) return footers[0];
+    return null;
+  }
+  /* DEFECT 1b (2026-10-04): the crossnav strip (19-crossnav, same bundle)
+     prepends its own <nav class="pf-xn-nav"> as the footer's first child. A
+     plain footer.querySelector('nav, ...') would match it first, dropping
+     the DELETE MY DATA link into the "THE FRONT LINES" page-nav instead of
+     next to the site's own footer links — on /store the late commerce
+     footer re-render makes that the common outcome. The data-rights link
+     must never live inside our injected strip, so skip any nav under
+     #pf-crossnav here. */
+  function footerNav(footer) {
+    var navs = null;
+    try { navs = footer.querySelectorAll('nav, .footer-nav, .Footer-nav, [class*="nav"]'); } catch (e) { return null; }
+    for (var i = 0; i < navs.length; i++) {
+      var p = navs[i], inside = false;
+      try {
+        while (p && p !== footer) {
+          if (p.id === 'pf-crossnav') { inside = true; break; }
+          p = p.parentNode;
+        }
+      } catch (e2) {}
+      if (!inside) return navs[i];
+    }
+    return null;
+  }
+  var LINK_STYLE = 'color:#c1121f;font-weight:900;letter-spacing:0.12em;font-size:11px;text-decoration:underline;cursor:pointer;margin-left:14px;white-space:nowrap;';
+  function makeLink() {
+    var a = document.createElement('a');
+    a.id = 'pf-delete-data-link';
+    a.href = '#';
+    a.textContent = 'DELETE MY DATA';
+    a.setAttribute('aria-label', 'Delete my data');
+    a.style.cssText = LINK_STYLE;
+    a.addEventListener('click', function (e) { e.preventDefault(); openDialog(); });
+    return a;
+  }
+  function injectLink() {
+    if (done()) return;
+    var footer = findFooter();
+    if (!footer) return;
+    var a = makeLink();
+    /* Append at the end of the footer content, next to the other footer links. */
+    var nav = footerNav(footer);
+    if (nav) nav.appendChild(a); else footer.appendChild(a);
+  }
+
+  /* ---- confirmation dialog ---- */
+  var dialogOpen = false;
+  function openDialog() {
+    if (dialogOpen) return;
+    dialogOpen = true;
+    var id = ident();
+    var ov = document.createElement('div');
+    ov.id = 'pf-delete-data-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,0.82);display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;';
+    var box = document.createElement('div');
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-modal', 'true');
+    box.style.cssText = 'background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;max-width:520px;width:100%;padding:28px;font-family:"Helvetica Neue",Arial,sans-serif;line-height:1.6;box-sizing:border-box;';
+    box.innerHTML =
+      '<div style="color:#c1121f;font-weight:900;letter-spacing:0.1em;font-size:15px;margin-bottom:12px;">BURN YOUR RECORD</div>' +
+      '<p style="font-size:13px;margin:0 0 12px;">This wipes <b>everything</b> the Propaganda Factory holds on you' +
+      (id.callsign ? ' under callsign <b>' + esc(id.callsign) + '</b>' : ' on this browser') +
+      ': your XP, streaks, medals, votes, cells, referrals, contact info' +
+      (id.callsign ? ', and the callsign itself' : '') +
+      '. Your real-money War Bond purchases stay in our books (the law makes us keep those) but your name comes off them.</p>' +
+      '<p style="font-size:13px;margin:0 0 18px;color:#b8ab8e;">This cannot be undone. There is no appeal, no undelete, no "oops".</p>' +
+      '<div style="display:flex;gap:12px;flex-wrap:wrap;">' +
+      '<button id="pfDeleteConfirm" style="background:#c1121f;color:#fff;border:none;font-weight:900;letter-spacing:0.1em;font-size:12px;padding:12px 20px;cursor:pointer;font-family:inherit;">YES, ERASE IT ALL</button>' +
+      '<button id="pfDeleteCancel" style="background:transparent;color:#f5f0e1;border:2px solid #f5f0e1;font-weight:900;letter-spacing:0.1em;font-size:12px;padding:10px 18px;cursor:pointer;font-family:inherit;">CANCEL</button>' +
+      '</div>' +
+      '<div id="pfDeleteMsg" style="font-size:12px;margin-top:12px;min-height:18px;"></div>';
+    ov.appendChild(box);
+    document.body.appendChild(ov);
+    function close() {
+      try { ov.parentNode.removeChild(ov); } catch (e) {}
+      dialogOpen = false;
+    }
+    function dmsg(t) { var m = document.getElementById('pfDeleteMsg'); if (m) m.textContent = t; }
+    document.getElementById('pfDeleteCancel').addEventListener('click', close);
+    ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
+    document.getElementById('pfDeleteConfirm').addEventListener('click', function () {
+      var btn = document.getElementById('pfDeleteConfirm');
+      btn.disabled = true;
+      btn.textContent = 'BURNING\u2026';
+      dmsg('');
+      var body = { type: 'privacy', p_action: 'privacy_erase', callsign: id.callsign, device: id.device, scope: 'full' };
+      post(body, function (j) {
+        if (!(j && j.ok)) {
+          btn.disabled = false;
+          btn.textContent = 'RETRY';
+          dmsg('Erase failed: ' + PF.errCopy(j, 'no reply from Command.') + ' Your data is untouched — try again.');
+          return;
+        }
+        /* Server-side done. Now wipe every site key in this browser so the
+           UI stops presenting as the deleted identity. */
+        wipeLocal();
+        box.innerHTML =
+          '<div style="color:#c1121f;font-weight:900;letter-spacing:0.1em;font-size:15px;margin-bottom:12px;">RECORD BURNED</div>' +
+          '<p style="font-size:13px;margin:0;">' + esc((j && j.note) || 'All your data has been erased. Gone like it was never here.') + '</p>' +
+          '<p style="font-size:12px;margin:12px 0 0;color:#b8ab8e;">This page will reload in a few seconds.</p>';
+        toast('Data erased.');
+        setTimeout(function () { try { location.reload(); } catch (e) {} }, 3000);
+      });
+    });
+  }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function wipeLocal() {
+    try {
+      var gone = [];
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k && k.indexOf('pf_') === 0) gone.push(k);
+      }
+      gone.forEach(function (k) { try { localStorage.removeItem(k); } catch (e) {} });
+    } catch (e) {}
+    try {
+      localStorage.removeItem('pf_identity_v1');
+      localStorage.removeItem('pf_auth_secret');
+      localStorage.removeItem('pf_device_v1');
+    } catch (e2) {}
+    /* GAP AUDIT v2 (2026-10-03): the footer wipe used to skip sessionStorage
+       while the YOUR DATA panel's wipeLocalAll() swept it — the "identical
+       wipe" claim was inexact. Now both paths clear pf_* session keys too. */
+    try {
+      var sgone = [];
+      for (var j = 0; j < sessionStorage.length; j++) {
+        var sk = sessionStorage.key(j);
+        if (sk && sk.indexOf('pf_') === 0) sgone.push(sk);
+      }
+      sgone.forEach(function (k) { try { sessionStorage.removeItem(k); } catch (e3) {} });
+    } catch (e4) {}
+  }
+
+  /* ---- boot: inject now, keep trying, watch the DOM, never be absent ----
+     Squarespace lazy-renders footers (commerce + system pages render them
+     last and sometimes very late), so:
+       1. try immediately,
+       2. poll every 500ms for up to 60s (120 tries),
+       3. watch document.body with a MutationObserver for footer nodes added
+          later (also moves the last-resort link INTO a footer if one lands),
+       4. after the poll window, if no footer ever appeared, drop the link
+          in a fixed bottom-corner position so the control is never missing.
+     All paths converge on injectLink()/placeFixed(): a single link element
+     (id pf-delete-data-link) is created once and moved, never duplicated. */
+  function boot() {
+    injectLink();
+    var tries = 0;
+    var iv = setInterval(function () {
+      tries++;
+      injectLink();
+      if (done() || tries >= 120) {
+        clearInterval(iv);
+        if (!done()) placeFixed();
+      }
+    }, 500);
+    /* MutationObserver: catch footers added after the poll (SPA navigations,
+       lazy commerce footers, deferred system-page chrome). */
+    var obs = null;
+    try {
+      obs = new MutationObserver(function () {
+        /* If the fixed fallback is on screen and a real footer lands, move
+           the link into the footer. Otherwise just retry the injection. */
+        var f = findFooter();
+        if (f && f.id !== 'pf-delete-fixed') {
+          var link = document.getElementById('pf-delete-data-link');
+          if (link && link.parentNode && link.parentNode.id === 'pf-delete-fixed') {
+            moveIntoFooter(link, f);
+          } else {
+            injectLink();
+          }
+        } else if (!f) {
+          injectLink();
+        }
+      });
+      if (document.body) obs.observe(document.body, { childList: true, subtree: true });
+    } catch (e) {}
+  }
+  function done() {
+    return !!document.getElementById('pf-delete-data-link');
+  }
+  /* Last resort: fixed bottom-corner control, same look/behavior. */
+  function placeFixed() {
+    if (done()) return;
+    try {
+      var wrap = document.createElement('div');
+      wrap.id = 'pf-delete-fixed';
+      wrap.style.cssText = 'position:fixed;right:14px;bottom:14px;z-index:99998;background:#0a0a0a;border:1px solid #c1121f;padding:8px 10px;';
+      var a = makeLink();
+      wrap.appendChild(a);
+      document.body.appendChild(wrap);
+    } catch (e) {}
+  }
+  /* Move the fixed fallback link into a real footer when one appears. */
+  function moveIntoFooter(link, footer) {
+    try {
+      var wrap = document.getElementById('pf-delete-fixed');
+      var nav = footerNav(footer);
+      if (nav) nav.appendChild(link); else footer.appendChild(link);
+      link.style.cssText = LINK_STYLE;
+      if (wrap && wrap.parentNode) wrap.parentNode.removeChild(wrap);
+    } catch (e) {}
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+
+;
+
+/* ===== core/19-crossnav.js ===== */
+/* core/19-crossnav.js  |  PF v1.4.3 | CROSS-PAGE NAV WIRING (2026-10-03).
+   One shared component, shipped in BOTH footer-chrome paths:
+   - the V3 core bundles (core/bundle-core.js, core/bundle-core-slr.js —
+     built from this source file at release time)
+   - the slim chrome bundle (core/bundle-footer-chrome.js) for the v1.1.0
+     branch pages (/store, /privacy, /terms, any other non-v2 page)
+   What it does:
+   1. PERSISTENT CROSS-LINK STRIP: links to all 9 dedicated pages
+      (Arcade, Cells, Create, Bank, Economy, War Chest, Ventures, Events,
+      War Report) — prepended IN-FLOW into the site footer element, using
+      the proven broad selector list from 16-footer. In-flow by design:
+      zero collision with the fixed-bottom nuke strip / do-mini ticker /
+      RUN MISSION bar, and no new body-padding compensation needed.
+   2. PAGE-LEVEL ENGAGEMENT WIRING (V3 pages only, keyed on mount-div ids):
+      - #pf-v2 (homepage): 3-card DEPLOY CTA grid after the PROOF section
+      - #pf-cells-page: recruit prompt pointing at the cell card's RECRUIT
+        button (id #cRecruit, rendered by games/cells.js — this file only
+        scrolls to it, never touches it)
+      - #pf-bank <-> #pf-economy: mutual cross-link banners
+      - #pf-arcade: highlighted XP Casino entry card, scrolls to the
+        mounted casino section (section[data-game="casino"])
+   Double-run safe (window flag + element-id guards). No backend calls,
+   no dependency on any game bundle. Never runs inside the editor.
+   KILL: ?pf_off=19-crossnav  or  localStorage pf_disabled_v1='["19-crossnav"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('19-crossnav')) { return; }
+  if (window.pfCrossnavDone) { return; }
+  window.pfCrossnavDone = true;
+
+  function isEditor() {
+    try {
+      var h = window.location.href || '';
+      if (h.indexOf('/config/') !== -1) return true;
+      var b = document.body;
+      if (b && (b.classList.contains('sqs-edit-mode') || b.classList.contains('sqs-editing'))) return true;
+      return false;
+    } catch (e) { return false; }
+  }
+  if (isEditor()) { return; }
+
+  /* ---- shared stylesheet (single tag, hover + mobile rules) ---- */
+  function ensureCss() {
+    if (document.getElementById('pf-crossnav-css')) { return; }
+    var st = document.createElement('style');
+    st.id = 'pf-crossnav-css';
+    st.textContent =
+      '#pf-crossnav{border-top:3px solid #c1121f;border-bottom:3px solid #c1121f;background:#0a0a0a;' +
+      'padding:14px 10px 12px;margin:0 0 22px;text-align:center;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box}' +
+      '#pf-crossnav .pf-xn-kicker{color:#c1121f;font-weight:900;letter-spacing:.28em;font-size:10px;margin-bottom:10px}' +
+      '#pf-crossnav .pf-xn-nav{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}' +
+      '#pf-crossnav .pf-xn-nav a{color:#f5ead6;font-weight:700;font-size:11px;letter-spacing:.16em;text-decoration:none;' +
+      'border:1px solid #3d3d3d;padding:9px 12px;background:#141414;display:inline-block;box-sizing:border-box}' +
+      '#pf-crossnav .pf-xn-nav a:hover{border-color:#c1121f;color:#fff;background:#1d0b0b}' +
+      '.pf-xn-banner{border:2px solid #c1121f;background:#0d0d0d;color:#f5ead6;text-align:center;' +
+      'padding:16px 14px;margin:0 auto 20px;max-width:760px;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box;cursor:pointer}' +
+      '.pf-xn-banner .pf-xn-bt{font-family:\'Arial Black\',Arial,sans-serif;font-size:17px;letter-spacing:.12em;color:#ff4d5e;margin-bottom:6px}' +
+      '.pf-xn-banner .pf-xn-bs{font-size:13px;color:#c9bfa8;line-height:1.5}' +
+      '.pf-xn-banner .pf-xn-bl{display:inline-block;margin-top:10px;background:#c1121f;color:#fff;font-weight:900;' +
+      'font-size:12px;letter-spacing:.14em;padding:11px 22px;text-decoration:none}' +
+      '#pf-xn-deploy{margin:26px auto;max-width:880px;text-align:center;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box;padding:0 12px}' +
+      '#pf-xn-deploy .pf-xn-dk{color:#c1121f;font-weight:900;letter-spacing:.3em;font-size:11px;margin-bottom:8px}' +
+      '#pf-xn-deploy .pf-xn-dt{font-family:\'Arial Black\',Arial,sans-serif;font-size:26px;letter-spacing:.08em;color:#f5ead6;margin-bottom:6px}' +
+      '#pf-xn-deploy .pf-xn-ds{font-size:13px;color:#a89e88;margin-bottom:16px}' +
+      '#pf-xn-deploy .pf-xn-dg{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}' +
+      '#pf-xn-deploy .pf-xn-dc{border:2px solid #c1121f;background:#0d0d0d;padding:18px 14px;box-sizing:border-box}' +
+      '#pf-xn-deploy .pf-xn-dch{font-family:\'Arial Black\',Arial,sans-serif;font-size:16px;letter-spacing:.1em;color:#ff4d5e;margin-bottom:8px}' +
+      '#pf-xn-deploy .pf-xn-dcp{font-size:12.5px;color:#c9bfa8;line-height:1.55;margin-bottom:12px;min-height:58px}' +
+      '#pf-xn-deploy .pf-xn-dca{display:inline-block;background:#c1121f;color:#fff;font-weight:900;font-size:12px;' +
+      'letter-spacing:.14em;padding:11px 20px;text-decoration:none}' +
+      '#pf-xn-deploy .pf-xn-dcsub{display:block;margin-top:10px;font-size:11.5px;color:#c9bfa8;text-decoration:underline;letter-spacing:.06em}' +
+      '@media (max-width:640px){#pf-xn-deploy .pf-xn-dg{grid-template-columns:1fr}' +
+      '#pf-xn-deploy .pf-xn-dcp{min-height:0}' +
+      '#pf-crossnav .pf-xn-nav a{font-size:10px;padding:8px 9px;letter-spacing:.1em}}' +
+      '.pf-xn-pulse{animation:pfxnpulse 2.2s ease-in-out infinite}' +
+      '@keyframes pfxnpulse{0%,100%{box-shadow:0 0 0 0 rgba(193,18,31,.55)}50%{box-shadow:0 0 22px 4px rgba(193,18,31,.55)}}' +
+      '@media (prefers-reduced-motion:reduce){.pf-xn-pulse{animation:none}}';
+    try { document.head.appendChild(st); } catch (e) {}
+  }
+
+  function scrollToEl(el) {
+    try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    catch (e) { try { el.scrollIntoView(); } catch (e2) {} }
+  }
+
+  /* ============ 1. PERSISTENT FOOTER CROSS-LINK STRIP ============ */
+  var PAGES = [
+    ['ARCADE', '/arcade'],
+    ['CELLS', '/cells'],
+    ['CREATE', '/create'],
+    ['BANK', '/bank'],
+    ['ECONOMY', '/economy'],
+    ['WAR CHEST', '/war-chest'],
+    ['VENTURES', '/ventures'],
+    ['EVENTS', '/events'],
+    ['WAR REPORT', '/war-report']
+  ];
+
+  /* Proven footer selector list, copied from 16-footer (covers commerce +
+     system pages where Squarespace renders footers late / differently). */
+  var FOOTER_SEL_ARR = [
+    'footer',
+    '.Footer',
+    '#footer',
+    '#footer-sections',
+    '.Footer-inner',
+    '.Footer-blocks',
+    '.Footer-nav',
+    '[role="contentinfo"]',
+    '.site-footer',
+    '#site-footer',
+    '.footer-inner',
+    'section[class*="footer"]',
+    'section[class*="Footer"]',
+    'div[class*="Footer"]',
+    '[data-section-id*="footer" i]',
+    'section[data-section-theme] footer',
+    'section[data-section-theme][class*="footer" i]',
+    'div[data-section-theme][class*="footer" i]'
+  ];
+  var FOOTER_SELS = FOOTER_SEL_ARR.filter(function (sel) {
+    try { document.querySelectorAll(sel); return true; } catch (e) { return false; }
+  }).join(', ');
+
+  function findFooter() {
+    var fs;
+    try { fs = document.querySelectorAll(FOOTER_SELS); } catch (e) { return null; }
+    return (fs && fs.length) ? fs[0] : null;
+  }
+
+  function buildStrip() {
+    var d = document.createElement('div');
+    d.id = 'pf-crossnav';
+    var k = document.createElement('div');
+    k.className = 'pf-xn-kicker';
+    k.textContent = 'THE FRONT LINES \u2014 EVERY THEATER OF THE WAR';
+    var nav = document.createElement('nav');
+    nav.className = 'pf-xn-nav';
+    nav.setAttribute('aria-label', 'Propaganda Factory sections');
+    PAGES.forEach(function (p) {
+      var a = document.createElement('a');
+      a.href = p[1];
+      a.textContent = p[0];
+      nav.appendChild(a);
+    });
+    d.appendChild(k);
+    d.appendChild(nav);
+    return d;
+  }
+
+  function injectStrip() {
+    if (document.getElementById('pf-crossnav')) { return true; }
+    var f = findFooter();
+    if (!f) { return false; }
+    try { f.insertBefore(buildStrip(), f.firstChild); } catch (e) { return false; }
+    return true;
+  }
+
+  /* ============ 2. PAGE-LEVEL ENGAGEMENT WIRING ============ */
+  /* Insert el right after the page header when it exists; otherwise wait a
+     few beats (page-mount adds the header after the chrome loads), then
+     fall back to the top of the host. */
+  function placeAfterHead(hostId, el, state) {
+    if (document.getElementById(el.id)) { return true; }
+    var host = document.getElementById(hostId);
+    if (!host) { return false; }
+    var head = null;
+    try { head = host.querySelector(':scope > .pf-page-head'); } catch (e) {}
+    if (head) {
+      try {
+        if (head.nextSibling) host.insertBefore(el, head.nextSibling);
+        else host.appendChild(el);
+        return true;
+      } catch (e) { return false; }
+    }
+    state.tries = (state.tries || 0) + 1;
+    if (state.tries > 10) {
+      try { host.insertBefore(el, host.firstChild); return true; }
+      catch (e) { return false; }
+    }
+    return false; /* not yet — page header still coming */
+  }
+
+  function makeBanner(id, title, sub, ctaLabel, ctaHref, onTap) {
+    var d = document.createElement('div');
+    d.id = id;
+    d.className = 'pf-xn-banner';
+    var t = document.createElement('div');
+    t.className = 'pf-xn-bt';
+    t.textContent = title;
+    var s = document.createElement('div');
+    s.className = 'pf-xn-bs';
+    s.textContent = sub;
+    d.appendChild(t);
+    d.appendChild(s);
+    if (ctaLabel) {
+      var a = document.createElement('a');
+      a.className = 'pf-xn-bl';
+      a.textContent = ctaLabel;
+      if (ctaHref) { a.href = ctaHref; }
+      else { a.href = '#'; a.addEventListener('click', function (e) { e.preventDefault(); }); }
+      if (onTap) { a.addEventListener('click', function (e) { e.preventDefault(); onTap(); }); }
+      d.appendChild(a);
+    } else if (onTap) {
+      d.addEventListener('click', onTap);
+    }
+    return d;
+  }
+
+  function scrollToCasino() {
+    var sec = null;
+    try { sec = document.querySelector('section[data-game="casino"]'); } catch (e) {}
+    if (sec) { scrollToEl(sec); return; }
+    try { window.location.href = '/arcade'; } catch (e) {}
+  }
+
+  function scrollToRecruit() {
+    var btn = null;
+    try { btn = document.getElementById('cRecruit'); } catch (e) {}
+    if (btn) { scrollToEl(btn); return; }
+    var sec = null;
+    try { sec = document.querySelector('section[data-game="cells"]'); } catch (e) {}
+    if (sec) { scrollToEl(sec); }
+  }
+
+  var pageJobs = [
+    /* Homepage: prominent 3-card DEPLOY grid after the PROOF section. */
+    {
+      id: 'pf-xn-deploy', host: 'pf-v2', tries: 0,
+      build: function () {
+        var wrap = document.createElement('div');
+        wrap.id = 'pf-xn-deploy';
+        var k = document.createElement('div');
+        k.className = 'pf-xn-dk';
+        k.textContent = 'DEPLOY \u2014 PICK YOUR THEATER';
+        var t = document.createElement('div');
+        t.className = 'pf-xn-dt';
+        t.textContent = 'THE WAR DOESN\u2019T WIN ITSELF';
+        var s = document.createElement('div');
+        s.className = 'pf-xn-ds';
+        s.textContent = 'You scrolled this far. Now pick a weapon.';
+        var g = document.createElement('div');
+        g.className = 'pf-xn-dg';
+        var cards = [
+          {
+            h: 'FIGHT WITH A CELL',
+            p: 'No soldier fights alone. Join a cell, stack daily streaks, multiply your XP.',
+            a: 'JOIN A CELL', href: '/cells', sub: null
+          },
+          {
+            h: 'RUN THE WAR ECONOMY',
+            p: 'Your XP, weaponized. Bank it, grow it \u2014 then spend it like it matters.',
+            a: 'OPEN THE BANK', href: '/bank', sub: ['Spend it in the Economy \u2192', '/economy']
+          },
+          {
+            h: 'THE CASINO PAYS IN XP',
+            p: 'Nine games. Zero mercy. The house always loses to the movement.',
+            a: 'ENTER THE ARCADE', href: '/arcade', sub: null
+          }
+        ];
+        cards.forEach(function (c) {
+          var cd = document.createElement('div');
+          cd.className = 'pf-xn-dc';
+          var ch = document.createElement('div');
+          ch.className = 'pf-xn-dch';
+          ch.textContent = c.h;
+          var cp = document.createElement('div');
+          cp.className = 'pf-xn-dcp';
+          cp.textContent = c.p;
+          var ca = document.createElement('a');
+          ca.className = 'pf-xn-dca';
+          ca.href = c.href;
+          ca.textContent = c.a;
+          cd.appendChild(ch);
+          cd.appendChild(cp);
+          cd.appendChild(ca);
+          if (c.sub) {
+            var cs = document.createElement('a');
+            cs.className = 'pf-xn-dcsub';
+            cs.href = c.sub[1];
+            cs.textContent = c.sub[0];
+            cd.appendChild(cs);
+          }
+          g.appendChild(cd);
+        });
+        wrap.appendChild(k);
+        wrap.appendChild(t);
+        wrap.appendChild(s);
+        wrap.appendChild(g);
+        return wrap;
+      },
+      place: function (el) {
+        if (document.getElementById('pf-xn-deploy')) { return true; }
+        var anchor = null;
+        try { anchor = document.querySelector('#pf-v2 .pf-section-head[data-sec="proof"]'); } catch (e) {}
+        if (anchor && anchor.parentNode) {
+          try {
+            if (anchor.nextSibling) anchor.parentNode.insertBefore(el, anchor.nextSibling);
+            else anchor.parentNode.appendChild(el);
+            return true;
+          } catch (e) { return false; }
+        }
+        return false; /* homepage sections still building */
+      }
+    },
+    /* /cells: recruit prompt — points at the cell card's RECRUIT button. */
+    {
+      id: 'pf-xn-recruit', host: 'pf-cells-page', tries: 0,
+      build: function () {
+        return makeBanner(
+          'pf-xn-recruit',
+          'YOUR CELL GROWS WHEN YOU GROW IT',
+          'Hit RECRUIT on your cell card and put the poster on your socials. ' +
+          'Every recruit is +25 XP and one more fighter in the war.',
+          'FIND THE RECRUIT BUTTON', null, scrollToRecruit
+        );
+      },
+      place: function (el) { return placeAfterHead('pf-cells-page', el, this); }
+    },
+    /* /bank -> /economy cross-link. */
+    {
+      id: 'pf-xn-toeconomy', host: 'pf-bank', tries: 0,
+      build: function () {
+        return makeBanner(
+          'pf-xn-toeconomy',
+          'SPEND IT LIKE IT MATTERS',
+          'The People\u2019s Bank grows your XP. The Economy is where it becomes firepower.',
+          'ENTER THE ECONOMY', '/economy', null
+        );
+      },
+      place: function (el) { return placeAfterHead('pf-bank', el, this); }
+    },
+    /* /economy -> /bank cross-link. */
+    {
+      id: 'pf-xn-tobank', host: 'pf-economy', tries: 0,
+      build: function () {
+        return makeBanner(
+          'pf-xn-tobank',
+          'STACK IT BEFORE YOU SPEND IT',
+          'The Economy burns XP fast. The People\u2019s Bank grows it while you fight \u2014 park your war funds first.',
+          'OPEN THE BANK', '/bank', null
+        );
+      },
+      place: function (el) { return placeAfterHead('pf-economy', el, this); }
+    },
+    /* /arcade: highlighted XP Casino entry card. */
+    {
+      id: 'pf-xn-casino', host: 'pf-arcade', tries: 0,
+      build: function () {
+        var b = makeBanner(
+          'pf-xn-casino',
+          '\u2605 THE XP CASINO PAYS IN XP \u2605',
+          'Slots, wagers, double-or-nothing nerve. Your XP is the chip \u2014 ' +
+          'and the house always loses to the movement.',
+          'ROLL THE DICE', null, scrollToCasino
+        );
+        b.classList.add('pf-xn-pulse');
+        return b;
+      },
+      place: function (el) { return placeAfterHead('pf-arcade', el, this); }
+    }
+  ];
+
+  function runPageJobs() {
+    var pending = false;
+    pageJobs.forEach(function (job) {
+      var done = false;
+      try { done = !!document.getElementById(job.id); } catch (e) {}
+      if (done) { return; }
+      var hostPresent = false;
+      try { hostPresent = !!document.getElementById(job.host); } catch (e) {}
+      if (!hostPresent) { return; } /* not this page */
+      pending = true;
+      var el = null;
+      try { el = job.build(); } catch (e) { return; }
+      try {
+        if (job.place.call(job, el)) { /* placed */ }
+        else {
+          /* build() created a fresh node that place() rejected — drop it so
+             the next retry builds a clean one (no detached-node leaks). */
+          el = null;
+        }
+      } catch (e) {}
+    });
+    return pending;
+  }
+
+  /* ---- boot ---- */
+  function boot() {
+    try { ensureCss(); } catch (e) {}
+    try { injectStrip(); } catch (e) {}
+    try { runPageJobs(); } catch (e) {}
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+  /* Squarespace renders footers (and page content) late: poll + watch. */
+  var stripTries = 0, jobTries = 0, stripOk = false;
+  var iv = setInterval(function () {
+    try {
+      if (!stripOk) {
+        stripOk = injectStrip();
+        if (!stripOk && ++stripTries >= 120) { stripOk = true; } /* stop polling; observer keeps watch */
+      }
+      jobTries++;
+      var pending = runPageJobs();
+      if (!pending || jobTries >= 60) { clearInterval(iv); }
+    } catch (e) {}
+  }, 1000);
+  try {
+    var obs = new MutationObserver(function () {
+      try {
+        if (!document.getElementById('pf-crossnav')) { injectStrip(); }
+      } catch (e) {}
+    });
+    if (document.body) { obs.observe(document.body, { childList: true, subtree: true }); }
+    else { document.addEventListener('DOMContentLoaded', function () {
+      try { obs.observe(document.body, { childList: true, subtree: true }); } catch (e) {}
+    }); }
+  } catch (e) {}
+})();
+
+;
+
+/* ===== core/20-nextop.js ===== */
+/* core/20-nextop.js  |  PF v1.4.3 | NEXT OP (S4) — context-aware next-action card.
+   Every page ends with the single best thing to do next, personalized to
+   what the visitor hasn't done today. No page is a dead end.
+   FRONTEND-ONLY, ZERO NEW XP — pure routing. Reads compose the existing
+   reads: dopamine_status (loot + streak + flash), streak_status,
+   cell_mine, xp_today. No new backend actions, no writes of any kind.
+   Mount: inserted in-flow immediately BEFORE the site footer element, i.e.
+   below the page's primary content and above the injected footer chrome
+   (crossnav strip / DELETE MY DATA / nuke meter). Retries until a footer
+   lands (Squarespace lazy-renders footers on commerce + system pages).
+   LAYERING: core-level UI injection, same pattern as 16-footer.js /
+   19-crossnav.js. No page dependency — runs on every page, v2 and v1.1.0.
+   (On v1.1.0-branch pages it ships in core/bundle-footer-chrome.js, which
+   carries the same minimum runtime: PF bus + backend URL + identity.)
+   KILL: ?pf_off=nextop  or  localStorage pf_disabled_v1='["nextop"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('nextop')) { return; }
+  try { /* never mount inside the Squarespace editor */
+    var href = window.location.href || '';
+    if (href.indexOf('/config/') !== -1) return;
+    var bd = document.body;
+    if (bd && (bd.classList.contains('sqs-edit-mode') || bd.classList.contains('sqs-editing'))) return;
+  } catch (e) {}
+
+  var BACKEND = window.PF_BACKEND_URL;
+  function ident() {
+    var cs = '', dev = '';
+    try { cs = window.PFCallsign ? window.PFCallsign() : ''; } catch (e) {}
+    try { dev = window.PFDeviceId ? window.PFDeviceId() : ''; } catch (e) {}
+    return { callsign: cs, device: dev };
+  }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /* JSONP GET for reads. Routed through PF.authGetJSONP when present (gated
+     reads self-heal auth like the other silos); plain JSONP fallback. */
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    try {
+      if (window.PF && PF.authGetJSONP) { PF.authGetJSONP(BACKEND, action, params, cb); return; }
+    } catch (e) {}
+    try {
+      var _sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : '';
+      if (_sec && params && !params.auth_secret) params.auth_secret = _sec;
+    } catch (e2) {}
+    var fn = 'pfNoCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, 12000);
+  }
+
+  /* ---- page detection: mount-div ids first, path fallback ---- */
+  var PAGE_IDS = ['pf-v2', 'pf-arcade', 'pf-cells-page', 'pf-create', 'pf-bank',
+    'pf-economy', 'pf-warchest', 'pf-ventures', 'pf-events', 'pf-warreport',
+    'pf-catalog', 'pf-slr-roster', 'pf-war-card', 'pf-political-hq'];
+  function pageKey() {
+    try {
+      for (var i = 0; i < PAGE_IDS.length; i++) {
+        if (document.getElementById(PAGE_IDS[i])) return PAGE_IDS[i];
+      }
+      var p = String(window.location.pathname || '').replace(/\/+$/, '') || '/';
+      var map = { '/': 'pf-v2', '/arcade': 'pf-arcade', '/cells': 'pf-cells-page',
+        '/create': 'pf-create', '/bank': 'pf-bank', '/economy': 'pf-economy',
+        '/war-chest': 'pf-warchest', '/ventures': 'pf-ventures',
+        '/events': 'pf-events', '/war-report': 'pf-warreport',
+        '/sick-left-radicals': 'pf-slr-roster' };
+      if (map[p]) return map[p];
+    } catch (e) {}
+    return 'default';
+  }
+
+  /* ---- op catalog: {ready, done} evaluated against state; first not-done wins ---- */
+  var OPS = {
+    streakrisk: {
+      title: 'STREAK AT RISK', cta: 'SAVE IT \u2192', href: '/',
+      ready: function (st) { return st.streakRisk !== null; },
+      done: function (st) { return !st.streakRisk; },
+      sub: function (st) { return 'Last chance \u2014 check in before midnight Chicago or the streak breaks.'; }
+    },
+    loot: {
+      title: 'THE CRATE IS LOADED', cta: 'OPEN THE CRATE \u2192', href: '/',
+      ready: function (st) { return st.lootClaimed !== null; },
+      done: function (st) { return st.lootClaimed; },
+      sub: function (st) { return 'Today\u2019s supply crate sits unclaimed. Midnight Chicago, it resets.'; }
+    },
+    streak: {
+      title: 'PROTECT THE STREAK', cta: 'CHECK IN \u2192', href: '/',
+      ready: function (st) { return st.streakChecked !== null; },
+      done: function (st) { return st.streakChecked; },
+      sub: function (st) {
+        return (st.streakCount > 0 ? st.streakCount + '-day streak. ' : '') +
+          'One tap keeps it alive.';
+      }
+    },
+    cellnone: {
+      title: 'YOU FIGHT ALONE', cta: 'FIND YOUR CELL \u2192', href: '/cells',
+      ready: function (st) { return st.cellIn !== null; },
+      done: function (st) { return st.cellIn; },
+      sub: function (st) { return 'No cell, no squad XP. Join one or build your own.'; }
+    },
+    cellcheck: {
+      title: 'YOUR CELL NEEDS YOU', cta: 'CHECK IN \u2192', href: '/cells',
+      ready: function (st) { return st.cellIn !== null && st.cellChecked !== null; },
+      done: function (st) { return !st.cellIn || st.cellChecked; },
+      sub: function (st) { return 'Your cell hasn\u2019t checked in today. First tap starts the cell streak.'; }
+    },
+    xpzero: {
+      title: 'ZERO XP ON THE BOARD', cta: 'MAKE SOMETHING \u2192', href: '/create',
+      ready: function (st) { return st.xpToday !== null; },
+      done: function (st) { return st.xpToday > 0; },
+      sub: function (st) { return 'The meter is counting and you\u2019re flat. Forge one poster.'; }
+    },
+    flash: {
+      title: 'FLASH MULTIPLIER LIVE', cta: 'RIDE THE FLASH \u2192', href: '/',
+      ready: function (st) { return st.flashKnown; },
+      done: function (st) { return !st.flash; },
+      sub: function (st) {
+        return st.flash ? esc(st.flash.label || 'Flash event') + ' \u00D7' + (st.flash.mult || 2) +
+          ' \u2014 ride it before it burns out.' : '';
+      }
+    },
+    matchquiz: {
+      title: 'FIND YOUR SLR MATCH', cta: 'TAKE THE QUIZ \u2192', href: '/arcade',
+      ready: function () { return true; },
+      done: function () { return false; },
+      sub: function () { return '5 questions. 3 creator matches. Know your lane.'; }
+    },
+    roster: {
+      title: 'SCOUT THE ROSTER', cta: 'MEET THE RADICALS \u2192', href: '/sick-left-radicals',
+      ready: function () { return true; },
+      done: function () { return false; },
+      sub: function () { return '62 fighters strong. Find the one you\u2019d go to war with.'; }
+    },
+    recruit: {
+      title: 'RECRUIT ONE SOLDIER', cta: 'GET YOUR LINK \u2192', href: '/cells',
+      ready: function () { return true; },
+      done: function () { return false; },
+      sub: function () { return '+75 XP per recruit. Your cell grows, your war chest grows.'; }
+    }
+  };
+  /* Per-page priority lists. Ops whose read failed are skipped (fail-open to
+     the next op); circulation ops (matchquiz/roster/recruit) are always
+     ready, so the card can never be a dead end. */
+  var ORDER = {
+    'pf-v2': ['streakrisk', 'loot', 'streak', 'cellcheck', 'cellnone', 'flash', 'xpzero', 'matchquiz'],
+    'pf-arcade': ['streakrisk', 'loot', 'streak', 'matchquiz', 'cellcheck', 'xpzero'],
+    'pf-cells-page': ['cellnone', 'cellcheck', 'streakrisk', 'streak', 'loot', 'recruit'],
+    'pf-create': ['xpzero', 'streakrisk', 'loot', 'streak', 'cellcheck', 'matchquiz'],
+    'pf-bank': ['streakrisk', 'loot', 'streak', 'cellcheck', 'xpzero', 'matchquiz'],
+    'pf-economy': ['streakrisk', 'loot', 'streak', 'cellcheck', 'xpzero', 'matchquiz'],
+    'pf-warchest': ['streakrisk', 'loot', 'streak', 'cellcheck', 'xpzero', 'roster'],
+    'pf-ventures': ['streakrisk', 'loot', 'streak', 'cellcheck', 'xpzero', 'matchquiz'],
+    'pf-events': ['streakrisk', 'loot', 'streak', 'cellcheck', 'xpzero', 'matchquiz'],
+    'pf-warreport': ['streakrisk', 'loot', 'streak', 'cellcheck', 'xpzero', 'matchquiz'],
+    'pf-catalog': ['streakrisk', 'loot', 'streak', 'matchquiz', 'roster'],
+    'pf-slr-roster': ['matchquiz', 'roster', 'streakrisk', 'loot', 'streak'],
+    'pf-war-card': ['cellcheck', 'cellnone', 'streakrisk', 'loot', 'recruit'],
+    'pf-political-hq': ['streakrisk', 'loot', 'streak', 'cellcheck', 'xpzero', 'matchquiz'],
+    'default': ['streakrisk', 'loot', 'streak', 'cellcheck', 'cellnone', 'xpzero', 'matchquiz']
+  };
+  function pickOp(st) {
+    var order = ORDER[pageKey()] || ORDER['default'];
+    for (var i = 0; i < order.length; i++) {
+      var op = OPS[order[i]];
+      if (!op) continue;
+      try {
+        if (op.ready(st) && !op.done(st)) return op;
+      } catch (e) {}
+    }
+    return OPS.matchquiz;
+  }
+
+  /* ---- state assembly (reads only; every failure degrades to a skipped op) ---- */
+  function loadState(id, cb) {
+    var st = {
+      lootClaimed: null, streakCount: 0, streakChecked: null, streakRisk: null,
+      cellIn: null, cellChecked: null, xpToday: null, flash: null, flashKnown: false
+    };
+    var pending = 4, guarded = false;
+    /* Terminal: never leave the card waiting — every read path converges
+       here exactly once, failures included (skipped ops fail open). */
+    function fin() { if (guarded) return; guarded = true; cb(st); }
+    function one() { if (--pending <= 0) fin(); }
+    setTimeout(fin, 12000);
+    api('dopamine_status', { callsign: id.callsign, device: id.device }, function (j) {
+      try {
+        if (j && j.ok) {
+          if (j.loot && j.loot.claimed_today !== undefined) st.lootClaimed = !!j.loot.claimed_today;
+          if (j.streak) {
+            st.streakCount = Number(j.streak.count || 0);
+            st.streakRisk = !!j.streak.at_risk;
+          }
+          st.flashKnown = true;
+          if (j.flash && j.flash.length) st.flash = { label: j.flash[0].label, mult: j.flash[0].multiplier };
+        }
+      } catch (e) {}
+      one();
+    });
+    api('streak_status', { callsign: id.callsign, device: id.device }, function (j) {
+      try {
+        if (j && j.ok && j.checked_in_today !== undefined) st.streakChecked = !!j.checked_in_today;
+        if (j && j.ok && st.streakRisk === null && j.at_risk !== undefined) st.streakRisk = !!j.at_risk;
+      } catch (e) {}
+      one();
+    });
+    api('cell_mine', { callsign: id.callsign, device: id.device }, function (j) {
+      try {
+        if (j && j.ok) {
+          st.cellIn = !!j.in_cell;
+          var cells = j.cells || [];
+          if (cells.length && cells[0].checked_today !== undefined) st.cellChecked = !!cells[0].checked_today;
+          else if (j.members) {
+            for (var i = 0; i < j.members.length; i++) {
+              if (String(j.members[i].callsign || '').toLowerCase() === String(id.callsign).toLowerCase() &&
+                  j.members[i].checked_today !== undefined) {
+                st.cellChecked = !!j.members[i].checked_today; break;
+              }
+            }
+          }
+        }
+      } catch (e) {}
+      one();
+    });
+    api('xp_today', { callsign: id.callsign, device: id.device }, function (j) {
+      try {
+        if (j && j.ok && j.xp_today !== undefined) st.xpToday = Number(j.xp_today) || 0;
+      } catch (e) {}
+      one();
+    });
+  }
+
+  /* ---- card ---- */
+  function cardHtml(op, st) {
+    return '<div id="pf-nextop" style="max-width:720px;margin:28px auto;padding:0;background:#0a0a0a;' +
+      'border:1px solid #333;border-top:4px solid #c1121f;box-sizing:border-box;' +
+      'font-family:Arial,sans-serif;text-align:center;">' +
+      '<div style="padding:20px 18px 18px;">' +
+      '<div style="font-size:11px;letter-spacing:5px;color:#dc143c;font-weight:800;margin-bottom:8px;">NEXT OP</div>' +
+      '<div style="font-family:\'Arial Black\',Arial,sans-serif;font-size:22px;letter-spacing:1px;' +
+      'color:#f5ead6;margin:0 0 8px;">' + esc(op.title) + '</div>' +
+      '<div style="font-size:14px;color:#a89e88;line-height:1.55;margin:0 0 14px;">' + esc(op.sub(st)) + '</div>' +
+      '<a href="' + esc(op.href) + '" style="display:inline-block;background:#c1121f;color:#fff;' +
+      'font-weight:900;letter-spacing:0.12em;font-size:13px;text-decoration:none;' +
+      'padding:12px 26px;border:2px solid #c1121f;">' + esc(op.cta) + '</a>' +
+      '</div></div>';
+  }
+
+  /* ---- mount: in-flow, immediately before the site footer ---- */
+  var FOOTER_SEL_ARR = [
+    'footer', '.Footer', '#footer', '#footer-sections', '.Footer-inner',
+    '.Footer-blocks', '[role="contentinfo"]', '.site-footer', '#site-footer',
+    'section[class*="footer"]', 'section[class*="Footer"]',
+    'div[class*="Footer"]', '[data-section-id*="footer" i]'
+  ];
+  var FOOTER_SELS = FOOTER_SEL_ARR.filter(function (sel) {
+    try { document.querySelectorAll(sel); return true; } catch (e) { return false; }
+  }).join(', ');
+  function findFooter() {
+    try {
+      var fs = document.querySelectorAll(FOOTER_SELS);
+      if (fs && fs.length) return fs[0];
+    } catch (e) {}
+    return null;
+  }
+  function place(html) {
+    if (document.getElementById('pf-nextop')) return true;
+    var footer = findFooter();
+    if (!footer || !footer.parentNode) return false;
+    var wrap = document.createElement('div');
+    wrap.innerHTML = html;
+    var card = wrap.firstChild;
+    try { footer.parentNode.insertBefore(card, footer); } catch (e) { return false; }
+    return true;
+  }
+  function mount(html) {
+    if (place(html)) return;
+    var tries = 0;
+    var iv = setInterval(function () {
+      tries++;
+      if (place(html) || tries >= 120) clearInterval(iv);
+    }, 500);
+    /* MutationObserver: catch footers added after the poll (SPA navigations,
+       lazy commerce footers, deferred system-page chrome). */
+    try {
+      var obs = new MutationObserver(function () {
+        if (place(html) && obs) { try { obs.disconnect(); } catch (e2) {} }
+      });
+      if (document.body) obs.observe(document.body, { childList: true, subtree: true });
+    } catch (e2) {}
+  }
+
+  /* ---- boot ---- */
+  function boot(op) {
+    try { mount(cardHtml(op, op.__st)); }
+    catch (e) { try { PF.error('nextop', 'mount failed :: ' + (e && e.message || e)); } catch (e2) {} }
+  }
+  var id = ident();
+  if (!id.callsign) {
+    /* Anonymous: no reads at all — one enlist op, no dead end. */
+    var enlist = {
+      title: 'YOUR FIRST OP: ENLIST', cta: 'ENLIST \u2192', href: '/',
+      sub: function () { return 'Claim your callsign. Your XP follows it everywhere.'; }
+    };
+    enlist.__st = {};
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { boot(enlist); });
+    else boot(enlist);
+    return;
+  }
+  loadState(id, function (st) {
+    var op = pickOp(st);
+    op.__st = st;
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { boot(op); });
+    else boot(op);
+  });
+})();
+
+;
+
+/* ===== core/22-routemarch.js ===== */
+/* core/22-routemarch.js  |  PF v1.4.3 | ROUTE MARCH (S1) — daily guided-circuit strip.
+   Each stop page of today's route shows a "STOP n OF 4" progress strip with
+   which stops are done; the final stop carries the claim button for the
+   escalating consecutive-day bonus (day 1: 10 XP -> day 7: 75 XP).
+   Reads circuit_status (auth-gated per-callsign GET), writes via
+   {type:'circuit', c_action:'circuit_claim'} through PF.authPost.
+   Lightweight: one JSONP read per page load, no polling — completing the
+   page's action auto-verifies server-side (existing action logs), and the
+   strip reflects it on the next page load.
+   Mount: in-flow immediately BEFORE the site footer element, same pattern as
+   core/20-nextop.js (retries until the footer lands). Renders ONLY when the
+   current path is one of today's 4 route stops.
+   KILL: ?pf_off=routemarch  or  localStorage pf_disabled_v1='["routemarch"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('routemarch')) { return; }
+  try { /* never mount inside the Squarespace editor */
+    var href = window.location.href || '';
+    if (href.indexOf('/config/') !== -1) return;
+    var bd = document.body;
+    if (bd && (bd.classList.contains('sqs-edit-mode') || bd.classList.contains('sqs-editing'))) return;
+  } catch (e) {}
+
+  var BACKEND = window.PF_BACKEND_URL;
+  function ident() {
+    var cs = '', dev = '';
+    try { cs = window.PFCallsign ? window.PFCallsign() : ''; } catch (e) {}
+    try { dev = window.PFDeviceId ? window.PFDeviceId() : ''; } catch (e) {}
+    return { callsign: cs, device: dev };
+  }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /* JSONP GET for reads. circuit_status is a gated per-callsign read —
+     route through PF.authGetJSONP when present (claim-retry self-heal),
+     plain JSONP fallback. */
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    try {
+      if (window.PF && PF.authGetJSONP) { PF.authGetJSONP(BACKEND, action, params, cb); return; }
+    } catch (e) {}
+    try {
+      var _sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : '';
+      if (_sec && params && !params.auth_secret) params.auth_secret = _sec;
+    } catch (e2) {}
+    var fn = 'pfRmCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, 12000);
+  }
+
+  function normPath() {
+    var p = '/';
+    try { p = window.location.pathname || '/'; } catch (e) {}
+    if (p.length > 1 && p.charAt(p.length - 1) === '/') p = p.slice(0, -1);
+    return p.toLowerCase();
+  }
+
+  function rmCss() {
+    if (document.getElementById('pf-rm-css')) return;
+    var s = document.createElement('style');
+    s.id = 'pf-rm-css';
+    s.textContent =
+      '#pf-routemarch{max-width:1100px;margin:18px auto;padding:14px 16px;border:2px solid #c1121f;background:#0d0d0d;font-family:monospace}'
+      + '#pf-routemarch .pf-rm-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}'
+      + '#pf-routemarch .pf-rm-title{font:bold 14px monospace;color:#fff;letter-spacing:2px}'
+      + '#pf-routemarch .pf-rm-title b{color:#ff6b6b}'
+      + '#pf-routemarch .pf-rm-day{font:bold 11px monospace;color:#e8b64c;letter-spacing:1px;white-space:nowrap}'
+      + '#pf-routemarch .pf-rm-stops{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px}'
+      + '#pf-routemarch .pf-rm-stop{flex:1 1 120px;display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid #444;background:#141414;color:#bbb;text-decoration:none;font:12px monospace}'
+      + '#pf-routemarch .pf-rm-stop.done{border-color:#2f7a3d;color:#7ddf8a}'
+      + '#pf-routemarch .pf-rm-stop.cur{border-color:#c1121f;color:#fff;background:#1a0505}'
+      + '#pf-routemarch .pf-rm-dot{font-weight:bold}'
+      + '#pf-routemarch .pf-rm-name{font:bold 11px monospace;color:#ff6b6b;letter-spacing:1px;margin-bottom:6px}'
+      + '#pf-routemarch .pf-rm-claim{margin-top:10px;text-align:center}'
+      + '#pf-routemarch .pf-rm-note{margin-top:8px;font:12px monospace;color:#888;text-align:center}'
+      + '#pf-routemarch .c-btn{background:#c1121f;color:#fff;border:0;font:bold 14px monospace;letter-spacing:1px;padding:12px 26px;cursor:pointer}'
+      + '#pf-routemarch .c-btn:disabled{opacity:.55;cursor:default}';
+    document.head.appendChild(s);
+  }
+
+  var FOOTER_SELS = [
+    'footer', '.Footer', '#footer', '#footer-sections', '.Footer-inner',
+    '.Footer-blocks', '[role="contentinfo"]', '.site-footer', '#site-footer',
+    'section[class*="footer"]', 'section[class*="Footer"]',
+    'div[class*="Footer"]'
+  ];
+  function findFooter() {
+    for (var i = 0; i < FOOTER_SELS.length; i++) {
+      var sel = FOOTER_SELS[i], els = null;
+      try { els = document.querySelectorAll(sel); } catch (e) { continue; }
+      if (els && els.length) return els[0];
+    }
+    return null;
+  }
+
+  function build(j, stopIdx) {
+    rmCss();
+    var stops = j.stops;
+    var sd = Number(j.streak_day || 1);
+    var el = document.createElement('div');
+    el.id = 'pf-routemarch';
+    var h = '<div class="pf-rm-name">' + esc(String(j.route_name || 'ROUTE MARCH')) + '</div>'
+      + '<div class="pf-rm-bar"><span class="pf-rm-title">⚔ STOP <b>' + (stopIdx + 1) + '</b> OF ' + stops.length + '</span>'
+      + '<span class="pf-rm-day">DAY ' + sd + ' &bull; NEXT +' + Number(j.next_payout || 10) + ' XP</span></div>'
+      + '<div class="pf-rm-stops">';
+    for (var i = 0; i < stops.length; i++) {
+      var s = stops[i];
+      var cls = 'pf-rm-stop' + (s.done ? ' done' : '') + (i === stopIdx ? ' cur' : '');
+      h += '<a class="' + cls + '" href="' + esc(s.page || '/') + '">'
+        + '<span class="pf-rm-dot">' + (s.done ? '✓' : (i + 1)) + '</span>'
+        + '<span>' + esc(s.action_label || '') + '</span></a>';
+    }
+    h += '</div>';
+    var isFinal = (stopIdx === stops.length - 1);
+    if (j.claimed) {
+      h += '<div class="pf-rm-note">✓ MARCH COMPLETE — DAY ' + sd + ' &bull; +' + Number(j.payout || 0)
+        + ' XP claimed. Miss a day and the streak resets.</div>';
+    } else if (isFinal && j.can_claim) {
+      h += '<div class="pf-rm-claim"><button class="c-btn" id="pf-rm-claimbtn">CLAIM +'
+        + Number(j.next_payout || 10) + ' XP — DAY ' + sd + '</button></div>';
+    } else {
+      h += '<div class="pf-rm-note">' + Number(j.completed || 0) + ' of ' + stops.length
+        + ' stops done. Finish the march to claim +' + Number(j.next_payout || 10) + ' XP.</div>';
+    }
+    el.innerHTML = h;
+    /* claim wiring */
+    try {
+      var btn = el.querySelector('#pf-rm-claimbtn');
+      if (btn) {
+        btn.onclick = function () {
+          btn.disabled = true; btn.textContent = 'CLAIMING...';
+          var id = ident();
+          var body = { type: 'circuit', c_action: 'circuit_claim',
+            callsign: id.callsign, device: id.device };
+          function done2(r) {
+            if (r && r.ok) {
+              el.innerHTML = '<div class="pf-rm-note" style="color:#7ddf8a;font-weight:bold">✓ ROUTE MARCH COMPLETE. +'
+                + Number(r.payout || 0) + ' XP — DAY ' + Number(r.streak_day || 1)
+                + '. Tomorrow pays +' + Number(r.next_payout || 0) + ' XP.</div>';
+              try { if (window.PF && PF.toast) PF.toast('ROUTE MARCH COMPLETE. +' + Number(r.payout || 0) + ' XP.'); } catch (e) {}
+            } else {
+              var msg = 'Claim failed.';
+              try { msg = (window.PF && PF.errCopy) ? PF.errCopy(r, msg) : String((r && (r.err || r.error)) || msg); } catch (e2) {}
+              try { if (window.PF && PF.toast) PF.toast(msg); } catch (e3) {}
+              btn.disabled = false; btn.textContent = 'CLAIM BONUS';
+            }
+          }
+          try {
+            if (window.PF && PF.authPost) { PF.authPost(BACKEND, body, done2); }
+            else { done2({ ok: false, err: 'auth unavailable' }); }
+          } catch (e) { done2({ ok: false, err: 'network error' }); }
+        };
+      }
+    } catch (e) {}
+    return el;
+  }
+
+  function tryMount(j, stopIdx) {
+    if (document.getElementById('pf-routemarch')) return true;
+    var footer = findFooter();
+    if (!footer || !footer.parentNode) return false;
+    var card = build(j, stopIdx);
+    try { footer.parentNode.insertBefore(card, footer); } catch (e) { return false; }
+    return true;
+  }
+
+  function boot() {
+    var id = ident();
+    if (!id.callsign) return; /* progress is per-callsign; briefing card covers anonymous */
+    api('circuit_status', { callsign: id.callsign, device: id.device }, function (j) {
+      if (!j || !j.ok || !j.stops || !j.stops.length) return;
+      var cur = normPath(), stopIdx = -1;
+      for (var i = 0; i < j.stops.length; i++) {
+        if (String(j.stops[i].page || '/').toLowerCase() === cur) { stopIdx = i; break; }
+      }
+      if (stopIdx < 0) return; /* not a stop page — stay out of the way */
+      var tries = 0;
+      (function retry() {
+        if (tryMount(j, stopIdx)) return;
+        tries++;
+        if (tries < 40) setTimeout(retry, 500);
+      })();
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+
+;
+
+/* ===== core/22-dead-drop.js ===== */
+/* core/22-dead-drop.js  |  PF v1.4.3 | DEAD DROP (A1) — daily hidden XP cache.
+   Every Chicago day a bonus XP cache hides on one of 16 pages. The Morning
+   Briefing publishes a riddle, never the page name. Find the cache, tap it,
+   claim it: base 15 XP + 5 per consecutive-find day, capped at 40.
+   Miss it and it is gone at midnight Chicago time.
+   Two surfaces, both driven by the dead_drop_status read (public):
+   (1) a riddle card injected into the Morning Briefing (#xBrief), and
+   (2) a tappable DEAD DROP cache widget that renders ONLY on today's hidden
+   page — the page comes from the server, never hardcoded client-side.
+   The claim (POST {type:'deaddrop', dd_action:'drop_find'}) validates
+   server-side that the page is today's page; wrong page = clean rejection.
+   Cheat-proofing lives in src/deaddrop.js; this file is presentation only.
+   LAYERING: core silo — ships in bundle-core(.slr) on every page, like
+   20-nextop.js. No page dependency.
+   KILL: ?pf_off=deaddrop  or  localStorage pf_disabled_v1='["deaddrop"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('deaddrop')) { return; }
+  try { /* never mount inside the Squarespace editor */
+    var href = window.location.href || '';
+    if (href.indexOf('/config/') !== -1) return;
+    var bd = document.body;
+    if (bd && (bd.classList.contains('sqs-edit-mode') || bd.classList.contains('sqs-editing'))) return;
+  } catch (e) {}
+
+  var BACKEND = window.PF_BACKEND_URL;
+  function ident() {
+    var cs = '', dev = '';
+    try { cs = window.PFCallsign ? window.PFCallsign() : ''; } catch (e) {}
+    try { dev = window.PFDeviceId ? window.PFDeviceId() : ''; } catch (e) {}
+    return { callsign: cs, device: dev };
+  }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function toast(m) {
+    try { if (window.PF && PF.toast) { PF.toast(m); return; } } catch (e) {}
+    try {
+      var t = document.createElement('div'); t.textContent = m;
+      t.style.cssText = 'position:fixed;left:50%;top:16%;transform:translateX(-50%);' +
+        'background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;' +
+        'border:2px solid #fff;z-index:99999';
+      document.body.appendChild(t); setTimeout(function () { t.remove(); }, 2800);
+    } catch (e2) {}
+  }
+  /* JSONP GET for the public status read. */
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var fn = 'pfDdCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, 12000);
+  }
+  /* CORS POST for the claim (auth-gated server-side). */
+  function claimPost(id, page, cb) {
+    var body = { type: 'deaddrop', dd_action: 'drop_find',
+      callsign: id.callsign, device: id.device, page: page };
+    if (window.PF && PF.authPost) { PF.authPost(BACKEND, body, cb); return; }
+    function done(j) { try { cb(j || { ok: false, err: 'Network error.' }); } catch (e) {} }
+    try {
+      fetch(BACKEND, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body) })
+        .then(function (r) { return r.json(); })
+        .then(function (j) { done(j); })
+        .catch(function () { done(null); });
+    } catch (e) { done(null); }
+  }
+
+  /* ---- self-contained styles (no dependency on dopamine CSS) ---- */
+  var CSS = '.dd-card{border:2px solid #c1121f;background:#0d0d0f;color:#f2f2f2;' +
+    'border-radius:10px;padding:16px 18px;margin:14px 0;position:relative;overflow:hidden}' +
+    '.dd-kicker{font:700 11px/1.4 monospace;letter-spacing:.18em;color:#c1121f;margin-bottom:6px}' +
+    '.dd-riddle{font:700 17px/1.45 Georgia,serif;font-style:italic;margin:6px 0 10px}' +
+    '.dd-meta{font:12px/1.6 monospace;color:#bdbdbd}' +
+    '.dd-meta b{color:#ffd166}' +
+    '.dd-cache{display:flex;gap:14px;align-items:center}' +
+    '.dd-box{font-size:44px;line-height:1;filter:drop-shadow(0 0 12px rgba(193,18,31,.55));' +
+    'transition:transform .25s}' +
+    '.dd-box.dd-shake{animation:ddshake .5s}' +
+    '@keyframes ddshake{0%,100%{transform:translateX(0) rotate(0)}' +
+    '25%{transform:translateX(-7px) rotate(-8deg)}50%{transform:translateX(6px) rotate(6deg)}' +
+    '75%{transform:translateX(-4px) rotate(-4deg)}}' +
+    '.dd-box.dd-burst{animation:ddburst .6s forwards}' +
+    '@keyframes ddburst{0%{transform:scale(1)}40%{transform:scale(1.35) rotate(10deg)}' +
+    '100%{transform:scale(1.1)}}' +
+    '.dd-cta{margin-top:12px}' +
+    '.dd-reward{text-align:center;padding:8px 0 2px}' +
+    '.dd-rxp{font:800 34px/1.2 monospace;color:#ffd166}' +
+    '.dd-rsub{font:12px/1.6 monospace;color:#bdbdbd;margin-top:4px}' +
+    '.dd-err{font:12px/1.5 monospace;color:#ff6b6b;margin-top:8px}';
+  function injectCss() {
+    if (document.getElementById('pf-dd-css')) return;
+    var st = document.createElement('style');
+    st.id = 'pf-dd-css'; st.textContent = CSS;
+    document.head.appendChild(st);
+  }
+
+  /* ---- (1) briefing riddle card ---- */
+  function briefingCardHtml(st) {
+    var h = '<section class="br-sec" data-game="dead-drop" id="pf-deaddrop-card">' +
+      '<div class="dd-card"><div class="dd-kicker">\u25C8 DEAD DROP</div>';
+    h += '<div class="dd-riddle">&ldquo;' + esc(st.riddle || 'The briefing is assembling&hellip;') + '&rdquo;</div>';
+    if (st.found_today) {
+      h += '<div class="dd-meta">Cache cracked. Streak: <b>' + Number(st.streak || 0) +
+        '</b> day' + (Number(st.streak) === 1 ? '' : 's') +
+        '. New cache drops at midnight.</div>';
+    } else {
+      h += '<div class="dd-meta">Somewhere on this site a cache waits. Find it before midnight.' +
+        ' Pays <b>+' + Number(st.next_payout || 15) + ' XP</b>' +
+        (st.streak > 0 ? ' &middot; streak <b>' + Number(st.streak) + '</b>' : '') + '.</div>';
+    }
+    h += '</div></section>';
+    return h;
+  }
+  function injectBriefingCard(st) {
+    if (document.getElementById('pf-deaddrop-card')) return;
+    var tries = 0;
+    var iv = setInterval(function () {
+      tries++;
+      var host = document.getElementById('xBrief');
+      /* The briefing renders .br-sec sections; inject after it assembles. */
+      if (host && (host.querySelector('.br-sec') || tries > 40)) {
+        clearInterval(iv);
+        if (document.getElementById('pf-deaddrop-card')) return;
+        try {
+          var first = host.querySelector('.br-sec');
+          if (first) first.insertAdjacentHTML('beforebegin', briefingCardHtml(st));
+          else host.insertAdjacentHTML('beforeend', briefingCardHtml(st));
+        } catch (e) {}
+      }
+      if (tries > 60) clearInterval(iv);
+    }, 500);
+  }
+
+  /* ---- (2) cache widget on today's hidden page ---- */
+  var FOOT_SELS = ['footer', '.Footer', '#footer', '#footer-sections', '.Footer-inner',
+    '.Footer-blocks', '[role="contentinfo"]', '.site-footer', '#site-footer',
+    'section[class*="footer"]', 'section[class*="Footer"]',
+    'div[class*="Footer"]', '[data-section-id*="footer" i]'];
+  function findFooter() {
+    for (var i = 0; i < FOOT_SELS.length; i++) {
+      try {
+        var el = document.querySelector(FOOT_SELS[i]);
+        if (el) return el;
+      } catch (e) {}
+    }
+    return null;
+  }
+  function widgetHtml(st, id) {
+    var h = '<div class="dd-card" id="pf-deaddrop"><div class="dd-kicker">\u25C8 DEAD DROP</div>' +
+      '<div class="dd-cache"><div class="dd-box" id="pf-dd-box">\uD83D\uDCE6</div><div>' +
+      '<div class="dd-riddle" style="margin:0">&ldquo;' + esc(st.riddle) + '&rdquo;</div>' +
+      '<div class="dd-meta">You followed the riddle. The cache is real.</div>' +
+      '</div></div>';
+    if (st.found_today) {
+      h += '<div class="dd-meta" style="margin-top:10px">Already cracked today. Streak: <b>' +
+        Number(st.streak || 0) + '</b>. New cache at midnight.</div>';
+    } else if (!id.callsign) {
+      h += '<div class="dd-meta" style="margin-top:10px">Claim a callsign in Enlistment Ranks to crack it open ' +
+        'for <b>+' + Number(st.next_payout || 15) + ' XP</b>.</div>';
+    } else {
+      h += '<div class="dd-meta" style="margin-top:10px">Pays <b>+' + Number(st.next_payout || 15) +
+        ' XP</b>' + (st.streak > 0 ? ' &middot; streak <b>' + Number(st.streak) + '</b>' : '') +
+        '. Gone at midnight.</div>' +
+        '<div class="dd-cta"><button class="c-btn" id="pf-dd-claim">CRACK IT OPEN</button>' +
+        '<div class="dd-err" id="pf-dd-err"></div></div>';
+    }
+    h += '</div>';
+    return h;
+  }
+  function placeWidget(html) {
+    if (document.getElementById('pf-deaddrop')) return true;
+    var f = findFooter();
+    var host = document.createElement('div');
+    host.innerHTML = html;
+    var node = host.firstChild;
+    if (f && f.parentNode) { f.parentNode.insertBefore(node, f); return true; }
+    return false;
+  }
+  function mountWidget(st, id) {
+    var html = widgetHtml(st, id);
+    function wire() {
+      var btn = document.getElementById('pf-dd-claim');
+      if (!btn) return;
+      btn.onclick = function () {
+        var err = document.getElementById('pf-dd-err');
+        var box = document.getElementById('pf-dd-box');
+        btn.disabled = true; btn.textContent = 'CRACKING IT OPEN...';
+        if (box) { box.classList.remove('dd-burst'); box.classList.add('dd-shake'); }
+        claimPost(id, st.page, function (j) {
+          if (box) box.classList.remove('dd-shake');
+          if (j && j.ok) {
+            var card = document.getElementById('pf-deaddrop');
+            if (box) box.classList.add('dd-burst');
+            var xp = Number(j.xp || 0), streak = Number(j.streak || 0);
+            if (card) {
+              card.innerHTML = '<div class="dd-kicker">\u25C8 DEAD DROP \u2014 CRACKED</div>' +
+                '<div class="dd-reward"><div class="dd-rxp">+' + xp + ' XP</div>' +
+                '<div class="dd-rsub">Cache secured. Streak: <b>' + streak + '</b> day' +
+                (streak === 1 ? '' : 's') + '.' +
+                (j.already ? ' (already claimed)' : '') +
+                '<br>New cache drops at midnight. Read the briefing.</div></div>';
+            }
+            try {
+              if (window.PF && PF.dope) {
+                PF.dope.confetti(document.getElementById('pf-deaddrop'), 40);
+                PF.dope.xpFloat(document.getElementById('pf-deaddrop'), '+' + xp + ' XP');
+              }
+            } catch (e) {}
+            try { document.dispatchEvent(new CustomEvent('pf-combo-hit')); } catch (e2) {}
+            toast(j.already ? 'Cache already cracked. +' + xp + ' XP banked.' : '+' + xp + ' XP. The machine provides.');
+          } else {
+            btn.disabled = false; btn.textContent = 'CRACK IT OPEN';
+            var msg = (j && j.err === 'not here') ? 'Cold trail. The cache moved on.'
+              : ((j && j.err) || 'The cache jammed. Try again.');
+            if (err) err.textContent = msg;
+          }
+        });
+      };
+    }
+    if (placeWidget(html)) { wire(); return; }
+    var tries = 0;
+    var iv = setInterval(function () {
+      tries++;
+      if (placeWidget(html) || tries >= 120) { clearInterval(iv); wire(); }
+    }, 500);
+  }
+
+  /* ---- boot ---- */
+  function boot() {
+    injectCss();
+    var id = ident();
+    var path = String(window.location.pathname || '').replace(/\/+$/, '') || '/';
+    api('dead_drop_status', { device: id.device }, function (st) {
+      if (!st || !st.ok) return;
+      injectBriefingCard(st);
+      /* Widget renders ONLY on today's hidden page (server-supplied). */
+      if (path === String(st.page || '')) {
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', function () { mountWidget(st, id); });
+        } else mountWidget(st, id);
+      }
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+;

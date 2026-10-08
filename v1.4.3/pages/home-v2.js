@@ -49,6 +49,7 @@
     ['referral', 'pf-ov-referral'],
     /* ——— SECTION 4: CREATE — creator tools ——— */
     ['poster-forge', 'pf-ov-poster'],
+    ['fact-generator', 'pf-ov-factgen'],
     ['feed', 'pf-ov-feed'],
     ['hq-nudge', 'pf-ov-hq-nudge'],
     /* ——— SECTION 5: FUND — economy ——— */

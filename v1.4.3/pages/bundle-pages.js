@@ -1992,6 +1992,15 @@
         ['fund', null]
       ]
     },
+    /* money (fe/money-page, 2026-10-05): FOLLOW THE MONEY. Self-mounting
+       silo — core/money-page.js renders itself into #pf-money (page mode)
+       or the interim PHQ tab. Sub copy provisional — Psych veto. */
+    'pf-money': {
+      title: 'FOLLOW THE MONEY', sub: 'See who bought your government.',
+      order: [
+        ['money', null]
+      ]
+    },
     'pf-warchest': {
       title: 'THE WAR CHEST', sub: 'Fund the fight. Watch where every cent goes.',
       order: [

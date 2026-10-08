@@ -30,6 +30,6 @@
     }
   },
   "short_name":"MTCSTW",
-  "start_url":"/?pwa=1",
+  "start_url":"/?pwa=2",
   "theme_color":"#c81e1e"
 }

@@ -197,12 +197,10 @@
     } catch (e) {}
     return false;
   }
-  var stepNum = 0;
-  function stepRow(n, title, sub, btnLabel, btnId) {
+  function stepRow(n, title, sub, btnLabel, btnId, num) {
     var done = stepsDone[n];
-    stepNum++;
     return '<div data-op-step="' + n + '" class="pf-op-step' + (done ? ' is-done' : '') + '">' +
-      '<div class="pf-op-step-dot">' + (done ? '&#10003;' : stepNum) + '</div>' +
+      '<div class="pf-op-step-dot">' + (done ? '&#10003;' : num) + '</div>' +
       '<div class="pf-op-step-main"><div class="pf-op-step-title">' + esc(title) + '</div>' +
       '<div class="pf-op-step-sub">' + esc(sub) + '</div></div>' +
       (done ? '' : '<button type="button" id="' + btnId + '" class="pf-op-step-btn">' + esc(btnLabel) + '</button>') +
@@ -221,15 +219,18 @@
       lsSet(LS_CHECKLIST, 'done');
       return;
     }
+    /* 2026-10-08 fix/mobile-visual: dynamic numbering. When the user already
+       has a callsign, the CLAIM step is hidden — renumber the visible steps
+       so they show 1, 2 instead of the confusing 1, 3. */
+    var stepNum = 0;
     checklistEl.innerHTML =
       '<div class="pf-op-cl-headrow">' +
       '<div class="pf-op-cl-head">&#9873; YOUR FIRST MOVES</div>' +
       '<button type="button" id="pf-op-cl-x" class="pf-op-cl-x" aria-label="Dismiss checklist">&times;</button>' +
       '</div>' +
-      (stepNum = 0, '') +
-      stepRow('fight', 'PICK YOUR FIGHT', 'Tunes what you see first.', 'PICK →', 'pf-op-cl-fight') +
-      (stepsDone.claim ? '' : stepRow('claim', 'CLAIM YOUR CALLSIGN', 'Your XP follows it everywhere.', 'CLAIM →', 'pf-op-cl-claim')) +
-      stepRow('mission', 'RUN YOUR FIRST MISSION', 'One vote. Sixty seconds.', 'FIRE →', 'pf-op-cl-mission');
+      stepRow('fight', 'PICK YOUR FIGHT', 'Tunes what you see first.', 'PICK →', 'pf-op-cl-fight', ++stepNum) +
+      (stepsDone.claim ? '' : stepRow('claim', 'CLAIM YOUR CALLSIGN', 'Your XP follows it everywhere.', 'CLAIM →', 'pf-op-cl-claim', ++stepNum)) +
+      stepRow('mission', 'RUN YOUR FIRST MISSION', 'One vote. Sixty seconds.', 'FIRE →', 'pf-op-cl-mission', ++stepNum);
     var x = checklistEl.querySelector('#pf-op-cl-x');
     if (x) x.onclick = function () {
       lsSet(LS_CHECKLIST, 'dismissed');

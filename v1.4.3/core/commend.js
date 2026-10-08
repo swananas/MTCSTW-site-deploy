@@ -109,17 +109,59 @@
 
   /* ---- progress chip + fallback form ---- */
   var chip = null, form = null;
+  function ensureChipCss() {
+    /* 2026-10-08 fix/mobile-visual: bulletproof chip positioning. The chip was
+       rendering as a full-width strip overlapping card content instead of a
+       compact floating pill. Root cause: global CSS rules interfering with
+       the inline styles (missing left:auto/width:auto allowed stretching).
+       Using a <style> element with !important on all critical properties. */
+    if (document.getElementById('pf-commend-css')) return;
+    try {
+      var s = document.createElement('style');
+      s.id = 'pf-commend-css';
+      s.textContent =
+        '#pf-commend-chip{' +
+        'position:fixed !important;' +
+        'right:12px !important;' +
+        'left:auto !important;' +
+        'top:auto !important;' +
+        'bottom:132px !important;' +
+        'width:auto !important;' +
+        'max-width:210px !important;' +
+        'min-width:0 !important;' +
+        'box-sizing:border-box !important;' +
+        'z-index:9998 !important;' +
+        'cursor:pointer !important;' +
+        'background:#0a0a0a !important;' +
+        'color:#fff !important;' +
+        'border:1px solid #c1121f !important;' +
+        'border-radius:10px !important;' +
+        'padding:8px 12px !important;' +
+        'font:700 11px/1.4 system-ui,Arial,sans-serif !important;' +
+        'letter-spacing:.06em !important;' +
+        'box-shadow:0 4px 18px rgba(0,0,0,.5) !important;' +
+        'text-align:left !important;' +
+        'margin:0 !important;' +
+        '}' +
+        '#pf-commend-form{' +
+        'position:fixed !important;' +
+        'right:12px !important;' +
+        'left:auto !important;' +
+        'top:auto !important;' +
+        'bottom:184px !important;' +
+        'width:240px !important;' +
+        'max-width:calc(100vw - 24px) !important;' +
+        'box-sizing:border-box !important;' +
+        'z-index:9999 !important;' +
+        '}';
+      document.head.appendChild(s);
+    } catch (e) {}
+  }
   function ensureChrome() {
     if (chip) return;
+    ensureChipCss();
     chip = document.createElement('div');
     chip.id = 'pf-commend-chip';
-    chip.setAttribute('style',
-      'position:fixed;right:12px;bottom:132px;z-index:9998;cursor:pointer;' + /* 2026-10-07
-   fix/homepage-3-bugs: was bottom:64px, overlapping the ASK KARL button
-   (bottom:76px, ~48px tall). Stacked above it with an 8px gap. */ +
-      'background:#0a0a0a;color:#fff;border:1px solid #c1121f;border-radius:10px;' +
-      'padding:8px 12px;font:700 11px/1.4 system-ui,Arial,sans-serif;letter-spacing:.06em;' +
-      'box-shadow:0 4px 18px rgba(0,0,0,.5);max-width:220px;text-align:left;');
     chip.title = 'Tap to commend a callsign';
     chip.addEventListener('click', function () {
       /* Fail-soft tap behavior (2026-10-05 legacy auth fix): a failed status

@@ -37,6 +37,9 @@
     /* 2026-10-05 (fe/state-legislatures): state legislature directory. */
     ['stateleg', 'pf-ov-stateleg'],
     ['notify-prefs', 'pf-ov-notify-prefs'],
+    /* Vote Alerts (2026-10-05): tripwire prefs + #va-<id> alert cards.
+       KILL: ?pf_off=vote-alerts */
+    ['vote-alerts', 'pf-ov-vote-alerts'],
     ['governance', 'pf-ov-gov'],
     ['intel', 'pf-ov-intel'],
     ['nonprofits', 'pf-ov-nonprofits']

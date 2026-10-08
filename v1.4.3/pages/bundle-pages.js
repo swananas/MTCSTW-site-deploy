@@ -839,6 +839,9 @@
     /* 2026-10-05 (fe/state-legislatures): state legislature directory. */
     ['stateleg', 'pf-ov-stateleg'],
     ['notify-prefs', 'pf-ov-notify-prefs'],
+    /* Vote Alerts (2026-10-05): tripwire prefs + #va-<id> alert cards.
+       KILL: ?pf_off=vote-alerts */
+    ['vote-alerts', 'pf-ov-vote-alerts'],
     ['governance', 'pf-ov-gov'],
     ['intel', 'pf-ov-intel'],
     ['nonprofits', 'pf-ov-nonprofits']
@@ -2826,6 +2829,12 @@
           +'<button class="c-btn" data-remit-back="'+n.id+'" data-from="'+esc(fromCs)+'" data-amt="'+rAmt+'">SEND BACK</button></div>';
       } else if(!n.read){
         h+='<button class="c-btn" data-nid="'+n.id+'">MARK READ</button>';
+      }
+      /* Vote Alerts (2026-10-05): one-tap CALL NOW deep link into the alert
+         card on Political HQ. The backend supplies n.url (the #va-<id>
+         deep link); TYPE_DEEP covers pre-url rows. */
+      if(String(n.type||'').toLowerCase()==='votealert'&&dest){
+        h+='<div style="margin-top:6px"><a class="c-btn" href="'+esc(dest)+'" style="background:#c1121f;color:#fff;font-weight:900;">\u260E CALL NOW &rarr;</a></div>';
       }
       h+='</div>';
     }

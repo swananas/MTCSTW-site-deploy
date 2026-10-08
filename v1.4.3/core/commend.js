@@ -74,14 +74,20 @@
     'bad receiver': 'That callsign does not look right — 3 to 20 letters, numbers, underscores.',
     'unauthorized': 'Claim your callsign first, then commend away.',
     'missing credentials': 'Claim your callsign first, then commend away.',
+    'legacy_callsign': "This callsign predates the new auth system — contact MTCSTW to recover it.",
     'db error': 'The line cut out — try the commend again.'
   };
   function errCopy(code) {
-    return ERR_COPY[String(code || '')] || 'The commend did not go through — try again.';
+    var c = String(code || '');
+    /* Raw fallback paths surface the backend's 'claim unavailable' prose —
+       map it to the same recovery copy as the stable code. */
+    if (c === 'legacy_callsign' || c.indexOf('claim unavailable') !== -1)
+      return ERR_COPY['legacy_callsign'];
+    return ERR_COPY[c] || 'The commend did not go through — try again.';
   }
 
   /* ---- state ---- */
-  var ST = { used: false, gives: 0, priority: false, loaded: false, sent: {} };
+  var ST = { used: false, gives: 0, priority: false, loaded: false, sent: {}, failed: false, legacy: false };
 
   function refreshStatus(cb) {
     var id = ident();
@@ -115,7 +121,14 @@
       'padding:8px 12px;font:700 11px/1.4 system-ui,Arial,sans-serif;letter-spacing:.06em;' +
       'box-shadow:0 4px 18px rgba(0,0,0,.5);max-width:220px;text-align:left;');
     chip.title = 'Tap to commend a callsign';
-    chip.addEventListener('click', function () { toggleForm(); });
+    chip.addEventListener('click', function () {
+      /* Fail-soft tap behavior (2026-10-05 legacy auth fix): a failed status
+         read retries on tap; a legacy-unclaimable callsign opens the form
+         with recovery copy instead of hanging on LOADING. */
+      if (ST.failed && !ST.legacy) { refreshStatus(function () { mountOnItems(); }); return; }
+      toggleForm();
+      if (ST.legacy) setFormMsg(ERR_COPY['legacy_callsign']);
+    });
     document.body.appendChild(chip);
 
     form = document.createElement('div');
@@ -157,6 +170,13 @@
       label = '<span style="color:#ff5a5f;">PRIORITY EARNED</span><br>AMBUSH EARLY ACCESS';
     } else if (!ST.loaded) {
       label = 'COMMENDS — LOADING';
+    } else if (ST.failed && ST.legacy) {
+      /* Legacy-unclaimable callsign: never LOADING, never a dead button —
+         tap opens the form with recovery copy. */
+      label = '<span style="color:#ff5a5f;">COMMENDS — RECOVER</span><br>TAP FOR HELP';
+    } else if (ST.failed) {
+      /* Network/backend failure: tap retries the status read. */
+      label = 'COMMENDS — OFFLINE<br>TAP TO RETRY';
     } else if (ST.used) {
       label = 'COMMENDS ' + ST.gives + '/5 — BACK AT MIDNIGHT';
     } else {

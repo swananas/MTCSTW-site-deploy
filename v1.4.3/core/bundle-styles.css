@@ -1597,3 +1597,307 @@ button.pf-chip:hover,a.pf-chip:hover{border-color:var(--pf-red);color:#fff;}
 @media (prefers-reduced-motion:reduce){
   #pf-v2 #pf-hero-cta,#pf-v2 #pf-closer-grid a{transition:none;}
 }
+/* ============================================================================
+   44-BUTTON-BUTTER.CSS — Full button optimization + butter sweep (2026-10-08)
+   CEO directive: unify every button/CTA/control into one system, butter the
+   interactive surfaces. Butter standard: premium, editorial, smooth, restrained.
+
+   TIER SYSTEM (one primary action per viewport — if everything screams, nothing does):
+     .pf-bbtn            primary: solid red, the ONE loud action per screen
+     .pf-bbtn-outline    secondary: 2px outline, quiet but present
+     .pf-bbtn-ghost      tertiary: text-only, for de-emphasized actions
+     .pf-bbtn-pill       pill variant (any tier via .pf-bbtn-outline/.pf-bbtn-ghost)
+     .pf-bbtn-icon       icon-only: 44px hit area, visual stays small
+   SIZES: .pf-bbtn-sm / .pf-bbtn-lg / .pf-bbtn-block
+   STATES: :hover / :active (0.97 press) / :focus-visible (gold ring) /
+           :disabled / .is-loading (spinner)
+   ============================================================================ */
+
+/* ---- A. CANONICAL BUTTON BASE ---- */
+.pf-bbtn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:44px;padding:12px 24px;box-sizing:border-box;
+  font-family:var(--pf-font-display);font-size:13px;font-weight:900;
+  letter-spacing:2px;text-transform:uppercase;text-decoration:none;text-align:center;
+  color:#fff;background:var(--pf-red);border:0;border-radius:3px;cursor:pointer;
+  transition:background .18s var(--pf-ease),transform .12s ease,
+    box-shadow .18s var(--pf-ease),color .18s var(--pf-ease),
+    border-color .18s var(--pf-ease),opacity .18s ease;
+  -webkit-tap-highlight-color:transparent;user-select:none;
+}
+.pf-bbtn:hover{background:var(--pf-red-dark);box-shadow:var(--pf-glow-red);}
+.pf-bbtn:active{transform:scale(.97);box-shadow:none;}
+.pf-bbtn:focus-visible{outline:2px solid var(--pf-gold);outline-offset:3px;}
+.pf-bbtn:disabled,.pf-bbtn[aria-disabled="true"]{
+  opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;pointer-events:none;
+}
+
+/* ---- B. TIERS ---- */
+.pf-bbtn-outline{
+  background:transparent;color:var(--pf-cream);
+  border:2px solid var(--pf-border-light);
+}
+.pf-bbtn-outline:hover{background:rgba(193,18,31,.12);border-color:var(--pf-red);color:#fff;box-shadow:none;}
+.pf-bbtn-outline:active{transform:scale(.97);}
+.pf-bbtn-ghost{
+  background:transparent;color:var(--pf-cream);border:0;min-height:44px;
+  padding:12px 16px;
+}
+.pf-bbtn-ghost:hover{background:rgba(255,255,255,.06);color:#fff;box-shadow:none;}
+.pf-bbtn-ghost:active{transform:scale(.97);}
+.pf-bbtn-pill{border-radius:999px;}
+
+/* ---- C. SIZES ---- */
+.pf-bbtn-sm{min-height:40px;padding:8px 16px;font-size:11px;letter-spacing:1.5px;}
+.pf-bbtn-lg{min-height:52px;padding:15px 32px;font-size:15px;}
+.pf-bbtn-block{display:flex;width:100%;margin-left:0;margin-right:0;}
+
+/* ---- D. ICON-ONLY BUTTONS: 44px hit area, visual stays small ----
+   Wrap any icon (magnifier, ×, chevron) — the button is 44px, the glyph isn't. */
+.pf-bbtn-icon{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:44px;height:44px;min-width:44px;min-height:44px;padding:0;
+  background:transparent;border:0;border-radius:50%;cursor:pointer;color:var(--pf-cream);
+  transition:background .18s var(--pf-ease),transform .12s ease,color .18s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.pf-bbtn-icon:hover{background:rgba(255,255,255,.08);color:#fff;}
+.pf-bbtn-icon:active{transform:scale(.93);}
+.pf-bbtn-icon:focus-visible{outline:2px solid var(--pf-gold);outline-offset:2px;}
+.pf-bbtn-icon svg{width:20px;height:20px;flex:0 0 auto;pointer-events:none;}
+
+/* ---- E. LOADING STATE: spinner replaces label, button stays sized ---- */
+.pf-bbtn.is-loading,.pf-btn.is-loading,.c-btn.is-loading{
+  pointer-events:none;color:transparent!important;position:relative;
+}
+.pf-bbtn.is-loading::after,.pf-btn.is-loading::after,.c-btn.is-loading::after{
+  content:"";position:absolute;top:50%;left:50%;width:18px;height:18px;
+  margin:-9px 0 0 -9px;border-radius:50%;
+  border:2px solid rgba(255,255,255,.35);border-top-color:#fff;
+  animation:pf-bbtn-spin .7s linear infinite;
+}
+@keyframes pf-bbtn-spin{to{transform:rotate(360deg);}}
+
+/* ============================================================================
+   F. EXISTING CLASS UNIFICATION — map the wild variants onto the system.
+   No selectors removed, no markup changes needed. One-off styles get absorbed.
+   ============================================================================ */
+
+/* Primary family: unify press feel + radius + min-height */
+.pf-btn,.c-btn,.cs-betbtn,.cs-takebtn,.gv-yes,.dp-acc,.dp-dec,.dp-end,
+.vd-open,.vd-upload,.br-ubtn,.cp-mbtn,
+.pf-pat-join,.pf-pat-deploy-red{
+  min-height:44px;border-radius:3px;
+  transition:background .18s var(--pf-ease),transform .12s ease,
+    box-shadow .18s var(--pf-ease),color .18s var(--pf-ease),
+    border-color .18s var(--pf-ease);
+  -webkit-tap-highlight-color:transparent;
+}
+.pf-btn:active,.c-btn:active,.cs-betbtn:active,.cs-takebtn:active,
+.gv-yes:active,.dp-acc:active,.dp-dec:active,.dp-end:active,
+.vd-open:active,.vd-upload:active,.br-ubtn:active,.cp-mbtn:active,
+.pf-pat-join:active,.pf-pat-deploy-red:active{
+  transform:scale(.97);
+}
+/* Small variants keep 40px floor (dense but still tappable) */
+.pf-btn-sm,.c-btn-sm,.pf-btn-sm.pf-bbtn{min-height:40px;border-radius:3px;}
+
+/* Card CTA "DEPLOY →": consistent, uncramped, one voice */
+.pf-pat-deploy{
+  display:inline-flex;align-items:center;gap:6px;
+  min-height:44px;padding:10px 4px;
+  font-size:14px;letter-spacing:1px;
+}
+.pf-pat-deploy:focus-visible{outline:2px solid var(--pf-gold);outline-offset:2px;}
+
+/* Report/text links: ghost tier behavior */
+.pf-pat-report,.pf-pat-textlink{min-height:44px;display:inline-flex;align-items:center;}
+
+/* Bottom dock buttons (nuke strip): unify with system feel */
+#pf-nuke-stick .pns-act{
+  min-height:44px;border-radius:3px;font-size:12px;letter-spacing:1px;
+  transition:background .18s var(--pf-ease),transform .12s ease,
+    border-color .18s var(--pf-ease),color .18s var(--pf-ease);
+  -webkit-tap-highlight-color:transparent;
+}
+#pf-nuke-stick .pns-act:active{transform:scale(.97);}
+#pf-nuke-stick .pns-act:focus-visible{outline:2px solid var(--pf-gold);outline-offset:2px;}
+#pf-nuke-stick .pns-x{
+  min-width:44px;min-height:44px;display:inline-flex;align-items:center;
+  justify-content:center;border-radius:50%;
+}
+#pf-nuke-stick .pns-x:focus-visible{outline:2px solid var(--pf-gold);outline-offset:2px;}
+#pf-nuke-stick .pns-tap{
+  min-height:44px;border-radius:3px;
+}
+#pf-nuke-stick .pns-tap:focus-visible{outline:2px solid var(--pf-gold);outline-offset:2px;}
+
+/* Hierarchy: demote competing reds inside cards.
+   Only ONE solid-red action per card — siblings go outline. */
+.pf-pat-intel .pf-pat-deploy-red ~ .pf-pat-deploy-red,
+.pf-card .pf-pat-deploy-red ~ .pf-pat-deploy-red{
+  background:transparent;border:2px solid var(--pf-border-light);color:var(--pf-cream);
+}
+.pf-pat-intel .pf-pat-deploy-red ~ .pf-pat-deploy-red:hover,
+.pf-card .pf-pat-deploy-red ~ .pf-pat-deploy-red:hover{
+  border-color:var(--pf-red);color:#fff;background:rgba(193,18,31,.12);
+}
+
+/* ============================================================================
+   G. TAB ROWS (SHARE THIS INTEL / TAKE THIS TO YOUR CELL / REPORT BACK)
+   Sharing is sacrosanct — keep every tab, just butter them: refined type,
+   hairline dividers, generous touch areas, smooth press feedback.
+   ============================================================================ */
+.pf-pat-actions{
+  display:flex;border-top:1px solid #2a2a2a;border-bottom:1px solid #2a2a2a;
+  margin:20px 0 0;padding:0;
+}
+.pf-pat-actions a,.pf-pat-actions span,.pf-pat-actions button{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  min-height:48px;padding:12px 8px;text-align:center;
+  font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  line-height:1.5;color:var(--pf-cream);text-decoration:none;
+  border-right:1px solid #2a2a2a;background:transparent;cursor:pointer;
+  transition:color .18s var(--pf-ease),background .18s var(--pf-ease);
+  -webkit-tap-highlight-color:transparent;
+}
+.pf-pat-actions a:last-child,.pf-pat-actions span:last-child,
+.pf-pat-actions button:last-child{border-right:0;}
+.pf-pat-actions a:hover,.pf-pat-actions button:hover{color:#fff;background:rgba(255,255,255,.04);}
+.pf-pat-actions a:active,.pf-pat-actions button:active{
+  background:rgba(193,18,31,.12);transform:scale(.98);
+}
+.pf-pat-actions a:focus-visible,.pf-pat-actions button:focus-visible{
+  outline:2px solid var(--pf-gold);outline-offset:-2px;
+}
+.pf-pat-actions span.pat-disabled{color:#6a6a6a;cursor:default;}
+
+/* ============================================================================
+   H. SPACING RHYTHM — consistent vertical cadence, no random gaps.
+   Sections breathe on the 8px grid; cards stack with uniform gutters.
+   ============================================================================ */
+.pf-section,.pf-pat-section{margin:0 0 var(--pf-space-2xl);}
+.pf-section > *:last-child,.pf-pat-section > *:last-child{margin-bottom:0;}
+.pf-stack > * + *{margin-top:var(--pf-space-lg);}
+.pf-stack-sm > * + *{margin-top:var(--pf-space-sm);}
+.pf-stack-lg > * + *{margin-top:var(--pf-space-2xl);}
+/* Card internals: uniform gutters, no cramped stacks */
+.pf-pat-intel,.pf-card,.x-pane,.pb-card{
+  padding:var(--pf-space-lg);
+}
+.pf-pat-intel > * + *,.pf-card > * + *{margin-top:var(--pf-space-md);}
+/* Kill double margins where action bars follow cards */
+.pf-pat-intel .pf-pat-actions:last-child,
+.pf-card .pf-pat-actions:last-child{margin-bottom:calc(-1 * var(--pf-space-lg));}
+
+/* ============================================================================
+   I. LOADING SKELETONS — shimmer for async content areas.
+   Extends the 02:36 butter pass: any [data-loading] region gets the treatment.
+   ============================================================================ */
+.pf-skeleton,.pf-pat-skeleton,[data-loading] .pf-skeleton-target{
+  position:relative;overflow:hidden;background:var(--pf-dark-3);
+  border-radius:3px;min-height:20px;color:transparent!important;
+  pointer-events:none;user-select:none;
+}
+.pf-skeleton::after,.pf-pat-skeleton::after,[data-loading] .pf-skeleton-target::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.07) 50%,transparent 80%);
+  animation:pf-skel-shimmer 1.6s var(--pf-ease) infinite;
+}
+@keyframes pf-skel-shimmer{from{transform:translateX(-100%);}to{transform:translateX(100%);}}
+.pf-skeleton-text{display:block;height:14px;margin:8px 0;}
+.pf-skeleton-title{display:block;height:22px;width:60%;margin:0 0 12px;}
+.pf-skeleton-card{display:block;min-height:120px;margin:0 0 var(--pf-space-lg);}
+
+/* ============================================================================
+   J. FOCUS SYSTEM — every interactive element gets an intentional ring.
+   Gold, 2px, offset — consistent everywhere, no exceptions.
+   ============================================================================ */
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,
+textarea:focus-visible,[tabindex]:focus-visible,[role="button"]:focus-visible{
+  outline:2px solid var(--pf-gold)!important;outline-offset:2px;
+}
+/* Never show focus ring on mouse click — keyboard only */
+button:focus:not(:focus-visible),a:focus:not(:focus-visible){
+  outline:none;
+}
+
+/* ============================================================================
+   K. CONTRAST GUARDS — every text/background combo in this sweep passes.
+   #e5383b on #0a0a0a = 4.68:1 (body). Muted grays never below #8a8a8a on dark.
+   ============================================================================ */
+.pf-bbtn-ghost{color:#f5ead6;}
+.pf-pat-actions a,.pf-pat-actions button{color:#f5ead6;}
+.pf-pat-actions span.pat-disabled{color:#8a8a8a;}
+/* Disabled buttons keep readable label */
+.pf-bbtn:disabled,.pf-btn:disabled,.c-btn:disabled{opacity:.5;}
+
+/* ============================================================================
+   L. REDUCED MOTION — all animation off, state changes stay instant + clear.
+   ============================================================================ */
+@media (prefers-reduced-motion:reduce){
+  .pf-bbtn,.pf-bbtn-icon,
+  .pf-btn,.c-btn,.cs-betbtn,.cs-takebtn,.gv-yes,.dp-acc,.dp-dec,.dp-end,
+  .vd-open,.vd-upload,.br-ubtn,.cp-mbtn,
+  .pf-pat-join,.pf-pat-deploy-red,.pf-pat-deploy,.pf-pat-report,
+  .pf-pat-actions a,.pf-pat-actions button,
+  #pf-nuke-stick .pns-act,.pf-skeleton::after,.pf-pat-skeleton::after,
+  [data-loading] .pf-skeleton-target::after{
+    transition:none!important;animation:none!important;transform:none!important;
+  }
+  .pf-bbtn.is-loading::after,.pf-btn.is-loading::after,.c-btn.is-loading::after{
+    animation:none!important;border-top-color:rgba(255,255,255,.35);
+  }
+}
+
+/* ============================================================================
+   M. MOBILE 390px — buttons never collide with the 56px header or bottom dock.
+   Full-width primaries get thumb-friendly spacing; icon buttons keep clear.
+   ============================================================================ */
+@media (max-width:480px){
+  .pf-bbtn-block{margin-bottom:var(--pf-space-sm);}
+  .pf-bbtn-block:last-child{margin-bottom:0;}
+  /* Dock-adjacent content: last section clears the fixed bottom bar */
+  body:has(#pf-nuke-stick:not([hidden])) main{padding-bottom:8px;}
+  /* Tab rows: slightly tighter type on narrow screens, same 48px targets */
+  .pf-pat-actions a,.pf-pat-actions span,.pf-pat-actions button{
+    font-size:10px;letter-spacing:1px;padding:12px 4px;
+  }
+}
+
+/* Header controls (new 56px topbar): 44px touch floors.
+   The shell inlines 40px for #pf-topbar-search — this outranks it. */
+#pf-topbar-search{
+  width:44px!important;height:44px!important;min-width:44px;min-height:44px;
+  transition:background .18s var(--pf-ease),border-color .18s var(--pf-ease),
+    color .18s var(--pf-ease),transform .12s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+#pf-topbar-search:active{transform:scale(.93);}
+#pf-topbar-search:focus-visible{outline:2px solid var(--pf-gold);outline-offset:2px;}
+#pf-userchip button,#pf-userchip [role="button"]{min-height:44px;}
+
+/* ASK KARL floating button: keep clear of bottom dock, 44px+ target */
+#pf-ask-karl,.pf-ask-karl{
+  min-height:48px;min-width:48px;
+  transition:transform .12s ease,box-shadow .18s var(--pf-ease);
+  -webkit-tap-highlight-color:transparent;
+}
+#pf-ask-karl:active,.pf-ask-karl:active{transform:scale(.95);}
+#pf-ask-karl:focus-visible,.pf-ask-karl:focus-visible{
+  outline:2px solid var(--pf-gold);outline-offset:2px;
+}
+
+/* .pf-se-loading: referenced by pages JS ("PULLING THE NUMBERS…") but never
+   styled — give it the skeleton treatment instead of naked text. */
+.pf-se-loading{
+  position:relative;overflow:hidden;background:var(--pf-dark-3);
+  border-radius:3px;min-height:48px;margin:12px 0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;letter-spacing:2px;color:var(--pf-muted);text-transform:uppercase;
+}
+.pf-se-loading::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.07) 50%,transparent 80%);
+  animation:pf-skel-shimmer 1.6s var(--pf-ease) infinite;
+}

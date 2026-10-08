@@ -4,17 +4,60 @@ Each shell loads v1.4.3 bundles via relative paths (no footer loader, no pins, n
 Based on ship-loader/footer-v152.html routing logic.
 """
 import os
+import re
+import subprocess
+import datetime
 
 SITE = os.path.dirname(os.path.abspath(__file__))
 BASE = "https://www.mtcstw.com"
 ICON = "/v1.4.3/pwa/icon-512.png"
+
+
+def get_build_id():
+    """Unique build ID per site build: timestamp + short git hash."""
+    ts = datetime.datetime.now().strftime('%Y%m%d-%H%M')
+    try:
+        gh = subprocess.check_output(
+            ['git', 'rev-parse', '--short', 'HEAD'],
+            cwd=SITE, stderr=subprocess.DEVNULL).decode().strip()
+    except Exception:
+        gh = 'nogit'
+    return '%s-%s' % (ts, gh)
+
+
+# PWA self-healing update check (inline, runs before bundles).
+# If the live version.json disagrees with this shell's build ID, the SW
+# registrations are unregistered, all caches are wiped, and the page reloads.
+# Passed to the shell template as {selfcheck_js} (format values are not
+# re-processed, so the JS braces below are safe).
+SELFCHECK_JS = """(function(){
+  try{
+    var cur = window.__PF_BUILD; if(!cur) return;
+    if(sessionStorage.getItem('pf_upd_'+cur)) return; // already handled this build
+    fetch('/version.json',{cache:'no-store'}).then(function(r){return r.json();}).then(function(v){
+      if(v && v.build && v.build!==cur){
+        sessionStorage.setItem('pf_upd_'+v.build,'1');
+        var done=function(){ location.reload(); };
+        if('serviceWorker' in navigator){
+          navigator.serviceWorker.getRegistrations().then(function(rs){
+            return Promise.all(rs.map(function(r){return r.unregister();}));
+          }).then(function(){
+            if(window.caches){ return caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){return caches.delete(k);})); }); }
+          }).then(done).catch(done);
+        } else done();
+      }
+    }).catch(function(){});
+    // Aggressive SW update check
+    if('serviceWorker' in navigator){ navigator.serviceWorker.ready.then(function(r){ try{ r.update(); }catch(e){} }); }
+  }catch(e){}
+})();"""
 
 # route -> config
 ROUTES = {
     "/": {
         "title": "The Propaganda Factory — JOIN THE FIGHT.",
         "desc": "62 sick radicals. Real data on the billionaires. Daily missions. Claim your callsign.",
-        "mounts": ["pf-v2", "pf-dashboard"],
+        "mounts": ["pf-v2", "pf-dashboard", "xBrief"],
         "core": "bundle-core-slr.js",
         "games": ["games/bundle-sec1.js", "games/bundle-userdash.js"],
     },
@@ -112,7 +155,7 @@ ROUTES = {
     "/war-report": {
         "title": "War Report — The Week That Was.",
         "desc": "Straight from Command. Read it. Now move.",
-        "mounts": ["pf-warreport"],
+        "mounts": ["pf-warreport", "xWarReport"],
         "core": "bundle-core.js",
         "games": ["games/bundle-warreport.js"],
     },
@@ -165,6 +208,63 @@ ROUTES = {
         "core": "bundle-core-slr.js",
         "games": ["games/bundle-roster.js"],
     },
+    # ---- PROJECT BLOSSOM (rebuilt 2026-10-08 after migration wipe) ----
+    "/dossier": {
+        "title": "Dossier Builder — Build the Case.",
+        "desc": "Compile dossiers on the powerful. Evidence, sourced and shareable.",
+        "mounts": ["pf-dossier"],
+        "core": "bundle-core.js",
+        "games": ["games/bundle-dossier.js"],
+    },
+    "/receipt": {
+        "title": "The Receipt — Follow the Money.",
+        "desc": "Every claim needs a receipt. Search the money trails.",
+        "mounts": ["pf-receipt"],
+        "core": "bundle-core.js",
+        "games": ["games/bundle-receipt.js"],
+    },
+    "/town": {
+        "title": "Your Town — Local Power, Mapped.",
+        "desc": "Who runs your town? Reps, money, and pressure points — by zip code.",
+        "mounts": ["pf-town"],
+        "core": "bundle-core.js",
+        "games": ["core/bundle-town.js"],
+    },
+    "/town-report": {
+        "title": "Town Reports — Dispatches From the Ground.",
+        "desc": "On-the-ground reports from your town. Filed by the people who live there.",
+        "mounts": ["pf-town-report"],
+        "core": "bundle-core.js",
+        "games": ["core/bundle-town-report.js"],
+    },
+    "/story-remixer": {
+        "title": "Story Remixer — Remix the Narrative.",
+        "desc": "Take their stories apart and rebuild them. Your remix, your message.",
+        "mounts": ["pf-ugc-remix"],
+        "core": "bundle-core.js",
+        "games": ["pages/bundle-ugc-remix.js"],
+    },
+    "/extract": {
+        "title": "Extraction Engine — Who's Profiting Off You.",
+        "desc": "The companies extracting wealth from your community, profiled.",
+        "mounts": ["pf-extraction"],
+        "core": "bundle-core.js",
+        "games": ["pages/bundle-extraction.js"],
+    },
+    "/corruption-index": {
+        "title": "The Corruption Index — Ranked and Sourced.",
+        "desc": "The powerful, ranked by corruption. Methodology public, receipts attached.",
+        "mounts": ["pf-index"],
+        "core": "bundle-core.js",
+        "games": ["pages/index-page.js"],
+    },
+    "/karl": {
+        "title": "Ask Karl — Your Comrade in the Machine.",
+        "desc": "Ask Karl anything. He knows the data, the money, and the fight.",
+        "mounts": ["pf-karl"],
+        "core": "bundle-core.js",
+        "games": ["core/karl-page.js"],
+    },
 }
 
 SHELL_TEMPLATE = """<!DOCTYPE html>
@@ -191,25 +291,43 @@ SHELL_TEMPLATE = """<!DOCTYPE html>
 <style>
   html,body{{margin:0;padding:0;background:#0a0a0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}}
   #pf-boot{{min-height:100vh;}}
-  .pf-shell-nav{{position:sticky;top:0;z-index:100;background:rgba(10,10,10,.95);backdrop-filter:blur(10px);border-bottom:1px solid #c1121f;padding:12px 16px;display:flex;align-items:center;gap:16px;}}
-  .pf-shell-nav a{{color:#fff;text-decoration:none;font-weight:700;font-size:14px;letter-spacing:.05em;}}
-  .pf-shell-nav a:hover{{color:#c1121f;}}
-  .pf-shell-brand{{color:#c1121f!important;font-size:18px!important;letter-spacing:.1em!important;}}
+  .pf-topbar{{position:sticky;top:0;z-index:10000;height:56px;display:flex;align-items:center;gap:10px;padding:0 12px;background:rgba(10,10,10,.96);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:2px solid #c1121f;box-sizing:border-box;}}
+  .pf-topbar-brand{{color:#c1121f;font-weight:900;font-size:18px;letter-spacing:.1em;text-decoration:none;flex:0 0 auto;}}
+  .pf-topbar-nav{{display:flex;align-items:center;gap:14px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;white-space:nowrap;flex:1 1 auto;min-width:0;}}
+  .pf-topbar-nav::-webkit-scrollbar{{display:none;}}
+  .pf-topbar-nav a{{color:#fff;text-decoration:none;font-weight:700;font-size:13px;letter-spacing:.05em;flex:0 0 auto;padding:10px 2px;}}
+  .pf-topbar-nav a:hover{{color:#e5383b;}}
+  .pf-topbar-right{{margin-left:auto;display:flex;align-items:center;gap:8px;flex:0 0 auto;}}
+  #pf-topbar-search{{width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:none;border:1px solid #2a2a2a;border-radius:50%;color:#f5ead6;cursor:pointer;flex:0 0 auto;padding:0;}}
+  #pf-topbar-search:hover{{border-color:#c1121f;color:#fff;}}
+  #pf-topbar-search svg{{width:18px;height:18px;display:block;}}
+  #pf-topbar-user{{flex:0 0 auto;min-width:0;display:flex;}}
+  #pf-topbar-panel{{position:absolute;top:56px;left:0;right:0;background:rgba(8,8,8,.98);border-bottom:1px solid #2a2a2a;z-index:9999;box-shadow:0 12px 32px rgba(0,0,0,.5);}}
+  #pf-topbar-panel[hidden]{{display:none;}}
   .pf-skip-link{{position:absolute;left:-9999px;top:0;background:#e5383b;color:#0a0a0a;font:bold 14px sans-serif;padding:12px 20px;z-index:100000;text-decoration:none;}}
   .pf-skip-link:focus{{left:0;}}
 </style>
+<script>window.__PF_BUILD="{build_id}";</script>
+<script>{selfcheck_js}</script>
 </head>
 <body>
 <a href="#main" class="pf-skip-link">Skip to main content</a>
 <div id="pf-boot">
-  <nav class="pf-shell-nav" aria-label="Main">
-    <a href="/" class="pf-shell-brand">MTCSTW</a>
+<header class="pf-topbar">
+  <a href="/" class="pf-topbar-brand">MTCSTW</a>
+  <nav class="pf-topbar-nav" aria-label="Main">
     <a href="/arcade">ARCADE</a>
     <a href="/cells">CELLS</a>
     <a href="/create">CREATE</a>
     <a href="/sick-left-radicals">RADICALS</a>
     <a href="/money">MONEY</a>
   </nav>
+  <div class="pf-topbar-right">
+    <button id="pf-topbar-search" type="button" aria-label="Search the site"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.8-3.8"/></svg></button>
+    <div id="pf-topbar-user"></div>
+  </div>
+  <div id="pf-topbar-panel" hidden></div>
+</header>
 <main id="main">
 {mounts}
 </main>
@@ -285,7 +403,47 @@ SHELL_TEMPLATE = """<!DOCTYPE html>
 
 import json
 
+def version_sw_cache(build_id):
+    """Give the built site/sw.js a per-build cache name so SW updates
+    always start from a clean cache. The SW's activate handler already
+    deletes caches whose name doesn't match, so old caches self-purge."""
+    # Canonical source first, fall back to patching the existing site copy.
+    candidates = [
+        os.environ.get('PF_PWA_SRC') or '',
+        os.path.expanduser('~/workspace/mtcstw-site-deploy/v1.4.3/pwa/sw.js'),
+    ]
+    src = next((p for p in candidates if p and os.path.isfile(p)), None)
+    dst = os.path.join(SITE, 'sw.js')
+    if src:
+        with open(src, 'r') as f:
+            content = f.read()
+    elif os.path.isfile(dst):
+        with open(dst, 'r') as f:
+            content = f.read()
+    else:
+        print("  WARN: no sw.js source found, skipping cache versioning")
+        return
+    new_name = 'mtcstw-pwa-%s' % build_id
+    content, n = re.subn(r"'mtcstw-pwa-[^']*'", "'%s'" % new_name, content, count=1)
+    if n != 1:
+        print("  WARN: cache-name pattern not found in sw.js, wrote unpatched")
+    with open(dst, 'w') as f:
+        f.write(content)
+    print("  sw.js cache -> %s" % new_name)
+
+
 def build():
+    build_id = get_build_id()
+    print("build id: %s" % build_id)
+
+    # version.json — the self-check script compares this against __PF_BUILD
+    with open(os.path.join(SITE, "version.json"), "w") as f:
+        f.write(json.dumps({"build": build_id}))
+    print("  version.json written")
+
+    # Per-build SW cache name
+    version_sw_cache(build_id)
+
     count = 0
     for route, cfg in ROUTES.items():
         # Directory for this route
@@ -311,6 +469,8 @@ def build():
             core=cfg["core"],
             games_json=json.dumps(cfg["games"]),
             skeleton_calls=skeleton_calls,
+            build_id=build_id,
+            selfcheck_js=SELFCHECK_JS,
         )
 
         with open(os.path.join(dirpath, "index.html"), "w") as f:
@@ -328,17 +488,62 @@ def build():
         title=cfg["title"], desc=cfg["desc"], base=BASE, route="/",
         mounts=mounts_html, core=cfg["core"],
         games_json=json.dumps(cfg["games"]), skeleton_calls=skeleton_calls,
+        build_id=build_id, selfcheck_js=SELFCHECK_JS,
     )
     with open(os.path.join(SITE, "404.html"), "w") as f:
         f.write(html404)
     print("  404 -> %s/404.html" % SITE)
 
-    # _redirects for SPA fallback on Cloudflare Pages
-    with open(os.path.join(SITE, "_redirects"), "w") as f:
-        f.write("/* /index.html 200\n")
-    print("  _redirects written")
+    # _redirects intentionally NOT written: it caused an infinite redirect
+    # loop on the 2026-10-08 deploy (SPA fallback already in wrangler.toml).
+    # Remove it if a previous build left one behind.
+    redir = os.path.join(SITE, "_redirects")
+    if os.path.isfile(redir):
+        os.remove(redir)
+        print("  _redirects removed (loop guard)")
 
-    print("\nDone: %d routes + 404 + _redirects" % count)
+    print("\nDone: %d routes + 404 (build %s)" % (count, build_id))
+
+    # --- Promise Keeper Layer 1: build-time assertion ---
+    # Every registered feature must have built output. If the registry knows a
+    # route but its index.html is missing (e.g. wiped by a migration), the
+    # build FAILS loudly instead of shipping a silent regression.
+    pk_dir = os.path.expanduser("~/workspace/hidden/promise-keeper")
+    reg_path = os.path.join(pk_dir, "live-feature-registry.json")
+    missing = []
+    if os.path.isfile(reg_path):
+        reg = json.load(open(reg_path))
+        for r in reg.get("routes", []):
+            p = r["path"]
+            fpath = os.path.join(SITE, "index.html") if p == "/" else \
+                os.path.join(SITE, p.strip("/"), "index.html")
+            if not os.path.isfile(fpath):
+                missing.append(p)
+        for f in reg.get("pwa_files", []):
+            if not os.path.isfile(os.path.join(SITE, f["path"].lstrip("/"))):
+                missing.append(f["path"])
+    if missing:
+        print("\nPROMISE KEEPER LAYER 1 FAIL — %d registered feature(s) missing from build:"
+              % len(missing))
+        for m in missing:
+            print("  MISSING: %s" % m)
+        raise SystemExit(1)
+    print("  Layer 1: all %d registered routes + %d files present"
+          % (len(reg.get("routes", [])), len(reg.get("pwa_files", []))))
+    # expected_features: approved but not yet (re)built — warn, don't block.
+    # They stay visible in the deploy guard and Layer 4 until they land.
+    exp_missing = [ef["path"] for ef in reg.get("expected_features", [])
+                   if not os.path.isfile(os.path.join(
+                       SITE, ef["path"].strip("/"), "index.html"))]
+    if exp_missing:
+        print("  Layer 1 note: %d approved feature(s) not yet in build (tracked): %s"
+              % (len(exp_missing), ", ".join(exp_missing)))
+
+    # Feed Layer 6: record this build ID as the latest deploy marker
+    os.makedirs(pk_dir, exist_ok=True)
+    with open(os.path.join(pk_dir, "latest-build.txt"), "w") as f:
+        f.write(build_id + "\n")
+    print("  latest-build.txt <- %s" % build_id)
 
 if __name__ == "__main__":
     build()

@@ -1901,3 +1901,51 @@ button:focus:not(:focus-visible),a:focus:not(:focus-visible){
   background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.07) 50%,transparent 80%);
   animation:pf-skel-shimmer 1.6s var(--pf-ease) infinite;
 }
+
+/* ===== ZUCK TEST ROUND 1 FIXES (2026-10-08) ===== */
+/* Clean, minimal, breathable mobile at 390px. No overlap, no clipping. */
+
+@media (max-width: 600px) {
+  /* 1. Front Lines grid: single column for breathing room */
+  .pf-fl-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+
+  /* 2. Card action bars: allow wrapping, prevent microscopic text */
+  .pf-pat-actions { flex-wrap: wrap !important; }
+  .pf-pat-actions a, .pf-pat-actions span {
+    flex: 1 1 30% !important;
+    font-size: 10px !important;
+    padding: 12px 4px !important;
+    min-width: 0 !important;
+    word-break: break-word !important;
+  }
+
+  /* 3. Top nav: breathing room, prevent clipping */
+  .pf-topbar { min-height: 56px !important; padding: 0 12px !important; }
+  .pf-topbar-nav { gap: 10px !important; }
+  /* Hide COMMISSAR text label on tiny screens, keep icon */
+  .pf-topbar .pf-topbar-rank-label { display: none !important; }
+
+  /* 4. Banner: single X button (hide duplicate) */
+  #pf-seasonbar .sb-x:first-of-type { display: none !important; }
+  #pf-seasonbar { padding: 7px 8px !important; }
+  #pf-seasonbar .sb-name { font-size: 11px !important; }
+
+  /* 5. Body clears fixed seasonbar */
+  body { padding-top: 34px !important; }
+  #pf-seasonbar { height: 34px !important; box-sizing: border-box !important; }
+}
+
+/* 6. Safe area for floating elements (iOS Safari) */
+#pf-commend-chip, #pf-commend-form, .pf-ask-karl-btn, [id*="ask-karl"] {
+  margin-bottom: env(safe-area-inset-bottom, 0px) !important;
+}
+
+/* 7. Commend chip: bulletproof fixed positioning */
+#pf-commend-chip {
+  position: fixed !important;
+  right: 12px !important;
+  bottom: 132px !important;
+  z-index: 9998 !important;
+  max-width: 220px !important;
+  box-sizing: border-box !important;
+}

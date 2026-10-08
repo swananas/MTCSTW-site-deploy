@@ -52,6 +52,11 @@ var CORE_FILES = [
      Kill: ?pf_off=patterns. */
   'core/33-patterns.js',
   'core/07-slr-db.js',
+  /* LIVE STANDINGS (2026-10-07, CEO directive): weekly fan-vote tallies —
+     PF.voteStandings. Live pull (public results action) with 8-min cache,
+     pf-vote-live re-render event, zero XP, fail-soft. After slr-db (its
+     companion SLR data rail); needs only the bus (00-bus) + PF_BACKEND_URL. */
+  'core/43-vote-standings.js',
   'core/03-global.js',
   /* wave-live-rails (2026-10-05): site_config client — key dates, tuning
      knobs, small facts. Early: other modules read through PF.siteConfig. */

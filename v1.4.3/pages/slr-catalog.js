@@ -112,6 +112,11 @@
       + (m.score_provisional ? ' <span style="font-size:0.7rem;color:' + MUTED + ';">(provisional)</span>' : '') + '</div>'
       /* R31: aggregate reputation line — filled by repLine() below. */
       + '<div id="pf-repline" style="text-align:center;margin-bottom:0.4rem;font-size:0.95rem;color:' + MUTED + ';min-height:0;"></div>'
+      /* LIVE STANDINGS (2026-10-07): weekly fan-vote line — filled by
+         PF.voteStandings.paint(); renders the count per creator and the
+         ★ LEADING THIS WEEK badge on the frontrunner. Empty until the
+         live pull resolves; skipped slugs render nothing. */
+      + '<div data-pf-votestandings style="text-align:center;margin-bottom:0.4rem;min-height:0;"></div>'
       /* Unified stats (2026-10-05): data-pf-fc is painted live by
          PF.creatorStats.paint(); the snapshot followers_display stays as
          pre-live fallback text only. */
@@ -233,6 +238,18 @@
       try { trackScoutView(slug); } catch (e_scout) {}
       /* R31: paint the aggregate reputation line. */
       try{ repLine(root, member); }catch(e_rep){}
+      /* LIVE STANDINGS (2026-10-07): paint the weekly fan-vote line —
+         live pull with cache fallback (core/43-vote-standings.js), and
+         auto re-render on the pf-vote-live event. Fail-soft throughout;
+         skipped slugs (Jeanine, do-not-touch) render nothing. */
+      try {
+        if (window.PF && PF.voteStandings) {
+          var paintVS = function () { try { PF.voteStandings.paint(root, slug); } catch (e_vsp) {} };
+          paintVS();
+          PF.voteStandings.ensure().then(paintVS);
+          document.addEventListener('pf-vote-live', paintVS);
+        }
+      } catch (e_vs) {}
       /* Efficiency Index: site-pull beacon (one ping per slug per session) +
          paint the live computed score into the [data-eff-score] slot.
          P0: pageview is POST-only — use fetch, not image beacon. */

@@ -87,6 +87,45 @@ function daysToElection(){
 }
 function electionDay(){ return chiYmd()===ELECTION_YMD; }
 function electionOver(){ return chiYmd()>ELECTION_YMD; }
+/* ---------- election-night live mode (2026-10-05) ---------- */
+/* Date-gated on Chicago calendar days: dormant until Nov 3 (countdown +
+   watch-list phase), LIVE across Nov 3–4 (the 48h call window), results
+   archive after. A card shows a call ONLY from backend call data
+   (race_call) — uncalled races read "too early/too close", never an
+   invented result.
+   KILL: ?pf_off=election-live or localStorage pf_disabled_v1='["election-live"]' */
+var EL_OFF=false;
+try{ EL_OFF=!!(window.PF&&PF.skip('election-live')); }catch(e){}
+function elPhase(){
+  if(EL_OFF) return 'off';
+  var ymd=chiYmd();
+  if(ymd<ELECTION_YMD) return 'countdown';
+  if(ymd<=ELECTION_YMD+1) return 'live';
+  return 'results';
+}
+function isTossup(r){ return normRating(r&&r.rating).level==='tossup'; }
+/* "NOV 3, 10:42 PM CT" — America/Chicago, the election's timezone. */
+function fmtCallTime(t){
+  try{
+    var d=new Date(Number(t));
+    if(isNaN(d.getTime())) return '';
+    return new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',month:'short',
+      day:'numeric',hour:'numeric',minute:'2-digit'}).format(d).toUpperCase()+' CT';
+  }catch(e){ return ''; }
+}
+/* Watch list: toss-up races the user wants to check on Nov 3.
+   Local-only private preference — never uploaded, never public. */
+var WATCH_KEY='pf_race_watch_v1';
+function getWatch(){
+  try{ var a=JSON.parse(localStorage.getItem(WATCH_KEY)||'[]'); return Array.isArray(a)?a:[]; }
+  catch(e){ return []; }
+}
+function setWatch(a){ try{ localStorage.setItem(WATCH_KEY,JSON.stringify(a)); }catch(e){} }
+function isWatched(id){
+  var w=getWatch();
+  for(var i=0;i<w.length;i++){ if(String(w[i])===String(id)) return true; }
+  return false;
+}
 /* ---------- state ---------- */
 var RACES=null,            /* normalized races from races_list */
     LIST_UPDATED=null,     /* backend top-level last_updated */
@@ -147,7 +186,12 @@ function normRace(r){
     rating_date:r.rating_date||r.ratingDate||r.source_date||null,
     updated_at:r.updated_at||r.updatedAt||null,
     stale:!!r.stale,
-    stakes:String(r.stakes||r.summary||"")
+    stakes:String(r.stakes||r.summary||""),
+    /* Election-night calls (v83 race_call). Null until a call lands —
+       the card renders "too early/too close", never an invented result. */
+    calledWinner:r.calledWinner||r.called_winner||null,
+    calledAt:r.calledAt||r.called_at||null,
+    calledSource:r.calledSource||r.called_source||null
   };
 }
 /* ---------- dates ---------- */
@@ -210,8 +254,12 @@ function load(){
 }
 /* ---------- render ---------- */
 function countdownHTML(){
+  var phase=elPhase();
   var h='<div class="rc-head">';
-  if(electionDay()){
+  if(phase==='live'){
+    h+='<div class="rc-count rc-live"><span class="rc-livedot" aria-hidden="true"></span> LIVE &mdash; RACE CALLS AS THEY COME IN</div>'
+      +'<div class="rc-framesub">CALLED RACES GET A SHARE CARD THE SECOND THE CALL LANDS.</div>';
+  } else if(electionDay()){
     h+='<div class="rc-count">ELECTION DAY IS HERE</div>'
       +'<div class="rc-framesub">GET OUT. BRING TWO PEOPLE WITH YOU.</div>';
   } else if(electionOver()){
@@ -221,6 +269,12 @@ function countdownHTML(){
     var d=daysToElection();
     h+='<div class="rc-count">'+d+' DAY'+(d===1?"":"S")+' TO ELECTION DAY</div>'
       +'<div class="rc-framesub">NOV 3, 2026. EVERY RACE BELOW IS A BATTLEFIELD.</div>';
+    var w=getWatch();
+    if(w.length){
+      h+='<div class="rc-watchnote">YOU&rsquo;RE WATCHING '+w.length+' RACE'+(w.length===1?"":"S")+' &mdash; CHECK BACK NOV 3.</div>';
+    } else {
+      h+='<div class="rc-watchnote">TAP &#128276; ON A TOSS-UP TO WATCH IT FOR ELECTION NIGHT.</div>';
+    }
   }
   h+='</div>';
   return h;
@@ -311,6 +365,57 @@ function candRow(c){
   h+='</div>';
   return h;
 }
+/* Election-night call block. Renders ONLY from backend call data —
+   uncalled races show the honest "too early/too close" state. In the
+   countdown phase, toss-ups offer a local watch-list toggle. */
+function callHTML(r){
+  var phase=elPhase();
+  if(phase==='off') return '';
+  if(r.calledWinner){
+    var h='<div class="rc-called" role="status"><span class="rc-calledbadge">CALLED</span> '
+      +'<b>'+esc(r.calledWinner)+'</b>';
+    if(r.calledSource) h+=' <span class="rc-callsrc">via '+esc(r.calledSource)+'</span>';
+    if(r.calledAt) h+=' <span class="rc-calltime">'+esc(fmtCallTime(r.calledAt))+'</span>';
+    h+='</div>';
+    h+='<button class="c-btn rc-sharecall" data-rc-sharecall="'+esc(r.id)+'"'
+      +' aria-label="Share the called result for the '+esc(r.state+' '+r.office)+' race">SHARE THE CALL</button>';
+    return h;
+  }
+  if(phase==='live'){
+    return '<div class="x-note rc-tooearly">TOO EARLY / TOO CLOSE TO CALL &mdash; CHECK BACK.</div>';
+  }
+  if(phase==='countdown'&&isTossup(r)){
+    var watching=isWatched(r.id);
+    return '<button class="c-btn rc-remind'+(watching?' rc-on':'')+'" data-rc-remind="'+esc(r.id)+'"'
+      +' aria-pressed="'+watching+'">'
+      +(watching?'&#10003; WATCHING THIS RACE':'&#128276; WATCH THIS RACE')+'</button>';
+  }
+  return '';
+}
+/* One-tap share card for a called race. Data comes straight from the
+   backend call record — the painter renders source + call time as the
+   honesty line. The share rides PFShare.shareImage, so the callsign gate,
+   the idempotent FIGHTING AS stamp, and the once-daily pf-share-image
+   credit all ride along (no new XP faucet). */
+function shareRaceCall(id){
+  var r=null, i;
+  for(i=0;i<(RACES||[]).length;i++){ if(String(RACES[i].id)===String(id)){ r=RACES[i]; break; } }
+  if(!r||!r.calledWinner){ toast('No call on file for this race yet.'); return; }
+  if(!(window.PF&&PF.PHQShare)){ toast('Share unavailable.'); return; }
+  var cs=r.candidates||[], winner=null, loser=null, k;
+  for(k=0;k<cs.length;k++){
+    if(String(cs[k].name)===String(r.calledWinner)) winner=cs[k];
+    else if(!loser) loser=cs[k];
+  }
+  var data={
+    state:r.state, office:r.office,
+    winner:r.calledWinner, winnerParty:winner?winner.party:'',
+    loser:loser?loser.name:'', loserParty:loser?loser.party:'',
+    source:r.calledSource, calledAt:r.calledAt
+  };
+  var title='CALLED: '+r.state+' '+r.office+' \u2014 '+r.calledWinner;
+  PF.PHQShare.share('phq-racecall',data,{title:title,link:'https://www.mtcstw.com/political-hq'});
+}
 function cardHTML(r){
   var h='<article class="rc-card" data-rc-id="'+esc(r.id)+'">';
   h+='<div class="rc-top"><div class="rc-title">'+esc(r.state)+(r.office?" &mdash; "+esc(r.office):"")+'</div>';
@@ -319,6 +424,7 @@ function cardHTML(r){
   if(r.seat) h+='<div class="rc-seat">'+esc(r.seat)+'</div>';
   h+=staleBanner(r);
   h+='<div class="rc-rate-row">'+ratingChip(r)+'<div class="rc-source">'+sourceLine(r)+'</div></div>';
+  h+=callHTML(r);
   var cs=r.candidates||[];
   for(var i=0;i<cs.length;i++) h+=candRow(cs[i]);
   if(r.stakes) h+='<div class="rc-stakes">'+esc(r.stakes)+'</div>';
@@ -396,6 +502,27 @@ function wireControls(el){
     (function(btn){
       btn.onclick=function(){ toggleDetail(btn.getAttribute("data-rc-detail")); };
     })(db[j]);
+  }
+  /* Election-night live mode wiring. */
+  var sc=el.querySelectorAll("[data-rc-sharecall]");
+  for(var s=0;s<sc.length;s++){
+    (function(btn){
+      btn.onclick=function(){ shareRaceCall(btn.getAttribute("data-rc-sharecall")); };
+    })(sc[s]);
+  }
+  var rm=el.querySelectorAll("[data-rc-remind]");
+  for(var m=0;m<rm.length;m++){
+    (function(btn){
+      btn.onclick=function(){
+        var id=btn.getAttribute("data-rc-remind"), w=getWatch(), out=[], found=false, i;
+        for(i=0;i<w.length;i++){
+          if(String(w[i])===String(id)){ found=true; } else { out.push(w[i]); }
+        }
+        if(!found) out.push(id);
+        setWatch(out);
+        render(); /* re-render so the header watch count stays true */
+      };
+    })(rm[m]);
   }
 }
 function toggleDetail(id){

@@ -145,7 +145,8 @@ function renderComplete(){
     h+='<div class="cp-lead"><span class="cp-lrank">'+(q+1)+'.</span> <span class="cp-lname">'+esc(ld[q].callsign)+'</span> <span class="cp-lxp">'+(Number(ld[q].xp)||0)+' XP</span></div>';
   }
   h+='</div>';
-  h+='<div style="margin-top:10px"><button class="c-btn" id="cpRetry">Refresh</button></div>';
+  h+='<div style="margin-top:10px"><button class="c-btn" id="cpRetry">Refresh</button> ' +
+    '<a href="/store" class="c-btn" style="text-decoration:none;display:inline-block;margin-left:8px">GEAR UP AT THE STORE &rarr;</a></div>';
   el.innerHTML=h;
   var rb=document.getElementById("cpRetry");
   if(rb) rb.onclick=function(){ S=M=W=L=R=null; el.innerHTML='<div class="c-load">Mobilizing&hellip;</div>'; load(); };

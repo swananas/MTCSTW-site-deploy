@@ -288,7 +288,7 @@ function routeMarchHtml(){
   if(CIRCUIT.claimed){
     h+='<div class="x-note" style="margin-top:8px">\\u2713 MARCH COMPLETE &mdash; DAY '+sd+' &bull; +'
       +Number(CIRCUIT.payout||0)+' XP claimed. Tomorrow pays +'+Number(CIRCUIT.next_payout||10)
-      +' XP. Miss a day and the streak resets.</div>';
+      +' XP. Miss a day and the streak resets.<br><a href="/store" style="display:inline-block;color:#e5383b;font-weight:700;margin-top:8px;min-height:44px;line-height:44px">GEAR UP AT THE STORE &rarr;</a></div>';
   } else if(CIRCUIT.can_claim){
     h+='<div style="margin-top:10px"><button class="c-btn br-rmbtn" data-act="circuit">CLAIM +'
       +Number(CIRCUIT.next_payout||10)+' XP &mdash; DAY '+sd+'</button></div>';
@@ -475,6 +475,36 @@ function warPlanHtml(){
     +'<div data-pf-actionbar data-pf-tc-kind="briefing" data-pf-tc-title="TODAY\\u2019S WAR PLAN" data-pf-tc-figure="'+esc(wpFig)+'" data-pf-tc-link="/"></div>'
     +'</div>';
 }
+/* ---------- W5-5 CROSSFIRE CIRCUIT (2026-10-04): a live flash window turns
+   the next Route March stop into a hot zone. One auth-gated read
+   (crossfire_status); the combo claim is POST-only. The zone is picked
+   server-side — the client never sends a stop index. ---------- */
+function crossfireHtml(){
+  if(!XCROSS||!XCROSS.flash_live) return "";
+  var h='<div class="br-sec br-xf"><div class="br-sect">\u26A1 CROSSFIRE CIRCUIT</div>';
+  if(XCROSS.claimed){
+    h+='<div class="x-note">Zone cleared. +'+Number(XCROSS.payout||0)+' XP banked. The flash window is still live — hold the line.</div></div>';
+    return h;
+  }
+  var z=XCROSS.zone;
+  if(!z){
+    h+='<div class="x-note">Flash window live, but the march is fully walked. Nothing left to crossfire.</div></div>';
+    return h;
+  }
+  h+='<div class="br-xfz">CROSSFIRE ZONE: <b>'+esc(z.label||"")+'</b></div>';
+  var total=Number(XCROSS.step_xp||0)+Number(XCROSS.combo_xp||0);
+  if(XCROSS.can_claim){
+    h+='<div class="x-note">Mission verified. Claim the combo before the window closes.</div>'
+      +'<div style="margin-top:8px"><button class="c-btn br-xfbtn" data-act="crossfire">CLAIM COMBO +'+total+' XP</button></div>';
+  } else if(XCROSS.device_claimed){
+    h+='<div class="x-note">This device already fired its crossfire claim today.</div>';
+  } else {
+    h+='<div class="x-note">Run the mission, then claim the combo:</div>'
+      +'<div style="margin-top:8px"><a class="c-btn" href="'+esc(z.page||"/")+'">GO: '+esc(z.label||"")+'</a></div>';
+  }
+  h+='</div>';
+  return h;
+}
 function render(){
   var el=document.getElementById("xBrief"); if(!el) return;
   var id=ident(), h="";
@@ -523,8 +553,10 @@ function render(){
   /* ---------- 2. URGENT ---------- */
   var urg=[];
   if(streakRisk){
-    urg.push({t:"STREAK AT RISK",d:"Your "+streakN+"-day streak dies in "+streakHrs+". Check in or lose it.",
-      btn:"SAVE STREAK",go:"pf-dopa"});
+    /* Cohesion §5 copy standard (Psych, binding): streaks never feel like
+       punishment — no "dies", no "or lose it" threat framing. */
+    urg.push({t:"YOUR RUN IS STILL STANDING",d:"Your "+streakN+"-day run is still standing \u2014 "+streakHrs+" left today. One check-in keeps it rolling.",
+      btn:"KEEP IT ROLLING",go:"pf-dopa"});
   }
   try{
     if(LOOT&&LOOT.can_claim) urg.push({t:"LOOT CRATE READY",d:"Today's crate is unopened. Something's inside.",
@@ -718,9 +750,29 @@ function render(){
               if(rj&&rj.ok&&rj.is_record){ toast("NEW PERSONAL RECORD: "+got+" XP in a day."); }
             });
           }catch(e){}
+          /* Spec 8 (Fix Pod, 2026-10-05): route into one prescribed next
+             action — the Daily Orders check-in card — instead of toast +
+             reload. load() re-fetches comeback_check so the CLAIM card
+             clears; then scroll to #pf-orders and flash it (pf-flash idiom
+             mirrors daily-orders.js). */
+          load();
+          setTimeout(function(){
+            try{
+              var oc=document.getElementById("pf-orders");
+              if(oc){
+                var r=oc.getBoundingClientRect();
+                if(r.top<-10||r.top>window.innerHeight+10){
+                  var t=r.top+(window.pageYOffset||document.documentElement.scrollTop||0);
+                  window.scrollTo(0,Math.max(0,t-20));
+                }
+                oc.classList.add("pf-flash");
+                setTimeout(function(){ try{oc.classList.remove("pf-flash");}catch(e3){} },1400);
+              } else { toast("Next: check in with Daily Orders."); }
+            }catch(e2){ toast("Next: check in with Daily Orders."); }
+          },650);
+          return;
         }
         else { toast(PF.errCopy(j,"Claim failed.")); btn.disabled=false; btn.textContent="CLAIM"; return; }
-        load();
       });
     }; })(acts[a]);
   }
@@ -827,7 +879,7 @@ function bannerCss(){
     +"#pf-brief .br-rml{flex:1}"
     +"#pf-brief .br-rmgo{color:#e5383b;font-weight:bold}"
     +"#pf-brief .br-rmbtn{margin-top:2px}"
-    +"#pf-seasonbar{position:fixed;top:0;left:0;right:0;z-index:99990;background:#0a0a0a;border-bottom:2px solid #c1121f;color:#fff;font:bold 12px monospace;padding:7px 12px;display:flex;align-items:center;gap:10px;letter-spacing:1px}"
+    +"#pf-seasonbar{position:fixed;top:0;left:0;right:0;z-index:99990;background:#0a0a0a;border-bottom:2px solid #c1121f;color:#fff;font:bold 12px monospace;padding:7px 12px;display:flex;align-items:center;gap:10px;letter-spacing:1px;box-sizing:border-box;min-height:36px}"
     +"#pf-seasonbar .sb-name{color:#ff6b6b;white-space:nowrap}"
     +"#pf-seasonbar .sb-bar{flex:1;height:6px;background:#222;border-radius:3px;overflow:hidden;min-width:60px}"
     +"#pf-seasonbar .sb-fill{height:100%;background:#c1121f}"
@@ -835,6 +887,11 @@ function bannerCss(){
     +"#pf-seasonbar .sb-link{display:flex;align-items:center;gap:10px;flex:1;color:inherit;text-decoration:none;cursor:pointer}"
     +"#pf-seasonbar .sb-x{background:none;border:none;color:#888;font:bold 16px monospace;cursor:pointer;padding:2px 6px;line-height:1}"
     +"#pf-seasonbar .sb-x:hover{color:#fff}"
+    /* 2026-10-08 fix/mobile-visual: the fixed banner (z-index 99990) was
+       overlapping the sticky topbar (z-index 10000) when scrolled, clipping
+       the nav items. Offset the sticky topbar below the banner. */
+    +"body[data-pf-banner=\"on\"] .pf-topbar{top:36px !important}"
+    +"body[data-pf-banner=\"off\"] .pf-topbar{top:0 !important}"
     /* 2026-10-03: FEATURED DROP slot (Daily Drop consolidation) — the drop's
        own styles, rescoped from #pf-drop to #pf-brief.br-*. */
     +"#pf-brief .br-dday{font-family:Arial,sans-serif;font-size:13px;letter-spacing:3px;color:#ff5a00;text-transform:uppercase;margin-bottom:12px}"
@@ -868,7 +925,8 @@ function bannerCss(){
 function renderSeasonBanner(){
   bannerCss();
   /* 2026-10-06: dismissible season bar — X persists in localStorage. */
-  try{ if(localStorage.getItem("pf_seasonbar_hide")==="1") return; }catch(e){}
+  try{ if(localStorage.getItem("pf_seasonbar_hide")==="1"){ try{document.body.setAttribute("data-pf-banner","off");}catch(e){} return; } }catch(e){}
+  try{ document.body.setAttribute("data-pf-banner","on"); }catch(e2){}
   try{
     var sn=seasonInfo();
     var dl=Math.max(0,Math.ceil((sn.endsAt-Date.now())/86400000));
@@ -892,7 +950,7 @@ function renderSeasonBanner(){
         try{ ev.stopPropagation(); ev.preventDefault(); }catch(e){}
         try{ localStorage.setItem("pf_seasonbar_hide","1"); }catch(e2){}
         var b=document.getElementById("pf-seasonbar");
-        try{ if(b) b.style.display="none"; document.body.style.paddingTop="0px"; }catch(e3){}
+        try{ if(b) b.style.display="none"; document.body.style.paddingTop="0px"; document.body.setAttribute("data-pf-banner","off"); }catch(e3){}
       }); }
     }catch(e){}
     /* keep clear of the dopamine comeback banner if it appears */

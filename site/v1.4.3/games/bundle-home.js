@@ -92,11 +92,7 @@ var MISSIONS=[
 {t:"Comment on one SLR post tagging another SLR creator who'd vibe with it. Cross-pollinate."},
 {t:"Like and share a post from the newest SLR recruit. Welcome them in.",share:1},
 {t:"Post a screenshot of an SLR post you liked and say why it hit.",share:1},
-{t:"Rest. Like one SLR post, touch grass, come back tomorrow — the streak keeps."},
-/* Spec 9 (Fix Pod, 2026-10-05): the nuke joins the rotation. Copy mirrors
-   the strip's own button title ("One deliberate press per day: +50 charge,
-   +5 XP. The nuke can't be bought.") — honest, real link, no fake urgency. */
-{t:"CHARGE THE NUKE — one deliberate press feeds the network charge pool (+50 charge, +5 XP). The nuke can't be bought.",nuke:1}
+{t:"Rest. Like one SLR post, touch grass, come back tomorrow — the streak keeps."}
 ];
 /* WILD FINDS (CEO directive 2026-10-06): photo missions from the wild-find
    type registry — the same "types of things we're looking for" as the
@@ -304,7 +300,7 @@ function checkin(mi,platform){
     /* every 7th streak day forges a shield: one missed day forgiven */
     if(o.streak%7===0&&o.lastShieldAt!==o.streak){ o.shields=(o.shields||0)+1; o.lastShieldAt=o.streak; shieldEarned=true; }
   }
-  rec.done.push({m:String(mi),p:platform,g:gained,c:cellMult}); rec.xp=(rec.xp||0)+gained; saveDay(o,rec);
+  rec.done.push({m:String(mi),p:platform,g:gained}); rec.xp=(rec.xp||0)+gained; saveDay(o,rec);
   /* FULL DEPLOYMENT command bonus is claimed here so it lands inside the same
      dispatched event — the tally records it exactly once, no phantom row. */
   var cmd=maybeCommandBonus();
@@ -771,19 +767,7 @@ function drawBoostCard(){
   ctx.fillText("JOIN THE FIGHT.",540,1236);
   return cv;
 }
-function _pfClaimGate(fn){
-  try{ var g=window.PFShare&&window.PFShare.claimGate; if(typeof g==='function'){ g(fn); return; } }catch(e){}
-  try{ fn(); }catch(e2){}
-}
-/* A10 (2026-10-04): callsign-claim intercept on the bespoke download paths
-   below (same gate share-image.js uses at its share/save chokepoint).
-   Claimed users: zero change — the callback fires immediately. Unclaimed
-   users: inline claim prompt; zero XP for the gate itself; dismiss proceeds
-   unstamped. Never wedges the download. */
 function shareBoostCard(){
-  _pfClaimGate(function(){ _shareBoostCard(); });
-}
-function _shareBoostCard(){
   var boostShareErr=function(msg){
     /* Reuses the file's existing .o-err error style; auto-dismisses like the share note. */
     try{
@@ -819,7 +803,6 @@ function _shareBoostCard(){
     if(cv.toBlob){ cv.toBlob(function(bl){ go(URL.createObjectURL(bl),bl); },"image/png"); }
     else{ var u=cv.toDataURL("image/png"); fetch(u).then(function(r){return r.blob();}).then(function(bl){ go(URL.createObjectURL(bl),bl); }).catch(function(){ boostShareErr("Boost card image failed to build — tap Share again to retry."); }); }
   }catch(e){}
-  });
 }
 
 /* ============ HEADLINE MISSION (Boost Raid consolidation, 2026-10-03) ============
@@ -1122,21 +1105,9 @@ function render(){
     var m=MISSIONS[mi]||{t:""}, entry=null;
     rec.done.forEach(function(x){ if(String(x.m)===String(mi)) entry=x; });
     var isDone=!!entry;
-    /* Spec 10: the award line surfaces the cell streak multiplier — done
-   entries show what the streak paid ("+7 XP (×1.35 cell streak)"),
-   pending missions preview the multiplied want. */
-    var multNow=(typeof window.pfCellMult==="function")?window.pfCellMult():1;
-    var shown=isDone?(typeof entry.g==="number"?entry.g:BASE_XP):Math.round(BASE_XP*Math.max(1,multNow));
-    var multTag="";
-    if(isDone&&entry.c>1){ multTag=" (×"+fmtMult(entry.c)+" cell streak)"; }
-    else if(!isDone&&multNow>1){ multTag=" (×"+fmtMult(multNow)+" cell streak)"; }
-    var xpLine='+'+shown+' XP'+multTag+(isDone?"":" · report #"+(doneCount+1));
+    var xpLine='+'+(isDone?(typeof entry.g==="number"?entry.g:BASE_XP):BASE_XP)+' XP'+(isDone?"":" · report #"+(doneCount+1));
     var action;
     if(isDone){ action='<div><span class="o-donetag">Reported</span></div>'; }
-    /* Spec 9: the nuke mission deep-links to the strip press button —
-       the press itself pays the strip's +5 XP; completion auto-reports
-       below when the press lands. */
-    else if(m.nuke){ action='<button class="o-btn o-nukego" data-mi="'+mi+'">GO TO THE NUKE &rarr;</button>'; }
     else if(m.share){
       action='<div class="o-platpick" id="o-pick-'+mi+'"><div class="o-picklabel">Where did you share it?</div>'
         +PLATFORMS.map(function(p){
@@ -1277,43 +1248,8 @@ function render(){
       doReport(parseInt(b.getAttribute("data-mi"),10), b.getAttribute("data-p"), b);
     };
   });
-  /* Spec 9: GO TO THE NUKE — unhide the stick (respecting the user's
-     pf_nuke_stick_hide dismissal), focus + flash the press button;
-     fall back to the nuke section anchor when the stick is gone. */
-  z.querySelectorAll("button.o-nukego").forEach(function(b){
-    b.onclick=function(){
-      try{
-        var dismissed=false;
-        try{ dismissed=!!sessionStorage.getItem("pf_nuke_stick_hide"); }catch(e){}
-        var stick=document.getElementById("pf-nuke-stick");
-        if(stick&&!dismissed){
-          stick.hidden=false;
-          try{ stick.scrollIntoView({behavior:"smooth",block:"end"}); }catch(e2){ try{stick.scrollIntoView();}catch(e3){} }
-          var nb=document.getElementById("pnsNuke");
-          if(nb){ try{ nb.focus(); }catch(e4){} nb.classList.add("pf-flash");
-            setTimeout(function(){ try{nb.classList.remove("pf-flash");}catch(e5){} },1400); }
-          return;
-        }
-      }catch(e6){}
-      try{ var sec=document.getElementById("slr-nuke");
-        if(sec){ sec.scrollIntoView({behavior:"smooth",block:"start"}); return; } }catch(e7){}
-      try{ window.scrollTo(0,document.body.scrollHeight); }catch(e8){}
-    };
-  });
   document.getElementById("oProg").textContent=Math.min(doneCount,PER_DAY)+"/"+PER_DAY+" orders complete";
   renderBoost();
-  /* M35 (2026-10-05) perf split: the SLR snapshot now loads as a lazy chunk,
-     so PF.ROSTER may still be empty when the boost section first renders.
-     Kick the load and repaint the creator dropdown when it lands, so the
-     select is never stuck empty. renderBoost() is idempotent. */
-  try {
-    if (window.PF && typeof PF.ensureSLRDB === 'function') {
-      PF.ensureSLRDB().then(function () {
-        var sel = document.getElementById('oBoostSel');
-        if (sel && sel.options.length <= 1) renderBoost();
-      });
-    }
-  } catch (e) {}
   renderPatrons();
   try{ renderAbsorb(); }catch(eAbs){}
   paintBoostRate(); /* lever D4: static note ratio follows the server rate */
@@ -1476,9 +1412,6 @@ function drawOrdersCard(){
   return cv;
 }
 function shareOrdersImage(btn){
-  _pfClaimGate(function(){ _shareOrdersImage(btn); });
-}
-function _shareOrdersImage(btn){
   if(btn)btn.disabled=true;
   /* Remove any prior share note. */
   var prior=document.getElementById('oShareNote');if(prior)prior.remove();
@@ -1520,7 +1453,6 @@ function _shareOrdersImage(btn){
     if(cv.toBlob){cv.toBlob(function(b){done(URL.createObjectURL(b),b);},'image/png');}
     else{ var u=cv.toDataURL('image/png');fetch(u).then(function(r){return r.blob();}).then(function(b){done(URL.createObjectURL(b),b);}).catch(function(){if(btn)btn.disabled=false;note('Image failed to build — tap the button again to retry.','#c1121f');});}
   }catch(e){if(btn)btn.disabled=false;}
-  });
 }
 var _shareBtn=document.getElementById('oShareImg');
 if(_shareBtn){_shareBtn.addEventListener('click',function(){shareOrdersImage(_shareBtn);});}
@@ -1888,19 +1820,7 @@ function drawDoCard(){
   x.fillText('JOIN THE FIGHT.',W/2,H-76);
   return cv;
 }
-function _pfClaimGate(fn){
-  try{ var g=window.PFShare&&window.PFShare.claimGate; if(typeof g==='function'){ g(fn); return; } }catch(e){}
-  try{ fn(); }catch(e2){}
-}
-/* A10 (2026-10-04): callsign-claim intercept on the bespoke download path
-   below (same gate share-image.js uses at its share/save chokepoint).
-   Claimed users: zero change — the callback fires immediately. Unclaimed
-   users: inline claim prompt; zero XP for the gate itself; dismiss proceeds
-   unstamped. Never wedges the download. */
 function shareDoImage(btn){
-  _pfClaimGate(function(){ _shareDoImage(btn); });
-}
-function _shareDoImage(btn){
   if(btn)btn.disabled=true;
   try{
     var cv=drawDoCard();
@@ -1935,7 +1855,6 @@ function _shareDoImage(btn){
     if(cv.toBlob){cv.toBlob(function(b){done(URL.createObjectURL(b),b);},'image/png');}
     else{var u=cv.toDataURL('image/png');fetch(u).then(function(r){return r.blob();}).then(function(b){done(URL.createObjectURL(b),b);});}
   }catch(e){if(btn)btn.disabled=false;}
-  });
 }
 /* ---- MEDIA NUKE METER (folded 2026-10-03; wired 2026-10-05 wave-nuke-fe;
    contract-fixed 2026-10-05):
@@ -3518,10 +3437,8 @@ function api(action,params,cb){
   /* Private reads require auth_secret (IDOR fix). Route gated actions
      through the shared claim-retry GET (2026-10-03): pre-auth callsign
      holders with no stored secret get one auth_claim attempt instead of
-     failing 'missing credentials' forever.
-     Cohesion (2026-10-05): market_streak_status is the private
-     market-accuracy streak read — own row only, server-computed. */
-  if(action==="dopamine_status"||action==="combo_status"||action==="comeback_check"||action==="loot_history"||action==="market_streak_status"){
+     failing 'missing credentials' forever. */
+  if(action==="dopamine_status"||action==="combo_status"||action==="comeback_check"||action==="loot_history"){
     try{
       if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
       var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
@@ -3584,13 +3501,7 @@ function dpCss(){
     +".dp-reward .dp-rname{font:13px monospace;color:#c9bfa8;margin-top:4px}"
     +".dp-flame{font-size:64px;line-height:1;filter:drop-shadow(0 0 14px #ff6a00)}"
     +".dp-streakn{font:bold 44px monospace;color:#f5ead6}"
-    +".dp-hold{margin:10px 0;padding:10px;border:2px solid #c9962e;background:#1d1507;color:#f0d9a0;font:bold 13px monospace;letter-spacing:1px}"
-    /* Cohesion §0 (2026-10-05): forecast-accuracy streak pane. Retrospective
-       only — no countdowns, no public leaderboard, no lost-XP language. */
-    +".dp-mkstreak{margin:14px 0 0;padding:12px;border:1px solid #c9962e;background:#14100a}"
-    +".dp-mkstreak h5{margin:0 0 6px;font:bold 12px monospace;letter-spacing:2px;color:#e8b10c}"
-    +".dp-mkstreak .dp-mkn{font:bold 22px monospace;color:#f5ead6}"
-    +".dp-mkstreak .dp-mkms{font:11px monospace;color:#c9bfa8;margin-top:6px}"
+    +".dp-risk{margin:10px 0;padding:10px;border:2px solid #ff3b30;background:#2a0d0d;color:#ffb3ab;font:bold 13px monospace;letter-spacing:1px}"
     +".dp-barwrap{height:10px;background:#2a1414;border:1px solid #5a1a1a;margin:8px 0}"
     +".dp-bar{height:100%;background:linear-gradient(90deg,#c1121f,#e8b10c);transition:width .4s}"
     +".dp-flash{margin:8px 0;padding:10px;border:1px solid #e8b10c;background:#1c1408}"
@@ -3619,10 +3530,6 @@ var RARITY={
 };
 var MILESTONES=[7,14,30,60,100];
 var ST=null, CB=null, WARM=false, WW=null;
-/* Cohesion (2026-10-05): market-accuracy streak state (private, own row).
-   Kill switch: ?pf_off=market-streaks hides the pane entirely. */
-var MKST=null, MKSTtried=false;
-var MKSTREAK_MILESTONES={3:25,5:50,10:75};
 /* A8 Podcast Listener Bounties: WW carries the warword_status read —
    {ok, active, episode, xp_amount, claimed}. The word itself never arrives. */
 /* ---- combo meter (session-local) ---- */
@@ -3664,7 +3571,7 @@ function refreshServerCombo(){
 function load(){
   var id=ident(), n=0, done=false;
   function fin(){ if(done)return; done=true; render(); }
-  function one(){ n++; if(n>=3) fin(); }
+  function one(){ n++; if(n>=2) fin(); }
   setTimeout(fin,15000);
   var p={callsign:id.callsign,device:id.device};
   api("dopamine_status",p,function(j){
@@ -3677,38 +3584,7 @@ function load(){
     if(j&&j.ok){ WW=j; } else { WW=null; }
     one();
   });
-  /* Cohesion (2026-10-05): private market-accuracy streak read. Fails
-     silent — the FORECAST STREAK pane simply stays hidden. */
-  loadMarketStreak(one);
   refreshServerCombo();
-}
-/* Market-accuracy streak read + calm milestone toast.
-   Retrospective only: the backend computes milestones at settlement and
-   the toast fires once per attainment (deduped on attainment timestamp).
-   Never "N wins away" — no countdown language anywhere. */
-function loadMarketStreak(one){
-  if(window.PF&&PF.skip&&PF.skip("market-streaks")){ one(); return; }
-  var id=ident();
-  if(!id.callsign){ MKST=null; MKSTtried=true; one(); return; }
-  api("market_streak_status",{callsign:id.callsign},function(j){
-    MKSTtried=true;
-    if(j&&j.ok){ MKST=j; checkMarketStreakMilestone(j); } else { MKST=null; }
-    one();
-  });
-}
-function checkMarketStreakMilestone(j){
-  try{
-    var m=Number(j&&j.last_milestone)||0;
-    if(!m||!MKSTREAK_MILESTONES[m]) return;
-    var key="m"+m+":"+(j.last_milestone_at||0);
-    var seen={};
-    try{ seen=JSON.parse(localStorage.getItem("pf_mkstreak_ms_v1")||"{}"); }catch(e){}
-    if(seen[key]) return;
-    seen[key]=1;
-    try{ localStorage.setItem("pf_mkstreak_ms_v1",JSON.stringify(seen)); }catch(e2){}
-    /* Calm claim toast — retrospective fact, no urgency, no countdown. */
-    toast("STREAK MILESTONE: "+m+" correct calls in a row. +"+MKSTREAK_MILESTONES[m]+" XP credited.");
-  }catch(e3){}
 }
 /* Streak milestones (7/14/30/60/100) trigger the level-up celebration overlay.
    Celebrates once per milestone per callsign — tracked in localStorage. */
@@ -3795,7 +3671,6 @@ function render(){
   }
   h+=renderLoot();
   h+=renderStreak();
-  h+=renderMarketStreak();
   h+=renderFlash();
   h+=renderWarWord();
   h+='<div class="x-pane"><h4>Session combo</h4><div id="dpComboBox"></div></div>';
@@ -3847,14 +3722,10 @@ function renderStreak(){
   h+='<div class="dp-flame">&#128293;</div>';
   h+='<div class="dp-streakn">'+count+' DAY'+(count===1?"":"S")+'</div>';
   if(sk.at_risk&&sk.risk_ends_at){
-    /* §5: agency, not alarm — the run is still standing; the freeze is the
-       fighter's own tool. Never "dies", never red. */
-    h+='<div class="dp-hold">YOUR '+count+'-DAY RUN IS STILL STANDING &mdash; <span class="dp-count" data-until="'+Number(sk.risk_ends_at)+'">--:--:--</span> left today.<br>One check-in keeps it rolling. Or burn 100 XP to hold your ground.</div>';
+    h+='<div class="dp-risk">&#9888; STREAK AT RISK &mdash; dies in <span class="dp-count" data-until="'+Number(sk.risk_ends_at)+'">--:--:--</span><br>Check in or buy a freeze.</div>';
   }
   if(sk.broken_recent){
-    /* §5: a broken streak is a clean reset, never a loss. Repair is
-       framed as holding your ground, not ransom. */
-    h+='<div class="dp-hold">STREAK RESET &mdash; a new run starts now.<br>Or hold your ground: backfill yesterday for 250 XP (48h window).</div>';
+    h+='<div class="dp-risk">STREAK BROKEN &mdash; repair window closing. 250 XP to relight it.</div>';
   }
   var next=null;
   for(var i=0;i<MILESTONES.length;i++){ if(count<MILESTONES[i]){ next=MILESTONES[i]; break; } }
@@ -3871,34 +3742,6 @@ function renderStreak(){
   if(sk.broken_recent){ h+='<button class="c-btn" id="dpRepairBtn">REPAIR &mdash; 250 XP</button>'; }
   h+='</div><div class="c-err" id="dpStreakErr"></div>';
   h+='</div></div>';
-  return h;
-}
-/* FORECAST STREAK pane (Cohesion §0, binding surfacing rules):
-   - Retrospective display only: what the run IS, never "N wins away".
-   - Own row only (private read); no public streak leaderboards.
-   - Broken streaks framed as clean resets with no lost-XP language.
-   - Refunded markets never touch the streak (backend null events).
-   Milestones are server-computed at settlement — never client-claimable. */
-function renderMarketStreak(){
-  if(window.PF&&PF.skip&&PF.skip("market-streaks")) return "";
-  if(!ident().callsign) return "";
-  if(!MKSTtried) return "";
-  if(!MKST||!MKST.ok) return "";
-  var n=Number(MKST.streak)||0, h='<div class="x-pane dp-pane dp-mkstreak"><h5>Forecast streak</h5>';
-  if(n>0){
-    h+='<div class="dp-mkn">'+n+' CORRECT IN A ROW</div>'
-      +'<div class="x-note">calibration is a weapon.</div>';
-    var m=Number(MKST.last_milestone)||0;
-    if(m>0&&MKSTREAK_MILESTONES[m]){
-      h+='<div class="dp-mkms">Latest milestone: '+m+' in a row (&#9889;'+MKSTREAK_MILESTONES[m]+' XP).</div>';
-    }
-  } else if(MKST.reset_recent){
-    /* §5: a broken streak is a clean reset — never a loss. */
-    h+='<div class="x-note">Streak reset &mdash; a new run starts now.</div>';
-  } else {
-    h+='<div class="x-note">No forecast streak yet. Your first correct call starts the run.</div>';
-  }
-  h+='</div>';
   return h;
 }
 function renderFlash(){
@@ -4105,8 +3948,7 @@ function wire(){
   }; }
   var fb=document.getElementById("dpFreezeBtn");
   if(fb){ fb.onclick=function(){
-    /* §5: the freeze is agency — a tool the fighter earned the right to use. */
-    if(!confirm("Burn 100 XP to hold your ground? A freeze keeps your run standing through a missed day.")) return;
+    if(!confirm("Spend 100 XP on a streak freeze? It saves your streak if you miss a day.")) return;
     var err=document.getElementById("dpStreakErr"); fb.disabled=true;
     post("streak","str_action","streak_freeze_buy",{callsign:id.callsign,device:id.device},function(j){
       fb.disabled=false;
@@ -4122,9 +3964,7 @@ function wire(){
     post("streak","str_action","streak_checkin",{callsign:id.callsign,device:id.device},function(j){
       cib.disabled=false; cib.textContent="CHECK IN";
       if(j&&j.ok){
-        /* §5: a broken streak is a clean reset — the backend flags it. */
-        toast(j.streak_reset?("Streak reset — a new run starts now. Day 1 of the fire.")
-          :(j.dup?("Already checked in — day "+(Number(j.count)||"")+" holds."):("Checked in. Day "+(Number(j.count)||"")+" of the fire.")));
+        toast(j.dup?("Already checked in — day "+(Number(j.count)||"")+" holds."):("Checked in. Day "+(Number(j.count)||"")+" of the fire."));
         comboHit(); load();
       }
       else if(err) err.textContent=PF.errCopy(j,"Check-in failed.");
@@ -4132,12 +3972,11 @@ function wire(){
   }; }
   var rb=document.getElementById("dpRepairBtn");
   if(rb){ rb.onclick=function(){
-    /* §5: repair is agency — backfilling the gap, not ransom for a loss. */
-    if(!confirm("Backfill yesterday for 250 XP? Your run holds — the gap never happened.")) return;
+    if(!confirm("Spend 250 XP to relight your broken streak?")) return;
     var err=document.getElementById("dpStreakErr"); rb.disabled=true;
     post("streak","str_action","streak_repair",{callsign:id.callsign,device:id.device},function(j){
       rb.disabled=false;
-      if(j&&j.ok){ toast("Yesterday is back on the ledger. The run holds."); comboHit(); load(); }
+      if(j&&j.ok){ toast("Streak relit. Don't let it die twice."); comboHit(); load(); }
       else if(err) err.textContent=PF.errCopy(j,"Repair failed.");
     });
   }; }
@@ -4225,19 +4064,7 @@ try{
    core/share-image.js — Web Share with files when navigator.canShare allows,
    iOS-safe download fallbacks, real toast on failure. Credits the once-per-day
    share gate only on a completed share or download — never on cancel. */
-function _pfClaimGate(fn){
-  try{ var g=window.PFShare&&window.PFShare.claimGate; if(typeof g==='function'){ g(fn); return; } }catch(e){}
-  try{ fn(); }catch(e2){}
-}
-/* A10 (2026-10-04): callsign-claim intercept on the bespoke download path
-   below (same gate share-image.js uses at its share/save chokepoint).
-   Claimed users: zero change — the callback fires immediately. Unclaimed
-   users: inline claim prompt; zero XP for the gate itself; dismiss proceeds
-   unstamped. Never wedges the download. */
 function shareLoot(reward,rk){
-  _pfClaimGate(function(){ _shareLoot(reward,rk); });
-}
-function _shareLoot(reward,rk){
   try{
     var c=document.createElement("canvas"); c.width=1080; c.height=1080;
     var g=c.getContext("2d");
@@ -4378,7 +4205,6 @@ function _shareLoot(reward,rk){
       }
     }catch(e){ toast("Poster failed \\u2014 try again."); }
   }catch(e){ toast("Poster failed \\u2014 try again."); }
-  });
 }
 function comebackBanner(xp){
   ovCss();
@@ -4558,10 +4384,6 @@ function warplanCard(){
 (function(){
 var TIERS=[["RECRUIT",0],["AGITATOR",25],["CADRE",75],["COMMISSAR",150],["ARCHITECT",300]];
 var LS="pf_ranks_v1", LS_I="pf_identity_v1";
-/* Spec 4 (Fix Pod, 2026-10-05): quiz-finale enlistment completion XP.
-   Amount TBD — Economy Desk to set. STAYS 0 until the Desk signs off:
-   award() with 0 is a safe no-op that marks the completion key consumed. */
-var QUIZ_COMPLETE_XP=0;
 /* Central backend: paste the /exec URL from the ranks-backend deploy to make
    ranks follow users across devices. Empty = device-local mode. */
 var BACKEND_URL="";
@@ -4649,19 +4471,7 @@ function showImgModal(items){
   m.onclick=function(e){ if(e.target===m) m.remove(); };
   document.body.appendChild(m);
 }
-function _pfClaimGate(fn){
-  try{ var g=window.PFShare&&window.PFShare.claimGate; if(typeof g==='function'){ g(fn); return; } }catch(e){}
-  try{ fn(); }catch(e2){}
-}
-/* A10 (2026-10-04): callsign-claim intercept on the bespoke download path
-   below (same gate share-image.js uses at its share/save chokepoint).
-   Claimed users: zero change — the callback fires immediately. Unclaimed
-   users: inline claim prompt; zero XP for the gate itself; dismiss proceeds
-   unstamped. Never wedges the download. */
 function dl(url,name){
-  _pfClaimGate(function(){ _dl(url,name); });
-}
-function _dl(url,name){
   if(isIOS()){ showImgModal([{url:url,name:name}]); return; }
   var a=document.createElement("a"); a.href=url; a.download=name; document.body.appendChild(a); a.click(); setTimeout(function(){ a.remove(); },600);
 }
@@ -4909,86 +4719,6 @@ function renderUnlocks(){
   }
 }
 
-/* DISPATCH SIGNUP (2026-10-05): "Join the dispatch" is The Dispatch
-   newsletter signup, not a bare XP tap. Opens a modal: email + 13+
-   checkbox -> POSTs the EXISTING notifyq/contact_set contract
-   (type:'notifyq', nq_action:'contact_set', {callsign,email,email_optin:1,
-   age13:1}) — exactly how notify-prefs.js stores The Dispatch opt-in.
-   No callsign yet -> clearly-labeled mailto fallback (the match-quiz
-   ENLIST pattern), never a faked signup. The +20 XP is the pre-existing
-   enlist-action reward (same key/amount/rule) — no XP mechanic change;
-   pf-enlisted still fires so service medals / do-meter / pinups keep
-   their listeners. */
-function dispatchSignup(){
-  if(document.getElementById("pfDispatchModal")){ document.getElementById("pfDispatchModal").style.display="flex"; return; }
-  var cs=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){}
-  var d=document.createElement("div");
-  d.id="pfDispatchModal";
-  d.style.cssText="position:fixed;inset:0;z-index:99998;background:rgba(5,5,5,.88);display:flex;align-items:center;justify-content:center;padding:18px;";
-  d.innerHTML='<div style="background:#0d0d0d;border:2px solid #c1121f;max-width:430px;width:100%;padding:22px;font-family:inherit;color:#f5f0e1;">'
-   +'<div style="font-size:11px;letter-spacing:.25em;color:#c1121f;margin-bottom:8px;">THE DISPATCH</div>'
-   +'<div style="font-size:1.15rem;font-weight:900;margin-bottom:8px;">JOIN THE DISPATCH</div>'
-   +'<div style="font-size:.85rem;color:#b8ab8e;margin-bottom:14px;">The weekly drop from the factory — actions, wins, and what the machine is building. One email a week. No spam, ever.</div>'
-   +'<input id="pfDspEmail" type="email" placeholder="your@email.com" style="width:100%;box-sizing:border-box;padding:10px;background:#141414;border:2px solid #c1121f;color:#f5f0e1;font-family:inherit;margin-bottom:10px;">'
-   +'<label style="display:block;font-size:12px;margin-bottom:12px;cursor:pointer;"><input id="pfDspAge" type="checkbox" style="vertical-align:middle;margin-right:6px;">I confirm I am 13 or older</label>'
-   +'<div id="pfDspMsg" style="font-size:.8rem;color:#c1121f;min-height:1.2em;margin-bottom:8px;"></div>'
-   +'<div style="display:flex;gap:10px;">'
-   +'<button id="pfDspGo" style="flex:1;padding:12px;background:#c1121f;border:none;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;letter-spacing:1px;">SIGN ME UP</button>'
-   +'<button id="pfDspX" style="padding:12px 16px;background:transparent;border:2px solid #b8ab8e;color:#b8ab8e;font-weight:700;cursor:pointer;font-family:inherit;">CANCEL</button>'
-   +'</div>'
-   +(cs?"":'<div style="font-size:.75rem;color:#b8ab8e;margin-top:12px;">No callsign yet? Enlist first in Daily Orders to save your signup on the wire — or sign up above and your mail app handles the rest.</div>')
-   +'</div>';
-  document.body.appendChild(d);
-  var msg=d.querySelector("#pfDspMsg");
-  function close(){ try{ d.parentNode.removeChild(d); }catch(e){} }
-  d.addEventListener("click",function(e){ if(e.target===d) close(); });
-  d.querySelector("#pfDspX").onclick=close;
-  function settleDispatch(){
-    /* Same award as the old one-tap action: key "enlisted", 20 XP, once,
-       exempt. pf-enlisted keeps service medals / do-meter / pinups live. */
-    try{ document.dispatchEvent(new CustomEvent("pf-enlisted")); }catch(e){}
-    var g=award("enlisted",20,"once",{exempt:1});
-    if(g>0){ try{ if(window.PF&&PF.toast) PF.toast("ENLISTED IN THE DISPATCH — +20 XP"); }catch(e2){} }
-    close();
-  }
-  d.querySelector("#pfDspGo").onclick=function(){
-    var em=(d.querySelector("#pfDspEmail").value||"").trim();
-    if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(em)){ msg.style.color="#c1121f"; msg.textContent="Enter a valid email."; return; }
-    var ageEl=d.querySelector("#pfDspAge");
-    if(!(ageEl&&ageEl.checked)){ msg.style.color="#c1121f"; msg.textContent="Please confirm you are 13 or older."; return; }
-    if(!cs){
-      /* No callsign: the auth-gated backend can't take this row.
-         Clearly-labeled mailto fallback (quiz ENLIST pattern) — real
-         signup gesture, not a fake one. */
-      window.location.href="mailto:mtcstw@gmail.com?subject="+encodeURIComponent("DISPATCH SIGNUP")+"&body="+encodeURIComponent("Add me to The Dispatch: "+em);
-      msg.style.color="#b8ab8e"; msg.textContent="Opening your mail app — send it and you're on the list.";
-      settleDispatch(); return;
-    }
-    var btn=d.querySelector("#pfDspGo"); btn.disabled=true; btn.textContent="ENLISTING\u2026";
-    msg.textContent="";
-    var url=""; try{ url=window.PF_BACKEND_URL||""; }catch(e){}
-    var body={type:"notifyq",nq_action:"contact_set",callsign:cs,email:em,email_optin:1,age13:1};
-    function cb(j){
-      btn.disabled=false; btn.textContent="SIGN ME UP";
-      if(j&&j.ok){ settleDispatch(); }
-      else{
-        var err=""; try{ err=(window.PF&&PF.errCopy)?PF.errCopy(j,""):""; }catch(e){}
-        msg.style.color="#c1121f";
-        msg.innerHTML='The wire is down — retry in a bit, or <a href="mailto:mtcstw@gmail.com?subject='+encodeURIComponent("DISPATCH SIGNUP")+'" style="color:#f5f0e1;">email us directly</a>.'+(err?' ('+err+')':'');
-      }
-    }
-    try{
-      if(url&&window.PF&&PF.authPost){ PF.authPost(url,body,cb); }
-      else{
-        var sec=""; try{ sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():""; }catch(e){}
-        if(sec) body.auth_secret=sec;
-        fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
-          .then(function(r){ return r.json(); }).then(function(j){ cb(j||{ok:false}); })
-          .catch(function(){ cb(null); });
-      }
-    }catch(e){ cb(null); }
-  };
-}
 var ACTIONS=[
  /* Daily pool (50/day across the page): check-in 2, share 1.
     Weekly tasks keep their own values and bypass the pool (exempt). */
@@ -4996,7 +4726,7 @@ var ACTIONS=[
  {id:"bracket", label:"Vote in the bracket", xp:10, rule:"once", href:"#pf-bracket"},
  {id:"fanvote", label:"Vote propagandist of the week", xp:10, rule:"once", href:"#pf-vote"},
  {id:"quiz", label:"Find your SLR match", xp:15, rule:"once", href:"#slr-quiz"},
- {id:"enlisted", label:"Join the dispatch", xp:20, rule:"once", run:dispatchSignup},
+ {id:"enlisted", label:"Join the dispatch", xp:20, rule:"once", run:function(){ try{document.dispatchEvent(new CustomEvent("pf-enlisted"));}catch(e){} return award("enlisted",20,"once",{exempt:1}); }},
  {id:"share", label:"Share the machine", xp:1, rule:"daily", run:function(){
     var done=function(){ settle("pf-share-image",award("share",1,"daily")); };
     if(navigator.share){ navigator.share({title:"The Propaganda Factory",url:location.href}).then(done).catch(function(){}); }
@@ -5090,7 +4820,7 @@ function render(){
 }
 /* cross-widget events — document, not window: games dispatch non-bubbling
    CustomEvents on document, which never reach window listeners. */
-document.addEventListener("pf-bracket-ballot",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; var gain=award("bracket_"+w,10,"once",{exempt:1}); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("BALLOT IN — +10 XP"); }catch(e2){} } });
+document.addEventListener("pf-bracket-ballot",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("bracket_"+w,10,"once",{exempt:1}); });
 document.addEventListener("pf-quiz-done",function(){ award("quiz",15,"once",{exempt:1}); });
 /* 2026-10-05 Pick-Your-Fight (Economy Desk sign-off): first real fight pick
    awards once on the existing onboarding track — same class as quiz +15 /
@@ -5103,7 +4833,7 @@ document.addEventListener("pf-guess-done",function(){ settle("pf-guess-done",awa
 document.addEventListener("pf-guess-scored",function(e){ var s=0; try{ if(e&&e.detail&&typeof e.detail.score==='number') s=Math.floor(e.detail.score); }catch(err){} settle("pf-guess-scored",0,s); });
 document.addEventListener("pf-raid-report",function(){ settle("pf-raid-report",award("raid",2,"daily")); });
 document.addEventListener("pf-vote-cast",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; var gain=award("fanvote_"+w,10,"once",{exempt:1}); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("VOTE COUNTED — +10 XP"); }catch(e2){} } });
-document.addEventListener("pf-traitor-vote",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; var gain=award("traitor_"+w,5,"once",{exempt:1}); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("TRAITOR VOTE — +5 XP"); }catch(e2){} } });
+document.addEventListener("pf-traitor-vote",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; award("traitor_"+w,5,"once",{exempt:1}); });
 document.addEventListener("pf-caption-submit",function(e){ var w=(e&&e.detail&&e.detail.week)||"wk"; var gain=award("caption_"+w,10,"once",{exempt:1}); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("CAPTION IN — +10 XP"); }catch(e2){} } });
 document.addEventListener("pf-poster-made",function(){ var gain=award("poster_"+today(),1,"once"); settle("pf-poster-made",gain); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("POSTER LOGGED — +1 XP"); }catch(e2){} } });
 document.addEventListener("pf-share-image",function(){ var gain=award("share",1,"daily"); settle("pf-share-image",gain); if(gain>0){ try{ if(window.PF&&PF.toast) PF.toast("SHARE LOGGED — +1 XP"); }catch(e2){} } });
@@ -7104,7 +6834,7 @@ try{ render(); }catch(e){
   <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:0.8rem;line-height:1.5;">The week&rsquo;s team-board winner takes an extra <b style="color:#f5f0e1;">5%</b> of the pool.</div>
   <div id="pf-wb-buy" style="margin-bottom:1.3rem;"></div>
   <!-- share-out gaps #3: "I BACKED THE FIGHT" post-purchase share bar (runtime-wired by the scanner) -->
-  <div id="pf-wb-sharehost" style="margin-bottom:1.3rem;"><div data-pf-share="war-bonds" data-pf-share-link="/war-bonds"></div></div>
+  <div id="pf-wb-sharehost" style="margin-bottom:1.3rem;"><div data-pf-share="war-bonds" data-pf-share-link="/store"></div></div>
   <div style="font-size:0.8rem;color:#b8ab8e;margin-bottom:1.1rem;line-height:1.5;">Checkout opens the store in a new tab. War Bonds fund the fight &mdash; they grant no XP, ever.</div>
   <div style="border-top:2px solid #c1121f;margin:1.3rem 0 1rem;"></div>
   <div style="font-size:0.8rem;color:#b8ab8e;letter-spacing:0.14em;margin-bottom:0.6rem;">OR FUND MONTHLY</div>
@@ -7150,10 +6880,10 @@ try{ render(); }catch(e){
   /* WAR BOND CHECKOUT: Squarespace product URLs, one per denomination
      (products created 2026-09-26; "Unnamed Product" stray removed). */
   var WAR_BOND_URLS = {
-    "5":  "https://www.mtcstw.com/store/p/war-bond-5",
-    "10": "https://www.mtcstw.com/store/p/war-bond-10",
-    "25": "https://www.mtcstw.com/store/p/war-bond-25",
-    "50": "https://www.mtcstw.com/store/p/war-bond-50"
+    "5":  "https://www.mtcstw.com/store",
+    "10": "https://www.mtcstw.com/store",
+    "25": "https://www.mtcstw.com/store",
+    "50": "https://www.mtcstw.com/store"
   };
   /* Roster-driven: all 62 SLR members from the master database (no hardcoded list). */
   var ALL_CREATORS = [];
@@ -7361,6 +7091,7 @@ try{ render(); }catch(e){
 <div class="pfsm-links">
 <a class="pfsm-a" href="/request-access"><span class="pfsm-t">The Academy</span><span class="pfsm-d">Propaganda school. Train, graduate, earn your stripes.</span></a>
 <a class="pfsm-a" href="/create"><span class="pfsm-t">The Workshop</span><span class="pfsm-d">Forge posters. Publish the fight.</span></a>
+<a class="pfsm-a" href="/network"><span class="pfsm-t">The Network</span><span class="pfsm-d">The whole machine, mapped.</span></a>
 </div>
 </details>
 <details class="pfsm-g">
@@ -7377,6 +7108,8 @@ try{ render(); }catch(e){
 <div class="pfsm-links">
 <a class="pfsm-a" href="/creator-onboard"><span class="pfsm-t">Creators: Enlist</span><span class="pfsm-d">The roster wants you. Prove yourself.</span></a>
 <a class="pfsm-a" href="/sick-left-radicals"><span class="pfsm-t">The Roster</span><span class="pfsm-d">62 fighters of the sick left. Find your match.</span></a>
+<a class="pfsm-a" href="/about"><span class="pfsm-t">About</span><span class="pfsm-d">Who we are. Why we fight.</span></a>
+<a class="pfsm-a" href="/faqs"><span class="pfsm-t">FAQs</span><span class="pfsm-d">Questions, answered. No mercy.</span></a>
 <a class="pfsm-a" href="/liquidation"><span class="pfsm-t">The Liquidation Ledger</span><span class="pfsm-d">Records of the fallen.</span></a>
 </div>
 </details>
@@ -7535,7 +7268,8 @@ function renderComplete(){
     h+='<div class="cp-lead"><span class="cp-lrank">'+(q+1)+'.</span> <span class="cp-lname">'+esc(ld[q].callsign)+'</span> <span class="cp-lxp">'+(Number(ld[q].xp)||0)+' XP</span></div>';
   }
   h+='</div>';
-  h+='<div style="margin-top:10px"><button class="c-btn" id="cpRetry">Refresh</button></div>';
+  h+='<div style="margin-top:10px"><button class="c-btn" id="cpRetry">Refresh</button> ' +
+    '<a href="/store" class="c-btn" style="text-decoration:none;display:inline-block;margin-left:8px">GEAR UP AT THE STORE &rarr;</a></div>';
   el.innerHTML=h;
   var rb=document.getElementById("cpRetry");
   if(rb) rb.onclick=function(){ S=M=W=L=R=null; el.innerHTML='<div class="c-load">Mobilizing&hellip;</div>'; load(); };
@@ -8521,48 +8255,29 @@ try{ boot(); }catch(e){ hide(); }
   var VOTE_API_URL = (window.PF_BACKEND_URL);
   /* ROSTER: the ballot reads from the canonical PF.ROSTER
      (core/03-global.js) — authoritative scores 2026-09-28. Do NOT
-     hardcode a second copy here.
-     M35 (2026-10-05) perf split: the SLR snapshot now arrives as a lazy
-     chunk, so the roster may not be populated when this bundle executes.
-     buildBallot() (re)derives the ballot from the LIVE roster; it runs at
-     module eval (preserving the old behavior when data is already in) and
-     is re-run at mount once PF.slrReady resolves, so the ballot never
-     renders from a stale or empty read. */
-  var SCORES = [];
+     hardcode a second copy here. */
+  var SCORES = (window.PF && PF.ROSTER) || [];
+  /* VOTE_IMGS: slug -> roster photo, derived from the canonical roster. */
   var VOTE_IMGS = {};
-  var CANDIDATES = [];
-  function buildBallot(){
-    var r = [];
-    try {
-      if (window.PF) r = (typeof PF.slrAll === 'function') ? (PF.slrAll() || []) : (PF.ROSTER || []);
-    } catch (e) { r = []; }
-    SCORES = r;
-    /* VOTE_IMGS: slug -> roster photo, derived from the canonical roster. */
-    VOTE_IMGS = {};
-    for (var _ri = 0; _ri < SCORES.length; _ri++) {
-      if (SCORES[_ri].img) VOTE_IMGS[SCORES[_ri].slug] = SCORES[_ri].img;
-    }
-    /* THE BALLOT: the 10 highest propaganda scores.
-       9.3 TIE-BREAK (codified 2026-09-29): four creators tie at 9.3 for the 10th
-       spot. The tied creators rotate weekly by ISO week number, so each gets
-       the ballot spotlight over time. Higher scores are always seated first. */
-    var _sorted = SCORES.slice().sort(function (a, b) { return b.score - a.score; });
-    /* Roster not in yet — leave the ballot empty; the mount path waits on
-       PF.slrReady and rebuilds. Never throw on a short roster. */
-    if (_sorted.length < 10) { CANDIDATES = []; return; }
-    var _cutoff = _sorted[9].score;
-    var _above = _sorted.filter(function (c) { return c.score > _cutoff; });
-    var _tied = _sorted.filter(function (c) { return c.score === _cutoff; });
-    var _spots = 10 - _above.length;
-    var _wk = isoWeek(PF.chiNow());
-    var _rotated = [];
-    for (var _i = 0; _i < _tied.length; _i++) {
-      _rotated.push(_tied[(_wk - 1 + _i) % _tied.length]);
-    }
-    CANDIDATES = _above.concat(_rotated.slice(0, _spots));
-    CANDIDATES.sort(function (a, b) { return b.score - a.score; });
+  for(var _ri=0; _ri<SCORES.length; _ri++){
+    if(SCORES[_ri].img) VOTE_IMGS[SCORES[_ri].slug]=SCORES[_ri].img;
   }
-  buildBallot();
+    /* THE BALLOT: the 10 highest propaganda scores.
+     9.3 TIE-BREAK (codified 2026-09-29): four creators tie at 9.3 for the 10th
+     spot. The tied creators rotate weekly by ISO week number, so each gets
+     the ballot spotlight over time. Higher scores are always seated first. */
+  var _sorted = SCORES.slice().sort(function(a,b){ return b.score - a.score; });
+  var _cutoff = _sorted[9].score;
+  var _above = _sorted.filter(function(c){ return c.score > _cutoff; });
+  var _tied = _sorted.filter(function(c){ return c.score === _cutoff; });
+  var _spots = 10 - _above.length;
+  var _wk = isoWeek(PF.chiNow());
+  var _rotated = [];
+  for(var _i = 0; _i < _tied.length; _i++){
+    _rotated.push(_tied[(_wk - 1 + _i) % _tied.length]);
+  }
+  var CANDIDATES = _above.concat(_rotated.slice(0, _spots));
+  CANDIDATES.sort(function(a,b){ return b.score - a.score; });
   function isoWeek(d){
     var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
     var day = (t.getUTCDay() + 6) % 7;
@@ -8844,19 +8559,7 @@ try{ boot(); }catch(e){ hide(); }
       } else finish(null);
     });
   }
-  function _pfClaimGate(fn){
-    try{ var g=window.PFShare&&window.PFShare.claimGate; if(typeof g==='function'){ g(fn); return; } }catch(e){}
-    try{ fn(); }catch(e2){}
-  }
-  /* A10 (2026-10-04): callsign-claim intercept on the bespoke download path
-     below (same gate share-image.js uses at its share/save chokepoint).
-     Claimed users: zero change — the callback fires immediately. Unclaimed
-     users: inline claim prompt; zero XP for the gate itself; dismiss proceeds
-     unstamped. Never wedges the download. */
   function shareVotePoster(c, mode){
-    _pfClaimGate(function(){ _shareVotePoster(c, mode); });
-  }
-  function _shareVotePoster(c, mode){
     var msgEl=document.getElementById('pf-vote-copymsg');
     var say=function(t){ if(msgEl)msgEl.textContent=t; };
     say('Building your poster\\u2026');
@@ -8893,7 +8596,6 @@ try{ boot(); }catch(e){ hide(); }
             });
         } else { credit(); dl(blob); }
       },'image/jpeg',0.85);
-    });
     });
   }
   function showVoted(name, weight){
@@ -9006,20 +8708,8 @@ try{ boot(); }catch(e){ hide(); }
     }
   }
   var existing = voted();
-  /* M35 (2026-10-05): if the lazy roster chunk hasn't landed yet, wait for
-     it before the first paint — buildBallot() re-derives the ballot from
-     the live roster. Without the gate the ballot would render empty. */
-  function firstPaint(){
-    buildBallot();
-    if (existing) { showVoted(existing.name, existing.weight); }
-    else { renderBallot(); }
-  }
-  if (CANDIDATES.length === 0 && window.PF && PF.slrReady &&
-      typeof PF.slrReady.then === 'function') {
-    PF.slrReady.then(function () { try { firstPaint(); } catch (e) {} });
-  } else {
-    firstPaint();
-  }
+  if(existing){ showVoted(existing.name, existing.weight); }
+  else { renderBallot(); }
   /* Load live totals on every page view — shared across all devices. */
   fetchTotals();
   renderStreak();

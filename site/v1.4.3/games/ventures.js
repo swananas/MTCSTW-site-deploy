@@ -310,7 +310,8 @@ function showVictoryNudge(){
   d.id="vVictory"; d.className="x-pane x-claim";
   d.innerHTML='<h4>POST YOUR VICTORY</h4>'+
     '<div class="x-note">The certificate is saved on your device. Put it on the wire \u2014 victories recruit.</div>'+
-    '<div style="margin-top:8px"><button class="c-btn" id="vVictoryShare">SHARE THE CERTIFICATE</button></div>';
+    '<div style="margin-top:8px"><button class="c-btn" id="vVictoryShare">SHARE THE CERTIFICATE</button> '+
+    '<a href="/store" class="c-btn" style="text-decoration:none;display:inline-block;margin-left:8px">GEAR UP AT THE STORE \u2192</a></div>';
   host.insertBefore(d,host.firstChild);
   var b=document.getElementById("vVictoryShare");
   if(b) b.onclick=function(){
